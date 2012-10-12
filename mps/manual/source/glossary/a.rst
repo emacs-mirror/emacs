@@ -18,15 +18,34 @@ Glossary: A
 
         .. aka:: *function record*, *activation frame*.
 
-        An activation or function record is a data structure, associated with the invocation of a function, procedure or control block that stores the variables, temporaries and fixed-sized data local to the block, and the information required to return to the invoking context. It is often stored on a :term:`stack`.
+        An activation or function record is a data structure,
+        associated with the invocation of a function, procedure or
+        control block that stores the variables, temporaries and
+        fixed-sized data local to the block, and the information
+        required to return to the invoking context. It is often stored
+        on a :term:`stack`.
 
-        In a register-based hardware architecture, the current activation record is typically partially stored in registers.
+        In a register-based hardware architecture, the current
+        activation record is typically partially stored in registers.
 
-        :term:`Closures <closure>` and :term:`continuations <continuation>` are specializations of activation records in support of particular language features of :term:`LISP`, :term:`Scheme` and related languages.
+        :term:`Closures <closure>` and :term:`continuations
+        <continuation>` are specializations of activation records in
+        support of particular language features of :term:`LISP`,
+        :term:`Scheme` and related languages.
 
         .. relevance::
 
-            The current activation record is part of the state of the :term:`mutator`, and is therefore a :term:`root` to the :term:`collector (2)`. In languages that permit recursion, activation records have :term:`dynamic extent`. In languages that permit closures or continuations, activation records may have :term:`indefinite extent`. Although they may not be visible to the programmer, their :term:`storage` must be managed by the language run-time support. Because they are usually not visible to the programmer, they may be a source of inexplicable memory overhead.
+            The current activation record is part of the state of the
+            :term:`mutator`, and is therefore a :term:`root` to the
+            :term:`collector (2)`. In languages that permit recursion,
+            activation records have :term:`dynamic extent`. In
+            languages that permit closures or continuations,
+            activation records may have :term:`indefinite extent`.
+            Although they may not be visible to the programmer, their
+            :term:`storage` must be managed by the language run-time
+            support. Because they are usually not visible to the
+            programmer, they may be a source of inexplicable memory
+            overhead.
 
         .. seealso:: :term:`stack frame`.
 
@@ -40,26 +59,40 @@ Glossary: A
 
     address
 
-        An address is a specification of a :term:`location` in an :term:`address space`.
+        An address is a specification of a :term:`location` in an
+        :term:`address space`.
 
-        An address is almost always represented as an unsigned integer stored in a single :term:`machine word`. The address is decoded by the hardware in order to access a location on a :term:`physical memory (2)` device (such as a :term:`RAM`) or some :term:`memory-mapped <memory mapping>` resource.
+        An address is almost always represented as an unsigned integer
+        stored in a single :term:`machine word`. The address is
+        decoded by the hardware in order to access a location on a
+        :term:`physical memory (2)` device (such as a :term:`RAM`) or
+        some :term:`memory-mapped <memory mapping>` resource.
 
         .. figure:: ../diagrams/address.png
             :align: center
             :alt: Diagram: A simplified view of addresses, address space, and locations on a 32-bit architecture.
 
-            A simplified view of addresses, address space, and locations on a 32-bit architecture.
+            A simplified view of addresses, address space, and
+            locations on a 32-bit architecture.
 
         .. similar:: :term:`pointer`.
 
     address space
 
-        An *address space* is the set of possible :term:`addresses <address>`.
-        It can also be considered to be a partial function from addresses to :term:`locations <memory location>`.
+        An *address space* is the set of possible :term:`addresses
+        <address>`. It can also be considered to be a partial function
+        from addresses to :term:`locations <memory location>`.
 
-        Typically, addresses start at zero and run to 2^N-1, where N is the address width (for example, 15, 16, 24, 32, 64), which is usually the same as the width of the address bus. This may not be true for :term:`segmented <segmented addressing>` architectures.
+        Typically, addresses start at zero and run to 2^N-1, where N
+        is the address width (for example, 15, 16, 24, 32, 64), which
+        is usually the same as the width of the address bus. This may
+        not be true for :term:`segmented <segmented addressing>`
+        architectures.
 
-        In modern systems, large parts of the whole address space may be reserved by the operating system or architecture, or not :term:`mapped` at any given time. The mapped part of the address space may be discontiguous or sparse.
+        In modern systems, large parts of the whole address space may
+        be reserved by the operating system or architecture, or not
+        :term:`mapped` at any given time. The mapped part of the
+        address space may be discontiguous or sparse.
 
         .. seealso:: :term:`virtual address space`, :term:`physical address space`.
 
@@ -69,7 +102,11 @@ Glossary: A
 
     address-ordered first fit
 
-        The :term:`allocation policy` that always uses the suitable :term:`free block` with the lowest address. One of the most common allocation policies in use. Commonly implemented by :term:`first fit` on a single address-ordered :term:`free block chain`. Sometimes just called "first fit".
+        The :term:`allocation policy` that always uses the suitable
+        :term:`free block` with the lowest address. One of the most
+        common allocation policies in use. Commonly implemented by
+        :term:`first fit` on a single address-ordered :term:`free
+        block chain`. Sometimes just called "first fit".
 
         .. seealso:: :term:`first fit`, :term:`LIFO-ordered first fit`, :term:`address-ordered first fit`.
 
@@ -77,39 +114,60 @@ Glossary: A
 
     aging space
 
-        In some :term:`generational garbage collection` systems, when :term:`generations <generation>` are divided into :term:`buckets <bucket>`, the aging space is where :term:`objects <object>` which survive a :term:`collection` stay until they are old enough to be :term:`promoted <promotion>`.
+        In some :term:`generational garbage collection` systems, when
+        :term:`generations <generation>` are divided into
+        :term:`buckets <bucket>`, the aging space is where
+        :term:`objects <object>` which survive a :term:`collection`
+        stay until they are old enough to be :term:`promoted
+        <promotion>`.
 
         .. opposite:: :term:`creation space`.
 
     algebraic data type
 
-        Algebraic data types aggregate or alternate a number of dissimilarly-typed objects. They are termed algebraic because they can be expressed as a sum-of-products: (a and b and c) or d.
+        Algebraic data types aggregate or alternate a number of
+        dissimilarly-typed objects. They are termed algebraic because
+        they can be expressed as a sum-of-products: (a and b and c) or
+        d.
 
-        Examples of algebraic data types include: structures, records, tuples, and unions.
+        Examples of algebraic data types include: structures, records,
+        tuples, and unions.
 
         .. relevance::
 
-            Algebraic data types are usually represented using a :term:`heap`. Because of their non-uniformity, algebraic data types are more difficult to :term:`scan`.
+            Algebraic data types are usually represented using a
+            :term:`heap`. Because of their non-uniformity, algebraic
+            data types are more difficult to :term:`scan`.
 
         .. seealso:: :term:`scalar data type`, :term:`vector data type`, :term:`heap`.
 
     alignment
 
-        Alignment is a constraint on the :term:`address` of an :term:`object` in :term:`memory (2)`.
+        Alignment is a constraint on the :term:`address` of an
+        :term:`object` in :term:`memory (2)`.
 
-        The constraint is usually that the object's address must be a multiple of a power of two, 2\ :sup:`n`, and therefore that the least significant *n* bits of the address must be zero.
+        The constraint is usually that the object's address must be a
+        multiple of a power of two, 2\ :sup:`n`, and therefore that
+        the least significant *n* bits of the address must be zero.
 
-        The bus hardware of many modern processors cannot access multi-:term:`byte (2)`
-        objects at any memory address. Often :term:`word`-sized objects must be aligned
-        to word boundaries, double-words to double-word boundaries,
-        double-floats to 8-byte boundaries, and so on. If a program attempts to access
-        an object that is incorrectly aligned, a :term:`bus error` occurs.
+        The bus hardware of many modern processors cannot access
+        multi-:term:`byte (2)` objects at any memory address. Often
+        :term:`word`-sized objects must be aligned to word boundaries,
+        double-words to double-word boundaries, double-floats to
+        8-byte boundaries, and so on. If a program attempts to access
+        an object that is incorrectly aligned, a :term:`bus error`
+        occurs.
 
         .. relevance::
 
-            A memory manager must take care to :term:`allocate` memory with an appropriate alignment for the object that is going to be stored there. Implementations of :term:`malloc` have to allocate all :term:`blocks <block>` at the largest alignment that the processor architecture requires.
+            A memory manager must take care to :term:`allocate` memory
+            with an appropriate alignment for the object that is going
+            to be stored there. Implementations of :term:`malloc` have
+            to allocate all :term:`blocks <block>` at the largest
+            alignment that the processor architecture requires.
 
-            Other reasons for aligning objects include using the least significant bits of the address for a :term:`tag`.
+            Other reasons for aligning objects include using the least
+            significant bits of the address for a :term:`tag`.
 
         .. opposite:: :term:`unaligned`.
 
@@ -127,11 +185,29 @@ Glossary: A
 
         .. aka:: *cons (2)*.
 
-        *Allocation* is the process of assigning resources. When requested to by the program, an application :term:`memory manager` or :term:`allocator` *allocates* a :term:`block` of :term:`memory (2)` for the program to store its data in. Allocation is also known as *consing*, from :term:`cons (1)`.
+        *Allocation* is the process of assigning resources. When
+        requested to by the program, an application :term:`memory
+        manager` or :term:`allocator` *allocates* a :term:`block` of
+        :term:`memory (2)` for the program to store its data in.
+        Allocation is also known as *consing*, from :term:`cons (1)`.
 
-        When faced with a request for memory from the program, a memory manager must choose a suitable block and hand it over, or fail. The choices made by the memory manager at this point can have a significant effect on the future efficiency of the program.
+        When faced with a request for memory from the program, a
+        memory manager must choose a suitable block and hand it over,
+        or fail. The choices made by the memory manager at this point
+        can have a significant effect on the future efficiency of the
+        program.
 
-        Allocation is rarely a simple issue. For example, programs usually allocate :term:`activation records <activation record>` (:term:`automatic variables <automatic storage duration>`, and so on) for functions from a processor :term:`stack` simply by subtracting a number from their stack :term:`pointer`. However, in a :term:`virtual memory (1)` system, this may extend the stack onto a previously unused :term:`page`, in which case the operating system memory manager must carry out some quite complex operations in order to supply the program with :term:`backing store` for the stack so that the program can continue.
+        Allocation is rarely a simple issue. For example, programs
+        usually allocate :term:`activation records <activation
+        record>` (:term:`automatic variables <automatic storage
+        duration>`, and so on) for functions from a processor
+        :term:`stack` simply by subtracting a number from their stack
+        :term:`pointer`. However, in a :term:`virtual memory`
+        system, this may extend the stack onto a previously unused
+        :term:`page`, in which case the operating system memory
+        manager must carry out some quite complex operations in order
+        to supply the program with :term:`backing store` for the stack
+        so that the program can continue.
 
         .. historical::
 
@@ -151,9 +227,18 @@ Glossary: A
 
     allocation mechanism
 
-        The algorithm by which an :term:`allocator` chooses a :term:`free block` from which to satisfy an allocation request. An allocation mechanism is the implementation of an :term:`allocation policy`.
+        The algorithm by which an :term:`allocator` chooses a
+        :term:`free block` from which to satisfy an allocation
+        request. An allocation mechanism is the implementation of an
+        :term:`allocation policy`.
 
-        A common mechanism is ":term:`first fit` on an address-ordered :term:`free block chain`, with eager :term:`coalescing <coalesce>`". This implements the :term:`address-ordered first fit` policy, and commonly inherits that name, although there are many other mechanisms for implementing that policy (e.g. "leftmost fit on a balanced tree of free blocks ordered by address").
+        A common mechanism is ":term:`first fit` on an address-ordered
+        :term:`free block chain`, with eager :term:`coalescing
+        <coalesce>`". This implements the :term:`address-ordered first
+        fit` policy, and commonly inherits that name, although there
+        are many other mechanisms for implementing that policy (e.g.
+        "leftmost fit on a balanced tree of free blocks ordered by
+        address").
 
         .. bibref:: [WIL95]_.
 
@@ -169,11 +254,16 @@ Glossary: A
 
         .. aka:: *placement policy*.
 
-        The concrete policy used by an :term:`allocator` for choosing a :term:`free block` to satisfy an :term:`allocation <allocate>` request.
+        The concrete policy used by an :term:`allocator` for choosing
+        a :term:`free block` to satisfy an :term:`allocation
+        <allocate>` request.
 
-        For instance, "always allocate from the largest free block" (:term:`worst fit`) or "use the most recently freed block suitable" (:term:`LIFO-ordered first fit`).
+        For instance, "always allocate from the largest free block"
+        (:term:`worst fit`) or "use the most recently freed block
+        suitable" (:term:`LIFO-ordered first fit`).
 
-        Each allocation policy is motivated by an :term:`allocation strategy` and implemented by an :term:`allocation mechanism`.
+        Each allocation policy is motivated by an :term:`allocation
+        strategy` and implemented by an :term:`allocation mechanism`.
 
         .. seealso:: :term:`address-ordered first fit`, :term:`best fit`.
 
@@ -181,15 +271,24 @@ Glossary: A
 
     allocation strategy
 
-        The high-level design motivation or strategy, of an :term:`allocator`, which uses observations or theories about patterns of allocation requests to justify an :term:`allocation policy`.
+        The high-level design motivation or strategy, of an
+        :term:`allocator`, which uses observations or theories about
+        patterns of allocation requests to justify an
+        :term:`allocation policy`.
 
-        For instance, "do not allow small long-lived :term:`objects <object>` to fragment large :term:`free (3)` areas", "allocate consecutive objects close together", and so on. The allocation strategy motivates an :term:`allocation policy`, which is implemented by an :term:`allocation mechanism`.
+        For instance, "do not allow small long-lived :term:`objects
+        <object>` to fragment large :term:`free (3)` areas", "allocate
+        consecutive objects close together", and so on. The allocation
+        strategy motivates an :term:`allocation policy`, which is
+        implemented by an :term:`allocation mechanism`.
 
         .. bibref:: [WIL95]_.
 
     allocator
 
-        The term *allocator* is often used to refer to the :term:`memory manager`, usually when it is a simple manual one.
+        The term *allocator* is often used to refer to the
+        :term:`memory manager`, usually when it is a simple manual
+        one.
 
         .. similar:: :term:`memory manager`.
 
@@ -199,9 +298,13 @@ Glossary: A
 
         .. aka:: *unsure reference*.
 
-        An ambiguous or unsure :term:`reference` is a value that is potentially a reference, but the :term:`collector (1)` cannot prove that it is.
+        An ambiguous or unsure :term:`reference` is a value that is
+        potentially a reference, but the :term:`collector (1)` cannot
+        prove that it is.
 
-        The presence of ambiguous references in a :term:`garbage-collected <garbage collection>` system requires the use of :term:`conservative garbage collection`.
+        The presence of ambiguous references in a
+        :term:`garbage-collected <garbage collection>` system requires
+        the use of :term:`conservative garbage collection`.
 
         .. opposite:: :term:`exact reference`.
 
@@ -209,7 +312,8 @@ Glossary: A
 
     ambiguous root
 
-        An ambiguous root is a :term:`root` containing :term:`ambiguous references <ambiguous reference>`.
+        An ambiguous root is a :term:`root` containing
+        :term:`ambiguous references <ambiguous reference>`.
 
         .. opposite:: :term:`exact root`.
 
@@ -217,9 +321,12 @@ Glossary: A
 
     arena
 
-        The area of :term:`memory (2)` used by :term:`malloc` for allocation.
+        The area of :term:`memory (2)` used by :term:`malloc` for
+        allocation.
 
-        So named from a semi-mythical "malloc: corrupted arena" message supposedly emitted when some early versions became terminally confused.
+        So named from a semi-mythical "malloc: corrupted arena"
+        message supposedly emitted when some early versions became
+        terminally confused.
 
         .. seealso:: :term:`brk`.
 
@@ -247,11 +354,23 @@ Glossary: A
 
     automatic memory management
 
-        Automatic :term:`memory management` is a general term for techniques that automatically :term:`recycle` unused :term:`memory (2)`.
+        Automatic :term:`memory management` is a general term for
+        techniques that automatically :term:`recycle` unused
+        :term:`memory (2)`.
 
-        It is not possible, in general, to automatically determine which :term:`objects <object>` are still :term:`live`.   Even if it didn't depend on future input, there can be no general algorithm to prove that an object is live (cf. the Halting Problem). However, effective approximations are possible.
+        It is not possible, in general, to automatically determine
+        which :term:`objects <object>` are still :term:`live`. Even if
+        it didn't depend on future input, there can be no general
+        algorithm to prove that an object is live (cf. the Halting
+        Problem). However, effective approximations are possible.
 
-        In :term:`tracing garbage collection`, the approximation is that an object can't be live unless it is :term:`reachable`. In :term:`reference counting`, the approximation is that an object can't be live unless it is :term:`referenced <reference>`. Analysis of the program text can reveal where objects :term:`die <dead>`; A notable technique in this vein is :term:`region inference`.
+        In :term:`tracing garbage collection`, the approximation is
+        that an object can't be live unless it is :term:`reachable`.
+        In :term:`reference counting`, the approximation is that an
+        object can't be live unless it is :term:`referenced
+        <reference>`. Analysis of the program text can reveal where
+        objects :term:`die <dead>`; A notable technique in this vein
+        is :term:`region inference`.
 
         Hybrid algorithms are also possible.
 
@@ -261,12 +380,15 @@ Glossary: A
 
     automatic storage duration
 
-        In :term:`C`, :term:`objects <object>` that are declared with *automatic storage duration* are :term:`live` for the duration of a block of code.
+        In :term:`C`, :term:`objects <object>` that are declared with
+        *automatic storage duration* are :term:`live` for the duration
+        of a block of code.
 
-        In most implementations of C, objects with automatic storage duration are :term:`allocated <allocate>` on the :term:`stack` when a function is entered, and :term:`deallocated <free (1)>` when it returns.
+        In most implementations of C, objects with automatic storage
+        duration are :term:`allocated <allocate>` on the :term:`stack`
+        when a function is entered, and :term:`deallocated <free (1)>`
+        when it returns.
 
         .. similar:: :term:`stack allocation`, :term:`dynamic extent`.
 
         .. opposite:: :term:`static storage duration`.
-
-

@@ -10,19 +10,36 @@ Glossary: C
 
         .. aka:: *memory cache*, *cache memory*.
 
-        A processor's memory cache is a small piece of fast, but more expensive memory, usually :term:`static memory (1)`, used for copies of parts of :term:`main memory`. The cache is automatically used by the processor for fast access to any data currently :term:`resident` there. Access to the cache typically takes only a few processor clock cycles, whereas access to :term:`main memory` may take tens or even hundreds of cycles.
+        A processor's memory cache is a small piece of fast, but more
+        expensive memory, usually :term:`static memory (1)`, used for
+        copies of parts of :term:`main memory`. The cache is
+        automatically used by the processor for fast access to any
+        data currently :term:`resident` there. Access to the cache
+        typically takes only a few processor clock cycles, whereas
+        access to :term:`main memory` may take tens or even hundreds
+        of cycles.
 
-        What part of main memory is resident in a cache, and the mechanisms by which it is kept consistent, are quite varied. See :term:`cache policy`.
+        What part of main memory is resident in a cache, and the
+        mechanisms by which it is kept consistent, are quite varied.
+        See :term:`cache policy`.
 
-        Some systems have more than one level of cache. "level 1 cache" is the fastest, smallest :term:`storage level`, "level 2" the next fastest, and so on.
+        Some systems have more than one level of cache. "level 1
+        cache" is the fastest, smallest :term:`storage level`, "level
+        2" the next fastest, and so on.
 
         .. seealso:: :term:`storage hierarchy`, :term:`cache (2)`.
 
     cache (2)
 
-        A cache is any small, fast piece of :term:`storage`, used for copies of data that normally reside in a larger, slower piece of storage. The cache is used to speed up access to data :term:`resident` in the slower storage.
+        A cache is any small, fast piece of :term:`storage`, used for
+        copies of data that normally reside in a larger, slower piece
+        of storage. The cache is used to speed up access to data
+        :term:`resident` in the slower storage.
 
-        In a typical cache, recently used data is :term:`resident` in the cache (although the details of this depend on the :term:`cache policy`). A :term:`cache (1)` is the most common example of a cache(2).
+        In a typical cache, recently used data is :term:`resident` in
+        the cache (although the details of this depend on the
+        :term:`cache policy`). A :term:`cache (1)` is the most common
+        example of a cache(2).
 
         .. seealso:: :term:`storage hierarchy`.
 
@@ -32,18 +49,28 @@ Glossary: C
 
     cache policy
 
-        Any :term:`cache (3) <caching (3)>` uses a *cache policy* to decide which data to store. A cache policy is an attempt to predict the future, so that the cache will provide swift responses to future requests.
+        Any :term:`cache (3) <caching (3)>` uses a *cache policy* to
+        decide which data to store. A cache policy is an attempt to
+        predict the future, so that the cache will provide swift
+        responses to future requests.
 
-        Cache policy may be implemented in hardware, software, or a combination of both. Some systems allow programs to influence cache policy, by giving hints or directions about future use of data.
+        Cache policy may be implemented in hardware, software, or a
+        combination of both. Some systems allow programs to influence
+        cache policy, by giving hints or directions about future use
+        of data.
 
-        There are three main aspects of cache behavior which the cache policy can affect:
+        There are three main aspects of cache behavior which the cache
+        policy can affect:
 
-        Fetch policy
-            This determines which data is fetched into the cache, usually as a result of receiving a request for data that isn't cached.
-        Eviction policy
-            This determines which data is discarded from the cache to provide space for newly fetched data.
-        Write policy
-          This determines how and when modifications to cached data are synchronized with the underlying storage.
+        1. Fetch policy. This determines which data is fetched into
+           the cache, usually as a result of receiving a request for
+           data that isn't cached.
+
+        2. Eviction policy. This determines which data is discarded
+           from the cache to provide space for newly fetched data.
+
+        3. Write policy This determines how and when modifications to
+           cached data are synchronized with the underlying storage.
 
         .. seealso:: :term:`cache (1)`, :term:`cache (2)`, :term:`cache (3) <caching (3)>`.
 
@@ -53,31 +80,58 @@ Glossary: C
 
         .. aka:: *memoization*, *tabling*.
 
-        *Caching* is a heuristic that stores answers to questions asked in the past in a *cache* or a *table*, in order that they may be more quickly answered in the future.  This process is also called memoization and tabling (by the :term:`Prolog` community).
+        *Caching* is a heuristic that stores answers to questions
+        asked in the past in a *cache* or a *table*, in order that
+        they may be more quickly answered in the future. This process
+        is also called memoization and tabling (by the :term:`Prolog`
+        community).
 
-        A "look-ahead cache" attempts to store answers to questions that will be asked soon.  A :term:`cache (2)` is a common example of a cache(3).
+        A "look-ahead cache" attempts to store answers to questions
+        that will be asked soon. A :term:`cache (2)` is a common
+        example of a cache(3).
 
     cactus stack
 
         .. aka:: *spaghetti stack*.
 
-        A cactus stack is a :term:`stack` with branches. When diagrammed, its shape resembles that of a `saguaro cactus <http://www.azstarnet.com/%7Efosnp/factsaboutsaguaros.html>`_.
+        A cactus stack is a :term:`stack` with branches. When
+        diagrammed, its shape resembles that of a `saguaro cactus
+        <http://www.azstarnet.com/%7Efosnp/factsaboutsaguaros.html>`_.
 
-        In languages that support :term:`continuations <continuation>`, :term:`activation records <activation record>` can have :term:`indefinite extent`.  One technique for implementing continuations is not to copy the activation records that are captured, but rather to create a fork in the stack below the captured :term:`stack frames <stack frame>`, so that new frames appear as a parallel branch.  Often the process of forking is done lazily: captured frames are only duplicated if they are modified.
+        In languages that support :term:`continuations
+        <continuation>`, :term:`activation records <activation
+        record>` can have :term:`indefinite extent`. One technique for
+        implementing continuations is not to copy the activation
+        records that are captured, but rather to create a fork in the
+        stack below the captured :term:`stack frames <stack frame>`,
+        so that new frames appear as a parallel branch. Often the
+        process of forking is done lazily: captured frames are only
+        duplicated if they are modified.
 
     card
 
-        A card is a division of memory, all cards being of equal size (in a
-        particular area of discourse).  A card is usually bigger than a :term:`word`
-        and smaller than a :term:`page`.  Cards are used in a technique called
-        :term:`card-marking <card marking>` whereby :term:`dirty bits <dirty bit>` (which record which portions of old
-        generations have been written into) are maintained for each card.
-        Often the use of cards will also entail the use of a :term:`crossing map`.
+        A card is a division of memory, all cards being of equal size
+        (in a particular area of discourse). A card is usually bigger
+        than a :term:`word` and smaller than a :term:`page`. Cards are
+        used in a technique called :term:`card-marking <card marking>`
+        whereby :term:`dirty bits <dirty bit>` (which record which
+        portions of old generations have been written into) are
+        maintained for each card. Often the use of cards will also
+        entail the use of a :term:`crossing map`.
 
     card marking
     card-marking
 
-        A technique for managing :term:`pointer` :term:`stores <store (1)>` into old :term:`generations <generation>` (which in turn is used to track :term:`inter-generational pointers <inter-generational pointer>`).  Each generation is divided into a number of equal-sized :term:`cards <card>`, and when a generation is written into, the particular card written to is recorded (often by using a :term:`bit-table`).  Subsequently, when :term:`scanning <scan>` an older generation in order to collect a younger generation, only the recorded cards (in the old generation) need to be scanned.
+        A technique for managing :term:`pointer` :term:`stores <store
+        (1)>` into old :term:`generations <generation>` (which in turn
+        is used to track :term:`inter-generational pointers
+        <inter-generational pointer>`). Each generation is divided
+        into a number of equal-sized :term:`cards <card>`, and when a
+        generation is written into, the particular card written to is
+        recorded (often by using a :term:`bit-table`). Subsequently,
+        when :term:`scanning <scan>` an older generation in order to
+        collect a younger generation, only the recorded cards (in the
+        old generation) need to be scanned.
 
         .. seealso:: :term:`generational garbage collection`.
 
@@ -91,9 +145,11 @@ Glossary: C
 
         .. aka:: *Cheney scan*.
 
-        A Cheney collector uses the new :term:`semi-space` of a :term:`two space collector <two-space collector>` as a
-        queue of objects remaining to be :term:`scanned <scan>`, thus eliminating the need for
-        recursion when :term:`tracing <trace>` the :term:`graph` of :term:`objects <object>`.
+        A Cheney collector uses the new :term:`semi-space` of a
+        :term:`two space collector <two-space collector>` as a queue
+        of objects remaining to be :term:`scanned <scan>`, thus
+        eliminating the need for recursion when :term:`tracing
+        <trace>` the :term:`graph` of :term:`objects <object>`.
 
         .. seealso:: :term:`two space collector <two-space collector>`.
 
@@ -125,31 +181,62 @@ Glossary: C
 
     closure
 
-        A closure is a function or procedure that is saved along with the current bindings from enclosing blocks for later invocation.
+        A closure is a function or procedure that is saved along with
+        the current bindings from enclosing blocks for later
+        invocation.
 
-        Some programming languages, such as :term:`Algol`, permit nested blocks to access the local variables of enclosing blocks.  :term:`Lisp`-like languages further permit such an inner block (in particular a function or procedure) to be saved for later invocation.  The act of saving such an inner block along with the current bindings of variables in the enclosing blocks that are referenced by the inner block, is called *closing over* or *capturing* those variables.  The object created is termed *a closure*.  A closure is invoked just like the function from which it was built, passing whatever parameters the function accepts, but when the function executes, the variables that belong to enclosing blocks will have the bindings that were in effect when the closure was created.
+        Some programming languages, such as :term:`ALGOL`, permit
+        nested blocks to access the local variables of enclosing
+        blocks. :term:`Lisp`-like languages further permit such an
+        inner block (in particular a function or procedure) to be
+        saved for later invocation. The act of saving such an inner
+        block along with the current bindings of variables in the
+        enclosing blocks that are referenced by the inner block, is
+        called *closing over* or *capturing* those variables. The
+        object created is termed *a closure*. A closure is invoked
+        just like the function from which it was built, passing
+        whatever parameters the function accepts, but when the
+        function executes, the variables that belong to enclosing
+        blocks will have the bindings that were in effect when the
+        closure was created.
 
         .. relevance::
 
-            A closure is typically implemented by saving both the function and any :term:`activation records <activation record>` that contain variables referenced by the function.  The closure creates additional implicit :term:`references <reference>` to the bindings closed over and hence must be accounted for in any memory management scheme. The closure itself is an object that must be managed and may have either :term:`dynamic extent` or :term:`indefinite extent` depending on whether it is only used by inner blocks of the creating block or passed out of the creating block.
+            A closure is typically implemented by saving both the
+            function and any :term:`activation records <activation
+            record>` that contain variables referenced by the
+            function. The closure creates additional implicit
+            :term:`references <reference>` to the bindings closed over
+            and hence must be accounted for in any memory management
+            scheme. The closure itself is an object that must be
+            managed and may have either :term:`dynamic extent` or
+            :term:`indefinite extent` depending on whether it is only
+            used by inner blocks of the creating block or passed out
+            of the creating block.
 
         .. seealso:: :term:`continuation`.
 
     coalesce
 
-        Coalescing is the act of merging two adjacent :term:`free blocks <free block>`.
+        Coalescing is the act of merging two adjacent :term:`free
+        blocks <free block>`.
 
-        Coalescing reduces :term:`external fragmentation`, but is not totally effective.
+        Coalescing reduces :term:`external fragmentation`, but is not
+        totally effective.
 
-        Coalescing can be done as soon as blocks are freed, or it can be deferred until some time later (known as :term:`deferred coalescing`), or it might not be done at all.
+        Coalescing can be done as soon as blocks are freed, or it can
+        be deferred until some time later (known as :term:`deferred
+        coalescing`), or it might not be done at all.
 
-        [WIL95]_ has details about fragmentation, and which coalescing strategies are effective under what circumstances.
+        [WIL95]_ has details about fragmentation, and which coalescing
+        strategies are effective under what circumstances.
 
         .. bibref:: [WIL95]_.
 
     collect
 
-        An :term:`object` is collected when it is :term:`reclaimed <reclaim>` by a :term:`garbage collector`.
+        An :term:`object` is collected when it is :term:`reclaimed
+        <reclaim>` by a :term:`garbage collector`.
 
         .. similar:: :term:`reclaim`.
 
@@ -161,11 +248,23 @@ Glossary: C
 
         .. aka:: *collection*.
 
-        A collection cycle is a single complete execution of a :term:`tracing garbage collection` algorithm.
+        A collection cycle is a single complete execution of a
+        :term:`tracing garbage collection` algorithm.
 
-        Each collection cycle includes (not necessarily in strict order) choosing a :term:`condemned set`; :term:`scanning <scan>` :term:`roots <root>` and :term:`objects <object>` that have not been condemned; :term:`tracing <trace>` the object graph to find all condemned objects that are :term:`reachable`; and :term:`reclaiming <reclaim>` those that were not reachable.
+        Each collection cycle includes (not necessarily in strict
+        order) choosing a :term:`condemned set`; :term:`scanning
+        <scan>` :term:`roots <root>` and :term:`objects <object>` that
+        have not been condemned; :term:`tracing <trace>` the object
+        graph to find all condemned objects that are
+        :term:`reachable`; and :term:`reclaiming <reclaim>` those that
+        were not reachable.
 
-        In non-incremental garbage collection, the :term:`mutator` pauses at the start of a collection cycle and cannot continue until it is complete.  In :term:`incremental <incremental garbage collection>` and :term:`parallel <parallel garbage collection>` garbage collection, a collection cycle can be interleaved with, or simultaneous to, mutator activity.
+        In non-incremental garbage collection, the :term:`mutator`
+        pauses at the start of a collection cycle and cannot continue
+        until it is complete. In :term:`incremental <incremental
+        garbage collection>` and :term:`parallel <parallel garbage
+        collection>` garbage collection, a collection cycle can be
+        interleaved with, or simultaneous to, mutator activity.
 
     collector (1)
 
@@ -173,22 +272,29 @@ Glossary: C
 
     collector (2)
 
-        In a :term:`garbage-collected <garbage collection>` system, the part that executes the garbage collection code, which discovers unused :term:`storage` and :term:`reclaims <reclaim>` it.
+        In a :term:`garbage-collected <garbage collection>` system,
+        the part that executes the garbage collection code, which
+        discovers unused :term:`storage` and :term:`reclaims
+        <reclaim>` it.
 
-        For purposes of describing :term:`incremental garbage collection`, the system is divided into the :term:`mutator` and the *collector*.  These can be separate threads of computation, or interleaved within the same thread.
+        For purposes of describing :term:`incremental garbage
+        collection`, the system is divided into the :term:`mutator`
+        and the *collector*. These can be separate threads of
+        computation, or interleaved within the same thread.
 
         .. historical::
 
-            This term is due to Dijkstra et al.
+            This term is due to [DLMSS76]_.
 
         .. opposite:: :term:`mutator`.
-
-        .. bibref:: [DLMSS76]_.
 
     color
     colour
 
-        In a :term:`tri-color marking` scheme, each :term:`node` has a one of three colors: :term:`black`, :term:`white`, or :term:`gray`.  In a :term:`treadmill`, nodes may also be colored :term:`off-white`.
+        In a :term:`tri-color marking` scheme, each :term:`node` has a
+        one of three colors: :term:`black`, :term:`white`, or
+        :term:`gray`. In a :term:`treadmill`, nodes may also be
+        colored :term:`off-white`.
 
     commit limit
 
@@ -206,15 +312,24 @@ Glossary: C
 
         .. aka:: *compactifying*.
 
-        Compaction is the process of :term:`moving <moving garbage collector>` :term:`live` :term:`objects <object>` to eliminate :term:`dead` space between them.  Some people call this *compactifying*, to distinguish it from techniques for compressing data structures.
+        Compaction is the process of :term:`moving <moving garbage
+        collector>` :term:`live` :term:`objects <object>` to eliminate
+        :term:`dead` space between them. Some people call this
+        *compactifying*, to distinguish it from techniques for
+        compressing data structures.
 
-        Compaction is used to avoid :term:`external fragmentation` and to increase :term:`locality of reference`.
+        Compaction is used to avoid :term:`external fragmentation` and
+        to increase :term:`locality of reference`.
 
     composite object
 
-        In the :term:`PostScript` language, *composite objects* are the :term:`boxed` objects.
+        In the :term:`PostScript` language, *composite objects* are
+        the :term:`boxed` objects.
 
-        Unlike a :term:`simple object`, the main data (what PostScript calls *the value*) in a composite object are stored separately, in :term:`VM (2)`.  Several composite objects can share the same value.
+        Unlike a :term:`simple object`, the main data (what PostScript
+        calls *the value*) in a composite object are stored
+        separately, in :term:`VM (2)`. Several composite objects can
+        share the same value.
 
         .. similar:: :term:`boxed`.
 
@@ -222,7 +337,10 @@ Glossary: C
 
     comprehensive
 
-        A :term:`collector (1)` is *comprehensive* if all :term:`garbage` (or, all :term:`unreachable` :term:`objects <object>`) is :term:`reclaimed <reclaim>` in one :term:`collection cycle`.
+        A :term:`collector (1)` is *comprehensive* if all
+        :term:`garbage` (or, all :term:`unreachable` :term:`objects
+        <object>`) is :term:`reclaimed <reclaim>` in one
+        :term:`collection cycle`.
 
         .. seealso:: :term:`garbage collection`.
 
@@ -236,13 +354,16 @@ Glossary: C
 
     connected
 
-        :term:`Objects <object>` are connected if and only if one contains a :term:`reference` to the other.
+        :term:`Objects <object>` are connected if and only if one
+        contains a :term:`reference` to the other.
 
         .. seealso:: :term:`graph`.
 
     cons (1)
 
-        In :term:`Lisp`, ``cons`` is a primitive operation creating a list element (from English "CONStruct").  By extension, a *cons* is the element created.
+        In :term:`Lisp`, ``cons`` is a primitive operation creating a
+        list element (from English "CONStruct"). By extension, a
+        *cons* is the element created.
 
         .. link::
 
@@ -254,14 +375,34 @@ Glossary: C
 
     conservative garbage collection
 
-        In conservative :term:`garbage collection`, the layout of :term:`objects <object>` and :term:`roots <root>` is not known, instead the :term:`collector (1)` assumes that any field that looks like a :term:`pointer` *might* be a :term:`reference`.
+        In conservative :term:`garbage collection`, the layout of
+        :term:`objects <object>` and :term:`roots <root>` is not
+        known, instead the :term:`collector (1)` assumes that any
+        field that looks like a :term:`pointer` *might* be a
+        :term:`reference`.
 
-        Conservative collectors can work with programs where information about the :term:`memory (2)` layout is not available, because, for example, the language doesn't support :term:`GC`.
+        Conservative collectors can work with programs where
+        information about the :term:`memory (2)` layout is not
+        available, because, for example, the language doesn't support
+        :term:`GC`.
 
-        A conservative collector doesn't need to know the :term:`format` of the objects, it just needs some idea of where the object boundaries are.  It regards any field value that looks like a pointer to an object
-        (or, sometimes, into the middle of one), as preventing the :term:`recycling <recycle>` of that object.  It can't :term:`move <moving garbage collector>` objects, because then the references to the moved objects would need to be updated, and such :term:`ambiguous references <ambiguous reference>` must not be modified, in case they weren't pointers after all.  Therefore, conservative collectors are usually :term:`mark-sweep collectors <mark-sweep>`.
+        A conservative collector doesn't need to know the
+        :term:`format` of the objects, it just needs some idea of
+        where the object boundaries are. It regards any field value
+        that looks like a pointer to an object (or, sometimes, into
+        the middle of one), as preventing the :term:`recycling
+        <recycle>` of that object. It can't :term:`move <moving
+        garbage collector>` objects, because then the references to
+        the moved objects would need to be updated, and such
+        :term:`ambiguous references <ambiguous reference>` must not be
+        modified, in case they weren't pointers after all. Therefore,
+        conservative collectors are usually :term:`mark-sweep
+        collectors <mark-sweep>`.
 
-        Because references are ambiguous, some objects may be retained despite being actually :term:`unreachable`.  In practice, this happens rarely, and refinements such as :term:`black-listing <blacklisting>` can further reduce the odds.
+        Because references are ambiguous, some objects may be retained
+        despite being actually :term:`unreachable`. In practice, this
+        happens rarely, and refinements such as :term:`black-listing
+        <blacklisting>` can further reduce the odds.
 
         .. opposite:: :term:`exact garbage collection`.
 
@@ -275,25 +416,37 @@ Glossary: C
 
     constructor (1)
 
-        A constructor is a function or method that :term:`allocates <allocate>` and initializes an :term:`object`.
+        A constructor is a function or method that :term:`allocates
+        <allocate>` and initializes an :term:`object`.
 
         .. opposite:: :term:`destructor (1)`.
 
     constructor (2)
 
-        In :term:`C++`, a *constructor* is a member function that is used to initialize a newly-:term:`allocated <allocate>` object.
+        In :term:`C++`, a *constructor* is a member function that is
+        used to initialize a newly-:term:`allocated <allocate>`
+        object.
 
-        The actual allocation of :term:`memory (2)` is performed by ``operator new`` or the compiler (for :term:`static <static allocation>` and :term:`stack allocation`), and the new :term:`block` is then passed to the appropriate constructor.
+        The actual allocation of :term:`memory (2)` is performed by
+        ``operator new`` or the compiler (for :term:`static <static
+        allocation>` and :term:`stack allocation`), and the new
+        :term:`block` is then passed to the appropriate constructor.
 
         .. seealso:: :term:`destructor (2)`.
 
     continuation
 
-        A continuation is the data required to restore an execution context after invocation of another context, typically as a subroutine.
+        A continuation is the data required to restore an execution
+        context after invocation of another context, typically as a
+        subroutine.
 
         .. relevance::
 
-            If continuations can be represented as first-class objects, as in :term:`Scheme`, the execution contexts can no longer be stored on a :term:`stack`, instead, (at least some) :term:`activation records <activation record>` have to be :term:`heap-allocated <heap allocation>`.
+            If continuations can be represented as first-class
+            objects, as in :term:`Scheme`, the execution contexts can
+            no longer be stored on a :term:`stack`, instead, (at least
+            some) :term:`activation records <activation record>` have
+            to be :term:`heap-allocated <heap allocation>`.
 
         .. seealso:: :term:`closure`.
 
@@ -301,13 +454,27 @@ Glossary: C
 
         .. aka:: *activation stack*, *execution stack*.
 
-        A :term:`stack` that stores :term:`activation records <activation record>`, particularly subroutine return information, is known as a *control stack*.
+        A :term:`stack` that stores :term:`activation records
+        <activation record>`, particularly subroutine return
+        information, is known as a *control stack*.
 
-        Typically the control stack is supported and used by the hardware architecture and the operating system, limiting the types and sizes of :term:`objects <object>` that can be stored on it.  Often, only one type of object, a :term:`stack frame`, is permitted, and the layout of that is defined by the hardware architecture.
+        Typically the control stack is supported and used by the
+        hardware architecture and the operating system, limiting the
+        types and sizes of :term:`objects <object>` that can be stored
+        on it. Often, only one type of object, a :term:`stack frame`,
+        is permitted, and the layout of that is defined by the
+        hardware architecture.
 
         .. relevance::
 
-            Theoretically, a control stack is simply an array of activation records, and hence just another object managed by the :term:`memory manager`.  In practice, the control stack is central to the performance of the hardware architecture and may require special treatment.  In particular, it may not be accessible as ordinary :term:`memory (2)`, or it may have its own :term:`cache (2)` with specific updating requirements.
+            Theoretically, a control stack is simply an array of
+            activation records, and hence just another object managed
+            by the :term:`memory manager`. In practice, the control
+            stack is central to the performance of the hardware
+            architecture and may require special treatment. In
+            particular, it may not be accessible as ordinary
+            :term:`memory (2)`, or it may have its own :term:`cache
+            (2)` with specific updating requirements.
 
         .. similar:: :term:`stack`.
 
@@ -321,9 +488,15 @@ Glossary: C
 
         .. aka:: *scavenging garbage collection*.
 
-        Copying garbage collection is a kind of :term:`tracing garbage collection` that operates by :term:`relocating <relocation>` :term:`reachable` :term:`objects <object>` (this is sometimes called *scavenging*) and then :term:`reclaiming <reclaim>` objects that are left behind, which must be :term:`unreachable` and therefore :term:`dead`.
+        Copying garbage collection is a kind of :term:`tracing garbage
+        collection` that operates by :term:`relocating <relocation>`
+        :term:`reachable` :term:`objects <object>` (this is sometimes
+        called *scavenging*) and then :term:`reclaiming <reclaim>`
+        objects that are left behind, which must be
+        :term:`unreachable` and therefore :term:`dead`.
 
-        A copying garbage collection relies on being able to find and correct all :term:`references <reference>` to copied objects.
+        A copying garbage collection relies on being able to find and
+        correct all :term:`references <reference>` to copied objects.
 
         .. figure:: ../diagrams/copying.png
             :align: center
@@ -337,13 +510,18 @@ Glossary: C
 
     core
 
-        A historical synonym for :term:`main memory`, deriving from the *cores* or ferrite rings which were once the main technology used to implement main memory.
+        A historical synonym for :term:`main memory`, deriving from
+        the *cores* or ferrite rings which were once the main
+        technology used to implement main memory.
 
         .. similar:: :term:`main memory`.
 
     creation space
 
-        In :term:`generational garbage collection`, when :term:`generations <generation>` are divided into :term:`buckets <bucket>`, the creation space is where new :term:`objects <object>` are created in each generation.
+        In :term:`generational garbage collection`, when
+        :term:`generations <generation>` are divided into
+        :term:`buckets <bucket>`, the creation space is where new
+        :term:`objects <object>` are created in each generation.
 
         This term is sometimes used as a synonym for :term:`nursery space`.
 
@@ -353,14 +531,31 @@ Glossary: C
 
     crossing map
 
-        Where :term:`memory (2)` has already been divided into some fixed-sized unit (for example, :term:`pages <page>` or :term:`cards <card>`), a crossing map records where :term:`objects <object>` lie across the boundaries of the fixed-sized units.  In other words, which fixed-sized units do not start with the beginning of an object.
+        Where :term:`memory (2)` has already been divided into some
+        fixed-sized unit (for example, :term:`pages <page>` or
+        :term:`cards <card>`), a crossing map records where
+        :term:`objects <object>` lie across the boundaries of the
+        fixed-sized units. In other words, which fixed-sized units do
+        not start with the beginning of an object.
 
-        A system which implements :term:`remembered sets <remembered set>` by :term:`page-marking <page marking>` or :term:`card-marking <card marking>` needs to scan all the :term:`pointers <pointer>` in the page or card.  If the system can not :term:`scan` partial objects (or requires information in the object :term:`header` in order to scan a partial object), a crossing map is necessary to find the beginning of the first object in the unit.
+        A system which implements :term:`remembered sets <remembered
+        set>` by :term:`page-marking <page marking>` or
+        :term:`card-marking <card marking>` needs to scan all the
+        :term:`pointers <pointer>` in the page or card. If the system
+        can not :term:`scan` partial objects (or requires information
+        in the object :term:`header` in order to scan a partial
+        object), a crossing map is necessary to find the beginning of
+        the first object in the unit.
 
         .. relevance::
 
-            In a sense, a crossing map is an optimization of :term:`tagged architecture`.  It represents the minimum information necessary to determine how to interpret any word of memory.
+            In a sense, a crossing map is an optimization of
+            :term:`tagged architecture`. It represents the minimum
+            information necessary to determine how to interpret any
+            word of memory.
 
     cyclic data structure
 
-        A data structure is cyclic if some of its :term:`references <reference>` form a loop; that is, there's an :term:`object` that can be reached by following references from itself.
+        A data structure is cyclic if some of its :term:`references
+        <reference>` form a loop; that is, there's an :term:`object`
+        that can be reached by following references from itself.
