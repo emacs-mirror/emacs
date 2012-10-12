@@ -13,7 +13,9 @@ Memory Pool System
    topic/index
    pool/index
    reference/index
-   glossary
+   lang
+   glossary/index
+   bib
    copyright
 
 

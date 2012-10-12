@@ -1,425 +1,381 @@
-<?xml version="1.0" encoding="iso-8859-1"?>
-<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
-        "http://www.w3.org/TR/2000/REC-xhtml1-20000126/DTD/xhtml1-transitional.dtd">
-<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
-<head>
-<link rev="MADE" href="mailto:mm-web@ravenbrook.com" />
-<link rel="Start" href="../" />
-<link rel="Contents" href="../" />
-<link rel="Glossary" href="" />
-<meta name="DC.Date" content="2000-12-15T20:16:57" />
-<meta name="description" content="Glossary of terms related to memory management" />
-<meta name="keywords" content="dictionary, glossary, definition, memory management, garbage collection" />
-<link rel="index" href="./" />
-<link rel="help" href="help.html" />
-<link rel="prev" href="l.html" />
-<link rel="next" href="n.html" />
-<title>The Memory Management Glossary: M</title>
-</head>
-<body lang="en" bgcolor="#FFFFFF" text="#000000" link="#000099" vlink="#660066" alink="#FF0000">
-<h1 align="center">The Memory Management Glossary<br />
-<big>M</big></h1>
-<div align="center">&#160;<a href=".././">Contents</a> |
-<a href="../news/">News</a> |
-<a href="./">Glossary</a> |
-<a href="../faq.html">FAQ</a> |
-<a href="../articles/">Articles</a> |
-<a href="../bib/">Bibliography</a> |
-<a href="../links.html">Links</a> |
-<a href="../feedback.html">Feedback</a></div>
-<hr size="1" noshade="noshade" />
-<p align="center"><a href="a.html">A</a>
-<a href="b.html">B</a>
-<a href="c.html">C</a>
-<a href="d.html">D</a>
-<a href="e.html">E</a>
-<a href="f.html">F</a>
-<a href="g.html">G</a>
-<a href="h.html">H</a>
-<a href="i.html">I</a>
-J
-<a href="k.html">K</a>
-<a href="l.html">L</a>
-<strong>M</strong>
-<a href="n.html">N</a>
-<a href="o.html">O</a>
-<a href="p.html">P</a>
-<a href="q.html">Q</a>
-<a href="r.html">R</a>
-<a href="s.html">S</a>
-<a href="t.html">T</a>
-<a href="u.html">U</a>
-<a href="v.html">V</a>
-<a href="w.html">W</a>
-X
-Y
-<a href="z.html">Z</a> - <a href="help.html">Help</a></p>
-<p>Our aim is for these entries to be accurate, comprehensible, and useful, and also to have an entry for all common memory management terms.  If you can't find the term you're looking for, if our definition doesn't help you, or if you'd like to suggest corrections or additions, please let us know via our <a href="../feedback.html">feedback page</a>.</p>
-
-<p>For an explanation of the structure of the entries, and information on how to link to definitions, please see the <a href="help.html">glossary help page</a>.</p>
-
-<hr />
-<dl>
-<dt><strong><a id="machine.word" name="machine.word">machine word</a></strong>
-  (for full details, see <a href="w.html#word">word</a>)</dt>
-<dd><p>Almost all processor architectures have a characteristic data size that is handled most efficiently.  This is known as the <em>word size</em>, and data of that size are known as <em>words</em>.  The word size is usually a power of two multiple of <a href="b.html#byte-2">bytes<sup><small>(2)</small></sup></a>.</p></dd>
-
-<dt><strong><a id="main.memory" name="main.memory">main memory</a></strong>
-  (also known as memory(3), primary storage)</dt>
-<dd><p>The <em>main memory</em> (or <em>primary storage</em>) of a computer is <a href="#memory-1">memory<sup><small>(1)</small></sup></a> that is wired directly to the processor, consisting of <a href="r.html#ram">RAM</a> and possibly <a href="r.html#rom">ROM</a>.</p>
-<p>These terms are used in contrast to mass storage devices and <a href="c.html#cache.memory">cache memory</a> (although we may note that when a program accesses main memory, it is often actually interacting with a cache).</p>
-
-<p>Main memory is the middle level of the <a href="#memory.hierarchy">memory hierarchy</a>: it is slower and cheaper than <a href="c.html#cache-1">caches<sup><small>(1)</small></sup></a>, but faster and more expensive than <a href="b.html#backing.store">backing store</a>.</p>
-
-<p>It is common to refer only to the main memory of a computer; for example, "This box has 16 MB of memory" and "Word for Windows&reg; requires 32 MB".</p>
-
-<p><strong>Historical note:</strong> Main memory used to be called <a href="c.html#core">core</a>, and is now likewise often called <a href="r.html#ram">RAM</a>.</p>
-
-<p><strong>Similar terms:</strong> <a href="r.html#ram">RAM</a>;
-    <a href="c.html#core">core</a>;
-    <a href="p.html#physical.memory-1">physical memory<sup><small>(1)</small></sup></a>.
-</p></dd>
-
-<dt><strong><a id="malloc" name="malloc">malloc</a></strong></dt>
-<dd><p>A function in the standard <a href="../articles/lang.html#c">C</a> library that performs <a href="d.html#dynamic.allocation">dynamic allocation</a> of <a href="#memory-2">memory<sup><small>(2)</small></sup></a>.</p>
-<p>Many people use "malloc" as a verb to mean "allocate dynamically".</p>
-
-<p><strong>Similar terms:</strong> <a href="a.html#allocate">allocate</a>.
-<br />
-<strong>Opposites:</strong> <a href="f.html#free-2">free<sup><small>(2)</small></sup></a>.
-</p></dd>
-
-<dt><strong><a id="manual.memory.management" name="manual.memory.management">manual memory management</a></strong></dt>
-<dd><p>In some systems or languages, it is up to the application program to manage all the bookkeeping details of <a href="a.html#allocate">allocating</a> <a href="#memory-2">memory<sup><small>(2)</small></sup></a> from the <a href="h.html#heap">heap</a> and <a href="f.html#free-1">freeing</a> it when no longer required; this is known as manual <a href="#memory.management">memory management</a>.</p>
-<p>Manual memory management may be appropriate for small programs, but it does not scale well in general, nor does it encourage modular or object-oriented programming.</p>
-
-<p>To quote Ian Joyner's <cite>C++?? : A Critique of C++</cite>:</p>
-
-<blockquote cite="http://www.elj.com/cppcv3/s3/#s03-36">This is the most difficult bookkeeping task C++
-programmers face, that leads to two opposite problems: firstly, an
-object can be <a href="f.html#free-1">deallocated</a> prematurely, while valid <a href="r.html#reference">references</a> still
-exist (<a href="d.html#dangling.pointer">dangling pointers</a>); secondly, <a href="d.html#dead">dead</a> objects might not be
-deallocated, leading to memory filling up with dead objects (<a href="#memory.leak">memory leaks</a>).  Attempts to correct either problem can lead to
-overcompensation and the opposite problem occurring.  A correct system
-is a fine balance.</blockquote>
+.. _glossary-m:
 
-<p><strong>Historical note:</strong> Manual memory management was common in early languages, but <a href="g.html#garbage.collection">garbage collection</a> has been around since the late 1950s, in languages like <a href="../articles/lang.html#lisp">Lisp</a>.  Most modern languages use <a href="a.html#automatic.memory.management">automatic memory management</a>, and some older languages have <a href="c.html#conservative.garbage.collection">conservative garbage collection</a> extensions.</p>
+===========
+Glossary: M
+===========
 
-<p><strong>Opposites:</strong> <a href="a.html#automatic.memory.management">automatic memory management</a>.
-</p></dd>
+.. glossary::
 
-<dt><strong><a id="mapped" name="mapped">mapped</a></strong>
-  (also known as committed)</dt>
-<dd><p>A range of <a href="v.html#virtual.address">virtual addresses</a> is said to be <em>mapped</em> (<em>committed</em> on Windows&reg;) if there is <a href="p.html#physical.memory-2">physical memory<sup><small>(2)</small></sup></a> associated with the range.</p>
-<p>Note that, in some circumstances, the <a href="v.html#virtual.memory-1">virtual memory<sup><small>(1)</small></sup></a> system could actually <a href="o.html#overcommit">overcommit</a> mapped memory.</p>
+    machine word
 
-<p><strong>Opposites:</strong> <a href="u.html#unmapped">unmapped</a>.
-<br />
-<strong>See also:</strong> <a href="#mapping">mapping</a>;
-    <a href="#memory.mapping">memory mapping</a>;
-    <a href="#mmap">mmap</a>.
-</p></dd>
+        .. see:: :term:`word`.
 
-<dt><strong><a id="mapping" name="mapping">mapping</a></strong></dt>
-<dd><p>A <em>mapping</em> is a correspondence between a range of <a href="v.html#virtual.address">virtual addresses</a> and some <a href="#memory-1">memory<sup><small>(1)</small></sup></a> (or a <a href="#memory.mapping">memory-mapped</a> object).  The physical location of the memory will be managed by the <a href="v.html#virtual.memory-1">virtual memory<sup><small>(1)</small></sup></a> system.</p>
-<p>Each <a href="p.html#page">page</a> in a mapping could be <a href="p.html#paged.out">paged out</a> or <a href="p.html#paged.in">paged in</a>, and the locations it occupies in <a href="#main.memory">main memory</a> and/or <a href="s.html#swap.space">swap space</a> might change over time.</p>
+    main memory
 
-<p>The <a href="v.html#virtual.address.space">virtual address space</a> can contain of a complex set of mappings.  Typically, parts of the address space are <a href="#mapped">mapped</a> (have a mapping assigned), others are <a href="r.html#reserved">reserved</a> but unmapped, and most of it is entirely <a href="u.html#unmapped">unmapped</a>.</p>
+        .. aka:: *memory (3)*, *primary storage*.
 
-<p align="center"><em>Virtual memory with different kinds of mappings</em><br /><img alt="Diagram: Virtual memory with different kinds of mappings" src="../diagrams/mapped.png" border="2" height="339" width="329" /></p>
+        The *main memory* (or *primary storage*) of a computer is :term:`memory (1)` that is wired directly to the processor, consisting of :term:`RAM` and possibly :term:`ROM`.
 
-<p><strong>See also:</strong> <a href="b.html#backing.store">backing store</a>.
-</p></dd>
+        These terms are used in contrast to mass storage devices and :term:`cache memory` (although we may note that when a program accesses main memory, it is often actually interacting with a cache).
 
-<dt><strong><a id="mark-compact" name="mark-compact">mark-compact</a></strong></dt>
-<dd><p>Mark-compact collection is a kind of <a href="t.html#tracing.garbage.collection">tracing garbage collection</a> that operates by <a href="#marking">marking</a> <a href="r.html#reachable">reachable</a> <a href="o.html#object">objects</a>, then <a href="c.html#compaction">compacting</a> the marked objects (which must include all the <a href="l.html#live">live</a> objects).</p>
-<p>The mark phase follows <a href="r.html#reference">reference</a> chains to mark all reachable objects; the compaction phase typically performs a number of sequential passes over <a href="#memory-2">memory<sup><small>(2)</small></sup></a> to move objects and update references.  As a result of compaction, all the marked objects are moved into a single contiguous <a href="b.html#block">block</a> of memory (or a small number of such blocks); the memory left unused after compaction is <a href="r.html#recycle">recycled</a>.</p>
+        Main memory is the middle level of the :term:`memory hierarchy`: it is slower and cheaper than :term:`caches (1) <cache (1)>`, but faster and more expensive than :term:`backing store`.
 
-<p>Mark-compact collection can be regarded as a variation of <a href="#mark-sweep">mark-sweep collection</a>, with extra effort spent to eliminate the resulting <a href="f.html#fragmentation">fragmentation</a>.  Compaction also allows the use of more efficient  <a href="a.html#allocation.mechanism">allocation mechanisms</a>, by making large free blocks available.</p>
+        It is common to refer only to the main memory of a computer; for example, "This box has 16 MB of memory" and "Word for Windows requires 32 MB".
 
-<p><strong>Related publications:</strong></p>
-<ul>
-  <li><a href="../bib/f.html#edwards">Daniel J. Edwards. n.d.. <cite>Lisp II Garbage Collector</cite>.</a></li>
-</ul><br /></dd>
+        .. historical::
 
-<dt><strong><a id="mark-sweep" name="mark-sweep">mark-sweep</a>, mark-and-sweep</strong></dt>
-<dd><p>Mark-sweep collection is a kind of <a href="t.html#tracing.garbage.collection">tracing garbage collection</a> that operates by <a href="#marking">marking</a> <a href="r.html#reachable">reachable</a> <a href="o.html#object">objects</a>, then <a href="s.html#sweeping">sweeping</a> over <a href="#memory-2">memory<sup><small>(2)</small></sup></a> and <a href="r.html#recycle">recycling</a> objects that are unmarked (which must be <a href="u.html#unreachable">unreachable</a>), putting them on a <a href="f.html#free.list">free list</a>.</p>
-<p>The mark phase follows <a href="r.html#reference">reference</a> chains to mark all reachable objects; the sweep phase performs a sequential (<a href="a.html#address">address</a>-order) pass over memory to recycle all unmarked objects.  A mark-sweep <a href="c.html#collector-1">collector<sup><small>(1)</small></sup></a> doesn't move objects.</p>
+            Main memory used to be called :term:`core`, and is now likewise often called :term:`RAM`.
 
-<p><strong>Historical note:</strong> This was the first GC algorithm, devised by McCarthy for <a href="../articles/lang.html#lisp">Lisp</a>.</p>
+        .. similar:: :term:`RAM`, :term:`core`, :term:`physical memory (1)`.
 
-<p><strong>See also:</strong> <a href="#mark-compact">mark-compact</a>.
-</p>
-<p><strong>Related publications:</strong></p>
-<ul>
-  <li><a href="../bib/f.html#mccarthy60">J. McCarthy. 1960. <cite>Recursive Functions of Symbolic Expressions and Their Computation by Machine</cite>.</a></li>
-</ul><br /></dd>
+    malloc
 
-<dt><strong><a id="marking" name="marking">marking</a></strong></dt>
-<dd><p>Marking is the first phase ("the mark phase") of the <a href="#mark-sweep">mark-sweep</a> algorithm or <a href="#mark-compact">mark-compact</a> algorithm.  It follows all <a href="r.html#reference">references</a> from a set of <a href="r.html#root">roots</a> to mark all the <a href="r.html#reachable">reachable</a> <a href="o.html#object">objects</a>.</p>
-<p>Marking follows <a href="r.html#reference">reference</a> chains and makes some sort of mark for each object it reaches.</p>
+        A function in the standard :term:`C` library that performs :term:`dynamic allocation` of :term:`memory (2)`.
 
-<p>Marking is often achieved by setting a bit in the object, though any conservative representation of a predicate on the <a href="l.html#location">location</a> of the object can be used.  In particular, storing the mark bit within the object can lead to poor <a href="l.html#locality.of.reference">locality of reference</a>.</p>
+        Many people use "malloc" as a verb to mean "allocate dynamically".
 
-<p><strong>See also:</strong> <a href="s.html#sweeping">sweep</a>;
-    <a href="c.html#compaction">compact</a>.
-</p></dd>
+        .. similar:: :term:`allocate`.
 
-<dt><strong><a id="mb" name="mb">MB</a></strong>
-  (for full details, see <a href="#megabyte">megabyte</a>)</dt>
-<dd><p>A megabyte is 1024 <a href="k.html#kilobyte">kilobytes</a>, or 1048576 <a href="b.html#byte-1">bytes<sup><small>(1)</small></sup></a>.</p></dd>
+        .. opposite:: :term:`free (2)`.
 
-<dt><strong><a id="megabyte" name="megabyte">megabyte</a></strong>
-  (also known as MB)</dt>
-<dd><p>A megabyte is 1024 <a href="k.html#kilobyte">kilobytes</a>, or 1048576 <a href="b.html#byte-1">bytes<sup><small>(1)</small></sup></a>.</p>
-<p>See <a href="b.html#byte-1">byte<sup><small>(1)</small></sup></a> for general information on this and related quantities.</p></dd>
+    manual memory management
 
+        In some systems or languages, it is up to the application program to manage all the bookkeeping details of :term:`allocating <allocate>` :term:`memory (2)` from the :term:`heap` and :term:`freeing <free (1)>` it when no longer required; this is known as manual :term:`memory management`.
 
-<dt><strong><a id="memoization" name="memoization">memoization</a></strong>
-  (for full details, see <a href="c.html#caching-3">caching<sup><small>(3)</small></sup></a>)</dt>
-<dd><p><i>Caching</i> is a heuristic that stores answers to questions asked in the past in a <i>cache</i> or a <i>table</i>, in order that they may be more quickly answered in the future.  This process is also called memoization and tabling (by the <a href="../articles/lang.html#prolog">Prolog</a> community).</p></dd>
+        Manual memory management may be appropriate for small programs, but it does not scale well in general, nor does it encourage modular or object-oriented programming.
 
-<dt><strong><a id="memory-1" name="memory-1">memory<sup><small>(1)</small></sup></a></strong>
-  (also known as storage, store(2))</dt>
-<dd><p><i>memory</i> or <i>storage</i> (or <i>store</i>) is where data and instructions are stored.  For example, <a href="c.html#cache-1">caches<sup><small>(1)</small></sup></a>, <a href="#main.memory">main memory</a>, floppy and hard disks are all storage devices.
-</p>
-<p>These terms are also used for the capacity of a system to store data, and may be applied to the sum total of all the storage devices attached to a computer.</p>
+        To quote Ian Joyner's *C++?? : A Critique of C++* http://www.elj.com/cppcv3/s3/#s03-36:
 
-<p><strong>Historical note:</strong> "Store" is old-fashioned, but survives in expressions such as "<a href="b.html#backing.store">backing store</a>".</p></dd>
+            This is the most difficult bookkeeping task C++ programmers face, that leads to two opposite problems: firstly, an object can be :term:`deallocated <free (1)>` prematurely, while valid :term:`references <reference>` still exist (:term:`dangling pointers <dangling pointer>`); secondly, :term:`dead` objects might not be deallocated, leading to memory filling up with dead objects (:term:`memory leaks <memory leak>`). Attempts to correct either problem can lead to overcompensation and the opposite problem occurring. A correct system is a fine balance.
 
+        .. historical::
 
-<dt><strong><a id="memory-2" name="memory-2">memory<sup><small>(2)</small></sup></a></strong></dt>
-<dd><p><em>Memory</em> refers to <a href="s.html#storage">storage</a> that can be accessed by the processor directly (using memory addressing instructions).</p>
-<p>This could be <a href="r.html#real.memory-1">real memory<sup><small>(1)</small></sup></a> or <a href="v.html#virtual.memory-1">virtual memory<sup><small>(1)</small></sup></a>.</p></dd>
+            Manual memory management was common in early languages, but :term:`garbage collection` has been around since the late 1950s, in languages like :term:`Lisp`. Most modern languages use :term:`automatic memory management`, and some older languages have :term:`conservative garbage collection` extensions.
 
+        .. opposite:: :term:`automatic memory management`.
 
-<dt><strong><a id="memory-3" name="memory-3">memory<sup><small>(3)</small></sup></a></strong>
-  (for full details, see <a href="#main.memory">main memory</a>)</dt>
-<dd><p>The <em>main memory</em> (or <em>primary storage</em>) of a computer is <a href="#memory-1">memory<sup><small>(1)</small></sup></a> that is wired directly to the processor, consisting of <a href="r.html#ram">RAM</a> and possibly <a href="r.html#rom">ROM</a>.</p></dd>
+    mapped
 
-<dt><strong><a id="memory-4" name="memory-4">memory<sup><small>(4)</small></sup></a></strong></dt>
-<dd><p>A memory <a href="l.html#location">location</a>; for example,  "My watch has 256 memories."</p></dd>
+        .. aka:: *committed*.
 
-<dt><strong><a id="memory.bandwidth" name="memory.bandwidth">memory bandwidth</a></strong></dt>
-<dd><p>Memory bandwidth (by analogy with the term <i>bandwidth</i> from communication
-theory) is a measure of how quickly information (expressed in terms of
-bits) can be transferred between two places in a computer system.</p>
-<p>Often the term is applied to a measure of how quickly the processor can obtain
-information from the <a href="#main.memory">main memory</a> (for example, "My new bus design has a
-bandwidth of over 400 Megabytes per second").</p></dd>
+        A range of :term:`virtual addresses <virtual address>` is said to be *mapped* (*committed* on Windows) if there is :term:`physical memory (2)` associated with the range.
 
+        Note that, in some circumstances, the :term:`virtual memory (1)` system could actually :term:`overcommit` mapped memory.
 
-<dt><strong><a id="memory.cache" name="memory.cache">memory cache</a></strong>
-  (for full details, see <a href="c.html#cache-1">cache<sup><small>(1)</small></sup></a>)</dt>
-<dd><p>A processor's memory cache is a small piece of fast, but more expensive memory, usually <a href="s.html#static.memory-1">static memory<sup><small>(1)</small></sup></a>, used for copies of parts of <a href="#main.memory">main memory</a>.  The cache is automatically used by the processor for fast access to any data currently <a href="r.html#resident">resident</a> there.  Access to the cache typically takes only a few processor clock cycles, whereas access to <a href="#main.memory">main memory</a> may take tens or even hundreds of cycles.</p></dd>
+        .. opposite:: :term:`unmapped`.
 
-<dt><strong><a id="memory.hierarchy" name="memory.hierarchy">memory hierarchy</a></strong>
-  (for full details, see <a href="s.html#storage.hierarchy">storage hierarchy</a>)</dt>
-<dd><p>A typical computer has several different <em>levels</em> of <a href="s.html#storage">storage</a>.
-Each level of storage has a different speed, cost, and size.
-The levels form a <em>storage hierarchy</em>, in which the topmost levels (those nearest the processor) are fastest, most expensive and smallest.</p></dd>
+        .. seealso:: :term:`mapping`, :term:`memory mapping`, :term:`mmap`.
 
-<dt><strong><a id="memory.leak" name="memory.leak">memory leak</a>, space-leak</strong>
-  (also known as leak, space leak)</dt>
-<dd><p>A memory leak is where <a href="a.html#allocate">allocated</a> <a href="#memory-2">memory<sup><small>(2)</small></sup></a> is not <a href="f.html#free-1">freed</a> although it is never used again.</p>
-<p>In <a href="#manual.memory.management">manual memory management</a>, this usually occurs because <a href="o.html#object">objects</a> become <a href="u.html#unreachable">unreachable</a> without being <a href="f.html#free-1">freed</a>.</p>
+    mapping
 
-<p>In <a href="t.html#tracing.garbage.collection">tracing garbage collection</a>, this happens when objects are <a href="r.html#reachable">reachable</a> but not <a href="l.html#live">live</a>.</p>
+        A *mapping* is a correspondence between a range of :term:`virtual addresses <virtual address>` and some :term:`memory (1)` (or a :term:`memory-mapped <memory mapping>` object). The physical location of the memory will be managed by the :term:`virtual memory (1)` system.
 
-<p>In <a href="r.html#reference.counting">reference counting</a>, this happens when objects are <a href="r.html#reference">referenced</a> but not <a href="l.html#live">live</a>. (Such objects may or may not be <a href="r.html#reachable">reachable</a>.)</p>
+        Each :term:`page` in a mapping could be :term:`paged out` or :term:`paged in`, and the locations it occupies in :term:`main memory` and/or :term:`swap space` might change over time.
 
-<p>Repeated memory leaks cause the memory usage of a process to grow without bound.</p></dd>
+        The :term:`virtual address space` can contain of a complex set of mappings. Typically, parts of the address space are :term:`mapped` (have a mapping assigned), others are :term:`reserved` but unmapped, and most of it is entirely :term:`unmapped`.
 
+        .. figure:: ../diagrams/mapped.png
+            :align: center
+            :alt: Diagram: Virtual memory with different kinds of mappings.
 
-<dt><strong><a id="memory.location" name="memory.location">memory location</a></strong>
-  (also known as location)</dt>
-<dd><p>Each separately-<a href="a.html#address">addressable</a> unit of <a href="#memory-2">memory<sup><small>(2)</small></sup></a> in which data can be stored is called a <em>memory location</em>.  Usually, these hold a <a href="b.html#byte-2">byte<sup><small>(2)</small></sup></a>, but the term can refer to <a href="w.html#word">words</a>.</p></dd>
+            Virtual memory with different kinds of mappings.
 
-<dt><strong><a id="memory.management" name="memory.management">memory management</a></strong>
-  (also known as storage management)</dt>
-<dd><p>Memory management is the art and the process of coordinating and controlling the use of <a href="#memory-1">memory<sup><small>(1)</small></sup></a> in a computer system.</p>
-<p>Memory management can be divided into three areas:</p>
+        .. seealso:: :term:`backing store`.
 
-<ol>
-  <li>Memory management hardware (<a href="#mmu">MMUs</a>, <a href="r.html#ram">RAM</a>, etc.);</li>
-  <li>Operating system memory management (<a href="v.html#virtual.memory-1">virtual memory<sup><small>(1)</small></sup></a>, <a href="p.html#protection">protection</a>);</li>
-  <li>Application memory management (<a href="a.html#allocate">allocation</a>, <a href="f.html#free-1">deallocation</a>, <a href="g.html#garbage.collection">garbage collection</a>).</li>
-</ol>
+    mark-compact
 
-<p>Memory management hardware consists of the electronic devices and associated circuitry that store the state of a computer.  These devices include RAM, MMUs (memory management units), <a href="c.html#cache-1">caches<sup><small>(1)</small></sup></a>, disks, and processor <a href="r.html#register">registers</a>.  The design of memory hardware is critical to the performance of modern computer systems.  In fact, <a href="#memory.bandwidth">memory bandwidth</a> is perhaps the main limiting factor on system performance.</p>
+        Mark-compact collection is a kind of :term:`tracing garbage collection` that operates by :term:`marking` :term:`reachable` :term:`objects <object>`, then :term:`compacting <compaction>` the marked objects (which must include all the :term:`live` objects).
 
-<p>Operating system memory management is concerned with using the memory management hardware to manage the resources of the <a href="s.html#storage.hierarchy">storage hierarchy</a> and allocating them to the various activities running on a computer.  The most significant part of this on many systems is <a href="v.html#virtual.memory-1">virtual memory<sup><small>(1)</small></sup></a>, which creates the illusion that every process has more memory than is actually available.  OS memory management is also concerned with <a href="#memory.protection">memory protection</a> and security, which help to maintain the integrity of the operating system against accidental damage or deliberate attack.  It also protects user programs from errors in other programs.</p>
+        The mark phase follows :term:`reference` chains to mark all reachable objects; the compaction phase typically performs a number of sequential passes over :term:`memory (2)` to move objects and update references. As a result of compaction, all the marked objects are moved into a single contiguous :term:`block` of memory (or a small number of such blocks); the memory left unused after compaction is :term:`recycled <recycle>`.
 
-<p>Application memory management involves obtaining <a href="#memory-2">memory<sup><small>(2)</small></sup></a> from the operating system, and managing its use by an application program.  Application programs have dynamically changing storage requirements.
-The application <a href="#memory.manager">memory manager</a> must cope with this while minimizing the total CPU overhead, interactive pause times, and the total memory used.</p>
+        Mark-compact collection can be regarded as a variation of :term:`mark-sweep collection <mark-sweep>`, with extra effort spent to eliminate the resulting :term:`fragmentation`. Compaction also allows the use of more efficient  :term:`allocation mechanisms <allocation mechanism>`, by making large free blocks available.
 
-<p>While the operating system may create the illusion of nearly infinite memory, it is a complex task to manage application memory so that the application can run most efficiently.
-Ideally, these problems should be solved by tried and tested tools, tuned to a specific application.</p>
+        .. bibref:: [EDWARDS]_.
 
-<p>The Memory Management Reference is mostly concerned with application memory management.</p>
+    mark-sweep
+    mark-and-sweep
 
-<p><strong>See also:</strong> <a href="a.html#automatic.memory.management">automatic memory management</a>;
-    <a href="#manual.memory.management">manual memory management</a>.
-<br />
-<strong>Other links:</strong> <a href="../articles/begin.html">Beginner's Guide</a>.
-</p></dd>
+        Mark-sweep collection is a kind of :term:`tracing garbage collection` that operates by :term:`marking` :term:`reachable` :term:`objects <object>`, then :term:`sweeping` over :term:`memory (2)` and :term:`recycling <recycle>` objects that are unmarked (which must be :term:`unreachable`), putting them on a :term:`free list`.
 
-<dt><strong><a id="memory.management.unit" name="memory.management.unit">Memory Management Unit</a></strong>
-  (for full details, see <a href="#mmu">MMU</a>)</dt>
-<dd><p>The MMU (Memory Management Unit) is a hardware device responsible for
-handling <a href="#memory-2">memory<sup><small>(2)</small></sup></a> accesses requested by the main processor.</p></dd>
+        The mark phase follows :term:`reference` chains to mark all reachable objects; the sweep phase performs a sequential (:term:`address`-order) pass over memory to recycle all unmarked objects. A mark-sweep :term:`collector (1)` doesn't move objects.
 
-<dt><strong><a id="memory.manager" name="memory.manager">memory manager</a></strong></dt>
-<dd><p>The memory manager is that part of the system that manages <a href="#memory-2">memory<sup><small>(2)</small></sup></a>, servicing <a href="a.html#allocate">allocation</a> requests, and <a href="r.html#recycle">recycling</a> memory, either <a href="#manual.memory.management">manually</a> or <a href="a.html#automatic.memory.management">automatically</a>.</p>
-<p>The memory manager can have a significant effect on the efficiency of the program; it is not unusual for a program to spend 20% of its time managing memory.</p>
+        .. historical::
 
-<p><strong>Similar terms:</strong> <a href="a.html#allocator">allocator</a>;
-    <a href="c.html#collector-1">collector<sup><small>(1)</small></sup></a>.
-<br />
-<strong>See also:</strong> <a href="#memory.management">memory management</a>.
-</p></dd>
+            This was the first GC algorithm, devised by McCarthy for :term:`Lisp`.
 
-<dt><strong><a id="memory.mapping" name="memory.mapping">memory mapping</a></strong>
-  (also known as file mapping)</dt>
-<dd><p><em>Memory mapping</em> is the technique of making a part of the <a href="a.html#address.space">address space</a> appear to contain an "object", such as a file or device, so that ordinary <a href="#memory-2">memory<sup><small>(2)</small></sup></a> accesses act on that object.</p>
-<p>The object is said to be <em>mapped</em> to that range of addresses.  (The term "object" does not mean a program <a href="o.html#object">object</a>.  It comes from UNIX&reg; terminology on the <code><a href="#mmap">mmap</a></code>(2) man page.)</p>
+        .. seealso:: :term:`mark-compact`.
 
-<p align="center"><em>An address space with a range mapped to part of an object</em><br /><img alt="Diagram: An address space with a range mapped to part of an object" src="../diagrams/mapping.png" border="2" height="259" width="418" /></p>
+        .. bibref:: [MCCARTHY60]_.
 
-<p>Memory mapping uses the same mechanism as <a href="v.html#virtual.memory-1">virtual memory<sup><small>(1)</small></sup></a> to "trap" accesses to parts of the <a href="a.html#address.space">address space</a>, so that data from the file or device can be <a href="p.html#paged.in">paged in</a> (and other parts <a href="p.html#paged.out">paged out</a>) before the access is completed.</p>
+    marking
 
-<p><strong>Historical note:</strong> File mapping is available on most modern UNIX&reg; systems, and also on recent versions of the Windows&reg; operating system such as Windows 95&reg; and Windows NT&reg;.  However, it has a much longer history.  In Multics, it was the primary way of accessing files.</p>
+        Marking is the first phase ("the mark phase") of the :term:`mark-sweep` algorithm or :term:`mark-compact` algorithm. It follows all :term:`references <reference>` from a set of :term:`roots <root>` to mark all the :term:`reachable` :term:`objects <object>`.
 
-<p><strong>See also:</strong> <a href="#mapped">mapped</a>.
-</p></dd>
+        Marking follows :term:`reference` chains and makes some sort of mark for each object it reaches.
 
-<dt><strong><a id="memory.protection" name="memory.protection">memory protection</a></strong>
-  (for full details, see <a href="p.html#protection">protection</a>)</dt>
-<dd><p>Many operating systems support protection of <a href="#memory-2">memory<sup><small>(2)</small></sup></a> <a href="p.html#page">pages</a>.  Individual pages may be protected against a combination of read, write or execute accesses by a process. </p></dd>
+        Marking is often achieved by setting a bit in the object, though any conservative representation of a predicate on the :term:`location` of the object can be used. In particular, storing the mark bit within the object can lead to poor :term:`locality of reference`.
 
-<dt><strong><a id="misaligned" name="misaligned">misaligned</a></strong>
-  (for full details, see <a href="u.html#unaligned">unaligned</a>)</dt>
-<dd><p>An <a href="a.html#address">address</a> is unaligned or misaligned if it does not comply with some <a href="a.html#alignment">alignment</a> constraint on it.</p></dd>
+        .. seealso:: :term:`sweep <sweeping>`, :term:`compact <compaction>`.
 
-<dt><strong><a id="miss" name="miss">miss</a></strong></dt>
-<dd><p>A miss is a lookup failure in any form of <a href="c.html#caching-3">cache<sup><small>(3)</small></sup></a>, most commonly at some level of a <a href="s.html#storage.hierarchy">storage hierarchy</a>, such as a <a href="c.html#cache-1">cache<sup><small>(1)</small></sup></a> or <a href="v.html#virtual.memory-1">virtual memory<sup><small>(1)</small></sup></a> system.</p>
-<p>The cost of a miss in a virtual memory system is considerable -- it may be five orders of magnitude more costly than a hit. In some systems, such as multi-process operating systems, other work may be done while a miss is serviced.</p>
+    MB
 
-<p><strong>Opposites:</strong> <a href="h.html#hit">hit</a>.
-<br />
-<strong>See also:</strong> <a href="#miss.rate">miss rate</a>.
-</p></dd>
+        .. see:: :term:`megabyte`.
 
-<dt><strong><a id="miss.rate" name="miss.rate">miss rate</a></strong></dt>
-<dd><p>At any level of a <a href="s.html#storage.hierarchy">storage hierarchy</a>, the miss rate is the proportion of accesses which <a href="#miss">miss</a>.</p>
-<p>Because misses are very costly, each level is designed to minimize the miss rate.  For instance, in <a href="c.html#cache-1">caches<sup><small>(1)</small></sup></a>, miss rates of about 0.01 may be acceptable, whereas in <a href="v.html#virtual.memory-1">virtual memory<sup><small>(1)</small></sup></a> systems, acceptable miss rates are much lower (say 0.00005).  If a system has a miss rate which is too high, it will spend most of its time servicing the misses, and is said to <a href="t.html#thrash">thrash</a>.</p>
+    megabyte
 
-<p>Miss rates may also be given as a number of misses per unit time, or per instruction.</p>
-
-<p><strong>Opposites:</strong> <a href="h.html#hit.rate">hit rate</a>.
-</p></dd>
-
-<dt><strong><a id="mmap" name="mmap">mmap</a></strong></dt>
-<dd><p><code>mmap</code> is a system call provided on many UNIX&reg; systems to create a <a href="#mapping">mapping</a> for a range of <a href="v.html#virtual.address">virtual addresses</a>.</p></dd>
-
-<dt><strong><a id="mmu" name="mmu">MMU</a></strong>
-  (also known as Memory Management Unit)</dt>
-<dd><p>The MMU (Memory Management Unit) is a hardware device responsible for
-handling <a href="#memory-2">memory<sup><small>(2)</small></sup></a> accesses requested by the main processor.</p>
-<p>This typically involves translation of <a href="v.html#virtual.address">virtual addresses</a> to <a href="p.html#physical.address">physical addresses</a>, <a href="c.html#cache-1">cache<sup><small>(1)</small></sup></a> control, bus arbitration, <a href="#memory.protection">memory protection</a>, and the generation of
-various exceptions.  Not all processors have an MMU.</p>
-
-<p><strong>See also:</strong> <a href="v.html#virtual.memory-1">virtual memory<sup><small>(1)</small></sup></a>;
-    <a href="p.html#page.fault">page fault</a>;
-    <a href="s.html#segmentation.violation">segmentation violation</a>.
-</p></dd>
-
-<dt><strong><a id="mostly-copying.garbage.collection" name="mostly-copying.garbage.collection">mostly-copying garbage collection</a>, mostly copying garbage collection</strong></dt>
-<dd><p>A type of <a href="s.html#semi-conservative.garbage.collection">semi-conservative</a> <a href="t.html#tracing.garbage.collection">tracing garbage collection</a> which permits <a href="o.html#object">objects</a> to <a href="#moving.garbage.collector">move</a> if no <a href="a.html#ambiguous.reference">ambiguous references</a> point to them. </p>
-<p>The techniques used are a hybrid of <a href="c.html#copying.garbage.collection">copying garbage collection</a> and <a href="#mark-sweep">mark-sweep</a>.</p>
-
-<p>Mostly-copying garbage collectors share many of the benefits of copying collectors, including <a href="c.html#compaction">compaction</a>.  Since they support ambiguous references they are additionally suitable for use with uncooperative compilers, and may be an efficient choice for multi-threaded systems.</p>
-
-<p><strong>Related publications:</strong></p>
-<ul>
-  <li><a href="../bib/f.html#bartlett89">Joel F. Bartlett. 1989. <cite>Mostly-Copying Garbage Collection Picks Up Generations and C++</cite>.</a></li>
-  <li><a href="../bib/f.html#yip91">G. May Yip. 1991. <cite>Incremental, Generational Mostly-Copying Garbage Collection in Uncooperative Environments</cite>.</a></li>
-</ul><br /></dd>
-
-<dt><strong><a id="mostly-exact.garbage.collection" name="mostly-exact.garbage.collection">mostly-exact garbage collection</a></strong>
-  (for full details, see <a href="s.html#semi-conservative.garbage.collection">semi-conservative garbage collection</a>)</dt>
-<dd><p>A variant of <a href="c.html#conservative.garbage.collection">conservative garbage collection</a> which deals with <a href="e.html#exact.reference">exact references</a> as well as <a href="a.html#ambiguous.reference">ambiguous references</a>.</p></dd>
-
-<dt><strong><a id="mostly-precise.garbage.collection" name="mostly-precise.garbage.collection">mostly-precise garbage collection</a></strong>
-  (for full details, see <a href="s.html#semi-conservative.garbage.collection">semi-conservative garbage collection</a>)</dt>
-<dd><p>A variant of <a href="c.html#conservative.garbage.collection">conservative garbage collection</a> which deals with <a href="e.html#exact.reference">exact references</a> as well as <a href="a.html#ambiguous.reference">ambiguous references</a>.</p></dd>
-
-<dt><strong><a id="moving.garbage.collector" name="moving.garbage.collector">moving garbage collector</a></strong>
-  (also known as moving memory manager)</dt>
-<dd><p>A memory manager (often a <a href="g.html#garbage.collector">garbage collector</a>) is said to be moving if
-<a href="a.html#allocate">allocated</a> <a href="o.html#object">objects</a> can move during their lifetimes. </p>
-<p><strong>Relevance to memory management:</strong> In the garbage
-collecting world this will apply to <a href="c.html#copying.garbage.collection">copying</a> collectors and to
-<a href="#mark-compact">mark-compact</a> collectors. It may also refer to <a href="r.html#replicating.garbage.collector">replicating</a> collectors.</p>
-
-<p><strong>Similar terms:</strong> <a href="c.html#copying.garbage.collection">copying garbage collection</a>.
-</p></dd>
-
-<dt><strong><a id="moving.memory.manager" name="moving.memory.manager">moving memory manager</a></strong>
-  (for full details, see <a href="#moving.garbage.collector">moving garbage collector</a>)</dt>
-<dd><p>A memory manager (often a <a href="g.html#garbage.collector">garbage collector</a>) is said to be moving if
-<a href="a.html#allocate">allocated</a> <a href="o.html#object">objects</a> can move during their lifetimes. </p></dd>
-
-<dt><strong><a id="mutable" name="mutable">mutable</a></strong></dt>
-<dd><p>Any <a href="o.html#object">object</a> which may be changed by a program is <a href="#mutable">mutable</a>.
-Opposite of <a href="i.html#immutable">immutable</a>.</p>
-<p><strong>Opposites:</strong> <a href="i.html#immutable">immutable</a>.
-</p></dd>
-
-<dt><strong><a id="mutator" name="mutator">mutator</a></strong></dt>
-<dd><p>In a <a href="g.html#garbage.collection">garbage-collected</a> system, the part that executes the user code, which <a href="a.html#allocate">allocates</a> <a href="o.html#object">objects</a> and
-modifies, or <i>mutates</i>, them.</p>
-<p>For purposes of describing <a href="i.html#incremental.garbage.collection">incremental garbage collection</a>, the system is divided into the <i>mutator</i> and the <i><a href="c.html#collector-2">collector<sup><small>(2)</small></sup></a></i>.  These can be separate threads of computation, or interleaved within the same thread.</p>
-
-<p>The user code issues allocation requests, but the allocator code is usually considered part of the collector.  Indeed, one of the major ways of scheduling the other work of the collector is to perform a little of it at every allocation.</p>
-
-<p>While the mutator mutates, it implicitly <a href="f.html#free-1">frees</a> <a href="s.html#storage">storage</a> by overwriting <a href="r.html#reference">references</a>.</p>
-
-<p><strong>Historical note:</strong> This term is due to Dijkstra et al.</p>
-
-<p><strong>Opposites:</strong> <a href="c.html#collector-2">collector<sup><small>(2)</small></sup></a>.
-</p>
-<p><strong>Related publications:</strong></p>
-<ul>
-  <li><a href="../bib/f.html#dlmss76">E. W. Dijkstra, Leslie Lamport, A. J. Martin, C. S. Scholten, E. F. M. Steffens. 1976. <cite>On-the-fly Garbage Collection: An Exercise in Cooperation</cite>.</a></li>
-</ul><br /></dd>
-
-</dl>
-<p align="center"><a href="a.html">A</a>
-<a href="b.html">B</a>
-<a href="c.html">C</a>
-<a href="d.html">D</a>
-<a href="e.html">E</a>
-<a href="f.html">F</a>
-<a href="g.html">G</a>
-<a href="h.html">H</a>
-<a href="i.html">I</a>
-J
-<a href="k.html">K</a>
-<a href="l.html">L</a>
-<strong>M</strong>
-<a href="n.html">N</a>
-<a href="o.html">O</a>
-<a href="p.html">P</a>
-<a href="q.html">Q</a>
-<a href="r.html">R</a>
-<a href="s.html">S</a>
-<a href="t.html">T</a>
-<a href="u.html">U</a>
-<a href="v.html">V</a>
-<a href="w.html">W</a>
-X
-Y
-<a href="z.html">Z</a> - <a href="help.html">Help</a></p>
-
-</body></html>
+        .. aka:: *MB*.
+
+        A megabyte is 1024 :term:`kilobytes <kilobyte>`, or 1048576 :term:`bytes (1) <byte (1)>`.
+
+        See :term:`byte (1)` for general information on this and related quantities.
+
+    memoization
+
+        .. see:: :term:`caching (3)`.
+
+    memory (1)
+
+        .. aka:: *storage*, *store (2)*.
+
+        *memory* or *storage* (or *store*) is where data and instructions are stored. For example, :term:`caches (1) <cache (1)>`, :term:`main memory`, floppy and hard disks are all storage devices.
+
+        These terms are also used for the capacity of a system to store data, and may be applied to the sum total of all the storage devices attached to a computer.
+
+        .. historical::
+
+            "Store" is old-fashioned, but survives in expressions such as ":term:`backing store`".
+
+    memory (2)
+
+        *Memory* refers to :term:`storage` that can be accessed by the processor directly (using memory addressing instructions).
+
+        This could be :term:`real memory (1)` or :term:`virtual memory (1)`.
+
+    memory (3)
+
+        .. see:: :term:`main memory`.
+
+    memory (4)
+
+        A memory :term:`location`; for example,  "My watch has 256 memories."
+
+    memory bandwidth
+
+        Memory bandwidth (by analogy with the term *bandwidth* from communication
+        theory) is a measure of how quickly information (expressed in terms of
+        bits) can be transferred between two places in a computer system.
+
+        Often the term is applied to a measure of how quickly the processor can obtain
+        information from the :term:`main memory` (for example, "My new bus design has a
+        bandwidth of over 400 Megabytes per second").
+
+    memory cache
+
+        .. see:: :term:`cache (1)`.
+
+    memory hierarchy
+
+        .. see:: :term:`storage hierarchy`.
+
+    memory leak
+
+        .. aka:: *leak*, *space leak*, *space-leak*.
+
+        A memory leak is where :term:`allocated <allocate>` :term:`memory (2)` is not :term:`freed <free (1)>` although it is never used again.
+
+        In :term:`manual memory management`, this usually occurs because :term:`objects <object>` become :term:`unreachable` without being :term:`freed <free (1)>`.
+
+        In :term:`tracing garbage collection`, this happens when objects are :term:`reachable` but not :term:`live`.
+
+        In :term:`reference counting`, this happens when objects are :term:`referenced <reference>` but not :term:`live`. (Such objects may or may not be :term:`reachable`.)
+
+        Repeated memory leaks cause the memory usage of a process to grow without bound.
+
+    memory location
+
+        .. aka:: *location*.
+
+        Each separately-:term:`addressable <address>` unit of :term:`memory (2)` in which data can be stored is called a *memory location*. Usually, these hold a :term:`byte (2)`, but the term can refer to :term:`words <word>`.
+
+    memory management
+
+        .. aka:: *storage management*.
+
+        Memory management is the art and the process of coordinating and controlling the use of :term:`memory (1)` in a computer system.
+
+        Memory management can be divided into three areas:
+
+        1. Memory management hardware (:term:`MMUs <mmu>`, :term:`RAM`, etc.);
+
+        2. Operating system memory management (:term:`virtual memory (1)`, :term:`protection`);
+
+        3. Application memory management (:term:`allocation <allocate>`, :term:`deallocation <free (1)>`, :term:`garbage collection`).
+
+        Memory management hardware consists of the electronic devices and associated circuitry that store the state of a computer. These devices include RAM, MMUs (memory management units), :term:`caches (1) <cache (1)>`, disks, and processor :term:`registers <register>`. The design of memory hardware is critical to the performance of modern computer systems. In fact, :term:`memory bandwidth` is perhaps the main limiting factor on system performance.
+
+        Operating system memory management is concerned with using the memory management hardware to manage the resources of the :term:`storage hierarchy` and allocating them to the various activities running on a computer. The most significant part of this on many systems is :term:`virtual memory (1)`, which creates the illusion that every process has more memory than is actually available. OS memory management is also concerned with :term:`memory protection` and security, which help to maintain the integrity of the operating system against accidental damage or deliberate attack. It also protects user programs from errors in other programs.
+
+        Application memory management involves obtaining :term:`memory (2)` from the operating system, and managing its use by an application program. Application programs have dynamically changing storage requirements.
+        The application :term:`memory manager` must cope with this while minimizing the total CPU overhead, interactive pause times, and the total memory used.
+
+        While the operating system may create the illusion of nearly infinite memory, it is a complex task to manage application memory so that the application can run most efficiently.
+        Ideally, these problems should be solved by tried and tested tools, tuned to a specific application.
+
+        The Memory Management Reference is mostly concerned with application memory management.
+
+        .. seealso:: :term:`automatic memory management`, :term:`manual memory management`.
+
+    Memory Management Unit
+
+        .. see:: :term:`MMU`.
+
+    memory manager
+
+        The memory manager is that part of the system that manages :term:`memory (2)`, servicing :term:`allocation <allocate>` requests, and :term:`recycling <recycle>` memory, either :term:`manually <manual memory management>` or :term:`automatically <automatic memory management>`.
+
+        The memory manager can have a significant effect on the efficiency of the program; it is not unusual for a program to spend 20% of its time managing memory.
+
+        .. similar:: :term:`allocator`, :term:`collector (1)`.
+
+        .. seealso:: :term:`memory management`.
+
+    memory mapping
+
+        .. aka:: *file mapping*.
+
+        *Memory mapping* is the technique of making a part of the :term:`address space` appear to contain an "object", such as a file or device, so that ordinary :term:`memory (2)` accesses act on that object.
+
+        The object is said to be *mapped* to that range of addresses. (The term "object" does not mean a program :term:`object`. It comes from Unix terminology on the :term:`mmap` man page.)
+
+        .. figure:: ../diagrams/mapping.png
+            :align: center
+            :alt: Diagram: An address space with a range mapped to part of an object.
+
+            An address space with a range mapped to part of an object.
+
+        Memory mapping uses the same mechanism as :term:`virtual memory (1)` to "trap" accesses to parts of the :term:`address space`, so that data from the file or device can be :term:`paged in` (and other parts :term:`paged out`) before the access is completed.
+
+        .. historical::
+
+            File mapping is available on most modern Unix systems, and also on recent versions of the Windows operating system such as Windows 95 and Windows NT. However, it has a much longer history. In Multics, it was the primary way of accessing files.
+
+        .. seealso:: :term:`mapped`.
+
+    memory protection
+
+        .. see:: :term:`protection`.
+
+    message
+
+        .. mps:: ??
+
+    message queue
+
+        .. mps:: ??
+
+    message type
+
+        .. mps:: ??
+
+    misaligned
+
+        .. see:: :term:`unaligned`.
+
+    miss
+
+        A miss is a lookup failure in any form of :term:`cache (3) <caching (3)>`, most commonly at some level of a :term:`storage hierarchy`, such as a :term:`cache (1)` or :term:`virtual memory (1)` system.
+
+        The cost of a miss in a virtual memory system is considerable: it may be five orders of magnitude more costly than a hit. In some systems, such as multi-process operating systems, other work may be done while a miss is serviced.
+
+        .. opposite:: :term:`hit`.
+
+        .. seealso:: :term:`miss rate`.
+
+    miss rate
+
+        At any level of a :term:`storage hierarchy`, the miss rate is the proportion of accesses which :term:`miss`.
+
+        Because misses are very costly, each level is designed to minimize the miss rate. For instance, in :term:`caches (1) <cache (1)>`, miss rates of about 0.01 may be acceptable, whereas in :term:`virtual memory (1)` systems, acceptable miss rates are much lower (say 0.00005). If a system has a miss rate which is too high, it will spend most of its time servicing the misses, and is said to :term:`thrash`.
+
+        Miss rates may also be given as a number of misses per unit time, or per instruction.
+
+        .. opposite:: :term:`hit rate`.
+
+    mmap
+
+        ``mmap`` is a system call provided on many Unix systems to create a :term:`mapping` for a range of :term:`virtual addresses <virtual address>`.
+
+    MMU
+
+        .. aka:: *Memory Management Unit*.
+
+        The MMU (Memory Management Unit) is a hardware device responsible for
+        handling :term:`memory (2)` accesses requested by the main processor.
+
+        This typically involves translation of :term:`virtual addresses <virtual address>` to :term:`physical addresses <physical address>`, :term:`cache (1)` control, bus arbitration, :term:`memory protection`, and the generation of
+        various exceptions. Not all processors have an MMU.
+
+        .. seealso:: :term:`virtual memory (1)`, :term:`page fault`, :term:`segmentation violation`.
+
+    mostly-copying garbage collection
+    mostly copying garbage collection
+
+        A type of :term:`semi-conservative <semi-conservative garbage collection>` :term:`tracing garbage collection` which permits :term:`objects <object>` to :term:`move <moving garbage collector>` if no :term:`ambiguous references <ambiguous reference>` point to them.
+
+        The techniques used are a hybrid of :term:`copying garbage collection` and :term:`mark-sweep`.
+
+        Mostly-copying garbage collectors share many of the benefits of copying collectors, including :term:`compaction`. Since they support ambiguous references they are additionally suitable for use with uncooperative compilers, and may be an efficient choice for multi-threaded systems.
+
+        .. bibref:: [BARTLETT89]_, [YIP91]_.
+
+    mostly-exact garbage collection
+
+        .. see:: :term:`semi-conservative garbage collection`.
+
+    mostly-precise garbage collection
+
+        .. see:: :term:`semi-conservative garbage collection`.
+
+    moving garbage collector
+
+        .. aka:: *moving memory manager*.
+
+        A memory manager (often a :term:`garbage collector`) is said to be moving if
+        :term:`allocated <allocate>` :term:`objects <object>` can move during their lifetimes.
+
+        .. relevance::
+
+            In the garbage collecting world this will apply to :term:`copying <copying garbage collection>` collectors and to :term:`mark-compact` collectors. It may also refer to :term:`replicating <replicating garbage collector>` collectors.
+
+        .. similar:: :term:`copying garbage collection`.
+
+    moving memory manager
+
+        .. see:: :term:`moving garbage collector`.
+
+    mutable
+
+        Any :term:`object` which may be changed by a program is :term:`mutable`.
+        Opposite of :term:`immutable`.
+
+        .. opposite:: :term:`immutable`.
+
+    mutator
+
+        In a :term:`garbage-collected <garbage collection>` system, the part that executes the user code, which :term:`allocates <allocate>` :term:`objects <object>` and
+        modifies, or *mutates*, them.
+
+        For purposes of describing :term:`incremental garbage collection`, the system is divided into the *mutator* and the :term:`collector (2)`. These can be separate threads of computation, or interleaved within the same thread.
+
+        The user code issues allocation requests, but the allocator code is usually considered part of the collector. Indeed, one of the major ways of scheduling the other work of the collector is to perform a little of it at every allocation.
+
+        While the mutator mutates, it implicitly :term:`frees <free (1)>` :term:`storage` by overwriting :term:`references <reference>`.
+
+        .. historical::
+
+            This term is due to Dijkstra et al.
+
+        .. opposite:: :term:`collector (2)`.
+
+        .. bibref:: [DLMSS76]_.
+
