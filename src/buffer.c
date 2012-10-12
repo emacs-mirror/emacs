@@ -2185,7 +2185,7 @@ set_buffer_temp (struct buffer *b)
 DEFUN ("set-buffer", Fset_buffer, Sset_buffer, 1, 1, 0,
        doc: /* Make buffer BUFFER-OR-NAME current for editing operations.
 BUFFER-OR-NAME may be a buffer or the name of an existing buffer.  See
-also `save-excursion' when you want to make a buffer current
+also `with-current-buffer' when you want to make a buffer current
 temporarily.  This function does not display the buffer, so its effect
 ends when the current command terminates.  Use `switch-to-buffer' or
 `pop-to-buffer' to switch buffers permanently.  */)
