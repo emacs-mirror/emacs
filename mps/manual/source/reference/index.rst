@@ -29,7 +29,7 @@ Declared in ``mps.h``
     pointers of type :c:type:`mps_addr_t` will never be used to
     represent a reference to a block.
 
-    .. seealso::
+    .. topics::
 
         :ref:`topic-allocation` and :ref:`topic-platform`.
 
@@ -40,7 +40,7 @@ Declared in ``mps.h``
     equivalent to ``size_t``. An alignment must be a positive power of
     2.
 
-    .. seealso::
+    .. topics::
 
         :ref:`topic-allocation`.
 
@@ -59,7 +59,7 @@ Declared in ``mps.h``
     Some pool classes require additional arguments to be passed to
     :c:func:`mps_alloc`. See the documentation for the pool class.
 
-    .. seealso::
+    .. topics::
 
         :ref:`topic-allocation`.
 
@@ -86,7 +86,7 @@ Declared in ``mps.h``
     :term:`dead` by the time of the corresponding call to
     :c:func:`mps_ap_alloc_pattern_end`.
 
-    .. seealso::
+    .. topics::
 
         :ref:`topic-pattern`.
 
@@ -109,7 +109,7 @@ Declared in ``mps.h``
     the full collection until after all ramp allocation patterns have
     ended.
 
-    .. seealso::
+    .. topics::
 
         :ref:`topic-pattern`.
 
@@ -141,7 +141,7 @@ Declared in ``mps.h``
     the documentation for the individual pattern types will specify
     this.
 
-    .. seealso::
+    .. topics::
 
         :ref:`topic-pattern`.
 
@@ -160,7 +160,7 @@ Declared in ``mps.h``
     successfully ended, or :c:macro:`MPS_RES_FAIL` if there was no
     corresponding call to :c:func:`mps_ap_alloc_pattern_begin`.
 
-    .. seealso::
+    .. topics::
 
         :ref:`topic-pattern`.
 
@@ -179,7 +179,7 @@ Declared in ``mps.h``
 
     This function may be used to recover from error conditions.
 
-    .. seealso::
+    .. topics::
 
         :ref:`topic-pattern`.
 
@@ -224,7 +224,7 @@ Declared in ``mps.h``
     push; B = push; pop A; pop B" is illegal) or to pop the same frame
     twice (so the sequence "A = push, pop A, pop A" is illegal).
 
-    .. seealso::
+    .. topics::
 
         :ref:`topic-frame`.
 
@@ -245,7 +245,7 @@ Declared in ``mps.h``
     resources, or if the correct protocol is not followed by the
     :term:`client program`.
 
-    .. seealso::
+    .. topics::
 
         :ref:`topic-frame`.
 
@@ -266,7 +266,7 @@ Declared in ``mps.h``
     begin. Space used by unreachable objects will not be recycled
     until the arena is unclamped.
 
-    .. seealso::
+    .. topics::
 
         :ref:`topic-arena`.
 
@@ -275,7 +275,7 @@ Declared in ``mps.h``
 
     The type of :term:`arena classes <arena class>`.
 
-    .. seealso::
+    .. topics::
 
         :ref:`topic-arena`.
 
@@ -296,7 +296,7 @@ Declared in ``mps.h``
     If you do not want the arena to remain in the parked state, you
     must explicitly call :c:func:`mps_arena_release` afterwards.
 
-    .. seealso::
+    .. topics::
 
         :ref:`topic-arena`.
 
@@ -312,7 +312,7 @@ Declared in ``mps.h``
     much memory the MPS can obtain from the operating system, and can
     be changed using :c:func:`mps_commit_limit_set`.
 
-    .. seealso::
+    .. topics::
 
         :ref:`topic-arena`.
 
@@ -341,7 +341,7 @@ Declared in ``mps.h``
     such a case the spare committed memory will be reduced
     appropriately and the attempt will succeed.
 
-    .. seealso::
+    .. topics::
 
         :ref:`topic-arena`.
 
@@ -401,7 +401,7 @@ Declared in ``mps.h``
     The amount of committed memory can be limited with the function
     :c:func:`mps_arena_commit_limit`.
 
-    .. seealso::
+    .. topics::
 
         :ref:`topic-arena`.
 
@@ -422,7 +422,7 @@ Declared in ``mps.h``
     Returns :c:macro:`MPS_RES_OK` if the arena is created
     successfully, or another :term:`result code` otherwise.
 
-    .. seealso::
+    .. topics::
 
         :ref:`topic-arena`.
 
@@ -438,7 +438,7 @@ Declared in ``mps.h``
     An alternative to :c:func:`mps_arena_create` that takes its extra
     arguments using the standard C ``va_list`` mechanism.
 
-    .. seealso::
+    .. topics::
 
         :ref:`topic-arena`.
 
@@ -474,7 +474,7 @@ Declared in ``mps.h``
     and place restrictions on what the :term:`client program` can do
     (basically no exposed data can be changed).
 
-    .. seealso::
+    .. topics::
 
         :ref:`topic-arena`.
 
@@ -507,7 +507,7 @@ Declared in ``mps.h``
     The function *f* may not allocate memory or access any
     automatically-managed memory except within *object*.
 
-    .. seealso::
+    .. topics::
 
         :ref:`topic-arena`, :ref:`topic-format`.
 
@@ -539,7 +539,7 @@ Declared in ``mps.h``
     the operating system). For reliable results call this function
     whilst the arena is in the :term:`parked state`.
 
-    .. seealso::
+    .. topics::
 
         :ref:`topic-arena`.
 
@@ -559,7 +559,7 @@ Declared in ``mps.h``
     parked, and no new collections will start. When an arena is in the
     parked state, it is necessarily not in the middle of a collection.
 
-    .. seealso::
+    .. topics::
 
         :ref:`topic-arena`.
 
@@ -573,7 +573,7 @@ Declared in ``mps.h``
     While an arena is unclamped, :term:`garbage collection`, object
     motion, and other background activity can take place.
 
-    .. seealso::
+    .. topics::
 
         :ref:`topic-arena`, :ref:`topic-collection`.
 
@@ -600,7 +600,7 @@ Declared in ``mps.h``
     This function may only be called when the arena is in the
     :term:`parked state`.
 
-    .. seealso::
+    .. topics::
 
         :ref:`topic-arena`.
 
@@ -626,7 +626,7 @@ Declared in ``mps.h``
     Returns the spare commit limit in bytes. The spare commit limit
     can be changed using :c:func:`mps_spare_commit_limit_set`.
 
-    .. seealso::
+    .. topics::
 
         :ref:`topic-arena`.
 
@@ -656,7 +656,7 @@ Declared in ``mps.h``
     value. The value of the limit can be retrieved by the function
     :c:func:`mps_arena_spare_commit_limit`.
 
-    .. seealso::
+    .. topics::
 
         :ref:`topic-arena`.
 
@@ -686,7 +686,7 @@ Declared in ``mps.h``
     :c:func:`mps_arena_spare_commit_limit`. This is analogous to the
     functions for limiting the amount of :term:`committed memory`.
 
-    .. seealso::
+    .. topics::
 
         :ref:`topic-arena`.
 
@@ -725,7 +725,7 @@ Declared in ``mps.h``
     as soon as the arena leaves the :term:`clamped state` by calling
     :c:func:`mps_arena_release`.
 
-    .. seealso::
+    .. topics::
 
         :ref:`topic-arena`.
 
@@ -760,7 +760,7 @@ Declared in ``mps.h``
     protection state; as a consequence the same remembered state
     cannot be restored more than once.
 
-    .. seealso::
+    .. topics::
 
         :ref:`topic-arena`.
 
@@ -797,7 +797,7 @@ Declared in ``mps.h``
     this constraint may not be checked by the MPS, and may be unsafe,
     causing the MPS to crash in undefined ways.
 
-    .. seealso::
+    .. topics::
 
         :ref:`topic-finalization`.
 
@@ -829,7 +829,7 @@ Declared in ``mps.h``
 
         Use :c:func:`MPS_FIX12` instead.
 
-    .. seealso::
+    .. topics::
 
         :ref:`topic-scanning` and :ref:`topic-moving`.
 
@@ -856,7 +856,7 @@ Declared in ``mps.h``
     :term:`block`. If it returns true, the scan method must invoke
     :c:func:`MPS_FIX2`, to fix the reference.
 
-    .. seealso::
+    .. topics::
 
         :ref:`topic-scanning`.
 
@@ -884,7 +884,7 @@ Declared in ``mps.h``
     must return that result as soon as possible, without fixing any
     further references.
 
-    .. seealso::
+    .. topics::
 
         :ref:`topic-scanning`.
 
@@ -912,7 +912,7 @@ Declared in ``mps.h``
     must return that result as soon as possible, without fixing any
     further references.
 
-    .. seealso::
+    .. topics::
 
         :ref:`topic-scanning`.
 
@@ -967,7 +967,7 @@ Declared in ``mps.h``
             return MPS_RES_OK;
         }
 
-    .. seealso::
+    .. topics::
 
         :ref:`topic-scanning`.
 
@@ -1018,7 +1018,7 @@ Declared in ``mps.h``
     objects <padding object>` belonging to this format. See
     :c:type:`mps_fmt_pad_t`.
 
-    .. seealso::
+    .. topics::
 
         :ref:`topic-format`.
 
@@ -1049,7 +1049,7 @@ Declared in ``mps.h``
     more information to be passed to various support tools (such as
     graphical browsers). See :c:type:`mps_fmt_class_t`.
 
-    .. seealso::
+    .. topics::
 
         :ref:`topic-format`.
 
@@ -1088,7 +1088,7 @@ Declared in ``mps.h``
     *mps_headerSize* is the size of the header, that is, the offset of
     a client pointer from the base of the memory block.
 
-    .. seealso::
+    .. topics::
 
         :ref:`topic-format`.
 
@@ -1128,7 +1128,7 @@ Declared in ``mps.h``
     via :c:func:`mps_telemetry_intern` and
     :c:func:`mps_telemetry_label`.
 
-    .. seealso::
+    .. topics::
 
         :ref:`topic-format`.
 
@@ -1148,7 +1148,7 @@ Declared in ``mps.h``
     some resource in the course of :c:func:`mps_fmt_create_A` and will
     return an appropriate :term:`result code` if so.
 
-    .. seealso::
+    .. topics::
 
         :ref:`topic-format`.
 
@@ -1168,7 +1168,7 @@ Declared in ``mps.h``
     some resource in the course of :c:func:`mps_fmt_create_B` and will
     return an appropriate :term:`result code` if so.
 
-    .. seealso::
+    .. topics::
 
         :ref:`topic-format`.
 
@@ -1190,7 +1190,7 @@ Declared in ``mps.h``
     :c:func:`mps_fmt_create_auto_header` and will return an
     appropriate :term:`result code` if so.
 
-    .. seealso::
+    .. topics::
 
         :ref:`topic-format`.
 
@@ -1222,7 +1222,7 @@ Declared in ``mps.h``
        ordinary objects, and the is-forwarded method method must
        return the address *new*. See :c:type:`mps_fmt_isfwd_t`.
 
-    .. seealso::
+    .. topics::
 
         :ref:`topic-format`.
 
@@ -1244,7 +1244,7 @@ Declared in ``mps.h``
     of the *new* argument supplied to the :term:`forward method` when
     the object was moved. If not, return a null pointer.
 
-    .. seealso::
+    .. topics::
 
         :ref:`topic-format`.
 
@@ -1275,7 +1275,7 @@ Declared in ``mps.h``
     other methods in the format (the :term:`scan method`, the
     :term:`skip method`, and so on).
 
-    .. seealso::
+    .. topics::
 
         :ref:`topic-format`.
 
@@ -1311,7 +1311,7 @@ Declared in ``mps.h``
     must then indicate references within the objects by calling
     :c:func:`MPS_FIX1` and :c:func:`MPS_FIX2`.
 
-    .. seealso::
+    .. topics::
 
         :ref:`topic-format`, :ref:`topic-scanning`.
 
@@ -1333,7 +1333,7 @@ Declared in ``mps.h``
 
     A skip method is not allowed to fail.
 
-    .. seealso::
+    .. topics::
 
         :ref:`topic-format`, :ref:`topic-scanning`.
 
@@ -1342,7 +1342,7 @@ Declared in ``mps.h``
 
     The type of an :term:`object format`.
 
-    .. seealso::
+    .. topics::
 
         :ref:`topic-format`.
 
@@ -1366,7 +1366,7 @@ Declared in ``mps.h``
     *p* and *s* are the corresponding values that were passed to
     :c:func:`mps_arena_formatted_objects_walk`.
 
-    .. seealso::
+    .. topics::
 
         :ref:`topic-arena`, :ref:`topic-format`.
 
@@ -1385,7 +1385,7 @@ Declared in ``mps.h``
     pool, or the pool might decide to make it available to other
     pools, or it may be returned to the operating system.
 
-    .. seealso::
+    .. topics::
 
         :ref:`topic-allocation`.
 
@@ -1427,7 +1427,7 @@ Declared in ``mps.h``
     was posted. You can subtract one clock value from another to get
     the time interval between the posting of two messages.
 
-    .. seealso::
+    .. topics::
 
         :ref:`topic-message`.
 
@@ -1457,7 +1457,7 @@ Declared in ``mps.h``
     messages have been discarded. See
     :c:func:`mps_message_type_finalization`.
 
-    .. seealso::
+    .. topics::
 
         :ref:`topic-finalization`, :ref:`topic-message`.
 
@@ -1479,7 +1479,7 @@ Declared in ``mps.h``
     that was originally registered for :term:`finalization` by a call
     to :c:func:`mps_finalize`.
 
-    .. seealso::
+    .. topics::
 
         :ref:`topic-finalization`, :ref:`topic-message`.
 
@@ -1514,7 +1514,7 @@ Declared in ``mps.h``
     the set of objects :term:`condemned` in the :term:`garbage
     collection` that generated the message.
 
-    .. seealso::
+    .. topics::
 
         :ref:`topic-collection`, :ref:`topic-message`.
 
@@ -1533,7 +1533,7 @@ Declared in ``mps.h``
     that survived the :term:`garbage collection` that generated the
     message.
 
-    .. seealso::
+    .. topics::
 
         :ref:`topic-collection`, :ref:`topic-message`.
 
@@ -1553,7 +1553,7 @@ Declared in ``mps.h``
     were not :term:`condemned` in the :term:`garbage collection` that
     generated the message.
 
-    .. seealso::
+    .. topics::
 
         :ref:`topic-collection`, :ref:`topic-message`.
 
@@ -1574,7 +1574,7 @@ Declared in ``mps.h``
     modified by the client. The string and the pointer are valid until
     the message is discarded with :c:func:`mps_message_discard`.
 
-    .. seealso::
+    .. topics::
 
         :ref:`topic-collection`, :ref:`topic-message`.
 
@@ -1597,7 +1597,7 @@ Declared in ``mps.h``
     in the location pointed to by *message_o*, and returns true.
     Otherwise it returns false.
 
-    .. seealso::
+    .. topics::
 
         :ref:`topic-message`.
 
@@ -1612,7 +1612,7 @@ Declared in ``mps.h``
     Returns true if there is at least one message on the message queue
     for *arena*, or false if the message queue is empty.
 
-    .. seealso::
+    .. topics::
 
         :ref:`topic-message`.
 
@@ -1639,7 +1639,7 @@ Declared in ``mps.h``
     *message_type_o*. If there are no messages on the message queue,
     it returns false.
 
-    .. seealso::
+    .. topics::
 
         :ref:`topic-message`.
 
@@ -1656,7 +1656,7 @@ Declared in ``mps.h``
     An :c:func:`mps_message_t` is a :term:`reference` into MPS managed
     memory, and can safely be :term:`fixed <fix>`.
 
-    .. seealso::
+    .. topics::
 
         :ref:`topic-message`.
 
@@ -1670,7 +1670,7 @@ Declared in ``mps.h``
     *message* is a message retrieved by :c:func:`mps_message_get` and
     not yet discarded.
 
-    .. seealso::
+    .. topics::
 
         :ref:`topic-message`.
 
@@ -1689,7 +1689,7 @@ Declared in ``mps.h``
     Any existing messages of the specified type are flushed from the
     :term:`message queue` of *arena*.
 
-    .. seealso::
+    .. topics::
 
         :ref:`topic-message`.
 
@@ -1720,7 +1720,7 @@ Declared in ``mps.h``
     The client program may disable the posting of messages by calling
     :c:func:`mps_message_type_disable`.
 
-    .. seealso::
+    .. topics::
 
         :ref:`topic-message`.
 
@@ -1749,7 +1749,7 @@ Declared in ``mps.h``
     :c:func:`mps_message_finalization_ref` method which returns a
     reference to the block that was registered for finalization.
 
-    .. seealso::
+    .. topics::
 
         :ref:`topic-finalization`, :ref:`topic-message`.
 
@@ -1779,7 +1779,7 @@ Declared in ``mps.h``
       :term:`pools <pool>`, but were not condemned in the garbage
       collection that generated the message.
 
-    .. seealso::
+    .. topics::
 
         :ref:`topic-collection`, :ref:`topic-message`.
 
@@ -1798,7 +1798,7 @@ Declared in ``mps.h``
     * :c:func:`mps_message_gc_start_why` returns a string that
       describes why the garbage collection started.
 
-    .. seealso::
+    .. topics::
 
         :ref:`topic-collection`, :ref:`topic-message`.
 
@@ -1807,7 +1807,7 @@ Declared in ``mps.h``
 
     The type of :term:`message types <message type>`.
 
-    .. seealso::
+    .. topics::
 
         :ref:`topic-message`.
 
@@ -1822,7 +1822,7 @@ Declared in ``mps.h``
     is only useful to call this on a :term:`debugging pool` that has
     fenceposts turned on. It does nothing on non-debugging pools.
 
-    .. seealso::
+    .. topics::
 
         :ref:`topic-debugging`.
 
@@ -1878,7 +1878,7 @@ Declared in ``mps.h``
       to signal an error or stop if wrongly interpreted as executable
       code.
 
-    .. seealso::
+    .. topics::
 
         :ref:`topic-debugging`.
 
@@ -1887,7 +1887,7 @@ Declared in ``mps.h``
 
     Return the :term:`rank` of :term:`ambiguous` references.
 
-    .. seealso::
+    .. topics::
 
         :ref:`topic-root`.
 
@@ -1896,7 +1896,7 @@ Declared in ``mps.h``
 
     Return the :term:`rank` of :term:`exact` references.
 
-    .. seealso::
+    .. topics::
 
         :ref:`topic-root`.
 
@@ -1907,7 +1907,7 @@ Declared in ``mps.h``
     ``typedef`` mechanism) for ``unsigned int``, provided for
     convenience and clarity.
 
-    .. seealso::
+    .. topics::
 
         :ref:`topic-root`.
 
@@ -1916,7 +1916,7 @@ Declared in ``mps.h``
 
     Return the :term:`rank` of :term:`weak` references.
 
-    .. seealso::
+    .. topics::
 
         :ref:`topic-root`.
 
@@ -1948,7 +1948,7 @@ Declared in ``mps.h``
     root. It must then indicate references within the root by calling
     :c:func:`MPS_FIX1` and :c:func:`MPS_FIX2`.
 
-    .. seealso::
+    .. topics::
 
         :ref:`topic-root`, :ref:`topic-scanning`.
 
@@ -2002,7 +2002,7 @@ Declared in ``mps.h``
     You need to deallocate something to make more space, or increase
     the commit limit by calling :c:func:`mps_arena_commit_limit_set`.
 
-    .. seealso::
+    .. topics::
 
         :ref:`topic-error`.
 
@@ -2014,7 +2014,7 @@ Declared in ``mps.h``
     exact meaning depends on the function that returned this result
     code.
 
-    .. seealso::
+    .. topics::
 
         :ref:`topic-error`.
 
@@ -2025,7 +2025,7 @@ Declared in ``mps.h``
     occurred. The exact meaning depends on the function that returned
     this result code.
 
-    .. seealso::
+    .. topics::
 
         :ref:`topic-error`.
 
@@ -2037,7 +2037,7 @@ Declared in ``mps.h``
     MPS. The exact meaning depends on the function that returned this
     result code.
 
-    .. seealso::
+    .. topics::
 
         :ref:`topic-error`.
 
@@ -2052,7 +2052,7 @@ Declared in ``mps.h``
     the :term:`arena` (if you're using an arena for which that does
     not happen automatically).
 
-    .. seealso::
+    .. topics::
 
         :ref:`topic-error`.
 
@@ -2080,7 +2080,7 @@ Declared in ``mps.h``
 
     :c:macro:`MPS_RES_OK` is zero.
 
-    .. seealso::
+    .. topics::
 
         :ref:`topic-error`.
 
@@ -2092,7 +2092,7 @@ Declared in ``mps.h``
     the operation. The exact meaning depends on the function that
     returned this result code.
 
-    .. seealso::
+    .. topics::
 
         :ref:`topic-error`.
 
@@ -2114,7 +2114,7 @@ Declared in ``mps.h``
     :c:macro:`MPS_RES_MEMORY`), or terminate other processes running
     on the same machine.
 
-    .. seealso::
+    .. topics::
 
         :ref:`topic-error`.
 
@@ -2128,7 +2128,7 @@ Declared in ``mps.h``
     or by operations that are included for future expansion, but not
     yet supported.
 
-    .. seealso::
+    .. topics::
 
         :ref:`topic-error`.
 
@@ -2143,7 +2143,7 @@ Declared in ``mps.h``
     <formatted root>` and :term:`table roots <table root>`, the client
     program will not write to the root at all.
 
-    .. seealso::
+    .. topics::
 
         :ref:`topic-root`.
 
@@ -2161,7 +2161,7 @@ Declared in ``mps.h``
     for the one for this root) may write data in this root. They may
     read it.
 
-    .. seealso::
+    .. topics::
 
         :ref:`topic-root`.
 
@@ -2204,7 +2204,7 @@ Declared in ``mps.h``
     description could not be allocated, or another :term:`result code`
     if there was another error.
 
-    .. seealso::
+    .. topics::
 
         :ref:`topic-root`.
 
@@ -2237,7 +2237,7 @@ Declared in ``mps.h``
     description could not be allocated, or another :term:`result code`
     if there was another error.
 
-    .. seealso::
+    .. topics::
 
         :ref:`topic-root`.
 
@@ -2278,7 +2278,7 @@ Declared in ``mps.h``
     description could not be allocated, or another :term:`result code`
     if there was another error.
 
-    .. seealso::
+    .. topics::
 
         :ref:`topic-root`.
 
@@ -2313,7 +2313,7 @@ Declared in ``mps.h``
     description could not be allocated, or another :term:`result code`
     if there was another error.
 
-    .. seealso::
+    .. topics::
 
         :ref:`topic-root`.
 
@@ -2345,7 +2345,7 @@ Declared in ``mps.h``
     description could not be allocated, or another :term:`result code`
     if there was another error.
 
-    .. seealso::
+    .. topics::
 
         :ref:`topic-root`.
 
@@ -2370,7 +2370,7 @@ Declared in ``mps.h``
     scanning is completed successfully, the function should return
     :c:macro:`MPS_RES_OK`.
 
-    .. seealso::
+    .. topics::
 
         :ref:`topic-root`.
 
@@ -2395,7 +2395,7 @@ Declared in ``mps.h``
     *p* and *s* are the corresponding values that were passed to
     :c:func:`mps_arena_roots_walk`.
 
-    .. seealso::
+    .. topics::
 
         :ref:`topic-root`.
 
@@ -2430,7 +2430,7 @@ Declared in ``mps.h``
     was exceeded, or :c:macro:`MPS_RES_RESOURCE` if it ran out of
     :term:`virtual memory`.
 
-    .. seealso::
+    .. topics::
 
         :ref:`topic-cache`.
 
@@ -2467,7 +2467,7 @@ Declared in ``mps.h``
     *has_reservoir_permit* unless it decides to access the pool. The
     second argument *p_v* must also be an lvalue.
 
-    .. seealso::
+    .. topics::
 
         :ref:`topic-cache`.
 
@@ -2482,7 +2482,7 @@ Declared in ``mps.h``
     you specify more than this many, you should be prepared to handle
     the :term:`result code` :c:macro:`MPS_RES_LIMIT`.
 
-    .. seealso::
+    .. topics::
 
         :ref:`topic-cache`.
 
@@ -2505,7 +2505,7 @@ Declared in ``mps.h``
     that was specified when the block was allocated (the cache knows
     what the real size of the block is).
 
-    .. seealso::
+    .. topics::
 
         :ref:`topic-cache`.
 
@@ -2539,7 +2539,7 @@ Declared in ``mps.h``
     the function but does no checking. The arguments are identical to
     the function.
 
-    .. seealso::
+    .. topics::
 
         :ref:`topic-cache`.
 
@@ -2577,7 +2577,7 @@ Declared in ``mps.h``
     requests (allocation and deallocation combined) in this size class
     relative to the other size classes in the cache.
 
-    .. seealso::
+    .. topics::
 
         :ref:`topic-cache`.
 
@@ -2641,7 +2641,7 @@ Declared in ``mps.h``
     Any allocations whose size falls between two size classes are
     allocated from the larger size class.
 
-    .. seealso::
+    .. topics::
 
         :ref:`topic-cache`.
 
@@ -2672,7 +2672,7 @@ Declared in ``mps.h``
 
     Destroying the cache has no effect on blocks allocated through it.
 
-    .. seealso::
+    .. topics::
 
         :ref:`topic-cache`.
 
@@ -2697,7 +2697,7 @@ Declared in ``mps.h``
     segregated allocation cache without the :term:`client program`
     requesting a flush.
 
-    .. seealso::
+    .. topics::
 
         :ref:`topic-cache`.
 
@@ -2715,7 +2715,7 @@ Declared in ``mps.h``
     The type of :term:`segregated allocation caches <segregated
     allocation cache>`.
 
-    .. seealso::
+    .. topics::
 
         :ref:`topic-cache`.
 
@@ -2729,7 +2729,7 @@ Declared in ``mps.h``
 
     *ss* is the :term:`scan state` that was passed to the scan method.
 
-    .. seealso::
+    .. topics::
 
         :ref:`topic-scanning`.
 
@@ -2751,7 +2751,7 @@ Declared in ``mps.h``
     *ss* is the :term:`scan state` that was passed to the scan
     method.
 
-    .. seealso::
+    .. topics::
 
         :ref:`topic-scanning`.
 
@@ -2787,7 +2787,7 @@ Declared in ``mps.h``
     represented as machine words, and are required to be
     4-byte-aligned; unaligned values are ignored.
 
-    .. seealso::
+    .. topics::
 
         :ref:`topic-platform`, :ref:`topic-root`.
 
@@ -2844,7 +2844,7 @@ Declared in ``mps.h``
 
     6. user events (see :c:func:`mps_telemetry_intern`).
 
-    .. seealso::
+    .. topics::
 
         :ref:`topic-telemetry`.
 
@@ -2860,7 +2860,7 @@ Declared in ``mps.h``
     interactive tool require access to the event data. You could even
     try calling this from a debugger after a problem.
 
-    .. seealso::
+    .. topics::
 
         :ref:`topic-telemetry`.
 
@@ -2880,7 +2880,7 @@ Declared in ``mps.h``
     can be used to concisely represent a string for the purposes of
     :c:func:`mps_telemetry_label`. 
 
-    .. seealso::
+    .. topics::
 
         :ref:`topic-telemetry`.
 
@@ -2905,7 +2905,7 @@ Declared in ``mps.h``
     The label will be associated with the address when it appears in
     the :term:`telemetry stream`.
 
-    .. seealso::
+    .. topics::
 
         :ref:`topic-telemetry`.
 
@@ -2928,7 +2928,7 @@ Declared in ``mps.h``
     a thread with the MPS so that its stack can be registered as a
     :term:`root` using :c:func:`mps_root_create_reg`.
 
-    .. seealso::
+    .. topics::
 
         :ref:`topic-root`.
 
@@ -2961,7 +2961,7 @@ Declared in ``mpsacl.h``
     this case, you should allocate a (much) larger block, and try
     again.
 
-    .. seealso::
+    .. topics::
 
         :ref:`topic-arena`.
 
@@ -3013,7 +3013,7 @@ Declared in ``mpsavm.h``
     :c:macro:`MPS_RES_MEMORY`. Either *size* was far too small or you
     ran out of swap space.
 
-    .. seealso::
+    .. topics::
 
         :ref:`topic-arena`.
 
@@ -3037,7 +3037,7 @@ Declared in ``mpsavm.h``
     any more address space: compare with :c:func:`mps_arena_class_vm`,
     which can grow.
 
-    .. seealso::
+    .. topics::
 
         :ref:`topic-arena`.
 
@@ -3075,7 +3075,7 @@ Declared in ``mpscamc.h``
     The function *f* may not allocate memory or access any
     automatically-managed memory except within *object*.
 
-    .. seealso::
+    .. topics::
 
         :ref:`topic-scanning`.
 
@@ -3102,7 +3102,7 @@ Declared in ``mpscamc.h``
     *fmt* specifies the :term:`object format` for the objects
     allocated in the pool.
 
-    .. seealso::
+    .. topics::
 
         :ref:`pool-amc`.
 
@@ -3143,7 +3143,7 @@ Declared in ``mpscmvff.h``
     be set to (0, 0, 1) or (1, 1, 1). No other setting of these
     parameters is currently recommended.
 
-    .. seealso::
+    .. topics::
 
         :ref:`pool-mvff`.
 
@@ -3194,7 +3194,7 @@ Declared in ``mpscmv2.h``
     the pool to operate as a first-fit pool, at a significant cost in
     time efficiency, therefore is not permitted.
 
-    .. seealso::
+    .. topics::
 
         :ref:`pool-mvt`
 
@@ -3219,7 +3219,7 @@ Declared in ``mpscsnc.h``
     allocated in the pool. The format should provide at least the
     methods scan, skip, and pad.
 
-    .. seealso::
+    .. topics::
 
         :ref:`pool-snc`.
 
@@ -3245,7 +3245,7 @@ Declared in ``mpslib.h``
     This function is intended to have the same semantics as the
     ``memcmp`` function of the [ANSI C Standard]_ (section 7.11.4.1).
 
-    .. seealso::
+    .. topics::
 
         :ref:`topic-plinth`.
 
@@ -3269,7 +3269,7 @@ Declared in ``mpslib.h``
     The MPS never passes overlapping blocks to
     :c:func:`mps_lib_memcpy`.
 
-    .. seealso::
+    .. topics::
 
         :ref:`topic-plinth`.
 
@@ -3289,7 +3289,7 @@ Declared in ``mpslib.h``
     This function is intended to have the same semantics as the
     ``memset`` function of the [ANSI C Standard]_ (section 7.11.6.1).
 
-    .. seealso::
+    .. topics::
 
         :ref:`topic-plinth`.
 
@@ -3309,7 +3309,7 @@ Declared in ``mpslib.h``
     In the absence of environmental data, a default of zero is
     recommended.
 
-    .. seealso::
+    .. topics::
 
         :ref:`topic-plinth`, :ref:`topic-telemetry`.
 
@@ -3327,7 +3327,7 @@ Declared in ``mpstd.h``
     The exact identity of this type is platform-dependent. Typical
     identities are ``unsigned long`` and ``unsigned __int_64``.
 
-    .. seealso::
+    .. topics::
 
         :ref:`topic-platform`.
 
@@ -3339,7 +3339,7 @@ Declared in ``mpstd.h``
 
     The value is platform-dependent. Typical values are 5 and 6.
 
-    .. seealso::
+    .. topics::
 
         :ref:`topic-platform`.
 
@@ -3352,7 +3352,7 @@ Declared in ``mpstd.h``
     This value is platform-dependent. It is always a power of 2:
     typical values are 32 and 64.
 
-    .. seealso::
+    .. topics::
 
         :ref:`topic-platform`.
 
