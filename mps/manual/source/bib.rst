@@ -1,6 +1,6 @@
-============
+************
 Bibliography
-============
+************
 
 .. [AEL88] Andrew Appel, John R. Ellis, Kai Li. 1988. "Real-time Concurrent Collection on Stock Multiprocessors".
 
