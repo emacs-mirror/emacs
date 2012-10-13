@@ -1,3 +1,7 @@
+2012-10-13  Chong Yidong  <cyd@gnu.org>
+
+	* files.texi (File Conveniences): ImageMagick enabled by default.
+
 2012-10-10  Dani Moncayo  <dmoncayo@gmail.com>
 
 	* basic.texi (Arguments): Fix typos.
