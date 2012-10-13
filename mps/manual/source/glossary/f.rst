@@ -270,8 +270,8 @@ Glossary: F
 
         A :term:`formatted object` that has been replaced by a
         :term:`forwarding marker`. One of three types of formatted
-        objects, the other two being :term:`data object <data
-        objects>` and :term:`padding objects <padding object>`.
+        objects, the other two being :term:`data objects <data
+        object>` and :term:`padding objects <padding object>`.
 
     forwarding marker
     forwarding pointer

@@ -90,7 +90,7 @@ Glossary: T
         .. mps::
 
             A :term:`bitmap` indicating which events the MPS should
-            include in the :term:`telemtry stream`. It can be read or
+            include in the :term:`telemetry stream`. It can be read or
             changed by calling :c:func:`mps_telemetry_control`.
 
     telemetry label
@@ -99,9 +99,9 @@ Glossary: T
 
             An indentifier representing a string, returned from
             :c:func:`mps_telemetry_intern`, that can be associated
-            with certain :term:`formatted objects` of variant B, and
-            so appear in the :term:`telemetry stream` attached to
-            events concerning those objects. See
+            with certain :term:`formatted objects <formatted object>`
+            of variant B, and so appear in the :term:`telemetry
+            stream` attached to events concerning those objects. See
             :ref:`topic-telemetry`.
 
     telemetry stream
@@ -170,7 +170,7 @@ Glossary: T
 
             Threads are represented by values of type
             :c:type:`mps_thr_t`, created by calling
-            :term:`mps_thread_reg`. In order for the MPS to find
+            :c:func:`mps_thread_reg`. In order for the MPS to find
             references on the control of the thread, the thread must
             be also be registered as a root by calling
             :c:func:`mps_root_create_reg`.

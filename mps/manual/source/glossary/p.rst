@@ -27,7 +27,7 @@ Glossary: P
 
         A :term:`formatted object` that consists of :term:`padding`.
         One of three types of formatted objects, the other two being
-        :term:`data object <data objects>` and :term:`forwarded
+        :term:`data objects <data object>` and :term:`forwarded
         objects <forwarded object>`.
 
     page
