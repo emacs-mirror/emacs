@@ -1,3 +1,8 @@
+2012-10-13  Chong Yidong  <cyd@gnu.org>
+
+	* textmodes/ispell.el (ispell-pdict-save): If flyspell-mode is
+	enabled, re-enable it (Bug#11963).
+
 2012-10-13  Martin Rudalics  <rudalics@gmx.at>
 
 	* emacs-lisp/debug.el (debug): When debugger-will-be-back is
