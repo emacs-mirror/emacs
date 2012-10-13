@@ -1,8 +1,10 @@
 .. _glossary-p:
 
-===========
-Glossary: P
-===========
+=============================
+Memory Management Glossary: P
+=============================
+
+.. include:: alphabet.txt
 
 .. glossary::
 
@@ -27,7 +29,7 @@ Glossary: P
 
         A :term:`formatted object` that consists of :term:`padding`.
         One of three types of formatted objects, the other two being
-        :term:`data objects <data object>` and :term:`forwarded
+        :term:`client objects <client object>` and :term:`forwarded
         objects <forwarded object>`.
 
     page

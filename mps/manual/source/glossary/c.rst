@@ -1,8 +1,10 @@
 .. _glossary-c:
 
-===========
-Glossary: C
-===========
+=============================
+Memory Management Glossary: C
+=============================
+
+.. include:: alphabet.txt
 
 .. glossary::
 
@@ -195,6 +197,14 @@ Glossary: C
             An :term:`arena class` which gets its :term:`memory (2)`
             from the :term:`client program`. See
             :c:func:`mps_arena_class_cl`.
+
+    client object
+
+        A :term:`formatted object` that contains data from the
+        :term:`client program`. One of three types of formatted
+        objects, the other two being :term:`forwarded objects
+        <forwarded object>` and :term:`padding objects <padding
+        object>`.
 
     client program
 

@@ -1,8 +1,10 @@
 .. _glossary-a:
 
-===========
-Glossary: A
-===========
+=============================
+Memory Management Glossary: A
+=============================
+
+.. include:: alphabet.txt
 
 .. glossary::
 
@@ -19,11 +21,11 @@ Glossary: A
         .. aka:: *function record*, *activation frame*.
 
         An activation or function record is a data structure,
-        associated with the invocation of a function, procedure or
-        control block that stores the variables, temporaries and
-        fixed-sized data local to the block, and the information
-        required to return to the invoking context. It is often stored
-        on a :term:`stack`.
+        associated with the invocation of a function, procedure, or
+        control block that stores the variables, temporaries, and
+        fixed-sized data that are local to the block, and the
+        information required to return to the invoking context. It is
+        often stored on a :term:`control stack`.
 
         In a register-based hardware architecture, the current
         activation record is typically partially stored in registers.
@@ -83,11 +85,11 @@ Glossary: A
         <address>`. It can also be considered to be a partial function
         from addresses to :term:`locations <memory location>`.
 
-        Typically, addresses start at zero and run to 2^N-1, where N
-        is the address width (for example, 15, 16, 24, 32, 64), which
-        is usually the same as the width of the address bus. This may
-        not be true for :term:`segmented <segmented addressing>`
-        architectures.
+        Typically, addresses start at zero and run to 2\ :sup:`n`\ −1,
+        where *n* is the address width (for example, 15, 16, 24, 32,
+        64), which is usually the same as the width of the address
+        bus. This may not be true for :term:`segmented <segmented
+        addressing>` architectures.
 
         In modern systems, large parts of the whole address space may
         be reserved by the operating system or architecture, or not
@@ -126,9 +128,9 @@ Glossary: A
     algebraic data type
 
         Algebraic data types aggregate or alternate a number of
-        dissimilarly-typed objects. They are termed algebraic because
-        they can be expressed as a sum-of-products: (a and b and c) or
-        d.
+        dissimilarly-typed objects. They are termed *algebraic*
+        because they can be expressed using the sum and product
+        operators, for example (a and b and c) or d.
 
         Examples of algebraic data types include: structures, records,
         tuples, and unions.
@@ -164,9 +166,8 @@ Glossary: A
             with an appropriate alignment for the object that is going
             to be stored there. Implementations of :term:`malloc` have
             to allocate all :term:`blocks <block>` at the largest
-            alignment that the processor architecture requires.
-
-            Other reasons for aligning objects include using the least
+            alignment that the processor architecture requires. Other
+            reasons for aligning objects include using the least
             significant bits of the address for a :term:`tag`.
 
         .. opposite:: :term:`unaligned`.
@@ -175,7 +176,8 @@ Glossary: A
 
         .. mps::
 
-            An alignment must be a positive power of 2.
+            An alignment is represented by the unsigned integral type
+            :c:type:`mps_align_t`. It must be a positive power of 2.
 
     alive
 
