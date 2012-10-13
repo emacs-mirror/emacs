@@ -33,8 +33,9 @@ Glossary: D
 
         A :term:`formatted object` that contains data from the
         :term:`client program`. One of three types of formatted
-        objects, the other two being :term:`forwarded object <forwarded
-        objects>` and :term:`padding objects <padding object>`.
+        objects, the other two being :term:`forwarded objects
+        <forwarded object>` and :term:`padding objects <padding
+        object>`.
 
     data stack
 
@@ -127,7 +128,7 @@ Glossary: D
             A :term:`pool` that performs extra checking in order to
             find errors in the :term:`client program`. It uses
             :term:`fenceposts <fencepost>` to detect
-            :term:`overwriting error <overwriting errors>` and it
+            :term:`overwriting errors <overwriting error>` and it
             writes patterns over reclaimed blocks in order to detect
             :term:`use after free <premature free>` or missing
             references during :term:`scanning <scan>`.
