@@ -1,3 +1,8 @@
+2012-10-13  Martin Rudalics  <rudalics@gmx.at>
+
+	* emacs-lisp/debug.el (debug): When debugger-will-be-back is
+	non-nil, restore window configuration (Bug#12623).
+
 2012-10-12  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* help-fns.el (describe-variable, describe-function-1):
