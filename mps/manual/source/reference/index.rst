@@ -645,7 +645,8 @@ Declared in ``mps.h``
     *arena* is the arena to return the spare commit limit for.
 
     Returns the spare commit limit in bytes. The spare commit limit
-    can be changed using :c:func:`mps_spare_commit_limit_set`.
+    can be changed by calling
+    :c:func:`mps_arena_spare_commit_limit_set`.
 
     .. topics::
 
@@ -668,10 +669,8 @@ Declared in ``mps.h``
     that the MPS will have no spare committed memory.
 
     Non-virtual-memory arena classes (for example, a :term:`client
-    arena`) do not have maintain spare committed memory, but they
-    support the two functions :c:func:`mps_arena_spare_commit_limit`
-    and :c:func:`mps_arena_spare_commit_limit_set`. The functions get
-    and retrieve a value but do nothing else in that case.
+    arena`) do not have spare committed memory. For these arenas, this
+    function functions sets a value but has no other effect.
 
     Initially the spare commit limit is a configuration-dependent
     value. The value of the limit can be retrieved by the function
