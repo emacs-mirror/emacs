@@ -4,6 +4,7 @@
 Allocation
 ==========
 
+See design/buffer
 
 This example seems to be wrong (no function "mps_pool_alloc" in the public interface).
 

@@ -55,6 +55,10 @@ Glossary: W
 
         .. opposite:: :term:`strong root`.
 
+        .. mps::
+
+            A weak root has :term:`rank` :c:func:`mps_rank_weak`.
+
     weak tri-color invariant
     weak tri-colour invariant
     weak tricolor invariant
@@ -148,7 +152,7 @@ Glossary: W
     white
 
         In a :term:`tri-color marking` scheme, white :term:`objects
-        <object>` are objects that were :term:`condemned <threatened
+        <object>` are objects that were :term:`condemned <condemned
         set>` at the beginning of the :term:`collection cycle` and
         have not been shown to be :term:`reachable`. When
         :term:`tracing <trace>` is complete, white objects will be

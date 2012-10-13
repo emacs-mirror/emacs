@@ -251,16 +251,34 @@ Declared in ``mps.h``
         :ref:`topic-frame`.
 
 
-.. c:function:: extern void mps_arena_clamp(mps_arena_t arena)
+.. c:type:: mps_ap_t
+
+    The type of :term:`allocation points <allocation point>`.
+
+    An allocation point is an interface to a :term:`pool` which
+    provides very fast allocation, and defers the need for
+    synchronization in a multi-threaded environment.
+
+    Create an allocation point for a pool by calling
+    :c:func:`mps_ap_create`, and allocate memory via one by calling
+    :c:func:`mps_reserve` and :c:func:`mps_commit`.
+
+    .. topics::
+
+        :ref:`topic-allocation`.
+
+
+.. c:function:: void mps_arena_clamp(mps_arena_t arena)
 
     Put an :term:`arena` into the :term:`clamped state`.
     
     *arena* is the arena to clamp.
 
     In the clamped state, no object motion will occur and the
-    staleness of location dependencies will not change. All references
-    to objects loaded while the arena is clamped will keep the same
-    binary representation until after it is released.
+    staleness of :term:`location dependencies <location dependency>`
+    will not change. All references to objects loaded while the arena
+    is clamped will keep the same binary representation until after it
+    is released by calling :c:func:`mps_arena_release`.
 
     In a clamped arena, incremental collection may still occur, but it
     will not be visible to the mutator and no new collections will
@@ -547,14 +565,15 @@ Declared in ``mps.h``
 
 .. c:function:: void mps_arena_park(mps_arena_t arena)
 
-    Put an arena into the :term:`parked state`.
+    Put an :term:`arena` into the :term:`parked state`.
 
     *arena* is the arena to park.
 
     While an arena is parked, no object motion will occur and the
-    staleness of location dependencies will not change. All references
-    to objects loaded while the arena is parked will keep the same
-    binary representation until after it is released.
+    staleness of :term:`location dependencies <location dependency>`
+    will not change. All references to objects loaded while the arena
+    is parked will keep the same binary representation until after it
+    is released.
 
     Any current collection is run to completion before the arena is
     parked, and no new collections will start. When an arena is in the
@@ -608,7 +627,7 @@ Declared in ``mps.h``
 
     .. note::
 
-        If a root has rank :c:macro:`MPS_RANK_AMBIG` then the
+        If a root is :term:`ambiguous <ambiguous root>` then the
         reference might not be to the start of an object; the
         :term:`client program` should handle this case. There is no
         guarantee that the reference corresponds to the actual
@@ -677,7 +696,7 @@ Declared in ``mps.h``
     internal reasons) but which remains committed (mapped to RAM by
     the operating system). It is used by the arena to (attempt to)
     avoid calling the operating system to repeatedly map and unmap
-    areas of :term:`virtual memory>` as the amount of memory in use
+    areas of :term:`virtual memory` as the amount of memory in use
     goes up and down. Spare committed memory is counted as committed
     memory by :c:func:`mps_arena_committed` and is restricted by
     :c:func:`mps_arena_commit_limit`.
@@ -687,6 +706,19 @@ Declared in ``mps.h``
     limit can be retrieved with
     :c:func:`mps_arena_spare_commit_limit`. This is analogous to the
     functions for limiting the amount of :term:`committed` memory.
+
+    .. topics::
+
+        :ref:`topic-arena`.
+
+
+.. c:type:: mps_arena_t
+
+    The type of :term:`arenas <arena>`.
+
+    An arena is responsible for requesting :term:`memory (3)` from
+    the operating system, making it available to :term:`pools <pool>`,
+    and for :term:`garbage collection`.
 
     .. topics::
 
@@ -1455,9 +1487,9 @@ Declared in ``mps.h``
     As well as consuming resources, messages may have other effects
     that require them to be tidied by calling this function. In
     particular finalization messages refer to a :term:`finalized
-    object`, and prevent the object from being reclaimed (subject to
+    block`, and prevent the object from being reclaimed (subject to
     the usual :term:`garbage collection` liveness analysis). A
-    finalized object cannot be reclaimed until all its finalization
+    finalized block cannot be reclaimed until all its finalization
     messages have been discarded. See
     :c:func:`mps_message_type_finalization`.
 
@@ -1656,7 +1688,10 @@ Declared in ``mps.h``
     Messages are :term:`manually <manual memory management>` managed.
     They are created at the instigation of the MPS (but see
     :c:func:`mps_message_type_enable`), and are deleted by the
-    :term:`client program`.
+    :term:`client program` by calling :c:func:`mps_message_discard`.
+
+    An :term:`arena` has a :term:`message queue` from which messages
+    can be obtained by calling :c:func:`mps_message_get`.
 
     An :c:func:`mps_message_t` is a :term:`reference` into MPS managed
     memory, and can safely be :term:`fixed <fix>`.
@@ -1817,6 +1852,19 @@ Declared in ``mps.h``
         :ref:`topic-message`.
 
 
+.. c:type:: mps_pool_t
+
+    The type of :term:`pools <pool>`.
+
+    A pool is responsible for requesting memory from the :term:`arena`
+    and making it available to the :term:`client program` via
+    :c:func:`mps_alloc` or via an :term:`allocation point`.
+
+    .. topics::
+
+        :ref:`pool`.
+
+
 .. c:function:: void mps_pool_check_fenceposts(mps_pool_t pool)
 
     Check all the :term:`fenceposts <fencepost>` in a :term:`pool`.
@@ -1890,8 +1938,8 @@ Declared in ``mps.h``
 
 .. c:function:: mps_rank_t mps_rank_ambig(void)
 
-    Return the :term:`rank` of :term:`ambiguous references <ambiguous
-    reference>`.
+    Return the :term:`rank` of :term:`ambiguous roots <ambiguous
+    root>`.
 
     .. topics::
 
@@ -1900,8 +1948,7 @@ Declared in ``mps.h``
 
 .. c:function:: mps_rank_t mps_rank_exact(void)
 
-    Return the :term:`rank` of :term:`exact references <exact
-    reference>`.
+    Return the :term:`rank` of :term:`exact roots <exact root>`.
 
     .. topics::
 
@@ -1921,8 +1968,7 @@ Declared in ``mps.h``
 
 .. c:function:: mps_rank_t mps_rank_weak(void)
 
-    Return the :term:`rank` of :term:`weak references <weak
-    reference (1)>`.
+    Return the :term:`rank` of :term:`weak roots <weak root>`.
 
     .. topics::
 
@@ -2143,13 +2189,13 @@ Declared in ``mps.h``
 
 .. c:macro:: MPS_RM_CONST
 
-    The :term:`root mode` for :term:`constant roots <constant
-    root>`. This tells the MPS that the :term:`client program` will
-    not change the :term:`root` after it is declared: tat is, scanning
-    the root will produce the same set of :term:`references
-    <reference>` every time. Furthermore, for :term:`formatted roots
-    <formatted root>` and :term:`table roots <table root>`, the client
-    program will not write to the root at all.
+    The :term:`root mode` for :term:`constant roots <constant root>`.
+    This tells the MPS that the :term:`client program` will not change
+    the :term:`root` after it is registered: that is, scanning the
+    root will produce the same set of :term:`references <reference>`
+    every time. Furthermore, for roots registered by
+    :c:func:`mps_root_create_fmt` and :c:func:`mps_root_create_table`,
+    the client program will not write to the root at all.
 
     .. topics::
 
@@ -2329,7 +2375,7 @@ Declared in ``mps.h``
 .. c:function:: mps_res_t mps_root_create_table_masked(mps_root_t *root_o, mps_arena_t arena, mps_rank_t rank, mps_rm_t rm, mps_addr_t *base, size_t size, mps_word_t mask)
 
     Register a :term:`root` that consists of a vector of :term:`tagged
-    values <tagged value>`.
+    references <tagged reference>`.
 
     *root_o* points to a location that will hold the address of the
     new root description.
@@ -2340,9 +2386,9 @@ Declared in ``mps.h``
 
     *rm* is the :term:`root mode`.
 
-    *base* points to a vector of tagged values.
+    *base* points to a vector of tagged references.
 
-    *size* is the number of tagged values in the vector.
+    *size* is the number of tagged references in the vector.
 
     *mask* is a :term:`bitmask` whose set bits specify the location of
     the :term:`tag`. References are assumed to have a tag of zero: any
@@ -2402,6 +2448,19 @@ Declared in ``mps.h``
 
     *p* and *s* are the corresponding values that were passed to
     :c:func:`mps_arena_roots_walk`.
+
+    .. topics::
+
+        :ref:`topic-root`.
+
+
+.. c:type:: mps_root_t
+
+    The type of :term:`root` descriptions.
+
+    The :term:`arena` uses root descriptions to find :term:`references
+    <reference>` within the :term:`client program's <client program>`
+    roots.
 
     .. topics::
 
@@ -2780,6 +2839,24 @@ Declared in ``mps.h``
         scan state is passed correctly.
 
 
+.. c:type:: mps_ss_t
+
+    The type of :term:`scan states <scan state>`.
+
+    A scan state represents the state of the current :term:`scan`. The
+    MPS passes a scan state to the :term:`scan method` of an
+    :term:`object format` when it needs to :term:`scan` for
+    :term:`references <reference>` within a region of memory. The
+    scan method must pass the scan state to :c:func:`MPS_SCAN_BEGIN`
+    and :c:func:`MPS_SCAN_END` to delimit a sequence of fix
+    operations, and to the functions :c:func:`MPS_FIX1` and
+    :c:func:`MPS_FIX2` when fixing a :term:`reference`.
+
+    .. topics::
+
+        :ref:`topic-scanning`.
+
+
 .. c:function:: mps_reg_scan_t mps_stack_scan_ambig
 
     A root scanning function for :term:`ambiguous <ambiguous
@@ -2787,13 +2864,12 @@ Declared in ``mps.h``
     passing to :c:func:`mps_root_create_reg`.
 
     It scans all integer registers and everything on the stack of the
-    thread given, and can therefore only be used with roots of
-    :term:`rank` :c:macro:`MPS_RANK_AMBIG`. It only scans locations
-    that are at, or higher on the stack (that is, more recently
-    added), the stack bottom that was passed to
-    :c:func:`mps_thread_create`. References are assumed to be
-    represented as machine words, and are required to be
-    4-byte-aligned; unaligned values are ignored.
+    thread given, and can therefore only be used with :term:`ambiguous
+    roots <ambiguous root>`. It only scans locations that are at, or
+    higher on the stack (that is, more recently added), the stack
+    bottom that was passed to :c:func:`mps_thread_create`. References
+    are assumed to be represented as machine words, and are required
+    to be 4-byte-aligned; unaligned values are ignored.
 
     .. topics::
 
@@ -3369,13 +3445,8 @@ Declared in ``mpstd.h``
 Undocumented in ``mps.h``
 -------------------------
 
-.. c:type:: mps_arena_t
-.. c:type:: mps_pool_t
 .. c:type:: mps_chain_t
-.. c:type:: mps_root_t
-.. c:type:: mps_ap_t
 .. c:type:: mps_ld_t
-.. c:type:: mps_ss_t
 .. c:type:: mps_alloc_pattern_t
 .. c:type:: mps_frame_t
 .. c:type:: mps_word_t
@@ -3383,7 +3454,6 @@ Undocumented in ``mps.h``
 .. c:type:: mps_rm_t
 .. c:type:: mps_sac_freelist_block_s
 .. c:type:: mps_ld_s
-.. c:type:: mps_ss_s
 .. c:type:: mps_fmt_fixed_s
 .. c::function:: mps_bool_t mps_arena_step(mps_arena_t arena, double interval, double multiplier)
 .. c:function:: mps_res_t mps_arena_start_collect(mps_arena_t arena)

@@ -6,10 +6,6 @@ Glossary: T
 
 .. glossary::
 
-    table root
-
-        .. mps:: ??
-
     tabling
 
         .. see:: :term:`caching (3)`.
@@ -74,9 +70,12 @@ Glossary: T
 
             The :term:`Lisp` Machine is an example of a tagged architecture.
 
-    tagged value
+    tagged reference
 
-        .. mps:: ??
+        A :term:`reference` containing a :term:`tag` in part of its
+        address, for example by :term:`aligning <alignment>` objects
+        and keepping the tag in the least significant bits of the
+        address.
 
     TB (1)
 
@@ -84,19 +83,35 @@ Glossary: T
 
     TB (2)
 
-        .. see:: :term:`TLB`.
+        .. see:: :term:`translation lookaside buffer`.
 
     telemetry filter
 
-        .. mps:: ??
+        .. mps::
+
+            A :term:`bitmap` indicating which events the MPS should
+            include in the :term:`telemtry stream`. It can be read or
+            changed by calling :c:func:`mps_telemetry_control`.
 
     telemetry label
 
-        .. mps:: ??
+        .. mps::
+
+            An indentifier representing a string, returned from
+            :c:func:`mps_telemetry_intern`, that can be associated
+            with certain :term:`formatted objects` of variant B, and
+            so appear in the :term:`telemetry stream` attached to
+            events concerning those objects. See
+            :ref:`topic-telemetry`.
 
     telemetry stream
 
-        .. mps:: ??
+        .. mps::
+
+            A sequence of events reported by the MPS to assist with
+            debugging and profiling. The events that appear in the
+            stream can be configured by setting the :term:`telemetry
+            filter`. See :ref:`topic-telemetry`.
 
     tenuring
 
@@ -139,42 +154,61 @@ Glossary: T
 
     thread
 
-        .. mps:: ??
+        A thread of execution is a sequence of instructions that take
+        place sequentially. In a multi-threaded program, multiple
+        threads of execution operate in parallel, and are generally
+        asynchronous with respect to each other.
+
+        .. relevance::
+
+            Access to shared resources such as memory management
+            interface must be thread-safe. Each thread has its own
+            :term:`control stack` which may contain :term:`references
+            <reference>` to blocks on the heap.
+
+        .. mps::
+
+            Threads are represented by values of type
+            :c:type:`mps_thr_t`, created by calling
+            :term:`mps_thread_reg`. In order for the MPS to find
+            references on the control of the thread, the thread must
+            be also be registered as a root by calling
+            :c:func:`mps_root_create_reg`.
 
     threatened set
 
-        .. aka:: *condemned set*.
-
-        *Condemned* :term:`objects <object>` are those which are
-        candidates for :term:`recycling <recycle>` within a
-        :term:`collection cycle`.
-
-        At the start of a collection cycle, the :term:`collector (1)`
-        may choose to condemn some objects (the *condemned set* or
-        *threatened set*) but not to condemn others (the :term:`immune
-        set`). Objects that are not condemned are assumed to be
-        :term:`alive` and behave as :term:`roots <root>` for the
-        purposes of that collection cycle.
-
-        Many simple :term:`tracing garbage collection` algorithms
-        begin by condemning all objects, but :term:`generational
-        garbage collectors <generational garbage collection>` will
-        condemn individual :term:`generations <generation>` or
-        combinations of generations. Often young generations are
-        condemned but older ones are not, because objects in older
-        generations are less likely to have become
-        :term:`unreachable`.
-
-        In collectors using :term:`tri-color marking`, at the start of
-        a collection cycle the condemned set is exactly the set of
-        objects that the collector colors :term:`white`.
-
-        .. opposite:: :term:`immune set`.
+        .. see:: :term:`condemned set`.
 
     TLB
+
+        .. see:: :term:`translation lookaside buffer`.
+
+    trace
+
+        In :term:`tracing garbage collection`, tracing is the process
+        of following the :term:`graph` from all :term:`roots <root>`
+        to all :term:`reachable` data.
+
+        .. similar:: :term:`scan`.
+
+    tracing garbage collection
+
+        Tracing garbage collection is :term:`garbage collection` based
+        on :term:`reachability <reachable>`.
+
+        Tracing garbage collection relies on the fact that if an
+        :term:`object` is not :term:`reachable`, there is no way the
+        :term:`mutator` could ever access it, and therefore it cannot
+        be :term:`alive`. In each :term:`collection cycle`, some or
+        all of the objects are :term:`condemned <condemned set>` and
+        the :term:`graph` is :term:`traced <trace>` to find which of
+        the condemned objects are reachable. Those that were not
+        reachable may be :term:`reclaimed <reclaim>`.
+
+    translation buffer
     translation lookaside buffer
 
-        .. aka:: *TB (2)*, *translation buffer*, *ATC*, *address translation cache*.
+        .. aka:: , *address translation cache*, *ATC*, *TB (2)*.
 
         The *translation lookaside buffer* or *address translation
         cache* is small piece of associative :term:`memory (1)` within
@@ -194,32 +228,6 @@ Glossary: T
         particular virtual address is not present in the TLB then *a
         TLB miss* is taken and the address is resolved using the more
         general mechanism.
-
-    trace
-
-        In :term:`tracing garbage collection`, tracing is the process
-        of following the :term:`graph` from all :term:`roots <root>`
-        to all :term:`reachable` data.
-
-        .. similar:: :term:`scan`.
-
-    tracing garbage collection
-
-        Tracing garbage collection is :term:`garbage collection` based
-        on :term:`reachability <reachable>`.
-
-        Tracing garbage collection relies on the fact that if an
-        :term:`object` is not :term:`reachable`, there is no way the
-        :term:`mutator` could ever access it, and therefore it cannot
-        be :term:`alive`. In each :term:`collection cycle`, some or
-        all of the objects are :term:`condemned <threatened set>` and
-        the :term:`graph` is :term:`traced <trace>` to find which of
-        the condemned objects are reachable. Those that were not
-        reachable may be :term:`reclaimed <reclaim>`.
-
-    translation buffer
-
-        .. see:: :term:`TLB`.
 
     transport
 
