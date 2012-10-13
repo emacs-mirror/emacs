@@ -243,9 +243,9 @@ Memory Management Glossary: A
         :term:`free block chain`, with eager :term:`coalescing
         <coalesce>`". This implements the :term:`address-ordered first
         fit` policy, and commonly inherits that name, although there
-        are many other mechanisms for implementing that policy (e.g.
-        "leftmost fit on a balanced tree of free blocks ordered by
-        address").
+        are many other mechanisms for implementing that policy, for
+        example, "leftmost fit on a balanced tree of free blocks
+        ordered by address".
 
         .. bibref:: [WIL95]_.
 
@@ -364,9 +364,24 @@ Memory Management Glossary: A
             :term:`client arenas <client arena>` and :term:`virtual
             memory arenas <virtual memory arena>`.
 
-    assert
+    assertion
 
-        .. mps:: ??
+        A declaration in a program of a condition that is expected
+        always to be true, or which must be true in order for the
+        program to continue to execute correctly.
+
+        .. mps::
+
+            Memory management mistakes often lead to
+            :term:`overwriting errors <overwriting error>` that
+            corrupt the data structures used by the memory manager to
+            maintain memory. Except in its :term:`rash`
+            :term:`variety`, most MPS functions assert the validity of
+            the data structures they operate on. This means that
+            memory management mistakes are detected as early as
+            possible, when there may still be enough evidence in the
+            :term:`heap` to debug them. See the topic
+            :ref:`topic-error`.
 
     asynchronous garbage collector
 

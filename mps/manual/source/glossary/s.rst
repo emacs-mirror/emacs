@@ -235,7 +235,7 @@ Memory Management Glossary: S
             The list is often doubly-linked and/or circularly linked.
             Typically, sequential fit algorithms use Knuth's boundary
             tag technique, and a doubly-linked list to make
-            :term:`coalescing <coalesce>` simple and fast. ... In
+            :term:`coalescing <coalesce>` simple and fast. […] In
             considering sequential fits, it is probably most important
             to keep strategy and policy issues in mind. The classic
             linear-list implementations may not scale well to large
@@ -848,8 +848,8 @@ Memory Management Glossary: S
 
         In :term:`Java`, an object is *strongly reachable*, if there
         is a path from the :term:`roots <root>` to it that contains
-        only :term:`strong references <strong reference>`, i.e., no
-        :term:`reference objects <reference object>`.
+        only :term:`strong references <strong reference>`, that is,
+        contains no :term:`reference objects <reference object>`.
 
         .. seealso:: :term:`reachability <reachable>`, :term:`softly reachable`, :term:`weakly reachable`, :term:`phantom reachable`.
 

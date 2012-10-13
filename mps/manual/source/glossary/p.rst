@@ -27,10 +27,12 @@ Memory Management Glossary: P
 
     padding object
 
-        A :term:`formatted object` that consists of :term:`padding`.
-        One of three types of formatted objects, the other two being
-        :term:`client objects <client object>` and :term:`forwarded
-        objects <forwarded object>`.
+        .. mps::
+
+            A :term:`formatted object` that consists of
+            :term:`padding`. One of three types of formatted objects,
+            the other two being :term:`client objects <client object>`
+            and :term:`forwarded objects <forwarded object>`.
 
     page
 
@@ -350,7 +352,7 @@ Memory Management Glossary: P
 
         Typically, pointers are represented by an :term:`address`, but
         they can be more complicated when they need to carry more
-        information, e.g., when the referent is smaller than a
+        information. For example, when the referent is smaller than a
         :term:`word`, an offset within the word might be needed.
 
         .. similar:: :term:`reference`, :term:`address`.

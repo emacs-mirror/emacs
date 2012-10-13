@@ -29,11 +29,27 @@ Memory Management Glossary: O
 
     object format
 
-        .. mps:: ??
+        .. mps::
+
+            A data structure provided by the :term:`client program`
+            which describes the format of :term:`objects <formatted
+            object>` allocated in a :term:`pool`. The MPS uses the
+            :term:`format methods <format method>` to find
+            :term:`references <reference>` in an object, replace an
+            object with :term:`padding`, replace an object with a
+            :term:`forwarding marker`, and other essential
+            :term:`garbage collection` tasks. See the type
+            :c:type:`mps_fmt_t`.
 
     object pointer
 
-        .. mps:: ??
+        In the :term:`C` programming language, a :term:`pointer` to an
+        :term:`object`, as distinct from a :term:`function pointer`.
+        The C programming language guarantees that you can cast any
+        object pointer to ``void *`` and back without losing
+        information.
+
+        .. opposite:: :term:`function pointer`.
 
     off-white
 
