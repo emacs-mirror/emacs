@@ -104,6 +104,8 @@ Glossary: M
 
         .. seealso:: :term:`mapping`, :term:`memory mapping`, :term:`mmap`.
 
+        .. mps:: The term *committed* is used.
+
     mapping
 
         A *mapping* is a correspondence between a range of
@@ -421,15 +423,30 @@ Glossary: M
 
     message
 
-        .. mps:: ??
+        .. mps::
+
+            A data structure which the MPS uses to communicate with
+            the :term:`client program`. See :c:type:`mps_message_t`.
 
     message queue
 
-        .. mps:: ??
+        .. mps::
+
+            A queue of :term:`messages <message>` posted by an
+            :term:`arena`. It can be queried by calling
+            :c:func:`mps_message_poll`,
+            :c:func:`mps_message_queue_type`, or
+            :c:func:`mps_message_get`.
 
     message type
 
-        .. mps:: ??
+        .. mps::
+
+            A value of type :c:type:`mps_message_type_t` describing
+            the type of a :term:`message`. There are three message
+            types: :c:func:`mps_message_type_finalization`,
+            :c:func:`mps_message_type_gc`, and
+            :c:func:`mps_message_type_gc_start`.
 
     misaligned
 
@@ -520,8 +537,7 @@ Glossary: M
         .. see:: :term:`semi-conservative garbage collection`.
 
     moving garbage collector
-
-        .. aka:: *moving memory manager*.
+    moving memory manager
 
         A memory manager (often a :term:`garbage collector`) is said
         to be moving if :term:`allocated <allocate>` :term:`objects
@@ -537,9 +553,7 @@ Glossary: M
 
         .. similar:: :term:`copying garbage collection`.
 
-    moving memory manager
-
-        .. see:: :term:`moving garbage collector`.
+        .. opposite:: :term:`non-moving garbage collector`.
 
     mutable
 
@@ -549,6 +563,8 @@ Glossary: M
         .. opposite:: :term:`immutable`.
 
     mutator
+
+        .. aka:: *client program*.
 
         In a :term:`garbage-collected <garbage collection>` system,
         the part that executes the user code, which :term:`allocates
@@ -575,3 +591,7 @@ Glossary: M
 
         .. opposite:: :term:`collector (2)`.
 
+        .. mps::
+
+            The MPS documentation uses the term :term:`client program`
+            to refer to the mutator.

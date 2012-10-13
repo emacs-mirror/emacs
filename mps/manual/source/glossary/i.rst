@@ -23,7 +23,7 @@ Glossary: I
     immune set
 
         The set of :term:`objects <object>` which are not
-        :term:`condemned <threatened set>`.
+        :term:`condemned <condemned set>`.
 
         .. opposite:: :term:`condemned set`.
 
@@ -78,9 +78,21 @@ Glossary: I
 
         .. seealso:: :term:`stack frame`, :term:`activation frame`.
 
+    in parameter
+
+        A function parameter that supplies data from the caller to the
+        function. (The usual case in :term:`C`.)
+
+        .. opposite:: :term:`out parameter`.
+
     in/out parameter
 
-        .. mps:: ??
+        A function parameter that is both an :term:`in parameter` an
+        :term:`out parameter`.
+
+        .. mps::
+
+            In/out parameters are given names ending with ``_io``.
 
     incremental garbage collection
 
@@ -212,7 +224,7 @@ Glossary: I
         stored in an :term:`object` in one :term:`generation` and
         references an object in another generation.
 
-        If the referent's generation is :term:`condemned <threatened
+        If the referent's generation is :term:`condemned <condemned
         set>` and the referrer's generation is not, then the reference
         is important in two ways. First, the reference keeps the
         referent :term:`alive`, so the referrer must be :term:`scanned
@@ -324,5 +336,12 @@ Glossary: I
             architectures have hardware-assisted lookup.
 
     is-forwarded method
-    
-        .. mps:: ??
+
+        .. mps::
+
+            A :term:`format method` that is called by a :term:`moving
+            <moving garbage collector>` :term:`pool <pool>` to
+            determine if a :term:`formatted object` is a
+            :term:`forwarded object`, and if so, to return the address
+            where the object was moved to. See
+            :c:type:`mps_fmt_isfwd_t`.

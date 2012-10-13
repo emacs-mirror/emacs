@@ -98,7 +98,7 @@ Glossary: A
 
     address translation cache
 
-        .. see:: :term:`TLB`.
+        .. see:: :term:`translation lookaside buffer`.
 
     address-ordered first fit
 
@@ -248,7 +248,12 @@ Glossary: A
 
     allocation point
 
-        .. mps:: ??
+        .. mps::
+
+            An allocation point is an interface to a :term:`pool`
+            which provides very fast allocation, and defers the need
+            for synchronization in a multi-threaded environment.
+            Allocation points belong to the type :c:type:`mps_ap_t`.
 
     allocation policy
 
@@ -319,6 +324,11 @@ Glossary: A
 
         .. seealso:: :term:`conservative garbage collection`.
 
+        .. mps::
+
+            An ambiguous root has :term:`rank`
+            :c:func:`mps_rank_ambig`.
+
     arena
 
         The area of :term:`memory (2)` used by :term:`malloc` for
@@ -330,23 +340,42 @@ Glossary: A
 
         .. seealso:: :term:`brk`.
 
-        .. mps:: ??
+        .. mps::
+
+            An arena is the data structure responsible for requesting
+            :term:`memory (3)` from the operating system, making it
+            available to :term:`pools <pool>`, and for :term:`garbage
+            collection`. Arenas belong to the type
+            :c:type:`mps_arena_t`.
 
     arena class
 
-        .. mps:: ??
+        .. mps::
+
+            A value of type :c:type:`mps_arena_class_t` describing a
+            class of :term:`arenas <arena>`. Arena classes include
+            :term:`client arenas <client arena>` and :term:`virtual
+            memory arenas <virtual memory arena>`.
 
     assert
 
         .. mps:: ??
 
-    asynchronous
+    asynchronous garbage collector
 
-        .. mps:: ??
+        A :term:`collector (2)` is asynchronous with respect to the
+        :term:`mutator` if it cannot be (easily) predicted when the
+        collector will run.
+
+        This means that the mutator must ensure that :term:`formatted
+        objects <formatted object>` are always :term:`scannable
+        <scan>`.
+
+        .. opposite:: :term:`synchronous garbage collector`.
 
     ATC
 
-        .. see:: :term:`TLB`.
+        .. see:: :term:`translation lookaside buffer`.
 
     atomic object
 

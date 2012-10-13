@@ -185,7 +185,8 @@ Glossary: B
 
     bitmask
 
-        .. mps:: ??
+        A :term:`bitmap` used to select or exclude a set of bits in
+        another bitmap.
 
     black
 
@@ -222,7 +223,11 @@ Glossary: B
         :term:`allocated <allocate>` by an :term:`allocator` such as
         :term:`malloc`.
 
-        .. mps:: ??
+        .. mps::
+
+            The term *block* is used as a general term for a unit of
+            allocation, with *object* being reserved for
+            :term:`formatted objects <formatted object>`.
 
     bounds error
 

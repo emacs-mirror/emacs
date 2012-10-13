@@ -22,7 +22,6 @@ This feature is far too technical for most of our clients: we should think about
 
 There may be problems if the client wants the OS to access the root. Lots of OSes can't cope with writing to protected pages. So we'll need to document that caveat too. drj 1998-05-20
 
-
 ::
 
     static mps_root_t mmRoot;
@@ -47,17 +46,16 @@ There may be problems if the client wants the OS to access the root. Lots of OSe
 
 .. note::
 
-    Unless the rank of the root is not :c:macro:`MPS_RANK_AMBIG`,
-    the contents of the root have to be valid whenever a
+    The contents of an :term:`ambiguous root` must be valid whenever a
     :term:`garbage collection` happens. That is, all the
-    references fixed by the root scanning function have to be
-    references to actual objects or null pointers. If you're using
-    :term:`asynchronous` garbage collection, this could be as soon
-    as the root is registered, so the root has to be valid when it
-    is registered. As with an ordinary :term:`scan method`, a root
-    scanning function is allowed to fix references which point to
-    memory not managed by the MPS. These references will be
-    ignored.
+    :term:`references <reference>` fixed by the root scanning function
+    have to be references to actual objects or null pointers. If
+    you're using :term:`asynchronous garbage collection <asynchronous
+    garbage collector>`, this could be as soon as the root is
+    registered, so the root has to be valid when it is registered. As
+    with an ordinary :term:`scan method`, a root scanning function is
+    allowed to fix references which point to memory not managed by the
+    MPS. These references will be ignored.
 
 ::
 

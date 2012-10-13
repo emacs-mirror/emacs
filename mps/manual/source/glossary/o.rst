@@ -92,7 +92,14 @@ Glossary: O
 
     out parameter
 
-        .. mps:: ??
+        A function parameter that points to a location for the caller
+        to receive data from the function.
+
+        .. opposite:: :term:`in parameter`.
+
+        .. mps::
+
+            Out parameters are given names ending with ``_o``.
 
     out-of-band header
 

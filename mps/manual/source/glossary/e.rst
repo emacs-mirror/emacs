@@ -98,6 +98,10 @@ Glossary: E
 
         .. seealso:: :term:`exact reference`.
 
+        .. mps::
+
+            An exact root has :term:`rank` :c:func:`mps_rank_exact`.
+
     exact segregated fit
 
         A :term:`segregated fit` :term:`allocation mechanism` which

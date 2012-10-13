@@ -44,7 +44,14 @@ Glossary: U
 
     unclamped state
 
-        .. mps:: ??
+        .. mps::
+
+            One of the three states an :term:`arena` can be in (the
+            others being the :term:`clamped state` and the
+            :term:`parked state`). In the unclamped state, object
+            motion and other background activity may occur. Call
+            :c:func:`mps_arena_release` to put an arena into the
+            unclamped state.
 
     undead
 

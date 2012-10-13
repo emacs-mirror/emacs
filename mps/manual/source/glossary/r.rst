@@ -23,11 +23,23 @@ Glossary: R
 
     ramp pattern
 
-        .. mps:: ??
+        .. mps::
+
+            An :term:`allocation pattern` indicating to the MPS that
+            most of the blocks allocated after the call to
+            :c:func:`mps_ap_alloc_pattern_begin` are likely to be
+            :term:`dead` by the time of the corresponding call to
+            :c:func:`mps_ap_alloc_pattern_end`.
 
     rank
 
-        .. mps:: ??
+        .. mps::
+
+            A value of :c:type:`mps_rank_t` indicating whether a
+            :term:`root` is :term:`ambiguous <ambiguous root>`
+            (:c:func:`mps_rank_ambig`), :term:`exact <exact root>`
+            (:c:func:`mps_rank_exact`) or :term:`weak <weak root>`
+            (:c:func:`mps_rank_weak`).
 
     raw
 
@@ -451,9 +463,22 @@ Glossary: R
 
         .. seealso:: :term:`weak root`, :term:`strong root`, :term:`ambiguous root`, :term:`exact root`.
 
+    root description
+
+        .. mps::
+
+            The :term:`arena` uses root descriptions to find
+            :term:`references <reference>` within the :term:`client
+            program's <client program>` :term:`roots <root>`. Root
+            descriptions belong to the type :c:type:`mps_root_t`.
+
     root mode
 
-        .. mps:: ??
+        .. mps::
+
+            A value of type :c:type:`mps_rm_t` describing whether a
+            :term:`root` is :term:`constant <constant root>`,
+            :term:`protectable <protectable root>`, or both.
 
     root set
 
