@@ -1370,8 +1370,7 @@ See also the function `substitute-in-file-name'.")
       p = nm;
       while (*p)
 	{
-	  if (p[0] == '/' && p[1] == '/'
-	      )
+	  if (p[0] == '/' && p[1] == '/')
 	    nm = p + 1;
 	  if (p[0] == '/' && p[1] == '~')
 	    nm = p + 1, lose = 1;
@@ -1510,17 +1509,16 @@ search_embedded_absfilename (char *nm, char *endp)
 
   for (p = nm + 1; p < endp; p++)
     {
-      if ((0
-	   || IS_DIRECTORY_SEP (p[-1]))
+      if (IS_DIRECTORY_SEP (p[-1])
 	  && file_name_absolute_p (p)
 #if defined (WINDOWSNT) || defined (CYGWIN)
 	  /* // at start of file name is meaningful in Apollo,
 	     WindowsNT and Cygwin systems.  */
 	  && !(IS_DIRECTORY_SEP (p[0]) && p - 1 == nm)
 #endif /* not (WINDOWSNT || CYGWIN) */
-	      )
+	  )
 	{
-	  for (s = p; *s && (!IS_DIRECTORY_SEP (*s)); s++);
+	  for (s = p; *s && !IS_DIRECTORY_SEP (*s); s++);
 	  if (p[0] == '~' && s > p + 1)	/* We've got "/~something/".  */
 	    {
 	      char *o = alloca (s - p + 1);
@@ -1735,7 +1733,7 @@ those `/' is discarded.  */)
   *x = 0;
 
   /* If /~ or // appears, discard everything through first slash.  */
-  while ((p = search_embedded_absfilename (xnm, x)))
+  while ((p = search_embedded_absfilename (xnm, x)) != NULL)
     /* This time we do not start over because we've already expanded envvars
        and replaced $$ with $.  Maybe we should start over as well, but we'd
        need to quote some $ to $$ first.  */
@@ -2169,7 +2167,7 @@ With a prefix argument, TRASH is nil.  */)
 
   encoded_file = ENCODE_FILE (filename);
 
-  if (0 > unlink (SSDATA (encoded_file)))
+  if (unlink (SSDATA (encoded_file)) < 0)
     report_file_error ("Removing old name", list1 (filename));
   return Qnil;
 }
@@ -2218,8 +2216,8 @@ This is what happens in interactive use with M-x.  */)
 #endif
       )
     {
-      Lisp_Object fname = NILP (Ffile_directory_p (file))
-	? file : Fdirectory_file_name (file);
+      Lisp_Object fname = (NILP (Ffile_directory_p (file))
+			   ? file : Fdirectory_file_name (file));
       newname = Fexpand_file_name (Ffile_name_nondirectory (fname), newname);
     }
   else
@@ -2247,7 +2245,7 @@ This is what happens in interactive use with M-x.  */)
       || INTEGERP (ok_if_already_exists))
     barf_or_query_if_file_exists (newname, "rename to it",
 				  INTEGERP (ok_if_already_exists), 0, 0);
-  if (0 > rename (SSDATA (encoded_file), SSDATA (encoded_newname)))
+  if (rename (SSDATA (encoded_file), SSDATA (encoded_newname)) < 0)
     {
       if (errno == EXDEV)
 	{
@@ -2328,7 +2326,7 @@ This is what happens in interactive use with M-x.  */)
 				  INTEGERP (ok_if_already_exists), 0, 0);
 
   unlink (SSDATA (newname));
-  if (0 > link (SSDATA (encoded_file), SSDATA (encoded_newname)))
+  if (link (SSDATA (encoded_file), SSDATA (encoded_newname)) < 0)
     report_file_error ("Adding new name", list2 (file, newname));
 
   UNGCPRO;
@@ -2385,15 +2383,14 @@ This happens for interactive use with M-x.  */)
       || INTEGERP (ok_if_already_exists))
     barf_or_query_if_file_exists (linkname, "make it a link",
 				  INTEGERP (ok_if_already_exists), 0, 0);
-  if (0 > symlink (SSDATA (encoded_filename),
-		   SSDATA (encoded_linkname)))
+  if (symlink (SSDATA (encoded_filename), SSDATA (encoded_linkname)) < 0)
     {
       /* If we didn't complain already, silently delete existing file.  */
       if (errno == EEXIST)
 	{
 	  unlink (SSDATA (encoded_linkname));
-	  if (0 <= symlink (SSDATA (encoded_filename),
-			    SSDATA (encoded_linkname)))
+	  if (symlink (SSDATA (encoded_filename), SSDATA (encoded_linkname))
+	      >= 0)
 	    {
 	      UNGCPRO;
 	      return Qnil;
@@ -3203,7 +3200,7 @@ emacs_lseek (int fd, EMACS_INT offset, int whence)
 {
   /* Use "&" rather than "&&" to suppress a bogus GCC warning; see
      <http://gcc.gnu.org/bugzilla/show_bug.cgi?id=43772>.  */
-  if (! ((TYPE_MINIMUM (off_t) <= offset) & (offset <= TYPE_MAXIMUM (off_t))))
+  if (! ((offset >= TYPE_MINIMUM (off_t)) & (offset <= TYPE_MAXIMUM (off_t))))
     {
       errno = EINVAL;
       return -1;
@@ -3376,7 +3373,7 @@ variable `last-coding-system-used' to the coding system actually used.  */)
 
   if (!NILP (beg))
     {
-      if (! (RANGED_INTEGERP (0, beg, TYPE_MAXIMUM (off_t))))
+      if (! RANGED_INTEGERP (0, beg, TYPE_MAXIMUM (off_t)))
 	wrong_type_argument (intern ("file-offset"), beg);
       beg_offset = XFASTINT (beg);
     }
@@ -3385,7 +3382,7 @@ variable `last-coding-system-used' to the coding system actually used.  */)
 
   if (!NILP (end))
     {
-      if (! (RANGED_INTEGERP (0, end, TYPE_MAXIMUM (off_t))))
+      if (! RANGED_INTEGERP (0, end, TYPE_MAXIMUM (off_t)))
 	wrong_type_argument (intern ("file-offset"), end);
       end_offset = XFASTINT (end);
     }
@@ -3421,8 +3418,8 @@ variable `last-coding-system-used' to the coding system actually used.  */)
 
       if (beg_offset < likely_end)
 	{
-	  ptrdiff_t buf_bytes =
-	    Z_BYTE - (!NILP (replace) ? ZV_BYTE - BEGV_BYTE  : 0);
+	  ptrdiff_t buf_bytes
+	    = Z_BYTE - (!NILP (replace) ? ZV_BYTE - BEGV_BYTE  : 0);
 	  ptrdiff_t buf_growth_max = BUF_BYTES_MAX - buf_bytes;
 	  off_t likely_growth = likely_end - beg_offset;
 	  if (buf_growth_max < likely_growth)
@@ -5050,12 +5047,12 @@ e_write (int desc, Lisp_Object string, ptrdiff_t start, ptrdiff_t end,
 
       if (coding->produced > 0)
 	{
-	  coding->produced -=
-	    emacs_write (desc,
-			 STRINGP (coding->dst_object)
-			 ? SSDATA (coding->dst_object)
-			 : (char *) BYTE_POS_ADDR (coding->dst_pos_byte),
-			 coding->produced);
+	  coding->produced
+	    -= emacs_write (desc,
+			    STRINGP (coding->dst_object)
+			    ? SSDATA (coding->dst_object)
+			    : (char *) BYTE_POS_ADDR (coding->dst_pos_byte),
+			    coding->produced);
 
 	  if (coding->produced)
 	    return 0;
@@ -5234,8 +5231,8 @@ auto_save_1 (void)
       if (stat (SSDATA (BVAR (current_buffer, filename)), &st) >= 0)
 	/* But make sure we can overwrite it later!  */
 	auto_save_mode_bits = (st.st_mode | 0600) & 0777;
-      else if ((modes = Ffile_modes (BVAR (current_buffer, filename)),
-		INTEGERP (modes)))
+      else if (modes = Ffile_modes (BVAR (current_buffer, filename)),
+	       INTEGERP (modes))
 	/* Remote files don't cooperate with stat.  */
 	auto_save_mode_bits = (XINT (modes) | 0600) & 0777;
     }
