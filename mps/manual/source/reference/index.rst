@@ -329,7 +329,7 @@ Declared in ``mps.h``
 
     Returns the commit limit in bytes. The commit limit controls how
     much memory the MPS can obtain from the operating system, and can
-    be changed using :c:func:`mps_commit_limit_set`.
+    be changed using :c:func:`mps_arena_commit_limit_set`.
 
     .. topics::
 
@@ -398,8 +398,8 @@ Declared in ``mps.h``
       example, :term:`pages <page>`), so extra memory is committed
       when this rounding is necessary;
 
-    * there might also be :term:`spare committed memory` (see
-      :c:func:`mps_arena_spare_committed`).
+    * there might also be :term:`spare committed memory`: see
+      :c:func:`mps_arena_spare_committed`.
 
     The amount of committed memory is a good measure of how much
     virtual memory resource ("swap space") the MPS is using from the
@@ -516,9 +516,9 @@ Declared in ``mps.h``
     Each :term:`pool class` determines for which objects the stepper
     function is called. Typically, all validly formatted objects are
     visited. During a :term:`trace` this will in general be only the
-    :term:`black` objects, though the leaf pool class
-    (:c:func:`mps_class_lo`), for example, will walk all objects since
-    they are validly formatted whether they are black or
+    :term:`black` objects, though the :ref:`leaf objects pool class
+    <pool-lo>`, for example, will walk all
+    objects since they are validly formatted whether they are black or
     :term:`white`. :term:`Padding objects <padding object>` may be
     visited at the pool classes discretion, the :term:`client program`
     should handle this case.
@@ -1058,38 +1058,6 @@ Declared in ``mps.h``
         :ref:`topic-format`.
 
 
-
-.. c:type:: mps_fmt_B_s
-
-    The type of the structure used to create an :term:`object format`
-    of variant B. ::
-
-        typedef struct mps_fmt_B_s {
-            mps_align_t     align;
-            mps_fmt_scan_t  scan;
-            mps_fmt_skip_t  skip;
-            mps_fmt_copy_t  copy;
-            mps_fmt_fwd_t   fwd;
-            mps_fmt_isfwd_t isfwd;
-            mps_fmt_pad_t   pad;
-            mps_fmt_class_t mps_class;
-        } mps_fmt_B_s;
-
-    Variant B is the same as variant A except for the addition of the
-    *mps_class* method. See :c:type:`mps_fmt_A_s`.
-
-    Broadly speaking, object formats of variant B are suitable for use
-    in :term:`copying <copying garbage collection>` or :term:`moving
-    <moving garbage collector>` :term:`pools <pool>` (just like
-    variant A); the addition of a :term:`class method` allows more
-    information to be passed to various support tools (such as
-    graphical browsers). See :c:type:`mps_fmt_class_t`.
-
-    .. topics::
-
-        :ref:`topic-format`.
-
-
 .. c:type:: mps_fmt_auto_header_s
 
     The type of the structure used to create an :term:`object format`
@@ -1141,6 +1109,37 @@ Declared in ``mps.h``
 
         The auto_header format is only supported by :ref:`pool-amc`
         and :ref:`pool-amcz`.
+
+
+.. c:type:: mps_fmt_B_s
+
+    The type of the structure used to create an :term:`object format`
+    of variant B. ::
+
+        typedef struct mps_fmt_B_s {
+            mps_align_t     align;
+            mps_fmt_scan_t  scan;
+            mps_fmt_skip_t  skip;
+            mps_fmt_copy_t  copy;
+            mps_fmt_fwd_t   fwd;
+            mps_fmt_isfwd_t isfwd;
+            mps_fmt_pad_t   pad;
+            mps_fmt_class_t mps_class;
+        } mps_fmt_B_s;
+
+    Variant B is the same as variant A except for the addition of the
+    *mps_class* method. See :c:type:`mps_fmt_A_s`.
+
+    Broadly speaking, object formats of variant B are suitable for use
+    in :term:`copying <copying garbage collection>` or :term:`moving
+    <moving garbage collector>` :term:`pools <pool>` (just like
+    variant A); the addition of a :term:`class method` allows more
+    information to be passed to various support tools (such as
+    graphical browsers). See :c:type:`mps_fmt_class_t`.
+
+    .. topics::
+
+        :ref:`topic-format`.
 
 
 .. c:type:: mps_addr_t (*mps_fmt_class_t)(mps_addr_t addr)
@@ -2049,6 +2048,10 @@ Declared in ``mps.h``
 
     * :c:macro:`MPS_RES_PARAM`: an invalid parameter was passed.
 
+    .. topics::
+
+        :ref:`topic-error`.
+
 
 .. c:macro:: MPS_RES_COMMIT_LIMIT
 
@@ -2346,7 +2349,7 @@ Declared in ``mps.h``
         should be used.
 
 
-.. c:function:: mps_res_t mps_root_create_table(mps_root_t *root_o, mps_arena_t arena, mps_rank_t rank, mps_rm_t rm, mps_addr_t *base, size_t size)
+.. c:function:: mps_res_t mps_root_create_table(mps_root_t *root_o, mps_arena_t arena, mps_rank_t rank, mps_rm_t rm, mps_addr_t *base, size_t count)
 
     Register a :term:`root` that consists of a vector of
     :term:`references <reference>`.
@@ -2362,7 +2365,7 @@ Declared in ``mps.h``
 
     *base* points to a vector of references.
 
-    *size* is the number of references in the vector.
+    *count* is the number of references in the vector.
 
     Returns :c:macro:`MPS_RES_OK` if the root was registered
     successfully, :c:macro:`MPS_RES_MEMORY` if the new root
@@ -2374,7 +2377,7 @@ Declared in ``mps.h``
         :ref:`topic-root`.
 
 
-.. c:function:: mps_res_t mps_root_create_table_masked(mps_root_t *root_o, mps_arena_t arena, mps_rank_t rank, mps_rm_t rm, mps_addr_t *base, size_t size, mps_word_t mask)
+.. c:function:: mps_res_t mps_root_create_table_masked(mps_root_t *root_o, mps_arena_t arena, mps_rank_t rank, mps_rm_t rm, mps_addr_t *base, size_t count, mps_word_t mask)
 
     Register a :term:`root` that consists of a vector of :term:`tagged
     references <tagged reference>`.
@@ -2390,7 +2393,7 @@ Declared in ``mps.h``
 
     *base* points to a vector of tagged references.
 
-    *size* is the number of tagged references in the vector.
+    *count* is the number of tagged references in the vector.
 
     *mask* is a :term:`bitmask` whose set bits specify the location of
     the :term:`tag`. References are assumed to have a tag of zero: any
@@ -2628,10 +2631,9 @@ Declared in ``mps.h``
     :c:func:`mps_sac_create` when creating a segregated allocation
     cache.
 
-    *mps_block_size* is the maximum :term:`size` (in bytes) of any
-    :term:`block` in this size class. It must be a multiple of the
-    alignment of the :term:`alignment` of the :term:`pool` to which
-    the cache belongs.
+    *mps_block_size* is the maximum :term:`size` of any :term:`block`
+    in this size class. It must be a multiple of the alignment of the
+    :term:`alignment` of the :term:`pool` to which the cache belongs.
 
     *mps_cached_count* is the number of blocks of this size class to
     cache. It is advice to the MPS on how many blocks to cache, not an
@@ -2667,8 +2669,8 @@ Declared in ``mps.h``
     the cache.
 
     Returns :c:macro:`MPS_RES_OK` if the segregated allocation cache
-    is created successfully. Returns :c:macro:`MPS_RES_MEMORY`
-    or:c:macro:`MPS_RES_COMMIT_LIMIT` when it fails to allocate memory
+    is created successfully. Returns :c:macro:`MPS_RES_MEMORY` or
+    :c:macro:`MPS_RES_COMMIT_LIMIT` when it fails to allocate memory
     for the internal cache structure. Returns :c:macro:`MPS_RES_LIMIT`
     if you ask for too many size classes: in this case, combine some
     small adjacent classes. Returns :c:macro:`MPS_RES_PARAM` if the
@@ -2884,7 +2886,7 @@ Declared in ``mps.h``
         cases the compiler.
 
 
-.. c:function:: mps_word_t mps_telemetry_control(mps_word_t reset_mask, mps_word_t flip_mask);
+.. c:function:: mps_word_t mps_telemetry_control(mps_word_t reset_mask, mps_word_t flip_mask)
 
     Update and return the :term:`telemetry filter`.
 
@@ -2901,17 +2903,17 @@ Declared in ``mps.h``
     specification of any binary operation on the filter control. For
     typical operations, the parameters should be set as follows:
 
-    +-----------+--------------+-------------+
-    | Operation | *reset_mask* | *flip_mask* |
-    +===========+==============+=============+
-    | set(M)    | M            | M           |
-    +-----------+--------------+-------------+
-    | reset(M)  | M            | 0           |
-    +-----------+--------------+-------------+
-    | flip(M)   | 0            | M           |
-    +-----------+--------------+-------------+
-    | read()    | 0            | 0           |
-    +-----------+--------------+-------------+
+    ============  ============  ===========
+    Operation     *reset_mask*  *flip_mask*
+    ============  ============  ===========
+    ``set(M)``    ``M``         ``M``
+    ------------  ------------  -----------
+    ``reset(M)``  ``M``         ``0``
+    ------------  ------------  -----------
+    ``flip(M)``   ``0``         ``M``
+    ------------  ------------  -----------
+    ``read()``    ``0``         ``0``
+    ============  ============  ===========
 
     The significance of the bits is liable to change, but the current
     meanings (zero being the least significant bit) are:
@@ -2928,14 +2930,14 @@ Declared in ``mps.h``
 
     5. per allocation, :term:`block`, or :term:`object`;
 
-    6. user events (see :c:func:`mps_telemetry_intern`).
+    6. "user" events: see :c:func:`mps_telemetry_intern`.
 
     .. topics::
 
         :ref:`topic-telemetry`.
 
 
-.. c:function:: void mps_telemetry_flush(void);
+.. c:function:: void mps_telemetry_flush(void)
 
     Flush the internal event buffers into the :term:`telemetry stream`.
 
@@ -2975,7 +2977,7 @@ Declared in ``mps.h``
         The appropriate setting must be turned on in the
         :term:`telemetry filter` (via :c:func:`mps_telemetry_control`)
         before this function is invoked; the associated event is of
-        the user kind.
+        the "user" kind.
 
 
 .. c:function:: void mps_telemetry_label(mps_addr_t addr, mps_word_t label)
@@ -2997,8 +2999,8 @@ Declared in ``mps.h``
 
     .. note::
 
-       The user kind must be set in the :term:`telemetry filter` (via
-       :c:func:`mps_telemetry_control`).
+       The "user" kind must be set in the :term:`telemetry filter`
+       via :c:func:`mps_telemetry_control`.
 
 
 .. c:type:: mps_thr_t
@@ -3040,7 +3042,7 @@ Declared in ``mpsacl.h``
     *block* is the :term:`address` of the block of memory that will be
     managed by the arena.
 
-    *size* is its :term:`size` in bytes.
+    *size* is its :term:`size`.
 
     If the block is too small to hold the internal arena structures,
     :c:func:`mps_arena_create` returns :c:macro:`MPS_RES_MEMORY`. In
@@ -3152,11 +3154,11 @@ Declared in ``mpscamc.h``
     :term:`parked state`, for example, after calling
     :c:func:`mps_arena_collect` or :c:func:`mps_arena_park`.
 
-    The function *f* will be called on both :term:`data <data object>`
-    and :term:`padding objects <padding object>`. It is the job of *f* to
-    distinguish, if necessary, between the two. It may also be called
-    on :term:`dead` objects that the collector has not recycled or has
-    been unable to recycle.
+    The function *f* will be called on both :term:`client <client
+    object>` and :term:`padding objects <padding object>`. It is the
+    job of *f* to distinguish, if necessary, between the two. It may
+    also be called on :term:`dead` objects that the collector has not
+    recycled or has been unable to recycle.
 
     The function *f* may not allocate memory or access any
     automatically-managed memory except within *object*.
@@ -3175,8 +3177,8 @@ Declared in ``mpscamc.h``
 
 .. c:function:: mps_class_t mps_class_amc(void)
 
-    Return the :term:`pool class` for an AMC (Automatic Mostly
-    Copying) :term:`pool`.
+    Return the :term:`pool class` for an AMC (Automatic
+    Mostly-Copying) :term:`pool`.
 
     When creating an AMC pool, :c:func:`mps_pool_create` takes one
     extra argument::
@@ -3255,14 +3257,15 @@ Declared in ``mpscmv2.h``
                                   mps_count_t fragmentation_limit)
 
     *minimum_size*, *mean_size*, and *maximum_size* are the minimum,
-    mean, and maximum (typical) size in bytes of blocks expected to be
-    allocated in the pool. Blocks smaller than *minimum_size* and
-    larger than *maximum_size* may be allocated, but the pool is not
-    guaranteed to manage them space-efficiently. Furthermore, partial
-    freeing is not supported for blocks larger than *maximum_size*;
-    doing so will result in the storage of the block never being
-    reused. *mean_size* need not be an accurate mean, although the
-    pool will manage *mean_size* blocks more efficiently if it is.
+    mean, and maximum (typical) :term:`size` of :term:`blocks <block>`
+    expected to be allocated in the pool. Blocks smaller than
+    *minimum_size* and larger than *maximum_size* may be allocated,
+    but the pool is not guaranteed to manage them space-efficiently.
+    Furthermore, partial freeing is not supported for blocks larger
+    than *maximum_size*; doing so will result in the storage of the
+    block never being reused. *mean_size* need not be an accurate
+    mean, although the pool will manage *mean_size* blocks more
+    efficiently if it is.
 
     *reserve_depth* is the expected hysteresis of the population of
     the pool. When blocks are freed, the pool will retain sufficient
@@ -3322,7 +3325,7 @@ Declared in ``mpslib.h``
     *s1* and *s2* point to :term:`blocks <block>` of memory to be
     compared.
 
-    *n* is the :term:`size` of the blocks, in bytes.
+    *n* is the :term:`size` of the blocks.
 
     Returns an integer that is greater than, equal to, or less than
     zero, accordingly as the block pointed to by *s1* is greater than,
@@ -3368,7 +3371,7 @@ Declared in ``mpslib.h``
 
     *c* is the byte to fill with (when converted to ``unsigned char``).
 
-    *n* is the :term:`size` of the block in bytes.
+    *n* is the :term:`size` of the block.
 
     Returns *s*.
 

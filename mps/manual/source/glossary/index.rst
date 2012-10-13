@@ -1,6 +1,8 @@
-********
-Glossary
-********
+**************************
+Memory Management Glossary
+**************************
+
+.. include: alphabet.txt
 
 .. toctree::
    :maxdepth: 1
