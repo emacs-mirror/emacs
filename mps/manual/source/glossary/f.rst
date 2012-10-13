@@ -1,8 +1,10 @@
 .. _glossary-f:
 
-===========
-Glossary: F
-===========
+=============================
+Memory Management Glossary: F
+=============================
+
+.. include:: alphabet.txt
 
 .. glossary::
 
@@ -245,10 +247,12 @@ Glossary: F
 
         .. mps::
 
-            One of the methods in an :term:`object format`. May be a
-            :term:`scan method`, :term:`skip method`, :term:`forward
-            method`, :term:`is-forwarded method`, :term:`padding
-            method`, or :term:`class method`.
+            One of the methods in an :term:`object format`, defined by
+            the :term:`client program` in order to describe its
+            objects to the MPS. May be a :term:`scan method`,
+            :term:`skip method`, :term:`forward method`,
+            :term:`is-forwarded method`, :term:`padding method`, or
+            :term:`class method`.
 
     formatted object
 
@@ -270,7 +274,7 @@ Glossary: F
 
         A :term:`formatted object` that has been replaced by a
         :term:`forwarding marker`. One of three types of formatted
-        objects, the other two being :term:`data objects <data
+        objects, the other two being :term:`client objects <client
         object>` and :term:`padding objects <padding object>`.
 
     forwarding marker

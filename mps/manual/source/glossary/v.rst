@@ -1,8 +1,10 @@
 .. _glossary-v:
 
-===========
-Glossary: V
-===========
+=============================
+Memory Management Glossary: V
+=============================
+
+.. include:: alphabet.txt
 
 .. glossary::
 

@@ -1,8 +1,10 @@
 .. _glossary-l:
 
-===========
-Glossary: L
-===========
+=============================
+Memory Management Glossary: L
+=============================
+
+.. include:: alphabet.txt
 
 .. glossary::
 

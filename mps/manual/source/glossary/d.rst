@@ -1,8 +1,10 @@
 .. _glossary-d:
 
-===========
-Glossary: D
-===========
+=============================
+Memory Management Glossary: D
+=============================
+
+.. include:: alphabet.txt
 
 .. glossary::
 
@@ -10,7 +12,7 @@ Glossary: D
 
         A dangling :term:`pointer` is a surviving :term:`reference` to
         an :term:`object` that no longer exists at that
-        :term:`address`
+        :term:`address`.
 
         In :term:`manual memory management`, dangling pointers
         typically arise from one of:
@@ -23,19 +25,12 @@ Glossary: D
            has been popped.
 
         Dangling pointers can occur under :term:`automatic memory
-        management`, because of a :term:`garbage collection` bug, such
-        as premature collection or :term:`moving <moving garbage
+        management`, because of a :term:`garbage collection` bug (such
+        as premature collection, or :term:`moving <moving garbage
         collector>` without updating all :term:`references
-        <reference>`, but this is much rarer because :term:`GC` code
-        is usually a single common core of reused code. FIXME
-
-    data object
-
-        A :term:`formatted object` that contains data from the
-        :term:`client program`. One of three types of formatted
-        objects, the other two being :term:`forwarded objects
-        <forwarded object>` and :term:`padding objects <padding
-        object>`.
+        <reference>`), but this is much rarer because garbage
+        collection code is usually a single common core of reused
+        code in which these bugs can be fixed systematically.
 
     data stack
 
@@ -255,7 +250,7 @@ Glossary: D
 
         .. historical::
 
-            On the Intel 80386, 80486. and Pentium; processors, the
+            On the Intel 80386, 80486, and Pentium processors, the
             doubleword of 32 bits is actually the *natural word size*,
             but the term *word* is still used for the 16-bit unit, as
             it was on earlier processors of this series.
@@ -290,15 +285,15 @@ Glossary: D
         Dynamic memory, or dynamic RAM (DRAM, pronounced "dee ram"),
         is a type of :term:`RAM`.
 
-        Dynamic RAM requires periodic refreshing to avoid losing its
-        contents (as opposed to :term:`static memory (1)`, the
+        Dynamic memory requires periodic refreshing to avoid losing
+        its contents (as opposed to :term:`static memory (1)`, the
         contents of which are preserved without any need for
         refreshing). The refreshing is performed by additional
-        "refresh hardware" usually external to the dynamic RAM package
-        itself, sometimes by the main CPU. Dynamic RAM is cheap and
-        compact and is the choice for large amounts of relatively fast
-        RAM, such as the :term:`main memory` of PCs. Dynamic RAM often
-        comes packaged in SIMMs or DIMMs.
+        "refresh hardware" usually external to the dynamic memory
+        package itself, sometimes by the main CPU. Dynamic memory is
+        cheap and compact and is the choice for large amounts of
+        relatively fast memory, such as the :term:`main memory` of
+        PCs. Dynamic memory often comes packaged in SIMMs or DIMMs.
 
         .. seealso:: :term:`static memory (1)`, :term:`SDRAM`.
 

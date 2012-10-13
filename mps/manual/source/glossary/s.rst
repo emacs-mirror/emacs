@@ -1,8 +1,10 @@
 .. _glossary-s:
 
-===========
-Glossary: S
-===========
+=============================
+Memory Management Glossary: S
+=============================
+
+.. include:: alphabet.txt
 
 .. glossary::
 
@@ -60,7 +62,7 @@ Glossary: S
             A function that examines a block of memory to find
             :term:`references <reference>` and indicate them to the
             MPS. A scan method forms part of an :term:`object format`.
-            See the topic :ref:`topic-scanning`.
+            See :c:type:`mps_fmt_scan_t`.
 
     scan state
 
@@ -294,15 +296,31 @@ Glossary: S
 
     size
 
-        .. mps:: ??
+        .. mps::
+
+            The term *size* in the documentation always refers to a
+            size that is measured in :term:`bytes <byte (1)>`. The term
+            *count* is used for the number of elements in an array.
 
     size class
 
-        .. mps:: ??
+        .. mps::
+
+            A :term:`segregated allocation cache` maintains a reserve
+            of :term:`blocks <block>` in a set of :term:`sizes
+            <size>`: each such size is known as a *size class*. When
+            creating a segregated allocation cache by calling
+            :c:func:`mps_sac_create`, the :term:`client program`
+            describes the desired set of size classes by passing an
+            array of structures of type :c:type:`mps_sac_class_s`.
 
     skip method
     
-        .. mps:: ??
+        .. mps::
+
+             A :term:`format method` that returns the address of the
+             "next object" in a block of :term:`formatted objects
+             <formatted object>`. See :c:type:`mps_fmt_skip_t`.
 
     smart pointer
 
