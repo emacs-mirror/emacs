@@ -1,3 +1,8 @@
+2012-10-13  HANATAKA, Shinya  <bogytech@gmail.com>  (tiny change)
+
+	* coding.c (detect_coding): Set coding->id before calling
+	this->detector.
+
 2012-10-12  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* doc.c (get_doc_string): Don't signal an error if the file is missing.

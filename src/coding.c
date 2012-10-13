@@ -6301,6 +6301,9 @@ detect_coding (struct coding_system *coding)
 		{
 		  category = coding_priorities[i];
 		  this = coding_categories + category;
+		  /* Some of this->detector (e.g. detect_coding_sjis)
+		     require this information.  */
+		  coding->id = this->id;
 		  if (this->id < 0)
 		    {
 		      /* No coding system of this category is defined.  */
