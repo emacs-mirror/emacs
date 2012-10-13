@@ -4545,6 +4545,7 @@ This calls `write-region-annotate-functions' at the start, and
   int save_errno = 0;
   const char *fn;
   struct stat st;
+  EMACS_TIME modtime;
   ptrdiff_t count = SPECPDL_INDEX ();
   int count1;
   Lisp_Object handler;
@@ -4757,11 +4758,18 @@ This calls `write-region-annotate-functions' at the start, and
     }
 #endif
 
+  modtime = invalid_emacs_time ();
+  if (visiting)
+    {
+      if (fstat (desc, &st) == 0)
+	modtime = get_stat_mtime (&st);
+      else
+	ok = 0, save_errno = errno;
+    }
+
   /* NFS can report a write failure now.  */
   if (emacs_close (desc) < 0)
     ok = 0, save_errno = errno;
-
-  stat (fn, &st);
 
   /* Discard the unwind protect for close_file_unwind.  */
   specpdl_ptr = specpdl + count1;
@@ -4790,9 +4798,9 @@ This calls `write-region-annotate-functions' at the start, and
   /* Do this before reporting IO error
      to avoid a "file has changed on disk" warning on
      next attempt to save.  */
-  if (visiting)
+  if (EMACS_TIME_VALID_P (modtime))
     {
-      current_buffer->modtime = get_stat_mtime (&st);
+      current_buffer->modtime = modtime;
       current_buffer->modtime_size = st.st_size;
     }
 
