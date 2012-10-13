@@ -166,6 +166,8 @@ to them."
     (or filename (error "File does not exist: %s" (url-recreate-url url)))
     ;; Need to figure out the content-type from the real extension,
     ;; not the compressed one.
+    ;; FIXME should this regexp not include more extensions; basically
+    ;; everything that url-file-find-possibly-compressed-file does?
     (setq uncompressed-filename (if (string-match "\\.\\(gz\\|Z\\|z\\)$" filename)
 				    (substring filename 0 (match-beginning 0))
 				  filename))
