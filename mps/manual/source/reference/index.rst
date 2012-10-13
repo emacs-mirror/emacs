@@ -10,14 +10,14 @@
     Topic
 
 
-================
+****************
 Symbol reference
-================
+****************
 
 
----------------------
+=====================
 Declared in ``mps.h``
----------------------
+=====================
 
 .. c:type:: mps_addr_t
 
@@ -3019,9 +3019,9 @@ Declared in ``mps.h``
         :ref:`topic-root`.
 
 
-------------------------
+========================
 Declared in ``mpsacl.h``
-------------------------
+========================
 
 .. c:function:: mps_arena_class_t mps_arena_class_cl(void)
 
@@ -3052,9 +3052,9 @@ Declared in ``mpsacl.h``
         :ref:`topic-arena`.
 
 
-------------------------
+========================
 Declared in ``mpsavm.h``
-------------------------
+========================
 
 .. c:function:: mps_arena_class_t mps_arena_class_vm(void)
 
@@ -3128,9 +3128,9 @@ Declared in ``mpsavm.h``
         :ref:`topic-arena`.
 
 
--------------------------
+=========================
 Declared in ``mpscamc.h``
--------------------------
+=========================
 
 .. c:function:: void mps_amc_apply(mps_pool_t pool, void (*f)(mps_addr_t object, void *p, size_t s), void *p, size_t s)
 
@@ -3193,9 +3193,9 @@ Declared in ``mpscamc.h``
         :ref:`pool-amc`.
 
 
---------------------------
+==========================
 Declared in ``mpscmvff.h``
---------------------------
+==========================
 
 .. c:function:: mps_class_t mps_class_mvff(void)
 
@@ -3234,9 +3234,9 @@ Declared in ``mpscmvff.h``
         :ref:`pool-mvff`.
 
 
--------------------------
+=========================
 Declared in ``mpscmv2.h``
--------------------------
+=========================
 
 .. c:function:: mps_class_t mps_class_mvt(void)
 
@@ -3285,9 +3285,9 @@ Declared in ``mpscmv2.h``
         :ref:`pool-mvt`
 
 
--------------------------
+=========================
 Declared in ``mpscsnc.h``
--------------------------
+=========================
 
 .. c:function:: mps_class_t mps_class_snc(void)
 
@@ -3310,9 +3310,9 @@ Declared in ``mpscsnc.h``
         :ref:`pool-snc`.
 
 
-------------------------
+========================
 Declared in ``mpslib.h``
-------------------------
+========================
 
 .. c:function:: int mps_lib_memcmp(const void *s1, const void *s2, size_t n)
 
@@ -3400,9 +3400,9 @@ Declared in ``mpslib.h``
         :ref:`topic-plinth`, :ref:`topic-telemetry`.
 
 
------------------------
+=======================
 Declared in ``mpstd.h``
------------------------
+=======================
 
 .. c:type:: MPS_T_WORD
 
@@ -3443,9 +3443,9 @@ Declared in ``mpstd.h``
         :ref:`topic-platform`.
 
 
--------------------------
+=========================
 Undocumented in ``mps.h``
--------------------------
+=========================
 
 .. c:type:: mps_chain_t
 .. c:type:: mps_ld_t
@@ -3499,9 +3499,9 @@ Undocumented in ``mps.h``
 .. c:function:: void mps_pool_check_free_space(mps_pool_t mps_pool)
 
 
-----------------------------
+============================
 Undocumented in ``mpslib.h``
-----------------------------
+============================
 
 .. c:function:: int mps_lib_get_EOF(void)
 .. c:type:: mps_lib_FILE
@@ -3515,38 +3515,38 @@ Undocumented in ``mpslib.h``
 .. c:function:: mps_clock_t mps_clocks_per_sec(void)
 
 
------------------------------
+=============================
 Undocumented in ``mpscamc.h``
------------------------------
+=============================
 
 .. c:function:: mps_class_t mps_class_amcz(void)
 
 
------------------------------
+=============================
 Undocumented in ``mpscams.h``
------------------------------
+=============================
 
 .. c:function:: mps_class_t mps_class_ams(void)
 .. c:function:: mps_class_t mps_class_ams_debug(void)
 
 
------------------------------
+=============================
 Undocumented in ``mpscawl.h``
------------------------------
+=============================
 
 .. c:function:: mps_class_t mps_class_awl(void)
 
 
-----------------------------
+============================
 Undocumented in ``mpsclo.h``
-----------------------------
+============================
 
 .. c:function:: mps_class_t mps_class_lo(void)
 
 
-----------------------------
+============================
 Undocumented in ``mpscmv.h``
-----------------------------
+============================
 
 .. c:function:: size_t mps_mv_free_size(mps_pool_t pool)
 .. c:function:: size_t mps_mv_size(mps_pool_t pool)
@@ -3554,34 +3554,34 @@ Undocumented in ``mpscmv.h``
 .. c:function:: mps_class_t mps_class_mv_debug(void)
 
 
------------------------------
+=============================
 Undocumented in ``mpscmv2.h``
------------------------------
+=============================
 
 .. c:function:: mps_class_t mps_class_mvt(void)
 .. c:function:: size_t mps_mvt_free_size(mps_pool_t pool)
 .. c:function:: size_t mps_mvt_size(mps_pool_t pool)
 
 
-------------------------------
+==============================
 Undocumented in ``mpscmvff.h``
-------------------------------
+==============================
 
 .. c:function:: size_t mps_mvff_free_size(mps_pool_t mpspool)
 .. c:function:: size_t mps_mvff_size(mps_pool_t pool)
 .. c:function:: mps_class_t mps_class_mvff_debug(void)
 
 
----------------------------
+===========================
 Undocumented in ``mpsw3.h``
----------------------------
+===========================
 
 .. c:function:: LONG mps_SEH_filter(LPEXCEPTION_POINTERS info, void **hp_o, size_t *hs_o)
 .. c:function:: void mps_SEH_handler(void *p, size_t s)
 
----------------------------
+===========================
 Undocumented in ``mpsio.h``
----------------------------
+===========================
 
 .. c:type:: mps_io_t
 .. c:function:: mps_res_t mps_io_create(mps_io_t *mps_io_r)
@@ -3590,9 +3590,9 @@ Undocumented in ``mpsio.h``
 .. c:function:: mps_res_t mps_io_flush(mps_io_t mps_io)
 
 
----------------------------
+===========================
 Undocumented in ``mpstd.h``
----------------------------
+===========================
 
 .. c:macro:: MPS_PF_STRING
 .. c:macro:: MPS_PF_ALIGN

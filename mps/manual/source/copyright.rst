@@ -1,6 +1,6 @@
-=====================
+*********************
 Copyright and licence
-=====================
+*********************
 
 The Memory Pool System documentation is copyright © 1997–2012 by
 `Ravenbrook Limited <http://ravenbrook.com>`_. All rights reserved.
