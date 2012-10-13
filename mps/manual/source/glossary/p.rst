@@ -17,11 +17,18 @@ Glossary: P
 
     padding method
 
-        .. mps:: ??
+        .. mps::
+
+            A :term:`format method` that is called by a :term:`moving
+            <moving garbage collector>` :term:`pool <pool>` to create
+            a :term:`padding object`. See :c:type:`mps_fmt_pad_t`.
 
     padding object
 
-        .. mps:: ??
+        A :term:`formatted object` that consists of :term:`padding`.
+        One of three types of formatted objects, the other two being
+        :term:`data object <data objects>` and :term:`forwarded
+        objects <forwarded object>`.
 
     page
 
@@ -64,6 +71,7 @@ Glossary: P
         process.
 
     page table
+    page-table
 
         In a :term:`virtual memory` system, it is common to map
         between :term:`virtual addresses <virtual address>` and
@@ -168,7 +176,16 @@ Glossary: P
 
     parked state
 
-        .. mps:: ??
+        .. mps::
+
+            One of the three states an :term:`arena` can be in (the
+            others being the :term:`clamped state` and the
+            :term:`unclamped state`). In the parked state, no
+            :term:`garbage collection` is in progress, no object
+            motion occurs and the staleness of :term:`location
+            dependencies <location dependency>` does not change. Call
+            :c:func:`mps_arena_park` or :c:func:`mps_arena_collect` to
+            put an arena into the parked state.
 
     perfect fit
 
@@ -313,7 +330,13 @@ Glossary: P
 
     plinth
 
-        .. mps:: ??
+        .. mps::
+
+            The plinth is a program module providing the MPS with all
+            the support functions it needs from the execution
+            environment. The plinth removes the need for external
+            libraries, by getting the support from the :term:`client
+            program`. See :ref:`topic-plinth`.
 
     pointer
 
@@ -334,11 +357,20 @@ Glossary: P
 
     pool
 
-        .. mps:: ??
+        .. mps::
+
+            A pool is responsible for requesting memory from the
+            :term:`arena` and making it available to the :term:`client
+            program` via :c:func:`mps_alloc` or via an
+            :term:`allocation point`. Pools belong to the type
+            :c:type:`mps_pool_t`.
 
     pool class
 
-        .. mps:: ??
+        .. mps::
+
+            A value of type :c:type:`mps_class_t` describing a
+            class of :term:`pools <pool>`. See :ref:`pool`.
 
     precise garbage collection
 
@@ -419,7 +451,13 @@ Glossary: P
 
     protectable root
 
-        .. mps:: ??
+        .. mps::
+
+            A :term:`root` which the MPS may :term:`protect
+            <protection>` with a :term:`write barrier`. A protectable
+            root is created by specifying the :term:`root mode`
+            :c:macro:`MPS_RM_PROT` when calling a registration
+            function such as :c:func:`mps_root_create`.
 
     protection
 

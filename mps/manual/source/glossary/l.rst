@@ -226,6 +226,10 @@ Glossary: L
 
         .. see:: :term:`memory location`.
 
+    location dependency
+
+        .. mps:: ??
+
     logical address
 
         .. see:: :term:`virtual address`.

@@ -161,11 +161,28 @@ Glossary: C
 
     clamped state
 
-        .. mps:: ??
+        .. mps::
+
+            One of the three states an :term:`arena` can be in (the
+            others being the :term:`unclamped state` and the
+            :term:`parked state`). In the clamped state, no object
+            motion occurs and the staleness of :term:`location
+            dependencies <location dependency>` does not change.
+            However, a :term:`garbage collection` may be in progress.
+            Call :c:func:`mps_arena_clamp` to put an arena into the
+            clamped state.
 
     class method
 
-        .. mps:: ??
+        .. mps::
+
+            One of the :term:`format methods <format method>` in an
+            :term:`object format` of variant B
+            (:c:type:`mps_fmt_B_s`). It returns an address that is
+            related to the class or type of the object. This address
+            can be associated which a string by calling
+            :c:func:`mps_telemetry_label`, so as to appear in the
+            :term:`telemetry stream`. See :c:type:`mps_fmt_class_t`.
 
     class structure
 
@@ -173,11 +190,15 @@ Glossary: C
 
     client arena
 
-        .. mps:: ??
+        .. mps::
+
+            An :term:`arena class` which gets its :term:`memory (2)`
+            from the :term:`client program`. See
+            :c:func:`mps_arena_class_cl`.
 
     client program
 
-        .. mps:: ??
+        .. see:: :term:`mutator`
 
     closure
 
@@ -298,7 +319,12 @@ Glossary: C
 
     commit limit
 
-        .. mps:: ??
+        .. mps::
+
+            The commit limit is a limit on the :term:`committed`
+            :term:`memory (2)` that the MPS will obtain from the
+            operating system. It can be changed by calling
+            :c:func:`mps_commit_limit_set`.
 
     committed
 
@@ -350,7 +376,33 @@ Glossary: C
 
     condemned set
 
-        .. see:: :term:`threatened set`.
+        .. aka:: *threatened set*.
+
+        *Condemned* :term:`objects <object>` are those which are
+        candidates for :term:`recycling <recycle>` within a
+        :term:`collection cycle`.
+
+        At the start of a collection cycle, the :term:`collector (1)`
+        may choose to condemn some objects (the *condemned set* or
+        *threatened set*) but not to condemn others (the :term:`immune
+        set`). Objects that are not condemned are assumed to be
+        :term:`alive` and behave as :term:`roots <root>` for the
+        purposes of that collection cycle.
+
+        Many simple :term:`tracing garbage collection` algorithms
+        begin by condemning all objects, but :term:`generational
+        garbage collectors <generational garbage collection>` will
+        condemn individual :term:`generations <generation>` or
+        combinations of generations. Often young generations are
+        condemned but older ones are not, because objects in older
+        generations are less likely to have become
+        :term:`unreachable`.
+
+        In collectors using :term:`tri-color marking`, at the start of
+        a collection cycle the condemned set is exactly the set of
+        objects that the collector colors :term:`white`.
+
+        .. opposite:: :term:`immune set`.
 
     connected
 
@@ -412,7 +464,12 @@ Glossary: C
 
     constant root
 
-        .. mps:: ??
+        .. mps::
+
+            A :term:`root` that the :term:`client program` promises
+            not change after it is registered, by specifying the
+            :term:`root mode` :c:macro:`MPS_RM_CONST` when calling a
+            registration function such as :c:func:`mps_root_create`.
 
     constructor (1)
 
@@ -482,7 +539,13 @@ Glossary: C
 
     copy method
 
-        .. mps:: ??
+        .. mps::
+
+            A copy method is one of the methods in an :term:`object
+            format`. Formerly, the MPS called this method to copy a
+            :term:`formatted object` during :term:`moving garbage
+            collection <moving garbage collector>`. Now it just copies
+            the bytes and the copy method is ignored.
 
     copying garbage collection
 

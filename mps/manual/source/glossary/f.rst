@@ -115,9 +115,15 @@ Glossary: F
         of :term:`destructors (1) <destructor (1)>`, for example in
         Ada.
 
-    finalized object
+    finalized block
 
-        .. mps:: ??
+        .. mps::
+
+           A :term:`block` that has been registerd for finalization
+           using :c:func:`mps_finalize`, and which the MPS has
+           determined is :term:`dead`, but whose finalization message
+           has not been discarded. See
+           :c:func:`mps_message_type_finalization`.
 
     first fit
 
@@ -148,14 +154,21 @@ Glossary: F
 
     fix
 
-        .. mps:: ??
+        .. mps::
+
+            To *fix* a :term:`reference` from one :term:`block` to
+            another is to declare it to the MPS by calling
+            :c:func:`MPS_FIX1` and :c:func:`MPS_FIX2` within a
+            :term:`scan method`. In a :term:`moving <moving garbage
+            collector>` :term:`pool`, fixing a reference may also
+            update it to point to the new location of the block.
 
     flip
 
         The instant in a :term:`two-space collector` when the roles of
         the two :term:`semi-spaces <semi-space>` are reversed. What
         was the *new* semi-space is now marked as *old* and
-        :term:`condemned <threatened set>`. What was the old
+        :term:`condemned <condemned set>`. What was the old
         semi-space becomes the site for all new :term:`allocations
         <allocate>`. Also used in a more general sense to mean the
         initiation of a new :term:`collection cycle`.
@@ -209,7 +222,7 @@ Glossary: F
 
         A more subtle kind of floating garbage is an unreachable data
         structure that spans multiple regions that are never
-        :term:`condemned <threatened set>` together.
+        :term:`condemned <condemned set>` together.
 
     format
 
@@ -230,28 +243,37 @@ Glossary: F
 
     format method
 
-        .. mps:: ??
+        .. mps::
+
+            One of the methods in an :term:`object format`. May be a
+            :term:`scan method`, :term:`skip method`, :term:`forward
+            method`, :term:`is-forwarded method`, :term:`padding
+            method`, or :term:`class method`.
 
     formatted object
 
-        .. mps:: ??
-
-    formatted root
-
-        .. mps:: ??
+        An allocated :term:`block` that belongs to an :term:`object
+        format` and may be :term:`scanned <scan>` by the
+        :term:`garbage collector`.
 
     forward method
     
-        .. mps:: ??
+        .. mps::
+
+            A :term:`format method` that is called by a :term:`moving
+            <moving garbage collector>` :term:`pool <pool>` when it
+            has moved an object. The forward method replaces the old
+            object with a :term:`forwarding marker` that points to the
+            new location of the object. See :c:type:`mps_fmt_fwd_t`.
 
     forwarded object
 
-        .. mps:: ??
+        A :term:`formatted object` that has been replaced by a
+        :term:`forwarding marker`. One of three types of formatted
+        objects, the other two being :term:`data object <data
+        objects>` and :term:`padding objects <padding object>`.
 
     forwarding marker
-
-        .. mps:: ??
-
     forwarding pointer
 
         Some :term:`garbage collectors <garbage collector>`
@@ -262,7 +284,9 @@ Glossary: F
 
         .. similar:: :term:`broken heart`.
 
-        .. seealso:: :term:`copying garbage collection`, :term:`two space collector <two-space collector>`.
+        .. seealso:: :term:`copying garbage collection`, :term:`two-space collector`.
+
+        .. mps:: The term *forwarding marker* is used.
 
     fragmentation
 

@@ -86,7 +86,8 @@ Glossary: V
 
         The virtual addresses used by the application program are
         translated by the virtual memory system (often using
-        :term:`TLB`s and :term:`page-tables <page table>`) to
+        :term:`translation lookaside buffers <translation lookaside
+        buffer>` and :term:`page tables <page table>`) to
         :term:`physical addresses <physical address>`. It is the
         physical address that is used to retrieve the contents from
         the :term:`memory (3)`.
@@ -150,7 +151,16 @@ Glossary: V
 
     virtual memory arena
 
-        .. mps:: ??
+        .. mps::
+
+            An :term:`arena class` which gets its :term:`memory (2)`
+            from the operating system's :term:`virtual memory`
+            interface. See :c:func:`mps_arena_class_vm` and
+            :c:func:`mps_arena_class_vmnz`.
+
+    visitor function
+
+       .. see:: :term:`stepper function`.
 
     VM (1)
 

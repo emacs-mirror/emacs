@@ -111,7 +111,7 @@ Glossary: G
 
         A :term:`generational garbage collector <generational garbage
         collection>` will typically divide the set of all objects into
-        generations, and :term:`condemn <threatened set>` all the
+        generations, and :term:`condemn <condemned set>` all the
         objects in a generation together. Rather than allowing whole
         generations to age, the :term:`collector (1)` can
         :term:`promote <promotion>` objects into older generations as
@@ -141,7 +141,7 @@ Glossary: G
         :term:`generations <generation>`. New objects are allocated in
         the *youngest* or *nursery* generation, and :term:`promoted
         <promotion>` to *older* generations if they survive. Objects
-        in older generations are :term:`condemned <threatened set>`
+        in older generations are :term:`condemned <condemned set>`
         less frequently, saving CPU time.
 
         It is typically rare for an object to refer to a younger
@@ -242,7 +242,7 @@ Glossary: G
         In a :term:`tri-color marking` scheme, gray :term:`objects
         <object>` are objects that are proved or assumed (see
         :term:`generational <generational garbage collection>` and
-        :term:`condemn <threatened set>`) to be :term:`reachable`, but
+        :term:`condemn <condemned set>`) to be :term:`reachable`, but
         have not yet been :term:`scanned <scan>`.
 
         More precisely, gray objects have been noted reachable, but

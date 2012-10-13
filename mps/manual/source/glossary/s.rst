@@ -51,7 +51,7 @@ Glossary: S
 
         Scanning examines memory that has been decided to be
         non-:term:`garbage`, to find references to objects that have
-        been :term:`condemned <threatened set>`.
+        been :term:`condemned <condemned set>`.
 
     scan method
 
@@ -64,7 +64,15 @@ Glossary: S
 
     scan state
 
-        .. mps:: ?? See the topic :ref:`topic-scanning`.
+        .. mps::
+
+            A scan state represents the state of the current
+            :term:`scan`. The MPS passes a scan state to the
+            :term:`scan method` of an :term:`object format` when it
+            needs to :term:`scan` for :term:`references <reference>`
+            within a region of memory. Scan states belong to the type
+            :c:type:`mps_ss_t`.
+
 
     scavenging garbage collection
 
@@ -325,7 +333,7 @@ Glossary: S
 
         In a :term:`copying collector <copying garbage collection>`,
         when there is a :term:`reference` to an :term:`object` that
-        was :term:`condemned <threatened set>`, but has been
+        was :term:`condemned <condemned set>`, but has been
         :term:`transported <transport>`, snap-out is the adjustment of
         that reference to point to the preserved copy.
 
@@ -652,7 +660,16 @@ Glossary: S
 
     stepper function
 
-        .. mps:: ??
+        .. aka:: *visitor function*.
+
+        .. mps::
+
+            A function that will be called on each element in a
+            collection. For example, a stepper function of type
+            :c:type:`mps_formatted_objects_stepper_t` can be passed to
+            :c:func:`mps_arena_formatted_objects_walk` and it will be
+            called on all :term:`formatted objects <formatted object>`
+            in an :term:`arena`.
 
     sticky reference count
 
@@ -758,6 +775,11 @@ Glossary: S
         used to draw a contrast with :term:`weak root`.
 
         .. opposite:: :term:`weak root`.
+
+        .. mps::
+
+            Strong roots have :term:`rank` :c:func:`mps_rank_ambig` or
+            :c:func:`mps_rank_exact`.
 
     strong tri-color invariant
     strong tri-colour invariant
@@ -886,4 +908,15 @@ Glossary: S
 
         .. seealso:: :term:`marking`.
 
+    synchronous garbage collector
 
+        A :term:`collector (2)` is asynchronous with respect to the
+        :term:`mutator` if it runs at predictable times, for example
+        only when a collection function is called.
+
+        This means that mutator need not ensure that :term:`formatted
+        objects <formatted object>` are always :term:`scannable
+        <scan>`, as long as it makes them so before the collector
+        runs.
+
+        .. opposite:: :term:`asynchronous garbage collector`.

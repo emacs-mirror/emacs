@@ -73,9 +73,18 @@ Glossary: N
 
         .. seealso:: :term:`graph`.
 
-    non-moving
+    non-moving garbage collector
+    non-moving memory manager
 
-        .. mps:: ??
+        A memory manager (often a :term:`garbage collector`) is said
+        to be non-moving if :term:`allocated <allocate>`
+        :term:`objects <object>` do not move during their lifetimes.
+
+        Non-moving memory management techniques include
+        :term:`mark-sweep` collection, :term:`reference counting`, and
+        most kinds of :term:`manual memory management`.
+
+        .. opposite:: :term:`moving garbage collector`.
 
     nursery generation
 
