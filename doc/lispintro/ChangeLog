@@ -1,3 +1,8 @@
+2012-10-13  Gregor Zattler  <grfz@gmx.de>  (tiny change)
+
+	* emacs-lisp-intro.texi (Narrowing advantages):
+	Minor update for changed what-line implementation.  (Bug#12629)
+
 2012-08-24  Chong Yidong  <cyd@gnu.org>
 
 	* Version 24.2 released.
