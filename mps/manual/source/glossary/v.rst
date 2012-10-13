@@ -57,6 +57,14 @@ Memory Management Glossary: V
 
         Definition not yet available. Please see our <a href="../feedback.html#submissions">feedback page</a> for submission information.
 
+    variety
+
+	.. mps::
+
+            A behaviour of the MPS that must be selected at
+            compilation time. There are three varieties: :term:`cool`,
+            :term:`hot` and :term:`rash`.
+
     vector data type
 
         A vector data type is an aggregate type of more than one

@@ -115,8 +115,8 @@ Memory Management Glossary: W
     weighted buddies
 
         A :term:`buddy system` :term:`allocation mechanism` using two
-        series of size classes: :term:`binary buddies` (2, 4, 8, ...)
-        and three-times-power-of-two (3, 6, 12, ...). A block that is
+        series of size classes: :term:`binary buddies` (2, 4, 8, …)
+        and three-times-power-of-two (3, 6, 12, …). A block that is
         in the latter series may be :term:`split` in two different
         ways. Thus a block of size 12 may be split into two blocks of
         size 6 or one block of size 4 and one block of size 8. The
@@ -240,10 +240,10 @@ Memory Management Glossary: W
         distinguish between integers and :term:`cons (1)` cells,
         setting these bits to 01 for a :term:`pointer` to a cons cell
         and 11 for an integer. Then the wrapped value of the number 4
-        would have binary representation 11000...00100, and the
+        would have binary representation 11000…00100, and the
         wrapper for this number is the whole of this wrapped value.
         The pointer to a cons cell stored at location 4 would have
-        binary representation 01000...00100. The wrapped value of the
+        binary representation 01000…00100. The wrapped value of the
         cons cell is the combination of this pointer and the cons cell
         in memory itself. The wrapper of the cons cell is just the
         pointer; when the cons cell is passed as a function argument,

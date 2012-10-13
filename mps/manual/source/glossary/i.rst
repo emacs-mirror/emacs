@@ -120,14 +120,14 @@ Memory Management Glossary: I
 
         .. bibref:: [AEL88]_, [BDS91]_.
 
-    incremental-update
     incremental update
+    incremental-update
 
         Incremental-update algorithms for :term:`tracing <trace>`,
-        :term:`incremental GC <incremental garbage collection>` note
-        changes made by the :term:`mutator` to the :term:`graph` of
-        :term:`objects <object>` and update the :term:`collector (2)`
-        state to make it correctly trace the new graph.
+        :term:`incremental garbage collection` note changes made by
+        the :term:`mutator` to the :term:`graph` of :term:`objects
+        <object>` and update the :term:`collector (2)` state to make
+        it correctly trace the new graph.
 
         In order for the collector to miss a :term:`reachable`
         :term:`object`, the following two conditions need to hold at

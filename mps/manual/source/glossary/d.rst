@@ -68,6 +68,18 @@ Memory Management Glossary: D
 
         .. see:: :term:`free (1)`.
 
+    debugging pool
+
+        .. mps::
+
+            A :term:`pool` that performs extra checking in order to
+            find errors in the :term:`client program`. It uses
+            :term:`fenceposts <fencepost>` to detect
+            :term:`overwriting errors <overwriting error>` and it
+            writes patterns over reclaimed blocks in order to detect
+            :term:`use after free <premature free>` or missing
+            references during :term:`scanning <scan>`.
+
     deferred coalescing
 
         Deferred coalescing is a policy which :term:`coalesces
@@ -116,18 +128,6 @@ Memory Management Glossary: D
 
         .. bibref:: [DB76]_.
 
-    debugging pool
-
-        .. mps::
-
-            A :term:`pool` that performs extra checking in order to
-            find errors in the :term:`client program`. It uses
-            :term:`fenceposts <fencepost>` to detect
-            :term:`overwriting errors <overwriting error>` and it
-            writes patterns over reclaimed blocks in order to detect
-            :term:`use after free <premature free>` or missing
-            references during :term:`scanning <scan>`.
-
     derived pointer
 
         .. see:: :term:`interior pointer`.
@@ -164,7 +164,7 @@ Memory Management Glossary: D
         information about the :term:`liveness <live>` of each
         :term:`object`, detecting :term:`garbage` directly.
 
-        Such bits of information, e.g., :term:`reference counts
+        Such bits of information, for example, :term:`reference counts
         <reference counting>`, are typically stored within the objects
         themselves.
 
@@ -214,8 +214,8 @@ Memory Management Glossary: D
         staggered size classes.
 
         One system is a pure binary buddy, with powers-of-two classes
-        (2, 4, 8,...). The other uses some fixed multiple of
-        powers-of-two (e.g., 3, 6, 12, ...). This resembles
+        (2, 4, 8, …). The other uses some fixed multiple of
+        powers-of-two (for example, 3, 6, 12, …). This resembles
         :term:`weighted buddies`, but the two buddy systems are
         treated independently: blocks cannot be :term:`split` or
         :term:`coalesced <coalesce>` from one to the other.

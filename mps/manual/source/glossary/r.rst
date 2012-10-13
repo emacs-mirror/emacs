@@ -43,6 +43,15 @@ Memory Management Glossary: R
             (:c:func:`mps_rank_exact`) or :term:`weak <weak root>`
             (:c:func:`mps_rank_weak`).
 
+    rash
+
+        .. mps::
+
+            A :term:`variety` in which no MPS functions :term:`assert
+            <assertion>` that their data structures are valid. Select
+            it by defining :c:macro:`CONFIG_VAR_RASH`. Compare
+            :term:`cool` and :term:`hot`.
+
     raw
 
         .. see:: :term:`unwrapped`.
