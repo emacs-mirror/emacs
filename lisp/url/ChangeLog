@@ -1,3 +1,9 @@
+2012-10-13  Liam Stitt  <stittl@cuug.ab.ca>  (tiny change)
+
+	* url-vars.el (url-uncompressor-alist):
+	* url-file.el (url-file-find-possibly-compressed-file, url-file):
+	Recognize .xz compression (Bug#11839).
+
 2012-10-13  Chong Yidong  <cyd@gnu.org>
 
 	* url-http.el (url-http):
