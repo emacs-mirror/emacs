@@ -79,6 +79,11 @@ Memory Management Glossary: A
 
         .. similar:: :term:`pointer`.
 
+        .. mps::
+
+            An address is represented by a value of the type
+            :c:type:`mps_addr_t`.
+
     address space
 
         An *address space* is the set of possible :term:`addresses

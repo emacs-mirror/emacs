@@ -332,9 +332,9 @@ Memory Management Glossary: C
         .. mps::
 
             The commit limit is a limit on the :term:`committed`
-            :term:`memory (2)` that the MPS will obtain from the
-            operating system. It can be changed by calling
-            :c:func:`mps_commit_limit_set`.
+            :term:`memory (2)` that the :term:`arena` will obtain from
+            the operating system. It can be changed by calling
+            :c:func:`mps_arena_commit_limit_set`.
 
     committed
 

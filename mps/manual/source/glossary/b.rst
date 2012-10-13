@@ -269,13 +269,12 @@ Memory Management Glossary: B
         :term:`heap` by extending the data segment using ``brk`` or
         :term:`sbrk`.
 
-        Unfortunately, most implementations of <code>malloc</code>
-        never shrink the data segment, so the memory usage of a
-        process never decreases. In most Unix systems, the data
-        segment resides immediately above the program code (text
-        segment) in the :term:`address space`.
+        Most implementations of ``malloc`` never shrink the data
+        segment, so the memory usage of a process never decreases. In
+        most Unix systems, the data segment resides immediately above
+        the program code (text segment) in the :term:`address space`.
 
-        .. figure:: ../diagrams/brk.png
+        .. figure:: ../diagrams/brk.svg
             :align: center
             :alt: Diagram: A simplified view of the address space of a Unix process.
 
@@ -349,6 +348,11 @@ Memory Management Glossary: B
         :term:`external fragmentation`.
 
         .. bibref:: [AEL88]_.
+
+        .. mps::
+
+            Buffers are implemented using :term:`allocation points
+            <allocation point>` attached to :term:`pools <pool>`.
 
     bus error
 

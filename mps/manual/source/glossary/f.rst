@@ -283,8 +283,8 @@ Memory Management Glossary: F
         Some :term:`garbage collectors <garbage collector>`
         :term:`move <moving garbage collector>` :term:`reachable`
         :term:`objects <object>` into another space. They leave a
-        :term:`forwarding pointer` (a special :term:`reference`
-        pointing to the new location) in the old :term:`location`, .
+        forwarding pointer, a special :term:`reference` pointing to
+        the new location, in the old :term:`location`, .
 
         .. similar:: :term:`broken heart`.
 
