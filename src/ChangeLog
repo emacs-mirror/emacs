@@ -1,3 +1,8 @@
+2012-10-13  HANATAKA, Shinya  <bogytech@gmail.com>  (tiny change)
+
+	* coding.c (detect_coding): Set coding->id before calling
+	this->detector.
+
 2012-10-13  Andreas Schwab  <schwab@linux-m68k.org>
 
 	* fileio.c: Formatting fixes.
