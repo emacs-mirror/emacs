@@ -1,3 +1,7 @@
+2012-10-13  Chong Yidong  <cyd@gnu.org>
+
+	* display.texi (ImageMagick Images): ImageMagick enabled by default.
+
 2012-10-05  Chong Yidong  <cyd@gnu.org>
 
 	* minibuf.texi (Basic Completion): Clarify list form of completion

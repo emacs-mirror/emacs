@@ -40,7 +40,7 @@ can do automatic decompression for them, and won't find 'foo' if
 'foo.gz' exists, even though the FTP server would happily serve it up
 to them."
   (let ((scratch nil)
-	(compressed-extensions '("" ".gz" ".z" ".Z" ".bz2"))
+	(compressed-extensions '("" ".gz" ".z" ".Z" ".bz2" ".xz"))
 	(found nil))
     (while (and compressed-extensions (not found))
       (if (file-exists-p (setq scratch (concat fname (pop compressed-extensions))))
@@ -177,6 +177,7 @@ to them."
 			     (".uue" "x-uuencoded")
 			     (".hqx" "x-hqx")
 			     (".bz2" "x-bzip2")
+			     (".xz" "x-xz")
 			     (_ nil)))
 
     (if (file-directory-p filename)

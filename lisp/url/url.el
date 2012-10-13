@@ -131,9 +131,9 @@ characters are percent-encoded; see `url-encode-url'.
 CALLBACK is called when the object has been completely retrieved, with
 the current buffer containing the object, and any MIME headers associated
 with it.  It is called as (apply CALLBACK STATUS CBARGS).
-STATUS is a list with an even number of elements representing
-what happened during the request, with most recent events first,
-or an empty list if no events have occurred.  Each pair is one of:
+STATUS is a plist representing what happened during the request,
+with most recent events first, or an empty list if no events have
+occurred.  Each pair is one of:
 
 \(:redirect REDIRECTED-TO) - the request was redirected to this URL
 \(:error (ERROR-SYMBOL . DATA)) - an error occurred.  The error can be
@@ -169,8 +169,10 @@ URL-encoded before it's used."
 (defun url-retrieve-internal (url callback cbargs &optional silent
 				  inhibit-cookies)
   "Internal function; external interface is `url-retrieve'.
-CBARGS is what the callback will actually receive - the first item is
-the list of events, as described in the docstring of `url-retrieve'.
+CBARGS is the list of arguments that the callback function will
+receive; its first element should be a plist specifying what has
+happened so far during the request, as described in the docstring
+of `url-retrieve' (if in doubt, specify nil).
 
 If SILENT, don't message progress reports and the like.
 If INHIBIT-COOKIES, cookies will neither be stored nor sent to

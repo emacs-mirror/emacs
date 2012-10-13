@@ -3,6 +3,23 @@
 	* coding.c (detect_coding): Set coding->id before calling
 	this->detector.
 
+2012-10-13  Andreas Schwab  <schwab@linux-m68k.org>
+
+	* fileio.c: Formatting fixes.
+
+2012-10-13  Paul Eggert  <eggert@cs.ucla.edu>
+
+	Fix some stat-related races.
+	* fileio.c (Fwrite_region): Avoid race condition if a file is
+	removed or renamed by some other process immediately after Emacs
+	writes it but before Emacs stats it.  Do not assume that stat (or
+	fstat) succeeds.
+	* image.c (slurp_file): Resolve the file name with fopen + fstat
+	rather than stat + fopen.
+	(pbm_read_file) [0]: Remove unused code with stat race.
+	* process.c (allocate_pty) [HAVE_PTYS && !PTY_ITERATION && !PTY_OPEN]:
+	Remove ineffective code with stat race.
+
 2012-10-12  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* doc.c (get_doc_string): Don't signal an error if the file is missing.
