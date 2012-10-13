@@ -1,3 +1,7 @@
+2012-10-13  Jan Djärv  <jan.h.d@swipnet.se>
+
+	* gtkutil.c (xg_set_widget_bg): Divide by 65535 (Bug#12612).
+
 2012-10-13  HANATAKA, Shinya  <bogytech@gmail.com>  (tiny change)
 
 	* coding.c (detect_coding): Set coding->id before calling
@@ -1290,6 +1294,7 @@
 	* sysdep.c (init_signals): Do not use SA_NODEFER.  It wasn't
 	wanted even on POSIXish hosts, and it doesn't work on Windows.
 
+>>>>>>> MERGE-SOURCE
 2012-09-23  Jan Djärv  <jan.h.d@swipnet.se>
 
 	* xterm.c (x_term_init): Call fixup_locale before and after calling
