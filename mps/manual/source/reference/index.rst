@@ -1265,7 +1265,8 @@ Declared in ``mps.h``
     .. note::
 
         This method is never invoked by the :term:`garbage collector`
-        on an object in a :term:`non-moving` :term:`pool`.
+        on an object in a :term:`non-moving <non-moving garbage
+        collector>` :term:`pool`.
 
 
 .. c:type:: mps_addr_t (*mps_fmt_isfwd_t)(mps_addr_t addr)
@@ -1287,7 +1288,8 @@ Declared in ``mps.h``
     .. note::
 
         This method is never invoked by the :term:`garbage collector`
-        on an object in a :term:`non-moving` :term:`pool`.
+        on an object in a :term:`non-moving <non-moving garbage
+        collector>` :term:`pool`.
 
 
 .. c:type:: void (*mps_fmt_pad_t)(mps_addr_t addr, size_t size)
