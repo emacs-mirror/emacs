@@ -200,11 +200,13 @@ Memory Management Glossary: C
 
     client object
 
-        A :term:`formatted object` that contains data from the
-        :term:`client program`. One of three types of formatted
-        objects, the other two being :term:`forwarded objects
-        <forwarded object>` and :term:`padding objects <padding
-        object>`.
+        .. mps::
+
+            A :term:`formatted object` that contains data from the
+            :term:`client program`. One of three types of formatted
+            objects, the other two being :term:`forwarded objects
+            <forwarded object>` and :term:`padding objects <padding
+            object>`.
 
     client program
 
@@ -547,6 +549,16 @@ Memory Management Glossary: C
 
         .. seealso:: :term:`data stack`.
 
+    cool
+
+        .. mps::
+
+            A :term:`variety` in which most MPS functions
+            :term:`assert <assertion>` that their data structures are
+            valid, even functions on the :term:`critical path`. Select
+            it by defining :c:macro:`CONFIG_VAR_COOL`. Compare
+            :term:`hot` and :term:`rash`.
+
     copy method
 
         .. mps::
@@ -601,6 +613,10 @@ Memory Management Glossary: C
         .. opposite:: :term:`aging space`.
 
         .. seealso:: :term:`generational garbage collection`.
+
+    critical path
+
+        .. mps:: ??
 
     crossing map
 

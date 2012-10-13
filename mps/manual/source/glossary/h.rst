@@ -110,4 +110,13 @@ Memory Management Glossary: H
 
         .. opposite:: :term:`miss rate`.
 
+    hot
+
+        .. mps::
+
+            A :term:`variety` in which many MPS functions
+            :term:`assert <assertion>` that their data structures are
+            valid, but functions on the :term:`critical path` do not.
+            Select it by defining :c:macro:`CONFIG_VAR_HOT`. Compare
+            :term:`cool` and :term:`rash`.
 

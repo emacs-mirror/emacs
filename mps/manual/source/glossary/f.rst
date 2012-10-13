@@ -256,9 +256,11 @@ Memory Management Glossary: F
 
     formatted object
 
-        An allocated :term:`block` that belongs to an :term:`object
-        format` and may be :term:`scanned <scan>` by the
-        :term:`garbage collector`.
+        .. mps::
+
+            An allocated :term:`block` that belongs to an
+            :term:`object format` and may be :term:`scanned <scan>` by
+            the :term:`garbage collector`.
 
     forward method
     
@@ -272,10 +274,12 @@ Memory Management Glossary: F
 
     forwarded object
 
-        A :term:`formatted object` that has been replaced by a
-        :term:`forwarding marker`. One of three types of formatted
-        objects, the other two being :term:`client objects <client
-        object>` and :term:`padding objects <padding object>`.
+        .. mps::
+
+            A :term:`formatted object` that has been replaced by a
+            :term:`forwarding marker`. One of three types of formatted
+            objects, the other two being :term:`client objects <client
+            object>` and :term:`padding objects <padding object>`.
 
     forwarding marker
     forwarding pointer
@@ -400,6 +404,17 @@ Memory Management Glossary: F
     freestore
 
         .. see:: :term:`heap`.
+
+    function pointer
+
+        In the :term:`C` programming language, a :term:`pointer` to an
+        function, as distinct from a :term:`object pointer`. The C
+        programming language does not guarantee that function and
+        object pointers are the same size, or that a pointer of one
+        type can be cast to a pointer of the the other type without
+        losing information.
+
+        .. opposite:: :term:`object pointer`.
 
     function record
 
