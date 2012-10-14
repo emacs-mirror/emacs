@@ -934,7 +934,7 @@ Memory Management Glossary: S
     sweeping
 
         Sweeping is the second phase ("the sweep phase") of the
-        :term:`mark-sweep` algorithm (q.v.). It performs a sequential
+        :term:`mark-sweep` algorithm. It performs a sequential
         (address-order) pass over memory to :term:`recycle` unmarked
         blocks.
 
