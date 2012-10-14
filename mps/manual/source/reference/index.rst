@@ -25,9 +25,9 @@ Declared in ``mps.h``
     also the type of :term:`references <reference>`.
 
     It is used in the MPS interface for any pointer that is under the
-    control of the MPS. In accordance with standard C practice, null
-    pointers of type :c:type:`mps_addr_t` will never be used to
-    represent a reference to a block.
+    control of the MPS. In accordance with standard :term:`C`
+    practice, null pointers of type :c:type:`mps_addr_t` will never be
+    used to represent a reference to a block.
 
     .. topics::
 
@@ -66,14 +66,14 @@ Declared in ``mps.h``
     .. note::
 
         There's an alternative function :c:func:`mps_alloc_v` that
-        takes its extra arguments using the standard C ``va_list``
-        mechanism.
+        takes its extra arguments using the standard :term:`C`
+        ``va_list`` mechanism.
 
 
 .. c:function:: mps_res_t mps_alloc_v(mps_addr_t *p_o, mps_pool_t pool, size_t size, va_list args)
 
     An alternative to :c:func:`mps_alloc` that takes its extra
-    arguments using the standard C ``va_list`` mechanism.
+    arguments using the standard :term:`C` ``va_list`` mechanism.
 
 
 .. c:function:: mps_alloc_pattern_t mps_alloc_pattern_ramp(void)
@@ -448,14 +448,14 @@ Declared in ``mps.h``
     .. note::
 
         There's an alternative function :c:func:`mps_arena_create_v`
-        that takes its extra arguments using the standard C
+        that takes its extra arguments using the standard :term:`C`
         ``va_list`` mechanism.
 
 
 .. c:function:: mps_res_t mps_arena_create_v(mps_arena_t *arena_o, mps_arena_class_t arena_class, va_list args)
 
     An alternative to :c:func:`mps_arena_create` that takes its extra
-    arguments using the standard C ``va_list`` mechanism.
+    arguments using the standard :term:`C` ``va_list`` mechanism.
 
     .. topics::
 
@@ -1871,9 +1871,10 @@ Declared in ``mps.h``
 
     *pool* is the pool whose fenceposts are to be checked.
 
-    If a corrupted fencepost is found, the MPS will :term:`assert`. It
-    is only useful to call this on a :term:`debugging pool` that has
-    fenceposts turned on. It does nothing on non-debugging pools.
+    If a corrupted fencepost is found, the MPS will :term:`assert
+    <assertion>`. It is only useful to call this on a :term:`debugging
+    pool` that has fenceposts turned on. It does nothing on
+    non-debugging pools.
 
     .. topics::
 
@@ -3318,8 +3319,8 @@ Declared in ``mpslib.h``
 
 .. c:function:: int mps_lib_memcmp(const void *s1, const void *s2, size_t n)
 
-    A :term:`plinth` function similar to the standard C function
-    ``memcmp``.
+    A :term:`plinth` function similar to the standard :term:`C`
+    function ``memcmp``.
 
     *s1* and *s2* point to :term:`blocks <block>` of memory to be
     compared.
@@ -3340,8 +3341,8 @@ Declared in ``mpslib.h``
 
 .. c:function:: void *mps_lib_memcpy(void *dest, const void *source, size_t n)
 
-    A :term:`plinth` function similar to the standard C function
-    ``memcpy``.
+    A :term:`plinth` function similar to the standard :term:`C`
+    function ``memcpy``.
 
     *dest* points to the destination.
 
@@ -3363,8 +3364,8 @@ Declared in ``mpslib.h``
 
 .. c:function:: void *mps_lib_memset(void *s, int c, size_t n)
 
-    A :term:`plinth` function similar to the standard C function
-    ``memset``.
+    A :term:`plinth` function similar to the standard :term:`C`
+    function ``memset``.
 
     *s* points to the :term:`block` to fill with the byte *c*.
 

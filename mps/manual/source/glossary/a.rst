@@ -228,6 +228,10 @@ Memory Management Glossary: A
 
         .. bibref:: [WIL95]_.
 
+        .. mps::
+
+            See :ref:`topic-allocation`.
+
     allocation frame
 
         .. mps:: ??
@@ -258,9 +262,10 @@ Memory Management Glossary: A
         .. mps::
 
             An allocation point is an interface to a :term:`pool`
-            which provides very fast allocation, and defers the need
-            for synchronization in a multi-threaded environment.
-            Allocation points belong to the type :c:type:`mps_ap_t`.
+            which provides fast :term:`buffered <buffer>` allocation,
+            and defers the need for synchronization in a
+            multi-threaded environment. Allocation points belong to
+            the type :c:type:`mps_ap_t`.
 
     allocation policy
 
@@ -329,8 +334,6 @@ Memory Management Glossary: A
 
         .. opposite:: :term:`exact root`.
 
-        .. seealso:: :term:`conservative garbage collection`.
-
         .. mps::
 
             An ambiguous root has :term:`rank`
@@ -353,7 +356,7 @@ Memory Management Glossary: A
             :term:`memory (3)` from the operating system, making it
             available to :term:`pools <pool>`, and for :term:`garbage
             collection`. Arenas belong to the type
-            :c:type:`mps_arena_t`.
+            :c:type:`mps_arena_t`. See :ref:`topic-arena`.
 
     arena class
 
@@ -375,13 +378,12 @@ Memory Management Glossary: A
             Memory management mistakes often lead to
             :term:`overwriting errors <overwriting error>` that
             corrupt the data structures used by the memory manager to
-            maintain memory. Except in its :term:`rash`
+            maintain memory. Except in the :term:`rash`
             :term:`variety`, most MPS functions assert the validity of
             the data structures they operate on. This means that
             memory management mistakes are detected as early as
             possible, when there may still be enough evidence in the
-            :term:`heap` to debug them. See the topic
-            :ref:`topic-error`.
+            :term:`heap` to debug them. See :ref:`topic-error`.
 
     asynchronous garbage collector
 

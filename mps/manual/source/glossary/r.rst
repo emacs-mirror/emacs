@@ -10,18 +10,18 @@ Memory Management Glossary: R
 
     RAM
 
-        .. see:: :term:`random access memory`.
+        .. aka:: *random access memory*.
 
-    random access memory
-
-        .. aka:: *RAM*.
-
-        Random access memory (RAM) is a type of :term:`physical memory
+        RAM (random access memory) is a type of :term:`physical memory
         (2)` that can be read from and written to.
 
         .. similar:: :term:`main memory`.
 
         .. seealso:: :term:`ROM`, :term:`static RAM`, :term:`dynamic RAM`.
+
+    random access memory
+
+        .. see:: :term:`RAM`.
 
     ramp pattern
 
@@ -123,13 +123,7 @@ Memory Management Glossary: R
 
     read-only memory
 
-        .. aka:: *ROM*.
-
-        Read-only memory (ROM) is a type of :term:`physical memory
-        (2)` that can be read from, but not written to. The contents
-        of ROM are usually set in the factory.
-
-        .. seealso:: :term:`RAM`.
+        .. see:: :term:`ROM`.
 
     real memory (1)
 
@@ -328,7 +322,23 @@ Memory Management Glossary: R
 
     register
 
-        Definition not yet available. Please see our <a href="../feedback.html#submissions">feedback page</a> for submission information.
+	A *register* is a small unit of :term:`memory (2)` that is
+	attached to a processor and accessible very quickly. Registers
+	typically form the highest level of a computer's
+	:term:`storage hierarchy`.
+
+        .. relevance::
+
+            The set of registers is always accessible by the
+            :term:`mutator` and so forms a :term:`root`.
+
+        .. mps::
+
+            Writing the :term:`scan method` for the root containing
+            the registers is hard to write (it depends on the
+            operating system, the processor architecture, and in some
+            cases the compiler), so the MPS provides the function
+            :c:func:`mps_stack_scan_ambig`.
 
     register set partitioning
 
@@ -457,7 +467,13 @@ Memory Management Glossary: R
 
     ROM
 
-        .. see:: :term:`read-only memory`.
+        .. aka:: *read-only memory*.
+
+        ROM (read-only memory) is a type of :term:`physical memory
+        (2)` that can be read from, but not written to. The contents
+        of ROM are usually set in the factory.
+
+        .. seealso:: :term:`RAM`.
 
     root
 
