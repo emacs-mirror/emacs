@@ -59,7 +59,7 @@
     (define-key map [navigate-menu]              'undefined)
     (define-key map [semantic-options-separator] 'undefined)
     (define-key map [global-semantic-highlight-func-mode]   'undefined)
-    (define-key map [global-semantic-highlight-func-mode]   'undefined)
+    (define-key map [global-semantic-stickyfunc-mode]   'undefined)
     (define-key map [global-semantic-decoration-mode]       'undefined)
     (define-key map [global-semantic-idle-completions-mode] 'undefined)
     (define-key map [global-semantic-idle-summary-mode]     'undefined)
