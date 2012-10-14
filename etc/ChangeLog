@@ -1,3 +1,7 @@
+2012-10-14  Kenichi Handa  <handa@gnu.org>
+
+	* charsets/JISC6226.map: Re-generated.
+
 2012-10-11  Kenichi Handa  <handa@gnu.org>
 
 	* charsets/CNS-2.map, charsets/CNS-3.map, charsets/CNS-4.map,
