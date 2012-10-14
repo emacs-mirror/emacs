@@ -5361,8 +5361,16 @@ BUFFER-OR-NAME must be a buffer or the name of an existing
 buffer.  Return the window chosen for displaying BUFFER-OR-NAME,
 or nil if no such window is found.
 
-Optional argument ACTION should have the form (FUNCTION . ALIST).
-FUNCTION is either a function or a list of functions.
+Optional argument ACTION, if non-nil, should specify a display
+action.  Its form is described below.
+
+Optional argument FRAME, if non-nil, acts like an additional
+ALIST entry (reusable-frames . FRAME) to the action list of ACTION,
+specifying the frame(s) to search for a window that is already
+displaying the buffer.  See `display-buffer-reuse-window'
+
+If ACTION is non-nil, it should have the form (FUNCTION . ALIST),
+where FUNCTION is either a function or a list of functions, and
 ALIST is an arbitrary association list (alist).
 
 Each such FUNCTION should accept two arguments: the buffer to
@@ -5378,6 +5386,9 @@ ACTION argument, `display-buffer-base-action', and
 function in the combined function list in turn, passing the
 buffer as the first argument and the combined alist as the second
 argument, until one of the functions returns non-nil.
+
+If ACTION is nil, the function list and the alist are built using
+only the other variables mentioned above.
 
 Available action functions include:
  `display-buffer-same-window'
@@ -5407,12 +5418,7 @@ The ACTION argument to `display-buffer' can also have a non-nil
 and non-list value.  This means to display the buffer in a window
 other than the selected one, even if it is already displayed in
 the selected window.  If called interactively with a prefix
-argument, ACTION is t.
-
-Optional argument FRAME, if non-nil, acts like an additional
-ALIST entry (reusable-frames . FRAME), specifying the frame(s) to
-search for a window that is already displaying the buffer.  See
-`display-buffer-reuse-window'."
+argument, ACTION is t."
   (interactive (list (read-buffer "Display buffer: " (other-buffer))
 		     (if current-prefix-arg t)))
   (let ((buffer (if (bufferp buffer-or-name)

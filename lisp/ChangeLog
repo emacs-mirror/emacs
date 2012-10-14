@@ -1,5 +1,7 @@
 2012-10-14  Eli Zaretskii  <eliz@gnu.org>
 
+	* window.el (display-buffer): Doc fix.
+
 	* progmodes/compile.el (compilation-error-regexp-alist-alist):
 	Adjust the msft regexp to the output of Studio 2010, and move msft
 	before edg-1.  See the discussion on emacs-devel,
