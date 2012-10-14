@@ -3282,7 +3282,7 @@ queue_notifications (struct input_event *event, W32Msg *msg, struct frame *f,
     {
       DWORD info_size = notifications_size;
       Lisp_Object cs = intern ("utf-16le");
-      Lisp_Object obj = get_watch_object (make_number (notifications_desc));
+      Lisp_Object obj = w32_get_watch_object (make_number (notifications_desc));
 
       /* notifications_size could be zero when the buffer of
 	 notifications overflowed on the OS level, or when the

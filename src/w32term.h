@@ -685,8 +685,8 @@ extern void x_delete_display (struct w32_display_info *dpyinfo);
 extern int notification_buffer_in_use;
 extern BYTE file_notifications[16384];
 extern DWORD notifications_size;
-extern HANDLE notifications_desc;
-extern Lisp_Object get_watch_object (Lisp_Object);
+extern void *notifications_desc;
+extern Lisp_Object w32_get_watch_object (Lisp_Object);
 extern Lisp_Object lispy_file_action (DWORD);
 
 /* Keypad command key support.  W32 doesn't have virtual keys defined
@@ -767,6 +767,7 @@ extern void syms_of_w32fns (void);
 
 extern void globals_of_w32menu (void);
 extern void globals_of_w32fns (void);
+extern void globals_of_w32notify (void);
 
 #ifdef CYGWIN
 extern int w32_message_fd;
