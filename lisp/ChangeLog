@@ -1,5 +1,8 @@
 2012-10-14  Stefan Monnier  <monnier@iro.umontreal.ca>
 
+	* emacs-lisp/eieio.el (eieio-oset-default, eieio-oset, oset-default)
+	(oset): Move uses of object-class-fast macro after its definition.
+
 	* emacs-lisp/gv.el (if): Don't use closures in non-lexical-binding code.
 
 2012-10-13  Chong Yidong  <cyd@gnu.org>
