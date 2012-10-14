@@ -3182,6 +3182,7 @@ extern void internal_delete_file (Lisp_Object);
 extern void syms_of_fileio (void);
 extern Lisp_Object make_temp_name (Lisp_Object, bool);
 extern Lisp_Object Qdelete_file;
+extern bool check_existing (const char *);
 
 /* Defined in search.c.  */
 extern void shrink_regexp_cache (void);

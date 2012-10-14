@@ -152,7 +152,8 @@ variable."
 				    (".uue" . "x-uuencoded")
 				    (".hqx" . "x-hqx")
 				    (".Z"  . "x-compress")
-				    (".bz2"  . "x-bzip2"))
+				    (".bz2" . "x-bzip2")
+				    (".xz" . "x-xz"))
   "An alist of file extensions and appropriate content-transfer-encodings."
   :type '(repeat (cons :format "%v"
 		       (string :tag "Extension")

@@ -144,7 +144,8 @@ get_doc_string (Lisp_Object filepos, bool unibyte, bool definition)
 	}
 #endif
       if (fd < 0)
-	error ("Cannot open doc string file \"%s\"", name);
+	return concat3 (build_string ("Cannot open doc string file \""),
+			file, build_string ("\"\n"));
     }
 
   /* Seek only to beginning of disk block.  */

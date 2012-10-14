@@ -4579,56 +4579,34 @@ specifying the bounding box of the PostScript image, analogous to the
 @cindex images, support for more formats
 
   If you build Emacs with ImageMagick support, you can use the
-ImageMagick library to load many image formats.  The image type symbol
+ImageMagick library to load many image formats (@pxref{File
+Conveniences,,, emacs, The GNU Emacs Manual}).  The image type symbol
 for images loaded via ImageMagick is @code{imagemagick}, regardless of
 the actual underlying image format.
 
 @defun imagemagick-types
 This function returns a list of image file extensions supported by the
-current ImageMagick installation.
+current ImageMagick installation.  Each list element is a symbol
+representing an internal ImageMagick name for an image type, such as
+@code{BMP} for @file{.bmp} images.
 @end defun
 
-  By default, Emacs does not use ImageMagick to display images in
-Image mode, e.g.@: when visiting such files with @kbd{C-x C-f}.  This
-feature is enabled by calling @code{imagemagick-register-types}.
-
-@defun imagemagick-register-types
-This function enables using Image mode to visit image files supported
-by ImageMagick.  @xref{File Conveniences,,, emacs, The GNU Emacs
-Manual}.  It also causes @code{create-image} and other helper
-functions to associate such file names with the @code{imagemagick}
-image type (@pxref{Defining Images}).
-
-All image file extensions supported by ImageMagick are registered,
-except those specified in @code{imagemagick-types-inhibit}.  If Emacs
-was not compiled with ImageMagick support, this function does nothing.
-@end defun
-
-@defopt imagemagick-types-inhibit
-This variable specifies a list of image types that should @emph{not}
-be registered by @code{imagemagick-register-types}.  Each entry in
-this list should be one of the symbols returned by
-@code{imagemagick-types}.  The default value lists several file types
-that are considered ``images'' by ImageMagick, but which should not be
-considered as images by Emacs, including C files and HTML files.
+@defopt imagemagick-enabled-types
+The value of this variable is a list of ImageMagick image types which
+Emacs may attempt to render using ImageMagick.  Each list element
+should be one of the symbols in the list returned by
+@code{imagemagick-types}, or an equivalent string.  Alternatively, a
+value of @code{t} enables ImageMagick for all possible image types.
+Regardless of the value of this variable,
+@code{imagemagick-types-inhibit} (see below) takes precedence.
 @end defopt
 
-@ignore
-@c I don't know what this means.  I suspect it means eg loading jpg
-@c images via libjpeg or ImageMagick.  But it doesn't work.
-@c If you don't have libjpeg support compiled in, you cannot
-@c view jpeg images, even if you have imagemagick support:
-@c http://debbugs.gnu.org/9045
-@c And if you have both compiled in, then you always get
-@c the libjpeg version:
-@c http://debbugs.gnu.org/10746
-There may be overlap between image loaders in your Emacs installation,
-and you may prefer to use a different one for a given image type
-(which loader will be used in practice depends on the priority of the
-loaders).  
-For example, if you never want to use the ImageMagick loader to view
-JPEG files, add @code{JPG} to this list.
-@end ignore
+@defopt imagemagick-types-inhibit
+The value of this variable lists the ImageMagick image types which
+should never be rendered using ImageMagick, regardless of the value of
+@code{imagemagick-enabled-types}.  A value of @code{t} disables
+ImageMagick entirely.
+@end defopt
 
   Images loaded with ImageMagick support the following additional
 image descriptor properties:

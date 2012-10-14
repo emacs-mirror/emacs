@@ -1035,9 +1035,9 @@ xg_set_widget_bg (FRAME_PTR f, GtkWidget *w, long unsigned int pixel)
   xbg.pixel = pixel;
   if (XQueryColor (FRAME_X_DISPLAY (f), FRAME_X_COLORMAP (f), &xbg))
     {
-      bg.red = (double)xbg.red/65536.0;
-      bg.green = (double)xbg.green/65536.0;
-      bg.blue = (double)xbg.blue/65536.0;
+      bg.red = (double)xbg.red/65535.0;
+      bg.green = (double)xbg.green/65535.0;
+      bg.blue = (double)xbg.blue/65535.0;
       bg.alpha = 1.0;
       gtk_widget_override_background_color (w, GTK_STATE_FLAG_NORMAL, &bg);
     }

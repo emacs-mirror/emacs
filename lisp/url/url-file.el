@@ -40,7 +40,7 @@ can do automatic decompression for them, and won't find 'foo' if
 'foo.gz' exists, even though the FTP server would happily serve it up
 to them."
   (let ((scratch nil)
-	(compressed-extensions '("" ".gz" ".z" ".Z" ".bz2"))
+	(compressed-extensions '("" ".gz" ".z" ".Z" ".bz2" ".xz"))
 	(found nil))
     (while (and compressed-extensions (not found))
       (if (file-exists-p (setq scratch (concat fname (pop compressed-extensions))))
@@ -166,6 +166,8 @@ to them."
     (or filename (error "File does not exist: %s" (url-recreate-url url)))
     ;; Need to figure out the content-type from the real extension,
     ;; not the compressed one.
+    ;; FIXME should this regexp not include more extensions; basically
+    ;; everything that url-file-find-possibly-compressed-file does?
     (setq uncompressed-filename (if (string-match "\\.\\(gz\\|Z\\|z\\)$" filename)
 				    (substring filename 0 (match-beginning 0))
 				  filename))
@@ -177,6 +179,7 @@ to them."
 			     (".uue" "x-uuencoded")
 			     (".hqx" "x-hqx")
 			     (".bz2" "x-bzip2")
+			     (".xz" "x-xz")
 			     (_ nil)))
 
     (if (file-directory-p filename)

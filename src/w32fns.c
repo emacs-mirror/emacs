@@ -2333,7 +2333,9 @@ w32_name_of_message (UINT msg)
 }
 #endif /* EMACSDEBUG */
 
-/* Here's an overview of how Emacs input works on MS-Windows.
+/* Here's an overview of how Emacs input works in GUI sessions on
+   MS-Windows.  (For description of non-GUI input, see the commentary
+   before w32_console_read_socket in w32inevt.c.)
 
    System messages are read and processed by w32_msg_pump below.  This
    function runs in a separate thread.  It handles a small number of

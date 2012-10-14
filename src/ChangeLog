@@ -1,3 +1,70 @@
+2012-10-13  Jan Djärv  <jan.h.d@swipnet.se>
+
+	* gtkutil.c (xg_set_widget_bg): Divide by 65535 (Bug#12612).
+
+2012-10-13  HANATAKA, Shinya  <bogytech@gmail.com>  (tiny change)
+
+	* coding.c (detect_coding): Set coding->id before calling
+	this->detector.
+
+2012-10-13  Andreas Schwab  <schwab@linux-m68k.org>
+
+	* fileio.c: Formatting fixes.
+
+2012-10-13  Paul Eggert  <eggert@cs.ucla.edu>
+
+	Fix some stat-related races.
+	* fileio.c (Fwrite_region): Avoid race condition if a file is
+	removed or renamed by some other process immediately after Emacs
+	writes it but before Emacs stats it.  Do not assume that stat (or
+	fstat) succeeds.
+	* image.c (slurp_file): Resolve the file name with fopen + fstat
+	rather than stat + fopen.
+	(pbm_read_file) [0]: Remove unused code with stat race.
+	* process.c (allocate_pty) [HAVE_PTYS && !PTY_ITERATION && !PTY_OPEN]:
+	Remove ineffective code with stat race.
+
+2012-10-12  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* doc.c (get_doc_string): Don't signal an error if the file is missing.
+
+2012-10-12  Jan Djärv  <jan.h.d@swipnet.se>
+
+	* nsterm.m (hold_event_q): New static variable.
+	(EV_TRAILER, sendScrollEventAtLoc:fromEvent:): Call hold_event if
+	! q_event_ptr.
+	(hold_event): New function.
+	(ns_read_socket): If hold_event_q have events, store them and
+	return (Bug#12384).
+	(setPosition:portion:whole:): Send SIGIO to ourselves if apploopnr
+	is zero (Bug#12384).
+
+2012-10-12  Juanma Barranquero  <lekktu@gmail.com>
+
+	* makefile.w32-in ($(BLD)/w32select.$(O)): Update dependencies.
+
+2012-10-12  Eli Zaretskii  <eliz@gnu.org>
+
+	* makefile.w32-in ($(BLD)/fileio.$(O)): Add sys/file.h.
+
+	* fileio.c (check_existing): New function.
+	(make_temp_name, Ffile_exists_p, Ffile_writable_p): Call it
+	instead of calling 'stat', when what's needed is to check whether
+	a file exists.  This avoids expensive system calls on MS-Windows.
+	(Bug#12587)
+
+	* w32.c (init_environment): Call 'check_existing' instead of
+	'stat'.
+
+	* lread.c (openp) [WINDOWSNT]: Call 'access' instead of 'stat' to
+	determine whether a file exists and is not a directory.
+
+	* lisp.h (check_existing): Add prototype.
+
+2012-10-12  Jan Djärv  <jan.h.d@swipnet.se>
+
+	* nsfont.m (nsfont_open): Remove font cache, it is not GC correct.
+
 2012-10-12  Glenn Morris  <rgm@gnu.org>
 
 	* buffer.c (Fset_buffer): Doc fix.  (Bug#12624)
