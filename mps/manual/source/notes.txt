@@ -1,0 +1,19 @@
+Things to do or try:
+
+1. Create a new domain <http://sphinx.pocoo.org/ext/appapi.html#sphinx.domains.Domain>
+
+2. Create new types of objects for pools and topics.
+
+3. Glossary entries need permalinks.
+
+4. Make (1), (2) etc into superscripts
+
+5. Fix the general index so that (1) aren't interpreted as subentries.
+
+6. Identify :term: references that point to "see" cross-references.
+
+7. Re-do the diagrams in vector form and using the colour palette.
+
+8. Use a better bibliography extension. See for example <http://wnielson.bitbucket.org/projects/sphinx-natbib/>
+
+9. Hyphenate long function names across line endings.

@@ -329,7 +329,7 @@ Memory Management Glossary: R
         .. relevance::
 
             In some programs (for example, those compiled by typical
-            :lang:`C` or :lang:`C++` compilers), a subset of the
+            :term:`C` or :term:`C++` compilers), a subset of the
             registers is always accessible by the :term:`mutator` and
             so forms a :term:`root`.
 
