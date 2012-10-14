@@ -806,7 +806,7 @@ Memory Management Glossary: S
         :term:`references <reference>` in it are :term:`strong
         references <strong reference>`.
 
-        A strong root is the usual sort of root; The term is usually
+        A strong root is the usual sort of root. The term is usually
         used to draw a contrast with :term:`weak root`.
 
         .. opposite:: :term:`weak root`.
