@@ -120,7 +120,7 @@ __extension__ typedef unsigned long long EventClock;
 #define EVENT_CLOCK_PRINT(stream, clock) \
   fprintf(stream, "%08lX%08lX", \
           (unsigned long)((clock) >> 32), \
-          (unsigned long)(clock))
+          (unsigned long)((clock) & 0xffffffff))
 
 #define EVENT_CLOCK_WRITE(stream, clock) \
   WriteF(stream, "$W$W", (WriteFW)((clock) >> 32), (WriteFW)clock, NULL)
