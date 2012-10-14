@@ -103,8 +103,8 @@ Memory Management Glossary: G
 
         .. aka:: *GPF*.
 
-        A General Protection Fault on the 16-bit Windows platforms is
-        the equivalent of a :term:`segmentation violation` on Unix.
+        A General Protection Fault on the Windows platforms is the
+        equivalent of a :term:`segmentation violation` on Unix.
 
     generation
 
