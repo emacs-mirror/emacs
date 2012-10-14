@@ -1893,11 +1893,14 @@ If so, ask if it needs to be saved."
   (interactive (list ispell-silently-savep t))
   (if (and ispell-pdict-modified-p (listp ispell-pdict-modified-p))
       (setq ispell-pdict-modified-p (car ispell-pdict-modified-p)))
-  (if (or ispell-pdict-modified-p force-save)
-      (if (or no-query (y-or-n-p "Personal dictionary modified.  Save? "))
-	  (progn
-	    (ispell-send-string "#\n")	; save dictionary
-	    (message "Personal dictionary saved."))))
+  (when (and (or ispell-pdict-modified-p force-save)
+	     (or no-query
+		 (y-or-n-p "Personal dictionary modified.  Save? ")))
+    (ispell-send-string "#\n")	; save dictionary
+    (message "Personal dictionary saved.")
+    (when flyspell-mode
+      (flyspell-mode 0)
+      (flyspell-mode 1)))
   ;; unassert variable, even if not saved to avoid questioning.
   (setq ispell-pdict-modified-p nil))
 

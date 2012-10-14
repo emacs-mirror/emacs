@@ -1556,71 +1556,6 @@ Fills in OBJ's SLOT with its default value."
    ;; return it verbatim
    (t val)))
 
-;;; Object Set macros
-;;
-(defmacro oset (obj slot value)
-  "Set the value in OBJ for slot SLOT to VALUE.
-SLOT is the slot name as specified in `defclass' or the tag created
-with in the :initarg slot.  VALUE can be any Lisp object."
-  `(eieio-oset ,obj (quote ,slot) ,value))
-
-(defun eieio-oset (obj slot value)
-  "Do the work for the macro `oset'.
-Fills in OBJ's SLOT with VALUE."
-  (if (not (eieio-object-p obj)) (signal 'wrong-type-argument (list 'eieio-object-p obj)))
-  (if (not (symbolp slot)) (signal 'wrong-type-argument (list 'symbolp slot)))
-  (let ((c (eieio-slot-name-index (object-class-fast obj) obj slot)))
-    (if (not c)
-	;; It might be missing because it is a :class allocated slot.
-	;; Let's check that info out.
-	(if (setq c
-		  (eieio-class-slot-name-index (aref obj object-class) slot))
-	    ;; Oset that slot.
-	    (progn
-	      (eieio-validate-class-slot-value (object-class-fast obj) c value slot)
-	      (aset (aref (class-v (aref obj object-class))
-			  class-class-allocation-values)
-		    c value))
-	  ;; See oref for comment on `slot-missing'
-	  (slot-missing obj slot 'oset value)
-	  ;;(signal 'invalid-slot-name (list (object-name obj) slot))
-	  )
-      (eieio-validate-slot-value (object-class-fast obj) c value slot)
-      (aset obj c value))))
-
-(defmacro oset-default (class slot value)
-  "Set the default slot in CLASS for SLOT to VALUE.
-The default value is usually set with the :initform tag during class
-creation.  This allows users to change the default behavior of classes
-after they are created."
-  `(eieio-oset-default ,class (quote ,slot) ,value))
-
-(defun eieio-oset-default (class slot value)
-  "Do the work for the macro `oset-default'.
-Fills in the default value in CLASS' in SLOT with VALUE."
-  (if (not (class-p class)) (signal 'wrong-type-argument (list 'class-p class)))
-  (if (not (symbolp slot)) (signal 'wrong-type-argument (list 'symbolp slot)))
-  (let* ((scoped-class class)
-	 (c (eieio-slot-name-index class nil slot)))
-    (if (not c)
-	;; It might be missing because it is a :class allocated slot.
-	;; Let's check that info out.
-	(if (setq c (eieio-class-slot-name-index class slot))
-	    (progn
-	      ;; Oref that slot.
-	      (eieio-validate-class-slot-value class c value slot)
-	      (aset (aref (class-v class) class-class-allocation-values) c
-		    value))
-	  (signal 'invalid-slot-name (list (class-name class) slot)))
-      (eieio-validate-slot-value class c value slot)
-      ;; Set this into the storage for defaults.
-      (setcar (nthcdr (- c 3) (aref (class-v class) class-public-d))
-	      value)
-      ;; Take the value, and put it into our cache object.
-      (eieio-oset (aref (class-v class) class-default-object-cache)
-		  slot value)
-      )))
-
 ;;; Handy CLOS macros
 ;;
 (defmacro with-slots (spec-list object &rest body)
@@ -1870,6 +1805,71 @@ method invocation orders of the involved classes."
 	  (setq f (car (car ia))))
       (setq ia (cdr ia)))
     f))
+
+;;; Object Set macros
+;;
+(defmacro oset (obj slot value)
+  "Set the value in OBJ for slot SLOT to VALUE.
+SLOT is the slot name as specified in `defclass' or the tag created
+with in the :initarg slot.  VALUE can be any Lisp object."
+  `(eieio-oset ,obj (quote ,slot) ,value))
+
+(defun eieio-oset (obj slot value)
+  "Do the work for the macro `oset'.
+Fills in OBJ's SLOT with VALUE."
+  (if (not (eieio-object-p obj)) (signal 'wrong-type-argument (list 'eieio-object-p obj)))
+  (if (not (symbolp slot)) (signal 'wrong-type-argument (list 'symbolp slot)))
+  (let ((c (eieio-slot-name-index (object-class-fast obj) obj slot)))
+    (if (not c)
+	;; It might be missing because it is a :class allocated slot.
+	;; Let's check that info out.
+	(if (setq c
+		  (eieio-class-slot-name-index (aref obj object-class) slot))
+	    ;; Oset that slot.
+	    (progn
+	      (eieio-validate-class-slot-value (object-class-fast obj) c value slot)
+	      (aset (aref (class-v (aref obj object-class))
+			  class-class-allocation-values)
+		    c value))
+	  ;; See oref for comment on `slot-missing'
+	  (slot-missing obj slot 'oset value)
+	  ;;(signal 'invalid-slot-name (list (object-name obj) slot))
+	  )
+      (eieio-validate-slot-value (object-class-fast obj) c value slot)
+      (aset obj c value))))
+
+(defmacro oset-default (class slot value)
+  "Set the default slot in CLASS for SLOT to VALUE.
+The default value is usually set with the :initform tag during class
+creation.  This allows users to change the default behavior of classes
+after they are created."
+  `(eieio-oset-default ,class (quote ,slot) ,value))
+
+(defun eieio-oset-default (class slot value)
+  "Do the work for the macro `oset-default'.
+Fills in the default value in CLASS' in SLOT with VALUE."
+  (if (not (class-p class)) (signal 'wrong-type-argument (list 'class-p class)))
+  (if (not (symbolp slot)) (signal 'wrong-type-argument (list 'symbolp slot)))
+  (let* ((scoped-class class)
+	 (c (eieio-slot-name-index class nil slot)))
+    (if (not c)
+	;; It might be missing because it is a :class allocated slot.
+	;; Let's check that info out.
+	(if (setq c (eieio-class-slot-name-index class slot))
+	    (progn
+	      ;; Oref that slot.
+	      (eieio-validate-class-slot-value class c value slot)
+	      (aset (aref (class-v class) class-class-allocation-values) c
+		    value))
+	  (signal 'invalid-slot-name (list (class-name class) slot)))
+      (eieio-validate-slot-value class c value slot)
+      ;; Set this into the storage for defaults.
+      (setcar (nthcdr (- c 3) (aref (class-v class) class-public-d))
+	      value)
+      ;; Take the value, and put it into our cache object.
+      (eieio-oset (aref (class-v class) class-default-object-cache)
+		  slot value)
+      )))
 
 ;;; CLOS queries into classes and slots
 ;;
@@ -2750,7 +2750,7 @@ This method signals `no-next-method' by default.  Override this
 method to not throw an error, and its return value becomes the
 return value of `call-next-method'."
   (signal 'no-next-method (list (object-name object) args))
-)
+  )
 
 (defgeneric clone (obj &rest params)
   "Make a copy of OBJ, and then supply PARAMS.
@@ -3050,7 +3050,7 @@ Optional argument NOESCAPE is passed to `prin1-to-string' when appropriate."
 ;;; Interfacing with imenu in emacs lisp mode
 ;;    (Only if the expression is defined)
 ;;
-(if (eval-when-compile (boundp 'list-imenu-generic-expression))
+(if (eval-when-compile (boundp 'lisp-imenu-generic-expression))
 (progn
 
 (defun eieio-update-lisp-imenu-expression ()

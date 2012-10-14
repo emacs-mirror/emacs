@@ -646,23 +646,6 @@ allocate_pty (void)
 	PTY_OPEN;
 #else /* no PTY_OPEN */
 	{
-	  { /* Some systems name their pseudoterminals so that there are gaps in
-	       the usual sequence - for example, on HP9000/S700 systems, there
-	       are no pseudoterminals with names ending in 'f'.  So we wait for
-	       three failures in a row before deciding that we've reached the
-	       end of the ptys.  */
-	    int failed_count = 0;
-	    struct stat stb;
-
-	    if (stat (pty_name, &stb) < 0)
-	      {
-		failed_count++;
-		if (failed_count >= 3)
-		  return -1;
-	      }
-	    else
-	      failed_count = 0;
-	  }
 #  ifdef O_NONBLOCK
 	  fd = emacs_open (pty_name, O_RDWR | O_NONBLOCK, 0);
 #  else

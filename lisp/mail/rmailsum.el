@@ -785,7 +785,7 @@ the message being processed."
 		 (setq pos (point))
 		 (forward-line 1)
 		 (setq str (buffer-substring pos (1- (point))))
-		 (while (looking-at "\\s ")
+		 (while (looking-at "[ \t]")
 		   (setq str (concat str " " 
 				     (buffer-substring (match-end 0)
 						       (line-end-position))))

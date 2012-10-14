@@ -229,15 +229,9 @@
 (defvar python-mode-map
   (let ((map (make-sparse-keymap)))
     ;; Movement
-    (substitute-key-definition 'backward-sentence
-                               'python-nav-backward-block
-                               map global-map)
-    (substitute-key-definition 'forward-sentence
-                               'python-nav-forward-block
-                               map global-map)
-    (substitute-key-definition 'backward-up-list
-                               'python-nav-backward-up-list
-                               map global-map)
+    (define-key map [remap backward-sentence] 'python-nav-backward-block)
+    (define-key map [remap forward-sentence] 'python-nav-forward-block)
+    (define-key map [remap backward-up-list] 'python-nav-backward-up-list)
     (define-key map "\C-c\C-j" 'imenu)
     ;; Indent specific
     (define-key map "\177" 'python-indent-dedent-line-backspace)
@@ -1444,7 +1438,7 @@ DIR is always 1 or -1 and comes sanitized from
              (save-excursion
                (let ((indentation (current-indentation)))
                  (while (and (python-nav-backward-block)
-                             (> (current-indentation) indentation))))
+                             (>= (current-indentation) indentation))))
                (point))))
         (and (> (point) prev-block-pos)
              (goto-char prev-block-pos))))

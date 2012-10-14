@@ -729,16 +729,6 @@ nsfont_open (FRAME_PTR f, Lisp_Object font_entity, int pixel_size)
   NSRect brect;
   Lisp_Object font_object;
   int fixLeopardBug;
-  static NSMutableDictionary *fontCache = nil;
-  NSNumber *cached;
-
-  /* 2008/03/08: The same font may end up being requested for different
-     entities, due to small differences in numeric values or other issues,
-     or for different copies of the same entity.  Therefore we cache to
-     avoid creating multiple struct font objects (with metrics cache, etc.)
-     for the same NSFont object. */
-  if (fontCache == nil)
-    fontCache = [[NSMutableDictionary alloc] init];
 
   if (NSFONT_TRACE)
     {
@@ -794,28 +784,8 @@ nsfont_open (FRAME_PTR f, Lisp_Object font_entity, int pixel_size)
   if (NSFONT_TRACE)
     NSLog (@"%@\n", nsfont);
 
-  /* Check the cache */
-  cached = [fontCache objectForKey: nsfont];
-  if (cached != nil && !synthItal)
-    {
-      if (NSFONT_TRACE)
-        fprintf(stderr, "*** nsfont_open CACHE HIT!\n");
-      XHASH (font_object) = [cached unsignedLongLongValue];
-      return font_object;
-    }
-  else
-    {
-      font_object = font_make_object (VECSIZE (struct nsfont_info),
-                                      font_entity, pixel_size);
-      if (!synthItal)
-        {
-          [fontCache setObject: [NSNumber
-                                  numberWithUnsignedLongLong:
-                                    (unsigned long long) XHASH (font_object)]
-                        forKey: nsfont];
-        }
-    }
-
+  font_object = font_make_object (VECSIZE (struct nsfont_info),
+                                  font_entity, pixel_size);
   font_info = (struct nsfont_info *) XFONT_OBJECT (font_object);
   font = (struct font *) font_info;
   if (!font)

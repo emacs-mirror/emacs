@@ -505,14 +505,12 @@ that."
                            ((and
                              (or (boundp sym)
                                  (get sym 'variable-documentation))
-                             (condition-case err
-                                 (or
-                                  (documentation-property
-                                   sym 'variable-documentation)
-                                  (documentation-property
-                                   (indirect-variable sym)
-                                   'variable-documentation))
-                               (error (message "No doc found: %S" err) nil)))
+                             (or
+                              (documentation-property
+                               sym 'variable-documentation)
+                              (documentation-property
+                               (indirect-variable sym)
+                               'variable-documentation)))
                             (help-xref-button 8 'help-variable sym))
                            ((fboundp sym)
                             (help-xref-button 8 'help-function sym)))))))

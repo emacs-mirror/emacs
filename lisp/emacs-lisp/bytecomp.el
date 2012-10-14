@@ -875,13 +875,11 @@ Each function's symbol gets added to `byte-compile-noruntime-functions'."
 			       (byte-compile-cl-file-p (car xs))))
 		(dolist (s xs)
 		  (cond
-		   ((symbolp s)
-		    (unless (memq s old-autoloads)
-		      (push s byte-compile-noruntime-functions)))
 		   ((and (consp s) (eq t (car s)))
 		    (push (cdr s) old-autoloads))
-		   ((and (consp s) (eq 'autoload (car s)))
-		    (push (cdr s) byte-compile-noruntime-functions)))))))
+		   ((and (consp s) (memq (car s) '(autoload defun)))
+		    (unless (memq (cdr s) old-autoloads)
+                      (push (cdr s) byte-compile-noruntime-functions))))))))
 	  ;; Go through current-load-list for the locally defined funs.
 	  (let (old-autoloads)
 	    (while (and hist-nil-new (not (eq hist-nil-new hist-nil-orig)))

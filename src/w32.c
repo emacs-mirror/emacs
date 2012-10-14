@@ -1612,7 +1612,6 @@ init_environment (char ** argv)
     LPBYTE lpval;
     DWORD dwType;
     char locale_name[32];
-    struct stat ignored;
     char default_home[MAX_PATH];
     int appdata = 0;
 
@@ -1653,7 +1652,7 @@ init_environment (char ** argv)
     /* For backwards compatibility, check if a .emacs file exists in C:/
        If not, then we can try to default to the appdata directory under the
        user's profile, which is more likely to be writable.   */
-    if (stat ("C:/.emacs", &ignored) < 0)
+    if (!check_existing ("C:/.emacs"))
       {
 	HRESULT profile_result;
 	/* Dynamically load ShGetFolderPath, as it won't exist on versions

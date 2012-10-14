@@ -270,32 +270,35 @@ to a bug.  There are two differences between normal tags and user tags:
 1) Anyone can define any valid usertag they like.  In contrast, only a
 limited, predefined set of normal tags are available (see above).
 
-2) A usertag is associated with a specific email address.
+2) A usertag is associated with a specific user.  This is normally
+an email address (with an "@" sign and least 4 characters after the "@"),
+but on debbugs.gnu.org, the definition is less strict - anything with
+5 or more alphanumeric characters will work.  For personal tags,
+using an email address is still recommended.  Please only use the
+"emacs" user, or other short users, for "official" tags.
 
-You set usertags in the same way as tags, by talking to the control
-server.  One difference is that you can also specify the associated
-email address.  If you don't explicitly specify an address, then it
-will use the one from which you send the control message. The address
-must have the form of an email address (with an "@" sign and least 4
-characters after the "@").
+You set usertags in the same way as tags, by talking to the control server.
+One difference is that you can also specify the associated user.
+If you don't explicitly specify a user, then it will use the email
+address from which you send the control message.
 
 *** Setting usertags
 
 a) In a control message:
 
-user bug-gnu-emacs@gnu.org
+user emacs      # or email@example.com
 usertags 1234 any-tag-you-like
 
 This will add a usertag "any-tag-you-like" to bug 1234.  The tag will
-be associated with the address "bug-gnu-emacs@gnu.org".  If you omit
-the first line, the tag will be associated with your email address.
+be associated with the user "emacs".  If you omit the first line,
+the tag will be associated with your email address.
 
 The syntax of the usertags command is the same as that of tags (eg wrt
 the optional [=+-] argument).
 
 b) In an initial submission, in the pseudo-header:
 
-User: bug-gnu-emacs@gnu.org
+User: emacs
 Usertags: a-new-tag
 
 Again, the "User" is optional.
@@ -312,7 +315,7 @@ http://debbugs.gnu.org/cgi/pkgindex.cgi?indexon=users
 
 **** To find all bugs usertagged by a given email address:
 
-http://debbugs.gnu.org/cgi/pkgreport.cgi?users=bug-gnu-emacs@gnu.org
+http://debbugs.gnu.org/cgi/pkgreport.cgi?users=emacs
 
 (Supposedly, the "users" field can be a comma-separated list of more
 than one email address, but it does not seem to work for me.)
@@ -322,7 +325,7 @@ than one email address, but it does not seem to work for me.)
 This works just like a normal tags search, but with the addition of a
 "users" field.  Eg:
 
-http://debbugs.gnu.org/cgi/pkgreport.cgi?users=bug-gnu-emacs@gnu.org;tag=calendar
+http://debbugs.gnu.org/cgi/pkgreport.cgi?users=emacs;tag=calendar
 
 *** To merge bugs:
 Eg when bad replies create a bunch of new bugs for the same report.

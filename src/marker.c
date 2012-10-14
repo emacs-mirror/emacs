@@ -91,7 +91,7 @@ clear_charpos_cache (struct buffer *b)
 #define CONSIDER(CHARPOS, BYTEPOS)					\
 {									\
   ptrdiff_t this_charpos = (CHARPOS);					\
-  int changed = 0;							\
+  bool changed = 0;							\
 									\
   if (this_charpos == charpos)						\
     {									\
@@ -190,7 +190,7 @@ buf_charpos_to_bytepos (struct buffer *b, ptrdiff_t charpos)
 
   if (charpos - best_below < best_above - charpos)
     {
-      int record = charpos - best_below > 5000;
+      bool record = charpos - best_below > 5000;
 
       while (best_below != charpos)
 	{
@@ -215,7 +215,7 @@ buf_charpos_to_bytepos (struct buffer *b, ptrdiff_t charpos)
     }
   else
     {
-      int record = best_above - charpos > 5000;
+      bool record = best_above - charpos > 5000;
 
       while (best_above != charpos)
 	{
@@ -335,7 +335,7 @@ buf_bytepos_to_charpos (struct buffer *b, ptrdiff_t bytepos)
 
   if (bytepos - best_below_byte < best_above_byte - bytepos)
     {
-      int record = bytepos - best_below_byte > 5000;
+      bool record = bytepos - best_below_byte > 5000;
 
       while (best_below_byte < bytepos)
 	{
@@ -362,7 +362,7 @@ buf_bytepos_to_charpos (struct buffer *b, ptrdiff_t bytepos)
     }
   else
     {
-      int record = best_above_byte - bytepos > 5000;
+      bool record = best_above_byte - bytepos > 5000;
 
       while (best_above_byte > bytepos)
 	{
@@ -479,10 +479,10 @@ live_buffer (Lisp_Object buffer)
 
 static Lisp_Object
 set_marker_internal (Lisp_Object marker, Lisp_Object position,
-		     Lisp_Object buffer, int restricted)
+		     Lisp_Object buffer, bool restricted)
 {
-  register struct Lisp_Marker *m;
-  register struct buffer *b = live_buffer (buffer);
+  struct Lisp_Marker *m;
+  struct buffer *b = live_buffer (buffer);
 
   CHECK_MARKER (marker);
   m = XMARKER (marker);

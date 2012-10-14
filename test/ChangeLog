@@ -1,3 +1,8 @@
+2012-10-14  Eli Zaretskii  <eliz@gnu.org>
+
+	* automated/compile-tests.el (compile-tests--test-regexps-data):
+	Add new data for msft's new format.
+
 2012-09-08  Dmitry Gutov  <dgutov@yandex.ru>
 
 	* automated/ruby-mode-tests.el:

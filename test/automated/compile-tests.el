@@ -215,6 +215,10 @@
      1 nil 23 "d:\\tmp\\test.c")
     ("d:\\tmp\\test.c(1145) : see declaration of 'nsRefPtr'"
      1 nil 1145 "d:\\tmp\\test.c")
+    ("1>test_main.cpp(29): error C2144: syntax error : 'int' should be preceded by ';'"
+     3 nil 29 "test_main.cpp")
+    ("1>test_main.cpp(29): error C4430: missing type specifier - int assumed. Note: C++ does not support default-int"
+     3 nil 29 "test_main.cpp")
     ;; watcom
     ("..\src\ctrl\lister.c(109): Error! E1009: Expecting ';' but found '{'"
      1 nil 109 "..\src\ctrl\lister.c")
