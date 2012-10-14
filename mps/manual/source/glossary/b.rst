@@ -88,8 +88,6 @@ Memory Management Glossary: B
 
         .. opposite:: :term:`derived pointer`.
 
-        .. bibref:: [BC92A]_.
-
     best fit
 
         The :term:`allocation policy` that always allocates from the

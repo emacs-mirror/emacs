@@ -53,10 +53,6 @@ Memory Management Glossary: V
 
         .. bibref:: [BAKER93A]_.
 
-    value type
-
-        Definition not yet available. Please see our <a href="../feedback.html#submissions">feedback page</a> for submission information.
-
     variety
 
 	.. mps::

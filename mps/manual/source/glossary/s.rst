@@ -951,7 +951,7 @@ Memory Management Glossary: S
 
         This means that mutator need not ensure that :term:`formatted
         objects <formatted object>` are always :term:`scannable
-        <scan>`, as long as it makes them so before the collector
-        runs.
+        <scan>`, as long as it makes them scannable before the
+        collector runs.
 
         .. opposite:: :term:`asynchronous garbage collector`.

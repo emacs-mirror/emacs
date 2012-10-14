@@ -15,7 +15,7 @@
     src: url('SourceCodePro-Regular.ttf');
 }
 
-a, a:visited {
+a, a:visited, a.reference.internal {
     text-decoration: none;
 }
 
@@ -55,6 +55,7 @@ div.body h1 {
 }
 
 dl.glossary dt, dl.type dt, dl.function dt, dl.macro dt {
+    font-family: {{ theme_headfont }};
     width:100%;
     border-bottom: 1px solid {{ theme_relbarbgcolor }};
     padding-bottom: 1px;
@@ -93,6 +94,5 @@ div.seealso, div.admonition {
 }
 
 p.glossary-alphabet {
-    font-family: {{ theme_headfont }};
     font-weight: bold;
 }
