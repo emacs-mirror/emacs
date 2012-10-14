@@ -1,3 +1,9 @@
+2012-10-14  Daniel Colascione  <dancol@dancol.org>
+
+	* image.c (init_tiff_functions, init_imagemagick_functions)
+	(init_svg_functions): Fix cygw32 build break by using these
+	functions only when WINDOWSNT _and_ HAVE_NTGUI.
+
 2012-10-14  Jan Djärv  <jan.h.d@swipnet.se>
 
 	* nsterm.m (ns_select): Count fd:s in writefs also (Bug#12422).
