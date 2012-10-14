@@ -279,9 +279,8 @@ Memory Management Glossary: R
         ``PhantomReference``. Each of these classes has its uses in
         managing memory. The reference objects together with ordinary
         references and :term:`finalization` generate a hierarchy of
-        :term:`reachability <reachable>` (q.v.) that guides the
-        collector on what to do when an object is about to :term:`die
-        <dead>`.
+        :term:`reachability <reachable>` that guides the collector on
+        what to do when an object is about to :term:`die <dead>`.
 
         A reference object can be *registered* with a queue, and it
         will be enqueued when the collector determines that the
@@ -329,16 +328,18 @@ Memory Management Glossary: R
 
         .. relevance::
 
-            The set of registers is always accessible by the
-            :term:`mutator` and so forms a :term:`root`.
+            In some programs (for example, those compiled by typical
+            :lang:`C` or :lang:`C++` compilers), a subset of the
+            registers is always accessible by the :term:`mutator` and
+            so forms a :term:`root`.
 
         .. mps::
 
-            Writing the :term:`scan method` for the root containing
-            the registers is hard to write (it depends on the
-            operating system, the processor architecture, and in some
-            cases the compiler), so the MPS provides the function
-            :c:func:`mps_stack_scan_ambig`.
+            The :term:`scan method` for the root containing the
+            registers is hard to write (it depends on the operating
+            system, the processor architecture, and in some cases the
+            compiler), so the MPS provides (on its supported
+            platforms) the function :c:func:`mps_stack_scan_ambig`.
 
     register set partitioning
 
