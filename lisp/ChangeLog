@@ -1,3 +1,7 @@
+2012-10-14  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* emacs-lisp/gv.el (if): Don't use closures in non-lexical-binding code.
+
 2012-10-13  Chong Yidong  <cyd@gnu.org>
 
 	* textmodes/ispell.el (ispell-pdict-save): If flyspell-mode is
