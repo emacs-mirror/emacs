@@ -204,9 +204,8 @@ Memory Management Glossary: L
         reference.
 
         Good locality of reference interacts well with :term:`virtual
-        memory` and <a href="c.html#cache-1">memory caches</a>, as
-        it reduces the :term:`working set` and improves the :term:`hit
-        rate`.
+        memory` and :term:`memory caches <cache (1)>`, as it reduces
+        the :term:`working set` and improves the :term:`hit rate`.
 
         There are a number of specialized senses of locality of
         reference in certain fields such as distributed systems; these

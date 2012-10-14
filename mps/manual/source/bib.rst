@@ -76,6 +76,8 @@ Bibliography
 
 .. [JONES96] Richard E. Jones, Rafael Lins. 1996. "Garbage Collection: Algorithms for Automatic Dynamic Memory Management".
 
+.. [JOYNER96] Ian Joyner. 1996. *C++??: A Critique of C++*. `Online <http://www.emu.edu.tr/aelci/Courses/D-318/D-318-Files/cppcrit/index.htm>`_.
+
 .. [JW98] Mark S. Johnstone, Paul R. Wilson. 1998. "The Memory Fragmentation Problem: Solved?".
 
 .. [LH83] Henry Lieberman, Carl Hewitt. 1983. "A real-time garbage collector based on the lifetimes of objects".

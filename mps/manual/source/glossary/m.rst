@@ -65,8 +65,7 @@ Memory Management Glossary: M
         programs, but it does not scale well in general, nor does it
         encourage modular or object-oriented programming.
 
-        To quote Ian Joyner's `C++??: A Critique of C++
-        <http://www.emu.edu.tr/aelci/Courses/D-318/D-318-Files/cppcrit/index.htm>`_:
+        To quote Ian Joyner [JOYNER96]_:
 
             In C++ the programmer must manually manage storage due to
             the lack of :term:`garbage collection`. This is the most
@@ -92,6 +91,12 @@ Memory Management Glossary: M
 
         .. opposite:: :term:`automatic memory management`.
 
+        .. mps::
+
+            Manual memory management can be used with :term:`pools
+            <pool>` such as :ref:`pool-mvff` via the functions
+            :c:func:`mps_alloc` and :c:func:`mps_free`.
+
     mapped
 
         .. aka:: *committed*.
@@ -100,13 +105,18 @@ Memory Management Glossary: M
         to be *mapped* (*committed* on Windows) if there is
         :term:`physical memory (2)` associated with the range.
 
-        Note that, in some circumstances, the :term:`virtual memory` system could actually :term:`overcommit` mapped memory.
+        Note that, in some circumstances, the :term:`virtual memory`
+        system could actually :term:`overcommit` mapped memory.
 
         .. opposite:: :term:`unmapped`.
 
         .. seealso:: :term:`mapping`, :term:`memory mapping`, :term:`mmap`.
 
-        .. mps:: The term *committed* is used.
+        .. mps::
+
+            The term *committed* is used. The function
+            :c:func:`mps_arena_committed` returns the total committed
+            memory for an :term:`arena`.
 
     mapping
 
@@ -560,7 +570,7 @@ Memory Management Glossary: M
     mutable
 
         Any :term:`object` which may be changed by a program is
-        :term:`mutable`. Opposite of :term:`immutable`.
+        *mutable*.
 
         .. opposite:: :term:`immutable`.
 
