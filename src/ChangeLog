@@ -1,3 +1,7 @@
+2012-10-14  Jan Djärv  <jan.h.d@swipnet.se>
+
+	* nsterm.m (ns_select): Count fd:s in writefs also (Bug#12422).
+
 2012-10-13  Jan Djärv  <jan.h.d@swipnet.se>
 
 	* gtkutil.c (xg_set_widget_bg): Divide by 65535 (Bug#12612).
