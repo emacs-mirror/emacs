@@ -333,6 +333,14 @@ Memory Management Glossary: P
 
         .. see:: :term:`allocation policy`.
 
+    platform
+
+        .. mps:specific::
+
+            The term *platform* is used to refer to the combination of
+            operating system, processor architecture, and compiler.
+            See :ref:`topic-platform`.
+
     plinth
 
         .. mps:specific::

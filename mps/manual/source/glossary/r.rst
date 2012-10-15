@@ -180,7 +180,7 @@ Memory Management Glossary: R
 
         .. similar:: :term:`address`, :term:`pointer`.
 
-        .. mps::
+        .. mps:specific::
 
             A reference is represented in the :term:`C` interface by a
             value of type :c:type:`mps_addr_t` (an alias for ``void
