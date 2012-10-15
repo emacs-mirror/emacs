@@ -91,7 +91,7 @@ Memory Management Glossary: M
 
         .. opposite:: :term:`automatic memory management`.
 
-        .. mps::
+        .. mps:specific::
 
             Manual memory management can be used with :term:`pools
             <pool>` such as :ref:`pool-mvff` via the functions
@@ -112,7 +112,7 @@ Memory Management Glossary: M
 
         .. seealso:: :term:`mapping`, :term:`memory mapping`, :term:`mmap`.
 
-        .. mps::
+        .. mps:specific::
 
             The term *committed* is used. The function
             :c:func:`mps_arena_committed` returns the total committed
@@ -435,14 +435,14 @@ Memory Management Glossary: M
 
     message
 
-        .. mps::
+        .. mps:specific::
 
             A data structure which the MPS uses to communicate with
             the :term:`client program`. See :c:type:`mps_message_t`.
 
     message queue
 
-        .. mps::
+        .. mps:specific::
 
             A queue of :term:`messages <message>` posted by an
             :term:`arena`. It can be queried by calling
@@ -452,7 +452,7 @@ Memory Management Glossary: M
 
     message type
 
-        .. mps::
+        .. mps:specific::
 
             A value of type :c:type:`mps_message_type_t` describing
             the type of a :term:`message`. There are three message
@@ -603,7 +603,7 @@ Memory Management Glossary: M
 
         .. opposite:: :term:`collector (2)`.
 
-        .. mps::
+        .. mps:specific::
 
             The MPS documentation uses the term :term:`client program`
             to refer to the mutator.

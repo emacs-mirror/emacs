@@ -89,7 +89,7 @@ Memory Management Glossary: T
 
     telemetry filter
 
-        .. mps::
+        .. mps:specific::
 
             A :term:`bitmap` indicating which events the MPS should
             include in the :term:`telemetry stream`. It can be read or
@@ -97,7 +97,7 @@ Memory Management Glossary: T
 
     telemetry label
 
-        .. mps::
+        .. mps:specific::
 
             An indentifier representing a string, returned from
             :c:func:`mps_telemetry_intern`, that can be associated
@@ -108,7 +108,7 @@ Memory Management Glossary: T
 
     telemetry stream
 
-        .. mps::
+        .. mps:specific::
 
             A sequence of events reported by the MPS to assist with
             debugging and profiling. The events that appear in the
@@ -168,7 +168,7 @@ Memory Management Glossary: T
             :term:`control stack` which may contain :term:`references
             <reference>` to blocks on the heap.
 
-        .. mps::
+        .. mps:specific::
 
             Threads are represented by values of type
             :c:type:`mps_thr_t`, created by calling

@@ -19,7 +19,7 @@ Memory Management Glossary: P
 
     padding method
 
-        .. mps::
+        .. mps:specific::
 
             A :term:`format method` that is called by a :term:`moving
             <moving garbage collector>` :term:`pool <pool>` to create
@@ -27,7 +27,7 @@ Memory Management Glossary: P
 
     padding object
 
-        .. mps::
+        .. mps:specific::
 
             A :term:`formatted object` that consists of
             :term:`padding`. One of three types of formatted objects,
@@ -180,7 +180,7 @@ Memory Management Glossary: P
 
     parked state
 
-        .. mps::
+        .. mps:specific::
 
             One of the three states an :term:`arena` can be in (the
             others being the :term:`clamped state` and the
@@ -334,7 +334,7 @@ Memory Management Glossary: P
 
     plinth
 
-        .. mps::
+        .. mps:specific::
 
             The plinth is a program module providing the MPS with all
             the support functions it needs from the execution
@@ -361,7 +361,7 @@ Memory Management Glossary: P
 
     pool
 
-        .. mps::
+        .. mps:specific::
 
             A pool is responsible for requesting memory from the
             :term:`arena` and making it available to the :term:`client
@@ -371,7 +371,7 @@ Memory Management Glossary: P
 
     pool class
 
-        .. mps::
+        .. mps:specific::
 
             A value of type :c:type:`mps_class_t` describing a
             class of :term:`pools <pool>`. See :ref:`pool`.
@@ -455,7 +455,7 @@ Memory Management Glossary: P
 
     protectable root
 
-        .. mps::
+        .. mps:specific::
 
             A :term:`root` which the MPS may :term:`protect
             <protection>` with a :term:`write barrier`. A protectable

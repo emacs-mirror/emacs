@@ -57,7 +57,7 @@ Memory Management Glossary: S
 
     scan method
 
-        .. mps::
+        .. mps:specific::
 
             A function that examines a block of memory to find
             :term:`references <reference>` and indicate them to the
@@ -66,7 +66,7 @@ Memory Management Glossary: S
 
     scan state
 
-        .. mps::
+        .. mps:specific::
 
             A scan state represents the state of the current
             :term:`scan`. The MPS passes a scan state to the
@@ -91,7 +91,7 @@ Memory Management Glossary: S
 
     segment
 
-        .. mps:: ??
+        .. mps:specific:: ??
 
     segmentation violation
 
@@ -141,7 +141,7 @@ Memory Management Glossary: S
 
     segregated allocation cache
 
-        .. mps:: ??
+        .. mps:specific:: ??
 
     segregated fit
 
@@ -296,7 +296,7 @@ Memory Management Glossary: S
 
     size
 
-        .. mps::
+        .. mps:specific::
 
             The term *size* in the documentation always refers to a
             size that is measured in :term:`bytes <byte (1)>`. The term
@@ -304,7 +304,7 @@ Memory Management Glossary: S
 
     size class
 
-        .. mps::
+        .. mps:specific::
 
             A :term:`segregated allocation cache` maintains a reserve
             of :term:`blocks <block>` in a set of :term:`sizes
@@ -316,7 +316,7 @@ Memory Management Glossary: S
 
     skip method
     
-        .. mps::
+        .. mps:specific::
 
              A :term:`format method` that returns the address of the
              "next object" in a block of :term:`formatted objects
@@ -459,7 +459,7 @@ Memory Management Glossary: S
 
     spare commit limit
 
-        .. mps::
+        .. mps:specific::
 
             The spare commit limit is a limit on the :term:`spare
             committed memory` that the MPS will obtain from the
@@ -469,7 +469,7 @@ Memory Management Glossary: S
 
     spare committed memory
 
-        .. mps::
+        .. mps:specific::
 
             Memory which is not in use by any :term:`pool` and not
             otherwise in use for internal MPS data structures, but
@@ -697,7 +697,7 @@ Memory Management Glossary: S
 
         .. aka:: *visitor function*.
 
-        .. mps::
+        .. mps:specific::
 
             A function that will be called on each element in a
             collection. For example, a stepper function of type
@@ -811,7 +811,7 @@ Memory Management Glossary: S
 
         .. opposite:: :term:`weak root`.
 
-        .. mps::
+        .. mps:specific::
 
             Strong roots have :term:`rank` :c:func:`mps_rank_ambig` or
             :c:func:`mps_rank_exact`.
