@@ -70,7 +70,7 @@ Memory Management Glossary: A
         :term:`physical memory (2)` device (such as a :term:`RAM`) or
         some :term:`memory-mapped <memory mapping>` resource.
 
-        .. figure:: ../diagrams/address.png
+        .. figure:: ../diagrams/address.svg
             :align: center
             :alt: Diagram: A simplified view of addresses, address space, and locations on a 32-bit architecture.
 
