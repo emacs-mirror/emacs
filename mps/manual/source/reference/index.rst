@@ -1587,9 +1587,9 @@ Declared in ``mps.h``
 
 .. c:type:: mps_ld_t
 
-    The type of :term:`location dependency <location dependencies>. It
-    is an alias (via the :term:`C` ``typedef`` mechanism) for
-    a pointer to :c:type:`mps_ld_s`.
+    The type of :term:`location dependencies <location dependency>`.
+    It is an alias (via the :term:`C` ``typedef`` mechanism) for a
+    pointer to :c:type:`mps_ld_s`.
 
     A location dependency records the fact that the :term:`client
     program` depends on the bit patterns of some :term:`references
@@ -3584,6 +3584,274 @@ Declared in ``mpslib.h``
 Declared in ``mpstd.h``
 =======================
 
+.. c:macro:: MPS_ARCH_I3
+
+    A :term:`C` preprocessor macro that indicates, if defined, that
+    the target processor architecture of the compilation is a member
+    of the IA-32 Intel/AMD family of 32-bit processors.
+
+    .. topics::
+
+        :ref:`topic-platform`.
+
+
+.. c:macro:: MPS_ARCH_I6
+
+    A :term:`C` preprocessor macro that indicates, if defined, that
+    the target processor architecture of the compilation is a member
+    of the x86-64 Intel/AMD family of 64-bit processors.
+
+    .. note::
+
+        The MPS is not supported on IA-64 (Itanium).
+
+    .. topics::
+
+        :ref:`topic-platform`.
+
+
+.. c:macro:: MPS_BUILD_GC
+
+    A :term:`C` preprocessor macro that indicates, if defined, that
+    the MPS was compiled by the C compiler from the GNU Compiler
+    Collection (GCC).
+
+    .. topics::
+
+        :ref:`topic-platform`.
+
+
+.. c:macro:: MPS_BUILD_LL
+
+    A :term:`C` preprocessor macro that indicates, if defined, that
+    the MPS was compiled by the C compiler from the LLVM (Low Level
+    Virtual Machine) system.
+
+    .. topics::
+
+        :ref:`topic-platform`.
+
+
+.. c:macro:: MPS_BUILD_MV
+
+    A :term:`C` preprocessor macro that indicates, if defined, that
+    the MPS was compiled by the C compiler from Microsoft Visual
+    Studio.
+
+    .. topics::
+
+        :ref:`topic-platform`.
+
+
+.. c:macro:: MPS_OS_FR
+
+    A :term:`C` preprocessor macro that indicates, if defined, that
+    the MPS was compiled on a FreeBSD operating system.
+
+    .. topics::
+
+        :ref:`topic-platform`.
+
+
+.. c:macro:: MPS_OS_LI
+
+    A :term:`C` preprocessor macro that indicates, if defined, that
+    the MPS was compiled on a Linux operating system.
+
+    .. topics::
+
+        :ref:`topic-platform`.
+
+
+.. c:macro:: MPS_OS_W3
+
+    A :term:`C` preprocessor macro that indicates, if defined, that
+    the MPS was compiled on a Windows operating system.
+
+    .. topics::
+
+        :ref:`topic-platform`.
+
+
+.. c:macro:: MPS_OS_XC
+
+    A :term:`C` preprocessor macro that indicates, if defined, that
+    the MPS was compiled on an OS X operating system.
+
+    .. topics::
+
+        :ref:`topic-platform`.
+
+
+.. c:macro:: MPS_PF_ALIGN
+
+    A :term:`C` preprocessor macro that expands to an integer giving
+    the :term:`natural alignment` of the :term:`platform`.
+
+    .. topics::
+
+        :ref:`topic-platform`.
+
+
+.. c:macro:: MPS_PF_FRI3GC
+
+    A :term:`C` preprocessor macro that indicates, if defined, that
+    the :term:`platform` consists of the FreeBSD operating system, the
+    IA-32 processor architecture, and the GCC compiler.
+
+    .. topics::
+
+        :ref:`topic-platform`.
+
+
+.. c:macro:: MPS_PF_FRI6GC
+
+    A :term:`C` preprocessor macro that indicates, if defined, that
+    the :term:`platform` consists of the FreeBSD operating system, the
+    x86-64 processor architecture, and the GCC compiler.
+
+    .. topics::
+
+        :ref:`topic-platform`.
+
+
+.. c:macro:: MPS_PF_LII3GC
+
+    A :term:`C` preprocessor macro that indicates, if defined, that
+    the :term:`platform` consists of the Linux operating system, the
+    IA-32 processor architecture, and the GCC compiler.
+
+    .. topics::
+
+        :ref:`topic-platform`.
+
+
+.. c:macro:: MPS_PF_LII6GC
+
+    A :term:`C` preprocessor macro that indicates, if defined, that
+    the :term:`platform` consists of the Linux operating system, the
+    x86-64 processor architecture, and the GCC compiler.
+
+    .. topics::
+
+        :ref:`topic-platform`.
+
+
+.. c:macro:: MPS_PF_STRING
+
+    A :term:`C` preprocessor macro that names the :term:`platform` for
+    which the MPS was built.
+
+    It expands to a string "``abcdef``" consisting of six characters
+    that are digits or lower-case letters. The first two characters
+    name the operating system:
+
+    ======  ================  ====================
+    ``ab``  Operating system  Constant
+    ======  ================  ====================
+    ``fr``  FreeBSD           :c:macro:`MPS_OS_FR`
+    ------  ----------------  --------------------
+    ``li``  Linux             :c:macro:`MPS_OS_LI`
+    ------  ----------------  --------------------
+    ``w3``  Windows           :c:macro:`MPS_OS_W3`
+    ------  ----------------  --------------------
+    ``xc``  OS X              :c:macro:`MPS_OS_XC`
+    ======  ================  ====================
+
+    The second pair of characters name the processor architecture:
+
+    ======  ======================  ======================
+    ``cd``  Processor architecture  Constant
+    ======  ======================  ======================
+    ``i3``  Intel/AMD IA-32         :c:macro:`MPS_ARCH_I3`
+    ------  ----------------------  ----------------------
+    ``i6``  Intel/AMD x86-64        :c:macro:`MPS_ARCH_I6`
+    ======  ======================  ======================
+
+    The third pair of characters name the compiler:
+
+    ======  ================  =======================
+    ``ef``  Compiler          Constant
+    ======  ================  =======================
+    ``gc``  GCC               :c:macro:`MPS_BUILD_GC`
+    ------  ----------------  -----------------------
+    ``ll``  LLVM              :c:macro:`MPS_BUILD_LL`
+    ------  ----------------  -----------------------
+    ``mv``  Visual C/C++      :c:macro:`MPS_BUILD_MV`
+    ======  ================  =======================
+
+    In each case the aspect of the platform can be tested by checking
+    whether the preprocessor constant in the third column in the table
+    is defined, and the full platform can be tested by checking
+    whether the corresponding ``MPS_PF_`` preprocessor constant is
+    defined. For example, "``xci6ll``" platform corresponds to the
+    :c:macro:`MPS_PF_XCI6LL` preprocessor constant.
+
+    Not all combinations of operating system, processor architecture,
+    and compiler are supported.
+
+    .. topics::
+
+        :ref:`topic-platform`.
+
+
+.. c:macro:: MPS_PF_W3I3MV
+
+    A :term:`C` preprocessor macro that indicates, if defined, that
+    the :term:`platform` consists of the Windows operating system, the
+    IA-32 processor architecture, and the Microsoft Visual C/C++
+    compiler.
+
+    .. topics::
+
+        :ref:`topic-platform`.
+
+
+.. c:macro:: MPS_PF_W3I6MV
+
+    A :term:`C` preprocessor macro that indicates, if defined, that
+    the :term:`platform` consists of the Windows operating system, the
+    x86-64 processor architecture, and the Microsoft Visual C/C++
+    compiler.
+
+    .. topics::
+
+        :ref:`topic-platform`.
+
+
+.. c:macro:: MPS_PF_XCI3GC
+
+    A :term:`C` preprocessor macro that indicates, if defined, that
+    the :term:`platform` consists of the OS X operating system, the
+    IA-32 processor architecture, and the GCC compiler.
+
+    .. topics::
+
+        :ref:`topic-platform`.
+
+
+.. c:macro:: MPS_PF_XCI3LL
+
+    A :term:`C` preprocessor macro that indicates, if defined, that
+    the :term:`platform` consists of the OS X operating system, the
+    IA-32 processor architecture, and the LLVM compiler.
+
+    .. topics::
+
+        :ref:`topic-platform`.
+
+
+.. c:macro:: MPS_PF_XCI6LL
+
+    A :term:`C` preprocessor macro that indicates, if defined, that
+    the :term:`platform` consists of the OS X operating system, the
+    x86-64 processor architecture, and the LLVM compiler.
+
+    .. topics::
+
+        :ref:`topic-platform`.
+
+
 .. c:type:: MPS_T_WORD
 
     An unsigned integral type that is the same size as an
@@ -3761,31 +4029,3 @@ Undocumented in ``mpsio.h``
 .. c:function:: void mps_io_destroy(mps_io_t mps_io)
 .. c:function:: mps_res_t mps_io_write(mps_io_t mps_io, void *buf, size_t size)
 .. c:function:: mps_res_t mps_io_flush(mps_io_t mps_io)
-
-
-===========================
-Undocumented in ``mpstd.h``
-===========================
-
-.. c:macro:: MPS_PF_STRING
-.. c:macro:: MPS_PF_ALIGN
-.. c:macro:: MPS_ARCH_I3
-.. c:macro:: MPS_ARCH_I4
-.. c:macro:: MPS_ARCH_PP
-.. c:macro:: MPS_ARCH_S8
-.. c:macro:: MPS_ARCH_S9
-.. c:macro:: MPS_BUILD_GC
-.. c:macro:: MPS_BUILD_MV
-.. c:macro:: MPS_BUILD_SC
-.. c:macro:: MPS_OS_FR
-.. c:macro:: MPS_OS_LI
-.. c:macro:: MPS_OS_SO
-.. c:macro:: MPS_OS_W3
-.. c:macro:: MPS_OS_XC
-.. c:macro:: MPS_PF_FRI3GC
-.. c:macro:: MPS_PF_LII3GC
-.. c:macro:: MPS_PF_LIPPGC
-.. c:macro:: MPS_PF_SOS8GC
-.. c:macro:: MPS_PF_SOS9SC
-.. c:macro:: MPS_PF_W3I3MV
-.. c:macro:: MPS_PF_XCPPGC
