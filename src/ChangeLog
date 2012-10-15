@@ -80,8 +80,7 @@
 	a file exists.  This avoids expensive system calls on MS-Windows.
 	(Bug#12587)
 
-	* w32.c (init_environment): Call 'check_existing' instead of
-	'stat'.
+	* w32.c (init_environment): Call 'check_existing' instead of 'stat'.
 
 	* lread.c (openp) [WINDOWSNT]: Call 'access' instead of 'stat' to
 	determine whether a file exists and is not a directory.
@@ -299,8 +298,8 @@
 
 	* w32heap.c: Include w32common.h.
 	(sysinfo_cache, syspage_mask, osinfo_cache, w32_major_version)
-	(w32_minor_version, w32_build_number, w32_subtype): Remove
-	duplicate definitions.
+	(w32_minor_version, w32_build_number, w32_subtype):
+	Remove duplicate definitions.
 
 	* w32fns.c: Include w32common.h; include w32heap.h only in
 	WINDOWSNT.
@@ -512,8 +511,8 @@
 
 	* nsterm.m (ns_in_resize): Remove (Bug#12479).
 	(ns_resize_handle_rect, mouseDown, mouseUp, mouseDragged): Remove.
-	(ns_clear_frame, sendEvent, windowDidResize, drawRect:): Remove
-	ns_in_resize check.
+	(ns_clear_frame, sendEvent, windowDidResize, drawRect:):
+	Remove ns_in_resize check.
 	(ns_clear_frame_area): Remove resize handle code.
 
 	* nsfns.m (ns_in_resize): Remove.
@@ -560,8 +559,8 @@
 	* w32proc.c (stop_timer_thread): Fix declaration of 'err'.
 
 	* w32.c (utime): Open the file with FILE_FLAG_BACKUP_SEMANTICS, so
-	that time stamps of directories could also be changed.  Don't
-	request the too broad GENERIC_WRITE, only the more restrictive
+	that time stamps of directories could also be changed.
+	Don't request the too broad GENERIC_WRITE, only the more restrictive
 	FILE_WRITE_ATTRIBUTES access rights.
 
 	* fileio.c (Fset_file_times): Special-case ignoring errors for
