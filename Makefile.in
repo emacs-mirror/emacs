@@ -647,9 +647,9 @@ install-etc:
 	  ( cd $${thisdir}; ${MKDIR_P} $(DESTDIR)${icondir}/$${dir} ) ; \
 	  for icon in $${dir}/*.*; do \
 	    [ -r $${icon} ] || continue ; \
-	    dest=`echo "$${icon}" | sed '$(TRANSFORM)'` ; \
+	    dest=`echo "$${icon}" | sed -e 's|.*/||' -e '$(TRANSFORM)'` ; \
 	    ( cd $${thisdir}; \
-	      ${INSTALL_DATA} ${iconsrcdir}/$${icon} $(DESTDIR)${icondir}/$${dest} ) \
+	      ${INSTALL_DATA} ${iconsrcdir}/$${icon} $(DESTDIR)${icondir}/$${dir}/$${dest} ) \
 	    || exit 1; \
 	  done ; \
 	done
