@@ -129,6 +129,15 @@ Memory Management Glossary: G
 
         .. seealso:: :term:`bucket`.
 
+        .. mps:specific::
+
+            The :term:`client program` specifies the generational
+            structure using a :term:`generation chain`.
+
+    generation chain
+
+        .. mps:specific:: ??
+
     generation scavenging
 
         .. see:: :term:`generational garbage collection`.
