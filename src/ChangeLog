@@ -1,3 +1,10 @@
+2012-10-15  Martin Rudalics  <rudalics@gmx.at>
+
+	* window.c (Fwindow_end): Rewrite check whether cached position
+	can be used (Bug#12600).
+	(resize_frame_windows, grow_mini_window, shrink_mini_window):
+	Set windows_or_buffers_changed.
+
 2012-10-15  Daniel Colascione  <dancol@dancol.org>
 
 	* dbusbind.c: Fix cygw32 build break when compiling with dbus
