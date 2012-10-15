@@ -32,6 +32,10 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #define DBUS_NUM_MESSAGE_TYPES 5
 #endif
 
+
+/* Some platforms define the symbol "interface", but we want to use it
+ * as a variable name below.  */
+
 #ifdef interface
 #undef interface
 #endif

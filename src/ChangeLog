@@ -1,3 +1,7 @@
+2012-10-15  Daniel Colascione  <dancol@dancol.org>
+
+	* dbusbind.c: Add comment explaining reason for previous change.
+
 2012-10-15  Martin Rudalics  <rudalics@gmx.at>
 
 	* window.c (Fwindow_end): Rewrite check whether cached position
