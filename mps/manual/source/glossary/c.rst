@@ -163,7 +163,7 @@ Memory Management Glossary: C
 
     clamped state
 
-        .. mps::
+        .. mps:specific::
 
             One of the three states an :term:`arena` can be in (the
             others being the :term:`unclamped state` and the
@@ -176,7 +176,7 @@ Memory Management Glossary: C
 
     class method
 
-        .. mps::
+        .. mps:specific::
 
             One of the :term:`format methods <format method>` in an
             :term:`object format` of variant B
@@ -188,11 +188,11 @@ Memory Management Glossary: C
 
     class structure
 
-        .. mps:: ??
+        .. mps:specific:: ??
 
     client arena
 
-        .. mps::
+        .. mps:specific::
 
             An :term:`arena class` which gets its :term:`memory (2)`
             from the :term:`client program`. See
@@ -200,7 +200,7 @@ Memory Management Glossary: C
 
     client object
 
-        .. mps::
+        .. mps:specific::
 
             A :term:`formatted object` that contains data from the
             :term:`client program`. One of three types of formatted
@@ -331,7 +331,7 @@ Memory Management Glossary: C
 
     commit limit
 
-        .. mps::
+        .. mps:specific::
 
             The commit limit is a limit on the :term:`committed`
             :term:`memory (2)` that the :term:`arena` will obtain from
@@ -476,7 +476,7 @@ Memory Management Glossary: C
 
     constant root
 
-        .. mps::
+        .. mps:specific::
 
             A :term:`root` that the :term:`client program` promises
             not change after it is registered, by specifying the
@@ -551,7 +551,7 @@ Memory Management Glossary: C
 
     cool
 
-        .. mps::
+        .. mps:specific::
 
             A :term:`variety` in which most MPS functions
             :term:`assert <assertion>` that their data structures are
@@ -561,7 +561,7 @@ Memory Management Glossary: C
 
     copy method
 
-        .. mps::
+        .. mps:specific::
 
             A copy method is one of the methods in an :term:`object
             format`. Formerly, the MPS called this method to copy a
@@ -616,7 +616,7 @@ Memory Management Glossary: C
 
     critical path
 
-        .. mps:: ??
+        .. mps:specific:: ??
 
     crossing map
 

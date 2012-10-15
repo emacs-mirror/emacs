@@ -55,7 +55,7 @@ Memory Management Glossary: V
 
     variety
 
-	.. mps::
+	.. mps:specific::
 
             A behaviour of the MPS that must be selected at
             compilation time. There are three varieties: :term:`cool`,
@@ -157,7 +157,7 @@ Memory Management Glossary: V
 
     virtual memory arena
 
-        .. mps::
+        .. mps:specific::
 
             An :term:`arena class` which gets its :term:`memory (2)`
             from the operating system's :term:`virtual memory`

@@ -119,7 +119,7 @@ Memory Management Glossary: F
 
     finalized block
 
-        .. mps::
+        .. mps:specific::
 
            A :term:`block` that has been registerd for finalization
            using :c:func:`mps_finalize`, and which the MPS has
@@ -156,7 +156,7 @@ Memory Management Glossary: F
 
     fix
 
-        .. mps::
+        .. mps:specific::
 
             To *fix* a :term:`reference` from one :term:`block` to
             another is to declare it to the MPS by calling
@@ -245,7 +245,7 @@ Memory Management Glossary: F
 
     format method
 
-        .. mps::
+        .. mps:specific::
 
             One of the methods in an :term:`object format`, defined by
             the :term:`client program` in order to describe its
@@ -256,7 +256,7 @@ Memory Management Glossary: F
 
     formatted object
 
-        .. mps::
+        .. mps:specific::
 
             An allocated :term:`block` that belongs to an
             :term:`object format` and may be :term:`scanned <scan>` by
@@ -264,7 +264,7 @@ Memory Management Glossary: F
 
     forward method
     
-        .. mps::
+        .. mps:specific::
 
             A :term:`format method` that is called by a :term:`moving
             <moving garbage collector>` :term:`pool <pool>` when it
@@ -274,7 +274,7 @@ Memory Management Glossary: F
 
     forwarded object
 
-        .. mps::
+        .. mps:specific::
 
             A :term:`formatted object` that has been replaced by a
             :term:`forwarding marker`. One of three types of formatted
@@ -294,7 +294,7 @@ Memory Management Glossary: F
 
         .. seealso:: :term:`copying garbage collection`, :term:`two-space collector`.
 
-        .. mps:: The term *forwarding marker* is used.
+        .. mps:specific:: The term *forwarding marker* is used.
 
     fragmentation
 

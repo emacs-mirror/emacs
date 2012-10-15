@@ -229,7 +229,7 @@ Memory Management Glossary: L
 
     location dependency
 
-        .. mps:: ??
+        .. mps:specific:: ??
 
     logical address
 

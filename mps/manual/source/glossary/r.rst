@@ -25,7 +25,7 @@ Memory Management Glossary: R
 
     ramp pattern
 
-        .. mps::
+        .. mps:specific::
 
             An :term:`allocation pattern` indicating to the MPS that
             most of the blocks allocated after the call to
@@ -35,7 +35,7 @@ Memory Management Glossary: R
 
     rank
 
-        .. mps::
+        .. mps:specific::
 
             A value of :c:type:`mps_rank_t` indicating whether a
             :term:`root` is :term:`ambiguous <ambiguous root>`
@@ -45,7 +45,7 @@ Memory Management Glossary: R
 
     rash
 
-        .. mps::
+        .. mps:specific::
 
             A :term:`variety` in which no MPS functions :term:`assert
             <assertion>` that their data structures are valid. Select
@@ -333,7 +333,7 @@ Memory Management Glossary: R
             registers is always accessible by the :term:`mutator` and
             so forms a :term:`root`.
 
-        .. mps::
+        .. mps:specific::
 
             The :term:`scan method` for the root containing the
             registers is hard to write (it depends on the operating
@@ -439,7 +439,7 @@ Memory Management Glossary: R
 
     reservoir
 
-        .. mps:: ??
+        .. mps:specific:: ??
 
     resident
 
@@ -459,7 +459,7 @@ Memory Management Glossary: R
 
     result code
 
-        .. mps::
+        .. mps:specific::
 
             A value returned from an MPS function, represented by the
             type :c:type:`mps_res_t`. The result code
@@ -493,7 +493,7 @@ Memory Management Glossary: R
 
     root description
 
-        .. mps::
+        .. mps:specific::
 
             The :term:`arena` uses root descriptions to find
             :term:`references <reference>` within the :term:`client
@@ -502,7 +502,7 @@ Memory Management Glossary: R
 
     root mode
 
-        .. mps::
+        .. mps:specific::
 
             A value of type :c:type:`mps_rm_t` describing whether a
             :term:`root` is :term:`constant <constant root>`,

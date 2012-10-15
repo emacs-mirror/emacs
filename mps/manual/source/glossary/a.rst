@@ -79,7 +79,7 @@ Memory Management Glossary: A
 
         .. similar:: :term:`pointer`.
 
-        .. mps::
+        .. mps:specific::
 
             An address is represented by a value of the type
             :c:type:`mps_addr_t`.
@@ -179,7 +179,7 @@ Memory Management Glossary: A
 
         .. seealso:: :term:`natural alignment`.
 
-        .. mps::
+        .. mps:specific::
 
             An alignment is represented by the unsigned integral type
             :c:type:`mps_align_t`. It must be a positive power of 2.
@@ -228,13 +228,13 @@ Memory Management Glossary: A
 
         .. bibref:: [WIL95]_.
 
-        .. mps::
+        .. mps:specific::
 
             See :ref:`topic-allocation`.
 
     allocation frame
 
-        .. mps:: ??
+        .. mps:specific:: ??
 
     allocation mechanism
 
@@ -255,11 +255,11 @@ Memory Management Glossary: A
 
     allocation pattern
 
-        .. mps:: ??
+        .. mps:specific:: ??
 
     allocation point
 
-        .. mps::
+        .. mps:specific::
 
             An allocation point is an interface to a :term:`pool`
             which provides fast :term:`buffered <buffer>` allocation,
@@ -334,7 +334,7 @@ Memory Management Glossary: A
 
         .. opposite:: :term:`exact root`.
 
-        .. mps::
+        .. mps:specific::
 
             An ambiguous root has :term:`rank`
             :c:func:`mps_rank_ambig`.
@@ -350,7 +350,7 @@ Memory Management Glossary: A
 
         .. seealso:: :term:`brk`.
 
-        .. mps::
+        .. mps:specific::
 
             An arena is the data structure responsible for requesting
             :term:`memory (3)` from the operating system, making it
@@ -360,7 +360,7 @@ Memory Management Glossary: A
 
     arena class
 
-        .. mps::
+        .. mps:specific::
 
             A value of type :c:type:`mps_arena_class_t` describing a
             class of :term:`arenas <arena>`. Arena classes include
@@ -373,7 +373,7 @@ Memory Management Glossary: A
         always to be true, or which must be true in order for the
         program to continue to execute correctly.
 
-        .. mps::
+        .. mps:specific::
 
             Memory management mistakes often lead to
             :term:`overwriting errors <overwriting error>` that

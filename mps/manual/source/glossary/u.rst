@@ -46,7 +46,7 @@ Memory Management Glossary: U
 
     unclamped state
 
-        .. mps::
+        .. mps:specific::
 
             One of the three states an :term:`arena` can be in (the
             others being the :term:`clamped state` and the

@@ -20,7 +20,7 @@ Memory Management Glossary: O
         :term:`deallocation <free (1)>`, etc. No connection to an
         object-oriented system is implied.
 
-        .. mps::
+        .. mps:specific::
 
             The MPS documentation reserves the term *object* for
             :term:`formatted objects <formatted object>` only. For
@@ -29,7 +29,7 @@ Memory Management Glossary: O
 
     object format
 
-        .. mps::
+        .. mps:specific::
 
             A data structure provided by the :term:`client program`
             which describes the format of :term:`objects <formatted
@@ -115,7 +115,7 @@ Memory Management Glossary: O
 
         .. opposite:: :term:`in parameter`.
 
-        .. mps::
+        .. mps:specific::
 
             Out parameters are given names ending with ``_o``.
 

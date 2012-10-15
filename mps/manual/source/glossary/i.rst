@@ -92,7 +92,7 @@ Memory Management Glossary: I
         A function parameter that is both an :term:`in parameter` an
         :term:`out parameter`.
 
-        .. mps::
+        .. mps:specific::
 
             In/out parameters are given names ending with ``_io``.
 
@@ -339,7 +339,7 @@ Memory Management Glossary: I
 
     is-forwarded method
 
-        .. mps::
+        .. mps:specific::
 
             A :term:`format method` that is called by a :term:`moving
             <moving garbage collector>` :term:`pool <pool>` to
