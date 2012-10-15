@@ -33,9 +33,9 @@ Memory Management Glossary: C
 
     cache (2)
 
-        A cache is any small, fast piece of :term:`storage`, used for
-        copies of data that normally reside in a larger, slower piece
-        of storage. The cache is used to speed up access to data
+        A cache is any small, fast piece of :term:`memory (1)`, used
+        for copies of data that normally reside in a larger, slower
+        piece of storage. The cache is used to speed up access to data
         :term:`resident` in the slower storage.
 
         In a typical cache, recently used data is :term:`resident` in
@@ -130,7 +130,7 @@ Memory Management Glossary: C
         <inter-generational pointer>`). Each generation is divided
         into a number of equal-sized :term:`cards <card>`, and when a
         generation is written into, the particular card written to is
-        recorded (often by using a :term:`bit-table`). Subsequently,
+        recorded (often by using a :term:`bitmap`). Subsequently,
         when :term:`scanning <scan>` an older generation in order to
         collect a younger generation, only the recorded cards (in the
         old generation) need to be scanned.
@@ -307,7 +307,7 @@ Memory Management Glossary: C
 
         In a :term:`garbage-collected <garbage collection>` system,
         the part that executes the garbage collection code, which
-        discovers unused :term:`storage` and :term:`reclaims
+        discovers unused :term:`memory (1)` and :term:`reclaims
         <reclaim>` it.
 
         For purposes of describing :term:`incremental garbage
@@ -333,10 +333,10 @@ Memory Management Glossary: C
 
         .. mps:specific::
 
-            The commit limit is a limit on the :term:`committed`
-            :term:`memory (2)` that the :term:`arena` will obtain from
-            the operating system. It can be changed by calling
-            :c:func:`mps_arena_commit_limit_set`.
+            The commit limit is a limit on the :term:`committed
+            <mapped>` :term:`memory (2)` that the :term:`arena` will
+            obtain from the operating system. It can be changed by
+            calling :c:func:`mps_arena_commit_limit_set`.
 
     committed
 
@@ -398,7 +398,7 @@ Memory Management Glossary: C
         may choose to condemn some objects (the *condemned set* or
         *threatened set*) but not to condemn others (the :term:`immune
         set`). Objects that are not condemned are assumed to be
-        :term:`alive` and behave as :term:`roots <root>` for the
+        :term:`live` and behave as :term:`roots <root>` for the
         purposes of that collection cycle.
 
         Many simple :term:`tracing garbage collection` algorithms
@@ -448,7 +448,7 @@ Memory Management Glossary: C
         Conservative collectors can work with programs where
         information about the :term:`memory (2)` layout is not
         available, because, for example, the language doesn't support
-        :term:`GC`.
+        :term:`garbage collection`.
 
         A conservative collector doesn't need to know the
         :term:`format` of the objects, it just needs some idea of
@@ -632,9 +632,9 @@ Memory Management Glossary: C
         :term:`card-marking <card marking>` needs to scan all the
         :term:`pointers <pointer>` in the page or card. If the system
         can not :term:`scan` partial objects (or requires information
-        in the object :term:`header` in order to scan a partial
-        object), a crossing map is necessary to find the beginning of
-        the first object in the unit.
+        in the object :term:`header <in-band header>` in order to scan
+        a partial object), a crossing map is necessary to find the
+        beginning of the first object in the unit.
 
         .. relevance::
 

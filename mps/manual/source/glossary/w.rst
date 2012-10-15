@@ -12,7 +12,7 @@ Memory Management Glossary: W
 
         In :term:`tracing garbage collection`, a weak reference is a
         :term:`reference` that does not keep the :term:`object` it
-        refers to :term:`alive`.
+        refers to :term:`alive <live>`.
 
         A weak reference does not keep the referent alive, but it will
         continue to refer to the object as long as it remains

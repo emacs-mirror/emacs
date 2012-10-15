@@ -17,6 +17,6 @@ Memory Management Glossary: Q
         actually the *natural word size*, but the term *word* is still
         used for the 16-bit unit, for compatibility with PDP-11.
 
-        .. seealso:: :term:`doubleword`, :term:`longword`.
+        .. seealso:: :term:`doubleword`.
 
 

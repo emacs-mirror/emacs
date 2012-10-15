@@ -49,7 +49,7 @@ Memory Management Glossary: T
         *discriminator*, and is a form of tag. Analogues occur in
         other languages, sometimes with compiler or run-time support.
 
-        .. seealso:: :term:`tagged architecture`, :term:`header`.
+        .. seealso:: :term:`tagged architecture`, :term:`in-band header`.
 
         .. bibref:: [GUDEMAN93]_.
 
@@ -201,7 +201,7 @@ Memory Management Glossary: T
         Tracing garbage collection relies on the fact that if an
         :term:`object` is not :term:`reachable`, there is no way the
         :term:`mutator` could ever access it, and therefore it cannot
-        be :term:`alive`. In each :term:`collection cycle`, some or
+        be :term:`live`. In each :term:`collection cycle`, some or
         all of the objects are :term:`condemned <condemned set>` and
         the :term:`graph` is :term:`traced <trace>` to find which of
         the condemned objects are reachable. Those that were not

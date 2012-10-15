@@ -15,9 +15,9 @@ Memory Management Glossary: B
         store information not currently in :term:`main memory`.
         Backing store is slower and cheaper than main memory.
 
-        Other :term:`storage` may, less commonly, be used in place of
-        a hard disk (for instance, magnetic tape, floppy disk, or
-        historically, magnetic drum).
+        Other :term:`storage <memory (1)>` may, less commonly, be used
+        in place of a hard disk (for instance, magnetic tape, floppy
+        disk, or historically, magnetic drum).
 
         In general, backing store may mean any locations used to store
         information when its preferred or natural location is
@@ -284,8 +284,9 @@ Memory Management Glossary: B
         collection>` :term:`move <moving garbage collector>`
         :term:`reachable` :term:`objects <object>` into another
         :term:`semi-space`. They leave a :term:`forwarding pointer` in
-        the old :term:`location`, pointing to the new. The object at
-        the old location is known as a broken heart.
+        the old :term:`location <memory location>`, pointing to the
+        new. The object at the old location is known as a broken
+        heart.
 
         .. similar:: :term:`forwarding pointer`.
 
@@ -386,12 +387,12 @@ Memory Management Glossary: B
         A data type defined by a processor architecture.
 
         For example, the smallest :term:`addressable <address>`
-        storage :term:`location` on the Intel x86 family is the 8-bit
+        :term:`memory location` on the Intel x86 family is the 8-bit
         byte.
 
-        The PDP-10 has 36-bit :term:`words <word>`, and defines "byte"
-        to be a general sub-:term:`word` bit-field. (Compare this with
-        :term:`byte (3)`.) On this machine it is commonplace for
+        The PDP-10 had 36-bit :term:`words <word>`, and defines "byte"
+        to be a general sub-:term:`word` bit-field: compare
+        :term:`byte (3)`. On this machine it was commonplace for
         characters to be packed four or five to a word using 9- or
         7-bit bytes respectively.
 

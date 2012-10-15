@@ -378,7 +378,8 @@ Declared in ``mps.h``
 
 .. c:function:: extern size_t mps_arena_committed(mps_arena_t arena)
 
-    Return the total :term:`committed` memory for an :term:`arena`.
+    Return the total :term:`committed <mapped>` memory for an
+    :term:`arena`.
 
     *arena* is the arena.
 
@@ -704,7 +705,8 @@ Declared in ``mps.h``
     :c:func:`mps_arena_spare_commit_limit_set`, and the value of that
     limit can be retrieved with
     :c:func:`mps_arena_spare_commit_limit`. This is analogous to the
-    functions for limiting the amount of :term:`committed` memory.
+    functions for limiting the amount of :term:`committed <mapped>`
+    memory.
 
     .. topics::
 
@@ -1078,15 +1080,15 @@ Declared in ``mps.h``
 
     Broadly speaking, the object formats of this variant are suitable
     for use in :term:`automatic memory management` for objects with
-    :term:`headers <header>` (hence the name). More precisely, this
-    variant is intended for formats where the :term:`client program's
-    <client program>` pointers point some distance into the memory
-    :term:`block` containing the object. This typically happens when
-    the objects have a common header used for memory management or
-    class system purposes, but this situation also arises when the low
-    bits of a pointer are used for a tag. The MPS does not care what
-    the reason is, only about the offset of the pointer in relation to
-    the memory block.
+    :term:`headers <in-band header>` (hence the name). More precisely,
+    this variant is intended for formats where the :term:`client
+    program's <client program>` pointers point some distance into the
+    memory :term:`block` containing the object. This typically happens
+    when the objects have a common header used for memory management
+    or class system purposes, but this situation also arises when the
+    low bits of a pointer are used for a tag. The MPS does not care
+    what the reason is, only about the offset of the pointer in
+    relation to the memory block.
 
     *mps_headerSize* is the size of the header, that is, the offset of
     a client pointer from the base of the memory block.
