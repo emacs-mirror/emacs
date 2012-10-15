@@ -3,7 +3,8 @@ Sphinx extensions for the MPS documentation.
 See <http://sphinx.pocoo.org/extensions.html>
 '''
 
-from docutils import nodes
+import re
+from docutils import nodes, transforms
 from sphinx import addnodes
 from sphinx.domains import Domain
 from sphinx.roles import XRefRole
@@ -134,8 +135,59 @@ all_directives = [
     SpecificDirective, 
     TopicsDirective]
 
+see_only_ids = set()
+xref_ids = dict()
+
+class GlossaryTransform(transforms.Transform):
+    default_priority = 999
+    sense_re = re.compile(r'(.*) (\([0-9]+\))$')
+
+    def apply(self):
+        global see_only_ids, xref_ids
+        for target in self.document.traverse(nodes.term):
+            target.children = list(self.edit_children(target))
+        for target in self.document.traverse(addnodes.pending_xref):
+            if target['reftype'] == 'term':
+                xref_ids['term-{}'.format(target['reftarget'])] = (target.source, target.line)
+                c = target.children
+                if len(c) == 1 and isinstance(c[0], nodes.emphasis):
+                    c[0].children = list(self.edit_children(c[0]))
+        for target in self.document.traverse(nodes.definition_list_item):
+            ids = set()
+            for c in target.children:
+                if isinstance(c, nodes.term):
+                    ids = set(c['ids'])
+                if (isinstance(c, nodes.definition)
+                    and len(c.children) == 1
+                    and isinstance(c.children[0], see)):
+                    see_only_ids |= ids
+
+    def edit_children(self, target):
+        for e in target.children:
+            if not isinstance(e, nodes.Text):
+                yield e
+                continue
+            m = self.sense_re.match(e)
+            if not m:
+                yield e
+                continue
+            yield nodes.Text(m.group(1))
+            yield nodes.superscript(text = m.group(2))
+
+def warn_indirect_terms(app, exception):
+    if not exception:
+        for i in see_only_ids:
+            try:
+                doc, line = xref_ids[i]
+                print('Cross-reference to {} at {} line {}.'.format(i, doc, line))
+            except KeyError:
+                pass
+
 def setup(app):
     app.add_domain(MpsDomain)
+    app.add_transform(GlossaryTransform)
+    app.connect('build-finished', warn_indirect_terms)
+
     visit = (visit_note_node, depart_note_node)
     for d in all_directives:
         app.add_node(d.cls, html = visit, latex = visit, text = visit)
