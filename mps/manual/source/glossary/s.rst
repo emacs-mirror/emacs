@@ -83,7 +83,7 @@ Memory Management Glossary: S
     SDRAM
 
         Synchronous Dynamic Random Access Memory. A high performance
-        variant of :term:`DRAM`.
+        variant of :term:`DRAM <dynamic memory>`.
 
         SDRAM uses an external clock signal to synchronize its data
         input and output. It is capable of achieving very high data
@@ -284,7 +284,7 @@ Memory Management Glossary: S
     simple segregated storage
 
         A :term:`segregated free list` :term:`allocation mechanism`
-        which divides :term:`storage` into :term:`pages <page>` or
+        which divides :term:`memory (1)` into :term:`pages <page>` or
         other areas and only allocates :term:`objects <object>` of a
         single size, or small range of sizes, within each area. This
         makes allocation fast and avoids :term:`headers <in-band
@@ -332,7 +332,7 @@ Memory Management Glossary: S
         to present the illusion of being a pointer, so that
         ``operator\*``, ``operator-\>``, etc. can be used as normal.
         Reference counting allows the objects that are referred to
-        using the smart pointer class to have their :term:`storage`
+        using the smart pointer class to have their :term:`memory (1)`
         automatically :term:`reclaimed <reclaim>` when they are no
         longer :term:`referenced <reference>`. It is a common
         technique used when trying to solve :term:`memory management`
@@ -473,13 +473,13 @@ Memory Management Glossary: S
 
             Memory which is not in use by any :term:`pool` and not
             otherwise in use for internal MPS data structures, but
-            which remains :term:`committed` (mapped to RAM by the
-            operating system). It is used by the :term:`arena` to
-            (attempt to) avoid calling the operating system to
-            repeatedly map and unmap areas of :term:`virtual memory`
-            as the amount of memory in use goes up and down. It is
-            subject to the :term:`spare commit limit`. The total spare
-            committed memory can be retrieved by calling
+            which remains :term:`committed <mapped>` (mapped to
+            :term:`RAM` by the operating system). It is used by the
+            :term:`arena` to (attempt to) avoid calling the operating
+            system to repeatedly map and unmap areas of :term:`virtual
+            memory` as the amount of memory in use goes up and down.
+            It is subject to the :term:`spare commit limit`. The total
+            spare committed memory can be retrieved by calling
             :c:func:`mps_arena_spare_committed`.
 
     spaghetti stack
@@ -543,7 +543,7 @@ Memory Management Glossary: S
 
         *Stack allocation* means run-time :term:`allocation
         <allocate>` and :term:`deallocation <free (1)>` of
-        :term:`storage` in last-in/first-out order.
+        :term:`memory (1)` in last-in/first-out order.
 
         Typically, stack allocation is performed on top of the main
         :term:`stack`, but one can have a separate :term:`data stack`
@@ -604,8 +604,8 @@ Memory Management Glossary: S
     static allocation
 
         *Static allocation* means :term:`allocation <allocate>` of
-        :term:`storage` before the program starts and retention until
-        the end.
+        :term:`memory (1)` before the program starts and retention
+        until the end.
 
         The locations of :term:`objects <object>` are basically
         decided at compile-time, although they might be
@@ -719,10 +719,10 @@ Memory Management Glossary: S
         .. aka:: *memory hierarchy*.
 
         A typical computer has several different *levels* of
-        :term:`storage`. Each level of storage has a different speed,
-        cost, and size. The levels form a *storage hierarchy*, in
-        which the topmost levels (those nearest the processor) are
-        fastest, most expensive and smallest.
+        :term:`storage <memory (1)>`. Each level of storage has a
+        different speed, cost, and size. The levels form a *storage
+        hierarchy*, in which the topmost levels (those nearest the
+        processor) are fastest, most expensive and smallest.
 
         Levels typically include processor :term:`registers
         <register>`, possibly some levels of :term:`cache (1)`,
@@ -790,7 +790,7 @@ Memory Management Glossary: S
 
         In a :term:`tracing garbage collector <tracing garbage
         collection>`, a strong reference is a :term:`reference` that
-        keeps the :term:`object` it refers to :term:`alive`.
+        keeps the :term:`object` it refers to :term:`alive <live>`.
 
         A strong reference is the usual sort of reference; The term is
         usually used to draw a contrast with :term:`weak reference

@@ -44,10 +44,10 @@ Memory Management Glossary: A
             languages that permit closures or continuations,
             activation records may have :term:`indefinite extent`.
             Although they may not be visible to the programmer, their
-            :term:`storage` must be managed by the language run-time
-            support. Because they are usually not visible to the
-            programmer, they may be a source of inexplicable memory
-            overhead.
+            :term:`memory (1)` must be managed by the
+            language run-time support. Because they are usually not
+            visible to the programmer, they may be a source of
+            inexplicable memory overhead.
 
         .. seealso:: :term:`stack frame`.
 
@@ -61,8 +61,8 @@ Memory Management Glossary: A
 
     address
 
-        An address is a specification of a :term:`location` in an
-        :term:`address space`.
+        An address is a specification of a :term:`memory location` in
+        an :term:`address space`.
 
         An address is almost always represented as an unsigned integer
         stored in a single :term:`machine word`. The address is
@@ -124,8 +124,8 @@ Memory Management Glossary: A
         In some :term:`generational garbage collection` systems, when
         :term:`generations <generation>` are divided into
         :term:`buckets <bucket>`, the aging space is where
-        :term:`objects <object>` which survive a :term:`collection`
-        stay until they are old enough to be :term:`promoted
+        :term:`objects <object>` which survive a :term:`collection
+        cycle` stay until they are old enough to be :term:`promoted
         <promotion>`.
 
         .. opposite:: :term:`creation space`.

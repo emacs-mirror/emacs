@@ -175,7 +175,7 @@ Memory Management Glossary: V
     VM (2)
 
         In the :term:`PostScript` language, *VM* is the
-        :term:`storage` where the values of the :term:`composite
+        :term:`memory (1)` where the values of the :term:`composite
         objects <composite object>` reside.
 
         VM is short for "virtual memory", but this has nothing to do

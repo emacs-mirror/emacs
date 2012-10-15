@@ -145,9 +145,9 @@ Memory Management Glossary: R
 
     reclaim
 
-        *Reclaiming* an :term:`object` or the :term:`storage` occupied
-        by it is making it available for reuse after the object is no
-        longer needed.
+        *Reclaiming* an :term:`object` or the :term:`memory (1)`
+        occupied by it is making it available for reuse after the
+        object is no longer needed.
 
         This word is usually used only in connection with
         :term:`automatic memory management`.
@@ -156,7 +156,7 @@ Memory Management Glossary: R
 
     recycle
 
-        *Recycling* :term:`storage` means making it available for
+        *Recycling* :term:`memory (1)` means making it available for
         reuse after it has been occupied by an :term:`object` that is
         no longer needed.
 
@@ -184,11 +184,11 @@ Memory Management Glossary: R
 
         Reference counting systems perform :term:`automatic memory
         management` by keeping a count in each :term:`object`, usually
-        in a :term:`header`, of how many :term:`references
-        <reference>` there are to the object. Objects to which there
-        are no references cannot be accessed by the :term:`mutator`;
-        they are therefore :term:`dead` and may be :term:`reclaimed
-        <reclaim>`.
+        in a :term:`header <in-band header>`, of how many
+        :term:`references <reference>` there are to the object.
+        Objects to which there are no references cannot be accessed by
+        the :term:`mutator`; they are therefore :term:`dead` and may
+        be :term:`reclaimed <reclaim>`.
 
         The reference count is incremented for each new reference, and
         is decremented if a reference is overwritten, or if the

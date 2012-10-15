@@ -40,8 +40,8 @@ Memory Management Glossary: P
         :term:`memory (1)` :term:`blocks <block>` of fixed size as
         units for :term:`paging`. These are known as *pages*.
 
-        Pages are often 4 :term:`kB` or 8 kB in size. This size is
-        determined by the addressing hardware of the machine.
+        Pages are often 4 :term:`kB <kilobyte>` or 8 kB in size. This
+        size is determined by the addressing hardware of the machine.
 
     page fault
     page-fault
@@ -84,10 +84,11 @@ Memory Management Glossary: P
 
         The :term:`page` number of an address is usually found from
         the most significant bits of the address; the remaining bits
-        yield the offset of the :term:`location` within the page. The
-        page table is normally indexed by page number and contains
-        information on whether the page is currently in :term:`main
-        memory`, and where it is in main memory or on disk.
+        yield the offset of the :term:`memory location` within the
+        page. The page table is normally indexed by page number and
+        contains information on whether the page is currently in
+        :term:`main memory`, and where it is in main memory or on
+        disk.
 
         Conventional page tables are sized to the virtual
         :term:`address space` and store the entire virtual address
@@ -166,11 +167,11 @@ Memory Management Glossary: P
         simultaneously with the :term:`mutator`, usually on a
         multi-processor machine.
 
-        Concurrent :term:`GC` must cope with the mutator changing
-        :term:`objects <object>` while collection occurs. The problem
-        is similar to that of :term:`incremental GC <incremental
-        garbage collection>`, but harder. The solution typically
-        involves :term:`barriers (1) <barrier (1)>`.
+        Concurrent :term:`garbage collection` must cope with the
+        mutator changing :term:`objects <object>` while collection
+        occurs. The problem is similar to that of :term:`incremental
+        GC <incremental garbage collection>`, but harder. The solution
+        typically involves :term:`barriers (1) <barrier (1)>`.
 
         .. similar:: :term:`incremental <incremental garbage collection>`.
 
@@ -345,7 +346,7 @@ Memory Management Glossary: P
     pointer
 
         *Pointer* data types represent a reference to an
-        :term:`object` or a :term:`location`.
+        :term:`object` or a :term:`location <memory location>`.
 
         Pointers may be specialized by the type of the object referred
         to.
