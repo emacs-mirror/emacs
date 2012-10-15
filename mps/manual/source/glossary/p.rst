@@ -367,15 +367,16 @@ Memory Management Glossary: P
             A pool is responsible for requesting memory from the
             :term:`arena` and making it available to the :term:`client
             program` via :c:func:`mps_alloc` or via an
-            :term:`allocation point`. Pools belong to the type
-            :c:type:`mps_pool_t`.
+            :term:`allocation point`. Multiple pools can coexist in
+            one arena. Pools belong to the type :c:type:`mps_pool_t`.
 
     pool class
 
         .. mps:specific::
 
-            A value of type :c:type:`mps_class_t` describing a
-            class of :term:`pools <pool>`. See :ref:`pool`.
+            A value of type :c:type:`mps_class_t` describing a class
+            of :term:`pools <pool>` that manage memory according to
+            particular policy. See :ref:`pool`.
 
     precise garbage collection
 

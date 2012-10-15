@@ -4,6 +4,8 @@
 Allocation patterns
 ===================
 
+See //info.ravenbrook.com/project/mps/doc/2002-06-18/obsolete-mminfo/mmdoc/protocol/mps/alloc-pattern-ramp/index.html
+
 ::
 
     mps_ap_alloc_pattern_begin(ap, mps_alloc_pattern_ramp_collect_all());

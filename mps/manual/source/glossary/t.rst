@@ -76,7 +76,7 @@ Memory Management Glossary: T
 
         A :term:`reference` containing a :term:`tag` in part of its
         address, for example by :term:`aligning <alignment>` objects
-        and keepping the tag in the least significant bits of the
+        and keeping the tag in the least significant bits of the
         address.
 
     TB (1)

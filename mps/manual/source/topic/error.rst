@@ -4,6 +4,8 @@
 Error handing
 =============
 
+There's some documentation at //info.ravenbrook.com/project/mps/doc/2002-06-18/obsolete-mminfo/mmdoc/protocol/mps/assertion/index.html but it seems not to be true
+
 ::
 
     mps_addr_t p;

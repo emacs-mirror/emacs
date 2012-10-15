@@ -4,6 +4,8 @@
 Object formats
 ==============
 
+See //info.ravenbrook.com/project/mps/doc/2002-06-18/obsolete-mminfo/mmdoc/protocol/mps/format/index.html
+
 ::
 
     mps_fmt_t create_format(mps_arena_t arena)

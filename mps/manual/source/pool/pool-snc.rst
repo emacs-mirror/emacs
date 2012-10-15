@@ -4,6 +4,8 @@
 SNC (Stack No Check) pool
 =========================
 
+See //info.ravenbrook.com/project/mps/doc/2002-06-18/obsolete-mminfo/mmdoc/doc/mps/guide/stack-alloc/index.html
+
 
 An SNC pool is scannable, in that objects may contain references to objects in other pools that will keep those objects alive (depending on rank). In this sense, an SNC pool is a de-facto root.
 

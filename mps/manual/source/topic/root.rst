@@ -4,6 +4,8 @@
 Roots
 =====
 
+See //info.ravenbrook.com/project/mps/doc/2002-06-18/obsolete-mminfo/mmdoc/protocol/mps/root/index.html
+
 :c:macro:`MPS_RM_CONST` is a preprocessor macro defining a constant that can be or'ed with other ``MPS_RM`` constants, and passed as the :term:`root mode` argument to certain root creation functions (:c:func:`mps_root_create`, :c:func:`mps_root_create_fmt`, :c:func:`mps_root_create_table`, :c:func:`mps_root_create_table_masked`, and :c:func:`mps_root_create_reg`).
 
 from :c:macro:`MPS_RM_PROT`:

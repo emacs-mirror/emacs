@@ -22,4 +22,4 @@ Topic reference
     telemetry
     message
     debugging
-
+    location

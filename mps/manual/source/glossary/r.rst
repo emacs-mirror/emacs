@@ -180,6 +180,23 @@ Memory Management Glossary: R
 
         .. similar:: :term:`address`, :term:`pointer`.
 
+        .. mps::
+
+            A reference is represented in the :term:`C` interface by a
+            value of type :c:type:`mps_addr_t` (an alias for ``void
+            *``) which points to a :term:`memory location` within the
+            object (typically the base of the object, but for objects
+            with :term:`headers <in-band header>` this may not be the
+            case). The pointer returned by :c:func:`mps_alloc` and
+            :c:func:`mps_reserve` is a reference to the object
+            allocated. The :term:`client program` is free to represent
+            references as it chooses (for example as :term:`tagged
+            pointer <tagged reference>`), provided that it is able to
+            decode a reference from its representation into the MPS
+            interface representation and encode a reference from the
+            MPS into its representation.
+
+
     reference counting
 
         Reference counting systems perform :term:`automatic memory
