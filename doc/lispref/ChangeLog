@@ -1,3 +1,14 @@
+2012-10-15  Chong Yidong  <cyd@gnu.org>
+
+	* macros.texi (Defining Macros): defmacro is now a macro.
+	Explicitly list the docstring and declare arguments.
+
+	* functions.texi (Anonymous Functions): Explicitly list the
+	docstring, declare, and interactive arguments to lambda.
+	(Defining Functions): Likewise for defun.
+	(Inline Functions): Likewise for defsubst.
+	(Declare Form): Tweak description.
+
 2012-10-13  Chong Yidong  <cyd@gnu.org>
 
 	* display.texi (ImageMagick Images): ImageMagick enabled by default.
