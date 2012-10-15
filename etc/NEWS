@@ -62,10 +62,11 @@ overwriting "emacs" in the installation bin/ directory with a link
 to emacs-VERSION.
 
 ---
-** The configure option `--program-transform-name' applies to more than
-just the installed binaries.  Now it also affects the man pages, icons,
-and desktop file.  It does not affect the info pages, since this would
-break links between the various manuals.
+** The configure options `--program-prefix', `--program-suffix', and
+`--program-transform-name' apply to more than just the installed
+binaries.  Now they also affect the man pages, icons, and the
+etc/emacs.desktop file; but not the info pages, since this would break
+links between the various manuals.
 
 ---
 ** Emacs uses libtinfo in preference to libncurses, if available.
