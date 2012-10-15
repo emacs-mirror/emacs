@@ -131,7 +131,7 @@ Memory Management Glossary: L
         only store the count accurately up to a certain maximum value.
         If an object has more references than the maximum then the
         count "sticks" at the maximum and is never decremented. Such
-        objects are expected to be rare, but their :term:`storage` can
+        objects are expected to be rare, but their :term:`memory (1)` can
         never be :term:`reclaimed <reclaim>` using reference counting.
         A separate (infrequently run) :term:`tracing garbage collector
         <tracing garbage collection>` is often employed to reclaim

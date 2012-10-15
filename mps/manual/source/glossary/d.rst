@@ -267,9 +267,9 @@ Memory Management Glossary: D
 
     dynamic extent
 
-        An :term:`object` has dynamic :term:`extent` if its
-        :term:`lifetime` is bounded by the execution of a function or
-        some other block construct.
+        An :term:`object` has *dynamic extent* if its :term:`lifetime`
+        is bounded by the execution of a function or some other block
+        construct.
 
         Objects of dynamic extent are usually :term:`stack-allocated
         <stack allocation>`.

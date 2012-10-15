@@ -96,3 +96,8 @@ div.seealso, div.admonition {
 p.glossary-alphabet {
     font-weight: bold;
 }
+
+sup {
+    vertical-align: 20%;
+    font-size: 80%;
+}

@@ -3,6 +3,7 @@ Sphinx extensions for the MPS documentation.
 See <http://sphinx.pocoo.org/extensions.html>
 '''
 
+from collections import defaultdict
 import re
 from docutils import nodes, transforms
 from sphinx import addnodes
@@ -136,11 +137,11 @@ all_directives = [
     TopicsDirective]
 
 see_only_ids = set()
-xref_ids = dict()
+xref_ids = defaultdict(list)
 
 class GlossaryTransform(transforms.Transform):
     default_priority = 999
-    sense_re = re.compile(r'(.*) (\([0-9]+\))$')
+    sense_re = re.compile(r'(.*)\s+(\([0-9]+\))$')
 
     def apply(self):
         global see_only_ids, xref_ids
@@ -148,7 +149,7 @@ class GlossaryTransform(transforms.Transform):
             target.children = list(self.edit_children(target))
         for target in self.document.traverse(addnodes.pending_xref):
             if target['reftype'] == 'term':
-                xref_ids['term-{}'.format(target['reftarget'])] = (target.source, target.line)
+                xref_ids['term-{}'.format(target['reftarget'])].append((target.source, target.line))
                 c = target.children
                 if len(c) == 1 and isinstance(c[0], nodes.emphasis):
                     c[0].children = list(self.edit_children(c[0]))
@@ -177,11 +178,8 @@ class GlossaryTransform(transforms.Transform):
 def warn_indirect_terms(app, exception):
     if not exception:
         for i in see_only_ids:
-            try:
-                doc, line = xref_ids[i]
+            for doc, line in xref_ids[i]:
                 print('Cross-reference to {} at {} line {}.'.format(i, doc, line))
-            except KeyError:
-                pass
 
 def setup(app):
     app.add_domain(MpsDomain)

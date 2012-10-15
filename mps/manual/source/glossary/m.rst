@@ -208,9 +208,9 @@ Memory Management Glossary: M
 
         Marking is often achieved by setting a bit in the object,
         though any conservative representation of a predicate on the
-        :term:`location` of the object can be used. In particular,
-        storing the mark bit within the object can lead to poor
-        :term:`locality of reference`.
+        :term:`memory location` of the object can be used. In
+        particular, storing the mark bit within the object can lead to
+        poor :term:`locality of reference`.
 
         .. seealso:: :term:`sweep <sweeping>`, :term:`compact <compaction>`.
 
@@ -251,8 +251,8 @@ Memory Management Glossary: M
 
     memory (2)
 
-        *Memory* refers to :term:`storage` that can be accessed by the
-        processor directly (using memory addressing instructions).
+        *Memory* refers to :term:`memory (1)` that can be accessed by
+        the processor directly (using memory addressing instructions).
 
         This could be :term:`real memory (1)` or :term:`virtual memory`.
 
@@ -262,7 +262,7 @@ Memory Management Glossary: M
 
     memory (4)
 
-        A memory :term:`location`; for example, "My digital watch has
+        A :term:`memory location`; for example, "My digital watch has
         256 memories."
 
     memory bandwidth
@@ -594,7 +594,7 @@ Memory Management Glossary: M
         collector is to perform a little of it at every allocation.
 
         While the mutator mutates, it implicitly :term:`frees <free
-        (1)>` :term:`storage` by overwriting :term:`references
+        (1)>` :term:`memory (1)` by overwriting :term:`references
         <reference>`.
 
         .. historical::

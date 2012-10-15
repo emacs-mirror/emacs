@@ -174,7 +174,8 @@ Memory Management Glossary: I
         higher-order functions are used. In some languages it is
         impossible to determine the extent at compile-time. In these
         situations, a :term:`garbage collector` can be used to
-        :term:`recycle` objects whose :term:`life` has come to an end.
+        :term:`recycle` objects whose :term:`lifetime` has come to an
+        end.
 
         .. opposite:: :term:`dynamic extent`.
 
@@ -229,10 +230,10 @@ Memory Management Glossary: I
         If the referent's generation is :term:`condemned <condemned
         set>` and the referrer's generation is not, then the reference
         is important in two ways. First, the reference keeps the
-        referent :term:`alive`, so the referrer must be :term:`scanned
-        <scan>` during the :term:`collection`. Second, the reference
-        must always refer to the referent, so if the referent is
-        moved, then the referrer must be updated.
+        referent :term:`alive <live>`, so the referrer must be
+        :term:`scanned <scan>` during the :term:`collection cycle`.
+        Second, the reference must always refer to the referent, so if
+        the referent is moved, then the referrer must be updated.
 
         During a collection, the only objects in non-condemned areas
         that must be scanned are the ones that contain
@@ -262,8 +263,8 @@ Memory Management Glossary: I
 
         It is common to have interior pointers into string buffers or
         to embedded structures. A :term:`suballocator` may place a
-        :term:`header` at the start of each object and pass on an
-        interior pointer.
+        :term:`header <in-band header>` at the start of each object
+        and pass on an interior pointer.
 
         .. relevance::
 

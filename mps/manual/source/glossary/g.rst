@@ -31,9 +31,9 @@ Memory Management Glossary: G
         Garbage collection is a tried and tested memory management
         technique that has been in use since its invention in the
         1950s. GC avoids the need for the programmer to
-        :term:`deallocate` memory :term:`blocks <block>` explicitly,
-        thus avoiding a number of problems: :term:`memory leaks
-        <memory leak>`, :term:`double frees <double free>`, and
+        :term:`deallocate <free (1)>` memory :term:`blocks <block>`
+        explicitly, thus avoiding a number of problems: :term:`memory
+        leaks <memory leak>`, :term:`double frees <double free>`, and
         :term:`premature frees <premature free>`. The burden on the
         programmer is reduced by not having to investigate such
         problems, thereby increasing productivity.

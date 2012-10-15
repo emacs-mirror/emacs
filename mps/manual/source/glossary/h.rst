@@ -77,7 +77,7 @@ Memory Management Glossary: H
 
         *Heap allocation* or *dynamic allocation* means run-time
         :term:`allocation <allocate>` and :term:`deallocation <free
-        (1)>` of :term:`storage` in arbitrary order.
+        (1)>` of :term:`memory (1)` in arbitrary order.
 
         Dynamic allocation is usually for :term:`objects <object>`
         whose size, quantity, or :term:`lifetime` could not be
