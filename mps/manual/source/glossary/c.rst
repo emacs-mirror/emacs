@@ -583,7 +583,7 @@ Memory Management Glossary: C
         A copying garbage collection relies on being able to find and
         correct all :term:`references <reference>` to copied objects.
 
-        .. figure:: ../diagrams/copying.png
+        .. figure:: ../diagrams/copying.svg
             :align: center
             :alt: Diagram: Copying garbage collection.
 
