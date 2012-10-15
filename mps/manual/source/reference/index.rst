@@ -70,12 +70,6 @@ Declared in ``mps.h``
         ``va_list`` mechanism.
 
 
-.. c:function:: mps_res_t mps_alloc_v(mps_addr_t *p_o, mps_pool_t pool, size_t size, va_list args)
-
-    An alternative to :c:func:`mps_alloc` that takes its extra
-    arguments using the standard :term:`C` ``va_list`` mechanism.
-
-
 .. c:function:: mps_alloc_pattern_t mps_alloc_pattern_ramp(void)
 
     Return an :term:`allocation pattern` indicating that allocation
@@ -112,6 +106,30 @@ Declared in ``mps.h``
     .. topics::
 
         :ref:`topic-pattern`.
+
+
+.. c:type:: mps_alloc_pattern_t
+
+    The type of :term:`allocation patterns <allocation pattern>`.
+
+    An allocation pattern is a hint to the MPS to expect a particular
+    pattern of allocation on an :term:`allocation point`. The MPS may
+    use this hint to schedule its decisions as to when and what to
+    collect.
+
+    There are two allocation patterns,
+    :c:func:`mps_alloc_pattern_ramp` and
+    :c:func:`mps_alloc_pattern_ramp_collect_all`.
+
+    .. topics::
+
+        :ref:`topic-pattern`.
+
+
+.. c:function:: mps_res_t mps_alloc_v(mps_addr_t *p_o, mps_pool_t pool, size_t size, va_list args)
+
+    An alternative to :c:func:`mps_alloc` that takes its extra
+    arguments using the standard :term:`C` ``va_list`` mechanism.
 
 
 .. c:function:: mps_res_t mps_ap_alloc_pattern_begin(mps_ap_t ap, mps_alloc_pattern_t alloc_pattern)
@@ -480,7 +498,7 @@ Declared in ``mps.h``
     that no new collections begin. The MPS also uses barriers to
     maintain :term:`remembered sets <remembered set>`, so calling this
     function will effectively destroy the remembered sets and any
-    optimisation gains from them.
+    optimization gains from them.
 
     Calling this function is time-consuming: any active collections
     will be run to completion; and the next collection will have to
@@ -1438,6 +1456,159 @@ Declared in ``mps.h``
         doesn't have to touch the dead object at all).
 
 
+.. c:function:: void mps_ld_add(mps_ld_t ld, mps_arena_t arena, mps_addr_t addr)
+
+    Add a dependency on a :term:`block` to a :term:`location
+    dependency`.
+
+    *ld* is a location dependency.
+
+    *arena* is an :term:`arena`.
+
+    *addr* is the address of the block. It can be any address: it 
+    is not limited to addresses in *arena*.
+
+    After calling :c:func:`mps_ld_add`, and until *ld* is passed to
+    :c:func:`mps_ld_reset`, the call ::
+
+        mps_ld_isstale(ld, arena, addr)
+
+    will return true if the block has moved. It is possible to add the
+    same address more than once.
+
+    :c:func:`mps_ld_add` is not thread-safe with respect to
+    :c:func:`mps_ld_add`, :c:func:`mps_ld_merge`, or
+    :c:func:`mps_ld_reset` on the same location dependency, but it is
+    thread-safe with respect to :c:func:`mps_ld_isstale` operations.
+    This means that calls to :c:func:`mps_ld_add` from different
+    :term:`threads <thread>` must interlock if they are using the same
+    location dependency. The practical upshot of this is that there
+    should be a lock associated with each location dependency.
+
+    :c:func:`mps_ld_add` does not allocate.
+
+    .. topics::
+
+        :ref:`topic-location`.
+
+
+.. c:function:: mps_bool_t mps_ld_isstale(mps_ld_t ld, mps_arena_t arena, mps_addr_t addr)
+
+    Determine if any of the depdencies in a :term:`location
+    dependency` are stale.
+
+    *ld* is the location dependency.
+
+    *arena* is an arena.
+
+    *addr* is an address.
+
+    The location dependency is examined to determine whether any of
+    the dependencies encapsulated in it have been made stale. If any
+    of the dependencies encapsulated in the location dependency are
+    stale (that is, the blocks whose location has been depended on
+    have moved) then :c:func:`mps_ld_isstale` will return true. If
+    there have been no calls to :c:func:`mps_ld_add` on *ld* since the
+    last call to :c:func:`mps_ld_reset`, then :c:func:`mps_ld_isstale`
+    will return false. :c:func:`mps_ld_isstale` may return any value
+    in other circumstances (but will strive to return false if the
+    objects encapsulated in the location dependency have not moved).
+
+    :c:func:`mps_ld_isstale` is thread-safe with respect to itself and
+    with respect to :c:func:`mps_ld_add`, but not with respect to
+    :c:func:`mps_ld_reset`.
+
+    .. topics::
+
+        :ref:`topic-location`.
+
+
+.. c:function:: void mps_ld_merge(mps_ld_t dest_ld, mps_arena_t arena, mps_ld_t src_ld)
+
+    Merge one :term:`location dependency` into another.
+
+    *dest_ld* is the destination of the merge.
+
+    *arena* is an :term:`arena`.
+
+    *src_ld* is the source of the merge.
+
+    The effect of this is to add all the addresses that were added to
+    *src_ld* to the *dest_ld*.
+    
+    :c:func:`mps_ld_merge` has the same thread-safety properties as
+    :c:func:`mps_ld_add`.
+
+    .. topics::
+
+        :ref:`topic-location`.
+
+
+.. c:function:: void mps_ld_reset(mps_ld_t ld, mps_arena_t arena)
+
+    Reset a :term:`location dependency`.
+
+    *ld* is the location dependency.
+
+    *arena* is an arena.
+
+    After this call, *ld* encapsulates no dependencies. After the call
+    to :c:func:`mps_ld_reset` and prior to any call to
+    :c:func:`mps_ld_add` on *ld*, :c:func:`mps_ld_isstale` on *ld*
+    will return false for all addresses.
+
+    :c:func:`mps_ld_reset` is not thread-safe with respect to any
+    other location dependency function.
+
+    .. topics::
+
+        :ref:`topic-location`.
+
+
+.. c:type:: mps_ld_s
+
+    The type of the structure used to represent a :term:`location
+    dependency`. ::
+
+        typedef struct mps_ld_s { 
+            mps_word_t w0, w1;
+        } mps_ld_s;
+
+    It is an opaque structure type: it is supplied so that the
+    :term:`client program` can inline the structure (because its size
+    is known), but the client not access it other than through the
+    functions :c:func:`mps_ld_add`, :c:func:`mps_ld_isstale`,
+    :c:func:`mps_ld_merge`, and :c:func:`mps_ld_reset`.
+
+    .. topics::
+
+        :ref:`topic-location`.
+
+
+.. c:type:: mps_ld_t
+
+    The type of :term:`location dependency <location dependencies>. It
+    is an alias (via the :term:`C` ``typedef`` mechanism) for
+    a pointer to :c:type:`mps_ld_s`.
+
+    A location dependency records the fact that the :term:`client
+    program` depends on the bit patterns of some :term:`references
+    <reference>` (and not merely on the :term:`block` to which the
+    reference refers), and provides a function
+    (:c:func:`mps_ld_isstale`) to find out whether any of these
+    references have been changed because a block has been
+    :term:`moved <moving garbage collector>`.
+
+    A typical use is in the implementation of a hash table whiches
+    hashes blocks by hashing their addresses. After a block has moved,
+    the hash table needs to be rehashed, otherwise it will not be
+    found in the table.
+
+    .. topics::
+
+        :ref:`topic-location`.
+
+
 .. c:function:: mps_clock_t mps_message_clock(mps_arena_t arena, mps_message_t message)
 
     Returns the time at which the MPS posted a :term:`message`.
@@ -1960,9 +2131,9 @@ Declared in ``mps.h``
 
 .. c:type:: mps_rank_t
 
-    The type of :term:`ranks <rank>`. It is an alias (via the C
-    ``typedef`` mechanism) for ``unsigned int``, provided for
-    convenience and clarity.
+    The type of :term:`ranks <rank>`. It is an alias (via the
+    :term:`C` ``typedef`` mechanism) for ``unsigned int``, provided
+    for convenience and clarity.
 
     .. topics::
 
@@ -2019,7 +2190,7 @@ Declared in ``mps.h``
 .. c:type:: mps_res_t
 
     The type of :term:`result codes <result code>`. It is an alias
-    (via the C ``typedef`` mechanism) for ``int``, provided for
+    (via the :term:`C` ``typedef`` mechanism) for ``int``, provided for
     convenience and clarity.
 
     A result code indicates the success or failure of an operation,
@@ -3182,15 +3353,19 @@ Declared in ``mpscamc.h``
     Return the :term:`pool class` for an AMC (Automatic
     Mostly-Copying) :term:`pool`.
 
-    When creating an AMC pool, :c:func:`mps_pool_create` takes one
-    extra argument::
+    When creating an AMC pool, :c:func:`mps_pool_create` takes two
+    extra arguments::
 
         mps_res_t mps_pool_create(mps_pool_t *pool_o, mps_arena_t arena, 
                                   mps_class_t mps_class_amc(),
-                                  mps_fmt_t fmt)
+                                  mps_fmt_t fmt,
+                                  mps_chain_t chain)
 
     *fmt* specifies the :term:`object format` for the objects
     allocated in the pool.
+
+    *chain* specifies the :term:`generation chain` that the objects in
+    the pool will be collected into.
 
     .. topics::
 
@@ -3453,14 +3628,11 @@ Undocumented in ``mps.h``
 =========================
 
 .. c:type:: mps_chain_t
-.. c:type:: mps_ld_t
-.. c:type:: mps_alloc_pattern_t
 .. c:type:: mps_frame_t
 .. c:type:: mps_word_t
 .. c:type:: mps_shift_t
 .. c:type:: mps_rm_t
 .. c:type:: mps_sac_freelist_block_s
-.. c:type:: mps_ld_s
 .. c:type:: mps_fmt_fixed_s
 .. c::function:: mps_bool_t mps_arena_step(mps_arena_t arena, double interval, double multiplier)
 .. c:function:: mps_res_t mps_arena_start_collect(mps_arena_t arena)
@@ -3493,10 +3665,6 @@ Undocumented in ``mps.h``
 .. c:function:: void mps_tramp(void **r_o, mps_tramp_t tramp, void *p, size_t s)
 .. c:function:: mps_res_t mps_thread_reg(mps_thr_t *mps_thr_o, mps_arena_t arena)
 .. c:function:: void mps_thread_dereg(mps_thr_t thread)
-.. c:function:: void mps_ld_reset(mps_ld_t ld, mps_arena_t arena)
-.. c:function:: void mps_ld_add(mps_ld_t ld, mps_arena_t arena, mps_addr_t addr)
-.. c:function:: void mps_ld_merge(mps_ld_t ld, mps_arena_t arena, mps_ld_t from)
-.. c:function:: mps_bool_t mps_ld_isstale(mps_ld_t ld, mps_arena_t arena, mps_addr_t addr)
 .. c:function:: mps_word_t mps_collections(mps_arena_t arena)
 .. c:function:: mps_res_t mps_definalize(mps_arena_t arena, mps_addr_t *refref)
 .. c:function:: mps_res_t mps_alert_collection_set(mps_arena_t arena, mps_alert_collection_fn_t fn)
