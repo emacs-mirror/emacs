@@ -32,6 +32,10 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #define DBUS_NUM_MESSAGE_TYPES 5
 #endif
 
+#ifdef interface
+#undef interface
+#endif
+
 
 /* Subroutines.  */
 static Lisp_Object Qdbus_init_bus;
