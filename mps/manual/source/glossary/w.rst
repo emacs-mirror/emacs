@@ -57,7 +57,7 @@ Memory Management Glossary: W
 
         .. opposite:: :term:`strong root`.
 
-        .. mps::
+        .. mps:specific::
 
             A weak root has :term:`rank` :c:func:`mps_rank_weak`.
 

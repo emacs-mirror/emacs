@@ -100,7 +100,7 @@ Memory Management Glossary: E
 
         .. seealso:: :term:`exact reference`.
 
-        .. mps::
+        .. mps:specific::
 
             An exact root has :term:`rank` :c:func:`mps_rank_exact`.
 

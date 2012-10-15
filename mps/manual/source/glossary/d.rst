@@ -70,7 +70,7 @@ Memory Management Glossary: D
 
     debugging pool
 
-        .. mps::
+        .. mps:specific::
 
             A :term:`pool` that performs extra checking in order to
             find errors in the :term:`client program`. It uses

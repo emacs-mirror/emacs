@@ -223,7 +223,7 @@ Memory Management Glossary: B
         :term:`allocated <allocate>` by an :term:`allocator` such as
         :term:`malloc`.
 
-        .. mps::
+        .. mps:specific::
 
             The term *block* is used as a general term for a unit of
             allocation, with *object* being reserved for
@@ -347,7 +347,7 @@ Memory Management Glossary: B
 
         .. bibref:: [AEL88]_.
 
-        .. mps::
+        .. mps:specific::
 
             Buffers are implemented using :term:`allocation points
             <allocation point>` attached to :term:`pools <pool>`.

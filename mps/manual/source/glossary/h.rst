@@ -112,7 +112,7 @@ Memory Management Glossary: H
 
     hot
 
-        .. mps::
+        .. mps:specific::
 
             A :term:`variety` in which many MPS functions
             :term:`assert <assertion>` that their data structures are

@@ -1,6 +1,4 @@
-Things to do or try:
-
-1. Create a new domain <http://sphinx.pocoo.org/ext/appapi.html#sphinx.domains.Domain>
+TODO
 
 2. Create new types of objects for pools and topics.
 
@@ -17,3 +15,10 @@ Things to do or try:
 8. Use a better bibliography extension. See for example <http://wnielson.bitbucket.org/projects/sphinx-natbib/>
 
 9. Hyphenate long function names across line endings.
+
+
+DONE
+
+1. Create a new domain <http://sphinx.pocoo.org/ext/appapi.html#sphinx.domains.Domain>
+
+10. Pluralize "Topic" to "Topics" and so on.
