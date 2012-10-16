@@ -345,9 +345,10 @@ Declared in ``mps.h``
 
     *arena* is the arena to return the commit limit for.
 
-    Returns the commit limit in bytes. The commit limit controls how
-    much memory the MPS can obtain from the operating system, and can
-    be changed using :c:func:`mps_arena_commit_limit_set`.
+    Returns the commit limit in :term:`bytes <byte (1)>`. The commit
+    limit controls how much memory the MPS can obtain from the
+    operating system, and can be changed using
+    :c:func:`mps_arena_commit_limit_set`.
 
     .. topics::
 
@@ -360,7 +361,7 @@ Declared in ``mps.h``
 
     *arena* is the arena to change the commit limit for.
 
-    *limit* is the new commit limit in bytes.
+    *limit* is the new commit limit in :term:`bytes <byte (1)>`.
 
     Returns :c:macro:`MPS_RES_OK` if successful, or another
     :term:`result code` if not.
@@ -402,7 +403,7 @@ Declared in ``mps.h``
     *arena* is the arena.
 
     Returns the total amount of memory that has been committed to RAM
-    by the MPS, in bytes.
+    by the MPS, in :term:`bytes <byte (1)>`.
 
     The committed memory is generally larger than the sum of the sizes
     of the allocated :term:`blocks <block>`. The reasons for this are:
@@ -663,8 +664,8 @@ Declared in ``mps.h``
 
     *arena* is the arena to return the spare commit limit for.
 
-    Returns the spare commit limit in bytes. The spare commit limit
-    can be changed by calling
+    Returns the spare commit limit in :term:`bytes <byte (1)>`. The
+    spare commit limit can be changed by calling
     :c:func:`mps_arena_spare_commit_limit_set`.
 
     .. topics::
@@ -678,7 +679,7 @@ Declared in ``mps.h``
 
     *arena* is the arena to change the spare commit limit for.
 
-    *limit* is the new spare commit limit in bytes.
+    *limit* is the new spare commit limit in :term:`bytes <byte (1)>`.
 
     The spare commit limit is the maximum amount of :term:`spare
     committed memory` the MPS is allowed to have. Setting it to a
@@ -2070,8 +2071,9 @@ Declared in ``mps.h``
     *fence_template* points to a template for :term:`fenceposts
     <fencepost>`.
 
-    *fence_size* is the :term:`size` of *fence_template* in bytes, or
-    zero if the debugging pool should not use fenceposts.
+    *fence_size* is the :term:`size` of *fence_template* in
+    :term:`bytes <byte (1)>`, or zero if the debugging pool should not
+    use fenceposts.
 
     *free_template* points to a template for splatting free space.
 
@@ -3114,7 +3116,7 @@ Declared in ``mps.h``
 
     Flush the internal event buffers into the :term:`telemetry stream`.
 
-    This function also calls :c:func:`mps_lib_io_flush` on the event
+    This function also calls :c:func:`mps_io_flush` on the event
     stream itself. This ensures that even the latest events are now
     properly recorded, should the :term:`client program` terminate
     (uncontrollably as a result of a bug, for example) or some
@@ -3254,15 +3256,15 @@ Declared in ``mpsavm.h``
                                    mps_arena_class_t arena_class_vm(),
                                    size_t size)
 
-    *size* is the initial amount of virtual address space, in bytes,
-    that the arena will reserve (this space is initially reserved so
-    that the arena can subsequently use it without interference from
-    other parts of the program, but most of it is not committed, so
-    it don't require any RAM or backing store). The arena may
-    allocate more virtual address space beyond this initial
-    reservation as and when it deems it necessary. The MPS is most
-    efficient if you reserve an address space that is several times
-    larger than your peak memory usage.
+    *size* is the initial amount of virtual address space, in
+    :term:`bytes <byte (1)>`, that the arena will reserve (this space
+    is initially reserved so that the arena can subsequently use it
+    without interference from other parts of the program, but most of
+    it is not committed, so it don't require any RAM or backing
+    store). The arena may allocate more virtual address space beyond
+    this initial reservation as and when it deems it necessary. The
+    MPS is most efficient if you reserve an address space that is
+    several times larger than your peak memory usage.
 
     If the MPS fails to reserve adequate address space to place the
     arena in, :c:func:`mps_arena_create` returns
@@ -3293,10 +3295,10 @@ Declared in ``mpsavm.h``
                                    mps_arena_class_t arena_class_vmnz,
                                    size_t size)
 
-    *size* is the total amount of virtual address space, in bytes,
-    that the arena will reserve. The arena will not subsequently use
-    any more address space: compare with :c:func:`mps_arena_class_vm`,
-    which can grow.
+    *size* is the total amount of virtual address space, in
+    :term:`bytes <byte (1)>`, that the arena will reserve. The arena
+    will not subsequently use any more address space: compare with
+    :c:func:`mps_arena_class_vm`, which can grow.
 
     .. topics::
 
@@ -3488,6 +3490,104 @@ Declared in ``mpscsnc.h``
     .. topics::
 
         :ref:`pool-snc`.
+
+
+=======================
+Declared in ``mpsio.h``
+=======================
+
+.. c:type:: mps_io_t
+
+    The type of the internal state of the I/O module.
+
+    This is an alias for a pointer to the incomplete structure
+    :c:type:`mps_io_s`, which the :term:`plinth` may define if it
+    needs to. Alternatively, it may leave the structure type undefined
+    and simply cast its own pointer to and from :c:type:`mps_io_t`.
+
+    .. topics::
+
+        :ref:`topic-plinth`.
+
+
+.. c:function:: mps_res_t mps_io_create(mps_io_t *io_o)
+
+    A :term:`plinth` function for setting up the I/O module.
+
+    *io_o* points to a location which the plinth may update with a
+    pointer to its internal state, if any.
+
+    Returns :c:macro:`MPS_RES_OK` if successful.
+
+    The MPS calls this function to set up the I/O module, for example
+    if there are events in the :term:`telemetry stream` that need to
+    be output.
+
+    A typical plinth will use it to open a file for writing, or to
+    connect to the system logging interface.
+
+    .. topics::
+
+        :ref:`topic-plinth`.
+
+
+.. c:function:: void mps_io_destroy(mps_io_t io)
+
+    A :term:`plinth` function for tearing down the I/O module.
+
+    *io* is the value that the plinth wrote to *io_o* when the MPS
+    called :c:func:`mps_io_create`. If the plinth wrote no value, this
+    parameter is undefined.
+
+    After calling this function, the MPS guarantees not to use the
+    value *io* again.
+
+    .. topics::
+
+        :ref:`topic-plinth`.
+
+
+.. c:function:: mps_res_t mps_io_write(mps_io_t io, void *buf, size_t size)
+
+    A :term:`plinth` function for writing data via the I/O module.
+
+    *io* is the value that the plinth wrote to *io_o* when the MPS
+    called :c:func:`mps_io_create`. If the plinth wrote no value, this
+    parameter is undefined.
+
+    *buf* points to the data to write.
+
+    *size* is the :term:`size` of the data in :term:`bytes <byte (1)>`.
+
+    Returns :c:macro:`MPS_RES_OK` if successful.
+
+    .. topics::
+
+        :ref:`topic-plinth`.
+
+
+.. c:function:: mps_res_t mps_io_flush(mps_io_t io)
+
+    A :term:`plinth` function for flushing the I/O module.
+
+    *io* is the value that the plinth wrote to *io_o* when the MPS
+    called :c:func:`mps_io_create`. If the plinth wrote no value, this
+    parameter is undefined.
+
+    Returns :c:macro:`MPS_RES_OK` if successful.
+
+    The MPS calls this function when it is done with the
+    :term:`telemetry stream`, or when the :term:`client program` calls
+    :c:func:`mps_telemetry_flush`. This function should ensure that
+    the buffers of data passed to the latest calls to
+    :c:func:`mps_io_write` are properly recorded, should the
+    :term:`client program` terminate (uncontrollably as a result of a
+    bug, for example) or some interactive tool require access to the
+    event data.
+
+    .. topics::
+
+        :ref:`topic-plinth`.
 
 
 ========================
@@ -3852,14 +3952,28 @@ Declared in ``mpstd.h``
         :ref:`topic-platform`.
 
 
+.. c:type:: MPS_T_ULONGEST
+
+    The largest unsigned integral type.
+
+    The exact identity of this type is
+    :term:`platform`\-dependent. Typical identities are ``unsigned
+    long`` and ``unsigned __int_64``.
+
+    .. topics::
+
+        :ref:`topic-platform`.
+
+
 .. c:type:: MPS_T_WORD
 
     An unsigned integral type that is the same size as an
     :term:`object pointer`, so that ``sizeof(MPS_T_WORD) ==
     sizeof(void*)``.
 
-    The exact identity of this type is platform-dependent. Typical
-    identities are ``unsigned long`` and ``unsigned __int_64``.
+    The exact identity of this type is
+    :term:`platform`\-dependent. Typical identities are ``unsigned
+    long`` and ``unsigned __int_64``.
 
     .. topics::
 
@@ -4019,13 +4133,3 @@ Undocumented in ``mpsw3.h``
 
 .. c:function:: LONG mps_SEH_filter(LPEXCEPTION_POINTERS info, void **hp_o, size_t *hs_o)
 .. c:function:: void mps_SEH_handler(void *p, size_t s)
-
-===========================
-Undocumented in ``mpsio.h``
-===========================
-
-.. c:type:: mps_io_t
-.. c:function:: mps_res_t mps_io_create(mps_io_t *mps_io_r)
-.. c:function:: void mps_io_destroy(mps_io_t mps_io)
-.. c:function:: mps_res_t mps_io_write(mps_io_t mps_io, void *buf, size_t size)
-.. c:function:: mps_res_t mps_io_flush(mps_io_t mps_io)
