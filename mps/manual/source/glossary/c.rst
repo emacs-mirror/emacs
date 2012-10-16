@@ -204,8 +204,8 @@ Memory Management Glossary: C
 
             A :term:`formatted object` that contains data from the
             :term:`client program`. One of three types of formatted
-            objects, the other two being :term:`forwarded objects
-            <forwarded object>` and :term:`padding objects <padding
+            objects, the other two being :term:`forwarding objects
+            <forwarding object>` and :term:`padding objects <padding
             object>`.
 
     client program

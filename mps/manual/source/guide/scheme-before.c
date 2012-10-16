@@ -227,7 +227,7 @@ static obj_t obj_unquote_splic;	/* "unquote-splicing" symbol */
  *  be decoded by enclosing code.]
  */
 
-static jmp_buf *error_handler;
+static jmp_buf *error_handler = NULL;
 static char error_message[MSGMAX+1];
 
 
@@ -247,13 +247,17 @@ static void error(char *format, ...)
 {
   va_list args;
 
-  assert(error_handler != NULL);
-
   va_start(args, format);
-  vsprintf(error_message, format, args);
+  vsnprintf(error_message, sizeof error_message, format, args);
   va_end(args);
 
-  longjmp(*error_handler, 1);
+  if (error_handler) {
+    longjmp(*error_handler, 1);
+  } else {
+    fprintf(stderr, "Fatal error during initialization: %s\n",
+            error_message);
+    abort();
+  }
 }
 
 
@@ -625,8 +629,8 @@ static void print(obj_t obj, unsigned depth, FILE *stream)
     } break;
     
     default:
-    assert(0);
-    abort();
+      assert(0);
+      abort();
   }
 }
 
@@ -2059,32 +2063,41 @@ static obj_t entry_string_to_symbol(obj_t env, obj_t op_env, obj_t operator, obj
 
 /* special table */
 
-static struct {char *name; obj_t *varp;} sptab[] = {
+static struct {
+  char *name;
+  obj_t *varp;
+} sptab[] = {
   {"()", &obj_empty},
   {"#[eof]", &obj_eof},
   {"#[error]", &obj_error},
   {"#t", &obj_true},
   {"#f", &obj_false},
-  {"#[undefined]", &obj_undefined}
+  {"#[undefined]", &obj_undefined},
 };
 
 
 /* initial symbol table */
 
-static struct {char *name; obj_t *varp;} isymtab[] = {
+static struct {
+  char *name;
+  obj_t *varp;
+} isymtab[] = {
   {"quote", &obj_quote},
   {"lambda", &obj_lambda},
   {"begin", &obj_begin},
   {"else", &obj_else},
   {"quasiquote", &obj_quasiquote},
   {"unquote", &obj_unquote},
-  {"unquote-splicing", &obj_unquote_splic}
+  {"unquote-splicing", &obj_unquote_splic},
 };
 
 
 /* operator table */
 
-static struct {char *name; entry_t entry;} optab[] = {
+static struct {
+  char *name;
+  entry_t entry;
+} optab[] = {
   {"quote", entry_quote},
   {"define", entry_define},
   {"set!", entry_set},
@@ -2099,13 +2112,16 @@ static struct {char *name; entry_t entry;} optab[] = {
   {"letrec", entry_letrec},
   {"do", entry_do},
   {"delay", entry_delay},
-  {"quasiquote", entry_quasiquote}
+  {"quasiquote", entry_quasiquote},
 };
   
 
 /* function table */
 
-static struct {char *name; entry_t entry;} funtab[] = {
+static struct {
+  char *name;
+  entry_t entry;
+} funtab[] = {
   {"not", entry_not},
   {"boolean?", entry_booleanp},
   {"eqv?", entry_eqvp},
@@ -2146,7 +2162,7 @@ static struct {char *name; entry_t entry;} funtab[] = {
   {"vector-fill!", entry_vector_fill},
   {"eval", entry_eval},
   {"symbol->string", entry_symbol_to_string},
-  {"string->symbol", entry_string_to_symbol}
+  {"string->symbol", entry_string_to_symbol},
 };
 
 

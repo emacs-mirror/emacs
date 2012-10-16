@@ -345,6 +345,6 @@ Memory Management Glossary: I
             A :term:`format method` that is called by a :term:`moving
             <moving garbage collector>` :term:`pool <pool>` to
             determine if a :term:`formatted object` is a
-            :term:`forwarded object`, and if so, to return the address
+            :term:`forwarding object`, and if so, to return the address
             where the object was moved to. See
             :c:type:`mps_fmt_isfwd_t`.

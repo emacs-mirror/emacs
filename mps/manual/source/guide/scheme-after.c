@@ -16,7 +16,7 @@
  * (define (church n f a) (if (eqv? n 0) a (church (- n 1) f (f a))))
  * (church 1000 triangle 0)
  *
- * This won't produce interesting results but it will cause a garbage
+ * This won't produce interesting results but it will cause garbage
  * collection cycles.  Note that there's never any waiting for the MPS.
  * THAT'S THE POINT.
  *
@@ -109,9 +109,10 @@ enum {
   TYPE_PROMISE,
   TYPE_CHARACTER,
   TYPE_VECTOR,
-  TYPE_FWD2,            /* two-word broken heart */
-  TYPE_FWD,             /* three-words and up broken heart */
-  TYPE_PAD1             /* one-word padding object */
+  TYPE_FWD,             /* three words and up forwarding object */
+  TYPE_FWD2,            /* two-word forwarding object */
+  TYPE_PAD,             /* two words and up padding object */
+  TYPE_PAD1,            /* one-word padding object */
 };
 
 typedef struct type_s {
@@ -193,16 +194,21 @@ typedef struct vector_s {
  * See obj_pad, obj_fwd etc. to see how these are used.
  */
 
-typedef struct fwd2_s {
-  type_t type;                  /* TYPE_FWD2 */
-  obj_t fwd;                    /* forwarded object */
-} fwd2_s;
-
 typedef struct fwd_s {
   type_t type;                  /* TYPE_FWD */
   obj_t fwd;                    /* forwarded object */
   size_t size;                  /* total size of this object */
 } fwd_s;
+
+typedef struct fwd2_s {
+  type_t type;                  /* TYPE_FWD2 */
+  obj_t fwd;                    /* forwarded object */
+} fwd2_s;
+
+typedef struct pad_s {
+  type_t type;                  /* TYPE_PAD */
+  size_t size;                  /* total size of this object */
+} pad_s;
 
 typedef struct pad1_s {
   type_t type;                  /* TYPE_PAD1 */
@@ -222,6 +228,7 @@ typedef union obj_u {
   vector_s vector;
   fwd2_s fwd2;
   fwd_s fwd;
+  pad_s pad;
 } obj_s;
 
 
@@ -317,7 +324,7 @@ static obj_t obj_unquote_splic;	/* "unquote-splicing" symbol */
  *  be decoded by enclosing code.]
  */
 
-static jmp_buf *error_handler;
+static jmp_buf *error_handler = NULL;
 static char error_message[MSGMAX+1];
 
 
@@ -363,13 +370,17 @@ static void error(char *format, ...)
 {
   va_list args;
 
-  assert(error_handler != NULL);
-
   va_start(args, format);
-  vsprintf(error_message, format, args);
+  vsnprintf(error_message, sizeof error_message, format, args);
   va_end(args);
 
-  longjmp(*error_handler, 1);
+  if (error_handler) {
+    longjmp(*error_handler, 1);
+  } else {
+    fprintf(stderr, "Fatal error during initialization: %s\n",
+            error_message);
+    abort();
+  }
 }
 
 
@@ -826,8 +837,8 @@ static void print(obj_t obj, unsigned depth, FILE *stream)
     } break;
     
     default:
-    assert(0);
-    abort();
+      assert(0);
+      abort();
   }
 }
 
@@ -2351,33 +2362,42 @@ static obj_t entry_gc(obj_t env, obj_t op_env, obj_t operator, obj_t operands)
 
 /* special table */
 
-static struct {char *name; obj_t *varp;} sptab[] = {
+static struct {
+  char *name;
+  obj_t *varp;
+} sptab[] = {
   {"()", &obj_empty},
   {"#[eof]", &obj_eof},
   {"#[error]", &obj_error},
   {"#t", &obj_true},
   {"#f", &obj_false},
   {"#[undefined]", &obj_undefined},
-  {"#[tail]", &obj_tail}
+  {"#[tail]", &obj_tail},
 };
 
 
 /* initial symbol table */
 
-static struct {char *name; obj_t *varp;} isymtab[] = {
+static struct {
+  char *name;
+  obj_t *varp;
+} isymtab[] = {
   {"quote", &obj_quote},
   {"lambda", &obj_lambda},
   {"begin", &obj_begin},
   {"else", &obj_else},
   {"quasiquote", &obj_quasiquote},
   {"unquote", &obj_unquote},
-  {"unquote-splicing", &obj_unquote_splic}
+  {"unquote-splicing", &obj_unquote_splic},
 };
 
 
 /* operator table */
 
-static struct {char *name; entry_t entry;} optab[] = {
+static struct {
+  char *name;
+  entry_t entry;
+} optab[] = {
   {"quote", entry_quote},
   {"define", entry_define},
   {"set!", entry_set},
@@ -2392,13 +2412,16 @@ static struct {char *name; entry_t entry;} optab[] = {
   {"letrec", entry_letrec},
   {"do", entry_do},
   {"delay", entry_delay},
-  {"quasiquote", entry_quasiquote}
+  {"quasiquote", entry_quasiquote},
 };
   
 
 /* function table */
 
-static struct {char *name; entry_t entry;} funtab[] = {
+static struct {
+  char *name;
+  entry_t entry;
+} funtab[] = {
   {"not", entry_not},
   {"boolean?", entry_booleanp},
   {"eqv?", entry_eqvp},
@@ -2442,7 +2465,7 @@ static struct {char *name; entry_t entry;} funtab[] = {
   {"eval", entry_eval},
   {"symbol->string", entry_symbol_to_string},
   {"string->symbol", entry_string_to_symbol},
-  {"gc", entry_gc}
+  {"gc", entry_gc},
 };
 
 
@@ -2475,12 +2498,12 @@ static struct {char *name; entry_t entry;} funtab[] = {
 
 static mps_res_t obj_scan(mps_ss_t ss, mps_addr_t base, mps_addr_t limit)
 {
-#define FIX(ref) \
-  do { \
+#define FIX(ref)                                                    \
+  do {                                                              \
     mps_addr_t _addr = (ref); /* copy to local to avoid type pun */ \
-    mps_res_t res = MPS_FIX12(ss, &_addr); \
-    if (res != MPS_RES_OK) return res; \
-    (ref) = _addr; \
+    mps_res_t res = MPS_FIX12(ss, &_addr);                          \
+    if (res != MPS_RES_OK) return res;                              \
+    (ref) = _addr;                                                  \
   } while(0)
 
   MPS_SCAN_BEGIN(ss) {
@@ -2530,20 +2553,21 @@ static mps_res_t obj_scan(mps_ss_t ss, mps_addr_t base, mps_addr_t limit)
                ALIGN(offsetof(vector_s, vector) +
                      obj->vector.length * sizeof(obj->vector.vector[0]));
         break;
+      case TYPE_FWD:
+        base = (char *)base + ALIGN(obj->fwd.size);
+        break;
       case TYPE_FWD2:
         base = (char *)base + ALIGN(sizeof(fwd2_s));
         break;
-      case TYPE_FWD:
-        base = (char *)base + ALIGN(obj->fwd.size);
+      case TYPE_PAD:
+        base = (char *)base + ALIGN(obj->pad.size);
         break;
       case TYPE_PAD1:
         base = (char *)base + ALIGN(sizeof(pad1_s));
         break;
       default:
-        assert(0);
         fprintf(stderr, "Unexpected object on the heap\n");
         abort();
-        return MPS_RES_FAIL;
       }
     }
   } MPS_SCAN_END(ss);
@@ -2594,20 +2618,21 @@ static mps_addr_t obj_skip(mps_addr_t base)
            ALIGN(offsetof(vector_s, vector) +
                  obj->vector.length * sizeof(obj->vector.vector[0]));
     break;
+  case TYPE_FWD:
+    base = (char *)base + ALIGN(obj->fwd.size);
+    break;
   case TYPE_FWD2:
     base = (char *)base + ALIGN(sizeof(fwd2_s));
     break;
-  case TYPE_FWD:
-    base = (char *)base + ALIGN(obj->fwd.size);
+  case TYPE_PAD:
+    base = (char *)base + ALIGN(obj->pad.size);
     break;
   case TYPE_PAD1:
     base = (char *)base + ALIGN(sizeof(pad1_s));
     break;
   default:
-    assert(0);
     fprintf(stderr, "Unexpected object on the heap\n");
     abort();
-    return NULL;
   }
   return base;
 }
@@ -2625,10 +2650,10 @@ static mps_addr_t obj_isfwd(mps_addr_t addr)
 {
   obj_t obj = addr;
   switch (obj->type.type) {
-  case TYPE_FWD2:
-    return obj->fwd2.fwd;
   case TYPE_FWD:
     return obj->fwd.fwd;
+  case TYPE_FWD2:
+    return obj->fwd2.fwd;
   }
   return NULL;
 }
@@ -2663,10 +2688,10 @@ static void obj_fwd(mps_addr_t old, mps_addr_t new)
  *
  * The job of `obj_pad` is to fill in a block of memory with a padding
  * object that will be skipped by `obj_scan` or `obj_skip` but does
- * nothing else.  Because we've chosen to align to single words, we may
+ * nothing else. Because we've chosen to align to single words, we may
  * have to pad a single word, so we have a special single-word padding
- * object, `PAD1` for that purpose.  Otherwise we can use forwarding
- * objects with their `fwd` fields set to `NULL`.
+ * object, `PAD1` for that purpose. Otherwise we can use multi-word
+ * padding objects, `PAD`.
  */
 
 static void obj_pad(mps_addr_t addr, size_t size)
@@ -2675,28 +2700,10 @@ static void obj_pad(mps_addr_t addr, size_t size)
   assert(size >= ALIGN(sizeof(pad1_s)));
   if (size == ALIGN(sizeof(pad1_s))) {
     obj->type.type = TYPE_PAD1;
-  } else if (size == ALIGN(sizeof(fwd2_s))) {
-    obj->type.type = TYPE_FWD2;
-    obj->fwd2.fwd = NULL;
   } else {
-    obj->type.type = TYPE_FWD;
-    obj->fwd.fwd = NULL;
-    obj->fwd.size = size;
+    obj->type.type = TYPE_PAD;
+    obj->pad.size = size;
   }
-}
-
-
-/* obj_copy -- object format copy method                        %%MPS
- *
- * The job of `obj_copy` is to make a copy of an object.
- * TODO: Explain why this exists.
- */
-
-static void obj_copy(mps_addr_t old, mps_addr_t new)
-{
-  mps_addr_t limit = obj_skip(old);
-  size_t size = (char *)limit - (char *)old;
-  (void)memcpy(new, old, size);
 }
 
 
@@ -2710,10 +2717,10 @@ struct mps_fmt_A_s obj_fmt_s = {
   sizeof(mps_word_t),
   obj_scan,
   obj_skip,
-  obj_copy,
+  NULL,
   obj_fwd,
   obj_isfwd,
-  obj_pad
+  obj_pad,
 };
 
 
@@ -2908,7 +2915,7 @@ static void *start(void *p, size_t s)
 
 static mps_gen_param_s obj_gen_params[] = {
   { 150, 0.85 },
-  { 170, 0.45 }
+  { 170, 0.45 },
 };
 
 

@@ -32,7 +32,7 @@ Memory Management Glossary: P
             A :term:`formatted object` that consists of
             :term:`padding`. One of three types of formatted objects,
             the other two being :term:`client objects <client object>`
-            and :term:`forwarded objects <forwarded object>`.
+            and :term:`forwarding objects <forwarding object>`.
 
     page
 

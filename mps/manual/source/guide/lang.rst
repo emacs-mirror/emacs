@@ -16,7 +16,7 @@ garbage collection to the runtime system for a programming language.
 
 I'm assuming that you've downloaded and compiled the MPS (see
 :ref:`guide-install`), and that you are familiar with the overall
-architecture of the MPS (:ref:`guide-overview`).
+architecture of the MPS (see :ref:`guide-overview`).
 
 
 ------------------
@@ -94,12 +94,23 @@ operate on objects generically, testing ``TYPE(obj)`` as necessary. For example,
         }
     }
 
-Each constructor (for example ``make_pair`` is the constructor for
-pairs) allocates memory for the new object by calling ``malloc``,
-but objects do not get freed, because they have :term:`indefinite
-extent`, so it is necessary to prove that they are :term:`dead` before
-their memory can be :term:`reclaimed <reclaim>`. And that task falls
-to the :term:`garbage collector`.
+Each constructor allocates memory for the new object by calling
+``malloc``. For example ``make_pair`` is the constructor for pairs::
+
+    static obj_t make_pair(obj_t car, obj_t cdr)
+    {
+        obj_t obj = (obj_t)malloc(sizeof(pair_s));
+        if (obj == NULL) error("out of memory");
+        total += sizeof(pair_s);
+        obj->pair.type = TYPE_PAIR;
+        CAR(obj) = car;
+        CDR(obj) = cdr;
+        return obj;
+    }
+
+Objects do not get freed, because it is necessary to prove that they
+are :term:`dead` before their memory can be :term:`reclaimed
+<reclaim>`. And that task falls to the :term:`garbage collector`.
 
 
 -----------------------
@@ -191,21 +202,20 @@ these features of the MPS.
     classes.
 
 
------------------
-The object format
------------------
+-----------------------
+Describing your objects
+-----------------------
 
-In order for the MPS to be able to collect your objects, you need to
+In order for the MPS to be able to manage your objects, you need to
 tell it how to perform various operations on those objects, which you
-do by creating a set of :term:`format method <format method>`, and
-using them to specify an :term:`object format`. Here's the code for
-creating the object format for the Scheme interpreter::
+do by creating an :term:`object format`. Here's the code for creating
+the object format for the Scheme interpreter::
 
     struct mps_fmt_A_s obj_fmt_s = {
         sizeof(mps_word_t),
         obj_scan,
         obj_skip,
-        obj_copy,
+        NULL,
         obj_fwd,
         obj_isfwd,
         obj_pad,
@@ -223,7 +233,8 @@ belonging to this format. The Scheme interpreter needs its objects to
 be allocated at addresses which are multiples of the machine's word
 size.
 
-The other elements of the structure are the format methods, which are described in the following sections.
+The other elements of the structure are the :term:`format methods
+<format method>`, which are described in the following sections.
 
 .. topics::
 
@@ -234,11 +245,424 @@ The other elements of the structure are the format methods, which are described 
 The scan method
 ---------------
 
+The :term:`scan method` is a function of type
+:c:type:`mps_fmt_scan_t`. It is called by the MPS to :term:`scan` a
+block of memory. Its task is to identify all references within the
+objects in the block of memory, and "fix" them, by calling the macros
+:c:func:`MPS_FIX1` and :c:func:`MPS_FIX2` on each reference (usually
+via the convenience macro :c:func:`MPS_FIX12`).
+
+"Fixing" is a generic operation whose effect depends on the context in
+which the scan method was called. The scan method is called to
+discover references and so determine which objects are :term:`alive`
+and which are :term:`dead`, and also to update references after
+objects have been moved.
+
+Here's the scan method for the Scheme example::
+
+    static mps_res_t obj_scan(mps_ss_t ss, mps_addr_t base, mps_addr_t limit)
+    {
+        MPS_SCAN_BEGIN(ss) {
+            while (base < limit) {
+                obj_t obj = base;
+                switch (obj->type.type) {
+                case TYPE_PAIR:
+                    FIX(obj->pair.car);
+                    FIX(obj->pair.cdr);
+                    base = (char *)base + ALIGN(sizeof(pair_s));
+                    break;
+                case TYPE_INTEGER:
+                    base = (char *)base + ALIGN(sizeof(integer_s));
+                    break;
+                /* ... and so on for the other types ... */
+                default:
+                    fprintf(stderr, "Unexpected object on the heap\n");
+                    abort();
+                }
+            }
+        } MPS_SCAN_END(ss);
+        return MPS_RES_OK;
+    }
+
+The scan method receives a :term:`scan state` (``ss``) argument, and
+the block of memory to scan, from ``base`` (inclusive) to ``limit``
+(exclusive). This block of memory is known to be packed with objects
+belonging to the object format, and so the scan method loops over the
+objects in the block, dispatching on the type of each object, and then
+updating ``base`` to point to the next object in the block.
+
+For each reference in an object the scan method fixes it by calling
+:c:func:`MPS_FIX12` via the macro ``FIX``, which is defined as
+follows::
+
+    #define FIX(ref)                                                        \
+        do {                                                                \
+            mps_addr_t _addr = (ref); /* copy to local to avoid type pun */ \
+            mps_res_t res = MPS_FIX12(ss, &_addr);                          \
+            if (res != MPS_RES_OK) return res;                              \
+            (ref) = _addr;                                                  \
+        } while(0)
+
+Each call to :c:func:`MPS_FIX12` must appear between calls to the
+macros :c:func:`MPS_SCAN_BEGIN` and :c:func:`MPS_SCAN_END`. It's
+usually most convenient to call :c:func:`MPS_SCAN_BEGIN` at the start
+of the function and :c:func:`MPS_SCAN_END` at the end.
+
+There are a few things to watch out for:
+
+1. When the MPS calls your scan method, it may be part-way through
+   moving your objects. It is therefore essential that the scan method
+   only examine objects in the range of addresses it is given. Objects
+   in other ranges of addresses are not guaranteed to be in a
+   consistent state.
+
+2. Scanning is an operation on the :term:`critical path` of the MPS,
+   which means that it is important that it runs as quickly as
+   possible.
+
+3. The "fix" operation may update the reference. So if your language
+   has :term:`tagged references <tagged reference>`, you must make
+   sure that the tag is restored after the reference is updated.
+
+4. The "fix" operation may fail by returning a :term:`result code`
+   other than :c:macro:`MPS_RES_OK`. A scan function must propagate
+   such a result code to the caller, and should do so as soon as
+   practicable.
+
+.. topics::
+
+    :ref:`topic-format`, :ref:`topic-scanning`.
+
+
+---------------
+The skip method
+---------------
+
+The :term:`skip method` is a function of type
+:c:type:`mps_fmt_skip_t`. It is called by the MPS to skip over an
+object belonging to the format.
+
+Here's the skip method for the Scheme example::
+
+    static mps_addr_t obj_skip(mps_addr_t base)
+    {
+        obj_t obj = base;
+        switch (obj->type.type) {
+        case TYPE_PAIR:
+            base = (char *)base + ALIGN(sizeof(pair_s));
+            break;
+        case TYPE_INTEGER:
+            base = (char *)base + ALIGN(sizeof(integer_s));
+            break;
+        /* ... and so on for the other types ... */
+        default:
+            fprintf(stderr, "Unexpected object on the heap\n");
+            abort();
+        }
+        return base;
+    }
+
+The argument ``base`` is the address to the base of the object. The
+skip method must return the address of the base of the "next object":
+in formats of variant A like this one, this is the address of the word
+just past the end of the object.
+
+You'll see that the code in the skip method that computes the "next
+object" is the same as the corresponding code in the :term:`scan
+method`, so that it's tempting for the latter to delegate this part of
+its functionality to the former.
+
+.. topics::
+
+    :ref:`topic-format`, :ref:`topic-scanning`.
+
+
+------------------
+The forward method
+------------------
+
+The :term:`forward method` is a function of type
+:c:type:`mps_fmt_fwd_t`. It is called by the MPS after it has moved an
+object, and its task is to replace the old object with a
+:term:`forwarding object` pointing to the new location of the object.
+
+The forwarding object must satisfy these properties:
+
+1. It must be scannable and skippable, and so it will need to have a
+   type field to distinguish it from other Scheme objects.
+
+2. It must contain a pointer to the new location of the object (a
+   :term:`forwarding pointer`).
+
+3. The scan method and the skip method will both need to know the
+   length of the forwarding object. This can be arbitarily long (in
+   the case of string objects, for example) so it must contain a
+   length field.
+
+This poses a problem, because the above analysis suggests that
+forwarding objects need to contain at least three words, but Scheme
+objects might be as small as two words (for example, integers).
+
+This conundrum can be solved by having two types of forwarding object.
+The first type is suitable for forwarding objects of three words or
+longer::
+
+    typedef struct fwd_s {
+        type_t type;                  /* TYPE_FWD */
+        obj_t fwd;                    /* forwarded object */
+        size_t size;                  /* total size of this object */
+    } fwd_s;
+
+while the second type is suitable for forwarding objects of two words::
+
+    typedef struct fwd2_s {
+        type_t type;                  /* TYPE_FWD2 */
+        obj_t fwd;                    /* forwarded object */
+    } fwd2_s;
+
+Here's the forward method for the Scheme example::
+
+    static void obj_fwd(mps_addr_t old, mps_addr_t new)
+    {
+        obj_t obj = old;
+        mps_addr_t limit = obj_skip(old);
+        size_t size = (char *)limit - (char *)old;
+        assert(size >= ALIGN(sizeof(fwd2_s)));
+        if (size == ALIGN(sizeof(fwd2_s))) {
+            obj->type.type = TYPE_FWD2;
+            obj->fwd2.fwd = new;
+        } else {
+            obj->type.type = TYPE_FWD;
+            obj->fwd.fwd = new;
+            obj->fwd.size = size;
+        }
+    }
+
+The argument ``old`` is the old address of the object, and ``new`` is
+the location to which it has been moved.
+
+The fowarding objects must be scannable and skippable, so the
+following code must be added to ``obj_scan`` and ``obj_skip``::
+
+    case TYPE_FWD:
+        base = (char *)base + ALIGN(obj->fwd.size);
+        break;
+    case TYPE_FWD2:
+        base = (char *)base + ALIGN(sizeof(fwd2_s));
+        break;
+
+.. note::
+
+    The Scheme interpreter has no objects consisting of a single word.
+    If it did, the type and the forwarding pointer would have to be
+    combined into a forwarding object consisting of a single word, for
+    example by relying on the fact that pointers are never equal to
+    the small integers that are used to represent types.
+
+.. topics::
+
+    :ref:`topic-format`.
+
+
+-----------------------
+The is-forwarded method
+-----------------------
+
+The :term:`is-forwarded method` is a function of type
+:c:type:`mps_fmt_isfwd_t`. It is called by the MPS to determine if an
+object is a :term:`forwarding object`, and if it is, to determine the
+location where that object was moved.
+
+Here's the is-forwarded method for the Scheme example::
+
+    static mps_addr_t obj_isfwd(mps_addr_t addr)
+    {
+        obj_t obj = addr;
+        switch (obj->type.type) {
+        case TYPE_FWD2:
+            return obj->fwd2.fwd;
+        case TYPE_FWD:
+            return obj->fwd.fwd;
+        }
+        return NULL;
+    }
+
+It receives the address of an object, and returns the address to which
+that object was moved, or ``NULL`` if the object was not moved.
+
+.. topics::
+
+    :ref:`topic-format`.
+
+
+------------------
+The padding method
+------------------
+
+The :term:`padding method` is a function of type
+:c:type:`mps_fmt_pad_t`. It is called by the MPS to fill a block of
+memory with a :term:`padding object`: this is an object that fills
+gaps in a block of :term:`formatted objects <formatted object>`, for
+example to enable the MPS to pack objects into fixed-size units (such
+as operating system :term:`pages <page>`).
+
+A padding object must be scannable and skippable, and not confusable
+with a :term:`forwarding object`. This means they need a type and a
+size. However, padding objects might need to be as small as the
+alignment of the object format, which was specified to be a single
+word. As with forwarding objects, this can be solved by having two
+types of padding object. The first type is suitable for paddding
+objects of two words or longer::
+
+    typedef struct pad_s {
+        type_t type;                  /* TYPE_PAD */
+        size_t size;                  /* total size of this object */
+    } pad_s;
+
+while the second type is suitable for padding objects consisting of a
+single word::
+
+    typedef struct pad1_s {
+        type_t type;                  /* TYPE_PAD1 */
+    } pad1_s;
+
+Here's the padding method::
+
+    static void obj_pad(mps_addr_t addr, size_t size)
+    {
+        obj_t obj = addr;
+        assert(size >= ALIGN(sizeof(pad1_s)));
+        if (size == ALIGN(sizeof(pad1_s))) {
+            obj->type.type = TYPE_PAD1;
+        } else {
+            obj->type.type = TYPE_PAD;
+            obj->pad.size = size;
+        }
+    }
+
+The argument ``addr`` is the address at which the padding object must be created, and ``size`` is its size in bytes: this will always be a multiple of the alignment of the object format.
+
+The padding objects must be scannable and skippable, so the following
+code must be added to ``obj_scan`` and ``obj_skip``::
+
+    case TYPE_PAD:
+        base = (char *)base + ALIGN(obj->pad.size);
+        break;
+    case TYPE_PAD1:
+        base = (char *)base + ALIGN(sizeof(pad1_s));
+        break;
+
+.. topics::
+
+    :ref:`topic-format`.
+
+
+-----------------
+Generation chains
+-----------------
+
+The AMC pool requires not only an object format but a
+:term:`generation chain`. This specifies the generation structure of
+the :term:`generational garbage collection`.
+
+The client program creates a generation chain by constructing an array
+of structures of type :c:type:`mps_gen_param_s` and passing them to
+:c:func:`mps_chain_create`. Here's the code for creating
+the generation chain for the Scheme interpreter::
+
+    mps_gen_param_s obj_gen_params[] = {
+        { 150, 0.85 },
+        { 170, 0.45 },
+    };
+
+    res = mps_chain_create(&obj_chain,
+                           arena,
+                           LENGTH(obj_gen_params),
+                           obj_gen_params);
+    if (res != MPS_RES_OK) error("Couldn't create obj chain");
+
+
+-----------------
+Creating the pool
+-----------------
+
+Now you know enough to create an AMC pool! Let's review the pool
+creation code. First the object format::
+
+    struct mps_fmt_A_s obj_fmt_s = {
+        sizeof(mps_word_t),
+        obj_scan,
+        obj_skip,
+        NULL,
+        obj_fwd,
+        obj_isfwd,
+        obj_pad,
+    };
+
+    mps_fmt_t obj_fmt;
+    res = mps_fmt_create_A(&obj_fmt, arena, &obj_fmt_s);
+    if (res != MPS_RES_OK) error("Couldn't create obj format");
+
+then the generation chain::
+
+    mps_gen_param_s obj_gen_params[] = {
+        { 150, 0.85 },
+        { 170, 0.45 },
+    };
+
+    mps_chain_t obj_chain;
+    res = mps_chain_create(&obj_chain,
+                           arena,
+                           LENGTH(obj_gen_params),
+                           obj_gen_params);
+    if (res != MPS_RES_OK) error("Couldn't create obj chain");
+
+and finally the pool::
+
+    mps_pool_t obj_pool;
+    res = mps_pool_create(&obj_pool,
+                          arena,
+                          mps_class_amc(),
+                          obj_fmt,
+                          obj_chain);
+    if (res != MPS_RES_OK) error("Couldn't create obj pool");
+
+
+-----
+Roots
+-----
 
 
 
---------------
-The trampoline
---------------
+.. topics::
+
+    :ref:`topic-root`.
 
 
+-------
+Threads
+-------
+
+
+
+
+----------
+Allocation
+----------
+
+
+
+.. topics::
+
+    :ref:`topic-allocation`.
+
+
+
+--------
+Messages
+--------
+
+
+.. topics::
+
+    :ref:`topic-message`.
