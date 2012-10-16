@@ -308,7 +308,7 @@ static obj_t obj_unquote_splic;	/* "unquote-splicing" symbol */
  * jmp_buf to which the "error" function longjmps if there is
  * any kind of error during evaluation.  It can be set up by
  * any enclosing function that wants to catch errors.  There
- * is a default error handler in main, in the read-eval-print
+ * is a default error handler in `start`, in the read-eval-print
  * loop.  The error function also writes an error message
  * into "error_message" before longjmping, and this can be
  * displayed to the user when catching the error.
@@ -317,7 +317,7 @@ static obj_t obj_unquote_splic;	/* "unquote-splicing" symbol */
  *  be decoded by enclosing code.]
  */
 
-static jmp_buf *error_handler;
+static jmp_buf *error_handler = NULL;
 static char error_message[MSGMAX+1];
 
 
@@ -363,13 +363,17 @@ static void error(char *format, ...)
 {
   va_list args;
 
-  assert(error_handler != NULL);
-
   va_start(args, format);
-  vsprintf(error_message, format, args);
+  vsnprintf(error_message, sizeof error_message, format, args);
   va_end(args);
 
-  longjmp(*error_handler, 1);
+  if (error_handler) {
+    longjmp(*error_handler, 1);
+  } else {
+    fprintf(stderr, "Fatal error during initialization: %s\n",
+            error_message);
+    abort();
+  }
 }
 
 
