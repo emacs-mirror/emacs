@@ -272,16 +272,8 @@ Memory Management Glossary: F
             object with a :term:`forwarding marker` that points to the
             new location of the object. See :c:type:`mps_fmt_fwd_t`.
 
-    forwarded object
-
-        .. mps:specific::
-
-            A :term:`formatted object` that has been replaced by a
-            :term:`forwarding marker`. One of three types of formatted
-            objects, the other two being :term:`client objects <client
-            object>` and :term:`padding objects <padding object>`.
-
     forwarding marker
+    forwarding object
     forwarding pointer
 
         Some :term:`garbage collectors <garbage collector>`
@@ -295,7 +287,13 @@ Memory Management Glossary: F
 
         .. seealso:: :term:`copying garbage collection`, :term:`two-space collector`.
 
-        .. mps:specific:: The term *forwarding marker* is used.
+        .. mps:specific::
+
+            The term *forwarding object* is used. This is a
+            :term:`formatted object` that has been replaced by a
+            :term:`forwarding marker`. One of three types of formatted
+            objects, the other two being :term:`client objects <client
+            object>` and :term:`padding objects <padding object>`.
 
     fragmentation
 

@@ -1173,8 +1173,8 @@ Declared in ``mps.h``
     browsers), or a null pointer if this is not possible.
 
     It is recommended that a null pointer be returned for
-    :term:`padding objects <padding object>` and :term:`forwarded
-    objects <forwarded object>`.
+    :term:`padding objects <padding object>` and :term:`forwarding
+    objects <forwarding object>`.
 
     The exact meaning of the return value is up to the :term:`client
     program`, but it would typically bear some relation to a class or
@@ -1295,7 +1295,7 @@ Declared in ``mps.h``
 
     *addr* is the address of a candidate object.
 
-    If the *addr* is the address of a :term:`forwarded object`, return
+    If the *addr* is the address of a :term:`forwarding object`, return
     the address where the object was moved to. This must be the value
     of the *new* argument supplied to the :term:`forward method` when
     the object was moved. If not, return a null pointer.
@@ -1362,10 +1362,10 @@ Declared in ``mps.h``
     :c:macro:`MPS_RES_OK`.
 
     The scan method for an object format is called when the MPS needs
-    to scan objects in a block area of memory containing objects
-    belonging to that format. The scan method is called with a scan
-    state and the base and limit of the block of objects to scan. It
-    must then indicate references within the objects by calling
+    to scan objects in a block of memory containing objects belonging
+    to that format. The scan method is called with a scan state and
+    the base and limit of the block of objects to scan. It must then
+    indicate references within the objects by calling
     :c:func:`MPS_FIX1` and :c:func:`MPS_FIX2`.
 
     .. topics::
