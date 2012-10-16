@@ -1,5 +1,12 @@
 2012-10-16  Dmitry Antipov  <dmantipov@yandex.ru>
 
+	* alloc.c (Fmake_byte_code): Fix typo in comment.
+	* print.c (print_interval): Define as static to match prototype.
+	* indent.c (disptab_matches_widthtab, recompute_width_table):
+	Convert to eassert.
+
+2012-10-16  Dmitry Antipov  <dmantipov@yandex.ru>
+
 	* editfns.c (get_system_name): Remove.
 	* lisp.h (get_system_name): Remove prototype.
 	* xrdb.c (getenv, getpwuid, getpwnam): Remove prototypes.

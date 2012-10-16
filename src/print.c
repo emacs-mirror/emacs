@@ -2075,7 +2075,7 @@ print_object (Lisp_Object obj, register Lisp_Object printcharfun, int escapeflag
 /* Print a description of INTERVAL using PRINTCHARFUN.
    This is part of printing a string that has text properties.  */
 
-void
+static void
 print_interval (INTERVAL interval, Lisp_Object printcharfun)
 {
   if (NILP (interval->plist))
