@@ -12,6 +12,8 @@ TODO
 
 9. Hyphenate long function names across line endings (but what if you copy them?)
 
+11. Support MMREF-style anchors to the glossary (#garbage.collection instead of #garbage-collection).
+
 
 DONE
 
