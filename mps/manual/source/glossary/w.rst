@@ -8,6 +8,10 @@ Memory Management Glossary: W
 
 .. glossary::
 
+    weak hash table
+
+        ??
+
     weak reference (1)
 
         In :term:`tracing garbage collection`, a weak reference is a

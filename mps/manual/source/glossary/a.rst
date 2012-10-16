@@ -385,6 +385,10 @@ Memory Management Glossary: A
             possible, when there may still be enough evidence in the
             :term:`heap` to debug them. See :ref:`topic-error`.
 
+    associated object
+
+        .. mps:specific:: ??
+
     asynchronous garbage collector
 
         A :term:`collector (2)` is asynchronous with respect to the
