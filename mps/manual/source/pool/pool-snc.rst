@@ -1,8 +1,8 @@
 .. _pool-snc:
 
-=========================
-SNC (Stack No Check) pool
-=========================
+====================
+SNC (Stack No Check)
+====================
 
 See //info.ravenbrook.com/project/mps/doc/2002-06-18/obsolete-mminfo/mmdoc/doc/mps/guide/stack-alloc/index.html
 
