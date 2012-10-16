@@ -1339,15 +1339,6 @@ DEFUN ("system-name", Fsystem_name, Ssystem_name, 0, 0, 0,
   return Vsystem_name;
 }
 
-const char *
-get_system_name (void)
-{
-  if (STRINGP (Vsystem_name))
-    return SSDATA (Vsystem_name);
-  else
-    return "";
-}
-
 DEFUN ("emacs-pid", Femacs_pid, Semacs_pid, 0, 0, 0,
        doc: /* Return the process ID of Emacs, as a number.  */)
   (void)
