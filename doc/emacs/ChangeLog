@@ -1,3 +1,11 @@
+2012-10-16  Juri Linkov  <juri@jurta.org>
+
+	* search.texi (Query Replace): Document multi-buffer replacement
+	keys.  (Bug#12655)
+
+	* maintaining.texi (Tags Search): Change link "Replace" to
+	"Query Replace".
+
 2012-10-13  Chong Yidong  <cyd@gnu.org>
 
 	* files.texi (File Conveniences): ImageMagick enabled by default.

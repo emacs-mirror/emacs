@@ -1,3 +1,8 @@
+2012-10-16  Juri Linkov  <juri@jurta.org>
+
+	* replace.el (query-replace-help): Mention multi-buffer replacement
+	keys in the Help message.  (Bug#12655)
+
 2012-10-15  Chong Yidong  <cyd@gnu.org>
 
 	* emacs-lisp/byte-run.el (defsubst): Doc fix.
