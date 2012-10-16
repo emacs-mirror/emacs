@@ -7,6 +7,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include <sqlite3.h>
+#include <sys/stat.h>
 
 #define DATABASE_NAME_ENVAR   "MPS_EVENT_DATABASE"
 #define DEFAULT_DATABASE_NAME "mpsevent.db"
@@ -109,7 +110,12 @@ static void closeDatabase(sqlite3 *db)
  * unless it is compiled in a particular way (in which case the
  * function sqlite3_table_column_metadata could be used).  Without
  * that assistance, we can use a simple SQL trick (which could also
- * tell us the number of rows in the table if we cared): */
+ * tell us the number of rows in the table if we cared).
+ *
+ * TODO: Update this to use the sqlite_master table:
+ *    SELECT FROM sqlite_master WHERE type='table' AND name=?
+ * and fix the above comment.
+ */
 
 static int tableExists(sqlite3* db, const char *tableName)
 {
@@ -121,16 +127,22 @@ static int tableExists(sqlite3* db, const char *tableName)
         if (!sql)
                 error("Out of memory.");
         sprintf(sql, format, tableName);
+        log(LOG_RARELY, "Testing for existence of table '%s' with SQL: %s", tableName, sql);
         res = sqlite3_exec(db,
                            sql,
                            NULL, /* put in a callback here if we really want to know the number of rows */
                            NULL, /* callback closure */
                            NULL); /* error messages handled by sqlite_error */
+        free(sql);
+
         switch(res) {
         case SQLITE_OK:
+                log(LOG_RARELY, "Table '%s' exists.", tableName);
+
                 return 1; /* table exists */
                 break;
         case SQLITE_ERROR:
+                log(LOG_RARELY, "Table '%s' does not exist.", tableName);
                 return 0; /* table does not exist; we can
                              probably do a better test for this case. */
                 break;
@@ -186,6 +198,108 @@ static void finalizeStatement(sqlite3 *db,
                 sqlite_error(res, db, "event_type finalize failed");
 }
 
+/* every time we put events from a log file into a database file, we
+ * add the log file to the event_log table, and get a serial number
+ * from SQL which is then attached to all event rows from that log.
+ * We use this to record overall SQL activity, to deter mistaken
+ * attempts to add the same log file twice, and to allow events from
+ * several different log files to share the same SQL file. */
+
+static unsigned long logSerial = 0;
+
+static void registerLogFile(sqlite3 *db,
+                            const char *filename,
+                            int force)
+{
+        struct stat st;
+        sqlite3_stmt *statement;
+        int res;
+        const unsigned char *name;
+        unsigned long completed;
+
+        res = stat(filename, &st);
+        if (res != 0)
+                error("Couldn't stat() %s", filename);
+                
+        statement = prepareStatement(db,
+                                     "SELECT name, serial, completed FROM event_log"
+                                     " WHERE file_id = ? AND size = ? AND modtime = ?");
+        res = sqlite3_bind_int64(statement, 1, st.st_ino);
+        if (res != SQLITE_OK)
+                sqlite_error(res, db, "event_log bind of file_id failed.");
+        res = sqlite3_bind_int64(statement, 2, st.st_size);
+        if (res != SQLITE_OK)
+                sqlite_error(res, db, "event_log bind of size failed.");
+        res = sqlite3_bind_int64(statement, 3, st.st_mtime);
+        if (res != SQLITE_OK)
+                sqlite_error(res, db, "event_log bind of modtime failed.");
+
+        res = sqlite3_step(statement); 
+        switch(res) {
+        case SQLITE_DONE:
+                log(LOG_SOMETIMES, "No log file matching '%s' found in database.", filename);
+                break;
+        case SQLITE_ROW:
+                name = sqlite3_column_text(statement, 1);
+                logSerial = sqlite3_column_int(statement, 2);
+                completed = sqlite3_column_int(statement, 3);
+                log(LOG_ALWAYS, "Log file matching '%s' already in event_log, named \"%s\" (serial %lu, completed %lu).",
+                    filename, name, logSerial, completed);
+                if (!force) {
+                        log(LOG_ALWAYS, "Exiting.  Specify -f to force events into SQL anyway.");
+                        exit(0);
+                }
+                log(LOG_ALWAYS, "Continuing anyway because -f specified.");
+                break;
+        default:
+                sqlite_error(res, db, "select from event_log failed.");
+        }
+        finalizeStatement(db, statement);
+        statement = prepareStatement(db,
+                                     "INSERT into event_log (name, file_id, size, modtime, completed)"
+                                     " VALUES (?, ?, ?, ?, 0)");
+        res = sqlite3_bind_text(statement, 1, filename, -1, SQLITE_STATIC);
+        if (res != SQLITE_OK)
+                sqlite_error(res, db, "event_log insert bind of name failed.");
+        res = sqlite3_bind_int64(statement, 2, st.st_ino);
+        if (res != SQLITE_OK)
+                sqlite_error(res, db, "event_log insert bind of file_id failed.");
+        res = sqlite3_bind_int64(statement, 3, st.st_size);
+        if (res != SQLITE_OK)
+                sqlite_error(res, db, "event_log insert bind of size failed.");
+        res = sqlite3_bind_int64(statement, 4, st.st_mtime);
+        if (res != SQLITE_OK)
+                sqlite_error(res, db, "event_log insert bind of modtime failed.");
+        res = sqlite3_step(statement); 
+        if (res != SQLITE_DONE)
+                sqlite_error(res, db, "insert into event_log failed.");
+        logSerial = sqlite3_last_insert_rowid(db);
+        log(LOG_SOMETIMES, "Log file added to event_log with serial %lu",
+            filename, logSerial);
+        finalizeStatement(db, statement);
+}
+
+static void logFileCompleted(sqlite3 *db,
+                             unsigned long completed)
+{
+        sqlite3_stmt *statement;
+        int res;
+
+        statement = prepareStatement(db,
+                                     "UPDATE event_log SET completed=? WHERE serial=?");
+        res = sqlite3_bind_int64(statement, 2, logSerial);
+        if (res != SQLITE_OK)
+                sqlite_error(res, db, "event_log update bind of serial failed.");
+        res = sqlite3_bind_int64(statement, 1, completed);
+        if (res != SQLITE_OK)
+                sqlite_error(res, db, "event_log update bind of completed failed.");
+        res = sqlite3_step(statement); 
+        if (res != SQLITE_DONE)
+                sqlite_error(res, db, "insert into event_log failed.");
+        log(LOG_OFTEN, "Marked in event_log: %lu events", completed);
+        finalizeStatement(db, statement);
+}
+
 /* Macro magic to make a CREATE TABLE statement for each event type. */
 
 #define EVENT_PARAM_SQL_TYPE_A "INTEGER"
@@ -221,8 +335,7 @@ const char *createStatements[] = {
         "CREATE TABLE IF NOT EXISTS event_log (name TEXT,"
         "                                      file_id INTEGER,"
         "                                      size INTEGER,"
-        "                                      time_sec INTEGER,"
-        "                                      time_nsec INTEGER,"
+        "                                      modtime INTEGER,"
         "                                      completed INTEGER,"
         "                                      serial INTEGER PRIMARY KEY AUTOINCREMENT)",
 
@@ -369,10 +482,10 @@ static void fillGlueTables(sqlite3 *db)
                 /* bind all the parameters of this particular event with macro magic. */ \
                 EVENT_##name##_PARAMS(EVENT_PARAM_BIND, name) \
                 /* bind the fields we store for every event */ \
-                res = sqlite3_bind_int64(statement, last_index+1, log_serial); \
+                res = sqlite3_bind_int64(statement, last_index+1, logSerial); \
                 if (res != SQLITE_OK) \
                         sqlite_error(res, db, "Event " #name " bind of log_serial failed."); \
-                res = sqlite3_bind_int64(statement, last_index+2, clock); \
+                res = sqlite3_bind_int64(statement, last_index+2, event->any.clock); \
                 if (res != SQLITE_OK) \
                         sqlite_error(res, db, "Event " #name " bind of clock failed."); \
                 res = sqlite3_step(statement); \
@@ -390,25 +503,31 @@ static void fillGlueTables(sqlite3 *db)
 static void readLog(EventProc proc,
                     sqlite3 *db)
 {
-        int log_serial = 0; /* TODO get this from event_log table */ 
         size_t eventCount = 0;
+        int res;
         /* declare statements for every event type */
         EVENT_LIST(EVENT_TYPE_DECLARE_STATEMENT, X);
 
         /* prepare statements for every event type */
         EVENT_LIST(EVENT_TYPE_PREPARE_STATEMENT, X);
 
+        res = sqlite3_exec(db,
+                           "BEGIN",
+                           NULL, /* No callback */
+                           NULL, /* No callback closure */
+                           NULL); /* error messages handled by sqlite_error */
+        if (res != SQLITE_OK)
+                sqlite_error(res, db, "BEGIN failed");
+
         while (TRUE) { /* loop for each event */
                 Event event;
                 EventCode code;
-                EventClock clock;
                 Res res;
                 
                 /* Read and parse event. */
                 res = EventRead(&event, proc);
                 if (res == ResFAIL) break; /* eof */
                 if (res != ResOK) error("Truncated log");
-                clock = event->any.clock;
                 code = event->any.code;
                 
                 /* Write event to SQLite. */
@@ -425,7 +544,16 @@ static void readLog(EventProc proc,
                         }
                 }
         }
+        res = sqlite3_exec(db,
+                           "COMMIT",
+                           NULL, /* No callback */
+                           NULL, /* No callback closure */
+                           NULL); /* error messages handled by sqlite_error */
+        if (res != SQLITE_OK)
+                sqlite_error(res, db, "COMMIT failed");
+
         log(LOG_OFTEN, "Wrote %lu events to SQL.", (unsigned long)eventCount);
+        logFileCompleted(db, eventCount);
         /* finalize all the statements */
         EVENT_LIST(EVENT_TYPE_FINALIZE_STATEMENT, X);
 }
@@ -440,24 +568,7 @@ static Res logReader(void *file, void *p, size_t len)
         return (n < len) ? (feof((FILE *)file) ? ResFAIL : ResIO) : ResOK;
 }
 
-#if 0
-/* TODO. Find out whether the database already contains this log file.
- * Should probably also fopen it, and use fileno() and fstat() */
-
-static int logFileSerial(sqlite3 *db, const char *filename)
-{
-        struct stat st;
-        sqlite3_stmt *statement;
-
-        stat(filename, &st);
-        statement = prepareStatement(db,
-                                     "SELECT serial, completed FROM event_log WHERE"
-                                     "file_id = ? AND size = ? AND time_sec = ? AND time_nsec = ?");
-        /* TODO: Get stat results, look up in event_log, return accordingly */
-}
-#endif
-
-static FILE *openLog(void)
+static FILE *openLog(sqlite3 *db)
 {
         const char *filename;
         FILE *input;
@@ -465,6 +576,8 @@ static FILE *openLog(void)
         filename = getenv(TELEMETRY_FILENAME_ENVAR);
         if(filename == NULL)
                 filename = DEFAULT_TELEMETRY_FILENAME;
+
+        registerLogFile(db, filename, 0);
         input = fopen(filename, "rb");
 
         if (input == NULL)
@@ -479,7 +592,7 @@ static void writeEventsToSQL(sqlite3 *db)
         EventProc proc;
         FILE *input;
         
-        input = openLog();
+        input = openLog(db);
         res = EventProcCreate(&proc, logReader, (void *)input);
         if (res != ResOK)
                 error("Can't init EventProc module: error %d.", res);
@@ -506,11 +619,11 @@ int main(void)
         db = openDatabase();
         makeTables(db);
         fillGlueTables(db);
-
         writeEventsToSQL(db);
 
-        if (0) {
-        testTableExists(db);
+        if (0) { /* avoid unused-function warnings.
+                    Put test code or calls to experimental functions here. */
+                testTableExists(db);
         }
 
         closeDatabase(db);
