@@ -241,9 +241,9 @@ The other elements of the structure are the :term:`format methods
     :ref:`topic-format`.
 
 
----------------
+^^^^^^^^^^^^^^^
 The scan method
----------------
+^^^^^^^^^^^^^^^
 
 The :term:`scan method` is a function of type
 :c:type:`mps_fmt_scan_t`. It is called by the MPS to :term:`scan` a
@@ -254,9 +254,9 @@ via the convenience macro :c:func:`MPS_FIX12`).
 
 "Fixing" is a generic operation whose effect depends on the context in
 which the scan method was called. The scan method is called to
-discover references and so determine which objects are :term:`alive`
-and which are :term:`dead`, and also to update references after
-objects have been moved.
+discover references and so determine which objects are :term:`alive
+<live>` and which are :term:`dead`, and also to update references
+after objects have been moved.
 
 Here's the scan method for the Scheme example::
 
@@ -334,9 +334,9 @@ There are a few things to watch out for:
     :ref:`topic-format`, :ref:`topic-scanning`.
 
 
----------------
+^^^^^^^^^^^^^^^
 The skip method
----------------
+^^^^^^^^^^^^^^^
 
 The :term:`skip method` is a function of type
 :c:type:`mps_fmt_skip_t`. It is called by the MPS to skip over an
@@ -377,9 +377,9 @@ its functionality to the former.
     :ref:`topic-format`, :ref:`topic-scanning`.
 
 
-------------------
+^^^^^^^^^^^^^^^^^^
 The forward method
-------------------
+^^^^^^^^^^^^^^^^^^
 
 The :term:`forward method` is a function of type
 :c:type:`mps_fmt_fwd_t`. It is called by the MPS after it has moved an
@@ -454,19 +454,21 @@ following code must be added to ``obj_scan`` and ``obj_skip``::
 .. note::
 
     The Scheme interpreter has no objects consisting of a single word.
-    If it did, the type and the forwarding pointer would have to be
-    combined into a forwarding object consisting of a single word, for
-    example by relying on the fact that pointers are never equal to
-    the small integers that are used to represent types.
-
+    If it did, this would present problems for the design of the
+    forwarding object. The best approach in such a case would be to
+    allocate the single-word objects from a separate pool: if, as
+    seems likely, these objects do not contain references, they could
+    be allocated from the :ref:`pool-lo` pool, and so the cost of
+    scanning them could be avoided.
+    
 .. topics::
 
     :ref:`topic-format`.
 
 
------------------------
+^^^^^^^^^^^^^^^^^^^^^^^
 The is-forwarded method
------------------------
+^^^^^^^^^^^^^^^^^^^^^^^
 
 The :term:`is-forwarded method` is a function of type
 :c:type:`mps_fmt_isfwd_t`. It is called by the MPS to determine if an
@@ -495,9 +497,9 @@ that object was moved, or ``NULL`` if the object was not moved.
     :ref:`topic-format`.
 
 
-------------------
+^^^^^^^^^^^^^^^^^^
 The padding method
-------------------
+^^^^^^^^^^^^^^^^^^
 
 The :term:`padding method` is a function of type
 :c:type:`mps_fmt_pad_t`. It is called by the MPS to fill a block of
@@ -658,6 +660,14 @@ Allocation
 
 
 
+
+-----------------------
+Maintaining consistency
+-----------------------
+
+The collector runs asynchronously. So when do objects have to be valid (scannable)?
+
+
 --------
 Messages
 --------
@@ -666,3 +676,12 @@ Messages
 .. topics::
 
     :ref:`topic-message`.
+
+
+---------------
+Advanced topics
+---------------
+
+* Some of the Scheme objects could be moved to a leaf-only pool.
+
+* Telemetry labels.
