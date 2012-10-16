@@ -2,22 +2,42 @@ TODO
 
 2. Create new types of objects for pools and topics.
 
-3. Glossary entries need permalinks. See <https://bitbucket.org/birkenfeld/sphinx/issue/996/expose-glossary-entry-link-on-hover>
+3. Glossary entries need permalinks. See
+<https://bitbucket.org/birkenfeld/sphinx/issue/996/expose-glossary-entry-link-on-hover>
 
 5. Fix the general index so that (1) aren't interpreted as subentries.
 
 7. Re-do the diagrams in vector form and using the colour palette.
 
-8. Use a better bibliography extension. See for example <http://wnielson.bitbucket.org/projects/sphinx-natbib/>
+8. Use a better bibliography extension. See for example
+   <http://wnielson.bitbucket.org/projects/sphinx-natbib/>
 
-9. Hyphenate long function names across line endings (but what if you copy them?)
+9. Hyphenate long function names across line endings (but what if you
+   copy them?)
 
-11. Support MMREF-style anchors to the glossary (#garbage.collection instead of #garbage-collection).
+11. Support MMREF-style anchors to the glossary (#garbage.collection
+    instead of #garbage-collection).
+
+
+QUERIES
+
+1. Does the object format description (struct mps_fmt_A_s) have to be
+   static?
+
+2. What is the difference, if any, between mps_word_t and MPS_T_WORD?
+
+3. How can I explain why the Scheme example uses sizeof(mps_word_t) as
+   its alignment? Why not MPS_PF_ALIGN? Why not something of its own
+   manufacture, like sizeof(union {long, size_t, void*})?
+
+4. Why does the Scheme example have a copy method in its object format
+   when the reference manual says it's obsolete? Can I remove it?
 
 
 DONE
 
-1. Create a new domain <http://sphinx.pocoo.org/ext/appapi.html#sphinx.domains.Domain>
+1. Create a new domain
+   <http://sphinx.pocoo.org/ext/appapi.html#sphinx.domains.Domain>
 
 4. Make (1), (2) etc into superscripts
 
