@@ -11,13 +11,11 @@
 	`python-shell-internal-send-string' if available to query Python
 	for system paths.
 
-	* semantic/senator.el (senator-next-tag):
-	(senator-previous-tag):
+	* semantic/senator.el (senator-next-tag, senator-previous-tag)
 	(senator-go-to-up-reference): Use `semantic-error-if-unparsed'.
 
-	* semantic/complete.el (semantic-complete-jump-local):
-	(semantic-complete-jump):
-	(semantic-complete-jump-local-members):
+	* semantic/complete.el (semantic-complete-jump-local)
+	(semantic-complete-jump, semantic-complete-jump-local-members)
 	(semantic-complete-self-insert): Use `semantic-error-if-unparsed'.
 	(semantic-complete-inline-project): Fix autoload cookie.
 
@@ -28,7 +26,7 @@
 
 	* cedet.el (cedet-menu-map): Fix copy&paste typo in menu creation.
 
-2012-10-08  David Engster  <deng@randomsample.de>>
+2012-10-08  David Engster  <deng@randomsample.de>
 
 	* semantic/bovine/el.el: Add `semantic-default-elisp-setup' to
 	`emacs-lisp-mode-hook'.  This was accidentally removed during the
