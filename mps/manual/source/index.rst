@@ -7,7 +7,6 @@ Memory Pool System
 ##################
 
 .. toctree::
-   :maxdepth: 2
 
    guide/index
    topic/index
