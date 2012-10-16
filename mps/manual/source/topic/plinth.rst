@@ -26,3 +26,6 @@ There are many reasons why you might want to write your own plinth. For embedded
 See //info.ravenbrook.com/project/mps/doc/2002-06-18/obsolete-mminfo/mmdoc/doc/mps/guide/appendix/plinth/index.html
 
 The example ANSI plinth, ``mpsliban.c``, implements :c:func:`mps_clock` by calling the ISO C function ``clock`` in ``time.h``.  The difference between two of these clock values may be converted to seconds by dividing by the ``CLOCKS_PER_SEC`` conversion factor.
+
+
+See also //info.ravenbrook.com/project/mps/master/design/io/index.html
