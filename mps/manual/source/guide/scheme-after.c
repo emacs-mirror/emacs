@@ -22,10 +22,6 @@
  *
  * To find the code that's particularly related to the MPS, search for %%MPS.
  *
- * By the way, this interpreter originally just used `malloc` to allocate
- * and had no garbage collector.  Adapting it to use the MPS took
- * approximately two hours (for an MPS developer :).
- *
  *
  * MPS TO DO LIST
  * - make the symbol table weak to show how to use weak references
