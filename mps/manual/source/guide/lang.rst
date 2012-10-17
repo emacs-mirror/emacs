@@ -11,7 +11,7 @@ parser, code generator and the runtime system, and come to the
 realization that you are going to need a memory manager too? If so,
 you've come to the right place.
 
-In this guide, I'll explains how to use the MPS to add incremental,
+In this guide, I'll explain how to use the MPS to add incremental,
 moving, generational garbage collection to the runtime system for a
 programming language.
 
