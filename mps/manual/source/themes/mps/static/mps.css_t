@@ -101,3 +101,7 @@ sup {
     vertical-align: 20%;
     font-size: 80%;
 }
+
+div.figure img {
+    max-width: 100%;
+}
