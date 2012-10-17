@@ -1,3 +1,8 @@
+2012-10-17  Eli Zaretskii  <eliz@gnu.org>
+
+	* ntlib.c: Include <mbstring.h>, to avoid compiler warning about
+	_mbspbrk.
+
 2012-10-08  Eli Zaretskii  <eliz@gnu.org>
 
 	* makefile.w32-in (obj): Add cygw32.o.
