@@ -683,7 +683,7 @@ the text for that expression.  Even if you don't know Lisp, it will
 probably be obvious which command is displayed for repetition.  If you
 type just @key{RET}, that repeats the command unchanged.  You can also
 change the command by editing the Lisp expression before you execute
-it.  The repeated command is added to the front of the command history
+it.  The executed command is added to the front of the command history
 unless it is identical to the most recent item.
 
   Once inside the minibuffer for @kbd{C-x @key{ESC} @key{ESC}}, you
