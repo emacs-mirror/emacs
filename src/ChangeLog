@@ -1,3 +1,8 @@
+2012-10-17  Kenichi Handa  <handa@gnu.org>
+
+	* xdisp.c (reseat_1): Make the information stored in it->cmp_it
+	invalidate.
+
 2012-10-17  Dmitry Antipov  <dmantipov@yandex.ru>
 
 	* buffer.c (Fkill_buffer): When unchaining the marker,

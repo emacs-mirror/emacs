@@ -6302,6 +6302,8 @@ reseat_1 (struct it *it, struct text_pos pos, int set_stop_p)
       it->stop_charpos = CHARPOS (pos);
       it->base_level_stop = CHARPOS (pos);
     }
+  /* This make the information stored in it->cmp_it invalidate.  */
+  it->cmp_it.id = -1;
 }
 
 
