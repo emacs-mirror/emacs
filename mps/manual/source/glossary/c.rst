@@ -338,9 +338,13 @@ Memory Management Glossary: C
             obtain from the operating system. It can be changed by
             calling :c:func:`mps_arena_commit_limit_set`.
 
-    committed
+    committed (1)
 
         .. see:: :term:`mapped`.
+
+    committed (2)
+
+        .. mps:specific:: ??
 
     compactifying
 
