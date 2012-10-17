@@ -1,7 +1,7 @@
 2012-10-17  Dmitry Antipov  <dmantipov@yandex.ru>
 
 	* buffer.c (Fkill_buffer): When unchaining the marker,
-	reset it's buffer pointer to NULL (Bug#12652).
+	reset its buffer pointer to NULL (Bug#12652).
 
 2012-10-17  Dmitry Antipov  <dmantipov@yandex.ru>
 
@@ -245,7 +245,7 @@
 	* nsfont.m (Vfonts_in_cache): Remove, not needed as font.c handles
 	caching.
 	(nsfont_open): Remove setting of Vfonts_in_cache.
-	(syms_of_nsfont): Remove initialization of Vfonts_in_cache
+	(syms_of_nsfont): Remove initialization of Vfonts_in_cache.
 
 2012-10-09  Eli Zaretskii  <eliz@gnu.org>
 
@@ -312,7 +312,7 @@
 	* w32select.h (HAVE_W32SELECT): Remove.
 
 	* w32select.c, w32proc.c, w32menu.c, w32console.c, w32.c: Include
-	w32common.h instead of w32heap.h
+	w32common.h instead of w32heap.h.
 
 	* w32heap.h (ROUND_UP, ROUND_DOWN, get_page_size)
 	(get_allocation_unit, get_processor_type, get_w32_major_version)
@@ -435,7 +435,7 @@
 	Cygwin builds.  Remove w32select declarations.
 
 	* w32console.c (w32_sys_ring_bell, Fset_message_beep): Move to
-	w32fns.c. w32console.c is WINDOWSNT-only.
+	w32fns.c.  w32console.c is WINDOWSNT-only.
 
 	* w32fns.c: Include cygw32.h or w32.h depending on CYGWIN; more
 	NTGUI_UNICODE tweaks.  (See above.) Change _snprintf to the more
@@ -541,7 +541,7 @@
 	(ns_clear_frame_area): Remove resize handle code.
 
 	* nsfns.m (ns_in_resize): Remove.
-	(x_set_icon_name, ns_set_name, ns_set_name_as_filename):  Remove
+	(x_set_icon_name, ns_set_name, ns_set_name_as_filename): Remove
 	ns_in_resize check.
 
 2012-10-07  Paul Eggert  <eggert@cs.ucla.edu>
@@ -570,7 +570,7 @@
 	(initFrameFromEmacs:): tbar_height renamed tibar_height.
 	(windowDidEnterFullScreen:): Toggle toolbar for fullscreen to fix
 	error in drawing background.
-	(toggleFullScreen:): Remove comment. Rearrange calls.
+	(toggleFullScreen:): Remove comment.  Rearrange calls.
 	Set toolbar values to zero, save old height in tobar_height.
 	Restore tool bar height when leaving fullscreen.
 	(canBecomeMainWindow): New function.
@@ -993,7 +993,7 @@
 	Call setCollectionBehavior if NEW_STYLE_FS.  Initialize bwidth and
 	tbar_height.
 	(windowWillUseStandardFrame:defaultFrame:): Update frame parameter
-	fullscreen. Set maximized_width/height.  Act on next_maximized.
+	fullscreen.  Set maximized_width/height.  Act on next_maximized.
 
 	* nsterm.h (MAC_OS_X_VERSION_10_7, MAC_OS_X_VERSION_10_8): New.
 	(EmacsView): Add variables for fullscreen.
@@ -1649,7 +1649,7 @@
 2012-09-19  Paul Eggert  <eggert@cs.ucla.edu>
 
 	* w32inevt.c (w32_console_read_socket): Return -1 on failure, not 0.
-	Ignore 'expected'. See Eli Zaretskii in
+	Ignore 'expected'.  See Eli Zaretskii in
 	<http://bugs.gnu.org/12471#8> (last line).
 
 	* frame.c (read_integer): Remove.  All uses replaced by strtol/strtoul.
@@ -1716,7 +1716,7 @@
 	(bytes_used_when_full, emacs_blocked_free, emacs_blocked_malloc)
 	(emacs_blocked_realloc, reset_malloc_hooks, uninterrupt_malloc):
 	[!SYSTEM_MALLOC && !SYNC_INPUT]:
-	Remove. All uses removed.
+	Remove.  All uses removed.
 	(MALLOC_BLOCK_INPUT, MALLOC_UNBLOCK_INPUT): Use a different
 	implementation, one that depends on whether the new macro
 	XMALLOC_BLOCK_INPUT_CHECK is defined, not on whether SYNC_INPUT
@@ -2006,7 +2006,7 @@
 	* alloc.c (discard_killed_buffers): New function.
 	(mark_object): Use it for deleted windows and frames.
 	(mark_object): If symbol's value is set up for a killed buffer
-	or deleted frame, restore it's global binding.
+	or deleted frame, restore its global binding.
 	* data.c (swap_in_global_binding): Add GC notice.
 	(swap_in_symval_forwarding): Use convenient set_blv_where.
 	* window.c (wset_next_buffers, wset_prev_buffers): Move ...
@@ -4313,7 +4313,7 @@
 
 	* nsterm.m (ns_set_vertical_scroll_bar, ns_redeem_scroll_bar)
 	(EmacsWindow-accessibilityAttributeValue, EmacsScroller-initFrame:)
-	(EmacsScroller-dealloc):  Adjust to use WVAR.  (Bug#12114)
+	(EmacsScroller-dealloc): Adjust to use WVAR.  (Bug#12114)
 	* nsfns.m (ns_set_name_as_filename): Likewise.
 	* nsmenu.m (ns_update_menubar): Likewise.
 	* nsselect.m (symbol_to_nsstring): Adjust to use SVAR.
@@ -6409,7 +6409,7 @@
 	Fix block vector allocation code to allow VECTOR_BLOCK_SIZE
 	values which aren't power of 2.
 	* alloc.c (VECTOR_FREE_LIST_SIZE_MASK): New macro.
-	Verify it's value and the value of VECTOR_BLOCK_SIZE.  Adjust users
+	Verify its value and the value of VECTOR_BLOCK_SIZE.  Adjust users
 	accordingly.
 
 2012-07-03  Stefan Monnier  <monnier@iro.umontreal.ca>
@@ -7578,7 +7578,7 @@
 	bitfields where appropriate, remove unused fields.
 	* window.h (struct window): Remove unused 'last_mark_x' and
 	'last_mark_y' fields.  Rename 'mini_p' field to 'mini',
-	change it's type from Lisp_Object to bitfield.
+	change its type from Lisp_Object to bitfield.
 	Change type of 'force_start', 'optional_new_start',
 	'last_had_star', 'update_mode_line' and 'start_at_line_beg'
 	fields from Lisp_Object to bitfield.  Adjust users accordingly.

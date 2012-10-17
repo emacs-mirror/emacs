@@ -764,7 +764,7 @@
 
 2012-06-28  Dmitry Antipov  <dmantipov@yandex.ru>
 
-	* configure.in: Fix previous change. Remove --enable-asserts.
+	* configure.in: Fix previous change.  Remove --enable-asserts.
 	(CPPFLAGS): Remove conditional -DXASSERTS=1.
 	Add --enable-link-time-optimization.
 	* INSTALL: Mention this.
@@ -942,7 +942,7 @@
 
 2012-06-03  Ulrich Müller  <ulm@gentoo.org>
 
-	* configure.in (PAXCTL): Check for paxctl. (Bug#11398)
+	* configure.in (PAXCTL): Check for paxctl.  (Bug#11398)
 
 2012-06-01  Paul Eggert  <eggert@cs.ucla.edu>
 
@@ -1394,7 +1394,7 @@
 2012-04-17  Dmitry Antipov  <dmantipov@yandex.ru>
 
 	* configure.in (AC_CHECK_FUNCS):
-	Add getpwent, endpwent, getgrent, endgrent. (Bug#7900)
+	Add getpwent, endpwent, getgrent, endgrent.  (Bug#7900)
 
 2012-04-16  Glenn Morris  <rgm@gnu.org>
 
@@ -1571,7 +1571,7 @@
 
 2011-11-04  Glenn Morris  <rgm@gnu.org>
 
-	* configure.in: Increase minimum GnuTLS version to 2.6.6. (Bug#9929)
+	* configure.in: Increase minimum GnuTLS version to 2.6.6.  (Bug#9929)
 	Do not include GnuTLS version info in final summary message.
 
 2011-10-31  Eli Zaretskii  <eliz@gnu.org>

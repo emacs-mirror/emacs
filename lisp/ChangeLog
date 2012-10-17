@@ -611,9 +611,9 @@
 	* emacs-lisp/eieio-base.el (eieio-persistent-read): New input args
 	specifying the expected class, and whether subclassing is allowed.
 	(eieio-persistent-convert-list-to-object):
-        (eieio-persistent-validate/fix-slot-value)
-        (eieio-persistent-slot-type-is-class-p): New functions.
-        (eieio-named::slot-missing): Doc fix.
+	(eieio-persistent-validate/fix-slot-value)
+	(eieio-persistent-slot-type-is-class-p): New functions.
+	(eieio-named::slot-missing): Doc fix.
 
 	* emacs-lisp/eieio-datadebug.el (data-debug/eieio-insert-slots):
 	Stop using unused publd variable.
@@ -2056,7 +2056,7 @@
 
 	* ses.el (ses-widen):
 	* simple.el (count-words--buffer-message):
-	* net/browse-url.el (browse-url-of-buffer): Use it
+	* net/browse-url.el (browse-url-of-buffer): Use it.
 
 	* simple.el (count-words-region): Don't signal an error if there
 	is a non-nil prefix arg and the mark is not set.
@@ -16338,7 +16338,7 @@
 2011-06-22  Leo Liu  <sdl.web@gmail.com>
 
 	* minibuffer.el (completing-read-function)
-	(completing-read-default): Move from minibuf.c
+	(completing-read-default): Move from minibuf.c.
 
 2011-06-22  Richard Stallman  <rms@gnu.org>
 
@@ -18195,7 +18195,7 @@
 	Remove unnecessary and incorrect declarations.
 
 	* emacs-lisp/check-declare.el (check-declare-scan):
-	Handle byte-compile-initial-macro-environment in bytecomp.el
+	Handle byte-compile-initial-macro-environment in bytecomp.el.
 
 2011-05-05  Stefan Monnier  <monnier@iro.umontreal.ca>
 
