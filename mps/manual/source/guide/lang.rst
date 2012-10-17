@@ -11,17 +11,18 @@ parser, code generator and the runtime system, and come to the
 realization that you are going to need a memory manager too? If so,
 you've come to the right place.
 
-In this guide, I'll explains how to use the MPS to add generational
-garbage collection to the runtime system for a programming language.
+In this guide, I'll explains how to use the MPS to add incremental,
+moving, generational garbage collection to the runtime system for a
+programming language.
 
 I'm assuming that you've downloaded and compiled the MPS (see
 :ref:`guide-install`), and that you are familiar with the overall
 architecture of the MPS (see :ref:`guide-overview`).
 
 
-------------------
-The Scheme example
-------------------
+----------------------
+The Scheme interpreter
+----------------------
 
 As a running example throughout this guide, I'll be using a small
 interpreter for a subset of the :term:`Scheme` programming
@@ -82,15 +83,15 @@ operate on objects generically, testing ``TYPE(obj)`` as necessary. For example,
     static void print(obj_t obj, unsigned depth, FILE *stream)
     {
         switch (TYPE(obj)) {
-            case TYPE_INTEGER: {
-                fprintf(stream, "%ld", obj->integer.integer);
-            } break;
+        case TYPE_INTEGER:
+            fprintf(stream, "%ld", obj->integer.integer);
+            break;
 
-            case TYPE_SYMBOL: {
-                fputs(obj->symbol.string, stream);
-            } break;
+        case TYPE_SYMBOL:
+            fputs(obj->symbol.string, stream);
+            break;
 
-            /* ... and so on for the other types ... */
+        /* ... and so on for the other types ... */
         }
     }
 
@@ -260,7 +261,7 @@ discover references and so determine which objects are :term:`alive
 <live>` and which are :term:`dead`, and also to update references
 after objects have been moved.
 
-Here's the scan method for the Scheme example::
+Here's the scan method for the Scheme interpreter::
 
     static mps_res_t obj_scan(mps_ss_t ss, mps_addr_t base, mps_addr_t limit)
     {
@@ -310,26 +311,27 @@ macros :c:func:`MPS_SCAN_BEGIN` and :c:func:`MPS_SCAN_END`. It's
 usually most convenient to call :c:func:`MPS_SCAN_BEGIN` at the start
 of the function and :c:func:`MPS_SCAN_END` at the end.
 
-There are a few things to watch out for:
+.. note::
 
-1. When the MPS calls your scan method, it may be part-way through
-   moving your objects. It is therefore essential that the scan method
-   only examine objects in the range of addresses it is given. Objects
-   in other ranges of addresses are not guaranteed to be in a
-   consistent state.
+    1. When the MPS calls your scan method, it may be part-way through
+       moving your objects. It is therefore essential that the scan
+       method only examine objects in the range of addresses it is
+       given. Objects in other ranges of addresses are not guaranteed
+       to be in a consistent state.
 
-2. Scanning is an operation on the :term:`critical path` of the MPS,
-   which means that it is important that it runs as quickly as
-   possible.
+    2. Scanning is an operation on the :term:`critical path` of the
+       MPS, which means that it is important that it runs as quickly
+       as possible.
 
-3. The "fix" operation may update the reference. So if your language
-   has :term:`tagged references <tagged reference>`, you must make
-   sure that the tag is restored after the reference is updated.
+    3. The "fix" operation may update the reference. So if your
+       language has :term:`tagged references <tagged reference>`, you
+       must make sure that the tag is restored after the reference is
+       updated.
 
-4. The "fix" operation may fail by returning a :term:`result code`
-   other than :c:macro:`MPS_RES_OK`. A scan function must propagate
-   such a result code to the caller, and should do so as soon as
-   practicable.
+    4. The "fix" operation may fail by returning a :term:`result code`
+       other than :c:macro:`MPS_RES_OK`. A scan function must
+       propagate such a result code to the caller, and should do so as
+       soon as practicable.
 
 .. topics::
 
@@ -344,7 +346,7 @@ The :term:`skip method` is a function of type
 :c:type:`mps_fmt_skip_t`. It is called by the MPS to skip over an
 object belonging to the format.
 
-Here's the skip method for the Scheme example::
+Here's the skip method for the Scheme interpreter::
 
     static mps_addr_t obj_skip(mps_addr_t base)
     {
@@ -388,6 +390,12 @@ The :term:`forward method` is a function of type
 object, and its task is to replace the old object with a
 :term:`forwarding object` pointing to the new location of the object.
 
+    .. figure:: ../diagrams/copying.svg
+        :align: center
+        :alt: Diagram: Copying garbage collection.
+
+        Copying garbage collection.
+
 The forwarding object must satisfy these properties:
 
 1. It must be scannable and skippable, and so it will need to have a
@@ -422,7 +430,7 @@ while the second type is suitable for forwarding objects of two words::
         obj_t fwd;                    /* forwarded object */
     } fwd2_s;
 
-Here's the forward method for the Scheme example::
+Here's the forward method for the Scheme interpreter::
 
     static void obj_fwd(mps_addr_t old, mps_addr_t new)
     {
@@ -477,7 +485,7 @@ The :term:`is-forwarded method` is a function of type
 object is a :term:`forwarding object`, and if it is, to determine the
 location where that object was moved.
 
-Here's the is-forwarded method for the Scheme example::
+Here's the is-forwarded method for the Scheme interpreter::
 
     static mps_addr_t obj_isfwd(mps_addr_t addr)
     {
@@ -670,7 +678,7 @@ And third, the global symbol table::
     static size_t symtab_size;
 
 You tell the MPS how to scan these by writing root scanning functions
-of type :c:type:`mps_reg_scan_t`. These function are similar to the
+of type :c:type:`mps_reg_scan_t`. These functions are similar to the
 :ref:`scan method <guide-lang-scan>` in an :term:`object format`,
 described above.
 
@@ -721,7 +729,7 @@ that:
    :term:`ambiguous references <ambiguous reference>`); and
 
 2. each reference keeps the target of the reference alive (unlike
-   :term:`weak references <weak reference (1)>`.
+   :term:`weak references <weak reference (1)>`).
 
 The fourth argument (here ``0``) is the :term:`root mode`: see
 :ref:`topic-root`.
@@ -735,23 +743,28 @@ What about the global symbol table? This is trickier, because it gets
 rehashed from time to time, and during the rehashing process there are
 two copies of the symbol table in existence. Because the MPS is
 :term:`asynchronous <asynchronous garbage collector>`, it might be
-scanning, moving, or collecting at any point in time, and if it is
+scanning, moving, or collecting, at any point in time, and if it is
 doing so during the rehashing of the symbol table it had better scan
 both the old and new copies of the table. This is most conveniently
 done by registering a new root to refer to the new copy, and then
 after the rehash has completed, de-registering the old root by calling
 :c:func:`mps_root_destroy`.
 
-It would be possible to write a root scanning functions of type
+It would be possible to write a root scanning function of type
 :c:type:`mps_reg_scan_t`, as described above, to fix the references in
 the global symbol table, but the case of a table of references is
 sufficiently common that the MPS provides a convenience function,
 :c:func:`mps_root_create_table`, for registering it::
 
     static mps_root_t symtab_root;
+
+    /* ... */
+
     res = mps_root_create_table(&symtab_root, arena, mps_rank_exact(), 0,
                                 (mps_addr_t *)symtab, symtab_size);
     if (res != MPS_RES_OK) error("Couldn't register new symtab root");
+
+.. _guide-lang-roots-rehash:
 
 The root must be re-registered whenever the global symbol table
 changes size::
@@ -787,25 +800,35 @@ changes size::
         free(old_symtab);
     }
 
-There are a few things to take note of here:
+.. note::
 
-1. The old root description (referring to the old copy of the symbol
-   table) is not destroyed until after the new root description has
-   been registered. This is because the MPS is :term:`asynchronous
-   <asynchronous garbage collector>`: it might be scanning, moving, or
-   collecting at any point in time. If the old root description were
-   destroyed before the new root description was registered, there
-   would be a period in which the symbol table was not reachable (at
-   least as far as the MPS was concerned) and so all the objects
-   referenced by it (and all the objects reachable from *those*
-   objects) might be dead.
+    1. The old root description (referring to the old copy of the
+       symbol table) is not destroyed until after the new root
+       description has been registered. This is because the MPS is
+       :term:`asynchronous <asynchronous garbage collector>`: it might
+       be scanning, moving, or collecting, at any point in time. If
+       the old root description were destroyed before the new root
+       description was registered, there would be a period during
+       which:
 
-2. The root might be scanned as soon as it is registered, so it is
-   important to fill it with scannable references (``NULL`` in this
-   case) before registering it.
+       a. the symbol table was not reachable (at least as far as the
+          MPS was concerned) and so all the objects referenced by it
+          (and all the objects reachable from *those* objects) might
+          be dead; and
 
-3. The order of operations at the end is important: the old root must
-   be de-registered before its memory is freed.
+       b. if the MPS moved an object, it would not know that the
+          object was referenced by the symbol table, and so would not
+          update the reference there to point to the new location of
+          the object. This would result in out-of-date references in
+          the old symbol table, and these would be copied into the new
+          symbol table.
+
+    2. The root might be scanned as soon as it is registered, so it is
+       important to fill it with scannable references (``NULL`` in
+       this case) before registering it.
+
+    3. The order of operations at the end is important: the old root
+       must be de-registered before its memory is freed.
 
 .. topics::
 
@@ -818,41 +841,288 @@ There are a few things to take note of here:
 Threads
 -------
 
+In a multi-threaded environment where :term:`incremental garbage
+collection` is used, you must register each of your :term:`threads
+<thread>` with the MPS so that the MPS can examine their state.
+
+Even in a single-threaded environment (like the Scheme interpreter) it
+may also be necessary to register the (only) thread if either of these
+conditions apply:
+
+1. you are using :term:`moving garbage collection <moving garbage
+   collector>` (as with the :ref:`pool-amc` pool);
+
+2. the thread's :term:`registers <register>` and :term:`control stack`
+   constitute a :term:`roots <root>` (that is, objects may be kept
+   alive via references in local variables: this is almost always the
+   case for programs written in :term:`C`).
+
+You register a thread with an :term:`arena` by calling
+:c:func:`mps_thread_reg`::
+
+    mps_thr_t thread;
+    res = mps_thread_reg(&thread, arena);
+    if (res != MPS_RES_OK) error("Couldn't register thread");
+
+You register the thread's registers and control stack as a root by
+calling :c:func:`mps_root_create_reg` and passing
+:c:func:`mps_stack_scan_ambig`::
+
+    void *marker = &marker;
+    mps_root_t reg_root;
+    res = mps_root_create_reg(&reg_root,
+                              arena,
+                              mps_rank_ambig(),
+                              0,
+                              thread,
+                              mps_stack_scan_ambig,
+                              marker,
+                              0);
+    if (res != MPS_RES_OK) error("Couldn't create root");
+
+In order to scan the control stack, the MPS needs to know where the
+bottom of the stack is, and that's the role of the ``marker``
+variable: the compiler places it on the stack, so its address is a
+position within the stack. As long as you don't exit from this
+function while the MPS is running, your program's active local
+variables will always be higher up on the stack than ``marker``, and
+so will be scanned for references by the MPS.
+
+The condition "don't exit from this function while the MPS is running"
+will always be satisfied, because you must run your program via the
+*MPS trampoline*. That is, if your program was previously organized
+like this::
+
+    int main(int argc, char **argv)
+    {
+        /* ... your program here ... */
+        return EXIT_CODE;
+    }
+
+it now must be organized like this::
+
+    typedef struct tramp_s {
+        int argc;
+        char **argv;
+        int exit_code;
+    } tramp_s;
+
+    static void *start(void *p, size_t s)
+    {
+        tramp_s *tramp = p;
+        int argc = tramp->argc;
+        char **argv = tramp->argv;
+
+        /* ... your program here ... */
+
+        tramp->exit_code = EXIT_CODE;
+        return NULL;
+    }
+
+    int main(int argc, char *argv[])
+    {
+        /* ... set up the MPS ... */
+
+        tramp_s tramp;
+        mps_tramp(&tramp, start, NULL, 0);
+
+        /* ... tear down the MPS ... */
+
+        return tramp.exit_code;
+    }
+
+.. topics::
+
+    :ref:`topic-root`.
 
 
+.. _guide-lang-allocation:
 
 ----------
 Allocation
 ----------
 
+It probably seemed a long journey to get here, but at last we're ready
+to start allocating.
 
+:term:`Manual <manual memory management>` pools typically support
+:term:`malloc`\-like allocation using the function
+:c:func:`mps_alloc`. But :term:`automatic <automatic memory
+management>` pools cannot, because of the following problem::
+
+    static obj_t make_pair(obj_t car, obj_t cdr)
+    {
+        obj_t obj;
+        mps_addr_t addr;
+        mps_res_t res;
+        res = mps_alloc(&addr, pool, sizeof(pair_s));
+        if (res != MPS_RES_OK) error("out of memory in make_pair");
+        obj = addr;
+
+        /* What happens if the MPS scans obj just now? */
+
+        obj->pair.type = TYPE_PAIR;
+        CAR(obj) = car;
+        CDR(obj) = cdr;
+        return obj;
+    }
+
+Because the MPS is :term:`asynchronous <asynchronous garbage
+collector>`, it might scan any reachable object at any time, including
+immediately after the object has been allocated. In this case, if the
+MPS attempts to scan ``obj`` at the indicated point, the object's
+``type`` field will be uninitialized, and so the :term:`scan method`
+will abort.
+
+The MPS solves this problem via the :term:`reserve/commit
+protocol`. This needs an additional structure, an :term:`allocation
+point`, to be attached to the pool by calling
+:c:func:`mps_ap_create`::
+
+    static mps_ap_t obj_ap;
+
+    /* ... */
+
+    res = mps_ap_create(&obj_ap, obj_pool, mps_rank_exact());
+    if (res != MPS_RES_OK) error("Couldn't create obj allocation point");
+
+And then the constructor can be implemented like this::
+
+    static obj_t make_pair(obj_t car, obj_t cdr)
+    {
+        obj_t obj;
+        mps_addr_t addr;
+        size_t size = ALIGN(sizeof(pair_s));
+        do {
+            mps_res_t res = mps_reserve(&addr, obj_ap, size);
+            if (res != MPS_RES_OK) error("out of memory in make_pair");
+            obj = addr;
+            obj->pair.type = TYPE_PAIR;
+            CAR(obj) = car;
+            CDR(obj) = cdr;
+        } while (!mps_commit(obj_ap, addr, size));
+        return obj;
+    }
+
+The function :c:func:`mps_reserve` allocates a block of memory that
+the MPS knows is uninitialized: the MPS promises not to scan this
+block or move it until after it is :term:`committed (2)` by calling
+:c:func:`mps_commit`. So the new object can be allocated and
+initialized safely.
+
+However, there's a second problem::
+
+            CAR(obj) = car;
+            CDR(obj) = cdr;
+
+            /* What if the MPS moves car or cdr just now? */
+
+        } while (!mps_commit(obj_ap, addr, size));
+
+Because ``obj`` is not yet committed, the MPS won't scan it, and that
+means that it won't discover that it contains references to ``car``
+and ``cdr``, and so won't update these references to point to their
+new locations.
+
+In such a circumstance (that is, when objects might have moved since
+you called :c:func:`mps_reserve`), :c:func:`mps_commit` returns false,
+and we have to initialize the object again (most conveniently done via
+a ``while`` loop, as here).
+
+.. note::
+
+    1. When using the allocation point protocol it is up to you to
+       ensure that the requested size is aligned, because
+       :c:func:`mps_reserve` is on the MPS's :term:`critical path`,
+       and so it is highly optimized: in nearly all cases it is just
+       an increment to a pointer.
+
+    2. It is rare for :c:func:`mps_commit` to return false, but it can
+       happen, so it is important not to do anything you don't want to
+       repeat between calling :c:func:`mps_reserve` and
+       :c:func:`mps_commit`. Also, the shorter the interval, the less
+       likely :c:func:`mps_commit` is to return false.
 
 .. topics::
 
     :ref:`topic-allocation`.
 
 
-
-
 -----------------------
 Maintaining consistency
 -----------------------
 
-The collector runs asynchronously. So when do objects have to be valid (scannable)?
+The MPS is :term:`asynchronous <asynchronous garbage collector>`:
+this means that it might be scanning, moving, or collecting, at any
+point in time (potentially, between any pair of instructions in your
+program). So you must make sure that your data structures always obey
+these rules:
+
+1. A :term:`root` must be scannable by the root scanning function as
+   soon as it has been registered with :c:func:`mps_root_create` (or
+   similar).
+
+   See the discussion of the :ref:`global symbol table
+   <guide-lang-roots-rehash>` in the Scheme interpreter.
+
+2. A :term:`formatted object` must be scannable by the :term:`scan
+   method` as soon as it has been :term:`committed (2)` by calling
+   :c:func:`mps_commit`.
+
+   See the discussion of the :ref:`pair constructor
+   <guide-lang-allocation>` in the Scheme interpreter.
+
+3. All objects that are :term:`reachable` by your code must always be
+   provably reachable from a root via a chain of :term:`references
+   <reference>` that are :term:`fixed <fix>` by a scanning function.
+
+   See the discussion of the :ref:`global symbol table
+   <guide-lang-roots-rehash>` in the Scheme interpreter.
+
+4. Objects must remain scannable throughout their :term:`lifetime`.
+
+   See :ref:`guide-debug`.
 
 
 ----------
 Tidying up
 ----------
 
+When your program is done with the MPS, it's good practice to tear
+down all the MPS data structures. This causes the MPS to check the
+consistency of its data structures and report any problems it
+detects. It also causes the MPS to flush its :term:`telemetry stream`.
+
+MPS data structures must be destroyed in reverse order to that in
+which they were created. So you must destroy all :term:`allocation
+points <allocation point>` on a :term:`pool` before destroying the
+pool; destroy all :term:`roots <root>`, :term:`threads <thread>`, and
+pools that were created in an :term:`arena` before destroying the
+arena, and so on.
+
+Here's the tear-down code from the Scheme interpreter::
+
+    mps_ap_destroy(obj_ap);
+    mps_pool_destroy(obj_pool);
+    mps_chain_destroy(obj_chain);
+    mps_fmt_destroy(obj_fmt);
+    mps_root_destroy(reg_root);
+    mps_thread_dereg(thread);
+    mps_arena_destroy(arena);
 
 
----------------
-Advanced topics
----------------
 
-* Messages.
+----------
+What next?
+----------
 
-* Some of the Scheme objects could be moved to a leaf-only pool.
+This article has covered the basic knowledge needed to add
+incremental, moving, generational garbage collection to the runtime
+system for a programming language.
 
-* Telemetry labels.
+If everything is working for your language, then the next step is
+:ref:`guide-perf`.
+
+But if things don't work out quite as smoothly for your language as
+they did in the Scheme example, then you'll be more interested in
+:ref:`guide-debug`.

@@ -19,29 +19,34 @@ TODO
 11. Support MMREF-style anchors to the glossary (#garbage.collection
     instead of #garbage-collection).
 
+12. Superscripts in aka sections.
+
 
 QUERIES AND SUGGESTIONS
-
- 2. What is the difference, if any, between mps_word_t and MPS_T_WORD?
-
- 3. How can I explain why the Scheme example uses sizeof(mps_word_t)
-    as its alignment? Why not MPS_PF_ALIGN (or are client programs not
-    supposed to look at mpstd.h)? Why not something of its own
-    manufacture, like sizeof(union {long, size_t, void*})?
-
- 5. What is the difference between the "event stream" and the
-    "telemetry stream"? Are these names for the same thing? Or is
-    there a distinction (for example, "event stream" refers to the
-    internal, unfiltered, stream of events and "telemetry stream"
-    refers to the filtered stream)?
 
  6. The location dependency functions all take an arena as an
     argument. What is the role of this argument?
 
+    ANSWER: if you have multiple arenas, you are going to have to have
+    an ld_t for each arena, and add each address you are interested in
+    for each arena. (If you happen to know which arena it's in, you
+    can just specify it for that arena.) So for isstale, it better be
+    the same arena as add.
+
  7. What is the role of the third (addr) argument to mps_ld_isstale?
     LDIsStale says "UNUSED(addr);" so maybe it is unused.
 
+    ANSWER: in theory it's the address you want to check, but in the
+    implementation it tells you for all addresses. The LD functions
+    have an intention that is not quite the same as the design
+    documentation. (But what, asks RB, is the point of ld_add?)
+    Perhaps in the case of isstale it's "a piece of information that
+    might be useful for debugging".
+
  8. Is the material in the pool class comparison table at all accurate?
+
+    ANSWER: It will be better to have a flowchart approach rather than
+    a table of properties.
 
 10. How does fixing interact with tagged references? Do I need to
     remove the tag before fixing a reference? Do I need to restore the
@@ -50,26 +55,11 @@ QUERIES AND SUGGESTIONS
     tagged references that does neither:
     <https://info.ravenbrook.com/project/mps/master/design/critical-path.txt>
 
-11. This code from mps_chat in the Scheme example is wrong:
+    ANSWER: we'll document that all references need to be
+    decrypted/de-tagged. There ought to be some slack in practice but
+    it needs thought. Make a job.
 
-        if (type == mps_message_type_gc_start()) {
-          printf("Collection %lu started.\n", (unsigned long)mps_collections(arena));
-
-    mps_collections returns the total number of collections to date,
-    not the number of the collection that posted the message. This
-    means that if there have been multiple collections since the last
-    time the message queue was emptied, the output will look like
-
-        Collection 47 started.
-          ...
-        Collection 47 started.
-          ...
-        Collection 47 started.
-          ...
-
-13. The Scheme example says, "Adapting it to use the MPS took
-    approximately two hours". I doubt this would be the common case,
-    and it would be better to under-promise here and over-deliver.
+    ACTION: made <https://info.ravenbrook.com/project/mps/issue/job003317/>
 
 14. I need to document the values in mps_gen_param_s. I believe they
     are the capacity (size of the generation in kilobytes) and the
@@ -77,14 +67,62 @@ QUERIES AND SUGGESTIONS
     expected to die in a collection). But what do they mean to the
     MPS? And how should one go about choosing values?
 
+    ANSWER: requires a whole document. Talk to RB. The intro document
+    should say, "take these values on trust". There's a design
+    document about this based on the Lisp Machine:
+    analysis.strategy.lisp-machine or something.
+
 15. Wouldn't it make mps_amc_apply easier to document if there were a
     typedef for the stepper function type, something like this?
 
-    typedef void (*mps_object_stepper_t)(mps_addr_t object, void *p, size_t s)
+    typedef void (*mps_amc_apply_stepper_t)(mps_addr_t object, void *p, size_t s)
 
-17. The example code looks better (easier to see the structure) if I
-    use an indentation of four spaces. Should this be propagated to
-    the example code?
+    ANSWER: Richard says I can make this change since it's
+    backwards-compatible.
+
+19. What is a root mode and how do I explain it?
+
+    ANSWER: currently a root mode has no effect. It tells the MPS
+    whether it's OK for the MPS to put a barrier on the
+    root. Recommend pass zero. For future expansion.
+
+20. You create a marker on the stack and pass it to
+    mps_root_create_reg to tell it where the bottom of the stack
+    is. Fine. But then you are supposed to call your program via
+    mps_tramp. If the MPS is trampoling your whole program, why does
+    the MPS need your help to work out where the stack is? It could
+    work it out for itself surely?
+
+    I guess this is some kind of separation of concerns -- mps_tramp
+    is something to do with protection -- but it's hard for me to
+    explain.
+
+    ANSWER: mps_tramp is needed for your program to work on Windows.
+    "mps_tramp needs to wrap any code that might handle references
+    into a pool class that requires it." [All the ones with A.]
+
+21. Status. At what point will the work be "good enough" to merge back
+    to the master sources?
+
+24. The discussion in the Scheme example about mps_reserve suggests
+    that mps_alloc doesn't require aligned sizes. Is that right? Needs
+    to be added to mps_alloc reference if so.
+
+    ANSWER: in fact there's no rule about this. Depends on the pool
+    class. "It doesn't unless the pool class says it does".
+
+25. Some of the Scheme objects could be moved to a leaf-only pool.
+
+26. Document about interface conventions and interface policies. What
+    do we guarantee about support for the external symbols?
+
+27. We don't support scanning the stack/registers except via
+    mps_stack_scan_ambig? Document this?
+
+    ANSWER: this is the only one we support at the moment.
+
+30. Move symbol references for the pool classes to the corresponding
+    pool document.
 
 
 TODO DONE
@@ -114,10 +152,39 @@ ANSWERED QUERIES
     so it is OK for the client program to put these structures on the
     stack otherwise dispose of them.
 
+ 2. What is the difference, if any, between mps_word_t and MPS_T_WORD?
+
+    ANSWER: MPS_T_WORD comes from mpstd.h which contains no C code
+    (only macro definitions). It used to be the case that mpstd.h was
+    included in mps.h but it isn't any more? There's something to do
+    here: why don't we include it? Because mpstd.h is a bit picky and
+    could easily be broken. MPS_T_WORD could be eliminated from the
+    external interface. Make a job?
+
+    ACTION: made <https://info.ravenbrook.com/project/mps/issue/job003315/>
+
+ 3. How can I explain why the Scheme example uses sizeof(mps_word_t)
+    as its alignment? Why not MPS_PF_ALIGN (or are client programs not
+    supposed to look at mpstd.h)? Why not something of its own
+    manufacture, like sizeof(union {long, size_t, void*})?
+
+    ANSWER: This a puzzle! More thought needed. Make a job?
+
+    ACTION: made <https://info.ravenbrook.com/project/mps/issue/job003316/>
+
  4. Why does the Scheme example have a copy method in its object
     format when the reference manual says it's obsolete?
 
     ANSWER: It wasn't obsolete when it was written. I removed it.
+
+ 5. What is the difference between the "event stream" and the
+    "telemetry stream"? Are these names for the same thing? Or is
+    there a distinction (for example, "event stream" refers to the
+    internal, unfiltered, stream of events and "telemetry stream"
+    refers to the filtered stream)?
+
+    ANSWER: the event stream is the implementation of the telemetry
+    stream, so the user doc can refer to "telemetry stream".
 
  9. This code seems a bit confused about what to do:
 
@@ -131,6 +198,29 @@ ANSWERED QUERIES
     ANSWER: the assertion and the return seem to be bogus, so I
     removed them.
 
+11. This code from mps_chat in the Scheme example is wrong:
+
+        if (type == mps_message_type_gc_start()) {
+          printf("Collection %lu started.\n", (unsigned long)mps_collections(arena));
+
+    mps_collections returns the total number of collections to date,
+    not the number of the collection that posted the message. This
+    means that if there have been multiple collections since the last
+    time the message queue was emptied, the output will look like
+
+        Collection 47 started.
+          ...
+        Collection 47 started.
+          ...
+        Collection 47 started.
+          ...
+
+    ANSWER: mis-feature. Update the scheme example. Make a job.
+
+    ACTION: updated the Scheme example.
+
+    ACTION: made <https://info.ravenbrook.com/project/mps/issue/job003318/>
+
 12. It seems "tricky" to re-use fowarding objects as padding objects
     by setting their forwarding pointer to NULL. Wouldn't it be
     simpler to explain if we had TYPE_PAD for multiple-word padding
@@ -138,11 +228,61 @@ ANSWERED QUERIES
 
     ANSWER: It would be simpler, so I made this change.
 
+13. The Scheme example says, "Adapting it to use the MPS took
+    approximately two hours". I doubt this would be the common case,
+    and it would be better to under-promise here and over-deliver.
+
+    ANSWER: take it out.
+
 16. Wouldn't the Scheme example be better without TAB characters?
 
-    ANSWER: It would, so I converted them to spaces.
+    ANSWER: maybe, but it would lead to merge conflicts. So no change.
+
+17. The example code looks better (easier to see the structure) if I
+    use an indentation of four spaces. There are also cases where the
+    original code is inconsistent (compare the indentation of the case
+    labels in "print" versus "obj_scan"). I've made these consistent
+    in the user guide.
+
+    Should these changes be propagated back to the example code?
+
+    ANSWER: no.
 
 18. The Scheme example is inconsistent in its use of whitespace: for
     example sometimes there's a space after "if" and sometimes not.
 
-    ACTION: I standardized on a space here.
+    ANSWER: maybe so, but it would lead to merge conflicts. So no
+    change.
+
+22. The generic example of using mps_tramp need to pass argv and argc,
+    and return an exit code, so maybe it would make sense to do that
+    in the Scheme example, even though Scheme doesn't use these
+    parameters.
+
+    ANSWER: no.
+
+23. There's a lot of stuff to explain here, and I think some of it
+    could be simplified:
+
+    a. The common trampoline case (passing argv and argc, and
+       returning an exit code).
+
+    b. The common single-thread root registration case (e.g. putting a
+       marker on the stack in mps_tramp).
+
+    ANSWER: leave it as it is.
+
+28. The fragmentation_limit argument to mps_class_mvt is an integer
+    representing a percentage between 1 and 100. For consistency with
+    mps_gen_param_s this should be a double between 0 (exclusive) and
+    1. Can we change this?
+
+    ANSWER: make a job.
+
+    ACTION: made <https://info.ravenbrook.com/project/mps/issue/job003319/>
+
+29. Move symbol reference from mpsio.h, mpstd.h and mpslib.h to the
+    plinth topic document.
+
+    ACTION: done.
+
