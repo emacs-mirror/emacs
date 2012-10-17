@@ -25,7 +25,7 @@
  * and for reporting errors.
  */
 
-unsigned int verbosity = 4; /* TODO command-line -v switches */
+unsigned int verbosity = 0;
 
 #define LOG_ALWAYS    0
 #define LOG_OFTEN     1
@@ -72,6 +72,77 @@ static void sqlite_error(int res, sqlite3 *db, const char *format, ...)
         exit(1);
 }
 
+static char *prog; /* program name */
+static int rebuild = FALSE;
+static int runTests = FALSE;
+static int force = FALSE;
+static char *databaseName = NULL;
+static char *logFileName = NULL;
+
+static void usage(void)
+{
+  fprintf(stderr,
+          "Usage: %s [-rtf] [-l <logfile>] [-d <database>] [-v -v -v ...]\n",
+          prog);
+}
+
+static void usageError(void)
+{
+        usage();
+        error("Bad usage");
+}
+
+/* parseArgs -- parse command line arguments */
+
+static void parseArgs(int argc, char *argv[])
+{
+  int i = 1;
+
+  if (argc >= 1)
+    prog = argv[0];
+  else
+    prog = "unknown";
+
+  while (i < argc) { /* consider argument i */
+    if (argv[i][0] == '-') { /* it's an option argument */
+      switch (argv[i][1]) {
+      case 'v': /* verbosity */
+        ++ verbosity;
+        break;
+      case 'r': /* rebuild */
+        rebuild = TRUE;
+        break;
+      case 'f': /* force */
+        force = TRUE;
+        break;
+      case 't': /* run tests */
+        runTests = TRUE;
+        break;
+      case 'l': /* log file name */
+        ++ i;
+        if (i == argc)
+          usageError();
+        else
+          logFileName = argv[i];
+        break;
+      case 'd': /* database file name */
+        ++ i;
+        if (i == argc)
+          usageError();
+        else
+          databaseName = argv[i];
+        break;
+      case '?': case 'h': /* help */
+        usage();
+        break;
+      default:
+        usageError();
+      }
+    } /* if option */
+    ++ i;
+  }
+}
+
 /* openDatabase(p) opens the database file and returns a SQLite 3
  * database connection object. */
 
@@ -79,19 +150,22 @@ static sqlite3 *openDatabase(void)
 {
         sqlite3 *db;
         int res;
-        
-        const char *filename = getenv(DATABASE_NAME_ENVAR);
-        if(filename == NULL)
-                filename = DEFAULT_DATABASE_NAME;
-        log(LOG_ALWAYS, "Opening %s.", filename);
-        
-        res = sqlite3_open_v2(filename,
+
+        if (!databaseName) {
+                databaseName = getenv(DATABASE_NAME_ENVAR);
+                if(!databaseName)
+                        databaseName = DEFAULT_DATABASE_NAME;
+        }
+        res = sqlite3_open_v2(databaseName,
                               &db,
                               SQLITE_OPEN_READWRITE | SQLITE_OPEN_CREATE,
                               NULL); /* use default sqlite_vfs object */
         
         if (res != SQLITE_OK)
-                sqlite_error(res, db, "Opening %s failed", filename);
+                sqlite_error(res, db, "Opening %s failed", databaseName);
+
+        log(LOG_ALWAYS, "Writing to  %s.",databaseName);
+        
         return db;
 }
 
@@ -102,7 +176,7 @@ static void closeDatabase(sqlite3 *db)
         int res = sqlite3_close(db);
         if (res != SQLITE_OK)
                 sqlite_error(res, db, "Closing database failed"); 
-        log(LOG_ALWAYS, "Closed database.");
+        log(LOG_ALWAYS, "Closed %s.", databaseName);
 }
 
 /* We need to be able to test for the existence of a table.  The
@@ -198,7 +272,22 @@ static void finalizeStatement(sqlite3 *db,
                 sqlite_error(res, db, "event_type finalize failed");
 }
 
-/* every time we put events from a log file into a database file, we
+static void runStatement(sqlite3 *db,
+                         const char *sql,
+                         const char *description)
+{
+        int res;
+        res = sqlite3_exec(db,
+                           sql,
+                           NULL, /* No callback */
+                           NULL, /* No callback closure */
+                           NULL); /* error messages handled by sqlite_error */
+        if (res != SQLITE_OK)
+                sqlite_error(res, db, "%s failed - statement %s", description, sql);
+}
+
+
+/* Every time we put events from a log file into a database file, we
  * add the log file to the event_log table, and get a serial number
  * from SQL which is then attached to all event rows from that log.
  * We use this to record overall SQL activity, to deter mistaken
@@ -208,8 +297,7 @@ static void finalizeStatement(sqlite3 *db,
 static unsigned long logSerial = 0;
 
 static void registerLogFile(sqlite3 *db,
-                            const char *filename,
-                            int force)
+                            const char *filename)
 {
         struct stat st;
         sqlite3_stmt *statement;
@@ -240,9 +328,9 @@ static void registerLogFile(sqlite3 *db,
                 log(LOG_SOMETIMES, "No log file matching '%s' found in database.", filename);
                 break;
         case SQLITE_ROW:
-                name = sqlite3_column_text(statement, 1);
-                logSerial = sqlite3_column_int(statement, 2);
-                completed = sqlite3_column_int(statement, 3);
+                name = sqlite3_column_text(statement, 0);
+                logSerial = sqlite3_column_int(statement, 1);
+                completed = sqlite3_column_int(statement, 2);
                 log(LOG_ALWAYS, "Log file matching '%s' already in event_log, named \"%s\" (serial %lu, completed %lu).",
                     filename, name, logSerial, completed);
                 if (!force) {
@@ -347,17 +435,35 @@ EVENT_LIST(EVENT_TABLE_CREATE, X)
 static void makeTables(sqlite3 *db)
 {
         int i;
-        int res;
         
         for (i=0; i < (sizeof(createStatements)/sizeof(createStatements[0])); ++i) {
                 log(LOG_SOMETIMES, "Creating tables.  SQL command: %s", createStatements[i]);
+                runStatement(db, createStatements[i], "Table creation");
+        }
+}
+
+const char *glueTables[] = {
+        "event_kind",
+        "event_type",
+};
+
+static void dropGlueTables(sqlite3 *db)
+{
+        int i;
+        int res;
+        char sql[1024];
+
+        log(LOG_ALWAYS, "Dropping glue tables so they are rebuilt.");
+        
+        for (i=0; i < (sizeof(glueTables)/sizeof(glueTables[0])); ++i) {
+                log(LOG_SOMETIMES, "Dropping table %s", glueTables[i]);
+                sprintf(sql, "DROP TABLE %s", glueTables[i]);
                 res = sqlite3_exec(db,
-                                   createStatements[i],
+                                   sql,
                                    NULL, /* No callback */
                                    NULL, /* No callback closure */
                                    NULL); /* error messages handled by sqlite_error */
-                if (res != SQLITE_OK)
-                        sqlite_error(res, db, "Table creation failed: %s", createStatements[i]);
+                /* Don't check for errors. */
         }
 }
 
@@ -504,20 +610,14 @@ static void readLog(EventProc proc,
                     sqlite3 *db)
 {
         size_t eventCount = 0;
-        int res;
+
         /* declare statements for every event type */
         EVENT_LIST(EVENT_TYPE_DECLARE_STATEMENT, X);
 
         /* prepare statements for every event type */
         EVENT_LIST(EVENT_TYPE_PREPARE_STATEMENT, X);
 
-        res = sqlite3_exec(db,
-                           "BEGIN",
-                           NULL, /* No callback */
-                           NULL, /* No callback closure */
-                           NULL); /* error messages handled by sqlite_error */
-        if (res != SQLITE_OK)
-                sqlite_error(res, db, "BEGIN failed");
+        runStatement(db, "BEGIN", "Transaction start");
 
         while (TRUE) { /* loop for each event */
                 Event event;
@@ -536,29 +636,28 @@ static void readLog(EventProc proc,
                 }
                 EventDestroy(proc, event);
                 eventCount++;
-                if ((eventCount % SMALL_TICK) == 0) {
-                        fprintf(stdout, ".");
-                        fflush(stdout);
-                        if (((eventCount / SMALL_TICK) % BIG_TICK) == 0) {
-                                log(LOG_OFTEN, "%lu events.", (unsigned long)eventCount);
+                if (verbosity > LOG_ALWAYS) {
+                        if ((eventCount % SMALL_TICK) == 0) {
+                                printf(".");
+                                fflush(stdout);
+                                if (((eventCount / SMALL_TICK) % BIG_TICK) == 0) {
+                                        log(LOG_OFTEN, "%lu events.", (unsigned long)eventCount);
+                                }
                         }
                 }
         }
-        res = sqlite3_exec(db,
-                           "COMMIT",
-                           NULL, /* No callback */
-                           NULL, /* No callback closure */
-                           NULL); /* error messages handled by sqlite_error */
-        if (res != SQLITE_OK)
-                sqlite_error(res, db, "COMMIT failed");
+        if (verbosity > LOG_ALWAYS) {
+                printf("\n");
+                fflush(stdout);
+        }
+        runStatement(db, "COMMIT", "Transaction finish");
 
-        log(LOG_OFTEN, "Wrote %lu events to SQL.", (unsigned long)eventCount);
+        log(LOG_ALWAYS, "Wrote %lu events to SQL.", (unsigned long)eventCount);
         logFileCompleted(db, eventCount);
+
         /* finalize all the statements */
         EVENT_LIST(EVENT_TYPE_FINALIZE_STATEMENT, X);
 }
-
-
 
 static Res logReader(void *file, void *p, size_t len)
 {
@@ -570,18 +669,21 @@ static Res logReader(void *file, void *p, size_t len)
 
 static FILE *openLog(sqlite3 *db)
 {
-        const char *filename;
         FILE *input;
 
-        filename = getenv(TELEMETRY_FILENAME_ENVAR);
-        if(filename == NULL)
-                filename = DEFAULT_TELEMETRY_FILENAME;
+        if (!logFileName) {
+                logFileName = getenv(TELEMETRY_FILENAME_ENVAR);
+                if(logFileName == NULL)
+                        logFileName = DEFAULT_TELEMETRY_FILENAME;
+        }
 
-        registerLogFile(db, filename, 0);
-        input = fopen(filename, "rb");
+        registerLogFile(db, logFileName);
+        input = fopen(logFileName, "rb");
 
         if (input == NULL)
-                error("unable to open %s", filename);
+                error("unable to open %s", logFileName);
+
+        log(LOG_ALWAYS, "Reading %s.", logFileName);
 
         return input;
 }
@@ -604,25 +706,22 @@ static void writeEventsToSQL(sqlite3 *db)
 }
 
 
-int main(void)
+int main(int argc, char *argv[])
 {
         sqlite3 *db;
 
-        /* TODO: command line args
-         * -v verbosity;
-         * -f log filename;
-         * -d database filename;
-         * -r rebuild glue tables (by dropping them);
-         * -t unit tests?
-         */
+        parseArgs(argc, argv);
         
         db = openDatabase();
+        if (rebuild) {
+                dropGlueTables(db);
+        }
         makeTables(db);
         fillGlueTables(db);
         writeEventsToSQL(db);
 
-        if (0) { /* avoid unused-function warnings.
-                    Put test code or calls to experimental functions here. */
+        if (runTests) {
+                /* TODO: more unit tests in here */
                 testTableExists(db);
         }
 
