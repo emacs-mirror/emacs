@@ -120,12 +120,12 @@ Choosing an arena class
 You'll recall from the :ref:`overview <guide-overview>` that the
 functionality of the MPS is divided between the :term:`arena`, which
 requests memory from (and returns it to) the operating system, and
-:term:`pools <pool>`, which allocate blocks of memory on behalf of the
-:term:`client program`.
+:term:`pools <pool>`, which allocate blocks of memory on behalf of
+your program.
 
 There are two main classes of arena: the :term:`client arena` (see
-:c:func:`mps_arena_class_cl`) which gets its memory from the client
-program, and the :term:`virtual memory arena` (see
+:c:func:`mps_arena_class_cl`) which gets its memory from your program,
+and the :term:`virtual memory arena` (see
 :c:func:`mps_arena_class_vm`) which gets its memory from the operating
 system's :term:`virtual memory` interface.
 
@@ -241,6 +241,8 @@ The other elements of the structure are the :term:`format methods
     :ref:`topic-format`.
 
 
+.. _guide-lang-scan:
+
 ^^^^^^^^^^^^^^^
 The scan method
 ^^^^^^^^^^^^^^^
@@ -301,7 +303,7 @@ follows::
             mps_res_t res = MPS_FIX12(ss, &_addr);                          \
             if (res != MPS_RES_OK) return res;                              \
             (ref) = _addr;                                                  \
-        } while(0)
+        } while (0)
 
 Each call to :c:func:`MPS_FIX12` must appear between calls to the
 macros :c:func:`MPS_SCAN_BEGIN` and :c:func:`MPS_SCAN_END`. It's
@@ -394,10 +396,10 @@ The forwarding object must satisfy these properties:
 2. It must contain a pointer to the new location of the object (a
    :term:`forwarding pointer`).
 
-3. The scan method and the skip method will both need to know the
-   length of the forwarding object. This can be arbitarily long (in
-   the case of string objects, for example) so it must contain a
-   length field.
+3. The :ref:`scan method <guide-lang-scan>` and the skip method will
+   both need to know the length of the forwarding object. This can be
+   arbitarily long (in the case of string objects, for example) so it
+   must contain a length field.
 
 This poses a problem, because the above analysis suggests that
 forwarding objects need to contain at least three words, but Scheme
@@ -567,10 +569,10 @@ The AMC pool requires not only an object format but a
 :term:`generation chain`. This specifies the generation structure of
 the :term:`generational garbage collection`.
 
-The client program creates a generation chain by constructing an array
-of structures of type :c:type:`mps_gen_param_s` and passing them to
-:c:func:`mps_chain_create`. Here's the code for creating
-the generation chain for the Scheme interpreter::
+You create a generation chain by constructing an array of structures
+of type :c:type:`mps_gen_param_s` and passing them to
+:c:func:`mps_chain_create`. Here's the code for creating the
+generation chain for the Scheme interpreter::
 
     mps_gen_param_s obj_gen_params[] = {
         { 150, 0.85 },
@@ -588,8 +590,8 @@ the generation chain for the Scheme interpreter::
 Creating the pool
 -----------------
 
-Now you know enough to create an AMC pool! Let's review the pool
-creation code. First the object format::
+Now you know enough to create an :ref:`pool-amc` pool! Let's review
+the pool creation code. First the :term:`object format`::
 
     struct mps_fmt_A_s obj_fmt_s = {
         sizeof(mps_word_t),
@@ -605,7 +607,7 @@ creation code. First the object format::
     res = mps_fmt_create_A(&obj_fmt, arena, &obj_fmt_s);
     if (res != MPS_RES_OK) error("Couldn't create obj format");
 
-then the generation chain::
+then the :term:`generation chain`::
 
     mps_gen_param_s obj_gen_params[] = {
         { 150, 0.85 },
@@ -619,7 +621,7 @@ then the generation chain::
                            obj_gen_params);
     if (res != MPS_RES_OK) error("Couldn't create obj chain");
 
-and finally the pool::
+and finally the :term:`pool`::
 
     mps_pool_t obj_pool;
     res = mps_pool_create(&obj_pool,
@@ -634,12 +636,183 @@ and finally the pool::
 Roots
 -----
 
+The :term:`object format` tells the MPS how to find :term:`references
+<reference>` from one object to another. This allows the MPS to
+extrapolate the reachability property: if object *A* is
+:term:`reachable`, and the :term:`scan method` fixes a reference from
+*A* to another object *B*, then *B* is reachable too.
 
+But how does this process get started? How does the MPS know which
+objects are reachable *a priori*? Such objects are known as
+:term:`roots <root>`, and you must register them with the MPS,
+creating root descriptions of type :c:type:`mps_root_t`.
+
+The most important root consists of the contents of the
+:term:`registers <register>` and the :term:`control stack` of each
+:term:`thread` in your program: this is covered in :ref:`Threads <guide-lang-threads>`, below.
+
+Other roots may be found in static variables in your program, or in
+memory allocated by other memory managers. For these roots you must
+describe to the MPS how to :term:`scan` them for references.
+
+The Scheme interpreter has a number of static variables that point to
+heap-allocated objects. First, the special objects, including::
+
+    static obj_t obj_empty;         /* (), the empty list */
+
+Second, the predefined symbols, including::
+
+    static obj_t obj_quote;         /* "quote" symbol */
+
+And third, the global symbol table::
+
+    static obj_t *symtab;
+    static size_t symtab_size;
+
+You tell the MPS how to scan these by writing root scanning functions
+of type :c:type:`mps_reg_scan_t`. These function are similar to the
+:ref:`scan method <guide-lang-scan>` in an :term:`object format`,
+described above.
+
+In the case of the Scheme interpreter, the root scanning function for
+the special objects and the predefined symbols could be written like
+this::
+
+    static mps_res_t globals_scan(mps_ss_t ss, void *p, size_t s)
+    {
+        MPS_SCAN_BEGIN(ss) {
+            FIX(obj_empty);
+            /* ... and so on for the special objects ... */
+            FIX(obj_quote);
+            /* ... and so on for the predefined symbols ... */
+        } MPS_SCAN_END(ss);
+        return MPS_RES_OK;
+    }
+
+but in fact the interpreter already has tables of these global
+objects, so it's simpler and more extensible for the root scanning
+function to iterate over them::
+
+    static mps_res_t globals_scan(mps_ss_t ss, void *p, size_t s)
+    {
+        MPS_SCAN_BEGIN(ss) {
+            size_t i;
+            for (i = 0; i < LENGTH(sptab); ++i)
+                FIX(*sptab[i].varp);
+            for (i = 0; i < LENGTH(isymtab); ++i)
+                FIX(*isymtab[i].varp);
+        } MPS_SCAN_END(ss);
+        return MPS_RES_OK;
+    }
+
+Each root scanning function must be registered with the MPS by calling
+:c:func:`mps_root_create`, like this::
+
+    mps_root_t globals_root;
+    res = mps_root_create(&globals_root, arena, mps_rank_exact(), 0,
+                          globals_scan, NULL, 0);
+    if (res != MPS_RES_OK) error("Couldn't register globals root");
+
+The third argument (here :c:func:`mps_rank_exact`) is the :term:`rank`
+of references in the root. ":term:`Exact <exact reference>`" means
+that:
+
+1. all references in the root point to another object (there are no
+   :term:`ambiguous references <ambiguous reference>`); and
+
+2. each reference keeps the target of the reference alive (unlike
+   :term:`weak references <weak reference (1)>`.
+
+The fourth argument (here ``0``) is the :term:`root mode`: see
+:ref:`topic-root`.
+
+The sixth and seventh arguments (here ``NULL`` and ``0``) are passed
+to the root scanning function where they are received as the
+parameters ``p`` and ``s`` respectively. In this case there was no
+need to use them.
+
+What about the global symbol table? This is trickier, because it gets
+rehashed from time to time, and during the rehashing process there are
+two copies of the symbol table in existence. Because the MPS is
+:term:`asynchronous <asynchronous garbage collector>`, it might be
+scanning, moving, or collecting at any point in time, and if it is
+doing so during the rehashing of the symbol table it had better scan
+both the old and new copies of the table. This is most conveniently
+done by registering a new root to refer to the new copy, and then
+after the rehash has completed, de-registering the old root by calling
+:c:func:`mps_root_destroy`.
+
+It would be possible to write a root scanning functions of type
+:c:type:`mps_reg_scan_t`, as described above, to fix the references in
+the global symbol table, but the case of a table of references is
+sufficiently common that the MPS provides a convenience function,
+:c:func:`mps_root_create_table`, for registering it::
+
+    static mps_root_t symtab_root;
+    res = mps_root_create_table(&symtab_root, arena, mps_rank_exact(), 0,
+                                (mps_addr_t *)symtab, symtab_size);
+    if (res != MPS_RES_OK) error("Couldn't register new symtab root");
+
+The root must be re-registered whenever the global symbol table
+changes size::
+
+    static void rehash(void) {
+        obj_t *old_symtab = symtab;
+        unsigned old_symtab_size = symtab_size;
+        mps_root_t old_symtab_root = symtab_root;
+        unsigned i;
+        mps_res_t res;
+
+        symtab_size *= 2;
+        symtab = malloc(sizeof(obj_t) * symtab_size);
+        if (symtab == NULL) error("out of memory");
+
+        /* Initialize the new table to NULL so that "find" will work. */
+        for (i = 0; i < symtab_size; ++i)
+            symtab[i] = NULL;
+
+        res = mps_root_create_table(&symtab_root, arena, mps_rank_exact(), 0,
+                                    (mps_addr_t *)symtab, symtab_size);
+        if (res != MPS_RES_OK) error("Couldn't register new symtab root");
+
+        for (i = 0; i < old_symtab_size; ++i)
+            if (old_symtab[i] != NULL) {
+                obj_t *where = find(old_symtab[i]->symbol.string);
+                assert(where != NULL);    /* new table shouldn't be full */
+                assert(*where == NULL);   /* shouldn't be in new table */
+                *where = old_symtab[i];
+            }
+
+        mps_root_destroy(old_symtab_root);
+        free(old_symtab);
+    }
+
+There are a few things to take note of here:
+
+1. The old root description (referring to the old copy of the symbol
+   table) is not destroyed until after the new root description has
+   been registered. This is because the MPS is :term:`asynchronous
+   <asynchronous garbage collector>`: it might be scanning, moving, or
+   collecting at any point in time. If the old root description were
+   destroyed before the new root description was registered, there
+   would be a period in which the symbol table was not reachable (at
+   least as far as the MPS was concerned) and so all the objects
+   referenced by it (and all the objects reachable from *those*
+   objects) might be dead.
+
+2. The root might be scanned as soon as it is registered, so it is
+   important to fill it with scannable references (``NULL`` in this
+   case) before registering it.
+
+3. The order of operations at the end is important: the old root must
+   be de-registered before its memory is freed.
 
 .. topics::
 
     :ref:`topic-root`.
 
+
+.. _guide-lang-threads:
 
 -------
 Threads
@@ -668,19 +841,17 @@ Maintaining consistency
 The collector runs asynchronously. So when do objects have to be valid (scannable)?
 
 
---------
-Messages
---------
+----------
+Tidying up
+----------
 
-
-.. topics::
-
-    :ref:`topic-message`.
 
 
 ---------------
 Advanced topics
 ---------------
+
+* Messages.
 
 * Some of the Scheme objects could be moved to a leaf-only pool.
 
