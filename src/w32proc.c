@@ -24,6 +24,7 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #include <stdio.h>
 #include <stdlib.h>
 #include <errno.h>
+#include <ctype.h>
 #include <io.h>
 #include <fcntl.h>
 #include <signal.h>
@@ -67,8 +68,6 @@ extern BOOL WINAPI IsValidLocale (LCID, DWORD);
 	    + (filedata).file_base))
 
 Lisp_Object Qhigh, Qlow;
-
-typedef void (_CALLBACK_ *signal_handler) (int);
 
 /* Signal handlers...SIG_DFL == 0 so this is initialized correctly.  */
 static signal_handler sig_handlers[NSIG];

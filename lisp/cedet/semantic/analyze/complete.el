@@ -87,20 +87,25 @@ in a buffer."
   ;; In theory, we don't need the below since the context will
   ;; do it for us.
   ;;(semantic-refresh-tags-safe)
-  (with-syntax-table semantic-lex-syntax-table
-    (let* ((context (if (semantic-analyze-context-child-p context)
-                        context
-                      (semantic-analyze-current-context context)))
-	   (ans (if (not context)
-		    (error "Nothing to complete")
-		  (:override))))
-      ;; If interactive, display them.
-      (when (called-interactively-p 'any)
-	(with-output-to-temp-buffer "*Possible Completions*"
-	  (semantic-analyze-princ-sequence ans "" (current-buffer)))
-	(shrink-window-if-larger-than-buffer
-	 (get-buffer-window "*Possible Completions*")))
-      ans)))
+  (if (semantic-active-p)
+    (with-syntax-table semantic-lex-syntax-table
+      (let* ((context (if (semantic-analyze-context-child-p context)
+			  context
+			(semantic-analyze-current-context context)))
+	     (ans (if (not context)
+		      (error "Nothing to complete")
+		    (:override))))
+	;; If interactive, display them.
+	(when (called-interactively-p 'any)
+	  (with-output-to-temp-buffer "*Possible Completions*"
+	    (semantic-analyze-princ-sequence ans "" (current-buffer)))
+	  (shrink-window-if-larger-than-buffer
+	   (get-buffer-window "*Possible Completions*")))
+	ans))
+    ;; Buffer was not parsed by Semantic.
+    ;; Raise error if called interactively.
+    (when (called-interactively-p 'any)
+      (error "Buffer was not parsed by Semantic."))))
 
 (defun semantic-analyze-possible-completions-default (context &optional flags)
   "Default method for producing smart completions.

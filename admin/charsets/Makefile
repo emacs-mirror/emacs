@@ -197,9 +197,19 @@ cp51932.el: CP932-2BYTE.map cp51932.awk
 eucjp-ms.el: ${GLIBC_CHARMAPS}/EUC-JP-MS.gz eucjp-ms.awk
 	@zcat $< | $(AWK) -f eucjp-ms.awk > $@
 
-JISC6226.map : mapfiles/Uni2JIS mapconv kuten.awk
+JISC6226.map: mapfiles/Uni2JIS mapconv kuten.awk
 	# Generating $@...
-	@./mapconv $< '/^[^#].*0-/' YASUOKA kuten.awk > $@
+# As Uni2JIS doesn't contain mappings of characters added to Unicode
+# recently, we add them manually here (including one correction for
+# U+005C vs U+FF3C).  These changes are based on bogytech's blog at
+# http://bogytech.blogspot.jp/search/label/emacs.
+	@./mapconv $< '/^[^#].*0-/' YASUOKA kuten.awk \
+	  | sed -e '/0x2140/s/005C/FF3C/' \
+	        -e '$$ a 0x3442 0x3D4E' \
+	        -e '$$ a 0x374E 0x25874' \
+	        -e '$$ a 0x3764 0x28EF6' \
+	        -e '$$ a 0x513D 0x2F80F' \
+	        -e '$$ a 0x7045 0x9724' > $@
 
 KSC5601.map: ${GLIBC_CHARMAPS}/EUC-KR.gz mapconv compact.awk
 	# Generating $@...

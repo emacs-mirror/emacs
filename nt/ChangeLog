@@ -1,3 +1,22 @@
+2012-10-17  Eli Zaretskii  <eliz@gnu.org>
+
+	* inc/pwd.h (getuid, geteuid): Add prototypes.
+
+	* inc/ms-w32.h (sys_wait, _getpid, gmtgime_r, localtime_r)
+	(signal_handler, sys_signal, sigemptyset, sigfillset, sigprocmask)
+	(pthread_sigmask, sigismember, setpgrp, sigaction, alarm)
+	(sys_kill, getpagesize): Add prototypes for emulated functions.
+
+	* inc/grp.h (getgid, getegid): Add prototypes.
+
+	* gmake.defs (DEBUG_CFLAGS) [NOOPT]: Add -std=gnu99.
+
+	* configure.bat (chkapiN): Avoid compiler warning in junk.c when
+	compiling with -std=gnu99.
+
+	* config.nt (CHECK_LISP_OBJECT_TYPE): Don't undef, so that it
+	could be used via --cflags switch to configure.bat.
+
 2012-10-08  Juanma Barranquero  <lekktu@gmail.com>
 
 	* config.nt: Sync with autogen/config.in.
@@ -32,13 +51,13 @@
 	(offset_to_section, relocate_offset, OFFSET_TO_RVA)
 	(RVA_TO_OFFSET, RVA_TO_SECTION_OFFSET, PTR_TO_RVA)
 	(OFFSET_TO_PTR, ROUND_UP, ROUND_DOWN)
-	(copy_executable_and_move_sections, ADJUST_IMPORT_RVA, main): Use
-	DWORD_PTR instead of DWORD for compatibility with x64.
+	(copy_executable_and_move_sections, ADJUST_IMPORT_RVA, main):
+	Use DWORD_PTR instead of DWORD for compatibility with x64.
 
 	* nmake.defs: Support AMD64.
 	(EMACS_HEAPSIZE, EMACS_PURESIZE, EMACS_MANIFEST): New macros.
 
-	* gmake.defs: (EMACS_HEAPSIZE, EMACS_PURESIZE, EMACS_MANIFEST):
+	* gmake.defs (EMACS_HEAPSIZE, EMACS_PURESIZE, EMACS_MANIFEST):
 	New macros.
 
 	* addsection.c (pfnCheckSumMappedFile, rva_to_section)
@@ -478,7 +497,7 @@
 
 2012-02-05  Christoph Scholtes  <cschol2112@googlemail.com>
 
-	* README.W32: Clarification for inclusion in source tarball. (Bug#9750)
+	* README.W32: Clarification for inclusion in source tarball (bug#9750).
 
 	* gmake.defs (PRAGMA_SYSTEM_HEADER): Add for GCC.
 
@@ -487,7 +506,7 @@
 	* makefile.w32-in (maybe-copy-distfiles)
 	(maybe-copy-distfiles-CMD, maybe-copy-distfiles-SH)
 	(create-tmp-dist-dir): Add to make --distfiles optional.
-	(dist): Use create-tmp-dist-dir and maybe-copy-distfiles. (Bug#10261)
+	(dist): Use create-tmp-dist-dir and maybe-copy-distfiles (bug#10261).
 
 2012-02-04  Eli Zaretskii  <eliz@gnu.org>
 

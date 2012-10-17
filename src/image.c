@@ -6577,7 +6577,7 @@ static const struct image_keyword tiff_format[TIFF_LAST] =
   {":index",		IMAGE_NON_NEGATIVE_INTEGER_VALUE,	0}
 };
 
-#ifdef HAVE_NTGUI
+#if defined HAVE_NTGUI && defined WINDOWSNT
 static bool init_tiff_functions (void);
 #else
 #define init_tiff_functions NULL
@@ -7529,7 +7529,7 @@ static struct image_keyword imagemagick_format[IMAGEMAGICK_LAST] =
     {":crop",		IMAGE_DONT_CHECK_VALUE_TYPE,		0}
   };
 
-#ifdef HAVE_NTGUI
+#if defined HAVE_NTGUI && defined WINDOWSNT
 static bool init_imagemagick_functions (void);
 #else
 #define init_imagemagick_functions NULL
@@ -8083,7 +8083,7 @@ static const struct image_keyword svg_format[SVG_LAST] =
   {":background",	IMAGE_STRING_OR_NIL_VALUE,		0}
 };
 
-#ifdef HAVE_NTGUI
+#if defined HAVE_NTGUI && defined WINDOWSNT
 static bool init_svg_functions (void);
 #else
 #define init_svg_functions NULL

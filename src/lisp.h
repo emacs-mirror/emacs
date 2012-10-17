@@ -3127,7 +3127,6 @@ extern Lisp_Object make_buffer_string (ptrdiff_t, ptrdiff_t, bool);
 extern Lisp_Object make_buffer_string_both (ptrdiff_t, ptrdiff_t, ptrdiff_t,
 					    ptrdiff_t, bool);
 extern void init_editfns (void);
-const char *get_system_name (void);
 extern void syms_of_editfns (void);
 extern void set_time_zone_rule (const char *);
 

@@ -963,6 +963,22 @@ bset_width_table (struct buffer *b, Lisp_Object val)
 
 #define BUFFER_LIVE_P(b) (!NILP (BVAR (b, name)))
 
+/* Verify indirection counters.  */
+
+#define BUFFER_CHECK_INDIRECTION(b)			\
+  do {							\
+    if (BUFFER_LIVE_P (b))				\
+    {							\
+      if (b->base_buffer)				\
+	{						\
+	  eassert (b->indirections == -1);		\
+	  eassert (b->base_buffer->indirections > 0);	\
+	}						\
+      else						\
+	eassert (b->indirections >= 0);			\
+    }							\
+  } while (0)
+
 /* Chain of all buffers, including killed ones.  */
 
 extern struct buffer *all_buffers;

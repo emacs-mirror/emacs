@@ -2088,6 +2088,7 @@ completion works."
 (defun semantic-complete-jump-local ()
   "Jump to a local semantic symbol."
   (interactive)
+  (semantic-error-if-unparsed)
   (let ((tag (semantic-complete-read-tag-buffer-deep "Jump to symbol: ")))
     (when (semantic-tag-p tag)
       (push-mark)
@@ -2101,6 +2102,7 @@ completion works."
 (defun semantic-complete-jump ()
   "Jump to a semantic symbol."
   (interactive)
+  (semantic-error-if-unparsed)
   (let* ((tag (semantic-complete-read-tag-project "Jump to symbol: ")))
     (when (semantic-tag-p tag)
       (push-mark)
@@ -2115,6 +2117,7 @@ completion works."
 (defun semantic-complete-jump-local-members ()
   "Jump to a semantic symbol."
   (interactive)
+  (semantic-error-if-unparsed)
   (let* ((tag (semantic-complete-read-tag-local-members "Jump to symbol: ")))
     (when (semantic-tag-p tag)
       (let ((start (condition-case nil (semantic-tag-start tag)
@@ -2216,7 +2219,7 @@ use `semantic-complete-analyze-inline' to complete."
       (error nil))
     ))
 
-;;;;###autoload
+;;;###autoload
 (defun semantic-complete-inline-project ()
   "Perform inline completion for any symbol in the current project.
 `semantic-analyze-possible-completions' is used to determine the

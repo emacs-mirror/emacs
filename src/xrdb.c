@@ -24,7 +24,7 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #include <unistd.h>
 #include <errno.h>
 #include <epaths.h>
-
+#include <stdlib.h>
 #include <stdio.h>
 
 #include "lisp.h"
@@ -47,11 +47,6 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 /* For Vdouble_click_time.  */
 #include "keyboard.h"
 #endif
-
-extern char *getenv (const char *);
-
-extern struct passwd *getpwuid (uid_t);
-extern struct passwd *getpwnam (const char *);
 
 char *x_get_string_resource (XrmDatabase rdb, const char *name,
 			     const char *class);
@@ -429,8 +424,9 @@ get_environ_db (void)
     {
       static char const xdefaults[] = ".Xdefaults-";
       char *home = gethomedir ();
-      char const *host = get_system_name ();
-      ptrdiff_t pathsize = strlen (home) + sizeof xdefaults + strlen (host);
+      char const *host = SSDATA (Vsystem_name);
+      ptrdiff_t pathsize = (strlen (home) + sizeof xdefaults
+			    + SBYTES (Vsystem_name));
       path = xrealloc (home, pathsize);
       strcat (strcat (path, xdefaults), host);
       p = path;

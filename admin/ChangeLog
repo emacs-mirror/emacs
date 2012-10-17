@@ -1,3 +1,7 @@
+2012-10-12  Kenichi Handa  <handa@gnu.org>
+
+	* charsets/Makefile (JISC6226.map): Add missing mappings.
+
 2012-10-11  Kenichi Handa  <handa@gnu.org>
 
 	* charsets/mapconv: Adjusted for the change of mapfiles/*.gz to

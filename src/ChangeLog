@@ -1,3 +1,103 @@
+2012-10-17  Eli Zaretskii  <eliz@gnu.org>
+
+	* makefile.w32-in ($(BLD)/w32.$(O)): 
+	($(BLD)/vm-limit.$(O)): 
+	($(BLD)/term.$(O)): 
+	($(BLD)/unexw32.$(O)): 
+	($(BLD)/fileio.$(O)): 
+	($(BLD)/dispnew.$(O)): Update dependencies.
+
+	* w32term.h (w32_initialize_display_info, initialize_w32_display):
+	Add prototypes.
+
+	* w32proc.c: Include ctype.h.
+
+	* w32.h (init_environment, check_windows_init_file)
+	(syms_of_ntproc, syms_of_ntterm, dostounix_filename)
+	(unixtodos_filename, init_winsock, srandom, random, sys_pipe)
+	(set_process_dir, sys_spawnve, register_child, sys_sleep, getwd)
+	(sys_link): Add prototypes.
+
+	* w32.c: Include w32select.h.
+	(sys_access, e_malloc, sys_select): Add prototypes.
+	(emacs_gnutls_pull): 'timeout' is now EMACS_TIME, not struct timeval.
+
+	* vm-limit.c [WINDOWSNT]: Include w32heap.h.
+
+	* unexw32.c: Include lisp.h and w32.h.
+
+	* term.c [WINDOWSNT]: Include w32term.h.
+
+	* process.c [WINDOWSNT]: Add prototype of sys_select.
+
+	* fileio.c [WINDOWSNT]: Include w32.h.
+
+	* dispnew.c [WINDOWSNT]: Include w32.h.
+
+	* cygw32.c (Fcygwin_convert_path_to_windows)
+	(Fcygwin_convert_path_from_windows): Use EQ to compare 2
+	Lisp_Object values.  (Bug#12661)
+
+	* w32fns.c (w32_msg_pump): Use XIL instead of casting an integer
+	to Lisp_Object.  (Bug#12661)
+
+2012-10-17  Kenichi Handa  <handa@gnu.org>
+
+	* xdisp.c (reseat_1): Make the information stored in it->cmp_it
+	invalidate.
+
+2012-10-17  Dmitry Antipov  <dmantipov@yandex.ru>
+
+	* buffer.c (Fkill_buffer): When unchaining the marker,
+	reset its buffer pointer to NULL (Bug#12652).
+
+2012-10-17  Dmitry Antipov  <dmantipov@yandex.ru>
+
+	Do not verify indirection counters of killed buffers (Bug#12579).
+	* buffer.h (BUFFER_CHECK_INDIRECTION): New macro.
+	* buffer.c (compact_buffer, set_buffer_internal_1): Use it.
+
+2012-10-16  Dmitry Antipov  <dmantipov@yandex.ru>
+
+	* alloc.c (Fmake_byte_code): Fix typo in comment.
+	* print.c (print_interval): Define as static to match prototype.
+	* indent.c (disptab_matches_widthtab, recompute_width_table):
+	Convert to eassert.
+
+2012-10-16  Dmitry Antipov  <dmantipov@yandex.ru>
+
+	* editfns.c (get_system_name): Remove.
+	* lisp.h (get_system_name): Remove prototype.
+	* xrdb.c (getenv, getpwuid, getpwnam): Remove prototypes.
+	(get_environ_db): Use Vsystem_name.  Avoid call to strlen.
+
+2012-10-15  Daniel Colascione  <dancol@dancol.org>
+
+	* dbusbind.c: Add comment explaining reason for previous change.
+
+2012-10-15  Martin Rudalics  <rudalics@gmx.at>
+
+	* window.c (Fwindow_end): Rewrite check whether cached position
+	can be used (Bug#12600).
+	(resize_frame_windows, grow_mini_window, shrink_mini_window):
+	Set windows_or_buffers_changed.
+
+2012-10-15  Daniel Colascione  <dancol@dancol.org>
+
+	* dbusbind.c: Fix cygw32 build break when compiling with dbus
+	enabled by undefining the symbol "interface", which the platform
+	headers define to something incompatible.
+
+2012-10-14  Daniel Colascione  <dancol@dancol.org>
+
+	* image.c (init_tiff_functions, init_imagemagick_functions)
+	(init_svg_functions): Fix cygw32 build break by using these
+	functions only when WINDOWSNT _and_ HAVE_NTGUI.
+
+2012-10-14  Jan Djärv  <jan.h.d@swipnet.se>
+
+	* nsterm.m (ns_select): Count fd:s in writefs also (Bug#12422).
+
 2012-10-13  Jan Djärv  <jan.h.d@swipnet.se>
 
 	* gtkutil.c (xg_set_widget_bg): Divide by 65535 (Bug#12612).
@@ -53,8 +153,7 @@
 	a file exists.  This avoids expensive system calls on MS-Windows.
 	(Bug#12587)
 
-	* w32.c (init_environment): Call 'check_existing' instead of
-	'stat'.
+	* w32.c (init_environment): Call 'check_existing' instead of 'stat'.
 
 	* lread.c (openp) [WINDOWSNT]: Call 'access' instead of 'stat' to
 	determine whether a file exists and is not a directory.
@@ -194,7 +293,7 @@
 	* nsfont.m (Vfonts_in_cache): Remove, not needed as font.c handles
 	caching.
 	(nsfont_open): Remove setting of Vfonts_in_cache.
-	(syms_of_nsfont): Remove initialization of Vfonts_in_cache
+	(syms_of_nsfont): Remove initialization of Vfonts_in_cache.
 
 2012-10-09  Eli Zaretskii  <eliz@gnu.org>
 
@@ -261,7 +360,7 @@
 	* w32select.h (HAVE_W32SELECT): Remove.
 
 	* w32select.c, w32proc.c, w32menu.c, w32console.c, w32.c: Include
-	w32common.h instead of w32heap.h
+	w32common.h instead of w32heap.h.
 
 	* w32heap.h (ROUND_UP, ROUND_DOWN, get_page_size)
 	(get_allocation_unit, get_processor_type, get_w32_major_version)
@@ -272,8 +371,8 @@
 
 	* w32heap.c: Include w32common.h.
 	(sysinfo_cache, syspage_mask, osinfo_cache, w32_major_version)
-	(w32_minor_version, w32_build_number, w32_subtype): Remove
-	duplicate definitions.
+	(w32_minor_version, w32_build_number, w32_subtype):
+	Remove duplicate definitions.
 
 	* w32fns.c: Include w32common.h; include w32heap.h only in
 	WINDOWSNT.
@@ -384,7 +483,7 @@
 	Cygwin builds.  Remove w32select declarations.
 
 	* w32console.c (w32_sys_ring_bell, Fset_message_beep): Move to
-	w32fns.c. w32console.c is WINDOWSNT-only.
+	w32fns.c.  w32console.c is WINDOWSNT-only.
 
 	* w32fns.c: Include cygw32.h or w32.h depending on CYGWIN; more
 	NTGUI_UNICODE tweaks.  (See above.) Change _snprintf to the more
@@ -460,6 +559,39 @@
 	but it still has blocs in it, don't return it to the system,
 	instead of aborting.  (Bug#12402)
 
+2012-10-07  Jan Djärv  <jan.h.d@swipnet.se>
+
+	* nsterm.m (ns_dumpglyphs_image): Only draw slice of image (Bug#12506).
+
+	* nsterm.m (ns_update_auto_hide_menu_bar): Remove defintion of
+	MAC_OS_X_VERSION_10_6.
+	(syms_of_nsterm): Remove comment about Panther and above for
+	ns-antialias-text.
+	* nsterm.h (MAC_OS_X_VERSION_10_3, onTiger): Remove.
+	(EmacsApp): Remove check for >= MAC_OS_X_VERSION_10_4.
+	(struct nsfont_info): Remove check for >= MAC_OS_X_VERSION_10_3.
+
+	* nsselect.m (ns_string_from_pasteboard): Remove check for >=
+	MAC_OS_X_VERSION_10_4.
+
+	* nsmenu.m (fillWithWidgetValue:): Remove code for <
+	MAC_OS_X_VERSION_10_2.
+
+	* nsimage.m (setPixmapData, getPixelAtX, setAlphaAtX): Remove onTiger.
+
+	* nsfns.m (Fns_list_services): Remove comment and check for OSX < 10.4.
+	(ns_do_applescript): Remove check for >= MAC_OS_X_VERSION_10_4.
+
+	* nsterm.m (ns_in_resize): Remove (Bug#12479).
+	(ns_resize_handle_rect, mouseDown, mouseUp, mouseDragged): Remove.
+	(ns_clear_frame, sendEvent, windowDidResize, drawRect:):
+	Remove ns_in_resize check.
+	(ns_clear_frame_area): Remove resize handle code.
+
+	* nsfns.m (ns_in_resize): Remove.
+	(x_set_icon_name, ns_set_name, ns_set_name_as_filename): Remove
+	ns_in_resize check.
+
 2012-10-07  Eli Zaretskii  <eliz@gnu.org>
 
 	* w32term.h (WM_EMACS_FILENOTIFY): New custom message.
@@ -494,39 +626,6 @@
 
 	* alloc.c (NSTATICS): Enlarge to 0x660.
 
-2012-10-07  Jan Djärv  <jan.h.d@swipnet.se>
-
-	* nsterm.m (ns_dumpglyphs_image): Only draw slice of image (Bug#12506).
-
-	* nsterm.m (ns_update_auto_hide_menu_bar): Remove defintion of
-	MAC_OS_X_VERSION_10_6.
-	(syms_of_nsterm): Remove comment about Panther and above for
-	ns-antialias-text.
-	* nsterm.h (MAC_OS_X_VERSION_10_3, onTiger): Remove.
-	(EmacsApp): Remove check for >= MAC_OS_X_VERSION_10_4.
-	(struct nsfont_info): Remove check for >= MAC_OS_X_VERSION_10_3.
-
-	* nsselect.m (ns_string_from_pasteboard): Remove check for >=
-	MAC_OS_X_VERSION_10_4.
-
-	* nsmenu.m (fillWithWidgetValue:): Remove code for <
-	MAC_OS_X_VERSION_10_2.
-
-	* nsimage.m (setPixmapData, getPixelAtX, setAlphaAtX): Remove onTiger.
-
-	* nsfns.m (Fns_list_services): Remove comment and check for OSX < 10.4.
-	(ns_do_applescript): Remove check for >= MAC_OS_X_VERSION_10_4.
-
-	* nsterm.m (ns_in_resize): Remove (Bug#12479).
-	(ns_resize_handle_rect, mouseDown, mouseUp, mouseDragged): Remove.
-	(ns_clear_frame, sendEvent, windowDidResize, drawRect:): Remove
-	ns_in_resize check.
-	(ns_clear_frame_area): Remove resize handle code.
-
-	* nsfns.m (ns_in_resize): Remove.
-	(x_set_icon_name, ns_set_name, ns_set_name_as_filename):  Remove
-	ns_in_resize check.
-
 2012-10-07  Paul Eggert  <eggert@cs.ucla.edu>
 
 	Improve sys_siglist detection.
@@ -553,7 +652,7 @@
 	(initFrameFromEmacs:): tbar_height renamed tibar_height.
 	(windowDidEnterFullScreen:): Toggle toolbar for fullscreen to fix
 	error in drawing background.
-	(toggleFullScreen:): Remove comment. Rearrange calls.
+	(toggleFullScreen:): Remove comment.  Rearrange calls.
 	Set toolbar values to zero, save old height in tobar_height.
 	Restore tool bar height when leaving fullscreen.
 	(canBecomeMainWindow): New function.
@@ -567,8 +666,8 @@
 	* w32proc.c (stop_timer_thread): Fix declaration of 'err'.
 
 	* w32.c (utime): Open the file with FILE_FLAG_BACKUP_SEMANTICS, so
-	that time stamps of directories could also be changed.  Don't
-	request the too broad GENERIC_WRITE, only the more restrictive
+	that time stamps of directories could also be changed.
+	Don't request the too broad GENERIC_WRITE, only the more restrictive
 	FILE_WRITE_ATTRIBUTES access rights.
 
 	* fileio.c (Fset_file_times): Special-case ignoring errors for
@@ -976,7 +1075,7 @@
 	Call setCollectionBehavior if NEW_STYLE_FS.  Initialize bwidth and
 	tbar_height.
 	(windowWillUseStandardFrame:defaultFrame:): Update frame parameter
-	fullscreen. Set maximized_width/height.  Act on next_maximized.
+	fullscreen.  Set maximized_width/height.  Act on next_maximized.
 
 	* nsterm.h (MAC_OS_X_VERSION_10_7, MAC_OS_X_VERSION_10_8): New.
 	(EmacsView): Add variables for fullscreen.
@@ -1632,7 +1731,7 @@
 2012-09-19  Paul Eggert  <eggert@cs.ucla.edu>
 
 	* w32inevt.c (w32_console_read_socket): Return -1 on failure, not 0.
-	Ignore 'expected'. See Eli Zaretskii in
+	Ignore 'expected'.  See Eli Zaretskii in
 	<http://bugs.gnu.org/12471#8> (last line).
 
 	* frame.c (read_integer): Remove.  All uses replaced by strtol/strtoul.
@@ -1699,7 +1798,7 @@
 	(bytes_used_when_full, emacs_blocked_free, emacs_blocked_malloc)
 	(emacs_blocked_realloc, reset_malloc_hooks, uninterrupt_malloc):
 	[!SYSTEM_MALLOC && !SYNC_INPUT]:
-	Remove. All uses removed.
+	Remove.  All uses removed.
 	(MALLOC_BLOCK_INPUT, MALLOC_UNBLOCK_INPUT): Use a different
 	implementation, one that depends on whether the new macro
 	XMALLOC_BLOCK_INPUT_CHECK is defined, not on whether SYNC_INPUT
@@ -1989,7 +2088,7 @@
 	* alloc.c (discard_killed_buffers): New function.
 	(mark_object): Use it for deleted windows and frames.
 	(mark_object): If symbol's value is set up for a killed buffer
-	or deleted frame, restore it's global binding.
+	or deleted frame, restore its global binding.
 	* data.c (swap_in_global_binding): Add GC notice.
 	(swap_in_symval_forwarding): Use convenient set_blv_where.
 	* window.c (wset_next_buffers, wset_prev_buffers): Move ...
@@ -4296,7 +4395,7 @@
 
 	* nsterm.m (ns_set_vertical_scroll_bar, ns_redeem_scroll_bar)
 	(EmacsWindow-accessibilityAttributeValue, EmacsScroller-initFrame:)
-	(EmacsScroller-dealloc):  Adjust to use WVAR.  (Bug#12114)
+	(EmacsScroller-dealloc): Adjust to use WVAR.  (Bug#12114)
 	* nsfns.m (ns_set_name_as_filename): Likewise.
 	* nsmenu.m (ns_update_menubar): Likewise.
 	* nsselect.m (symbol_to_nsstring): Adjust to use SVAR.
@@ -6392,7 +6491,7 @@
 	Fix block vector allocation code to allow VECTOR_BLOCK_SIZE
 	values which aren't power of 2.
 	* alloc.c (VECTOR_FREE_LIST_SIZE_MASK): New macro.
-	Verify it's value and the value of VECTOR_BLOCK_SIZE.  Adjust users
+	Verify its value and the value of VECTOR_BLOCK_SIZE.  Adjust users
 	accordingly.
 
 2012-07-03  Stefan Monnier  <monnier@iro.umontreal.ca>
@@ -7561,7 +7660,7 @@
 	bitfields where appropriate, remove unused fields.
 	* window.h (struct window): Remove unused 'last_mark_x' and
 	'last_mark_y' fields.  Rename 'mini_p' field to 'mini',
-	change it's type from Lisp_Object to bitfield.
+	change its type from Lisp_Object to bitfield.
 	Change type of 'force_start', 'optional_new_start',
 	'last_had_star', 'update_mode_line' and 'start_at_line_beg'
 	fields from Lisp_Object to bitfield.  Adjust users accordingly.

@@ -319,6 +319,11 @@ a parse of the buffer.")
   "Return non-nil if the current buffer was set up for parsing."
   semantic-new-buffer-fcn-was-run)
 
+(defsubst semantic-error-if-unparsed ()
+  "Raise an error if current buffer was not parsed by Semantic."
+  (unless semantic-new-buffer-fcn-was-run
+    (error "Buffer was not parsed by Semantic.")))
+
 (defsubst semantic--umatched-syntax-needs-refresh-p  ()
   "Return non-nil if the unmatched syntax cache needs a refresh.
 That is, if it is dirty or if the current parse tree isn't up to date."
@@ -907,75 +912,91 @@ Throw away all the old tags, and recreate the tag database."
   ;; Edit Tags submenu:
   (define-key edit-menu [semantic-analyze-possible-completions]
     '(menu-item "List Completions" semantic-analyze-possible-completions
+		:enable (semantic-active-p)
 		:help "Display a list of completions for the tag at point"))
   (define-key edit-menu [semantic-complete-analyze-inline]
     '(menu-item "Complete Tag Inline" semantic-complete-analyze-inline
+		:enable (semantic-active-p)
 		:help "Display inline completion for the tag at point"))
   (define-key edit-menu [semantic-completion-separator]
     '("--"))
   (define-key edit-menu [senator-transpose-tags-down]
     '(menu-item "Transpose Tags Down" senator-transpose-tags-down
-		:active (semantic-current-tag)
+		:enable (and (semantic-active-p)
+			     (semantic-current-tag))
 		:help "Transpose the current tag and the next tag"))
   (define-key edit-menu [senator-transpose-tags-up]
     '(menu-item "Transpose Tags Up" senator-transpose-tags-up
-		:active (semantic-current-tag)
+		:enable (and (semantic-active-p)
+			     (semantic-current-tag))
 		:help "Transpose the current tag and the previous tag"))
   (define-key edit-menu [semantic-edit-separator]
     '("--"))
   (define-key edit-menu [senator-yank-tag]
     '(menu-item "Yank Tag" senator-yank-tag
-		:active (not (ring-empty-p senator-tag-ring))
+		:enable (not (ring-empty-p senator-tag-ring))
 		:help "Yank the head of the tag ring into the buffer"))
   (define-key edit-menu [senator-copy-tag-to-register]
     '(menu-item "Copy Tag To Register" senator-copy-tag-to-register
-		:active (semantic-current-tag)
+		:enable (and (semantic-active-p)
+			     (semantic-current-tag))
 		:help "Yank the head of the tag ring into the buffer"))
   (define-key edit-menu [senator-copy-tag]
     '(menu-item "Copy Tag" senator-copy-tag
-		:active (semantic-current-tag)
+		:enable (and (semantic-active-p)
+			     (semantic-current-tag))
 		:help "Copy the current tag to the tag ring"))
   (define-key edit-menu [senator-kill-tag]
     '(menu-item "Kill Tag" senator-kill-tag
-		:active (semantic-current-tag)
+		:enable (and (semantic-active-p)
+			     (semantic-current-tag))
 		:help "Kill the current tag, and copy it to the tag ring"))
 
   ;; Navigate Tags submenu:
   (define-key navigate-menu [senator-narrow-to-defun]
     '(menu-item "Narrow to Tag" senator-narrow-to-defun
-		:active (semantic-current-tag)
+		:enable (and (semantic-active-p)
+			     (semantic-current-tag))
 		:help "Narrow the buffer to the bounds of the current tag"))
   (define-key navigate-menu [semantic-narrow-to-defun-separator]
     '("--"))
   (define-key navigate-menu [semantic-symref-symbol]
     '(menu-item "Find Tag References..." semantic-symref-symbol
+		:enable (semantic-active-p)
 		:help "Read a tag and list the references to it"))
   (define-key navigate-menu [semantic-complete-jump]
     '(menu-item "Find Tag Globally..." semantic-complete-jump
+		:enable (semantic-active-p)
 		:help "Read a tag name and find it in the current project"))
   (define-key navigate-menu [semantic-complete-jump-local-members]
     '(menu-item "Find Local Members ..." semantic-complete-jump-local-members
+		:enable (semantic-active-p)
 		:help "Read a tag name and find a local member with that name"))
   (define-key navigate-menu [semantic-complete-jump-local]
     '(menu-item "Find Tag in This Buffer..." semantic-complete-jump-local
+		:enable (semantic-active-p)
 		:help "Read a tag name and find it in this buffer"))
   (define-key navigate-menu [semantic-navigation-separator]
     '("--"))
   (define-key navigate-menu [senator-go-to-up-reference]
     '(menu-item "Parent Tag" senator-go-to-up-reference
+		:enable (semantic-active-p)
 		:help "Navigate up one reference by tag"))
   (define-key navigate-menu [senator-next-tag]
     '(menu-item "Next Tag" senator-next-tag
+		:enable (semantic-active-p)
 		:help "Go to the next tag"))
   (define-key navigate-menu [senator-previous-tag]
     '(menu-item "Previous Tag" senator-previous-tag
+		:enable (semantic-active-p)
 		:help "Go to the previous tag"))
 
   ;; Top level menu items:
   (define-key cedet-menu-map [semantic-force-refresh]
     '(menu-item "Reparse Buffer" semantic-force-refresh
 		:help "Force a full reparse of the current buffer"
-		:visible semantic-mode))
+		:visible semantic-mode
+		:enable (semantic-active-p)))
   (define-key cedet-menu-map [semantic-edit-menu]
     `(menu-item "Edit Tags" ,edit-menu
 		:visible semantic-mode))

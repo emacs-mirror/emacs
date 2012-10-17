@@ -145,7 +145,7 @@ DEFUN ("cygwin-convert-path-to-windows",
   (Lisp_Object path, Lisp_Object absolute_p)
 {
   return from_unicode (
-    conv_filename_to_w32_unicode (path, absolute_p == Qnil ? 0 : 1));
+    conv_filename_to_w32_unicode (path, EQ (absolute_p, Qnil) ? 0 : 1));
 }
 
 DEFUN ("cygwin-convert-path-from-windows",
@@ -156,7 +156,7 @@ DEFUN ("cygwin-convert-path-from-windows",
   (Lisp_Object path, Lisp_Object absolute_p)
 {
   return conv_filename_from_w32_unicode (to_unicode (path, &path),
-                                         absolute_p == Qnil ? 0 : 1);
+                                         EQ (absolute_p, Qnil) ? 0 : 1);
 }
 
 void

@@ -3100,7 +3100,7 @@ usage: (make-byte-code ARGLIST BYTE-CODE CONSTANTS DEPTH &optional DOCSTRING INT
   ptrdiff_t i;
   register struct Lisp_Vector *p;
 
-  /* We used to purecopy everything here, if purify-flga was set.  This worked
+  /* We used to purecopy everything here, if purify-flag was set.  This worked
      OK for Emacs-23, but with Emacs-24's lexical binding code, it can be
      dangerous, since make-byte-code is used during execution to build
      closures, so any closure built during the preload phase would end up

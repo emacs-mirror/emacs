@@ -6600,8 +6600,8 @@ buffer; or conversely, an Emacs Lisp function needs to work on all of a
 buffer that has been narrowed.  The @code{what-line} function, for
 example, removes the narrowing from a buffer, if it has any narrowing
 and when it has finished its job, restores the narrowing to what it was.
-On the other hand, the @code{count-lines} function, which is called by
-@code{what-line}, uses narrowing to restrict itself to just that portion
+On the other hand, the @code{count-lines} function
+uses narrowing to restrict itself to just that portion
 of the buffer in which it is interested and then restores the previous
 situation.
 

@@ -2424,7 +2424,7 @@ w32_msg_pump (deferred_msg * msg_buf)
                  thread-safe.  The next line is okay because the cons
                  cell is never made into garbage and is not relocated by
                  GC.  */
-	      XSETCAR ((Lisp_Object) ((EMACS_INT) msg.lParam), Qnil);
+	      XSETCAR (XIL ((EMACS_INT) msg.lParam), Qnil);
 	      if (!PostThreadMessage (dwMainThreadId, WM_EMACS_DONE, 0, 0))
 		emacs_abort ();
 	      break;
@@ -2432,7 +2432,7 @@ w32_msg_pump (deferred_msg * msg_buf)
 	      {
 		int vk_code = (int) msg.wParam;
 		int cur_state = (GetKeyState (vk_code) & 1);
-		Lisp_Object new_state = (Lisp_Object) ((EMACS_INT) msg.lParam);
+		Lisp_Object new_state = XIL ((EMACS_INT) msg.lParam);
 
 		/* NB: This code must be thread-safe.  It is safe to
                    call NILP because symbols are not relocated by GC,

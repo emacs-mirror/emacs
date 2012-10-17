@@ -180,7 +180,7 @@ program `dired-chmod-program', which must exist."
 (defvar wdired-col-perm) ;; Column where the permission bits start
 (defvar wdired-old-content)
 (defvar wdired-old-point)
-
+(defvar wdired-old-marks)
 
 (defun wdired-mode ()
   "Writable Dired (WDired) mode.
@@ -221,6 +221,8 @@ See `wdired-mode'."
     (error "Not a Dired buffer"))
   (set (make-local-variable 'wdired-old-content)
        (buffer-substring (point-min) (point-max)))
+  (set (make-local-variable 'wdired-old-marks)
+       (dired-remember-marks (point-min) (point-max)))
   (set (make-local-variable 'wdired-old-point) (point))
   (set (make-local-variable 'query-replace-skip-read-only) t)
   (set (make-local-variable 'isearch-filter-predicate)
@@ -455,7 +457,8 @@ non-nil means return old filename."
               (push (cons tmp file-new) residue))))
          (t
           (setq progress t)
-          (let ((file-ori (car rename)))
+          (let* ((file-ori (car rename))
+                 (old-mark (cdr (assoc file-ori wdired-old-marks))))
             (if wdired-use-interactive-rename
                 (wdired-search-and-rename file-ori file-new)
               ;; If dired-rename-file autoloads dired-aux while
@@ -466,12 +469,17 @@ non-nil means return old filename."
               (condition-case err
                   (let ((dired-backup-overwrite nil))
                     (dired-rename-file file-ori file-new
-                                       overwrite))
+                                       overwrite)
+                    (dired-remove-file file-ori)
+                    (dired-add-file file-new (if (integerp dired-keep-marker-rename)
+                                                 dired-keep-marker-rename
+                                               old-mark)))
                 (error
                  (setq errors (1+ errors))
                  (dired-log (concat "Rename `" file-ori "' to `"
                                     file-new "' failed:\n%s\n")
-                            err)))))))))
+                            err)
+                 (dired-add-entry file-ori old-mark)))))))))
     errors))
 
 

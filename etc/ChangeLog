@@ -1,3 +1,7 @@
+2012-10-14  Kenichi Handa  <handa@gnu.org>
+
+	* charsets/JISC6226.map: Re-generated.
+
 2012-10-14  Eli Zaretskii  <eliz@gnu.org>
 
 	* compilation.txt (msft): Add error messages in new Studio 2010
