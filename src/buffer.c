@@ -1663,18 +1663,11 @@ No argument or nil as argument means do this for the current buffer.  */)
 void
 compact_buffer (struct buffer *buffer)
 {
-  /* Verify indirection counters.  */
-  if (buffer->base_buffer)
-    {
-      eassert (buffer->indirections == -1);
-      eassert (buffer->base_buffer->indirections > 0);
-    }
-  else
-    eassert (buffer->indirections >= 0);
+  BUFFER_CHECK_INDIRECTION (buffer);
 
   /* Skip dead buffers, indirect buffers and buffers
      which aren't changed since last compaction.  */
-  if (!NILP (buffer->INTERNAL_FIELD (name))
+  if (BUFFER_LIVE_P (buffer)
       && (buffer->base_buffer == NULL)
       && (buffer->text->compact != buffer->text->modiff))
     {
@@ -2114,6 +2107,8 @@ set_buffer_internal_1 (register struct buffer *b)
   if (current_buffer == b)
     return;
 
+  BUFFER_CHECK_INDIRECTION (b);
+  
   old_buf = current_buffer;
   current_buffer = b;
   last_known_column_point = -1;   /* invalidate indentation cache */

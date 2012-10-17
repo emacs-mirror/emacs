@@ -1,3 +1,9 @@
+2012-10-17  Dmitry Antipov  <dmantipov@yandex.ru>
+
+	Do not verify indirection counters of killed buffers (Bug#12579).
+	* buffer.h (BUFFER_CHECK_INDIRECTION): New macro.
+	* buffer.c (compact_buffer, set_buffer_internal_1): Use it.
+
 2012-10-16  Dmitry Antipov  <dmantipov@yandex.ru>
 
 	* alloc.c (Fmake_byte_code): Fix typo in comment.
