@@ -20,7 +20,7 @@ TODO
     instead of #garbage-collection).
 
 
-QUERIES
+QUERIES AND SUGGESTIONS
 
  2. What is the difference, if any, between mps_word_t and MPS_T_WORD?
 
@@ -77,6 +77,15 @@ QUERIES
     expected to die in a collection). But what do they mean to the
     MPS? And how should one go about choosing values?
 
+15. Wouldn't it make mps_amc_apply easier to document if there were a
+    typedef for the stepper function type, something like this?
+
+    typedef void (*mps_object_stepper_t)(mps_addr_t object, void *p, size_t s)
+
+17. The example code looks better (easier to see the structure) if I
+    use an indentation of four spaces. Should this be propagated to
+    the example code?
+
 
 TODO DONE
 
@@ -128,3 +137,12 @@ ANSWERED QUERIES
     objects? Things are difficult enough to explain as it is!
 
     ANSWER: It would be simpler, so I made this change.
+
+16. Wouldn't the Scheme example be better without TAB characters?
+
+    ANSWER: It would, so I converted them to spaces.
+
+18. The Scheme example is inconsistent in its use of whitespace: for
+    example sometimes there's a space after "if" and sometimes not.
+
+    ACTION: I standardized on a space here.
