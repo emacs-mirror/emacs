@@ -1,5 +1,10 @@
 2012-10-17  Dmitry Antipov  <dmantipov@yandex.ru>
 
+	* buffer.c (Fkill_buffer): When unchaining the marker,
+	reset it's buffer pointer to NULL (Bug#12652).
+
+2012-10-17  Dmitry Antipov  <dmantipov@yandex.ru>
+
 	Do not verify indirection counters of killed buffers (Bug#12579).
 	* buffer.h (BUFFER_CHECK_INDIRECTION): New macro.
 	* buffer.c (compact_buffer, set_buffer_internal_1): Use it.
