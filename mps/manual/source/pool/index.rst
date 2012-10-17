@@ -19,7 +19,7 @@ Choosing a pool class
 
 You should choose a :term:`pool class` based on the properties of the
 data you plan to store in it. The MPS works best if you can segregate
-your data into a variety of pools, choosing the most appopriate pool
+your data into a variety of pools, choosing the most appropriate pool
 class for each.
 
 First, answer these questions about your data:
