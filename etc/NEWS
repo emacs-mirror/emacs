@@ -47,7 +47,7 @@ no warnings; on older and on non-GNU systems the generated warnings
 may be useful.
 
 ---
-** The configuration option '--enable-use-lisp-union-type' has been
+** The configure option '--enable-use-lisp-union-type' has been
 renamed to '--enable-check-lisp-object-type', as the resulting
 Lisp_Object type no longer uses a union to implement the compile time
 check that this option enables.
@@ -60,6 +60,13 @@ as it was confusingly-named and rarely useful.
 ** You can use `NO_BIN_LINK=t make install' to prevent the installation
 overwriting "emacs" in the installation bin/ directory with a link
 to emacs-VERSION.
+
+---
+** The configure options `--program-prefix', `--program-suffix', and
+`--program-transform-name' apply to more than just the installed
+binaries.  Now they also affect the man pages, icons, and the
+etc/emacs.desktop file; but not the info pages, since this would break
+links between the various manuals.
 
 ---
 ** Emacs uses libtinfo in preference to libncurses, if available.
@@ -203,7 +210,9 @@ The PCL-CVS commands are still available via the keyboard.
 ---
 *** Fullscreen and frame parameter fullscreen is supported.
 ---
-*** A file dialog is used when open/saved is done from the menu/toolbar.
+*** A file dialog is used for open/save operations initiated from the
+menu/toolbar.
+
 
 * Editing Changes in Emacs 24.3
 
@@ -415,8 +424,8 @@ The global binding for `M-=', `count-words-region' is in effect.
 channel keys found, if any.
 
 ** Flymake uses fringe bitmaps to indicate errors and warnings.
-See flymake-fringe-indicator-position, flymake-error-bitmap and
-flymake-warning-bitmap.
+See `flymake-fringe-indicator-position', `flymake-error-bitmap' and
+`flymake-warning-bitmap'.
 
 ** Follow mode
 
@@ -634,6 +643,10 @@ inefficiency, and not namespace-clean.
 
 
 * New Modes and Packages in Emacs 24.3
+
+FIXME? erc-desktop-notifications.el, gv.el, profiler.el,
+gnus-notifications.el, mm-archive.el
+
 
 * Incompatible Lisp Changes in Emacs 24.3
 
@@ -848,7 +861,7 @@ describing the cycle.
 ** Miscellaneous new functions:
 
 *** `autoloadp'
-*** `autoload-do-load'.
+*** `autoload-do-load'
 +++
 *** `buffer-narrowed-p' tests if the buffer is narrowed.
 *** `file-name-base' returns a file name sans directory and extension.
@@ -873,7 +886,7 @@ See the "Face Attributes" section of the Elisp manual.
 
 *** `automount-dir-prefix'
 *** `buffer-has-markers-at'
-*** `macro-declaration-function' (use `macro-declarations-alist').
+*** `macro-declaration-function' (use `macro-declarations-alist')
 *** `window-system-version'
 *** `dired-pop-to-buffer' (use `dired-mark-pop-up')
 *** `query-replace-interactive'
@@ -881,21 +894,20 @@ See the "Face Attributes" section of the Elisp manual.
 
 * Changes in Emacs 24.3 on non-free operating systems
 
-** New configure.bat options on MS-Windows:
-
-*** --without-libxml2 omits support for libxml2, even if its presence
-is detected.
++++
+** On MS Windows, you can pass --without-libxml2 to configure.bat to omit
+support for libxml2, even if its presence is detected.
 
 ** When invoked with the -nw switch to run on the Windows text-mode terminal,
 Emacs now supports mouse highlight, help-echo (in the echo area), and
-mouse-autoselect-window.
+`mouse-autoselect-window'.
 
-** Two new functions are available in Cygwin builds of Emacs:
-cygwin-convert-path-from-windows and cygwin-convert-path-to-windows.
+** Two new functions are available in Cygwin builds:
+`cygwin-convert-path-from-windows' and `cygwin-convert-path-to-windows'.
 These functions allow Lisp code to access the Cygwin file-name mapping
 machinery to convert between Cygwin and Windows-native file names.
 
-** On MS-Windows Vista and later Emacs now supports symbolic links.
+** On MS Windows Vista and later Emacs now supports symbolic links.
 
 * Changes in Emacs 24.2
 

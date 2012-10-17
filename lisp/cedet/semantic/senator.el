@@ -255,6 +255,7 @@ TEXT, BOUND, NOERROR, and COUNT arguments are interpreted."
   "Navigate to the next Semantic tag.
 Return the tag or nil if at end of buffer."
   (interactive)
+  (semantic-error-if-unparsed)
   (let ((pos (point))
         (tag (semantic-current-tag))
         where)
@@ -294,6 +295,7 @@ Return the tag or nil if at end of buffer."
   "Navigate to the previous Semantic tag.
 Return the tag or nil if at beginning of buffer."
   (interactive)
+  (semantic-error-if-unparsed)
   (let ((pos (point))
         (tag (semantic-current-tag))
         where)
@@ -519,6 +521,7 @@ If that parent which is only a reference in the function tag
 is found, we can jump to it.
 Some tags such as includes have other reference features."
   (interactive)
+  (semantic-error-if-unparsed)
   (let ((result (semantic-up-reference (or tag (semantic-current-tag)))))
     (if (not result)
         (error "No up reference found")

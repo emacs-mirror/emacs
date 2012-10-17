@@ -3444,7 +3444,10 @@ ns_select (int nfds, fd_set *readfds, fd_set *writefds,
 /*  NSTRACE (ns_select); */
 
   for (k = 0; readfds && k < nfds+1; k++)
-    if (FD_ISSET(k, readfds)) ++nr;
+    {
+      if (FD_ISSET(k, readfds)) ++nr;
+      if (FD_ISSET(k, writefds)) ++nr;
+    }
 
   if (NSApp == nil
       || (timeout && timeout->tv_sec == 0 && timeout->tv_nsec == 0))

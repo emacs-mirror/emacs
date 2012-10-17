@@ -185,35 +185,38 @@ During Compile}).
 @node Defining Macros
 @section Defining Macros
 
-  A Lisp macro is a list whose @sc{car} is @code{macro}.  Its @sc{cdr} should
-be a function; expansion of the macro works by applying the function
-(with @code{apply}) to the list of unevaluated argument-expressions
-from the macro call.
+  A Lisp macro object is a list whose @sc{car} is @code{macro}, and
+whose @sc{cdr} is a lambda expression.  Expansion of the macro works
+by applying the lambda expression (with @code{apply}) to the list of
+@emph{unevaluated} arguments from the macro call.
 
   It is possible to use an anonymous Lisp macro just like an anonymous
-function, but this is never done, because it does not make sense to pass
-an anonymous macro to functionals such as @code{mapcar}.  In practice,
-all Lisp macros have names, and they are usually defined with the
-special form @code{defmacro}.
+function, but this is never done, because it does not make sense to
+pass an anonymous macro to functionals such as @code{mapcar}.  In
+practice, all Lisp macros have names, and they are almost always
+defined with the @code{defmacro} macro.
 
-@defspec defmacro name argument-list body-forms@dots{}
-@code{defmacro} defines the symbol @var{name} as a macro that looks
-like this:
+@defmac defmacro name args [doc] [declare] body@dots{}
+@code{defmacro} defines the symbol @var{name} (which should not be
+quoted) as a macro that looks like this:
 
 @example
-(macro lambda @var{argument-list} . @var{body-forms})
+(macro lambda @var{args} . @var{body})
 @end example
 
-(Note that the @sc{cdr} of this list is a function---a lambda expression.)
-This macro object is stored in the function cell of @var{name}.  Its return
-value is @emph{undefined}.
+(Note that the @sc{cdr} of this list is a lambda expression.)  This
+macro object is stored in the function cell of @var{name}.  The
+meaning of @var{args} is the same as in a function, and the keywords
+@code{&rest} and @code{&optional} may be used (@pxref{Argument List}).
+Neither @var{name} nor @var{args} should be quoted.  The return value
+of @code{defmacro} is undefined.
 
-The shape and meaning of @var{argument-list} is the same as in a
-function, and the keywords @code{&rest} and @code{&optional} may be used
-(@pxref{Argument List}).  Macros may have a documentation string, but
-any @code{interactive} declaration is ignored since macros cannot be
-called interactively.
-@end defspec
+@var{doc}, if present, should be a string specifying the macro's
+documentation string.  @var{declare}, if present, should be a
+@code{declare} form specifying metadata for the macro (@pxref{Declare
+Form}).  Note that macros cannot have interactive declarations, since
+they cannot be called interactively.
+@end defmac
 
   Macros often need to construct large list structures from a mixture
 of constants and nonconstant parts.  To make this easier, use the

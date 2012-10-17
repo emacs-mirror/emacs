@@ -1,4 +1,22 @@
+2012-10-17  Michael Heerdegen <michael_heerdegen@web.de>  (tiny change)
+
+	* wdired.el (wdired-old-marks): New variable.
+	(wdired-change-to-wdired-mode): Locally set wdired-old-marks.
+	(wdired-do-renames): Move point with renamed file and don't lose
+	mark status (Bug#11795).
+
+2012-10-16  Juri Linkov  <juri@jurta.org>
+
+	* replace.el (query-replace-help): Mention multi-buffer replacement
+	keys in the Help message.  (Bug#12655)
+
+2012-10-15  Chong Yidong  <cyd@gnu.org>
+
+	* emacs-lisp/byte-run.el (defsubst): Doc fix.
+
 2012-10-14  Eli Zaretskii  <eliz@gnu.org>
+
+	* window.el (display-buffer): Doc fix.
 
 	* progmodes/compile.el (compilation-error-regexp-alist-alist):
 	Adjust the msft regexp to the output of Studio 2010, and move msft
@@ -593,9 +611,9 @@
 	* emacs-lisp/eieio-base.el (eieio-persistent-read): New input args
 	specifying the expected class, and whether subclassing is allowed.
 	(eieio-persistent-convert-list-to-object):
-        (eieio-persistent-validate/fix-slot-value)
-        (eieio-persistent-slot-type-is-class-p): New functions.
-        (eieio-named::slot-missing): Doc fix.
+	(eieio-persistent-validate/fix-slot-value)
+	(eieio-persistent-slot-type-is-class-p): New functions.
+	(eieio-named::slot-missing): Doc fix.
 
 	* emacs-lisp/eieio-datadebug.el (data-debug/eieio-insert-slots):
 	Stop using unused publd variable.
@@ -2038,7 +2056,7 @@
 
 	* ses.el (ses-widen):
 	* simple.el (count-words--buffer-message):
-	* net/browse-url.el (browse-url-of-buffer): Use it
+	* net/browse-url.el (browse-url-of-buffer): Use it.
 
 	* simple.el (count-words-region): Don't signal an error if there
 	is a non-nil prefix arg and the mark is not set.
@@ -16320,7 +16338,7 @@
 2011-06-22  Leo Liu  <sdl.web@gmail.com>
 
 	* minibuffer.el (completing-read-function)
-	(completing-read-default): Move from minibuf.c
+	(completing-read-default): Move from minibuf.c.
 
 2011-06-22  Richard Stallman  <rms@gnu.org>
 
@@ -18177,7 +18195,7 @@
 	Remove unnecessary and incorrect declarations.
 
 	* emacs-lisp/check-declare.el (check-declare-scan):
-	Handle byte-compile-initial-macro-environment in bytecomp.el
+	Handle byte-compile-initial-macro-environment in bytecomp.el.
 
 2011-05-05  Stefan Monnier  <monnier@iro.umontreal.ca>
 

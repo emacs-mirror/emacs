@@ -1663,18 +1663,11 @@ No argument or nil as argument means do this for the current buffer.  */)
 void
 compact_buffer (struct buffer *buffer)
 {
-  /* Verify indirection counters.  */
-  if (buffer->base_buffer)
-    {
-      eassert (buffer->indirections == -1);
-      eassert (buffer->base_buffer->indirections > 0);
-    }
-  else
-    eassert (buffer->indirections >= 0);
+  BUFFER_CHECK_INDIRECTION (buffer);
 
   /* Skip dead buffers, indirect buffers and buffers
      which aren't changed since last compaction.  */
-  if (!NILP (buffer->INTERNAL_FIELD (name))
+  if (BUFFER_LIVE_P (buffer)
       && (buffer->base_buffer == NULL)
       && (buffer->text->compact != buffer->text->modiff))
     {
@@ -1888,19 +1881,20 @@ cleaning up all windows currently displaying the buffer to be killed. */)
 
   if (b->base_buffer)
     {
-      { /* Unchain all markers that belong to this indirect buffer.
-	   Don't unchain the markers that belong to the base buffer
-	   or its other indirect buffers.  */
-	struct Lisp_Marker **mp;
-	for (mp = &BUF_MARKERS (b); *mp; )
-	  {
-	    struct Lisp_Marker *m = *mp;
-	    if (m->buffer == b)
+      /* Unchain all markers that belong to this indirect buffer.
+	 Don't unchain the markers that belong to the base buffer
+	 or its other indirect buffers.  */
+      struct Lisp_Marker **mp = &BUF_MARKERS (b);
+      while ((m = *mp))
+	{
+	  if (m->buffer == b)
+	    {
+	      m->buffer = NULL;
 	      *mp = m->next;
-	    else
-	      mp = &m->next;
-	  }
-      }
+	    }
+	  else
+	    mp = &m->next;
+	}
     }
   else
     {
@@ -2114,6 +2108,8 @@ set_buffer_internal_1 (register struct buffer *b)
   if (current_buffer == b)
     return;
 
+  BUFFER_CHECK_INDIRECTION (b);
+  
   old_buf = current_buffer;
   current_buffer = b;
   last_known_column_point = -1;   /* invalidate indentation cache */

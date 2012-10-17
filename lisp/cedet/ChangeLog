@@ -1,4 +1,32 @@
-2012-10-08  David Engster  <deng@randomsample.de>>
+2012-10-14  David Engster  <deng@randomsample.de>
+
+	* semantic.el (semantic-error-if-unparsed): New function.  Raise
+	error if buffer was not parsed by Semantic (bug #12045).
+	(navigate-menu, edit-menu, cedet-menu-map): Enable Semantic items
+	only if buffer was parsed.  Also, replace ':active' with ':enable'
+	where necessary.
+
+	* semantic/wisent/python.el
+	(semantic-python-get-system-include-path): Use
+	`python-shell-internal-send-string' if available to query Python
+	for system paths.
+
+	* semantic/senator.el (senator-next-tag, senator-previous-tag)
+	(senator-go-to-up-reference): Use `semantic-error-if-unparsed'.
+
+	* semantic/complete.el (semantic-complete-jump-local)
+	(semantic-complete-jump, semantic-complete-jump-local-members)
+	(semantic-complete-self-insert): Use `semantic-error-if-unparsed'.
+	(semantic-complete-inline-project): Fix autoload cookie.
+
+	* semantic/analyze/complete.el
+	(semantic-analyze-possible-completions): Check if buffer was
+	parsed.  Only raise an error if function was called interactively,
+	otherwise silently return nil.
+
+	* cedet.el (cedet-menu-map): Fix copy&paste typo in menu creation.
+
+2012-10-08  David Engster  <deng@randomsample.de>
 
 	* semantic/bovine/el.el: Add `semantic-default-elisp-setup' to
 	`emacs-lisp-mode-hook'.  This was accidentally removed during the
