@@ -1,5 +1,72 @@
-#include "config.h"
+/* eventsql.c: event log to SQLite importer
+ * Copyright (c) 2012 Ravenbrook Limited.  See end of file for license.
+ *
+ * This is a command-line tool that imports events from a binary
+ * format telemetry output file from the MPS into a SQLite database
+ * file.
+ *
+ * The default MPS library will write a telemetry stream to a file called
+ * "mpsio.log" when the environment variable MPS_TELEMETRY_CONTROL is set
+ * to an integer whose bits select event kinds.  For example:
+ *
+ *   MPS_TELEMETRY_CONTROL=7 amcss
+ *
+ * will run the amcss test program and emit a file with event kinds 0, 1, 2.
+ * The file can then be imported into a SQLite database with this command:
+ *
+ *   eventsql
+ *
+ * Note that the eventsql program can only read streams that come from an
+ * MPS compiled on the same platform.
+ *
+ * Each event type gets its own table in the database.  These tables
+ * are created from the definitions in eventdef.h if they don't
+ * already exist.  Each event becomes a single row in the appropriate
+ * table, which has a column for each event parameter, a time column
+ * for the event time field, and a log_serial column to identify the
+ * log file.
+ *
+ * The program also creates three other tables: two 'glue' tables
+ * containing event metadata - event_kind (one row per kind) and
+ * event_type (one row per type), again derived from eventdef.h - and
+ * the event_log table which has one row per log file imported (the
+ * log_serial column in the event tables is a primary key to this
+ * event_log table).
+ *
+ * No tables are created if they already exist, unless the -r
+ * (rebuild) switch is given.
+ *
+ * Options:
+ *
+ * -v (verbose): Increase verbosity.  eventsql logs to stderr.  By
+ *  default, it doesn't log much; it can be made more and more
+ *  loquacious by adding more -v switches.  Given one or more -v
+ *  switches, it also writes 'ticks' (periods) to stdout, to show
+ *  progress (one dot is 100k events).
+ * 
+ * -t (test):  Run unit tests on parts of eventsql.  There aren't many
+ * of these.
+ *
+ * -f (force):  Import the events to SQL even if the SQL database
+ * already includes a record of importing this event log file (matched by
+ * size, modtime, and filesystem ID.
+ * 
+ * -r (rebuild): Drop the glue tables from SQL, which will force them
+ * to be recreated.  Important if you change event types or kinds in
+ * eventdef.h.
+ * 
+ * -l <logfile>: Import events from the named logfile.  If not
+ * specified, eventsql will use the MPS_TELEMETRY_FILENAME environment
+ * variable, and default to mpsio.log.
+ *
+ * -d <database>: Import events to the named database file.  If not
+ * specified, eventsql will use the MPS_EVENT_DATABASE environment
+ * variable, and default to mpsevent.db.
+ *
+ * $Id$
+ */
 
+#include "config.h"
 #include "eventdef.h"
 #include "eventpro.h"
 
@@ -18,7 +85,7 @@
 /* we output rows of dots.  One dot per SMALL_TICK events,
  * BIG_TICK dots per row. */
 
-#define SMALL_TICK 1000
+#define SMALL_TICK 100000
 #define BIG_TICK   50
 
 /* Utility code for logging to stderr with multiple log levels,
@@ -728,3 +795,44 @@ int main(int argc, char *argv[])
         closeDatabase(db);
         return 0;
 }
+
+/* COPYRIGHT AND LICENSE
+ *
+ * Copyright (C) 2012 Ravenbrook Limited <http://www.ravenbrook.com/>.
+ * All rights reserved.  This is an open source license.  Contact
+ * Ravenbrook for commercial licensing options.
+ * 
+ * Redistribution and use in source and binary forms, with or without
+ * modification, are permitted provided that the following conditions are
+ * met:
+ * 
+ * 1. Redistributions of source code must retain the above copyright
+ * notice, this list of conditions and the following disclaimer.
+ * 
+ * 2. Redistributions in binary form must reproduce the above copyright
+ * notice, this list of conditions and the following disclaimer in the
+ * documentation and/or other materials provided with the distribution.
+ * 
+ * 3. Redistributions in any form must be accompanied by information on how
+ * to obtain complete source code for this software and any accompanying
+ * software that uses this software.  The source code must either be
+ * included in the distribution or be available for no more than the cost
+ * of distribution plus a nominal fee, and must be freely redistributable
+ * under reasonable conditions.  For an executable file, complete source
+ * code means the source code for all modules it contains. It does not
+ * include source code for modules or files that typically accompany the
+ * major components of the operating system on which the executable file
+ * runs.
+ * 
+ * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS
+ * IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED
+ * TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR
+ * PURPOSE, OR NON-INFRINGEMENT, ARE DISCLAIMED. IN NO EVENT SHALL THE
+ * COPYRIGHT HOLDERS AND CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT,
+ * INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT
+ * NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF
+ * USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON
+ * ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
+ * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF
+ * THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+ */
