@@ -6,16 +6,16 @@
 Garbage collecting a language with the MPS
 ==========================================
 
-Have you implemented a programming language, written the lexer,
-parser, code generator and the runtime system, and come to the
-realization that you are going to need a memory manager too? If so,
-you've come to the right place.
+Have you written the lexer, parser, code generator and the runtime
+system for your programming language, and come to the realization that
+you are going to need a memory manager too? If so, you've come to the
+right place.
 
 In this guide, I'll explain how to use the MPS to add incremental,
 moving, generational garbage collection to the runtime system for a
 programming language.
 
-I'm assuming that you've downloaded and compiled the MPS (see
+I'm assuming that you've downloaded and built the MPS (see
 :ref:`guide-install`), and that you are familiar with the overall
 architecture of the MPS (see :ref:`guide-overview`).
 
@@ -25,10 +25,10 @@ The Scheme interpreter
 ----------------------
 
 As a running example throughout this guide, I'll be using a small
-interpreter for a subset of the :term:`Scheme` programming
-language. I'll be quoting the relevant sections of code as needed, but
-you may find it helpful to download and experiment with this
-interpeter yourself:
+interpreter for a subset of the :term:`Scheme` programming language.
+I'll be quoting the relevant sections of code as needed, but you may
+find it helpful to experiment with this interpeter yourself, in either
+of its versions:
 
     :download:`scheme-before.c`
 
@@ -44,7 +44,7 @@ This simple interpreter allocates two kinds of objects on the
 
 1. All Scheme objects (there are no :term:`unboxed` objects).
 
-2. The global symbol table, a hash table consisting of a vector of
+2. The global symbol table: a hash table consisting of a vector of
    pointers to strings.
 
 A Scheme object whose type is not necessarily known is represented by
@@ -65,20 +65,21 @@ language::
         vector_s vector;
     } obj_s;
 
-Every object type is a structure whose first word is the type of the
-object. For example, pairs are represented by a pointer to the
-structure ``pair_s`` defined as follows::
+Each of these types is a structure whose first word is a number
+specifying the type of the object (``TYPE_PAIR`` for pairs,
+``TYPE_SYMBOL`` for symbols, and so on). For example, pairs are
+represented by a pointer to the structure ``pair_s`` defined as
+follows::
 
     typedef struct pair_s {
         type_t type;        /* TYPE_PAIR */
         obj_t car, cdr;     /* first and second projections */
     } pair_s;
 
-The ``type`` member of the ``pair_s`` structure always takes the
-constant value ``TYPE_PAIR``.
-
 Because the first word of every object is its type, functions can
-operate on objects generically, testing ``TYPE(obj)`` as necessary. For example, the ``print`` function is implemented like this::
+operate on objects generically, testing ``TYPE(obj)`` as necessary
+(which is a macro for ``obj->type.type``). For example, the
+``print()`` function is implemented like this::
 
     static void print(obj_t obj, unsigned depth, FILE *stream)
     {
@@ -109,7 +110,7 @@ Each constructor allocates memory for the new object by calling
         return obj;
     }
 
-Objects do not get freed, because it is necessary to prove that they
+Objects are never freed, because it is necessary to prove that they
 are :term:`dead` before their memory can be :term:`reclaimed
 <reclaim>`. And that task falls to the :term:`garbage collector`.
 
@@ -118,26 +119,24 @@ are :term:`dead` before their memory can be :term:`reclaimed
 Choosing an arena class
 -----------------------
 
-You'll recall from the :ref:`overview <guide-overview>` that the
-functionality of the MPS is divided between the :term:`arena`, which
-requests memory from (and returns it to) the operating system, and
-:term:`pools <pool>`, which allocate blocks of memory on behalf of
-your program.
+You'll recall from the :ref:`guide-overview` that the functionality of
+the MPS is divided between the :term:`arenas <arena>`, which request
+memory from (and return it to) the operating system, and :term:`pools
+<pool>`, which allocate blocks of memory on behalf of your program.
 
-There are two main classes of arena: the :term:`client arena` (see
-:c:func:`mps_arena_class_cl`) which gets its memory from your program,
-and the :term:`virtual memory arena` (see
-:c:func:`mps_arena_class_vm`) which gets its memory from the operating
-system's :term:`virtual memory` interface.
+There are two main classes of arena: the :term:`client arena`,
+:c:func:`mps_arena_class_cl`, which gets its memory from your program,
+and the :term:`virtual memory arena`, :c:func:`mps_arena_class_vm`,
+which gets its memory from the operating system's :term:`virtual
+memory` interface.
 
 The client arena is intended for use on embedded systems where there
 is no virtual memory, and has a couple of disadvantages (you have to
-decide up front how much memory you are going to need; and the MPS
-can't return memory to the operating system for use by other
-processes) so in most situations you'll want to use the virtual memory
-arena.
+decide how much memory you are going to use; and the MPS can't return
+memory to the operating system for use by other processes) so in most
+situations you'll want to use the virtual memory arena.
 
-We'll need a couple of headers (``mps.h`` for the MPS interface, and
+You'll need a couple of headers (``mps.h`` for the MPS interface, and
 ``mpsavm.h`` for the virtual memory arena class)::
 
     #include "mps.h"
@@ -151,7 +150,7 @@ Create an arena by calling :c:func:`mps_arena_create`. This function
 takes a third argument when creating a virtual memory arena: the size
 of the initial amount of virtual address space, in bytes, that the
 arena will reserve (though it may later ask for more). Let's start
-with a megabyte::
+with a :term:`megabyte`::
 
     mps_res_t res;
     res = mps_arena_create(&arena,
@@ -162,7 +161,7 @@ with a megabyte::
 :c:func:`mps_arena_create` is typical of functions in the MPS
 interface in that it stores its result in a location pointed to by an
 :term:`out parameter` (here, ``&arena``) and returns a :term:`result
-code` which is :c:macro:`MPS_RES_OK` if the function succeeded, or
+code`, which is :c:macro:`MPS_RES_OK` if the function succeeded, or
 some other value if it failed.
 
 .. note::
@@ -172,6 +171,9 @@ some other value if it failed.
     obliged to move all your memory management to the MPS: you can
     continue to use ``malloc`` and ``free`` to manage some of your
     memory, for example, while using the MPS for the rest.
+
+    The Scheme interpreter illustrates this by continuing to use
+    ``malloc`` and ``free`` to manage its global symbol table.
 
 .. topics::
 
@@ -186,10 +188,16 @@ Pool classes come with a policy for how their memory will be managed:
 some pool classes use :term:`automatic memory management` and others
 use :term:`manual <manual memory management>`; some use :term:`moving
 collection <moving garbage collector>` and others :term:`non-moving
-<non-moving garbage collector>`. See the :ref:`Pool reference <pool>`
-for a list of available pool classes and their properties.
+<non-moving garbage collector>`.
 
-In this example, we'll use :ref:`pool-amc`. This pool class uses
+The section :ref:`pool-choose` in the :ref:`pool` contains a process
+for choosing a pool class. In the case of the Scheme interpreter, the
+answers to the questions are (1) yes, it's acceptable for the MPS to
+automatically reclaim unreachable blocks; (2) yes, it's acceptable for
+the MPS to move blocks in memory; and (3) the Scheme objects will
+contain exact references to other Scheme objects.
+
+The recommended class is :ref:`pool-amc`. This pool class uses
 automatic memory management, moving garbage collection,
 :term:`allocation points <allocation point>` and :term:`formatted
 objects <formatted object>`, so it will provide an introduction to
@@ -338,13 +346,15 @@ of the function and :c:func:`MPS_SCAN_END` at the end.
     :ref:`topic-format`, :ref:`topic-scanning`.
 
 
+.. _guide-lang-skip:
+
 ^^^^^^^^^^^^^^^
 The skip method
 ^^^^^^^^^^^^^^^
 
 The :term:`skip method` is a function of type
 :c:type:`mps_fmt_skip_t`. It is called by the MPS to skip over an
-object belonging to the format.
+object belonging to the format, and to determine its size.
 
 Here's the skip method for the Scheme interpreter::
 
@@ -381,6 +391,8 @@ its functionality to the former.
     :ref:`topic-format`, :ref:`topic-scanning`.
 
 
+.. _guide-lang-fwd:
+
 ^^^^^^^^^^^^^^^^^^
 The forward method
 ^^^^^^^^^^^^^^^^^^
@@ -404,10 +416,10 @@ The forwarding object must satisfy these properties:
 2. It must contain a pointer to the new location of the object (a
    :term:`forwarding pointer`).
 
-3. The :ref:`scan method <guide-lang-scan>` and the skip method will
-   both need to know the length of the forwarding object. This can be
-   arbitarily long (in the case of string objects, for example) so it
-   must contain a length field.
+3. The :ref:`scan method <guide-lang-scan>` and the :ref:`skip method
+   <guide-lang-skip>` will both need to know the length of the
+   forwarding object. This can be arbitarily long (in the case of
+   string objects, for example) so it must contain a length field.
 
 This poses a problem, because the above analysis suggests that
 forwarding objects need to contain at least three words, but Scheme
@@ -476,6 +488,8 @@ following code must be added to ``obj_scan`` and ``obj_skip``::
     :ref:`topic-format`.
 
 
+.. _guide-lang-isfwd:
+
 ^^^^^^^^^^^^^^^^^^^^^^^
 The is-forwarded method
 ^^^^^^^^^^^^^^^^^^^^^^^
@@ -506,6 +520,8 @@ that object was moved, or ``NULL`` if the object was not moved.
 
     :ref:`topic-format`.
 
+
+.. _guide-lang-pad:
 
 ^^^^^^^^^^^^^^^^^^
 The padding method
@@ -579,8 +595,18 @@ the :term:`generational garbage collection`.
 
 You create a generation chain by constructing an array of structures
 of type :c:type:`mps_gen_param_s` and passing them to
-:c:func:`mps_chain_create`. Here's the code for creating the
-generation chain for the Scheme interpreter::
+:c:func:`mps_chain_create`. Each of these structures contains two
+values, the *capacity* of the generation in :term:`kilobytes
+<kilobyte>`, and the *mortality*, the proportion of objects in the
+generation that you expect to survive a collection of that generation.
+
+These numbers are hints to the MPS that it may use to make decisions
+about when and what to collect: nothing will go wrong (other than
+suboptimal performance) if you make poor choices. Making good choices
+for the capacity and mortality of each generation is not easy, and is postponed to the guide :ref:`guide-perf`.
+
+Here's the code for creating the generation chain for the Scheme
+interpreter::
 
     mps_gen_param_s obj_gen_params[] = {
         { 150, 0.85 },
@@ -599,7 +625,11 @@ Creating the pool
 -----------------
 
 Now you know enough to create an :ref:`pool-amc` pool! Let's review
-the pool creation code. First the :term:`object format`::
+the pool creation code. First, the header for the AMC pool class::
+
+    #include "mpscamc.h"
+
+Second, the :term:`object format`::
 
     struct mps_fmt_A_s obj_fmt_s = {
         sizeof(mps_word_t),
@@ -615,7 +645,7 @@ the pool creation code. First the :term:`object format`::
     res = mps_fmt_create_A(&obj_fmt, arena, &obj_fmt_s);
     if (res != MPS_RES_OK) error("Couldn't create obj format");
 
-then the :term:`generation chain`::
+Third, the :term:`generation chain`::
 
     mps_gen_param_s obj_gen_params[] = {
         { 150, 0.85 },
@@ -629,7 +659,7 @@ then the :term:`generation chain`::
                            obj_gen_params);
     if (res != MPS_RES_OK) error("Couldn't create obj chain");
 
-and finally the :term:`pool`::
+And finally the :term:`pool`::
 
     mps_pool_t obj_pool;
     res = mps_pool_create(&obj_pool,
@@ -853,9 +883,9 @@ conditions apply:
    collector>` (as with the :ref:`pool-amc` pool);
 
 2. the thread's :term:`registers <register>` and :term:`control stack`
-   constitute a :term:`roots <root>` (that is, objects may be kept
-   alive via references in local variables: this is almost always the
-   case for programs written in :term:`C`).
+   constitute a :term:`root` (that is, objects may be kept alive via
+   references in local variables: this is almost always the case for
+   programs written in :term:`C`).
 
 You register a thread with an :term:`arena` by calling
 :c:func:`mps_thread_reg`::
@@ -1058,9 +1088,9 @@ point in time (potentially, between any pair of instructions in your
 program). So you must make sure that your data structures always obey
 these rules:
 
-1. A :term:`root` must be scannable by the root scanning function as
-   soon as it has been registered with :c:func:`mps_root_create` (or
-   similar).
+1. A :term:`root` must be scannable by its root scanning function as
+   soon as it has been registered by calling :c:func:`mps_root_create`
+   or one of the other root registration functions.
 
    See the discussion of the :ref:`global symbol table
    <guide-lang-roots-rehash>` in the Scheme interpreter.
