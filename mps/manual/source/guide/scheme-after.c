@@ -703,7 +703,7 @@ static obj_t intern(char *string) {
 
 static void print(obj_t obj, unsigned depth, FILE *stream)
 {
-  switch(TYPE(obj)) {
+  switch (TYPE(obj)) {
     case TYPE_INTEGER: {
       fprintf(stream, "%ld", obj->integer.integer);
     } break;
@@ -727,7 +727,7 @@ static void print(obj_t obj, unsigned depth, FILE *stream)
       putc('"', stream);
       for (i = 0; i < obj->string.length; ++i) {
         char c = obj->string.string[i];
-        switch(c) {
+        switch (c) {
           case '\\': fputs("\\\\", stream); break;
           case '"': fputs("\\\"", stream); break;
           default: putc(c, stream); break;
@@ -892,7 +892,7 @@ static obj_t read_string(FILE *stream, int c)
       error("read: string too long");
     if (c == '\\') {
       c = getc(stream);
-      switch(c) {
+      switch (c) {
         case '\\': break;
         case '"': break;
         case 'n': c = '\n'; break;
@@ -998,7 +998,7 @@ static obj_t list_to_vector(obj_t list)
 static obj_t read_special(FILE *stream, int c)
 {
   c = getnbc(stream);
-  switch(tolower(c)) {
+  switch (tolower(c)) {
     case 't': return obj_true;
     case 'f': return obj_false;
     case '\\': {                /* character (R4RS 6.6) */
@@ -1030,7 +1030,7 @@ static obj_t read(FILE *stream)
   if (isdigit(c))
     return read_integer(stream, c);
   
-  switch(c) {
+  switch (c) {
     case '\'': return read_quote(stream, c);
     case '`':  return read_quasiquote(stream, c);
     case ',':  return read_unquote(stream, c);
