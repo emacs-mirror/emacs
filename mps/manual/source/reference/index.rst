@@ -49,12 +49,12 @@ Declared in ``mps.h``
 
     Allocate a :term:`block` of memory in a :term:`pool`.
 
-    *p_o* points to a location that will hold the address of the
+    ``p_o`` points to a location that will hold the address of the
     allocated block.
 
-    *pool* the pool to allocate in.
+    ``pool`` the pool to allocate in.
 
-    *size* is the :term:`size` of the block to allocate.
+    ``size`` is the :term:`size` of the block to allocate.
 
     Some pool classes require additional arguments to be passed to
     :c:func:`mps_alloc`. See the documentation for the pool class.
@@ -138,10 +138,10 @@ Declared in ``mps.h``
     :term:`allocation pattern`. The period persists until a
     corresponding call to :c:func:`mps_ap_alloc_pattern_end`.
 
-    *ap* is the :term:`allocation point` in which the patterned
+    ``ap`` is the :term:`allocation point` in which the patterned
     allocation will occur.
 
-    *alloc_pattern* is the allocation pattern.
+    ``alloc_pattern`` is the allocation pattern.
 
     Returns :c:macro:`MPS_RES_OK` if the allocation pattern is
     supported by this allocation point. At present this is always the
@@ -169,10 +169,10 @@ Declared in ``mps.h``
     End a period of allocation on an :term:`allocation point` that
     behaves according to an :term:`allocation pattern`.
 
-    *ap* is the allocation point in which the patterned allocation
+    ``ap`` is the allocation point in which the patterned allocation
     occurred.
 
-    *alloc_pattern* is the allocation pattern.
+    ``alloc_pattern`` is the allocation pattern.
 
     Returns :c:macro:`MPS_RES_OK` if the period of allocation was
     successfully ended, or :c:macro:`MPS_RES_FAIL` if there was no
@@ -188,7 +188,7 @@ Declared in ``mps.h``
     End all :term:`patterned allocation <allocation pattern>` on an
     :term:`allocation point`.
 
-    *ap* is the allocation point on which to end all patterned
+    ``ap`` is the allocation point on which to end all patterned
     allocation.
 
     Returns :c:macro:`MPS_RES_OK`. It may fail in future if certain
@@ -209,18 +209,18 @@ Declared in ``mps.h``
     and pop the frame from the :term:`allocation point's <allocation
     point>` frame stack.
 
-    *ap* is the allocation point in which *frame* was pushed.
+    ``ap`` is the allocation point in which ``frame`` was pushed.
 
-    *frame* is the allocation frame whose blocks are likely to be
+    ``frame`` is the allocation frame whose blocks are likely to be
     dead.
 
     Returns a :term:`result code`.
 
-    This function pops *frame*, making its parent the current
-    frame. Popping invalidates *frame* and all frames pushed since
-    *frame*. Popping *frame* also makes a declaration about the set of
-    blocks which were allocated in *frame* and all frames which were
-    pushed since *frame*.
+    This function pops ``frame``, making its parent the current
+    frame. Popping invalidates ``frame`` and all frames pushed since
+    ``frame``. Popping ``frame`` also makes a declaration about the set of
+    blocks which were allocated in ``frame`` and all frames which were
+    pushed since ``frame``.
 
     The interpretation of this declaration depends on the :term:`pool`
     that the allocation point belongs to. Typically, :term:`manual
@@ -253,10 +253,10 @@ Declared in ``mps.h``
     Declare a new :term:`allocation frame` and push it onto an
     :term:`allocation point's <allocation point>` frame stack.
 
-    *frame_o* points to a location that will hold the new frame if the
+    ``frame_o`` points to a location that will hold the new frame if the
     function is successful.
 
-    *ap* is the allocation point in which the new frame is declared.
+    ``ap`` is the allocation point in which the new frame is declared.
 
     Returns a :term:`result code`. The creation of new frames (which
     is implicit in the action of this function) can consume resources,
@@ -290,7 +290,7 @@ Declared in ``mps.h``
 
     Put an :term:`arena` into the :term:`clamped state`.
     
-    *arena* is the arena to clamp.
+    ``arena`` is the arena to clamp.
 
     In the clamped state, no object motion will occur and the
     staleness of :term:`location dependencies <location dependency>`
@@ -321,7 +321,7 @@ Declared in ``mps.h``
 
     Collect an arena and put it into the :term:`parked state`.
 
-    *arena* is the arena to collect.
+    ``arena`` is the arena to collect.
 
     The collector attempts to recycle as many unreachable objects as
     possible and reduce the size of the arena as much as possible
@@ -343,7 +343,7 @@ Declared in ``mps.h``
     Return the current :term:`commit limit` for
     an arena.
 
-    *arena* is the arena to return the commit limit for.
+    ``arena`` is the arena to return the commit limit for.
 
     Returns the commit limit in :term:`bytes <byte (1)>`. The commit
     limit controls how much memory the MPS can obtain from the
@@ -359,14 +359,14 @@ Declared in ``mps.h``
 
     Change the :term:`commit limit` for an :term:`arena`.
 
-    *arena* is the arena to change the commit limit for.
+    ``arena`` is the arena to change the commit limit for.
 
-    *limit* is the new commit limit in :term:`bytes <byte (1)>`.
+    ``limit`` is the new commit limit in :term:`bytes <byte (1)>`.
 
     Returns :c:macro:`MPS_RES_OK` if successful, or another
     :term:`result code` if not.
 
-    If successful, the commit limit for *arena* is set to *limit*. The
+    If successful, the commit limit for ``arena`` is set to ``limit``. The
     commit limit controls how much memory the MPS will obtain from the
     operating system. The commit limit cannot be set to a value that
     is lower than the number of bytes that the MPS is using. If an
@@ -400,7 +400,7 @@ Declared in ``mps.h``
     Return the total :term:`committed <mapped>` memory for an
     :term:`arena`.
 
-    *arena* is the arena.
+    ``arena`` is the arena.
 
     Returns the total amount of memory that has been committed to RAM
     by the MPS, in :term:`bytes <byte (1)>`.
@@ -449,10 +449,10 @@ Declared in ``mps.h``
 
     Create an :term:`arena`.
 
-    *arena_o* points to a location that will hold a pointer to the new
+    ``arena_o`` points to a location that will hold a pointer to the new
     arena.
 
-    *arena_class* is the :term:`arena class`.
+    ``arena_class`` is the :term:`arena class`.
 
     Some arena classes require additional arguments to be passed to
     :c:func:`mps_arena_create`. See the documentation for the arena
@@ -491,7 +491,7 @@ Declared in ``mps.h``
     :term:`arena` with a :term:`read barrier` or :term:`write
     barrier`.
 
-    *mps_arena* is the arena to expose.
+    ``mps_arena`` is the arena to expose.
 
     This is expected to only be useful for debugging. The arena is
     left in the :term:`clamped state`.
@@ -526,13 +526,13 @@ Declared in ``mps.h``
     Visit all :term:`formatted objects <formatted object>` in an
     :term:`arena`.
 
-    *arena* is the arena whose formatted objects you want to visit.
+    ``arena`` is the arena whose formatted objects you want to visit.
 
-    *f* is a formatted objects stepper function. It will be called for
+    ``f`` is a formatted objects stepper function. It will be called for
     each formatted object in the arena. See
     :c:type:`mps_formatted_objects_stepper_t`.
 
-    *p* and *s* are arguments that will be passed to *f* each time it
+    ``p`` and ``s`` are arguments that will be passed to ``f`` each time it
     is called. This is intended to make it easy to pass, for example,
     an array and its size as parameters.
 
@@ -546,8 +546,8 @@ Declared in ``mps.h``
     visited at the pool classes discretion, the :term:`client program`
     should handle this case.
 
-    The function *f* may not allocate memory or access any
-    automatically-managed memory except within *object*.
+    The function ``f`` may not allocate memory or access any
+    automatically-managed memory except within ``object``.
 
     .. topics::
 
@@ -558,11 +558,11 @@ Declared in ``mps.h``
 
     Test whether an :term:`address` is managed by an :term:`arena`. 
 
-    *arena* is an arena.
+    ``arena`` is an arena.
 
-    *addr* is an address.
+    ``addr`` is an address.
 
-    Returns true if *addr* is managed by *arena*; false otherwise.
+    Returns true if ``addr`` is managed by ``arena``; false otherwise.
 
     An arena manages a portion of :term:`address space`. No two arenas
     overlap, so for any particular address this function will return
@@ -590,7 +590,7 @@ Declared in ``mps.h``
 
     Put an :term:`arena` into the :term:`parked state`.
 
-    *arena* is the arena to park.
+    ``arena`` is the arena to park.
 
     While an arena is parked, no object motion will occur and the
     staleness of :term:`location dependencies <location dependency>`
@@ -611,7 +611,7 @@ Declared in ``mps.h``
 
     Puts an arena into the :term:`unclamped state`.
 
-    *arena* is the arena to unclamp.
+    ``arena`` is the arena to unclamp.
 
     While an arena is unclamped, :term:`garbage collection`, object
     motion, and other background activity can take place.
@@ -626,18 +626,18 @@ Declared in ``mps.h``
     Visit references in registered :term:`roots <root>` in an
     :term:`arena`.
 
-    *arena* is the arena whose roots you want to visit.
+    ``arena`` is the arena whose roots you want to visit.
 
-    *f* is a function that will be called for each reference to an
+    ``f`` is a function that will be called for each reference to an
     object in an :term:`automatically <automatic memory management>`
     managed :term:`pool class` that was found in a registered root
-    beloging to the arena. It takes four arguments: *ref* is the
-    address of a reference to an object in the arena, *root* is the
-    root in which *ref* was found, and *p* and *s* are the
+    beloging to the arena. It takes four arguments: ``ref`` is the
+    address of a reference to an object in the arena, ``root`` is the
+    root in which ``ref`` was found, and ``p`` and ``s`` are the
     corresponding arguments that were passed to
     :c:func:`mps_arena_roots_walk`.
 
-    *p* and *s* are arguments that will be passed to *f* each time it
+    ``p`` and ``s`` are arguments that will be passed to ``f`` each time it
     is called. This is intended to make it easy to pass, for example,
     an array and its size as parameters.
 
@@ -665,7 +665,7 @@ Declared in ``mps.h``
     Return the current :term:`spare commit limit` for an
     :term:`arena`.
 
-    *arena* is the arena to return the spare commit limit for.
+    ``arena`` is the arena to return the spare commit limit for.
 
     Returns the spare commit limit in :term:`bytes <byte (1)>`. The
     spare commit limit can be changed by calling
@@ -680,9 +680,9 @@ Declared in ``mps.h``
 
     Change the :term:`spare commit limit` for an :term:`arena`.
 
-    *arena* is the arena to change the spare commit limit for.
+    ``arena`` is the arena to change the spare commit limit for.
 
-    *limit* is the new spare commit limit in :term:`bytes <byte (1)>`.
+    ``limit`` is the new spare commit limit in :term:`bytes <byte (1)>`.
 
     The spare commit limit is the maximum amount of :term:`spare
     committed memory` the MPS is allowed to have. Setting it to a
@@ -709,7 +709,7 @@ Declared in ``mps.h``
     Return the total :term:`spare committed memory` for an
     :term:`arena`.
 
-    *arena* is the arena.
+    ``arena`` is the arena.
 
     Returns the number of bytes of spare committed memory.
 
@@ -755,7 +755,7 @@ Declared in ``mps.h``
     barrier`. In addition, request the MPS to remember some parts of its
     internal state so that they can be restored later.
 
-    *mps_arena* is the arena to expose.
+    ``mps_arena`` is the arena to expose.
 
     This function is the same as :c:func:`mps_arena_expose`, but
     additionally causes the MPS to remember its protection state. The
@@ -791,7 +791,7 @@ Declared in ``mps.h``
 
     Restore the remembered protection state for an :term:`arena`.
 
-    *mps_arena* is the arena to restore the protection state for.
+    ``mps_arena`` is the arena to restore the protection state for.
 
     This function restores the protection state that the MPS has
     remembered when the :term:`client program` called
@@ -842,15 +842,15 @@ Declared in ``mps.h``
 
     Register a :term:`block` for :term:`finalization`.
 
-    *arena* is the arena in which the block lives.
+    ``arena`` is the arena in which the block lives.
 
-    *ref* points to a :term:`reference` to the block to be finalized.
+    ``ref`` points to a :term:`reference` to the block to be finalized.
  
     Returns :c:macro:`MPS_RES_OK` if successful, or another
     :term:`result code` if not.
 
-    This function registers *block* for finalization. This block must
-    have been allocated from a :term:`pool` in *arena*. Violations of
+    This function registers ``block`` for finalization. This block must
+    have been allocated from a :term:`pool` in ``arena``. Violations of
     this constraint may not be checked by the MPS, and may be unsafe,
     causing the MPS to crash in undefined ways.
 
@@ -871,9 +871,9 @@ Declared in ``mps.h``
     This function must only be called from within a :term:`scan
     method`.
 
-    *ss* is the :term:`scan state` that was passed to the scan method.
+    ``ss`` is the :term:`scan state` that was passed to the scan method.
 
-    *ref_io* points to the reference.
+    ``ref_io`` points to the reference.
 
     Returns :c:macro:`MPS_RES_OK` if successful: in this case the
     reference may have been updated (see the topic
@@ -903,9 +903,9 @@ Declared in ``mps.h``
     used within a :term:`scan method`, between
     :c:func:`MPS_SCAN_BEGIN` and :c:func:`MPS_SCAN_END`.
 
-    *ss* is the :term:`scan state` that was passed to the scan method.
+    ``ss`` is the :term:`scan state` that was passed to the scan method.
 
-    *ref* is the reference.
+    ``ref`` is the reference.
 
     Returns a truth value (:c:type:`mps_bool_t`) indicating whether
     the reference is likely to be interesting to the MPS. If it
@@ -930,9 +930,9 @@ Declared in ``mps.h``
     This macro must only be used within a :term:`scan method`, between
     :c:func:`MPS_SCAN_BEGIN` and :c:func:`MPS_SCAN_END`.
 
-    *ss* is the :term:`scan state` that was passed to the scan method.
+    ``ss`` is the :term:`scan state` that was passed to the scan method.
 
-    *ref_io* points to the reference.
+    ``ref_io`` points to the reference.
 
     Returns :c:macro:`MPS_RES_OK` if successful: in this case the
     reference may have been updated (see the topic
@@ -958,9 +958,9 @@ Declared in ``mps.h``
     This macro must only be used within a :term:`scan method`,
     between :c:func:`MPS_SCAN_BEGIN` and :c:func:`MPS_SCAN_END`.
 
-    *ss* is the :term:`scan state` that was passed to the scan method.
+    ``ss`` is the :term:`scan state` that was passed to the scan method.
 
-    *ref_io* points to the reference.
+    ``ref_io`` points to the reference.
 
     Returns :c:macro:`MPS_RES_OK` if successful: in this case the
     reference may have been updated (see the topic
@@ -986,11 +986,11 @@ Declared in ``mps.h``
     :c:func:`MPS_SCAN_BEGIN` and :c:func:`MPS_SCAN_END`, passing
     scan state correctly.
 
-    *ss* is the :term:`scan state` that was passed to the scan method.
+    ``ss`` is the :term:`scan state` that was passed to the scan method.
 
-    *call* is an expression containing a call to a scan method.
+    ``call`` is an expression containing a call to a scan method.
 
-    Returns the result of evaluating the expression *call*.
+    Returns the result of evaluating the expression ``call``.
 
     Between :c:func:`MPS_SCAN_BEGIN` and :c:func:`MPS_SCAN_END`, the
     scan state is in a special state, and must not be passed to a
@@ -1048,31 +1048,31 @@ Declared in ``mps.h``
     in :term:`copying <copying garbage collection>` or :term:`moving
     <moving garbage collector>` :term:`pools <pool>`.
 
-    *align* is an integer value specifying the alignment of objects
+    ``align`` is an integer value specifying the alignment of objects
     allocated with this format. It should be large enough to satisfy
     the alignment requirements of any field in the objects, and it
     must not be larger than the arena alignment.
 
-    *scan* is a :term:`scan method` that identifies references
+    ``scan`` is a :term:`scan method` that identifies references
     within objects belonging to this format. See
     :c:type:`mps_fmt_scan_t`.
 
-    *skip* is a :term:`skip method` that skips over objects
+    ``skip`` is a :term:`skip method` that skips over objects
     belonging to this format. See :c:type:`mps_fmt_skip_t`.
 
-    *copy* is not used. (In older versions of the MPS it was a
+    ``copy`` is not used. (In older versions of the MPS it was a
     :term:`copy method` that copied objects belonging to this
     format.)
 
-    *fwd* is a :term:`forward method` that stores relocation
+    ``fwd`` is a :term:`forward method` that stores relocation
     information for an object belonging to this format that has moved.
     See :c:type:`mps_fmt_fwd_t`.
 
-    *isfwd* is a :term:`is-forwarded method` that determines if an
+    ``isfwd`` is a :term:`is-forwarded method` that determines if an
     object belonging to this format has been moved. See
     :c:type:`mps_fmt_isfwd_t`.
 
-    *pad* is a :term:`padding method` that creates :term:`padding
+    ``pad`` is a :term:`padding method` that creates :term:`padding
     objects <padding object>` belonging to this format. See
     :c:type:`mps_fmt_pad_t`.
 
@@ -1098,7 +1098,7 @@ Declared in ``mps.h``
 
     Variant auto_header is the same as variant A except for the
     removal of the unused ``copy`` method, and the addition of the
-    *mps_headerSize* method. See :c:type:`mps_fmt_A_s`.
+    ``mps_headerSize`` field. See :c:type:`mps_fmt_A_s`.
 
     Broadly speaking, the object formats of this variant are suitable
     for use in :term:`automatic memory management` for objects with
@@ -1112,7 +1112,7 @@ Declared in ``mps.h``
     what the reason is, only about the offset of the pointer in
     relation to the memory block.
 
-    *mps_headerSize* is the size of the header, that is, the offset of
+    ``mps_headerSize`` is the size of the header, that is, the offset of
     a client pointer from the base of the memory block.
 
     .. topics::
@@ -1151,7 +1151,7 @@ Declared in ``mps.h``
         } mps_fmt_B_s;
 
     Variant B is the same as variant A except for the addition of the
-    *mps_class* method. See :c:type:`mps_fmt_A_s`.
+    ``mps_class`` method. See :c:type:`mps_fmt_A_s`.
 
     Broadly speaking, object formats of variant B are suitable for use
     in :term:`copying <copying garbage collection>` or :term:`moving
@@ -1169,7 +1169,7 @@ Declared in ``mps.h``
 
     The type of the :term:`class method` of an :term:`object format`.
 
-    *addr* is the address of the object whose class is of interest.
+    ``addr`` is the address of the object whose class is of interest.
 
     Returns an address that is related to the class or type of the
     object, for passing on to support tools (such as graphical
@@ -1195,20 +1195,20 @@ Declared in ``mps.h``
 
     Create an :term:`object format` of variant A.
 
-    *fmt_o* points to a location that will hold the address of the new
+    ``fmt_o`` points to a location that will hold the address of the new
     object format.
 
-    *arena* is the arena in which to create the format.
+    ``arena`` is the arena in which to create the format.
 
-    *fmt_A* points to a description of an object format of variant A.
+    ``fmt_A`` points to a description of an object format of variant A.
 
     Returns :c:macro:`MPS_RES_OK` if successful. The MPS may exhaust
     some resource in the course of :c:func:`mps_fmt_create_A` and will
     return an appropriate :term:`result code` if so.
 
     After this function returns, the object format description pointed
-    to be *fmt_A* is no longer needed and may be discarded. The object
-    format pointed to by *fmt_o* persists until it is destroyed by
+    to be ``fmt_A`` is no longer needed and may be discarded. The object
+    format pointed to by ``fmt_o`` persists until it is destroyed by
     calling :c:func:`mps_fmt_destroy`.
 
     .. topics::
@@ -1220,12 +1220,12 @@ Declared in ``mps.h``
 
     Create an :term:`object format` of variant B.
 
-    *fmt_o* points to a location that will hold the address of the new
+    ``fmt_o`` points to a location that will hold the address of the new
     object format.
 
-    *arena* is the arena in which to create the format.
+    ``arena`` is the arena in which to create the format.
 
-    *fmt_B* points to a description of an object format of variant B.
+    ``fmt_B`` points to a description of an object format of variant B.
 
     Returns :c:macro:`MPS_RES_OK` if successful. The MPS may exhaust
     some resource in the course of :c:func:`mps_fmt_create_B` and will
@@ -1240,12 +1240,12 @@ Declared in ``mps.h``
 
     Create an :term:`object format` of variant auto_header.
 
-    *fmt_o* points to a location that will hold the address of the new
+    ``fmt_o`` points to a location that will hold the address of the new
     object format.
 
-    *arena* is the arena in which to create the format.
+    ``arena`` is the arena in which to create the format.
 
-    *fmt_ah* points to a description of an object format of variant
+    ``fmt_ah`` points to a description of an object format of variant
     auto_header.
 
     Returns :c:macro:`MPS_RES_OK` if successful. The MPS may exhaust
@@ -1262,13 +1262,13 @@ Declared in ``mps.h``
 
     The type of the :term:`forward method` of an :term:`object format`.
 
-    *old* is the address of an object.
+    ``old`` is the address of an object.
 
-    *new* is the address to where the object has been moved.
+    ``new`` is the address to where the object has been moved.
 
     The MPS calls the forward method for an object format when it has
     relocated an object belonging to that format. The forward method
-    must replace the object at *old* with a :term:`forwarding marker`
+    must replace the object at ``old`` with a :term:`forwarding marker`
     that points to the address 'new'. The forwarding marker must meet
     the following requirements:
 
@@ -1283,7 +1283,7 @@ Declared in ``mps.h``
     3. It must be possible for the :term:`is-forwarded method` of the
        object format to distinguish the forwarding marker from
        ordinary objects, and the is-forwarded method method must
-       return the address *new*. See :c:type:`mps_fmt_isfwd_t`.
+       return the address ``new``. See :c:type:`mps_fmt_isfwd_t`.
 
     .. topics::
 
@@ -1301,11 +1301,11 @@ Declared in ``mps.h``
     The type of the :term:`is-forwarded method` of an :term:`object
     format`.
 
-    *addr* is the address of a candidate object.
+    ``addr`` is the address of a candidate object.
 
-    If the *addr* is the address of a :term:`forwarding object`, return
+    If the ``addr`` is the address of a :term:`forwarding object`, return
     the address where the object was moved to. This must be the value
-    of the *new* argument supplied to the :term:`forward method` when
+    of the ``new`` argument supplied to the :term:`forward method` when
     the object was moved. If not, return a null pointer.
 
     .. topics::
@@ -1324,9 +1324,9 @@ Declared in ``mps.h``
     The type of the :term:`padding method` of an :term:`object
     format`.
 
-    *addr* is the address at which to create a :term:`padding object`.
+    ``addr`` is the address at which to create a :term:`padding object`.
 
-    *size* is the :term:`size` of the padding object to be created.
+    ``size`` is the :term:`size` of the padding object to be created.
 
     The MPS calls a padding method when it wants to create a padding
     object. Typically the MPS creates padding objects to fill in
@@ -1349,16 +1349,16 @@ Declared in ``mps.h``
 
     The type of the :term:`scan method` of an :term:`object format`.
 
-    *ss* is the :term:`scan state`. It must be passed to
+    ``ss`` is the :term:`scan state`. It must be passed to
     :c:func:`MPS_SCAN_BEGIN` and :c:func:`MPS_SCAN_END` to delimit a
     sequence of fix operations, and to the functions
     :c:func:`MPS_FIX1` and :c:func:`MPS_FIX2` when fixing a
     :term:`reference`.
 
-    *base* points to the first :term:`formatted object` in the block
+    ``base`` points to the first :term:`formatted object` in the block
     of memory to be scanned.
 
-    *limit* points to the location just beyond the end of the block to
+    ``limit`` points to the location just beyond the end of the block to
     be scanned. Note that there might not be any object at this
     location.
 
@@ -1385,7 +1385,7 @@ Declared in ``mps.h``
 
     The type of the :term:`skip method` of an :term:`object format`.
 
-    *addr* is the address of the object to be skipped.
+    ``addr`` is the address of the object to be skipped.
 
     Returns the address of the "next object". In an object format
     without headers (for example, a format of variant A), this is the
@@ -1393,7 +1393,7 @@ Declared in ``mps.h``
     headers (for example, a format of variant auto_header), it's the
     address just past where the header of next object would be, if
     there were one. It is always the case that the difference between
-    *addr* and the return value is the size of the block containing
+    ``addr`` and the return value is the size of the block containing
     the object.
 
     A skip method is not allowed to fail.
@@ -1422,13 +1422,13 @@ Declared in ``mps.h``
     be called for each formatted object in an :term:`arena`. It
     receives five arguments:
     
-    *addr* is the address of the object.
+    ``addr`` is the address of the object.
 
-    *fmt* is the :term:`object format` for that object.
+    ``fmt`` is the :term:`object format` for that object.
 
-    *pool* is the :term:`pool` to which the object belongs.
+    ``pool`` is the :term:`pool` to which the object belongs.
 
-    *p* and *s* are the corresponding values that were passed to
+    ``p`` and ``s`` are the corresponding values that were passed to
     :c:func:`mps_arena_formatted_objects_walk`.
 
     .. topics::
@@ -1440,11 +1440,11 @@ Declared in ``mps.h``
 
     Free a :term:`block` of memory to a :term:`pool`.
 
-    *pool* is the pool the block belongs to.
+    ``pool`` is the pool the block belongs to.
 
-    *addr* is the address of the block to be freed.
+    ``addr`` is the address of the block to be freed.
 
-    *size* is the :term:`size` of the block to be freed.
+    ``size`` is the :term:`size` of the block to be freed.
 
     The freed block of memory becomes available for allocation by the
     pool, or the pool might decide to make it available to other
@@ -1456,13 +1456,14 @@ Declared in ``mps.h``
 
     .. note::
 
-        :c:func:`mps_free` takes a *size* because it is most efficient
-        to do so. In most programs, the type of an object is known at
-        the point in the code that frees it, hence the size is
-        trivially available. In such programs, storing the size on the
-        MPS side would cost time and memory, and make it hard to get
-        good virtual memory behaviour (as it is, the deallocation code
-        doesn't have to touch the dead object at all).
+        :c:func:`mps_free` takes a ``size`` parameter because it is
+        most efficient to do so. In most programs, the type of an
+        object is known at the point in the code that frees it, hence
+        the size is trivially available. In such programs, storing the
+        size on the MPS side would cost time and memory, and make it
+        hard to get good virtual memory behaviour (as it is, the
+        deallocation code doesn't have to touch the dead object at
+        all).
 
 
 .. c:function:: void mps_ld_add(mps_ld_t ld, mps_arena_t arena, mps_addr_t addr)
@@ -1470,14 +1471,14 @@ Declared in ``mps.h``
     Add a dependency on a :term:`block` to a :term:`location
     dependency`.
 
-    *ld* is a location dependency.
+    ``ld`` is a location dependency.
 
-    *arena* is an :term:`arena`.
+    ``arena`` is an :term:`arena`.
 
-    *addr* is the address of the block. It can be any address: it 
-    is not limited to addresses in *arena*.
+    ``addr`` is the address of the block. It can be any address: it 
+    is not limited to addresses in ``arena``.
 
-    After calling :c:func:`mps_ld_add`, and until *ld* is passed to
+    After calling :c:func:`mps_ld_add`, and until ``ld`` is passed to
     :c:func:`mps_ld_reset`, the call ::
 
         mps_ld_isstale(ld, arena, addr)
@@ -1506,18 +1507,18 @@ Declared in ``mps.h``
     Determine if any of the depdencies in a :term:`location
     dependency` are stale.
 
-    *ld* is the location dependency.
+    ``ld`` is the location dependency.
 
-    *arena* is an arena.
+    ``arena`` is an arena.
 
-    *addr* is an address.
+    ``addr`` is an address.
 
     The location dependency is examined to determine whether any of
     the dependencies encapsulated in it have been made stale. If any
     of the dependencies encapsulated in the location dependency are
     stale (that is, the blocks whose location has been depended on
     have moved) then :c:func:`mps_ld_isstale` will return true. If
-    there have been no calls to :c:func:`mps_ld_add` on *ld* since the
+    there have been no calls to :c:func:`mps_ld_add` on ``ld`` since the
     last call to :c:func:`mps_ld_reset`, then :c:func:`mps_ld_isstale`
     will return false. :c:func:`mps_ld_isstale` may return any value
     in other circumstances (but will strive to return false if the
@@ -1536,14 +1537,14 @@ Declared in ``mps.h``
 
     Merge one :term:`location dependency` into another.
 
-    *dest_ld* is the destination of the merge.
+    ``dest_ld`` is the destination of the merge.
 
-    *arena* is an :term:`arena`.
+    ``arena`` is an :term:`arena`.
 
-    *src_ld* is the source of the merge.
+    ``src_ld`` is the source of the merge.
 
     The effect of this is to add all the addresses that were added to
-    *src_ld* to the *dest_ld*.
+    ``src_ld`` to the ``dest_ld``.
     
     :c:func:`mps_ld_merge` has the same thread-safety properties as
     :c:func:`mps_ld_add`.
@@ -1557,13 +1558,13 @@ Declared in ``mps.h``
 
     Reset a :term:`location dependency`.
 
-    *ld* is the location dependency.
+    ``ld`` is the location dependency.
 
-    *arena* is an arena.
+    ``arena`` is an arena.
 
-    After this call, *ld* encapsulates no dependencies. After the call
+    After this call, ``ld`` encapsulates no dependencies. After the call
     to :c:func:`mps_ld_reset` and prior to any call to
-    :c:func:`mps_ld_add` on *ld*, :c:func:`mps_ld_isstale` on *ld*
+    :c:func:`mps_ld_add` on ``ld``, :c:func:`mps_ld_isstale` on ``ld``
     will return false for all addresses.
 
     :c:func:`mps_ld_reset` is not thread-safe with respect to any
@@ -1622,12 +1623,12 @@ Declared in ``mps.h``
 
     Returns the time at which the MPS posted a :term:`message`.
 
-    *arena* is the :term:`arena` which posted the message.
+    ``arena`` is the :term:`arena` which posted the message.
 
-    *message* is a message retrieved by :c:func:`mps_message_get` and
+    ``message`` is a message retrieved by :c:func:`mps_message_get` and
     not yet discarded.
 
-    If *message* belongs to one of the following supported message,
+    If ``message`` belongs to one of the following supported message,
     return the time at which the MPS posted the message:
 
     * :c:type:`mps_message_type_gc`;
@@ -1656,9 +1657,9 @@ Declared in ``mps.h``
     use for a :term:`message` and the MPS can now reclaim any storage
     associated with the message.
 
-    *arena* is the :term:`arena` which posted the message.
+    ``arena`` is the :term:`arena` which posted the message.
 
-    *message* is the message. After this call, *message* is invalid
+    ``message`` is the message. After this call, ``message`` is invalid
     and should not be passed as an argument to any message functions.
 
     Messages are essentially :term:`manually <manual memory
@@ -1684,12 +1685,12 @@ Declared in ``mps.h``
 
     Returns the finalization reference for a finalization message.
 
-    *ref_o* points to a location that will hold the finalization
+    ``ref_o`` points to a location that will hold the finalization
     reference.
 
-    *arena* is the :term:`arena` which posted the message.
+    ``arena`` is the :term:`arena` which posted the message.
 
-    *message* is a message retrieved by :c:func:`mps_message_get` and
+    ``message`` is a message retrieved by :c:func:`mps_message_get` and
     not yet discarded. It must be a finalization message: see
     :c:func:`mps_message_type_finalization`.
 
@@ -1706,7 +1707,7 @@ Declared in ``mps.h``
         The reference returned is subject to the normal constraints,
         such as might be imposed by a :term:`moving <moving garbage
         collector>` collection, if appropriate. For this reason, it is
-        stored into the location pointed to by *ref_o* in order to
+        stored into the location pointed to by ``ref_o`` in order to
         enable the :term:`client program` to place it directly into
         scanned memory, without imposing the restriction that the C
         stack be a :term:`root`.
@@ -1723,9 +1724,9 @@ Declared in ``mps.h``
 
     Return the "condemned size" property of a :term:`message`.
 
-    *arena* is the arena which posted the message.
+    ``arena`` is the arena which posted the message.
 
-    *message* is a message retrieved by :c:func:`mps_message_get` and
+    ``message`` is a message retrieved by :c:func:`mps_message_get` and
     not yet discarded.  It must be a garbage collection message: see
     :c:func:`mps_message_type_gc`.
 
@@ -1742,9 +1743,9 @@ Declared in ``mps.h``
 
     Return the "live size" property of a :term:`message`.
 
-    *arena* is the arena which posted the message.
+    ``arena`` is the arena which posted the message.
 
-    *message* is a message retrieved by :c:func:`mps_message_get` and
+    ``message`` is a message retrieved by :c:func:`mps_message_get` and
     not yet discarded.  It must be a garbage collection message: see
     :c:func:`mps_message_type_gc`.
 
@@ -1761,9 +1762,9 @@ Declared in ``mps.h``
 
     Return the "not condemned size" property of a :term:`message`.
 
-    *arena* is the arena which posted the message.
+    ``arena`` is the arena which posted the message.
 
-    *message* is a message retrieved by :c:func:`mps_message_get` and
+    ``message`` is a message retrieved by :c:func:`mps_message_get` and
     not yet discarded.  It must be a garbage collection message: see
     :c:func:`mps_message_type_gc`.
 
@@ -1782,9 +1783,9 @@ Declared in ``mps.h``
     Return a string that describes why the :term:`garbage collection`
     that posted a :term:`message` started.
 
-    *arena* is the arena which posted the message.
+    ``arena`` is the arena which posted the message.
 
-    *message* is a message retrieved by :c:func:`mps_message_get` and
+    ``message`` is a message retrieved by :c:func:`mps_message_get` and
     not yet discarded.  It must be a garbage collection message: see
     :c:func:`mps_message_type_gc`.
 
@@ -1803,17 +1804,17 @@ Declared in ``mps.h``
     Get a :term:`message` of a specified type from the :term:`message
     queue` for an :term:`arena`.
 
-    *message_o* points to a location that will hold the address of the
+    ``message_o`` points to a location that will hold the address of the
     message if the function succeeds.
 
-    *arena* is the arena.
+    ``arena`` is the arena.
 
-    *message_type* is the type of message to return.
+    ``message_type`` is the type of message to return.
 
     If there is at least one message of the specified type on the
     message queue of the specified arena, then this function removes
     one such message from the queue, stores a pointer to the message
-    in the location pointed to by *message_o*, and returns true.
+    in the location pointed to by ``message_o``, and returns true.
     Otherwise it returns false.
 
     .. topics::
@@ -1826,10 +1827,10 @@ Declared in ``mps.h``
     Determine whether there are currently any :term:`messages
     <message>` on a :term:`message queue` for an :term:`arena`.
 
-    *arena* is the arena whose message queue will be polled.
+    ``arena`` is the arena whose message queue will be polled.
 
     Returns true if there is at least one message on the message queue
-    for *arena*, or false if the message queue is empty.
+    for ``arena``, or false if the message queue is empty.
 
     .. topics::
 
@@ -1847,15 +1848,15 @@ Declared in ``mps.h``
     <message>` on a :term:`message queue` for an :term:`arena`, and
     return the :term:`message type` of the first message, if any.
 
-    *message_type_o* points to a location that will hold the message
+    ``message_type_o`` points to a location that will hold the message
     type of the first message on the queue, if any.
 
-    *arena* is the arena whose message queue will be polled.
+    ``arena`` is the arena whose message queue will be polled.
 
-    If there is at least one message on the message queue of *arena*,
+    If there is at least one message on the message queue of ``arena``,
     then this function returns true, and also writes the message type
     of the first message on the queue into the location pointed to by
-    *message_type_o*. If there are no messages on the message queue,
+    ``message_type_o``. If there are no messages on the message queue,
     it returns false.
 
     .. topics::
@@ -1887,9 +1888,9 @@ Declared in ``mps.h``
 
     Return the :term:`message type` of a :term:`message`.
 
-    *arena* is the arena that posted the message.
+    ``arena`` is the arena that posted the message.
 
-    *message* is a message retrieved by :c:func:`mps_message_get` and
+    ``message`` is a message retrieved by :c:func:`mps_message_get` and
     not yet discarded.
 
     .. topics::
@@ -1904,12 +1905,12 @@ Declared in ``mps.h``
     are not posted, reversing the effect of an earlier call to
     :c:func:`mps_message_type_enable`.
 
-    *arena* is an arena.
+    ``arena`` is an arena.
 
-    *message_type* is the message type to be disabled.
+    ``message_type`` is the message type to be disabled.
 
     Any existing messages of the specified type are flushed from the
-    :term:`message queue` of *arena*.
+    :term:`message queue` of ``arena``.
 
     .. topics::
 
@@ -1917,7 +1918,7 @@ Declared in ``mps.h``
 
     .. note::
 
-        It is permitted to call this function when *message_type* is
+        It is permitted to call this function when ``message_type`` is
         already disabled, in which case it has no effect.
 
 
@@ -1926,12 +1927,12 @@ Declared in ``mps.h``
     Enable an :term:`arena` to post :term:`messages <message>` of a
     specified :term:`message type`.
 
-    *arena* is an arena.
+    ``arena`` is an arena.
 
-    *message_type* is the message type to be disabled.
+    ``message_type`` is the message type to be disabled.
 
-    This function tells the MPS that *arena* may post messages of
-    *message_type* to its :term:`message queue`. By default, the MPS
+    This function tells the MPS that ``arena`` may post messages of
+    ``message_type`` to its :term:`message queue`. By default, the MPS
     does not generate any messages of any type.
 
     A :term:`client program` that enables messages for a message type
@@ -1948,7 +1949,7 @@ Declared in ``mps.h``
 
     .. note::
 
-        It is permitted to call this function when *message_type* is
+        It is permitted to call this function when ``message_type`` is
         already enabled, in which case it has no effect.
 
 
@@ -2051,7 +2052,7 @@ Declared in ``mps.h``
 
     Check all the :term:`fenceposts <fencepost>` in a :term:`pool`.
 
-    *pool* is the pool whose fenceposts are to be checked.
+    ``pool`` is the pool whose fenceposts are to be checked.
 
     If a corrupted fencepost is found, the MPS will :term:`assert
     <assertion>`. It is only useful to call this on a :term:`debugging
@@ -2076,26 +2077,26 @@ Declared in ``mps.h``
             size_t free_size;
         } mps_pool_debug_option_s;
 
-    *fence_template* points to a template for :term:`fenceposts
+    ``fence_template`` points to a template for :term:`fenceposts
     <fencepost>`.
 
-    *fence_size* is the :term:`size` of *fence_template* in
+    ``fence_size`` is the :term:`size` of ``fence_template`` in
     :term:`bytes <byte (1)>`, or zero if the debugging pool should not
     use fenceposts.
 
-    *free_template* points to a template for splatting free space.
+    ``free_template`` points to a template for splatting free space.
 
-    *free_size* is the :term:`size` of *free_template* in bytes, or
+    ``free_size`` is the :term:`size` of ``free_template`` in bytes, or
     zero if the debugging pool should not splat free space.
 
-    Both *fence_size* and *free_size* must be a multiple of the
+    Both ``fence_size`` and ``free_size`` must be a multiple of the
     :term:`alignment` of the :term:`pool`, and also a multiple of the
     alignment of the pool's :term:`object format` if it has one.
 
-    The debugging pool will copy the *fence_size* bytes pointed to by
-    *fence_template* in a repeating pattern onto each fencepost during
+    The debugging pool will copy the ``fence_size`` bytes pointed to by
+    ``fence_template`` in a repeating pattern onto each fencepost during
     allocation, and it will copy the bytes pointed to by
-    *free_template* in a repeating pattern over free space after the
+    ``free_template`` in a repeating pattern over free space after the
     space is reclaimed.
 
     The MPS may not always use the whole of a template: it may use
@@ -2164,15 +2165,15 @@ Declared in ``mps.h``
     The type of a root scanning function for roots created with
     :c:func:`mps_root_create_reg`.
 
-    *ss* is the :term:`scan state`. It must be passed to
+    ``ss`` is the :term:`scan state`. It must be passed to
     :c:func:`MPS_SCAN_BEGIN` and :c:func:`MPS_SCAN_END` to delimit a
     sequence of fix operations, and to the functions
     :c:func:`MPS_FIX1` and :c:func:`MPS_FIX2` when fixing a
     :term:`reference`.
 
-    *thr* is the :term:`thread`.
+    ``thr`` is the :term:`thread`.
 
-    *p* and *s* are the corresponding values that were passed to
+    ``p`` and ``s`` are the corresponding values that were passed to
     :c:func:`mps_root_create_reg`.
 
     Returns a :term:`result code`. If a fix function returns a value
@@ -2425,19 +2426,19 @@ Declared in ``mps.h``
     Register a :term:`root` that consists of the :term:`references
     <reference>` fixed by a scanning function.
 
-    *root_o* points to a location that will hold the address of the
+    ``root_o`` points to a location that will hold the address of the
     new root description.
 
-    *arena* is the arena.
+    ``arena`` is the arena.
 
-    *rank* is the :term:`rank` of references in the root.
+    ``rank`` is the :term:`rank` of references in the root.
 
-    *rm* is the :term:`root mode`.
+    ``rm`` is the :term:`root mode`.
 
-    *root_scan* is the root scanning function. See
+    ``root_scan`` is the root scanning function. See
     :c:type:`mps_root_scan_t`.
 
-    *p* and *s* are arguments that will be passed to *root_scan* each
+    ``p`` and ``s`` are arguments that will be passed to ``root_scan`` each
     time it is called. This is intended to make it easy to pass, for
     example, an array and its size as parameters.
 
@@ -2460,21 +2461,21 @@ Declared in ``mps.h``
     <reference>` fixed by a scanning function in a block of
     :term:`formatted objects <formatted object>`.
 
-    *root_o* points to a location that will hold the address of the
+    ``root_o`` points to a location that will hold the address of the
     new root description.
 
-    *arena* is the arena.
+    ``arena`` is the arena.
 
-    *rank* is the :term:`rank` of references in the root.
+    ``rank`` is the :term:`rank` of references in the root.
 
-    *rm* is the :term:`root mode`.
+    ``rm`` is the :term:`root mode`.
 
-    *fmt_scan* is a scanning function. See :c:type:`mps_fmt_scan_t`.
+    ``fmt_scan`` is a scanning function. See :c:type:`mps_fmt_scan_t`.
 
-    *base* is the address of the base of the block of formatted
+    ``base`` is the address of the base of the block of formatted
     objects.
 
-    *limit* is the address just beyond the end of the block of
+    ``limit`` is the address just beyond the end of the block of
     formatted objects.
 
     Returns :c:macro:`MPS_RES_OK` if the root was registered
@@ -2504,20 +2505,20 @@ Declared in ``mps.h``
     <reference>` fixed in a :term:`thread's <thread>` stack by a
     scanning function.
 
-    *root_o* points to a location that will hold the address of the
+    ``root_o`` points to a location that will hold the address of the
     new root description.
 
-    *arena* is the arena.
+    ``arena`` is the arena.
 
-    *rank* is the :term:`rank` of references in the root.
+    ``rank`` is the :term:`rank` of references in the root.
 
-    *rm* is the :term:`root mode`.
+    ``rm`` is the :term:`root mode`.
 
-    *thr* is the thread.
+    ``thr`` is the thread.
 
-    *reg_scan* is a scanning function. See :c:type:`mps_reg_scan_t`.
+    ``reg_scan`` is a scanning function. See :c:type:`mps_reg_scan_t`.
 
-    *p* and *s* are arguments that will be passed to *reg_scan* each
+    ``p`` and ``s`` are arguments that will be passed to ``reg_scan`` each
     time it is called. This is intended to make it easy to pass, for
     example, an array and its size as parameters.
 
@@ -2546,18 +2547,18 @@ Declared in ``mps.h``
     Register a :term:`root` that consists of a vector of
     :term:`references <reference>`.
 
-    *root_o* points to a location that will hold the address of the
+    ``root_o`` points to a location that will hold the address of the
     new root description.
 
-    *arena* is the arena.
+    ``arena`` is the arena.
 
-    *rank* is the :term:`rank` of references in the root.
+    ``rank`` is the :term:`rank` of references in the root.
 
-    *rm* is the :term:`root mode`.
+    ``rm`` is the :term:`root mode`.
 
-    *base* points to a vector of references.
+    ``base`` points to a vector of references.
 
-    *count* is the number of references in the vector.
+    ``count`` is the number of references in the vector.
 
     Returns :c:macro:`MPS_RES_OK` if the root was registered
     successfully, :c:macro:`MPS_RES_MEMORY` if the new root
@@ -2577,20 +2578,20 @@ Declared in ``mps.h``
     Register a :term:`root` that consists of a vector of :term:`tagged
     references <tagged reference>`.
 
-    *root_o* points to a location that will hold the address of the
+    ``root_o`` points to a location that will hold the address of the
     new root description.
 
-    *arena* is the arena.
+    ``arena`` is the arena.
 
-    *rank* is the :term:`rank` of references in the root.
+    ``rank`` is the :term:`rank` of references in the root.
 
-    *rm* is the :term:`root mode`.
+    ``rm`` is the :term:`root mode`.
 
-    *base* points to a vector of tagged references.
+    ``base`` points to a vector of tagged references.
 
-    *count* is the number of tagged references in the vector.
+    ``count`` is the number of tagged references in the vector.
 
-    *mask* is a :term:`bitmask` whose set bits specify the location of
+    ``mask`` is a :term:`bitmask` whose set bits specify the location of
     the :term:`tag`. References are assumed to have a tag of zero: any
     value in the vector with a non-zero tag is ignored.
 
@@ -2611,13 +2612,13 @@ Declared in ``mps.h``
 
     The type of root scanning functions for :c:func:`mps_root_create`.
 
-    *ss* is the :term:`scan state`. It must be passed to
+    ``ss`` is the :term:`scan state`. It must be passed to
     :c:func:`MPS_SCAN_BEGIN` and :c:func:`MPS_SCAN_END` to delimit a
     sequence of fix operations, and to the functions
     :c:func:`MPS_FIX1` and :c:func:`MPS_FIX2` when fixing a
     :term:`reference`.
 
-    *p* and *s* are the corresponding values that were passed to
+    ``p`` and ``s`` are the corresponding values that were passed to
     :c:func:`mps_root_create`.
 
     Returns a :term:`result code`. If a fix function returns a value
@@ -2641,15 +2642,15 @@ Declared in ``mps.h``
     for each reference into the :term:`arena` from a root registered
     with the arena. It receives four arguments:
 
-    *ref* points to a reference in a root. The reference points to
+    ``ref`` points to a reference in a root. The reference points to
     something in the arena. If the root is :term:`exact <exact
     reference>` then the reference points to the start of an allocated
     block, but if the root is :term:`ambiguous <ambiguous reference>`
     it might point to somewhere in the middle of an allocated block.
 
-    *root* is the description of the root which contains *ref*.
+    ``root`` is the description of the root which contains ``ref``.
 
-    *p* and *s* are the corresponding values that were passed to
+    ``p`` and ``s`` are the corresponding values that were passed to
     :c:func:`mps_arena_roots_walk`.
 
     .. topics::
@@ -2676,16 +2677,16 @@ Declared in ``mps.h``
     cache`. If no suitable block exists in the cache, ask for more
     memory from the associated :term:`pool`.
 
-    *p_o* points to a location that will hold the address of the
+    ``p_o`` points to a location that will hold the address of the
     allocated block.
 
-    *sac* is the segregated allocation cache.
+    ``sac`` is the segregated allocation cache.
 
-    *size* is the :term:`size` of the block to allocate. It does not
+    ``size`` is the :term:`size` of the block to allocate. It does not
     have to be one of the :term:`sizes classes <size class>` of the
     cache; nor does it have to be aligned.
 
-    If *has_reservoir_permit* is true, the pool has permission to get
+    If ``has_reservoir_permit`` is true, the pool has permission to get
     more memory from the :term:`reservoir` to satisfy this request.
 
     Returns :c:macro:`MPS_RES_OK` if successful: in this case the
@@ -2732,10 +2733,10 @@ Declared in ``mps.h``
 
     A macro alternative to :c:func:`mps_sac_alloc` that is faster than
     the function but does less checking. The macro takes an additional
-    first argument, *res_v*, which must be an lvalue that will store
+    first argument, ``res_v``, which must be an lvalue that will store
     the :term:`result code`, and it doesn't evaluate
-    *has_reservoir_permit* unless it decides to access the pool. The
-    second argument *p_v* must also be an lvalue.
+    ``has_reservoir_permit`` unless it decides to access the pool. The
+    second argument ``p_v`` must also be an lvalue.
 
     .. topics::
 
@@ -2763,15 +2764,15 @@ Declared in ``mps.h``
     cache`. If the cache would become too full, some blocks may be
     returned to the associated :term:`pool`.
 
-    *sac* is the segregated allocation cache.
+    ``sac`` is the segregated allocation cache.
 
-    *p* points to the block to be freed. This block must have been
+    ``p`` points to the block to be freed. This block must have been
     allocated through a segregated allocation cache with the same
     :term:`class structure`, attached to the same pool. (Usually,
     you'd use the same cache to allocate and deallocate a block, but
     the MPS is more flexible.)
 
-    *size* is the :term:`size` of the block. It should be the size
+    ``size`` is the :term:`size` of the block. It should be the size
     that was specified when the block was allocated (the cache knows
     what the real size of the block is).
 
@@ -2829,20 +2830,20 @@ Declared in ``mps.h``
     :c:func:`mps_sac_create` when creating a segregated allocation
     cache.
 
-    *mps_block_size* is the maximum :term:`size` of any :term:`block`
+    ``mps_block_size`` is the maximum :term:`size` of any :term:`block`
     in this size class. It must be a multiple of the alignment of the
     :term:`alignment` of the :term:`pool` to which the cache belongs.
 
-    *mps_cached_count* is the number of blocks of this size class to
+    ``mps_cached_count`` is the number of blocks of this size class to
     cache. It is advice to the MPS on how many blocks to cache, not an
     absolute limit. The cache policy tries to accommodate fluctuations
     in the population and minimize the cost of responding to client
     requests; the purpose of this parameter is to limit how much
     memory the :term:`client program` is willing to set aside for this
-    purpose. However, a *cached_count* of zero prevents any caching of
+    purpose. However, a ``cached_count`` of zero prevents any caching of
     blocks falling into that size class.
 
-    *mps_frequency* is a number that describes the frequency of
+    ``mps_frequency`` is a number that describes the frequency of
     requests (allocation and deallocation combined) in this size class
     relative to the other size classes in the cache.
 
@@ -2855,15 +2856,15 @@ Declared in ``mps.h``
 
     Create a :term:`segregated allocation cache` for a :term:`pool`.
 
-    *sac_o* points to a location that will hold the address of the
+    ``sac_o`` points to a location that will hold the address of the
     segregated allocation cache.
 
-    *pool* is the pool the cache is attached to.
+    ``pool`` is the pool the cache is attached to.
 
-    *classes_count* is the number of :term:`size classes <size class>`
+    ``classes_count`` is the number of :term:`size classes <size class>`
     in the cache.
 
-    *classes* points to the an array describing the size classes in
+    ``classes`` points to the an array describing the size classes in
     the cache.
 
     Returns :c:macro:`MPS_RES_OK` if the segregated allocation cache
@@ -2875,8 +2876,8 @@ Declared in ``mps.h``
     pool doesn't support segregated allocation caches.
 
     After this function returns, the array of size classes pointed to
-    be *classes* is no longer needed and may be discarded.  The
-    segregated allocation cache pointed to by *sac_o* persists until
+    be ``classes`` is no longer needed and may be discarded.  The
+    segregated allocation cache pointed to by ``sac_o`` persists until
     it is destroyed by calling :c:func:`mps_sac_destroy`.
 
     This function creates an allocation cache whose :term:`free list`
@@ -2938,7 +2939,7 @@ Declared in ``mps.h``
 
     Destroy a :term:`segregated allocation cache`.
 
-    *sac* is the segregated allocation cache to destroy.
+    ``sac`` is the segregated allocation cache to destroy.
 
     Returns all memory in the cache to the associated :term:`pool`.
     The pool might then return some memory to the :term:`arena`, but
@@ -2956,7 +2957,7 @@ Declared in ``mps.h``
     Flush a :term:`segregated allocation cache`, returning all memory
     held in it to the associated :term:`pool`.
 
-    *sac* is the segregated allocation cache to flush.
+    ``sac`` is the segregated allocation cache to flush.
 
     This is something that you'd typically do when you know you won't
     be using the segregated allocation cache for awhile, but want to
@@ -3001,7 +3002,7 @@ Declared in ``mps.h``
     :c:func:`MPS_FIX12`. The local information persists until
     :c:func:`MPS_SCAN_END`.
 
-    *ss* is the :term:`scan state` that was passed to the scan method.
+    ``ss`` is the :term:`scan state` that was passed to the scan method.
 
     .. topics::
 
@@ -3022,7 +3023,7 @@ Declared in ``mps.h``
     Within a :term:`scan method`, terminate a block started by
     :c:func:`MPS_SCAN_BEGIN`.
 
-    *ss* is the :term:`scan state` that was passed to the scan
+    ``ss`` is the :term:`scan state` that was passed to the scan
     method.
 
     .. topics::
@@ -3093,30 +3094,30 @@ Declared in ``mps.h``
 
     Update and return the :term:`telemetry filter`.
 
-    *reset_mask* is a :term:`bitmask` indicating the bits in the
+    ``reset_mask`` is a :term:`bitmask` indicating the bits in the
     telemetry filter that should be reset.
 
-    *flip_mask* is a bitmask indicating the bits in the telemetry
+    ``flip_mask`` is a bitmask indicating the bits in the telemetry
     filter whose value should be flipped after the resetting.
 
     Returns the previous value of the telemetry filter, prior to the
     reset and the flip.
 
-    The parameters *reset_mask* and *flip_mask* allow the
+    The parameters ``reset_mask`` and ``flip_mask`` allow the
     specification of any binary operation on the filter control. For
     typical operations, the parameters should be set as follows:
 
-    ============  ============  ===========
-    Operation     *reset_mask*  *flip_mask*
-    ============  ============  ===========
-    ``set(M)``    ``M``         ``M``
-    ------------  ------------  -----------
-    ``reset(M)``  ``M``         ``0``
-    ------------  ------------  -----------
-    ``flip(M)``   ``0``         ``M``
-    ------------  ------------  -----------
-    ``read()``    ``0``         ``0``
-    ============  ============  ===========
+    ============  ==============  =============
+    Operation     ``reset_mask``  ``flip_mask``
+    ============  ==============  =============
+    ``set(M)``    ``M``           ``M``        
+    ------------  --------------  -------------
+    ``reset(M)``  ``M``           ``0``        
+    ------------  --------------  -------------
+    ``flip(M)``   ``0``           ``M``        
+    ------------  --------------  -------------
+    ``read()``    ``0``           ``0``        
+    ============  ==============  =============
 
     The significance of the bits is liable to change, but the current
     meanings (zero being the least significant bit) are:
@@ -3161,7 +3162,7 @@ Declared in ``mps.h``
     Registers a string with the MPS, and receives a :term:`telemetry
     label`, suitable for passing to :c:func:`mps_telemetry_label`.
 
-    *label* is a NUL-terminated string way. Its length should not
+    ``label`` is a NUL-terminated string way. Its length should not
     exceed 256 characters, including the terminating NUL.
 
     Returns a telemtry label: a unique identifier that may be used to
@@ -3188,9 +3189,9 @@ Declared in ``mps.h``
     Associate a telemetry label returned from
     :c:func:`mps_telemetry_intern` with an address.
 
-    *addr* is an address.
+    ``addr`` is an address.
 
-    *label* is a telemetry label returned from
+    ``label`` is a telemetry label returned from
     :c:func:`mps_telemetry_intern`.
 
     The label will be associated with the address when it appears in
@@ -3242,10 +3243,10 @@ Declared in ``mpsacl.h``
                                    mps_arena_class_t mps_arena_class_cl,
                                    size_t size, void *block)
 
-    *block* is the :term:`address` of the block of memory that will be
+    ``block`` is the :term:`address` of the block of memory that will be
     managed by the arena.
 
-    *size* is its :term:`size`.
+    ``size`` is its :term:`size`.
 
     If the block is too small to hold the internal arena structures,
     :c:func:`mps_arena_create` returns :c:macro:`MPS_RES_MEMORY`. In
@@ -3284,7 +3285,7 @@ Declared in ``mpsavm.h``
                                    mps_arena_class_t arena_class_vm(),
                                    size_t size)
 
-    *size* is the initial amount of virtual address space, in
+    ``size`` is the initial amount of virtual address space, in
     :term:`bytes <byte (1)>`, that the arena will reserve (this space
     is initially reserved so that the arena can subsequently use it
     without interference from other parts of the program, but most of
@@ -3301,7 +3302,7 @@ Declared in ``mpsavm.h``
 
     If the MPS fails to allocate memory for the internal arena
     structures, :c:func:`mps_arena_create` returns
-    :c:macro:`MPS_RES_MEMORY`. Either *size* was far too small or you
+    :c:macro:`MPS_RES_MEMORY`. Either ``size`` was far too small or you
     ran out of swap space.
 
     .. topics::
@@ -3323,7 +3324,7 @@ Declared in ``mpsavm.h``
                                    mps_arena_class_t arena_class_vmnz,
                                    size_t size)
 
-    *size* is the total amount of virtual address space, in
+    ``size`` is the total amount of virtual address space, in
     :term:`bytes <byte (1)>`, that the arena will reserve. The arena
     will not subsequently use any more address space: compare with
     :c:func:`mps_arena_class_vm`, which can grow.
@@ -3342,14 +3343,14 @@ Declared in ``mpscamc.h``
     Visit all :term:`formatted objects <formatted object>` in an
     :ref:`pool-amc`.
 
-    *pool* is the pool whose formatted objects you want to visit.
+    ``pool`` is the pool whose formatted objects you want to visit.
 
-    *f* is a function that will be called for each formatted object in
-    the pool. It takes three arguments: *object* is the address of the
-    object; *p* and *s* are the corresponding arguments that were
+    ``f`` is a function that will be called for each formatted object in
+    the pool. It takes three arguments: ``object`` is the address of the
+    object; ``p`` and ``s`` are the corresponding arguments that were
     passed to :c:func:`mps_amc_apply`.
 
-    *p* and *s* are arguments that will be passed to *f* each time it
+    ``p`` and ``s`` are arguments that will be passed to ``f`` each time it
     is called. This is intended to make it easy to pass, for example,
     an array and its size as parameters.
 
@@ -3357,14 +3358,14 @@ Declared in ``mpscamc.h``
     :term:`parked state`, for example, after calling
     :c:func:`mps_arena_collect` or :c:func:`mps_arena_park`.
 
-    The function *f* will be called on both :term:`client <client
+    The function ``f`` will be called on both :term:`client <client
     object>` and :term:`padding objects <padding object>`. It is the
-    job of *f* to distinguish, if necessary, between the two. It may
+    job of ``f`` to distinguish, if necessary, between the two. It may
     also be called on :term:`dead` objects that the collector has not
     recycled or has been unable to recycle.
 
-    The function *f* may not allocate memory or access any
-    automatically-managed memory except within *object*.
+    The function ``f`` may not allocate memory or access any
+    automatically-managed memory except within ``object``.
 
     .. topics::
 
@@ -3391,10 +3392,10 @@ Declared in ``mpscamc.h``
                                   mps_fmt_t fmt,
                                   mps_chain_t chain)
 
-    *fmt* specifies the :term:`object format` for the objects
+    ``fmt`` specifies the :term:`object format` for the objects
     allocated in the pool.
 
-    *chain* specifies the :term:`generation chain` that the objects in
+    ``chain`` specifies the :term:`generation chain` that the objects in
     the pool will be collected into.
 
     .. topics::
@@ -3423,18 +3424,18 @@ Declared in ``mpscmvff.h``
                                   mps_bool_t arenaHigh,
                                   mps_bool_t firstFit)
 
-    *extendBy* is the :term:`size` of :term:`segment` to allocate by
+    ``extendBy`` is the :term:`size` of :term:`segment` to allocate by
     default.
 
-    *avgSize* is the average size of blocks to be allocated.
+    ``avgSize`` is the average size of blocks to be allocated.
 
-    *alignment* is the :term:`alignment` of addresses for allocation
+    ``alignment`` is the :term:`alignment` of addresses for allocation
     (and freeing) in the pool. If an unaligned size is passed to
     :c:func:`mps_alloc` or :c:func:`mps_free`, it will be rounded up
     to the pool's alignment. The minimum alignment supported by pools
     of this class is ``sizeof(void *)``.
 
-    *slotHigh*, *arenaHigh*, and *firstFit* are undocumented and may
+    ``slotHigh``, ``arenaHigh``, and ``firstFit`` are undocumented and may
     be set to (0, 0, 1) or (1, 1, 1). No other setting of these
     parameters is currently recommended.
 
@@ -3463,28 +3464,28 @@ Declared in ``mpscmv2.h``
                                   mps_count_t reserve_depth,
                                   mps_count_t fragmentation_limit)
 
-    *minimum_size*, *mean_size*, and *maximum_size* are the minimum,
+    ``minimum_size``, ``mean_size``, and ``maximum_size`` are the minimum,
     mean, and maximum (typical) :term:`size` of :term:`blocks <block>`
     expected to be allocated in the pool. Blocks smaller than
-    *minimum_size* and larger than *maximum_size* may be allocated,
+    ``minimum_size`` and larger than ``maximum_size`` may be allocated,
     but the pool is not guaranteed to manage them space-efficiently.
     Furthermore, partial freeing is not supported for blocks larger
-    than *maximum_size*; doing so will result in the storage of the
-    block never being reused. *mean_size* need not be an accurate
-    mean, although the pool will manage *mean_size* blocks more
+    than ``maximum_size``; doing so will result in the storage of the
+    block never being reused. ``mean_size`` need not be an accurate
+    mean, although the pool will manage ``mean_size`` blocks more
     efficiently if it is.
 
-    *reserve_depth* is the expected hysteresis of the population of
+    ``reserve_depth`` is the expected hysteresis of the population of
     the pool. When blocks are freed, the pool will retain sufficient
-    storage to allocate *reserve_depth* blocks of *mean_size* for near
+    storage to allocate ``reserve_depth`` blocks of ``mean_size`` for near
     term allocations (rather than immediately making that storage
     available to other pools).
 
-    *fragmentation_limit* is a percentage in (0, 100] that can be used
+    ``fragmentation_limit`` is a percentage in (0, 100] that can be used
     to set an upper limit on the space overhead of MVT in case block
     death times and allocations do not correlate well. If the free
     space managed by the pool as a ratio of all the space managed by
-    the pool exceeds *fragmentation_limit*, the pool falls back to a
+    the pool exceeds ``fragmentation_limit``, the pool falls back to a
     first fit allocation policy, exploiting space more efficiently at
     a cost in time efficiency. A fragmentation limit of 0 would cause
     the pool to operate as a first-fit pool, at a significant cost in
@@ -3511,7 +3512,7 @@ Declared in ``mpscsnc.h``
                                   mps_class_t mps_class_snc(),
                                   mps_fmt_t fmt)
 
-    *fmt* specifies the :term:`object format` for the objects
+    ``fmt`` specifies the :term:`object format` for the objects
     allocated in the pool. The format should provide at least the
     methods scan, skip, and pad.
 
@@ -3542,7 +3543,7 @@ Declared in ``mpsio.h``
 
     A :term:`plinth` function for setting up the I/O module.
 
-    *io_o* points to a location which the plinth may update with a
+    ``io_o`` points to a location which the plinth may update with a
     pointer to its internal state, if any.
 
     Returns :c:macro:`MPS_RES_OK` if successful.
@@ -3563,12 +3564,12 @@ Declared in ``mpsio.h``
 
     A :term:`plinth` function for tearing down the I/O module.
 
-    *io* is the value that the plinth wrote to *io_o* when the MPS
+    ``io`` is the value that the plinth wrote to ``io_o`` when the MPS
     called :c:func:`mps_io_create`. If the plinth wrote no value, this
     parameter is undefined.
 
     After calling this function, the MPS guarantees not to use the
-    value *io* again.
+    value ``io`` again.
 
     .. topics::
 
@@ -3579,13 +3580,13 @@ Declared in ``mpsio.h``
 
     A :term:`plinth` function for writing data via the I/O module.
 
-    *io* is the value that the plinth wrote to *io_o* when the MPS
+    ``io`` is the value that the plinth wrote to ``io_o`` when the MPS
     called :c:func:`mps_io_create`. If the plinth wrote no value, this
     parameter is undefined.
 
-    *buf* points to the data to write.
+    ``buf`` points to the data to write.
 
-    *size* is the :term:`size` of the data in :term:`bytes <byte (1)>`.
+    ``size`` is the :term:`size` of the data in :term:`bytes <byte (1)>`.
 
     Returns :c:macro:`MPS_RES_OK` if successful.
 
@@ -3598,7 +3599,7 @@ Declared in ``mpsio.h``
 
     A :term:`plinth` function for flushing the I/O module.
 
-    *io* is the value that the plinth wrote to *io_o* when the MPS
+    ``io`` is the value that the plinth wrote to ``io_o`` when the MPS
     called :c:func:`mps_io_create`. If the plinth wrote no value, this
     parameter is undefined.
 
@@ -3627,14 +3628,14 @@ Declared in ``mpslib.h``
     A :term:`plinth` function similar to the standard :term:`C`
     function ``memcmp``.
 
-    *s1* and *s2* point to :term:`blocks <block>` of memory to be
+    ``s1`` and ``s2`` point to :term:`blocks <block>` of memory to be
     compared.
 
-    *n* is the :term:`size` of the blocks.
+    ``n`` is the :term:`size` of the blocks.
 
     Returns an integer that is greater than, equal to, or less than
-    zero, accordingly as the block pointed to by *s1* is greater than,
-    equal to, or less than the block pointed to by *s2*.
+    zero, accordingly as the block pointed to by ``s1`` is greater than,
+    equal to, or less than the block pointed to by ``s2``.
 
     This function is intended to have the same semantics as the
     ``memcmp`` function of the [ANSI C Standard]_ (section 7.11.4.1).
@@ -3649,13 +3650,13 @@ Declared in ``mpslib.h``
     A :term:`plinth` function similar to the standard :term:`C`
     function ``memcpy``.
 
-    *dest* points to the destination.
+    ``dest`` points to the destination.
 
-    *source* points to the source.
+    ``source`` points to the source.
 
-    *n* is the number of bytes to copy from *source* to *dest*.
+    ``n`` is the number of bytes to copy from ``source`` to ``dest``.
 
-    Returns *dest*.
+    Returns ``dest``.
 
     This function is intended to have the same semantics as the
     ``memcpy`` function of the [ANSI C Standard]_ (section 7.11.2.1).
@@ -3672,13 +3673,13 @@ Declared in ``mpslib.h``
     A :term:`plinth` function similar to the standard :term:`C`
     function ``memset``.
 
-    *s* points to the :term:`block` to fill with the byte *c*.
+    ``s`` points to the :term:`block` to fill with the byte ``c``.
 
-    *c* is the byte to fill with (when converted to ``unsigned char``).
+    ``c`` is the byte to fill with (when converted to ``unsigned char``).
 
-    *n* is the :term:`size` of the block.
+    ``n`` is the :term:`size` of the block.
 
-    Returns *s*.
+    Returns ``s``.
 
     This function is intended to have the same semantics as the
     ``memset`` function of the [ANSI C Standard]_ (section 7.11.6.1).
