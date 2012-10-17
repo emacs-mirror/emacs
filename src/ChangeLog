@@ -1,3 +1,8 @@
+2012-10-17  Kenichi Handa  <handa@gnu.org>
+
+	* xdisp.c (reseat_1): Make the information stored in it->cmp_it
+	invalidate.
+
 2012-10-13  Jan Djärv  <jan.h.d@swipnet.se>
 
 	* gtkutil.c (xg_set_widget_bg): Divide by 65535 (Bug#12612).
