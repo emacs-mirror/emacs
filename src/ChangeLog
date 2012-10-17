@@ -1,3 +1,12 @@
+2012-10-17  Eli Zaretskii  <eliz@gnu.org>
+
+	* cygw32.c (Fcygwin_convert_path_to_windows)
+	(Fcygwin_convert_path_from_windows): Use EQ to compare 2
+	Lisp_Object values.  (Bug#12661)
+
+	* w32fns.c (w32_msg_pump): Use XIL instead of casting an integer
+	to Lisp_Object.  (Bug#12661)
+
 2012-10-17  Kenichi Handa  <handa@gnu.org>
 
 	* xdisp.c (reseat_1): Make the information stored in it->cmp_it
