@@ -2764,7 +2764,7 @@ static void mps_chat(void)
     assert(b); /* we just checked there was one */
     
     if (type == mps_message_type_gc_start()) {
-      printf("Collection %lu started.\n", (unsigned long)mps_collections(arena));
+      printf("Collection started.\n");
       printf("  Why: %s\n", mps_message_gc_start_why(arena, message));
       printf("  Clock: %lu\n", (unsigned long)mps_message_clock(arena, message));
 
