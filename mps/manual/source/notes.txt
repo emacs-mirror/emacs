@@ -1,18 +1,18 @@
 TODO
 
  2. Create new types of objects for pools and topics.
- 
- 3. Glossary entries need permalinks. See 
+
+ 3. Glossary entries need permalinks. See
     <https://bitbucket.org/birkenfeld/sphinx/issue/996/expose-glossary-entry-link-on-hover>
- 
+
  5. Fix the general index so that (1) aren't interpreted as
     subentries.
- 
+
  7. Re-do the diagrams in vector form and using the colour palette.
- 
+
  8. Use a better bibliography extension. See for example
     <http://wnielson.bitbucket.org/projects/sphinx-natbib/>
- 
+
  9. Hyphenate long function names across line endings (but what if you
     copy them?)
 
@@ -22,53 +22,33 @@ TODO
 
 QUERIES
 
- 1. Does the object format description (struct mps_fmt_A_s etc) have
-    to be static? Is it OK to throw it away after calling
-    mps_fmt_create?
-
-    Same question for the generation structure (mps_gen_param_s)?
- 
  2. What is the difference, if any, between mps_word_t and MPS_T_WORD?
- 
+
  3. How can I explain why the Scheme example uses sizeof(mps_word_t)
     as its alignment? Why not MPS_PF_ALIGN (or are client programs not
     supposed to look at mpstd.h)? Why not something of its own
     manufacture, like sizeof(union {long, size_t, void*})?
- 
- 4. Why does the Scheme example have a copy method in its object
-    format when the reference manual says it's obsolete?
 
-    I removed it.
- 
  5. What is the difference between the "event stream" and the
     "telemetry stream"? Are these names for the same thing? Or is
     there a distinction (for example, "event stream" refers to the
     internal, unfiltered, stream of events and "telemetry stream"
     refers to the filtered stream)?
- 
+
  6. The location dependency functions all take an arena as an
     argument. What is the role of this argument?
- 
+
  7. What is the role of the third (addr) argument to mps_ld_isstale?
     LDIsStale says "UNUSED(addr);" so maybe it is unused.
- 
+
  8. Is the material in the pool class comparison table at all accurate?
- 
- 9. This code seems a bit confused about what to do:
-
-        assert(0);
-        fprintf(stderr, "Unexpected object on the heap\n");
-        abort();
-        return MPS_RES_FAIL;
-
-    I took out the assertion and the return.
 
 10. How does fixing interact with tagged references? Do I need to
     remove the tag before fixing a reference? Do I need to restore the
     tag afterwards? I thought that both would be necessary but the
     critical path documentation has an example from OpenDylan with
     tagged references that does neither:
-    <//info.ravenbrook.com/project/mps/master/design/critical-path.txt>
+    <https://info.ravenbrook.com/project/mps/master/design/critical-path.txt>
 
 11. This code from mps_chat in the Scheme example is wrong:
 
@@ -86,18 +66,10 @@ QUERIES
           ...
         Collection 47 started.
           ...
-        Collection 47 started.
-
-12. It seems "tricky" to re-use fowarding objects as padding objects
-    by setting their forwarding pointer to NULL. It would be simpler
-    to explain if we had TYPE_PAD for multiple-word padding objects.
-    There's enough to explain as it is!
-
-    I made this change.
 
 13. The Scheme example says, "Adapting it to use the MPS took
     approximately two hours". I doubt this would be the common case,
-    and it would be better to under-promise and over-deliver.
+    and it would be better to under-promise here and over-deliver.
 
 14. I need to document the values in mps_gen_param_s. I believe they
     are the capacity (size of the generation in kilobytes) and the
@@ -106,13 +78,53 @@ QUERIES
     MPS? And how should one go about choosing values?
 
 
-DONE
+TODO DONE
 
-1. Create a new domain
-   <http://sphinx.pocoo.org/ext/appapi.html#sphinx.domains.Domain>
+ 1. Create a new domain
+    <http://sphinx.pocoo.org/ext/appapi.html#sphinx.domains.Domain>
 
-4. Make (1), (2) etc into superscripts
+ 4. Make (1), (2) etc into superscripts
 
-6. Identify :term: references that point to "see" cross-references.
+ 6. Identify :term: references that point to "see" cross-references.
 
 10. Pluralize "Topic" to "Topics" and so on.
+
+
+ANSWERED QUERIES
+
+ 1. Does the object format description (mps_fmt_A_s etc) have to be
+    static as in the Scheme example? Or is it OK to throw it away
+    after calling mps_fmt_create?
+
+    Same question for the generation structure (mps_gen_param_s) for a
+    pool and the size classes (mps_sac_class_s) for a segregated
+    allocation cache?
+
+    ANSWER: examination of the code shows that all of these structure
+    are copied into internally allocated MPS control structures, and
+    so it is OK for the client program to put these structures on the
+    stack otherwise dispose of them.
+
+ 4. Why does the Scheme example have a copy method in its object
+    format when the reference manual says it's obsolete?
+
+    ANSWER: It wasn't obsolete when it was written. I removed it.
+
+ 9. This code seems a bit confused about what to do:
+
+        assert(0);
+        fprintf(stderr, "Unexpected object on the heap\n");
+        abort();
+        return MPS_RES_FAIL;
+
+    What should it say?
+
+    ANSWER: the assertion and the return seem to be bogus, so I
+    removed them.
+
+12. It seems "tricky" to re-use fowarding objects as padding objects
+    by setting their forwarding pointer to NULL. Wouldn't it be
+    simpler to explain if we had TYPE_PAD for multiple-word padding
+    objects? Things are difficult enough to explain as it is!
+
+    ANSWER: It would be simpler, so I made this change.

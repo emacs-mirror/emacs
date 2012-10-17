@@ -461,6 +461,9 @@ Declared in ``mps.h``
     Returns :c:macro:`MPS_RES_OK` if the arena is created
     successfully, or another :term:`result code` otherwise.
 
+    The arena persists until it is destroyed by calling
+    :c:func:`mps_arena_destroy`.
+
     .. topics::
 
         :ref:`topic-arena`.
@@ -1202,6 +1205,11 @@ Declared in ``mps.h``
     Returns :c:macro:`MPS_RES_OK` if successful. The MPS may exhaust
     some resource in the course of :c:func:`mps_fmt_create_A` and will
     return an appropriate :term:`result code` if so.
+
+    After this function returns, the object format description pointed
+    to be *fmt_A* is no longer needed and may be discarded. The object
+    format pointed to by *fmt_o* persists until it is destroyed by
+    calling :c:func:`mps_fmt_destroy`.
 
     .. topics::
 
@@ -2438,6 +2446,9 @@ Declared in ``mps.h``
     description could not be allocated, or another :term:`result code`
     if there was another error.
 
+    The registered root destription persists until it is destroyed by
+    calling :c:func:`mps_root_destroy`.
+
     .. topics::
 
         :ref:`topic-root`.
@@ -2470,6 +2481,9 @@ Declared in ``mps.h``
     successfully, :c:macro:`MPS_RES_MEMORY` if the new root
     description could not be allocated, or another :term:`result code`
     if there was another error.
+
+    The registered root destription persists until it is destroyed by
+    calling :c:func:`mps_root_destroy`.
 
     .. topics::
 
@@ -2512,6 +2526,9 @@ Declared in ``mps.h``
     description could not be allocated, or another :term:`result code`
     if there was another error.
 
+    The registered root destription persists until it is destroyed by
+    calling :c:func:`mps_root_destroy`.
+
     .. topics::
 
         :ref:`topic-root`.
@@ -2547,6 +2564,9 @@ Declared in ``mps.h``
     description could not be allocated, or another :term:`result code`
     if there was another error.
 
+    The registered root destription persists until it is destroyed by
+    calling :c:func:`mps_root_destroy`.
+
     .. topics::
 
         :ref:`topic-root`.
@@ -2578,6 +2598,9 @@ Declared in ``mps.h``
     successfully, :c:macro:`MPS_RES_MEMORY` if the new root
     description could not be allocated, or another :term:`result code`
     if there was another error.
+
+    The registered root destription persists until it is destroyed by
+    calling :c:func:`mps_root_destroy`.
 
     .. topics::
 
@@ -2850,6 +2873,11 @@ Declared in ``mps.h``
     if you ask for too many size classes: in this case, combine some
     small adjacent classes. Returns :c:macro:`MPS_RES_PARAM` if the
     pool doesn't support segregated allocation caches.
+
+    After this function returns, the array of size classes pointed to
+    be *classes* is no longer needed and may be discarded.  The
+    segregated allocation cache pointed to by *sac_o* persists until
+    it is destroyed by calling :c:func:`mps_sac_destroy`.
 
     This function creates an allocation cache whose :term:`free list`
     is segregated into the given size classes. The cache can get more
