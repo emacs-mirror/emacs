@@ -681,6 +681,9 @@ extern BOOL parse_button (int, int, int *, int *);
 
 extern void w32_sys_ring_bell (struct frame *f);
 extern void x_delete_display (struct w32_display_info *dpyinfo);
+extern void w32_initialize_display_info (Lisp_Object);
+extern void initialize_w32_display (struct terminal *);
+
 
 /* Keypad command key support.  W32 doesn't have virtual keys defined
    for the function keys on the keypad (they are mapped to the standard

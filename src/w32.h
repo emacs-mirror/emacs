@@ -146,6 +146,28 @@ extern int _sys_wait_accept (int fd);
 extern Lisp_Object QCloaded_from;
 extern HMODULE w32_delayed_load (Lisp_Object);
 
+extern void init_environment (char **);
+extern void check_windows_init_file (void);
+extern void syms_of_ntproc (void);
+extern void syms_of_ntterm (void);
+extern void dostounix_filename (register char *);
+extern void unixtodos_filename (register char *);
+extern BOOL init_winsock (int load_now);
+extern void srandom (int);
+extern int random (void);
+
+extern int sys_pipe (int *);
+
+extern void set_process_dir (char *);
+extern int sys_spawnve (int, char *, char **, char **);
+extern void register_child (int, int);
+
+extern void sys_sleep (int);
+extern char *getwd (char *);
+extern int sys_link (const char *, const char *);
+
+
+
 #ifdef HAVE_GNUTLS
 #include <gnutls/gnutls.h>
 
