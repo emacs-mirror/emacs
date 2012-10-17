@@ -1,3 +1,10 @@
+2012-10-17  Michael Heerdegen <michael_heerdegen@web.de>  (tiny change)
+
+	* wdired.el (wdired-old-marks): New variable.
+	(wdired-change-to-wdired-mode): Locally set wdired-old-marks.
+	(wdired-do-renames): Move point with renamed file and don't lose
+	mark status (Bug#11795).
+
 2012-10-16  Juri Linkov  <juri@jurta.org>
 
 	* replace.el (query-replace-help): Mention multi-buffer replacement
