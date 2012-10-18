@@ -3546,8 +3546,15 @@ With a prefix argument, edit the current listing switches instead."
 	(setq dired-actual-switches
 	      (replace-match "" t t dired-actual-switches 3))))
     ;; Now, if we weren't sorting by date before, add the -t switch.
+    ;; Some simple-minded ls implementations (eg ftp servers) only
+    ;; allow a single option string, so try not to add " -t" if possible.
     (unless sorting-by-date
-      (setq dired-actual-switches (concat dired-actual-switches " -t"))))
+      (setq dired-actual-switches
+            (concat dired-actual-switches
+                    (if (string-match-p "\\`-[[:alnum:]]+\\'"
+                                        dired-actual-switches)
+                        "t"
+                      " -t")))))
   (dired-sort-set-mode-line)
   (revert-buffer))
 

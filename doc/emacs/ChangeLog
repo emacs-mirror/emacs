@@ -1,3 +1,7 @@
+2012-10-18  Dani Moncayo  <dmoncayo@gmail.com>
+
+	* mini.texi (Completion Options): Fix off-by-one error.  (Bug#12644)
+
 2012-10-17  Glenn Morris  <rgm@gnu.org>
 
 	* mini.texi (Repetition): Further copyedit.

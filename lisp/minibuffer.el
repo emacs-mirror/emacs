@@ -859,8 +859,8 @@ Depending on this setting `minibuffer-complete' may use cycling,
 like `minibuffer-force-complete'.
 If nil, cycling is never used.
 If t, cycling is always used.
-If an integer, cycling is used as soon as there are fewer completion
-candidates than this number."
+If an integer, cycling is used so long as there are not more
+completion candidates than this number."
   :version "24.1"
   :type completion--cycling-threshold-type)
 
@@ -977,7 +977,7 @@ when the buffer's text is already an exact match."
                           ;; This signal an (intended) error if comps is too
                           ;; short or if completion-cycle-threshold is t.
                           (consp (nthcdr threshold comps)))))
-              ;; Fewer than completion-cycle-threshold remaining
+              ;; Not more than completion-cycle-threshold remaining
               ;; completions: let's cycle.
               (setq completed t exact t)
               (completion--cache-all-sorted-completions comps)

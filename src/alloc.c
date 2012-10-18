@@ -376,7 +376,7 @@ struct gcpro *gcprolist;
 /* Addresses of staticpro'd variables.  Initialize it to a nonzero
    value; otherwise some compilers put it into BSS.  */
 
-#define NSTATICS 0x660
+#define NSTATICS 0x1000
 static Lisp_Object *staticvec[NSTATICS] = {&Vpurify_flag};
 
 /* Index of next unused slot in staticvec.  */
@@ -5030,7 +5030,7 @@ staticpro (Lisp_Object *varaddress)
 {
   staticvec[staticidx++] = varaddress;
   if (staticidx >= NSTATICS)
-    emacs_abort ();
+    fatal ("NSTATICS too small. Try increasing and recompiling Emacs.");
 }
 
 

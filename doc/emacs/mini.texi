@@ -550,7 +550,7 @@ those completion alternatives; each subsequent invocation of the
 completion command replaces that with the next completion alternative,
 in a cyclic manner.  If you give @code{completion-cycle-threshold} a
 numeric value @var{n}, completion commands switch to this cycling
-behavior only when there are fewer than @var{n} alternatives.
+behavior only when there are @var{n} or fewer alternatives.
 
 @cindex Icomplete mode
 @findex icomplete-mode

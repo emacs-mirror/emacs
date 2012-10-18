@@ -1,3 +1,24 @@
+2012-10-18  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* emacs-lisp/advice.el: Clean up commentary a bit.
+	(ad-do-advised-functions, ad-with-originals): Use `declare'.
+	(byte-code-function-p): Never redefine.
+
+	* emacs-lisp/gv.el (cond): Same fix as before for `if'.
+
+2012-10-18  Glenn Morris  <rgm@gnu.org>
+
+	* dired.el (dired-sort-toggle): Some ls implementations only allow
+	a single option string.  (Bug#12666)
+
+	* minibuffer.el (completion-cycle-threshold): Doc fix.
+
+2012-10-17  Kenichi Handa  <handa@gnu.org>
+
+	* international/mule.el (set-keyboard-coding-system):
+	Recover input meta mode when the new coding system doesn not use 8-bit.
+	Supply TERMINAL arg to set-input-meta-mode.
+
 2012-10-17  Michael Heerdegen <michael_heerdegen@web.de>  (tiny change)
 
 	* wdired.el (wdired-old-marks): New variable.
