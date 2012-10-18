@@ -624,7 +624,7 @@ handle_file_notifications (struct input_event *hold_quit)
 	      Lisp_Object action = lispy_file_action (fni->Action);
 
 	      inev.kind = FILE_NOTIFY_EVENT;
-	      inev.code = (ptrdiff_t)notifications_desc;
+	      inev.code = (ptrdiff_t)XINT (XIL ((EMACS_INT)notifications_desc));
 	      inev.timestamp = GetTickCount ();
 	      inev.modifiers = 0;
 	      inev.frame_or_window = callback;
