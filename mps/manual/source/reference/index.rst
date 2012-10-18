@@ -1118,7 +1118,8 @@ Declared in ``mps.h``
 
     .. deprecated:: 1.110
 
-        Use :c:func:`MPS_FIX12` instead.
+        Use :c:func:`MPS_SCAN_BEGIN`, :c:func:`MPS_FIX12`, and
+        :c:func:`MPS_SCAN_END` instead.
 
     .. topics::
 
