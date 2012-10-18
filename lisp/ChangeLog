@@ -1,5 +1,8 @@
 2012-10-18  Glenn Morris  <rgm@gnu.org>
 
+	* dired.el (dired-sort-toggle): Some ls implementations only allow
+	a single option string.  (Bug#12666)
+
 	* minibuffer.el (completion-cycle-threshold): Doc fix.
 
 2012-10-17  Kenichi Handa  <handa@gnu.org>
