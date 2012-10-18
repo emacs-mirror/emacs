@@ -1,5 +1,9 @@
 2012-10-18  Stefan Monnier  <monnier@iro.umontreal.ca>
 
+	* emacs-lisp/advice.el: Clean up commentary a bit.
+	(ad-do-advised-functions, ad-with-originals): Use `declare'.
+	(byte-code-function-p): Never redefine.
+
 	* emacs-lisp/gv.el (cond): Same fix as before for `if'.
 
 2012-10-18  Glenn Morris  <rgm@gnu.org>
