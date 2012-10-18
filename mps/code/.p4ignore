@@ -1,0 +1,45 @@
+# code/.p4ignore -- Perforce files to ignore list
+# $Id$
+# Make output
+xci3gc
+w3i3mv
+w3i6mv
+lii6gc
+lii3gc
+fri3gc
+fri6gc
+# Visual Studio junk
+Debug
+Release
+*.filters
+*.user
+*.suo
+# Telemetry event logs
+mpsio.log
+mpsio*.log
+mpsio.log.txt
+# Build products
+*.o
+*.obj
+*.a
+*.so
+*.lib
+*.exe
+# Xcode junk
+xc
+mps.xcodeproj/xcuserdata
+mps.xcodeproj/project.xcworkspace
+tags
+# Temporary files
+0
+1
+2
+3
+4
+5
+6
+7
+8
+9
+# Mac OS X Finder turds
+.DS_Store
