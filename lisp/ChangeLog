@@ -1,3 +1,7 @@
+2012-10-18  Glenn Morris  <rgm@gnu.org>
+
+	* minibuffer.el (completion-cycle-threshold): Doc fix.
+
 2012-10-17  Kenichi Handa  <handa@gnu.org>
 
 	* international/mule.el (set-keyboard-coding-system): Recover
