@@ -4,8 +4,12 @@
 Pool reference
 **************
 
+====================
+List of pool classes
+====================
+
 .. toctree::
-   :maxdepth: 2
+   :maxdepth: 1
    :glob:
 
    pool-*
@@ -24,43 +28,44 @@ class for each.
 
 First, answer these questions about your data:
 
-1. Is it acceptable for the MPS to :term:`automatically <automatic
-   memory management>` :term:`reclaim` :term:`unreachable` blocks? (If
-   not, you will need to manually reclaim memory by calling
-   :c:func:`mps_free`.)
+1. Do you need the MPS to :term:`automatically <automatic memory
+   management>` :term:`reclaim` :term:`unreachable` blocks?
 
 2. Is it acceptable for the MPS to :term:`move <moving memory
-   manager>` blocks in memory? (It might be impossible to move a block
-   if it has been passed to a foreign function that remembered its
-   location.)
+   manager>` blocks in memory? (For example, it might not be
+   acceptable to move a block if it has been passed to a foreign
+   function that remembered its location.)
 
 3. Do your blocks contain :term:`references <reference>` to blocks
-   stored in automatically managed pools? And if so, are these
-   references :term:`exact <exact reference>` or :term:`weak <weak
-   reference (1)>`?
+   stored in automatically managed pools (including references to
+   other blocks in the same pool, if it's automatically managed)? And
+   if so, are these references :term:`exact <exact reference>` or
+   :term:`weak <weak reference (1)>`?
 
-And then look up your answers in this table to find the recommended
+Second, look up your answers in this table to find the recommended
 pool class to use:
 
-==========  ========  ====================  ===================================
-Automatic?  Movable?  References?           Use this pool class
-==========  ========  ====================  ===================================
-yes         yes       none                  :ref:`pool-amcz`
-yes         yes       exact                 :ref:`pool-amc`
-yes         yes       weak                  :ref:`pool-awl`
-yes         no        none                  :ref:`pool-lo`
-yes         no        exact                 :ref:`pool-ams`
-yes         no        weak                  nothing suitable
-no          *any*     none                  :ref:`pool-mvt`
-no          *any*     exact                 :ref:`pool-mvt` [1]_
-no          *any*     weak                  nothing suitable
-==========  ========  ====================  ===================================
+==========  ========  ===========  ====================================
+Automatic?  Movable?  References?  Use this pool class
+==========  ========  ===========  ====================================
+yes         yes       none         :ref:`pool-amcz`
+yes         yes       exact        :ref:`pool-amc`
+yes         yes       weak         :ref:`pool-awl`
+yes         no        none         :ref:`pool-lo`
+yes         no        exact        :ref:`pool-ams`
+yes         no        weak         nothing suitable
+no          *any*     none         :ref:`pool-mvt`
+no          *any*     exact        :ref:`pool-mvt` with workaround [1]_
+no          *any*     weak         :ref:`pool-mvt` with workaround [1]_
+==========  ========  ===========  ====================================
 
 .. note::
 
-    .. [1] After you allocate a block and before you add the
-           references to it, register it as a :term:`root`. Then just
-           before you free it, destroy the root.
+    .. [1] :ref:`pool-mvt` doesn't scan for references, but you can
+           work around this by registering your blocks as :term:`roots
+           <root>` (with the appropriate :term:`rank`) just after they
+           are allocated, and deregistering them just before freeing
+           them.
 
 
 =====================

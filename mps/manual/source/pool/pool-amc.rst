@@ -20,9 +20,9 @@ The AMC pool class exploits assumptions about object lifetimes and inter-connect
 If an allocation point is created in an AMC pool, the call to :c:func:`mps_ap_create` will take no additional parameters.
 
 
-=========================
+-------------------------
 Declared in ``mpscamc.h``
-=========================
+-------------------------
 
 .. c:function:: void mps_amc_apply(mps_pool_t pool, void (*f)(mps_addr_t object, void *p, size_t s), void *p, size_t s)
 

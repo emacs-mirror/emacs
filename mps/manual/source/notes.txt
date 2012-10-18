@@ -62,6 +62,16 @@ TODO, QUERIES AND SUGGESTIONS
 38. Document about interface conventions and interface policies. What
     do we guarantee about support for the external symbols?
 
+39. In the "choosing a pool" procedure there's no mention of ambiguous
+    references. I omitted them because the NB/RIT chart of pool
+    properties seemed to suggest that no pools can contain ambiguous
+    references. But is this right? Couldn't you allocate your block
+    containing ambiguous references in a non-moving, non-scanning pool
+    like MVT and register it as an ambiguous root?
+
+40. In the "choosing a pool" procedure there's no mention of
+    protection. Can we subsume this under "moving"?
+
 
 DONE, ANSWERED
 
