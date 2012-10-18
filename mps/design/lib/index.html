@@ -1,0 +1,203 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "DTD/xhtml1-transitional.dtd">
+
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
+
+<head>
+
+<title>The design of the Memory Pool System library interface</title>
+
+</head>
+
+<body bgcolor="#FFFFFF" text="#000000" link="#000099" vlink="#660066" alink="#FF0000">
+
+<div align="center">
+
+<p>
+<a href="/">Ravenbrook</a> /
+<a href="/project/">Projects</a> /
+<a href="/project/mps/">Memory Pool System</a> /
+<a href="/project/mps/master/">Master Product Sources</a> /
+<a href="/project/mps/master/design/">Design Documents</a>
+</p>
+
+<p><i><a href="/project/mps/">Memory Pool System Project</a></i></p>
+
+<hr />
+
+</div>
+
+<pre>
+         THE DESIGN OF THE MEMORY POOL SYSTEM LIBRARY INTERFACE
+                             design.mps.lib
+                           incomplete design
+                           richard 1996-09-03
+
+INTRODUCTION
+
+<a id="intro" name="intro">.intro</a>: This document is the design of the MPS Library Interface, a part of the 
+plinth.
+
+<a id="readership" name="readership">.readership</a>: Any MPS developer.  Any clients that are prepared to read this in 
+order to get documentation.
+
+
+GOALS
+
+<a id="goal" name="goal">.goal</a>: The goals of the MPS library interface are:
+
+<a id="goal.host" name="goal.host">.goal.host</a>: To control the dependency of the MPS on the hosted ISO C library so 
+that the core MPS remains freestanding (see design.mps.exec-env).
+
+<a id="goal.free" name="goal.free">.goal.free</a>: To allow the core MPS convenient access to ISO C functionality that 
+is provided on freestanding platforms (see design.mps.exec-env.std.com.free).
+
+
+DESCRIPTION
+
+
+Overview
+
+<a id="overview.access" name="overview.access">.overview.access</a>: The core MPS needs to access functionality that could be 
+provided by an ISO C hosted environment.
+
+<a id="overview.hosted" name="overview.hosted">.overview.hosted</a>: The core MPS must not make direct use of any facilities in 
+the hosted environment (design.mps.exec-env).  However, it is sensible to make 
+use of them when the MPS is deployed in a hosted environment.
+
+<a id="overview.hosted.indirect" name="overview.hosted.indirect">.overview.hosted.indirect</a>: The core MPS does not make any direct use of hosted 
+ISO C library facilities.  Instead, it indirects through the MPS Library 
+Interface, impl.h.mpslib.
+
+<a id="overview.free" name="overview.free">.overview.free</a>: The core MPS can make direct use of freestanding ISO C library 
+facilities and does not need to include any of the header files &lt;limits.h&gt;, 
+&lt;stdarg.h&gt;, and &lt;stddef.h&gt; directly.
+
+<a id="overview.complete" name="overview.complete">.overview.complete</a>: The MPS Library Interface can be considered as the complete 
+"interface to ISO" (in that it provides direct access to facilities that we get 
+in a freestanding environment and equivalents of any functionality we require 
+from the hosted environment).
+
+<a id="overview.provision.client" name="overview.provision.client">.overview.provision.client</a>: In a freestanding environment the client is 
+expected to provide functions meeting this interface to the MPS.
+
+<a id="overview.provision.hosted" name="overview.provision.hosted">.overview.provision.hosted</a>: In a hosted environment, impl.c.mpsliban may be 
+used.  It just maps impl.h.mpslib directly onto the ISO C library equivalents.
+
+
+
+ - MPS Library Interface Diagram 
+
+
+Outside the Interface
+
+We provide impl.c.mpsliban to the client, for two reasons:
+
+  1. he can use it to connect the MPS to the ISO C library if it exists,
+
+  2. as an example of an implementation of the MPS Library Interface.
+
+
+IMPLEMENTATION
+
+<a id="impl" name="impl">.impl</a>: The MPS Library Interface comprises a header file impl.h.mpslib 
+(mpslib.h) and some documentation.
+
+<a id="impl.decl" name="impl.decl">.impl.decl</a>: The header file defines the interface to definitions which parallel 
+those parts of the non-freestanding ISO headers which are used by the MPS.
+
+<a id="impl.include" name="impl.include">.impl.include</a>: The header file also includes the freestanding headers 
+&lt;limits.h&gt;, &lt;stdarg.h&gt;, and &lt;stddef.h&gt; (and not &lt;float.h&gt;, though perhaps it 
+should).
+
+
+NOTES
+
+<a id="doc" name="doc">.doc</a>: User doc in doc.mps.guide.interface and doc.mps.guide.appendix-plinth.
+
+ATTACHMENT
+   "MPS Library Interface Diagram"
+
+</pre>
+
+
+<h2><a id="section-A" name="section-A">A. References</a></h2>
+
+<!-- Template Entry
+
+<table>
+
+<tr valign="top">
+
+  <td>[<a id="ref-#REF#" name="ref-#REF#" href="#REF_URL#">#REF_NAME#</a>]</td>
+
+  <td>
+    "#REF_TITLE#";
+    #REF_AUTHOR#;
+    &lt;URL: <a href="#REF_URL#">#REF_URL#</a>&gt;;
+    #REF_DATE#.
+  </td>
+
+</tr>
+
+</table>
+
+-->
+
+
+<h2><a id="section-B" name="section-B">B. Document History</a></h2>
+
+<table>
+
+<tr valign="top">
+
+  <td>2002-06-07</td>
+
+  <td><a href="mailto:rb@ravenbrook.com">RB</a></td>
+
+  <td>Converted from MMInfo database design document.</td>
+
+</tr>
+
+</table>
+
+
+<h2><a id="section-C" name="section-C">C. Copyright and License</a></h2>
+
+<p> This document is copyright &copy; 1995-2002 <a href="http://www.ravenbrook.com/">Ravenbrook Limited</a>.  All rights reserved.  This is an open source license.  Contact Ravenbrook for commercial licensing options. </p>
+
+<p> Redistribution and use in source and binary forms, with or without modification, are permitted provided that the following conditions are met: </p>
+
+<ol>
+
+<li> Redistributions of source code must retain the above copyright notice, this list of conditions and the following disclaimer. </li>
+
+<li> Redistributions in binary form must reproduce the above copyright notice, this list of conditions and the following disclaimer in the documentation and/or other materials provided with the distribution. </li>
+
+<li> Redistributions in any form must be accompanied by information on how to obtain complete source code for the this software and any accompanying software that uses this software.  The source code must either be included in the distribution or be available for no more than the cost of distribution plus a nominal fee, and must be freely redistributable under reasonable conditions.  For an executable file, complete source code means the source code for all modules it contains. It does not include source code for modules or files that typically accompany the major components of the operating system on which the executable file runs. </li>
+
+</ol>
+
+<p> <strong> This software is provided by the copyright holders and contributors "as is" and any express or implied warranties, including, but not limited to, the implied warranties of merchantability, fitness for a particular purpose, or non-infringement, are disclaimed.  In no event shall the copyright holders and contributors be liable for any direct, indirect, incidental, special, exemplary, or consequential damages (including, but not limited to, procurement of substitute goods or services; loss of use, data, or profits; or business interruption) however caused and on any theory of liability, whether in contract, strict liability, or tort (including negligence or otherwise) arising in any way out of the use of this software, even if advised of the possibility of such damage. </strong> </p>
+
+
+<hr />
+
+<div align="center">
+
+<p><code>$Id$</code></p>
+
+<p>
+<a href="/">Ravenbrook</a> /
+<a href="/project/">Projects</a> /
+<a href="/project/mps/">Memory Pool System</a> /
+<a href="/project/mps/master/">Master Product Sources</a> /
+<a href="/project/mps/master/design/">Design Documents</a>
+</p>
+
+</div>
+
+</body>
+
+</html>
