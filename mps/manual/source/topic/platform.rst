@@ -196,20 +196,21 @@ Declared in ``mpstd.h``
     x86-64 processor architecture, and the LLVM compiler.
 
 
-.. c:type:: MPS_T_ULONGEST
+.. c:macro:: MPS_T_ULONGEST
 
-    The largest unsigned integral type.
+    A :term:`C` preprocessor macro that expands to the name of the
+    largest unsigned integral type.
 
     The exact identity of this type is
     :term:`platform`\-dependent. Typical identities are ``unsigned
     long`` and ``unsigned __int_64``.
 
 
-.. c:type:: MPS_T_WORD
+.. c:macro:: MPS_T_WORD
 
-    An unsigned integral type that is the same size as an
-    :term:`object pointer`, so that ``sizeof(MPS_T_WORD) ==
-    sizeof(void*)``.
+    A :term:`C` preprocessor macro that expands to the name of an
+    unsigned integral type that is the same size as an :term:`object
+    pointer`, so that ``sizeof(MPS_T_WORD) == sizeof(void*)``.
 
     The exact identity of this type is
     :term:`platform`\-dependent. Typical identities are ``unsigned
@@ -218,16 +219,18 @@ Declared in ``mpstd.h``
 
 .. c:macro:: MPS_WORD_SHIFT
 
-    The logarithm to base 2 of the constant :c:macro:`MPS_WORD_WIDTH`,
-    so that ``1 << MPS_WORD_SHIFT == MPS_WORD_WIDTH``.
+    A :term:`C` preprocessor macro that expands to the logarithm to
+    base 2 of the constant :c:macro:`MPS_WORD_WIDTH`, so that ``1 <<
+    MPS_WORD_SHIFT == MPS_WORD_WIDTH``.
 
     The value is platform-dependent. Typical values are 5 and 6.
 
 
 .. c:macro:: MPS_WORD_WIDTH
 
-    The width in bits of the type :c:type:`MPS_T_WORD`, so that
-    ``MPS_WORD_WIDTH == sizeof(MPS_T_WORD) * CHAR_BIT``.
+    A :term:`C` preprocessor macro that expands to the width in bits
+    of the type :c:type:`MPS_T_WORD`, so that ``MPS_WORD_WIDTH ==
+    sizeof(MPS_T_WORD) * CHAR_BIT``.
 
     This value is platform-dependent. It is always a power of 2:
     typical values are 32 and 64.

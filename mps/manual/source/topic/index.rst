@@ -3,7 +3,7 @@ Topic reference
 ***************
 
 .. toctree::
-    :maxdepth: 2
+    :numbered:
 
     arena
     allocation

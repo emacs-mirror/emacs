@@ -234,7 +234,18 @@ Memory Management Glossary: A
 
     allocation frame
 
-        .. mps:specific:: ??
+        .. mps:specific::
+
+            An allocation frame is a marker that can pushed onto an
+            :term:`allocation point` by calling
+            :c:func:`mps_ap_frame_push`, and then popped by calling
+            :c:func:`mps_ap_frame_pop` to indicate that all blocks
+            allocated on the allocation point are :term:`dead` (in the
+            case of :term:`manual <manual memory management>` pools), or
+            very likely dead (in the case of :term:`automatic
+            <automatic memory management>` pools). Allocation frames can
+            be used by the :term:`client program` to efficiently
+            implement stack-like patterns of allocation.
 
     allocation mechanism
 
