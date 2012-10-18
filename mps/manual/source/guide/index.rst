@@ -1,8 +1,9 @@
-***********
-User guides
-***********
+**********
+User guide
+**********
 
 .. toctree::
+   :numbered:
 
    install
    overview

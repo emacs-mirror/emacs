@@ -19,17 +19,6 @@ TODO, QUERIES AND SUGGESTIONS
 11. Support MMREF-style anchors to the glossary (#garbage.collection
     instead of #garbage-collection).
 
-26. I need to document the values in mps_gen_param_s. I believe they
-    are the capacity (size of the generation in kilobytes) and the
-    mortality (the proportion of objects in this generation that are
-    expected to die in a collection). But what do they mean to the
-    MPS? And how should one go about choosing values?
-
-    ANSWER: requires a whole document. Talk to RB. The intro document
-    should say, "take these values on trust". There's a design
-    document about this based on the Lisp Machine:
-    analysis.strategy.lisp-machine or something.
-
 27. Wouldn't it make mps_amc_apply easier to document if there were a
     typedef for the stepper function type, something like this?
 
@@ -52,9 +41,6 @@ TODO, QUERIES AND SUGGESTIONS
     ANSWER: mps_tramp is needed for your program to work on Windows.
     "mps_tramp needs to wrap any code that might handle references
     into a pool class that requires it." [All the ones with A.]
-
-33. Status. At what point will the work be "good enough" to merge back
-    to the master sources?
 
 37. Some of the Scheme objects could be moved to a leaf-only pool
     (e.g. AMCZ).
@@ -91,6 +77,33 @@ TODO, QUERIES AND SUGGESTIONS
 43. How does mps_arena_start_collect interact with the arena state?
     (It seems from looking at the implementation that it puts the
     arena into the unclamped state, like mps_arena_release.)
+
+44. How do I explain the condition on mps_addr_pool and mps_addr_fmt?
+    It's clear what this is if the address is the address of an
+    allocated block? But do we guarantee anything if it isn't? The
+    implementation succeeds if the address points anywhere within a
+    page allocated to a pool.
+
+45. Constraints on order of _destroy functions. Is it an error to
+    destroy an object format while there are still pools that refer to
+    it?
+
+46. mps.h declares the type mps_shift_t for a "shift amount" but this
+    is not used anywhere in the MPS. Remove?
+
+47. The structures mps_sac_s and mps_sac_freelist_block_s are declared
+    in mps.h. I presume that this is so for the benefit of the macros
+    MPS_SAC_ALLOC_FAST and MPS_SAC_FREE_FAST, and the details of these
+    structues are not actually part of the public interface.
+
+48. mps_fmt_fixed_s is just like mps_fmt_A_s but with no "skip". I
+    presume it's for fixed-size pools. But the only fixed-size pool is
+    MFS, which has no public header, so I presume it's for MPS
+    internal use only. What should I say about this?
+
+49. It's rather unfortunate that mps_arena_create take arguments
+    (size, base) but mps_arena_extend takes (base, size). I guess
+    there's nothing to be done about this now.
 
 
 DONE, ANSWERED
@@ -238,6 +251,17 @@ DONE, ANSWERED
 
     ANSWER: take it out.
 
+26. I need to document the values in mps_gen_param_s. I believe they
+    are the capacity (size of the generation in kilobytes) and the
+    mortality (the proportion of objects in this generation that are
+    expected to die in a collection). But what do they mean to the
+    MPS? And how should one go about choosing values?
+
+    ANSWER: requires a whole document. Talk to RB. The intro document
+    should say, "take these values on trust". There's a design
+    document about this based on the Lisp Machine:
+    analysis.strategy.lisp-machine or something.
+
 28. Wouldn't the Scheme example be better without TAB characters?
 
     ANSWER: maybe, but it would lead to merge conflicts. So no change.
@@ -263,6 +287,11 @@ DONE, ANSWERED
     ANSWER: currently a root mode has no effect. It tells the MPS
     whether it's OK for the MPS to put a barrier on the
     root. Recommend pass zero. For future expansion.
+
+33. Status. At what point will the work be "good enough" to merge back
+    to the master sources?
+
+    ANSWER: After RB reviews it.
 
 34. The generic example of using mps_tramp need to pass argv and argc,
     and return an exit code, so maybe it would make sense to do that

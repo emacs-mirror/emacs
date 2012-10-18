@@ -15,9 +15,9 @@ In this guide, I'll explain how to use the MPS to add incremental,
 moving, generational garbage collection to the runtime system for a
 programming language.
 
-I'm assuming that you've downloaded and built the MPS (see
+I'm assuming that you've downloaded and built the MPS (see the chapter
 :ref:`guide-install`), and that you are familiar with the overall
-architecture of the MPS (see :ref:`guide-overview`).
+architecture of the MPS (see the chapter :ref:`guide-overview`).
 
 
 ----------------------
@@ -625,16 +625,17 @@ The AMC pool requires not only an object format but a
 the :term:`generational garbage collection`.
 
 You create a generation chain by constructing an array of structures
-of type :c:type:`mps_gen_param_s` and passing them to
-:c:func:`mps_chain_create`. Each of these structures contains two
-values, the *capacity* of the generation in :term:`kilobytes
-<kilobyte>`, and the *mortality*, the proportion of objects in the
-generation that you expect to survive a collection of that generation.
+of type :c:type:`mps_gen_param_s`, one for each generation, and
+passing them to :c:func:`mps_chain_create`. Each of these structures
+contains two values, the *capacity* of the generation in
+:term:`kilobytes <kilobyte>`, and the *mortality*, the proportion of
+objects in the generation that you expect to survive a collection of
+that generation.
 
-These numbers are hints to the MPS that it may use to make decisions
+These numbers are *hints* to the MPS that it may use to make decisions
 about when and what to collect: nothing will go wrong (other than
 suboptimal performance) if you make poor choices. Making good choices
-for the capacity and mortality of each generation is not easy, and is postponed to the guide :ref:`guide-perf`.
+for the capacity and mortality of each generation is not easy, and is postponed to the chapter :ref:`guide-perf`.
 
 Here's the code for creating the generation chain for the Scheme
 interpreter::
@@ -1143,7 +1144,11 @@ these rules:
 
 4. Objects must remain scannable throughout their :term:`lifetime`.
 
-   See :ref:`guide-debug`.
+   .. fixme: refer to example here when written.
+
+Explanations of what happens if your code breaks these rules, together
+with tactics for tracking down the causes, appear in the chapter
+:ref:`guide-debug`.
 
 
 ----------
@@ -1183,8 +1188,8 @@ incremental, moving, generational garbage collection to the runtime
 system for a programming language.
 
 If everything is working for your language, then the next step is
-:ref:`guide-perf`.
+the chapter :ref:`guide-perf`.
 
 But if things don't work out quite as smoothly for your language as
-they did in the Scheme example, then you'll be more interested in
-:ref:`guide-debug`.
+they did in the Scheme example, then you'll be more interested in the
+chapter :ref:`guide-debug`.

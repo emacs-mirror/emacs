@@ -235,7 +235,7 @@ Memory Management Glossary: F
             program, or the MPS), which is not aware of and does not
             co-operate with the MPS. The client program must take care
             that foreign code is not passed the address of a block in
-            a :term:`moving <moving memory management>` :term:`pools
+            a :term:`moving <moving memory manager>` :term:`pools
             <pool>`, or which contain references to blocks in moving
             pools. The :ref:`pool-lo` :term:`pool class` is designed
             for this use case: blocks allocated from this pool do not
