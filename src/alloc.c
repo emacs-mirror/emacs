@@ -5030,7 +5030,7 @@ staticpro (Lisp_Object *varaddress)
 {
   staticvec[staticidx++] = varaddress;
   if (staticidx >= NSTATICS)
-    fatal ("NSTATICS too small. Try increasing and recompiling Emacs.");
+    fatal ("NSTATICS too small; try increasing and recompiling Emacs.");
 }
 
 
