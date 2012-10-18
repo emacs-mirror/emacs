@@ -1,3 +1,9 @@
+2012-10-17  Kenichi Handa  <handa@gnu.org>
+
+	* international/mule.el (set-keyboard-coding-system): Recover
+	input meta mode when the new coding system doesn not use 8-bit.
+	Supply TERMINAL arg to set-input-meta-mode.
+
 2012-10-17  Michael Heerdegen <michael_heerdegen@web.de>  (tiny change)
 
 	* wdired.el (wdired-old-marks): New variable.

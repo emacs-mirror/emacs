@@ -1355,19 +1355,25 @@ graphical terminals."
 		(t
 		 (error "Unsupported coding system for keyboard: %s"
 			coding-system)))
-	  (when accept-8-bit
-	    (or saved-meta-mode
-		(set-terminal-parameter terminal
-					'keyboard-coding-saved-meta-mode
-					(cons (nth 2 (current-input-mode))
-					      nil)))
-	    (set-input-meta-mode 8))
+	  (if accept-8-bit
+	      (progn
+		(or saved-meta-mode
+		    (set-terminal-parameter terminal
+					    'keyboard-coding-saved-meta-mode
+					    (cons (nth 2 (current-input-mode))
+						  nil)))
+		(set-input-meta-mode 8 terminal))
+	    (when saved-meta-mode
+	      (set-input-meta-mode (car saved-meta-mode) terminal)
+	      (set-terminal-parameter terminal
+				      'keyboard-coding-saved-meta-mode
+				      nil)))
 	  ;; Avoid end-of-line conversion.
 	  (setq coding-system
 		(coding-system-change-eol-conversion coding-system 'unix)))
 
       (when saved-meta-mode
-	(set-input-meta-mode (car saved-meta-mode))
+	(set-input-meta-mode (car saved-meta-mode) terminal)
 	(set-terminal-parameter terminal
 				'keyboard-coding-saved-meta-mode
 				nil))))
