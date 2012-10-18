@@ -190,12 +190,13 @@ use :term:`manual <manual memory management>`; some use :term:`moving
 collection <moving garbage collector>` and others :term:`non-moving
 <non-moving garbage collector>`.
 
-The section :ref:`pool-choose` in the :ref:`pool` contains a process
+The section :ref:`pool-choose` in the :ref:`pool` contains a procedure
 for choosing a pool class. In the case of the Scheme interpreter, the
 answers to the questions are (1) yes, the MPS needs to automatically
 reclaim unreachable blocks; (2) yes, it's acceptable for the MPS to
-move blocks in memory; and (3) the Scheme objects will contain exact
-references to other Scheme objects.
+move blocks in memory and protect them with :term:`barriers <barrier
+(1)>`; and (3) the Scheme objects will contain :term:`exact references
+<exact reference>` to other Scheme objects in the same pool.
 
 The recommended class is :ref:`pool-amc`. This pool class uses
 automatic memory management, moving garbage collection,
@@ -205,9 +206,9 @@ these features of the MPS.
 
 .. note::
 
-    The MPS is also designed for pools of different classes to
-    co-exist in the same arena, so that objects requiring different
-    memory management policies can be allocated in pools of suitable
+    The MPS is designed for pools of different classes to co-exist in
+    the same arena, so that objects requiring different memory
+    management policies can be segregated into pools of suitable
     classes.
 
 
@@ -253,10 +254,10 @@ you might try:
 
         #define ALIGNMENT offsetof(struct {char c; obj_s obj;}, obj)
 
-   but this is not reliable because some compilers pack structures more
-   tightly than their alignment requirements in some circumstances (for
-   example, GCC if the ``-fstruct-pack`` option or the ``__packed__``
-   attribute is specified).
+   but this is not reliable because some compilers pack structures
+   more tightly than their alignment requirements in some
+   circumstances (for example, GCC if the ``-fstruct-pack`` option is
+   specified).
 
 3. The MPS interface provides the type :c:type:`mps_word_t`, which is
    an unsigned integral type that is the same size as the platform's
@@ -265,7 +266,7 @@ you might try:
    On all the platforms supported by the MPS, the majority of simple
    datatypes may be aligned on word boundaries (the possible
    exceptions being ``double`` on 32-bit platforms, and ``long
-   double`` and :term:`function pointer <function pointer>` on 32- and
+   double`` and :term:`function pointers <function pointer>` on 32- and
    64-bit platforms), so in applications where these exceptional types
    are not used (like the Scheme interpreter), you can use::
 
@@ -362,12 +363,16 @@ of the function and :c:func:`MPS_SCAN_END` at the end.
        MPS, which means that it is important that it runs as quickly
        as possible.
 
-    3. The "fix" operation may update the reference. So if your
-       language has :term:`tagged references <tagged reference>`, you
-       must make sure that the tag is restored after the reference is
-       updated.
+    3. If your reference is :term:`tagged <tagged reference>`, you
+       must remove the tag before fixing it. (The same consideration
+       applies to any form of alteration of the reference, not just
+       tagging.)
 
-    4. The "fix" operation may fail by returning a :term:`result code`
+    4. The "fix" operation may update the reference. So if your
+       reference is tagged, you must make sure that the tag is
+       restored after the reference is updated.
+
+    5. The "fix" operation may fail by returning a :term:`result code`
        other than :c:macro:`MPS_RES_OK`. A scan function must
        propagate such a result code to the caller, and should do so as
        soon as practicable.
@@ -385,7 +390,7 @@ The skip method
 
 The :term:`skip method` is a function of type
 :c:type:`mps_fmt_skip_t`. It is called by the MPS to skip over an
-object belonging to the format, and to determine its size.
+object belonging to the format, and also to determine its size.
 
 Here's the skip method for the Scheme interpreter::
 
@@ -409,13 +414,16 @@ Here's the skip method for the Scheme interpreter::
 
 The argument ``base`` is the address to the base of the object. The
 skip method must return the address of the base of the "next object":
-in formats of variant A like this one, this is the address of the word
-just past the end of the object.
+in formats of variant A like this one, this is the address just past
+the end of the object, rounded up to the object format's alignment.
 
-You'll see that the code in the skip method that computes the "next
-object" is the same as the corresponding code in the :term:`scan
-method`, so that it's tempting for the latter to delegate this part of
-its functionality to the former.
+.. note::
+
+    The code in the skip method that computes the "next object" is the
+    same as the corresponding code in the :term:`scan method`, so it's
+    tempting to delegate this part of its functionality from the
+    latter to the former. Before you do this, you should read the
+    documentation for :c:func:`MPS_FIX_CALL`.
 
 .. topics::
 
@@ -1035,7 +1043,7 @@ collector>`, it might scan any reachable object at any time, including
 immediately after the object has been allocated. In this case, if the
 MPS attempts to scan ``obj`` at the indicated point, the object's
 ``type`` field will be uninitialized, and so the :term:`scan method`
-will abort.
+may abort.
 
 The MPS solves this problem via the :term:`reserve/commit
 protocol`. This needs an additional structure, an :term:`allocation
@@ -1087,10 +1095,10 @@ means that it won't discover that it contains references to ``car``
 and ``cdr``, and so won't update these references to point to their
 new locations.
 
-In such a circumstance (that is, when objects might have moved since
-you called :c:func:`mps_reserve`), :c:func:`mps_commit` returns false,
-and we have to initialize the object again (most conveniently done via
-a ``while`` loop, as here).
+In such a circumstance (that is, when objects have moved since you
+called :c:func:`mps_reserve`), :c:func:`mps_commit` returns false, and
+we have to initialize the object again (most conveniently done via a
+``while`` loop, as here).
 
 .. note::
 
@@ -1100,8 +1108,9 @@ a ``while`` loop, as here).
        and so it is highly optimized: in nearly all cases it is just
        an increment to a pointer.
 
-    2. It is rare for :c:func:`mps_commit` to return false, but it can
-       happen, so it is important not to do anything you don't want to
+    2. It is very rare for :c:func:`mps_commit` to return false, but
+       in the course of millions of allocations even very rare events
+       occur, so it is important not to do anything you don't want to
        repeat between calling :c:func:`mps_reserve` and
        :c:func:`mps_commit`. Also, the shorter the interval, the less
        likely :c:func:`mps_commit` is to return false.
@@ -1135,14 +1144,16 @@ these rules:
    See the discussion of the :ref:`pair constructor
    <guide-lang-allocation>` in the Scheme interpreter.
 
-3. All objects that are :term:`reachable` by your code must always be
-   provably reachable from a root via a chain of :term:`references
-   <reference>` that are :term:`fixed <fix>` by a scanning function.
+3. All objects in automatically managed pools that are
+   :term:`reachable` by your code must always be provably reachable
+   from a root via a chain of :term:`references <reference>` that are
+   :term:`fixed <fix>` by a scanning function.
 
    See the discussion of the :ref:`global symbol table
    <guide-lang-roots-rehash>` in the Scheme interpreter.
 
-4. Objects must remain scannable throughout their :term:`lifetime`.
+4. Formatted objects must remain scannable throughout their
+   :term:`lifetime`.
 
    .. fixme: refer to example here when written.
 
@@ -1160,12 +1171,13 @@ down all the MPS data structures. This causes the MPS to check the
 consistency of its data structures and report any problems it
 detects. It also causes the MPS to flush its :term:`telemetry stream`.
 
-MPS data structures must be destroyed in reverse order to that in
-which they were created. So you must destroy all :term:`allocation
-points <allocation point>` on a :term:`pool` before destroying the
-pool; destroy all :term:`roots <root>`, :term:`threads <thread>`, and
-pools that were created in an :term:`arena` before destroying the
-arena, and so on.
+MPS data structures must be destroyed or deregistered in the reverse
+order to that in which they were registered or created. So you must
+destroy all :term:`allocation points <allocation point>` created in a
+:term:`pool` before destroying the pool; destroy all :term:`roots
+<root>` and pools, and deregister all :term:`threads <thread>`, that
+were created in an :term:`arena` before destroying the arena, and so
+on.
 
 Here's the tear-down code from the Scheme interpreter::
 
@@ -1190,6 +1202,6 @@ system for a programming language.
 If everything is working for your language, then the next step is
 the chapter :ref:`guide-perf`.
 
-But if things don't work out quite as smoothly for your language as
-they did in the Scheme example, then you'll be more interested in the
-chapter :ref:`guide-debug`.
+But in the more likely event that things don't work out quite as
+smoothly for your language as they did in the Scheme example, then
+you'll be more interested in the chapter :ref:`guide-debug`.
