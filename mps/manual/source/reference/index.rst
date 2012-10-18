@@ -54,9 +54,9 @@ Declared in ``mps.h``
 
     ``pool`` the pool to allocate in.
 
-    ``size`` is the :term:`size` of the block to allocate. This need
-    not be rounded up to the pool :term:`alignment` unless the pool
-    document says that it needs to be.
+    ``size`` is the :term:`size` of the block to allocate. If it is
+    unaligned, it will be rounded up to the pool's :term:`alignment`
+    (unless the pool documentation says otherwise).
 
     Some pool classes require additional arguments to be passed to
     :c:func:`mps_alloc`. See the documentation for the pool class.
@@ -737,6 +737,62 @@ Declared in ``mps.h``
         :ref:`topic-arena`.
 
 
+.. c:function:: mps_res_t mps_arena_start_collect(mps_arena_t arena)
+
+    Request an :term:`arena` to start a full :term:`collection cycle`.
+
+    ``arena`` is the arena.
+
+    Returns :c:macro:`MPS_RES_OK` if a collection is started, or
+    another :term:`result code` if not.
+
+    This function puts ``arena`` into the :term:`unclamped state` and
+    requests that it start a full collection cycle. The call to
+    :c:func:`mps_arena_start_collect` returns quickly, leaving the
+    collection to proceed incrementally (as for a collection that is
+    scheduled automatically).
+
+    .. note::
+
+        Contrast with :c:func:`mps_arena_collect`, which does not
+        return until the collection has completed.
+
+    .. topics::
+
+        :ref:`topic-arena`.
+
+
+.. c::function:: mps_bool_t mps_arena_step(mps_arena_t arena, double interval, double multiplier)
+
+    Request an :term:`arena` to do some work during a period where the
+    :term:`client program` is idle.
+
+    ``arena`` is the arena.
+
+    ``interval`` is the time, in seconds, the MPS is permitted to
+    take. It must not be negative, but may be ``0.0``.
+
+    ``multiplier`` is the number of further similar calls that the
+    client program expects to make during this idle period.
+
+    Returns true if there was work for the MPS to do in ``arena``
+    (regardless of whether or not it did any) or false if there was
+    nothing to do.
+
+    This function allows the client program to make use of idle time
+    to do some garbage collection, for example when it is waiting for
+    interactive input. The MPS makes every effort to return from this
+    function within ``interval`` seconds, but does not guarantee to do so. It
+    uses ``multiplier`` to decide whether to commence long-duration
+    operations that consume CPU (such as a full collection): it will
+    only start such an operation if it is expected to be completed
+    within ``multiplier * interval`` seconds.
+
+    .. topics::
+
+        :ref:`topic-arena`.
+
+
 .. c:type:: mps_arena_t
 
     The type of :term:`arenas <arena>`.
@@ -833,6 +889,41 @@ Declared in ``mps.h``
     "false" and any other value means "true". As an output parameter
     or function return from the MPS, 0 means "false", and 1 means
     "true".
+
+
+.. c:function:: mps_res_t mps_chain_create(mps_chain_t *chain_o, mps_arena_t arena, size_t gen_count, mps_gen_param_s *gen_params)
+
+    Create a :term:`generation chain`.
+
+    ``chain_o`` points to a location that will hold a pointer to the
+    new generation chain.
+
+    ``arena`` is the arena to which the generation chain will belong.
+
+    ``gen_count`` is the number of :term:`generations <generation>` in
+    the chain.
+
+    ``gen_params`` points to an array describing the generations.
+
+    Returns :c:macro:`MPS_RES_OK` if the generation chain is created
+    successfully, or another :term:`result code` if it fails.
+
+    The generation chain persists until it is destroyed by calling
+    :c:func:`mps_chain_destroy`.
+
+
+.. c:function:: void mps_chain_destroy(mps_chain_t chain)
+
+    Destroy a :term:`generation chain`.
+
+    ``chain`` is the generation chain.
+
+
+.. c:type:: mps_chain_t
+
+    The type of :term:`generation chains <generation chain>`. A
+    generation chain describes the structure of :term:`generations
+    <generation>` in a :term:`pool`.
 
 
 .. c:type:: mps_class_t
@@ -1418,6 +1509,12 @@ Declared in ``mps.h``
 
     A skip method is not allowed to fail.
 
+    .. note::
+
+        The MPS uses this method to determine the size of objects (by
+        subtracting ``addr`` from the result) as well as skipping over
+        them.
+
     .. topics::
 
         :ref:`topic-format`, :ref:`topic-scanning`.
@@ -1464,7 +1561,9 @@ Declared in ``mps.h``
 
     ``addr`` is the address of the block to be freed.
 
-    ``size`` is the :term:`size` of the block to be freed.
+    ``size`` is the :term:`size` of the block to be freed. If it is
+    unaligned, it will be rounded up to the pool's :term:`alignment`
+    (unless the pool documentation says otherwise).
 
     The freed block of memory becomes available for allocation by the
     pool, or the pool might decide to make it available to other
@@ -1484,6 +1583,30 @@ Declared in ``mps.h``
         hard to get good virtual memory behaviour (as it is, the
         deallocation code doesn't have to touch the dead object at
         all).
+
+
+.. c:type:: mps_gen_param_s
+
+    The type of the structure used to specify a :term:`generation` in
+    a :term:`generation chain`. ::
+
+        typedef struct mps_gen_param_s {
+            size_t mps_capacity;
+            double mps_mortality;
+        } mps_gen_param_s;
+
+    ``mps_capacity`` is the capacity of the generation, in
+    :term:`kilobytes <kilobyte>`.
+
+    ``mps_mortality`` is the predicted mortality of the generation:
+    the proportion (between 0 and 1) of blocks in the generation that
+    are expected to be :term:`dead` when the generation is collected.
+
+    These numbers are hints to the MPS that it may use to make
+    decisions about when and what to collect: nothing will go wrong
+    (other than suboptimal performance) if you make poor
+    choices. Making good choices for the capacity and mortality of
+    each generation is discussed in the guide :ref:`guide-perf`.
 
 
 .. c:function:: void mps_ld_add(mps_ld_t ld, mps_arena_t arena, mps_addr_t addr)
@@ -1534,11 +1657,12 @@ Declared in ``mps.h``
     ``ld`` is the location dependency.
 
     ``arena`` is the arena to test for staleness against. It must be
-    the same arena that was passed to all calls to :term:`mps_ld_add`
-    on ``ld``.
+    the same arena that was passed to all calls to
+    :c:func:`mps_ld_add` on ``ld``.
 
-    ``addr`` is an address that may appear in :term:`telemetry`
-    related to this call (*not* an address to test for staleness).
+    ``addr`` is an address that may appear in :term:`telemetry
+    <telemetry stream>` events related to this call (it will *not* be
+    tested for staleness).
 
     The location dependency is examined to determine whether any of
     the dependencies encapsulated in it have been made stale with
@@ -2899,8 +3023,8 @@ Declared in ``mps.h``
     ``classes_count`` is the number of :term:`size classes <size class>`
     in the cache.
 
-    ``classes`` points to the an array describing the size classes in
-    the cache.
+    ``classes`` points to an array describing the size classes in the
+    cache.
 
     Returns :c:macro:`MPS_RES_OK` if the segregated allocation cache
     is created successfully. Returns :c:macro:`MPS_RES_MEMORY` or
@@ -3373,15 +3497,12 @@ Declared in ``mpsavm.h``
 Undocumented in ``mps.h``
 =========================
 
-.. c:type:: mps_chain_t
 .. c:type:: mps_frame_t
 .. c:type:: mps_word_t
 .. c:type:: mps_shift_t
 .. c:type:: mps_rm_t
 .. c:type:: mps_sac_freelist_block_s
 .. c:type:: mps_fmt_fixed_s
-.. c::function:: mps_bool_t mps_arena_step(mps_arena_t arena, double interval, double multiplier)
-.. c:function:: mps_res_t mps_arena_start_collect(mps_arena_t arena)
 .. c:function:: void mps_arena_destroy(mps_arena_t arena)
 .. c:function:: size_t mps_arena_reserved(mps_arena_t arena)
 .. c:function:: mps_res_t mps_arena_extend(mps_arena_t arena, mps_addr_t base, size_t size)
@@ -3392,9 +3513,6 @@ Undocumented in ``mps.h``
 .. c:function:: mps_res_t mps_pool_create(mps_pool_t *pool_o, mps_arena_t arena, mps_class_t class, ...)
 .. c:function:: mps_res_t mps_pool_create_v(mps_pool_t *pool_o, mps_arena_t arena, mps_class_t class, va_list args)
 .. c:function:: void mps_pool_destroy(mps_pool_t pool)
-.. c:type:: mps_gen_param_s
-.. c:function:: mps_res_t mps_chain_create(mps_chain_t *chain_o, mps_arena_t arena, size_t gen_count, mps_gen_param_s *params)
-.. c:function:: void mps_chain_destroy(mps_chain_t chain)
 .. c:function:: mps_res_t mps_ap_create(mps_ap_t *ap_o, mps_pool_t pool, ...)
 .. c:function:: mps_res_t mps_ap_create_v(mps_ap_t *ap_o, mps_pool_t pool, va_list args)
 .. c:function:: void mps_ap_destroy(mps_ap_t mps_ap)

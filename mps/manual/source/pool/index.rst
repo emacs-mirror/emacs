@@ -33,8 +33,8 @@ First, answer these questions about your data:
 
 2. Is it acceptable for the MPS to :term:`move <moving memory
    manager>` blocks in memory? (For example, it might not be
-   acceptable to move a block if it has been passed to a foreign
-   function that remembered its location.)
+   acceptable to move a block if it has been passed to :term:`foreign
+   code` that remembered its location.)
 
 3. Do your blocks contain :term:`references <reference>` to blocks
    stored in automatically managed pools (including references to

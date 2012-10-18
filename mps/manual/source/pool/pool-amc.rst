@@ -4,6 +4,12 @@
 AMC (Automatic Mostly-Copying)
 ==============================
 
+General-purpose automatic (collecting) pool class. This is the most 'advanced' pool class in the MPS, intended for most client objects.
+
+AMC is "Automatic, Mostly Copying": it uses copying collection except when prevented by ambiguous references. It is generational.
+
+Chain: specify capacity and mortality of generations 0..N-1. Survivors from N-1 get promoted into an arena-wide topGen (often anachronistically called the "dynamic" generation).
+
 
 An AMC pool is both scannable and collectable. Objects may contain exact references to other objects that will preserve such other objects. Objects may be reclaimed if they are not reachable from a root. Objects may move during collection, unless reachable via a (direct) ambiguous reference. Objects in an AMC pool may be registered for finalization. Exact (that is, non-ambiguous)references into an object in an AMC pool must be to the start of the object.
 
@@ -20,9 +26,14 @@ The AMC pool class exploits assumptions about object lifetimes and inter-connect
 If an allocation point is created in an AMC pool, the call to :c:func:`mps_ap_create` will take no additional parameters.
 
 
--------------------------
-Declared in ``mpscamc.h``
--------------------------
+--------------------
+AMC symbol reference
+--------------------
+
+::
+
+   #include "mpscamc.h"
+
 
 .. c:function:: void mps_amc_apply(mps_pool_t pool, void (*f)(mps_addr_t object, void *p, size_t s), void *p, size_t s)
 
@@ -81,5 +92,4 @@ Declared in ``mpscamc.h``
     ``fmt`` specifies the :term:`object format` for the objects
     allocated in the pool.
 
-    ``chain`` specifies the :term:`generation chain` that the objects in
-    the pool will be collected into.
+    ``chain`` specifies the :term:`generation chain` for the pool.

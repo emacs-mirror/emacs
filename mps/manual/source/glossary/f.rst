@@ -226,6 +226,22 @@ Memory Management Glossary: F
         structure that spans multiple regions that are never
         :term:`condemned <condemned set>` together.
 
+    foreign code
+
+        .. mps:specific::
+
+            From the point of view of the :term:`client program`,
+            *foreign code* is external code (not part of the client
+            program, or the MPS), which is not aware of and does not
+            co-operate with the MPS. The client program must take care
+            that foreign code is not passed the address of a block in
+            a :term:`moving <moving memory management>` :term:`pools
+            <pool>`, or which contain references to blocks in moving
+            pools. The :ref:`pool-lo` :term:`pool class` is designed
+            for this use case: blocks allocated from this pool do not
+            move and are never protected, and so may be passed safely
+            to foreign code.
+
     format
 
         A format describes the representation of an :term:`object`;
