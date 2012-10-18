@@ -1,3 +1,8 @@
+2012-10-18  Jan Djärv  <jan.h.d@swipnet.se>
+
+	* nsterm.m (ns_select): Check writefds before call to
+	FD_ISSET (Bug#12668).
+
 2012-10-18  Daniel Colascione  <dancol@dancol.org>
 
 	* alloc.c (NSTATICS): Increase from 0x650 to 0x1000
