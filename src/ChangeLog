@@ -1,3 +1,9 @@
+2012-10-18  Daniel Colascione  <dancol@dancol.org>
+
+	* alloc.c (NSTATICS): Increase from 0x650 to 0x1000
+	(staticpro): If we run out of staticpro slots, die with an
+	informative error instead of just calling emacs_abort.
+
 2012-10-18  Martin Rudalics  <rudalics@gmx.at>
 
 	Fix two flaws reported by Dmitry Antipov.
