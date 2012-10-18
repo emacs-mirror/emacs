@@ -49,6 +49,37 @@ TODO, QUERIES AND SUGGESTIONS
 56. Deprecation warnings need nicer formatting. Also "since version
     1.111" is wrong: "starting with version 1.111" would be right.
 
+57. "mps_collections" should of course have been called
+    "mps_arena_collections" but it's pretty meaningless because the
+    collector is asynchronous (as we saw in the Scheme example). It
+    might make more sense to deprecate it and add a new function
+    mps_message_gc_start_collection that returns the collection number
+    for a mps_message_type_gc.
+
+58. After you destroy an allocation point, can you continue to use the
+    objects you allocated on it?
+
+59. What's the condition for mps_thread_reg when you have multiple
+    arenas? Do you need to register each thread with each arena? Or is
+    it acceptable to register a thread with only some of your arenas
+    so long as you satisfy some condition? (e.g. that the thread
+    promises only to access blocks allocated in the arenas it is
+    registered with?)
+
+    Similarly for mps_thread_dereg: "after deregistration, the thread
+    must not access any blocks allocated in that arena."
+
+60. What's the condition for needing to register a thread at all? If
+    you have a single-threaded program does that thread still need to
+    be registered? What if you have no moving pools? etc.
+
+61. Start adding index entries.
+
+62. I documented the requirement for tags to be removed when calling
+    MPS_FIX, but does this apply to format auto_header?
+
+63. How do you create an auto_header format with a class method?
+
 
 DONE, ANSWERED
 
