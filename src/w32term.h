@@ -683,11 +683,11 @@ extern BOOL parse_button (int, int, int *, int *);
 extern void w32_sys_ring_bell (struct frame *f);
 extern void x_delete_display (struct w32_display_info *dpyinfo);
 
-extern int notification_buffer_in_use;
+extern volatile int notification_buffer_in_use;
 extern BYTE file_notifications[16384];
 extern DWORD notifications_size;
 extern void *notifications_desc;
-extern Lisp_Object w32_get_watch_object (Lisp_Object);
+extern Lisp_Object w32_get_watch_object (void *);
 extern Lisp_Object lispy_file_action (DWORD);
 
 extern void w32_initialize_display_info (Lisp_Object);

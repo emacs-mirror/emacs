@@ -599,7 +599,7 @@ handle_file_notifications (struct input_event *hold_quit)
     {
       DWORD info_size = notifications_size;
       Lisp_Object cs = intern ("utf-16le");
-      Lisp_Object obj = w32_get_watch_object (make_number (notifications_desc));
+      Lisp_Object obj = w32_get_watch_object (notifications_desc);
 
       /* notifications_size could be zero when the buffer of
 	 notifications overflowed on the OS level, or when the

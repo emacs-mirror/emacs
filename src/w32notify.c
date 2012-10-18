@@ -103,12 +103,12 @@ struct notification {
   char *watchee;	/* the file we are interested in */
   HANDLE dir;		/* handle to the watched directory */
   HANDLE thr;		/* handle to the thread that watches */
-  int terminate;	/* if non-zero, request for the thread to terminate */
+  volatile int terminate; /* if non-zero, request for the thread to terminate */
   unsigned signature;
 };
 
 /* Used for communicating notifications to the main thread.  */
-int notification_buffer_in_use;
+volatile int notification_buffer_in_use;
 BYTE file_notifications[16384];
 DWORD notifications_size;
 void *notifications_desc;
@@ -120,7 +120,8 @@ static Lisp_Object Qsecurity_desc, Qsubtree, watch_list;
 /* Signal to the main thread that we have file notifications for it to
    process.  */
 static void
-send_notifications (BYTE *info, DWORD info_size, void *desc, int *terminate)
+send_notifications (BYTE *info, DWORD info_size, void *desc,
+		    volatile int *terminate)
 {
   int done = 0;
   FRAME_PTR f = SELECTED_FRAME ();
@@ -557,7 +558,7 @@ FILE is the name of the file whose event is being reported.  */)
 	report_file_error ("Cannot watch file", Fcons (file, Qnil));
     }
   /* Store watch object in watch list. */
-  watch_descriptor = make_number (dirwatch);
+  watch_descriptor = XIL ((EMACS_INT)dirwatch);
   watch_object = Fcons (watch_descriptor, callback);
   watch_list = Fcons (watch_object, watch_list);
 
@@ -572,17 +573,22 @@ WATCH-DESCRIPTOR should be an object returned by `w32notify-add-watch'.  */)
      (Lisp_Object watch_descriptor)
 {
   Lisp_Object watch_object;
-  struct notification *dirwatch =
-    (struct notification *)XINT (watch_descriptor);
+  struct notification *dirwatch;
+  int status = -1;
 
   /* Remove the watch object from watch list.  Do this before freeing
      the object, do that even if we fail to free it, watch_list is
      kept free of junk.  */
   watch_object = Fassoc (watch_descriptor, watch_list);
   if (!NILP (watch_object))
-    watch_list = Fdelete (watch_object, watch_list);
+    {
+      watch_list = Fdelete (watch_object, watch_list);
+      dirwatch = (struct notification *)XLI (watch_descriptor);
+      if (w32_valid_pointer_p (dirwatch, sizeof(struct notification)))
+	status = remove_watch (dirwatch);
+    }
 
-  if (remove_watch (dirwatch) == -1)
+  if (status == -1)
     report_file_error ("Invalid watch descriptor", Fcons (watch_descriptor,
 							  Qnil));
 
@@ -590,9 +596,13 @@ WATCH-DESCRIPTOR should be an object returned by `w32notify-add-watch'.  */)
 }
 
 Lisp_Object
-w32_get_watch_object (Lisp_Object desc)
+w32_get_watch_object (void *desc)
 {
-  return NILP (watch_list) ? Qnil : assoc_no_quit (desc, watch_list);
+  Lisp_Object descriptor = XIL ((EMACS_INT)desc);
+
+  /* This is called from the input queue handling code, so we cannot
+     possibly QUIT if watch_list is not in the right condition.  */
+  return NILP (watch_list) ? Qnil : assoc_no_quit (descriptor, watch_list);
 }
 
 void
