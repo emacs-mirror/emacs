@@ -214,14 +214,10 @@ watch_completion (DWORD status, DWORD bytes_ret, OVERLAPPED *io_info)
 	 The directory handle is already closed.  We should clean up
 	 and exit, signalling to the thread worker routine not to
 	 issue another call to ReadDirectoryChangesW.  Note that we
-	 don't free the dirwatch object itself; this is done by the
-	 main thread in remove_watch.  */
-      xfree (dirwatch->buf);
-      dirwatch->buf = NULL;
-      xfree (dirwatch->io_info);
-      dirwatch->io_info = NULL;
-      xfree (dirwatch->watchee);
-      dirwatch->watchee = NULL;
+	 don't free the dirwatch object itself nor the memory consumed
+	 by its buffers; this is done by the main thread in
+	 remove_watch.  Calling malloc/free from a thread other than
+	 the main thread is a no-no.  */
       dirwatch->dir = NULL;
       dirwatch->terminate = 1;
     }
@@ -254,19 +250,15 @@ watch_worker (LPVOID arg)
 	  {
 	    DebPrint (("watch_worker, abnormal exit: %lu\n", GetLastError ()));
 	    /* We cannot remove the dirwatch object from watch_list,
-	       because we are in a separate thread.  So we free and
-	       zero out all the pointers in the object, but do not
-	       free the object itself.  We also don't touch the
-	       signature.  This way, remove_watch can still identify
-	       the object, remove it, and free its memory.  */
-	    xfree (dirwatch->buf);
-	    dirwatch->buf = NULL;
-	    xfree (dirwatch->io_info);
-	    dirwatch->io_info = NULL;
+	       because we are in a separate thread.  For the same
+	       reason, we also cannot free memory consumed by the
+	       buffers allocated for the dirwatch object.  So we close
+	       the directory handle, but do not free the object itself
+	       or its buffers.  We also don't touch the signature.
+	       This way, remove_watch can still identify the object,
+	       remove it, and free its memory.  */
 	    CloseHandle (dirwatch->dir);
 	    dirwatch->dir = NULL;
-	    xfree (dirwatch->watchee);
-	    dirwatch->watchee = NULL;
 	    return 1;
 	  }
       }
