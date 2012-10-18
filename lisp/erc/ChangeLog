@@ -1,6 +1,7 @@
 2012-10-18  Stefan Monnier  <monnier@iro.umontreal.ca>
 
-	* erc-backend.el (erc-with-server-buffer): Autoload as well (bug#12669).
+	* erc-backend.el: Require `erc' instead of autoloading its macros
+	(bug#12669).
 
 2012-10-15  Stefan Monnier  <monnier@iro.umontreal.ca>
 
