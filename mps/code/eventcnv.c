@@ -499,7 +499,7 @@ static void readLog(EventProc proc)
 
      case EventLabelCode:
        switch (style) {
-       case '\0': case 'C':
+       case '\0':
          {
            const char *sym = LabelText(proc, event->Label.f1);
            printf(style == '\0' ?
@@ -507,17 +507,20 @@ static void readLog(EventProc proc)
                   ", %"PRIuLONGEST", ",
                   (ulongest_t)event->Label.f0);
            if (sym != NULL) {
-             printStr(sym, (style == 'C'));
+                   printStr(sym, 0);
            } else {
-             printf(style == '\0' ?
-                    "sym %05"PRIXLONGEST :
-                    "sym %"PRIXLONGEST"\"",
-                    (ulongest_t)event->Label.f1);
+                   printf("sym %05"PRIXLONGEST ,
+                          (ulongest_t)event->Label.f1);
            }
          }
          break;
        case 'L':
          printf(" %"PRIXLONGEST" %"PRIXLONGEST,
+                (ulongest_t)event->Label.f0,
+                (ulongest_t)event->Label.f1);
+         break;
+       case 'C':
+         printf(", %"PRIuLONGEST", %"PRIuLONGEST,
                 (ulongest_t)event->Label.f0,
                 (ulongest_t)event->Label.f1);
          break;
