@@ -15,7 +15,6 @@ Topic reference
     root
     cache
     pattern
-    frame
     finalization
     plinth
     platform

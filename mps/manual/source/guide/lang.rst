@@ -192,10 +192,10 @@ collection <moving garbage collector>` and others :term:`non-moving
 
 The section :ref:`pool-choose` in the :ref:`pool` contains a process
 for choosing a pool class. In the case of the Scheme interpreter, the
-answers to the questions are (1) yes, it's acceptable for the MPS to
-automatically reclaim unreachable blocks; (2) yes, it's acceptable for
-the MPS to move blocks in memory; and (3) the Scheme objects will
-contain exact references to other Scheme objects.
+answers to the questions are (1) yes, the MPS needs to automatically
+reclaim unreachable blocks; (2) yes, it's acceptable for the MPS to
+move blocks in memory; and (3) the Scheme objects will contain exact
+references to other Scheme objects.
 
 The recommended class is :ref:`pool-amc`. This pool class uses
 automatic memory management, moving garbage collection,
