@@ -18,8 +18,11 @@ struct passwd {
 typedef unsigned uid_t;
 typedef uid_t gid_t;
 
-struct passwd * getpwnam (char *);
-struct passwd * getpwuid (unsigned);
+extern unsigned getuid (void);
+extern unsigned geteuid (void);
+
+extern struct passwd * getpwnam (char *);
+extern struct passwd * getpwuid (unsigned);
 
 
 #endif /* _PWD_H_ */

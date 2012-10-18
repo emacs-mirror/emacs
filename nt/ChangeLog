@@ -1,3 +1,22 @@
+2012-10-17  Eli Zaretskii  <eliz@gnu.org>
+
+	* inc/pwd.h (getuid, geteuid): Add prototypes.
+
+	* inc/ms-w32.h (sys_wait, _getpid, gmtgime_r, localtime_r)
+	(signal_handler, sys_signal, sigemptyset, sigfillset, sigprocmask)
+	(pthread_sigmask, sigismember, setpgrp, sigaction, alarm)
+	(sys_kill, getpagesize): Add prototypes for emulated functions.
+
+	* inc/grp.h (getgid, getegid): Add prototypes.
+
+	* gmake.defs (DEBUG_CFLAGS) [NOOPT]: Add -std=gnu99.
+
+	* configure.bat (chkapiN): Avoid compiler warning in junk.c when
+	compiling with -std=gnu99.
+
+	* config.nt (CHECK_LISP_OBJECT_TYPE): Don't undef, so that it
+	could be used via --cflags switch to configure.bat.
+
 2012-10-08  Juanma Barranquero  <lekktu@gmail.com>
 
 	* config.nt: Sync with autogen/config.in.

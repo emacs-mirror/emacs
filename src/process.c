@@ -125,6 +125,11 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #include "xgselect.h"
 #endif
 
+#ifdef WINDOWSNT
+extern int sys_select (int, SELECT_TYPE *, SELECT_TYPE *, SELECT_TYPE *,
+		       EMACS_TIME *, void *);
+#endif
+
 #ifndef WNOHANG
 # undef waitpid
 # define waitpid(pid, status, options) wait (status)

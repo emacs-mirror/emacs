@@ -429,7 +429,7 @@ rem
 echo Checking whether Windows API headers are too old...
 echo #include "windows.h" >junk.c
 echo #include "usp10.h" >>junk.c
-echo test(PIMAGE_NT_HEADERS pHeader) >>junk.c
+echo void test(PIMAGE_NT_HEADERS pHeader) >>junk.c
 echo {PIMAGE_SECTION_HEADER pSection = IMAGE_FIRST_SECTION(pHeader);} >>junk.c
 if (%nocygwin%) == (Y) goto chkapi1
 set cf=%usercflags%

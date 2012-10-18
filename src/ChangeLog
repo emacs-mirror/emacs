@@ -1,3 +1,46 @@
+2012-10-17  Eli Zaretskii  <eliz@gnu.org>
+
+	* makefile.w32-in ($(BLD)/w32.$(O)): 
+	($(BLD)/vm-limit.$(O)): 
+	($(BLD)/term.$(O)): 
+	($(BLD)/unexw32.$(O)): 
+	($(BLD)/fileio.$(O)): 
+	($(BLD)/dispnew.$(O)): Update dependencies.
+
+	* w32term.h (w32_initialize_display_info, initialize_w32_display):
+	Add prototypes.
+
+	* w32proc.c: Include ctype.h.
+
+	* w32.h (init_environment, check_windows_init_file)
+	(syms_of_ntproc, syms_of_ntterm, dostounix_filename)
+	(unixtodos_filename, init_winsock, srandom, random, sys_pipe)
+	(set_process_dir, sys_spawnve, register_child, sys_sleep, getwd)
+	(sys_link): Add prototypes.
+
+	* w32.c: Include w32select.h.
+	(sys_access, e_malloc, sys_select): Add prototypes.
+	(emacs_gnutls_pull): 'timeout' is now EMACS_TIME, not struct timeval.
+
+	* vm-limit.c [WINDOWSNT]: Include w32heap.h.
+
+	* unexw32.c: Include lisp.h and w32.h.
+
+	* term.c [WINDOWSNT]: Include w32term.h.
+
+	* process.c [WINDOWSNT]: Add prototype of sys_select.
+
+	* fileio.c [WINDOWSNT]: Include w32.h.
+
+	* dispnew.c [WINDOWSNT]: Include w32.h.
+
+	* cygw32.c (Fcygwin_convert_path_to_windows)
+	(Fcygwin_convert_path_from_windows): Use EQ to compare 2
+	Lisp_Object values.  (Bug#12661)
+
+	* w32fns.c (w32_msg_pump): Use XIL instead of casting an integer
+	to Lisp_Object.  (Bug#12661)
+
 2012-10-17  Kenichi Handa  <handa@gnu.org>
 
 	* xdisp.c (reseat_1): Make the information stored in it->cmp_it

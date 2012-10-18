@@ -175,6 +175,7 @@ typedef struct _REPARSE_DATA_BUFFER {
 #include "ndir.h"
 #include "w32common.h"
 #include "w32heap.h"
+#include "w32select.h"
 #include "systime.h"
 #include "dispextern.h"		/* for xstrcasecmp */
 #include "coding.h"		/* for Vlocale_coding_system */
@@ -197,6 +198,12 @@ static char * chase_symlinks (const char *);
 static int enable_privilege (LPCTSTR, BOOL, TOKEN_PRIVILEGES *);
 static int restore_privilege (TOKEN_PRIVILEGES *);
 static BOOL WINAPI revert_to_self (void);
+
+extern int sys_access (const char *, int);
+extern void *e_malloc (size_t);
+extern int sys_select (int, SELECT_TYPE *, SELECT_TYPE *, SELECT_TYPE *,
+		       EMACS_TIME *, void *);
+
 
 
 /* Initialization states.
@@ -6961,7 +6968,7 @@ emacs_gnutls_pull (gnutls_transport_ptr_t p, void* buf, size_t sz)
 {
   int n, sc, err;
   SELECT_TYPE fdset;
-  struct timeval timeout;
+  EMACS_TIME timeout;
   struct Lisp_Process *process = (struct Lisp_Process *)p;
   int fd = process->infd;
 
@@ -6977,8 +6984,7 @@ emacs_gnutls_pull (gnutls_transport_ptr_t p, void* buf, size_t sz)
       if (err == EWOULDBLOCK)
         {
           /* Set a small timeout.  */
-	  timeout.tv_sec = 1;
-	  timeout.tv_usec = 0;
+	  timeout = make_emacs_time (1, 0);
           FD_ZERO (&fdset);
           FD_SET ((int)fd, &fdset);
 

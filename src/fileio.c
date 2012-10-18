@@ -53,6 +53,7 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #include <windows.h>
 #include <fcntl.h>
 #include <sys/file.h>
+#include "w32.h"
 #endif /* not WINDOWSNT */
 
 #ifdef MSDOS
