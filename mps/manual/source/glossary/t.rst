@@ -121,7 +121,7 @@ Memory Management Glossary: T
 
     terabyte
 
-        .. aka:: *TB (1)*.
+        .. aka:: *TB*.
 
         A terabyte is 1024 :term:`gigabytes <gigabyte>`, or
         1099511627776 :term:`bytes (1) <byte (1)>`.
@@ -210,7 +210,7 @@ Memory Management Glossary: T
     translation buffer
     translation lookaside buffer
 
-        .. aka:: , *address translation cache*, *ATC*, *TB (2)*.
+        .. aka:: , *address translation cache*, *ATC*, *TB*.
 
         The *translation lookaside buffer* or *address translation
         cache* is small piece of associative :term:`memory (1)` within

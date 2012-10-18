@@ -82,7 +82,7 @@ Memory Management Glossary: G
 
     garbage collector
 
-        .. aka:: *collector (1)*.
+        .. aka:: *collector*.
 
         A (garbage) collector is (an implementation of) a
         :term:`garbage collection` algorithm.

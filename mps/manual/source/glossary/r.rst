@@ -527,7 +527,9 @@ Memory Management Glossary: R
 
             A value of type :c:type:`mps_rm_t` describing whether a
             :term:`root` is :term:`constant <constant root>`,
-            :term:`protectable <protectable root>`, or both.
+            :term:`protectable <protectable root>`, or both. The root
+            mode tells the MPS whether it may place a :term:`barrier`
+            on the root.
 
     root set
 
@@ -535,5 +537,3 @@ Memory Management Glossary: R
         the :term:`mutator` declares to the :term:`collector (2)`.
 
         .. seealso:: :term:`garbage collection`.
-
-

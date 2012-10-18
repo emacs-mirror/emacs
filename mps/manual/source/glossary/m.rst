@@ -14,7 +14,7 @@ Memory Management Glossary: M
 
     main memory
 
-        .. aka:: *memory (3)*, *primary storage*.
+        .. aka:: *memory*, *primary storage*.
 
         The *main memory* (or *primary storage*) of a computer is
         :term:`memory (1)` that is wired directly to the processor,
@@ -234,7 +234,7 @@ Memory Management Glossary: M
 
     memory (1)
 
-        .. aka:: *storage*, *store (2)*.
+        .. aka:: *storage*, *store*.
 
         *memory* or *storage* (or *store*) is where data and
         instructions are stored. For example, :term:`caches (1)

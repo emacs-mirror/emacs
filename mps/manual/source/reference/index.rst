@@ -54,7 +54,9 @@ Declared in ``mps.h``
 
     ``pool`` the pool to allocate in.
 
-    ``size`` is the :term:`size` of the block to allocate.
+    ``size`` is the :term:`size` of the block to allocate. This need
+    not be rounded up to the pool :term:`alignment` unless the pool
+    document says that it needs to be.
 
     Some pool classes require additional arguments to be passed to
     :c:func:`mps_alloc`. See the documentation for the pool class.
@@ -892,6 +894,11 @@ Declared in ``mps.h``
 
     .. note::
 
+        If your reference is :term:`tagged <tagged reference>`, you
+        must remove the tag before calling :c:func:`mps_fix`, and
+        restore the tag to the (possibly updated) reference
+        afterwards.
+
         If you want to call this between :c:func:`MPS_SCAN_BEGIN` and
         :c:func:`MPS_SCAN_END`, you must use :c:func:`MPS_FIX_CALL`
         to ensure that the scan state is passed correctly.
@@ -918,6 +925,9 @@ Declared in ``mps.h``
         :ref:`topic-scanning`.
 
     .. note::
+
+        If your reference is :term:`tagged <tagged reference>`, you
+        must remove the tag before calling :c:func:`MPS_FIX1`.
 
         In the common case where the scan method does not need to do
         anything between :c:func:`MPS_FIX1` and :c:func:`MPS_FIX2`,
@@ -947,6 +957,11 @@ Declared in ``mps.h``
 
     .. note::
 
+        If your reference is :term:`tagged <tagged reference>`, you
+        must remove the tag before calling :c:func:`MPS_FIX2`, and
+        restore the tag to the (possibly updated) reference
+        afterwards.
+
         The macro :c:func:`MPS_FIX12` is a convenience for the common
         case where :c:func:`MPS_FIX1` is immediately followed by
         :c:func:`MPS_FIX2`.
@@ -974,6 +989,11 @@ Declared in ``mps.h``
         :ref:`topic-scanning`.
 
     .. note::
+
+        If your reference is :term:`tagged <tagged reference>`, you
+        must remove the tag before calling :c:func:`MPS_FIX12`, and
+        restore the tag to the (possibly updated) reference
+        afterwards.
 
         In the common case where the scan method does not need to do
         anything between :c:func:`MPS_FIX1` and :c:func:`MPS_FIX2`,
@@ -1473,29 +1493,33 @@ Declared in ``mps.h``
 
     ``ld`` is a location dependency.
 
-    ``arena`` is an :term:`arena`.
+    ``arena`` is the :term:`arena` to which ``addr`` belongs.
 
-    ``addr`` is the address of the block. It can be any address: it 
-    is not limited to addresses in ``arena``.
+    ``addr`` is the address of the block.
 
     After calling :c:func:`mps_ld_add`, and until ``ld`` is passed to
     :c:func:`mps_ld_reset`, the call ::
 
         mps_ld_isstale(ld, arena, addr)
 
-    will return true if the block has moved. It is possible to add the
-    same address more than once.
+    will return true if the block has moved.
 
-    :c:func:`mps_ld_add` is not thread-safe with respect to
-    :c:func:`mps_ld_add`, :c:func:`mps_ld_merge`, or
-    :c:func:`mps_ld_reset` on the same location dependency, but it is
-    thread-safe with respect to :c:func:`mps_ld_isstale` operations.
-    This means that calls to :c:func:`mps_ld_add` from different
-    :term:`threads <thread>` must interlock if they are using the same
-    location dependency. The practical upshot of this is that there
-    should be a lock associated with each location dependency.
+    .. note::
 
-    :c:func:`mps_ld_add` does not allocate.
+        It is an error to call :c:func:`mps_ld_add` on the same
+        location dependency with addresses from two different arenas.
+        If you need to test for staleness against multiple arenas,
+        then you need at least one location dependency for each arena.
+
+        :c:func:`mps_ld_add` is not thread-safe with respect to
+        :c:func:`mps_ld_add`, :c:func:`mps_ld_merge`, or
+        :c:func:`mps_ld_reset` on the same location dependency, but it
+        is thread-safe with respect to :c:func:`mps_ld_isstale`
+        operations. This means that calls to :c:func:`mps_ld_add` from
+        different :term:`threads <thread>` must interlock if they are
+        using the same location dependency. The practical upshot of
+        this is that there should be a lock associated with each
+        location dependency.
 
     .. topics::
 
@@ -1505,28 +1529,39 @@ Declared in ``mps.h``
 .. c:function:: mps_bool_t mps_ld_isstale(mps_ld_t ld, mps_arena_t arena, mps_addr_t addr)
 
     Determine if any of the depdencies in a :term:`location
-    dependency` are stale.
+    dependency` are stale with respect to an :term:`arena`.
 
     ``ld`` is the location dependency.
 
-    ``arena`` is an arena.
+    ``arena`` is the arena to test for staleness against. It must be
+    the same arena that was passed to all calls to :term:`mps_ld_add`
+    on ``ld``.
 
-    ``addr`` is an address.
+    ``addr`` is an address that may appear in :term:`telemetry`
+    related to this call (*not* an address to test for staleness).
 
     The location dependency is examined to determine whether any of
-    the dependencies encapsulated in it have been made stale. If any
-    of the dependencies encapsulated in the location dependency are
-    stale (that is, the blocks whose location has been depended on
-    have moved) then :c:func:`mps_ld_isstale` will return true. If
-    there have been no calls to :c:func:`mps_ld_add` on ``ld`` since the
-    last call to :c:func:`mps_ld_reset`, then :c:func:`mps_ld_isstale`
-    will return false. :c:func:`mps_ld_isstale` may return any value
-    in other circumstances (but will strive to return false if the
-    objects encapsulated in the location dependency have not moved).
+    the dependencies encapsulated in it have been made stale with
+    respect to ``arena``. If any of the dependencies encapsulated in
+    the location dependency are stale (that is, the blocks whose
+    location has been depended on have been moved by ``arena``) then
+    :c:func:`mps_ld_isstale` will return true. If there have been no
+    calls to :c:func:`mps_ld_add` on ``ld`` since the last call to
+    :c:func:`mps_ld_reset`, then :c:func:`mps_ld_isstale` will return
+    false. :c:func:`mps_ld_isstale` may return any value in other
+    circumstances (but will strive to return false if the objects
+    encapsulated in the location dependency have not moved).
 
-    :c:func:`mps_ld_isstale` is thread-safe with respect to itself and
-    with respect to :c:func:`mps_ld_add`, but not with respect to
-    :c:func:`mps_ld_reset`.
+    .. note::
+
+        :c:func:`mps_ld_isstale` may report a false positive
+        (returning true despite none of the added addresses having
+        being moved by the arena) but never a false negative
+        (returning false when an added address has been moved).
+
+        :c:func:`mps_ld_isstale` is thread-safe with respect to itself
+        and with respect to :c:func:`mps_ld_add`, but not with respect
+        to :c:func:`mps_ld_reset`.
 
     .. topics::
 
@@ -1539,7 +1574,7 @@ Declared in ``mps.h``
 
     ``dest_ld`` is the destination of the merge.
 
-    ``arena`` is an :term:`arena`.
+    ``arena`` is the :term:`arena` .
 
     ``src_ld`` is the source of the merge.
 
@@ -1562,10 +1597,10 @@ Declared in ``mps.h``
 
     ``arena`` is an arena.
 
-    After this call, ``ld`` encapsulates no dependencies. After the call
-    to :c:func:`mps_ld_reset` and prior to any call to
+    After this call, ``ld`` encapsulates no dependencies. After the
+    call to :c:func:`mps_ld_reset` and prior to any call to
     :c:func:`mps_ld_add` on ``ld``, :c:func:`mps_ld_isstale` on ``ld``
-    will return false for all addresses.
+    will return false for all arenas.
 
     :c:func:`mps_ld_reset` is not thread-safe with respect to any
     other location dependency function.
@@ -2536,10 +2571,10 @@ Declared in ``mps.h``
 
     .. note::
 
-        :term:`Client programs <client program>` are not expected to
-        write their own scanning functions to pass to this function.
-        The built-in MPS function :c:func:`mps_stack_scan_ambig`
-        should be used.
+        It is not supported for :term:`Client programs <client
+        program>` to pass their own scanning functions to this
+        function. The built-in MPS function
+        :c:func:`mps_stack_scan_ambig` must be used.
 
 
 .. c:function:: mps_res_t mps_root_create_table(mps_root_t *root_o, mps_arena_t arena, mps_rank_t rank, mps_rm_t rm, mps_addr_t *base, size_t count)
@@ -3335,193 +3370,6 @@ Declared in ``mpsavm.h``
 
 
 =========================
-Declared in ``mpscamc.h``
-=========================
-
-.. c:function:: void mps_amc_apply(mps_pool_t pool, void (*f)(mps_addr_t object, void *p, size_t s), void *p, size_t s)
-
-    Visit all :term:`formatted objects <formatted object>` in an
-    :ref:`pool-amc`.
-
-    ``pool`` is the pool whose formatted objects you want to visit.
-
-    ``f`` is a function that will be called for each formatted object in
-    the pool. It takes three arguments: ``object`` is the address of the
-    object; ``p`` and ``s`` are the corresponding arguments that were
-    passed to :c:func:`mps_amc_apply`.
-
-    ``p`` and ``s`` are arguments that will be passed to ``f`` each time it
-    is called. This is intended to make it easy to pass, for example,
-    an array and its size as parameters.
-
-    You may only call this function when the :term:`arena` is in the
-    :term:`parked state`, for example, after calling
-    :c:func:`mps_arena_collect` or :c:func:`mps_arena_park`.
-
-    The function ``f`` will be called on both :term:`client <client
-    object>` and :term:`padding objects <padding object>`. It is the
-    job of ``f`` to distinguish, if necessary, between the two. It may
-    also be called on :term:`dead` objects that the collector has not
-    recycled or has been unable to recycle.
-
-    The function ``f`` may not allocate memory or access any
-    automatically-managed memory except within ``object``.
-
-    .. topics::
-
-        :ref:`topic-scanning`.
-
-    .. note::
-
-        There is no equivalent function for other pool classes, but
-        there is a more general function
-        :c:func:`mps_arena_formatted_objects_walk` that visits all
-        formatted objects in the arena.
-
-
-.. c:function:: mps_class_t mps_class_amc(void)
-
-    Return the :term:`pool class` for an AMC (Automatic
-    Mostly-Copying) :term:`pool`.
-
-    When creating an AMC pool, :c:func:`mps_pool_create` takes two
-    extra arguments::
-
-        mps_res_t mps_pool_create(mps_pool_t *pool_o, mps_arena_t arena, 
-                                  mps_class_t mps_class_amc(),
-                                  mps_fmt_t fmt,
-                                  mps_chain_t chain)
-
-    ``fmt`` specifies the :term:`object format` for the objects
-    allocated in the pool.
-
-    ``chain`` specifies the :term:`generation chain` that the objects in
-    the pool will be collected into.
-
-    .. topics::
-
-        :ref:`pool-amc`.
-
-
-==========================
-Declared in ``mpscmvff.h``
-==========================
-
-.. c:function:: mps_class_t mps_class_mvff(void)
-
-    Return the :term:`pool class` for an MVFF (Manual Variable-size
-    First Fit) :term:`pool`.
-
-    When creating an MVFF pool, :c:func:`mps_pool_create` takes six
-    extra arguments::
-
-        mps_res_t mps_pool_create(mps_pool_t *pool_o, mps_arena_t arena, 
-                                  mps_class_t mps_class_mvff(),
-                                  mps_size_t extendBy,
-                                  mps_size_t avgSize,
-                                  mps_align_t alignment,
-                                  mps_bool_t slotHigh,
-                                  mps_bool_t arenaHigh,
-                                  mps_bool_t firstFit)
-
-    ``extendBy`` is the :term:`size` of :term:`segment` to allocate by
-    default.
-
-    ``avgSize`` is the average size of blocks to be allocated.
-
-    ``alignment`` is the :term:`alignment` of addresses for allocation
-    (and freeing) in the pool. If an unaligned size is passed to
-    :c:func:`mps_alloc` or :c:func:`mps_free`, it will be rounded up
-    to the pool's alignment. The minimum alignment supported by pools
-    of this class is ``sizeof(void *)``.
-
-    ``slotHigh``, ``arenaHigh``, and ``firstFit`` are undocumented and may
-    be set to (0, 0, 1) or (1, 1, 1). No other setting of these
-    parameters is currently recommended.
-
-    .. topics::
-
-        :ref:`pool-mvff`.
-
-
-=========================
-Declared in ``mpscmv2.h``
-=========================
-
-.. c:function:: mps_class_t mps_class_mvt(void)
-
-    Return the :term:`pool class` for an MVT (Manual Variable-size
-    Temporal-fit) :term:`pool`.
-
-    When creating an MVT pool, :c:func:`mps_pool_create` takes five
-    extra arguments::
-
-        mps_res_t mps_pool_create(mps_pool_t *pool_o, mps_arena_t arena, 
-                                  mps_class_t mps_class_mvt(),
-                                  size_t minimum_size,
-                                  size_t mean_size,
-                                  size_t maximum_size,
-                                  mps_count_t reserve_depth,
-                                  mps_count_t fragmentation_limit)
-
-    ``minimum_size``, ``mean_size``, and ``maximum_size`` are the minimum,
-    mean, and maximum (typical) :term:`size` of :term:`blocks <block>`
-    expected to be allocated in the pool. Blocks smaller than
-    ``minimum_size`` and larger than ``maximum_size`` may be allocated,
-    but the pool is not guaranteed to manage them space-efficiently.
-    Furthermore, partial freeing is not supported for blocks larger
-    than ``maximum_size``; doing so will result in the storage of the
-    block never being reused. ``mean_size`` need not be an accurate
-    mean, although the pool will manage ``mean_size`` blocks more
-    efficiently if it is.
-
-    ``reserve_depth`` is the expected hysteresis of the population of
-    the pool. When blocks are freed, the pool will retain sufficient
-    storage to allocate ``reserve_depth`` blocks of ``mean_size`` for near
-    term allocations (rather than immediately making that storage
-    available to other pools).
-
-    ``fragmentation_limit`` is a percentage in (0, 100] that can be used
-    to set an upper limit on the space overhead of MVT in case block
-    death times and allocations do not correlate well. If the free
-    space managed by the pool as a ratio of all the space managed by
-    the pool exceeds ``fragmentation_limit``, the pool falls back to a
-    first fit allocation policy, exploiting space more efficiently at
-    a cost in time efficiency. A fragmentation limit of 0 would cause
-    the pool to operate as a first-fit pool, at a significant cost in
-    time efficiency, therefore is not permitted.
-
-    .. topics::
-
-        :ref:`pool-mvt`
-
-
-=========================
-Declared in ``mpscsnc.h``
-=========================
-
-.. c:function:: mps_class_t mps_class_snc(void)
-
-    Return the :term:`pool class` for an SNC (Stack No Check)
-    :term:`pool`.
-
-    When creating an SNC pool, :c:func:`mps_pool_create` takes one
-    extra argument::
-
-        mps_res_t mps_pool_create(mps_pool_t *pool_o, mps_arena_t arena,
-                                  mps_class_t mps_class_snc(),
-                                  mps_fmt_t fmt)
-
-    ``fmt`` specifies the :term:`object format` for the objects
-    allocated in the pool. The format should provide at least the
-    methods scan, skip, and pad.
-
-    .. topics::
-
-        :ref:`pool-snc`.
-
-
-=========================
 Undocumented in ``mps.h``
 =========================
 
@@ -3568,63 +3416,6 @@ Undocumented in ``mps.h``
 .. c:function:: mps_res_t mps_alert_collection_set(mps_arena_t arena, mps_alert_collection_fn_t fn)
 .. c:type:: void (*mps_alert_collection_fn_t)(int, int)
 .. c:function:: void mps_pool_check_free_space(mps_pool_t mps_pool)
-
-
-=============================
-Undocumented in ``mpscamc.h``
-=============================
-
-.. c:function:: mps_class_t mps_class_amcz(void)
-
-
-=============================
-Undocumented in ``mpscams.h``
-=============================
-
-.. c:function:: mps_class_t mps_class_ams(void)
-.. c:function:: mps_class_t mps_class_ams_debug(void)
-
-
-=============================
-Undocumented in ``mpscawl.h``
-=============================
-
-.. c:function:: mps_class_t mps_class_awl(void)
-
-
-============================
-Undocumented in ``mpsclo.h``
-============================
-
-.. c:function:: mps_class_t mps_class_lo(void)
-
-
-============================
-Undocumented in ``mpscmv.h``
-============================
-
-.. c:function:: size_t mps_mv_free_size(mps_pool_t pool)
-.. c:function:: size_t mps_mv_size(mps_pool_t pool)
-.. c:function:: mps_class_t mps_class_mv(void)
-.. c:function:: mps_class_t mps_class_mv_debug(void)
-
-
-=============================
-Undocumented in ``mpscmv2.h``
-=============================
-
-.. c:function:: mps_class_t mps_class_mvt(void)
-.. c:function:: size_t mps_mvt_free_size(mps_pool_t pool)
-.. c:function:: size_t mps_mvt_size(mps_pool_t pool)
-
-
-==============================
-Undocumented in ``mpscmvff.h``
-==============================
-
-.. c:function:: size_t mps_mvff_free_size(mps_pool_t mpspool)
-.. c:function:: size_t mps_mvff_size(mps_pool_t pool)
-.. c:function:: mps_class_t mps_class_mvff_debug(void)
 
 
 ===========================
