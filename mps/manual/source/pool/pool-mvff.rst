@@ -24,9 +24,9 @@ It is usually not advisable to use buffered and unbuffered allocation at the sam
 Note that using buffered allocation prevents (for obscure technical reasons) the pool from allocating across segment boundaries. This can cause added external fragmentation if objects are allocated that are a significant fraction of the segment size. (This quirk will disappear in a future version.)
 
 
-==========================
+--------------------------
 Declared in ``mpscmvff.h``
-==========================
+--------------------------
 
 .. c:function:: mps_class_t mps_class_mvff(void)
 
@@ -61,9 +61,9 @@ Declared in ``mpscmvff.h``
     parameters is currently recommended.
 
 
-==============================
+------------------------------
 Undocumented in ``mpscmvff.h``
-==============================
+------------------------------
 
 .. c:function:: size_t mps_mvff_free_size(mps_pool_t mpspool)
 .. c:function:: size_t mps_mvff_size(mps_pool_t pool)

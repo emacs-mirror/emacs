@@ -86,9 +86,9 @@ Perhaps the pool should accept some description of the mean and deviation of the
 
 
 
-=========================
+-------------------------
 Declared in ``mpscmv2.h``
-=========================
+-------------------------
 
 .. c:function:: mps_class_t mps_class_mvt(void)
 
@@ -134,9 +134,9 @@ Declared in ``mpscmv2.h``
     time efficiency, therefore is not permitted.
 
 
-=============================
+-----------------------------
 Undocumented in ``mpscmv2.h``
-=============================
+-----------------------------
 
 .. c:function:: mps_class_t mps_class_mvt(void)
 .. c:function:: size_t mps_mvt_free_size(mps_pool_t pool)
