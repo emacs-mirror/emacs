@@ -1,0 +1,203 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "DTD/xhtml1-transitional.dtd">
+
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
+
+<head>
+
+<title>Design of the MPS library version mechanism</title>
+
+</head>
+
+<body bgcolor="#FFFFFF" text="#000000" link="#000099" vlink="#660066" alink="#FF0000">
+
+<div align="center">
+
+<p>
+<a href="/">Ravenbrook</a> /
+<a href="/project/">Projects</a> /
+<a href="/project/mps/">Memory Pool System</a> /
+<a href="/project/mps/master/">Master Product Sources</a> /
+<a href="/project/mps/master/design/">Design Documents</a>
+</p>
+
+<p><i><a href="/project/mps/">Memory Pool System Project</a></i></p>
+
+<hr />
+
+</div>
+
+<pre>
+              DESIGN OF THE MPS LIBRARY VERSION MECHANISM
+                       design.mps.version-library
+                             incomplete doc
+                             drj 1998-08-19
+
+INTRODUCTION
+
+<a id="intro" name="intro">.intro</a>: This describes the design of a mechanism to be used to determine the 
+version (that is, product, version, and release) of an MPS library.
+
+
+READERSHIP
+
+<a id="readership" name="readership">.readership</a>: Any MPS developer.
+
+
+SOURCE
+
+<a id="source" name="source">.source</a>: Various requirements demand such a mechanism.  See 
+request<a id="epcore.160021" name="epcore.160021">.epcore.160021</a>: There is no way to tell which version and release of the 
+MM one is using.
+
+
+OVERVIEW
+
+<a id="overview" name="overview">.overview</a>: See design.mps.version for discussion and design of versions of 
+other aspects of the software.  This document concentrates on a design for 
+determining which version of the library one has linked with.  There are two 
+aspects to the design, allowing humans to determine the version of an MPS 
+library, and allowing programs to determine the version of an MPS library.  
+Only the former is currently designed (a method for humans to determine which 
+version of an MPS library is being used).
+
+<a id="overview.impl" name="overview.impl">.overview.impl</a>: The overall design is to have a distinctive string compiled 
+into the library binary.  Various programs and tools will be able to extract 
+the string and display it.  The string will identify the version of the MPS 
+begin used.
+
+
+ARCHITECTURE
+
+<a id="arch.structure" name="arch.structure">.arch.structure</a>: The design consists of 3 components:
+
+<a id="arch.string" name="arch.string">.arch.string</a>: A string embedded into any delivered library binaries (which will 
+encode the necessary information).
+
+<a id="arch.proc" name="arch.proc">.arch.proc</a>: A process by which the string is modified appropriately whenever 
+releases are made.
+
+<a id="arch.tool" name="arch.tool">.arch.tool</a>: A tool and its documentation (it is expected that standard tools 
+can be used).  The tool will be used to extract the version string from a 
+delivered library or an executable linked with the library.
+
+<a id="arch.not-here" name="arch.not-here">.arch.not-here</a>: Only the string component (:arch.string) is directly described 
+here.  The other components are described elsewhere.  (where?)
+
+The string will contain information to identify the following items:
+<a id="arch.string.platform" name="arch.string.platform">.arch.string.platform</a>: the platform being used.
+<a id="arch.string.product" name="arch.string.product">.arch.string.product</a>: the name of the product.
+<a id="arch.string.variety" name="arch.string.variety">.arch.string.variety</a>: the variety of the product.
+<a id="arch.string.version" name="arch.string.version">.arch.string.version</a>: the version and release of the product.
+
+
+IMPLEMENTATION
+
+<a id="impl.file" name="impl.file">.impl.file</a>: The string itself is a declared C object in the file version.c 
+(impl.c.version).  It consists of a concatenation of various strings which are 
+defined in other modules.
+
+<a id="impl.variety" name="impl.variety">.impl.variety</a>: The string containing the name of the variety is the expansion 
+of the macro MPS_VARIETY_STRING defined by config.h (impl.h.config).
+
+<a id="impl.product" name="impl.product">.impl.product</a>: The string containing the name of the product is the expansion 
+of the macro MPS_PROD_STRING defined by config.h (impl.h.config).
+
+<a id="impl.platform" name="impl.platform">.impl.platform</a>: The string containing the name of the platform is the expansion 
+of the macro MPS_PF_STRING defined by mpstd.h (impl.h.mpstd).
+
+<a id="impl.date" name="impl.date">.impl.date</a>: The string contains the date and time of compilation by using the 
+__DATE__ and __TIME__ macros defined by ISO C (ISO C clause 6.8.8).
+
+<a id="impl.version" name="impl.version">.impl.version</a>: The string contains the version and release of the product.  
+This is by the expansion of the macro MPS_RELEASE which is defined in this 
+module (version.c).
+
+<a id="impl.usage" name="impl.usage">.impl.usage</a>: To make a release, the MPS_RELEASE macro (see 
+impl.c.version.release) is edited to contain the release name (e.g., 
+"release.epcore.brisling"), and then changed back immediately after the release 
+checkpoint is made.
+
+</pre>
+
+
+<h2><a id="section-A" name="section-A">A. References</a></h2>
+
+<!-- Template Entry
+
+<table>
+
+<tr valign="top">
+
+  <td>[<a id="ref-#REF#" name="ref-#REF#" href="#REF_URL#">#REF_NAME#</a>]</td>
+
+  <td>
+    "#REF_TITLE#";
+    #REF_AUTHOR#;
+    &lt;URL: <a href="#REF_URL#">#REF_URL#</a>&gt;;
+    #REF_DATE#.
+  </td>
+
+</tr>
+
+</table>
+
+-->
+
+
+<h2><a id="section-B" name="section-B">B. Document History</a></h2>
+
+<table>
+
+<tr valign="top">
+
+  <td>2002-06-07</td>
+
+  <td><a href="mailto:rb@ravenbrook.com">RB</a></td>
+
+  <td>Converted from MMInfo database design document.</td>
+
+</tr>
+
+</table>
+
+
+<h2><a id="section-C" name="section-C">C. Copyright and License</a></h2>
+
+<p> This document is copyright &copy; 1995-2002 <a href="http://www.ravenbrook.com/">Ravenbrook Limited</a>.  All rights reserved.  This is an open source license.  Contact Ravenbrook for commercial licensing options. </p>
+
+<p> Redistribution and use in source and binary forms, with or without modification, are permitted provided that the following conditions are met: </p>
+
+<ol>
+
+<li> Redistributions of source code must retain the above copyright notice, this list of conditions and the following disclaimer. </li>
+
+<li> Redistributions in binary form must reproduce the above copyright notice, this list of conditions and the following disclaimer in the documentation and/or other materials provided with the distribution. </li>
+
+<li> Redistributions in any form must be accompanied by information on how to obtain complete source code for the this software and any accompanying software that uses this software.  The source code must either be included in the distribution or be available for no more than the cost of distribution plus a nominal fee, and must be freely redistributable under reasonable conditions.  For an executable file, complete source code means the source code for all modules it contains. It does not include source code for modules or files that typically accompany the major components of the operating system on which the executable file runs. </li>
+
+</ol>
+
+<p> <strong> This software is provided by the copyright holders and contributors "as is" and any express or implied warranties, including, but not limited to, the implied warranties of merchantability, fitness for a particular purpose, or non-infringement, are disclaimed.  In no event shall the copyright holders and contributors be liable for any direct, indirect, incidental, special, exemplary, or consequential damages (including, but not limited to, procurement of substitute goods or services; loss of use, data, or profits; or business interruption) however caused and on any theory of liability, whether in contract, strict liability, or tort (including negligence or otherwise) arising in any way out of the use of this software, even if advised of the possibility of such damage. </strong> </p>
+
+
+<hr />
+
+<div align="center">
+
+<p><code>$Id$</code></p>
+
+<p>
+<a href="/">Ravenbrook</a> /
+<a href="/project/">Projects</a> /
+<a href="/project/mps/">Memory Pool System</a> /
+<a href="/project/mps/master/">Master Product Sources</a> /
+<a href="/project/mps/master/design/">Design Documents</a>
+</p>
+
+</div>
+
+</body>
+
+</html>
