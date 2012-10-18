@@ -243,7 +243,9 @@ be allocated at addresses which are multiples of the machine's word
 size.
 
 The other elements of the structure are the :term:`format methods
-<format method>`, which are described in the following sections.
+<format method>`, which are described in the following sections. (The
+``NULL`` in the structure is a placeholder for the :term:`copy
+method`, which is now obsolete.)
 
 .. topics::
 
