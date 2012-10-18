@@ -190,7 +190,7 @@ Memory Management Glossary: A
 
     allocate
 
-        .. aka:: *cons (2)*.
+        .. aka:: *cons*.
 
         *Allocation* is the process of assigning resources. When
         requested to by the program, an application :term:`memory

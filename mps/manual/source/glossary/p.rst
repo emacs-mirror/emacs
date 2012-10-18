@@ -268,7 +268,7 @@ Memory Management Glossary: P
 
     physical memory (1)
 
-        .. aka:: *real memory (2)*.
+        .. aka:: *real memory*.
 
         Physical memory is :term:`memory (1)` that is wired to
         directly to the processor, addressable by :term:`physical

@@ -761,8 +761,9 @@ that:
 2. each reference keeps the target of the reference alive (unlike
    :term:`weak references <weak reference (1)>`).
 
-The fourth argument (here ``0``) is the :term:`root mode`: see
-:ref:`topic-root`.
+The fourth argument is the :term:`root mode`, which tells the MPS
+whether it is allowed to place a :term:`barrier` on the root. The
+root mode ``0`` means that it is not allowed.
 
 The sixth and seventh arguments (here ``NULL`` and ``0``) are passed
 to the root scanning function where they are received as the
