@@ -70,7 +70,6 @@ typedef struct mps_frame_s
 typedef MPS_T_WORD mps_word_t;  /* pointer-sized word */
 typedef int mps_bool_t;         /* boolean (int) */
 typedef int mps_res_t;          /* result code (int) */
-typedef unsigned mps_shift_t;   /* shift amount (unsigned int) */
 typedef void *mps_addr_t;       /* managed address (void *) */
 typedef size_t mps_align_t;     /* alignment (size_t) */
 typedef unsigned mps_rm_t;      /* root mode (unsigned) */
