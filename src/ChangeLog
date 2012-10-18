@@ -1,10 +1,17 @@
+2012-10-18  Martin Rudalics  <rudalics@gmx.at>
+
+	Fix two flaws reported by Dmitry Antipov.
+	* window.c (Ftemp_output_buffer_show): Remove.
+	(Fwindow_vscroll, Fset_window_vscroll): Use decode_live_window.
+	(syms_of_window): Remove defsubr for Stemp_output_buffer_show.
+
 2012-10-17  Eli Zaretskii  <eliz@gnu.org>
 
-	* makefile.w32-in ($(BLD)/w32.$(O)): 
-	($(BLD)/vm-limit.$(O)): 
-	($(BLD)/term.$(O)): 
-	($(BLD)/unexw32.$(O)): 
-	($(BLD)/fileio.$(O)): 
+	* makefile.w32-in ($(BLD)/w32.$(O)):
+	($(BLD)/vm-limit.$(O)):
+	($(BLD)/term.$(O)):
+	($(BLD)/unexw32.$(O)):
+	($(BLD)/fileio.$(O)):
 	($(BLD)/dispnew.$(O)): Update dependencies.
 
 	* w32term.h (w32_initialize_display_info, initialize_w32_display):
