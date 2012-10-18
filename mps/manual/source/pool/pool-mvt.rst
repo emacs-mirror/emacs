@@ -86,14 +86,19 @@ Perhaps the pool should accept some description of the mean and deviation of the
 
 
 
--------------------------
-Declared in ``mpscmv2.h``
--------------------------
+--------------------
+MVT symbol reference
+--------------------
+
+::
+
+   #include "mpscmv2.h"
+
 
 .. c:function:: mps_class_t mps_class_mvt(void)
 
-    Return the :term:`pool class` for an MVT (Manual Variable-size
-    Temporal-fit) :term:`pool`.
+    Return the :term:`pool class` for an MVT (Manual Variable
+    Temporal) :term:`pool`.
 
     When creating an MVT pool, :c:func:`mps_pool_create` takes five
     extra arguments::
@@ -106,16 +111,16 @@ Declared in ``mpscmv2.h``
                                   mps_count_t reserve_depth,
                                   mps_count_t fragmentation_limit)
 
-    ``minimum_size``, ``mean_size``, and ``maximum_size`` are the minimum,
-    mean, and maximum (typical) :term:`size` of :term:`blocks <block>`
-    expected to be allocated in the pool. Blocks smaller than
-    ``minimum_size`` and larger than ``maximum_size`` may be allocated,
-    but the pool is not guaranteed to manage them space-efficiently.
-    Furthermore, partial freeing is not supported for blocks larger
-    than ``maximum_size``; doing so will result in the storage of the
-    block never being reused. ``mean_size`` need not be an accurate
-    mean, although the pool will manage ``mean_size`` blocks more
-    efficiently if it is.
+    ``minimum_size``, ``mean_size``, and ``maximum_size`` are the
+    predicted minimum, mean, and maximum :term:`size` of :term:`blocks
+    <block>` expected to be allocated in the pool. Blocks smaller than
+    ``minimum_size`` and larger than ``maximum_size`` may be
+    allocated, but the pool is not guaranteed to manage them
+    space-efficiently. Furthermore, partial freeing is not supported
+    for blocks larger than ``maximum_size``; doing so will result in
+    the storage of the block never being reused. ``mean_size`` need
+    not be an accurate mean, although the pool will manage
+    ``mean_size`` blocks more efficiently if it is.
 
     ``reserve_depth`` is the expected hysteresis of the population of
     the pool. When blocks are freed, the pool will retain sufficient
@@ -134,12 +139,9 @@ Declared in ``mpscmv2.h``
     time efficiency, therefore is not permitted.
 
 
------------------------------
-Undocumented in ``mpscmv2.h``
------------------------------
+------------
+Undocumented
+------------
 
-.. c:function:: mps_class_t mps_class_mvt(void)
 .. c:function:: size_t mps_mvt_free_size(mps_pool_t pool)
 .. c:function:: size_t mps_mvt_size(mps_pool_t pool)
-
-

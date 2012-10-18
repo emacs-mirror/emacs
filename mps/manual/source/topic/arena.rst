@@ -101,3 +101,11 @@ Arenas do not interact. However, they may conflict with each other in terms of r
 
         /* rest of program */
     }
+
+
+
+------------------------------
+Using idle time for collection
+------------------------------
+
+See <http://info.ravenbrook.com/mail/2003/01/03/14-13-25/0.txt>

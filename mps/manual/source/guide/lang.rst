@@ -35,7 +35,7 @@ of its versions:
         The Scheme interpreter before integration with the MPS, using
         :term:`malloc` and :term:`free (2)` for memory management.
 
-    :download:`scheme-after.c`
+    :download:`scheme.c <../../../example/scheme/scheme.c>`
 
         The Scheme interpreter after integration with the MPS.
 
@@ -215,13 +215,15 @@ these features of the MPS.
 Describing your objects
 -----------------------
 
-In order for the MPS to be able to manage your objects, you need to
-tell it how to perform various operations on those objects, which you
-do by creating an :term:`object format`. Here's the code for creating
-the object format for the Scheme interpreter::
+In order for the MPS to be able to automatically manage your objects,
+you need to tell it how to perform various operations on an object
+(:term:`scan` it for :term:`references <reference>`; replace it with a
+:term:`forwarding <forwarding object>` or :term:`padding object`, and
+so on). You do this by creating an :term:`object format`. Here's the
+code for creating the object format for the Scheme interpreter::
 
     struct mps_fmt_A_s obj_fmt_s = {
-        sizeof(mps_word_t),
+        ALIGNMENT,
         obj_scan,
         obj_skip,
         NULL,
@@ -238,9 +240,36 @@ The structure :c:type:`mps_fmt_A_s` is the simplest of several object
 format variants that are appropriate for moving pools like AMC.
 
 The first element of the structure is the :term:`alignment` of objects
-belonging to this format. The Scheme interpreter needs its objects to
-be allocated at addresses which are multiples of the machine's word
-size.
+belonging to this format. Determining the alignment is hard to do
+portably, because it depends on the target architecture and on the way
+the compiler lays out its structures in memory. Here are some things
+you might try:
+
+1. Some modern compilers support the ``alignof`` operator::
+
+         #define ALIGNMENT alignof(obj_s)
+
+2. On older compilers you may be able to use this trick::
+
+        #define ALIGNMENT offsetof(struct {char c; obj_s obj;}, obj)
+
+   but this is not reliable because some compilers pack structures more
+   tightly than their alignment requirements in some circumstances (for
+   example, GCC if the ``-fstruct-pack`` option or the ``__packed__``
+   attribute is specified).
+
+3. The MPS interface provides the type :c:type:`mps_word_t`, which is
+   an unsigned integral type that is the same size as the platform's
+   :term:`object pointer` types.
+
+   On all the platforms supported by the MPS, the majority of simple
+   datatypes may be aligned on word boundaries (the possible
+   exceptions being ``double`` on 32-bit platforms, and ``long
+   double`` and :term:`function pointer <function pointer>` on 32- and
+   64-bit platforms), so in applications where these exceptional types
+   are not used (like the Scheme interpreter), you can use::
+
+        #define ALIGNMENT sizeof(mps_word_t)
 
 The other elements of the structure are the :term:`format methods
 <format method>`, which are described in the following sections. (The
@@ -764,7 +793,7 @@ that:
    :term:`weak references <weak reference (1)>`).
 
 The fourth argument is the :term:`root mode`, which tells the MPS
-whether it is allowed to place a :term:`barrier` on the root. The
+whether it is allowed to place a :term:`barrier (1)` on the root. The
 root mode ``0`` means that it is not allowed.
 
 The sixth and seventh arguments (here ``NULL`` and ``0``) are passed

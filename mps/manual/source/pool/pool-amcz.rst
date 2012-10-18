@@ -5,10 +5,21 @@ AMCZ (Automatic Mostly-Copying Zero-rank)
 =========================================
 
 
------------------------------
-Undocumented in ``mpscamc.h``
------------------------------
+General-purpose leaf-only pool class (for objects that contain no references). A variant of AMC (the Z means "Zero rank", ie. containing no references).
+
+
+
+---------------------
+AMCZ symbol reference
+---------------------
+
+::
+
+   #include "mpscamc.h"
+
+
+------------
+Undocumented
+------------
 
 .. c:function:: mps_class_t mps_class_amcz(void)
-
-
