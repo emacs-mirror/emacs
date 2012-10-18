@@ -19,6 +19,53 @@ Symbol reference
 Declared in ``mps.h``
 =====================
 
+.. c:function:: mps_bool_t mps_addr_fmt(mps_fmt_t *fmt_o, mps_arena_t arena, mps_addr_t addr)
+
+    Determine the :term:`object format` to which an address belongs.
+
+    ``fmt_o`` points to a location that will hold the address of the
+    object format, if one is found.
+
+    ``arena`` is the arena whose object formats will be considered.
+
+    ``addr`` is the address.
+
+    If ``addr`` is the address of a location inside a block allocated
+    from a pool in ``arena``, and that pool has an object format, then
+    update the location pointed to by ``fmt_o`` with the address of
+    the object format, and return true. If the pool has no object
+    format, or ``addr`` points to a location that is not managed by
+    ``arena``, return false. (There is no guaranteed behaviour if
+    neither of these conditions is satisfied.)
+
+    .. topics::
+
+        :ref:`topic-format`
+
+
+.. c:function:: mps_bool_t mps_addr_pool(mps_pool_t *pool_o, mps_arena_t arena, mps_addr_t addr)
+
+    Determine the :term:`pool` to which an address belongs.
+
+    ``pool_o`` points to a location that will hold the address of the
+    pool, if one is found.
+
+    ``arena`` is the arena whose pools will be considered.
+
+    ``addr`` is the address.
+
+    If ``addr`` is the address of a location inside a block allocated
+    from a pool in ``arena``, then update the location pointed to by
+    ``pool_o`` with the address of the pool, and return true. If
+    ``addr`` points to a location that is not managed by ``arena``,
+    return false. (There is no guaranteed behaviour if neither of
+    these conditions is satisfied.)
+
+    .. topics::
+
+        :ref:`pool`
+
+
 .. c:type:: mps_addr_t
 
     The type of :term:`addresses <address>` managed by the MPS, and
@@ -523,6 +570,45 @@ Declared in ``mps.h``
         :ref:`topic-arena`.
 
 
+.. c:function:: void mps_arena_destroy(mps_arena_t arena)
+
+    Destroy an :term:`arena`.
+
+    ``arena`` is the arena to destroy.
+
+    This function checks the consistency of the arena, flushes the
+    :term:`telemetry stream` and destroys the arena's internal control
+    structures. Additionally, :term:`virtual memory arenas <virtual
+    memory arena>` return their reserved address space to the
+    operating system if possible.
+
+    It is an error to destroy an arena without first destroying all
+    :term:`generation chains <generation chain>`, :term:`object
+    formats <object format>`, :term:`pools <pool>`, :term:`roots
+    <root>`, and :term:`threads <thread>` created in the arena.
+
+    .. topics::
+
+        :ref:`topic-arena`.
+
+
+.. c:function:: mps_res_t mps_arena_extend(mps_arena_t arena, mps_addr_t base, size_t size)
+
+    Extend a :term:`client arena` with another block of memory.
+
+    ``base`` is the :term:`address` of the block of memory that will be
+    managed by the arena.
+
+    ``size`` is its :term:`size`.
+
+    Return :c:macro:`MPS_RES_OK` if successful, or another
+    :term:`result code` if it fails.
+
+    .. topics::
+
+        :ref:`topic-arena`.
+
+
 .. c:function:: void mps_arena_formatted_objects_walk(mps_arena_t arena, mps_formatted_objects_stepper_t f, void *p, size_t s)
 
     Visit all :term:`formatted objects <formatted object>` in an
@@ -621,6 +707,34 @@ Declared in ``mps.h``
     .. topics::
 
         :ref:`topic-arena`, :ref:`topic-collection`.
+
+
+.. c:function:: size_t mps_arena_reserved(mps_arena_t arena)
+
+    Return the total :term:`address space` reserved by an
+    :term:`arena`, in :term:`bytes <byte (1)>`.
+
+    ``arena`` is the arena.
+
+    For a :term:`virtual memory arena`, this is the total address space
+    reserved via the operating system's virtual memory interface.
+
+    For a :term:`client arena`, this is the sum of the usable portions
+    of the chunks of memory passed to the arena by the :term:`client
+    program` via :c:func:`mps_arena_create` and
+    :c:func:`mps_arena_extend`.
+
+    .. topics::
+
+        :ref:`topic-arena`.
+
+    .. note::
+
+        For a client arena, the reserved address may be lower than the
+        sum of the ``size`` arguments passed to
+        :c:func:`mps_arena_create` and :c:func:`mps_arena_extend`,
+        because the arena may be unable to use the whole of each chunk
+        for reasons of alignment.
 
 
 .. c:function:: void mps_arena_roots_walk(mps_arena_t arena, mps_roots_stepper_t f, void *p, size_t s)
@@ -752,14 +866,14 @@ Declared in ``mps.h``
     collection to proceed incrementally (as for a collection that is
     scheduled automatically).
 
+    .. topics::
+
+        :ref:`topic-arena`.
+
     .. note::
 
         Contrast with :c:func:`mps_arena_collect`, which does not
         return until the collection has completed.
-
-    .. topics::
-
-        :ref:`topic-arena`.
 
 
 .. c::function:: mps_bool_t mps_arena_step(mps_arena_t arena, double interval, double multiplier)
@@ -1239,8 +1353,6 @@ Declared in ``mps.h``
         method` must still be able to create :term:`padding objects
         <padding object>` down to the alignment size.
 
-    .. note::
-
         The auto_header format is only supported by :ref:`pool-amc`
         and :ref:`pool-amcz`.
 
@@ -1268,8 +1380,8 @@ Declared in ``mps.h``
     in :term:`copying <copying garbage collection>` or :term:`moving
     <moving garbage collector>` :term:`pools <pool>` (just like
     variant A); the addition of a :term:`class method` allows more
-    information to be passed to various support tools (such as
-    graphical browsers). See :c:type:`mps_fmt_class_t`.
+    information to be passed to support tools. See
+    :c:type:`mps_fmt_class_t`.
 
     .. topics::
 
@@ -1283,8 +1395,8 @@ Declared in ``mps.h``
     ``addr`` is the address of the object whose class is of interest.
 
     Returns an address that is related to the class or type of the
-    object, for passing on to support tools (such as graphical
-    browsers), or a null pointer if this is not possible.
+    object, for passing on to support tools, or a null pointer if this
+    is not possible.
 
     It is recommended that a null pointer be returned for
     :term:`padding objects <padding object>` and :term:`forwarding
@@ -1368,6 +1480,20 @@ Declared in ``mps.h``
 
         :ref:`topic-format`.
 
+
+.. c:function:: void mps_fmt_destroy(mps_fmt_t fmt)
+
+    Destroy an :term:`object format`.
+
+    ``fmt`` is the object format to destroy.
+
+    It is an error to destroy an object format if there exists a
+    :term:`pool` using the format. The pool must be destroyed first.
+
+    .. topics::
+
+        :ref:`topic-format`.
+  
 
 .. c:type:: void (*mps_fmt_fwd_t)(mps_addr_t old, mps_addr_t new)
 
@@ -1509,15 +1635,15 @@ Declared in ``mps.h``
 
     A skip method is not allowed to fail.
 
+    .. topics::
+
+        :ref:`topic-format`, :ref:`topic-scanning`.
+
     .. note::
 
         The MPS uses this method to determine the size of objects (by
         subtracting ``addr`` from the result) as well as skipping over
         them.
-
-    .. topics::
-
-        :ref:`topic-format`, :ref:`topic-scanning`.
 
 
 .. c:type:: mps_fmt_t
@@ -1551,6 +1677,26 @@ Declared in ``mps.h``
     .. topics::
 
         :ref:`topic-arena`, :ref:`topic-format`.
+
+
+.. c:type:: mps_frame_t
+
+    The type of :term:`allocation frames <allocation frame>`.
+
+    An allocation frame is a marker that can pushed onto an
+    :term:`allocation point` by calling :c:func:`mps_ap_frame_push`,
+    and then popped by calling :c:func:`mps_ap_frame_pop` to indicate
+    that all blocks allocated on the allocation point are :term:`dead`
+    (in the case of :term:`manual <manual memory management>` pools),
+    or very likely dead (in the case of :term:`automatic <automatic
+    memory management>` pools).
+
+    Allocation frames can be used by the :term:`client program` to
+    efficiently implement stack-like patterns of allocation.
+
+    .. topics::
+
+        :ref:`topic-frame`.
 
 
 .. c:function:: void mps_free(mps_pool_t pool, mps_addr_t addr, size_t size)
@@ -1627,6 +1773,10 @@ Declared in ``mps.h``
 
     will return true if the block has moved.
 
+    .. topics::
+
+        :ref:`topic-location`.
+
     .. note::
 
         It is an error to call :c:func:`mps_ld_add` on the same
@@ -1643,10 +1793,6 @@ Declared in ``mps.h``
         using the same location dependency. The practical upshot of
         this is that there should be a lock associated with each
         location dependency.
-
-    .. topics::
-
-        :ref:`topic-location`.
 
 
 .. c:function:: mps_bool_t mps_ld_isstale(mps_ld_t ld, mps_arena_t arena, mps_addr_t addr)
@@ -1676,6 +1822,10 @@ Declared in ``mps.h``
     circumstances (but will strive to return false if the objects
     encapsulated in the location dependency have not moved).
 
+    .. topics::
+
+        :ref:`topic-location`.
+
     .. note::
 
         :c:func:`mps_ld_isstale` may report a false positive
@@ -1686,10 +1836,6 @@ Declared in ``mps.h``
         :c:func:`mps_ld_isstale` is thread-safe with respect to itself
         and with respect to :c:func:`mps_ld_add`, but not with respect
         to :c:func:`mps_ld_reset`.
-
-    .. topics::
-
-        :ref:`topic-location`.
 
 
 .. c:function:: void mps_ld_merge(mps_ld_t dest_ld, mps_arena_t arena, mps_ld_t src_ld)
@@ -1870,8 +2016,6 @@ Declared in ``mps.h``
         enable the :term:`client program` to place it directly into
         scanned memory, without imposing the restriction that the C
         stack be a :term:`root`.
-
-    .. note::
 
         The message itself is not affected by invoking this method.
         Until the client program calls :c:func:`mps_message_discard`
@@ -2280,6 +2424,28 @@ Declared in ``mps.h``
         :ref:`topic-debugging`.
 
 
+.. c:function:: void mps_pool_destroy(mps_pool_t pool)
+
+    Destroy a :term:`pool`.
+
+    ``pool`` is the pool to destroy.
+
+    This function checks the consistency of the pool, destroys the
+    pool's internal control structures and causes the pool's memory to
+    be returned to the :term:`arena` for reuse by other pools, or to
+    be returned to the operating system.  Blocks allocated from the
+    pool may no longer be used.
+
+    It is an error to destroy a pool without first destroying all
+    :term:`allocation points <allocation point>` and :term:`segregated
+    allocation caches <segregated allocation cache>` created in the
+    pool.
+
+    .. topics::
+
+        :ref:`pool`.
+
+
 .. c:function:: mps_rank_t mps_rank_ambig(void)
 
     Return the :term:`rank` of :term:`ambiguous roots <ambiguous
@@ -2464,8 +2630,6 @@ Declared in ``mps.h``
         limit` would have been exceeded is indicated by returning
         :c:macro:`MPS_RES_COMMIT_LIMIT`, not ``MPS_RES_MEMORY``.
 
-    .. note::
-
         Running out of :term:`address space` (as might happen in
         :term:`virtual memory` systems) is indicated by returning
         :c:macro:`MPS_RES_RESOURCE`, not ``MPS_RES_MEMORY``.
@@ -2572,12 +2736,34 @@ Declared in ``mps.h``
         You must not specify ``MPS_RM_PROT`` on a root allocated by
         the MPS.
 
-    .. note::
-
         No page may contain parts of two or more protectable roots.
         You mustn't specify ``MPS_RM_PROT`` if the :term:`client
         program` or anything other than (this instance of) the MPS is
         going to protect or unprotect the relevant pages.
+
+
+.. c:type:: mps_rm_t
+
+    The type of :term:`root modes <root mode>`.
+
+    A root mode describes whether a :term:`root` is :term:`constant
+    <constant root>`, :term:`protectable <protectable root>`, or both,
+    and lets the MPS know whether it may place a :term:`barrier (1)`
+    on the root.
+
+    It should be the sum of some subset of :c:macro:`MPS_RM_CONST` and
+    :c:macro:`MPS_RM_PROT`, or zero (meaning neither constant or
+    protectable).
+
+    .. topics::
+
+        :ref:`topic-root`.
+
+    .. note::
+
+        As of version 1.110, the MPS does not place barriers on roots,
+        and so does not make use of the root mode. The feature may be
+        added in a future release.
 
 
 .. c:function:: mps_res_t mps_root_create(mps_root_t *root_o, mps_arena_t arena, mps_rank_t rank, mps_rm_t rm, mps_root_scan_t root_scan, void *p, size_t s)
@@ -2767,6 +2953,17 @@ Declared in ``mps.h``
         :ref:`topic-root`.
 
 
+.. c:function:: void mps_root_destroy(mps_root_t root)
+
+    Deregister a :term:`root` and destroy its description.
+
+    ``root`` is the root.
+
+    .. topics::
+
+        :ref:`topic-root`.
+
+
 .. c:type:: typedef mps_res_t (*mps_root_scan_t)(mps_ss_t ss, void *p, size_t s)
 
     The type of root scanning functions for :c:func:`mps_root_create`.
@@ -2870,15 +3067,11 @@ Declared in ``mps.h``
         the same thing. The macro is faster, but generates more code
         and does less checking.
 
-    .. note::
-
         The :term:`client program` is responsible for synchronizing
         the access to the cache, but if the cache decides to access
         the pool, the MPS will properly synchronize with any other
         :term:`threads <thread>` that might be accessing the same
         pool.
-
-    .. note::
 
         Blocks allocated through a segregated allocation cache should
         only be freed through a segregated allocation cache with the
@@ -2947,13 +3140,9 @@ Declared in ``mps.h``
         :term:`threads <thread>` that might be accessing the same
         pool.
 
-    .. note::
-
         There's also a macro :c:func:`MPS_SAC_FREE_FAST` that does the
         same thing. The macro is faster, but generates more code and
         does no checking.
-
-    .. note::
 
         :c:func:`mps_sac_free` does very little checking: it's
         optimized for speed. :term:`Double frees <double free>` and
@@ -3196,8 +3385,6 @@ Declared in ``mps.h``
         case of an error it is allowed to return from the scan
         method without invoking :c:func:`MPS_SCAN_END`.
 
-    .. note::
-
         Between :c:func:`MPS_SCAN_BEGIN` and :c:func:`MPS_SCAN_END`, the
         scan state is in a special state, and must not be passed to a
         function. If you really need to do so, for example because you
@@ -3384,6 +3571,17 @@ Declared in ``mps.h``
         :ref:`topic-root`.
 
 
+.. c:type:: mps_word_t
+    
+    An unsigned integral type that is the same size as an
+    :term:`object pointer`, so that ``sizeof(mps_word_t) ==
+    sizeof(void*)``.
+
+    The exact identity of this type is
+    :term:`platform`\-dependent. Typical identities are ``unsigned
+    long`` and ``unsigned __int_64``.2
+
+
 ========================
 Declared in ``mpsacl.h``
 ========================
@@ -3393,24 +3591,23 @@ Declared in ``mpsacl.h``
     Return the :term:`arena class` for a :term:`client arena`.
 
     A client arena gets its managed memory from the :term:`client
-    program`. This memory block is passed when the arena is created.
+    program`. This memory chunk is passed when the arena is created.
 
     When creating a client arena, :c:func:`mps_arena_create` takes two
     extra arguments::
 
         mps_res_t mps_arena_create(mps_arena_t *arena_o,
                                    mps_arena_class_t mps_arena_class_cl,
-                                   size_t size, void *block)
+                                   size_t size, mps_addr_t base)
 
-    ``block`` is the :term:`address` of the block of memory that will be
-    managed by the arena.
+    ``base`` is the :term:`address` of the chunk of memory that will
+    be managed by the arena.
 
     ``size`` is its :term:`size`.
 
-    If the block is too small to hold the internal arena structures,
+    If the chunk is too small to hold the internal arena structures,
     :c:func:`mps_arena_create` returns :c:macro:`MPS_RES_MEMORY`. In
-    this case, you should allocate a (much) larger block, and try
-    again.
+    this case, you need to use a (much) larger chunk.
 
     .. topics::
 
@@ -3497,22 +3694,10 @@ Declared in ``mpsavm.h``
 Undocumented in ``mps.h``
 =========================
 
-.. c:type:: mps_frame_t
-.. c:type:: mps_word_t
-.. c:type:: mps_shift_t
-.. c:type:: mps_rm_t
-.. c:type:: mps_sac_freelist_block_s
 .. c:type:: mps_fmt_fixed_s
-.. c:function:: void mps_arena_destroy(mps_arena_t arena)
-.. c:function:: size_t mps_arena_reserved(mps_arena_t arena)
-.. c:function:: mps_res_t mps_arena_extend(mps_arena_t arena, mps_addr_t base, size_t size)
 .. c:function:: mps_res_t mps_fmt_create_fixed(mps_fmt_t *fmt_o, mps_arena_t arena, mps_fmt_fixed_s *fmt_fixed)
-.. c:function:: void mps_fmt_destroy(mps_fmt_t format)
-.. c:function:: mps_bool_t mps_addr_pool(mps_pool_t *pool_o, mps_arena_t arena, mps_addr_t addr)
-.. c:function:: mps_bool_t mps_addr_fmt(mps_fmt_t *fmt_o, mps_arena_t arena, mps_addr_t addr)
 .. c:function:: mps_res_t mps_pool_create(mps_pool_t *pool_o, mps_arena_t arena, mps_class_t class, ...)
 .. c:function:: mps_res_t mps_pool_create_v(mps_pool_t *pool_o, mps_arena_t arena, mps_class_t class, va_list args)
-.. c:function:: void mps_pool_destroy(mps_pool_t pool)
 .. c:function:: mps_res_t mps_ap_create(mps_ap_t *ap_o, mps_pool_t pool, ...)
 .. c:function:: mps_res_t mps_ap_create_v(mps_ap_t *ap_o, mps_pool_t pool, va_list args)
 .. c:function:: void mps_ap_destroy(mps_ap_t mps_ap)
@@ -3524,7 +3709,6 @@ Undocumented in ``mps.h``
 .. c:function:: size_t mps_reservoir_available(mps_arena_t arena)
 .. c:function:: MPS_RESERVE_BLOCK(mps_res_t res_v, mps_addr_t p_v, mps_ap_t ap, size_t size)
 .. c:function:: MPS_RESERVE_WITH_RESERVOIR_PERMIT_BLOCK(mps_res_t res_v, mps_addr_t p_v, mps_ap_t ap, size_t size)
-.. c:function:: void mps_root_destroy(mps_root_t mps_root)
 .. c:type:: void *(*mps_tramp_t)(void *p, size_t s)
 .. c:function:: void mps_tramp(void **r_o, mps_tramp_t tramp, void *p, size_t s)
 .. c:function:: mps_res_t mps_thread_reg(mps_thr_t *mps_thr_o, mps_arena_t arena)
