@@ -100,6 +100,7 @@
 (require 'erc-compat)
 (eval-when-compile (require 'cl))
 (autoload 'erc-with-buffer "erc" nil nil 'macro)
+(autoload 'erc-with-server-buffer "erc" nil nil 'macro)
 (autoload 'erc-log "erc")
 
 ;;;; Variables and options
