@@ -33,10 +33,17 @@ Declared in ``mps.h``
     If ``addr`` is the address of a location inside a block allocated
     from a pool in ``arena``, and that pool has an object format, then
     update the location pointed to by ``fmt_o`` with the address of
-    the object format, and return true. If the pool has no object
-    format, or ``addr`` points to a location that is not managed by
-    ``arena``, return false. If neither of these conditions is
-    satisfied, :c:func:`mps_addr_fmt` may return either true or false.
+    the object format, and return true.
+
+    If ``addr`` is the address of a location inside a block allocated
+    from a pool in ``arena``, but that pool has no object format,
+    return false.
+
+    If ``addr`` points to a location that is not managed by ``arena``,
+    return false.
+
+    If none of the above conditions is satisfied,
+    :c:func:`mps_addr_fmt` may return either true or false.
 
     .. topics::
 
@@ -64,9 +71,12 @@ Declared in ``mps.h``
 
     If ``addr`` is the address of a location inside a block allocated
     from a pool in ``arena``, then update the location pointed to by
-    ``pool_o`` with the address of the pool, and return true. If
-    ``addr`` points to a location that is not managed by ``arena``,
-    return false. If neither of these conditions is satisfied,
+    ``pool_o`` with the address of the pool, and return true.
+
+    If ``addr`` points to a location that is not managed by ``arena``,
+    return false.
+
+    If neither of the above conditions is satisfied,
     :c:func:`mps_addr_pool` may return either true or false.
 
     .. topics::
