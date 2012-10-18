@@ -20,9 +20,15 @@ Objects in an SNC pool may not be registered for finalization.
 Objects in an SNC pool will not move.
 
 
--------------------------
-Declared in ``mpscsnc.h``
--------------------------
+
+--------------------
+SNC symbol reference
+--------------------
+
+::
+
+   #include "mpscsnc.h"
+
 
 .. c:function:: mps_class_t mps_class_snc(void)
 
@@ -43,5 +49,3 @@ Declared in ``mpscsnc.h``
     .. topics::
 
         :ref:`pool-snc`.
-
-

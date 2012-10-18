@@ -72,6 +72,26 @@ TODO, QUERIES AND SUGGESTIONS
 40. In the "choosing a pool" procedure there's no mention of
     protection. Can we subsume this under "moving"?
 
+41. Does mps_arena_step offer any guarantees about how long it will
+    pause for? (I presume not: I've written "makes every effort to
+    return within interval seconds, but does not guarantee to do so".)
+
+42. RHSK's documentation for mps_arena_step says "Note that
+    mps_arena_step will still step, even if the arena has been
+    clamped. This is to allow a client to advance a collection only at
+    these mps_arena_step points (but note that barrier hits will also
+    cause collection work)." However, looking at the implementation,
+    it seems to me that if mps_arena_step does anything, then it
+    releases the arena. Is the client program expected to call
+    mps_arena_clamp after mps_arena_step returns, if they want to
+    support this use case?
+
+    Similar question if the arena is in the parked state.
+
+43. How does mps_arena_start_collect interact with the arena state?
+    (It seems from looking at the implementation that it puts the
+    arena into the unclamped state, like mps_arena_release.)
+
 
 DONE, ANSWERED
 
