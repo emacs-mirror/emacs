@@ -69,7 +69,7 @@ Memory Management Glossary: U
 
     unmapped
 
-        .. aka:: *free (4)*.
+        .. aka:: *free*.
 
         A range of :term:`virtual addresses <virtual address>` is said
         to be *unmapped* (*free* on Windows) if there is no

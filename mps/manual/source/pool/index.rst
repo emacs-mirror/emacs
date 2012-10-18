@@ -42,19 +42,19 @@ First, answer these questions about your data:
 And then look up your answers in this table to find the recommended
 pool class to use:
 
-==========  =======  ====================  ===================================
-Automatic?  Moving?  References?           Use this pool class
-==========  =======  ====================  ===================================
-yes         yes      none                  :ref:`pool-amcz`
-yes         yes      exact                 :ref:`pool-amc`
-yes         yes      weak                  :ref:`pool-awl`
-yes         no       none                  :ref:`pool-lo`
-yes         no       exact                 :ref:`pool-ams`
-yes         no       weak                  nothing suitable
-no          *any*    none                  :ref:`pool-mvt`
-no          *any*    exact                 :ref:`pool-mvt` [1]_
-no          *any*    weak                  nothing suitable
-==========  =======  ====================  ===================================
+==========  ========  ====================  ===================================
+Automatic?  Movable?  References?           Use this pool class
+==========  ========  ====================  ===================================
+yes         yes       none                  :ref:`pool-amcz`
+yes         yes       exact                 :ref:`pool-amc`
+yes         yes       weak                  :ref:`pool-awl`
+yes         no        none                  :ref:`pool-lo`
+yes         no        exact                 :ref:`pool-ams`
+yes         no        weak                  nothing suitable
+no          *any*     none                  :ref:`pool-mvt`
+no          *any*     exact                 :ref:`pool-mvt` [1]_
+no          *any*     weak                  nothing suitable
+==========  ========  ====================  ===================================
 
 .. note::
 

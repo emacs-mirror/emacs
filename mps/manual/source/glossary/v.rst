@@ -115,7 +115,7 @@ Memory Management Glossary: V
 
     virtual memory
 
-        .. aka:: *VM (1)*.
+        .. aka:: *VM*.
 
         In a *virtual memory* (*VM*) system, the program code deals
         with :term:`virtual addresses <virtual address>`. Upon use,

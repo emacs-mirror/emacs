@@ -1,12 +1,12 @@
-TODO
+TODO, QUERIES AND SUGGESTIONS
 
- 2. Create new types of objects for pools and topics.
+ 2. Create new types of Sphinx objects for pools and topics.
 
- 3. Glossary entries need permalinks. See
+ 3. Glossary entries need permalink markers. See
     <https://bitbucket.org/birkenfeld/sphinx/issue/996/expose-glossary-entry-link-on-hover>
 
  5. Fix the general index so that (1) aren't interpreted as
-    subentries.
+    subentries?
 
  7. Re-do the diagrams in vector form and using the colour palette.
 
@@ -19,49 +19,7 @@ TODO
 11. Support MMREF-style anchors to the glossary (#garbage.collection
     instead of #garbage-collection).
 
-12. Superscripts in aka sections.
-
-
-QUERIES AND SUGGESTIONS
-
- 6. The location dependency functions all take an arena as an
-    argument. What is the role of this argument?
-
-    ANSWER: if you have multiple arenas, you are going to have to have
-    an ld_t for each arena, and add each address you are interested in
-    for each arena. (If you happen to know which arena it's in, you
-    can just specify it for that arena.) So for isstale, it better be
-    the same arena as add.
-
- 7. What is the role of the third (addr) argument to mps_ld_isstale?
-    LDIsStale says "UNUSED(addr);" so maybe it is unused.
-
-    ANSWER: in theory it's the address you want to check, but in the
-    implementation it tells you for all addresses. The LD functions
-    have an intention that is not quite the same as the design
-    documentation. (But what, asks RB, is the point of ld_add?)
-    Perhaps in the case of isstale it's "a piece of information that
-    might be useful for debugging".
-
- 8. Is the material in the pool class comparison table at all accurate?
-
-    ANSWER: It will be better to have a flowchart approach rather than
-    a table of properties.
-
-10. How does fixing interact with tagged references? Do I need to
-    remove the tag before fixing a reference? Do I need to restore the
-    tag afterwards? I thought that both would be necessary but the
-    critical path documentation has an example from OpenDylan with
-    tagged references that does neither:
-    <https://info.ravenbrook.com/project/mps/master/design/critical-path.txt>
-
-    ANSWER: we'll document that all references need to be
-    decrypted/de-tagged. There ought to be some slack in practice but
-    it needs thought. Make a job.
-
-    ACTION: made <https://info.ravenbrook.com/project/mps/issue/job003317/>
-
-14. I need to document the values in mps_gen_param_s. I believe they
+26. I need to document the values in mps_gen_param_s. I believe they
     are the capacity (size of the generation in kilobytes) and the
     mortality (the proportion of objects in this generation that are
     expected to die in a collection). But what do they mean to the
@@ -72,7 +30,7 @@ QUERIES AND SUGGESTIONS
     document about this based on the Lisp Machine:
     analysis.strategy.lisp-machine or something.
 
-15. Wouldn't it make mps_amc_apply easier to document if there were a
+27. Wouldn't it make mps_amc_apply easier to document if there were a
     typedef for the stepper function type, something like this?
 
     typedef void (*mps_amc_apply_stepper_t)(mps_addr_t object, void *p, size_t s)
@@ -80,16 +38,10 @@ QUERIES AND SUGGESTIONS
     ANSWER: Richard says I can make this change since it's
     backwards-compatible.
 
-19. What is a root mode and how do I explain it?
-
-    ANSWER: currently a root mode has no effect. It tells the MPS
-    whether it's OK for the MPS to put a barrier on the
-    root. Recommend pass zero. For future expansion.
-
-20. You create a marker on the stack and pass it to
-    mps_root_create_reg to tell it where the bottom of the stack
-    is. Fine. But then you are supposed to call your program via
-    mps_tramp. If the MPS is trampoling your whole program, why does
+32. You create a marker on the stack and pass it to
+    mps_root_create_reg to tell it where the bottom of the stack is.
+    Fine. But then you are supposed to call your program via
+    mps_tramp. If the MPS is trampolining your whole program, why does
     the MPS need your help to work out where the stack is? It could
     work it out for itself surely?
 
@@ -101,31 +53,17 @@ QUERIES AND SUGGESTIONS
     "mps_tramp needs to wrap any code that might handle references
     into a pool class that requires it." [All the ones with A.]
 
-21. Status. At what point will the work be "good enough" to merge back
+33. Status. At what point will the work be "good enough" to merge back
     to the master sources?
 
-24. The discussion in the Scheme example about mps_reserve suggests
-    that mps_alloc doesn't require aligned sizes. Is that right? Needs
-    to be added to mps_alloc reference if so.
+37. Some of the Scheme objects could be moved to a leaf-only pool
+    (e.g. AMCZ).
 
-    ANSWER: in fact there's no rule about this. Depends on the pool
-    class. "It doesn't unless the pool class says it does".
-
-25. Some of the Scheme objects could be moved to a leaf-only pool.
-
-26. Document about interface conventions and interface policies. What
+38. Document about interface conventions and interface policies. What
     do we guarantee about support for the external symbols?
 
-27. We don't support scanning the stack/registers except via
-    mps_stack_scan_ambig? Document this?
 
-    ANSWER: this is the only one we support at the moment.
-
-30. Move symbol references for the pool classes to the corresponding
-    pool document.
-
-
-TODO DONE
+DONE, ANSWERED
 
  1. Create a new domain
     <http://sphinx.pocoo.org/ext/appapi.html#sphinx.domains.Domain>
@@ -136,10 +74,9 @@ TODO DONE
 
 10. Pluralize "Topic" to "Topics" and so on.
 
+12. Superscripts in aka sections.
 
-ANSWERED QUERIES
-
- 1. Does the object format description (mps_fmt_A_s etc) have to be
+13. Does the object format description (mps_fmt_A_s etc) have to be
     static as in the Scheme example? Or is it OK to throw it away
     after calling mps_fmt_create?
 
@@ -152,7 +89,7 @@ ANSWERED QUERIES
     so it is OK for the client program to put these structures on the
     stack otherwise dispose of them.
 
- 2. What is the difference, if any, between mps_word_t and MPS_T_WORD?
+14. What is the difference, if any, between mps_word_t and MPS_T_WORD?
 
     ANSWER: MPS_T_WORD comes from mpstd.h which contains no C code
     (only macro definitions). It used to be the case that mpstd.h was
@@ -163,7 +100,7 @@ ANSWERED QUERIES
 
     ACTION: made <https://info.ravenbrook.com/project/mps/issue/job003315/>
 
- 3. How can I explain why the Scheme example uses sizeof(mps_word_t)
+15. How can I explain why the Scheme example uses sizeof(mps_word_t)
     as its alignment? Why not MPS_PF_ALIGN (or are client programs not
     supposed to look at mpstd.h)? Why not something of its own
     manufacture, like sizeof(union {long, size_t, void*})?
@@ -172,12 +109,12 @@ ANSWERED QUERIES
 
     ACTION: made <https://info.ravenbrook.com/project/mps/issue/job003316/>
 
- 4. Why does the Scheme example have a copy method in its object
+16. Why does the Scheme example have a copy method in its object
     format when the reference manual says it's obsolete?
 
     ANSWER: It wasn't obsolete when it was written. I removed it.
 
- 5. What is the difference between the "event stream" and the
+17. What is the difference between the "event stream" and the
     "telemetry stream"? Are these names for the same thing? Or is
     there a distinction (for example, "event stream" refers to the
     internal, unfiltered, stream of events and "telemetry stream"
@@ -186,7 +123,31 @@ ANSWERED QUERIES
     ANSWER: the event stream is the implementation of the telemetry
     stream, so the user doc can refer to "telemetry stream".
 
- 9. This code seems a bit confused about what to do:
+18. The location dependency functions all take an arena as an
+    argument. What is the role of this argument?
+
+    ANSWER: if you have multiple arenas, you are going to have to have
+    an ld_t for each arena, and add each address you are interested in
+    for each arena. (If you happen to know which arena it's in, you
+    can just specify it for that arena.) So for isstale, it better be
+    the same arena as add.
+
+19. What is the role of the third (addr) argument to mps_ld_isstale?
+    LDIsStale says "UNUSED(addr);" so maybe it is unused.
+
+    ANSWER: in theory it's the address you want to check, but in the
+    implementation it tells you for all addresses. The LD functions
+    have an intention that is not quite the same as the design
+    documentation. (But what, asks RB, is the point of ld_add?)
+    Perhaps in the case of isstale it's "a piece of information that
+    might be useful for debugging".
+
+20. Is the material in the pool class comparison table at all accurate?
+
+    ANSWER: It will be better to have a flowchart approach rather than
+    a table of properties.
+
+21. This code seems a bit confused about what to do:
 
         assert(0);
         fprintf(stderr, "Unexpected object on the heap\n");
@@ -198,7 +159,20 @@ ANSWERED QUERIES
     ANSWER: the assertion and the return seem to be bogus, so I
     removed them.
 
-11. This code from mps_chat in the Scheme example is wrong:
+22. How does fixing interact with tagged references? Do I need to
+    remove the tag before fixing a reference? Do I need to restore the
+    tag afterwards? I thought that both would be necessary but the
+    critical path documentation has an example from OpenDylan with
+    tagged references that does neither:
+    <https://info.ravenbrook.com/project/mps/master/design/critical-path.txt>
+
+    ANSWER: we'll document that all references need to be
+    decrypted/de-tagged. There ought to be some slack in practice but
+    it needs thought. Make a job.
+
+    ACTION: made <https://info.ravenbrook.com/project/mps/issue/job003317/>
+
+23. This code from mps_chat in the Scheme example is wrong:
 
         if (type == mps_message_type_gc_start()) {
           printf("Collection %lu started.\n", (unsigned long)mps_collections(arena));
@@ -221,24 +195,24 @@ ANSWERED QUERIES
 
     ACTION: made <https://info.ravenbrook.com/project/mps/issue/job003318/>
 
-12. It seems "tricky" to re-use fowarding objects as padding objects
+24. It seems "tricky" to re-use fowarding objects as padding objects
     by setting their forwarding pointer to NULL. Wouldn't it be
     simpler to explain if we had TYPE_PAD for multiple-word padding
     objects? Things are difficult enough to explain as it is!
 
     ANSWER: It would be simpler, so I made this change.
 
-13. The Scheme example says, "Adapting it to use the MPS took
+25. The Scheme example says, "Adapting it to use the MPS took
     approximately two hours". I doubt this would be the common case,
     and it would be better to under-promise here and over-deliver.
 
     ANSWER: take it out.
 
-16. Wouldn't the Scheme example be better without TAB characters?
+28. Wouldn't the Scheme example be better without TAB characters?
 
     ANSWER: maybe, but it would lead to merge conflicts. So no change.
 
-17. The example code looks better (easier to see the structure) if I
+29. The example code looks better (easier to see the structure) if I
     use an indentation of four spaces. There are also cases where the
     original code is inconsistent (compare the indentation of the case
     labels in "print" versus "obj_scan"). I've made these consistent
@@ -248,20 +222,26 @@ ANSWERED QUERIES
 
     ANSWER: no.
 
-18. The Scheme example is inconsistent in its use of whitespace: for
+30. The Scheme example is inconsistent in its use of whitespace: for
     example sometimes there's a space after "if" and sometimes not.
 
     ANSWER: maybe so, but it would lead to merge conflicts. So no
     change.
 
-22. The generic example of using mps_tramp need to pass argv and argc,
+31. What is a root mode and how do I explain it?
+
+    ANSWER: currently a root mode has no effect. It tells the MPS
+    whether it's OK for the MPS to put a barrier on the
+    root. Recommend pass zero. For future expansion.
+
+34. The generic example of using mps_tramp need to pass argv and argc,
     and return an exit code, so maybe it would make sense to do that
     in the Scheme example, even though Scheme doesn't use these
     parameters.
 
     ANSWER: no.
 
-23. There's a lot of stuff to explain here, and I think some of it
+35. There's a lot of stuff to explain here, and I think some of it
     could be simplified:
 
     a. The common trampoline case (passing argv and argc, and
@@ -272,7 +252,19 @@ ANSWERED QUERIES
 
     ANSWER: leave it as it is.
 
-28. The fragmentation_limit argument to mps_class_mvt is an integer
+36. The discussion in the Scheme example about mps_reserve suggests
+    that mps_alloc doesn't require aligned sizes. Is that right? Needs
+    to be added to mps_alloc reference if so.
+
+    ANSWER: in fact there's no rule about this. Depends on the pool
+    class. "It doesn't unless the pool class says it does".
+
+39. We don't support scanning the stack/registers except via
+    mps_stack_scan_ambig? Document this?
+
+    ANSWER: this is the only one we support at the moment.
+
+40. The fragmentation_limit argument to mps_class_mvt is an integer
     representing a percentage between 1 and 100. For consistency with
     mps_gen_param_s this should be a double between 0 (exclusive) and
     1. Can we change this?
@@ -281,8 +273,10 @@ ANSWERED QUERIES
 
     ACTION: made <https://info.ravenbrook.com/project/mps/issue/job003319/>
 
-29. Move symbol reference from mpsio.h, mpstd.h and mpslib.h to the
+41. Move symbol reference from mpsio.h, mpstd.h and mpslib.h to the
     plinth topic document.
 
     ACTION: done.
 
+42. Move symbol references for the pool classes to the corresponding
+    pool document.

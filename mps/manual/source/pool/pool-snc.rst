@@ -18,3 +18,30 @@ If an allocation point is created in an SNC pool, then the call to :c:func:`mps_
 Objects in an SNC pool may not be registered for finalization.
 
 Objects in an SNC pool will not move.
+
+
+=========================
+Declared in ``mpscsnc.h``
+=========================
+
+.. c:function:: mps_class_t mps_class_snc(void)
+
+    Return the :term:`pool class` for an SNC (Stack No Check)
+    :term:`pool`.
+
+    When creating an SNC pool, :c:func:`mps_pool_create` takes one
+    extra argument::
+
+        mps_res_t mps_pool_create(mps_pool_t *pool_o, mps_arena_t arena,
+                                  mps_class_t mps_class_snc(),
+                                  mps_fmt_t fmt)
+
+    ``fmt`` specifies the :term:`object format` for the objects
+    allocated in the pool. The format should provide at least the
+    methods scan, skip, and pad.
+
+    .. topics::
+
+        :ref:`pool-snc`.
+
+
