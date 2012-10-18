@@ -1,12 +1,10 @@
 TODO, QUERIES AND SUGGESTIONS
 
- 2. Create new types of Sphinx objects for pools and topics.
-
  3. Glossary entries need permalink markers. See
     <https://bitbucket.org/birkenfeld/sphinx/issue/996/expose-glossary-entry-link-on-hover>
 
  5. Fix the general index so that (1) aren't interpreted as
-    subentries?
+    subentries? (Or maybe it's OK as is?)
 
  7. Re-do the diagrams in vector form and using the colour palette.
 
@@ -43,73 +41,23 @@ TODO, QUERIES AND SUGGESTIONS
     into a pool class that requires it." [All the ones with A.]
 
 37. Some of the Scheme objects could be moved to a leaf-only pool
-    (e.g. AMCZ).
+    (e.g. AMCZ) in an "advanced topics" section of the user guide.
 
 38. Document about interface conventions and interface policies. What
     do we guarantee about support for the external symbols?
 
-39. In the "choosing a pool" procedure there's no mention of ambiguous
-    references. I omitted them because the NB/RIT chart of pool
-    properties seemed to suggest that no pools can contain ambiguous
-    references. But is this right? Couldn't you allocate your block
-    containing ambiguous references in a non-moving, non-scanning pool
-    like MVT and register it as an ambiguous root?
-
-40. In the "choosing a pool" procedure there's no mention of
-    protection. Can we subsume this under "moving"?
-
-41. Does mps_arena_step offer any guarantees about how long it will
-    pause for? (I presume not: I've written "makes every effort to
-    return within interval seconds, but does not guarantee to do so".)
-
-42. RHSK's documentation for mps_arena_step says "Note that
-    mps_arena_step will still step, even if the arena has been
-    clamped. This is to allow a client to advance a collection only at
-    these mps_arena_step points (but note that barrier hits will also
-    cause collection work)." However, looking at the implementation,
-    it seems to me that if mps_arena_step does anything, then it
-    releases the arena. Is the client program expected to call
-    mps_arena_clamp after mps_arena_step returns, if they want to
-    support this use case?
-
-    Similar question if the arena is in the parked state.
-
-43. How does mps_arena_start_collect interact with the arena state?
-    (It seems from looking at the implementation that it puts the
-    arena into the unclamped state, like mps_arena_release.)
-
-44. How do I explain the condition on mps_addr_pool and mps_addr_fmt?
-    It's clear what this is if the address is the address of an
-    allocated block? But do we guarantee anything if it isn't? The
-    implementation succeeds if the address points anywhere within a
-    page allocated to a pool.
-
-45. Constraints on order of _destroy functions. Is it an error to
-    destroy an object format while there are still pools that refer to
-    it?
-
-46. mps.h declares the type mps_shift_t for a "shift amount" but this
-    is not used anywhere in the MPS. Remove?
-
-47. The structures mps_sac_s and mps_sac_freelist_block_s are declared
-    in mps.h. I presume that this is so for the benefit of the macros
-    MPS_SAC_ALLOC_FAST and MPS_SAC_FREE_FAST, and the details of these
-    structues are not actually part of the public interface.
-
-48. mps_fmt_fixed_s is just like mps_fmt_A_s but with no "skip". I
-    presume it's for fixed-size pools. But the only fixed-size pool is
-    MFS, which has no public header, so I presume it's for MPS
-    internal use only. What should I say about this?
-
-49. It's rather unfortunate that mps_arena_create take arguments
-    (size, base) but mps_arena_extend takes (base, size). I guess
-    there's nothing to be done about this now.
+56. Deprecation warnings need nicer formatting. Also "since version
+    1.111" is wrong: "starting with version 1.111" would be right.
 
 
 DONE, ANSWERED
 
  1. Create a new domain
     <http://sphinx.pocoo.org/ext/appapi.html#sphinx.domains.Domain>
+
+ 2. Create new types of Sphinx objects for pools and topics.
+
+    ACTION: doesn't seem necessary. Ordinary cross-references work fine.
 
  4. Make (1), (2) etc into superscripts
 
@@ -339,3 +287,100 @@ DONE, ANSWERED
 
 42. Move symbol references for the pool classes to the corresponding
     pool document.
+
+43. In the "choosing a pool" procedure there's no mention of ambiguous
+    references. I omitted them because the NB/RIT chart of pool
+    properties seemed to suggest that no pools can contain ambiguous
+    references. But is this right? Couldn't you allocate your block
+    containing ambiguous references in a non-moving, non-scanning pool
+    like MVT and register it as an ambiguous root?
+
+    ANSWER: Ought to be a note to explain that there may more thing to
+    take into account for experts. "For beginners". Ambiguous
+    references not currently supported via scanning/automatic pools
+    etc: use workaround.
+
+44. In the "choosing a pool" procedure there's no mention of
+    protection. Can we subsume this under "moving"?
+
+    ANSWER: Use "movable and protectable".
+
+45. Does mps_arena_step offer any guarantees about how long it will
+    pause for? (I presume not: I've written "makes every effort to
+    return within interval seconds, but does not guarantee to do so".)
+
+    ANSWER: No guarantee. "Since it calls your scanning code..."
+
+46. RHSK's documentation for mps_arena_step says "Note that
+    mps_arena_step will still step, even if the arena has been
+    clamped. This is to allow a client to advance a collection only at
+    these mps_arena_step points (but note that barrier hits will also
+    cause collection work)." However, looking at the implementation,
+    it seems to me that if mps_arena_step does anything, then it
+    releases the arena. Is the client program expected to call
+    mps_arena_clamp after mps_arena_step returns, if they want to
+    support this use case?
+
+    Similar question if the arena is in the parked state.
+
+    ANSWER: this is a bug. Create a job for both cases. (optional)
+
+47. How does mps_arena_start_collect interact with the arena state?
+    (It seems from looking at the implementation that it puts the
+    arena into the unclamped state, like mps_arena_release.)
+
+    ANSWER: this is fine.
+
+48. How do I explain the condition on mps_addr_pool and mps_addr_fmt?
+    It's clear what this is if the address is the address of an
+    allocated block? But do we guarantee anything if it isn't? The
+    implementation succeeds if the address points anywhere within a
+    page allocated to a pool.
+
+    ANSWER: not undefined, might get false positive. Never false
+    negative.
+
+49. Constraints on order of _destroy functions. Is it an error to
+    destroy an object format while there are still pools that refer to
+    it?
+
+    ANSWER: yes.
+
+50. mps.h declares the type mps_shift_t for a "shift amount" but this
+    is not used anywhere in the MPS. Remove?
+
+    ACTION: removed in change 179944.
+
+51. The structures mps_sac_s and mps_sac_freelist_block_s are declared
+    in mps.h. I presume that this is so for the benefit of the macros
+    MPS_SAC_ALLOC_FAST and MPS_SAC_FREE_FAST, and the details of these
+    structues are not actually part of the public interface.
+
+    ANSWER: RB thinks the client doesn't need to know about these
+    structures, so they ought to have names starting with
+    underscores. Create a job.
+
+52. mps_fmt_fixed_s is just like mps_fmt_A_s but with no "skip". I
+    presume it's for fixed-size pools. But the only fixed-size pool is
+    MFS, which has no public header, so I presume it's for MPS
+    internal use only. What should I say about this?
+
+    ANSWER: leave it undocumented. Maybe it (and mps_fmt_create_fixed)
+    should be removed? Make a job.
+
+53. It's rather unfortunate that mps_arena_create take arguments
+    (size, base) but mps_arena_extend takes (base, size). I guess
+    there's nothing to be done about this now.
+
+    ANSWER: RB plans to remove mps_arena_create and replace
+    them. Create a job.
+
+54. Need notes about performance. It's important to know that
+    mps_addr_pool is really quick and it's fine to call it. But other
+    things are slow, e.g. walking over all objects.
+
+    ACTION: create a job.
+
+55. Mark all the allocation frame stuff as deprecated in the manual.
+
+    ACTION: I marked them all as deprecated in version 1.111.

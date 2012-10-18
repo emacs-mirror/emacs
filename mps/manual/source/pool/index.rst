@@ -21,10 +21,17 @@ List of pool classes
 Choosing a pool class
 =====================
 
-You should choose a :term:`pool class` based on the properties of the
-data you plan to store in it. The MPS works best if you can segregate
-your data into a variety of pools, choosing the most appropriate pool
-class for each.
+This section contains a simple procedure for choosing a :term:`pool
+class` based on the properties of the data you plan to store in
+it. The MPS works well if you can segregate your data into a variety
+of pools, choosing the most appropriate pool class for each.
+
+.. note::
+
+    Pool classes can differ in many ways not considered here: speed,
+    vulnerability to fragmentation, control overhead, and so on. This
+    procedure gives you a decent recommendation, but an expert in the
+    MPS might be able to make a better one.
 
 First, answer these questions about your data:
 
@@ -32,32 +39,37 @@ First, answer these questions about your data:
    management>` :term:`reclaim` :term:`unreachable` blocks?
 
 2. Is it acceptable for the MPS to :term:`move <moving memory
-   manager>` blocks in memory? (For example, it might not be
-   acceptable to move a block if it has been passed to :term:`foreign
-   code` that remembered its location.)
+   manager>` blocks in memory and to place :term:`barriers <barrier
+   (1)>` on blocks? (For example, it might not be acceptable to move a
+   block if it has been passed to :term:`foreign code` that remembered
+   its location.)
 
 3. Do your blocks contain :term:`references <reference>` to blocks
    stored in automatically managed pools (including references to
    other blocks in the same pool, if it's automatically managed)? And
-   if so, are these references :term:`exact <exact reference>` or
-   :term:`weak <weak reference (1)>`?
+   if so, are these references :term:`exact <exact reference>`,
+   :term:`ambiguous <ambiguous reference>` or :term:`weak <weak
+   reference (1)>`?
 
 Second, look up your answers in this table to find the recommended
 pool class to use:
 
-==========  ========  ===========  ====================================
-Automatic?  Movable?  References?  Use this pool class
-==========  ========  ===========  ====================================
-yes         yes       none         :ref:`pool-amcz`
-yes         yes       exact        :ref:`pool-amc`
-yes         yes       weak         :ref:`pool-awl`
-yes         no        none         :ref:`pool-lo`
-yes         no        exact        :ref:`pool-ams`
-yes         no        weak         nothing suitable
-no          *any*     none         :ref:`pool-mvt`
-no          *any*     exact        :ref:`pool-mvt` with workaround [1]_
-no          *any*     weak         :ref:`pool-mvt` with workaround [1]_
-==========  ========  ===========  ====================================
+==========  ======================  ===========  ====================================
+Automatic?  Movable & protectable?  References?  Use this pool class
+==========  ======================  ===========  ====================================
+yes         yes                     none         :ref:`pool-amcz`
+yes         yes                     exact        :ref:`pool-amc`
+yes         yes                     ambiguous    nothing suitable
+yes         yes                     weak         :ref:`pool-awl`
+yes         no                      none         :ref:`pool-lo`
+yes         no                      exact        :ref:`pool-ams`
+yes         no                      ambiguous    nothing suitable
+yes         no                      weak         nothing suitable
+no          *any*                   none         :ref:`pool-mvt`
+no          *any*                   ambiguous    :ref:`pool-mvt` [1]_
+no          *any*                   exact        :ref:`pool-mvt` [1]_
+no          *any*                   weak         :ref:`pool-mvt` [1]_
+==========  ======================  ===========  ====================================
 
 .. note::
 

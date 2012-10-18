@@ -35,12 +35,20 @@ Declared in ``mps.h``
     update the location pointed to by ``fmt_o`` with the address of
     the object format, and return true. If the pool has no object
     format, or ``addr`` points to a location that is not managed by
-    ``arena``, return false. (There is no guaranteed behaviour if
-    neither of these conditions is satisfied.)
+    ``arena``, return false. If neither of these conditions is
+    satisfied, :c:func:`mps_addr_fmt` may return either true or false.
 
     .. topics::
 
         :ref:`topic-format`
+
+    .. note::
+
+        This function might return a false positive by returning true
+        if you ask about an address that happens to be inside memory
+        managed by a pool with an object format, but which is not
+        inside a block allocated by that pool. It never returns a
+        false negative.
 
 
 .. c:function:: mps_bool_t mps_addr_pool(mps_pool_t *pool_o, mps_arena_t arena, mps_addr_t addr)
@@ -58,12 +66,19 @@ Declared in ``mps.h``
     from a pool in ``arena``, then update the location pointed to by
     ``pool_o`` with the address of the pool, and return true. If
     ``addr`` points to a location that is not managed by ``arena``,
-    return false. (There is no guaranteed behaviour if neither of
-    these conditions is satisfied.)
+    return false. If neither of these conditions is satisfied,
+    :c:func:`mps_addr_pool` may return either true or false.
 
     .. topics::
 
         :ref:`pool`
+
+    .. note::
+
+        This function might return a false positive by returning true
+        if you ask about an address that happens to be inside memory
+        managed by a pool, but which is not inside a block allocated
+        by that pool. It never returns a false negative.
 
 
 .. c:type:: mps_addr_t
@@ -292,9 +307,7 @@ Declared in ``mps.h``
     push; B = push; pop A; pop B" is illegal) or to pop the same frame
     twice (so the sequence "A = push, pop A, pop A" is illegal).
 
-    .. topics::
-
-        :ref:`topic-frame`.
+    .. deprecated:: 1.111
 
 
 .. c:function:: mps_res_t mps_ap_frame_push(mps_frame_t *frame_o, mps_ap_t ap)
@@ -313,9 +326,7 @@ Declared in ``mps.h``
     resources, or if the correct protocol is not followed by the
     :term:`client program`.
 
-    .. topics::
-
-        :ref:`topic-frame`.
+    .. deprecated:: 1.111
 
 
 .. c:type:: mps_ap_t
@@ -876,7 +887,7 @@ Declared in ``mps.h``
         return until the collection has completed.
 
 
-.. c::function:: mps_bool_t mps_arena_step(mps_arena_t arena, double interval, double multiplier)
+.. c:function:: mps_bool_t mps_arena_step(mps_arena_t arena, double interval, double multiplier)
 
     Request an :term:`arena` to do some work during a period where the
     :term:`client program` is idle.
@@ -893,14 +904,20 @@ Declared in ``mps.h``
     (regardless of whether or not it did any) or false if there was
     nothing to do.
 
-    This function allows the client program to make use of idle time
-    to do some garbage collection, for example when it is waiting for
-    interactive input. The MPS makes every effort to return from this
-    function within ``interval`` seconds, but does not guarantee to do so. It
-    uses ``multiplier`` to decide whether to commence long-duration
-    operations that consume CPU (such as a full collection): it will
-    only start such an operation if it is expected to be completed
-    within ``multiplier * interval`` seconds.
+    :c:func:`mps_arena_step` allows the client program to make use of
+    idle time to do some garbage collection, for example when it is
+    waiting for interactive input. The MPS makes every effort to
+    return from this function within ``interval`` seconds, but cannot
+    guarantee to do so, as it may need to call your own scanning
+    code. It uses ``multiplier`` to decide whether to commence
+    long-duration operations that consume CPU (such as a full
+    collection): it will only start such an operation if it is
+    expected to be completed within ``multiplier * interval`` seconds.
+
+    If the arena was in the :term:`parked state` or the :term:`clamped
+    state` before :c:func:`mps_arena_step` was called, it is in the
+    clamped state afterwards. It it was in the :term:`unclamped
+    state`, it remains there.
 
     .. topics::
 
@@ -1694,9 +1711,7 @@ Declared in ``mps.h``
     Allocation frames can be used by the :term:`client program` to
     efficiently implement stack-like patterns of allocation.
 
-    .. topics::
-
-        :ref:`topic-frame`.
+    .. deprecated:: 1.111
 
 
 .. c:function:: void mps_free(mps_pool_t pool, mps_addr_t addr, size_t size)
@@ -3694,8 +3709,7 @@ Declared in ``mpsavm.h``
 Undocumented in ``mps.h``
 =========================
 
-.. c:type:: mps_fmt_fixed_s
-.. c:function:: mps_res_t mps_fmt_create_fixed(mps_fmt_t *fmt_o, mps_arena_t arena, mps_fmt_fixed_s *fmt_fixed)
+.. c:type:: mps_ap_s
 .. c:function:: mps_res_t mps_pool_create(mps_pool_t *pool_o, mps_arena_t arena, mps_class_t class, ...)
 .. c:function:: mps_res_t mps_pool_create_v(mps_pool_t *pool_o, mps_arena_t arena, mps_class_t class, va_list args)
 .. c:function:: mps_res_t mps_ap_create(mps_ap_t *ap_o, mps_pool_t pool, ...)
