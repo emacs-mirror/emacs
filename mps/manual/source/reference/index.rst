@@ -417,7 +417,7 @@ Declared in ``mps.h``
 
     Returns the commit limit in :term:`bytes <byte (1)>`. The commit
     limit controls how much memory the MPS can obtain from the
-    operating system, and can be changed using
+    operating system, and can be changed by calling
     :c:func:`mps_arena_commit_limit_set`.
 
     .. topics::
@@ -578,7 +578,7 @@ Declared in ``mps.h``
     will be run to completion; and the next collection will have to
     recompute all the remembered sets by scanning the entire arena.
 
-    The recomputation of the remembered sets can be avoided by using
+    The recomputation of the remembered sets can be avoided by calling
     :c:func:`mps_arena_unsafe_expose_remember_protection` instead of
     :c:func:`mps_arena_expose`, and by calling
     :c:func:`mps_arena_unsafe_restore_protection` before calling
@@ -605,8 +605,9 @@ Declared in ``mps.h``
 
     It is an error to destroy an arena without first destroying all
     :term:`generation chains <generation chain>`, :term:`object
-    formats <object format>`, :term:`pools <pool>`, :term:`roots
-    <root>`, and :term:`threads <thread>` created in the arena.
+    formats <object format>`, :term:`pools <pool>` and :term:`roots
+    <root>` created in the arena, and deregistering all :term:`threads
+    <thread>` registered with the arena.
 
     .. topics::
 
@@ -860,7 +861,7 @@ Declared in ``mps.h``
     memory by :c:func:`mps_arena_committed` and is restricted by
     :c:func:`mps_arena_commit_limit`.
 
-    The amount of "spare committed" memory can be limited by using
+    The amount of "spare committed" memory can be limited by calling
     :c:func:`mps_arena_spare_commit_limit_set`, and the value of that
     limit can be retrieved with
     :c:func:`mps_arena_spare_commit_limit`. This is analogous to the
@@ -959,7 +960,7 @@ Declared in ``mps.h``
     This function is the same as :c:func:`mps_arena_expose`, but
     additionally causes the MPS to remember its protection state. The
     remembered protection state can optionally be restored later by
-    using the :c:func:`mps_arena_unsafe_restore_protection` function.
+    calling the :c:func:`mps_arena_unsafe_restore_protection` function.
     This is an optimization that avoids the MPS having to recompute
     all the remembered sets by scanning the entire arena.
 
@@ -1072,21 +1073,59 @@ Declared in ``mps.h``
     The type of :term:`pool classes <pool class>`.
 
 
+.. c:function:: mps_word_t mps_collections(mps_arena_t arena)
+
+    Return the number of :term:`collection cycles <collection cycle>`
+    that have been completed on an :term:`arena` since it was created.
+
+    ``arena`` is the arena.
+
+    .. topics::
+
+        :ref:`topic-arena`.
+
+
+.. c:function:: mps_res_t mps_definalize(mps_arena_t arena, mps_addr_t *ref)
+
+    Deregister a :term:`block` for :term:`finalization`.
+
+    ``arena`` is the arena in which the block lives.
+
+    ``ref`` points to a :term:`reference` to the block to be
+    deregistered for finalization.
+
+    Returns :c:macro:`MPS_RES_OK` if successful, or
+    :c:macro:`MPS_RES_FAIL` if the block was not previously registered
+    for finalization.
+
+    .. topics::
+
+        :ref:`topic-finalization`.
+
+    .. note::
+
+        This function receives a pointer to a reference. This is to
+        avoid placing the restriction on the :term:`client program`
+        that the C call stack be a :term:`root`.
+
+
 .. c:function:: mps_res_t mps_finalize(mps_arena_t arena, mps_addr_t *ref)
 
     Register a :term:`block` for :term:`finalization`.
 
     ``arena`` is the arena in which the block lives.
 
-    ``ref`` points to a :term:`reference` to the block to be finalized.
+    ``ref`` points to a :term:`reference` to the block to be
+    registered for finalization.
  
     Returns :c:macro:`MPS_RES_OK` if successful, or another
     :term:`result code` if not.
 
-    This function registers ``block`` for finalization. This block must
-    have been allocated from a :term:`pool` in ``arena``. Violations of
-    this constraint may not be checked by the MPS, and may be unsafe,
-    causing the MPS to crash in undefined ways.
+    This function registers the block pointed to by ``*ref`` for
+    finalization. This block must have been allocated from a
+    :term:`pool` in ``arena``. Violations of this constraint may not
+    be checked by the MPS, and may be unsafe, causing the MPS to crash
+    in undefined ways.
 
     .. topics::
 
@@ -1224,7 +1263,7 @@ Declared in ``mps.h``
     .. note::
 
         If your reference is :term:`tagged <tagged reference>`, you
-        must remove the tag before calling :c:func:`MPS_FIX12`, and
+        must remove the tag before calling :c:func:`MPS_FIX2`, and
         restore the tag to the (possibly updated) reference
         afterwards.
 
@@ -1237,26 +1276,27 @@ Declared in ``mps.h``
 
     Call a function from within a :term:`scan method`, between
     :c:func:`MPS_SCAN_BEGIN` and :c:func:`MPS_SCAN_END`, passing
-    scan state correctly.
+    the :term:`scan state` correctly.
 
-    ``ss`` is the :term:`scan state` that was passed to the scan method.
+    ``ss`` is the scan state that was passed to the scan method.
 
-    ``call`` is an expression containing a call to a scan method.
+    ``call`` is an expression containing a function call where ``ss``
+    is one of the arguments.
 
     Returns the result of evaluating the expression ``call``.
 
     Between :c:func:`MPS_SCAN_BEGIN` and :c:func:`MPS_SCAN_END`, the
     scan state is in a special state, and must not be passed to a
     function. If you really need to do so, for example because you
-    have an embedded structure shared between two scan methods, you
-    must wrap the call with :c:func:`MPS_FIX_CALL` to ensure that the
-    scan state is passed correctly.
+    have a structure shared between two :term:`object formats <object
+    format>`, you must wrap the call with :c:func:`MPS_FIX_CALL` to
+    ensure that the scan state is passed correctly.
 
-    In this example, the scan method ``obj_scan`` fixes the object's
+    In example below, the scan method ``obj_scan`` fixes the object's
     ``left`` and ``right`` references, but delegates the scanning of
     references inside the object's ``data`` member to the function
-    ``scan_data``. In order to ensure that the scan state is passed
-    correctly to ``scan_data``, the call must be wrapped in
+    ``data_scan``. In order to ensure that the scan state is passed
+    correctly to ``data_scan``, the call must be wrapped in
     :c:func:`MPS_FIX_CALL`. ::
 
         mps_res_t obj_scan(mps_ss_t ss, mps_addr_t base, mps_addr_t limit)
@@ -1267,7 +1307,7 @@ Declared in ``mps.h``
                 for (obj = base; obj < limit; obj++) {
                     if (MPS_FIX12(ss, &obj->left) != MPS_RES_OK)
                         return res;
-                    MPS_FIX_CALL(ss, res = scan_data(ss, &obj->data));
+                    MPS_FIX_CALL(ss, res = data_scan(ss, &obj->data));
                     if (res != MPS_RES_OK)
                         return res;
                     if (MPS_FIX12(ss, &obj->right) != MPS_RES_OK)
@@ -1376,13 +1416,15 @@ Declared in ``mps.h``
 
         For technical reasons, formatted objects must be longer than
         the header. In other words, objects consisting of only a
-        header are not supported. However, if the header size is
-        larger than or equal to :term:`alignment`, the :term:`padding
-        method` must still be able to create :term:`padding objects
-        <padding object>` down to the alignment size.
+        header are not supported.
 
-        The auto_header format is only supported by :ref:`pool-amc`
-        and :ref:`pool-amcz`.
+        Even if the header size is larger than or equal to
+        :term:`alignment`, the :term:`padding method` must still be
+        able to create :term:`padding objects <padding object>` down
+        to the alignment size.
+
+        Variant auto_header is only supported by :ref:`pool-amc` and
+        :ref:`pool-amcz`.
 
 
 .. c:type:: mps_fmt_B_s
@@ -2265,9 +2307,9 @@ Declared in ``mps.h``
     does not generate any messages of any type.
 
     A :term:`client program` that enables messages for a message type
-    must access messages using :c:func:`mps_message_get` and discard
-    them using :c:func:`mps_message_discard`, or the message queue may
-    consume unbounded resources.
+    must access messages by calling :c:func:`mps_message_get` and
+    discard them by calling :c:func:`mps_message_discard`, or the
+    message queue may consume unbounded resources.
 
     The client program may disable the posting of messages by calling
     :c:func:`mps_message_type_disable`.
@@ -2364,19 +2406,6 @@ Declared in ``mps.h``
         :ref:`topic-message`.
 
 
-.. c:type:: mps_pool_t
-
-    The type of :term:`pools <pool>`.
-
-    A pool is responsible for requesting memory from the :term:`arena`
-    and making it available to the :term:`client program` via
-    :c:func:`mps_alloc` or via an :term:`allocation point`.
-
-    .. topics::
-
-        :ref:`pool`.
-
-
 .. c:function:: void mps_pool_check_fenceposts(mps_pool_t pool)
 
     Check all the :term:`fenceposts <fencepost>` in a :term:`pool`.
@@ -2391,6 +2420,65 @@ Declared in ``mps.h``
     .. topics::
 
         :ref:`topic-debugging`.
+
+
+.. c:function:: void mps_pool_check_free_space(mps_pool_t mps_pool)
+
+    Check all the free space in a :term:`pool` for :term:`overwriting
+    errors <overwriting error>`
+
+    ``pool`` is the pool whose free space is to be checked.
+
+    If corrupted free space is found, the MPS will :term:`assert
+    <assertion>`. It is only useful to call this on a :term:`debugging
+    pool` that has free space splatting turned on. It does nothing on
+    non-debugging pools.
+
+    .. topics::
+
+        :ref:`topic-debugging`.
+
+
+.. c:function:: mps_res_t mps_pool_create(mps_pool_t *pool_o, mps_arena_t arena, mps_class_t class, ...)
+
+    Create a :term:`pool` in an :term:`arena`.
+
+    ``pool_o`` points to a location that will hold a pointer to the new
+    pool.
+
+    ``arena`` is the arena in which to create the pool.
+
+    ``class`` is the :term:`pool class` of the new pool.
+
+    Some pool classes require additional arguments to be passed to
+    :c:func:`mps_pool_create`. See the documentation for the pool
+    class.
+
+    Returns :c:macro:`MPS_RES_OK` if the pool is created successfully,
+    or another :term:`result code` otherwise.
+
+    The pool persists until it is destroyed by calling
+    :c:func:`mps_pool_destroy`.
+
+    .. topics::
+
+        :ref:`pool`.
+
+    .. note::
+
+        There's an alternative function :c:func:`pool_create_v` that
+        takes its extra arguments using the standard :term:`C`
+        ``va_list`` mechanism.
+
+
+.. c:function:: mps_res_t mps_pool_create_v(mps_pool_t *pool_o, mps_arena_t arena, mps_class_t class, va_list args)
+
+    An alternative to :c:func:`mps_pool_create` that takes its extra
+    arguments using the standard :term:`C` ``va_list`` mechanism.
+
+    .. topics::
+
+        :ref:`pool`.
 
 
 .. c:type:: mps_pool_debug_option_s
@@ -2466,6 +2554,19 @@ Declared in ``mps.h``
     :term:`allocation points <allocation point>` and :term:`segregated
     allocation caches <segregated allocation cache>` created in the
     pool.
+
+    .. topics::
+
+        :ref:`pool`.
+
+
+.. c:type:: mps_pool_t
+
+    The type of :term:`pools <pool>`.
+
+    A pool is responsible for requesting memory from the :term:`arena`
+    and making it available to the :term:`client program` via
+    :c:func:`mps_alloc` or via an :term:`allocation point`.
 
     .. topics::
 
@@ -3101,10 +3202,10 @@ Declared in ``mps.h``
 
         Blocks allocated through a segregated allocation cache should
         only be freed through a segregated allocation cache with the
-        same :term:`class structure`. Using :c:func:`mps_free` on them
-        can cause :term:`memory leaks <memory leak>`, because the size
-        of the block might be larger than you think. Naturally, the
-        cache must also be attached to the same pool.
+        same :term:`class structure`. Calling :c:func:`mps_free` on
+        them can cause :term:`memory leaks <memory leak>`, because the
+        size of the block might be larger than you think. Naturally,
+        the cache must also be attached to the same pool.
 
 
 .. c:function:: MPS_SAC_ALLOC_FAST(mps_res_t res_v, mps_addr_t *p_v, mps_sac_t sac, size_t size, mps_bool_t has_reservoir_permit)
@@ -3259,8 +3360,8 @@ Declared in ``mps.h``
     memory from the given pool, or return memory to it.
 
     Segregated allocation caches can be associated with any pool that
-    supports :term:`manual <manual memory management>` allocation
-    using the functions :c:func:`mps_alloc` and :c:func:`mps_free`.
+    supports :term:`manual <manual memory management>` allocation with
+    the functions :c:func:`mps_alloc` and :c:func:`mps_free`.
 
     The size classes are described by an array of element type
     :c:func:`mps_sac_class_s`. This array is used to initialize the
@@ -3579,18 +3680,52 @@ Declared in ``mps.h``
        via :c:func:`mps_telemetry_control`.
 
 
+.. c:function:: mps_res_t mps_thread_reg(mps_thr_t *thr_o, mps_arena_t arena)
+
+    Register the current :term:`thread` with an :term:`arena`.
+
+    ``thr_o`` points to a location that will hold the address of the
+    registered thread description, if successful.
+
+    ``arena`` is the arena.
+
+    Returns :c:macro:`MPS_RES_OK` if successful, or another
+    :term:`result code` if not.
+
+    In a multi-threaded environment where :term:`incremental garbage
+    collection` is used, threads must be registered with the MPS by
+    calling :c:func:`mps_thread_reg` so that the MPS can suspend them
+    as necessary in order to have exclusive access to their state.
+
+    In particular, a thread must be registered with an arena if it
+    ever needs to access blocks allocated in that arena. If you have
+    multiple arenas, each thread needs to be registered with all the
+    arenas it needs to access.
+
+
+.. c:function:: void mps_thread_dereg(mps_thr_t thr)
+
+    Deregister a :term:`thread <thread>`.
+
+    ``thr`` is the description of the thread.
+
+    After calling this function, the thread whose registration with an
+    :term:`arena` was recorded in ``thr`` must not access any blocks
+    allocated in that arena.
+
+
 .. c:type:: mps_thr_t
 
     The type of registered :term:`thread` descriptions.
 
-    In a multi-threaded environment where :term:`incremental
-    garbage collection` is used, threads must be registered
-    with the MPS using :c:func:`mps_thread_reg` so that the MPS can
-    examine their state.
+    In a multi-threaded environment where :term:`incremental garbage
+    collection` is used, threads must be registered with the MPS by
+    calling :c:func:`mps_thread_reg` so that the MPS can suspend them
+    as necessary in order to have exclusive access to their state.
 
     Even in a single-threaded environment it may be useful to register
     a thread with the MPS so that its stack can be registered as a
-    :term:`root` using :c:func:`mps_root_create_reg`.
+    :term:`root` by calling :c:func:`mps_root_create_reg`.
 
     .. topics::
 
@@ -3721,8 +3856,6 @@ Undocumented in ``mps.h``
 =========================
 
 .. c:type:: mps_ap_s
-.. c:function:: mps_res_t mps_pool_create(mps_pool_t *pool_o, mps_arena_t arena, mps_class_t class, ...)
-.. c:function:: mps_res_t mps_pool_create_v(mps_pool_t *pool_o, mps_arena_t arena, mps_class_t class, va_list args)
 .. c:function:: mps_res_t mps_ap_create(mps_ap_t *ap_o, mps_pool_t pool, ...)
 .. c:function:: mps_res_t mps_ap_create_v(mps_ap_t *ap_o, mps_pool_t pool, va_list args)
 .. c:function:: void mps_ap_destroy(mps_ap_t mps_ap)
@@ -3736,13 +3869,8 @@ Undocumented in ``mps.h``
 .. c:function:: MPS_RESERVE_WITH_RESERVOIR_PERMIT_BLOCK(mps_res_t res_v, mps_addr_t p_v, mps_ap_t ap, size_t size)
 .. c:type:: void *(*mps_tramp_t)(void *p, size_t s)
 .. c:function:: void mps_tramp(void **r_o, mps_tramp_t tramp, void *p, size_t s)
-.. c:function:: mps_res_t mps_thread_reg(mps_thr_t *mps_thr_o, mps_arena_t arena)
-.. c:function:: void mps_thread_dereg(mps_thr_t thread)
-.. c:function:: mps_word_t mps_collections(mps_arena_t arena)
-.. c:function:: mps_res_t mps_definalize(mps_arena_t arena, mps_addr_t *refref)
 .. c:function:: mps_res_t mps_alert_collection_set(mps_arena_t arena, mps_alert_collection_fn_t fn)
 .. c:type:: void (*mps_alert_collection_fn_t)(int, int)
-.. c:function:: void mps_pool_check_free_space(mps_pool_t mps_pool)
 
 
 ===========================
