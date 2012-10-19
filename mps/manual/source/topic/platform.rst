@@ -110,12 +110,12 @@ Declared in ``mpstd.h``
     A :term:`C` preprocessor macro that names the :term:`platform` for
     which the MPS was built.
 
-    It expands to a string "``abcdef``" consisting of six characters
+    It expands to a string "``OSARCT``" consisting of six characters
     that are digits or lower-case letters. The first two characters
     name the operating system:
 
     ======  ================  ====================
-    ``ab``  Operating system  Constant
+    ``OS``  Operating system  Constant
     ======  ================  ====================
     ``fr``  FreeBSD           :c:macro:`MPS_OS_FR`
     ------  ----------------  --------------------
@@ -129,17 +129,17 @@ Declared in ``mpstd.h``
     The second pair of characters name the processor architecture:
 
     ======  ======================  ======================
-    ``cd``  Processor architecture  Constant
+    ``AR``  Processor architecture  Constant
     ======  ======================  ======================
     ``i3``  Intel/AMD IA-32         :c:macro:`MPS_ARCH_I3`
     ------  ----------------------  ----------------------
     ``i6``  Intel/AMD x86-64        :c:macro:`MPS_ARCH_I6`
     ======  ======================  ======================
 
-    The third pair of characters name the compiler:
+    The third pair of characters name the compiler toolchain:
 
     ======  ================  =======================
-    ``ef``  Compiler          Constant
+    ``CT``  Compiler          Constant
     ======  ================  =======================
     ``gc``  GCC               :c:macro:`MPS_BUILD_GC`
     ------  ----------------  -----------------------

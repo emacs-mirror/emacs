@@ -87,6 +87,10 @@ div.seealso, div.admonition {
     border: none;
 }
 
+div.admonition p.admonition-title + p + p {
+    margin-top: 5px;
+}
+
 .xref.std-term {
     font-style: normal;
     color: {{ theme_textcolor }};

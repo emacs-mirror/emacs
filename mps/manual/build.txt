@@ -53,7 +53,7 @@ Optimizing for your object format
 .................................
 
 If you are using your own :term:`object format`, you will also get
-improved performance by allowing the compiler to do global optimisations
+improved performance by allowing the compiler to do global optimizations
 between it and the MPS.  So if your format implementation is in, say,
 ``myformat.c``, then you could make a file ``mymps.c`` containing::
 
@@ -127,18 +127,19 @@ architecture, and ``CT`` the compiler toolchain.  Here are the
 platforms that we have regular access to and on which the MPS works
 well:
 
-=========   =============   ============  =================
-OS          Architecture    Compiler      Makefile
-=========   =============   ============  =================
-FreeBSD     Intel i386      GCC           ``fri3gc.gmk``
-FreeBSD     Intel x86_64    GCC           ``fri6gc.gmk``
-Linux       Intel i386      GCC           ``lii3gc.gmk``
-Linux       Intel x86_64    GCC           ``lii6gc.gmk``
-Mac OS X    i386 + x86_64   Clang         ``mps.xcodeproj``
-Mac OS X    i386            GCC (legacy)  ``xci3gc.gmk``
-Windows     Intel i386      Microsoft C   ``w3i3mv.nmk``
-Windows     Intel x86_64    Microsoft C   ``w3i6mv.nmk``
-=========   =============   ============  =================
+==========   =========   =============   ============  =================
+Platform     OS          Architecture    Compiler      Makefile
+==========   =========   =============   ============  =================
+``fri3gc``   FreeBSD     IA-32           GCC           ``fri3gc.gmk``
+``fri6gc``   FreeBSD     x86_64          GCC           ``fri6gc.gmk``
+``lii3gc``   Linux       IA-32           GCC           ``lii3gc.gmk``
+``lii6gc``   Linux       x86_64          GCC           ``lii6gc.gmk``
+``xci3ll``   Mac OS X    IA-32           Clang         ``mps.xcodeproj``
+``xci6ll``   Mac OS X    x86_64          Clang         ``mps.xcodeproj``
+``xci3gc``   Mac OS X    IA-32           GCC (legacy)  ``xci3gc.gmk``
+``w3i3mv``   Windows     IA-32           Microsoft C   ``w3i3mv.nmk``
+``w3i6mv``   Windows     x86_64          Microsoft C   ``w3i6mv.nmk``
+==========   =========   =============   ============  =================
 
 Historically, the MPS worked on a much wider variety of platforms, and
 still could: IRIX, OSF/1 (Tru64), Solaris, SunOS, Classic Mac OS;

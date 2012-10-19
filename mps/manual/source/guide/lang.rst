@@ -95,13 +95,12 @@ operate on objects generically, testing ``TYPE(obj)`` as necessary
     }
 
 Each constructor allocates memory for the new object by calling
-``malloc``. For example ``make_pair`` is the constructor for pairs::
+``malloc``. For example, ``make_pair`` is the constructor for pairs::
 
     static obj_t make_pair(obj_t car, obj_t cdr)
     {
         obj_t obj = (obj_t)malloc(sizeof(pair_s));
         if (obj == NULL) error("out of memory");
-        total += sizeof(pair_s);
         obj->pair.type = TYPE_PAIR;
         CAR(obj) = car;
         CDR(obj) = cdr;
@@ -110,7 +109,8 @@ Each constructor allocates memory for the new object by calling
 
 Objects are never freed, because it is necessary to prove that they
 are :term:`dead` before their memory can be :term:`reclaimed
-<reclaim>`. And that task falls to the :term:`garbage collector`.
+<reclaim>`. To prove that they are dead, we need a :term:`tracing
+<trace>` :term:`garbage collector`. Which the MPS will provide
 
 
 Choosing an arena class
@@ -119,7 +119,7 @@ Choosing an arena class
 You'll recall from the :ref:`guide-overview` that the functionality of
 the MPS is divided between the :term:`arenas <arena>`, which request
 memory from (and return it to) the operating system, and :term:`pools
-<pool>`, which allocate blocks of memory on behalf of your program.
+<pool>`, which allocate blocks of memory for your program.
 
 There are two main classes of arena: the :term:`client arena`,
 :c:func:`mps_arena_class_cl`, which gets its memory from your program,
@@ -130,11 +130,11 @@ memory` interface.
 The client arena is intended for use on embedded systems where there
 is no virtual memory, and has a couple of disadvantages (you have to
 decide how much memory you are going to use; and the MPS can't return
-memory to the operating system for use by other processes) so in most
-situations you'll want to use the virtual memory arena.
+memory to the operating system for use by other processes) so for
+general-purpose programs you'll want to use the virtual memory arena.
 
-You'll need a couple of headers (``mps.h`` for the MPS interface, and
-``mpsavm.h`` for the virtual memory arena class)::
+You'll need a couple of headers: ``mps.h`` for the MPS interface, and
+``mpsavm.h`` for the virtual memory arena class::
 
     #include "mps.h"
     #include "mpsavm.h"
@@ -1035,10 +1035,9 @@ MPS attempts to scan ``obj`` at the indicated point, the object's
 ``type`` field will be uninitialized, and so the :term:`scan method`
 may abort.
 
-The MPS solves this problem via the :term:`reserve/commit
-protocol`. This needs an additional structure, an :term:`allocation
-point`, to be attached to the pool by calling
-:c:func:`mps_ap_create`::
+The MPS solves this problem via the :term:`allocation point protocol`.
+This needs an additional structure, an :term:`allocation point`, to be
+attached to the pool by calling :c:func:`mps_ap_create`::
 
     static mps_ap_t obj_ap;
 

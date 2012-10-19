@@ -189,13 +189,14 @@ Memory Management Glossary: R
             with :term:`headers <in-band header>` this may not be the
             case). The pointer returned by :c:func:`mps_alloc` and
             :c:func:`mps_reserve` is a reference to the object
-            allocated. The :term:`client program` is free to represent
-            references as it chooses (for example as :term:`tagged
-            pointer <tagged reference>`), provided that it is able to
-            decode a reference from its representation into the MPS
-            interface representation and encode a reference from the
-            MPS into its representation.
+            allocated.
 
+            The :term:`client program` is free to represent references
+            as it chooses (for example, with :term:`tags <tagged
+            reference>`), provided that it is able to decode a
+            reference from its representation into the MPS interface
+            representation and encode a reference from the MPS into
+            its representation.
 
     reference counting
 

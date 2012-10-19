@@ -101,10 +101,9 @@ Memory Management Glossary: T
 
             An indentifier representing a string, returned from
             :c:func:`mps_telemetry_intern`, that can be associated
-            with certain :term:`formatted objects <formatted object>`
-            of variant B, and so appear in the :term:`telemetry
-            stream` attached to events concerning those objects. See
-            :ref:`topic-telemetry`.
+            with certain :term:`addresses <address>`, and so appear in
+            the :term:`telemetry stream` attached to events concerning
+            those addresses. See :ref:`topic-telemetry`.
 
     telemetry stream
 

@@ -237,10 +237,12 @@ Memory Management Glossary: F
             that foreign code is not passed the address of a block in
             a :term:`moving <moving memory manager>` :term:`pools
             <pool>`, or which contain references to blocks in moving
-            pools. The :ref:`pool-lo` :term:`pool class` is designed
-            for this use case: blocks allocated from this pool do not
-            move and are never protected, and so may be passed safely
-            to foreign code.
+            pools.
+
+            The :ref:`pool-lo` :term:`pool class` is designed for this
+            use case: blocks allocated from this pool do not move and
+            are never protected, and so may be passed safely to
+            foreign code.
 
     format
 
