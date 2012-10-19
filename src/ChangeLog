@@ -1,3 +1,7 @@
+2012-10-19  Eli Zaretskii  <eliz@gnu.org>
+
+	* alloc.c (NSTATICS): Decrease to 0x800.
+
 2012-10-19  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* fns.c (Fnreverse): Include the problem element when signalling an
