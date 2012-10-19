@@ -941,8 +941,9 @@ mps_res_t (mps_ap_frame_pop)(mps_ap_t mps_ap, mps_frame_t frame)
 
 /* mps_ap_fill -- called by mps_reserve when an AP hasn't enough arena
  *
- * .ap.fill.internal: Note that mps_ap_fill should never be "called"
- * directly by the client code.  It is invoked by the mps_reserve macro.  */
+ * .ap.fill.internal: mps_ap_fill is normally invoked by the
+ * mps_reserve macro, but may be "called" directly by the client code
+ * if necessary. See <manual/topic/allocation> */
 
 mps_res_t mps_ap_fill(mps_addr_t *p_o, mps_ap_t mps_ap, size_t size)
 {
@@ -1007,8 +1008,9 @@ mps_res_t mps_ap_fill_with_reservoir_permit(mps_addr_t *p_o, mps_ap_t mps_ap,
 
 /* mps_ap_trip -- called by mps_commit when an AP is tripped
  *
- * .ap.trip.internal: Note that mps_ap_trip should never be "called"
- * directly by the client code.  It is invoked by the mps_commit macro.  */
+ * .ap.trip.internal: mps_ap_trip is normally invoked by the
+ * mps_commit macro, but may be "called" directly by the client code
+ * if necessary. See <manual/topic/allocation> */
 
 mps_bool_t mps_ap_trip(mps_ap_t mps_ap, mps_addr_t p, size_t size)
 {
