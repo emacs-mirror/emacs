@@ -80,6 +80,12 @@ TODO, QUERIES AND SUGGESTIONS
 
 63. How do you create an auto_header format with a class method?
 
+64. Doc for mps_arena_class_vmnz says, "This class is similar to
+    mps_arena_class_vm(), except that it has a simple placement policy
+    (“no zones”) that makes it slightly faster." Presumably there's a
+    corresponding disadvantage, otherwise why would you use
+    mps_arena_class_vm rather than this?
+
 
 DONE, ANSWERED
 
