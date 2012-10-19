@@ -1,6 +1,6 @@
 /* eventsql.c: event log to SQLite importer.
  * 
- * $Id*
+ * $Id$
  * 
  * Copyright (c) 2012 Ravenbrook Limited.  See end of file for license.
  *
@@ -34,12 +34,12 @@
  * same event header files as those used to compile the MPS and
  * eventcnv which generated and processed the telemetry output.
  *
- * The program also creates three other tables: two 'glue' tables
- * containing event metadata - event_kind (one row per kind) and
- * event_type (one row per type), again derived from eventdef.h - and
- * the event_log table which has one row per log file imported (the
- * log_serial column in the event tables is a primary key to this
- * event_log table).
+ * The program also creates several other tables: three 'glue' tables
+ * containing event metadata - event_kind (one row per kind),
+ * event_type (one row per type), and event_param (one row per
+ * parameter), all derived from eventdef.h - and the event_log table
+ * which has one row per log file imported (the log_serial column in
+ * the event tables is a primary key to this event_log table).
  *
  * No tables are created if they already exist, unless the -r
  * (rebuild) switch is given.
@@ -332,7 +332,7 @@ static sqlite3_stmt *prepareStatement(sqlite3 *db,
                                  &statement,
                                  NULL);
         if (res != SQLITE_OK)
-                sqlite_error(res, db, "statementpreparation failed: %s", sql);
+                sqlite_error(res, db, "statement preparation failed: %s", sql);
         return statement;
 }
 
@@ -342,7 +342,7 @@ static void finalizeStatement(sqlite3 *db,
         int res;
         res = sqlite3_finalize(statement);
         if (res != SQLITE_OK)
-                sqlite_error(res, db, "event_type finalize failed");
+                sqlite_error(res, db, "statement finalize failed");
 }
 
 static void runStatement(sqlite3 *db,
@@ -366,7 +366,12 @@ static void runStatement(sqlite3 *db,
  * from SQL which is then attached to all event rows from that log.
  * We use this to record overall SQL activity, to deter mistaken
  * attempts to add the same log file twice, and to allow events from
- * several different log files to share the same SQL file. */
+ * several different log files to share the same SQL file.
+ *
+ * When reading events from stdin, we can't so easily avoid the
+ * duplication (unless we, e.g., take a hash of the event set); we
+ * assume that the user is smart enough not to do that.
+ */
 
 static unsigned long logSerial = 0;
 
@@ -498,6 +503,12 @@ const char *createStatements[] = {
         "                                       kind    INTEGER,"
         "  FOREIGN KEY (kind) REFERENCES event_kind(enum));",
 
+        "CREATE TABLE IF NOT EXISTS event_param (type   INTEGER,"
+        "                                        param_index   INTEGER,"
+        "                                        sort    TEXT,"
+        "                                        ident   TEXT,"
+        "  FOREIGN KEY (type) REFERENCES event_type(code));",
+
         "CREATE TABLE IF NOT EXISTS event_log (name TEXT,"
         "                                      size INTEGER,"
         "                                      modtime INTEGER,"
@@ -522,6 +533,7 @@ static void makeTables(sqlite3 *db)
 const char *glueTables[] = {
         "event_kind",
         "event_type",
+        "event_param",
 };
 
 static void dropGlueTables(sqlite3 *db)
@@ -544,7 +556,8 @@ static void dropGlueTables(sqlite3 *db)
         }
 }
 
-/* Populate the metadata "glue" tables event_kind and event_type. */
+/* Populate the metadata "glue" tables event_kind, event_type, and
+ * event_param. */
 
 #define EVENT_KIND_DO_INSERT(X, name, description)    \
         res = sqlite3_bind_text(statement, 1, #name, -1, SQLITE_STATIC); \
@@ -588,6 +601,31 @@ static void dropGlueTables(sqlite3 *db)
         if (res != SQLITE_OK)                                           \
                 sqlite_error(res, db, "Couldn't reset event_type insert statement.");
 
+#define EVENT_PARAM_DO_INSERT(code, index, sort, ident)   \
+        res = sqlite3_bind_int(statement, 1, code);                     \
+        if (res != SQLITE_OK)                                           \
+                sqlite_error(res, db, "event_param bind of code %d failed.", code); \
+        res = sqlite3_bind_int(statement, 2, index);                     \
+        if (res != SQLITE_OK)                                           \
+                sqlite_error(res, db, "event_param bind of index %d failed.", index); \
+        res = sqlite3_bind_text(statement, 3, #sort, -1, SQLITE_STATIC); \
+        if (res != SQLITE_OK)                                           \
+                sqlite_error(res, db, "event_type bind of sort \"" #sort "\" failed."); \
+        res = sqlite3_bind_text(statement, 4, #ident, -1, SQLITE_STATIC); \
+        if (res != SQLITE_OK)                                           \
+                sqlite_error(res, db, "event_type bind of ident \"" #ident "\" failed."); \
+        res = sqlite3_step(statement);                                  \
+        if (res != SQLITE_DONE)                                         \
+                sqlite_error(res, db, "event_param insert of ident \"" #ident "\" for code %d failed.", code); \
+        if (sqlite3_changes(db) != 0)                                   \
+                log(LOG_SOMETIMES, "Insert of event_param row for code %d,  ident \"" #ident "\" affected %d rows.", code, sqlite3_changes(db)); \
+        res = sqlite3_reset(statement);                                 \
+        if (res != SQLITE_OK)                                           \
+                sqlite_error(res, db, "Couldn't reset event_param insert statement.");
+
+#define EVENT_TYPE_INSERT_PARAMS(X, name, code, always, kind) \
+        EVENT_##name##_PARAMS(EVENT_PARAM_DO_INSERT, code)
+
 static void fillGlueTables(sqlite3 *db)
 {
         int i;
@@ -607,6 +645,13 @@ static void fillGlueTables(sqlite3 *db)
                                      "INSERT OR IGNORE INTO event_type (name, code, always, kind)"
                                      "VALUES (?, ?, ?, ?)");
         EVENT_LIST(EVENT_TYPE_DO_INSERT, X);
+        
+        finalizeStatement(db, statement);
+
+        statement = prepareStatement(db,
+                                     "INSERT OR IGNORE INTO event_param (type, param_index, sort, ident)"
+                                     "VALUES (?, ?, ?, ?)");
+        EVENT_LIST(EVENT_TYPE_INSERT_PARAMS, X);
         
         finalizeStatement(db, statement);
 }
@@ -862,10 +907,7 @@ int main(int argc, char *argv[])
         fillGlueTables(db);
         count = writeEventsToSQL(db);
         log(LOG_ALWAYS, "Imported %llu events from %s to %s, serial %lu.",
-            (unsigned long)count,
-            logFileName,
-            databaseName,
-            logSerial);
+            count, logFileName, databaseName, logSerial);
 
         if (runTests) {
                 /* TODO: more unit tests in here */
