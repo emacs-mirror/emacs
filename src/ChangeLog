@@ -1,4 +1,4 @@
-2012-10-19  Kenichi Handa  <handa@gnu.org>
+2012-10-19  Kazuhiro Ito  <kzhr@d1.dion.ne.jp>  (tiny change)
 
 	* font.c (Ffont_at): Fix previous change.
 
