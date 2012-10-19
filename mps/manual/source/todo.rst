@@ -1,5 +1,8 @@
 To do, queries and suggestions
-------------------------------
+==============================
+
+Outstanding
+-----------
 
 3.  Glossary entries need permalink markers. See Sphinx `issue 996`_.
 
@@ -41,20 +44,20 @@ To do, queries and suggestions
 
 
 
-DONE, ANSWERED
---------------
+Complete
+--------
 
- 1. Create a new `domain`_ for MPS stuff.
+1.  Create a new `domain`_ for MPS stuff.
 
     .. _domain: http://sphinx.pocoo.org/ext/appapi.html#sphinx.domains.Domain
 
- 2. Create new types of Sphinx objects for pools and topics.
+2.  Create new types of Sphinx objects for pools and topics.
 
     *Action:* doesn't seem necessary. Ordinary cross-references work fine.
 
- 4. Make "(1)", "(2)" into superscripts.
+4.  Make "(1)", "(2)" into superscripts.
 
- 6. Identify :term: references that point to "see" cross-references.
+6.  Identify :term: references that point to "see" cross-references.
 
 10. Pluralize "Topic" to "Topics" and so on.
 
@@ -94,7 +97,7 @@ DONE, ANSWERED
     look at ``mpstd.h``)? Why not something of its own manufacture, like
     ``sizeof(union {long, size_t, void*})``?
 
-    *Answer:* This a puzzle! More thought needed. Make a job?
+    *Answer:* This a puzzle! More thought needed.
 
     *Action:* made `job003316`_.
 
@@ -162,7 +165,7 @@ DONE, ANSWERED
 
     *Answer:* we'll document that all references need to be
     decrypted/de-tagged. There ought to be some slack in practice but
-    it needs thought. Make a job.
+    it needs thought.
 
     *Action:* made `job003317`_.
 
@@ -186,11 +189,9 @@ DONE, ANSWERED
         Collection 47 started.
           ...
 
-    *Answer:* mis-feature. Update the scheme example. Make a job.
+    *Answer:* mis-feature. Update the scheme example.
 
-    *Action:* updated the Scheme example.
-
-    *Action:* made `job003318`_.
+    *Action:* updated the Scheme example. Made `job003318`_.
 
     .. _job003318: https://info.ravenbrook.com/project/mps/issue/job003318/
 
@@ -543,8 +544,6 @@ DONE, ANSWERED
 
 67. Potential optimization of reserve/commit protocol: maybe we don't
     need to call :c:func:`mps_ap_trip`?
-
-    *Answer:* make a job.
 
     *Action:* made `job003328`_.
 
