@@ -267,15 +267,17 @@ first will be printed into the backtrace buffer."
 		;; Make sure we unbind buffer-read-only in the right buffer.
 		(save-excursion
 		  (recursive-edit))))
+	  (when (and (window-live-p debugger-window)
+		     (eq (window-buffer debugger-window) debugger-buffer))
+	    ;; Record height of debugger window.
+	    (setq debugger-previous-window-height
+		  (window-total-size debugger-window)))
 	  (if debugger-will-be-back
 	      ;; Restore previous window configuration (Bug#12623).
 	      (set-window-configuration window-configuration)
 	    (when (and (window-live-p debugger-window)
 		       (eq (window-buffer debugger-window) debugger-buffer))
 	      (progn
-		;; Record height of debugger window.
-		(setq debugger-previous-window-height
-		      (window-total-size debugger-window))
 		;; Unshow debugger-buffer.
 		(quit-restore-window debugger-window debugger-bury-or-kill)
 		;; Restore current buffer (Bug#12502).

@@ -1,3 +1,8 @@
+2012-10-19  Martin Rudalics  <rudalics@gmx.at>
+
+	* emacs-lisp/debug.el (debug): Record height of debugger window
+	also when debugger will be back (Bug#8789).
+
 2012-10-18  Chong Yidong  <cyd@gnu.org>
 
 	* progmodes/gdb-mi.el (gdb-display-buffer-other-frame-action):
