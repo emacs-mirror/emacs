@@ -161,8 +161,7 @@ Memory Management Glossary: V
 
             An :term:`arena class` which gets its :term:`memory (2)`
             from the operating system's :term:`virtual memory`
-            interface. See :c:func:`mps_arena_class_vm` and
-            :c:func:`mps_arena_class_vmnz`.
+            interface. See :c:func:`mps_arena_class_vm`.
 
     visitor function
 

@@ -1,12 +1,7 @@
 .. _pool:
 
-**************
 Pool reference
 **************
-
-====================
-List of pool classes
-====================
 
 .. toctree::
    :maxdepth: 1
@@ -17,7 +12,6 @@ List of pool classes
 
 .. _pool-choose:
 
-=====================
 Choosing a pool class
 =====================
 
@@ -80,7 +74,8 @@ no          *any*                   weak         :ref:`pool-mvt` [1]_
            them.
 
 
-=====================
+.. _pool-properties:
+
 Pool class properties
 =====================
 
@@ -96,28 +91,28 @@ example, if blocks in a pool may not contain :term:`references
 =============================================  =====  =====  =====  =====  =====  =====  =====  =====  =====
 Property                                       AMC    AMCZ   AMS    AWL    LO     MV     MVFF   MVT    SNC
 =============================================  =====  =====  =====  =====  =====  =====  =====  =====  =====
-Supports :c:func:`mps_alloc`?                  no     no     ??     no     no     yes    yes    no     ??
-Supports :c:func:`mps_free`?                   no     no     ??     no     no     yes    yes    yes    ??
-Supports allocation points?                    yes    yes    ??     yes    yes    no     no     yes    ??
-Timing of collections? [2]_                    auto   auto   ??     auto   auto   ---    ---    ---    ??
-May contain references? [3]_                   yes    no     ??     yes    no     no     no     no     ??
-May contain exact references? [4]_             yes    ---    ??     yes    ---    ---    ---    ---    ??
-May contain ambiguous references? [4]_         no     ---    ??     no     ---    ---    ---    ---    ??
-May contain weak references? [4]_              no     ---    ??     yes    ---    ---    ---    ---    ??
-Allocations fixed or variable in size?         var    var    ??     var    var    var    var    var    ??
-Alignment? [5]_                                conf   conf   ??     conf   conf   [6]_   [7]_   [6]_   ??
-Associated objects? [8]_                       no     ---    ??     yes    ---    ---    ---    ---    ??
+Supports :c:func:`mps_alloc`?                  no     no     no     no     no     yes    yes    no     ??
+Supports :c:func:`mps_free`?                   no     no     no     no     no     yes    yes    yes    ??
+Supports allocation points?                    yes    yes    yes    yes    yes    no     no     yes    ??
+Timing of collections? [2]_                    auto   auto   yes    auto   auto   ---    ---    ---    ??
+May contain references? [3]_                   yes    no     yes    yes    no     no     no     no     ??
+May contain exact references? [4]_             yes    ---    yes    yes    ---    ---    ---    ---    ??
+May contain ambiguous references? [4]_         no     ---    no     no     ---    ---    ---    ---    ??
+May contain weak references? [4]_              no     ---    no     yes    ---    ---    ---    ---    ??
+Allocations fixed or variable in size?         var    var    var    var    var    var    var    var    ??
+Alignment? [5]_                                conf   conf   conf   conf   conf   [6]_   [7]_   [6]_   ??
+Dependent objects? [8]_                        no     ---    no     yes    ---    ---    ---    ---    ??
 May use remote references? [9]_                no     ---    ??     no     ---    ---    ---    ---    ??
 Ambiguous references keep blocks alive?        no     no     ??     no     no     ---    ---    ---    ??
-Blocks are automatically managed? [10]_        yes    yes    ??     yes    yes    no     no     no     ??
-Blocks are manually managed? [10]_             no     no     ??     no     no     yes    yes    yes    ??
-Blocks are scanned? [11]_                      yes    no     ??     yes    no     no     no     no     ??
+Blocks are automatically managed? [10]_        yes    yes    yes    yes    yes    no     no     no     ??
+Blocks are manually managed? [10]_             no     no     no     no     no     yes    yes    yes    ??
+Blocks are scanned? [11]_                      yes    no     yes    yes    no     no     no     no     ??
 Blocks support base references only? [12]_     yes    yes    ??     yes    yes    ---    ---    ---    ??
 Blocks support internal references? [12]_      no     no     ??     no     no     ---    ---    ---    ??
 Blocks may be protected by barriers?           yes    no     ??     yes    no     no     no     no     ??
-Blocks may move?                               yes    yes    ??     no     no     no     no     no     ??
+Blocks may move?                               yes    yes    no     no     no     no     no     no     ??
 Blocks may be finalized?                       yes    yes    ??     yes    yes    no     no     no     ??
-Blocks must be formatted? [11]_                yes    yes    ??     yes    yes    no     no     no     ??
+Blocks must be formatted? [11]_                yes    yes    yes    yes    yes    no     no     no     ??
 =============================================  =====  =====  =====  =====  =====  =====  =====  =====  =====
 
 .. note::
@@ -148,7 +143,7 @@ Blocks must be formatted? [11]_                yes    yes    ??     yes    yes  
            alignment` for the :term:`platform`).
 
     .. [8] In pools with this property, each object may specify an
-           :term:`associated object` which the client program guarantees
+           :term:`dependent object` which the client program guarantees
            will be accessible during the scanning of the first
            object. This may be used in the implementation of :term:`weak
            hash tables <weak hash table>`.
@@ -165,11 +160,12 @@ Blocks must be formatted? [11]_                yes    yes    ??     yes    yes  
            that these properties are not mutually exclusive, although
            the MPS does not provide a pool class that satisfies both.
 
-    .. [11] Blocks "are scanned" if the MPS :term:`scans <scan>` them for
-           references; blocks "must be formatted" if they are described to
-           the MPS by an :term:`object format`. At present, the MPS only
-           knows how to scan blocks using the :term:`scan method` from an
-           object format, but it is in theory possible to scan unformatted
+    .. [11] Blocks "are scanned" if the MPS :term:`scans <scan>` them
+           for references; blocks "must be formatted" if they are
+           described to the MPS by an :term:`object format`. At
+           present, the MPS only knows how to scan blocks using the
+           :term:`scan method` from an object format, but the MPS
+           design does not preclude pools that scan unformatted
            blocks.
 
     .. [12] A block "supports internal references" if a reference to any

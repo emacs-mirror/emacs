@@ -128,6 +128,10 @@ Memory Management Glossary: D
 
         .. bibref:: [DB76]_.
 
+    dependent object
+
+        .. mps:specific:: ??
+
     derived pointer
 
         .. see:: :term:`interior pointer`.

@@ -22,9 +22,9 @@ Memory Management Glossary: N
 
         .. mps:specific::
 
-            The MPS defines the :term:`C` preprocessor macro
-            :c:macro:`MPS_PF_ALIGN` to be the natural alignment of the
-            platform.
+            The MPS platform interface defines the :term:`C`
+            preprocessor macro :c:macro:`MPS_PF_ALIGN` to be the
+            natural alignment of the platform.
 
     nepotism
 

@@ -18,8 +18,9 @@ Outstanding
 
     .. _sphinx-natbib: http://wnielson.bitbucket.org/projects/sphinx-natbib/
 
-9.  Hyphenate long function names across line endings (but what if you
-    copy them?)
+9.  Hyphenate long function names across line endings. It would be
+    possible to do this by inserting soft hyphens but if you copied
+    the function name you'd copy the soft hyphens too.
 
 11. Support MMREF-style anchors to the glossary (``#garbage.collection``
     as well as ``#garbage-collection``).
@@ -32,6 +33,10 @@ Outstanding
     1.111" is wrong: "starting with version 1.111" would be right.
 
 61. Start adding index entries.
+
+72. When a ``.. note::`` block contains a numbered list with multiple
+    items (as :ref:`here <guide-lang-scan>`) or multiple footnotes (as
+    :ref:`here <pool-properties>`) the heading should say "Notes".
 
 
 
@@ -217,7 +222,7 @@ Complete
 
         typedef void (*mps_amc_apply_stepper_t)(mps_addr_t object, void *p, size_t s)
 
-    *Answer:* Richard says I can make this change since it's
+    *Answer:* RB says I can make this change since it's
     backwards-compatible.
 
 28. Wouldn't the Scheme example be better without TAB characters?

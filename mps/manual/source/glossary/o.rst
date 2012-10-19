@@ -22,8 +22,8 @@ Memory Management Glossary: O
 
         .. mps:specific::
 
-            The MPS documentation reserves the term *object* for
-            :term:`formatted objects <formatted object>` only. For
+            The MPS documentation generally reserves the term *object*
+            for :term:`formatted objects <formatted object>`. For
             units of allocation in general, it uses the term
             :term:`block`.
 
