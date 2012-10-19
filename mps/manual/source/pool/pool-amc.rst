@@ -75,6 +75,8 @@ AMC symbol reference
         :c:func:`mps_arena_formatted_objects_walk` that visits all
         formatted objects in the arena.
 
+        Walking the heap is "dodgy".
+
 
 .. c:function:: mps_class_t mps_class_amc(void)
 
