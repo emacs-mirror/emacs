@@ -2425,15 +2425,7 @@ On Unix, this is a name starting with a `/' or a `~'.  */)
 bool
 check_existing (const char *filename)
 {
-#ifdef DOS_NT
-  /* The full emulation of Posix 'stat' is too expensive on
-     DOS/Windows, when all we want to know is whether the file exists.
-     So we use 'access' instead, which is much more lightweight.  */
-  return (access (filename, F_OK) >= 0);
-#else
-  struct stat st;
-  return (stat (filename, &st) >= 0);
-#endif
+  return faccessat (AT_FDCWD, filename, F_OK, AT_EACCESS) == 0;
 }
 
 /* Return true if file FILENAME exists and can be executed.  */
@@ -2441,21 +2433,7 @@ check_existing (const char *filename)
 static bool
 check_executable (char *filename)
 {
-#ifdef DOS_NT
-  struct stat st;
-  if (stat (filename, &st) < 0)
-    return 0;
-  return ((st.st_mode & S_IEXEC) != 0);
-#else /* not DOS_NT */
-#ifdef HAVE_EUIDACCESS
-  return (euidaccess (filename, 1) >= 0);
-#else
-  /* Access isn't quite right because it uses the real uid
-     and we really want to test with the effective uid.
-     But Unix doesn't give us a right way to do it.  */
-  return (access (filename, 1) >= 0);
-#endif
-#endif /* not DOS_NT */
+  return faccessat (AT_FDCWD, filename, X_OK, AT_EACCESS) == 0;
 }
 
 /* Return true if file FILENAME exists and can be written.  */
@@ -2464,15 +2442,16 @@ static bool
 check_writable (const char *filename)
 {
 #ifdef MSDOS
+  /* FIXME: an faccessat implementation should be added to the
+     DOS/Windows ports and this #ifdef branch should be removed.  */
   struct stat st;
   if (stat (filename, &st) < 0)
     return 0;
   return (st.st_mode & S_IWRITE || S_ISDIR (st.st_mode));
 #else /* not MSDOS */
-#ifdef HAVE_EUIDACCESS
-  bool res = (euidaccess (filename, 2) >= 0);
+  bool res = faccessat (AT_FDCWD, filename, W_OK, AT_EACCESS) == 0;
 #ifdef CYGWIN
-  /* euidaccess may have returned failure because Cygwin couldn't
+  /* faccessat may have returned failure because Cygwin couldn't
      determine the file's UID or GID; if so, we return success. */
   if (!res)
     {
@@ -2483,14 +2462,6 @@ check_writable (const char *filename)
     }
 #endif /* CYGWIN */
   return res;
-#else /* not HAVE_EUIDACCESS */
-  /* Access isn't quite right because it uses the real uid
-     and we really want to test with the effective uid.
-     But Unix doesn't give us a right way to do it.
-     Opening with O_WRONLY could work for an ordinary file,
-     but would lose for directories.  */
-  return (access (filename, 2) >= 0);
-#endif /* not HAVE_EUIDACCESS */
 #endif /* not MSDOS */
 }
 
@@ -2547,9 +2518,6 @@ See also `file-exists-p' and `file-attributes'.  */)
 {
   Lisp_Object absname;
   Lisp_Object handler;
-  int desc;
-  int flags;
-  struct stat statbuf;
 
   CHECK_STRING (filename);
   absname = Fexpand_file_name (filename, Qnil);
@@ -2561,31 +2529,8 @@ See also `file-exists-p' and `file-attributes'.  */)
     return call2 (handler, Qfile_readable_p, absname);
 
   absname = ENCODE_FILE (absname);
-
-#if defined (DOS_NT) || defined (macintosh)
-  /* Under MS-DOS, Windows, and Macintosh, open does not work for
-     directories.  */
-  if (access (SDATA (absname), 0) == 0)
-    return Qt;
-  return Qnil;
-#else /* not DOS_NT and not macintosh */
-  flags = O_RDONLY;
-#ifdef O_NONBLOCK
-  /* Opening a fifo without O_NONBLOCK can wait.
-     We don't want to wait.  But we don't want to mess wth O_NONBLOCK
-     except in the case of a fifo, on a system which handles it.  */
-  desc = stat (SSDATA (absname), &statbuf);
-  if (desc < 0)
-    return Qnil;
-  if (S_ISFIFO (statbuf.st_mode))
-    flags |= O_NONBLOCK;
-#endif
-  desc = emacs_open (SSDATA (absname), flags, 0);
-  if (desc < 0)
-    return Qnil;
-  emacs_close (desc);
-  return Qt;
-#endif /* not DOS_NT and not macintosh */
+  return (faccessat (AT_FDCWD, SSDATA (absname), R_OK, AT_EACCESS) == 0
+	  ? Qt : Qnil);
 }
 
 /* Having this before file-symlink-p mysteriously caused it to be forgotten
@@ -2622,7 +2567,7 @@ DEFUN ("file-writable-p", Ffile_writable_p, Sfile_writable_p, 1, 1, 0,
   /* The read-only attribute of the parent directory doesn't affect
      whether a file or directory can be created within it.  Some day we
      should check ACLs though, which do affect this.  */
-  return (access (SDATA (dir), D_OK) < 0) ? Qnil : Qt;
+  return file_directory_p (SDATA (dir)) ? Qt : Qnil;
 #else
   return (check_writable (!NILP (dir) ? SSDATA (dir) : "")
 	  ? Qt : Qnil);
@@ -2703,8 +2648,7 @@ Symbolic links to directories count as directories.
 See `file-symlink-p' to distinguish symlinks.  */)
   (Lisp_Object filename)
 {
-  register Lisp_Object absname;
-  struct stat st;
+  Lisp_Object absname;
   Lisp_Object handler;
 
   absname = expand_and_dir_to_file (filename, BVAR (current_buffer, directory));
@@ -2717,9 +2661,20 @@ See `file-symlink-p' to distinguish symlinks.  */)
 
   absname = ENCODE_FILE (absname);
 
-  if (stat (SSDATA (absname), &st) < 0)
-    return Qnil;
-  return S_ISDIR (st.st_mode) ? Qt : Qnil;
+  return file_directory_p (SSDATA (absname)) ? Qt : Qnil;
+}
+
+/* Return true if FILE is a directory or a symlink to a directory.  */
+bool
+file_directory_p (char const *file)
+{
+#ifdef WINDOWSNT
+  /* This is cheaper than 'stat'.  */
+  return faccessat (AT_FDCWD, file, D_OK, AT_EACCESS) == 0;
+#else
+  struct stat st;
+  return stat (file, &st) == 0 && S_ISDIR (st.st_mode);
+#endif
 }
 
 DEFUN ("file-accessible-directory-p", Ffile_accessible_directory_p,
@@ -3044,10 +2999,8 @@ Use the current time if TIMESTAMP is nil.  TIMESTAMP is in the format of
     if (set_file_times (-1, SSDATA (encoded_absname), t, t))
       {
 #ifdef MSDOS
-        struct stat st;
-
         /* Setting times on a directory always fails.  */
-        if (stat (SSDATA (encoded_absname), &st) == 0 && S_ISDIR (st.st_mode))
+        if (file_directory_p (SSDATA (encoded_absname)))
           return Qnil;
 #endif
         report_file_error ("Setting file times", Fcons (absname, Qnil));

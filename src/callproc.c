@@ -1597,13 +1597,13 @@ init_callproc (void)
 #endif
     {
       tempdir = Fdirectory_file_name (Vexec_directory);
-      if (access (SSDATA (tempdir), 0) < 0)
+      if (faccessat (AT_FDCWD, SSDATA (tempdir), F_OK, AT_EACCESS) != 0)
 	dir_warning ("Warning: arch-dependent data dir (%s) does not exist.\n",
 		     Vexec_directory);
     }
 
   tempdir = Fdirectory_file_name (Vdata_directory);
-  if (access (SSDATA (tempdir), 0) < 0)
+  if (faccessat (AT_FDCWD, SSDATA (tempdir), F_OK, AT_EACCESS) != 0)
     dir_warning ("Warning: arch-independent data dir (%s) does not exist.\n",
 		 Vdata_directory);
 

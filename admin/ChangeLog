@@ -1,3 +1,11 @@
+2012-10-19  Paul Eggert  <eggert@cs.ucla.edu>
+
+	Use faccessat, not access, when checking file permissions (Bug#12632).
+	* merge-gnulib (GNULIB_MODULES): Add faccessat.
+	(GNULIB_TOOL_FLAGS): Avoid at-internal, fchdir, malloc-posix,
+	openat-die, openat-h, save-cwd.  Do not avoid fcntl-h.
+	Omit gnulib's m4/fcntl-o.m4.
+
 2012-10-12  Kenichi Handa  <handa@gnu.org>
 
 	* charsets/Makefile (JISC6226.map): Add missing mappings.

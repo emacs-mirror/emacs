@@ -1,3 +1,32 @@
+2012-10-19  Paul Eggert  <eggert@cs.ucla.edu>
+
+	Use faccessat, not access, when checking file permissions (Bug#12632).
+	* Makefile.in (LIB_EACCESS): New macro.
+	(LIBES): Use it.
+	* callproc.c (init_callproc):
+	* charset.c (init_charset):
+	* fileio.c (check_existing, check_executable):
+	* lread.c (openp, load_path_check):
+	* process.c (allocate_pty):
+	* xrdb.c (file_p):
+	Use faccessat, not access or euidaccess.  Use symbolic names
+	instead of integers for the flags, as they're portable now.
+	* charset.c, xrdb.c: Include <fcntl.h>, for the new flags used.
+	* fileio.c (Ffile_readable_p):
+	Use faccessat, not stat + open + close.
+	(file_directory_p): New function, which uses 'stat' on most places
+	but 'access' (for efficiency) if WINDOWSNT.
+	* fileio.c (Ffile_directory_p, Fset_file_times):
+	* xrdb.c (file_p): Use file_directory_p.
+	* lisp.h (file_directory_p): New decl.
+	* lread.c (openp): When opening a file, use fstat rather than
+	stat, as that avoids a permissions race.  When not opening a file,
+	use file_directory_p rather than stat.
+	* process.c, sysdep.c, term.c: All uses of '#ifdef O_NONBLOCK'
+	changed to '#if O_NONBLOCK', to accommodate gnulib O_* style.
+	* w32.c (sys_faccessat): Rename from sys_access and switch to
+	faccessat's API.  All uses changed.
+
 2012-10-19  Kazuhiro Ito  <kzhr@d1.dion.ne.jp>  (tiny change)
 
 	* font.c (Ffont_at): Fix previous change.
