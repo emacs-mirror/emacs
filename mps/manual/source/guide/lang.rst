@@ -2,9 +2,8 @@
 
 .. _guide-lang:
 
-==========================================
-Garbage collecting a language with the MPS
-==========================================
+Garbage collecting a language with the Memory Pool System
+=========================================================
 
 Have you written the lexer, parser, code generator and the runtime
 system for your programming language, and come to the realization that
@@ -16,11 +15,10 @@ moving, generational garbage collection to the runtime system for a
 programming language.
 
 I'm assuming that you've downloaded and built the MPS (see the chapter
-:ref:`guide-install`), and that you are familiar with the overall
+:ref:`guide-build`), and that you are familiar with the overall
 architecture of the MPS (see the chapter :ref:`guide-overview`).
 
 
-----------------------
 The Scheme interpreter
 ----------------------
 
@@ -115,7 +113,6 @@ are :term:`dead` before their memory can be :term:`reclaimed
 <reclaim>`. And that task falls to the :term:`garbage collector`.
 
 
------------------------
 Choosing an arena class
 -----------------------
 
@@ -180,7 +177,6 @@ some other value if it failed.
     :ref:`topic-arena`.
 
 
----------------------
 Choosing a pool class
 ---------------------
 
@@ -212,7 +208,6 @@ these features of the MPS.
     classes.
 
 
------------------------
 Describing your objects
 -----------------------
 
@@ -624,7 +619,6 @@ code must be added to ``obj_scan`` and ``obj_skip``::
     :ref:`topic-format`.
 
 
------------------
 Generation chains
 -----------------
 
@@ -660,7 +654,6 @@ interpreter::
     if (res != MPS_RES_OK) error("Couldn't create obj chain");
 
 
------------------
 Creating the pool
 -----------------
 
@@ -710,7 +703,6 @@ And finally the :term:`pool`::
     if (res != MPS_RES_OK) error("Couldn't create obj pool");
 
 
------
 Roots
 -----
 
@@ -908,7 +900,6 @@ changes size::
 
 .. _guide-lang-threads:
 
--------
 Threads
 -------
 
@@ -1009,7 +1000,6 @@ it now must be organized like this::
 
 .. _guide-lang-allocation:
 
-----------
 Allocation
 ----------
 
@@ -1120,7 +1110,6 @@ we have to initialize the object again (most conveniently done via a
     :ref:`topic-allocation`.
 
 
------------------------
 Maintaining consistency
 -----------------------
 
@@ -1162,7 +1151,6 @@ with tactics for tracking down the causes, appear in the chapter
 :ref:`guide-debug`.
 
 
-----------
 Tidying up
 ----------
 
@@ -1190,8 +1178,6 @@ Here's the tear-down code from the Scheme interpreter::
     mps_arena_destroy(arena);
 
 
-
-----------
 What next?
 ----------
 

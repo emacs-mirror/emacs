@@ -2,9 +2,8 @@
 
 .. _guide-debug:
 
-======================
-Debugging with the MPS
-======================
+Debugging with the Memory Pool System
+=====================================
 
 * Messages.
 

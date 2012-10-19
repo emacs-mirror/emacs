@@ -16,20 +16,15 @@
  * (define (church n f a) (if (eqv? n 0) a (church (- n 1) f (f a))))
  * (church 1000 triangle 0)
  *
- * This won't produce interesting results but it will cause a garbage
+ * This won't produce interesting results but it will cause garbage
  * collection cycles.  Note that there's never any waiting for the MPS.
  * THAT'S THE POINT.
  *
  * To find the code that's particularly related to the MPS, search for %%MPS.
  *
- * By the way, this interpreter originally just used `malloc` to allocate
- * and had no garbage collector.  Adapting it to use the MPS took
- * approximately two hours (for an MPS developer :).
- *
  *
  * MPS TO DO LIST
  * - make the symbol table weak to show how to use weak references
- * - make Scheme ports finalized to show how to use finalization
  * - add Scheme operators for talking to the MPS, forcing GC etc.
  * - cross-references to documentation
  * - make an mps_perror
@@ -109,9 +104,10 @@ enum {
   TYPE_PROMISE,
   TYPE_CHARACTER,
   TYPE_VECTOR,
-  TYPE_FWD2,            /* two-word broken heart */
-  TYPE_FWD,             /* three-words and up broken heart */
-  TYPE_PAD1             /* one-word padding object */
+  TYPE_FWD2,            /* two-word forwarding object */
+  TYPE_FWD,             /* three words and up forwarding object */
+  TYPE_PAD1,            /* one-word padding object */
+  TYPE_PAD              /* two words and up padding object */
 };
 
 typedef struct type_s {
@@ -171,13 +167,13 @@ typedef struct vector_s {
 } vector_s;
 
 
-/* fwd, fwd2, pad1 -- MPS forwarding and padding objects        %%MPS
+/* fwd2, fwd, pad1, pad -- MPS forwarding and padding objects        %%MPS
  *
  * These object types are here to satisfy the MPS Format Protocol
  * for format variant "A".  See [type mps_fmt_A_s in the reference
  * manual](../../reference/index.html#mps_fmt_A_s).
  *
- * The MPS needs to be able to replace any object with forwarding object
+ * The MPS needs to be able to replace any object with a forwarding object
  * or [broken heart](http://www.memorymanagement.org/glossary/b.html#broken.heart)
  * and since the smallest normal object defined above is two words long,
  * we have two kinds of forwarding objects: FWD2 is exactly two words
@@ -187,8 +183,8 @@ typedef struct vector_s {
  * The MPS needs to be able to pad out any area of memory that's a
  * multiple of the pool alignment.  We've chosen an single word alignment
  * for this interpreter, so we have to have a special padding object, PAD1,
- * for single words.  For larger objects we can just use forwarding objects
- * with NULL in their `fwd` fields.  See `obj_isfwd` for details.
+ * for single words.  For padding multiple words we use PAD objects with a
+ * size field.
  *
  * See obj_pad, obj_fwd etc. to see how these are used.
  */
@@ -208,6 +204,11 @@ typedef struct pad1_s {
   type_t type;                  /* TYPE_PAD1 */
 } pad1_s;
 
+typedef struct pad_s {
+  type_t type;                  /* TYPE_PAD */
+  size_t size;                  /* total size of this object */
+} pad_s;
+
 
 typedef union obj_u {
   type_s type;			/* one of TYPE_* */
@@ -222,6 +223,7 @@ typedef union obj_u {
   vector_s vector;
   fwd2_s fwd2;
   fwd_s fwd;
+  pad_s pad;
 } obj_s;
 
 
@@ -393,8 +395,10 @@ static void error(char *format, ...)
  * protocol.
  */
 
+#define ALIGNMENT sizeof(mps_word_t)
+
 #define ALIGN(size) \
-  (((size) + sizeof(mps_word_t) - 1) & ~(sizeof(mps_word_t) - 1))
+  (((size) + ALIGNMENT - 1) & ~(ALIGNMENT - 1))
 
 static obj_t make_pair(obj_t car, obj_t cdr)
 {
@@ -830,8 +834,8 @@ static void print(obj_t obj, unsigned depth, FILE *stream)
     } break;
     
     default:
-    assert(0);
-    abort();
+      assert(0);
+      abort();
   }
 }
 
@@ -2543,6 +2547,9 @@ static mps_res_t obj_scan(mps_ss_t ss, mps_addr_t base, mps_addr_t limit)
       case TYPE_PAD1:
         base = (char *)base + ALIGN(sizeof(pad1_s));
         break;
+      case TYPE_PAD:
+        base = (char *)base + ALIGN(obj->pad.size);
+        break;
       default:
         assert(0);
         fprintf(stderr, "Unexpected object on the heap\n");
@@ -2603,6 +2610,9 @@ static mps_addr_t obj_skip(mps_addr_t base)
     break;
   case TYPE_FWD:
     base = (char *)base + ALIGN(obj->fwd.size);
+    break;
+  case TYPE_PAD:
+    base = (char *)base + ALIGN(obj->pad.size);
     break;
   case TYPE_PAD1:
     base = (char *)base + ALIGN(sizeof(pad1_s));
@@ -2669,8 +2679,8 @@ static void obj_fwd(mps_addr_t old, mps_addr_t new)
  * object that will be skipped by `obj_scan` or `obj_skip` but does
  * nothing else.  Because we've chosen to align to single words, we may
  * have to pad a single word, so we have a special single-word padding
- * object, `PAD1` for that purpose.  Otherwise we can use forwarding
- * objects with their `fwd` fields set to `NULL`.
+ * object, `PAD1` for that purpose.  Otherwise we can use multi-word
+ * padding objects, `PAD`.
  */
 
 static void obj_pad(mps_addr_t addr, size_t size)
@@ -2679,28 +2689,10 @@ static void obj_pad(mps_addr_t addr, size_t size)
   assert(size >= ALIGN(sizeof(pad1_s)));
   if (size == ALIGN(sizeof(pad1_s))) {
     obj->type.type = TYPE_PAD1;
-  } else if (size == ALIGN(sizeof(fwd2_s))) {
-    obj->type.type = TYPE_FWD2;
-    obj->fwd2.fwd = NULL;
   } else {
-    obj->type.type = TYPE_FWD;
-    obj->fwd.fwd = NULL;
-    obj->fwd.size = size;
+    obj->type.type = TYPE_PAD;
+    obj->pad.size = size;
   }
-}
-
-
-/* obj_copy -- object format copy method                        %%MPS
- *
- * The job of `obj_copy` is to make a copy of an object.
- * TODO: Explain why this exists.
- */
-
-static void obj_copy(mps_addr_t old, mps_addr_t new)
-{
-  mps_addr_t limit = obj_skip(old);
-  size_t size = (char *)limit - (char *)old;
-  (void)memcpy(new, old, size);
 }
 
 
@@ -2711,10 +2703,10 @@ static void obj_copy(mps_addr_t old, mps_addr_t new)
  */
 
 struct mps_fmt_A_s obj_fmt_s = {
-  sizeof(mps_word_t),
+  ALIGNMENT,
   obj_scan,
   obj_skip,
-  obj_copy,
+  NULL,                         /* Obsolete copy method */
   obj_fwd,
   obj_isfwd,
   obj_pad
@@ -2761,7 +2753,7 @@ static void mps_chat(void)
     assert(b); /* we just checked there was one */
     
     if (type == mps_message_type_gc_start()) {
-      printf("Collection %lu started.\n", (unsigned long)mps_collections(arena));
+      printf("Collection started.\n");
       printf("  Why: %s\n", mps_message_gc_start_why(arena, message));
       printf("  Clock: %lu\n", (unsigned long)mps_message_clock(arena, message));
 
@@ -2907,7 +2899,14 @@ static void *start(void *p, size_t s)
 
 /* obj_gen_params -- initial setup for generational GC          %%MPS
  *
- * FIXME: explain this
+ * Each structure in this array describes one generation of objects. The
+ * two members are the capacity of the generation in kilobytes, and the
+ * mortality, the proportion of objects in the generation that you expect
+ * to survive a collection of that generation.
+ * 
+ * These numbers are *hints* to the MPS that it may use to make decisions
+ * about when and what to collect: nothing will go wrong (other than
+ * suboptimal performance) if you make poor choices.
  */
 
 static mps_gen_param_s obj_gen_params[] = {
