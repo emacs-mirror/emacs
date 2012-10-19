@@ -1,5 +1,9 @@
 2012-10-19  Eli Zaretskii  <eliz@gnu.org>
 
+	* puresize.h (BASE_PURESIZE): Bump the base value to 1700000.  See
+	http://lists.gnu.org/archive/html/emacs-devel/2012-10/msg00593.html
+	for the reasons.
+
 	* alloc.c (NSTATICS): Decrease to 0x800.
 
 2012-10-19  Stefan Monnier  <monnier@iro.umontreal.ca>
