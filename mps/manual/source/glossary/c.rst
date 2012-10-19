@@ -174,18 +174,6 @@ Memory Management Glossary: C
             Call :c:func:`mps_arena_clamp` to put an arena into the
             clamped state.
 
-    class method
-
-        .. mps:specific::
-
-            One of the :term:`format methods <format method>` in an
-            :term:`object format` of variant B
-            (:c:type:`mps_fmt_B_s`). It returns an address that is
-            related to the class or type of the object. This address
-            can be associated which a string by calling
-            :c:func:`mps_telemetry_label`, so as to appear in the
-            :term:`telemetry stream`. See :c:type:`mps_fmt_class_t`.
-
     class structure
 
         .. mps:specific:: ??

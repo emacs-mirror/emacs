@@ -435,10 +435,6 @@ Memory Management Glossary: R
 
         .. bibref:: [NOPH92]_, [NO93]_, [NO93A]_, [ON94]_.
 
-    reserve/commit protocol
-
-        .. mps:specific:: ??
-
     reserved
 
         In a :term:`virtual memory` system, it is usually possible
@@ -457,10 +453,6 @@ Memory Management Glossary: R
         ``mmap /dev/zero`` with no access.
 
         .. seealso:: :term:`mapping`, :term:`mmap`.
-
-    reservoir
-
-        .. mps:specific:: ??
 
     resident
 

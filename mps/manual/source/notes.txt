@@ -1,7 +1,8 @@
-TODO, QUERIES AND SUGGESTIONS
+To do, queries and suggestions
+------------------------------
 
  3. Glossary entries need permalink markers. See
-    <https://bitbucket.org/birkenfeld/sphinx/issue/996/expose-glossary-entry-link-on-hover>
+    `https://bitbucket.org/birkenfeld/sphinx/issue/996/expose-glossary-entry-link-on-hover`_.
 
  5. Fix the general index so that (1) aren't interpreted as
     subentries? (Or maybe it's OK as is?)
@@ -9,7 +10,7 @@ TODO, QUERIES AND SUGGESTIONS
  7. Re-do the diagrams in vector form and using the colour palette.
 
  8. Use a better bibliography extension. See for example
-    <http://wnielson.bitbucket.org/projects/sphinx-natbib/>
+    `http://wnielson.bitbucket.org/projects/sphinx-natbib/`_.
 
  9. Hyphenate long function names across line endings (but what if you
     copy them?)
@@ -43,54 +44,18 @@ TODO, QUERIES AND SUGGESTIONS
 37. Some of the Scheme objects could be moved to a leaf-only pool
     (e.g. AMCZ) in an "advanced topics" section of the user guide.
 
-38. Document about interface conventions and interface policies. What
-    do we guarantee about support for the external symbols?
-
 56. Deprecation warnings need nicer formatting. Also "since version
     1.111" is wrong: "starting with version 1.111" would be right.
 
-57. "mps_collections" should of course have been called
-    "mps_arena_collections" but it's pretty meaningless because the
-    collector is asynchronous (as we saw in the Scheme example). It
-    might make more sense to deprecate it and add a new function
-    mps_message_gc_start_collection that returns the collection number
-    for a mps_message_type_gc.
-
-58. After you destroy an allocation point, can you continue to use the
-    objects you allocated on it?
-
-59. What's the condition for mps_thread_reg when you have multiple
-    arenas? Do you need to register each thread with each arena? Or is
-    it acceptable to register a thread with only some of your arenas
-    so long as you satisfy some condition? (e.g. that the thread
-    promises only to access blocks allocated in the arenas it is
-    registered with?)
-
-    Similarly for mps_thread_dereg: "after deregistration, the thread
-    must not access any blocks allocated in that arena."
-
-60. What's the condition for needing to register a thread at all? If
-    you have a single-threaded program does that thread still need to
-    be registered? What if you have no moving pools? etc.
-
 61. Start adding index entries.
 
-62. I documented the requirement for tags to be removed when calling
-    MPS_FIX, but does this apply to format auto_header?
-
-63. How do you create an auto_header format with a class method?
-
-64. Doc for mps_arena_class_vmnz says, "This class is similar to
-    mps_arena_class_vm(), except that it has a simple placement policy
-    (“no zones”) that makes it slightly faster." Presumably there's a
-    corresponding disadvantage, otherwise why would you use
-    mps_arena_class_vm rather than this?
 
 
 DONE, ANSWERED
+--------------
 
  1. Create a new domain
-    <http://sphinx.pocoo.org/ext/appapi.html#sphinx.domains.Domain>
+    `http://sphinx.pocoo.org/ext/appapi.html#sphinx.domains.Domain`_.
 
  2. Create new types of Sphinx objects for pools and topics.
 
@@ -112,7 +77,7 @@ DONE, ANSWERED
     pool and the size classes (mps_sac_class_s) for a segregated
     allocation cache?
 
-    ANSWER: examination of the code shows that all of these structure
+    ANSWER: examination of the code shows that all of these structures
     are copied into internally allocated MPS control structures, and
     so it is OK for the client program to put these structures on the
     stack otherwise dispose of them.
@@ -126,7 +91,7 @@ DONE, ANSWERED
     could easily be broken. MPS_T_WORD could be eliminated from the
     external interface. Make a job?
 
-    ACTION: made <https://info.ravenbrook.com/project/mps/issue/job003315/>
+    ACTION: made `https://info.ravenbrook.com/project/mps/issue/job003315/`_.
 
 15. How can I explain why the Scheme example uses sizeof(mps_word_t)
     as its alignment? Why not MPS_PF_ALIGN (or are client programs not
@@ -135,7 +100,7 @@ DONE, ANSWERED
 
     ANSWER: This a puzzle! More thought needed. Make a job?
 
-    ACTION: made <https://info.ravenbrook.com/project/mps/issue/job003316/>
+    ACTION: made `https://info.ravenbrook.com/project/mps/issue/job003316/`_.
 
 16. Why does the Scheme example have a copy method in its object
     format when the reference manual says it's obsolete?
@@ -192,13 +157,13 @@ DONE, ANSWERED
     tag afterwards? I thought that both would be necessary but the
     critical path documentation has an example from OpenDylan with
     tagged references that does neither:
-    <https://info.ravenbrook.com/project/mps/master/design/critical-path.txt>
+    `https://info.ravenbrook.com/project/mps/master/design/critical-path.txt`_.
 
     ANSWER: we'll document that all references need to be
     decrypted/de-tagged. There ought to be some slack in practice but
     it needs thought. Make a job.
 
-    ACTION: made <https://info.ravenbrook.com/project/mps/issue/job003317/>
+    ACTION: made `https://info.ravenbrook.com/project/mps/issue/job003317/`_.
 
 23. This code from mps_chat in the Scheme example is wrong:
 
@@ -221,7 +186,7 @@ DONE, ANSWERED
 
     ACTION: updated the Scheme example.
 
-    ACTION: made <https://info.ravenbrook.com/project/mps/issue/job003318/>
+    ACTION: made `https://info.ravenbrook.com/project/mps/issue/job003318/`_.
 
 24. It seems "tricky" to re-use fowarding objects as padding objects
     by setting their forwarding pointer to NULL. Wouldn't it be
@@ -303,6 +268,9 @@ DONE, ANSWERED
     ANSWER: in fact there's no rule about this. Depends on the pool
     class. "It doesn't unless the pool class says it does".
 
+38. Document about interface conventions and interface policies. What
+    do we guarantee about support for the external symbols?
+
 39. We don't support scanning the stack/registers except via
     mps_stack_scan_ambig? Document this?
 
@@ -315,7 +283,7 @@ DONE, ANSWERED
 
     ANSWER: make a job.
 
-    ACTION: made <https://info.ravenbrook.com/project/mps/issue/job003319/>
+    ACTION: made `https://info.ravenbrook.com/project/mps/issue/job003319/`_
 
 41. Move symbol reference from mpsio.h, mpstd.h and mpslib.h to the
     plinth topic document.
@@ -421,3 +389,111 @@ DONE, ANSWERED
 55. Mark all the allocation frame stuff as deprecated in the manual.
 
     ACTION: I marked them all as deprecated in version 1.111.
+
+57. "mps_collections" should of course have been called
+    "mps_arena_collections" but it's pretty meaningless because the
+    collector is asynchronous (as we saw in the Scheme example). It
+    might make more sense to deprecate it and add a new function
+    mps_message_gc_start_collection that returns the collection number
+    for a mps_message_type_gc.
+
+    ACTION: Added to job003318.
+
+58. After you destroy an allocation point, can you continue to use the
+    objects you allocated on it?
+
+    ANSWER: the objects you have committed are fine.
+
+59. What's the condition for mps_thread_reg when you have multiple
+    arenas? Do you need to register each thread with each arena? Or is
+    it acceptable to register a thread with only some of your arenas
+    so long as you satisfy some condition? (e.g. that the thread
+    promises only to access blocks allocated in the arenas it is
+    registered with?)
+
+    Similarly for mps_thread_dereg: "after deregistration, the thread
+    must not access any blocks allocated in that arena."
+
+    ANSWER: a thread that never uses a pointer to an address in an
+    automatically managed pool need not be registered. Note: recommend
+    register all threads and scan all their stacks.
+
+60. What's the condition for needing to register a thread at all? If
+    you have a single-threaded program does that thread still need to
+    be registered? What if you have no moving pools? etc.
+
+    ANSWER: see above.
+
+62. I documented the requirement for tags to be removed when calling
+    MPS_FIX, but does this apply to format auto_header?
+
+    ANSWER: auto_header pool does the subtraction, so this is an
+    exception to the rule.
+
+63. How do you create an auto_header format with a class method?
+
+    ANSWER: this is just missing functionality. Also, not clear what
+    the class method is for. Make a job.
+
+    ACTION: Made `https://info.ravenbrook.com/project/mps/issue/job003325`_
+
+64. Doc for mps_arena_class_vmnz says, "This class is similar to
+    mps_arena_class_vm(), except that it has a simple placement policy
+    (“no zones”) that makes it slightly faster." Presumably there's a
+    corresponding disadvantage, otherwise why would you use
+    mps_arena_class_vm rather than this?
+
+    ANSWER: Remove the sentence. Not clear what vmnz is for (maybe
+    when you have no automatic pools?) Make a job.
+
+65. Some of the mps_ap_s structure is public. What are the use cases
+    for the client program accessing these values other than via
+    mps_reserve and mps_commit? Wouldn't they need to know about
+    mps_ap_fill and mps_ap_trip if they were doing their own thing?
+    But these function have comments saying "should never be "called"
+    directly by the client code."
+
+    ANSWER: if you're not writing client code in C (e.g. writing a
+    compiler, and you want to inline your allocation: you can't use
+    the macros, you can generate the equivalent code). The comments in
+    mpsi.c: .ap.fill.internal and .ap.trip.internal are simply
+    wrong. See RB's issue on the OpenDylan bug tracker for advice
+    about what's expected.
+
+    ACTION: See what refers to these bogus comments and see if there's
+    a reason. If not: reverse the sense of the comments and refer to
+    manual.
+
+66. What about reservoirs? Is the idea that the client's handler for
+    low-memory situations (whether it's an error message or whatever)
+    might need to allocate? And so you can ask the MPS to reserve a
+    reservoir for this situation?
+
+    ANSWER: leave it undocumented for now. Make a job.
+
+67. Potential optimization of reserve/commit protocol: maybe we need
+    to call mps_ap_trip?
+
+    ANSWER: make a job.
+
+68. What are we supposed to say about mps_ap_fill and mps_ap_trip?
+
+    ANSWER: Say that they should only be called as part of the
+    allocation point protocol.
+
+69. What is the purpose of MPS_RESERVE_BLOCK? It does the same thing
+    as mps_reserve, but can only be used as a statement, whereas the
+    latter can also be used as an expression. So I can't say, "in
+    such-and-such a circumstance use MPS_RESERVE_BLOCK".
+
+    ANSWER: it takes an lvalue instead of a pointer so it may generate
+    better code.
+
+70. "Reserve/commit protocol" or "allocation point protocol"?
+
+    ANSWER: the latter.
+
+71. What about mps_alert_collection_set? Seems dodgy to me.
+
+    ACTION: leave it undocumented and make a job.
+

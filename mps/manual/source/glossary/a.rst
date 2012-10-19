@@ -278,6 +278,10 @@ Memory Management Glossary: A
             multi-threaded environment. Allocation points belong to
             the type :c:type:`mps_ap_t`.
 
+    allocation point protocol
+
+        .. mps:specific:: ??
+
     allocation policy
 
         .. aka:: *placement policy*.

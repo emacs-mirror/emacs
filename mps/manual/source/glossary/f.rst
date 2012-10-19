@@ -267,8 +267,7 @@ Memory Management Glossary: F
             the :term:`client program` in order to describe its
             objects to the MPS. May be a :term:`scan method`,
             :term:`skip method`, :term:`forward method`,
-            :term:`is-forwarded method`, :term:`padding method`, or
-            :term:`class method`.
+            :term:`is-forwarded method`, or :term:`padding method`.
 
     formatted object
 

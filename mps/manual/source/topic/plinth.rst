@@ -1,6 +1,5 @@
 .. _topic-plinth:
 
-==========
 The plinth
 ==========
 
@@ -31,7 +30,6 @@ The example ANSI plinth, ``mpsliban.c``, implements :c:func:`mps_clock` by calli
 See also //info.ravenbrook.com/project/mps/master/design/io/index.html
 
 
------------------------
 Declared in ``mpsio.h``
 -----------------------
 
@@ -109,7 +107,6 @@ Declared in ``mpsio.h``
     event data.
 
 
-------------------------
 Declared in ``mpslib.h``
 ------------------------
 
@@ -183,7 +180,6 @@ Declared in ``mpslib.h``
     recommended.
 
 
-----------------------------
 Undocumented in ``mpslib.h``
 ----------------------------
 
@@ -199,3 +195,8 @@ Undocumented in ``mpslib.h``
 .. c:function:: mps_clock_t mps_clocks_per_sec(void)
 
 
+Undocumented in ``mpsw3.h``
+---------------------------
+
+.. c:function:: LONG mps_SEH_filter(LPEXCEPTION_POINTERS info, void **hp_o, size_t *hs_o)
+.. c:function:: void mps_SEH_handler(void *p, size_t s)
