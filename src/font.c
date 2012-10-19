@@ -4775,7 +4775,7 @@ the current buffer.  It defaults to the currently selected window.  */)
     {
       CHECK_NUMBER (position);
       CHECK_STRING (string);
-      if (! (0 < XINT (position) && XINT (position) < SCHARS (string)))
+      if (! (0 <= XINT (position) && XINT (position) < SCHARS (string)))
 	args_out_of_range (string, position);
       pos = XINT (position);
     }
