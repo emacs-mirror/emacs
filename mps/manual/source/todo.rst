@@ -24,15 +24,6 @@ Outstanding
 11. Support MMREF-style anchors to the glossary (``#garbage.collection``
     as well as ``#garbage-collection``).
 
-27. Wouldn't it make :c:func:`mps_amc_apply` easier to document if
-    there were a typedef for the stepper function type, something like
-    this::
-
-        typedef void (*mps_amc_apply_stepper_t)(mps_addr_t object, void *p, size_t s)
-
-    *Answer:* Richard says I can make this change since it's
-    backwards-compatible.
-
 37. Some of the Scheme objects could be moved to a leaf-only pool
     (e.g. :ref:`pool-amcz`) in an "advanced topics" section of the
     user guide.
@@ -219,6 +210,15 @@ Complete
     design document about this based on the `Lisp Machine`_.
 
     .. _Lisp Machine: https://info.ravenbrook.com/project/mps/doc/2002-06-18/obsolete-mminfo/mminfo/strategy/lisp-machine/
+
+27. Wouldn't it make :c:func:`mps_amc_apply` easier to document if
+    there were a typedef for the stepper function type, something like
+    this::
+
+        typedef void (*mps_amc_apply_stepper_t)(mps_addr_t object, void *p, size_t s)
+
+    *Answer:* Richard says I can make this change since it's
+    backwards-compatible.
 
 28. Wouldn't the Scheme example be better without TAB characters?
 
