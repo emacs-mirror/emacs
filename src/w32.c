@@ -1597,7 +1597,7 @@ init_environment (char ** argv)
 	 see if it succeeds.  But I think that's too much to ask.  */
 
       /* MSVCRT's _access crashes with D_OK.  */
-      if (tmp && sys_faccessat (AT_FDCWD, tmp, D_OK, AT_EACCESS) == 0)
+      if (tmp && sys_access (tmp, D_OK) == 0)
 	{
 	  char * var = alloca (strlen (tmp) + 8);
 	  sprintf (var, "TMPDIR=%s", tmp);
@@ -2714,15 +2714,9 @@ logon_network_drive (const char *path)
    long file names.  */
 
 int
-sys_faccessat (int dirfd, const char * path, int mode, int flags)
+sys_access (const char * path, int mode)
 {
   DWORD attributes;
-
-  if (dirfd != AT_FDCWD)
-    {
-      errno = EINVAL;
-      return -1;
-    }
 
   /* MSVCRT implementation of 'access' doesn't recognize D_OK, and its
      newer versions blow up when passed D_OK.  */
@@ -2966,7 +2960,7 @@ sys_mktemp (char * template)
 	{
 	  int save_errno = errno;
 	  p[0] = first_char[i];
-	  if (sys_faccessat (AT_FDCWD, template, F_OK, AT_EACCESS) < 0)
+	  if (sys_access (template, 0) < 0)
 	    {
 	      errno = save_errno;
 	      return template;
@@ -4017,7 +4011,7 @@ symlink (char const *filename, char const *linkname)
     {
       /* Non-absolute FILENAME is understood as being relative to
 	 LINKNAME's directory.  We need to prepend that directory to
-	 FILENAME to get correct results from sys_faccessat below, since
+	 FILENAME to get correct results from sys_access below, since
 	 otherwise it will interpret FILENAME relative to the
 	 directory where the Emacs process runs.  Note that
 	 make-symbolic-link always makes sure LINKNAME is a fully
@@ -4031,10 +4025,10 @@ symlink (char const *filename, char const *linkname)
 	strncpy (tem, linkfn, p - linkfn);
       tem[p - linkfn] = '\0';
       strcat (tem, filename);
-      dir_access = sys_faccessat (AT_FDCWD, tem, D_OK, AT_EACCESS);
+      dir_access = sys_access (tem, D_OK);
     }
   else
-    dir_access = sys_faccessat (AT_FDCWD, filename, D_OK, AT_EACCESS);
+    dir_access = sys_access (filename, D_OK);
 
   /* Since Windows distinguishes between symlinks to directories and
      to files, we provide a kludgy feature: if FILENAME doesn't

@@ -1404,7 +1404,7 @@ Returns the file's name in absolute form, or nil if not found.
 If SUFFIXES is non-nil, it should be a list of suffixes to append to
 file name when searching.
 If non-nil, PREDICATE is used instead of `file-readable-p'.
-PREDICATE can also be an integer to pass to the faccessat(2) function,
+PREDICATE can also be an integer to pass to the access(2) function,
 in which case file-name-handlers are ignored.
 This function will normally skip directories, so if you want it to find
 directories, make sure the PREDICATE function returns `dir-ok' for them.  */)
@@ -1442,6 +1442,7 @@ static Lisp_Object Qdir_ok;
 int
 openp (Lisp_Object path, Lisp_Object str, Lisp_Object suffixes, Lisp_Object *storeptr, Lisp_Object predicate)
 {
+  int fd;
   ptrdiff_t fn_size = 100;
   char buf[100];
   char *fn = buf;
@@ -1496,6 +1497,7 @@ openp (Lisp_Object path, Lisp_Object str, Lisp_Object suffixes, Lisp_Object *sto
 	{
 	  ptrdiff_t fnlen, lsuffix = SBYTES (XCAR (tail));
 	  Lisp_Object handler;
+	  bool exists;
 
 	  /* Concatenate path element/specified name with the suffix.
 	     If the directory starts with /:, remove that.  */
@@ -1519,7 +1521,6 @@ openp (Lisp_Object path, Lisp_Object str, Lisp_Object suffixes, Lisp_Object *sto
 	  handler = Ffind_file_name_handler (string, Qfile_exists_p);
 	  if ((!NILP (handler) || !NILP (predicate)) && !NATNUMP (predicate))
             {
-	      bool exists;
 	      if (NILP (predicate))
 		exists = !NILP (Ffile_readable_p (string));
 	      else
@@ -1541,39 +1542,36 @@ openp (Lisp_Object path, Lisp_Object str, Lisp_Object suffixes, Lisp_Object *sto
 	    }
 	  else
 	    {
-	      int fd;
+#ifndef WINDOWSNT
+	      struct stat st;
+#endif
 	      const char *pfn;
 
 	      encoded_fn = ENCODE_FILE (string);
 	      pfn = SSDATA (encoded_fn);
-
-	      /* Check that we can access or open it.  */
-	      if (NATNUMP (predicate))
-		fd = (((XFASTINT (predicate) & ~INT_MAX) == 0
-		       && (faccessat (AT_FDCWD, pfn, XFASTINT (predicate),
-				      AT_EACCESS)
-			   == 0)
-		       && ! file_directory_p (pfn))
-		      ? 1 : -1);
-	      else
+#ifdef WINDOWSNT
+	      exists = access (pfn, F_OK) == 0 && access (pfn, D_OK) < 0;
+#else
+	      exists = (stat (pfn, &st) == 0 && ! S_ISDIR (st.st_mode));
+#endif
+	      if (exists)
 		{
-		  struct stat st;
-		  fd = emacs_open (pfn, O_RDONLY, 0);
-		  if (0 <= fd
-		      && (fstat (fd, &st) != 0 || S_ISDIR (st.st_mode)))
+		  /* Check that we can access or open it.  */
+		  if (NATNUMP (predicate))
+		    fd = (((XFASTINT (predicate) & ~INT_MAX) == 0
+			   && access (pfn, XFASTINT (predicate)) == 0)
+			  ? 1 : -1);
+		  else
+		    fd = emacs_open (pfn, O_RDONLY, 0);
+
+		  if (fd >= 0)
 		    {
-		      emacs_close (fd);
-		      fd = -1;
+		      /* We succeeded; return this descriptor and filename.  */
+		      if (storeptr)
+			*storeptr = string;
+		      UNGCPRO;
+		      return fd;
 		    }
-		}
-
-	      if (fd >= 0)
-		{
-		  /* We succeeded; return this descriptor and filename.  */
-		  if (storeptr)
-		    *storeptr = string;
-		  UNGCPRO;
-		  return fd;
 		}
 	    }
 	}
@@ -4090,7 +4088,7 @@ load_path_check (void)
       if (STRINGP (dirfile))
         {
           dirfile = Fdirectory_file_name (dirfile);
-          if (faccessat (AT_FDCWD, SSDATA (dirfile), F_OK, AT_EACCESS) != 0)
+          if (access (SSDATA (dirfile), 0) < 0)
             dir_warning ("Warning: Lisp directory `%s' does not exist.\n",
                          XCAR (path_tail));
         }

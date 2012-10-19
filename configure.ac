@@ -572,8 +572,6 @@ else
   test "x$NON_GCC_TEST_OPTIONS" != x && CC="$CC $NON_GCC_TEST_OPTIONS"
 fi
 
-# Avoid gnulib's tests for O_NOATIME and O_NOFOLLOW, as we don't use them.
-AC_DEFUN([gl_FCNTL_O_FLAGS])
 # Avoid gnulib's threadlib module, as we do threads our own way.
 AC_DEFUN([gl_THREADLIB])
 
@@ -2874,7 +2872,7 @@ AC_SUBST(BLESSMAIL_TARGET)
 AC_CHECK_FUNCS(gethostname \
 closedir getrusage get_current_dir_name \
 lrand48 setsid \
-fpathconf select getpagesize setlocale \
+fpathconf select euidaccess getpagesize setlocale \
 utimes getrlimit setrlimit setpgid getcwd shutdown getaddrinfo \
 __fpending strsignal setitimer \
 sendto recvfrom getsockname getpeername getifaddrs freeifaddrs \

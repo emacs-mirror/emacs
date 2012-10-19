@@ -21,7 +21,6 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 
 #include <config.h>
 
-#include <fcntl.h>
 #include <unistd.h>
 #include <errno.h>
 #include <epaths.h>
@@ -262,8 +261,11 @@ gethomedir (void)
 static int
 file_p (const char *filename)
 {
-  return (faccessat (AT_FDCWD, filename, R_OK, AT_EACCESS) == 0
-	  && ! file_directory_p (filename));
+  struct stat status;
+
+  return (access (filename, 4) == 0             /* exists and is readable */
+	  && stat (filename, &status) == 0	/* get the status */
+	  && (S_ISDIR (status.st_mode)) == 0);	/* not a directory */
 }
 
 

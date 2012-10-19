@@ -3023,7 +3023,7 @@ init_tty (const char *name, const char *terminal_type, int must_succeed)
     int fd;
     FILE *file;
 
-#if O_IGNORE_CTTY
+#ifdef O_IGNORE_CTTY
     if (!ctty)
       /* Open the terminal device.  Don't recognize it as our
          controlling terminal, and don't make it the controlling tty
@@ -3054,7 +3054,7 @@ init_tty (const char *name, const char *terminal_type, int must_succeed)
                      name);
       }
 
-#if !O_IGNORE_CTTY
+#ifndef O_IGNORE_CTTY
     if (!ctty)
       dissociate_if_controlling_tty (fd);
 #endif

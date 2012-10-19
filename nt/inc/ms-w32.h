@@ -124,10 +124,6 @@ extern char *getenv ();
 #define MAXPATHLEN      _MAX_PATH
 #endif
 
-/* Use values compatible with gnulib, as there's no reason to differ.  */
-#define AT_FDCWD (-3041965)
-#define AT_EACCESS 4
-
 #ifdef HAVE_NTGUI
 #define HAVE_WINDOW_SYSTEM 1
 #define HAVE_MENUS 1
@@ -149,6 +145,8 @@ extern char *getenv ();
 #endif
 
 /* Calls that are emulated or shadowed.  */
+#undef access
+#define access  sys_access
 #undef chdir
 #define chdir   sys_chdir
 #undef chmod
@@ -163,7 +161,6 @@ extern char *getenv ();
 #define dup     sys_dup
 #undef dup2
 #define dup2    sys_dup2
-#define faccessat  sys_faccessat
 #define fopen   sys_fopen
 #define link    sys_link
 #define localtime sys_localtime

@@ -28,7 +28,7 @@ GNULIB_URL=git://git.savannah.gnu.org/gnulib.git
 GNULIB_MODULES='
   alloca-opt c-ctype c-strcase
   careadlinkat crypto/md5 crypto/sha1 crypto/sha256 crypto/sha512
-  dtoastr dtotimespec dup2 environ execinfo faccessat
+  dtoastr dtotimespec dup2 environ execinfo
   filemode getloadavg getopt-gnu gettime gettimeofday
   ignore-value intprops largefile lstat
   manywarnings mktime pselect pthread_sigmask readlink
@@ -39,12 +39,9 @@ GNULIB_MODULES='
 '
 
 GNULIB_TOOL_FLAGS='
-  --avoid=at-internal
-  --avoid=errno --avoid=fchdir --avoid=fcntl --avoid=fstat
-  --avoid=malloc-posix --avoid=msvc-inval --avoid=msvc-nothrow
-  --avoid=openat-die --avoid=openat-h
-  --avoid=raise
-  --avoid=save-cwd --avoid=select --avoid=sigprocmask --avoid=sys_types
+  --avoid=errno --avoid=fcntl --avoid=fcntl-h --avoid=fstat
+  --avoid=msvc-inval --avoid=msvc-nothrow
+  --avoid=raise --avoid=select --avoid=sigprocmask --avoid=sys_types
   --avoid=threadlib
   --conditional-dependencies --import --no-changelog --no-vc-files
   --makefile-name=gnulib.mk
@@ -88,7 +85,7 @@ test -x "$gnulib_srcdir"/gnulib-tool || {
 }
 
 "$gnulib_srcdir"/gnulib-tool --dir="$src" $GNULIB_TOOL_FLAGS $GNULIB_MODULES &&
-rm -- "$src"m4/fcntl-o.m4 "$src"m4/gnulib-cache.m4 "$src"m4/warn-on-use.m4 &&
+rm -- "$src"m4/gnulib-cache.m4 "$src"m4/warn-on-use.m4 &&
 cp -- "$gnulib_srcdir"/build-aux/texinfo.tex "$src"doc/misc &&
 cp -- "$gnulib_srcdir"/build-aux/move-if-change "$src"build-aux &&
 autoreconf -i -I m4 -- ${src:+"$src"}

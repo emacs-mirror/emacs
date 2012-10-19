@@ -28,7 +28,6 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 
 #define CHARSET_INLINE EXTERN_INLINE
 
-#include <fcntl.h>
 #include <stdio.h>
 #include <unistd.h>
 #include <limits.h>
@@ -2294,7 +2293,7 @@ init_charset (void)
 {
   Lisp_Object tempdir;
   tempdir = Fexpand_file_name (build_string ("charsets"), Vdata_directory);
-  if (faccessat (AT_FDCWD, SSDATA (tempdir), F_OK, AT_EACCESS) != 0)
+  if (access (SSDATA (tempdir), 0) < 0)
     {
       /* This used to be non-fatal (dir_warning), but it should not
          happen, and if it does sooner or later it will cause some

@@ -1216,7 +1216,7 @@ reset_sys_modes (struct tty_display_info *tty_out)
              old_fcntl_owner[fileno (tty_out->input)]);
     }
 #endif /* F_SETOWN */
-#if O_NDELAY
+#ifdef O_NDELAY
   fcntl (fileno (tty_out->input), F_SETFL,
          fcntl (fileno (tty_out->input), F_GETFL, 0) & ~O_NDELAY);
 #endif
@@ -2312,12 +2312,12 @@ serial_open (char *port)
 
   fd = emacs_open ((char*) port,
 		   O_RDWR
-#if O_NONBLOCK
+#ifdef O_NONBLOCK
 		   | O_NONBLOCK
 #else
 		   | O_NDELAY
 #endif
-#if O_NOCTTY
+#ifdef O_NOCTTY
 		   | O_NOCTTY
 #endif
 		   , 0);
