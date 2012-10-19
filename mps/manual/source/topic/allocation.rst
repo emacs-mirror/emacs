@@ -1,6 +1,5 @@
 .. _topic-allocation:
 
-==========
 Allocation
 ==========
 
@@ -52,7 +51,7 @@ These notes on Allocation Points were written by RHSK between 2006-06-07 and 200
 
 [Note: some constraints may be mentioned only here, and not yet in other places they should be mentioned, such as the Reference Manual. Notably, the client's obligation to ensure there are no exact references to a failed new-object, before it calls mps_ap_trip, is suspected to be new. RHSK 2006-06-13]
 
-------------
+
 Introduction
 ------------
 
@@ -307,4 +306,250 @@ Conclusion and further details
 Although this User's Guide explains the protocol in terms of the pre-packaged macros mps_reserve and mps_commit, that is a simplification. The MPS allocation point protocol is designed as a binary protocol, defined at the level of atomic machine operations. The precise specification of the binary protocol is beyond the scope of this document.
 
 For further discussion of Allocation Points, see Allocation Points -- Internals in the Wiki.
+
+
+Interface
+---------
+
+.. c:function:: mps_res_t mps_alloc(mps_addr_t *p_o, mps_pool_t pool, size_t size, ...)
+
+    Allocate a :term:`block` of memory in a :term:`pool`.
+
+    ``p_o`` points to a location that will hold the address of the
+    allocated block.
+
+    ``pool`` the pool to allocate in.
+
+    ``size`` is the :term:`size` of the block to allocate. If it is
+    unaligned, it will be rounded up to the pool's :term:`alignment`
+    (unless the pool documentation says otherwise).
+
+    Some pool classes require additional arguments to be passed to
+    :c:func:`mps_alloc`. See the documentation for the pool class.
+
+    .. note::
+
+        There's an alternative function :c:func:`mps_alloc_v` that
+        takes its extra arguments using the standard :term:`C`
+        ``va_list`` mechanism.
+
+
+.. c:function:: mps_res_t mps_alloc_v(mps_addr_t *p_o, mps_pool_t pool, size_t size, va_list args)
+
+    An alternative to :c:func:`mps_alloc` that takes its extra
+    arguments using the standard :term:`C` ``va_list`` mechanism.
+
+
+.. c:function:: mps_res_t mps_ap_create(mps_ap_t *ap_o, mps_pool_t pool, ...)
+
+    Create an :term:`allocation point` in a :term:`pool`.
+
+    ``ap_o`` points to a location that will hold the address of the
+    allocation point, if successful.
+
+    ``pool`` is the pool.
+
+    Returns :c:macro:`MPS_RES_OK` if successful, or another
+    :term:`result code` if not.
+
+    Some pool classes require additional arguments to be passed to
+    :c:func:`mps_ap_create`. See the documentation for the pool class.
+
+    .. note::
+
+        There's an alternative function :c:func:`mps_ap_create_v` that
+        takes its extra arguments using the standard :term:`C`
+        ``va_list`` mechanism.
+
+
+.. c:function:: mps_res_t mps_ap_create_v(mps_ap_t *ap_o, mps_pool_t pool, va_list args)
+
+    An alternative to :c:func:`mps_ap_create` that takes its extra
+    arguments using the standard :term:`C` ``va_list`` mechanism.
+
+
+.. c:function:: void mps_ap_destroy(mps_ap_t ap)
+
+    Destroy an :term:`allocation point`.
+
+    ``ap`` is the allocation point to destroy.
+
+    Destroying an allocation point has no effect on blocks that were
+    allocated from it, so long as they were successfully
+    :term:`committed (2)` by :c:func:`mps_commit`.
+
+
+.. c:function:: mps_res_t mps_ap_fill(mps_addr_t *p_o, mps_ap_t ap, size_t size)
+
+    Reserve a :term:`block` of memory on an :term:`allocation point`.
+
+    :c:func:`mps_ap_fill` has same interface as :c:func:`mps_reserve`.
+
+    .. note::
+
+        :c:func:`mps_ap_fill` must only be called according to the
+        :term:`allocation point protocol`.
+
+
+.. c:type:: mps_ap_s
+
+   The type of the structure used to represent :term:`allocation
+   points <allocation point>`::
+
+        typedef struct mps_ap_s {
+          mps_addr_t init;
+          mps_addr_t alloc;
+          mps_addr_t limit;
+          /* ... internal fields ... */
+        } mps_ap_s;
+
+   ``init`` is the limit of initialized memory.
+
+   ``alloc`` is the limit of allocated memory.
+
+   ``limit`` is the limit of available memory.
+
+    An allocation point is an interface to a :term:`pool` which
+    provides very fast allocation, and defers the need for
+    synchronization in a multi-threaded environment.
+
+    Create an allocation point for a pool by calling
+    :c:func:`mps_ap_create`, and allocate memory via one by calling
+    :c:func:`mps_reserve` and :c:func:`mps_commit`.
+
+
+.. c:type:: mps_ap_t
+
+    The type of :term:`allocation points <allocation point>`. It is an
+    alias (via the C ``typedef`` mechanism) for a pointer to
+    :c:type:`mps_ap_s`.
+
+
+.. c:function:: mps_bool_t mps_ap_trip(mps_ap_t ap, mps_addr_t p, size_t size)
+
+    :term:`Commit <committed (2)>` a reserved :term:`block` on an
+    :term:`allocation point`.
+
+    :c:func:`mps_ap_trip` has the same interface as :c:func:`mps_commit`.
+
+    .. note::
+
+        :c:func:`mps_ap_trip` must only be called according to the
+        :term:`allocation point protocol`.
+
+
+.. c:function:: mps_bool_t mps_commit(mps_ap_t ap, mps_addr_t p, size_t size)
+
+    :term:`Commit <committed (2)>` a reserved :term:`block` on an
+    :term:`allocation point`.
+
+    ``ap`` is an allocation point.
+
+    ``p`` points to a block that was reserved by :c:func:`mps_reserve`
+    but has not yet been committed.
+
+    ``size`` is the :term:`size` of the block to allocate. It must be
+    the same size that was passed to :c:func:`mps_reserve`.
+
+    If :c:func:`mps_commit` returns true, the block was successfully
+    committed, which means that the :term:`client program` may use it,
+    create references to it, and rely on references from it. It also
+    means that the MPS may scan it, move it, protect it, or reclaim it
+    (if ``ap`` was attached to a pool with those features).
+
+    If :c:func:`mps_commit` returns false, the block was not
+    committed. This means that the client program must not create
+    references to the block, rely on references from it, or otherwise
+    use it. It is normal to attempt the reserve operation again when
+    this happens.
+
+    It is very rare for :c:func:`mps_commit` to return false: this
+    only happens if there was a :term:`flip` between the call to
+    :c:func:`mps_reserve` and the call to
+    :c:func:`mps_commit`. Nonetheless, it can happen, so it is
+    important not to perform operations with side effects (that you
+    aren't prepared to repeat) between calling :c:func:`mps_reserve`
+    and :c:func:`mps_commit`. Also, the shorter the interval, the less
+    likely :c:func:`mps_commit` is to return false.
+
+    .. note::
+
+        :c:func:`mps_commit` must only be called according to the
+        :term:`allocation point protocol`.
+
+
+.. c:function:: void mps_free(mps_pool_t pool, mps_addr_t addr, size_t size)
+
+    Free a :term:`block` of memory to a :term:`pool`.
+
+    ``pool`` is the pool the block belongs to.
+
+    ``addr`` is the address of the block to be freed.
+
+    ``size`` is the :term:`size` of the block to be freed. If it is
+    unaligned, it will be rounded up to the pool's :term:`alignment`
+    (unless the pool documentation says otherwise).
+
+    The freed block of memory becomes available for allocation by the
+    pool, or the pool might decide to make it available to other
+    pools, or it may be returned to the operating system.
+
+    .. note::
+
+        :c:func:`mps_free` takes a ``size`` parameter because it is
+        most efficient to do so. In most programs, the type of an
+        object is known at the point in the code that frees it, hence
+        the size is trivially available. In such programs, storing the
+        size on the MPS side would cost time and memory, and make it
+        hard to get good virtual memory behaviour (as it is, the
+        deallocation code doesn't have to touch the dead object at
+        all).
+
+
+.. c:function:: mps_res_t mps_reserve(mps_addr_t *p_o, mps_ap_t ap, size_t size)
+
+    Reserve a :term:`block` of memory on an :term:`allocation point`.
+
+    ``p_o`` points to a location that will hold the address of the
+    reserve block.
+
+    ``ap`` is the allocation point.
+
+    ``size`` is the :term:`size` of the block to allocate. It must be
+    a multiple of the :term:`alignment` of the pool (or of the pool's
+    :term:`object format` if it has one).
+
+    Returns :c:macro:`MPS_RES_OK` if the block was reserved
+    successfully, or another :term:`result code` if not.
+
+    The reserved block may be initialized but must not otherwise be
+    used until after it has been :term:`committed (2)` via a
+    successful call to :c:func:`mps_commit`.
+
+    .. note::
+
+        :c:func:`mps_reserve` must only be called according to the
+        :term:`allocation point protocol`.
+
+        :c:func:`mps_reserve` is implemented as a macro for speed. It
+        may evaluate its arguments multiple times.
+
+        There is an alternative, :c:func:`MPS_RESERVE_BLOCK`, which
+        may generate faster code, but may only be used in statement
+        context (not as an expression), and requires an lvalue instead
+        of a pointer to a location to store the result.
+
+
+.. c:function:: MPS_RESERVE_BLOCK(mps_res_t res_v, mps_addr_t *p_v, mps_ap_t ap, size_t size)
+
+    An alternative to :c:func:`mps_reserve`. It may generate faster
+    code than :c:func:`mps_reserve`, but it may only be used in
+    statement context (not as an expression), and it requires an
+    lvalue instead of a pointer to a location to store the result.
+
+    The second arguemnt is an lvalue ``p_v``, which is assigned the
+    address of the reserved block. It takes an additional first
+    argument, the lvalue ``res_v``, which is assigned the
+    :term:`result code`.
+
 
