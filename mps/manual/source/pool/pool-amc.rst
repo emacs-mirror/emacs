@@ -35,25 +35,24 @@ AMC symbol reference
    #include "mpscamc.h"
 
 
-.. c:function:: void mps_amc_apply(mps_pool_t pool, void (*f)(mps_addr_t object, void *p, size_t s), void *p, size_t s)
+.. c:function:: void mps_amc_apply(mps_pool_t pool, mps_amc_apply_stepper_t f, void *p, size_t s)
 
     Visit all :term:`formatted objects <formatted object>` in an
-    :ref:`pool-amc`.
+    AMC pool.
 
     ``pool`` is the pool whose formatted objects you want to visit.
 
     ``f`` is a function that will be called for each formatted object in
-    the pool. It takes three arguments: ``object`` is the address of the
-    object; ``p`` and ``s`` are the corresponding arguments that were
-    passed to :c:func:`mps_amc_apply`.
+    the pool.
 
     ``p`` and ``s`` are arguments that will be passed to ``f`` each time it
     is called. This is intended to make it easy to pass, for example,
     an array and its size as parameters.
 
-    You may only call this function when the :term:`arena` is in the
-    :term:`parked state`, for example, after calling
-    :c:func:`mps_arena_collect` or :c:func:`mps_arena_park`.
+    It is an error to call this function when the :term:`arena` is not
+    in the :term:`parked state`. You need to call
+    :c:func:`mps_arena_collect` or :c:func:`mps_arena_park` before
+    calling :c:func:`mps_amc_apply`.
 
     The function ``f`` will be called on both :term:`client <client
     object>` and :term:`padding objects <padding object>`. It is the
@@ -64,10 +63,6 @@ AMC symbol reference
     The function ``f`` may not allocate memory or access any
     automatically-managed memory except within ``object``.
 
-    .. topics::
-
-        :ref:`topic-scanning`.
-
     .. note::
 
         There is no equivalent function for other pool classes, but
@@ -76,6 +71,20 @@ AMC symbol reference
         formatted objects in the arena.
 
         Walking the heap is "dodgy".
+
+
+.. c:type:: void (*mps_amc_apply_stepper_t)(mps_addr_t object, void *p, size_t s);
+
+    The type of a :term:`stepper function` for :term:`formatted
+    objects <formatted object>` in an AMC pool.
+
+    ``object`` is the address of an object in the pool.
+    
+    ``p`` and ``s`` are the corresponding arguments that were passed
+    to :c:func:`mps_amc_apply`.
+
+    A function of this type may not allocate memory or access any
+    automatically managed memory except within ``object``.
 
 
 .. c:function:: mps_class_t mps_class_amc(void)

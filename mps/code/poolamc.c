@@ -2429,7 +2429,7 @@ mps_class_t mps_class_amcz(void)
 */
 
 typedef struct mps_amc_apply_closure_s {
-  void (*f)(mps_addr_t object, void *p, size_t s);
+  mps_amc_apply_stepper_t f;
   void *p;
   size_t s;
 } mps_amc_apply_closure_s;
@@ -2449,7 +2449,7 @@ static void mps_amc_apply_iter(Addr addr, Format format, Pool pool,
 }
 
 void mps_amc_apply(mps_pool_t mps_pool,
-                   void (*f)(mps_addr_t object, void *p, size_t s),
+                   mps_amc_apply_stepper_t f,
                    void *p, size_t s)
 {
   Pool pool = (Pool)mps_pool;

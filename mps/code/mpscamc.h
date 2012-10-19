@@ -12,8 +12,8 @@
 extern mps_class_t mps_class_amc(void);
 extern mps_class_t mps_class_amcz(void);
 
-extern void mps_amc_apply(mps_pool_t,
-                          void (*)(mps_addr_t, void *, size_t),
+typedef void (*mps_amc_apply_stepper_t)(mps_addr_t, void *, size_t);
+extern void mps_amc_apply(mps_pool_t, mps_amc_apply_stepper_t,
                           void *, size_t);
 
 #endif /* mpscamc_h */
