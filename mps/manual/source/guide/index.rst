@@ -1,11 +1,12 @@
-**********
-User guide
-**********
+.. _guide:
+
+Guide
+*****
 
 .. toctree::
    :numbered:
 
-   install
+   build
    overview
    lang
    perf
