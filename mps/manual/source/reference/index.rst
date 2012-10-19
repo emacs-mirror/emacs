@@ -1,21 +1,10 @@
 .. highlight:: c
 
-.. Checklist of things to say about a symbol
 
-    Signature
-    Summary
-    Arguments
-    Result
-    Status (deprecated?)
-    Topic
-
-
-****************
 Symbol reference
 ****************
 
 
-=====================
 Declared in ``mps.h``
 =====================
 
@@ -276,6 +265,69 @@ Declared in ``mps.h``
         :ref:`topic-pattern`.
 
 
+.. c:function:: mps_res_t mps_ap_create(mps_ap_t *ap_o, mps_pool_t pool, ...)
+
+    Create an :term:`allocation point` in a :term:`pool`.
+
+    ``ap_o`` points to a location that will hold the address of the
+    allocation point, if successful.
+
+    ``pool`` is the pool.
+
+    Returns :c:macro:`MPS_RES_OK` if successful, or another
+    :term:`result code` if not.
+
+    Some pool classes require additional arguments to be passed to
+    :c:func:`mps_ap_create`. See the documentation for the pool class.
+
+    .. topics::
+
+        :ref:`topic-allocation`.
+
+    .. note::
+
+        There's an alternative function :c:func:`mps_ap_create_v` that
+        takes its extra arguments using the standard :term:`C`
+        ``va_list`` mechanism.
+
+
+.. c:function:: mps_res_t mps_ap_create_v(mps_ap_t *ap_o, mps_pool_t pool, va_list args)
+
+    An alternative to :c:func:`mps_ap_create` that takes its extra
+    arguments using the standard :term:`C` ``va_list`` mechanism.
+
+
+.. c:function:: void mps_ap_destroy(mps_ap_t ap)
+
+    Destroy an :term:`allocation point`.
+
+    ``ap`` is the allocation point to destroy.
+
+    Destroying an allocation point has no effect on blocks that were
+    allocated from it, so long as they were successfully
+    :term:`committed (2)` by :c:func:`mps_commit`.
+
+    .. topics::
+
+        :ref:`topic-allocation`.
+
+
+.. c:function:: mps_res_t mps_ap_fill(mps_addr_t *p_o, mps_ap_t ap, size_t size)
+
+    Reserve a :term:`block` of memory on an :term:`allocation point`.
+
+    :c:func:`mps_ap_fill` has same interface as :c:func:`mps_reserve`.
+
+    .. topics::
+
+        :ref:`topic-allocation`.
+
+    .. note::
+
+        :c:func:`mps_ap_fill` must only be called according to the
+        :term:`allocation point protocol`.
+
+
 .. c:function:: mps_res_t mps_ap_frame_pop(mps_ap_t ap, mps_frame_t frame)
 
     Declare that a set of :term:`blocks <block>` in a
@@ -339,9 +391,23 @@ Declared in ``mps.h``
     .. deprecated:: 1.111
 
 
-.. c:type:: mps_ap_t
+.. c:type:: mps_ap_s
 
-    The type of :term:`allocation points <allocation point>`.
+   The type of the structure used to represent :term:`allocation
+   points <allocation point>`::
+
+        typedef struct mps_ap_s {
+          mps_addr_t init;
+          mps_addr_t alloc;
+          mps_addr_t limit;
+          /* ... internal fields ... */
+        } mps_ap_s;
+
+   ``init`` is the limit of initialized memory.
+
+   ``alloc`` is the limit of allocated memory.
+
+   ``limit`` is the limit of available memory.
 
     An allocation point is an interface to a :term:`pool` which
     provides very fast allocation, and defers the need for
@@ -354,6 +420,34 @@ Declared in ``mps.h``
     .. topics::
 
         :ref:`topic-allocation`.
+
+
+.. c:type:: mps_ap_t
+
+    The type of :term:`allocation points <allocation point>`. It is an
+    alias (via the C ``typedef`` mechanism) for a pointer to
+    :c:type:`mps_ap_s`.
+
+    .. topics::
+
+        :ref:`topic-allocation`.
+
+
+.. c:function:: mps_bool_t mps_ap_trip(mps_ap_t ap, mps_addr_t p, size_t size)
+
+    :term:`Commit <committed (2)>` a reserved :term:`block` on an
+    :term:`allocation point`.
+
+    :c:func:`mps_ap_trip` has the same interface as :c:func:`mps_commit`.
+
+    .. topics::
+
+        :ref:`topic-allocation`.
+
+    .. note::
+
+        :c:func:`mps_ap_trip` must only be called according to the
+        :term:`allocation point protocol`.
 
 
 .. c:function:: void mps_arena_clamp(mps_arena_t arena)
@@ -662,6 +756,10 @@ Declared in ``mps.h``
     .. topics::
 
         :ref:`topic-arena`, :ref:`topic-format`.
+
+    .. note::
+
+        Walking the heap is "dodgy".
 
 
 .. c:function:: mps_bool_t mps_arena_has_addr(mps_arena_t arena, mps_addr_t addr)
@@ -1085,6 +1183,50 @@ Declared in ``mps.h``
         :ref:`topic-arena`.
 
 
+.. c:function:: mps_bool_t mps_commit(mps_ap_t ap, mps_addr_t p, size_t size)
+
+    :term:`Commit <committed (2)>` a reserved :term:`block` on an
+    :term:`allocation point`.
+
+    ``ap`` is an allocation point.
+
+    ``p`` points to a block that was reserved by :c:func:`mps_reserve`
+    but has not yet been committed.
+
+    ``size`` is the :term:`size` of the block to allocate. It must be
+    the same size that was passed to :c:func:`mps_reserve`.
+
+    If :c:func:`mps_commit` returns true, the block was successfully
+    committed, which means that the :term:`client program` may use it,
+    create references to it, and rely on references from it. It also
+    means that the MPS may scan it, move it, protect it, or reclaim it
+    (if ``ap`` was attached to a pool with those features).
+
+    If :c:func:`mps_commit` returns false, the block was not
+    committed. This means that the client program must not create
+    references to the block, rely on references from it, or otherwise
+    use it. It is normal to attempt the reserve operation again when
+    this happens.
+
+    It is very rare for :c:func:`mps_commit` to return false: this
+    only happens if there was a :term:`flip` between the call to
+    :c:func:`mps_reserve` and the call to
+    :c:func:`mps_commit`. Nonetheless, it can happen, so it is
+    important not to perform operations with side effects (that you
+    aren't prepared to repeat) between calling :c:func:`mps_reserve`
+    and :c:func:`mps_commit`. Also, the shorter the interval, the less
+    likely :c:func:`mps_commit` is to return false.
+
+    .. topics::
+
+        :ref:`topic-allocation`.
+
+    .. note::
+
+        :c:func:`mps_commit` must only be called according to the
+        :term:`allocation point protocol`.
+
+
 .. c:function:: mps_res_t mps_definalize(mps_arena_t arena, mps_addr_t *ref)
 
     Deregister a :term:`block` for :term:`finalization`.
@@ -1169,7 +1311,9 @@ Declared in ``mps.h``
         If your reference is :term:`tagged <tagged reference>`, you
         must remove the tag before calling :c:func:`mps_fix`, and
         restore the tag to the (possibly updated) reference
-        afterwards.
+        afterwards. (There is an exception for references to objects
+        belonging to a format of variant auto_header: these references
+        must not subtract the header size.)
 
         If you want to call this between :c:func:`MPS_SCAN_BEGIN` and
         :c:func:`MPS_SCAN_END`, you must use :c:func:`MPS_FIX_CALL`
@@ -1232,7 +1376,9 @@ Declared in ``mps.h``
         If your reference is :term:`tagged <tagged reference>`, you
         must remove the tag before calling :c:func:`MPS_FIX2`, and
         restore the tag to the (possibly updated) reference
-        afterwards.
+        afterwards. (There is an exception for references to objects
+        belonging to a format of variant auto_header: these references
+        must not subtract the header size.)
 
         The macro :c:func:`MPS_FIX12` is a convenience for the common
         case where :c:func:`MPS_FIX1` is immediately followed by
@@ -1265,7 +1411,9 @@ Declared in ``mps.h``
         If your reference is :term:`tagged <tagged reference>`, you
         must remove the tag before calling :c:func:`MPS_FIX2`, and
         restore the tag to the (possibly updated) reference
-        afterwards.
+        afterwards. (There is an exception for references to objects
+        belonging to a format of variant auto_header: these references
+        must not subtract the header size.)
 
         In the common case where the scan method does not need to do
         anything between :c:func:`MPS_FIX1` and :c:func:`MPS_FIX2`,
@@ -1446,13 +1594,6 @@ Declared in ``mps.h``
     Variant B is the same as variant A except for the addition of the
     ``mps_class`` method. See :c:type:`mps_fmt_A_s`.
 
-    Broadly speaking, object formats of variant B are suitable for use
-    in :term:`copying <copying garbage collection>` or :term:`moving
-    <moving garbage collector>` :term:`pools <pool>` (just like
-    variant A); the addition of a :term:`class method` allows more
-    information to be passed to support tools. See
-    :c:type:`mps_fmt_class_t`.
-
     .. topics::
 
         :ref:`topic-format`.
@@ -1460,24 +1601,16 @@ Declared in ``mps.h``
 
 .. c:type:: mps_addr_t (*mps_fmt_class_t)(mps_addr_t addr)
 
-    The type of the :term:`class method` of an :term:`object format`.
+    The type of the class method of an :term:`object format`.
 
     ``addr`` is the address of the object whose class is of interest.
 
     Returns an address that is related to the class or type of the
-    object, for passing on to support tools, or a null pointer if this
-    is not possible.
+    object, or a null pointer if this is not possible.
 
     It is recommended that a null pointer be returned for
     :term:`padding objects <padding object>` and :term:`forwarding
     objects <forwarding object>`.
-
-    The exact meaning of the return value is up to the :term:`client
-    program`, but it would typically bear some relation to a class or
-    type in the client program. The client may have objects that
-    represent classes or types. These may be associated with strings
-    via :c:func:`mps_telemetry_intern` and
-    :c:func:`mps_telemetry_label`.
 
     .. topics::
 
@@ -2826,6 +2959,61 @@ Declared in ``mps.h``
         :ref:`topic-error`.
 
 
+.. c:function:: mps_res_t mps_reserve(mps_addr_t *p_o, mps_ap_t ap, size_t size)
+
+    Reserve a :term:`block` of memory on an :term:`allocation point`.
+
+    ``p_o`` points to a location that will hold the address of the
+    reserve block.
+
+    ``ap`` is the allocation point.
+
+    ``size`` is the :term:`size` of the block to allocate. It must be
+    a multiple of the :term:`alignment` of the pool (or of the pool's
+    :term:`object format` if it has one).
+
+    Returns :c:macro:`MPS_RES_OK` if the block was reserved
+    successfully, or another :term:`result code` if not.
+
+    The reserved block may be initialized but must not otherwise be
+    used until after it has been :term:`committed (2)` via a
+    successful call to :c:func:`mps_commit`.
+
+    .. topics::
+
+        :ref:`topic-allocation`.
+
+    .. note::
+
+        :c:func:`mps_reserve` must only be called according to the
+        :term:`allocation point protocol`.
+
+        :c:func:`mps_reserve` is implemented as a macro for speed. It
+        may evaluate its arguments multiple times.
+
+        There is an alternative, :c:func:`MPS_RESERVE_BLOCK`, which
+        may generate faster code, but may only be used in statement
+        context (not as an expression), and requires an lvalue instead
+        of a pointer to a location to store the result.
+
+
+.. c:function:: MPS_RESERVE_BLOCK(mps_res_t res_v, mps_addr_t *p_v, mps_ap_t ap, size_t size)
+
+    An alternative to :c:func:`mps_reserve`. It may generate faster
+    code than :c:func:`mps_reserve`, but it may only be used in
+    statement context (not as an expression), and it requires an
+    lvalue instead of a pointer to a location to store the result.
+
+    The second arguemnt is an lvalue ``p_v``, which is assigned the
+    address of the reserved block. It takes an additional first
+    argument, the lvalue ``res_v``, which is assigned the
+    :term:`result code`.
+
+    .. topics::
+
+        :ref:`topic-allocation`.
+
+
 .. c:macro:: MPS_RM_CONST
 
     The :term:`root mode` for :term:`constant roots <constant root>`.
@@ -3169,8 +3357,7 @@ Declared in ``mps.h``
     have to be one of the :term:`sizes classes <size class>` of the
     cache; nor does it have to be aligned.
 
-    If ``has_reservoir_permit`` is true, the pool has permission to get
-    more memory from the :term:`reservoir` to satisfy this request.
+    ``has_reservoir_permit`` should be false.
 
     Returns :c:macro:`MPS_RES_OK` if successful: in this case the
     address of the allocated block is ``*p_o``. The allocated block
@@ -3210,16 +3397,24 @@ Declared in ``mps.h``
 
 .. c:function:: MPS_SAC_ALLOC_FAST(mps_res_t res_v, mps_addr_t *p_v, mps_sac_t sac, size_t size, mps_bool_t has_reservoir_permit)
 
-    A macro alternative to :c:func:`mps_sac_alloc` that is faster than
-    the function but does less checking. The macro takes an additional
-    first argument, ``res_v``, which must be an lvalue that will store
-    the :term:`result code`, and it doesn't evaluate
-    ``has_reservoir_permit`` unless it decides to access the pool. The
-    second argument ``p_v`` must also be an lvalue.
+    A macro alternative to :c:func:`mps_sac_alloc`. It is faster than
+    the function, but generates more code, does less checking.
+
+    It takes an lvalue ``p_v`` which is assigned the address of the
+    allocated block (instead of a pointer to a location to store
+    it). It takes an additional first argument, the lvalue ``res_v``,
+    which is assigned the :term:`result code`.
 
     .. topics::
 
         :ref:`topic-cache`.
+
+    .. note::
+
+        :c:func:`MPS_SAC_ALLOC_FAST` may evaluate its arguments
+        multiple times, except for ``has_reservoir_permit``, which it
+        evaluates at most once, and only if it decides to access the
+        pool.
 
 
 .. c:macro:: MPS_SAC_CLASS_LIMIT
@@ -3554,7 +3749,7 @@ Declared in ``mps.h``
 
     .. topics::
 
-        :ref:`topic-platform`, :ref:`topic-root`.
+        :ref:`topic-platform`, :ref:`topic-root`, :ref:`topic-thread`.
 
     .. note::
 
@@ -3638,7 +3833,7 @@ Declared in ``mps.h``
     ``label`` is a NUL-terminated string way. Its length should not
     exceed 256 characters, including the terminating NUL.
 
-    Returns a telemtry label: a unique identifier that may be used to
+    Returns a telemetry label: a unique identifier that may be used to
     represent the string in future.
 
     The intention of this function is to provide an identifier that
@@ -3692,15 +3887,19 @@ Declared in ``mps.h``
     Returns :c:macro:`MPS_RES_OK` if successful, or another
     :term:`result code` if not.
 
-    In a multi-threaded environment where :term:`incremental garbage
-    collection` is used, threads must be registered with the MPS by
-    calling :c:func:`mps_thread_reg` so that the MPS can suspend them
-    as necessary in order to have exclusive access to their state.
+    A thread must be registered with an arena if it ever uses a
+    pointer to a location in an :term:`automatically managed
+    <automatic memory management>` :term:`pool` belonging to that
+    arena.
 
-    In particular, a thread must be registered with an arena if it
-    ever needs to access blocks allocated in that arena. If you have
-    multiple arenas, each thread needs to be registered with all the
-    arenas it needs to access.
+    .. topics::
+
+        :ref:`topic-thread`.
+
+    .. note::
+
+        It is recommended that all threads be registered with all
+        arena.
 
 
 .. c:function:: void mps_thread_dereg(mps_thr_t thr)
@@ -3710,8 +3909,18 @@ Declared in ``mps.h``
     ``thr`` is the description of the thread.
 
     After calling this function, the thread whose registration with an
-    :term:`arena` was recorded in ``thr`` must not access any blocks
-    allocated in that arena.
+    :term:`arena` was recorded in ``thr`` must not use a pointer to a
+    location in an :term:`automatically managed <automatic memory
+    management>` :term:`pool` belonging to that arena.
+
+    .. topics::
+
+        :ref:`topic-thread`.
+
+    .. note::
+
+        It is recommended that threads be deregistered only when they
+        are just about to exit.
 
 
 .. c:type:: mps_thr_t
@@ -3723,13 +3932,55 @@ Declared in ``mps.h``
     calling :c:func:`mps_thread_reg` so that the MPS can suspend them
     as necessary in order to have exclusive access to their state.
 
-    Even in a single-threaded environment it may be useful to register
-    a thread with the MPS so that its stack can be registered as a
-    :term:`root` by calling :c:func:`mps_root_create_reg`.
+    Even in a single-threaded environment it may be necessary to
+    register a thread with the MPS so that its stack can be registered
+    as a :term:`root` by calling :c:func:`mps_root_create_reg`.
 
     .. topics::
 
-        :ref:`topic-root`.
+        :ref:`topic-thread`.
+
+
+.. c:function:: void mps_tramp(void **r_o, mps_tramp_t f, void *p, size_t s)
+
+    Call a function via the MPS trampoline.
+
+    ``r_o`` points to a location that will store the result of calling
+    ``f``.
+
+    ``f`` is the function to call.
+
+    ``p`` and ``s`` are arguments that will be passed to ``f`` each
+    time it is called. This is intended to make it easy to pass, for
+    example, an array and its size as parameters.
+
+    The MPS relies on :term:`barriers <barrier (1)>` to protect memory
+    that is in an inconsistent state. On some operating systems,
+    barrier hits generate exceptions that have to be caught by a
+    handler that is on the stack. On these operating systems, any code
+    that uses memory managed by the MPS must be called from inside
+    such an exception handler, that is, inside a call to
+    :c:func:`mps_tramp`.
+
+    If you have multiple threads that run code that uses memory
+    managed by the MPS, each thread must execute such code inside a
+    call to :c:func:`mps_tramp`.
+
+    .. topics::
+
+        :ref:`topic-thread`.
+
+
+.. c:type:: void *(*mps_tramp_t)(void *p, size_t s)
+
+    The type of a function called by :c:func:`mps_tramp`.
+
+    ``p`` and ``s`` are the corresponding arguments that were passed
+    to :c:func:`mps_tramp`.
+
+    .. topics::
+
+        :ref:`topic-thread`.
 
 
 .. c:type:: mps_word_t
@@ -3743,7 +3994,6 @@ Declared in ``mps.h``
     long`` and ``unsigned __int_64``.2
 
 
-========================
 Declared in ``mpsacl.h``
 ========================
 
@@ -3775,7 +4025,6 @@ Declared in ``mpsacl.h``
         :ref:`topic-arena`.
 
 
-========================
 Declared in ``mpsavm.h``
 ========================
 
@@ -3790,10 +4039,6 @@ Declared in ``mpsavm.h``
     where to place :term:`blocks <block>`, which reduces
     :term:`fragmentation` and helps make :term:`garbage collection`
     more efficient.
-
-    This class is similar to :c:func:`mps_arena_class_vmnz` but uses a
-    more complex placement policy, which is more suited to copying
-    garbage collection.
 
     When creating a virtual memory arena, :c:func:`mps_arena_create`
     takes one extra argument::
@@ -3825,57 +4070,3 @@ Declared in ``mpsavm.h``
     .. topics::
 
         :ref:`topic-arena`.
-
-
-.. c:function:: mps_arena_class_t mps_arena_class_vmnz(void)
-
-    Return the :term:`arena class` for a :term:`virtual memory arena`.
-    This class is similar to :c:func:`mps_arena_class_vm`, except that
-    it has a simple placement policy ("no zones") that makes it slightly
-    faster.
-
-    When creating an arena of this class, :c:func:`mps_arena_create`
-    takes one extra argument::
-
-        mps_res_t mps_arena_create(mps_arena_t *arena_o,
-                                   mps_arena_class_t arena_class_vmnz,
-                                   size_t size)
-
-    ``size`` is the total amount of virtual address space, in
-    :term:`bytes <byte (1)>`, that the arena will reserve. The arena
-    will not subsequently use any more address space: compare with
-    :c:func:`mps_arena_class_vm`, which can grow.
-
-    .. topics::
-
-        :ref:`topic-arena`.
-
-
-=========================
-Undocumented in ``mps.h``
-=========================
-
-.. c:type:: mps_ap_s
-.. c:function:: mps_res_t mps_ap_create(mps_ap_t *ap_o, mps_pool_t pool, ...)
-.. c:function:: mps_res_t mps_ap_create_v(mps_ap_t *ap_o, mps_pool_t pool, va_list args)
-.. c:function:: void mps_ap_destroy(mps_ap_t mps_ap)
-.. c:function:: mps_res_t mps_reserve(mps_addr_t *p_o, mps_ap_t ap, size_t size)
-.. c:function:: mps_res_t mps_reserve_with_reservoir_permit(mps_addr_t *p_o, mps_ap_t ap, size_t size)
-.. c:function:: mps_bool_t mps_commit(mps_ap_t ap, mps_addr_t p, size_t size)
-.. c:function:: void mps_reservoir_limit_set(mps_arena_t arena, size_t size)
-.. c:function:: size_t mps_reservoir_limit(mps_arena_t arena)
-.. c:function:: size_t mps_reservoir_available(mps_arena_t arena)
-.. c:function:: MPS_RESERVE_BLOCK(mps_res_t res_v, mps_addr_t p_v, mps_ap_t ap, size_t size)
-.. c:function:: MPS_RESERVE_WITH_RESERVOIR_PERMIT_BLOCK(mps_res_t res_v, mps_addr_t p_v, mps_ap_t ap, size_t size)
-.. c:type:: void *(*mps_tramp_t)(void *p, size_t s)
-.. c:function:: void mps_tramp(void **r_o, mps_tramp_t tramp, void *p, size_t s)
-.. c:function:: mps_res_t mps_alert_collection_set(mps_arena_t arena, mps_alert_collection_fn_t fn)
-.. c:type:: void (*mps_alert_collection_fn_t)(int, int)
-
-
-===========================
-Undocumented in ``mpsw3.h``
-===========================
-
-.. c:function:: LONG mps_SEH_filter(LPEXCEPTION_POINTERS info, void **hp_o, size_t *hs_o)
-.. c:function:: void mps_SEH_handler(void *p, size_t s)

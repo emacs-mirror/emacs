@@ -1,10 +1,10 @@
-***************
 Topic reference
 ***************
 
 .. toctree::
     :numbered:
 
+    interface
     arena
     allocation
     collection
@@ -22,3 +22,4 @@ Topic reference
     message
     debugging
     location
+    thread

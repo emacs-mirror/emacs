@@ -6,6 +6,8 @@ Allocation
 
 See design/buffer
 
+See https://github.com/dylan-lang/opendylan/issues/235
+
 This example seems to be wrong (no function "mps_pool_alloc" in the public interface).
 
 ::
