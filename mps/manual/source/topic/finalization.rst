@@ -1,6 +1,5 @@
 .. _topic-finalization:
 
-============
 Finalization
 ============
 
@@ -31,3 +30,86 @@ Not all pool classes support finalization of objects.  In general only pools tha
             unknown_message_type();
         }
     }
+
+
+Interface
+---------
+
+.. c:function:: mps_res_t mps_definalize(mps_arena_t arena, mps_addr_t *ref)
+
+    Deregister a :term:`block` for :term:`finalization`.
+
+    ``arena`` is the arena in which the block lives.
+
+    ``ref`` points to a :term:`reference` to the block to be
+    deregistered for finalization.
+
+    Returns :c:macro:`MPS_RES_OK` if successful, or
+    :c:macro:`MPS_RES_FAIL` if the block was not previously registered
+    for finalization.
+
+    .. note::
+
+        This function receives a pointer to a reference. This is to
+        avoid placing the restriction on the :term:`client program`
+        that the C call stack be a :term:`root`.
+
+
+.. c:function:: mps_res_t mps_finalize(mps_arena_t arena, mps_addr_t *ref)
+
+    Register a :term:`block` for :term:`finalization`.
+
+    ``arena`` is the arena in which the block lives.
+
+    ``ref`` points to a :term:`reference` to the block to be
+    registered for finalization.
+ 
+    Returns :c:macro:`MPS_RES_OK` if successful, or another
+    :term:`result code` if not.
+
+    This function registers the block pointed to by ``*ref`` for
+    finalization. This block must have been allocated from a
+    :term:`pool` in ``arena``. Violations of this constraint may not
+    be checked by the MPS, and may be unsafe, causing the MPS to crash
+    in undefined ways.
+
+    .. note::
+
+        This function receives a pointer to a reference. This is to
+        avoid placing the restriction on the :term:`client program`
+        that the C call stack be a :term:`root`.
+
+
+.. c:function:: void mps_message_finalization_ref(mps_addr_t *ref_o, mps_arena_t arena, mps_message_t message)
+
+    Returns the finalization reference for a finalization message.
+
+    ``ref_o`` points to a location that will hold the finalization
+    reference.
+
+    ``arena`` is the :term:`arena` which posted the message.
+
+    ``message`` is a message retrieved by :c:func:`mps_message_get` and
+    not yet discarded. It must be a finalization message: see
+    :c:func:`mps_message_type_finalization`.
+
+    The reference returned by this method is a reference to the block
+    that was originally registered for :term:`finalization` by a call
+    to :c:func:`mps_finalize`.
+
+    .. note::
+
+        The reference returned is subject to the normal constraints,
+        such as might be imposed by a :term:`moving <moving garbage
+        collector>` collection, if appropriate. For this reason, it is
+        stored into the location pointed to by ``ref_o`` in order to
+        enable the :term:`client program` to place it directly into
+        scanned memory, without imposing the restriction that the C
+        stack be a :term:`root`.
+
+        The message itself is not affected by invoking this method.
+        Until the client program calls :c:func:`mps_message_discard`
+        to discard the message, it will refer to the object and
+        prevent its reclamation.
+
+

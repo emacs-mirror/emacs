@@ -1,11 +1,12 @@
-Topic reference
-***************
+Reference
+*********
 
 .. toctree::
     :numbered:
 
     interface
     arena
+    pool
     allocation
     collection
     error
@@ -23,3 +24,4 @@ Topic reference
     debugging
     location
     thread
+    frame
