@@ -10,7 +10,6 @@ Memory Pool System
    guide/index
    topic/index
    pool/index
-   reference/index
    lang
    glossary/index
    bib
