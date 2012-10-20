@@ -996,18 +996,17 @@ If optional fifth arg MUST-SUFFIX is non-nil, insist on
 the suffix `.elc' or `.el'; don't accept just FILE unless
 it ends in one of those suffixes or includes a directory name.
 
-If this function fails to find a file, it may look for different
-representations of that file before trying another file.
-It does so by adding the non-empty suffixes in `load-file-rep-suffixes'
-to the file name.  Emacs uses this feature mainly to find compressed
-versions of files when Auto Compression mode is enabled.
+If NOSUFFIX is nil, then if a file could not be found, try looking for
+a different representation of the file by adding non-empty suffixes to
+its name, before trying another file.  Emacs uses this feature to find
+compressed versions of files when Auto Compression mode is enabled.
+If NOSUFFIX is non-nil, disable this feature.
 
-The exact suffixes that this function tries out, in the exact order,
-are given by the value of the variable `load-file-rep-suffixes' if
-NOSUFFIX is non-nil and by the return value of the function
-`get-load-suffixes' if MUST-SUFFIX is non-nil.  If both NOSUFFIX and
-MUST-SUFFIX are nil, this function first tries out the latter suffixes
-and then the former.
+The suffixes that this function tries out, when NOSUFFIX is nil, are
+given by the return value of `get-load-suffixes' and the values listed
+in `load-file-rep-suffixes'.  If MUST-SUFFIX is non-nil, only the
+return value of `get-load-suffixes' is used, i.e. the file name is
+required to have a non-empty suffix.
 
 Loading a file records its definitions, and its `provide' and
 `require' calls, in an element of `load-history' whose
