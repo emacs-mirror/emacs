@@ -1,3 +1,8 @@
+2012-10-20  Chong Yidong  <cyd@gnu.org>
+
+	* progmodes/flymake.el (flymake-create-temp-inplace): Use
+	file-truename.
+
 2012-10-20  Eli Zaretskii  <eliz@gnu.org>
 
 	* loadup.el: Update comment about uncompiled Lisp files.  (Bug#12395)
