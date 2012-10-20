@@ -11,8 +11,6 @@ Outstanding
 5.  Fix the general index so that glossary entries like "byte (2)"
     aren't interpreted as subentries? (Or is it OK as is?)
 
-7.  Re-do the diagrams in vector form and using the colour palette.
-
 8.  Use a better bibliography extension. See for example the
     (unfortunately unfinished) `sphinx-natbib`_.
 
@@ -38,6 +36,10 @@ Outstanding
     items (as :ref:`here <guide-lang-scan>`) or multiple footnotes (as
     :ref:`here <pool-properties>`) the heading should say "Notes".
 
+73. The names of the sectors on the "treadmill" diagram don't
+    correspond exactly to the names in `Baker 1991`_.
+
+    .. _Baker 1991: http://www.pipeline.com/~hbaker1/NoMotionGC.html
 
 
 Complete
@@ -54,6 +56,8 @@ Complete
 4.  Make "(1)", "(2)" into superscripts.
 
 6.  Identify :term: references that point to "see" cross-references.
+
+7.  Re-do the diagrams in vector form and using the colour palette.
 
 10. Pluralize "Topic" to "Topics" and so on.
 

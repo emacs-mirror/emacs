@@ -136,7 +136,7 @@ Memory Management Glossary: M
         :term:`reserved` but unmapped, and most of it is entirely
         :term:`unmapped`.
 
-        .. figure:: ../diagrams/mapped.png
+        .. figure:: ../diagrams/mapped.svg
             :align: center
             :alt: Diagram: Virtual memory with different kinds of mappings.
 
@@ -188,8 +188,8 @@ Memory Management Glossary: M
 
         .. historical::
 
-            This was the first GC algorithm, devised by McCarthy for
-            :term:`Lisp`.
+            This was the first garbage collection algorithm, devised
+            by John McCarthy for :term:`Lisp`.
 
         .. seealso:: :term:`mark-compact`.
 
@@ -407,7 +407,7 @@ Memory Management Glossary: M
         (The term "object" does not mean a program :term:`object`. It
         comes from Unix terminology on the :term:`mmap` man page.)
 
-        .. figure:: ../diagrams/mapping.png
+        .. figure:: ../diagrams/mapping.svg
             :align: center
             :alt: Diagram: An address space with a range mapped to part of an object.
 
@@ -552,7 +552,7 @@ Memory Management Glossary: M
     moving memory manager
 
         A memory manager (often a :term:`garbage collector`) is said
-        to be moving if :term:`allocated <allocate>` :term:`objects
+        to be *moving* if :term:`allocated <allocate>` :term:`objects
         <object>` can move during their lifetimes.
 
         .. relevance::

@@ -37,23 +37,11 @@ Memory Management Glossary: H
         program only had handles on the objects, and not their actual
         addresses.
 
-        .. figure:: ../diagrams/handle-legend.png
+        .. figure:: ../diagrams/handle.svg
             :align: center
-            :alt: Diagram: Legend.
+            :alt: Diagram: Handle-based heap.
 
-            Legend.
-
-        .. figure:: ../diagrams/handle-before.png
-            :align: center
-            :alt: Diagram: Handle-based heap before compaction.
-
-            Handle-based heap before compaction.
-
-        .. figure:: ../diagrams/handle-after.png
-            :align: center
-            :alt: Diagram: Handle-based heap after compaction.
-
-            Handle-based heap after compaction.
+            Handle-based heap.
 
         .. similar:: :term:`pointer`.
 

@@ -56,19 +56,19 @@ Memory Management Glossary: B
         architectures that will ensure certain guarantees about the
         order of accesses to memory.
 
-        Some processor architectures, such as the Alpha AXP, make very
-        few guarantees about the relative orders of :term:`load` and
-        :term:`store (1)` operations in the instruction stream and the
-        actual order of accesses to :term:`main memory`. These
-        architectures will often have special instructions that make
-        stronger guarantees.
+        Some processor architectures make very few guarantees about
+        the relative orders of :term:`load` and :term:`store (1)`
+        operations in the instruction stream and the actual order of
+        accesses to :term:`main memory`. These architectures will
+        often have special instructions that make stronger guarantees.
 
-        For example, the Alpha AXP has the ``MB`` instruction, which
-        will:
+        For example, the ARM has the ``DMB`` (Data Memory Barrier)
+        instruction:
 
-            Guarantee that all subsequent loads or stores will not
-            access memory until after all previous loads and stores
-            have accessed memory, as observed by other processors.
+            It ensures that all explicit memory accesses that appear
+            in program order before the DMB instruction are observed
+            before any explicit memory accesses that appear in program
+            order after the DMB instruction.
 
         These instructions are vital for certain synchronization
         operations.
@@ -390,11 +390,13 @@ Memory Management Glossary: B
         :term:`memory location` on the Intel x86 family is the 8-bit
         byte.
 
-        The PDP-10 had 36-bit :term:`words <word>`, and defines "byte"
-        to be a general sub-:term:`word` bit-field: compare
-        :term:`byte (3)`. On this machine it was commonplace for
-        characters to be packed four or five to a word using 9- or
-        7-bit bytes respectively.
+        .. historical::
+
+            The PDP-10 had 36-bit :term:`words <word>`, and defined
+            "byte" to be a general sub-:term:`word` bit-field: compare
+            :term:`byte (3)`. On this machine it was commonplace for
+            characters to be packed four or five to a word using 9- or
+            7-bit bytes respectively.
 
         .. seealso:: :term:`word`.
 

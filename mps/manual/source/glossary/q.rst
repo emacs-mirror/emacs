@@ -13,9 +13,12 @@ Memory Management Glossary: Q
         A *quadword* is a unit of memory consisting of four adjacent
         :term:`words <word>`.
 
-        In digital's Alpha architecture, a quadword for 64 bits is
-        actually the *natural word size*, but the term *word* is still
-        used for the 16-bit unit, for compatibility with PDP-11.
+        .. historical::
+
+            In Digital's Alpha architecture, a quadword of 64 bits was
+            actually the *natural word size*, but the term *word* was
+            still used for the 16-bit unit, for compatibility with the
+            PDP-11.
 
         .. seealso:: :term:`doubleword`.
 
