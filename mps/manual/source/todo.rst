@@ -8,7 +8,7 @@ Outstanding
 
     .. _issue 996:  https://bitbucket.org/birkenfeld/sphinx/issue/996/expose-glossary-entry-link-on-hover
 
-5.  Fix the general index so that glossary entries like "byte (2)"
+5.  Fix the :ref:`genindex` so that glossary entries like "byte (2)"
     aren't interpreted as subentries? (Or is it OK as is?)
 
 8.  Use a better bibliography extension. See for example the
@@ -16,7 +16,7 @@ Outstanding
 
     .. _sphinx-natbib: http://wnielson.bitbucket.org/projects/sphinx-natbib/
 
-9.  Hyphenate long function names across line endings. It would be
+9.  Hyphenate long function names across line endings. It would be
     possible to do this by inserting soft hyphens but if you copied
     the function name you'd copy the soft hyphens too.
 
@@ -30,11 +30,7 @@ Outstanding
 56. Deprecation warnings need nicer formatting. Also "since version
     1.111" is wrong: "starting with version 1.111" would be right.
 
-61. Start adding index entries.
-
-72. When a ``.. note::`` block contains a numbered list with multiple
-    items (as :ref:`here <guide-lang-scan>`) or multiple footnotes (as
-    :ref:`here <pool-properties>`) the heading should say "Notes".
+61. Start adding :ref:`genindex` entries.
 
 73. The names of the sectors on the "treadmill" diagram don't
     correspond exactly to the names in `Baker 1991`_.
@@ -55,7 +51,7 @@ Complete
 
 4.  Make "(1)", "(2)" into superscripts.
 
-6.  Identify :term: references that point to "see" cross-references.
+6.  Identify ``:term:`` references that point to "see" cross-references.
 
 7.  Re-do the diagrams in vector form and using the colour palette.
 
@@ -584,3 +580,7 @@ Complete
     *Action:* made `job003329`_.
 
     .. _job003329: https://info.ravenbrook.com/project/mps/issue/job003329/
+
+72. When a ``.. note::`` block contains a numbered list with multiple
+    items (as :ref:`here <guide-lang-scan>`) or multiple footnotes (as
+    :ref:`here <pool-properties>`) the heading should say "Notes".
