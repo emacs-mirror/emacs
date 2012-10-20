@@ -4,7 +4,7 @@
 
 2012-10-20  Eli Zaretskii  <eliz@gnu.org>
 
-	Prevent silent omission of doc strings from uncompile Lisp files.
+	Prevent silent omission of doc strings from uncompiled Lisp files.
 	* make-docfile.c (scan_lisp_file): Barf if called with a .el file
 	other than one of a small list of supported un-compiled files.
 
