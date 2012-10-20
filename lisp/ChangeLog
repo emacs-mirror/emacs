@@ -1,5 +1,8 @@
 2012-10-20  Chong Yidong  <cyd@gnu.org>
 
+	* vc/vc.el (vc-diff-internal): Set up Diff mode even if there are
+	no changes to show (Bug#12586).
+
 	* eshell/esh-cmd.el (eshell-rewrite-for-command): Copy the body
 	list explicitly (Bug#12571).
 
