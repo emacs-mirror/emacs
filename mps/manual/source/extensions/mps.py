@@ -15,12 +15,12 @@ class MpsDomain(Domain):
     label = 'MPS'
     name = 'mps'
 
-class Note(nodes.Admonition, nodes.Element):
+class Special(nodes.Admonition, nodes.Element):
     pass
 
-class NoteDirective(Directive):
-    cls = None
-    label = 'Note'
+class SpecialDirective(Directive):
+    cls = nodes.note
+    label = 'Special'
     has_content = True
 
     def run(self):
@@ -29,11 +29,9 @@ class NoteDirective(Directive):
                              self.block_text, self.state, self.state_machine)
         return ad
 
-class PluralDirective(NoteDirective):
+class PluralDirective(SpecialDirective):
     def run(self):
-        ad = make_admonition(self.cls, self.name, [self.label], self.options,
-                             self.content, self.lineno, self.content_offset,
-                             self.block_text, self.state, self.state_machine)
+        ad = super(PluralDirective, self).run()
         refs = sum(1 for node in ad[0].children[1].children
                    if isinstance(node, addnodes.pending_xref)
                    or isinstance(node, nodes.Referential))
@@ -48,14 +46,14 @@ def visit_note_node(self, node):
 def depart_note_node(self, node):
     self.depart_admonition(node)
 
-class aka(Note):
+class aka(Special):
     pass
 
-class AkaDirective(NoteDirective):
+class AkaDirective(SpecialDirective):
     cls = aka
     label = 'Also known as'
 
-class bibref(Note):
+class bibref(Special):
     pass
 
 class BibrefDirective(PluralDirective):
@@ -63,14 +61,14 @@ class BibrefDirective(PluralDirective):
     label = 'Related publication'
     plural = 'Related publications'
 
-class historical(Note):
+class historical(Special):
     pass
 
-class HistoricalDirective(NoteDirective):
+class HistoricalDirective(SpecialDirective):
     cls = historical
     label = 'Historical note'
 
-class link(Note):
+class link(Special):
     pass
 
 class LinkDirective(PluralDirective):
@@ -78,7 +76,27 @@ class LinkDirective(PluralDirective):
     label = 'Related link'
     plural = 'Related links'
 
-class opposite(Note):
+class note(Special):
+    pass
+
+class NoteDirective(SpecialDirective):
+    cls = note
+    label = 'Note'
+    plural = 'Notes'
+
+    def run(self):
+        ad = super(NoteDirective, self).run()
+        c = ad[0].children
+        assert(isinstance(c[0], nodes.title))
+        if len(c) == 1: return ad
+        if (isinstance(c[1], nodes.enumerated_list)
+            and sum(1 for _ in c[1].traverse(nodes.list_item)) > 1
+            or isinstance(c[1], nodes.footnote)
+            and sum(1 for _ in ad[0].traverse(nodes.footnote)) > 1):
+            c[0].children[0] = nodes.Text(self.plural)
+        return ad
+
+class opposite(Special):
     pass
 
 class OppositeDirective(PluralDirective):
@@ -86,21 +104,21 @@ class OppositeDirective(PluralDirective):
     label = 'Opposite term'
     plural = 'Opposite terms'
 
-class relevance(Note):
+class relevance(Special):
     pass
 
-class RelevanceDirective(NoteDirective):
+class RelevanceDirective(SpecialDirective):
     cls = relevance
     label = 'Relevance to memory management'
 
-class see(Note):
+class see(Special):
     pass
 
-class SeeDirective(NoteDirective):
+class SeeDirective(SpecialDirective):
     cls = see
     label = 'See'
 
-class similar(Note):
+class similar(Special):
     pass
 
 class SimilarDirective(PluralDirective):
@@ -108,15 +126,15 @@ class SimilarDirective(PluralDirective):
     label = 'Similar term'
     plural = 'Similar terms'
 
-class specific(Note):
+class specific(Special):
     pass
 
-class SpecificDirective(NoteDirective):
+class SpecificDirective(SpecialDirective):
     domain = 'mps'
     cls = specific
     label = 'In the MPS'
 
-class topics(Note):
+class topics(Special):
     pass
 
 class TopicsDirective(PluralDirective):
@@ -129,6 +147,7 @@ all_directives = [
     BibrefDirective,
     HistoricalDirective, 
     LinkDirective,
+    NoteDirective,
     OppositeDirective,
     RelevanceDirective,
     SeeDirective,
