@@ -17,7 +17,7 @@
 | :ref:`N <glossary-n>`
 | :ref:`O <glossary-o>`
 | :ref:`P <glossary-p>`
-| Q
+| :ref:`Q <glossary-q>`
 | :ref:`R <glossary-r>`
 | :ref:`S <glossary-s>`
 | :ref:`T <glossary-t>`

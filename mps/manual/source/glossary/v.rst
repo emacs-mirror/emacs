@@ -36,16 +36,15 @@ Memory Management Glossary: V
             such as the use of value objects. In :term:`Lisp`, for
             example, numbers are often represented as value objects
             but not always as immediate data. The ``EQ`` predicate of
-            Lisp tests if two objects are the identical
-            representation, whereas the ``EQL`` predicate tests if two
-            objects represent the same type and value (are
-            computationally identical). Because the choice of
-            representation is an optimization, exposing it at the
-            language level could cause programs to behave differently
-            under different compilers or optimization settings. Modern
-            languages, such as :term:`Dylan` hide this
-            representational distinction, permitting the compiler
-            greater freedom in optimization.
+            Lisp tests if two objects have the same representation,
+            whereas the ``EQL`` predicate tests if two objects
+            represent the same type and value (are computationally
+            identical). Because the choice of representation is an
+            optimization, exposing it at the language level can
+            cause programs to behave differently under different
+            compilers or optimization settings. Modern languages, such
+            as :term:`Dylan` hide this representational distinction,
+            permitting the compiler greater freedom in optimization.
 
         .. similar:: :term:`immediate data`.
 
@@ -136,7 +135,7 @@ Memory Management Glossary: V
         address space` with its own :term:`mappings <mapping>` and
         :term:`protections <protection>`.
 
-        .. figure:: ../diagrams/virtual-memory.png
+        .. figure:: ../diagrams/virtual-memory.svg
             :align: center
             :alt: Diagram: Example of the relationship between the virtual address spaces of two processes, physical memory, and backing store.
 

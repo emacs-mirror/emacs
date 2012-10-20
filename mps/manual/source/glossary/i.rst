@@ -334,7 +334,7 @@ Memory Management Glossary: I
 
             The :term:`Lisp Machine` was an early workstation that
             used an inverted page table with hardware lookup. The
-            Alpha, UltraSPARC, and PowerPC architectures all include
+            UltraSPARC, PowerPC, and IA-64 architectures all include
             inverted page tables. Some implementations of these
             architectures have hardware-assisted lookup.
 

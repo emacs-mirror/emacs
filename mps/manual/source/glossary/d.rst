@@ -249,8 +249,7 @@ Memory Management Glossary: D
         .. aka:: *longword*.
 
         A *doubleword* is a unit of memory consisting of two adjacent
-        :term:`words <word>`. In digital's Alpha architecture, it's
-        called a *longword*.
+        :term:`words <word>`.
 
         .. historical::
 

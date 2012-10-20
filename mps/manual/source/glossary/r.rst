@@ -235,7 +235,7 @@ Memory Management Glossary: R
            then they will always have a non-zero reference count, and
            hence won't be reclaimed when they are dead.
 
-        .. figure:: ../diagrams/refloop.png
+        .. figure:: ../diagrams/refloop.svg
             :align: center
             :alt: Diagram: Garbage with non-zero reference counts.
 

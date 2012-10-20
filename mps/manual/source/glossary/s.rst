@@ -358,7 +358,7 @@ Memory Management Glossary: S
         Typically the first transport leaves a :term:`forwarding
         pointer` that enables the snap-out.
 
-        .. figure:: ../diagrams/snap-out.png
+        .. figure:: ../diagrams/snap-out.svg
             :align: center
             :alt: Diagram: Snap-out.
 
@@ -733,11 +733,11 @@ Memory Management Glossary: S
         next level. For instance, :term:`virtual memory` systems
         use main memory as a cache for backing store.
 
-        .. figure:: ../diagrams/storage.png
+        .. figure:: ../diagrams/storage.svg
             :align: center
-            :alt: Diagram: Storage hierarchy with relative speed, cost, and typical size.
+            :alt: Diagram: Storage hierarchy with (typical) relative cost, speed, and size.
 
-            Storage hierarchy with relative speed, cost, and typical
+            Storage hierarchy with (typical) relative cost, speed, and
             size.
 
     storage level
