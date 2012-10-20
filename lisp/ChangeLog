@@ -1,3 +1,9 @@
+2012-10-20  Daniel Colascione  <dancol@dancol.org>
+
+	* frame.el (make-frame): Set x-display-name as we used to in order
+	to unbreak creating an X11 frame from an Emacs daemon started
+	without a display.
+
 2012-10-19  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* minibuffer.el (minibuffer-force-complete): Make the next completion use
