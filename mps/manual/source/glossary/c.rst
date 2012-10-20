@@ -589,7 +589,7 @@ Memory Management Glossary: C
 
         A historical synonym for :term:`main memory`, deriving from
         the *cores* or ferrite rings which were once the main
-        technology used to implement main memory.
+        technology used to implement it.
 
         .. similar:: :term:`main memory`.
 

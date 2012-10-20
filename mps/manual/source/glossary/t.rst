@@ -27,7 +27,7 @@ Memory Management Glossary: T
         beginning of the object that points to a block of information
         about the object's :term:`format`.
 
-        .. figure:: ../diagrams/tag-word.png
+        .. figure:: ../diagrams/tag-word.svg
             :align: center
             :alt: Diagram: Example of a tag-word at the start of an object.
 
@@ -35,13 +35,13 @@ Memory Management Glossary: T
 
         Another common form of tagging is to :term:`align <alignment>`
         objects and keep information in the least significant bits of
-        the :term:`address`.
+        the reference.
 
-        .. figure:: ../diagrams/tag-ref.png
+        .. figure:: ../diagrams/tag-ref.svg
             :align: center
             :alt: Diagram: Example of reference tagging, using the least significant bits.
 
-            Example of reference tagging, using the least significant bits.
+            Example of reference tagging, with objects aligned to addresses that are multiples of four, and the tag stored in the least significant two bits of the reference.
 
         In :term:`C`, when a structure contains a union, it is common
         to add a field to the structure to indicate which union member
@@ -70,7 +70,8 @@ Memory Management Glossary: T
 
         .. historical::
 
-            The :term:`Lisp` Machine is an example of a tagged architecture.
+            The :term:`Lisp Machine` was an example of a tagged
+            architecture.
 
     tagged reference
 
@@ -246,11 +247,11 @@ Memory Management Glossary: T
 
     treadmill
 
-        Henry Baker has devised an :term:`incremental <incremental
-        garbage collection>` non-:term:`moving <moving garbage
-        collector>` :term:`garbage collector` that uses a circular
-        doubly-linked list, called the treadmill, to implement
-        :term:`tri-color marking`.
+        Henry Baker devised an :term:`incremental <incremental garbage
+        collection>` non-:term:`moving <moving garbage collector>`
+        :term:`garbage collector` that uses a circular doubly-linked
+        list, called the *treadmill*, to implement :term:`tri-color
+        marking`.
 
         Every :term:`object` is on the list. The list has four
         sections corresponding to :term:`colors <color>`. The
@@ -261,7 +262,7 @@ Memory Management Glossary: T
         from the list and relinking it to a different part of the
         list.
 
-        .. figure:: ../diagrams/treadmill.png
+        .. figure:: ../diagrams/treadmill.svg
             :align: center
             :alt: Diagram: A treadmill.
 
@@ -364,29 +365,11 @@ Memory Management Glossary: T
         collector, such as :term:`generational garbage collectors
         <generational garbage collection>`, have much lower overheads.
 
-        .. figure:: ../diagrams/two-space-1.png
+        .. figure:: ../diagrams/two-space.svg
             :align: center
-            :alt: Diagram: Allocation.
+            :alt: Diagram: Two-space collector.
 
-            Allocation.
-
-        .. figure:: ../diagrams/two-space-2.png
-            :align: center
-            :alt: Diagram: Allocation space is full.
-
-            Allocation space is full.
-
-        .. figure:: ../diagrams/two-space-3.png
-            :align: center
-            :alt: Diagram: Copying garbage collection.
-
-            Copying garbage collection.
-
-        .. figure:: ../diagrams/two-space-4.png
-            :align: center
-            :alt: Diagram: Allocation continues.
-
-            Allocation continues.
+            Two-space collector.
 
         .. seealso:: :term:`flip`.
 

@@ -30,7 +30,7 @@ Memory Management Glossary: G
 
         Garbage collection is a tried and tested memory management
         technique that has been in use since its invention in the
-        1950s. GC avoids the need for the programmer to
+        1950s. It avoids the need for the programmer to
         :term:`deallocate <free (1)>` memory :term:`blocks <block>`
         explicitly, thus avoiding a number of problems: :term:`memory
         leaks <memory leak>`, :term:`double frees <double free>`, and
@@ -58,19 +58,20 @@ Memory Management Glossary: G
         tracing garbage collection.
 
         There is a large body of published work on particular and
-        general GC algorithms.
+        general garbage collection algorithms.
 
         .. historical::
 
             Garbage collection was first invented by John McCarthy in
             1958 as part of the implementation of :term:`Lisp`.
 
-        Other significant languages offering GC include :term:`Java`,
-        :term:`Perl`, :term:`Modula-3`, :term:`Prolog`, :term:`ML`,
-        and :term:`Smalltalk`. Major applications using GC include
-        Emacs and AutoCAD; usually, you can't tell whether an
-        application does or not, but these have extension languages
-        that expose the fact.
+        Other significant languages offering garbage collection
+        include :term:`Java`, :term:`ML`, :term:`Modula-3`,
+        :term:`Perl`, :term:`Prolog`, and :term:`Smalltalk`. Major
+        applications using garbage collection include Emacs and
+        AutoCAD; usually, you can't tell whether an application does
+        or not, but these have extension languages that expose the
+        fact.
 
         .. similar:: :term:`automatic memory management`.
 
@@ -230,9 +231,9 @@ Memory Management Glossary: G
         :term:`references <reference>` in a graph of :term:`objects
         <object>`), then the graph is said to be a *directed graph*.
 
-        .. figure:: ../diagrams/graph.png
+        .. figure:: ../diagrams/graph.svg
             :align: center
-            :alt: Diagram: Directed graph.
+            :alt: Ten white circles (the nodes of this graph), some of them joined by arrows (the edges of the graph). Most of the edges point in one direction, but one edge points both ways. Seven of the nodes are connected in one component, and three in another.
 
             Directed graph.
 

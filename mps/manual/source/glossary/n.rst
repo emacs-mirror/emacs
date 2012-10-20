@@ -84,9 +84,9 @@ Memory Management Glossary: N
     non-moving garbage collector
     non-moving memory manager
 
-        A memory manager (often a :term:`garbage collector`) is said
-        to be non-moving if :term:`allocated <allocate>`
-        :term:`objects <object>` do not move during their lifetimes.
+        A memory manager is said to be *non-moving* if
+        :term:`allocated <allocate>` :term:`objects <object>` do not
+        move during their lifetimes.
 
         Non-moving memory management techniques include
         :term:`mark-sweep` collection, :term:`reference counting`, and
@@ -103,7 +103,7 @@ Memory Management Glossary: N
         .. aka:: *nursery generation*.
 
         In :term:`generational garbage collection`, the *nursery
-        :term:`generation`* or *space* is the area used for new
+        generation* or *space* is the area used for new
         :term:`allocation <allocate>`.
 
         The size of the nursery space must be chosen carefully. Often
