@@ -1,3 +1,9 @@
+2012-10-20  Eli Zaretskii  <eliz@gnu.org>
+
+	* make-docfile.c (IS_SLASH, DEF_ELISP_FILE): New macros.
+	(scan_lisp_file): Only pass a .el file if its basename matches a
+	known file in its entirety.  Use IS_SLASH and DEF_ELISP_FILE.
+
 2012-10-20  Andreas Schwab  <schwab@linux-m68k.org>
 
 	* make-docfile.c (scan_lisp_file): Add bounds checking.

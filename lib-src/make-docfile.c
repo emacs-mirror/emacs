@@ -58,9 +58,11 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #undef chdir
 #define READ_TEXT "rt"
 #define READ_BINARY "rb"
+#define IS_SLASH(c)  ((c) == '/' || (c) == '\\' || (c) == ':')
 #else  /* not DOS_NT */
 #define READ_TEXT "r"
 #define READ_BINARY "r"
+#define IS_SLASH(c)  ((c) == '/')
 #endif /* not DOS_NT */
 
 static int scan_file (char *filename);
@@ -1098,6 +1100,8 @@ search_lisp_doc_at_eol (FILE *infile)
   return 1;
 }
 
+#define DEF_ELISP_FILE(fn)  { #fn, sizeof(#fn) - 1 }
+
 static int
 scan_lisp_file (const char *filename, const char *mode)
 {
@@ -1108,12 +1112,14 @@ scan_lisp_file (const char *filename, const char *mode)
      follow the conventions of the doc strings expected by this
      function.  These conventions are automatically followed by the
      byte compiler when it produces the .elc files.  */
-  static const char *const uncompiled[] =
-    {
-      "loaddefs.el",
-      "loadup.el",
-      "charprop.el"
-    };
+  static struct {
+    const char *fn;
+    size_t fl;
+  } const uncompiled[] = {
+    DEF_ELISP_FILE (loaddefs.el),
+    DEF_ELISP_FILE (loadup.el),
+    DEF_ELISP_FILE (charprop.el)
+  };
   int i, match;
   size_t flen = strlen (filename);
 
@@ -1124,9 +1130,10 @@ scan_lisp_file (const char *filename, const char *mode)
       for (i = 0, match = 0; i < sizeof (uncompiled) / sizeof (uncompiled[0]);
 	   i++)
 	{
-	  if (strlen (uncompiled[i]) <= flen
-	      && !strcmp (filename + flen - strlen (uncompiled[i]),
-			  uncompiled[i]))
+	  if (uncompiled[i].fl <= flen
+	      && !strcmp (filename + flen - uncompiled[i].fl, uncompiled[i].fn)
+	      && (flen == uncompiled[i].fl
+		  || IS_SLASH (filename[flen - uncompiled[i].fl - 1])))
 	    {
 	      match = 1;
 	      break;
