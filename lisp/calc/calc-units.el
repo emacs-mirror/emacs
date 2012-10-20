@@ -1481,10 +1481,16 @@ If COMP or STD is non-nil, put that in the units table instead."
 	    (mapcar 'math-remove-units (cdr expr))))))
 
 (defun math-extract-units (expr)
-  (if (memq (car-safe expr) '(* /))
-      (cons (car expr)
-	    (mapcar 'math-extract-units (cdr expr)))
-    (if (math-check-unit-name expr) expr 1)))
+  (cond
+   ((memq (car-safe expr) '(* /))
+    (cons (car expr)
+          (mapcar 'math-extract-units (cdr expr))))
+   ((and
+     (eq (car-safe expr) '^)
+     (math-check-unit-name (nth 1 expr)))
+    expr)
+   ((math-check-unit-name expr) expr)
+   (t 1)))
 
 (defun math-build-units-table-buffer (enter-buffer)
   (if (not (and math-units-table math-units-table-buffer-valid
