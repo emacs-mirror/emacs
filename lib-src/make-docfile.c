@@ -1108,24 +1108,25 @@ scan_lisp_file (const char *filename, const char *mode)
      follow the conventions of the doc strings expected by this
      function.  These conventions are automatically followed by the
      byte compiler when it produces the .elc files.  */
-  static struct {
-    const char *fn;
-    size_t fl;
-  } uncompiled[] = {
-    { "loaddefs.el", sizeof("loaddefs.el") - 1 },
-    { "loadup.el", sizeof("loadup.el") - 1 },
-    { "charprop.el", sizeof("charprop.el") - 1 }
-  };
+  static const char *const uncompiled[] =
+    {
+      "loaddefs.el",
+      "loadup.el",
+      "charprop.el"
+    };
   int i, match;
   size_t flen = strlen (filename);
 
   if (generate_globals)
     fatal ("scanning lisp file when -g specified", 0);
-  if (!strcmp (filename + flen - 3, ".el"))
+  if (flen > 3 && !strcmp (filename + flen - 3, ".el"))
     {
-      for (i = 0, match = 0; i < sizeof(uncompiled)/sizeof(uncompiled[0]); i++)
+      for (i = 0, match = 0; i < sizeof (uncompiled) / sizeof (uncompiled[0]);
+	   i++)
 	{
-	  if (!strcmp (filename + flen - uncompiled[i].fl, uncompiled[i].fn))
+	  if (strlen (uncompiled[i]) <= flen
+	      && !strcmp (filename + flen - strlen (uncompiled[i]),
+			  uncompiled[i]))
 	    {
 	      match = 1;
 	      break;

@@ -1,3 +1,7 @@
+2012-10-20  Andreas Schwab  <schwab@linux-m68k.org>
+
+	* make-docfile.c (scan_lisp_file): Add bounds checking.
+
 2012-10-20  Eli Zaretskii  <eliz@gnu.org>
 
 	Prevent silent omission of doc strings from uncompile Lisp files.
