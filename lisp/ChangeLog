@@ -1,3 +1,17 @@
+2012-10-19  Martin Rudalics  <rudalics@gmx.at>
+
+	* emacs-lisp/debug.el (debug): Record height of debugger window
+	also when debugger will be back (Bug#8789).
+
+2012-10-18  Chong Yidong  <cyd@gnu.org>
+
+	* progmodes/gdb-mi.el (gdb-display-buffer-other-frame-action):
+	Convert to defcustom.
+	(gdb-get-source-file): Don't bind pop-up-windows.
+
+	* progmodes/gud.el (gud-display-line): Don't specially re-use
+	other frames for the gdb-mi case (Bug#12648).
+
 2012-10-18  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* emacs-lisp/advice.el: Clean up commentary a bit.

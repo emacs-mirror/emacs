@@ -1,3 +1,25 @@
+2012-10-19  Kazuhiro Ito  <kzhr@d1.dion.ne.jp>  (tiny change)
+
+	* font.c (Ffont_at): Fix previous change.
+
+2012-10-19  Eli Zaretskii  <eliz@gnu.org>
+
+	* puresize.h (BASE_PURESIZE): Bump the base value to 1700000.  See
+	http://lists.gnu.org/archive/html/emacs-devel/2012-10/msg00593.html
+	for the reasons.
+
+	* alloc.c (NSTATICS): Decrease to 0x800.
+
+2012-10-19  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* fns.c (Fnreverse): Include the problem element when signalling an
+	error (bug#12677).
+
+2012-10-18  Jan Djärv  <jan.h.d@swipnet.se>
+
+	* nsterm.m (ns_select): Check writefds before call to
+	FD_ISSET (Bug#12668).
+
 2012-10-18  Daniel Colascione  <dancol@dancol.org>
 
 	* alloc.c (NSTATICS): Increase from 0x650 to 0x1000
