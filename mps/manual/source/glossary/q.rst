@@ -16,9 +16,9 @@ Memory Management Glossary: Q
         .. historical::
 
             In Digital's Alpha architecture, a quadword of 64 bits was
-            actually the :term:`natural word size`, but the term
-            *word* was still used for the 16-bit unit, for
-            compatibility with the PDP-11.
+            actually the natural word size, but the term *word* was
+            still used for the 16-bit unit, for compatibility with the
+            PDP-11.
 
         .. seealso:: :term:`doubleword`.
 
