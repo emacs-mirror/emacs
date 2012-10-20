@@ -27,9 +27,6 @@ Outstanding
     (e.g. :ref:`pool-amcz`) in an "advanced topics" section of the
     user guide.
 
-56. Deprecation warnings need nicer formatting. Also "since version
-    1.111" is wrong: "starting with version 1.111" would be right.
-
 61. Start adding :ref:`genindex` entries.
 
 73. The names of the sectors on the "treadmill" diagram don't
@@ -446,6 +443,9 @@ Complete
 55. Mark all the allocation frame stuff as deprecated in the manual.
 
     *Action:* I marked them all as deprecated in version 1.111.
+
+56. Deprecation warnings need nicer formatting. Also "since version
+    1.111" is wrong: "starting with version 1.111" would be right.
 
 57. :c:func:`mps_collections` should of course have been called
     :c:func:`mps_arena_collections` but it's pretty meaningless

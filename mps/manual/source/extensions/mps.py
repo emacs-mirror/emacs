@@ -7,20 +7,63 @@ from collections import defaultdict
 import re
 from docutils import nodes, transforms
 from sphinx import addnodes
+from sphinx.directives.other import VersionChange
 from sphinx.domains import Domain
 from sphinx.roles import XRefRole
 from sphinx.util.compat import Directive, make_admonition
+from sphinx.util.nodes import set_source_info, process_index_entry
+from sphinx.locale import versionlabels
+versionlabels['deprecatedstarting'] = 'Deprecated starting with version %s'
 
 class MpsDomain(Domain):
     label = 'MPS'
     name = 'mps'
 
-class Special(nodes.Admonition, nodes.Element):
+class deprecated(addnodes.versionmodified):
     pass
 
-class SpecialDirective(Directive):
+class DeprecatedDirective(VersionChange):
+    # Copied from VersionChange: can't be subclassed because of the
+    # need to make a deprecated node rather than a versionmodified
+    # node.
+    def run(self):
+        node = deprecated()
+        node.document = self.state.document
+        set_source_info(self, node)
+        node['type'] = self.name
+        node['version'] = self.arguments[0]
+        if len(self.arguments) == 2:
+            inodes, messages = self.state.inline_text(self.arguments[1],
+                                                      self.lineno+1)
+            node.extend(inodes)
+            if self.content:
+                self.state.nested_parse(self.content, self.content_offset, node)
+            ret = [node] + messages
+        else:
+            ret = [node]
+        env = self.state.document.settings.env
+        # XXX should record node.source as well
+        env.note_versionchange(node['type'], node['version'], node, node.line)
+        return ret
+
+def version_compare(*args):
+    return cmp(*[map(int, v.split('.')) for v in args])
+
+def visit_deprecated_node(self, node):
+    if (node['type'] == 'deprecated'
+        and version_compare(node['version'], self.builder.config.version) >= 0):
+        node['type'] = 'deprecatedstarting'
+    self.visit_versionmodified(node)
+
+def depart_deprecated_node(self, node):
+    self.depart_versionmodified(node)
+
+class Admonition(nodes.Admonition, nodes.Element):
+    pass
+
+class AdmonitionDirective(Directive):
     cls = nodes.note
-    label = 'Special'
+    label = 'Admonition'
     has_content = True
 
     def run(self):
@@ -29,7 +72,7 @@ class SpecialDirective(Directive):
                              self.block_text, self.state, self.state_machine)
         return ad
 
-class PluralDirective(SpecialDirective):
+class PluralDirective(AdmonitionDirective):
     def run(self):
         ad = super(PluralDirective, self).run()
         refs = sum(1 for node in ad[0].children[1].children
@@ -40,20 +83,20 @@ class PluralDirective(SpecialDirective):
             ad[0].children[0].children[0] = nodes.Text(self.plural)
         return ad
 
-def visit_note_node(self, node):
+def visit_admonition_node(self, node):
     self.visit_admonition(node)
 
-def depart_note_node(self, node):
+def depart_admonition_node(self, node):
     self.depart_admonition(node)
 
-class aka(Special):
+class aka(Admonition):
     pass
 
-class AkaDirective(SpecialDirective):
+class AkaDirective(AdmonitionDirective):
     cls = aka
     label = 'Also known as'
 
-class bibref(Special):
+class bibref(Admonition):
     pass
 
 class BibrefDirective(PluralDirective):
@@ -61,14 +104,14 @@ class BibrefDirective(PluralDirective):
     label = 'Related publication'
     plural = 'Related publications'
 
-class historical(Special):
+class historical(Admonition):
     pass
 
-class HistoricalDirective(SpecialDirective):
+class HistoricalDirective(AdmonitionDirective):
     cls = historical
     label = 'Historical note'
 
-class link(Special):
+class link(Admonition):
     pass
 
 class LinkDirective(PluralDirective):
@@ -76,10 +119,10 @@ class LinkDirective(PluralDirective):
     label = 'Related link'
     plural = 'Related links'
 
-class note(Special):
+class note(Admonition):
     pass
 
-class NoteDirective(SpecialDirective):
+class NoteDirective(AdmonitionDirective):
     cls = note
     label = 'Note'
     plural = 'Notes'
@@ -96,7 +139,7 @@ class NoteDirective(SpecialDirective):
             c[0].children[0] = nodes.Text(self.plural)
         return ad
 
-class opposite(Special):
+class opposite(Admonition):
     pass
 
 class OppositeDirective(PluralDirective):
@@ -104,21 +147,21 @@ class OppositeDirective(PluralDirective):
     label = 'Opposite term'
     plural = 'Opposite terms'
 
-class relevance(Special):
+class relevance(Admonition):
     pass
 
-class RelevanceDirective(SpecialDirective):
+class RelevanceDirective(AdmonitionDirective):
     cls = relevance
     label = 'Relevance to memory management'
 
-class see(Special):
+class see(Admonition):
     pass
 
-class SeeDirective(SpecialDirective):
+class SeeDirective(AdmonitionDirective):
     cls = see
     label = 'See'
 
-class similar(Special):
+class similar(Admonition):
     pass
 
 class SimilarDirective(PluralDirective):
@@ -126,15 +169,15 @@ class SimilarDirective(PluralDirective):
     label = 'Similar term'
     plural = 'Similar terms'
 
-class specific(Special):
+class specific(Admonition):
     pass
 
-class SpecificDirective(SpecialDirective):
+class SpecificDirective(AdmonitionDirective):
     domain = 'mps'
     cls = specific
     label = 'In the MPS'
 
-class topics(Special):
+class topics(Admonition):
     pass
 
 class TopicsDirective(PluralDirective):
@@ -142,7 +185,7 @@ class TopicsDirective(PluralDirective):
     label = 'Topic'
     plural = 'Topics'
 
-all_directives = [
+all_admonitions = [
     AkaDirective,
     BibrefDirective,
     HistoricalDirective, 
@@ -205,10 +248,14 @@ def setup(app):
     app.add_transform(GlossaryTransform)
     app.connect('build-finished', warn_indirect_terms)
 
-    visit = (visit_note_node, depart_note_node)
-    for d in all_directives:
+    visit = (visit_admonition_node, depart_admonition_node)
+    for d in all_admonitions:
         app.add_node(d.cls, html = visit, latex = visit, text = visit)
         try:
             app.add_directive_to_domain(d.domain, d.cls.__name__, d)
         except AttributeError:
             app.add_directive(d.cls.__name__, d)
+
+    visit = (visit_deprecated_node, depart_deprecated_node)
+    app.add_node(deprecated, html = visit, latex = visit, text = visit)
+    app.add_directive('deprecated', DeprecatedDirective)
