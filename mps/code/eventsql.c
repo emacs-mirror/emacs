@@ -252,73 +252,6 @@ static void closeDatabase(sqlite3 *db)
         log(LOG_SOMETIMES, "Closed %s.", databaseName);
 }
 
-/* We need to be able to test for the existence of a table.  The
- * SQLite3 API seems to have no way to explore metadata like this,
- * unless it is compiled in a particular way (in which case the
- * function sqlite3_table_column_metadata could be used).  Without
- * that assistance, we can use a simple SQL trick (which could also
- * tell us the number of rows in the table if we cared).
- *
- * TODO: Update this to use the sqlite_master table:
- *    SELECT FROM sqlite_master WHERE type='table' AND name=?
- * and fix the above comment.
- */
-
-static int tableExists(sqlite3* db, const char *tableName)
-{
-        const char *format = "SELECT SUM(1) FROM %s";
-        char *sql;
-        int res;
-
-        sql = malloc(strlen(format) + strlen(tableName));
-        if (!sql)
-                error("Out of memory.");
-        sprintf(sql, format, tableName);
-        log(LOG_SELDOM, "Testing for existence of table '%s' with SQL: %s", tableName, sql);
-        res = sqlite3_exec(db,
-                           sql,
-                           NULL, /* put in a callback here if we really want to know the number of rows */
-                           NULL, /* callback closure */
-                           NULL); /* error messages handled by sqlite_error */
-        free(sql);
-
-        switch(res) {
-        case SQLITE_OK:
-                log(LOG_SELDOM, "Table '%s' exists.", tableName);
-
-                return 1; /* table exists */
-                break;
-        case SQLITE_ERROR:
-                log(LOG_SELDOM, "Table '%s' does not exist.", tableName);
-                return 0; /* table does not exist; we can
-                             probably do a better test for this case. */
-                break;
-        default:
-                sqlite_error(res, db, "Table test failed: %s", tableName);
-        }
-        /* UNREACHED */
-        return 0;
-}
-
-/* Unit test for tableExists() */
-
-static const char *tableTests[] = {
-        "event_kind",
-        "spong",
-        "EVENT_SegSplit",
-};
-
-static void testTableExists(sqlite3 *db)
-{
-        int i;
-        for (i=0; i < (sizeof(tableTests)/sizeof(tableTests[0])); ++i) {
-                if (tableExists(db, tableTests[i]))
-                        printf("Table exists: %s\n", tableTests[i]);
-                else 
-                        printf("Table does not exist: %s\n", tableTests[i]);
-        }
-}
-
 /* Utility functions for SQLite statements. */
 
 static sqlite3_stmt *prepareStatement(sqlite3 *db,
@@ -360,6 +293,66 @@ static void runStatement(sqlite3 *db,
                 sqlite_error(res, db, "%s failed - statement %s", description, sql);
 }
 
+/* Test for the existence of a table using sqlite_master table.
+ */
+
+static int tableExists(sqlite3* db, const char *tableName)
+{
+        int res;
+        int exists;
+        sqlite3_stmt *statement;
+
+        statement = prepareStatement(db,
+                                     "SELECT 1 FROM sqlite_master WHERE type='table' AND name=?");
+        res = sqlite3_bind_text(statement, 1, tableName, -1, SQLITE_STATIC);
+        if (res != SQLITE_OK)
+                sqlite_error(res, db, "table existence bind of name failed.");
+        res = sqlite3_step(statement);
+        switch(res) {
+        case SQLITE_DONE:
+                exists = 0;
+                break;
+        case SQLITE_ROW:
+                exists = 1;
+                break;
+        default:
+                sqlite_error(res, db, "select from sqlite_master failed.");
+        }
+        finalizeStatement(db, statement);
+        return exists;
+}
+
+/* Unit test for tableExists() */
+
+static struct {
+        const char* name;
+        int exists;
+} tableTests[] = {
+        {"event_kind", TRUE},
+        {"spong", FALSE},
+        {"EVENT_SegSplit", TRUE}
+};
+
+static void testTableExists(sqlite3 *db)
+{
+        int i;
+        int defects = 0;
+        int tests = 0;
+        for (i=0; i < (sizeof(tableTests)/sizeof(tableTests[0])); ++i) {
+                const char *name = tableTests[i].name;
+                int exists = tableExists(db, name);
+                if (exists)
+                        log(LOG_OFTEN, "Table exists: %s", name);
+                else 
+                        log(LOG_OFTEN, "Table does not exist: %s", name);
+                if (exists != tableTests[i].exists) {
+                        log(LOG_ALWAYS, "tableExists test failed on table %s", name);
+                        ++ defects;
+                }
+                ++ tests;
+        }
+        log(LOG_ALWAYS, "%d tests, %d defects found.", tests, defects);
+}
 
 /* Every time we put events from a log file into a database file, we
  * add the log file to the event_log table, and get a serial number
