@@ -1,5 +1,3 @@
-.. highlight:: c
-
 .. _guide-lang:
 
 Garbage collecting a language with the Memory Pool System

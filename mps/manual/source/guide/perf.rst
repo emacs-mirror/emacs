@@ -1,5 +1,3 @@
-.. highlight:: c
-
 .. _guide-perf:
 
 Tuning the Memory Pool System for performance
