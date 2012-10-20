@@ -1134,7 +1134,23 @@ Repeated uses step through the possible completions."
       ;; through the previous possible completions.
       (let ((last (last all)))
         (setcdr last (cons (car all) (cdr last)))
-        (completion--cache-all-sorted-completions (cdr all)))))))
+        (completion--cache-all-sorted-completions (cdr all)))
+      ;; Make sure repeated uses cycle, even though completion--done might
+      ;; have added a space or something that moved us outside of the field.
+      ;; (bug#12221).
+      (let* ((table minibuffer-completion-table)
+             (pred minibuffer-completion-predicate)
+             (extra-prop completion-extra-properties)
+             (cmd
+              (lambda () "Cycle through the possible completions."
+                (interactive)
+                (let ((completion-extra-properties extra-prop))
+                  (completion-in-region start (point) table pred)))))
+        (set-temporary-overlay-map
+         (let ((map (make-sparse-keymap)))
+           (define-key map [remap completion-at-point] cmd)
+           (define-key map (vector last-command-event) cmd)
+           map)))))))
 
 (defvar minibuffer-confirm-exit-commands
   '(completion-at-point minibuffer-complete
@@ -1557,7 +1573,6 @@ variables.")
   (let* ((exit-fun (plist-get completion-extra-properties :exit-function))
          (pre-msg (and exit-fun (current-message))))
     (cl-assert (memq finished '(exact sole finished unknown)))
-    ;; FIXME: exit-fun should receive `finished' as a parameter.
     (when exit-fun
       (when (eq finished 'unknown)
         (setq finished

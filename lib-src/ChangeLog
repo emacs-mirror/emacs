@@ -1,3 +1,12 @@
+2012-10-20  Eli Zaretskii  <eliz@gnu.org>
+
+	Prevent silent omission of doc strings from uncompile Lisp files.
+	* make-docfile.c (scan_lisp_file): Barf if called with a .el file
+	other than one of a small list of supported un-compiled files.
+
+	* makefile.w32-in (lisp1, lisp2): Name .elc files wherever they
+	exist.  (Bug#12395)
+
 2012-10-17  Eli Zaretskii  <eliz@gnu.org>
 
 	* ntlib.c: Include <mbstring.h>, to avoid compiler warning about
