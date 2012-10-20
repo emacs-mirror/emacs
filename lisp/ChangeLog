@@ -1,3 +1,8 @@
+2012-10-20  Chong Yidong  <cyd@gnu.org>
+
+	* eshell/esh-cmd.el (eshell-rewrite-for-command): Copy the body
+	list explicitly (Bug#12571).
+
 2012-10-20  Arne Jørgensen  <arne@arnested.dk>
 
 	* progmodes/flymake.el (flymake-create-temp-inplace): Use
