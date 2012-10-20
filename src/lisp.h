@@ -222,7 +222,9 @@ enum enum_USE_LSB_TAG { USE_LSB_TAG = 0 };
 
 /* Define the fundamental Lisp data structures.  */
 
-/* This is the set of Lisp data types.  */
+/* This is the set of Lisp data types.  If you want to define a new
+   data type, read the comments after Lisp_Fwd_Type definition
+   below.  */
 
 /* Lisp integers use 2 tags, to give them one extra bit, thus
    extending their range from, e.g., -2^28..2^28-1 to -2^29..2^29-1.  */
@@ -297,6 +299,53 @@ enum Lisp_Fwd_Type
     Lisp_Fwd_Buffer_Obj,	/* Fwd to a Lisp_Object field of buffers.  */
     Lisp_Fwd_Kboard_Obj,	/* Fwd to a Lisp_Object field of kboards.  */
   };
+
+/* If you want to define a new Lisp data type, here are some
+   instructions.  See the thread at
+   http://lists.gnu.org/archive/html/emacs-devel/2012-10/msg00561.html
+   for more info.
+
+   First, there are already a couple of Lisp types that can be used if
+   your new type does not need to be exposed to Lisp programs nor
+   displayed to users.  These are Lisp_Save_Value, a Lisp_Misc
+   subtype, and PVEC_OTHER, a kind of vectorlike object.  The former
+   is suitable for temporarily stashing away pointers and integers in
+   a Lisp object (see the existing uses of make_save_value and
+   XSAVE_VALUE).  The latter is useful for vector-like Lisp objects
+   that need to be used as part of other objects, but which are never
+   shown to users or Lisp code (search for PVEC_OTHER in xterm.c for
+   an example).
+
+   These two types don't look pretty when printed, so they are
+   unsuitable for Lisp objects that can be exposed to users.
+
+   To define a new data type, add one more Lisp_Misc subtype or one
+   more pseudovector subtype.  Pseudovectors are more suitable for
+   objects with several slots that need to support fast random access,
+   whil Lisp_Misc types are foreverything else.  A pseudovector object
+   provides one or more slots for Lisp objects, followed by struct
+   members that are accessible only from C.  A Lisp_Misc object is a
+   wrapper for a C struct that can contain anything you like.
+
+   To add a new pseudovector type, extend the pvec_type enumeration;
+   to add a new Lisp_Misc, extend the Lisp_Misc_Type enumeration.
+
+   For a Lisp_Misc, you will also need to add your entry to union
+   Lisp_Misc (but make sure the first word has the same structure as
+   the others, starting with a 16-bit member of the Lisp_Misc_Type
+   enumeration and a 1-bit GC markbit) and make sure the overall size
+   of the union is not increased by your addition.
+
+   Then you will need to add switch branches in print.c (in
+   print_object, to print your object, and possibly also in
+   print_preprocess) and to alloc.c, to mark your object (in
+   mark_object) and to free it (in gc_sweep).  The latter is also the
+   right place to call any code specific to your data type that needs
+   to run when the object is recycled -- e.g., free any additional
+   resources allocated for it that are not Lisp objects.  You can even
+   make a pointer to the function that frees the resources a slot in
+   your object -- this way, the same object could be used to represent
+   several disparate C structures.  */
 
 #ifdef CHECK_LISP_OBJECT_TYPE
 
