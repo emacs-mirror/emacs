@@ -1,3 +1,25 @@
+2012-10-20  Paul Eggert  <eggert@cs.ucla.edu>
+
+	Port to OpenBSD 5.1.
+	* frame.c (Fmouse_position, Fmouse_pixel_position):
+	* xdisp.c (produce_stretch_glyph):
+	Declare local vars only when they're needed.
+	This is clearer and avoids a warning on OpenBSD about unused vars.
+	* frame.h (FRAME_WINDOW_P): Always evaluate its argument.
+	This is safer, and avoids OpenBSD warnings about unused vars.
+	* keyboard.c (record_menu_key): Remove unnecessary decl.
+	(poll_timer): Define only if POLL_FOR_INPUT is defined.
+	* unexelf.c (ELFSIZE) [!ElfW]: Do not define if already defined,
+	as our definition clashes with OpenBSD's.
+	* xfaces.c (load_face_colors, check_lface_attrs)
+	(get_lface_attributes_no_remap, get_lface_attributes)
+	(lface_fully_specified_p, x_supports_face_attributes_p)
+	(tty_supports_face_attributes_p, face_fontset, realize_face)
+	(realize_x_face, realize_tty_face):
+	Declare parameters to be Lisp_Object[LFACE_VECTOR_SIZE], not
+	merely Lisp_Object *.  This is more informative and avoids
+	a warning on OpenBSD about accessing beyond an object's size.
+
 2012-10-20  Chong Yidong  <cyd@gnu.org>
 
 	* lread.c (Fload): Doc fix (Bug#12592).

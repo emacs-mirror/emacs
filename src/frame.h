@@ -646,7 +646,7 @@ typedef struct frame *FRAME_PTR;
 #define FRAME_WINDOW_P(f) FRAME_NS_P(f)
 #endif
 #ifndef FRAME_WINDOW_P
-#define FRAME_WINDOW_P(f) (0)
+#define FRAME_WINDOW_P(f) ((void) (f), 0)
 #endif
 
 /* Return a pointer to the structure holding information about the

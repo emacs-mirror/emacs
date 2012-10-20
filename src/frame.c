@@ -1501,10 +1501,7 @@ and returns whatever that function returns.  */)
 {
   FRAME_PTR f;
   Lisp_Object lispy_dummy;
-  enum scroll_bar_part party_dummy;
   Lisp_Object x, y, retval;
-  int col, row;
-  Time long_dummy;
   struct gcpro gcpro1;
 
   f = SELECTED_FRAME ();
@@ -1513,14 +1510,19 @@ and returns whatever that function returns.  */)
 #if defined (HAVE_MOUSE) || defined (HAVE_GPM)
   /* It's okay for the hook to refrain from storing anything.  */
   if (FRAME_TERMINAL (f)->mouse_position_hook)
-    (*FRAME_TERMINAL (f)->mouse_position_hook) (&f, -1,
-                                                &lispy_dummy, &party_dummy,
-                                                &x, &y,
-                                                &long_dummy);
+    {
+      enum scroll_bar_part party_dummy;
+      Time time_dummy;
+      (*FRAME_TERMINAL (f)->mouse_position_hook) (&f, -1,
+						  &lispy_dummy, &party_dummy,
+						  &x, &y,
+						  &time_dummy);
+    }
+
   if (! NILP (x))
     {
-      col = XINT (x);
-      row = XINT (y);
+      int col = XINT (x);
+      int row = XINT (y);
       pixel_to_glyph_coords (f, col, row, &col, &row, NULL, 1);
       XSETINT (x, col);
       XSETINT (y, row);
@@ -1547,9 +1549,7 @@ and nil for X and Y.  */)
 {
   FRAME_PTR f;
   Lisp_Object lispy_dummy;
-  enum scroll_bar_part party_dummy;
   Lisp_Object x, y;
-  Time long_dummy;
 
   f = SELECTED_FRAME ();
   x = y = Qnil;
@@ -1557,10 +1557,15 @@ and nil for X and Y.  */)
 #if defined (HAVE_MOUSE) || defined (HAVE_GPM)
   /* It's okay for the hook to refrain from storing anything.  */
   if (FRAME_TERMINAL (f)->mouse_position_hook)
-    (*FRAME_TERMINAL (f)->mouse_position_hook) (&f, -1,
-                                                &lispy_dummy, &party_dummy,
-                                                &x, &y,
-                                                &long_dummy);
+    {
+      enum scroll_bar_part party_dummy;
+      Time time_dummy;
+      (*FRAME_TERMINAL (f)->mouse_position_hook) (&f, -1,
+						  &lispy_dummy, &party_dummy,
+						  &x, &y,
+						  &time_dummy);
+    }
+
 #endif
   XSETFRAME (lispy_dummy, f);
   return Fcons (lispy_dummy, Fcons (x, y));
