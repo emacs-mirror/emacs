@@ -25,7 +25,7 @@ Memory Management Glossary: C
         mechanisms by which it is kept consistent, are quite varied.
         See :term:`cache policy`.
 
-        Some systems have more than one level of cache. "level 1
+        Some systems have more than one level of cache. "Level 1
         cache" is the fastest, smallest :term:`storage level`, "level
         2" the next fastest, and so on.
 
