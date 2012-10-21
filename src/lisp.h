@@ -308,7 +308,7 @@ enum Lisp_Fwd_Type
    First, there are already a couple of Lisp types that can be used if
    your new type does not need to be exposed to Lisp programs nor
    displayed to users.  These are Lisp_Save_Value, a Lisp_Misc
-   subtype, and PVEC_OTHER, a kind of vectorlike object.  The former
+   subtype; and PVEC_OTHER, a kind of vectorlike object.  The former
    is suitable for temporarily stashing away pointers and integers in
    a Lisp object (see the existing uses of make_save_value and
    XSAVE_VALUE).  The latter is useful for vector-like Lisp objects
@@ -322,7 +322,7 @@ enum Lisp_Fwd_Type
    To define a new data type, add one more Lisp_Misc subtype or one
    more pseudovector subtype.  Pseudovectors are more suitable for
    objects with several slots that need to support fast random access,
-   whil Lisp_Misc types are foreverything else.  A pseudovector object
+   while Lisp_Misc types are for everything else.  A pseudovector object
    provides one or more slots for Lisp objects, followed by struct
    members that are accessible only from C.  A Lisp_Misc object is a
    wrapper for a C struct that can contain anything you like.
