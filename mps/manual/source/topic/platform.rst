@@ -1,12 +1,62 @@
 .. _topic-platform:
 
-================================
-Supporting MPS on a new platform
-================================
+Supporting the Memory Pool System on a new platform
+===================================================
 
------------------------
-Declared in ``mpstd.h``
------------------------
+Platform codes
+--------------
+
+The MPS uses a six-character platform code to express a combination of
+operating system, CPU architecture, and compiler toolchain. Each
+six-character code breaks down into three pairs of characters:
+``OSARCT``. The first two characters name the operating system:
+
+======  ================  ====================
+``OS``  Operating system  Constant
+======  ================  ====================
+``fr``  FreeBSD           :c:macro:`MPS_OS_FR`
+``li``  Linux             :c:macro:`MPS_OS_LI`
+``w3``  Windows           :c:macro:`MPS_OS_W3`
+``xc``  OS X              :c:macro:`MPS_OS_XC`
+======  ================  ====================
+
+The second pair of characters name the processor architecture:
+
+======  ======================  ======================
+``AR``  Processor architecture  Constant
+======  ======================  ======================
+``i3``  Intel/AMD IA-32         :c:macro:`MPS_ARCH_I3`
+``i6``  Intel/AMD x86-64        :c:macro:`MPS_ARCH_I6`
+======  ======================  ======================
+
+The third pair of characters name the compiler toolchain:
+
+======  =======================  =======================
+``CT``  Compiler toolchain       Constant
+======  =======================  =======================
+``gc``  GNU Compiler collection  :c:macro:`MPS_BUILD_GC`
+``ll``  Clang/LLVM               :c:macro:`MPS_BUILD_LL`
+``mv``  Microsoft Visual C/C++   :c:macro:`MPS_BUILD_MV`
+======  =======================  =======================
+
+In each case the aspect of the platform can be tested by checking
+whether the preprocessor constant in the third column in the table
+is defined, and the full platform can be tested by checking
+whether the corresponding ``MPS_PF_`` preprocessor constant is
+defined. For example, "``xci6ll``" platform corresponds to the
+:c:macro:`MPS_PF_XCI6LL` preprocessor constant.
+
+Not all combinations of operating system, processor architecture,
+and compiler are supported.
+
+
+Platform interface
+------------------
+
+::
+
+    #include "mpstd.h"
+
 
 .. c:macro:: MPS_ARCH_I3
 
@@ -36,8 +86,8 @@ Declared in ``mpstd.h``
 .. c:macro:: MPS_BUILD_LL
 
     A :term:`C` preprocessor macro that indicates, if defined, that
-    the MPS was compiled by the C compiler from the LLVM (Low Level
-    Virtual Machine) system.
+    the MPS was compiled by Clang, the C compiler from the LLVM (Low
+    Level Virtual Machine) system.
 
 
 .. c:macro:: MPS_BUILD_MV
@@ -110,54 +160,6 @@ Declared in ``mpstd.h``
     A :term:`C` preprocessor macro that names the :term:`platform` for
     which the MPS was built.
 
-    It expands to a string "``OSARCT``" consisting of six characters
-    that are digits or lower-case letters. The first two characters
-    name the operating system:
-
-    ======  ================  ====================
-    ``OS``  Operating system  Constant
-    ======  ================  ====================
-    ``fr``  FreeBSD           :c:macro:`MPS_OS_FR`
-    ------  ----------------  --------------------
-    ``li``  Linux             :c:macro:`MPS_OS_LI`
-    ------  ----------------  --------------------
-    ``w3``  Windows           :c:macro:`MPS_OS_W3`
-    ------  ----------------  --------------------
-    ``xc``  OS X              :c:macro:`MPS_OS_XC`
-    ======  ================  ====================
-
-    The second pair of characters name the processor architecture:
-
-    ======  ======================  ======================
-    ``AR``  Processor architecture  Constant
-    ======  ======================  ======================
-    ``i3``  Intel/AMD IA-32         :c:macro:`MPS_ARCH_I3`
-    ------  ----------------------  ----------------------
-    ``i6``  Intel/AMD x86-64        :c:macro:`MPS_ARCH_I6`
-    ======  ======================  ======================
-
-    The third pair of characters name the compiler toolchain:
-
-    ======  ================  =======================
-    ``CT``  Compiler          Constant
-    ======  ================  =======================
-    ``gc``  GCC               :c:macro:`MPS_BUILD_GC`
-    ------  ----------------  -----------------------
-    ``ll``  LLVM              :c:macro:`MPS_BUILD_LL`
-    ------  ----------------  -----------------------
-    ``mv``  Visual C/C++      :c:macro:`MPS_BUILD_MV`
-    ======  ================  =======================
-
-    In each case the aspect of the platform can be tested by checking
-    whether the preprocessor constant in the third column in the table
-    is defined, and the full platform can be tested by checking
-    whether the corresponding ``MPS_PF_`` preprocessor constant is
-    defined. For example, "``xci6ll``" platform corresponds to the
-    :c:macro:`MPS_PF_XCI6LL` preprocessor constant.
-
-    Not all combinations of operating system, processor architecture,
-    and compiler are supported.
-
 
 .. c:macro:: MPS_PF_W3I3MV
 
@@ -186,14 +188,14 @@ Declared in ``mpstd.h``
 
     A :term:`C` preprocessor macro that indicates, if defined, that
     the :term:`platform` consists of the OS X operating system, the
-    IA-32 processor architecture, and the LLVM compiler.
+    IA-32 processor architecture, and the Clang/LLVM compiler.
 
 
 .. c:macro:: MPS_PF_XCI6LL
 
     A :term:`C` preprocessor macro that indicates, if defined, that
     the :term:`platform` consists of the OS X operating system, the
-    x86-64 processor architecture, and the LLVM compiler.
+    x86-64 processor architecture, and the Clang/LLVM compiler.
 
 
 .. c:macro:: MPS_T_ULONGEST
@@ -236,3 +238,52 @@ Declared in ``mpstd.h``
     typical values are 32 and 64.
 
 
+Appendix: historical platform codes
+-----------------------------------
+
+The platform codes in the tables below were in use in older versions
+of the MPS, but are not currently supported.
+
+Formerly supported operating systems:
+
+======  ===========================  =============
+``OS``  Operating system             Constant            
+======  ===========================  =============
+``i5``  Irix 5 or 6 (old ABI)        ``MPS_OS_I5``
+``ia``  Irix 6 (new ABI)             ``MPS_OS_IA``
+``o1``  OSF/1                        ``MPS_OS_O1``
+``s7``  Macintosh System 7, 8, or 9  ``MPS_OS_S7``
+``su``  SunOS                        ``MPS_OS_SU``
+``so``  Solaris                      ``MPS_OS_SO``
+======  ===========================  =============
+
+Formerly supported processor architectures:
+
+======  ======================  ===============
+``AR``  Processor architecture  Constant     
+======  ======================  ===============
+``60``  Motorola 68000          ``MPS_ARCH_60``
+``al``  Digital Alpha           ``MPS_ARCH_AL``
+``m2``  MIPS R2000              ``MPS_ARCH_M2``
+``m4``  MIPS R4000              ``MPS_ARCH_M4``
+``pp``  PowerPC                 ``MPS_ARCH_PP``
+``s8``  SPARC V8                ``MPS_ARCH_S8``
+``s9``  SPARC V9                ``MPS_ARCH_S9``
+======  ======================  ===============
+
+Formerly supported compiler toolchains:
+
+======  =====================================  ================
+``CT``  Compiler toolchain                     Constant       
+======  =====================================  ================
+``ac``  Macintosh Programmer's Workshop C/C++  ``MPS_BUILD_AC``
+``cc``  The "native" C compiler [1]_           ``MPS_BUILD_CC``
+``lc``  LCC                                    ``MPS_BUILD_LC``
+``mw``  Metrowerks CodeWarrior                 ``MPS_BUILD_MW``
+``sc``  SunPro C                               ``MPS_BUILD_SC``
+======  =====================================  ================
+
+.. note::
+
+    .. [1] This was the MIPSpro C compiler on IRIX; and the Digital C
+           Compiler on OSF/1.
