@@ -1,3 +1,7 @@
+2012-10-21  Glenn Morris  <rgm@gnu.org>
+
+	* make-docfile.c (scan_lisp_file): Add cp51932.el and eucjp-ms.el.
+
 2012-10-20  Eli Zaretskii  <eliz@gnu.org>
 
 	* make-docfile.c (IS_SLASH, DEF_ELISP_FILE): New macros.
