@@ -57,6 +57,11 @@ Outstanding
     entirely convincing as to the utility of the telemetry. I'd like
     to have a more compelling example here.
 
+78. Should memory addresses increase going up the page, or down the
+    page? The output of gdb's ``x`` command always has them going down
+    the page so maybe we should follow that? It would involve turning
+    a bunch of diagrams upside down.
+
 
 Complete
 --------
