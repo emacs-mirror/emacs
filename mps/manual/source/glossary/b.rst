@@ -150,13 +150,24 @@ Memory Management Glossary: B
 
         .. bibref:: [WIL95]_.
 
+    bit array
+    bit-array
+
+        .. see:: :term:`bitmap`.
+
+    bit table
     bit-table
+
+        .. see:: :term:`bitmap`.
+
+    bit vector
+    bit-vector
 
         .. see:: :term:`bitmap`.
 
     bitmap
 
-        .. aka:: *bit-table*.
+        .. aka:: *bit array*, *bit table*, *bit vector*, *bitset*.
 
         A table of bits.
 
@@ -187,6 +198,10 @@ Memory Management Glossary: B
 
         A :term:`bitmap` used to select or exclude a set of bits in
         another bitmap.
+
+    bitset
+
+        .. see:: :term:`bitmap`.
 
     black
 
