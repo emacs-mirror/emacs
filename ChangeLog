@@ -1,5 +1,7 @@
 2012-10-21  Glenn Morris  <rgm@gnu.org>
 
+	* Makefile.in (install-etc): Don't install emacs22 icons.
+
 	* Makefile.in (emacs_transform): New variable.
 	(install-etc): Prefer a make variable to a shell variable.
 

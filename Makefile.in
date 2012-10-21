@@ -648,7 +648,7 @@ install-etc:
 	for dir in */*/apps */*/mimetypes; do \
 	  [ -d $${dir} ] || continue ; \
 	  ( cd $${thisdir}; ${MKDIR_P} $(DESTDIR)${icondir}/$${dir} ) ; \
-	  for icon in $${dir}/*.*; do \
+	  for icon in $${dir}/emacs[.-]*; do \
 	    [ -r $${icon} ] || continue ; \
 	    dest=`echo "$${icon}" | sed -e 's|.*/||' -e '$(TRANSFORM)'` ; \
 	    ( cd $${thisdir}; \
