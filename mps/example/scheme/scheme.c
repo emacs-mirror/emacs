@@ -1999,6 +1999,18 @@ static obj_t entry_symbolp(obj_t env, obj_t op_env, obj_t operator, obj_t operan
 }
 
 
+/* (procedure? obj)
+ * Returns #t if obj is a procedure, otherwise returns #f.
+ * R6RS 11.6.
+ */
+static obj_t entry_procedurep(obj_t env, obj_t op_env, obj_t operator, obj_t operands)
+{
+  obj_t arg;
+  eval_args(operator->operator.name, env, op_env, operands, 1, &arg);
+  return TYPE(arg) == TYPE_OPERATOR ? obj_true : obj_false;
+}
+
+
 static obj_t entry_add(obj_t env, obj_t op_env, obj_t operator, obj_t operands)
 {
   obj_t args;
@@ -2189,6 +2201,48 @@ static obj_t entry_force(obj_t env, obj_t op_env, obj_t operator, obj_t operands
     CAR(promise) = obj_true;
   }
   return CDR(promise);
+}
+
+/* (char? obj)
+ * Returns #t if obj is a character, otherwise returns #f.
+ * R6RS 11.11.
+ */
+static obj_t entry_charp(obj_t env, obj_t op_env, obj_t operator, obj_t operands)
+{
+  obj_t arg;
+  eval_args(operator->operator.name, env, op_env, operands, 1, &arg);
+  return TYPE(arg) == TYPE_CHARACTER ? obj_true : obj_false;
+}
+
+/* (char->integer char)
+ * Given a character, char->integer returns its Unicode scalar value
+ * as an exact integer object.
+ * R6RS 11.11.
+ */
+static obj_t entry_char_to_integer(obj_t env, obj_t op_env, obj_t operator, obj_t operands)
+{
+  obj_t arg;
+  eval_args(operator->operator.name, env, op_env, operands, 1, &arg);
+  unless(TYPE(arg) == TYPE_CHARACTER)
+    error("%s: first argument must be a character", operator->operator.name);
+  return make_integer(arg->character.c);
+}
+
+
+/* (integer->char sv)
+ * For a Unicode scalar value sv, integer->char returns its associated
+ * character.
+ * R6RS 11.11.
+ */
+static obj_t entry_integer_to_char(obj_t env, obj_t op_env, obj_t operator, obj_t operands)
+{
+  obj_t arg;
+  eval_args(operator->operator.name, env, op_env, operands, 1, &arg);
+  unless(TYPE(arg) == TYPE_INTEGER)
+    error("%s: first argument must be an integer", operator->operator.name);
+  unless(0 <= arg->integer.integer)
+    error("%s: first argument is out of range", operator->operator.name);
+  return make_character(arg->integer.integer);
 }
 
 
@@ -2530,6 +2584,58 @@ static obj_t entry_string_append(obj_t env, obj_t op_env, obj_t operator, obj_t 
 }
 
 
+/* (string->list string)
+ * The string->list procedure returns a newly allocated list of the
+ * characters that make up the given string.
+ * R6RS 11.12.
+ */
+static obj_t entry_string_to_list(obj_t env, obj_t op_env, obj_t operator, obj_t operands)
+{
+  obj_t string, list;
+  size_t i;
+  eval_args(operator->operator.name, env, op_env, operands, 1, &string);
+  unless(TYPE(string) == TYPE_STRING)
+    error("%s: argument must be a string", operator->operator.name);
+  list = obj_empty;
+  i = string->string.length;
+  while(i > 0) {
+    --i;
+    list = make_pair(make_character(string->string.string[i]), list);
+  }
+  return list;
+}
+
+/* (list->string list)
+ * List must be a list of characters. The list->string procedure
+ * returns a newly allocated string formed from the characters in
+ * list.
+ */
+static obj_t entry_list_to_string(obj_t env, obj_t op_env, obj_t operator, obj_t operands)
+{
+  obj_t l, list, string;
+  size_t i, length = 0;
+  eval_args(operator->operator.name, env, op_env, operands, 1, &list);
+  l = list;
+  while(l != obj_empty) {
+    unless(TYPE(l) == TYPE_PAIR)
+      error("%s: argument must be a list", operator->operator.name);
+    unless(TYPE(CAR(l)) == TYPE_CHARACTER)
+      error("%s: argument must be a list of characters", operator->operator.name);
+    ++ length;
+    l = CDR(l);
+  }
+  string = make_string(length, NULL);
+  l = list;
+  for(i = 0; i < length; ++i) {
+    assert(TYPE(l) == TYPE_PAIR);
+    assert(TYPE(CAR(l)) == TYPE_CHARACTER);
+    string->string.string[i] = CAR(l)->character.c;
+    l = CDR(l);
+  }
+  return string;
+}
+
+
 /* (string-copy string)
  * Returns a newly allocated copy of the given string.
  * R6RS 11.12
@@ -2635,6 +2741,7 @@ static struct {char *name; entry_t entry;} funtab[] = {
   {"positive?", entry_positivep},
   {"negative?", entry_negativep},
   {"symbol?", entry_symbolp},
+  {"procedure?", entry_procedurep},
   {"+", entry_add},
   {"-", entry_subtract},
   {"*", entry_multiply},
@@ -2645,6 +2752,9 @@ static struct {char *name; entry_t entry;} funtab[] = {
   {"the-environment", entry_environment},
   {"open-input-file", entry_open_in},
   {"force", entry_force},
+  {"char?", entry_charp},
+  {"char->integer", entry_char_to_integer},
+  {"integer->char", entry_integer_to_char},
   {"vector?", entry_vectorp},
   {"make-vector", entry_make_vector},
   {"vector", entry_vector},
@@ -2665,6 +2775,8 @@ static struct {char *name; entry_t entry;} funtab[] = {
   {"string-set!", entry_string_set},
   {"substring", entry_substring},
   {"string-append", entry_string_append},
+  {"string->list", entry_string_to_list},
+  {"list->string", entry_list_to_string},
   {"string-copy", entry_string_copy},
   {"gc", entry_gc}
 };
