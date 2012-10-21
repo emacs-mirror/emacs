@@ -1,5 +1,9 @@
 2012-10-21  Jan Djärv  <jan.h.d@swipnet.se>
 
+	* nsfont.m (nsfont_open, ns_glyph_metrics): Force integer advancement
+	for screen font.
+	(nsfont_draw): Turn off LCD-smoothing (Bug#11484).
+
 	* xterm.c (x_focus_changed): Check if daemonp when sending focus in
 	event (Bug#12681).
 
