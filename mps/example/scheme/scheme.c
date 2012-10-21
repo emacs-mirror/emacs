@@ -470,7 +470,8 @@ static obj_t make_string(size_t length, char string[])
     obj = addr;
     obj->string.type = TYPE_STRING;
     obj->string.length = length;
-    memcpy(obj->string.string, string, length+1);
+    if (string)
+      memcpy(obj->string.string, string, length+1);
   } while(!mps_commit(obj_ap, addr, size));
   total += size;
   return obj;
@@ -2336,6 +2337,212 @@ static obj_t entry_string_to_symbol(obj_t env, obj_t op_env, obj_t operator, obj
   return intern(string->string.string);
 }
 
+/* (string? obj)
+ * Returns #t if obj is a string, otherwise returns #f.
+ * R6RS 11.12
+ */
+static obj_t entry_stringp(obj_t env, obj_t op_env, obj_t operator, obj_t operands)
+{
+  obj_t arg;
+  eval_args(operator->operator.name, env, op_env, operands, 1, &arg);
+  return TYPE(arg) == TYPE_STRING ? obj_true : obj_false;
+}
+
+
+/* (make-string k)
+ * (make-string k char)
+ * `make-string' returns a newly allocated string of length k. If char
+ * is given, then all elements of the string are initialized to char,
+ * otherwise the contents of the string are unspecified.
+ * R6RS 11.12
+ */
+static obj_t entry_make_string(obj_t env, obj_t op_env, obj_t operator, obj_t operands)
+{
+  obj_t obj, k, args;
+  char c = '\0';
+  int i;
+  eval_args_rest(operator->operator.name, env, op_env, operands, &args, 1, &k);
+  unless(TYPE(k) == TYPE_INTEGER)
+    error("%s: first argument must be an integer", operator->operator.name);
+  unless(k->integer.integer >= 0)
+    error("%s: first argument must be non-negative", operator->operator.name);
+  if (TYPE(args) == TYPE_PAIR) {
+    unless(TYPE(CAR(args)) == TYPE_CHARACTER)
+      error("%s: second argument must be a character", operator->operator.name);
+    unless(CDR(args) == obj_empty)
+      error("%s: too many arguments", operator->operator.name);
+    c = CAR(args)->character.c;
+  }
+  obj = make_string(k->integer.integer, NULL);
+  for (i = 0; i < k->integer.integer; ++i) {
+    obj->string.string[i] = c;
+  }
+  return obj;
+}
+
+
+/* (string char ...)
+ * Returns a newly allocated string composed of the arguments.
+ * R6RS 11.12
+ */
+static obj_t entry_string(obj_t env, obj_t op_env, obj_t operator, obj_t operands)
+{
+  obj_t args, obj, o;
+  size_t length;
+  eval_args_rest(operator->operator.name, env, op_env, operands, &args, 0);
+  o = args;
+  length = 0;
+  while(TYPE(o) == TYPE_PAIR) {
+    unless(TYPE(CAR(o)) == TYPE_CHARACTER)
+      error("%s: arguments must be strings", operator->operator.name);
+    ++ length;
+    o = CDR(o);
+  }
+  obj = make_string(length, NULL);
+  o = args;
+  length = 0;
+  while(TYPE(o) == TYPE_PAIR) {
+    assert(TYPE(CAR(o)) == TYPE_CHARACTER);
+    obj->string.string[length] = CAR(o)->character.c;
+    ++ length;
+    o = CDR(o);
+  }
+  assert(length == obj->string.length);
+  return obj;
+}
+
+
+/* (string-length string)
+ * Returns the number of characters in the given string as an exact
+ * integer object.
+ * R6RS 11.12
+ */
+static obj_t entry_string_length(obj_t env, obj_t op_env, obj_t operator, obj_t operands)
+{
+  obj_t arg;
+  eval_args(operator->operator.name, env, op_env, operands, 1, &arg);
+  unless(TYPE(arg) == TYPE_STRING)
+    error("%s: argument must be a string", operator->operator.name);
+  return make_integer(arg->string.length);
+}
+
+
+/* (string-ref string k)
+ * k must be a valid index of string. `String-ref' returns character k
+ * of string using zero-origin indexing.
+ * R6RS 11.12
+ */
+static obj_t entry_string_ref(obj_t env, obj_t op_env, obj_t operator, obj_t operands)
+{
+  obj_t arg, k;
+  eval_args(operator->operator.name, env, op_env, operands, 2, &arg, &k);
+  unless(TYPE(arg) == TYPE_STRING)
+    error("%s: first argument must be a string", operator->operator.name);
+  unless(TYPE(k) == TYPE_INTEGER)
+    error("%s: second argument must be an integer", operator->operator.name);
+  unless(0 <= k->integer.integer && k->integer.integer < arg->string.length)
+    error("%s: second argument is out of range", operator->operator.name);
+  return make_character(arg->string.string[k->integer.integer]);
+}
+
+
+/* (string-set! string k char)
+ * k must be a valid index of string . `String-set!' stores char in
+ * element k of string and returns an unspecified value.
+ * R5RS 6.3.5
+ */
+static obj_t entry_string_set(obj_t env, obj_t op_env, obj_t operator, obj_t operands)
+{
+  obj_t arg, k, c;
+  eval_args(operator->operator.name, env, op_env, operands, 3, &arg, &k, &c);
+  unless(TYPE(arg) == TYPE_STRING)
+    error("%s: first argument must be a string", operator->operator.name);
+  unless(TYPE(k) == TYPE_INTEGER)
+    error("%s: second argument must be an integer", operator->operator.name);
+  unless(TYPE(c) == TYPE_CHARACTER)
+    error("%s: third argument must be a character", operator->operator.name);
+  unless(0 <= k->integer.integer && k->integer.integer < arg->string.length)
+    error("%s: second argument is out of range", operator->operator.name);
+  arg->string.string[k->integer.integer] = c->character.c;
+  return obj_undefined;
+}
+
+/* (substring string start end)
+ * String must be a string, and start and end must be exact integers
+ * satisfying 
+ *     0 <= start <= end <= (string-length string).
+ * `Substring' returns a newly allocated string formed from the
+ * characters of string beginning with index start (inclusive) and
+ * ending with index end (exclusive).
+ * R6RS 11.12
+ */
+static obj_t entry_substring(obj_t env, obj_t op_env, obj_t operator, obj_t operands)
+{
+  obj_t obj, arg, start, end;
+  size_t length;
+  eval_args(operator->operator.name, env, op_env, operands, 3, &arg, &start, &end);
+  unless(TYPE(arg) == TYPE_STRING)
+    error("%s: first argument must be a string", operator->operator.name);
+  unless(TYPE(start) == TYPE_INTEGER)
+    error("%s: second argument must be an integer", operator->operator.name);
+  unless(TYPE(end) == TYPE_INTEGER)
+    error("%s: third argument must be an integer", operator->operator.name);
+  unless(0 <= start->integer.integer
+         && start->integer.integer <= end->integer.integer
+         && end->integer.integer <= arg->string.length)
+    error("%s: arguments out of range", operator->operator.name);
+  length = end->integer.integer - start->integer.integer;
+  obj = make_string(length, NULL);
+  strncpy(obj->string.string, &arg->string.string[start->integer.integer], length);
+  return obj;
+}
+
+/* (string-append string ...)
+ * Returns a newly allocated string whose characters form the
+ * concatenation of the given strings.
+ * R6RS 11.12
+ */
+static obj_t entry_string_append(obj_t env, obj_t op_env, obj_t operator, obj_t operands)
+{
+  obj_t args, obj, o;
+  size_t length;
+  eval_args_rest(operator->operator.name, env, op_env, operands, &args, 0);
+  o = args;
+  length = 0;
+  while(TYPE(o) == TYPE_PAIR) {
+    unless(TYPE(CAR(o)) == TYPE_STRING)
+      error("%s: arguments must be strings", operator->operator.name);
+    length += CAR(o)->string.length;
+    o = CDR(o);
+  }
+  obj = make_string(length, NULL);
+  o = args;
+  length = 0;
+  while(TYPE(o) == TYPE_PAIR) {
+    string_s *s = &CAR(o)->string;
+    assert(TYPE(CAR(o)) == TYPE_STRING);
+    memcpy(obj->string.string + length, s->string, s->length + 1);
+    length += s->length;
+    o = CDR(o);
+  }
+  assert(length == obj->string.length);
+  return obj;
+}
+
+
+/* (string-copy string)
+ * Returns a newly allocated copy of the given string.
+ * R6RS 11.12
+ */
+static obj_t entry_string_copy(obj_t env, obj_t op_env, obj_t operator, obj_t operands)
+{
+  obj_t arg;
+  eval_args(operator->operator.name, env, op_env, operands, 1, &arg);
+  unless(TYPE(arg) == TYPE_STRING)
+    error("%s: argument must be a string", operator->operator.name);
+  return make_string(arg->string.length, arg->string.string);
+}
+
 
 /* entry_gc -- full garbage collection now                      %%MPS
  *
@@ -2450,6 +2657,15 @@ static struct {char *name; entry_t entry;} funtab[] = {
   {"eval", entry_eval},
   {"symbol->string", entry_symbol_to_string},
   {"string->symbol", entry_string_to_symbol},
+  {"string?", entry_stringp},
+  {"make-string", entry_make_string},
+  {"string", entry_string},
+  {"string-length", entry_string_length},
+  {"string-ref", entry_string_ref},
+  {"string-set!", entry_string_set},
+  {"substring", entry_substring},
+  {"string-append", entry_string_append},
+  {"string-copy", entry_string_copy},
   {"gc", entry_gc}
 };
 
