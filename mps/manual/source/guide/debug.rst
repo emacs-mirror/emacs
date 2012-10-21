@@ -55,7 +55,10 @@ Underscanning
 An easy mistake to make is to omit to :term:`fix` a :term:`reference`
 when :term:`scanning <scan>` a :term:`formatted object`. For example,
 in the Scheme intrepreter's :ref:`scan method <guide-lang-scan>`, I
-might have forgetten to fix the first element of a pair::
+might have forgetten to fix the first element of a pair:
+
+.. code-block:: c
+   :emphasize-lines: 2
 
     case TYPE_PAIR:
       /* oops, forgot: FIX(obj->pair.car); */
@@ -105,7 +108,7 @@ calling ``(gc)`` and then evaluate any expression::
 
 What's going on? ::
 
-    (gdb) bt
+    (gdb) backtrace
     #0  0x00007fff91aeed46 in __kill ()
     #1  0x00007fff90509df0 in abort ()
     #2  0x00007fff9050ae2a in __assert_rtn ()
@@ -116,10 +119,10 @@ What's going on? ::
     #7  0x0000000100011ded in ProtTramp (resultReturn=0x7fff5fbff7d0, f=0x100002130 <start>, p=0x0, s=0) at protix.c:132
     #8  0x0000000100011d34 in mps_tramp (r_o=0x7fff5fbff7d0, f=0x100002130 <start>, p=0x0, s=0) at mpsi.c:1346
     #9  0x0000000100001ef7 in main (argc=1, argv=0x7fff5fbff830) at scheme.c:2994
-    (gdb) f 4
+    (gdb) frame 4
     #4  0x0000000100003ea6 in lookup (env=0x1003fb130, symbol=0x1003faf20) at scheme.c:1086
     1086	    binding = lookup_in_frame(CAR(env), symbol);
-    (gdb) p (char *)symbol->symbol.string
+    (gdb) print (char *)symbol->symbol.string
     $1 = 0x1003faf30 "foo"
 
 The backtrace shows that the interpreter is in the middle of looking
@@ -138,10 +141,10 @@ In this case, because the evaluation is taking place at top level,
 there is only one frame in the environment (the global frame). And
 it's this frame that's corrupt::
 
-    (gdb) f 3
+    (gdb) frame 3
     #3  0x0000000100003f55 in lookup_in_frame (frame=0x1003fa7d0, symbol=0x1003faf20) at scheme.c:1065
     1065	    assert(TYPE(frame) == TYPE_PAIR);
-    (gdb) p frame->type.type
+    (gdb) print frame->type.type
     $2 = 13
 
 The number 13 is the value ``TYPE_PAD``. So instead of the expected
@@ -192,7 +195,7 @@ buffers, which needs to be flushed. It would be a good idea to add a
 call to :c:func:`mps_telemetry_flush` to the error handler, but for
 now we can just call it directly from the debugger::
 
-    (gdb) p mps_telemetry_flush()
+    (gdb) print mps_telemetry_flush()
     $1 = void
 
 The MPS writes the telemetry to the log in an encoded form for speed.
@@ -222,10 +225,10 @@ You can search through the telemetry for events related to particular
 addresses of interest. Here we look for events related to the address
 of the corrupted ``frame`` object::
 
-    (gdb) f 3
+    (gdb) frame 3
     #3  0x0000000100003f55 in lookup_in_frame (frame=0x1003fa7d0, symbol=0x1003faf20) at scheme.c:1065
     1065	    assert(TYPE(frame) == TYPE_PAIR);
-    (gdb) p frame
+    (gdb) print frame
     $2 = (obj_t) 0x1003fa7d0
     (gdb) shell grep -i 1003fa7d0 mpsio.txt || echo not found
     not found
@@ -234,9 +237,93 @@ There are no events related to this address, so in particular this
 address was never fixed.
 
 
-.. todo:
+Getting the size wrong
+----------------------
 
-    * Overwriting errors
+Here's another kind of mistake: an off-by-one error in ``make_string``:
+
+.. code-block:: c
+   :emphasize-lines: 5
+
+    static obj_t make_string(size_t length, char *string)
+    {
+      obj_t obj;
+      mps_addr_t addr;
+      size_t size = ALIGN(offsetof(string_s, string) + length/* oops, forgot: +1 */);
+      do {
+        mps_res_t res = mps_reserve(&addr, obj_ap, size);
+        if (res != MPS_RES_OK) error("out of memory in make_string");
+        obj = addr;
+        obj->string.type = TYPE_STRING;
+        obj->string.length = length;
+        if (string)
+          memcpy(obj->string.string, string, length+1);
+      } while(!mps_commit(obj_ap, addr, size));
+      total += size;
+      return obj;
+    }
+
+This is the kind of error that could go unnoticed for a while, because:
+
+However, here's a test case that exercises this bug:
+
+.. code-block:: scheme
+
+    (define (church n f a) (if (eqv? n 0) a (church (- n 1) f (f a))))
+    (church 1000 (lambda (s) (string-append s "x")) "")
+
+And here's how it shows up::
+
+    $ gdb ./scheme
+    GNU gdb 6.3.50-20050815 (Apple version gdb-1820) (Sat Jun 16 02:40:11 UTC 2012)
+    [...]
+    (gdb) set environment MPS_TELEMETRY_CONTROL=65535
+    (gdb) run < test.scm
+    Starting program: example/scheme/scheme < test.scm
+    Reading symbols for shared libraries +............................. done
+    MPS Toy Scheme Example
+    [...]
+    9960, 0> church
+    Assertion failed: (0), function obj_skip, file scheme.c, line 2949.
+    10816, 0> 
+    Program received signal SIGABRT, Aborted.
+    0x00007fff91aeed46 in __kill ()
+    (gdb) backtrace
+    #0  0x00007fff91aeed46 in __kill ()
+    #1  0x00007fff90509df0 in abort ()
+    #2  0x00007fff9050ae2a in __assert_rtn ()
+    #3  0x00000001000014e3 in obj_skip (base=0x1003f9b88) at scheme.c:2949
+    #4  0x0000000100068050 in amcScanNailedOnce (totalReturn=0x7fff5fbfef2c, moreReturn=0x7fff5fbfef28, ss=0x7fff5fbff0a0, pool=0x1003fe278, seg=0x1003fe928, amc=0x1003fe278) at poolamc.c:1485
+    #5  0x0000000100067ca1 in amcScanNailed (totalReturn=0x7fff5fbff174, ss=0x7fff5fbff0a0, pool=0x1003fe278, seg=0x1003fe928, amc=0x1003fe278) at poolamc.c:1522
+    #6  0x000000010006631f in AMCScan (totalReturn=0x7fff5fbff174, ss=0x7fff5fbff0a0, pool=0x1003fe278, seg=0x1003fe928) at poolamc.c:1595
+    #7  0x000000010002686d in PoolScan (totalReturn=0x7fff5fbff174, ss=0x7fff5fbff0a0, pool=0x1003fe278, seg=0x1003fe928) at pool.c:405
+    #8  0x0000000100074106 in traceScanSegRes (ts=1, rank=1, arena=0x10012a000, seg=0x1003fe928) at trace.c:1162
+    #9  0x000000010002b399 in traceScanSeg (ts=1, rank=1, arena=0x10012a000, seg=0x1003fe928) at trace.c:1222
+    #10 0x000000010002d020 in TraceQuantum (trace=0x10012a5a0) at trace.c:1833
+    #11 0x000000010001f2d2 in TracePoll (globals=0x10012a000) at trace.c:1981
+    #12 0x000000010000d75f in ArenaPoll (globals=0x10012a000) at global.c:684
+    #13 0x000000010000ea40 in mps_ap_fill (p_o=0x7fff5fbff3e0, mps_ap=0x1003fe820, size=208) at mpsi.c:961
+    #14 0x000000010000447d in make_string (length=190, string=0x0) at scheme.c:468
+    #15 0x0000000100008ca2 in entry_string_append (env=0x1003cbe38, op_env=0x1003cbe50, operator=0x1003fad48, operands=0x1003f9af8) at scheme.c:2572
+    #16 0x0000000100002fe4 in eval (env=0x1003cbe38, op_env=0x1003cbe50, exp=0x1003f9ae0) at scheme.c:1159
+    #17 0x0000000100005ff5 in entry_interpret (env=0x1003cb958, op_env=0x1003cb970, operator=0x1003f99d8, operands=0x1003f9948) at scheme.c:1340
+    #18 0x0000000100002fe4 in eval (env=0x1003cb958, op_env=0x1003cb970, exp=0x1003f9878) at scheme.c:1159
+    #19 0x000000010000206b in start (p=0x0, s=0) at scheme.c:3213
+    #20 0x000000010001287d in ProtTramp (resultReturn=0x7fff5fbff7a0, f=0x100001b80 <start>, p=0x0, s=0) at protix.c:132
+    #21 0x00000001000127c4 in mps_tramp (r_o=0x7fff5fbff7a0, f=0x100001b80 <start>, p=0x0, s=0) at mpsi.c:1346
+    #22 0x0000000100001947 in main (argc=1, argv=0x7fff5fbff808) at scheme.c:3322
+    (gdb) print mps_telemetry_flush()
+    $1 = void
+    (gdb) frame 3
+    #3  0x00000001000014e3 in obj_skip (base=0x1003f9b88) at scheme.c:2949
+    2949	    assert(0);
+    (gdb) print obj->type.type
+    $2 = 4168560
+
+
+
+
+.. todo:
 
     * Messages.
 
