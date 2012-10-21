@@ -48,6 +48,7 @@ General advice
    the debugger with the contents of the control stack available for
    inspection.
 
+.. _guide-debug-underscanning:
 
 Underscanning
 -------------
@@ -263,16 +264,14 @@ Here's another kind of mistake: an off-by-one error in ``make_string``:
       return obj;
     }
 
-This is the kind of error that could go unnoticed for a while, because:
-
-However, here's a test case that exercises this bug:
+Here's a test case that exercises this bug:
 
 .. code-block:: scheme
 
     (define (church n f a) (if (eqv? n 0) a (church (- n 1) f (f a))))
     (church 1000 (lambda (s) (string-append s "x")) "")
 
-And here's how it shows up::
+And here's how it shows up in the debugger::
 
     $ gdb ./scheme
     GNU gdb 6.3.50-20050815 (Apple version gdb-1820) (Sat Jun 16 02:40:11 UTC 2012)
@@ -312,19 +311,47 @@ And here's how it shows up::
     #20 0x000000010001287d in ProtTramp (resultReturn=0x7fff5fbff7a0, f=0x100001b80 <start>, p=0x0, s=0) at protix.c:132
     #21 0x00000001000127c4 in mps_tramp (r_o=0x7fff5fbff7a0, f=0x100001b80 <start>, p=0x0, s=0) at mpsi.c:1346
     #22 0x0000000100001947 in main (argc=1, argv=0x7fff5fbff808) at scheme.c:3322
-    (gdb) print mps_telemetry_flush()
-    $1 = void
     (gdb) frame 3
     #3  0x00000001000014e3 in obj_skip (base=0x1003f9b88) at scheme.c:2949
     2949	    assert(0);
+
+The object being skipped is corrupt::
+
     (gdb) print obj->type.type
-    $2 = 4168560
+    $1 = 4168560
 
+What happened to it? It's often helpful in these situations to have a
+look at nearby memory. ::
 
+    (gdb) x/20g obj
+    0x1003f9b88:	0x00000001003f9b70	0x00000001003fb000
+    0x1003f9b98:	0x0000000000000000	0x00000001003f9c90
+    0x1003f9ba8:	0x00000001003fb130	0x0000000000000000
+    0x1003f9bb8:	0x00000001003fb000	0x00000001003fb148
+    0x1003f9bc8:	0x0000000000000000	0x00000001003f9730
+    0x1003f9bd8:	0x00000001003f9a58	0x0000000000000000
+    0x1003f9be8:	0x00000001003f9bc8	0x00000001003fb000
+    0x1003f9bf8:	0x0000000000000000	0x00000001003fb0a0
+    0x1003f9c08:	0x00000001003f9b40	0x0000000000000004
+    0x1003f9c18:	0x000000010007b14a	0x0000000100005e30
 
+You can see that this is a block containing mostly pairs (which have
+tag 0 and consist of three words), though you can see an operator
+(with tag 4) near the bottom. But what's that at the start of the
+block, where ``obj``\'s tag should be? It looks like a pointer. So
+what's in the memory just below ``obj``? Let's look at the previous
+few words ::
 
-.. todo:
+    (gdb) x/10g (mps_word_t*)obj-8
+    0x1003f9b48:	0x00000001003f9ae0	0x00000001003fb000
+    0x1003f9b58:	0x0000000000000000	0x00000001003f9a80
+    0x1003f9b68:	0x00000001003f9b80	0x0000000000000005
+    0x1003f9b78:	0x0000000000000000	0x0000000000000000
+    0x1003f9b88:	0x00000001003f9b70	0x00000001003fb000
 
-    * Messages.
+Yes: there's a pair (with tag 0) at 0x1003f9b80. So it looks as though
+the previous object might have returned the wrong size. The previous
+object being the string (with tag 5) at 0x1003f9b70 which has length 0
+and so should be three words long, but here occupies only two words.
 
-    * Telemetry labels.
+This should be enough evidence to track down the cause.

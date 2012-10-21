@@ -48,6 +48,15 @@ Outstanding
     .. _job003334: https://info.ravenbrook.com/project/mps/issue/job003334/
     .. _job003335: https://info.ravenbrook.com/project/mps/issue/job003335/
 
+75. Write something about telemetry labels in the debugging guide.
+
+76. Write something that illustrates the "garbage collect frequently
+    to expose errors as soon as possible" advice.
+
+77. The debugging section on :ref:`guide-debug-underscanning` is not
+    entirely convincing as to the utility of the telemetry. I'd like
+    to have a more compelling example here.
+
 
 Complete
 --------
