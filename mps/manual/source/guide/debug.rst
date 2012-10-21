@@ -349,9 +349,17 @@ few words ::
     0x1003f9b78:	0x0000000000000000	0x0000000000000000
     0x1003f9b88:	0x00000001003f9b70	0x00000001003fb000
 
-Yes: there's a pair (with tag 0) at 0x1003f9b80. So it looks as though
-the previous object might have returned the wrong size. The previous
-object being the string (with tag 5) at 0x1003f9b70 which has length 0
-and so should be three words long, but here occupies only two words.
+Yes: there's a pair (with tag 0) at ``0x1003f9b80``. So it looks as
+though the previous object was allocated with one size, but skipped
+with a different size. The previous object being the string (with tag
+5) at ``0x1003f9b70`` which has length 0 and so is three words long as
+far as ``obj_skip`` is concerned::
+
+    (gdb) print obj_skip(0x1003f9b70)
+    $2 = (mps_addr_t) 0x1003f9b88
+
+but the next object (the pair) was clearly allocated at
+``0x1003f9b80`` (overwriting the last word of the string), so the
+string must have been allocated with a size of only two words.
 
 This should be enough evidence to track down the cause.
