@@ -34,6 +34,20 @@ Outstanding
 
     .. _Baker 1991: http://www.pipeline.com/~hbaker1/NoMotionGC.html
 
+74. ``eventcnv -b <bucket size>`` seems to be useless. See
+    `job003331`_, `job003332`_, `job003333`_, `job003334`_, and
+    `job003335`_. NB's work on eventsql suggests that maybe there's no
+    point in trying to make it work again (because eventsql will be
+    able to do this kind of aggregation and much more). So maybe best
+    to deprecate or remove this feature? For the moment I've left it
+    undocumented.
+
+    .. _job003331: https://info.ravenbrook.com/project/mps/issue/job003331/
+    .. _job003332: https://info.ravenbrook.com/project/mps/issue/job003332/
+    .. _job003333: https://info.ravenbrook.com/project/mps/issue/job003333/
+    .. _job003334: https://info.ravenbrook.com/project/mps/issue/job003334/
+    .. _job003335: https://info.ravenbrook.com/project/mps/issue/job003335/
+
 
 Complete
 --------
