@@ -340,7 +340,7 @@ tag 0 and consist of three words), though you can see an operator
 (with tag 4) near the bottom. But what's that at the start of the
 block, where ``obj``\'s tag should be? It looks like a pointer. So
 what's in the memory just below ``obj``? Let's look at the previous
-few words ::
+few words::
 
     (gdb) x/10g (mps_word_t*)obj-8
     0x1003f9b48:	0x00000001003f9ae0	0x00000001003fb000
