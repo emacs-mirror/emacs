@@ -1,3 +1,8 @@
+2012-10-21  Jan Djärv  <jan.h.d@swipnet.se>
+
+	* xterm.c (x_focus_changed): Check if daemonp when sending focus in
+	event (Bug#12681).
+
 2012-10-21  Glenn Morris  <rgm@gnu.org>
 
 	* lisp.mk (lisp): Add cp51932.el and eucjp-ms.el.
