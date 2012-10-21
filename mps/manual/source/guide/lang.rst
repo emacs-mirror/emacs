@@ -312,6 +312,7 @@ Here's the scan method for the Scheme interpreter::
                     break;
                 /* ... and so on for the other types ... */
                 default:
+                    assert(0);
                     fprintf(stderr, "Unexpected object on the heap\n");
                     abort();
                 }
@@ -399,6 +400,7 @@ Here's the skip method for the Scheme interpreter::
             break;
         /* ... and so on for the other types ... */
         default:
+            assert(0);
             fprintf(stderr, "Unexpected object on the heap\n");
             abort();
         }
