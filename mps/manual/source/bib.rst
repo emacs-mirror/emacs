@@ -30,6 +30,8 @@ Bibliography
 
 .. [BOEHM93] Hans-J. Boehm. 1993. "Space Efficient Conservative Garbage Collection".
 
+.. [BOEHM02] Hans-J. Boehm. 2002. "Destructors, Finalizers, and Synchronization". HP Labs technical report HPL-2002-335. `Online <http://www.hpl.hp.com/techreports/2002/HPL-2002-335.html>`_.
+
 .. [BW88] Hans-J. Boehm, Mark Weiser. 1988. "Garbage collection in an uncooperative environment".
 
 .. [CHENEY70] C. J. Cheney. 1970. "A non-recursive list compacting algorithm".
