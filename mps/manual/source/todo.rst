@@ -89,6 +89,13 @@ Outstanding
     public identifiers will not be changed in a backward-incompatible
     fashion without a period of notice lasting at least one version."
 
+86. In buffer.c it says::
+
+        /* Assumes pun compatibility between Rank and mps_rank_t */
+        /* Which is checked by mpsi_check in <code/mpsi.c> */
+
+    but I see no such check in ``mpsi_check``.
+
 
 Complete
 --------
