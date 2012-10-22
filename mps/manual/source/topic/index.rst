@@ -12,7 +12,6 @@ Reference
     error
     format
     scanning
-    moving
     root
     cache
     pattern
