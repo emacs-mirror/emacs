@@ -301,14 +301,17 @@ This can be convenient for people who find it easier to hit ) than C-f."
   :version "24.1"
   :type 'boolean)
 
+(defun electric-pair-syntax (command-event)
+  (and electric-pair-mode
+       (let ((x (assq command-event electric-pair-pairs)))
+	 (cond
+	  (x (if (eq (car x) (cdr x)) ?\" ?\())
+	  ((rassq command-event electric-pair-pairs) ?\))
+	  (t (char-syntax command-event))))))
+
 (defun electric-pair-post-self-insert-function ()
   (let* ((syntax (and (eq (char-before) last-command-event) ; Sanity check.
-                      electric-pair-mode
-                      (let ((x (assq last-command-event electric-pair-pairs)))
-                        (cond
-                         (x (if (eq (car x) (cdr x)) ?\" ?\())
-                         ((rassq last-command-event electric-pair-pairs) ?\))
-                         (t (char-syntax last-command-event))))))
+		      (electric-pair-syntax last-command-event)))
          ;; FIXME: when inserting the closer, we should maybe use
          ;; self-insert-command, although it may prove tricky running
          ;; post-self-insert-hook recursively, and we wouldn't want to trigger
@@ -355,6 +358,12 @@ This can be convenient for people who find it easier to hit ) than C-f."
                (eq (char-syntax (following-char)) ?w)))
       (save-excursion (insert closer))))))
 
+(defun electric-pair-delete-selection-self-insert-function ()
+  (let ((syntax (electric-pair-syntax last-command-event)))
+    (if (and (memq syntax '(?\( ?\" ?\$)) (use-region-p))
+	'keep
+      t)))
+
 ;;;###autoload
 (define-minor-mode electric-pair-mode
   "Toggle automatic parens pairing (Electric Pair mode).
@@ -370,10 +379,16 @@ See options `electric-pair-pairs' and `electric-pair-skip-self'."
   :global t
   :group 'electricity
   (if electric-pair-mode
-      (add-hook 'post-self-insert-hook
-                #'electric-pair-post-self-insert-function)
+      (progn
+	(require 'delsel)
+	(add-hook 'post-self-insert-hook
+		  #'electric-pair-post-self-insert-function)
+	(add-hook 'delete-selection-self-insert-hooks
+		  #'electric-pair-delete-selection-self-insert-function))
     (remove-hook 'post-self-insert-hook
-                 #'electric-pair-post-self-insert-function)))
+                 #'electric-pair-post-self-insert-function)
+    (remove-hook 'delete-selection-self-insert-hooks
+		  #'electric-pair-delete-selection-self-insert-function)))
 
 ;; Automatically add newlines after/before/around some chars.
 

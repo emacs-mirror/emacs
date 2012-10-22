@@ -1,3 +1,18 @@
+2012-10-22  Simon Law  <sfllaw@sfllaw.ca>  (tiny change)
+
+	* delsel.el (delete-selection-helper): New function, extracted from
+	delete-selection-pre-hook.
+	(delete-selection-pre-hook): Use it.
+	(delete-selection-self-insert-function): New function.
+	(delete-selection-self-insert-hooks): New hook.
+	(self-insert-command, self-insert-iso): Use it.
+	* electric.el (electric-pair-syntax): New function, extracted from
+	electric-pair-post-self-insert-function.
+	(electric-pair-post-self-insert-function): Use it.
+	(electric-pair-delete-selection-self-insert-function): New function.
+	(electric-pair-mode): Require delsel and setup
+	delete-selection-self-insert-hooks (bug#11520).
+
 2012-10-20  Chong Yidong  <cyd@gnu.org>
 
 	* vc/vc.el (vc-diff-internal): Set up Diff mode even if there are
@@ -8,8 +23,8 @@
 
 2012-10-20  Arne Jørgensen  <arne@arnested.dk>
 
-	* progmodes/flymake.el (flymake-create-temp-inplace): Use
-	file-truename.
+	* progmodes/flymake.el (flymake-create-temp-inplace):
+	Use file-truename.
 
 2012-10-20  Eli Zaretskii  <eliz@gnu.org>
 
