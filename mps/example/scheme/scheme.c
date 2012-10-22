@@ -2161,7 +2161,12 @@ static obj_t entry_environment(obj_t env, obj_t op_env, obj_t operator, obj_t op
 }
 
 
-static obj_t entry_open_in(obj_t env, obj_t op_env, obj_t operator, obj_t operands)
+/* (open-input-file filename)
+ * Opens filename for input, with empty file options, and returns the
+ * obtained port.
+ * R6RS 8.3.
+ */
+static obj_t entry_open_input_file(obj_t env, obj_t op_env, obj_t operator, obj_t operands)
 {
   obj_t filename;
   FILE *stream;
@@ -2172,7 +2177,8 @@ static obj_t entry_open_in(obj_t env, obj_t op_env, obj_t operator, obj_t operan
     error("%s: argument must be a string", operator->operator.name);
   stream = fopen(filename->string.string, "r");
   if(stream == NULL)
-    error("%s: cannot open input file", operator->operator.name); /* TODO: return error */
+    /* TODO: "raise an exception with condition type &i/o." */
+    error("%s: cannot open input file", operator->operator.name);
   port = make_port(filename, stream);
 
   /* %%MPS: Register the port object for finalization.  When the object is
@@ -2752,7 +2758,7 @@ static struct {char *name; entry_t entry;} funtab[] = {
   {">", entry_greaterthan},
   {"reverse", entry_reverse},
   {"the-environment", entry_environment},
-  {"open-input-file", entry_open_in},
+  {"open-input-file", entry_open_input_file},
   {"force", entry_force},
   {"char?", entry_charp},
   {"char->integer", entry_char_to_integer},
@@ -3111,7 +3117,7 @@ static void mps_chat(void)
       mps_message_finalization_ref(&port_ref, arena, message);
       port = port_ref;
       /* We're only expecting ports to be finalized as they're the only
-         objects registered for finalization.  See `entry_open_in`. */
+         objects registered for finalization.  See `entry_open_input_file`. */
       assert(TYPE(port) == TYPE_PORT);
       printf("Port to file \"%s\" is dying. Closing file.\n",
              port->port.name->string.string);
@@ -3314,6 +3320,7 @@ int main(int argc, char *argv[])
 
   /* Ask the MPS to tell us when it's garbage collecting so that we can
      print some messages.  Completely optional. */
+  mps_message_type_enable(arena, mps_message_type_finalization());
   mps_message_type_enable(arena, mps_message_type_gc());
   mps_message_type_enable(arena, mps_message_type_gc_start());
 
