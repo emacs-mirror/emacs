@@ -3,6 +3,87 @@
 Allocation
 ==========
 
+
+Manual allocation
+-----------------
+
+.. c:function:: mps_res_t mps_alloc(mps_addr_t *p_o, mps_pool_t pool, size_t size, ...)
+
+    Allocate a :term:`block` of memory in a :term:`pool`.
+
+    ``p_o`` points to a location that will hold the address of the
+    allocated block.
+
+    ``pool`` the pool to allocate in.
+
+    ``size`` is the :term:`size` of the block to allocate. If it is
+    unaligned, it will be rounded up to the pool's :term:`alignment`
+    (unless the pool documentation says otherwise).
+
+    Some pool classes require additional arguments to be passed to
+    :c:func:`mps_alloc`. See the documentation for the pool class.
+
+    .. note::
+
+        There's an alternative function :c:func:`mps_alloc_v` that
+        takes its extra arguments using the standard :term:`C`
+        ``va_list`` mechanism.
+
+
+.. c:function:: mps_res_t mps_alloc_v(mps_addr_t *p_o, mps_pool_t pool, size_t size, va_list args)
+
+    An alternative to :c:func:`mps_alloc` that takes its extra
+    arguments using the standard :term:`C` ``va_list`` mechanism.
+
+
+.. c:function:: void mps_free(mps_pool_t pool, mps_addr_t addr, size_t size)
+
+    Free a :term:`block` of memory to a :term:`pool`.
+
+    ``pool`` is the pool the block belongs to.
+
+    ``addr`` is the address of the block to be freed.
+
+    ``size`` is the :term:`size` of the block to be freed. If it is
+    unaligned, it will be rounded up to the pool's :term:`alignment`
+    (unless the pool documentation says otherwise).
+
+    The freed block of memory becomes available for allocation by the
+    pool, or the pool might decide to make it available to other
+    pools, or it may be returned to the operating system.
+
+    .. note::
+
+        :c:func:`mps_free` takes a ``size`` parameter because it is
+        most efficient to do so. In most programs, the type of an
+        object is known at the point in the code that frees it, hence
+        the size is trivially available. In such programs, storing the
+        size on the MPS side would cost time and memory, and make it
+        hard to get good virtual memory behaviour because of the need
+        to touch the object in order to free it. As it is, the
+        deallocation code doesn't have to touch the dead object at
+        all.
+
+
+Allocation points
+-----------------
+
+
+.. figure:: ../diagrams/ap-buffer.svg
+    :align: center
+    :alt: Diagram: Allocation point and its associated buffer.
+
+    Allocation point and its associated buffer.
+
+
+.. figure:: ../diagrams/ap-fill.svg
+    :align: center
+    :alt: Diagram: Allocation point after refilling.
+
+    Allocation point after refilling.
+
+
+
 See design/buffer
 
 See https://github.com/dylan-lang/opendylan/issues/235
@@ -311,35 +392,6 @@ For further discussion of Allocation Points, see Allocation Points -- Internals 
 Interface
 ---------
 
-.. c:function:: mps_res_t mps_alloc(mps_addr_t *p_o, mps_pool_t pool, size_t size, ...)
-
-    Allocate a :term:`block` of memory in a :term:`pool`.
-
-    ``p_o`` points to a location that will hold the address of the
-    allocated block.
-
-    ``pool`` the pool to allocate in.
-
-    ``size`` is the :term:`size` of the block to allocate. If it is
-    unaligned, it will be rounded up to the pool's :term:`alignment`
-    (unless the pool documentation says otherwise).
-
-    Some pool classes require additional arguments to be passed to
-    :c:func:`mps_alloc`. See the documentation for the pool class.
-
-    .. note::
-
-        There's an alternative function :c:func:`mps_alloc_v` that
-        takes its extra arguments using the standard :term:`C`
-        ``va_list`` mechanism.
-
-
-.. c:function:: mps_res_t mps_alloc_v(mps_addr_t *p_o, mps_pool_t pool, size_t size, va_list args)
-
-    An alternative to :c:func:`mps_alloc` that takes its extra
-    arguments using the standard :term:`C` ``va_list`` mechanism.
-
-
 .. c:function:: mps_res_t mps_ap_create(mps_ap_t *ap_o, mps_pool_t pool, ...)
 
     Create an :term:`allocation point` in a :term:`pool`.
@@ -479,34 +531,6 @@ Interface
 
         :c:func:`mps_commit` is implemented as a macro for speed. It
         may evaluate its arguments multiple times.
-
-
-.. c:function:: void mps_free(mps_pool_t pool, mps_addr_t addr, size_t size)
-
-    Free a :term:`block` of memory to a :term:`pool`.
-
-    ``pool`` is the pool the block belongs to.
-
-    ``addr`` is the address of the block to be freed.
-
-    ``size`` is the :term:`size` of the block to be freed. If it is
-    unaligned, it will be rounded up to the pool's :term:`alignment`
-    (unless the pool documentation says otherwise).
-
-    The freed block of memory becomes available for allocation by the
-    pool, or the pool might decide to make it available to other
-    pools, or it may be returned to the operating system.
-
-    .. note::
-
-        :c:func:`mps_free` takes a ``size`` parameter because it is
-        most efficient to do so. In most programs, the type of an
-        object is known at the point in the code that frees it, hence
-        the size is trivially available. In such programs, storing the
-        size on the MPS side would cost time and memory, and make it
-        hard to get good virtual memory behaviour (as it is, the
-        deallocation code doesn't have to touch the dead object at
-        all).
 
 
 .. c:function:: mps_res_t mps_reserve(mps_addr_t *p_o, mps_ap_t ap, size_t size)
