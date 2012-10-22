@@ -78,6 +78,13 @@ Types
     mps_arena_s *``, but the implementation of ``struct mps_arena_s``
     is not public.
 
+    There are a few structure types that are declared in ``mps.h`` but
+    whose implementation is not public. These only exist so that code
+    can be inlined using macros. The most important of these is the
+    :term:`scan state` structure ``mps_ss_s``, which is accessed by
+    scanning macros such as :c:func:`MPS_SCAN_BEGIN` and
+    :c:func:`MPS_FIX12`.
+
 4.  A *derived type* is a structure or function type based on
     transparent and opaque types and on built-in C types. The degree
     to which you may or must depend upon the implementation of a
