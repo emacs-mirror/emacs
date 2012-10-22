@@ -9,14 +9,12 @@ Messages
 so messages are implemented via a :term:`message queue` attached to
 each :term:`arena`.
 
-By default only finalization messages are posted to the queue (and
-then only if blocks have been registered for finalization; see
-below). The client program must enable each other message type that
-they are prepared to handle, by calling
-:c:func:`mps_message_type_enable`. Then it must poll the message queue
-at regular intervals when it is convenient to do so, calling
-:c:func:`mps_message_get` to retrieve each message from the queue, and
-then calling :c:func:`mps_message_discard` when it is done with it.
+The client program must enable each other message type that they are
+prepared to handle, by calling :c:func:`mps_message_type_enable`. Then
+it must poll the message queue at regular intervals when it is
+convenient to do so, calling :c:func:`mps_message_get` to retrieve
+each message from the queue, and then calling
+:c:func:`mps_message_discard` when it is done with it.
 
 Messages are thus :term:`manually managed <manual memory management>`:
 if the client program enables one or more message types, and then
@@ -40,9 +38,6 @@ message queue. This allows the :term:`client program` to perform the
 finalization at a convenient time and so avoid synchronization
 difficulties.
 
-Unlike other message types, finalization messages do not need to be
-enabled. Instead, the block to be finalized is registered for finalization by calling :c:func:`mps_finalize`.
-
 The block is not actually reclaimed until the finalization message is
 removed from the message queue and discarded, by calling
 :c:func:`mps_message_get` followed by :c:func:`mps_messsage_discard`.
@@ -53,9 +48,10 @@ See :ref:`topic-finalization`.
 Example: interactive chatter
 ----------------------------
 
-The example Scheme interpreter turns on garbage collection messages at
+The example Scheme interpreter enables all message types at
 startup::
 
+    mps_message_type_enable(arena, mps_message_type_finalization());
     mps_message_type_enable(arena, mps_message_type_gc());
     mps_message_type_enable(arena, mps_message_type_gc_start());
 

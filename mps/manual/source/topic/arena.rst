@@ -355,20 +355,21 @@ Interface
 
     An arena manages a portion of :term:`address space`. No two arenas
     overlap, so for any particular address this function will return
-    true for at most one arena. In general, not all addresses are
-    managed by some arena; in other words, some addresses will not be
-    managed by any arena. This is what allows the MPS to cooperate
-    with other memory managers, shared object loaders, memory mapped
-    file input/ouput, and so on: it does not steal the whole address
-    space.
+    true for at most one arena.
+
+    In general, not all addresses are managed by any arena. This is
+    what allows the MPS to cooperate with other memory managers,
+    shared object loaders, memory mapped file input/ouput, and so on:
+    it does not steal the whole address space.
 
     The result from this function is valid only at the instant at
     which the function returned. In some circumstances the result may
     immediately become invalidated (for example, a :term:`garbage
     collection` may occur, the address in question may become free,
     the arena may choose to unmap the address and return storage to
-    the operating system). For reliable results call this function
-    whilst the arena is in the :term:`parked state`.
+    the operating system). For reliable results call this function and
+    interpret the result while the arena is in the :term:`parked
+    state`.
 
 
 .. c:function:: void mps_arena_park(mps_arena_t arena)
