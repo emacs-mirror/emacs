@@ -231,6 +231,18 @@ Memory Management Glossary: T
         TLB miss* is taken and the address is resolved using the more
         general mechanism.
 
+    transparent type
+
+        .. mps:specific::
+
+            In the MPS interface, a *transparent type* is an alias
+            defined using ``typedef``, and this is documented so that
+            the :term:`client program` can rely on that fact. For
+            example, :c:type:`mps_addr_t` is a transparent alias for
+            ``void *``. See :ref:`topic-interface`.
+
+        .. opposite:: :term:`derived type`, :term:`opaque type`.
+
     transport
 
         In a :term:`copying collector <copying garbage collection>`,
@@ -377,3 +389,13 @@ Memory Management Glossary: T
 
         .. see:: :term:`exact garbage collection`.
 
+
+    type punning
+
+        Interpreting a value of one type as if it were a value of
+        another (for example, via a type cast in :term:`C`),
+        especially if such interpretation is not defined by the
+        language standard. For example, interpreting a value of type
+        ``T**`` (pointer to pointer to ``T``) as ``U**`` is undefined.
+
+        .. mps:specific:: See :ref:`topic-interface`.

@@ -478,7 +478,7 @@ Memory Management Glossary: R
             A value returned from an MPS function, represented by the
             type :c:type:`mps_res_t`. The result code
             :c:macro:`MPS_RES_OK` indicates success; other values
-            indicate errors. See the topic :ref:`topic-error`.
+            indicate errors. See :ref:`topic-error`.
 
     resurrected
 
@@ -488,7 +488,7 @@ Memory Management Glossary: R
         alive was the fact that it required finalization), but then a
         new :term:`strong reference` was created to it.
 
-        This can happen via a :term:`weak reference` or by the
+        This can happen via a :term:`weak reference (1)` or by the
         finalization procedure storing a permanent copy of its
         reference to the object.
 

@@ -108,6 +108,19 @@ Memory Management Glossary: O
 
         .. bibref:: [JONES96]_.
 
+    opaque type
+
+        .. mps:specific::
+
+            In the MPS interface, an *opaque type* is a pointer to an
+            incomplete structure type. The client programs must not
+            rely on the details of its implementation. For example,
+            the type :c:type:`mps_arena_t` is an alias for ``struct
+            mps_arena_s *``, but the implementation of ``struct
+            mps_arena_s`` is not public. See :ref:`topic-interface`.
+
+        .. opposite:: :term:`derived type`, :term:`transparent type`.
+
     out parameter
 
         A function parameter that points to a location for the caller
@@ -117,7 +130,8 @@ Memory Management Glossary: O
 
         .. mps:specific::
 
-            Out parameters are given names ending with ``_o``.
+            Out parameters are given names ending with ``_o``. See
+            :ref:`topic-interface`.
 
     out-of-band header
 

@@ -88,7 +88,7 @@ div.seealso, div.admonition {
 }
 
 div.admonition p.admonition-title + p + p {
-    margin-top: 5px;
+    margin-top: 1em;
 }
 
 .xref.std-term {
