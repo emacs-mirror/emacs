@@ -1,3 +1,8 @@
+2012-10-22  Takafumi Arakaki  <aka.tkf@gmail.com>  (tiny change)
+
+	* progmodes/which-func.el (which-func-current): The hash-table may have
+	an explicit nil (bug#12338).
+
 2012-10-22  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* electric.el (electric-pair-delete-selection-self-insert-function):
