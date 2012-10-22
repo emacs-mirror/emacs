@@ -76,6 +76,19 @@ Outstanding
 
 82. Is the message example correct?
 
+83. If a block has been finalized, can you resurrect it and
+    re-register it for finalization?
+
+84. If a block has been registered for finalization more than once,
+    what happens if you deregister it? Do you have to deregister it as
+    many times as you registered it? Or do you only need to deregister
+    it once?
+
+85. What exactly is our policy about support for the documented
+    behaviour of public identifiers. "The documented behaviour of
+    public identifiers will not be changed in a backward-incompatible
+    fashion without a period of notice lasting at least one version."
+
 
 Complete
 --------

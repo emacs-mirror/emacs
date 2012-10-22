@@ -400,7 +400,7 @@ Interface
           mps_addr_t init;
           mps_addr_t alloc;
           mps_addr_t limit;
-          /* ... internal fields ... */
+          /* ... private fields ... */
         } mps_ap_s;
 
    ``init`` is the limit of initialized memory.
@@ -420,8 +420,8 @@ Interface
 
 .. c:type:: mps_ap_t
 
-    The type of :term:`allocation points <allocation point>`. It is an
-    alias (via the C ``typedef`` mechanism) for a pointer to
+    The type of :term:`allocation points <allocation point>`. It is a
+    :term:`transparent alias <transparent type>` for a pointer to
     :c:type:`mps_ap_s`.
 
 
@@ -476,6 +476,9 @@ Interface
 
         :c:func:`mps_commit` must only be called according to the
         :term:`allocation point protocol`.
+
+        :c:func:`mps_commit` is implemented as a macro for speed. It
+        may evaluate its arguments multiple times.
 
 
 .. c:function:: void mps_free(mps_pool_t pool, mps_addr_t addr, size_t size)
@@ -547,7 +550,7 @@ Interface
     statement context (not as an expression), and it requires an
     lvalue instead of a pointer to a location to store the result.
 
-    The second arguemnt is an lvalue ``p_v``, which is assigned the
+    The second argument is an lvalue ``p_v``, which is assigned the
     address of the reserved block. It takes an additional first
     argument, the lvalue ``res_v``, which is assigned the
     :term:`result code`.

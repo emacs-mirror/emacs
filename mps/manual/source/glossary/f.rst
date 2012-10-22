@@ -114,8 +114,10 @@ Memory Management Glossary: F
         5, and :term:`Smalltalk`.
 
         The term *finalization* is sometimes used to refer to the use
-        of :term:`destructors (1) <destructor (1)>`, for example in
+        of :term:`destructors <destructor (1)>`, for example in
         Ada.
+
+        .. mps:specific:: See :ref:`topic-finalization`.
 
     finalized block
 
