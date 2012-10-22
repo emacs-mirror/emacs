@@ -480,6 +480,18 @@ Memory Management Glossary: R
             :c:macro:`MPS_RES_OK` indicates success; other values
             indicate errors. See the topic :ref:`topic-error`.
 
+    resurrected
+
+        An object is said to have been *resurrected* if it was
+        determined to be :term:`finalizable <finalization>` by the
+        :term:`garbage collector` (that is, the only thing keeping it
+        alive was the fact that it required finalization), but then a
+        new :term:`strong reference` was created to it.
+
+        This can happen via a :term:`weak reference` or by the
+        finalization procedure storing a permanent copy of its
+        reference to the object.
+
     ROM
 
         .. aka:: *read-only memory*.

@@ -121,7 +121,7 @@ Memory Management Glossary: F
 
         .. mps:specific::
 
-           A :term:`block` that has been registerd for finalization
+           A :term:`block` that has been registered for finalization
            using :c:func:`mps_finalize`, and which the MPS has
            determined is :term:`dead`, but whose finalization message
            has not been discarded. See

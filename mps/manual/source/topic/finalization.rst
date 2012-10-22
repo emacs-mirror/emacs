@@ -3,33 +3,222 @@
 Finalization
 ============
 
-An object becomes finalizable if it is registered for finalization and the collector observes that it would otherwise be reclaimable. Once an object is finalizable the MPS may choose to finalize it (by posting a finalization message, see below) at <em>any</em> future time. Note that the subsequent creation of strong references to the object (from, say, weak references) may cause finalization to occur when an object is not otherwise reclaimable. 
+It is sometimes necessary to perform actions when a block of memory
+:term:`dies <dead>`. For example, a block may represent the
+acquisition of an external resource such as a file handle or a network
+connection. When the block dies, the corresponding resource must be
+released. These actions are known as :term:`finalization`.
 
-When an object is finalizable, it may be finalized up to N times, where N is the number of times it has been registered for finalization. When an object is finalized, it is also deregistered for finalization (so that it will not be finalized again from the same registration).
+A block requiring finalization must be registered by calling :c:func:`mps_finalize`::
 
-Finalization is performed by passing a finalization message to the client, containing an exact reference to the object. See the message protocol, :c:func:`mps_message_type_finalization`, and :c:func:`mps_message_finalization_ref` for details.
+    mps_addr_t ref = block_requiring_finalization;
+    mps_finalize(arena, &ref);
 
-If an object is registered for finalization multiple times, then there may be multiple finalization messages on the queue at the same time. On the other hand it may be necessary to discard previous finalization messages for an object before all such messages are posted on the message queue. In other words a finalization message may prevent other finalizations of the same object from occurring until the message is deleted; or, it may not.  We don't provide any guarantees either way. Clients performing multiple registrations must cope with both behaviors. In any case we expect it to be unusual for clients to register the same object multiple times.
+A block becomes *finalizable* if it has been registered for
+finalization, and the :term:`garbage collector` observes that it would
+be reclaimable if not for this. If a block is finalizable the MPS may
+choose to finalize it (by posting a finalization message: see below)
+at *any* future time.
 
-Note that there is no guarantee that finalization will be prompt.
+.. note::
 
-<a href="#mps_rank_weak">Weak references</a> do not prevent objects from being finalized.  At the point that an object is finalized, weak references will still validly refer to the object.  The fact that an object is registered for finalization prevents weak references to that object from being deleted.
+    This means that a block that has been :term:`resurrected`, by the
+    creation of a new :term:`strong reference` to it, after it was
+    determined to be finalizable, will still be finalized. (This can
+    happen if there was a :term:`weak reference` to the block.)
 
-Note that there will be no attempt to finalize objects in the context of :c:func:`mps_arena_destroy` or :c:func:`mps_pool_destroy`. :c:func:`mps_pool_destroy` should therefore not be invoked on pools containing objects registered for finalization.
+:term:`Weak references <weak reference (1)>` do not prevent blocks
+from being finalized. At the point that a block is finalized, weak
+references will still validly refer to the block. The fact that a
+block is registered for finalization prevents weak references to that
+block from being deleted.
 
-Not all pool classes support finalization of objects.  In general only pools that manage objects whose liveness is determined by garbage collection will support finalization of objects.  For more information, see the Pool Class Catalog.
+The Memory Pool System finalizes a block by posting a
+:term:`finalization message` to the :term:`message queue` of the
+:term:`arena` in which the block was allocated.
 
-::
+.. note::
+
+    This design solves problems that result from finalizing directly
+    from the :term:`garbage collector`. In particular, the client
+    program's finalization code may need to acquire locks, which could
+    result in deadlock if this happens an an unpredictable time. See
+    Appendix B of [BOEHM02]_.
+
+The :term:`message type` of finalization messages is
+:c:func:`mps_message_type_finalization`, and the finalization
+reference may be accessed by calling
+:c:func:`mps_message_finalization_ref`. The finalization reference
+keeps the block alive until the finalization message is discarded by
+calling :c:func:`mps_message_discard`.
+
+.. note::
+
+    The client program may choose to resurrect the finalized block by
+    keeping a copy of the finalization reference after discarding the
+    finalization message.
+
+
+Multiple finalizations
+----------------------
+
+A block may be registered for finalization multiple times, by calling
+:c:func:`mps_finalize` multiple times. A block that has been
+registered for finalization *n* times will be finalized at most *n*
+times.
+
+This may mean that there are multiple finalization messages on the
+queue at the same time, or it may not (it may be necessary for the
+client program to discard previous finalization messages for a block
+before a new finalization messages for that block are posted to the
+message queue). The MPS provides no guarantees either way: a client
+program that registers the same block multiple times must cope with
+either behavior.
+
+
+Example: ports in Scheme
+------------------------
+
+In Scheme, an open file is represent by a *port*. In the toy Scheme
+example, a port is a wrapper around a Standard C file handle::
+
+    typedef struct port_s {
+        type_t type;			/* TYPE_PORT */
+        obj_t name;			/* name of stream */
+        FILE *stream;
+    } port_s;
+
+The Scheme procedure ``open-input-file`` takes a filename and returns
+a port::
+
+    /* (open-input-file filename)
+     * Opens filename for input, with empty file options, and returns the
+     * obtained port.
+     * R6RS 8.3.
+     */
+    static obj_t entry_open_input_file(obj_t env, obj_t op_env, obj_t operator, obj_t operands)
+    {
+      obj_t filename;
+      FILE *stream;
+      obj_t port;
+      mps_addr_t port_ref;
+      eval_args(operator->operator.name, env, op_env, operands, 1, &filename);
+      unless(TYPE(filename) == TYPE_STRING)
+        error("%s: argument must be a string", operator->operator.name);
+      stream = fopen(filename->string.string, "r");
+      if(stream == NULL)
+        error("%s: cannot open input file", operator->operator.name);
+      port = make_port(filename, stream);
+
+      port_ref = port;
+      mps_finalize(arena, &port_ref);
+
+      return port;
+    }
+
+Each time around the read–eval–print loop, the interpreter polls the
+message queue for finalization messages, and when it finds one it
+closes the port's underlying file handle::
 
     mps_message_type_t type;
 
-    if (mps_message_queue_type(&type, arena)) {
-        if (type == mps_message_type_finalization()) {
-            process_finalization_message_from_queue();
-        } else {
-            unknown_message_type();
-        }
+    while (mps_message_queue_type(&type, arena)) {
+      mps_message_t message;
+      mps_bool_t b;
+      b = mps_message_get(&message, arena, type);
+      assert(b); /* we just checked there was one */
+
+      if (type == mps_message_type_finalization()) {
+        mps_addr_t port_ref;
+        obj_t port;
+        mps_message_finalization_ref(&port_ref, arena, message);
+        port = port_ref;
+        assert(TYPE(port) == TYPE_PORT);
+        printf("Port to file \"%s\" is dying. Closing file.\n",
+               port->port.name->string.string);
+        (void)fclose(port->port.stream);
+      } else {
+          /* ... handle other message types ... */
+      }
+
+      mps_message_discard(arena, message);
     }
+
+Here's an example session showing finalization taking place:
+
+.. code-block:: none
+   :emphasize-lines: 14
+
+    $ ./scheme
+    MPS Toy Scheme Example
+    The prompt shows total allocated bytes and number of collections.
+    Try (vector-length (make-vector 100000 1)) to see the MPS in action.
+    You can force a complete garbage collection with (gc).
+    If you recurse too much the interpreter may crash from using too much C stack.
+    9960, 0> (open-input-file "scheme.c")
+    #[port "scheme.c"]
+    10064, 0> (gc)
+    #[undefined]
+    Collection started.
+      Why: Client requests: immediate full collection.
+      Clock: 3401
+    Port to file "scheme.c" is dying. Closing file.
+    Collection finished.
+        live 10040
+        condemned 10088
+        not_condemned 0
+        clock: 3807
+
+
+Cautions
+--------
+
+1. The MPS provides no guarantees about the promptness of
+   finalization. The MPS does not finalize a block until it can prove
+   that the block is finalizable, which may require a full garbage
+   collection in the worst case.
+
+2. Even when blocks are finalized in a reasonably timely fashion, the
+   client needs to process the finalization messages in time to avoid
+   the resource running out. For example, in the Scheme interpreter,
+   finalization messages are only processed at the end of the
+   read–eval–print loop, so a program that opens many files may run
+   out of handles even though the associated objects are all
+   finalizable, as shown here::
+
+        $ ./scheme
+        MPS Toy Scheme Example
+        The prompt shows total allocated bytes and number of collections.
+        Try (vector-length (make-vector 100000 1)) to see the MPS in action.
+        You can force a complete garbage collection with (gc).
+        If you recurse too much the interpreter may crash from using too much C stack.
+        9960, 0> (define (repeat n f _) (if (eqv? n 0) '() (repeat (- n 1) f (f))))
+        repeat
+        10840, 0> (repeat 300 (lambda () (open-input-file "scheme.c")) 0)
+        open-input-file: cannot open input file
+
+   A less naïve interpreter might process finalization message on a
+   more regular schedule. However, if you are designing a language
+   then it is generally a good idea to provide the programmer with a
+   mechanism for ensuring prompt release of scarce resources. For
+   example, Scheme provides the ``(with-input-from-file)`` procedure
+   which specifies that the created port has :term:`dynamic extent`
+   (and so can be closed on exit from the procedure).
+
+3. The MPS does not finalize objects in the context of
+   :c:func:`mps_arena_destroy` or :c:func:`mps_pool_destroy`.
+   :c:func:`mps_pool_destroy` should therefore not be invoked on pools
+   containing objects registered for finalization.
+
+    .. note::
+
+        This design solves the problem discussed in Appendix A of
+        [BOEHM02]_.
+
+4. Not all :term:`pool classes <pool class>` support finalization. In
+   general, only pools that manage objects whose liveness is
+   determined by garbage collection will support finalization. See the
+   :ref:`pool`.
 
 
 Interface

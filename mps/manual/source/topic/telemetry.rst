@@ -205,8 +205,8 @@ Interface
     Registers a string with the MPS, and receives a :term:`telemetry
     label`, suitable for passing to :c:func:`mps_telemetry_label`.
 
-    ``label`` is a NUL-terminated string way. Its length should not
-    exceed 256 characters, including the terminating NUL.
+    ``label`` is a NUL-terminated string. Its length should not exceed
+    256 characters, including the terminating NUL.
 
     Returns a telemetry label: a unique identifier that may be used to
     represent the string in future.

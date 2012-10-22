@@ -9,6 +9,9 @@ conventions used by the MPS.
 
 It also covers our policy for support for the external symbols.
 
+See <https://info.ravenbrook.com/project/mps/doc/2002-06-18/obsolete-mminfo/mmdoc/doc/mps/ref-man/if-conv/>
+
+
 
 Interface
 ---------

@@ -43,7 +43,8 @@ AWL is one of the few pools that can allocate objects that contain non-exact ref
 See also NB's notes on weak hash tables in Dylan:
 <https://info.ravenbrook.com/mail/2002/04/12/15-52-29/0.txt>
 <https://info.ravenbrook.com/mail/2002/04/12/15-56-15/0.txt>
-    
+
+And DRJ's notes here: <https://info.ravenbrook.com/mail/2003/03/17/13-51-24/0.txt>
 
 
 --------------------
