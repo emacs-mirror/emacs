@@ -80,6 +80,33 @@ Interface
         that the C call stack be a :term:`root`.
 
 
+Finalization messages
+---------------------
+
+.. c:function:: mps_message_type_t mps_message_type_finalization(void)
+
+    Return the :term:`message type` of finalization messages.
+
+    Finalization messages are used by the MPS to implement
+    :term:`finalization`. When the MPS detects that a block that has
+    been registered for finalization (by calling
+    :c:func:`mps_finalize`) is finalizable, it finalizes it by posting
+    a :term:`message` of this type.
+
+    Note that there might be delays between the block becoming
+    finalizable, the MPS detecting that, and the message being
+    posted.
+
+    In addition to the usual methods applicable to messages,
+    finalization messages support the
+    :c:func:`mps_message_finalization_ref` method which returns a
+    reference to the block that was registered for finalization.
+
+    .. seealso::
+
+        :ref:`topic-message`.
+
+
 .. c:function:: void mps_message_finalization_ref(mps_addr_t *ref_o, mps_arena_t arena, mps_message_t message)
 
     Returns the finalization reference for a finalization message.
@@ -112,4 +139,6 @@ Interface
         to discard the message, it will refer to the object and
         prevent its reclamation.
 
+    .. seealso::
 
+        :ref:`topic-message`.

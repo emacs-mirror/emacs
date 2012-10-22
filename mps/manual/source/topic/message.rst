@@ -3,39 +3,297 @@
 Messages
 ========
 
-::
+*Messages* are the mechanism by which the MPS communicates with the
+:term:`client program`. The MPS normally runs :term:`asynchronously
+<asynchronous garbage collector>` with respect to the client program,
+so messages are implemented via a :term:`message queue` attached to
+each :term:`arena`.
 
-    mps_message_t message;
-    mps_clock_t posted_at;
+By default only finalization messages are posted to the queue (and
+then only if blocks have been registered for finalization; see
+below). The client program must enable each other message type that
+they are prepared to handle, by calling
+:c:func:`mps_message_type_enable`. Then it must poll the message queue
+at regular intervals when it is convenient to do so, calling
+:c:func:`mps_message_get` to retrieve each message from the queue, and
+then calling :c:func:`mps_message_discard` when it is done with it.
 
-    if (mps_message_get(&message, arena, mps_message_type_gc_start())) {
-        posted_at = mps_message_clock(arena, message);
-        printf("Collection started at %ul.\n", (unsigned long)posted_at);
+Messages are thus :term:`manually managed <manual memory management>`:
+if the client program enables one or more message types, and then
+neglects to poll the message queue or neglects to discard the messages
+it retrieved, then messages will :term:`leak`.
+
+
+Finalization messages
+---------------------
+
+:term:`Finalization` is implemented by posting a finalization message
+(of type :c:func:`mps_message_type_finalization`) to the arena's
+message queue. This allows the :term:`client program` to perform the
+finalization at a convenient time and so avoid synchronization
+difficulties.
+
+Unlike other message types, finalization messages do not need to be
+enabled. Instead, the block to be finalized is registered for finalization by calling :c:func:`mps_finalize`.
+
+The block is not actually reclaimed until the finalization message is
+removed from the message queue and discarded, by calling
+:c:func:`mps_message_get` followed by :c:func:`mps_messsage_discard`.
+
+See :ref:`topic-finalization`.
+
+
+Example: interactive chatter
+----------------------------
+
+The example Scheme interpreter turns on garbage collection messages at
+startup::
+
+    mps_message_type_enable(arena, mps_message_type_gc());
+    mps_message_type_enable(arena, mps_message_type_gc_start());
+
+And then after every interactive command finishes, it reads all
+messages from the message queue and prints a description of the
+content of each one::
+
+    static void mps_chat(void)
+    {
+        mps_message_type_t type;
+
+        while (mps_message_queue_type(&type, arena)) {
+            mps_message_t message;
+            mps_bool_t b;
+            b = mps_message_get(&message, arena, type);
+            assert(b); /* we just checked there was one */
+
+            if (type == mps_message_type_gc_start()) {
+                printf("Collection started.\n");
+                printf("  Why: %s\n", mps_message_gc_start_why(arena, message));
+                printf("  Clock: %lu\n", (unsigned long)mps_message_clock(arena, message));
+            if (type == mps_message_type_gc()) {
+                /* ... and so on for other message types ... */
+            } else {
+                printf("Unknown message from MPS!\n");
+            }
+
+            mps_message_discard(arena, message);
+        }
     }
 
-::
+Here's how this looks in operation:
 
-    mps_message_t message;
-    if (mps_message_get(&message, arena, mps_message_type_gc())) {
-        size_t live, condemned, not_condemned;
-        live = mps_message_gc_live_size(arena, message);
-        condemned = mps_message_gc_condemned_size(arena, message);
-        not_condemned = mps_message_gc_not_condemned_size(arena,message);
+.. code-block:: none
+
+    bash-3.2$ ./scheme
+    MPS Toy Scheme Example
+    The prompt shows total allocated bytes and number of collections.
+    Try (vector-length (make-vector 100000 1)) to see the MPS in action.
+    You can force a complete garbage collection with (gc).
+    If you recurse too much the interpreter may crash from using too much C stack.
+    9960, 0> (define (make-list n e) (if (eqv? n 0) '() (cons e (make-list (- n 1) e))))
+    make-list
+    10824, 0> (length (make-list 1000 #t))
+    1000
+    Collection started.
+      Why: Generation 0 of a chain has reached capacity: start a minor collection.
+      Clock: 6649
+    507408, 1> (length (make-list 200 #f))
+    200
+    Collection finished.
+        live 112360
+        condemned 196600
+        not_condemned 0
+        clock: 18431
+    607192, 1> Bye.
+
+.. note::
+
+    This kind of interative "chatter" may be useful when testing and
+    debugging memory management, but should not be used otherwise. The
+    scheduling of garbage collections is not normally of interest even
+    to programmers, and chatter of this sort may give the illusion
+    that a program is spending much more time garbage collecting than
+    is actually the case.
+
+    Versions of GNU Emacs prior to 19.31 (May 1996) used to display
+    the message "Garbage collecting..." during a collection. Erik
+    Naggum commented on this feature:
+
+        I have run some tests at the U of Oslo with about 100
+        users who generally agreed that Emacs had become faster in
+        the latest Emacs pretest. All I had done was to remove the
+        "Garbage collecting" message which people perceive as
+        slowing Emacs down and tell them that it had been sped up.
+        It is, somehow, permissible for a program to take a lot of
+        time doing any other task than administrative duties like
+        garbage collection.
+
+
+Example: collection statistics
+------------------------------
+
+Here's a function that could be added to the example Scheme interpeter
+to run a complete garbage collection and return some statistics about
+that collection as a list to the caller::
+
+    /* (gc) -- run full garbage collection now
+     * Returns a list of four objects:
+     * 1. The collection number
+     * 2. The time taken by the collection (in units of mps_clock_t)
+     * 3. The approximate size of the condemned set.
+     * 4. The size of the subset of the condemned set that survived.
+     */
+    static obj_t entry_gc(obj_t env, obj_t op_env, obj_t operator, obj_t operands)
+    {
+        mps_message_t message;
+        mps_clock_t start, finish;
+        size_t condemned_size, live_size;
+        mps_bool_t b;
+        mps_arena_park(arena);
+        mps_message_type_enable(arena, mps_message_type_gc());
+        mps_message_type_enable(arena, mps_message_type_gc_start());
+        mps_arena_collect(arena);
+        b = mps_message_get(&message, arena, mps_message_type_gc_start());
+        assert(b); /* there must be one since we just ran a collection */
+        start = mps_message_clock(arena, message);
         mps_message_discard(arena, message);
-        process_collection_stats(live, condemned, not_condemned);
+        b = mps_message_get(&message, arena, mps_message_type_gc());
+        assert(b); /* there must be one since we just ran a collection */
+        finish = mps_message_clock(arena, message);
+        condemned_size = mps_message_gc_condemned_size(arena, message);
+        live_size = mps_message_gc_live_size(arena, message);
+        mps_message_discard(arena, message);
+        mps_message_type_disable(arena, mps_message_type_gc());
+        mps_message_type_disable(arena, mps_message_type_gc_start());
+        mps_arena_release(arena);
+        return make_pair(make_integer(mps_collections(arena)),
+                         make_pair(make_integer(finish - start),
+                                   make_pair(make_integer(condemned_size),
+                                             make_pair(make_integer(live_size),
+                                                       obj_empty))));
     }
 
-::
+.. note::
 
-    mps_message_t message;
-    if (mps_message_get(&message, arena, mps_message_type_gc_start())) {
-        printf("Collection started; reason: %s\n",
-               mps_message_gc_start_why(arena, message));
-    }
+    1. This code assumes that :c:func:`mps_message_type_gc` and
+       :c:func:`mps_message_type_gc_start` are not enabled elsewhere in
+       the code (in particular, if you're going to try this out, you'll
+       need to remove the two calls to :c:func:`mps_message_type_enable`
+       from ``main``).
+
+    2. The arena is :term:`parked <parked state>` by calling
+       :c:func:`mps_arena_park` before enabling these message
+       types. That's because we need to ensure that there are no
+       collections running, so that no spurious messages of these types
+       (from other collections) get posted.
+
+    3. Similarly, the message types are disabled before calling
+       :c:func:`mps_arena_release`.
+
+Here's the above code in action:
+
+.. code-block:: none
+
+    $ ./scheme
+    MPS Toy Scheme Example
+    The prompt shows total allocated bytes and number of collections.
+    Try (vector-length (make-vector 100000 1)) to see the MPS in action.
+    You can force a complete garbage collection with (gc).
+    If you recurse too much the interpreter may crash from using too much C stack.
+    9960, 0> (gc)
+    (1 357 9984 9984)
+    10144, 1> (define (range n) (if (eqv? n 0) '() (append (range (- n 1)) (list n))))
+    range
+    10976, 1> (range 10)
+    (1 2 3 4 5 6 7 8 9 10)
+    16984, 1> (gc)
+    (2 465 29320 11016)
+    17168, 2> (length (range 100))
+    100
+    181280, 2> (gc)
+    (3 668 190064 13416)
 
 
-Interface
----------
+Message types
+-------------
+
+.. c:type:: mps_message_type_t
+
+    The type of :term:`message types <message type>`.
+
+    There are three message types:
+
+    1. :c:func:`mps_message_type_finalization`
+    2. :c:func:`mps_message_type_gc`
+    3. :c:func:`mps_message_type_gc_start`
+
+
+.. c:function:: void mps_message_type_disable(mps_arena_t arena, mps_message_type_t message_type)
+
+    Restore an :term:`arena` to the default state whereby
+    :term:`messages <message>` of the specified :term:`message type`
+    are not posted, reversing the effect of an earlier call to
+    :c:func:`mps_message_type_enable`.
+
+    ``arena`` is an arena.
+
+    ``message_type`` is the message type to be disabled.
+
+    Any existing messages of the specified type are flushed from the
+    :term:`message queue` of ``arena``.
+
+    .. note::
+
+        It is permitted to call this function when ``message_type`` is
+        already disabled, in which case it has no effect.
+
+
+.. c:function:: void mps_message_type_enable(mps_arena_t arena, mps_message_type_t message_type)
+
+    Enable an :term:`arena` to post :term:`messages <message>` of a
+    specified :term:`message type`.
+
+    ``arena`` is an arena.
+
+    ``message_type`` is the message type to be disabled.
+
+    This function tells the MPS that ``arena`` may post messages of
+    ``message_type`` to its :term:`message queue`. By default, the MPS
+    does not generate any messages of any type.
+
+    A :term:`client program` that enables messages for a message type
+    must access messages by calling :c:func:`mps_message_get` and
+    discard them by calling :c:func:`mps_message_discard`, or the
+    message queue may consume unbounded resources.
+
+    The client program may disable the posting of messages by calling
+    :c:func:`mps_message_type_disable`.
+
+    .. note::
+
+        It is permitted to call this function when ``message_type`` is
+        already enabled, in which case it has no effect.
+
+
+
+Message interface
+-----------------
+
+.. c:type:: mps_message_t
+
+    The type of a :term:`message`.
+
+    Messages are :term:`manually <manual memory management>` managed.
+    They are created at the instigation of the MPS (but see
+    :c:func:`mps_message_type_enable`), and are deleted by the
+    :term:`client program` by calling :c:func:`mps_message_discard`.
+
+    An :term:`arena` has a :term:`message queue` from which messages
+    can be obtained by calling :c:func:`mps_message_get`.
+
+    An :c:func:`mps_message_t` is a :term:`reference` into MPS managed
+    memory, and can safely be :term:`fixed <fix>`.
+
 
 .. c:function:: mps_clock_t mps_message_clock(mps_arena_t arena, mps_message_t message)
 
@@ -95,84 +353,18 @@ Interface
         :ref:`topic-finalization`.
 
 
-.. c:function:: size_t mps_message_gc_condemned_size(mps_arena_t arena, mps_message_t message)
+.. c:function:: mps_message_type_t mps_message_type(mps_arena_t arena, mps_message_t message)
 
-    Return the "condemned size" property of a :term:`message`.
+    Return the :term:`message type` of a :term:`message`.
 
-    ``arena`` is the arena which posted the message.
-
-    ``message`` is a message retrieved by :c:func:`mps_message_get` and
-    not yet discarded.  It must be a garbage collection message: see
-    :c:func:`mps_message_type_gc`.
-
-    The "condemned size" property is the approximate :term:`size` of
-    the :term:`condemned set` in the :term:`garbage collection` that
-    generated the message.
-
-    .. seealso::
-
-        :ref:`topic-collection`.
-
-
-.. c:function:: size_t mps_message_gc_live_size(mps_arena_t arena, mps_message_t message)
-
-    Return the "live size" property of a :term:`message`.
-
-    ``arena`` is the arena which posted the message.
+    ``arena`` is the arena that posted the message.
 
     ``message`` is a message retrieved by :c:func:`mps_message_get` and
-    not yet discarded.  It must be a garbage collection message: see
-    :c:func:`mps_message_type_gc`.
-
-    The "live size" property is the total size of the set of objects
-    that survived the :term:`garbage collection` that generated the
-    message.
-
-    .. seealso::
-
-        :ref:`topic-collection`.
+    not yet discarded.
 
 
-.. c:function:: size_t mps_message_gc_not_condemned_size(mps_arena_t arena, mps_message_t message)
-
-    Return the "not condemned size" property of a :term:`message`.
-
-    ``arena`` is the arena which posted the message.
-
-    ``message`` is a message retrieved by :c:func:`mps_message_get` and
-    not yet discarded.  It must be a garbage collection message: see
-    :c:func:`mps_message_type_gc`.
-
-    The "not condemned size" property is the approximate size of the
-    set of objects that were in collected :term:`pools <pool>`, but
-    were not in the :term:`condemned set` in the :term:`garbage
-    collection` that generated the message.
-
-    .. seealso::
-
-        :ref:`topic-collection`.
-
-
-.. c:function:: const char *mps_message_gc_start_why(mps_arena_t arena, mps_message_t message)
-
-    Return a string that describes why the :term:`garbage collection`
-    that posted a :term:`message` started.
-
-    ``arena`` is the arena which posted the message.
-
-    ``message`` is a message retrieved by :c:func:`mps_message_get` and
-    not yet discarded.  It must be a garbage collection message: see
-    :c:func:`mps_message_type_gc`.
-
-    Returns a pointer to a string that is describes (in English) why
-    this collection started. The contents of the string must not be
-    modified by the client. The string and the pointer are valid until
-    the message is discarded with :c:func:`mps_message_discard`.
-
-    .. seealso::
-
-        :ref:`topic-collection`.
-
+Message queue interface
+-----------------------
 
 .. c:function:: mps_bool_t mps_message_get(mps_message_t *message_o, mps_arena_t arena, mps_message_type_t message_type)
 
@@ -226,155 +418,7 @@ Interface
     ``message_type_o``. If there are no messages on the message queue,
     it returns false.
 
-
-.. c:type:: mps_message_t
-
-    The type of a :term:`message`.
-
-    Messages are :term:`manually <manual memory management>` managed.
-    They are created at the instigation of the MPS (but see
-    :c:func:`mps_message_type_enable`), and are deleted by the
-    :term:`client program` by calling :c:func:`mps_message_discard`.
-
-    An :term:`arena` has a :term:`message queue` from which messages
-    can be obtained by calling :c:func:`mps_message_get`.
-
-    An :c:func:`mps_message_t` is a :term:`reference` into MPS managed
-    memory, and can safely be :term:`fixed <fix>`.
-
-
-.. c:function:: mps_message_type_t mps_message_type(mps_arena_t arena, mps_message_t message)
-
-    Return the :term:`message type` of a :term:`message`.
-
-    ``arena`` is the arena that posted the message.
-
-    ``message`` is a message retrieved by :c:func:`mps_message_get` and
-    not yet discarded.
-
-
-.. c:function:: void mps_message_type_disable(mps_arena_t arena, mps_message_type_t message_type)
-
-    Restore an :term:`arena` to the default state whereby
-    :term:`messages <message>` of the specified :term:`message type`
-    are not posted, reversing the effect of an earlier call to
-    :c:func:`mps_message_type_enable`.
-
-    ``arena`` is an arena.
-
-    ``message_type`` is the message type to be disabled.
-
-    Any existing messages of the specified type are flushed from the
-    :term:`message queue` of ``arena``.
-
     .. note::
 
-        It is permitted to call this function when ``message_type`` is
-        already disabled, in which case it has no effect.
-
-
-.. c:function:: void mps_message_type_enable(mps_arena_t arena, mps_message_type_t message_type)
-
-    Enable an :term:`arena` to post :term:`messages <message>` of a
-    specified :term:`message type`.
-
-    ``arena`` is an arena.
-
-    ``message_type`` is the message type to be disabled.
-
-    This function tells the MPS that ``arena`` may post messages of
-    ``message_type`` to its :term:`message queue`. By default, the MPS
-    does not generate any messages of any type.
-
-    A :term:`client program` that enables messages for a message type
-    must access messages by calling :c:func:`mps_message_get` and
-    discard them by calling :c:func:`mps_message_discard`, or the
-    message queue may consume unbounded resources.
-
-    The client program may disable the posting of messages by calling
-    :c:func:`mps_message_type_disable`.
-
-    .. note::
-
-        It is permitted to call this function when ``message_type`` is
-        already enabled, in which case it has no effect.
-
-
-.. c:function:: mps_message_type_t mps_message_type_finalization(void)
-
-    Return the :term:`message type` of finalization messages.
-
-    Finalization messages are used by the MPS to implement
-    :term:`finalization`. When the MPS detects that a block that has
-    been registered for finalization (by calling
-    :c:func:`mps_finalize`) is finalizable, it finalizes it by posting
-    a :term:`message` of this type.
-
-    Note that there might be delays between the block becoming
-    finalizable, the MPS detecting that, and the message being
-    posted.
-
-    In addition to the usual methods applicable to messages,
-    finalization messages support the
-    :c:func:`mps_message_finalization_ref` method which returns a
-    reference to the block that was registered for finalization.
-
-    .. seealso::
-
-        :ref:`topic-finalization`.
-
-
-.. c:function:: mps_message_type_t mps_message_type_gc(void)
-
-    Return the :term:`message type` of garbage collection statistic
-    messages.
-
-    Garbage collection statistic messages are used by the MPS to give
-    the :term:`client program` information about a :term:`garbage
-    collection` that has taken place. Such information may be useful in
-    analysing the client program's memory usage over time.
-
-    The access methods specific to a message of this type are:
-
-    * :c:func:`mps_message_gc_live_size` returns the total size of the
-      :term:`condemned set` that survived the garbage collection that
-      generated the message;
-
-    * :c:func:`mps_message_gc_condemned_size` returns the approximate
-      size of :term:`condemned set` in the garbage collection that
-      generated the message;
-
-    * :c:func:`mps_message_gc_not_condemned_size` returns the
-      approximate size of the set of objects that were in collected
-      :term:`pools <pool>`, but were not condemned in the garbage
-      collection that generated the message.
-
-    .. seealso::
-
-        :ref:`topic-collection`.
-
-
-.. c:function:: mps_message_type_t mps_message_type_gc_start(void)
-
-    Return the :term:`message type` of garbage collection start
-    messages.
-
-    Garbage collection start messages contain information about why
-    the :term:`garbage collection` started.
-
-    The access method specific to a :term:`message` of this message
-    type is:
-
-    * :c:func:`mps_message_gc_start_why` returns a string that
-      describes why the garbage collection started.
-
-    .. seealso::
-
-        :ref:`topic-collection`.
-
-
-.. c:type:: mps_message_type_t
-
-    The type of :term:`message types <message type>`.
-
-
+        If you are interested in a particular type of message, it is
+        usually simpler to call :c:func:`mps_message_get`.
