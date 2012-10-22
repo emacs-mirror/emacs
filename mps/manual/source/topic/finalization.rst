@@ -41,11 +41,14 @@ message mechanism.
 
 .. note::
 
-    This design avoids problems that can result from the :term:`garbage
-    collector` calling a function in the client program to do the
-    finalization. In such an implementation, if the client program's
-    finalization code needs to acquire locks, an unlucky scheduling of
-    finalization can result in deadlock. See Appendix B of [BOEHM02]_.
+    This design avoids the problems that can result from the
+    :term:`garbage collector` calling a function in the client program
+    to do the finalization. In such an implementation, the client
+    program's finalization code may end up running concurrently with
+    other code that accesses the underlying resource, and so access to
+    the resource need to be guarded with a lock, but then an unlucky
+    scheduling of finalization can result in deadlock. See [BOEHM02]_
+    for a detailed discussion of this issue.
 
 The :term:`message type` of finalization messages is
 :c:func:`mps_message_type_finalization`, and the finalization
@@ -228,9 +231,8 @@ Cautions
         circumstances.
 
         This is why Java's ``System.runFinalizersOnExit`` is
-        deprecated.
-
-        See Appendix A of [BOEHM02]_ for a discussion of this problem.
+        deprecated. See Appendix A of [BOEHM02]_ for a discussion of
+        this problem.
 
 4.  Not all :term:`pool classes <pool class>` support finalization. In
     general, only pools that manage objects whose liveness is
