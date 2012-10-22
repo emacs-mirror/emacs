@@ -1,5 +1,7 @@
 2012-10-22  Glenn Morris  <rgm@gnu.org>
 
+	* intro.texi (Lisp History):
+	* lists.texi (Sets And Lists): Refer to cl-lib rather than cl.
 	* tips.texi (Coding Conventions): Recommend cl-lib over cl.
 
 2012-10-15  Chong Yidong  <cyd@gnu.org>
