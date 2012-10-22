@@ -358,11 +358,9 @@ This can be convenient for people who find it easier to hit ) than C-f."
                (eq (char-syntax (following-char)) ?w)))
       (save-excursion (insert closer))))))
 
-(defun electric-pair-delete-selection-self-insert-function ()
-  (let ((syntax (electric-pair-syntax last-command-event)))
-    (if (and (memq syntax '(?\( ?\" ?\$)) (use-region-p))
-	'keep
-      t)))
+(defun electric-pair-will-use-region ()
+  (and (use-region-p)
+       (memq (electric-pair-syntax last-command-event) '(?\( ?\" ?\$))))
 
 ;;;###autoload
 (define-minor-mode electric-pair-mode
@@ -380,15 +378,14 @@ See options `electric-pair-pairs' and `electric-pair-skip-self'."
   :group 'electricity
   (if electric-pair-mode
       (progn
-	(require 'delsel)
 	(add-hook 'post-self-insert-hook
 		  #'electric-pair-post-self-insert-function)
-	(add-hook 'delete-selection-self-insert-hooks
-		  #'electric-pair-delete-selection-self-insert-function))
+	(add-hook 'self-insert-uses-region-functions
+		  #'electric-pair-will-use-region))
     (remove-hook 'post-self-insert-hook
                  #'electric-pair-post-self-insert-function)
-    (remove-hook 'delete-selection-self-insert-hooks
-		  #'electric-pair-delete-selection-self-insert-function)))
+    (remove-hook 'self-insert-uses-region-functions
+		  #'electric-pair-will-use-region)))
 
 ;; Automatically add newlines after/before/around some chars.
 

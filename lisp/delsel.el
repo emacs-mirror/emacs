@@ -44,12 +44,12 @@
 ;;      `kill-region' is used on the selection, rather than
 ;;      `delete-region'.  (Text selected with the mouse will typically
 ;;      be yankable anyhow.)
-;;  non-nil
+;;  t
 ;;      The normal case: delete the active region prior to executing
 ;;      the command which will insert replacement text.
-;;  hooks
+;;  <function>
 ;;      For commands which need to dynamically determine this behaviour.
-;;      Each hook should return one of the above values or nil.
+;;      The function should return one of the above values or nil.
 
 ;;; Code:
 
@@ -82,23 +82,23 @@ If KILLP in not-nil, the active region is killed instead of deleted."
   t)
 
 (defun delete-selection-helper (type)
-  "Deletes selection according to TYPE:
- 'yank
+  "Delete selection according to TYPE:
+ `yank'
      For commands which do a yank; ensures the region about to be
      deleted isn't yanked.
- 'supersede
+ `supersede'
      Delete the active region and ignore the current command,
      i.e. the command will just delete the region.
- 'kill
+ `kill'
      `kill-region' is used on the selection, rather than
      `delete-region'.  (Text selected with the mouse will typically
      be yankable anyhow.)
- non-nil
+ t
      The normal case: delete the active region prior to executing
      the command which will insert replacement text.
- hooks
+ FUNCTION
      For commands which need to dynamically determine this behaviour.
-     Each hook should return one of the above values or nil."
+     FUNCTION should take no argument and return one of the above values or nil."
   (condition-case data
       (cond ((eq type 'kill)
 	     (delete-active-region t))
@@ -119,9 +119,7 @@ If KILLP in not-nil, the active region is killed instead of deleted."
 	       (delete-active-region)
 	       (unless empty-region
 		 (setq this-command 'ignore))))
-	    ((and (symbolp type) (not (booleanp type)))
-	     (delete-selection-helper
-	      (run-hook-with-args-until-success type)))
+	    ((functionp type) (delete-selection-helper (funcall type)))
 	    (type
 	     (delete-active-region)
 	     (if (and overwrite-mode
@@ -151,29 +149,22 @@ If KILLP in not-nil, the active region is killed instead of deleted."
      (message "Text is read-only") (ding))))
 
 (defun delete-selection-pre-hook ()
-  "Normal hook run before commands that delete selections are executed.
-Commands which will delete the selection need a 'delete-selection
-property on their symbols; commands which insert text but don't
+  "Function run before commands that delete selections are executed.
+Commands which will delete the selection need a `delete-selection'
+property on their symbol; commands which insert text but don't
 have this property won't delete the selection.
-
-See `delete-selection-helper'.
-"
-  (when (and delete-selection-mode transient-mark-mode mark-active
+See `delete-selection-helper'."
+  (when (and delete-selection-mode (use-region-p)
 	     (not buffer-read-only))
-    (let ((type (and (symbolp this-command)
-		     (get this-command 'delete-selection))))
-      (delete-selection-helper type))))
+    (delete-selection-helper (and (symbolp this-command)
+                                  (get this-command 'delete-selection)))))
 
-(defun delete-selection-self-insert-function ()
-  t)
+(put 'self-insert-command 'delete-selection
+     (lambda ()
+       (not (run-hook-with-args-until-success
+             'self-insert-uses-region-functions))))
 
-(defvar delete-selection-self-insert-hooks
-  '(delete-selection-self-insert-function)
-  "Abnormal hook run before commands that insert characters.
-This hook should return a TYPE that `delete-selection-helper' understands.")
-
-(put 'self-insert-command 'delete-selection 'delete-selection-self-insert-hooks)
-(put 'self-insert-iso 'delete-selection 'delete-selection-self-insert-hooks)
+(put 'self-insert-iso 'delete-selection t)
 
 (put 'yank 'delete-selection 'yank)
 (put 'clipboard-yank 'delete-selection 'yank)

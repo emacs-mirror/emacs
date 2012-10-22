@@ -1,3 +1,17 @@
+2012-10-22  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* electric.el (electric-pair-delete-selection-self-insert-function):
+	Rename to electric-pair-will-use-region, return a boolean.
+	(electric-pair-mode): Adjust accordingly.  Don't require delsel.
+
+	* delsel.el (delete-selection-helper): Use a function instead of a hook.
+	(delete-selection-pre-hook): Use use-region-p.
+	(delete-selection-self-insert-function): Remove.
+	(self-insert-command): Obey self-insert-uses-region-functions.
+	(self-insert-iso): Revert to previous setting, since we don't actually
+	know what that command does.
+	(delete-selection-self-insert-hooks): Remove.
+
 2012-10-22  Simon Law  <sfllaw@sfllaw.ca>  (tiny change)
 
 	* delsel.el (delete-selection-helper): New function, extracted from
