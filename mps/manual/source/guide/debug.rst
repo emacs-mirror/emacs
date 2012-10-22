@@ -61,10 +61,13 @@ General debugging advice
 
    You may need to make sure that the debugger isn't entered on
    :term:`barrier (1)` hits (because the MPS uses barriers to protect
-   parts of memory). In GDB, use these commands::
+   parts of memory, and barrier hits are common and expected).
 
-        (gdb) set dont-handle-bad-access 1
-        (gdb) handle SIGBUS nostop
+   In particular, if you are using GDB on Mac OS X, you will need to
+   run these commands::
+
+        set dont-handle-bad-access 1
+        handle SIGBUS pass nostop noprint
 
    Add them to your ``.gdbinit`` if appropriate.
 
