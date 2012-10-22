@@ -66,3 +66,135 @@ Interface
     each generation is discussed in the guide :ref:`guide-perf`.
 
 
+Garbage collection start messages
+---------------------------------
+
+.. c:function:: mps_message_type_t mps_message_type_gc_start(void)
+
+    Return the :term:`message type` of garbage collection start
+    messages.
+
+    Garbage collection start messages contain information about why
+    the :term:`garbage collection` started.
+
+    The access method specific to a :term:`message` of this message
+    type is:
+
+    * :c:func:`mps_message_gc_start_why` returns a string that
+      describes why the garbage collection started.
+
+    .. seealso::
+
+        :ref:`topic-message`.
+
+
+.. c:function:: const char *mps_message_gc_start_why(mps_arena_t arena, mps_message_t message)
+
+    Return a string that describes why the :term:`garbage collection`
+    that posted a :term:`message` started.
+
+    ``arena`` is the arena which posted the message.
+
+    ``message`` is a message retrieved by :c:func:`mps_message_get` and
+    not yet discarded.  It must be a garbage collection message: see
+    :c:func:`mps_message_type_gc`.
+
+    Returns a pointer to a string that is describes (in English) why
+    this collection started. The contents of the string must not be
+    modified by the client. The string and the pointer are valid until
+    the message is discarded with :c:func:`mps_message_discard`.
+
+    .. seealso::
+
+        :ref:`topic-message`.
+
+
+Garbage collection messages
+---------------------------
+
+.. c:function:: mps_message_type_t mps_message_type_gc(void)
+
+    Return the :term:`message type` of garbage collection statistic
+    messages.
+
+    Garbage collection statistic messages are used by the MPS to give
+    the :term:`client program` information about a :term:`garbage
+    collection` that has taken place. Such information may be useful in
+    analysing the client program's memory usage over time.
+
+    The access methods specific to a message of this type are:
+
+    * :c:func:`mps_message_gc_live_size` returns the total size of the
+      :term:`condemned set` that survived the garbage collection that
+      generated the message;
+
+    * :c:func:`mps_message_gc_condemned_size` returns the approximate
+      size of :term:`condemned set` in the garbage collection that
+      generated the message;
+
+    * :c:func:`mps_message_gc_not_condemned_size` returns the
+      approximate size of the set of objects that were in collected
+      :term:`pools <pool>`, but were not condemned in the garbage
+      collection that generated the message.
+
+    .. seealso::
+
+        :ref:`topic-message`.
+
+
+.. c:function:: size_t mps_message_gc_condemned_size(mps_arena_t arena, mps_message_t message)
+
+    Return the "condemned size" property of a :term:`message`.
+
+    ``arena`` is the arena which posted the message.
+
+    ``message`` is a message retrieved by :c:func:`mps_message_get` and
+    not yet discarded.  It must be a garbage collection message: see
+    :c:func:`mps_message_type_gc`.
+
+    The "condemned size" property is the approximate :term:`size` of
+    the :term:`condemned set` in the :term:`garbage collection` that
+    generated the message.
+
+    .. seealso::
+
+        :ref:`topic-message`.
+
+
+.. c:function:: size_t mps_message_gc_live_size(mps_arena_t arena, mps_message_t message)
+
+    Return the "live size" property of a :term:`message`.
+
+    ``arena`` is the arena which posted the message.
+
+    ``message`` is a message retrieved by :c:func:`mps_message_get` and
+    not yet discarded.  It must be a garbage collection message: see
+    :c:func:`mps_message_type_gc`.
+
+    The "live size" property is the total size of the set of objects
+    that survived the :term:`garbage collection` that generated the
+    message.
+
+    .. seealso::
+
+        :ref:`topic-message`.
+
+
+.. c:function:: size_t mps_message_gc_not_condemned_size(mps_arena_t arena, mps_message_t message)
+
+    Return the "not condemned size" property of a :term:`message`.
+
+    ``arena`` is the arena which posted the message.
+
+    ``message`` is a message retrieved by :c:func:`mps_message_get` and
+    not yet discarded.  It must be a garbage collection message: see
+    :c:func:`mps_message_type_gc`.
+
+    The "not condemned size" property is the approximate size of the
+    set of objects that were in collected :term:`pools <pool>`, but
+    were not in the :term:`condemned set` in the :term:`garbage
+    collection` that generated the message.
+
+    .. seealso::
+
+        :ref:`topic-message`.

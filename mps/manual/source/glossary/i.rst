@@ -116,6 +116,8 @@ Memory Management Glossary: I
 
         .. similar:: :term:`parallel garbage collection`.
 
+        .. opposite:: :term:`stop-and-copy collection`.
+
         .. seealso:: :term:`tri-color marking`, :term:`barrier (1)`.
 
         .. bibref:: [AEL88]_, [BDS91]_.
