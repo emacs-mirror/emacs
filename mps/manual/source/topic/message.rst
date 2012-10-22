@@ -23,6 +23,13 @@ if the client program enables one or more message types, and then
 neglects to poll the message queue or neglects to discard the messages
 it retrieved, then messages will :term:`leak`.
 
+There is no requirement on the client program to retrieve and discard
+messages promptly. However, a client program that allows the number of
+garbage collection (or garbage collection start) messages on the
+message queue to grow without limit will eventually find that new
+garbage collections no longer start until some of these messages are
+retrieved and discarded.
+
 
 Finalization messages
 ---------------------
