@@ -256,7 +256,16 @@ of the corrupted ``frame`` object::
     not found
 
 There are no events related to this address, so in particular this
-address was never fixed.
+address was never fixed (no ``TraceFix`` event). This should be enough
+of a clue to track down the cause.
+
+.. note::
+
+    You may find it useful to add the command::
+
+        set environment MPS_TELEMETRY_CONTROL=65535
+
+    to your ``.gdbinit``.
 
 
 .. _guide-debug-size:
@@ -300,7 +309,6 @@ And here's how it shows up in the debugger::
     $ gdb ./scheme
     GNU gdb 6.3.50-20050815 (Apple version gdb-1820) (Sat Jun 16 02:40:11 UTC 2012)
     [...]
-    (gdb) set environment MPS_TELEMETRY_CONTROL=65535
     (gdb) run < test.scm
     Starting program: example/scheme/scheme < test.scm
     Reading symbols for shared libraries +............................. done
@@ -384,6 +392,5 @@ far as ``obj_skip`` is concerned::
 
 but the next object (the pair) was clearly allocated at
 ``0x1003f9b80`` (overwriting the last word of the string), so the
-string must have been allocated with a size of only two words.
-
-This should be enough evidence to track down the cause.
+string must have been allocated with a size of only two words. This
+should be enough evidence to track down the cause.
