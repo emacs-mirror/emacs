@@ -710,6 +710,20 @@ Memory Management Glossary: S
 
         .. see:: :term:`limited-field reference count`.
 
+    stop and copy collection
+    stop-and-copy collection
+
+        :term:`Copying garbage collection` that stops the
+        :term:`mutator` while the collector runs.
+
+        .. figure:: ../diagrams/two-space.svg
+            :align: center
+            :alt: Diagram: Two-space collector.
+
+            Stop-and-copy in a :term:`two-space collector`.
+
+        .. opposite:: :term:`incremental garbage collection`,  :term:`parallel garbage collection`.
+
     storage
 
         .. see:: :term:`memory (1)`.

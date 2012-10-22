@@ -62,6 +62,20 @@ Outstanding
     the page so maybe we should follow that? It would involve turning
     a bunch of diagrams upside down.
 
+79. Suppose that in the Scheme interpreter you wanted to return some
+    statistics from the ``(gc)`` function, how would you do this? You
+    could poll the message queue after calling
+    :c:func:`mps_arena_collect` and before calling
+    :c:func:`mps_arena_release`, I suppose.
+
+80. Need to migrate the new Scheme functionality back to the "before
+    the MPS" version.
+
+81. The Scheme interpreter could avoid printing "``#[undefined]``" at
+    the REPL (like Python with  ``None``).
+
+82. Is the message example correct?
+
 
 Complete
 --------

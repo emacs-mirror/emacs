@@ -230,9 +230,10 @@ Memory management in various languages
         collection`. GNU Emacs has a simple :term:`mark-sweep`
         collector. It has been speculated that the
         non-:term:`incremental <incremental garbage collection>`
-        nature of the Emacs collector, combined with the fact that it
-        formerly printed a message whenever it collected, gave garbage
-        collection a bad name in programming circles.
+        nature of the Emacs collector, combined with the fact that,
+        prior to version 19.31 (May 1996), it printed a message
+        whenever it collected, gave garbage collection a bad name in
+        programming circles.
 
         Erik Naggum reported at the time:
 
