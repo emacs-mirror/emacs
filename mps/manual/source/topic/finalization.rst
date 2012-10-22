@@ -7,25 +7,26 @@ It is sometimes necessary to perform actions when a block of memory
 :term:`dies <dead>`. For example, a block may represent the
 acquisition of an external resource such as a file handle or a network
 connection. When the block dies, the corresponding resource must be
-released. These actions are known as :term:`finalization`.
+released. This procedure is known as :term:`finalization`.
 
 A block requiring finalization must be registered by calling :c:func:`mps_finalize`::
 
     mps_addr_t ref = block_requiring_finalization;
     mps_finalize(arena, &ref);
 
-A block becomes *finalizable* if it has been registered for
-finalization, and the :term:`garbage collector` observes that it would
-be reclaimable if not for this. If a block is finalizable the MPS may
-choose to finalize it (by posting a finalization message: see below)
-at *any* future time.
+A block that been registered for finalization becomes *finalizable* as
+soon as the :term:`garbage collector` observes that it would otherwise
+be :term:`reclaimed <reclaim>` (that is, the only thing keeping it
+alive is the fact that it needs to be finalized). If a block is
+finalizable the MPS may choose to finalize it (by posting a
+finalization message: see below) at *any* future time.
 
 .. note::
 
     This means that a block that has been :term:`resurrected`, by the
     creation of a new :term:`strong reference` to it, after it was
-    determined to be finalizable, will still be finalized. (This can
-    happen if there was a :term:`weak reference` to the block.)
+    determined to be finalizable, may still be finalized. (This can
+    happen if there was a :term:`weak reference (1)` to the block.)
 
 :term:`Weak references <weak reference (1)>` do not prevent blocks
 from being finalized. At the point that a block is finalized, weak
@@ -33,17 +34,18 @@ references will still validly refer to the block. The fact that a
 block is registered for finalization prevents weak references to that
 block from being deleted.
 
-The Memory Pool System finalizes a block by posting a
-:term:`finalization message` to the :term:`message queue` of the
-:term:`arena` in which the block was allocated.
+The Memory Pool System finalizes a block by posting a *finalization
+message* to the :term:`message queue` of the :term:`arena` in which
+the block was allocated. See :ref:`topic-message` for detail of the
+message mechanism.
 
 .. note::
 
-    This design solves problems that result from finalizing directly
-    from the :term:`garbage collector`. In particular, the client
-    program's finalization code may need to acquire locks, which could
-    result in deadlock if this happens an an unpredictable time. See
-    Appendix B of [BOEHM02]_.
+    This design avoids problems that can result from the :term:`garbage
+    collector` calling a function in the client program to do the
+    finalization. In such an implementation, if the client program's
+    finalization code needs to acquire locks, an unlucky scheduling of
+    finalization can result in deadlock. See Appendix B of [BOEHM02]_.
 
 The :term:`message type` of finalization messages is
 :c:func:`mps_message_type_finalization`, and the finalization
@@ -63,7 +65,7 @@ Multiple finalizations
 ----------------------
 
 A block may be registered for finalization multiple times, by calling
-:c:func:`mps_finalize` multiple times. A block that has been
+:c:func:`mps_finalize` more than once. A block that has been
 registered for finalization *n* times will be finalized at most *n*
 times.
 
@@ -83,8 +85,8 @@ In Scheme, an open file is represent by a *port*. In the toy Scheme
 example, a port is a wrapper around a Standard C file handle::
 
     typedef struct port_s {
-        type_t type;			/* TYPE_PORT */
-        obj_t name;			/* name of stream */
+        type_t type;                    /* TYPE_PORT */
+        obj_t name;                     /* name of stream */
         FILE *stream;
     } port_s;
 
@@ -173,18 +175,18 @@ Here's an example session showing finalization taking place:
 Cautions
 --------
 
-1. The MPS provides no guarantees about the promptness of
-   finalization. The MPS does not finalize a block until it can prove
-   that the block is finalizable, which may require a full garbage
-   collection in the worst case.
+1.  The MPS provides no guarantees about the promptness of
+    finalization. The MPS does not finalize a block until it determines
+    that the block is finalizable, which may require a full garbage
+    collection in the worst case.
 
-2. Even when blocks are finalized in a reasonably timely fashion, the
-   client needs to process the finalization messages in time to avoid
-   the resource running out. For example, in the Scheme interpreter,
-   finalization messages are only processed at the end of the
-   read–eval–print loop, so a program that opens many files may run
-   out of handles even though the associated objects are all
-   finalizable, as shown here::
+2.  Even when blocks are finalized in a reasonably timely fashion, the
+    client needs to process the finalization messages in time to avoid
+    the resource running out. For example, in the Scheme interpreter,
+    finalization messages are only processed at the end of the
+    read–eval–print loop, so a program that opens many files may run
+    out of handles even though the associated objects are all
+    finalizable, as shown here::
 
         $ ./scheme
         MPS Toy Scheme Example
@@ -197,32 +199,46 @@ Cautions
         10840, 0> (repeat 300 (lambda () (open-input-file "scheme.c")) 0)
         open-input-file: cannot open input file
 
-   A less naïve interpreter might process finalization message on a
-   more regular schedule. However, if you are designing a language
-   then it is generally a good idea to provide the programmer with a
-   mechanism for ensuring prompt release of scarce resources. For
-   example, Scheme provides the ``(with-input-from-file)`` procedure
-   which specifies that the created port has :term:`dynamic extent`
-   (and so can be closed on exit from the procedure).
+    A less naïve interpreter might process finalization messages on a
+    more regular schedule, or might take emergency action in the event
+    of running out of open file handles by carrying out a full garbage
+    collection and processing any finalization messages that are
+    posted as a result.
 
-3. The MPS does not finalize objects in the context of
-   :c:func:`mps_arena_destroy` or :c:func:`mps_pool_destroy`.
-   :c:func:`mps_pool_destroy` should therefore not be invoked on pools
-   containing objects registered for finalization.
+    If you are designing a programming language then it is generally a
+    good idea to provide the programmer with a mechanism for ensuring
+    prompt release of scarce resources. For example, Scheme provides
+    the ``(with-input-from-file)`` procedure which specifies that the
+    created port has :term:`dynamic extent` (and so can be closed as
+    soon as the procedure exits).
+
+3.  The MPS does not finalize objects in the context of
+    :c:func:`mps_arena_destroy` or :c:func:`mps_pool_destroy`.
+    :c:func:`mps_pool_destroy` should therefore not be invoked on pools
+    containing objects registered for finalization.
 
     .. note::
 
-        This design solves the problem discussed in Appendix A of
-        [BOEHM02]_.
+        Under normal circumstances, finalization code can assume that
+        objects referenced by the object being finalized ("object A")
+        have themselves not yet been finalized. (Because object A is
+        keeping them alive.) If finalization code is run at program
+        exit, this assumption is no longer true. It is much more
+        difficult to write correct code if it has to run under both
+        circumstances.
 
-4. Not all :term:`pool classes <pool class>` support finalization. In
-   general, only pools that manage objects whose liveness is
-   determined by garbage collection will support finalization. See the
-   :ref:`pool`.
+        This is why Java's ``System.runFinalizersOnExit`` is
+        deprecated.
+
+        See Appendix A of [BOEHM02]_ for a discussion of this problem.
+
+4.  Not all :term:`pool classes <pool class>` support finalization. In
+    general, only pools that manage objects whose liveness is
+    determined by garbage collection do so. See the :ref:`pool`.
 
 
-Interface
----------
+Finalization interface
+----------------------
 
 .. c:function:: mps_res_t mps_definalize(mps_arena_t arena, mps_addr_t *ref)
 

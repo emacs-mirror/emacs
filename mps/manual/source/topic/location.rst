@@ -137,8 +137,8 @@ Interface
 .. c:type:: mps_ld_t
 
     The type of :term:`location dependencies <location dependency>`.
-    It is an alias (via the :term:`C` ``typedef`` mechanism) for a
-    pointer to :c:type:`mps_ld_s`.
+    It is a :term:`transparent alias <transparent type>` for a pointer
+    to :c:type:`mps_ld_s`.
 
     A location dependency records the fact that the :term:`client
     program` depends on the bit patterns of some :term:`references

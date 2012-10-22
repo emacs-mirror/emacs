@@ -38,7 +38,7 @@ There's some documentation at //info.ravenbrook.com/project/mps/doc/2002-06-18/o
         abort();
     }
 
-For more examples, see doc.mps.ref-man.if-conv.
+For more examples, see doc.mps.ref-man.if-conv. <https://info.ravenbrook.com/project/mps/doc/2002-06-18/obsolete-mminfo/mmdoc/doc/mps/ref-man/if-conv/>
 
 
 Interface
@@ -46,9 +46,9 @@ Interface
 
 .. c:type:: mps_res_t
 
-    The type of :term:`result codes <result code>`. It is an alias
-    (via the :term:`C` ``typedef`` mechanism) for ``int``, provided for
-    convenience and clarity.
+    The type of :term:`result codes <result code>`. It is a
+    :term:`transparent alias <transparent type>` for ``int``, provided
+    for convenience and clarity.
 
     A result code indicates the success or failure of an operation,
     along with the reason for failure. As with error numbers in Unix,

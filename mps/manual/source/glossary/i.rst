@@ -94,7 +94,8 @@ Memory Management Glossary: I
 
         .. mps:specific::
 
-            In/out parameters are given names ending with ``_io``.
+            In/out parameters are given names ending with ``_io``. See
+            :ref:`topic-interface`.
 
     incremental garbage collection
 

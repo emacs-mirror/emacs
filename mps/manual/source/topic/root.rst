@@ -225,9 +225,9 @@ Interface
 
 .. c:type:: mps_rank_t
 
-    The type of :term:`ranks <rank>`. It is an alias (via the
-    :term:`C` ``typedef`` mechanism) for ``unsigned int``, provided
-    for convenience and clarity.
+    The type of :term:`ranks <rank>`. It is a :term:`transparent alias
+    <transparent type>` for ``unsigned int``, provided for convenience
+    and clarity.
 
 
 .. c:function:: mps_rank_t mps_rank_weak(void)
@@ -502,7 +502,7 @@ Interface
     ``root`` is the root.
 
 
-.. c:type:: typedef mps_res_t (*mps_root_scan_t)(mps_ss_t ss, void *p, size_t s)
+.. c:type:: mps_res_t (*mps_root_scan_t)(mps_ss_t ss, void *p, size_t s)
 
     The type of root scanning functions for :c:func:`mps_root_create`.
 
