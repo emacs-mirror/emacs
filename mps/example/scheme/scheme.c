@@ -1948,6 +1948,8 @@ static obj_t entry_append(obj_t env, obj_t op_env, obj_t operator, obj_t operand
   }
   if(arg1 != obj_empty)
     error("%s: applied to non-list", operator->operator.name);
+  if(result == obj_empty)
+    return arg2;
   CDR(end) = arg2;
   return result;
 }
