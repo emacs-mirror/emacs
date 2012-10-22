@@ -231,6 +231,7 @@ Memory Management Glossary: T
         TLB miss* is taken and the address is resolved using the more
         general mechanism.
 
+    transparent alias
     transparent type
 
         .. mps:specific::
