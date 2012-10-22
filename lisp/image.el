@@ -798,7 +798,7 @@ to enable all types that ImageMagick supports.
 
 The variable `imagemagick-types-inhibit' overrides this variable.
 
-If you change this without outside of Customize, you must call
+If you change this without using customize, you must call
 `imagemagick-register-types' afterwards.
 
 If Emacs is compiled without ImageMagick support, this variable

@@ -1,3 +1,7 @@
+2012-10-22  Glenn Morris  <rgm@gnu.org>
+
+	* image.el (imagemagick-enabled-types): Doc fix.
+
 2012-10-22  Takafumi Arakaki  <aka.tkf@gmail.com>  (tiny change)
 
 	* progmodes/which-func.el (which-func-current): The hash-table may have
