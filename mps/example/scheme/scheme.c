@@ -2164,7 +2164,7 @@ static obj_t entry_environment(obj_t env, obj_t op_env, obj_t operator, obj_t op
 /* (open-input-file filename)
  * Opens filename for input, with empty file options, and returns the
  * obtained port.
- * R6RS 8.3.
+ * R6RS Standard Library 8.3.
  */
 static obj_t entry_open_input_file(obj_t env, obj_t op_env, obj_t operator, obj_t operands)
 {
@@ -2508,27 +2508,6 @@ static obj_t entry_string_ref(obj_t env, obj_t op_env, obj_t operator, obj_t ope
 }
 
 
-/* (string-set! string k char)
- * k must be a valid index of string . `String-set!' stores char in
- * element k of string and returns an unspecified value.
- * R5RS 6.3.5
- */
-static obj_t entry_string_set(obj_t env, obj_t op_env, obj_t operator, obj_t operands)
-{
-  obj_t arg, k, c;
-  eval_args(operator->operator.name, env, op_env, operands, 3, &arg, &k, &c);
-  unless(TYPE(arg) == TYPE_STRING)
-    error("%s: first argument must be a string", operator->operator.name);
-  unless(TYPE(k) == TYPE_INTEGER)
-    error("%s: second argument must be an integer", operator->operator.name);
-  unless(TYPE(c) == TYPE_CHARACTER)
-    error("%s: third argument must be a character", operator->operator.name);
-  unless(0 <= k->integer.integer && k->integer.integer < arg->string.length)
-    error("%s: second argument is out of range", operator->operator.name);
-  arg->string.string[k->integer.integer] = c->character.c;
-  return obj_undefined;
-}
-
 /* (substring string start end)
  * String must be a string, and start and end must be exact integers
  * satisfying 
@@ -2780,7 +2759,6 @@ static struct {char *name; entry_t entry;} funtab[] = {
   {"string", entry_string},
   {"string-length", entry_string_length},
   {"string-ref", entry_string_ref},
-  {"string-set!", entry_string_set},
   {"substring", entry_substring},
   {"string-append", entry_string_append},
   {"string->list", entry_string_to_list},

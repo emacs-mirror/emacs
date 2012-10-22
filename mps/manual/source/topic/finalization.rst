@@ -99,7 +99,7 @@ a port::
     /* (open-input-file filename)
      * Opens filename for input, with empty file options, and returns the
      * obtained port.
-     * R6RS 8.3.
+     * R6RS Standard Library 8.3.
      */
     static obj_t entry_open_input_file(obj_t env, obj_t op_env, obj_t operator, obj_t operands)
     {
