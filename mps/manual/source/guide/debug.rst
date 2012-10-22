@@ -1,3 +1,5 @@
+.. highlight:: none
+
 .. _guide-debug:
 
 Debugging with the Memory Pool System
@@ -17,8 +19,8 @@ delayed. And even if it does die, the space it occupies may not be
 re-allocated for some time.
 
 
-General advice
---------------
+General debugging advice
+------------------------
 
 1. Compile with debugging information turned on (``-g`` on the GCC or
    Clang command line).
@@ -43,15 +45,34 @@ General advice
 
     .. _address space layout randomization: http://en.wikipedia.org/wiki/Address_space_layout_randomization
 
-4. Run your test case inside the debugger. Use ``assert`` or ``abort``
-   in your error handler (rather than ``exit``) so that you can enter
-   the debugger with the contents of the control stack available for
-   inspection.
+   A fact that assists with reproducibility is that the more frequently
+   the collector runs, the sooner and more reliably errors are
+   discovered. So if you have a bug that's hard to reproduce, you may
+   be able to provoke it more reliably by having a mode for testing in
+   which you run frequent collections (by calling
+   :c:func:`mps_arena_collect` followed by
+   :c:func:`mps_arena_release`), perhaps as frequently as every
+   allocation.
+
+4. Run your test case inside the debugger. Use ``assert`` and
+   ``abort`` in your error handler (rather than ``exit``) so that you
+   can enter the debugger with the contents of the control stack
+   available for inspection.
+
+   You may need to make sure that the debugger isn't entered on
+   :term:`barrier (1)` hits (because the MPS uses barriers to protect
+   parts of memory). In GDB, use these commands::
+
+        (gdb) set dont-handle-bad-access 1
+        (gdb) handle SIGBUS nostop
+
+   Add them to your ``.gdbinit`` if appropriate.
+
 
 .. _guide-debug-underscanning:
 
-Underscanning
--------------
+Example: underscanning
+----------------------
 
 An easy mistake to make is to omit to :term:`fix` a :term:`reference`
 when :term:`scanning <scan>` a :term:`formatted object`. For example,
@@ -74,8 +95,6 @@ be reused for other objects. So the pointer ``obj->pair.car`` might
 end up pointing to the start of a valid object (but the wrong one), or
 to the middle of a valid object, or to an unused region of memory, or
 into an MPS internal control structure.
-
-.. highlight:: none
 
 The reproducible test case is simple. Run a garbage collection by
 calling ``(gc)`` and then evaluate any expression::
@@ -160,6 +179,8 @@ up to the detection of the error, and in order to enable you to do
 that, the MPS provides its :ref:`topic-telemetry` feature.
 
 
+.. _guide-debug-telemetry:
+
 Telemetry
 ---------
 
@@ -238,10 +259,13 @@ There are no events related to this address, so in particular this
 address was never fixed.
 
 
-Getting the size wrong
-----------------------
+.. _guide-debug-size:
 
-Here's another kind of mistake: an off-by-one error in ``make_string``:
+Example: allocating with wrong size
+-----------------------------------
+
+Here's another kind of mistake: an off-by-one error in ``make_string``
+leading to the allocation of string objects with the wrong size:
 
 .. code-block:: c
    :emphasize-lines: 5

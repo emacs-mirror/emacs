@@ -9,5 +9,5 @@ Guide
    build
    overview
    lang
-   perf
    debug
+   perf
