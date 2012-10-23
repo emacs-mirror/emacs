@@ -1,3 +1,8 @@
+2012-10-23  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* subr.el (internal-temp-output-buffer-show): Rename from
+	temp-output-buffer-show, since previously compiled files expect this name.
+
 2012-10-23  Glenn Morris  <rgm@gnu.org>
 
 	* image.el (image-type-from-file-name): If multiple types match,

@@ -3151,7 +3151,7 @@ in which case `save-window-excursion' cannot help."
        (unwind-protect (progn ,@body)
          (set-window-configuration ,c)))))
 
-(defun temp-output-buffer-show (buffer)
+(defun internal-temp-output-buffer-show (buffer)
   "Internal function for `with-output-to-temp-buffer'."
   (with-current-buffer buffer
     (set-buffer-modified-p nil)
@@ -3235,7 +3235,7 @@ if it uses `temp-buffer-show-function'."
                    (run-hooks 'temp-buffer-setup-hook)))))
             (standard-output ,buf))
        (prog1 (progn ,@body)
-         (temp-output-buffer-show ,buf)))))
+         (internal-temp-output-buffer-show ,buf)))))
 
 (defmacro with-temp-file (file &rest body)
   "Create a new buffer, evaluate BODY there, and write the buffer to FILE.
