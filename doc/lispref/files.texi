@@ -1220,9 +1220,8 @@ point number.
 The file's @acronym{GID}, likewise.
 
 @item
-The time of last access, as a list of two integers.
-The first integer has the high-order 16 bits of time,
-the second has the low 16 bits.  (This is similar to the
+The time of last access, as a list of four integers @code{(@var{sec-high}
+@var{sec-low} @var{microsec} @var{picosec})}.  (This is similar to the
 value of @code{current-time}; see @ref{Time of Day}.)  Note that on
 some FAT-based filesystems, only the date of last access is recorded,
 so this time will always hold the midnight of the day of last access.

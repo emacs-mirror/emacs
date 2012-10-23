@@ -1233,11 +1233,12 @@ reinsert it is @code{(abs @var{position})}.  If @var{position} is
 positive, point was at the beginning of the deleted text, otherwise it
 was at the end.
 
-@item (t @var{high} . @var{low})
+@item (t @var{sec-high} @var{sec-low} @var{microsec} @var{picosec})
 This kind of element indicates that an unmodified buffer became
-modified.  The elements @var{high} and @var{low} are two integers, each
-recording 16 bits of the visited file's modification time as of when it
-was previously visited or saved.  @code{primitive-undo} uses those
+modified.  The list @code{(@var{sec-high} @var{sec-low} @var{microsec}
+@var{picosec})} represents the visited file's modification time as of
+when it was previously visited or saved, using the same format as
+@code{current-time}; see @ref{Time of Day}.  @code{primitive-undo} uses those
 values to determine whether to mark the buffer as unmodified once again;
 it does so only if the file's modification time matches those numbers.
 

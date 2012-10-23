@@ -1,3 +1,8 @@
+2012-10-23  Paul Eggert  <eggert@cs.ucla.edu>
+
+	Fix outdated timestamp documentation in Elisp manual (bug#12706).
+	* NEWS: Document increased precision in undo list.
+
 2012-10-21  Glenn Morris  <rgm@gnu.org>
 
 	* images/icons/hicolor/32x32/apps/emacs22.png:

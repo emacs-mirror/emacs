@@ -843,6 +843,9 @@ stamps are still accepted.
 The PSECS slot is new, and uses picosecond resolution.  It can be
 accessed via the new timer--psecs accessor.
 
+*** Last-modified time stamps in undo lists now are of the form
+(t HI-SECS LO-SECS USECS PSECS) instead of (t HI-SECS . LO-SECS).
+
 +++
 ** Floating point functions now always return special values like NaN,
 instead of signaling errors, if given invalid args, e.g. (log -1.0).
