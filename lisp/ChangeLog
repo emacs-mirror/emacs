@@ -1,5 +1,8 @@
 2012-10-23  Stefan Monnier  <monnier@iro.umontreal.ca>
 
+	* progmodes/compile.el (compilation-start): Try to handle common
+	quoting of `cd' argument (bug#12640).
+
 	* vc/diff-mode.el (diff-hunk): `save-excursion' while refining
 	(bug#12671).
 
