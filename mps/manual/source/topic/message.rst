@@ -19,7 +19,7 @@ each message from the queue, and then calling
 Messages are thus :term:`manually managed <manual memory management>`:
 if the client program enables one or more message types, and then
 neglects to poll the message queue or neglects to discard the messages
-it retrieved, then messages will :term:`leak`.
+it retrieved, then messages will :term:`leak <memory leak>`.
 
 There is no requirement on the client program to retrieve and discard
 messages promptly. However, a client program that allows the number of

@@ -210,8 +210,8 @@ Support policy
 .. note::
 
     If you are relying on a feature and you see that it's deprecated,
-    please :ref:`contact us`. It makes a difference if we know that
-    someone is using a feature.
+    please :ref:`contact us <contact>`. It makes a difference if we
+    know that someone is using a feature.
 
 
 .. _topic-interface-general:

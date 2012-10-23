@@ -158,20 +158,15 @@ Interface
     ``ref_io`` points to the reference.
 
     Returns :c:macro:`MPS_RES_OK` if successful: in this case the
-    reference may have been updated (see the topic
-    :ref:`topic-moving`), and the scan method must continue to scan
-    the :term:`block`. If it returns any other result, the scan method
-    must return that result as soon as possible, without fixing any
-    further references.
+    reference may have been updated, and the scan method must continue
+    to scan the :term:`block`. If it returns any other result, the
+    scan method must return that result as soon as possible, without
+    fixing any further references.
 
     .. deprecated:: 1.110
 
         Use :c:func:`MPS_SCAN_BEGIN`, :c:func:`MPS_FIX12`, and
         :c:func:`MPS_SCAN_END` instead.
-
-    .. topics::
-
-        :ref:`topic-scanning` and :ref:`topic-moving`.
 
     .. note::
 
@@ -224,11 +219,10 @@ Interface
     ``ref_io`` points to the reference.
 
     Returns :c:macro:`MPS_RES_OK` if successful: in this case the
-    reference may have been updated (see the topic
-    :ref:`topic-moving`), and the scan method must continue to scan
-    the :term:`block`. If it returns any other result, the scan method
-    must return that result as soon as possible, without fixing any
-    further references.
+    reference may have been updated, and the scan method must continue
+    to scan the :term:`block`. If it returns any other result, the
+    scan method must return that result as soon as possible, without
+    fixing any further references.
 
     .. note::
 
@@ -255,11 +249,10 @@ Interface
     ``ref_io`` points to the reference.
 
     Returns :c:macro:`MPS_RES_OK` if successful: in this case the
-    reference may have been updated (see the topic
-    :ref:`topic-moving`), and the scan method must continue to scan
-    the :term:`block`. If it returns any other result, the scan method
-    must return that result as soon as possible, without fixing any
-    further references.
+    reference may have been updated, and the scan method must continue
+    to scan the :term:`block`. If it returns any other result, the
+    scan method must return that result as soon as possible, without
+    fixing any further references.
 
     .. note::
 
