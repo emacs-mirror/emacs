@@ -405,5 +405,5 @@ What next?
 If you tracked down all your bugs, then the next step is the chapter
 :ref:`guide-perf`.
 
-But if you're still struggling, please :ref:`contact us` and see if we
-can help.
+But if you're still struggling, please :ref:`contact us <contact>` and
+see if we can help.
