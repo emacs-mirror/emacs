@@ -13,10 +13,17 @@
    height="250"
    id="svg14647"
    version="1.1"
-   inkscape:version="0.48.2 r9819"
+   inkscape:version="0.47 r22583"
    sodipodi:docname="tag-ref.svg">
   <defs
      id="defs14649">
+    <inkscape:perspective
+       sodipodi:type="inkscape:persp3d"
+       inkscape:vp_x="0 : 125 : 1"
+       inkscape:vp_y="0 : 1000 : 0"
+       inkscape:vp_z="300 : 125 : 1"
+       inkscape:persp3d-origin="150 : 83.333333 : 1"
+       id="perspective6399" />
     <marker
        inkscape:stockid="DotM"
        orient="auto"
@@ -83,7 +90,7 @@
      inkscape:pageshadow="2"
      inkscape:zoom="1"
      inkscape:cx="48.5"
-     inkscape:cy="63.357212"
+     inkscape:cy="53.857212"
      inkscape:document-units="px"
      inkscape:current-layer="layer1"
      showgrid="true"
@@ -91,9 +98,9 @@
      fit-margin-left="10"
      fit-margin-right="10"
      fit-margin-bottom="10"
-     inkscape:window-width="1276"
-     inkscape:window-height="756"
-     inkscape:window-x="0"
+     inkscape:window-width="1621"
+     inkscape:window-height="1006"
+     inkscape:window-x="1280"
      inkscape:window-y="0"
      inkscape:window-maximized="1">
     <inkscape:grid
@@ -112,7 +119,7 @@
         <dc:format>image/svg+xml</dc:format>
         <dc:type
            rdf:resource="http://purl.org/dc/dcmitype/StillImage" />
-        <dc:title></dc:title>
+        <dc:title />
       </cc:Work>
     </rdf:RDF>
   </metadata>
@@ -127,7 +134,7 @@
        width="110"
        height="20"
        x="159.5"
-       y="492.86221"
+       y="592.86224"
        ry="0" />
     <rect
        style="fill:#ffffff;fill-opacity:1;stroke:#000000;stroke-width:1;stroke-linecap:butt;stroke-miterlimit:4;stroke-opacity:1;stroke-dasharray:none;stroke-dashoffset:0"
@@ -141,13 +148,13 @@
        xml:space="preserve"
        style="font-size:40px;font-style:normal;font-weight:normal;line-height:125%;letter-spacing:0px;word-spacing:0px;fill:#000000;fill-opacity:1;stroke:none;font-family:Bitstream Vera Sans"
        x="159.5"
-       y="482.86221"
+       y="582.86224"
        id="text13999"
        sodipodi:linespacing="125%"><tspan
          sodipodi:role="line"
          id="tspan14001"
          x="159.5"
-         y="482.86221"
+         y="582.86224"
          style="font-size:12px;font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;text-align:start;line-height:125%;writing-mode:lr-tb;text-anchor:start;font-family:Verdana;-inkscape-font-specification:Verdana">reference</tspan></text>
     <text
        sodipodi:linespacing="125%"
@@ -163,7 +170,7 @@
          sodipodi:role="line">object</tspan></text>
     <path
        style="fill:none;stroke:#000000;stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1;marker-start:url(#DotM);marker-end:url(#Arrow1Mend)"
-       d="m 269.5,502.86218 60,70"
+       d="m 269.5,602.86224 60,-60"
        id="path14025"
        inkscape:connector-curvature="0"
        sodipodi:nodetypes="cc" />
@@ -340,14 +347,14 @@
        xml:space="preserve"
        style="font-size:16px;font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;text-align:start;line-height:125%;letter-spacing:0px;word-spacing:0px;writing-mode:lr-tb;text-anchor:start;fill:#000000;fill-opacity:1;stroke:none;font-family:Verdana;-inkscape-font-specification:Verdana"
        x="279.5"
-       y="612.86218"
+       y="548.86224"
        id="text14776"
        sodipodi:linespacing="125%"><tspan
          sodipodi:role="line"
          id="tspan14778"
          x="279.5"
-         y="612.86218"
-         style="font-size:16px;font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;text-align:start;line-height:125%;writing-mode:lr-tb;text-anchor:start;font-family:Verdana;-inkscape-font-specification:Verdana">A</tspan></text>
+         y="548.86224"
+         style="font-size:16px;font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;text-align:start;line-height:125%;writing-mode:lr-tb;text-anchor:start;font-family:Verdana;-inkscape-font-specification:Verdana">A+2</tspan></text>
     <path
        style="fill:none;stroke:#000000;stroke-width:1;stroke-linecap:butt;stroke-linejoin:miter;stroke-miterlimit:4;stroke-opacity:1;stroke-dasharray:1, 1;stroke-dashoffset:0"
        d="m 329.5,592.86218 110,0"
@@ -376,12 +383,12 @@
     <text
        sodipodi:linespacing="125%"
        id="text15324"
-       y="592.86218"
+       y="528.86224"
        x="279.5"
        style="font-size:16px;font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;text-align:start;line-height:125%;letter-spacing:0px;word-spacing:0px;writing-mode:lr-tb;text-anchor:start;fill:#000000;fill-opacity:1;stroke:none;font-family:Verdana;-inkscape-font-specification:Verdana"
        xml:space="preserve"><tspan
          style="font-size:16px;font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;text-align:start;line-height:125%;writing-mode:lr-tb;text-anchor:start;font-family:Verdana;-inkscape-font-specification:Verdana"
-         y="592.86218"
+         y="528.86224"
          x="279.5"
          id="tspan15326"
          sodipodi:role="line">A+1</tspan></text>
@@ -389,43 +396,43 @@
        xml:space="preserve"
        style="font-size:16px;font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;text-align:start;line-height:125%;letter-spacing:0px;word-spacing:0px;writing-mode:lr-tb;text-anchor:start;fill:#000000;fill-opacity:1;stroke:none;font-family:Verdana;-inkscape-font-specification:Verdana"
        x="279.5"
-       y="572.86218"
+       y="508.86224"
        id="text15328"
        sodipodi:linespacing="125%"><tspan
          sodipodi:role="line"
          id="tspan15330"
          x="279.5"
-         y="572.86218"
-         style="font-size:16px;font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;text-align:start;line-height:125%;writing-mode:lr-tb;text-anchor:start;font-family:Verdana;-inkscape-font-specification:Verdana">A+2</tspan></text>
+         y="508.86224"
+         style="font-size:16px;font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;text-align:start;line-height:125%;writing-mode:lr-tb;text-anchor:start;font-family:Verdana;-inkscape-font-specification:Verdana">A</tspan></text>
     <path
        inkscape:connector-curvature="0"
        id="path15332"
-       d="m 249.5,492.86219 0,19.99999"
+       d="m 249.5,592.86225 0,19.99999"
        style="fill:none;stroke:#000000;stroke-width:0.99999988px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1"
        sodipodi:nodetypes="cc" />
     <text
        sodipodi:linespacing="125%"
        id="text15334"
-       y="506.86218"
+       y="606.86224"
        x="255.5"
-       style="font-size:12px;font-style:normal;font-weight:normal;line-height:125%;letter-spacing:0px;word-spacing:0px;fill:#000000;fill-opacity:1;stroke:none;font-family:Verdana;-inkscape-font-specification:Verdana;font-stretch:normal;font-variant:normal;text-anchor:start;text-align:start;writing-mode:lr"
+       style="font-size:12px;font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;text-align:start;line-height:125%;letter-spacing:0px;word-spacing:0px;writing-mode:lr-tb;text-anchor:start;fill:#000000;fill-opacity:1;stroke:none;font-family:Verdana;-inkscape-font-specification:Verdana"
        xml:space="preserve"><tspan
-         style="font-size:12px;font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;text-align:start;line-height:125%;writing-mode:lr;text-anchor:start;font-family:Verdana;-inkscape-font-specification:Verdana"
-         y="506.86218"
+         style="font-size:12px;font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;text-align:start;line-height:125%;writing-mode:lr-tb;text-anchor:start;font-family:Verdana;-inkscape-font-specification:Verdana"
+         y="606.86224"
          x="255.5"
          id="tspan15336"
          sodipodi:role="line">2</tspan></text>
     <text
        xml:space="preserve"
-       style="font-size:12px;font-style:normal;font-weight:normal;line-height:125%;letter-spacing:0px;word-spacing:0px;fill:#000000;fill-opacity:1;stroke:none;font-family:Verdana;-inkscape-font-specification:Verdana;font-stretch:normal;font-variant:normal;text-anchor:start;text-align:start;writing-mode:lr"
+       style="font-size:12px;font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;text-align:start;line-height:125%;letter-spacing:0px;word-spacing:0px;writing-mode:lr-tb;text-anchor:start;fill:#000000;fill-opacity:1;stroke:none;font-family:Verdana;-inkscape-font-specification:Verdana"
        x="185.5"
-       y="506.86218"
+       y="606.86224"
        id="text15338"
        sodipodi:linespacing="125%"><tspan
          sodipodi:role="line"
          id="tspan15340"
          x="185.5"
-         y="506.86218"
-         style="font-size:12px;font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;text-align:start;line-height:125%;writing-mode:lr;text-anchor:start;font-family:Verdana;-inkscape-font-specification:Verdana">A &gt;&gt; 2</tspan></text>
+         y="606.86224"
+         style="font-size:12px;font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;text-align:start;line-height:125%;writing-mode:lr-tb;text-anchor:start;font-family:Verdana;-inkscape-font-specification:Verdana">A &gt;&gt; 2</tspan></text>
   </g>
 </svg>

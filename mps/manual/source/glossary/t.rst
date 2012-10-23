@@ -185,6 +185,16 @@ Memory Management Glossary: T
 
         .. see:: :term:`translation lookaside buffer`.
 
+    to space
+    tospace
+
+        .. aka:: *new space*, *newspace*.
+
+        In :term:`copying garbage collection`, the space to which
+        :term:`live` object are copied.
+
+        .. opposite:: :term:`fromspace`.
+
     trace
 
         In :term:`tracing garbage collection`, tracing is the process
@@ -279,7 +289,7 @@ Memory Management Glossary: T
             :align: center
             :alt: Diagram: A treadmill.
 
-            A treadmill.
+            A treadmill. (Based on [JONES12]_.)
 
         .. bibref:: [BAKER92C]_.
 

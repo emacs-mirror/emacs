@@ -151,17 +151,14 @@ Memory Management Glossary: B
         .. bibref:: [WIL95]_.
 
     bit array
-    bit-array
 
         .. see:: :term:`bitmap`.
 
     bit table
-    bit-table
 
         .. see:: :term:`bitmap`.
 
     bit vector
-    bit-vector
 
         .. see:: :term:`bitmap`.
 

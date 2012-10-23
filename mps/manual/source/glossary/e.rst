@@ -8,6 +8,10 @@ Memory Management Glossary: E
 
 .. glossary::
 
+    ecru
+
+        .. see:: :term:`off-white`.
+
     edge
 
         In a :term:`graph`, an edge is a connection between two

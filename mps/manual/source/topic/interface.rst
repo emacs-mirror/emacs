@@ -193,10 +193,25 @@ Macros
 Support policy
 --------------
 
-1.  Public identifiers.
+1.  We support the documented behaviour of public symbols in the MPS
+    interface. We will only remove these symbols or change their
+    behaviour in a new version, and not in a patch release. Normally
+    we will give one version's notice before removing a symbol or
+    changing a particular documented behaviour: that is, there will be
+    a version in which the symbol (or reliance on some of its
+    behaviour) is deprecated.
 
-2.  The behaviour of private identifiers may be changed in future
-    releases without notice.
+2.  Behaviour that is not documented in the :ref:`guide`,
+    :ref:`reference`, or :ref:`pool` is not supported and may change
+    without notice in future releases. In particular, private
+    identifiers may disappear or their behaviour be changed without
+    notice in future releases.
+
+.. note::
+
+    If you are relying on a feature and you see that it's deprecated,
+    please :ref:`contact us`. It makes a difference if we know that
+    someone is using a feature.
 
 
 .. _topic-interface-general:

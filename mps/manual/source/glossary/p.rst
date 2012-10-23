@@ -44,7 +44,6 @@ Memory Management Glossary: P
         size is determined by the addressing hardware of the machine.
 
     page fault
-    page-fault
 
         An exception when accessing :term:`virtual memory`,
         usually resulting in a :term:`page` being fetched from disk.
@@ -60,7 +59,6 @@ Memory Management Glossary: P
         .. seealso:: :term:`paging`, :term:`paged in`, :term:`paged out`, :term:`read fault`, :term:`write fault`.
 
     page marking
-    page-marking
 
         Page marking is a form of :term:`card-marking <card marking>`
         where the :term:`card` is the same size as a :term:`page`
@@ -75,7 +73,6 @@ Memory Management Glossary: P
         process.
 
     page table
-    page-table
 
         In a :term:`virtual memory` system, it is common to map
         between :term:`virtual addresses <virtual address>` and

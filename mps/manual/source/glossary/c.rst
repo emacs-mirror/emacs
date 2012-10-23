@@ -122,7 +122,6 @@ Memory Management Glossary: C
         entail the use of a :term:`crossing map`.
 
     card marking
-    card-marking
 
         A technique for managing :term:`pointer` :term:`stores <store
         (1)>` into old :term:`generations <generation>` (which in turn

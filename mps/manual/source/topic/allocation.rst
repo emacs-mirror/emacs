@@ -65,84 +65,31 @@ Manual allocation
         all.
 
 
+
 Allocation points
 -----------------
 
+:term:`Allocation points <allocation point>` provide fast, inline,
+nearly :term:`lock-free <lock free>` allocation.
 
-.. figure:: ../diagrams/ap-buffer.svg
-    :align: center
-    :alt: Diagram: Allocation point and its associated buffer.
+(Something about "inline" here.)
 
-    Allocation point and its associated buffer.
+They must be used according to the **allocation point protocol** which
+is described here. This protocol is designed to work with incremental
+collections and multi-threaded clients, where between any two
+instructions in the client program, the MPS may run part of a garbage
+collection, move blocks in memory, rewrite pointers, and reclaim
+space. In order to reliably handle this, the allocation point protocol
+consists of (at least) two steps, a *reserve* followed by a *commit*.
 
+.. note::
 
-.. figure:: ../diagrams/ap-fill.svg
-    :align: center
-    :alt: Diagram: Allocation point after refilling.
-
-    Allocation point after refilling.
-
-
-
-See design/buffer
-
-See https://github.com/dylan-lang/opendylan/issues/235
-
-This example seems to be wrong (no function "mps_pool_alloc" in the public interface).
-
-::
-
-    {
-        mps_addr_t new_block;
-        mps_res_t res;
-        thingy *tp;
-
-        res = mps_pool_alloc(&new_block, pool, sizeof(thingy));
-        if (res != MPS_RES_OK) return res;
-        tp = new_block;
-
-        /* ... */
-    }
-
-
-Some :term:`pools <pool>` and allocation protocols accept an :term:`alignment` as an option. This
-ensures that objects in the pool or objects allocated observe a
-stricter alignment than that of the :term:`object format`.
-
-::
-
-    mps_res_t res;
-    mps_addr_t p;
-
-    res = mps_alloc(&p, pool, size);
-    if (res != MPS_RES_OK) {
-        /* p hasn't been touched in this case. */
-        handle error;
-    }
-
-    /* p now contains the result, which is the address of the new block */
-    /* in this case. */
-
-
-
-
-This wiki article contains incomplete and informal notes about the MPS, the precursor to more formal documentation. Not confidential. Readership: MPS users and developers.
-
-These notes on Allocation Points were written by RHSK between 2006-06-07 and 2006-06-22, following research and discussion with RB and NB. Warning: the text in this User's Guide is preliminary, but believed to be 'conservatively correct'. In other words, I think if you follow these guidelines, your code will be correct, and will not violate the current or future definitions of the MPS ap protocol. But this is not (yet) an accurate statement of the MPS ap protocol. RHSK 2006-06-13.
-
-[Note: some constraints may be mentioned only here, and not yet in other places they should be mentioned, such as the Reference Manual. Notably, the client's obligation to ensure there are no exact references to a failed new-object, before it calls mps_ap_trip, is suspected to be new. RHSK 2006-06-13]
-
-
-Introduction
-------------
-
-Allocation points are an MPS protocol that the client uses to allocate memory with low overhead, and low synchronization cost (with an asynchronous collector and with other threads).
-
-The allocation point protocol is designed to work with incremental collections and multi-threaded clients. (And even if your particular client is single-threaded and non-incremental, for the purposes of using allocation points it's easiest to assume you are coding for this case).
-
-The assumption is that, between any two client instructions, the MPS can interrupt you, move objects around (if they are in a moving pool) and collect garbage. To cope with this, allocating is a two-step process.
-
-**Important:** .assume.ambig-workspace: this User's Guide assumes that you have declared your stack and registers to be a root that is ambiguously scanned, using mps_root_create_reg and passing the mps_stack_scan_ambig function to it. This is the simplest way to write a client. Other scenarios are possible, but their implications for correct Allocation Point use are not yet documented here.
+    This reference assumes that you have declared your threads'
+    control stacks and registers to be roots that are ambiguously
+    scanned, by passing :c:func:`mps_stack_scan_ambig` to
+    :c:func:`mps_root_create_reg`. This is the simplest way to write a
+    client. Other scenarios are possible, but their implications for
+    correct Allocation Point use are not yet documented here.
 
 The rest of this Allocation Points User's Guide contains the following sections:
 
@@ -381,12 +328,86 @@ Incorrect-2: making an exact reference to the new object is illegal. (The code s
 
 Incorrect-3: the child slot (in this example) is exactly scanned, and it MUST be initialised before the call to commit. (The code shown is initialising it too late).
 
-Conclusion and further details
-------------------------------
 
-Although this User's Guide explains the protocol in terms of the pre-packaged macros mps_reserve and mps_commit, that is a simplification. The MPS allocation point protocol is designed as a binary protocol, defined at the level of atomic machine operations. The precise specification of the binary protocol is beyond the scope of this document.
+Allocation point implementation
+-------------------------------
 
-For further discussion of Allocation Points, see Allocation Points -- Internals in the Wiki.
+An allocation point consists of a small structure of type
+:c:type:`mps_ap_s` and an associated :term:`buffer`.
+
+.. figure:: ../diagrams/ap-buffer.svg
+    :align: center
+    :alt: Diagram: Allocation point and its associated buffer.
+
+    Allocation point and its associated buffer.
+
+The buffer is structured as shown in the figure, with free space at
+the top, *committed* blocks at the bottom, and (possibly)
+one *reserved* block in the middle. The :c:type:`mps_ap_s` structure
+contains three addresses into the associated buffer: ``limit`` points
+to the top of the buffer, ``alloc`` points to the bottom of the free
+space, and ``init`` points to the top of the initialized blocks.
+
+Allocation points are fast and nearly lock-free because in order to
+reserve space for a new block, the client program first checks that
+``ap->alloc + size <= ap->limit`` and in the common case that it is,
+it takes a copy of ``ap->init`` (which now points to the reserved
+block) and sets ``ap->alloc += size``. In pseudo-code::
+
+    if (ap->alloc + size <= ap->limit) {
+        ap->alloc += ap->size;
+        p = ap->init;
+    } else {
+        res = mps_ap_fill(
+
+A good compiler can turn this
+into an add, a store, and a branch (and branch prediction should work
+well since the test mostly succeeds).
+
+.. note::
+
+    Normally the client program would use :c:func:`mps_reserve` to
+    perform this operation, as described above, rather than directly
+    accessing the fields of the allocation point structure. But there
+    are use cases where direct access is needed to generate the
+    fastest code (for example, in the case of a compiler generating
+    machine code that needs to interface with the MPS), and it is for
+    these use cases that the details of :c:type:`mps_ap_s` are made
+    public and supported.
+
+What happens when ``ap->alloc + size > ap->limit``, that is, when the
+new block won't fit in the buffer? Then the buffer needs to be
+*refilled* by calling :c:func:`mps_ap_fill`, with typical results
+shown in the diagram below.
+
+.. figure:: ../diagrams/ap-fill.svg
+    :align: center
+    :alt: Diagram: Allocation point after refilling.
+
+    Allocation point after refilling.
+
+Refilling is why allocation points are only *nearly* lock-free:
+:c:func:`mps_ap_fill` has to take locks on internal MPS data
+structures.
+
+Note that :c:func:`mps_ap_fill` reserves the requested block as well
+as refilling the buffer.
+
+When the new block has been initialized it must be :term:`committed
+(2)`. To do this it sets ``ap->init = ap->alloc`` and then checks to
+see if the allocation point has been *trapped*: that is, if the
+garbage collector might have moved some objects since the new block
+was reserved. The garbage collector traps an allocation point by
+setting ``ap->limit = 0``, so if this case is found, then the reserved
+block may have been invalidated or reclaimed, and must be discarded
+and re-reserved, and the buffer must be refilled.
+
+.. note::
+
+    Normally the client program would use :c:func:`mps_commit` to
+    perform this operation, as described above, rather than directly
+    accessing the fields of the allocation point structure. But direct
+    access is supported by the MPS.
 
 
 Interface
@@ -580,3 +601,49 @@ Interface
     :term:`result code`.
 
 
+
+
+
+
+
+
+
+
+See design/buffer
+
+See https://github.com/dylan-lang/opendylan/issues/235
+
+This example seems to be wrong (no function "mps_pool_alloc" in the public interface).
+
+::
+
+    {
+        mps_addr_t new_block;
+        mps_res_t res;
+        thingy *tp;
+
+        res = mps_pool_alloc(&new_block, pool, sizeof(thingy));
+        if (res != MPS_RES_OK) return res;
+        tp = new_block;
+
+        /* ... */
+    }
+
+
+Some :term:`pools <pool>` and allocation protocols accept an :term:`alignment` as an option. This
+ensures that objects in the pool or objects allocated observe a
+stricter alignment than that of the :term:`object format`.
+
+::
+
+    mps_res_t res;
+    mps_addr_t p;
+
+    res = mps_alloc(&p, pool, size);
+    if (res != MPS_RES_OK) {
+        /* p hasn't been touched in this case. */
+        handle error;
+    }
+
+    /* p now contains the result, which is the address of the new block */
+    /* in this case. */

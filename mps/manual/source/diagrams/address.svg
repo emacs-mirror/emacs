@@ -13,7 +13,7 @@
    height="360"
    id="svg2"
    version="1.1"
-   inkscape:version="0.48.2 r9819"
+   inkscape:version="0.47 r22583"
    sodipodi:docname="address.svg">
   <defs
      id="defs4">
@@ -33,16 +33,16 @@
      inkscape:pageopacity="0.0"
      inkscape:pageshadow="2"
      inkscape:zoom="1"
-     inkscape:cx="293.864"
+     inkscape:cx="107.364"
      inkscape:cy="163.85714"
      inkscape:document-units="px"
      inkscape:current-layer="layer1"
      showgrid="true"
-     inkscape:window-width="1167"
-     inkscape:window-height="751"
-     inkscape:window-x="0"
+     inkscape:window-width="1623"
+     inkscape:window-height="1006"
+     inkscape:window-x="1280"
      inkscape:window-y="0"
-     inkscape:window-maximized="0">
+     inkscape:window-maximized="1">
     <inkscape:grid
        type="xygrid"
        id="grid2816"
@@ -92,7 +92,7 @@
          id="tspan2863"
          x="92"
          y="158.36218"
-         style="font-size:16px;font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;text-align:start;line-height:125%;writing-mode:lr-tb;text-anchor:start;font-family:Source Code Pro;-inkscape-font-specification:Source Code Pro">0xFFFFFFFF</tspan></text>
+         style="font-size:16px;font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;text-align:start;line-height:125%;writing-mode:lr-tb;text-anchor:start;font-family:Source Code Pro;-inkscape-font-specification:Source Code Pro">0x00000000</tspan></text>
     <text
        sodipodi:linespacing="125%"
        id="text2865"
@@ -104,7 +104,7 @@
          y="178.36218"
          x="92"
          id="tspan2867"
-         sodipodi:role="line">0xFFFFFFFE</tspan></text>
+         sodipodi:role="line">0x00000001</tspan></text>
     <text
        xml:space="preserve"
        style="font-size:16px;font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;text-align:start;line-height:125%;writing-mode:lr-tb;text-anchor:start;fill:#000000;fill-opacity:1;stroke:none;font-family:Source Code Pro;-inkscape-font-specification:Source Code Pro"
@@ -116,7 +116,7 @@
          id="tspan2871"
          x="92"
          y="198.36218"
-         style="font-size:16px;font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;text-align:start;line-height:125%;writing-mode:lr-tb;text-anchor:start;font-family:Source Code Pro;-inkscape-font-specification:Source Code Pro">0xFFFFFFFD</tspan></text>
+         style="font-size:16px;font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;text-align:start;line-height:125%;writing-mode:lr-tb;text-anchor:start;font-family:Source Code Pro;-inkscape-font-specification:Source Code Pro">0x00000002</tspan></text>
     <path
        style="fill:none;stroke:#000000;stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1"
        d="m 212,182.36218 200,0"
@@ -267,7 +267,7 @@
          y="438.36218"
          x="92"
          id="tspan2970"
-         sodipodi:role="line">0x00000002</tspan></text>
+         sodipodi:role="line">0xFFFFFFFD</tspan></text>
     <text
        xml:space="preserve"
        style="font-size:16px;font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;text-align:start;line-height:125%;writing-mode:lr-tb;text-anchor:start;fill:#000000;fill-opacity:1;stroke:none;font-family:Source Code Pro;-inkscape-font-specification:Source Code Pro"
@@ -279,7 +279,7 @@
          id="tspan2974"
          x="92"
          y="458.36218"
-         style="font-size:16px;font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;text-align:start;line-height:125%;writing-mode:lr-tb;text-anchor:start;font-family:Source Code Pro;-inkscape-font-specification:Source Code Pro">0x00000001</tspan></text>
+         style="font-size:16px;font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;text-align:start;line-height:125%;writing-mode:lr-tb;text-anchor:start;font-family:Source Code Pro;-inkscape-font-specification:Source Code Pro">0xFFFFFFFE</tspan></text>
     <text
        sodipodi:linespacing="125%"
        id="text2976"
@@ -291,6 +291,6 @@
          y="478.36218"
          x="92"
          id="tspan2978"
-         sodipodi:role="line">0x00000000</tspan></text>
+         sodipodi:role="line">0xFFFFFFFF</tspan></text>
   </g>
 </svg>
