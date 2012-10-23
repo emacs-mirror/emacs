@@ -1677,11 +1677,11 @@ If ARGUMENT is non-nil, use it as argument for
 			  (tramp-set-connection-property
 			   vec "smbserver-version" smbserver-version))))
 
-		    ;; Set chunksize.  Otherwise, `tramp-send-string' might
-		    ;; try it itself.
+		    ;; Set chunksize to 1.  smbclient reads its input
+		    ;; character by character; if we send the string
+		    ;; at once, it is read painfully slow.
 		    (tramp-set-connection-property p "smb-share" share)
-		    (tramp-set-connection-property
-		     p "chunksize" tramp-chunksize))
+		    (tramp-set-connection-property p "chunksize" 1))
 
 		;; Check for the error reason.  If it was due to wrong
 		;; password, reestablish the connection.  We cannot
@@ -1717,7 +1717,7 @@ Returns nil if an error message has appeared."
       (while (and (not found) (not err) (memq (process-status p) '(run open)))
 
 	;; Accept pending output.
-	(tramp-accept-process-output p)
+	(tramp-accept-process-output p 0.1)
 
 	;; Search for prompt.
 	(goto-char (point-min))
@@ -1731,7 +1731,7 @@ Returns nil if an error message has appeared."
       (while (and (not found) (memq (process-status p) '(run open)))
 
 	;; Accept pending output.
-	(tramp-accept-process-output p)
+	(tramp-accept-process-output p 0.1)
 
 	;; Search for prompt.
 	(goto-char (point-min))
