@@ -2816,14 +2816,11 @@ font_open_entity (FRAME_PTR f, Lisp_Object entity, int pixel_size)
   Lisp_Object objlist, size, val, font_object;
   struct font *font;
   int min_width, height;
-  int scaled_pixel_size = pixel_size;
 
   eassert (FONT_ENTITY_P (entity));
   size = AREF (entity, FONT_SIZE_INDEX);
   if (XINT (size) != 0)
-    scaled_pixel_size = pixel_size = XINT (size);
-  else if (CONSP (Vface_font_rescale_alist))
-    scaled_pixel_size = pixel_size * font_rescale_ratio (entity);
+    pixel_size = XINT (size);
 
   val = AREF (entity, FONT_TYPE_INDEX);
   for (driver_list = f->font_driver_list;
@@ -2845,7 +2842,7 @@ font_open_entity (FRAME_PTR f, Lisp_Object entity, int pixel_size)
         }
     }
 
-  font_object = driver_list->driver->open (f, entity, scaled_pixel_size);
+  font_object = driver_list->driver->open (f, entity, pixel_size);
   if (!NILP (font_object))
     ASET (font_object, FONT_SIZE_INDEX, make_number (pixel_size));
   FONT_ADD_LOG ("open", entity, font_object);
@@ -3230,31 +3227,36 @@ font_open_for_lface (FRAME_PTR f, Lisp_Object entity, Lisp_Object *attrs, Lisp_O
   if (INTEGERP (AREF (entity, FONT_SIZE_INDEX))
       && XINT (AREF (entity, FONT_SIZE_INDEX)) > 0)
     size = XINT (AREF (entity, FONT_SIZE_INDEX));
-  else if (FONT_SPEC_P (spec) && ! NILP (AREF (spec, FONT_SIZE_INDEX)))
-    size = font_pixel_size (f, spec);
   else
     {
-      double pt;
-      if (INTEGERP (attrs[LFACE_HEIGHT_INDEX]))
-	pt = XINT (attrs[LFACE_HEIGHT_INDEX]);
+      if (FONT_SPEC_P (spec) && ! NILP (AREF (spec, FONT_SIZE_INDEX)))
+	size = font_pixel_size (f, spec);
       else
 	{
-	  struct face *def = FACE_FROM_ID (f, DEFAULT_FACE_ID);
-	  Lisp_Object height = def->lface[LFACE_HEIGHT_INDEX];
-	  eassert (INTEGERP (height));
-	  pt = XINT (height);
-	}
+	  double pt;
+	  if (INTEGERP (attrs[LFACE_HEIGHT_INDEX]))
+	    pt = XINT (attrs[LFACE_HEIGHT_INDEX]);
+	  else
+	    {
+	      struct face *def = FACE_FROM_ID (f, DEFAULT_FACE_ID);
+	      Lisp_Object height = def->lface[LFACE_HEIGHT_INDEX];
+	      eassert (INTEGERP (height));
+	      pt = XINT (height);
+	    }
 
-      pt /= 10;
-      size = POINT_TO_PIXEL (pt, f->resy);
+	  pt /= 10;
+	  size = POINT_TO_PIXEL (pt, f->resy);
 #ifdef HAVE_NS
-      if (size == 0)
-        {
-          Lisp_Object ffsize = get_frame_param (f, Qfontsize);
-          size = NUMBERP (ffsize) ? POINT_TO_PIXEL (XINT (ffsize), f->resy) : 0;
-        }
+	  if (size == 0)
+	    {
+	      Lisp_Object ffsize = get_frame_param (f, Qfontsize);
+	      size = NUMBERP (ffsize) ? POINT_TO_PIXEL (XINT (ffsize), f->resy) : 0;
+	    }
 #endif
+	}
+      size *= font_rescale_ratio (entity);
     }
+
   return font_open_entity (f, entity, size);
 }
 
