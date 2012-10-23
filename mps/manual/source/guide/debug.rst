@@ -83,7 +83,7 @@ in the Scheme intrepreter's :ref:`scan method <guide-lang-scan>`, I
 might have forgetten to fix the first element of a pair:
 
 .. code-block:: c
-   :emphasize-lines: 2
+    :emphasize-lines: 2
 
     case TYPE_PAIR:
       /* oops, forgot: FIX(obj->pair.car); */
@@ -135,16 +135,16 @@ What's going on? ::
     #0  0x00007fff91aeed46 in __kill ()
     #1  0x00007fff90509df0 in abort ()
     #2  0x00007fff9050ae2a in __assert_rtn ()
-    #3  0x0000000100003f55 in lookup_in_frame (frame=0x1003fa7d0, symbol=0x1003faf20) at scheme.c:1065
-    #4  0x0000000100003ea6 in lookup (env=0x1003fb130, symbol=0x1003faf20) at scheme.c:1086
-    #5  0x000000010000341f in eval (env=0x1003fb130, op_env=0x1003fb148, exp=0x1003faf20) at scheme.c:1134
-    #6  0x000000010000261b in start (p=0x0, s=0) at scheme.c:2885
+    #3  0x0000000100003f55 in lookup_in_frame (frame=0x1003fa7d0, symbol=0x1003faf20) at scheme.c:1066
+    #4  0x0000000100003ea6 in lookup (env=0x1003fb130, symbol=0x1003faf20) at scheme.c:1087
+    #5  0x000000010000341f in eval (env=0x1003fb130, op_env=0x1003fb148, exp=0x1003faf20) at scheme.c:1135
+    #6  0x000000010000261b in start (p=0x0, s=0) at scheme.c:3204
     #7  0x0000000100011ded in ProtTramp (resultReturn=0x7fff5fbff7d0, f=0x100002130 <start>, p=0x0, s=0) at protix.c:132
     #8  0x0000000100011d34 in mps_tramp (r_o=0x7fff5fbff7d0, f=0x100002130 <start>, p=0x0, s=0) at mpsi.c:1346
-    #9  0x0000000100001ef7 in main (argc=1, argv=0x7fff5fbff830) at scheme.c:2994
+    #9  0x0000000100001ef7 in main (argc=1, argv=0x7fff5fbff830) at scheme.c:3314
     (gdb) frame 4
-    #4  0x0000000100003ea6 in lookup (env=0x1003fb130, symbol=0x1003faf20) at scheme.c:1086
-    1086	    binding = lookup_in_frame(CAR(env), symbol);
+    #4  0x0000000100003ea6 in lookup (env=0x1003fb130, symbol=0x1003faf20) at scheme.c:1087
+    1086            binding = lookup_in_frame(CAR(env), symbol);
     (gdb) print (char *)symbol->symbol.string
     $1 = 0x1003faf30 "foo"
 
@@ -162,11 +162,25 @@ value, as shown here:
 
 In this case, because the evaluation is taking place at top level,
 there is only one frame in the environment (the global frame). And
-it's this frame that's corrupt::
+it's this frame that's corrupt:
+
+.. code-block:: none
+    :emphasize-lines: 10
 
     (gdb) frame 3
-    #3  0x0000000100003f55 in lookup_in_frame (frame=0x1003fa7d0, symbol=0x1003faf20) at scheme.c:1065
-    1065	    assert(TYPE(frame) == TYPE_PAIR);
+    #3  0x0000000100003f55 in lookup_in_frame (frame=0x1003fa7d0, symbol=0x1003faf20) at scheme.c:1066
+    1066            assert(TYPE(frame) == TYPE_PAIR);
+    (gdb) list
+    1061         */
+    1062        
+    1063        static obj_t lookup_in_frame(obj_t frame, obj_t symbol)
+    1064        {
+    1065          while(frame != obj_empty) {
+    1066            assert(TYPE(frame) == TYPE_PAIR);
+    1067            assert(TYPE(CAR(frame)) == TYPE_PAIR);
+    1068            assert(TYPE(CAAR(frame)) == TYPE_SYMBOL);
+    1069            if(CAAR(frame) == symbol)
+    1070              return CAR(frame);
     (gdb) print frame->type.type
     $2 = 13
 
@@ -210,7 +224,7 @@ the test case with telemetry turned on::
     #[undefined]
     [...]
     7968, 1> foo
-    Assertion failed: (TYPE(frame) == TYPE_PAIR), function lookup_in_frame, file scheme.c, line 1065.
+    Assertion failed: (TYPE(frame) == TYPE_PAIR), function lookup_in_frame, file scheme.c, line 1066.
 
     Program received signal SIGABRT, Aborted.
     0x00007fff91aeed46 in __kill ()
@@ -251,8 +265,8 @@ addresses of interest. Here we look for events related to the address
 of the corrupted ``frame`` object::
 
     (gdb) frame 3
-    #3  0x0000000100003f55 in lookup_in_frame (frame=0x1003fa7d0, symbol=0x1003faf20) at scheme.c:1065
-    1065	    assert(TYPE(frame) == TYPE_PAIR);
+    #3  0x0000000100003f55 in lookup_in_frame (frame=0x1003fa7d0, symbol=0x1003faf20) at scheme.c:1066
+    1066            assert(TYPE(frame) == TYPE_PAIR);
     (gdb) print frame
     $2 = (obj_t) 0x1003fa7d0
     (gdb) shell grep -i 1003fa7d0 mpsio.txt || echo not found
@@ -280,7 +294,7 @@ Here's another kind of mistake: an off-by-one error in ``make_string``
 leading to the allocation of string objects with the wrong size:
 
 .. code-block:: c
-   :emphasize-lines: 5
+    :emphasize-lines: 5
 
     static obj_t make_string(size_t length, char *string)
     {
@@ -307,7 +321,10 @@ Here's a test case that exercises this bug:
     (define (church n f a) (if (eqv? n 0) a (church (- n 1) f (f a))))
     (church 1000 (lambda (s) (string-append s "x")) "")
 
-And here's how it shows up in the debugger::
+And here's how it shows up in the debugger:
+
+.. code-block:: none
+    :emphasize-lines: 47
 
     $ gdb ./scheme
     GNU gdb 6.3.50-20050815 (Apple version gdb-1820) (Sat Jun 16 02:40:11 UTC 2012)
@@ -318,7 +335,7 @@ And here's how it shows up in the debugger::
     MPS Toy Scheme Example
     [...]
     9960, 0> church
-    Assertion failed: (0), function obj_skip, file scheme.c, line 2949.
+    Assertion failed: (0), function obj_skip, file scheme.c, line 2940.
     10816, 0> 
     Program received signal SIGABRT, Aborted.
     0x00007fff91aeed46 in __kill ()
@@ -326,7 +343,7 @@ And here's how it shows up in the debugger::
     #0  0x00007fff91aeed46 in __kill ()
     #1  0x00007fff90509df0 in abort ()
     #2  0x00007fff9050ae2a in __assert_rtn ()
-    #3  0x00000001000014e3 in obj_skip (base=0x1003f9b88) at scheme.c:2949
+    #3  0x00000001000014e3 in obj_skip (base=0x1003f9b88) at scheme.c:2940
     #4  0x0000000100068050 in amcScanNailedOnce (totalReturn=0x7fff5fbfef2c, moreReturn=0x7fff5fbfef28, ss=0x7fff5fbff0a0, pool=0x1003fe278, seg=0x1003fe928, amc=0x1003fe278) at poolamc.c:1485
     #5  0x0000000100067ca1 in amcScanNailed (totalReturn=0x7fff5fbff174, ss=0x7fff5fbff0a0, pool=0x1003fe278, seg=0x1003fe928, amc=0x1003fe278) at poolamc.c:1522
     #6  0x000000010006631f in AMCScan (totalReturn=0x7fff5fbff174, ss=0x7fff5fbff0a0, pool=0x1003fe278, seg=0x1003fe928) at poolamc.c:1595
@@ -338,17 +355,28 @@ And here's how it shows up in the debugger::
     #12 0x000000010000d75f in ArenaPoll (globals=0x10012a000) at global.c:684
     #13 0x000000010000ea40 in mps_ap_fill (p_o=0x7fff5fbff3e0, mps_ap=0x1003fe820, size=208) at mpsi.c:961
     #14 0x000000010000447d in make_string (length=190, string=0x0) at scheme.c:468
-    #15 0x0000000100008ca2 in entry_string_append (env=0x1003cbe38, op_env=0x1003cbe50, operator=0x1003fad48, operands=0x1003f9af8) at scheme.c:2572
+    #15 0x0000000100008ca2 in entry_string_append (env=0x1003cbe38, op_env=0x1003cbe50, operator=0x1003fad48, operands=0x1003f9af8) at scheme.c:2562
     #16 0x0000000100002fe4 in eval (env=0x1003cbe38, op_env=0x1003cbe50, exp=0x1003f9ae0) at scheme.c:1159
     #17 0x0000000100005ff5 in entry_interpret (env=0x1003cb958, op_env=0x1003cb970, operator=0x1003f99d8, operands=0x1003f9948) at scheme.c:1340
     #18 0x0000000100002fe4 in eval (env=0x1003cb958, op_env=0x1003cb970, exp=0x1003f9878) at scheme.c:1159
     #19 0x000000010000206b in start (p=0x0, s=0) at scheme.c:3213
     #20 0x000000010001287d in ProtTramp (resultReturn=0x7fff5fbff7a0, f=0x100001b80 <start>, p=0x0, s=0) at protix.c:132
     #21 0x00000001000127c4 in mps_tramp (r_o=0x7fff5fbff7a0, f=0x100001b80 <start>, p=0x0, s=0) at mpsi.c:1346
-    #22 0x0000000100001947 in main (argc=1, argv=0x7fff5fbff808) at scheme.c:3322
+    #22 0x0000000100001947 in main (argc=1, argv=0x7fff5fbff808) at scheme.c:3314
     (gdb) frame 3
-    #3  0x00000001000014e3 in obj_skip (base=0x1003f9b88) at scheme.c:2949
-    2949	    assert(0);
+    #3  0x00000001000014e3 in obj_skip (base=0x1003f9b88) at scheme.c:2940
+    2940            assert(0);
+    (gdb) list
+    2935	    break;
+    2936	  case TYPE_PAD1:
+    2937	    base = (char *)base + ALIGN(sizeof(pad1_s));
+    2938	    break;
+    2939	  default:
+    2940	    assert(0);
+    2941	    fprintf(stderr, "Unexpected object on the heap\n");
+    2942	    abort();
+    2943	    return NULL;
+    2944	  }
 
 The object being skipped is corrupt::
 
@@ -359,16 +387,16 @@ What happened to it? It's often helpful in these situations to have a
 look at nearby memory. ::
 
     (gdb) x/20g obj
-    0x1003f9b88:	0x00000001003f9b70	0x00000001003fb000
-    0x1003f9b98:	0x0000000000000000	0x00000001003f9c90
-    0x1003f9ba8:	0x00000001003fb130	0x0000000000000000
-    0x1003f9bb8:	0x00000001003fb000	0x00000001003fb148
-    0x1003f9bc8:	0x0000000000000000	0x00000001003f9730
-    0x1003f9bd8:	0x00000001003f9a58	0x0000000000000000
-    0x1003f9be8:	0x00000001003f9bc8	0x00000001003fb000
-    0x1003f9bf8:	0x0000000000000000	0x00000001003fb0a0
-    0x1003f9c08:	0x00000001003f9b40	0x0000000000000004
-    0x1003f9c18:	0x000000010007b14a	0x0000000100005e30
+    0x1003f9b88:        0x00000001003f9b70      0x00000001003fb000
+    0x1003f9b98:        0x0000000000000000      0x00000001003f9c90
+    0x1003f9ba8:        0x00000001003fb130      0x0000000000000000
+    0x1003f9bb8:        0x00000001003fb000      0x00000001003fb148
+    0x1003f9bc8:        0x0000000000000000      0x00000001003f9730
+    0x1003f9bd8:        0x00000001003f9a58      0x0000000000000000
+    0x1003f9be8:        0x00000001003f9bc8      0x00000001003fb000
+    0x1003f9bf8:        0x0000000000000000      0x00000001003fb0a0
+    0x1003f9c08:        0x00000001003f9b40      0x0000000000000004
+    0x1003f9c18:        0x000000010007b14a      0x0000000100005e30
 
 You can see that this is a block containing mostly pairs (which have
 tag 0 and consist of three words), though you can see an operator
@@ -378,11 +406,11 @@ what's in the memory just below ``obj``? Let's look at the previous
 few words::
 
     (gdb) x/10g (mps_word_t*)obj-8
-    0x1003f9b48:	0x00000001003f9ae0	0x00000001003fb000
-    0x1003f9b58:	0x0000000000000000	0x00000001003f9a80
-    0x1003f9b68:	0x00000001003f9b80	0x0000000000000005
-    0x1003f9b78:	0x0000000000000000	0x0000000000000000
-    0x1003f9b88:	0x00000001003f9b70	0x00000001003fb000
+    0x1003f9b48:        0x00000001003f9ae0      0x00000001003fb000
+    0x1003f9b58:        0x0000000000000000      0x00000001003f9a80
+    0x1003f9b68:        0x00000001003f9b80      0x0000000000000005
+    0x1003f9b78:        0x0000000000000000      0x0000000000000000
+    0x1003f9b88:        0x00000001003f9b70      0x00000001003fb000
 
 Yes: there's a pair (with tag 0) at ``0x1003f9b80``. So it looks as
 though the previous object was allocated with one size, but skipped

@@ -341,7 +341,7 @@ Memory management in various languages
 
         .. seealso:: :term:`cons (1)`.
 
-        .. bibref:: [MM59]_, [MCCARTHY60]_, [EDWARDS]_, [BAKER78]_, [MOON84]_, [SOBALVARRO88]_, [MOON87]_, [ZORN88]_, [MOON91]_.
+        .. bibref:: [MM59]_, [MCCARTHY60]_, [MCCARTHY79]_, [EDWARDS]_, [BAKER78]_, [MOON84]_, [SOBALVARRO88]_, [MOON87]_, [ZORN88]_, [MOON91]_.
 
         .. link::
 
