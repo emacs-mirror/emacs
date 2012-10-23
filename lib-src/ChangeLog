@@ -1,3 +1,8 @@
+2012-10-23  Eli Zaretskii  <eliz@gnu.org>
+
+	* makefile.w32-in (lisp2): Add cp51932.el and eucjp-ms.el, to
+	follow src/lisp.mk.
+
 2012-10-21  Glenn Morris  <rgm@gnu.org>
 
 	* make-docfile.c (scan_lisp_file): Add cp51932.el and eucjp-ms.el.
