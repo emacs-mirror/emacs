@@ -7,6 +7,18 @@ Allocation
 Manual allocation
 -----------------
 
+.. note::
+
+    Not all :term:`pool classes <pool class>` support this interface:
+    :term:`automatically managed <automatic memory management>` pools
+    typically support none of it, and even :term:`manually managed
+    <manual memory management>` pools may not support the whole
+    interface. Consult the pool class documentation for details. For
+    example, the :ref:`pool-mvt` pool class supports deallocation via
+    :c:func:`mps_free` but allocation must use allocation points, as
+    described below.
+
+
 .. c:function:: mps_res_t mps_alloc(mps_addr_t *p_o, mps_pool_t pool, size_t size, ...)
 
     Allocate a :term:`block` of memory in a :term:`pool`.
@@ -69,349 +81,37 @@ Manual allocation
 Allocation points
 -----------------
 
-:term:`Allocation points <allocation point>` provide fast, inline,
-nearly :term:`lock-free <lock free>` allocation.
-
-(Something about "inline" here.)
+:term:`Allocation points <allocation point>` provide fast,
+:term:`inline <inline allocation (1)>`, nearly :term:`lock-free <lock
+free>` allocation. They allow code to allocate without calling an
+allocation function: this is vital for performance in languages or
+programs that allocate many small objects.
 
 They must be used according to the **allocation point protocol** which
-is described here. This protocol is designed to work with incremental
-collections and multi-threaded clients, where between any two
-instructions in the client program, the MPS may run part of a garbage
-collection, move blocks in memory, rewrite pointers, and reclaim
-space. In order to reliably handle this, the allocation point protocol
-consists of (at least) two steps, a *reserve* followed by a *commit*.
+is described below. This protocol is designed to work with
+:term:`incremental garbage collection` and multiple :term:`threads
+<thread>`, where between any two instructions in the :term:`client
+program`, the MPS may run part of a :term:`garbage collection`,
+:term:`move <moving memory manager>` blocks in memory, rewrite
+pointers, and reclaim space. In order to reliably handle this, the
+allocation point protocol consists of (at least) two steps, a
+*reserve* followed by a *commit*.
 
 .. note::
 
-    This reference assumes that you have declared your threads'
-    control stacks and registers to be roots that are ambiguously
-    scanned, by passing :c:func:`mps_stack_scan_ambig` to
+    This description assumes that you have declared your threads'
+    :term:`control stacks <control stack>` and :term:`registers
+    <register>` to be :term:`ambiguous roots <ambiguous root>`, by
+    passing :c:func:`mps_stack_scan_ambig` to
     :c:func:`mps_root_create_reg`. This is the simplest way to write a
-    client. Other scenarios are possible, but their implications for
-    correct Allocation Point use are not yet documented here.
+    client. Other scenarios are possible, but not yet documented.
 
-The rest of this Allocation Points User's Guide contains the following sections:
+.. c:type:: mps_ap_t
 
-* Creating and destroying allocation points
-* Overview of two-step allocation
-* The graph of managed references
-* mps_reserve
-* Building the object
-* mps_commit
-* Common mistakes
+    The type of :term:`allocation points <allocation point>`. It is a
+    :term:`transparent alias <transparent type>` for a pointer to
+    :c:type:`mps_ap_s`.
 
-
-Creating and destroying allocation points
------------------------------------------
-
-To create an allocation point in a pool, call mps_ap_create. This may require additional arguments, depending on the pool class. See pool class documentation.
-
-An allocation point MUST NOT be used by more than one thread. (Each thread must have its own allocation point or points).
-
-Destroy an allocation point with mps_ap_destroy.
-
-Overview of two-step allocation
--------------------------------
-
-When the client is building (creating and formatting) a new object, you can think of it as being 'in a race' with the MPS. The object is 'under construction', and the MPS cannot manage it in the normal way. So the client should build the object quickly, and then commit it to MPS management. Rarely, the MPS has to move other objects around right in the middle of this build phase: that's a (small) price you pay for having an asynchronous collector. If this happens, the MPS will tell the client that it has 'lost the race'. Objects have moved around, and the new object is invalid. The client must start building it again from scratch.
-
-The client starts building the new object with mps_reserve, and marks it complete by calling mps_commit. Almost always, mps_commit succeeds. But if the client did not complete the object in time, then mps_commit fails (returns 0).
-
-This is how the client should build a new object:
-
-1. mps_reserve some memory,
-
-2. build a new object in it,
-
-3. store a reference to the new object in an ambiguously-scanned place (but NOT in any exactly-scanned place),
-
-4. mps_commit the new object to MPS management.
-
-If commit succeeds, the object is complete, and immediately becomes just a normal allocated object. The client may write a reference to the new object into some older object (thereby connecting the new object into the client's graph of objects).
-
-If commit fails, the new object no longer exists: the data has gone and any references that used to refer to it are now dangling pointers. The client should simply try to build the object again.
-
-In pseudo-code, the standard allocation point idiom is::
-
-    do
-        mps_reserve
-        initialize new object
-        make an ambiguous reference to new object
-    while (! mps_commit)
-    link new object into my object graph
-
-(Do not worry about getting stuck in this loop: commit usually fails at most once per collection, so it is very rare for commit to fail even once, let alone twice).
-
-In C, this typically looks like this::
-
-    int make_object(mps_ap_t ap, object *parent)
-    {
-      void *p;
-      object *neo = NULL;
-
-      do {
-        if (mps_reserve(&p, ap, SIZE_OBJECT) != MPS_RES_OK) {
-          goto fail_make_object;
-        }
-        /* Build the new object */
-        neo = p;
-        neo->formatcode = FORMAT_CLIENT;  /* (not fwd or pad) */
-        neo->type = TYPE_OBJECT;
-        neo->size = SIZE_OBJECT;
-        neo->parent = parent;
-        neo->tribe = parent->tribe;
-        neo->child = NULL;
-        /* neo (ambiguous reference) preserves the new object */
-      } while (! mps_commit(ap, p, SIZE_OBJECT));
-
-      /* Success: link the new object into my object graph */
-      parent->child = neo;
-      return TRUE;
-
-    fail_make_object:
-      return FALSE;  /* out of memory, etc */
-    }
-
-Note that, throughout this User's Guide, we assume that the stack and registers are declared as ambiguous roots (.assume.ambig-workspace) which means that the neo pointer keeps the new object alive for us.
-
-The rest of this User's Guide goes through these steps in more detail.
-
-The graph of managed references
--------------------------------
-
-The MPS is a moving garbage collector: it supports preserve-by-copying pools, whose objects are 'mobile'. Whenever the MPS moves an object, it will ensure that all managed references are updated to point to the new location -- and this happens instantaneously as far as the client sees it.
-
-The client should assume that, between any pair of instructions, the MPS may 'shake' this graph, moving all the mobile objects, and updating all the managed references.
-
-Any parts of the graph that are no longer connected (no longer reachable from declared roots) may be collected, and the memory that those objects occupied may be unmapped, or re-used for different objects.
-
-The client usually takes care to ensure that all the references it holds are managed. To be managed, the reference must be in a declared root (such as a scanned stack or a global variable), or in a formatted object that is reachable from a root.
-
-It is okay for a careful client to hold unmanaged references, but:
-
-they'd better not be to a mobile object! Remember, mobile objects could move at any time, and unmanaged references will be left 'dangling'.
-they'd better not be the only reference to an object, or that object might get collected, again leaving a dangling reference.
-
-mps_reserve
------------
-
-Call mps_reserve, passing the size of the new object you wish to create. The size must be aligned to the pool alignment. This is in contrast to mps_alloc, which (for some pools) allows unaligned sizes.
-
-[Normally, use mps_reserve (the lower-case C macro). But if you are using a weak compiler that does not detect common subexpressions, you may find that using MPS_RESERVE_BLOCK (functionally identical) generates faster code. Or it may generate slower code. It depends on your compiler, and you will have to conduct tests to find out.]
-
-mps_reserve returns a reference to a piece of new memory for the client to build a new object in. During this build, the MPS pins the piece of memory, and treats it as raw data.
-
-"Pinned" means: it will not move, be collected, be unmapped, or anything like that. You may keep an unmanaged reference to it at this time.
-
-"Raw data" means two things:
-
-Firstly, "raw data" means that any references stored IN the new object are unmanaged. This means:
-
-* references in the new object will not get updated if the graph of managed references to mobile objects is 'shaken';
-* references in the new object do not preserve any old objects they point to.
-
-Secondly, "raw data" means that any references TO the new object are treated like other references to unmanaged memory:
-
-* the MPS will not call the client's format code to answer questions about the new object.
-
-Building the object
--------------------
-
-The client will typically do all these things:
-
-* write data that makes the new object 'valid' for the client's format;
-* write other data into the new object;
-* store references to existing objects IN the new object;
-* keep (in a local variable) an ambiguous reference TO the new object.
-
-However, during the build, there are a couple of restrictions:
-
-* Once the client has stored a reference IN the new object, it MUST NOT read it out again — any reference stored in the new object is unmanaged, and may have become stale.
-
-  (Actually, the restriction is: the moment a reference to an existing mobile object is written into the new object, that reference (in the new object) may become stale. And you'd better not use (dereference) a stale reference. And you'd better not write it into any exactly-scanned cell (such as in an existing object). Reading it into an ambiguously-scanned cell (such as an ambiguously scanned register or stack cell) is okay as long as you don't dereference it. Writing it back into another part of the new object is okay too. Just don't trust it to be a valid reference.)
-
-* The client MUST NOT store a reference TO the new object in any exactly-scanned place.
-
-  [Note: this is in fact possible, but the protocol for doing it is more complex, and beyond the scope of this guide. RHSK 2006-06-22]
-
-  This means the client should NOT connect the new object into the graph of managed objects during the build.
-
-Before the end of the build phase:
-
-* the new object must be validly formatted;
-* all exactly-scanned cells in the new object must contain valid references;
-* the new object must be ambiguously reachable.
-
-Optionally, for improved robustness to bugs, consider initialising all parts of the new object, including parts that are not yet being used to store useful data (such as a string buffer). You might want to make this compile-time switchable, for debugging.
-
-.. note::
-
-    If you leave these unused parts uninitialised, they may contain data that looks like a valid object -- this is called a "spoof object". (This might be the 'ghost' of a previous object, or just random junk that happens to look like a valid object).
-
-    This is completely legal: spoof objects do not cause a problem for the MPS.
-
-    However, this might leave you with less safety margin than you want, especially when developing a new client. If there were to be a bug in your code (or indeed in the MPS) that resulted in a bogus exact reference to this spoof, it might go undetected, and arbitrary corruption might occur before the bug came to light. So, consider filling these as-yet unused parts with specially chosen dummy values, at least as an option for debugging. Choose dummy values that your format code will recognise as not permitted at the start of a valid formatted object. You will then detect bogus exact references more promptly.
-
-    [RHSK 2006-06-15: In poolamc, these ghosts will be forwarding pointers, and they will usually get unmapped (though unless we use zeroed / secure / etc VM they may get mapped-in again intact). But if the tract is nailed they won't even get unmapped. And ghost forwarding pointers are just as bad news as any other spoof. There's currently no format method "destroy". If there was, we could call it in the reclaim phase, to allow format code to safely mark these ghosts as dead. Actually, perhaps that's a valid use of the 'pad' method? ]
-
-
-mps_commit
-----------
-
-When you call mps_commit, it will either fail or succeed.
-
-Almost always, mps_commit succeeds. If it succeeds, that means:
-
-* all the references written IN the new object are valid (in other words, a successful commit is the MPS's way of telling you that these references did not become stale while they were sitting unmanaged in the new object);
-* all the references TO the new object are valid;
-* the new object is now just a normal object like any other;
-* it may get collected if there are no references to it;
-* if the pool supports mps_free, you may manually free the new object.
-
-Occasionally but rarely, mps_commit fails. This means:
-
-* the new object no longer exists — the memory may even be unmapped by the time mps_commit returns;
-* there must be no exact references to the new object.
-
-If commit fails, the client usually tries making the object again (although this is not required: it is allowed to just give up!). This is why the standard allocation point idiom has a do...while loop.
-
-Common mistakes
----------------
-
-Here are some examples of mistakes to avoid::
-
-    /* This example below is INCORRECT. */
-
-    typedef struct object_s {
-      int              formatcode;  /* FORMAT_CLIENT, _FWD, or _PAD */
-      int              type;
-      size_t           size;
-      struct object_s *tribe;
-      struct object_s *parent;
-      struct object_s *child;
-    } object; 
-
-    int make_object(mps_ap_t ap, object *parent)
-    {
-      void *p;
-      object *neo = NULL;
-
-      do {
-        if (mps_reserve(&p, ap, SIZE_OBJECT) != MPS_RES_OK) {
-          goto fail_make_object;
-        }
-        /* Build the new object */
-        neo = p;
-        neo->formatcode = FORMAT_CLIENT;
-        neo->type = TYPE_OBJECT;
-        neo->size = SIZE_OBJECT;
-        neo->parent = parent;
-        neo->tribe = neo->parent->tribe;  /*--- incorrect-1 ---*/
-        parent->child = neo;  /*--- incorrect-2 ---*/
-
-        /* neo (ambiguous reference) preserves the new object */
-      } while (! mps_commit(ap, p, SIZE_OBJECT));
-
-      neo->child = NULL;  /*--- incorrect-3 ---*/
-      return TRUE;
-
-    fail_make_object:
-      return FALSE;  /* out of memory, etc */
-    }
-
-    /* The example above is INCORRECT. */
-
-Incorrect-1: do not read references from the new object. Dereferencing neo->parent is illegal. (The code should use parent->tribe).
-
-Incorrect-2: making an exact reference to the new object is illegal. (The code should only do this after a successful commit).
-
-Incorrect-3: the child slot (in this example) is exactly scanned, and it MUST be initialised before the call to commit. (The code shown is initialising it too late).
-
-
-Allocation point implementation
--------------------------------
-
-An allocation point consists of a small structure of type
-:c:type:`mps_ap_s` and an associated :term:`buffer`.
-
-.. figure:: ../diagrams/ap-buffer.svg
-    :align: center
-    :alt: Diagram: Allocation point and its associated buffer.
-
-    Allocation point and its associated buffer.
-
-The buffer is structured as shown in the figure, with free space at
-the top, *committed* blocks at the bottom, and (possibly)
-one *reserved* block in the middle. The :c:type:`mps_ap_s` structure
-contains three addresses into the associated buffer: ``limit`` points
-to the top of the buffer, ``alloc`` points to the bottom of the free
-space, and ``init`` points to the top of the initialized blocks.
-
-Allocation points are fast and nearly lock-free because in order to
-reserve space for a new block, the client program first checks that
-``ap->alloc + size <= ap->limit`` and in the common case that it is,
-it takes a copy of ``ap->init`` (which now points to the reserved
-block) and sets ``ap->alloc += size``. In pseudo-code::
-
-    if (ap->alloc + size <= ap->limit) {
-        ap->alloc += ap->size;
-        p = ap->init;
-    } else {
-        res = mps_ap_fill(
-
-A good compiler can turn this
-into an add, a store, and a branch (and branch prediction should work
-well since the test mostly succeeds).
-
-.. note::
-
-    Normally the client program would use :c:func:`mps_reserve` to
-    perform this operation, as described above, rather than directly
-    accessing the fields of the allocation point structure. But there
-    are use cases where direct access is needed to generate the
-    fastest code (for example, in the case of a compiler generating
-    machine code that needs to interface with the MPS), and it is for
-    these use cases that the details of :c:type:`mps_ap_s` are made
-    public and supported.
-
-What happens when ``ap->alloc + size > ap->limit``, that is, when the
-new block won't fit in the buffer? Then the buffer needs to be
-*refilled* by calling :c:func:`mps_ap_fill`, with typical results
-shown in the diagram below.
-
-.. figure:: ../diagrams/ap-fill.svg
-    :align: center
-    :alt: Diagram: Allocation point after refilling.
-
-    Allocation point after refilling.
-
-Refilling is why allocation points are only *nearly* lock-free:
-:c:func:`mps_ap_fill` has to take locks on internal MPS data
-structures.
-
-Note that :c:func:`mps_ap_fill` reserves the requested block as well
-as refilling the buffer.
-
-When the new block has been initialized it must be :term:`committed
-(2)`. To do this it sets ``ap->init = ap->alloc`` and then checks to
-see if the allocation point has been *trapped*: that is, if the
-garbage collector might have moved some objects since the new block
-was reserved. The garbage collector traps an allocation point by
-setting ``ap->limit = 0``, so if this case is found, then the reserved
-block may have been invalidated or reclaimed, and must be discarded
-and re-reserved, and the buffer must be refilled.
-
-.. note::
-
-    Normally the client program would use :c:func:`mps_commit` to
-    perform this operation, as described above, rather than directly
-    accessing the fields of the allocation point structure. But direct
-    access is supported by the MPS.
-
-
-Interface
----------
 
 .. c:function:: mps_res_t mps_ap_create(mps_ap_t *ap_o, mps_pool_t pool, ...)
 
@@ -427,6 +127,12 @@ Interface
 
     Some pool classes require additional arguments to be passed to
     :c:func:`mps_ap_create`. See the documentation for the pool class.
+
+    .. warning::
+
+        An allocation point must not be used by more than one
+        :term:`thread`: each thread must create its own allocation
+        point or points.
 
     .. note::
 
@@ -452,63 +158,134 @@ Interface
     :term:`committed (2)` by :c:func:`mps_commit`.
 
 
-.. c:function:: mps_res_t mps_ap_fill(mps_addr_t *p_o, mps_ap_t ap, size_t size)
+.. _topic-allocation-point-protocol:
+
+The allocation point protocol
+-----------------------------
+
+When the client program is initializing a newly allocated object, you
+can think of it as being "in a race" with the MPS. Until the object is
+initialized, the MPS cannot manage it in the usual way: in particular,
+it cannot ensure that the new object remains correct if other objects
+move during its initialization. So if other objects *do* move, the MPS
+tells the client program that it has "lost the race": the
+partially-initialized object may be invalid, and the client must
+initialize it again from scratch.
+
+The allocation point protocol is as follows:
+
+1. Call :c:func:`mps_reserve` to reserve a block of memory on an
+   allocation point. The size of the block must be a multiple of the
+   :term:`alignment` of the pool in which the allocation point was
+   created.
+
+   If :c:func:`mps_reserve` returns :c:macro:`MPS_RES_OK`, go to step 2.
+
+   Otherwise, the block cannot be reserved (this might happen if the
+   MPS is out of memory).
+
+2. Create an :term:`ambiguous reference` to the block (and *no*
+   :term:`exact references <exact reference>` to it). This is most
+   easily achieved by passing a pointer to a local variable as the
+   first argument to :c:func:`mps_reserve`. (Local variables are
+   allocated on the thread's control stack, which was registered as an
+   ambiguous root.)
+
+3. Initialize the object.
+
+4. Call :c:func:`mps_commit` to attempt to commit the object to the
+   care of the MPS.
+
+   If :c:func:`mps_commit` returns true, this means that the object is
+   valid, and is now under the management of the MPS. The client program
+   may rely on references stored in the object, and may store references
+   to the new object in its other objects.
+
+   If :c:func:`mps_commit` returns false, this means that the block is
+   invalid. It is usual in this case to go back to step 1 and re-reserve
+   and re-initialize it, but other courses of action are permitted.
+
+.. note::
+
+    The reason the block is invalid because a :term:`flip` took place
+    after the call to :c:func:`mps_reserve` and before the call to
+    :c:func:`mps_commit`. This means that references in the block may
+    point to the old location of blocks that moved.
+
+The usual implementation of the allocation point protocol in :term:`C`
+is thus::
+
+    mps_addr_t p;
+    obj_t obj;
+    do {
+        mps_res_t res;
+        res = mps_reserve(&p, ap, size);
+        if (res != MPS_RES_OK) /* handle the error */;
+        /* p is now an ambiguous reference to the reserved block */
+        obj = p;
+        /* initialize obj */
+    } while (!mps_commit(ap, p, size));
+    /* obj is now valid */
+
+It is not necessary to worry about going around this loop many times:
+:c:func:`mps_commit` can fail at most once per thread per flip.
+
+
+.. c:function:: mps_res_t mps_reserve(mps_addr_t *p_o, mps_ap_t ap, size_t size)
 
     Reserve a :term:`block` of memory on an :term:`allocation point`.
 
-    :c:func:`mps_ap_fill` has same interface as :c:func:`mps_reserve`.
+    ``p_o`` points to a location that will hold the address of the
+    reserved block.
+
+    ``ap`` is the allocation point.
+
+    ``size`` is the :term:`size` of the block to allocate. It must be
+    a multiple of the :term:`alignment` of the pool (or of the pool's
+    :term:`object format` if it has one).
+
+    Returns :c:macro:`MPS_RES_OK` if the block was reserved
+    successfully, or another :term:`result code` if not.
+
+    The reserved block may be initialized but must not otherwise be
+    used 
+
+    Until it has been :term:`committed (2)` via a successful call to
+    :c:func:`mps_commit`, the reserved block may be:
+
+    * initialized;
+    * referenced by an :term:`ambiguous reference`;
+
+    but:
+
+    * it must not be referenced by an :term:`exact reference`;
+    * references stored in it must not be followed;
+    * it is not scanned, moved, or protected (even if it belongs to a
+      pool with these features).
 
     .. note::
 
-        :c:func:`mps_ap_fill` must only be called according to the
+        :c:func:`mps_reserve` must only be called according to the
         :term:`allocation point protocol`.
 
+        :c:func:`mps_reserve` is implemented as a macro for speed. It
+        may evaluate its arguments multiple times.
 
-.. c:type:: mps_ap_s
-
-   The type of the structure used to represent :term:`allocation
-   points <allocation point>`::
-
-        typedef struct mps_ap_s {
-          mps_addr_t init;
-          mps_addr_t alloc;
-          mps_addr_t limit;
-          /* ... private fields ... */
-        } mps_ap_s;
-
-   ``init`` is the limit of initialized memory.
-
-   ``alloc`` is the limit of allocated memory.
-
-   ``limit`` is the limit of available memory.
-
-    An allocation point is an interface to a :term:`pool` which
-    provides very fast allocation, and defers the need for
-    synchronization in a multi-threaded environment.
-
-    Create an allocation point for a pool by calling
-    :c:func:`mps_ap_create`, and allocate memory via one by calling
-    :c:func:`mps_reserve` and :c:func:`mps_commit`.
+        There is an alternative, :c:func:`MPS_RESERVE_BLOCK`, which
+        may generate faster code on some compilers.
 
 
-.. c:type:: mps_ap_t
+.. c:function:: MPS_RESERVE_BLOCK(mps_res_t res_v, mps_addr_t *p_v, mps_ap_t ap, size_t size)
 
-    The type of :term:`allocation points <allocation point>`. It is a
-    :term:`transparent alias <transparent type>` for a pointer to
-    :c:type:`mps_ap_s`.
+    An alternative to :c:func:`mps_reserve`. On compilers that do not
+    perform common-subexpression elimination, it may generate faster
+    code than :c:func:`mps_reserve` (but may not). It may only be used
+    in statement context (not as an expression).
 
-
-.. c:function:: mps_bool_t mps_ap_trip(mps_ap_t ap, mps_addr_t p, size_t size)
-
-    :term:`Commit <committed (2)>` a reserved :term:`block` on an
-    :term:`allocation point`.
-
-    :c:func:`mps_ap_trip` has the same interface as :c:func:`mps_commit`.
-
-    .. note::
-
-        :c:func:`mps_ap_trip` must only be called according to the
-        :term:`allocation point protocol`.
+    The second argument is an lvalue ``p_v``, which is assigned the
+    address of the reserved block. It takes an additional first
+    argument, the lvalue ``res_v``, which is assigned the
+    :term:`result code`.
 
 
 .. c:function:: mps_bool_t mps_commit(mps_ap_t ap, mps_addr_t p, size_t size)
@@ -554,96 +331,294 @@ Interface
         may evaluate its arguments multiple times.
 
 
-.. c:function:: mps_res_t mps_reserve(mps_addr_t *p_o, mps_ap_t ap, size_t size)
+Example: allocating a symbol
+----------------------------
+
+::
+
+    typedef struct symbol_s {
+        type_t type;                  /* TYPE_SYMBOL */
+        size_t length;                /* length of symbol string (excl. NUL) */
+        char string[1];               /* symbol string, NUL terminated */
+    } symbol_s, *symbol_t;
+
+    symbol_t make_symbol(size_t length, char string[])
+    {
+        symbol_t symbol;
+        mps_addr_t addr;
+        size_t size = ALIGN(offsetof(symbol_s, string) + length+1);
+        do {
+            mps_res_t res = mps_reserve(&addr, ap, size);
+            if (res != MPS_RES_OK) error("out of memory in make_symbol");
+            symbol = addr;
+            symbol->type = TYPE_SYMBOL;
+            symbol->length = length;
+            memcpy(symbol->string, string, length+1);
+        } while (!mps_commit(ap, addr, size));
+        return symbol;
+    }
+
+
+
+Cautions
+--------
+
+While a block is reserved but not yet committed:
+
+1.  The client program must not create an :term:`exact reference` to
+    the reserved block (for example, by referring to the reserved block
+    from a :term:`formatted object`). All references to it must be
+    ambiguous (for example, local variables).
+
+2.  Similar restrictions apply to a reference that has been stored in
+    the reserved block. Such a reference might be invalid, and must
+    not be copied to an :term:`exact reference` or dereferenced. It is
+    safe to copy such a reference if it remains ambiguous (for
+    example, copying to a local variable or to another part of the new
+    block).
+
+Before calling :c:func:`mps_commit`:
+
+1.  The new block must be validly formatted. If it belongs to an
+    :term:`object format`, then it must be correctly recognized by the
+    format methods (the :term:`skip method` must return the object's
+    correct size; the :term:`scan method` must scan it; the
+    :term:`is-forwarded method` must report that it is not a
+    forwarding object, and so on).
+
+2.  All exact references in the new block (references that are
+    :term:`fixed <fix>` by scanning functions) must contain valid
+    references.
+
+3.  The new object must be ambiguously :term:`reachable`.
+
+You do not have to initialize the whole block so long as you satisfy
+these conditions. For example, it is permissible to defer
+initialization completely by writing ``TYPE_UNINITIALIZED`` into a
+tag field, so long as you handle this correctly in the format methods.
+
+However, if you do not initialize the whole block then you should
+beware: the uninitialized contents of the block is likely to consist
+of dead objects. If, due to a bug, you created an exact reference into
+the middle of the uninitialized block, this might by bad luck point to
+a dead object, which would be resurrected (and it might well contain
+further exact references to other dead objects). To ensure detection
+of such a bug promptly you should consider filling the uninitialized
+object with dummy values that cannot be mistaken for part of a valid
+formatted object (at least in the debugging version of your program).
+
+.. note::
+
+    Some :term:`pool classes <pool class>` have debugging counterparts
+    that automatically overwrite free space with a pattern of bytes of
+    your choosing. See :ref:`topic-debugging`.
+
+
+Common mistakes
+---------------
+
+This example contains three mistakes:
+
+.. code-block:: c
+    :emphasize-lines: 21, 22, 25
+
+    typedef struct object_s {
+        int type;  /* TYPE_OBJECT, TYPE_FWD, TYPE_PAD */
+        /* these references are fixed by the format's scan method: */
+        struct object_s *tribe;
+        struct object_s *parent;
+        struct object_s *child;
+    } object; 
+
+    int make_object(mps_ap_t ap, object *parent)
+    {
+        void *p;
+        object *neo = NULL;
+
+        do {
+            if (mps_reserve(&p, ap, SIZE_OBJECT) != MPS_RES_OK) {
+                return FALSE;
+            }
+            neo = p;
+            neo->type = TYPE_OBJECT;
+            neo->parent = parent;
+            neo->tribe = neo->parent->tribe;        /* (1) */
+            parent->child = neo;                    /* (2) */
+        } while (! mps_commit(ap, p, SIZE_OBJECT));
+
+        neo->child = NULL;                          /* (3) */
+        return TRUE;
+    }
+
+The mistakes are:
+
+1. Reading a reference (here, ``neo->parent``) from the reserved
+   block. (``parent->tribe`` would be fine.)
+
+2. Making an exact reference to the reserved block. (This should be
+   deferred until after a successful commit.)
+
+3. The ``child`` slot (in this example) is exactly scanned: initializing
+   it after the call to commit is too late.
+
+
+Allocation point implementation
+-------------------------------
+
+An allocation point consists of a structure of type :c:type:`mps_ap_s`
+and an associated :term:`buffer`.
+
+.. figure:: ../diagrams/ap-buffer.svg
+    :align: center
+    :alt: Diagram: Allocation point and its associated buffer.
+
+    Allocation point and its associated buffer.
+
+The buffer is structured as shown in the figure, with free space at
+the end of the buffer, *committed* blocks at the beginning, and
+(possibly) one *reserved* block in the middle. The :c:type:`mps_ap_s`
+structure contains three addresses into the associated buffer:
+``limit`` points to the end of the buffer, ``alloc`` points to the
+beginning of the free space, and ``init`` points to the end of the
+initialized blocks.
+
+Allocation points are fast and nearly lock-free because in order to
+reserve space for a new block, the client program first checks that
+``ap->alloc + size <= ap->limit`` and in the common case that it is,
+it takes a copy of ``ap->init`` (which now points to the reserved
+block) and sets ``ap->alloc += size``.
+
+What happens when ``ap->alloc + size > ap->limit``, that is, when the
+new block won't fit in the buffer? Then the buffer needs to be
+*refilled* by calling :c:func:`mps_ap_fill`, with typical results
+shown in the diagram below.
+
+.. figure:: ../diagrams/ap-fill.svg
+    :align: center
+    :alt: Diagram: Allocation point after refilling.
+
+    Allocation point after refilling.
+
+Refilling is why allocation points are only *nearly* lock-free:
+:c:func:`mps_ap_fill` has to take locks on internal MPS data
+structures.
+
+Note that :c:func:`mps_ap_fill` reserves the requested block as well
+as refilling the buffer.
+
+The *reserve* operation thus looks like this::
+
+    if (ap->alloc + size <= ap->limit) {
+        ap->alloc += ap->size;
+        p = ap->init;
+    } else {
+        res = mps_ap_fill(&p, ap, size);
+        if (res != MPS_RES_OK) {
+            /* handle error */;
+        }
+    }
+
+The critical path consists of an add, a store, and a branch (and
+branch prediction should work well since the test usually succeeds).
+
+.. note::
+
+    Normally the client program would use the macro
+    :c:func:`mps_reserve` to perform this operation, as described
+    above, rather than directly accessing the fields of the allocation
+    point structure. But there are use cases where direct access is
+    needed to generate the fastest code (for example, in the case of a
+    compiler generating machine code that needs to interface with the
+    MPS), and it is for these use cases that the details of
+    :c:type:`mps_ap_s` are made public and supported.
+
+When the new block has been initialized it must be :term:`committed
+(2)`. To do this, set ``ap->init = ap->alloc`` and then check to see
+if the allocation point has been *trapped*: that is, if the garbage
+collector might have moved some objects since the new block was
+reserved. The garbage collector traps an allocation point by setting
+``ap->limit = 0``, so if this case is found, then the reserved block
+may have been invalidated or reclaimed, and must be discarded and
+re-reserved, and the buffer must be refilled. The function
+:c:func:`mps_ap_trip` determines whether or not this case applies,
+returning true if the block is valid, false if not.
+
+The *commit* operation thus looks like this::
+
+    ap->init = ap->alloc;
+    if (ap->limit == 0 && !mps_ap_trip(ap, p, size)) {
+        /* p is invalid */
+    } else {
+        /* p is valid */
+    }
+
+The critical path here consists of a store and a branch (and again,
+branch prediction should work well since the test almost never fails).
+
+.. note::
+
+    Normally the client program would use :c:func:`mps_commit` to
+    perform this operation, as described above, rather than directly
+    accessing the fields of the allocation point structure. But direct
+    access is supported by the MPS.
+
+.. note::
+
+    The commit operation relies on atomic ordered access to words in
+    memory to detect a flip that occurs between the assignment
+    ``ap->init = ap->alloc`` and the test ``ap->limit == 0``. A
+    compiler or processor that reordered these two instructions would
+    break the protocol. On some processor architectures, it may be
+    necessary to insert a memory barrier instruction at this point.
+
+
+.. c:type:: mps_ap_s
+
+   The type of the structure used to represent :term:`allocation
+   points <allocation point>`::
+
+        typedef struct mps_ap_s {
+          mps_addr_t init;
+          mps_addr_t alloc;
+          mps_addr_t limit;
+          /* ... private fields ... */
+        } mps_ap_s;
+
+   ``init`` is the limit of initialized memory.
+
+   ``alloc`` is the limit of allocated memory.
+
+   ``limit`` is the limit of available memory.
+
+    An allocation point is an interface to a :term:`pool` which
+    provides very fast allocation, and defers the need for
+    synchronization in a multi-threaded environment.
+
+    Create an allocation point for a pool by calling
+    :c:func:`mps_ap_create`, and allocate memory via one by calling
+    :c:func:`mps_reserve` and :c:func:`mps_commit`.
+
+
+.. c:function:: mps_res_t mps_ap_fill(mps_addr_t *p_o, mps_ap_t ap, size_t size)
 
     Reserve a :term:`block` of memory on an :term:`allocation point`.
 
-    ``p_o`` points to a location that will hold the address of the
-    reserve block.
-
-    ``ap`` is the allocation point.
-
-    ``size`` is the :term:`size` of the block to allocate. It must be
-    a multiple of the :term:`alignment` of the pool (or of the pool's
-    :term:`object format` if it has one).
-
-    Returns :c:macro:`MPS_RES_OK` if the block was reserved
-    successfully, or another :term:`result code` if not.
-
-    The reserved block may be initialized but must not otherwise be
-    used until after it has been :term:`committed (2)` via a
-    successful call to :c:func:`mps_commit`.
+    :c:func:`mps_ap_fill` has same interface as :c:func:`mps_reserve`.
 
     .. note::
 
-        :c:func:`mps_reserve` must only be called according to the
+        :c:func:`mps_ap_fill` must only be called according to the
         :term:`allocation point protocol`.
 
-        :c:func:`mps_reserve` is implemented as a macro for speed. It
-        may evaluate its arguments multiple times.
 
-        There is an alternative, :c:func:`MPS_RESERVE_BLOCK`, which
-        may generate faster code, but may only be used in statement
-        context (not as an expression), and requires an lvalue instead
-        of a pointer to a location to store the result.
+.. c:function:: mps_bool_t mps_ap_trip(mps_ap_t ap, mps_addr_t p, size_t size)
 
+    :term:`Commit <committed (2)>` a reserved :term:`block` on an
+    :term:`allocation point`.
 
-.. c:function:: MPS_RESERVE_BLOCK(mps_res_t res_v, mps_addr_t *p_v, mps_ap_t ap, size_t size)
+    :c:func:`mps_ap_trip` has the same interface as :c:func:`mps_commit`.
 
-    An alternative to :c:func:`mps_reserve`. It may generate faster
-    code than :c:func:`mps_reserve`, but it may only be used in
-    statement context (not as an expression), and it requires an
-    lvalue instead of a pointer to a location to store the result.
+    .. note::
 
-    The second argument is an lvalue ``p_v``, which is assigned the
-    address of the reserved block. It takes an additional first
-    argument, the lvalue ``res_v``, which is assigned the
-    :term:`result code`.
-
-
-
-
-
-
-
-
-
-
-See design/buffer
-
-See https://github.com/dylan-lang/opendylan/issues/235
-
-This example seems to be wrong (no function "mps_pool_alloc" in the public interface).
-
-::
-
-    {
-        mps_addr_t new_block;
-        mps_res_t res;
-        thingy *tp;
-
-        res = mps_pool_alloc(&new_block, pool, sizeof(thingy));
-        if (res != MPS_RES_OK) return res;
-        tp = new_block;
-
-        /* ... */
-    }
-
-
-Some :term:`pools <pool>` and allocation protocols accept an :term:`alignment` as an option. This
-ensures that objects in the pool or objects allocated observe a
-stricter alignment than that of the :term:`object format`.
-
-::
-
-    mps_res_t res;
-    mps_addr_t p;
-
-    res = mps_alloc(&p, pool, size);
-    if (res != MPS_RES_OK) {
-        /* p hasn't been touched in this case. */
-        handle error;
-    }
-
-    /* p now contains the result, which is the address of the new block */
-    /* in this case. */
+        :c:func:`mps_ap_trip` must only be called according to the
+        :term:`allocation point protocol`.

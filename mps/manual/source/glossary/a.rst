@@ -280,7 +280,11 @@ Memory Management Glossary: A
 
     allocation point protocol
 
-        .. mps:specific:: ??
+        .. mps:specific::
+
+            The protocol that ensures safe inline allocation on an
+            :term:`allocation point`. See
+            :ref:`topic-allocation-point-protocol`.
 
     allocation policy
 

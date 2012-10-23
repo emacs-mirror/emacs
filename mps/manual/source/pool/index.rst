@@ -175,8 +175,8 @@ Blocks must be formatted? [11]_                yes    yes    yes    yes    yes  
            reference to the block.
 
 
-Writing new pool classes
-------------------------
+Writing a new pool class
+========================
 
 If none of the pool classes supplied with the MPS are quite right for
 your application, don't despair: the MPS is designed to be extensible
@@ -186,6 +186,6 @@ objects that are scannable but unformatted, or movable objects which
 are manually managed, or a pool all of whose objects are roots, there
 is no technical reason why it should not be possible to write them.
 
-If you'd be interested in our developing new pool classes for you
-requirements, or if you've had a go at writing a new pool class
-yourself, we'd :ref:`love to hear from you <contact>`.
+If you'd be interested in our developing new pool classes for your
+requirements, or if you've started writing a new pool class
+yourself, :ref:`we'd love to hear from you <contact>`.
