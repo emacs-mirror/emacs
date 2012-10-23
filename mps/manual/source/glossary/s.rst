@@ -366,7 +366,6 @@ Memory Management Glossary: S
 
         .. seealso:: :term:`broken heart`.
 
-    snapshot-at-the-beginning
     snapshot at the beginning
 
         Snapshot-at-the-beginning algorithms for :term:`tracing
@@ -401,12 +400,12 @@ Memory Management Glossary: S
 
         .. historical::
 
-            This distinction between incremental-update and
-            snapshot-at-the-beginning was first introduced for
+            This distinction between incremental update and
+            snapshot at the beginning was first introduced for
             write-barrier algorithms, but it applies to any type of
             tracing algorithm.
 
-        .. opposite:: :term:`incremental-update`.
+        .. opposite:: :term:`incremental update`.
 
         .. seealso:: :term:`tri-color marking`, :term:`weak tri-color invariant`, :term:`barrier (1)`.
 
@@ -710,7 +709,6 @@ Memory Management Glossary: S
 
         .. see:: :term:`limited-field reference count`.
 
-    stop and copy collection
     stop-and-copy collection
 
         :term:`Copying garbage collection` that stops the
@@ -849,7 +847,7 @@ Memory Management Glossary: S
         change the :term:`color` of the nodes affected in order to
         preserve the invariant (see [PIRINEN98]_ for details).
 
-        Algorithms using this invariant are :term:`incremental-update`
+        Algorithms using this invariant are :term:`incremental update`
         algorithms.
 
         .. similar:: :term:`tri-color invariant`.

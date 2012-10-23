@@ -241,6 +241,13 @@ Memory Management Glossary: L
             location dependency is represented by the type
             :c:type:`mps_ld_t`.
 
+    lock free
+
+        A multi-threaded program is *lock free* if all schedules for
+        the threads make progress: in particular, no schedule leads to
+        deadlock. This is most easily implemented by avoiding taking
+        locks.
+
     logical address
 
         .. see:: :term:`virtual address`.

@@ -3,6 +3,39 @@
 Overview of the Memory Pool System
 ==================================
 
+The Memory Pool System is a very general, adaptable, flexible,
+reliable, and efficient memory management system. It permits the
+flexible combination of memory management techniques, supporting
+:term:`manual <manual memory management>` and :term:`automatic memory
+management`, :term:`inline allocation <inline allocation (1)>`,
+:term:`finalization`, :term:`weakness <weak reference (1)>`, and
+multiple concurrent co-operating :term:`incremental <incremental
+garbage collection>` :term:`generational <generational garbage
+collection>` :term:`garbage collections <garbage collection>`. It also
+includes a library of :term:`memory pool classes <pool class>`
+implementing specialized memory management policies.
+
+The MPS has been in development since 1994 and deployed in successful
+commercial products since 1997. Bugs are almost unknown in
+production. It is under continuous development and support by
+Ravenbrook.
+
+The MPS is distributed under an :ref:`open source license
+<license>`. The license is designed to make it possible for you to use
+the MPS in your own projects, provided that you either don't
+distribute your product, or your product is open source too.
+
+If the licensing terms aren't suitable for you (for example, you're
+developing a closed-source commercial product or a compiler run-time
+system) you can easily license the MPS under different terms from
+Ravenbrook by arrangement. Please :ref:`contact us` at
+`mps-questions@ravenbrook.com <mailto:mps-questions@ravenbrook.com>`_
+for details.
+
+
+Technical introduction
+----------------------
+
 The figure below gives a simplified picture of a program's memory from
 the point of view of the Memory Pool System.
 
@@ -55,3 +88,17 @@ The garbage collector is :term:`incremental <incremental garbage
 collection>`: it proceeds in small steps interleaved with the execution
 of your program, so there are no long waits. See
 :ref:`topic-collection`.
+
+
+What next?
+----------
+
+For a much more detailed technical overview of the MPS, see
+[BROOKSBY02]_.
+
+If you have a program in need of memory management, then you'll want
+to learn how to integrate it with the Memory Pool System. See
+:ref:`guide-lang`.
+
+If you want to know the technical details, they appear in the
+:ref:`reference`.

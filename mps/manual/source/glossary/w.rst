@@ -85,7 +85,8 @@ Memory Management Glossary: W
         invariant (see [PIRINEN98]_ for details).
 
         Algorithms using this invariant are
-        :term:`snapshot-at-the-beginning` algorithms.
+        :term:`snapshot-at-the-beginning <snapshot at the beginning>`
+        algorithms.
 
         .. seealso:: :term:`barrier (1)`, :term:`strong tri-color invariant`.
 
@@ -258,7 +259,6 @@ Memory Management Glossary: W
         .. bibref:: [GUDEMAN93]_.
 
     write barrier
-    write-barrier
 
         A write :term:`barrier (1)` is a block on writing to certain
         :term:`memory (2)` :term:`locations <memory location>` by

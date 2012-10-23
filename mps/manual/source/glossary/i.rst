@@ -124,7 +124,6 @@ Memory Management Glossary: I
         .. bibref:: [AEL88]_, [BDS91]_.
 
     incremental update
-    incremental-update
 
         Incremental-update algorithms for :term:`tracing <trace>`,
         :term:`incremental garbage collection` note changes made by
@@ -152,12 +151,12 @@ Memory Management Glossary: I
 
         .. historical::
 
-            This distinction between incremental-update and
-            snapshot-at-the-beginning was first introduced for
+            This distinction between incremental update and
+            snapshot at the beginning was first introduced for
             write-barrier algorithms, but it applies to any type of
             tracing algorithm.
 
-        .. opposite:: :term:`snapshot-at-the-beginning`.
+        .. opposite:: :term:`snapshot at the beginning`.
 
         .. seealso:: :term:`tri-color marking`, :term:`strong tri-color invariant`, :term:`barrier (1)`.
 
@@ -223,6 +222,22 @@ Memory Management Glossary: I
     infant mortality
 
         .. see:: :term:`generational hypothesis`.
+
+    inline allocation (1)
+
+        Allocation of objects by inline code, that is, without calling
+        an allocation function. This is vital for performance in
+        languages that allocate many small objects.
+
+        .. mps:specific::
+
+            This is achieved by the :term:`allocation point protocol`.
+
+    inline allocation (2)
+
+        Allocation of child objects inside their parent, as opposed
+        to allocating child objects on the :term:`heap` and storing
+        :term:`pointers <pointer>` to them in the parent.
 
     inter-generational pointer
 

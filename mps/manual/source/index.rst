@@ -13,6 +13,7 @@ Memory Pool System
    lang
    glossary/index
    bib
+   contact
    copyright
    todo
 
@@ -22,4 +23,3 @@ Indices and tables
 
 * :ref:`genindex`
 * :ref:`search`
-

@@ -23,10 +23,9 @@ finalization message: see below) at *any* future time.
 
 .. note::
 
-    This means that a block that has been :term:`resurrected`, by the
-    creation of a new :term:`strong reference` to it, after it was
-    determined to be finalizable, may still be finalized. (This can
-    happen if there was a :term:`weak reference (1)` to the block.)
+    This means that a block that was determined to be finalizable, but
+    then became unconditionally :term:`live` by the creation of a new
+    :term:`strong reference` to it, may still be finalized.
 
 :term:`Weak references <weak reference (1)>` do not prevent blocks
 from being finalized. At the point that a block is finalized, weak
@@ -36,8 +35,7 @@ block from being deleted.
 
 The Memory Pool System finalizes a block by posting a *finalization
 message* to the :term:`message queue` of the :term:`arena` in which
-the block was allocated. See :ref:`topic-message` for detail of the
-message mechanism.
+the block was allocated.
 
 .. note::
 
@@ -51,26 +49,44 @@ message mechanism.
     for a detailed discussion of this issue.
 
 The :term:`message type` of finalization messages is
-:c:func:`mps_message_type_finalization`, and the finalization
-reference may be accessed by calling
-:c:func:`mps_message_finalization_ref`. The finalization reference
-keeps the block alive until the finalization message is discarded by
+:c:func:`mps_message_type_finalization`, and the client program must
+enable the posting of these messages by calling
+:c:func:`mps_message_type_enable` before any block becomes
+finalizable::
+
+    mps_message_type_enable(arena, mps_message_type_finalization());
+
+When a finalization message has been retrieved from the message queue
+by calling :c:func:`mps_message_get`, the finalization reference may
+be accessed by calling :c:func:`mps_message_finalization_ref`. The
+finalization message keeps the block alive until it is discarded by
 calling :c:func:`mps_message_discard`.
 
 .. note::
 
-    The client program may choose to resurrect the finalized block by
-    keeping a copy of the finalization reference after discarding the
-    finalization message.
+    The client program may choose to keep the finalized block alive by
+    keeping a strong reference to the finalized object after
+    discarding the finalization message.
+
+    This process is known as :term:`resurrection` and in some
+    finalization systems requires special handling, but in the MPS
+    this just is just the usual result of the rule that strong
+    references keep objects alive.
+
+    It is fine to re-register a block for finalization after
+    retrieving its finalization message from the message queue. This
+    will cause it to be finalized again should all strong references
+    disappear again.
+
+See :ref:`topic-message` for details of the message mechanism.
 
 
 Multiple finalizations
 ----------------------
 
-A block may be registered for finalization multiple times, by calling
-:c:func:`mps_finalize` more than once. A block that has been
-registered for finalization *n* times will be finalized at most *n*
-times.
+A block may be registered for finalization multiple times. A block
+that has been registered for finalization *n* times will be finalized
+at most *n* times.
 
 This may mean that there are multiple finalization messages on the
 queue at the same time, or it may not (it may be necessary for the
@@ -78,7 +94,7 @@ client program to discard previous finalization messages for a block
 before a new finalization messages for that block are posted to the
 message queue). The MPS provides no guarantees either way: a client
 program that registers the same block multiple times must cope with
-either behavior.
+either behaviour.
 
 
 Example: ports in Scheme

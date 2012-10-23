@@ -53,13 +53,21 @@ Memory Management Glossary: O
 
     off-white
 
+        .. aka:: *ecru*.
+
         In a :term:`treadmill` :term:`garbage collector`, the
         :term:`color` off-white is used to describe :term:`objects
-        <object>` which are :term:`free (3)`.
+        <object>` which are :term:`free (3)`. Henry Baker used the
+        term *ecru* in [BAKER92C]_.
 
         .. opposite:: :term:`white`, :term:`gray`, :term:`black`.
 
         .. seealso:: :term:`treadmill`, :term:`color`.
+
+    old space
+    oldspace
+
+        .. see:: :term:`fromspace`.
 
     one-bit reference count
 

@@ -72,8 +72,8 @@ Compiling without the C library
 ...............................
 
 If you're building the MPS for an environment without the standard C
-library, you can exclude the :ref:`topic-plinth` component of the MPS
-with::
+library, you can exclude :ref:`the plinth <topic-plinth>` component of
+the MPS with::
 
     cc -DCONFIG_PLINTH_NONE -c mps.c
     cl /Gs /DCONFIG_PLINTH_NONE /c mps.c
