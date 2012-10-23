@@ -289,6 +289,10 @@ recently executed command not bound to an input event\"."
                  (interactive)
                  (let ((repeat-message-function fun))
                    (setq this-command 'repeat)
+		   ;; Beware: messing with `real-this-command' is *bad*, but we
+		   ;; need it so `last-repeatable-command' can be recognized
+		   ;; later (bug#12232).
+                   (setq real-this-command 'repeat)
                    (call-interactively 'repeat))))))
          map)))))
 

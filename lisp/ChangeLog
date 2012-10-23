@@ -1,5 +1,7 @@
 2012-10-23  Stefan Monnier  <monnier@iro.umontreal.ca>
 
+	* repeat.el (repeat): Set real-this-command (bug#12232).
+
 	* htmlfontify.el (hfy-post-html-hook):
 	* filesets.el (filesets-cache-fill-content-hook):
 	* arc-mode.el (archive-extract-hook):
