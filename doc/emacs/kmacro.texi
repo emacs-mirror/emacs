@@ -482,10 +482,11 @@ Edit the last 300 keystrokes as a keyboard macro
 @kindex C-x C-k C-e
 @kindex C-x C-k RET
   You can edit the last keyboard macro by typing @kbd{C-x C-k C-e} or
-@kbd{C-x C-k RET} (@code{kmacro-edit-macro}).  This formats the macro
-definition in a buffer and enters a specialized major mode for editing
-it.  Type @kbd{C-h m} once in that buffer to display details of how to
-edit the macro.  When you are finished editing, type @kbd{C-c C-c}.
+@kbd{C-x C-k @key{RET}} (@code{kmacro-edit-macro}).  This formats the
+macro definition in a buffer and enters a specialized major mode for
+editing it.  Type @kbd{C-h m} once in that buffer to display details
+of how to edit the macro.  When you are finished editing, type
+@kbd{C-c C-c}.
 
 @findex edit-kbd-macro
 @kindex C-x C-k e
