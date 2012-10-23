@@ -1494,8 +1494,6 @@ DEFINE_CLASS(SegBufClass, class)
 
 static Res rankBufInit (Buffer buffer, Pool pool, va_list args)
 {
-  /* Assumes pun compatibility between Rank and mps_rank_t */
-  /* Which is checked by mpsi_check in <code/mpsi.c> */
   Rank rank = va_arg(args, Rank);
   BufferClass super;
   Res res;
