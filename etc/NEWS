@@ -890,6 +890,7 @@ See the "Face Attributes" section of the Elisp manual.
 *** `window-system-version'
 *** `dired-pop-to-buffer' (use `dired-mark-pop-up')
 *** `query-replace-interactive'
+*** `font-list-limit' (has had no effect since Emacs < 23)
 
 
 * Changes in Emacs 24.3 on non-free operating systems

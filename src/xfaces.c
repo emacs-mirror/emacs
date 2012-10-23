@@ -371,8 +371,6 @@ Lisp_Object Vface_alternative_font_registry_alist;
 
 static Lisp_Object Qscalable_fonts_allowed;
 
-#define DEFAULT_FONT_LIST_LIMIT 100
-
 /* The symbols `foreground-color' and `background-color' which can be
    used as part of a `face' property.  This is for compatibility with
    Emacs 20.2.  */
@@ -6599,12 +6597,6 @@ syms_of_xfaces (void)
 #if defined DEBUG_X_COLORS && defined HAVE_X_WINDOWS
   defsubr (&Sdump_colors);
 #endif
-
-  DEFVAR_LISP ("font-list-limit", Vfont_list_limit,
-	       doc: /* Limit for font matching.
-If an integer > 0, font matching functions won't load more than
-that number of fonts when searching for a matching font.  */);
-  Vfont_list_limit = make_number (DEFAULT_FONT_LIST_LIMIT);
 
   DEFVAR_LISP ("face-new-frame-defaults", Vface_new_frame_defaults,
     doc: /* List of global face definitions (for internal use only.)  */);

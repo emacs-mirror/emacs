@@ -1,3 +1,7 @@
+2012-10-23  Chong Yidong  <cyd@gnu.org>
+
+	* xfaces.c (Vfont_list_limit): Move unused variable to faces.el.
+
 2012-10-21  Jan Djärv  <jan.h.d@swipnet.se>
 
 	* nsfont.m (nsfont_open, ns_glyph_metrics): Force integer advancement

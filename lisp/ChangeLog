@@ -1,5 +1,10 @@
 2012-10-23  Chong Yidong  <cyd@gnu.org>
 
+	* faces.el (font-list-limit): Define as an obsolete variable.
+
+	* startup.el (command-line):
+	* cus-start.el: Don't refer to font-list-limit.
+
 	* newcomment.el (comment-normalize-vars): Doc fix (Bug#12583).
 
 2012-10-23  Stefan Monnier  <monnier@iro.umontreal.ca>
