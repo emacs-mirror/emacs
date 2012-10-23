@@ -1,3 +1,7 @@
+2012-10-23  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* custom.texi (Hooks): Clarify that -hooks is deprecated.
+
 2012-10-23  Chong Yidong  <cyd@gnu.org>
 
 	* kmacro.texi (Edit Keyboard Macro): Fix typo.

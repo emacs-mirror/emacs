@@ -249,7 +249,8 @@ when not running under a window system."
   :tag   "init-kludge-hooks"
   :type  '(hook))
 
-(defcustom hfy-post-html-hooks nil
+(define-obsolete-variable-alias 'hfy-post-html-hooks 'hfy-post-html-hook "24.3")
+(defcustom hfy-post-html-hook nil
   "List of functions to call after creating and filling the HTML buffer.
 These functions will be called with the HTML buffer as the current buffer."
   :group   'htmlfontify
@@ -1786,7 +1787,7 @@ FILE, if set, is the file name."
       ;;(message "inserting footer")
       (insert (funcall hfy-page-footer file)))
     ;; call any post html-generation hooks:
-    (run-hooks 'hfy-post-html-hooks)
+    (run-hooks 'hfy-post-html-hook)
     ;; return the html buffer
     (set-buffer-modified-p nil)
     html-buffer))

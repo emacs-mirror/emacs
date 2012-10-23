@@ -1248,7 +1248,7 @@ detection scheme works like this:
 
 @table @asis
 @item Step 1:
-@code{find-file-hooks} calls @code{ede-turn-on-hook} on BUFFER.
+@code{find-file-hook} calls @code{ede-turn-on-hook} on BUFFER.
 @item Step 2:
 @code{ede-turn-on-hook} turns on @code{ede-minor-mode}
 @item Step 3:

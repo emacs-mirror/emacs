@@ -1,7 +1,23 @@
+2012-10-23  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* htmlfontify.el (hfy-post-html-hook):
+	* filesets.el (filesets-cache-fill-content-hook):
+	* arc-mode.el (archive-extract-hook):
+	* progmodes/cc-mode.el (c-prepare-bug-report-hook):
+	* net/rcirc.el (rcirc-sentinel-functions)
+	(rcirc-receive-message-functions, rcirc-activity-functions)
+	(rcirc-print-functions):
+	* net/dbus.el (dbus-event-error-functions):
+	* emacs-lisp/eieio.el (eieio-pre-method-execution-functions):
+	* emacs-lisp/checkdoc.el (checkdoc-style-functions)
+	(checkdoc-comment-style-functions): Don't use "-hooks" suffix.
+	* term/sun.el (sun-raw-prefix-hooks):
+	* mail/sendmail.el (mail-yank-hooks): Use make-obsolete-variable.
+
 2012-10-23  Michael Albinus  <michael.albinus@gmx.de>
 
-	* net/tramp-smb.el (tramp-smb-maybe-open-connection): Set
-	`tramp-chunksize' to 1.  This improves the performance.
+	* net/tramp-smb.el (tramp-smb-maybe-open-connection):
+	Set `tramp-chunksize' to 1.  This improves the performance.
 	(tramp-smb-wait-for-output): Add timeout to
 	`tramp-accept-process-output' calls.
 

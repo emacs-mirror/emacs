@@ -1248,7 +1248,7 @@ This hook is run just before @code{ediff-quit-hook}.  This is a good
 place to do various cleanups, such as deleting the variant buffers.
 Ediff provides a function, @code{ediff-janitor}, as one such possible
 hook, which you can add to @code{ediff-cleanup-hook} with
-@code{add-hooks}.
+@code{add-hook}.
 
 @findex ediff-janitor
 This function kills buffers A, B, and, possibly, C, if these buffers aren't

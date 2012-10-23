@@ -170,8 +170,8 @@ of the buffer are parsed using the specifications in
 @code{forms-format-list}, and the data file is updated.  If the record
 has fields that aren't included in the display, they are not changed.
 
-@vindex forms-mode-hooks
-Entering Forms mode runs the normal hook @code{forms-mode-hooks} to
+@vindex forms-mode-hook
+Entering Forms mode runs the normal hook @code{forms-mode-hook} to
 perform user-defined customization.
 
 To save any modified data, you can use @kbd{C-x C-s}

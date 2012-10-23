@@ -3148,7 +3148,7 @@ following is added to a group parameter
 
 @lisp
 (gnus-summary-prepared-hook
-  '(lambda nil (local-set-key "d" (local-key-binding "n"))))
+  (lambda nil (local-set-key "d" (local-key-binding "n"))))
 @end lisp
 
 when the group is entered, the 'd' key will not mark the article as

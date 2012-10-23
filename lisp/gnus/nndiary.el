@@ -179,22 +179,28 @@ In order to make this clear, here are some examples:
   :group 'nndiary)
 
 
-(defcustom nndiary-request-create-group-hooks nil
-  "*Hooks to run after `nndiary-request-create-group' is executed.
-The hooks will be called with the full group name as argument."
+(define-obsolete-variable-alias 'nndiary-request-create-group-hooks
+  'nndiary-request-create-group-functions "24.3")
+(defcustom nndiary-request-create-group-functions nil
+  "*Hook run after `nndiary-request-create-group' is executed.
+The hook functions will be called with the full group name as argument."
   :group 'nndiary
   :type 'hook)
 
-(defcustom nndiary-request-update-info-hooks nil
-  "*Hooks to run after `nndiary-request-update-info-group' is executed.
-The hooks will be called with the full group name as argument."
+(define-obsolete-variable-alias 'nndiary-request-update-info-hooks
+  'nndiary-request-update-info-functions "24.3")
+(defcustom nndiary-request-update-info-functions nil
+  "*Hook run after `nndiary-request-update-info-group' is executed.
+The hook functions will be called with the full group name as argument."
   :group 'nndiary
   :type 'hook)
 
-(defcustom nndiary-request-accept-article-hooks nil
-  "*Hooks to run before accepting an article.
+(define-obsolete-variable-alias 'nndiary-request-accept-article-hooks
+  'nndiary-request-accept-article-functions "24.3")
+(defcustom nndiary-request-accept-article-functions nil
+  "*Hook run before accepting an article.
 Executed near the beginning of `nndiary-request-accept-article'.
-The hooks will be called with the article in the current buffer."
+The hook functions will be called with the article in the current buffer."
   :group 'nndiary
   :type 'hook)
 
@@ -541,7 +547,7 @@ all.  This may very well take some time.")
 	  (setcar active (apply 'min articles))
 	  (setcdr active (apply 'max articles))))
       (nnmail-save-active nndiary-group-alist nndiary-active-file)
-      (run-hook-with-args 'nndiary-request-create-group-hooks
+      (run-hook-with-args 'nndiary-request-create-group-functions
 			  (gnus-group-prefixed-name group
 						    (list "nndiary" server)))
       t))
@@ -633,7 +639,7 @@ all.  This may very well take some time.")
 (deffoo nndiary-request-accept-article (group &optional server last)
   (nndiary-possibly-change-directory group server)
   (nnmail-check-syntax)
-  (run-hooks 'nndiary-request-accept-article-hooks)
+  (run-hooks 'nndiary-request-accept-article-functions)
   (when (nndiary-schedule)
     (let (result)
       (when nnmail-cache-accepted-message-ids
@@ -804,7 +810,7 @@ all.  This may very well take some time.")
 	     (gnus-info-set-read info (gnus-update-read-articles
 				       (gnus-info-group info) unread t)))
 	))
-    (run-hook-with-args 'nndiary-request-update-info-hooks
+    (run-hook-with-args 'nndiary-request-update-info-functions
 			(gnus-info-group info))
     t))
 

@@ -72,7 +72,9 @@ updated in the current buffer.
 
 For language specific hooks, make sure you define this as a local hook.")
 
-(defvar semantic-change-hooks
+(define-obsolete-variable-alias 'semantic-change-hooks
+  'semantic-change-functions "24.3")
+(defvar semantic-change-functions
   '(semantic-edits-change-function-handle-changes)
   "Abnormal hook run when semantic detects a change in a buffer.
 Each hook function must take three arguments, identical to the
@@ -89,11 +91,15 @@ If the hook returns non-nil, then declare that a reparse is needed.
 For language specific hooks, make sure you define this as a local hook.
 Not used yet; part of the next generation reparse mechanism.")
 
-(defvar semantic-edits-new-change-hooks nil
+(define-obsolete-variable-alias 'semantic-edits-new-change-hooks
+  'semantic-edits-new-change-functions "24.3")
+(defvar semantic-edits-new-change-functions nil
   "Abnormal hook run when a new change is found.
 Functions must take one argument representing an overlay on that change.")
 
-(defvar semantic-edits-delete-change-hooks nil
+(define-obsolete-variable-alias 'semantic-edits-delete-change-hooks
+  'semantic-edits-delete-change-functions "24.3")
+(defvar semantic-edits-delete-change-functions nil
   "Abnormal hook run before a change overlay is deleted.
 Deleted changes occur when multiple changes are merged.
 Functions must take one argument representing an overlay being deleted.")
@@ -104,7 +110,9 @@ Changes move when a new change overlaps an old change.  The old change
 will be moved.
 Functions must take one argument representing an overlay being moved.")
 
-(defvar semantic-edits-reparse-change-hooks nil
+(define-obsolete-variable-alias 'semantic-edits-reparse-change-hooks
+  'semantic-edits-reparse-change-functions "24.3")
+(defvar semantic-edits-reparse-change-functions nil
   "Abnormal hook run after a change results in a reparse.
 Functions are called before the overlay is deleted, and after the
 incremental reparse.")
@@ -133,7 +141,7 @@ Argument START, END, and LENGTH specify the bounds of the change."
    (setq semantic-unmatched-syntax-cache-check t)
    (let ((inhibit-point-motion-hooks t)
 	 )
-     (run-hook-with-args 'semantic-change-hooks start end length)
+     (run-hook-with-args 'semantic-change-functions start end length)
      ))
 
 (defun semantic-changes-in-region (start end &optional buffer)
@@ -168,7 +176,7 @@ Argument START, END, and LENGTH specify the bounds of the change."
 	  ;; function will be removed from the list of active change
 	  ;; functions.
 	  (condition-case nil
-	      (run-hook-with-args 'semantic-edits-new-change-hooks o)
+	      (run-hook-with-args 'semantic-edits-new-change-functions o)
 	    (error nil)))
       (let ((tmp changes-in-change))
 	;; Find greatest bounds of all changes
@@ -188,7 +196,7 @@ Argument START, END, and LENGTH specify the bounds of the change."
 	;; Delete other changes.  They are now all bound here.
 	(while changes-in-change
 	  (condition-case nil
-	      (run-hook-with-args 'semantic-edits-delete-change-hooks
+	      (run-hook-with-args 'semantic-edits-delete-change-functions
 				  (car changes-in-change))
 	    (error nil))
 	  (semantic-overlay-delete (car changes-in-change))
@@ -198,7 +206,7 @@ Argument START, END, and LENGTH specify the bounds of the change."
 (defsubst semantic-edits-flush-change (change)
   "Flush the CHANGE overlay."
   (condition-case nil
-      (run-hook-with-args 'semantic-edits-delete-change-hooks
+      (run-hook-with-args 'semantic-edits-delete-change-functions
 			  change)
     (error nil))
   (semantic-overlay-delete change))

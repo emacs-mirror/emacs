@@ -1260,12 +1260,10 @@ is converted into a string by expressing it in decimal."
 (define-obsolete-variable-alias 'executing-macro 'executing-kbd-macro
   "before 19.34")
 
-(defvaralias 'x-lost-selection-hooks 'x-lost-selection-functions)
-(make-obsolete-variable 'x-lost-selection-hooks
-			'x-lost-selection-functions "22.1")
-(defvaralias 'x-sent-selection-hooks 'x-sent-selection-functions)
-(make-obsolete-variable 'x-sent-selection-hooks
-			'x-sent-selection-functions "22.1")
+(define-obsolete-variable-alias 'x-lost-selection-hooks
+  'x-lost-selection-functions "22.1")
+(define-obsolete-variable-alias 'x-sent-selection-hooks
+  'x-sent-selection-functions "22.1")
 
 ;; This was introduced in 21.4 for pre-unicode unification.  That
 ;; usage was rendered obsolete in 23.1 which uses Unicode internally.

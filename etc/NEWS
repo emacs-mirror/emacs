@@ -621,6 +621,29 @@ enabled.
 
 ** FIXME something happened to ses.el, 2012-04-17.
 
+** Hooks renamed to avoid obsolete "-hooks" suffix:
+*** semantic-lex-reset-hooks -> semantic-lex-reset-functions
+*** semantic-change-hooks -> semantic-change-functions
+*** semantic-edits-new-change-hooks -> semantic-edits-new-change-functions
+*** semantic-edits-delete-change-hooks -> semantic-edits-delete-change-functions
+*** semantic-edits-reparse-change-hooks -> semantic-edits-reparse-change-functions
+*** semanticdb-save-database-hooks -> semanticdb-save-database-functions
+*** c-prepare-bug-report-hooks -> c-prepare-bug-report-hook
+*** rcirc-sentinel-hooks -> rcirc-sentinel-functions
+*** rcirc-receive-message-hooks -> rcirc-receive-message-functions
+*** rcirc-activity-hooks -> rcirc-activity-functions
+*** rcirc-print-hooks -> rcirc-print-functions
+*** dbus-event-error-hooks -> dbus-event-error-functions
+*** eieio-pre-method-execution-hooks -> eieio-pre-method-execution-functions
+*** checkdoc-style-hooks -> checkdoc-style-functions
+*** checkdoc-comment-style-hooks -> checkdoc-comment-style-functions
+*** archive-extract-hooks -> archive-extract-hook
+*** filesets-cache-fill-content-hooks -> filesets-cache-fill-content-hook
+*** hfy-post-html-hooks -> hfy-post-html-hook
+*** nndiary-request-create-group-hooks -> nndiary-request-create-group-functions
+*** nndiary-request-update-info-hooks -> nndiary-request-update-info-functions
+*** nndiary-request-accept-article-hooks -> nndiary-request-accept-article-functions
+*** gnus-subscribe-newsgroup-hooks -> gnus-subscribe-newsgroup-functions
 
 ** Obsolete packages:
 +++

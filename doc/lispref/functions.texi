@@ -978,7 +978,7 @@ anonymous function by quoting it as a list:
 @example
 @group
 (defun double-property (symbol prop)
-  (change-property symbol prop '(lambda (x) (* 2 x))))
+  (change-property symbol prop (lambda (x) (* 2 x))))
 @end group
 @end example
 
