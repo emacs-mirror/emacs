@@ -1,3 +1,8 @@
+2012-10-23  Glenn Morris  <rgm@gnu.org>
+
+	* progmodes/gud.el (gud-menu-map):
+	Check gdb-active-process is bound.  (Bug#12358)
+
 2012-10-23  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* repeat.el (repeat): Set real-this-command (bug#12232).
