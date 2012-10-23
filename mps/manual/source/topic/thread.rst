@@ -13,7 +13,8 @@ signals that result from barrier hits.
 This means that a program that handles ``SIGBUS`` (on OS X),
 ``SIGSEGV`` (on FreeBSD or Linux), or first-chance exceptions (on
 Windows) needs to co-operate with the MPS. The mechanism for
-co-operation is currently undocumented: please :ref:`contact us`.
+co-operation is currently undocumented: please :ref:`contact us
+<contact>`.
 
 
 Interface

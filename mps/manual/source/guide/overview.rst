@@ -28,7 +28,7 @@ distribute your product, or your product is open source too.
 If the licensing terms aren't suitable for you (for example, you're
 developing a closed-source commercial product or a compiler run-time
 system) you can easily license the MPS under different terms from
-Ravenbrook by arrangement. Please :ref:`contact us` at
+Ravenbrook by arrangement. Please :ref:`contact us <contact>` at
 `mps-questions@ravenbrook.com <mailto:mps-questions@ravenbrook.com>`_
 for details.
 
