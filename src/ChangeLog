@@ -1,3 +1,11 @@
+2012-10-23  Kenichi Handa  <handa@gnu.org>
+
+	The following change is to make face-font-rescale-alist work
+	correctly for non-ASCII fonts.
+
+	* font.c (font_open_entity): Don't handle Vface_font_rescale_alist.
+	(font_open_for_lface): Handle Vface_font_rescale_alist.
+
 2012-10-19  Kazuhiro Ito  <kzhr@d1.dion.ne.jp>  (tiny change)
 
 	* font.c (Ffont_at): Fix previous change.
