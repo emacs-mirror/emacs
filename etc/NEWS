@@ -853,7 +853,7 @@ in Emacs 24.1:
 *** `current-time-string' no longer requires that its argument's year
 must be in the range 1000..9999.  It now works with any year supported
 by the underlying C implementation.
----
+
 *** `current-time' now returns extended-format time stamps
 (HIGH LOW USEC PSEC), where the new PSEC slot specifies picoseconds.
 PSEC is typically a multiple of 1000 on current machines.  Other
