@@ -1,3 +1,11 @@
+2012-10-23  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* nndiary.el (nndiary-request-create-group-functions)
+	(nndiary-request-update-info-functions)
+	(nndiary-request-accept-article-functions):
+	* gnus-start.el (gnus-subscribe-newsgroup-functions): Don't use
+	"-hooks" suffix.
+
 2012-10-17  Kazuhiro Ito  <kzhr@d1.dion.ne.jp>  (tiny change)
 
 	* starttls.el (starttls-extra-arguments): Doc fix.
@@ -110,7 +118,7 @@
 
 2012-09-05  Martin Stjernholm  <mast@lysator.liu.se>
 
-	* gnus-demon.el (gnus-demon-init): Fixed regression when IDLE is t and
+	* gnus-demon.el (gnus-demon-init): Fix regression when IDLE is t and
 	TIME is set.
 
 2012-09-05  Juri Linkov  <juri@jurta.org>
@@ -571,7 +579,7 @@
 	* gnus.el: Register gnus-registry functions.
 
 	* gnus-registry.el (gnus-try-warping-via-registry):
-	Moved here and indent.
+	Move here and indent.
 
 	* gnus-int.el (gnus-warp-to-article):
 	Check whether the registry is enabled before warping.
@@ -703,7 +711,7 @@
 	(message-multi-smtp-send-mail): Respect the X-Message-SMTP-Method
 	header to implement multi-SMTP functionality.
 
-	* gnus-agent.el (gnus-agent-send-mail-function): Removed.
+	* gnus-agent.el (gnus-agent-send-mail-function): Remove.
 	(gnus-agentize): Don't set it.
 	(gnus-agent-send-mail): Don't use it.
 
@@ -844,8 +852,8 @@
 
 2012-06-10  Lars Magne Ingebrigtsen  <larsi@gnus.org>
 
-	* gnus-group.el (gnus-group-get-new-news): Respect
-	`gnus-group-use-permanent-levels', as documented (bug#11638).
+	* gnus-group.el (gnus-group-get-new-news):
+	Respect `gnus-group-use-permanent-levels', as documented (bug#11638).
 
 2012-06-10  Dave Abrahams  <dave@boostpro.com>
 
@@ -985,7 +993,7 @@
 	(shr-insert): Allow the natural width to be computed for tables again.
 	(shr-tag-table-1): Rework how the natural widths are computed by
 	rendering the table a third time.
-	(shr-natural-width): Removed.
+	(shr-natural-width): Remove.
 	(shr-buffer-width): New function.
 	(shr-expand-newlines): Use it.
 
@@ -1396,8 +1404,8 @@
 
 2012-01-04  Wolfgang Jenkner  <wjenkner@inode.at>  (tiny change)
 
-	* gnus-agent.el (gnus-agent-load-local): Recompute
-	gnus-agent-article-local on changing method.
+	* gnus-agent.el (gnus-agent-load-local):
+	Recompute gnus-agent-article-local on changing method.
 
 2012-01-04  Lars Magne Ingebrigtsen  <larsi@gnus.org>
 
@@ -1689,8 +1697,8 @@
 
 2011-09-27  Daiki Ueno  <ueno@unixuser.org>
 
-	* plstore.el (plstore-select-keys, plstore-encrypt-to): Clarify
-	documentation.
+	* plstore.el (plstore-select-keys, plstore-encrypt-to):
+	Clarify documentation.
 
 2011-09-27  Lars Magne Ingebrigtsen  <larsi@gnus.org>
 

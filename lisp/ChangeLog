@@ -1,3 +1,116 @@
+2012-10-23  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* htmlfontify.el (hfy-post-html-hook):
+	* filesets.el (filesets-cache-fill-content-hook):
+	* arc-mode.el (archive-extract-hook):
+	* progmodes/cc-mode.el (c-prepare-bug-report-hook):
+	* net/rcirc.el (rcirc-sentinel-functions)
+	(rcirc-receive-message-functions, rcirc-activity-functions)
+	(rcirc-print-functions):
+	* net/dbus.el (dbus-event-error-functions):
+	* emacs-lisp/eieio.el (eieio-pre-method-execution-functions):
+	* emacs-lisp/checkdoc.el (checkdoc-style-functions)
+	(checkdoc-comment-style-functions): Don't use "-hooks" suffix.
+	* term/sun.el (sun-raw-prefix-hooks):
+	* mail/sendmail.el (mail-yank-hooks): Use make-obsolete-variable.
+
+2012-10-23  Michael Albinus  <michael.albinus@gmx.de>
+
+	* net/tramp-smb.el (tramp-smb-maybe-open-connection):
+	Set `tramp-chunksize' to 1.  This improves the performance.
+	(tramp-smb-wait-for-output): Add timeout to
+	`tramp-accept-process-output' calls.
+
+2012-10-23  Chong Yidong  <cyd@gnu.org>
+
+	* faces.el (font-list-limit): Define as an obsolete variable.
+
+	* startup.el (command-line):
+	* cus-start.el: Don't refer to font-list-limit.
+
+	* newcomment.el (comment-normalize-vars): Doc fix (Bug#12583).
+
+2012-10-23  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* subr.el (internal-temp-output-buffer-show): Rename from
+	temp-output-buffer-show, since previously compiled files expect this name.
+
+2012-10-23  Glenn Morris  <rgm@gnu.org>
+
+	* image.el (image-type-from-file-name): If multiple types match,
+	return the first one that is supported.  (Bug#9045)
+
+2012-10-22  Glenn Morris  <rgm@gnu.org>
+
+	* image.el (imagemagick-enabled-types): Doc fix.
+
+2012-10-22  Takafumi Arakaki  <aka.tkf@gmail.com>  (tiny change)
+
+	* progmodes/which-func.el (which-func-current): The hash-table may have
+	an explicit nil (bug#12338).
+
+2012-10-22  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* electric.el (electric-pair-delete-selection-self-insert-function):
+	Rename to electric-pair-will-use-region, return a boolean.
+	(electric-pair-mode): Adjust accordingly.  Don't require delsel.
+
+	* delsel.el (delete-selection-helper): Use a function instead of a hook.
+	(delete-selection-pre-hook): Use use-region-p.
+	(delete-selection-self-insert-function): Remove.
+	(self-insert-command): Obey self-insert-uses-region-functions.
+	(self-insert-iso): Revert to previous setting, since we don't actually
+	know what that command does.
+	(delete-selection-self-insert-hooks): Remove.
+
+2012-10-22  Simon Law  <sfllaw@sfllaw.ca>  (tiny change)
+
+	* delsel.el (delete-selection-helper): New function, extracted from
+	delete-selection-pre-hook.
+	(delete-selection-pre-hook): Use it.
+	(delete-selection-self-insert-function): New function.
+	(delete-selection-self-insert-hooks): New hook.
+	(self-insert-command, self-insert-iso): Use it.
+	* electric.el (electric-pair-syntax): New function, extracted from
+	electric-pair-post-self-insert-function.
+	(electric-pair-post-self-insert-function): Use it.
+	(electric-pair-delete-selection-self-insert-function): New function.
+	(electric-pair-mode): Require delsel and setup
+	delete-selection-self-insert-hooks (bug#11520).
+
+2012-10-20  Chong Yidong  <cyd@gnu.org>
+
+	* vc/vc.el (vc-diff-internal): Set up Diff mode even if there are
+	no changes to show (Bug#12586).
+
+	* eshell/esh-cmd.el (eshell-rewrite-for-command): Copy the body
+	list explicitly (Bug#12571).
+
+2012-10-20  Arne Jørgensen  <arne@arnested.dk>
+
+	* progmodes/flymake.el (flymake-create-temp-inplace):
+	Use file-truename.
+
+2012-10-20  Eli Zaretskii  <eliz@gnu.org>
+
+	* loadup.el: Update comment about uncompiled Lisp files.  (Bug#12395)
+
+2012-10-20  Jay Belanger  <jay.p.belanger@gmail.com>
+
+	* calc/calc-units.el (math-extract-units): Properly extract powers
+	of units.
+
+2012-10-20  Daniel Colascione  <dancol@dancol.org>
+
+	* frame.el (make-frame): Set x-display-name as we used to in order
+	to unbreak creating an X11 frame from an Emacs daemon started
+	without a display.
+
+2012-10-19  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* minibuffer.el (minibuffer-force-complete): Make the next completion use
+	the same completion-field (bug@12221).
+
 2012-10-19  Martin Rudalics  <rudalics@gmx.at>
 
 	* emacs-lisp/debug.el (debug): Record height of debugger window

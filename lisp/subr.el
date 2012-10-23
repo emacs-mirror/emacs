@@ -1260,12 +1260,10 @@ is converted into a string by expressing it in decimal."
 (define-obsolete-variable-alias 'executing-macro 'executing-kbd-macro
   "before 19.34")
 
-(defvaralias 'x-lost-selection-hooks 'x-lost-selection-functions)
-(make-obsolete-variable 'x-lost-selection-hooks
-			'x-lost-selection-functions "22.1")
-(defvaralias 'x-sent-selection-hooks 'x-sent-selection-functions)
-(make-obsolete-variable 'x-sent-selection-hooks
-			'x-sent-selection-functions "22.1")
+(define-obsolete-variable-alias 'x-lost-selection-hooks
+  'x-lost-selection-functions "22.1")
+(define-obsolete-variable-alias 'x-sent-selection-hooks
+  'x-sent-selection-functions "22.1")
 
 ;; This was introduced in 21.4 for pre-unicode unification.  That
 ;; usage was rendered obsolete in 23.1 which uses Unicode internally.
@@ -3151,7 +3149,7 @@ in which case `save-window-excursion' cannot help."
        (unwind-protect (progn ,@body)
          (set-window-configuration ,c)))))
 
-(defun temp-output-buffer-show (buffer)
+(defun internal-temp-output-buffer-show (buffer)
   "Internal function for `with-output-to-temp-buffer'."
   (with-current-buffer buffer
     (set-buffer-modified-p nil)
@@ -3235,7 +3233,7 @@ if it uses `temp-buffer-show-function'."
                    (run-hooks 'temp-buffer-setup-hook)))))
             (standard-output ,buf))
        (prog1 (progn ,@body)
-         (temp-output-buffer-show ,buf)))))
+         (internal-temp-output-buffer-show ,buf)))))
 
 (defmacro with-temp-file (file &rest body)
   "Create a new buffer, evaluate BODY there, and write the buffer to FILE.

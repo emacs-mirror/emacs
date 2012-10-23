@@ -2944,14 +2944,6 @@ The last three elements give additional information about the font.
 encoding of the font.
 @end defun
 
-@defopt font-list-limit
-This variable specifies maximum number of fonts to consider in font
-matching.  The function @code{x-family-fonts} will not return more
-than that many fonts, and font selection will consider only that many
-fonts when searching a matching font for face attributes.  The default
-is 100.
-@end defopt
-
 @node Fontsets
 @subsection Fontsets
 

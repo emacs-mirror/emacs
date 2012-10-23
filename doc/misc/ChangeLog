@@ -1,3 +1,18 @@
+2012-10-23  Glenn Morris  <rgm@gnu.org>
+
+	* cl.texi: Include emacsver.texi.  Use Emacs version number rather
+	than unchanging cl.el version number.
+	End all menu descriptions with a period.
+	Do not use @dfn{CL} for every instance of "CL".
+	(Overview): Remove no-runtime caveat, and note about foo* names.
+	(Usage): Use cl-lib rather than cl.
+	(Organization, Naming Conventions): Update for cl-lib.el.
+	(Installation): Remove long-irrelevant node.
+	(Program Structure, Predicates, Control Structure):
+	Start updating for cl-lib namespace.
+	* Makefile.in ($(buildinfodir)/cl$(INFO_EXT), cl.dvi, cl.pdf):
+	Depend on emacsver.texi.
+
 2012-10-09  Michael Albinus  <michael.albinus@gmx.de>
 
 	* trampver.texi: Update release number.

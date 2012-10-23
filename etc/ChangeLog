@@ -1,3 +1,15 @@
+2012-10-23  Paul Eggert  <eggert@cs.ucla.edu>
+
+	Fix outdated timestamp documentation in Elisp manual (bug#12706).
+	* NEWS: Document increased precision in undo list.
+
+2012-10-21  Glenn Morris  <rgm@gnu.org>
+
+	* images/icons/hicolor/32x32/apps/emacs22.png:
+	* images/icons/hicolor/16x16/apps/emacs22.png:
+	* images/icons/hicolor/48x48/apps/emacs22.png:
+	* images/icons/hicolor/24x24/apps/emacs22.png: Restore old icons.
+
 2012-10-14  Kenichi Handa  <handa@gnu.org>
 
 	* charsets/JISC6226.map: Re-generated.
@@ -9,12 +21,12 @@
 
 2012-10-11  Kenichi Handa  <handa@gnu.org>
 
-	* charsets/CNS-2.map, charsets/CNS-3.map, charsets/CNS-4.map,
-	charsets/CNS-5.map, charsets/CNS-6.map, charsets/CNS-7.map,
-	charsets/CP932-2BYTE.map, charsets/GB180302.map,
-	charsets/GB180304.map, charsets/JISC6226.map,
-	charsets/JISX2131.map, charsets/MIK.map, charsets/PTCP154.map,
-	charsets/stdenc.map, charsets/symbol.map: Re-generated.
+	* charsets/CNS-2.map, charsets/CNS-3.map, charsets/CNS-4.map:
+	* charsets/CNS-5.map, charsets/CNS-6.map, charsets/CNS-7.map:
+	* charsets/CP932-2BYTE.map, charsets/GB180302.map:
+	* charsets/GB180304.map, charsets/JISC6226.map:
+	* charsets/JISX2131.map, charsets/MIK.map, charsets/PTCP154.map:
+	* charsets/stdenc.map, charsets/symbol.map: Re-generate.
 
 2012-10-07  Jan Djärv  <jan.h.d@swipnet.se>
 

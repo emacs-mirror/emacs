@@ -1,3 +1,7 @@
+2012-10-23  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* mh-letter.el (mh-yank-hooks): Use make-obsolete-variable.
+
 2012-04-25  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* mh-utils.el (minibuffer-completing-file-name): Don't declare, unused.

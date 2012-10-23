@@ -44,9 +44,12 @@
 ;;      `kill-region' is used on the selection, rather than
 ;;      `delete-region'.  (Text selected with the mouse will typically
 ;;      be yankable anyhow.)
-;;  non-nil
+;;  t
 ;;      The normal case: delete the active region prior to executing
 ;;      the command which will insert replacement text.
+;;  <function>
+;;      For commands which need to dynamically determine this behaviour.
+;;      The function should return one of the above values or nil.
 
 ;;; Code:
 
@@ -71,65 +74,96 @@ any selection."
     (transient-mark-mode t)))
 
 (defun delete-active-region (&optional killp)
+  "Delete the active region.
+If KILLP in not-nil, the active region is killed instead of deleted."
   (if killp
       (kill-region (point) (mark))
     (delete-region (point) (mark)))
   t)
 
-(defun delete-selection-pre-hook ()
-  (when (and delete-selection-mode transient-mark-mode mark-active
-	     (not buffer-read-only))
-    (let ((type (and (symbolp this-command)
-		     (get this-command 'delete-selection))))
-      (condition-case data
-	  (cond ((eq type 'kill)
-		 (delete-active-region t))
-		((eq type 'yank)
-		 ;; Before a yank command, make sure we don't yank the
-		 ;; head of the kill-ring that really comes from the
-		 ;; currently active region we are going to delete.
-		 ;; That would make yank a no-op.
-		 (when (and (string= (buffer-substring-no-properties
-                                      (point) (mark))
-				     (car kill-ring))
-			    (fboundp 'mouse-region-match)
-			    (mouse-region-match))
-		   (current-kill 1))
-		 (delete-active-region))
-		((eq type 'supersede)
-		 (let ((empty-region (= (point) (mark))))
-		   (delete-active-region)
-		   (unless empty-region
-		     (setq this-command 'ignore))))
-		(type
-		 (delete-active-region)
-		 (if (and overwrite-mode
-                          (eq this-command 'self-insert-command))
-		   (let ((overwrite-mode nil))
-		     (self-insert-command
-                      (prefix-numeric-value current-prefix-arg))
-		     (setq this-command 'ignore)))))
-	 ;; If ask-user-about-supersession-threat signals an error,
-	 ;; stop safe_run_hooks from clearing out pre-command-hook.
-	(file-supersession (message "%s" (cadr data)) (ding))
-	(text-read-only
-	 ;; This signal may come either from `delete-active-region' or
-	 ;; `self-insert-command' (when `overwrite-mode' is non-nil).
-	 ;; To avoid clearing out `pre-command-hook' we handle this case
-	 ;; by issuing a simple message.  Note, however, that we do not
-	 ;; handle all related problems: When read-only text ends before
-	 ;; the end of the region, the latter is not deleted but any
-	 ;; subsequent insertion will succeed.  We could avoid this case
-	 ;; by doing a (setq this-command 'ignore) here.  This would,
-	 ;; however, still not handle the case where read-only text ends
-	 ;; precisely where the region starts: In that case the deletion
-	 ;; would succeed but the subsequent insertion would fail with a
-	 ;; text-read-only error.  To handle that case we would have to
-	 ;; investigate text properties at both ends of the region and
-	 ;; skip the deletion when inserting text is forbidden there.
-	 (message "Text is read-only") (ding))))))
+(defun delete-selection-helper (type)
+  "Delete selection according to TYPE:
+ `yank'
+     For commands which do a yank; ensures the region about to be
+     deleted isn't yanked.
+ `supersede'
+     Delete the active region and ignore the current command,
+     i.e. the command will just delete the region.
+ `kill'
+     `kill-region' is used on the selection, rather than
+     `delete-region'.  (Text selected with the mouse will typically
+     be yankable anyhow.)
+ t
+     The normal case: delete the active region prior to executing
+     the command which will insert replacement text.
+ FUNCTION
+     For commands which need to dynamically determine this behaviour.
+     FUNCTION should take no argument and return one of the above values or nil."
+  (condition-case data
+      (cond ((eq type 'kill)
+	     (delete-active-region t))
+	    ((eq type 'yank)
+	     ;; Before a yank command, make sure we don't yank the
+	     ;; head of the kill-ring that really comes from the
+	     ;; currently active region we are going to delete.
+	     ;; That would make yank a no-op.
+	     (when (and (string= (buffer-substring-no-properties
+				  (point) (mark))
+				 (car kill-ring))
+			(fboundp 'mouse-region-match)
+			(mouse-region-match))
+	       (current-kill 1))
+	     (delete-active-region))
+	    ((eq type 'supersede)
+	     (let ((empty-region (= (point) (mark))))
+	       (delete-active-region)
+	       (unless empty-region
+		 (setq this-command 'ignore))))
+	    ((functionp type) (delete-selection-helper (funcall type)))
+	    (type
+	     (delete-active-region)
+	     (if (and overwrite-mode
+		      (eq this-command 'self-insert-command))
+		 (let ((overwrite-mode nil))
+		   (self-insert-command
+		    (prefix-numeric-value current-prefix-arg))
+		   (setq this-command 'ignore)))))
+    ;; If ask-user-about-supersession-threat signals an error,
+    ;; stop safe_run_hooks from clearing out pre-command-hook.
+    (file-supersession (message "%s" (cadr data)) (ding))
+    (text-read-only
+     ;; This signal may come either from `delete-active-region' or
+     ;; `self-insert-command' (when `overwrite-mode' is non-nil).
+     ;; To avoid clearing out `pre-command-hook' we handle this case
+     ;; by issuing a simple message.  Note, however, that we do not
+     ;; handle all related problems: When read-only text ends before
+     ;; the end of the region, the latter is not deleted but any
+     ;; subsequent insertion will succeed.  We could avoid this case
+     ;; by doing a (setq this-command 'ignore) here.  This would,
+     ;; however, still not handle the case where read-only text ends
+     ;; precisely where the region starts: In that case the deletion
+     ;; would succeed but the subsequent insertion would fail with a
+     ;; text-read-only error.  To handle that case we would have to
+     ;; investigate text properties at both ends of the region and
+     ;; skip the deletion when inserting text is forbidden there.
+     (message "Text is read-only") (ding))))
 
-(put 'self-insert-command 'delete-selection t)
+(defun delete-selection-pre-hook ()
+  "Function run before commands that delete selections are executed.
+Commands which will delete the selection need a `delete-selection'
+property on their symbol; commands which insert text but don't
+have this property won't delete the selection.
+See `delete-selection-helper'."
+  (when (and delete-selection-mode (use-region-p)
+	     (not buffer-read-only))
+    (delete-selection-helper (and (symbolp this-command)
+                                  (get this-command 'delete-selection)))))
+
+(put 'self-insert-command 'delete-selection
+     (lambda ()
+       (not (run-hook-with-args-until-success
+             'self-insert-uses-region-functions))))
+
 (put 'self-insert-iso 'delete-selection t)
 
 (put 'yank 'delete-selection 'yank)

@@ -487,7 +487,6 @@ since it could result in memory overflow and make Emacs crash."
 	     (hourglass-delay cursor number)
 
 	     ;; xfaces.c
-	     (font-list-limit display integer)
 	     (scalable-fonts-allowed display boolean "22.1")
 	     ;; xfns.c
 	     (x-bitmap-file-path installation

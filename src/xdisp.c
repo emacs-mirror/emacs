@@ -24076,17 +24076,16 @@ produce_stretch_glyph (struct it *it)
   Lisp_Object prop, plist;
   int width = 0, height = 0, align_to = -1;
   int zero_width_ok_p = 0;
-  int ascent = 0;
   double tem;
-  struct face *face = NULL;
   struct font *font = NULL;
 
 #ifdef HAVE_WINDOW_SYSTEM
+  int ascent = 0;
   int zero_height_ok_p = 0;
 
   if (FRAME_WINDOW_P (it->f))
     {
-      face = FACE_FROM_ID (it->f, it->face_id);
+      struct face *face = FACE_FROM_ID (it->f, it->face_id);
       font = face->font ? face->font : FRAME_FONT (it->f);
       PREPARE_FACE_FOR_DISPLAY (it->f, face);
     }

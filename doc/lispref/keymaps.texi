@@ -78,11 +78,11 @@ representations, @ref{Init Rebinding,,, emacs, The GNU Emacs Manual}.
 @defmac kbd keyseq-text
 This macro converts the text @var{keyseq-text} (a string constant)
 into a key sequence (a string or vector constant).  The contents of
-@var{keyseq-text} should describe the key sequence using almost the same
-syntax used in this manual.  More precisely, it uses the same syntax
-that Edit Macro mode uses for editing keyboard macros (@pxref{Edit
-Keyboard Macro,,, emacs, The GNU Emacs Manual}); you must surround
-function key names with @samp{<@dots{}>}.
+@var{keyseq-text} should use the same syntax as in the buffer invoked
+by the @kbd{C-x C-k @key{RET}} (@code{kmacro-edit-macro}) command; in
+particular, you must surround function key names with
+@samp{<@dots{}>}.  @xref{Edit Keyboard Macro,,, emacs, The GNU Emacs
+Manual}.
 
 @example
 (kbd "C-x") @result{} "\C-x"

@@ -484,20 +484,22 @@ implemented via rewriting, rather than as a function."
       (let ((body (car (last terms))))
 	(setcdr (last terms 2) nil)
 	`(let ((for-items
-                (append
-                 ,@(mapcar
-                    (lambda (elem)
-                      (if (listp elem)
-                          elem
-                        `(list ,elem)))
-                    (cdr (cddr terms)))))
-               (eshell-command-body '(nil))
+		(copy-tree
+		 (append
+		  ,@(mapcar
+		     (lambda (elem)
+		       (if (listp elem)
+			   elem
+			 `(list ,elem)))
+		     (cdr (cddr terms))))))
+	       (eshell-command-body '(nil))
                (eshell-test-body '(nil)))
-           (while (consp for-items)
-             (let ((,(intern (cadr terms)) (car for-items)))
-               (eshell-protect
-                ,(eshell-invokify-arg body t)))
-             (setq for-items (cdr for-items)))
+	   (while (car for-items)
+	     (let ((,(intern (cadr terms)) (car for-items)))
+	       (eshell-protect
+	   	,(eshell-invokify-arg body t)))
+	     (setcar for-items (cadr for-items))
+	     (setcdr for-items (cddr for-items)))
            (eshell-close-handles
             eshell-last-command-status
             (list 'quote eshell-last-command-result))))))

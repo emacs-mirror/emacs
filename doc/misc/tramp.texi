@@ -3007,10 +3007,10 @@ checksum.
 
 @lisp
 (add-hook
- 'find-file-hooks
- '(lambda ()
-    (when (file-remote-p default-directory)
-      (set (make-local-variable 'file-precious-flag) t))))
+ 'find-file-hook
+ (lambda ()
+   (when (file-remote-p default-directory)
+     (set (make-local-variable 'file-precious-flag) t))))
 @end lisp
 @end itemize
 
@@ -3126,7 +3126,7 @@ into your @file{~/.emacs}:
     (setq mode-line-format
           (format-mode-line mode-line-format 'font-lock-warning-face))))
 
-(add-hook 'find-file-hooks 'my-mode-line-function)
+(add-hook 'find-file-hook 'my-mode-line-function)
 (add-hook 'dired-mode-hook 'my-mode-line-function)
 @end lisp
 @end ifset
@@ -3159,10 +3159,10 @@ should put it into your @file{~/.emacs}:
 
 (add-hook
  'dired-mode-hook
- '(lambda ()
-    (setq
-     mode-line-buffer-identification
-     my-mode-line-buffer-identification)))
+ (lambda ()
+   (setq
+    mode-line-buffer-identification
+    my-mode-line-buffer-identification)))
 @end lisp
 
 Since @value{emacsname} 23.1, the mode line contains an indication if
@@ -3195,9 +3195,9 @@ like this:
 @lisp
 (add-hook
  'dired-before-readin-hook
- '(lambda ()
-    (when (file-remote-p default-directory)
-      (setq dired-actual-switches "-al"))))
+ (lambda ()
+   (when (file-remote-p default-directory)
+     (setq dired-actual-switches "-al"))))
 @end lisp
 @end ifset
 
@@ -3329,9 +3329,9 @@ minibuffer:
 
 (add-hook
  'minibuffer-setup-hook
- '(lambda ()
-    (abbrev-mode 1)
-    (setq local-abbrev-table my-tramp-abbrev-table)))
+ (lambda ()
+   (abbrev-mode 1)
+   (setq local-abbrev-table my-tramp-abbrev-table)))
 
 (defadvice minibuffer-complete
   (before my-minibuffer-complete activate)
@@ -3398,7 +3398,7 @@ their readability through a remote access:
 @ifset xemacs
 (recent-files-initialize)
 (add-hook
- 'find-file-hooks
+ 'find-file-hook
  (lambda ()
    (when (file-remote-p (buffer-file-name))
      (recent-files-make-permanent)))

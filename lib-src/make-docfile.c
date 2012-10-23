@@ -58,9 +58,11 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #undef chdir
 #define READ_TEXT "rt"
 #define READ_BINARY "rb"
+#define IS_SLASH(c)  ((c) == '/' || (c) == '\\' || (c) == ':')
 #else  /* not DOS_NT */
 #define READ_TEXT "r"
 #define READ_BINARY "r"
+#define IS_SLASH(c)  ((c) == '/')
 #endif /* not DOS_NT */
 
 static int scan_file (char *filename);
@@ -1025,9 +1027,9 @@ scan_c_file (char *filename, const char *mode)
  arglist, but the doc string must still have a backslash and newline
  immediately after the double quote.
  The only source files that must follow this convention are preloaded
- uncompiled ones like loaddefs.el and bindings.el; aside
- from that, it is always the .elc file that we look at, and they are no
- problem because byte-compiler output follows this convention.
+ uncompiled ones like loaddefs.el; aside from that, it is always the .elc
+ file that we should look at, and they are no problem because byte-compiler
+ output follows this convention.
  The NAME and DOCSTRING are output.
  NAME is preceded by `F' for a function or `V' for a variable.
  An entry is output only if DOCSTRING has \ newline just after the opening ".
@@ -1098,15 +1100,50 @@ search_lisp_doc_at_eol (FILE *infile)
   return 1;
 }
 
+#define DEF_ELISP_FILE(fn)  { #fn, sizeof(#fn) - 1 }
+
 static int
 scan_lisp_file (const char *filename, const char *mode)
 {
   FILE *infile;
   register int c;
   char *saved_string = 0;
+  /* These are the only files that are loaded uncompiled, and must
+     follow the conventions of the doc strings expected by this
+     function.  These conventions are automatically followed by the
+     byte compiler when it produces the .elc files.  */
+  static struct {
+    const char *fn;
+    size_t fl;
+  } const uncompiled[] = {
+    DEF_ELISP_FILE (loaddefs.el),
+    DEF_ELISP_FILE (loadup.el),
+    DEF_ELISP_FILE (charprop.el),
+    DEF_ELISP_FILE (cp51932.el),
+    DEF_ELISP_FILE (eucjp-ms.el)
+  };
+  int i, match;
+  size_t flen = strlen (filename);
 
   if (generate_globals)
     fatal ("scanning lisp file when -g specified", 0);
+  if (flen > 3 && !strcmp (filename + flen - 3, ".el"))
+    {
+      for (i = 0, match = 0; i < sizeof (uncompiled) / sizeof (uncompiled[0]);
+	   i++)
+	{
+	  if (uncompiled[i].fl <= flen
+	      && !strcmp (filename + flen - uncompiled[i].fl, uncompiled[i].fn)
+	      && (flen == uncompiled[i].fl
+		  || IS_SLASH (filename[flen - uncompiled[i].fl - 1])))
+	    {
+	      match = 1;
+	      break;
+	    }
+	}
+      if (!match)
+	fatal ("uncompiled lisp file %s is not supported", filename);
+    }
 
   infile = fopen (filename, mode);
   if (infile == NULL)

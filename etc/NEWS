@@ -621,6 +621,29 @@ enabled.
 
 ** FIXME something happened to ses.el, 2012-04-17.
 
+** Hooks renamed to avoid obsolete "-hooks" suffix:
+*** semantic-lex-reset-hooks -> semantic-lex-reset-functions
+*** semantic-change-hooks -> semantic-change-functions
+*** semantic-edits-new-change-hooks -> semantic-edits-new-change-functions
+*** semantic-edits-delete-change-hooks -> semantic-edits-delete-change-functions
+*** semantic-edits-reparse-change-hooks -> semantic-edits-reparse-change-functions
+*** semanticdb-save-database-hooks -> semanticdb-save-database-functions
+*** c-prepare-bug-report-hooks -> c-prepare-bug-report-hook
+*** rcirc-sentinel-hooks -> rcirc-sentinel-functions
+*** rcirc-receive-message-hooks -> rcirc-receive-message-functions
+*** rcirc-activity-hooks -> rcirc-activity-functions
+*** rcirc-print-hooks -> rcirc-print-functions
+*** dbus-event-error-hooks -> dbus-event-error-functions
+*** eieio-pre-method-execution-hooks -> eieio-pre-method-execution-functions
+*** checkdoc-style-hooks -> checkdoc-style-functions
+*** checkdoc-comment-style-hooks -> checkdoc-comment-style-functions
+*** archive-extract-hooks -> archive-extract-hook
+*** filesets-cache-fill-content-hooks -> filesets-cache-fill-content-hook
+*** hfy-post-html-hooks -> hfy-post-html-hook
+*** nndiary-request-create-group-hooks -> nndiary-request-create-group-functions
+*** nndiary-request-update-info-hooks -> nndiary-request-update-info-functions
+*** nndiary-request-accept-article-hooks -> nndiary-request-accept-article-functions
+*** gnus-subscribe-newsgroup-hooks -> gnus-subscribe-newsgroup-functions
 
 ** Obsolete packages:
 +++
@@ -843,6 +866,9 @@ stamps are still accepted.
 The PSECS slot is new, and uses picosecond resolution.  It can be
 accessed via the new timer--psecs accessor.
 
+*** Last-modified time stamps in undo lists now are of the form
+(t HI-SECS LO-SECS USECS PSECS) instead of (t HI-SECS . LO-SECS).
+
 +++
 ** Floating point functions now always return special values like NaN,
 instead of signaling errors, if given invalid args, e.g. (log -1.0).
@@ -890,6 +916,7 @@ See the "Face Attributes" section of the Elisp manual.
 *** `window-system-version'
 *** `dired-pop-to-buffer' (use `dired-mark-pop-up')
 *** `query-replace-interactive'
+*** `font-list-limit' (has had no effect since Emacs < 23)
 
 
 * Changes in Emacs 24.3 on non-free operating systems

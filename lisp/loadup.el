@@ -38,7 +38,8 @@
 ;; doc strings in the dumped Emacs.)  Because of this:
 
 ;; ii) If the file is loaded uncompiled, it should (where possible)
-;; obey the doc-string conventions expected by make-docfile.
+;; obey the doc-string conventions expected by make-docfile.  It
+;; should also be added to the uncompiled[] list in make-docfile.c.
 
 ;;; Code:
 

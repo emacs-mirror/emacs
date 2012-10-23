@@ -243,15 +243,14 @@ Used by `mail-yank-original' via `mail-indent-citation'."
   :type 'integer
   :group 'sendmail)
 
-;; FIXME make it really obsolete.
 (defvar mail-yank-hooks nil
   "Obsolete hook for modifying a citation just inserted in the mail buffer.
 Each hook function can find the citation between (point) and (mark t).
 And each hook function should leave point and mark around the citation
 text as modified.
-
 This is a normal hook, misnamed for historical reasons.
-It is semi-obsolete and mail agents should no longer use it.")
+It is obsolete and mail agents should no longer use it.")
+(make-obsolete-variable 'mail-yank-hooks 'mail-citation-hook "19.34")
 
 ;;;###autoload
 (defcustom mail-citation-hook nil

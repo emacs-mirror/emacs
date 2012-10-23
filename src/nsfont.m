@@ -797,7 +797,13 @@ nsfont_open (FRAME_PTR f, Lisp_Object font_entity, int pixel_size)
   block_input ();
 
   /* for metrics */
+#ifdef NS_IMPL_COCOA
+  sfont = [nsfont screenFontWithRenderingMode:
+                    NSFontAntialiasedIntegerAdvancementsRenderingMode];
+#else
   sfont = [nsfont screenFont];
+#endif
+
   if (sfont == nil)
     sfont = nsfont;
 
@@ -1229,6 +1235,7 @@ nsfont_draw (struct glyph_string *s, int from, int to, int x, int y,
     else
       CGContextSetShouldAntialias (gcontext, 1);
 
+    CGContextSetShouldSmoothFonts (gcontext, NO);
     CGContextSetTextMatrix (gcontext, fliptf);
 
     if (bgCol != nil)
@@ -1372,7 +1379,12 @@ ns_glyph_metrics (struct nsfont_info *font_info, unsigned char block)
 #endif
 
   block_input ();
- sfont = [font_info->nsfont screenFont];
+#ifdef NS_IMPL_COCOA
+  sfont = [font_info->nsfont screenFontWithRenderingMode:
+                      NSFontAntialiasedIntegerAdvancementsRenderingMode];
+#else
+  sfont = [font_info->nsfont screenFont];
+#endif
 
   font_info->metrics[block] = xzalloc (0x100 * sizeof (struct font_metrics));
   if (!(font_info->metrics[block]))

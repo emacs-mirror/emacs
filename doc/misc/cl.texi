@@ -1,6 +1,7 @@
 \input texinfo    @c -*-texinfo-*-
 @setfilename ../../info/cl
 @settitle Common Lisp Extensions
+@include emacsver.texi
 
 @copying
 This file documents the GNU Emacs Common Lisp emulation package.
@@ -34,7 +35,7 @@ developing GNU and promoting software freedom.''
 @sp 4
 @center For GNU Emacs Lisp
 @sp 1
-@center Version 2.02
+@center as distributed with Emacs @value{EMACSVER}
 @sp 5
 @center Dave Gillespie
 @center daveg@@synaptics.com
@@ -53,23 +54,23 @@ developing GNU and promoting software freedom.''
 @end ifnottex
 
 @menu
-* Overview::             Installation, usage, etc.
-* Program Structure::    Arglists, @code{eval-when}, @code{defalias}
-* Predicates::           @code{typep} and @code{equalp}
-* Control Structure::    @code{setf}, @code{do}, @code{loop}, etc.
-* Macros::               Destructuring, @code{define-compiler-macro}
-* Declarations::         @code{proclaim}, @code{declare}, etc.
-* Symbols::              Property lists, @code{gensym}
-* Numbers::              Predicates, functions, random numbers
-* Sequences::            Mapping, functions, searching, sorting
-* Lists::                @code{caddr}, @code{sublis}, @code{member*}, @code{assoc*}, etc.
-* Structures::           @code{defstruct}
-* Assertions::           @code{check-type}, @code{assert}, @code{ignore-errors}.
+* Overview::             Basics, usage, etc.
+* Program Structure::    Arglists, @code{cl-eval-when}, @code{defalias}.
+* Predicates::           @code{cl-typep} and @code{cl-equalp}.
+* Control Structure::    @code{setf}, @code{cl-do}, @code{cl-loop}, etc.
+* Macros::               Destructuring, @code{cl-define-compiler-macro}.
+* Declarations::         @code{cl-proclaim}, @code{cl-declare}, etc.
+* Symbols::              Property lists, @code{cl-gensym}.
+* Numbers::              Predicates, functions, random numbers.
+* Sequences::            Mapping, functions, searching, sorting.
+* Lists::                @code{cl-caddr}, @code{cl-sublis}, @code{cl-member}, @code{cl-assoc}, etc.
+* Structures::           @code{cl-defstruct}.
+* Assertions::           @code{cl-check-type}, @code{cl-assert}, @code{ignore-errors}.
 
-* Efficiency Concerns::         Hints and techniques
-* Common Lisp Compatibility::   All known differences with Steele
-* Old CL Compatibility::        All known differences with old cl.el
-* Porting Common Lisp::         Hints for porting Common Lisp code
+* Efficiency Concerns::         Hints and techniques.
+* Common Lisp Compatibility::   All known differences with Steele.
+* Old CL Compatibility::        All known differences with old cl.el.
+* Porting Common Lisp::         Hints for porting Common Lisp code.
 
 * GNU Free Documentation License:: The license for this documentation.
 * Function Index::
@@ -92,20 +93,10 @@ As Emacs Lisp programmers have grown in number, and the applications
 they write have grown more ambitious, it has become clear that Emacs
 Lisp could benefit from many of the conveniences of Common Lisp.
 
-The @dfn{CL} package adds a number of Common Lisp functions and
+The @code{CL} package adds a number of Common Lisp functions and
 control structures to Emacs Lisp.  While not a 100% complete
-implementation of Common Lisp, @dfn{CL} adds enough functionality
+implementation of Common Lisp, @code{CL} adds enough functionality
 to make Emacs Lisp programming significantly more convenient.
-
-@strong{Please note:} the @dfn{CL} functions are not standard parts of
-the Emacs Lisp name space, so it is legitimate for users to define
-them with other, conflicting meanings.  To avoid conflicting with
-those user activities, we have a policy that packages installed in
-Emacs must not load @dfn{CL} at run time.  (It is ok for them to load
-@dfn{CL} at compile time only, with @code{eval-when-compile}, and use
-the macros it provides.)  If you are writing packages that you plan to
-distribute and invite widespread use for, you might want to observe
-the same rule.
 
 Some Common Lisp features have been omitted from this package
 for various reasons:
@@ -119,152 +110,131 @@ examples of this group.
 @item
 Other features cannot be implemented without modification to the
 Emacs Lisp interpreter itself, such as multiple return values,
-lexical scoping, case-insensitive symbols, and complex numbers.
-The @dfn{CL} package generally makes no attempt to emulate these
+case-insensitive symbols, and complex numbers.
+The @code{CL} package generally makes no attempt to emulate these
 features.
 
-@item
-Some features conflict with existing things in Emacs Lisp.  For
-example, Emacs's @code{assoc} function is incompatible with the
-Common Lisp @code{assoc}.  In such cases, this package usually
-adds the suffix @samp{*} to the function name of the Common
-Lisp version of the function (e.g., @code{assoc*}).
 @end itemize
 
-The package described here was written by Dave Gillespie,
-@file{daveg@@synaptics.com}.  It is a total rewrite of the original
+The package described here was originally written by Dave Gillespie,
+@file{daveg@@synaptics.com}, as a total rewrite of an earlier
 1986 @file{cl.el} package by Cesar Quiroz.  Most features of the
-Quiroz package have been retained; any incompatibilities are
+Quiroz package were retained; any incompatibilities are
 noted in the descriptions below.  Care has been taken in this
 version to ensure that each function is defined efficiently,
 concisely, and with minimal impact on the rest of the Emacs
-environment.
+environment.  Stefan Monnier added the file @file{cl-lib.el} and
+rationalized the namespace for Emacs 24.3.
 
 @menu
-* Usage::                How to use the CL package
-* Organization::         The package's five component files
-* Installation::         Compiling and installing CL
-* Naming Conventions::   Notes on CL function names
+* Usage::                How to use the CL package.
+* Organization::         The package's five component files.
+* Naming Conventions::   Notes on CL function names.
 @end menu
 
 @node Usage
 @section Usage
 
 @noindent
-Lisp code that uses features from the @dfn{CL} package should
-include at the beginning:
+The @code{CL} package is distributed with Emacs, so there is no need
+to install any additional files in order to start using it.  Lisp code
+that uses features from the @code{CL} package should simply include at
+the beginning:
 
 @example
-(require 'cl)
+(require 'cl-lib)
 @end example
 
 @noindent
-It is safe to arrange to load @dfn{CL} at all times, e.g.,
-in your @file{.emacs} file.  But it's a good idea, for portability,
-to @code{(require 'cl)} in your code even if you do this.
+You may wish to add such a statement to your init file, if you
+make frequent use of CL features.
 
 @node Organization
 @section Organization
 
 @noindent
-The Common Lisp package is organized into four files:
+The Common Lisp package is organized into four main files:
 
 @table @file
-@item cl.el
-This is the ``main'' file, which contains basic functions
-and information about the package.  This file is relatively
-compact---about 700 lines.
+@item cl-lib.el
+This is the main file, which contains basic functions
+and information about the package.  This file is relatively compact.
 
 @item cl-extra.el
 This file contains the larger, more complex or unusual functions.
 It is kept separate so that packages which only want to use Common
-Lisp fundamentals like the @code{cadr} function won't need to pay
+Lisp fundamentals like the @code{cl-incf} function won't need to pay
 the overhead of loading the more advanced functions.
 
 @item cl-seq.el
 This file contains most of the advanced functions for operating
-on sequences or lists, such as @code{delete-if} and @code{assoc*}.
+on sequences or lists, such as @code{cl-delete-if} and @code{cl-assoc}.
 
 @item cl-macs.el
-This file contains the features of the packages which are macros
-instead of functions.  Macros expand when the caller is compiled,
-not when it is run, so the macros generally only need to be
-present when the byte-compiler is running (or when the macros are
-used in uncompiled code such as a @file{.emacs} file).  Most of
-the macros of this package are isolated in @file{cl-macs.el} so
-that they won't take up memory unless you are compiling.
+This file contains the features that are macros instead of functions.
+Macros expand when the caller is compiled, not when it is run, so the
+macros generally only need to be present when the byte-compiler is
+running (or when the macros are used in uncompiled code).  Most of the
+macros of this package are isolated in @file{cl-macs.el} so that they
+won't take up memory unless you are compiling.
 @end table
 
-The file @file{cl.el} includes all necessary @code{autoload}
+The file @file{cl-lib.el} includes all necessary @code{autoload}
 commands for the functions and macros in the other three files.
-All you have to do is @code{(require 'cl)}, and @file{cl.el}
+All you have to do is @code{(require 'cl-lib)}, and @file{cl-lib.el}
 will take care of pulling in the other files when they are
 needed.
 
-There is another file, @file{cl-compat.el}, which defines some
-routines from the older @file{cl.el} package that are not otherwise
+There is another file, @file{cl.el}, which was the main entry point
+to the CL package prior to Emacs 24.3.  Nowadays, it is replaced
+by @file{cl-lib.el}.  The two provide the same features, but use
+different function names (in fact, @file{cl.el} just defines aliases
+to the @file{cl-lib.el} definitions).  In particular, the old @file{cl.el}
+does not use a clean namespace.  For this reason, Emacs has a policy
+that packages distributed with Emacs must not load @code{cl} at run time.
+(It is ok for them to load @code{cl} at @emph{compile} time, with
+@code{eval-when-compile}, and use the macros it provides.)  There is
+no such restriction on the use of @code{cl-lib}.  New code should use
+@code{cl-lib} rather than @code{cl}.  @xref{Naming Conventions}.
+
+There is one more file, @file{cl-compat.el}, which defines some
+routines from the older CL package that are not otherwise
 present in the new package.  This includes internal routines
 like @code{setelt} and @code{zip-lists}, deprecated features
 like @code{defkeyword}, and an emulation of the old-style
 multiple-values feature.  This file is obsolete and should not be used
 in new code.  @xref{Old CL Compatibility}.
 
-@node Installation
-@section Installation
-
-@noindent
-The @dfn{CL} package is distributed with Emacs, so there is no need
-to install anything.
-
-If you do need to install it, just put the byte-compiled files
-@file{cl.elc}, @file{cl-extra.elc}, @file{cl-seq.elc},
-@file{cl-macs.elc}, and (if necessary) @file{cl-compat.elc} into a
-directory on your @code{load-path}.  Also, format the @file{cl.texi}
-file and put the resulting Info files into a directory in your
-@code{Info-directory-list}.
-
 @node Naming Conventions
 @section Naming Conventions
 
 @noindent
 Except where noted, all functions defined by this package have the
-same names and calling conventions as their Common Lisp counterparts.
-
-Following is a complete list of functions whose names were changed
-from Common Lisp, usually to avoid conflicts with Emacs.  In each
-case, a @samp{*} has been appended to the Common Lisp name to obtain
-the Emacs name:
-
-@example
-defun*        defsubst*     defmacro*     function*
-member*       assoc*        rassoc*       get*
-remove*       delete*       mapcar*       sort*
-floor*        ceiling*      truncate*     round*
-mod*          rem*          random*
-@end example
+same calling conventions as their Common Lisp counterparts, and
+names that are those of Common Lisp plus a @samp{cl-} prefix.
 
 Internal function and variable names in the package are prefixed
-by @code{cl-}.  Here is a complete list of functions @emph{not}
-prefixed by @code{cl-} which were not taken from Common Lisp:
+by @code{cl--}.  Here is a complete list of functions prefixed by
+@code{cl-} that were not taken from Common Lisp:
 
+@c FIXME lexical-let lexical-let*
 @example
-floatp-safe   lexical-let   lexical-let*
-callf         callf2        letf          letf*
-defsubst*
+cl-callf         cl-callf2        cl-defsubst
+cl-floatp-safe   cl-letf          cl-letf*
 @end example
 
-The following simple functions and macros are defined in @file{cl.el};
+The following simple functions and macros are defined in @file{cl-lib.el};
 they do not cause other components like @file{cl-extra} to be loaded.
 
 @example
-floatp-safe   endp
-evenp         oddp          plusp         minusp
-caaar .. cddddr
-list*         ldiff         rest          first .. tenth
-copy-list     subst         mapcar* [2]
-adjoin [3]    acons         pairlis       pop [4]
-push [4]      pushnew [3,4] incf [4]      decf [4]
-proclaim      declaim
+cl-floatp-safe   cl-endp
+cl-evenp         cl-oddp          cl-plusp         cl-minusp
+cl-caaar .. cl-cddddr
+cl-list*         cl-ldiff         cl-rest          cl-first .. cl-tenth
+cl-copy-list     cl-subst         cl-mapcar [2]
+cl-adjoin [3]    cl-acons         cl-pairlis
+cl-pushnew [3,4] cl-incf [4]      cl-decf [4]
+cl-proclaim      cl-declaim
 @end example
 
 @noindent
@@ -281,13 +251,13 @@ and @code{:key} is not used.
 @chapter Program Structure
 
 @noindent
-This section describes features of the @dfn{CL} package which have to
+This section describes features of the @code{CL} package that have to
 do with programs as a whole: advanced argument lists for functions,
-and the @code{eval-when} construct.
+and the @code{cl-eval-when} construct.
 
 @menu
-* Argument Lists::       @code{&key}, @code{&aux}, @code{defun*}, @code{defmacro*}.
-* Time of Evaluation::   The @code{eval-when} construct.
+* Argument Lists::       @code{&key}, @code{&aux}, @code{cl-defun}, @code{cl-defmacro}.
+* Time of Evaluation::   The @code{cl-eval-when} construct.
 @end menu
 
 @iftex
@@ -309,26 +279,26 @@ this package to implement Common Lisp argument lists seamlessly.
 Instead, this package defines alternates for several Lisp forms
 which you must use if you need Common Lisp argument lists.
 
-@defspec defun* name arglist body...
+@defspec cl-defun name arglist body...
 This form is identical to the regular @code{defun} form, except
 that @var{arglist} is allowed to be a full Common Lisp argument
 list.  Also, the function body is enclosed in an implicit block
 called @var{name}; @pxref{Blocks and Exits}.
 @end defspec
 
-@defspec defsubst* name arglist body...
-This is just like @code{defun*}, except that the function that
+@defspec cl-defsubst name arglist body...
+This is just like @code{cl-defun}, except that the function that
 is defined is automatically proclaimed @code{inline}, i.e.,
 calls to it may be expanded into in-line code by the byte compiler.
 This is analogous to the @code{defsubst} form;
-@code{defsubst*} uses a different method (compiler macros) which
+@code{cl-defsubst} uses a different method (compiler macros) which
 works in all versions of Emacs, and also generates somewhat more
-efficient inline expansions.  In particular, @code{defsubst*}
+efficient inline expansions.  In particular, @code{cl-defsubst}
 arranges for the processing of keyword arguments, default values,
 etc., to be done at compile-time whenever possible.
 @end defspec
 
-@defspec defmacro* name arglist body...
+@defspec cl-defmacro name arglist body...
 This is identical to the regular @code{defmacro} form,
 except that @var{arglist} is allowed to be a full Common Lisp
 argument list.  The @code{&environment} keyword is supported as
@@ -339,19 +309,19 @@ The macro expander body is enclosed in an implicit block called
 @var{name}.
 @end defspec
 
-@defspec function* symbol-or-lambda
+@defspec cl-function symbol-or-lambda
 This is identical to the regular @code{function} form,
 except that if the argument is a @code{lambda} form then that
 form may use a full Common Lisp argument list.
 @end defspec
 
-Also, all forms (such as @code{defsetf} and @code{flet}) defined
+Also, all forms (such as @code{cl-flet} and @code{cl-labels}) defined
 in this package that include @var{arglist}s in their syntax allow
 full Common Lisp argument lists.
 
-Note that it is @emph{not} necessary to use @code{defun*} in
-order to have access to most @dfn{CL} features in your function.
-These features are always present; @code{defun*}'s only
+Note that it is @emph{not} necessary to use @code{cl-defun} in
+order to have access to most @code{CL} features in your function.
+These features are always present; @code{cl-defun}'s only
 difference from @code{defun} is its more flexible argument
 lists and its implicit block.
 
@@ -401,7 +371,7 @@ are optional arguments which are specified by name rather than
 positionally in the argument list.  For example,
 
 @example
-(defun* foo (a &optional b &key c d (e 17)))
+(cl-defun foo (a &optional b &key c d (e 17)))
 @end example
 
 @noindent
@@ -427,7 +397,7 @@ You can also explicitly specify the keyword argument; it need not be
 simply the variable name prefixed with a colon.  For example,
 
 @example
-(defun* bar (&key (a 1) ((baz b) 4)))
+(cl-defun bar (&key (a 1) ((baz b) 4)))
 @end example
 
 @noindent
@@ -453,16 +423,16 @@ the ``rest'' argument is bound to the keyword list as it appears
 in the call.  For example:
 
 @smallexample
-(defun* find-thing (thing &rest rest &key need &allow-other-keys)
-  (or (apply 'member* thing thing-list :allow-other-keys t rest)
+(cl-defun find-thing (thing &rest rest &key need &allow-other-keys)
+  (or (apply 'cl-member thing thing-list :allow-other-keys t rest)
       (if need (error "Thing not found"))))
 @end smallexample
 
 @noindent
 This function takes a @code{:need} keyword argument, but also
 accepts other keyword arguments which are passed on to the
-@code{member*} function.  @code{allow-other-keys} is used to
-keep both @code{find-thing} and @code{member*} from complaining
+@code{cl-member} function.  @code{allow-other-keys} is used to
+keep both @code{find-thing} and @code{cl-member} from complaining
 about each others' keywords in the arguments.
 
 The fifth section of the argument list consists of @dfn{auxiliary
@@ -473,17 +443,17 @@ difference between the following two functions, except for a
 matter of stylistic taste:
 
 @example
-(defun* foo (a b &aux (c (+ a b)) d)
+(cl-defun foo (a b &aux (c (+ a b)) d)
   @var{body})
 
-(defun* foo (a b)
+(cl-defun foo (a b)
   (let ((c (+ a b)) d)
     @var{body}))
 @end example
 
 Argument lists support @dfn{destructuring}.  In Common Lisp,
 destructuring is only allowed with @code{defmacro}; this package
-allows it with @code{defun*} and other argument lists as well.
+allows it with @code{cl-defun} and other argument lists as well.
 In destructuring, any argument variable (@var{var} in the above
 diagram) can be replaced by a list of variables, or more generally,
 a recursive argument list.  The corresponding argument value must
@@ -491,7 +461,7 @@ be a list whose elements match this recursive argument list.
 For example:
 
 @example
-(defmacro* dolist ((var listform &optional resultform)
+(cl-defmacro dolist ((var listform &optional resultform)
                    &rest body)
   ...)
 @end example
@@ -532,21 +502,21 @@ For example, the compiler effectively evaluates @code{defmacro} forms
 at compile-time so that later parts of the file can refer to the
 macros that are defined.
 
-@defspec eval-when (situations...) forms...
+@defspec cl-eval-when (situations...) forms...
 This form controls when the body @var{forms} are evaluated.
 The @var{situations} list may contain any set of the symbols
 @code{compile}, @code{load}, and @code{eval} (or their long-winded
 ANSI equivalents, @code{:compile-toplevel}, @code{:load-toplevel},
 and @code{:execute}).
 
-The @code{eval-when} form is handled differently depending on
+The @code{cl-eval-when} form is handled differently depending on
 whether or not it is being compiled as a top-level form.
 Specifically, it gets special treatment if it is being compiled
 by a command such as @code{byte-compile-file} which compiles files
 or buffers of code, and it appears either literally at the
 top level of the file or inside a top-level @code{progn}.
 
-For compiled top-level @code{eval-when}s, the body @var{forms} are
+For compiled top-level @code{cl-eval-when}s, the body @var{forms} are
 executed at compile-time if @code{compile} is in the @var{situations}
 list, and the @var{forms} are written out to the file (to be executed
 at load-time) if @code{load} is in the @var{situations} list.
@@ -554,11 +524,11 @@ at load-time) if @code{load} is in the @var{situations} list.
 For non-compiled-top-level forms, only the @code{eval} situation is
 relevant.  (This includes forms executed by the interpreter, forms
 compiled with @code{byte-compile} rather than @code{byte-compile-file},
-and non-top-level forms.)  The @code{eval-when} acts like a
+and non-top-level forms.)  The @code{cl-eval-when} acts like a
 @code{progn} if @code{eval} is specified, and like @code{nil}
 (ignoring the body @var{forms}) if not.
 
-The rules become more subtle when @code{eval-when}s are nested;
+The rules become more subtle when @code{cl-eval-when}s are nested;
 consult Steele (second edition) for the gruesome details (and
 some gruesome examples).
 
@@ -566,13 +536,13 @@ Some simple examples:
 
 @example
 ;; Top-level forms in foo.el:
-(eval-when (compile)           (setq foo1 'bar))
-(eval-when (load)              (setq foo2 'bar))
-(eval-when (compile load)      (setq foo3 'bar))
-(eval-when (eval)              (setq foo4 'bar))
-(eval-when (eval compile)      (setq foo5 'bar))
-(eval-when (eval load)         (setq foo6 'bar))
-(eval-when (eval compile load) (setq foo7 'bar))
+(cl-eval-when (compile)           (setq foo1 'bar))
+(cl-eval-when (load)              (setq foo2 'bar))
+(cl-eval-when (compile load)      (setq foo3 'bar))
+(cl-eval-when (eval)              (setq foo4 'bar))
+(cl-eval-when (eval compile)      (setq foo5 'bar))
+(cl-eval-when (eval load)         (setq foo6 'bar))
+(cl-eval-when (eval compile load) (setq foo7 'bar))
 @end example
 
 When @file{foo.el} is compiled, these variables will be set during
@@ -595,18 +565,18 @@ be set:
 foo4  foo5  foo6  foo7      ; `eval'
 @end example
 
-If these seven @code{eval-when}s had been, say, inside a @code{defun},
+If these seven @code{cl-eval-when}s had been, say, inside a @code{defun},
 then the first three would have been equivalent to @code{nil} and the
 last four would have been equivalent to the corresponding @code{setq}s.
 
-Note that @code{(eval-when (load eval) @dots{})} is equivalent
+Note that @code{(cl-eval-when (load eval) @dots{})} is equivalent
 to @code{(progn @dots{})} in all contexts.  The compiler treats
 certain top-level forms, like @code{defmacro} (sort-of) and
 @code{require}, as if they were wrapped in @code{(eval-when
 (compile load eval) @dots{})}.
 @end defspec
 
-Emacs includes two special forms related to @code{eval-when}.
+Emacs includes two special forms related to @code{cl-eval-when}.
 One of these, @code{eval-when-compile}, is not quite equivalent to
 any @code{eval-when} construct and is described below.
 
@@ -625,7 +595,7 @@ or other reasons.
 This form is similar to the @samp{#.} syntax of true Common Lisp.
 @end defspec
 
-@defspec load-time-value form
+@defspec cl-load-time-value form
 The @var{form} is evaluated at load-time; at execution time,
 this form acts like a quoted constant of the resulting value.
 
@@ -633,12 +603,12 @@ Early Common Lisp had a @samp{#,} syntax that was similar to
 this, but ANSI Common Lisp replaced it with @code{load-time-value}
 and gave it more well-defined semantics.
 
-In a compiled file, @code{load-time-value} arranges for @var{form}
+In a compiled file, @code{cl-load-time-value} arranges for @var{form}
 to be evaluated when the @file{.elc} file is loaded and then used
 as if it were a quoted constant.  In code compiled by
 @code{byte-compile} rather than @code{byte-compile-file}, the
 effect is identical to @code{eval-when-compile}.  In uncompiled
-code, both @code{eval-when-compile} and @code{load-time-value}
+code, both @code{eval-when-compile} and @code{cl-load-time-value}
 act exactly like @code{progn}.
 
 @example
@@ -649,7 +619,7 @@ act exactly like @code{progn}.
           (eval-when-compile (current-time-string))
           ;; or '#.(current-time-string) in real Common Lisp
           ", and loaded on: "
-          (load-time-value (current-time-string))))
+          (cl-load-time-value (current-time-string))))
 @end example
 
 @noindent
@@ -676,21 +646,21 @@ This section describes functions for testing whether various
 facts are true or false.
 
 @menu
-* Type Predicates::      @code{typep}, @code{deftype}, and @code{coerce}
-* Equality Predicates::  @code{equalp}
+* Type Predicates::      @code{cl-typep}, @code{cl-deftype}, and @code{cl-coerce}.
+* Equality Predicates::  @code{cl-equalp}.
 @end menu
 
 @node Type Predicates
 @section Type Predicates
 
 @noindent
-The @dfn{CL} package defines a version of the Common Lisp @code{typep}
+The @code{CL} package defines a version of the Common Lisp @code{typep}
 predicate.
 
-@defun typep object type
+@defun cl-typep object type
 Check if @var{object} is of type @var{type}, where @var{type} is a
 (quoted) type name of the sort used by Common Lisp.  For example,
-@code{(typep foo 'integer)} is equivalent to @code{(integerp foo)}.
+@code{(cl-typep foo 'integer)} is equivalent to @code{(integerp foo)}.
 @end defun
 
 The @var{type} argument to the above function is either a symbol
@@ -705,18 +675,18 @@ than @samp{-p} are used when appropriate.)
 
 @item
 The type symbol @code{t} stands for the union of all types.
-@code{(typep @var{object} t)} is always true.  Likewise, the
+@code{(cl-typep @var{object} t)} is always true.  Likewise, the
 type symbol @code{nil} stands for nothing at all, and
-@code{(typep @var{object} nil)} is always false.
+@code{(cl-typep @var{object} nil)} is always false.
 
 @item
 The type symbol @code{null} represents the symbol @code{nil}.
-Thus @code{(typep @var{object} 'null)} is equivalent to
+Thus @code{(cl-typep @var{object} 'null)} is equivalent to
 @code{(null @var{object})}.
 
 @item
 The type symbol @code{atom} represents all objects that are not cons
-cells. Thus @code{(typep @var{object} 'atom)} is equivalent to
+cells. Thus @code{(cl-typep @var{object} 'atom)} is equivalent to
 @code{(atom @var{object})}.
 
 @item
@@ -728,7 +698,7 @@ The type symbols @code{character} and @code{string-char} match
 integers in the range from 0 to 255.
 
 @item
-The type symbol @code{float} uses the @code{floatp-safe} predicate
+The type symbol @code{float} uses the @code{cl-floatp-safe} predicate
 defined by this package rather than @code{floatp}, so it will work
 correctly even in Emacs versions without floating-point support.
 
@@ -750,7 +720,7 @@ combinations of types.  For example, @code{(or integer (float 0 *))}
 represents all objects that are integers or non-negative floats.
 
 @item
-Lists beginning with @code{member} or @code{member*} represent
+Lists beginning with @code{member} or @code{cl-member} represent
 objects @code{eql} to any of the following values.  For example,
 @code{(member 1 2 3 4)} is equivalent to @code{(integer 1 4)},
 and @code{(member nil)} is equivalent to @code{null}.
@@ -762,9 +732,9 @@ with that object as an argument.
 @end itemize
 
 The following function and macro (not technically predicates) are
-related to @code{typep}.
+related to @code{cl-typep}.
 
-@defun coerce object type
+@defun cl-coerce object type
 This function attempts to convert @var{object} to the specified
 @var{type}.  If @var{object} is already of that type as determined by
 @code{typep}, it is simply returned.  Otherwise, certain types of
@@ -774,28 +744,28 @@ converted to that type if possible.  If @var{type} is
 @code{character}, then strings of length one and symbols with
 one-character names can be coerced.  If @var{type} is @code{float},
 then integers can be coerced in versions of Emacs that support
-floats.  In all other circumstances, @code{coerce} signals an
+floats.  In all other circumstances, @code{cl-coerce} signals an
 error.
 @end defun
 
-@defspec deftype name arglist forms...
+@defspec cl-deftype name arglist forms...
 This macro defines a new type called @var{name}.  It is similar
 to @code{defmacro} in many ways; when @var{name} is encountered
 as a type name, the body @var{forms} are evaluated and should
 return a type specifier that is equivalent to the type.  The
 @var{arglist} is a Common Lisp argument list of the sort accepted
-by @code{defmacro*}.  The type specifier @samp{(@var{name} @var{args}...)}
+by @code{cl-defmacro}.  The type specifier @samp{(@var{name} @var{args}...)}
 is expanded by calling the expander with those arguments; the type
 symbol @samp{@var{name}} is expanded by calling the expander with
 no arguments.  The @var{arglist} is processed the same as for
-@code{defmacro*} except that optional arguments without explicit
+@code{cl-defmacro} except that optional arguments without explicit
 defaults use @code{*} instead of @code{nil} as the ``default''
 default.  Some examples:
 
 @example
-(deftype null () '(satisfies null))    ; predefined
-(deftype list () '(or null cons))      ; predefined
-(deftype unsigned-byte (&optional bits)
+(cl-deftype null () '(satisfies null))    ; predefined
+(cl-deftype list () '(or null cons))      ; predefined
+(cl-deftype unsigned-byte (&optional bits)
   (list 'integer 0 (if (eq bits '*) bits (1- (lsh 1 bits)))))
 (unsigned-byte 8)  @equiv{}  (integer 0 255)
 (unsigned-byte)  @equiv{}  (integer 0 *)
@@ -808,21 +778,21 @@ type specifier could be implemented if desired; this package does
 not implement @code{unsigned-byte} by default.
 @end defspec
 
-The @code{typecase} and @code{check-type} macros also use type
-names.  @xref{Conditionals}.  @xref{Assertions}.  The @code{map},
-@code{concatenate}, and @code{merge} functions take type-name
+The @code{cl-typecase} and @code{cl-check-type} macros also use type
+names.  @xref{Conditionals}.  @xref{Assertions}.  The @code{cl-map},
+@code{cl-concatenate}, and @code{cl-merge} functions take type-name
 arguments to specify the type of sequence to return.  @xref{Sequences}.
 
 @node Equality Predicates
 @section Equality Predicates
 
 @noindent
-This package defines the Common Lisp predicate @code{equalp}.
+This package defines the Common Lisp predicate @code{cl-equalp}.
 
-@defun equalp a b
+@defun cl-equalp a b
 This function is a more flexible version of @code{equal}.  In
 particular, it compares strings case-insensitively, and it compares
-numbers without regard to type (so that @code{(equalp 3 3.0)} is
+numbers without regard to type (so that @code{(cl-equalp 3 3.0)} is
 true).  Vectors and conses are compared recursively.  All other
 objects are compared as if by @code{equal}.
 
@@ -831,15 +801,15 @@ respects.  First, Common Lisp's @code{equalp} also compares
 @emph{characters} case-insensitively, which would be impractical
 in this package since Emacs does not distinguish between integers
 and characters.  In keeping with the idea that strings are less
-vector-like in Emacs Lisp, this package's @code{equalp} also will
+vector-like in Emacs Lisp, this package's @code{cl-equalp} also will
 not compare strings against vectors of integers.
 @end defun
 
 Also note that the Common Lisp functions @code{member} and @code{assoc}
 use @code{eql} to compare elements, whereas Emacs Lisp follows the
 MacLisp tradition and uses @code{equal} for these two functions.
-In Emacs, use @code{member*} and @code{assoc*} to get functions
-which use @code{eql} for comparisons.
+In Emacs, use @code{memq} (or @code{cl-member}) and @code{assq} (or
+@code{cl-assoc}) to get functions which use @code{eql} for comparisons.
 
 @node Control Structure
 @chapter Control Structure
@@ -847,28 +817,32 @@ which use @code{eql} for comparisons.
 @noindent
 The features described in the following sections implement
 various advanced control structures, including the powerful
+@c FIXME setf is now in gv.el, not cl.
 @code{setf} facility and a number of looping and conditional
 constructs.
 
+@c FIXME setf, push are standard now.
+@c lexical-let is obsolete; flet is not cl-flet.
+@c values is not cl-values.
 @menu
-* Assignment::             The @code{psetq} form
-* Generalized Variables::  @code{setf}, @code{incf}, @code{push}, etc.
-* Variable Bindings::      @code{progv}, @code{lexical-let}, @code{flet}, @code{macrolet}
-* Conditionals::           @code{case}, @code{typecase}
-* Blocks and Exits::       @code{block}, @code{return}, @code{return-from}
-* Iteration::              @code{do}, @code{dotimes}, @code{dolist}, @code{do-symbols}
-* Loop Facility::          The Common Lisp @code{loop} macro
-* Multiple Values::        @code{values}, @code{multiple-value-bind}, etc.
+* Assignment::             The @code{cl-psetq} form.
+* Generalized Variables::  @code{setf}, @code{cl-incf}, @code{push}, etc.
+* Variable Bindings::      @code{cl-progv}, @code{lexical-let}, @code{flet}, @code{cl-macrolet}.
+* Conditionals::           @code{cl-case}, @code{cl-typecase}.
+* Blocks and Exits::       @code{cl-block}, @code{cl-return}, @code{cl-return-from}.
+* Iteration::              @code{cl-do}, @code{cl-dotimes}, @code{cl-dolist}, @code{cl-do-symbols}.
+* Loop Facility::          The Common Lisp @code{cl-loop} macro.
+* Multiple Values::        @code{values}, @code{cl-multiple-value-bind}, etc.
 @end menu
 
 @node Assignment
 @section Assignment
 
 @noindent
-The @code{psetq} form is just like @code{setq}, except that multiple
+The @code{cl-psetq} form is just like @code{setq}, except that multiple
 assignments are done in parallel rather than sequentially.
 
-@defspec psetq [symbol form]@dots{}
+@defspec cl-psetq [symbol form]@dots{}
 This special form (actually a macro) is used to assign to several
 variables simultaneously.  Given only one @var{symbol} and @var{form},
 it has the same effect as @code{setq}.  Given several @var{symbol}
@@ -883,21 +857,22 @@ x
 y                     ; @r{@code{y} was computed after @code{x} was set.}
      @result{} 15
 (setq x 2 y 3)
-(psetq x (+ x y)  y (* x y))
+(cl-psetq x (+ x y)  y (* x y))
 x
      @result{} 5
 y                     ; @r{@code{y} was computed before @code{x} was set.}
      @result{} 6
 @end example
 
-The simplest use of @code{psetq} is @code{(psetq x y y x)}, which
-exchanges the values of two variables.  (The @code{rotatef} form
+The simplest use of @code{cl-psetq} is @code{(cl-psetq x y y x)}, which
+exchanges the values of two variables.  (The @code{cl-rotatef} form
 provides an even more convenient way to swap two variables;
 @pxref{Modify Macros}.)
 
-@code{psetq} always returns @code{nil}.
+@code{cl-psetq} always returns @code{nil}.
 @end defspec
 
+@c FIXME now in gv.el.
 @node Generalized Variables
 @section Generalized Variables
 
@@ -922,9 +897,9 @@ Just as certain forms like @code{a[i]} can be lvalues in C, there
 is a set of forms that can be generalized variables in Lisp.
 
 @menu
-* Basic Setf::         @code{setf} and place forms
-* Modify Macros::      @code{incf}, @code{push}, @code{rotatef}, @code{letf}, @code{callf}, etc.
-* Customizing Setf::   @code{define-modify-macro}, @code{defsetf}, @code{define-setf-method}
+* Basic Setf::         @code{setf} and place forms.
+* Modify Macros::      @code{cl-incf}, @code{push}, @code{cl-rotatef}, @code{letf}, @code{cl-callf}, etc.
+* Customizing Setf::   @code{define-modify-macro}, @code{defsetf}, @code{define-setf-method}.
 @end menu
 
 @node Basic Setf
@@ -1107,7 +1082,7 @@ that operate on generalized variables.  Many are interesting and
 useful even when the @var{place} is just a variable name.
 
 @defspec psetf [place form]@dots{}
-This macro is to @code{setf} what @code{psetq} is to @code{setq}:
+This macro is to @code{setf} what @code{cl-psetq} is to @code{setq}:
 When several @var{place}s and @var{form}s are involved, the
 assignments take place in parallel rather than sequentially.
 Specifically, all subforms are evaluated from left to right, then
@@ -1533,10 +1508,10 @@ analogous to Lisp's built-in @code{let} form.
 are also related to variable bindings.
 
 @menu
-* Dynamic Bindings::     The @code{progv} form
-* Lexical Bindings::     @code{lexical-let} and lexical closures
-* Function Bindings::    @code{flet} and @code{labels}
-* Macro Bindings::       @code{macrolet} and @code{symbol-macrolet}
+* Dynamic Bindings::     The @code{progv} form.
+* Lexical Bindings::     @code{lexical-let} and lexical closures.
+* Function Bindings::    @code{flet} and @code{labels}.
+* Macro Bindings::       @code{macrolet} and @code{symbol-macrolet}.
 @end menu
 
 @node Dynamic Bindings
@@ -1563,7 +1538,7 @@ are ignored.
 @subsection Lexical Bindings
 
 @noindent
-The @dfn{CL} package defines the following macro which
+The @code{CL} package defines the following macro which
 more closely follows the Common Lisp @code{let} form:
 
 @defspec lexical-let (bindings@dots{}) forms@dots{}
@@ -1984,7 +1959,7 @@ looping constructs to complement Emacs Lisp's basic @code{while}
 loop.
 
 @defspec loop forms@dots{}
-The @dfn{CL} package supports both the simple, old-style meaning of
+The @code{CL} package supports both the simple, old-style meaning of
 @code{loop} and the extremely powerful and flexible feature known as
 the @dfn{Loop Facility} or @dfn{Loop Macro}.  This more advanced
 facility is discussed in the following section; @pxref{Loop Facility}.
@@ -2026,7 +2001,7 @@ associated @var{init} value as if by a @code{let} form.  Then, in
 each iteration of the loop, the @var{end-test} is evaluated; if
 true, the loop is finished.  Otherwise, the body @var{forms} are
 evaluated, then each @var{var} is set to the associated @var{step}
-expression (as if by a @code{psetq} form) and the next iteration
+expression (as if by a @code{cl-psetq} form) and the next iteration
 begins.  Once the @var{end-test} becomes true, the @var{result}
 forms are evaluated (with the @var{var}s still bound to their
 values) to produce the result returned by @code{do}.
@@ -2065,7 +2040,7 @@ the rest of the loop.
 This is to @code{do} what @code{let*} is to @code{let}.  In
 particular, the initial values are bound as if by @code{let*}
 rather than @code{let}, and the steps are assigned as if by
-@code{setq} rather than @code{psetq}.
+@code{setq} rather than @code{cl-psetq}.
 
 Here is another way to write the above loop:
 
@@ -2133,12 +2108,12 @@ construct called the ``Loop Facility'' or ``@code{loop} macro,''
 with an easy-to-use but very powerful and expressive syntax.
 
 @menu
-* Loop Basics::           @code{loop} macro, basic clause structure
-* Loop Examples::         Working examples of @code{loop} macro
-* For Clauses::           Clauses introduced by @code{for} or @code{as}
+* Loop Basics::           @code{loop} macro, basic clause structure.
+* Loop Examples::         Working examples of @code{loop} macro.
+* For Clauses::           Clauses introduced by @code{for} or @code{as}.
 * Iteration Clauses::     @code{repeat}, @code{while}, @code{thereis}, etc.
 * Accumulation Clauses::  @code{collect}, @code{sum}, @code{maximize}, etc.
-* Other Clauses::         @code{with}, @code{if}, @code{initially}, @code{finally}
+* Other Clauses::         @code{with}, @code{if}, @code{initially}, @code{finally}.
 @end menu
 
 @node Loop Basics
@@ -2546,7 +2521,7 @@ If you include several @code{for} clauses in a row, they are
 treated sequentially (as if by @code{let*} and @code{setq}).
 You can instead use the word @code{and} to link the clauses,
 in which case they are processed in parallel (as if by @code{let}
-and @code{psetq}).
+and @code{cl-psetq}).
 
 @example
 (loop for x below 5 for y = nil then x collect (list x y))
@@ -3177,8 +3152,8 @@ This package defines several symbol-related features that were
 missing from Emacs Lisp.
 
 @menu
-* Property Lists::       @code{get*}, @code{remprop}, @code{getf}, @code{remf}
-* Creating Symbols::     @code{gensym}, @code{gentemp}
+* Property Lists::       @code{get*}, @code{remprop}, @code{getf}, @code{remf}.
+* Creating Symbols::     @code{gensym}, @code{gentemp}.
 @end menu
 
 @node Property Lists
@@ -3321,8 +3296,8 @@ which were left out of Emacs Lisp.
 @menu
 * Predicates on Numbers::       @code{plusp}, @code{oddp}, @code{floatp-safe}, etc.
 * Numerical Functions::         @code{abs}, @code{floor*}, etc.
-* Random Numbers::              @code{random*}, @code{make-random-state}
-* Implementation Parameters::   @code{most-positive-float}
+* Random Numbers::              @code{random*}, @code{make-random-state}.
+* Implementation Parameters::   @code{most-positive-float}.
 @end menu
 
 @iftex
@@ -3614,11 +3589,11 @@ Emacs Lisp includes a few of these, notably @code{elt} and
 @code{length}; this package defines most of the rest.
 
 @menu
-* Sequence Basics::          Arguments shared by all sequence functions
+* Sequence Basics::          Arguments shared by all sequence functions.
 * Mapping over Sequences::   @code{mapcar*}, @code{mapcan}, @code{map}, @code{every}, etc.
 * Sequence Functions::       @code{subseq}, @code{remove*}, @code{substitute}, etc.
 * Searching Sequences::      @code{find}, @code{position}, @code{count}, @code{search}, etc.
-* Sorting Sequences::        @code{sort*}, @code{stable-sort}, @code{merge}
+* Sorting Sequences::        @code{sort*}, @code{stable-sort}, @code{merge}.
 @end menu
 
 @node Sequence Basics
@@ -4101,7 +4076,7 @@ The functions described here operate on lists.
 * List Functions::                @code{caddr}, @code{first}, @code{list*}, etc.
 * Substitution of Expressions::   @code{subst}, @code{sublis}, etc.
 * Lists as Sets::                 @code{member*}, @code{adjoin}, @code{union}, etc.
-* Association Lists::             @code{assoc*}, @code{rassoc*}, @code{acons}, @code{pairlis}
+* Association Lists::             @code{assoc*}, @code{rassoc*}, @code{acons}, @code{pairlis}.
 @end menu
 
 @node List Functions
@@ -5045,7 +5020,7 @@ Lisp.
 @appendixsec The @code{cl-compat} package
 
 @noindent
-The @dfn{CL} package includes emulations of some features of the
+The @code{CL} package includes emulations of some features of the
 old @file{cl.el}, in the form of a compatibility package
 @code{cl-compat}.  This file is obsolete and may be removed in future,
 so it should not be used in new code.
@@ -5066,7 +5041,7 @@ best fix is to change to use @code{setf} properly.
 
 The @code{cl-compat} file defines the keyword functions
 @code{keywordp}, @code{keyword-of}, and @code{defkeyword},
-which are not defined by the new @dfn{CL} package because the
+which are not defined by the new @code{CL} package because the
 use of keywords as data is discouraged.
 
 The @code{build-klist} mechanism for parsing keyword arguments

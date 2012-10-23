@@ -5828,7 +5828,7 @@ buffer with the name BUFFER-OR-NAME and return that buffer."
   "If non-nil, `switch-to-buffer' tries to preserve `window-point'.
 If this is nil, `switch-to-buffer' displays the buffer at that
 buffer's `point'.  If this is `already-displayed', it tries to
-display the buffer at its pevious position in the selected
+display the buffer at its previous position in the selected
 window, provided the buffer is currently displayed in some other
 window on any visible or iconified frame.  If this is t, it
 unconditionally tries to display the buffer at its previous

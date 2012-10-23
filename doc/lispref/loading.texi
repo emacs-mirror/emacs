@@ -897,8 +897,8 @@ It then restores any autoloads formerly associated with those symbols.
 
 Before restoring the previous definitions, @code{unload-feature} runs
 @code{remove-hook} to remove functions in the library from certain
-hooks.  These hooks include variables whose names end in @samp{hook}
-or @samp{-hooks}, plus those listed in
+hooks.  These hooks include variables whose names end in @samp{-hook}
+(or the deprecated suffix @samp{-hooks}), plus those listed in
 @code{unload-feature-special-hooks}, as well as
 @code{auto-mode-alist}.  This is to prevent Emacs from ceasing to
 function because important hooks refer to functions that are no longer

@@ -70,9 +70,9 @@ called.  You can use @code{add-hook} to add a function to an abnormal
 hook, but you must write the function to follow the hook's calling
 convention.
 
-  By convention, abnormal hook names end in @samp{-functions} or
-@samp{-hooks}.  If the variable's name ends in @samp{-function}, then
-its value is just a single function, not a list of functions.
+  By convention, abnormal hook names end in @samp{-functions}.  If the
+variable's name ends in @samp{-function}, then its value is just a single
+function, not a list of functions.
 
 @menu
 * Running Hooks::    How to run a hook.

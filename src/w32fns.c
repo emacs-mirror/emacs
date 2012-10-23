@@ -211,7 +211,7 @@ static void w32_show_hourglass (struct frame *);
 static void w32_hide_hourglass (void);
 
 #ifdef WINDOWSNT
-/* From w32inevet.c */
+/* From w32inevt.c */
 extern int faked_key;
 #endif /* WINDOWSNT */
 
@@ -7711,4 +7711,3 @@ emacs_abort (void)
       break;
     }
 }
-
