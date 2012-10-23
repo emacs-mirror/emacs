@@ -286,7 +286,7 @@ DEFUNINFO is the return value of `checkdoc-defun-info'.  ENDPOINT is the
 location of end of the documentation string.")
 
 (define-obsolete-variable-alias 'checkdoc-comment-style-hooks
-  checkdoc-comment-style-functions "24.3")
+  'checkdoc-comment-style-functions "24.3")
 (defvar checkdoc-comment-style-functions nil
   "Hook run after the standard comment style check is completed.
 Must return nil if no errors are found, or a string describing the
