@@ -631,17 +631,14 @@ install-man:
 	done
 
 ## Install those items from etc/ that need to end up elsewhere.
-
-# Like EMACS, but without EXEEXT.
-emacs_transform = `echo emacs | sed '$(TRANSFORM)'`
-
 install-etc:
 	umask 022; ${MKDIR_P} $(DESTDIR)${desktopdir}
+	dest=`echo emacs | sed '$(TRANSFORM)'`; \
 	tmp=etc/emacs.tmpdesktop; rm -f $${tmp}; \
-	sed -e '/^Exec=emacs/ s/emacs/${emacs_transform}/' \
-	  -e '/^Icon=emacs/ s/emacs/${emacs_transform}/' \
+	sed -e "/^Exec=emacs/ s/emacs/$${dest}/" \
+	  -e "/^Icon=emacs/ s/emacs/$${dest}/" \
 	  ${srcdir}/etc/emacs.desktop > $${tmp}; \
-	${INSTALL_DATA} $${tmp} $(DESTDIR)${desktopdir}/${emacs_transform}.desktop; \
+	${INSTALL_DATA} $${tmp} $(DESTDIR)${desktopdir}/$${dest}.desktop; \
 	rm -f $${tmp}
 	thisdir=`/bin/pwd`; \
 	cd ${iconsrcdir} || exit 1; umask 022 ; \
