@@ -45,7 +45,23 @@ Outstanding
     (1)" is found to be missing, then "byte (1)" should be tried
     instead. (Similarly for hyphens versus spaces.) 
 
-95. Bring languages document up to date. Add C#, Lua, Python.
+95. Bring :ref:`lang` up to date. Add C#, Lua, Python.
+
+97. In :ref:`guide-debug`, need to provide more context around each
+    assertion. Is there a GDB command that will show it?
+
+98. In the "Cautions" section of :ref:`topic-finalization`, add
+    something to effect of, "A block might be dead and yet not
+    finalizable, because it is being kept alive by an ambiguous
+    reference."
+
+99. What does this mean in :ref:`topic-finalization`:
+    "mps_pool_destroy() should therefore not be invoked on pools
+    containing objects registered for finalization."
+
+100. Try to find "GARBAGE COLLECTING... HERE ARE SOME INTERESTING
+     STATISTICS" early Lisp anecdote and put it in
+     :ref:`topic-telemetry`.
 
 
 Complete
