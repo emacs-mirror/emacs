@@ -1,3 +1,7 @@
+2012-10-23  Bastien Guerry  <bzg@gnu.org>
+
+	* text.texi (Org Authoring): Change @ref to @pxref.
+
 2012-10-23  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* custom.texi (Hooks): Clarify that -hooks is deprecated.
