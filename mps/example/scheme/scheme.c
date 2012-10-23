@@ -470,8 +470,8 @@ static obj_t make_string(size_t length, char string[])
     obj = addr;
     obj->string.type = TYPE_STRING;
     obj->string.length = length;
-    if (string)
-      memcpy(obj->string.string, string, length+1);
+    if (string) memcpy(obj->string.string, string, length+1);
+    else memset(obj->string.string, 0, length+1);
   } while(!mps_commit(obj_ap, addr, size));
   total += size;
   return obj;
@@ -2003,7 +2003,7 @@ static obj_t entry_symbolp(obj_t env, obj_t op_env, obj_t operator, obj_t operan
 
 /* (procedure? obj)
  * Returns #t if obj is a procedure, otherwise returns #f.
- * R6RS 11.6.
+ * See R4RS 6.9.
  */
 static obj_t entry_procedurep(obj_t env, obj_t op_env, obj_t operator, obj_t operands)
 {
@@ -2162,9 +2162,10 @@ static obj_t entry_environment(obj_t env, obj_t op_env, obj_t operator, obj_t op
 
 
 /* (open-input-file filename)
- * Opens filename for input, with empty file options, and returns the
- * obtained port.
- * R6RS Standard Library 8.3.
+ * Takes a string naming an existing file and returns an input port
+ * capable of delivering characters from the file. If the file cannot
+ * be opened, an error is signalled.
+ * See R4RS 6.10.1
  */
 static obj_t entry_open_input_file(obj_t env, obj_t op_env, obj_t operator, obj_t operands)
 {
@@ -2177,7 +2178,7 @@ static obj_t entry_open_input_file(obj_t env, obj_t op_env, obj_t operator, obj_
     error("%s: argument must be a string", operator->operator.name);
   stream = fopen(filename->string.string, "r");
   if(stream == NULL)
-    /* TODO: "raise an exception with condition type &i/o." */
+    /* TODO: "an error is signalled" */
     error("%s: cannot open input file", operator->operator.name);
   port = make_port(filename, stream);
 
@@ -2211,9 +2212,10 @@ static obj_t entry_force(obj_t env, obj_t op_env, obj_t operator, obj_t operands
   return CDR(promise);
 }
 
+
 /* (char? obj)
  * Returns #t if obj is a character, otherwise returns #f.
- * R6RS 11.11.
+ * See R4RS 6.6.
  */
 static obj_t entry_charp(obj_t env, obj_t op_env, obj_t operator, obj_t operands)
 {
@@ -2222,10 +2224,11 @@ static obj_t entry_charp(obj_t env, obj_t op_env, obj_t operator, obj_t operands
   return TYPE(arg) == TYPE_CHARACTER ? obj_true : obj_false;
 }
 
+
 /* (char->integer char)
  * Given a character, char->integer returns its Unicode scalar value
  * as an exact integer object.
- * R6RS 11.11.
+ * See R4RS 6.6.
  */
 static obj_t entry_char_to_integer(obj_t env, obj_t op_env, obj_t operator, obj_t operands)
 {
@@ -2240,7 +2243,7 @@ static obj_t entry_char_to_integer(obj_t env, obj_t op_env, obj_t operator, obj_
 /* (integer->char sv)
  * For a Unicode scalar value sv, integer->char returns its associated
  * character.
- * R6RS 11.11.
+ * See R4RS 6.6.
  */
 static obj_t entry_integer_to_char(obj_t env, obj_t op_env, obj_t operator, obj_t operands)
 {
@@ -2399,9 +2402,10 @@ static obj_t entry_string_to_symbol(obj_t env, obj_t op_env, obj_t operator, obj
   return intern(string->string.string);
 }
 
+
 /* (string? obj)
  * Returns #t if obj is a string, otherwise returns #f.
- * R6RS 11.12
+ * See R4RS 6.7.
  */
 static obj_t entry_stringp(obj_t env, obj_t op_env, obj_t operator, obj_t operands)
 {
@@ -2413,10 +2417,10 @@ static obj_t entry_stringp(obj_t env, obj_t op_env, obj_t operator, obj_t operan
 
 /* (make-string k)
  * (make-string k char)
- * `make-string' returns a newly allocated string of length k. If char
+ * Make-string returns a newly allocated string of length k. If char
  * is given, then all elements of the string are initialized to char,
  * otherwise the contents of the string are unspecified.
- * R6RS 11.12
+ * See R4RS 6.7.
  */
 static obj_t entry_make_string(obj_t env, obj_t op_env, obj_t operator, obj_t operands)
 {
@@ -2445,7 +2449,7 @@ static obj_t entry_make_string(obj_t env, obj_t op_env, obj_t operator, obj_t op
 
 /* (string char ...)
  * Returns a newly allocated string composed of the arguments.
- * R6RS 11.12
+ * See R4RS 6.7.
  */
 static obj_t entry_string(obj_t env, obj_t op_env, obj_t operator, obj_t operands)
 {
@@ -2475,9 +2479,8 @@ static obj_t entry_string(obj_t env, obj_t op_env, obj_t operator, obj_t operand
 
 
 /* (string-length string)
- * Returns the number of characters in the given string as an exact
- * integer object.
- * R6RS 11.12
+ * Returns the number of characters in the given string.
+ * See R4RS 6.7.
  */
 static obj_t entry_string_length(obj_t env, obj_t op_env, obj_t operator, obj_t operands)
 {
@@ -2490,9 +2493,9 @@ static obj_t entry_string_length(obj_t env, obj_t op_env, obj_t operator, obj_t 
 
 
 /* (string-ref string k)
- * k must be a valid index of string. `String-ref' returns character k
+ * k must be a valid index of string. String-ref returns character k
  * of string using zero-origin indexing.
- * R6RS 11.12
+ * See R4RS 6.7.
  */
 static obj_t entry_string_ref(obj_t env, obj_t op_env, obj_t operator, obj_t operands)
 {
@@ -2512,10 +2515,10 @@ static obj_t entry_string_ref(obj_t env, obj_t op_env, obj_t operator, obj_t ope
  * String must be a string, and start and end must be exact integers
  * satisfying 
  *     0 <= start <= end <= (string-length string).
- * `Substring' returns a newly allocated string formed from the
+ * Substring returns a newly allocated string formed from the
  * characters of string beginning with index start (inclusive) and
  * ending with index end (exclusive).
- * R6RS 11.12
+ * See R4RS 6.7.
  */
 static obj_t entry_substring(obj_t env, obj_t op_env, obj_t operator, obj_t operands)
 {
@@ -2541,7 +2544,7 @@ static obj_t entry_substring(obj_t env, obj_t op_env, obj_t operator, obj_t oper
 /* (string-append string ...)
  * Returns a newly allocated string whose characters form the
  * concatenation of the given strings.
- * R6RS 11.12
+ * See R4RS 6.7.
  */
 static obj_t entry_string_append(obj_t env, obj_t op_env, obj_t operator, obj_t operands)
 {
@@ -2574,7 +2577,7 @@ static obj_t entry_string_append(obj_t env, obj_t op_env, obj_t operator, obj_t 
 /* (string->list string)
  * The string->list procedure returns a newly allocated list of the
  * characters that make up the given string.
- * R6RS 11.12.
+ * See R4RS 6.7.
  */
 static obj_t entry_string_to_list(obj_t env, obj_t op_env, obj_t operator, obj_t operands)
 {
@@ -2592,10 +2595,12 @@ static obj_t entry_string_to_list(obj_t env, obj_t op_env, obj_t operator, obj_t
   return list;
 }
 
+
 /* (list->string list)
  * List must be a list of characters. The list->string procedure
  * returns a newly allocated string formed from the characters in
  * list.
+ * See R4RS 6.7.
  */
 static obj_t entry_list_to_string(obj_t env, obj_t op_env, obj_t operator, obj_t operands)
 {
@@ -2625,7 +2630,7 @@ static obj_t entry_list_to_string(obj_t env, obj_t op_env, obj_t operator, obj_t
 
 /* (string-copy string)
  * Returns a newly allocated copy of the given string.
- * R6RS 11.12
+ * See R4RS 6.7.
  */
 static obj_t entry_string_copy(obj_t env, obj_t op_env, obj_t operator, obj_t operands)
 {
