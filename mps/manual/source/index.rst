@@ -6,16 +6,25 @@ Memory Pool System
 ##################
 
 .. toctree::
+    :maxdepth: 2
 
-   guide/index
-   topic/index
-   pool/index
-   lang
-   glossary/index
-   bib
-   contact
-   copyright
-   todo
+    guide/index
+    topic/index
+    pool/index
+
+
+Appendices
+##########
+
+.. toctree::
+    :maxdepth: 1
+
+    lang
+    glossary/index
+    bib
+    copyright
+    contact
+    todo
 
 
 Indices and tables
