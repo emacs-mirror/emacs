@@ -10,7 +10,6 @@
 	(Installation): Remove long-irrelevant node.
 	(Program Structure, Predicates, Control Structure):
 	Start updating for cl-lib namespace.
-
 	* Makefile.in ($(buildinfodir)/cl$(INFO_EXT), cl.dvi, cl.pdf):
 	Depend on emacsver.texi.
 
