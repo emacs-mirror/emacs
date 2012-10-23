@@ -87,7 +87,9 @@ Bibliography
 
 .. [LH83] Henry Lieberman, Carl Hewitt. 1983. "A real-time garbage collector based on the lifetimes of objects".
 
-.. [MCCARTHY60] J. McCarthy. 1960. "Recursive Functions of Symbolic Expressions and Their Computation by Machine".
+.. [MCCARTHY60] John McCarthy. 1960. "Recursive Functions of Symbolic Expressions and Their Computation by Machine".
+
+.. [MCCARTHY79] John McCarthy. 1979. "History of Lisp". In *History of programming languages I*, pp. 173–185. ACM.
 
 .. [MM59] J. McCarthy, M. L. Minsky. 1959. "Artificial Intelligence, Quarterly Progress Report no. 53".
 

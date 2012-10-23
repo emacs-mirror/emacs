@@ -3,6 +3,35 @@
 Telemetry
 =========
 
+John McCarthy described the first on-line demonstration of
+:term:`Lisp` in his paper "History of Lisp" [MCCARTHY79]_:
+
+    A Flexowriter had been connected to the IBM 704 and the operating
+    system modified so that it collected characters from the
+    Flexowriter in a buffer when their presence was signalled by an
+    interrupt. Whenever a carriage return occurred, the line was given
+    to LISP for processing. The demonstration depended on the fact
+    that the memory of the computer had just been increased from 8192
+    words to 32768 words so that batches could be collected that
+    presumed only a small memory.
+
+    Everything was going well, if slowly, when suddenly the
+    Flexowriter began to type (at ten characters per second) ::
+
+        THE GARBAGE COLLECTOR HAS BEEN CALLED.
+        SOME INTERESTING STATISTICS ARE AS FOLLOWS:
+
+    and on and on and on. The garbage collector was quite new at the
+    time, we were rather proud of it and curious about it, and our
+    normal output was on a line printer, so it printed a full page
+    every time it was called giving how many words were marked and how
+    many were collected and the size of list space, etc. During a
+    previous rehearsal, the garbage collector hadn’t been called, but
+    we had not refreshed the LISP core image, so we ran out of free
+    storage during the demonstration.
+
+
+
 Typical uses of telemetry labels include:
 
 - Label pools with a human-meaningful name;

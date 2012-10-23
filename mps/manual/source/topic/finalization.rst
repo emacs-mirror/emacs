@@ -195,9 +195,11 @@ Cautions
 --------
 
 1.  The MPS provides no guarantees about the promptness of
-    finalization. The MPS does not finalize a block until it determines
-    that the block is finalizable, which may require a full garbage
-    collection in the worst case.
+    finalization. The MPS does not finalize a block until it
+    determines that the block is finalizable, which may require a full
+    garbage collection in the worst case. Or the block may never
+    become finalizable because it is incorrectly determined to be
+    reachable due to an :term:`ambiguous reference` pointing to it.
 
 2.  Even when blocks are finalized in a reasonably timely fashion, the
     client needs to process the finalization messages in time to avoid

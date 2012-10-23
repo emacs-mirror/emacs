@@ -2,7 +2,7 @@
 Memory Management Glossary
 **************************
 
-.. include: alphabet.txt
+.. include:: alphabet.txt
 
 .. toctree::
    :maxdepth: 1

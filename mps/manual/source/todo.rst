@@ -1,5 +1,5 @@
-To do, queries and suggestions
-==============================
+To do
+=====
 
 Outstanding
 -----------
@@ -47,21 +47,9 @@ Outstanding
 
 95. Bring :ref:`lang` up to date. Add C#, Lua, Python.
 
-97. In :ref:`guide-debug`, need to provide more context around each
-    assertion. Is there a GDB command that will show it?
-
-98. In the "Cautions" section of :ref:`topic-finalization`, add
-    something to effect of, "A block might be dead and yet not
-    finalizable, because it is being kept alive by an ambiguous
-    reference."
-
 99. What does this mean in :ref:`topic-finalization`:
     "mps_pool_destroy() should therefore not be invoked on pools
     containing objects registered for finalization."
-
-100. Try to find "GARBAGE COLLECTING... HERE ARE SOME INTERESTING
-     STATISTICS" early Lisp anecdote and put it in
-     :ref:`topic-telemetry`.
 
 
 Complete
@@ -683,10 +671,11 @@ Complete
     *Answer:* no, the MPS doesn't guarantee the timely delivery of
     messages, so this example is invalid. Remove it.
 
-    *Action:* what we could do is return a collection id from
-    mps_arena_collect and mps_arena_step and mps_arena_park and
-    provide a mechanism to get the id from the collection
-    message. Added this suggestion to `job003318`_.
+    *Action:* what we could do is return a collection ID from
+    :c:func:`mps_arena_collect`, :c:func:`mps_arena_step` and
+    :c:func:`mps_arena_park`, and provide a mechanism to get the
+    collection ID from the collection message. I added this suggestion
+    to `job003318`_.
 
 83. If a block has been finalized, can you "resurrect" it and
     re-register it for finalization?
@@ -712,19 +701,21 @@ Complete
     version change (not between patch releases). Normally one
     version's notice."
 
-86. In buffer.c it says::
+86. In ``buffer.c`` it says::
 
         /* Assumes pun compatibility between Rank and mps_rank_t */
         /* Which is checked by mpsi_check in <code/mpsi.c> */
 
     but I see no such check in ``mpsi_check``.
 
-    *Answer:* the comment was wrong. Removed in change 180031.
+    *Answer:* the comment was wrong: ranks are no longer part of the
+    public interface. Removed in change 180031.
 
 88. Where glossary entries differ on in hyphens versus spaces there's
     no need to give both.
 
-89. MPS_TELEMETRY_CONTROL=65535 is ugly. Why not "all"?
+89. ``MPS_TELEMETRY_CONTROL=65535`` is ugly. Why not
+    ``MPS_TELEMETRY_CONTROL=all``?
 
     *Action:* made `job003340`_.
 
@@ -748,19 +739,21 @@ Complete
 
     *Action:* added a section to the Pool reference.
 
-93. Multi-core. See the Hacker News thread. Could be done by running
-    the MPS in a separate process but that might be horrible and
-    heavyweight.
+93. Multi-core is not supported (except in the case of multiple
+    arenas). See the `Hacker News thread
+    <http://news.ycombinator.com/item?id=4521988>`_. Could be done by
+    running the MPS in a separate process but that might be horrible
+    and heavyweight.
 
-    Documentation needed here (in the threads chapter): if the mutator
-    is multi-threaded, need to reserve SIGUSR1 (or something) for the
-    MPS. [It turned out that SIGBUS/SIGSEGV is used for this purpose,
-    not SIGUSR1.]
+    There may be more documentation needed here (in
+    :ref:`topic-thread`): if the mutator is multi-threaded, it needs
+    to reserve ``SIGUSR1`` (or whatever the actual signal is) for use
+    by the MPS. [It turned out that ``SIGBUS`` or ``SIGSEGV`` is used
+    for this purpose, not ``SIGUSR1``.]
 
-    Also SIGBUS (xc) or SIGSEGV (fr, li) (depending on OS). On
-    Windows, "first chance exception handler". Affects
-    debugging. Also, if you handle your own SIGBUS etc then you need
-    to give us a call.
+    Also ``SIGBUS`` (xc) or ``SIGSEGV`` (fr, li) or "first chance
+    exception handler" (w3). Affects debugging. Also, if you handle your
+    own SIGBUS etc then you need to give us a call.
 
     *Action:* added a section on "Signal handling issues" to
     :ref:`topic-thread`. (Not clear that this is the right place,
@@ -770,8 +763,21 @@ Complete
 94. Maybe target R4RS instead of R6RS? (R4RS is the "one true"
     Scheme.)
 
-    *Action:* change 180033.
+    *Action:* fixed in change 180033.
 
 96. Change "event" to "event category" in discussion of the telemetry
     filter.
 
+97. In :ref:`guide-debug`, need to provide more context around each
+    assertion, using GDB command ``list``.
+
+98. In the "Cautions" section of :ref:`topic-finalization`, add
+    something to effect of, "A block might be dead and yet not
+    finalizable, because it is being kept alive by an ambiguous
+    reference."
+
+100. Try to find "GARBAGE COLLECTING... HERE ARE SOME INTERESTING
+     STATISTICS" early Lisp anecdote and put it in
+     :ref:`topic-telemetry`.
+
+     The anecdote is at the end of [MCCARTHY79]_.
