@@ -24,7 +24,13 @@
 
 ;;; Commentary:
 
-;; A replacement for simple.el's comment-related functions.
+;; This library contains functions and variables for commenting and
+;; uncommenting source code.
+
+;; Prior to calling any `comment-*' function, you should ensure that
+;; `comment-normalize-vars' is first called to set up the appropriate
+;; variables; except for the `comment-*' commands, which call
+;; `comment-normalize-vars' automatically as a subroutine.
 
 ;;; Bugs:
 
@@ -326,10 +332,11 @@ terminated by the end of line (i.e. `comment-end' is empty)."
 
 ;;;###autoload
 (defun comment-normalize-vars (&optional noerror)
-  "Check and setup the variables needed by other commenting functions.
-Any command calling functions from newcomment.el should call this function
-before any other, so the rest of the code can assume that the variables are
-properly set."
+  "Check and set up variables needed by other commenting functions.
+All the `comment-*' commands call this function to set up various
+variables, like `comment-start', to ensure that the commenting
+functions work correctly.  Lisp callers of any other `comment-*'
+function should first call this function explicitly."
   (unless (and (not comment-start) noerror)
     (unless comment-start
       (let ((cs (read-string "No comment syntax is defined.  Use: ")))
