@@ -1,3 +1,8 @@
+2012-10-23  Glenn Morris  <rgm@gnu.org>
+
+	* image.el (image-type-from-file-name): If multiple types match,
+	return the first one that is supported.  (Bug#9045)
+
 2012-10-22  Glenn Morris  <rgm@gnu.org>
 
 	* image.el (imagemagick-enabled-types): Doc fix.

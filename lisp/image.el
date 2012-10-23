@@ -308,8 +308,17 @@ be determined."
   "Determine the type of image file FILE from its name.
 Value is a symbol specifying the image type, or nil if type cannot
 be determined."
-  (assoc-default file image-type-file-name-regexps 'string-match-p))
-
+  (let (type first)
+    (or
+     (catch 'found
+       (dolist (elem image-type-file-name-regexps)
+	 (when (string-match-p (car elem) file)
+	   (setq type (cdr elem))
+	   (or first (setq first type))
+	   (if (image-type-available-p type)
+	       (throw 'found type)))))
+     ;; If nothing seems to be supported, return the first type that matched.
+     first)))
 
 ;;;###autoload
 (defun image-type (source &optional type data-p)
