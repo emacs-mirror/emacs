@@ -4,6 +4,23 @@ Garbage collection
 ==================
 
 
+The graph of managed references
+-------------------------------
+
+The MPS is a moving garbage collector: it supports preserve-by-copying pools, whose objects are 'mobile'. Whenever the MPS moves an object, it will ensure that all managed references are updated to point to the new location -- and this happens instantaneously as far as the client sees it.
+
+The client should assume that, between any pair of instructions, the MPS may 'shake' this graph, moving all the mobile objects, and updating all the managed references.
+
+Any parts of the graph that are no longer connected (no longer reachable from declared roots) may be collected, and the memory that those objects occupied may be unmapped, or re-used for different objects.
+
+The client usually takes care to ensure that all the references it holds are managed. To be managed, the reference must be in a declared root (such as a scanned stack or a global variable), or in a formatted object that is reachable from a root.
+
+It is okay for a careful client to hold unmanaged references, but:
+
+they'd better not be to a mobile object! Remember, mobile objects could move at any time, and unmanaged references will be left 'dangling'.
+they'd better not be the only reference to an object, or that object might get collected, again leaving a dangling reference.
+
+
 Interface
 ---------
 
