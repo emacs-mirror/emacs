@@ -1,3 +1,9 @@
+2012-10-23  Paul Eggert  <eggert@cs.ucla.edu>
+
+	* configure.ac (_FORTIFY_SOURCE): Do not multiply define (Bug#12714).
+	This ports to Gentoo.  Problem originally reported against coreutils,
+	but Emacs has it too.
+
 2012-10-23  Glenn Morris  <rgm@gnu.org>
 
 	* Makefile.in (emacs_transform): Remove.
