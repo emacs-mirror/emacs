@@ -581,8 +581,9 @@ next hunk if TRY-HARDER is non-nil; otherwise signal an error."
                       (with-local-quit
                         (when (buffer-live-p buffer)
                           (with-current-buffer buffer
-                            (goto-char point)
-                            (diff-refine-hunk))))))))))
+                            (save-excursion
+                              (goto-char point)
+                              (diff-refine-hunk)))))))))))
 
 (easy-mmode-define-navigation
  diff-file diff-file-header-re "file" diff-end-of-file)
