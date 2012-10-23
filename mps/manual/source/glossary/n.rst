@@ -71,6 +71,11 @@ Memory Management Glossary: N
 
         .. bibref:: [WIL95]_.
 
+    new space
+    newspace
+
+        .. see:: :term:`tospace`.
+
     node
 
         In a :term:`graph`, a node is a representation of an

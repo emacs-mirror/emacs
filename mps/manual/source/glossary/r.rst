@@ -95,7 +95,6 @@ Memory Management Glossary: R
             `Package java.lang.ref <http://download.java.net/jdk8/docs/api/java/lang/ref/package-summary.html>`_, `Reference Objects and Garbage Collection <http://pawlan.com/monica/articles/refobjs/>`_.
 
     read barrier
-    read-barrier
 
         A read :term:`barrier (1)` is a block on reading from certain
         :term:`memory (2)` :term:`locations <memory location>` by
@@ -480,7 +479,7 @@ Memory Management Glossary: R
             :c:macro:`MPS_RES_OK` indicates success; other values
             indicate errors. See :ref:`topic-error`.
 
-    resurrected
+    resurrection
 
         An object is said to have been *resurrected* if it was
         determined to be :term:`finalizable <finalization>` by the

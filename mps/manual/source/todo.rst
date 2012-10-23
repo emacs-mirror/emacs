@@ -11,8 +11,9 @@ Outstanding
 5.  Fix the :ref:`genindex` so that glossary entries like "byte (2)"
     aren't interpreted as subentries? (Or is it OK as is?)
 
-8.  Use a better bibliography extension. See for example the
-    (unfortunately unfinished) `sphinx-natbib`_.
+8.  Use a better bibliography extension and update the
+    bibliography. See for example the (unfortunately unfinished)
+    `sphinx-natbib`_.
 
     .. _sphinx-natbib: http://wnielson.bitbucket.org/projects/sphinx-natbib/
 
@@ -29,72 +30,22 @@ Outstanding
 
 61. Start adding :ref:`genindex` entries.
 
-73. The names of the sectors on the "treadmill" diagram don't
-    correspond exactly to the names in `Baker 1991`_.
+75. Write something about telemetry labels in the telemetry chapter of
+    the reference manual.
 
-    .. _Baker 1991: http://www.pipeline.com/~hbaker1/NoMotionGC.html
+76. Develop debugging examples that illustrates each of the warnings
+    about consistency. Also to demonstrate the "garbage collect
+    frequently to expose errors as soon as possible" advice.
 
-74. ``eventcnv -b <bucket size>`` seems to be useless. See
-    `job003331`_, `job003332`_, `job003333`_, `job003334`_, and
-    `job003335`_. NB's work on eventsql suggests that maybe there's no
-    point in trying to make it work again (because eventsql will be
-    able to do this kind of aggregation and much more). So maybe best
-    to deprecate or remove this feature? For the moment I've left it
-    undocumented.
+80. Need to migrate the new Scheme functionality (new make_string, fix
+    to append, new entry points) back to the "before the MPS" version.
 
-    .. _job003331: https://info.ravenbrook.com/project/mps/issue/job003331/
-    .. _job003332: https://info.ravenbrook.com/project/mps/issue/job003332/
-    .. _job003333: https://info.ravenbrook.com/project/mps/issue/job003333/
-    .. _job003334: https://info.ravenbrook.com/project/mps/issue/job003334/
-    .. _job003335: https://info.ravenbrook.com/project/mps/issue/job003335/
+87. Could simplify a lot of glossary references if plurals were
+    handled automatically. That is, if a glossary entry for "bytes
+    (1)" is found to be missing, then "byte (1)" should be tried
+    instead. (Similarly for hyphens versus spaces.) 
 
-75. Write something about telemetry labels in the debugging guide.
-
-76. Write something that illustrates the "garbage collect frequently
-    to expose errors as soon as possible" advice.
-
-77. The debugging section on :ref:`guide-debug-underscanning` is not
-    entirely convincing as to the utility of the telemetry. I'd like
-    to have a more compelling example here.
-
-78. Should memory addresses increase going up the page, or down the
-    page? The output of gdb's ``x`` command always has them going down
-    the page so maybe we should follow that? It would involve turning
-    a bunch of diagrams upside down.
-
-79. Suppose that in the Scheme interpreter you wanted to return some
-    statistics from the ``(gc)`` function, how would you do this? You
-    could poll the message queue after calling
-    :c:func:`mps_arena_collect` and before calling
-    :c:func:`mps_arena_release`, I suppose.
-
-80. Need to migrate the new Scheme functionality back to the "before
-    the MPS" version.
-
-81. The Scheme interpreter could avoid printing "``#[undefined]``" at
-    the REPL (like Python with  ``None``).
-
-82. Is the message example correct?
-
-83. If a block has been finalized, can you resurrect it and
-    re-register it for finalization?
-
-84. If a block has been registered for finalization more than once,
-    what happens if you deregister it? Do you have to deregister it as
-    many times as you registered it? Or do you only need to deregister
-    it once?
-
-85. What exactly is our policy about support for the documented
-    behaviour of public identifiers. "The documented behaviour of
-    public identifiers will not be changed in a backward-incompatible
-    fashion without a period of notice lasting at least one version."
-
-86. In buffer.c it says::
-
-        /* Assumes pun compatibility between Rank and mps_rank_t */
-        /* Which is checked by mpsi_check in <code/mpsi.c> */
-
-    but I see no such check in ``mpsi_check``.
+95. Bring languages document up to date. Add C#, Lua, Python.
 
 
 Complete
@@ -646,3 +597,165 @@ Complete
 72. When a ``.. note::`` block contains a numbered list with multiple
     items (as :ref:`here <guide-lang-scan>`) or multiple footnotes (as
     :ref:`here <pool-properties>`) the heading should say "Notes".
+
+73. The names of the sectors on the "treadmill" diagram don't
+    correspond exactly to the names in `Baker 1991`_.
+
+    .. _Baker 1991: http://www.pipeline.com/~hbaker1/NoMotionGC.html
+
+    *Answer:* these names come from the diagram in [JONES96]_ and refer
+    to concepts that are missing from the glossary: :term:`fromspace`,
+    :term:`tospace` (with synonyms :term:`old space` and :term:`new
+    space`).
+
+    *Action:* add these concepts to the glossary. Label the treadmill
+    diagram with "fromspace", "tospace", and so on, rather than just
+    "from" and "to". Here and elsewhere, refer to [JONES12]_ for
+    preferred terminology. See in particular page 138.
+
+74. ``eventcnv -b <bucket size>`` seems to be useless. See
+    `job003331`_, `job003332`_, `job003333`_, `job003334`_, and
+    `job003335`_. NB's work on eventsql suggests that maybe there's no
+    point in trying to make it work again (because eventsql will be
+    able to do this kind of aggregation and much more). So maybe best
+    to deprecate or remove this feature? For the moment I've left it
+    undocumented.
+
+    .. _job003331: https://info.ravenbrook.com/project/mps/issue/job003331/
+    .. _job003332: https://info.ravenbrook.com/project/mps/issue/job003332/
+    .. _job003333: https://info.ravenbrook.com/project/mps/issue/job003333/
+    .. _job003334: https://info.ravenbrook.com/project/mps/issue/job003334/
+    .. _job003335: https://info.ravenbrook.com/project/mps/issue/job003335/
+
+    *Answer:* ``eventcnv`` was always intended to be a simple tool that
+    just translates events, not a report generator.
+
+    *Action:* remove the -e, -b and -v options. (-v should be always
+    turned on.) Also remove the label processing. Look at NB's branch
+    in case he's done some of this work already. (He hasn't.)
+
+77. The debugging section on :ref:`guide-debug-underscanning` is not
+    entirely convincing as to the utility of the telemetry. I'd like
+    to have a more compelling example here.
+
+    *Answer:* a better example is going to have to wait for better
+    tools.
+
+78. Should memory addresses increase going up the page, or down the
+    page? The output of gdb's ``x`` command always has them going down
+    the page so maybe we should follow that? It would involve turning
+    a bunch of diagrams upside down.
+
+    *Answer:* [JONES12]_ has addresses increasing as they go down the
+    page, so let's follow that.
+
+79. Suppose that in the Scheme interpreter you wanted to return some
+    statistics from the ``(gc)`` function, how would you do this? You
+    could poll the message queue after calling
+    :c:func:`mps_arena_collect` and before calling
+    :c:func:`mps_arena_release`, I suppose.
+
+    *Answer:* this might happen to work, but it's not supported.
+
+81. The Scheme interpreter could avoid printing "``#[undefined]``" at
+    the REPL (like Python with  ``None``).
+
+    *Answer:* not useful.
+
+82. Is the message example correct?
+
+    *Answer:* no, the MPS doesn't guarantee the timely delivery of
+    messages, so this example is invalid. Remove it.
+
+    *Action:* what we could do is return a collection id from
+    mps_arena_collect and mps_arena_step and mps_arena_park and
+    provide a mechanism to get the id from the collection
+    message. Added this suggestion to `job003318`_.
+
+83. If a block has been finalized, can you "resurrect" it and
+    re-register it for finalization?
+
+    *Answer:* make a note about resurrection in the MPS not being the
+    same as the usual notion. It's fine to re-register after
+    retrieving the message.
+
+84. If a block has been registered for finalization more than once,
+    what happens if you deregister it? Do you have to deregister it as
+    many times as you registered it? Or do you only need to deregister
+    it once?
+
+    *Answer:* say nothing about this esoteric subject.
+
+85. What exactly is our policy about support for the documented
+    behaviour of public identifiers. "The documented behaviour of
+    public identifiers will not be changed in a backward-incompatible
+    fashion without a period of notice lasting at least one version."
+
+    *Answer:* "We intend to support the existence and behaviour of
+    documented symbols. We will only remove or change these on a
+    version change (not between patch releases). Normally one
+    version's notice."
+
+86. In buffer.c it says::
+
+        /* Assumes pun compatibility between Rank and mps_rank_t */
+        /* Which is checked by mpsi_check in <code/mpsi.c> */
+
+    but I see no such check in ``mpsi_check``.
+
+    *Answer:* the comment was wrong. Removed in change 180031.
+
+88. Where glossary entries differ on in hyphens versus spaces there's
+    no need to give both.
+
+89. MPS_TELEMETRY_CONTROL=65535 is ugly. Why not "all"?
+
+    *Action:* made `job003340`_.
+
+    .. _job003340: https://info.ravenbrook.com/project/mps/issue/job003340/
+
+90. Chapters in the User Guide need a conclusion of some kind. e.g. in
+    debugging, what should you do if this hasn't helped?
+
+    *Action:* added "What now?" section.
+
+91. Chapter about the community resources. "Get in touch". See LLVM
+    and Boost for examples of this kind of thing. Put it in the
+    sidebar so it's always there.
+
+    *Action:* added "Contact us" page and link in the sidebar of every
+    page.
+
+92. Extensibility: "Writing your own pool or need a pool that's not
+    listed here: have a go, but get in touch." We can write new pool
+    classes for you.
+
+    *Action:* added a section to the Pool reference.
+
+93. Multi-core. See the Hacker News thread. Could be done by running
+    the MPS in a separate process but that might be horrible and
+    heavyweight.
+
+    Documentation needed here (in the threads chapter): if the mutator
+    is multi-threaded, need to reserve SIGUSR1 (or something) for the
+    MPS. [It turned out that SIGBUS/SIGSEGV is used for this purpose,
+    not SIGUSR1.]
+
+    Also SIGBUS (xc) or SIGSEGV (fr, li) (depending on OS). On
+    Windows, "first chance exception handler". Affects
+    debugging. Also, if you handle your own SIGBUS etc then you need
+    to give us a call.
+
+    *Action:* added a section on "Signal handling issues" to
+    :ref:`topic-thread`. (Not clear that this is the right place,
+    since it isn't really thread-specific, but I couldn't find a
+    better place and I can always move it later.)
+
+94. Maybe target R4RS instead of R6RS? (R4RS is the "one true"
+    Scheme.)
+
+    *Action:* change 180033.
+
+96. Change "event" to "event category" in discussion of the telemetry
+    filter.
+

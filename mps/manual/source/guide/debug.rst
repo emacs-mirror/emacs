@@ -227,7 +227,7 @@ The MPS writes the telemetry to the log in an encoded form for speed.
 It can be decoded using the :ref:`eventcnv <telemetry-eventcnv>`
 program::
 
-    (gdb) shell eventcnv -v | sort > mpsio.txt
+    (gdb) shell eventcnv | sort > mpsio.txt
 
 The ``sort`` is useful because the events are not necessarily written
 to the telemetry file in time order, but each event starts with a
@@ -293,8 +293,8 @@ leading to the allocation of string objects with the wrong size:
         obj = addr;
         obj->string.type = TYPE_STRING;
         obj->string.length = length;
-        if (string)
-          memcpy(obj->string.string, string, length+1);
+        if (string) memcpy(obj->string.string, string, length+1);
+        else memset(obj->string.string, 0, length+1);
       } while(!mps_commit(obj_ap, addr, size));
       total += size;
       return obj;
@@ -397,3 +397,13 @@ but the next object (the pair) was clearly allocated at
 ``0x1003f9b80`` (overwriting the last word of the string), so the
 string must have been allocated with a size of only two words. This
 should be enough evidence to track down the cause.
+
+
+What next?
+----------
+
+If you tracked down all your bugs, then the next step is the chapter
+:ref:`guide-perf`.
+
+But if you're still struggling, please :ref:`contact us` and see if we
+can help.

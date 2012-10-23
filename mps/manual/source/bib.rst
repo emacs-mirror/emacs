@@ -1,4 +1,3 @@
-************
 Bibliography
 ************
 
@@ -30,7 +29,9 @@ Bibliography
 
 .. [BOEHM93] Hans-J. Boehm. 1993. "Space Efficient Conservative Garbage Collection".
 
-.. [BOEHM02] Hans-J. Boehm. 2002. "Destructors, Finalizers, and Synchronization". HP Labs technical report HPL-2002-335. `Online <http://www.hpl.hp.com/techreports/2002/HPL-2002-335.html>`_.
+.. [BOEHM02] Hans-J. Boehm. 2002. "Destructors, Finalizers, and Synchronization". HP Labs technical report HPL-2002-335. `<http://www.hpl.hp.com/techreports/2002/HPL-2002-335.html>`_.
+
+.. [BROOKSBY02] Richard Brooksby. 2002. "The Memory Pool System: Thirty person-years of memory management development goes Open Source". ISMM. `<http://www.ravenbrook.com/project/mps/doc/2002-01-30/ismm2002-paper/>`_.
 
 .. [BW88] Hans-J. Boehm, Mark Weiser. 1988. "Garbage collection in an uncooperative environment".
 
@@ -78,7 +79,9 @@ Bibliography
 
 .. [JONES96] Richard E. Jones, Rafael Lins. 1996. "Garbage Collection: Algorithms for Automatic Dynamic Memory Management".
 
-.. [JOYNER96] Ian Joyner. 1996. *C++??: A Critique of C++*. `Online <http://www.emu.edu.tr/aelci/Courses/D-318/D-318-Files/cppcrit/index.htm>`_.
+.. [JONES12] Richard E. Jones, Antony Hosking, and Eliot Moss. 2012. "The Garbage Collection Handbook". Chapman & Hall. `<http://gchandbook.org/>`_.
+
+.. [JOYNER96] Ian Joyner. 1996. *C++??: A Critique of C++*. `<http://www.emu.edu.tr/aelci/Courses/D-318/D-318-Files/cppcrit/index.htm>`_.
 
 .. [JW98] Mark S. Johnstone, Paul R. Wilson. 1998. "The Memory Fragmentation Problem: Solved?".
 

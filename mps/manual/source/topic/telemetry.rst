@@ -10,9 +10,8 @@ Typical uses of telemetry labels include:
 - Label allocated objects with their type or class.
 
 
-
-Events
-------
+Event categories
+----------------
 
 The "bit" column gives the bit number in the :term:`telemetry filter`.
 These numbers are liable to change, but the current meanings (zero
@@ -40,20 +39,23 @@ telemetry feature.
 
 .. envvar:: MPS_TELEMETRY_CONTROL
 
-    The set of events which should be included in the telemetry
+    The event categories which should be included in the telemetry
     stream.
 
     If its value can be interpreted as a number, then this number
-    represents the set of events as a :term:`bitmap`. For example,
-    this turns on events numbered 0 to 15::
+    represents the set of event categories as a :term:`bitmap`. For
+    example, this turns on event categories numbered 0 to 15::
 
         MPS_TELEMETRY_CONTROL=65535
 
     Otherwise, the value is split into words at spaces, and any word
-    that names an event turns that event on. For example::
+    that names an event category turns it on. For example::
 
         MPS_TELEMETRY_CONTROL="Arena Pool Trace"
 
+    .. note::
+
+        The names of the event categories are case sensitive.
 
 .. envvar:: MPS_TELEMETRY_FILENAME
 
@@ -69,7 +71,10 @@ Decoding the telemetry stream
 -----------------------------
 
 The MPS writes the telemetry stream in an encoded form for speed. It
-can be decoded using the ``eventcnv`` program, which takes the following arguments:
+can be decoded using the ``eventcnv`` program, which prints (to
+standard output) a representation of each event in the stream.
+
+``eventcnv`` takes the following arguments:
 
 .. program:: eventcnv
 
@@ -77,52 +82,6 @@ can be decoded using the ``eventcnv`` program, which takes the following argumen
 
     The name of the file containing the telemetry stream to decode.
     Defaults to ``mpsio.log``.
-
-.. option:: -v
-
-    Verbose output: print (to standard output) a representation of
-    each event in the stream.
-
-    .. note::
-
-        The events are printed in the order that they were written by
-        the MPS, which is not the same as the order that they
-        occurred. However, each event is prefixed by a timestamp, so
-        that a time series of events can be obtained by sorting the
-        output: ``eventcnv -v | sort``.
-
-.. option:: -e <eventspec>
-
-    Print (to standard output) counts of how many times each event
-    occurred.
-
-    ``eventspec`` specifies which events to report statistics for.
-    Events except the first must be preceded by ``+`` to indicate that
-    the event should be included in the output or by ``-`` to indicate
-    that the event should be excluded in the output. The first event
-    in the specification can be ``all``, meaning "all events". For
-    example, this command prints counts for three trace events::
-
-        eventcnv -e TraceFix+TraceFixSeg+TraceFixWhite
-
-    and this command prints counts for all events except those three::
-
-        eventcnv -e all-TraceFix-TraceFixSeg-TraceFixWhite
-
-.. comment:
-
-    I haven't documented this option because it's buggy: see job003331, job003332, job003333, job003334, and job003335.
-
-    .. option:: -b <bucket size>
-
-        Aggregate statistics into buckets of the specified size. Each
-        bucket covers a period of time containing the number of clock
-        ticks given by the bucket size.
-
-        The size of a clock tick is platform-dependent: see
-        :c:type:`MPS_CLOCKS_PER_SEC`. On the default (ANSI) platform, this
-        is ``CLOCKS_PER_SEC``, which is required to be 1,000,000 in the
-        Single UNIX Specification.
 
 .. option:: -S
 
@@ -152,6 +111,12 @@ can be decoded using the ``eventcnv`` program, which takes the following argumen
 
     ``eventcnv`` can only read telemetry streams that were written by
     an MPS compiled on the same platform.
+
+    The events are printed in the order that they were written by the
+    MPS, which is not the same as the order that they
+    occurred. However, each event is prefixed by a timestamp, so that
+    a time series of events can be obtained by sorting the output:
+    ``eventcnv | sort``.
 
 
 

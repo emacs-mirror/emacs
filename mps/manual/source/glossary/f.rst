@@ -396,7 +396,6 @@ Memory Management Glossary: F
         .. seealso:: :term:`free list`.
 
     free list
-    free-list
 
         The free list is the set of :term:`free blocks <free block>`.
 
@@ -422,6 +421,17 @@ Memory Management Glossary: F
     freestore
 
         .. see:: :term:`heap`.
+
+    from space
+    fromspace
+
+        .. aka:: *old space*, *oldspace*.
+
+        In :term:`copying garbage collection`, the space containing a
+        mixture of :term:`live` and :term:`dead` objects, out of which
+        the former are copied.
+
+        .. opposite:: :term:`tospace`.
 
     function pointer
 

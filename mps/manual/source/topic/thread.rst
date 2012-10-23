@@ -3,6 +3,18 @@
 Threads
 =======
 
+Signal handling issues
+----------------------
+
+The MPS uses :term:`barriers <barrier (1)>` to :term:`protect
+<protection>` memory from the :term:`client program` and handles the
+signals that result from barrier hits.
+
+This means that a program that handles ``SIGBUS`` (on OS X),
+``SIGSEGV`` (on FreeBSD or Linux), or first-chance exceptions (on
+Windows) needs to co-operate with the MPS. The mechanism for
+co-operation is currently undocumented: please :ref:`contact us`.
+
 
 Interface
 ---------
