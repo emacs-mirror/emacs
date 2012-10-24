@@ -65,11 +65,10 @@ developing GNU and promoting software freedom.''
 * Sequences::            Mapping, functions, searching, sorting.
 * Lists::                @code{cl-caddr}, @code{cl-sublis}, @code{cl-member}, @code{cl-assoc}, etc.
 * Structures::           @code{cl-defstruct}.
-* Assertions::           @code{cl-check-type}, @code{cl-assert}, @code{ignore-errors}.
+* Assertions::           @code{cl-check-type}, @code{cl-assert}.
 
 * Efficiency Concerns::         Hints and techniques.
 * Common Lisp Compatibility::   All known differences with Steele.
-* Old CL Compatibility::        All known differences with old cl.el.
 * Porting Common Lisp::         Hints for porting Common Lisp code.
 
 * GNU Free Documentation License:: The license for this documentation.
@@ -118,13 +117,11 @@ features.
 
 The package described here was originally written by Dave Gillespie,
 @file{daveg@@synaptics.com}, as a total rewrite of an earlier
-1986 @file{cl.el} package by Cesar Quiroz.  Most features of the
-Quiroz package were retained; any incompatibilities are
-noted in the descriptions below.  Care has been taken in this
-version to ensure that each function is defined efficiently,
-concisely, and with minimal impact on the rest of the Emacs
-environment.  Stefan Monnier added the file @file{cl-lib.el} and
-rationalized the namespace for Emacs 24.3.
+1986 @file{cl.el} package by Cesar Quiroz.  Care has been taken
+to ensure that each function is defined efficiently, concisely, and
+with minimal impact on the rest of the Emacs environment.  Stefan
+Monnier added the file @file{cl-lib.el} and rationalized the namespace
+for Emacs 24.3.
 
 @menu
 * Usage::                How to use the CL package.
@@ -198,12 +195,9 @@ no such restriction on the use of @code{cl-lib}.  New code should use
 @code{cl-lib} rather than @code{cl}.  @xref{Naming Conventions}.
 
 There is one more file, @file{cl-compat.el}, which defines some
-routines from the older CL package that are not otherwise
-present in the new package.  This includes internal routines
-like @code{setelt} and @code{zip-lists}, deprecated features
-like @code{defkeyword}, and an emulation of the old-style
-multiple-values feature.  This file is obsolete and should not be used
-in new code.  @xref{Old CL Compatibility}.
+routines from the older Quiroz CL package that are not otherwise
+present in the new package.  This file is obsolete and should not be
+used in new code.
 
 @node Naming Conventions
 @section Naming Conventions
@@ -2875,13 +2869,6 @@ It then sets the @var{var}s to these respective values, as if by
 in @code{cl-multiple-value-bind}.
 @end defspec
 
-The older Quiroz package attempted a more faithful (but still
-imperfect) emulation of Common Lisp multiple values.  The old
-method ``usually'' simulated true multiple values quite well,
-but under certain circumstances would leave spurious return
-values in memory where a later, unrelated @code{cl-multiple-value-bind}
-form would see them.
-
 Since a perfect emulation is not feasible in Emacs Lisp, this
 package opts to keep it as simple and predictable as possible.
 
@@ -3282,12 +3269,11 @@ exists, the function keeps incrementing the counter and trying
 again until a new symbol is generated.
 @end defun
 
-The Quiroz @file{cl.el} package also defined a @code{defkeyword}
-form for creating self-quoting keyword symbols.  This package
-automatically creates all keywords that are called for by
-@code{&key} argument specifiers, and discourages the use of
-keywords as data unrelated to keyword arguments, so the
-@code{defkeyword} form has been discontinued.
+This package automatically creates all keywords that are called for by
+@code{&key} argument specifiers, and discourages the use of keywords
+as data unrelated to keyword arguments, so the related function
+@code{defkeyword} (to create self-quoting keyword symbols) is not
+provided.
 
 @node Numbers
 @chapter Numbers
@@ -3425,13 +3411,6 @@ of @code{cl-floor}.
 This function returns the same value as the second return value
 of @code{cl-truncate}.
 @end defun
-
-@c FIXME this stuff is probably no longer of interest to anyone.
-These definitions are compatible with those in the Quiroz
-@file{cl.el} package, except that
-@c this package appends @samp{*} to certain function names to avoid
-@c conflicts with existing Emacs functions, and that
-the mechanism for returning multiple values is different.
 
 @iftex
 @secno=8
@@ -4752,18 +4731,6 @@ must be a @var{place} suitable for use by @code{setf}, because
 user to modify @var{place}.
 @end defspec
 
-The following error-related macro is also defined:
-
-@c FIXME standard for some time.
-@defspec ignore-errors forms@dots{}
-This executes @var{forms} exactly like a @code{progn}, except that
-errors are ignored during the @var{forms}.  More precisely, if
-an error is signaled then @code{ignore-errors} immediately
-aborts execution of the @var{forms} and returns @code{nil}.
-If the @var{forms} complete successfully, @code{ignore-errors}
-returns the result of the last @var{form}.
-@end defspec
-
 @node Efficiency Concerns
 @appendix Efficiency Concerns
 
@@ -4970,110 +4937,6 @@ are of type @code{:type vector :named} by default rather than some
 special, distinct type.  Also, the @code{:type} slot option is ignored.
 
 The second argument of @code{cl-check-type} is treated differently.
-
-@c FIXME Time to remove this?
-@node Old CL Compatibility
-@appendix Old CL Compatibility
-
-@noindent
-Following is a list of all known incompatibilities between this package
-and the older Quiroz @file{cl.el} package.
-
-This package's emulation of multiple return values in functions is
-incompatible with that of the older package.  That package attempted
-to come as close as possible to true Common Lisp multiple return
-values; unfortunately, it could not be 100% reliable and so was prone
-to occasional surprises if used freely.  This package uses a simpler
-method, namely replacing multiple values with lists of values, which
-is more predictable though more noticeably different from Common Lisp.
-
-The @code{defkeyword} form and @code{keywordp} function are not
-implemented in this package.
-
-@ignore
-The @code{member}, @code{floor}, @code{ceiling}, @code{truncate},
-@code{round}, @code{mod}, and @code{rem} functions are suffixed
-by @samp{*} in this package to avoid collision with existing
-functions in Emacs.  The older package simply
-redefined these functions, overwriting the built-in meanings and
-causing serious portability problems.  (Some more
-recent versions of the Quiroz package changed the names to
-@code{cl-member}, etc.; this package defines the latter names as
-aliases for @code{member*}, etc.)
-@end ignore
-
-Certain functions in the old package which were buggy or inconsistent
-with the Common Lisp standard are incompatible with the conforming
-versions in this package.  For example, @code{eql} and @code{member}
-were synonyms for @code{eq} and @code{memq} in that package, @code{setf}
-failed to preserve correct order of evaluation of its arguments, etc.
-
-Finally, unlike the older package, this package is careful to
-prefix all of its internal names with @code{cl--}.  Except for a
-few functions which are explicitly defined as additional features
-(such as @code{cl-floatp-safe} and @code{letf}), this package does not
-export any non-@samp{cl-} symbols which are not also part of Common
-Lisp.
-
-@ifinfo
-@example
-
-@end example
-@end ifinfo
-@appendixsec The @code{cl-compat} package
-
-@noindent
-The @code{CL} package includes emulations of some features of the
-old @file{cl.el}, in the form of a compatibility package
-@code{cl-compat}.  This file is obsolete and may be removed in future,
-so it should not be used in new code.
-
-The old package defined a number of internal routines without
-@code{cl-} prefixes or other annotations.  Call to these routines
-may have crept into existing Lisp code.  @code{cl-compat}
-provides emulations of the following internal routines:
-@code{pair-with-newsyms}, @code{zip-lists}, @code{unzip-lists},
-@code{reassemble-arglists}, @code{duplicate-symbols-p},
-@code{safe-idiv}.
-
-Some @code{setf} forms translated into calls to internal
-functions that user code might call directly.  The functions
-@code{setnth}, @code{setnthcdr}, and @code{setelt} fall in
-this category; they are defined by @code{cl-compat}, but the
-best fix is to change to use @code{setf} properly.
-
-The @code{cl-compat} file defines the keyword functions
-@code{keywordp}, @code{keyword-of}, and @code{defkeyword},
-which are not defined by the new @code{CL} package because the
-use of keywords as data is discouraged.
-
-The @code{build-klist} mechanism for parsing keyword arguments
-is emulated by @code{cl-compat}; the @code{with-keyword-args}
-macro is not, however, and in any case it's best to change to
-use the more natural keyword argument processing offered by
-@code{defun*}.
-
-Multiple return values are treated differently by the two
-Common Lisp packages.  The old package's method was more
-compatible with true Common Lisp, though it used heuristics
-that caused it to report spurious multiple return values in
-certain cases.  The @code{cl-compat} package defines a set
-of multiple-value macros that are compatible with the old
-CL package; again, they are heuristic in nature, but they
-are guaranteed to work in any case where the old package's
-macros worked.  To avoid name collision with the ``official''
-multiple-value facilities, the ones in @code{cl-compat} have
-capitalized names:  @code{Values}, @code{Values-list},
-@code{Multiple-value-bind}, etc.
-
-The functions @code{cl-floor}, @code{cl-ceiling}, @code{cl-truncate},
-and @code{cl-round} are defined by @code{cl-compat} to use the
-old-style multiple-value mechanism, just as they did in the old
-package.  The newer @code{floor*} and friends return their two
-results in a list rather than as multiple values.  Note that
-older versions of the old package used the unadorned names
-@code{floor}, @code{ceiling}, etc.; @code{cl-compat} cannot use
-these names because they conflict with Emacs built-ins.
 
 @node Porting Common Lisp
 @appendix Porting Common Lisp
