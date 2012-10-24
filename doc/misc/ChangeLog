@@ -1,3 +1,9 @@
+2012-10-24  Paul Eggert  <eggert@penguin.cs.ucla.edu>
+
+	Update manual for new time stamp format (Bug#12706).
+	* emacs-mime.texi (time-date): Update for new format.
+	Also, fix bogus time stamp and modernize a bit.
+
 2012-10-23  Glenn Morris  <rgm@gnu.org>
 
 	* cl.texi: Include emacsver.texi.  Use Emacs version number rather
