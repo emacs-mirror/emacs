@@ -199,7 +199,7 @@ If you are running your MPS-enabled program from Emacs via the
 ``compile`` command, you will probably want to recognize MPS
 assertions automatically, by adding the following to your ``.emacs``:
 
-.. code-block:: lisp
+.. code-block:: scheme
 
     (add-to-list 'compilation-error-regexp-alist
                  '("MPS ASSERTION FAILURE: .*\n\\(.*\\)\n\\([0-9]+\\)" 1 2))
@@ -209,9 +209,10 @@ Varieties
 ---------
 
 The MPS has three behaviours with respect to internal checking and
-:term:`telemetry`, which need to be selected at compile time, by
-defining one of the following preprocessor constants. (If none is
-specified then :c:macro:`CONFIG_VAR_HOT` is the default.)
+:ref:`telemetry <topic-telemetry>`, which need to be selected at
+compile time, by defining one of the following preprocessor
+constants. If none is specified then :c:macro:`CONFIG_VAR_HOT` is the
+default.
 
 
 .. c:macro:: CONFIG_VAR_COOL
@@ -220,7 +221,7 @@ specified then :c:macro:`CONFIG_VAR_HOT` is the default.)
     may assert, including function on the :term:`critical path`.
 
     All events are sent to the telemetry stream, including events on
-    the :term:`critical path`
+    the :term:`critical path`.
 
 
 .. c:macro:: CONFIG_VAR_HOT
