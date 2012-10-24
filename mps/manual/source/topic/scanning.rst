@@ -4,6 +4,33 @@ Scanning
 ========
 
 
+Give FIX1 any word
+It's not an error to give it a bogus value
+It tells you quickly whether it's worth passing to MPS_FIX2 or not
+BUT if it's not a genuine pointer you mustn't pass it to FIX2
+
+"The pointer you pass to FIX1 can be anywhere within the allocated block."
+
+Note: this allows you to use the bottom bits for tagging
+Or pass interior pointers to FIX1
+
+When you pass the pointer to FIX2, it has to be a genuine pointer, i.e. a client pointer (i.e. base pointer except for auto_header) and it has to be interesting.
+
+FIX1 is a very cheap test: if you are using interior pointers or tagged pointers it almost certainly worth applying before you remove the tag.
+
+
+Critical path
+If you're really trying to speed this up
+FIX1 and FIX2 might be worth splitting up even if doing nothing
+Look at the assembler
+Experiment
+e.g. if you have lots of unboxed objects, best to check this before FIX1
+
+
+Segregate objects into pools with different scanners
+Promise that FIX1 doesn't modify anything.
+
+
 
 
 See `<http://info.ravenbrook.com/project/mps/doc/2002-06-18/obsolete-mminfo/mmdoc/protocol/mps/scanning/index.html>`_
