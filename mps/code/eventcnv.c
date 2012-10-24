@@ -13,7 +13,7 @@
  * will run the amcss test program and emit a file with event kinds 0, 1, 2.
  * The file can then be converted into text format with a command like:
  *
- *   eventcnv -v | sort
+ *   eventcnv | sort
  *
  * Note that the eventcnv program can only read streams that come from an
  * MPS compiled on the same platform.
@@ -51,26 +51,11 @@ typedef unsigned long ulong;
 
 
 static EventClock eventTime; /* current event time */
-
-
-/* event counters */
-
-typedef unsigned long eventCountArray[EventCodeMAX+1];
-static unsigned long bucketEventCount[EventCodeMAX+1];
-static unsigned long totalEventCount[EventCodeMAX+1];
-
-
 static char *prog; /* program name */
 
 
-/* command-line arguments */
-
-static Bool verbose = FALSE;
 /* style: '\0' for human-readable, 'L' for Lisp, 'C' for CDF. */
 static char style = '\0';
-static Bool reportStats = FALSE;
-static Bool eventEnabled[EventCodeMAX+1];
-static Word bucketSize = 0;
 
 
 /* everror -- error signalling */
@@ -95,8 +80,8 @@ static void everror(const char *format, ...)
 static void usage(void)
 {
   fprintf(stderr,
-          "Usage: %s [-f logfile] [-p] [-v] [-e events] [-b size]"
-          " [-S[LC]] [-?]\nSee guide.mps.telemetry for instructions.\n",
+          "Usage: %s [-f logfile] [-S[LC]] [-h]\n"
+          "See \"Telemetry\" in the reference manual for instructions.\n",
           prog);
 }
 
@@ -107,36 +92,6 @@ static void usageError(void)
 {
   usage();
   everror("Bad usage");
-}
-
-
-/* parseEventSpec -- parses an event spec
- *
- * The spec is of the form: <name>[(+|-)<name>]...
- * The first name can be 'all'.
- */
-
-static void parseEventSpec(const char *arg)
-{
-  size_t arglen;
-  EventCode i;
-  const char *end;
-  char name[EventNameMAX+1];
-  Bool enabled = TRUE;
-
-  end = arg + strlen(arg);
-  for(i = 0; i <= EventCodeMAX; ++i)
-    eventEnabled[i] = FALSE;
-  do {
-    arglen = strcspn(arg, "+-");
-    strncpy(name, arg, arglen); name[arglen] = '\0';
-    if (strcmp(name, "all") == 0) {
-      for(i = 0; i <= EventCodeMAX; ++i)
-        eventEnabled[i] = EventCodeIsValid(i);
-    } else
-      eventEnabled[EventName2Code(name)] = enabled;
-    enabled = (arg[arglen] == '+'); arg += arglen + 1;
-  } while (arg < end);
 }
 
 
@@ -162,34 +117,12 @@ static char *parseArgs(int argc, char *argv[])
         else
           name = argv[i];
         break;
-      case 'v': /* verbosity */
-        verbose = TRUE;
-        break;
-      case 'e': { /* event statistics */
-        reportStats = TRUE;
-        ++ i;
-        if (i == argc)
-          usageError();
-        else
-          parseEventSpec(argv[i]);
-      } break;
-      case 'b': { /* bucket size */
-        ++ i;
-        if (i == argc)
-          usageError();
-        else {
-          int n;
-
-          n = sscanf(argv[i], "%lu", &bucketSize);
-          if (n != 1) usageError();
-        }
-      } break;
       case 'S': /* style */
         style = argv[i][2]; /* '\0' for human-readable, 'L' for Lisp, */
         break;              /* 'C' for CDF. */
       case '?': case 'h': /* help */
         usage();
-        break;
+        exit(EXIT_SUCCESS);
       default:
         usageError();
       }
@@ -197,33 +130,6 @@ static char *parseArgs(int argc, char *argv[])
     ++ i;
   }
   return name;
-}
-
-
-/* recordEvent -- record event
- *
- * This is the beginning of a system to model MPS state as events are read,
- * but for the moment it just records which strings have been interned
- * and which addresses have been labelled with them.
- *
- * NOTE: Since branch/2012-08-21/diagnostic-telemetry events are no longer
- * in order in the event stream, so eventcnv would need some serious
- * rethinking to model state.  It's questionable that it should attempt it
- * or event try to label addresses, but instead leave that to later stages of
- * processing.  RB 2012-09-07
- */
-
-static void recordEvent(EventProc proc, Event event, EventClock etime)
-{
-  Res res;
-
-  res = EventRecord(proc, event, etime);
-  if (res != ResOK)
-    everror("Can't record event: error %d.", res);
-  switch(event->any.code) {
-  default:
-    break;
-  }
 }
 
 
@@ -250,96 +156,11 @@ static void printStr(const char *str, Bool quotes)
 
 static void printAddr(EventProc proc, Addr addr)
 {
-  Word label;
-
-  label = AddrLabel(proc, addr);
-  if (label != 0 && addr != 0) {
-    /* We assume labelling zero is meant to record a point in time */
-    const char *sym = LabelText(proc, label);
-    if (sym != NULL) {
-      putchar(' ');
-      printStr(sym, (style == 'C'));
-    } else {
-      printf((style == '\0') ?
-             " sym%05"PRIXLONGEST :
-             " \"sym %"PRIXLONGEST"\"",
-             (ulongest_t)label);
-    }
-  } else
-    printf(style != 'C' ?
-           " %0"PRIwWORD PRIXLONGEST :
-           " %"PRIuLONGEST,
-           (ulongest_t)addr);
-}
-
-
-/* reportEventResults -- report event counts from a count array */
-
-static void reportEventResults(eventCountArray eventCounts)
-{
-  EventCode i;
-  unsigned long total = 0;
-
-  for(i = 0; i <= EventCodeMAX; ++i) {
-    total += eventCounts[i];
-    if (eventEnabled[i])
-      switch (style) {
-      case '\0':
-        printf(" %5lu", eventCounts[i]);
-        break;
-      case 'L':
-        printf(" %lX", eventCounts[i]);
-        break;
-      case 'C':
-        printf(", %lu", eventCounts[i]);
-        break;
-      }
-  }
-  switch (style) {
-  case '\0':
-    printf(" %5lu\n", total);
-    break;
-  case 'L':
-    printf(" %lX)\n", total);
-    break;
-  case 'C':
-    printf(", %lu\n", total);
-    break;
-  }
-}
-
-
-/* reportBucketResults -- report results of the current bucket */
-
-static void reportBucketResults(EventClock bucketLimit)
-{
-  switch (style) {
-  case '\0':
-    EVENT_CLOCK_PRINT(stdout, bucketLimit);
-    putchar(':');
-    break;
-  case 'L':
-    putchar('(');
-    EVENT_CLOCK_PRINT(stdout, bucketLimit);
-    break;
-  case 'C':
-    EVENT_CLOCK_PRINT(stdout, bucketLimit);
-    break;
-  }
-  if (reportStats) {
-    reportEventResults(bucketEventCount);
-  }
-}
-
-
-/* clearBucket -- clear bucket */
-
-static void clearBucket(void)
-{
-  EventCode i;
-
-  for(i = 0; i <= EventCodeMAX; ++i)
-    bucketEventCount[i] = 0;
+  UNUSED(proc);
+  printf(style != 'C' ?
+         " %0"PRIwWORD PRIXLONGEST :
+         " %"PRIuLONGEST,
+         (ulongest_t)addr);
 }
 
 
@@ -398,41 +219,22 @@ static void printParamS(EventProc proc, char *styleConv, const char *s)
 static void printParamB(EventProc proc, char *styleConv, Bool b)
 {
   UNUSED(proc);
-  UNUSED(proc);
   printf(styleConv, (ulongest_t)b);
 }
 
 
 /* readLog -- read and parse log
  *
- * This is the heart of eventcnv: It reads an event log using EventRead.
- * It updates the counters.  If verbose is true, it looks up the format,
- * parses the arguments, and prints a representation of the event.  Each
- * argument is printed using printArg (see RELATION, below), except for
- * some event types that are handled specially.
+ * This is the heart of eventcnv: It reads an event log using
+ * EventRead.  It updates the counters.  It looks up the format,
+ * parses the arguments, and prints a representation of the event.
+ * Each argument is printed using printArg (see RELATION, below),
+ * except for some event types that are handled specially.
  */
 
 static void readLog(EventProc proc)
 {
-  EventCode c;
-  Word bucketLimit = bucketSize;
   char *styleConv = NULL; /* suppress uninit warning */
-
-  /* Print event count header. */
-  if (reportStats) {
-    if (style == '\0') {
-      printf("  bucket:");
-      for(c = 0; c <= EventCodeMAX; ++c)
-        if (eventEnabled[c])
-          printf("  %04X", (unsigned)c);
-      printf("   all\n");
-    }
-  }
-
-  /* Init event counts. */
-  for(c = 0; c <= EventCodeMAX; ++c)
-    totalEventCount[c] = 0;
-  clearBucket();
 
   /* Init style. */
   switch (style) {
@@ -458,21 +260,8 @@ static void readLog(EventProc proc)
     eventTime = event->any.clock;
     code = event->any.code;
 
-    /* Output bucket, if necessary, and update counters */
-    if (bucketSize != 0 && eventTime >= bucketLimit) {
-      reportBucketResults(bucketLimit-1);
-      clearBucket();
-      do {
-        bucketLimit += bucketSize;
-      } while (eventTime >= bucketLimit);
-    }
-    if (reportStats) {
-      ++bucketEventCount[code];
-      ++totalEventCount[code];
-    }
-
     /* Output event. */
-    if (verbose) {
+    {
       if (style == 'L') putchar('(');
 
       switch (style) {
@@ -591,47 +380,8 @@ static void readLog(EventProc proc)
       putchar('\n');
       fflush(stdout);
     }
-    recordEvent(proc, event, eventTime);
     EventDestroy(proc, event);
   } /* while(!feof(input)) */
-
-  /* report last bucket (partial) */
-  if (bucketSize != 0) {
-    reportBucketResults(eventTime);
-  }
-  if (reportStats) {
-    /* report totals */
-    switch (style) {
-    case '\0':
-      printf("\n     run:");
-      break;
-    case 'L':
-      printf("(t");
-      break;
-    case 'C':
-      {
-        /* FIXME: This attempted to print the event stats on a row that
-           resembled a kind of final event, but the event clock no longer runs
-           monotonically upwards. */
-        EventClock last = eventTime + 1;
-        EVENT_CLOCK_PRINT(stdout, last);
-      }
-      break;
-    }
-    reportEventResults(totalEventCount);
-
-    /* explain event codes */
-    if (style == '\0') {
-      printf("\n");
-      for(c = 0; c <= EventCodeMAX; ++c)
-        if (eventEnabled[c])
-          printf(" %04X %s\n", (unsigned)c, EventCode2Name(c));
-      if (bucketSize == 0)
-        printf("\nevent clock stopped at ");
-        EVENT_CLOCK_PRINT(stdout, eventTime);
-        printf("\n");
-    }
-  }
 }
 
 
@@ -691,7 +441,7 @@ int main(int argc, char *argv[])
 
 /* C. COPYRIGHT AND LICENSE
  *
- * Copyright (C) 2001-2002 Ravenbrook Limited <http://www.ravenbrook.com/>.
+ * Copyright (C) 2001-2012 Ravenbrook Limited <http://www.ravenbrook.com/>.
  * All rights reserved.  This is an open source license.  Contact
  * Ravenbrook for commercial licensing options.
  * 
