@@ -725,12 +725,16 @@ Introspection
 
 .. note::
 
-    Other useful introspection functions covered in other chapters are
-    :c:func:`mps_addr_pool` (determine the :term:`pool` to which an
-    address belongs), :c:func:`mps_arena_formatted_objects_walk`
-    (visit all :term:`formatted objects <formatted object>` in an
-    arena) and :c:func:`mps_arena_roots_walk` (visit all references in
-    :term:`roots <root>` registered with an arena).
+    Introspection functions covered in other chapters are:
+
+    * :c:func:`mps_addr_fmt`: determine the :term:`object format` to
+      which an address belongs; 
+    * :c:func:`mps_arena_formatted_objects_walk`: visit all
+      :term:`formatted objects <formatted object>` in an arena;
+    * :c:func:`mps_arena_roots_walk`: visit all references in
+      :term:`roots <root>` registered with an arena; and
+    * :c:func:`mps_addr_pool`: determine the :term:`pool` to which an
+      address belongs.
 
 
 .. c:function:: mps_bool_t mps_arena_has_addr(mps_arena_t arena, mps_addr_t addr)
