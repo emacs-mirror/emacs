@@ -47,6 +47,9 @@ Outstanding
 
 95. Bring :ref:`lang` up to date. Add C#, Lua, Python.
 
+115. Need to associate paragraph of text with deprecation notice.
+     Also, deprecation notices need nicer formatting.
+
 
 Complete
 --------
@@ -453,8 +456,8 @@ Complete
 
     *Action:* I marked them all as deprecated in version 1.111.
 
-56. Deprecation warnings need nicer formatting. Also "since version
-    1.111" is wrong: "starting with version 1.111" would be right.
+56. "since version 1.111" is wrong: "starting with version 1.111"
+    would be right.
 
 57. :c:func:`mps_collections` should of course have been called
     :c:func:`mps_arena_collections` but it's pretty meaningless
