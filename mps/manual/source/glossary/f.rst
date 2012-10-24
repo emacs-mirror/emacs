@@ -171,11 +171,18 @@ Memory Management Glossary: F
 
         The instant in a :term:`two-space collector` when the roles of
         the two :term:`semi-spaces <semi-space>` are reversed. What
-        was the *new* semi-space is now marked as *old* and
-        :term:`condemned <condemned set>`. What was the old
-        semi-space becomes the site for all new :term:`allocations
+        was the :term:`tospace` is now marked as :term:`fromspace` and
+        :term:`condemned <condemned set>`. What was the fromspace
+        becomes the site for all new :term:`allocations
         <allocate>`. Also used in a more general sense to mean the
         initiation of a new :term:`collection cycle`.
+
+        .. figure:: ../diagrams/two-space.svg
+            :align: center
+            :alt: Diagram: In a two-space collector, the *flip* occurs just before the fromspace is condemned and copying starts.
+
+            In a two-space collector, the *flip* occurs just before the
+            fromspace is condemned and copying starts.
 
     floating garbage
 

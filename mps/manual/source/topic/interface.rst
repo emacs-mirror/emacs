@@ -11,6 +11,32 @@ support for the public identifiers <topic-interface-support>` and
 appear throughout the interface.
 
 
+.. _topic-interface-support:
+
+Support policy
+--------------
+
+1.  We support the documented behaviour of public symbols in the MPS
+    interface. We will only remove these symbols or change their
+    behaviour in a new version, and not in a patch release. Normally
+    we will give one version's notice before removing a symbol or
+    changing a particular documented behaviour: that is, there will be
+    a version in which the symbol (or reliance on some of its
+    behaviour) is deprecated.
+
+    .. note::
+
+        If you are relying on a feature and you see that it's
+        deprecated, please :ref:`contact us <contact>`. It makes a
+        difference if we know that someone is using a feature.
+
+2.  Behaviour that is not documented in the :ref:`guide`,
+    :ref:`reference`, or :ref:`pool` is not supported and may change
+    without notice in future releases. In particular, private
+    identifiers may disappear or their behaviour be changed without
+    notice in future releases.
+
+
 Language
 --------
 
@@ -186,32 +212,6 @@ Macros
     file, are not part of the MPS interface, and might change between
     releases. Don't rely on them, unless they are documented
     separately.
-
-
-.. _topic-interface-support:
-
-Support policy
---------------
-
-1.  We support the documented behaviour of public symbols in the MPS
-    interface. We will only remove these symbols or change their
-    behaviour in a new version, and not in a patch release. Normally
-    we will give one version's notice before removing a symbol or
-    changing a particular documented behaviour: that is, there will be
-    a version in which the symbol (or reliance on some of its
-    behaviour) is deprecated.
-
-    .. note::
-
-        If you are relying on a feature and you see that it's
-        deprecated, please :ref:`contact us <contact>`. It makes a
-        difference if we know that someone is using a feature.
-
-2.  Behaviour that is not documented in the :ref:`guide`,
-    :ref:`reference`, or :ref:`pool` is not supported and may change
-    without notice in future releases. In particular, private
-    identifiers may disappear or their behaviour be changed without
-    notice in future releases.
 
 
 .. _topic-interface-general:

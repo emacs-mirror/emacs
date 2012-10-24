@@ -3,131 +3,55 @@
 Arenas
 ======
 
-See //info.ravenbrook.com/project/mps/doc/2002-06-18/obsolete-mminfo/mmdoc/protocol/mps/arena/index.html
+An arena is an object that encapsulates the state of the Memory Pool
+System, and tells it where to get the memory it manages. You typically
+start a session with the MPS by creating an arena with
+:c:func:`mps_arena_create` and end the session by destroying it with
+:c:func:`mps_arena_destroy`. The only function you might need to call
+before making an arena is :c:func:`mps_telemetry_control`.
 
-From //info.ravenbrook.com/project/mps/doc/2002-06-18/obsolete-mminfo/mmdoc/doc/mps/ref-man/concepts/index.html
+Before destroying an arena, you must first destroy all objects and
+data in it, as usual for abstract data types in the MPS. If you can't
+destroy the arena properly (for example, because your program has
+crashed and you are at the debugger prompt), you can still call
+:c:func:`mps_telemetry_flush` explicitly.
 
-An objects that represents the state of the MPS.
+Other types of objects in the MPS are created "in the arena". They are
+part of the world within the arena, and may interact and affect each
+other.
 
-You start a session with the MPS by making an arena and end the session by destroying 
-the arena. Even if you do not destroy it, it is guaranteed not to hang on to resources; but it is better to destroy it, to finish off properly. Before destroying the arena, you must first destroy all objects and data in it.
+.. note::
 
-Other types of objects are created "in the arena". They are part of the world within the arena, and may interoperate with each other.
+    The MPS allows creation of multiple arenas, but you would only do
+    this in unusual circumstances. It might be useful to have two
+    active arenas and to try different things out in them, or you
+    might be in the process of integrating two pieces of software that
+    each independently uses the MPS.
 
-It is possible to create multiple arenas, but you would only do this in unusual circumstances. It might be useful to have two active arenas and to try different things out in them. The maximum number of arenas that the system can support is around 10. Using multiple arenas is an advanced technique. For more information, see the Arena Protocol .
+    Arenas do not normally interact, but they compete with each other
+    for resources, and references from one arena to another are not
+    traced, though you *can* declare :term:`roots <root>` pointing
+    from one arena to another. It is not efficient to have multiple
+    arenas containing :term:`automatically managed <automatic memory
+    management>` :term:`pools <pool>`: if you find yourself in this
+    situation it's best to find a way to move all the automatically
+    managed pools to one arena.
 
-Arenas do not interact. However, they may conflict with each other in terms of resources.
+    The maximum number of arenas that the system can support is
+    around 10.
 
-::
-
-    mps_arena_t arena;
-
-    int main(void)
-    {
-        void *block;
-        mps_res_t res;
-
-        block = malloc(ARENA_SIZE);
-        if (block == NULL) {
-            printf("Not enough memory!");
-            exit(1);
-        }
-
-        res = mps_arena_create(&arena, mps_arena_class_cl(), ARENA_SIZE, block);
-        if (res != MPS_RES_OK) {
-            printf("ARENA_SIZE too small");
-            exit(2);
-        }
-
-        /* rest of program */
-    }
-
-::
-
-    mps_arena_t arena;
-
-    int main(void)
-    {
-        mps_res_t res;
-
-        res = mps_arena_create(&arena, mps_arena_class_vm(), ARENA_SIZE);
-        if (res != MPS_RES_OK) {
-            printf("Not enough memory!");
-            exit(1);
-        }
-
-        /* rest of program */
-    }
-
-::
-
-    mps_arena_t arena;
-
-    int main(void)
-    {
-        mps_res_t res;
-
-        res = mps_arena_create(&arena, mps_arena_class_vmnz(), ARENA_SIZE);
-        if (res != MPS_RES_OK) {
-            printf("Not enough memory!");
-            exit(1);
-        }
-
-        /* rest of program */
-    }
-
-::
-
-    do {
-        res = mps_arena_commit_limit_set(arena, limit - 100 * 1024);
-        if (res != MPS_RES_OK)
-            flush_caches();
-    } while(res != MPS_RES_OK);
-
-::
-
-    mps_arena_t arena;
-
-    int main(void)
-    {
-        mps_res_t res;
-
-        res = mps_arena_create(&arena, mps_arena_class_vm(), ARENA_SIZE);
-        if (res != MPS_ RES_OK) {
-            printf("Not enough memory!");
-            exit(1);
-        }
-
-        /* rest of program */
-    }
+There are two classes of arena, :ref:`topic-arena-client` and
+:ref:`topic-arena-vm`. These differ in the way that they acquire the
+memory to be managed.
 
 
+.. c:type:: mps_arena_t
 
-Using idle time for collection
-------------------------------
+    The type of :term:`arenas <arena>`.
 
-See <http://info.ravenbrook.com/mail/2003/01/03/14-13-25/0.txt>
-
-
-Interface
----------
-
-.. c:function:: void mps_arena_clamp(mps_arena_t arena)
-
-    Put an :term:`arena` into the :term:`clamped state`.
-    
-    ``arena`` is the arena to clamp.
-
-    In the clamped state, no object motion will occur and the
-    staleness of :term:`location dependencies <location dependency>`
-    will not change. All references to objects loaded while the arena
-    is clamped will keep the same binary representation until after it
-    is released by calling :c:func:`mps_arena_release`.
-
-    In a clamped arena, incremental collection may still occur, but it
-    will not be visible to the mutator and no new collections will
-    begin. Space used by unreachable objects will not be recycled
-    until the arena is unclamped.
+    An arena is responsible for requesting :term:`memory (3)` from
+    the operating system, making it available to :term:`pools <pool>`,
+    and for :term:`garbage collection`.
 
 
 .. c:type:: mps_arena_class_t
@@ -135,21 +59,168 @@ Interface
     The type of :term:`arena classes <arena class>`.
 
 
-.. c:function:: void mps_arena_collect(mps_arena_t arena)
+.. c:function:: mps_res_t mps_arena_create(mps_arena_t *arena_o, mps_arena_class_t arena_class, ...)
 
-    Collect an arena and put it into the :term:`parked state`.
+    Create an :term:`arena`.
 
-    ``arena`` is the arena to collect.
+    ``arena_o`` points to a location that will hold a pointer to the new
+    arena.
 
-    The collector attempts to recycle as many unreachable objects as
-    possible and reduce the size of the arena as much as possible
-    (though in some cases it may increase because it becomes more
-    fragmented). Note that the collector may not be able to recycle
-    some objects (such as those near the destination of ambiguous
-    references) even though they are not reachable.
+    ``arena_class`` is the :term:`arena class`.
 
-    If you do not want the arena to remain in the parked state, you
-    must explicitly call :c:func:`mps_arena_release` afterwards.
+    Some arena classes require additional arguments to be passed to
+    :c:func:`mps_arena_create`. See the documentation for the arena
+    class.
+
+    Returns :c:macro:`MPS_RES_OK` if the arena is created
+    successfully, or another :term:`result code` otherwise.
+
+    The arena persists until it is destroyed by calling
+    :c:func:`mps_arena_destroy`.
+
+    .. note::
+
+        There's an alternative function :c:func:`mps_arena_create_v`
+        that takes its extra arguments using the standard :term:`C`
+        ``va_list`` mechanism.
+
+
+.. c:function:: mps_res_t mps_arena_create_v(mps_arena_t *arena_o, mps_arena_class_t arena_class, va_list args)
+
+    An alternative to :c:func:`mps_arena_create` that takes its extra
+    arguments using the standard :term:`C` ``va_list`` mechanism.
+
+
+.. c:function:: void mps_arena_destroy(mps_arena_t arena)
+
+    Destroy an :term:`arena`.
+
+    ``arena`` is the arena to destroy.
+
+    This function checks the consistency of the arena, flushes the
+    :term:`telemetry stream` and destroys the arena's internal control
+    structures. Additionally, :term:`virtual memory arenas <virtual
+    memory arena>` return their reserved address space to the
+    operating system if possible.
+
+    It is an error to destroy an arena without first destroying all
+    :term:`generation chains <generation chain>`, :term:`object
+    formats <object format>`, :term:`pools <pool>` and :term:`roots
+    <root>` created in the arena, and deregistering all :term:`threads
+    <thread>` registered with the arena.
+
+
+.. _topic-arena-client:
+
+Client arenas
+-------------
+
+::
+
+    #include "mpsacl.h"
+
+.. c:function:: mps_arena_class_t mps_arena_class_cl(void)
+
+    Return the :term:`arena class` for a :term:`client arena`.
+
+    A client arena gets its managed memory from the :term:`client
+    program`. This memory chunk is passed when the arena is created.
+
+    When creating a client arena, :c:func:`mps_arena_create` takes two
+    extra arguments::
+
+        mps_res_t mps_arena_create(mps_arena_t *arena_o,
+                                   mps_arena_class_t mps_arena_class_cl,
+                                   size_t size, mps_addr_t base)
+
+    ``base`` is the :term:`address` of the chunk of memory that will
+    be managed by the arena.
+
+    ``size`` is its :term:`size`.
+
+    If the chunk is too small to hold the internal arena structures,
+    :c:func:`mps_arena_create` returns :c:macro:`MPS_RES_MEMORY`. In
+    this case, you need to use a (much) larger chunk.
+
+    .. note::
+
+        You don't have to provide all the memory up front: you can
+        call :c:func:`mps_arena_extend` later on.
+
+        Client arenas have no mechanism for returning unused memory.
+
+
+.. c:function:: mps_res_t mps_arena_extend(mps_arena_t arena, mps_addr_t base, size_t size)
+
+    Extend a :term:`client arena` with another block of memory.
+
+    ``base`` is the :term:`address` of the block of memory that will be
+    managed by the arena.
+
+    ``size`` is its :term:`size`.
+
+    Return :c:macro:`MPS_RES_OK` if successful, or another
+    :term:`result code` if it fails.
+
+
+.. _topic-arena-vm:
+
+Virtual memory arenas
+---------------------
+
+::
+
+    #include "mpsavm.h"
+
+.. c:function:: mps_arena_class_t mps_arena_class_vm(void)
+
+    Return the :term:`arena class` for a :term:`virtual memory arena`.
+
+    A virtual memory arena uses the operating system's :term:`virtual
+    memory` interface to allocate memory. The chief consequence of
+    this is that the arena can manage many more virtual addresses than
+    it needs to commit memory to. This gives it flexibility as to
+    where to place :term:`blocks <block>`, which reduces
+    :term:`fragmentation` and helps make :term:`garbage collection`
+    more efficient.
+
+    When creating a virtual memory arena, :c:func:`mps_arena_create`
+    takes one extra argument::
+
+        mps_res_t mps_arena_create(mps_arena_t *arena_o,
+                                   mps_arena_class_t arena_class_vm(),
+                                   size_t size)
+
+    ``size`` is the initial amount of virtual address space, in
+    :term:`bytes <byte (1)>`, that the arena will reserve (this space
+    is initially reserved so that the arena can subsequently use it
+    without interference from other parts of the program, but most of
+    it is not committed, so it don't require any RAM or backing
+    store). The arena may allocate more virtual address space beyond
+    this initial reservation as and when it deems it necessary. The
+    MPS is most efficient if you reserve an address space that is
+    several times larger than your peak memory usage.
+
+    If the MPS fails to reserve adequate address space to place the
+    arena in, :c:func:`mps_arena_create` returns
+    :c:macro:`MPS_RES_RESOURCE`. Possibly this means that other parts
+    of the program are reserving too much virtual memory.
+
+    If the MPS fails to allocate memory for the internal arena
+    structures, :c:func:`mps_arena_create` returns
+    :c:macro:`MPS_RES_MEMORY`. Either ``size`` was far too small or you
+    ran out of swap space.
+
+
+Arena properties
+----------------
+
+.. c:function:: mps_word_t mps_collections(mps_arena_t arena)
+
+    Return the number of :term:`collection cycles <collection cycle>`
+    that have been completed on an :term:`arena` since it was created.
+
+    ``arena`` is the arena.
 
 
 .. c:function:: size_t mps_arena_commit_limit(mps_arena_t arena)
@@ -247,162 +318,6 @@ Interface
     :c:func:`mps_arena_commit_limit`.
 
 
-.. c:function:: mps_res_t mps_arena_create(mps_arena_t *arena_o, mps_arena_class_t arena_class, ...)
-
-    Create an :term:`arena`.
-
-    ``arena_o`` points to a location that will hold a pointer to the new
-    arena.
-
-    ``arena_class`` is the :term:`arena class`.
-
-    Some arena classes require additional arguments to be passed to
-    :c:func:`mps_arena_create`. See the documentation for the arena
-    class.
-
-    Returns :c:macro:`MPS_RES_OK` if the arena is created
-    successfully, or another :term:`result code` otherwise.
-
-    The arena persists until it is destroyed by calling
-    :c:func:`mps_arena_destroy`.
-
-    .. note::
-
-        There's an alternative function :c:func:`mps_arena_create_v`
-        that takes its extra arguments using the standard :term:`C`
-        ``va_list`` mechanism.
-
-
-.. c:function:: mps_res_t mps_arena_create_v(mps_arena_t *arena_o, mps_arena_class_t arena_class, va_list args)
-
-    An alternative to :c:func:`mps_arena_create` that takes its extra
-    arguments using the standard :term:`C` ``va_list`` mechanism.
-
-
-.. c:function:: void mps_arena_destroy(mps_arena_t arena)
-
-    Destroy an :term:`arena`.
-
-    ``arena`` is the arena to destroy.
-
-    This function checks the consistency of the arena, flushes the
-    :term:`telemetry stream` and destroys the arena's internal control
-    structures. Additionally, :term:`virtual memory arenas <virtual
-    memory arena>` return their reserved address space to the
-    operating system if possible.
-
-    It is an error to destroy an arena without first destroying all
-    :term:`generation chains <generation chain>`, :term:`object
-    formats <object format>`, :term:`pools <pool>` and :term:`roots
-    <root>` created in the arena, and deregistering all :term:`threads
-    <thread>` registered with the arena.
-
-
-.. c:function:: void mps_arena_expose(mps_arena_t arena)
-
-    Ensure that the MPS is not protecting any :term:`page` in the
-    :term:`arena` with a :term:`read barrier` or :term:`write
-    barrier`.
-
-    ``mps_arena`` is the arena to expose.
-
-    This is expected to only be useful for debugging. The arena is
-    left in the :term:`clamped state`.
-
-    Since barriers are used during a collection, calling this function
-    has the same effect as calling :c:func:`mps_arena_park`: all
-    collections are run to completion, and the arena is clamped so
-    that no new collections begin. The MPS also uses barriers to
-    maintain :term:`remembered sets <remembered set>`, so calling this
-    function will effectively destroy the remembered sets and any
-    optimization gains from them.
-
-    Calling this function is time-consuming: any active collections
-    will be run to completion; and the next collection will have to
-    recompute all the remembered sets by scanning the entire arena.
-
-    The recomputation of the remembered sets can be avoided by calling
-    :c:func:`mps_arena_unsafe_expose_remember_protection` instead of
-    :c:func:`mps_arena_expose`, and by calling
-    :c:func:`mps_arena_unsafe_restore_protection` before calling
-    :c:func:`mps_arena_release`. Those functions have unsafe aspects
-    and place restrictions on what the :term:`client program` can do
-    (basically no exposed data can be changed).
-
-
-.. c:function:: mps_res_t mps_arena_extend(mps_arena_t arena, mps_addr_t base, size_t size)
-
-    Extend a :term:`client arena` with another block of memory.
-
-    ``base`` is the :term:`address` of the block of memory that will be
-    managed by the arena.
-
-    ``size`` is its :term:`size`.
-
-    Return :c:macro:`MPS_RES_OK` if successful, or another
-    :term:`result code` if it fails.
-
-
-.. c:function:: mps_bool_t mps_arena_has_addr(mps_arena_t arena, mps_addr_t addr)
-
-    Test whether an :term:`address` is managed by an :term:`arena`. 
-
-    ``arena`` is an arena.
-
-    ``addr`` is an address.
-
-    Returns true if ``addr`` is managed by ``arena``; false otherwise.
-
-    An arena manages a portion of :term:`address space`. No two arenas
-    overlap, so for any particular address this function will return
-    true for at most one arena.
-
-    In general, not all addresses are managed by any arena. This is
-    what allows the MPS to cooperate with other memory managers,
-    shared object loaders, memory mapped file input/ouput, and so on:
-    it does not steal the whole address space.
-
-    The result from this function is valid only at the instant at
-    which the function returned. In some circumstances the result may
-    immediately become invalidated (for example, a :term:`garbage
-    collection` may occur, the address in question may become free,
-    the arena may choose to unmap the address and return storage to
-    the operating system). For reliable results call this function and
-    interpret the result while the arena is in the :term:`parked
-    state`.
-
-
-.. c:function:: void mps_arena_park(mps_arena_t arena)
-
-    Put an :term:`arena` into the :term:`parked state`.
-
-    ``arena`` is the arena to park.
-
-    While an arena is parked, no object motion will occur and the
-    staleness of :term:`location dependencies <location dependency>`
-    will not change. All references to objects loaded while the arena
-    is parked will keep the same binary representation until after it
-    is released.
-
-    Any current collection is run to completion before the arena is
-    parked, and no new collections will start. When an arena is in the
-    parked state, it is necessarily not in the middle of a collection.
-
-
-.. c:function:: void mps_arena_release(mps_arena_t arena)
-
-    Puts an arena into the :term:`unclamped state`.
-
-    ``arena`` is the arena to unclamp.
-
-    While an arena is unclamped, :term:`garbage collection`, object
-    motion, and other background activity can take place.
-
-    .. seealso::
-
-        :ref:`topic-collection`.
-
-
 .. c:function:: size_t mps_arena_reserved(mps_arena_t arena)
 
     Return the total :term:`address space` reserved by an
@@ -490,6 +405,119 @@ Interface
     memory.
 
 
+Arena state
+-----------
+
+An arena is always in one of three states.
+
+1. In the *unclamped state*, garbage collection may take place,
+   objects may move in memory, references may be updated,
+   :term:`location dependencies <location dependency>` may become
+   stale, virtual memory may be requested from or return to the
+   operating system, and other kinds of background activity may
+   occur. This is the normal state.
+
+2. In the *clamped state*, objects do not move in memory, references
+   do not change, the staleness of :term:`location dependencies
+   <location dependency>` does not change, and memory occupied by
+   :term:`unreachable` objects is not recycled.
+
+   However, a :term:`garbage collection` may be in progress and
+   incremental collection may still occur, but it will not be visible
+   to the :term:`client program` and no new collections will begin.
+
+3. The *parked state* is the same as the clamped state, with the
+   additional constraint that no garbage collections are in progress.
+
+The clamped and parked states are used for introspection and
+debugging. If you are examining the contents of the heap, you don't
+want data moving under your feet. The results of introspection
+functions like :c:func:`mps_arena_has_addr` only remain valid as while
+the arena remains in the parked state, and functions like
+:c:func:`mps_arena_roots_walk` can only be called in this state.
+
+
+.. c:function:: void mps_arena_clamp(mps_arena_t arena)
+
+    Put an :term:`arena` into the :term:`clamped state`.
+    
+    ``arena`` is the arena to clamp.
+
+    In the clamped state, no object motion will occur and the
+    staleness of :term:`location dependencies <location dependency>`
+    will not change. All references to objects loaded while the arena
+    is clamped will keep the same binary representation until after it
+    is released by calling :c:func:`mps_arena_release`.
+
+    In a clamped arena, incremental collection may still occur, but it
+    will not be visible to the mutator and no new collections will
+    begin. Space used by unreachable objects will not be recycled
+    until the arena is unclamped.
+
+
+.. c:function:: void mps_arena_park(mps_arena_t arena)
+
+    Put an :term:`arena` into the :term:`parked state`.
+
+    ``arena`` is the arena to park.
+
+    While an arena is parked, no object motion will occur and the
+    staleness of :term:`location dependencies <location dependency>`
+    will not change. All references to objects loaded while the arena
+    is parked will keep the same binary representation until after it
+    is released.
+
+    Any current collection is run to completion before the arena is
+    parked, and no new collections will start. When an arena is in the
+    parked state, it is necessarily not in the middle of a collection.
+
+
+.. c:function:: void mps_arena_release(mps_arena_t arena)
+
+    Puts an arena into the :term:`unclamped state`.
+
+    ``arena`` is the arena to unclamp.
+
+    While an arena is unclamped, :term:`garbage collection`, object
+    motion, and other background activity can take place.
+
+    .. seealso::
+
+        :ref:`topic-collection`.
+
+
+Running garbage collections
+---------------------------
+
+The Memory Pool System's garbage collector runs :term:`asynchronously
+<asynchronous garbage collector>` and :term:`incrementally
+<incremental garbage collection>`. This means that it is not normally
+necessary to tell it when to start garbage collections, or to wait
+until it has finished collecting.
+
+However, during development and testing it is useful to be able to
+request that MPS run a full :term:`collection cycle`. For example, you
+might run frequent collections in an attempt to detect bugs in your
+allocation and scanning code.
+
+
+.. c:function:: void mps_arena_collect(mps_arena_t arena)
+
+    Collect an arena and put it into the :term:`parked state`.
+
+    ``arena`` is the arena to collect.
+
+    The collector attempts to recycle as many unreachable objects as
+    possible and reduce the size of the arena as much as possible
+    (though in some cases it may increase because it becomes more
+    fragmented). Note that the collector may not be able to recycle
+    some objects (such as those near the destination of ambiguous
+    references) even though they are not reachable.
+
+    If you do not want the arena to remain in the parked state, you
+    must explicitly call :c:func:`mps_arena_release` afterwards.
+
+
 .. c:function:: mps_res_t mps_arena_start_collect(mps_arena_t arena)
 
     Request an :term:`arena` to start a full :term:`collection cycle`.
@@ -509,6 +537,53 @@ Interface
 
         Contrast with :c:func:`mps_arena_collect`, which does not
         return until the collection has completed.
+
+
+Using idle time for collection
+------------------------------
+
+Some types of program have "idle time" in which they are waiting for
+an external event such as user input or network activity. The MPS
+provides a function, :c:func:`mps_arena_step`, for making use of idle
+time to make memory management progress.
+
+Here's an example illustrating the use of this function in a program's
+event loop. When the program is idle (there are no client actions to
+perform), it requests that the MPS spend up to 10 milliseconds on
+incremental work, by calling ``mps_arena_step(arena, 0.010,
+0.0)``. When this returns false to indicate that there is no more work
+to do, the program blocks on the client for two seconds: if this times
+out, it predicts that the user will remain idle for at least a further
+second, so it calls ``mps_arena_step(arena, 0.010, 99.0)`` to tell
+that it's a good time to start a collection taking up to 10 ms × 100
+= 1 second, but not to pause for more than 10 ms.
+
+The program remains responsive: the MPS doesn't take control for more
+than a few milliseconds at a time (at most 10). But at the same time,
+major collection work can get done at times when the program would
+otherwise be idle. Of course the numbers here are only for
+illustration and should be chosen based on the requirements of the
+application.
+
+::
+
+    for (;;) { /* event loop */
+        for (;;) {
+            if (client_is_waiting()) {
+                perform_client_action();
+            } else if (!mps_arena_step(arena, 0.010, 0.0)) {
+                /* no incremental MPS work remaining */
+                break;
+            }
+        }
+
+        if (!block_on_client_with_timeout(2.0)) {
+            /* Perhaps the user has gone for a cup of coffee? Allow the
+             * MPS to start a big piece of work, but don't actually pause
+             * for more than 10 ms. */
+            mps_arena_step(arena, 0.010, 100.0);
+        }
+    }
 
 
 .. c:function:: mps_bool_t mps_arena_step(mps_arena_t arena, double interval, double multiplier)
@@ -544,13 +619,39 @@ Interface
     state`, it remains there.
 
 
-.. c:type:: mps_arena_t
+Protection
+----------
 
-    The type of :term:`arenas <arena>`.
+.. c:function:: void mps_arena_expose(mps_arena_t arena)
 
-    An arena is responsible for requesting :term:`memory (3)` from
-    the operating system, making it available to :term:`pools <pool>`,
-    and for :term:`garbage collection`.
+    Ensure that the MPS is not protecting any :term:`page` in the
+    :term:`arena` with a :term:`read barrier` or :term:`write
+    barrier`.
+
+    ``mps_arena`` is the arena to expose.
+
+    This is expected to only be useful for debugging. The arena is
+    left in the :term:`clamped state`.
+
+    Since barriers are used during a collection, calling this function
+    has the same effect as calling :c:func:`mps_arena_park`: all
+    collections are run to completion, and the arena is clamped so
+    that no new collections begin. The MPS also uses barriers to
+    maintain :term:`remembered sets <remembered set>`, so calling this
+    function will effectively destroy the remembered sets and any
+    optimization gains from them.
+
+    Calling this function is time-consuming: any active collections
+    will be run to completion; and the next collection will have to
+    recompute all the remembered sets by scanning the entire arena.
+
+    The recomputation of the remembered sets can be avoided by calling
+    :c:func:`mps_arena_unsafe_expose_remember_protection` instead of
+    :c:func:`mps_arena_expose`, and by calling
+    :c:func:`mps_arena_unsafe_restore_protection` before calling
+    :c:func:`mps_arena_release`. Those functions have unsafe aspects
+    and place restrictions on what the :term:`client program` can do
+    (basically no exposed data can be changed).
 
 
 .. c:function:: void mps_arena_unsafe_expose_remember_protection(mps_arena_t arena)
@@ -619,85 +720,43 @@ Interface
     cannot be restored more than once.
 
 
-.. c:function:: mps_word_t mps_collections(mps_arena_t arena)
-
-    Return the number of :term:`collection cycles <collection cycle>`
-    that have been completed on an :term:`arena` since it was created.
-
-    ``arena`` is the arena.
-
-
-
-Arena classes
+Introspection
 -------------
 
-.. c:function:: mps_arena_class_t mps_arena_class_cl(void)
+.. note::
 
-    ::
-
-        #include "mpsacl.h"
-
-    Return the :term:`arena class` for a :term:`client arena`.
-
-    A client arena gets its managed memory from the :term:`client
-    program`. This memory chunk is passed when the arena is created.
-
-    When creating a client arena, :c:func:`mps_arena_create` takes two
-    extra arguments::
-
-        mps_res_t mps_arena_create(mps_arena_t *arena_o,
-                                   mps_arena_class_t mps_arena_class_cl,
-                                   size_t size, mps_addr_t base)
-
-    ``base`` is the :term:`address` of the chunk of memory that will
-    be managed by the arena.
-
-    ``size`` is its :term:`size`.
-
-    If the chunk is too small to hold the internal arena structures,
-    :c:func:`mps_arena_create` returns :c:macro:`MPS_RES_MEMORY`. In
-    this case, you need to use a (much) larger chunk.
+    Other useful introspection functions covered in other chapters are
+    :c:func:`mps_addr_pool` (determine the :term:`pool` to which an
+    address belongs), :c:func:`mps_arena_formatted_objects_walk`
+    (visit all :term:`formatted objects <formatted object>` in an
+    arena) and :c:func:`mps_arena_roots_walk` (visit all references in
+    :term:`roots <root>` registered with an arena).
 
 
-.. c:function:: mps_arena_class_t mps_arena_class_vm(void)
+.. c:function:: mps_bool_t mps_arena_has_addr(mps_arena_t arena, mps_addr_t addr)
 
-    ::
+    Test whether an :term:`address` is managed by an :term:`arena`. 
 
-        #include "mpsavm.h"
+    ``arena`` is an arena.
 
-    Return the :term:`arena class` for a :term:`virtual memory arena`.
+    ``addr`` is an address.
 
-    A virtual memory arena uses the operating system's :term:`virtual
-    memory` interface to allocate memory. The chief consequence of
-    this is that the arena can manage many more virtual addresses than
-    it needs to commit memory to. This gives it flexibility as to
-    where to place :term:`blocks <block>`, which reduces
-    :term:`fragmentation` and helps make :term:`garbage collection`
-    more efficient.
+    Returns true if ``addr`` is managed by ``arena``; false otherwise.
 
-    When creating a virtual memory arena, :c:func:`mps_arena_create`
-    takes one extra argument::
+    An arena manages a portion of :term:`address space`. No two arenas
+    overlap, so for any particular address this function will return
+    true for at most one arena.
 
-        mps_res_t mps_arena_create(mps_arena_t *arena_o,
-                                   mps_arena_class_t arena_class_vm(),
-                                   size_t size)
+    In general, not all addresses are managed by any arena. This is
+    what allows the MPS to cooperate with other memory managers,
+    shared object loaders, memory mapped file input/ouput, and so on:
+    it does not steal the whole address space.
 
-    ``size`` is the initial amount of virtual address space, in
-    :term:`bytes <byte (1)>`, that the arena will reserve (this space
-    is initially reserved so that the arena can subsequently use it
-    without interference from other parts of the program, but most of
-    it is not committed, so it don't require any RAM or backing
-    store). The arena may allocate more virtual address space beyond
-    this initial reservation as and when it deems it necessary. The
-    MPS is most efficient if you reserve an address space that is
-    several times larger than your peak memory usage.
-
-    If the MPS fails to reserve adequate address space to place the
-    arena in, :c:func:`mps_arena_create` returns
-    :c:macro:`MPS_RES_RESOURCE`. Possibly this means that other parts
-    of the program are reserving too much virtual memory.
-
-    If the MPS fails to allocate memory for the internal arena
-    structures, :c:func:`mps_arena_create` returns
-    :c:macro:`MPS_RES_MEMORY`. Either ``size`` was far too small or you
-    ran out of swap space.
+    The result from this function is valid only at the instant at
+    which the function returned. In some circumstances the result may
+    immediately become invalidated (for example, a :term:`garbage
+    collection` may occur, the address in question may become free,
+    the arena may choose to unmap the address and return storage to
+    the operating system). For reliable results call this function and
+    interpret the result while the arena is in the :term:`parked
+    state`.

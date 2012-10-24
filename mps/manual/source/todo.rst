@@ -51,6 +51,49 @@ Outstanding
     "mps_pool_destroy() should therefore not be invoked on pools
     containing objects registered for finalization."
 
+101. Are there any other use cases for the clamped and parked states?
+     Are there any use cases that apply specifically to the parked
+     state?
+
+102. It's kind of a shame that the MPS has two means for "committed".
+     :term:`committed (1)` meaning "mapped to RAM", as in
+     :c:func:`mps_arena_commit_limit`; and :term:`committed (2)`
+     meaning "initialized and placed under management by the MPS", as
+     in :c:func:`mps_commit`. Probably too late to do anything about
+     this.
+
+103. The documentation for :c:func:`mps_arena_has_addr` says, "call
+     this function and interpret the result while the arena is in the
+     :term:`parked state`".  Similarly, :c:func:`mps_arena_roots_walk`
+     says "This function may only be called when the arena is in the
+     :term:`parked state`." What's wrong with the clamped state in
+     these cases? (I can see that :c:func:`mps_arena_roots_walk`
+     asserts if not in the parked state, but I guess I'd like an
+     explanation.)
+
+     I guess what I'm asking is, what are the use cases for
+     :c:func:`mps_arena_clamp`?
+
+104. Are there use cases for :c:func:`mps_arena_collect` other than
+     development and testing?
+
+105. It's a shame that the names :c:func:`mps_arena_release` and
+     "unclamped state" don't match. Could I call the "unclamped state"
+     the "released state" in the documentation?
+
+106. After calling :c:func:`mps_arena_expose`, how do you restore the
+     protection? Do you have to call :c:func:`mps_arena_release` or
+     are there other functions that will do the job, e.g.
+     :c:func:`mps_arena_collect`, :c:func:`mps_arena_start_collect`,
+     or :c:func:`mps_arena_step`?
+
+106. :c:func:`mps_arena_unsafe_expose_protection` and
+     :c:func:`mps_arena_unsafe_restore_protection` are kind of hairy
+     (as well as having absurd names). What's the use case? Exposing
+     the MPS "is expected only to be useful for debugging" so why have
+     special unsafe functions for optimizing the expose/restore
+     procedure? Maybe these should be left undocumented?
+
 
 Complete
 --------
