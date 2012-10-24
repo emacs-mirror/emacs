@@ -1,6 +1,7 @@
 2012-10-24  Glenn Morris  <rgm@gnu.org>
 
-	* Makefile.in (install-man): Don't apply transform to suffix.
+	* Makefile.in (install-etc, install-man):
+	Don't apply program transform to standard file suffixes.
 
 2012-10-23  Paul Eggert  <eggert@cs.ucla.edu>
 

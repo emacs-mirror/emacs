@@ -647,7 +647,8 @@ install-etc:
 	  ( cd $${thisdir}; ${MKDIR_P} $(DESTDIR)${icondir}/$${dir} ) ; \
 	  for icon in $${dir}/emacs[.-]*; do \
 	    [ -r $${icon} ] || continue ; \
-	    dest=`echo "$${icon}" | sed -e 's|.*/||' -e '$(TRANSFORM)'` ; \
+	    ext=`echo "$${icon}" | sed -e 's|.*\.||'`; \
+	    dest=`echo "$${icon}" | sed -e 's|.*/||' -e "s|\.$${ext}$$||" -e '$(TRANSFORM)'`.$${ext} ; \
 	    ( cd $${thisdir}; \
 	      ${INSTALL_DATA} ${iconsrcdir}/$${icon} $(DESTDIR)${icondir}/$${dir}/$${dest} ) \
 	    || exit 1; \
