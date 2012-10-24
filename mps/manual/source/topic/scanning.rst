@@ -434,6 +434,12 @@ Fixing interface
 
 .. c:function:: mps_res_t mps_fix(mps_ss_t ss, mps_addr_t *ref_io)
 
+    .. deprecated:: 1.111
+
+        Use :c:func:`MPS_SCAN_BEGIN`, :c:func:`MPS_FIX12` (or
+        :c:func:`MPS_FIX1` and :c:func:`MPS_FIX2`), and
+        :c:func:`MPS_SCAN_END` instead.
+
     Tell the MPS about a :term:`reference`, and possibly update it.
     This function must only be called from within a :term:`scan
     method`.
@@ -447,12 +453,6 @@ Fixing interface
     to scan the :term:`block`. If it returns any other result, the
     scan method must return that result as soon as possible, without
     fixing any further references.
-
-    .. deprecated:: 1.110
-
-        Use :c:func:`MPS_SCAN_BEGIN`, :c:func:`MPS_FIX12` (or
-        :c:func:`MPS_FIX1` and :c:func:`MPS_FIX2`), and
-        :c:func:`MPS_SCAN_END` instead.
 
     .. note::
 
