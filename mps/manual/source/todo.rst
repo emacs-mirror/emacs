@@ -94,6 +94,10 @@ Outstanding
      special unsafe functions for optimizing the expose/restore
      procedure? Maybe these should be left undocumented?
 
+107. Have I correctly explained why the documentation is not very
+     forthcoming about the set of result codes a function might
+     return?
+
 
 Complete
 --------
