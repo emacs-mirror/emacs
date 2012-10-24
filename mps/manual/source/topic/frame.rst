@@ -3,8 +3,6 @@
 Allocation frames
 =================
 
-Allocation frames are deprecated, starting with version 1.111.
-
 
 Interface
 ---------
@@ -50,8 +48,6 @@ Interface
     push; B = push; pop A; pop B" is illegal) or to pop the same frame
     twice (so the sequence "A = push, pop A, pop A" is illegal).
 
-    .. deprecated:: 1.111
-
 
 .. c:function:: mps_res_t mps_ap_frame_push(mps_frame_t *frame_o, mps_ap_t ap)
 
@@ -69,8 +65,6 @@ Interface
     resources, or if the correct protocol is not followed by the
     :term:`client program`.
 
-    .. deprecated:: 1.111
-
 
 .. c:type:: mps_frame_t
 
@@ -86,5 +80,3 @@ Interface
 
     Allocation frames can be used by the :term:`client program` to
     efficiently implement stack-like patterns of allocation.
-
-    .. deprecated:: 1.111

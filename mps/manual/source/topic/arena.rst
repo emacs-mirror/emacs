@@ -431,10 +431,21 @@ An arena is always in one of three states.
 
 The clamped and parked states are used for introspection and
 debugging. If you are examining the contents of the heap, you don't
-want data moving under your feet. The results of introspection
-functions like :c:func:`mps_arena_has_addr` only remain valid as while
-the arena remains in the parked state, and functions like
-:c:func:`mps_arena_roots_walk` can only be called in this state.
+want data moving under your feet. So for example, if your program is
+stopped in GDB you might type::
+
+    (gdb) print mps_arena_clamp(arena)
+
+before inspecting memory, and::
+
+    (gdb) print mps_arena_release(arena)
+
+afterward.
+
+The results of introspection functions like
+:c:func:`mps_arena_has_addr` only remain valid while the arena remains
+in the parked state, and functions like :c:func:`mps_arena_roots_walk`
+can only be called in this state.
 
 
 .. c:function:: void mps_arena_clamp(mps_arena_t arena)
@@ -493,7 +504,9 @@ The Memory Pool System's garbage collector runs :term:`asynchronously
 <asynchronous garbage collector>` and :term:`incrementally
 <incremental garbage collection>`. This means that it is not normally
 necessary to tell it when to start garbage collections, or to wait
-until it has finished collecting.
+until it has finished collecting. (But if your program has idle time
+that could be productively spent by the MPS, see
+:ref:`topic-arena-idle` below.)
 
 However, during development and testing it is useful to be able to
 request that MPS run a full :term:`collection cycle`. For example, you
@@ -538,6 +551,8 @@ allocation and scanning code.
         Contrast with :c:func:`mps_arena_collect`, which does not
         return until the collection has completed.
 
+
+.. _topic-arena-idle:
 
 Using idle time for collection
 ------------------------------
@@ -619,107 +634,6 @@ application.
     state`, it remains there.
 
 
-Protection
-----------
-
-.. c:function:: void mps_arena_expose(mps_arena_t arena)
-
-    Ensure that the MPS is not protecting any :term:`page` in the
-    :term:`arena` with a :term:`read barrier` or :term:`write
-    barrier`.
-
-    ``mps_arena`` is the arena to expose.
-
-    This is expected to only be useful for debugging. The arena is
-    left in the :term:`clamped state`.
-
-    Since barriers are used during a collection, calling this function
-    has the same effect as calling :c:func:`mps_arena_park`: all
-    collections are run to completion, and the arena is clamped so
-    that no new collections begin. The MPS also uses barriers to
-    maintain :term:`remembered sets <remembered set>`, so calling this
-    function will effectively destroy the remembered sets and any
-    optimization gains from them.
-
-    Calling this function is time-consuming: any active collections
-    will be run to completion; and the next collection will have to
-    recompute all the remembered sets by scanning the entire arena.
-
-    The recomputation of the remembered sets can be avoided by calling
-    :c:func:`mps_arena_unsafe_expose_remember_protection` instead of
-    :c:func:`mps_arena_expose`, and by calling
-    :c:func:`mps_arena_unsafe_restore_protection` before calling
-    :c:func:`mps_arena_release`. Those functions have unsafe aspects
-    and place restrictions on what the :term:`client program` can do
-    (basically no exposed data can be changed).
-
-
-.. c:function:: void mps_arena_unsafe_expose_remember_protection(mps_arena_t arena)
-
-    Ensure that the MPS is not protecting any :term:`page` in the
-    :term:`arena` with a :term:`read barrier` or :term:`write
-    barrier`. In addition, request the MPS to remember some parts of its
-    internal state so that they can be restored later.
-
-    ``mps_arena`` is the arena to expose.
-
-    This function is the same as :c:func:`mps_arena_expose`, but
-    additionally causes the MPS to remember its protection state. The
-    remembered protection state can optionally be restored later by
-    calling the :c:func:`mps_arena_unsafe_restore_protection` function.
-    This is an optimization that avoids the MPS having to recompute
-    all the remembered sets by scanning the entire arena.
-
-    However, restoring the remembered protections is only safe if the
-    contents of the exposed pages have not been changed; therefore
-    this function should only be used if you do not intend to change
-    the pages, and the remembered protection must only be restored if
-    the pages have not been changed.
-
-    The MPS will only remember the protection state if resources
-    (memory) are available. If memory is low then only some or
-    possibly none of the protection state will be remembered, with a
-    corresponding necessity to recompute it later. The MPS provides no
-    mechanism for the :term:`client program` to determine whether the
-    MPS has in fact remembered the protection state.
-
-    The remembered protection state, if any, is discarded after
-    calling calling :c:func:`mps_arena_unsafe_restore_protection`, or
-    as soon as the arena leaves the :term:`clamped state` by calling
-    :c:func:`mps_arena_release`.
-
-
-.. c:function:: void mps_arena_unsafe_restore_protection(mps_arena_t arena)
-
-    Restore the remembered protection state for an :term:`arena`.
-
-    ``mps_arena`` is the arena to restore the protection state for.
-
-    This function restores the protection state that the MPS has
-    remembered when the :term:`client program` called
-    :c:func:`mps_arena_unsafe_expose_remember_protection`. The purpose
-    of remembering and restoring the protection state is to avoid the
-    need for the MPS to recompute all the :term:`remembered sets
-    <remembered set>` by scanning the entire arena, that occurs when
-    :c:func:`mps_arena_expose` is used, and which causes the next
-    :term:`garbage collection` to be slow.
-
-    The client program must not change the exposed data between the
-    call to :c:func:`mps_arena_unsafe_expose_remember_protection` and
-    :c:func:`mps_arena_unsafe_restore_protection`. If the client
-    program has changed the exposed data then
-    :c:func:`mps_arena_unsafe_restore_protection` must not be called:
-    in this case simply call :c:func:`mps_arena_release`.
-
-    Calling this function does not release the arena from the clamped
-    state: :c:func:`mps_arena_release` must be called to continue
-    normal collections.
-
-    Calling this function causes the MPS to forget the remember
-    protection state; as a consequence the same remembered state
-    cannot be restored more than once.
-
-
 Introspection
 -------------
 
@@ -766,3 +680,112 @@ Introspection
         return storage to the operating system). For reliable results
         call this function and interpret the result while the arena is
         in the :term:`parked state`.
+
+
+Protection
+----------
+
+.. c:function:: void mps_arena_expose(mps_arena_t arena)
+
+    .. deprecated:: 1.111
+
+    Ensure that the MPS is not protecting any :term:`page` in the
+    :term:`arena` with a :term:`read barrier` or :term:`write
+    barrier`.
+
+    ``mps_arena`` is the arena to expose.
+
+    This is expected to only be useful for debugging. The arena is
+    left in the :term:`clamped state`.
+
+    Since barriers are used during a collection, calling this function
+    has the same effect as calling :c:func:`mps_arena_park`: all
+    collections are run to completion, and the arena is clamped so
+    that no new collections begin. The MPS also uses barriers to
+    maintain :term:`remembered sets <remembered set>`, so calling this
+    function will effectively destroy the remembered sets and any
+    optimization gains from them.
+
+    Calling this function is time-consuming: any active collections
+    will be run to completion; and the next collection will have to
+    recompute all the remembered sets by scanning the entire arena.
+
+    The recomputation of the remembered sets can be avoided by calling
+    :c:func:`mps_arena_unsafe_expose_remember_protection` instead of
+    :c:func:`mps_arena_expose`, and by calling
+    :c:func:`mps_arena_unsafe_restore_protection` before calling
+    :c:func:`mps_arena_release`. Those functions have unsafe aspects
+    and place restrictions on what the :term:`client program` can do
+    (basically no exposed data can be changed).
+
+
+.. c:function:: void mps_arena_unsafe_expose_remember_protection(mps_arena_t arena)
+
+    .. deprecated:: 1.111
+
+    Ensure that the MPS is not protecting any :term:`page` in the
+    :term:`arena` with a :term:`read barrier` or :term:`write
+    barrier`. In addition, request the MPS to remember some parts of its
+    internal state so that they can be restored later.
+
+    ``mps_arena`` is the arena to expose.
+
+    This function is the same as :c:func:`mps_arena_expose`, but
+    additionally causes the MPS to remember its protection state. The
+    remembered protection state can optionally be restored later by
+    calling the :c:func:`mps_arena_unsafe_restore_protection` function.
+    This is an optimization that avoids the MPS having to recompute
+    all the remembered sets by scanning the entire arena.
+
+    However, restoring the remembered protections is only safe if the
+    contents of the exposed pages have not been changed; therefore
+    this function should only be used if you do not intend to change
+    the pages, and the remembered protection must only be restored if
+    the pages have not been changed.
+
+    The MPS will only remember the protection state if resources
+    (memory) are available. If memory is low then only some or
+    possibly none of the protection state will be remembered, with a
+    corresponding necessity to recompute it later. The MPS provides no
+    mechanism for the :term:`client program` to determine whether the
+    MPS has in fact remembered the protection state.
+
+    The remembered protection state, if any, is discarded after
+    calling calling :c:func:`mps_arena_unsafe_restore_protection`, or
+    as soon as the arena leaves the :term:`clamped state` by calling
+    :c:func:`mps_arena_release`.
+
+
+.. c:function:: void mps_arena_unsafe_restore_protection(mps_arena_t arena)
+
+    .. deprecated:: 1.111
+
+    Restore the remembered protection state for an :term:`arena`.
+
+    ``mps_arena`` is the arena to restore the protection state for.
+
+    This function restores the protection state that the MPS has
+    remembered when the :term:`client program` called
+    :c:func:`mps_arena_unsafe_expose_remember_protection`. The purpose
+    of remembering and restoring the protection state is to avoid the
+    need for the MPS to recompute all the :term:`remembered sets
+    <remembered set>` by scanning the entire arena, that occurs when
+    :c:func:`mps_arena_expose` is used, and which causes the next
+    :term:`garbage collection` to be slow.
+
+    The client program must not change the exposed data between the
+    call to :c:func:`mps_arena_unsafe_expose_remember_protection` and
+    :c:func:`mps_arena_unsafe_restore_protection`. If the client
+    program has changed the exposed data then
+    :c:func:`mps_arena_unsafe_restore_protection` must not be called:
+    in this case simply call :c:func:`mps_arena_release`.
+
+    Calling this function does not release the arena from the clamped
+    state: :c:func:`mps_arena_release` must be called to continue
+    normal collections.
+
+    Calling this function causes the MPS to forget the remember
+    protection state; as a consequence the same remembered state
+    cannot be restored more than once.
+
+
