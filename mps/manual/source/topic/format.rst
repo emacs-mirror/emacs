@@ -226,14 +226,30 @@ For example::
 
     .. note::
 
+        Format methods for formats of this variant will receive
+        *client pointers* (that is, pointers past the header) but all
+        other MPS functions expect to receive and return *base
+        pointers* (that is, pointers to the base of the block where
+        the header is stored).
+
+        In particular, :c:func:`mps_reserve` and :c:func:`mps_alloc`
+        always hand out base pointers, and :c:func:`mps_free` expectst
+        to receive one.
+
+    .. note::
+
         For technical reasons, formatted objects must be longer than
         the header. In other words, objects consisting of only a
         header are not supported.
+
+    .. note::
 
         Even if the header size is larger than or equal to
         :term:`alignment`, the :term:`padding method` must still be
         able to create :term:`padding objects <padding object>` down
         to the alignment size.
+
+    .. note::
 
         Variant auto_header is only supported by :ref:`pool-amc` and
         :ref:`pool-amcz`.

@@ -47,64 +47,6 @@ Outstanding
 
 95. Bring :ref:`lang` up to date. Add C#, Lua, Python.
 
-99. What does this mean in :ref:`topic-finalization`:
-    "mps_pool_destroy() should therefore not be invoked on pools
-    containing objects registered for finalization."
-
-101. Are there any other use cases for the clamped and parked states?
-     Are there any use cases that apply specifically to the parked
-     state?
-
-102. It's kind of a shame that the MPS has two means for "committed".
-     :term:`committed (1)` meaning "mapped to RAM", as in
-     :c:func:`mps_arena_commit_limit`; and :term:`committed (2)`
-     meaning "initialized and placed under management by the MPS", as
-     in :c:func:`mps_commit`. Probably too late to do anything about
-     this.
-
-103. The documentation for :c:func:`mps_arena_has_addr` says, "call
-     this function and interpret the result while the arena is in the
-     :term:`parked state`".  Similarly, :c:func:`mps_arena_roots_walk`
-     says "This function may only be called when the arena is in the
-     :term:`parked state`." What's wrong with the clamped state in
-     these cases? (I can see that :c:func:`mps_arena_roots_walk`
-     asserts if not in the parked state, but I guess I'd like an
-     explanation.)
-
-     I guess what I'm asking is, what are the use cases for
-     :c:func:`mps_arena_clamp`?
-
-104. Are there use cases for :c:func:`mps_arena_collect` other than
-     development and testing?
-
-105. It's a shame that the names :c:func:`mps_arena_release` and
-     "unclamped state" don't match. Could I call the "unclamped state"
-     the "released state" in the documentation?
-
-106. After calling :c:func:`mps_arena_expose`, how do you restore the
-     protection? Do you have to call :c:func:`mps_arena_release` or
-     are there other functions that will do the job, e.g.
-     :c:func:`mps_arena_collect`, :c:func:`mps_arena_start_collect`,
-     or :c:func:`mps_arena_step`?
-
-107. :c:func:`mps_arena_unsafe_expose_remember_protection` and
-     :c:func:`mps_arena_unsafe_restore_protection` are kind of hairy
-     (as well as having absurd names). What's the use case? Exposing
-     the MPS "is expected only to be useful for debugging" so why have
-     special unsafe functions for optimizing the expose/restore
-     procedure? Maybe these should be left undocumented?
-
-108. Have I correctly explained why the documentation is not very
-     forthcoming about the set of result codes a function might
-     return?
-
-109. NB's `MPS Format Protocol
-     <http://info.ravenbrook.com/project/mps/doc/2002-06-18/obsolete-mminfo/mmdoc/protocol/mps/format/index.html>`_
-     says that formats A and B are deprecated. Surely this isn't the
-     case? That would leave only auto_header supported.
-
-110. Say something about assertions in the error chapter.
-
 
 Complete
 --------
@@ -387,12 +329,8 @@ Complete
 41. Move symbol reference from ``mpsio.h``, ``mpstd.h`` and
     ``mpslib.h`` to :ref:`topic-plinth`.
 
-    *Action:* done.
-
 42. Move symbol references for the pool classes to the corresponding
     pool document.
-
-    *Action:* done.
 
 43. In the "choosing a pool" procedure there's no mention of ambiguous
     references. I omitted them because the NB/RIT chart of pool
@@ -830,8 +768,130 @@ Complete
     finalizable, because it is being kept alive by an ambiguous
     reference."
 
+99. What does this mean in :ref:`topic-finalization`:
+    "mps_pool_destroy() should therefore not be invoked on pools
+    containing objects registered for finalization."
+
+    *Answer:* This is clearly a misfeature if true, because how could
+    you destroy a pool containing finalizable objects?
+
+    *Action:* make `job003341`_
+
+    .. _job003341: https://info.ravenbrook.com/project/mps/issue/job003341/
+
 100. Try to find "GARBAGE COLLECTING... HERE ARE SOME INTERESTING
      STATISTICS" early Lisp anecdote and put it in
      :ref:`topic-telemetry`.
 
      The anecdote is at the end of [MCCARTHY79]_.
+
+101. Are there any other use cases for the clamped and parked states?
+     Are there any use cases that apply specifically to the parked
+     state?
+
+     *Answer:* clamp prevents a flip and so buffers can't be trapped,
+     and so :c:func:`mps_commit` will always succeed, and so
+     allocation will always run at max speed.
+
+     It might be helpful for debugging, for example you might want to
+     type it at the GDB prompt to ensure that nothing moves around
+     while you are debugging.
+
+102. It's kind of a shame that the MPS has two means for "committed".
+     :term:`committed (1)` meaning "mapped to RAM", as in
+     :c:func:`mps_arena_commit_limit`; and :term:`committed (2)`
+     meaning "initialized and placed under management by the MPS", as
+     in :c:func:`mps_commit`. Probably too late to do anything about
+     this.
+
+     *Answer:* too late to change.
+
+103. The documentation for :c:func:`mps_arena_has_addr` says, "call
+     this function and interpret the result while the arena is in the
+     :term:`parked state`".  Similarly, :c:func:`mps_arena_roots_walk`
+     says "This function may only be called when the arena is in the
+     :term:`parked state`." What's wrong with the clamped state in
+     these cases? (I can see that :c:func:`mps_arena_roots_walk`
+     asserts if not in the parked state, but I guess I'd like an
+     explanation.)
+
+     *Answer:* there's still stuff going on in the clamped state.
+
+104. Are there use cases for :c:func:`mps_arena_collect` other than
+     development and testing?
+
+     *Answer:* probably not. "You might think that..."
+
+105. It's a shame that the names :c:func:`mps_arena_release` and
+     "unclamped state" don't match. Could I call the "unclamped state"
+     the "released state" in the documentation?
+
+     *Answer:* too late to change.
+
+106. After calling :c:func:`mps_arena_expose`, how do you restore the
+     protection? Do you have to call :c:func:`mps_arena_release` or
+     are there other functions that will do the job, e.g.
+     :c:func:`mps_arena_collect`, :c:func:`mps_arena_start_collect`,
+     or :c:func:`mps_arena_step`?
+
+     *Answer:* the protection will arise naturally: no need to call
+     anything specific.
+
+107. :c:func:`mps_arena_unsafe_expose_remember_protection` and
+     :c:func:`mps_arena_unsafe_restore_protection` are kind of hairy
+     (as well as having absurd names). What's the use case? Exposing
+     the MPS "is expected only to be useful for debugging" so why have
+     special unsafe functions for optimizing the expose/restore
+     procedure? Maybe these should be left undocumented?
+
+     *Answer:* Deprecate them for the moment. Make a job to
+     investigate the use case.
+
+     *Action:* made `job003342`_
+
+     .. _job003342: https://info.ravenbrook.com/project/mps/issue/job003342/
+
+108. Have I correctly explained why the documentation is not very
+     forthcoming about the set of result codes a function might
+     return?
+
+     *Answer:* the paragraph is fine, but there's a job here. For some
+     functions we could say something along the lines of: "if you
+     receive MPS_RES_X, that means Y".
+
+     *Action:* made `job003343`_
+
+     .. _job003343: https://info.ravenbrook.com/project/mps/issue/job003343/
+
+109. NB's `MPS Format Protocol
+     <http://info.ravenbrook.com/project/mps/doc/2002-06-18/obsolete-mminfo/mmdoc/protocol/mps/format/index.html>`_
+     says that formats A and B are deprecated. Surely this isn't the
+     case? That would leave only auto_header supported.
+
+     *Answer:* ask NB, he wrote it.
+
+110. Say something about assertions and varieties in the error chapter.
+
+111. Need discussion in :ref:`topic-format` under
+     :c:type:`mps_fmt_auto_header_s` about client pointers versus base
+     pointers.
+
+112. What's the purpose of allocation frames and the SNC pool class?
+     Perhaps ask Pekka about how it's worked out for Global Graphics.
+
+     *Action:* made `job003344`_
+
+     .. _job003344: https://info.ravenbrook.com/project/mps/issue/job003344/
+
+113. Note about sizes of generations in the Scheme example are
+     deliberately chosen to be small so you can see it working.
+
+114. What's the purpose of segregated allocation caches?
+
+     *Answer:* There might be a paper about SACs. Run program once and
+     write down the sizes of the objects you allocate. Change malloc
+     into a macro that tests the size (because the size is almost
+     always constant). Dramatic improvement in performance and
+     reduction in fragmentation. Interface to a pool that allows it to
+     exploit this pattern. Perhaps in use in ScriptWorks? Write to
+     Pekka and ask him how this has worked out. (After 1.111.0.)
