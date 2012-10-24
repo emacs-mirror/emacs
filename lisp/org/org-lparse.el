@@ -435,6 +435,10 @@ PUB-DIR specifies the publishing directory."
   (let* ((org-lparse-backend (intern native-backend))
 	 (org-lparse-other-backend (and target-backend
 					(intern target-backend))))
+    (add-hook 'org-export-preprocess-hook
+	      'org-lparse-strip-experimental-blocks-maybe)
+    (add-hook 'org-export-preprocess-after-blockquote-hook
+	      'org-lparse-preprocess-after-blockquote)
     (unless (org-lparse-backend-is-native-p native-backend)
       (error "Don't know how to export natively to backend %s" native-backend))
 
@@ -442,7 +446,12 @@ PUB-DIR specifies the publishing directory."
 		(org-lparse-reachable-p native-backend target-backend))
       (error "Don't know how to export to backend %s %s" target-backend
 	     (format "via %s" native-backend)))
-    (org-do-lparse arg hidden ext-plist to-buffer body-only pub-dir)))
+    (run-hooks 'org-export-first-hook)
+    (org-do-lparse arg hidden ext-plist to-buffer body-only pub-dir)
+    (remove-hook 'org-export-preprocess-hook
+		 'org-lparse-strip-experimental-blocks-maybe)
+    (remove-hook 'org-export-preprocess-after-blockquote-hook
+		 'org-lparse-preprocess-after-blockquote)))
 
 (defcustom org-lparse-use-flashy-warning nil
   "Control flashing of messages logged with `org-lparse-warn'.
@@ -585,16 +594,6 @@ version."
   (setq-default org-deadline-line-regexp org-deadline-line-regexp)
   (setq-default org-done-keywords org-done-keywords)
   (setq-default org-maybe-keyword-time-regexp org-maybe-keyword-time-regexp)
-
-  ;; Run first hook.
-  (run-hooks 'org-export-first-hook)
-
-  ;; Add pre-process hooks.
-  (add-hook 'org-export-preprocess-hook
-	    'org-lparse-strip-experimental-blocks-maybe)
-  (add-hook 'org-export-preprocess-after-blockquote-hook
-	    'org-lparse-preprocess-after-blockquote)
-
   (let* (hfy-user-sheet-assoc		; let `htmlfontify' know that
 					; we are interested in
 					; collecting styles
@@ -786,11 +785,6 @@ version."
 	 org-lparse-toc
 	 href
 	 )
-    ;; Remove pre-process hooks.
-    (remove-hook 'org-export-preprocess-hook
-		 'org-lparse-strip-experimental-blocks-maybe)
-    (remove-hook 'org-export-preprocess-after-blockquote-hook
-		 'org-lparse-preprocess-after-blockquote)
 
     (let ((inhibit-read-only t))
       (org-unmodified
