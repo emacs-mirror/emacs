@@ -145,27 +145,33 @@ Functions
 
 7.  In/out parameters have names ending with ``_io``.
 
-8.  It's tempting to use a type cast to change the type of a in/out or
-    out parameter, like this::
 
-        /* allocate a struct foo */
-        struct foo *fp;
-        res = mps_alloc((mps_addr_t *)&fp, pool, sizeof(struct foo));
+.. _topic-interface-pun:
 
-    This is known as :term:`type punning`, and its behaviour is
-    undefined in ANSI/ISO Standard C. (See §6.3.2.3, which defines the
-    conversion of a pointer from one type to another: the behaviour of
-    this cast is not covered by any of the cases in the standard.)
-    Instead, we recommend this approach::
+Type punning
+------------
 
-        mps_addr_t p;
-        struct foo *fp;
-        res = mps_alloc(&p, pool, sizeof(struct foo));
-        if(res) /* handle error case */;
-        fp = (struct foo *)p;
+It's tempting to use a type cast to change the type of a in/out or out
+parameter, like this::
 
-    This is portable because conversion from ``void *`` to any other
-    :term:`object pointer` type is defined by §6.3.2.3.1.
+    /* allocate a struct foo */
+    struct foo *fp;
+    res = mps_alloc((mps_addr_t *)&fp, pool, sizeof(struct foo));
+
+This is known as :term:`type punning`, and its behaviour is undefined
+in ANSI/ISO Standard C. (See §6.3.2.3, which defines the conversion of
+a pointer from one type to another: the behaviour of this cast is not
+covered by any of the cases in the standard.) Instead, we recommend
+this approach::
+
+    mps_addr_t p;
+    struct foo *fp;
+    res = mps_alloc(&p, pool, sizeof(struct foo));
+    if(res) /* handle error case */;
+    fp = (struct foo *)p;
+
+This is portable because conversion from ``void *`` to any other
+:term:`object pointer` type is defined by §6.3.2.3.1.
 
 
 Macros
