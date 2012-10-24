@@ -1,3 +1,7 @@
+2012-10-24  Chong Yidong  <cyd@gnu.org>
+
+	* emacs-lisp/easymenu.el (easy-menu-define): Doc fix (Bug#12628).
+
 2012-10-24  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* minibuffer.el (completion--all-sorted-completions-location): New var.
