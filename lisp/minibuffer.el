@@ -1054,7 +1054,7 @@ scroll the window of possible completions."
         (cons (copy-marker (field-beginning)) (copy-marker (field-end))))
   (setq completion-all-sorted-completions comps))
 
-(defun completion--flush-all-sorted-completions (&rest start end len)
+(defun completion--flush-all-sorted-completions (&optional start end _len)
   (unless (and start end
                (or (> start (cdr completion--all-sorted-completions-location))
                    (< end (car completion--all-sorted-completions-location))))
