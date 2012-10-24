@@ -47,8 +47,17 @@ Outstanding
 
 95. Bring :ref:`lang` up to date. Add C#, Lua, Python.
 
-115. Need to associate paragraph of text with deprecation notice.
-     Also, deprecation notices need nicer formatting.
+115. Need to associate paragraph of text with deprecation notice. (See
+     :c:func:`mps_fix`.) Also, deprecation notices need nicer
+     formatting.
+
+116. "The maximum number of arenas that the system can support is
+     around 10." What causes this limit?
+
+117. Consistent pluralization in headings. "Arena states". "Other
+     notes" -> "Ambiguous references". "You could use this to optimize
+     the scan by avoiding the need to reassemble and store the updated
+     reference after calling :term:`MPS_FIX2`.
 
 
 Complete
