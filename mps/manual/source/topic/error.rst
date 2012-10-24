@@ -3,46 +3,24 @@
 Error handing
 =============
 
-There's some documentation at //info.ravenbrook.com/project/mps/doc/2002-06-18/obsolete-mminfo/mmdoc/protocol/mps/assertion/index.html but it seems not to be true
+Operations in the Memory Pool System that might fail return a
+:term:`result code` of type :c:type:`mps_res_t`, rather than a
+"special value" of the return type.
 
-::
+Success is always indicated by the result code :c:macro:`MPS_RES_OK`,
+which is defined to be zero. Other result codes indicate failure, and
+are non-zero.
 
-    mps_addr_t p;
-    switch (mps_alloc(&p, pool, size)) {
-    case MPS_RES_LIMIT:
-        bomb("The MPS has reached an internal limit");
-        break;
+The modular nature of the MPS means that it is not usually possible
+for a function description to list the possible error codes that it
+might return. A function in the public interface typically calls
+methods of an :term:`arena class` and one or more :term:`pool classes
+<pool class>`, any of which might fail. The MPS is extensible with new
+arena and pool classes, which might fail in new and interesting ways,
+so the only future-proof behaviour is for a :term:`client program` to
+assume that any MPS function that returns a result code can return
+*any* result code.
 
-      /* ... */
-    }
-
-
-::
-
-    switch (res = mps_pool_create_v(&pool, arena, class, params)) {
-    case MPS_RES_PARAM:
-        bomb("Can't make a pool with those specifications");
-        break;
-
-        /* ... */
-     }
-
-::
-
-    mps_addr_t p;
-    mps_res_t res;
-
-    res = mps_alloc(&p, pool, sizeof(struct spong));
-    if (res != MPS_RES_OK) {
-        handle_memory_error(res);
-        abort();
-    }
-
-For more examples, see doc.mps.ref-man.if-conv. <https://info.ravenbrook.com/project/mps/doc/2002-06-18/obsolete-mminfo/mmdoc/doc/mps/ref-man/if-conv/>
-
-
-Interface
----------
 
 .. c:type:: mps_res_t
 
@@ -78,6 +56,10 @@ Interface
 
     * :c:macro:`MPS_RES_PARAM`: an invalid parameter was passed.
 
+
+
+Result codes
+------------
 
 .. c:macro:: MPS_RES_COMMIT_LIMIT
 
@@ -178,5 +160,3 @@ Interface
     This might be returned by functions that are no longer supported,
     or by operations that are included for future expansion, but not
     yet supported.
-
-
