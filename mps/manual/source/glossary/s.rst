@@ -211,8 +211,8 @@ Memory Management Glossary: S
         collection <generational garbage collection>`.
 
         The semi-space where :term:`objects <object>` reside at the
-        start of the collection is known as the *old semi-space*; the
-        *new semi-space* is where objects will reside, and where new
+        start of the collection is known as the :term:`fromspace`; the
+        :term:`tospace` is where objects will reside, and where new
         objects will be :term:`allocated <allocate>`, when the
         collection is complete.
 
