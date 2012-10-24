@@ -84,12 +84,12 @@ reference is within the object and need not be stripped. So your code
 might look like this::
 
     if (MPS_FIX1(ss, obj->ref)) {
-        /* strip (and remember) the tag */
-        mps_word_t tag = obj->ref & 0x7;
+        /* strip the tag */
         mps_addr_t p = obj->ref & ~0x7;
         mps_res_t res = MPS_FIX2(ss, &p);
         if (res != MPS_RES_OK) return res;
         /* restore the tag and update reference */
+        mps_word_t tag = obj->ref & 0x7;
         obj->ref = (obj_t)((char *)p + tag);
     }
 
@@ -114,14 +114,14 @@ not need to call into the MPS.
 The purpose of :c:func:`MPS_FIX1` is to provide a fast check as to
 whether a reference is "of interest" to the MPS. It is legitimate to
 call this on any word: it does not even have to be an address. So if
-have a mixture of references and non-references in your object, it
-might turn out to be faster to call :c:func:`MPS_FIX1` on each word
-before you even determine whether or not the word is a reference.
+you have a mixture of references and non-references, it might turn out
+to be faster to call :c:func:`MPS_FIX1` on each word before you even
+determine whether or not the word is a reference.
 
 Whether this is in fact an optimization depends on the proportion of
 references to non-references, on how often genuine references turn out
 to be "of interest", and what kind of code the compiler has
-generated. There is no substitute for experimentation.
+generated. There is no substitute for measurement.
 
 .. note::
 
@@ -138,7 +138,10 @@ generated. There is no substitute for experimentation.
     :c:func:`MPS_FIX2`.
 
 Another technique that can speed up scanning is to segregate objects
-into pools whose object formats contain different scan methods.
+into pools whose object formats contain different scan methods. In
+particular, if you can segregate objects that do not contain any
+references into :term:`leaf object` pools like :ref:`pool-amcz`, these
+objects do not need to be scanned at all.
 
 
 Other notes
@@ -146,7 +149,7 @@ Other notes
 
 If the references in the object being scanned are :term:`ambiguous
 <ambiguous reference>` then :c:func:`MPS_FIX2` does not update the
-reference (because it can't know if it's a real reference).
+reference (because it can't know if it's a genuine reference).
 
 .. note::
 
@@ -174,7 +177,7 @@ common case of calling :c:func:`MPS_FIX1` and then immediately calling
 
     Some compilers generate better code if you use
     :c:func:`MPS_FIX12`, and some if you use :c:func:`MPS_FIX1` and
-    :c:func:`MPS_FIX2`. There's no substitute for experiment.
+    :c:func:`MPS_FIX2`. There's no substitute for measurement.
 
 Here's the macro ``FIX`` defined by the toy Scheme interpreter::
 
