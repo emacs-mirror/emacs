@@ -88,6 +88,8 @@
 #define DATABASE_NAME_ENVAR   "MPS_EVENT_DATABASE"
 #define DEFAULT_DATABASE_NAME "mpsevent.db"
 
+typedef sqlite3_int64 int64;
+
 /* we output rows of dots.  One dot per SMALL_TICK events,
  * BIG_TICK dots per row. */
 
@@ -136,8 +138,8 @@ static void error(const char *format, ...)
 
 static void sqlite_error(int res, sqlite3 *db, const char *format, ...)
 {
-        log(LOG_ALWAYS, "Fatal SQL error %d", res);
         va_list args;
+        log(LOG_ALWAYS, "Fatal SQL error %d", res);
         va_start(args, format);
         vlog(LOG_ALWAYS, format, args);
         va_end(args);
@@ -335,7 +337,7 @@ static struct {
 
 static void testTableExists(sqlite3 *db)
 {
-        int i;
+        size_t i;
         int defects = 0;
         int tests = 0;
         for (i=0; i < (sizeof(tableTests)/sizeof(tableTests[0])); ++i) {
@@ -366,7 +368,7 @@ static void testTableExists(sqlite3 *db)
  * assume that the user is smart enough not to do that.
  */
 
-static unsigned long logSerial = 0;
+static int64 logSerial = 0;
 
 static void registerLogFile(sqlite3 *db,
                             const char *filename)
@@ -374,9 +376,9 @@ static void registerLogFile(sqlite3 *db,
         sqlite3_stmt *statement;
         int res;
         const unsigned char *name;
-        unsigned long completed;
-        unsigned long long file_size;
-        unsigned long long file_modtime;
+        int64 completed;
+        int64 file_size;
+        int64 file_modtime;
 
         if (filename) {
                 struct stat st;
@@ -402,8 +404,8 @@ static void registerLogFile(sqlite3 *db,
                         break;
                 case SQLITE_ROW:
                         name = sqlite3_column_text(statement, 0);
-                        logSerial = sqlite3_column_int(statement, 1);
-                        completed = sqlite3_column_int(statement, 2);
+                        logSerial = sqlite3_column_int64(statement, 1);
+                        completed = sqlite3_column_int64(statement, 2);
                         log(force ? LOG_OFTEN : LOG_ALWAYS, "Log file matching '%s' already in event_log, named \"%s\" (serial %lu, completed %lu).",
                             filename, name, logSerial, completed);
                         if (force) {
@@ -444,7 +446,7 @@ static void registerLogFile(sqlite3 *db,
 }
 
 static void logFileCompleted(sqlite3 *db,
-                             unsigned long completed)
+                             int64 completed)
 {
         sqlite3_stmt *statement;
         int res;
@@ -515,7 +517,7 @@ EVENT_LIST(EVENT_TABLE_CREATE, X)
 
 static void makeTables(sqlite3 *db)
 {
-        int i;
+        size_t i;
         log(LOG_SOMETIMES, "Creating tables.");
         
         for (i=0; i < (sizeof(createStatements)/sizeof(createStatements[0])); ++i) {
@@ -531,7 +533,7 @@ const char *glueTables[] = {
 
 static void dropGlueTables(sqlite3 *db)
 {
-        int i;
+        size_t i;
         int res;
         char sql[1024];
 
@@ -689,18 +691,16 @@ static void fillGlueTables(sqlite3 *db)
                 EVENT_##name##_PARAMS(EVENT_PARAM_BIND, X) \
                 break;
 
-static char *bind_int(sqlite3 *db, sqlite3_stmt *stmt, unsigned long long count, int index, char *p)
+static char *bind_int(sqlite3 *db, sqlite3_stmt *stmt, int64 count, int index, char *p)
 {
         char *q;
         long long val;
         int res;
 
-        if ((p[0] != ',') || (p[1] != ' '))
-                error("event %llu field %d not preceded by \", \": %s",
-                      count, index, p);
+        while(*p == ' ')
+                ++p;
 
-        p += 2;
-        val = strtoll(p, &q, 0);
+        val = strtoll(p, &q, 16);
         if (q == p)
                 error("event %llu field %d not an integer: %s",
                       count, index, p);
@@ -711,17 +711,15 @@ static char *bind_int(sqlite3 *db, sqlite3_stmt *stmt, unsigned long long count,
         return q;
 }
 
-static char *bind_real(sqlite3 *db, sqlite3_stmt *stmt, unsigned long long count, int index, char *p)
+static char *bind_real(sqlite3 *db, sqlite3_stmt *stmt, int64 count, int index, char *p)
 {
         char *q;
         double val;
         int res;
 
-        if ((p[0] != ',') || (p[1] != ' '))
-                error("event %llu field %d not preceded by \", \": %s",
-                      count, index, p);
+        while(*p == ' ')
+                ++p;
 
-        p += 2;
         val = strtod(p, &q);
         if (q == p)
                 error("event %llu field %d not a floating-point value: %s",
@@ -733,16 +731,14 @@ static char *bind_real(sqlite3 *db, sqlite3_stmt *stmt, unsigned long long count
         return q;
 }
 
-static char *bind_text(sqlite3 *db, sqlite3_stmt *stmt, unsigned long long count, int index, char *p)
+static char *bind_text(sqlite3 *db, sqlite3_stmt *stmt, int64 count, int index, char *p)
 {
         char *q;
         int res;
 
-        if ((p[0] != ',') || (p[1] != ' ') || (p[2] != '"'))
-                error("event %llu string field %d not preceded by \", \\\"\": %s",
-                      count, index, p);
+        while(*p == ' ')
+                ++p;
 
-        p += 3;
         q = p;
         while((*q != '\n') && (*q != '\0')) {
                 ++ q;
@@ -751,7 +747,7 @@ static char *bind_text(sqlite3 *db, sqlite3_stmt *stmt, unsigned long long count
                 error("event %llu string field %d has no closing quote mark.",
                       count, index);
 
-        res = sqlite3_bind_text(stmt, index, p, q-p-1, SQLITE_STATIC);
+        res = sqlite3_bind_text(stmt, index, p, (int)(q-p-1), SQLITE_STATIC);
         if (res != SQLITE_OK)
                 sqlite_error(res, db, "event %llu field %d bind failed", count, index);
         return q;
@@ -760,10 +756,10 @@ static char *bind_text(sqlite3 *db, sqlite3_stmt *stmt, unsigned long long count
 /* readLog -- read and parse log.  Returns the number of events written.
  */
 
-static unsigned long long readLog(FILE *input,
-                                  sqlite3 *db)
+static int64 readLog(FILE *input,
+                     sqlite3 *db)
 {
-        unsigned long long eventCount = 0;
+        int64 eventCount = 0;
 
         /* declare statements for every event type */
         EVENT_LIST(EVENT_TYPE_DECLARE_STATEMENT, X);
@@ -780,8 +776,8 @@ static unsigned long long readLog(FILE *input,
                 int last_index=0;
                 sqlite3_stmt *statement;
                 int res;
-                unsigned long long clock;
-                int code;
+                int64 clock;
+                long code;
 
                 p = fgets(line, 1024, input);
                 if (!p) {
@@ -798,13 +794,14 @@ static unsigned long long readLog(FILE *input,
                         error("event %llu clock field not a hex integer: %s",
                               eventCount, p);
 
-                if ((q[0] != ',') || (q[1] != ' '))
-                        error("event %llu code field not preceded by \", \": %s",
+                if (*q != ' ')
+                        error("event %llu code field not preceded by ' ': %s",
                               eventCount, q);
+                while(*q == ' ')
+                        ++q;
 
-                p = q + 2;
-
-                code = strtol(p, &q, 0);
+                p = q;
+                code = strtol(p, &q, 16);
                 if (q == p)
                         error("event %llu code field %d not an integer: %s",
                               eventCount, index, p);
@@ -874,10 +871,10 @@ static FILE *openLog(sqlite3 *db)
         return input;
 }
 
-static unsigned long long writeEventsToSQL(sqlite3 *db)
+static int64 writeEventsToSQL(sqlite3 *db)
 {
         FILE *input;
-        unsigned long long count;
+        int64 count;
         input = openLog(db);
         count = readLog(input, db);
         (void)fclose(input);
@@ -888,7 +885,7 @@ static unsigned long long writeEventsToSQL(sqlite3 *db)
 int main(int argc, char *argv[])
 {
         sqlite3 *db;
-        unsigned long long count;
+        int64 count;
 
         parseArgs(argc, argv);
         
