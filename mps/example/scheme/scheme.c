@@ -3226,6 +3226,11 @@ static void *start(void *p, size_t s)
  * These numbers are *hints* to the MPS that it may use to make decisions
  * about when and what to collect: nothing will go wrong (other than
  * suboptimal performance) if you make poor choices.
+ * 
+ * Note that these numbers have deliberately been chosen to be small,
+ * so that the MPS is forced to collect often so that you can see it
+ * working. Don't just copy these numbers unless you also want to see
+ * frequent garbage collections!
  */
 
 static mps_gen_param_s obj_gen_params[] = {

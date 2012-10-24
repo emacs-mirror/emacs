@@ -653,6 +653,11 @@ interpreter::
                            obj_gen_params);
     if (res != MPS_RES_OK) error("Couldn't create obj chain");
 
+Note that thes numbers anove have deliberately been chosen to be
+small, so that the MPS is forced to collect often so that you can see
+it working. Don't just copy these numbers unless you also want to see
+frequent garbage collections!
+
 
 Creating the pool
 -----------------

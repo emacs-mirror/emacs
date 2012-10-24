@@ -160,3 +160,80 @@ Result codes
     This might be returned by functions that are no longer supported,
     or by operations that are included for future expansion, but not
     yet supported.
+
+
+Assertions
+----------
+
+Bugs in the :term:`client program` may violate the invariants that the
+MPS relies on. Most functions in the MPS (in most *varieties*; see
+below) assert the correctness of their data structures, so these bugs
+will often be discovered by an assertion failure in the MPS.
+
+For example, if a :term:`scan method` makes a re-entrant call into the
+MPS, this may result in this assertion:
+
+.. code-block:: none
+
+    MPS ASSERTION FAILURE: res == 0
+    ../../mps-kit-1.110.0/code/lockix.c
+    125
+
+Or if a client program fails to fix a reference in an :ref:`pool-amc`
+pool, this may violate the :term:`tri-colour invariant` that the MPS
+depends on for the correctness of its :term:`incremental garbage
+collection`. Such a bug may result in this assertion:
+
+.. code-block:: none
+
+    MPS ASSERTION FAILURE: !AMS_IS_INVALID_COLOUR(seg, i)
+    ../../mps-kit-1.110.0/code/poolams.c
+    1323
+
+It is very rare for an assertion to indicate a bug in the MPS rather
+than the client program, but it is not unknown, so if you have made
+every effort to track down the cause (see :ref:`guide-debug`) without
+luck, :ref:`get in touch <contact>`.
+
+If you are running your MPS-enabled program from Emacs via the
+``compile`` command, you will probably want to recognize MPS
+assertions automatically, by adding the following to your ``.emacs``:
+
+.. code-block:: lisp
+
+    (add-to-list 'compilation-error-regexp-alist
+                 '("MPS ASSERTION FAILURE: .*\n\\(.*\\)\n\\([0-9]+\\)" 1 2))
+
+
+Varieties
+---------
+
+The MPS has three behaviours with respect to internal checking and
+:term:`telemetry`, which need to be selected at compile time, by
+defining one of the following preprocessor constants. (If none is
+specified then :c:macro:`CONFIG_VAR_HOT` is the default.)
+
+
+.. c:macro:: CONFIG_VAR_COOL
+
+    All functions check the consistency of their data structures and
+    may assert, including function on the :term:`critical path`.
+
+    All events are sent to the telemetry stream, including events on
+    the :term:`critical path`
+
+
+.. c:macro:: CONFIG_VAR_HOT
+
+    Some functions check the consistency of their data structures and
+    may assert, namely those not on the :term:`critical path`.
+
+    No events are sent to the telemetry stream.
+
+
+.. c:macro:: CONFIG_VAR_RASH
+
+    No functions check the consistency of their data structures and
+    consequently there are no assertions.
+
+    No events are sent to the telemetry stream.
