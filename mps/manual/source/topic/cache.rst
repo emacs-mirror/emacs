@@ -3,6 +3,12 @@
 Allocation caches
 =================
 
+Might have been proposed in this paper?
+
+.. [PURDOM70] P. W. Purdom, S. M. Stiglr & Tag-ng Cheam. 1970. "Statistical investigation of three storage algorithms". Computer Sciences Department, U. Wisconsin. Technical Report #98. `Online <http://research.cs.wisc.edu/techreports/1970/TR98.pdfShare>`_.
+
+Ah, in fact it's called "segregated-fits allocation" and it goes back
+to Comfort 1964. See also Boehm 1988.
 
 ::
 
