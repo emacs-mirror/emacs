@@ -413,49 +413,75 @@ formatted object (at least in the debugging version of your program).
     that automatically overwrite free space with a pattern of bytes of
     your choosing. See :ref:`topic-debugging`.
 
-This example illustrates three of these mistakes:
+
+Example: inserting into a doubly linked list
+--------------------------------------------
+
+This example contains several mistakes. See the highlighted lines:
 
 .. code-block:: c
-    :emphasize-lines: 21, 22, 25
+    :emphasize-lines: 20, 21, 22, 24
 
-    typedef struct object_s {
-        int type;  /* TYPE_OBJECT, TYPE_FWD, TYPE_PAD */
-        /* these references are fixed by the format's scan method: */
-        struct object_s *tribe;
-        struct object_s *parent;
-        struct object_s *child;
-    } object; 
+    typedef struct link_s {
+        type_t type;                       /* TYPE_LINK */
+        /* all three of these pointers are fixed: */
+        struct link_s *prev;
+        struct link_s *next;
+        obj_t obj;
+    } link_s, link_t;
 
-    int make_object(mps_ap_t ap, object *parent)
+    /* insert 'obj' into the doubly-linked list after 'head' */
+    link_t insert_link(link_t head, obj_t obj)
     {
-        void *p;
-        object *neo = NULL;
-
+        mps_addr_t p;
+        link_t link;
+        size_t size = ALIGN(sizeof(link_s));
         do {
-            if (mps_reserve(&p, ap, SIZE_OBJECT) != MPS_RES_OK) {
-                return FALSE;
-            }
-            neo = p;
-            neo->type = TYPE_OBJECT;
-            neo->parent = parent;
-            neo->tribe = neo->parent->tribe;        /* (1) */
-            parent->child = neo;                    /* (2) */
-        } while (! mps_commit(ap, p, SIZE_OBJECT));
-
-        neo->child = NULL;                          /* (3) */
-        return TRUE;
+            mps_res_t res = mps_reserve(&p, ap, size);
+            if (res != MPS_RES_OK) error("out of memory");
+            link = p;
+            link->prev = head;
+            link->next = link->prev->next; /* (1) */
+            head->next = link;             /* (2) */
+            link->next->prev = link;       /* (3) */
+        } while (!mps_commit(ap, p, size));
+        link->obj = obj;                   /* (4) */
+        return link;
     }
 
 The mistakes are:
 
-1. Dereferencing a reference (here, ``neo->parent->tribe``) from the
-   reserved block. (``parent->tribe`` would be fine.)
+1. Dereferencing a reference (here, ``link->prev``) that was stored in
+   the reserved block.
 
-2. Making an exact reference to the reserved block. (This should be
-   deferred until after a successful commit.)
+2. Making an exact reference to the reserved block (here,
+   ``head->next`` becomes an exact reference to ``link``). This must
+   be deferred until after a successful commit.
 
-3. The ``child`` slot (in this example) is exactly scanned: initializing
-   it after the call to commit is too late.
+3. This line makes mistakes (1) and (2).
+
+4. The ``obj`` slot contains an exact reference that gets fixed by the
+   scan method, so it must be initialized before the call to commit.
+
+A correct version of ``insert_link`` looks like this::
+
+    link_t insert_link(link_t head, obj_t obj)
+    {
+        mps_addr_t p;
+        link_t link;
+        size_t size = ALIGN(sizeof(link_s));
+        do {
+            mps_res_t res = mps_reserve(&p, ap, size);
+            if (res != MPS_RES_OK) error("out of memory");
+            link = p;
+            link->prev = head;
+            link->next = head->next;
+            link->obj = obj;
+        } while (!mps_commit(ap, p, size));
+        head->next->prev = link;
+        head->next = link;
+        return link;
+    }
 
 
 Allocation point implementation
