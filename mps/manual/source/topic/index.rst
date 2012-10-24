@@ -18,8 +18,6 @@ Reference
     cache
     pattern
     finalization
-    plinth
-    platform
     telemetry
     message
     debugging
