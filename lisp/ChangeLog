@@ -1,5 +1,11 @@
 2012-10-24  Chong Yidong  <cyd@gnu.org>
 
+	* time.el (display-time-world-mode): Derive from special-mode.
+	(display-time-world): Use display-buffer (Bug#12708).
+	(display-time-world-mode-map): Variable deleted.
+
+2012-10-24  Chong Yidong  <cyd@gnu.org>
+
 	* dired.el (dired-mark, dired-unmark, dired-flag-file-deletion):
 	Doc fix.
 
