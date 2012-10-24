@@ -3,309 +3,235 @@
 Scanning
 ========
 
+:term:`Scanning <scan>` is the process of identifying the
+:term:`references <reference>` in a block of memory and
+:term:`"fixing" <fix>` them. It's the process at the heart of the
+Memory Pool System, and the most critical of the memory management
+functions that have to be implemented by the :term:`client program`.
 
-Give FIX1 any word
-It's not an error to give it a bogus value
-It tells you quickly whether it's worth passing to MPS_FIX2 or not
-BUT if it's not a genuine pointer you mustn't pass it to FIX2
+Scanning is performed for two tasks: during :term:`tracing <trace>`
+block are scanned in order to references and so determine which blocks
+are :term:`reachable` and which are not. After objects have been moved
+in memory, blocks are scanned in order to identify references that
+need to be updated to point to the new locations of these objects.
+Both tasks use the same scanning protocol, described here.
 
-"The pointer you pass to FIX1 can be anywhere within the allocated block."
 
-Note: this allows you to use the bottom bits for tagging
-Or pass interior pointers to FIX1
+.. _topic-scanning-protocol:
 
-When you pass the pointer to FIX2, it has to be a genuine pointer, i.e. a client pointer (i.e. base pointer except for auto_header) and it has to be interesting.
+Scanning protocol
+-----------------
 
-FIX1 is a very cheap test: if you are using interior pointers or tagged pointers it almost certainly worth applying before you remove the tag.
+There are several types of scanning functions (the :term:`scan method`
+in an :term:`object format`, of type :c:type:`mps_fmt_scan_t`, and
+root scanning functions of various types) but all take a :term:`scan
+state` argument of type :c:type:`mps_ss_t`, and a description of a
+region to be scanned. They must carry out the following steps:
+
+1. Call the macro :c:func:`MPS_SCAN_BEGIN` on the scan state.
+
+2. For each reference in the region:
+
+   1. Call :c:func:`MPS_FIX1`, passing the scan state and the
+      reference.
+
+   2. If :c:func:`MPS_FIX1` returns false, the reference is not of
+      interest to the MPS. Proceed to the next reference in the
+      region.
+
+   3. If :c:func:`MPS_FIX1` returns true, the reference is of interest
+      to the MPS. Call :c:func:`MPS_FIX2`, passing the scan state and
+      a pointer to a location containing the reference.
+
+   4. If :c:func:`MPS_FIX2` returns a :term:`result code` other than
+      :c:func:`MPS_RES_OK`, return this result code from the scanning
+      function as soon as practicable.
+
+   5. If :c:func:`MPS_FIX2` returns :c:macro:`MPS_RES_OK`, it may have
+      updated the reference. If necessary, make sure that the updated
+      reference is stored back to the region being scanned.
+
+3. Call the macro :c:func:`MPS_SCAN_END` on the scan state.
+
+4. Return :c:macro:`MPS_RES_OK`.
+
+This description of the protocol simplifies a number of important
+details, which are covered in the following sections.
+
+
+Tagged references
+-----------------
+
+If your references are :term:`tagged <tagged reference>` (or otherwise
+"encrypted"), then you must remove the tag (or decrypt them) before
+passing them to :c:func:`MPS_FIX1` and :c:func:`MPS_FIX2`.
+
+The reference passed to :c:func:`MPS_FIX2` must be the address of the
+base of the block referred to (unless the referent belongs to an
+:term:`object format` of variant auto_header, in which case it must be
+a reference to the address just after the header).
+
+However, :c:func:`MPS_FIX1` allows some leeway: if you pass it a
+reference to the interior of an allocated block, then
+:c:func:`MPS_FIX1` correctly determines whether a reference to the
+block is of interest to the MPS.
+
+This means that if your tag is in the low bits of the reference, you
+may not have to remove it before calling :c:func:`MPS_FIX1`. For
+example, if you use three tag bits, then your reference is at most
+*base* + 7, and if your objects are at least 8 bytes long, then the
+reference is within the object and need not be stripped. So your code
+might look like this::
+
+    if (MPS_FIX1(ss, obj->ref)) {
+        /* strip (and remember) the tag */
+        mps_word_t tag = obj->ref & 0x7;
+        mps_addr_t p = obj->ref & ~0x7;
+        mps_res_t res = MPS_FIX2(ss, &p);
+        if (res != MPS_RES_OK) return res;
+        /* restore the tag and update reference */
+        obj->ref = (obj_t)((char *)p + tag);
+    }
+
+This saves the cost of stripping the tag in the case that ``obj->ref``
+is not of interest to the MPS.
+
+Similarly, if you use interior pointers, you do not need to convert
+them to base pointers before calling :c:func:`MPS_FIX1` (or, indeed,
+before calling :c:func:`MPS_FIX2`, if the target of the referent
+belongs to an :term:`object format` of variant auto_header).
 
 
 Critical path
-If you're really trying to speed this up
-FIX1 and FIX2 might be worth splitting up even if doing nothing
-Look at the assembler
-Experiment
-e.g. if you have lots of unboxed objects, best to check this before FIX1
+-------------
 
+Scanning is an operation on the critical path of the MPS and so it is
+vital that it runs fast. The scanning protocol is designed to ensure
+that as much of the scanning code can be run inline in the client
+program as possible. In particular, the macro :c:func:`MPS_FIX1` does
+not need to call into the MPS.
 
-Segregate objects into pools with different scanners
-Promise that FIX1 doesn't modify anything.
+The purpose of :c:func:`MPS_FIX1` is to provide a fast check as to
+whether a reference is "of interest" to the MPS. It is legitimate to
+call this on any word: it does not even have to be an address. So if
+have a mixture of references and non-references in your object, it
+might turn out to be faster to call :c:func:`MPS_FIX1` on each word
+before you even determine whether or not the word is a reference.
 
+Whether this is in fact an optimization depends on the proportion of
+references to non-references, on how often genuine references turn out
+to be "of interest", and what kind of code the compiler has
+generated. There is no substitute for experimentation.
 
+.. note::
 
+    In one application with a high proportion of :term:`unboxed`
+    values, it turned out to be fastest to check the tag and reject
+    non-references before calling :c:func:`MPS_FIX1`.
 
-See `<http://info.ravenbrook.com/project/mps/doc/2002-06-18/obsolete-mminfo/mmdoc/protocol/mps/scanning/index.html>`_
+.. warning::
 
+    If you passed a word that might not be a reference to
+    :c:func:`MPS_FIX1`, and it returned true, this might be a false
+    positive. You must be certain that the alleged reference is
+    genuine as well as "of interest" before passing it to
+    :c:func:`MPS_FIX2`.
 
+Another technique that can speed up scanning is to segregate objects
+into pools whose object formats contain different scan methods.
 
-From the documentation for mps_fix:
 
-
-Returned Values
-
-If the :term:`rank` of the object being scanned is not :c:macro:`MPS_RANK_AMBIG` then the reference pointed to by *ref_io* may be modified by :c:func:`mps_fix`.
-
-
-Description
-
-This function is the part of the scanning protocol used to indicate references. Scanning functions apply it, or :c:func:`MPS_FIX12`, or :c:func:`MPS_FIX1` and :c:func:`MPS_FIX2` the references in the object being scanned.
-
-It may only be called from within a scanning function. If it is called within a :c:func:`MPS_SCAN_BEGIN` block, :c:func:`MPS_FIX_CALL` must be used (yes, really).
-
-This function does not perform any particular operation. The MPS may call scanning functions for a number of reasons, and :c:func:`mps_fix` may take different actions depending on those reasons.
-
-::
-
-    mps_res_t scan_array(mps_ss_t ss, mps_addr_t object, size_t length)
-    {
-        size_t i;
-        mps_res_t res;
-        mps_addr_t *array = (mps_addr_t *)object;
-
-        for (i = 0; i < length; ++i) {
-            res = mps_fix(ss, &array[i]);
-            if (res != MPS_RES_OK)
-                return res;
-        }
-
-        return res;
-    }
-
-
-Error Handling
-
-The function returns :c:macro:`MPS_RES_OK` if it was successful, in which case the scanning function should continue to scan the rest of the object, applying :c:func:`mps_fix` to the remaining references. If :c:func:`mps_fix` returns a value other than :c:macro:`MPS_RES_OK`, the scanning function must return that value, and may return without scanning further references. Generally, it is better if it returns as soon as possible.
-
-::
-
-    mps_res_t scan_array(mps_ss_t ss, Array object, size_t length)
-    {
-        size_t i;
-        mps_res_t res;
-        mps_addr_t *array = (mps_addr_t *)object;
-        MPS_SCAN_BEGIN(ss) {
-            for (i = 0; i < length; ++i) {
-                mps_addr_t ref = array[i];
-                if (MPS_FIX1(ss, ref)) {
-                  /* if (((Object*)ref)->type == ScannableType) { */
-                  /* You can do something here, but in the end, you must call MPS_FIX2. */
-                  res = MPS_FIX2(ss, &array[i]);
-                  if (res != MPS_RES_OK)
-                      return res;
-                  /* } */
-                }
-            }
-        } MPS_SCAN_END(ss);
-
-        return res;
-    }
-
-::
-
-    mps_res_t scan_array(mps_ss_t ss, mps_addr_t object, size_t length) {
-        size_t i;
-        mps_res_t res;
-        mps_addr_t *array = (mps_addr_t *)object;
-
-        MPS_SCAN_BEGIN(ss) {
-            for (i = 0; i < length; ++i) {
-                res = MPS_FIX(ss, &array[i]);
-                if (res != MPS_RES_OK)
-                    return res;
-            }
-        } MPS_SCAN_END(ss);
-
-        return res;
-    }
-
-
-Error Handling
-
-The macro returns :c:macro:`MPS_RES_OK` if it was successful, in which case the scanning function should continue to scan the rest of the object, fixing the remaining references. If :c:func:`MPS_FIX12` returns a value other than :c:macro:`MPS_RES_OK`, the scanning function must return that value, and may return without scanning further references. Generally, it is better if it returns as soon as possible.
-
-::
-
-    /* Scanner for a simple Scheme-like language with just two interesting types */
-
-    mps_res_t scan_objs(mps_ss_t ss, mps_addr_t base, mps_addr_t limit)
-    {
-        mps_res_t res;
-        mps_addr_t obj;
-
-        MPS_SCAN_BEGIN(ss) {
-            for (obj = base; obj < limit;) { /* obj maps over the objects to scan */
-                switch(((Object*)obj)->type) {
-                case ArrayType: {
-                    size_t i;
-                    Array *array = (Array *)obj;
-
-                    for (i = 0; i < array->length; ++i) { /* fix each element */
-                        res = MPS_FIX12(ss, &array->contents[i]);
-                        if (res != MPS_RES_OK)
-                            return res;
-                    }
-
-                    obj = AddrAdd(obj, ArraySize(array)); /* move to next object */
-                    break;
-                }
-                case StackFrameType: {
-                    StackFrame *frame = (StackFrame *)obj;
-                    for (i = frame->size; i > 0; --i) { /* fix each local var */
-                        res = MPS_FIX12(ss, &frame->locals[i]);
-                        if (res != MPS_RES_OK)
-                            return res;
-                    }
-
-                    res = MPS_FIX12(ss, &frame->next);
-                    if (res != MPS_RES_OK)
-                        return res;
-                    obj = AddrAdd(obj, StackFrameSize(frame));
-                    break;
-                }
-                default: /* other types don't contain references */
-                    obj = AddrAdd(obj, DefaultSize(obj));
-                    break;
-                }
-            }
-        } MPS_SCAN_END(ss);
-
-        return res;
-    }
-
-
-Fixing references
------------------
-
-.. c:function:: mps_res_t mps_fix(mps_ss_t ss, mps_addr_t *ref_io)
-
-    Tell the MPS about a :term:`reference`, and possibly update it.
-    This function must only be called from within a :term:`scan
-    method`.
-
-    ``ss`` is the :term:`scan state` that was passed to the scan method.
-
-    ``ref_io`` points to the reference.
-
-    Returns :c:macro:`MPS_RES_OK` if successful: in this case the
-    reference may have been updated, and the scan method must continue
-    to scan the :term:`block`. If it returns any other result, the
-    scan method must return that result as soon as possible, without
-    fixing any further references.
-
-    .. deprecated:: 1.110
-
-        Use :c:func:`MPS_SCAN_BEGIN`, :c:func:`MPS_FIX12` (or
-        :c:func:`MPS_FIX1` and :c:func:`MPS_FIX2`), and
-        :c:func:`MPS_SCAN_END` instead.
-
-    .. note::
-
-        If your reference is :term:`tagged <tagged reference>`, you
-        must remove the tag before calling :c:func:`mps_fix`, and
-        restore the tag to the (possibly updated) reference
-        afterwards. (There is an exception for references to objects
-        belonging to a format of variant auto_header: these references
-        must not subtract the header size.)
-
-        If you want to call this between :c:func:`MPS_SCAN_BEGIN` and
-        :c:func:`MPS_SCAN_END`, you must use :c:func:`MPS_FIX_CALL`
-        to ensure that the scan state is passed correctly.
-
-
-.. c:function:: mps_bool_t MPS_FIX1(mps_ss_t ss, mps_addr_t ref)
-
-    Tell the MPS about a :term:`reference`. This macro must only be
-    used within a :term:`scan method`, between
-    :c:func:`MPS_SCAN_BEGIN` and :c:func:`MPS_SCAN_END`.
-
-    ``ss`` is the :term:`scan state` that was passed to the scan method.
-
-    ``ref`` is the reference.
-
-    Returns a truth value (:c:type:`mps_bool_t`) indicating whether
-    the reference is likely to be interesting to the MPS. If it
-    returns false, the scan method must continue scanning the
-    :term:`block`. If it returns true, the scan method must invoke
-    :c:func:`MPS_FIX2`, to fix the reference.
-
-    .. note::
-
-        If your reference is :term:`tagged <tagged reference>`, you
-        must remove the tag before calling :c:func:`MPS_FIX1`.
-
-    .. note::
-
-        In the common case where the scan method does not need to do
-        anything between :c:func:`MPS_FIX1` and :c:func:`MPS_FIX2`,
-        you can use the convenience macro :c:func:`MPS_FIX12`.
-
-
-.. c:function:: MPS_FIX12(mps_ss_t ss, mps_addr_t *ref_io)
-
-    Tell the MPS about a :term:`reference`, and possibly update it.
-    This macro must only be used within a :term:`scan method`, between
-    :c:func:`MPS_SCAN_BEGIN` and :c:func:`MPS_SCAN_END`.
-
-    ``ss`` is the :term:`scan state` that was passed to the scan method.
-
-    ``ref_io`` points to the reference.
-
-    Returns :c:macro:`MPS_RES_OK` if successful: in this case the
-    reference may have been updated, and the scan method must continue
-    to scan the :term:`block`. If it returns any other result, the
-    scan method must return that result as soon as possible, without
-    fixing any further references.
-
-    .. note::
-
-        If your reference is :term:`tagged <tagged reference>`, you
-        must remove the tag before calling :c:func:`MPS_FIX2`, and
-        restore the tag to the (possibly updated) reference
-        afterwards. (There is an exception for references to objects
-        belonging to a format of variant auto_header: these references
-        must not subtract the header size.)
-
-    .. note::
-
-        The macro :c:func:`MPS_FIX12` is a convenience for the common
-        case where :c:func:`MPS_FIX1` is immediately followed by
-        :c:func:`MPS_FIX2`.
-
-
-.. c:function:: MPS_FIX2(mps_ss_t ss, mps_addr_t *ref_io)
-
-    Tell the MPS about a :term:`reference`, and possibly update it.
-    This macro must only be used within a :term:`scan method`,
-    between :c:func:`MPS_SCAN_BEGIN` and :c:func:`MPS_SCAN_END`.
-
-    ``ss`` is the :term:`scan state` that was passed to the scan method.
-
-    ``ref_io`` points to the reference.
-
-    Returns :c:macro:`MPS_RES_OK` if successful: in this case the
-    reference may have been updated, and the scan method must continue
-    to scan the :term:`block`. If it returns any other result, the
-    scan method must return that result as soon as possible, without
-    fixing any further references.
-
-    .. note::
-
-        If your reference is :term:`tagged <tagged reference>`, you
-        must remove the tag before calling :c:func:`MPS_FIX2`, and
-        restore the tag to the (possibly updated) reference
-        afterwards. (There is an exception for references to objects
-        belonging to a format of variant auto_header: these references
-        must not subtract the header size.)
-
-    .. note::
-
-        In the common case where the scan method does not need to do
-        anything between :c:func:`MPS_FIX1` and :c:func:`MPS_FIX2`,
-        you can use the convenience macro :c:func:`MPS_FIX12`.
-
-
-
-Scan states
+Other notes
 -----------
+
+If the references in the object being scanned are :term:`ambiguous
+<ambiguous reference>` then :c:func:`MPS_FIX2` does not update the
+reference (because it can't know if it's a real reference).
+
+.. note::
+
+    The MPS handles an ambiguous reference by *pinning* the block
+    pointed to so that it cannot move.
+
+.. note::
+
+    The MPS currently has no pools that support ambiguous references,
+    so this cannot arise for the :term:`scan method` in an
+    :term:`object format`, but :term:`root` scanning functions may
+    encounter this case.
+
+
+Example: Scheme objects
+-----------------------
+
+Scanning tends to be a repetitive procedure and so you'll find it is
+usually helpful to define macros to reduce the size of the source
+code. The MPS provides a convenience macro :c:func:`MPS_FIX12` for the
+common case of calling :c:func:`MPS_FIX1` and then immediately calling
+:c:func:`MPS_FIX2` if the reference is "of interest".
+
+.. warning::
+
+    Some compilers generate better code if you use
+    :c:func:`MPS_FIX12`, and some if you use :c:func:`MPS_FIX1` and
+    :c:func:`MPS_FIX2`. There's no substitute for experiment.
+
+Here's the macro ``FIX`` defined by the toy Scheme interpreter::
+
+    #define FIX(ref)                                                        \
+        do {                                                                \
+            mps_addr_t _addr = (ref); /* copy to local to avoid type pun */ \
+            mps_res_t res = MPS_FIX12(ss, &_addr);                          \
+            if (res != MPS_RES_OK) return res;                              \
+            (ref) = _addr;                                                  \
+        } while(0)
+
+.. note::
+
+    The comment refers to a temptation to write non-portable code that
+    presents itself here. :c:func:`MPS_FIX2` takes a pointer to a
+    location containing the reference (an argument of type
+    ``mps_addr_t *``). It is tempting to take the address of the
+    reference and cast it to this type. This is undefined by the C
+    standard. See :ref:`topic-interface-pun`.
+
+Here's the Scheme scanner::
+
+    static mps_res_t obj_scan(mps_ss_t ss, mps_addr_t base, mps_addr_t limit)
+    {
+        MPS_SCAN_BEGIN(ss) {
+            while (base < limit) {
+                obj_t obj = base;
+                switch (obj->type.type) {
+                    case TYPE_PAIR:
+                        FIX(obj->pair.car);
+                        FIX(obj->pair.cdr);
+                        base = (char *)base + ALIGN(sizeof(pair_s));
+                        break;
+                    case TYPE_VECTOR: {
+                        size_t i;
+                        for (i = 0; i < obj->vector.length; ++i)
+                            FIX(obj->vector.vector[i]);
+                        base = (char *)base +
+                            ALIGN(offsetof(vector_s, vector) +
+                                  obj->vector.length * sizeof(obj->vector.vector[0]));
+                        break;
+                    }
+                    /* ... and so on for the other types ... */
+                    default:
+                        assert(0);
+                        fprintf(stderr, "Unexpected object on the heap\n");
+                        abort();
+                        return MPS_RES_FAIL;
+                }
+            }
+        } MPS_SCAN_END(ss);
+        return MPS_RES_OK;
+    }
+
+
+Scanning interface
+------------------
 
 .. c:type:: mps_ss_t
 
@@ -394,7 +320,7 @@ Scan states
 
         mps_res_t obj_scan(mps_ss_t ss, mps_addr_t base, mps_addr_t limit)
         {
-            Object *obj;
+            obj_t obj;
             mps_res_t res;
             MPS_SCAN_BEGIN(ss) {
                 for (obj = base; obj < limit; obj++) {
@@ -409,3 +335,134 @@ Scan states
             } MPS_SCAN_END(ss);
             return MPS_RES_OK;
         }
+
+
+Fixing interface
+----------------
+
+.. c:function:: mps_bool_t MPS_FIX1(mps_ss_t ss, mps_addr_t ref)
+
+    Tell the MPS about a :term:`reference`. This macro must only be
+    used within a :term:`scan method`, between
+    :c:func:`MPS_SCAN_BEGIN` and :c:func:`MPS_SCAN_END`.
+
+    ``ss`` is the :term:`scan state` that was passed to the scan method.
+
+    ``ref`` is the reference.
+
+    Returns a truth value (:c:type:`mps_bool_t`) indicating whether
+    the reference is likely to be interesting to the MPS. If it
+    returns false, the scan method must continue scanning the
+    :term:`block`. If it returns true, the scan method must invoke
+    :c:func:`MPS_FIX2`, to fix the reference.
+
+    .. note::
+
+        If your reference is :term:`tagged <tagged reference>`, you
+        must remove the tag before calling :c:func:`MPS_FIX1`.
+
+    .. note::
+
+        In the common case where the scan method does not need to do
+        anything between :c:func:`MPS_FIX1` and :c:func:`MPS_FIX2`,
+        you can use the convenience macro :c:func:`MPS_FIX12`.
+
+
+.. c:function:: mps_res_t MPS_FIX12(mps_ss_t ss, mps_addr_t *ref_io)
+
+    Tell the MPS about a :term:`reference`, and possibly update it.
+    This macro must only be used within a :term:`scan method`, between
+    :c:func:`MPS_SCAN_BEGIN` and :c:func:`MPS_SCAN_END`.
+
+    ``ss`` is the :term:`scan state` that was passed to the scan method.
+
+    ``ref_io`` points to the reference.
+
+    Returns :c:macro:`MPS_RES_OK` if successful: in this case the
+    reference may have been updated, and the scan method must continue
+    to scan the :term:`block`. If it returns any other result, the
+    scan method must return that result as soon as possible, without
+    fixing any further references.
+
+    .. note::
+
+        If your reference is :term:`tagged <tagged reference>`, you
+        must remove the tag before calling :c:func:`MPS_FIX2`, and
+        restore the tag to the (possibly updated) reference
+        afterwards. (There is an exception for references to objects
+        belonging to a format of variant auto_header: these references
+        must not subtract the header size.)
+
+    .. note::
+
+        The macro :c:func:`MPS_FIX12` is a convenience for the common
+        case where :c:func:`MPS_FIX1` is immediately followed by
+        :c:func:`MPS_FIX2`.
+
+
+.. c:function:: mps_res_t MPS_FIX2(mps_ss_t ss, mps_addr_t *ref_io)
+
+    Tell the MPS about a :term:`reference`, and possibly update it.
+    This macro must only be used within a :term:`scan method`,
+    between :c:func:`MPS_SCAN_BEGIN` and :c:func:`MPS_SCAN_END`.
+
+    ``ss`` is the :term:`scan state` that was passed to the scan method.
+
+    ``ref_io`` points to the reference.
+
+    Returns :c:macro:`MPS_RES_OK` if successful: in this case the
+    reference may have been updated, and the scan method must continue
+    to scan the :term:`block`. If it returns any other result, the
+    scan method must return that result as soon as possible, without
+    fixing any further references.
+
+    .. note::
+
+        If your reference is :term:`tagged <tagged reference>`, you
+        must remove the tag before calling :c:func:`MPS_FIX2`, and
+        restore the tag to the (possibly updated) reference
+        afterwards. (There is an exception for references to objects
+        belonging to a format of variant auto_header: these references
+        must not subtract the header size.)
+
+    .. note::
+
+        In the common case where the scan method does not need to do
+        anything between :c:func:`MPS_FIX1` and :c:func:`MPS_FIX2`,
+        you can use the convenience macro :c:func:`MPS_FIX12`.
+
+
+.. c:function:: mps_res_t mps_fix(mps_ss_t ss, mps_addr_t *ref_io)
+
+    Tell the MPS about a :term:`reference`, and possibly update it.
+    This function must only be called from within a :term:`scan
+    method`.
+
+    ``ss`` is the :term:`scan state` that was passed to the scan method.
+
+    ``ref_io`` points to the reference.
+
+    Returns :c:macro:`MPS_RES_OK` if successful: in this case the
+    reference may have been updated, and the scan method must continue
+    to scan the :term:`block`. If it returns any other result, the
+    scan method must return that result as soon as possible, without
+    fixing any further references.
+
+    .. deprecated:: 1.110
+
+        Use :c:func:`MPS_SCAN_BEGIN`, :c:func:`MPS_FIX12` (or
+        :c:func:`MPS_FIX1` and :c:func:`MPS_FIX2`), and
+        :c:func:`MPS_SCAN_END` instead.
+
+    .. note::
+
+        If your reference is :term:`tagged <tagged reference>`, you
+        must remove the tag before calling :c:func:`mps_fix`, and
+        restore the tag to the (possibly updated) reference
+        afterwards. (There is an exception for references to objects
+        belonging to a format of variant auto_header: these references
+        must not subtract the header size.)
+
+        If you want to call this between :c:func:`MPS_SCAN_BEGIN` and
+        :c:func:`MPS_SCAN_END`, you must use :c:func:`MPS_FIX_CALL`
+        to ensure that the scan state is passed correctly.

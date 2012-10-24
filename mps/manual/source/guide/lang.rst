@@ -108,7 +108,7 @@ Each constructor allocates memory for the new object by calling
 Objects are never freed, because it is necessary to prove that they
 are :term:`dead` before their memory can be :term:`reclaimed
 <reclaim>`. To prove that they are dead, we need a :term:`tracing
-<trace>` :term:`garbage collector`. Which the MPS will provide
+<trace>` :term:`garbage collector`. Which the MPS will provide.
 
 
 Choosing an arena class
@@ -137,7 +137,9 @@ You'll need a couple of headers: ``mps.h`` for the MPS interface, and
     #include "mps.h"
     #include "mpsavm.h"
 
-Many MPS functions take an arena as an argument, so it makes sense for the arena to be a global variable::
+There's only one arena, and many MPS functions take an arena as an
+argument, so it makes sense for the arena to be a global variable
+rather than having to pass it around everywhere::
 
     static mps_arena_t arena;
 
@@ -277,7 +279,6 @@ method`, which is now obsolete.)
 
 .. _guide-lang-scan:
 
-^^^^^^^^^^^^^^^
 The scan method
 ^^^^^^^^^^^^^^^
 
@@ -285,7 +286,7 @@ The :term:`scan method` is a function of type
 :c:type:`mps_fmt_scan_t`. It is called by the MPS to :term:`scan` a
 block of memory. Its task is to identify all references within the
 objects in the block of memory, and "fix" them, by calling the macros
-:c:func:`MPS_FIX1` and :c:func:`MPS_FIX2` on each reference (usually
+:c:func:`MPS_FIX1` and :c:func:`MPS_FIX2` on each reference (possibly
 via the convenience macro :c:func:`MPS_FIX12`).
 
 "Fixing" is a generic operation whose effect depends on the context in
@@ -328,7 +329,7 @@ belonging to the object format, and so the scan method loops over the
 objects in the block, dispatching on the type of each object, and then
 updating ``base`` to point to the next object in the block.
 
-For each reference in an object the scan method fixes it by calling
+For each reference in an object ``obj_scan`` fixes it by calling
 :c:func:`MPS_FIX12` via the macro ``FIX``, which is defined as
 follows::
 
@@ -343,7 +344,7 @@ follows::
 Each call to :c:func:`MPS_FIX12` must appear between calls to the
 macros :c:func:`MPS_SCAN_BEGIN` and :c:func:`MPS_SCAN_END`. It's
 usually most convenient to call :c:func:`MPS_SCAN_BEGIN` at the start
-of the function and :c:func:`MPS_SCAN_END` at the end.
+of the function and :c:func:`MPS_SCAN_END` at the end, as here.
 
 .. note::
 
@@ -378,7 +379,6 @@ of the function and :c:func:`MPS_SCAN_END` at the end.
 
 .. _guide-lang-skip:
 
-^^^^^^^^^^^^^^^
 The skip method
 ^^^^^^^^^^^^^^^
 
@@ -427,7 +427,6 @@ the end of the object, rounded up to the object format's alignment.
 
 .. _guide-lang-fwd:
 
-^^^^^^^^^^^^^^^^^^
 The forward method
 ^^^^^^^^^^^^^^^^^^
 
@@ -524,7 +523,6 @@ following code must be added to ``obj_scan`` and ``obj_skip``::
 
 .. _guide-lang-isfwd:
 
-^^^^^^^^^^^^^^^^^^^^^^^
 The is-forwarded method
 ^^^^^^^^^^^^^^^^^^^^^^^
 
@@ -557,7 +555,6 @@ that object was moved, or ``NULL`` if the object was not moved.
 
 .. _guide-lang-pad:
 
-^^^^^^^^^^^^^^^^^^
 The padding method
 ^^^^^^^^^^^^^^^^^^
 
