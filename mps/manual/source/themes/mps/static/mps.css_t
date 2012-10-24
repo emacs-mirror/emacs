@@ -19,6 +19,10 @@ a, a:visited, a.reference.internal {
     text-decoration: none;
 }
 
+a.reference em {
+    font-style: normal;
+}
+
 a.reference.internal:hover {
     text-decoration: none;
     border-bottom: 1px solid {{ theme_underlinecolor }};
