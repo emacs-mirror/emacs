@@ -373,7 +373,9 @@ Memory Management Glossary: P
             :term:`arena` and making it available to the :term:`client
             program` via :c:func:`mps_alloc` or via an
             :term:`allocation point`. Multiple pools can coexist in
-            one arena. Pools belong to the type :c:type:`mps_pool_t`.
+            one arena. Pools belong to the type
+            :c:type:`mps_pool_t`. See :ref:`topic-pool` and the
+            :ref:`pool`.
 
     pool class
 

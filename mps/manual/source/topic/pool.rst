@@ -3,42 +3,17 @@
 Pools
 =====
 
+Within an :term:`arena` a client program creates one or more pools. A
+pool is responsible for requesting memory from the :term:`arena` and
+making it available for allocation.
 
-Interface
----------
+.. c:type:: mps_pool_t
 
-.. c:function:: mps_bool_t mps_addr_pool(mps_pool_t *pool_o, mps_arena_t arena, mps_addr_t addr)
+    The type of :term:`pools <pool>`.
 
-    Determine the :term:`pool` to which an address belongs.
-
-    ``pool_o`` points to a location that will hold the address of the
-    pool, if one is found.
-
-    ``arena`` is the arena whose pools will be considered.
-
-    ``addr`` is the address.
-
-    If ``addr`` is the address of a location inside a block allocated
-    from a pool in ``arena``, then update the location pointed to by
-    ``pool_o`` with the address of the pool, and return true.
-
-    If ``addr`` points to a location that is not managed by ``arena``,
-    return false.
-
-    If neither of the above conditions is satisfied,
-    :c:func:`mps_addr_pool` may return either true or false.
-
-    .. note::
-
-        This function might return a false positive by returning true
-        if you ask about an address that happens to be inside memory
-        managed by a pool, but which is not inside a block allocated
-        by that pool. It never returns a false negative.
-
-
-.. c:type:: mps_class_t
-
-    The type of :term:`pool classes <pool class>`.
+    A pool is responsible for requesting memory from the :term:`arena`
+    and making it available to the :term:`client program` via
+    :c:func:`mps_alloc` or via an :term:`allocation point`.
 
 
 .. c:function:: mps_res_t mps_pool_create(mps_pool_t *pool_o, mps_arena_t arena, mps_class_t class, ...)
@@ -93,12 +68,62 @@ Interface
     pool.
 
 
-.. c:type:: mps_pool_t
+Pool classes
+------------
 
-    The type of :term:`pools <pool>`.
+Pools belong to :term:`pool classes <pool class>` that specify
+policies for how their memory is managed. Some pools are
+:term:`manually managed <manual memory management>` (you must call
+:c:func:`mps_free` to return a block of memory to the pool) and others
+are :term:`automatically managed <automatic memory management>` (the
+:term:`garbage collector` reclaims :term:`unreachable` blocks).
 
-    A pool is responsible for requesting memory from the :term:`arena`
-    and making it available to the :term:`client program` via
-    :c:func:`mps_alloc` or via an :term:`allocation point`.
+See :ref:`pool` for a list of pool classes.
 
 
+.. c:type:: mps_class_t
+
+    The type of :term:`pool classes <pool class>`.
+
+    .. note::
+
+        This should really be called ``mps_pool_class_t`` but it is
+        too late to change it now.
+
+
+Introspection
+-------------
+
+.. c:function:: mps_bool_t mps_addr_pool(mps_pool_t *pool_o, mps_arena_t arena, mps_addr_t addr)
+
+    Determine the :term:`pool` to which an address belongs.
+
+    ``pool_o`` points to a location that will hold the address of the
+    pool, if one is found.
+
+    ``arena`` is the arena whose pools will be considered.
+
+    ``addr`` is the address.
+
+    If ``addr`` is the address of a location inside a block allocated
+    from a pool in ``arena``, then update the location pointed to by
+    ``pool_o`` with the address of the pool, and return true.
+
+    If ``addr`` points to a location that is not managed by ``arena``,
+    return false.
+
+    If neither of the above conditions is satisfied,
+    :c:func:`mps_addr_pool` may return either true or false.
+
+    .. note::
+
+        This function might return a false positive by returning true
+        if you ask about an address that happens to be inside memory
+        managed by a pool, but which is not inside a block allocated
+        by that pool. It never returns a false negative.
+
+        The result from this function is valid only at the instant at
+        which the function returned. In some circumstances the result
+        may immediately become invalidated. For reliable results call
+        this function and interpret the result while the arena is in
+        the :term:`parked state`.
