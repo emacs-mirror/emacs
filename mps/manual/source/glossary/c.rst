@@ -146,11 +146,11 @@ Memory Management Glossary: C
 
         .. aka:: *Cheney scan*.
 
-        A Cheney collector uses the new :term:`semi-space` of a
-        :term:`two space collector <two-space collector>` as a queue
-        of objects remaining to be :term:`scanned <scan>`, thus
-        eliminating the need for recursion when :term:`tracing
-        <trace>` the :term:`graph` of :term:`objects <object>`.
+        A Cheney collector uses the :term:`tospace` of a :term:`two
+        space collector <two-space collector>` as a queue of objects
+        remaining to be :term:`scanned <scan>`, thus eliminating the
+        need for recursion when :term:`tracing <trace>` the
+        :term:`graph` of :term:`objects <object>`.
 
         .. seealso:: :term:`two space collector <two-space collector>`.
 
@@ -183,7 +183,7 @@ Memory Management Glossary: C
 
             An :term:`arena class` which gets its :term:`memory (2)`
             from the :term:`client program`. See
-            :c:func:`mps_arena_class_cl`.
+            :ref:`topic-arena-client`.
 
     client object
 
@@ -331,7 +331,12 @@ Memory Management Glossary: C
 
     committed (2)
 
-        .. mps:specific:: ??
+        .. mps:specific::
+
+            A block has been *committed* if it is fully initialized
+            and is under the management of the MPS, as opposed to a
+            block that is merely *reserved*. See
+            :ref:`topic-allocation-point-protocol`.
 
     compactifying
 
