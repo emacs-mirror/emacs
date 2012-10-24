@@ -1114,7 +1114,7 @@ Repeated uses step through the possible completions."
   ;; FIXME: Need to deal with the extra-size issue here as well.
   ;; FIXME: ~/src/emacs/t<M-TAB>/lisp/minibuffer.el completes to
   ;; ~/src/emacs/trunk/ and throws away lisp/minibuffer.el.
-  (let* ((start (field-beginning))
+  (let* ((start (copy-marker (field-beginning)))
          (end (field-end))
          ;; (md (completion--field-metadata start))
          (all (completion-all-sorted-completions))

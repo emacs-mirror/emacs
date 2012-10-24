@@ -1,3 +1,8 @@
+2012-10-24  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* minibuffer.el (minibuffer-force-complete): Use one more marker
+	for the temporary-overlay-map command (bug#12619).
+
 2012-10-24  Chong Yidong  <cyd@gnu.org>
 
 	* time.el (display-time-world-mode): Derive from special-mode.
