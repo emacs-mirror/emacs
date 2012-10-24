@@ -1,12 +1,12 @@
 .. _topic-interface:
 
 
-Memory Pool System interface conventions
-========================================
+Interface conventions
+=====================
 
-This document describes the C programming language interface
-conventions used by the MPS. It also contains our :ref:`policy for
-support for the public identifiers <topic-interface-support>` and
+This document describes the conventions used in the programming
+interface to the Memory Pool System. It also contains our :ref:`policy
+for support for the public identifiers <topic-interface-support>` and
 :ref:`definitions of general types <topic-interface-general>` that
 appear throughout the interface.
 

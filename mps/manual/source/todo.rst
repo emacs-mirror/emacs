@@ -87,21 +87,23 @@ Outstanding
      :c:func:`mps_arena_collect`, :c:func:`mps_arena_start_collect`,
      or :c:func:`mps_arena_step`?
 
-106. :c:func:`mps_arena_unsafe_expose_protection` and
+107. :c:func:`mps_arena_unsafe_expose_remember_protection` and
      :c:func:`mps_arena_unsafe_restore_protection` are kind of hairy
      (as well as having absurd names). What's the use case? Exposing
      the MPS "is expected only to be useful for debugging" so why have
      special unsafe functions for optimizing the expose/restore
      procedure? Maybe these should be left undocumented?
 
-107. Have I correctly explained why the documentation is not very
+108. Have I correctly explained why the documentation is not very
      forthcoming about the set of result codes a function might
      return?
 
-108. NB's `MPS Format Protocol
-     <http://info.ravenbrook.com/project/mps/doc/2002-06-18/obsolete-mminfo/mmdoc/protocol/mps/format/index.html>`
+109. NB's `MPS Format Protocol
+     <http://info.ravenbrook.com/project/mps/doc/2002-06-18/obsolete-mminfo/mmdoc/protocol/mps/format/index.html>`_
      says that formats A and B are deprecated. Surely this isn't the
      case? That would leave only auto_header supported.
+
+110. Say something about assertions in the error chapter.
 
 
 Complete
