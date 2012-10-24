@@ -1,3 +1,12 @@
+2012-10-24  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* minibuffer.el (completion--all-sorted-completions-location): New var.
+	(completion--cache-all-sorted-completions)
+	(completion--flush-all-sorted-completions): Use it.
+	(completion-in-region, completion-in-region--postch)
+	(completion-at-point, completion-help-at-point): Use markers in
+	completion-in-region--data (bug#12619).
+
 2012-10-23  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* progmodes/compile.el (compilation-start): Try to handle common
