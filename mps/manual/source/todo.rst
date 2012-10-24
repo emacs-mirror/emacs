@@ -98,6 +98,11 @@ Outstanding
      forthcoming about the set of result codes a function might
      return?
 
+108. NB's `MPS Format Protocol
+     <http://info.ravenbrook.com/project/mps/doc/2002-06-18/obsolete-mminfo/mmdoc/protocol/mps/format/index.html>`
+     says that formats A and B are deprecated. Surely this isn't the
+     case? That would leave only auto_header supported.
+
 
 Complete
 --------

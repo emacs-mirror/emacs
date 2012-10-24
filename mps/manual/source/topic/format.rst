@@ -3,205 +3,86 @@
 Object formats
 ==============
 
-See //info.ravenbrook.com/project/mps/doc/2002-06-18/obsolete-mminfo/mmdoc/protocol/mps/format/index.html
+The need for some means of describing objects in the :term:`client
+program` comes from :term:`tracing <trace>` and :term:`moving <moving
+memory manager>`. During tracing, when an object is :term:`scanned
+<scan>`, all the :term:`references <reference>` in the object must be
+identified so that the objects they point to can be scanned in their
+turn. When an object has moved, references to that object must be
+identified so that they can be updated to point to the new location of
+the object.
 
-::
+In general, only the client program can say which fields in an object
+are references, and only the client program knows how references are
+represented (for example, are they tagged?). *Object formats* provide
+the means by which the client program communicates this information to
+the MPS.
 
-    mps_fmt_t create_format(mps_arena_t arena)
-    {
-        mps_fmt my_format;
-        mps_res_t res;
-        mps_fmt_A_s my_format_A = {
-            my_alignment, &my_scan, &my_skip, &my_copy, &my_fwd,
-            &my_isfwd, &my_pad
-        };
+An object format is a collection of :term:`format methods <format
+method>` and other (usually scalar) values which together describe
+programatically the layout of objects belonging to the format. Format
+methods include the :term:`skip method` (which calculates an object's
+size), the :term:`scan method` (which :term:`fixes <fix>` references
+in the object), and the :term:`forward method` (which replaces an
+object that has moved with a :term:`forwarding object`).
 
-        res = mps_fmt_create_A(&my_format, arena, &my_format_A);
-        assert(res != MPS_RES_OK);
+Not every :term:`pool class` supports :term:`formatted objects
+<formatted object>`.
 
-        return my_format;
-    }
 
-::
+.. c:type:: mps_fmt_t
 
-    mps_fmt_t create_format(mps_arena_t arena)
-    {
-        mps_fmt my_format;
-        mps_res_t res;
-        mps_fmt_B_s my_format_B = {
-            my_alignment, &my_scan, &my_skip, &my_copy,
-            &my_fwd, &my_isfwd, &my_pad, &my_class
-        };
+    The type of an :term:`object format`.
 
-        res = mps_fmt_create_B(&my_format, arena, &my_format_B);
-        assert(res != MPS_RES_OK);
 
-        return my_format;
-    }
+Creating an object format
+-------------------------
 
-::
+Different :term:`pool classes <pool class>` use different sets of
+format methods and values (for example, a non-moving pool does not
+need forwarding objects, so its object formats do not need to contain
+a forward method). To accommodate this variance, it is possible to
+construct object formats from different collections of format methods
+and values. Such a collection is called a *format variant*.
 
-    mps_fmt_t create_format(mps_arena_t arena)
-    {
-        mps_fmt format;
-        mps_res_t res;
-        mps_fmt_auto_header_s format_desc = { 
-            my_alignment, &my_scan, &my_skip, &my_fwd,
-            &my_isfwd, &my_pad, HEADER_SIZE
-        };
+There are three supported format variants:
 
-        res = mps_fmt_create_auto_header(&format, arena, &format_desc);
-        assert(res != MPS_RES_OK);
+* Variant A (:c:type:`mps_fmt_A_s`): suitable for copying and moving
+  pools.
 
-        return format;
-    }
+* Variant B (:c:type:`mps_fmt_A_s`): as variant A, but with the
+  addition of a class method.
 
-::
+* Variant auto_header (:c:type:`mps_fmt_auto_header_s`): for objects
+  with :term:`headers <in-band header>`.
 
-    mps_addr_t my_class_method(mps_addr_t object) {
-        my_object_generic_t generic_object = object;
-        return (mps_addr_t)(generic_object.class);
-    }
+The client program creates an object format by construct a format
+variant structure and then calling the appropriate ``mps_fmt_create_``
+function for the variant. The variant structure can then be disposed
+of.
 
-::
+For example::
 
-    /* define the function */
-
-    void example_fwd(mps_addr_t old, mps_addr_t new)
-    {
-        /* ... */
-    }
-
-    /* also define example_scan, example_skip, etc */
-    /* store pointer to function in the format variant struct */
-    struct mps_fmt_B_s example_fmt_B = {
-        4, /* align */
-        example_scan,
-        example_skip,
-        example_copy,
-        example_fwd,
-        example_isfwd,
-        example_pad,
-        example_class
+    struct mps_fmt_A_s obj_fmt_s = {
+        ALIGNMENT,
+        obj_scan,
+        obj_skip,
+        NULL,                         /* Obsolete copy method */
+        obj_fwd,
+        obj_isfwd,
+        obj_pad
     };
 
-    /* The (address of the) example_fmt_B object can now be passed to */
-    /* mps_fmt_create_B to create a format. */
+    mps_pool_t obj_pool;
+    mps_fmt_t obj_fmt;
+    mps_res_t res;
 
-::
+    res = mps_fmt_create_A(&obj_fmt, arena, &obj_fmt_s);
+    if (res != MPS_RES_OK) error("Couldn't create obj format");
+    /* obj_fmt created successfully */
 
-    mps_addr_t my_skip_method(mps_addr_t object)
-    {
-        char *p = (char *)object;
-        my_object_t my_object = (my_object_t)object;
-        return ((mps_addr_t)(p + my_object->length));
-    }
-
-::
-
-    #include "mps.h"
-    #include "mpscamc.h"
-    #include <stdlib.h>
-
-    struct mps_fmt_A_s fmt_A_s = {
-        (mps_align_t)4,
-        scan, skip, copy, move, isMoved, pad
-    };
-
-    void go(mps_space_t space)
-    {
-        mps_fmt_t format;
-        mps_res_t res;
-        mps_pool_t pool;
-
-        res = mps_fmt_create_A(&format, space, &mps_fmt_A_s);
-        if (res != MPS_RES_OK)
-            abort();
-
-        res = mps_pool_create(&pool, space, mps_class_amc(), format);
-        if (res != MPS_RES_OK)
-            abort();
-
-        /* do some stuff here */
-
-        mps_pool_destroy(pool);
-        mps_format_destroy(format);
-    }
-
-
-Interface
----------
-
-.. c:function:: mps_bool_t mps_addr_fmt(mps_fmt_t *fmt_o, mps_arena_t arena, mps_addr_t addr)
-
-    Determine the :term:`object format` to which an address belongs.
-
-    ``fmt_o`` points to a location that will hold the address of the
-    object format, if one is found.
-
-    ``arena`` is the arena whose object formats will be considered.
-
-    ``addr`` is the address.
-
-    If ``addr`` is the address of a location inside a block allocated
-    from a pool in ``arena``, and that pool has an object format, then
-    update the location pointed to by ``fmt_o`` with the address of
-    the object format, and return true.
-
-    If ``addr`` is the address of a location inside a block allocated
-    from a pool in ``arena``, but that pool has no object format,
-    return false.
-
-    If ``addr`` points to a location that is not managed by ``arena``,
-    return false.
-
-    If none of the above conditions is satisfied,
-    :c:func:`mps_addr_fmt` may return either true or false.
-
-    .. note::
-
-        This function might return a false positive by returning true
-        if you ask about an address that happens to be inside memory
-        managed by a pool with an object format, but which is not
-        inside a block allocated by that pool. It never returns a
-        false negative.
-
-
-.. c:function:: void mps_arena_formatted_objects_walk(mps_arena_t arena, mps_formatted_objects_stepper_t f, void *p, size_t s)
-
-    Visit all :term:`formatted objects <formatted object>` in an
-    :term:`arena`.
-
-    ``arena`` is the arena whose formatted objects you want to visit.
-
-    ``f`` is a formatted objects stepper function. It will be called for
-    each formatted object in the arena. See
-    :c:type:`mps_formatted_objects_stepper_t`.
-
-    ``p`` and ``s`` are arguments that will be passed to ``f`` each time it
-    is called. This is intended to make it easy to pass, for example,
-    an array and its size as parameters.
-
-    Each :term:`pool class` determines for which objects the stepper
-    function is called. Typically, all validly formatted objects are
-    visited. During a :term:`trace` this will in general be only the
-    :term:`black` objects, though the :ref:`pool-lo` pool, for
-    example, will walk all objects since they are validly formatted
-    whether they are black or :term:`white`. :term:`Padding objects
-    <padding object>` may be visited at the pool class's discretion:
-    the :term:`client program` should handle this case.
-
-    The function ``f`` may not allocate memory or access any
-    automatically-managed memory except within ``object``.
-
-    .. seealso::
-
-        :ref:`topic-arena`.
-
-    .. note::
-
-        Walking the heap is "dodgy".
-
+    res = mps_pool_create(&obj_pool, arena, pool_class, obj_fmt);
+    if (res != MPS_RES_OK) error("Couldn't create obj pool");
 
 
 .. c:type:: mps_fmt_A_s
@@ -250,6 +131,63 @@ Interface
     ``pad`` is a :term:`padding method` that creates :term:`padding
     objects <padding object>` belonging to this format. See
     :c:type:`mps_fmt_pad_t`.
+
+
+.. c:function:: mps_res_t mps_fmt_create_A(mps_fmt_t *fmt_o, mps_arena_t arena, mps_fmt_A_s *fmt_A)
+
+    Create an :term:`object format` of variant A.
+
+    ``fmt_o`` points to a location that will hold the address of the new
+    object format.
+
+    ``arena`` is the arena in which to create the format.
+
+    ``fmt_A`` points to a description of an object format of variant A.
+
+    Returns :c:macro:`MPS_RES_OK` if successful. The MPS may exhaust
+    some resource in the course of :c:func:`mps_fmt_create_A` and will
+    return an appropriate :term:`result code` if so.
+
+    After this function returns, the object format description pointed
+    to be ``fmt_A`` is no longer needed and may be discarded. The object
+    format pointed to by ``fmt_o`` persists until it is destroyed by
+    calling :c:func:`mps_fmt_destroy`.
+
+
+.. c:type:: mps_fmt_B_s
+
+    The type of the structure used to create an :term:`object format`
+    of variant B. ::
+
+        typedef struct mps_fmt_B_s {
+            mps_align_t     align;
+            mps_fmt_scan_t  scan;
+            mps_fmt_skip_t  skip;
+            mps_fmt_copy_t  copy;
+            mps_fmt_fwd_t   fwd;
+            mps_fmt_isfwd_t isfwd;
+            mps_fmt_pad_t   pad;
+            mps_fmt_class_t mps_class;
+        } mps_fmt_B_s;
+
+    Variant B is the same as variant A except for the addition of the
+    ``mps_class`` method. See :c:type:`mps_fmt_A_s`.
+
+
+.. c:function:: mps_res_t mps_fmt_create_B(mps_fmt_t *fmt_o, mps_arena_t arena, mps_fmt_B_s *fmt_B)
+
+    Create an :term:`object format` of variant B.
+
+    ``fmt_o`` points to a location that will hold the address of the new
+    object format.
+
+    ``arena`` is the arena in which to create the format.
+
+    ``fmt_B`` points to a description of an object format of variant B.
+
+    Returns :c:macro:`MPS_RES_OK` if successful. The MPS may exhaust
+    some resource in the course of :c:func:`mps_fmt_create_B` and will
+    return an appropriate :term:`result code` if so.
 
 
 .. c:type:: mps_fmt_auto_header_s
@@ -301,77 +239,6 @@ Interface
         :ref:`pool-amcz`.
 
 
-.. c:type:: mps_fmt_B_s
-
-    The type of the structure used to create an :term:`object format`
-    of variant B. ::
-
-        typedef struct mps_fmt_B_s {
-            mps_align_t     align;
-            mps_fmt_scan_t  scan;
-            mps_fmt_skip_t  skip;
-            mps_fmt_copy_t  copy;
-            mps_fmt_fwd_t   fwd;
-            mps_fmt_isfwd_t isfwd;
-            mps_fmt_pad_t   pad;
-            mps_fmt_class_t mps_class;
-        } mps_fmt_B_s;
-
-    Variant B is the same as variant A except for the addition of the
-    ``mps_class`` method. See :c:type:`mps_fmt_A_s`.
-
-
-.. c:type:: mps_addr_t (*mps_fmt_class_t)(mps_addr_t addr)
-
-    The type of the class method of an :term:`object format`.
-
-    ``addr`` is the address of the object whose class is of interest.
-
-    Returns an address that is related to the class or type of the
-    object, or a null pointer if this is not possible.
-
-    It is recommended that a null pointer be returned for
-    :term:`padding objects <padding object>` and :term:`forwarding
-    objects <forwarding object>`.
-
-
-.. c:function:: mps_res_t mps_fmt_create_A(mps_fmt_t *fmt_o, mps_arena_t arena, mps_fmt_A_s *fmt_A)
-
-    Create an :term:`object format` of variant A.
-
-    ``fmt_o`` points to a location that will hold the address of the new
-    object format.
-
-    ``arena`` is the arena in which to create the format.
-
-    ``fmt_A`` points to a description of an object format of variant A.
-
-    Returns :c:macro:`MPS_RES_OK` if successful. The MPS may exhaust
-    some resource in the course of :c:func:`mps_fmt_create_A` and will
-    return an appropriate :term:`result code` if so.
-
-    After this function returns, the object format description pointed
-    to be ``fmt_A`` is no longer needed and may be discarded. The object
-    format pointed to by ``fmt_o`` persists until it is destroyed by
-    calling :c:func:`mps_fmt_destroy`.
-
-
-.. c:function:: mps_res_t mps_fmt_create_B(mps_fmt_t *fmt_o, mps_arena_t arena, mps_fmt_B_s *fmt_B)
-
-    Create an :term:`object format` of variant B.
-
-    ``fmt_o`` points to a location that will hold the address of the new
-    object format.
-
-    ``arena`` is the arena in which to create the format.
-
-    ``fmt_B`` points to a description of an object format of variant B.
-
-    Returns :c:macro:`MPS_RES_OK` if successful. The MPS may exhaust
-    some resource in the course of :c:func:`mps_fmt_create_B` and will
-    return an appropriate :term:`result code` if so.
-
-
 .. c:function:: mps_res_t mps_fmt_create_auto_header(mps_fmt_t *fmt_o, mps_arena_t arena, mps_fmt_auto_header_s *fmt_ah)
 
     Create an :term:`object format` of variant auto_header.
@@ -398,7 +265,84 @@ Interface
 
     It is an error to destroy an object format if there exists a
     :term:`pool` using the format. The pool must be destroyed first.
-  
+
+
+Cautions
+--------
+
+1. The MPS guarantees that format methods have exclusive access to the
+   object for the duration of the call. This guarantee may entail
+   suspending arbitrary threads. The methods that manipulate the
+   object must not perform any sort of inter-thread locking or
+   communication.
+
+2. The MPS may call format methods in the context of an exception
+   handler or a signal handler. For example, the following sequence of
+   events is common:
+
+   a. the MPS places a :term:`read barrier` on a block of memory;
+
+   b. the client program attempts to read from this block;
+
+   c. the hardware raises a :term:`protection fault`;
+
+   d. the MPS signal handler is called;
+
+   e. the MPS ensures that the contents of the block are correct and
+      consistent: this may involve inspection of formatted objects in
+      the block (or indeed, elsewhere), and so
+
+   f. the MPS calls format methods.
+
+   Therefore, the format methods must be able to be run at any time,
+   including asynchronously or in parallel with the rest of the
+   program.
+
+3. Format methods must be re-entrant.
+
+4. Format methods must not:
+
+   a. call library code;
+
+   b. perform a non-local exit (for example, by calling ``longjmp``);
+
+   c. call any functions in the MPS other than the fix functions
+      (:c:func:`mps_fix`, :c:func:`MPS_FIX1`, :c:func:`MPS_FIX12`, and
+      :c:func:`MPS_FIX2`).
+
+   It's permissible to call other functions in the client program, but
+   see :c:func:`MPS_FIX_CALL` for a restriction on passing the
+   :term:`scan state`.
+
+5. Subject to the above constraints, format methods can freely access:
+
+   a. memory inside the object or block that they have been asked to
+      look at;
+
+   b. memory managed by the MPS that is in pools that do not protect
+      their contents;
+
+   c. memory not managed by the MPS;
+
+   They must not access other memory managed by the MPS.
+
+
+Format methods
+--------------
+
+.. c:type:: mps_addr_t (*mps_fmt_class_t)(mps_addr_t addr)
+
+    The type of the class method of an :term:`object format`.
+
+    ``addr`` is the address of the object whose class is of interest.
+
+    Returns an address that is related to the class or type of the
+    object, or a null pointer if this is not possible.
+
+    It is recommended that a null pointer be returned for
+    :term:`padding objects <padding object>` and :term:`forwarding
+    objects <forwarding object>`.
+
 
 .. c:type:: void (*mps_fmt_fwd_t)(mps_addr_t old, mps_addr_t new)
 
@@ -535,9 +479,78 @@ Interface
         them.
 
 
-.. c:type:: mps_fmt_t
+Introspection
+-------------
 
-    The type of an :term:`object format`.
+.. c:function:: mps_bool_t mps_addr_fmt(mps_fmt_t *fmt_o, mps_arena_t arena, mps_addr_t addr)
+
+    Determine the :term:`object format` to which an address belongs.
+
+    ``fmt_o`` points to a location that will hold the address of the
+    object format, if one is found.
+
+    ``arena`` is the arena whose object formats will be considered.
+
+    ``addr`` is the address.
+
+    If ``addr`` is the address of a location inside a block allocated
+    from a pool in ``arena``, and that pool has an object format, then
+    update the location pointed to by ``fmt_o`` with the address of
+    the object format, and return true.
+
+    If ``addr`` is the address of a location inside a block allocated
+    from a pool in ``arena``, but that pool has no object format,
+    return false.
+
+    If ``addr`` points to a location that is not managed by ``arena``,
+    return false.
+
+    If none of the above conditions is satisfied,
+    :c:func:`mps_addr_fmt` may return either true or false.
+
+    .. note::
+
+        This function might return a false positive by returning true
+        if you ask about an address that happens to be inside memory
+        managed by a pool with an object format, but which is not
+        inside a block allocated by that pool. It never returns a
+        false negative.
+
+
+.. c:function:: void mps_arena_formatted_objects_walk(mps_arena_t arena, mps_formatted_objects_stepper_t f, void *p, size_t s)
+
+    Visit all :term:`formatted objects <formatted object>` in an
+    :term:`arena`.
+
+    ``arena`` is the arena whose formatted objects you want to visit.
+
+    ``f`` is a formatted objects stepper function. It will be called for
+    each formatted object in the arena. See
+    :c:type:`mps_formatted_objects_stepper_t`.
+
+    ``p`` and ``s`` are arguments that will be passed to ``f`` each time it
+    is called. This is intended to make it easy to pass, for example,
+    an array and its size as parameters.
+
+    Each :term:`pool class` determines for which objects the stepper
+    function is called. Typically, all validly formatted objects are
+    visited. During a :term:`trace` this will in general be only the
+    :term:`black` objects, though the :ref:`pool-lo` pool, for
+    example, will walk all objects since they are validly formatted
+    whether they are black or :term:`white`. :term:`Padding objects
+    <padding object>` may be visited at the pool class's discretion:
+    the :term:`client program` should handle this case.
+
+    The function ``f`` may not allocate memory or access any
+    automatically-managed memory except within ``object``.
+
+    .. seealso::
+
+        :ref:`topic-arena`.
+
+    .. note::
+
+        Walking the heap is "dodgy".
 
 
 .. c:type:: void (*mps_formatted_objects_stepper_t)(mps_addr_t addr, mps_fmt_t fmt, mps_pool_t pool, void *p, size_t s)
@@ -562,5 +575,3 @@ Interface
     .. seealso::
 
         :ref:`topic-arena`.
-
-
