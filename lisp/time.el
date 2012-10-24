@@ -543,8 +543,8 @@ See `display-time-world'."
       (setenv "TZ" old-tz))
     (setq fmt (concat "%-" (int-to-string max-width) "s %s\n"))
     (dolist (timedata (nreverse result))
-      (insert (format fmt (car timedata) (cdr timedata)))))
-  (delete-char -1))
+      (insert (format fmt (car timedata) (cdr timedata))))
+    (delete-char -1)))
 
 ;;;###autoload
 (defun display-time-world ()

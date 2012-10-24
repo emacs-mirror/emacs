@@ -3,6 +3,8 @@
 	* time.el (display-time-world-mode): Derive from special-mode.
 	(display-time-world): Use display-buffer (Bug#12708).
 	(display-time-world-mode-map): Variable deleted.
+	(display-time-world-display): Wrap the final delete-char inside
+	inhibit-read-only.
 
 2012-10-24  Chong Yidong  <cyd@gnu.org>
 
