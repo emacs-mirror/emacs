@@ -104,26 +104,19 @@ been adding them there, put them somewhere else, eg site-lisp.
 
 * Changes in Emacs 24.3
 
-** minibuffer-electric-default-mode can rewrite (default ...) to [...].
-Just set minibuffer-eldef-shorten-default to t before enabling the mode.
-
 +++
 ** Most y-or-n prompts now allow you to scroll the selected window.
 Typing C-v or M-v at a y-or-n prompt scrolls forward or backward
 respectively, without exiting from the prompt.
-
----
-** In minibuffer filename prompts, `C-M-f' and `C-M-b' now move to the
-next and previous path separator, respectively.
 
 ** Mode line changes
 ---
 *** New option `mode-line-default-help-echo' specifies the help text
 (shown in a tooltip or in the echo area) for any part of the mode line
 that does not have its own specialized help text.
-
-*** You can now click mouse-3 in the coding system indicator to
-invokes `set-buffer-file-coding-system'.
++++
+*** You can now click mouse-3 in the coding system indicator to invoke
+`set-buffer-file-coding-system'.
 
 ** Help changes
 
@@ -138,6 +131,14 @@ correctly.  To disable this, set `help-enable-auto-load' to nil.
 *** `C-h f' now reports previously-autoloaded functions as "autoloaded",
 even after their associated libraries have been loaded (and the
 autoloads have been redefined as functions).
+
+** Minibuffer changes
+---
+*** In minibuffer filename prompts, `C-M-f' and `C-M-b' now move to the
+next and previous path separator, respectively.
+
+*** minibuffer-electric-default-mode can rewrite (default ...) to [...].
+Just set minibuffer-eldef-shorten-default to t before enabling the mode.
 
 ** ImageMagick support, if available, is automatically enabled.
 It is no longer necessary to call `imagemagick-register-types'
@@ -340,15 +341,15 @@ rather than making them unbound.
 *** New option `compilation-always-kill'.
 
 ** Customize
-
+---
 *** `custom-reset-button-menu' now defaults to t.
-
+---
 *** Non-option variables are never matched in `customize-apropos' and
 `customize-apropos-options' (i.e. the prefix argument does nothing for
 these commands now).
 
 ** Desktop
-
+---
 *** `desktop-path' no longer includes the "." directory.  Desktop
 files are now located in ~/.emacs.d by default.
 
@@ -402,22 +403,23 @@ whitespace problems introduced by the diff.
 *** `dired-do-async-shell-command' executes each file sequentially
 if the command ends in `;' (when operating on multiple files).
 Otherwise, it executes the command on each file in parallel.
-
+---
 *** Typing M-n in the minibuffer of `dired-do-chmod', `dired-do-chgrp',
 `dired-do-chown', `dired-do-touch' pulls the file attributes of the
 file at point.
-
++++
 *** When the region is active, `m' (`dired-mark'), `u' (`dired-unmark'),
 `DEL' (`dired-unmark-backward'), `d' (`dired-flag-file-deletion')
 mark/unmark/flag all files in the active region.
-
++++
 *** The minibuffer default for `=' (`dired-diff) has changed.
 It is now the backup file for the file at point, if one exists.
 In Transient Mark mode the default is the file at the active mark.
-
++++
 *** `M-=' is no longer bound to `dired-backup-diff' in Dired buffers.
 The global binding for `M-=', `count-words-region' is in effect.
 
+---
 ** Ediff now uses the same color scheme as Diff mode.
 
 ** erc will look up server/channel names via auth-source and use the
@@ -428,9 +430,9 @@ See `flymake-fringe-indicator-position', `flymake-error-bitmap' and
 `flymake-warning-bitmap'.
 
 ** Follow mode
-
+---
 *** The obsolete variable `follow-mode-off-hook' has been removed.
-
+---
 *** Follow mode no longer works by using advice.
 The option `follow-intercept-processes' has been removed.
 
@@ -673,6 +675,7 @@ gnus-notifications.el, mm-archive.el
 
 * Incompatible Lisp Changes in Emacs 24.3
 
++++
 ** set-buffer-multibyte now signals an error in narrowed buffers.
 
 +++
@@ -772,8 +775,17 @@ systems), or based on memory allocations.
 ** CL-style generalized variables are now in core Elisp.
 `setf' is autoloaded; `push' and `pop' accept generalized variables.
 
++++
 ** `defun' also accepts a (declare DECLS) form, like `defmacro'.
 The interpretation of the DECLS is determined by `defun-declarations-alist'.
+
+** Minibuffer
++++
+*** `read-regexp' has a new argument HISTORY; the first argument PROMPT
+of `read-regexp' accepts a string ending with a colon and space, and its
+second argument DEFAULTS can be a list of strings accessible via M-n
+in the minibuffer ahead of other hard-coded useful regexp-related values.
+More commands use `read-regexp' now to read their regexp arguments.
 
 ** Completion
 
@@ -796,14 +808,6 @@ to work out which code is doing something.
 
 *** New var `inhibit-debugger', automatically set to prevent accidental
 recursive invocations.
-
-** Minibuffer
-
-*** `read-regexp' has a new argument HISTORY; the first argument PROMPT
-of `read-regexp' accepts a string ending with a colon and space, and its
-second argument DEFAULTS can be a list of strings accessible via M-n
-in the minibuffer ahead of other hard-coded useful regexp-related values.
-More commands use `read-regexp' now to read their regexp arguments.
 
 ** Window changes
 

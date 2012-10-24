@@ -1,3 +1,13 @@
+2012-10-24  Chong Yidong  <cyd@gnu.org>
+
+	* mule.texi (Text Coding): set-buffer-file-coding-system can now
+	be invoked from the mode line.
+
+	* dired.texi (Dired Deletion, Marks vs Flags): Document Emacs 24.3
+	changes to the mark and unmark commands.
+	(Comparison in Dired): Document chages to dired-diff.  Remove M-=,
+	which is no longer bound to dired-backup-diff.
+
 2012-10-23  Bastien Guerry  <bzg@gnu.org>
 
 	* text.texi (Org Authoring): Use a comma after @ref to avoid the

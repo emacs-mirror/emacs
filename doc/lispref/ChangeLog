@@ -11,6 +11,12 @@
 
 2012-10-24  Chong Yidong  <cyd@gnu.org>
 
+	* minibuf.texi (Text from Minibuffer): Document read-regexp
+	changes.
+
+	* nonascii.texi (Selecting a Representation): Document
+	set-buffer-multibyte changes.
+
 	* keymaps.texi (Toolkit Differences): Node deleted.
 	(Easy Menu): New node.
 
