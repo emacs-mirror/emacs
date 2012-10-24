@@ -231,7 +231,8 @@ Memory Management Glossary: I
 
         .. mps:specific::
 
-            This is achieved by the :term:`allocation point protocol`.
+            This is achieved by the
+            :ref:`topic-allocation-point-protocol`.
 
     inline allocation (2)
 

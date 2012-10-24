@@ -86,8 +86,7 @@ Allocation points
 free>` allocation. They allow code to allocate without calling an
 allocation function: this is vital for performance in languages or
 programs that allocate many small objects. They must be used according
-to the :ref:`allocation point protocol
-<topic-allocation-point-protocol>`.
+to the :ref:`topic-allocation-point-protocol`.
 
 .. c:type:: mps_ap_t
 
@@ -143,8 +142,8 @@ to the :ref:`allocation point protocol
 
 .. _topic-allocation-point-protocol:
 
-The allocation point protocol
------------------------------
+Allocation point protocol
+-------------------------
 
 This protocol is designed to work with :term:`incremental garbage
 collection` and multiple :term:`threads <thread>`, where between any
@@ -267,7 +266,7 @@ It is not necessary to worry about going around this loop many times:
     .. note::
 
         :c:func:`mps_reserve` must only be called according to the
-        :term:`allocation point protocol`.
+        :ref:`topic-allocation-point-protocol`.
 
         :c:func:`mps_reserve` is implemented as a macro for speed. It
         may evaluate its arguments multiple times.
@@ -326,7 +325,7 @@ It is not necessary to worry about going around this loop many times:
     .. note::
 
         :c:func:`mps_commit` must only be called according to the
-        :term:`allocation point protocol`.
+        :ref:`topic-allocation-point-protocol`.
 
         :c:func:`mps_commit` is implemented as a macro for speed. It
         may evaluate its arguments multiple times.
@@ -571,21 +570,21 @@ branch prediction should work well since the test almost never fails).
 
 .. c:type:: mps_ap_s
 
-   The type of the structure used to represent :term:`allocation
-   points <allocation point>`::
+    The type of the structure used to represent :term:`allocation
+    points <allocation point>`::
 
-        typedef struct mps_ap_s {
-          mps_addr_t init;
-          mps_addr_t alloc;
-          mps_addr_t limit;
-          /* ... private fields ... */
-        } mps_ap_s;
+         typedef struct mps_ap_s {
+           mps_addr_t init;
+           mps_addr_t alloc;
+           mps_addr_t limit;
+           /* ... private fields ... */
+         } mps_ap_s;
 
-   ``init`` is the limit of initialized memory.
+    ``init`` is the limit of initialized memory.
 
-   ``alloc`` is the limit of allocated memory.
+    ``alloc`` is the limit of allocated memory.
 
-   ``limit`` is the limit of available memory.
+    ``limit`` is the limit of available memory.
 
     An allocation point is an interface to a :term:`pool` which
     provides very fast allocation, and defers the need for
@@ -605,7 +604,7 @@ branch prediction should work well since the test almost never fails).
     .. note::
 
         :c:func:`mps_ap_fill` must only be called according to the
-        :term:`allocation point protocol`.
+        :ref:`topic-allocation-point-protocol`.
 
 
 .. c:function:: mps_bool_t mps_ap_trip(mps_ap_t ap, mps_addr_t p, size_t size)
@@ -618,4 +617,4 @@ branch prediction should work well since the test almost never fails).
     .. note::
 
         :c:func:`mps_ap_trip` must only be called according to the
-        :term:`allocation point protocol`.
+        :ref:`topic-allocation-point-protocol`.

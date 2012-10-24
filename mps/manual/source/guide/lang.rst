@@ -1035,9 +1035,10 @@ MPS attempts to scan ``obj`` at the indicated point, the object's
 ``type`` field will be uninitialized, and so the :term:`scan method`
 may abort.
 
-The MPS solves this problem via the :term:`allocation point protocol`.
-This needs an additional structure, an :term:`allocation point`, to be
-attached to the pool by calling :c:func:`mps_ap_create`::
+The MPS solves this problem via the
+:ref:`topic-allocation-point-protocol`. This needs an additional
+structure, an :term:`allocation point`, to be attached to the pool by
+calling :c:func:`mps_ap_create`::
 
     static mps_ap_t obj_ap;
 
@@ -1091,8 +1092,8 @@ we have to initialize the object again (most conveniently done via a
 
 .. note::
 
-    1. When using the allocation point protocol it is up to you to
-       ensure that the requested size is aligned, because
+    1. When using the :ref:`topic-allocation-point-protocol` it is up
+       to you to ensure that the requested size is aligned, because
        :c:func:`mps_reserve` is on the MPS's :term:`critical path`,
        and so it is highly optimized: in nearly all cases it is just
        an increment to a pointer.
