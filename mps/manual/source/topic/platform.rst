@@ -1,7 +1,7 @@
 .. _topic-platform:
 
-Supporting the Memory Pool System on a new platform
-===================================================
+Platforms
+=========
 
 Platform codes
 --------------
@@ -238,11 +238,11 @@ Platform interface
     typical values are 32 and 64.
 
 
-Appendix: historical platform codes
------------------------------------
+Historical platform codes
+-------------------------
 
 The platform codes in the tables below were in use in older versions
-of the MPS, but are not currently supported.
+of the Memory Pool System, but are not currently supported.
 
 Formerly supported operating systems:
 
@@ -251,10 +251,10 @@ Formerly supported operating systems:
 ======  ===========================  =============
 ``i5``  Irix 5 or 6 (old ABI)        ``MPS_OS_I5``
 ``ia``  Irix 6 (new ABI)             ``MPS_OS_IA``
-``o1``  OSF/1                        ``MPS_OS_O1``
+``o1``  OSF/1 aka Tru64              ``MPS_OS_O1``
 ``s7``  Macintosh System 7, 8, or 9  ``MPS_OS_S7``
-``su``  SunOS                        ``MPS_OS_SU``
 ``so``  Solaris                      ``MPS_OS_SO``
+``su``  SunOS                        ``MPS_OS_SU``
 ======  ===========================  =============
 
 Formerly supported processor architectures:
@@ -262,28 +262,75 @@ Formerly supported processor architectures:
 ======  ======================  ===============
 ``AR``  Processor architecture  Constant     
 ======  ======================  ===============
-``60``  Motorola 68000          ``MPS_ARCH_60``
+``i4``  Intel/AMD IA-32 [1]_    ``MPS_ARCH_I4``
 ``al``  Digital Alpha           ``MPS_ARCH_AL``
 ``m2``  MIPS R2000              ``MPS_ARCH_M2``
 ``m4``  MIPS R4000              ``MPS_ARCH_M4``
+``m6``  Motorola 68000          ``MPS_ARCH_M6``
 ``pp``  PowerPC                 ``MPS_ARCH_PP``
 ``s8``  SPARC V8                ``MPS_ARCH_S8``
-``s9``  SPARC V9                ``MPS_ARCH_S9``
+``s9``  SPARC V9 (32-bit)       ``MPS_ARCH_S9``
 ======  ======================  ===============
 
 Formerly supported compiler toolchains:
 
-======  =====================================  ================
-``CT``  Compiler toolchain                     Constant       
-======  =====================================  ================
-``ac``  Macintosh Programmer's Workshop C/C++  ``MPS_BUILD_AC``
-``cc``  The "native" C compiler [1]_           ``MPS_BUILD_CC``
-``lc``  LCC                                    ``MPS_BUILD_LC``
-``mw``  Metrowerks CodeWarrior                 ``MPS_BUILD_MW``
-``sc``  SunPro C                               ``MPS_BUILD_SC``
-======  =====================================  ================
+======  =======================================  ================
+``CT``  Compiler toolchain                       Constant       
+======  =======================================  ================
+``ac``  Macintosh Programmer's Workshop C/C++    ``MPS_BUILD_AC``
+``cc``  The "native" C compiler [2]_             ``MPS_BUILD_CC``
+``cx``  SunPro C CXREF tool                      ``MPS_BUILD_CX``
+``eg``  Experimental GNU Compiler System (EGCS)  ``MPS_BUILD_EG``
+``gp``  GCC with profiling                       ``MPS_BUILD_GP``
+``lc``  LCC                                      ``MPS_BUILD_LC``
+``mw``  Metrowerks CodeWarrior                   ``MPS_BUILD_MW``
+``sc``  SunPro C                                 ``MPS_BUILD_SC``
+======  =======================================  ================
 
 .. note::
 
-    .. [1] This was the MIPSpro C compiler on IRIX; and the Digital C
+    .. [1] A mistake: same as ``i3``.
+
+    .. [2] This was the MIPSpro C compiler on IRIX; and the Digital C
            Compiler on OSF/1.
+
+
+Historical platform list
+------------------------
+
+This is the full list of platforms that have ever been supported by
+the Memory Pool System, with their current status.
+
+==========  =======================
+Platform    Status
+==========  =======================
+``fri3gc``  Supported
+``fri4gc``  Corrected to ``fri3gc``
+``fri6gc``  Supported
+``i5m2cc``  *Not supported*
+``iam4cc``  *Not supported*
+``lii3eg``  *Not supported*
+``lii3gc``  Supported
+``lii4gc``  Corrected to ``lii3gc``
+``lii6gc``  Supported
+``lippgc``  *Not supported*
+``o1alcc``  *Not supported*
+``o1algc``  *Not supported*
+``s7m6mw``  *Not supported*
+``s7ppac``  *Not supported*
+``s7ppmw``  *Not supported*
+``sos8cx``  *Not supported*
+``sos8gc``  *Not supported*
+``sos8gp``  *Not supported*
+``sos9sc``  *Not supported*
+``sus8gc``  *Not supported*
+``w3almv``  *Not supported*
+``w3i3m9``  *Not supported*
+``w3i3mv``  Supported
+``w3i6mv``  Supported
+``w3ppmv``  *Not Supported*
+``xci3gc``  *Not supported*
+``xci3ll``  Supported
+``xci6ll``  Supported
+``xcppgc``  *Not supported*
+==========  =======================
