@@ -1,3 +1,11 @@
+2012-10-24  Glenn Morris  <rgm@gnu.org>
+
+	* cl.texi (Basic Setf, Macros, Declarations, Symbols, Numbers)
+	(Sequences, Lists, Structures, Assertions, Efficiency Concerns)
+	(Efficiency Concerns, Efficiency Concerns)
+	(Common Lisp Compatibility, Old CL Compatibility):
+	Further updates for cl-lib namespace.
+
 2012-10-24  Paul Eggert  <eggert@penguin.cs.ucla.edu>
 
 	Update manual for new time stamp format (Bug#12706).
