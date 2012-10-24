@@ -85,26 +85,9 @@ Allocation points
 :term:`inline <inline allocation (1)>`, nearly :term:`lock-free <lock
 free>` allocation. They allow code to allocate without calling an
 allocation function: this is vital for performance in languages or
-programs that allocate many small objects.
-
-They must be used according to the **allocation point protocol** which
-is described below. This protocol is designed to work with
-:term:`incremental garbage collection` and multiple :term:`threads
-<thread>`, where between any two instructions in the :term:`client
-program`, the MPS may run part of a :term:`garbage collection`,
-:term:`move <moving memory manager>` blocks in memory, rewrite
-pointers, and reclaim space. In order to reliably handle this, the
-allocation point protocol consists of (at least) two steps, a
-*reserve* followed by a *commit*.
-
-.. note::
-
-    This description assumes that you have declared your threads'
-    :term:`control stacks <control stack>` and :term:`registers
-    <register>` to be :term:`ambiguous roots <ambiguous root>`, by
-    passing :c:func:`mps_stack_scan_ambig` to
-    :c:func:`mps_root_create_reg`. This is the simplest way to write a
-    client. Other scenarios are possible, but not yet documented.
+programs that allocate many small objects. They must be used according
+to the :ref:`allocation point protocol
+<topic-allocation-point-protocol>`.
 
 .. c:type:: mps_ap_t
 
@@ -163,6 +146,23 @@ allocation point protocol consists of (at least) two steps, a
 The allocation point protocol
 -----------------------------
 
+This protocol is designed to work with :term:`incremental garbage
+collection` and multiple :term:`threads <thread>`, where between any
+two instructions in the :term:`client program`, the MPS may run part
+of a :term:`garbage collection`, :term:`move <moving memory manager>`
+blocks in memory, rewrite pointers, and reclaim space. In order to
+reliably handle this, the allocation point protocol consists of (at
+least) two steps, a *reserve* followed by a *commit*.
+
+.. note::
+
+    The description of the protocol assumes that you have declared
+    your threads' :term:`control stacks <control stack>` and
+    :term:`registers <register>` to be :term:`ambiguous roots
+    <ambiguous root>`, by passing :c:func:`mps_stack_scan_ambig` to
+    :c:func:`mps_root_create_reg`. This is the simplest way to write a
+    client. Other scenarios are possible, but not yet documented.
+
 When the client program is initializing a newly allocated object, you
 can think of it as being "in a race" with the MPS. Until the object is
 initialized, the MPS cannot manage it in the usual way: in particular,
@@ -205,12 +205,13 @@ The allocation point protocol is as follows:
    invalid. It is usual in this case to go back to step 1 and re-reserve
    and re-initialize it, but other courses of action are permitted.
 
-.. note::
+   .. note::
 
-    The reason the block is invalid because a :term:`flip` took place
-    after the call to :c:func:`mps_reserve` and before the call to
-    :c:func:`mps_commit`. This means that references in the block may
-    point to the old location of blocks that moved.
+       In this case, the reason the block is invalid because a
+       :term:`flip` took place after the call to
+       :c:func:`mps_reserve` and before the call to
+       :c:func:`mps_commit`. This means that references in the block
+       may point to the old location of blocks that moved.
 
 The usual implementation of the allocation point protocol in :term:`C`
 is thus::
@@ -218,17 +219,17 @@ is thus::
     mps_addr_t p;
     obj_t obj;
     do {
-        mps_res_t res;
-        res = mps_reserve(&p, ap, size);
+        mps_res_t res = mps_reserve(&p, ap, size);
         if (res != MPS_RES_OK) /* handle the error */;
         /* p is now an ambiguous reference to the reserved block */
         obj = p;
         /* initialize obj */
     } while (!mps_commit(ap, p, size));
-    /* obj is now valid */
+    /* obj is now valid and managed by the MPS */
 
 It is not necessary to worry about going around this loop many times:
-:c:func:`mps_commit` can fail at most once per thread per flip.
+:c:func:`mps_commit` can fail at most once per thread per
+:term:`flip`.
 
 
 .. c:function:: mps_res_t mps_reserve(mps_addr_t *p_o, mps_ap_t ap, size_t size)
@@ -413,11 +414,7 @@ formatted object (at least in the debugging version of your program).
     that automatically overwrite free space with a pattern of bytes of
     your choosing. See :ref:`topic-debugging`.
 
-
-Common mistakes
----------------
-
-This example contains three mistakes:
+This example illustrates three of these mistakes:
 
 .. code-block:: c
     :emphasize-lines: 21, 22, 25
@@ -452,8 +449,8 @@ This example contains three mistakes:
 
 The mistakes are:
 
-1. Reading a reference (here, ``neo->parent``) from the reserved
-   block. (``parent->tribe`` would be fine.)
+1. Dereferencing a reference (here, ``neo->parent->tribe``) from the
+   reserved block. (``parent->tribe`` would be fine.)
 
 2. Making an exact reference to the reserved block. (This should be
    deferred until after a successful commit.)
@@ -565,7 +562,7 @@ branch prediction should work well since the test almost never fails).
 .. note::
 
     The commit operation relies on atomic ordered access to words in
-    memory to detect a flip that occurs between the assignment
+    memory to detect a :term:`flip` that occurs between the assignment
     ``ap->init = ap->alloc`` and the test ``ap->limit == 0``. A
     compiler or processor that reordered these two instructions would
     break the protocol. On some processor architectures, it may be

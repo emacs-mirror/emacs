@@ -14,16 +14,16 @@ appear throughout the interface.
 Language
 --------
 
-1.  The MPS interface public interface conforms to ANSI/ISO Standard C
-    (IEC 9899:1990).
+1.  The MPS public interface conforms to ANSI/ISO Standard C (IEC
+    9899:1990).
 
 
 Headers
 -------
 
-1.  The main interface is called ``mps.h``. This header contains all
-    the core MPS interfaces. In practice, you always need at least one
-    arena class and one pool class header file as well.
+1.  The main interface is in the header ``mps.h``. This header
+    contains all the core MPS interfaces. In practice, you always need
+    at least one arena class and one pool class header file as well.
 
 2.  We will always prefix public header file names with ``mps`` to
     avoid clashes. We reserve the right to create new headers
@@ -176,7 +176,7 @@ Macros
 
           res = (mps_reserve)(...);  /* calls function */
 
-4.  Statement-like macros have named in uppercase, for example
+4.  Statement-like macros have names in uppercase, for example
     :c:func:`MPS_RESERVE_BLOCK`. These macros behave like statements
     rather than expressions, so that you cannot write::
 
@@ -201,17 +201,17 @@ Support policy
     a version in which the symbol (or reliance on some of its
     behaviour) is deprecated.
 
+    .. note::
+
+        If you are relying on a feature and you see that it's
+        deprecated, please :ref:`contact us <contact>`. It makes a
+        difference if we know that someone is using a feature.
+
 2.  Behaviour that is not documented in the :ref:`guide`,
     :ref:`reference`, or :ref:`pool` is not supported and may change
     without notice in future releases. In particular, private
     identifiers may disappear or their behaviour be changed without
     notice in future releases.
-
-.. note::
-
-    If you are relying on a feature and you see that it's deprecated,
-    please :ref:`contact us <contact>`. It makes a difference if we
-    know that someone is using a feature.
 
 
 .. _topic-interface-general:
@@ -230,10 +230,6 @@ General types
     control of the MPS. In accordance with standard :term:`C`
     practice, null pointers of type :c:type:`mps_addr_t` will never be
     used to represent a reference to a block.
-
-    .. topics::
-
-        :ref:`topic-platform`.
 
 
 .. c:type:: mps_align_t
@@ -266,3 +262,7 @@ General types
     The exact identity of this type is
     :term:`platform`\-dependent. Typical identities are ``unsigned
     long`` and ``unsigned __int_64``.
+
+    .. topics::
+
+        :ref:`topic-platform`.
