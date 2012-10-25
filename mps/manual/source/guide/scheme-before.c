@@ -9,7 +9,6 @@
  * - Quasiquote implementation is messy.
  * - Lots of library.
  * - \#foo unsatisfactory in read and print
- * - tail recursion (pass current function to eval)
  */
 
 #include <stdio.h>
@@ -194,6 +193,7 @@ static obj_t obj_error;		/* error indicator */
 static obj_t obj_true;		/* #t, boolean true */
 static obj_t obj_false;		/* #f, boolean false */
 static obj_t obj_undefined;	/* undefined result indicator */
+static obj_t obj_tail;          /* tail recursion indicator */
 
 
 /* predefined symbols
@@ -913,40 +913,53 @@ static obj_t eval(obj_t env, obj_t op_env, obj_t exp);
 
 static obj_t eval(obj_t env, obj_t op_env, obj_t exp)
 {
-  /* self-evaluating */
-  if(TYPE(exp) == TYPE_INTEGER ||
-     (TYPE(exp) == TYPE_SPECIAL && exp != obj_empty) ||
-     TYPE(exp) == TYPE_STRING ||
-     TYPE(exp) == TYPE_CHARACTER)
-    return exp;
-
-  /* symbol lookup */
-  if(TYPE(exp) == TYPE_SYMBOL) {
-    obj_t binding = lookup(env, exp);
-    if(binding == obj_undefined)
-      error("eval: unbound symbol \"%s\"", exp->symbol.string);
-    return CDR(binding);
-  }
-  
-  /* apply operator or function */
-  if(TYPE(exp) == TYPE_PAIR) {
+  for(;;) {
     obj_t operator;
+    obj_t result;
+
+    /* self-evaluating */
+    if(TYPE(exp) == TYPE_INTEGER ||
+       (TYPE(exp) == TYPE_SPECIAL && exp != obj_empty) ||
+       TYPE(exp) == TYPE_STRING ||
+       TYPE(exp) == TYPE_CHARACTER)
+      return exp;
+  
+    /* symbol lookup */
+    if(TYPE(exp) == TYPE_SYMBOL) {
+      obj_t binding = lookup(env, exp);
+      if(binding == obj_undefined)
+        error("eval: unbound symbol \"%s\"", exp->symbol.string);
+      return CDR(binding);
+    }
+    
+    if(TYPE(exp) != TYPE_PAIR) {
+      error("eval: unknown syntax");
+      return obj_error;
+    }
+
+    /* apply operator or function */
     if(TYPE(CAR(exp)) == TYPE_SYMBOL) {
       obj_t binding = lookup(op_env, CAR(exp));
       if(binding != obj_undefined) {
         operator = CDR(binding);
         assert(TYPE(operator) == TYPE_OPERATOR);
-        return (*operator->operator.entry)(env, op_env, operator, CDR(exp));
+        result = (*operator->operator.entry)(env, op_env, operator, CDR(exp));
+        goto found;
       }
     }
     operator = eval(env, op_env, CAR(exp));
     unless(TYPE(operator) == TYPE_OPERATOR)
       error("eval: application of non-function");
-    return (*operator->operator.entry)(env, op_env, operator, CDR(exp));
+    result = (*operator->operator.entry)(env, op_env, operator, CDR(exp));
+
+  found:
+    if (!(TYPE(result) == TYPE_PAIR && CAR(result) == obj_tail))
+      return result;
+
+    env = CADR(result);
+    op_env = CADDR(result);
+    exp = CAR(CDDDR(result));
   }
-  
-  error("eval: unknown syntax");
-  return obj_error;
 }
 
 
@@ -1044,6 +1057,42 @@ static void eval_args_rest(char *name, obj_t env, obj_t op_env,
 }
 
 
+/* eval_tail -- return an object that will cause eval to loop
+ *
+ * Rather than calling `eval` an operator can return a special object that
+ * causes a calling `eval` to loop, avoiding using up a C stack frame.
+ * This implements tail recursion (in a simple way).
+ */
+
+static obj_t eval_tail(obj_t env, obj_t op_env, obj_t exp)
+{
+  return make_pair(obj_tail,
+                   make_pair(env,
+                             make_pair(op_env,
+                                       make_pair(exp,
+                                                 obj_empty))));
+}
+
+
+/* eval_body -- evaluate a list of expressions, returning last result
+ *
+ * This is used for the bodies of forms such as let, begin, etc. where
+ * a list of expressions is allowed.
+ */
+
+static obj_t eval_body(obj_t env, obj_t op_env, obj_t operator, obj_t body)
+{
+  for (;;) {
+    if (TYPE(body) != TYPE_PAIR)
+      error("%s: illegal expression list", operator->operator.name);
+    if (CDR(body) == obj_empty)
+      return eval_tail(env, op_env, CAR(body));
+    (void)eval(env, op_env, CAR(body));
+    body = CDR(body);
+  }
+}
+
+
 /* BUILT-IN OPERATORS */
 
 
@@ -1090,7 +1139,7 @@ static obj_t entry_interpret(obj_t env, obj_t op_env, obj_t operator, obj_t oper
   if(arguments != obj_empty)
     error("eval: function applied to too few arguments");
 
-  return eval(fun_env, fun_op_env, operator->operator.body);
+  return eval_tail(fun_env, fun_op_env, operator->operator.body);
 }
 
 
@@ -1159,9 +1208,9 @@ static obj_t entry_if(obj_t env, obj_t op_env, obj_t operator, obj_t operands)
   test = eval(env, op_env, CAR(operands));
   /* Anything which is not #f counts as true [R4RS 6.1]. */
   if(test != obj_false)
-    return eval(env, op_env, CADR(operands));
+    return eval_tail(env, op_env, CADR(operands));
   if(TYPE(CDDR(operands)) == TYPE_PAIR)
-    return eval(env, op_env, CADDR(operands));
+    return eval_tail(env, op_env, CADDR(operands));
   return obj_undefined;
 }
 
@@ -1188,14 +1237,9 @@ static obj_t entry_cond(obj_t env, obj_t op_env, obj_t operator, obj_t operands)
     } else
       result = eval(env, op_env, CAR(clause));
     if(result != obj_false) {
-      for(;;) {
-        clause = CDR(clause);
-        if(TYPE(clause) != TYPE_PAIR) break;
-        result = eval(env, op_env, CAR(clause));
-      }
-      if(clause != obj_empty)
-        error("%s: illegal clause syntax", operator->operator.name);
-      return result;
+      if (CDR(clause) == obj_empty)
+        return result;
+      return eval_body(env, op_env, operator, CDR(clause));
     }
     operands = CDR(operands);
   }
@@ -1207,15 +1251,18 @@ static obj_t entry_cond(obj_t env, obj_t op_env, obj_t operator, obj_t operands)
 
 static obj_t entry_and(obj_t env, obj_t op_env, obj_t operator, obj_t operands)
 {
-  while(TYPE(operands) == TYPE_PAIR) {
-    obj_t test = eval(env, op_env, CAR(operands));
-    if(test == obj_false)
-      return obj_false;
+  obj_t test;
+  if (operands == obj_empty)
+    return obj_true;
+  do {
+    if (TYPE(operands) != TYPE_PAIR)
+      error("%s: illegal syntax", operator->operator.name);
+    if (CDR(operands) == obj_empty)
+      return eval_tail(env, op_env, CAR(operands));
+    test = eval(env, op_env, CAR(operands));
     operands = CDR(operands);
-  }
-  if(operands != obj_empty)
-    error("%s: illegal syntax", operator->operator.name);
-  return obj_true;
+  } while (test != obj_false);
+  return test;
 }
 
 
@@ -1223,28 +1270,31 @@ static obj_t entry_and(obj_t env, obj_t op_env, obj_t operator, obj_t operands)
 
 static obj_t entry_or(obj_t env, obj_t op_env, obj_t operator, obj_t operands)
 {
-  while(TYPE(operands) == TYPE_PAIR) {
-    obj_t test = eval(env, op_env, CAR(operands));
-    if(test != obj_false)
-      return obj_true;
+  obj_t test;
+  if (operands == obj_empty)
+    return obj_false;
+  do {
+    if (TYPE(operands) != TYPE_PAIR)
+      error("%s: illegal syntax", operator->operator.name);
+    if (CDR(operands) == obj_empty)
+      return eval_tail(env, op_env, CAR(operands));
+    test = eval(env, op_env, CAR(operands));
     operands = CDR(operands);
-  }
-  if(operands != obj_empty)
-    error("%s: illegal syntax", operator->operator.name);
-  return obj_false;
+  } while (test == obj_false);
+  return test;
 }
 
 
 /* entry_let -- (let <bindings> <body>) */
-/* @@@@ Too much common code with let* */
+/* TODO: Too much common code with let* */
 
 static obj_t entry_let(obj_t env, obj_t op_env, obj_t operator, obj_t operands)
 {
-  obj_t inner_env, bindings, result;
+  obj_t inner_env, bindings;
   unless(TYPE(operands) == TYPE_PAIR &&
          TYPE(CDR(operands)) == TYPE_PAIR)
     error("%s: illegal syntax", operator->operator.name);
-  inner_env = make_pair(obj_empty, env);	/* @@@@ common with interpret */
+  inner_env = make_pair(obj_empty, env);	/* TODO: common with interpret */
   bindings = CAR(operands);
   while(TYPE(bindings) == TYPE_PAIR) {
     obj_t binding = CAR(bindings);
@@ -1258,27 +1308,20 @@ static obj_t entry_let(obj_t env, obj_t op_env, obj_t operator, obj_t operands)
   }
   if(bindings != obj_empty)
     error("%s: illegal bindings list", operator->operator.name);
-  operands = CDR(operands);
-  while(TYPE(operands) == TYPE_PAIR) {
-    result = eval(inner_env, op_env, CAR(operands));
-    operands = CDR(operands);
-  }
-  if(operands != obj_empty)
-    error("%s: illegal expression list", operator->operator.name);
-  return result;
+  return eval_body(inner_env, op_env, operator, CDR(operands));
 }
 
 
 /* entry_let_star -- (let* <bindings> <body>) */
-/* @@@@ Too much common code with let */
+/* TODO: Too much common code with let */
 
 static obj_t entry_let_star(obj_t env, obj_t op_env, obj_t operator, obj_t operands)
 {
-  obj_t inner_env, bindings, result;
+  obj_t inner_env, bindings;
   unless(TYPE(operands) == TYPE_PAIR &&
          TYPE(CDR(operands)) == TYPE_PAIR)
     error("%s: illegal syntax", operator->operator.name);
-  inner_env = make_pair(obj_empty, env);	/* @@@@ common with interpret */
+  inner_env = make_pair(obj_empty, env);	/* TODO: common with interpret */
   bindings = CAR(operands);
   while(TYPE(bindings) == TYPE_PAIR) {
     obj_t binding = CAR(bindings);
@@ -1292,27 +1335,20 @@ static obj_t entry_let_star(obj_t env, obj_t op_env, obj_t operator, obj_t opera
   }
   if(bindings != obj_empty)
     error("%s: illegal bindings list", operator->operator.name);
-  operands = CDR(operands);
-  while(TYPE(operands) == TYPE_PAIR) {
-    result = eval(inner_env, op_env, CAR(operands));
-    operands = CDR(operands);
-  }
-  if(operands != obj_empty)
-    error("%s: illegal expression list", operator->operator.name);
-  return result;
+  return eval_body(inner_env, op_env, operator, CDR(operands));
 }
 
 
 /* entry_letrec -- (letrec <bindings> <body>) */
-/* @@@@ Too much common code with let and let* */
+/* TODO: Too much common code with let and let* */
 
 static obj_t entry_letrec(obj_t env, obj_t op_env, obj_t operator, obj_t operands)
 {
-  obj_t inner_env, bindings, result;
+  obj_t inner_env, bindings;
   unless(TYPE(operands) == TYPE_PAIR &&
          TYPE(CDR(operands)) == TYPE_PAIR)
     error("%s: illegal syntax", operator->operator.name);
-  inner_env = make_pair(obj_empty, env);	/* @@@@ common with interpret */
+  inner_env = make_pair(obj_empty, env);	/* TODO: common with interpret */
   bindings = CAR(operands);
   while(TYPE(bindings) == TYPE_PAIR) {
     obj_t binding = CAR(bindings);
@@ -1332,14 +1368,7 @@ static obj_t entry_letrec(obj_t env, obj_t op_env, obj_t operator, obj_t operand
     define(inner_env, CAR(binding), eval(inner_env, op_env, CADR(binding)));
     bindings = CDR(bindings);
   }
-  operands = CDR(operands);
-  while(TYPE(operands) == TYPE_PAIR) {
-    result = eval(inner_env, op_env, CAR(operands));
-    operands = CDR(operands);
-  }
-  if(operands != obj_empty)
-    error("%s: illegal expression list", operator->operator.name);
-  return result;
+  return eval_body(inner_env, op_env, operator, CDR(operands));
 }
 
 
@@ -1370,7 +1399,7 @@ static obj_t entry_delay(obj_t env, obj_t op_env, obj_t operator, obj_t operands
 
 
 /* entry_quasiquote -- (quasiquote <template>) or `<template> */
-/* @@@@ blech. */
+/* TODO: blech. */
 
 static obj_t entry_quasiquote(obj_t env, obj_t op_env, obj_t operator, obj_t operands)
 {
@@ -1502,14 +1531,7 @@ static obj_t entry_lambda(obj_t env, obj_t op_env, obj_t operator, obj_t operand
 
 static obj_t entry_begin(obj_t env, obj_t op_env, obj_t operator, obj_t operands)
 {
-  obj_t result;
-  do {
-    unless(TYPE(operands) == TYPE_PAIR)
-      error("%s: illegal syntax", operator->operator.name);
-    result = eval(env, op_env, CAR(operands));
-    operands = CDR(operands);
-  } while(operands != obj_empty);
-  return result;
+  return eval_body(env, op_env, operator, operands);
 }
 
 
@@ -1578,7 +1600,7 @@ static int equalp(obj_t obj1, obj_t obj2)
     return 0;
   if(TYPE(obj1) == TYPE_PAIR)
     return equalp(CAR(obj1), CAR(obj2)) && equalp(CDR(obj1), CDR(obj2));
-  /* @@@@ Similar recursion for vectors. */
+  /* TODO: Similar recursion for vectors. */
   return eqvp(obj1, obj2);
 }
 
@@ -1720,6 +1742,8 @@ static obj_t entry_append(obj_t env, obj_t op_env, obj_t operator, obj_t operand
   }
   if(arg1 != obj_empty)
     error("%s: applied to non-list", operator->operator.name);
+  if(result == obj_empty)
+    return arg2;
   CDR(end) = arg2;
   return result;
 }
@@ -1768,6 +1792,18 @@ static obj_t entry_symbolp(obj_t env, obj_t op_env, obj_t operator, obj_t operan
   obj_t arg;
   eval_args(operator->operator.name, env, op_env, operands, 1, &arg);
   return TYPE(arg) == TYPE_SYMBOL ? obj_true : obj_false;
+}
+
+
+/* (procedure? obj)
+ * Returns #t if obj is a procedure, otherwise returns #f.
+ * See R4RS 6.9.
+ */
+static obj_t entry_procedurep(obj_t env, obj_t op_env, obj_t operator, obj_t operands)
+{
+  obj_t arg;
+  eval_args(operator->operator.name, env, op_env, operands, 1, &arg);
+  return TYPE(arg) == TYPE_OPERATOR ? obj_true : obj_false;
 }
 
 
@@ -1839,7 +1875,7 @@ static obj_t entry_divide(obj_t env, obj_t op_env, obj_t operator, obj_t operand
   if(args == obj_empty) {
     if(result == 0)
       error("%s: reciprocal of zero", operator->operator.name);
-    result = 1/result;	/* @@@@ pretty meaningless for integers */
+    result = 1/result;	/* TODO: pretty meaningless for integers */
   } else {
     while(TYPE(args) == TYPE_PAIR) {
       unless(TYPE(CAR(args)) == TYPE_INTEGER)
@@ -1852,6 +1888,48 @@ static obj_t entry_divide(obj_t env, obj_t op_env, obj_t operator, obj_t operand
     assert(args == obj_empty); /* eval_args_rest always returns a list */
   }
   return make_integer(result);
+}
+
+
+static obj_t entry_lessthan(obj_t env, obj_t op_env, obj_t operator, obj_t operands)
+{
+  obj_t arg, args;
+  long last;
+  eval_args_rest(operator->operator.name, env, op_env, operands, &args, 1, &arg);
+  unless(TYPE(arg) == TYPE_INTEGER)
+    error("%s: first argument must be an integer", operator->operator.name);
+  last = arg->integer.integer;
+  while(TYPE(args) == TYPE_PAIR) {
+    unless(TYPE(CAR(args)) == TYPE_INTEGER)
+      error("%s: arguments must be integers", operator->operator.name);
+    if (last >= CAR(args)->integer.integer)
+      return obj_false;
+    last = CAR(args)->integer.integer;
+    args = CDR(args);
+  }
+  assert(args == obj_empty); /* eval_args_rest always returns a list */
+  return obj_true;
+}
+
+
+static obj_t entry_greaterthan(obj_t env, obj_t op_env, obj_t operator, obj_t operands)
+{
+  obj_t arg, args;
+  long last;
+  eval_args_rest(operator->operator.name, env, op_env, operands, &args, 1, &arg);
+  unless(TYPE(arg) == TYPE_INTEGER)
+    error("%s: first argument must be an integer", operator->operator.name);
+  last = arg->integer.integer;
+  while(TYPE(args) == TYPE_PAIR) {
+    unless(TYPE(CAR(args)) == TYPE_INTEGER)
+      error("%s: arguments must be integers", operator->operator.name);
+    if (last <= CAR(args)->integer.integer)
+      return obj_false;
+    last = CAR(args)->integer.integer;
+    args = CDR(args);
+  }
+  assert(args == obj_empty); /* eval_args_rest always returns a list */
+  return obj_true;
 }
 
 
@@ -1877,7 +1955,13 @@ static obj_t entry_environment(obj_t env, obj_t op_env, obj_t operator, obj_t op
 }
 
 
-static obj_t entry_open_in(obj_t env, obj_t op_env, obj_t operator, obj_t operands)
+/* (open-input-file filename)
+ * Takes a string naming an existing file and returns an input port
+ * capable of delivering characters from the file. If the file cannot
+ * be opened, an error is signalled.
+ * See R4RS 6.10.1
+ */
+static obj_t entry_open_input_file(obj_t env, obj_t op_env, obj_t operator, obj_t operands)
 {
   obj_t filename;
   FILE *stream;
@@ -1886,12 +1970,13 @@ static obj_t entry_open_in(obj_t env, obj_t op_env, obj_t operator, obj_t operan
     error("%s: argument must be a string", operator->operator.name);
   stream = fopen(filename->string.string, "r");
   if(stream == NULL)
-    error("%s: cannot open input file", operator->operator.name); /* @@@@ return error */
+    /* TODO: "an error is signalled" */
+    error("%s: cannot open input file", operator->operator.name);
   return make_port(filename, stream);
 }
 
 
-/* @@@@ This doesn't work if the promise refers to its own value. */
+/* TODO: This doesn't work if the promise refers to its own value. */
 
 static obj_t entry_force(obj_t env, obj_t op_env, obj_t operator, obj_t operands)
 {
@@ -1909,6 +1994,50 @@ static obj_t entry_force(obj_t env, obj_t op_env, obj_t operator, obj_t operands
     CAR(promise) = obj_true;
   }
   return CDR(promise);
+}
+
+
+/* (char? obj)
+ * Returns #t if obj is a character, otherwise returns #f.
+ * See R4RS 6.6.
+ */
+static obj_t entry_charp(obj_t env, obj_t op_env, obj_t operator, obj_t operands)
+{
+  obj_t arg;
+  eval_args(operator->operator.name, env, op_env, operands, 1, &arg);
+  return TYPE(arg) == TYPE_CHARACTER ? obj_true : obj_false;
+}
+
+
+/* (char->integer char)
+ * Given a character, char->integer returns its Unicode scalar value
+ * as an exact integer object.
+ * See R4RS 6.6.
+ */
+static obj_t entry_char_to_integer(obj_t env, obj_t op_env, obj_t operator, obj_t operands)
+{
+  obj_t arg;
+  eval_args(operator->operator.name, env, op_env, operands, 1, &arg);
+  unless(TYPE(arg) == TYPE_CHARACTER)
+    error("%s: first argument must be a character", operator->operator.name);
+  return make_integer(arg->character.c);
+}
+
+
+/* (integer->char sv)
+ * For a Unicode scalar value sv, integer->char returns its associated
+ * character.
+ * See R4RS 6.6.
+ */
+static obj_t entry_integer_to_char(obj_t env, obj_t op_env, obj_t operator, obj_t operands)
+{
+  obj_t arg;
+  eval_args(operator->operator.name, env, op_env, operands, 1, &arg);
+  unless(TYPE(arg) == TYPE_INTEGER)
+    error("%s: first argument must be an integer", operator->operator.name);
+  unless(0 <= arg->integer.integer)
+    error("%s: first argument is out of range", operator->operator.name);
+  return make_character(arg->integer.integer);
 }
 
 
@@ -2053,8 +2182,247 @@ static obj_t entry_string_to_symbol(obj_t env, obj_t op_env, obj_t operator, obj
   eval_args(operator->operator.name, env, op_env, operands, 1, &string);
   unless(TYPE(string) == TYPE_STRING)
     error("%s: argument must be a string", operator->operator.name);
-  /* @@@@ Should pass length to intern to avoid problems with NUL termination. */
+  /* TODO: Should pass length to intern to avoid problems with NUL termination. */
   return intern(string->string.string);
+}
+
+
+/* (string? obj)
+ * Returns #t if obj is a string, otherwise returns #f.
+ * See R4RS 6.7.
+ */
+static obj_t entry_stringp(obj_t env, obj_t op_env, obj_t operator, obj_t operands)
+{
+  obj_t arg;
+  eval_args(operator->operator.name, env, op_env, operands, 1, &arg);
+  return TYPE(arg) == TYPE_STRING ? obj_true : obj_false;
+}
+
+
+/* (make-string k)
+ * (make-string k char)
+ * Make-string returns a newly allocated string of length k. If char
+ * is given, then all elements of the string are initialized to char,
+ * otherwise the contents of the string are unspecified.
+ * See R4RS 6.7.
+ */
+static obj_t entry_make_string(obj_t env, obj_t op_env, obj_t operator, obj_t operands)
+{
+  obj_t obj, k, args;
+  char c = '\0';
+  int i;
+  eval_args_rest(operator->operator.name, env, op_env, operands, &args, 1, &k);
+  unless(TYPE(k) == TYPE_INTEGER)
+    error("%s: first argument must be an integer", operator->operator.name);
+  unless(k->integer.integer >= 0)
+    error("%s: first argument must be non-negative", operator->operator.name);
+  if (TYPE(args) == TYPE_PAIR) {
+    unless(TYPE(CAR(args)) == TYPE_CHARACTER)
+      error("%s: second argument must be a character", operator->operator.name);
+    unless(CDR(args) == obj_empty)
+      error("%s: too many arguments", operator->operator.name);
+    c = CAR(args)->character.c;
+  }
+  obj = make_string(k->integer.integer, NULL);
+  for (i = 0; i < k->integer.integer; ++i) {
+    obj->string.string[i] = c;
+  }
+  return obj;
+}
+
+
+/* (string char ...)
+ * Returns a newly allocated string composed of the arguments.
+ * See R4RS 6.7.
+ */
+static obj_t entry_string(obj_t env, obj_t op_env, obj_t operator, obj_t operands)
+{
+  obj_t args, obj, o;
+  size_t length;
+  eval_args_rest(operator->operator.name, env, op_env, operands, &args, 0);
+  o = args;
+  length = 0;
+  while(TYPE(o) == TYPE_PAIR) {
+    unless(TYPE(CAR(o)) == TYPE_CHARACTER)
+      error("%s: arguments must be strings", operator->operator.name);
+    ++ length;
+    o = CDR(o);
+  }
+  obj = make_string(length, NULL);
+  o = args;
+  length = 0;
+  while(TYPE(o) == TYPE_PAIR) {
+    assert(TYPE(CAR(o)) == TYPE_CHARACTER);
+    obj->string.string[length] = CAR(o)->character.c;
+    ++ length;
+    o = CDR(o);
+  }
+  assert(length == obj->string.length);
+  return obj;
+}
+
+
+/* (string-length string)
+ * Returns the number of characters in the given string.
+ * See R4RS 6.7.
+ */
+static obj_t entry_string_length(obj_t env, obj_t op_env, obj_t operator, obj_t operands)
+{
+  obj_t arg;
+  eval_args(operator->operator.name, env, op_env, operands, 1, &arg);
+  unless(TYPE(arg) == TYPE_STRING)
+    error("%s: argument must be a string", operator->operator.name);
+  return make_integer(arg->string.length);
+}
+
+
+/* (string-ref string k)
+ * k must be a valid index of string. String-ref returns character k
+ * of string using zero-origin indexing.
+ * See R4RS 6.7.
+ */
+static obj_t entry_string_ref(obj_t env, obj_t op_env, obj_t operator, obj_t operands)
+{
+  obj_t arg, k;
+  eval_args(operator->operator.name, env, op_env, operands, 2, &arg, &k);
+  unless(TYPE(arg) == TYPE_STRING)
+    error("%s: first argument must be a string", operator->operator.name);
+  unless(TYPE(k) == TYPE_INTEGER)
+    error("%s: second argument must be an integer", operator->operator.name);
+  unless(0 <= k->integer.integer && k->integer.integer < arg->string.length)
+    error("%s: second argument is out of range", operator->operator.name);
+  return make_character(arg->string.string[k->integer.integer]);
+}
+
+
+/* (substring string start end)
+ * String must be a string, and start and end must be exact integers
+ * satisfying 
+ *     0 <= start <= end <= (string-length string).
+ * Substring returns a newly allocated string formed from the
+ * characters of string beginning with index start (inclusive) and
+ * ending with index end (exclusive).
+ * See R4RS 6.7.
+ */
+static obj_t entry_substring(obj_t env, obj_t op_env, obj_t operator, obj_t operands)
+{
+  obj_t obj, arg, start, end;
+  size_t length;
+  eval_args(operator->operator.name, env, op_env, operands, 3, &arg, &start, &end);
+  unless(TYPE(arg) == TYPE_STRING)
+    error("%s: first argument must be a string", operator->operator.name);
+  unless(TYPE(start) == TYPE_INTEGER)
+    error("%s: second argument must be an integer", operator->operator.name);
+  unless(TYPE(end) == TYPE_INTEGER)
+    error("%s: third argument must be an integer", operator->operator.name);
+  unless(0 <= start->integer.integer
+         && start->integer.integer <= end->integer.integer
+         && end->integer.integer <= arg->string.length)
+    error("%s: arguments out of range", operator->operator.name);
+  length = end->integer.integer - start->integer.integer;
+  obj = make_string(length, NULL);
+  strncpy(obj->string.string, &arg->string.string[start->integer.integer], length);
+  return obj;
+}
+
+/* (string-append string ...)
+ * Returns a newly allocated string whose characters form the
+ * concatenation of the given strings.
+ * See R4RS 6.7.
+ */
+static obj_t entry_string_append(obj_t env, obj_t op_env, obj_t operator, obj_t operands)
+{
+  obj_t args, obj, o;
+  size_t length;
+  eval_args_rest(operator->operator.name, env, op_env, operands, &args, 0);
+  o = args;
+  length = 0;
+  while(TYPE(o) == TYPE_PAIR) {
+    unless(TYPE(CAR(o)) == TYPE_STRING)
+      error("%s: arguments must be strings", operator->operator.name);
+    length += CAR(o)->string.length;
+    o = CDR(o);
+  }
+  obj = make_string(length, NULL);
+  o = args;
+  length = 0;
+  while(TYPE(o) == TYPE_PAIR) {
+    string_s *s = &CAR(o)->string;
+    assert(TYPE(CAR(o)) == TYPE_STRING);
+    memcpy(obj->string.string + length, s->string, s->length + 1);
+    length += s->length;
+    o = CDR(o);
+  }
+  assert(length == obj->string.length);
+  return obj;
+}
+
+
+/* (string->list string)
+ * The string->list procedure returns a newly allocated list of the
+ * characters that make up the given string.
+ * See R4RS 6.7.
+ */
+static obj_t entry_string_to_list(obj_t env, obj_t op_env, obj_t operator, obj_t operands)
+{
+  obj_t string, list;
+  size_t i;
+  eval_args(operator->operator.name, env, op_env, operands, 1, &string);
+  unless(TYPE(string) == TYPE_STRING)
+    error("%s: argument must be a string", operator->operator.name);
+  list = obj_empty;
+  i = string->string.length;
+  while(i > 0) {
+    --i;
+    list = make_pair(make_character(string->string.string[i]), list);
+  }
+  return list;
+}
+
+
+/* (list->string list)
+ * List must be a list of characters. The list->string procedure
+ * returns a newly allocated string formed from the characters in
+ * list.
+ * See R4RS 6.7.
+ */
+static obj_t entry_list_to_string(obj_t env, obj_t op_env, obj_t operator, obj_t operands)
+{
+  obj_t l, list, string;
+  size_t i, length = 0;
+  eval_args(operator->operator.name, env, op_env, operands, 1, &list);
+  l = list;
+  while(l != obj_empty) {
+    unless(TYPE(l) == TYPE_PAIR)
+      error("%s: argument must be a list", operator->operator.name);
+    unless(TYPE(CAR(l)) == TYPE_CHARACTER)
+      error("%s: argument must be a list of characters", operator->operator.name);
+    ++ length;
+    l = CDR(l);
+  }
+  string = make_string(length, NULL);
+  l = list;
+  for(i = 0; i < length; ++i) {
+    assert(TYPE(l) == TYPE_PAIR);
+    assert(TYPE(CAR(l)) == TYPE_CHARACTER);
+    string->string.string[i] = CAR(l)->character.c;
+    l = CDR(l);
+  }
+  return string;
+}
+
+
+/* (string-copy string)
+ * Returns a newly allocated copy of the given string.
+ * See R4RS 6.7.
+ */
+static obj_t entry_string_copy(obj_t env, obj_t op_env, obj_t operator, obj_t operands)
+{
+  obj_t arg;
+  eval_args(operator->operator.name, env, op_env, operands, 1, &arg);
+  unless(TYPE(arg) == TYPE_STRING)
+    error("%s: argument must be a string", operator->operator.name);
+  return make_string(arg->string.length, arg->string.string);
 }
 
 
@@ -2063,41 +2431,33 @@ static obj_t entry_string_to_symbol(obj_t env, obj_t op_env, obj_t operator, obj
 
 /* special table */
 
-static struct {
-  char *name;
-  obj_t *varp;
-} sptab[] = {
+static struct {char *name; obj_t *varp;} sptab[] = {
   {"()", &obj_empty},
   {"#[eof]", &obj_eof},
   {"#[error]", &obj_error},
   {"#t", &obj_true},
   {"#f", &obj_false},
   {"#[undefined]", &obj_undefined},
+  {"#[tail]", &obj_tail}
 };
 
 
 /* initial symbol table */
 
-static struct {
-  char *name;
-  obj_t *varp;
-} isymtab[] = {
+static struct {char *name; obj_t *varp;} isymtab[] = {
   {"quote", &obj_quote},
   {"lambda", &obj_lambda},
   {"begin", &obj_begin},
   {"else", &obj_else},
   {"quasiquote", &obj_quasiquote},
   {"unquote", &obj_unquote},
-  {"unquote-splicing", &obj_unquote_splic},
+  {"unquote-splicing", &obj_unquote_splic}
 };
 
 
 /* operator table */
 
-static struct {
-  char *name;
-  entry_t entry;
-} optab[] = {
+static struct {char *name; entry_t entry;} optab[] = {
   {"quote", entry_quote},
   {"define", entry_define},
   {"set!", entry_set},
@@ -2112,16 +2472,13 @@ static struct {
   {"letrec", entry_letrec},
   {"do", entry_do},
   {"delay", entry_delay},
-  {"quasiquote", entry_quasiquote},
+  {"quasiquote", entry_quasiquote}
 };
   
 
 /* function table */
 
-static struct {
-  char *name;
-  entry_t entry;
-} funtab[] = {
+static struct {char *name; entry_t entry;} funtab[] = {
   {"not", entry_not},
   {"boolean?", entry_booleanp},
   {"eqv?", entry_eqvp},
@@ -2143,14 +2500,20 @@ static struct {
   {"positive?", entry_positivep},
   {"negative?", entry_negativep},
   {"symbol?", entry_symbolp},
+  {"procedure?", entry_procedurep},
   {"+", entry_add},
   {"-", entry_subtract},
   {"*", entry_multiply},
   {"/", entry_divide},
+  {"<", entry_lessthan},
+  {">", entry_greaterthan},
   {"reverse", entry_reverse},
   {"the-environment", entry_environment},
-  {"open-input-file", entry_open_in},
+  {"open-input-file", entry_open_input_file},
   {"force", entry_force},
+  {"char?", entry_charp},
+  {"char->integer", entry_char_to_integer},
+  {"integer->char", entry_integer_to_char},
   {"vector?", entry_vectorp},
   {"make-vector", entry_make_vector},
   {"vector", entry_vector},
@@ -2163,6 +2526,16 @@ static struct {
   {"eval", entry_eval},
   {"symbol->string", entry_symbol_to_string},
   {"string->symbol", entry_string_to_symbol},
+  {"string?", entry_stringp},
+  {"make-string", entry_make_string},
+  {"string", entry_string},
+  {"string-length", entry_string_length},
+  {"string-ref", entry_string_ref},
+  {"substring", entry_substring},
+  {"string-append", entry_string_append},
+  {"string->list", entry_string_to_list},
+  {"list->string", entry_list_to_string},
+  {"string-copy", entry_string_copy},
 };
 
 
