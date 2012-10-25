@@ -620,7 +620,7 @@ Don't use that together with FILTER."
   (let* ((all-of-them
 	  (save-excursion
 	    (dired-map-over-marks
-	     (dired-get-filename localp)
+	     (dired-get-filename localp 'no-error-if-not-filep)
 	     arg nil distinguish-one-marked)))
 	 result)
     (if (not filter)

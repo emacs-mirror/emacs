@@ -1,5 +1,7 @@
 2012-10-25  Stefan Monnier  <monnier@iro.umontreal.ca>
 
+	* dired.el (dired-get-marked-files): Allow ! on . and .. (bug#12725).
+
 	* minibuffer.el (minibuffer-force-complete): Fix thinko.
 
 	* net/ldap.el (ldap-search-internal): The official ldif format starts
