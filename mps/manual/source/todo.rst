@@ -51,11 +51,6 @@ Outstanding
 116. "The maximum number of arenas that the system can support is
      around 10." What causes this limit?
 
-119. This (from :ref:`topic-critical`) needs mentioning in various
-     places: "it's important to give a good estimate of the amount of
-     address space you will ever occupy with objects when you
-     initialize the arena"
-
 
 Complete
 --------
@@ -917,3 +912,7 @@ Complete
 
 118. Add comments giving links to sources.
 
+119. This (from :ref:`topic-critical`) needs mentioning in various
+     places: "it's important to give a good estimate of the amount of
+     address space you will ever occupy with objects when you
+     initialize the arena"

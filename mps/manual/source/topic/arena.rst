@@ -206,6 +206,12 @@ Virtual memory arenas
     MPS is most efficient if you reserve an address space that is
     several times larger than your peak memory usage.
 
+    .. note::
+
+        The MPS asks for more address space if it runs out, but the
+        more times it has to extend its address space, the less
+        efficient garbage collection will become.
+
     If the MPS fails to reserve adequate address space to place the
     arena in, :c:func:`mps_arena_create` returns
     :c:macro:`MPS_RES_RESOURCE`. Possibly this means that other parts
