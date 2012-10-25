@@ -3,7 +3,80 @@
 Roots
 =====
 
-See `<http://info.ravenbrook.com/project/mps/doc/2002-06-18/obsolete-mminfo/mmdoc/protocol/mps/root/index.html>`_.
+.. Text based on:
+     `<http://info.ravenbrook.com/project/mps/doc/2002-06-18/obsolete-mminfo/mmdoc/protocol/mps/root/index.html>`_.
+
+:term:`Roots <root>` tell the :term:`garbage collector` where to start
+:term:`tracing <trace>`. The garbage collector determines which blocks
+are :term:`reachable` from the roots, and (in :term:`automatically
+managed <automatic memory management>` :term:`pools <pool>`) reclaims
+the :term:`unreachable` blocks. This is quite efficient and can be a
+very good approximation to :term:`liveness <live>`.
+
+It is therefore important that the roots contain everything that the
+client program can directly refer to, otherwise the garbage colletor
+might recycle an object that would be used in the future. Some
+collectors, for example Boehm's, assume that all references stored in
+static data are roots; the Memory Pool System allows the client
+program to declare which references are roots.
+
+.. note::
+
+    Theorectically, the only roots are the :term:`registers
+    <register>`; that is, a program can only use values that can be
+    referenced from the registers.
+
+    This is the logical way of thinking about the problem; however, in
+    practice it's much more tricky. For example, it requires complete
+    knowledge of the layout of static data. Another difficulty is that
+    a multi-threaded program has multiple sets of registers that the
+    operating system kernel keeps track of, and that the garbage
+    collector, running as a user program, can't access.
+
+
+Declaring roots
+---------------
+
+You can declare a root at any time. Roots may not be declared twice,
+and no two roots may overlap. You must not declare an object that
+could get GCed to be a root. Declaring a root creates a root object
+that the MPS uses to keep track of the root.
+
+When you declare a root you describe to the MPS how to :term:`scan` it
+for references, providing your own scanning function in the cases of :c:func:`mps_root_create` and :c:func:`mps_root_create_fmt`. Such a root scanning function must follow the :ref:`topic-scanning-protocol`.
+
+All the references in a root are of the same :term:`rank` (just as in
+a :term:`formatted object`). So they are all :term:`exact <exact
+reference>`, :term:`ambiguous <ambiguous reference>` or :term:`weak
+<weak reference>`.
+
+Roots can be removed at any time by calling
+:c:func:`mps_root_destroy`. All roots declared in an :term:`arena`
+must be destroyed before an arena is destroyed.
+
+
+Thread roots
+------------
+
+
+
+
+.valid: If the rank of the root is not ambiguous, the contents of the root have to be valid whenever a GC happens , i.e., they have to be references to actual objects or null pointers . If you're using asynchronous GC, this could be right after the root is registered, so the root has to be valid when it is registered . It's OK for a root to have entries which point to memory not managed by the MPS -- they will simply be ignored.
+
+.kind: You can declare roots in four different ways:
+
+.kind.table: mps_root_create_table &
+
+ mps_root_create_table
+_ masked declare a root that is a vector of pointers somewhere in memory.
+.kind.reg: Threads are declared roots using mps_root_create_reg . mps_stack_scan_ambig is the only supported scanning function : it will scan every word on the stack and in the (integer) registers . It's OS- and architecture-dependent (and possibly compiler-dependent). MM provide it, 'cos it's hard to write and hard to specify an interface for it.
+
+.kind.format: mps_root_create_fmt declares a root that is a block of formatted objects.
+
+.kind.general: mps_root_create declares a root that consists of all the references indicated by a scanning function that you supply.
+
+
+
 
 :c:macro:`MPS_RM_CONST` is a preprocessor macro defining a constant that can be or'ed with other ``MPS_RM`` constants, and passed as the :term:`root mode` argument to certain root creation functions (:c:func:`mps_root_create`, :c:func:`mps_root_create_fmt`, :c:func:`mps_root_create_table`, :c:func:`mps_root_create_table_masked`, and :c:func:`mps_root_create_reg`).
 
@@ -422,6 +495,31 @@ Interface
         :term:`Client programs <client program>` are not expected to
         write scanning functions of this type. The built-in MPS
         function :c:func:`mps_stack_scan_ambig` must be used.
+
+
+.. c:function:: mps_reg_scan_t mps_stack_scan_ambig
+
+    A root scanning function for :term:`ambiguous <ambiguous
+    reference>` scanning of :term:`threads <thread>`, suitable for
+    passing to :c:func:`mps_root_create_reg`.
+
+    It scans all integer registers and everything on the stack of the
+    thread given, and can therefore only be used with :term:`ambiguous
+    roots <ambiguous root>`. It only scans locations that are at, or
+    higher on the stack (that is, more recently added), the stack
+    bottom that was passed to :c:func:`mps_thread_reg`. References
+    are assumed to be represented as machine words, and are required
+    to be 4-byte-aligned; unaligned values are ignored.
+
+    .. seealso::
+
+        :ref:`topic-platform`, :ref:`topic-root`.
+
+    .. note::
+
+        The MPS provides this function because it's hard to write: it
+        depends on the operating system, the architecture, and in some
+        cases the compiler.
 
 
 .. c:function:: mps_res_t mps_root_create_table(mps_root_t *root_o, mps_arena_t arena, mps_rank_t rank, mps_rm_t rm, mps_addr_t *base, size_t count)
