@@ -63,6 +63,8 @@ This description of the protocol simplifies a number of important
 details, which are covered in the following sections.
 
 
+.. _topic-scanning-tag:
+
 Tagged references
 -----------------
 

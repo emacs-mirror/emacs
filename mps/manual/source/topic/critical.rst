@@ -18,7 +18,7 @@ possible.
 What makes the critical path critical
 -------------------------------------
 
-In order to determine which object can be recycled, the :term:`garbage
+In order to determine which objects can be recycled, the :term:`garbage
 collector` has to frequently examine a very large number of pointers
 in the program's objects. It does this by :term:`scanning <scan>`
 memory, both allocated objects and :term:`roots <root>` (such as the
@@ -106,7 +106,7 @@ Very briefly, the critical path consists of five stages:
 
 3. The second-stage fix, which filters out pointers using general
    information about segments. This is implemented by the
-   :c:func:`MPS_FIX2` acro, which calls ``_mps_fix`` in ``trace.c``.
+   :c:func:`MPS_FIX2` macro, which calls ``_mps_fix`` in ``trace.c``.
 
 4. The third-stage fix, which filters out pointers using pool-specific
    information. Implemented in pool class functions called ``AMCFix``,

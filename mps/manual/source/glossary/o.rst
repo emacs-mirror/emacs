@@ -38,8 +38,7 @@ Memory Management Glossary: O
             :term:`references <reference>` in an object, replace an
             object with :term:`padding`, replace an object with a
             :term:`forwarding marker`, and other essential
-            :term:`garbage collection` tasks. See the type
-            :c:type:`mps_fmt_t`.
+            :term:`garbage collection` tasks. See :ref:`topic-format`.
 
     object pointer
 

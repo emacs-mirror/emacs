@@ -165,7 +165,8 @@ Memory Management Glossary: F
             :c:func:`MPS_FIX1` and :c:func:`MPS_FIX2` within a
             :term:`scan method`. In a :term:`moving <moving garbage
             collector>` :term:`pool`, fixing a reference may also
-            update it to point to the new location of the block.
+            update it to point to the new location of the block. See
+            :ref:`topic-scanning`.
 
     flip
 
@@ -286,7 +287,7 @@ Memory Management Glossary: F
 
             An allocated :term:`block` that belongs to an
             :term:`object format` and may be :term:`scanned <scan>` by
-            the :term:`garbage collector`.
+            the :term:`garbage collector`. See :ref:`topic-format`.
 
     forward method
     
