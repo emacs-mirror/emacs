@@ -1,4 +1,4 @@
-.. Sources:
+.. sources:
 
     `<https://info.ravenbrook.com/project/mps/master/design/thread-safety/>`_
 
@@ -14,9 +14,10 @@ The MPS is designed to run in an environment with multiple threads all
 calling into the MPS. Some code is known to operate with exclusive
 access to the data it manipulates (for example, allocation via
 :term:`allocation points <allocation point>`, in the common case where
-the buffer does not need to be refilled), so this code is safe. For
-the rest of the code, shared data structures are locked by the use of
-a single lock per :term:`arena`. This lock is claimed on entry to the
+the buffer does not need to be refilled, and :term:`location
+dependencies <location dependency>`), so this code is safe. For the
+rest of the code, shared data structures are locked by the use of a
+single lock per :term:`arena`. This lock is claimed on entry to the
 MPS and released on exit from it. So there is at most a single thread
 (per arena) running "inside" the MPS at a time.
 
@@ -28,7 +29,7 @@ In order to scan a thread's registers for references (which happens at
 each :term:`flip`), the MPS needs to be able to suspend that thread.
 This means that threads must be registered with the MPS by calling
 :c:func:`mps_thread_reg` (and thread roots created; see
-:ref:`topic-thread-root`).
+:ref:`topic-root-thread`).
  
 A thread must be registered with an :term:`arena` if it ever uses a
 pointer to a location in an :term:`automatically managed <automatic
@@ -67,8 +68,8 @@ The mechanism for co-operation is currently undocumented: please
 :ref:`contact us <contact>`.
 
 
-Interface
----------
+Thread interface
+----------------
 
 .. c:function:: mps_res_t mps_thread_reg(mps_thr_t *thr_o, mps_arena_t arena)
 

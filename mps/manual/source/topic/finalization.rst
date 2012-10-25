@@ -174,16 +174,10 @@ Here's an example session showing finalization taking place:
 .. code-block:: none
    :emphasize-lines: 14
 
-    $ ./scheme
     MPS Toy Scheme Example
-    The prompt shows total allocated bytes and number of collections.
-    Try (vector-length (make-vector 100000 1)) to see the MPS in action.
-    You can force a complete garbage collection with (gc).
-    If you recurse too much the interpreter may crash from using too much C stack.
     9960, 0> (open-input-file "scheme.c")
     #[port "scheme.c"]
     10064, 0> (gc)
-    #[undefined]
     Collection started.
       Why: Client requests: immediate full collection.
       Clock: 3401
@@ -213,12 +207,7 @@ Cautions
     out of handles even though the associated objects are all
     finalizable, as shown here::
 
-        $ ./scheme
         MPS Toy Scheme Example
-        The prompt shows total allocated bytes and number of collections.
-        Try (vector-length (make-vector 100000 1)) to see the MPS in action.
-        You can force a complete garbage collection with (gc).
-        If you recurse too much the interpreter may crash from using too much C stack.
         9960, 0> (define (repeat n f _) (if (eqv? n 0) '() (repeat (- n 1) f (f))))
         repeat
         10840, 0> (repeat 300 (lambda () (open-input-file "scheme.c")) 0)

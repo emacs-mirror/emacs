@@ -1,4 +1,4 @@
-.. Sources:
+.. sources:
 
     `<https://info.ravenbrook.com/project/mps/doc/2002-06-18/obsolete-mminfo/mmdoc/protocol/mps/root/>`_
 
@@ -241,8 +241,8 @@ allowing the MPS to detect whether they have changed.
         operating systems can't cope with writing to protected pages.
 
 
-Interface
----------
+Root interface
+--------------
 
 .. c:type:: mps_root_t
 
@@ -522,8 +522,8 @@ Interface
     ``root`` is the root.
 
 
-Introspection
--------------
+Root introspection
+------------------
 
 .. c:function:: void mps_arena_roots_walk(mps_arena_t arena, mps_roots_stepper_t f, void *p, size_t s)
 

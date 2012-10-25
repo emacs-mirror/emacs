@@ -1,4 +1,4 @@
-.. Sources:
+.. sources:
 
      `<http://info.ravenbrook.com/project/mps/doc/2002-06-18/obsolete-mminfo/mmdoc/protocol/mps/format/index.html>`_
 
@@ -499,8 +499,8 @@ Format methods
         them.
 
 
-Introspection
--------------
+Object format introspection
+---------------------------
 
 .. c:function:: mps_bool_t mps_addr_fmt(mps_fmt_t *fmt_o, mps_arena_t arena, mps_addr_t addr)
 

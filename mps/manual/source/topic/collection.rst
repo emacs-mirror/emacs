@@ -1,4 +1,4 @@
-.. Sources:
+.. sources:
 
     `<https://info.ravenbrook.com/project/mps/master/design/message-gc/>`_
 
@@ -25,36 +25,8 @@ they'd better not be to a mobile object! Remember, mobile objects could move at 
 they'd better not be the only reference to an object, or that object might get collected, again leaving a dangling reference.
 
 
-Interface
----------
-
-.. c:function:: mps_res_t mps_chain_create(mps_chain_t *chain_o, mps_arena_t arena, size_t gen_count, mps_gen_param_s *gen_params)
-
-    Create a :term:`generation chain`.
-
-    ``chain_o`` points to a location that will hold a pointer to the
-    new generation chain.
-
-    ``arena`` is the arena to which the generation chain will belong.
-
-    ``gen_count`` is the number of :term:`generations <generation>` in
-    the chain.
-
-    ``gen_params`` points to an array describing the generations.
-
-    Returns :c:macro:`MPS_RES_OK` if the generation chain is created
-    successfully, or another :term:`result code` if it fails.
-
-    The generation chain persists until it is destroyed by calling
-    :c:func:`mps_chain_destroy`.
-
-
-.. c:function:: void mps_chain_destroy(mps_chain_t chain)
-
-    Destroy a :term:`generation chain`.
-
-    ``chain`` is the generation chain.
-
+Generation chains
+-----------------
 
 .. c:type:: mps_chain_t
 
@@ -85,6 +57,34 @@ Interface
     (other than suboptimal performance) if you make poor
     choices. Making good choices for the capacity and mortality of
     each generation is discussed in the guide :ref:`guide-perf`.
+
+
+.. c:function:: mps_res_t mps_chain_create(mps_chain_t *chain_o, mps_arena_t arena, size_t gen_count, mps_gen_param_s *gen_params)
+
+    Create a :term:`generation chain`.
+
+    ``chain_o`` points to a location that will hold a pointer to the
+    new generation chain.
+
+    ``arena`` is the arena to which the generation chain will belong.
+
+    ``gen_count`` is the number of :term:`generations <generation>` in
+    the chain.
+
+    ``gen_params`` points to an array describing the generations.
+
+    Returns :c:macro:`MPS_RES_OK` if the generation chain is created
+    successfully, or another :term:`result code` if it fails.
+
+    The generation chain persists until it is destroyed by calling
+    :c:func:`mps_chain_destroy`.
+
+
+.. c:function:: void mps_chain_destroy(mps_chain_t chain)
+
+    Destroy a :term:`generation chain`.
+
+    ``chain`` is the generation chain.
 
 
 Garbage collection start messages
