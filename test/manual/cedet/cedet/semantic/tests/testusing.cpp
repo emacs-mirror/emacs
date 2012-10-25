@@ -173,6 +173,15 @@ void func10()
     ; //#14# ( "four" "three" )
 }
 
+// Completion on namespace aliases
+void func11()
+{
+   alias_for_somestuff:://-15-
+      ; //#15# ( "OneClass" "aStruct")
+   alias_for_outerinner:://-16-
+      ; //#16# ( "AnotherStruct" "StructNested" )
+}
+
 // make sure unfound using statements don't crash stuff.
 using something::cantbe::Found;
 
@@ -180,7 +189,7 @@ void unfoundfunc()
 {
   NotFound notfound; // Variable can't be found.
 
-  notfound.//-15-
-    ; //#15# ( )  Nothing here since this is an undefined class
+  notfound.//-17-
+    ; //#17# ( )  Nothing here since this is an undefined class
 
 }
