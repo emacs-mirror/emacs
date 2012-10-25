@@ -3088,12 +3088,11 @@ and @code{safety}.  The value of a quality should be an integer from
 The default level for both qualities is 1.
 
 In this package, with the optimizing compiler, the
-@c FIXME does not exist?
-@code{speed} quality is tied to the @code{byte-compile-optimize}
+@code{speed} quality is tied to the @code{byte-optimize}
 flag, which is set to @code{nil} for @code{(speed 0)} and to
 @code{t} for higher settings; and the @code{safety} quality is
 tied to the @code{byte-compile-delete-errors} flag, which is
-set to @code{t} for @code{(safety 3)} and to @code{nil} for all
+set to @code{nil} for @code{(safety 3)} and to @code{t} for all
 lower settings.  (The latter flag controls whether the compiler
 is allowed to optimize out code whose only side-effect could
 be to signal an error, e.g., rewriting @code{(progn foo bar)} to

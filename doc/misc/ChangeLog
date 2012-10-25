@@ -12,6 +12,7 @@
 	(Dynamic Bindings): Update for changed progv behavior.
 	(Loop Examples, Efficiency Concerns): Markup fixes.
 	(Structures): Remove TeX margin change.
+	(Declarations): Fix typos.
 
 2012-10-24  Glenn Morris  <rgm@gnu.org>
 
