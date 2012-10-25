@@ -77,18 +77,9 @@ links between the various manuals.
 you want them.
 
 ---
-** On Mac OS X, configure no longer automatically adds the Fink /sw
-directories to the search path.  You must add them yourself if you want them.
-
----
 ** The standalone scripts rcs-checkin and vcdiff have been removed
 (from the bin and libexec directories, respectively).  The former is
 no longer relevant, the latter is replaced by lisp (in vc-sccs.el).
-
----
-** The native Windows user interface is available for Cygwin.  Passing
---with-w32 will configure a Cygwin emacs to use the Windows user
-interface instead of the default, X11.
 
 
 * Startup Changes in Emacs 24.3
@@ -205,9 +196,7 @@ The PCL-CVS commands are still available via the keyboard.
 ---
 *** New input method `vietnamese-vni'.
 
-** NextStep/OSX port changes.
----
-*** OSX 10.4 or newer is required to build Emacs.
+** Nextstep (GNUstep / Mac OS X) port changes
 ---
 *** Fullscreen and frame parameter fullscreen is supported.
 ---
@@ -926,20 +915,32 @@ See the "Face Attributes" section of the Elisp manual.
 
 * Changes in Emacs 24.3 on non-free operating systems
 
-+++
-** On MS Windows, you can pass --without-libxml2 to configure.bat to omit
-support for libxml2, even if its presence is detected.
-
-** When invoked with the -nw switch to run on the Windows text-mode terminal,
-Emacs now supports mouse highlight, help-echo (in the echo area), and
-`mouse-autoselect-window'.
+---
+** Cygwin builds can use the native MS Windows user interface.
+Pass --with-w32 to configure.  The default remains the X11 interface.
 
 ** Two new functions are available in Cygwin builds:
 `cygwin-convert-path-from-windows' and `cygwin-convert-path-to-windows'.
 These functions allow Lisp code to access the Cygwin file-name mapping
 machinery to convert between Cygwin and Windows-native file names.
 
+** When invoked with the -nw switch to run on the Windows text-mode terminal,
+Emacs now supports mouse highlight, help-echo (in the echo area), and
+`mouse-autoselect-window'.
+
 ** On MS Windows Vista and later Emacs now supports symbolic links.
+
++++
+** On MS Windows, you can pass --without-libxml2 to configure.bat to omit
+support for libxml2, even if its presence is detected.
+
+---
+** On Mac OS X, the Nextstep port requires OS X 10.4 or later.
+
+---
+** On Mac OS X, configure no longer automatically adds the Fink /sw
+directories to the search path.  You must add them yourself if you want them.
+
 
 * Changes in Emacs 24.2
 
