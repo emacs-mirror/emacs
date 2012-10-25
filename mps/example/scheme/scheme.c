@@ -3255,7 +3255,7 @@ int main(int argc, char *argv[])
      It holds all the MPS "global" state and is where everything happens. */
   res = mps_arena_create(&arena,
                          mps_arena_class_vm(), 
-                         (size_t)(1024 * 1024));
+                         (size_t)(32 * 1024 * 1024));
   if (res != MPS_RES_OK) error("Couldn't create arena");
 
   /* Create the object format. */
