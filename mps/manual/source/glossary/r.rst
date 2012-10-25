@@ -491,6 +491,8 @@ Memory Management Glossary: R
         finalization procedure storing a permanent copy of its
         reference to the object.
 
+        .. mps:specific:: See :ref:`topic-finalization`.
+
     ROM
 
         .. aka:: *read-only memory*.
@@ -515,6 +517,8 @@ Memory Management Glossary: R
         :term:`control stack`.
 
         .. seealso:: :term:`weak root`, :term:`strong root`, :term:`ambiguous root`, :term:`exact root`.
+
+        .. mps:specific:: See :ref:`topic-root`.
 
     root description
 

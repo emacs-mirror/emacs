@@ -438,7 +438,7 @@ Memory Management Glossary: M
         .. mps:specific::
 
             A data structure which the MPS uses to communicate with
-            the :term:`client program`. See :c:type:`mps_message_t`.
+            the :term:`client program`. See :ref:`topic-message`.
 
     message queue
 
@@ -448,7 +448,7 @@ Memory Management Glossary: M
             :term:`arena`. It can be queried by calling
             :c:func:`mps_message_poll`,
             :c:func:`mps_message_queue_type`, or
-            :c:func:`mps_message_get`.
+            :c:func:`mps_message_get`. See :ref:`topic-message`.
 
     message type
 
@@ -458,7 +458,8 @@ Memory Management Glossary: M
             the type of a :term:`message`. There are three message
             types: :c:func:`mps_message_type_finalization`,
             :c:func:`mps_message_type_gc`, and
-            :c:func:`mps_message_type_gc_start`.
+            :c:func:`mps_message_type_gc_start`. See
+            :ref:`topic-message`.
 
     misaligned
 

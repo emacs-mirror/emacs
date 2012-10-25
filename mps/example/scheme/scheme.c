@@ -759,15 +759,12 @@ static obj_t intern(char *string) {
 /* Hash table implementation
  * Supports eq? hashing (hash-by-identity) only.
  */
-static unsigned long hash_by_identity(void *addr) {
-  union {char s[sizeof(obj_t) + 1]; void *addr; } u = {""};
-  u.addr = addr;
-  return hash(u.s);
-}
-
-static struct bucket_s *buckets_find(obj_t buckets, obj_t key, unsigned long hash) {
+static struct bucket_s *buckets_find(obj_t buckets, obj_t key)
+{
+  union {char s[sizeof(void *) + 1]; void *addr; } u = {""};
   unsigned long i, h;
-  h = hash & (buckets->buckets.length-1);
+  u.addr = key;
+  h = hash(u.s) & (buckets->buckets.length-1);
   i = h;
   do {
     struct bucket_s *b = &buckets->buckets.bucket[i];
@@ -782,7 +779,8 @@ static struct bucket_s *buckets_find(obj_t buckets, obj_t key, unsigned long has
  * during this process, return the bucket containing 'key', otherwise
  * return NULL.
  */
-static struct bucket_s *table_rehash(obj_t tbl, size_t new_length, obj_t key) {
+static struct bucket_s *table_rehash(obj_t tbl, size_t new_length, obj_t key)
+{
   size_t i;
   obj_t new_buckets;
   struct bucket_s *key_bucket = NULL;
@@ -794,11 +792,9 @@ static struct bucket_s *table_rehash(obj_t tbl, size_t new_length, obj_t key) {
   for (i = 0; i < tbl->table.buckets->buckets.length; ++i) {
     struct bucket_s *old_b = &tbl->table.buckets->buckets.bucket[i];
     if (old_b->key != NULL) {
-      unsigned long hash;
       struct bucket_s *b;
       mps_ld_add(&tbl->table.ld, arena, old_b->key);
-      hash = hash_by_identity(old_b->key);
-      b = buckets_find(new_buckets, old_b->key, hash);
+      b = buckets_find(new_buckets, old_b->key);
       assert(b != NULL);	/* new table shouldn't be full */
       assert(b->key == NULL);	/* shouldn't be in new table */
       *b = *old_b;
@@ -810,24 +806,23 @@ static struct bucket_s *table_rehash(obj_t tbl, size_t new_length, obj_t key) {
   return key_bucket;
 }
 
-static obj_t table_ref(obj_t tbl, obj_t key) {
-  struct bucket_s *b = buckets_find(tbl->table.buckets, key, hash_by_identity(key));
+static obj_t table_ref(obj_t tbl, obj_t key)
+{
+  struct bucket_s *b = buckets_find(tbl->table.buckets, key);
   if (b && b->key != NULL)
     return b->value;
   if (mps_ld_isstale(&tbl->table.ld, arena, key)) {
-    puts("Stale!");
     b = table_rehash(tbl, tbl->table.buckets->buckets.length, key);
     if (b) return b->value;
   }
   return NULL;
 }
 
-static int table_try_set(obj_t tbl, obj_t key, obj_t value) {
-  unsigned long hash;
+static int table_try_set(obj_t tbl, obj_t key, obj_t value)
+{
   struct bucket_s *b;
   mps_ld_add(&tbl->table.ld, arena, key);
-  hash = hash_by_identity(key);
-  b = buckets_find(tbl->table.buckets, key, hash);
+  b = buckets_find(tbl->table.buckets, key);
   if (b == NULL)
     return 0;
   if (b->key == NULL)
@@ -836,7 +831,8 @@ static int table_try_set(obj_t tbl, obj_t key, obj_t value) {
   return 1;
 }
 
-static void table_set(obj_t tbl, obj_t key, obj_t value) {
+static void table_set(obj_t tbl, obj_t key, obj_t value)
+{
   if (!table_try_set(tbl, key, value)) {
     int res;
     table_rehash(tbl, tbl->table.buckets->buckets.length * 2, NULL);
