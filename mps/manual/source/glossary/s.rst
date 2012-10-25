@@ -93,10 +93,6 @@ Memory Management Glossary: S
         input and output. It is capable of achieving very high data
         rates for linear access to memory.
 
-    segment
-
-        .. mps:specific:: ??
-
     segmentation violation
 
         A segmentation violation occurs when an attempt is made to
@@ -145,7 +141,11 @@ Memory Management Glossary: S
 
     segregated allocation cache
 
-        .. mps:specific:: ??
+        .. mps:specific::
+
+            A mechanism for adding a :term:`segregated free list` to a
+            :term:`manual <manual memory management>` :term:`pool
+            class`. See :ref:`topic-cache`.
 
     segregated fit
 

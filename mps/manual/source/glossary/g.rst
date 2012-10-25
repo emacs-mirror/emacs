@@ -10,7 +10,8 @@ Memory Management Glossary: G
 
     garbage
 
-        Garbage is :term:`objects <object>` that are :term:`dead`.
+        Garbage consists of :term:`objects <object>` that are
+        :term:`dead`.
 
         In :term:`tracing garbage collection`, the term is sometimes
         used to mean objects that are known to be dead; that is,
@@ -133,11 +134,16 @@ Memory Management Glossary: G
         .. mps:specific::
 
             The :term:`client program` specifies the generational
-            structure using a :term:`generation chain`.
+            structure of a :term:`pool` using a :term:`generation
+            chain`. See :ref:`topic-collection`.
 
     generation chain
 
-        .. mps:specific:: ??
+        .. mps:specific:: 
+
+            A data structure that specifies the structure of the
+            :term:`generations <generation>` in a :term:`pool`. See
+            :ref:`topic-collection`.
 
     generation scavenging
 

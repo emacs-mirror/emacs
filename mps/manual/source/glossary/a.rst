@@ -266,7 +266,12 @@ Memory Management Glossary: A
 
     allocation pattern
 
-        .. mps:specific:: ??
+        .. mps:specific::
+
+            A hint to the MPS to expect a particular pattern of
+            allocation on an :term:`allocation point`. The MPS may use
+            this hint to schedule its decisions as to when and what to
+            collect. See :ref:`topic-pattern`.
 
     allocation point
 
