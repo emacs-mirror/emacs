@@ -109,12 +109,7 @@ calling ``(gc)`` and then evaluate any expression::
     Starting program: example/scheme/scheme 
     Reading symbols for shared libraries +............................. done
     MPS Toy Scheme Example
-    The prompt shows total allocated bytes and number of collections.
-    Try (vector-length (make-vector 100000 1)) to see the MPS in action.
-    You can force a complete garbage collection with (gc).
-    If you recurse too much the interpreter may crash from using too much C stack.
     7944, 0> (gc)
-    #[undefined]
     Collection started.
       Why: Client requests: immediate full collection.
       Clock: 11357
@@ -221,7 +216,6 @@ the test case with telemetry turned on::
     MPS Toy Scheme Example
     [...]
     7944, 0> (gc)
-    #[undefined]
     [...]
     7968, 1> foo
     Assertion failed: (TYPE(frame) == TYPE_PAIR), function lookup_in_frame, file scheme.c, line 1066.

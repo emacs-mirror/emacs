@@ -91,12 +91,7 @@ Here's how this looks in operation:
 
 .. code-block:: none
 
-    bash-3.2$ ./scheme
     MPS Toy Scheme Example
-    The prompt shows total allocated bytes and number of collections.
-    Try (vector-length (make-vector 100000 1)) to see the MPS in action.
-    You can force a complete garbage collection with (gc).
-    If you recurse too much the interpreter may crash from using too much C stack.
     9960, 0> (define (make-list n e) (if (eqv? n 0) '() (cons e (make-list (- n 1) e))))
     make-list
     10824, 0> (length (make-list 1000 #t))

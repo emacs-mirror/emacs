@@ -52,6 +52,10 @@ Outstanding
      around 10." Is this true? What goes wrong? (I tried creating lots
      of arenas and nothing seemed to go wrong.)
 
+120. "Magic" needs explaining in :ref:`topic-location`.
+
+121. Documentation needs copying into scheme.c.
+
 
 Complete
 --------

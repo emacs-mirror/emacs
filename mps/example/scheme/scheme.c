@@ -170,6 +170,7 @@ typedef struct vector_s {
 
 typedef struct table_s {
   type_t type;                  /* TYPE_TABLE */
+  mps_ld_s ld;                  /* location dependency %%MPS */
   obj_t buckets;                /* hash buckets */
 } table_s;
 
@@ -620,6 +621,7 @@ static obj_t make_table(void)
   } while(!mps_commit(obj_ap, addr, size));
   total += size;
   obj->table.buckets = make_buckets(8);
+  mps_ld_reset(&obj->table.ld, arena);
   return obj;
 }
 
@@ -776,47 +778,71 @@ static struct bucket_s *buckets_find(obj_t buckets, obj_t key, unsigned long has
   return NULL;
 }
 
-static void table_rehash(obj_t tbl) {
-  size_t i, old_length, new_length;
+/* Rehash 'tbl' so that it has 'new_length' buckets. If 'key' is found
+ * during this process, return the bucket containing 'key', otherwise
+ * return NULL.
+ */
+static struct bucket_s *table_rehash(obj_t tbl, size_t new_length, obj_t key) {
+  size_t i;
   obj_t new_buckets;
+  struct bucket_s *key_bucket = NULL;
 
   assert(tbl->type.type == TYPE_TABLE);
-  old_length = tbl->table.buckets->buckets.length;
-  new_length = old_length * 2;
   new_buckets = make_buckets(new_length);
+  mps_ld_reset(&tbl->table.ld, arena);
 
-  for (i = 0; i < old_length; ++i) {
+  for (i = 0; i < tbl->table.buckets->buckets.length; ++i) {
     struct bucket_s *old_b = &tbl->table.buckets->buckets.bucket[i];
     if (old_b->key != NULL) {
-      unsigned long hash = hash_by_identity(old_b->key);
-      struct bucket_s *b = buckets_find(new_buckets, old_b->key, hash);
+      unsigned long hash;
+      struct bucket_s *b;
+      mps_ld_add(&tbl->table.ld, arena, old_b->key);
+      hash = hash_by_identity(old_b->key);
+      b = buckets_find(new_buckets, old_b->key, hash);
       assert(b != NULL);	/* new table shouldn't be full */
       assert(b->key == NULL);	/* shouldn't be in new table */
       *b = *old_b;
+      if (b->key == key) key_bucket = b;
     }
   }
 
   tbl->table.buckets = new_buckets;
+  return key_bucket;
 }
 
 static obj_t table_ref(obj_t tbl, obj_t key) {
   struct bucket_s *b = buckets_find(tbl->table.buckets, key, hash_by_identity(key));
   if (b && b->key != NULL)
     return b->value;
+  if (mps_ld_isstale(&tbl->table.ld, arena, key)) {
+    puts("Stale!");
+    b = table_rehash(tbl, tbl->table.buckets->buckets.length, key);
+    if (b) return b->value;
+  }
   return NULL;
 }
 
-static void table_set(obj_t tbl, obj_t key, obj_t value) {
-  unsigned long hash = hash_by_identity(key);
-  struct bucket_s *b = buckets_find(tbl->table.buckets, key, hash);
-  if (b == NULL) {
-    table_rehash(tbl);
-    b = buckets_find(tbl->table.buckets, key, hash);
-    assert(b != NULL);          /* shouldn't be full after rehash */
-  }
+static int table_try_set(obj_t tbl, obj_t key, obj_t value) {
+  unsigned long hash;
+  struct bucket_s *b;
+  mps_ld_add(&tbl->table.ld, arena, key);
+  hash = hash_by_identity(key);
+  b = buckets_find(tbl->table.buckets, key, hash);
+  if (b == NULL)
+    return 0;
   if (b->key == NULL)
     b->key = key;
   b->value = value;
+  return 1;
+}
+
+static void table_set(obj_t tbl, obj_t key, obj_t value) {
+  if (!table_try_set(tbl, key, value)) {
+    int res;
+    table_rehash(tbl, tbl->table.buckets->buckets.length * 2, NULL);
+    res = table_try_set(tbl, key, value);
+    assert(res);                /* rehash should have made room */
+  }
 }
 
 
