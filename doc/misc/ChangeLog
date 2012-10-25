@@ -1,3 +1,9 @@
+2012-10-25  Michael Albinus  <michael.albinus@gmx.de>
+
+	* tramp.texi (Frequently Asked Questions): Mention
+	`tramp-completion-reread-directory-timeout' for performance
+	improvement.
+
 2012-10-25  Glenn Morris  <rgm@gnu.org>
 
 	* cl.texi: Don't mess with the TeX section number counter.
