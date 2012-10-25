@@ -73,7 +73,8 @@ enum {
   TYPE_PROMISE,
   TYPE_CHARACTER,
   TYPE_VECTOR,
-  TYPE_TABLE
+  TYPE_TABLE,
+  TYPE_BUCKETS
 };
 
 typedef struct type_s {
@@ -132,15 +133,18 @@ typedef struct vector_s {
   obj_t vector[1];		/* vector elements */
 } vector_s;
 
-typedef struct bucket_s {
-  obj_t key, value;
-} bucket_s;
-
 typedef struct table_s {
   type_t type;                  /* TYPE_TABLE */
-  size_t length;                /* number of buckets */
-  bucket_s *bucket;             /* hash buckets */
+  obj_t buckets;                /* hash buckets */
 } table_s;
+
+typedef struct buckets_s {
+  type_t type;                  /* TYPE_BUCKETS */
+  size_t length;                /* number of buckets */
+  struct bucket_s {
+    obj_t key, value;
+  } bucket[1];                  /* hash buckets */
+} buckets_s;
 
 typedef union obj_u {
   type_s type;			/* one of TYPE_* */
@@ -154,6 +158,7 @@ typedef union obj_u {
   character_s character;
   vector_s vector;
   table_s table;
+  buckets_s buckets;
 } obj_s;
 
 
@@ -386,20 +391,29 @@ static obj_t make_vector(size_t length, obj_t fill)
   return obj;
 }
 
-static obj_t make_table(void) {
-  size_t i, length = 8;
-  size_t size = sizeof(bucket_s) * length;
-  obj_t obj = (obj_t)malloc(sizeof(table_s));
+static obj_t make_buckets(size_t length)
+{
+  size_t i, size = offsetof(buckets_s, bucket) + length * 2 * sizeof(obj_t);
+  obj_t obj = (obj_t)malloc(size);
   if(obj == NULL) error("out of memory");
-  obj->table.type = TYPE_TABLE;
-  obj->table.length = length;
-  obj->table.bucket = malloc(size);
-  if(obj->table.bucket == NULL) error("out of memory");
-  total += sizeof(table_s) + size;
+  total += size;
+  obj->buckets.type = TYPE_BUCKETS;
+  obj->buckets.length = length;
   for(i = 0; i < length; ++i) {
-    obj->table.bucket[i].key = NULL;
-    obj->table.bucket[i].value = NULL;
+    obj->buckets.bucket[i].key = NULL;
+    obj->buckets.bucket[i].value = NULL;
   }
+  return obj;
+}
+
+static obj_t make_table(void)
+{
+  size_t size = sizeof(table_s);
+  obj_t obj = (obj_t)malloc(size);
+  if(obj == NULL) error("out of memory");
+  total += size;
+  obj->table.type = TYPE_TABLE;
+  obj->table.buckets = make_buckets(8);
   return obj;
 }
 
@@ -531,54 +545,44 @@ static unsigned long hash_by_identity(void *addr) {
   return hash(u.s);
 }
 
-static bucket_s *table_find(bucket_s *bucket, size_t length, obj_t key, unsigned long hash) {
+static struct bucket_s *buckets_find(obj_t buckets, obj_t key, unsigned long hash) {
   unsigned long i, h;
-  h = hash & (length-1);
+  h = hash & (buckets->buckets.length-1);
   i = h;
   do {
-    if(bucket[i].key == NULL || bucket[i].key == key)
-      return &bucket[i];
-    i = (i+h+1) & (length-1);
+    struct bucket_s *b = &buckets->buckets.bucket[i];
+    if(b->key == NULL || b->key == key)
+      return b;
+    i = (i+h+1) & (buckets->buckets.length-1);
   } while(i != h);
   return NULL;
 }
 
 static void table_rehash(obj_t tbl) {
-  size_t i, new_length, new_size;
-  bucket_s *new_bucket;
-  
+  size_t i, old_length, new_length;
+  obj_t new_buckets;
+
   assert(tbl->type.type == TYPE_TABLE);
-  new_length = tbl->table.length * 2;
-  new_size = sizeof(bucket_s) * new_length;
-  new_bucket = malloc(new_size);
+  old_length = tbl->table.buckets->buckets.length;
+  new_length = old_length * 2;
+  new_buckets = make_buckets(new_length);
 
-  if(new_bucket == NULL) error("out of memory");
-  total += new_size;
-
-  /* Initialize the new buckets so that "table_find" will work. */
-  for (i = 0; i < new_length; ++i) {
-    new_bucket[i].key = NULL;
-    new_bucket[i].value = NULL;
-  }
-
-  for (i = 0; i < tbl->table.length; ++i) {
-    bucket_s *old_b = &tbl->table.bucket[i];
+  for (i = 0; i < old_length; ++i) {
+    struct bucket_s *old_b = &tbl->table.buckets->buckets.bucket[i];
     if (old_b->key != NULL) {
       unsigned long hash = hash_by_identity(old_b->key);
-      bucket_s *b = table_find(new_bucket, new_length, old_b->key, hash);
+      struct bucket_s *b = buckets_find(new_buckets, old_b->key, hash);
       assert(b != NULL);	/* new table shouldn't be full */
       assert(b->key == NULL);	/* shouldn't be in new table */
       *b = *old_b;
     }
   }
 
-  tbl->table.bucket = new_bucket;
-  tbl->table.length = new_length;
+  tbl->table.buckets = new_buckets;
 }
 
 static obj_t table_ref(obj_t tbl, obj_t key) {
-  bucket_s *b = table_find(tbl->table.bucket, tbl->table.length,
-                           key, hash_by_identity(key));
+  struct bucket_s *b = buckets_find(tbl->table.buckets, key, hash_by_identity(key));
   if (b && b->key != NULL)
     return b->value;
   return NULL;
@@ -586,10 +590,10 @@ static obj_t table_ref(obj_t tbl, obj_t key) {
 
 static void table_set(obj_t tbl, obj_t key, obj_t value) {
   unsigned long hash = hash_by_identity(key);
-  bucket_s *b = table_find(tbl->table.bucket, tbl->table.length, key, hash);
+  struct bucket_s *b = buckets_find(tbl->table.buckets, key, hash);
   if (b == NULL) {
     table_rehash(tbl);
-    b = table_find(tbl->table.bucket, tbl->table.length, key, hash);
+    b = buckets_find(tbl->table.buckets, key, hash);
     assert(b != NULL);          /* shouldn't be full after rehash */
   }
   if (b->key == NULL)
@@ -710,18 +714,23 @@ static void print(obj_t obj, unsigned depth, FILE *stream)
       putc(')', stream);
     } break;
 
-    case TYPE_TABLE: {
+    case TYPE_BUCKETS: {
       size_t i;
-      fputs("#[hash-table", stream);
       for(i = 0; i < obj->vector.length; ++i) {
-        if(obj->table.bucket[i].key) {
+        struct bucket_s *b = &obj->buckets.bucket[i];
+        if(b->key) {
           fputs(" (", stream);
-          print(obj->table.bucket[i].key, depth - 1, stream);
+          print(b->key, depth - 1, stream);
           putc(' ', stream);
-          print(obj->table.bucket[i].value, depth - 1, stream);
+          print(b->value, depth - 1, stream);
           putc(')', stream);
         }
       }
+    } break;
+
+    case TYPE_TABLE: {
+      fputs("#[hash-table", stream);
+      print(obj->table.buckets, depth - 1, stream);
       putc(']', stream);
     } break;
     
