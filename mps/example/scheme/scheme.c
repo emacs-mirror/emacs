@@ -104,6 +104,8 @@ enum {
   TYPE_PROMISE,
   TYPE_CHARACTER,
   TYPE_VECTOR,
+  TYPE_TABLE,
+  TYPE_BUCKETS,
   TYPE_FWD2,            /* two-word forwarding object */
   TYPE_FWD,             /* three words and up forwarding object */
   TYPE_PAD1,            /* one-word padding object */
@@ -166,6 +168,19 @@ typedef struct vector_s {
   obj_t vector[1];		/* vector elements */
 } vector_s;
 
+typedef struct table_s {
+  type_t type;                  /* TYPE_TABLE */
+  obj_t buckets;                /* hash buckets */
+} table_s;
+
+typedef struct buckets_s {
+  type_t type;                  /* TYPE_BUCKETS */
+  size_t length;                /* number of buckets */
+  struct bucket_s {
+    obj_t key, value;
+  } bucket[1];                  /* hash buckets */
+} buckets_s;
+
 
 /* fwd2, fwd, pad1, pad -- MPS forwarding and padding objects        %%MPS
  *
@@ -221,6 +236,8 @@ typedef union obj_u {
   port_s port;
   character_s character;
   vector_s vector;
+  table_s table;
+  buckets_s buckets;
   fwd2_s fwd2;
   fwd_s fwd;
   pad_s pad;
@@ -568,6 +585,44 @@ static obj_t make_vector(size_t length, obj_t fill)
   return obj;
 }
 
+static obj_t make_buckets(size_t length)
+{
+  obj_t obj;
+  mps_addr_t addr;
+  size_t size = ALIGN(offsetof(buckets_s, bucket) + length * sizeof(obj->buckets.bucket[0]));
+  do {
+    mps_res_t res = mps_reserve(&addr, obj_ap, size);
+    size_t i;
+    if (res != MPS_RES_OK) error("out of memory in make_buckets");
+    obj = addr;
+    obj->buckets.type = TYPE_BUCKETS;
+    obj->buckets.length = length;
+    for(i = 0; i < length; ++i) {
+      obj->buckets.bucket[i].key = NULL;
+      obj->buckets.bucket[i].value = NULL;
+    }
+  } while(!mps_commit(obj_ap, addr, size));
+  total += size;
+  return obj;
+}
+
+static obj_t make_table(void)
+{
+  obj_t obj;
+  mps_addr_t addr;
+  size_t size = ALIGN(sizeof(table_s));
+  do {
+    mps_res_t res = mps_reserve(&addr, obj_ap, size);
+    if (res != MPS_RES_OK) error("out of memory in make_table");
+    obj = addr;
+    obj->table.type = TYPE_TABLE;
+    obj->table.buckets = NULL;
+  } while(!mps_commit(obj_ap, addr, size));
+  total += size;
+  obj->table.buckets = make_buckets(8);
+  return obj;
+}
+
 
 /* getnbc -- get next non-blank char from stream */
 
@@ -699,6 +754,72 @@ static obj_t intern(char *string) {
 }
 
 
+/* Hash table implementation
+ * Supports eq? hashing (hash-by-identity) only.
+ */
+static unsigned long hash_by_identity(void *addr) {
+  union {char s[sizeof(obj_t) + 1]; void *addr; } u = {""};
+  u.addr = addr;
+  return hash(u.s);
+}
+
+static struct bucket_s *buckets_find(obj_t buckets, obj_t key, unsigned long hash) {
+  unsigned long i, h;
+  h = hash & (buckets->buckets.length-1);
+  i = h;
+  do {
+    struct bucket_s *b = &buckets->buckets.bucket[i];
+    if(b->key == NULL || b->key == key)
+      return b;
+    i = (i+h+1) & (buckets->buckets.length-1);
+  } while(i != h);
+  return NULL;
+}
+
+static void table_rehash(obj_t tbl) {
+  size_t i, old_length, new_length;
+  obj_t new_buckets;
+
+  assert(tbl->type.type == TYPE_TABLE);
+  old_length = tbl->table.buckets->buckets.length;
+  new_length = old_length * 2;
+  new_buckets = make_buckets(new_length);
+
+  for (i = 0; i < old_length; ++i) {
+    struct bucket_s *old_b = &tbl->table.buckets->buckets.bucket[i];
+    if (old_b->key != NULL) {
+      unsigned long hash = hash_by_identity(old_b->key);
+      struct bucket_s *b = buckets_find(new_buckets, old_b->key, hash);
+      assert(b != NULL);	/* new table shouldn't be full */
+      assert(b->key == NULL);	/* shouldn't be in new table */
+      *b = *old_b;
+    }
+  }
+
+  tbl->table.buckets = new_buckets;
+}
+
+static obj_t table_ref(obj_t tbl, obj_t key) {
+  struct bucket_s *b = buckets_find(tbl->table.buckets, key, hash_by_identity(key));
+  if (b && b->key != NULL)
+    return b->value;
+  return NULL;
+}
+
+static void table_set(obj_t tbl, obj_t key, obj_t value) {
+  unsigned long hash = hash_by_identity(key);
+  struct bucket_s *b = buckets_find(tbl->table.buckets, key, hash);
+  if (b == NULL) {
+    table_rehash(tbl);
+    b = buckets_find(tbl->table.buckets, key, hash);
+    assert(b != NULL);          /* shouldn't be full after rehash */
+  }
+  if (b->key == NULL)
+    b->key = key;
+  b->value = value;
+}
+
+
 static void print(obj_t obj, unsigned depth, FILE *stream)
 {
   switch(TYPE(obj)) {
@@ -810,7 +931,27 @@ static void print(obj_t obj, unsigned depth, FILE *stream)
       }
       putc(')', stream);
     } break;
-    
+
+    case TYPE_BUCKETS: {
+      size_t i;
+      for(i = 0; i < obj->vector.length; ++i) {
+        struct bucket_s *b = &obj->buckets.bucket[i];
+        if(b->key) {
+          fputs(" (", stream);
+          print(b->key, depth - 1, stream);
+          putc(' ', stream);
+          print(b->value, depth - 1, stream);
+          putc(')', stream);
+        }
+      }
+    } break;
+
+    case TYPE_TABLE: {
+      fputs("#[hash-table", stream);
+      print(obj->table.buckets, depth - 1, stream);
+      putc(']', stream);
+    } break;
+
     case TYPE_OPERATOR: {
       fprintf(stream, "#[operator \"%s\" %p %p ",
               obj->operator.name,
@@ -2642,6 +2783,46 @@ static obj_t entry_string_copy(obj_t env, obj_t op_env, obj_t operator, obj_t op
 }
 
 
+/* (make-hash-table)
+ * Create a new hash table with no associations.
+ */
+static obj_t entry_make_hash_table(obj_t env, obj_t op_env, obj_t operator, obj_t operands)
+{
+  eval_args(operator->operator.name, env, op_env, operands, 0);
+  return make_table();
+}
+
+
+/* (hash-table-ref hash-table key)
+ * Returns the value associated to key in hash-table.
+ */
+static obj_t entry_hash_table_ref(obj_t env, obj_t op_env, obj_t operator, obj_t operands)
+{
+  obj_t tbl, key, value;
+  eval_args(operator->operator.name, env, op_env, operands, 2, &tbl, &key);
+  unless(TYPE(tbl) == TYPE_TABLE)
+    error("%s: first argument must be a hash table", operator->operator.name);
+  value = table_ref(tbl, key);
+  if (value) return value;
+  return obj_undefined;
+}
+
+
+/* (hash-table-set! hash-table key value)
+ * Sets the value associated to key in hash-table. The previous
+ * association (if any) is removed.
+ */
+static obj_t entry_hash_table_set(obj_t env, obj_t op_env, obj_t operator, obj_t operands)
+{
+  obj_t tbl, key, value;
+  eval_args(operator->operator.name, env, op_env, operands, 3, &tbl, &key, &value);
+  unless(TYPE(tbl) == TYPE_TABLE)
+    error("%s: first argument must be a hash table", operator->operator.name);
+  table_set(tbl, key, value);
+  return obj_undefined;
+}
+
+
 /* entry_gc -- full garbage collection now                      %%MPS
  *
  * This is an example of a direct interface from the language to the MPS.
@@ -2771,6 +2952,9 @@ static struct {char *name; entry_t entry;} funtab[] = {
   {"string->list", entry_string_to_list},
   {"list->string", entry_list_to_string},
   {"string-copy", entry_string_copy},
+  {"make-hash-table", entry_make_hash_table},
+  {"hash-table-ref", entry_hash_table_ref},
+  {"hash-table-set!", entry_hash_table_set},
   {"gc", entry_gc}
 };
 
@@ -2859,6 +3043,22 @@ static mps_res_t obj_scan(mps_ss_t ss, mps_addr_t base, mps_addr_t limit)
                ALIGN(offsetof(vector_s, vector) +
                      obj->vector.length * sizeof(obj->vector.vector[0]));
         break;
+      case TYPE_BUCKETS:
+        {
+          size_t i;
+          for (i = 0; i < obj->buckets.length; ++i) {
+            FIX(obj->buckets.bucket[i].key);
+            FIX(obj->buckets.bucket[i].value);
+          }
+        }
+        base = (char *)base +
+               ALIGN(offsetof(buckets_s, bucket) +
+                     obj->buckets.length * sizeof(obj->buckets.bucket[0]));
+        break;
+      case TYPE_TABLE:
+        FIX(obj->table.buckets);
+        base = (char *)base + ALIGN(sizeof(table_s));
+        break;
       case TYPE_FWD2:
         base = (char *)base + ALIGN(sizeof(fwd2_s));
         break;
@@ -2925,6 +3125,14 @@ static mps_addr_t obj_skip(mps_addr_t base)
     base = (char *)base +
            ALIGN(offsetof(vector_s, vector) +
                  obj->vector.length * sizeof(obj->vector.vector[0]));
+    break;
+  case TYPE_BUCKETS:
+    base = (char *)base +
+           ALIGN(offsetof(buckets_s, bucket) +
+                 obj->buckets.length * sizeof(obj->buckets.bucket[0]));
+    break;
+  case TYPE_TABLE:
+    base = (char *)base + ALIGN(sizeof(table_s));
     break;
   case TYPE_FWD2:
     base = (char *)base + ALIGN(sizeof(fwd2_s));
@@ -3204,8 +3412,10 @@ static void *start(void *p, size_t s)
     obj = read(stdin);
     if(obj == obj_eof) break;
     obj = eval(env, op_env, obj);
-    print(obj, 6, stdout);
-    putc('\n', stdout);
+    if(obj != obj_undefined) {
+      print(obj, 6, stdout);
+      putc('\n', stdout);
+    }
   }
 
   puts("Bye.");
