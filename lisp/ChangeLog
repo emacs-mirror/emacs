@@ -1,3 +1,7 @@
+2012-10-25  Glenn Morris  <rgm@gnu.org>
+
+	* emacs-lisp/cl-macs.el (cl-progv): Doc fix.
+
 2012-10-24  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* minibuffer.el (minibuffer-force-complete): Use one more marker

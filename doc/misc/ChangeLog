@@ -1,3 +1,18 @@
+2012-10-25  Glenn Morris  <rgm@gnu.org>
+
+	* cl.texi: Don't mess with the TeX section number counter.
+	Use Texinfo recommended convention for quotes+punctuation.
+	(Overview, Sequence Functions): Rephrase for better line-breaking.
+	(Time of Evaluation, Type Predicates, Modify Macros, Function Bindings)
+	(Macro Bindings, Conditionals, Iteration, Loop Basics)
+	(Random Numbers, Mapping over Sequences, Structures)
+	(Porting Common Lisp): Further updates for cl-lib namespace.
+	(Modify Macros, Declarations, Macro Bindings, Structures):
+	Break long lines in examples.
+	(Dynamic Bindings): Update for changed progv behavior.
+	(Loop Examples, Efficiency Concerns): Markup fixes.
+	(Structures): Remove TeX margin change.
+
 2012-10-24  Glenn Morris  <rgm@gnu.org>
 
 	* cl.texi (Overview, Multiple Values, Creating Symbols)

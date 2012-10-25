@@ -332,6 +332,7 @@ The difference is that it relies on the `lexical-binding' machinery (as opposed
 to the `lexical-let' machinery used previously) to capture definitions in
 closures, so such closures will only work if `lexical-binding' is in use.
 
++++
 *** `progv' was rewritten to use the `let' machinery.
 A side effect is that vars without corresponding value are bound to nil
 rather than making them unbound.
