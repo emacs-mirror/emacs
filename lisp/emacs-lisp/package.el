@@ -728,6 +728,7 @@ It will move point to somewhere in the headers."
 (defun package-installed-p (package &optional min-version)
   "Return true if PACKAGE, of MIN-VERSION or newer, is installed.
 MIN-VERSION should be a version list."
+  (unless package--initialized (error "package.el is not yet initialized!"))
   (let ((pkg-desc (assq package package-alist)))
     (if pkg-desc
 	(version-list-<= min-version
