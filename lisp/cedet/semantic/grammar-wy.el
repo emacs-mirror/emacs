@@ -23,9 +23,8 @@
 
 ;;; Code:
 
-(require 'semantic/lex)
-(eval-when-compile (require 'semantic/bovine))
-
+(require 'semantic)
+
 ;;; Prologue
 ;;
 (defvar semantic-grammar-lex-c-char-re)

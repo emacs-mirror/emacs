@@ -1,3 +1,36 @@
+2012-10-25  David Engster  <deng@randomsample.de>
+
+	* semantic/analyze.el (semantic-analyze-dereference-alias): New
+	function to dereference aliases.
+	(semantic-analyze-current-context-default): Use it.
+
+	* semantic/grammar.el (semantic-grammar-create-package):
+	* srecode/compile.el (srecode-compile-templates): Throw a proper
+	error if semantic-mode is not enabled (bug#9968).
+
+	Compiler warning fixes:
+
+	* semantic.el (semantic-elapsed-time): Make it a defsubst.
+
+	* srecode/dictionary.el (srecode-adebug-dictionary): Remove
+	require for `semantic'.
+
+	* srecode/map.el:
+	* srecode/insert.el: Declare functions from `data-debug'.
+
+	* semantic/grammar.el: Require `help-fns'.  Declare functions from
+	`eldoc', which is required in function body.
+
+	* srecode/java.el:
+	* semantic/texi.el:
+	* semantic/grammar-wy.el:
+	* semantic/db-file.el:
+	* semantic/db-el.el:
+	* semantic/chart.el: Fix requires.
+
+	* ede/locate.el: Remove useless requires. Declare functions
+	instead and require in functions when needed.
+
 2012-10-23  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* semantic/db-file.el (semanticdb-save-database-functions):

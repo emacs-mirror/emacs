@@ -604,7 +604,6 @@ STATE is the current compiler state."
   "Run data-debug on this mode's dictionary."
   (interactive)
   (require 'eieio-datadebug)
-  (require 'semantic)
   (require 'srecode/find)
   (let* ((modesym major-mode)
 	 (start (current-time))

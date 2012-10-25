@@ -195,6 +195,10 @@ Buffer based features related to change hooks is handled one level up."
     ;; area.  Return value is not important.
     ))
 
+(declare-function data-debug-new-buffer "data-debug")
+(declare-function data-debug-insert-stuff-list "data-debug")
+(declare-function data-debug-insert-thing dictionary "data-debug")
+
 (defun srecode-insert-show-error-report (dictionary format &rest args)
   "Display an error report based on DICTIONARY, FORMAT and ARGS.
 This is intended to diagnose problems with failed template
