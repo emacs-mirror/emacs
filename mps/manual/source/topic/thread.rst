@@ -56,10 +56,9 @@ from inside such an exception handler, that is, inside a call to
     In fact, it's only Windows that requires its structured exception
     handler to be on the stack. On other operating systems you can get
     away without calling the trampoline. Nonetheless, for portability
-    and forwards compatibility we recommend that if you have multiple
-    threads that run code that use memory managed by the MPS, each
-    thread should execute such code inside a call to
-    :c:func:`mps_tramp`.
+    and forwards compatibility we recommend that each thread that runs
+    code that uses memory managed by the MPS should execute such code
+    inside a call to :c:func:`mps_tramp`.
 
 This has the additional consequence that a program that handles
 ``SIGBUS`` (on OS X), ``SIGSEGV`` (on FreeBSD or Linux), or
