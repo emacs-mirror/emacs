@@ -31,12 +31,7 @@
 ;;
 
 (require 'semantic/db)
-
-(eval-when-compile
-  ;; For generic function searching.
-  (require 'eieio)
-  (require 'eieio-opt)
-  (require 'eieio-base))
+(require 'eieio-opt)
 
 (declare-function semantic-elisp-desymbolify "semantic/bovine/el")
 (declare-function semantic-tag-similar-p "semantic/tag-ls")

@@ -1,3 +1,11 @@
+2012-10-25  David Engster  <deng@randomsample.de>
+
+	* emacs-lisp/eieio.el (eieio-update-lisp-imenu-expression):
+	Removed.  This feature is already integrated in imenu.
+
+	* emacs-lisp/eieio-opt.el: Remove require for `button' since it is
+	always loaded.  Require `speedbar' unconditionally.
+
 2012-10-25  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* dired.el (dired-get-marked-files): Allow ! on . and .. (bug#12725).
