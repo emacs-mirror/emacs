@@ -22,18 +22,6 @@ assume that all references stored in static data are roots; the Memory
 Pool System is more flexible, but requires the client program to
 declare which references are roots.
 
-.. note::
-
-    Theoretically, the only roots are the :term:`registers
-    <register>`; that is, a program can only use values that can be
-    referenced from the registers. This is the logical way of thinking
-    about the problem; however, in practice it's tricky. For example,
-    it requires complete knowledge of the layout of static data.
-    Another difficulty is that a multi-threaded program has multiple
-    sets of registers that the operating system kernel keeps track of,
-    and that the garbage collector, running as a user program, can't
-    access.
-
 
 Registering roots
 -----------------
