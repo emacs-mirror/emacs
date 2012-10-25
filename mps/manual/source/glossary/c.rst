@@ -173,10 +173,6 @@ Memory Management Glossary: C
             Call :c:func:`mps_arena_clamp` to put an arena into the
             clamped state.
 
-    class structure
-
-        .. mps:specific:: ??
-
     client arena
 
         .. mps:specific::
@@ -612,7 +608,13 @@ Memory Management Glossary: C
 
     critical path
 
-        .. mps:specific:: ??
+        .. mps:specific::
+
+            The sequence of operations on which the MPS spends the
+            majority of its time, consisting of :term:`scanning
+            scan>`, :term:`fixing <fix>`, :term:`marking` and
+            :term:`copying <copying garbage collection>`. See
+            :ref:`topic-critical`.
 
     crossing map
 

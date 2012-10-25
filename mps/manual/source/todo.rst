@@ -56,6 +56,10 @@ Outstanding
 
 121. Documentation needs copying into scheme.c.
 
+122. What's a "class structure"? (See :c:func:`mps_sac_alloc` and
+     :c:func:`mps_sac_free`.) Does it mean "exactly the same set of
+     size classes"?
+
 
 Complete
 --------

@@ -130,7 +130,13 @@ Memory Management Glossary: D
 
     dependent object
 
-        .. mps:specific:: ??
+        .. mps:specific::
+
+            In :ref:`pool-awl`, each object in the pool can have a
+            *dependent object*. While scanning an object, the MPS
+            ensures that the dependent object is unprotected so that
+            it can be updated. This feature supports the
+            implementation of weak-key and weak-value hash tables.
 
     derived pointer
 
@@ -269,6 +275,11 @@ Memory Management Glossary: D
             it was on earlier processors of this series.
 
         .. seealso:: :term:`quadword`.
+
+    doubly weak hash table
+
+        A hash table that is both :term:`weak-key <weak-key hash
+        table>` and :term:`weak-value <weak-value hash table>`.
 
     DRAM
 

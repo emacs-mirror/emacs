@@ -8,9 +8,30 @@ Memory Management Glossary: W
 
 .. glossary::
 
+    weak-key hash table
+
+        A hash table which has :term:`weak references <weak reference
+        (1)>` to its keys. If the key dies, the value for that key is
+        automatically deleted from the table too.
+
+        .. similar:: :term:`doubly weak hash table`, :term:`weak-value hash table`.
+
+        .. mps:specific:: See :ref:`pool-awl`.
+
+    weak-value hash table
+
+        A hash table which has :term:`weak references <weak reference
+        (1)>` to its value. If the value dies, any keys that refer to
+        that value are automatically deleted from the table too.
+
+        .. similar:: :term:`doubly weak hash table`, :term:`weak-key hash table`.
+
+        .. mps:specific:: See :ref:`pool-awl`.
+
     weak hash table
 
-        ??
+        A :term:`weak-key <weak-key hash table>` or :term:`weak-value
+        hash table` (usually the former).
 
     weak reference (1)
 
