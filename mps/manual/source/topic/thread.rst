@@ -21,6 +21,22 @@ MPS and released on exit from it. So there is at most a single thread
 (per arena) running "inside" the MPS at a time.
 
 
+Thread registration
+-------------------
+
+In order to scan a thread's registers for references (which happens at
+each :term:`flip`), the MPS needs to be able to suspend that thread.
+This means that threads must be registered with the MPS by calling
+:c:func:`mps_thread_reg` (and thread roots created; see
+:ref:`topic-thread-root`).
+ 
+A thread must be registered with an :term:`arena` if it ever uses a
+pointer to a location in an :term:`automatically managed <automatic
+memory management>` :term:`pool` belonging to that arena. But for
+simplicity we recommend that all threads be registered with all
+arenas.
+
+
 Signal handling issues
 ----------------------
 
@@ -28,11 +44,27 @@ The MPS uses :term:`barriers <barrier (1)>` to :term:`protect
 <protection>` memory from the :term:`client program` and handles the
 signals that result from barrier hits.
 
-This means that a program that handles ``SIGBUS`` (on OS X),
-``SIGSEGV`` (on FreeBSD or Linux), or first-chance exceptions (on
-Windows) needs to co-operate with the MPS. The mechanism for
-co-operation is currently undocumented: please :ref:`contact us
-<contact>`.
+On some operating systems, barrier hits generate exceptions that have
+to be caught by a handler that is on the stack. On these operating
+systems, any code that uses memory managed by the MPS must be called
+from inside such an exception handler, that is, inside a call to
+:c:func:`mps_tramp`.
+
+.. note::
+
+    In fact, it's only Windows that requires its structured exception
+    handler to be on the stack. On other operating systems you can get
+    away without calling the trampoline. Nonetheless, for portability
+    and forwards compatibility we recommend that if you have multiple
+    threads that run code that use memory managed by the MPS, each
+    thread should execute such code inside a call to
+    :c:func:`mps_tramp`.
+
+This has the additional consequence that a program that handles
+``SIGBUS`` (on OS X), ``SIGSEGV`` (on FreeBSD or Linux), or
+first-chance exceptions (on Windows) needs to co-operate with the MPS.
+The mechanism for co-operation is currently undocumented: please
+:ref:`contact us <contact>`.
 
 
 Interface
