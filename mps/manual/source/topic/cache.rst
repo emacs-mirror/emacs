@@ -199,10 +199,10 @@ Interface
 
         Blocks allocated through a segregated allocation cache should
         only be freed through a segregated allocation cache with the
-        same :term:`class structure`. Calling :c:func:`mps_free` on
-        them can cause :term:`memory leaks <memory leak>`, because the
-        size of the block might be larger than you think. Naturally,
-        the cache must also be attached to the same pool.
+        same class structure. Calling :c:func:`mps_free` on them can
+        cause :term:`memory leaks <memory leak>`, because the size of
+        the block might be larger than you think. Naturally, the cache
+        must also be attached to the same pool.
 
 
 .. c:function:: MPS_SAC_ALLOC_FAST(mps_res_t res_v, mps_addr_t *p_v, mps_sac_t sac, size_t size, mps_bool_t has_reservoir_permit)
@@ -244,9 +244,9 @@ Interface
 
     ``p`` points to the block to be freed. This block must have been
     allocated through a segregated allocation cache with the same
-    :term:`class structure`, attached to the same pool. (Usually,
-    you'd use the same cache to allocate and deallocate a block, but
-    the MPS is more flexible.)
+    class structure, attached to the same pool. (Usually, you'd use
+    the same cache to allocate and deallocate a block, but the MPS is
+    more flexible.)
 
     ``size`` is the :term:`size` of the block. It should be the size
     that was specified when the block was allocated (the cache knows
