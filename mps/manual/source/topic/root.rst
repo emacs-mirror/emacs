@@ -184,7 +184,7 @@ Ranks
 Root modes
 ----------
 
-The root mode provide a way for the client to declare various facts
+The root mode provides a way for the client to declare various facts
 about a root that will allow the MPS to make optimizations. Roots that
 are declared to be *constant* need not be re-scanned, and roots that
 are declared to be *protectable* may have barriers placed on them,
