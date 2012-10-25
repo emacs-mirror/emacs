@@ -405,8 +405,8 @@ Arena properties
     memory.
 
 
-Arena state
------------
+Arena states
+------------
 
 An arena is always in one of three states.
 
