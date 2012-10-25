@@ -144,17 +144,18 @@ references into :term:`leaf object` pools like :ref:`pool-amcz`, these
 objects do not need to be scanned at all.
 
 
-Other notes
------------
+Ambiguous references
+--------------------
 
 If the references in the object being scanned are :term:`ambiguous
 <ambiguous reference>` then :c:func:`MPS_FIX2` does not update the
-reference (because it can't know if it's a genuine reference).
+reference (because it can't know if it's a genuine reference). The MPS
+handles an ambiguous reference by :term:`pinning` the block pointed to
+so that it cannot move.
 
-.. note::
-
-    The MPS handles an ambiguous reference by *pinning* the block
-    pointed to so that it cannot move.
+You could use this fact to optimize the scan by avoiding the need to
+reassemble and store the updated reference after calling
+:term:`MPS_FIX2`
 
 .. note::
 

@@ -20,31 +20,6 @@ co-operation is currently undocumented: please :ref:`contact us
 Interface
 ---------
 
-.. c:function:: mps_reg_scan_t mps_stack_scan_ambig
-
-    A root scanning function for :term:`ambiguous <ambiguous
-    reference>` scanning of :term:`threads <thread>`, suitable for
-    passing to :c:func:`mps_root_create_reg`.
-
-    It scans all integer registers and everything on the stack of the
-    thread given, and can therefore only be used with :term:`ambiguous
-    roots <ambiguous root>`. It only scans locations that are at, or
-    higher on the stack (that is, more recently added), the stack
-    bottom that was passed to :c:func:`mps_thread_reg`. References
-    are assumed to be represented as machine words, and are required
-    to be 4-byte-aligned; unaligned values are ignored.
-
-    .. seealso::
-
-        :ref:`topic-platform`, :ref:`topic-root`.
-
-    .. note::
-
-        The MPS provides this function because it's hard to write: it
-        depends on the operating system, the architecture, and in some
-        cases the compiler.
-
-
 .. c:function:: mps_res_t mps_thread_reg(mps_thr_t *thr_o, mps_arena_t arena)
 
     Register the current :term:`thread` with an :term:`arena`.
