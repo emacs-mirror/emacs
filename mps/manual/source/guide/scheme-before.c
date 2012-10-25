@@ -72,7 +72,8 @@ enum {
   TYPE_PORT,
   TYPE_PROMISE,
   TYPE_CHARACTER,
-  TYPE_VECTOR
+  TYPE_VECTOR,
+  TYPE_TABLE
 };
 
 typedef struct type_s {
@@ -131,6 +132,16 @@ typedef struct vector_s {
   obj_t vector[1];		/* vector elements */
 } vector_s;
 
+typedef struct bucket_s {
+  obj_t key, value;
+} bucket_s;
+
+typedef struct table_s {
+  type_t type;                  /* TYPE_TABLE */
+  size_t length;                /* number of buckets */
+  bucket_s *bucket;             /* hash buckets */
+} table_s;
+
 typedef union obj_u {
   type_s type;			/* one of TYPE_* */
   pair_s pair;
@@ -142,6 +153,7 @@ typedef union obj_u {
   port_s port;
   character_s character;
   vector_s vector;
+  table_s table;
 } obj_s;
 
 
@@ -374,6 +386,23 @@ static obj_t make_vector(size_t length, obj_t fill)
   return obj;
 }
 
+static obj_t make_table(void) {
+  size_t i, length = 8;
+  size_t size = sizeof(bucket_s) * length;
+  obj_t obj = (obj_t)malloc(sizeof(table_s));
+  if(obj == NULL) error("out of memory");
+  obj->table.type = TYPE_TABLE;
+  obj->table.length = length;
+  obj->table.bucket = malloc(size);
+  if(obj->table.bucket == NULL) error("out of memory");
+  total += sizeof(table_s) + size;
+  for(i = 0; i < length; ++i) {
+    obj->table.bucket[i].key = NULL;
+    obj->table.bucket[i].value = NULL;
+  }
+  return obj;
+}
+
 
 /* getnbc -- get next non-blank char from stream */
 
@@ -493,6 +522,82 @@ static obj_t intern(char *string) {
 }
 
 
+/* Hash table implementation
+ * Supports eq? hashing (hash-by-identity) only.
+ */
+static unsigned long hash_by_identity(void *addr) {
+  union {char s[sizeof(obj_t) + 1]; void *addr; } u = {""};
+  u.addr = addr;
+  return hash(u.s);
+}
+
+static bucket_s *table_find(bucket_s *bucket, size_t length, obj_t key, unsigned long hash) {
+  unsigned long i, h;
+  h = hash & (length-1);
+  i = h;
+  do {
+    if(bucket[i].key == NULL || bucket[i].key == key)
+      return &bucket[i];
+    i = (i+h+1) & (length-1);
+  } while(i != h);
+  return NULL;
+}
+
+static void table_rehash(obj_t tbl) {
+  size_t i, new_length, new_size;
+  bucket_s *new_bucket;
+  
+  assert(tbl->type.type == TYPE_TABLE);
+  new_length = tbl->table.length * 2;
+  new_size = sizeof(bucket_s) * new_length;
+  new_bucket = malloc(new_size);
+
+  if(new_bucket == NULL) error("out of memory");
+  total += new_size;
+
+  /* Initialize the new buckets so that "table_find" will work. */
+  for (i = 0; i < new_length; ++i) {
+    new_bucket[i].key = NULL;
+    new_bucket[i].value = NULL;
+  }
+
+  for (i = 0; i < tbl->table.length; ++i) {
+    bucket_s *old_b = &tbl->table.bucket[i];
+    if (old_b->key != NULL) {
+      unsigned long hash = hash_by_identity(old_b->key);
+      bucket_s *b = table_find(new_bucket, new_length, old_b->key, hash);
+      assert(b != NULL);	/* new table shouldn't be full */
+      assert(b->key == NULL);	/* shouldn't be in new table */
+      *b = *old_b;
+    }
+  }
+
+  tbl->table.bucket = new_bucket;
+  tbl->table.length = new_length;
+}
+
+static obj_t table_ref(obj_t tbl, obj_t key) {
+  bucket_s *b = table_find(tbl->table.bucket, tbl->table.length,
+                           key, hash_by_identity(key));
+  if (b && b->key != NULL)
+    return b->value;
+  return NULL;
+}
+
+static void table_set(obj_t tbl, obj_t key, obj_t value) {
+  unsigned long hash = hash_by_identity(key);
+  bucket_s *b = table_find(tbl->table.bucket, tbl->table.length, key, hash);
+  if (b == NULL) {
+    table_rehash(tbl);
+    b = table_find(tbl->table.bucket, tbl->table.length, key, hash);
+    assert(b != NULL);          /* shouldn't be full after rehash */
+  }
+  if (b->key == NULL)
+    b->key = key;
+  b->value = value;
+}
+
+
 static void print(obj_t obj, unsigned depth, FILE *stream)
 {
   switch(TYPE(obj)) {
@@ -603,6 +708,21 @@ static void print(obj_t obj, unsigned depth, FILE *stream)
         }
       }
       putc(')', stream);
+    } break;
+
+    case TYPE_TABLE: {
+      size_t i;
+      fputs("#[hash-table", stream);
+      for(i = 0; i < obj->vector.length; ++i) {
+        if(obj->table.bucket[i].key) {
+          fputs(" (", stream);
+          print(obj->table.bucket[i].key, depth - 1, stream);
+          putc(' ', stream);
+          print(obj->table.bucket[i].value, depth - 1, stream);
+          putc(')', stream);
+        }
+      }
+      putc(']', stream);
     } break;
     
     case TYPE_OPERATOR: {
@@ -2426,6 +2546,46 @@ static obj_t entry_string_copy(obj_t env, obj_t op_env, obj_t operator, obj_t op
 }
 
 
+/* (make-hash-table)
+ * Create a new hash table with no associations.
+ */
+static obj_t entry_make_hash_table(obj_t env, obj_t op_env, obj_t operator, obj_t operands)
+{
+  eval_args(operator->operator.name, env, op_env, operands, 0);
+  return make_table();
+}
+
+
+/* (hash-table-ref hash-table key)
+ * Returns the value associated to key in hash-table.
+ */
+static obj_t entry_hash_table_ref(obj_t env, obj_t op_env, obj_t operator, obj_t operands)
+{
+  obj_t tbl, key, value;
+  eval_args(operator->operator.name, env, op_env, operands, 2, &tbl, &key);
+  unless(TYPE(tbl) == TYPE_TABLE)
+    error("%s: first argument must be a hash table", operator->operator.name);
+  value = table_ref(tbl, key);
+  if (value) return value;
+  return obj_undefined;
+}
+
+
+/* (hash-table-set! hash-table key value)
+ * Sets the value associated to key in hash-table. The previous
+ * association (if any) is removed.
+ */
+static obj_t entry_hash_table_set(obj_t env, obj_t op_env, obj_t operator, obj_t operands)
+{
+  obj_t tbl, key, value;
+  eval_args(operator->operator.name, env, op_env, operands, 3, &tbl, &key, &value);
+  unless(TYPE(tbl) == TYPE_TABLE)
+    error("%s: first argument must be a hash table", operator->operator.name);
+  table_set(tbl, key, value);
+  return obj_undefined;
+}
+
+
 /* INITIALIZATION */
 
 
@@ -2536,6 +2696,9 @@ static struct {char *name; entry_t entry;} funtab[] = {
   {"string->list", entry_string_to_list},
   {"list->string", entry_list_to_string},
   {"string-copy", entry_string_copy},
+  {"make-hash-table", entry_make_hash_table},
+  {"hash-table-ref", entry_hash_table_ref},
+  {"hash-table-set!", entry_hash_table_set},
 };
 
 
