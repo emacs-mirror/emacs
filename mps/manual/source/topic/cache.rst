@@ -1,7 +1,7 @@
 .. _topic-cache:
 
-Allocation caches
-=================
+Segregated allocation caches
+============================
 
 Might have been proposed in this paper?
 

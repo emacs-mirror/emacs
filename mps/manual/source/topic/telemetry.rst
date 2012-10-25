@@ -148,9 +148,8 @@ standard output) a representation of each event in the stream.
     ``eventcnv | sort``.
 
 
-
-Interface
----------
+Telemetry interface
+-------------------
 
 .. c:function:: mps_word_t mps_telemetry_control(mps_word_t reset_mask, mps_word_t flip_mask)
 

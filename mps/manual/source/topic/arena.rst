@@ -1,4 +1,4 @@
-.. Sources:
+.. sources:
 
     `<https://info.ravenbrook.com/project/mps/doc/2002-06-18/obsolete-mminfo/mmdoc/protocol/mps/arena/>`_
     `<https://info.ravenbrook.com/project/mps/master/design/arena/>`_
@@ -645,8 +645,8 @@ application.
     state`, it remains there.
 
 
-Introspection
--------------
+Arena introspection
+-------------------
 
 .. note::
 
@@ -693,8 +693,8 @@ Introspection
         in the :term:`parked state`.
 
 
-Protection
-----------
+Protection interface
+--------------------
 
 .. c:function:: void mps_arena_expose(mps_arena_t arena)
 

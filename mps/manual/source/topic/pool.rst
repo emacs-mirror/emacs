@@ -91,8 +91,8 @@ See :ref:`pool` for a list of pool classes.
         too late to change it now.
 
 
-Introspection
--------------
+Pool introspection
+------------------
 
 .. c:function:: mps_bool_t mps_addr_pool(mps_pool_t *pool_o, mps_arena_t arena, mps_addr_t addr)
 
