@@ -1,3 +1,12 @@
+2012-10-25  Paul Eggert  <eggert@cs.ucla.edu>
+
+	Don't assume process IDs fit in int.
+	* emacs.c (shut_down_emacs) [!DOS_NT]:
+	* sysdep.c (sys_suspend) [SIGTSTP && !MSDOS]:
+	* term.c (dissociate_if_controlling_tty) [!DOS_NT]:
+	Use pid_t, not int, to store process IDs, as 'int'
+	is not wide enough on a few platforms (e.g., AIX and IRIX).
+
 2012-10-23  Kenichi Handa  <handa@gnu.org>
 
 	The following change is to make face-font-rescale-alist work
