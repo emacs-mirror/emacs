@@ -7,6 +7,20 @@
 Threads
 =======
 
+Thread safety
+-------------
+
+The MPS is designed to run in an environment with multiple threads all
+calling into the MPS. Some code is known to operate with exclusive
+access to the data it manipulates (for example, allocation via
+:term:`allocation points <allocation point>`, in the common case where
+the buffer does not need to be refilled), so this code is safe. For
+the rest of the code, shared data structures are locked by the use of
+a single lock per :term:`arena`. This lock is claimed on entry to the
+MPS and released on exit from it. So there is at most a single thread
+(per arena) running "inside" the MPS at a time.
+
+
 Signal handling issues
 ----------------------
 
@@ -44,7 +58,7 @@ Interface
     .. note::
 
         It is recommended that all threads be registered with all
-        arena.
+        arenas.
 
 
 .. c:function:: void mps_thread_dereg(mps_thr_t thr)
