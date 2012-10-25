@@ -2651,7 +2651,9 @@ static obj_t entry_string_copy(obj_t env, obj_t op_env, obj_t operator, obj_t op
 
 static obj_t entry_gc(obj_t env, obj_t op_env, obj_t operator, obj_t operands)
 {
-  mps_res_t res = mps_arena_collect(arena);
+  mps_res_t res;
+  eval_args(operator->operator.name, env, op_env, operands, 0);
+  res = mps_arena_collect(arena);
   if (res != MPS_RES_OK)
     error("Couldn't collect: %d", res);
   mps_arena_release(arena);
