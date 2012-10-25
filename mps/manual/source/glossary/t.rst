@@ -53,6 +53,10 @@ Memory Management Glossary: T
 
         .. bibref:: [GUDEMAN93]_.
 
+        .. mps:specific::
+
+            See :ref:`topic-scanning-tag`.
+
     tagged architecture
 
         A tagged architecture is a hardware architecture where each
@@ -175,7 +179,7 @@ Memory Management Glossary: T
             :c:func:`mps_thread_reg`. In order for the MPS to find
             references on the control of the thread, the thread must
             be also be registered as a root by calling
-            :c:func:`mps_root_create_reg`.
+            :c:func:`mps_root_create_reg`. See :ref:`topic-thread`.
 
     threatened set
 

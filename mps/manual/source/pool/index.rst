@@ -188,7 +188,7 @@ with new pool classes, and designed so that the properties of pools
 are as orthogonal as possible. So if you need a pool containing
 objects that are scannable but unformatted, or movable objects which
 are manually managed, or a pool all of whose objects are roots, there
-is no technical reason why it should not be possible to write them.
+is no technical reason why it should not be possible to write it.
 
 If you'd be interested in our developing new pool classes for your
 requirements, or if you've started writing a new pool class

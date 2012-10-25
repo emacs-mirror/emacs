@@ -234,12 +234,12 @@ Memory Management Glossary: L
             A *location dependency* records the fact that the
             :term:`client program` depends on the bit patterns of some
             :term:`references <reference>` (and not merely on the
-            :term:`block` to which the reference refers), and provides
-            a function (:c:func:`mps_ld_isstale`) to find out whether
-            any of these references have been changed because a block
-            has been :term:`moved <moving garbage collector>`. A
-            location dependency is represented by the type
-            :c:type:`mps_ld_t`.
+            identity of the :term:`block` to which the reference
+            refers), and provides a function
+            (:c:func:`mps_ld_isstale`) to find out whether any of
+            these references have been changed because a block has
+            been :term:`moved <moving garbage collector>`. See
+            :ref:`topic-location`.
 
     lock free
 

@@ -4,7 +4,8 @@ Telemetry
 =========
 
 John McCarthy described the first on-line demonstration of
-:term:`Lisp` in his paper "History of Lisp" [MCCARTHY79]_:
+:term:`Lisp` in an appendix to his paper "History of Lisp"
+[MCCARTHY79]_:
 
     A Flexowriter had been connected to the IBM 704 and the operating
     system modified so that it collected characters from the
@@ -29,6 +30,14 @@ John McCarthy described the first on-line demonstration of
     previous rehearsal, the garbage collector hadn’t been called, but
     we had not refreshed the LISP core image, so we ran out of free
     storage during the demonstration.
+
+    Nothing had ever been said about the garbage collector, and I
+    could only imagine the reaction of the audience. We were already
+    behind time on a tight schedule, it was clear that typing out the
+    garbage collector message would take all the remaining time
+    allocated to the demonstration, and both the lecturer and the
+    audience were incapacitated with laughter. I think some of them
+    thought we were victims of a practical joker.
 
 
 

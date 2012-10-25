@@ -539,15 +539,12 @@ static obj_t intern(char *string) {
 /* Hash table implementation
  * Supports eq? hashing (hash-by-identity) only.
  */
-static unsigned long hash_by_identity(void *addr) {
+static struct bucket_s *buckets_find(obj_t buckets, obj_t key)
+{
   union {char s[sizeof(obj_t) + 1]; void *addr; } u = {""};
-  u.addr = addr;
-  return hash(u.s);
-}
-
-static struct bucket_s *buckets_find(obj_t buckets, obj_t key, unsigned long hash) {
   unsigned long i, h;
-  h = hash & (buckets->buckets.length-1);
+  u.addr = key;
+  h = hash(u.s) & (buckets->buckets.length-1);
   i = h;
   do {
     struct bucket_s *b = &buckets->buckets.bucket[i];
@@ -558,7 +555,8 @@ static struct bucket_s *buckets_find(obj_t buckets, obj_t key, unsigned long has
   return NULL;
 }
 
-static void table_rehash(obj_t tbl) {
+static void table_rehash(obj_t tbl)
+{
   size_t i, old_length, new_length;
   obj_t new_buckets;
 
@@ -570,8 +568,7 @@ static void table_rehash(obj_t tbl) {
   for (i = 0; i < old_length; ++i) {
     struct bucket_s *old_b = &tbl->table.buckets->buckets.bucket[i];
     if (old_b->key != NULL) {
-      unsigned long hash = hash_by_identity(old_b->key);
-      struct bucket_s *b = buckets_find(new_buckets, old_b->key, hash);
+      struct bucket_s *b = buckets_find(new_buckets, old_b->key);
       assert(b != NULL);	/* new table shouldn't be full */
       assert(b->key == NULL);	/* shouldn't be in new table */
       *b = *old_b;
@@ -581,19 +578,20 @@ static void table_rehash(obj_t tbl) {
   tbl->table.buckets = new_buckets;
 }
 
-static obj_t table_ref(obj_t tbl, obj_t key) {
-  struct bucket_s *b = buckets_find(tbl->table.buckets, key, hash_by_identity(key));
+static obj_t table_ref(obj_t tbl, obj_t key)
+{
+  struct bucket_s *b = buckets_find(tbl->table.buckets, key);
   if (b && b->key != NULL)
     return b->value;
   return NULL;
 }
 
-static void table_set(obj_t tbl, obj_t key, obj_t value) {
-  unsigned long hash = hash_by_identity(key);
-  struct bucket_s *b = buckets_find(tbl->table.buckets, key, hash);
+static void table_set(obj_t tbl, obj_t key, obj_t value)
+{
+  struct bucket_s *b = buckets_find(tbl->table.buckets, key);
   if (b == NULL) {
     table_rehash(tbl);
-    b = buckets_find(tbl->table.buckets, key, hash);
+    b = buckets_find(tbl->table.buckets, key);
     assert(b != NULL);          /* shouldn't be full after rehash */
   }
   if (b->key == NULL)

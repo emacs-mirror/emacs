@@ -55,6 +55,10 @@ Memory Management Glossary: S
         non-:term:`garbage`, to find references to objects that have
         been :term:`condemned <condemned set>`.
 
+        .. mps:specific::
+
+            See :ref:`topic-scanning`.
+
     scan method
 
         .. mps:specific::

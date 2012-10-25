@@ -9,11 +9,11 @@ Location dependency
 ===================
 
 Location dependencies provide a means by which the :term:`client
-program` can depend on the :term:`location` of objects (that is, on
-the representation of pointers to objects) in the presence of a
-:term:`moving memory manager` (where the location of objects may
-change and the client program needs to recognize and correctly deal
-with such cases).
+program` can depend on the :dfn:`location` of blocks (that is, on the
+representation of pointers to blocks) in the presence of a
+:term:`moving memory manager` (where the location of blocks may change
+and the client program needs to recognize and correctly deal with such
+cases).
 
 The interface is intended to support (amongst other things)
 address-based hash tables and that will be used as a running example.
@@ -22,23 +22,23 @@ address-based hash tables and that will be used as a running example.
 Terminology
 -----------
 
-A "location dependency" is represented by an object of type
+A :dfn:`location dependency` is represented by an structure of type
 :c:type:`mps_ld_s`. It encapsulates a set of dependencies on the
-locations of objects. It can be used to determine whether any of the
-objects have been moved by the memory manager.
+locations of blocks. It can be used to determine whether any of the
+blocks have been moved by the memory manager.
 
-To "depend" on the location of an object is to perform a computation
+To :dfn:`depend` on the location of a block is to perform a computation
 whose result depends on the particular representation (that is, the
-"bit-pattern") of a reference to the object. This includes any sort of
-hash operation on a pointer to the object (such as treating the
+"bit-pattern") of a reference to the block. This includes any sort of
+hash operation on a pointer to the block (such as treating the
 pointer as an integer and taking it modulo 257). It is possible to
-depend on the location of more than one object.
+depend on the location of more than one block.
 
-A dependency has been made "stale" if the object whose location was
+A dependency has been made :dfn:`stale` if the block whose location was
 depended on might have moved since the dependency was made. If this is
-the case, then computations that depend on the location of an object
+the case, then computations that depend on the location of a block
 may give different results. A location dependency has been made stale
-if any of the objects whose location has been depended on might have
+if any of the blocks whose location has been depended on might have
 moved since the respective dependency was made.
 
 
@@ -47,11 +47,15 @@ Example: ``eq?`` hash table
 
 The toy Scheme interpreter contains a simple address-based (``eq?``)
 hash table implementation. It hashes the addresses of its keys, and so
-depends on their location. In the interaction shown below you'll see
-that although the keys remain present in the table after garbage
-collection, they cannot be found because their locations (and hence
-their hashes) have changed, but their positions in the table have not
-been updated to match.
+depends on their location.
+
+Without taking account of this location dependency, the hash tables
+become invalid after a garbage collection. In the interaction shown
+below (with the naïve version of the code) you'll see that although
+the keys remain present in the table after garbage collection, they
+cannot be found. This is because their locations (and hence their
+hashes) have changed, but their positions in the table have not been
+updated to match.
 
 .. code-block:: none
 
@@ -66,14 +70,6 @@ been updated to match.
     11112, 0> (hash-table-ref ht 'two)
     2
     11232, 0> (gc)
-    Collection started.
-      Why: Client requests: immediate full collection.
-      Clock: 3520
-    Collection finished.
-        live 10608
-        condemned 11272
-        not_condemned 0
-        clock: 3761
     11256, 1> (hash-table-ref ht 'two)
     11376, 1> (hash-table-ref ht 'one)
     11496, 1> (hash-table-ref ht 'three)
@@ -133,35 +129,36 @@ For example:
     }
 
 You can call :c:func:`mps_ld_reset` at any later point to clear all
-dependencies from the structure. In particular, this should normally
-be done whenever :c:func:`mps_ld_isstale` returns true.
+dependencies from the structure. For example, this is normally done
+whenever :c:func:`mps_ld_isstale` returns true.
 
 
 Adding dependencies
 -------------------
 
-*Before* the location of an object is depended on (for example,
-hashed) a reference to the object may be added to a location
+*Before* the location of a block is depended on (for example,
+hashed) a reference to the block may be added to a location
 dependency by calling :c:func:`mps_ld_add`. Dependencies on many
-objects can be added to the same location dependency.
+blocks can be added to the same location dependency.
 
 It is also possible to merge two location dependencies by calling
 :c:func:`mps_ld_merge`, which has the same effect as adding all of the
 references from one dependency to another.
 
 For example, in an address-based hash table implementation, each key
-that is added to the table must be added to the dependency *before*
-its address is hashed:
+that is added to the table must be added to the dependency before its
+address is hashed. In the Scheme example, addresses are hashed during
+the call to the function ``buckets_find``, so the key must be added to
+the location dependency before that:
 
 .. code-block:: c
     :emphasize-lines: 4
 
-    static int table_try_set(obj_t tbl, obj_t key, obj_t value) {
-        unsigned long hash;
+    static int table_try_set(obj_t tbl, obj_t key, obj_t value)
+    {
         struct bucket_s *b;
         mps_ld_add(&tbl->table.ld, arena, key);
-        hash = hash_by_identity(key);
-        b = buckets_find(tbl->table.buckets, key, hash);
+        b = buckets_find(tbl->table.buckets, key);
         if (b == NULL)
             return 0;
         if (b->key == NULL)
@@ -170,7 +167,8 @@ its address is hashed:
         return 1;
     }
 
-    static void table_set(obj_t tbl, obj_t key, obj_t value) {
+    static void table_set(obj_t tbl, obj_t key, obj_t value)
+    {
         if (!table_try_set(tbl, key, value)) {
             int res;
             table_rehash(tbl, tbl->table.buckets->buckets.length * 2, NULL);
@@ -190,7 +188,7 @@ its address is hashed:
 Testing dependencies for staleness
 ----------------------------------
 
-When the locations of objects are used (during a hash table lookup for
+When the locations of blocks are used (during a hash table lookup for
 example), the computation should be carried out and the result used in
 the usual way (for example, the pointer is hashed and the has used to
 index into the table). At this point one of three situations can
@@ -199,42 +197,43 @@ occur:
 1. success (for example, the key was found in the hash table at the
    place indicated by the hash of its address);
 
-2. failure: the location of these objects has not been depended on
+2. failure: the location of these blocks has not been depended on
    before (for example, the key has never been added to the hash
    table);
 
-3. failure: the location of these objects has been depended on before,
-   but the one or more of the objects has moved and the dependency has
+3. failure: the location of these blocks has been depended on before,
+   but the one or more of the blocks has moved and the dependency has
    been made stale (in this case the table would need to be rehashed
    and the lookup repeated).
 
 Success requires no further test: the operation can proceed. In case
 of failure, you should call :c:func:`mps_ld_isstale`. If it returns
-false, then no objects have moved, so you must be in case (2).
+false, then no blocks have moved, so you must be in case (2).
 
 But if :c:func:`mps_ld_isstale` returns true, you could still be in
 either case (2) or case (3). All :c:func:`mps_ld_isstale` tells you is
-that some objects that have been depended on might have moved. At this
+that some blocks that have been depended on might have moved. At this
 point you need to:
 
 1. reset the location dependency;
 
 2. repeat the computation in some way that doesn't depend on the
-   locations of the objects; and
+   old locations of the blocks; and
 
-3. re-add a dependency on each object.
+3. re-add a dependency on each block.
 
 For example, in the case of a hash table you should rehash based on
-the new locations of the objects:
+the new locations of the blocks:
 
 .. code-block:: c
-    :emphasize-lines: 12, 19, 37
+    :emphasize-lines: 13, 19, 37
 
     /* Rehash 'tbl' so that it has 'new_length' buckets. If 'key' is found
      * during this process, return the bucket containing 'key', otherwise
      * return NULL.
      */
-    static struct bucket_s *table_rehash(obj_t tbl, size_t new_length, obj_t key) {
+    static struct bucket_s *table_rehash(obj_t tbl, size_t new_length, obj_t key)
+    {
         size_t i;
         obj_t new_buckets;
         struct bucket_s *key_bucket = NULL;
@@ -246,11 +245,9 @@ the new locations of the objects:
         for (i = 0; i < tbl->table.buckets->buckets.length; ++i) {
             struct bucket_s *old_b = &tbl->table.buckets->buckets.bucket[i];
             if (old_b->key != NULL) {
-                unsigned long hash;
                 struct bucket_s *b;
                 mps_ld_add(&tbl->table.ld, arena, old_b->key);
-                hash = hash_by_identity(old_b->key);
-                b = buckets_find(new_buckets, old_b->key, hash);
+                b = buckets_find(new_buckets, old_b->key);
                 assert(b != NULL);      /* new table shouldn't be full */
                 assert(b->key == NULL); /* shouldn't be in new table */
                 *b = *old_b;
@@ -262,8 +259,9 @@ the new locations of the objects:
         return key_bucket;
     }
 
-    static obj_t table_ref(obj_t tbl, obj_t key) {
-        struct bucket_s *b = buckets_find(tbl->table.buckets, key, hash_by_identity(key));
+    static obj_t table_ref(obj_t tbl, obj_t key)
+    {
+        struct bucket_s *b = buckets_find(tbl->table.buckets, key);
         if (b && b->key != NULL)
             return b->value;
         if (mps_ld_isstale(&tbl->table.ld, arena, key)) {
@@ -284,8 +282,8 @@ return false is immediately after :c:func:`mps_ld_reset`.)
 You might put in a loop here, but for reliability it is better to fall
 back to a non-address-based version of the computation: here, since
 ``table_rehash`` has to loop over all the entries in the hash table
-anyway, it might as well find the bucket containing ``key`` and return
-it.
+anyway, it might as well find the bucket containing ``key`` at the
+same time and return it.
 
 By adding the line::
 
@@ -328,9 +326,9 @@ location dependency becomes stale and the table has to be rehashed.
 
     You might be puzzled by the highlighted lines: the table wasn't
     stale when ``'one`` was looked up, even though objects did move
-    during the garbage collection cycle, as shown by the table
-    becoming stale when ``'two`` is looked up. This is the magic
-    of :term:`incremental garbage collection`!
+    during the garbage collection cycle, as shown by the table being
+    found to be stale when ``'two`` is looked up. This is the magic of
+    :term:`incremental garbage collection`!
 
 
 Performance
@@ -382,11 +380,11 @@ Location dependency interface
 
     A location dependency records the fact that the :term:`client
     program` depends on the bit patterns of some :term:`references
-    <reference>` (and not merely on the :term:`block` to which the
-    reference refers), and provides a function
+    <reference>` (and not merely on the identity of the :term:`block`
+    to which the reference refers), and provides a function
     (:c:func:`mps_ld_isstale`) to find out whether any of these
-    references have been changed because a block has been
-    :term:`moved <moving garbage collector>`.
+    references have been changed because a block has been :term:`moved
+    <moving garbage collector>`.
 
     A typical use is in the implementation of a hash table whiches
     hashes blocks by hashing their addresses. After a block has moved,
@@ -470,7 +468,7 @@ Location dependency interface
     calls to :c:func:`mps_ld_add` on ``ld`` since the last call to
     :c:func:`mps_ld_reset`, then :c:func:`mps_ld_isstale` will return
     false. :c:func:`mps_ld_isstale` may return any value in other
-    circumstances (but will strive to return false if the objects
+    circumstances (but will strive to return false if the blocks
     encapsulated in the location dependency have not moved).
 
     .. note::
