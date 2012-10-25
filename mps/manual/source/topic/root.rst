@@ -14,233 +14,145 @@ managed <automatic memory management>` :term:`pools <pool>`) reclaims
 the :term:`unreachable` blocks. This is quite efficient and can be a
 very good approximation to :term:`liveness <live>`.
 
-It is therefore important that the roots contain everything that the
-client program can directly refer to, otherwise the garbage colletor
-might recycle an object that would be used in the future. Some
-collectors, for example Boehm's, assume that all references stored in
-static data are roots; the Memory Pool System allows the client
-program to declare which references are roots.
+It is therefore important that the all :term:`references <reference>`
+that the :term:`client program` can directly access are registered as
+roots, otherwise the garbage collector might recycle an object that
+would be used in the future. Some collectors, for example Boehm's,
+assume that all references stored in static data are roots; the Memory
+Pool System is more flexible, but requires the client program to
+declare which references are roots.
 
 .. note::
 
     Theoretically, the only roots are the :term:`registers
     <register>`; that is, a program can only use values that can be
-    referenced from the registers.
+    referenced from the registers. This is the logical way of thinking
+    about the problem; however, in practice it's tricky. For example,
+    it requires complete knowledge of the layout of static data.
+    Another difficulty is that a multi-threaded program has multiple
+    sets of registers that the operating system kernel keeps track of,
+    and that the garbage collector, running as a user program, can't
+    access.
 
-    This is the logical way of thinking about the problem; however, in
-    practice it's much more tricky. For example, it requires complete
-    knowledge of the layout of static data. Another difficulty is that
-    a multi-threaded program has multiple sets of registers that the
-    operating system kernel keeps track of, and that the garbage
-    collector, running as a user program, can't access.
 
+Registering roots
+-----------------
 
-Declaring roots
----------------
+You can register a root at any time by calling one of the
+``mps_root_create`` functions. Roots may not be regstered twice, and
+no two roots may overlap (that is, each reference is :term:`fixed
+<fix>` by at most one root). Roots may be:
 
-You can declare a root at any time. Roots may not be declared twice,
-and no two roots may overlap. You must not declare an object that
-could get GCed to be a root. Declaring a root creates a root object
-that the MPS uses to keep track of the root.
+1. on the program's :term:`control stack`;
 
-When you declare a root you describe to the MPS how to :term:`scan` it
-for references, providing your own scanning function in the cases of :c:func:`mps_root_create` and :c:func:`mps_root_create_fmt`. Such a root scanning function must follow the :ref:`topic-scanning-protocol`.
+2. in the program's static data;
+
+3. in :term:`heap` not managed by the MPS (provided that you destroy
+   the root before freeing it; see :ref:`the Scheme interpreter's
+   global symbol table <guide-lang-roots-rehash>` for an example);
+
+4. in :term:`manually managed <manual memory management>` pools
+   (provided that you remove the root before freeing it).
+
+Roots must not be in memory that is subject to :term:`garbage
+collection` (and so roots must not be in :term:`automatically managed
+<automatic memory management>` pools).
+
+When you register a root you describe to the MPS how to :term:`scan`
+it for references, providing your own scanning function in the cases
+of :c:func:`mps_root_create` and :c:func:`mps_root_create_fmt`. Such a
+root scanning function must follow the :ref:`topic-scanning-protocol`.
 
 All the references in a root are of the same :term:`rank` (just as in
 a :term:`formatted object`). So they are all :term:`exact <exact
 reference>`, :term:`ambiguous <ambiguous reference>` or :term:`weak
 <weak reference (1)>`.
 
-Roots can be removed at any time by calling
-:c:func:`mps_root_destroy`. All roots declared in an :term:`arena`
-must be destroyed before an arena is destroyed.
+.. note::
 
+    If the rank of the root is :term:`exact <exact reference>`, or
+    :term:`weak <weak reference (1)>`, the references in the root must
+    be valid whenever a collection cycle starts: that is, they must be
+    references to actual objects or null pointers. This could be
+    immediately after the root is registered, so the root must be
+    valid before it is registered.
+
+.. note::
+
+    As with :ref:`scanning <topic-scanning>` in general, it's safe to
+    :term:`fix` references that point to memory not managed by the
+    MPS. These will be ignored.
+
+Roots can be deregistered at any time by calling
+:c:func:`mps_root_destroy`. All roots registered in an :term:`arena`
+must be deregistered before the arena is destroyed.
+
+There are five ways to register a root, depending on how you need to
+scan it for references:
+
+1. :c:func:`mps_root_create` if you need a custom root scanning
+   function (of type :c:type:`mps_root_scan_t`);
+
+2. :c:func:`mps_root_create_fmt` if the root consists of a block of
+   objects belonging to an :term:`object format`, which can be scanned
+   by the format's :term:`scan method` (of type
+   :c:type:`mps_fmt_scan_t`);
+
+3. :c:func:`mps_root_create_table` if the root consists of a table of
+   references;
+
+4. :c:func:`mps_root_create_table_masked` if the root consists of a
+   table of :term:`tagged references <tagged reference>`;
+
+5. :c:func:`mps_root_create_reg` if the root consists of the
+   registers and control stack of a thread. See
+   :ref:`topic-root-thread` below.
+
+
+.. _topic-root-thread:
 
 Thread roots
 ------------
 
+Every thread's registers and control stack potentially contain
+references to allocated objects, so should be registered as a root by
+calling :c:func:`mps_root_create_reg`. It's not easy to write a
+scanner for the registers and the stack: it depends on the operating
+system, the processor architecture, and in some cases on the compiler.
+For this reason, the MPS provides :c:func:`mps_stack_scan_ambig` (and
+in fact, this is the only supported stack scanner).
 
+A stack scanner needs to know how to find the bottom of the part of
+the stack to scan. Now, every thread that runs code that uses memory
+managed by the MPS must execute such code inside the MPS trampoline by
+calling :c:func:`mps_tramp`. This means that the bottom of the
+relevant part of stack can be found by taking the address of a local
+variable in the function that calls :c:func:`mps_tramp` (the variable
+``marker`` in the example below).
 
+For example, here's the code from the Scheme example that registers a
+thread root and then trampolines into the program::
 
-.valid: If the rank of the root is not ambiguous, the contents of the root have to be valid whenever a GC happens , i.e., they have to be references to actual objects or null pointers . If you're using asynchronous GC, this could be right after the root is registered, so the root has to be valid when it is registered . It's OK for a root to have entries which point to memory not managed by the MPS -- they will simply be ignored.
+    mps_thr_t thread;
+    mps_root_t reg_root;
+    void *marker = &marker;
+    void *r;
 
-.kind: You can declare roots in four different ways:
+    res = mps_thread_reg(&thread, arena);
+    if (res != MPS_RES_OK) error("Couldn't register thread");
 
-.kind.table: mps_root_create_table &
+    res = mps_root_create_reg(&reg_root,
+                              arena,
+                              mps_rank_ambig(),
+                              0,
+                              thread,
+                              mps_stack_scan_ambig,
+                              marker,
+                              0);
+    if (res != MPS_RES_OK) error("Couldn't create root");
 
-mps_root_create_table_masked declare a root that is a vector of pointers somewhere in memory.
-.kind.reg: Threads are declared roots using mps_root_create_reg . mps_stack_scan_ambig is the only supported scanning function : it will scan every word on the stack and in the (integer) registers . It's OS- and architecture-dependent (and possibly compiler-dependent). MM provide it, 'cos it's hard to write and hard to specify an interface for it.
+    mps_tramp(&r, start, NULL, 0);
 
-.kind.format: mps_root_create_fmt declares a root that is a block of formatted objects.
-
-.kind.general: mps_root_create declares a root that consists of all the references indicated by a scanning function that you supply.
-
-
-
-
-:c:macro:`MPS_RM_CONST` is a preprocessor macro defining a constant that can be or'ed with other ``MPS_RM`` constants, and passed as the :term:`root mode` argument to certain root creation functions (:c:func:`mps_root_create`, :c:func:`mps_root_create_fmt`, :c:func:`mps_root_create_table`, :c:func:`mps_root_create_table_masked`, and :c:func:`mps_root_create_reg`).
-
-from :c:macro:`MPS_RM_PROT`:
-
-No page may contain parts of two or more roots with :c:macro:`MPS_RM_PROT` [how does one prevent
-that?]. You mustn't specify :c:macro:`MPS_RM_PROT` if the client program or
-anything other than (this instance of) the MPS is going to protect or
-unprotect the relevant pages.
-
-
-Internal Notes
-
-Future meaning: The MPS may place a hardware read and/or write barrier on any pages which any part of the root covers. Format methods and scanning functions (except for the one for this root) may not read or write data in this root. You may specify :c:macro:`MPS_RM_PROT` on a root allocated from the MPS, as long as it's not from a GCd pool. - drj 1997-12-18</p>
-
-This feature is far too technical for most of our clients: we should think about producing some guidelines on how to use it. - pekka 1998-01-27
-
-There may be problems if the client wants the OS to access the root. Lots of OSes can't cope with writing to protected pages. So we'll need to document that caveat too. drj 1998-05-20
-
-::
-
-    static mps_root_t mmRoot;
-
-    int main(void)
-    {
-        mps_res_t res;
-
-        /* ... */
-
-        res = mps_root_create(&mmRoot, arena, MPS_RANK_EXACT, (mps_rm_t)0,
-                              &rootScanner, NULL, 0);
-        /* see doc of mps_root_scan_t for definition of rootScanner */
-        if (res != MPS_RES_OK)
-            exit(1);
-
-        /* ... */
-    }
-
-
-
-
-.. note::
-
-    The contents of an :term:`exact root` or a :term:`weak root` must
-    be valid whenever a :term:`garbage collection` happens. That is,
-    all the :term:`references <reference>` fixed by the root scanning
-    function have to be references to actual objects or null pointers.
-    If you're using :term:`asynchronous garbage collection
-    <asynchronous garbage collector>`, this could be as soon as the
-    root is registered, so the root has to be valid when it is
-    registered. As with an ordinary :term:`scan method`, a root
-    scanning function is allowed to fix references which point to
-    memory not managed by the MPS. These references will be ignored.
-
-::
-
-    static mps_root_t mmRoot;
-    SegmentDescriptor DataSegment;
-
-    int main(void)
-    {
-        mps_res_t res;
-
-        /* ... */
-
-        mps_addr_t base = DataSegment.base;
-        mps_addr_t limit = DataSegment.base + SegmentLength;
-        res = mps_root_create_fmt(&mmRoot, arena, MPS_RANK_EXACT, (mps_rm_t)0,
-                                  &scan_objs, base, limit);
-
-        /* see doc of mps_fmt_scan_t for definition of scan_objs */
-
-        if (res != MPS_RES_OK)
-            exit( EXIT_FAILURE );
-
-        /* ... */
-    }
-
-::
-
-    typedef struct {
-        mps_root_t mmRoot;
-        mps_thr_t thread;
-        /* ...  */
-    } ThreadLocals;
-
-    void InitThread(ThreadLocals *thr)
-    {
-        /* This is a hack to find the bottom of the stack. */
-        void *stackBottom = &stackBottom;
-
-        mps_thread_reg(&thr->thread, arena);
-        mps_root_create_reg(&thr->mmRoot, arena, MPS_RANK_AMBIG, (mps_rm_t) 0,
-                            thr->thread, mps_stack_scan_ambig, stackBottom, 0);
-
-        /* ...  */
-    }
-
-::
-
-    static mps_root_t mmRoot;
-    Object *Objects[rootCOUNT];
-
-    int main(void)
-    {
-      mps_res_t res;
-
-      /* ... */
-
-      res = mps_root_create_table(&mmRoot, arena, MPS_RANK_EXACT, (mps_rm_t)0,
-                                  (mps_addr_t)&Objects, rootCOUNT);
-
-      if (res != MPS_RES_OK)
-          exit(1);
-
-      /* ... */
-    }
-
-::
-
-    #define tagMASK 0x0003
-
-    static mps_root_t mmRoot;
-    Object *Objects[rootCOUNT];
-
-    int main(void)
-    {
-        mps_res_t res;
-
-        /* ... */
-
-        res = mps_root_create_table_masked(&mmRoot, arena, MPS_RANK_EXACT,
-                                           (mps_rm_t)0,
-                                           (mps_addr_t)&Objects, rootCOUNT,
-                                           (mps_word_t)tagMASK);
-        if (res != MPS_RES_OK)
-            exit(1);
-
-        /* ... */
-    }
-
-::
-
-    static StackFrame *stackBottom;
-
-    /* root scanner for an imaginary interpreter for a stack-oriented language */
-    static mps_res_t rootScanner(mps_ss_t ss, void * p, size_t s)
-    {
-        StackFrame *frame;
-        size_t i;
-        mps_res_t res;
-
-        UNUSED(p);
-        UNUSED(s);
-
-        for(frame = stackBottom; frame != NULL; frame = frame->next) {
-            for(i = frame->size; i > 0; --i) {
-                res = mps_fix(ss, &frame->locals[i]);
-                if (res != MPS_RES_OK) return res;
-            }
-        }
-
-        return res;
-    }
 
 
 Ranks
@@ -323,6 +235,10 @@ allowing the MPS to detect whether they have changed.
         You mustn't specify ``MPS_RM_PROT`` if the :term:`client
         program` or anything other than (this instance of) the MPS is
         going to protect or unprotect the relevant pages.
+
+        This mode may not be suitable if the :term:`client program`
+        wants the operating system to be able to access the root. Many
+        operating systems can't cope with writing to protected pages.
 
 
 Interface
@@ -418,7 +334,6 @@ Interface
 
     The registered root destription persists until it is destroyed by
     calling :c:func:`mps_root_destroy`.
-
 
 .. c:function:: mps_res_t mps_root_create_reg(mps_root_t *root_o, mps_arena_t arena, mps_rank_t rank, mps_rm_t rm, mps_thr_t thr, mps_reg_scan_t reg_scan, void *p, size_t s)
 
@@ -518,8 +433,8 @@ Interface
     .. note::
 
         The MPS provides this function because it's hard to write: it
-        depends on the operating system, the architecture, and in some
-        cases the compiler.
+        depends on the operating system, the processor architecture,
+        and in some cases on the compiler.
 
 
 .. c:function:: mps_res_t mps_root_create_table(mps_root_t *root_o, mps_arena_t arena, mps_rank_t rank, mps_rm_t rm, mps_addr_t *base, size_t count)
@@ -578,6 +493,26 @@ Interface
 
     The registered root destription persists until it is destroyed by
     calling :c:func:`mps_root_destroy`.
+
+    For example::
+
+        #define TAG_MASK 0x3            /* bottom two bits */
+
+        /* Global symbol table. */
+        size_t symtab_size;
+        struct {
+            obj_t symbol;
+            obj_t value;
+        } *symtab;
+
+        mps_res_t res;
+        mps_root_t root;
+        res = mps_root_create_table_masked(&root, arena,
+                                           mps_rank_exact(),
+                                           (mps_rm_t)0,
+                                           symtab, symtab_size * 2,
+                                           (mps_word_t)TAG_MASK);
+        if (res != MPS_RES_OK) errror("can't create symtab root");
 
 
 .. c:function:: void mps_root_destroy(mps_root_t root)
@@ -648,5 +583,3 @@ Introspection
 
     ``p`` and ``s`` are the corresponding values that were passed to
     :c:func:`mps_arena_roots_walk`.
-
-

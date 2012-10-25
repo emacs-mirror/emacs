@@ -49,7 +49,8 @@ Outstanding
      nicer formatting.
 
 116. "The maximum number of arenas that the system can support is
-     around 10." What causes this limit?
+     around 10." Is this true? What goes wrong? (I tried creating lots
+     of arenas and nothing seemed to go wrong.)
 
 
 Complete
@@ -660,7 +661,9 @@ Complete
 80. Need to migrate the new Scheme functionality (new make_string, fix
     to append, new entry points) back to the "before the MPS" version.
 
-    *Action:* done in change 180069.
+    *Action:* done in `change 180069`_.
+
+    .. _change 180069: http://info.ravenbrook.com/infosys/cgi/perfbrowse.cgi?@describe+180069
 
 81. The Scheme interpreter could avoid printing "``#[undefined]``" at
     the REPL (like Python with  ``None``).
@@ -710,7 +713,9 @@ Complete
     but I see no such check in ``mpsi_check``.
 
     *Answer:* the comment was wrong: ranks are no longer part of the
-    public interface. Removed in change 180031.
+    public interface. Removed in `change 180031`_.
+
+    .. _change 180031: http://info.ravenbrook.com/infosys/cgi/perfbrowse.cgi?@describe+180031
 
 88. Where glossary entries differ on in hyphens versus spaces there's
     no need to give both.
@@ -764,7 +769,9 @@ Complete
 94. Maybe target R4RS instead of R6RS? (R4RS is the "one true"
     Scheme.)
 
-    *Action:* fixed in change 180033.
+    *Action:* fixed in `change 180033`_.
+
+    .. _change 180033: http://info.ravenbrook.com/infosys/cgi/perfbrowse.cgi?@describe+180033
 
 96. Change "event" to "event category" in discussion of the telemetry
     filter.
@@ -915,4 +922,4 @@ Complete
 119. This (from :ref:`topic-critical`) needs mentioning in various
      places: "it's important to give a good estimate of the amount of
      address space you will ever occupy with objects when you
-     initialize the arena"
+     initialize the arena".

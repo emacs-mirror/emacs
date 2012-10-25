@@ -224,9 +224,9 @@ table`.
 Note that if the arena has been extended, the tract table becomes less
 simple, and this test may involved looking in more than one table.
 This will cause a considerable slow-down in garbage collection
-scanning. This is the reason that it's important to give a good
-estimate of the amount of address space you will ever occupy with
-objects when you initialize the arena.
+scanning. This is the reason that it's important to reserve an address
+space that is several times larger than (a good estimate of) your peak
+memory usage when you initialize a :term:`virtual memory arena`.
 
 The pointer might not even be in the arena (and so not in any tract).
 The first stage fix doesn't guarantee it. So we eliminate any pointers
