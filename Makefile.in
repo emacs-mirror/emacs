@@ -361,7 +361,7 @@ blessmail: Makefile src FRC
 # etc. to be built without running into similar recursion problems.
 MAKEFILE_NAME = Makefile
 $(MAKEFILE_NAME): config.status $(srcdir)/src/config.in \
-          $(srcdir)/Makefile.in $(SUBDIR_MAKEFILES_IN)
+          $(srcdir)/Makefile.in $(SUBDIR_MAKEFILES_IN) $(srcdir)/src/lisp.mk
 	MAKE='$(MAKE)' ./config.status
 
 # Don't erase these files if make is interrupted while refreshing them.
@@ -622,27 +622,35 @@ install-man:
 	thisdir=`/bin/pwd`; \
 	cd ${mansrcdir}; \
 	for page in *.1; do \
+	  dest=`echo "$${page}" | sed -e 's/\.1$$//' -e '$(TRANSFORM)'`.1; \
 	  (cd $${thisdir}; \
-	   ${INSTALL_DATA} ${mansrcdir}/$${page} $(DESTDIR)${man1dir}/$${page}); \
+	   ${INSTALL_DATA} ${mansrcdir}/$${page} $(DESTDIR)${man1dir}/$${dest}); \
 	  ( [ -n "${GZIP_INFO}" ] && [ -n "${GZIP_PROG}" ] ) || continue ; \
-	  rm -f $(DESTDIR)${man1dir}/$${page}.gz; \
-	  ${GZIP_PROG} -9n $(DESTDIR)${man1dir}/$${page}; \
+	  rm -f $(DESTDIR)${man1dir}/$${dest}.gz; \
+	  ${GZIP_PROG} -9n $(DESTDIR)${man1dir}/$${dest}; \
 	done
 
 ## Install those items from etc/ that need to end up elsewhere.
 install-etc:
 	umask 022; ${MKDIR_P} $(DESTDIR)${desktopdir}
-	${INSTALL_DATA} ${srcdir}/etc/emacs.desktop \
-	  $(DESTDIR)${desktopdir}/emacs.desktop
+	dest=`echo emacs | sed '$(TRANSFORM)'`; \
+	tmp=etc/emacs.tmpdesktop; rm -f $${tmp}; \
+	sed -e "/^Exec=emacs/ s/emacs/$${dest}/" \
+	  -e "/^Icon=emacs/ s/emacs/$${dest}/" \
+	  ${srcdir}/etc/emacs.desktop > $${tmp}; \
+	${INSTALL_DATA} $${tmp} $(DESTDIR)${desktopdir}/$${dest}.desktop; \
+	rm -f $${tmp}
 	thisdir=`/bin/pwd`; \
 	cd ${iconsrcdir} || exit 1; umask 022 ; \
 	for dir in */*/apps */*/mimetypes; do \
 	  [ -d $${dir} ] || continue ; \
 	  ( cd $${thisdir}; ${MKDIR_P} $(DESTDIR)${icondir}/$${dir} ) ; \
-	  for icon in $${dir}/*.*; do \
+	  for icon in $${dir}/emacs[.-]*; do \
 	    [ -r $${icon} ] || continue ; \
+	    ext=`echo "$${icon}" | sed -e 's|.*\.||'`; \
+	    dest=`echo "$${icon}" | sed -e 's|.*/||' -e "s|\.$${ext}$$||" -e '$(TRANSFORM)'`.$${ext} ; \
 	    ( cd $${thisdir}; \
-	      ${INSTALL_DATA} ${iconsrcdir}/$${icon} $(DESTDIR)${icondir}/$${icon} ) \
+	      ${INSTALL_DATA} ${iconsrcdir}/$${icon} $(DESTDIR)${icondir}/$${dir}/$${dest} ) \
 	    || exit 1; \
 	  done ; \
 	done
@@ -729,6 +737,7 @@ mostlyclean: FRC
 ###
 ###      Delete `.dvi' files here if they are not part of the distribution.
 clean: FRC
+	-rm -f etc/emacs.tmpdesktop
 	(cd src;      $(MAKE) $(MFLAGS) clean)
 	(cd oldXMenu; $(MAKE) $(MFLAGS) clean)
 	(cd lwlib;    $(MAKE) $(MFLAGS) clean)

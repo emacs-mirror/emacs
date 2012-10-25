@@ -119,7 +119,7 @@ worry about it; this manual is self-contained.
 
 @pindex cl
   A certain amount of Common Lisp emulation is available via the
-@file{cl} library.  @xref{Top,, Overview, cl, Common Lisp Extensions}.
+@file{cl-lib} library.  @xref{Top,, Overview, cl, Common Lisp Extensions}.
 
   Emacs Lisp is not at all influenced by Scheme; but the GNU project has
 an implementation of Scheme, called Guile.  We use it in all new GNU
@@ -493,13 +493,13 @@ giving a prefix argument makes @var{here} non-@code{nil}.
 
 @defvar emacs-build-time
 The value of this variable indicates the time at which Emacs was
-built.  It is a list of three integers, like the value of
+built.  It is a list of four integers, like the value of
 @code{current-time} (@pxref{Time of Day}).
 
 @example
 @group
 emacs-build-time
-     @result{} (18846 52016 156039)
+     @result{} (20614 63694 515336 438000)
 @end group
 @end example
 @end defvar

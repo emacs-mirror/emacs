@@ -43,7 +43,7 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #ifdef HAVE_X_WINDOWS
 #include "xterm.h"
 #endif	/* HAVE_X_WINDOWS */
-#ifdef WINDOWSNT
+#ifdef HAVE_NTGUI
 #include "w32term.h"
 #endif
 #ifdef MSDOS
@@ -1464,9 +1464,7 @@ if it isn't already recorded.  */)
 #endif
 
   if (! NILP (update)
-      && ! (! NILP (w->window_end_valid)
-	    && w->last_modified >= BUF_MODIFF (b)
-	    && w->last_overlay_modified >= BUF_OVERLAY_MODIFF (b))
+      && (windows_or_buffers_changed || NILP (w->window_end_valid))
       && !noninteractive)
     {
       struct text_pos startp;
@@ -3341,7 +3339,7 @@ displaying that buffer.  */)
   return Qnil;
 }
 
-
+/* Obsolete since 24.3.  */
 void
 temp_output_buffer_show (register Lisp_Object buf)
 {
@@ -3393,16 +3391,6 @@ temp_output_buffer_show (register Lisp_Object buf)
         unbind_to (count, Qnil);
       }
     }
-}
-
-DEFUN ("internal-temp-output-buffer-show",
-       Ftemp_output_buffer_show, Stemp_output_buffer_show,
-       1, 1, 0,
-       doc: /* Internal function for `with-output-to-temp-buffer'.  */)
-     (Lisp_Object buf)
-{
-  temp_output_buffer_show (buf);
-  return Qnil;
 }
 
 /* Make new window, have it replace WINDOW in window-tree, and make
@@ -3795,6 +3783,8 @@ resize_frame_windows (struct frame *f, int size, int horflag)
 	    (m, make_number (XINT (r->top_line) + XINT (r->total_lines)));
 	}
     }
+
+  windows_or_buffers_changed++;
 }
 
 
@@ -4208,6 +4198,7 @@ grow_mini_window (struct window *w, int delta)
       w->last_modified = 0;
       w->last_overlay_modified = 0;
 
+      windows_or_buffers_changed++;
       adjust_glyphs (f);
       unblock_input ();
     }
@@ -4245,6 +4236,7 @@ shrink_mini_window (struct window *w)
 	  w->last_modified = 0;
 	  w->last_overlay_modified = 0;
 
+	  windows_or_buffers_changed++;
 	  adjust_glyphs (f);
 	  unblock_input ();
 	}
@@ -6421,15 +6413,8 @@ optional second arg PIXELS-P means value is measured in pixels.  */)
   (Lisp_Object window, Lisp_Object pixels_p)
 {
   Lisp_Object result;
-  struct frame *f;
-  struct window *w;
-
-  if (NILP (window))
-    window = selected_window;
-  else
-    CHECK_WINDOW (window);
-  w = XWINDOW (window);
-  f = XFRAME (w->frame);
+  struct window *w = decode_live_window (window);
+  struct frame *f = XFRAME (w->frame);
 
   if (FRAME_WINDOW_P (f))
     result = (NILP (pixels_p)
@@ -6453,17 +6438,10 @@ result of this rounding.
 If PIXELS-P is non-nil, the return value is VSCROLL.  */)
   (Lisp_Object window, Lisp_Object vscroll, Lisp_Object pixels_p)
 {
-  struct window *w;
-  struct frame *f;
+  struct window *w = decode_live_window (window);
+  struct frame *f = XFRAME (w->frame);
 
-  if (NILP (window))
-    window = selected_window;
-  else
-    CHECK_WINDOW (window);
   CHECK_NUMBER_OR_FLOAT (vscroll);
-
-  w = XWINDOW (window);
-  f = XFRAME (w->frame);
 
   if (FRAME_WINDOW_P (f))
     {
@@ -6921,7 +6899,6 @@ respectively are not installed by `window-state-put'.  */);
   defsubr (&Srun_window_configuration_change_hook);
   defsubr (&Sselect_window);
   defsubr (&Sforce_window_update);
-  defsubr (&Stemp_output_buffer_show);
   defsubr (&Ssplit_window_internal);
   defsubr (&Sscroll_up);
   defsubr (&Sscroll_down);

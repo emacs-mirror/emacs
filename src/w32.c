@@ -31,13 +31,13 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #include <sys/file.h>
 #include <sys/time.h>
 #include <sys/utime.h>
-#include <mbstring.h>	/* for _mbspbrk */
 #include <math.h>
 #include <time.h>
 
 /* must include CRT headers *before* config.h */
 
 #include <config.h>
+#include <mbstring.h>	/* for _mbspbrk */
 
 #undef access
 #undef chdir
@@ -173,7 +173,9 @@ typedef struct _REPARSE_DATA_BUFFER {
 
 #include "w32.h"
 #include "ndir.h"
+#include "w32common.h"
 #include "w32heap.h"
+#include "w32select.h"
 #include "systime.h"
 #include "dispextern.h"		/* for xstrcasecmp */
 #include "coding.h"		/* for Vlocale_coding_system */
@@ -196,6 +198,12 @@ static char * chase_symlinks (const char *);
 static int enable_privilege (LPCTSTR, BOOL, TOKEN_PRIVILEGES *);
 static int restore_privilege (TOKEN_PRIVILEGES *);
 static BOOL WINAPI revert_to_self (void);
+
+extern int sys_access (const char *, int);
+extern void *e_malloc (size_t);
+extern int sys_select (int, SELECT_TYPE *, SELECT_TYPE *, SELECT_TYPE *,
+		       EMACS_TIME *, void *);
+
 
 
 /* Initialization states.
@@ -866,23 +874,6 @@ create_symbolic_link (LPTSTR lpSymlinkFilename,
   return retval;
 }
 
-/* Equivalent of strerror for W32 error codes.  */
-char *
-w32_strerror (int error_no)
-{
-  static char buf[500];
-
-  if (error_no == 0)
-    error_no = GetLastError ();
-
-  buf[0] = '\0';
-  if (!FormatMessage (FORMAT_MESSAGE_FROM_SYSTEM, NULL,
-		      error_no,
-		      0, /* choose most suitable language */
-		      buf, sizeof (buf), NULL))
-    sprintf (buf, "w32 error %u", error_no);
-  return buf;
-}
 
 /* Return 1 if P is a valid pointer to an object of size SIZE.  Return
    0 if P is NOT a valid pointer.  Return -1 if we cannot validate P.
@@ -1628,7 +1619,6 @@ init_environment (char ** argv)
     LPBYTE lpval;
     DWORD dwType;
     char locale_name[32];
-    struct stat ignored;
     char default_home[MAX_PATH];
     int appdata = 0;
 
@@ -1669,7 +1659,7 @@ init_environment (char ** argv)
     /* For backwards compatibility, check if a .emacs file exists in C:/
        If not, then we can try to default to the appdata directory under the
        user's profile, which is more likely to be writable.   */
-    if (stat ("C:/.emacs", &ignored) < 0)
+    if (!check_existing ("C:/.emacs"))
       {
 	HRESULT profile_result;
 	/* Dynamically load ShGetFolderPath, as it won't exist on versions
@@ -6978,7 +6968,7 @@ emacs_gnutls_pull (gnutls_transport_ptr_t p, void* buf, size_t sz)
 {
   int n, sc, err;
   SELECT_TYPE fdset;
-  struct timeval timeout;
+  EMACS_TIME timeout;
   struct Lisp_Process *process = (struct Lisp_Process *)p;
   int fd = process->infd;
 
@@ -6994,8 +6984,7 @@ emacs_gnutls_pull (gnutls_transport_ptr_t p, void* buf, size_t sz)
       if (err == EWOULDBLOCK)
         {
           /* Set a small timeout.  */
-	  timeout.tv_sec = 1;
-	  timeout.tv_usec = 0;
+	  timeout = make_emacs_time (1, 0);
           FD_ZERO (&fdset);
           FD_SET ((int)fd, &fdset);
 

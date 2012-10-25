@@ -28,6 +28,35 @@
 
 ;;; Code:
 
+(defun internal--before-save-selected-window ()
+  (cons (selected-window)
+        ;; We save and restore all frames' selected windows, because
+        ;; `select-window' can change the frame-selected-window of
+        ;; whatever frame that window is in.  Each text terminal's
+        ;; top-frame is preserved by putting it last in the list.
+        (apply #'append
+               (mapcar (lambda (terminal)
+                         (let ((frames (frames-on-display-list terminal))
+                               (top-frame (tty-top-frame terminal))
+                               alist)
+                           (if top-frame
+                               (setq frames
+                                     (cons top-frame
+                                           (delq top-frame frames))))
+                           (dolist (f frames)
+                             (push (cons f (frame-selected-window f))
+                                   alist))
+                           alist))
+                       (terminal-list)))))
+
+(defun internal--after-save-selected-window (state)
+  (dolist (elt (cdr state))
+    (and (frame-live-p (car elt))
+         (window-live-p (cdr elt))
+         (set-frame-selected-window (car elt) (cdr elt) 'norecord)))
+  (when (window-live-p (car state))
+    (select-window (car state) 'norecord)))
+
 (defmacro save-selected-window (&rest body)
   "Execute BODY, then select the previously selected window.
 The value returned is the value of the last form in BODY.
@@ -44,34 +73,11 @@ its normal operation could make a different buffer current.  The
 order of recently selected windows and the buffer list ordering
 are not altered by this macro (unless they are altered in BODY)."
   (declare (indent 0) (debug t))
-  `(let ((save-selected-window-window (selected-window))
-	 ;; We save and restore all frames' selected windows, because
-	 ;; `select-window' can change the frame-selected-window of
-	 ;; whatever frame that window is in.  Each text terminal's
-	 ;; top-frame is preserved by putting it last in the list.
-	 (save-selected-window-alist
-	  (apply 'append
-		 (mapcar (lambda (terminal)
-			   (let ((frames (frames-on-display-list terminal))
-				 (top-frame (tty-top-frame terminal))
-				 alist)
-			     (if top-frame
-				 (setq frames
-				       (cons top-frame
-					     (delq top-frame frames))))
-			     (dolist (f frames)
-			       (push (cons f (frame-selected-window f))
-				     alist))))
-			 (terminal-list)))))
+  `(let ((save-selected-window--state (internal--before-save-selected-window)))
      (save-current-buffer
        (unwind-protect
 	   (progn ,@body)
-	 (dolist (elt save-selected-window-alist)
-	   (and (frame-live-p (car elt))
-		(window-live-p (cdr elt))
-		(set-frame-selected-window (car elt) (cdr elt) 'norecord)))
-	 (when (window-live-p save-selected-window-window)
-	   (select-window save-selected-window-window 'norecord))))))
+         (internal--after-save-selected-window save-selected-window--state)))))
 
 (defvar temp-buffer-window-setup-hook nil
   "Normal hook run by `with-temp-buffer-window' before buffer display.
@@ -5355,8 +5361,16 @@ BUFFER-OR-NAME must be a buffer or the name of an existing
 buffer.  Return the window chosen for displaying BUFFER-OR-NAME,
 or nil if no such window is found.
 
-Optional argument ACTION should have the form (FUNCTION . ALIST).
-FUNCTION is either a function or a list of functions.
+Optional argument ACTION, if non-nil, should specify a display
+action.  Its form is described below.
+
+Optional argument FRAME, if non-nil, acts like an additional
+ALIST entry (reusable-frames . FRAME) to the action list of ACTION,
+specifying the frame(s) to search for a window that is already
+displaying the buffer.  See `display-buffer-reuse-window'
+
+If ACTION is non-nil, it should have the form (FUNCTION . ALIST),
+where FUNCTION is either a function or a list of functions, and
 ALIST is an arbitrary association list (alist).
 
 Each such FUNCTION should accept two arguments: the buffer to
@@ -5372,6 +5386,9 @@ ACTION argument, `display-buffer-base-action', and
 function in the combined function list in turn, passing the
 buffer as the first argument and the combined alist as the second
 argument, until one of the functions returns non-nil.
+
+If ACTION is nil, the function list and the alist are built using
+only the other variables mentioned above.
 
 Available action functions include:
  `display-buffer-same-window'
@@ -5401,12 +5418,7 @@ The ACTION argument to `display-buffer' can also have a non-nil
 and non-list value.  This means to display the buffer in a window
 other than the selected one, even if it is already displayed in
 the selected window.  If called interactively with a prefix
-argument, ACTION is t.
-
-Optional argument FRAME, if non-nil, acts like an additional
-ALIST entry (reusable-frames . FRAME), specifying the frame(s) to
-search for a window that is already displaying the buffer.  See
-`display-buffer-reuse-window'."
+argument, ACTION is t."
   (interactive (list (read-buffer "Display buffer: " (other-buffer))
 		     (if current-prefix-arg t)))
   (let ((buffer (if (bufferp buffer-or-name)
@@ -5812,6 +5824,26 @@ buffer with the name BUFFER-OR-NAME and return that buffer."
 	    buffer))
     (other-buffer)))
 
+(defcustom switch-to-buffer-preserve-window-point nil
+  "If non-nil, `switch-to-buffer' tries to preserve `window-point'.
+If this is nil, `switch-to-buffer' displays the buffer at that
+buffer's `point'.  If this is `already-displayed', it tries to
+display the buffer at its previous position in the selected
+window, provided the buffer is currently displayed in some other
+window on any visible or iconified frame.  If this is t, it
+unconditionally tries to display the buffer at its previous
+position in the selected window.
+
+This variable is ignored if the the buffer is already displayed
+in the selected window or never appeared in it before, or if
+`switch-to-buffer' calls `pop-to-buffer' to display the buffer."
+  :type '(choice
+	  (const :tag "Never" nil)
+	  (const :tag "If already displayed elsewhere" already-displayed)
+	  (const :tag "Always" t))
+  :group 'windows
+  :version "24.3")
+
 (defun switch-to-buffer (buffer-or-name &optional norecord force-same-window)
   "Switch to buffer BUFFER-OR-NAME in the selected window.
 If the selected window cannot display the specified
@@ -5837,6 +5869,10 @@ If optional argument FORCE-SAME-WINDOW is non-nil, the buffer
 must be displayed in the selected window; if that is impossible,
 signal an error rather than calling `pop-to-buffer'.
 
+The option `switch-to-buffer-preserve-window-point' can be used
+to make the buffer appear at its last position in the selected
+window.
+
 Return the buffer switched to."
   (interactive
    (list (read-buffer-to-switch "Switch to buffer: ") nil 'force-same-window))
@@ -5853,7 +5889,19 @@ Return the buffer switched to."
       (if force-same-window
           (user-error "Cannot switch buffers in a dedicated window")
         (pop-to-buffer buffer norecord)))
-     (t (set-window-buffer nil buffer)))
+     (t
+      (let* ((entry (assq buffer (window-prev-buffers)))
+	     (displayed (and (eq switch-to-buffer-preserve-window-point
+				 'already-displayed)
+			     (get-buffer-window buffer 0))))
+	(set-window-buffer nil buffer)
+	(when (and entry
+		   (or (eq switch-to-buffer-preserve-window-point t)
+		       displayed))
+	  ;; Try to restore start and point of buffer in the selected
+	  ;; window (Bug#4041).
+	  (set-window-start (selected-window) (nth 1 entry) t)
+	  (set-window-point nil (nth 2 entry))))))
 
     (unless norecord
       (select-window (selected-window)))

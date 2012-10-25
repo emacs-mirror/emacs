@@ -27,7 +27,7 @@ EMACSLOADPATH=$(CURDIR)/../lisp
 # Size in MBs of the static heap in temacs.exe.
 HEAPSIZE = $(EMACS_HEAPSIZE)
 
-LOCAL_FLAGS     = -Demacs=1 -I../lib -I../nt/inc -DHAVE_NTGUI=1 $(EMACS_EXTRA_C_FLAGS)
+LOCAL_FLAGS     = -Demacs=1 -I../lib -I../nt/inc $(EMACS_EXTRA_C_FLAGS)
 
 SRC             = .
 EMACS           = $(BLD)/emacs.exe
@@ -207,7 +207,7 @@ make-buildobj-SH:
 GLOBAL_SOURCES =   dosfns.c msdos.c \
 	xterm.c xfns.c xmenu.c xselect.c xrdb.c xsmfns.c fringe.c image.c \
 	fontset.c menu.c dbusbind.c \
-	w32.c w32console.c w32fns.c w32heap.c w32inevt.c \
+	w32.c w32console.c w32fns.c w32heap.c w32inevt.c cygw32.c \
 	w32menu.c w32proc.c w32reg.c w32select.c w32term.c w32xfns.c \
 	font.c w32font.c w32uniscribe.c \
 	dispnew.c frame.c scroll.c xdisp.c window.c bidi.c \
@@ -423,10 +423,11 @@ DISPEXTERN_H   = $(SRC)/dispextern.h \
 		 $(W32GUI_H)
 FILEMODE_H     = $(GNU_LIB)/filemode.h \
 		 $(NT_INC)/sys/stat.h
-FONT_H         = $(SRC)/font.h \
-		 $(CCL_H)
 FRAME_H        = $(SRC)/frame.h \
 		 $(DISPEXTERN_H)
+FONT_H         = $(SRC)/font.h \
+		 $(CCL_H) \
+		 $(FRAME_H)
 FTOASTR_H      = $(GNU_LIB)/ftoastr.h \
 		 $(GNU_LIB)/intprops.h
 GRP_H          = $(NT_INC)/grp.h \
@@ -476,6 +477,8 @@ TERMHOOKS_H    = $(SRC)/termhooks.h \
 W32FONT_H      = $(SRC)/w32font.h \
 		 $(FONT_H)
 W32TERM_H      = $(SRC)/w32term.h \
+		 $(ATIMER_H) \
+		 $(FRAME_H) \
 		 $(W32GUI_H)
 WINDOW_H       = $(SRC)/window.h \
 		 $(DISPEXTERN_H)
@@ -732,7 +735,7 @@ $(BLD)/dispnew.$(O) : \
 	$(SRC)/disptab.h \
 	$(SRC)/indent.h \
 	$(SRC)/termchar.h \
-	$(SRC)/termopts.h \
+	$(SRC)/w32.h \
 	$(NT_INC)/unistd.h \
 	$(BUFFER_H) \
 	$(CHARACTER_H) \
@@ -796,6 +799,7 @@ $(BLD)/emacs.$(O) : \
 	$(SRC)/unexec.h \
 	$(SRC)/w32.h \
 	$(SRC)/w32heap.h \
+	$(SRC)/w32select.h \
 	$(NT_INC)/sys/file.h \
 	$(NT_INC)/unistd.h \
 	$(GNU_LIB)/ignore-value.h \
@@ -811,6 +815,7 @@ $(BLD)/emacs.$(O) : \
 	$(SYSSIGNAL_H) \
 	$(SYSTTY_H) \
 	$(TERMHOOKS_H) \
+	$(W32FONT_H) \
 	$(W32TERM_H) \
 	$(WINDOW_H)
 
@@ -828,7 +833,9 @@ $(BLD)/fileio.$(O) : \
 	$(SRC)/fileio.c \
 	$(SRC)/blockinput.h \
 	$(SRC)/commands.h \
+	$(SRC)/w32.h \
 	$(NT_INC)/pwd.h \
+	$(NT_INC)/sys/file.h \
 	$(NT_INC)/sys/stat.h \
 	$(NT_INC)/unistd.h \
 	$(BUFFER_H) \
@@ -1010,7 +1017,6 @@ $(BLD)/indent.$(O) : \
 	$(SRC)/indent.h \
 	$(SRC)/region-cache.h \
 	$(SRC)/termchar.h \
-	$(SRC)/termopts.h \
 	$(BUFFER_H) \
 	$(CHARACTER_H) \
 	$(CONFIG_H) \
@@ -1167,7 +1173,9 @@ $(BLD)/w32.$(O) : \
 	$(SRC)/w32.c \
 	$(SRC)/ndir.h \
 	$(SRC)/w32.h \
+	$(SRC)/w32common.h \
 	$(SRC)/w32heap.h \
+	$(SRC)/w32select.h \
 	$(NT_INC)/pwd.h \
 	$(NT_INC)/sys/file.h \
 	$(NT_INC)/sys/time.h \
@@ -1184,6 +1192,7 @@ $(BLD)/w32.$(O) : \
 
 $(BLD)/w32heap.$(O) : \
 	$(SRC)/w32heap.c \
+	$(SRC)/w32common.h \
 	$(SRC)/w32heap.h \
 	$(CONFIG_H) \
 	$(LISP_H)
@@ -1207,6 +1216,7 @@ $(BLD)/w32proc.$(O) : \
 	$(SRC)/w32proc.c \
 	$(SRC)/syswait.h \
 	$(SRC)/w32.h \
+	$(SRC)/w32common.h \
 	$(SRC)/w32heap.h \
 	$(NT_INC)/nl_types.h \
 	$(NT_INC)/sys/file.h \
@@ -1224,7 +1234,7 @@ $(BLD)/w32console.$(O) : \
 	$(SRC)/w32console.c \
 	$(SRC)/disptab.h \
 	$(SRC)/termchar.h \
-	$(SRC)/w32heap.h \
+	$(SRC)/w32common.h \
 	$(SRC)/w32inevt.h \
 	$(CHARACTER_H) \
 	$(CODING_H) \
@@ -1233,6 +1243,7 @@ $(BLD)/w32console.$(O) : \
 	$(FRAME_H) \
 	$(LISP_H) \
 	$(TERMHOOKS_H) \
+	$(W32TERM_H) \
 	$(WINDOW_H)
 
 $(BLD)/print.$(O) : \
@@ -1403,7 +1414,6 @@ $(BLD)/term.$(O) : \
 	$(SRC)/disptab.h \
 	$(SRC)/keymap.h \
 	$(SRC)/termchar.h \
-	$(SRC)/termopts.h \
 	$(SRC)/tparam.h \
 	$(NT_INC)/sys/file.h \
 	$(NT_INC)/sys/time.h \
@@ -1421,6 +1431,7 @@ $(BLD)/term.$(O) : \
 	$(SYSSIGNAL_H) \
 	$(SYSTTY_H) \
 	$(TERMHOOKS_H) \
+	$(W32TERM_H) \
 	$(WINDOW_H)
 
 $(BLD)/terminal.$(O) : \
@@ -1461,12 +1472,16 @@ $(BLD)/undo.$(O) : \
 $(BLD)/unexw32.$(O) : \
 	$(SRC)/unexw32.c \
 	$(SRC)/unexec.h \
+	$(SRC)/w32.h \
+	$(SRC)/w32common.h \
 	$(SRC)/w32heap.h \
+	$(LISP_H) \
 	$(CONFIG_H)
 
 $(BLD)/vm-limit.$(O) : \
 	$(SRC)/vm-limit.c \
 	$(SRC)/mem-limits.h \
+	$(SRC)/w32heap.h \
 	$(NT_INC)/unistd.h \
 	$(CONFIG_H) \
 	$(LISP_H)
@@ -1547,6 +1562,7 @@ $(BLD)/w32fns.$(O) : \
 	$(SRC)/epaths.h \
 	$(SRC)/fontset.h \
 	$(SRC)/w32.h \
+	$(SRC)/w32common.h \
 	$(SRC)/w32heap.h \
 	$(BUFFER_H) \
 	$(CCL_H) \
@@ -1570,7 +1586,7 @@ $(BLD)/w32menu.$(O) : \
 	$(SRC)/w32menu.c \
 	$(SRC)/blockinput.h \
 	$(SRC)/keymap.h \
-	$(SRC)/w32heap.h \
+	$(SRC)/w32common.h \
 	$(BUFFER_H) \
 	$(CHARACTER_H) \
 	$(CHARSET_H) \
@@ -1620,10 +1636,11 @@ $(BLD)/w32select.$(O) : \
 	$(SRC)/w32select.c \
 	$(SRC)/blockinput.h \
 	$(SRC)/composite.h \
-	$(SRC)/w32heap.h \
+	$(SRC)/w32common.h \
 	$(CHARSET_H) \
 	$(CODING_H) \
 	$(CONFIG_H) \
+	$(KEYBOARD_H) \
 	$(LISP_H) \
 	$(W32TERM_H)
 

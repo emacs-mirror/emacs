@@ -55,7 +55,6 @@ GNUstep port and post-20 update by Adrian Robert (arobert@cogsci.ucsd.edu)
 #include "ccl.h"
 
 #include "termhooks.h"
-#include "termopts.h"
 #include "termchar.h"
 
 #include "window.h"
@@ -209,6 +208,13 @@ static NSMutableArray *ns_pending_files, *ns_pending_service_names,
   *ns_pending_service_args;
 static BOOL ns_do_open_file = NO;
 
+static struct {
+  struct input_event *q;
+  int nr, cap;
+} hold_event_q = {
+  NULL, 0, 0
+};
+
 /* Convert modifiers in a NeXTstep event to emacs style modifiers.  */
 #define NS_FUNCTION_KEY_MASK 0x800000
 #define NSLeftControlKeyMask    (0x000001 | NSControlKeyMask)
@@ -274,7 +280,7 @@ static BOOL ns_do_open_file = NO;
           kbd_buffer_store_event_hold (emacs_event, q_event_ptr);       \
         }                                                               \
       else                                                              \
-        kbd_buffer_store_event (emacs_event);                           \
+        hold_event (emacs_event);                                       \
       EVENT_INIT (*emacs_event);                                        \
       ns_send_appdefined (-1);                                          \
     }
@@ -293,6 +299,19 @@ void x_set_frame_alpha (struct frame *f);
 
    ========================================================================== */
 
+static void
+hold_event (struct input_event *event)
+{
+  if (hold_event_q.nr == hold_event_q.cap)
+    {
+      if (hold_event_q.cap == 0) hold_event_q.cap = 10;
+      else hold_event_q.cap *= 2;
+      hold_event_q.q = (struct input_event *)
+        xrealloc (hold_event_q.q, hold_event_q.cap * sizeof (*hold_event_q.q));
+    }
+
+  hold_event_q.q[hold_event_q.nr++] = *event;
+}
 
 static Lisp_Object
 append2 (Lisp_Object list, Lisp_Object item)
@@ -1315,7 +1334,7 @@ static void
 ns_fullscreen_hook (FRAME_PTR f)
 {
   EmacsView *view = (EmacsView *)FRAME_NS_VIEW (f);
-  
+
   if (! f->async_visible) return;
 #ifndef NEW_STYLE_FS
   if (f->want_fullscreen == FULLSCREEN_BOTH)
@@ -3349,6 +3368,15 @@ ns_read_socket (struct terminal *terminal, struct input_event *hold_quit)
   if ([NSApp modalWindow] != nil)
     return -1;
 
+  if (hold_event_q.nr > 0) 
+    {
+      int i;
+      for (i = 0; i < hold_event_q.nr; ++i)
+        kbd_buffer_store_event_hold (&hold_event_q.q[i], hold_quit);
+      hold_event_q.nr = 0;
+      return i;
+    }
+
   block_input ();
   n_emacs_events_pending = 0;
   EVENT_INIT (ev);
@@ -3415,8 +3443,11 @@ ns_select (int nfds, fd_set *readfds, fd_set *writefds,
 
 /*  NSTRACE (ns_select); */
 
-  for (k = 0; readfds && k < nfds+1; k++)
-    if (FD_ISSET(k, readfds)) ++nr;
+  for (k = 0; k < nfds+1; k++)
+    {
+      if (readfds && FD_ISSET(k, readfds)) ++nr;
+      if (writefds && FD_ISSET(k, writefds)) ++nr;
+    }
 
   if (NSApp == nil
       || (timeout && timeout->tv_sec == 0 && timeout->tv_nsec == 0))
@@ -5942,7 +5973,7 @@ not_in_argv (NSString *arg)
       [w setBackgroundColor: col];
       if ([col alphaComponent] != 1.0)
         [w setOpaque: NO];
-      
+
       f->border_width = bwidth;
       FRAME_NS_TITLEBAR_HEIGHT (f) = tibar_height;
       FRAME_TOOLBAR_HEIGHT (f) = tobar_height;
@@ -5995,7 +6026,7 @@ not_in_argv (NSString *arg)
             }
           break;
         }
-  
+
       emacsframe->want_fullscreen = FULLSCREEN_NONE;
     }
 
@@ -6646,6 +6677,12 @@ not_in_argv (NSString *arg)
       [self setFloatValue: pos knobProportion: por];
 #endif
     }
+
+  /* Events may come here even if the event loop is not running.
+     If we don't enter the event loop, the scroll bar will not update.
+     So send SIGIO to ourselves.  */
+  if (apploopnr == 0) kill (0, SIGIO);
+
   return self;
 }
 
@@ -6686,7 +6723,7 @@ not_in_argv (NSString *arg)
       kbd_buffer_store_event_hold (emacs_event, q_event_ptr);
     }
   else
-    kbd_buffer_store_event (emacs_event);
+    hold_event (emacs_event);
   EVENT_INIT (*emacs_event);
   ns_send_appdefined (-1);
 }

@@ -277,7 +277,7 @@ variable.  This allows SemanticDB to save tag caches in directories
 controlled by them.
 @end defvar
 
-@deffn Option semanticdb-save-database-hooks
+@deffn Option semanticdb-save-database-functions
 Abnormal hook run after a database is saved.  Each function is called
 with one argument, the object representing the database recently
 written.

@@ -1,3 +1,63 @@
+2012-10-25  Michael Albinus  <michael.albinus@gmx.de>
+
+	* tramp.texi (Frequently Asked Questions): Mention
+	`tramp-completion-reread-directory-timeout' for performance
+	improvement.
+
+2012-10-25  Glenn Morris  <rgm@gnu.org>
+
+	* cl.texi: Don't mess with the TeX section number counter.
+	Use Texinfo recommended convention for quotes+punctuation.
+	(Overview, Sequence Functions): Rephrase for better line-breaking.
+	(Time of Evaluation, Type Predicates, Modify Macros, Function Bindings)
+	(Macro Bindings, Conditionals, Iteration, Loop Basics)
+	(Random Numbers, Mapping over Sequences, Structures)
+	(Porting Common Lisp): Further updates for cl-lib namespace.
+	(Modify Macros, Declarations, Macro Bindings, Structures):
+	Break long lines in examples.
+	(Dynamic Bindings): Update for changed progv behavior.
+	(Loop Examples, Efficiency Concerns): Markup fixes.
+	(Structures): Remove TeX margin change.
+	(Declarations): Fix typos.
+
+2012-10-24  Glenn Morris  <rgm@gnu.org>
+
+	* cl.texi (Overview, Multiple Values, Creating Symbols)
+	(Numerical Functions): Say less/nothing about the original cl.el.
+	(Old CL Compatibility): Remove.
+	(Assertions): Remove ignore-errors (standard Elisp for some time).
+
+	* cl.texi (Basic Setf, Macros, Declarations, Symbols, Numbers)
+	(Sequences, Lists, Structures, Assertions, Efficiency Concerns)
+	(Efficiency Concerns, Efficiency Concerns)
+	(Common Lisp Compatibility, Old CL Compatibility):
+	Further updates for cl-lib namespace.
+
+2012-10-24  Paul Eggert  <eggert@penguin.cs.ucla.edu>
+
+	Update manual for new time stamp format (Bug#12706).
+	* emacs-mime.texi (time-date): Update for new format.
+	Also, fix bogus time stamp and modernize a bit.
+
+2012-10-23  Glenn Morris  <rgm@gnu.org>
+
+	* cl.texi: Include emacsver.texi.  Use Emacs version number rather
+	than unchanging cl.el version number.
+	End all menu descriptions with a period.
+	Do not use @dfn{CL} for every instance of "CL".
+	(Overview): Remove no-runtime caveat, and note about foo* names.
+	(Usage): Use cl-lib rather than cl.
+	(Organization, Naming Conventions): Update for cl-lib.el.
+	(Installation): Remove long-irrelevant node.
+	(Program Structure, Predicates, Control Structure):
+	Start updating for cl-lib namespace.
+	* Makefile.in ($(buildinfodir)/cl$(INFO_EXT), cl.dvi, cl.pdf):
+	Depend on emacsver.texi.
+
+2012-10-09  Michael Albinus  <michael.albinus@gmx.de>
+
+	* trampver.texi: Update release number.
+
 2012-10-06  Glenn Morris  <rgm@gnu.org>
 
 	* erc.texi: Include emacsver.texi, and use EMACSVER rather than

@@ -120,21 +120,6 @@ extern char *getenv ();
 #endif
 #include <sys/types.h>
 
-#ifdef _MSC_VER
-typedef int sigset_t;
-typedef int ssize_t;
-#endif
-
-struct sigaction {
-  int sa_flags;
-  void (_CALLBACK_ *sa_handler)(int);
-  sigset_t sa_mask;
-};
-#define SA_RESTART      0
-#define SIG_BLOCK       1
-#define SIG_SETMASK     2
-#define SIG_UNBLOCK     3
-
 #ifndef MAXPATHLEN
 #define MAXPATHLEN      _MAX_PATH
 #endif
@@ -207,6 +192,8 @@ struct sigaction {
 /* Internal signals.  */
 #define emacs_raise(sig) emacs_abort()
 
+extern int sys_wait (int *);
+
 /* termcap.c calls that are emulated.  */
 #define tputs   sys_tputs
 #define tgetstr sys_tgetstr
@@ -251,6 +238,9 @@ typedef int pid_t;
 #define stricmp   _stricmp
 #define tzset     _tzset
 
+/* We cannot include system header process.h, since there's src/process.h.  */
+int _getpid (void);
+
 /* Include time.h before redirecting tzname, since MSVC's time.h
    defines _tzname to call a function, but also declares tzname a
    2-element array.  Having the redirection before including the
@@ -271,6 +261,10 @@ struct timespec
   time_t	tv_sec;		/* seconds */
   long int	tv_nsec;	/* nanoseconds */
 };
+
+/* Required for functions in lib/time_r.c, since we don't use lib/time.h.  */
+extern struct tm *gmtime_r (time_t const * restrict, struct tm * restrict);
+extern struct tm *localtime_r (time_t const * restrict, struct tm * restrict);
 
 /* This is hacky, but is necessary to avoid warnings about macro
    redefinitions using the SDK compilers.  */
@@ -299,6 +293,37 @@ struct timespec
 #ifndef NSIG
 #define NSIG 23
 #endif
+
+#ifdef _MSC_VER
+typedef int sigset_t;
+typedef int ssize_t;
+#endif
+
+typedef void (_CALLBACK_ *signal_handler) (int);
+extern signal_handler sys_signal (int, signal_handler);
+
+struct sigaction {
+  int sa_flags;
+  void (_CALLBACK_ *sa_handler)(int);
+  sigset_t sa_mask;
+};
+#define SA_RESTART      0
+#define SIG_BLOCK       1
+#define SIG_SETMASK     2
+#define SIG_UNBLOCK     3
+
+extern int sigemptyset (sigset_t *);
+extern int sigaddset (sigset_t *, int);
+extern int sigfillset (sigset_t *);
+extern int sigprocmask (int, const sigset_t *, sigset_t *);
+extern int pthread_sigmask (int, const sigset_t *, sigset_t *);
+extern int sigismember (const sigset_t *, int);
+extern int setpgrp (int, int);
+extern int sigaction (int, const struct sigaction *, struct sigaction *);
+extern int alarm (int);
+
+extern int sys_kill (int, int);
+
 
 /* For integration with MSDOS support.  */
 #define getdisk()               (_getdrive () - 1)
@@ -357,6 +382,7 @@ extern char *get_emacs_configuration_options (void);
 #endif
 
 extern int getloadavg (double *, int);
+extern int getpagesize (void);
 
 #if defined (__MINGW32__)
 

@@ -1,3 +1,19 @@
+2012-10-13  Liam Stitt  <stittl@cuug.ab.ca>  (tiny change)
+
+	* url-vars.el (url-uncompressor-alist):
+	* url-file.el (url-file-find-possibly-compressed-file, url-file):
+	Recognize .xz compression (Bug#11839).
+
+2012-10-13  Chong Yidong  <cyd@gnu.org>
+
+	* url-http.el (url-http):
+	* url.el (url-retrieve-internal): Doc fix (Bug#6407).
+
+2012-10-08  Glenn Morris  <rgm@gnu.org>
+
+	* url-methods.el (url-scheme-get-property): url-https.el was
+	merged into url-http.el, so load the latter for https.  (Bug#12599)
+
 2012-10-02  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* url-http.el (url-http-user-agent-string): Leak less info.

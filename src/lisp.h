@@ -222,7 +222,9 @@ enum enum_USE_LSB_TAG { USE_LSB_TAG = 0 };
 
 /* Define the fundamental Lisp data structures.  */
 
-/* This is the set of Lisp data types.  */
+/* This is the set of Lisp data types.  If you want to define a new
+   data type, read the comments after Lisp_Fwd_Type definition
+   below.  */
 
 /* Lisp integers use 2 tags, to give them one extra bit, thus
    extending their range from, e.g., -2^28..2^28-1 to -2^29..2^29-1.  */
@@ -298,6 +300,53 @@ enum Lisp_Fwd_Type
     Lisp_Fwd_Kboard_Obj,	/* Fwd to a Lisp_Object field of kboards.  */
   };
 
+/* If you want to define a new Lisp data type, here are some
+   instructions.  See the thread at
+   http://lists.gnu.org/archive/html/emacs-devel/2012-10/msg00561.html
+   for more info.
+
+   First, there are already a couple of Lisp types that can be used if
+   your new type does not need to be exposed to Lisp programs nor
+   displayed to users.  These are Lisp_Save_Value, a Lisp_Misc
+   subtype; and PVEC_OTHER, a kind of vectorlike object.  The former
+   is suitable for temporarily stashing away pointers and integers in
+   a Lisp object (see the existing uses of make_save_value and
+   XSAVE_VALUE).  The latter is useful for vector-like Lisp objects
+   that need to be used as part of other objects, but which are never
+   shown to users or Lisp code (search for PVEC_OTHER in xterm.c for
+   an example).
+
+   These two types don't look pretty when printed, so they are
+   unsuitable for Lisp objects that can be exposed to users.
+
+   To define a new data type, add one more Lisp_Misc subtype or one
+   more pseudovector subtype.  Pseudovectors are more suitable for
+   objects with several slots that need to support fast random access,
+   while Lisp_Misc types are for everything else.  A pseudovector object
+   provides one or more slots for Lisp objects, followed by struct
+   members that are accessible only from C.  A Lisp_Misc object is a
+   wrapper for a C struct that can contain anything you like.
+
+   To add a new pseudovector type, extend the pvec_type enumeration;
+   to add a new Lisp_Misc, extend the Lisp_Misc_Type enumeration.
+
+   For a Lisp_Misc, you will also need to add your entry to union
+   Lisp_Misc (but make sure the first word has the same structure as
+   the others, starting with a 16-bit member of the Lisp_Misc_Type
+   enumeration and a 1-bit GC markbit) and make sure the overall size
+   of the union is not increased by your addition.
+
+   Then you will need to add switch branches in print.c (in
+   print_object, to print your object, and possibly also in
+   print_preprocess) and to alloc.c, to mark your object (in
+   mark_object) and to free it (in gc_sweep).  The latter is also the
+   right place to call any code specific to your data type that needs
+   to run when the object is recycled -- e.g., free any additional
+   resources allocated for it that are not Lisp objects.  You can even
+   make a pointer to the function that frees the resources a slot in
+   your object -- this way, the same object could be used to represent
+   several disparate C structures.  */
+
 #ifdef CHECK_LISP_OBJECT_TYPE
 
 typedef struct { EMACS_INT i; } Lisp_Object;
@@ -345,15 +394,11 @@ static ptrdiff_t const PSEUDOVECTOR_FLAG
       = PSEUDOVECTOR_FLAG;
 
 /* In a pseudovector, the size field actually contains a word with one
-   PSEUDOVECTOR_FLAG bit set, and exactly one of the following bits to
-   indicate the actual type.
-   We use a bitset, even tho only one of the bits can be set at any
-   particular time just so as to be able to use micro-optimizations such as
-   testing membership of a particular subset of pseudovectors in Fequal.
-   It is not crucial, but there are plenty of bits here, so why not do it?  */
+   PSEUDOVECTOR_FLAG bit set, and one of the following values extracted
+   with PVEC_TYPE_MASK to indicate the actual type.  */
 enum pvec_type
 {
-  PVEC_NORMAL_VECTOR = 0,	/* Unused!  */
+  PVEC_NORMAL_VECTOR,
   PVEC_FREE,
   PVEC_PROCESS,
   PVEC_FRAME,
@@ -3031,7 +3076,7 @@ extern Lisp_Object oblookup (Lisp_Object, const char *, ptrdiff_t, ptrdiff_t);
   } while (0)
 extern int openp (Lisp_Object, Lisp_Object, Lisp_Object,
                   Lisp_Object *, Lisp_Object);
-Lisp_Object string_to_number (char const *, int, int);
+extern Lisp_Object string_to_number (char const *, int, bool);
 extern void map_obarray (Lisp_Object, void (*) (Lisp_Object, Lisp_Object),
                          Lisp_Object);
 extern void dir_warning (const char *, Lisp_Object);
@@ -3131,7 +3176,6 @@ extern Lisp_Object make_buffer_string (ptrdiff_t, ptrdiff_t, bool);
 extern Lisp_Object make_buffer_string_both (ptrdiff_t, ptrdiff_t, ptrdiff_t,
 					    ptrdiff_t, bool);
 extern void init_editfns (void);
-const char *get_system_name (void);
 extern void syms_of_editfns (void);
 extern void set_time_zone_rule (const char *);
 
@@ -3186,6 +3230,7 @@ extern void internal_delete_file (Lisp_Object);
 extern void syms_of_fileio (void);
 extern Lisp_Object make_temp_name (Lisp_Object, bool);
 extern Lisp_Object Qdelete_file;
+extern bool check_existing (const char *);
 
 /* Defined in search.c.  */
 extern void shrink_regexp_cache (void);
@@ -3202,9 +3247,9 @@ extern ptrdiff_t fast_string_match_ignore_case (Lisp_Object, Lisp_Object);
 extern ptrdiff_t fast_looking_at (Lisp_Object, ptrdiff_t, ptrdiff_t,
                                   ptrdiff_t, ptrdiff_t, Lisp_Object);
 extern ptrdiff_t scan_buffer (int, ptrdiff_t, ptrdiff_t, ptrdiff_t,
-			      ptrdiff_t *, int);
+			      ptrdiff_t *, bool);
 extern EMACS_INT scan_newline (ptrdiff_t, ptrdiff_t, ptrdiff_t, ptrdiff_t,
-			       EMACS_INT, int);
+			       EMACS_INT, bool);
 extern ptrdiff_t find_next_newline (ptrdiff_t, int);
 extern ptrdiff_t find_next_newline_no_quit (ptrdiff_t, ptrdiff_t);
 extern ptrdiff_t find_before_next_newline (ptrdiff_t, ptrdiff_t, ptrdiff_t);
@@ -3247,7 +3292,7 @@ extern Lisp_Object Qdisabled, QCfilter;
 extern Lisp_Object Qup, Qdown, Qbottom;
 extern Lisp_Object Qtop;
 extern Lisp_Object last_undo_boundary;
-extern int input_pending;
+extern bool input_pending;
 extern Lisp_Object menu_bar_items (Lisp_Object);
 extern Lisp_Object tool_bar_items (Lisp_Object, int *);
 extern void discard_mouse_events (void);
@@ -3255,9 +3300,9 @@ extern void discard_mouse_events (void);
 void handle_input_available_signal (int);
 #endif
 extern Lisp_Object pending_funcalls;
-extern int detect_input_pending (void);
-extern int detect_input_pending_ignore_squeezables (void);
-extern int detect_input_pending_run_timers (int);
+extern bool detect_input_pending (void);
+extern bool detect_input_pending_ignore_squeezables (void);
+extern bool detect_input_pending_run_timers (bool);
 extern void safe_run_hooks (Lisp_Object);
 extern void cmd_error_internal (Lisp_Object, const char *);
 extern Lisp_Object command_loop_1 (void);
@@ -3336,7 +3381,7 @@ extern bool running_asynch_code;
 extern Lisp_Object QCtype, Qlocal;
 extern Lisp_Object Qprocessp;
 extern void kill_buffer_processes (Lisp_Object);
-extern int wait_reading_process_output (intmax_t, int, int, int,
+extern int wait_reading_process_output (intmax_t, int, int, bool,
                                         Lisp_Object,
                                         struct Lisp_Process *,
                                         int);
@@ -3563,7 +3608,8 @@ extern char *emacs_root_dir (void);
    Used during startup to detect startup of dumped Emacs.  */
 extern bool initialized;
 
-extern int immediate_quit;	    /* Nonzero means ^G can quit instantly.  */
+/* True means ^G can quit instantly.  */
+extern bool immediate_quit;
 
 extern void *xmalloc (size_t);
 extern void *xzalloc (size_t);

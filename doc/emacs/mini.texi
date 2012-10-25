@@ -550,7 +550,7 @@ those completion alternatives; each subsequent invocation of the
 completion command replaces that with the next completion alternative,
 in a cyclic manner.  If you give @code{completion-cycle-threshold} a
 numeric value @var{n}, completion commands switch to this cycling
-behavior only when there are fewer than @var{n} alternatives.
+behavior only when there are @var{n} or fewer alternatives.
 
 @cindex Icomplete mode
 @findex icomplete-mode
@@ -683,13 +683,13 @@ the text for that expression.  Even if you don't know Lisp, it will
 probably be obvious which command is displayed for repetition.  If you
 type just @key{RET}, that repeats the command unchanged.  You can also
 change the command by editing the Lisp expression before you execute
-it.  The repeated command is added to the front of the command history
+it.  The executed command is added to the front of the command history
 unless it is identical to the most recent item.
 
   Once inside the minibuffer for @kbd{C-x @key{ESC} @key{ESC}}, you
 can use the usual minibuffer history commands (@pxref{Minibuffer
 History}) to move through the history list.  After finding the desired
-previous command, you can edit its expression as usual and then repeat
+previous command, you can edit its expression as usual and then execute
 it by typing @key{RET}.
 
 @vindex isearch-resume-in-command-history

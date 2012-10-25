@@ -30,6 +30,7 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #include <errno.h>
 #include <ctype.h>
 #include <sys/timeb.h>
+#include <mbstring.h>
 
 #include "ntlib.h"
 

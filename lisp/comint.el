@@ -2088,8 +2088,7 @@ This function should be a pre-command hook."
   (if (and comint-scroll-to-bottom-on-input
 	   (memq this-command '(self-insert-command comint-magic-space yank
 				hilit-yank)))
-      (let* ((selected (selected-window))
-	     (current (current-buffer))
+      (let* ((current (current-buffer))
 	     (process (get-buffer-process current))
 	     (scroll comint-scroll-to-bottom-on-input))
 	(if (and process (< (point) (process-mark process)))
@@ -2099,10 +2098,8 @@ This function should be a pre-command hook."
                (lambda (window)
                  (if (and (eq (window-buffer window) current)
                           (or (eq scroll t) (eq scroll 'all)))
-                     (progn
-                       (select-window window)
-                       (goto-char (point-max))
-                       (select-window selected))))
+                     (with-selected-window window
+                       (goto-char (point-max)))))
 	       nil t))))))
 
 (defvar follow-mode)
@@ -2783,11 +2780,8 @@ the load or compile."
     (if (and buff
 	     (buffer-modified-p buff)
 	     (y-or-n-p (format "Save buffer %s first? " (buffer-name buff))))
-	;; save BUFF.
-	(let ((old-buffer (current-buffer)))
-	  (set-buffer buff)
-	  (save-buffer)
-	  (set-buffer old-buffer)))))
+        (with-current-buffer buff
+	  (save-buffer)))))
 
 (defun comint-extract-string ()
   "Return string around point, or nil."

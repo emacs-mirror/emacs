@@ -227,13 +227,13 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #ifdef HAVE_WINDOW_SYSTEM
 #include TERM_HEADER
 #include "fontset.h"
-#ifdef WINDOWSNT
+#ifdef HAVE_NTGUI
 #undef FRAME_X_DISPLAY_INFO
 #define FRAME_X_DISPLAY_INFO FRAME_W32_DISPLAY_INFO
 #define x_display_info w32_display_info
 #define check_x check_w32
 #define GCGraphicsExposures 0
-#endif /* WINDOWSNT */
+#endif /* HAVE_NTGUI */
 
 #ifdef HAVE_NS
 #undef FRAME_X_DISPLAY_INFO
@@ -370,8 +370,6 @@ Lisp_Object Vface_alternative_font_registry_alist;
    list.  */
 
 static Lisp_Object Qscalable_fonts_allowed;
-
-#define DEFAULT_FONT_LIST_LIMIT 100
 
 /* The symbols `foreground-color' and `background-color' which can be
    used as part of a `face' property.  This is for compatibility with
@@ -625,7 +623,7 @@ x_free_gc (struct frame *f, GC gc)
 
 #endif /* HAVE_X_WINDOWS */
 
-#ifdef WINDOWSNT
+#ifdef HAVE_NTGUI
 /* W32 emulation of GCs */
 
 static GC
@@ -649,7 +647,7 @@ x_free_gc (struct frame *f, GC gc)
   xfree (gc);
 }
 
-#endif  /* WINDOWSNT */
+#endif  /* HAVE_NTGUI */
 
 #ifdef HAVE_NS
 /* NS emulation of GCs */
@@ -719,7 +717,7 @@ init_frame_faces (struct frame *f)
 #ifdef HAVE_X_WINDOWS
   if (!FRAME_X_P (f) || FRAME_X_WINDOW (f))
 #endif
-#ifdef WINDOWSNT
+#ifdef HAVE_NTGUI
   if (!FRAME_WINDOW_P (f) || FRAME_W32_WINDOW (f))
 #endif
 #ifdef HAVE_NS
@@ -1098,7 +1096,7 @@ defined_color (struct frame *f, const char *color_name, XColor *color_def,
   else if (FRAME_X_P (f))
     return x_defined_color (f, color_name, color_def, alloc);
 #endif
-#ifdef WINDOWSNT
+#ifdef HAVE_NTGUI
   else if (FRAME_W32_P (f))
     return w32_defined_color (f, color_name, color_def, alloc);
 #endif
@@ -1323,7 +1321,8 @@ load_color (struct frame *f, struct face *face, Lisp_Object name,
    try to emulate gray colors with a stipple from Vface_default_stipple.  */
 
 static void
-load_face_colors (struct frame *f, struct face *face, Lisp_Object *attrs)
+load_face_colors (struct frame *f, struct face *face,
+		  Lisp_Object attrs[LFACE_VECTOR_SIZE])
 {
   Lisp_Object fg, bg;
 
@@ -1802,7 +1801,7 @@ the WIDTH times as wide as FACE on FRAME.  */)
 /* Check consistency of Lisp face attribute vector ATTRS.  */
 
 static void
-check_lface_attrs (Lisp_Object *attrs)
+check_lface_attrs (Lisp_Object attrs[LFACE_VECTOR_SIZE])
 {
   eassert (UNSPECIFIEDP (attrs[LFACE_FAMILY_INDEX])
 	   || IGNORE_DEFFACE_P (attrs[LFACE_FAMILY_INDEX])
@@ -2049,7 +2048,8 @@ lface_from_face_name (struct frame *f, Lisp_Object face_name, int signal_p)
 
 static int
 get_lface_attributes_no_remap (struct frame *f, Lisp_Object face_name,
-			       Lisp_Object *attrs, int signal_p)
+			       Lisp_Object attrs[LFACE_VECTOR_SIZE],
+			       int signal_p)
 {
   Lisp_Object lface;
 
@@ -2071,7 +2071,7 @@ get_lface_attributes_no_remap (struct frame *f, Lisp_Object face_name,
 
 static int
 get_lface_attributes (struct frame *f, Lisp_Object face_name,
-		      Lisp_Object *attrs, int signal_p,
+		      Lisp_Object attrs[LFACE_VECTOR_SIZE], int signal_p,
 		      struct named_merge_point *named_merge_points)
 {
   Lisp_Object face_remapping;
@@ -2108,7 +2108,7 @@ get_lface_attributes (struct frame *f, Lisp_Object face_name,
    specified, i.e. are non-nil.  */
 
 static int
-lface_fully_specified_p (Lisp_Object *attrs)
+lface_fully_specified_p (Lisp_Object attrs[LFACE_VECTOR_SIZE])
 {
   int i;
 
@@ -3245,7 +3245,7 @@ FRAME 0 means change the face on all frames, and change the default
 	    param = Qbackground_color;
 	}
 #ifdef HAVE_WINDOW_SYSTEM
-#ifndef WINDOWSNT
+#ifndef HAVE_NTGUI
       else if (EQ (face, Qscroll_bar))
 	{
 	  /* Changing the colors of `scroll-bar' sets frame parameters
@@ -3255,7 +3255,7 @@ FRAME 0 means change the face on all frames, and change the default
 	  else if (EQ (attr, QCbackground))
 	    param = Qscroll_bar_background;
 	}
-#endif /* not WINDOWSNT */
+#endif /* not HAVE_NTGUI */
       else if (EQ (face, Qborder))
 	{
 	  /* Changing background color of `border' sets frame parameter
@@ -4760,7 +4760,8 @@ DEFUN ("face-attributes-as-vector", Fface_attributes_as_vector,
     \(2) `close in spirit' to what the attributes specify, if not exact.  */
 
 static int
-x_supports_face_attributes_p (struct frame *f, Lisp_Object *attrs,
+x_supports_face_attributes_p (struct frame *f,
+			      Lisp_Object attrs[LFACE_VECTOR_SIZE],
 			      struct face *def_face)
 {
   Lisp_Object *def_attrs = def_face->lface;
@@ -4862,7 +4863,8 @@ x_supports_face_attributes_p (struct frame *f, Lisp_Object *attrs,
    substitution of a `dim' face for italic.  */
 
 static int
-tty_supports_face_attributes_p (struct frame *f, Lisp_Object *attrs,
+tty_supports_face_attributes_p (struct frame *f,
+				Lisp_Object attrs[LFACE_VECTOR_SIZE],
 				struct face *def_face)
 {
   int weight, slant;
@@ -5245,7 +5247,7 @@ be found.  Value is ALIST.  */)
    attribute of ATTRS doesn't name a fontset.  */
 
 static int
-face_fontset (Lisp_Object *attrs)
+face_fontset (Lisp_Object attrs[LFACE_VECTOR_SIZE])
 {
   Lisp_Object name;
 
@@ -5474,7 +5476,8 @@ realize_named_face (struct frame *f, Lisp_Object symbol, int id)
    face.  Value is a pointer to the newly created realized face.  */
 
 static struct face *
-realize_face (struct face_cache *cache, Lisp_Object *attrs, int former_face_id)
+realize_face (struct face_cache *cache, Lisp_Object attrs[LFACE_VECTOR_SIZE],
+	      int former_face_id)
 {
   struct face *face;
 
@@ -5551,7 +5554,7 @@ realize_non_ascii_face (struct frame *f, Lisp_Object font_object,
    created realized face.  */
 
 static struct face *
-realize_x_face (struct face_cache *cache, Lisp_Object *attrs)
+realize_x_face (struct face_cache *cache, Lisp_Object attrs[LFACE_VECTOR_SIZE])
 {
   struct face *face = NULL;
 #ifdef HAVE_WINDOW_SYSTEM
@@ -5878,7 +5881,8 @@ map_tty_color (struct frame *f, struct face *face,
    Value is a pointer to the newly created realized face.  */
 
 static struct face *
-realize_tty_face (struct face_cache *cache, Lisp_Object *attrs)
+realize_tty_face (struct face_cache *cache,
+		  Lisp_Object attrs[LFACE_VECTOR_SIZE])
 {
   struct face *face;
   int weight, slant;
@@ -6362,7 +6366,7 @@ where R,G,B are numbers between 0 and 255 and name is an arbitrary string.  */)
 	    if (num >= 0 && name[num] == '\n')
 	      name[num] = 0;
 	    cmap = Fcons (Fcons (build_string (name),
-#ifdef WINDOWSNT
+#ifdef HAVE_NTGUI
 				 make_number (RGB (red, green, blue))),
 #else
 				 make_number ((red << 16) | (green << 8) | blue)),
@@ -6593,12 +6597,6 @@ syms_of_xfaces (void)
 #if defined DEBUG_X_COLORS && defined HAVE_X_WINDOWS
   defsubr (&Sdump_colors);
 #endif
-
-  DEFVAR_LISP ("font-list-limit", Vfont_list_limit,
-	       doc: /* Limit for font matching.
-If an integer > 0, font matching functions won't load more than
-that number of fonts when searching for a matching font.  */);
-  Vfont_list_limit = make_number (DEFAULT_FONT_LIST_LIMIT);
 
   DEFVAR_LISP ("face-new-frame-defaults", Vface_new_frame_defaults,
     doc: /* List of global face definitions (for internal use only.)  */);

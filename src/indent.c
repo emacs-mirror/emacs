@@ -30,7 +30,6 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #include "frame.h"
 #include "window.h"
 #include "termchar.h"
-#include "termopts.h"
 #include "disptab.h"
 #include "intervals.h"
 #include "dispextern.h"
@@ -120,8 +119,7 @@ disptab_matches_widthtab (struct Lisp_Char_Table *disptab, struct Lisp_Vector *w
 {
   int i;
 
-  if (widthtab->header.size != 256)
-    emacs_abort ();
+  eassert (widthtab->header.size == 256);
 
   for (i = 0; i < 256; i++)
     if (character_width (i, disptab)
@@ -142,8 +140,7 @@ recompute_width_table (struct buffer *buf, struct Lisp_Char_Table *disptab)
   if (!VECTORP (BVAR (buf, width_table)))
     bset_width_table (buf, Fmake_vector (make_number (256), make_number (0)));
   widthtab = XVECTOR (BVAR (buf, width_table));
-  if (widthtab->header.size != 256)
-    emacs_abort ();
+  eassert (widthtab->header.size == 256);
 
   for (i = 0; i < 256; i++)
     XSETFASTINT (widthtab->contents[i], character_width (i, disptab));

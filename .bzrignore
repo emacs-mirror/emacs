@@ -66,6 +66,7 @@ doc/**/*.pdf
 !doc/lispintro/cons-*.pdf
 !doc/lispintro/drawers.pdf
 !doc/lispintro/lambda-*.pdf
+etc/emacs.tmpdesktop
 etc/refcards/*.aux
 etc/refcards/*.log
 info/*.info
@@ -159,3 +160,7 @@ src/gl-stamp
 lisp/mh-e/mh-autoloads.el
 lisp/mh-e/mh-cus-load.el
 lib/stdalign.h
+admin/charsets/*.map
+admin/charsets/cp51932.el
+admin/charsets/eucjp-ms.el
+admin/charsets/jisx2131-filter

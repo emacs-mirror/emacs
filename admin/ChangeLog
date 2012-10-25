@@ -1,3 +1,36 @@
+2012-10-12  Kenichi Handa  <handa@gnu.org>
+
+	* charsets/Makefile (JISC6226.map): Add missing mappings.
+
+2012-10-11  Kenichi Handa  <handa@gnu.org>
+
+	* charsets/mapconv: Adjusted for the change of mapfiles/*.gz to
+	mapfiles/*.
+
+	* charsets/gb180302.awk: Handle 4-byte sequences in the input file.
+
+	* charsets/Makefile: Be sure to call mapconv script of the current
+	directory.  Adjusted for the change of mapfiles/*.gz to
+	mapfiles/*.
+	(SED_SCRIPT): New variable.
+	(jisx2131-filter): New target.
+	(JISX2131.map): Use jisx2131-filter to filter out characters added
+	for the 2004 year version.
+	(clear): Remove ${SED_SCRIPT} too.
+
+	* charsets/mapfiles/MULE-ethiopic.map,
+	charsets/mapfiles/MULE-ipa.map,
+	charsets/mapfiles/MULE-is13194.map,
+	charsets/mapfiles/MULE-lviscii.map,
+	charsets/mapfiles/MULE-sisheng.map,
+	charsets/mapfiles/MULE-tibetan.map,
+	charsets/mapfiles/MULE-uviscii.map: Fix typo.
+
+2012-10-09  Glenn Morris  <rgm@gnu.org>
+
+	* admin.el (cusver-scan-cus-start): New function.
+	(cusver-check): Scan old cus-start.el.
+
 2012-10-07  Glenn Morris  <rgm@gnu.org>
 
 	* admin.el (cusver-new-version): Set default.

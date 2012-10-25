@@ -35,7 +35,8 @@
 ## no-byte-compile ones.
 
 ## Confusingly, term/internal is not in loadup, but is unconditionally
-## loaded by pc-win, which is.
+## loaded by pc-win, which is.  Ditto for international/cp51932 and
+## international/eucjp-ms, loaded from language/japanese.
 
 ## Note that this list should not include lisp files which might not
 ## be present, like site-load.el and site-init.el; this makefile
@@ -94,6 +95,8 @@ lisp = \
 	$(lispsource)/language/greek.elc \
 	$(lispsource)/language/hebrew.elc \
 	$(lispsource)/language/japanese.elc \
+	$(lispsource)/international/cp51932.el \
+	$(lispsource)/international/eucjp-ms.el \
 	$(lispsource)/language/korean.elc \
 	$(lispsource)/language/lao.elc \
 	$(lispsource)/language/tai-viet.elc \

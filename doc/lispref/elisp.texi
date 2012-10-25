@@ -800,17 +800,14 @@ Menu Keymaps
 * Menu Bar::                How to customize the menu bar.
 * Tool Bar::                A tool bar is a row of images.
 * Modifying Menus::         How to add new items to a menu.
+* Easy Menu::               A convenience macro for defining menus.
 
 Defining Menus
 
-* Simple Menu Items::       A simple kind of menu key binding,
-                              limited in capabilities.
-* Extended Menu Items::     More powerful menu item definitions
-                              let you specify keywords to enable
-                              various features.
+* Simple Menu Items::       A simple kind of menu key binding.
+* Extended Menu Items::     More complex menu item definitions.
 * Menu Separators::         Drawing a horizontal line through a menu.
 * Alias Menu Items::        Using command aliases in menu items.
-* Toolkit Differences::     Not all toolkits provide the same features.
 
 Major and Minor Modes
 

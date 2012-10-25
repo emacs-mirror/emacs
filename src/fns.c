@@ -1689,7 +1689,7 @@ changing the value of a sequence `foo'.  */)
 
 DEFUN ("nreverse", Fnreverse, Snreverse, 1, 1, 0,
        doc: /* Reverse LIST by modifying cdr pointers.
-Return the reversed list.  */)
+Return the reversed list.  Expects a properly nil-terminated list.  */)
   (Lisp_Object list)
 {
   register Lisp_Object prev, tail, next;
@@ -1700,7 +1700,7 @@ Return the reversed list.  */)
   while (!NILP (tail))
     {
       QUIT;
-      CHECK_LIST_CONS (tail, list);
+      CHECK_LIST_CONS (tail, tail);
       next = XCDR (tail);
       Fsetcdr (tail, prev);
       prev = tail;

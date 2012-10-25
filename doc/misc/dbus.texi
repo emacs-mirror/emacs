@@ -1981,7 +1981,7 @@ usually not desired.  D-Bus errors in events can be made visible by
 setting the variable @code{dbus-debug} to @code{t}.  They can also be
 handled by a hook function.
 
-@defvar dbus-event-error-hooks
+@defvar dbus-event-error-functions
 This hook variable keeps a list of functions, which are called when a
 D-Bus error happens in the event handler.  Every function must accept
 two arguments, the event and the error variable caught in
@@ -1997,7 +1997,7 @@ Example:
     (message "my-dbus-event-error-handler: %S %S" event error)
     (signal 'file-error (cdr error))))
 
-(add-hook 'dbus-event-error-hooks 'my-dbus-event-error-handler)
+(add-hook 'dbus-event-error-functions 'my-dbus-event-error-handler)
 @end lisp
 @end defvar
 

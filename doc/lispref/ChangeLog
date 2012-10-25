@@ -1,3 +1,66 @@
+2012-10-24  Paul Eggert  <eggert@penguin.cs.ucla.edu>
+
+	Update manual for new time stamp format (Bug#12706).
+	* buffers.texi (Modification Time):
+	* files.texi (Testing Accessibility, File Attributes):
+	* intro.texi (Version Info):
+	* os.texi (Time of Day):
+	Update for new time stamp format (HIGH LOW MICROSEC PICOSEC).
+	These instances were missed the first time around.
+	Problem reported by Glenn Morris in <http://bugs.gnu.org/12706#25>.
+
+2012-10-24  Chong Yidong  <cyd@gnu.org>
+
+	* minibuf.texi (Text from Minibuffer): Document read-regexp
+	changes.
+
+	* nonascii.texi (Selecting a Representation): Document
+	set-buffer-multibyte changes.
+
+	* keymaps.texi (Toolkit Differences): Node deleted.
+	(Easy Menu): New node.
+
+2012-10-23  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* hooks.texi (Standard Hooks): Clarify that -hooks is deprecated.
+
+2012-10-23  Paul Eggert  <eggert@cs.ucla.edu>
+
+	Fix outdated timestamp documentation in Elisp manual (bug#12706).
+	* files.texi (File Attributes):
+	* text.texi (Undo):
+	Time stamp resolution is now 1 picosecond, not 1 second.
+
+2012-10-23  Chong Yidong  <cyd@gnu.org>
+
+	* display.texi (Font Lookup): Remove font-list-limit.
+
+	* keymaps.texi (Key Sequences): Avoid referring to Edit Macro mode
+	(Bug#12529).
+
+2012-10-22  Glenn Morris  <rgm@gnu.org>
+
+	* os.texi (Recording Input): Tiny fix.
+
+	* intro.texi (Lisp History):
+	* lists.texi (Sets And Lists): Refer to cl-lib rather than cl.
+	* tips.texi (Coding Conventions): Recommend cl-lib over cl.
+
+2012-10-15  Chong Yidong  <cyd@gnu.org>
+
+	* macros.texi (Defining Macros): defmacro is now a macro.
+	Explicitly list the docstring and declare arguments.
+
+	* functions.texi (Anonymous Functions): Explicitly list the
+	docstring, declare, and interactive arguments to lambda.
+	(Defining Functions): Likewise for defun.
+	(Inline Functions): Likewise for defsubst.
+	(Declare Form): Tweak description.
+
+2012-10-13  Chong Yidong  <cyd@gnu.org>
+
+	* display.texi (ImageMagick Images): ImageMagick enabled by default.
+
 2012-10-05  Chong Yidong  <cyd@gnu.org>
 
 	* minibuf.texi (Basic Completion): Clarify list form of completion
@@ -1978,7 +2041,7 @@
 	* numbers.texi (Integer Basics): Add indexing for
 	most-positive-fixnum and most-negative-fixnum.  (Bug#9525)
 
-2011-09-14  Dani Moncayo  <dmoncayo@gmail.com>  (tiny change)
+2011-09-14  Dani Moncayo  <dmoncayo@gmail.com>
 
 	* lists.texi (Sets And Lists): Fix typo.  (Bug#9393)
 
@@ -1987,7 +2050,7 @@
 	* processes.texi (Network Servers): Clarify what the process
 	buffer is used for (bug#9233).
 
-2011-08-30  Dani Moncayo  <dmoncayo@gmail.com>  (tiny change)
+2011-08-30  Dani Moncayo  <dmoncayo@gmail.com>
 
 	* lists.texi (Building Lists): Fix typo.
 

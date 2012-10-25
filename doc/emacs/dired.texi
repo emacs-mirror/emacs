@@ -167,13 +167,14 @@ deletion, then delete the files that were flagged.
 
 @table @kbd
 @item d
-Flag this file for deletion.
+Flag this file for deletion (@code{dired-flag-file-deletion}).
 @item u
-Remove deletion flag on this line.
+Remove the deletion flag (@code{dired-unmark}).
 @item @key{DEL}
-Move point to previous line and remove the deletion flag on that line.
+Move point to previous line and remove the deletion flag on that line
+(@code{dired-unmark-backward}).
 @item x
-Delete the files that are flagged for deletion.
+Delete files flagged for deletion (@code{dired-do-flagged-delete}).
 @end table
 
 @kindex d @r{(Dired)}
@@ -182,8 +183,12 @@ Delete the files that are flagged for deletion.
 the file and typing @kbd{d} (@code{dired-flag-file-deletion}).  The
 deletion flag is visible as a @samp{D} at the beginning of the line.
 This command moves point to the next line, so that repeated @kbd{d}
-commands flag successive files.  A numeric argument serves as a repeat
-count.
+commands flag successive files.  A numeric prefix argument serves as a
+repeat count; a negative count means to flag preceding files.
+
+  If the region is active, the @kbd{d} command flags all files in the
+region for deletion; in this case, the command does not move point,
+and ignores any prefix argument.
 
 @kindex u @r{(Dired deletion)}
 @kindex DEL @r{(Dired)}
@@ -194,14 +199,17 @@ can remove deletion flags using the commands @kbd{u} and @key{DEL}.
 @kbd{u} (@code{dired-unmark}) works just like @kbd{d}, but removes
 flags rather than making flags.  @key{DEL}
 (@code{dired-unmark-backward}) moves upward, removing flags; it is
-like @kbd{u} with argument @minus{}1.
+like @kbd{u} with argument @minus{}1.  A numeric prefix argument to
+either command serves as a repeat count, with a negative count meaning
+to unflag in the opposite direction.  If the region is active, these
+commands instead unflag all files in the region, without moving point.
 
 @kindex x @r{(Dired)}
 @findex dired-do-flagged-delete
-  To delete the flagged files, type @kbd{x}
-(@code{dired-do-flagged-delete}).  This command first displays a list
-of all the file names flagged for deletion, and requests confirmation
-with @kbd{yes}.  If you confirm, Dired deletes the flagged files, then
+  To delete flagged files, type @kbd{x}
+(@code{dired-do-flagged-delete}).  This command displays a list of all
+the file names flagged for deletion, and requests confirmation with
+@kbd{yes}.  If you confirm, Dired deletes the flagged files, then
 deletes their lines from the text of the Dired buffer.  The Dired
 buffer, with somewhat fewer lines, remains selected.
 
@@ -387,10 +395,11 @@ and unflag files.)
 @kindex m @r{(Dired)}
 @kindex * m @r{(Dired)}
 @findex dired-mark
-Mark the current file with @samp{*} (@code{dired-mark}).  With a numeric
-argument @var{n}, mark the next @var{n} files starting with the current
-file.  (If @var{n} is negative, mark the previous @minus{}@var{n}
-files.)
+Mark the current file with @samp{*} (@code{dired-mark}).  If the
+region is active, mark all files in the region instead; otherwise, if
+a numeric argument @var{n} is supplied, mark the next @var{n} files
+instead, starting with the current file (if @var{n} is negative, mark
+the previous @minus{}@var{n} files).
 
 @item * *
 @kindex * * @r{(Dired)}
@@ -426,7 +435,11 @@ and @file{..} (@code{dired-mark-subdir-files}).
 @kindex u @r{(Dired)}
 @kindex * u @r{(Dired)}
 @findex dired-unmark
-Remove any mark on this line (@code{dired-unmark}).
+Remove any mark on this line (@code{dired-unmark}).  If the region is
+active, unmark all files in the region instead; otherwise, if a
+numeric argument @var{n} is supplied, unmark the next @var{n} files
+instead, starting with the current file (if @var{n} is negative,
+unmark the previous @minus{}@var{n} files).
 
 @item @key{DEL}
 @itemx * @key{DEL}
@@ -434,7 +447,11 @@ Remove any mark on this line (@code{dired-unmark}).
 @findex dired-unmark-backward
 @cindex unmarking files (in Dired)
 Move point to previous line and remove any mark on that line
-(@code{dired-unmark-backward}).
+(@code{dired-unmark-backward}).  If the region is active, unmark all
+files in the region instead; otherwise, if a numeric argument @var{n}
+is supplied, unmark the @var{n} preceding files instead, starting with
+the current file (if @var{n} is negative, unmark the next
+@minus{}@var{n} files).
 
 @item * !
 @itemx U
@@ -936,32 +953,19 @@ default.
 @cindex file comparison (in Dired)
 @cindex compare files (in Dired)
 
-  Here are two Dired commands that compare specified files using
-@code{diff}.  They show the output in a buffer using Diff mode
-(@pxref{Comparing Files}).
-
-@table @kbd
-@item =
 @findex dired-diff
 @kindex = @r{(Dired)}
-Compare the current file (the file at point) with another file (the
-file at the mark) using the @code{diff} program (@code{dired-diff}).
-The file at the mark is the first argument of @code{diff}, and the
-file at point is the second argument.  This refers to the ordinary
-Emacs mark, not Dired marks; use @kbd{C-@key{SPC}}
-(@code{set-mark-command}) to set the mark at the first file's line
-(@pxref{Setting Mark}).
+  The @kbd{=} (@code{dired-diff}) command compares the current file
+(the file at point) with another file (read using the minibuffer)
+using the @command{diff} program.  The file specified with the
+minibuffer is the first argument of @command{diff}, and file at point
+is the second argument.  The output of the @command{diff} program is
+shown in a buffer using Diff mode (@pxref{Comparing Files}).
 
-@findex dired-backup-diff
-@kindex M-= @r{(Dired)}
-@item M-=
-Compare the current file with its latest backup file
-(@code{dired-backup-diff}).  If the current file is itself a backup,
-compare it with the file it is a backup of; this way, you can compare
-a file with any one of its backups.
-
-The backup file is the first file given to @code{diff}.
-@end table
+  If the region is active, the default for the file read using the
+minibuffer is the file at the mark (i.e.@: the ordinary Emacs mark,
+not a Dired mark; @pxref{Setting Mark}).  Otherwise, if the file at
+point has a backup file (@pxref{Backup}), that is the default.
 
 @node Subdirectories in Dired
 @section Subdirectories in Dired

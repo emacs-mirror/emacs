@@ -403,8 +403,10 @@ Don't forget to check out `filesets-menu-ensure-use-cached'."
 		  (sexp :tag "Other" :value nil)))
   :group 'filesets)
 
-(defcustom filesets-cache-fill-content-hooks nil
-  "Hooks to run when writing the contents of filesets' cache file.
+(define-obsolete-variable-alias 'filesets-cache-fill-content-hooks
+  'filesets-cache-fill-content-hook "24.3")
+(defcustom filesets-cache-fill-content-hook nil
+  "Hook run when writing the contents of filesets' cache file.
 
 The hook is called with the cache file as current buffer and the cursor
 at the last position.  I.e. each hook has to make sure that the cursor is
@@ -2414,7 +2416,7 @@ fileset thinks this is necessary or not."
       (when filesets-cache-hostname-flag
 	(insert (format "(setq filesets-cache-hostname %S)" (system-name)))
 	(newline 2))
-      (run-hooks 'filesets-cache-fill-content-hooks)
+      (run-hooks 'filesets-cache-fill-content-hook)
       (write-file filesets-menu-cache-file))
     (setq filesets-has-changed-flag nil)
     (setq filesets-update-cache-file-flag nil)))

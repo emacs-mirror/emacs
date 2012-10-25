@@ -78,11 +78,11 @@ representations, @ref{Init Rebinding,,, emacs, The GNU Emacs Manual}.
 @defmac kbd keyseq-text
 This macro converts the text @var{keyseq-text} (a string constant)
 into a key sequence (a string or vector constant).  The contents of
-@var{keyseq-text} should describe the key sequence using almost the same
-syntax used in this manual.  More precisely, it uses the same syntax
-that Edit Macro mode uses for editing keyboard macros (@pxref{Edit
-Keyboard Macro,,, emacs, The GNU Emacs Manual}); you must surround
-function key names with @samp{<@dots{}>}.
+@var{keyseq-text} should use the same syntax as in the buffer invoked
+by the @kbd{C-x C-k @key{RET}} (@code{kmacro-edit-macro}) command; in
+particular, you must surround function key names with
+@samp{<@dots{}>}.  @xref{Edit Keyboard Macro,,, emacs, The GNU Emacs
+Manual}.
 
 @example
 (kbd "C-x") @result{} "\C-x"
@@ -1963,13 +1963,14 @@ is active for the next input event, that activates the keyboard menu
 feature.
 
 @menu
-* Defining Menus::              How to make a keymap that defines a menu.
-* Mouse Menus::                 How users actuate the menu with the mouse.
-* Keyboard Menus::              How users actuate the menu with the keyboard.
-* Menu Example::                Making a simple menu.
-* Menu Bar::                    How to customize the menu bar.
-* Tool Bar::                    A tool bar is a row of images.
-* Modifying Menus::             How to add new items to a menu.
+* Defining Menus::     How to make a keymap that defines a menu.
+* Mouse Menus::        How users actuate the menu with the mouse.
+* Keyboard Menus::     How users actuate the menu with the keyboard.
+* Menu Example::       Making a simple menu.
+* Menu Bar::           How to customize the menu bar.
+* Tool Bar::           A tool bar is a row of images.
+* Modifying Menus::    How to add new items to a menu.
+* Easy Menu::      A convenience macro for making menus.
 @end menu
 
 @node Defining Menus
@@ -2015,16 +2016,11 @@ an existing menu, you can specify its position in the menu using
 @code{define-key-after} (@pxref{Modifying Menus}).
 
 @menu
-* Simple Menu Items::       A simple kind of menu key binding,
-                              limited in capabilities.
-* Extended Menu Items::     More powerful menu item definitions
-                              let you specify keywords to enable
-                              various features.
+* Simple Menu Items::       A simple kind of menu key binding.
+* Extended Menu Items::     More complex menu item definitions.
 * Menu Separators::         Drawing a horizontal line through a menu.
 * Alias Menu Items::        Using command aliases in menu items.
-* Toolkit Differences::     Not all toolkits provide the same features.
 @end menu
-
 
 @node Simple Menu Items
 @subsubsection Simple Menu Items
@@ -2311,28 +2307,6 @@ itself).  To request this, give the alias symbol a non-@code{nil}
 @noindent
 causes menu items for @code{make-read-only} and @code{make-writable} to
 show the keyboard bindings for @code{read-only-mode}.
-
-@node Toolkit Differences
-@subsubsection Toolkit Differences
-
-The various toolkits with which you can build Emacs do not all support
-the same set of features for menus.  Some code works as expected with
-one toolkit, but not under another.
-
-One example is menu actions or buttons in a top-level menu bar.  The
-following works with the Lucid toolkit or on MS Windows, but not with
-GTK or Nextstep, where clicking on the item has no effect.
-
-@example
-(defun menu-action-greet ()
-   (interactive)
-   (message "Hello Emacs User!"))
-
-(defun top-level-menu ()
-  (interactive)
-  (define-key lisp-interaction-mode-map [menu-bar m]
-     '(menu-item "Action Button" menu-action-greet)))
-@end example
 
 @node Mouse Menus
 @subsection Menus and the Mouse
@@ -2813,3 +2787,125 @@ menu of Shell mode, after the item @code{break}:
   [work] '("Work" . work-command) 'break)
 @end example
 @end defun
+
+@node Easy Menu
+@subsection Easy Menu
+
+  The following macro provides a convenient way to define pop-up menus
+and/or menu bar menus.
+
+@defmac easy-menu-define symbol maps doc menu
+This macro defines a pop-up menu and/or menu bar submenu, whose
+contents are given by @var{menu}.
+
+If @var{symbol} is non-@code{nil}, it should be a symbol; then this
+macro defines @var{symbol} as a function for popping up the menu
+(@pxref{Pop-Up Menus}), with @var{doc} as its documentation string.
+@var{symbol} should not be quoted.
+
+Regardless of the value of @var{symbol}, if @var{maps} is a keymap,
+the menu is added to that keymap, as a top-level menu for the menu bar
+(@pxref{Menu Bar}).  It can also be a list of keymaps, in which case
+the menu is added separately to each of those keymaps.
+
+The first element of @var{menu} must be a string, which serves as the
+menu label.  It may be followed by any number of the following
+keyword-argument pairs:
+
+@table @code
+@item :filter @var{function}
+@var{function} must be a function which, if called with one
+argument---the list of the other menu items---returns the actual items
+to be displayed in the menu.
+
+@item :visible @var{include}
+@var{include} is an expression; if it evaluates to @code{nil}, the
+menu is made invisible.  @code{:included} is an alias for
+@code{:visible}.
+
+@item :active @var{enable}
+@var{enable} is an expression; if it evaluates to @code{nil}, the menu
+is not selectable.  @code{:enable} is an alias for @code{:active}.
+@end table
+
+The remaining elements in @var{menu} are menu items.
+
+A menu item can be a vector of three elements, @code{[@var{name}
+@var{callback} @var{enable}]}.  @var{name} is the menu item name (a
+string).  @var{callback} is a command to run, or an expression to
+evaluate, when the item is chosen.  @var{enable} is an expression; if
+it evaluates to @code{nil}, the item is disabled for selection.
+
+Alternatively, a menu item may have the form:
+
+@smallexample
+   [ @var{name} @var{callback} [ @var{keyword} @var{arg} ]... ]
+@end smallexample
+
+@noindent
+where @var{name} and @var{callback} have the same meanings as above,
+and each optional @var{keyword} and @var{arg} pair should be one of
+the following:
+
+@table @code
+@item :keys @var{keys}
+@var{keys} is a keyboard equivalent to the menu item (a string).  This
+is normally not needed, as keyboard equivalents are computed
+automatically.  @var{keys} is expanded with
+@code{substitute-command-keys} before it is displayed (@pxref{Keys in
+Documentation}).
+
+@item :key-sequence @var{keys}
+@var{keys} is a hint for speeding up Emacs's first display of the
+menu.  It should be nil if you know that the menu item has no keyboard
+equivalent; otherwise it should be a string or vector specifying a
+keyboard equivalent for the menu item.
+
+@item :active @var{enable}
+@var{enable} is an expression; if it evaluates to @code{nil}, the item
+is make unselectable..  @code{:enable} is an alias for @code{:active}.
+
+@item :visible @var{include}
+@var{include} is an expression; if it evaluates to @code{nil}, the
+item is made invisible.  @code{:included} is an alias for
+@code{:visible}.
+
+@item :label @var{form}
+@var{form} is an expression that is evaluated to obtain a value which
+serves as the menu item's label (the default is @var{name}).
+
+@item :suffix @var{form}
+@var{form} is an expression that is dynamically evaluated and whose
+value is concatenated with the menu entry's label.
+
+@item :style @var{style}
+@var{style} is a symbol describing the type of menu item; it should be
+@code{toggle} (a checkbox), or @code{radio} (a radio button), or
+anything else (meaning an ordinary menu item).
+
+@item :selected @var{selected}
+@var{selected} is an expression; the checkbox or radio button is
+selected whenever the expression's value is non-nil.
+
+@item :help @var{help}
+@var{help} is a string describing the menu item.
+@end table
+
+Alternatively, a menu item can be a string.  Then that string appears
+in the menu as unselectable text.  A string consisting of dashes is
+displayed as a separator (@pxref{Menu Separators}).
+
+Alternatively, a menu item can be a list with the same format as
+@var{menu}.  This is a submenu.
+@end defmac
+
+Here is an example of using @code{easy-menu-define} to define a menu
+similar to the one defined in the example in @ref{Menu Bar}:
+
+@example
+(easy-menu-define words-menu global-map
+  "Menu for word navigation commands."
+  '("Words"
+     ["Forward word" forward-word]
+     ["Backward word" backward-word]))
+@end example

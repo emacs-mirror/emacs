@@ -300,7 +300,9 @@ See `rcirc-dim-nick' face."
   :type '(repeat string)
   :group 'rcirc)
 
-(defcustom rcirc-print-hooks nil
+(define-obsolete-variable-alias 'rcirc-print-hooks
+  'rcirc-print-functions "24.3")
+(defcustom rcirc-print-functions nil
   "Hook run after text is printed.
 Called with 5 arguments, PROCESS, SENDER, RESPONSE, TARGET and TEXT."
   :type 'hook
@@ -647,7 +649,9 @@ is non-nil."
 	       "] "
 	       text)))))
 
-(defvar rcirc-sentinel-hooks nil
+(define-obsolete-variable-alias 'rcirc-sentinel-hooks
+  'rcirc-sentinel-functions "24.3")
+(defvar rcirc-sentinel-functions nil
   "Hook functions called when the process sentinel is called.
 Functions are called with PROCESS and SENTINEL arguments.")
 
@@ -664,7 +668,7 @@ Functions are called with PROCESS and SENTINEL arguments.")
 			       sentinel
 			       (process-status process)) (not rcirc-target))
 	  (rcirc-disconnect-buffer)))
-      (run-hook-with-args 'rcirc-sentinel-hooks process sentinel))))
+      (run-hook-with-args 'rcirc-sentinel-functions process sentinel))))
 
 (defun rcirc-disconnect-buffer (&optional buffer)
   (with-current-buffer (or buffer (current-buffer))
@@ -684,7 +688,9 @@ Functions are called with PROCESS and SENTINEL arguments.")
           (process-list))
     ps))
 
-(defvar rcirc-receive-message-hooks nil
+(define-obsolete-variable-alias 'rcirc-receive-message-hooks
+  'rcirc-receive-message-functions "24.3")
+(defvar rcirc-receive-message-functions nil
   "Hook functions run when a message is received from server.
 Function is called with PROCESS, COMMAND, SENDER, ARGS and LINE.")
 (defun rcirc-filter (process output)
@@ -738,7 +744,7 @@ Function is called with PROCESS, COMMAND, SENDER, ARGS and LINE.")
         (if (not (fboundp handler))
             (rcirc-handler-generic process cmd sender args text)
           (funcall handler process sender args text))
-        (run-hook-with-args 'rcirc-receive-message-hooks
+        (run-hook-with-args 'rcirc-receive-message-functions
                             process cmd sender args text)))
     (message "UNHANDLED: %s" text)))
 
@@ -1625,7 +1631,7 @@ record activity."
 	  (rcirc-log process sender response target text))
 
 	(sit-for 0)			; displayed text before hook
-	(run-hook-with-args 'rcirc-print-hooks
+	(run-hook-with-args 'rcirc-print-functions
 			    process sender response target text)))))
 
 (defun rcirc-generate-log-filename (process target)
@@ -1927,7 +1933,9 @@ With prefix ARG, go to the next low priority buffer with activity."
 			  (key-description (this-command-keys))
 			  " for low priority activity."))))))))
 
-(defvar rcirc-activity-hooks nil
+(define-obsolete-variable-alias 'rcirc-activity-hooks
+  'rcirc-activity-functions "24.3")
+(defvar rcirc-activity-functions nil
   "Hook to be run when there is channel activity.
 
 Functions are called with a single argument, the buffer with the
@@ -1950,7 +1958,7 @@ activity.  Only run if the buffer is not visible and
 	(unless (and (equal rcirc-activity old-activity)
 		     (member type old-types))
 	  (rcirc-update-activity-string)))))
-  (run-hook-with-args 'rcirc-activity-hooks buffer))
+  (run-hook-with-args 'rcirc-activity-functions buffer))
 
 (defun rcirc-clear-activity (buffer)
   "Clear the BUFFER activity."

@@ -85,6 +85,8 @@ get_lim_data (void)
 #else /* not USG */
 #ifdef WINDOWSNT
 
+#include "w32heap.h"
+
 static void
 get_lim_data (void)
 {

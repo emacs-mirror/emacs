@@ -2221,7 +2221,7 @@ the current buffer, followed by the remaining files of the tags table.
 reads a regexp to search for and a string to replace with, just like
 ordinary @kbd{M-x query-replace-regexp}.  It searches much like @kbd{M-x
 tags-search}, but repeatedly, processing matches according to your
-input.  @xref{Replace}, for more information on query replace.
+input.  @xref{Query Replace}, for more information on query replace.
 
 @vindex tags-case-fold-search
 @cindex case-sensitivity and tags search

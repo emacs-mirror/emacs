@@ -819,9 +819,13 @@ save_excursion_save (void)
 {
   bool visible = (XBUFFER (XWINDOW (selected_window)->buffer)
 		  == current_buffer);
+  /* Do not copy the mark if it points to nowhere.  */
+  Lisp_Object mark = (XMARKER (BVAR (current_buffer, mark))->buffer
+		      ? Fcopy_marker (BVAR (current_buffer, mark), Qnil)
+		      : Qnil);
 
   return Fcons (Fpoint_marker (),
-		Fcons (Fcopy_marker (BVAR (current_buffer, mark), Qnil),
+		Fcons (mark,
 		       Fcons (visible ? Qt : Qnil,
 			      Fcons (BVAR (current_buffer, mark_active),
 				     selected_window))));
@@ -856,9 +860,14 @@ save_excursion_restore (Lisp_Object info)
   info = XCDR (info);
   tem = XCAR (info);
   omark = Fmarker_position (BVAR (current_buffer, mark));
-  Fset_marker (BVAR (current_buffer, mark), tem, Fcurrent_buffer ());
-  nmark = Fmarker_position (tem);
-  unchain_marker (XMARKER (tem));
+  if (NILP (tem))
+    unchain_marker (XMARKER (BVAR (current_buffer, mark)));
+  else
+    {
+      Fset_marker (BVAR (current_buffer, mark), tem, Fcurrent_buffer ());
+      nmark = Fmarker_position (tem);
+      unchain_marker (XMARKER (tem));
+    }
 
   /* visible */
   info = XCDR (info);
@@ -1328,15 +1337,6 @@ DEFUN ("system-name", Fsystem_name, Ssystem_name, 0, 0, 0,
   (void)
 {
   return Vsystem_name;
-}
-
-const char *
-get_system_name (void)
-{
-  if (STRINGP (Vsystem_name))
-    return SSDATA (Vsystem_name);
-  else
-    return "";
 }
 
 DEFUN ("emacs-pid", Femacs_pid, Semacs_pid, 0, 0, 0,

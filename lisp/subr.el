@@ -1260,12 +1260,10 @@ is converted into a string by expressing it in decimal."
 (define-obsolete-variable-alias 'executing-macro 'executing-kbd-macro
   "before 19.34")
 
-(defvaralias 'x-lost-selection-hooks 'x-lost-selection-functions)
-(make-obsolete-variable 'x-lost-selection-hooks
-			'x-lost-selection-functions "22.1")
-(defvaralias 'x-sent-selection-hooks 'x-sent-selection-functions)
-(make-obsolete-variable 'x-sent-selection-hooks
-			'x-sent-selection-functions "22.1")
+(define-obsolete-variable-alias 'x-lost-selection-hooks
+  'x-lost-selection-functions "22.1")
+(define-obsolete-variable-alias 'x-sent-selection-hooks
+  'x-sent-selection-functions "22.1")
 
 ;; This was introduced in 21.4 for pre-unicode unification.  That
 ;; usage was rendered obsolete in 23.1 which uses Unicode internally.
@@ -2143,7 +2141,9 @@ any other non-digit terminates the character code and is then used as input."))
       (setq first nil))
     code))
 
-(defconst read-passwd-map
+(defvar read-passwd-map
+  ;; BEWARE: `defconst' would purecopy it, breaking the sharing with
+  ;; minibuffer-local-map along the way!
   (let ((map (make-sparse-keymap)))
     (set-keymap-parent map minibuffer-local-map)
     (define-key map "\C-u" #'delete-minibuffer-contents) ;bug#12570
@@ -2186,7 +2186,9 @@ by doing (clear-string STRING)."
           (lambda ()
             (setq minibuf (current-buffer))
             ;; Turn off electricity.
-            (set (make-local-variable 'post-self-insert-hook) nil)
+            (setq-local post-self-insert-hook nil)
+            (setq-local buffer-undo-list t)
+            (setq-local select-active-regions nil)
             (use-local-map read-passwd-map)
             (add-hook 'after-change-functions hide-chars-fun nil 'local))
         (unwind-protect
@@ -3147,7 +3149,7 @@ in which case `save-window-excursion' cannot help."
        (unwind-protect (progn ,@body)
          (set-window-configuration ,c)))))
 
-(defun temp-output-buffer-show (buffer)
+(defun internal-temp-output-buffer-show (buffer)
   "Internal function for `with-output-to-temp-buffer'."
   (with-current-buffer buffer
     (set-buffer-modified-p nil)
@@ -3231,7 +3233,7 @@ if it uses `temp-buffer-show-function'."
                    (run-hooks 'temp-buffer-setup-hook)))))
             (standard-output ,buf))
        (prog1 (progn ,@body)
-         (temp-output-buffer-show ,buf)))))
+         (internal-temp-output-buffer-show ,buf)))))
 
 (defmacro with-temp-file (file &rest body)
   "Create a new buffer, evaluate BODY there, and write the buffer to FILE.

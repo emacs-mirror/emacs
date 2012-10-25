@@ -838,7 +838,8 @@ is a normal hook.
 
 @cindex abnormal hook
   A few hooks are @dfn{abnormal hooks}.  Their names end in
-@samp{-hooks} or @samp{-functions}, instead of @samp{-hook}.  What
+@samp{-functions}, instead of @samp{-hook} (some old code may also use
+the deprecated suffix @samp{-hooks}).  What
 makes these hooks abnormal is the way its functions are
 called---perhaps they are given arguments, or perhaps the values they
 return are used in some way.  For example,
@@ -1735,11 +1736,11 @@ and @kbd{C-c p} in Texinfo mode:
 
 @example
 (add-hook 'texinfo-mode-hook
-          '(lambda ()
-             (define-key texinfo-mode-map "\C-cp"
-                         'backward-paragraph)
-             (define-key texinfo-mode-map "\C-cn"
-                         'forward-paragraph)))
+          (lambda ()
+            (define-key texinfo-mode-map "\C-cp"
+                        'backward-paragraph)
+            (define-key texinfo-mode-map "\C-cn"
+                        'forward-paragraph)))
 @end example
 
 @node Modifier Keys

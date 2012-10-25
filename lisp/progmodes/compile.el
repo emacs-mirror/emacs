@@ -171,6 +171,15 @@ of[ \t]+\"?\\([a-zA-Z]?:?[^\":\n]+\\)\"?:" 3 2 nil (1))
      "\\(?:^cucumber\\(?: -p [^[:space:]]+\\)?\\|#\\)\
 \\(?: \\)\\([^\(].*\\):\\([1-9][0-9]*\\)" 1 2)
 
+    (msft
+     ;; Must be before edg-1, so that MSVC's longer messages are
+     ;; considered before EDG.
+     ;; The message may be a "warning", "error", or "fatal error" with
+     ;; an error code, or "see declaration of" without an error code.
+     "^ *\\([0-9]+>\\)?\\(\\(?:[a-zA-Z]:\\)?[^:(\t\n]+\\)(\\([0-9]+\\)) ?\
+: \\(?:see declaration\\|\\(?:warnin\\(g\\)\\|[a-z ]+\\) C[0-9]+:\\)"
+     2 3 nil (4))
+
     (edg-1
      "^\\([^ \n]+\\)(\\([0-9]+\\)): \\(?:error\\|warnin\\(g\\)\\|remar\\(k\\)\\)"
      1 2 nil (3 . 4))
@@ -1559,12 +1568,20 @@ Returns the compilation buffer created."
 	;; Then evaluate a cd command if any, but don't perform it yet, else
 	;; start-command would do it again through the shell: (cd "..") AND
 	;; sh -c "cd ..; make"
-	(cd (if (string-match "\\`\\s *cd\\(?:\\s +\\(\\S +?\\)\\)?\\s *[;&\n]"
-			      command)
-		(if (match-end 1)
-		    (substitute-env-vars (match-string 1 command))
-		  "~")
-	      default-directory))
+	(cd (cond
+             ((not (string-match "\\`\\s *cd\\(?:\\s +\\(\\S +?\\|'[^']*'\\|\"\\(?:[^\"`$\\]\\|\\\\.\\)*\"\\)\\)?\\s *[;&\n]"
+                                 command))
+              default-directory)
+             ((not (match-end 1)) "~")
+             ((eq (aref command (match-beginning 1)) ?\')
+              (substring command (1+ (match-beginning 1))
+                         (1- (match-end 1))))
+             ((eq (aref command (match-beginning 1)) ?\")
+              (replace-regexp-in-string
+               "\\\\\\(.\\)" "\\1"
+               (substring command (1+ (match-beginning 1))
+                          (1- (match-end 1)))))
+             (t (substitute-env-vars (match-string 1 command)))))
 	(erase-buffer)
 	;; Select the desired mode.
 	(if (not (eq mode t))

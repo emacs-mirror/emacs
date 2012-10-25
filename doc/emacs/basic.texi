@@ -757,7 +757,8 @@ the character @samp{1}.
 value.  For example, the command @kbd{M-q} (@code{fill-paragraph})
 fills text; with an argument, it justifies the text as well.
 (@xref{Filling}, for more information on @kbd{M-q}.)  For these
-commands, it is enough to the argument with a single @kbd{C-u}.
+commands, it is enough to specify the argument with a single
+@kbd{C-u}.
 
   Some commands use the value of the argument as a repeat count, but
 do something special when there is no argument.  For example, the
@@ -776,10 +777,10 @@ described when they come up; they exist to make an individual command
 more convenient, and they are documented in that command's
 documentation string.
 
-  We use the term ``prefix argument'' as well as ``numeric argument'',
-to emphasize that you type these argument before the command, and to
-distinguish them from minibuffer arguments that come after the
-command.
+  We use the term @dfn{prefix argument} to emphasize that you type
+such arguments before the command, and to distinguish them from
+minibuffer arguments (@pxref{Minibuffer}), which are entered after
+invoking the command.
 
 @node Repeating
 @section Repeating a Command

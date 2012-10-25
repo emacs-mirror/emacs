@@ -1040,12 +1040,16 @@ decoding it using coding system @var{right} instead.
 @findex set-buffer-file-coding-system
   The command @kbd{C-x @key{RET} f}
 (@code{set-buffer-file-coding-system}) sets the file coding system for
-the current buffer---in other words, it says which coding system to
-use when saving or reverting the visited file.  You specify which
-coding system using the minibuffer.  If you specify a coding system
-that cannot handle all of the characters in the buffer, Emacs warns
-you about the troublesome characters when you actually save the
-buffer.
+the current buffer (i.e.@: the coding system to use when saving or
+reverting the file).  You specify which coding system using the
+minibuffer.  You can also invoke this command by clicking with
+@kbd{Mouse-3} on the coding system indicator in the mode line
+(@pxref{Mode Line}).
+
+  If you specify a coding system that cannot handle all the characters
+in the buffer, Emacs will warn you about the troublesome characters,
+and ask you to choose another coding system, when you try to save the
+buffer (@pxref{Output Coding}).
 
 @cindex specify end-of-line conversion
   You can also use this command to specify the end-of-line conversion

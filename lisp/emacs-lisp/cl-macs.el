@@ -1603,7 +1603,7 @@ before assigning any symbols SYM to the corresponding values.
   "Bind SYMBOLS to VALUES dynamically in BODY.
 The forms SYMBOLS and VALUES are evaluated, and must evaluate to lists.
 Each symbol in the first list is bound to the corresponding value in the
-second list (or made unbound if VALUES is shorter than SYMBOLS); then the
+second list (or to nil if VALUES is shorter than SYMBOLS); then the
 BODY forms are executed and their result is returned.  This is much like
 a `let' form, except that the list of symbols can be computed at run-time."
   (declare (indent 2) (debug (form form body)))
@@ -2324,26 +2324,29 @@ value, that slot cannot be set via `setf'.
                           (if (= pos 0) '(car cl-x)
                             `(nth ,pos cl-x)))) forms)
 	      (push (cons accessor t) side-eff)
-              ;; Don't bother defining a setf-expander, since gv-get can use
-              ;; the compiler macro to get the same result.
-              ;;(push `(gv-define-setter ,accessor (cl-val cl-x)
-              ;;         ,(if (cadr (memq :read-only (cddr desc)))
-              ;;              `(progn (ignore cl-x cl-val)
-              ;;                      (error "%s is a read-only slot"
-              ;;                             ',accessor))
-              ;;            ;; If cl is loaded only for compilation,
-              ;;            ;; the call to cl--struct-setf-expander would
-              ;;            ;; cause a warning because it may not be
-              ;;            ;; defined at run time.  Suppress that warning.
-              ;;            `(progn
-              ;;               (declare-function
-              ;;                cl--struct-setf-expander "cl-macs"
-              ;;                (x name accessor pred-form pos))
-              ;;               (cl--struct-setf-expander
-              ;;                cl-val cl-x ',name ',accessor
-              ;;                ,(and pred-check `',pred-check)
-              ;;                ,pos))))
-              ;;      forms)
+              (if (cadr (memq :read-only (cddr desc)))
+                  (push `(gv-define-expander ,accessor
+                           (lambda (_cl-do _cl-x)
+                             (error "%s is a read-only slot" ',accessor)))
+                        forms)
+                ;; For normal slots, we don't need to define a setf-expander,
+                ;; since gv-get can use the compiler macro to get the
+                ;; same result.
+                ;; (push `(gv-define-setter ,accessor (cl-val cl-x)
+                ;;          ;; If cl is loaded only for compilation,
+                ;;          ;; the call to cl--struct-setf-expander would
+                ;;          ;; cause a warning because it may not be
+                ;;          ;; defined at run time.  Suppress that warning.
+                ;;          (progn
+                ;;            (declare-function
+                ;;             cl--struct-setf-expander "cl-macs"
+                ;;             (x name accessor pred-form pos))
+                ;;            (cl--struct-setf-expander
+                ;;             cl-val cl-x ',name ',accessor
+                ;;             ,(and pred-check `',pred-check)
+                ;;             ,pos)))
+                ;;       forms)
+                )
 	      (if print-auto
 		  (nconc print-func
 			 (list `(princ ,(format " %s" slot) cl-s)

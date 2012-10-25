@@ -2565,8 +2565,7 @@ line LINE of the window, or centered if LINE is nil."
     (if (null tex-shell)
 	(message "No TeX output buffer")
       (setq window (display-buffer tex-shell))
-      (save-selected-window
-	(select-window window)
+      (with-selected-window window
 	(bury-buffer tex-shell)
 	(goto-char (point-max))
 	(recenter (if linenum

@@ -26,33 +26,19 @@
 
 ;;; Code:
 (require 'w32-vars)
+(require 'w32-common-fns)
 
 (defvar explicit-shell-file-name)
 
 ;;;; Function keys
 
-(declare-function set-message-beep "w32console.c")
-(declare-function w32-get-clipboard-data "w32select.c")
+(declare-function set-message-beep "w32fns.c")
 (declare-function w32-get-locale-info "w32proc.c")
 (declare-function w32-get-valid-locale-ids "w32proc.c")
-(declare-function w32-set-clipboard-data "w32select.c")
 
 ;; Map all versions of a filename (8.3, longname, mixed case) to the
 ;; same buffer.
 (setq find-file-visit-truename t)
-
-(declare-function x-server-version "w32fns.c" (&optional display))
-
-(defun w32-version ()
-  "Return the MS-Windows version numbers.
-The value is a list of three integers: the major and minor version
-numbers, and the build number."
-  (x-server-version))
-
-(defun w32-using-nt ()
-  "Return non-nil if running on a Windows NT descendant.
-That includes all Windows systems except for 9X/Me."
-  (and (eq system-type 'windows-nt) (getenv "SystemRoot")))
 
 (defun w32-shell-name ()
   "Return the name of the shell being used."
@@ -240,53 +226,6 @@ requires it (see `w32-shell-dos-semantics')."
 	  (setq start (match-end 0))))
       name)))
 
-;;; Fix interface to (X-specific) mouse.el
-(defun x-set-selection (type data)
-  "Make an X selection of type TYPE and value DATA.
-The argument TYPE (nil means `PRIMARY') says which selection, and
-DATA specifies the contents.  TYPE must be a symbol.  \(It can also
-be a string, which stands for the symbol with that name, but this
-is considered obsolete.)  DATA may be a string, a symbol, an
-integer (or a cons of two integers or list of two integers).
-
-The selection may also be a cons of two markers pointing to the same buffer,
-or an overlay.  In these cases, the selection is considered to be the text
-between the markers *at whatever time the selection is examined*.
-Thus, editing done in the buffer after you specify the selection
-can alter the effective value of the selection.
-
-The data may also be a vector of valid non-vector selection values.
-
-The return value is DATA.
-
-Interactively, this command sets the primary selection.  Without
-prefix argument, it reads the selection in the minibuffer.  With
-prefix argument, it uses the text of the region as the selection value.
-
-Note that on MS-Windows, primary and secondary selections set by Emacs
-are not available to other programs."
-  (put 'x-selections (or type 'PRIMARY) data))
-
-(defun x-get-selection (&optional type _data-type)
-  "Return the value of an X Windows selection.
-The argument TYPE (default `PRIMARY') says which selection,
-and the argument DATA-TYPE (default `STRING') says
-how to convert the data.
-
-TYPE may be any symbol \(but nil stands for `PRIMARY').  However,
-only a few symbols are commonly used.  They conventionally have
-all upper-case names.  The most often used ones, in addition to
-`PRIMARY', are `SECONDARY' and `CLIPBOARD'.
-
-DATA-TYPE is usually `STRING', but can also be one of the symbols
-in `selection-converter-alist', which see."
-  (get 'x-selections (or type 'PRIMARY)))
-
-;; x-selection-owner-p is used in simple.el
-(defun x-selection-owner-p (&optional type)
-  (and (memq type '(nil PRIMARY SECONDARY))
-       (get 'x-selections (or type 'PRIMARY))))
-
 (defun set-w32-system-coding-system (coding-system)
   "Set the coding system used by the Windows system to CODING-SYSTEM.
 This is used for things like passing font names with non-ASCII
@@ -310,14 +249,6 @@ This function is provided for backward compatibility, since
 
 ;; Set to a system sound if you want a fancy bell.
 (set-message-beep nil)
-
-;; The "Windows" keys on newer keyboards bring up the Start menu
-;; whether you want it or not - make Emacs ignore these keystrokes
-;; rather than beep.
-(global-set-key [lwindow] 'ignore)
-(global-set-key [rwindow] 'ignore)
-
-(defvar w32-charset-info-alist)		; w32font.c
 
 (defun w32-add-charset-info (xlfd-charset windows-charset codepage)
   "Function to add character sets to display with Windows fonts.
@@ -378,40 +309,6 @@ bit output with no translation."
                         'w32-enable-synthesized-fonts "21.1")
 (make-obsolete-variable 'w32-charset-to-codepage-alist
                         'w32-charset-info-alist "21.1")
-
-
-;;;; Selections
-
-;; We keep track of the last text selected here, so we can check the
-;; current selection against it, and avoid passing back our own text
-;; from x-selection-value.
-(defvar x-last-selected-text nil)
-
-(defun x-get-selection-value ()
-  "Return the value of the current selection.
-Consult the selection.  Treat empty strings as if they were unset."
-  (if x-select-enable-clipboard
-      (let (text)
-	;; Don't die if x-get-selection signals an error.
-	(condition-case c
-	    (setq text (w32-get-clipboard-data))
-	  (error (message "w32-get-clipboard-data:%s" c)))
-	(if (string= text "") (setq text nil))
-	(cond
-	 ((not text) nil)
-	 ((eq text x-last-selected-text) nil)
-	 ((string= text x-last-selected-text)
-	  ;; Record the newer string, so subsequent calls can use the 'eq' test.
-	  (setq x-last-selected-text text)
-	  nil)
-	 (t
-	  (setq x-last-selected-text text))))))
-
-(defalias 'x-selection-value 'x-get-selection-value)
-
-;; Arrange for the kill and yank functions to set and check the clipboard.
-(setq interprogram-cut-function 'x-select-text)
-(setq interprogram-paste-function 'x-get-selection-value)
 
 
 ;;;; Support for build process

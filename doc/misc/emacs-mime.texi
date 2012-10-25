@@ -1516,16 +1516,16 @@ Here's a bunch of time/date/second/day examples:
 @result{} 905595714.0
 
 (seconds-to-time 905595714.0)
-@result{} (13818 19266 0)
+@result{} (13818 19266 0 0)
 
 (time-to-days '(13818 19266))
 @result{} 729644
 
 (days-to-time 729644)
-@result{} (961933 65536)
+@result{} (961933 512)
 
 (time-since '(13818 19266))
-@result{} (0 430)
+@result{} (6797 9607 984839 247000)
 
 (time-less-p '(13818 19266) '(13818 19145))
 @result{} nil
@@ -1546,7 +1546,7 @@ Here's a bunch of time/date/second/day examples:
 (time-to-number-of-days
  (time-since
   (date-to-time "Mon, 01 Jan 2001 02:22:26 GMT")))
-@result{} 4.146122685185185
+@result{} 4314.095589286675
 @end example
 
 And finally, we have @code{safe-date-to-time}, which does the same as
@@ -1561,7 +1561,7 @@ An RFC822 (or similar) date string.  For instance: @code{"Sat Sep 12
 12:21:54 1998 +0200"}.
 
 @item time
-An internal Emacs time.  For instance: @code{(13818 26466)}.
+An internal Emacs time.  For instance: @code{(13818 26466 0 0)}.
 
 @item seconds
 A floating point representation of the internal Emacs time.  For

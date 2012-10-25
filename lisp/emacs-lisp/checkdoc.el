@@ -124,7 +124,7 @@
 ;; Adding your own checks:
 ;;
 ;;   You can experiment with adding your own checks by setting the
-;; hooks `checkdoc-style-hooks' and `checkdoc-comment-style-hooks'.
+;; hooks `checkdoc-style-functions' and `checkdoc-comment-style-hooks'.
 ;; Return a string which is the error you wish to report.  The cursor
 ;; position should be preserved.
 ;;
@@ -274,17 +274,21 @@ made in the style guide relating to order."
   :type 'boolean)
 ;;;###autoload(put 'checkdoc-arguments-in-order-flag 'safe-local-variable 'booleanp)
 
-(defvar checkdoc-style-hooks nil
-  "Hooks called after the standard style check is completed.
-All hooks must return nil or a string representing the error found.
+(define-obsolete-variable-alias 'checkdoc-style-hooks
+  'checkdoc-style-functions "24.3")
+(defvar checkdoc-style-functions nil
+  "Hook run after the standard style check is completed.
+All functions must return nil or a string representing the error found.
 Useful for adding new user implemented commands.
 
 Each hook is called with two parameters, (DEFUNINFO ENDPOINT).
 DEFUNINFO is the return value of `checkdoc-defun-info'.  ENDPOINT is the
 location of end of the documentation string.")
 
-(defvar checkdoc-comment-style-hooks nil
-  "Hooks called after the standard comment style check is completed.
+(define-obsolete-variable-alias 'checkdoc-comment-style-hooks
+  'checkdoc-comment-style-functions "24.3")
+(defvar checkdoc-comment-style-functions nil
+  "Hook run after the standard comment style check is completed.
 Must return nil if no errors are found, or a string describing the
 problem discovered.  This is useful for adding additional checks.")
 
@@ -1843,7 +1847,7 @@ Replace with \"%s\"? " original replace)
      ;; and reliance on the Ispell program.
      (checkdoc-ispell-docstring-engine e)
      ;; User supplied checks
-     (save-excursion (checkdoc-run-hooks 'checkdoc-style-hooks fp e))
+     (save-excursion (checkdoc-run-hooks 'checkdoc-style-functions fp e))
      ;; Done!
      )))
 
@@ -2353,7 +2357,7 @@ Code:, and others referenced in the style guide."
        err
        (or
 	;; Generic Full-file checks (should be comment related)
-	(checkdoc-run-hooks 'checkdoc-comment-style-hooks)
+	(checkdoc-run-hooks 'checkdoc-comment-style-functions)
 	err))
       ;; Done with full file comment checks
       err)))

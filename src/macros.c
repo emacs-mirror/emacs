@@ -84,7 +84,7 @@ macro before appending to it. */)
     {
       ptrdiff_t i;
       EMACS_INT len;
-      int cvt;
+      bool cvt;
 
       /* Check the type of last-kbd-macro in case Lisp code changed it.  */
       CHECK_VECTOR_OR_STRING (KVAR (current_kboard, Vlast_kbd_macro));

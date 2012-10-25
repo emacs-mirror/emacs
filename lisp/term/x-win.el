@@ -67,6 +67,8 @@
 ;; An alist of X options and the function which handles them.  See
 ;; ../startup.el.
 
+(eval-when-compile (require 'cl-lib))
+
 (if (not (fboundp 'x-create-frame))
     (error "%s: Loading x-win.el but not compiled for X" (invocation-name)))
 
@@ -1338,6 +1340,8 @@ Request data types in the order specified by `x-select-request-type'."
 
 (defun x-initialize-window-system ()
   "Initialize Emacs for X frames and open the first connection to an X server."
+  (cl-assert (not x-initialized))
+
   ;; Make sure we have a valid resource name.
   (or (stringp x-resource-name)
       (let (i)
@@ -1451,6 +1455,7 @@ Request data types in the order specified by `x-select-request-type'."
   (x-apply-session-resources)
   (setq x-initialized t))
 
+(add-to-list 'display-format-alist '("\\`[^:]*:[0-9]+\\(\\.[0-9]+\\)?\\'" . x))
 (add-to-list 'handle-args-function-alist '(x . x-handle-args))
 (add-to-list 'frame-creation-function-alist '(x . x-create-frame-with-faces))
 (add-to-list 'window-system-initialization-alist '(x . x-initialize-window-system))

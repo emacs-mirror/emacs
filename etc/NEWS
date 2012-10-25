@@ -23,18 +23,36 @@ so we will look at it and add it to the manual.
 
 * Installation Changes in Emacs 24.3
 
+---
+** The default toolkit has been changed to Gtk+ version 3.
+If you don't pass --with-x-toolkit to configure or if you pass
+--with-x-toolkit=gtk or --with-x-toolkit=yes, configure will try to build
+with Gtk+ version 3, and if that fails, try Gtk+ version 2.
+You can explicitly require a specific version by passing
+--with-x-toolkit=gtk2 or --with-x-toolkit=gtk3 to configure.
+
+---
 ** New configure option '--without-all' to disable additional features.
 This disables most of the features that are normally enabled by default.
 
+---
 ** New configure option '--enable-link-time-optimization' to utilize
 an appropriate feature provided by GCC since version 4.5.0.
 
+---
 ** New configure option '--enable-gcc-warnings', intended for developers.
 If building with GCC, this enables compile-time checks that warn about
 possibly-questionable C code.  On a recent GNU system there should be
 no warnings; on older and on non-GNU systems the generated warnings
 may be useful.
 
+---
+** The configure option '--enable-use-lisp-union-type' has been
+renamed to '--enable-check-lisp-object-type', as the resulting
+Lisp_Object type no longer uses a union to implement the compile time
+check that this option enables.
+
+---
 ** The configure option '--disable-maintainer-mode' has been removed,
 as it was confusingly-named and rarely useful.
 
@@ -42,6 +60,13 @@ as it was confusingly-named and rarely useful.
 ** You can use `NO_BIN_LINK=t make install' to prevent the installation
 overwriting "emacs" in the installation bin/ directory with a link
 to emacs-VERSION.
+
+---
+** The configure options `--program-prefix', `--program-suffix', and
+`--program-transform-name' apply to more than just the installed
+binaries.  Now they also affect the man pages, icons, and the
+etc/emacs.desktop file; but not the info pages, since this would break
+links between the various manuals.
 
 ---
 ** Emacs uses libtinfo in preference to libncurses, if available.
@@ -52,26 +77,9 @@ to emacs-VERSION.
 you want them.
 
 ---
-** On Mac OS X, configure no longer automatically adds the Fink /sw
-directories to the search path.  You must add them yourself if you want them.
-
----
 ** The standalone scripts rcs-checkin and vcdiff have been removed
 (from the bin and libexec directories, respectively).  The former is
 no longer relevant, the latter is replaced by lisp (in vc-sccs.el).
-
-** The configuration option '--enable-use-lisp-union-type' has been
-renamed to '--enable-check-lisp-object-type', as the resulting
-Lisp_Object type no longer uses a union to implement the compile time
-check that this option enables.
-
----
-** The default toolkit has been changed to Gtk+ version 3.
-If you don't pass --with-x-toolkit to configure or if you pass
---with-x-toolkit=gtk or --with-x-toolkit=yes, configure will try to build
-with Gtk+ version 3, and if that fails, try Gtk+ version 2.
-You can explicitly require a specific version by passing
---with-x-toolkit=gtk2 or --with-x-toolkit=gtk3 to configure.
 
 
 * Startup Changes in Emacs 24.3
@@ -87,26 +95,19 @@ been adding them there, put them somewhere else, eg site-lisp.
 
 * Changes in Emacs 24.3
 
-** minibuffer-electric-default-mode can rewrite (default ...) to [...].
-Just set minibuffer-eldef-shorten-default to t before enabling the mode.
-
 +++
 ** Most y-or-n prompts now allow you to scroll the selected window.
 Typing C-v or M-v at a y-or-n prompt scrolls forward or backward
 respectively, without exiting from the prompt.
-
----
-** In minibuffer filename prompts, `C-M-f' and `C-M-b' now move to the
-next and previous path separator, respectively.
 
 ** Mode line changes
 ---
 *** New option `mode-line-default-help-echo' specifies the help text
 (shown in a tooltip or in the echo area) for any part of the mode line
 that does not have its own specialized help text.
-
-*** You can now click mouse-3 in the coding system indicator to
-invokes `set-buffer-file-coding-system'.
++++
+*** You can now click mouse-3 in the coding system indicator to invoke
+`set-buffer-file-coding-system'.
 
 ** Help changes
 
@@ -122,21 +123,29 @@ correctly.  To disable this, set `help-enable-auto-load' to nil.
 even after their associated libraries have been loaded (and the
 autoloads have been redefined as functions).
 
+** Minibuffer changes
+---
+*** In minibuffer filename prompts, `C-M-f' and `C-M-b' now move to the
+next and previous path separator, respectively.
+
+*** minibuffer-electric-default-mode can rewrite (default ...) to [...].
+Just set minibuffer-eldef-shorten-default to t before enabling the mode.
+
 ** ImageMagick support, if available, is automatically enabled.
 It is no longer necessary to call `imagemagick-register-types'
 explicitly to install ImageMagick image types; that function is called
 automatically at startup, or when customizing a relevant imagemagick-
 option.
-
++++
 *** Setting `imagemagick-types-inhibit' to t now disables the use of
 ImageMagick to view images.  You must call imagemagick-register-types
 afterwards if you do not use customize to change this.
-
++++
 *** The new variable `imagemagick-enabled-types' also affects which
 ImageMagick types are treated as images.  The function
 `imagemagick-filter-types' returns the list of types that will be
 treated as images.
-
+---
 *** Images displayed via ImageMagick now support transparency and the
 :background image spec property.
 
@@ -159,8 +168,6 @@ This minor mode replaces `toggle-read-only', which is now obsolete.
 On encountering a fatal error, Emacs now outputs a textual description
 of the fatal signal, and a short backtrace on platforms like glibc
 that support backtraces.
-
-** `message-log-max' now defaults to 1000, not 100.
 
 ---
 ** If your Emacs was built from a bzr checkout, the new variable
@@ -189,13 +196,13 @@ The PCL-CVS commands are still available via the keyboard.
 ---
 *** New input method `vietnamese-vni'.
 
-** NextStep/OSX port changes.
----
-*** OSX 10.4 or newer is required to build Emacs.
+** Nextstep (GNUstep / Mac OS X) port changes
 ---
 *** Fullscreen and frame parameter fullscreen is supported.
 ---
-*** A file dialog is used when open/saved is done from the menu/toolbar.
+*** A file dialog is used for open/save operations initiated from the
+menu/toolbar.
+
 
 * Editing Changes in Emacs 24.3
 
@@ -280,14 +287,16 @@ Use `Buffer-menu-name-width' and `Buffer-menu-size-width' instead.
 
 ** Calendar
 
++++
 *** You can customize the header text that appears above each calendar month.
 See the variable `calendar-month-header'.
 
 +++
 *** New LaTeX calendar style, produced by `cal-tex-cursor-week2-summary'.
 
++++
 *** The calendars produced by cal-html include holidays.
-Customize cal-html-holidays to change this.
+Customize `cal-html-holidays' to change this.
 
 ** CL
 
@@ -312,6 +321,7 @@ The difference is that it relies on the `lexical-binding' machinery (as opposed
 to the `lexical-let' machinery used previously) to capture definitions in
 closures, so such closures will only work if `lexical-binding' is in use.
 
++++
 *** `progv' was rewritten to use the `let' machinery.
 A side effect is that vars without corresponding value are bound to nil
 rather than making them unbound.
@@ -321,15 +331,15 @@ rather than making them unbound.
 *** New option `compilation-always-kill'.
 
 ** Customize
-
+---
 *** `custom-reset-button-menu' now defaults to t.
-
+---
 *** Non-option variables are never matched in `customize-apropos' and
 `customize-apropos-options' (i.e. the prefix argument does nothing for
 these commands now).
 
 ** Desktop
-
+---
 *** `desktop-path' no longer includes the "." directory.  Desktop
 files are now located in ~/.emacs.d by default.
 
@@ -383,35 +393,36 @@ whitespace problems introduced by the diff.
 *** `dired-do-async-shell-command' executes each file sequentially
 if the command ends in `;' (when operating on multiple files).
 Otherwise, it executes the command on each file in parallel.
-
+---
 *** Typing M-n in the minibuffer of `dired-do-chmod', `dired-do-chgrp',
 `dired-do-chown', `dired-do-touch' pulls the file attributes of the
 file at point.
-
++++
 *** When the region is active, `m' (`dired-mark'), `u' (`dired-unmark'),
 `DEL' (`dired-unmark-backward'), `d' (`dired-flag-file-deletion')
 mark/unmark/flag all files in the active region.
-
++++
 *** The minibuffer default for `=' (`dired-diff) has changed.
 It is now the backup file for the file at point, if one exists.
 In Transient Mark mode the default is the file at the active mark.
-
++++
 *** `M-=' is no longer bound to `dired-backup-diff' in Dired buffers.
 The global binding for `M-=', `count-words-region' is in effect.
 
+---
 ** Ediff now uses the same color scheme as Diff mode.
 
 ** erc will look up server/channel names via auth-source and use the
 channel keys found, if any.
 
 ** Flymake uses fringe bitmaps to indicate errors and warnings.
-See flymake-fringe-indicator-position, flymake-error-bitmap and
-flymake-warning-bitmap.
+See `flymake-fringe-indicator-position', `flymake-error-bitmap' and
+`flymake-warning-bitmap'.
 
 ** Follow mode
-
+---
 *** The obsolete variable `follow-mode-off-hook' has been removed.
-
+---
 *** Follow mode no longer works by using advice.
 The option `follow-intercept-processes' has been removed.
 
@@ -420,6 +431,9 @@ The option `follow-intercept-processes' has been removed.
 *** The option `ffap-url-unwrap-remote' can now be a list of strings,
 specifying URL types which should be converted to remote file names at
 the FFAP prompt.  The default is now '("ftp").
+
+** Generic-x
+`javascript-generic-mode' is now an obsolete alias for `js-mode'.
 
 ** Ibuffer
 
@@ -599,6 +613,29 @@ enabled.
 
 ** FIXME something happened to ses.el, 2012-04-17.
 
+** Hooks renamed to avoid obsolete "-hooks" suffix:
+*** semantic-lex-reset-hooks -> semantic-lex-reset-functions
+*** semantic-change-hooks -> semantic-change-functions
+*** semantic-edits-new-change-hooks -> semantic-edits-new-change-functions
+*** semantic-edits-delete-change-hooks -> semantic-edits-delete-change-functions
+*** semantic-edits-reparse-change-hooks -> semantic-edits-reparse-change-functions
+*** semanticdb-save-database-hooks -> semanticdb-save-database-functions
+*** c-prepare-bug-report-hooks -> c-prepare-bug-report-hook
+*** rcirc-sentinel-hooks -> rcirc-sentinel-functions
+*** rcirc-receive-message-hooks -> rcirc-receive-message-functions
+*** rcirc-activity-hooks -> rcirc-activity-functions
+*** rcirc-print-hooks -> rcirc-print-functions
+*** dbus-event-error-hooks -> dbus-event-error-functions
+*** eieio-pre-method-execution-hooks -> eieio-pre-method-execution-functions
+*** checkdoc-style-hooks -> checkdoc-style-functions
+*** checkdoc-comment-style-hooks -> checkdoc-comment-style-functions
+*** archive-extract-hooks -> archive-extract-hook
+*** filesets-cache-fill-content-hooks -> filesets-cache-fill-content-hook
+*** hfy-post-html-hooks -> hfy-post-html-hook
+*** nndiary-request-create-group-hooks -> nndiary-request-create-group-functions
+*** nndiary-request-update-info-hooks -> nndiary-request-update-info-functions
+*** nndiary-request-accept-article-hooks -> nndiary-request-accept-article-functions
+*** gnus-subscribe-newsgroup-hooks -> gnus-subscribe-newsgroup-functions
 
 ** Obsolete packages:
 +++
@@ -621,9 +658,14 @@ inefficiency, and not namespace-clean.
 
 
 * New Modes and Packages in Emacs 24.3
+
+FIXME? erc-desktop-notifications.el, gv.el, profiler.el,
+gnus-notifications.el, mm-archive.el
+
 
 * Incompatible Lisp Changes in Emacs 24.3
 
++++
 ** set-buffer-multibyte now signals an error in narrowed buffers.
 
 +++
@@ -703,7 +745,7 @@ are deprecated and will be removed eventually.
 *** `compile-internal'
 *** `mode-line-inverse-video'
 *** `cvs-commit-buffer-require-final-newline'
-(use `'log-edit-require-final-newline'instead)
+(use `log-edit-require-final-newline' instead)
 *** `cvs-changelog-full-paragraphs'
 (use `log-edit-changelog-full-paragraphs' instead)
 *** `cvs-diff-ignore-marks', `cvs-diff-buffer-name'
@@ -723,8 +765,17 @@ systems), or based on memory allocations.
 ** CL-style generalized variables are now in core Elisp.
 `setf' is autoloaded; `push' and `pop' accept generalized variables.
 
++++
 ** `defun' also accepts a (declare DECLS) form, like `defmacro'.
 The interpretation of the DECLS is determined by `defun-declarations-alist'.
+
+** Minibuffer
++++
+*** `read-regexp' has a new argument HISTORY; the first argument PROMPT
+of `read-regexp' accepts a string ending with a colon and space, and its
+second argument DEFAULTS can be a list of strings accessible via M-n
+in the minibuffer ahead of other hard-coded useful regexp-related values.
+More commands use `read-regexp' now to read their regexp arguments.
 
 ** Completion
 
@@ -747,14 +798,6 @@ to work out which code is doing something.
 
 *** New var `inhibit-debugger', automatically set to prevent accidental
 recursive invocations.
-
-** Minibuffer
-
-*** `read-regexp' has a new argument HISTORY; the first argument PROMPT
-of `read-regexp' accepts a string ending with a colon and space, and its
-second argument DEFAULTS can be a list of strings accessible via M-n
-in the minibuffer ahead of other hard-coded useful regexp-related values.
-More commands use `read-regexp' now to read their regexp arguments.
 
 ** Window changes
 
@@ -804,7 +847,7 @@ in Emacs 24.1:
 *** `current-time-string' no longer requires that its argument's year
 must be in the range 1000..9999.  It now works with any year supported
 by the underlying C implementation.
----
+
 *** `current-time' now returns extended-format time stamps
 (HIGH LOW USEC PSEC), where the new PSEC slot specifies picoseconds.
 PSEC is typically a multiple of 1000 on current machines.  Other
@@ -816,6 +859,9 @@ stamps are still accepted.
 [TRIGGERED-P HI-SECS LO-SECS USECS REPEAT-DELAY FUNCTION ARGS IDLE-DELAY PSECS].
 The PSECS slot is new, and uses picosecond resolution.  It can be
 accessed via the new timer--psecs accessor.
+
+*** Last-modified time stamps in undo lists now are of the form
+(t HI-SECS LO-SECS USECS PSECS) instead of (t HI-SECS . LO-SECS).
 
 +++
 ** Floating point functions now always return special values like NaN,
@@ -832,10 +878,10 @@ macro-calls to be left for later expansion (as before), but will also
 result in a warning ("Eager macro-expansion skipped due to cycle")
 describing the cycle.
 
-** Misc new functions:
+** Miscellaneous new functions:
 
 *** `autoloadp'
-*** `autoload-do-load'.
+*** `autoload-do-load'
 +++
 *** `buffer-narrowed-p' tests if the buffer is narrowed.
 *** `file-name-base' returns a file name sans directory and extension.
@@ -860,24 +906,41 @@ See the "Face Attributes" section of the Elisp manual.
 
 *** `automount-dir-prefix'
 *** `buffer-has-markers-at'
-*** `macro-declaration-function' (use `macro-declarations-alist').
+*** `macro-declaration-function' (use `macro-declarations-alist')
 *** `window-system-version'
 *** `dired-pop-to-buffer' (use `dired-mark-pop-up')
 *** `query-replace-interactive'
+*** `font-list-limit' (has had no effect since Emacs < 23)
 
 
 * Changes in Emacs 24.3 on non-free operating systems
 
-** New configure.bat options on MS-Windows:
+---
+** Cygwin builds can use the native MS Windows user interface.
+Pass --with-w32 to configure.  The default remains the X11 interface.
 
-*** --without-libxml2 omits support for libxml2, even if its presence
-is detected.
+** Two new functions are available in Cygwin builds:
+`cygwin-convert-path-from-windows' and `cygwin-convert-path-to-windows'.
+These functions allow Lisp code to access the Cygwin file-name mapping
+machinery to convert between Cygwin and Windows-native file names.
 
 ** When invoked with the -nw switch to run on the Windows text-mode terminal,
 Emacs now supports mouse highlight, help-echo (in the echo area), and
-mouse-autoselect-window.
+`mouse-autoselect-window'.
 
-** On MS-Windows Vista and later Emacs now supports symbolic links.
+** On MS Windows Vista and later Emacs now supports symbolic links.
+
++++
+** On MS Windows, you can pass --without-libxml2 to configure.bat to omit
+support for libxml2, even if its presence is detected.
+
+---
+** On Mac OS X, the Nextstep port requires OS X 10.4 or later.
+
+---
+** On Mac OS X, configure no longer automatically adds the Fink /sw
+directories to the search path.  You must add them yourself if you want them.
+
 
 * Changes in Emacs 24.2
 

@@ -358,7 +358,8 @@ The return value is the last VAL in the list.
 
 (put 'if 'gv-expander
      (lambda (do test then &rest else)
-       (if (macroexp-small-p (funcall do 'dummy (lambda (_) 'dummy)))
+       (if (or (not lexical-binding)  ;The other code requires lexical-binding.
+               (macroexp-small-p (funcall do 'dummy (lambda (_) 'dummy))))
            ;; This duplicates the `do' code, which is a problem if that
            ;; code is large, but otherwise results in more efficient code.
            `(if ,test ,(gv-get then do)
@@ -376,7 +377,8 @@ The return value is the last VAL in the list.
 
 (put 'cond 'gv-expander
      (lambda (do &rest branches)
-       (if (macroexp-small-p (funcall do 'dummy (lambda (_) 'dummy)))
+       (if (or (not lexical-binding)  ;The other code requires lexical-binding.
+               (macroexp-small-p (funcall do 'dummy (lambda (_) 'dummy))))
            ;; This duplicates the `do' code, which is a problem if that
            ;; code is large, but otherwise results in more efficient code.
            `(cond

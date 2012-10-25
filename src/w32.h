@@ -19,6 +19,12 @@ GNU General Public License for more details.
 You should have received a copy of the GNU General Public License
 along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 
+#ifdef CYGWIN
+#error "w32.h is not compatible with Cygwin"
+#endif
+
+#include <windows.h>
+
 
 /* File descriptor set emulation.  */
 
@@ -130,17 +136,6 @@ extern LPBYTE w32_get_resource (char * key, LPDWORD type);
 extern void init_ntproc (int);
 extern void term_ntproc (int);
 extern void globals_of_w32 (void);
-extern void syms_of_w32term (void);
-extern void syms_of_w32fns (void);
-extern void globals_of_w32fns (void);
-extern void syms_of_w32select (void);
-extern void globals_of_w32select (void);
-extern void term_w32select (void);
-extern void syms_of_w32menu (void);
-extern void globals_of_w32menu (void);
-extern void syms_of_fontset (void);
-extern void syms_of_w32font (void);
-extern void check_windows_init_file (void);
 
 extern void term_timers (void);
 extern void init_timers (void);
@@ -150,6 +145,28 @@ extern int _sys_wait_accept (int fd);
 
 extern Lisp_Object QCloaded_from;
 extern HMODULE w32_delayed_load (Lisp_Object);
+
+extern void init_environment (char **);
+extern void check_windows_init_file (void);
+extern void syms_of_ntproc (void);
+extern void syms_of_ntterm (void);
+extern void dostounix_filename (register char *);
+extern void unixtodos_filename (register char *);
+extern BOOL init_winsock (int load_now);
+extern void srandom (int);
+extern int random (void);
+
+extern int sys_pipe (int *);
+
+extern void set_process_dir (char *);
+extern int sys_spawnve (int, char *, char **, char **);
+extern void register_child (int, int);
+
+extern void sys_sleep (int);
+extern char *getwd (char *);
+extern int sys_link (const char *, const char *);
+
+
 
 #ifdef HAVE_GNUTLS
 #include <gnutls/gnutls.h>

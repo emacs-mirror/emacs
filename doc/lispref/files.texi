@@ -938,7 +938,7 @@ on the 19th, @file{aug-20} was written on the 20th, and the file
 @end example
 
 You can use @code{file-attributes} to get a file's last modification
-time as a list of two numbers.  @xref{File Attributes}.
+time as a list of four integers.  @xref{File Attributes}.
 @end defun
 
 @node Kinds of Files
@@ -1220,20 +1220,19 @@ point number.
 The file's @acronym{GID}, likewise.
 
 @item
-The time of last access, as a list of two integers.
-The first integer has the high-order 16 bits of time,
-the second has the low 16 bits.  (This is similar to the
+The time of last access, as a list of four integers @code{(@var{sec-high}
+@var{sec-low} @var{microsec} @var{picosec})}.  (This is similar to the
 value of @code{current-time}; see @ref{Time of Day}.)  Note that on
 some FAT-based filesystems, only the date of last access is recorded,
 so this time will always hold the midnight of the day of last access.
 
 @cindex modification time of file
 @item
-The time of last modification as a list of two integers (as above).
+The time of last modification as a list of four integers (as above).
 This is the last time when the file's contents were modified.
 
 @item
-The time of last status change as a list of two integers (as above).
+The time of last status change as a list of four integers (as above).
 This is the time of the last change to the file's access mode bits,
 its owner and group, and other information recorded in the filesystem
 for the file, beyond the file's contents.
@@ -1276,9 +1275,9 @@ For example, here are the file attributes for @file{files.texi}:
 @group
 (file-attributes "files.texi" 'string)
      @result{}  (nil 1 "lh" "users"
-          (19145 42977)
-          (19141 59576)
-          (18340 17300)
+          (20614 64019 50040 152000)
+          (20000 23 0 0)
+          (20614 64555 902289 872000)
           122295 "-rw-rw-rw-"
           nil  (5888 2 . 43978)
           (15479 . 46724))
@@ -1302,14 +1301,14 @@ is owned by the user with name "lh".
 @item "users"
 is in the group with name "users".
 
-@item (19145 42977)
-was last accessed on Oct 5 2009, at 10:01:37.
+@item (20614 64019 50040 152000)
+was last accessed on October 23, 2012, at 20:12:03.050040152 UTC.
 
-@item (19141 59576)
-last had its contents modified on Oct 2 2009, at 13:49:12.
+@item (20000 23 0 0)
+was last modified on July 15, 2001, at 08:53:43 UTC.
 
-@item (18340 17300)
-last had its status changed on Feb 2 2008, at 12:19:00.
+@item (20614 64555 902289 872000)
+last had its status changed on October 23, 2012, at 20:20:59.902289872 UTC.
 
 @item 122295
 is 122295 bytes long.  (It may not contain 122295 characters, though,

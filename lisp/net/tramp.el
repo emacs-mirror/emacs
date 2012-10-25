@@ -1353,8 +1353,7 @@ ARGS to actually emit the message (if applicable)."
 			 "tramp-debug-message"
 			 "tramp-error"
 			 "tramp-error-with-buffer"
-			 "tramp-message"
-			 "tramp-with-progress-reporter")
+			 "tramp-message")
 		       t)
 		      "$")
 		     fn)))
@@ -1498,7 +1497,7 @@ If VAR is nil, then we bind `v' to the structure and `method', `user',
     (when (string-match message (or (current-message) ""))
       (tramp-compat-funcall 'progress-reporter-update reporter value))))
 
-(defmacro tramp-with-progress-reporter (vec level message &rest body)
+(defmacro with-tramp-progress-reporter (vec level message &rest body)
   "Executes BODY, spinning a progress reporter with MESSAGE.
 If LEVEL does not fit for visible messages, or if this is a
 nested call of the macro, there are only traces without a visible
@@ -1527,7 +1526,42 @@ progress reporter."
        (tramp-message ,vec ,level "%s...done" ,message))))
 
 (tramp-compat-font-lock-add-keywords
- 'emacs-lisp-mode '("\\<tramp-with-progress-reporter\\>"))
+ 'emacs-lisp-mode '("\\<with-tramp-progress-reporter\\>"))
+
+(defmacro with-tramp-file-property (vec file property &rest body)
+  "Check in Tramp cache for PROPERTY, otherwise execute BODY and set cache.
+FILE must be a local file name on a connection identified via VEC."
+  `(if (file-name-absolute-p ,file)
+      (let ((value (tramp-get-file-property ,vec ,file ,property 'undef)))
+	(when (eq value 'undef)
+	  ;; We cannot pass @body as parameter to
+	  ;; `tramp-set-file-property' because it mangles our
+	  ;; debug messages.
+	  (setq value (progn ,@body))
+	  (tramp-set-file-property ,vec ,file ,property value))
+	value)
+     ,@body))
+
+(put 'with-tramp-file-property 'lisp-indent-function 3)
+(put 'with-tramp-file-property 'edebug-form-spec t)
+(tramp-compat-font-lock-add-keywords
+ 'emacs-lisp-mode '("\\<with-tramp-file-property\\>"))
+
+(defmacro with-tramp-connection-property (key property &rest body)
+  "Check in Tramp for property PROPERTY, otherwise executes BODY and set."
+  `(let ((value (tramp-get-connection-property ,key ,property 'undef)))
+    (when (eq value 'undef)
+      ;; We cannot pass ,@body as parameter to
+      ;; `tramp-set-connection-property' because it mangles our debug
+      ;; messages.
+      (setq value (progn ,@body))
+      (tramp-set-connection-property ,key ,property value))
+    value))
+
+(put 'with-tramp-connection-property 'lisp-indent-function 2)
+(put 'with-tramp-connection-property 'edebug-form-spec t)
+(tramp-compat-font-lock-add-keywords
+ 'emacs-lisp-mode '("\\<with-tramp-connection-property\\>"))
 
 (defalias 'tramp-drop-volume-letter
   (if (memq system-type '(cygwin windows-nt))
@@ -2860,7 +2894,7 @@ User is always nil."
   (setq filename (expand-file-name filename))
   (let (result local-copy remote-copy)
     (with-parsed-tramp-file-name filename nil
-      (tramp-with-progress-reporter
+      (with-tramp-progress-reporter
 	  v 3 (format "Inserting `%s'" filename)
 	(unwind-protect
 	    (if (not (file-exists-p filename))
@@ -2983,7 +3017,7 @@ User is always nil."
     (if (not (file-exists-p file))
 	nil
       (let ((tramp-message-show-message (not nomessage)))
-	(tramp-with-progress-reporter v 0 (format "Loading %s" file)
+	(with-tramp-progress-reporter v 0 (format "Loading %s" file)
 	  (let ((local-copy (file-local-copy file)))
 	    ;; MUST-SUFFIX doesn't exist on XEmacs, so let it default to nil.
 	    (unwind-protect
@@ -3127,7 +3161,7 @@ beginning of local filename are not substituted."
   "Send the login name."
   (when (not (stringp tramp-current-user))
     (setq tramp-current-user
-	  (with-connection-property vec "login-as"
+	  (with-tramp-connection-property vec "login-as"
 	    (save-window-excursion
 	      (let ((enable-recursive-minibuffers t))
 		(pop-to-buffer (tramp-get-connection-buffer vec))
@@ -3417,13 +3451,13 @@ the remote host use line-endings as defined in the variable
 (defun tramp-get-inode (vec)
   "Returns the virtual inode number.
 If it doesn't exist, generate a new one."
-  (with-file-property vec (tramp-file-name-localname vec) "inode"
+  (with-tramp-file-property vec (tramp-file-name-localname vec) "inode"
     (setq tramp-inodes (1+ tramp-inodes))))
 
 (defun tramp-get-device (vec)
   "Returns the virtual device number.
 If it doesn't exist, generate a new one."
-  (with-connection-property (tramp-get-connection-process vec) "device"
+  (with-tramp-connection-property (tramp-get-connection-process vec) "device"
     (cons -1 (setq tramp-devices (1+ tramp-devices)))))
 
 (defun tramp-equal-remote (file1 file2)
@@ -3545,7 +3579,7 @@ would yield `t'.  On the other hand, the following check results in nil:
 
 (defun tramp-get-remote-tmpdir (vec)
   "Return directory for temporary files on the remote host identified by VEC."
-  (with-connection-property vec "tmpdir"
+  (with-tramp-connection-property vec "tmpdir"
     (let ((dir (tramp-make-tramp-file-name
 		(tramp-file-name-method vec)
 		(tramp-file-name-user vec)
@@ -3833,7 +3867,6 @@ Only works for Bourne-like shells."
 ;; * In Emacs 21, `insert-directory' shows total number of bytes used
 ;;   by the files in that directory.  Add this here.
 ;; * Avoid screen blanking when hitting `g' in dired.  (Eli Tziperman)
-;; * Make ffap.el grok Tramp filenames.  (Eli Tziperman)
 ;; * abbreviate-file-name
 ;; * Better error checking.  At least whenever we see something
 ;;   strange when doing zerop, we should kill the process and start

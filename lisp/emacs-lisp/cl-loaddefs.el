@@ -260,7 +260,7 @@ Remove from SYMBOL's plist the property PROPNAME and its value.
 ;;;;;;  cl-typecase cl-ecase cl-case cl-load-time-value cl-eval-when
 ;;;;;;  cl-destructuring-bind cl-function cl-defmacro cl-defun cl-gentemp
 ;;;;;;  cl-gensym cl--compiler-macro-cXXr cl--compiler-macro-list*)
-;;;;;;  "cl-macs" "cl-macs.el" "6951d080daefb5194b1d21fe9b2deae4")
+;;;;;;  "cl-macs" "cl-macs.el" "366e9efa4e3e7a81b2253e503611b23a")
 ;;; Generated autoloads from cl-macs.el
 
 (autoload 'cl--compiler-macro-list* "cl-macs" "\
@@ -485,7 +485,7 @@ before assigning any symbols SYM to the corresponding values.
 Bind SYMBOLS to VALUES dynamically in BODY.
 The forms SYMBOLS and VALUES are evaluated, and must evaluate to lists.
 Each symbol in the first list is bound to the corresponding value in the
-second list (or made unbound if VALUES is shorter than SYMBOLS); then the
+second list (or to nil if VALUES is shorter than SYMBOLS); then the
 BODY forms are executed and their result is returned.  This is much like
 a `let' form, except that the list of symbols can be computed at run-time.
 

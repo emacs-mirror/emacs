@@ -302,7 +302,7 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #ifdef HAVE_X_WINDOWS
 #include "xterm.h"
 #endif
-#ifdef WINDOWSNT
+#ifdef HAVE_NTGUI
 #include "w32term.h"
 #endif
 #ifdef HAVE_NS
@@ -6302,6 +6302,8 @@ reseat_1 (struct it *it, struct text_pos pos, int set_stop_p)
       it->stop_charpos = CHARPOS (pos);
       it->base_level_stop = CHARPOS (pos);
     }
+  /* This make the information stored in it->cmp_it invalidate.  */
+  it->cmp_it.id = -1;
 }
 
 
@@ -24074,17 +24076,16 @@ produce_stretch_glyph (struct it *it)
   Lisp_Object prop, plist;
   int width = 0, height = 0, align_to = -1;
   int zero_width_ok_p = 0;
-  int ascent = 0;
   double tem;
-  struct face *face = NULL;
   struct font *font = NULL;
 
 #ifdef HAVE_WINDOW_SYSTEM
+  int ascent = 0;
   int zero_height_ok_p = 0;
 
   if (FRAME_WINDOW_P (it->f))
     {
-      face = FACE_FROM_ID (it->f, it->face_id);
+      struct face *face = FACE_FROM_ID (it->f, it->face_id);
       font = face->font ? face->font : FRAME_FONT (it->f);
       PREPARE_FACE_FOR_DISPLAY (it->f, face);
     }
@@ -29379,9 +29380,10 @@ start_hourglass (void)
   else
     delay = make_emacs_time (DEFAULT_HOURGLASS_DELAY, 0);
 
-#ifdef WINDOWSNT
+#ifdef HAVE_NTGUI
+  extern void w32_note_current_window (void);
   w32_note_current_window ();
-#endif
+#endif /* HAVE_NTGUI */
 
   hourglass_atimer = start_atimer (ATIMER_RELATIVE, delay,
 				   show_hourglass, NULL);

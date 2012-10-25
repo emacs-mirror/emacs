@@ -213,7 +213,8 @@ first will be printed into the backtrace buffer."
 	     (or enable-recursive-minibuffers (> (minibuffer-depth) 0)))
 	    (standard-input t) (standard-output t)
 	    inhibit-redisplay
-	    (cursor-in-echo-area nil))
+	    (cursor-in-echo-area nil)
+	    (window-configuration (current-window-configuration)))
 	(unwind-protect
 	    (save-excursion
 	      (when (eq (car debugger-args) 'debug)
@@ -266,16 +267,21 @@ first will be printed into the backtrace buffer."
 		;; Make sure we unbind buffer-read-only in the right buffer.
 		(save-excursion
 		  (recursive-edit))))
-	  (when (and (not debugger-will-be-back)
-		     (window-live-p debugger-window)
+	  (when (and (window-live-p debugger-window)
 		     (eq (window-buffer debugger-window) debugger-buffer))
 	    ;; Record height of debugger window.
 	    (setq debugger-previous-window-height
-		  (window-total-size debugger-window))
-	    ;; Unshow debugger-buffer.
-	    (quit-restore-window debugger-window debugger-bury-or-kill)
-	    ;; Restore current buffer (Bug#12502).
-	    (set-buffer debugger-old-buffer))
+		  (window-total-size debugger-window)))
+	  (if debugger-will-be-back
+	      ;; Restore previous window configuration (Bug#12623).
+	      (set-window-configuration window-configuration)
+	    (when (and (window-live-p debugger-window)
+		       (eq (window-buffer debugger-window) debugger-buffer))
+	      (progn
+		;; Unshow debugger-buffer.
+		(quit-restore-window debugger-window debugger-bury-or-kill)
+		;; Restore current buffer (Bug#12502).
+		(set-buffer debugger-old-buffer))))
           ;; Restore previous state of debugger-buffer in case we were
           ;; in a recursive invocation of the debugger, otherwise just
           ;; erase the buffer and put it into fundamental mode.

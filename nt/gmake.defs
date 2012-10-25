@@ -211,7 +211,7 @@ OBJ1_c		= $(patsubst $(BLD)%.$(O),$(CURDIR)%.c,$(OBJ1))
 OBJ2_c		= $(patsubst $(BLD)%.$(O),$(CURDIR)%.c,$(OBJ2))
 
 ifdef NOOPT
-DEBUG_CFLAGS	= -DEMACSDEBUG -fno-crossjumping
+DEBUG_CFLAGS	= -DEMACSDEBUG -fno-crossjumping -std=gnu99
 else
 DEBUG_CFLAGS	=
 endif

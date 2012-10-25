@@ -1603,9 +1603,13 @@ Comma to replace but not move point immediately,
 C-r to enter recursive edit (\\[exit-recursive-edit] to get out again),
 C-w to delete match and recursive edit,
 C-l to clear the screen, redisplay, and offer same replacement again,
-! to replace all remaining matches with no more questions,
+! to replace all remaining matches in this buffer with no more questions,
 ^ to move point back to previous match,
-E to edit the replacement string"
+E to edit the replacement string.
+In multi-buffer replacements type `Y' to replace all remaining
+matches in all remaining buffers with no more questions,
+`N' to skip to the next buffer without replacing remaining matches
+in the current buffer."
   "Help message while in `query-replace'.")
 
 (defvar query-replace-map

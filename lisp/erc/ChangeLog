@@ -1,3 +1,15 @@
+2012-10-18  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* erc-backend.el: Require `erc' instead of autoloading its macros
+	(bug#12669).
+
+2012-10-15  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* erc.el (erc-log): Make it into a defsubst.
+	(erc-with-server-buffer, define-erc-module, erc-with-buffer)
+	(erc-with-all-buffers-of-server): Use `declare'.
+	* erc-backend.el (erc-log): Adjust autoload accordingly.
+
 2012-10-07  Deniz Dogan  <deniz@dogan.se>
 
 	* erc-log.el (erc-generate-log-file-name-function):
@@ -42,8 +54,8 @@
 
 2012-08-21  Julien Danjou  <julien@danjou.info>
 
-	* erc-match.el (erc-match-message): Use
-	`erc-match-exclude-server-buffer' not
+	* erc-match.el (erc-match-message):
+	Use `erc-match-exclude-server-buffer' not
 	`erc-track-exclude-server-buffer'.
 
 2012-08-20  Josh Feinstein <jlf@foxtail.org>
@@ -56,8 +68,8 @@
 	(erc-lurker-threshold-time): New variables.
 	(erc-lurker-maybe-trim, erc-lurker-initialize, erc-lurker-cleanup)
 	(erc-hide-current-message-p, erc-canonicalize-server-name)
-	(erc-lurker-update-status, erc-lurker-p): New functions.  Together
-	they maintain state about which users have spoken in the last
+	(erc-lurker-update-status, erc-lurker-p): New functions.
+	Together they maintain state about which users have spoken in the last
 	erc-lurker-threshold-time, with all other users being considered
 	lurkers whose messages of types in erc-lurker-hide-list will not
 	be displayed by erc-display-message.
@@ -192,7 +204,7 @@
 
 	* erc.el (erc-ssl): Made into a synonym for erc-tls, which
 	provides a superset of the same functionality.
-	(erc-open-ssl-stream): Removed.
+	(erc-open-ssl-stream): Remove.
 	(erc-open-tls-stream): Use `open-network-stream' instead of
 	`open-tls-stream' directly to be able to use the built-in TLS
 	support.

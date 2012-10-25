@@ -44,8 +44,18 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #include "fontset.h"
 #include "systime.h"
 #include "termhooks.h"
+
+#include "w32common.h"
+
+#ifdef WINDOWSNT
 #include "w32heap.h"
+#endif /* WINDOWSNT */
+
+#if CYGWIN
+#include "cygw32.h"
+#else
 #include "w32.h"
+#endif
 
 #include "bitmaps/gray.xbm"
 
@@ -58,9 +68,6 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 
 #include <dlgs.h>
 #include <imm.h>
-#define FILE_NAME_TEXT_FIELD edt1
-#define FILE_NAME_COMBO_BOX cmb13
-#define FILE_NAME_LIST lst1
 
 #include "font.h"
 #include "w32font.h"
@@ -78,6 +85,7 @@ extern int w32_console_toggle_lock_key (int, Lisp_Object);
 extern void w32_menu_display_help (HWND, HMENU, UINT, UINT);
 extern void w32_free_menu_strings (HWND);
 extern const char *map_w32_filename (const char *, const char **);
+extern char * w32_strerror (int error_no);
 
 /* If non-NULL, a handle to a frame where to display the hourglass cursor.  */
 static HWND hourglass_hwnd = NULL;
@@ -161,7 +169,11 @@ ImmSetCompositionWindow_Proc set_ime_composition_window_fn = NULL;
 MonitorFromPoint_Proc monitor_from_point_fn = NULL;
 GetMonitorInfo_Proc get_monitor_info_fn = NULL;
 
+#ifdef NTGUI_UNICODE
+#define unicode_append_menu AppendMenuW
+#else /* !NTGUI_UNICODE */
 extern AppendMenuW_Proc unicode_append_menu;
+#endif /* NTGUI_UNICODE */
 
 /* Flag to selectively ignore WM_IME_CHAR messages.  */
 static int ignore_ime_char = 0;
@@ -198,6 +210,33 @@ extern int uniscribe_available;
 static void w32_show_hourglass (struct frame *);
 static void w32_hide_hourglass (void);
 
+#ifdef WINDOWSNT
+/* From w32inevt.c */
+extern int faked_key;
+#endif /* WINDOWSNT */
+
+/* This gives us the page size and the size of the allocation unit on NT.  */
+SYSTEM_INFO sysinfo_cache;
+
+/* This gives us version, build, and platform identification.  */
+OSVERSIONINFO osinfo_cache;
+
+unsigned long syspage_mask = 0;
+
+/* The major and minor versions of NT.  */
+int w32_major_version;
+int w32_minor_version;
+int w32_build_number;
+
+/* Distinguish between Windows NT and Windows 95.  */
+int os_subtype;
+
+#ifdef HAVE_NTGUI
+HINSTANCE hinst = NULL;
+#endif
+
+static unsigned int sound_type = 0xFFFFFFFF;
+#define MB_EMACS_SILENT (0xFFFFFFFF - 1)
 
 
 /* Error if we are not connected to MS-Windows.  */
@@ -662,7 +701,7 @@ DEFUN ("w32-default-color-map", Fw32_default_color_map, Sw32_default_color_map,
 }
 
 static Lisp_Object
-w32_color_map_lookup (char *colorname)
+w32_color_map_lookup (const char *colorname)
 {
   Lisp_Object tail, ret = Qnil;
 
@@ -741,7 +780,7 @@ add_system_logical_colors_to_map (Lisp_Object *system_colors)
 
 
 static Lisp_Object
-x_to_w32_color (char * colorname)
+x_to_w32_color (const char * colorname)
 {
   register Lisp_Object ret = Qnil;
 
@@ -750,11 +789,10 @@ x_to_w32_color (char * colorname)
   if (colorname[0] == '#')
     {
       /* Could be an old-style RGB Device specification.  */
-      char *color;
-      int size;
-      color = colorname + 1;
+      int size = strlen (colorname + 1);
+      char *color = alloca (size + 1);
 
-      size = strlen (color);
+      strcpy (color, colorname + 1);
       if (size == 3 || size == 6 || size == 9 || size == 12)
 	{
 	  UINT colorval;
@@ -808,7 +846,7 @@ x_to_w32_color (char * colorname)
     }
   else if (strnicmp (colorname, "rgb:", 4) == 0)
     {
-      char *color;
+      const char *color;
       UINT colorval;
       int i, pos;
       pos = 0;
@@ -864,7 +902,7 @@ x_to_w32_color (char * colorname)
   else if (strnicmp (colorname, "rgbi:", 5) == 0)
     {
       /* This is an RGB Intensity specification.  */
-      char *color;
+      const char *color;
       UINT colorval;
       int i, pos;
       pos = 0;
@@ -1068,7 +1106,7 @@ gamma_correct (struct frame *f, COLORREF *color)
    If ALLOC is nonzero, allocate a new colormap cell.  */
 
 int
-w32_defined_color (FRAME_PTR f, char *color, XColor *color_def, int alloc)
+w32_defined_color (FRAME_PTR f, const char *color, XColor *color_def, int alloc)
 {
   register Lisp_Object tem;
   COLORREF w32_color_ref;
@@ -1843,10 +1881,7 @@ w32_createwindow (struct frame *f)
 
   /* Do first time app init */
 
-  if (!hprevinst)
-    {
-      w32_init_class (hinst);
-    }
+  w32_init_class (hinst);
 
   if (f->size_hint_flags & USPosition || f->size_hint_flags & PPosition)
     {
@@ -2246,6 +2281,86 @@ unregister_hot_keys (HWND hwnd)
     }
 }
 
+#if EMACSDEBUG
+const char*
+w32_name_of_message (UINT msg)
+{
+  unsigned i;
+  static char buf[64];
+  static const struct {
+    UINT msg;
+    const char* name;
+  } msgnames[] = {
+#define M(msg) { msg, # msg }
+      M (WM_PAINT),
+      M (WM_TIMER),
+      M (WM_USER),
+      M (WM_MOUSEMOVE),
+      M (WM_LBUTTONUP),
+      M (WM_KEYDOWN),
+      M (WM_EMACS_KILL),
+      M (WM_EMACS_CREATEWINDOW),
+      M (WM_EMACS_DONE),
+      M (WM_EMACS_CREATESCROLLBAR),
+      M (WM_EMACS_SHOWWINDOW),
+      M (WM_EMACS_SETWINDOWPOS),
+      M (WM_EMACS_DESTROYWINDOW),
+      M (WM_EMACS_TRACKPOPUPMENU),
+      M (WM_EMACS_SETFOCUS),
+      M (WM_EMACS_SETFOREGROUND),
+      M (WM_EMACS_SETLOCALE),
+      M (WM_EMACS_SETKEYBOARDLAYOUT),
+      M (WM_EMACS_REGISTER_HOT_KEY),
+      M (WM_EMACS_UNREGISTER_HOT_KEY),
+      M (WM_EMACS_TOGGLE_LOCK_KEY),
+      M (WM_EMACS_TRACK_CARET),
+      M (WM_EMACS_DESTROY_CARET),
+      M (WM_EMACS_SHOW_CARET),
+      M (WM_EMACS_HIDE_CARET),
+      M (WM_EMACS_SETCURSOR),
+      M (WM_EMACS_PAINT),
+      M (WM_CHAR),
+#undef M
+      { 0, 0 }
+  };
+
+  for (i = 0; msgnames[i].name; ++i)
+    if (msgnames[i].msg == msg)
+      return msgnames[i].name;
+
+  sprintf (buf, "message 0x%04x", (unsigned)msg);
+  return buf;
+}
+#endif /* EMACSDEBUG */
+
+/* Here's an overview of how Emacs input works in GUI sessions on
+   MS-Windows.  (For description of non-GUI input, see the commentary
+   before w32_console_read_socket in w32inevt.c.)
+
+   System messages are read and processed by w32_msg_pump below.  This
+   function runs in a separate thread.  It handles a small number of
+   custom WM_EMACS_* messages (posted by the main thread, look for
+   PostMessage calls), and dispatches the rest to w32_wnd_proc, which
+   is the main window procedure for the entire Emacs application.
+
+   w32_wnd_proc also runs in the same separate input thread.  It
+   handles some messages, mostly those that need GDI calls, by itself.
+   For the others, it calls my_post_msg, which inserts the messages
+   into the input queue serviced by w32_read_socket.
+
+   w32_read_socket runs in the main (a.k.a. "Lisp") thread, and is
+   called synchronously from keyboard.c when it is known or suspected
+   that some input is available.  w32_read_socket either handles
+   messages immediately, or converts them into Emacs input events and
+   stuffs them into kbd_buffer, where kbd_buffer_get_event can get at
+   them and process them when read_char and its callers require
+   input.
+
+   Under Cygwin with the W32 toolkit, the use of /dev/windows with
+   select(2) takes the place of w32_read_socket.
+
+   */
+
 /* Main message dispatch loop. */
 
 static void
@@ -2259,6 +2374,10 @@ w32_msg_pump (deferred_msg * msg_buf)
 
   while ((w32_unicode_gui ? GetMessageW : GetMessageA) (&msg, NULL, 0, 0))
     {
+
+      /* DebPrint (("w32_msg_pump: %s time:%u\n", */
+      /*            w32_name_of_message (msg.message), msg.time)); */
+
       if (msg.hwnd == NULL)
 	{
 	  switch (msg.message)
@@ -2305,7 +2424,7 @@ w32_msg_pump (deferred_msg * msg_buf)
                  thread-safe.  The next line is okay because the cons
                  cell is never made into garbage and is not relocated by
                  GC.  */
-	      XSETCAR ((Lisp_Object) ((EMACS_INT) msg.lParam), Qnil);
+	      XSETCAR (XIL ((EMACS_INT) msg.lParam), Qnil);
 	      if (!PostThreadMessage (dwMainThreadId, WM_EMACS_DONE, 0, 0))
 		emacs_abort ();
 	      break;
@@ -2313,7 +2432,7 @@ w32_msg_pump (deferred_msg * msg_buf)
 	      {
 		int vk_code = (int) msg.wParam;
 		int cur_state = (GetKeyState (vk_code) & 1);
-		Lisp_Object new_state = (Lisp_Object) ((EMACS_INT) msg.lParam);
+		Lisp_Object new_state = XIL ((EMACS_INT) msg.lParam);
 
 		/* NB: This code must be thread-safe.  It is safe to
                    call NILP because symbols are not relocated by GC,
@@ -2346,7 +2465,7 @@ w32_msg_pump (deferred_msg * msg_buf)
               /* Broadcast messages make it here, so you need to be looking
                  for something in particular for this to be useful.  */
 	    default:
-	      DebPrint (("msg %x not expected by w32_msg_pump\n", msg.message));
+              DebPrint (("msg %x not expected by w32_msg_pump\n", msg.message));
 #endif
 	    }
 	}
@@ -4525,22 +4644,14 @@ If omitted or nil, that stands for the selected frame's display.  */)
   (Lisp_Object display)
 {
   struct w32_display_info *dpyinfo = check_x_display_info (display);
-  HDC hdc;
   int cap;
 
-  hdc = GetDC (dpyinfo->root_window);
-  if (dpyinfo->has_palette)
-    cap = GetDeviceCaps (hdc, SIZEPALETTE);
-  else
-    cap = GetDeviceCaps (hdc, NUMCOLORS);
+  /* Don't use NCOLORS: it returns incorrect results under remote
+   * desktop.  We force 24+ bit depths to 24-bit, both to prevent an
+   * overflow and because probably is more meaningful on Windows
+   * anyway.  */
 
-  /* We force 24+ bit depths to 24-bit, both to prevent an overflow
-     and because probably is more meaningful on Windows anyway */
-  if (cap < 0)
-    cap = 1 << min (dpyinfo->n_planes * dpyinfo->n_cbits, 24);
-
-  ReleaseDC (dpyinfo->root_window, hdc);
-
+  cap = 1 << min (dpyinfo->n_planes * dpyinfo->n_cbits, 24);
   return make_number (cap);
 }
 
@@ -4682,6 +4793,37 @@ If omitted or nil, that stands for the selected frame's display.  */)
 {
   return Qnil;
 }
+
+DEFUN ("set-message-beep", Fset_message_beep, Sset_message_beep, 1, 1, 0,
+       doc: /* Set the sound generated when the bell is rung.
+SOUND is 'asterisk, 'exclamation, 'hand, 'question, 'ok, or 'silent
+to use the corresponding system sound for the bell.  The 'silent sound
+prevents Emacs from making any sound at all.
+SOUND is nil to use the normal beep.  */)
+  (Lisp_Object sound)
+{
+  CHECK_SYMBOL (sound);
+
+  if (NILP (sound))
+      sound_type = 0xFFFFFFFF;
+  else if (EQ (sound, intern ("asterisk")))
+      sound_type = MB_ICONASTERISK;
+  else if (EQ (sound, intern ("exclamation")))
+      sound_type = MB_ICONEXCLAMATION;
+  else if (EQ (sound, intern ("hand")))
+      sound_type = MB_ICONHAND;
+  else if (EQ (sound, intern ("question")))
+      sound_type = MB_ICONQUESTION;
+  else if (EQ (sound, intern ("ok")))
+      sound_type = MB_OK;
+  else if (EQ (sound, intern ("silent")))
+      sound_type = MB_EMACS_SILENT;
+  else
+      sound_type = 0xFFFFFFFF;
+
+  return sound;
+}
+
 
 int
 x_pixel_width (register struct frame *f)
@@ -4763,12 +4905,21 @@ terminate Emacs if we can't open the connection.
   unsigned char *xrm_option;
   struct w32_display_info *dpyinfo;
 
+  CHECK_STRING (display);
+
+  /* Signal an error in order to encourage correct use from callers.
+   * If we ever support multiple window systems in the same Emacs,
+   * we'll need callers to be precise about what window system they
+   * want.  */
+
+  if (strcmp (SSDATA (display), "w32") != 0)
+    error ("The name of the display in this Emacs must be \"w32\"");
+
   /* If initialization has already been done, return now to avoid
      overwriting critical parts of one_w32_display_info.  */
   if (w32_in_use)
     return Qnil;
 
-  CHECK_STRING (display);
   if (! NILP (xrm_string))
     CHECK_STRING (xrm_string);
 
@@ -5839,6 +5990,18 @@ Value is t if tooltip was open, nil otherwise.  */)
 			File selection dialog
  ***********************************************************************/
 
+#define FILE_NAME_TEXT_FIELD edt1
+#define FILE_NAME_COMBO_BOX cmb13
+#define FILE_NAME_LIST lst1
+
+#ifdef NTGUI_UNICODE
+#define GUISTR(x) (L ## x)
+typedef wchar_t guichar_t;
+#else /* !NTGUI_UNICODE */
+#define GUISTR(x) x
+typedef char guichar_t;
+#endif /* NTGUI_UNICODE */
+
 /* Callback for altering the behavior of the Open File dialog.
    Makes the Filename text field contain "Current Directory" and be
    read-only when "Directories" is selected in the filter.  This
@@ -5849,7 +6012,11 @@ file_dialog_callback (HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
 {
   if (msg == WM_NOTIFY)
     {
-      OFNOTIFY * notify = (OFNOTIFY *)lParam;
+#ifdef NTGUI_UNICODE
+      OFNOTIFYW * notify = (OFNOTIFYW *)lParam;
+#else /* !NTGUI_UNICODE */
+      OFNOTIFYA * notify = (OFNOTIFYA *)lParam;
+#endif /* NTGUI_UNICODE */
       /* Detect when the Filter dropdown is changed.  */
       if (notify->hdr.code == CDN_TYPECHANGE
 	  || notify->hdr.code == CDN_INITDONE)
@@ -5877,7 +6044,7 @@ file_dialog_callback (HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
 	  if (notify->lpOFN->nFilterIndex == 2)
 	    {
 	      CommDlg_OpenSave_SetControlText (dialog, FILE_NAME_TEXT_FIELD,
-					       "Current Directory");
+					       GUISTR ("Current Directory"));
 	      EnableWindow (edit_control, FALSE);
 	      /* Note that at least on Windows 7, the above call to EnableWindow
 		 disables the window that would ordinarily have focus.	If we
@@ -5893,26 +6060,14 @@ file_dialog_callback (HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
 	      /* Don't override default filename on init done.  */
 	      if (notify->hdr.code == CDN_TYPECHANGE)
 		CommDlg_OpenSave_SetControlText (dialog,
-						 FILE_NAME_TEXT_FIELD, "");
+						 FILE_NAME_TEXT_FIELD,
+                                                 GUISTR (""));
 	      EnableWindow (edit_control, TRUE);
 	    }
 	}
     }
   return 0;
 }
-
-/* Since we compile with _WIN32_WINNT set to 0x0400 (for NT4 compatibility)
-   we end up with the old file dialogs. Define a big enough struct for the
-   new dialog to trick GetOpenFileName into giving us the new dialogs on
-   Windows 2000 and XP.  */
-typedef struct
-{
-  OPENFILENAME real_details;
-  void * pReserved;
-  DWORD dwReserved;
-  DWORD FlagsEx;
-} NEWOPENFILENAME;
-
 
 DEFUN ("x-file-dialog", Fx_file_dialog, Sx_file_dialog, 2, 5, 0,
        doc: /* Read file name, prompting with PROMPT in directory DIR.
@@ -5925,134 +6080,205 @@ Motif or Gtk toolkits.  With the Motif toolkit, ONLY-DIR-P is ignored.
 Otherwise, if ONLY-DIR-P is non-nil, the user can only select directories.  */)
   (Lisp_Object prompt, Lisp_Object dir, Lisp_Object default_filename, Lisp_Object mustmatch, Lisp_Object only_dir_p)
 {
+  /* Filter index: 1: All Files, 2: Directories only  */
+  static const guichar_t filter[] =
+    GUISTR ("All Files (*.*)\0*.*\0Directories\0*|*\0");
+
+  Lisp_Object filename = default_filename;
   struct frame *f = SELECTED_FRAME ();
-  Lisp_Object file = Qnil;
-  ptrdiff_t count = SPECPDL_INDEX ();
+  BOOL file_opened = FALSE;
+  Lisp_Object orig_dir = dir;
+  Lisp_Object orig_prompt = prompt;
+
+  /* If we compile with _WIN32_WINNT set to 0x0400 (for NT4
+     compatibility) we end up with the old file dialogs. Define a big
+     enough struct for the new dialog to trick GetOpenFileName into
+     giving us the new dialogs on newer versions of Windows.  */
+  struct {
+#ifdef NTGUI_UNICODE
+    OPENFILENAMEW details;
+#else /* !NTGUI_UNICODE */
+    OPENFILENAMEA details;
+#endif /* NTGUI_UNICODE */
+
+#if _WIN32_WINNT < 0x500 /* < win2k */
+      PVOID pvReserved;
+      DWORD dwReserved;
+      DWORD FlagsEx;
+#endif /* < win2k */
+  } new_file_details;
+
+#ifdef NTGUI_UNICODE
+  wchar_t filename_buf[32*1024 + 1]; // NT kernel maximum
+  OPENFILENAMEW * file_details = &new_file_details.details;
+#else /* not NTGUI_UNICODE */
+  char filename_buf[MAX_PATH + 1];
+  OPENFILENAMEA * file_details = &new_file_details.details;
+#endif /* NTGUI_UNICODE */
+
   struct gcpro gcpro1, gcpro2, gcpro3, gcpro4, gcpro5, gcpro6;
-  char filename[MAX_PATH + 1];
-  char init_dir[MAX_PATH + 1];
-  int default_filter_index = 1; /* 1: All Files, 2: Directories only  */
-
-  GCPRO6 (prompt, dir, default_filename, mustmatch, only_dir_p, file);
-  CHECK_STRING (prompt);
-  CHECK_STRING (dir);
-
-  /* Create the dialog with PROMPT as title, using DIR as initial
-     directory and using "*" as pattern.  */
-  dir = Fexpand_file_name (dir, Qnil);
-  strncpy (init_dir, SDATA (ENCODE_FILE (dir)), MAX_PATH);
-  init_dir[MAX_PATH] = '\0';
-  unixtodos_filename (init_dir);
-
-  if (STRINGP (default_filename))
-    {
-      char *file_name_only;
-      char *full_path_name = SDATA (ENCODE_FILE (default_filename));
-
-      unixtodos_filename (full_path_name);
-
-      file_name_only = strrchr (full_path_name, '\\');
-      if (!file_name_only)
-        file_name_only = full_path_name;
-      else
-	file_name_only++;
-
-      strncpy (filename, file_name_only, MAX_PATH);
-      filename[MAX_PATH] = '\0';
-    }
-  else
-    filename[0] = '\0';
-
-  /* The code in file_dialog_callback that attempts to set the text
-     of the file name edit window when handling the CDN_INITDONE
-     WM_NOTIFY message does not work.  Setting filename to "Current
-     Directory" in the only_dir_p case here does work however.  */
-  if (filename[0] == 0 && ! NILP (only_dir_p))
-    strcpy (filename, "Current Directory");
+  GCPRO6 (prompt, dir, default_filename, mustmatch, only_dir_p, filename);
 
   {
-    NEWOPENFILENAME new_file_details;
-    BOOL file_opened = FALSE;
-    OPENFILENAME * file_details = &new_file_details.real_details;
+    struct gcpro gcpro1, gcpro2;
+    GCPRO2 (orig_dir, orig_prompt); /* There is no GCPRON, N>6.  */
 
-    /* Prevent redisplay.  */
-    specbind (Qinhibit_redisplay, Qt);
-    block_input ();
+    /* Note: under NTGUI_UNICODE, we do _NOT_ use ENCODE_FILE: the
+       system file encoding expected by the platform APIs (e.g. Cygwin's
+       POSIX implementation) may not be the same as the encoding expected
+       by the Windows "ANSI" APIs!  */
 
-    memset (&new_file_details, 0, sizeof (new_file_details));
-    /* Apparently NT4 crashes if you give it an unexpected size.
-       I'm not sure about Windows 9x, so play it safe.  */
-    if (w32_major_version > 4 && w32_major_version < 95)
-      file_details->lStructSize = sizeof (NEWOPENFILENAME);
+    CHECK_STRING (prompt);
+    CHECK_STRING (dir);
+
+    dir = Fexpand_file_name (dir, Qnil);
+
+    if (STRINGP (filename))
+      filename = Ffile_name_nondirectory (filename);
     else
-      file_details->lStructSize = sizeof (OPENFILENAME);
+      filename = empty_unibyte_string;
+
+#ifdef CYGWIN
+    dir = Fcygwin_convert_path_to_windows (dir, Qt);
+    if (SCHARS (filename) > 0)
+      filename = Fcygwin_convert_path_to_windows (filename, Qnil);
+#endif
+
+    CHECK_STRING (dir);
+    CHECK_STRING (filename);
+
+    /* The code in file_dialog_callback that attempts to set the text
+       of the file name edit window when handling the CDN_INITDONE
+       WM_NOTIFY message does not work.  Setting filename to "Current
+       Directory" in the only_dir_p case here does work however.  */
+    if (SCHARS (filename) == 0 && ! NILP (only_dir_p))
+      filename = build_string ("Current Directory");
+
+    /* Convert the values we've computed so far to system form.  */
+#ifdef NTGUI_UNICODE
+    to_unicode (prompt, &prompt);
+    to_unicode (dir, &dir);
+    to_unicode (filename, &filename);
+#else /* !NTGUI_UNICODE */
+    prompt = ENCODE_FILE (prompt);
+    dir = ENCODE_FILE (dir);
+    filename = ENCODE_FILE (filename);
+
+    /* We modify these in-place, so make copies for safety.  */
+    dir = Fcopy_sequence (dir);
+    unixtodos_filename (SDATA (dir));
+    filename = Fcopy_sequence (filename);
+    unixtodos_filename (SDATA (filename));
+#endif /* NTGUI_UNICODE */
+
+    /* Fill in the structure for the call to GetOpenFileName below.
+       For NTGUI_UNICODE builds (which run only on NT), we just use
+       the actual size of the structure.  For non-NTGUI_UNICODE
+       builds, we tell the OS we're using an old version of the
+       structure if the OS isn't new enough to support the newer
+       version.  */
+    memset (&new_file_details, 0, sizeof (new_file_details));
+
+    if (w32_major_version > 4 && w32_major_version < 95)
+      file_details->lStructSize = sizeof (new_file_details);
+    else
+      file_details->lStructSize = sizeof (*file_details);
+
+    /* Set up the inout parameter for the selected file name.  */
+    if (SBYTES (filename) + 1 > sizeof (filename_buf))
+      report_file_error ("filename too long", default_filename);
+
+    memcpy (filename_buf, SDATA (filename), SBYTES (filename) + 1);
+    file_details->lpstrFile = filename_buf;
+    file_details->nMaxFile = sizeof (filename_buf) / sizeof (*filename_buf);
 
     file_details->hwndOwner = FRAME_W32_WINDOW (f);
     /* Undocumented Bug in Common File Dialog:
        If a filter is not specified, shell links are not resolved.  */
-    file_details->lpstrFilter = "All Files (*.*)\0*.*\0Directories\0*|*\0\0";
-    file_details->lpstrFile = filename;
-    file_details->nMaxFile = sizeof (filename);
-    file_details->lpstrInitialDir = init_dir;
-    file_details->lpstrTitle = SDATA (prompt);
-
-    if (! NILP (only_dir_p))
-      default_filter_index = 2;
-
-    file_details->nFilterIndex = default_filter_index;
-
+    file_details->lpstrFilter = filter;
+    file_details->lpstrInitialDir = (guichar_t*) SDATA (dir);
+    file_details->lpstrTitle = (guichar_t*) SDATA (prompt);
+    file_details->nFilterIndex = NILP (only_dir_p) ? 1 : 2;
     file_details->Flags = (OFN_HIDEREADONLY | OFN_NOCHANGEDIR
-			  | OFN_EXPLORER | OFN_ENABLEHOOK);
+                           | OFN_EXPLORER | OFN_ENABLEHOOK);
+
     if (!NILP (mustmatch))
       {
-	/* Require that the path to the parent directory exists.  */
-	file_details->Flags |= OFN_PATHMUSTEXIST;
-	/* If we are looking for a file, require that it exists.  */
-	if (NILP (only_dir_p))
-	  file_details->Flags |= OFN_FILEMUSTEXIST;
+        /* Require that the path to the parent directory exists.  */
+        file_details->Flags |= OFN_PATHMUSTEXIST;
+        /* If we are looking for a file, require that it exists.  */
+        if (NILP (only_dir_p))
+          file_details->Flags |= OFN_FILEMUSTEXIST;
       }
 
-    file_details->lpfnHook = (LPOFNHOOKPROC) file_dialog_callback;
+    {
+      int count = SPECPDL_INDEX ();
+      /* Prevent redisplay.  */
+      specbind (Qinhibit_redisplay, Qt);
+      block_input ();
+      file_details->lpfnHook = file_dialog_callback;
 
-    file_opened = GetOpenFileName (file_details);
-
-    unblock_input ();
+#ifdef NTGUI_UNICODE
+      file_opened = GetOpenFileNameW (file_details);
+#else /* !NTGUI_UNICODE */
+      file_opened = GetOpenFileNameA (file_details);
+#endif /* NTGUI_UNICODE */
+      unblock_input ();
+      unbind_to (count, Qnil);
+    }
 
     if (file_opened)
       {
-	dostounix_filename (filename);
+        /* Get an Emacs string from the value Windows gave us.  */
+#ifdef NTGUI_UNICODE
+        filename = from_unicode (
+          make_unibyte_string (
+            (char*) filename_buf,
+            /* we get one of the two final 0 bytes for free. */
+            1 + sizeof (wchar_t) * wcslen (filename_buf)));
+#else /* !NTGUI_UNICODE */
+        dostounix_filename (filename_buf);
+        filename = DECODE_FILE (build_string (filename_buf));
+#endif /* NTGUI_UNICODE */
 
-	if (file_details->nFilterIndex == 2)
-	  {
-	    /* "Directories" selected - strip dummy file name.  */
-	    char * last = strrchr (filename, '/');
-	    *last = '\0';
-	  }
+#ifdef CYGWIN
+        filename = Fcygwin_convert_path_from_windows (filename, Qt);
+#endif /* CYGWIN */
 
-	file = DECODE_FILE (build_string (filename));
+        /* Strip the dummy filename off the end of the string if we
+           added it to select a directory.  */
+        if (file_details->nFilterIndex == 2)
+          {
+            filename = Ffile_name_directory (filename);
+          }
       }
     /* User canceled the dialog without making a selection.  */
     else if (!CommDlgExtendedError ())
-      file = Qnil;
+      filename = Qnil;
     /* An error occurred, fallback on reading from the mini-buffer.  */
     else
-      file = Fcompleting_read (prompt, intern ("read-file-name-internal"),
-			       dir, mustmatch, dir, Qfile_name_history,
-			       default_filename, Qnil);
+      filename = Fcompleting_read (
+        orig_prompt,
+        intern ("read-file-name-internal"),
+        orig_dir,
+        mustmatch,
+        orig_dir,
+        Qfile_name_history,
+        default_filename,
+        Qnil);
 
-    file = unbind_to (count, file);
+    UNGCPRO;
   }
 
-  UNGCPRO;
-
   /* Make "Cancel" equivalent to C-g.  */
-  if (NILP (file))
+  if (NILP (filename))
     Fsignal (Qquit, Qnil);
 
-  return unbind_to (count, file);
+  RETURN_UNGCPRO (filename);
 }
 
-
+
+#ifdef WINDOWSNT
 /* Moving files to the system recycle bin.
    Used by `move-file-to-trash' instead of the default moving to ~/.Trash  */
 DEFUN ("system-move-file-to-trash", Fsystem_move_file_to_trash,
@@ -6105,6 +6331,8 @@ DEFUN ("system-move-file-to-trash", Fsystem_move_file_to_trash,
   }
   return Qnil;
 }
+
+#endif /* WINDOWSNT */
 
 
 /***********************************************************************
@@ -6523,7 +6751,7 @@ The following %-sequences are provided:
       else
 	{
 	  char buffer[16];
-	  _snprintf (buffer, 16, "%d", system_status.BatteryLifePercent);
+	  snprintf (buffer, 16, "%d", system_status.BatteryLifePercent);
 	  load_percentage = build_string (buffer);
 	}
 
@@ -6534,18 +6762,18 @@ The following %-sequences are provided:
 	  long m;
 	  float h;
 	  char buffer[16];
-	  _snprintf (buffer, 16, "%ld", seconds_left);
+	  snprintf (buffer, 16, "%ld", seconds_left);
 	  seconds = build_string (buffer);
 
 	  m = seconds_left / 60;
-	  _snprintf (buffer, 16, "%ld", m);
+	  snprintf (buffer, 16, "%ld", m);
 	  minutes = build_string (buffer);
 
 	  h = seconds_left / 3600.0;
-	  _snprintf (buffer, 16, "%3.1f", h);
+	  snprintf (buffer, 16, "%3.1f", h);
 	  hours = build_string (buffer);
 
-	  _snprintf (buffer, 16, "%ld:%02ld", m / 60, m % 60);
+	  snprintf (buffer, 16, "%ld:%02ld", m / 60, m % 60);
 	  remain = build_string (buffer);
 	}
 
@@ -6707,10 +6935,10 @@ DEFUN ("default-printer-name", Fdefault_printer_name, Sdefault_printer_name,
         {
 	  /* a remote printer */
 	  if (*ppi2->pServerName == '\\')
-	    _snprintf (pname_buf, sizeof (pname_buf), "%s\\%s", ppi2->pServerName,
+	    snprintf (pname_buf, sizeof (pname_buf), "%s\\%s", ppi2->pServerName,
 		       ppi2->pShareName);
 	  else
-	    _snprintf (pname_buf, sizeof (pname_buf), "\\\\%s\\%s", ppi2->pServerName,
+	    snprintf (pname_buf, sizeof (pname_buf), "\\\\%s\\%s", ppi2->pServerName,
 		       ppi2->pShareName);
 	  pname_buf[sizeof (pname_buf) - 1] = '\0';
 	}
@@ -6728,6 +6956,294 @@ DEFUN ("default-printer-name", Fdefault_printer_name, Sdefault_printer_name,
 
   return build_string (pname_buf);
 }
+
+
+/* Equivalent of strerror for W32 error codes.  */
+char *
+w32_strerror (int error_no)
+{
+  static char buf[500];
+  DWORD ret;
+
+  if (error_no == 0)
+    error_no = GetLastError ();
+
+  ret = FormatMessage (FORMAT_MESSAGE_FROM_SYSTEM |
+                       FORMAT_MESSAGE_IGNORE_INSERTS,
+                       NULL,
+                       error_no,
+                       0, /* choose most suitable language */
+                       buf, sizeof (buf), NULL);
+
+  while (ret > 0 && (buf[ret - 1] == '\n' ||
+                     buf[ret - 1] == '\r' ))
+      --ret;
+  buf[ret] = '\0';
+  if (!ret)
+    sprintf (buf, "w32 error %u", error_no);
+
+  return buf;
+}
+
+/* For convenience when debugging.  (You cannot call GetLastError
+   directly from GDB: it will crash, because it uses the __stdcall
+   calling convention, not the _cdecl convention assumed by GDB.)  */
+DWORD
+w32_last_error (void)
+{
+  return GetLastError ();
+}
+
+/* Cache information describing the NT system for later use.  */
+void
+cache_system_info (void)
+{
+  union
+    {
+      struct info
+	{
+	  char  major;
+	  char  minor;
+	  short platform;
+	} info;
+      DWORD data;
+    } version;
+
+  /* Cache the version of the operating system.  */
+  version.data = GetVersion ();
+  w32_major_version = version.info.major;
+  w32_minor_version = version.info.minor;
+
+  if (version.info.platform & 0x8000)
+    os_subtype = OS_9X;
+  else
+    os_subtype = OS_NT;
+
+  /* Cache page size, allocation unit, processor type, etc.  */
+  GetSystemInfo (&sysinfo_cache);
+  syspage_mask = sysinfo_cache.dwPageSize - 1;
+
+  /* Cache os info.  */
+  osinfo_cache.dwOSVersionInfoSize = sizeof (OSVERSIONINFO);
+  GetVersionEx (&osinfo_cache);
+
+  w32_build_number = osinfo_cache.dwBuildNumber;
+  if (os_subtype == OS_9X)
+    w32_build_number &= 0xffff;
+
+  w32_num_mouse_buttons = GetSystemMetrics (SM_CMOUSEBUTTONS);
+}
+
+#ifdef EMACSDEBUG
+void
+_DebPrint (const char *fmt, ...)
+{
+  char buf[1024];
+  va_list args;
+
+  va_start (args, fmt);
+  vsprintf (buf, fmt, args);
+  va_end (args);
+#if CYGWIN
+  fprintf (stderr, "%s", buf);
+#endif
+  OutputDebugString (buf);
+}
+#endif
+
+int
+w32_console_toggle_lock_key (int vk_code, Lisp_Object new_state)
+{
+  int cur_state = (GetKeyState (vk_code) & 1);
+
+  if (NILP (new_state)
+      || (NUMBERP (new_state)
+	  && ((XUINT (new_state)) & 1) != cur_state))
+    {
+#ifdef WINDOWSNT
+      faked_key = vk_code;
+#endif /* WINDOWSNT */
+
+      keybd_event ((BYTE) vk_code,
+		   (BYTE) MapVirtualKey (vk_code, 0),
+		   KEYEVENTF_EXTENDEDKEY | KEYEVENTF_KEYUP, 0);
+      keybd_event ((BYTE) vk_code,
+		   (BYTE) MapVirtualKey (vk_code, 0),
+		   KEYEVENTF_EXTENDEDKEY | 0, 0);
+      keybd_event ((BYTE) vk_code,
+		   (BYTE) MapVirtualKey (vk_code, 0),
+		   KEYEVENTF_EXTENDEDKEY | KEYEVENTF_KEYUP, 0);
+      cur_state = !cur_state;
+    }
+
+  return cur_state;
+}
+
+/* Translate console modifiers to emacs modifiers.
+   German keyboard support (Kai Morgan Zeise 2/18/95).  */
+int
+w32_kbd_mods_to_emacs (DWORD mods, WORD key)
+{
+  int retval = 0;
+
+  /* If we recognize right-alt and left-ctrl as AltGr, and it has been
+     pressed, first remove those modifiers.  */
+  if (!NILP (Vw32_recognize_altgr)
+      && (mods & (RIGHT_ALT_PRESSED | LEFT_CTRL_PRESSED))
+      == (RIGHT_ALT_PRESSED | LEFT_CTRL_PRESSED))
+    mods &= ~ (RIGHT_ALT_PRESSED | LEFT_CTRL_PRESSED);
+
+  if (mods & (RIGHT_ALT_PRESSED | LEFT_ALT_PRESSED))
+    retval = ((NILP (Vw32_alt_is_meta)) ? alt_modifier : meta_modifier);
+
+  if (mods & (RIGHT_CTRL_PRESSED | LEFT_CTRL_PRESSED))
+    {
+      retval |= ctrl_modifier;
+      if ((mods & (RIGHT_CTRL_PRESSED | LEFT_CTRL_PRESSED))
+	  == (RIGHT_CTRL_PRESSED | LEFT_CTRL_PRESSED))
+	retval |= meta_modifier;
+    }
+
+  if (mods & LEFT_WIN_PRESSED)
+    retval |= w32_key_to_modifier (VK_LWIN);
+  if (mods & RIGHT_WIN_PRESSED)
+    retval |= w32_key_to_modifier (VK_RWIN);
+  if (mods & APPS_PRESSED)
+    retval |= w32_key_to_modifier (VK_APPS);
+  if (mods & SCROLLLOCK_ON)
+    retval |= w32_key_to_modifier (VK_SCROLL);
+
+  /* Just in case someone wanted the original behavior, make it
+     optional by setting w32-capslock-is-shiftlock to t.  */
+  if (NILP (Vw32_capslock_is_shiftlock)
+      /* Keys that should _not_ be affected by CapsLock.  */
+      && (    (key == VK_BACK)
+	   || (key == VK_TAB)
+	   || (key == VK_CLEAR)
+	   || (key == VK_RETURN)
+	   || (key == VK_ESCAPE)
+	   || ((key >= VK_SPACE) && (key <= VK_HELP))
+	   || ((key >= VK_NUMPAD0) && (key <= VK_F24))
+	   || ((key >= VK_NUMPAD_CLEAR) && (key <= VK_NUMPAD_DELETE))
+	 ))
+    {
+      /* Only consider shift state.  */
+      if ((mods & SHIFT_PRESSED) != 0)
+	retval |= shift_modifier;
+    }
+  else
+    {
+      /* Ignore CapsLock state if not enabled.  */
+      if (NILP (Vw32_enable_caps_lock))
+	mods &= ~CAPSLOCK_ON;
+      if ((mods & (SHIFT_PRESSED | CAPSLOCK_ON)) != 0)
+	retval |= shift_modifier;
+    }
+
+  return retval;
+}
+
+/* The return code indicates key code size.  cpID is the codepage to
+   use for translation to Unicode; -1 means use the current console
+   input codepage.  */
+int
+w32_kbd_patch_key (KEY_EVENT_RECORD *event, int cpId)
+{
+  unsigned int key_code = event->wVirtualKeyCode;
+  unsigned int mods = event->dwControlKeyState;
+  BYTE keystate[256];
+  static BYTE ansi_code[4];
+  static int isdead = 0;
+
+  if (isdead == 2)
+    {
+      event->uChar.AsciiChar = ansi_code[2];
+      isdead = 0;
+      return 1;
+    }
+  if (event->uChar.AsciiChar != 0)
+    return 1;
+
+  memset (keystate, 0, sizeof (keystate));
+  keystate[key_code] = 0x80;
+  if (mods & SHIFT_PRESSED)
+    keystate[VK_SHIFT] = 0x80;
+  if (mods & CAPSLOCK_ON)
+    keystate[VK_CAPITAL] = 1;
+  /* If we recognize right-alt and left-ctrl as AltGr, set the key
+     states accordingly before invoking ToAscii.  */
+  if (!NILP (Vw32_recognize_altgr)
+      && (mods & LEFT_CTRL_PRESSED) && (mods & RIGHT_ALT_PRESSED))
+    {
+      keystate[VK_CONTROL] = 0x80;
+      keystate[VK_LCONTROL] = 0x80;
+      keystate[VK_MENU] = 0x80;
+      keystate[VK_RMENU] = 0x80;
+    }
+
+#if 0
+  /* Because of an OS bug, ToAscii corrupts the stack when called to
+     convert a dead key in console mode on NT4.  Unfortunately, trying
+     to check for dead keys using MapVirtualKey doesn't work either -
+     these functions apparently use internal information about keyboard
+     layout which doesn't get properly updated in console programs when
+     changing layout (though apparently it gets partly updated,
+     otherwise ToAscii wouldn't crash).  */
+  if (is_dead_key (event->wVirtualKeyCode))
+    return 0;
+#endif
+
+  /* On NT, call ToUnicode instead and then convert to the current
+     console input codepage.  */
+  if (os_subtype == OS_NT)
+    {
+      WCHAR buf[128];
+
+      isdead = ToUnicode (event->wVirtualKeyCode, event->wVirtualScanCode,
+			  keystate, buf, 128, 0);
+      if (isdead > 0)
+	{
+	  /* When we are called from the GUI message processing code,
+	     we are passed the current keyboard codepage, a positive
+	     number, to use below.  */
+	  if (cpId == -1)
+	    cpId = GetConsoleCP ();
+
+	  event->uChar.UnicodeChar = buf[isdead - 1];
+	  isdead = WideCharToMultiByte (cpId, 0, buf, isdead,
+					ansi_code, 4, NULL, NULL);
+	}
+      else
+	isdead = 0;
+    }
+  else
+    {
+      isdead = ToAscii (event->wVirtualKeyCode, event->wVirtualScanCode,
+                        keystate, (LPWORD) ansi_code, 0);
+    }
+
+  if (isdead == 0)
+    return 0;
+  event->uChar.AsciiChar = ansi_code[0];
+  return isdead;
+}
+
+
+void
+w32_sys_ring_bell (struct frame *f)
+{
+  if (sound_type == 0xFFFFFFFF)
+    {
+      Beep (666, 100);
+    }
+  else if (sound_type == MB_EMACS_SILENT)
+    {
+      /* Do nothing.  */
+    }
+  else
+    MessageBeep (sound_type);
+}
+
 
 /***********************************************************************
 			    Initialization
@@ -7095,6 +7611,7 @@ only be necessary if the default setting causes problems.  */);
 
   defsubr (&Sfile_system_info);
   defsubr (&Sdefault_printer_name);
+  defsubr (&Sset_message_beep);
 
   check_window_system_func = check_w32;
 
@@ -7111,7 +7628,9 @@ only be necessary if the default setting causes problems.  */);
   staticpro (&last_show_tip_args);
 
   defsubr (&Sx_file_dialog);
+#ifdef WINDOWSNT
   defsubr (&Ssystem_move_file_to_trash);
+#endif
 }
 
 
@@ -7191,11 +7710,4 @@ emacs_abort (void)
       abort ();
       break;
     }
-}
-
-/* For convenience when debugging.  */
-int
-w32_last_error (void)
-{
-  return GetLastError ();
 }

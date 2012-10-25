@@ -1516,9 +1516,9 @@ this trigger is subscribed to `gdb-buf-publisher' and called with
 	(comint-exec io-buffer "gdb-inferior" nil nil nil)
 	(gdb-inferior-io--init-proc (get-buffer-process io-buffer))))))
 
-(defvar gdb-display-buffer-other-frame-action
-  `((display-buffer-reuse-window display-buffer-pop-up-frame)
-    (reusable-frames . 0)
+(defcustom gdb-display-buffer-other-frame-action
+  '((display-buffer-reuse-window display-buffer-pop-up-frame)
+    (reusable-frames . visible)
     (inhibit-same-window . t)
     (pop-up-frame-parameters (height . 14)
 			     (width . 80)
@@ -1526,8 +1526,11 @@ this trigger is subscribed to `gdb-buf-publisher' and called with
 			     (tool-bar-lines . nil)
 			     (menu-bar-lines . nil)
 			     (minibuffer . nil)))
-  "A `display-buffer' action for displaying GDB utility frames.")
-(put 'gdb-display-buffer-other-frame-action 'risky-local-variable t)
+  "`display-buffer' action for displaying GDB utility frames."
+  :group 'gdb
+  :type display-buffer--action-custom-type
+  :risky t
+  :version "24.3")
 
 (defun gdb-frame-io-buffer ()
   "Display IO of debugged program in another frame."
@@ -4175,9 +4178,9 @@ buffers, if required."
   (if gdb-many-windows
       (gdb-setup-windows)
     (gdb-get-buffer-create 'gdb-breakpoints-buffer)
-    (if (and gdb-show-main gdb-main-file)
-        (let ((pop-up-windows t))
-          (display-buffer (gud-find-file gdb-main-file)))))
+    (and gdb-show-main
+	 gdb-main-file
+	 (display-buffer (gud-find-file gdb-main-file))))
   (gdb-force-mode-line-update
    (propertize "ready" 'face font-lock-variable-name-face)))
 

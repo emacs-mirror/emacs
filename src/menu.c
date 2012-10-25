@@ -40,7 +40,11 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #endif /* HAVE_WINDOW_SYSTEM */
 
 #ifdef HAVE_NTGUI
+# ifdef NTGUI_UNICODE
+# define unicode_append_menu AppendMenuW
+# else /* !NTGUI_UNICODE */
 extern AppendMenuW_Proc unicode_append_menu;
+# endif /* NTGUI_UNICODE */
 extern HMENU current_popup_menu;
 #endif /* HAVE_NTGUI  */
 
@@ -327,7 +331,7 @@ single_menu_item (Lisp_Object key, Lisp_Object item, Lisp_Object dummy, void *sk
 {
   Lisp_Object map, item_string, enabled;
   struct gcpro gcpro1, gcpro2;
-  int res;
+  bool res;
   struct skp *skp = skp_v;
 
   /* Parse the menu item and leave the result in item_properties.  */
@@ -515,14 +519,15 @@ list_of_panes (Lisp_Object menu)
 /* Set up data in menu_items for a menu bar item
    whose event type is ITEM_KEY (with string ITEM_NAME)
    and whose contents come from the list of keymaps MAPS.  */
-int
-parse_single_submenu (Lisp_Object item_key, Lisp_Object item_name, Lisp_Object maps)
+bool
+parse_single_submenu (Lisp_Object item_key, Lisp_Object item_name,
+		      Lisp_Object maps)
 {
   Lisp_Object length;
   EMACS_INT len;
   Lisp_Object *mapvec;
   ptrdiff_t i;
-  int top_level_items = 0;
+  bool top_level_items = 0;
   USE_SAFE_ALLOCA;
 
   length = Flength (maps);
@@ -612,13 +617,13 @@ free_menubar_widget_value_tree (widget_value *wv)
    in menu_items starting at index START, up to index END.  */
 
 widget_value *
-digest_single_submenu (int start, int end, int top_level_items)
+digest_single_submenu (int start, int end, bool top_level_items)
 {
   widget_value *wv, *prev_wv, *save_wv, *first_wv;
   int i;
   int submenu_depth = 0;
   widget_value **submenu_stack;
-  int panes_seen = 0;
+  bool panes_seen = 0;
 
   submenu_stack = alloca (menu_items_used * sizeof *submenu_stack);
   wv = xmalloc_widget_value ();
@@ -664,7 +669,7 @@ digest_single_submenu (int start, int end, int top_level_items)
 	  Lisp_Object pane_name;
 	  const char *pane_string;
 
-	  panes_seen++;
+	  panes_seen = 1;
 
 	  pane_name = AREF (menu_items, i + MENU_ITEMS_PANE_NAME);
 
@@ -731,7 +736,7 @@ digest_single_submenu (int start, int end, int top_level_items)
 	  Lisp_Object help;
 
 	  /* All items should be contained in panes.  */
-	  if (panes_seen == 0)
+	  if (! panes_seen)
 	    emacs_abort ();
 
 	  item_name = AREF (menu_items, i + MENU_ITEMS_ITEM_NAME);
@@ -953,9 +958,9 @@ find_and_call_menu_selection (FRAME_PTR f, int menu_bar_items_used, Lisp_Object 
 
 #ifdef HAVE_NS
 /* As above, but return the menu selection instead of storing in kb buffer.
-   If keymaps==1, return full prefixes to selection. */
+   If KEYMAPS, return full prefixes to selection. */
 Lisp_Object
-find_and_return_menu_selection (FRAME_PTR f, int keymaps, void *client_data)
+find_and_return_menu_selection (FRAME_PTR f, bool keymaps, void *client_data)
 {
   Lisp_Object prefix, entry;
   int i;
@@ -995,7 +1000,7 @@ find_and_return_menu_selection (FRAME_PTR f, int keymaps, void *client_data)
             = AREF (menu_items, i + MENU_ITEMS_ITEM_VALUE);
           if (aref_addr (menu_items, i) == client_data)
             {
-              if (keymaps != 0)
+              if (keymaps)
                 {
                   int j;
 
@@ -1067,8 +1072,8 @@ no quit occurs and `x-popup-menu' returns nil.  */)
   Lisp_Object selection = Qnil;
   FRAME_PTR f = NULL;
   Lisp_Object x, y, window;
-  int keymaps = 0;
-  int for_click = 0;
+  bool keymaps = 0;
+  bool for_click = 0;
   ptrdiff_t specpdl_count = SPECPDL_INDEX ();
   struct gcpro gcpro1;
 
@@ -1079,7 +1084,7 @@ no quit occurs and `x-popup-menu' returns nil.  */)
 
 #ifdef HAVE_MENUS
   {
-    int get_current_pos_p = 0;
+    bool get_current_pos_p = 0;
     /* FIXME!!  check_w32 (); or check_x (); or check_ns (); */
 
     /* Decode the first argument: find the window and the coordinates.  */

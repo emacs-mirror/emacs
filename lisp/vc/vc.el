@@ -1584,21 +1584,21 @@ Return t if the buffer had changes, nil otherwise."
     (let ((vc-disable-async-diff (not async)))
       (vc-call-backend (car vc-fileset) 'diff files rev1 rev2 buffer))
     (set-buffer buffer)
+    (diff-mode)
+    (set (make-local-variable 'diff-vc-backend) (car vc-fileset))
+    (set (make-local-variable 'revert-buffer-function)
+	 `(lambda (ignore-auto noconfirm)
+	    (vc-diff-internal ,async ',vc-fileset ,rev1 ,rev2 ,verbose)))
+    ;; Make the *vc-diff* buffer read only, the diff-mode key
+    ;; bindings are nicer for read only buffers. pcl-cvs does the
+    ;; same thing.
+    (setq buffer-read-only t)
     (if (and (zerop (buffer-size))
              (not (get-buffer-process (current-buffer))))
         ;; Treat this case specially so as not to pop the buffer.
         (progn
           (message "%s" (cdr messages))
           nil)
-      (diff-mode)
-      (set (make-local-variable 'diff-vc-backend) (car vc-fileset))
-      (set (make-local-variable 'revert-buffer-function)
-	   `(lambda (ignore-auto noconfirm)
-	      (vc-diff-internal ,async ',vc-fileset ,rev1 ,rev2 ,verbose)))
-      ;; Make the *vc-diff* buffer read only, the diff-mode key
-      ;; bindings are nicer for read only buffers. pcl-cvs does the
-      ;; same thing.
-      (setq buffer-read-only t)
       ;; Display the buffer, but at the end because it can change point.
       (pop-to-buffer (current-buffer))
       ;; The diff process may finish early, so call `vc-diff-finish'

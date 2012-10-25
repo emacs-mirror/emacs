@@ -169,12 +169,12 @@ struct kboard
        reading from this KBOARD again until more input arrives.  */
     char kbd_queue_has_data;
 
-    /* Nonzero means echo each character as typed.  */
-    char immediate_echo;
+    /* True means echo each character as typed.  */
+    unsigned immediate_echo : 1;
 
     /* If we have echoed a prompt string specified by the user,
        this is its length in characters.  Otherwise this is -1.  */
-    char echo_after_prompt;
+    ptrdiff_t echo_after_prompt;
   };
 
 KEYBOARD_INLINE void
@@ -463,14 +463,14 @@ extern Lisp_Object Qhelp_echo;
 extern Lisp_Object Qmode_line, Qvertical_line, Qheader_line;
 
 /* True while doing kbd input.  */
-extern int waiting_for_input;
+extern bool waiting_for_input;
 
 /* Address (if not 0) of EMACS_TIME to zero out if a SIGIO interrupt
    happens.  */
 extern EMACS_TIME *input_available_clear_time;
 
 #if defined HAVE_WINDOW_SYSTEM && !defined USE_GTK && !defined HAVE_NS
-extern int ignore_mouse_drag_p;
+extern bool ignore_mouse_drag_p;
 #endif
 
 /* The primary selection.  */
@@ -482,7 +482,7 @@ struct input_event;
 extern Lisp_Object parse_modifiers (Lisp_Object);
 extern Lisp_Object reorder_modifiers (Lisp_Object);
 extern Lisp_Object read_char (int, ptrdiff_t, Lisp_Object *, Lisp_Object,
-                              int *, EMACS_TIME *);
+                              bool *, EMACS_TIME *);
 extern int parse_solitary_modifier (Lisp_Object symbol);
 
 
@@ -506,10 +506,10 @@ extern Time last_event_timestamp;
 
 extern int quit_char;
 
-extern int timers_run;
+extern unsigned int timers_run;
 
-extern int menu_separator_name_p (const char *);
-extern int parse_menu_item (Lisp_Object, int);
+extern bool menu_separator_name_p (const char *);
+extern bool parse_menu_item (Lisp_Object, int);
 
 extern void init_kboard (KBOARD *);
 extern void delete_kboard (KBOARD *);
@@ -524,15 +524,15 @@ extern void start_polling (void);
 extern void stop_polling (void);
 extern void set_poll_suppress_count (int);
 extern int gobble_input (void);
-extern int input_polling_used (void);
+extern bool input_polling_used (void);
 extern void clear_input_pending (void);
-extern int requeued_events_pending_p (void);
+extern bool requeued_events_pending_p (void);
 extern void bind_polling_period (int);
 extern int make_ctrl_char (int) ATTRIBUTE_CONST;
 extern void stuff_buffered_input (Lisp_Object);
 extern void clear_waiting_for_input (void);
-extern void swallow_events (int);
-extern int lucid_event_type_list_p (Lisp_Object);
+extern void swallow_events (bool);
+extern bool lucid_event_type_list_p (Lisp_Object);
 extern void kbd_buffer_store_event (struct input_event *);
 extern void kbd_buffer_store_event_hold (struct input_event *,
                                          struct input_event *);
@@ -544,14 +544,14 @@ extern void gen_help_event (Lisp_Object, Lisp_Object, Lisp_Object,
                             Lisp_Object, ptrdiff_t);
 extern void kbd_buffer_store_help_event (Lisp_Object, Lisp_Object);
 extern Lisp_Object menu_item_eval_property (Lisp_Object);
-extern int  kbd_buffer_events_waiting (int);
+extern bool kbd_buffer_events_waiting (void);
 extern void add_user_signal (int, const char *);
 
 extern int tty_read_avail_input (struct terminal *, struct input_event *);
 extern EMACS_TIME timer_check (void);
 extern void mark_kboards (void);
 
-#ifdef WINDOWSNT
+#ifdef HAVE_NTGUI
 extern const char *const lispy_function_keys[];
 #endif
 

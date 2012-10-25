@@ -362,13 +362,12 @@ nicknames with erc-server-user struct instances.")
 (defmacro erc-with-server-buffer (&rest body)
   "Execute BODY in the current ERC server buffer.
 If no server buffer exists, return nil."
+  (declare (indent 0) (debug (body)))
   (let ((buffer (make-symbol "buffer")))
     `(let ((,buffer (erc-server-buffer)))
        (when (buffer-live-p ,buffer)
 	 (with-current-buffer ,buffer
 	   ,@body)))))
-(put 'erc-with-server-buffer 'lisp-indent-function 0)
-(put 'erc-with-server-buffer 'edebug-form-spec '(body))
 
 (defstruct (erc-server-user (:type vector) :named)
   ;; User data
@@ -1236,6 +1235,7 @@ Example:
 	       'erc-replace-insert))
     ((remove-hook 'erc-insert-modify-hook
 		  'erc-replace-insert)))"
+  (declare (doc-string 3))
   (let* ((sn (symbol-name name))
 	 (mode (intern (format "erc-%s-mode" (downcase sn))))
 	 (group (intern (format "erc-%s" (downcase sn))))
@@ -1280,8 +1280,6 @@ if ARG is omitted or nil.
        (put ',mode    'definition-name ',name)
        (put ',enable  'definition-name ',name)
        (put ',disable 'definition-name ',name))))
-
-(put 'define-erc-module 'doc-string-elt 3)
 
 (defun erc-once-with-server-event (event &rest forms)
   "Execute FORMS the next time EVENT occurs in the `current-buffer'.
@@ -1334,10 +1332,10 @@ connection over which the data was received that triggered EVENT."
      (add-hook hook fun nil nil)
      fun))
 
-(defmacro erc-log (string)
+(defsubst erc-log (string)
   "Logs STRING if logging is on (see `erc-log-p')."
-  `(when erc-log-p
-     (erc-log-aux ,string)))
+  (when erc-log-p
+    (erc-log-aux string)))
 
 (defun erc-server-buffer ()
   "Return the server buffer for the current buffer's process.
@@ -1621,6 +1619,7 @@ See `erc-get-buffer' for details.
 See also `with-current-buffer'.
 
 \(fn (TARGET [PROCESS]) BODY...)"
+  (declare (indent 1) (debug ((form &optional form) body)))
   (let ((buf (make-symbol "buf"))
 	(proc (make-symbol "proc"))
 	(target (make-symbol "target"))
@@ -1637,8 +1636,6 @@ See also `with-current-buffer'.
        (when (buffer-live-p ,buf)
 	 (with-current-buffer ,buf
 	   ,@body)))))
-(put 'erc-with-buffer 'lisp-indent-function 1)
-(put 'erc-with-buffer 'edebug-form-spec '((form &optional form) body))
 
 (defun erc-get-buffer (target &optional proc)
   "Return the buffer matching TARGET in the process PROC.
@@ -1688,6 +1685,7 @@ needs to match PROC."
 FORMS will be evaluated in all buffers having the process PROCESS and
 where PRED matches or in all buffers of the server process if PRED is
 nil."
+  (declare (indent 1) (debug (form form body)))
   ;; Make the evaluation have the correct order
   (let ((pre (make-symbol "pre"))
 	(pro (make-symbol "pro")))
@@ -1701,8 +1699,6 @@ nil."
        ;; Silence the byte-compiler by binding the result of mapcar to
        ;; a variable.
        res)))
-(put 'erc-with-all-buffers-of-server 'lisp-indent-function 1)
-(put 'erc-with-all-buffers-of-server 'edebug-form-spec '(form form body))
 
 ;; (iswitchb-mode) will autoload iswitchb.el
 (defvar iswitchb-temp-buflist)

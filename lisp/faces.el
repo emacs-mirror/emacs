@@ -96,7 +96,7 @@ ALTERNATIVE2 etc."
 ;; This is defined originally in xfaces.c.
 (defcustom face-font-registry-alternatives
   (mapcar (lambda (arg) (mapcar 'purecopy arg))
-  (if (eq system-type 'windows-nt)
+  (if (featurep 'w32)
       '(("iso8859-1" "ms-oemlatin")
 	("gb2312.1980" "gb2312" "gbk" "gb18030")
 	("jisx0208.1990" "jisx0208.1983" "jisx0208.1978")
@@ -2571,6 +2571,12 @@ also the same size as FACE on FRAME, or fail."
 	      (error "No fonts match `%s'" pattern)))
 	(car fonts))
     (cdr (assq 'font (frame-parameters (selected-frame))))))
+
+(defcustom font-list-limit 100
+  "This variable is obsolete and has no effect."
+  :type 'integer
+  :group 'display)
+(make-obsolete-variable 'font-list-limit nil "24.3")
 
 (provide 'faces)
 

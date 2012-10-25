@@ -1150,8 +1150,12 @@ the end of the document."
 (defun url-http (url callback cbargs &optional retry-buffer)
   "Retrieve URL via HTTP asynchronously.
 URL must be a parsed URL.  See `url-generic-parse-url' for details.
-When retrieval is completed, the function CALLBACK is executed with
-CBARGS as the arguments.
+
+When retrieval is completed, execute the function CALLBACK, using
+the arguments listed in CBARGS.  The first element in CBARGS
+should be a plist describing what has happened so far during the
+request, as described in the docstring of `url-retrieve' (if in
+doubt, specify nil).
 
 Optional arg RETRY-BUFFER, if non-nil, specifies the buffer of a
 previous `url-http' call, which is being re-attempted."

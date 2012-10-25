@@ -36,9 +36,6 @@ extern Lisp_Object control_x_map;
    events until a non-ASCII event is acceptable as input.  */
 extern Lisp_Object unread_switch_frame;
 
-/* Nonzero means ^G can quit instantly */
-extern int immediate_quit;
-
 /* Nonzero if input is coming from the keyboard */
 
 #define INTERACTIVE (NILP (Vexecuting_kbd_macro) && !noninteractive)

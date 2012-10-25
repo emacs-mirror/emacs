@@ -22,6 +22,9 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 
 #include <config.h>
 #include "unexec.h"
+#include "lisp.h"
+#include "w32common.h"
+#include "w32.h"
 
 #include <stdio.h>
 #include <fcntl.h>
@@ -83,7 +86,7 @@ DWORD_PTR  extra_bss_size_static = 0;
 PIMAGE_SECTION_HEADER heap_section;
 
 #ifdef HAVE_NTGUI
-HINSTANCE hinst = NULL;
+extern HINSTANCE hinst;
 HINSTANCE hprevinst = NULL;
 LPSTR lpCmdLine = "";
 int nCmdShow = 0;

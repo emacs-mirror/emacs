@@ -120,15 +120,18 @@ library when needed.  This way people who don't use those aspects of
 your file do not need to load the extra library.
 
 @item
-Please don't require the @code{cl} package of Common Lisp extensions at
-run time.  Use of this package is optional, and it is not part of the
-standard Emacs namespace.  If your package loads @code{cl} at run time,
-that could cause name clashes for users who don't use that package.
+If you need Common Lisp extensions, use the @code{cl-lib} library
+rather than the old @code{cl} library.  The latter does not
+use a clean namespace (i.e., its definitions do not
+start with a @samp{cl-} prefix).  If your package loads @code{cl} at
+run time, that could cause name clashes for users who don't use that
+package.
 
-However, there is no problem with using the @code{cl} package at
-compile time, with @code{(eval-when-compile (require 'cl))}.  That's
+There is no problem with using the @code{cl} package at @emph{compile}
+time, with @code{(eval-when-compile (require 'cl))}.  That's
 sufficient for using the macros in the @code{cl} package, because the
-compiler expands them before generating the byte-code.
+compiler expands them before generating the byte-code.  It is still
+better to use the more modern @code{cl-lib} in this case, though.
 
 @item
 When defining a major mode, please follow the major mode

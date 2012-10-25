@@ -144,7 +144,7 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 
 /* Enable compile-time and run-time bounds-checking, and some warnings,
       without upsetting glibc 2.15+. */
-   #if defined __OPTIMIZE__ && __OPTIMIZE__
+   #if !defined _FORTIFY_SOURCE && defined __OPTIMIZE__ && __OPTIMIZE__
    # define _FORTIFY_SOURCE 2
    #endif
   
@@ -691,6 +691,9 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 /* Define to 1 if you are using the NeXTstep API, either GNUstep or Cocoa on
    Mac OS X. */
 #undef HAVE_NS
+
+/* Define to use native MS Windows GUI. */
+#undef HAVE_NTGUI
 
 /* Define to 1 if libotf has OTF_get_variation_glyphs. */
 #undef HAVE_OTF_GET_VARIATION_GLYPHS
