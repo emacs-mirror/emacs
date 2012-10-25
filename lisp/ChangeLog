@@ -1,5 +1,7 @@
 2012-10-25  Stefan Monnier  <monnier@iro.umontreal.ca>
 
+	* minibuffer.el (minibuffer-force-complete): Fix thinko.
+
 	* net/ldap.el (ldap-search-internal): The official ldif format starts
 	with a "version: 1" header (bug#12724).
 

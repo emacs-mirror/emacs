@@ -1124,10 +1124,10 @@ Repeated uses step through the possible completions."
         (completion--message
        (if all "No more completions" "No completions")))
      ((not (consp (cdr all)))
-      (let ((mod (equal (car all) (buffer-substring-no-properties base end))))
-        (if mod (completion--replace base end (car all)))
+      (let ((done (equal (car all) (buffer-substring-no-properties base end))))
+        (unless done (completion--replace base end (car all)))
         (completion--done (buffer-substring-no-properties start (point))
-                          'finished (unless mod "Sole completion"))))
+                          'finished (when done "Sole completion"))))
      (t
       (completion--replace base end (car all))
       (completion--done (buffer-substring-no-properties start (point)) 'sole)
