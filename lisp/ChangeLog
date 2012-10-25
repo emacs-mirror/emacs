@@ -1,5 +1,8 @@
 2012-10-25  Stefan Monnier  <monnier@iro.umontreal.ca>
 
+	* net/ldap.el (ldap-search-internal): The official ldif format starts
+	with a "version: 1" header (bug#12724).
+
 	* emacs-lisp/package.el (package-installed-p): Warn if not ready
 	(bug#12721).
 

@@ -604,6 +604,7 @@ an alist of attribute/value pairs."
 	;; Skip error message when retrieving attribute list
 	(if (looking-at "Size limit exceeded")
 	    (forward-line 1))
+        (if (looking-at "version:") (forward-line 1)) ;bug#12724.
 	(while (progn
 		 (skip-chars-forward " \t\n")
 		 (not (eobp)))
