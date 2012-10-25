@@ -194,8 +194,8 @@ the usual way (for example, the pointer is hashed and the has used to
 index into the table). At this point one of three situations can
 occur:
 
-1. success (for example, the key was found in the hash table at the
-   place indicated by the hash of its address);
+1. success (for example, the key was found in the table at the place
+   indicated by the hash of its address);
 
 2. failure: the location of these blocks has not been depended on
    before (for example, the key has never been added to the hash
@@ -281,9 +281,9 @@ return false is immediately after :c:func:`mps_ld_reset`.)
 
 You might put in a loop here, but for reliability it is better to fall
 back to a non-address-based version of the computation: here, since
-``table_rehash`` has to loop over all the entries in the hash table
-anyway, it might as well find the bucket containing ``key`` at the
-same time and return it.
+``table_rehash`` has to loop over all the entries in the table anyway,
+it might as well find the bucket containing ``key`` at the same time
+and return it.
 
 By adding the line::
 
@@ -386,9 +386,9 @@ Location dependency interface
     references have been changed because a block has been :term:`moved
     <moving garbage collector>`.
 
-    A typical use is in the implementation of a hash table whiches
+    A typical use is in the implementation of a hash table which
     hashes blocks by hashing their addresses. After a block has moved,
-    the hash table needs to be rehashed, otherwise it will not be
+    the table needs to be rehashed, otherwise it will not be
     found in the table.
 
 
