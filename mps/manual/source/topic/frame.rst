@@ -1,3 +1,8 @@
+.. Sources: 
+
+    `<https://info.ravenbrook.com/project/mps/doc/2002-06-18/obsolete-mminfo/mmdoc/doc/mps/guide/stack-alloc/>`_
+    `<https://info.ravenbrook.com/project/mps/master/design/alloc-frame/>`_
+
 .. _topic-frame:
 
 Allocation frames

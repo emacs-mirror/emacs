@@ -37,9 +37,6 @@ Outstanding
     about consistency. Also to demonstrate the "garbage collect
     frequently to expose errors as soon as possible" advice.
 
-80. Need to migrate the new Scheme functionality (new make_string, fix
-    to append, new entry points) back to the "before the MPS" version.
-
 87. Could simplify a lot of glossary references if plurals were
     handled automatically. That is, if a glossary entry for "bytes
     (1)" is found to be missing, then "byte (1)" should be tried
@@ -53,6 +50,11 @@ Outstanding
 
 116. "The maximum number of arenas that the system can support is
      around 10." What causes this limit?
+
+119. This (from :ref:`topic-critical`) needs mentioning in various
+     places: "it's important to give a good estimate of the amount of
+     address space you will ever occupy with objects when you
+     initialize the arena"
 
 
 Complete
@@ -660,6 +662,11 @@ Complete
 
     *Answer:* this might happen to work, but it's not supported.
 
+80. Need to migrate the new Scheme functionality (new make_string, fix
+    to append, new entry points) back to the "before the MPS" version.
+
+    *Action:* done in change 180069.
+
 81. The Scheme interpreter could avoid printing "``#[undefined]``" at
     the REPL (like Python with  ``None``).
 
@@ -906,4 +913,7 @@ Complete
 117. Consistent pluralization in headings. "Arena states". "Other
      notes" -> "Ambiguous references". "You could use this to optimize
      the scan by avoiding the need to reassemble and store the updated
-     reference after calling :term:`MPS_FIX2`.
+     reference after calling :c:func:`MPS_FIX2`.
+
+118. Add comments giving links to sources.
+

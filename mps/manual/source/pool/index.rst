@@ -74,6 +74,10 @@ no          *any*                   weak         :ref:`pool-mvt` [1]_
            them.
 
 
+.. Sources:
+
+     `<https://info.ravenbrook.com/project/mps/doc/2002-06-18/obsolete-mminfo/mmdoc/doc/mps/guide/pool-classes/>`_
+
 .. _pool-properties:
 
 Pool class properties

@@ -1,3 +1,7 @@
+.. Sources:
+
+    `<https://info.ravenbrook.com/project/mps/master/design/object-debug/>`_
+
 .. _topic-debugging:
 
 Debugging pools

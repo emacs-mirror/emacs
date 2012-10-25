@@ -1,3 +1,9 @@
+.. Sources:
+
+    `<https://info.ravenbrook.com/project/mps/master/manual/wiki/pool_classes.html>`_
+    `<https://info.ravenbrook.com/project/mps/master/design/poolawl/>`_
+
+
 .. _pool-awl:
 
 ===========================

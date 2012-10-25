@@ -326,6 +326,16 @@ Memory Management Glossary: P
 
         .. see:: :term:`pig in the python`.
 
+    pinning
+
+        .. aka:: *nailing*.
+
+        In :term:`copying garbage collection`, an object may not be
+        movable because it is the target of an :term:`ambiguous
+        reference` or because it is referenced by :term:`foreign code`
+        that does not co-operate with the collector. Such an object is
+        said to be *pinned*.
+
     placement policy
 
         .. see:: :term:`allocation policy`.

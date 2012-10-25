@@ -1,3 +1,7 @@
+.. Sources:
+
+    `<https://info.ravenbrook.com/project/mps/master/design/message-gc/>`_
+
 .. _topic-collection:
 
 Garbage collection

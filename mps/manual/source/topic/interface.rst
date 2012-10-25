@@ -1,3 +1,9 @@
+.. Sources:
+
+    `<https://info.ravenbrook.com/project/mps/doc/2002-06-18/obsolete-mminfo/mmdoc/protocol/mps/interface-types/>`_
+    `<https://info.ravenbrook.com/project/mps/doc/2002-06-18/obsolete-mminfo/mmdoc/doc/mps/ref-man/if-conv/>`_
+    `<https://info.ravenbrook.com/project/mps/master/design/interface-c/>`_
+
 .. _topic-interface:
 
 

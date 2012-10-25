@@ -1,3 +1,7 @@
+.. Sources:
+
+    `<https://info.ravenbrook.com/project/mps/master/design/poolmvff/>`_
+
 .. _pool-mvff:
 
 ================================
