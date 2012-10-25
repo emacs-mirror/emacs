@@ -1,3 +1,8 @@
+.. Sources:
+
+    `<https://info.ravenbrook.com/project/mps/master/design/io/>`_
+    `<https://info.ravenbrook.com/project/mps/master/design/lib/>`_
+
 .. _topic-plinth:
 
 Plinth

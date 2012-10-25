@@ -1,3 +1,8 @@
+.. Sources:
+
+    `<https://info.ravenbrook.com/project/mps/doc/2002-06-18/obsolete-mminfo/mmdoc/protocol/mps/arena/>`_
+    `<https://info.ravenbrook.com/project/mps/master/design/arena/>`_
+
 .. _topic-arena:
 
 Arenas

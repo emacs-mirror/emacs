@@ -1,3 +1,7 @@
+.. Sources:
+
+    `<https://info.ravenbrook.com/project/mps/master/manual/wiki/pool_classes.html>`_
+
 .. _pool-amcz:
 
 =========================================

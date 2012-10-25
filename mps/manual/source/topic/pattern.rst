@@ -1,9 +1,11 @@
+.. Sources:
+
+     `<https://info.ravenbrook.com/project/mps/doc/2002-06-18/obsolete-mminfo/mmdoc/protocol/mps/alloc-pattern-ramp/>`_
+
 .. _topic-pattern:
 
 Allocation patterns
 ===================
-
-See //info.ravenbrook.com/project/mps/doc/2002-06-18/obsolete-mminfo/mmdoc/protocol/mps/alloc-pattern-ramp/index.html
 
 ::
 

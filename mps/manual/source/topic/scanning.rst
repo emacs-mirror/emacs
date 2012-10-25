@@ -1,3 +1,7 @@
+.. Sources:
+
+     `<https://info.ravenbrook.com/project/mps/doc/2002-06-18/obsolete-mminfo/mmdoc/protocol/mps/scanning/>`_
+
 .. _topic-scanning:
 
 Scanning
@@ -155,7 +159,7 @@ so that it cannot move.
 
 You could use this fact to optimize the scan by avoiding the need to
 reassemble and store the updated reference after calling
-:term:`MPS_FIX2`
+:c:func:`MPS_FIX2`
 
 .. note::
 

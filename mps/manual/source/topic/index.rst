@@ -7,20 +7,21 @@ Reference
     :numbered:
 
     interface
+    error
     arena
     pool
     allocation
-    collection
-    error
     format
     scanning
+    thread
     root
+    collection
+    message
+    finalization
+    location
     cache
     pattern
-    finalization
-    telemetry
-    message
     debugging
-    location
-    thread
+    telemetry
     frame
+    critical

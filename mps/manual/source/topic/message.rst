@@ -1,3 +1,7 @@
+.. Sources:
+
+    `<https://info.ravenbrook.com/project/mps/master/design/message/>`_
+
 .. _topic-message:
 
 Messages

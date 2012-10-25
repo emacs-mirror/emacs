@@ -1,3 +1,7 @@
+.. Sources:
+
+     `<http://info.ravenbrook.com/project/mps/doc/2002-06-18/obsolete-mminfo/mmdoc/protocol/mps/format/index.html>`_
+
 .. _topic-format:
 
 Object formats

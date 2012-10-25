@@ -1,10 +1,11 @@
+.. Sources:
+
+    `<https://info.ravenbrook.com/project/mps/doc/2002-06-18/obsolete-mminfo/mmdoc/protocol/mps/root/>`_
+
 .. _topic-root:
 
 Roots
 =====
-
-.. Text based on:
-     `<http://info.ravenbrook.com/project/mps/doc/2002-06-18/obsolete-mminfo/mmdoc/protocol/mps/root/index.html>`_.
 
 :term:`Roots <root>` tell the :term:`garbage collector` where to start
 :term:`tracing <trace>`. The garbage collector determines which blocks
@@ -22,7 +23,7 @@ program to declare which references are roots.
 
 .. note::
 
-    Theorectically, the only roots are the :term:`registers
+    Theoretically, the only roots are the :term:`registers
     <register>`; that is, a program can only use values that can be
     referenced from the registers.
 
@@ -48,7 +49,7 @@ for references, providing your own scanning function in the cases of :c:func:`mp
 All the references in a root are of the same :term:`rank` (just as in
 a :term:`formatted object`). So they are all :term:`exact <exact
 reference>`, :term:`ambiguous <ambiguous reference>` or :term:`weak
-<weak reference>`.
+<weak reference (1)>`.
 
 Roots can be removed at any time by calling
 :c:func:`mps_root_destroy`. All roots declared in an :term:`arena`
@@ -67,8 +68,7 @@ Thread roots
 
 .kind.table: mps_root_create_table &
 
- mps_root_create_table
-_ masked declare a root that is a vector of pointers somewhere in memory.
+mps_root_create_table_masked declare a root that is a vector of pointers somewhere in memory.
 .kind.reg: Threads are declared roots using mps_root_create_reg . mps_stack_scan_ambig is the only supported scanning function : it will scan every word on the stack and in the (integer) registers . It's OS- and architecture-dependent (and possibly compiler-dependent). MM provide it, 'cos it's hard to write and hard to specify an interface for it.
 
 .kind.format: mps_root_create_fmt declares a root that is a block of formatted objects.
