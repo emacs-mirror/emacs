@@ -8,6 +8,10 @@ Memory Management Glossary: N
 
 .. glossary::
 
+    nailing
+
+        .. see:: :term:`pinning`.
+
     natural alignment
 
         Natural alignment is an :term:`alignment` constraint such that

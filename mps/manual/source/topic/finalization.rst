@@ -1,3 +1,7 @@
+.. Sources:
+
+    `<https://info.ravenbrook.com/project/mps/master/design/finalize/>`_
+
 .. _topic-finalization:
 
 Finalization

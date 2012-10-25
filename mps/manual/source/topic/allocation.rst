@@ -1,3 +1,9 @@
+.. Sources:
+
+    `<https://info.ravenbrook.com/project/mps/doc/2002-06-18/obsolete-mminfo/mmdoc/protocol/mps/alloc-point/>`_
+    `<https://info.ravenbrook.com/project/mps/master/manual/wiki/apguide.html>`_
+    `<https://info.ravenbrook.com/project/mps/master/design/buffer/>`_
+
 .. _topic-allocation:
 
 Allocation
