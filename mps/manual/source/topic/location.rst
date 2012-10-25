@@ -495,9 +495,11 @@ Location dependency interface
 
     The effect of this is to add all the addresses that were added to
     ``src_ld`` to the ``dest_ld``.
-    
-    :c:func:`mps_ld_merge` has the same thread-safety properties as
-    :c:func:`mps_ld_add`.
+
+    .. note::
+
+        :c:func:`mps_ld_merge` has the same thread-safety properties
+        as :c:func:`mps_ld_add`.
 
 
 .. c:function:: void mps_ld_reset(mps_ld_t ld, mps_arena_t arena)
@@ -513,5 +515,7 @@ Location dependency interface
     :c:func:`mps_ld_add` on ``ld``, :c:func:`mps_ld_isstale` on ``ld``
     will return false for all arenas.
 
-    :c:func:`mps_ld_reset` is not thread-safe with respect to any
-    other location dependency function.
+    .. note::
+
+        :c:func:`mps_ld_reset` is not thread-safe with respect to any
+        other location dependency function.
