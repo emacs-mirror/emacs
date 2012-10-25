@@ -50,7 +50,8 @@ hash table implementation. It hashes the addresses of its keys, and so
 depends on their location. In the interaction shown below you'll see
 that although the keys remain present in the table after garbage
 collection, they cannot be found because their locations (and hence
-their hashes) have changed.
+their hashes) have changed, but their positions in the table have not
+been updated to match.
 
 .. code-block:: none
 
@@ -326,10 +327,10 @@ location dependency becomes stale and the table has to be rehashed.
 .. note::
 
     You might be puzzled by the highlighted lines: the table wasn't
-    stale when ``'one`` was looked up, but was stale when ``'two`` was
-    looked up, even though ``'two`` must have been moved during the
-    garbage collection cycle. This is the magic of :term:`incremental
-    garbage collection`!
+    stale when ``'one`` was looked up, even though objects did move
+    during the garbage collection cycle, as shown by the table
+    becoming stale when ``'two`` is looked up. This is the magic
+    of :term:`incremental garbage collection`!
 
 
 Performance
@@ -353,10 +354,10 @@ performs a few ALU operations.
 
 .. note::
 
-    Each function has a function call overhead as well, but this could
-    in theory be avoided by providing macro implementations. If you
-    have an application that you think needs this, please
-    :ref:`contact us <contact>`.
+    In each case there is function call overhead as well, but this
+    could in theory be avoided by providing macro implementations. If
+    you have an application that needs this, please :ref:`contact us
+    <contact>`.
 
 
 Thread safety
