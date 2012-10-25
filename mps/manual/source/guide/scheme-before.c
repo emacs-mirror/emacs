@@ -2767,8 +2767,10 @@ int main(int argc, char *argv[])
     obj = read(stdin);
     if(obj == obj_eof) break;
     obj = eval(env, op_env, obj);
-    print(obj, 6, stdout);
-    putc('\n', stdout);
+    if(obj != obj_undefined) {
+      print(obj, 6, stdout);
+      putc('\n', stdout);
+    }
   }
 
   puts("Bye.");
