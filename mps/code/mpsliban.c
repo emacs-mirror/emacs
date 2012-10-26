@@ -113,6 +113,20 @@ mps_clock_t mps_clocks_per_sec(void)
 #pragma warning( disable : 4996 )
 #endif
 
+/* Simple case-insensitive string comparison */
+static int striequal(const char *s0, const char *s1)
+{
+  int c;
+  do {
+    c = *s0;
+    if (tolower(c) != tolower(*s1)) /* note: works for '\0' */
+      return 0;
+    ++s0;
+    ++s1;
+  } while (c != '\0');
+  return 1;
+}
+
 unsigned long mps_lib_telemetry_control(void)
 {
   char *s;
@@ -120,9 +134,7 @@ unsigned long mps_lib_telemetry_control(void)
   unsigned long mask;
   char buf[256];
   char *word;
-  char *p;
   char *sep = " ";
-  char rowName[256];
 
   s = getenv("MPS_TELEMETRY_CONTROL");
   if (s == NULL)
@@ -136,26 +148,20 @@ unsigned long mps_lib_telemetry_control(void)
   /* copy the envar to a buffer so we can mess with it. */
   strncpy(buf, s, sizeof(buf) - 1);
   buf[sizeof(buf) - 1] = '\0';
-  /* downcase it */
-  for (p = buf; *p != '\0'; ++p)
-          *p = (char)tolower(*p);
   
   /* Split the value at spaces and try to match the words against the names
      of event kinds, enabling them if there's a match. */
   for (word = strtok(buf, sep); word != NULL; word = strtok(NULL, sep)) {
-          if (strcmp(word, "all") == 0) {
-                  mask = (unsigned long)-1;
-                  printf("All events.");
-                  return mask;
-          }
+    if (striequal(word, "all")) {
+      mask = (unsigned long)-1;
+      printf("All events.");
+      return mask;
+    }
 #define TELEMATCH(X, name, rowDoc) \
-    strncpy(rowName, #name, sizeof(rowName) - 1); \
-    rowName[sizeof(rowName) - 1] = '\0'; \
-    for (p = rowName; *p != '\0'; ++p) \
-            *p = (char)tolower(*p); \
-    if (strcmp(word, rowName) == 0) {          \
+    if (striequal(word, #name)) { \
       mask |= (1ul << EventKind##name); \
-      printf("Events to include " rowDoc "\n"); }
+      printf("Events to include " rowDoc "\n"); \
+    }
     EventKindENUM(TELEMATCH, X)
   }
   
