@@ -1,3 +1,8 @@
+2012-10-26  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* bookmark.el (bookmark-completing-read): Set the completion category
+	to `bookmark' (bug#11131).
+
 2012-10-26  Bastien  <bzg@altern.org>
             Stefan Monnier  <monnier@iro.umontreal.ca>
 
