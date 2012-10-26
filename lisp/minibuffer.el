@@ -743,6 +743,7 @@ completing buffer and file names, respectively."
 				  (const buffer)
                                   (const file)
                                   (const unicode-name)
+				  (const bookmark)
                                   symbol)
           :value-type
           (set :tag "Properties to override"

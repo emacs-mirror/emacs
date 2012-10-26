@@ -1,3 +1,8 @@
+2012-10-26  Jambunathan K  <kjambunathan@gmail.com>
+
+	* minibuffer.el (completion-category-overrides): New completion
+	category `bookmark' (bug#11131).
+
 2012-10-26  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* emacs-lisp/advice.el (ad-assemble-advised-definition):
