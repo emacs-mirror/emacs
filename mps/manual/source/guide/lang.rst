@@ -518,7 +518,7 @@ following code must be added to ``obj_scan`` and ``obj_skip``::
     forwarding object. The best approach in such a case would be to
     allocate the single-word objects from a separate pool: if, as
     seems likely, these objects do not contain references, they could
-    be allocated from the :ref:`pool-lo` pool, and so the cost of
+    be allocated from the :ref:`pool-amcz` pool, and so the cost of
     scanning them could be avoided.
     
 .. topics::
