@@ -258,8 +258,7 @@ uninstall:
 	  rm -f $(DESTDIR)${bindir}/`echo $${file} | sed '$(TRANSFORM)'` ; \
 	done
 	if [ -d $(DESTDIR)${archlibdir} ]; then \
-	  (cd $(DESTDIR)${archlibdir} && \
-	   rm -f ${UTILITIES} ${INSTALLABLES} ${SCRIPTS} ${INSTALLABLE_SCRIPTS}) \
+	  (cd $(DESTDIR)${archlibdir} && rm -f ${UTILITIES} ${SCRIPTS}) \
 	fi
 
 mostlyclean:

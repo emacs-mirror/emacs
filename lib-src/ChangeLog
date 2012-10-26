@@ -1,5 +1,7 @@
 2012-10-26  Glenn Morris  <rgm@gnu.org>
 
+	* Makefile.in (uninstall): No INSTALLABLES live in archlibdir.
+
 	* Makefile.in (install, uninstall): Transformations should not be
 	applied to $EXEEXT.
 
