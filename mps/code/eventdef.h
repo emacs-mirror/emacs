@@ -38,7 +38,7 @@
 
 #define EVENT_VERSION_MAJOR  ((unsigned)1)
 #define EVENT_VERSION_MEDIAN ((unsigned)0)
-#define EVENT_VERSION_MINOR  ((unsigned)0)
+#define EVENT_VERSION_MINOR  ((unsigned)1)
 
 
 /* EVENT_LIST -- list of event types and general properties
@@ -68,7 +68,7 @@
  */
  
 #define EventNameMAX ((size_t)19)
-#define EventCodeMAX ((EventCode)0x0073)
+#define EventCodeMAX ((EventCode)0x0074)
 
 #define EVENT_LIST(EVENT, X) \
   /*       0123456789012345678 <- don't exceed without changing EventNameMAX */ \
@@ -179,7 +179,8 @@
   EVENT(X, TraceFindGrey      , 0x0070,  TRUE, Trace) \
   EVENT(X, TraceBandAdvance   , 0x0071,  TRUE, Trace) \
   EVENT(X, AWLDeclineTotal    , 0x0072,  TRUE, Trace) \
-  EVENT(X, AWLDeclineSeg      , 0x0073,  TRUE, Trace)
+  EVENT(X, AWLDeclineSeg      , 0x0073,  TRUE, Trace) \
+  EVENT(X, EventInit          , 0x0074,  TRUE, Arena)
   
 
 /* Remember to update EventNameMAX and EventCodeMAX in eventcom.h! 
@@ -619,6 +620,14 @@
 #define EVENT_AWLDeclineSeg_PARAMS(PARAM, X) \
   PARAM(X,  0, P, seg)          /* segment declined single access */ \
   PARAM(X,  1, W, singleAccesses) /* single accesses this cycle */
+
+#define EVENT_EventInit_PARAMS(PARAM, X) \
+  PARAM(X,  0, U, major)          /* EVENT_VERSION_MAJOR */ \
+  PARAM(X,  1, U, median)         /* EVENT_VERSION_MEDIAN */ \
+  PARAM(X,  2, U, minor)          /* EVENT_VERSION_MINOR */ \
+  PARAM(X,  3, U, maxCode)        /* EventCodeMAX */ \
+  PARAM(X,  4, U, maxNameLen)     /* EventNameMAX */ \
+  PARAM(X,  5, U, wordWidth)      /* MPS_WORD_WIDTH */
 
 
 #endif /* eventdef_h */
