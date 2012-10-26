@@ -178,6 +178,8 @@ void EventInit(void)
     EventKindControl = (Word)mps_lib_telemetry_control();
     EventInternSerial = (Serial)1; /* 0 is reserved */
     (void)EventInternString(MPSVersion()); /* emit version */
+    EVENT6(EventInit, EVENT_VERSION_MAJOR, EVENT_VERSION_MEDIAN,
+           EVENT_VERSION_MINOR, EventCodeMAX, EventNameMAX, MPS_WORD_WIDTH);
   } else {
     ++eventUserCount;
   }
