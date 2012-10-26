@@ -1,5 +1,8 @@
 2012-10-26  Glenn Morris  <rgm@gnu.org>
 
+	* Makefile.in (EMACS, EMACSFULL): Transformations should not be
+	applied to $EXEEXT.
+
 	* Makefile.in (uninstall): Don't abort if some directories are missing.
 	Apply transformation rules to manual pages, desktop and icon files.
 	No more emacs22 icons to uninstall.

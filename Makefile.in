@@ -259,8 +259,8 @@ GZIP_INFO = @GZIP_INFO@
 TRANSFORM = @program_transform_name@
 
 # What emacs should be called when installed.
-EMACS = `echo emacs${EXEEXT} | sed '$(TRANSFORM)'`
-EMACSFULL = `echo emacs-${version}${EXEEXT} | sed '$(TRANSFORM)'`
+EMACS = `echo emacs | sed '$(TRANSFORM)'`${EXEEXT}
+EMACSFULL = `echo emacs-${version} | sed '$(TRANSFORM)'`${EXEEXT}
 
 # Subdirectories to make recursively.
 SUBDIR = lib lib-src src lisp leim
