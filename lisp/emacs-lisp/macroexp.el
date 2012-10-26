@@ -154,11 +154,16 @@ Assumes the caller has bound `macroexpand-all-environment'."
             (if (and (not (eq form new-form)) ;It was a macro call.
                      (car-safe form)
                      (symbolp (car form))
-                     (get (car form) 'byte-obsolete-info))
+                     (get (car form) 'byte-obsolete-info)
+                     (or (not (fboundp 'byte-compile-warning-enabled-p))
+                         (byte-compile-warning-enabled-p 'obsolete)))
                 (let* ((fun (car form))
                        (obsolete (get fun 'byte-obsolete-info)))
                   (macroexp--warn-and-return
-                   (macroexp--obsolete-warning fun obsolete "macro")
+                   (macroexp--obsolete-warning
+                    fun obsolete
+                    (if (symbolp (symbol-function fun))
+                        "alias" "macro"))
                    new-form))
               new-form)))
     (pcase form
