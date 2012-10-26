@@ -345,7 +345,7 @@ Memory management in various languages
 
         .. link::
 
-            `The Association of Lisp Users <http://www.alu.org/>`_.
+            `Common Lisp HyperSpec <http://www.lispworks.com/documentation/HyperSpec/Front/>`_.
 
     Lisp Machine
 

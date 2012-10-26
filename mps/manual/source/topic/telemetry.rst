@@ -7,15 +7,6 @@ John McCarthy described the first on-line demonstration of
 :term:`Lisp` in an appendix to his paper "History of Lisp"
 [MCCARTHY79]_:
 
-    A Flexowriter had been connected to the IBM 704 and the operating
-    system modified so that it collected characters from the
-    Flexowriter in a buffer when their presence was signalled by an
-    interrupt. Whenever a carriage return occurred, the line was given
-    to LISP for processing. The demonstration depended on the fact
-    that the memory of the computer had just been increased from 8192
-    words to 32768 words so that batches could be collected that
-    presumed only a small memory.
-
     Everything was going well, if slowly, when suddenly the
     Flexowriter began to type (at ten characters per second) ::
 

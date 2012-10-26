@@ -53,15 +53,20 @@ from inside such an exception handler, that is, inside a call to
 
 .. note::
 
-    In fact, it's only Windows that requires its structured exception
+    In fact, it's only Windows that requires the structured exception
     handler to be on the stack. On other operating systems you can get
     away without calling the trampoline. Nonetheless, for portability
     and forwards compatibility we recommend that each thread that runs
-    code that uses memory managed by the MPS should execute such code
-    inside a call to :c:func:`mps_tramp`.
+    code that accesses memory managed by the MPS should run it inside
+    a call to :c:func:`mps_tramp`.
 
-This has the additional consequence that a program that handles
-``SIGBUS`` (on OS X), ``SIGSEGV`` (on FreeBSD or Linux), or
+    On Windows, the requirement to call the trampoline extends to your
+    structured exception handlers as well as your threads: any
+    structured exception handler that accesses memory managed by the
+    MPS must perform the access inside a call to :c:func:`mps_tramp`.
+
+The use of barriers has the additional consequence that a program that
+handles ``SIGBUS`` (on OS X), ``SIGSEGV`` (on FreeBSD or Linux), or
 first-chance exceptions (on Windows) needs to co-operate with the MPS.
 The mechanism for co-operation is currently undocumented: please
 :ref:`contact us <contact>`.

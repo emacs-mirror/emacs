@@ -49,13 +49,13 @@ The toy Scheme interpreter contains a simple address-based (``eq?``)
 hash table implementation. It hashes the addresses of its keys, and so
 depends on their location.
 
-Without taking account of this location dependency, the hash tables
-become invalid after a garbage collection. In the interaction shown
-below (with the naïve version of the code) you'll see that although
-the keys remain present in the table after garbage collection, they
-cannot be found. This is because their locations (and hence their
-hashes) have changed, but their positions in the table have not been
-updated to match.
+If it fails to take account of this location dependency, the hash
+tables become invalid after a garbage collection. In the interaction
+shown below (with a naïve version of the code) you'll see that
+although the keys remain present in the table after garbage
+collection, they cannot be found. This is because their locations (and
+hence their hashes) have changed, but their positions in the table
+have not been updated to match.
 
 .. code-block:: none
 
@@ -329,33 +329,6 @@ location dependency becomes stale and the table has to be rehashed.
     during the garbage collection cycle, as shown by the table being
     found to be stale when ``'two`` is looked up. This is the magic of
     :term:`incremental garbage collection`!
-
-
-Performance
------------
-
-:c:func:`mps_ld_add` are :c:func:`mps_ld_isstale` are intended to be
-fast operations. :c:func:`mps_ld_reset` is inexpensive, but not
-intended to be very fast. To be more precise, the following are what
-one could expect from a good implementation:
-
-:c:func:`mps_ld_add` performs one read memory-cycle and one write
-memory-cycle to the same location; it performs a few ALU operations.
-
-:c:func:`mps_ld_merge` performs a few ALU operations, four reads, and
-two writes to the destination location dependency structure.
-
-:c:func:`mps_ld_isstale` performs up to four read memory-cycles; it
-performs a few ALU operations.
-
-:c:func:`mps_ld_reset` claims a lock.
-
-.. note::
-
-    In each case there is function call overhead as well, but this
-    could in theory be avoided by providing macro implementations. If
-    you have an application that needs this, please :ref:`contact us
-    <contact>`.
 
 
 Thread safety
