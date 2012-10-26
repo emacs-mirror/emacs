@@ -3331,7 +3331,19 @@ w32_wnd_proc (HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
 	 versions, there is no way of telling when the mouse leaves the
 	 frame, so we just have to put up with help-echo and mouse
 	 highlighting remaining while the frame is not active.  */
-      if (track_mouse_event_fn && !track_mouse_window)
+      if (track_mouse_event_fn && !track_mouse_window
+	  /* If the menu bar is active, turning on tracking of mouse
+	     movement events might send these events to the tooltip
+	     frame, if the user happens to move the mouse pointer over
+	     the tooltip.  But since we don't process events for
+	     tooltip frames, this causes Windows to present a
+	     hourglass cursor, which is ugly and unexpected.  So don't
+	     enable tracking mouse events in this case; they will be
+	     restarted when the menu pops down.  (Confusingly, the
+	     menubar_active member of f->output_data.w32, tested
+	     above, is only set when a menu was popped up _not_ from
+	     the frame's menu bar, but via x-popup-menu.)  */
+	  && !menubar_in_use)
 	{
 	  TRACKMOUSEEVENT tme;
 	  tme.cbSize = sizeof (tme);
