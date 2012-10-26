@@ -8,9 +8,39 @@
 Allocation frames
 =================
 
+An allocation frame is a marker that can pushed onto an
+:term:`allocation point` by calling :c:func:`mps_ap_frame_push`, and
+then popped by calling :c:func:`mps_ap_frame_pop` to indicate that all
+blocks allocated on the allocation point are :term:`dead` (in the case
+of :term:`manual <manual memory management>` pools), or very likely
+dead (in the case of :term:`automatic <automatic memory management>`
+pools).
 
-Interface
----------
+Allocation frames can be used by the :term:`client program` to
+efficiently implement stack-like patterns of allocation.
+
+
+.. c:type:: mps_frame_t
+
+    The type of :term:`allocation frames <allocation frame>`.
+
+
+.. c:function:: mps_res_t mps_ap_frame_push(mps_frame_t *frame_o, mps_ap_t ap)
+
+    Declare a new :term:`allocation frame` and push it onto an
+    :term:`allocation point's <allocation point>` frame stack.
+
+    ``frame_o`` points to a location that will hold the new frame if the
+    function is successful.
+
+    ``ap`` is the allocation point in which the new frame is declared.
+
+    Returns a :term:`result code`. The creation of new frames (which
+    is implicit in the action of this function) can consume resources,
+    so this function can fail because there are insufficient
+    resources, or if the correct protocol is not followed by the
+    :term:`client program`.
+
 
 .. c:function:: mps_res_t mps_ap_frame_pop(mps_ap_t ap, mps_frame_t frame)
 
@@ -52,36 +82,3 @@ Interface
     It is illegal to pop frames out of order (so the sequence "A =
     push; B = push; pop A; pop B" is illegal) or to pop the same frame
     twice (so the sequence "A = push, pop A, pop A" is illegal).
-
-
-.. c:function:: mps_res_t mps_ap_frame_push(mps_frame_t *frame_o, mps_ap_t ap)
-
-    Declare a new :term:`allocation frame` and push it onto an
-    :term:`allocation point's <allocation point>` frame stack.
-
-    ``frame_o`` points to a location that will hold the new frame if the
-    function is successful.
-
-    ``ap`` is the allocation point in which the new frame is declared.
-
-    Returns a :term:`result code`. The creation of new frames (which
-    is implicit in the action of this function) can consume resources,
-    so this function can fail because there are insufficient
-    resources, or if the correct protocol is not followed by the
-    :term:`client program`.
-
-
-.. c:type:: mps_frame_t
-
-    The type of :term:`allocation frames <allocation frame>`.
-
-    An allocation frame is a marker that can pushed onto an
-    :term:`allocation point` by calling :c:func:`mps_ap_frame_push`,
-    and then popped by calling :c:func:`mps_ap_frame_pop` to indicate
-    that all blocks allocated on the allocation point are :term:`dead`
-    (in the case of :term:`manual <manual memory management>` pools),
-    or very likely dead (in the case of :term:`automatic <automatic
-    memory management>` pools).
-
-    Allocation frames can be used by the :term:`client program` to
-    efficiently implement stack-like patterns of allocation.
