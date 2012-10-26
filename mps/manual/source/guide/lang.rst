@@ -145,12 +145,12 @@ rather than having to pass it around everywhere::
 
 Create an arena by calling :c:func:`mps_arena_create`. This function
 takes a third argument when creating a virtual memory arena: the size
-of the initial amount of virtual address space, in bytes, that the
-arena will reserve initially. The MPS will ask for more address space
-if it runs out, but the more times it has to extend its address space,
-the less efficient garbage collection will become. The MPS works best
-if you reserve an address space that is several times larger than your
-peak memory usage.
+of the amount of virtual address space, in bytes, that the arena will
+reserve initially. The MPS will ask for more address space if it runs
+out, but the more times it has to extend its address space, the less
+efficient garbage collection will become. The MPS works best if you
+reserve an address space that is several times larger than your peak
+memory usage.
 
 Let's reserve 32 megabytes::
 
