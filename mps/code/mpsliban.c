@@ -36,6 +36,7 @@
 #include <stdlib.h>
 #include <stdio.h>
 #include <string.h>
+#include <ctype.h>
 
 
 int mps_lib_get_EOF(void)
@@ -119,7 +120,9 @@ unsigned long mps_lib_telemetry_control(void)
   unsigned long mask;
   char buf[256];
   char *word;
+  char *p;
   char *sep = " ";
+  char rowName[256];
 
   s = getenv("MPS_TELEMETRY_CONTROL");
   if (s == NULL)
@@ -130,14 +133,29 @@ unsigned long mps_lib_telemetry_control(void)
   if (mask != 0)
     return mask;
 
-  /* Split the value at spaces and try to patch the words against the names
-     of event kinds, enabling them if there's a match. */
+  /* copy the envar to a buffer so we can mess with it. */
   strncpy(buf, s, sizeof(buf) - 1);
   buf[sizeof(buf) - 1] = '\0';
+  /* downcase it */
+  for (p = buf; *p != '\0'; ++p)
+          *p = (char)tolower(*p);
+  
+  /* Split the value at spaces and try to match the words against the names
+     of event kinds, enabling them if there's a match. */
   for (word = strtok(buf, sep); word != NULL; word = strtok(NULL, sep)) {
-#define TELEMATCH(X, rowName, rowDoc) \
-    if (strcmp(word, #rowName) == 0) \
-      mask |= (1ul << EventKind##rowName);
+          if (strcmp(word, "all") == 0) {
+                  mask = (unsigned long)-1;
+                  printf("All events.");
+                  return mask;
+          }
+#define TELEMATCH(X, name, rowDoc) \
+    strncpy(rowName, #name, sizeof(rowName) - 1); \
+    rowName[sizeof(rowName) - 1] = '\0'; \
+    for (p = rowName; *p != '\0'; ++p) \
+            *p = (char)tolower(*p); \
+    if (strcmp(word, rowName) == 0) {          \
+      mask |= (1ul << EventKind##name); \
+      printf("Events to include " rowDoc "\n"); }
     EventKindENUM(TELEMATCH, X)
   }
   
