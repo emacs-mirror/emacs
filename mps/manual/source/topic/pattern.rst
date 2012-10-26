@@ -7,70 +7,10 @@
 Allocation patterns
 ===================
 
-::
-
-    mps_ap_alloc_pattern_begin(ap, mps_alloc_pattern_ramp_collect_all());
-    do_lots_of_work();
-    mps_ap_alloc_pattern_end(ap, mps_alloc_pattern_ramp_collect_all());
-    wait_for_collection_statistics_while_doing_other_allocation();
-
-::
-
-    res = mps_ap_alloc_pattern_begin(ap, mps_alloc_pattern_ramp());
-    assert(res == mps_res_ok);
-
-    do_some_work(); /* Leaves stuff lying around */
-
-    res = mps_ap_alloc_pattern_begin(ap, mps_alloc_pattern_ramp());
-    assert(res == mps_res_ok);
-
-    res = do_some_more_work(); /* Tidies up after itself */
-    if (res != mps_res_ok) {
-      res = mps_ap_alloc_pattern_reset(ap);
-      assert(res == mps_res_ok);
-      return;
-    }
-
-    res = mps_ap_alloc_pattern_end(ap, mps_alloc_pattern_ramp());
-    assert(res == mps_res_ok);
-
-    tidy_up_first_work();
-
-    res = mps_ap_alloc_pattern_end(ap, mps_alloc_pattern_ramp());
-    assert(res == mps_res_ok);
-
-
-Interface
----------
-
-.. c:function:: mps_alloc_pattern_t mps_alloc_pattern_ramp(void)
-
-    Return an :term:`allocation pattern` indicating that allocation
-    will follow a :term:`ramp pattern`.
-
-    This indicates to the MPS that most of the blocks allocated after
-    the call to :c:func:`mps_ap_alloc_pattern_begin` are likely to be
-    :term:`dead` by the time of the corresponding call to
-    :c:func:`mps_ap_alloc_pattern_end`.
-
-
-.. c:function:: mps_alloc_pattern_t mps_alloc_pattern_ramp_collect_all(void)
-
-    Return an :term:`allocation pattern` indicating that allocation
-    will follow a :term:`ramp pattern`, and that the next
-    :term:`garbage collection` following the ramp should be a full
-    collection.
-
-    This indicates to the MPS that most of the blocks allocated after
-    the call to :c:func:`mps_ap_alloc_pattern_begin` are likely to be
-    :term:`dead` by the time of the corresponding call to
-    :c:func:`mps_ap_alloc_pattern_end`.
-
-    This allocation pattern may nest with, but should not otherwise
-    overlap with, allocation patterns of type
-    :c:func:`mps_alloc_pattern_ramp`. In this case, the MPS may defer
-    the full collection until after all ramp allocation patterns have
-    ended.
+An :dfb:`allocation pattern` is a hint to the MPS to expect a
+particular pattern of allocation on an :term:`allocation point`. The
+MPS may use this hint to schedule its decisions as to when and what to
+collect.
 
 
 .. c:type:: mps_alloc_pattern_t
@@ -145,3 +85,51 @@ Interface
     This function may be used to recover from error conditions.
 
 
+Ramp allocation
+---------------
+
+:dfn:`Ramp allocation` a pattern of allocation whereby the
+:term:`client program` builds up an increasingly large data structure,
+the live size of which increases until a particular time, at which
+time most of the data structure is discarded, resulting in sharp
+cutoff and decline in the live size.
+
+This pattern is useful if you are building a structure that involves
+temporarily allocating much more memory than will fit into your
+:term:`nursery generation`. The ramp allocation pattern causes the
+collection of the nursery generation to be deferred until the ramp
+allocation is over.
+
+.. note::
+
+    Ramp allocation is only supported by :ref:`pool-amc`.
+
+
+.. c:function:: mps_alloc_pattern_t mps_alloc_pattern_ramp(void)
+
+    Return an :term:`allocation pattern` indicating that allocation
+    will follow a :term:`ramp pattern`.
+
+    This indicates to the MPS that most of the blocks allocated after
+    the call to :c:func:`mps_ap_alloc_pattern_begin` are likely to be
+    :term:`dead` by the time of the corresponding call to
+    :c:func:`mps_ap_alloc_pattern_end`.
+
+
+.. c:function:: mps_alloc_pattern_t mps_alloc_pattern_ramp_collect_all(void)
+
+    Return an :term:`allocation pattern` indicating that allocation
+    will follow a :term:`ramp pattern`, and that the next
+    :term:`garbage collection` following the ramp should be a full
+    collection.
+
+    This indicates to the MPS that most of the blocks allocated after
+    the call to :c:func:`mps_ap_alloc_pattern_begin` are likely to be
+    :term:`dead` by the time of the corresponding call to
+    :c:func:`mps_ap_alloc_pattern_end`.
+
+    This allocation pattern may nest with, but should not otherwise
+    overlap with, allocation patterns of type
+    :c:func:`mps_alloc_pattern_ramp`. In this case, the MPS may defer
+    the full collection until after all ramp allocation patterns have
+    ended.
