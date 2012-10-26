@@ -478,11 +478,13 @@ See http://lists.gnu.org/archive/html/emacs-devel/2007-11/msg01990.html")
         (let* ((nold (string-to-number (or (match-string 2) "1")))
                (nnew (string-to-number (or (match-string 4) "1")))
                (endold
-        (save-excursion
-          (re-search-forward (if diff-valid-unified-empty-line
-                                 "^[- \n]" "^[- ]")
+                (save-excursion
+                  (re-search-forward (if diff-valid-unified-empty-line
+                                         "^[- \n]" "^[- ]")
                                      nil t nold)
-                  (line-beginning-position 2)))
+                  (line-beginning-position
+                   ;; Skip potential "\ No newline at end of file".
+                   (if (looking-at ".*\n\\\\") 3 2))))
                (endnew
                 ;; The hunk may end with a bunch of "+" lines, so the `end' is
                 ;; then further than computed above.
@@ -490,7 +492,9 @@ See http://lists.gnu.org/archive/html/emacs-devel/2007-11/msg01990.html")
                   (re-search-forward (if diff-valid-unified-empty-line
                                          "^[+ \n]" "^[+ ]")
                                      nil t nnew)
-                  (line-beginning-position 2))))
+                  (line-beginning-position
+                   ;; Skip potential "\ No newline at end of file".
+                   (if (looking-at ".*\n\\\\") 3 2)))))
           (setq end (max endold endnew)))))
     ;; We may have a first evaluation of `end' thanks to the hunk header.
     (unless end
@@ -1972,8 +1976,13 @@ For use in `add-log-current-defun-function'."
       (goto-char beg)
       (pcase style
         (`unified
-         (while (re-search-forward "^\\(?:-.*\n\\)+\\(\\)\\(?:\\+.*\n\\)+"
-                                   end t)
+         (while (re-search-forward
+                 (eval-when-compile
+                   (let ((no-LF-at-eol-re "\\(?:\\\\.*\n\\)?"))
+                     (concat "^\\(?:-.*\n\\)+" no-LF-at-eol-re
+                             "\\(\\)"
+                             "\\(?:\\+.*\n\\)+" no-LF-at-eol-re)))
+                 end t)
            (smerge-refine-subst (match-beginning 0) (match-end 1)
                                 (match-end 1) (match-end 0)
                                 nil 'diff-refine-preproc props-r props-a)))

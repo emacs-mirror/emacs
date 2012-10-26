@@ -1,3 +1,8 @@
+2012-10-26  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* vc/diff-mode.el (diff-end-of-hunk): Also skip potential "no LF at eol".
+	(diff-refine-hunk): Similarly, handle the "no LF at eol" (bug#12584).
+
 2012-10-26  Martin Rudalics  <rudalics@gmx.at>
 
 	* mouse.el (mouse-drag-line): Move last form into preceding when
@@ -8,7 +13,7 @@
 2012-10-25  David Engster  <deng@randomsample.de>
 
 	* emacs-lisp/eieio.el (eieio-update-lisp-imenu-expression):
-	Removed.  This feature is already integrated in imenu.
+	Remove.  This feature is already integrated in imenu.
 
 	* emacs-lisp/eieio-opt.el: Remove require for `button' since it is
 	always loaded.  Require `speedbar' unconditionally.
