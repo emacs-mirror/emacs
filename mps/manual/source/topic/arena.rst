@@ -42,9 +42,15 @@ other.
     situation it's best to find a way to move all the automatically
     managed pools to one arena.
 
-There are two classes of arena, :ref:`topic-arena-client` and
-:ref:`topic-arena-vm`. These differ in the way that they acquire the
-memory to be managed.
+The open source MPS comes with two classes of arena,
+:ref:`topic-arena-client` and :ref:`topic-arena-vm`. These differ in
+the way that they acquire the memory to be managed.
+
+.. note::
+
+    The MPS is designed to be extensible with new arena classes. If
+    you need features that are not provided by any of the open source
+    arena classes, :ref:`contact us <contact>`.
 
 
 .. c:type:: mps_arena_t
@@ -216,8 +222,8 @@ Virtual memory arenas
 
     If the MPS fails to allocate memory for the internal arena
     structures, :c:func:`mps_arena_create` returns
-    :c:macro:`MPS_RES_MEMORY`. Either ``size`` was far too small or you
-    ran out of swap space.
+    :c:macro:`MPS_RES_MEMORY`. Either ``size`` was far too small or
+    the operating system refused to provide enough memory.
 
 
 Arena properties

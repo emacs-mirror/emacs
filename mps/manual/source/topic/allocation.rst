@@ -25,7 +25,7 @@ Manual allocation
     described below.
 
 
-.. c:function:: mps_res_t mps_alloc(mps_addr_t *p_o, mps_pool_t pool, size_t size, ...)
+.. c:function:: mps_res_t mps_alloc(mps_addr_t *p_o, mps_pool_t pool, size_t size)
 
     Allocate a :term:`block` of memory in a :term:`pool`.
 
@@ -37,21 +37,6 @@ Manual allocation
     ``size`` is the :term:`size` of the block to allocate. If it is
     unaligned, it will be rounded up to the pool's :term:`alignment`
     (unless the pool documentation says otherwise).
-
-    Some pool classes require additional arguments to be passed to
-    :c:func:`mps_alloc`. See the documentation for the pool class.
-
-    .. note::
-
-        There's an alternative function :c:func:`mps_alloc_v` that
-        takes its extra arguments using the standard :term:`C`
-        ``va_list`` mechanism.
-
-
-.. c:function:: mps_res_t mps_alloc_v(mps_addr_t *p_o, mps_pool_t pool, size_t size, va_list args)
-
-    An alternative to :c:func:`mps_alloc` that takes its extra
-    arguments using the standard :term:`C` ``va_list`` mechanism.
 
 
 .. c:function:: void mps_free(mps_pool_t pool, mps_addr_t addr, size_t size)
@@ -189,16 +174,16 @@ The allocation point protocol is as follows:
    Otherwise, the block cannot be reserved (this might happen if the
    MPS is out of memory).
 
-2. Create an :term:`ambiguous reference` to the block (and *no*
-   :term:`exact references <exact reference>` to it). This is most
-   easily achieved by passing a pointer to a local variable as the
-   first argument to :c:func:`mps_reserve`. (Local variables are
-   allocated on the thread's control stack, which was registered as an
-   ambiguous root.)
+2. Initialize the block. During this step the block must not be
+   referenced by an :term:`exact reference`, and references stored in
+   it must not be followed.
 
-3. Initialize the object.
+   The block need not be initialized completely, but if the pool has
+   an :term:`object format`, then by the end of this step, the block
+   must be capable of being passed to the format's :term:`scan method`
+   and :term:`skip method`.
 
-4. Call :c:func:`mps_commit` to attempt to commit the object to the
+3. Call :c:func:`mps_commit` to attempt to commit the object to the
    care of the MPS.
 
    If :c:func:`mps_commit` returns true, this means that the object is
@@ -566,10 +551,10 @@ if the allocation point has been *trapped*: that is, if the garbage
 collector might have moved some objects since the new block was
 reserved. The garbage collector traps an allocation point by setting
 ``ap->limit = 0``, so if this case is found, then the reserved block
-may have been invalidated or reclaimed, and must be discarded and
-re-reserved, and the buffer must be refilled. The function
-:c:func:`mps_ap_trip` determines whether or not this case applies,
-returning true if the block is valid, false if not.
+may have been invalidated, and must be discarded and re-reserved, and
+the buffer must be refilled. The function :c:func:`mps_ap_trip`
+determines whether or not this case applies, returning true if the
+block is valid, false if not.
 
 The *commit* operation thus looks like this::
 
@@ -596,8 +581,9 @@ branch prediction should work well since the test almost never fails).
     memory to detect a :term:`flip` that occurs between the assignment
     ``ap->init = ap->alloc`` and the test ``ap->limit == 0``. A
     compiler or processor that reordered these two instructions would
-    break the protocol. On some processor architectures, it may be
-    necessary to insert a memory barrier instruction at this point.
+    break the protocol. On some processor architectures and some
+    compilers, it may be necessary to insert a memory barrier
+    instruction at this point.
 
 
 .. c:type:: mps_ap_s
@@ -629,7 +615,8 @@ branch prediction should work well since the test almost never fails).
 
 .. c:function:: mps_res_t mps_ap_fill(mps_addr_t *p_o, mps_ap_t ap, size_t size)
 
-    Reserve a :term:`block` of memory on an :term:`allocation point`.
+    Reserve a :term:`block` of memory on an :term:`allocation point`
+    when the allocation point has insufficient space.
 
     :c:func:`mps_ap_fill` has same interface as :c:func:`mps_reserve`.
 
@@ -641,8 +628,8 @@ branch prediction should work well since the test almost never fails).
 
 .. c:function:: mps_bool_t mps_ap_trip(mps_ap_t ap, mps_addr_t p, size_t size)
 
-    :term:`Commit <committed (2)>` a reserved :term:`block` on an
-    :term:`allocation point`.
+    Test whether a reserved block was successfully :term:`committed
+    (2)` when an :term:`allocation point` was trapped.
 
     :c:func:`mps_ap_trip` has the same interface as :c:func:`mps_commit`.
 

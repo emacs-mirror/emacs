@@ -38,8 +38,8 @@ MV symbol reference
                                   mps_size_t maximum_size)
 
 
-    ``extend_size`` is the :term:`size` of :term:`segment` that the
-    pool will request from the :term:`arena`.
+    ``extend_size`` is the :term:`size` of segment that the pool will
+    request from the :term:`arena`.
 
     ``average_size`` and ``maximum size`` are the predicted average
     and maximum size of blocks that will be allocated from the pool.

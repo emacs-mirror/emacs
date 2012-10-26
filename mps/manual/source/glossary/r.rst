@@ -23,7 +23,7 @@ Memory Management Glossary: R
 
         .. see:: :term:`RAM`.
 
-    ramp pattern
+    ramp allocation
 
         .. mps:specific::
 
@@ -31,7 +31,8 @@ Memory Management Glossary: R
             most of the blocks allocated after the call to
             :c:func:`mps_ap_alloc_pattern_begin` are likely to be
             :term:`dead` by the time of the corresponding call to
-            :c:func:`mps_ap_alloc_pattern_end`.
+            :c:func:`mps_ap_alloc_pattern_end`. See
+            :ref:`topic-pattern-ramp`.
 
     rank
 
