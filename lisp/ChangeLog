@@ -1,3 +1,10 @@
+2012-10-26  Bastien  <bzg@altern.org>
+            Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* face-remap.el: Use lexical-binding.
+	(text-scale-adjust): Improve docstring.  Use itself for the temporary
+	overlay-map bindings, so as to repeat the "Use..." message each time.
+
 2012-10-26  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* emacs-lisp/macroexp.el (macroexp--expand-all):
