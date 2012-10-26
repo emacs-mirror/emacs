@@ -28,14 +28,14 @@ AMS symbol reference
 
 .. c:function:: mps_class_t mps_class_ams(void)
 
-    Return the :term:`pool class` for an AMC (Automatic
-    Mostly-Copying) :term:`pool`.
+    Return the :term:`pool class` for an AMS (Automatic Mark & Sweep)
+    :term:`pool`.
 
-    When creating an AMC pool, :c:func:`mps_pool_create` takes two
+    When creating an AMS pool, :c:func:`mps_pool_create` takes two
     extra arguments::
 
         mps_res_t mps_pool_create(mps_pool_t *pool_o, mps_arena_t arena, 
-                                  mps_class_t mps_class_amc(),
+                                  mps_class_t mps_class_ams(),
                                   mps_fmt_t fmt,
                                   mps_chain_t chain)
 

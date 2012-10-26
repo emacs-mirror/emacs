@@ -45,12 +45,13 @@ General debugging advice
 
     .. _address space layout randomization: http://en.wikipedia.org/wiki/Address_space_layout_randomization
 
-   A fact that assists with reproducibility is that the more frequently
-   the collector runs, the sooner and more reliably errors are
-   discovered. So if you have a bug that's hard to reproduce, you may
-   be able to provoke it more reliably by having a mode for testing in
-   which you run frequent collections (by calling
-   :c:func:`mps_arena_collect` followed by
+   A fact that assists with reproducibility is that the more
+   frequently the collector runs, the sooner and more reliably errors
+   are discovered. So if you have a bug that's hard to reproduce, or
+   which manifests itself in different ways on different runs, you may
+   be able to provoke it more reliably, or get a more consistent
+   result by having a mode for testing in which you run frequent
+   collections (by calling :c:func:`mps_arena_collect` followed by
    :c:func:`mps_arena_release`), perhaps as frequently as every
    allocation.
 
