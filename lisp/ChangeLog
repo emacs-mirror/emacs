@@ -1,5 +1,8 @@
 2012-10-26  Stefan Monnier  <monnier@iro.umontreal.ca>
 
+	* emacs-lisp/advice.el (ad-assemble-advised-definition):
+	Silence bogus compiler warnings for ad-do-it.
+
 	* bookmark.el (bookmark-completing-read): Set the completion category
 	to `bookmark' (bug#11131).
 
