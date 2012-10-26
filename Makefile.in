@@ -259,7 +259,8 @@ GZIP_INFO = @GZIP_INFO@
 TRANSFORM = @program_transform_name@
 
 # What emacs should be called when installed.
-EMACS = `echo emacs | sed '$(TRANSFORM)'`${EXEEXT}
+EMACS_NAME = `echo emacs | sed '$(TRANSFORM)'`
+EMACS = ${EMACS_NAME}${EXEEXT}
 EMACSFULL = `echo emacs-${version} | sed '$(TRANSFORM)'`${EXEEXT}
 
 # Subdirectories to make recursively.
@@ -633,12 +634,12 @@ install-man:
 ## Install those items from etc/ that need to end up elsewhere.
 install-etc:
 	umask 022; ${MKDIR_P} $(DESTDIR)${desktopdir}
-	dest=`echo emacs | sed '$(TRANSFORM)'`; \
 	tmp=etc/emacs.tmpdesktop; rm -f $${tmp}; \
-	sed -e "/^Exec=emacs/ s/emacs/$${dest}/" \
-	  -e "/^Icon=emacs/ s/emacs/$${dest}/" \
+	emacs_name=`echo emacs | sed '$(TRANSFORM)'`; \
+	sed -e "/^Exec=emacs/ s/emacs/$${emacs_name}/" \
+	  -e "/^Icon=emacs/ s/emacs/$${emacs_name}/" \
 	  ${srcdir}/etc/emacs.desktop > $${tmp}; \
-	${INSTALL_DATA} $${tmp} $(DESTDIR)${desktopdir}/$${dest}.desktop; \
+	${INSTALL_DATA} $${tmp} $(DESTDIR)${desktopdir}/${EMACS_NAME}.desktop; \
 	rm -f $${tmp}
 	thisdir=`/bin/pwd`; \
 	cd ${iconsrcdir} || exit 1; umask 022 ; \
@@ -702,11 +703,11 @@ uninstall:
 	 fi)
 	(cd $(DESTDIR)${bindir} && rm -f $(EMACSFULL) $(EMACS) || true)
 	(if cd $(DESTDIR)${icondir}; then \
-	   rm -f hicolor/*x*/apps/`echo emacs | sed '$(TRANSFORM)'`.png \
-	     hicolor/scalable/apps/`echo emacs | sed '$(TRANSFORM)'`.svg \
+	   rm -f hicolor/*x*/apps/${EMACS_NAME}.png \
+	     hicolor/scalable/apps/${EMACS_NAME}.svg \
 	     hicolor/scalable/mimetypes/`echo emacs-document | sed '$(TRANSFORM)'`.svg; \
 	fi)
-	-rm -f $(DESTDIR)${desktopdir}/`echo emacs | sed '$(TRANSFORM)'`.desktop
+	-rm -f $(DESTDIR)${desktopdir}/${EMACS_NAME}.desktop
 	for file in snake-scores tetris-scores; do \
 	  file=$(DESTDIR)${gamedir}/$${file}; \
 	  [ -s $${file} ] || rm -f $$file; \

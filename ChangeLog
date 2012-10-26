@@ -1,5 +1,8 @@
 2012-10-26  Glenn Morris  <rgm@gnu.org>
 
+	* Makefile.in (EMACS_NAME): New variable.
+	(EMACS, install-etc, uninstall): Use $EMACS_NAME.
+
 	* Makefile.in (EMACS, EMACSFULL): Transformations should not be
 	applied to $EXEEXT.
 
