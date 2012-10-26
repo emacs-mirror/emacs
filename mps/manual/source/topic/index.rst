@@ -24,4 +24,5 @@ Reference
     debugging
     telemetry
     frame
+    low
     critical
