@@ -154,14 +154,11 @@ unsigned long mps_lib_telemetry_control(void)
   for (word = strtok(buf, sep); word != NULL; word = strtok(NULL, sep)) {
     if (striequal(word, "all")) {
       mask = (unsigned long)-1;
-      printf("All events.");
       return mask;
     }
 #define TELEMATCH(X, name, rowDoc) \
-    if (striequal(word, #name)) { \
-      mask |= (1ul << EventKind##name); \
-      printf("Events to include " rowDoc "\n"); \
-    }
+    if (striequal(word, #name)) \
+      mask |= (1ul << EventKind##name);
     EventKindENUM(TELEMATCH, X)
   }
   
