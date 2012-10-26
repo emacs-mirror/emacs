@@ -82,11 +82,11 @@ Creating dependencies
 
 The :term:`client program` must provide space for the
 :c:type:`mps_ld_s` structure. Typically, this will be inlined in some
-larger structure (for example, a hash table might have a location
-dependency structure inlined at the "beginning" of it). This structure
-can be in memory managed by the MPS or elsewhere; that doesn't matter.
+larger structure. This structure can be in memory managed by the MPS
+or elsewhere; that doesn't matter.
 
-For example:
+For example, the Scheme interpreter inlines the location dependency in
+its hash table structure:
 
 .. code-block:: c
     :emphasize-lines: 3

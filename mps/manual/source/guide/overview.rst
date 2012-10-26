@@ -47,11 +47,11 @@ the point of view of the Memory Pool System.
 
 The **arena** is the top-level data structure in the MPS. An
 :term:`arena` is responsible for requesting :term:`memory (3)` from
-the operating system (and returning it), making memory available to
-:term:`pools <pool>`, and for :term:`garbage collection`. It's best to
-have only one arena in your program, because the MPS can't collect
-cyclic structures that span multiple arenas, but multiple arenas are
-supported. See :ref:`topic-arena`.
+the operating system (and returning it), for making memory available
+to :term:`pools <pool>`, and for :term:`garbage collection`. Multiple
+arenas are supported, but it's usually best to have only one arena in
+your program, because the MPS can't collect cyclic structures that
+span multiple arenas. See :ref:`topic-arena`.
 
 The MPS is designed to co-operate with other memory managers (for
 example :term:`malloc` and :term:`free (2)` in :term:`C`, or operators
@@ -96,9 +96,11 @@ What next?
 For a much more detailed technical overview of the MPS, see
 [BROOKSBY02]_.
 
+If you're going to try it out, see :ref:`guide-build`.
+
 If you have a program in need of memory management, then you'll want
 to learn how to integrate it with the Memory Pool System. See
 :ref:`guide-lang`.
 
-If you want to know the technical details, they appear in the
+If you want to know more technical details, they appear in the
 :ref:`reference`.

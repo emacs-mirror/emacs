@@ -8,25 +8,39 @@ Garbage collection
 ==================
 
 
-The graph of managed references
--------------------------------
-
-The MPS is a moving garbage collector: it supports preserve-by-copying pools, whose objects are 'mobile'. Whenever the MPS moves an object, it will ensure that all managed references are updated to point to the new location -- and this happens instantaneously as far as the client sees it.
-
-The client should assume that, between any pair of instructions, the MPS may 'shake' this graph, moving all the mobile objects, and updating all the managed references.
-
-Any parts of the graph that are no longer connected (no longer reachable from declared roots) may be collected, and the memory that those objects occupied may be unmapped, or re-used for different objects.
-
-The client usually takes care to ensure that all the references it holds are managed. To be managed, the reference must be in a declared root (such as a scanned stack or a global variable), or in a formatted object that is reachable from a root.
-
-It is okay for a careful client to hold unmanaged references, but:
-
-they'd better not be to a mobile object! Remember, mobile objects could move at any time, and unmanaged references will be left 'dangling'.
-they'd better not be the only reference to an object, or that object might get collected, again leaving a dangling reference.
-
-
 Generation chains
 -----------------
+
+Each :term:`automatically managed <automatic memory management>`
+:term:`pool` has an associated :term:`generation chain` which
+describes the structure of the :term:`generations <generation>` in
+that pool. You create a generation chain by preparing an array of
+:c:type:`mps_gen_param_s` structures giving the *capacity* (in
+kilobytes) and *predicted mortality* (between 0 and 1) of each
+generation, and passing them to :c:func:`mps_chain_create`.
+
+The term *capacity* is misleading: it's actually a threshold on the
+*new size* of a generation. The :dfn:`new size` is the size of the
+newly allocated (in generation 0) or newly promoted (in other
+generations) blocks. When the new size exceeds the capacity, the MPS
+will be prepared to start collecting the generation. See
+:ref:`topic-collection-schedule` below.
+
+For example::
+
+    mps_gen_param_s gen_params[] = {
+        { 1024, 0.8 },
+        { 2048, 0.4 },
+        { 4096, 0.2 },
+    };
+
+    mps_chain_t chain;
+    mps_res_t res;
+    res = mps_chain_create(&chain, arena,
+                           sizeof(gen_params) / sizeof(gen_params[0]),
+                           gen_params);
+    if (res != MPS_RES_OK) error("Couldn't create chain");
+
 
 .. c:type:: mps_chain_t
 
@@ -46,7 +60,8 @@ Generation chains
         } mps_gen_param_s;
 
     ``mps_capacity`` is the capacity of the generation, in
-    :term:`kilobytes <kilobyte>`.
+    :term:`kilobytes <kilobyte>`. When the size of the generation
+    exceeds this, the MPS will be prepared to start collecting it.
 
     ``mps_mortality`` is the predicted mortality of the generation:
     the proportion (between 0 and 1) of blocks in the generation that
@@ -55,8 +70,7 @@ Generation chains
     These numbers are hints to the MPS that it may use to make
     decisions about when and what to collect: nothing will go wrong
     (other than suboptimal performance) if you make poor
-    choices. Making good choices for the capacity and mortality of
-    each generation is discussed in the guide :ref:`guide-perf`.
+    choices. See :ref:`topic-collection-schedule`.
 
 
 .. c:function:: mps_res_t mps_chain_create(mps_chain_t *chain_o, mps_arena_t arena, size_t gen_count, mps_gen_param_s *gen_params)
@@ -85,6 +99,65 @@ Generation chains
     Destroy a :term:`generation chain`.
 
     ``chain`` is the generation chain.
+
+
+.. _topic-collection-schedule:
+
+Scheduling of collections
+-------------------------
+
+The first generation in a pool's chain is the :term:`nursery
+generation`. When the nursery's "new size" exceeds its capacity, the
+MPS considers collecting the pool. (Whether it actually does so or not
+depends on which other collections on other pools are in progress.)
+
+If the MPS decides to collect a pool at all, all generations are
+collected below the first generation whose "new size" is less than its
+capacity.
+
+For example, suppose that we have a pool with the following generation
+structure:
+
++------------+--------------+----------------------+----------------+
+|            | Current size |   Chain parameters   | Predicted size |
+|            +------+-------+----------+-----------+--------+-------+
+| Generation | New  | Total | Capacity | Mortality | New    | Total |
++============+======+=======+==========+===========+========+=======+
+|          0 |  110 |   110 |      100 |       0.8 |      0 |     0 |
++------------+------+-------+----------+-----------+--------+-------+
+|          1 |  210 |   210 |      200 |       0.4 |     22 |    22 |
++------------+------+-------+----------+-----------+--------+-------+
+|          2 |  260 |   640 |      400 |       0.2 |    386 |   766 |
++------------+------+-------+----------+-----------+--------+-------+
+
+The nursery and generation 1 both have "new size" that exceeds their
+capacity, so these generations will be collection. Generation 2 will
+not be collected (even though its total size exceeds its capacity).
+The last two columns give the predicted sizes of each generation after
+the collection: the survivors from the nursery will be promoted to
+generation 1 and the survivors from generation 1 will be promoted to
+generation 2.
+
+The predicted mortality is used to estimate how long the collection
+will take, and this is used in turn to decide how much work the
+collector will do each time it has an opportunity to do some work. The constraints here are:
+
+1. The :term:`client program` might have specified a limit on the
+   acceptable length of the pause if the work is being done inside
+   :c:func:`mps_arena_step`.
+
+2. The collector needs to keep up with the :term:`client program`:
+   that is, it has to collect memory least as fast as the client
+   program is allocating it, otherwise the amount of allocated memory
+   will grow without bound.
+
+With perfect prediction, the collector's work should be smoothly
+distributed. Getting the predicted mortality wrong leads to "lumpy"
+distribution of collection work. If the predicted mortality is too
+high, the collector will bypass opportunities to perform work and then
+find that it has to do more work to catch up later. If the predicted
+mortality is too low, the collector will do extra work up front and
+then find that it is idle later on.
 
 
 Garbage collection start messages
