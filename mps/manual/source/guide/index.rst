@@ -6,8 +6,8 @@ Guide
 .. toctree::
    :numbered:
 
-   build
    overview
+   build
    lang
    debug
    perf

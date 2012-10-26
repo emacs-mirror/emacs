@@ -173,6 +173,30 @@ reassemble and store the updated reference after calling
     encounter this case.
 
 
+Unfixed references
+------------------
+
+The MPS does not require you to :term:`fix` all your :term:`references
+<reference>`. But if a reference is not fixed:
+
+1. it does not keep its target alive (this might be acceptable if you
+   know that the target is being kept alive for another reason, for
+   example if it is in a :term:`manually managed <manual memory
+   management>` pool, or if there is always another reference to the
+   target that *is* fixed);
+
+2. it does not get updated if the target moves (this might be
+   acceptable if you know that the target cannot move, for example if
+   it is in a :term:`non-moving <non-moving memory manager>` pool, or
+   if it is :term:`pinned <pinning>` by an :term:`ambiguous
+   reference`).
+
+These optimizations can be tricky to make correct, and can make the
+system fragile (for example, it may break if you start using a
+different :term:`pool class`), so it usually safest to fix all
+references.
+
+
 Example: Scheme objects
 -----------------------
 
@@ -204,8 +228,8 @@ Here's the macro ``FIX`` defined by the toy Scheme interpreter::
     presents itself here. :c:func:`MPS_FIX2` takes a pointer to a
     location containing the reference (an argument of type
     ``mps_addr_t *``). It is tempting to take the address of the
-    reference and cast it to this type. This is undefined by the C
-    standard. See :ref:`topic-interface-pun`.
+    reference and cast it to this type. The behaviour of such a cast
+    is not defined by the C standard. See :ref:`topic-interface-pun`.
 
 Here's the Scheme scanner::
 
