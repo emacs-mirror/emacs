@@ -129,6 +129,8 @@ references to non-references, on how often genuine references turn out
 to be "of interest", and what kind of code the compiler has
 generated. There is no substitute for measurement.
 
+See :ref:`topic-critical`.
+
 .. note::
 
     In one application with a high proportion of :term:`unboxed`
@@ -352,9 +354,8 @@ Fixing interface
 
 .. c:function:: mps_bool_t MPS_FIX1(mps_ss_t ss, mps_addr_t ref)
 
-    Tell the MPS about a :term:`reference`. This macro must only be
-    used within a :term:`scan method`, between
-    :c:func:`MPS_SCAN_BEGIN` and :c:func:`MPS_SCAN_END`.
+    Determine whether :term:`reference` needs to be passed to
+    :c:func:`MPS_FIX2`.
 
     ``ss`` is the :term:`scan state` that was passed to the scan method.
 
@@ -366,55 +367,36 @@ Fixing interface
     :term:`block`. If it returns true, the scan method must invoke
     :c:func:`MPS_FIX2`, to fix the reference.
 
-    .. note::
-
-        If your reference is :term:`tagged <tagged reference>`, you
-        must remove the tag before calling :c:func:`MPS_FIX1`.
+    This macro must only be used within a :term:`scan method`, between
+    :c:func:`MPS_SCAN_BEGIN` and :c:func:`MPS_SCAN_END`.
 
     .. note::
 
-        In the common case where the scan method does not need to do
-        anything between :c:func:`MPS_FIX1` and :c:func:`MPS_FIX2`,
-        you can use the convenience macro :c:func:`MPS_FIX12`.
+        If your reference is :term:`tagged <tagged reference>` or
+        otherwise "encrypted", you must ensure that it points to a
+        location within the target block before calling
+        :c:func:`MPS_FIX1`. (Therefore, a small tag in the low bits
+        need not be stripped.)
+
+    .. note::
+
+        In the case where the scan method does not need to do anything
+        between :c:func:`MPS_FIX1` and :c:func:`MPS_FIX2`, you can use
+        the convenience macro :c:func:`MPS_FIX12`.
 
 
 .. c:function:: mps_res_t MPS_FIX12(mps_ss_t ss, mps_addr_t *ref_io)
 
-    Tell the MPS about a :term:`reference`, and possibly update it.
-    This macro must only be used within a :term:`scan method`, between
-    :c:func:`MPS_SCAN_BEGIN` and :c:func:`MPS_SCAN_END`.
+    :term:`Fix` a :term:`reference`.
 
-    ``ss`` is the :term:`scan state` that was passed to the scan method.
-
-    ``ref_io`` points to the reference.
-
-    Returns :c:macro:`MPS_RES_OK` if successful: in this case the
-    reference may have been updated, and the scan method must continue
-    to scan the :term:`block`. If it returns any other result, the
-    scan method must return that result as soon as possible, without
-    fixing any further references.
-
-    .. note::
-
-        If your reference is :term:`tagged <tagged reference>`, you
-        must remove the tag before calling :c:func:`MPS_FIX2`, and
-        restore the tag to the (possibly updated) reference
-        afterwards. (There is an exception for references to objects
-        belonging to a format of variant auto_header: these references
-        must not subtract the header size.)
-
-    .. note::
-
-        The macro :c:func:`MPS_FIX12` is a convenience for the common
-        case where :c:func:`MPS_FIX1` is immediately followed by
-        :c:func:`MPS_FIX2`.
+    This macro is a convenience for the case where :c:func:`MPS_FIX1`
+    is immediately followed by :c:func:`MPS_FIX2`. The interface is
+    the same as :c:func:`MPS_FIX2`.
 
 
 .. c:function:: mps_res_t MPS_FIX2(mps_ss_t ss, mps_addr_t *ref_io)
 
-    Tell the MPS about a :term:`reference`, and possibly update it.
-    This macro must only be used within a :term:`scan method`,
-    between :c:func:`MPS_SCAN_BEGIN` and :c:func:`MPS_SCAN_END`.
+    :term:`Fix` a :term:`reference`.
 
     ``ss`` is the :term:`scan state` that was passed to the scan method.
 
@@ -423,17 +405,23 @@ Fixing interface
     Returns :c:macro:`MPS_RES_OK` if successful: in this case the
     reference may have been updated, and the scan method must continue
     to scan the :term:`block`. If it returns any other result, the
-    scan method must return that result as soon as possible, without
-    fixing any further references.
+    :term:`scan method` must return that result as soon as possible,
+    without fixing any further references.
+
+    This macro must only be used within a :term:`scan method`, between
+    :c:func:`MPS_SCAN_BEGIN` and :c:func:`MPS_SCAN_END`.
 
     .. note::
 
-        If your reference is :term:`tagged <tagged reference>`, you
-        must remove the tag before calling :c:func:`MPS_FIX2`, and
+        If your reference is :term:`tagged <tagged reference>` (or
+        otherwise "encrypted"), you must remove the tag (or otherwise
+        decrupt the reference) before calling :c:func:`MPS_FIX2`, and
         restore the tag to the (possibly updated) reference
-        afterwards. (There is an exception for references to objects
-        belonging to a format of variant auto_header: these references
-        must not subtract the header size.)
+        afterwards.
+
+        The only exception is for references to objects belonging to a
+        format of variant auto_header: these references must not
+        subtract the header size.
 
     .. note::
 
@@ -446,33 +434,16 @@ Fixing interface
 
     .. deprecated:: 1.111
 
-        Use :c:func:`MPS_SCAN_BEGIN`, :c:func:`MPS_FIX12` (or
-        :c:func:`MPS_FIX1` and :c:func:`MPS_FIX2`), and
-        :c:func:`MPS_SCAN_END` instead.
+    :term:`Fix` a :term:`reference`.
 
-    Tell the MPS about a :term:`reference`, and possibly update it.
-    This function must only be called from within a :term:`scan
-    method`.
-
-    ``ss`` is the :term:`scan state` that was passed to the scan method.
-
-    ``ref_io`` points to the reference.
-
-    Returns :c:macro:`MPS_RES_OK` if successful: in this case the
-    reference may have been updated, and the scan method must continue
-    to scan the :term:`block`. If it returns any other result, the
-    scan method must return that result as soon as possible, without
-    fixing any further references.
+    This is a function equivalent to :c:func:`MPS_FIX12`. Because
+    :term:`scanning <scan>` is an operation on the :term:`critical
+    path`, we recommend that you use :c:func:`MPS_FIX12` (or
+    :c:func:`MPS_FIX1` and :c:func:`MPS_FIX2`) to ensure that the
+    "stage 1 fix" is inlined.
 
     .. note::
 
-        If your reference is :term:`tagged <tagged reference>`, you
-        must remove the tag before calling :c:func:`mps_fix`, and
-        restore the tag to the (possibly updated) reference
-        afterwards. (There is an exception for references to objects
-        belonging to a format of variant auto_header: these references
-        must not subtract the header size.)
-
-        If you want to call this between :c:func:`MPS_SCAN_BEGIN` and
-        :c:func:`MPS_SCAN_END`, you must use :c:func:`MPS_FIX_CALL`
-        to ensure that the scan state is passed correctly.
+        If you call this between :c:func:`MPS_SCAN_BEGIN` and
+        :c:func:`MPS_SCAN_END`, you must use :c:func:`MPS_FIX_CALL` to
+        ensure that the scan state is passed correctly.
