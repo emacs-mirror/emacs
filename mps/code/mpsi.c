@@ -49,7 +49,6 @@
 
 #include "mpm.h"
 #include "mps.h"
-#include "mpsavm.h" /* only for mps_space_create */
 #include "sac.h"
 #include "chain.h"
 
