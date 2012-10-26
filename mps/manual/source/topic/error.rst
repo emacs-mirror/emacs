@@ -217,22 +217,30 @@ default.
 
 .. c:macro:: CONFIG_VAR_COOL
 
+    The cool variety is intended for development and testing.
+
     All functions check the consistency of their data structures and
     may assert, including function on the :term:`critical path`.
 
-    All events are sent to the telemetry stream, including events on
-    the :term:`critical path`.
+    All events are sent to the :term:`telemetry stream`, including
+    events on the :term:`critical path`.
 
 
 .. c:macro:: CONFIG_VAR_HOT
 
+    The hot variety is intended for production and deployment.
+
     Some functions check the consistency of their data structures and
     may assert, namely those not on the :term:`critical path`.
 
-    No events are sent to the telemetry stream.
+    Some events are sent to the telemetry stream, namely those not on
+    the :term:`critical path`.
 
 
 .. c:macro:: CONFIG_VAR_RASH
+
+    The rash variety is intended for mature integrations, or for
+    developers who like living dangerously.
 
     No functions check the consistency of their data structures and
     consequently there are no assertions.

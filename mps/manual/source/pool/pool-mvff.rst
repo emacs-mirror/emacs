@@ -55,8 +55,8 @@ MVFF symbol reference
                                   mps_bool_t arena_high,
                                   mps_bool_t first_fit)
 
-    ``extend_size`` is the :term:`size` of :term:`segment` that the
-    pool will request from the :term:`arena`.
+    ``extend_size`` is the :term:`size` of segment that the pool will
+    request from the :term:`arena`.
 
     ``average_size`` is the predicted average size of blocks that will
     be allocated from the pool.
