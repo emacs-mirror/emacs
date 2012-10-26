@@ -2,7 +2,7 @@
  * Copyright (c) 2001 Ravenbrook Limited.  See end of file for license.
  *
  * This is a command-line tool that converts a binary format telemetry output
- * stream from the MPS into several textual formats.
+ * stream from the MPS into a textual format.
  *
  * The default MPS library will write a telemetry stream to a file called
  * "mpsio.log" when the environment variable MPS_TELEMETRY_CONTROL is set
@@ -22,20 +22,16 @@
  */
 
 #include "config.h"
-
 #include "eventdef.h"
 #include "eventcom.h"
 #include "eventpro.h"
-#include "mpmtypes.h"
 #include "testlib.h" /* for ulongest_t and associated print formats */
 
 #include <stddef.h> /* for size_t */
 #include <stdio.h> /* for printf */
-#include <stdarg.h> /* for va_list */
 #include <stdlib.h> /* for EXIT_FAILURE */
 #include <assert.h> /* for assert */
 #include <string.h> /* for strcmp */
-#include <math.h> /* for sqrt */
 #include "mpstd.h"
 
 #ifdef MPS_BUILD_MV
@@ -44,19 +40,11 @@
 #pragma warning( disable : 4996 )
 #endif
 
-
-
-typedef unsigned int uint;
-typedef unsigned long ulong;
-
+#define DEFAULT_TELEMETRY_FILENAME "mpsio.log"
+#define TELEMETRY_FILENAME_ENVAR   "MPS_TELEMETRY_FILENAME"
 
 static EventClock eventTime; /* current event time */
 static char *prog; /* program name */
-
-
-/* style: '\0' for human-readable, 'L' for Lisp, 'C' for CDF. */
-static char style = '\0';
-
 
 /* everror -- error signalling */
 
@@ -80,7 +68,7 @@ static void everror(const char *format, ...)
 static void usage(void)
 {
   fprintf(stderr,
-          "Usage: %s [-f logfile] [-S[LC]] [-h]\n"
+          "Usage: %s [-f logfile] [-h]\n"
           "See \"Telemetry\" in the reference manual for instructions.\n",
           prog);
 }
@@ -99,7 +87,7 @@ static void usageError(void)
 
 static char *parseArgs(int argc, char *argv[])
 {
-  char *name = "mpsio.log";
+  char *name = NULL;
   int i = 1;
 
   if (argc >= 1)
@@ -117,9 +105,6 @@ static char *parseArgs(int argc, char *argv[])
         else
           name = argv[i];
         break;
-      case 'S': /* style */
-        style = argv[i][2]; /* '\0' for human-readable, 'L' for Lisp, */
-        break;              /* 'C' for CDF. */
       case '?': case 'h': /* help */
         usage();
         exit(EXIT_SUCCESS);
@@ -135,119 +120,39 @@ static char *parseArgs(int argc, char *argv[])
 
 /* Printing routines */
 
+static void printHex(ulongest_t val)
+{
+        printf(" %"PRIXLONGEST, (ulongest_t)val);
+}
+        
+#define printParamP(p) printHex((ulongest_t)p)
+#define printParamA(a) printHex((ulongest_t)a)
+#define printParamU(u) printHex((ulongest_t)u)
+#define printParamW(w) printHex((ulongest_t)w)
+#define printParamB(b) printHex((ulongest_t)b)
 
-/* printStr -- print an EventString */
+static void printParamD(double d)
+{
+        printf(" %.10G", d);
+}
 
-static void printStr(const char *str, Bool quotes)
+static void printParamS(const char *str)
 {
   size_t i;
-
-  if (quotes) putchar('"');
+  putchar(' ');
+  putchar('"');
   for (i = 0; str[i] != '\0'; ++i) {
     char c = str[i];
-    if (quotes && (c == '"' || c == '\\')) putchar('\\');
+    if (c == '"' || c == '\\') putchar('\\');
     putchar(c);
   }
-  if (quotes) putchar('"');
+  putchar('"');
 }
 
-
-/* printAddr -- print an Addr or its label */
-
-static void printAddr(EventProc proc, Addr addr)
-{
-  UNUSED(proc);
-  printf(style != 'C' ?
-         " %0"PRIwWORD PRIXLONGEST :
-         " %"PRIuLONGEST,
-         (ulongest_t)addr);
-}
-
-
-/* printParam* -- printing functions for event parameter types */
-
-static void printParamA(EventProc proc, char *styleConv, Addr addr)
-{
-  if (style != 'L') {
-    if (style == 'C') putchar(',');
-    printAddr(proc, addr);
-  } else
-    printf(styleConv, (ulongest_t)addr);
-}
-
-static void printParamP(EventProc proc, char *styleConv, void *p)
-{
-  UNUSED(proc);
-  printf(styleConv, (ulongest_t)p);
-}
-
-static void printParamU(EventProc proc, char *styleConv, unsigned u)
-{
-  UNUSED(proc);
-  printf(styleConv, (ulongest_t)u);
-}
-
-static void printParamW(EventProc proc, char *styleConv, Word w)
-{
-  UNUSED(proc);
-  printf(styleConv, (ulongest_t)w);
-}
-
-static void printParamD(EventProc proc, char *styleConv, double d)
-{
-  UNUSED(proc);
-  UNUSED(styleConv);
-  switch (style) {
-  case '\0':
-    printf(" %#8.3g", d); break;
-  case 'C':
-    printf(", %.10G", d); break;
-  case 'L':
-    printf(" %#.10G", d); break;
-  }
-}
-
-static void printParamS(EventProc proc, char *styleConv, const char *s)
-{
-  UNUSED(proc);
-  UNUSED(styleConv);
-  if (style == 'C') putchar(',');
-  putchar(' ');
-  printStr(s, (style == 'C' || style == 'L'));
-}
-
-static void printParamB(EventProc proc, char *styleConv, Bool b)
-{
-  UNUSED(proc);
-  printf(styleConv, (ulongest_t)b);
-}
-
-
-/* readLog -- read and parse log
- *
- * This is the heart of eventcnv: It reads an event log using
- * EventRead.  It updates the counters.  It looks up the format,
- * parses the arguments, and prints a representation of the event.
- * Each argument is printed using printArg (see RELATION, below),
- * except for some event types that are handled specially.
- */
+/* readLog -- read and parse log */
 
 static void readLog(EventProc proc)
 {
-  char *styleConv = NULL; /* suppress uninit warning */
-
-  /* Init style. */
-  switch (style) {
-  case '\0':
-    styleConv = " %8"PRIXLONGEST; break;
-  case 'C':
-    styleConv = ", %"PRIuLONGEST; break;
-  case 'L':
-    styleConv = " %"PRIXLONGEST; break;
-  default:
-    everror("Unknown style code '%c'", style);
-  }
-
   while (TRUE) { /* loop for each event */
     Event event;
     EventCode code;
@@ -260,127 +165,24 @@ static void readLog(EventProc proc)
     eventTime = event->any.clock;
     code = event->any.code;
 
-    /* Output event. */
-    {
-      if (style == 'L') putchar('(');
+    EVENT_CLOCK_PRINT(stdout, eventTime);
+    printf(" %X", (unsigned)code);
 
-      switch (style) {
-      case '\0': case 'L':
-        EVENT_CLOCK_PRINT(stdout, eventTime);
-        putchar(' ');
-        break;
-      case 'C':
-        EVENT_CLOCK_PRINT(stdout, eventTime);
-        fputs(", ", stdout);
-        break;
-      }
-
-      switch (style) {
-      case '\0': case 'L': {
-        printf("%-19s ", EventCode2Name(code));
-      } break;
-      case 'C':
-        printf("%u", (unsigned)code);
-        break;
-      }
-
-     switch (code) {
-
-     case EventLabelCode:
-       switch (style) {
-       case '\0': case 'C':
-         {
-           const char *sym = LabelText(proc, event->Label.f1);
-           printf(style == '\0' ?
-                  " %08"PRIXLONGEST" " :
-                  ", %"PRIuLONGEST", ",
-                  (ulongest_t)event->Label.f0);
-           if (sym != NULL) {
-             printStr(sym, (style == 'C'));
-           } else {
-             printf(style == '\0' ?
-                    "sym %05"PRIXLONGEST :
-                    "sym %"PRIXLONGEST"\"",
-                    (ulongest_t)event->Label.f1);
-           }
-         }
-         break;
-       case 'L':
-         printf(" %"PRIXLONGEST" %"PRIXLONGEST,
-                (ulongest_t)event->Label.f0,
-                (ulongest_t)event->Label.f1);
-         break;
-       }
-       break;
-
-     case EventMeterValuesCode:
-       switch (style) {
-       case '\0':
-         if (event->MeterValues.f3 == 0) {
-           printf(" %08"PRIXLONGEST"        0      N/A      N/A      N/A      N/A",
-                  (ulongest_t)event->MeterValues.f0);
-         } else {
-           double mean = event->MeterValues.f1 / (double)event->MeterValues.f3;
-           /* .stddev: stddev = sqrt(meanSquared - mean^2), but see */
-           /* <code/meter.c#limitation.variance>. */
-           double stddev = sqrt(fabs(event->MeterValues.f2
-                                     - (mean * mean)));
-           printf(" %08"PRIXLONGEST" %8u %8u %8u %#8.3g %#8.3g",
-                  (ulongest_t)event->MeterValues.f0, (uint)event->MeterValues.f3,
-                  (uint)event->MeterValues.f4, (uint)event->MeterValues.f5,
-                  mean, stddev);
-         }
-         printAddr(proc, (Addr)event->MeterValues.f0);
-         break;
-
-       case 'C':
-         putchar(',');
-         printAddr(proc, (Addr)event->MeterValues.f0);
-         printf(", %.10G, %.10G, %u, %u, %u",
-                event->MeterValues.f1, event->MeterValues.f2,
-                (uint)event->MeterValues.f3, (uint)event->MeterValues.f4,
-                (uint)event->MeterValues.f5);
-         break;
-
-       case 'L':
-         printf(" %"PRIXLONGEST" %#.10G %#.10G %X %X %X",
-                (ulongest_t)event->MeterValues.f0,
-                event->MeterValues.f1, event->MeterValues.f2,
-                (uint)event->MeterValues.f3, (uint)event->MeterValues.f4,
-                (uint)event->MeterValues.f5);
-         break;
-       }
-       break;
-
-     case EventPoolInitCode: /* pool, arena, class */
-       printf(styleConv, (ulongest_t)event->PoolInit.f0);
-       printf(styleConv, (ulongest_t)event->PoolInit.f1);
-       /* class is a Pointer, but we label them, so call printAddr */
-       if (style != 'L') {
-         if (style == 'C') putchar(',');
-         printAddr(proc, (Addr)event->PoolInit.f2);
-       } else
-         printf(styleConv, (ulongest_t)event->PoolInit.f2);
-       break;
-
-     default:
+    switch (code) {
 #define EVENT_PARAM_PRINT(name, index, sort, ident) \
-         printParam##sort(proc, styleConv, event->name.f##index);
+         printParam##sort(event->name.f##index);
 #define EVENT_PRINT(X, name, code, always, kind) \
        case code: \
          EVENT_##name##_PARAMS(EVENT_PARAM_PRINT, name) \
          break;
-       switch (code) { EVENT_LIST(EVENT_PRINT, X) }
-     }
-
-      if (style == 'L') putchar(')');
-      putchar('\n');
-      fflush(stdout);
+       EVENT_LIST(EVENT_PRINT, X)
     }
+
+    putchar('\n');
+    fflush(stdout);
     EventDestroy(proc, event);
   } /* while(!feof(input)) */
 }
-
 
 /* logReader -- reader function for a file log */
 
@@ -413,9 +215,14 @@ int main(int argc, char *argv[])
   assert(CHECKCONV(ulongest_t, Addr));
   assert(CHECKCONV(ulongest_t, void *));
   assert(CHECKCONV(ulongest_t, EventCode));
-  assert(CHECKCONV(Addr, void *)); /* for labelled pointers */
 
   filename = parseArgs(argc, argv);
+  if (!filename) {
+          filename = getenv(TELEMETRY_FILENAME_ENVAR
+                            );
+          if(!filename)
+                  filename = DEFAULT_TELEMETRY_FILENAME;
+  }
 
   if (strcmp(filename, "-") == 0)
     input = stdin;

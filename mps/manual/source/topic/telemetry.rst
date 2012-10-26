@@ -31,12 +31,97 @@ John McCarthy described the first on-line demonstration of
     thought we were victims of a practical joker.
 
 
+Introduction
+------------
 
-Typical uses of telemetry labels include:
+In its :term:`cool` :term:`variety`, the MPS is capable of outputting
+a configurable stream of events to assist with debugging and
+profiling.
 
-- Label pools with a human-meaningful name;
+The selection of events that appear in the stream is controlled by the
+environment variable :envvar:`MPS_TELEMETRY_CONTROL` (by default
+none), and the stream is written to the file named by the environment
+variable :envvar:`MPS_TELEMETRY_FILENAME` (by default ``mpsio.log``).
 
-- Label allocated objects with their type or class.
+
+Example
+-------
+
+Here's an example of turning on telemetry in the debugger and then
+encountering a corrupted object::
+
+    $ gdb ./scheme
+    GNU gdb 6.3.50-20050815 (Apple version gdb-1820) (Sat Jun 16 02:40:11 UTC 2012)
+    [...]
+    (gdb) set environment MPS_TELEMETRY_CONTROL=all
+    (gdb) run
+    Starting program: example/scheme/scheme 
+    Reading symbols for shared libraries +............................. done
+    MPS Toy Scheme Example
+    [...]
+    7944, 0> (gc)
+    [...]
+    7968, 1> foo
+    Assertion failed: (TYPE(frame) == TYPE_PAIR), function lookup_in_frame, file scheme.c, line 1066.
+
+    Program received signal SIGABRT, Aborted.
+    0x00007fff91aeed46 in __kill ()
+
+At this point there's still output in the MPS's internal event
+buffers, which needs to be flushed. It would be a good idea to add a
+call to :c:func:`mps_telemetry_flush` to the error handler, but for
+now we can just call it directly from the debugger::
+
+    (gdb) print mps_telemetry_flush()
+    $1 = void
+
+The MPS writes the telemetry to the log in an encoded form for speed.
+It can be decoded using the :ref:`eventcnv <telemetry-eventcnv>`
+program::
+
+    (gdb) shell eventcnv | sort > mpsio.txt
+
+The ``sort`` is useful because the events are not necessarily written
+to the telemetry file in time order, but each event starts with a
+timestamp so sorting makes a time series. The decoded events look like
+this, with the timestamp in the first column (in units of
+:c:type:`mps_clock_t`, typically 1 µs), the event type in the second
+column, and then addresses or other data related to the event in the
+remaining columns. All numbers are given in hexadecimal. ::
+
+    000AE03973336E3C 2B 1003FC000 1003FD000 1003FE000
+    000AE0397333BC6D 2D 1003FC000 1003FD000 1003FE000
+    000AE0397334DF9F 1A 2 "Reservoir"
+    000AE0397334E0A0 1B 1078C85B8 2
+    000AE03973352375 15 1003FD328 1003FD000 1078C85B8
+    000AE039733592F9 2B 1003FE000 1003FF000 10992F000
+    000AE0397335C8B5 2D 1003FE000 1003FF000 107930000
+    000AE03973361D5A 5 1003FD000 2000000 2000000
+
+You can search through the telemetry for events related to particular
+addresses of interest.
+
+In the example, we might look for events related to the address of the
+corrupted ``frame`` object::
+
+    (gdb) frame 3
+    #3  0x0000000100003f55 in lookup_in_frame (frame=0x1003fa7d0, symbol=0x1003faf20) at scheme.c:1066
+    1066            assert(TYPE(frame) == TYPE_PAIR);
+    (gdb) print frame
+    $2 = (obj_t) 0x1003fa7d0
+    (gdb) shell grep -i 1003fa7d0 mpsio.txt || echo not found
+    not found
+
+There are no events related to this address, so in particular this
+address was never fixed (no ``TraceFix`` event).
+
+.. note::
+
+    You may find it useful to add the command::
+
+        set environment MPS_TELEMETRY_CONTROL=all
+
+    to your ``.gdbinit``.
 
 
 Event categories
@@ -73,14 +158,16 @@ telemetry feature.
 
     If its value can be interpreted as a number, then this number
     represents the set of event categories as a :term:`bitmap`. For
-    example, this turns on event categories numbered 0 to 15::
+    example, this turns on the ``Pool`` and ``Seg`` event categories::
 
-        MPS_TELEMETRY_CONTROL=65535
+        MPS_TELEMETRY_CONTROL=6
 
     Otherwise, the value is split into words at spaces, and any word
     that names an event category turns it on. For example::
 
-        MPS_TELEMETRY_CONTROL="Arena Pool Trace"
+        MPS_TELEMETRY_CONTROL="arena pool trace"
+
+    The special event category ``all`` turns on all events.
 
     .. note::
 
@@ -111,26 +198,6 @@ standard output) a representation of each event in the stream.
 
     The name of the file containing the telemetry stream to decode.
     Defaults to ``mpsio.log``.
-
-.. option:: -S
-
-    Format output human-readably. This is the default output style.
-    For example::
-
-        000007DC7DC1655516E TraceFix 7FFF583001D0 7FFF583000D8 107AFAB20 1
-
-.. option:: -SL
-
-    Format output as S-expressions for consumption by :term:`Lisp`.
-    For example::
-
-        (000007DC7DC1655516E TraceFix 7FFF583001D0 7FFF583000D8 107AFAB20 1)
-
-.. option:: -SC
-
-    Format output as CSV (comma-separated values). For example::
-
-        000007DC7DC1655516E, 38, 140734672929232, 140734672928984, 4423920416, 1
     
 .. option:: -h
 
@@ -191,6 +258,16 @@ Telemetry interface
     (uncontrollably as a result of a bug, for example) or some
     interactive tool require access to the telemetry stream. You could
     even try calling this from a debugger after a problem.
+
+
+Telemetry labels
+----------------
+
+Typical uses of telemetry labels include:
+
+- Label pools with a human-meaningful name;
+
+- Label allocated objects with their type or class.
 
 
 .. c:function:: mps_word_t mps_telemetry_intern(char *label)
