@@ -48,17 +48,7 @@ Outstanding
      for example :c:func:`mps_fix`.) Also, deprecation notices need
      nicer formatting.
 
-116. "The maximum number of arenas that the system can support is
-     around 10." Is this true? What goes wrong? (I tried creating lots
-     of arenas and nothing seemed to go wrong.)
-
-120. "Magic" needs explaining in :ref:`topic-location`.
-
 121. Documentation needs copying into scheme.c.
-
-122. What's a "class structure"? (See :c:func:`mps_sac_alloc` and
-     :c:func:`mps_sac_free`.) Does it mean "exactly the same set of
-     size classes"?
 
 
 Complete
@@ -920,6 +910,12 @@ Complete
      exploit this pattern. Perhaps in use in ScriptWorks? Write to
      Pekka and ask him how this has worked out. (After 1.111.0.)
 
+116. "The maximum number of arenas that the system can support is
+     around 10." Is this true? What goes wrong? (I tried creating lots
+     of arenas and nothing seemed to go wrong.)
+
+     *Answer:* this was probably a finger in the air. Remove it.
+
 117. Consistent pluralization in headings. "Arena states". "Other
      notes" -> "Ambiguous references". "You could use this to optimize
      the scan by avoiding the need to reassemble and store the updated
@@ -931,3 +927,22 @@ Complete
      places: "it's important to give a good estimate of the amount of
      address space you will ever occupy with objects when you
      initialize the arena".
+
+120. "Magic" needs explaining in :ref:`topic-location`.
+
+     *Answer:* that's because we hit it: it didn't move.
+
+122. What's a "class structure"? (See :c:func:`mps_sac_alloc` and
+     :c:func:`mps_sac_free`.) Does it mean "exactly the same set of
+     size classes in the same order"? Or even "exactly the same
+     pointer to array of size classes"?
+
+     *Answer:* probably the former. Check the code.
+
+123. Needs to be a topic on low memory handling. How can you do this
+     while still keeping the allocation fast and inline? How does the
+     MPS behave when it's low on memory? Performance degrades (due to
+     running out of zones) and then there are emergency collections.
+
+     *Action:* created :ref:`topic-low`.
+
