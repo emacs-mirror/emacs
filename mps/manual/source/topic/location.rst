@@ -324,11 +324,12 @@ location dependency becomes stale and the table has to be rehashed.
 
 .. note::
 
-    You might be puzzled by the highlighted lines: the table wasn't
-    stale when ``'one`` was looked up, even though objects did move
-    during the garbage collection cycle, as shown by the table being
-    found to be stale when ``'two`` is looked up. This is the magic of
-    :term:`incremental garbage collection`!
+    In case you're puzzled by the highlighted lines: the symbol
+    ``'one`` must not have been moved by the collection, and so was
+    found in the table at the correct location. Thus
+    :c:func:`mps_ld_isstale` was not called. The symbol ``'two`` did
+    move in the collection, so it's not found in the table, and that
+    causes :c:func:`mps_ld_isstale` to be tested.
 
 
 Thread safety

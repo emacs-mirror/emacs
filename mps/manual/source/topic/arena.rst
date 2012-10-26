@@ -42,9 +42,6 @@ other.
     situation it's best to find a way to move all the automatically
     managed pools to one arena.
 
-    The maximum number of arenas that the system can support is
-    around 10.
-
 There are two classes of arena, :ref:`topic-arena-client` and
 :ref:`topic-arena-vm`. These differ in the way that they acquire the
 memory to be managed.
