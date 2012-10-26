@@ -45,8 +45,8 @@ Compiling for debugging
 You can get a "cool" variety MPS (with more internal checking, for
 debugging and development) with::
 
-    cc -g -DCONFIG_VAR_COOL -c mps.c
-    cl /Zi /DCONFIG_VAR_COOL /c mps.c
+    cc -g -DCONFIG_VAR_COOL -c mps.c    (Unix/Mac OS X)
+    cl /Zi /DCONFIG_VAR_COOL /c mps.c   (Windows)
 
 
 Optimizing for your object format
@@ -205,7 +205,21 @@ such as ``eventcnv`` (for decoding telemetry logs).
 Installing the Memory Pool System
 ---------------------------------
 
-There is currently no automatic way to "install" the MPS, such as a
-``make install`` command.  You can do this by copying the libraries built
-by the make to, for example, ``/usr/local/lib``, and all the headers
-beginning with ``mps`` to ``/usr/local/include``.
+Unix-like platforms can use the GNU Autoconf ``configure`` script in the
+root directory of the MPS Kit to generate a Makefile that can build and
+install the MPS.  For example::
+
+    ./configure --prefix=/opt/mps
+    make install
+
+will install the MPS public headers in ``/opt/mps/include``, the
+libraries in ``/opt/mps/lib`` etc.
+    
+There is currently no automatic way to "install" the MPS on Windows.
+
+On any platform, you can install by copying the libraries built by the
+make to, for example, ``/usr/local/lib``, and all the headers beginning
+with ``mps`` to ``/usr/local/include``.
+
+Note, however, that you may get better performance by using the method
+described in the section "Optimizing for your object format" above.
