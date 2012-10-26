@@ -60,6 +60,7 @@
 (eval-when-compile (require 'cl))
 
 (declare-function run-picolisp "ext:inferior-picolisp" (cmd))
+(defvar org-babel-tangle-lang-exts) ;; Autoloaded
 
 ;; optionally define a file extension for this language
 (add-to-list 'org-babel-tangle-lang-exts '("picolisp" . "l"))

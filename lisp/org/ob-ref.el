@@ -59,6 +59,7 @@
 (declare-function org-at-item-p "org-list" ())
 (declare-function org-narrow-to-subtree "org" ())
 (declare-function org-id-find-id-in-file "org-id" (id file &optional markerp))
+(declare-function org-id-find-id-file "org-id" (id))
 (declare-function org-show-context "org" (&optional key))
 (declare-function org-pop-to-buffer-same-window
 		  "org-compat" (&optional buffer-or-name norecord label))

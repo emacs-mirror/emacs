@@ -210,6 +210,7 @@ not be modified.  Use the variables `org-export-html-style' to add
 your own style information."
   :group 'org-export-html
   :type 'boolean)
+
 ;;;###autoload
 (put 'org-export-html-style-include-default 'safe-local-variable 'booleanp)
 
@@ -2380,7 +2381,6 @@ the settings define in the org-... variables."
 			    (plist-get htmlize-buffer-places 'content-end)))
       (kill-buffer htmlbuf))))
 
-;;;###autoload
 (defun org-export-htmlize-generate-css ()
   "Create the CSS for all font definitions in the current Emacs session.
 Use this to create face definitions in your CSS style file that can then
@@ -2748,5 +2748,9 @@ the alist of previous items."
      (t org-line))))
 
 (provide 'org-html)
+
+;; Local variables:
+;; generated-autoload-file: "org-loaddefs.el"
+;; End:
 
 ;;; org-html.el ends here

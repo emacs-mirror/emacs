@@ -1,3 +1,300 @@
+2012-10-26  Achim Gratz  <stromeko@stromeko.de>
+
+	* ob-ditaa.el: Needs to (require 'org-compat) for
+	org-find-library-dir.
+
+	* org.el: Remove utf-8 codepoints in docstrings, bytecode doesn't
+	work when loaded from compressed files.
+
+	* org-compat.el: Make sure that file-name-directory is getting a
+	stringp.  This avoids a possible " (wrong-type-argument stringp
+	nil)" error when the library in question does not exist.
+
+	* org-odt.el: Replace arc-mode.el by arc-mode.
+
+	* org.el: Replace org-macs.el by org-macs.
+
+	* org-install.el: Provide an empty file that prints a warning
+	about an outdated configuration.
+
+2012-10-26  Bastien Guerry  <bzg@gnu.org>
+
+	* org-latex.el (org-export-as-latex): Remove obsolete argument
+	`hidden'.  Also fix the docstring: using 'string as the value
+	for `to-buffer' outputs a string with no LaTeX header.
+	(org-export-as-latex-batch)
+	(org-export-as-latex-to-buffer, org-export-region-as-latex)
+	(org-export-as-pdf): Don't use the obsoleted argument.
+
+	* ob-haskell.el (org-export-as-latex): Don't use the obsoleted
+	argument `hidden'.
+
+	* org.el (org-refile): Run within `with-demoted-errors' so
+	that a corrupted bookmark file does not stop the refile
+	process.
+
+	* org-capture.el (org-capture-bookmark-last-stored-position):
+	Ditto for the capture process.
+
+	* org-src.el (org-edit-src-exit): Fix bug when saving an empty
+	source buffer.
+
+	* org-lparse.el (org-lparse): Fix bug by returning the output
+	of `org-do-lparse'.
+
+	* org.el (org-refile-check-position): Throw an error when the
+	refile target is the current buffer and is not a file.
+	(org-agenda-file-to-front, org-remove-file): Throw an error
+	when the current buffer is not a file.
+	(org-check-agenda-file): Enhance the message.
+	(org-element-type): Autoload.
+	(org-element-context, org-element-paragraph-parser): Don't
+	declare as these two functions are not used in org.el.
+
+	* org-lparse.el (browse-url-file-url): Declare.
+
+	* org.el (org-refile-check-position): Fix typo in docstring.
+
+	* org-clock.el (org-clock-modeline-total): Make obsolete.
+	(org-clock-mode-line-total): Rename from
+	`org-clock-modeline-total'.
+	(org-clock-get-sum-start): Fix references to
+	`org-clock-modeline-total'.
+
+	* org-faces.el (org-agenda-filter-tags)
+	(org-agenda-filter-category, mode-line): Use the 'mode-line
+	face instead of the obsolete 'modeline.
+
+	* org-odt.el (org-odt-styles-dir): Try more directories.
+	Don't throw an error, just send a message.
+
+	* org-odt.el (org-odt-lib-dir, org-odt-data-dir)
+	(org-odt-schema-dir-list, org-odt-styles-dir-list): Delete.
+	(org-export-odt-schema-dir, org-odt-styles-dir): Infer the
+	correct directories without requiring other variables.
+
+	* org-fixup.el (org-make-org-version, org-make-autoloads):
+	Don't define `org-odt-data-dir' in org-version.el.
+
+	* org-loaddefs.el: New file.
+
+	* org.el ("org-loaddefs.el"): Don't throw an error if the file
+	cannot be fund.
+	(org-version): Use org-loaddefs.el instead of org-install.el.
+
+	* org.el: Don't dynamically autoload already autoloaded
+	functions.
+	(org-clock-update-time-maybe): Move to org-clock.el.
+
+	* org-exp.el (org-insert-export-options-template): Remove
+	autoload cookie.
+
+	* org-clock.el (org-resolve-clocks, org-clock-in)
+	(org-clock-out, org-clock-cancel, org-clock-goto)
+	(org-clock-sum, org-clock-display, org-clock-report)
+	(org-dblock-write:clocktable): Add autoload cookie.
+	(org-clock-update-time-maybe): Moved from org.el.
+
+	* org-beamer.el (org-beamer-sectioning, org-beamer-mode): Ditto.
+
+	* org-ascii.el (org-export-ascii-preprocess): Ditto.
+
+	* org-archive.el (org-archive-subtree)
+	(org-archive-to-archive-sibling, org-toggle-archive-tag): Add
+	autoload cookie.
+
+	* org-colview.el (org-columns, org-dblock-write:columnview)
+	(org-insert-columns-dblock, org-agenda-columns): Ditto.
+
+	* org-table.el (org-table-create-with-table.el)
+	(org-table-create-or-convert-from-region, org-table-create)
+	(org-table-convert-region, org-table-import)
+	(org-table-export, org-table-align)
+	(org-table-justify-field-maybe, org-table-next-field)
+	(org-table-previous-field, org-table-next-row)
+	(org-table-copy-down, org-table-field-info)
+	(org-table-current-dline, org-table-goto-column)
+	(org-table-insert-column, org-table-delete-column)
+	(org-table-move-column-right, org-table-move-column-left)
+	(org-table-move-column, org-table-move-row-down)
+	(org-table-move-row-up, org-table-move-row)
+	(org-table-insert-row, org-table-insert-hline)
+	(org-table-hline-and-move, org-table-kill-row)
+	(org-table-sort-lines, org-table-cut-region)
+	(org-table-copy-region, org-table-paste-rectangle)
+	(org-table-convert, org-table-wrap-region)
+	(org-table-edit-field, org-table-sum)
+	(org-table-get-stored-formulas)
+	(org-table-maybe-eval-formula)
+	(org-table-rotate-recalc-marks)
+	(org-table-maybe-recalculate-line, org-table-eval-formula)
+	(org-table-recalculate, org-table-iterate)
+	(org-table-edit-formulas)
+	(org-table-toggle-coordinate-overlays)
+	(org-table-toggle-formula-debugger, orgtbl-to-generic)
+	(orgtbl-to-tsv, orgtbl-to-csv, orgtbl-to-latex)
+	(orgtbl-to-html, orgtbl-to-texinfo, orgtbl-to-orgtbl): Ditto.
+
+	* org.el (turn-on-orgtbl): Moved here from org-table.el.
+	(org-clock-persistence-insinuate): Moved here from org-clock.el.
+	(org-update-all-dblocks, org-map-entries)
+	(org-require-autoloaded-modules, org-forward-element)
+	(org-backward-element, org-up-element)
+	(org-element-greater-elements, org-drag-element-backward)
+	(org-drag-element-forward, org-mark-element)
+	(org-narrow-to-element, org-transpose-element)
+	(org-unindent-buffer): Don't autoload.
+
+	* org-clock.el (org-clock-get-clocktable): Rename from
+	`org-get-clocktable'.
+	(org-clock-persistence-insinuate): Move to org.el.
+
+	* org-capture.el: Do no set `generated-autoload-file' locally.
+	Minor code clean up.
+
+	* org-agenda.el (org-agenda-list): Use
+	`org-clock-get-clocktable'.  Do no set
+	`generated-autoload-file' locally.
+
+	* org-table.el (org-table-iterate-buffer-tables): Minor
+	reformatting.
+	(turn-on-orgtbl): Move to org.el.
+
+	* org-html.el (org-export-htmlize-generate-css): Don't autoload.
+
+	* org-timer.el (org-timer-pause-or-continue, org-timer-stop):
+	Ditto.
+
+	* ob-tangle.el (org-babel-tangle-lang-exts): Ditto.
+
+	* ob-lob.el (org-babel-lob-ingest): Ditto.
+
+	* org-id.el (org-id-copy)
+	(org-id-get-with-outline-path-completion)
+	(org-id-get-with-outline-drilling): Ditto.
+
+	* org-lparse.el (org-lparse-and-open, org-lparse-batch)
+	(org-lparse-to-buffer, org-replace-region-by)
+	(org-lparse-region): Ditto.
+
+	* org-mobile.el (org-mobile-create-sumo-agenda): Ditto.
+
+	* org.el (org-cycle): Fix misplaced autoload cookie.
+
+	* org-agenda.el (org-agenda-get-timestamps): Check if the item
+	is an habit when formatting it with `org-agenda-format-item'.
+	(org-agenda-get-blocks): Fix bug: don't assume the item is an
+	habit when formatting with `org-agenda-format-item'.
+
+	* org.el (org-calendar-agenda-action-key): Delete an option.
+	(org-mode-map): Delete its keybinding.
+	(org-agenda-action-marker, org-mark-entry-for-agenda-action):
+	Delete.
+
+	* org-agenda.el (org-agenda-diary-entry): Don't prevent from
+	being used outside of Org agendas, as it can be used in
+	calendar buffers too.
+
+2012-10-26  Caio Tiago Oliveira  <asrail@gmail.com>  (tiny change)
+
+	* ob-scala.el (org-babel-scala-wrapper-method): Use a Scala
+	block enclosing the submitted code.
+
+2012-10-26  Myles English  <mylesenglish@gmail.com>  (tiny change)
+
+	* org-clock.el (org-clock-in): Moved the call to
+	org-clock-in-prepare-hook until the task's properties
+	can be accessed.
+
+2012-10-26  Nicolas Goaziou  <n.goaziou@gmail.com>
+
+	* org.el (org-auto-fill-function): Make sure `adaptive-fill-mode'
+	mode is nil when pre-computed `fill-prefix' is the empty string.
+	Otherwise filling functions from fill.el think it has to be computed
+	again and overwrite it.
+
+	* org.el: Make `org-closest-date' aware of hours repeaters.
+
+	* org.el (org-end-of-line): Do not call `end-of-visual-line' when
+	moving to the end of line.  Also improve behaviour on elements that
+	can be hidden.
+
+	* org.el (org-sparse-tree): Allow to call `org-show-todo-tree'
+	with an argument.
+
+	* org-element.el (org-element--get-next-object-candidates): Fix
+	parsing of objects of the same type in a single paragraph.
+
+	* org-element.el (org-element-sub/superscript-successor): Fix
+	parsing of sub/superscript at beginning of item.
+	(org-element-latex-or-entity-successor): Fix parsing of latex
+	fragments at beginning of item.
+
+	* org-agenda.el (org-agenda-later): Fix function when span is
+	a number and an argument was provided.  Also fix typo in docstring.
+
+	* org.el (org-read-date-analyze): Fix analyzing for dates like
+	"29.03 16:40".
+
+	* org-element.el (org-element-center-block-parser)
+	(org-element-drawer-parser, , org-element-footnote-definition-parser)
+	(org-element-inlinetask-parser, org-element-plain-list-parser)
+	(org-element-quote-block-parser, org-element-special-block-parser)
+	(org-element-babel-call-parser, org-element-clock-parser)
+	(org-element-comment-parser, org-element-comment-block-parser)
+	(org-element-example-block-parser, org-element-export-block-parser)
+	(org-element-fixed-width-parser, org-element-horizontal-rule-parser)
+	(org-element-keyword-parser, org-element-latex-environment-parser)
+	(org-element-paragraph-parser, org-element-planning-parser)
+	(org-element-property-drawer-parser, org-element-src-block-parser)
+	(org-element-table-parser)
+	(org-element-verse-block-parserorg-element-dynamic-block-parser):
+	Make sure element never ends at the end of a blank non-empty line.
+
+	* org-element.el (org-element-context)
+	(org-element--get-next-object-candidates): Fix `org-element-context'.
+	In particular, the restrictions for an object may be different from
+	those of its container (i.e. table rows and table cells).
+
+	* org-element.el (org-element-example-block-parser)
+	(org-element-src-block-parser): Store value of example-blocks and
+	src-blocks unescaped.
+	(org-element-example-block-interpreter)
+	(org-element-src-block-interpreter): Escape value again when storing
+	it.
+
+	* org-src.el (org-escape-code-in-string)
+	(org-unescape-code-in-string, org-escape-code-in-region)
+	(org-unescape-code-in-region): New functions.
+	(org-edit-src-code, org-edit-src-exit): Use new functions.
+
+	* org.el (org-strip-protective-commas): Removed function.
+
+	* org-exp.el (org-export-select-backend-specific-text): Use new
+	function.
+
+	* ob.el (org-babel-parse-src-block-match)
+	(org-babel-parse-inline-src-block-match, org-babel-insert-result):
+	Always escape produced blocks, independently on the language of the
+	block, if any.  Use new functions.
+
+	* org-element.el (org-element-paragraph-parser): Fix regexp
+	starting a block.
+
+	* org-element.el (org-element-center-block-parser):
+	(org-element-drawer-parser, org-element-dynamic-block-parser)
+	(org-element-example-block-parser, org-element-export-block-parser)
+	(org-element-latex-environment-parser, org-element-paragraph-parser)
+	(org-element-property-drawer-parser, org-element-src-block-parser)
+	(org-element-verse-block-parser): Use stricter regexps for boundaries
+	of elements.
+
+2012-10-26  Toby S. Cubitt  <tsc25@cantab.net>
+
+	* org-agenda.el (org-agenda-get-sexps): Reset `extra' to nil at
+	beginning of re-search-forward loop, otherwise next iteration picks up
+	`extra' value from previous entry.
+
 2012-09-30  Abdó Roig-Maranges  <abdo.roig@gmail.com>
 
 	* org-html.el (org-export-html-preprocess)

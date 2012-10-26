@@ -1,3 +1,9 @@
+2012-10-26  Bastien Guerry  <bzg@gnu.org>
+
+	* org.texi (Installation): Update the link to Org's ELPA.  Also
+	don't mention org-install.el anymore as the replacement file
+	org-loaddefs.el is now loaded by org.el.
+
 2012-10-25  Michael Albinus  <michael.albinus@gmx.de>
 
 	* tramp.texi (Frequently Asked Questions): Mention

@@ -1,3 +1,8 @@
+2012-10-26  Nicolas Goaziou  <n.goaziou@gmail.com>
+
+	* refcards/orgcard.tex: Fix keybindings about
+	`org-show-todo-tree'.
+
 2012-10-23  Paul Eggert  <eggert@cs.ucla.edu>
 
 	Fix outdated timestamp documentation in Elisp manual (bug#12706).

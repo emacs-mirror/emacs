@@ -553,6 +553,7 @@ publishing directory."
 	  (kill-buffer (current-buffer)))
       (current-buffer))))
 
+;;;###autoload
 (defun org-export-ascii-preprocess (parameters)
   "Do extra work for ASCII export."
   ;;
@@ -725,5 +726,9 @@ publishing directory."
     vl))
 
 (provide 'org-ascii)
+
+;; Local variables:
+;; generated-autoload-file: "org-loaddefs.el"
+;; End:
 
 ;;; org-ascii.el ends here

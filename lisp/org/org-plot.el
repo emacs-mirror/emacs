@@ -351,4 +351,8 @@ line directly before or after the table."
 
 (provide 'org-plot)
 
+;; Local variables:
+;; generated-autoload-file: "org-loaddefs.el"
+;; End:
+
 ;;; org-plot.el ends here

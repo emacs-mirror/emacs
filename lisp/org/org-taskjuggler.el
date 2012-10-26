@@ -692,4 +692,8 @@ org-mode priority string."
 
 (provide 'org-taskjuggler)
 
+;; Local variables:
+;; generated-autoload-file: "org-loaddefs.el"
+;; End:
+
 ;;; org-taskjuggler.el ends here
