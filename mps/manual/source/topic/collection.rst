@@ -111,6 +111,12 @@ generation`. When the nursery's "new size" exceeds its capacity, the
 MPS considers collecting the pool. (Whether it actually does so or not
 depends on which other collections on other pools are in progress.)
 
+.. note::
+
+    You can affect the decision as to when to collect the nursery
+    generation by using the :ref:`ramp allocation pattern
+    <topic-pattern-ramp>`.
+
 If the MPS decides to collect a pool at all, all generations are
 collected below the first generation whose "new size" is less than its
 capacity.

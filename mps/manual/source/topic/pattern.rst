@@ -7,7 +7,7 @@
 Allocation patterns
 ===================
 
-An :dfb:`allocation pattern` is a hint to the MPS to expect a
+An :dfn:`allocation pattern` is a hint to the MPS to expect a
 particular pattern of allocation on an :term:`allocation point`. The
 MPS may use this hint to schedule its decisions as to when and what to
 collect.
@@ -84,6 +84,8 @@ collect.
 
     This function may be used to recover from error conditions.
 
+
+.. _topic-pattern-ramp:
 
 Ramp allocation
 ---------------
