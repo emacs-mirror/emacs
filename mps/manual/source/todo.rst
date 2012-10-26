@@ -24,9 +24,17 @@ Outstanding
 11. Support MMREF-style anchors to the glossary (``#garbage.collection``
     as well as ``#garbage-collection``).
 
-37. Some of the Scheme objects could be moved to a leaf-only pool
-    (e.g. :ref:`pool-amcz`) in an "advanced topics" section of the
-    user guide.
+37. Need an ``scheme-advanced.c`` to illustrate advanced topics:
+
+    * Segregate objects into multiple pools (e.g. strings and integers
+      into :ref:`pool-amcz`).
+    * Global symbol table under MPS management.
+    * Tagged references.
+    * Unboxed values.
+    * "Bumming cycles out of scan" using tags.
+
+    Compare the performance with the plain ``scheme.c``. The advanced
+    version better be faster!
 
 61. Start adding :ref:`genindex` entries.
 

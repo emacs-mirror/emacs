@@ -12,19 +12,13 @@ particular pattern of allocation on an :term:`allocation point`. The
 MPS may use this hint to schedule its decisions as to when and what to
 collect.
 
+There are two allocation patterns, :c:func:`mps_alloc_pattern_ramp`
+and :c:func:`mps_alloc_pattern_ramp_collect_all`.
+
 
 .. c:type:: mps_alloc_pattern_t
 
     The type of :term:`allocation patterns <allocation pattern>`.
-
-    An allocation pattern is a hint to the MPS to expect a particular
-    pattern of allocation on an :term:`allocation point`. The MPS may
-    use this hint to schedule its decisions as to when and what to
-    collect.
-
-    There are two allocation patterns,
-    :c:func:`mps_alloc_pattern_ramp` and
-    :c:func:`mps_alloc_pattern_ramp_collect_all`.
 
 
 .. c:function:: mps_res_t mps_ap_alloc_pattern_begin(mps_ap_t ap, mps_alloc_pattern_t alloc_pattern)
@@ -110,7 +104,7 @@ allocation is over.
 .. c:function:: mps_alloc_pattern_t mps_alloc_pattern_ramp(void)
 
     Return an :term:`allocation pattern` indicating that allocation
-    will follow a :term:`ramp pattern`.
+    will follow a :term:`ramp allocation` pattern.
 
     This indicates to the MPS that most of the blocks allocated after
     the call to :c:func:`mps_ap_alloc_pattern_begin` are likely to be
@@ -121,7 +115,7 @@ allocation is over.
 .. c:function:: mps_alloc_pattern_t mps_alloc_pattern_ramp_collect_all(void)
 
     Return an :term:`allocation pattern` indicating that allocation
-    will follow a :term:`ramp pattern`, and that the next
+    will follow a :term:`ramp allocation` pattern, and that the next
     :term:`garbage collection` following the ramp should be a full
     collection.
 
