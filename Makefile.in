@@ -685,21 +685,28 @@ uninstall:
 	-rm -rf $(DESTDIR)${libexecdir}/emacs/${version}
 	thisdir=`/bin/pwd`; \
 	(info_misc=`cd doc/misc; ${MAKE} echo-info | sed '/ing directory/d'`; \
-	  cd $(DESTDIR)${infodir} && \
-	  for elt in ${INFO_NONMISC} $${info_misc}; do \
-	    (cd $${thisdir}; \
-	     $(INSTALL_INFO) --remove --info-dir=$(DESTDIR)${infodir} $(DESTDIR)${infodir}/$$elt); \
-	    if [ -n "${GZIP_INFO}" ] && [ -n "${GZIP_PROG}" ]; then \
-	       ext=.gz; else ext=; fi; \
-	    rm -f $$elt$$ext $$elt-[1-9]$$ext $$elt-[1-9][0-9]$$ext; \
-	  done;)
+	 if cd $(DESTDIR)${infodir}; then \
+	   for elt in ${INFO_NONMISC} $${info_misc}; do \
+	     (cd $${thisdir}; \
+	      $(INSTALL_INFO) --remove --info-dir=$(DESTDIR)${infodir} $(DESTDIR)${infodir}/$$elt); \
+	     if [ -n "${GZIP_INFO}" ] && [ -n "${GZIP_PROG}" ]; then \
+	        ext=.gz; else ext=; fi; \
+	     rm -f $$elt$$ext $$elt-[1-9]$$ext $$elt-[1-9][0-9]$$ext; \
+	   done; \
+	 fi)
 	(if [ -n "${GZIP_INFO}" ] && [ -n "${GZIP_PROG}" ]; then \
 	    ext=.gz; else ext=; fi; \
-	 cd ${mansrcdir} && for page in *.1; do \
-	   rm -f $(DESTDIR)${man1dir}/$$page$$ext; done )
-	(cd $(DESTDIR)${bindir}  && rm -f $(EMACSFULL) $(EMACS))
-	(cd $(DESTDIR)${icondir} && rm -f hicolor/*x*/apps/emacs.png hicolor/*x*/apps/emacs22.png hicolor/scalable/apps/emacs.svg hicolor/scalable/mimetypes/emacs-document.svg )
-	-rm -f $(DESTDIR)${desktopdir}/emacs.desktop
+	 if cd ${mansrcdir}; then \
+	   for page in *.1; do \
+	     rm -f $(DESTDIR)${man1dir}/`echo "$${page}" | sed -e 's/\.1$$//' -e '$(TRANSFORM)'`.1$$ext; done; \
+	 fi)
+	(cd $(DESTDIR)${bindir} && rm -f $(EMACSFULL) $(EMACS) || true)
+	(if cd $(DESTDIR)${icondir}; then \
+	   rm -f hicolor/*x*/apps/`echo emacs | sed '$(TRANSFORM)'`.png \
+	     hicolor/scalable/apps/`echo emacs | sed '$(TRANSFORM)'`.svg \
+	     hicolor/scalable/mimetypes/`echo emacs-document | sed '$(TRANSFORM)'`.svg; \
+	fi)
+	-rm -f $(DESTDIR)${desktopdir}/`echo emacs | sed '$(TRANSFORM)'`.desktop
 	for file in snake-scores tetris-scores; do \
 	  file=$(DESTDIR)${gamedir}/$${file}; \
 	  [ -s $${file} ] || rm -f $$file; \
