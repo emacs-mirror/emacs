@@ -157,6 +157,7 @@ or expression to evaluate.
 ---
 *** New option `server-auth-key' specifies a shared server key.
 
++++
 ** In the Package Menu, newly-available packages are listed as "new",
 and sorted above the other "available" packages by default.
 
@@ -229,7 +230,7 @@ This applies to both ordinary and regexp Isearch.
 *** New option `replace-lax-whitespace'.
 If non-nil, `query-replace' uses flexible whitespace matching too.
 The default is nil.
-
++++
 *** Global `M-s _' starts a symbol (identifier) incremental search,
 and `M-s _' in Isearch toggles symbol search mode.
 `M-s c' in Isearch toggles search case-sensitivity.
@@ -263,6 +264,7 @@ append-to-register and M-x prepend-to-register.
 ** New command `C-x r M-w' (copy-rectangle-as-kill).
 It copies the region-rectangle as the last rectangle kill.
 
++++
 ** New option `yank-handled-properties' allows processing of text
 properties on yanked text, in more ways that are more general than
 just removing them, as done by `yank-excluded-properties'.
@@ -327,7 +329,7 @@ A side effect is that vars without corresponding value are bound to nil
 rather than making them unbound.
 
 ** Compilation mode
-
++++
 *** New option `compilation-always-kill'.
 
 ** Customize
@@ -441,9 +443,9 @@ the FFAP prompt.  The default is now '("ftp").
 The old binding for `/ M' (filter by used-mode) is now bound to `/ m'.
 
 ** Mouse Avoidance mode
-
-The new variable `mouse-avoidance-banish-position' can now be used to
-customize Mouse Avoidance mode further.
++++
+*** New variable `mouse-avoidance-banish-position' specifies where the
+`banish' mouse avoidance setting moves the mouse.
 
 +++
 ** notifications.el supports now version 1.2 of the Notifications API.
@@ -595,6 +597,7 @@ and the `attributes' slot is always nil.
 The `url-retrieve' function now uses this to encode its URL argument,
 in case that is not properly encoded.
 
+---
 ** VHDL mode
 
 *** The free software compiler GHDL is supported (and now the default).
@@ -605,7 +608,10 @@ in case that is not properly encoded.
 
 *** Accepts \r and \f as whitespace.
 
-** which-function-mode now applies to all applicable major modes by default.
+** Which Function mode
++++
+*** `which-func-modes' now defaults to t, so Which Function mode, when
+enabled, applies to all applicable major modes.
 
 ---
 ** winner-mode-hook now runs when the mode is disabled, as well as when it is
@@ -708,6 +714,7 @@ still be supported for Emacs 24.x.
 Some Lisp symbols have been renamed to avoid problems with spelling
 that is incorrect or inconsistent with how Emacs normally spells a word.
 
+---
 *** Renamed functions
 
 **** hangul-input-method-inactivate -> hangul-input-method-deactivate
@@ -719,22 +726,22 @@ that is incorrect or inconsistent with how Emacs normally spells a word.
      viper-deactivate-input-method-action
 **** ucs-input-inactivate -> ucs-input-deactivate
 
+---
 *** Renamed hooks
 The old hooks are still supported for backward compatibility, but they
 are deprecated and will be removed eventually.
-
 **** input-method-inactivate-hook -> input-method-deactivate-hook
 **** robin-inactivate-hook -> robin-deactivate-hook
 **** quail-inactivate-hook -> quail-deactivate-hook
 
+---
 *** Renamed Lisp variables
-
 **** follow-deactive-menu -> follow-inactive-menu
 **** inactivate-current-input-method-function ->
      deactivate-current-input-method-function
 
++++
 ** Some obsolete functions, variables, and faces were removed:
-
 *** `facemenu-unlisted-faces'
 *** `rmail-decode-mime-charset'
 *** `last-input-char', `last-command-char', `unread-command-char'.
@@ -835,11 +842,17 @@ appropriate entries in the `display-buffer-alist' function introduced
 in Emacs 24.1:
 +++
 **** `display-buffer-reuse-frames'
++++
 **** `special-display-regexps'
++++
 **** `special-display-frame-alist'
++++
 **** `special-display-buffer-names'
++++
 **** `special-display-function'
++++
 **** `display-buffer-function'
+---
 **** `dired-shrink-to-fit'
 
 ** Time
@@ -897,19 +910,26 @@ describing the cycle.
 
 ** New macros `setq-local' and `defvar-local'.
 
++++
 ** New fringe bitmap `exclamation-mark'.
 
 ** Face underlining can now use a wave.
 See the "Face Attributes" section of the Elisp manual.
 
 ** The following functions and variables are obsolete:
-
+---
 *** `automount-dir-prefix'
++++
 *** `buffer-has-markers-at'
+---
 *** `macro-declaration-function' (use `macro-declarations-alist')
+---
 *** `window-system-version'
+---
 *** `dired-pop-to-buffer' (use `dired-mark-pop-up')
+---
 *** `query-replace-interactive'
+---
 *** `font-list-limit' (has had no effect since Emacs < 23)
 
 
@@ -928,6 +948,7 @@ machinery to convert between Cygwin and Windows-native file names.
 Emacs now supports mouse highlight, help-echo (in the echo area), and
 `mouse-autoselect-window'.
 
++++
 ** On MS Windows Vista and later Emacs now supports symbolic links.
 
 +++

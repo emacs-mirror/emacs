@@ -899,31 +899,34 @@ In Lisp programs, it is better to use @code{kill-new} or
 @node Yanking
 @subsection Yanking
 
-  Yanking means inserting text from the kill ring, but it does
-not insert the text blindly.  Yank commands and some other commands
-use @code{insert-for-yank} to perform special processing on the
-text that they copy into the buffer.
+  Yanking means inserting text from the kill ring, but it does not
+insert the text blindly.  The @code{yank} command, and related
+commands, use @code{insert-for-yank} to perform special processing on
+the text before it is inserted.
 
 @defun insert-for-yank string
-This function normally works like @code{insert} except that it doesn't
-insert the text properties (@pxref{Text Properties}) in the list
-variable @code{yank-excluded-properties}.  However, if any part of
-@var{string} has a non-@code{nil} @code{yank-handler} text property,
-that property can do various special processing on that part of the
-text being inserted.
+This function works like @code{insert}, except that it processes the
+text in @var{string} according to the @code{yank-handler} text
+property, as well as the variables @code{yank-handled-properties} and
+@code{yank-excluded-properties} (see below), before inserting the
+result into the current buffer.
 @end defun
 
 @defun insert-buffer-substring-as-yank buf &optional start end
-This function resembles @code{insert-buffer-substring} except that it
-doesn't insert the text properties in the
-@code{yank-excluded-properties} list.
+This function resembles @code{insert-buffer-substring}, except that it
+processes the text according to @code{yank-handled-properties} and
+@code{yank-excluded-properties}.  (It does not handle the
+@code{yank-handler} property, which does not normally occur in buffer
+text anyway.)
 @end defun
 
-  You can put a @code{yank-handler} text property on all or part of
-the text to control how it will be inserted if it is yanked.  The
-@code{insert-for-yank} function looks for that property.  The property
-value must be a list of one to four elements, with the following
-format (where elements after the first may be omitted):
+  If you put a @code{yank-handler} text property on all or part of a
+string, that alters how @code{insert-for-yank} inserts the string.  If
+different parts of the string have different @code{yank-handler}
+values (comparison being done with @code{eq}), each substring is
+handled separately.  The property value must be a list of one to four
+elements, with the following format (where elements after the first
+may be omitted):
 
 @example
 (@var{function} @var{param} @var{noexclude} @var{undo})
@@ -933,22 +936,21 @@ format (where elements after the first may be omitted):
 
 @table @var
 @item function
-When @var{function} is present and non-@code{nil}, it is called instead of
-@code{insert} to insert the string.  @var{function} takes one
-argument---the string to insert.
+When @var{function} is non-@code{nil}, it is called instead of
+@code{insert} to insert the string, with one argument---the string to
+insert.
 
 @item param
 If @var{param} is present and non-@code{nil}, it replaces @var{string}
-(or the part of @var{string} being processed) as the object passed to
-@var{function} (or @code{insert}); for example, if @var{function} is
-@code{yank-rectangle}, @var{param} should be a list of strings to
-insert as a rectangle.
+(or the substring of @var{string} being processed) as the object
+passed to @var{function} (or @code{insert}).  For example, if
+@var{function} is @code{yank-rectangle}, @var{param} should be a list
+of strings to insert as a rectangle.
 
 @item noexclude
-If @var{noexclude} is present and non-@code{nil}, the normal removal of the
-yank-excluded-properties is not performed; instead @var{function} is
-responsible for removing those properties.  This may be necessary
-if @var{function} adjusts point before or after inserting the object.
+If @var{noexclude} is present and non-@code{nil}, that disables the
+normal action of @code{yank-handled-properties} and
+@code{yank-excluded-properties} on the inserted string.
 
 @item undo
 If @var{undo} is present and non-@code{nil}, it is a function that will be
@@ -959,13 +961,28 @@ the @var{undo} value.
 @end table
 
 @cindex yanking and text properties
-@defopt yank-excluded-properties
-Yanking discards certain text properties from the yanked text, as
-described above.  The value of this variable is the list of properties
-to discard.  Its default value contains properties that might lead to
-annoying results, such as causing the text to respond to the mouse or
-specifying key bindings.
+@defopt yank-handled-properties
+This variable specifies special text property handling conditions for
+yanked text.  It takes effect after the text has been inserted (either
+normally, or via the @code{yank-handler} property), and prior to
+@code{yank-excluded-properties} taking effect.
+
+The value should be an alist of elements @code{(@var{prop}
+. @var{fun})}.  Each alist element is handled in order.  The inserted
+text is scanned for stretches of text having text properties @code{eq}
+to @var{prop}; for each such stretch, @var{fun} is called with three
+arguments: the value of the property, and the start and end positions
+of the text.
 @end defopt
+
+@defopt yank-excluded-properties
+The value of this variable is the list of properties to remove from
+inserted text.  Its default value contains properties that might lead
+to annoying results, such as causing the text to respond to the mouse
+or specifying key bindings.  It takes effect after
+@code{yank-handled-properties}.
+@end defopt
+
 
 @node Yank Commands
 @subsection Functions for Yanking

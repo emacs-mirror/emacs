@@ -1,3 +1,29 @@
+2012-10-27  Chong Yidong  <cyd@gnu.org>
+
+	* minibuf.texi (High-Level Completion): Don't mention removed
+	function iswitchb-read-buffer.
+
+	* commands.texi (Event Input Misc): Remove last-input-char.
+	(Command Loop Info): Remove last-command-char.
+
+	* frames.texi (Initial Parameters): Don't mention the obsolete
+	special-display feature.
+
+	* windows.texi (Choosing Window): Don't mention the obsolete
+	special display feature.
+	(Choosing Window Options): Remove obsolete special-display
+	variables, and the functions special-display-p and
+	special-display-popup-frame.
+
+	* display.texi (Fringe Bitmaps): Add exclamation-mark bitmap.
+
+	* hooks.texi (Standard Hooks): Remove obsolete hooks.
+
+	* markers.texi (Information from Markers): Remove obsolete
+	function buffer-has-markers-at.
+
+	* text.texi (Yanking): Document yank-handled-properties.
+
 2012-10-24  Paul Eggert  <eggert@penguin.cs.ucla.edu>
 
 	Update manual for new time stamp format (Bug#12706).

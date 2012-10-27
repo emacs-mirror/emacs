@@ -1632,11 +1632,6 @@ The variable @code{display-buffer-overriding-action}.
 The user option @code{display-buffer-alist}.
 
 @item
-A special action for handling @code{special-display-buffer-names} and
-@code{special-display-regexps}, if either of those variables is
-non-@code{nil}.  @xref{Choosing Window Options}.
-
-@item
 The @var{action} argument.
 
 @item
@@ -1864,91 +1859,6 @@ Parameters}), which is used by the default function in
 @code{nil}.
 @end defopt
 
-@defopt special-display-buffer-names
-A list of buffer names identifying buffers that should be displayed
-specially.  If the name of @var{buffer-or-name} is in this list,
-@code{display-buffer} handles the buffer specially.  By default, special
-display means to give the buffer a dedicated frame.
-
-If an element is a list, instead of a string, then the @sc{car} of that
-list is the buffer name, and the rest of that list says how to create
-the frame.  There are two possibilities for the rest of that list (its
-@sc{cdr}): It can be an alist, specifying frame parameters, or it can
-contain a function and arguments to give to it.  (The function's first
-argument is always the buffer to be displayed; the arguments from the
-list come after that.)
-
-For example:
-
-@example
-(("myfile" (minibuffer) (menu-bar-lines . 0)))
-@end example
-
-@noindent
-specifies to display a buffer named @samp{myfile} in a dedicated frame
-with specified @code{minibuffer} and @code{menu-bar-lines} parameters.
-
-The list of frame parameters can also use the phony frame parameters
-@code{same-frame} and @code{same-window}.  If the specified frame
-parameters include @code{(same-window . @var{value})} and @var{value}
-is non-@code{nil}, that means to display the buffer in the current
-selected window.  Otherwise, if they include @code{(same-frame .
-@var{value})} and @var{value} is non-@code{nil}, that means to display
-the buffer in a new window in the currently selected frame.
-@end defopt
-
-@defopt special-display-regexps
-A list of regular expressions specifying buffers that should be
-displayed specially.  If the buffer's name matches any of the regular
-expressions in this list, @code{display-buffer} handles the buffer
-specially.  By default, special display means to give the buffer a
-dedicated frame.
-
-If an element is a list, instead of a string, then the @sc{car} of the
-list is the regular expression, and the rest of the list says how to
-create the frame.  See @code{special-display-buffer-names} above.
-@end defopt
-
-@defun special-display-p buffer-name
-This function returns non-@code{nil} if displaying a buffer
-named @var{buffer-name} with @code{display-buffer} would
-create a special frame.  The value is @code{t} if it would
-use the default frame parameters, or else the specified list
-of frame parameters.
-@end defun
-
-@defopt special-display-function
-This variable holds the function to call to display a buffer specially.
-It receives the buffer as an argument, and should return the window in
-which it is displayed.  The default value of this variable is
-@code{special-display-popup-frame}, see below.
-@end defopt
-
-@defun special-display-popup-frame buffer &optional args
-This function tries to make @var{buffer} visible in a frame of its own.
-If @var{buffer} is already displayed in some window, it makes that
-window's frame visible and raises it.  Otherwise, it creates a frame
-that is dedicated to @var{buffer}.  The return value is the window used
-to display @var{buffer}.
-
-If @var{args} is an alist, it specifies frame parameters for the new
-frame.  If @var{args} is a list whose @sc{car} is a symbol, then
-@code{(car @var{args})} is a function to actually create and
-set up the frame; it is called with @var{buffer} as first argument, and
-@code{(cdr @var{args})} as additional arguments.
-
-This function always uses an existing window displaying @var{buffer},
-whether or not it is in a frame of its own; but if you set up the above
-variables in your init file, before @var{buffer} was created, then
-presumably the window was previously made by this function.
-@end defun
-
-@defopt special-display-frame-alist
-@anchor{Definition of special-display-frame-alist}
-This variable holds frame parameters for
-@code{special-display-popup-frame} to use when it creates a frame.
-@end defopt
-
 @defopt same-window-buffer-names
 A list of buffer names for buffers that should be displayed in the
 selected window.  If a buffer's name is in this list,
@@ -1968,19 +1878,6 @@ This function returns @code{t} if displaying a buffer
 named @var{buffer-name} with @code{display-buffer} would
 put it in the selected window.
 @end defun
-
-@c Emacs 19 feature
-@defopt display-buffer-function
-This variable is the most flexible way to customize the behavior of
-@code{display-buffer}.  If it is non-@code{nil}, it should be a function
-that @code{display-buffer} calls to do the work.  The function should
-accept two arguments, the first two arguments that @code{display-buffer}
-received.  It should choose or create a window, display the specified
-buffer in it, and then return the window.
-
-This variable takes precedence over all the other options described
-above.
-@end defopt
 
 @node Window History
 @section Window History

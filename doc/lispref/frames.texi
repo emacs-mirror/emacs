@@ -437,12 +437,10 @@ Emacs frames---the first frame, and subsequent frames.  When using the X
 Window System, you can get the same results by means of X resources
 in many cases.
 
-Setting this variable does not affect existing frames.
+Setting this variable does not affect existing frames.  Furthermore,
+functions that display a buffer in a separate frame may override the
+default parameters by supplying their own parameters.
 @end defopt
-
-Functions that display a buffer in a separate frame can override the
-default parameters by supplying their own parameters.  @xref{Definition
-of special-display-frame-alist}.
 
 If you invoke Emacs with command-line options that specify frame
 appearance, those options take effect by adding elements to either

@@ -1,3 +1,7 @@
+2012-10-27  Chong Yidong  <cyd@gnu.org>
+
+	* subr.el (insert-buffer-substring-as-yank): Doc fix.
+
 2012-10-26  Jambunathan K  <kjambunathan@gmail.com>
 
 	* minibuffer.el (completion-category-overrides): New completion

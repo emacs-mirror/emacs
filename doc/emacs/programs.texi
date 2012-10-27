@@ -326,12 +326,13 @@ as you move around in a buffer.
 @findex which-function-mode
 @vindex which-func-modes
   To either enable or disable Which Function mode, use the command
-@kbd{M-x which-function-mode}.  Although Which Function mode is a
-global minor mode, it takes effect only in certain major modes: those
-listed in the variable @code{which-func-modes}.  If the value of
-@code{which-func-modes} is @code{t} rather than a list of modes, then
-Which Function mode applies to all major modes that know how to
-support it---in other words, all the major modes that support Imenu.
+@kbd{M-x which-function-mode}.  Which Function mode is a global minor
+mode.  By default, it takes effect in all major modes major modes that
+know how to support it (i.e.@: all the major modes that support
+Imenu).  You can restrict it to a specific list of major modes by
+changing the value of the variable @code{which-func-modes} from
+@code{t} (which means to support all available major modes) to a list
+of major mode names.
 
 @node Program Indent
 @section Indentation for Programs

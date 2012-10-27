@@ -920,7 +920,6 @@ Unlike the previous two, this variable does not override any
 @samp{-*-coding:-*-} tag.
 
 @c FIXME?  This seems somewhat out of place.  Move to the Rmail section?
-@vindex rmail-decode-mime-charset
 @vindex rmail-file-coding-system
   When you get new mail in Rmail, each message is translated
 automatically from the coding system it is written in, as if it were a

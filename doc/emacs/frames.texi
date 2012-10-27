@@ -1092,17 +1092,19 @@ to various values to move the mouse in several ways:
 
 @table @code
 @item banish
-Move the mouse to the upper-right corner on any key-press;
+Move the pointer to a corner of the frame on any key-press.  You can
+customize the variable @code{mouse-avoidance-banish-position} to
+specify where the pointer goes when it is banished.
 @item exile
-Move the mouse to the corner only if the cursor gets too close,
-and allow it to return once the cursor is out of the way;
+Banish the pointer only if the cursor gets too close, and allow it to
+return once the cursor is out of the way.
 @item jump
-If the cursor gets too close to the mouse, displace the mouse
-a random distance & direction;
+If the cursor gets too close to the pointer, displace the pointer by a
+random distance and direction.
 @item animate
-As @code{jump}, but shows steps along the way for illusion of motion;
+As @code{jump}, but shows steps along the way for illusion of motion.
 @item cat-and-mouse
-The same as @code{animate};
+The same as @code{animate}.
 @item proteus
 As @code{animate}, but changes the shape of the mouse pointer too.
 @end table

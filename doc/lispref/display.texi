@@ -3550,8 +3550,8 @@ Used to indicate buffer boundaries.
 @itemx @code{vertical-bar}, @code{horizontal-bar}
 Used for different types of fringe cursors.
 
-@item @code{empty-line}, @code{question-mark}, @code{exclamation-mark}
-Unused.
+@item @code{empty-line}, @code{exclamation-mark}, @code{question-mark}, @code{exclamation-mark}
+Not used by core Emacs features.
 @end table
 
 @noindent

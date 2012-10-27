@@ -120,14 +120,7 @@ The command loop runs this soon after @code{post-command-hook} (q.v.).
 @item delete-terminal-functions
 @xref{Multiple Terminals}.
 
-@ignore
-@item disabled-command-function
-@xref{Disabling Commands}.
-@end ignore
-
-@item display-buffer-function
 @itemx pop-up-frame-function
-@itemx special-display-function
 @itemx split-window-preferred-function
 @xref{Choosing Window Options}.
 
@@ -272,7 +265,6 @@ deferred-action-function
 input-method-function
 load-read-function
 load-source-file-function
-macro-declaration-function
 read-buffer-function
 ring-bell-function
 select-safe-coding-system-function
