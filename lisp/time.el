@@ -557,7 +557,8 @@ To turn off the world time display, go to that window and type `q'."
     (run-at-time t display-time-world-timer-second 'display-time-world-timer))
   (with-current-buffer (get-buffer-create display-time-world-buffer-name)
     (display-time-world-display display-time-world-list)
-    (display-buffer display-time-world-buffer-name)
+    (display-buffer display-time-world-buffer-name
+		    (cons nil '((window-height . fit-window-to-buffer))))
     (display-time-world-mode)))
 
 (defun display-time-world-timer ()

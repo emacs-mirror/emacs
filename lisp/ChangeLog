@@ -1,3 +1,11 @@
+2012-10-27  Martin Rudalics  <rudalics@gmx.at>
+
+	* window.el (display-buffer): In doc-string describe
+	window-height and window-width alist entries.
+
+	* time.el (display-time-world): Restore fit-window-to-buffer
+	behavior.
+
 2012-10-27  Chong Yidong  <cyd@gnu.org>
 
 	* subr.el (insert-buffer-substring-as-yank): Doc fix.
@@ -253,7 +261,7 @@
 	Recover input meta mode when the new coding system doesn not use 8-bit.
 	Supply TERMINAL arg to set-input-meta-mode.
 
-2012-10-17  Michael Heerdegen <michael_heerdegen@web.de>  (tiny change)
+2012-10-17  Michael Heerdegen <michael_heerdegen@web.de>
 
 	* wdired.el (wdired-old-marks): New variable.
 	(wdired-change-to-wdired-mode): Locally set wdired-old-marks.
