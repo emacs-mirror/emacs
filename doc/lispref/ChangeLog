@@ -1,3 +1,7 @@
+2012-10-27  Glenn Morris  <rgm@gnu.org>
+
+	* lists.texi (List Elements): Typo fix.
+
 2012-10-27  Chong Yidong  <cyd@gnu.org>
 
 	* minibuf.texi (High-Level Completion): Don't mention removed

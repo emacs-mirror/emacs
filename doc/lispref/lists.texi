@@ -252,7 +252,7 @@ x
 @end example
 
 @noindent
-For the @code{pop} macro, which removes an element from a list,
+For the @code{push} macro, which adds an element to a list,
 @xref{List Variables}.
 @end defmac
 
