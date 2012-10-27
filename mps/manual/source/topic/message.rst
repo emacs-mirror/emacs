@@ -126,9 +126,6 @@ Here's how this looks in operation:
         the latest Emacs pretest. All I had done was to remove the
         "Garbage collecting" message which people perceive as
         slowing Emacs down and tell them that it had been sped up.
-        It is, somehow, permissible for a program to take a lot of
-        time doing any other task than administrative duties like
-        garbage collection.
 
 
 Message types

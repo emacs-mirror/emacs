@@ -21,8 +21,7 @@ Reference
     location
     cache
     pattern
+    frame
     debugging
     telemetry
-    frame
     low
-    critical
