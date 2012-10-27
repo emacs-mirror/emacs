@@ -262,7 +262,7 @@ static int disable_itimers;
 
 static CRITICAL_SECTION crit_real, crit_prof;
 
-/* GetThreadTimes is not available on Windows 9X and posibly also on 2K.  */
+/* GetThreadTimes is not available on Windows 9X and possibly also on 2K.  */
 typedef BOOL (WINAPI *GetThreadTimes_Proc) (
   HANDLE hThread,
   LPFILETIME lpCreationTime,
