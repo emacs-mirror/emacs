@@ -140,6 +140,20 @@ program `dired-chmod-program', which must exist."
 		 (other :tag "Bits freely editable" advanced))
   :group 'wdired)
 
+(defcustom wdired-keep-marker-rename t
+  ;; Use t as default so that renamed files "take their markers with them".
+  "Controls marking of files renamed in WDired.
+If t, files keep their previous marks when they are renamed.
+If a character, renamed files (whether previously marked or not)
+are afterward marked with that character.
+This option affects only files renamed by `wdired-finish-edit'.
+See `dired-keep-marker-rename' if you want to do the same for files
+renamed by `dired-do-rename' and `dired-do-rename-regexp'."
+  :type '(choice (const :tag "Keep" t)
+		 (character :tag "Mark" :value ?R))
+  :version "24.3"
+  :group 'wdired)
+
 (defvar wdired-mode-map
   (let ((map (make-sparse-keymap)))
     (define-key map "\C-x\C-s" 'wdired-finish-edit)
@@ -416,6 +430,8 @@ non-nil means return old filename."
   (set-buffer-modified-p nil)
   (setq buffer-undo-list nil))
 
+(declare-function dired-add-entry "dired-aux" (filename &optional marker-char relative))
+
 (defun wdired-do-renames (renames)
   "Perform RENAMES in parallel."
   (let ((residue ())
@@ -471,9 +487,12 @@ non-nil means return old filename."
                     (dired-rename-file file-ori file-new
                                        overwrite)
                     (dired-remove-file file-ori)
-                    (dired-add-file file-new (if (integerp dired-keep-marker-rename)
-                                                 dired-keep-marker-rename
-                                               old-mark)))
+                    (dired-add-file
+		     file-new
+		     (cond ((integerp wdired-keep-marker-rename)
+			    wdired-keep-marker-rename)
+			   (wdired-keep-marker-rename old-mark)
+			   (t nil))))
                 (error
                  (setq errors (1+ errors))
                  (dired-log (concat "Rename `" file-ori "' to `"

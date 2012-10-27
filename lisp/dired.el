@@ -137,9 +137,12 @@ A value of t means move to first file."
   "Controls marking of renamed files.
 If t, files keep their previous marks when they are renamed.
 If a character, renamed files (whether previously marked or not)
-are afterward marked with that character."
+are afterward marked with that character.
+This option affects only files renamed by `dired-do-rename' and
+`dired-do-rename-regexp'.  See `wdired-keep-marker-rename'
+if you want to do the same for files renamed in WDired mode."
   :type '(choice (const :tag "Keep" t)
-		 (character :tag "Mark"))
+		 (character :tag "Mark" :value ?R))
   :group 'dired-mark)
 
 (defcustom dired-keep-marker-copy ?C

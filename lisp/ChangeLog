@@ -1,3 +1,14 @@
+2012-10-27  Juri Linkov  <juri@jurta.org>
+
+	* wdired.el (wdired-keep-marker-rename): New defcustom.
+	(wdired-do-renames): Use it instead of `dired-keep-marker-rename'.
+	(Bug#11795)
+
+	* dired.el (dired-keep-marker-rename): Add reference to
+	`wdired-keep-marker-rename' in the docstring.
+	Add default character value ?R to display initially in
+	Customization UI instead of ?@.
+
 2012-10-27  Martin Rudalics  <rudalics@gmx.at>
 
 	* window.el (display-buffer): In doc-string describe
