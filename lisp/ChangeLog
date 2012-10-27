@@ -1,3 +1,8 @@
+2012-10-27  Eli Zaretskii  <eliz@gnu.org>
+
+	* profiler.el (profiler-report-make-entry-part): Fix help-echo
+	text to match the real keybindings.
+
 2012-10-27  Juri Linkov  <juri@jurta.org>
 
 	* wdired.el (wdired-keep-marker-rename): New defcustom.
