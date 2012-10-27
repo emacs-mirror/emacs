@@ -11,11 +11,13 @@
 	for the timer.
 	(timer_loop): Enter critical section when accessing ULONGLONG
 	values of the itimer_data struct, as these accesses are no longer
-	atomic.  Call 'w32_get_timer_time' instead of 'clock'.
+	atomic.  Call 'w32_get_timer_time' instead of 'clock'.  Remove
+	unused variable.
 	(init_timers): Initialize s_pfn_Get_Thread_Times.
 	(start_timer_thread): Don't assign itimer->caller_thread here.
 	(getitimer): Assign itimer->caller_thread here.
 	(setitimer): Always call getitimer to get the value of ticks_now.
+	(sys_spawnve): Avoid compiler warning about format mismatch.
 
 2012-10-26  Eli Zaretskii  <eliz@gnu.org>
 

@@ -335,7 +335,6 @@ timer_loop (LPVOID arg)
   int sig = (which == ITIMER_REAL) ? SIGALRM : SIGPROF;
   CRITICAL_SECTION *crit = (which == ITIMER_REAL) ? &crit_real : &crit_prof;
   const DWORD max_sleep = MAX_SINGLE_SLEEP * 1000 / CLOCKS_PER_SEC;
-  int new_count = 0;
   HANDLE hth = (which == ITIMER_REAL) ? NULL : itimer->caller_thread;
 
   while (1)
@@ -1656,7 +1655,7 @@ sys_spawnve (int mode, char *cmdname, char **argv, char **envp)
       numenv++;
     }
   /* extra env vars... */
-  sprintf (ppid_env_var_buffer, "EM_PARENT_PROCESS_ID=%d",
+  sprintf (ppid_env_var_buffer, "EM_PARENT_PROCESS_ID=%lu",
 	   GetCurrentProcessId ());
   arglen += strlen (ppid_env_var_buffer) + 1;
   numenv++;
