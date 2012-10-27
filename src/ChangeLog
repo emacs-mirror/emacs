@@ -4,8 +4,8 @@
 	possible, for ITIMER_PROF count only times the main thread
 	actually executes.
 	* w32proc.c <struct itimer_data>: 'expire' and 'reload' are now
-	ULONGLONG types.  Likewise for all the other data which was
-	previously clock_t.
+	'volatile ULONGLONG' types.  All the other data which was
+	previously clock_t is now ULONGLONG.  'terminate' is 'volatile int'.
 	(GetThreadTimes_Proc): New typedef.
 	(w32_get_timer_time): New function, returns a suitable time value
 	for the timer.

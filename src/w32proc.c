@@ -245,9 +245,9 @@ setpgrp (int pid, int gid)
    expires, after stopping the thread which installed the timer.  */
 
 struct itimer_data {
-  ULONGLONG expire;
-  ULONGLONG reload;
-  int terminate;
+  volatile ULONGLONG expire;
+  volatile ULONGLONG reload;
+  volatile int terminate;
   int type;
   HANDLE caller_thread;
   HANDLE timer_thread;
