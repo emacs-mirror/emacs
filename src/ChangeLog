@@ -1,3 +1,22 @@
+2012-10-27  Eli Zaretskii  <eliz@gnu.org>
+
+	Avoid overflow in w32 implementation of interval timers.  When
+	possible, for ITIMER_PROF count only times the main thread
+	actually executes.
+	* w32proc.c <struct itimer_data>: 'expire' and 'reload' are now
+	ULONGLONG types.  Likewise for all the other data which was
+	previously clock_t.
+	(GetThreadTimes_Proc): New typedef.
+	(w32_get_timer_time): New function, returns a suitable time value
+	for the timer.
+	(timer_loop): Enter critical section when accessing ULONGLONG
+	values of the itimer_data struct, as these accesses are no longer
+	atomic.  Call 'w32_get_timer_time' instead of 'clock'.
+	(init_timers): Initialize s_pfn_Get_Thread_Times.
+	(start_timer_thread): Don't assign itimer->caller_thread here.
+	(getitimer): Assign itimer->caller_thread here.
+	(setitimer): Always call getitimer to get the value of ticks_now.
+
 2012-10-26  Eli Zaretskii  <eliz@gnu.org>
 
 	* w32fns.c (w32_wnd_proc) <WM_MOUSEMOVE>: Don't enable tracking of
