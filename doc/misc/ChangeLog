@@ -1,5 +1,8 @@
 2012-10-27  Glenn Morris  <rgm@gnu.org>
 
+	* cl.texi: Use defmac for macros rather than defspec.
+	(Efficiency Concerns): Related copyedit.
+
 	* cl.texi (Control Structure): Update for setf now being in core.
 	(Setf Extensions): Rename from Basic Setf.  Move much of the
 	former content to lispref/variables.texi.
