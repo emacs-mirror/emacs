@@ -1,3 +1,13 @@
+2012-10-27  Glenn Morris  <rgm@gnu.org>
+
+	* cl.texi (Control Structure): Update for setf now being in core.
+	(Setf Extensions): Rename from Basic Setf.  Move much of the
+	former content to lispref/variables.texi.
+	(Modify Macros): Move pop, push details to lispref/variables.texi.
+	(Customizing Setf): Copyedits for setf etc being in core.
+	(Modify Macros, Efficiency Concerns, Porting Common Lisp):
+	Further namespaces updates.
+
 2012-10-26  Bastien Guerry  <bzg@gnu.org>
 
 	* org.texi (Installation): Update the link to Org's ELPA.  Also

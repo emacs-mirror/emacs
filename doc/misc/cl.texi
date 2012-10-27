@@ -57,7 +57,7 @@ developing GNU and promoting software freedom.''
 * Overview::             Basics, usage, etc.
 * Program Structure::    Arglists, @code{cl-eval-when}, @code{defalias}.
 * Predicates::           @code{cl-typep} and @code{cl-equalp}.
-* Control Structure::    @code{setf}, @code{cl-do}, @code{cl-loop}, etc.
+* Control Structure::    @code{cl-do}, @code{cl-loop}, etc.
 * Macros::               Destructuring, @code{cl-define-compiler-macro}.
 * Declarations::         @code{cl-proclaim}, @code{cl-declare}, etc.
 * Symbols::              Property lists, @code{cl-gensym}.
@@ -801,17 +801,16 @@ In Emacs, use @code{memq} (or @code{cl-member}) and @code{assq} (or
 
 @noindent
 The features described in the following sections implement
-various advanced control structures, including the powerful
-@c FIXME setf is now in gv.el, not cl.
-@code{setf} facility and a number of looping and conditional
+various advanced control structures, including extensions to the
+standard @code{setf} facility, and a number of looping and conditional
 constructs.
 
-@c FIXME setf, push are standard now.
+@c FIXME
 @c lexical-let is obsolete; flet is not cl-flet.
 @c values is not cl-values.
 @menu
 * Assignment::             The @code{cl-psetq} form.
-* Generalized Variables::  @code{setf}, @code{cl-incf}, @code{push}, etc.
+* Generalized Variables::  Extensions to generalized variables.
 * Variable Bindings::      @code{cl-progv}, @code{lexical-let}, @code{flet}, @code{cl-macrolet}.
 * Conditionals::           @code{cl-case}, @code{cl-typecase}.
 * Blocks and Exits::       @code{cl-block}, @code{cl-return}, @code{cl-return-from}.
@@ -857,130 +856,74 @@ provides an even more convenient way to swap two variables;
 @code{cl-psetq} always returns @code{nil}.
 @end defspec
 
-@c FIXME now in gv.el.
 @node Generalized Variables
 @section Generalized Variables
 
-@noindent
-A ``generalized variable'' or ``place form'' is one of the many places
-in Lisp memory where values can be stored.  The simplest place form is
-a regular Lisp variable.  But the cars and cdrs of lists, elements
-of arrays, properties of symbols, and many other locations are also
-places where Lisp values are stored.
-
-The @code{setf} form is like @code{setq}, except that it accepts
-arbitrary place forms on the left side rather than just
-symbols.  For example, @code{(setf (car a) b)} sets the car of
-@code{a} to @code{b}, doing the same operation as @code{(setcar a b)}
-but without having to remember two separate functions for setting
-and accessing every type of place.
-
-Generalized variables are analogous to ``lvalues'' in the C
-language, where @samp{x = a[i]} gets an element from an array
-and @samp{a[i] = x} stores an element using the same notation.
-Just as certain forms like @code{a[i]} can be lvalues in C, there
-is a set of forms that can be generalized variables in Lisp.
+A @dfn{generalized variable} or @dfn{place form} is one of the many
+places in Lisp memory where values can be stored.  The simplest place
+form is a regular Lisp variable.  But the cars and cdrs of lists,
+elements of arrays, properties of symbols, and many other locations
+are also places where Lisp values are stored.  For basic information,
+@pxref{Generalized Variables,,,elisp,GNU Emacs Lisp Reference Manual}.
+This package provides several additional features related to
+generalized variables.
 
 @menu
-* Basic Setf::         @code{setf} and place forms.
-* Modify Macros::      @code{cl-incf}, @code{push}, @code{cl-rotatef}, @code{letf}, @code{cl-callf}, etc.
+* Setf Extensions::    Additional @code{setf} places.
+* Modify Macros::      @code{cl-incf}, @code{cl-rotatef}, @code{letf}, @code{cl-callf}, etc.
 * Customizing Setf::   @code{define-modify-macro}, @code{defsetf}, @code{define-setf-method}.
 @end menu
 
-@node Basic Setf
-@subsection Basic Setf
+@node Setf Extensions
+@subsection Setf Extensions
 
-@noindent
-The @code{setf} macro is the most basic way to operate on generalized
-variables.
+Several standard (e.g. @code{car}) and Emacs-specific
+(e.g. @code{window-point}) Lisp functions are @code{setf}-able by default.
+This package defines @code{setf} handlers for several additional functions:
 
-@defspec setf [place form]@dots{}
-This macro evaluates @var{form} and stores it in @var{place}, which
-must be a valid generalized variable form.  If there are several
-@var{place} and @var{form} pairs, the assignments are done sequentially
-just as with @code{setq}.  @code{setf} returns the value of the last
-@var{form}.
-
-The following Lisp forms will work as generalized variables, and
-so may appear in the @var{place} argument of @code{setf}:
-
-@itemize @bullet
+@itemize
 @item
-A symbol naming a variable.  In other words, @code{(setf x y)} is
-exactly equivalent to @code{(setq x y)}, and @code{setq} itself is
-strictly speaking redundant now that @code{setf} exists.  Many
-programmers continue to prefer @code{setq} for setting simple
-variables, though, purely for stylistic or historical reasons.
-The macro @code{(setf x y)} actually expands to @code{(setq x y)},
-so there is no performance penalty for using it in compiled code.
-
-@item
-A call to any of the following Lisp functions:
-
+Functions from @code{CL} itself:
 @smallexample
-car                 cdr                 caar .. cddddr
-nth                 rest                first .. tenth
-aref                elt                 nthcdr
-symbol-function     symbol-value        symbol-plist
-get                 get*                getf
-gethash             subseq
+cl-caaar .. cl-cddddr         cl-first .. cl-tenth
+cl-rest     cl-get            cl-getf     cl-subseq
 @end smallexample
 
-@noindent
-Note that for @code{nthcdr} and @code{getf}, the list argument
-of the function must itself be a valid @var{place} form.  For
-example, @code{(setf (nthcdr 0 foo) 7)} will set @code{foo} itself
-to 7.  Note that @code{push} and @code{pop} on an @code{nthcdr}
-place can be used to insert or delete at any position in a list.
-The use of @code{nthcdr} as a @var{place} form is an extension
-to standard Common Lisp.
-
 @item
-The following Emacs-specific functions are also @code{setf}-able.
-
+General Emacs Lisp functions:
 @smallexample
-buffer-file-name                  marker-position
-buffer-modified-p                 match-data
-buffer-name                       mouse-position
-buffer-string                     overlay-end
-buffer-substring                  overlay-get
-current-buffer                    overlay-start
-current-case-table                point
-current-column                    point-marker
-current-global-map                point-max
-current-input-mode                point-min
-current-local-map                 process-buffer
-current-window-configuration      process-filter
-default-file-modes                process-sentinel
-default-value                     read-mouse-position
-documentation-property            screen-height
-extent-data                       screen-menubar
-extent-end-position               screen-width
-extent-start-position             selected-window
-face-background                   selected-screen
-face-background-pixmap            selected-frame
-face-font                         standard-case-table
-face-foreground                   syntax-table
-face-underline-p                  window-buffer
-file-modes                        window-dedicated-p
-frame-height                      window-display-table
-frame-parameters                  window-height
-frame-visible-p                   window-hscroll
-frame-width                       window-point
-get-register                      window-start
-getenv                            window-width
-global-key-binding                x-get-secondary-selection
-keymap-parent                     x-get-selection
-local-key-binding                 
-mark                              
-mark-marker
+buffer-file-name                   getenv
+buffer-modified-p                  global-key-binding
+buffer-name                        local-key-binding
+buffer-string                      mark
+buffer-substring                   mark-marker
+current-buffer                     marker-position
+current-case-table                 mouse-position
+current-column                     point
+current-global-map                 point-marker
+current-input-mode                 point-max
+current-local-map                  point-min
+current-window-configuration       read-mouse-position
+default-file-modes                 screen-height
+documentation-property             screen-width
+face-background                    selected-window
+face-background-pixmap             selected-screen
+face-font                          selected-frame
+face-foreground                    standard-case-table
+face-underline-p                   syntax-table
+file-modes                         visited-file-modtime
+frame-height                       window-height
+frame-parameters                   window-width
+frame-visible-p                    x-get-secondary-selection
+frame-width                        x-get-selection
+get-register
 @end smallexample
 
 Most of these have directly corresponding ``set'' functions, like
 @code{use-local-map} for @code{current-local-map}, or @code{goto-char}
 for @code{point}.  A few, like @code{point-min}, expand to longer
-sequences of code when they are @code{setf}'d (@code{(narrow-to-region
-x (point-max))} in this case).
+sequences of code when they are used with @code{setf}
+(@code{(narrow-to-region x (point-max))} in this case).
 
 @item
 A call of the form @code{(substring @var{subplace} @var{n} [@var{m}])},
@@ -1007,6 +950,8 @@ a
 The generalized variable @code{buffer-substring}, listed above,
 also works in this way by replacing a portion of the current buffer.
 
+@c FIXME? Also `eq'? (see cl-lib.el)
+
 @item
 A call of the form @code{(apply '@var{func} @dots{})} or
 @code{(apply (function @var{func}) @dots{})}, where @var{func}
@@ -1025,9 +970,9 @@ Any form for which a @code{defsetf} or @code{define-setf-method}
 has been made.
 @end itemize
 
-Using any forms other than these in the @var{place} argument to
-@code{setf} will signal an error.
-
+@c FIXME should this be in lispref?  It seems self-evident.
+@c Contrast with the cl-incf example later on.
+@c Here it really only serves as a constrast to wrong-order.
 The @code{setf} macro takes care to evaluate all subforms in
 the proper left-to-right order; for example,
 
@@ -1056,15 +1001,14 @@ will be preserved.  Adapting an example from Steele, given
 the form @code{(setf (wrong-order @var{a} @var{b}) 17)} will
 evaluate @var{b} first, then @var{a}, just as in an actual call
 to @code{wrong-order}.
-@end defspec
 
 @node Modify Macros
 @subsection Modify Macros
 
 @noindent
-This package defines a number of other macros besides @code{setf}
-that operate on generalized variables.  Many are interesting and
-useful even when the @var{place} is just a variable name.
+This package defines a number of macros that operate on generalized
+variables.  Many are interesting and useful even when the @var{place}
+is just a variable name.
 
 @defspec cl-psetf [place form]@dots{}
 This macro is to @code{setf} what @code{cl-psetq} is to @code{setq}:
@@ -1080,8 +1024,8 @@ by @var{x} if specified.  The incremented value is returned.  For
 example, @code{(cl-incf i)} is equivalent to @code{(setq i (1+ i))}, and
 @code{(cl-incf (car x) 2)} is equivalent to @code{(setcar x (+ (car x) 2))}.
 
-Once again, care is taken to preserve the ``apparent'' order of
-evaluation.  For example,
+As with @code{setf}, care is taken to preserve the ``apparent'' order
+of evaluation.  For example,
 
 @example
 (cl-incf (aref vec (cl-incf i)))
@@ -1120,21 +1064,6 @@ This macro decrements the number stored in @var{place} by one, or
 by @var{x} if specified.
 @end defspec
 
-@c FIXME move to lispref, add generalized variables.
-@defspec pop place
-This macro removes and returns the first element of the list stored
-in @var{place}.  It is analogous to @code{(prog1 (car @var{place})
-(setf @var{place} (cdr @var{place})))}, except that it takes care
-to evaluate all subforms only once.
-@end defspec
-
-@c FIXME move to lispref, add generalized variables.
-@defspec push x place
-This macro inserts @var{x} at the front of the list stored in
-@var{place}.  It is analogous to @code{(setf @var{place} (cons
-@var{x} @var{place}))}, except for evaluation of the subforms.
-@end defspec
-
 @defspec cl-pushnew x place @t{&key :test :test-not :key}
 This macro inserts @var{x} at the front of the list stored in
 @var{place}, but only if @var{x} was not @code{eql} to any
@@ -1143,19 +1072,19 @@ are interpreted in the same way as for @code{cl-adjoin}.
 @xref{Lists as Sets}.
 @end defspec
 
-@defspec shiftf place@dots{} newvalue
+@defspec cl-shiftf place@dots{} newvalue
 This macro shifts the @var{place}s left by one, shifting in the
 value of @var{newvalue} (which may be any Lisp expression, not just
 a generalized variable), and returning the value shifted out of
-the first @var{place}.  Thus, @code{(shiftf @var{a} @var{b} @var{c}
+the first @var{place}.  Thus, @code{(cl-shiftf @var{a} @var{b} @var{c}
 @var{d})} is equivalent to
 
 @example
 (prog1
     @var{a}
-  (psetf @var{a} @var{b}
-         @var{b} @var{c}
-         @var{c} @var{d}))
+  (cl-psetf @var{a} @var{b}
+            @var{b} @var{c}
+            @var{c} @var{d}))
 @end example
 
 @noindent
@@ -1168,10 +1097,10 @@ This macro rotates the @var{place}s left by one in circular fashion.
 Thus, @code{(cl-rotatef @var{a} @var{b} @var{c} @var{d})} is equivalent to
 
 @example
-(psetf @var{a} @var{b}
-       @var{b} @var{c}
-       @var{c} @var{d}
-       @var{d} @var{a})
+(cl-psetf @var{a} @var{b}
+          @var{b} @var{c}
+          @var{c} @var{d}
+          @var{d} @var{a})
 @end example
 
 @noindent
@@ -1318,9 +1247,8 @@ Most of the modify macros defined by Common Lisp do not exactly
 follow the pattern of @code{define-modify-macro}.  For example,
 @code{push} takes its arguments in the wrong order, and @code{pop}
 is completely irregular.  You can define these macros ``by hand''
-using @code{get-setf-method}, or consult the source file
-@file{cl-macs.el} to see how to use the internal @code{setf}
-building blocks.
+using @code{get-setf-method}, or consult the source
+to see how to use the internal @code{setf} building blocks.
 @end defspec
 
 @defspec defsetf access-fn update-fn
@@ -4708,32 +4636,31 @@ user to modify @var{place}.
 
 @noindent
 Many of the advanced features of this package, such as @code{cl-defun},
-@code{cl-loop}, and @code{setf}, are implemented as Lisp macros.  In
+@code{cl-loop}, etc., are implemented as Lisp macros.  In
 byte-compiled code, these complex notations will be expanded into
 equivalent Lisp code which is simple and efficient.  For example,
-the forms
+the form
 
 @example
 (cl-incf i n)
-(push x (car p))
 @end example
 
 @noindent
-are expanded at compile-time to the Lisp forms
+is expanded at compile-time to the Lisp form
 
 @example
 (setq i (+ i n))
-(setcar p (cons x (car p)))
 @end example
 
 @noindent
-which are the most efficient ways of doing these respective operations
+which is the most efficient ways of doing this operation
 in Lisp.  Thus, there is no performance penalty for using the more
-readable @code{cl-incf} and @code{push} forms in your compiled code.
+readable @code{cl-incf} form in your compiled code.
 
 @emph{Interpreted} code, on the other hand, must expand these macros
 every time they are executed.  For this reason it is strongly
 recommended that code making heavy use of macros be compiled.
+@c FIXME why are they not labelled as macros?
 (The features labeled ``Special Form'' instead of ``Function'' in
 this manual are macros.)  A loop using @code{cl-incf} a hundred times
 will execute considerably faster if compiled, and will also
@@ -4751,7 +4678,7 @@ all Lisp macros which appear in the form.  The easiest way to use
 this function is to go to the @file{*scratch*} buffer and type, say,
 
 @example
-(cl-prettyexpand '(loop for x below 10 collect x))
+(cl-prettyexpand '(cl-loop for x below 10 collect x))
 @end example
 
 @noindent
@@ -5104,7 +5031,7 @@ these forms:
 
 @example
 (let ((total 0)) (dolist (x my-list) (cl-incf total x)) total)
-(loop for x in my-list sum x)
+(cl-loop for x in my-list sum x)
 @end example
 
 While this would be mainly a stylistic choice in most Common Lisps,

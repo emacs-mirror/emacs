@@ -1,5 +1,11 @@
 2012-10-27  Glenn Morris  <rgm@gnu.org>
 
+	* variables.texi (Generalized Variables): New section,
+	adapted from misc/cl.texi.
+	* elisp.texi (Top): Add Generalized Variables to menu.
+	* lists.texi (List Elements, List Variables):
+	Mention generalized variables.
+
 	* lists.texi (List Elements): Typo fix.
 
 2012-10-27  Chong Yidong  <cyd@gnu.org>

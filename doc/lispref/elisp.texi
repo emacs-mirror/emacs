@@ -486,6 +486,7 @@ Variables
 * Variable Aliases::        Variables that are aliases for other variables.
 * Variables with Restricted Values::  Non-constant variables whose value can
                                         @emph{not} be an arbitrary Lisp object.
+* Generalized Variables::   Extending the concept of variables.
 
 Scoping Rules for Variable Bindings
 
