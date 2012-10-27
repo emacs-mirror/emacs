@@ -314,5 +314,5 @@ the echo area.  You can use the up and down arrow keys to move through
 the menu to different items, and then you can type @key{RET} to select
 the item.  Each menu item is also designated by a letter or digit
 (usually the initial of some word in the item's name).  This letter or
-digit is separated from the item name by @samp{=>}.  You can type the
+digit is separated from the item name by @samp{==>}.  You can type the
 item's letter or digit to select the item.

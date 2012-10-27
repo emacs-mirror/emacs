@@ -1,3 +1,7 @@
+2012-10-27  Bastien Guerry  <bzg@gnu.org>
+
+	* screen.texi (Menu Bar): Fix typo.
+
 2012-10-27  Chong Yidong  <cyd@gnu.org>
 
 	* frames.texi (Mouse Avoidance): Mention new variable
