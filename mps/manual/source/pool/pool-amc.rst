@@ -31,14 +31,34 @@ The AMC pool class exploits assumptions about object lifetimes and inter-connect
 If an allocation point is created in an AMC pool, the call to :c:func:`mps_ap_create` will take no additional parameters.
 
 
---------------------
-AMC symbol reference
---------------------
+AMC interface
+-------------
 
 ::
 
    #include "mpscamc.h"
 
+.. c:function:: mps_class_t mps_class_amc(void)
+
+    Return the :term:`pool class` for an AMC (Automatic
+    Mostly-Copying) :term:`pool`.
+
+    When creating an AMC pool, :c:func:`mps_pool_create` takes two
+    extra arguments::
+
+        mps_res_t mps_pool_create(mps_pool_t *pool_o, mps_arena_t arena, 
+                                  mps_class_t mps_class_amc(),
+                                  mps_fmt_t fmt,
+                                  mps_chain_t chain)
+
+    ``fmt`` specifies the :term:`object format` for the objects
+    allocated in the pool.
+
+    ``chain`` specifies the :term:`generation chain` for the pool.
+
+
+AMC introspection
+-----------------
 
 .. c:function:: void mps_amc_apply(mps_pool_t pool, mps_amc_apply_stepper_t f, void *p, size_t s)
 
@@ -78,7 +98,7 @@ AMC symbol reference
         Walking the heap is "dodgy".
 
 
-.. c:type:: void (*mps_amc_apply_stepper_t)(mps_addr_t object, void *p, size_t s);
+.. c:type:: void (*mps_amc_apply_stepper_t)(mps_addr_t object, void *p, size_t s)
 
     The type of a :term:`stepper function` for :term:`formatted
     objects <formatted object>` in an AMC pool.
@@ -92,20 +112,3 @@ AMC symbol reference
     automatically managed memory except within ``object``.
 
 
-.. c:function:: mps_class_t mps_class_amc(void)
-
-    Return the :term:`pool class` for an AMC (Automatic
-    Mostly-Copying) :term:`pool`.
-
-    When creating an AMC pool, :c:func:`mps_pool_create` takes two
-    extra arguments::
-
-        mps_res_t mps_pool_create(mps_pool_t *pool_o, mps_arena_t arena, 
-                                  mps_class_t mps_class_amc(),
-                                  mps_fmt_t fmt,
-                                  mps_chain_t chain)
-
-    ``fmt`` specifies the :term:`object format` for the objects
-    allocated in the pool.
-
-    ``chain`` specifies the :term:`generation chain` for the pool.

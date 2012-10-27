@@ -40,7 +40,7 @@ General debugging advice
    space layout randomization`_: if you perform computation based on
    the addresses of objects, for example, hashing objects by their
    address, then ASLR will cause your hash tables to be laid out
-   differently on each run, which may effect the order of memory
+   differently on each run, which may affect the order of memory
    management operations.)
 
     .. _address space layout randomization: http://en.wikipedia.org/wiki/Address_space_layout_randomization
@@ -50,7 +50,7 @@ General debugging advice
    are discovered. So if you have a bug that's hard to reproduce, or
    which manifests itself in different ways on different runs, you may
    be able to provoke it more reliably, or get a more consistent
-   result by having a mode for testing in which you run frequent
+   result, by having a mode for testing in which you run frequent
    collections (by calling :c:func:`mps_arena_collect` followed by
    :c:func:`mps_arena_release`), perhaps as frequently as every
    allocation.

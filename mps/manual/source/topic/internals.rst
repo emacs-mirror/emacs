@@ -1,10 +1,11 @@
 .. _internals:
 
-Porting
-*******
+Internals
+*********
 
 .. toctree::
     :numbered:
 
     plinth
     platform
+    critical

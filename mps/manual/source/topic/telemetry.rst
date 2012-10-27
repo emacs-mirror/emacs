@@ -1,3 +1,5 @@
+.. highlight:: none
+
 .. _topic-telemetry:
 
 Telemetry
@@ -84,10 +86,12 @@ program::
 The ``sort`` is useful because the events are not necessarily written
 to the telemetry file in time order, but each event starts with a
 timestamp so sorting makes a time series. The decoded events look like
-this, with the timestamp in the first column (in units of
-:c:type:`mps_clock_t`, typically 1 µs), the event type in the second
-column, and then addresses or other data related to the event in the
-remaining columns. All numbers are given in hexadecimal. ::
+this, with the timestamp in the first column, the event type in the
+second column, and then addresses or other data related to the event
+in the remaining columns. The timestamp comes from the high-resolution
+processor timer (on IA-32 and x86-64, this is the `Time Stamp Counter
+<http://en.wikipedia.org/wiki/Time_Stamp_Counter>`_). All numbers are
+given in hexadecimal. ::
 
     000AE03973336E3C 2B 1003FC000 1003FD000 1003FE000
     000AE0397333BC6D 2D 1003FC000 1003FD000 1003FE000

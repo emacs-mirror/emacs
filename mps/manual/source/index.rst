@@ -11,7 +11,7 @@ Memory Pool System
     guide/index
     topic/index
     pool/index
-    topic/porting
+    topic/internals
 
 
 Appendices
@@ -27,9 +27,4 @@ Appendices
     contact
     todo
 
-
-Indices and tables
-##################
-
 * :ref:`genindex`
-* :ref:`search`
