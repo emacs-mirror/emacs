@@ -104,7 +104,7 @@ either behaviour.
 Example: ports in Scheme
 ------------------------
 
-In Scheme, an open file is represent by a *port*. In the toy Scheme
+In Scheme, an open file is represented by a *port*. In the toy Scheme
 example, a port is a wrapper around a Standard C file handle::
 
     typedef struct port_s {
@@ -114,65 +114,71 @@ example, a port is a wrapper around a Standard C file handle::
     } port_s;
 
 The Scheme procedure ``open-input-file`` takes a filename and returns
-a port::
+a port:
+
+.. code-block:: c
+   :emphasize-lines: 21
 
     /* (open-input-file filename)
      * Opens filename for input, with empty file options, and returns the
      * obtained port.
-     * R6RS Standard Library 8.3.
+     * See R4RS 6.10.1
      */
     static obj_t entry_open_input_file(obj_t env, obj_t op_env, obj_t operator, obj_t operands)
     {
-      obj_t filename;
-      FILE *stream;
-      obj_t port;
-      mps_addr_t port_ref;
-      eval_args(operator->operator.name, env, op_env, operands, 1, &filename);
-      unless(TYPE(filename) == TYPE_STRING)
-        error("%s: argument must be a string", operator->operator.name);
-      stream = fopen(filename->string.string, "r");
-      if(stream == NULL)
-        error("%s: cannot open input file", operator->operator.name);
-      port = make_port(filename, stream);
+        obj_t filename;
+        FILE *stream;
+        obj_t port;
+        mps_addr_t port_ref;
+        eval_args(operator->operator.name, env, op_env, operands, 1, &filename);
+        unless(TYPE(filename) == TYPE_STRING)
+            error("%s: argument must be a string", operator->operator.name);
+        stream = fopen(filename->string.string, "r");
+        if(stream == NULL)
+            error("%s: cannot open input file", operator->operator.name);
+        port = make_port(filename, stream);
 
-      port_ref = port;
-      mps_finalize(arena, &port_ref);
+        port_ref = port;
+        mps_finalize(arena, &port_ref);
 
-      return port;
+        return port;
     }
 
 Each time around the read–eval–print loop, the interpreter polls the
 message queue for finalization messages, and when it finds one it
-closes the port's underlying file handle::
+closes the port's underlying file handle:
+
+.. code-block:: c
+   :emphasize-lines: 9, 12
 
     mps_message_type_t type;
 
     while (mps_message_queue_type(&type, arena)) {
-      mps_message_t message;
-      mps_bool_t b;
-      b = mps_message_get(&message, arena, type);
-      assert(b); /* we just checked there was one */
+        mps_message_t message;
+        mps_bool_t b;
+        b = mps_message_get(&message, arena, type);
+        assert(b); /* we just checked there was one */
 
-      if (type == mps_message_type_finalization()) {
-        mps_addr_t port_ref;
-        obj_t port;
-        mps_message_finalization_ref(&port_ref, arena, message);
-        port = port_ref;
-        assert(TYPE(port) == TYPE_PORT);
-        printf("Port to file \"%s\" is dying. Closing file.\n",
-               port->port.name->string.string);
-        (void)fclose(port->port.stream);
-      } else {
-          /* ... handle other message types ... */
-      }
+        if (type == mps_message_type_finalization()) {
+            mps_addr_t port_ref;
+            obj_t port;
+            mps_message_finalization_ref(&port_ref, arena, message);
+            port = port_ref;
+            assert(TYPE(port) == TYPE_PORT);
+            printf("Port to file \"%s\" is dying. Closing file.\n",
+                   port->port.name->string.string);
+            (void)fclose(port->port.stream);
+        } else {
+            /* ... handle other message types ... */
+        }
 
-      mps_message_discard(arena, message);
+        mps_message_discard(arena, message);
     }
 
 Here's an example session showing finalization taking place:
 
 .. code-block:: none
-   :emphasize-lines: 14
+   :emphasize-lines: 8
 
     MPS Toy Scheme Example
     9960, 0> (open-input-file "scheme.c")
@@ -253,26 +259,6 @@ Cautions
 Finalization interface
 ----------------------
 
-.. c:function:: mps_res_t mps_definalize(mps_arena_t arena, mps_addr_t *ref)
-
-    Deregister a :term:`block` for :term:`finalization`.
-
-    ``arena`` is the arena in which the block lives.
-
-    ``ref`` points to a :term:`reference` to the block to be
-    deregistered for finalization.
-
-    Returns :c:macro:`MPS_RES_OK` if successful, or
-    :c:macro:`MPS_RES_FAIL` if the block was not previously registered
-    for finalization.
-
-    .. note::
-
-        This function receives a pointer to a reference. This is to
-        avoid placing the restriction on the :term:`client program`
-        that the C call stack be a :term:`root`.
-
-
 .. c:function:: mps_res_t mps_finalize(mps_arena_t arena, mps_addr_t *ref)
 
     Register a :term:`block` for :term:`finalization`.
@@ -290,6 +276,26 @@ Finalization interface
     :term:`pool` in ``arena``. Violations of this constraint may not
     be checked by the MPS, and may be unsafe, causing the MPS to crash
     in undefined ways.
+
+    .. note::
+
+        This function receives a pointer to a reference. This is to
+        avoid placing the restriction on the :term:`client program`
+        that the C call stack be a :term:`root`.
+
+
+.. c:function:: mps_res_t mps_definalize(mps_arena_t arena, mps_addr_t *ref)
+
+    Deregister a :term:`block` for :term:`finalization`.
+
+    ``arena`` is the arena in which the block lives.
+
+    ``ref`` points to a :term:`reference` to the block to be
+    deregistered for finalization.
+
+    Returns :c:macro:`MPS_RES_OK` if successful, or
+    :c:macro:`MPS_RES_FAIL` if the block was not previously registered
+    for finalization.
 
     .. note::
 

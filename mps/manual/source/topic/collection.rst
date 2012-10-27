@@ -19,11 +19,8 @@ that pool. You create a generation chain by preparing an array of
 kilobytes) and *predicted mortality* (between 0 and 1) of each
 generation, and passing them to :c:func:`mps_chain_create`.
 
-The term *capacity* is misleading: it's actually a threshold on the
-*new size* of a generation. The :dfn:`new size` is the size of the
-newly allocated (in generation 0) or newly promoted (in other
-generations) blocks. When the new size exceeds the capacity, the MPS
-will be prepared to start collecting the generation. See
+When the size of the generation exceeds the capacity, the MPS will be
+prepared to start collecting the generation. See
 :ref:`topic-collection-schedule` below.
 
 For example::
@@ -31,7 +28,6 @@ For example::
     mps_gen_param_s gen_params[] = {
         { 1024, 0.8 },
         { 2048, 0.4 },
-        { 4096, 0.2 },
     };
 
     mps_chain_t chain;
@@ -107,8 +103,8 @@ Scheduling of collections
 -------------------------
 
 The first generation in a pool's chain is the :term:`nursery
-generation`. When the nursery's "new size" exceeds its capacity, the
-MPS considers collecting the pool. (Whether it actually does so or not
+generation`. When the nursery's size exceeds its capacity, the MPS
+considers collecting the pool. (Whether it actually does so or not
 depends on which other collections on other pools are in progress.)
 
 .. note::
@@ -118,31 +114,31 @@ depends on which other collections on other pools are in progress.)
     <topic-pattern-ramp>`.
 
 If the MPS decides to collect a pool at all, all generations are
-collected below the first generation whose "new size" is less than its
+collected below the first generation whose size is less than its
 capacity.
 
 For example, suppose that we have a pool with the following generation
 structure:
 
 +------------+--------------+----------------------+----------------+
-|            | Current size |   Chain parameters   | Predicted size |
-|            +------+-------+----------+-----------+--------+-------+
-| Generation | New  | Total | Capacity | Mortality | New    | Total |
-+============+======+=======+==========+===========+========+=======+
-|          0 |  110 |   110 |      100 |       0.8 |      0 |     0 |
-+------------+------+-------+----------+-----------+--------+-------+
-|          1 |  210 |   210 |      200 |       0.4 |     22 |    22 |
-+------------+------+-------+----------+-----------+--------+-------+
-|          2 |  260 |   640 |      400 |       0.2 |    386 |   766 |
-+------------+------+-------+----------+-----------+--------+-------+
+| Generation | Current size | Capacity | Mortality | Predicted size |
++============+==============+==========+===========+================+
+|          0 |          110 |      100 |       0.8 |              0 |
++------------+--------------+----------+-----------+----------------+
+|          1 |          210 |      200 |       0.4 |             22 |
++------------+--------------+----------+-----------+----------------+
+|          2 |          200 |      300 |       0.2 |            326 |
++------------+--------------+----------+-----------+----------------+
 
-The nursery and generation 1 both have "new size" that exceeds their
-capacity, so these generations will be collection. Generation 2 will
-not be collected (even though its total size exceeds its capacity).
-The last two columns give the predicted sizes of each generation after
-the collection: the survivors from the nursery will be promoted to
-generation 1 and the survivors from generation 1 will be promoted to
-generation 2.
+The nursery and generation 1 both have size that exceeds their
+capacity, so these generations will be collected. Generation 2 will
+not be collected this time. The last two columns give the predicted
+sizes of each generation after the collection: the survivors from the
+nursery will be promoted to generation 1 and the survivors from
+generation 1 will be promoted to generation 2.
+
+When the last generation in the chain is collected, the survivors are
+promoted into an :term:`arena`\-wide "top" generation.
 
 The predicted mortality is used to estimate how long the collection
 will take, and this is used in turn to decide how much work the
