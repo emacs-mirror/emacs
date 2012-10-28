@@ -3242,6 +3242,9 @@ x_set_font (struct frame *f, Lisp_Object arg, Lisp_Object oldval)
 	  Lisp_Object ascii_font = fontset_ascii (fontset);
 	  Lisp_Object spec = font_spec_from_name (ascii_font);
 
+	  if (NILP (spec))
+	    signal_error ("Invalid font name", ascii_font);
+
 	  if (! font_match_p (spec, font_object))
 	    fontset = -1;
 	}
