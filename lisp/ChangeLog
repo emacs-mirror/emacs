@@ -2,6 +2,7 @@
 
 	* minibuffer.el (completion--sifn-requote): Rewrite to handle things
 	like Tramp's "/foo:~bar//baz" -> "/scpc:foo:/baz" mapping (bug#11714).
+	(completion--twq-all): Disable too-strict assertions.
 
 	* tmm.el (tmm-prompt): Use map-keymap (bug#12744).
 

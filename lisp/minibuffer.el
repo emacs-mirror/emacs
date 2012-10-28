@@ -529,10 +529,12 @@ for use at QPOS."
          (`(,qfullpos . ,qfun)
           (funcall requote (+ boundary (length prefix)) string))
          (qfullprefix (substring string 0 qfullpos))
-         (_ (cl-assert (completion--string-equal-p
-                        (funcall unquote qfullprefix)
-                        (concat (substring ustring 0 boundary) prefix))
-                       t))
+	 ;; FIXME: This assertion can be wrong, e.g. in Cygwin, where
+	 ;; (unquote "c:\bin") => "/usr/bin" but (unquote "c:\") => "/".
+         ;;(cl-assert (completion--string-equal-p
+         ;;            (funcall unquote qfullprefix)
+         ;;            (concat (substring ustring 0 boundary) prefix))
+         ;;           t))
          (qboundary (car (funcall requote boundary string)))
          (_ (cl-assert (<= qboundary qfullpos)))
          ;; FIXME: this split/quote/concat business messes up the carefully
@@ -561,14 +563,16 @@ for use at QPOS."
                  (let* ((new (substring completion (length prefix)))
                         (qnew (funcall qfun new))
                         (qcompletion (concat qprefix qnew)))
-                   (cl-assert
-                    (completion--string-equal-p
-		     (funcall unquote
-			      (concat (substring string 0 qboundary)
-				      qcompletion))
-		     (concat (substring ustring 0 boundary)
-			     completion))
-		    t)
+		   ;; FIXME: Similarly here, Cygwin's mapping trips this
+		   ;; assertion.
+                   ;;(cl-assert
+                   ;; (completion--string-equal-p
+		   ;;  (funcall unquote
+		   ;;           (concat (substring string 0 qboundary)
+		   ;;                   qcompletion))
+		   ;;  (concat (substring ustring 0 boundary)
+		   ;;          completion))
+		   ;; t)
                    qcompletion))
                completions)
        qboundary))))
