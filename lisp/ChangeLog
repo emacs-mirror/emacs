@@ -1,3 +1,8 @@
+2012-10-28  Daniel Hackney  <dan@haxney.org>
+
+	* emacs-lisp/package.el (package-generate-autoloads): Kill buffer
+	"PKGNAME-autoloads.el" in case we created it.
+
 2012-10-28  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* minibuffer.el (completion--sifn-requote): Rewrite to handle things

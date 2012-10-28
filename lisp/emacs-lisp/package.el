@@ -590,7 +590,9 @@ EXTRA-PROPERTIES is currently unused."
 	 (version-control 'never))
     (unless (fboundp 'autoload-ensure-default-file)
       (package-autoload-ensure-default-file generated-autoload-file))
-    (update-directory-autoloads pkg-dir)))
+    (update-directory-autoloads pkg-dir)
+    (let ((buf (find-buffer-visiting generated-autoload-file)))
+      (when buf (kill-buffer buf)))))
 
 (defvar tar-parse-info)
 (declare-function tar-untar-buffer "tar-mode" ())
