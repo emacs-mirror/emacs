@@ -30,10 +30,10 @@ Memory Management Glossary: A
         In a register-based hardware architecture, the current
         activation record is typically partially stored in registers.
 
-        :term:`Closures <closure>` and :term:`continuations
-        <continuation>` are specializations of activation records in
-        support of particular language features of :term:`LISP`,
-        :term:`Scheme` and related languages.
+        :term:`Closures` and :term:`continuations` are specializations
+        of activation records in support of particular language
+        features of :term:`LISP`, :term:`Scheme` and related
+        languages.
 
         .. relevance::
 
@@ -86,9 +86,9 @@ Memory Management Glossary: A
 
     address space
 
-        An *address space* is the set of possible :term:`addresses
-        <address>`. It can also be considered to be a partial function
-        from addresses to :term:`locations <memory location>`.
+        An *address space* is the set of possible :term:`addresses`.
+        It can also be considered to be a partial function from
+        addresses to :term:`locations <memory location>`.
 
         Typically, addresses start at zero and run to 2\ :sup:`n`\ −1,
         where *n* is the address width (for example, 15, 16, 24, 32,
@@ -122,9 +122,9 @@ Memory Management Glossary: A
     aging space
 
         In some :term:`generational garbage collection` systems, when
-        :term:`generations <generation>` are divided into
-        :term:`buckets <bucket>`, the aging space is where
-        :term:`objects <object>` which survive a :term:`collection
+        :term:`generations` are divided into
+        :term:`buckets`, the aging space is where
+        :term:`objects` which survive a :term:`collection
         cycle` stay until they are old enough to be :term:`promoted
         <promotion>`.
 
@@ -170,7 +170,7 @@ Memory Management Glossary: A
             A memory manager must take care to :term:`allocate` memory
             with an appropriate alignment for the object that is going
             to be stored there. Implementations of :term:`malloc` have
-            to allocate all :term:`blocks <block>` at the largest
+            to allocate all :term:`blocks` at the largest
             alignment that the processor architecture requires. Other
             reasons for aligning objects include using the least
             significant bits of the address for a :term:`tag`.
@@ -205,16 +205,15 @@ Memory Management Glossary: A
         program.
 
         Allocation is rarely a simple issue. For example, programs
-        usually allocate :term:`activation records <activation
-        record>` (:term:`automatic variables <automatic storage
-        duration>`, and so on) for functions from a processor
-        :term:`stack` simply by subtracting a number from their stack
-        :term:`pointer`. However, in a :term:`virtual memory`
-        system, this may extend the stack onto a previously unused
-        :term:`page`, in which case the operating system memory
-        manager must carry out some quite complex operations in order
-        to supply the program with :term:`backing store` for the stack
-        so that the program can continue.
+        usually allocate :term:`activation records` (:term:`automatic
+        variables <automatic storage duration>`, and so on) for
+        functions from a processor :term:`stack` simply by subtracting
+        a number from their stack :term:`pointer`. However, in a
+        :term:`virtual memory` system, this may extend the stack onto
+        a previously unused :term:`page`, in which case the operating
+        system memory manager must carry out some quite complex
+        operations in order to supply the program with :term:`backing
+        store` for the stack so that the program can continue.
 
         .. historical::
 
@@ -278,10 +277,10 @@ Memory Management Glossary: A
         .. mps:specific::
 
             An allocation point is an interface to a :term:`pool`
-            which provides fast :term:`buffered <buffer>` allocation,
-            and defers the need for synchronization in a
-            multi-threaded environment. Allocation points belong to
-            the type :c:type:`mps_ap_t`.
+            which provides fast :term:`buffered` allocation, and
+            defers the need for synchronization in a multi-threaded
+            environment. Allocation points belong to the type
+            :c:type:`mps_ap_t`.
 
     allocation point protocol
 
@@ -317,8 +316,8 @@ Memory Management Glossary: A
         patterns of allocation requests to justify an
         :term:`allocation policy`.
 
-        For instance, "do not allow small long-lived :term:`objects
-        <object>` to fragment large :term:`free (3)` areas", "allocate
+        For instance, "do not allow small long-lived :term:`objects`
+        to fragment large :term:`free (3)` areas", "allocate
         consecutive objects close together", and so on. The allocation
         strategy motivates an :term:`allocation policy`, which is
         implemented by an :term:`allocation mechanism`.
@@ -354,7 +353,7 @@ Memory Management Glossary: A
     ambiguous root
 
         An ambiguous root is a :term:`root` containing
-        :term:`ambiguous references <ambiguous reference>`.
+        :term:`ambiguous references`.
 
         .. opposite:: :term:`exact root`.
 
@@ -378,7 +377,7 @@ Memory Management Glossary: A
 
             An arena is the data structure responsible for requesting
             :term:`memory (3)` from the operating system, making it
-            available to :term:`pools <pool>`, and for :term:`garbage
+            available to :term:`pools`, and for :term:`garbage
             collection`. Arenas belong to the type
             :c:type:`mps_arena_t`. See :ref:`topic-arena`.
 
@@ -387,9 +386,8 @@ Memory Management Glossary: A
         .. mps:specific::
 
             A value of type :c:type:`mps_arena_class_t` describing a
-            class of :term:`arenas <arena>`. Arena classes include
-            :term:`client arenas <client arena>` and :term:`virtual
-            memory arenas <virtual memory arena>`.
+            class of :term:`arenas`. Arena classes include
+            :term:`client arenas` and :term:`virtual memory arenas`.
 
     assertion
 
@@ -400,7 +398,7 @@ Memory Management Glossary: A
         .. mps:specific::
 
             Memory management mistakes often lead to
-            :term:`overwriting errors <overwriting error>` that
+            :term:`overwriting errors` that
             corrupt the data structures used by the memory manager to
             maintain memory. Except in the :term:`rash`
             :term:`variety`, most MPS functions assert the validity of
@@ -416,8 +414,7 @@ Memory Management Glossary: A
         collector will run.
 
         This means that the mutator must ensure that :term:`formatted
-        objects <formatted object>` are always :term:`scannable
-        <scan>`.
+        objects` are always :term:`scannable <scan>`.
 
         .. opposite:: :term:`synchronous garbage collector`.
 
@@ -436,7 +433,7 @@ Memory Management Glossary: A
         :term:`memory (2)`.
 
         It is not possible, in general, to automatically determine
-        which :term:`objects <object>` are still :term:`live`. Even if
+        which :term:`objects` are still :term:`live`. Even if
         it didn't depend on future input, there can be no general
         algorithm to prove that an object is live (cf. the Halting
         Problem). However, effective approximations are possible.
@@ -444,10 +441,10 @@ Memory Management Glossary: A
         In :term:`tracing garbage collection`, the approximation is
         that an object can't be live unless it is :term:`reachable`.
         In :term:`reference counting`, the approximation is that an
-        object can't be live unless it is :term:`referenced
-        <reference>`. Analysis of the program text can reveal where
-        objects :term:`die <dead>`; A notable technique in this vein
-        is :term:`region inference`.
+        object can't be live unless it is :term:`referenced`. Analysis
+        of the program text can reveal where objects :term:`die
+        <dead>`; A notable technique in this vein is :term:`region
+        inference`.
 
         Hybrid algorithms are also possible.
 
@@ -457,14 +454,14 @@ Memory Management Glossary: A
 
     automatic storage duration
 
-        In :term:`C`, :term:`objects <object>` that are declared with
+        In :term:`C`, :term:`objects` that are declared with
         *automatic storage duration* are :term:`live` for the duration
         of a block of code.
 
         In most implementations of C, objects with automatic storage
-        duration are :term:`allocated <allocate>` on the :term:`stack`
-        when a function is entered, and :term:`deallocated <free (1)>`
-        when it returns.
+        duration are :term:`allocated` on the :term:`stack` when a
+        function is entered, and :term:`deallocated <free (1)>` when
+        it returns.
 
         .. similar:: :term:`stack allocation`, :term:`dynamic extent`.
 

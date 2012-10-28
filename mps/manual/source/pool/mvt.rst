@@ -116,10 +116,10 @@ MVT symbol reference
                                   mps_count_t fragmentation_limit)
 
     ``minimum_size``, ``mean_size``, and ``maximum_size`` are the
-    predicted minimum, mean, and maximum :term:`size` of :term:`blocks
-    <block>` expected to be allocated in the pool. Blocks smaller than
-    ``minimum_size`` and larger than ``maximum_size`` may be
-    allocated, but the pool is not guaranteed to manage them
+    predicted minimum, mean, and maximum :term:`size` of
+    :term:`blocks` expected to be allocated in the pool. Blocks
+    smaller than ``minimum_size`` and larger than ``maximum_size`` may
+    be allocated, but the pool is not guaranteed to manage them
     space-efficiently. Furthermore, partial freeing is not supported
     for blocks larger than ``maximum_size``; doing so will result in
     the storage of the block never being reused. ``mean_size`` need

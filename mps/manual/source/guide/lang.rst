@@ -106,18 +106,18 @@ Each constructor allocates memory for the new object by calling
     }
 
 Objects are never freed, because it is necessary to prove that they
-are :term:`dead` before their memory can be :term:`reclaimed
-<reclaim>`. To prove that they are dead, we need a :term:`tracing
-<trace>` :term:`garbage collector`. Which the MPS will provide.
+are :term:`dead` before their memory can be :term:`reclaimed `. To
+prove that they are dead, we need a :term:`tracing <trace>`
+:term:`garbage collector`. Which the MPS will provide.
 
 
 Choosing an arena class
 -----------------------
 
 You'll recall from the :ref:`guide-overview` that the functionality of
-the MPS is divided between the :term:`arenas <arena>`, which request
-memory from (and return it to) the operating system, and :term:`pools
-<pool>`, which allocate blocks of memory for your program.
+the MPS is divided between the :term:`arenas`, which request memory
+from (and return it to) the operating system, and :term:`pools`, which
+allocate blocks of memory for your program.
 
 There are two main classes of arena: the :term:`client arena`,
 :c:func:`mps_arena_class_cl`, which gets its memory from your program,
@@ -195,15 +195,14 @@ The section :ref:`pool-choose` in the :ref:`pool` contains a procedure
 for choosing a pool class. In the case of the Scheme interpreter, the
 answers to the questions are (1) yes, the MPS needs to automatically
 reclaim unreachable blocks; (2) yes, it's acceptable for the MPS to
-move blocks in memory and protect them with :term:`barriers <barrier
-(1)>`; and (3) the Scheme objects will contain :term:`exact references
-<exact reference>` to other Scheme objects in the same pool.
+move blocks in memory and protect them with :term:`barriers (1)`; and
+(3) the Scheme objects will contain :term:`exact references` to other
+Scheme objects in the same pool.
 
 The recommended class is :ref:`pool-amc`. This pool class uses
 automatic memory management, moving garbage collection,
-:term:`allocation points <allocation point>` and :term:`formatted
-objects <formatted object>`, so it will provide an introduction to
-these features of the MPS.
+:term:`allocation points` and :term:`formatted objects`, so it will
+provide an introduction to these features of the MPS.
 
 .. note::
 
@@ -222,7 +221,7 @@ Describing your objects
 
 In order for the MPS to be able to automatically manage your objects,
 you need to tell it how to perform various operations on an object
-(:term:`scan` it for :term:`references <reference>`; replace it with a
+(:term:`scan` it for :term:`references`; replace it with a
 :term:`forwarding <forwarding object>` or :term:`padding object`, and
 so on). You do this by creating an :term:`object format`. Here's the
 code for creating the object format for the Scheme interpreter::
@@ -270,14 +269,13 @@ you might try:
    On all the platforms supported by the MPS, the majority of simple
    datatypes may be aligned on word boundaries (the possible
    exceptions being ``double`` on 32-bit platforms, and ``long
-   double`` and :term:`function pointers <function pointer>` on 32- and
+   double`` and :term:`function pointers` on 32- and
    64-bit platforms), so in applications where these exceptional types
    are not used (like the Scheme interpreter), you can use::
 
         #define ALIGNMENT sizeof(mps_word_t)
 
-The other elements of the structure are the :term:`format methods
-<format method>`, which are described in the following sections. (The
+The other elements of the structure are the :term:`format methods`, which are described in the following sections. (The
 ``NULL`` in the structure is a placeholder for the :term:`copy
 method`, which is now obsolete.)
 
@@ -570,9 +568,9 @@ The padding method
 The :term:`padding method` is a function of type
 :c:type:`mps_fmt_pad_t`. It is called by the MPS to fill a block of
 memory with a :term:`padding object`: this is an object that fills
-gaps in a block of :term:`formatted objects <formatted object>`, for
+gaps in a block of :term:`formatted objects`, for
 example to enable the MPS to pack objects into fixed-size units (such
-as operating system :term:`pages <page>`).
+as operating system :term:`pages`).
 
 A padding object must be scannable and skippable, and not confusable
 with a :term:`forwarding object`. This means they need a type and a
@@ -636,7 +634,7 @@ You create a generation chain by constructing an array of structures
 of type :c:type:`mps_gen_param_s`, one for each generation, and
 passing them to :c:func:`mps_chain_create`. Each of these structures
 contains two values, the *capacity* of the generation in
-:term:`kilobytes <kilobyte>`, and the *mortality*, the proportion of
+:term:`kilobytes`, and the *mortality*, the proportion of
 objects in the generation that you expect to survive a collection of
 that generation.
 
@@ -721,19 +719,18 @@ And finally the :term:`pool`::
 Roots
 -----
 
-The :term:`object format` tells the MPS how to find :term:`references
-<reference>` from one object to another. This allows the MPS to
+The :term:`object format` tells the MPS how to find :term:`references` from one object to another. This allows the MPS to
 extrapolate the reachability property: if object *A* is
 :term:`reachable`, and the :term:`scan method` fixes a reference from
 *A* to another object *B*, then *B* is reachable too.
 
 But how does this process get started? How does the MPS know which
 objects are reachable *a priori*? Such objects are known as
-:term:`roots <root>`, and you must register them with the MPS,
+:term:`roots`, and you must register them with the MPS,
 creating root descriptions of type :c:type:`mps_root_t`.
 
 The most important root consists of the contents of the
-:term:`registers <register>` and the :term:`control stack` of each
+:term:`registers` and the :term:`control stack` of each
 :term:`thread` in your program: this is covered in :ref:`Threads <guide-lang-threads>`, below.
 
 Other roots may be found in static variables in your program, or in
@@ -803,10 +800,10 @@ of references in the root. ":term:`Exact <exact reference>`" means
 that:
 
 1. all references in the root point to another object (there are no
-   :term:`ambiguous references <ambiguous reference>`); and
+   :term:`ambiguous references`); and
 
 2. each reference keeps the target of the reference alive (unlike
-   :term:`weak references <weak reference (1)>`).
+   :term:`weak references (1)`).
 
 The fourth argument is the :term:`root mode`, which tells the MPS
 whether it is allowed to place a :term:`barrier (1)` on the root. The
@@ -919,8 +916,7 @@ Threads
 -------
 
 In a multi-threaded environment where :term:`incremental garbage
-collection` is used, you must register each of your :term:`threads
-<thread>` with the MPS so that the MPS can examine their state.
+collection` is used, you must register each of your :term:`threads` with the MPS so that the MPS can examine their state.
 
 Even in a single-threaded environment (like the Scheme interpreter) it
 may also be necessary to register the (only) thread if either of these
@@ -929,7 +925,7 @@ conditions apply:
 1. you are using :term:`moving garbage collection <moving garbage
    collector>` (as with the :ref:`pool-amc` pool);
 
-2. the thread's :term:`registers <register>` and :term:`control stack`
+2. the thread's :term:`registers` and :term:`control stack`
    constitute a :term:`root` (that is, objects may be kept alive via
    references in local variables: this is almost always the case for
    programs written in :term:`C`).
@@ -1150,7 +1146,7 @@ these rules:
 
 3. All objects in automatically managed pools that are
    :term:`reachable` by your code must always be provably reachable
-   from a root via a chain of :term:`references <reference>` that are
+   from a root via a chain of :term:`references` that are
    :term:`fixed <fix>` by a scanning function.
 
    See the discussion of the :ref:`global symbol table
@@ -1176,9 +1172,8 @@ detects. It also causes the MPS to flush its :term:`telemetry stream`.
 
 MPS data structures must be destroyed or deregistered in the reverse
 order to that in which they were registered or created. So you must
-destroy all :term:`allocation points <allocation point>` created in a
-:term:`pool` before destroying the pool; destroy all :term:`roots
-<root>` and pools, and deregister all :term:`threads <thread>`, that
+destroy all :term:`allocation points` created in a
+:term:`pool` before destroying the pool; destroy all :term:`roots` and pools, and deregister all :term:`threads`, that
 were created in an :term:`arena` before destroying the arena, and so
 on.
 

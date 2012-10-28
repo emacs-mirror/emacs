@@ -41,7 +41,9 @@ Memory Management Glossary: T
             :align: center
             :alt: Diagram: Example of reference tagging, using the least significant bits.
 
-            Example of reference tagging, with objects aligned to addresses that are multiples of four, and the tag stored in the least significant two bits of the reference.
+            Example of reference tagging, with objects aligned to
+            addresses that are multiples of four, and the tag stored
+            in the least significant two bits of the reference.
 
         In :term:`C`, when a structure contains a union, it is common
         to add a field to the structure to indicate which union member
@@ -106,7 +108,7 @@ Memory Management Glossary: T
 
             An indentifier representing a string, returned from
             :c:func:`mps_telemetry_intern`, that can be associated
-            with certain :term:`addresses <address>`, and so appear in
+            with certain :term:`addresses`, and so appear in
             the :term:`telemetry stream` attached to events concerning
             those addresses. See :ref:`topic-telemetry`.
 
@@ -127,8 +129,8 @@ Memory Management Glossary: T
 
         .. aka:: *TB*.
 
-        A terabyte is 1024 :term:`gigabytes <gigabyte>`, or
-        1099511627776 :term:`bytes (1) <byte (1)>`.
+        A terabyte is 1024 :term:`gigabytes`, or
+        1099511627776 :term:`bytes (1)`.
 
         See :term:`byte (1)` for general information on this and
         related quantities.
@@ -141,7 +143,7 @@ Memory Management Glossary: T
 
         A :term:`cache (2)` is said to :term:`thrash` when its
         :term:`miss rate` is too high, and it spends most of its time
-        servicing :term:`misses <miss>`. Thrashing is bad for
+        servicing :term:`misses`. Thrashing is bad for
         performance, particularly :term:`virtual memory`
         thrashing, because the relative cost of a miss is so high: it
         may slow a machine down by a factor of a hundred or more.
@@ -169,8 +171,8 @@ Memory Management Glossary: T
 
             Access to shared resources such as memory management
             interface must be thread-safe. Each thread has its own
-            :term:`control stack` which may contain :term:`references
-            <reference>` to blocks on the heap.
+            :term:`control stack` which may contain :term:`references`
+            to blocks on the heap.
 
         .. mps:specific::
 
@@ -202,7 +204,7 @@ Memory Management Glossary: T
     trace
 
         In :term:`tracing garbage collection`, tracing is the process
-        of following the :term:`graph` from all :term:`roots <root>`
+        of following the :term:`graph` from all :term:`roots`
         to all :term:`reachable` data.
 
         .. similar:: :term:`scan`.
@@ -215,11 +217,11 @@ Memory Management Glossary: T
         Tracing garbage collection relies on the fact that if an
         :term:`object` is not :term:`reachable`, there is no way the
         :term:`mutator` could ever access it, and therefore it cannot
-        be :term:`live`. In each :term:`collection cycle`, some or
-        all of the objects are :term:`condemned <condemned set>` and
-        the :term:`graph` is :term:`traced <trace>` to find which of
-        the condemned objects are reachable. Those that were not
-        reachable may be :term:`reclaimed <reclaim>`.
+        be :term:`live`. In each :term:`collection cycle`, some or all
+        of the objects are :term:`condemned <condemned set>` and the
+        :term:`graph` is :term:`traced` to find which of the condemned
+        objects are reachable. Those that were not reachable may be
+        :term:`reclaimed`.
 
     translation buffer
     translation lookaside buffer
@@ -229,21 +231,18 @@ Memory Management Glossary: T
         The *translation lookaside buffer* or *address translation
         cache* is small piece of associative :term:`memory (1)` within
         a processor which caches part of the translation from
-        :term:`virtual addresses <virtual address>` to :term:`physical
-        addresses <physical address>`.
+        :term:`virtual addresses` to :term:`physical addresses`.
 
-        In a :term:`virtual memory` system there is a translation
-        from :term:`virtual addresses <virtual address>` to
-        :term:`physical addresses <physical address>`. This
+        In a :term:`virtual memory` system there is a translation from
+        :term:`virtual addresses` to :term:`physical addresses`. This
         translation can often be very large and complex and the data
-        structures that implement the translation (often a
-        :term:`page-table <page table>`) can be too large to store
-        efficiently on the processor. Instead, a few elements of the
-        translation are stored in the TLB; the processor can access
-        the TLB extremely quickly. If a required translation for a
-        particular virtual address is not present in the TLB then *a
-        TLB miss* is taken and the address is resolved using the more
-        general mechanism.
+        structures that implement the translation (often a :term:`page
+        table`) can be too large to store efficiently on the
+        processor. Instead, a few elements of the translation are
+        stored in the TLB; the processor can access the TLB extremely
+        quickly. If a required translation for a particular virtual
+        address is not present in the TLB then *a TLB miss* is taken
+        and the address is resolved using the more general mechanism.
 
     transparent alias
     transparent type
@@ -281,7 +280,7 @@ Memory Management Glossary: T
         marking`.
 
         Every :term:`object` is on the list. The list has four
-        sections corresponding to :term:`colors <color>`. The
+        sections corresponding to :term:`colors`. The
         :term:`black`, :term:`gray` and :term:`white` sections are
         used for tri-color marking, and an additional
         :term:`off-white` section is used for :term:`free (3)`
@@ -336,7 +335,7 @@ Memory Management Glossary: T
         (or black) nodes, the node is colored black. When no gray
         nodes remain, the reachable part of the graph has been
         discovered and any nodes that are still white may be
-        :term:`recycled <recycle>`.
+        :term:`recycled`.
 
         The :term:`mutator` is free to access any part of the graph
         and allocate new nodes while the :term:`collector (2)` is
@@ -375,14 +374,13 @@ Memory Management Glossary: T
         A two-space :term:`collector (1)` is a simple form of a
         :term:`copying garbage collector <copying garbage
         collection>`. The available :term:`memory (2)` is divided into
-        two halves, called :term:`semi-spaces <semi-space>`.
-        :term:`Objects <object>` are allocated in one semi-space until
-        it is full. The :term:`reachable` objects are then copied into
-        the other semi-space (usually using a :term:`Cheney scan`) and
-        the old semi-space is :term:`reclaimed <reclaim>`.
-        :term:`Allocation <allocate>` continues in the new semi-space
-        until it is full, at which point the process is repeated in
-        reverse.
+        two halves, called :term:`semi-spaces`. :term:`Objects` are
+        allocated in one semi-space until it is full. The
+        :term:`reachable` objects are then copied into the other
+        semi-space (usually using a :term:`Cheney scan`) and the old
+        semi-space is :term:`reclaimed`. :term:`Allocation <allocate>`
+        continues in the new semi-space until it is full, at which
+        point the process is repeated in reverse.
 
         The main disadvantage of a two-space collector is that it only
         makes use of half of the available memory. This can be

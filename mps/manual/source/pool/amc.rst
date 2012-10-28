@@ -62,8 +62,7 @@ AMC introspection
 
 .. c:function:: void mps_amc_apply(mps_pool_t pool, mps_amc_apply_stepper_t f, void *p, size_t s)
 
-    Visit all :term:`formatted objects <formatted object>` in an
-    AMC pool.
+    Visit all :term:`formatted objects` in an AMC pool.
 
     ``pool`` is the pool whose formatted objects you want to visit.
 
@@ -80,10 +79,10 @@ AMC introspection
     calling :c:func:`mps_amc_apply`.
 
     The function ``f`` will be called on both :term:`client <client
-    object>` and :term:`padding objects <padding object>`. It is the
-    job of ``f`` to distinguish, if necessary, between the two. It may
-    also be called on :term:`dead` objects that the collector has not
-    recycled or has been unable to recycle.
+    object>` and :term:`padding objects`. It is the job of ``f`` to
+    distinguish, if necessary, between the two. It may also be called
+    on :term:`dead` objects that the collector has not recycled or has
+    been unable to recycle.
 
     The function ``f`` may not allocate memory or access any
     automatically-managed memory except within ``object``.
@@ -101,7 +100,7 @@ AMC introspection
 .. c:type:: void (*mps_amc_apply_stepper_t)(mps_addr_t object, void *p, size_t s)
 
     The type of a :term:`stepper function` for :term:`formatted
-    objects <formatted object>` in an AMC pool.
+    objects` in an AMC pool.
 
     ``object`` is the address of an object in the pool.
     

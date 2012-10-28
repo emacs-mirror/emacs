@@ -9,7 +9,7 @@ making it available for allocation.
 
 .. c:type:: mps_pool_t
 
-    The type of :term:`pools <pool>`.
+    The type of :term:`pools`.
 
     A pool is responsible for requesting memory from the :term:`arena`
     and making it available to the :term:`client program` via
@@ -63,19 +63,18 @@ making it available for allocation.
     pool may no longer be used.
 
     It is an error to destroy a pool without first destroying all
-    :term:`allocation points <allocation point>` and :term:`segregated
-    allocation caches <segregated allocation cache>` created in the
-    pool.
+    :term:`allocation points` and :term:`segregated allocation caches`
+    created in the pool.
 
 
 Pool classes
 ------------
 
-Pools belong to :term:`pool classes <pool class>` that specify
-policies for how their memory is managed. Some pools are
-:term:`manually managed <manual memory management>` (you must call
-:c:func:`mps_free` to return a block of memory to the pool) and others
-are :term:`automatically managed <automatic memory management>` (the
+Pools belong to :term:`pool classes` that specify policies for how
+their memory is managed. Some pools are :term:`manually managed
+<manual memory management>` (you must call :c:func:`mps_free` to
+return a block of memory to the pool) and others are
+:term:`automatically managed <automatic memory management>` (the
 :term:`garbage collector` reclaims :term:`unreachable` blocks).
 
 See :ref:`pool` for a list of pool classes.
@@ -83,7 +82,7 @@ See :ref:`pool` for a list of pool classes.
 
 .. c:type:: mps_class_t
 
-    The type of :term:`pool classes <pool class>`.
+    The type of :term:`pool classes`.
 
     .. note::
 

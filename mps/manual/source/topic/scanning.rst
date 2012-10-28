@@ -8,7 +8,7 @@ Scanning
 ========
 
 :term:`Scanning <scan>` is the process of identifying the
-:term:`references <reference>` in a block of memory and
+:term:`references` in a block of memory and
 :term:`"fixing" <fix>` them. It's the process at the heart of the
 Memory Pool System, and the most critical of the memory management
 functions that have to be implemented by the :term:`client program`.
@@ -176,8 +176,7 @@ reassemble and store the updated reference after calling
 Unfixed references
 ------------------
 
-The MPS does not require you to :term:`fix` all your :term:`references
-<reference>`. But if a reference is not fixed:
+The MPS does not require you to :term:`fix` all your :term:`references`. But if a reference is not fixed:
 
 1. it does not keep its target alive (this might be acceptable if you
    know that the target is being kept alive for another reason, for
@@ -271,12 +270,12 @@ Scanning interface
 
 .. c:type:: mps_ss_t
 
-    The type of :term:`scan states <scan state>`.
+    The type of :term:`scan states`.
 
     A scan state represents the state of the current :term:`scan`. The
     MPS passes a scan state to the :term:`scan method` of an
     :term:`object format` when it needs to :term:`scan` for
-    :term:`references <reference>` within a region of memory. The scan
+    :term:`references` within a region of memory. The scan
     method must pass the scan state to :c:func:`MPS_SCAN_BEGIN` and
     :c:func:`MPS_SCAN_END` to delimit a sequence of fix operations,
     and to the functions :c:func:`MPS_FIX1`, :c:func:`MPS_FIX2` and
@@ -343,9 +342,9 @@ Scanning interface
     Between :c:func:`MPS_SCAN_BEGIN` and :c:func:`MPS_SCAN_END`, the
     scan state is in a special state, and must not be passed to a
     function. If you really need to do so, for example because you
-    have a structure shared between two :term:`object formats <object
-    format>`, you must wrap the call with :c:func:`MPS_FIX_CALL` to
-    ensure that the scan state is passed correctly.
+    have a structure shared between two :term:`object formats`, you
+    must wrap the call with :c:func:`MPS_FIX_CALL` to ensure that the
+    scan state is passed correctly.
 
     In example below, the scan method ``obj_scan`` fixes the object's
     ``left`` and ``right`` references, but delegates the scanning of

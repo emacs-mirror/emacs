@@ -348,14 +348,14 @@ Location dependency interface
 
 .. c:type:: mps_ld_t
 
-    The type of :term:`location dependencies <location dependency>`.
-    It is a :term:`transparent alias <transparent type>` for a pointer
-    to :c:type:`mps_ld_s`.
+    The type of :term:`location dependencies`. It is a
+    :term:`transparent alias <transparent type>` for a pointer to
+    :c:type:`mps_ld_s`.
 
     A location dependency records the fact that the :term:`client
-    program` depends on the bit patterns of some :term:`references
-    <reference>` (and not merely on the identity of the :term:`block`
-    to which the reference refers), and provides a function
+    program` depends on the bit patterns of some :term:`references`
+    (and not merely on the identity of the :term:`block` to which the
+    reference refers), and provides a function
     (:c:func:`mps_ld_isstale`) to find out whether any of these
     references have been changed because a block has been :term:`moved
     <moving garbage collector>`.
@@ -412,7 +412,7 @@ Location dependency interface
         :c:func:`mps_ld_reset` on the same location dependency, but it
         is thread-safe with respect to :c:func:`mps_ld_isstale`
         operations. This means that calls to :c:func:`mps_ld_add` from
-        different :term:`threads <thread>` must interlock if they are
+        different :term:`threads` must interlock if they are
         using the same location dependency. The practical upshot of
         this is that there should be a lock associated with each
         location dependency.

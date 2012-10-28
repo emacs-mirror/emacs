@@ -67,11 +67,11 @@ Memory Management Glossary: H
         :term:`allocation <allocate>` and :term:`deallocation <free
         (1)>` of :term:`memory (1)` in arbitrary order.
 
-        Dynamic allocation is usually for :term:`objects <object>`
+        Dynamic allocation is usually for :term:`objects`
         whose size, quantity, or :term:`lifetime` could not be
         determined at compile-time. It is necessary to implement
         modern data structures, such as recursive trees and full
-        :term:`closures <closure>`.
+        :term:`closures`.
 
         Objects on the :term:`heap` can be managed :term:`manually
         <manual memory management>`, as in :term:`C`, or

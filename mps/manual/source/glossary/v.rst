@@ -72,10 +72,10 @@ Memory Management Glossary: V
         .. relevance::
 
             Vector data types are seldom represented using
-            :term:`value objects <value object>`, but may be
-            represented using :term:`leaf objects <leaf object>` if
+            :term:`value objects`, but may be
+            represented using :term:`leaf objects` if
             they are an aggregate of a type that can be represented by
-            :term:`value objects <value object>`. :term:`Scanning
+            :term:`value objects`. :term:`Scanning
             <scan>` information for vectors can be compactly encoded
             in terms of the aggregated type and the vector dimension.
 
@@ -85,24 +85,22 @@ Memory Management Glossary: V
 
         .. aka:: *logical address*.
 
-        In a :term:`virtual memory` system, the :term:`addresses
-        <address>` that application programs deal with are known as
-        *virtual addresses*.
+        In a :term:`virtual memory` system, the :term:`addresses` that
+        application programs deal with are known as *virtual
+        addresses*.
 
         The virtual addresses used by the application program are
         translated by the virtual memory system (often using
-        :term:`translation lookaside buffers <translation lookaside
-        buffer>` and :term:`page tables <page table>`) to
-        :term:`physical addresses <physical address>`. It is the
-        physical address that is used to retrieve the contents from
-        the :term:`memory (3)`.
+        :term:`translation lookaside buffers` and :term:`page tables`)
+        to :term:`physical addresses`. It is the physical address that
+        is used to retrieve the contents from the :term:`memory (3)`.
 
         .. opposite:: :term:`physical address`.
 
     virtual address space
 
         The virtual :term:`address space` is the space of
-        :term:`virtual addresses <virtual address>`.
+        :term:`virtual addresses`.
 
         On :term:`virtual memory` systems, user processes see the
         virtual address space, and commonly have a separate virtual
@@ -117,7 +115,7 @@ Memory Management Glossary: V
         .. aka:: *VM*.
 
         In a *virtual memory* (*VM*) system, the program code deals
-        with :term:`virtual addresses <virtual address>`. Upon use,
+        with :term:`virtual addresses`. Upon use,
         the virtual address is translated by the :term:`MMU` to obtain
         a :term:`physical address` that is used to access
         :term:`physical memory (1)`.
@@ -132,8 +130,8 @@ Memory Management Glossary: V
         :term:`swapped out` to make room.
 
         Each process typically has its own separate :term:`virtual
-        address space` with its own :term:`mappings <mapping>` and
-        :term:`protections <protection>`.
+        address space` with its own :term:`mappings` and
+        :term:`protections`.
 
         .. figure:: ../diagrams/virtual-memory.svg
             :align: center
@@ -144,8 +142,8 @@ Memory Management Glossary: V
             store.
 
         Virtual memory technology can be used in many useful memory
-        management techniques, such as :term:`barriers (1) <barrier
-        (1)>`, copy-on-write, and :term:`memory mapping`.
+        management techniques, such as :term:`barriers (1)`,
+        copy-on-write, and :term:`memory mapping`.
 
             "Virtual" means never knowing where your next byte is
             coming from.
@@ -172,9 +170,8 @@ Memory Management Glossary: V
 
     VM (2)
 
-        In the :term:`PostScript` language, *VM* is the
-        :term:`memory (1)` where the values of the :term:`composite
-        objects <composite object>` reside.
+        In the :term:`PostScript` language, *VM* is the :term:`memory
+        (1)` where the values of the :term:`composite objects` reside.
 
         VM is short for "virtual memory", but this has nothing to do
         with the usual sense of the phrase (see :term:`virtual memory`).

@@ -30,10 +30,9 @@ Memory Management Glossary: S
 
         .. relevance::
 
-            The objects of a scalar data type are :term:`leaf objects
-            <leaf object>`. Scalar data types with bounded magnitude
-            can be represented compactly using :term:`value objects
-            <value object>`.
+            The objects of a scalar data type are :term:`leaf
+            objects`. Scalar data types with bounded magnitude can be
+            represented compactly using :term:`value objects`.
 
         .. historical::
 
@@ -48,7 +47,7 @@ Memory Management Glossary: S
     scan
 
         The examination of an :term:`object` or an area of
-        :term:`memory (2)` to find :term:`references <reference>`,
+        :term:`memory (2)` to find :term:`references`,
         typically as part of :term:`tracing <trace>`.
 
         Scanning examines memory that has been decided to be
@@ -64,7 +63,7 @@ Memory Management Glossary: S
         .. mps:specific::
 
             A function that examines a block of memory to find
-            :term:`references <reference>` and indicate them to the
+            :term:`references` and indicate them to the
             MPS. A scan method forms part of an :term:`object format`.
             See :c:type:`mps_fmt_scan_t`.
 
@@ -75,7 +74,7 @@ Memory Management Glossary: S
             A scan state represents the state of the current
             :term:`scan`. The MPS passes a scan state to the
             :term:`scan method` of an :term:`object format` when it
-            needs to :term:`scan` for :term:`references <reference>`
+            needs to :term:`scan` for :term:`references`
             within a region of memory. Scan states belong to the type
             :c:type:`mps_ss_t`.
 
@@ -108,7 +107,7 @@ Memory Management Glossary: S
 
     segmented addressing
 
-        In segmented addressing, :term:`addresses <address>` are in
+        In segmented addressing, :term:`addresses` are in
         two parts: a segment identifier and an offset into that
         segment.
 
@@ -119,9 +118,10 @@ Memory Management Glossary: S
         address. Segment identifiers may be implicit; for instance,
         they may be obtained from a *current segment* register.
 
-        Segmentation may be layered on top of :term:`virtual memory`, in which case the unsegmented address is a
-        :term:`virtual address`, or not, in which case it is a
-        :term:`physical address`.
+        Segmentation may be layered on top of :term:`virtual memory`,
+        in which case the unsegmented address is a :term:`virtual
+        address`, or not, in which case it is a :term:`physical
+        address`.
 
         Note that, in segmented architectures, you can have a
         two-dimensional :term:`address space`.
@@ -150,9 +150,9 @@ Memory Management Glossary: S
     segregated fit
 
         One of the :term:`segregated free list` class of
-        :term:`allocation mechanisms <allocation mechanism>`. There is
-        an array of :term:`free lists <free list>`, each holding
-        :term:`free blocks <free block>` of a particular range of
+        :term:`allocation mechanisms`. There is
+        an array of :term:`free lists`, each holding
+        :term:`free blocks` of a particular range of
         sizes. The :term:`allocator` identifies the appropriate free
         list and allocates from it (often using a :term:`sequential
         fit` mechanism such as :term:`first fit`). If this fails, a
@@ -173,7 +173,7 @@ Memory Management Glossary: S
 
         A class of :term:`allocation mechanism` which divides the
         :term:`free list` into several subsets, according to the size
-        of the :term:`free blocks <free block>`. A :term:`freed <free
+        of the :term:`free blocks`. A :term:`freed <free
         (1)>` or :term:`coalesced <coalesce>` block is placed on the
         appropriate list. An allocation request is serviced from the
         appropriate list.
@@ -182,8 +182,7 @@ Memory Management Glossary: S
         :term:`best fit` policy.
 
         Variations within this class include :term:`simple segregated
-        storage`, :term:`segregated fit`, and :term:`buddy systems
-        <buddy system>`.
+        storage`, :term:`segregated fit`, and :term:`buddy systems`.
 
         .. bibref:: [WIL95]_.
 
@@ -192,11 +191,11 @@ Memory Management Glossary: S
         .. aka:: *mostly-precise garbage collection*, *mostly-exact garbage collection*.
 
         A variant of :term:`conservative garbage collection` which
-        deals with :term:`exact references <exact reference>` as well
-        as :term:`ambiguous references <ambiguous reference>`.
+        deals with :term:`exact references` as well
+        as :term:`ambiguous references`.
 
         For example, references from the :term:`root set` might be
-        ambiguous, but :term:`objects <object>` on the :term:`heap`
+        ambiguous, but :term:`objects` on the :term:`heap`
         might be fully described and precisely :term:`scanned <scan>`.
 
         .. seealso:: :term:`mostly-copying garbage collection`.
@@ -214,13 +213,13 @@ Memory Management Glossary: S
         collector>`, but can be used for :term:`generational
         collection <generational garbage collection>`.
 
-        The semi-space where :term:`objects <object>` reside at the
-        start of the collection is known as the :term:`fromspace`; the
+        The semi-space where :term:`objects` reside at the start of
+        the collection is known as the :term:`fromspace`; the
         :term:`tospace` is where objects will reside, and where new
-        objects will be :term:`allocated <allocate>`, when the
-        collection is complete.
+        objects will be :term:`allocated`, when the collection is
+        complete.
 
-        .. seealso:: :term:`two space collector <two-space collector>`.
+        .. seealso:: :term:`two-space collector`.
 
     semi-space collector
 
@@ -228,11 +227,10 @@ Memory Management Glossary: S
 
     sequential fit
 
-        A class of :term:`allocation mechanisms <allocation
-        mechanism>` that maintain the :term:`free list` as a single
-        linear list of :term:`free blocks <free block>` (a :term:`free
-        block chain`). Sequential fit mechanisms include :term:`first
-        fit` and :term:`next fit`.
+        A class of :term:`allocation mechanisms` that maintain the
+        :term:`free list` as a single linear list of :term:`free
+        blocks` (a :term:`free block chain`). Sequential fit
+        mechanisms include :term:`first fit` and :term:`next fit`.
 
         To quote [WIL95]_:
 
@@ -243,12 +241,11 @@ Memory Management Glossary: S
             considering sequential fits, it is probably most important
             to keep strategy and policy issues in mind. The classic
             linear-list implementations may not scale well to large
-            :term:`heaps <heap>`, in terms of time costs; as the
+            :term:`heaps`, in terms of time costs; as the
             number of free blocks grows the time to search the list
             may become unacceptable. More efficient and scalable
             techniques are available, using totally or partially
-            ordered trees, or :term:`segregated fits <segregated
-            fit>`.
+            ordered trees, or :term:`segregated fits`.
 
         .. seealso:: :term:`bitmapped fit`, :term:`indexed fit`.
 
@@ -259,19 +256,17 @@ Memory Management Glossary: S
         .. aka:: *SSB*.
 
         A sequential store buffer is a technique for dividing the cost
-        of a :term:`write-barrier <write barrier>` by remembering
-        which :term:`objects <object>` are modified and updating
-        :term:`remembered sets <remembered set>` (and so on) at a
-        later stage.
+        of a :term:`write barrier` by remembering which
+        :term:`objects` are modified and updating :term:`remembered
+        sets` (and so on) at a later stage.
 
         This turns out to be extremely efficient on pipelined
         architectures with branch prediction.
 
     shared memory
 
-        :term:`Memory locations <memory location>` are *shared* if
-        they are in the range of multiple :term:`address spaces
-        <address space>`.
+        :term:`Memory locations` are *shared* if
+        they are in the range of multiple :term:`address spaces`.
 
     simple object
 
@@ -288,8 +283,8 @@ Memory Management Glossary: S
     simple segregated storage
 
         A :term:`segregated free list` :term:`allocation mechanism`
-        which divides :term:`memory (1)` into :term:`pages <page>` or
-        other areas and only allocates :term:`objects <object>` of a
+        which divides :term:`memory (1)` into :term:`pages` or
+        other areas and only allocates :term:`objects` of a
         single size, or small range of sizes, within each area. This
         makes allocation fast and avoids :term:`headers <in-band
         header>`, but may lead to high :term:`external fragmentation`,
@@ -303,7 +298,7 @@ Memory Management Glossary: S
         .. mps:specific::
 
             The term *size* in the documentation always refers to a
-            size that is measured in :term:`bytes <byte (1)>`. The term
+            size that is measured in :term:`bytes (1)`. The term
             *count* is used for the number of elements in an array.
 
     size class
@@ -311,9 +306,9 @@ Memory Management Glossary: S
         .. mps:specific::
 
             A :term:`segregated allocation cache` maintains a reserve
-            of :term:`blocks <block>` in a set of :term:`sizes
-            <size>`: each such size is known as a *size class*. When
-            creating a segregated allocation cache by calling
+            of :term:`blocks` in a set of :term:`sizes`: each such
+            size is known as a *size class*. When creating a
+            segregated allocation cache by calling
             :c:func:`mps_sac_create`, the :term:`client program`
             describes the desired set of size classes by passing an
             array of structures of type :c:type:`mps_sac_class_s`.
@@ -323,8 +318,7 @@ Memory Management Glossary: S
         .. mps:specific::
 
              A :term:`format method` that returns the address of the
-             "next object" in a block of :term:`formatted objects
-             <formatted object>`. See :c:type:`mps_fmt_skip_t`.
+             "next object" in a block of :term:`formatted objects`. See :c:type:`mps_fmt_skip_t`.
 
     smart pointer
 
@@ -337,10 +331,10 @@ Memory Management Glossary: S
         ``operator\*``, ``operator-\>``, etc. can be used as normal.
         Reference counting allows the objects that are referred to
         using the smart pointer class to have their :term:`memory (1)`
-        automatically :term:`reclaimed <reclaim>` when they are no
-        longer :term:`referenced <reference>`. It is a common
-        technique used when trying to solve :term:`memory management`
-        problems in C++ applications.
+        automatically :term:`reclaimed` when they are no longer
+        :term:`referenced`. It is a common technique used when trying
+        to solve :term:`memory management` problems in C++
+        applications.
 
         However, reference counting is not always an appropriate
         memory management technique and smart pointers can be hard to
@@ -356,8 +350,8 @@ Memory Management Glossary: S
         In a :term:`copying collector <copying garbage collection>`,
         when there is a :term:`reference` to an :term:`object` that
         was :term:`condemned <condemned set>`, but has been
-        :term:`transported <transport>`, snap-out is the adjustment of
-        that reference to point to the preserved copy.
+        :term:`transported`, snap-out is the adjustment of that
+        reference to point to the preserved copy.
 
         Typically the first transport leaves a :term:`forwarding
         pointer` that enables the snap-out.
@@ -375,9 +369,9 @@ Memory Management Glossary: S
         Snapshot-at-the-beginning algorithms for :term:`tracing
         <trace>`, :term:`incremental GC <incremental garbage
         collection>` note changes made by the :term:`mutator` to the
-        :term:`graph` of :term:`objects <object>` and update the
+        :term:`graph` of :term:`objects` and update the
         :term:`collector (2)` state to make it trace relevant
-        :term:`edges <edge>` that the mutator deletes.
+        :term:`edges` that the mutator deletes.
 
         In order for the collector to miss a :term:`reachable`
         :term:`object`, the following two conditions need to hold at
@@ -436,19 +430,19 @@ Memory Management Glossary: S
 
         In :term:`Java`, an object is *softly reachable* if it is not
         :term:`strongly reachable` and there is a path from the
-        :term:`roots <root>` to it that contains at least one
+        :term:`roots` to it that contains at least one
         :term:`soft reference` but no :term:`weak (2) <weak reference
-        (2)>` or :term:`phantom references <phantom reference>`.
+        (2)>` or :term:`phantom references`.
 
         When the Java :term:`collector (1)` determines that an object
         is softly reachable, it has the option of clearing the soft
         references involved, which will usually allow the object to be
-        :term:`recycled <recycle>`. The idea is that they will only be
-        cleared if the process is running short of :term:`memory (2)`.
-        If it is done, all soft references involved are cleared, so
-        that the object is no longer softly reachable, and any
-        affected :term:`reference objects <reference object>` which
-        are registered with a queue are enqueued.
+        :term:`recycled`. The idea is that they will only be cleared
+        if the process is running short of :term:`memory (2)`. If it
+        is done, all soft references involved are cleared, so that the
+        object is no longer softly reachable, and any affected
+        :term:`reference objects` which are registered with a queue
+        are enqueued.
 
         .. seealso:: :term:`reachability <reachable>`, :term:`weakly reachable`, :term:`phantom reachable`.
 
@@ -512,7 +506,7 @@ Memory Management Glossary: S
     stack
 
         A stack is a LIFO (last in, first out) collection:
-        :term:`objects <object>` may be *pushed* onto the stack, and
+        :term:`objects` may be *pushed* onto the stack, and
         *popped* off it in reverse order of pushing.
 
         When people say "the stack", they usually mean the
@@ -594,7 +588,7 @@ Memory Management Glossary: S
             prescribe the size and type of data that can be stored in
             a stack frame. Knowledge of the layout of each stack frame
             may assist a :term:`garbage collector` in finding
-            :term:`roots <root>`.
+            :term:`roots`.
 
         .. similar:: :term:`activation record`.
 
@@ -610,7 +604,7 @@ Memory Management Glossary: S
         :term:`memory (1)` before the program starts and retention
         until the end.
 
-        The locations of :term:`objects <object>` are basically
+        The locations of :term:`objects` are basically
         decided at compile-time, although they might be
         :term:`relocated <relocation>` at load-time. This implies the
         sizes of the objects must be known then.
@@ -659,7 +653,7 @@ Memory Management Glossary: S
         <static allocation>` objects are stored is sometimes known as
         *static memory*. In the context of :term:`garbage collection`,
         the term is used mean memory used to store :term:`static
-        objects <static object>`.
+        objects`.
 
         .. seealso:: :term:`static storage duration`.
 
@@ -679,14 +673,13 @@ Memory Management Glossary: S
         In :term:`C` and :term:`C++`, the ``static`` keyword applied
         to a file scope variable or function means it is local to the
         file; the ``static`` keyword applied to a function or a block
-        scope variable means it is :term:`allocated <allocate>` and
-        initialized once only.
+        scope variable means it is :term:`allocated` and initialized
+        once only.
 
-        Objects declared locally in blocks with the
-        ``static`` keyword are :term:`allocated <allocate>`
-        in :term:`static memory (2)`, and initialized once (usually by
-        the compiler/linker) instead of each time the block is
-        entered.
+        Objects declared locally in blocks with the ``static`` keyword
+        are :term:`allocated` in :term:`static memory (2)`, and
+        initialized once (usually by the compiler/linker) instead of
+        each time the block is entered.
 
         Static variables within functions retain their value between
         function invocations, and therefore must form part of the
@@ -706,7 +699,7 @@ Memory Management Glossary: S
             collection. For example, a stepper function of type
             :c:type:`mps_formatted_objects_stepper_t` can be passed to
             :c:func:`mps_arena_formatted_objects_walk` and it will be
-            called on all :term:`formatted objects <formatted object>`
+            called on all :term:`formatted objects`
             in an :term:`arena`.
 
     sticky reference count
@@ -740,8 +733,7 @@ Memory Management Glossary: S
         hierarchy*, in which the topmost levels (those nearest the
         processor) are fastest, most expensive and smallest.
 
-        Levels typically include processor :term:`registers
-        <register>`, possibly some levels of :term:`cache (1)`,
+        Levels typically include processor :term:`registers`, possibly some levels of :term:`cache (1)`,
         :term:`main memory`, and possibly some levels of
         :term:`backing store`.
 
@@ -770,8 +762,7 @@ Memory Management Glossary: S
 
     store (1)
 
-        To transfer data from a processor's :term:`registers
-        <register>` to :term:`memory (2)`.
+        To transfer data from a processor's :term:`registers` to :term:`memory (2)`.
 
         Store can also be used in the more general sense of
         transferring data from a part of the :term:`memory hierarchy`
@@ -819,8 +810,7 @@ Memory Management Glossary: S
     strong root
 
         A strong root is a :term:`root` such that all
-        :term:`references <reference>` in it are :term:`strong
-        references <strong reference>`.
+        :term:`references` in it are :term:`strong references`.
 
         A strong root is the usual sort of root. The term is usually
         used to draw a contrast with :term:`weak root`.
@@ -863,9 +853,9 @@ Memory Management Glossary: S
     strongly reachable
 
         In :term:`Java`, an object is *strongly reachable*, if there
-        is a path from the :term:`roots <root>` to it that contains
-        only :term:`strong references <strong reference>`, that is,
-        contains no :term:`reference objects <reference object>`.
+        is a path from the :term:`roots` to it that contains
+        only :term:`strong references`, that is,
+        contains no :term:`reference objects`.
 
         .. seealso:: :term:`reachability <reachable>`, :term:`softly reachable`, :term:`weakly reachable`, :term:`phantom reachable`.
 
@@ -879,7 +869,7 @@ Memory Management Glossary: S
         another allocator.
 
         Suballocators work by :term:`allocating <allocate>` large
-        :term:`blocks <block>` and :term:`splitting <split>` them for
+        :term:`blocks` and :term:`splitting <split>` them for
         use, or by :term:`recycling <recycle>` blocks locally.
 
         Application programmers sometimes write their own
@@ -898,8 +888,8 @@ Memory Management Glossary: S
     subgraph
 
         A subgraph S of a :term:`graph` G is a graph such that all the
-        :term:`nodes <node>` in S are also in G and all the
-        :term:`edges <edge>` in S are also in G; that is, it is a part
+        :term:`nodes` in S are also in G and all the
+        :term:`edges` in S are also in G; that is, it is a part
         of a graph.
 
     sure reference
@@ -955,7 +945,7 @@ Memory Management Glossary: S
         blocks.
 
         Sweeping typically gathers all unmarked blocks into one or
-        more :term:`free lists <free list>`.
+        more :term:`free lists`.
 
         .. seealso:: :term:`marking`.
 
@@ -966,8 +956,7 @@ Memory Management Glossary: S
         only when a collection function is called.
 
         This means that mutator need not ensure that :term:`formatted
-        objects <formatted object>` are always :term:`scannable
-        <scan>`, as long as it makes them scannable before the
-        collector runs.
+        objects` are always :term:`scannable <scan>`, as long as it
+        makes them scannable before the collector runs.
 
         .. opposite:: :term:`asynchronous garbage collector`.

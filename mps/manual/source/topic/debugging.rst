@@ -7,14 +7,14 @@
 Debugging pools
 ===============
 
-Several :term:`pool classes <pool class>` have debugging counterparts
-that provide two features that are useful for debugging:
+Several :term:`pool classes` have debugging counterparts that provide
+two features that are useful for debugging:
 
 * :dfn:`fenceposts` are patterns of data that are written before and
   after each allocated block. These patterns can be checked, for
   example when the block is deallocated, to see that they are
   unchanged. This helps detect underwriting and :term:`overwriting
-  errors <overwriting error>`.
+  errors`.
 
 * :dfn:`free space splatting` overwrites recycled space with a pattern
   of data. If the pattern is designed so that it does not resemble a
@@ -53,8 +53,7 @@ For example::
 .. c:type:: mps_pool_debug_option_s
 
     The type of the structure used to pass options to
-    :c:func:`mps_pool_create` for debugging :term:`pool classes <pool
-    class>`. ::
+    :c:func:`mps_pool_create` for debugging :term:`pool classes`. ::
 
         typedef struct mps_pool_debug_option_s {
             void  *fence_template;
@@ -63,12 +62,11 @@ For example::
             size_t free_size;
         } mps_pool_debug_option_s;
 
-    ``fence_template`` points to a template for :term:`fenceposts
-    <fencepost>`.
+    ``fence_template`` points to a template for :term:`fenceposts`.
 
     ``fence_size`` is the :term:`size` of ``fence_template`` in
-    :term:`bytes <byte (1)>`, or zero if the debugging pool should not
-    use fenceposts.
+    :term:`bytes (1)`, or zero if the debugging pool should not use
+    fenceposts.
 
     ``free_template`` points to a template for splatting free space.
 
@@ -92,7 +90,7 @@ For example::
 
 .. c:function:: void mps_pool_check_fenceposts(mps_pool_t pool)
 
-    Check all the :term:`fenceposts <fencepost>` in a :term:`pool`.
+    Check all the :term:`fenceposts` in a :term:`pool`.
 
     ``pool`` is the pool whose fenceposts are to be checked.
 
@@ -105,7 +103,7 @@ For example::
 .. c:function:: void mps_pool_check_free_space(mps_pool_t mps_pool)
 
     Check all the free space in a :term:`pool` for :term:`overwriting
-    errors <overwriting error>`
+    errors`.
 
     ``pool`` is the pool whose free space is to be checked.
 

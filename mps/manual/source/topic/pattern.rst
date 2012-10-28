@@ -18,7 +18,7 @@ and :c:func:`mps_alloc_pattern_ramp_collect_all`.
 
 .. c:type:: mps_alloc_pattern_t
 
-    The type of :term:`allocation patterns <allocation pattern>`.
+    The type of :term:`allocation patterns`.
 
 
 .. c:function:: mps_res_t mps_ap_alloc_pattern_begin(mps_ap_t ap, mps_alloc_pattern_t alloc_pattern)

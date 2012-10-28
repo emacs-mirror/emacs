@@ -16,7 +16,7 @@ Memory Management Glossary: K
 
         .. aka:: *kB*.
 
-        A kilobyte is 1024 :term:`bytes (1) <byte (1)>`.
+        A kilobyte is 1024 :term:`bytes (1)`.
 
         See :term:`byte (1)` for general information on this and
         related quantities.

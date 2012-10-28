@@ -26,9 +26,8 @@ Memory Management Glossary: M
         cache).
 
         Main memory is the middle level of the :term:`memory
-        hierarchy`: it is slower and cheaper than :term:`caches (1)
-        <cache (1)>`, but faster and more expensive than
-        :term:`backing store`.
+        hierarchy`: it is slower and cheaper than :term:`caches (1)`,
+        but faster and more expensive than :term:`backing store`.
 
         It is common to refer only to the main memory of a computer;
         for example, "This box has 16 MB of memory" and "Word for
@@ -72,11 +71,10 @@ Memory Management Glossary: M
             difficult bookkeeping task C++ programmers face, that
             leads to two opposite problems: firstly, an object can be
             :term:`deallocated <free (1)>` prematurely, while valid
-            :term:`references <reference>` still exist
-            (:term:`dangling pointers <dangling pointer>`); secondly,
+            :term:`references` still exist
+            (:term:`dangling pointers`); secondly,
             :term:`dead` objects might not be deallocated, leading to
-            memory filling up with dead objects (:term:`memory leaks
-            <memory leak>`). Attempts to correct either problem can
+            memory filling up with dead objects (:term:`memory leaks`). Attempts to correct either problem can
             lead to overcompensation and the opposite problem
             occurring. A correct system is a fine balance.
 
@@ -93,15 +91,15 @@ Memory Management Glossary: M
 
         .. mps:specific::
 
-            Manual memory management can be used with :term:`pools
-            <pool>` such as :ref:`pool-mvff` via the functions
+            Manual memory management can be used with :term:`pools`
+            such as :ref:`pool-mvff` via the functions
             :c:func:`mps_alloc` and :c:func:`mps_free`.
 
     mapped
 
         .. aka:: *committed*.
 
-        A range of :term:`virtual addresses <virtual address>` is said
+        A range of :term:`virtual addresses` is said
         to be *mapped* (*committed* on Windows) if there is
         :term:`physical memory (2)` associated with the range.
 
@@ -121,7 +119,7 @@ Memory Management Glossary: M
     mapping
 
         A *mapping* is a correspondence between a range of
-        :term:`virtual addresses <virtual address>` and some
+        :term:`virtual addresses` and some
         :term:`memory (1)` (or a :term:`memory-mapped <memory
         mapping>` object). The physical location of the memory will be
         managed by the :term:`virtual memory` system.
@@ -148,7 +146,7 @@ Memory Management Glossary: M
 
         Mark-compact collection is a kind of :term:`tracing garbage
         collection` that operates by :term:`marking` :term:`reachable`
-        :term:`objects <object>`, then :term:`compacting <compaction>`
+        :term:`objects`, then :term:`compacting <compaction>`
         the marked objects (which must include all the :term:`live`
         objects).
 
@@ -158,14 +156,13 @@ Memory Management Glossary: M
         objects and update references. As a result of compaction, all
         the marked objects are moved into a single contiguous
         :term:`block` of memory (or a small number of such blocks);
-        the memory left unused after compaction is :term:`recycled
-        <recycle>`.
+        the memory left unused after compaction is :term:`recycled`.
 
         Mark-compact collection can be regarded as a variation of
         :term:`mark-sweep collection <mark-sweep>`, with extra effort
         spent to eliminate the resulting :term:`fragmentation`.
         Compaction also allows the use of more efficient
-        :term:`allocation mechanisms <allocation mechanism>`, by
+        :term:`allocation mechanisms`, by
         making large free blocks available.
 
         .. bibref:: [EDWARDS]_.
@@ -175,7 +172,7 @@ Memory Management Glossary: M
 
         Mark-sweep collection is a kind of :term:`tracing garbage
         collection` that operates by :term:`marking` :term:`reachable`
-        :term:`objects <object>`, then :term:`sweeping` over
+        :term:`objects`, then :term:`sweeping` over
         :term:`memory (2)` and :term:`recycling <recycle>` objects
         that are unmarked (which must be :term:`unreachable`), putting
         them on a :term:`free list`.
@@ -199,9 +196,9 @@ Memory Management Glossary: M
 
         Marking is the first phase ("the mark phase") of the
         :term:`mark-sweep` algorithm or :term:`mark-compact`
-        algorithm. It follows all :term:`references <reference>` from
-        a set of :term:`roots <root>` to mark all the
-        :term:`reachable` :term:`objects <object>`.
+        algorithm. It follows all :term:`references` from
+        a set of :term:`roots` to mark all the
+        :term:`reachable` :term:`objects`.
 
         Marking follows :term:`reference` chains and makes some sort
         of mark for each object it reaches.
@@ -222,8 +219,8 @@ Memory Management Glossary: M
 
         .. aka:: *MB*.
 
-        A megabyte is 1024 :term:`kilobytes <kilobyte>`, or 1048576
-        :term:`bytes (1) <byte (1)>`.
+        A megabyte is 1024 :term:`kilobytes`, or 1048576
+        :term:`byte (1)`.
 
         See :term:`byte (1)` for general information on this and
         related quantities.
@@ -247,7 +244,8 @@ Memory Management Glossary: M
 
         .. historical::
 
-            "Store" is old-fashioned, but survives in expressions such as ":term:`backing store`".
+            "Store" is old-fashioned, but survives in expressions such
+            as ":term:`backing store`".
 
     memory (2)
 
@@ -289,20 +287,19 @@ Memory Management Glossary: M
 
         .. aka:: *leak*, *space leak*, *space-leak*.
 
-        A memory leak is where :term:`allocated <allocate>`
-        :term:`memory (2)` is not :term:`freed <free (1)>` although it
-        is never used again.
+        A memory leak is where :term:`allocated` :term:`memory (2)` is
+        not :term:`freed (1)` although it is never used again.
 
         In :term:`manual memory management`, this usually occurs
-        because :term:`objects <object>` become :term:`unreachable`
-        without being :term:`freed <free (1)>`.
+        because :term:`objects` become :term:`unreachable` without
+        being :term:`freed (1)`.
 
         In :term:`tracing garbage collection`, this happens when
         objects are :term:`reachable` but not :term:`live`.
 
         In :term:`reference counting`, this happens when objects are
-        :term:`referenced <reference>` but not :term:`live`. (Such
-        objects may or may not be :term:`reachable`.)
+        :term:`referenced` but not :term:`live`. (Such objects may or
+        may not be :term:`reachable`.)
 
         Repeated memory leaks cause the memory usage of a process to
         grow without bound.
@@ -314,7 +311,7 @@ Memory Management Glossary: M
         Each separately-:term:`addressable <address>` unit of
         :term:`memory (2)` in which data can be stored is called a
         *memory location*. Usually, these hold a :term:`byte (2)`, but
-        the term can refer to :term:`words <word>`.
+        the term can refer to :term:`words`.
 
     memory management
 
@@ -326,10 +323,11 @@ Memory Management Glossary: M
 
         Memory management can be divided into three areas:
 
-        1. Memory management hardware (:term:`MMUs <mmu>`,
+        1. Memory management hardware (:term:`MMUs`,
            :term:`RAM`, etc.);
 
-        2. Operating system memory management (:term:`virtual memory`, :term:`protection`);
+        2. Operating system memory management (:term:`virtual memory`,
+           :term:`protection`);
 
         3. Application memory management (:term:`allocation
            <allocate>`, :term:`deallocation <free (1)>`, :term:`garbage
@@ -338,8 +336,8 @@ Memory Management Glossary: M
         Memory management hardware consists of the electronic devices
         and associated circuitry that store the state of a computer.
         These devices include RAM, MMUs (memory management units),
-        :term:`caches (1) <cache (1)>`, disks, and processor
-        :term:`registers <register>`. The design of memory hardware is
+        :term:`cache (1)`, disks, and processor
+        :term:`registers`. The design of memory hardware is
         critical to the performance of modern computer systems. In
         fact, :term:`memory bandwidth` is perhaps the main limiting
         factor on system performance.
@@ -444,7 +442,7 @@ Memory Management Glossary: M
 
         .. mps:specific::
 
-            A queue of :term:`messages <message>` posted by an
+            A queue of :term:`messages` posted by an
             :term:`arena`. It can be queried by calling
             :c:func:`mps_message_poll`,
             :c:func:`mps_message_queue_type`, or
@@ -487,12 +485,12 @@ Memory Management Glossary: M
         the proportion of accesses which :term:`miss`.
 
         Because misses are very costly, each level is designed to
-        minimize the miss rate. For instance, in :term:`caches (1)
-        <cache (1)>`, miss rates of about 0.01 may be acceptable,
-        whereas in :term:`virtual memory` systems, acceptable miss
-        rates are much lower (say 0.00005). If a system has a miss
-        rate which is too high, it will spend most of its time
-        servicing the misses, and is said to :term:`thrash`.
+        minimize the miss rate. For instance, in :term:`caches (1)`,
+        miss rates of about 0.01 may be acceptable, whereas in
+        :term:`virtual memory` systems, acceptable miss rates are much
+        lower (say 0.00005). If a system has a miss rate which is too
+        high, it will spend most of its time servicing the misses, and
+        is said to :term:`thrash`.
 
         Miss rates may also be given as a number of misses per unit
         time, or per instruction.
@@ -503,7 +501,7 @@ Memory Management Glossary: M
 
         ``mmap`` is a system call provided on many Unix systems to
         create a :term:`mapping` for a range of :term:`virtual
-        addresses <virtual address>`.
+        addresses`.
 
     MMU
 
@@ -514,10 +512,10 @@ Memory Management Glossary: M
         by the main processor.
 
         This typically involves translation of :term:`virtual
-        addresses <virtual address>` to :term:`physical addresses
-        <physical address>`, :term:`cache (1)` control, bus
-        arbitration, :term:`memory protection`, and the generation of
-        various exceptions. Not all processors have an MMU.
+        addresses` to :term:`physical addresses`, :term:`cache (1)`
+        control, bus arbitration, :term:`memory protection`, and the
+        generation of various exceptions. Not all processors have an
+        MMU.
 
         .. seealso:: :term:`virtual memory`, :term:`page fault`, :term:`segmentation violation`.
 
@@ -526,9 +524,8 @@ Memory Management Glossary: M
 
         A type of :term:`semi-conservative <semi-conservative garbage
         collection>` :term:`tracing garbage collection` which permits
-        :term:`objects <object>` to :term:`move <moving garbage
-        collector>` if no :term:`ambiguous references <ambiguous
-        reference>` point to them.
+        :term:`objects` to :term:`move <moving garbage collector>` if
+        no :term:`ambiguous references` point to them.
 
         The techniques used are a hybrid of :term:`copying garbage
         collection` and :term:`mark-sweep`.
@@ -553,8 +550,8 @@ Memory Management Glossary: M
     moving memory manager
 
         A memory manager (often a :term:`garbage collector`) is said
-        to be *moving* if :term:`allocated <allocate>` :term:`objects
-        <object>` can move during their lifetimes.
+        to be *moving* if :term:`allocated` :term:`objects` can move
+        during their lifetimes.
 
         .. relevance::
 
@@ -580,8 +577,7 @@ Memory Management Glossary: M
         .. aka:: *client program*.
 
         In a :term:`garbage-collected <garbage collection>` system,
-        the part that executes the user code, which :term:`allocates
-        <allocate>` :term:`objects <object>` and modifies, or
+        the part that executes the user code, which :term:`allocates` :term:`objects` and modifies, or
         *mutates*, them.
 
         For purposes of describing :term:`incremental garbage
@@ -595,8 +591,7 @@ Memory Management Glossary: M
         collector is to perform a little of it at every allocation.
 
         While the mutator mutates, it implicitly :term:`frees <free
-        (1)>` :term:`memory (1)` by overwriting :term:`references
-        <reference>`.
+        (1)>` :term:`memory (1)` by overwriting :term:`references`.
 
         .. historical::
 
