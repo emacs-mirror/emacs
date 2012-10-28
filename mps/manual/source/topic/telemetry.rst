@@ -265,9 +265,9 @@ Telemetry labels
 
 Typical uses of telemetry labels include:
 
-- Label pools with a human-meaningful name;
+* labelling pools with a human-meaningful name;
 
-- Label allocated objects with their type or class.
+* labelling allocated objects with their type, class, or other description.
 
 
 .. c:function:: mps_word_t mps_telemetry_intern(char *label)
@@ -287,9 +287,9 @@ Typical uses of telemetry labels include:
 
     .. note::
 
-        "User" events must be turned on in the :term:`telemetry
-        filter` (via :c:func:`mps_telemetry_control`) before this
-        function is invoked.
+        The ``User`` event category must be turned on in the
+        :term:`telemetry filter` (via :c:func:`mps_telemetry_control`)
+        before calling this function.
 
 
 .. c:function:: void mps_telemetry_label(mps_addr_t addr, mps_word_t label)
@@ -307,5 +307,6 @@ Typical uses of telemetry labels include:
 
     .. note::
 
-       "User" events must be selected in the :term:`telemetry filter`
-       via :c:func:`mps_telemetry_control`.
+        The ``User`` event category must be selected in the
+        :term:`telemetry filter` (via :c:func:`mps_telemetry_control`)
+        before calling this function.

@@ -49,15 +49,16 @@ a forward method). To accommodate this variance, it is possible to
 construct object formats from different collections of format methods
 and values. Such a collection is called a *format variant*.
 
-There are three supported format variants:
+There are three supported format variants. All are suitable for
+copying and moving pools.
 
-* Variant A (:c:type:`mps_fmt_A_s`): suitable for copying and moving
-  pools.
+* Variant A (:c:type:`mps_fmt_A_s`): for objects without
+  :term:`headers <in-band header>`.
 
 * Variant B (:c:type:`mps_fmt_A_s`): as variant A, but with the
   addition of a class method.
 
-* Variant auto_header (:c:type:`mps_fmt_auto_header_s`): for objects
+* Variant auto-header (:c:type:`mps_fmt_auto_header_s`): for objects
   with :term:`headers <in-band header>`.
 
 The client program creates an object format by construct a format
@@ -197,7 +198,7 @@ For example::
 .. c:type:: mps_fmt_auto_header_s
 
     The type of the structure used to create an :term:`object format`
-    of variant auto_header. ::
+    of variant auto-header. ::
 
         typedef struct mps_fmt_auto_header_s {
             mps_align_t     align;
@@ -209,7 +210,7 @@ For example::
             size_t          mps_headerSize;
         } mps_fmt_auto_header_s;
 
-    Variant auto_header is the same as variant A except for the
+    Variant auto-header is the same as variant A except for the
     removal of the unused ``copy`` method, and the addition of the
     ``mps_headerSize`` field. See :c:type:`mps_fmt_A_s`.
 
@@ -255,13 +256,13 @@ For example::
 
     .. note::
 
-        Variant auto_header is only supported by :ref:`pool-amc` and
+        Variant auto-header is only supported by :ref:`pool-amc` and
         :ref:`pool-amcz`.
 
 
 .. c:function:: mps_res_t mps_fmt_create_auto_header(mps_fmt_t *fmt_o, mps_arena_t arena, mps_fmt_auto_header_s *fmt_ah)
 
-    Create an :term:`object format` of variant auto_header.
+    Create an :term:`object format` of variant auto-header.
 
     ``fmt_o`` points to a location that will hold the address of the new
     object format.
@@ -269,7 +270,7 @@ For example::
     ``arena`` is the arena in which to create the format.
 
     ``fmt_ah`` points to a description of an object format of variant
-    auto_header.
+    auto-header.
 
     Returns :c:macro:`MPS_RES_OK` if successful. The MPS may exhaust
     some resource in the course of
@@ -484,11 +485,14 @@ Format methods
     Returns the address of the "next object". In an object format
     without headers (for example, a format of variant A), this is the
     address just past the end of this object. In an object format with
-    headers (for example, a format of variant auto_header), it's the
+    headers (for example, a format of variant auto-header), it's the
     address just past where the header of next object would be, if
-    there were one. It is always the case that the difference between
-    ``addr`` and the return value is the size of the block containing
-    the object.
+    there were one.
+
+    .. note::
+
+        In either case, the result is the sum of ``addr`` and the size
+        of the block containing the object.
 
     A skip method is not allowed to fail.
 

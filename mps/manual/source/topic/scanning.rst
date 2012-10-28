@@ -74,7 +74,7 @@ passing them to :c:func:`MPS_FIX1` and :c:func:`MPS_FIX2`.
 
 The reference passed to :c:func:`MPS_FIX2` must be the address of the
 base of the block referred to (unless the referent belongs to an
-:term:`object format` of variant auto_header, in which case it must be
+:term:`object format` of variant auto-header, in which case it must be
 a reference to the address just after the header).
 
 However, :c:func:`MPS_FIX1` allows some leeway: if you pass it a
@@ -105,7 +105,7 @@ is not of interest to the MPS.
 Similarly, if you use interior pointers, you do not need to convert
 them to base pointers before calling :c:func:`MPS_FIX1` (or, indeed,
 before calling :c:func:`MPS_FIX2`, if the target of the referent
-belongs to an :term:`object format` of variant auto_header).
+belongs to an :term:`object format` of variant auto-header).
 
 
 Critical path
@@ -439,13 +439,14 @@ Fixing interface
 
         If your reference is :term:`tagged <tagged reference>` (or
         otherwise "encrypted"), you must remove the tag (or otherwise
-        decrupt the reference) before calling :c:func:`MPS_FIX2`, and
+        decrypt the reference) before calling :c:func:`MPS_FIX2`, and
         restore the tag to the (possibly updated) reference
         afterwards.
 
         The only exception is for references to objects belonging to a
-        format of variant auto_header: these references must not
-        subtract the header size.
+        format of variant auto-header (see
+        :c:type:`mps_fmt_auto_header_s`): the header size must not be
+        subtracted from these references.
 
     .. note::
 
