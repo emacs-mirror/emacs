@@ -272,6 +272,9 @@ typedef BOOL (WINAPI *GetThreadTimes_Proc) (
 
 static GetThreadTimes_Proc s_pfn_Get_Thread_Times;
 
+#define MAX_SINGLE_SLEEP    30
+#define TIMER_TICKS_PER_SEC 1000
+
 /* Return a suitable time value, in 1-ms units, for THREAD, a handle
    to a thread.  If THREAD is NULL or an invalid handle, return the
    current wall-clock time since January 1, 1601 (UTC).  Otherwise,
@@ -282,6 +285,8 @@ w32_get_timer_time (HANDLE thread)
 {
   ULONGLONG retval;
   int use_system_time = 1;
+  /* The functions below return times in 100-ns units.  */
+  const int tscale = 10 * TIMER_TICKS_PER_SEC;
 
   if (thread && thread != INVALID_HANDLE_VALUE
       && s_pfn_Get_Thread_Times != NULL)
@@ -300,8 +305,8 @@ w32_get_timer_time (HANDLE thread)
 	  temp_user.LowPart = user_ftime.dwLowDateTime;
 	  temp_user.HighPart = user_ftime.dwHighDateTime;
 	  retval =
-	    temp_creation.QuadPart / 10000 + temp_kernel.QuadPart / 10000
-	    + temp_user.QuadPart / 10000;
+	    temp_creation.QuadPart / tscale + temp_kernel.QuadPart / tscale
+	    + temp_user.QuadPart / tscale;
 	}
       else
 	DebPrint (("GetThreadTimes failed with error code %lu\n",
@@ -318,13 +323,11 @@ w32_get_timer_time (HANDLE thread)
       temp.LowPart = current_ftime.dwLowDateTime;
       temp.HighPart = current_ftime.dwHighDateTime;
 
-      retval = temp.QuadPart / 10000;
+      retval = temp.QuadPart / tscale;
     }
 
   return retval;
 }
-
-#define MAX_SINGLE_SLEEP 30
 
 /* Thread function for a timer thread.  */
 static DWORD WINAPI
@@ -334,7 +337,7 @@ timer_loop (LPVOID arg)
   int which = itimer->type;
   int sig = (which == ITIMER_REAL) ? SIGALRM : SIGPROF;
   CRITICAL_SECTION *crit = (which == ITIMER_REAL) ? &crit_real : &crit_prof;
-  const DWORD max_sleep = MAX_SINGLE_SLEEP * 1000 / CLOCKS_PER_SEC;
+  const DWORD max_sleep = MAX_SINGLE_SLEEP * 1000 / TIMER_TICKS_PER_SEC;
   HANDLE hth = (which == ITIMER_REAL) ? NULL : itimer->caller_thread;
 
   while (1)
@@ -379,7 +382,7 @@ timer_loop (LPVOID arg)
 	return 0;
       if (sleep_time > 0)
 	{
-	  Sleep (sleep_time * 1000 / CLOCKS_PER_SEC);
+	  Sleep (sleep_time * 1000 / TIMER_TICKS_PER_SEC);
 	  /* Always sleep past the expiration time, to make sure we
 	     never call the handler _before_ the expiration time,
 	     always slightly after it.  Sleep(5) makes sure we don't
@@ -629,11 +632,13 @@ getitimer (int which, struct itimerval *value)
   if (expire)
     expire -= ticks_now;
 
-  value->it_value.tv_sec    = expire / CLOCKS_PER_SEC;
-  usecs = (expire % CLOCKS_PER_SEC) * (__int64)1000000 / CLOCKS_PER_SEC;
+  value->it_value.tv_sec    = expire / TIMER_TICKS_PER_SEC;
+  usecs =
+    (expire % TIMER_TICKS_PER_SEC) * (__int64)1000000 / TIMER_TICKS_PER_SEC;
   value->it_value.tv_usec   = usecs;
-  value->it_interval.tv_sec = reload / CLOCKS_PER_SEC;
-  usecs = (reload % CLOCKS_PER_SEC) * (__int64)1000000 / CLOCKS_PER_SEC;
+  value->it_interval.tv_sec = reload / TIMER_TICKS_PER_SEC;
+  usecs =
+    (reload % TIMER_TICKS_PER_SEC) * (__int64)1000000 / TIMER_TICKS_PER_SEC;
   value->it_interval.tv_usec= usecs;
 
   return 0;
@@ -690,26 +695,26 @@ setitimer(int which, struct itimerval *value, struct itimerval *ovalue)
       return 0;
     }
 
-  reload = value->it_interval.tv_sec * CLOCKS_PER_SEC;
+  reload = value->it_interval.tv_sec * TIMER_TICKS_PER_SEC;
 
   usecs = value->it_interval.tv_usec;
   if (value->it_interval.tv_sec == 0
-      && usecs && usecs * CLOCKS_PER_SEC < clocks_min * 1000000)
+      && usecs && usecs * TIMER_TICKS_PER_SEC < clocks_min * 1000000)
     reload = clocks_min;
   else
     {
-      usecs *= CLOCKS_PER_SEC;
+      usecs *= TIMER_TICKS_PER_SEC;
       reload += usecs / 1000000;
     }
 
-  expire = value->it_value.tv_sec * CLOCKS_PER_SEC;
+  expire = value->it_value.tv_sec * TIMER_TICKS_PER_SEC;
   usecs = value->it_value.tv_usec;
   if (value->it_value.tv_sec == 0
-      && usecs * CLOCKS_PER_SEC < clocks_min * 1000000)
+      && usecs * TIMER_TICKS_PER_SEC < clocks_min * 1000000)
     expire = clocks_min;
   else
     {
-      usecs *= CLOCKS_PER_SEC;
+      usecs *= TIMER_TICKS_PER_SEC;
       expire += usecs / 1000000;
     }
 

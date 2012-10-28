@@ -1,3 +1,12 @@
+2012-10-28  Eli Zaretskii  <eliz@gnu.org>
+
+	* w32proc.c (TIMER_TICKS_PER_SEC): New macro.
+	(timer_loop, getitimer, setitimer): Use it instead of
+	CLOCKS_PER_SEC, which is no longer pertinent, since we don't use
+	'clock'.
+	(w32_get_timer_time): Use 10*TIMER_TICKS_PER_SEC instead of a
+	literal 10000.
+
 2012-10-28  Jan Djärv  <jan.h.d@swipnet.se>
 
 	* nsterm.m (NO_APPDEFINED_DATA): New define.
