@@ -94,17 +94,17 @@ Identifiers
 Types
 -----
 
-1.  There are three kinds of types declared in the MPS interface:
-    *transparent types*, *opaque types*, and *derived types*. See below.
+There are three kinds of types declared in the MPS interface:
+*transparent types*, *opaque types*, and *derived types*. See below.
 
-2.  A *transparent type* is an alias defined using ``typedef``, and this
+1.  A *transparent type* is an alias defined using ``typedef``, and this
     is documented so that the :term:`client program` can rely on that
     fact. For example, :c:type:`mps_addr_t` is a transparent alias for
     ``void *``. Transparent types express intentions in the interface:
     in the case of :c:type:`mps_addr_t` it represents a pointer that
     is under the control of the MPS.
 
-3.  An *opaque type* is a pointer to an incomplete structure type. The
+2.  An *opaque type* is a pointer to an incomplete structure type. The
     client program must not rely on details of its implementation. For
     example, the type :c:type:`mps_arena_t` is an alias for ``struct
     mps_arena_s *``, but the implementation of ``struct mps_arena_s``
@@ -117,7 +117,7 @@ Types
     scanning macros such as :c:func:`MPS_SCAN_BEGIN` and
     :c:func:`MPS_FIX12`.
 
-4.  A *derived type* is a structure or function type based on
+3.  A *derived type* is a structure or function type based on
     transparent and opaque types and on built-in C types. The degree
     to which you may or must depend upon the implementation of a
     derived type is covered by the documentation for the type. For
@@ -157,18 +157,19 @@ Functions
 Type punning
 ------------
 
-It's tempting to use a type cast to change the type of a in/out or out
-parameter, like this::
+It's tempting to use a type cast to change the type of an in/out or
+out parameter, like this::
 
     /* allocate a struct foo */
     struct foo *fp;
     res = mps_alloc((mps_addr_t *)&fp, pool, sizeof(struct foo));
 
-This is known as :term:`type punning`, and its behaviour is undefined
-in ANSI/ISO Standard C. (See §6.3.2.3, which defines the conversion of
-a pointer from one type to another: the behaviour of this cast is not
-covered by any of the cases in the standard.) Instead, we recommend
-this approach::
+This is known as :term:`type punning`, and its behaviour is not
+defined in ANSI/ISO Standard C. See §6.3.2.3, which defines the
+conversion of a pointer from one type to another: the behaviour of
+this cast is not covered by any of the cases in the standard.
+
+Instead, we recommend this approach::
 
     mps_addr_t p;
     struct foo *fp;

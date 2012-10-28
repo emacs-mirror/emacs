@@ -95,6 +95,10 @@ div.admonition p.admonition-title + p + p {
     margin-top: 1em;
 }
 
+div.admonition-deprecated {
+    border: 2px solid {{ theme_relbarbgcolor }};
+}
+
 .xref.std-term {
     font-style: normal;
     color: {{ theme_textcolor }};
