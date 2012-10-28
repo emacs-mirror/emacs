@@ -1,3 +1,7 @@
+2012-10-28  Glenn Morris  <rgm@gnu.org>
+
+	* ack.texi (Acknowledgments): Mention gv.el.
+
 2012-10-27  Bastien Guerry  <bzg@gnu.org>
 
 	* screen.texi (Menu Bar): Fix typo.
