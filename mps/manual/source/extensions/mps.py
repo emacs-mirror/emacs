@@ -19,45 +19,6 @@ class MpsDomain(Domain):
     label = 'MPS'
     name = 'mps'
 
-class deprecated(addnodes.versionmodified):
-    pass
-
-class DeprecatedDirective(VersionChange):
-    # Copied from VersionChange: can't be subclassed because of the
-    # need to make a deprecated node rather than a versionmodified
-    # node.
-    def run(self):
-        node = deprecated()
-        node.document = self.state.document
-        set_source_info(self, node)
-        node['type'] = self.name
-        node['version'] = self.arguments[0]
-        if len(self.arguments) == 2:
-            inodes, messages = self.state.inline_text(self.arguments[1],
-                                                      self.lineno+1)
-            node.extend(inodes)
-            if self.content:
-                self.state.nested_parse(self.content, self.content_offset, node)
-            ret = [node] + messages
-        else:
-            ret = [node]
-        env = self.state.document.settings.env
-        # XXX should record node.source as well
-        env.note_versionchange(node['type'], node['version'], node, node.line)
-        return ret
-
-def version_compare(*args):
-    return cmp(*[map(int, v.split('.')) for v in args])
-
-def visit_deprecated_node(self, node):
-    if (node['type'] == 'deprecated'
-        and version_compare(node['version'], self.builder.config.version) >= 0):
-        node['type'] = 'deprecatedstarting'
-    self.visit_versionmodified(node)
-
-def depart_deprecated_node(self, node):
-    self.depart_versionmodified(node)
-
 class Admonition(nodes.Admonition, nodes.Element):
     pass
 
@@ -103,6 +64,13 @@ class BibrefDirective(PluralDirective):
     cls = bibref
     label = 'Related publication'
     plural = 'Related publications'
+
+class deprecated(Admonition):
+    pass
+
+class DeprecatedDirective(AdmonitionDirective):
+    cls = deprecated
+    label = 'Deprecated'
 
 class historical(Admonition):
     pass
@@ -188,6 +156,7 @@ class TopicsDirective(PluralDirective):
 all_admonitions = [
     AkaDirective,
     BibrefDirective,
+    DeprecatedDirective,
     HistoricalDirective, 
     LinkDirective,
     NoteDirective,
@@ -241,7 +210,7 @@ def warn_indirect_terms(app, exception):
     if not exception:
         for i in see_only_ids:
             for doc, line in xref_ids[i]:
-                print('Cross-reference to {} at {} line {}.'.format(i, doc, line))
+                print('Warning: cross-reference to {} at {} line {}.'.format(i, doc, line))
 
 def setup(app):
     app.add_domain(MpsDomain)
@@ -255,7 +224,3 @@ def setup(app):
             app.add_directive_to_domain(d.domain, d.cls.__name__, d)
         except AttributeError:
             app.add_directive(d.cls.__name__, d)
-
-    visit = (visit_deprecated_node, depart_deprecated_node)
-    app.add_node(deprecated, html = visit, latex = visit, text = visit)
-    app.add_directive('deprecated', DeprecatedDirective)

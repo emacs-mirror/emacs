@@ -456,7 +456,9 @@ Fixing interface
 
 .. c:function:: mps_res_t mps_fix(mps_ss_t ss, mps_addr_t *ref_io)
 
-    .. deprecated:: 1.111
+    .. deprecated:: starting with version 1.111.
+
+        Use :c:func:`MPS_FIX1` and :c:func:`MPS_FIX2` instead.
 
     :term:`Fix` a :term:`reference`.
 
