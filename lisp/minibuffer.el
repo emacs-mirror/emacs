@@ -378,6 +378,8 @@ Note: TABLE needs to be a proper completion table which obeys predicates."
   ;; that `concat' and `unquote' commute (which tends to be the case).
   ;; And we ask `requote' to do the work of mapping from unquoted positions
   ;; back to quoted positions.
+  ;; FIXME: For some forms of "quoting" such as the truncation behavior of
+  ;; substitute-in-file-name, it would be desirable not to requote completely.
   "Return a new completion table operating on quoted text.
 TABLE operates on the unquoted text.
 UNQUOTE is a function that takes a string and returns a new unquoted string.
@@ -2161,53 +2163,49 @@ same as `substitute-in-file-name'."
                         "use the regular PRED argument" "23.2")
 
 (defun completion--sifn-requote (upos qstr)
-  ;; We're looking for `qupos' such that:
+  ;; We're looking for `qpos' such that:
   ;; (equal (substring (substitute-in-file-name qstr) 0 upos)
-  ;;        (substitute-in-file-name (substring qstr 0 qupos)))
+  ;;        (substitute-in-file-name (substring qstr 0 qpos)))
   ;; Big problem here: we have to reverse engineer substitute-in-file-name to
   ;; find the position corresponding to UPOS in QSTR, but
   ;; substitute-in-file-name can do anything, depending on file-name-handlers.
+  ;; substitute-in-file-name does the following kind of things:
+  ;; - expand env-var references.
+  ;; - turn backslashes into slashes.
+  ;; - truncate some prefix of the input.
+  ;; - rewrite some prefix.
+  ;; Some of these operations are written in external libraries and we'd rather
+  ;; not hard code any assumptions here about what they actually do.  IOW, we
+  ;; want to treat substitute-in-file-name as a black box, as much as possible.
   ;; Kind of like in rfn-eshadow-update-overlay, only worse.
-  ;; FIXME: example of thing we do not handle: Tramp's makes
-  ;; (substitute-in-file-name "/foo:~/bar//baz") -> "/scpc:foo:/baz".
-  ;; FIXME: One way to try and handle "all" cases is to require
-  ;; substitute-in-file-name to preserve text-properties, so we could
-  ;; apply text-properties to the input string and then look for them in
-  ;; the output to understand what comes from where.
-  (let ((qpos 0))
-    ;; Handle substitute-in-file-name's truncation behavior.
-    (let (tpos)
-      (while (and (string-match "[\\/][~/\\]" qstr qpos)
-                  ;; Hopefully our regexp covers all truncation cases.
-                  ;; Also let's make sure sifn indeed truncates here.
+  ;; Example of things we need to handle:
+  ;; - Tramp (substitute-in-file-name "/foo:~/bar//baz") => "/scpc:foo:/baz".
+  ;; - Cygwin (substitute-in-file-name "C:\bin") => "/usr/bin"
+  ;;          (substitute-in-file-name "C:\") => "/"
+  ;;          (substitute-in-file-name "C:\bi") => "/bi"
+  (let* ((ustr (substitute-in-file-name qstr))
+         (uprefix (substring ustr 0 upos))
+         qprefix)
+    ;; Main assumption: nothing after qpos should affect the text before upos,
+    ;; so we can work our way backward from the end of qstr, one character
+    ;; at a time.
+    ;; Second assumptions: If qpos is far from the end this can be a bit slow,
+    ;; so we speed it up by doing a first loop that skips a word at a time.
+    ;; This word-sized loop is careful not to cut in the middle of env-vars.
+    (while (let ((boundary (string-match "\\(\\$+{?\\)?\\w+\\W*\\'" qstr)))
+             (and boundary
                   (progn
-                    (setq tpos (1+ (match-beginning 0)))
-                    (equal (substitute-in-file-name qstr)
-                           (substitute-in-file-name (substring qstr tpos)))))
-        (setq qpos tpos)))
-    ;; `upos' is relative to the position corresponding to `qpos' in
-    ;; (substitute-in-file-name qstr), so as qpos moves forward, upos
-    ;; gets smaller.
-    (while (and (> upos 0)
-                (string-match "\\$\\(\\$\\|\\([[:alnum:]_]+\\|{[^}]*}\\)\\)?"
-                              qstr qpos))
-      (cond
-       ((>= (- (match-beginning 0) qpos) upos) ; UPOS is before current match.
-        (setq qpos (+ qpos upos))
-        (setq upos 0))
-       ((not (match-end 1))             ;A sole $: probably an error.
-        (setq upos (- upos (- (match-end 0) qpos)))
-        (setq qpos (match-end 0)))
-       (t
-        (setq upos (- upos (- (match-beginning 0) qpos)))
-        (setq qpos (match-end 0))
-        (setq upos (- upos (length (substitute-in-file-name
-                                    (match-string 0 qstr))))))))
-    ;; If `upos' is negative, it's because it's within the expansion of an
-    ;; envvar, i.e. there is no exactly matching qpos, so we just use the next
-    ;; available qpos right after the envvar.
-    (cons (if (>= upos 0) (+ qpos upos) qpos)
-	  #'minibuffer--double-dollars)))
+                    (setq qprefix (substring qstr 0 boundary))
+                    (string-prefix-p uprefix
+                                   (substitute-in-file-name qprefix)))))
+      (setq qstr qprefix))
+    (let ((qpos (length qstr)))
+      (while (and (> qpos 0)
+                  (string-prefix-p uprefix
+                                   (substitute-in-file-name
+                                    (substring qstr 0 (1- qpos)))))
+        (setq qpos (1- qpos)))
+      (cons qpos #'minibuffer--double-dollars))))
 
 (defalias 'completion--file-name-table
   (completion-table-with-quoting #'completion-file-name-table
