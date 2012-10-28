@@ -5,9 +5,16 @@ Pool reference
 
 .. toctree::
    :maxdepth: 1
-   :glob:
 
-   pool-*
+   amc
+   amcz
+   ams
+   awl
+   lo
+   mv
+   mvff
+   mvt
+   snc
 
 
 .. _pool-choose:
