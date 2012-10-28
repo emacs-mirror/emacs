@@ -15,7 +15,7 @@ Memory Management Glossary: N
     natural alignment
 
         Natural alignment is an :term:`alignment` constraint such that
-        all :term:`objects <object>` must be aligned to an address
+        all :term:`objects` must be aligned to an address
         that is a multiple of their size.
 
         Natural alignment is not usually required for objects larger
@@ -33,19 +33,19 @@ Memory Management Glossary: N
     nepotism
 
         In :term:`generational garbage collection` nepotism is the
-        tendency for :term:`dead` :term:`objects <object>` in old
-        :term:`generations <generation>` to preserve younger dead
+        tendency for :term:`dead` :term:`objects` in old
+        :term:`generations` to preserve younger dead
         objects that are referenced by them. In other words, dead
         parents can cause their children to get promoted.
 
         This happens when an object gets :term:`promoted <promotion>`
         to an old generation and dies there, but does not get
-        :term:`reclaimed <reclaim>` because the generation it is in
-        does not get considered for garbage collection very often. The
-        old object might refer to objects in younger generations that
-        are also dead; until the old object is reclaimed the younger
-        objects will be preserved by virtue of the :term:`reference`
-        from the older, assumed alive, object.
+        :term:`reclaimed` because the generation it is in does not get
+        considered for garbage collection very often. The old object
+        might refer to objects in younger generations that are also
+        dead; until the old object is reclaimed the younger objects
+        will be preserved by virtue of the :term:`reference` from the
+        older, assumed alive, object.
 
         This is a form of :term:`floating garbage` introduced by
         partitioning the objects into generations.
@@ -83,8 +83,7 @@ Memory Management Glossary: N
     node
 
         In a :term:`graph`, a node is a representation of an
-        :term:`object` at the junction of zero or more :term:`edges
-        <edge>`.
+        :term:`object` at the junction of zero or more :term:`edges`.
 
         .. opposite:: :term:`edge`.
 
@@ -94,8 +93,8 @@ Memory Management Glossary: N
     non-moving memory manager
 
         A memory manager is said to be *non-moving* if
-        :term:`allocated <allocate>` :term:`objects <object>` do not
-        move during their lifetimes.
+        :term:`allocated` :term:`objects` do not move during their
+        lifetimes.
 
         Non-moving memory management techniques include
         :term:`mark-sweep` collection, :term:`reference counting`, and

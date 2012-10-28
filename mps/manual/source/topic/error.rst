@@ -14,8 +14,8 @@ are non-zero.
 The modular nature of the MPS means that it is not usually possible
 for a function description to list the possible error codes that it
 might return. A function in the public interface typically calls
-methods of an :term:`arena class` and one or more :term:`pool classes
-<pool class>`, any of which might fail. The MPS is extensible with new
+methods of an :term:`arena class` and one or more :term:`pool
+classes`, any of which might fail. The MPS is extensible with new
 arena and pool classes, which might fail in new and interesting ways,
 so the only future-proof behaviour is for a :term:`client program` to
 assume that any MPS function that returns a result code can return
@@ -24,7 +24,7 @@ assume that any MPS function that returns a result code can return
 
 .. c:type:: mps_res_t
 
-    The type of :term:`result codes <result code>`. It is a
+    The type of :term:`result codes`. It is a
     :term:`transparent alias <transparent type>` for ``int``, provided
     for convenience and clarity.
 

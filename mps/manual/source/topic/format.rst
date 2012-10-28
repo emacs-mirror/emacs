@@ -10,7 +10,7 @@ Object formats
 The need for some means of describing objects in the :term:`client
 program` comes from :term:`tracing <trace>` and :term:`moving <moving
 memory manager>`. During tracing, when an object is :term:`scanned
-<scan>`, all the :term:`references <reference>` in the object must be
+<scan>`, all the :term:`references` in the object must be
 identified so that the objects they point to can be scanned in their
 turn. When an object has moved, references to that object must be
 identified so that they can be updated to point to the new location of
@@ -22,16 +22,15 @@ represented (for example, are they tagged?). *Object formats* provide
 the means by which the client program communicates this information to
 the MPS.
 
-An object format is a collection of :term:`format methods <format
-method>` and other (usually scalar) values which together describe
-programatically the layout of objects belonging to the format. Format
-methods include the :term:`skip method` (which calculates an object's
-size), the :term:`scan method` (which :term:`fixes <fix>` references
-in the object), and the :term:`forward method` (which replaces an
-object that has moved with a :term:`forwarding object`).
+An object format is a collection of :term:`format methods` and other
+(usually scalar) values which together describe programatically the
+layout of objects belonging to the format. Format methods include the
+:term:`skip method` (which calculates an object's size), the
+:term:`scan method` (which :term:`fixes <fix>` references in the
+object), and the :term:`forward method` (which replaces an object that
+has moved with a :term:`forwarding object`).
 
-Not every :term:`pool class` supports :term:`formatted objects
-<formatted object>`.
+Not every :term:`pool class` supports :term:`formatted objects`.
 
 
 .. c:type:: mps_fmt_t
@@ -42,12 +41,12 @@ Not every :term:`pool class` supports :term:`formatted objects
 Creating an object format
 -------------------------
 
-Different :term:`pool classes <pool class>` use different sets of
-format methods and values (for example, a non-moving pool does not
-need forwarding objects, so its object formats do not need to contain
-a forward method). To accommodate this variance, it is possible to
-construct object formats from different collections of format methods
-and values. Such a collection is called a *format variant*.
+Different :term:`pool classes` use different sets of format methods
+and values (for example, a non-moving pool does not need forwarding
+objects, so its object formats do not need to contain a forward
+method). To accommodate this variance, it is possible to construct
+object formats from different collections of format methods and
+values. Such a collection is called a *format variant*.
 
 There are three supported format variants. All are suitable for
 copying and moving pools.
@@ -107,7 +106,7 @@ For example::
 
     Broadly speaking, object formats of variant A are suitable for use
     in :term:`copying <copying garbage collection>` or :term:`moving
-    <moving garbage collector>` :term:`pools <pool>`.
+    <moving garbage collector>` :term:`pools`.
 
     ``align`` is an integer value specifying the alignment of objects
     allocated with this format. It should be large enough to satisfy
@@ -134,8 +133,7 @@ For example::
     :c:type:`mps_fmt_isfwd_t`.
 
     ``pad`` is a :term:`padding method` that creates :term:`padding
-    objects <padding object>` belonging to this format. See
-    :c:type:`mps_fmt_pad_t`.
+    objects` belonging to this format. See :c:type:`mps_fmt_pad_t`.
 
 
 .. c:function:: mps_res_t mps_fmt_create_A(mps_fmt_t *fmt_o, mps_arena_t arena, mps_fmt_A_s *fmt_A)
@@ -251,7 +249,7 @@ For example::
 
         Even if the header size is larger than or equal to
         :term:`alignment`, the :term:`padding method` must still be
-        able to create :term:`padding objects <padding object>` down
+        able to create :term:`padding objects` down
         to the alignment size.
 
     .. note::
@@ -361,8 +359,7 @@ Format methods
     object, or a null pointer if this is not possible.
 
     It is recommended that a null pointer be returned for
-    :term:`padding objects <padding object>` and :term:`forwarding
-    objects <forwarding object>`.
+    :term:`padding objects` and :term:`forwarding objects`.
 
 
 .. c:type:: void (*mps_fmt_fwd_t)(mps_addr_t old, mps_addr_t new)
@@ -431,7 +428,7 @@ Format methods
     object. Typically the MPS creates padding objects to fill in
     otherwise unused gaps in memory; they allow the MPS to pack
     objects into fixed-size units (such as operating system
-    :term:`pages <page>`).
+    :term:`pages`).
 
     The padding method must create a padding object of the specified
     size at the specified address. The size can be any aligned (to the
@@ -543,7 +540,7 @@ Object format introspection
 
 .. c:function:: void mps_arena_formatted_objects_walk(mps_arena_t arena, mps_formatted_objects_stepper_t f, void *p, size_t s)
 
-    Visit all :term:`formatted objects <formatted object>` in an
+    Visit all :term:`formatted objects` in an
     :term:`arena`.
 
     ``arena`` is the arena whose formatted objects you want to visit.
@@ -561,8 +558,7 @@ Object format introspection
     visited. During a :term:`trace` this will in general be only the
     :term:`black` objects, though the :ref:`pool-lo` pool, for
     example, will walk all objects since they are validly formatted
-    whether they are black or :term:`white`. :term:`Padding objects
-    <padding object>` may be visited at the pool class's discretion:
+    whether they are black or :term:`white`. :term:`Padding objects` may be visited at the pool class's discretion:
     the :term:`client program` should handle this case.
 
     The function ``f`` may not allocate memory or access any
@@ -579,7 +575,7 @@ Object format introspection
 
 .. c:type:: void (*mps_formatted_objects_stepper_t)(mps_addr_t addr, mps_fmt_t fmt, mps_pool_t pool, void *p, size_t s)
 
-    The type of a :term:`formatted objects <formatted object>`
+    The type of a :term:`formatted objects`
     :term:`stepper function`.
     
     A function of this type can be passed to

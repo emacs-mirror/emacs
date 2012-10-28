@@ -100,12 +100,11 @@ Memory Management Glossary: C
         diagrammed, its shape resembles that of a `saguaro cactus
         <http://www.azstarnet.com/%7Efosnp/factsaboutsaguaros.html>`_.
 
-        In languages that support :term:`continuations
-        <continuation>`, :term:`activation records <activation
-        record>` can have :term:`indefinite extent`. One technique for
-        implementing continuations is not to copy the activation
-        records that are captured, but rather to create a fork in the
-        stack below the captured :term:`stack frames <stack frame>`,
+        In languages that support :term:`continuations`,
+        :term:`activation records` can have :term:`indefinite extent`.
+        One technique for implementing continuations is not to copy
+        the activation records that are captured, but rather to create
+        a fork in the stack below the captured :term:`stack frames`,
         so that new frames appear as a parallel branch. Often the
         process of forking is done lazily: captured frames are only
         duplicated if they are modified.
@@ -115,22 +114,21 @@ Memory Management Glossary: C
         A card is a division of memory, all cards being of equal size
         (in a particular area of discourse). A card is usually bigger
         than a :term:`word` and smaller than a :term:`page`. Cards are
-        used in a technique called :term:`card-marking <card marking>`
-        whereby :term:`dirty bits <dirty bit>` (which record which
-        portions of old generations have been written into) are
-        maintained for each card. Often the use of cards will also
-        entail the use of a :term:`crossing map`.
+        used in a technique called :term:`card marking` whereby
+        :term:`dirty bits` (which record which portions of old
+        generations have been written into) are maintained for each
+        card. Often the use of cards will also entail the use of a
+        :term:`crossing map`.
 
     card marking
 
-        A technique for managing :term:`pointer` :term:`stores <store
-        (1)>` into old :term:`generations <generation>` (which in turn
-        is used to track :term:`inter-generational pointers
-        <inter-generational pointer>`). Each generation is divided
-        into a number of equal-sized :term:`cards <card>`, and when a
+        A technique for managing :term:`pointer` :term:`stores (1)`
+        into old :term:`generations` (which in turn is used to track
+        :term:`inter-generational pointers`). Each generation is
+        divided into a number of equal-sized :term:`cards`, and when a
         generation is written into, the particular card written to is
-        recorded (often by using a :term:`bitmap`). Subsequently,
-        when :term:`scanning <scan>` an older generation in order to
+        recorded (often by using a :term:`bitmap`). Subsequently, when
+        :term:`scanning <scan>` an older generation in order to
         collect a younger generation, only the recorded cards (in the
         old generation) need to be scanned.
 
@@ -146,13 +144,11 @@ Memory Management Glossary: C
 
         .. aka:: *Cheney scan*.
 
-        A Cheney collector uses the :term:`tospace` of a :term:`two
-        space collector <two-space collector>` as a queue of objects
-        remaining to be :term:`scanned <scan>`, thus eliminating the
-        need for recursion when :term:`tracing <trace>` the
-        :term:`graph` of :term:`objects <object>`.
-
-        .. seealso:: :term:`two space collector <two-space collector>`.
+        A Cheney collector uses the :term:`tospace` of a
+        :term:`two-space collector` as a queue of objects remaining to
+        be :term:`scanned <scan>`, thus eliminating the need for
+        recursion when :term:`tracing <trace>` the :term:`graph` of
+        :term:`objects`.
 
         .. bibref:: [CHENEY70]_.
 
@@ -168,10 +164,10 @@ Memory Management Glossary: C
             others being the :term:`unclamped state` and the
             :term:`parked state`). In the clamped state, no object
             motion occurs and the staleness of :term:`location
-            dependencies <location dependency>` does not change.
-            However, a :term:`garbage collection` may be in progress.
-            Call :c:func:`mps_arena_clamp` to put an arena into the
-            clamped state.
+            dependencies` does not change. However, a :term:`garbage
+            collection` may be in progress. Call
+            :c:func:`mps_arena_clamp` to put an arena into the clamped
+            state.
 
     client arena
 
@@ -187,9 +183,8 @@ Memory Management Glossary: C
 
             A :term:`formatted object` that contains data from the
             :term:`client program`. One of three types of formatted
-            objects, the other two being :term:`forwarding objects
-            <forwarding object>` and :term:`padding objects <padding
-            object>`.
+            objects, the other two being :term:`forwarding objects`
+            and :term:`padding objects`.
 
     client program
 
@@ -219,23 +214,22 @@ Memory Management Glossary: C
         .. relevance::
 
             A closure is typically implemented by saving both the
-            function and any :term:`activation records <activation
-            record>` that contain variables referenced by the
-            function. The closure creates additional implicit
-            :term:`references <reference>` to the bindings closed over
-            and hence must be accounted for in any memory management
-            scheme. The closure itself is an object that must be
-            managed and may have either :term:`dynamic extent` or
-            :term:`indefinite extent` depending on whether it is only
-            used by inner blocks of the creating block or passed out
-            of the creating block.
+            function and any :term:`activation records` that contain
+            variables referenced by the function. The closure creates
+            additional implicit :term:`references` to the bindings
+            closed over and hence must be accounted for in any memory
+            management scheme. The closure itself is an object that
+            must be managed and may have either :term:`dynamic extent`
+            or :term:`indefinite extent` depending on whether it is
+            only used by inner blocks of the creating block or passed
+            out of the creating block.
 
         .. seealso:: :term:`continuation`.
 
     coalesce
 
         Coalescing is the act of merging two adjacent :term:`free
-        blocks <free block>`.
+        blocks`.
 
         Coalescing reduces :term:`external fragmentation`, but is not
         totally effective.
@@ -251,8 +245,8 @@ Memory Management Glossary: C
 
     collect
 
-        An :term:`object` is collected when it is :term:`reclaimed
-        <reclaim>` by a :term:`garbage collector`.
+        An :term:`object` is collected when it is :term:`reclaimed` by
+        a :term:`garbage collector`.
 
         .. similar:: :term:`reclaim`.
 
@@ -269,11 +263,10 @@ Memory Management Glossary: C
 
         Each collection cycle includes (not necessarily in strict
         order) choosing a :term:`condemned set`; :term:`scanning
-        <scan>` :term:`roots <root>` and :term:`objects <object>` that
-        have not been condemned; :term:`tracing <trace>` the object
-        graph to find all condemned objects that are
-        :term:`reachable`; and :term:`reclaiming <reclaim>` those that
-        were not reachable.
+        <scan>` :term:`roots` and :term:`objects` that have not been
+        condemned; :term:`tracing <trace>` the object graph to find
+        all condemned objects that are :term:`reachable`; and
+        :term:`reclaiming <reclaim>` those that were not reachable.
 
         In non-incremental garbage collection, the :term:`mutator`
         pauses at the start of a collection cycle and cannot continue
@@ -290,8 +283,7 @@ Memory Management Glossary: C
 
         In a :term:`garbage-collected <garbage collection>` system,
         the part that executes the garbage collection code, which
-        discovers unused :term:`memory (1)` and :term:`reclaims
-        <reclaim>` it.
+        discovers unused :term:`memory (1)` and :term:`reclaims` it.
 
         For purposes of describing :term:`incremental garbage
         collection`, the system is divided into the :term:`mutator`
@@ -343,7 +335,7 @@ Memory Management Glossary: C
         .. aka:: *compactifying*.
 
         Compaction is the process of :term:`moving <moving garbage
-        collector>` :term:`live` :term:`objects <object>` to eliminate
+        collector>` :term:`live` :term:`objects` to eliminate
         :term:`dead` space between them. Some people call this
         *compactifying*, to distinguish it from techniques for
         compressing data structures.
@@ -368,9 +360,8 @@ Memory Management Glossary: C
     comprehensive
 
         A :term:`collector (1)` is *comprehensive* if all
-        :term:`garbage` (or, all :term:`unreachable` :term:`objects
-        <object>`) is :term:`reclaimed <reclaim>` in one
-        :term:`collection cycle`.
+        :term:`garbage` (or, all :term:`unreachable` :term:`objects`)
+        is :term:`reclaimed` in one :term:`collection cycle`.
 
         .. seealso:: :term:`garbage collection`.
 
@@ -382,7 +373,7 @@ Memory Management Glossary: C
 
         .. aka:: *threatened set*.
 
-        *Condemned* :term:`objects <object>` are those which are
+        *Condemned* :term:`objects` are those which are
         candidates for :term:`recycling <recycle>` within a
         :term:`collection cycle`.
 
@@ -390,13 +381,13 @@ Memory Management Glossary: C
         may choose to condemn some objects (the *condemned set* or
         *threatened set*) but not to condemn others (the :term:`immune
         set`). Objects that are not condemned are assumed to be
-        :term:`live` and behave as :term:`roots <root>` for the
+        :term:`live` and behave as :term:`roots` for the
         purposes of that collection cycle.
 
         Many simple :term:`tracing garbage collection` algorithms
         begin by condemning all objects, but :term:`generational
         garbage collectors <generational garbage collection>` will
-        condemn individual :term:`generations <generation>` or
+        condemn individual :term:`generations` or
         combinations of generations. Often young generations are
         condemned but older ones are not, because objects in older
         generations are less likely to have become
@@ -410,7 +401,7 @@ Memory Management Glossary: C
 
     connected
 
-        :term:`Objects <object>` are connected if and only if one
+        :term:`Objects` are connected if and only if one
         contains a :term:`reference` to the other.
 
         .. seealso:: :term:`graph`.
@@ -432,7 +423,7 @@ Memory Management Glossary: C
     conservative garbage collection
 
         In conservative :term:`garbage collection`, the layout of
-        :term:`objects <object>` and :term:`roots <root>` is not
+        :term:`objects` and :term:`roots` is not
         known, instead the :term:`collector (1)` assumes that any
         field that looks like a :term:`pointer` *might* be a
         :term:`reference`.
@@ -450,10 +441,10 @@ Memory Management Glossary: C
         <recycle>` of that object. It can't :term:`move <moving
         garbage collector>` objects, because then the references to
         the moved objects would need to be updated, and such
-        :term:`ambiguous references <ambiguous reference>` must not be
-        modified, in case they weren't pointers after all. Therefore,
-        conservative collectors are usually :term:`mark-sweep
-        collectors <mark-sweep>`.
+        :term:`ambiguous references` must not be modified, in case
+        they weren't pointers after all. Therefore, conservative
+        collectors are usually :term:`mark-sweep collectors
+        <mark-sweep>`.
 
         Because references are ambiguous, some objects may be retained
         despite being actually :term:`unreachable`. In practice, this
@@ -477,16 +468,14 @@ Memory Management Glossary: C
 
     constructor (1)
 
-        A constructor is a function or method that :term:`allocates
-        <allocate>` and initializes an :term:`object`.
+        A constructor is a function or method that :term:`allocates` and initializes an :term:`object`.
 
         .. opposite:: :term:`destructor (1)`.
 
     constructor (2)
 
         In :term:`C++`, a *constructor* is a member function that is
-        used to initialize a newly-:term:`allocated <allocate>`
-        object.
+        used to initialize a newly-:term:`allocated` object.
 
         The actual allocation of :term:`memory (2)` is performed by
         ``operator new`` or the compiler (for :term:`static <static
@@ -506,7 +495,7 @@ Memory Management Glossary: C
             If continuations can be represented as first-class
             objects, as in :term:`Scheme`, the execution contexts can
             no longer be stored on a :term:`stack`, instead, (at least
-            some) :term:`activation records <activation record>` have
+            some) :term:`activation records` have
             to be :term:`heap-allocated <heap allocation>`.
 
         .. seealso:: :term:`closure`.
@@ -515,13 +504,12 @@ Memory Management Glossary: C
 
         .. aka:: *activation stack*, *execution stack*.
 
-        A :term:`stack` that stores :term:`activation records
-        <activation record>`, particularly subroutine return
+        A :term:`stack` that stores :term:`activation records`, particularly subroutine return
         information, is known as a *control stack*.
 
         Typically the control stack is supported and used by the
         hardware architecture and the operating system, limiting the
-        types and sizes of :term:`objects <object>` that can be stored
+        types and sizes of :term:`objects` that can be stored
         on it. Often, only one type of object, a :term:`stack frame`,
         is permitted, and the layout of that is defined by the
         hardware architecture.
@@ -567,13 +555,13 @@ Memory Management Glossary: C
 
         Copying garbage collection is a kind of :term:`tracing garbage
         collection` that operates by :term:`relocating <relocation>`
-        :term:`reachable` :term:`objects <object>` (this is sometimes
-        called *scavenging*) and then :term:`reclaiming <reclaim>`
-        objects that are left behind, which must be
-        :term:`unreachable` and therefore :term:`dead`.
+        :term:`reachable` :term:`objects` (this is sometimes called
+        *scavenging*) and then :term:`reclaiming <reclaim>` objects
+        that are left behind, which must be :term:`unreachable` and
+        therefore :term:`dead`.
 
         A copying garbage collection relies on being able to find and
-        correct all :term:`references <reference>` to copied objects.
+        correct all :term:`references` to copied objects.
 
         .. figure:: ../diagrams/copying.svg
             :align: center
@@ -596,9 +584,9 @@ Memory Management Glossary: C
     creation space
 
         In :term:`generational garbage collection`, when
-        :term:`generations <generation>` are divided into
-        :term:`buckets <bucket>`, the creation space is where new
-        :term:`objects <object>` are created in each generation.
+        :term:`generations` are divided into
+        :term:`buckets`, the creation space is where new
+        :term:`objects` are created in each generation.
 
         This term is sometimes used as a synonym for :term:`nursery space`.
 
@@ -619,19 +607,18 @@ Memory Management Glossary: C
     crossing map
 
         Where :term:`memory (2)` has already been divided into some
-        fixed-sized unit (for example, :term:`pages <page>` or
-        :term:`cards <card>`), a crossing map records where
-        :term:`objects <object>` lie across the boundaries of the
+        fixed-sized unit (for example, :term:`pages` or
+        :term:`cards`), a crossing map records where
+        :term:`objects` lie across the boundaries of the
         fixed-sized units. In other words, which fixed-sized units do
         not start with the beginning of an object.
 
-        A system which implements :term:`remembered sets <remembered
-        set>` by :term:`page-marking <page marking>` or
-        :term:`card-marking <card marking>` needs to scan all the
-        :term:`pointers <pointer>` in the page or card. If the system
-        can not :term:`scan` partial objects (or requires information
-        in the object :term:`header <in-band header>` in order to scan
-        a partial object), a crossing map is necessary to find the
+        A system which implements :term:`remembered sets` by
+        :term:`page marking` or :term:`card marking` needs to scan all
+        the :term:`pointers` in the page or card. If the system can
+        not :term:`scan` partial objects (or requires information in
+        the object :term:`header <in-band header>` in order to scan a
+        partial object), a crossing map is necessary to find the
         beginning of the first object in the unit.
 
         .. relevance::
@@ -643,6 +630,6 @@ Memory Management Glossary: C
 
     cyclic data structure
 
-        A data structure is cyclic if some of its :term:`references
-        <reference>` form a loop; that is, there's an :term:`object`
-        that can be reached by following references from itself.
+        A data structure is cyclic if some of its :term:`references`
+        form a loop; that is, there's an :term:`object` that can be
+        reached by following references from itself.

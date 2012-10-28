@@ -21,8 +21,8 @@ What makes the critical path critical
 In order to determine which objects can be recycled, the :term:`garbage
 collector` has to frequently examine a very large number of pointers
 in the program's objects. It does this by :term:`scanning <scan>`
-memory, both allocated objects and :term:`roots <root>` (such as the
-:term:`threads' <thread>` :term:`control stacks <control stack>`).
+memory, both allocated objects and :term:`roots` (such as the
+:term:`threads' <thread>` :term:`control stacks`).
 
 This means that the scanning functions must loop over pretty much
 *every word in memory* sooner or later. The MPS takes great pains to
@@ -98,8 +98,8 @@ Very briefly, the critical path consists of five stages:
 
 1. The scanner, which iterates over pointers in objects. The MPS has
    several internal scanners, but the most important ones will be the
-   :term:`scan methods <scan method>` in the client program's
-   :term:`object formats <object format>`. See :ref:`topic-scanning`.
+   :term:`scan methods` in the client program's
+   :term:`object formats`. See :ref:`topic-scanning`.
 
 2. The first-stage fix, which filters out pointers inline in the
    scanner. This is implemented in the :c:func:`MPS_FIX1` macro.

@@ -42,11 +42,6 @@ Outstanding
     about consistency. Also to demonstrate the "garbage collect
     frequently to expose errors as soon as possible" advice.
 
-87. Could simplify a lot of glossary references if plurals were
-    handled automatically. That is, if a glossary entry for "bytes
-    (1)" is found to be missing, then "byte (1)" should be tried
-    instead. (Similarly for hyphens versus spaces.) 
-
 95. Bring :ref:`lang` up to date. Add C#, Lua, Python.
 
 
@@ -716,6 +711,11 @@ Complete
     public interface. Removed in `change 180031`_.
 
     .. _change 180031: http://info.ravenbrook.com/infosys/cgi/perfbrowse.cgi?@describe+180031
+
+87. Could simplify a lot of glossary references if plurals were
+    handled automatically. That is, if a glossary entry for "bytes
+    (1)" is found to be missing, then "byte (1)" should be tried
+    instead. (Similarly for hyphens versus spaces.) 
 
 88. Where glossary entries differ on in hyphens versus spaces there's
     no need to give both.

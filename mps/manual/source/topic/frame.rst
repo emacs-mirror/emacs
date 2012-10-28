@@ -22,7 +22,7 @@ efficiently implement stack-like patterns of allocation.
 
 .. c:type:: mps_frame_t
 
-    The type of :term:`allocation frames <allocation frame>`.
+    The type of :term:`allocation frames`.
 
 
 .. c:function:: mps_res_t mps_ap_frame_push(mps_frame_t *frame_o, mps_ap_t ap)
@@ -44,7 +44,7 @@ efficiently implement stack-like patterns of allocation.
 
 .. c:function:: mps_res_t mps_ap_frame_pop(mps_ap_t ap, mps_frame_t frame)
 
-    Declare that a set of :term:`blocks <block>` in a
+    Declare that a set of :term:`blocks` in a
     :term:`allocation frame` are :term:`dead` or likely to be dead,
     and pop the frame from the :term:`allocation point's <allocation
     point>` frame stack.

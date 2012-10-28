@@ -234,8 +234,8 @@ General types
 
 .. c:type:: mps_addr_t
 
-    The type of :term:`addresses <address>` managed by the MPS, and
-    also the type of :term:`references <reference>`.
+    The type of :term:`addresses` managed by the MPS, and also the
+    type of :term:`references`.
 
     It is a :term:`transparent alias <transparent type>` for ``void *``.
 

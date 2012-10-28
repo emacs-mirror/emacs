@@ -20,10 +20,10 @@ A block requiring finalization must be registered by calling :c:func:`mps_finali
 
 A block that been registered for finalization becomes *finalizable* as
 soon as the :term:`garbage collector` observes that it would otherwise
-be :term:`reclaimed <reclaim>` (that is, the only thing keeping it
-alive is the fact that it needs to be finalized). If a block is
-finalizable the MPS may choose to finalize it (by posting a
-finalization message: see below) at *any* future time.
+be :term:`reclaimed` (that is, the only thing keeping it alive is the
+fact that it needs to be finalized). If a block is finalizable the MPS
+may choose to finalize it (by posting a finalization message: see
+below) at *any* future time.
 
 .. note::
 
@@ -31,7 +31,7 @@ finalization message: see below) at *any* future time.
     then became unconditionally :term:`live` by the creation of a new
     :term:`strong reference` to it, may still be finalized.
 
-:term:`Weak references <weak reference (1)>` do not prevent blocks
+:term:`Weak references (1)` do not prevent blocks
 from being finalized. At the point that a block is finalized, weak
 references will still validly refer to the block. The fact that a
 block is registered for finalization prevents weak references to that
@@ -251,9 +251,9 @@ Cautions
         deprecated. See Appendix A of [BOEHM02]_ for a discussion of
         this problem.
 
-4.  Not all :term:`pool classes <pool class>` support finalization. In
-    general, only pools that manage objects whose liveness is
-    determined by garbage collection do so. See the :ref:`pool`.
+4.  Not all :term:`pool classes` support finalization. In general, only
+    pools that manage objects whose liveness is determined by garbage
+    collection do so. See the :ref:`pool`.
 
 
 Finalization interface

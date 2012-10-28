@@ -7,14 +7,14 @@
 Roots
 =====
 
-:term:`Roots <root>` tell the :term:`garbage collector` where to start
+:term:`Roots` tell the :term:`garbage collector` where to start
 :term:`tracing <trace>`. The garbage collector determines which blocks
 are :term:`reachable` from the roots, and (in :term:`automatically
-managed <automatic memory management>` :term:`pools <pool>`) reclaims
+managed <automatic memory management>` :term:`pools`) reclaims
 the :term:`unreachable` blocks. This is quite efficient and can be a
 very good approximation to :term:`liveness <live>`.
 
-It is therefore important that the all :term:`references <reference>`
+It is therefore important that the all :term:`references`
 that the :term:`client program` can directly access are registered as
 roots, otherwise the garbage collector might recycle an object that
 would be used in the future. Some collectors, for example Boehm's,
@@ -28,8 +28,8 @@ Registering roots
 
 You can register a root at any time by calling one of the
 ``mps_root_create`` functions. Roots may not be regstered twice, and
-no two roots may overlap (that is, each reference is :term:`fixed
-<fix>` by at most one root). Roots may be:
+no two roots may overlap (that is, each reference is :term:`fixed` by
+at most one root). Roots may be:
 
 1. on the program's :term:`control stack`;
 
@@ -90,7 +90,7 @@ scan it for references:
    references;
 
 4. :c:func:`mps_root_create_table_masked` if the root consists of a
-   table of :term:`tagged references <tagged reference>`;
+   table of :term:`tagged references`;
 
 5. :c:func:`mps_root_create_reg` if the root consists of the
    registers and control stack of a thread. See
@@ -148,25 +148,24 @@ Ranks
 
 .. c:type:: mps_rank_t
 
-    The type of :term:`ranks <rank>`. It is a :term:`transparent alias
+    The type of :term:`ranks`. It is a :term:`transparent alias
     <transparent type>` for ``unsigned int``, provided for convenience
     and clarity.
 
 
 .. c:function:: mps_rank_t mps_rank_ambig(void)
 
-    Return the :term:`rank` of :term:`ambiguous roots <ambiguous
-    root>`.
+    Return the :term:`rank` of :term:`ambiguous roots`.
 
 
 .. c:function:: mps_rank_t mps_rank_exact(void)
 
-    Return the :term:`rank` of :term:`exact roots <exact root>`.
+    Return the :term:`rank` of :term:`exact roots`.
 
 
 .. c:function:: mps_rank_t mps_rank_weak(void)
 
-    Return the :term:`rank` of :term:`weak roots <weak root>`.
+    Return the :term:`rank` of :term:`weak roots`.
 
 
 Root modes
@@ -187,7 +186,7 @@ allowing the MPS to detect whether they have changed.
 
 .. c:type:: mps_rm_t
 
-    The type of :term:`root modes <root mode>`.
+    The type of :term:`root modes`.
 
     It should be the sum of some subset of :c:macro:`MPS_RM_CONST` and
     :c:macro:`MPS_RM_PROT`, or zero (meaning neither constant or
@@ -196,10 +195,10 @@ allowing the MPS to detect whether they have changed.
 
 .. c:macro:: MPS_RM_CONST
 
-    The :term:`root mode` for :term:`constant roots <constant root>`.
+    The :term:`root mode` for :term:`constant roots`.
     This tells the MPS that the :term:`client program` will not change
     the :term:`root` after it is registered: that is, scanning the
-    root will produce the same set of :term:`references <reference>`
+    root will produce the same set of :term:`references`
     every time. Furthermore, for roots registered by
     :c:func:`mps_root_create_fmt` and :c:func:`mps_root_create_table`,
     the client program will not write to the root at all.
@@ -207,12 +206,11 @@ allowing the MPS to detect whether they have changed.
 
 .. c:macro:: MPS_RM_PROT
 
-    The :term:`root mode` for :term:`protectable roots <protectable
-    root>`. This tells the MPS that it may place a :term:`write
-    barrier` on any :term:`page` which any part of the :term:`root`
-    covers. No :term:`format method` or :term:`scan method` (except
-    for the one for this root) may write data in this root. They may
-    read it.
+    The :term:`root mode` for :term:`protectable roots`. This tells
+    the MPS that it may place a :term:`write barrier` on any
+    :term:`page` which any part of the :term:`root` covers. No
+    :term:`format method` or :term:`scan method` (except for the one
+    for this root) may write data in this root. They may read it.
 
     .. note::
 
@@ -236,15 +234,14 @@ Root interface
 
     The type of :term:`root` descriptions.
 
-    The :term:`arena` uses root descriptions to find :term:`references
-    <reference>` within the :term:`client program's <client program>`
-    roots.
+    The :term:`arena` uses root descriptions to find
+    :term:`references` within the :term:`client program's <client
+    program>` roots.
 
 
 .. c:function:: mps_res_t mps_root_create(mps_root_t *root_o, mps_arena_t arena, mps_rank_t rank, mps_rm_t rm, mps_root_scan_t root_scan, void *p, size_t s)
 
-    Register a :term:`root` that consists of the :term:`references
-    <reference>` fixed by a scanning function.
+    Register a :term:`root` that consists of the :term:`references` fixed by a scanning function.
 
     ``root_o`` points to a location that will hold the address of the
     new root description.
@@ -294,9 +291,8 @@ Root interface
 
 .. c:function:: mps_res_t mps_root_create_fmt(mps_root_t *root_o, mps_arena_t arena, mps_rank_t rank, mps_rm_t rm, mps_fmt_scan_t fmt_scan, mps_addr_t base, mps_addr_t limit)
 
-    Register a :term:`root` that consists of the :term:`references
-    <reference>` fixed by a scanning function in a block of
-    :term:`formatted objects <formatted object>`.
+    Register a :term:`root` that consists of the :term:`references` fixed by a scanning function in a block of
+    :term:`formatted objects`.
 
     ``root_o`` points to a location that will hold the address of the
     new root description.
@@ -325,9 +321,8 @@ Root interface
 
 .. c:function:: mps_res_t mps_root_create_reg(mps_root_t *root_o, mps_arena_t arena, mps_rank_t rank, mps_rm_t rm, mps_thr_t thr, mps_reg_scan_t reg_scan, void *p, size_t s)
 
-    Register a :term:`root` that consists of the :term:`references
-    <reference>` fixed in a :term:`thread's <thread>` stack by a
-    scanning function.
+    Register a :term:`root` that consists of the :term:`references`
+    fixed in a :term:`thread's <thread>` stack by a scanning function.
 
     ``root_o`` points to a location that will hold the address of the
     new root description.
@@ -356,10 +351,9 @@ Root interface
 
     .. note::
 
-        It is not supported for :term:`client programs <client
-        program>` to pass their own scanning functions to this
-        function. The built-in MPS function
-        :c:func:`mps_stack_scan_ambig` must be used.
+        It is not supported for :term:`client programs` to pass their
+        own scanning functions to this function. The built-in MPS
+        function :c:func:`mps_stack_scan_ambig` must be used.
 
 
 .. c:type:: mps_res_t (*mps_reg_scan_t)(mps_ss_t ss, mps_thr_t thr, void *p, size_t s)
@@ -395,7 +389,7 @@ Root interface
 
     .. note::
 
-        :term:`Client programs <client program>` are not expected to
+        :term:`Client programs` are not expected to
         write scanning functions of this type. The built-in MPS
         function :c:func:`mps_stack_scan_ambig` must be used.
 
@@ -403,16 +397,16 @@ Root interface
 .. c:function:: mps_reg_scan_t mps_stack_scan_ambig
 
     A root scanning function for :term:`ambiguous <ambiguous
-    reference>` scanning of :term:`threads <thread>`, suitable for
+    reference>` scanning of :term:`threads`, suitable for
     passing to :c:func:`mps_root_create_reg`.
 
     It scans all integer registers and everything on the stack of the
     thread given, and can therefore only be used with :term:`ambiguous
-    roots <ambiguous root>`. It only scans locations that are at, or
-    higher on the stack (that is, more recently added), the stack
-    bottom that was passed to :c:func:`mps_thread_reg`. References
-    are assumed to be represented as machine words, and are required
-    to be 4-byte-aligned; unaligned values are ignored.
+    roots`. It only scans locations that are at, or higher on the
+    stack (that is, more recently added), the stack bottom that was
+    passed to :c:func:`mps_thread_reg`. References are assumed to be
+    represented as machine words, and are required to be
+    4-byte-aligned; unaligned values are ignored.
 
     .. seealso::
 
@@ -428,7 +422,7 @@ Root interface
 .. c:function:: mps_res_t mps_root_create_table(mps_root_t *root_o, mps_arena_t arena, mps_rank_t rank, mps_rm_t rm, mps_addr_t *base, size_t count)
 
     Register a :term:`root` that consists of a vector of
-    :term:`references <reference>`.
+    :term:`references`.
 
     ``root_o`` points to a location that will hold the address of the
     new root description.
@@ -455,7 +449,7 @@ Root interface
 .. c:function:: mps_res_t mps_root_create_table_masked(mps_root_t *root_o, mps_arena_t arena, mps_rank_t rank, mps_rm_t rm, mps_addr_t *base, size_t count, mps_word_t mask)
 
     Register a :term:`root` that consists of a vector of :term:`tagged
-    references <tagged reference>`.
+    references`.
 
     ``root_o`` points to a location that will hold the address of the
     new root description.
@@ -515,7 +509,7 @@ Root introspection
 
 .. c:function:: void mps_arena_roots_walk(mps_arena_t arena, mps_roots_stepper_t f, void *p, size_t s)
 
-    Visit references in registered :term:`roots <root>` in an
+    Visit references in registered :term:`roots` in an
     :term:`arena`.
 
     ``arena`` is the arena whose roots you want to visit.

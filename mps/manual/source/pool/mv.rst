@@ -6,12 +6,12 @@ MV (Manual Variable)
 
 The :term:`pool class` MV (Manual Variable) is a general-purpose class
 of :term:`manually managed <manual memory management>` pools that
-manage :term:`blocks <block>` of variable size.
+manage :term:`blocks` of variable size.
 
 It supports allocation via :c:func:`mps_alloc` and deallocation via
 :c:func:`mps_free`.
 
-It does not support :term:`allocation points <allocation point>`.
+It does not support :term:`allocation points`.
 
 
 -------------------

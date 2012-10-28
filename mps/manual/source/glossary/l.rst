@@ -11,7 +11,7 @@ Memory Management Glossary: L
     large object area
 
         An :term:`allocation mechanism` designed to optimize the
-        management of large :term:`objects <object>` by separating
+        management of large :term:`objects` by separating
         them from small ones.
 
         Large objects, typically objects one or more orders of
@@ -38,24 +38,23 @@ Memory Management Glossary: L
            the header is fixed size and the bulk of the object is in
            the body. See [UNGAR88]_.
 
-        4. By using a page-based :term:`read-barrier <read barrier>`,
-           large objects can be initialized incrementally. For
-           example, each page of the large object is initialized to
-           zero when it is first read, rather than all at once at
-           creation time.
+        4. By using a page-based :term:`read barrier`, large objects
+           can be initialized incrementally. For example, each page of
+           the large object is initialized to zero when it is first
+           read, rather than all at once at creation time.
 
         5. In a copying collector, large objects can be copied
            incrementally using a similar technique (the new copy is
            initialized from the old copy). See [BAKER78]_.
 
-        6. Large objects are often :term:`leaf objects <leaf object>`,
+        6. Large objects are often :term:`leaf objects`,
            so do not need to be :term:`scanned <scan>`, or are known
            to have a fixed :term:`format` with only a few
-           :term:`references <reference>` so they can be scanned more
+           :term:`references` so they can be scanned more
            efficiently by a specialized scanner.
 
         7. Large objects often have longer than average
-           :term:`lifetimes <lifetime>`, so are not allocated in a
+           :term:`lifetimes`, so are not allocated in a
            :term:`nursery space` of a :term:`generational garbage
            collector <generational garbage collection>`.
 
@@ -77,7 +76,7 @@ Memory Management Glossary: L
             If leaf objects can be identified, a :term:`garbage
             collector` can make certain optimizations: leaf objects do
             not have to be :term:`scanned <scan>` for references nor
-            are :term:`barriers (1) <barrier (1)>` needed to detect
+            are :term:`barrier (1)` needed to detect
             and maintain references in the object.
 
     leak
@@ -100,12 +99,11 @@ Memory Management Glossary: L
     LIFO-ordered first fit
 
         The :term:`allocation policy` that always uses the
-        most-recently :term:`freed <free (1)>` suitable :term:`free
-        block`. Commonly implemented by pushing freed blocks on the
-        front of a :term:`free block chain`, and then using
-        :term:`first fit` allocation on this chain. :term:`free (1)`
-        can be very quick, depending on the :term:`coalescing
-        <coalesce>` policy.
+        most-recently :term:`freed (1)` suitable :term:`free block`.
+        Commonly implemented by pushing freed blocks on the front of a
+        :term:`free block chain`, and then using :term:`first fit`
+        allocation on this chain. :term:`free (1)` can be very quick,
+        depending on the :term:`coalescing <coalesce>` policy.
 
         This policy may suffer from severe :term:`fragmentation` in
         the presence of short-lived large objects of a single size. As
@@ -121,7 +119,7 @@ Memory Management Glossary: L
         .. aka:: *sticky reference count*.
 
         A :term:`reference counting` technique whereby the field used
-        to store the number of :term:`references <reference>` to an
+        to store the number of :term:`references` to an
         :term:`object` has a limited size. In particular, the field is
         not large enough to represent the maximum possible number of
         references to an object.
@@ -131,9 +129,9 @@ Memory Management Glossary: L
         only store the count accurately up to a certain maximum value.
         If an object has more references than the maximum then the
         count "sticks" at the maximum and is never decremented. Such
-        objects are expected to be rare, but their :term:`memory (1)` can
-        never be :term:`reclaimed <reclaim>` using reference counting.
-        A separate (infrequently run) :term:`tracing garbage collector
+        objects are expected to be rare, but their :term:`memory (1)`
+        can never be :term:`reclaimed` using reference counting. A
+        separate (infrequently run) :term:`tracing garbage collector
         <tracing garbage collection>` is often employed to reclaim
         this storage.
 
@@ -144,7 +142,7 @@ Memory Management Glossary: L
 
     linear addressing
 
-        In linear addressing, :term:`addresses <address>` form a
+        In linear addressing, :term:`addresses` form a
         single, continuous :term:`address space`. This term is used
         mostly in opposition to :term:`segmented addressing`.
 
@@ -158,11 +156,11 @@ Memory Management Glossary: L
         will read from it in future. The term is often used more
         broadly to mean :term:`reachable`.
 
-        It is not possible, in general, for :term:`garbage collectors
-        <garbage collector>` to determine exactly which :term:`objects
-        <object>` are still live. Instead, they use some approximation
-        to detect objects that are provably :term:`dead`, such as
-        those that are not :term:`reachable`.
+        It is not possible, in general, for :term:`garbage collectors`
+        to determine exactly which :term:`objects` are still live.
+        Instead, they use some approximation to detect objects that
+        are provably :term:`dead`, such as those that are not
+        :term:`reachable`.
 
         .. similar:: :term:`reachable`.
 
@@ -173,7 +171,7 @@ Memory Management Glossary: L
     load
 
         To transfer data from :term:`memory (2)` to a processor's
-        :term:`registers <register>`.
+        :term:`registers`.
 
         Load can also be used in the more general sense of moving data
         from a part of the :term:`memory hierarchy` that is slow to
@@ -214,12 +212,12 @@ Memory Management Glossary: L
         .. relevance::
 
             A :term:`mutator` may exhibit predictable properties such
-            as accessing in turn :term:`objects <object>` which were
-            :term:`allocated <allocate>` in turn, or accessing in turn
-            objects which have :term:`references <reference>` to each
-            other. An intelligent :term:`allocator` or :term:`copying
-            garbage collector <copying garbage collection>` can use
-            this observation to improve locality of reference.
+            as accessing in turn :term:`objects` which were
+            :term:`allocated` in turn, or accessing in turn objects
+            which have :term:`references` to each other. An
+            intelligent :term:`allocator` or :term:`copying garbage
+            collector <copying garbage collection>` can use this
+            observation to improve locality of reference.
 
         .. bibref:: [GZH93]_, [WLM92]_.
 
@@ -233,7 +231,7 @@ Memory Management Glossary: L
 
             A *location dependency* records the fact that the
             :term:`client program` depends on the bit patterns of some
-            :term:`references <reference>` (and not merely on the
+            :term:`references` (and not merely on the
             identity of the :term:`block` to which the reference
             refers), and provides a function
             (:c:func:`mps_ld_isstale`) to find out whether any of

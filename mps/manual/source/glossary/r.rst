@@ -62,16 +62,16 @@ Memory Management Glossary: R
         An :term:`object` is *reachable* if it is :term:`referred
         <reference>` to by a :term:`root`, or is referred to by a
         reachable object; that is, if it can be reached from the roots
-        by following :term:`references <reference>`.
+        by following :term:`references`.
 
         Reachability is used as an approximation to :term:`liveness
         <live>` in :term:`tracing garbage collection`.
 
-        In :term:`Java`, the :term:`reference objects <reference
-        object>` together with ordinary references and
-        :term:`finalization` generate a hierarchy of reachability that
-        guides the :term:`collector (1)` on what to do when an object
-        is about to :term:`die <dead>`. There are six strengths:
+        In :term:`Java`, the :term:`reference objects` together with
+        ordinary references and :term:`finalization` generate a
+        hierarchy of reachability that guides the :term:`collector
+        (1)` on what to do when an object is about to :term:`die
+        <dead>`. There are six strengths:
 
         1. :term:`strongly reachable`;
         2. :term:`softly reachable`;
@@ -203,7 +203,7 @@ Memory Management Glossary: R
         Reference counting systems perform :term:`automatic memory
         management` by keeping a count in each :term:`object`, usually
         in a :term:`header <in-band header>`, of how many
-        :term:`references <reference>` there are to the object.
+        :term:`references` there are to the object.
         Objects to which there are no references cannot be accessed by
         the :term:`mutator`; they are therefore :term:`dead` and may
         be :term:`reclaimed <reclaim>`.
@@ -324,7 +324,7 @@ Memory Management Glossary: R
     region inference
 
         Region inference is a technique for determining when
-        :term:`objects <object>` become :term:`dead` (even if they are
+        :term:`objects` become :term:`dead` (even if they are
         :term:`reachable`) by a static analysis of the program.
 
         Region inference infers a *region* for each object. When a
@@ -363,20 +363,20 @@ Memory Management Glossary: R
 
         Run-time systems for :term:`garbage-collected <garbage
         collection>` languages sometimes partition the set of machine
-        :term:`registers <register>` *a priori* into two categories:
+        :term:`registers` *a priori* into two categories:
         those always :term:`traced <trace>` and updated by the
         :term:`garbage collector` and those ignored by it.
 
         The former are always maintained in a format understood by the
-        collector; the latter are never used to hold :term:`references
-        <reference>` to collectable :term:`objects <object>`. More
+        collector; the latter are never used to hold
+        :term:`references` to collectable :term:`objects`. More
         complicated schemes are also possible.
 
         This partitioning provides a separation of concerns between
         the compiler and the :term:`garbage collector`. The compiler
         can generate code that produces values the garbage collector
         would not be able to handle (say, because they have no
-        :term:`tags <tag>`), as long as those values are kept in the
+        :term:`tags`), as long as those values are kept in the
         ignored registers. The garbage collector can trust that the
         registers it looks at always contain valid data, and can
         perform :term:`exact garbage collection`.
@@ -388,7 +388,7 @@ Memory Management Glossary: R
     relocation
 
         *Relocating* means moving data from one location to another
-        and updating all :term:`references <reference>`.
+        and updating all :term:`references`.
 
         Relocation is often performed to avoid :term:`external fragmentation`.
 
@@ -402,8 +402,8 @@ Memory Management Glossary: R
     remembered set
 
         A remembered set is the technique of keeping a separate list
-        of interesting :term:`references <reference>` between two sets
-        of :term:`objects <object>`, so you don't have to find them by
+        of interesting :term:`references` between two sets
+        of :term:`objects`, so you don't have to find them by
         :term:`scanning <scan>`.
 
         Many :term:`memory management` algorithms depend on
@@ -413,7 +413,7 @@ Memory Management Glossary: R
         originating partition to find them.
 
         A typical use in :term:`generational garbage collection` is
-        remembering :term:`references <reference>` from an older
+        remembering :term:`references` from an older
         :term:`generation` to a younger one.
 
         .. similar:: :term:`entry table (2)`.
@@ -427,10 +427,10 @@ Memory Management Glossary: R
 
         This is useful in an :term:`incremental <incremental garbage
         collection>` or :term:`concurrent <parallel garbage
-        collection>` :term:`collector (1)`, as no :term:`read-barrier
-        <read barrier>` is required; the :term:`mutator` can continue
-        to use old objects. The collector uses a :term:`write-barrier
-        <write barrier>` to replicate the writes to the new copies.
+        collection>` :term:`collector (1)`, as no :term:`read barrier`
+        is required; the :term:`mutator` can continue to use old
+        objects. The collector uses a :term:`write barrier` to
+        replicate the writes to the new copies.
 
         .. seealso:: :term:`copying garbage collection`, :term:`broken heart`.
 
@@ -439,7 +439,7 @@ Memory Management Glossary: R
     reserved
 
         In a :term:`virtual memory` system, it is usually possible
-        to hold range of :term:`virtual addresses <virtual address>`
+        to hold range of :term:`virtual addresses`
         *reserved* without making it :term:`mapped`.
 
         Reserving addresses prevents other components of the program
@@ -449,7 +449,7 @@ Memory Management Glossary: R
         :term:`address space` but only sparsely map it.
 
         On some systems there are special calls for reserving; on
-        others one can create :term:`mappings <mapping>` that don't
+        others one can create :term:`mappings` that don't
         need :term:`backing store`. For example, on some Unix systems,
         ``mmap /dev/zero`` with no access.
 
@@ -507,10 +507,9 @@ Memory Management Glossary: R
     root
 
         In :term:`tracing garbage collection`, a root holds a
-        :term:`reference` or set of references to :term:`objects
-        <object>` that are *a priori* :term:`reachable`. The
-        :term:`root set` is used as the starting point in determining
-        all reachable data.
+        :term:`reference` or set of references to :term:`objects` that
+        are *a priori* :term:`reachable`. The :term:`root set` is used
+        as the starting point in determining all reachable data.
 
         Roots basically comprise the references in the state of the
         :term:`mutator`. Typical roots are global variables, other
@@ -526,8 +525,8 @@ Memory Management Glossary: R
         .. mps:specific::
 
             The :term:`arena` uses root descriptions to find
-            :term:`references <reference>` within the :term:`client
-            program's <client program>` :term:`roots <root>`. Root
+            :term:`references` within the :term:`client
+            program's <client program>` :term:`roots`. Root
             descriptions belong to the type :c:type:`mps_root_t`.
 
     root mode
@@ -542,7 +541,7 @@ Memory Management Glossary: R
 
     root set
 
-        The *root set* is the collection of :term:`roots <root>` that
+        The *root set* is the collection of :term:`roots` that
         the :term:`mutator` declares to the :term:`collector (2)`.
 
         .. seealso:: :term:`garbage collection`.

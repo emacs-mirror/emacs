@@ -35,10 +35,10 @@ other.
 
     Arenas do not normally interact, but they compete with each other
     for resources, and references from one arena to another are not
-    traced, though you *can* declare :term:`roots <root>` pointing
+    traced, though you *can* declare :term:`roots` pointing
     from one arena to another. It is not efficient to have multiple
     arenas containing :term:`automatically managed <automatic memory
-    management>` :term:`pools <pool>`: if you find yourself in this
+    management>` :term:`pools`: if you find yourself in this
     situation it's best to find a way to move all the automatically
     managed pools to one arena.
 
@@ -55,16 +55,16 @@ the way that they acquire the memory to be managed.
 
 .. c:type:: mps_arena_t
 
-    The type of :term:`arenas <arena>`.
+    The type of :term:`arenas`.
 
     An arena is responsible for requesting :term:`memory (3)` from
-    the operating system, making it available to :term:`pools <pool>`,
+    the operating system, making it available to :term:`pools`,
     and for :term:`garbage collection`.
 
 
 .. c:type:: mps_arena_class_t
 
-    The type of :term:`arena classes <arena class>`.
+    The type of :term:`arena classes`.
 
 
 .. c:function:: mps_res_t mps_arena_create(mps_arena_t *arena_o, mps_arena_class_t arena_class, ...)
@@ -107,15 +107,13 @@ the way that they acquire the memory to be managed.
 
     This function checks the consistency of the arena, flushes the
     :term:`telemetry stream` and destroys the arena's internal control
-    structures. Additionally, :term:`virtual memory arenas <virtual
-    memory arena>` return their reserved address space to the
-    operating system if possible.
+    structures. Additionally, :term:`virtual memory arenas` return
+    their reserved address space to the operating system if possible.
 
     It is an error to destroy an arena without first destroying all
-    :term:`generation chains <generation chain>`, :term:`object
-    formats <object format>`, :term:`pools <pool>` and :term:`roots
-    <root>` created in the arena, and deregistering all :term:`threads
-    <thread>` registered with the arena.
+    :term:`generation chains`, :term:`object formats`, :term:`pools`
+    and :term:`roots` created in the arena, and deregistering all
+    :term:`threads` registered with the arena.
 
 
 .. _topic-arena-client:
@@ -188,7 +186,7 @@ Virtual memory arenas
     memory` interface to allocate memory. The chief consequence of
     this is that the arena can manage many more virtual addresses than
     it needs to commit memory to. This gives it flexibility as to
-    where to place :term:`blocks <block>`, which reduces
+    where to place :term:`blocks`, which reduces
     :term:`fragmentation` and helps make :term:`garbage collection`
     more efficient.
 
@@ -200,8 +198,8 @@ Virtual memory arenas
                                    size_t size)
 
     ``size`` is the initial amount of virtual address space, in
-    :term:`bytes <byte (1)>`, that the arena will reserve (this space
-    is initially reserved so that the arena can subsequently use it
+    :term:`bytes (1)`, that the arena will reserve (this space is
+    initially reserved so that the arena can subsequently use it
     without interference from other parts of the program, but most of
     it is not committed, so it don't require any RAM or backing
     store). The arena may allocate more virtual address space beyond
@@ -231,7 +229,7 @@ Arena properties
 
 .. c:function:: mps_word_t mps_collections(mps_arena_t arena)
 
-    Return the number of :term:`collection cycles <collection cycle>`
+    Return the number of :term:`collection cycles`
     that have been completed on an :term:`arena` since it was created.
 
     ``arena`` is the arena.
@@ -244,9 +242,9 @@ Arena properties
 
     ``arena`` is the arena to return the commit limit for.
 
-    Returns the commit limit in :term:`bytes <byte (1)>`. The commit
-    limit controls how much memory the MPS can obtain from the
-    operating system, and can be changed by calling
+    Returns the commit limit in :term:`bytes (1)`. The commit limit
+    controls how much memory the MPS can obtain from the operating
+    system, and can be changed by calling
     :c:func:`mps_arena_commit_limit_set`.
 
 
@@ -256,7 +254,7 @@ Arena properties
 
     ``arena`` is the arena to change the commit limit for.
 
-    ``limit`` is the new commit limit in :term:`bytes <byte (1)>`.
+    ``limit`` is the new commit limit in :term:`bytes (1)`.
 
     Returns :c:macro:`MPS_RES_OK` if successful, or another
     :term:`result code` if not.
@@ -294,10 +292,10 @@ Arena properties
     ``arena`` is the arena.
 
     Returns the total amount of memory that has been committed to RAM
-    by the MPS, in :term:`bytes <byte (1)>`.
+    by the MPS, in :term:`bytes (1)`.
 
     The committed memory is generally larger than the sum of the sizes
-    of the allocated :term:`blocks <block>`. The reasons for this are:
+    of the allocated :term:`blocks`. The reasons for this are:
 
     * some memory is used internally by the MPS to manage its own data
       structures and to record information about allocated blocks
@@ -306,7 +304,7 @@ Arena properties
 
     * operating systems (and hardware) typically restrict programs to
       requesting and releasing memory with a certain granularity (for
-      example, :term:`pages <page>`), so extra memory is committed
+      example, :term:`pages`), so extra memory is committed
       when this rounding is necessary;
 
     * there might also be :term:`spare committed memory`: see
@@ -335,7 +333,7 @@ Arena properties
 .. c:function:: size_t mps_arena_reserved(mps_arena_t arena)
 
     Return the total :term:`address space` reserved by an
-    :term:`arena`, in :term:`bytes <byte (1)>`.
+    :term:`arena`, in :term:`bytes (1)`.
 
     ``arena`` is the arena.
 
@@ -363,8 +361,8 @@ Arena properties
 
     ``arena`` is the arena to return the spare commit limit for.
 
-    Returns the spare commit limit in :term:`bytes <byte (1)>`. The
-    spare commit limit can be changed by calling
+    Returns the spare commit limit in :term:`bytes (1)`. The spare
+    commit limit can be changed by calling
     :c:func:`mps_arena_spare_commit_limit_set`.
 
 
@@ -374,7 +372,7 @@ Arena properties
 
     ``arena`` is the arena to change the spare commit limit for.
 
-    ``limit`` is the new spare commit limit in :term:`bytes <byte (1)>`.
+    ``limit`` is the new spare commit limit in :term:`bytes (1)`.
 
     The spare commit limit is the maximum amount of :term:`spare
     committed memory` the MPS is allowed to have. Setting it to a
@@ -426,15 +424,14 @@ An arena is always in one of three states.
 
 1. In the *unclamped state*, garbage collection may take place,
    objects may move in memory, references may be updated,
-   :term:`location dependencies <location dependency>` may become
-   stale, virtual memory may be requested from or return to the
-   operating system, and other kinds of background activity may
-   occur. This is the normal state.
+   :term:`location dependencies` may become stale, virtual memory may
+   be requested from or return to the operating system, and other
+   kinds of background activity may occur. This is the normal state.
 
 2. In the *clamped state*, objects do not move in memory, references
-   do not change, the staleness of :term:`location dependencies
-   <location dependency>` does not change, and memory occupied by
-   :term:`unreachable` objects is not recycled.
+   do not change, the staleness of :term:`location dependencies` does
+   not change, and memory occupied by :term:`unreachable` objects is
+   not recycled.
 
    However, a :term:`garbage collection` may be in progress and
    incremental collection may still occur, but it will not be visible
@@ -469,10 +466,10 @@ can only be called in this state.
     ``arena`` is the arena to clamp.
 
     In the clamped state, no object motion will occur and the
-    staleness of :term:`location dependencies <location dependency>`
-    will not change. All references to objects loaded while the arena
-    is clamped will keep the same binary representation until after it
-    is released by calling :c:func:`mps_arena_release`.
+    staleness of :term:`location dependencies` will not change. All
+    references to objects loaded while the arena is clamped will keep
+    the same binary representation until after it is released by
+    calling :c:func:`mps_arena_release`.
 
     In a clamped arena, incremental collection may still occur, but it
     will not be visible to the mutator and no new collections will
@@ -487,10 +484,9 @@ can only be called in this state.
     ``arena`` is the arena to park.
 
     While an arena is parked, no object motion will occur and the
-    staleness of :term:`location dependencies <location dependency>`
-    will not change. All references to objects loaded while the arena
-    is parked will keep the same binary representation until after it
-    is released.
+    staleness of :term:`location dependencies` will not change. All
+    references to objects loaded while the arena is parked will keep
+    the same binary representation until after it is released.
 
     Any current collection is run to completion before the arena is
     parked, and no new collections will start. When an arena is in the
@@ -658,9 +654,9 @@ Arena introspection
     * :c:func:`mps_addr_fmt`: determine the :term:`object format` to
       which an address belongs; 
     * :c:func:`mps_arena_formatted_objects_walk`: visit all
-      :term:`formatted objects <formatted object>` in an arena;
+      :term:`formatted objects` in an arena;
     * :c:func:`mps_arena_roots_walk`: visit all references in
-      :term:`roots <root>` registered with an arena; and
+      :term:`roots` registered with an arena; and
     * :c:func:`mps_addr_pool`: determine the :term:`pool` to which an
       address belongs.
 
@@ -716,7 +712,7 @@ Protection interface
     has the same effect as calling :c:func:`mps_arena_park`: all
     collections are run to completion, and the arena is clamped so
     that no new collections begin. The MPS also uses barriers to
-    maintain :term:`remembered sets <remembered set>`, so calling this
+    maintain :term:`remembered sets`, so calling this
     function will effectively destroy the remembered sets and any
     optimization gains from them.
 
@@ -782,8 +778,7 @@ Protection interface
     remembered when the :term:`client program` called
     :c:func:`mps_arena_unsafe_expose_remember_protection`. The purpose
     of remembering and restoring the protection state is to avoid the
-    need for the MPS to recompute all the :term:`remembered sets
-    <remembered set>` by scanning the entire arena, that occurs when
+    need for the MPS to recompute all the :term:`remembered sets` by scanning the entire arena, that occurs when
     :c:func:`mps_arena_expose` is used, and which causes the next
     :term:`garbage collection` to be slow.
 

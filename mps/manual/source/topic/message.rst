@@ -133,7 +133,7 @@ Message types
 
 .. c:type:: mps_message_type_t
 
-    The type of :term:`message types <message type>`.
+    The type of :term:`message types`.
 
     There are three message types:
 
@@ -145,7 +145,7 @@ Message types
 .. c:function:: void mps_message_type_disable(mps_arena_t arena, mps_message_type_t message_type)
 
     Restore an :term:`arena` to the default state whereby
-    :term:`messages <message>` of the specified :term:`message type`
+    :term:`messages` of the specified :term:`message type`
     are not posted, reversing the effect of an earlier call to
     :c:func:`mps_message_type_enable`.
 
@@ -164,7 +164,7 @@ Message types
 
 .. c:function:: void mps_message_type_enable(mps_arena_t arena, mps_message_type_t message_type)
 
-    Enable an :term:`arena` to post :term:`messages <message>` of a
+    Enable an :term:`arena` to post :term:`messages` of a
     specified :term:`message type`.
 
     ``arena`` is an arena.
@@ -206,7 +206,7 @@ Message interface
     can be obtained by calling :c:func:`mps_message_get`.
 
     An :c:func:`mps_message_t` is a :term:`reference` into MPS managed
-    memory, and can safely be :term:`fixed <fix>`.
+    memory, and can safely be :term:`fixed`.
 
 
 .. c:function:: mps_clock_t mps_message_clock(mps_arena_t arena, mps_message_t message)
@@ -301,8 +301,7 @@ Message queue interface
 
 .. c:function:: mps_bool_t mps_message_poll(mps_arena_t arena)
 
-    Determine whether there are currently any :term:`messages
-    <message>` on a :term:`message queue` for an :term:`arena`.
+    Determine whether there are currently any :term:`messages` on a :term:`message queue` for an :term:`arena`.
 
     ``arena`` is the arena whose message queue will be polled.
 
@@ -317,8 +316,7 @@ Message queue interface
 
 .. c:function:: mps_bool_t mps_message_queue_type(mps_message_type_t *message_type_o, mps_arena_t arena)
 
-    Determine whether there are currently any :term:`messages
-    <message>` on a :term:`message queue` for an :term:`arena`, and
+    Determine whether there are currently any :term:`messages` on a :term:`message queue` for an :term:`arena`, and
     return the :term:`message type` of the first message, if any.
 
     ``message_type_o`` points to a location that will hold the message

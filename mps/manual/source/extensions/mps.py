@@ -167,34 +167,33 @@ all_admonitions = [
     SpecificDirective, 
     TopicsDirective]
 
-see_only_ids = set()
-xref_ids = defaultdict(list)
-
 class GlossaryTransform(transforms.Transform):
+    """
+    Make transformations to a document that affect the way it refers
+    to glossary entries:
+
+    1. Change parenthesized sense numbers (1), (2) etc. to
+       superscripts in glossary entries and cross-references to
+       glossary entries.
+
+    2. Record glossary entries that consist only of "See: XREF" so
+       that cross-references to them can be reported by
+       `warn_indirect_terms` once the build is completed.
+
+    3. Add "term" cross-reference targets for plurals.
+    """
+
+    # These are shared between all instances of the class.
+    see_only_ids = set()
+    xref_ids = defaultdict(list)
     default_priority = 999
     sense_re = re.compile(r'(.*)\s+(\([0-9]+\))$')
 
-    def apply(self):
-        global see_only_ids, xref_ids
-        for target in self.document.traverse(nodes.term):
-            target.children = list(self.edit_children(target))
-        for target in self.document.traverse(addnodes.pending_xref):
-            if target['reftype'] == 'term':
-                xref_ids['term-{}'.format(target['reftarget'])].append((target.source, target.line))
-                c = target.children
-                if len(c) == 1 and isinstance(c[0], nodes.emphasis):
-                    c[0].children = list(self.edit_children(c[0]))
-        for target in self.document.traverse(nodes.definition_list_item):
-            ids = set()
-            for c in target.children:
-                if isinstance(c, nodes.term):
-                    ids = set(c['ids'])
-                if (isinstance(c, nodes.definition)
-                    and len(c.children) == 1
-                    and isinstance(c.children[0], see)):
-                    see_only_ids |= ids
-
-    def edit_children(self, target):
+    def superscript_children(self, target):
+        """
+        Edit the children of `target`, changing parenthesized sense
+        numbers (1), (2) etc. to superscripts.
+        """
         for e in target.children:
             if not isinstance(e, nodes.Text):
                 yield e
@@ -206,10 +205,64 @@ class GlossaryTransform(transforms.Transform):
             yield nodes.Text(m.group(1))
             yield nodes.superscript(text = m.group(2))
 
+    def apply(self):
+        # Change parenthesized sense numbers to superscripts in
+        # glossary entries.
+        for target in self.document.traverse(nodes.term):
+            target.children = list(self.superscript_children(target))
+
+        # Change parenthesized sense numbers to superscripts in
+        # cross-references to glossary entries.
+        for target in self.document.traverse(addnodes.pending_xref):
+            if target['reftype'] == 'term':
+                self.xref_ids['term-{}'.format(target['reftarget'])].append((target.source, target.line))
+                c = target.children
+                if len(c) == 1 and isinstance(c[0], nodes.emphasis):
+                    c[0].children = list(self.superscript_children(c[0]))
+
+        # Record glossary entries consisting only of "See: XREF".
+        for target in self.document.traverse(nodes.definition_list_item):
+            ids = set()
+            for c in target.children:
+                if isinstance(c, nodes.term):
+                    ids = set(c['ids'])
+                if (isinstance(c, nodes.definition)
+                    and len(c.children) == 1
+                    and isinstance(c.children[0], see)):
+                    self.see_only_ids |= ids
+
+        # Add cross-reference targets for plurals.
+        objects = self.document.settings.env.domaindata['std']['objects']
+        endings = [(l, l + 's') for l in 'abcedfghijklmnopqrtuvwxz']
+        endings.extend([
+            ('ss', 'sses'),
+            ('ing', 'ed'),
+            ('y', 'ies'),
+            ('e', 'ed'),
+            ('', 'ed'),
+            ])
+        for (name, fullname), value in objects.items():
+            if name != 'term':
+                continue
+            m = self.sense_re.match(fullname)
+            if m:
+                old_fullname = m.group(1)
+                sense = ' ' + m.group(2)
+            else: 
+                old_fullname = fullname
+                sense = ''
+            if any(old_fullname.endswith(e) for _, e in endings):
+                continue
+            for old_ending, new_ending in endings:
+                if not old_fullname.endswith(old_ending):
+                    continue
+                new_fullname = '{}{}{}'.format(old_fullname[:len(old_fullname) - len(old_ending)], new_ending, sense)
+                objects[(name, new_fullname)] = value
+
 def warn_indirect_terms(app, exception):
     if not exception:
-        for i in see_only_ids:
-            for doc, line in xref_ids[i]:
+        for i in GlossaryTransform.see_only_ids:
+            for doc, line in GlossaryTransform.xref_ids[i]:
                 print('Warning: cross-reference to {} at {} line {}.'.format(i, doc, line))
 
 def setup(app):

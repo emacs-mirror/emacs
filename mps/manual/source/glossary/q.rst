@@ -11,7 +11,7 @@ Memory Management Glossary: Q
     quadword
 
         A *quadword* is a unit of memory consisting of four adjacent
-        :term:`words <word>`.
+        :term:`words`.
 
         .. historical::
 

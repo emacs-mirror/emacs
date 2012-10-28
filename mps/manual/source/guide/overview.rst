@@ -11,7 +11,7 @@ management`, :term:`inline allocation <inline allocation (1)>`,
 :term:`finalization`, :term:`weakness <weak reference (1)>`, and
 multiple concurrent co-operating :term:`incremental <incremental
 garbage collection>` :term:`generational <generational garbage
-collection>` :term:`garbage collections <garbage collection>`. It also
+collection>` :term:`garbage collections`. It also
 includes a library of :term:`memory pool classes <pool class>`
 implementing specialized memory management policies.
 
@@ -48,7 +48,7 @@ the point of view of the Memory Pool System.
 The **arena** is the top-level data structure in the MPS. An
 :term:`arena` is responsible for requesting :term:`memory (3)` from
 the operating system (and returning it), for making memory available
-to :term:`pools <pool>`, and for :term:`garbage collection`. Multiple
+to :term:`pools`, and for :term:`garbage collection`. Multiple
 arenas are supported, but it's usually best to have only one arena in
 your program, because the MPS can't collect cyclic structures that
 span multiple arenas. See :ref:`topic-arena`.
@@ -71,12 +71,12 @@ managed <automatic memory management>` (the :term:`garbage collector`
 reclaims :term:`unreachable` blocks). See :ref:`pool`.
 
 Automatically managed pools need you to tell them how to **scan** for
-:term:`references <reference>` to allocated blocks. See
+:term:`references` to allocated blocks. See
 :ref:`topic-scanning`.
 
 The arena needs you to tell it how to find your **roots**: references
 to allocated blocks that are stored in static data, in memory not
-managed by the MPS, or on your program's :term:`registers <register>` or :term:`control stack`. See :ref:`topic-root`.
+managed by the MPS, or on your program's :term:`registers` or :term:`control stack`. See :ref:`topic-root`.
 
 The MPS is designed to work with multi-threaded programs. Functions in
 the C interface are thread safe, except in a few documented
