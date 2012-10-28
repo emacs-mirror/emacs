@@ -1,3 +1,11 @@
+2012-10-28  Martin Rudalics  <rudalics@gmx.at>
+
+	* windows.texi (Basic Windows): Reformulate description of live,
+	internal and valid windows.
+	(Cyclic Window Ordering): Describe new argument of
+	get-lru-window and get-largest-window.  Add description of
+	window-in-direction.
+
 2012-10-27  Glenn Morris  <rgm@gnu.org>
 
 	* variables.texi (Generalized Variables): New section,
