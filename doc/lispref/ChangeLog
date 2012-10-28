@@ -1,3 +1,8 @@
+2012-10-28  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* keymaps.texi (Format of Keymaps): Document the multiple
+	inheritance format.
+
 2012-10-28  Martin Rudalics  <rudalics@gmx.at>
 
 	* windows.texi (Basic Windows): Reformulate description of live,

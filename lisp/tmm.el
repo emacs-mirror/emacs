@@ -165,13 +165,15 @@ Its value should be an event that has a binding in MENU."
     ;; tmm-km-list is an alist of (STRING . MEANING).
     ;; It has no other elements.
     ;; The order of elements in tmm-km-list is the order of the menu bar.
-    (dolist (elt menu)
-      (cond
-       ((stringp elt) (setq gl-str elt))
-       ((listp elt) (tmm-get-keymap elt not-menu))
-       ((vectorp elt)
-        (dotimes (i (length elt))
-          (tmm-get-keymap (cons i (aref elt i)) not-menu)))))
+    (if (not not-menu)
+        (map-keymap (lambda (k v) (tmm-get-keymap (cons k v))) menu)
+      (dolist (elt menu)
+        (cond
+         ((stringp elt) (setq gl-str elt))
+         ((listp elt) (tmm-get-keymap elt not-menu))
+         ((vectorp elt)
+          (dotimes (i (length elt))
+            (tmm-get-keymap (cons i (aref elt i)) not-menu))))))
     ;; Choose an element of tmm-km-list; put it in choice.
     (if (and not-menu (= 1 (length tmm-km-list)))
 	;; If this is the top-level of an x-popup-menu menu,
@@ -432,7 +434,7 @@ It uses the free variable `tmm-table-undef' to keep undefined keys."
 		   (or (keymapp (cdr-safe (cdr-safe elt)))
 		       (eq (car (cdr-safe (cdr-safe elt))) 'lambda))
 		 (and (symbolp (cdr-safe (cdr-safe elt)))
-			       (fboundp (cdr-safe (cdr-safe elt)))))
+                      (fboundp (cdr-safe (cdr-safe elt)))))
 	       (setq km (cddr elt))
 	       (and (stringp (car elt)) (setq str (car elt))))
 
@@ -458,14 +460,15 @@ It uses the free variable `tmm-table-undef' to keep undefined keys."
 		       (eq (car (cdr-safe (cdr-safe (cdr-safe elt)))) 'lambda))
 		 (and (symbolp (cdr-safe (cdr-safe (cdr-safe elt))))
 		      (fboundp (cdr-safe (cdr-safe (cdr-safe elt))))))
-					 ; New style of easy-menu
+                                        ; New style of easy-menu
 	       (setq km (cdr (cddr elt)))
 	       (and (stringp (car elt)) (setq str (car elt))))
 
 	      ((stringp event)		; x-popup or x-popup element
-	       (if (or in-x-menu (stringp (car-safe elt)))
-		   (setq str event event nil km elt)
-		 (setq str event event nil km (cons 'keymap elt)))))
+               (setq str event)
+               (setq event nil)
+	       (setq km (if (or in-x-menu (stringp (car-safe elt)))
+                            elt (cons 'keymap elt)))))
         (unless (or (eq km 'ignore) (null str))
           (let ((binding (where-is-internal km nil t)))
             (when binding

@@ -210,6 +210,11 @@ Aside from elements that specify bindings for keys, a keymap can also
 have a string as an element.  This is called the @dfn{overall prompt
 string} and makes it possible to use the keymap as a menu.
 @xref{Defining Menus}.
+
+@item (keymap @dots{})
+If an element of a keymap is itself a keymap, it counts as if this inner keymap
+were inlined in the outer keymap.  This is used for multiple-inheritance, such
+as in @code{make-composed-keymap}.
 @end table
 
 When the binding is @code{nil}, it doesn't constitute a definition
