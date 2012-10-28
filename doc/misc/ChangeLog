@@ -1,5 +1,11 @@
 2012-10-28  Glenn Morris  <rgm@gnu.org>
 
+	* cl.texi (Multiple Values, Common Lisp Compatibility):
+	More namespace updates.
+	(Obsolete Features): Copyedits.
+	(Obsolete Lexical Macros, Obsolete Setf Customization):
+	New subsections.
+
 	* cl.texi (Porting Common Lisp, Lexical Bindings):
 	Add some xrefs to the Elisp manual.
 

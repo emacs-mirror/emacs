@@ -806,7 +806,7 @@ standard @code{setf} facility, and a number of looping and conditional
 constructs.
 
 @c FIXME
-@c flet is not cl-flet, values is not cl-values.
+@c flet is not cl-flet.
 @menu
 * Assignment::             The @code{cl-psetq} form.
 * Generalized Variables::  Extensions to generalized variables.
@@ -815,7 +815,7 @@ constructs.
 * Blocks and Exits::       @code{cl-block}, @code{cl-return}, @code{cl-return-from}.
 * Iteration::              @code{cl-do}, @code{cl-dotimes}, @code{cl-dolist}, @code{cl-do-symbols}.
 * Loop Facility::          The Common Lisp @code{cl-loop} macro.
-* Multiple Values::        @code{values}, @code{cl-multiple-value-bind}, etc.
+* Multiple Values::        @code{cl-values}, @code{cl-multiple-value-bind}, etc.
 @end menu
 
 @node Assignment
@@ -2660,7 +2660,7 @@ than one value either return just the first value (as in
 @code{get-setf-method}).  This package @emph{does} define placeholders
 for the Common Lisp functions that work with multiple values, but
 in Emacs Lisp these functions simply operate on lists instead.
-The @code{values} form, for example, is a synonym for @code{list}
+The @code{cl-values} form, for example, is a synonym for @code{list}
 in Emacs.
 
 @defmac cl-multiple-value-bind (var@dots{}) values-form forms@dots{}
@@ -4701,9 +4701,9 @@ and type specifiers are unimplemented.
 The multiple-value return facility treats lists as multiple
 values, since Emacs Lisp cannot support multiple return values
 directly.  The macros will be compatible with Common Lisp if
-@code{values} or @code{values-list} is always used to return to
+@code{cl-values} or @code{cl-values-list} is always used to return to
 a @code{cl-multiple-value-bind} or other multiple-value receiver;
-if @code{values} is used without @code{cl-multiple-value-@dots{}}
+if @code{cl-values} is used without @code{cl-multiple-value-@dots{}}
 or vice-versa the effect will be different from Common Lisp.
 
 Many Common Lisp declarations are ignored, and others match
@@ -4927,11 +4927,15 @@ recursion.
 @appendix Obsolete Features
 
 This section describes some features of the package that are obsolete
-and should not be used in new code.  They are only provided by the old
-@file{cl.el} entry point, not by the newer @file{cl-lib.el}.
+and should not be used in new code.  They are either only provided by
+the old @file{cl.el} entry point, not by the newer @file{cl-lib.el};
+or where versions with a @samp{cl-} prefix do exist they do not behave
+in exactly the same way.
 
 @menu
-* Lexical Bindings::    An approximation of lexical binding.
+* Lexical Bindings::            An approximation of lexical binding.
+* Obsolete Lexical Macros::     Obsolete macros using lexical-let.
+* Obsolete Setf Customization:: Obsolete ways to customize setf.
 @end menu
 
 @node Lexical Bindings
@@ -5048,6 +5052,46 @@ instance of the lexical variable.
 @defmac lexical-let* (bindings@dots{}) forms@dots{}
 This form is just like @code{lexical-let}, except that the bindings
 are made sequentially in the manner of @code{let*}.
+@end defmac
+
+@node Obsolete Lexical Macros
+@appendixsec Macros Defined Using Lexical-Let
+
+The following macros are defined using @code{lexical-let}.
+They are replaced by versions with a @samp{cl-} prefix that use true
+lexical binding (and hence rely on @code{lexical-binding} being set to
+@code{t} in code using them).
+
+@defmac flet (bindings@dots{}) forms@dots{}
+Replaced by @code{cl-flet} (@pxref{Function Bindings})
+or @code{cl-letf} (@pxref{Modify Macros}).
+@end defmac
+
+@defmac labels (bindings@dots{}) forms@dots{}
+Replaced by @code{cl-labels} (@pxref{Function Bindings}).
+@end defmac
+
+@defmac letf (bindings@dots{}) forms@dots{}
+Replaced by @code{cl-letf} (@pxref{Modify Macros}).
+@end defmac
+
+@node Obsolete Setf Customization
+@appendixsec Obsolete Ways to Customize Setf
+
+This section describes some obsolete ways to extend @code{setf}.
+They are replaced by @file{gv.el} in Emacs 24.3.
+
+@c FIXME.
+@defmac define-setf-expander name arglist &rest body
+Use @file{gv.el}.
+@end defmac
+
+@defmac defsetf access-fn update-fn
+Use @file{gv.el}.
+@end defmac
+
+@defmac define-modify-macro name arglist function [doc-string]
+Use @file{gv.el}.
 @end defmac
 
 
