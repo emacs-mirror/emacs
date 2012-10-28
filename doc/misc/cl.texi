@@ -70,6 +70,7 @@ developing GNU and promoting software freedom.''
 * Efficiency Concerns::         Hints and techniques.
 * Common Lisp Compatibility::   All known differences with Steele.
 * Porting Common Lisp::         Hints for porting Common Lisp code.
+* Obsolete Features::           Obsolete features.
 
 * GNU Free Documentation License:: The license for this documentation.
 * Function Index::
@@ -210,7 +211,6 @@ Internal function and variable names in the package are prefixed
 by @code{cl--}.  Here is a complete list of functions prefixed by
 @code{cl-} that were not taken from Common Lisp:
 
-@c FIXME lexical-let lexical-let*
 @example
 cl-callf         cl-callf2        cl-defsubst
 cl-floatp-safe   cl-letf          cl-letf*
@@ -806,12 +806,11 @@ standard @code{setf} facility, and a number of looping and conditional
 constructs.
 
 @c FIXME
-@c lexical-let is obsolete; flet is not cl-flet.
-@c values is not cl-values.
+@c flet is not cl-flet, values is not cl-values.
 @menu
 * Assignment::             The @code{cl-psetq} form.
 * Generalized Variables::  Extensions to generalized variables.
-* Variable Bindings::      @code{cl-progv}, @code{lexical-let}, @code{flet}, @code{cl-macrolet}.
+* Variable Bindings::      @code{cl-progv}, @code{flet}, @code{cl-macrolet}.
 * Conditionals::           @code{cl-case}, @code{cl-typecase}.
 * Blocks and Exits::       @code{cl-block}, @code{cl-return}, @code{cl-return-from}.
 * Iteration::              @code{cl-do}, @code{cl-dotimes}, @code{cl-dolist}, @code{cl-do-symbols}.
@@ -1422,7 +1421,6 @@ are also related to variable bindings.
 
 @menu
 * Dynamic Bindings::     The @code{cl-progv} form.
-* Lexical Bindings::     @code{lexical-let} and lexical closures.
 * Function Bindings::    @code{flet} and @code{labels}.
 * Macro Bindings::       @code{cl-macrolet} and @code{cl-symbol-macrolet}.
 @end menu
@@ -1445,120 +1443,6 @@ If @var{values} is shorter than @var{symbols}, the last few symbols
 are bound to @code{nil}.
 If @var{symbols} is shorter than @var{values}, the excess values
 are ignored.
-@end defmac
-
-@node Lexical Bindings
-@subsection Lexical Bindings
-
-@noindent
-The @code{CL} package defines the following macro which
-more closely follows the Common Lisp @code{let} form:
-
-@defmac lexical-let (bindings@dots{}) forms@dots{}
-This form is exactly like @code{let} except that the bindings it
-establishes are purely lexical.  Lexical bindings are similar to
-local variables in a language like C:  Only the code physically
-within the body of the @code{lexical-let} (after macro expansion)
-may refer to the bound variables.
-
-@example
-(setq a 5)
-(defun foo (b) (+ a b))
-(let ((a 2)) (foo a))
-     @result{} 4
-(lexical-let ((a 2)) (foo a))
-     @result{} 7
-@end example
-
-@noindent
-In this example, a regular @code{let} binding of @code{a} actually
-makes a temporary change to the global variable @code{a}, so @code{foo}
-is able to see the binding of @code{a} to 2.  But @code{lexical-let}
-actually creates a distinct local variable @code{a} for use within its
-body, without any effect on the global variable of the same name.
-
-The most important use of lexical bindings is to create @dfn{closures}.
-A closure is a function object that refers to an outside lexical
-variable.  For example:
-
-@example
-(defun make-adder (n)
-  (lexical-let ((n n))
-    (function (lambda (m) (+ n m)))))
-(setq add17 (make-adder 17))
-(funcall add17 4)
-     @result{} 21
-@end example
-
-@noindent
-The call @code{(make-adder 17)} returns a function object which adds
-17 to its argument.  If @code{let} had been used instead of
-@code{lexical-let}, the function object would have referred to the
-global @code{n}, which would have been bound to 17 only during the
-call to @code{make-adder} itself.
-
-@example
-(defun make-counter ()
-  (lexical-let ((n 0))
-    (cl-function (lambda (&optional (m 1)) (cl-incf n m)))))
-(setq count-1 (make-counter))
-(funcall count-1 3)
-     @result{} 3
-(funcall count-1 14)
-     @result{} 17
-(setq count-2 (make-counter))
-(funcall count-2 5)
-     @result{} 5
-(funcall count-1 2)
-     @result{} 19
-(funcall count-2)
-     @result{} 6
-@end example
-
-@noindent
-Here we see that each call to @code{make-counter} creates a distinct
-local variable @code{n}, which serves as a private counter for the
-function object that is returned.
-
-Closed-over lexical variables persist until the last reference to
-them goes away, just like all other Lisp objects.  For example,
-@code{count-2} refers to a function object which refers to an
-instance of the variable @code{n}; this is the only reference
-to that variable, so after @code{(setq count-2 nil)} the garbage
-collector would be able to delete this instance of @code{n}.
-Of course, if a @code{lexical-let} does not actually create any
-closures, then the lexical variables are free as soon as the
-@code{lexical-let} returns.
-
-Many closures are used only during the extent of the bindings they
-refer to; these are known as ``downward funargs'' in Lisp parlance.
-When a closure is used in this way, regular Emacs Lisp dynamic
-bindings suffice and will be more efficient than @code{lexical-let}
-closures:
-
-@example
-(defun add-to-list (x list)
-  (mapcar (lambda (y) (+ x y))) list)
-(add-to-list 7 '(1 2 5))
-     @result{} (8 9 12)
-@end example
-
-@noindent
-Since this lambda is only used while @code{x} is still bound,
-it is not necessary to make a true closure out of it.
-
-You can use @code{defun} or @code{flet} inside a @code{lexical-let}
-to create a named closure.  If several closures are created in the
-body of a single @code{lexical-let}, they all close over the same
-instance of the lexical variable.
-
-The @code{lexical-let} form is an extension to Common Lisp.  In
-true Common Lisp, all bindings are lexical unless declared otherwise.
-@end defmac
-
-@defmac lexical-let* (bindings@dots{}) forms@dots{}
-This form is just like @code{lexical-let}, except that the bindings
-are made sequentially in the manner of @code{let*}.
 @end defmac
 
 @node Function Bindings
@@ -1650,6 +1534,10 @@ arguments to @code{cl-defmacro} (i.e., a macro name, argument list,
 and macro-expander forms).  The macro is defined accordingly for
 use within the body of the @code{cl-macrolet}.
 
+@c FIXME this should be modified to say ``even when lexical-binding
+@c is code{nil}'', but is that true?  The doc of cl-macrolet just
+@c refers us to cl-flet, which refers to cl-labels, which says that it
+@c behaves differently according to whether l-b is true or not.
 Because of the nature of macros, @code{cl-macrolet} is lexically
 scoped even in Emacs Lisp:  The @code{cl-macrolet} binding will
 affect only calls that appear physically within the body
@@ -1678,8 +1566,10 @@ I.e., @code{(setq foo 4)} in the above would be equivalent to
 
 Likewise, a @code{let} or @code{let*} binding a symbol macro is
 treated like a @code{letf} or @code{cl-letf*}.  This differs from true
+@c FIXME does it work like this in Emacs with lexical-binding = t?
 Common Lisp, where the rules of lexical scoping cause a @code{let}
 binding to shadow a @code{cl-symbol-macrolet} binding.  In this package,
+@c FIXME obsolete.
 only @code{lexical-let} and @code{lexical-let*} will shadow a symbol
 macro.
 
@@ -4861,19 +4751,15 @@ this convention, calls to Lisp builtins like @code{if} and
 
 @item
 Lexical scoping.  In Common Lisp, function arguments and @code{let}
-bindings apply only to references physically within their bodies
-(or within macro expansions in their bodies).  Emacs Lisp, by
-contrast, uses @dfn{dynamic scoping} wherein a binding to a
-variable is visible even inside functions called from the body.
+bindings apply only to references physically within their bodies (or
+within macro expansions in their bodies).  Traditionally, Emacs Lisp
+uses @dfn{dynamic scoping} wherein a binding to a variable is visible
+even inside functions called from the body.  Lexical binding is
+available since Emacs 24.1, so be sure to set @code{lexical-binding}
+to @code{t} if you need to emulate this aspect of Common Lisp.
 
-Variables in Common Lisp can be made dynamically scoped by
-declaring them @code{special} or using @code{defvar}.  In Emacs
-Lisp it is as if all variables were declared @code{special}.
-
-Often you can use code that was written for lexical scoping
-even in a dynamically scoped Lisp, but not always.  Here is
-an example of a Common Lisp code fragment that would fail in
-Emacs Lisp:
+Here is an example of a Common Lisp code fragment that would fail in
+Emacs Lisp if @code{lexical-binding} were set to @code{nil}:
 
 @example
 (defun map-odd-elements (func list)
@@ -4886,20 +4772,16 @@ Emacs Lisp:
 @end example
 
 @noindent
-In Common Lisp, the two functions' usages of @code{x} are completely
-independent.  In Emacs Lisp, the binding to @code{x} made by
-@code{add-odd-elements} will have been hidden by the binding
-in @code{map-odd-elements} by the time the @code{(+ a x)} function
-is called.
+With lexical binding, the two functions' usages of @code{x} are
+completely independent.  With dynamic binding, the binding to @code{x}
+made by @code{add-odd-elements} will have been hidden by the binding
+in @code{map-odd-elements} by the time the @code{(+ a x)} function is
+called.
 
-(This package avoids such problems in its own mapping functions
-by using names like @code{cl--x} instead of @code{x} internally;
-as long as you don't use this prefix for your own
-variables no collision can occur.)
-
-@xref{Lexical Bindings}, for a description of the @code{lexical-let}
-form which establishes a Common Lisp-style lexical binding, and some
-examples of how it differs from Emacs's regular @code{let}.
+Internally, this package uses lexical binding so that such problems do
+not occur.  @xref{Lexical Bindings}, for a description of the obsolete
+@code{lexical-let} form that emulates a Common Lisp-style lexical
+binding when dynamic binding is in use.
 
 @item
 Reader macros.  Common Lisp includes a second type of macro that
@@ -5038,6 +4920,133 @@ much faster than recursion.  Also, Lisp programmers will want to
 note that the current Emacs Lisp compiler does not optimize tail
 recursion.
 @end itemize
+
+@node Obsolete Features
+@appendix Obsolete Features
+
+This section describes some features of the package that are obsolete
+and should not be used in new code.  They are only provided by the old
+@file{cl.el} entry point, not by the newer @file{cl-lib.el}.
+
+@menu
+* Lexical Bindings::    An approximation of lexical binding.
+@end menu
+
+@node Lexical Bindings
+@appendixsec Lexical Bindings
+
+The following macros are extensions to Common Lisp, where all bindings
+are lexical unless declared otherwise.  These features are likewise
+obsolete since the introduction of true lexical binding in Emacs 24.1.
+
+@defmac lexical-let (bindings@dots{}) forms@dots{}
+This form is exactly like @code{let} except that the bindings it
+establishes are purely lexical.
+@end defmac
+
+@c FIXME remove this and refer to elisp manual.
+@c Maybe merge some stuff from here to there?
+@noindent
+Lexical bindings are similar to local variables in a language like C:
+Only the code physically within the body of the @code{lexical-let}
+(after macro expansion) may refer to the bound variables.
+
+@example
+(setq a 5)
+(defun foo (b) (+ a b))
+(let ((a 2)) (foo a))
+     @result{} 4
+(lexical-let ((a 2)) (foo a))
+     @result{} 7
+@end example
+
+@noindent
+In this example, a regular @code{let} binding of @code{a} actually
+makes a temporary change to the global variable @code{a}, so @code{foo}
+is able to see the binding of @code{a} to 2.  But @code{lexical-let}
+actually creates a distinct local variable @code{a} for use within its
+body, without any effect on the global variable of the same name.
+
+The most important use of lexical bindings is to create @dfn{closures}.
+A closure is a function object that refers to an outside lexical
+variable.  For example:
+
+@example
+(defun make-adder (n)
+  (lexical-let ((n n))
+    (function (lambda (m) (+ n m)))))
+(setq add17 (make-adder 17))
+(funcall add17 4)
+     @result{} 21
+@end example
+
+@noindent
+The call @code{(make-adder 17)} returns a function object which adds
+17 to its argument.  If @code{let} had been used instead of
+@code{lexical-let}, the function object would have referred to the
+global @code{n}, which would have been bound to 17 only during the
+call to @code{make-adder} itself.
+
+@example
+(defun make-counter ()
+  (lexical-let ((n 0))
+    (cl-function (lambda (&optional (m 1)) (cl-incf n m)))))
+(setq count-1 (make-counter))
+(funcall count-1 3)
+     @result{} 3
+(funcall count-1 14)
+     @result{} 17
+(setq count-2 (make-counter))
+(funcall count-2 5)
+     @result{} 5
+(funcall count-1 2)
+     @result{} 19
+(funcall count-2)
+     @result{} 6
+@end example
+
+@noindent
+Here we see that each call to @code{make-counter} creates a distinct
+local variable @code{n}, which serves as a private counter for the
+function object that is returned.
+
+Closed-over lexical variables persist until the last reference to
+them goes away, just like all other Lisp objects.  For example,
+@code{count-2} refers to a function object which refers to an
+instance of the variable @code{n}; this is the only reference
+to that variable, so after @code{(setq count-2 nil)} the garbage
+collector would be able to delete this instance of @code{n}.
+Of course, if a @code{lexical-let} does not actually create any
+closures, then the lexical variables are free as soon as the
+@code{lexical-let} returns.
+
+Many closures are used only during the extent of the bindings they
+refer to; these are known as ``downward funargs'' in Lisp parlance.
+When a closure is used in this way, regular Emacs Lisp dynamic
+bindings suffice and will be more efficient than @code{lexical-let}
+closures:
+
+@example
+(defun add-to-list (x list)
+  (mapcar (lambda (y) (+ x y))) list)
+(add-to-list 7 '(1 2 5))
+     @result{} (8 9 12)
+@end example
+
+@noindent
+Since this lambda is only used while @code{x} is still bound,
+it is not necessary to make a true closure out of it.
+
+You can use @code{defun} or @code{flet} inside a @code{lexical-let}
+to create a named closure.  If several closures are created in the
+body of a single @code{lexical-let}, they all close over the same
+instance of the lexical variable.
+
+@defmac lexical-let* (bindings@dots{}) forms@dots{}
+This form is just like @code{lexical-let}, except that the bindings
+are made sequentially in the manner of @code{let*}.
+@end defmac
+
 
 @node GNU Free Documentation License
 @appendix GNU Free Documentation License

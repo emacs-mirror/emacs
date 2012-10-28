@@ -1,3 +1,9 @@
+2012-10-28  Glenn Morris  <rgm@gnu.org>
+
+	* cl.texi (Lexical Bindings): Move to appendix of obsolete features.
+	(Porting Common Lisp): Emacs Lisp can do true lexical binding now.
+	(Obsolete Features): New appendix.  Move Lexical Bindings here.
+
 2012-10-27  Glenn Morris  <rgm@gnu.org>
 
 	* cl.texi: Use defmac for macros rather than defspec.
