@@ -38,9 +38,6 @@ Outstanding
 
 61. Start adding :ref:`genindex` entries.
 
-75. Write something about telemetry labels in the telemetry chapter of
-    the reference manual.
-
 76. Develop debugging examples that illustrates each of the warnings
     about consistency. Also to demonstrate the "garbage collect
     frequently to expose errors as soon as possible" advice.
@@ -498,12 +495,12 @@ Complete
     *Answer:* see above.
 
 62. I documented the requirement for tags to be removed when calling
-    :c:func:`MPS_FIX`, but does this apply to format auto_header?
+    :c:func:`MPS_FIX`, but does this apply to format auto-header?
 
-    *Answer:* auto_header pool does the subtraction, so this is an
+    *Answer:* auto-header pool does the subtraction, so this is an
     exception to the rule.
 
-63. How do you create an auto_header format with a class method?
+63. How do you create an auto-header format with a class method?
 
     *Answer:* this is just missing functionality. Also, not clear what
     the class method is for.
@@ -634,6 +631,9 @@ Complete
     *Action:* remove the -e, -b and -v options. (-v should be always
     turned on.) Also remove the label processing. Look at NB's branch
     in case he's done some of this work already. (He hasn't.)
+
+75. Write something about telemetry labels in the telemetry chapter of
+    the reference manual.
 
 77. The debugging section on :ref:`guide-debug-underscanning` is not
     entirely convincing as to the utility of the telemetry. I'd like
@@ -882,7 +882,7 @@ Complete
 109. NB's `MPS Format Protocol
      <http://info.ravenbrook.com/project/mps/doc/2002-06-18/obsolete-mminfo/mmdoc/protocol/mps/format/index.html>`_
      says that formats A and B are deprecated. Surely this isn't the
-     case? That would leave only auto_header supported.
+     case? That would leave only auto-header supported.
 
      *Answer:* ask NB, he wrote it.
 

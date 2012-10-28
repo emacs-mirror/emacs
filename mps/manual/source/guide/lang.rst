@@ -12,9 +12,9 @@ In this guide, I'll explain how to use the MPS to add incremental,
 moving, generational garbage collection to the runtime system for a
 programming language.
 
-I'm assuming that you've downloaded and built the MPS (see the chapter
-:ref:`guide-build`), and that you are familiar with the overall
-architecture of the MPS (see the chapter :ref:`guide-overview`).
+I'm assuming that you are familiar with the overall architecture of
+the MPS (see the chapter :ref:`guide-overview`) and that you've
+downloaded and built the MPS (see the chapter :ref:`guide-build`).
 
 
 The Scheme interpreter
@@ -179,7 +179,7 @@ some other value if it failed.
 
 .. topics::
 
-    :ref:`topic-arena`.
+    :ref:`topic-arena`, :ref:`topic-error`.
 
 
 Choosing a pool class
@@ -211,6 +211,10 @@ these features of the MPS.
     the same arena, so that objects requiring different memory
     management policies can be segregated into pools of suitable
     classes.
+
+.. topics::
+
+    :ref:`topic-pool`.
 
 
 Describing your objects
@@ -427,7 +431,7 @@ the end of the object, rounded up to the object format's alignment.
 
 .. topics::
 
-    :ref:`topic-format`, :ref:`topic-scanning`.
+    :ref:`topic-format`.
 
 
 .. _guide-lang-fwd:
@@ -655,10 +659,14 @@ interpreter::
                            obj_gen_params);
     if (res != MPS_RES_OK) error("Couldn't create obj chain");
 
-Note that thes numbers anove have deliberately been chosen to be
-small, so that the MPS is forced to collect often so that you can see
+Note that these numbers have have been deliberately chosen to be
+small, so that the MPS is forced to collect often, so that you can see
 it working. Don't just copy these numbers unless you also want to see
 frequent garbage collections!
+
+.. topics::
+
+    :ref:`topic-collection`.
 
 
 Creating the pool
@@ -1002,7 +1010,7 @@ it now must be organized like this::
 
 .. topics::
 
-    :ref:`topic-root`.
+    :ref:`topic-thread`.
 
 
 .. _guide-lang-allocation:
