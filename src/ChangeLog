@@ -1,3 +1,13 @@
+2012-10-28  Jan Djärv  <jan.h.d@swipnet.se>
+
+	* nsterm.m (NO_APPDEFINED_DATA): New define.
+	(last_appdefined_event_data): New variable
+	(last_appdefined_event): Remove.
+	(ns_select): Initialize t from last_appdefined_event_data instead
+	of [last_appdefined_event data1].
+	(sendEvent:): Save [theEvent data1] to last_appdefined_event_data,
+	remove last_appdefined_event (Bug#12698).
+
 2012-10-28  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* frame.c (x_set_font): Catch internal error.
