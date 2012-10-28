@@ -56,8 +56,6 @@ Outstanding
      for example :c:func:`mps_fix`.) Also, deprecation notices need
      nicer formatting.
 
-121. Documentation needs copying into scheme.c.
-
 
 Complete
 --------
@@ -939,6 +937,8 @@ Complete
 120. "Magic" needs explaining in :ref:`topic-location`.
 
      *Answer:* that's because we hit it: it didn't move.
+
+121. Documentation needs copying into scheme.c.
 
 122. What's a "class structure"? (See :c:func:`mps_sac_alloc` and
      :c:func:`mps_sac_free`.) Does it mean "exactly the same set of

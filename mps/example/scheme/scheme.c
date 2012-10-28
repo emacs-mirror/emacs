@@ -168,9 +168,13 @@ typedef struct vector_s {
   obj_t vector[1];		/* vector elements */
 } vector_s;
 
+/* %%MPS: The hash table is address-based, and so depends on the
+ * location of its keys: when the garbage collector moves the keys,
+ * the table needs to be re-hashed. The 'ld' structure is used to
+ * detect this. See topic/location. */
 typedef struct table_s {
   type_t type;                  /* TYPE_TABLE */
-  mps_ld_s ld;                  /* location dependency %%MPS */
+  mps_ld_s ld;                  /* location dependency */
   obj_t buckets;                /* hash buckets */
 } table_s;
 
@@ -186,15 +190,14 @@ typedef struct buckets_s {
 /* fwd2, fwd, pad1, pad -- MPS forwarding and padding objects        %%MPS
  *
  * These object types are here to satisfy the MPS Format Protocol
- * for format variant "A".  See [type mps_fmt_A_s in the reference
- * manual](../../reference/index.html#mps_fmt_A_s).
+ * for format variant "A". See topic/format.
  *
- * The MPS needs to be able to replace any object with a forwarding object
- * or [broken heart](http://www.memorymanagement.org/glossary/b.html#broken.heart)
- * and since the smallest normal object defined above is two words long,
- * we have two kinds of forwarding objects: FWD2 is exactly two words
- * long, and FWD stores a size for larger objects.  There are cleverer
- * ways to do this with bit twiddling, of course.
+ * The MPS needs to be able to replace any object with a forwarding
+ * object or broken heart and since the smallest normal object defined
+ * above is two words long, we have two kinds of forwarding objects:
+ * FWD2 is exactly two words long, and FWD stores a size for larger
+ * objects. There are cleverer ways to do this with bit twiddling, of
+ * course.
  *
  * The MPS needs to be able to pad out any area of memory that's a
  * multiple of the pool alignment.  We've chosen an single word alignment
@@ -348,13 +351,13 @@ static char error_message[MSGMAX+1];
  * be thread local.  See `main` for where these are set up.
  *
  * `arena` is the global state of the MPS, and there's usually only one
- * per process.
+ * per process. See topic/arena.
  *
  * `obj_pool` is the memory pool in which the Scheme objects are allocated.
  * It is an instance of the Automatic Mostly Copying (AMC) pool class, which
  * is a general-purpose garbage collector for use when there are formatted
  * objects in the pool, but ambiguous references in thread stacks and
- * registers.
+ * registers. See pool/amc.
  *
  * `obj_ap` is an Allocation Point that allows fast in-line non-locking
  * allocation in a memory pool.  This would usually be thread-local, but
@@ -406,7 +409,7 @@ static void error(char *format, ...)
  * Protocol with `reserve` and `commmit`.  This protocol allows very fast
  * in-line allocation without locking, but there is a very tiny chance that
  * the object must be re-initialized.  In nearly all cases, however, it's
- * just a pointer bump.
+ * it'just a pointer bump. See topic/allocation.
  *
  * NOTE: We could reduce duplicated code here using macros, but we want to
  * write these out because this is code to illustrate how to use the
@@ -778,6 +781,11 @@ static struct bucket_s *buckets_find(obj_t buckets, obj_t key)
 /* Rehash 'tbl' so that it has 'new_length' buckets. If 'key' is found
  * during this process, return the bucket containing 'key', otherwise
  * return NULL.
+ * 
+ * %%MPS: When re-hashing the table we reset the associated location
+ * dependency and re-add a dependency on each object in the table.
+ * This is because the table gets re-hashed when the locations of
+ * objects have changed. See topic/location.
  */
 static struct bucket_s *table_rehash(obj_t tbl, size_t new_length, obj_t key)
 {
@@ -806,6 +814,11 @@ static struct bucket_s *table_rehash(obj_t tbl, size_t new_length, obj_t key)
   return key_bucket;
 }
 
+/* %%MPS: If we fail to find 'key' in the table, and if mps_ld_isstale
+ * returns true, then some of the keys in the table might have been
+ * moved by the garbage collector: in this case we need to re-hash the
+ * table. See topic/location.
+ */
 static obj_t table_ref(obj_t tbl, obj_t key)
 {
   struct bucket_s *b = buckets_find(tbl->table.buckets, key);
@@ -818,6 +831,10 @@ static obj_t table_ref(obj_t tbl, obj_t key)
   return NULL;
 }
 
+/* %%MPS: When adding a key to an address-based hash table, we record
+ * the dependency on its location by calling mps_ld_add. See
+ * topic/location.
+ */
 static int table_try_set(obj_t tbl, obj_t key, obj_t value)
 {
   struct bucket_s *b;
@@ -2347,7 +2364,7 @@ static obj_t entry_open_input_file(obj_t env, obj_t op_env, obj_t operator, obj_
 
   /* %%MPS: Register the port object for finalization.  When the object is
      no longer referenced elsewhere, a message will be received in `mps_chat`
-     so that the file can be closed.  See `mps_chat`. */
+     so that the file can be closed. See topic/finalization. */
   port_ref = port;
   mps_finalize(arena, &port_ref);
 
@@ -2987,7 +3004,7 @@ static struct {char *name; entry_t entry;} funtab[] = {
  * variant "A".
  *
  * In general, MPS format methods are performance critical, as they're used
- * on the MPS [critical path](..\..\design\critical-path.txt).
+ * on the MPS critical path. See topic/critical.
  *
  * Format methods might also be called at any time from the MPS, including
  * in signal handlers, exception handlers, interrupts, or other special
@@ -2996,8 +3013,7 @@ static struct {char *name; entry_t entry;} funtab[] = {
  *
  * Because these methods are critical, there are considerable gains in
  * performance if you mix them with the MPS source code and allow the
- * compiler to optimize globally.  See [Building the Memory Pool
- * System](../../manual/build.txt).
+ * compiler to optimize globally.  See guide/build.
  */
 
 
@@ -3005,7 +3021,7 @@ static struct {char *name; entry_t entry;} funtab[] = {
  *
  * The job of the scanner is to identify references in a contiguous
  * group of objects in memory, by passing them to the "fix" operation.
- * This code is highly performance critical.
+ * This code is highly performance critical. See topic/scanning.
  */
 
 static mps_res_t obj_scan(mps_ss_t ss, mps_addr_t base, mps_addr_t limit)
@@ -3110,7 +3126,8 @@ static mps_res_t obj_scan(mps_ss_t ss, mps_addr_t base, mps_addr_t limit)
  * The job of `obj_skip` is to return the address where the next object would
  * be allocated.  This isn't quite the same as the size of the object,
  * since there may be some rounding according to the memory pool alignment
- * chosen.  This interpreter has chosen to align to single words.
+ * chosen. This interpreter has chosen to align to single words. See
+ * topic/format.
  */
 
 static mps_addr_t obj_skip(mps_addr_t base)
@@ -3183,7 +3200,7 @@ static mps_addr_t obj_skip(mps_addr_t base)
  * The job of `obj_isfwd` is to detect whether an object has been replaced
  * by a forwarding object, and return the address of the new copy if it has,
  * otherwise NULL.  Note that this will return NULL for padding objects
- * because their `fwd` field is set to NULL.
+ * because their `fwd` field is set to NULL. See topic/format.
  */
 
 static mps_addr_t obj_isfwd(mps_addr_t addr)
@@ -3204,7 +3221,8 @@ static mps_addr_t obj_isfwd(mps_addr_t addr)
  * The job of `obj_fwd` is to replace an object by a forwarding object that
  * points at a new copy of the object.  The object must be detected by
  * `obj_isfwd`.  In this case, we have to be careful to replace two-word
- * objects with a `FWD2` object, because the `FWD` object won't fit.
+ * objects with a `FWD2` object, because the `FWD` object won't fit. See
+ * topic/format.
  */
 
 static void obj_fwd(mps_addr_t old, mps_addr_t new)
@@ -3231,7 +3249,7 @@ static void obj_fwd(mps_addr_t old, mps_addr_t new)
  * nothing else.  Because we've chosen to align to single words, we may
  * have to pad a single word, so we have a special single-word padding
  * object, `PAD1` for that purpose.  Otherwise we can use multi-word
- * padding objects, `PAD`.
+ * padding objects, `PAD`. See topic/format.
  */
 
 static void obj_pad(mps_addr_t addr, size_t size)
@@ -3250,7 +3268,7 @@ static void obj_pad(mps_addr_t addr, size_t size)
 /* obj_fmt_s -- object format parameter structure               %%MPS
  *
  * This is simply a gathering of the object format methods and the chosen
- * pool alignment for passing to `mps_fmt_create_A`.
+ * pool alignment for passing to `mps_fmt_create_A`. See topic/format.
  */
 
 struct mps_fmt_A_s obj_fmt_s = {
@@ -3269,7 +3287,7 @@ struct mps_fmt_A_s obj_fmt_s = {
  * The static global variables are all used to hold values that are set
  * up using the `sptab` and `isymtab` tables, and conveniently we have
  * a list of pointers to those variables.  This is a custom root scanning
- * method that uses them to fix those variables.
+ * method that uses them to fix those variables. See topic/root.
  */
 
 static mps_res_t globals_scan(mps_ss_t ss, void *p, size_t s)
@@ -3290,7 +3308,7 @@ static mps_res_t globals_scan(mps_ss_t ss, void *p, size_t s)
  * The MPS message protocol allows the MPS to communicate various things
  * to the client code.  Because the MPS may run asynchronously the client
  * must poll the MPS to pick up messages.  This function shows how this
- * is done.
+ * is done. See topic/message and topic/finalization.
  */
 
 static void mps_chat(void)
@@ -3320,12 +3338,13 @@ static void mps_chat(void)
 
     /* A finalization message is received when an object registered earlier
        with `mps_finalize` would have been recycled if it hadn't been
-       registered.  This means there are no other references to the object.
+       registered. This means there are no other references to the object.
        In this interpreter, we register ports with open files for
        finalization, so that we can close the file (and release operating
        system resources) when a port object gets lost without being
-       properly closed first.  Note, however, that finalization isn't
-       reliable or prompt.  Treat it as an optimization. */
+       properly closed first. Note, however, that finalization isn't
+       reliable or prompt. Treat it as an optimization. See
+       topic/finalization. */
     } else if (type == mps_message_type_finalization()) {
       mps_addr_t port_ref;
       obj_t port;
@@ -3351,7 +3370,7 @@ static void mps_chat(void)
  *
  * This is the main body of the Scheme interpreter program, invoked by
  * `mps_tramp` so that its stack and exception handling can be managed
- * by the MPS.
+ * by the MPS. See topic/thread.
  */
 
 static void *start(void *p, size_t s)
@@ -3380,7 +3399,7 @@ static void *start(void *p, size_t s)
      it with the MPS only after it has been initialized with scannable
      pointers -- NULL in this case.  Random values look like false
      references into MPS memory and cause undefined behaviour (most likely
-     assertion failures). */
+     assertion failures). See topic/root. */
   res = mps_root_create_table(&symtab_root, arena, mps_rank_exact(), 0,
                               (mps_addr_t *)symtab, symtab_size);
   if(res != MPS_RES_OK) error("Couldn't register symtab root");
@@ -3391,7 +3410,8 @@ static void *start(void *p, size_t s)
      roots before we start making things to put into them, because making
      stuff might cause a garbage collection and throw away their contents
      if they're not registered.  Since they're static variables they'll
-     contain NULL pointers, and are scannable from the start. */
+     contain NULL pointers, and are scannable from the start. See
+     topic/root. */
   res = mps_root_create(&globals_root, arena, mps_rank_exact(), 0,
                         globals_scan, NULL, 0);
   if (res != MPS_RES_OK) error("Couldn't register globals root");
