@@ -1,6 +1,8 @@
 .. sources:
 
     `<https://info.ravenbrook.com/project/mps/master/design/message-gc/>`_
+    `<https://info.ravenbrook.com/project/mps/doc/2002-06-18/obsolete-mminfo/mminfo/strategy/lisp-machine/>`_
+
 
 .. _topic-collection:
 
@@ -102,9 +104,25 @@ For example::
 Scheduling of collections
 -------------------------
 
+.. note::
+
+    It's possible that the algorithm the MPS uses to schedule its
+    collections will change in future releases. There's a lot of room
+    for improvement here.
+
+The :dfn:`new size` of a generation is the total size of the new
+allocated (in generation 0) or newly promoted (in other generations)
+blocks in that generation. These are the blocks that have not been
+:term:`condemned <condemned set>` since they were allocated or
+promoted. In pools like :ref:`pool-amc` where the survivors get
+promoted to the next generation in the chain, the *new size* of each
+generations (other than the topmost) is the same as its total size,
+but in pools like :ref:`pool-ams` where survivors do not get promoted,
+the two sizes are different.
+
 The first generation in a pool's chain is the :term:`nursery
-generation`. When the nursery's size exceeds its capacity, the MPS
-considers collecting the pool. (Whether it actually does so or not
+generation`. When the nursery's *new size* exceeds its capacity, the
+MPS considers collecting the pool. (Whether it actually does so or not
 depends on which other collections on other pools are in progress.)
 
 .. note::
@@ -114,31 +132,13 @@ depends on which other collections on other pools are in progress.)
     <topic-pattern-ramp>`.
 
 If the MPS decides to collect a pool at all, all generations are
-collected below the first generation whose size is less than its
+collected below the first generation whose *new size* is less than its
 capacity.
 
-For example, suppose that we have a pool with the following generation
-structure:
-
-+------------+--------------+----------------------+----------------+
-| Generation | Current size | Capacity | Mortality | Predicted size |
-+============+==============+==========+===========+================+
-|          0 |          110 |      100 |       0.8 |              0 |
-+------------+--------------+----------+-----------+----------------+
-|          1 |          210 |      200 |       0.4 |             22 |
-+------------+--------------+----------+-----------+----------------+
-|          2 |          200 |      300 |       0.2 |            326 |
-+------------+--------------+----------+-----------+----------------+
-
-The nursery and generation 1 both have size that exceeds their
-capacity, so these generations will be collected. Generation 2 will
-not be collected this time. The last two columns give the predicted
-sizes of each generation after the collection: the survivors from the
-nursery will be promoted to generation 1 and the survivors from
-generation 1 will be promoted to generation 2.
-
-When the last generation in the chain is collected, the survivors are
-promoted into an :term:`arena`\-wide "top" generation.
+In pools such as :ref:`pool-amc`, blocks in generation *g* that
+survive collection get promoted to generation *g*\+1. If the last
+generation in the chain is collected, the survivors are promoted into
+an :term:`arena`\-wide "top" generation.
 
 The predicted mortality is used to estimate how long the collection
 will take, and this is used in turn to decide how much work the
