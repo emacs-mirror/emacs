@@ -701,7 +701,7 @@ Protection interface
 
 .. c:function:: void mps_arena_expose(mps_arena_t arena)
 
-    .. deprecated:: 1.111
+    .. deprecated:: starting with version 1.111.
 
     Ensure that the MPS is not protecting any :term:`page` in the
     :term:`arena` with a :term:`read barrier` or :term:`write
@@ -735,7 +735,7 @@ Protection interface
 
 .. c:function:: void mps_arena_unsafe_expose_remember_protection(mps_arena_t arena)
 
-    .. deprecated:: 1.111
+    .. deprecated:: starting with 1.111.
 
     Ensure that the MPS is not protecting any :term:`page` in the
     :term:`arena` with a :term:`read barrier` or :term:`write
@@ -772,7 +772,7 @@ Protection interface
 
 .. c:function:: void mps_arena_unsafe_restore_protection(mps_arena_t arena)
 
-    .. deprecated:: 1.111
+    .. deprecated:: starting with 1.111.
 
     Restore the remembered protection state for an :term:`arena`.
 

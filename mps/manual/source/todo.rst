@@ -52,10 +52,6 @@ Outstanding
 
 95. Bring :ref:`lang` up to date. Add C#, Lua, Python.
 
-115. Need to associate paragraph of text with deprecation notice. (See
-     for example :c:func:`mps_fix`.) Also, deprecation notices need
-     nicer formatting.
-
 
 Complete
 --------
@@ -916,6 +912,10 @@ Complete
      exploit this pattern. Perhaps in use in ScriptWorks? Write to
      Pekka and ask him how this has worked out. (After 1.111.0.)
 
+115. Need to associate paragraph of text with deprecation notice. (See
+     for example :c:func:`mps_fix`.) Also, deprecation notices need
+     nicer formatting.
+
 116. "The maximum number of arenas that the system can support is
      around 10." Is this true? What goes wrong? (I tried creating lots
      of arenas and nothing seemed to go wrong.)
@@ -923,7 +923,7 @@ Complete
      *Answer:* this was probably a finger in the air. Remove it.
 
 117. Consistent pluralization in headings. "Arena states". "Other
-     notes" -> "Ambiguous references". "You could use this to optimize
+     notes" → "Ambiguous references". "You could use this to optimize
      the scan by avoiding the need to reassemble and store the updated
      reference after calling :c:func:`MPS_FIX2`.
 
