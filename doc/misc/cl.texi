@@ -4754,9 +4754,11 @@ Lexical scoping.  In Common Lisp, function arguments and @code{let}
 bindings apply only to references physically within their bodies (or
 within macro expansions in their bodies).  Traditionally, Emacs Lisp
 uses @dfn{dynamic scoping} wherein a binding to a variable is visible
-even inside functions called from the body.  Lexical binding is
-available since Emacs 24.1, so be sure to set @code{lexical-binding}
-to @code{t} if you need to emulate this aspect of Common Lisp.
+even inside functions called from the body.
+@xref{Dynamic Binding,,,elisp,GNU Emacs Lisp Reference Manual}.
+Lexical binding is available since Emacs 24.1, so be sure to set
+@code{lexical-binding} to @code{t} if you need to emulate this aspect
+of Common Lisp.  @xref{Lexical Binding,,,elisp,GNU Emacs Lisp Reference Manual}.
 
 Here is an example of a Common Lisp code fragment that would fail in
 Emacs Lisp if @code{lexical-binding} were set to @code{nil}:
@@ -4969,7 +4971,8 @@ body, without any effect on the global variable of the same name.
 
 The most important use of lexical bindings is to create @dfn{closures}.
 A closure is a function object that refers to an outside lexical
-variable.  For example:
+variable (@pxref{Closures,,,elisp,GNU Emacs Lisp Reference Manual}).
+For example:
 
 @example
 (defun make-adder (n)
