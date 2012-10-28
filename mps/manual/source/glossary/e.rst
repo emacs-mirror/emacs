@@ -15,7 +15,7 @@ Memory Management Glossary: E
     edge
 
         In a :term:`graph`, an edge is a connection between two
-        :term:`nodes <node>`.
+        :term:`nodes`.
 
         In a directed graph (digraph), edges have a direction;
         otherwise the start and end nodes are interchangeable. By
@@ -35,18 +35,17 @@ Memory Management Glossary: E
 
     entry table (1)
 
-        An entry table is a table of :term:`references <reference>`
-        into a set of :term:`objects <object>` used to indirect
+        An entry table is a table of :term:`references`
+        into a set of :term:`objects` used to indirect
         references from the outside.
 
         The Lieberman-Hewitt :term:`collector (1)` represented
-        references from older :term:`generations <generation>` to
-        younger ones by indirect pointers through an entry table in
-        the younger generation that contained the actual
-        :term:`address` of the young object. This is fairly expensive
-        without special hardware; other :term:`generational
-        <generational garbage collection>` collectors generally use
-        :term:`remembered sets <remembered set>`.
+        references from older :term:`generations` to younger ones by
+        indirect pointers through an entry table in the younger
+        generation that contained the actual :term:`address` of the
+        young object. This is fairly expensive without special
+        hardware; other :term:`generational <generational garbage
+        collection>` collectors generally use :term:`remembered sets`.
 
         .. seealso:: :term:`generational garbage collection`, :term:`exit table`.
 
@@ -56,8 +55,8 @@ Memory Management Glossary: E
 
         An entry table is an implementation of a :term:`remembered
         set`, where, for a given :term:`generation`, there is a list
-        of :term:`objects <object>` in older generations which contain
-        :term:`references <reference>` into that generation.
+        of :term:`objects` in older generations which contain
+        :term:`references` into that generation.
 
         One could also store the actual :term:`locations <memory
         location>` of the references, which would save time when
@@ -72,11 +71,11 @@ Memory Management Glossary: E
         .. aka:: *precise garbage collection*, *type-accurate garbage collection*.
 
         :term:`Garbage collection` is exact (or precise) if it deals
-        only with :term:`exact references <exact reference>`.
+        only with :term:`exact references`.
 
         An exact :term:`collector (1)` needs to know the
-        :term:`format` of the :term:`objects <object>` and the
-        :term:`roots <root>`, so that it can tell which fields are
+        :term:`format` of the :term:`objects` and the
+        :term:`roots`, so that it can tell which fields are
         references.
 
         .. opposite:: :term:`conservative garbage collection`.
@@ -98,7 +97,7 @@ Memory Management Glossary: E
         .. aka:: *precise root*.
 
         An exact or precise root is a :term:`root` that contains only
-        :term:`exact references <exact reference>`.
+        :term:`exact references`.
 
         .. opposite:: :term:`ambiguous root`.
 
@@ -125,8 +124,8 @@ Memory Management Glossary: E
 
     exit table
 
-        An exit table is a table of all :term:`references <reference>`
-        from a set of :term:`objects <object>` to objects outside the
+        An exit table is a table of all :term:`references`
+        from a set of :term:`objects` to objects outside the
         set.
 
         .. seealso:: :term:`entry table (1)`, :term:`entry table (2)`.
@@ -141,17 +140,17 @@ Memory Management Glossary: E
 
         External :term:`fragmentation` is the inability to use
         :term:`memory (1)` because :term:`free (3)` memory is divided
-        into many small :term:`blocks <block>`.
+        into many small :term:`blocks`.
 
-        If :term:`live` :term:`objects <object>` are scattered, the
-        free blocks cannot be :term:`coalesced <coalesce>`, and hence
-        no large blocks can be :term:`allocated <allocate>`.
+        If :term:`live` :term:`objects` are scattered, the
+        free blocks cannot be :term:`coalesced`, and hence
+        no large blocks can be :term:`allocated`.
 
         Common solutions to external fragmentation include:
 
         1. :term:`Moving garbage collection <moving garbage collector>`;
 
-        2. :term:`Handles <handle>`;
+        2. :term:`Handles`;
 
         3. Making all your objects the same size.
 

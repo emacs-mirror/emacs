@@ -15,7 +15,7 @@ Generation chains
 
 Each :term:`automatically managed <automatic memory management>`
 :term:`pool` has an associated :term:`generation chain` which
-describes the structure of the :term:`generations <generation>` in
+describes the structure of the :term:`generations` in
 that pool. You create a generation chain by preparing an array of
 :c:type:`mps_gen_param_s` structures giving the *capacity* (in
 kilobytes) and *predicted mortality* (between 0 and 1) of each
@@ -42,9 +42,8 @@ For example::
 
 .. c:type:: mps_chain_t
 
-    The type of :term:`generation chains <generation chain>`. A
-    generation chain describes the structure of :term:`generations
-    <generation>` in a :term:`pool`.
+    The type of :term:`generation chains`. A
+    generation chain describes the structure of :term:`generations` in a :term:`pool`.
 
 
 .. c:type:: mps_gen_param_s
@@ -58,7 +57,7 @@ For example::
         } mps_gen_param_s;
 
     ``mps_capacity`` is the capacity of the generation, in
-    :term:`kilobytes <kilobyte>`. When the size of the generation
+    :term:`kilobytes`. When the size of the generation
     exceeds this, the MPS will be prepared to start collecting it.
 
     ``mps_mortality`` is the predicted mortality of the generation:
@@ -80,7 +79,7 @@ For example::
 
     ``arena`` is the arena to which the generation chain will belong.
 
-    ``gen_count`` is the number of :term:`generations <generation>` in
+    ``gen_count`` is the number of :term:`generations` in
     the chain.
 
     ``gen_params`` points to an array describing the generations.
@@ -230,7 +229,7 @@ Garbage collection messages
 
     * :c:func:`mps_message_gc_not_condemned_size` returns the
       approximate size of the set of objects that were in collected
-      :term:`pools <pool>`, but were not condemned in the garbage
+      :term:`pools`, but were not condemned in the garbage
       collection that generated the message.
 
     .. seealso::
@@ -287,7 +286,7 @@ Garbage collection messages
     :c:func:`mps_message_type_gc`.
 
     The "not condemned size" property is the approximate size of the
-    set of objects that were in collected :term:`pools <pool>`, but
+    set of objects that were in collected :term:`pools`, but
     were not in the :term:`condemned set` in the :term:`garbage
     collection` that generated the message.
 

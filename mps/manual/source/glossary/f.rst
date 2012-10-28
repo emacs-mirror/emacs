@@ -12,8 +12,7 @@ Memory Management Glossary: F
     fence post
 
         A fencepost is spare :term:`memory (1)` between
-        :term:`allocated <allocate>` :term:`blocks <block>` for
-        checking purposes.
+        :term:`allocated` :term:`blocks` for checking purposes.
 
         Some :term:`memory management` systems leave spare memory
         between allocated blocks and store special values in it. If a
@@ -67,7 +66,7 @@ Memory Management Glossary: F
     FIFO-ordered first fit
 
         The :term:`allocation policy` that always uses the
-        least-recently :term:`freed <free (1)>` suitable :term:`free
+        least-recently :term:`freed (1)` suitable :term:`free
         block`. Commonly implemented by adding freed blocks to the end
         of a :term:`free block chain`, and then using :term:`first
         fit` allocation on this chain. :term:`free (1)` can be very
@@ -93,7 +92,7 @@ Memory Management Glossary: F
 
         In :term:`garbage-collected <garbage collection>` languages,
         it is often necessary to perform actions on some
-        :term:`objects <object>` after they are no longer in use and
+        :term:`objects` after they are no longer in use and
         before their :term:`memory (2)` can be :term:`recycled
         <recycle>`. These actions are known as *finalization* or
         *termination*.
@@ -114,8 +113,7 @@ Memory Management Glossary: F
         5, and :term:`Smalltalk`.
 
         The term *finalization* is sometimes used to refer to the use
-        of :term:`destructors <destructor (1)>`, for example in
-        Ada.
+        of :term:`destructors (1)`, for example in Ada.
 
         .. mps:specific:: See :ref:`topic-finalization`.
 
@@ -143,14 +141,13 @@ Memory Management Glossary: F
             free list.
 
         The first fit mechanism provides a class of first fit
-        :term:`allocation policies <allocation policy>`, depending on
-        the order in which the free list is stored.
-        :term:`Address-ordered first fit` stores the list in order of
-        (usually increasing) address. :term:`LIFO-ordered first fit`
-        puts blocks on the front of the free list when they are
-        :term:`freed <free (1)>`. :term:`FIFO-ordered first fit` puts
-        blocks on the end of the free list when they are :term:`freed
-        <free (1)>`.
+        :term:`allocation policies`, depending on the order in which
+        the free list is stored. :term:`Address-ordered first fit`
+        stores the list in order of (usually increasing) address.
+        :term:`LIFO-ordered first fit` puts blocks on the front of the
+        free list when they are :term:`freed (1)`. :term:`FIFO-ordered
+        first fit` puts blocks on the end of the free list when they
+        are :term:`freed (1)`.
 
         .. seealso:: :term:`address-ordered first fit`, :term:`LIFO-ordered first fit`, :term:`FIFO-ordered first fit`, :term:`sequential fit`, :term:`next fit`, :term:`best fit`, :term:`worst fit`.
 
@@ -171,7 +168,7 @@ Memory Management Glossary: F
     flip
 
         The instant in a :term:`two-space collector` when the roles of
-        the two :term:`semi-spaces <semi-space>` are reversed. What
+        the two :term:`semi-spaces` are reversed. What
         was the :term:`tospace` is now marked as :term:`fromspace` and
         :term:`condemned <condemned set>`. What was the fromspace
         becomes the site for all new :term:`allocations
@@ -188,7 +185,7 @@ Memory Management Glossary: F
     floating garbage
 
         Floating garbage is :term:`garbage` that is not
-        :term:`recycled <recycle>` promptly due to some approximation
+        :term:`recycled` promptly due to some approximation
         or optimization in the :term:`garbage collector`.
 
         Floating garbage results from conservatively estimating an
@@ -245,9 +242,8 @@ Memory Management Glossary: F
             program, or the MPS), which is not aware of and does not
             co-operate with the MPS. The client program must take care
             that foreign code is not passed the address of a block in
-            a :term:`moving <moving memory manager>` :term:`pools
-            <pool>`, or which contain references to blocks in moving
-            pools.
+            a :term:`moving <moving memory manager>` :term:`pools`, or
+            which contain references to blocks in moving pools.
 
             The :ref:`pool-lo` :term:`pool class` is designed for this
             use case: blocks allocated from this pool do not move and
@@ -267,7 +263,7 @@ Memory Management Glossary: F
             If formats are provided by a language or the application
             program, :term:`exact garbage collection` can be used,
             because the :term:`collector (1)` can determine which
-            fields are :term:`references <reference>`.
+            fields are :term:`references`.
 
         .. seealso:: :term:`conservative garbage collection`.
 
@@ -303,9 +299,9 @@ Memory Management Glossary: F
     forwarding object
     forwarding pointer
 
-        Some :term:`garbage collectors <garbage collector>`
+        Some :term:`garbage collectors`
         :term:`move <moving garbage collector>` :term:`reachable`
-        :term:`objects <object>` into another space. They leave a
+        :term:`objects` into another space. They leave a
         forwarding pointer, a special :term:`reference` pointing to
         the new :term:`location <memory location>`, in the old
         location.
@@ -319,8 +315,8 @@ Memory Management Glossary: F
             The term *forwarding object* is used. This is a
             :term:`formatted object` that has been replaced by a
             :term:`forwarding marker`. One of three types of formatted
-            objects, the other two being :term:`client objects <client
-            object>` and :term:`padding objects <padding object>`.
+            objects, the other two being :term:`client objects` and
+            :term:`padding objects`.
 
     fragmentation
 
@@ -342,7 +338,7 @@ Memory Management Glossary: F
         In :term:`manual memory management`, to free or deallocate an
         :term:`object` is to tell the :term:`memory manager` that it
         is no longer needed. The :term:`memory (1)` may then be
-        :term:`recycled <recycle>` by being used for subsequent
+        :term:`recycled` by being used for subsequent
         :term:`allocation <allocate>`, or by being returned to the
         operating system.
 
@@ -358,15 +354,15 @@ Memory Management Glossary: F
     free (3)
 
         :term:`Memory (2)` is *free* if it is not currently
-        :term:`allocated <allocate>`.
+        :term:`allocated`.
 
         .. historical::
 
             The term *available* was commonly used to mean "free".
 
-        .. opposite:: :term:`allocated <allocate>`.
+        .. opposite:: :term:`allocated`.
 
-        .. seealso:: :term:`allocate`, :term:`free (1)`.
+        .. seealso:: :term:`free (1)`.
 
     free (4)
 
@@ -377,11 +373,10 @@ Memory Management Glossary: F
         A single contiguous area of :term:`memory (2)` available to
         satisfy an :term:`allocation <allocate>` request.
 
-        For the purpose of discussing :term:`allocation mechanisms
-        <allocation mechanism>`, two adjacent free blocks are not
-        considered to be a single free block, until they are
-        :term:`coalesced <coalesce>`. Free blocks may be
-        :term:`split`.
+        For the purpose of discussing :term:`allocation mechanisms`,
+        two adjacent free blocks are not considered to be a single
+        free block, until they are :term:`coalesced`. Free blocks may
+        be :term:`split`.
 
         .. seealso:: :term:`allocation mechanism`, :term:`free list`.
 
@@ -393,9 +388,9 @@ Memory Management Glossary: F
         chain.
 
         Usually the links are stored within the :term:`free (3)`
-        :term:`blocks <block>`. This means that all :term:`allocated
-        <allocate>` blocks must be large enough to store these, and
-        implies a minimum size.
+        :term:`blocks`. This means that all :term:`allocated` blocks
+        must be large enough to store these, and implies a minimum
+        size.
 
         Sometimes, the free block chain is ordered by :term:`address`.
         This makes :term:`coalescence <coalesce>` considerably
@@ -405,16 +400,15 @@ Memory Management Glossary: F
 
     free list
 
-        The free list is the set of :term:`free blocks <free block>`.
+        The free list is the set of :term:`free blocks`.
 
         Originally this term meant the single linked list of all free
-        blocks, but as :term:`allocation mechanisms <allocation
-        mechanism>` have become more varied, it has become more
-        generic, and now may be implemented as a tree or other data
-        structure rather than a linked list. If the implementation
-        actually is a linked list of free blocks, this is called a
-        :term:`free block chain` to distinguish it from the abstract
-        term.
+        blocks, but as :term:`allocation mechanisms` have become more
+        varied, it has become more generic, and now may be implemented
+        as a tree or other data structure rather than a linked list.
+        If the implementation actually is a linked list of free
+        blocks, this is called a :term:`free block chain` to
+        distinguish it from the abstract term.
 
         There may be several free lists, classed by size or other
         characteristic. For instance, :term:`segregated free list`

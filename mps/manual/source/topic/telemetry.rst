@@ -36,9 +36,9 @@ John McCarthy described the first on-line demonstration of
 Introduction
 ------------
 
-In its :term:`cool` and :term:`hot` :term:`varieties <variety>`, the
-MPS is capable of outputting a configurable stream of events to assist
-with debugging and profiling.
+In its :term:`cool` and :term:`hot` :term:`varieties`, the MPS is
+capable of outputting a configurable stream of events to assist with
+debugging and profiling.
 
 The selection of events that appear in the stream is controlled by the
 environment variable :envvar:`MPS_TELEMETRY_CONTROL` (by default

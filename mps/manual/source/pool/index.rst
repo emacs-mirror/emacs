@@ -40,17 +40,16 @@ First, answer these questions about your data:
    management>` :term:`reclaim` :term:`unreachable` blocks?
 
 2. Is it acceptable for the MPS to :term:`move <moving memory
-   manager>` blocks in memory and to place :term:`barriers <barrier
-   (1)>` on blocks? (For example, it might not be acceptable to move a
-   block if it has been passed to :term:`foreign code` that remembered
-   its location.)
+   manager>` blocks in memory and to place :term:`barriers (1)` on
+   blocks? (For example, it might not be acceptable to move a block if
+   it has been passed to :term:`foreign code` that remembered its
+   location.)
 
-3. Do your blocks contain :term:`references <reference>` to blocks
-   stored in automatically managed pools (including references to
-   other blocks in the same pool, if it's automatically managed)? And
-   if so, are these references :term:`exact <exact reference>`,
-   :term:`ambiguous <ambiguous reference>` or :term:`weak <weak
-   reference (1)>`?
+3. Do your blocks contain :term:`references` to blocks stored in
+   automatically managed pools (including references to other blocks
+   in the same pool, if it's automatically managed)? And if so, are
+   these references :term:`exact <exact reference>`, :term:`ambiguous
+   <ambiguous reference>` or :term:`weak <weak reference (1)>`?
 
 Second, look up your answers in this table to find the recommended
 pool class to use:
@@ -75,10 +74,10 @@ no          *any*                   weak         :ref:`pool-mvt` [1]_
 .. note::
 
     .. [1] :ref:`pool-mvt` doesn't scan for references, but you can
-           work around this by registering your blocks as :term:`roots
-           <root>` (with the appropriate :term:`rank`) just after they
-           are allocated, and deregistering them just before freeing
-           them.
+           work around this by registering your blocks as
+           :term:`roots` (with the appropriate :term:`rank`) just
+           after they are allocated, and deregistering them just
+           before freeing them.
 
 
 .. Sources:
@@ -94,9 +93,9 @@ This table summarizes the properties of each :term:`pool class`
 provided by the MPS. For "block" properties, "yes" means that the
 property holds for *all* blocks allocated from the pool. An entry
 "---" indicates that a property makes no sense for a pool class: for
-example, if blocks in a pool may not contain :term:`references
-<reference>`, it makes no sense to ask whether they may contain
-:term:`weak references <weak reference (1)>`.
+example, if blocks in a pool may not contain :term:`references`, it
+makes no sense to ask whether they may contain :term:`weak references
+(1)`.
 
 
 =============================================  =====  =====  =====  =====  =====  =====  =====  =====  =====
@@ -134,8 +133,8 @@ Blocks must be formatted? [11]_                yes    yes    yes    yes    yes  
            <automatic memory management>` and :term:`incrementally
            <incremental garbage collection>`.
 
-    .. [3] Pools that may not contain references are suitable for storing
-           :term:`leaf objects <leaf object>` only.
+    .. [3] Pools that may not contain references are suitable for
+           storing :term:`leaf objects` only.
 
     .. [4] Pools "may contain :term:`ambiguous <ambiguous reference>` /
            :term:`exact <exact reference>` / :term:`weak <weak
@@ -154,10 +153,10 @@ Blocks must be formatted? [11]_                yes    yes    yes    yes    yes  
            alignment` for the :term:`platform`).
 
     .. [8] In pools with this property, each object may specify an
-           :term:`dependent object` which the client program guarantees
-           will be accessible during the scanning of the first
-           object. This may be used in the implementation of :term:`weak
-           hash tables <weak hash table>`.
+           :term:`dependent object` which the client program
+           guarantees will be accessible during the scanning of the
+           first object. This may be used in the implementation of
+           :term:`weak hash tables`.
 
     .. [9] "Remote references" are references that are stored outside the
            block to which they logically belong (for example, in some kind
@@ -171,8 +170,8 @@ Blocks must be formatted? [11]_                yes    yes    yes    yes    yes  
            that these properties are not mutually exclusive, although
            the MPS does not provide a pool class that satisfies both.
 
-    .. [11] Blocks "are scanned" if the MPS :term:`scans <scan>` them
-           for references; blocks "must be formatted" if they are
+    .. [11] Blocks "are scanned" if the MPS :term:`scans` them for
+           references; blocks "must be formatted" if they are
            described to the MPS by an :term:`object format`. At
            present, the MPS only knows how to scan blocks using the
            :term:`scan method` from an object format, but the MPS

@@ -87,7 +87,7 @@ Declared in ``mpsio.h``
 
     ``buf`` points to the data to write.
 
-    ``size`` is the :term:`size` of the data in :term:`bytes <byte (1)>`.
+    ``size`` is the :term:`size` of the data in :term:`bytes (1)`.
 
     Returns :c:macro:`MPS_RES_OK` if successful.
 
@@ -120,7 +120,7 @@ Declared in ``mpslib.h``
     A :term:`plinth` function similar to the standard :term:`C`
     function ``memcmp``.
 
-    ``s1`` and ``s2`` point to :term:`blocks <block>` of memory to be
+    ``s1`` and ``s2`` point to :term:`blocks` of memory to be
     compared.
 
     ``n`` is the :term:`size` of the blocks.

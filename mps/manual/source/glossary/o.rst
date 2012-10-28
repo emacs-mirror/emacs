@@ -23,7 +23,7 @@ Memory Management Glossary: O
         .. mps:specific::
 
             The MPS documentation generally reserves the term *object*
-            for :term:`formatted objects <formatted object>`. For
+            for :term:`formatted objects`. For
             units of allocation in general, it uses the term
             :term:`block`.
 
@@ -34,8 +34,8 @@ Memory Management Glossary: O
             A data structure provided by the :term:`client program`
             which describes the format of :term:`objects <formatted
             object>` allocated in a :term:`pool`. The MPS uses the
-            :term:`format methods <format method>` to find
-            :term:`references <reference>` in an object, replace an
+            :term:`format methods` to find
+            :term:`references` in an object, replace an
             object with :term:`padding`, replace an object with a
             :term:`forwarding marker`, and other essential
             :term:`garbage collection` tasks. See :ref:`topic-format`.
@@ -55,9 +55,9 @@ Memory Management Glossary: O
         .. aka:: *ecru*.
 
         In a :term:`treadmill` :term:`garbage collector`, the
-        :term:`color` off-white is used to describe :term:`objects
-        <object>` which are :term:`free (3)`. Henry Baker used the
-        term *ecru* in [BAKER92C]_.
+        :term:`color` off-white is used to describe :term:`objects`
+        which are :term:`free (3)`. Henry Baker used the term *ecru*
+        in [BAKER92C]_.
 
         .. opposite:: :term:`white`, :term:`gray`, :term:`black`.
 
@@ -77,10 +77,10 @@ Memory Management Glossary: O
         The one-bit reference count is a special case of the
         :term:`limited-field reference count`. A single bit in an
         object, called the MRB (Multiple Reference Bit), is cleared
-        when the object is :term:`allocated <allocate>`. Whenever
-        another :term:`reference` to the object is created, the bit is
-        set. Thus, MRB=0 indicates that there is exactly one reference
-        to the object, and MRB=1 indicates that there may be more than
+        when the object is :term:`allocated`. Whenever another
+        :term:`reference` to the object is created, the bit is set.
+        Thus, MRB=0 indicates that there is exactly one reference to
+        the object, and MRB=1 indicates that there may be more than
         one reference to the object.
 
         The MRB can be stored in the reference rather than in the
@@ -142,27 +142,26 @@ Memory Management Glossary: O
 
     out-of-band header
 
-        In some :term:`memory managers <memory manager>`, each
-        :term:`allocated <allocate>` :term:`block` has additional
-        information (such as the size of the block or a :term:`tag`)
-        stored in a separate block; this is called *an out-of-band
-        header*.
+        In some :term:`memory managers`, each :term:`allocated`
+        :term:`block` has additional information (such as the size of
+        the block or a :term:`tag`) stored in a separate block; this
+        is called *an out-of-band header*.
 
         .. opposite:: :term:`in-band header`.
 
     overcommit
 
         In some circumstances, although a range of :term:`virtual
-        addresses <virtual address>` has been :term:`mapped` as far as
-        the user program is concerned, the :term:`physical storage`
-        might not be allocated until it is accessed. This is called
+        addresses` has been :term:`mapped` as far as the user program
+        is concerned, the :term:`physical storage` might not be
+        allocated until it is accessed. This is called
         *overcommitting*.
 
         Overcommitting shares :term:`swap space` resources more
-        flexibly, especially when crude :term:`suballocators
-        <suballocator>` are involved, but it can lead to an
-        out-of-resource error during a :term:`memory (2)` access; few
-        environments deal with this situation gracefully.
+        flexibly, especially when crude :term:`suballocators` are
+        involved, but it can lead to an out-of-resource error during a
+        :term:`memory (2)` access; few environments deal with this
+        situation gracefully.
 
         Unix systems such as IRIX and AIX can do this on :term:`sbrk`
         and :term:`mmap` calls.

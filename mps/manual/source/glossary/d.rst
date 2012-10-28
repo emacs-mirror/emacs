@@ -18,7 +18,7 @@ Memory Management Glossary: D
         typically arise from one of:
 
         1. A :term:`premature free`, where an object is :term:`freed
-           <free (1)>`, but a reference is retained;
+           (1)`, but a reference is retained;
 
         2. Retaining a reference to a :term:`stack-allocated <stack
            allocation>` object, after the relevant :term:`stack frame`
@@ -27,17 +27,17 @@ Memory Management Glossary: D
         Dangling pointers can occur under :term:`automatic memory
         management`, because of a :term:`garbage collection` bug (such
         as premature collection, or :term:`moving <moving garbage
-        collector>` without updating all :term:`references
-        <reference>`), but this is much rarer because garbage
-        collection code is usually a single common core of reused
-        code in which these bugs can be fixed systematically.
+        collector>` without updating all :term:`references`), but this
+        is much rarer because garbage collection code is usually a
+        single common core of reused code in which these bugs can be
+        fixed systematically.
 
     data stack
 
         A :term:`stack` used to manage the storage of
-        :term:`stack-allocated <stack allocation>` :term:`objects
-        <object>`, other than :term:`activation records <activation
-        record>`, often under program control.
+        :term:`stack-allocated <stack allocation>` :term:`objects`,
+        other than :term:`activation records`, often under program
+        control.
 
         Because of the limitations that may be imposed on the
         :term:`control stack`, or to support stack-like semantics for
@@ -54,11 +54,11 @@ Memory Management Glossary: D
         when the :term:`mutator` cannot reach any state in which it
         accesses the object.
 
-        It is not possible, in general, for :term:`garbage collectors
-        <garbage collector>` to determine exactly which :term:`objects
-        <object>` are dead and which are live. Instead, they use some
-        approximation to detect objects that are provably dead, such
-        as those that are :term:`unreachable`.
+        It is not possible, in general, for :term:`garbage collectors`
+        to determine exactly which :term:`objects` are dead and which
+        are live. Instead, they use some approximation to detect
+        objects that are provably dead, such as those that are
+        :term:`unreachable`.
 
         .. opposite:: :term:`live`.
 
@@ -74,18 +74,18 @@ Memory Management Glossary: D
 
             A :term:`pool` that performs extra checking in order to
             find errors in the :term:`client program`. It uses
-            :term:`fenceposts <fencepost>` to detect
-            :term:`overwriting errors <overwriting error>` and it
+            :term:`fenceposts` to detect
+            :term:`overwriting errors` and it
             writes patterns over reclaimed blocks in order to detect
             :term:`use after free <premature free>` or missing
             references during :term:`scanning <scan>`.
 
     deferred coalescing
 
-        Deferred coalescing is a policy which :term:`coalesces
-        <coalesce>` :term:`free blocks <free block>` some time after
-        the blocks are freed, as opposed to coalescing free blocks
-        immediately as they are freed.
+        Deferred coalescing is a policy which :term:`coalesces`
+        :term:`free blocks` some time after the blocks are freed, as
+        opposed to coalescing free blocks immediately as they are
+        freed.
 
         Adjacent free blocks can be coalesced to form larger free
         blocks; deferred coalescing is a catch-all for policies which
@@ -110,10 +110,10 @@ Memory Management Glossary: D
         :term:`heap` objects. This requires compiler support, but can
         lead to substantial performance improvements.
 
-        :term:`Objects <object>` cannot be :term:`reclaimed <reclaim>`
-        as soon as their reference count becomes zero, because there
-        might still be references to them from the stack. Such objects
-        are added to a :term:`zero count table` (ZCT) instead. If a
+        :term:`Objects` cannot be :term:`reclaimed <reclaim>` as soon
+        as their reference count becomes zero, because there might
+        still be references to them from the stack. Such objects are
+        added to a :term:`zero count table` (ZCT) instead. If a
         reference to an object with a count of zero is stored into the
         heap, then the object is removed from the ZCT. Periodically
         the stack is :term:`scanned <scan>`, and any objects in the
@@ -189,7 +189,7 @@ Memory Management Glossary: D
         themselves.
 
         Direct :term:`garbage collection` can allow :term:`memory (2)`
-        to be :term:`reclaimed <reclaim>` as soon as it becomes
+        to be :term:`reclaimed` as soon as it becomes
         :term:`unreachable`. However, the stored information must be
         updated as the :term:`graph` of objects changes; this may be
         an expensive operation, especially in :term:`distributed
@@ -206,18 +206,17 @@ Memory Management Glossary: D
         A dirty bit is a flag indicating that a :term:`page` (or
         similar) has been written to since it was last examined.
 
-        Dirty bits are used by :term:`caches (2) <cache (2)>` to
-        determine which pages must be written out, and by garbage
-        collectors in conjunction with :term:`write barriers <write
-        barrier>`.
+        Dirty bits are used by :term:`cache (2)` to determine which
+        pages must be written out, and by garbage collectors in
+        conjunction with :term:`write barriers`.
 
     distributed garbage collection
 
         .. aka:: *DGC*.
 
         Distributed garbage collection is :term:`garbage collection`
-        in a system where :term:`objects <object>` might not reside in
-        the same :term:`address space` or even on the same machine.
+        in a system where :term:`objects` might not reside in the same
+        :term:`address space` or even on the same machine.
 
         Distributed garbage collection is difficult to achieve in
         widely-distributed systems (over wide-area networks) because
@@ -238,7 +237,7 @@ Memory Management Glossary: D
         powers-of-two (for example, 3, 6, 12, …). This resembles
         :term:`weighted buddies`, but the two buddy systems are
         treated independently: blocks cannot be :term:`split` or
-        :term:`coalesced <coalesce>` from one to the other.
+        :term:`coalesced` from one to the other.
 
         .. bibref:: [WISE78]_.
 
@@ -251,12 +250,12 @@ Memory Management Glossary: D
         two parts of a program believe they are responsible for the
         management of the same block.
 
-        Many manual :term:`memory managers <memory manager>` have
-        great trouble with double frees, because they cannot cheaply
-        determine that :term:`deallocated <free (1)>` blocks were
-        already free. Instead, they corrupt their :term:`free block
-        chain`, which leads to mysterious problems when the same block
-        is subsequently :term:`allocated <allocate>`.
+        Many manual :term:`memory managers` have great trouble with
+        double frees, because they cannot cheaply determine that
+        :term:`deallocated <free (1)>` blocks were already free.
+        Instead, they corrupt their :term:`free block chain`, which
+        leads to mysterious problems when the same block is
+        subsequently :term:`allocated`.
 
         .. seealso:: :term:`premature free`.
 
@@ -265,7 +264,7 @@ Memory Management Glossary: D
         .. aka:: *longword*.
 
         A *doubleword* is a unit of memory consisting of two adjacent
-        :term:`words <word>`.
+        :term:`words`.
 
         .. historical::
 

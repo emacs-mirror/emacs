@@ -61,11 +61,16 @@ Memory management in various languages
 
         1. Accessing arrays with indexes that are out of bounds;
 
-        2. Using :term:`stack-allocated <stack allocation>` structures beyond their :term:`lifetimes <lifetime>` (see :term:`use after free`);
+        2. Using :term:`stack-allocated <stack allocation>` structures
+           beyond their :term:`lifetimes` (see :term:`use after
+           free`);
 
-        3. Using :term:`heap-allocated <heap allocation>` structures after :term:`freeing <free (1)>` them (see :term:`use after free`);
+        3. Using :term:`heap-allocated <heap allocation>` structures
+           after :term:`freeing <free (1)>` them (see :term:`use after
+           free`);
 
-        4. Neglecting to free heap-allocated objects when they are no longer required (see :term:`memory leak`);
+        4. Neglecting to free heap-allocated objects when they are no
+           longer required (see :term:`memory leak`);
 
         5. Failing to allocate memory for a :term:`pointer` before using it;
 
@@ -94,11 +99,11 @@ Memory management in various languages
 
         Prior to 2002, COBOL had no :term:`heap allocation`, and did
         well in its application domain without it. COBOL 2002 has
-        :term:`pointers <pointer>` and heap allocation through
-        ``ALLOCATE`` and ``FREE``, mainly in order to be able to use
-        C-style interfaces. It also supports a high level of
-        abstraction through object-oriented programming and
-        :term:`garbage collection` (including :term:`finalization`).
+        :term:`pointers` and heap allocation through ``ALLOCATE`` and
+        ``FREE``, mainly in order to be able to use C-style
+        interfaces. It also supports a high level of abstraction
+        through object-oriented programming and :term:`garbage
+        collection` (including :term:`finalization`).
 
         .. link::
 
@@ -135,8 +140,8 @@ Memory management in various languages
         :term:`manual memory management` even harder. Although the
         standard library provides only manual memory management, with
         the Boehm-Weiser :term:`collector (1)`, it is now possible to
-        use :term:`garbage collection`. :term:`Smart pointers <smart
-        pointer>` are another popular solution.
+        use :term:`garbage collection`. :term:`Smart pointers` are
+        another popular solution.
 
         The language is notorious for fostering memory management
         bugs, including:
@@ -152,8 +157,7 @@ Memory management in various languages
         3. Neglecting to free heap-allocated objects when they are no
            longer required (see :term:`memory leak`);
 
-        4. Excessive copying by copy :term:`constructors <constructor
-           (1)>`;
+        4. Excessive copying by copy :term:`constructors (1)`;
 
         5. Unexpected sharing due to insufficient copying by copy
            constructors;
@@ -213,9 +217,8 @@ Memory management in various languages
         keys or values, depending on a parameter supplied at
         allocation time. A hash table entry will be deleted once the
         garbage collector has determined that there are no
-        :term:`strong references <strong reference>` to the key or
-        value of the entry, for weak key or value tables,
-        respectively.
+        :term:`strong references` to the key or value of the entry,
+        for weak key or value tables, respectively.
 
         .. link::
 
@@ -331,7 +334,7 @@ Memory management in various languages
         Modern Lisp implementations, such as `LispWorks
         <http://www.lispworks.com/>`_ and `Allegro CL
         <http://www.franz.com/products/allegro-common-lisp/>`_, have
-        advanced :term:`garbage collectors <garbage collector>`.
+        advanced :term:`garbage collectors`.
 
         Lisp is now used for all kinds of symbolic programming and
         other advanced software development. Major dialects today are
@@ -362,14 +365,13 @@ Memory management in various languages
         is in [MOON84]_. The features important for its performance
         were:
 
-        1. Hardware support for data typing using :term:`tags <tag>`;
+        1. Hardware support for data typing using :term:`tags`;
 
-        2. Reference-based :term:`read barriers <read barrier>` for
+        2. Reference-based :term:`read barriers` for
            :term:`incremental <incremental garbage collection>`
            collecting;
 
-        3. :term:`Write barriers <write barrier>` for
-           :term:`remembered sets <remembered set>` and
+        3. :term:`Write barriers` for :term:`remembered sets` and
            :term:`generational <generational garbage collection>`
            collecting;
 
@@ -378,11 +380,11 @@ Memory management in various languages
 
         The remembered sets were based on a :term:`BIBOP` division of
         the virtual :term:`address space`. The Lisp Machine
-        :term:`page-table <page table>`, unlike virtually all modern
-        virtual memory systems, was a flat, hash-based table
-        (sometimes called an :term:`inverted page table`), and thus
-        insensitive to sparsely-populated virtual address spaces
-        associated with BIBOP schemes.
+        :term:`page table`, unlike virtually all modern virtual memory
+        systems, was a flat, hash-based table (sometimes called an
+        :term:`inverted page table`), and thus insensitive to
+        sparsely-populated virtual address spaces associated with
+        BIBOP schemes.
 
         These custom processors eventually lost out to rapidly
         advancing stock hardware. Many of the techniques pioneered on
@@ -396,9 +398,9 @@ Memory management in various languages
 
         Like other functional languages, ML provides :term:`automatic
         memory management`. Modern ML implementations usually have
-        advanced :term:`garbage collectors <garbage collector>`. The
-        combination of clean functional semantics and strong typing
-        allows advanced techniques, such as :term:`region inference`.
+        advanced :term:`garbage collectors`. The combination of clean
+        functional semantics and strong typing allows advanced
+        techniques, such as :term:`region inference`.
 
         The Standard ML of New Jersey (SML/NJ) system, which
         implements a slight variant of Standard ML, has been important
@@ -406,13 +408,13 @@ Memory management in various languages
         source code is publicly available and widely ported, allowing
         experimentation with both the :term:`collector (2)` and
         :term:`mutator`. Secondly, the compiler generates code that
-        does not use a :term:`control stack`, but :term:`allocates
-        <allocate>` function :term:`activation records <activation
-        record>` on the :term:`heap` instead. This means that the
-        allocation rate is very high (up to one byte per instruction),
-        and also that the collector has a very small :term:`root set`.
-        Thirdly, it uses a simple :term:`copying collector <copying
-        garbage collection>` that is easy to modify.
+        does not use a :term:`control stack`, but :term:`allocates`
+        function :term:`activation records` on the :term:`heap`
+        instead. This means that the allocation rate is very high (up
+        to one byte per instruction), and also that the collector has
+        a very small :term:`root set`. Thirdly, it uses a simple
+        :term:`copying collector <copying garbage collection>` that is
+        easy to modify.
 
         .. seealso:: :term:`immutable`.
 
@@ -473,9 +475,9 @@ Memory management in various languages
         Perl's :term:`memory management` is well-hidden, but is based
         on :term:`reference counts <reference counting>` and
         :term:`garbage collection`. It also has *mortal* variables,
-        whose :term:`lifetimes <lifetime>` are limited to the current
-        context. It is possible to :term:`free (1)` the :term:`memory
-        (2)` assigned to variables (including arrays) explicitly, by
+        whose :term:`lifetimes` are limited to the current context. It
+        is possible to :term:`free (1)` the :term:`memory (2)`
+        assigned to variables (including arrays) explicitly, by
         ``undef``\-ing the only reference to them.
 
         .. link::
@@ -525,11 +527,11 @@ Memory management in various languages
         Key features of Scheme include symbol and list operations,
         :term:`heap allocation` and :term:`garbage collection`,
         lexical scoping with first-class function objects (implying
-        :term:`closures <closure>`), reliable tail-call elimination
-        (allowing iterative procedures to be described
-        tail-recursively), the ability to dynamically obtain the
-        current :term:`continuation` as a first-class object, and a
-        language description that includes a formal semantics.
+        :term:`closures`), reliable tail-call elimination (allowing
+        iterative procedures to be described tail-recursively), the
+        ability to dynamically obtain the current :term:`continuation`
+        as a first-class object, and a language description that
+        includes a formal semantics.
 
         Scheme has been gaining popularity as an extension language;
         Project GNU's extension package of choice, `Guile
@@ -552,7 +554,7 @@ Memory management in various languages
         Simula I, designed in 1962–64 by Kristen Nygaard and Ole-Johan
         Dahl, was based on :term:`ALGOL` 60, but the :term:`stack
         allocation` discipline was replaced by a two-dimensional
-        :term:`free-list <free list>`.
+        :term:`free list`.
 
         It was Simula 67 that pioneered classes and inheritance to
         express behavior. This domain-oriented design was supported by

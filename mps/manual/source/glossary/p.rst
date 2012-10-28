@@ -11,9 +11,9 @@ Memory Management Glossary: P
     padding
 
         Padding is redundant :term:`memory (2)` within the memory
-        :term:`allocated <allocate>` to an :term:`object`. It is
-        usually inserted because of :term:`alignment` restrictions on
-        the fields of the object or on the object itself.
+        :term:`allocated` to an :term:`object`. It is usually inserted
+        because of :term:`alignment` restrictions on the fields of the
+        object or on the object itself.
 
         Padding is a form of :term:`internal fragmentation`.
 
@@ -31,13 +31,13 @@ Memory Management Glossary: P
 
             A :term:`formatted object` that consists of
             :term:`padding`. One of three types of formatted objects,
-            the other two being :term:`client objects <client object>`
-            and :term:`forwarding objects <forwarding object>`.
+            the other two being :term:`client objects`
+            and :term:`forwarding objects`.
 
     page
 
         A :term:`virtual memory` system usually deals with
-        :term:`memory (1)` :term:`blocks <block>` of fixed size as
+        :term:`memory (1)` :term:`blocks` of fixed size as
         units for :term:`paging`. These are known as *pages*.
 
         Pages are often 4 :term:`kB <kilobyte>` or 8 kB in size. This
@@ -49,8 +49,8 @@ Memory Management Glossary: P
         usually resulting in a :term:`page` being fetched from disk.
 
         A page fault is an exception occurring during the translation
-        of :term:`virtual addresses <virtual address>` to
-        :term:`physical addresses <physical address>`. "Page fault"
+        of :term:`virtual addresses` to
+        :term:`physical addresses`. "Page fault"
         usually means an access to a page that has been :term:`paged
         out` and hence requires fetching from disk, but it is
         sometimes also used to mean :term:`invalid page fault` or
@@ -68,15 +68,15 @@ Memory Management Glossary: P
         .. see:: :term:`protection`.
 
         Many operating systems support protection of :term:`memory
-        (2)` :term:`pages <page>`. Individual pages may be protected
+        (2)` :term:`pages`. Individual pages may be protected
         against a combination of read, write or execute accesses by a
         process.
 
     page table
 
         In a :term:`virtual memory` system, it is common to map
-        between :term:`virtual addresses <virtual address>` and
-        :term:`physical addresses <physical address>` by means of a
+        between :term:`virtual addresses` and
+        :term:`physical addresses` by means of a
         data structure called a *page table*.
 
         The :term:`page` number of an address is usually found from
@@ -125,7 +125,7 @@ Memory Management Glossary: P
     paging
 
         In a :term:`virtual memory` system, *paging* is the act of
-        transferring :term:`pages <page>` between :term:`physical
+        transferring :term:`pages` between :term:`physical
         memory (1)` and :term:`backing store` (usually disk).
 
         When pages need to be paged out, a heuristic is used to select
@@ -139,22 +139,21 @@ Memory Management Glossary: P
     palimpsest
 
         A :term:`block` of :term:`memory (2)` that has been
-        :term:`allocated <allocate>`, :term:`freed <free (1)>` (or
-        :term:`reclaimed <reclaim>`), and then allocated again. Such
-        memory may contain data from the previous use if portions of
-        it remain uninitialised.
+        :term:`allocated`, :term:`freed (1)` (or :term:`reclaimed`),
+        and then allocated again. Such memory may contain data from
+        the previous use if portions of it remain uninitialised.
 
         This commonly occurs on the :term:`stack`, especially if the
-        compiler allocates large :term:`stack frames <stack frame>` in
+        compiler allocates large :term:`stack frames` in
         anticipation of allocating data structures on the stack.
 
         If the palimpsest is being :term:`scanned <scan>`
         :term:`conservatively <conservative garbage collection>`, such
-        left-over data may cause :term:`unreachable` :term:`objects
-        <object>` to appear :term:`reachable` and thus become
-        :term:`floating garbage`. If it is scanned :term:`precisely
-        <exact garbage collection>`, such left-over data, if treated
-        as :term:`pointers <pointer>`, is a bug.
+        left-over data may cause :term:`unreachable` :term:`objects`
+        to appear :term:`reachable` and thus become :term:`floating
+        garbage`. If it is scanned :term:`precisely <exact garbage
+        collection>`, such left-over data, if treated as
+        :term:`pointers`, is a bug.
 
     parallel garbage collection
 
@@ -165,10 +164,10 @@ Memory Management Glossary: P
         multi-processor machine.
 
         Concurrent :term:`garbage collection` must cope with the
-        mutator changing :term:`objects <object>` while collection
+        mutator changing :term:`objects` while collection
         occurs. The problem is similar to that of :term:`incremental
         GC <incremental garbage collection>`, but harder. The solution
-        typically involves :term:`barriers (1) <barrier (1)>`.
+        typically involves :term:`barrier (1)`.
 
         .. similar:: :term:`incremental <incremental garbage collection>`.
 
@@ -185,7 +184,7 @@ Memory Management Glossary: P
             :term:`unclamped state`). In the parked state, no
             :term:`garbage collection` is in progress, no object
             motion occurs and the staleness of :term:`location
-            dependencies <location dependency>` does not change. Call
+            dependencies` does not change. Call
             :c:func:`mps_arena_park` or :c:func:`mps_arena_collect` to
             put an arena into the parked state.
 
@@ -205,12 +204,12 @@ Memory Management Glossary: P
         neither :term:`strongly <strongly reachable>` nor
         :term:`softly <softly reachable>` nor :term:`weakly reachable`
         and has been :term:`finalized <finalization>` and there is a
-        path from the :term:`roots <root>` to it that contains at
+        path from the :term:`roots` to it that contains at
         least one :term:`phantom reference`.
 
         When the Java :term:`collector (1)` determines that an object
-        is phantom reachable, the :term:`reference objects <reference
-        object>` containing the phantom references are enqueued.
+        is phantom reachable, the :term:`reference objects` containing
+        the phantom references are enqueued.
 
         The Java specification says that the phantom reference is not
         cleared when the reference object is enqueued, but actually,
@@ -246,12 +245,12 @@ Memory Management Glossary: P
 
         .. aka:: *absolute address*.
 
-        Physical :term:`addresses <address>` are used to index into
+        Physical :term:`addresses` are used to index into
         :term:`physical memory (1)`. On some systems, they are called
         *absolute addresses*.
 
         In a :term:`virtual memory` system the application program
-        handles :term:`virtual addresses <virtual address>` and these
+        handles :term:`virtual addresses` and these
         are translated to physical addresses by the :term:`MMU`.
 
         .. opposite:: :term:`virtual address`.
@@ -259,7 +258,7 @@ Memory Management Glossary: P
     physical address space
 
         The physical :term:`address space` is the space of
-        :term:`physical addresses <physical address>`.
+        :term:`physical addresses`.
 
         .. opposite:: :term:`virtual address space`.
 
@@ -304,14 +303,14 @@ Memory Management Glossary: P
 
         In a :term:`generational <generational garbage collection>`
         collector, when a large and long-lived :term:`object` is
-        :term:`allocated <allocate>` in :term:`nursery space`,
-        collection effort will be wasted as that object survives and
-        is :term:`promoted <promotion>` from :term:`generation` to
-        generation. This is especially noticeable in a :term:`copying
-        collector <copying garbage collection>`, where the large
-        object will be copied many times. This difficulty is similar
-        to that of a python which swallows its prey whole and is
-        somewhat immobilized as it digests it.
+        :term:`allocated` in :term:`nursery space`, collection effort
+        will be wasted as that object survives and is :term:`promoted
+        <promotion>` from :term:`generation` to generation. This is
+        especially noticeable in a :term:`copying collector <copying
+        garbage collection>`, where the large object will be copied
+        many times. This difficulty is similar to that of a python
+        which swallows its prey whole and is somewhat immobilized as
+        it digests it.
 
         Modern collectors permit objects to be allocated directly into
         appropriate generations or pools to avoid this problem.
@@ -392,7 +391,7 @@ Memory Management Glossary: P
         .. mps:specific::
 
             A value of type :c:type:`mps_class_t` describing a class
-            of :term:`pools <pool>` that manage memory according to
+            of :term:`pools` that manage memory according to
             particular policy. See :ref:`pool`.
 
     precise garbage collection
@@ -431,14 +430,14 @@ Memory Management Glossary: P
 
         .. aka:: *premature promotion*.
 
-        When a short-lived :term:`object` :term:`allocated <allocate>`
-        in a :term:`generational garbage collector <generational
-        garbage collection>` is :term:`promoted <promotion>` (due to
-        poor timing) into a less-frequently collected
-        :term:`generation`. This *prematurely tenured* object may
-        become :term:`garbage` very soon after promotion, but will not
-        be :term:`reclaimed <reclaim>` for some time because it is now
-        in a less frequently collected generation.
+        When a short-lived :term:`object` :term:`allocated` in a
+        :term:`generational garbage collector <generational garbage
+        collection>` is :term:`promoted <promotion>` (due to poor
+        timing) into a less-frequently collected :term:`generation`.
+        This *prematurely tenured* object may become :term:`garbage`
+        very soon after promotion, but will not be :term:`reclaimed`
+        for some time because it is now in a less frequently collected
+        generation.
 
         This problem is essentially due to quantization error: all
         objects in a generation are treated as if they have the same
@@ -451,7 +450,7 @@ Memory Management Glossary: P
         short-lived objects, it can forestall all promotion until it
         knows it is done with those objects. Thus no objects will be
         prematurely promoted: they will all be seen as garbage.
-        Another solution is to create :term:`buckets <bucket>` within
+        Another solution is to create :term:`buckets` within
         generations to more accurately classify objects by age and
         only promote those which have reached a certain minimum.
 
@@ -487,7 +486,7 @@ Memory Management Glossary: P
         .. aka:: *memory protection*, *page protection*.
 
         Many operating systems support protection of :term:`memory
-        (2)` :term:`pages <page>`. Individual pages may be protected
+        (2)` :term:`pages`. Individual pages may be protected
         against a combination of read, write or execute accesses by a
         process.
 
@@ -500,8 +499,8 @@ Memory Management Glossary: P
         :term:`generational <generational garbage collection>` or
         :term:`incremental <incremental garbage collection>`
         :term:`garbage collector` may want to place :term:`barriers
-        (1) <barrier (1)>` on pages; an operating system may want to
-        protect pages for security, or to implement "copy-on-write" or
+        (1)` on pages; an operating system may want to protect pages
+        for security, or to implement "copy-on-write" or
         "demand-zero-filled" pages.
 
         .. seealso:: :term:`read fault`, :term:`write fault`.
@@ -522,9 +521,8 @@ Memory Management Glossary: P
 
         .. relevance::
 
-            Some :term:`garbage collectors <garbage collector>` use
-            handlers for protection faults to provide :term:`barriers
-            (1) <barrier (1)>`.
+            Some :term:`garbage collectors` use handlers for
+            protection faults to provide :term:`barriers (1)`.
 
         .. seealso:: :term:`segmentation violation`, :term:`General Protection Fault`.
 

@@ -13,13 +13,13 @@ Thread safety
 The MPS is designed to run in an environment with multiple threads all
 calling into the MPS. Some code is known to operate with exclusive
 access to the data it manipulates (for example, allocation via
-:term:`allocation points <allocation point>`, in the common case where
-the buffer does not need to be refilled, and :term:`location
-dependencies <location dependency>`), so this code is safe. For the
-rest of the code, shared data structures are locked by the use of a
-single lock per :term:`arena`. This lock is claimed on entry to the
-MPS and released on exit from it. So there is at most a single thread
-(per arena) running "inside" the MPS at a time.
+:term:`allocation points`, in the common case where the buffer does
+not need to be refilled, and :term:`location dependencies`), so this
+code is safe. For the rest of the code, shared data structures are
+locked by the use of a single lock per :term:`arena`. This lock is
+claimed on entry to the MPS and released on exit from it. So there is
+at most a single thread (per arena) running "inside" the MPS at a
+time.
 
 
 Thread registration
@@ -41,9 +41,9 @@ arenas.
 Signal handling issues
 ----------------------
 
-The MPS uses :term:`barriers <barrier (1)>` to :term:`protect
-<protection>` memory from the :term:`client program` and handles the
-signals that result from barrier hits.
+The MPS uses :term:`barriers (1)` to :term:`protect <protection>`
+memory from the :term:`client program` and handles the signals that
+result from barrier hits.
 
 On some operating systems, barrier hits generate exceptions that have
 to be caught by a handler that is on the stack. On these operating
@@ -100,7 +100,7 @@ Thread interface
 
 .. c:function:: void mps_thread_dereg(mps_thr_t thr)
 
-    Deregister a :term:`thread <thread>`.
+    Deregister a :term:`thread`.
 
     ``thr`` is the description of the thread.
 
@@ -142,7 +142,7 @@ Thread interface
     time it is called. This is intended to make it easy to pass, for
     example, an array and its size as parameters.
 
-    The MPS relies on :term:`barriers <barrier (1)>` to protect memory
+    The MPS relies on :term:`barriers (1)` to protect memory
     that is in an inconsistent state. On some operating systems,
     barrier hits generate exceptions that have to be caught by a
     handler that is on the stack. On these operating systems, any code

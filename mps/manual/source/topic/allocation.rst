@@ -15,7 +15,7 @@ Manual allocation
 
 .. note::
 
-    Not all :term:`pool classes <pool class>` support this interface:
+    Not all :term:`pool classes` support this interface:
     :term:`automatically managed <automatic memory management>` pools
     typically support none of it, and even :term:`manually managed
     <manual memory management>` pools may not support the whole
@@ -72,16 +72,16 @@ Manual allocation
 Allocation points
 -----------------
 
-:term:`Allocation points <allocation point>` provide fast,
-:term:`inline <inline allocation (1)>`, nearly :term:`lock-free <lock
-free>` allocation. They allow code to allocate without calling an
-allocation function: this is vital for performance in languages or
-programs that allocate many small objects. They must be used according
-to the :ref:`topic-allocation-point-protocol`.
+:term:`Allocation points` provide fast, :term:`inline <inline
+allocation (1)>`, nearly :term:`lock-free <lock free>` allocation.
+They allow code to allocate without calling an allocation function:
+this is vital for performance in languages or programs that allocate
+many small objects. They must be used according to the
+:ref:`topic-allocation-point-protocol`.
 
 .. c:type:: mps_ap_t
 
-    The type of :term:`allocation points <allocation point>`. It is a
+    The type of :term:`allocation points`. It is a
     :term:`transparent alias <transparent type>` for a pointer to
     :c:type:`mps_ap_s`.
 
@@ -137,7 +137,7 @@ Allocation point protocol
 -------------------------
 
 This protocol is designed to work with :term:`incremental garbage
-collection` and multiple :term:`threads <thread>`, where between any
+collection` and multiple :term:`threads`, where between any
 two instructions in the :term:`client program`, the MPS may run part
 of a :term:`garbage collection`, :term:`move <moving memory manager>`
 blocks in memory, rewrite pointers, and reclaim space. In order to
@@ -147,9 +147,8 @@ least) two steps, a *reserve* followed by a *commit*.
 .. note::
 
     The description of the protocol assumes that you have declared
-    your threads' :term:`control stacks <control stack>` and
-    :term:`registers <register>` to be :term:`ambiguous roots
-    <ambiguous root>`, by passing :c:func:`mps_stack_scan_ambig` to
+    your threads' :term:`control stacks` and
+    :term:`registers` to be :term:`ambiguous roots`, by passing :c:func:`mps_stack_scan_ambig` to
     :c:func:`mps_root_create_reg`. This is the simplest way to write a
     client. Other scenarios are possible, but not yet documented.
 
@@ -378,7 +377,7 @@ Before calling :c:func:`mps_commit`:
     forwarding object, and so on).
 
 2.  All exact references in the new block (references that are
-    :term:`fixed <fix>` by scanning functions) must contain valid
+    :term:`fixed` by scanning functions) must contain valid
     references.
 
 3.  The new object must be ambiguously :term:`reachable`.
@@ -400,9 +399,9 @@ formatted object (at least in the debugging version of your program).
 
 .. note::
 
-    Some :term:`pool classes <pool class>` have debugging counterparts
-    that automatically overwrite free space with a pattern of bytes of
-    your choosing. See :ref:`topic-debugging`.
+    Some :term:`pool classes` have debugging counterparts that
+    automatically overwrite free space with a pattern of bytes of your
+    choosing. See :ref:`topic-debugging`.
 
 
 Example: inserting into a doubly linked list
@@ -589,7 +588,7 @@ branch prediction should work well since the test almost never fails).
 .. c:type:: mps_ap_s
 
     The type of the structure used to represent :term:`allocation
-    points <allocation point>`::
+    points`::
 
          typedef struct mps_ap_s {
            mps_addr_t init;

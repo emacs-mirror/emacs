@@ -84,7 +84,7 @@ Memory Management Glossary: B
         Note that in [BC92A]_, Boehm and Chase define "base pointer"
         to be "any pointer value directly recognizable by the
         :term:`collector (1)`", and this may well include
-        :term:`interior pointers <interior pointer>`.
+        :term:`interior pointers`.
 
         .. opposite:: :term:`derived pointer`.
 
@@ -92,12 +92,11 @@ Memory Management Glossary: B
 
         The :term:`allocation policy` that always allocates from the
         smallest suitable :term:`free block`. Suitable
-        :term:`allocation mechanisms <allocation mechanism>` include
-        :term:`sequential fit` searching for a :term:`perfect fit`,
-        :term:`first fit` on a size-ordered :term:`free block chain`,
-        :term:`segregated fits <segregated fit>`, and :term:`indexed
-        fits <indexed fit>`. Many :term:`good fit` allocators are also
-        described as :term:`best fit`.
+        :term:`allocation mechanisms` include :term:`sequential fit`
+        searching for a :term:`perfect fit`, :term:`first fit` on a
+        size-ordered :term:`free block chain`, :term:`segregated
+        fits`, and :term:`indexed fits`. Many :term:`good fit`
+        allocators are also described as :term:`best fit`.
 
         In theory, best fit may exhibit bad :term:`fragmentation`, but
         in practice this is not commonly observed.
@@ -120,7 +119,7 @@ Memory Management Glossary: B
 
         BIBOP requires storing only objects of the same type in a
         block, but this has the same advantages as :term:`segregated
-        fits <segregated fit>` in general.
+        fits` in general.
 
         .. historical::
 
@@ -172,20 +171,20 @@ Memory Management Glossary: B
 
             Bitmaps are sometimes used to represent the marks in a
             :term:`mark-sweep` collector, or the used memory in a
-            :term:`bitmapped fits <bitmapped fit>` :term:`allocator`.
+            :term:`bitmapped fits` :term:`allocator`.
 
     bitmapped fit
 
-        A class of :term:`allocation mechanisms <allocation
-        mechanism>` that use a :term:`bitmap` to represent the usage
-        of the :term:`heap`. Each bit in the map corresponds to a part
-        of the heap, typically a :term:`word`, and is set if that part
-        is in use. Allocation is done by searching the bitmap for a
-        run of clear bits.
+        A class of :term:`allocation mechanisms` that use a
+        :term:`bitmap` to represent the usage of the :term:`heap`.
+        Each bit in the map corresponds to a part of the heap,
+        typically a :term:`word`, and is set if that part is in use.
+        Allocation is done by searching the bitmap for a run of clear
+        bits.
 
-        Bitmapped fit mechanisms have good :term:`locality <locality
-        of reference>`, as they avoid examining :term:`in-band headers
-        <in-band header>` when allocating.
+        Bitmapped fit mechanisms have good :term:`locality of
+        reference`, as they avoid examining :term:`in-band headers`
+        when allocating.
 
         .. seealso:: :term:`allocation mechanism`, :term:`sequential fit`, :term:`indexed fit`.
 
@@ -202,8 +201,8 @@ Memory Management Glossary: B
 
     black
 
-        In a :term:`tri-color marking` scheme, black :term:`objects
-        <object>` are objects that have been :term:`scanned <scan>`.
+        In a :term:`tri-color marking` scheme, black :term:`objects`
+        are objects that have been :term:`scanned <scan>`.
 
         More precisely, black objects have been noted
         :term:`reachable` and the :term:`collector (2)` has finished
@@ -217,14 +216,13 @@ Memory Management Glossary: B
 
         A :term:`conservative garbage collector <conservative garbage
         collection>` can be made more effective by *blacklisting*
-        values which resemble :term:`addresses <address>` that may be
-        :term:`allocated <allocate>` at in the future, but are known
-        not to be :term:`pointers <pointer>` . This list is then used
-        to avoid allocation at those addresses.
+        values which resemble :term:`addresses` that may be
+        :term:`allocated` at in the future, but are known not to be
+        :term:`pointers` . This list is then used to avoid allocation
+        at those addresses.
 
         For example, such values can be gathered by scanning the
-        :term:`roots <root>` before any :term:`objects <object>` have
-        been allocated.
+        :term:`roots` before any :term:`objects` have been allocated.
 
         .. bibref:: [BOEHM93]_.
 
@@ -232,14 +230,14 @@ Memory Management Glossary: B
 
         Block is a vague term for an (often contiguous) area of
         :term:`memory (1)`. Often used to describe :term:`memory (2)`
-        :term:`allocated <allocate>` by an :term:`allocator` such as
+        :term:`allocated` by an :term:`allocator` such as
         :term:`malloc`.
 
         .. mps:specific::
 
             The term *block* is used as a general term for a unit of
             allocation, with *object* being reserved for
-            :term:`formatted objects <formatted object>`.
+            :term:`formatted objects`.
 
     bounds error
 
@@ -247,13 +245,13 @@ Memory Management Glossary: B
 
     boxed
 
-        Boxed :term:`objects <object>` are represented by a
-        :term:`pointer` to a :term:`block` of :term:`memory (2)` that
-        contains the object data. Sometimes the pointer is
-        :term:`tagged <tag>` to distinguish it from an :term:`unboxed`
-        object, or to represent its type. Only the pointer is
-        duplicated when the object is passed around, so updates to the
-        object are reflected everywhere.
+        Boxed :term:`objects` are represented by a :term:`pointer` to
+        a :term:`block` of :term:`memory (2)` that contains the object
+        data. Sometimes the pointer is :term:`tagged <tag>` to
+        distinguish it from an :term:`unboxed` object, or to represent
+        its type. Only the pointer is duplicated when the object is
+        passed around, so updates to the object are reflected
+        everywhere.
 
         .. opposite:: :term:`unboxed`.
 
@@ -275,7 +273,7 @@ Memory Management Glossary: B
         segment. This limit is known as the *break*.
 
         The :term:`C` library implementation of :term:`malloc` usually
-        :term:`allocates <allocate>` :term:`memory (2)` for the
+        :term:`allocates` :term:`memory (2)` for the
         :term:`heap` by extending the data segment using ``brk`` or
         :term:`sbrk`.
 
@@ -294,7 +292,7 @@ Memory Management Glossary: B
 
         :term:`Copying garbage collectors <copying garbage
         collection>` :term:`move <moving garbage collector>`
-        :term:`reachable` :term:`objects <object>` into another
+        :term:`reachable` :term:`objects` into another
         :term:`semi-space`. They leave a :term:`forwarding pointer` in
         the old :term:`location <memory location>`, pointing to the
         new. The object at the old location is known as a broken
@@ -306,7 +304,7 @@ Memory Management Glossary: B
 
         In a :term:`generational garbage collector <generational
         garbage collection>`, it is often desirable to divide
-        :term:`generations <generation>` by the age of the
+        :term:`generations` by the age of the
         :term:`object`. These divisions are known as buckets.
 
         .. seealso:: :term:`generational garbage collection`, :term:`aging space`, :term:`creation space`.
@@ -314,12 +312,12 @@ Memory Management Glossary: B
     buddy system
 
         Buddy systems are a subclass of :term:`strict segregated fit`
-        :term:`allocation mechanisms <allocation mechanism>` which
+        :term:`allocation mechanisms` which
         make :term:`splitting <split>` and :term:`coalescing
         <coalesce>` fast by pairing each block with a unique adjacent
         *buddy* block.
 
-        There is an array of :term:`free lists <free list>`, one for
+        There is an array of :term:`free lists`, one for
         each allowable block size. Allocation rounds up the requested
         size to an allowable size and allocates from the corresponding
         free list. If the free list is empty, a larger block is
@@ -341,29 +339,28 @@ Memory Management Glossary: B
         :term:`Fibonacci buddies`, :term:`weighted buddies`, and
         :term:`double buddies`.
 
-        .. seealso:: :term:`allocation mechanism`, :term:`segregated free lists <segregated free list>`, :term:`segregated fit`, :term:`strict segregated fit`.
+        .. seealso:: :term:`allocation mechanism`, :term:`segregated free lists`, :term:`segregated fit`, :term:`strict segregated fit`.
 
         .. bibref:: [WIL95]_.
 
     buffer
 
         A *buffer* is a large :term:`block` of :term:`memory (2)` from
-        which blocks are :term:`allocated <allocate>` contiguously, as
-        a simple technique for fast :term:`allocation <allocate>`.
+        which blocks are :term:`allocated` contiguously, as a simple
+        technique for fast :term:`allocation <allocate>`.
 
         By keeping only a *high-water* mark (that is, a
         :term:`pointer` to the start of unused memory), the buffer
-        technique avoids expensive :term:`in-band headers <in-band
-        header>` and the searching of :term:`free block chains <free
-        block chain>`. Buffers tend to, however, lead to
-        :term:`external fragmentation`.
+        technique avoids expensive :term:`in-band headers` and the
+        searching of :term:`free block chains`. Buffers tend to,
+        however, lead to :term:`external fragmentation`.
 
         .. bibref:: [AEL88]_.
 
         .. mps:specific::
 
-            Buffers are implemented using :term:`allocation points
-            <allocation point>` attached to :term:`pools <pool>`.
+            Buffers are implemented using :term:`allocation points`
+            attached to :term:`pools`.
 
     bus error
 
@@ -404,8 +401,8 @@ Memory Management Glossary: B
 
         .. historical::
 
-            The PDP-10 had 36-bit :term:`words <word>`, and defined
-            "byte" to be a general sub-:term:`word` bit-field: compare
+            The PDP-10 had 36-bit :term:`words`, and defined "byte" to
+            be a general sub-:term:`word` bit-field: compare
             :term:`byte (3)`. On this machine it was commonplace for
             characters to be packed four or five to a word using 9- or
             7-bit bytes respectively.

@@ -168,8 +168,8 @@ Interface
     ``sac`` is the segregated allocation cache.
 
     ``size`` is the :term:`size` of the block to allocate. It does not
-    have to be one of the :term:`sizes classes <size class>` of the
-    cache; nor does it have to be aligned.
+    have to be one of the :term:`size classes` of the cache; nor does
+    it have to be aligned.
 
     ``has_reservoir_permit`` should be false.
 
@@ -194,13 +194,13 @@ Interface
         The :term:`client program` is responsible for synchronizing
         the access to the cache, but if the cache decides to access
         the pool, the MPS will properly synchronize with any other
-        :term:`threads <thread>` that might be accessing the same
+        :term:`threads` that might be accessing the same
         pool.
 
         Blocks allocated through a segregated allocation cache should
         only be freed through a segregated allocation cache with the
         same class structure. Calling :c:func:`mps_free` on them can
-        cause :term:`memory leaks <memory leak>`, because the size of
+        cause :term:`memory leaks`, because the size of
         the block might be larger than you think. Naturally, the cache
         must also be attached to the same pool.
 
@@ -225,8 +225,8 @@ Interface
 
 .. c:macro:: MPS_SAC_CLASS_LIMIT
 
-    The number of :term:`size classes <size class>` that
-    :c:func:`mps_sac_create` is guaranteed to accept.
+    The number of :term:`size classes` that :c:func:`mps_sac_create`
+    is guaranteed to accept.
 
     More might be accepted: in fact, there might not be any limit in
     the implementation on the maximum number of size classes, but if
@@ -257,7 +257,7 @@ Interface
         The :term:`client program` is responsible for synchronizing
         the access to the cache, but if the cache decides to access
         the pool, the MPS will properly synchronize with any other
-        :term:`threads <thread>` that might be accessing the same
+        :term:`threads` that might be accessing the same
         pool.
 
         There's also a macro :c:func:`MPS_SAC_FREE_FAST` that does the
@@ -265,7 +265,7 @@ Interface
         does no checking.
 
         :c:func:`mps_sac_free` does very little checking: it's
-        optimized for speed. :term:`Double frees <double free>` and
+        optimized for speed. :term:`Double frees` and
         other mistakes will only be detected when the cache is flushed
         (either by calling :c:func:`mps_sac_flush` or automatically),
         and may not be detected at all, if intervening operations have
@@ -321,8 +321,8 @@ Interface
 
     ``pool`` is the pool the cache is attached to.
 
-    ``classes_count`` is the number of :term:`size classes <size class>`
-    in the cache.
+    ``classes_count`` is the number of :term:`size classes` in the
+    cache.
 
     ``classes`` points to an array describing the size classes in the
     cache.
@@ -429,11 +429,10 @@ Interface
         The :term:`client program` is responsible for synchronizing
         the access to the cache, but if the cache decides to access
         the pool, the MPS will properly synchronize with any other
-        :term:`threads <thread>` that might be accessing the same
+        :term:`threads` that might be accessing the same
         pool.
 
 
 .. c:type:: mps_sac_t
 
-    The type of :term:`segregated allocation caches <segregated
-    allocation cache>`.
+    The type of :term:`segregated allocation caches`.

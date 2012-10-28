@@ -11,7 +11,7 @@ Memory Management Glossary: I
     immediate data
 
         Immediate data is the representation of a :term:`value object`
-        as one or more machine :term:`words <word>`, as a register, or
+        as one or more machine :term:`words`, as a register, or
         as a field in an instruction.
 
         Immediate data takes its name from the value of the object
@@ -24,14 +24,14 @@ Memory Management Glossary: I
 
     immune set
 
-        The set of :term:`objects <object>` which are not
+        The set of :term:`objects` which are not
         :term:`condemned <condemned set>`.
 
         .. opposite:: :term:`condemned set`.
 
     immutable
 
-        In some programming languages, :term:`objects <object>` of
+        In some programming languages, :term:`objects` of
         some types are immutable, that is, they cannot be modified.
         For example, in Standard :term:`ML`, only arrays and refs are
         mutable; all other objects are immutable.
@@ -62,7 +62,7 @@ Memory Management Glossary: I
 
         .. aka:: *frame*, *header*.
 
-        Some :term:`memory managers <memory manager>` :term:`allocate`
+        Some :term:`memory managers` :term:`allocate`
         a fixed amount more than is necessary for each :term:`block`
         and use it to store information such as the size of the block
         or a :term:`tag`. This extra memory is known as an *in-band
@@ -127,9 +127,9 @@ Memory Management Glossary: I
 
         Incremental-update algorithms for :term:`tracing <trace>`,
         :term:`incremental garbage collection` note changes made by
-        the :term:`mutator` to the :term:`graph` of :term:`objects
-        <object>` and update the :term:`collector (2)` state to make
-        it correctly trace the new graph.
+        the :term:`mutator` to the :term:`graph` of :term:`objects`
+        and update the :term:`collector (2)` state to make it
+        correctly trace the new graph.
 
         In order for the collector to miss a :term:`reachable`
         :term:`object`, the following two conditions need to hold at
@@ -183,12 +183,12 @@ Memory Management Glossary: I
 
     indexed fit
 
-        A class of :term:`allocation mechanisms <allocation
-        mechanism>` that use an indexing data structure, such as a
-        tree or hash table, to identify suitable :term:`free blocks
-        <free block>`, according to the :term:`allocation policy`. For
-        instance, a tree ordered by block size may be used to
-        implement the :term:`best fit` policy.
+        A class of :term:`allocation mechanisms` that use an indexing
+        data structure, such as a tree or hash table, to identify
+        suitable :term:`free blocks`, according to the
+        :term:`allocation policy`. For instance, a tree ordered by
+        block size may be used to implement the :term:`best fit`
+        policy.
 
         .. seealso:: :term:`allocation mechanism`, :term:`allocation policy`, :term:`sequential fit`, :term:`bitmapped fit`.
 
@@ -198,7 +198,7 @@ Memory Management Glossary: I
 
         Indirect methods of :term:`automatic memory management` are
         those in which the information necessary to determine whether
-        an :term:`object` can be :term:`reclaimed <reclaim>` is not
+        an :term:`object` can be :term:`reclaimed` is not
         stored in or associated with that object, but is derived from
         other objects.
 
@@ -238,7 +238,7 @@ Memory Management Glossary: I
 
         Allocation of child objects inside their parent, as opposed
         to allocating child objects on the :term:`heap` and storing
-        :term:`pointers <pointer>` to them in the parent.
+        :term:`pointers` to them in the parent.
 
     inter-generational pointer
 
@@ -258,10 +258,9 @@ Memory Management Glossary: I
         that must be scanned are the ones that contain
         inter-generational pointers. :term:`Generational garbage
         collectors <generational garbage collection>` make use of
-        :term:`write-barriers <write barrier>` and data structures
-        like :term:`entry tables (2) <entry table (2)>`, :term:`exit
-        tables <exit table>`, and :term:`remembered sets <remembered
-        set>` to track those objects at run-time.
+        :term:`write barriers` and data structures like :term:`entry
+        tables (2)`, :term:`exit tables`, and :term:`remembered sets`
+        to track those objects at run-time.
 
         Inter-generational pointers can cause :term:`floating
         garbage`: even if both referrer and referent die, the
@@ -302,10 +301,9 @@ Memory Management Glossary: I
     internal fragmentation
 
         Internal :term:`fragmentation` is where the :term:`memory
-        manager` :term:`allocates <allocate>` more for each allocation
+        manager` :term:`allocates` more for each allocation
         than is actually requested. There are three reasons for this:
-        :term:`padding`; :term:`buddy system`; :term:`in-band headers
-        <in-band header>`.
+        :term:`padding`; :term:`buddy system`; :term:`in-band headers`.
 
         .. seealso:: :term:`external fragmentation`.
 
@@ -326,12 +324,12 @@ Memory Management Glossary: I
     inverted page-table
 
         In a :term:`virtual memory` system, conventional
-        :term:`page tables <page table>` have an entry for every
+        :term:`page tables` have an entry for every
         :term:`page` in the :term:`virtual address space`. An
         *inverted page table* has only as many entries as there are
         pages in :term:`physical memory (1)`, and uses a hash lookup
-        to translate :term:`virtual addresses <virtual address>` to
-        :term:`physical addresses <physical address>` in nearly
+        to translate :term:`virtual addresses` to
+        :term:`physical addresses` in nearly
         constant time.
 
         The entire virtual address space of each process is described
@@ -342,7 +340,7 @@ Memory Management Glossary: I
         (1)` resources.
 
         Inverted page tables are ideal for schemes that store
-        information about :term:`objects <object>` in the high-order
+        information about :term:`objects` in the high-order
         bits of their :term:`address`. Such schemes may perform poorly
         with conventional page tables as the sparse address space may
         cause the page table structures to become so large as to
@@ -362,8 +360,7 @@ Memory Management Glossary: I
         .. mps:specific::
 
             A :term:`format method` that is called by a :term:`moving
-            <moving garbage collector>` :term:`pool <pool>` to
-            determine if a :term:`formatted object` is a
-            :term:`forwarding object`, and if so, to return the address
-            where the object was moved to. See
-            :c:type:`mps_fmt_isfwd_t`.
+            <moving garbage collector>` :term:`pool` to determine if a
+            :term:`formatted object` is a :term:`forwarding object`,
+            and if so, to return the address where the object was
+            moved to. See :c:type:`mps_fmt_isfwd_t`.
