@@ -132,7 +132,10 @@ other than the normal definition of FACE via `face-remap-set-base'."
     (when (null entry)
       (setq entry (list face face))	; explicitly merge with global def
       (push entry face-remapping-alist))
-    (setcdr entry (face-remap-order (cons specs (cdr entry))))
+    (let ((faces (cdr entry)))
+      (if (symbolp faces)
+	  (setq faces (list faces)))
+      (setcdr entry (face-remap-order (cons specs faces))))
     (cons face specs)))
 
 (defun face-remap-remove-relative (cookie)

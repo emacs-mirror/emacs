@@ -1,3 +1,8 @@
+2012-10-29  Chong Yidong  <cyd@gnu.org>
+
+	* face-remap.el (face-remap-add-relative): Handle the case where a
+	face-remapping-alist entry is a cons cell (Bug#12762).
+
 2012-10-29  Glenn Morris  <rgm@gnu.org>
 
 	* emacs-lisp/cl.el (defsetf): Doc fix.
