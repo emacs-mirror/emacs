@@ -4,6 +4,7 @@
     `<https://info.ravenbrook.com/project/mps/master/design/lib/>`_
     `<https://info.ravenbrook.com/project/mps/doc/2002-06-18/obsolete-mminfo/mmdoc/doc/mps/ref-man/concepts/>`_
     `<https://info.ravenbrook.com/project/mps/doc/2002-06-18/obsolete-mminfo/mmdoc/doc/mps/guide/interface/>`_
+    `<https://info.ravenbrook.com/project/mps/doc/2002-06-18/obsolete-mminfo/mmdoc/doc/mps/guide/appendix/plinth/>`_
 
 
 .. _topic-plinth:
@@ -11,45 +12,52 @@
 Plinth
 ======
 
-The MPS is designed to be portable to systems that have only a
-*conforming freestanding implementation* of the C language: that is,
-systems which potentially lack the facilities of the Standard C
-Library that must be provided by *hosted* implementations.
+The :dfn:`plinth` is a program module providing the MPS with all the
+support it needs from the execution environment. It serves two
+purposes, both relating to operating system support:
 
-Instead of using hosted facilities like Standard I/O, the MPS uses the
-:dfn:`plinth`: a program module providing all the support it needs
-from the execution environment.
+1. The MPS is designed to be portable to systems that have only a
+   *conforming freestanding implementation* of the C language: that
+   is, systems which potentially lack facilities of the Standard C
+   Library, such as Standard I/O. The plinth provides all the
+   necessary facilities.
 
-The plinth may be provided by the client application; however, a
+2. The plinth gives the :term:`client program` complete control of
+   interaction between the MPS and the user, including :ref:`messages
+   <topic-message>` and :ref:`telemetry <topic-telemetry>`.
+
+The plinth may be provided by the :term:`client program`; however, a
 sample implementation of the plinth using ANSI Standard C Library
 facilities is included with the MPS, and this is good enough for most
 applications.
 
+There are many reasons why you might want to write your own plinth.
+You may be targetting a *freestanding environment* such as an embedded
+system. You might need to write the telemetry stream to a system
+logging facility, or transmit it over a serial port or network
+connection. Or you might need to direct debugging output to a
+convenient window in the user interface.
+
+The plinth is divided into two parts:
+
+1. The :ref:`topic-plinth-io` enables the MPS to write binary messages
+   to an output stream.
+
+2. The :ref:`topic-plinth-lib` provides miscellaneous functionality
+   that would be available via the Standard C Library on a hosted
+   platform, including functions for reporting errors and accessing
+   a processor clock.
 
 
+.. _topic-plinth-io:
 
-From 
+I/O module
+----------
 
-To perform its various duties, the MPS needs very little external support. Indeed, there is a way of using it so that it needs none at all, making it possible to use the MPS in embedded applications. There are two key components to this: the client arena and the plinth . This section concerns the plinth; for more information about the client arena, see mps_arena_class_cl in the Reference Manual.
+::
 
-The plinth also has another purpose: it gives the application programmer complete control of how interaction between the MPS and the user happens. This comprises things like debugging messages and logging. The two purposes are intertwined, because both relate to operating system support.
+    #include "mpsio.h"
 
-The plinth is a program module providing the MPS with all the support functions it needs from the execution environment. The plinth is provided by the application programmer; this is how the plinth removes the need for external libraries, by getting the support from the client application, and at the same time, gives the application programmer control over the implementation of its features.
-
-However, before you panic, a sample implementation of a plinth using standard ISO C library facilities is provided with the MPS (mpsliban.c and mpsioan.c), and this is often adequate for your needs, so you don't have to write your own. Naturally, if you use the ISO plinth, you then need to link with the C library.
-
-There are many reasons why you might want to write your own plinth. For embedded applications, the MPS will work in what the C standard calls a freestanding environment, as long as you provide it with a plinth that works in that environment, and use the client arena (virtual memory arenas contain OS-specific code that calls the VM interfaces of the OS). Programmers of GUI applications might want a plinth that directs debugging output to a convenient window.
-
-See <https://info.ravenbrook.com/project/mps/doc/2002-06-18/obsolete-mminfo/mmdoc/doc/mps/guide/appendix/plinth/>
-
-The example ANSI plinth, ``mpsliban.c``, implements :c:func:`mps_clock` by calling the ISO C function ``clock`` in ``time.h``.  The difference between two of these clock values may be converted to seconds by dividing by the ``CLOCKS_PER_SEC`` conversion factor.
-
-
-See also <https://info.ravenbrook.com/project/mps/master/design/io/>
-
-
-Declared in ``mpsio.h``
------------------------
 
 .. c:type:: mps_io_t
 
@@ -59,6 +67,11 @@ Declared in ``mpsio.h``
     :c:type:`mps_io_s`, which the :term:`plinth` may define if it
     needs to. Alternatively, it may leave the structure type undefined
     and simply cast its own pointer to and from :c:type:`mps_io_t`.
+
+    .. note::
+
+        In the ANSI I/O module, ``mpsioan.c``, this is an alias for
+        ``FILE *``.
 
 
 .. c:function:: mps_res_t mps_io_create(mps_io_t *io_o)
@@ -77,6 +90,12 @@ Declared in ``mpsio.h``
     A typical plinth will use it to open a file for writing, or to
     connect to the system logging interface.
 
+    .. note::
+
+        In the ANSI I/O module, ``mpsioan.c``, this calls ``fopen`` on
+        the file named by the environment variable
+        :envvar:`MPS_TELEMETRY_FILENAME`.
+
 
 .. c:function:: void mps_io_destroy(mps_io_t io)
 
@@ -88,6 +107,10 @@ Declared in ``mpsio.h``
 
     After calling this function, the MPS guarantees not to use the
     value ``io`` again.
+
+    .. note::
+
+        In the ANSI I/O module, ``mpsioan.c``, this calls ``fclose``.
 
 
 .. c:function:: mps_res_t mps_io_write(mps_io_t io, void *buf, size_t size)
@@ -103,6 +126,10 @@ Declared in ``mpsio.h``
     ``size`` is the :term:`size` of the data in :term:`bytes (1)`.
 
     Returns :c:macro:`MPS_RES_OK` if successful.
+
+    .. note::
+
+        In the ANSI I/O module, ``mpsioan.c``, this calls ``fwrite``.
 
 
 .. c:function:: mps_res_t mps_io_flush(mps_io_t io)
@@ -124,9 +151,140 @@ Declared in ``mpsio.h``
     bug, for example) or some interactive tool require access to the
     event data.
 
+    .. note::
 
-Declared in ``mpslib.h``
-------------------------
+        In the ANSI I/O module, ``mpsioan.c``, this calls ``fflush``.
+
+
+.. _topic-plinth-lib:
+
+Library module
+--------------
+
+::
+
+    #include "mpslib.h"
+
+
+.. c:function:: mps_clock_t mps_clock(void)
+
+    Return the time since some epoch, in units given by
+    :c:func:`mps_clocks_per_sec`.
+
+    This should be a cheap, high-resolution processor timer. There is
+    no requirement to be able to relate this time to wall clock time.
+
+    .. note::
+
+        The ANSI Library module, ``mpsliban.c``, calls ``clock``.
+
+
+.. c:function:: mps_clock_t mps_clocks_per_sec(void)
+
+    Return the number of clock units (as returned by
+    :c:func:`mps_clock`) per second.
+
+    .. note::
+
+        The ANSI Library module, ``mpsliban.c``, returns
+        ``CLOCKS_PER_SEC``.
+
+
+.. c:function:: void mps_lib_assert_fail(const char *message)
+
+    Report an assertion failure and abort.
+
+    ``message`` is a NUL-terminated string describing the assertion
+    failure.
+
+    .. note::
+
+        In the ANSI Library module, ``mpsliban.c``, this reports the
+        failure using ``fprintf(stderr, "...%s...", message)`` and
+        terminates the program by calling ``abort``.
+
+
+.. c:type:: mps_lib_FILE
+
+    The type of output streams provided by the plinth.
+
+    .. note::
+
+        In the ANSI Library module, ``mpsliban.c``, this is an alias
+        for ``FILE *``.
+
+
+.. c:function:: int mps_lib_fputc(int c, mps_lib_FILE *stream)
+
+    Write a character to an output stream.
+
+    ``c`` is the character.
+
+    ``stream`` is the stream.
+
+    Return the character written if successful, or
+    :c:func:`mps_lib_get_EOF` if not.
+
+    This function is intended to have the same semantics as the
+    ``fputc`` function of the ANSI C Standard ([ISO90]_ §7.11.7.3).
+
+    .. note::
+
+        In the ANSI Library module, ``mpsliban.c``, this is a simple
+        wrapper around ``fputc``.
+
+
+.. c:function:: int mps_lib_fputs(const char *s, mps_lib_FILE *stream)
+
+    Write a string to an output stream.
+
+    ``s`` is the NUL-terminated string.
+
+    ``stream`` is the stream.
+
+    This function is intended to have the same semantics as the
+    ``fputs`` function of the ANSI C Standard ([ISO90]_ §7.11.7.4).
+
+    Return a non-negative integer if successful, or
+    :c:func:`mps_lib_get_EOF` if not.
+
+    .. note::
+
+        In the ANSI Library module, ``mpsliban.c``, this is a simple
+        wrapper around ``fputs``.
+
+
+.. c:function:: int mps_lib_get_EOF(void)
+
+    Return the value that is returned from :c:func:`mps_lib_fputc` and
+    :c:func:`mps_lib_fputs` to indicate failure.
+
+    .. note::
+
+        In the ANSI Library module, ``mpsliban.c``, this returns
+        ``EOF``.
+
+
+.. c:function:: mps_lib_FILE *mps_lib_get_stderr(void)
+
+    Returns an output stream suitable for reporting errors.
+
+    .. note::
+
+        In the ANSI Library module, ``mpsliban.c``, this returns
+        ``stderr``.
+
+
+.. c:function:: mps_lib_FILE *mps_lib_get_stdout(void)
+
+    Returns an output stream suitable for reporting informative
+    output.
+
+    .. note::
+
+        In the ANSI Library module, ``mpsliban.c``, this returns
+        ``stdout``.
+
 
 .. c:function:: int mps_lib_memcmp(const void *s1, const void *s2, size_t n)
 
@@ -143,7 +301,12 @@ Declared in ``mpslib.h``
     equal to, or less than the block pointed to by ``s2``.
 
     This function is intended to have the same semantics as the
-    ``memcmp`` function of the [ANSI C Standard]_ (section 7.11.4.1).
+    ``memcmp`` function of the ANSI C Standard ([ISO90]_ §7.11.4.1).
+
+    .. note::
+
+        In the ANSI Library module, ``mpsliban.c``, this is a simple
+        wrapper around ``memcmp``.
 
 
 .. c:function:: void *mps_lib_memcpy(void *dest, const void *source, size_t n)
@@ -160,10 +323,16 @@ Declared in ``mpslib.h``
     Returns ``dest``.
 
     This function is intended to have the same semantics as the
-    ``memcpy`` function of the [ANSI C Standard]_ (section 7.11.2.1).
+    ``memcpy`` function of the ANSI C Standard ([ISO90]_ §7.11.2.1).
 
     The MPS never passes overlapping blocks to
     :c:func:`mps_lib_memcpy`.
+
+    .. note::
+
+        In the ANSI Library module, ``mpsliban.c``, this is a simple
+        wrapper around ``memcpy``.
+
 
 .. c:function:: void *mps_lib_memset(void *s, int c, size_t n)
 
@@ -179,7 +348,12 @@ Declared in ``mpslib.h``
     Returns ``s``.
 
     This function is intended to have the same semantics as the
-    ``memset`` function of the [ANSI C Standard]_ (section 7.11.6.1).
+    ``memset`` function of the ANSI C Standard ([ISO90]_ §7.11.6.1).
+
+    .. note::
+
+        In the ANSI Library module, ``mpsliban.c``, this is a simple
+        wrapper around ``memset``.
 
 
 .. c:function:: unsigned long mps_lib_telemetry_control()
@@ -192,29 +366,12 @@ Declared in ``mpslib.h``
     Returns the default value of the telemetry filter, as derived from
     the environment. It is recommended that the environment be
     consulted for a symbol analogous to
-    :c:macro:`MPS_TELEMETRY_CONTROL`, subject to local restrictions.
+    :envvar:`MPS_TELEMETRY_CONTROL`, subject to local restrictions.
 
     In the absence of environmental data, a default of zero is
     recommended.
 
+    .. note::
 
-Undocumented in ``mpslib.h``
-----------------------------
-
-.. c:function:: int mps_lib_get_EOF(void)
-.. c:type:: mps_lib_FILE
-.. c:function:: mps_lib_FILE *mps_lib_get_stderr(void)
-.. c:function:: mps_lib_FILE *mps_lib_get_stdout(void)
-.. c:function:: int mps_lib_fputc(int c, mps_lib_FILE *stream)
-.. c:function:: int mps_lib_fputs(const char *s, mps_lib_FILE *stream)
-.. c:function:: void mps_lib_assert_fail(const char *message)
-.. c:function:: mps_clock_t mps_clock(void)
-.. c:type:: mps_clock_t
-.. c:function:: mps_clock_t mps_clocks_per_sec(void)
-
-
-Undocumented in ``mpsw3.h``
----------------------------
-
-.. c:function:: LONG mps_SEH_filter(LPEXCEPTION_POINTERS info, void **hp_o, size_t *hs_o)
-.. c:function:: void mps_SEH_handler(void *p, size_t s)
+        In the ANSI Library module, ``mpsliban.c``, this reads the
+        environment variable :envvar:`MPS_TELEMETRY_CONTROL`.

@@ -35,7 +35,7 @@ In the second phase, the collector *sweeps* all allocated memory,
 searching for blocks that have not been marked. If it finds any, it
 returns them to the allocator for reuse.
 
-.. figure:: ../diagrams/mark-sweep.png
+.. figure:: ../diagrams/mark-sweep.svg
     :align: center
     :alt: Diagram: Five memory blocks, three of which are reachable from program variables.
 
@@ -70,8 +70,8 @@ two problems that typically occur:
 
 * the memory in use is widely scattered in memory, causing poor
   performance in the :term:`memory caches <cache (1)>` or
-  :term:`virtual memory (1)` systems of most modern computers (known
-  as poor :term:`locality of reference`);
+  :term:`virtual memory` systems of most modern computers (known as
+  poor :term:`locality of reference`);
 
 * it becomes difficult to allocate large blocks because free memory is
   divided into small pieces, separated by blocks in use (known as
@@ -201,8 +201,8 @@ keeping the counts up to date. An object cannot be reclaimed as soon
 as its count has dropped to zero, because there might still be a
 reference to it from a program variable. Instead, the program
 variables (including the :term:`control stack`) are periodically
-:term:`scanned`, and any objects which are not referenced from there
-and which have zero count are reclaimed.
+:term:`scanned <scan>`, and any objects which are not referenced from
+there and which have zero count are reclaimed.
 
 Deferred reference counting cannot normally be used unless it is
 directly supported by the compiler. It's more common for modern
@@ -215,16 +215,16 @@ program variables.
 One-bit reference counting
 ^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-Another variation on reference counting, called :term:`one-bit
-reference counting`, uses a single bit flag to indicate whether each
+Another variation on reference counting, known as the :term:`one-bit
+reference count`, uses a single bit flag to indicate whether each
 object has either "one" or "many" references. If a reference to an
 object with "one" reference is removed, then the object can be
 recycled. If an object has "many" references, then removing references
 does not change this, and that object will never be recycled. It is
-possible to store the flag as part of the *pointer* to the
-object, so no additional space is required in each object to store the
-count. One-bit reference counting is effective in practice because
-most actual objects have a reference count of one.
+possible to store the flag as part of the *pointer* to the object, so
+no additional space is required in each object to store the count.
+One-bit reference counting is effective in practice because most
+actual objects have a reference count of one.
 
 
 Weighted reference counting

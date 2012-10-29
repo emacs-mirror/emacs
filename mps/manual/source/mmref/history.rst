@@ -95,7 +95,7 @@ A brief history of memory management
 1970
 
     Intel produce the 1103, the first generally available
-    :term:`DRAM`.
+    :term:`DRAM <dynamic memory>`.
 
 1970
 

@@ -57,7 +57,7 @@ Outstanding
      collection. (RB needs to write this.)
 
 126. Things that are "within reach", i.e. that we could do if people
-     needed them.
+     needed them. (RB needs to write this.)
 
 127. :c:func:`mps_arena_roots_walk` says, "A client-supplied function
      is called for every root reference which points to an object in
@@ -80,6 +80,19 @@ Outstanding
      There's nothing wrong with it being somewhat redundant. Its
      supported platforms section doesn't exist elsewhere. Note that
      the platforms we build with (in build.txt) is not the same list.
+
+131. Is :c:type:`mps_clock_t` a transparent alias for ``unsigned
+     long``? I presume it must be: if it were platform-specific, or
+     supplied by the plinth, then it wouldn't be defined in ``mps.h``,
+     surely?
+
+132. :c:func:`mps_lib_get_stderr` appears in ``mpslib.h`` and
+     ``mpsliban.c`` but is not called by the MPS (it uses
+     :c:func:`mps_lib_assert_fail` for assertions). Should this be
+     documented to reserve the option of using it, or should it be
+     left out?
+
+133. What's the purpose of ``mps_SEH_filter`` and ``mps_SEH_handler``?
 
 
 Complete

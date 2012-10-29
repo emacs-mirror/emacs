@@ -165,8 +165,8 @@ out parameter, like this::
     res = mps_alloc((mps_addr_t *)&fp, pool, sizeof(struct foo));
 
 This is known as :term:`type punning`, and its behaviour is not
-defined in ANSI/ISO Standard C. See §6.3.2.3, which defines the
-conversion of a pointer from one type to another: the behaviour of
+defined in ANSI/ISO Standard C. See [ISO90]_ §6.3.2.3, which defines
+the conversion of a pointer from one type to another: the behaviour of
 this cast is not covered by any of the cases in the standard.
 
 Instead, we recommend this approach::
@@ -178,14 +178,14 @@ Instead, we recommend this approach::
     fp = (struct foo *)p;
 
 This is portable because conversion from ``void *`` to any other
-:term:`object pointer` type is defined by §6.3.2.3.1.
+:term:`object pointer` type is defined by [ISO90]_ §6.3.2.3.1.
 
 
 Macros
 ------
 
 1.  For function-like macros, the MPS follows the same convention as
-    the Standard C library. To quote §7.1.7:
+    the Standard C library. To quote [ISO90]_ §7.1.7:
 
         Any function declared in a header may additionally be
         implemented as a macro defined in the header, so a library
@@ -264,6 +264,17 @@ General types
     "false" and any other value means "true". As an output parameter
     or function return from the MPS, 0 means "false", and 1 means
     "true".
+
+
+.. c:type:: mps_clock_t
+
+    The type of a processor time.
+
+    It is a :term:`transparent alias <transparent type>` for
+    ``unsigned long``.
+
+    This is the type returned by the plinth function
+    :c:func:`mps_clock`.
 
 
 .. c:type:: mps_word_t
