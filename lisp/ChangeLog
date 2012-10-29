@@ -1,3 +1,11 @@
+2012-10-29  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* progmodes/sh-script.el (sh-font-lock-paren): Also put punctuation
+	syntax to the matching opener, if any (bug#12547).
+	(sh-smie-sh-forward-token, sh-smie-sh-backward-token): Recognize this
+	matching open as a "case-(".
+	(sh-smie-rc-grammar): Add a corresponding rule for it.
+
 2012-10-28  Daniel Hackney  <dan@haxney.org>
 
 	* emacs-lisp/package.el (package-generate-autoloads): Kill buffer
