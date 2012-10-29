@@ -1,6 +1,7 @@
 2012-10-29  Glenn Morris  <rgm@gnu.org>
 
 	* cl.texi (Organization): More details on cl-lib.el versus cl.el.
+	(Setf Extensions): Remove `apply' setf since it seems to be disabled.
 
 2012-10-28  Glenn Morris  <rgm@gnu.org>
 

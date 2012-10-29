@@ -964,6 +964,8 @@ also works in this way by replacing a portion of the current buffer.
 
 @c FIXME? Also `eq'? (see cl-lib.el)
 
+@c Currently commented out in cl.el.
+@ignore
 @item
 A call of the form @code{(apply '@var{func} @dots{})} or
 @code{(apply (function @var{func}) @dots{})}, where @var{func}
@@ -972,6 +974,7 @@ in the sense described in Steele's book; since none of the standard
 Emacs place functions are suitable in this sense, this feature is
 only interesting when used with places you define yourself with
 @code{define-setf-method} or the long form of @code{defsetf}.
+@end ignore
 
 @item
 A macro call, in which case the macro is expanded and @code{setf}
@@ -979,7 +982,7 @@ is applied to the resulting form.
 
 @item
 Any form for which a @code{defsetf} or @code{define-setf-method}
-has been made.
+has been made.  @xref{Obsolete Setf Customization}.
 @end itemize
 
 @c FIXME should this be in lispref?  It seems self-evident.
