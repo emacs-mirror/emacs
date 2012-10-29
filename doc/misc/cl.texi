@@ -973,6 +973,7 @@ in the sense described in Steele's book; since none of the standard
 Emacs place functions are suitable in this sense, this feature is
 only interesting when used with places you define yourself with
 @code{define-setf-method} or the long form of @code{defsetf}.
+@xref{Obsolete Setf Customization}.
 @end ignore
 
 @item
@@ -1208,10 +1209,9 @@ equivalent to @code{(cl-callf2 cons @var{x} @var{place})}.
 @end defmac
 
 The @code{cl-callf} and @code{cl-callf2} macros serve as building
-blocks for other macros like @code{cl-incf}, @code{cl-pushnew}, and
-@code{define-modify-macro}.  The @code{letf} and @code{cl-letf*}
-macros are used in the processing of symbol macros;
-@pxref{Macro Bindings}.
+blocks for other macros like @code{cl-incf}, and @code{cl-pushnew}.
+The @code{letf} and @code{cl-letf*} macros are used in the processing
+of symbol macros; @pxref{Macro Bindings}.
 
 
 @node Variable Bindings
@@ -2438,13 +2438,12 @@ was named).  The @code{return} clause is implemented a bit more
 efficiently, though.
 @end table
 
-While there is no high-level way to add user extensions to @code{cl-loop}
-(comparable to @code{defsetf} for @code{setf}, say), this package
-does offer two properties called @code{cl-loop-handler} and
-@code{cl-loop-for-handler} which are functions to be called when
-a given symbol is encountered as a top-level loop clause or
-@code{for} clause, respectively.  Consult the source code in
-file @file{cl-macs.el} for details.
+While there is no high-level way to add user extensions to @code{cl-loop},
+this package does offer two properties called @code{cl-loop-handler}
+and @code{cl-loop-for-handler} which are functions to be called when a
+given symbol is encountered as a top-level loop clause or @code{for}
+clause, respectively.  Consult the source code in file
+@file{cl-macs.el} for details.
 
 This package's @code{cl-loop} macro is compatible with that of Common
 Lisp, except that a few features are not implemented:  @code{loop-finish}
