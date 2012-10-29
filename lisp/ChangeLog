@@ -1,3 +1,8 @@
+2012-10-29  Kevin Ryde  <user42@zip.com.au>
+
+	* woman.el (woman-parse-numeric-value): Handle picas correctly
+	(Bug#12639).
+
 2012-10-29  Chong Yidong  <cyd@gnu.org>
 
 	* startup.el (fancy-about-screen): Don't message (Bug#12680).
