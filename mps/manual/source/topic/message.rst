@@ -1,19 +1,23 @@
 .. Sources:
 
     `<https://info.ravenbrook.com/project/mps/master/design/message/>`_
+    `<https://info.ravenbrook.com/mail/2005/04/05/13-33-11/0.txt>`_
 
 .. _topic-message:
 
 Messages
 ========
 
-*Messages* are the mechanism by which the MPS communicates with the
-:term:`client program`. The MPS normally runs :term:`asynchronously
-<asynchronous garbage collector>` with respect to the client program,
-so messages are implemented via a :term:`message queue` attached to
-each :term:`arena`.
+The MPS sometimes needs to communicate with the :term:`client program`
+about events which occur :term:`asynchronously <asynchronous garbage
+collector>`, and so information cannot be returned as function call
+results.
 
-The client program must enable each other message type that they are
+*Messages* are the mechanism for this asynchronous communication,
+implemented in the form of a :term:`message queue` attached to each
+:term:`arena`.
+
+The client program must enable each message type that they are
 prepared to handle, by calling :c:func:`mps_message_type_enable`. Then
 it must poll the message queue at regular intervals when it is
 convenient to do so, calling :c:func:`mps_message_get` to retrieve

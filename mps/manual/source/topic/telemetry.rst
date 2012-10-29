@@ -78,8 +78,7 @@ now we can just call it directly from the debugger::
     $1 = void
 
 The MPS writes the telemetry to the log in an encoded form for speed.
-It can be decoded using the :ref:`eventcnv <telemetry-eventcnv>`
-program::
+It can be decoded using the :program:`eventcnv` program::
 
     (gdb) shell eventcnv | sort > mpsio.txt
 
