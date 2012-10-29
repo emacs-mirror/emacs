@@ -147,10 +147,12 @@ least) two steps, a *reserve* followed by a *commit*.
 .. note::
 
     The description of the protocol assumes that you have declared
-    your threads' :term:`control stacks` and
-    :term:`registers` to be :term:`ambiguous roots`, by passing :c:func:`mps_stack_scan_ambig` to
-    :c:func:`mps_root_create_reg`. This is the simplest way to write a
-    client. Other scenarios are possible, but not yet documented.
+    your threads' :term:`control stacks` and :term:`registers` to be
+    :term:`ambiguous roots`, by passing :c:func:`mps_stack_scan_ambig`
+    to :c:func:`mps_root_create_reg`. This is the simplest way to
+    write a client, but other scenarios are possible. Please
+    :ref:`contact us <contact>` if your use case is not covered here
+    (for example, if you need an exact collector).
 
 When the client program is initializing a newly allocated object, you
 can think of it as being "in a race" with the MPS. Until the object is
