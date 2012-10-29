@@ -1,3 +1,5 @@
+.. _bibliography:
+
 Bibliography
 ************
 
@@ -129,6 +131,8 @@ Bibliography
 
 .. [WISE78] David S. Wise. 1978. "The double-buddy system".
 
+.. [WISE93] David S. Wise. 1993. "Stop-and-copy and one-bit reference counting".
+
 .. [WLM92] Paul R. Wilson, Michael S. Lam, Thomas G. Moher. 1992. "Caching Considerations for Generational Garbage Collection".
 
 .. [WITHINGTON91] P. Tucker Withington. 1991. "How Real is 'Real-Time' Garbage Collection?" ACM. OOPSLA/ECOOP '91 Workshop on Garbage Collection in Object-Oriented Systems.
@@ -140,5 +144,7 @@ Bibliography
 .. [ZORN90] Benjamin Zorn. 1990. "Barrier Methods for Garbage Collection".
 
 .. [ZORN91] Benjamin Zorn. 1991. "The Effect of Garbage Collection on Cache Performance".
+
+.. [ZORN92] Benjamin Zorn. 1992. "The Measured Cost of Conservative Garbage Collection".
 
 .. [ZORN93] Benjamin Zorn. 1993. David L. Detlefs, Al Dosser, Benjamin Zorn. 1994. "Memory Allocation Costs in Large C and C++ Programs".
