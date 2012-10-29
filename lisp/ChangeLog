@@ -1,5 +1,8 @@
 2012-10-29  Chong Yidong  <cyd@gnu.org>
 
+	* vc/vc-hooks.el (vc-file-clearprops): Kill vc-parent-buffer.
+	Suggested by Dan Nicolaescu (Bug#6326).
+
 	* info.el (Info-complete-menu-item): Avoid duplicates (Bug#12705).
 
 	* startup.el (fancy-about-screen): Don't message (Bug#12680).
