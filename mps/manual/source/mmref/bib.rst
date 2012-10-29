@@ -79,6 +79,8 @@ Bibliography
 
 .. [HM93] Antony L. Hosking, J. Eliot B. Moss. 1993. "Protection traps and alternatives for memory management of an object-oriented language".
 
+.. [ISO90] "International Standard ISO/IEC 9899:1990 Programming languages — C".
+
 .. [JONES96] Richard E. Jones, Rafael Lins. 1996. "Garbage Collection: Algorithms for Automatic Dynamic Memory Management".
 
 .. [JONES12] Richard E. Jones, Antony Hosking, and Eliot Moss. 2012. "The Garbage Collection Handbook". Chapman & Hall. `<http://gchandbook.org/>`_.
