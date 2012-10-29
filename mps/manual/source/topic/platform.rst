@@ -289,7 +289,8 @@ Formerly supported compiler toolchains:
 
 .. note::
 
-    .. [1] A mistake: same as ``i3``.
+    .. [1] Obsolete, from when there was an important distinction the 80386
+           and 80486 processors.
 
     .. [2] This was the MIPSpro C compiler on IRIX; and the Digital C
            Compiler on OSF/1.
