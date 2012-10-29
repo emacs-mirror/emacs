@@ -1,5 +1,8 @@
 2012-10-29  Chong Yidong  <cyd@gnu.org>
 
+	* isearch.el (isearch-other-meta-char): Ensure that a reprocessed
+	function key is stored in a keyboard macro (Bug#4894).
+
 	* thingatpt.el (number-at-point): Apply a thing-at-point property.
 
 2012-10-29  Stefan Monnier  <monnier@iro.umontreal.ca>
