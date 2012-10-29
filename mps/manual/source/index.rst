@@ -22,6 +22,8 @@ Memory Management Reference
     :maxdepth: 2
 
     mmref/index
+    mmref/bib
+    mmref/credit
 
 
 Appendices
@@ -31,8 +33,6 @@ Appendices
     :maxdepth: 1
 
     glossary/index
-    mmref/bib
-    mmref/credit
     copyright
     contact
     todo
