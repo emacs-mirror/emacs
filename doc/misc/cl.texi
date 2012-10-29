@@ -5089,7 +5089,7 @@ This section describes some obsolete ways to extend @code{setf}.
 They are replaced by @file{gv.el} in Emacs 24.3.
 
 @c FIXME.
-@defmac define-setf-expander name arglist &rest body
+@defmac define-setf-method name arglist &rest body
 Use @file{gv.el}.
 @end defmac
 
