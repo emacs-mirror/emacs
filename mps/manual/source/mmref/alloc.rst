@@ -35,7 +35,7 @@ allocations are quick. When recycling free blocks, there is a choice
 as to where to add the blocks to the free list -- effectively in what
 order the free list is kept:
 
-Memory location (address)
+**Memory location (address)**
 
     This is not fast for allocation or recycling, but supports
     efficient merging of adjacent free blocks (known as
@@ -43,21 +43,21 @@ Memory location (address)
     ordering reduces :term:`fragmentation`. It can also improve
     :term:`locality of reference`.
 
-Increasing size
+**Increasing size**
 
      This is equivalent to the :term:`best fit` algorithm, in that the
      free block with the "tightest fit" is always chosen. The fit is
      usually sufficiently tight that the remainder of the block is
      unusably small.
 
-Decreasing size
+**Decreasing size**
 
     This is equivalent to the :term:`worst fit` algorithm. The first
     block on the free list will always be large enough, if a large
     enough block is available. This approach encourages
     :term:`external fragmentation`, but allocation is very fast.
 
-Increasing time since last use
+**Increasing time since last use**
 
     This is very fast at adding new free blocks, because they are
     added to the beginning of the list. It encourages good
@@ -97,20 +97,19 @@ order of address. The main advantage of the buddy system is that
 coalescence is cheap because the "buddy" of any free block can be
 calculated from its address.
 
-.. figure:: ../diagrams/buddy1.png
+.. figure:: ../diagrams/buddy1.svg
     :align: center
     :alt: Diagram: A binary buddy heap before allocation.
 
     A binary buddy heap before allocation
 
-.. figure:: ../diagrams/buddy2.png
+.. figure:: ../diagrams/buddy2.svg
     :align: center
     :alt: Diagram: A binary buddy heap after allocating a 8 kB block.
 
     A binary buddy heap after allocating a 8 kB block.
 
-
-.. figure:: ../diagrams/buddy3.png
+.. figure:: ../diagrams/buddy3.svg
     :align: center
     :alt: Diagram: A binary buddy heap after allocating a 10 kB block; note the 6 kB wasted because of rounding up.
 
