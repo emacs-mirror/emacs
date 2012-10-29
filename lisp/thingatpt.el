@@ -509,6 +509,7 @@ Signal an error if the entire string was not used."
 (defun number-at-point ()
   "Return the number at point, or nil if none is found."
   (form-at-point 'sexp 'numberp))
+(put 'number 'thing-at-point 'number-at-point)
 ;;;###autoload
 (defun list-at-point ()
   "Return the Lisp list at point, or nil if none is found."
