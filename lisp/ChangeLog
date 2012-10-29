@@ -1,9 +1,6 @@
-2012-10-29  Kevin Ryde  <user42@zip.com.au>
-
-	* woman.el (woman-parse-numeric-value): Handle picas correctly
-	(Bug#12639).
-
 2012-10-29  Chong Yidong  <cyd@gnu.org>
+
+	* info.el (Info-complete-menu-item): Avoid duplicates (Bug#12705).
 
 	* startup.el (fancy-about-screen): Don't message (Bug#12680).
 
@@ -13,6 +10,11 @@
 
 	* face-remap.el (face-remap-add-relative): Handle the case where a
 	face-remapping-alist entry is a cons cell (Bug#12762).
+
+2012-10-29  Kevin Ryde  <user42@zip.com.au>
+
+	* woman.el (woman-parse-numeric-value): Handle picas correctly
+	(Bug#12639).
 
 2012-10-29  Glenn Morris  <rgm@gnu.org>
 
