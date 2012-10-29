@@ -37,6 +37,18 @@ memory management>` :term:`pool` belonging to that arena. But for
 simplicity we recommend that all threads be registered with all
 arenas.
 
+.. warning::
+
+    On the Unix platforms, the MPS suspends and resumes threads by
+    sending them signals. There's a shortage of available signals that
+    aren't already dedicated to other purposes (for example,
+    LinuxThreads uses ``SIGUSR1`` and ``SIGUSR2``), so the MPS uses
+    ``SIGXCPU`` and ``SIGXFSZ``. This means that a program that
+    handles these signals needs to co-operate with the MPS.
+
+    The mechanism for co-operation is currently undocumented: please
+    :ref:`contact us <contact>`.
+
 
 Signal handling issues
 ----------------------
@@ -65,11 +77,15 @@ from inside such an exception handler, that is, inside a call to
     structured exception handler that accesses memory managed by the
     MPS must perform the access inside a call to :c:func:`mps_tramp`.
 
-The use of barriers has the additional consequence that a program that
-handles ``SIGBUS`` (on OS X), ``SIGSEGV`` (on FreeBSD or Linux), or
-first-chance exceptions (on Windows) needs to co-operate with the MPS.
-The mechanism for co-operation is currently undocumented: please
-:ref:`contact us <contact>`.
+.. warning::
+
+    The use of barriers has the consequence that a program that
+    handles ``SIGBUS`` (on OS X), ``SIGSEGV`` (on FreeBSD or Linux),
+    or first-chance exceptions (on Windows) needs to co-operate with
+    the MPS.
+
+    The mechanism for co-operation is currently undocumented: please
+    :ref:`contact us <contact>`.
 
 
 Thread interface
@@ -161,7 +177,3 @@ Thread interface
 
     ``p`` and ``s`` are the corresponding arguments that were passed
     to :c:func:`mps_tramp`.
-
-
-
-
