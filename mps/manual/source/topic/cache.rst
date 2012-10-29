@@ -3,224 +3,81 @@
 Segregated allocation caches
 ============================
 
-Might have been proposed in this paper?
+A :dfn:`segregated allocation cache` is a data structure that can be
+attached to any :term:`manually managed <manual memory management>`
+:term:`pool`, that maintains a :term:`segregated free list`, that is,
+a reserve of free blocks segregated by size.
 
-.. [PURDOM70] P. W. Purdom, S. M. Stiglr & Tag-ng Cheam. 1970. "Statistical investigation of three storage algorithms". Computer Sciences Department, U. Wisconsin. Technical Report #98. `Online <http://research.cs.wisc.edu/techreports/1970/TR98.pdfShare>`_.
+Create a segregated allocation cache by preparing an array of
+structures of type :c:type:`mps_sac_class_s` and passing them to
+:c:func:`mps_sac_create`. The values in these structures are hints as
+to the size of the blocks, the number of blocks of each size, and the
+relative frequency of allocations and deallocations at that size.
 
-Ah, in fact it's called "segregated-fits allocation" and it goes back
-to Comfort 1964. See also Boehm 1988.
+For example, suppose we have a pool where we expect to allocate a
+small number of relatively long-lived 128-byte objects, and a large
+number of relatively short-lived 8-byte objects, we might create a
+cache as follows::
 
-::
-
-    void *p;
-    Foo *foo;
-
-    res = mps_sac_alloc(&p, sac, FooSIZE, is_in_panic);
-    if (res != MPS_RES_OK) {
-        printf("Failed to alloc foo!\n");
-        exit(1);
-    }
-    foo = p;
-
-    /* use foo */
-
-    mps_sac_free(sac, p, FooSIZE);
-
-
-What does this mean? (from mps_sac_alloc):
-
-    The client is responsible for synchronising the access to the
-    cache, but if the cache decides to access the pool, the MPS will
-    properly synchronize with any other threads that might be
-    accessing the same pool.
-
-::
-
-    void *p;
-    Foo *foo;
-    mps_res_t res;
-
-    MPS_SAC_ALLOC_FAST(res, p, sac, FooSIZE, is_in_panic);
-    if (res != MPS_RES_OK) {
-        printf("Failed to alloc foo!\n");
-        exit(1);
-    }
-    foo = p;
-
-    /* use foo */
-
-    MPS_SAC_FREE_FAST(sac, p, FooSIZE);
-
-::
-
+    mps_sac_class_s classes[3] = {{8, 100, 10}, {128, 8, 1}};
     mps_sac_t sac;
-    mps_sac_class_s classes[3] = {{8, 38, 1}, {136, 19, 3}, {512, 4, 1}};
 
-    #if (MPS_SAC_CLASS_LIMIT > 3)
-    #  error "Too many classes!"
-    #endif
+    res = mps_sac_create(&sac, pool, sizeof classes / sizeof classes[0], classes);
+    if (res != MPS_RES_OK)
+        error("failed to create allocation cache");
 
-    res = mps_sac_create(&sac, pool, 3, classes);
-    if (res != MPS_RES_OK) {
-        printf("Failed to create the allocation cache!");
-        exit(1);
-    }
+Allocations through the cache (using :c:func:`mps_sac_alloc` or
+:c:func:`MPS_SAC_ALLOC_FAST`) are serviced from the cache if possible,
+otherwise from the pool. Similarly, deallocations through the cache
+(using :c:func:`mps_sac_free` or :c:func:`MPS_SAC_FREE_FAST`) return
+the block to the appopriate free list for its size. For example::
 
-::
-
-    void *p;
     Foo *foo;
-
-    res = mps_sac_alloc(&p, sac, FooSIZE, is_in_panic);
-    if (res != MPS_RES_OK) {
-        printf("Failed to alloc foo!\n");
-        exit(1);
-    }
-    foo = p;
-
-    /* use foo */
-
-    mps_sac_free(sac, p, FooSIZE);
-
-::
-
-    void *p;
-    Foo *foo;
+    mps_addr_t p;
     mps_res_t res;
 
-    MPS_SAC_ALLOC_FAST(res, p, sac, FooSIZE, is_in_panic);
-    if (res != MPS_RES_OK) {
-        printf("Failed to alloc foo!\n");
-        exit(1);
-    }
+    res = mps_sac_alloc(&p, sac, sizeof *foo, false);
+    if (res != MPS_RES_OK)
+        error("failed to alloc foo");
     foo = p;
 
-    /* use foo */
+    /* use 'foo' */
 
-    MPS_SAC_FREE_FAST(sac, p, FooSIZE);
+    mps_sac_free(sac, p, sizeof *foo);
 
+The macros :c:func:`MPS_SAC_ALLOC_FAST` and
+:c:func:`MPS_SAC_FREE_FAST` allow allocation and deallocation to be
+inlined in the calling functions, in the case where a free block is
+found in the cache.
 
 .. note::
 
-    Some pools will work more efficiently with segregated
-    allocation caches than others. [WHICH?] In the future, the MPS might
-    offer pools specially optimized for particular types of cache. [WHEN?]
+    It is recommended that you deallocate a block via the same
+    segregated allocation cache that you allocated it from. However,
+    the system is more general than that, and in fact a block that was
+    allocated from cache A can be deallocated via cache B, provided
+    that:
 
+    1. the two caches are attached to the same pool; and
+
+    2. the two caches have the same :dfn:`class structure`, that is,
+       they were created by passing identical arrays of :term:`size
+       classes`.
+
+.. warning::
 
     Segregated allocation caches work poorly with debugging pool
-    classes: the debugging checks only happen when blocks are
-    moved between the cache and the pool. This will be fixed [WHEN?], but
-    the speed of allocation with a debug class will always be
-    similar to :c:func:`mps_alloc`, rather than cached speed.
-
-::
-
-    res = mps_sac_create(&sac, pool, 3, classes);
-    if (res != MPS_RES_OK) {
-        printf("Failed to create the allocation cache!");
-        exit(1);
-    }
-
-    /* Use sac. */
-
-    mps_sac_destroy(sac);
-    mps_pool_destroy(pool);
-
-::
-
-    mps_sac_t sac_small, sac_large;
-
-    res = mps_sac_create(&sac_small, pool, 3, small_classes);
-    if (res != MPS_RES_OK) {
-        printf("Failed to create the small allocation cache!");
-        exit(1);
-    }
-
-    res = mps_sac_create(&sac_large, pool, 3, large_classes);
-    if (res != MPS_RES_OK) {
-        printf("Failed to create the large allocation cache!");
-        exit(1);
-    }
-
-    /* Use sac_small. */
-
-    mps_sac_flush(sac_small);
-
-    /* Use sac_large. */
-
-    mps_sac_flush(sac_large);
-
-    /* Use sac_small. */
+    classes: the debugging checks only happen when blocks are moved
+    between the cache and the pool.
 
 
-Interface
----------
 
-.. c:function:: mps_res_t mps_sac_alloc(mps_addr_t *p_o, mps_sac_t sac, size_t size, mps_bool_t has_reservoir_permit)
+Cache interface
+---------------
 
-    Allocate a :term:`block` using a :term:`segregated allocation
-    cache`. If no suitable block exists in the cache, ask for more
-    memory from the associated :term:`pool`.
+.. c:type:: mps_sac_t
 
-    ``p_o`` points to a location that will hold the address of the
-    allocated block.
-
-    ``sac`` is the segregated allocation cache.
-
-    ``size`` is the :term:`size` of the block to allocate. It does not
-    have to be one of the :term:`size classes` of the cache; nor does
-    it have to be aligned.
-
-    ``has_reservoir_permit`` should be false.
-
-    Returns :c:macro:`MPS_RES_OK` if successful: in this case the
-    address of the allocated block is ``*p_o``. The allocated block
-    can be larger than requested. Blocks not matching any size class
-    are allocated from the next largest class, and blocks larger than
-    the largest size class are simply allocated at the requested size
-    (rounded up to alignment, as usual).
-
-    Returns :c:macro:`MPS_RES_MEMORY` if there wasn't enough memory,
-    :c:macro:`MPS_RES_COMMIT_LIMIT` if the :term:`commit limit` was
-    exceeded, or :c:macro:`MPS_RES_RESOURCE` if it ran out of
-    :term:`virtual memory`.
-
-    .. note::
-
-        There's also a macro :c:func:`MPS_SAC_ALLOC_FAST` that does
-        the same thing. The macro is faster, but generates more code
-        and does less checking.
-
-        The :term:`client program` is responsible for synchronizing
-        the access to the cache, but if the cache decides to access
-        the pool, the MPS will properly synchronize with any other
-        :term:`threads` that might be accessing the same
-        pool.
-
-        Blocks allocated through a segregated allocation cache should
-        only be freed through a segregated allocation cache with the
-        same class structure. Calling :c:func:`mps_free` on them can
-        cause :term:`memory leaks`, because the size of
-        the block might be larger than you think. Naturally, the cache
-        must also be attached to the same pool.
-
-
-.. c:function:: MPS_SAC_ALLOC_FAST(mps_res_t res_v, mps_addr_t *p_v, mps_sac_t sac, size_t size, mps_bool_t has_reservoir_permit)
-
-    A macro alternative to :c:func:`mps_sac_alloc`. It is faster than
-    the function, but generates more code, does less checking.
-
-    It takes an lvalue ``p_v`` which is assigned the address of the
-    allocated block (instead of a pointer to a location to store
-    it). It takes an additional first argument, the lvalue ``res_v``,
-    which is assigned the :term:`result code`.
-
-    .. note::
-
-        :c:func:`MPS_SAC_ALLOC_FAST` may evaluate its arguments
-        multiple times, except for ``has_reservoir_permit``, which it
-        evaluates at most once, and only if it decides to access the
-        pool.
+    The type of :term:`segregated allocation caches`.
 
 
 .. c:macro:: MPS_SAC_CLASS_LIMIT
@@ -232,51 +89,6 @@ Interface
     the implementation on the maximum number of size classes, but if
     you specify more than this many, you should be prepared to handle
     the :term:`result code` :c:macro:`MPS_RES_LIMIT`.
-
-
-.. c:function:: void mps_sac_free(mps_sac_t sac, mps_addr_t p, size_t size)
-
-    Free a :term:`block` using a :term:`segregated allocation
-    cache`. If the cache would become too full, some blocks may be
-    returned to the associated :term:`pool`.
-
-    ``sac`` is the segregated allocation cache.
-
-    ``p`` points to the block to be freed. This block must have been
-    allocated through a segregated allocation cache with the same
-    class structure, attached to the same pool. (Usually, you'd use
-    the same cache to allocate and deallocate a block, but the MPS is
-    more flexible.)
-
-    ``size`` is the :term:`size` of the block. It should be the size
-    that was specified when the block was allocated (the cache knows
-    what the real size of the block is).
-
-    .. note::
-
-        The :term:`client program` is responsible for synchronizing
-        the access to the cache, but if the cache decides to access
-        the pool, the MPS will properly synchronize with any other
-        :term:`threads` that might be accessing the same
-        pool.
-
-        There's also a macro :c:func:`MPS_SAC_FREE_FAST` that does the
-        same thing. The macro is faster, but generates more code and
-        does no checking.
-
-        :c:func:`mps_sac_free` does very little checking: it's
-        optimized for speed. :term:`Double frees` and
-        other mistakes will only be detected when the cache is flushed
-        (either by calling :c:func:`mps_sac_flush` or automatically),
-        and may not be detected at all, if intervening operations have
-        obscured symptoms.
-
-
-.. c:function:: MPS_SAC_FREE_FAST(mps_sac_t sac, mps_addr_t p, size_t size)
-
-    A macro alternative to :c:func:`mps_sac_free` that is faster than
-    the function but does no checking. The arguments are identical to
-    the function.
 
 
 .. c:type:: mps_sac_class_s
@@ -384,12 +196,6 @@ Interface
         would add another size class for them, or even create separate
         allocation caches or pools for them.
 
-    .. warning::
-
-        Segregated allocation caches work poorly with debugging pool
-        classes: the debugging checks only happen when blocks are
-        moved between the cache and the pool.
-
 
 .. c:function:: void mps_sac_destroy(mps_sac_t sac)
 
@@ -420,9 +226,11 @@ Interface
     to return some memory to the :term:`arena`, but that's up to the
     pool's usual policy.
 
-    Note that the MPS might also decide to take memory from the
-    segregated allocation cache without the :term:`client program`
-    requesting a flush.
+    .. note::
+
+        The MPS might also decide to take memory from the segregated
+        allocation cache without the :term:`client program` requesting
+        a flush.
 
     .. note::
 
@@ -433,6 +241,124 @@ Interface
         pool.
 
 
-.. c:type:: mps_sac_t
+Allocation interface
+--------------------
 
-    The type of :term:`segregated allocation caches`.
+.. c:function:: mps_res_t mps_sac_alloc(mps_addr_t *p_o, mps_sac_t sac, size_t size, mps_bool_t has_reservoir_permit)
+
+    Allocate a :term:`block` using a :term:`segregated allocation
+    cache`. If no suitable block exists in the cache, ask for more
+    memory from the associated :term:`pool`.
+
+    ``p_o`` points to a location that will hold the address of the
+    allocated block.
+
+    ``sac`` is the segregated allocation cache.
+
+    ``size`` is the :term:`size` of the block to allocate. It does not
+    have to be one of the :term:`size classes` of the cache; nor does
+    it have to be aligned.
+
+    ``has_reservoir_permit`` should be false.
+
+    Returns :c:macro:`MPS_RES_OK` if successful: in this case the
+    address of the allocated block is ``*p_o``. The allocated block
+    can be larger than requested. Blocks not matching any size class
+    are allocated from the next largest class, and blocks larger than
+    the largest size class are simply allocated at the requested size
+    (rounded up to alignment, as usual).
+
+    Returns :c:macro:`MPS_RES_MEMORY` if there wasn't enough memory,
+    :c:macro:`MPS_RES_COMMIT_LIMIT` if the :term:`commit limit` was
+    exceeded, or :c:macro:`MPS_RES_RESOURCE` if it ran out of
+    :term:`virtual memory`.
+
+    .. note::
+
+        There's also a macro :c:func:`MPS_SAC_ALLOC_FAST` that does
+        the same thing. The macro is faster, but generates more code
+        and does less checking.
+
+    .. note::
+
+        The :term:`client program` is responsible for synchronizing
+        the access to the cache, but if the cache decides to access
+        the pool, the MPS will properly synchronize with any other
+        :term:`threads` that might be accessing the same
+        pool.
+
+    .. note::
+
+        Blocks allocated through a segregated allocation cache should
+        only be freed through a segregated allocation cache with the
+        same class structure. Calling :c:func:`mps_free` on them can
+        cause :term:`memory leaks`, because the size of
+        the block might be larger than you think. Naturally, the cache
+        must also be attached to the same pool.
+
+
+.. c:function:: MPS_SAC_ALLOC_FAST(mps_res_t res_v, mps_addr_t *p_v, mps_sac_t sac, size_t size, mps_bool_t has_reservoir_permit)
+
+    A macro alternative to :c:func:`mps_sac_alloc`. It is faster than
+    the function, but generates more code, does less checking.
+
+    It takes an lvalue ``p_v`` which is assigned the address of the
+    allocated block (instead of a pointer to a location to store
+    it). It takes an additional first argument, the lvalue ``res_v``,
+    which is assigned the :term:`result code`.
+
+    .. note::
+
+        :c:func:`MPS_SAC_ALLOC_FAST` may evaluate its arguments
+        multiple times, except for ``has_reservoir_permit``, which it
+        evaluates at most once, and only if it decides to access the
+        pool.
+
+
+.. c:function:: void mps_sac_free(mps_sac_t sac, mps_addr_t p, size_t size)
+
+    Free a :term:`block` using a :term:`segregated allocation
+    cache`. If the cache would become too full, some blocks may be
+    returned to the associated :term:`pool`.
+
+    ``sac`` is the segregated allocation cache.
+
+    ``p`` points to the block to be freed. This block must have been
+    allocated through a segregated allocation cache with the same
+    class structure, attached to the same pool. (Usually, you'd use
+    the same cache to allocate and deallocate a block, but the MPS is
+    more flexible.)
+
+    ``size`` is the :term:`size` of the block. It should be the size
+    that was specified when the block was allocated (the cache knows
+    what the real size of the block is).
+
+    .. note::
+
+        The :term:`client program` is responsible for synchronizing
+        the access to the cache, but if the cache decides to access
+        the pool, the MPS will properly synchronize with any other
+        :term:`threads` that might be accessing the same
+        pool.
+
+    .. note::
+
+        There's also a macro :c:func:`MPS_SAC_FREE_FAST` that does the
+        same thing. The macro is faster, but generates more code and
+        does no checking.
+
+    .. note::
+
+        :c:func:`mps_sac_free` does very little checking: it's
+        optimized for speed. :term:`Double frees` and
+        other mistakes will only be detected when the cache is flushed
+        (either by calling :c:func:`mps_sac_flush` or automatically),
+        and may not be detected at all, if intervening operations have
+        obscured symptoms.
+
+
+.. c:function:: MPS_SAC_FREE_FAST(mps_sac_t sac, mps_addr_t p, size_t size)
+
+    A macro alternative to :c:func:`mps_sac_free` that is faster than
+    the function but does no checking. The arguments are identical to
+    the function.
