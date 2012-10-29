@@ -41,8 +41,11 @@ electronic devices that actually store data. This includes things like
 Operating system memory management
 ----------------------------------
 
-In the operating system, memory must be allocated to user programs, and reused by other programs when it is no longer required.
-The operating system can pretend that the computer has more memory than it actually does, and also that each program has the machine's memory to itself; both of these are features of :term:`virtual memory (1)` systems.
+In the operating system, memory must be allocated to user programs,
+and reused by other programs when it is no longer required. The
+operating system can pretend that the computer has more memory than it
+actually does, and also that each program has the machine's memory to
+itself; both of these are features of :term:`virtual memory` systems.
 
 
 .. _mmref-overview-app:
@@ -59,7 +62,7 @@ additional code to handle their changing memory requirements.
 
 Application memory management combines two related tasks:
 
-Allocation
+**Allocation**
 
     When the program requests a block of memory, the memory manager
     must allocate that block out of the larger blocks it has received
@@ -68,7 +71,7 @@ Allocation
     to perform allocation, a few of which are discussed in
     :ref:`mmref-alloc`.
 
-Recycling
+**Recycling**
 
     When memory blocks have been allocated, but the data they contain
     is no longer required by the program, then the blocks can be
@@ -81,16 +84,16 @@ Recycling
 An application memory manager must usually work to several
 constraints, such as:
 
-CPU overhead
+**CPU overhead**
 
     The additional time taken by the memory manager while the program
     is running.
 
-Interactive pause times
+**Interactive pause times**
 
     How much delay an interactive user observes.
 
-Memory overhead
+**Memory overhead**
 
     How much space is wasted for administration, rounding (known as
     :term:`internal fragmentation`), and poor layout (known as
@@ -116,7 +119,7 @@ manual and in automatic memory management.
 
 Typical problems include:
 
-Premature frees and dangling pointers
+**Premature frees and dangling pointers**
 
     Many programs give up memory, but attempt to access it later and
     crash or behave randomly. This condition is known as a
@@ -124,13 +127,13 @@ Premature frees and dangling pointers
     is known as a :term:`dangling pointer`. This is usually confined
     to :term:`manual memory management`.
 
-Memory leak
+**Memory leak**
 
     Some programs continually allocate memory without ever giving it
     up and eventually run out of memory. This condition is known as a
     :term:`memory leak`.
 
-External fragmentation
+**External fragmentation**
 
     A poor allocator can do its job of giving out and receiving blocks
     of memory so badly that it can no longer give out big enough
@@ -139,7 +142,7 @@ External fragmentation
     blocks still in use. This condition is known as :term:`external
     fragmentation`.
 
-Poor locality of reference
+**Poor locality of reference**
 
     Another problem with the layout of allocated blocks comes from the
     way that modern hardware and operating system memory managers
@@ -149,7 +152,7 @@ Poor locality of reference
     performance problems. This condition is known as poor
     :term:`locality of reference`.
 
-Inflexible design
+**Inflexible design**
 
     Memory managers can also cause severe performance problems if they
     have been designed with one use in mind, but are used in a
@@ -160,7 +163,7 @@ Inflexible design
     are wrong, then the memory manager may spend a lot more time doing
     bookkeeping work to keep up with what's happening.
 
-Interface complexity
+**Interface complexity**
 
     If objects are passed between modules, then the interface design
     must consider the management of their memory.
