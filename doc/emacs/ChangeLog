@@ -1,3 +1,8 @@
+2012-10-29  Chong Yidong  <cyd@gnu.org>
+
+	* dired.texi (Shell Commands in Dired): Document changes to the
+	dired-do-async-shell-command.
+
 2012-10-28  Glenn Morris  <rgm@gnu.org>
 
 	* ack.texi (Acknowledgments): Mention gv.el.

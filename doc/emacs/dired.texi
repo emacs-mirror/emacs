@@ -799,15 +799,20 @@ more matches.  @xref{Tags Search}.
 @kindex ! @r{(Dired)}
 @kindex X @r{(Dired)}
 The Dired command @kbd{!} (@code{dired-do-shell-command}) reads a
-shell command string in the minibuffer and runs that shell command on
+shell command string in the minibuffer, and runs that shell command on
 one or more files.  The files that the shell command operates on are
 determined in the usual way for Dired commands (@pxref{Operating on
 Files}).  The command @kbd{X} is a synonym for @kbd{!}.
 
   The command @kbd{&} (@code{dired-do-async-shell-command}) does the
-same, except that it runs the shell command asynchronously.  You can
+same, except that it runs the shell command asynchronously.  (You can
 also do this with @kbd{!}, by appending a @samp{&} character to the
-end of the shell command.
+end of the shell command.)  When the command operates on more than one
+file, it runs multiple parallel copies of the specified shell command,
+one for each file.  As an exception, if the specified shell command
+ends in @samp{;} or @samp{;&}, the shell command is run in the
+background on each file sequentially; Emacs waits for each invoked
+shell command to terminate before running the next one.
 
   For both @kbd{!} and @kbd{&}, the working directory for the shell
 command is the top-level directory of the Dired buffer.

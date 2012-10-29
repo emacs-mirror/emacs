@@ -397,7 +397,7 @@ changes in context diffs.
 whitespace problems introduced by the diff.
 
 ** Dired
-
++++
 *** `dired-do-async-shell-command' executes each file sequentially
 if the command ends in `;' (when operating on multiple files).
 Otherwise, it executes the command on each file in parallel.
