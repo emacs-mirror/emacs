@@ -1,3 +1,7 @@
+2012-10-29  Glenn Morris  <rgm@gnu.org>
+
+	* emacs-lisp/cl.el (defsetf): Doc fix.
+
 2012-10-29  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* progmodes/sh-script.el (sh-font-lock-paren): Also put punctuation
