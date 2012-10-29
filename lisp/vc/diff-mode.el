@@ -911,7 +911,7 @@ PREFIX is only used internally: don't use it."
   "Convert unified diffs to context diffs.
 START and END are either taken from the region (if a prefix arg is given) or
 else cover the whole buffer."
-  (interactive (if (or current-prefix-arg (and transient-mark-mode mark-active))
+  (interactive (if (or current-prefix-arg (use-region-p))
 		   (list (region-beginning) (region-end))
 		 (list (point-min) (point-max))))
   (unless (markerp end) (setq end (copy-marker end t)))
@@ -1035,7 +1035,7 @@ else cover the whole buffer."
 START and END are either taken from the region
 \(when it is highlighted) or else cover the whole buffer.
 With a prefix argument, convert unified format to context format."
-  (interactive (if (and transient-mark-mode mark-active)
+  (interactive (if (use-region-p)
 		   (list (region-beginning) (region-end) current-prefix-arg)
 		 (list (point-min) (point-max) current-prefix-arg)))
   (if to-context
@@ -1045,7 +1045,7 @@ With a prefix argument, convert unified format to context format."
           (inhibit-read-only t))
       (save-excursion
         (goto-char start)
-        (while (and (re-search-forward "^\\(\\(\\*\\*\\*\\) .+\n\\(---\\) .+\\|\\*\\{15\\}.*\n\\*\\*\\* \\([0-9]+\\),\\(-?[0-9]+\\) \\*\\*\\*\\*\\)$" nil t)
+        (while (and (re-search-forward "^\\(\\(\\*\\*\\*\\) .+\n\\(---\\) .+\\|\\*\\{15\\}.*\n\\*\\*\\* \\([0-9]+\\),\\(-?[0-9]+\\) \\*\\*\\*\\*\\)\\(?: \\(.*\\)\\|$\\)" nil t)
                     (< (point) end))
           (combine-after-change-calls
             (if (match-beginning 2)
@@ -1061,7 +1061,9 @@ With a prefix argument, convert unified format to context format."
                     ;; Variables to use the special undo function.
                     (old-undo buffer-undo-list)
                     (old-end (marker-position end))
-                    (reversible t))
+                    ;; We currently throw away the comment that can follow
+                    ;; the hunk header.  FIXME: Preserve it instead!
+                    (reversible (not (match-end 6))))
                 (replace-match "")
                 (unless (re-search-forward
                          diff-context-mid-hunk-header-re nil t)
@@ -1131,7 +1133,7 @@ With a prefix argument, convert unified format to context format."
   "Reverse the direction of the diffs.
 START and END are either taken from the region (if a prefix arg is given) or
 else cover the whole buffer."
-  (interactive (if (or current-prefix-arg (and transient-mark-mode mark-active))
+  (interactive (if (or current-prefix-arg (use-region-p))
 		   (list (region-beginning) (region-end))
 		 (list (point-min) (point-max))))
   (unless (markerp end) (setq end (copy-marker end t)))
@@ -1197,7 +1199,7 @@ else cover the whole buffer."
   "Fixup the hunk headers (in case the buffer was modified).
 START and END are either taken from the region (if a prefix arg is given) or
 else cover the whole buffer."
-  (interactive (if (or current-prefix-arg (and transient-mark-mode mark-active))
+  (interactive (if (or current-prefix-arg (use-region-p))
 		   (list (region-beginning) (region-end))
 		 (list (point-min) (point-max))))
   (let ((inhibit-read-only t))

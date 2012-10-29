@@ -1,5 +1,10 @@
 2012-10-29  Stefan Monnier  <monnier@iro.umontreal.ca>
 
+	* vc/diff-mode.el (diff-context->unified): Don't get confused by "hunk
+	header comments".
+	(diff-unified->context, diff-context->unified)
+	(diff-reverse-direction, diff-fixup-modifs): Use `use-region-p'.
+
 	* emacs-lisp/cl.el (letf): Add missing indent rules (bug#12759).
 
 	* files.el (find-alternate-file): Only ask one question (bug#12487).
