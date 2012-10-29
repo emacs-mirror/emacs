@@ -94,7 +94,10 @@ AMC introspection
         :c:func:`mps_arena_formatted_objects_walk` that visits all
         formatted objects in the arena.
 
-        Walking the heap is "dodgy".
+    .. note::
+
+        This function is intended for heap analysis, tuning, and
+        debugging, not for frequent use in production.
 
 
 .. c:type:: void (*mps_amc_apply_stepper_t)(mps_addr_t object, void *p, size_t s)

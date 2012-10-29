@@ -90,12 +90,12 @@ Pool class properties
 =====================
 
 This table summarizes the properties of each :term:`pool class`
-provided by the MPS. For "block" properties, "yes" means that the
-property holds for *all* blocks allocated from the pool. An entry
-"---" indicates that a property makes no sense for a pool class: for
-example, if blocks in a pool may not contain :term:`references`, it
-makes no sense to ask whether they may contain :term:`weak references
-(1)`.
+provided by the open source MPS. For "block" properties, "yes" means
+that the property holds for *all* blocks allocated from the pool. An
+entry "---" indicates that a property makes no sense for a pool class:
+for example, if blocks in a pool may not contain :term:`references`,
+it makes no sense to ask whether they may contain :term:`weak
+references (1)`.
 
 
 =============================================  =====  =====  =====  =====  =====  =====  =====  =====  =====
