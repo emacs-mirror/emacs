@@ -14,15 +14,25 @@ Memory Pool System
     topic/internals
 
 
+
+Memory Management Reference
+###########################
+
+.. toctree::
+    :maxdepth: 2
+
+    mmref/index
+
+
 Appendices
 ##########
 
 .. toctree::
     :maxdepth: 1
 
-    lang
     glossary/index
-    bib
+    mmref/bib
+    mmref/credit
     copyright
     contact
     todo
