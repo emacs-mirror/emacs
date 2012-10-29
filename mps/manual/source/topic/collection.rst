@@ -109,25 +109,25 @@ Scheduling of collections
     collections will change in future releases. There's a lot of room
     for improvement here.
 
-The :dfn:`new size` of a generation is the total size of the new
+The :dfn:`new size` of a generation is the total size of the newly
 allocated (in generation 0) or newly promoted (in other generations)
 blocks in that generation. These are the blocks that have not been
 :term:`condemned <condemned set>` since they were allocated or
-promoted. In pools like :ref:`pool-amc` where the survivors get
-promoted to the next generation in the chain, the *new size* of each
-generations (other than the topmost) is the same as its total size,
-but in pools like :ref:`pool-ams` where survivors do not get promoted,
-the two sizes are different.
+promoted into this generation. In pools like :ref:`pool-amc` where the
+survivors get promoted to the next generation in the chain, the *new
+size* of each generation (other than the topmost) is the same as its
+total size, but in pools like :ref:`pool-ams` where survivors do not
+get promoted, the two sizes can be different.
 
-The first generation in a pool's chain is the :term:`nursery
-generation`. When the nursery's *new size* exceeds its capacity, the
-MPS considers collecting the pool. (Whether it actually does so or not
-depends on which other collections on other pools are in progress.)
+The first generation in a pool's chain is the :term:`nursery space`.
+When the nursery's *new size* exceeds its capacity, the MPS considers
+collecting the pool. (How long it takes to get around to it depends on
+which other collections on other pools are in progress.)
 
 .. note::
 
     You can affect the decision as to when to collect the nursery
-    generation by using the :ref:`ramp allocation pattern
+    space by using the :ref:`ramp allocation pattern
     <topic-pattern-ramp>`.
 
 If the MPS decides to collect a pool at all, all generations are
@@ -148,8 +148,8 @@ collector will do each time it has an opportunity to do some work. The constrain
    :c:func:`mps_arena_step`.
 
 2. The collector needs to keep up with the :term:`client program`:
-   that is, it has to collect memory least as fast as the client
-   program is allocating it, otherwise the amount of allocated memory
+   that is, it has to collect garbage at least as fast as the client
+   is producing it, otherwise the amount of :term:`floating garbage`
    will grow without bound.
 
 With perfect prediction, the collector's work should be smoothly
