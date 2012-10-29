@@ -60,8 +60,8 @@ reference>`, :term:`ambiguous <ambiguous reference>` or :term:`weak
 
     If the rank of the root is :term:`exact <exact reference>`, or
     :term:`weak <weak reference (1)>`, the references in the root must
-    be valid whenever a collection cycle starts: that is, they must be
-    references to actual objects or null pointers. This could be
+    always be valid while the root is registered: that is, they must
+    be references to actual objects or null pointers. This could be
     immediately after the root is registered, so the root must be
     valid before it is registered.
 
@@ -95,6 +95,35 @@ scan it for references:
 5. :c:func:`mps_root_create_reg` if the root consists of the
    registers and control stack of a thread. See
    :ref:`topic-root-thread` below.
+
+
+Cautions
+--------
+
+Creating a root and then registering is similar to reserving a block
+and then committing it (in the :ref:`topic-allocation-protocol`), and
+similar :ref:`cautions <topic-allocation-cautions>` apply. Before
+registering a root:
+
+1. The root must be valid (that is, the appropriate root scanning
+   function can scan it).
+
+2. All :term:`exact references` in the root (references that are
+   :term:`fixed` by the root scanning function) must contain valid
+   references or null pointers.
+
+3. You must not store a reference in the root to a block in an
+   automatically managed pool (such a reference is hidden from the MPS
+   until you register the root, and may become invalid).
+
+So the typical sequence of operations when creating a root is:
+
+1. Initialize references in the root with null pointers or other safe
+   values.
+
+2. Register the root.
+
+3. Fill in the references in the root.
 
 
 .. _topic-root-thread:
@@ -203,11 +232,18 @@ allowing the MPS to detect whether they have changed.
     :c:func:`mps_root_create_fmt` and :c:func:`mps_root_create_table`,
     the client program will not write to the root at all.
 
+    .. deprecated:: starting with version 1.111.
+
+        This was introduced in the hope of being able to maintain a
+        :term:`remembered set` for the root without needing a
+        :term:`write barrier`, but it can't work as described, since
+        you can never make a valid registered root containing any
+        references.
 
 .. c:macro:: MPS_RM_PROT
 
     The :term:`root mode` for :term:`protectable roots`. This tells
-    the MPS that it may place a :term:`write barrier` on any
+    the MPS that it may place a :term:`barrier (1)` on any
     :term:`page` which any part of the :term:`root` covers. No
     :term:`format method` or :term:`scan method` (except for the one
     for this root) may write data in this root. They may read it.
@@ -354,6 +390,13 @@ Root interface
         It is not supported for :term:`client programs` to pass their
         own scanning functions to this function. The built-in MPS
         function :c:func:`mps_stack_scan_ambig` must be used.
+
+        This function is intended as a hook should we ever need to
+        allow client-specific extension or customization of stack and
+        register scanning. If you're in a position where you need
+        this, for example, if you're writing a compiler and have
+        control over what goes in the registers, :ref:`contact us
+        <contact>`.
 
 
 .. c:type:: mps_res_t (*mps_reg_scan_t)(mps_ss_t ss, mps_thr_t thr, void *p, size_t s)

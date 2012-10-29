@@ -53,6 +53,34 @@ Outstanding
      get it to pass exceptions. We should document those and things
      that need doing with Visual Studio.
 
+125. Need overview for people who already know about garbage
+     collection. (RB needs to write this.)
+
+126. Things that are "within reach", i.e. that we could do if people
+     needed them.
+
+127. :c:func:`mps_arena_roots_walk` says, "A client-supplied function
+     is called for every root reference which points to an object in
+     any automatically managed pools". Is this right?
+
+128. From :ref:`topic-thread`: "A thread must be registered with an
+     :term:`arena` if it ever uses a pointer to a location in an
+     :term:`automatically managed <automatic memory management>`
+     :term:`pool` belonging to that arena." This isn't quite right,
+     and the real requirement is quite hard to document, so perhaps we
+     need to make this a documented property of the pool ("whether or
+     not threads that access memory allocated in the pool need to be
+     registered"). Similarly in :c:func:`mps_thread_dereg`.
+
+129. What happens if a thread is killed or otherwise terminates
+     without being deregistered? Does the MPS go wrong?
+
+130. readme.txt should contain a brief overview and pointers to more
+     documentation, and should (only) duplicate other documentation.
+     There's nothing wrong with it being somewhat redundant. Its
+     supported platforms section doesn't exist elsewhere. Note that
+     the platforms we build with (in build.txt) is not the same list.
+
 
 Complete
 --------

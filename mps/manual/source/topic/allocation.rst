@@ -351,6 +351,7 @@ Example: allocating a symbol
     }
 
 
+.. _topic-allocation-cautions:
 
 Cautions
 --------
@@ -380,7 +381,7 @@ Before calling :c:func:`mps_commit`:
 
 2.  All exact references in the new block (references that are
     :term:`fixed` by scanning functions) must contain valid
-    references.
+    references or null pointers.
 
 3.  The new object must be ambiguously :term:`reachable`.
 

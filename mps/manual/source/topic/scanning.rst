@@ -264,6 +264,12 @@ Here's the Scheme scanner::
         return MPS_RES_OK;
     }
 
+.. note::
+
+    This scanner is a simple example intended to make the process
+    clear to the reader. The scanning code and the object layout are
+    not at all optimized.
+
 
 Scanning interface
 ------------------
@@ -371,6 +377,12 @@ Scanning interface
             return MPS_RES_OK;
         }
 
+    .. warning::
+
+         Use of :c:func:`MPS_FIX_CALL` is best avoided, as it forces
+         values out of registers. The gains in simplicity of the code
+         need to be measured against the loss in performance.
+
 
 Fixing interface
 ----------------
@@ -462,11 +474,16 @@ Fixing interface
 
     :term:`Fix` a :term:`reference`.
 
-    This is a function equivalent to :c:func:`MPS_FIX12`. Because
-    :term:`scanning <scan>` is an operation on the :term:`critical
-    path`, we recommend that you use :c:func:`MPS_FIX12` (or
-    :c:func:`MPS_FIX1` and :c:func:`MPS_FIX2`) to ensure that the
-    "stage 1 fix" is inlined.
+    This is a function equivalent to::
+
+        MPS_SCAN_BEGIN(ss);
+        MPS_FIX12(ss, ref_io);
+        MPS_SCAN_END(ss);
+
+    Because :term:`scanning <scan>` is an operation on the
+    :term:`critical path`, we recommend that you use
+    :c:func:`MPS_FIX12` (or :c:func:`MPS_FIX1` and :c:func:`MPS_FIX2`)
+    to ensure that the "stage 1 fix" is inlined.
 
     .. note::
 
