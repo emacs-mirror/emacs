@@ -1,5 +1,7 @@
 2012-10-29  Chong Yidong  <cyd@gnu.org>
 
+	* imenu.el (imenu): Inhibit push-mark message (Bug#12726).
+
 	* face-remap.el (face-remap-add-relative): Handle the case where a
 	face-remapping-alist entry is a cons cell (Bug#12762).
 
