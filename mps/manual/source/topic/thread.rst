@@ -26,10 +26,12 @@ Thread registration
 -------------------
 
 In order to scan a thread's registers for references (which happens at
-each :term:`flip`), the MPS needs to be able to suspend that thread.
-This means that threads must be registered with the MPS by calling
-:c:func:`mps_thread_reg` (and thread roots created; see
-:ref:`topic-root-thread`).
+each :term:`flip`), the MPS needs to be able to suspend that thread,
+and in order to gain exclusive atomic access to memory in order to
+scan it, the MPS needs to be able to suspend all threads that might
+access that memory. This means that threads must be registered with
+the MPS by calling :c:func:`mps_thread_reg` (and thread roots created;
+see :ref:`topic-root-thread`).
  
 A thread must be registered with an :term:`arena` if it ever uses a
 pointer to a location in an :term:`automatically managed <automatic

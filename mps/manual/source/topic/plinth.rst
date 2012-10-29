@@ -2,20 +2,33 @@
 
     `<https://info.ravenbrook.com/project/mps/master/design/io/>`_
     `<https://info.ravenbrook.com/project/mps/master/design/lib/>`_
+    `<https://info.ravenbrook.com/project/mps/doc/2002-06-18/obsolete-mminfo/mmdoc/doc/mps/ref-man/concepts/>`_
+    `<https://info.ravenbrook.com/project/mps/doc/2002-06-18/obsolete-mminfo/mmdoc/doc/mps/guide/interface/>`_
+
 
 .. _topic-plinth:
 
 Plinth
 ======
 
-From <https://info.ravenbrook.com/project/mps/doc/2002-06-18/obsolete-mminfo/mmdoc/doc/mps/ref-man/concepts/>
+The MPS is designed to be portable to systems that have only a
+*conforming freestanding implementation* of the C language: that is,
+systems which potentially lack the facilities of the Standard C
+Library that must be provided by *hosted* implementations.
 
-A program module providing the MPS with all the support it needs from the execution environment. Mainly this includes simple I/O facilities to support debugging.
+Instead of using hosted facilities like Standard I/O, the MPS uses the
+:dfn:`plinth`: a program module providing all the support it needs
+from the execution environment.
 
-The plinth is provided by the client application; however, a sample implementation of the plinth using standard ANSI C library facilities is included with the MPS, and this is good enough for most applications.
+The plinth may be provided by the client application; however, a
+sample implementation of the plinth using ANSI Standard C Library
+facilities is included with the MPS, and this is good enough for most
+applications.
 
 
-From <https://info.ravenbrook.com/project/mps/doc/2002-06-18/obsolete-mminfo/mmdoc/doc/mps/guide/interface/>
+
+
+From 
 
 To perform its various duties, the MPS needs very little external support. Indeed, there is a way of using it so that it needs none at all, making it possible to use the MPS in embedded applications. There are two key components to this: the client arena and the plinth . This section concerns the plinth; for more information about the client arena, see mps_arena_class_cl in the Reference Manual.
 

@@ -558,11 +558,9 @@ Object format introspection
     visited. During a :term:`trace` this will in general be only the
     :term:`black` objects, though the :ref:`pool-lo` pool, for
     example, will walk all objects since they are validly formatted
-    whether they are black or :term:`white`. :term:`Padding objects` may be visited at the pool class's discretion:
-    the :term:`client program` should handle this case.
-
-    The function ``f`` may not allocate memory or access any
-    automatically-managed memory except within ``object``.
+    whether they are black or :term:`white`. :term:`Padding objects`
+    may be visited at the pool class's discretion: the :term:`client
+    program` should handle this case.
 
     .. seealso::
 
@@ -570,7 +568,8 @@ Object format introspection
 
     .. note::
 
-        Walking the heap is "dodgy".
+        This function is intended for heap analysis, tuning, and
+        debugging, not for frequent use in production.
 
 
 .. c:type:: void (*mps_formatted_objects_stepper_t)(mps_addr_t addr, mps_fmt_t fmt, mps_pool_t pool, void *p, size_t s)
@@ -591,6 +590,17 @@ Object format introspection
 
     ``p`` and ``s`` are the corresponding values that were passed to
     :c:func:`mps_arena_formatted_objects_walk`.
+
+    The function may not call any function in the MPS. It may access:
+
+    a. memory inside the object or block pointed to by ``addr``;
+
+    b. memory managed by the MPS that is in pools that do not protect
+       their contents;
+
+    c. memory not managed by the MPS;
+
+    It must not access other memory managed by the MPS.
 
     .. seealso::
 
