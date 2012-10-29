@@ -1,4 +1,5 @@
-**************************
+.. _glossary:
+
 Memory Management Glossary
 **************************
 
