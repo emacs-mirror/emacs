@@ -101,9 +101,9 @@ Cautions
 --------
 
 Creating a root and then registering is similar to reserving a block
-and then committing it (in the :ref:`topic-allocation-protocol`), and
-similar :ref:`cautions <topic-allocation-cautions>` apply. Before
-registering a root:
+and then committing it (in the
+:ref:`topic-allocation-point-protocol`), and similar :ref:`cautions
+<topic-allocation-cautions>` apply. Before registering a root:
 
 1. The root must be valid (that is, the appropriate root scanning
    function can scan it).
