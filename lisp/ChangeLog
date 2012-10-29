@@ -1,7 +1,6 @@
 2012-10-29  Chong Yidong  <cyd@gnu.org>
 
-	* startup.el (startup-echo-area-message): New arg.
-	(fancy-about-screen): Avoid a misleading message (Bug#12680).
+	* startup.el (fancy-about-screen): Don't message (Bug#12680).
 
 	* thingatpt.el (thing-at-point): Doc fix (Bug#12691).
 
