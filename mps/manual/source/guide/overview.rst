@@ -18,7 +18,7 @@ implementing specialized memory management policies.
 The MPS has been in development since 1994 and deployed in successful
 commercial products since 1997. Bugs are almost unknown in
 production. It is under continuous development and support by
-Ravenbrook.
+`Ravenbrook <http://www.ravenbrook.com>`_.
 
 The MPS is distributed under an :ref:`open source license
 <license>`. The license is designed to make it possible for you to use
@@ -70,13 +70,14 @@ block of memory to the pool) and others are :term:`automatically
 managed <automatic memory management>` (the :term:`garbage collector`
 reclaims :term:`unreachable` blocks). See :ref:`pool`.
 
-Automatically managed pools need you to tell them how to **scan** for
-:term:`references` to allocated blocks. See
+:term:`Formatted <formatted object>` pools need you to tell them how to
+**scan** for :term:`references` to allocated blocks. See
 :ref:`topic-scanning`.
 
-The arena needs you to tell it how to find your **roots**: references
-to allocated blocks that are stored in static data, in memory not
-managed by the MPS, or on your program's :term:`registers` or :term:`control stack`. See :ref:`topic-root`.
+The arena needs you to tell it how to find your **roots**: references to
+allocated blocks that are stored in static data, in memory not managed
+by the MPS, or on your program's :term:`registers` or
+:term:`control stack`. See :ref:`topic-root`.
 
 The MPS is designed to work with multi-threaded programs. Functions in
 the C interface are thread safe, except in a few documented

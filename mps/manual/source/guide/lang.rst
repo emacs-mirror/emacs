@@ -43,7 +43,7 @@ This simple interpreter allocates two kinds of objects on the
 2. The global symbol table: a hash table consisting of a vector of
    pointers to strings.
 
-A Scheme object whose type is not necessarily known is represented by
+A Scheme object (whose type is not necessarily known) is represented by
 an ``obj_t``, which is a pointer to a union of every type in the
 language::
 
@@ -144,13 +144,13 @@ rather than having to pass it around everywhere::
     static mps_arena_t arena;
 
 Create an arena by calling :c:func:`mps_arena_create`. This function
-takes a third argument when creating a virtual memory arena: the size
-of the amount of virtual address space, in bytes, that the arena will
-reserve initially. The MPS will ask for more address space if it runs
-out, but the more times it has to extend its address space, the less
-efficient garbage collection will become. The MPS works best if you
-reserve an address space that is several times larger than your peak
-memory usage.
+takes a third argument when creating a virtual memory arena: the size of
+the amount of virtual virtual :term:`address space` (*not* :term:`RAM`),
+in bytes, that the arena will reserve initially. The MPS will ask for
+more address space if it runs out, but the more times it has to extend
+its address space, the less efficient garbage collection will become.
+The MPS works best if you reserve an address space that is several times
+larger than your peak memory usage.
 
 Let's reserve 32 megabytes::
 
@@ -366,9 +366,8 @@ of the function and :c:func:`MPS_SCAN_END` at the end, as here.
        as possible.
 
     3. If your reference is :term:`tagged <tagged reference>`, you
-       must remove the tag before fixing it. (The same consideration
-       applies to any form of alteration of the reference, not just
-       tagging.)
+       must remove the tag before fixing it. (This is not quite true,
+       but see :ref:`topic-scanning-tag` for the full story.)
 
     4. The "fix" operation may update the reference. So if your
        reference is tagged, you must make sure that the tag is
@@ -828,8 +827,8 @@ after the rehash has completed, de-registering the old root by calling
 It would be possible to write a root scanning function of type
 :c:type:`mps_reg_scan_t`, as described above, to fix the references in
 the global symbol table, but the case of a table of references is
-sufficiently common that the MPS provides a convenience function,
-:c:func:`mps_root_create_table`, for registering it::
+sufficiently common that the MPS provides a convenient (and optimized)
+function, :c:func:`mps_root_create_table`, for registering it::
 
     static mps_root_t symtab_root;
 
@@ -997,7 +996,10 @@ it now must be organized like this::
         /* ... set up the MPS ... */
 
         tramp_s tramp;
-        mps_tramp(&tramp, start, NULL, 0);
+        tramp.argc = argc;
+        tramp.argv = argv;
+        void *dummy;
+        mps_tramp(&dummy, start, &tramp, 0);
 
         /* ... tear down the MPS ... */
 
@@ -1046,7 +1048,7 @@ MPS attempts to scan ``obj`` at the indicated point, the object's
 ``type`` field will be uninitialized, and so the :term:`scan method`
 may abort.
 
-The MPS solves this problem via the
+The MPS solves this problem via the fast lockless
 :ref:`topic-allocation-point-protocol`. This needs an additional
 structure, an :term:`allocation point`, to be attached to the pool by
 calling :c:func:`mps_ap_create`::
