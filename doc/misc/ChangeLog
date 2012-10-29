@@ -1,3 +1,7 @@
+2012-10-29  Glenn Morris  <rgm@gnu.org>
+
+	* cl.texi (Organization): More details on cl-lib.el versus cl.el.
+
 2012-10-28  Glenn Morris  <rgm@gnu.org>
 
 	* cl.texi (Multiple Values, Common Lisp Compatibility):

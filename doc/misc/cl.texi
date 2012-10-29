@@ -182,17 +182,30 @@ All you have to do is @code{(require 'cl-lib)}, and @file{cl-lib.el}
 will take care of pulling in the other files when they are
 needed.
 
-There is another file, @file{cl.el}, which was the main entry point
-to the CL package prior to Emacs 24.3.  Nowadays, it is replaced
-by @file{cl-lib.el}.  The two provide the same features, but use
-different function names (in fact, @file{cl.el} just defines aliases
-to the @file{cl-lib.el} definitions).  In particular, the old @file{cl.el}
-does not use a clean namespace.  For this reason, Emacs has a policy
-that packages distributed with Emacs must not load @code{cl} at run time.
-(It is ok for them to load @code{cl} at @emph{compile} time, with
-@code{eval-when-compile}, and use the macros it provides.)  There is
-no such restriction on the use of @code{cl-lib}.  New code should use
-@code{cl-lib} rather than @code{cl}.  @xref{Naming Conventions}.
+There is another file, @file{cl.el}, which was the main entry point to
+the CL package prior to Emacs 24.3.  Nowadays, it is replaced by
+@file{cl-lib.el}.  The two provide the same features (in most cases),
+but use different function names (in fact, @file{cl.el} mainly just
+defines aliases to the @file{cl-lib.el} definitions).  Where
+@file{cl-lib.el} defines a function called, for example,
+@code{cl-incf}, @file{cl.el} uses the same name but without the
+@samp{cl-} prefix, e.g. @code{incf} in this example.  There are a few
+exceptions to this.  First, functions such as @code{cl-defun} where
+the unprefixed version was already used for a standard Emacs Lisp
+function.  In such cases, the @file{cl.el} version adds a @samp{*}
+suffix, e.g. @code{defun*}.  Second, there are some obsolete features
+that are only implemented in @file{cl.el}, not in @file{cl-lib.el},
+because they are replaced by other standard Emacs Lisp features.
+Finally, in a very few cases the old @file{cl.el} versions do not
+behave in exactly the same way as the @file{cl-lib.el} versions.
+@xref{Obsolete Features}.
+
+Since the old @file{cl.el} does not use a clean namespace, Emacs has a
+policy that packages distributed with Emacs must not load @code{cl} at
+run time.  (It is ok for them to load @code{cl} at @emph{compile}
+time, with @code{eval-when-compile}, and use the macros it provides.)
+There is no such restriction on the use of @code{cl-lib}.  New code
+should use @code{cl-lib} rather than @code{cl}.
 
 There is one more file, @file{cl-compat.el}, which defines some
 routines from the older Quiroz CL package that are not otherwise
@@ -4666,13 +4679,6 @@ referenced by @code{cl-return} or @code{cl-return-from} inside the block.
 Following is a list of all known incompatibilities between this
 package and Common Lisp as documented in Steele (2nd edition).
 
-@ignore
-Certain function names, such as @code{member}, @code{assoc}, and
-@code{floor}, were already taken by (incompatible) Emacs Lisp
-functions; this package appends @samp{*} to the names of its
-Common Lisp versions of these functions.
-@end ignore
-
 The word @code{cl-defun} is required instead of @code{defun} in order
 to use extended Common Lisp argument lists in a function.  Likewise,
 @code{cl-defmacro} and @code{cl-function} are versions of those forms
@@ -4684,6 +4690,7 @@ The @code{equal} predicate does not distinguish
 between IEEE floating-point plus and minus zero.  The @code{cl-equalp}
 predicate has several differences with Common Lisp; @pxref{Predicates}.
 
+@c FIXME no longer provided by cl.
 The @code{setf} mechanism is entirely compatible, except that
 setf-methods return a list of five values rather than five
 values directly.  Also, the new ``@code{setf} function'' concept
