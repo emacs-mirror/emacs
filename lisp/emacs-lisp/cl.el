@@ -512,6 +512,7 @@ rather than relying on `lexical-binding'."
 (defmacro letf (bindings &rest body)
   "Dynamically scoped let-style bindings for places.
 Like `cl-letf', but with some extra backward compatibility."
+  (declare (indent 1) (debug cl-letf))
   ;; Like cl-letf, but with special handling of symbol-function.
   `(cl-letf ,(mapcar (lambda (x) (if (eq (car-safe (car x)) 'symbol-function)
                                 `((cl--symbol-function ,@(cdar x)) ,@(cdr x))

@@ -1,5 +1,7 @@
 2012-10-29  Stefan Monnier  <monnier@iro.umontreal.ca>
 
+	* emacs-lisp/cl.el (letf): Add missing indent rules (bug#12759).
+
 	* files.el (find-alternate-file): Only ask one question (bug#12487).
 
 2012-10-29  Chong Yidong  <cyd@gnu.org>
