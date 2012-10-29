@@ -2,7 +2,7 @@
 
     `<https://info.ravenbrook.com/project/mps/master/manual/wiki/pool_classes.html>`_
     `<https://info.ravenbrook.com/project/mps/master/design/poolawl/>`_
-
+    `<http://info.ravenbrook.com/mail/2003/03/17/13-51-24/0.txt>`_
 
 .. _pool-awl:
 
