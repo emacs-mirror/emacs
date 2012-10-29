@@ -1,3 +1,13 @@
+2012-10-29  Daniel Colascione  <dancol@dancol.org>
+
+	* cygw32.h, cygw32.c (Qutf_16le, from_unicode, to_unicode): In
+	preparation for fixing bug#12739, move these functions from
+	here...
+
+	* coding.h, coding.c: ... to here, and compile them only when
+	WINDOWSNT or HAVE_NTGUI.  Moving these functions out of cygw32
+	proper lets us write cygw32-agnostic code for the HAVE_NTGUI case.
+
 2012-10-28  Eli Zaretskii  <eliz@gnu.org>
 
 	* w32proc.c (TIMER_TICKS_PER_SEC): New macro.

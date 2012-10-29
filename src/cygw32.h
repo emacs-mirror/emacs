@@ -33,20 +33,6 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #include "lisp.h"
 #include "coding.h"
 
-/* *** Character conversion *** */
-
-/* Access the wide-character string stored in a Lisp string object.  */
-#define WCSDATA(x) ((wchar_t *) SDATA (x))
-
-/* Convert the multi-byte string in STR to UTF-16LE encoded unibyte
-   string, and store it in *BUF.  BUF may safely point to STR on entry.  */
-extern wchar_t *to_unicode (Lisp_Object str, Lisp_Object *buf);
-
-/* Convert STR, a UTF-16LE encoded string embedded in a unibyte string
-   object, to a multi-byte Emacs string, and return it.  */
-extern Lisp_Object from_unicode (Lisp_Object str);
-
-/* *** Misc *** */
 extern void syms_of_cygw32 (void);
 extern char * w32_strerror (int error_no);
 
