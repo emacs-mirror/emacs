@@ -1,3 +1,7 @@
+2012-10-29  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* files.el (find-alternate-file): Only ask one question (bug#12487).
+
 2012-10-29  Chong Yidong  <cyd@gnu.org>
 
 	* vc/vc-hooks.el (vc-file-clearprops): Kill vc-parent-buffer.
