@@ -44,6 +44,15 @@ Outstanding
 
 95. Bring :ref:`lang` up to date. Add C#, Lua, Python.
 
+124. In :ref:`guide-debug`, we need to talk about other debuggers.
+
+     In particular, you can't really work with the MPS with LLDB on
+     the Mac yet. Apple knows about this.
+
+     There are a couple of magic commands to type when using WinDbg to
+     get it to pass exceptions. We should document those and things
+     that need doing with Visual Studio.
+
 
 Complete
 --------

@@ -186,6 +186,12 @@ Memory Management Glossary: S
 
         .. bibref:: [WIL95]_.
 
+        .. mps:specific::
+
+            :term:`Segregated allocation caches` are a general
+            mechanism for adding a segregated free list to any
+            manually managed pool. See :ref:`topic-cache`.
+
     semi-conservative garbage collection
 
         .. aka:: *mostly-precise garbage collection*, *mostly-exact garbage collection*.
@@ -306,12 +312,13 @@ Memory Management Glossary: S
         .. mps:specific::
 
             A :term:`segregated allocation cache` maintains a reserve
-            of :term:`blocks` in a set of :term:`sizes`: each such
-            size is known as a *size class*. When creating a
+            of free :term:`blocks` in a set of :term:`sizes`: each
+            such size is known as a *size class*. When creating a
             segregated allocation cache by calling
             :c:func:`mps_sac_create`, the :term:`client program`
             describes the desired set of size classes by passing an
-            array of structures of type :c:type:`mps_sac_class_s`.
+            array of structures of type :c:type:`mps_sac_class_s`. See
+            :ref:`topic-cache`.
 
     skip method
     
