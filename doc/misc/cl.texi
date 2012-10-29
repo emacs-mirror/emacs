@@ -5067,10 +5067,10 @@ need to expand a macro in @var{place}.  It should come from
 an @code{&environment} argument to the macro or setf-method
 that called @code{get-setf-method}.
 
-See also the source code for the setf-methods for @code{apply}
-and @code{substring}, each of which works by calling
-@code{get-setf-method} on a simpler case, then massaging
-the result in various ways.
+See also the source code for the setf-method for
+@c Also @code{apply}, but that is commented out.
+@code{substring}, which works by calling @code{get-setf-method} on a
+simpler case, then massaging the result.
 @end defun
 
 Modern Common Lisp defines a second, independent way to specify

@@ -4,6 +4,7 @@
 	(Setf Extensions): Remove `apply' setf since it seems to be disabled.
 	(Customizing Setf): Move contents to "Obsolete Setf Customization".
 	(Modify Macros, Multiple Values): Remove mentions of obsolete feature.
+	(Obsolete Setf Customization): Don't mention `apply' setf.
 
 2012-10-28  Glenn Morris  <rgm@gnu.org>
 
