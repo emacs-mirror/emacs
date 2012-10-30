@@ -7,6 +7,12 @@
     `<https://info.ravenbrook.com/project/mps/doc/2002-06-18/obsolete-mminfo/mmdoc/doc/mps/guide/appendix/plinth/>`_
 
 
+.. index::
+   single: plinth; introduction
+   single: freestanding environment
+   single: hosted environment
+   single: porting; plinth
+
 .. _topic-plinth:
 
 Plinth
@@ -49,6 +55,11 @@ The plinth is divided into two parts:
    platform, including functions for reporting errors and accessing
    a processor clock.
 
+
+.. index::
+   single: plinth; I/O module
+   single: I/O module
+   single: telemetry; I/O module
 
 .. _topic-plinth-io:
 
@@ -156,6 +167,10 @@ I/O module
 
         In the ANSI I/O module, ``mpsioan.c``, this calls ``fflush``.
 
+
+.. index::
+   single: plinth; library module
+   single: library module
 
 .. _topic-plinth-lib:
 

@@ -3,6 +3,9 @@
 Platforms
 =========
 
+.. index::
+   pair: platform; code
+
 Platform codes
 --------------
 
@@ -49,6 +52,9 @@ defined. For example, "``xci6ll``" platform corresponds to the
 Not all combinations of operating system, processor architecture,
 and compiler are supported.
 
+
+.. index::
+   single: platform; interface
 
 Platform interface
 ------------------
@@ -238,6 +244,9 @@ Platform interface
     typical values are 32 and 64.
 
 
+.. index::
+   single: platform; historical codes
+
 Historical platform codes
 -------------------------
 
@@ -295,6 +304,9 @@ Formerly supported compiler toolchains:
     .. [2] This was the MIPSpro C compiler on IRIX; and the Digital C
            Compiler on OSF/1.
 
+
+.. index::
+   single: platform; historical list
 
 Historical platform list
 ------------------------
