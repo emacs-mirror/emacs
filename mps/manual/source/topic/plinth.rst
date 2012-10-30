@@ -23,8 +23,9 @@ purposes, both relating to operating system support:
    necessary facilities.
 
 2. The plinth gives the :term:`client program` complete control of
-   interaction between the MPS and the user, including :ref:`messages
-   <topic-message>` and :ref:`telemetry <topic-telemetry>`.
+   interaction between the MPS and the user, including
+   :ref:`assertions <topic-error-assertion>` and :ref:`telemetry
+   <topic-telemetry>`.
 
 The plinth may be provided by the :term:`client program`; however, a
 sample implementation of the plinth using ANSI Standard C Library
