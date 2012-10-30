@@ -73,10 +73,11 @@ available to your program. See :ref:`topic-pool`.
 
 Pools belong to **pool classes** that specify policies for how their
 memory is managed. Some pools are :term:`manually managed <manual
-memory management>` (you must call :c:func:`mps_free` to return a
-block of memory to the pool) and others are :term:`automatically
-managed <automatic memory management>` (the :term:`garbage collector`
-reclaims :term:`unreachable` blocks). See :ref:`pool`.
+memory management>` (you must explicitly return memory to the pool,
+for example by calling :c:func:`mps_free`) and others are
+:term:`automatically managed <automatic memory management>` (the
+:term:`garbage collector` reclaims :term:`unreachable` blocks). See
+:ref:`pool`.
 
 :term:`Formatted <formatted object>` pools need you to tell them how to
 **scan** for :term:`references` to allocated blocks. See
