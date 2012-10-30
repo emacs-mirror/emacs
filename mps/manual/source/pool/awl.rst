@@ -106,15 +106,15 @@ Dependent objects
 -----------------
 
 In order to support prompt deletion of values in a :term:`weak-key
-hash table` when the key is splatted (and prompt deletion of values in
+hash table` when the key is splatted (and prompt deletion of keys in
 a :term:`weak-value hash table`), an AWL pool allows each object to
 have a :dfn:`dependent object`.
 
-The dependent object is specified by a ``find_dependent`` function
-which is passed to :c:func:`mps_pool_create` when creating an AWL
-pool. This is a function of type :c:type:`mps_find_dependent_t` that
-takes the address of an object in the pool and returns the address of
-its dependent object (or a null pointer if there is no corresponding
+The dependent object is specified by the ``find_dependent`` argument
+to :c:func:`mps_pool_create` when creating an AWL pool. This is a
+function of type :c:type:`mps_awl_find_dependent_t` that takes the
+address of an object in the pool and returns the address of its
+dependent object (or a null pointer if there is no corresponding
 dependent object).
 
 When :term:`scanning <scan>` an object in an AWL pool, the MPS ensures
