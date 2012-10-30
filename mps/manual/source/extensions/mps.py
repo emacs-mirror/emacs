@@ -187,7 +187,7 @@ class GlossaryTransform(transforms.Transform):
     see_only_ids = set()
     xref_ids = defaultdict(list)
     default_priority = 999
-    sense_re = re.compile(r'(.*)\s+(\([0-9]+\))$')
+    sense_re = re.compile(r'(.*)\s+(\([0-9]+\))$', re.S)
 
     def superscript_children(self, target):
         """
