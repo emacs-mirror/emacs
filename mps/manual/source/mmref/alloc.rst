@@ -32,7 +32,7 @@ remainder added to the list as another free block.
 
 The first fit algorithm performs reasonably well, as it ensures that
 allocations are quick. When recycling free blocks, there is a choice
-as to where to add the blocks to the free list -- effectively in what
+as to where to add the blocks to the free list---effectively in what
 order the free list is kept:
 
 **Memory location (address)**

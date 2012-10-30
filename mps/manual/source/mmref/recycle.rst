@@ -208,7 +208,7 @@ Deferred reference counting cannot normally be used unless it is
 directly supported by the compiler. It's more common for modern
 compilers to support tracing garbage collectors instead, because they
 can reclaim loops. Deferred reference counting may still be useful for
-its promptness -- but that is limited by the frequency of scanning the
+its promptness---but that is limited by the frequency of scanning the
 program variables.
 
 
