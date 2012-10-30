@@ -14,7 +14,7 @@ Allocation
 
 
 .. index::
-   single: allocation, manual
+   single: allocation; manual
    single: manual allocation
 
 Manual allocation
