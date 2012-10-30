@@ -319,7 +319,7 @@ Memory Management Glossary: R
 
             `Package java.lang.ref <http://download.java.net/jdk8/docs/api/java/lang/ref/package-summary.html>`_, `Reference Objects and Garbage Collection <http://pawlan.com/monica/articles/refobjs/>`_.
 
-        .. bibref:: [DBE93]_.
+        .. bibref:: :ref:`Dybvig et al. (1993) <DBE93>`.
 
     region inference
 
@@ -335,7 +335,7 @@ Memory Management Glossary: R
         occupies a middle ground between :term:`stack allocation` and
         :term:`heap allocation`.
 
-        .. bibref:: [TT97]_.
+        .. bibref:: :ref:`Tofte & Talpin (1997) <TT97>`.
 
     register
 
@@ -418,7 +418,7 @@ Memory Management Glossary: R
 
         .. similar:: :term:`entry table (2)`.
 
-        .. bibref:: [UNGAR84]_, [JONES96]_.
+        .. bibref:: :ref:`Ungar (1984) <UNGAR84>`, :ref:`Jones (1996) <JONES96>`.
 
     remote reference
 
@@ -450,7 +450,7 @@ Memory Management Glossary: R
 
         .. seealso:: :term:`copying garbage collection`, :term:`broken heart`.
 
-        .. bibref:: [NOPH92]_, [NO93]_, [NO93A]_, [ON94]_.
+        .. bibref:: :ref:`Nettles et al. (1992) <NOPH92>`, :ref:`Nettles & O'Toole (1993) <NO93>`, :ref:`Nettles & O'Toole (1993a) <NO93A>`, :ref:`O'Toole & Nettles (1994) <ON94>`.
 
     reserved
 

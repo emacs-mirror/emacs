@@ -31,7 +31,8 @@ The award-winning web presentation was designed by its first editor,
 Gavin Matthews.
 
 Particular thanks go to Richard Jones for his enormously useful book
-[JONES96]_, and for his comments on the Reference.
+:ref:`The Garbage Collection Handbook <JONES96>`, and for his comments
+on the Reference.
 
 Many people have `made valuable suggestions <contact>` for the
 Reference and contributed glossary entries. We are grateful for the

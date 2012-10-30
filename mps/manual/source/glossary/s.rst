@@ -166,7 +166,7 @@ Memory Management Glossary: S
 
         .. seealso:: :term:`segregated free list`, :term:`allocation mechanism`, :term:`free list`, :term:`exact segregated fit`, :term:`strict segregated fit`.
 
-        .. bibref:: [WIL95]_.
+        .. bibref:: :ref:`Wilson et al. (1995) <WIL95>`.
 
     segregated free list
     segregated free-list
@@ -184,7 +184,7 @@ Memory Management Glossary: S
         Variations within this class include :term:`simple segregated
         storage`, :term:`segregated fit`, and :term:`buddy systems`.
 
-        .. bibref:: [WIL95]_.
+        .. bibref:: :ref:`Wilson et al. (1995) <WIL95>`.
 
         .. mps:specific::
 
@@ -206,7 +206,7 @@ Memory Management Glossary: S
 
         .. seealso:: :term:`mostly-copying garbage collection`.
 
-        .. bibref:: [BARTLETT88]_.
+        .. bibref:: :ref:`Bartlett (1988) <BARTLETT88>`.
 
     semi-space
 
@@ -238,7 +238,7 @@ Memory Management Glossary: S
         blocks` (a :term:`free block chain`). Sequential fit
         mechanisms include :term:`first fit` and :term:`next fit`.
 
-        To quote [WIL95]_:
+        To quote :ref:`Wilson et al. (1995) <WIL95>`:
 
             The list is often doubly-linked and/or circularly linked.
             Typically, sequential fit algorithms use Knuth's boundary
@@ -254,8 +254,6 @@ Memory Management Glossary: S
             ordered trees, or :term:`segregated fits`.
 
         .. seealso:: :term:`bitmapped fit`, :term:`indexed fit`.
-
-        .. bibref:: [WIL95]_.
 
     sequential store buffer
 
@@ -297,7 +295,7 @@ Memory Management Glossary: S
         as unused parts of areas cannot be reused for other object
         sizes.
 
-        .. bibref:: [WIL95]_.
+        .. bibref:: :ref:`Wilson et al. (1995) <WIL95>`.
 
     size
 
@@ -348,7 +346,7 @@ Memory Management Glossary: S
         implement properly in C++. A :term:`tracing garbage collector
         <tracing garbage collection>` might be worth considering.
 
-        .. bibref:: [EDELSON92A]_.
+        .. bibref:: :ref:`Edelson (1992a) <EDELSON92A>`.
 
     snap-out
 
@@ -399,9 +397,9 @@ Memory Management Glossary: S
         existed at the beginning of the :term:`collection cycle`. Note
         that this does not mean all modifications need to be seen by
         the collector, only those needed to complete tracing without
-        missing a reachable object (see [PIRINEN98]_ for details), nor
-        does it mean that it won't trace some references created
-        during the collection.
+        missing a reachable object (see :ref:`Pirinen (1998)
+        <PIRINEN98>` for details), nor does it mean that it won't
+        trace some references created during the collection.
 
         .. historical::
 
@@ -414,7 +412,7 @@ Memory Management Glossary: S
 
         .. seealso:: :term:`tri-color marking`, :term:`weak tri-color invariant`, :term:`barrier (1)`.
 
-        .. bibref:: [WIL94]_, [PIRINEN98]_.
+        .. bibref:: :ref:`Wilson (1994) <WIL94>`, :ref:`Pirinen (1998) <PIRINEN98>`.
 
     soft reference
 
@@ -798,7 +796,7 @@ Memory Management Glossary: S
 
         .. seealso:: :term:`buddy system`, :term:`segregated fit`, :term:`segregated free list`, :term:`allocation mechanism`.
 
-        .. bibref:: [WIL95]_.
+        .. bibref:: :ref:`Wilson et al. (1995) <WIL95>`.
 
     strong reference
 
@@ -846,7 +844,8 @@ Memory Management Glossary: S
         :term:`copying garbage collector <copying garbage collection>`
         doesn't confuse the mutator. Mutator actions might need to
         change the :term:`color` of the nodes affected in order to
-        preserve the invariant (see [PIRINEN98]_ for details).
+        preserve the invariant (see :ref:`Pirinen (1998) <PIRINEN98>`
+        for details).
 
         Algorithms using this invariant are :term:`incremental update`
         algorithms.
@@ -855,7 +854,7 @@ Memory Management Glossary: S
 
         .. seealso:: :term:`barrier (1)`, :term:`weak tri-color invariant`.
 
-        .. bibref:: [PIRINEN98]_.
+        .. bibref:: :ref:`Pirinen (1998) <PIRINEN98>`.
 
     strongly reachable
 

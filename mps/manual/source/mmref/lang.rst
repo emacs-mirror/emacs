@@ -21,7 +21,7 @@ Memory management in various languages
         complex and difficult to implement, and it was never as
         successful as its predecessor.
 
-        .. bibref:: [BL72]_.
+        .. bibref:: :ref:`Branquart & Lewi (1972) <BL72>`.
 
     BASIC
 
@@ -82,7 +82,7 @@ Memory management in various languages
 
         .. seealso:: :term:`automatic storage duration`, :term:`static storage duration`.
 
-        .. bibref:: [BW88]_, [DACONTA93]_, [ZORN93]_.
+        .. bibref:: :ref:`Boehm & Weiser (1988) <BW88>`, :ref:`Daconta (1993) <DACONTA93>`, :ref:`Zorn (1993) <ZORN93>`.
 
         .. link::
 
@@ -184,7 +184,7 @@ Memory management in various languages
 
         .. seealso:: :term:`constructor (2)`, :term:`destructor (2)`.
 
-        .. bibref:: [ATTARDI94]_, [BARTLETT89]_, [BW88]_, [ZORN93]_, [EDELSON92]_, [ELLIS93]_.
+        .. bibref:: :ref:`Attardi & Flagella (1994) <ATTARDI94>`, :ref:`Bartlett (1989) <BARTLETT89>`, :ref:`Boehm & Weiser (1988) <BW88>`, :ref:`Edelson (1992) <EDELSON92>`, :ref:`Ellis (1993) <ELLIS93>`, :ref:`Zorn (1993) <ZORN93>`.
 
         .. link::
 
@@ -344,7 +344,7 @@ Memory management in various languages
 
         .. seealso:: :term:`cons (1)`.
 
-        .. bibref:: [MM59]_, [MCCARTHY60]_, [MCCARTHY79]_, [EDWARDS]_, [BAKER78]_, [MOON84]_, [SOBALVARRO88]_, [MOON87]_, [ZORN88]_, [MOON91]_.
+        .. bibref:: :ref:`Baker (1978) <BAKER78>`, :ref:`Edwards <EDWARDS>`, :ref:`McCarthy & Minsky (1959) <MM59>`, :ref:`McCarthy (1960) <MCCARTHY60>`, :ref:`McCarthy (1979) <MCCARTHY79>`, :ref:`Moon (1984) <MOON84>`, :ref:`Moon (1990) <MOON87>`, :ref:`Moon (1991) <MOON91>`, :ref:`Sobalvarro (1988) <SOBALVARRO88>`, :ref:`Zorn (1988) <ZORN88>`.
 
         .. link::
 
@@ -357,13 +357,14 @@ Memory management in various languages
         a custom processor designed to improve the execution speed of
         Lisp by implementing primitive Lisp operations in microcode.
         The Lisp Machine :term:`garbage collector` is a generalization
-        of the algorithm described in [BAKER78]_ and used a technique
-        similar to that described in [UNGAR84]_, but utilizing
-        hardware to improve performance.
+        of the algorithm described in :ref:`Baker (1978) <BAKER78>`
+        and used a technique similar to that described in :ref:`Ungar
+        (1984) <UNGAR84>`, but utilizing hardware to improve
+        performance.
 
         A description of the garbage collector of one particular model
-        is in [MOON84]_. The features important for its performance
-        were:
+        is in :ref:`Moon (1984) <MOON84>`. The features important for
+        its performance were:
 
         1. Hardware support for data typing using :term:`tags`;
 
@@ -418,7 +419,7 @@ Memory management in various languages
 
         .. seealso:: :term:`immutable`.
 
-        .. bibref:: [CNS92]_, [DOLIGEZ93]_, [TT97]_.
+        .. bibref:: :ref:`Cooper et al. (1992) <CNS92>`, :ref:`Doligez (1993) <DOLIGEZ93>`, :ref:`Tofte & Talpin (1997) <TT97>`.
 
         .. link::
 
@@ -560,7 +561,7 @@ Memory management in various languages
         express behavior. This domain-oriented design was supported by
         :term:`garbage collection`.
 
-        .. bibref:: [DAHL63]_.
+        .. bibref:: :ref:`Dahl (1963) <DAHL63>`.
 
     Smalltalk
 
@@ -571,7 +572,7 @@ Memory management in various languages
         the Smalltalk philosophy. Many important techniques were first
         developed or implemented for Smalltalk.
 
-        .. bibref:: [DB76]_, [UNGAR84]_, [UNGAR88]_.
+        .. bibref:: :ref:`Deutsch & Bobrow (1976) <DB76>`, :ref:`Ungar (1984) <UNGAR84>`, :ref:`Ungar (1988) <UNGAR88>`.
 
         .. link::
 

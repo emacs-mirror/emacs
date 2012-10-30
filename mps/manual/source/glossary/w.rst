@@ -100,7 +100,7 @@ Memory Management Glossary: W
         even if the :term:`mutator` manipulates the graph during the
         collection. Mutator actions might need to change the
         :term:`color` of the nodes affected in order to preserve the
-        invariant (see [PIRINEN98]_ for details).
+        invariant (see :ref:`Pirinen (1998) <PIRINEN98>` for details).
 
         Algorithms using this invariant are
         :term:`snapshot-at-the-beginning <snapshot at the beginning>`
@@ -108,7 +108,7 @@ Memory Management Glossary: W
 
         .. seealso:: :term:`barrier (1)`, :term:`strong tri-color invariant`.
 
-        .. bibref:: [PIRINEN98]_.
+        .. bibref:: :ref:`Pirinen (1998) <PIRINEN98>`.
 
     weakly reachable
 
@@ -147,7 +147,7 @@ Memory Management Glossary: W
 
         .. seealso:: :term:`buddy system`, :term:`allocation mechanism`, :term:`binary buddies`.
 
-        .. bibref:: [WIL95]_.
+        .. bibref:: :ref:`Wilson et al. (1995) <WIL95>`.
 
     weighted reference counting
 
@@ -223,7 +223,7 @@ Memory Management Glossary: W
 
         .. seealso:: :term:`resident set`, :term:`cache (2)`, :term:`storage hierarchy`.
 
-        .. bibref:: [DS72]_.
+        .. bibref:: :ref:`Denning & Schwartz (1972) <DS72>`.
 
     worst fit
 
@@ -236,7 +236,7 @@ Memory Management Glossary: W
 
         .. seealso:: :term:`allocation policy`, :term:`first fit`, :term:`best fit`.
 
-        .. bibref:: [WIL95]_.
+        .. bibref:: :ref:`Wilson et al. (1995) <WIL95>`.
 
     wrapped
 
@@ -246,7 +246,7 @@ Memory Management Glossary: W
 
         .. seealso:: :term:`wrapper`, :term:`boxed`, :term:`tag`.
 
-        .. bibref:: [GUDEMAN93]_.
+        .. bibref:: :ref:`Gudeman (1993) <GUDEMAN93>`.
 
     wrapper
 
@@ -273,7 +273,7 @@ Memory Management Glossary: W
 
         .. seealso:: :term:`wrapped`, :term:`boxed`.
 
-        .. bibref:: [GUDEMAN93]_.
+        .. bibref:: :ref:`Gudeman (1993) <GUDEMAN93>`.
 
     write barrier
 
