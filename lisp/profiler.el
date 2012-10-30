@@ -353,7 +353,9 @@ this variable directly.")
 		  (propertize (symbol-name entry)
 			      'face 'link
 			      'mouse-face 'highlight
-			      'help-echo "mouse-2 or RET jumps to definition"))
+			      'help-echo "\
+mouse-2: jump to definition\n\
+RET: expand or collapse"))
 		 (t
 		  (profiler-format-entry entry)))))
     (propertize string 'profiler-entry entry)))

@@ -2897,8 +2897,11 @@ definition, INTERACTIVE if non-nil is the interactive form to be used,
 ORIG is a form that calls the body of the original unadvised function,
 and BEFORES, AROUNDS and AFTERS are the lists of advices with which ORIG
 should be modified.  The assembled function will be returned."
-
-  (let (before-forms around-form around-form-protected after-forms definition)
+  ;; The ad-do-it call should always have the right number of arguments,
+  ;; but the compiler might signal a bogus warning because it checks the call
+  ;; against the advertised calling convention.
+  (let ((around-form `(setq ad-return-value (with-no-warnings ,orig)))
+        before-forms around-form-protected after-forms definition)
     (dolist (advice befores)
       (cond ((and (ad-advice-protected advice)
                   before-forms)
@@ -2911,7 +2914,6 @@ should be modified.  The assembled function will be returned."
                      (append before-forms
                              (ad-body-forms (ad-advice-definition advice)))))))
 
-    (setq around-form `(setq ad-return-value ,orig))
     (dolist (advice (reverse arounds))
       ;; If any of the around advices is protected then we
       ;; protect the complete around advice onion:

@@ -108,11 +108,14 @@ directory, which is the directory in which the previous compilation
 was started.
 
 @findex kill-compilation
+@vindex compilation-always-kill
   Starting a new compilation also kills any compilation already
 running in @file{*compilation*}, as the buffer can only handle one
 compilation at any time.  However, @kbd{M-x compile} asks for
-confirmation before actually killing a compilation that is running.
-You can also kill the compilation process with @kbd{M-x
+confirmation before actually killing a compilation that is running; to
+always automatically kill the compilation without asking, change the
+variable @code{compilation-always-kill} to @code{t}.  You can also
+kill a compilation process with the command @kbd{M-x
 kill-compilation}.
 
   To run two compilations at once, start the first one, then rename

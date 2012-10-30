@@ -2919,7 +2919,7 @@ static void
 dissociate_if_controlling_tty (int fd)
 {
 #ifndef DOS_NT
-  int pgid = tcgetpgrp (fd); /* If tcgetpgrp succeeds, fd is the ctty. */
+  pid_t pgid = tcgetpgrp (fd); /* If tcgetpgrp succeeds, fd is the ctty. */
   if (pgid != -1)
     {
 #if defined (USG5)

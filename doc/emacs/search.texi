@@ -21,6 +21,7 @@ thing, but search for patterns instead of fixed strings.
 * Incremental Search::        Search happens as you type the string.
 * Nonincremental Search::     Specify entire string and then search.
 * Word Search::               Search for sequence of words.
+* Symbol Search::             Search for a source code symbol.
 * Regexp Search::             Search for match for a regexp.
 * Regexps::                   Syntax of regular expressions.
 * Regexp Backslash::          Regular expression constructs starting with `\'.
@@ -466,6 +467,47 @@ incremental word search, the matching is more lax: the last word in
 the search string can match part of a word, so that the matching
 proceeds incrementally as you type.  This additional laxity does not
 apply to the lazy highlight, which always matches whole words.
+
+@node Symbol Search
+@section Symbol Search
+@cindex symbol search
+
+  A @dfn{symbol search} is much like an ordinary search, except that
+the boundaries of the search must match the boundaries of a symbol.
+The meaning of @dfn{symbol} in this context depends on the major mode,
+and usually refers to a source code token, such as a Lisp symbol in
+Emacs Lisp mode.  For instance, if you perform an incremental symbol
+search for the Lisp symbol @code{forward-word}, it would not match
+@code{isearch-forward-word}.  This feature is thus mainly useful for
+searching source code.
+
+@table @kbd
+@item M-s _
+If incremental search is active, toggle symbol search mode
+(@code{isearch-toggle-symbol}); otherwise, begin an incremental
+forward symbol search (@code{isearch-forward-symbol}).
+@item M-s _ @key{RET} @var{symbol} @key{RET}
+Search forward for @var{symbol}, nonincrementally.
+@item M-s _ C-r @key{RET} @var{symbol} @key{RET}
+Search backward for @var{symbol}, nonincrementally.
+@end table
+
+@kindex M-s _
+@findex isearch-forward-symbol
+  To begin a forward incremental symbol search, type @kbd{M-s _}.  If
+incremental search is not already active, this runs the command
+@code{isearch-forward-symbol}.  If incremental search is already
+active, @kbd{M-s _} switches to a symbol search, preserving the
+direction of the search and the current search string; you can disable
+symbol search by typing @kbd{M-s _} again.  In incremental symbol
+search, only the beginning of the search string is required to match
+the beginning of a symbol.
+
+  To begin a nonincremental symbol search, type @kbd{M-s _ @key{RET}}
+for a forward search, or @kbd{M-s _ C-r @key{RET}} or a backward
+search.  In nonincremental symbol searches, the beginning and end of
+the search string are required to match the beginning and end of a
+symbol, respectively.
 
 @node Regexp Search
 @section Regular Expression Search

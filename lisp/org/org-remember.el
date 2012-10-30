@@ -1149,4 +1149,8 @@ See also the variable `org-reverse-note-order'."
 
 (provide 'org-remember)
 
+;; Local variables:
+;; generated-autoload-file: "org-loaddefs.el"
+;; End:
+
 ;;; org-remember.el ends here

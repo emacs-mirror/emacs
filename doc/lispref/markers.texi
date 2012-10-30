@@ -307,11 +307,6 @@ This function returns the buffer that @var{marker} points into, or
 @end example
 @end defun
 
-@defun buffer-has-markers-at position
-This function returns @code{t} if one or more markers
-point at position @var{position} in the current buffer.
-@end defun
-
 @node Marker Insertion Types
 @section Marker Insertion Types
 

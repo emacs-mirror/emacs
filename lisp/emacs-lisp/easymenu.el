@@ -44,110 +44,101 @@ menus, turn this variable off, otherwise it is probably better to keep it on.")
 
 ;;;###autoload
 (defmacro easy-menu-define (symbol maps doc menu)
-  "Define a menu bar submenu in maps MAPS, according to MENU.
+  "Define a pop-up menu and/or menu bar menu specified by MENU.
+If SYMBOL is non-nil, define SYMBOL as a function to pop up the
+submenu defined by MENU, with DOC as its doc string.
 
-If SYMBOL is non-nil, store the menu keymap in the value of SYMBOL,
-and define SYMBOL as a function to pop up the menu, with DOC as its doc string.
-If SYMBOL is nil, just store the menu keymap into MAPS.
+MAPS, if non-nil, should be a keymap or a list of keymaps; add
+the submenu defined by MENU to the keymap or each of the keymaps,
+as a top-level menu bar item.
 
-The first element of MENU must be a string.  It is the menu bar item name.
-It may be followed by the following keyword argument pairs
+The first element of MENU must be a string.  It is the menu bar
+item name.  It may be followed by the following keyword argument
+pairs:
 
-   :filter FUNCTION
+ :filter FUNCTION
+    FUNCTION must be a function which, if called with one
+    argument---the list of the other menu items---returns the
+    items to actually display.
 
-FUNCTION is a function with one argument, the rest of menu items.
-It returns the remaining items of the displayed menu.
+ :visible INCLUDE
+    INCLUDE is an expression.  The menu is visible if the
+    expression evaluates to a non-nil value.  `:included' is an
+    alias for `:visible'.
 
-   :visible INCLUDE
+ :active ENABLE
+    ENABLE is an expression.  The menu is enabled for selection
+    if the expression evaluates to a non-nil value.  `:enable' is
+    an alias for `:active'.
 
-INCLUDE is an expression; this menu is only visible if this
-expression has a non-nil value.  `:included' is an alias for `:visible'.
+The rest of the elements in MENU are menu items.
+A menu item can be a vector of three elements:
 
-   :active ENABLE
-
-ENABLE is an expression; the menu is enabled for selection whenever
-this expression's value is non-nil.  `:enable' is an alias for `:active'.
-
-The rest of the elements in MENU, are menu items.
-
-A menu item is usually a vector of three elements:  [NAME CALLBACK ENABLE]
+  [NAME CALLBACK ENABLE]
 
 NAME is a string--the menu item name.
 
-CALLBACK is a command to run when the item is chosen,
-or a list to evaluate when the item is chosen.
+CALLBACK is a command to run when the item is chosen, or an
+expression to evaluate when the item is chosen.
 
-ENABLE is an expression; the item is enabled for selection
-whenever this expression's value is non-nil.
+ENABLE is an expression; the item is enabled for selection if the
+expression evaluates to a non-nil value.
 
 Alternatively, a menu item may have the form:
 
-   [ NAME CALLBACK [ KEYWORD ARG ] ... ]
+   [ NAME CALLBACK [ KEYWORD ARG ]... ]
 
-Where KEYWORD is one of the symbols defined below.
+where NAME and CALLBACK have the same meanings as above, and each
+optional KEYWORD and ARG pair should be one of the following:
 
-   :keys KEYS
+ :keys KEYS
+    KEYS is a string; a keyboard equivalent to the menu item.
+    This is normally not needed because keyboard equivalents are
+    usually computed automatically.  KEYS is expanded with
+    `substitute-command-keys' before it is used.
 
-KEYS is a string; a complex keyboard equivalent to this menu item.
-This is normally not needed because keyboard equivalents are usually
-computed automatically.
-KEYS is expanded with `substitute-command-keys' before it is used.
+ :key-sequence KEYS
+    KEYS is a hint for speeding up Emacs's first display of the
+    menu.  It should be nil if you know that the menu item has no
+    keyboard equivalent; otherwise it should be a string or
+    vector specifying a keyboard equivalent for the menu item.
 
-   :key-sequence KEYS
+ :active ENABLE
+    ENABLE is an expression; the item is enabled for selection
+    whenever this expression's value is non-nil.  `:enable' is an
+    alias for `:active'.
 
-KEYS is nil, a string or a vector; nil or a keyboard equivalent to this
-menu item.
-This is a hint that will considerably speed up Emacs's first display of
-a menu.  Use `:key-sequence nil' when you know that this menu item has no
-keyboard equivalent.
+ :visible INCLUDE
+    INCLUDE is an expression; this item is only visible if this
+    expression has a non-nil value.  `:included' is an alias for
+    `:visible'.
 
-   :active ENABLE
+ :label FORM
+    FORM is an expression that is dynamically evaluated and whose
+    value serves as the menu item's label (the default is NAME).
 
-ENABLE is an expression; the item is enabled for selection whenever
-this expression's value is non-nil.  `:enable' is an alias for `:active'.
+ :suffix FORM
+    FORM is an expression that is dynamically evaluated and whose
+    value is concatenated with the menu entry's label.
 
-   :visible INCLUDE
+ :style STYLE
+    STYLE is a symbol describing the type of menu item; it should
+    be `toggle' (a checkbox), or `radio' (a radio button), or any
+    other value (meaning an ordinary menu item).
 
-INCLUDE is an expression; this item is only visible if this
-expression has a non-nil value.  `:included' is an alias for `:visible'.
+ :selected SELECTED
+    SELECTED is an expression; the checkbox or radio button is
+    selected whenever the expression's value is non-nil.
 
-   :label FORM
+ :help HELP
+    HELP is a string, the help to display for the menu item.
 
-FORM is an expression that will be dynamically evaluated and whose
-value will be used for the menu entry's text label (the default is NAME).
+Alternatively, a menu item can be a string.  Then that string
+appears in the menu as unselectable text.  A string consisting
+solely of dashes is displayed as a menu separator.
 
-   :suffix FORM
-
-FORM is an expression that will be dynamically evaluated and whose
-value will be concatenated to the menu entry's label.
-
-   :style STYLE
-
-STYLE is a symbol describing the type of menu item.  The following are
-defined:
-
-toggle: A checkbox.
-        Prepend the name with `(*) ' or `( ) ' depending on if selected or not.
-radio: A radio button.
-       Prepend the name with `[X] ' or `[ ] ' depending on if selected or not.
-button: Surround the name with `[' and `]'.  Use this for an item in the
-        menu bar itself.
-anything else means an ordinary menu item.
-
-   :selected SELECTED
-
-SELECTED is an expression; the checkbox or radio button is selected
-whenever this expression's value is non-nil.
-
-   :help HELP
-
-HELP is a string, the help to display for the menu item.
-
-A menu item can be a string.  Then that string appears in the menu as
-unselectable text.  A string consisting solely of hyphens is displayed
-as a solid horizontal line.
-
-A menu item can be a list with the same format as MENU.  This is a submenu."
+Alternatively, a menu item can be a list with the same format as
+MENU.  This is a submenu."
   (declare (indent defun) (debug (symbolp body)))
   `(progn
      ,(if symbol `(defvar ,symbol nil ,doc))

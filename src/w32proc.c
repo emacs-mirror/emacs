@@ -244,28 +244,92 @@ setpgrp (int pid, int gid)
    the thread calls the appropriate signal handler when the timer
    expires, after stopping the thread which installed the timer.  */
 
-/* FIXME: clock_t counts overflow after 49 days, need to handle the
-   wrap-around.  */
 struct itimer_data {
-  clock_t expire;
-  clock_t reload;
-  int terminate;
+  volatile ULONGLONG expire;
+  volatile ULONGLONG reload;
+  volatile int terminate;
   int type;
   HANDLE caller_thread;
   HANDLE timer_thread;
 };
 
-static clock_t ticks_now;
+static ULONGLONG ticks_now;
 static struct itimer_data real_itimer, prof_itimer;
-static clock_t clocks_min;
+static ULONGLONG clocks_min;
 /* If non-zero, itimers are disabled.  Used during shutdown, when we
    delete the critical sections used by the timer threads.  */
 static int disable_itimers;
 
 static CRITICAL_SECTION crit_real, crit_prof;
 
-#define MAX_SINGLE_SLEEP 30
+/* GetThreadTimes is not available on Windows 9X and possibly also on 2K.  */
+typedef BOOL (WINAPI *GetThreadTimes_Proc) (
+  HANDLE hThread,
+  LPFILETIME lpCreationTime,
+  LPFILETIME lpExitTime,
+  LPFILETIME lpKernelTime,
+  LPFILETIME lpUserTime);
 
+static GetThreadTimes_Proc s_pfn_Get_Thread_Times;
+
+#define MAX_SINGLE_SLEEP    30
+#define TIMER_TICKS_PER_SEC 1000
+
+/* Return a suitable time value, in 1-ms units, for THREAD, a handle
+   to a thread.  If THREAD is NULL or an invalid handle, return the
+   current wall-clock time since January 1, 1601 (UTC).  Otherwise,
+   return the sum of kernel and user times used by THREAD since it was
+   created, plus its creation time.  */
+static ULONGLONG
+w32_get_timer_time (HANDLE thread)
+{
+  ULONGLONG retval;
+  int use_system_time = 1;
+  /* The functions below return times in 100-ns units.  */
+  const int tscale = 10 * TIMER_TICKS_PER_SEC;
+
+  if (thread && thread != INVALID_HANDLE_VALUE
+      && s_pfn_Get_Thread_Times != NULL)
+    {
+      FILETIME creation_ftime, exit_ftime, kernel_ftime, user_ftime;
+      ULARGE_INTEGER temp_creation, temp_kernel, temp_user;
+
+      if (s_pfn_Get_Thread_Times (thread, &creation_ftime, &exit_ftime,
+				  &kernel_ftime, &user_ftime))
+	{
+	  use_system_time = 0;
+	  temp_creation.LowPart = creation_ftime.dwLowDateTime;
+	  temp_creation.HighPart = creation_ftime.dwHighDateTime;
+	  temp_kernel.LowPart = kernel_ftime.dwLowDateTime;
+	  temp_kernel.HighPart = kernel_ftime.dwHighDateTime;
+	  temp_user.LowPart = user_ftime.dwLowDateTime;
+	  temp_user.HighPart = user_ftime.dwHighDateTime;
+	  retval =
+	    temp_creation.QuadPart / tscale + temp_kernel.QuadPart / tscale
+	    + temp_user.QuadPart / tscale;
+	}
+      else
+	DebPrint (("GetThreadTimes failed with error code %lu\n",
+		   GetLastError ()));
+    }
+
+  if (use_system_time)
+    {
+      FILETIME current_ftime;
+      ULARGE_INTEGER temp;
+
+      GetSystemTimeAsFileTime (&current_ftime);
+
+      temp.LowPart = current_ftime.dwLowDateTime;
+      temp.HighPart = current_ftime.dwHighDateTime;
+
+      retval = temp.QuadPart / tscale;
+    }
+
+  return retval;
+}
+
+/* Thread function for a timer thread.  */
 static DWORD WINAPI
 timer_loop (LPVOID arg)
 {
@@ -273,14 +337,14 @@ timer_loop (LPVOID arg)
   int which = itimer->type;
   int sig = (which == ITIMER_REAL) ? SIGALRM : SIGPROF;
   CRITICAL_SECTION *crit = (which == ITIMER_REAL) ? &crit_real : &crit_prof;
-  const DWORD max_sleep = MAX_SINGLE_SLEEP * 1000 / CLOCKS_PER_SEC;
-  int new_count = 0;
+  const DWORD max_sleep = MAX_SINGLE_SLEEP * 1000 / TIMER_TICKS_PER_SEC;
+  HANDLE hth = (which == ITIMER_REAL) ? NULL : itimer->caller_thread;
 
   while (1)
     {
       DWORD sleep_time;
       signal_handler handler;
-      clock_t now, expire, reload;
+      ULONGLONG now, expire, reload;
 
       /* Load new values if requested by setitimer.  */
       EnterCriticalSection (crit);
@@ -290,15 +354,14 @@ timer_loop (LPVOID arg)
       if (itimer->terminate)
 	return 0;
 
-      if (itimer->expire == 0)
+      if (expire == 0)
 	{
 	  /* We are idle.  */
 	  Sleep (max_sleep);
 	  continue;
 	}
 
-      expire = itimer->expire;
-      if (expire > (now = clock ()))
+      if (expire > (now = w32_get_timer_time (hth)))
 	sleep_time = expire - now;
       else
 	sleep_time = 0;
@@ -309,24 +372,30 @@ timer_loop (LPVOID arg)
 	  if (itimer->terminate)
 	    return 0;
 	  Sleep (max_sleep);
+	  EnterCriticalSection (crit);
 	  expire = itimer->expire;
-	  sleep_time = (expire > (now = clock ())) ? expire - now : 0;
+	  LeaveCriticalSection (crit);
+	  sleep_time =
+	    (expire > (now = w32_get_timer_time (hth))) ? expire - now : 0;
 	}
       if (itimer->terminate)
 	return 0;
       if (sleep_time > 0)
 	{
-	  Sleep (sleep_time * 1000 / CLOCKS_PER_SEC);
+	  Sleep (sleep_time * 1000 / TIMER_TICKS_PER_SEC);
 	  /* Always sleep past the expiration time, to make sure we
 	     never call the handler _before_ the expiration time,
 	     always slightly after it.  Sleep(5) makes sure we don't
-	     hog the CPU by calling 'clock' with high frequency, and
-	     also let other threads work.  */
-	  while (clock () < expire)
+	     hog the CPU by calling 'w32_get_timer_time' with high
+	     frequency, and also let other threads work.  */
+	  while (w32_get_timer_time (hth) < expire)
 	    Sleep (5);
 	}
 
-      if (itimer->expire == 0)
+      EnterCriticalSection (crit);
+      expire = itimer->expire;
+      LeaveCriticalSection (crit);
+      if (expire == 0)
 	continue;
 
       /* Time's up.  */
@@ -353,19 +422,21 @@ timer_loop (LPVOID arg)
 	  ResumeThread (itimer->caller_thread);
 	}
 
-      if (itimer->expire == 0)
-	continue;
-
       /* Update expiration time and loop.  */
       EnterCriticalSection (crit);
       expire = itimer->expire;
+      if (expire == 0)
+	{
+	  LeaveCriticalSection (crit);
+	  continue;
+	}
       reload = itimer->reload;
       if (reload > 0)
 	{
-	  now = clock ();
+	  now = w32_get_timer_time (hth);
 	  if (expire <= now)
 	    {
-	      clock_t lag = now - expire;
+	      ULONGLONG lag = now - expire;
 
 	      /* If we missed some opportunities (presumably while
 		 sleeping or while the signal handler ran), skip
@@ -448,6 +519,15 @@ term_timers (void)
 void
 init_timers (void)
 {
+  /* GetThreadTimes is not avaiulable on all versions of Windows, so
+     need to probe for its availability dynamically, and call it
+     through a pointer.  */
+  s_pfn_Get_Thread_Times = NULL; /* in case dumped Emacs comes with a value */
+  if (os_subtype != OS_9X)
+    s_pfn_Get_Thread_Times =
+      (GetThreadTimes_Proc)GetProcAddress (GetModuleHandle ("kernel32.dll"),
+					   "GetThreadTimes");
+
   /* Make sure we start with zeroed out itimer structures, since
      dumping may have left there traces of threads long dead.  */
   memset (&real_itimer, 0, sizeof real_itimer);
@@ -473,14 +553,6 @@ start_timer_thread (int which)
     return 0;
 
   /* Start a new thread.  */
-  if (!DuplicateHandle (GetCurrentProcess (), GetCurrentThread (),
-			GetCurrentProcess (), &itimer->caller_thread, 0,
-			FALSE, DUPLICATE_SAME_ACCESS))
-    {
-      errno = ESRCH;
-      return -1;
-    }
-
   itimer->terminate = 0;
   itimer->type = which;
   /* Request that no more than 64KB of stack be reserved for this
@@ -512,16 +584,15 @@ start_timer_thread (int which)
 int
 getitimer (int which, struct itimerval *value)
 {
-  volatile clock_t *t_expire;
-  volatile clock_t *t_reload;
-  clock_t expire, reload;
+  volatile ULONGLONG *t_expire;
+  volatile ULONGLONG *t_reload;
+  ULONGLONG expire, reload;
   __int64 usecs;
   CRITICAL_SECTION *crit;
+  struct itimer_data *itimer;
 
   if (disable_itimers)
     return -1;
-
-  ticks_now = clock ();
 
   if (!value)
     {
@@ -535,8 +606,22 @@ getitimer (int which, struct itimerval *value)
       return -1;
     }
 
-  t_expire = (which == ITIMER_REAL) ? &real_itimer.expire: &prof_itimer.expire;
-  t_reload = (which == ITIMER_REAL) ? &real_itimer.reload: &prof_itimer.reload;
+  itimer = (which == ITIMER_REAL) ? &real_itimer : &prof_itimer;
+
+  if (!DuplicateHandle (GetCurrentProcess (), GetCurrentThread (),
+			GetCurrentProcess (), &itimer->caller_thread, 0,
+			FALSE, DUPLICATE_SAME_ACCESS))
+    {
+      errno = ESRCH;
+      return -1;
+    }
+
+  ticks_now = w32_get_timer_time ((which == ITIMER_REAL)
+				  ? NULL
+				  : itimer->caller_thread);
+
+  t_expire = &itimer->expire;
+  t_reload = &itimer->reload;
   crit = (which == ITIMER_REAL) ? &crit_real : &crit_prof;
 
   EnterCriticalSection (crit);
@@ -547,11 +632,13 @@ getitimer (int which, struct itimerval *value)
   if (expire)
     expire -= ticks_now;
 
-  value->it_value.tv_sec    = expire / CLOCKS_PER_SEC;
-  usecs = (expire % CLOCKS_PER_SEC) * (__int64)1000000 / CLOCKS_PER_SEC;
+  value->it_value.tv_sec    = expire / TIMER_TICKS_PER_SEC;
+  usecs =
+    (expire % TIMER_TICKS_PER_SEC) * (__int64)1000000 / TIMER_TICKS_PER_SEC;
   value->it_value.tv_usec   = usecs;
-  value->it_interval.tv_sec = reload / CLOCKS_PER_SEC;
-  usecs = (reload % CLOCKS_PER_SEC) * (__int64)1000000 / CLOCKS_PER_SEC;
+  value->it_interval.tv_sec = reload / TIMER_TICKS_PER_SEC;
+  usecs =
+    (reload % TIMER_TICKS_PER_SEC) * (__int64)1000000 / TIMER_TICKS_PER_SEC;
   value->it_interval.tv_usec= usecs;
 
   return 0;
@@ -560,10 +647,11 @@ getitimer (int which, struct itimerval *value)
 int
 setitimer(int which, struct itimerval *value, struct itimerval *ovalue)
 {
-  volatile clock_t *t_expire, *t_reload;
-  clock_t expire, reload, expire_old, reload_old;
+  volatile ULONGLONG *t_expire, *t_reload;
+  ULONGLONG expire, reload, expire_old, reload_old;
   __int64 usecs;
   CRITICAL_SECTION *crit;
+  struct itimerval tem, *ptem;
 
   if (disable_itimers)
     return -1;
@@ -573,26 +661,21 @@ setitimer(int which, struct itimerval *value, struct itimerval *ovalue)
      time we are called, measure the clock tick resolution.  */
   if (!clocks_min)
     {
-      clock_t t1, t2;
+      ULONGLONG t1, t2;
 
-      for (t1 = clock (); (t2 = clock ()) == t1; )
+      for (t1 = w32_get_timer_time (NULL);
+	   (t2 = w32_get_timer_time (NULL)) == t1; )
 	;
       clocks_min = t2 - t1;
     }
 
   if (ovalue)
-    {
-      if (getitimer (which, ovalue)) /* also sets ticks_now */
-	return -1;		     /* errno already set */
-    }
+    ptem = ovalue;
   else
-    ticks_now = clock ();
+    ptem = &tem;
 
-  if (which != ITIMER_REAL && which != ITIMER_PROF)
-    {
-      errno = EINVAL;
-      return -1;
-    }
+  if (getitimer (which, ptem)) /* also sets ticks_now */
+    return -1;		       /* errno already set */
 
   t_expire =
     (which == ITIMER_REAL) ? &real_itimer.expire : &prof_itimer.expire;
@@ -612,26 +695,26 @@ setitimer(int which, struct itimerval *value, struct itimerval *ovalue)
       return 0;
     }
 
-  reload = value->it_interval.tv_sec * CLOCKS_PER_SEC;
+  reload = value->it_interval.tv_sec * TIMER_TICKS_PER_SEC;
 
   usecs = value->it_interval.tv_usec;
   if (value->it_interval.tv_sec == 0
-      && usecs && usecs * CLOCKS_PER_SEC < clocks_min * 1000000)
+      && usecs && usecs * TIMER_TICKS_PER_SEC < clocks_min * 1000000)
     reload = clocks_min;
   else
     {
-      usecs *= CLOCKS_PER_SEC;
+      usecs *= TIMER_TICKS_PER_SEC;
       reload += usecs / 1000000;
     }
 
-  expire = value->it_value.tv_sec * CLOCKS_PER_SEC;
+  expire = value->it_value.tv_sec * TIMER_TICKS_PER_SEC;
   usecs = value->it_value.tv_usec;
   if (value->it_value.tv_sec == 0
-      && usecs * CLOCKS_PER_SEC < clocks_min * 1000000)
+      && usecs * TIMER_TICKS_PER_SEC < clocks_min * 1000000)
     expire = clocks_min;
   else
     {
-      usecs *= CLOCKS_PER_SEC;
+      usecs *= TIMER_TICKS_PER_SEC;
       expire += usecs / 1000000;
     }
 
@@ -1577,7 +1660,7 @@ sys_spawnve (int mode, char *cmdname, char **argv, char **envp)
       numenv++;
     }
   /* extra env vars... */
-  sprintf (ppid_env_var_buffer, "EM_PARENT_PROCESS_ID=%d",
+  sprintf (ppid_env_var_buffer, "EM_PARENT_PROCESS_ID=%lu",
 	   GetCurrentProcessId ());
   arglen += strlen (ppid_env_var_buffer) + 1;
   numenv++;

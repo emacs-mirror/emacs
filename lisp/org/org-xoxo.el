@@ -122,4 +122,8 @@ The XOXO buffer is named *xoxo-<source buffer name>*"
 
 (provide 'org-xoxo)
 
+;; Local variables:
+;; generated-autoload-file: "org-loaddefs.el"
+;; End:
+
 ;;; org-xoxo.el ends here

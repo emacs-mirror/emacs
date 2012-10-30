@@ -695,4 +695,8 @@ formatted as a string, not the original XML data."
 
 (provide 'org-feed)
 
+;; Local variables:
+;; generated-autoload-file: "org-loaddefs.el"
+;; End:
+
 ;;; org-feed.el ends here

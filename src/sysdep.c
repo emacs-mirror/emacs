@@ -452,7 +452,7 @@ sys_suspend (void)
 #if defined (SIGTSTP) && !defined (MSDOS)
 
   {
-    int pgrp = EMACS_GETPGRP (0);
+    pid_t pgrp = EMACS_GETPGRP (0);
     EMACS_KILLPG (pgrp, SIGTSTP);
   }
 

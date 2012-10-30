@@ -2949,8 +2949,8 @@ They default to the values of (point-min) and (point-max) in BUFFER."
 BUFFER may be a buffer or a buffer name.
 Arguments START and END are character positions specifying the substring.
 They default to the values of (point-min) and (point-max) in BUFFER.
-Strip text properties from the inserted text according to
-`yank-excluded-properties'."
+Before insertion, process text properties according to
+`yank-handled-properties' and `yank-excluded-properties'."
   ;; Since the buffer text should not normally have yank-handler properties,
   ;; there is no need to handle them here.
   (let ((opoint (point)))

@@ -238,7 +238,7 @@ GNU Press,               @hfill @uref{http://www.fsf.org/campaigns/gnu-press/}@*
 a division of the               @hfill email: @email{sales@@fsf.org}@*
 Free Software Foundation, Inc.  @hfill Tel: +1 (617) 542-5942@*
 51 Franklin Street, Fifth Floor @hfill Fax: +1 (617) 542-2652@*
-Boston, MA 02110-1301 USA       
+Boston, MA 02110-1301 USA
 @end iftex
 
 @ifnottex
@@ -249,7 +249,7 @@ GNU Press,                        http://www.fsf.org/campaigns/gnu-press/
 a division of the                 email: sales@@fsf.org
 Free Software Foundation, Inc.    Tel: +1 (617) 542-5942
 51 Franklin Street, Fifth Floor   Fax: +1 (617) 542-2652
-Boston, MA 02110-1301 USA          
+Boston, MA 02110-1301 USA
 @end example
 @end ifnottex
 
@@ -15680,11 +15680,11 @@ nil
 100
 @end group
 @group
-(17733 259)
-(17491 28834)
-(17596 62124)
-13157
-"-rw-rw-r--"
+(20615 27034 579989 697000)
+(17905 55681 0 0)
+(20615 26327 734791 805000)
+13188
+"-rw-r--r--"
 @end group
 @group
 nil

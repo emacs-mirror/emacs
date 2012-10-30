@@ -2646,6 +2646,7 @@ Because of ambiguities, this should be concatenated with something like
                     (while (re-search-forward pattern nil t)
                       (push (match-string-no-properties 1)
                             completions))
+		    (setq completions (delete-dups completions))
                     ;; Check subsequent nodes if applicable.
                     (or (and Info-complete-next-re
                              (setq nextnode (Info-extract-pointer "next" t))

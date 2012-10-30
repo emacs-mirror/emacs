@@ -684,4 +684,8 @@ a time), or the day by one (if it does not contain a time)."
 
 (provide 'org-icalendar)
 
+;; Local variables:
+;; generated-autoload-file: "org-loaddefs.el"
+;; End:
+
 ;;; org-icalendar.el ends here

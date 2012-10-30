@@ -3,6 +3,76 @@
 	* font.c (Ffont_at): If WINDOW is specified and it is not
 	displaying the current buffer, signal an error.
 
+2012-10-29  Daniel Colascione  <dancol@dancol.org>
+
+	* cygw32.h, cygw32.c (Qutf_16le, from_unicode, to_unicode): In
+	preparation for fixing bug#12739, move these functions from
+	here...
+
+	* coding.h, coding.c: ... to here, and compile them only when
+	WINDOWSNT or CYGWIN.  Moving these functions out of cygw32 proper
+	lets us write cygw32-agnostic code for the HAVE_NTGUI case.
+
+2012-10-28  Eli Zaretskii  <eliz@gnu.org>
+
+	* w32proc.c (TIMER_TICKS_PER_SEC): New macro.
+	(timer_loop, getitimer, setitimer): Use it instead of
+	CLOCKS_PER_SEC, which is no longer pertinent, since we don't use
+	'clock'.
+	(w32_get_timer_time): Use 10*TIMER_TICKS_PER_SEC instead of a
+	literal 10000.
+
+2012-10-28  Jan Djärv  <jan.h.d@swipnet.se>
+
+	* nsterm.m (NO_APPDEFINED_DATA): New define.
+	(last_appdefined_event_data): New variable
+	(last_appdefined_event): Remove.
+	(ns_select): Initialize t from last_appdefined_event_data instead
+	of [last_appdefined_event data1].
+	(sendEvent:): Save [theEvent data1] to last_appdefined_event_data,
+	remove last_appdefined_event (Bug#12698).
+
+2012-10-28  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* frame.c (x_set_font): Catch internal error.
+
+2012-10-27  Eli Zaretskii  <eliz@gnu.org>
+
+	Avoid overflow in w32 implementation of interval timers.
+	When possible, for ITIMER_PROF count only times the main thread
+	actually executes.
+	* w32proc.c <struct itimer_data>: 'expire' and 'reload' are now
+	'volatile ULONGLONG' types.  All the other data which was
+	previously clock_t is now ULONGLONG.  'terminate' is 'volatile int'.
+	(GetThreadTimes_Proc): New typedef.
+	(w32_get_timer_time): New function, returns a suitable time value
+	for the timer.
+	(timer_loop): Enter critical section when accessing ULONGLONG
+	values of the itimer_data struct, as these accesses are no longer
+	atomic.  Call 'w32_get_timer_time' instead of 'clock'.
+	Remove unused variable.
+	(init_timers): Initialize s_pfn_Get_Thread_Times.
+	(start_timer_thread): Don't assign itimer->caller_thread here.
+	(getitimer): Assign itimer->caller_thread here.
+	(setitimer): Always call getitimer to get the value of ticks_now.
+	(sys_spawnve): Avoid compiler warning about format mismatch.
+
+2012-10-26  Eli Zaretskii  <eliz@gnu.org>
+
+	* w32fns.c (w32_wnd_proc) <WM_MOUSEMOVE>: Don't enable tracking of
+	mouse movement events if the menu bar is active.  This avoids
+	producing a busy "hour-glass" cursor by Windows if the mouse
+	pointer is positioned over a tooltip shown for some menu item.
+
+2012-10-25  Paul Eggert  <eggert@cs.ucla.edu>
+
+	Don't assume process IDs fit in int.
+	* emacs.c (shut_down_emacs) [!DOS_NT]:
+	* sysdep.c (sys_suspend) [SIGTSTP && !MSDOS]:
+	* term.c (dissociate_if_controlling_tty) [!DOS_NT]:
+	Use pid_t, not int, to store process IDs, as 'int'
+	is not wide enough on a few platforms (e.g., AIX and IRIX).
+
 2012-10-23  Kenichi Handa  <handa@gnu.org>
 
 	The following change is to make face-font-rescale-alist work
@@ -60,8 +130,8 @@
 
 2012-10-19  Eli Zaretskii  <eliz@gnu.org>
 
-	* puresize.h (BASE_PURESIZE): Bump the base value to 1700000.  See
-	http://lists.gnu.org/archive/html/emacs-devel/2012-10/msg00593.html
+	* puresize.h (BASE_PURESIZE): Bump the base value to 1700000.
+	See http://lists.gnu.org/archive/html/emacs-devel/2012-10/msg00593.html
 	for the reasons.
 
 	* alloc.c (NSTATICS): Decrease to 0x800.
@@ -680,8 +750,8 @@
 	(ns_clear_frame_area): Remove resize handle code.
 
 	* nsfns.m (ns_in_resize): Remove.
-	(x_set_icon_name, ns_set_name, ns_set_name_as_filename): Remove
-	ns_in_resize check.
+	(x_set_icon_name, ns_set_name, ns_set_name_as_filename):
+	Remove ns_in_resize check.
 
 2012-10-07  Paul Eggert  <eggert@cs.ucla.edu>
 

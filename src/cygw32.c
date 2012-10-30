@@ -22,7 +22,6 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #include "buffer.h"
 #include <unistd.h>
 #include <fcntl.h>
-static Lisp_Object Qutf_16le;
 
 static Lisp_Object
 fchdir_unwind (Lisp_Object dir_fd)
@@ -107,36 +106,6 @@ conv_filename_from_w32_unicode (const wchar_t* in, int absolute_p)
   return unbind_to (count, DECODE_FILE (converted));
 }
 
-Lisp_Object
-from_unicode (Lisp_Object str)
-{
-  CHECK_STRING (str);
-  if (!STRING_MULTIBYTE (str) &&
-      SBYTES (str) & 1)
-    {
-      str = Fsubstring (str, make_number (0), make_number (-1));
-    }
-
-  return code_convert_string_norecord (str, Qutf_16le, 0);
-}
-
-wchar_t *
-to_unicode (Lisp_Object str, Lisp_Object *buf)
-{
-  *buf = code_convert_string_norecord (str, Qutf_16le, 1);
-  /* We need to make a another copy (in addition to the one made by
-     code_convert_string_norecord) to ensure that the final string is
-     _doubly_ zero terminated --- that is, that the string is
-     terminated by two zero bytes and one utf-16le null character.
-     Because strings are already terminated with a single zero byte,
-     we just add one additional zero. */
-  str = make_uninit_string (SBYTES (*buf) + 1);
-  memcpy (SDATA (str), SDATA (*buf), SBYTES (*buf));
-  SDATA (str) [SBYTES (*buf)] = '\0';
-  *buf = str;
-  return WCSDATA (*buf);
-}
-
 DEFUN ("cygwin-convert-path-to-windows",
        Fcygwin_convert_path_to_windows, Scygwin_convert_path_to_windows,
        1, 2, 0,
@@ -162,8 +131,6 @@ DEFUN ("cygwin-convert-path-from-windows",
 void
 syms_of_cygw32 (void)
 {
-  /* No, not utf-16-le: that one has a BOM.  */
-  DEFSYM (Qutf_16le, "utf-16le");
   defsubr (&Scygwin_convert_path_from_windows);
   defsubr (&Scygwin_convert_path_to_windows);
 }

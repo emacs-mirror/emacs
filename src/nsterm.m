@@ -190,7 +190,8 @@ static BOOL ns_menu_bar_is_hidden = NO;
 
 /* event loop */
 static BOOL send_appdefined = YES;
-static NSEvent *last_appdefined_event = 0;
+#define NO_APPDEFINED_DATA (-8)
+static int last_appdefined_event_data = NO_APPDEFINED_DATA;
 static NSTimer *timed_entry = 0;
 static NSTimer *scroll_repeat_entry = nil;
 static fd_set select_readfds, select_writefds;
@@ -3436,8 +3437,7 @@ ns_select (int nfds, fd_set *readfds, fd_set *writefds,
    -------------------------------------------------------------------------- */
 {
   int result;
-  NSEvent *ev;
-  int k, nr = 0;
+  int t, k, nr = 0;
   struct input_event event;
   char c;
 
@@ -3521,16 +3521,11 @@ ns_select (int nfds, fd_set *readfds, fd_set *writefds,
     }
   unblock_input ();
 
-  ev = last_appdefined_event;
+  t = last_appdefined_event_data;
 
-  if (ev)
+  if (t != NO_APPDEFINED_DATA)
     {
-      int t;
-      if ([ev type] != NSApplicationDefined)
-        emacs_abort ();
-
-      t = [ev data1];
-      last_appdefined_event = 0;
+      last_appdefined_event_data = NO_APPDEFINED_DATA;
 
       if (t == -2)
         {
@@ -4307,7 +4302,7 @@ ns_term_shutdown (int sig)
          modal loop. Just defer it until later. */
       if ([NSApp modalWindow] == nil)
         {
-          last_appdefined_event = theEvent;
+          last_appdefined_event_data = [theEvent data1];
           [self stop: self];
         }
       else

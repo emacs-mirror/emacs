@@ -26,16 +26,10 @@
 ;; parser plug-in is the function `semantic-texi-parse-region' that
 ;; overrides `semantic-parse-region'.
 
-(require 'semantic)
+(require 'semantic/db-find)
 (require 'semantic/format)
+(require 'semantic/ctxt)
 (require 'texinfo)
-
-(eval-when-compile
-  (require 'semantic/db)
-  (require 'semantic/db-find)
-  (require 'semantic/ctxt)
-  (require 'semantic/find)
-  (require 'semantic/doc))
 
 (defvar ede-minor-mode)
 (declare-function lookup-words "ispell")

@@ -527,7 +527,7 @@ Returns an object based on symbol `semantic-analyze-context'."
 	 (function nil)
 	 (fntag nil)
 	 arg fntagend argtag
-	 assign asstag
+	 assign asstag newseq
 	 )
 
     ;; Pattern for Analysis:
@@ -601,16 +601,26 @@ Returns an object based on symbol `semantic-analyze-context'."
 
       (if debug-on-error
 	  (catch 'unfindable
-	    ;; If debug on error is on, allow debugging in this fcn.
 	    (setq prefix (semantic-analyze-find-tag-sequence
-			  prefix scope 'prefixtypes 'unfindable)))
+			  prefix scope 'prefixtypes 'unfindable))
+	    ;; If there's an alias, dereference it and analyze
+	    ;; sequence again.
+	    (when (setq newseq
+			(semantic-analyze-dereference-alias prefix))
+	      (setq prefix (semantic-analyze-find-tag-sequence
+			    newseq scope 'prefixtypes 'unfindable))))
 	;; Debug on error is off.  Capture errors and move on
 	(condition-case err
 	    ;; NOTE: This line is duplicated in
 	    ;;       semantic-analyzer-debug-global-symbol
 	    ;;       You will need to update both places.
-	    (setq prefix (semantic-analyze-find-tag-sequence
-			  prefix scope 'prefixtypes))
+	    (progn
+	      (setq prefix (semantic-analyze-find-tag-sequence
+			    prefix scope 'prefixtypes))
+	      (when (setq newseq
+			  (semantic-analyze-dereference-alias prefix))
+		(setq prefix (semantic-analyze-find-tag-sequence
+			      newseq scope 'prefixtypes))))
 	  (error (semantic-analyze-push-error err))))
       )
 
@@ -679,6 +689,20 @@ Returns an object based on symbol `semantic-analyze-context'."
     ;; Return our context.
     context-return))
 
+(defun semantic-analyze-dereference-alias (taglist)
+  "Dereference first tag in TAGLIST if it is an alias.
+Returns a sequence of names which can then be fed again into
+`semantic-analyze-find-tag-sequence'.
+Returns nil if no alias was found."
+  (when (eq (semantic-tag-get-attribute (car taglist) :kind) 'alias)
+    (let ((tagname
+	   (semantic-analyze-split-name
+	    (semantic-tag-name 
+	     (car (semantic-tag-get-attribute (car taglist) :members))))))
+      (append (if (listp tagname)
+		  tagname
+		(list tagname))
+	      (cdr taglist)))))
 
 (defun semantic-adebug-analyze (&optional ctxt)
   "Perform `semantic-analyze-current-context'.

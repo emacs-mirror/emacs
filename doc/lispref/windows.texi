@@ -76,30 +76,35 @@ within the area of the frame.  When a window is created, resized, or
 deleted, the change in window space is taken from or given to the
 adjacent windows, so that the total area of the frame is unchanged.
 
-@cindex live windows
-@cindex internal windows
-  A @dfn{live window} is one that is actually displaying a buffer in a
-frame.  Such a window can be @dfn{deleted}, i.e. removed from the
-frame (@pxref{Deleting Windows}); then it is no longer live, but the
-Lisp object representing it might be still referenced from other Lisp
-objects.  A deleted window may be brought back to life by restoring a
-saved window configuration (@pxref{Window Configurations}).
-
 @defun windowp object
 This function returns @code{t} if @var{object} is a window (whether or
-not it is live).  Otherwise, it returns @code{nil}.
+not it displays a buffer).  Otherwise, it returns @code{nil}.
 @end defun
+
+@cindex live windows
+A @dfn{live window} is one that is actually displaying a buffer in a
+frame.
 
 @defun window-live-p object
 This function returns @code{t} if @var{object} is a live window and
 @code{nil} otherwise.  A live window is one that displays a buffer.
 @end defun
 
-  The windows in each frame are organized into a @dfn{window tree}.
-@xref{Windows and Frames}.  The leaf nodes of each window tree are
-live windows---the ones actually displaying buffers.  The internal
-nodes of the window tree are internal windows, which are not live.
-You can distinguish internal windows from deleted windows with
+@cindex internal windows
+The windows in each frame are organized into a @dfn{window tree}.
+@xref{Windows and Frames}.  The leaf nodes of each window tree are live
+windows---the ones actually displaying buffers.  The internal nodes of
+the window tree are @dfn{internal windows}, which are not live.
+
+@cindex valid windows
+   A @dfn{valid window} is one that is either live or internal.  A valid
+window can be @dfn{deleted}, i.e. removed from its frame
+(@pxref{Deleting Windows}); then it is no longer valid, but the Lisp
+object representing it might be still referenced from other Lisp
+objects.  A deleted window may be made valid again by restoring a saved
+window configuration (@pxref{Window Configurations}).
+
+   You can distinguish valid windows from deleted windows with
 @code{window-valid-p}.
 
 @defun window-valid-p object
@@ -1317,31 +1322,37 @@ meaning as for @code{next-window}.
 criterion, without selecting it:
 
 @cindex least recently used window
-@defun get-lru-window &optional all-frames dedicated
+@defun get-lru-window &optional all-frames dedicated not-selected
 This function returns a live window which is heuristically the ``least
 recently used'' window.  The optional argument @var{all-frames} has
 the same meaning as in @code{next-window}.
 
 If any full-width windows are present, only those windows are
-considered.  The selected window is never returned, unless it is the
-only candidate.  A minibuffer window is never a candidate.  A
-dedicated window (@pxref{Dedicated Windows}) is never a candidate
-unless the optional argument @var{dedicated} is non-@code{nil}.
+considered.  A minibuffer window is never a candidate.  A dedicated
+window (@pxref{Dedicated Windows}) is never a candidate unless the
+optional argument @var{dedicated} is non-@code{nil}.  The selected
+window is never returned, unless it is the only candidate.  However, if
+the optional argument @var{not-selected} is non-@code{nil}, this
+function returns @code{nil} in that case.
 @end defun
 
 @cindex largest window
-@defun get-largest-window &optional all-frames dedicated
+@defun get-largest-window &optional all-frames dedicated not-selected
 This function returns the window with the largest area (height times
-width).  A minibuffer window is never a candidate.  A dedicated window
+width).  The optional argument @var{all-frames} specifies the windows to
+search, and has the same meaning as in @code{next-window}.
+
+A minibuffer window is never a candidate.  A dedicated window
 (@pxref{Dedicated Windows}) is never a candidate unless the optional
-argument @var{dedicated} is non-@code{nil}.
+argument @var{dedicated} is non-@code{nil}.  The selected window is not
+a candidate if the optional argument @var{not-selected} is
+non-@code{nil}.  If the optional argument @var{not-selected} is
+non-@code{nil} and the selected window is the only candidate, this
+function returns @code{nil}.
 
 If there are two candidate windows of the same size, this function
 prefers the one that comes first in the cyclic ordering of windows,
 starting from the selected window.
-
-The optional argument @var{all-frames} specifies the windows to
-search, and has the same meaning as in @code{next-window}.
 @end defun
 
 @cindex window that satisfies a predicate
@@ -1358,6 +1369,26 @@ The optional arguments @var{minibuf} and @var{all-frames} specify the
 windows to search, and have the same meanings as in
 @code{next-window}.
 @end defun
+
+@cindex window in direction
+@defun window-in-direction direction &optional window ignore
+This function returns the nearest window in direction @var{direction} as
+seen from the position of @code{window-point} in window @var{window}.
+The argument @var{direction} must be one of @code{above}, @code{below},
+@code{left} or @code{right}.  The optional argument @var{window} must
+denote a live window and defaults to the selected one.
+
+This function does not return a window whose @code{no-other-window}
+parameter is non-@code{nil}.  If the nearest window's
+@code{no-other-window} parameter is non-@code{nil}, this function tries
+to find another window in the indicated direction whose
+@code{no-other-window} parameter is @code{nil}.  If the optional
+argument @var{ignore} is non-@code{nil}, a window may be returned even
+if its @code{no-other-window} parameter is non-@code{nil}.
+
+If it doesn't find a suitable window, this function returns @code{nil}.
+@end defun
+
 
 @node Buffers and Windows
 @section Buffers and Windows
@@ -1632,11 +1663,6 @@ The variable @code{display-buffer-overriding-action}.
 The user option @code{display-buffer-alist}.
 
 @item
-A special action for handling @code{special-display-buffer-names} and
-@code{special-display-regexps}, if either of those variables is
-non-@code{nil}.  @xref{Choosing Window Options}.
-
-@item
 The @var{action} argument.
 
 @item
@@ -1864,91 +1890,6 @@ Parameters}), which is used by the default function in
 @code{nil}.
 @end defopt
 
-@defopt special-display-buffer-names
-A list of buffer names identifying buffers that should be displayed
-specially.  If the name of @var{buffer-or-name} is in this list,
-@code{display-buffer} handles the buffer specially.  By default, special
-display means to give the buffer a dedicated frame.
-
-If an element is a list, instead of a string, then the @sc{car} of that
-list is the buffer name, and the rest of that list says how to create
-the frame.  There are two possibilities for the rest of that list (its
-@sc{cdr}): It can be an alist, specifying frame parameters, or it can
-contain a function and arguments to give to it.  (The function's first
-argument is always the buffer to be displayed; the arguments from the
-list come after that.)
-
-For example:
-
-@example
-(("myfile" (minibuffer) (menu-bar-lines . 0)))
-@end example
-
-@noindent
-specifies to display a buffer named @samp{myfile} in a dedicated frame
-with specified @code{minibuffer} and @code{menu-bar-lines} parameters.
-
-The list of frame parameters can also use the phony frame parameters
-@code{same-frame} and @code{same-window}.  If the specified frame
-parameters include @code{(same-window . @var{value})} and @var{value}
-is non-@code{nil}, that means to display the buffer in the current
-selected window.  Otherwise, if they include @code{(same-frame .
-@var{value})} and @var{value} is non-@code{nil}, that means to display
-the buffer in a new window in the currently selected frame.
-@end defopt
-
-@defopt special-display-regexps
-A list of regular expressions specifying buffers that should be
-displayed specially.  If the buffer's name matches any of the regular
-expressions in this list, @code{display-buffer} handles the buffer
-specially.  By default, special display means to give the buffer a
-dedicated frame.
-
-If an element is a list, instead of a string, then the @sc{car} of the
-list is the regular expression, and the rest of the list says how to
-create the frame.  See @code{special-display-buffer-names} above.
-@end defopt
-
-@defun special-display-p buffer-name
-This function returns non-@code{nil} if displaying a buffer
-named @var{buffer-name} with @code{display-buffer} would
-create a special frame.  The value is @code{t} if it would
-use the default frame parameters, or else the specified list
-of frame parameters.
-@end defun
-
-@defopt special-display-function
-This variable holds the function to call to display a buffer specially.
-It receives the buffer as an argument, and should return the window in
-which it is displayed.  The default value of this variable is
-@code{special-display-popup-frame}, see below.
-@end defopt
-
-@defun special-display-popup-frame buffer &optional args
-This function tries to make @var{buffer} visible in a frame of its own.
-If @var{buffer} is already displayed in some window, it makes that
-window's frame visible and raises it.  Otherwise, it creates a frame
-that is dedicated to @var{buffer}.  The return value is the window used
-to display @var{buffer}.
-
-If @var{args} is an alist, it specifies frame parameters for the new
-frame.  If @var{args} is a list whose @sc{car} is a symbol, then
-@code{(car @var{args})} is a function to actually create and
-set up the frame; it is called with @var{buffer} as first argument, and
-@code{(cdr @var{args})} as additional arguments.
-
-This function always uses an existing window displaying @var{buffer},
-whether or not it is in a frame of its own; but if you set up the above
-variables in your init file, before @var{buffer} was created, then
-presumably the window was previously made by this function.
-@end defun
-
-@defopt special-display-frame-alist
-@anchor{Definition of special-display-frame-alist}
-This variable holds frame parameters for
-@code{special-display-popup-frame} to use when it creates a frame.
-@end defopt
-
 @defopt same-window-buffer-names
 A list of buffer names for buffers that should be displayed in the
 selected window.  If a buffer's name is in this list,
@@ -1968,19 +1909,6 @@ This function returns @code{t} if displaying a buffer
 named @var{buffer-name} with @code{display-buffer} would
 put it in the selected window.
 @end defun
-
-@c Emacs 19 feature
-@defopt display-buffer-function
-This variable is the most flexible way to customize the behavior of
-@code{display-buffer}.  If it is non-@code{nil}, it should be a function
-that @code{display-buffer} calls to do the work.  The function should
-accept two arguments, the first two arguments that @code{display-buffer}
-received.  It should choose or create a window, display the specified
-buffer in it, and then return the window.
-
-This variable takes precedence over all the other options described
-above.
-@end defopt
 
 @node Window History
 @section Window History

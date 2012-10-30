@@ -373,6 +373,7 @@ Searching and Replacement
 * Incremental Search::     Search happens as you type the string.
 * Nonincremental Search::  Specify entire string and then search.
 * Word Search::            Search for sequence of words.
+* Symbol Search::          Search for a source code symbol.
 * Regexp Search::          Search for match for a regexp.
 * Regexps::                Syntax of regular expressions.
 * Regexp Backslash::       Regular expression constructs starting with `\'.

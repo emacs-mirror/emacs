@@ -3049,29 +3049,6 @@ Optional argument NOESCAPE is passed to `prin1-to-string' when appropriate."
 	    )
 	  )
 
-;;; Interfacing with imenu in emacs lisp mode
-;;    (Only if the expression is defined)
-;;
-(if (eval-when-compile (boundp 'lisp-imenu-generic-expression))
-(progn
-
-(defun eieio-update-lisp-imenu-expression ()
-  "Examine `lisp-imenu-generic-expression' and modify it to find `defmethod'."
-  (let ((exp lisp-imenu-generic-expression))
-    (while exp
-      ;; it's of the form '( ( title expr indx ) ... )
-      (let* ((subcar (cdr (car exp)))
-	     (substr (car subcar)))
-	(if (and (not (string-match "|method\\\\" substr))
-		 (string-match "|advice\\\\" substr))
-	    (setcar subcar
-		    (replace-match "|advice\\|method\\" t t substr 0))))
-      (setq exp (cdr exp)))))
-
-(eieio-update-lisp-imenu-expression)
-
-))
-
 ;;; Autoloading some external symbols, and hooking into the help system
 ;;
 

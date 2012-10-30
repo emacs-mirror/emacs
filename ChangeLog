@@ -1,3 +1,31 @@
+2012-10-26  Glenn Morris  <rgm@gnu.org>
+
+	* Makefile.in (EMACS_NAME): New variable.
+	(EMACS, install-etc, uninstall): Use $EMACS_NAME.
+
+	* Makefile.in (EMACS, EMACSFULL): Transformations should not be
+	applied to $EXEEXT.
+
+	* Makefile.in (uninstall): Don't abort if some directories are missing.
+	Apply transformation rules to manual pages, desktop and icon files.
+	No more emacs22 icons to uninstall.
+
+2012-10-24  Glenn Morris  <rgm@gnu.org>
+
+	* Makefile.in (install-etc, install-man):
+	Don't apply program transform to standard file suffixes.
+
+2012-10-23  Paul Eggert  <eggert@cs.ucla.edu>
+
+	* configure.ac (_FORTIFY_SOURCE): Do not multiply define (Bug#12714).
+	This ports to Gentoo.  Problem originally reported against coreutils,
+	but Emacs has it too.
+
+2012-10-23  Glenn Morris  <rgm@gnu.org>
+
+	* Makefile.in (emacs_transform): Remove.
+	(install-man): Revert 2012-10-21 change.  (Bug#12713)
+
 2012-10-21  Glenn Morris  <rgm@gnu.org>
 
 	* Makefile.in (install-etc): Don't install emacs22 icons.

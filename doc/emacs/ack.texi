@@ -835,8 +835,9 @@ diffs; @file{css-mode.el} for Cascading Style Sheets;
 client for the ``Music Player Daemon''; @file{smie.el}, a generic
 indentation engine; and @file{pcase.el}, implementing ML-style pattern
 matching.  In Emacs 24, he integrated the lexical binding code,
-and cleaned up the CL namespace (making it acceptable to use CL
-functions at runtime).
+cleaned up the CL namespace (making it acceptable to use CL
+functions at runtime), and added generalized variables to core Emacs
+Lisp.
 
 @item
 Morioka Tomohiko wrote several packages for MIME support in Gnus and

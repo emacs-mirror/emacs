@@ -10,8 +10,8 @@
 ;;;;;;  cl-truncate cl-ceiling cl-floor cl-isqrt cl-lcm cl-gcd cl--set-frame-visible-p
 ;;;;;;  cl--map-overlays cl--map-intervals cl--map-keymap-recursively
 ;;;;;;  cl-notevery cl-notany cl-every cl-some cl-mapcon cl-mapcan
-;;;;;;  cl-mapl cl-maplist cl-map cl--mapcar-many cl-equalp cl-coerce)
-;;;;;;  "cl-extra" "cl-extra.el" "1572ae52fa4fbd9c4bf89b49a068a865")
+;;;;;;  cl-mapl cl-mapc cl-maplist cl-map cl--mapcar-many cl-equalp
+;;;;;;  cl-coerce) "cl-extra" "cl-extra.el" "7d7f65d8a05e954a919fe2555b68fb05")
 ;;; Generated autoloads from cl-extra.el
 
 (autoload 'cl-coerce "cl-extra" "\
@@ -45,6 +45,11 @@ Like `mapcar', except applies to lists and their cdr's rather than to
 the elements themselves.
 
 \(fn FUNCTION LIST...)" nil nil)
+
+(autoload 'cl-mapc "cl-extra" "\
+Like `cl-mapcar', but does not accumulate values returned by the function.
+
+\(fn FUNCTION SEQUENCE...)" nil nil)
 
 (autoload 'cl-mapl "cl-extra" "\
 Like `cl-maplist', but does not accumulate values returned by the function.
@@ -260,7 +265,7 @@ Remove from SYMBOL's plist the property PROPNAME and its value.
 ;;;;;;  cl-typecase cl-ecase cl-case cl-load-time-value cl-eval-when
 ;;;;;;  cl-destructuring-bind cl-function cl-defmacro cl-defun cl-gentemp
 ;;;;;;  cl-gensym cl--compiler-macro-cXXr cl--compiler-macro-list*)
-;;;;;;  "cl-macs" "cl-macs.el" "885919e79dbcd11081cfb2e039b470c7")
+;;;;;;  "cl-macs" "cl-macs.el" "366e9efa4e3e7a81b2253e503611b23a")
 ;;; Generated autoloads from cl-macs.el
 
 (autoload 'cl--compiler-macro-list* "cl-macs" "\
@@ -485,7 +490,7 @@ before assigning any symbols SYM to the corresponding values.
 Bind SYMBOLS to VALUES dynamically in BODY.
 The forms SYMBOLS and VALUES are evaluated, and must evaluate to lists.
 Each symbol in the first list is bound to the corresponding value in the
-second list (or made unbound if VALUES is shorter than SYMBOLS); then the
+second list (or to nil if VALUES is shorter than SYMBOLS); then the
 BODY forms are executed and their result is returned.  This is much like
 a `let' form, except that the list of symbols can be computed at run-time.
 

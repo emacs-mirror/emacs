@@ -1,4 +1,205 @@
+2012-10-30  Glenn Morris  <rgm@gnu.org>
+
+	* emacs-lisp/cl-extra.el (cl-mapc): Add autoload cookie.  Doc fix.
+
+	* emacs-lisp/cl.el (letf): Doc fix.  (Bug#12760)
+
+2012-10-29  Chong Yidong  <cyd@gnu.org>
+
+	* isearch.el (isearch-other-meta-char): Ensure that a reprocessed
+	function key is stored in a keyboard macro (Bug#4894).
+
+	* thingatpt.el (number-at-point): Apply a thing-at-point property.
+
+2012-10-29  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* vc/diff-mode.el (diff-context->unified): Don't get confused by "hunk
+	header comments".
+	(diff-unified->context, diff-context->unified)
+	(diff-reverse-direction, diff-fixup-modifs): Use `use-region-p'.
+
+	* emacs-lisp/cl.el (letf): Add missing indent rules (bug#12759).
+
+	* files.el (find-alternate-file): Only ask one question (bug#12487).
+
+2012-10-29  Chong Yidong  <cyd@gnu.org>
+
+	* vc/vc-hooks.el (vc-file-clearprops): Kill vc-parent-buffer.
+	Suggested by Dan Nicolaescu (Bug#6326).
+
+	* info.el (Info-complete-menu-item): Avoid duplicates (Bug#12705).
+
+	* startup.el (fancy-about-screen): Don't message (Bug#12680).
+
+	* thingatpt.el (thing-at-point): Doc fix (Bug#12691).
+
+	* imenu.el (imenu): Inhibit push-mark message (Bug#12726).
+
+	* face-remap.el (face-remap-add-relative): Handle the case where a
+	face-remapping-alist entry is a cons cell (Bug#12762).
+
+2012-10-29  Kevin Ryde  <user42@zip.com.au>
+
+	* woman.el (woman-parse-numeric-value): Handle picas correctly
+	(Bug#12639).
+
+2012-10-29  Glenn Morris  <rgm@gnu.org>
+
+	* emacs-lisp/cl.el (defsetf): Doc fix.
+
+2012-10-29  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* progmodes/sh-script.el (sh-font-lock-paren): Also put punctuation
+	syntax to the matching opener, if any (bug#12547).
+	(sh-smie-sh-forward-token, sh-smie-sh-backward-token): Recognize this
+	matching open as a "case-(".
+	(sh-smie-rc-grammar): Add a corresponding rule for it.
+
+2012-10-28  Daniel Hackney  <dan@haxney.org>
+
+	* emacs-lisp/package.el (package-generate-autoloads): Kill buffer
+	"PKGNAME-autoloads.el" in case we created it.
+
+2012-10-28  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* minibuffer.el (completion--sifn-requote): Rewrite to handle things
+	like Tramp's "/foo:~bar//baz" -> "/scpc:foo:/baz" mapping (bug#11714).
+	(completion--twq-all): Disable too-strict assertions.
+
+	* tmm.el (tmm-prompt): Use map-keymap (bug#12744).
+
+2012-10-27  Eli Zaretskii  <eliz@gnu.org>
+
+	* profiler.el (profiler-report-make-entry-part): Fix help-echo
+	text to match the real keybindings.
+
+2012-10-27  Juri Linkov  <juri@jurta.org>
+
+	* wdired.el (wdired-keep-marker-rename): New defcustom.
+	(wdired-do-renames): Use it instead of `dired-keep-marker-rename'.
+	(Bug#11795)
+
+	* dired.el (dired-keep-marker-rename): Add reference to
+	`wdired-keep-marker-rename' in the docstring.
+	Add default character value ?R to display initially in
+	Customization UI instead of ?@.
+
+2012-10-27  Martin Rudalics  <rudalics@gmx.at>
+
+	* window.el (display-buffer): In doc-string describe
+	window-height and window-width alist entries.
+
+	* time.el (display-time-world): Restore fit-window-to-buffer
+	behavior.
+
+2012-10-27  Chong Yidong  <cyd@gnu.org>
+
+	* subr.el (insert-buffer-substring-as-yank): Doc fix.
+
+2012-10-26  Jambunathan K  <kjambunathan@gmail.com>
+
+	* minibuffer.el (completion-category-overrides): New completion
+	category `bookmark' (bug#11131).
+
+2012-10-26  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* emacs-lisp/advice.el (ad-assemble-advised-definition):
+	Silence bogus compiler warnings for ad-do-it.
+
+	* bookmark.el (bookmark-completing-read): Set the completion category
+	to `bookmark' (bug#11131).
+
+2012-10-26  Bastien  <bzg@altern.org>
+            Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* face-remap.el: Use lexical-binding.
+	(text-scale-adjust): Improve docstring.  Use itself for the temporary
+	overlay-map bindings, so as to repeat the "Use..." message each time.
+
+2012-10-26  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* emacs-lisp/macroexp.el (macroexp--expand-all):
+	Obey byte-compile-warning-enabled-p (bug#12486).
+
+	* vc/diff-mode.el (diff-end-of-hunk): Also skip potential "no LF at eol".
+	(diff-refine-hunk): Similarly, handle the "no LF at eol" (bug#12584).
+
+2012-10-26  Martin Rudalics  <rudalics@gmx.at>
+
+	* mouse.el (mouse-drag-line): Move last form into preceding when
+	clause (Bug#12731).
+
+	* help.el (resize-temp-buffer-window): Fix doc-string.
+
+2012-10-25  David Engster  <deng@randomsample.de>
+
+	* emacs-lisp/eieio.el (eieio-update-lisp-imenu-expression):
+	Remove.  This feature is already integrated in imenu.
+
+	* emacs-lisp/eieio-opt.el: Remove require for `button' since it is
+	always loaded.  Require `speedbar' unconditionally.
+
+2012-10-25  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* dired.el (dired-get-marked-files): Allow ! on . and .. (bug#12725).
+
+	* minibuffer.el (minibuffer-force-complete): Fix thinko.
+
+	* net/ldap.el (ldap-search-internal): The official ldif format starts
+	with a "version: 1" header (bug#12724).
+
+	* emacs-lisp/package.el (package-installed-p): Warn if not ready
+	(bug#12721).
+
+2012-10-25  Glenn Morris  <rgm@gnu.org>
+
+	* emacs-lisp/cl-macs.el (cl-progv): Doc fix.
+
+2012-10-24  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* minibuffer.el (minibuffer-force-complete): Use one more marker
+	for the temporary-overlay-map command (bug#12619).
+
+2012-10-24  Chong Yidong  <cyd@gnu.org>
+
+	* time.el (display-time-world-mode): Derive from special-mode.
+	(display-time-world): Use display-buffer (Bug#12708).
+	(display-time-world-mode-map): Variable deleted.
+	(display-time-world-display): Wrap the final delete-char inside
+	inhibit-read-only.
+
+2012-10-24  Chong Yidong  <cyd@gnu.org>
+
+	* dired.el (dired-mark, dired-unmark, dired-flag-file-deletion):
+	Doc fix.
+
+	* emacs-lisp/easymenu.el (easy-menu-define): Doc fix (Bug#12628).
+
+2012-10-24  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* minibuffer.el (completion--all-sorted-completions-location): New var.
+	(completion--cache-all-sorted-completions)
+	(completion--flush-all-sorted-completions): Use it.
+	(completion-in-region, completion-in-region--postch)
+	(completion-at-point, completion-help-at-point): Use markers in
+	completion-in-region--data (bug#12619).
+
 2012-10-23  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* progmodes/compile.el (compilation-start): Try to handle common
+	quoting of `cd' argument (bug#12640).
+
+	* vc/diff-mode.el (diff-hunk): `save-excursion' while refining
+	(bug#12671).
+
+2012-10-23  Glenn Morris  <rgm@gnu.org>
+
+	* progmodes/gud.el (gud-menu-map):
+	Check gdb-active-process is bound.  (Bug#12358)
+
+2012-10-23  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* repeat.el (repeat): Set real-this-command (bug#12232).
 
 	* htmlfontify.el (hfy-post-html-hook):
 	* filesets.el (filesets-cache-fill-content-hook):
@@ -146,7 +347,7 @@
 	Recover input meta mode when the new coding system doesn not use 8-bit.
 	Supply TERMINAL arg to set-input-meta-mode.
 
-2012-10-17  Michael Heerdegen <michael_heerdegen@web.de>  (tiny change)
+2012-10-17  Michael Heerdegen <michael_heerdegen@web.de>
 
 	* wdired.el (wdired-old-marks): New variable.
 	(wdired-change-to-wdired-mode): Locally set wdired-old-marks.

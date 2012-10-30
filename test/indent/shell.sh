@@ -26,7 +26,10 @@ foo () {
 
     case $toto in
         a) echo 1;; b) echo 2;;
-        c) echo 3;;
+        (c)
+            echo 3;;
+        d)
+            echo 3;;
     esac
     
     case $as_nl`(ac_space=' '; set) 2>&1` in #(

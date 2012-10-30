@@ -787,14 +787,14 @@ emacs   --batch
         --load=$HOME/lib/emacs/org.el
         --eval \"(setq org-export-headline-levels 2)\"
         --visit=MyFile --funcall org-export-as-latex-batch"
-  (org-export-as-latex org-export-headline-levels 'hidden))
+  (org-export-as-latex org-export-headline-levels))
 
 ;;;###autoload
 (defun org-export-as-latex-to-buffer (arg)
   "Call `org-export-as-latex` with output to a temporary buffer.
 No file is created.  The prefix ARG is passed through to `org-export-as-latex'."
   (interactive "P")
-  (org-export-as-latex arg nil nil "*Org LaTeX Export*")
+  (org-export-as-latex arg nil "*Org LaTeX Export*")
   (when org-export-show-temporary-export-buffer
     (switch-to-buffer-other-window "*Org LaTeX Export*")))
 
@@ -848,7 +848,7 @@ in a window.  A non-interactive call will only return the buffer."
     (set-mark (point)) ;; to activate the region
     (goto-char beg)
     (setq rtn (org-export-as-latex
-	       nil nil ext-plist
+	       nil ext-plist
 	       buffer body-only))
     (if (fboundp 'deactivate-mark) (deactivate-mark))
     (if (and (org-called-interactively-p 'any) (bufferp rtn))
@@ -856,21 +856,19 @@ in a window.  A non-interactive call will only return the buffer."
       rtn)))
 
 ;;;###autoload
-(defun org-export-as-latex (arg &optional hidden ext-plist
-				to-buffer body-only pub-dir)
+(defun org-export-as-latex (arg &optional ext-plist to-buffer body-only pub-dir)
   "Export current buffer to a LaTeX file.
 If there is an active region, export only the region.  The prefix
 ARG specifies how many levels of the outline should become
 headlines.  The default is 3.  Lower levels will be exported
 depending on `org-export-latex-low-levels'.  The default is to
 convert them as description lists.
-HIDDEN is obsolete and does nothing.
-EXT-PLIST is a property list with
-external parameters overriding org-mode's default settings, but
-still inferior to file-local settings.  When TO-BUFFER is
-non-nil, create a buffer with that name and export to that
-buffer.  If TO-BUFFER is the symbol `string', don't leave any
-buffer behind but just return the resulting LaTeX as a string.
+EXT-PLIST is a property list with external parameters overriding
+org-mode's default settings, but still inferior to file-local settings.
+When TO-BUFFER is non-nil, create a buffer with that name and export
+to that buffer.  If TO-BUFFER is the symbol `string', don't leave any
+buffer behind and just return the resulting LaTeX as a string, with
+no LaTeX header.
 When BODY-ONLY is set, don't produce the file header and footer,
 simply return the content of \\begin{document}...\\end{document},
 without even the \\begin{document} and \\end{document} commands.
@@ -957,10 +955,9 @@ when PUB-DIR is set, use this as the publishing directory."
 	 (auto-insert nil); Avoid any auto-insert stuff for the new file
 	 (TeX-master (boundp 'TeX-master))
 	 (buffer (if to-buffer
-		     (cond
-		      ((eq to-buffer 'string) (get-buffer-create
-					       "*Org LaTeX Export*"))
-		      (t (get-buffer-create to-buffer)))
+		     (if (eq to-buffer 'string)
+			 (get-buffer-create "*Org LaTeX Export*")
+		       (get-buffer-create to-buffer))
 		   (find-file-noselect filename)))
 	 (odd org-odd-levels-only)
 	 (header (org-export-latex-make-header title opt-plist))
@@ -1120,8 +1117,7 @@ when PUB-DIR is set, use this as the publishing directory."
   (interactive "P")
   (message "Exporting to PDF...")
   (let* ((wconfig (current-window-configuration))
-	 (lbuf (org-export-as-latex arg hidden ext-plist
-				    to-buffer body-only pub-dir))
+	 (lbuf (org-export-as-latex arg ext-plist to-buffer body-only pub-dir))
 	 (file (buffer-file-name lbuf))
 	 (base (file-name-sans-extension (buffer-file-name lbuf)))
 	 (pdffile (concat base ".pdf"))
@@ -2898,5 +2894,9 @@ The conversion is made depending of STRING-BEFORE and STRING-AFTER."
 
 (provide 'org-export-latex)
 (provide 'org-latex)
+
+;; Local variables:
+;; generated-autoload-file: "org-loaddefs.el"
+;; End:
 
 ;;; org-latex.el ends here

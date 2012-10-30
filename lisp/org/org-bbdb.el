@@ -338,7 +338,7 @@ This is used by Org to re-create the anniversary hash table."
 (add-hook 'bbdb-after-change-hook 'org-bbdb-updated)
 
 ;;;###autoload
-(defun org-bbdb-anniversaries()
+(defun org-bbdb-anniversaries ()
   "Extract anniversaries from BBDB for display in the agenda."
   (require 'bbdb)
   (require 'diary-lib)
@@ -432,5 +432,9 @@ END:VEVENT\n"
 		     categ)))))
 
 (provide 'org-bbdb)
+
+;; Local variables:
+;; generated-autoload-file: "org-loaddefs.el"
+;; End:
 
 ;;; org-bbdb.el ends here

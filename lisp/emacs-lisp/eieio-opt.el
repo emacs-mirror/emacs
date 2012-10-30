@@ -29,9 +29,9 @@
 ;;
 
 (require 'eieio)
-(require 'button)
-(require 'help-mode)
 (require 'find-func)
+(require 'speedbar)
+(require 'help-mode)
 
 ;;; Code:
 ;;;###autoload
@@ -710,10 +710,6 @@ Arguments UNUSED are not used."
 
 ;;; SPEEDBAR SUPPORT
 ;;
-(eval-when-compile
-  (condition-case nil
-      (require 'speedbar)
-    (error (message "Error loading speedbar... ignored"))))
 
 (defvar eieio-class-speedbar-key-map nil
   "Keymap used when working with a project in speedbar.")

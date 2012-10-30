@@ -1693,7 +1693,6 @@ splash screen in another window."
 	(force-mode-line-update))
       (use-local-map splash-screen-keymap)
       (setq tab-width 22)
-      (message "%s" (startup-echo-area-message))
       (setq buffer-read-only t)
       (goto-char (point-min))
       (forward-line 3))))

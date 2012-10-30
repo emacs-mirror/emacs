@@ -680,7 +680,6 @@ The table of checksums is written to the file mobile-checksums."
   (let  ((table '(?: ?/)))
     (org-link-escape s table)))
 
-;;;###autoload
 (defun org-mobile-create-sumo-agenda ()
   "Create a file that contains all custom agenda views."
   (interactive)
@@ -1128,5 +1127,9 @@ A and B must be strings or nil."
       (equal a b))))
 
 (provide 'org-mobile)
+
+;; Local variables:
+;; generated-autoload-file: "org-loaddefs.el"
+;; End:
 
 ;;; org-mobile.el ends here

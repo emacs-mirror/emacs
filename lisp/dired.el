@@ -137,9 +137,12 @@ A value of t means move to first file."
   "Controls marking of renamed files.
 If t, files keep their previous marks when they are renamed.
 If a character, renamed files (whether previously marked or not)
-are afterward marked with that character."
+are afterward marked with that character.
+This option affects only files renamed by `dired-do-rename' and
+`dired-do-rename-regexp'.  See `wdired-keep-marker-rename'
+if you want to do the same for files renamed in WDired mode."
   :type '(choice (const :tag "Keep" t)
-		 (character :tag "Mark"))
+		 (character :tag "Mark" :value ?R))
   :group 'dired-mark)
 
 (defcustom dired-keep-marker-copy ?C
@@ -620,7 +623,7 @@ Don't use that together with FILTER."
   (let* ((all-of-them
 	  (save-excursion
 	    (dired-map-over-marks
-	     (dired-get-filename localp)
+	     (dired-get-filename localp 'no-error-if-not-filep)
 	     arg nil distinguish-one-marked)))
 	 result)
     (if (not filter)
@@ -3107,10 +3110,11 @@ argument or confirmation)."
       (forward-line 1))))
 
 (defun dired-mark (arg)
-  "Mark the current (or next ARG) files.
+  "Mark the file at point in the Dired buffer.
+If the region is active, mark all files in the region.
+Otherwise, with a prefix arg, mark files on the next ARG lines.
+
 If on a subdir headerline, mark all its files except `.' and `..'.
-If the region is active in Transient Mark mode, mark all files
-in the active region.
 
 Use \\[dired-unmark-all-files] to remove all marks
 and \\[dired-unmark] on a subdir to remove the marks in
@@ -3136,7 +3140,10 @@ this subdir."
        (function (lambda () (delete-char 1) (insert dired-marker-char))))))))
 
 (defun dired-unmark (arg)
-  "Unmark the current (or next ARG) files.
+  "Unmark the file at point in the Dired buffer.
+If the region is active, unmark all files in the region.
+Otherwise, with a prefix arg, unmark files on the next ARG lines.
+
 If looking at a subdir, unmark all its files except `.' and `..'.
 If the region is active in Transient Mark mode, unmark all files
 in the active region."
@@ -3146,7 +3153,9 @@ in the active region."
 
 (defun dired-flag-file-deletion (arg)
   "In Dired, flag the current line's file for deletion.
-With prefix arg, repeat over several lines.
+If the region is active, flag all files in the region.
+Otherwise, with a prefix arg, flag files on the next ARG lines.
+
 If on a subdir headerline, flag all its files except `.' and `..'.
 If the region is active in Transient Mark mode, flag all files
 in the active region."

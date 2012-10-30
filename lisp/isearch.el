@@ -2149,7 +2149,8 @@ Isearch mode."
 		 (setq prefix-arg arg)
 		 (apply 'isearch-unread keylist))
 	     (setq keylist
-		   (listify-key-sequence (lookup-key local-function-key-map key)))
+		   (listify-key-sequence
+		    (lookup-key local-function-key-map key)))
 	     (while keylist
 	       (setq key (car keylist))
 	       ;; If KEY is a printing char, we handle it here
@@ -2158,6 +2159,9 @@ Isearch mode."
 	       (if (and (integerp key)
 			(>= key ?\s) (/= key 127) (< key 256))
 		   (progn
+		     ;; Ensure that the processed char is recorded in
+		     ;; the keyboard macro, if any (Bug#4894)
+		     (store-kbd-macro-event key)
 		     (isearch-process-search-char key)
 		     (setq keylist (cdr keylist)))
 		 ;; As the remaining keys in KEYLIST can't be handled

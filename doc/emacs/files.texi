@@ -1564,9 +1564,8 @@ open file @var{linkname} will refer to whatever file is named
 @var{target} at the time the opening is done, or will get an error if
 the name @var{target} is nonexistent at that time.  This command does
 not expand the argument @var{target}, so that it allows you to specify
-a relative name as the target of the link.  Not all systems support
-symbolic links; on systems that don't support them, this command is
-not defined.
+a relative name as the target of the link.  On MS-Windows, this
+command works only on MS Windows Vista and later.
 
 @kindex C-x i
 @findex insert-file

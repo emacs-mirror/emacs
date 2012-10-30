@@ -1,4 +1,4 @@
-;;; face-remap.el --- Functions for managing `face-remapping-alist'
+;;; face-remap.el --- Functions for managing `face-remapping-alist'  -*- lexical-binding: t -*-
 ;;
 ;; Copyright (C) 2008-2012 Free Software Foundation, Inc.
 ;;
@@ -132,7 +132,10 @@ other than the normal definition of FACE via `face-remap-set-base'."
     (when (null entry)
       (setq entry (list face face))	; explicitly merge with global def
       (push entry face-remapping-alist))
-    (setcdr entry (face-remap-order (cons specs (cdr entry))))
+    (let ((faces (cdr entry)))
+      (if (symbolp faces)
+	  (setq faces (list faces)))
+      (setcdr entry (face-remap-order (cons specs faces))))
     (cons face specs)))
 
 (defun face-remap-remove-relative (cookie)
@@ -285,7 +288,9 @@ See `text-scale-increase' for more details."
 ;;;###autoload (define-key ctl-x-map [(control ?0)] 'text-scale-adjust)
 ;;;###autoload
 (defun text-scale-adjust (inc)
-  "Increase or decrease the height of the default face in the current buffer.
+  "Adjust the height of the default face by INC.
+
+INC may be passed as a numeric prefix argument.
 
 The actual adjustment made depends on the final component of the
 key-binding used to invoke the command, with all modifiers removed:
@@ -294,9 +299,11 @@ key-binding used to invoke the command, with all modifiers removed:
    -      Decrease the default face height by one step
    0      Reset the default face height to the global default
 
-Then, continue to read input events and further adjust the face
-height as long as the input event read (with all modifiers removed)
-is one of the above.
+When adjusting with `+' or `-', continue to read input events and
+further adjust the face height as long as the input event read
+\(with all modifiers removed) is `+' or `-'.
+
+When adjusting with `0', immediately finish.
 
 Each step scales the height of the default face by the variable
 `text-scale-mode-step' (a negative number of steps decreases the
@@ -309,8 +316,7 @@ even when it is bound in a non-top-level keymap.  For binding in
 a top-level keymap, `text-scale-increase' or
 `text-scale-decrease' may be more appropriate."
   (interactive "p")
-  (let ((first t)
-	(ev last-command-event)
+  (let ((ev last-command-event)
 	(echo-keystrokes nil))
     (let* ((base (event-basic-type ev))
            (step
@@ -320,19 +326,15 @@ a top-level keymap, `text-scale-increase' or
               (?0 0)
               (t inc))))
       (text-scale-increase step)
-      ;; FIXME: do it after every "iteration of the loop".
-      (message "+,-,0 for further adjustment: ")
+      ;; (unless (zerop step)
+      (message "Use +,-,0 for further adjustment")
       (set-temporary-overlay-map
        (let ((map (make-sparse-keymap)))
          (dolist (mods '(() (control)))
-           (define-key map (vector (append mods '(?-))) 'text-scale-decrease)
-           (define-key map (vector (append mods '(?+))) 'text-scale-increase)
-           ;; = is unshifted + on most keyboards.
-           (define-key map (vector (append mods '(?=))) 'text-scale-increase)
-           (define-key map (vector (append mods '(?0)))
-             (lambda () (interactive) (text-scale-increase 0))))
-         map)
-       t))))
+           (dolist (key '(?- ?+ ?= ?0)) ;; = is often unshifted +.
+             (define-key map (vector (append mods (list key)))
+               (lambda () (interactive) (text-scale-adjust (abs inc))))))
+         map))))) ;; )
 
 
 ;; ----------------------------------------------------------------

@@ -3632,7 +3632,9 @@ expression in parentheses.  Leaves point after the value."
 	     ((looking-at "[mnuv]"))	; ignore for now
 	     ((looking-at "i") (setq n (* n 10))) ; inch
 	     ((looking-at "c") (setq n (* n 3.9))) ; cm
-	     ((looking-at "P") (setq n (* n 1.7))) ; Pica
+	     ((let ((case-fold-search nil))
+		(looking-at "P"))
+	      (setq n (* n 1.7))) ; Pica
 	     ((looking-at "p") (setq n (* n 0.14))) ; point
 	     ;; NB: May be immediately followed by + or -, etc.,
 	     ;; in which case do nothing and return nil.

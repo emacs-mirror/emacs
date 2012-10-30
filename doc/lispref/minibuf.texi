@@ -211,22 +211,25 @@ This function works by calling the
 @end smallexample
 @end defun
 
-@defun read-regexp prompt &optional default
+@defun read-regexp prompt &optional default history
 This function reads a regular expression as a string from the
 minibuffer and returns it.  The argument @var{prompt} is used as in
-@code{read-from-minibuffer}.  The keymap used is
-@code{minibuffer-local-map}, and @code{regexp-history} is used as the
-history list (@pxref{Minibuffer History, regexp-history}).
+@code{read-from-minibuffer}.
 
 The optional argument @var{default} specifies a default value to
 return if the user enters null input; it should be a string, or
 @code{nil}, which is equivalent to an empty string.
 
-In addition, @code{read-regexp} collects a few useful candidates for
-input and passes them to @code{read-from-minibuffer}, to make them
-available to the user as the ``future minibuffer history list''
-(@pxref{Minibuffer History, future list,, emacs, The GNU Emacs
-Manual}).  These candidates are:
+The optional argument @var{history}, if non-@code{nil}, is a symbol
+specifying a minibuffer history list to use (@pxref{Minibuffer
+History}).  If it is omitted or @code{nil}, the history list defaults
+to @code{regexp-history}.
+
+@code{read-regexp} also collects a few useful candidates for input and
+passes them to @code{read-from-minibuffer}, to make them available to
+the user as the ``future minibuffer history list'' (@pxref{Minibuffer
+History, future list,, emacs, The GNU Emacs Manual}).  These
+candidates are:
 
 @itemize @minus
 @item
@@ -1215,11 +1218,9 @@ Buffer name (default foo): @point{}
 @end defun
 
 @defopt read-buffer-function
-This variable specifies how to read buffer names.  The function is
-called with the arguments passed to @code{read-buffer}.  For example,
-if you set this variable to @code{iswitchb-read-buffer}, all Emacs
-commands that call @code{read-buffer} to read a buffer name will
-actually use the @code{iswitchb} package to read it.
+This variable, if non-@code{nil}, specifies a function for reading
+buffer names.  @code{read-buffer} calls this function instead of doing
+its usual work, with the same arguments passed to @code{read-buffer}.
 @end defopt
 
 @defopt read-buffer-completion-ignore-case

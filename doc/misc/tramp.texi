@@ -2918,7 +2918,8 @@ information about remote hosts is kept in the file specified in
 @code{tramp-persistency-file-name}.  Keep this file.  If you are
 confident that files on remote hosts are not changed out of
 @value{emacsname}' control, set @code{remote-file-name-inhibit-cache}
-to @code{nil}.
+to @code{nil}.  Set also @code{tramp-completion-reread-directory-timeout}
+to @code{nil}, @ref{Filename completion}.
 
 Disable version control.  If you access remote files which are not
 under version control, a lot of check operations can be avoided by

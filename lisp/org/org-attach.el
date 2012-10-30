@@ -451,4 +451,8 @@ prefix."
 
 (provide 'org-attach)
 
+;; Local variables:
+;; generated-autoload-file: "org-loaddefs.el"
+;; End:
+
 ;;; org-attach.el ends here

@@ -181,6 +181,7 @@ if LOCATION is not given, the value of `org-archive-location' is used."
 	      (file-name-nondirectory
 	       (buffer-file-name (buffer-base-buffer))))))
 
+;;;###autoload
 (defun org-archive-subtree (&optional find-done)
   "Move the current subtree to the archive.
 The archive can be a certain top-level heading in the current file, or in
@@ -369,6 +370,7 @@ this heading."
     (if (looking-at "^[ \t]*$")
 	(outline-next-visible-heading 1))))
 
+;;;###autoload
 (defun org-archive-to-archive-sibling ()
   "Archive the current heading by moving it under the archive sibling.
 The archive sibling is a sibling of the heading with the heading name
@@ -483,6 +485,7 @@ When TAG is non-nil, don't move trees, but mark them with the ARCHIVE tag."
 	    (goto-char end)))))
     (message "%d trees archived" cntarch)))
 
+;;;###autoload
 (defun org-toggle-archive-tag (&optional find-done)
   "Toggle the archive tag for the current headline.
 With prefix ARG, check all children of current headline and offer tagging
@@ -536,5 +539,9 @@ This command is set with the variable `org-archive-default-command'."
     (error "Abort")))
 
 (provide 'org-archive)
+
+;; Local variables:
+;; generated-autoload-file: "org-loaddefs.el"
+;; End:
 
 ;;; org-archive.el ends here

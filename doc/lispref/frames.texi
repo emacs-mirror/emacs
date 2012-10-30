@@ -437,12 +437,10 @@ Emacs frames---the first frame, and subsequent frames.  When using the X
 Window System, you can get the same results by means of X resources
 in many cases.
 
-Setting this variable does not affect existing frames.
+Setting this variable does not affect existing frames.  Furthermore,
+functions that display a buffer in a separate frame may override the
+default parameters by supplying their own parameters.
 @end defopt
-
-Functions that display a buffer in a separate frame can override the
-default parameters by supplying their own parameters.  @xref{Definition
-of special-display-frame-alist}.
 
 If you invoke Emacs with command-line options that specify frame
 appearance, those options take effect by adding elements to either
@@ -1495,8 +1493,9 @@ This function returns the visibility status of frame @var{frame}.  The
 value is @code{t} if @var{frame} is visible, @code{nil} if it is
 invisible, and @code{icon} if it is iconified.
 
-On a text terminal, all frames are considered visible, whether they
-are currently being displayed or not.
+On a text terminal, all frames are considered ``visible'' for the
+purposes of this function, even though only one frame is displayed.
+@xref{Raising and Lowering}.
 @end defun
 
 @deffn Command iconify-frame &optional frame
@@ -1552,9 +1551,21 @@ If this is non-@code{nil}, activation of the minibuffer raises the frame
 that the minibuffer window is in.
 @end defopt
 
-You can also enable auto-raise (raising automatically when a frame is
-selected) or auto-lower (lowering automatically when it is deselected)
-for any frame using frame parameters.  @xref{Management Parameters}.
+  On window systems, you can also enable auto-raising (on frame
+selection) or auto-lowering (on frame deselection) using frame
+parameters.  @xref{Management Parameters}.
+
+@cindex top frame
+  The concept of raising and lowering frames also applies to text
+terminal frames.  On each text terminal, only the top frame is
+displayed at any one time.
+
+@defun tty-top-frame terminal
+This function returns the top frame on @var{terminal}.  @var{terminal}
+should be a terminal object, a frame (meaning that frame's terminal),
+or @code{nil} (meaning the selected frame's terminal).  If it does not
+refer to a text terminal, the return value is @code{nil}.
+@end defun
 
 @node Frame Configurations
 @section Frame Configurations

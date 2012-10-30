@@ -382,7 +382,7 @@ to use Semantic, and `semantic-init-hook' is run."
   "When non-nil, activate the interactive parsing debugger.
 Do not set this yourself.  Call `semantic-debug'.")
 
-(defun semantic-elapsed-time (start end)
+(defsubst semantic-elapsed-time (start end)
   "Copied from elp.el.  Was `elp-elapsed-time'.
 Arguments START and END bound the time being calculated."
   (float-time (time-subtract end start)))

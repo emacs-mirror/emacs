@@ -5414,6 +5414,22 @@ Recognized alist entries include:
                               parameters to give a new frame, if
                               one is created.
 
+ `window-height' -- Value specifies either an integer (the number
+    of lines of a new window), a floating point number (the
+    fraction of a new window with respect to the height of the
+    frame's root window) or a function to be called with one
+    argument - a new window.  The function is supposed to adjust
+    the height of the window; its return value is ignored.
+    Suitable functions are `shrink-window-if-larger-than-buffer'
+    and `fit-window-to-buffer'.
+
+ `window-width' -- Value specifies either an integer (the number
+    of columns of a new window), a floating point number (the
+    fraction of a new window with respect to the width of the
+    frame's root window) or a function to be called with one
+    argument - a new window.  The function is supposed to adjust
+    the width of the window; its return value is ignored.
+
 The ACTION argument to `display-buffer' can also have a non-nil
 and non-list value.  This means to display the buffer in a window
 other than the selected one, even if it is already displayed in
