@@ -11,11 +11,23 @@ Outstanding
 5.  Fix the :ref:`genindex` so that glossary entries like "byte (2)"
     aren't interpreted as subentries? (Or is it OK as is?)
 
-8.  Use a better bibliography extension and update the
-    bibliography. See for example the (unfortunately unfinished)
-    `sphinx-natbib`_.
+8.  Use a better bibliography extension and update the bibliography.
+    See for example `sphinx-natbib`_.
 
     .. _sphinx-natbib: http://wnielson.bitbucket.org/projects/sphinx-natbib/
+
+    I tried downloading and using this but it's clearly not ready yet.
+    It uses Pybtex to parse BibTeX, but Pybtex is buggy (its
+    ``CaseInsensitiveDict`` class can't be serialized).
+
+    We could do this "by hand" as it were by using normal Sphinx
+    cross-references. For example::
+
+        * .. _bib-wilson-1995:
+
+          Paul R. Wilson, Mark S. Johnstone, Michael Neely, David
+          Boles. 1995. "Dynamic Storage Allocation: A Survey and
+          Critical Review".
 
 9.  Hyphenate long function names across line endings. It would be
     possible to do this by inserting soft hyphens but if you copied
@@ -24,7 +36,7 @@ Outstanding
 11. Support MMREF-style anchors to the glossary (``#garbage.collection``
     as well as ``#garbage-collection``).
 
-37. Need an ``scheme-advanced.c`` to illustrate advanced topics:
+37. Need a ``scheme-advanced.c`` to illustrate advanced topics:
 
     * Segregate objects into multiple pools (e.g. strings and integers
       into :ref:`pool-amcz`).
