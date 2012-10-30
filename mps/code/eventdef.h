@@ -37,7 +37,7 @@
  */
 
 #define EVENT_VERSION_MAJOR  ((unsigned)1)
-#define EVENT_VERSION_MEDIAN ((unsigned)0)
+#define EVENT_VERSION_MEDIAN ((unsigned)1)
 #define EVENT_VERSION_MINOR  ((unsigned)2)
 
 
@@ -628,7 +628,8 @@
   PARAM(X,  2, U, minor)          /* EVENT_VERSION_MINOR */ \
   PARAM(X,  3, U, maxCode)        /* EventCodeMAX */ \
   PARAM(X,  4, U, maxNameLen)     /* EventNameMAX */ \
-  PARAM(X,  5, U, wordWidth)      /* MPS_WORD_WIDTH */
+  PARAM(X,  5, U, wordWidth)      /* MPS_WORD_WIDTH */ \
+  PARAM(X,  6, W, clocksPerSec)   /* mps_clocks_per_sec() */
 
 #define EVENT_EventClockSync_PARAMS(PARAM, X) \
   PARAM(X,  0, W, clock)          /* mps_clock() value */

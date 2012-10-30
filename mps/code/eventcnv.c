@@ -46,18 +46,39 @@
 static EventClock eventTime; /* current event time */
 static char *prog; /* program name */
 
-/* everror -- error signalling */
+/* Errors and Warnings */
+
+/* fevwarn -- flush stdout, write message to stderr */
+
+static void fevwarn(const char *prefix, const char *format, va_list args)
+{
+  fflush(stdout); /* sync */
+  fprintf(stderr, "%s: %s @", prog, prefix);
+  EVENT_CLOCK_PRINT(stderr, eventTime);
+  fprintf(stderr, " ");
+  vfprintf(stderr, format, args);
+  fprintf(stderr, "\n");
+}
+
+/* evwarn -- flush stdout, warn to stderr */
+
+static void evwarn(const char *format, ...)
+{
+  va_list args;
+
+  va_start(args, format);
+  fevwarn("Warning", format, args);
+  va_end(args);
+}
+
+/* everror -- flush stdout, mesage to stderr, exit */
 
 static void everror(const char *format, ...)
 {
   va_list args;
 
-  fflush(stdout); /* sync */
-  fprintf(stderr, "%s: @", prog);
-  EVENT_CLOCK_PRINT(stderr, eventTime);
   va_start(args, format);
-  vfprintf(stderr, format, args);
-  fprintf(stderr, "\n");
+  fevwarn("Error", format, args);
   va_end(args);
   exit(EXIT_FAILURE);
 }
@@ -164,9 +185,37 @@ static void readLog(EventProc proc)
     if (res != ResOK) everror("Truncated log");
     eventTime = event->any.clock;
     code = event->any.code;
+    
+    /* Special handling for some events, prior to text output */
+
+    switch(code) {
+    case EventEventInitCode:
+      if ((event->EventInit.f0 != EVENT_VERSION_MAJOR) ||
+          (event->EventInit.f1 != EVENT_VERSION_MEDIAN) ||
+          (event->EventInit.f2 != EVENT_VERSION_MINOR))
+        evwarn("Event log version does not match: %d.%d.%d vs %d.%d.%d",
+               event->EventInit.f0,
+               event->EventInit.f1,
+               event->EventInit.f2,
+               EVENT_VERSION_MAJOR,
+               EVENT_VERSION_MEDIAN,
+               EVENT_VERSION_MINOR);
+
+      if (event->EventInit.f3 != EventCodeMAX)
+        evwarn("Event log may contain unknown events with codes from %d to %d",
+               EventCodeMAX+1, event->EventInit.f3);
+
+      if (event->EventInit.f5 != MPS_WORD_WIDTH)
+        /* This probably can't happen; other things will break
+         * before we get here */
+        evwarn("Event log has incompatible word width: %d instead of %d",
+               event->EventInit.f5,
+               MPS_WORD_WIDTH);
+      break;
+      }
 
     EVENT_CLOCK_PRINT(stdout, eventTime);
-    printf(" %X", (unsigned)code);
+    printf(" %4X", (unsigned)code);
 
     switch (code) {
 #define EVENT_PARAM_PRINT(name, index, sort, ident) \
@@ -176,6 +225,8 @@ static void readLog(EventProc proc)
          EVENT_##name##_PARAMS(EVENT_PARAM_PRINT, name) \
          break;
        EVENT_LIST(EVENT_PRINT, X)
+    default:
+      evwarn("Unknown event code %d", code);
     }
 
     putchar('\n');
