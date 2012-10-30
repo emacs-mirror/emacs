@@ -2,10 +2,16 @@
 
     `<https://info.ravenbrook.com/project/mps/master/design/thread-safety/>`_
 
+.. index::
+   single: thread
+
 .. _topic-thread:
 
 Threads
 =======
+
+.. index::
+   single: thread safety
 
 Thread safety
 -------------
@@ -21,6 +27,9 @@ claimed on entry to the MPS and released on exit from it. So there is
 at most a single thread (per arena) running "inside" the MPS at a
 time.
 
+
+.. index::
+   single: thread; registration
 
 Thread registration
 -------------------
@@ -51,6 +60,10 @@ arenas.
     The mechanism for co-operation is currently undocumented: please
     :ref:`contact us <contact>`.
 
+
+.. index::
+   single: signal; handling
+   single: thread; signal handling
 
 Signal handling issues
 ----------------------
@@ -89,6 +102,9 @@ from inside such an exception handler, that is, inside a call to
     The mechanism for co-operation is currently undocumented: please
     :ref:`contact us <contact>`.
 
+
+.. index::
+   single: thread; interface
 
 Thread interface
 ----------------
@@ -172,6 +188,9 @@ Thread interface
     managed by the MPS, each thread must execute such code inside a
     call to :c:func:`mps_tramp`.
 
+
+.. index::
+   single: trampoline
 
 .. c:type:: void *(*mps_tramp_t)(void *p, size_t s)
 

@@ -33,6 +33,9 @@ John McCarthy described the first on-line demonstration of
     thought we were victims of a practical joker.
 
 
+.. index::
+   single: telemetry; introduction
+
 Introduction
 ------------
 
@@ -45,6 +48,10 @@ environment variable :envvar:`MPS_TELEMETRY_CONTROL` (by default
 none), and the stream is written to the file named by the environment
 variable :envvar:`MPS_TELEMETRY_FILENAME` (by default ``mpsio.log``).
 
+
+.. index::
+   single: telemetry; example
+   single: Scheme; telemetry
 
 Example
 -------
@@ -128,6 +135,10 @@ address was never fixed (no ``TraceFix`` event).
     to your ``.gdbinit``.
 
 
+.. index::
+   single: telemetry; event categories
+   single: event category
+
 Event categories
 ----------------
 
@@ -147,6 +158,9 @@ Bit  Name        Description
 6    ``User``    User-invoked events: see :c:func:`mps_telemetry_intern`.
 ===  ==========  ========================================================
 
+
+.. index::
+   single: telemetry; environment variables
 
 Environment variables
 ---------------------
@@ -181,6 +195,9 @@ telemetry feature.
         MPS_TELEMETRY_FILENAME=$(mktemp -t mps)
 
 
+.. index::
+   single: telemetry; decoding event stream
+
 .. _telemetry-eventcnv:
 
 Decoding the telemetry stream
@@ -214,6 +231,9 @@ standard output) a representation of each event in the stream.
     a time series of events can be obtained by sorting the output:
     ``eventcnv | sort``.
 
+
+.. index::
+   single: telemetry; interface
 
 Telemetry interface
 -------------------
@@ -259,6 +279,9 @@ Telemetry interface
     interactive tool require access to the telemetry stream. You could
     even try calling this from a debugger after a problem.
 
+
+.. index::
+   pair: telemetry; labels
 
 Telemetry labels
 ----------------

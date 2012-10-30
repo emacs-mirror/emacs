@@ -1,3 +1,7 @@
+.. index::
+   single: error handling; introduction
+   single: result code
+
 .. _topic-error:
 
 Error handing
@@ -162,6 +166,10 @@ Result codes
     yet supported.
 
 
+.. index::
+   single: assertion
+   single: error handling; assertion
+
 .. _topic-error-assertion:
 
 Assertions
@@ -207,6 +215,10 @@ assertions automatically, by adding the following to your ``.emacs``:
                  '("MPS ASSERTION FAILURE: .*\n\\(.*\\)\n\\([0-9]+\\)" 1 2))
 
 
+.. index::
+   single: error handling; varieties
+   single: variety
+
 Varieties
 ---------
 
@@ -216,6 +228,10 @@ compile time, by defining one of the following preprocessor
 constants. If none is specified then :c:macro:`CONFIG_VAR_HOT` is the
 default.
 
+
+.. index::
+   single: cool variety
+   single: variety; cool
 
 .. c:macro:: CONFIG_VAR_COOL
 
@@ -228,6 +244,10 @@ default.
     events on the :term:`critical path`.
 
 
+.. index::
+   single: hot variety
+   single: variety; hot
+
 .. c:macro:: CONFIG_VAR_HOT
 
     The hot variety is intended for production and deployment.
@@ -238,6 +258,10 @@ default.
     Some events are sent to the telemetry stream, namely those not on
     the :term:`critical path`.
 
+
+.. index::
+   single: rash variety
+   single: variety; rash
 
 .. c:macro:: CONFIG_VAR_RASH
 

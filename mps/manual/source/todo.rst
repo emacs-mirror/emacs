@@ -36,8 +36,6 @@ Outstanding
     Compare the performance with the plain ``scheme.c``. The advanced
     version better be faster!
 
-61. Start adding :ref:`genindex` entries.
-
 76. Develop debugging examples that illustrates each of the warnings
     about consistency. Also to demonstrate the "garbage collect
     frequently to expose errors as soon as possible" advice.
@@ -80,11 +78,6 @@ Outstanding
      There's nothing wrong with it being somewhat redundant. Its
      supported platforms section doesn't exist elsewhere. Note that
      the platforms we build with (in build.txt) is not the same list.
-
-131. Is :c:type:`mps_clock_t` a transparent alias for ``unsigned
-     long``? I presume it must be: if it were platform-specific, or
-     supplied by the plinth, then it wouldn't be defined in ``mps.h``,
-     surely?
 
 132. :c:func:`mps_lib_get_stderr` appears in ``mpslib.h`` and
      ``mpsliban.c`` but is not called by the MPS (it uses
@@ -538,6 +531,8 @@ Complete
     be registered? What if you have no moving pools? etc.
 
     *Answer:* see above.
+
+61. Start adding :ref:`genindex` entries.
 
 62. I documented the requirement for tags to be removed when calling
     :c:func:`MPS_FIX`, but does this apply to format auto-header?
@@ -1003,4 +998,11 @@ Complete
      running out of zones) and then there are emergency collections.
 
      *Action:* created :ref:`topic-low`.
+
+131. Is :c:type:`mps_clock_t` a transparent alias for ``unsigned
+     long``? I presume it must be: if it were platform-specific, or
+     supplied by the plinth, then it wouldn't be defined in ``mps.h``,
+     surely?
+
+     *Answer:* this is a bug, fixed in change 180151.
 

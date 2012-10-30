@@ -4,11 +4,19 @@
     `<https://info.ravenbrook.com/project/mps/doc/2002-06-18/obsolete-mminfo/mminfo/strategy/lisp-machine/>`_
 
 
+.. index::
+   single: collection
+   single: garbage collection
+
 .. _topic-collection:
 
 Garbage collection
 ==================
 
+
+.. index::
+   single: chain; generation
+   single: generation chain
 
 Generation chains
 -----------------
@@ -98,6 +106,10 @@ For example::
     ``chain`` is the generation chain.
 
 
+.. index::
+   single: collection; scheduling
+   single: garbage collection; scheduling
+
 .. _topic-collection-schedule:
 
 Scheduling of collections
@@ -161,6 +173,10 @@ mortality is too low, the collector will do extra work up front and
 then find that it is idle later on.
 
 
+.. index::
+   single: garbage collection; start message
+   single: message; garbage collection start
+
 Garbage collection start messages
 ---------------------------------
 
@@ -203,6 +219,9 @@ Garbage collection start messages
 
         :ref:`topic-message`.
 
+
+.. index::
+   pair: garbage collection; message
 
 Garbage collection messages
 ---------------------------

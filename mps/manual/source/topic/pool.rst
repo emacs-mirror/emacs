@@ -1,3 +1,6 @@
+.. index::
+   single: pool; creating
+
 .. _topic-pool:
 
 Pools
@@ -67,6 +70,9 @@ making it available for allocation.
     created in the pool.
 
 
+.. index::
+   single: pool class
+
 Pool classes
 ------------
 
@@ -89,6 +95,9 @@ See :ref:`pool` for a list of pool classes.
         This should really be called ``mps_pool_class_t`` but it is
         too late to change it now.
 
+
+.. index::
+   pair: pool; introspection
 
 Pool introspection
 ------------------

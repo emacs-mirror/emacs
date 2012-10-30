@@ -2,6 +2,9 @@
 
     `<https://info.ravenbrook.com/project/mps/master/design/finalize/>`_
 
+.. index::
+   single: finalization
+
 .. _topic-finalization:
 
 Finalization
@@ -85,6 +88,9 @@ calling :c:func:`mps_message_discard`.
 See :ref:`topic-message` for details of the message mechanism.
 
 
+.. index::
+   single: finalization; multiple
+
 Multiple finalizations
 ----------------------
 
@@ -100,6 +106,11 @@ message queue). The MPS provides no guarantees either way: a client
 program that registers the same block multiple times must cope with
 either behaviour.
 
+
+.. index::
+   single: finalization; example
+   single: Scheme; finalization
+   single: Scheme; ports
 
 Example: ports in Scheme
 ------------------------
@@ -195,6 +206,9 @@ Here's an example session showing finalization taking place:
         clock: 3807
 
 
+.. index::
+   pair: finalization; cautions
+
 Cautions
 --------
 
@@ -256,6 +270,9 @@ Cautions
     collection do so. See the :ref:`pool`.
 
 
+.. index::
+   single: finalization; interface
+
 Finalization interface
 ----------------------
 
@@ -303,6 +320,9 @@ Finalization interface
         avoid placing the restriction on the :term:`client program`
         that the C call stack be a :term:`root`.
 
+
+.. index::
+   pair: finalization; message
 
 Finalization messages
 ---------------------

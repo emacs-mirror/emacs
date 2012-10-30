@@ -1,3 +1,8 @@
+.. index::
+   single: Memory Pool System; overview
+   single: Ravenbrook Limited
+   single: license; commercial terms
+
 .. _guide-overview:
 
 Overview of the Memory Pool System
@@ -32,6 +37,9 @@ Ravenbrook by arrangement. Please :ref:`contact us <contact>` at
 `mps-questions@ravenbrook.com <mailto:mps-questions@ravenbrook.com>`_
 for details.
 
+
+.. index::
+   single: Memory Pool System; technical introduction
 
 Technical introduction
 ----------------------

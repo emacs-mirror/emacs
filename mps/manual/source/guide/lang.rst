@@ -1,3 +1,6 @@
+.. index::
+   single: Memory Pool System; tutorial
+
 .. _guide-lang:
 
 Garbage collecting a language with the Memory Pool System
@@ -16,6 +19,9 @@ I'm assuming that you are familiar with the overall architecture of
 the MPS (see the chapter :ref:`guide-overview`) and that you've
 downloaded and built the MPS (see the chapter :ref:`guide-build`).
 
+
+.. index::
+   single: Scheme; toy interpreter
 
 The Scheme interpreter
 ----------------------
@@ -111,6 +117,10 @@ prove that they are dead, we need a :term:`tracing <trace>`
 :term:`garbage collector`. Which the MPS will provide.
 
 
+.. index::
+   single: arena class; choosing
+   single: arena; creating
+
 Choosing an arena class
 -----------------------
 
@@ -182,6 +192,9 @@ some other value if it failed.
     :ref:`topic-arena`, :ref:`topic-error`.
 
 
+.. index::
+   single: pool class; choosing
+
 Choosing a pool class
 ---------------------
 
@@ -215,6 +228,11 @@ provide an introduction to these features of the MPS.
 
     :ref:`topic-pool`.
 
+
+.. index::
+   single: object format
+   single: format; object
+   single: Scheme; object format
 
 Describing your objects
 -----------------------
@@ -283,6 +301,11 @@ method`, which is now obsolete.)
 
     :ref:`topic-format`.
 
+
+.. index::
+   single: scan method
+   single: format method; scan
+   single: Scheme; scan method
 
 .. _guide-lang-scan:
 
@@ -383,6 +406,11 @@ of the function and :c:func:`MPS_SCAN_END` at the end, as here.
     :ref:`topic-format`, :ref:`topic-scanning`.
 
 
+.. index::
+   single: skip method
+   single: format method; skip
+   single: Scheme; skip method
+
 .. _guide-lang-skip:
 
 The skip method
@@ -430,6 +458,11 @@ the end of the object, rounded up to the object format's alignment.
 
     :ref:`topic-format`.
 
+
+.. index::
+   single: forward method
+   single: format method; forward
+   single: Scheme; forward method
 
 .. _guide-lang-fwd:
 
@@ -527,6 +560,11 @@ following code must be added to ``obj_scan`` and ``obj_skip``::
     :ref:`topic-format`.
 
 
+.. index::
+   single: is-forwarded method
+   single: format method; is-forwarded
+   single: Scheme; is-forwarded method
+
 .. _guide-lang-isfwd:
 
 The is-forwarded method
@@ -558,6 +596,11 @@ that object was moved, or ``NULL`` if the object was not moved.
 
     :ref:`topic-format`.
 
+
+.. index::
+   single: padding method
+   single: format method; padding
+   single: Scheme; padding method
 
 .. _guide-lang-pad:
 
@@ -622,6 +665,11 @@ code must be added to ``obj_scan`` and ``obj_skip``::
     :ref:`topic-format`.
 
 
+.. index::
+   single: generation chain
+   single: chain; generation
+   single: Scheme; generation chain
+
 Generation chains
 -----------------
 
@@ -665,6 +713,10 @@ frequent garbage collections!
 
     :ref:`topic-collection`.
 
+
+.. index::
+   single: pool; creating
+   single: Scheme; pool
 
 Creating the pool
 -----------------
@@ -714,6 +766,10 @@ And finally the :term:`pool`::
                           obj_chain);
     if (res != MPS_RES_OK) error("Couldn't create obj pool");
 
+
+.. index::
+   single: root; creating
+   single: Scheme; root
 
 Roots
 -----
@@ -909,6 +965,10 @@ changes size::
     :ref:`topic-root`.
 
 
+.. index::
+   single: thread; registering
+   single: Scheme; thread
+
 .. _guide-lang-threads:
 
 Threads
@@ -1010,6 +1070,11 @@ it now must be organized like this::
 
     :ref:`topic-thread`.
 
+
+.. index::
+   single: allocation; tutorial
+   single: allocation point protocol; tutorial
+   single: Scheme; allocation
 
 .. _guide-lang-allocation:
 
@@ -1123,6 +1188,10 @@ we have to initialize the object again (most conveniently done via a
     :ref:`topic-allocation`.
 
 
+.. index::
+   single: consistency; maintaining
+   pair: asynchrony; cautions
+
 Maintaining consistency
 -----------------------
 
@@ -1163,6 +1232,11 @@ Explanations of what happens if your code breaks these rules, together
 with tactics for tracking down the causes, appear in the chapter
 :ref:`guide-debug`.
 
+
+.. index::
+   single: destroying
+   single: tearing down
+   single: tidying up
 
 Tidying up
 ----------

@@ -1,3 +1,9 @@
+.. index::
+   single: allocation; segregated-fit
+   single: free list; segregated
+   single: segregated allocation cache
+   single: segregated free list
+
 .. _topic-cache:
 
 Segregated allocation caches
@@ -71,6 +77,8 @@ found in the cache.
     between the cache and the pool.
 
 
+.. index::
+   single: segregated allocation cache; creating
 
 Cache interface
 ---------------
@@ -240,6 +248,9 @@ Cache interface
         :term:`threads` that might be accessing the same
         pool.
 
+
+.. index::
+   pair: segregated allocation cache; allocation
 
 Allocation interface
 --------------------

@@ -2,6 +2,9 @@
 
      `<https://info.ravenbrook.com/project/mps/doc/2002-06-18/obsolete-mminfo/mmdoc/protocol/mps/alloc-pattern-ramp/>`_
 
+.. index::
+   pair: allocation; pattern
+
 .. _topic-pattern:
 
 Allocation patterns
@@ -78,6 +81,10 @@ and :c:func:`mps_alloc_pattern_ramp_collect_all`.
 
     This function may be used to recover from error conditions.
 
+
+.. index::
+   single: allocation; ramp pattern
+   single: ramp allocation
 
 .. _topic-pattern-ramp:
 

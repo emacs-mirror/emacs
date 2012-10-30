@@ -2,6 +2,11 @@
 
     `<https://info.ravenbrook.com/project/mps/master/design/critical-path.txt>`_
 
+.. index::
+   single: critical path
+   single: path; critical
+   single: Memory Pool System; critical path
+
 .. _topic-critical:
 
 The critical path

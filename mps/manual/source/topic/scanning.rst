@@ -2,6 +2,10 @@
 
      `<https://info.ravenbrook.com/project/mps/doc/2002-06-18/obsolete-mminfo/mmdoc/protocol/mps/scanning/>`_
 
+.. index::
+   single: scanning; introduction
+   single: object format; scan method
+
 .. _topic-scanning:
 
 Scanning
@@ -20,6 +24,9 @@ in memory, blocks are scanned in order to identify references that
 need to be updated to point to the new locations of these objects.
 Both tasks use the same scanning protocol, described here.
 
+
+.. index::
+   single: scanning; protocol
 
 .. _topic-scanning-protocol:
 
@@ -62,6 +69,9 @@ region to be scanned. They must carry out the following steps:
 This description of the protocol simplifies a number of important
 details, which are covered in the following sections.
 
+
+.. index::
+   pair: scanning; tagged reference
 
 .. _topic-scanning-tag:
 
@@ -108,6 +118,9 @@ before calling :c:func:`MPS_FIX2`, if the target of the referent
 belongs to an :term:`object format` of variant auto-header).
 
 
+.. index::
+   pair: scanning; critical path
+
 Critical path
 -------------
 
@@ -152,6 +165,9 @@ references into :term:`leaf object` pools like :ref:`pool-amcz`, these
 objects do not need to be scanned at all.
 
 
+.. index::
+   pair: scanning; ambiguous reference
+
 Ambiguous references
 --------------------
 
@@ -172,6 +188,9 @@ reassemble and store the updated reference after calling
     :term:`object format`, but :term:`root` scanning functions may
     encounter this case.
 
+
+.. index::
+   pair: scanning; unfixed reference
 
 Unfixed references
 ------------------
@@ -195,6 +214,10 @@ system fragile (for example, it may break if you start using a
 different :term:`pool class`), so it usually safest to fix all
 references.
 
+
+.. index::
+   single: scanning; example
+   single: Scheme; scanning
 
 Example: Scheme objects
 -----------------------
@@ -270,6 +293,9 @@ Here's the Scheme scanner::
     clear to the reader. The scanning code and the object layout are
     not at all optimized.
 
+
+.. index::
+   single: scanning; interface
 
 Scanning interface
 ------------------
@@ -383,6 +409,10 @@ Scanning interface
          values out of registers. The gains in simplicity of the code
          need to be measured against the loss in performance.
 
+
+.. index::
+   single: scanning; fixing
+   single: fixing; interface
 
 Fixing interface
 ----------------
