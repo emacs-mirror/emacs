@@ -136,7 +136,9 @@ Memory Management Glossary: D
             *dependent object*. While scanning an object, the MPS
             ensures that the dependent object is unprotected so that
             it can be updated. This feature supports the
-            implementation of weak-key and weak-value hash tables.
+            implementation of :term:`weak-key <weak-key hash table>`
+            and :term:`weak-value hash tables`. See
+            :ref:`pool-awl-dependent`.
 
     derived pointer
 

@@ -2,41 +2,93 @@
 
     `<https://info.ravenbrook.com/project/mps/master/design/poolmvff/>`_
 
+.. index::
+   single: MVFF; introduction
+   single: pool class; MVFF
+
 .. _pool-mvff:
 
-================================
 MVFF (Manual Variable First Fit)
 ================================
 
+**MVFF** :term:`manually manages <manual memory management>`
+variable-sized, unformatted objects. It uses the :term:`first fit`
+:term:`allocation policy` for blocks allocated via
+:c:func:`mps_alloc`.
 
-Buffered allocation (:c:func:`mps_reserve` and :c:func:`mps_commit`) is also supported, but in that case, the policy is rather different: buffers are filled worst-fit, and allocation is always upwards from the base. The arenaHigh parameter regulates whether new segments are acquired at high or low addresses;the slotHigh and firstFit parameters do not affect buffered allocation. Buffered and unbuffered allocation can be used at the same time, but in that case, the first allocation point must be created before any call to :c:func:`mps_alloc`.
+It also supports buffered allocation (that is, allocation via
+:term:`allocation points`), and in this case, the allocation policy is
+different: the buffers are filled according to the :term:`worst fit`
+policy, and allocation always proceeds upwards from the base.
 
-Cached allocation (:c:macro:`MPS_SAC_ALLOC` and :c:macro:`MPS_SAC_FREE`) is also supported, but in that case,the policy is a little different: allocation from the cache follows its own policy (typicallyfirst-fit), and only when the cache needs to acquire more blocks from the underlying MVFF pool does it use the usual algorithm to choose blocks for the cache.
+Buffered and unbuffered allocation can be used at the same time, but
+the first allocation point must be created before any call to
+:c:func:`mps_alloc`.
 
-::
+It is usually not advisable to use buffered and unbuffered allocation
+on the same pool, because the worst-fit policy of buffer filling will
+grab all the large blocks, leading to severe fragmentation. If you
+need both forms of allocation, use two separate pools.
 
-    if(mps_pool_create(&pool, arena, mps_class_mvff(), 8 * 1024, 135, 4, 0, 0, 1)
-       != MPS_RES_OK)
-    {
-        printf("Error creating pool!");
-        exit(2);
-    }
+Note that using buffered allocation prevents (for obscure technical
+reasons) the pool from allocating across segment boundaries. This can
+cause added external fragmentation if objects are allocated that are a
+significant fraction of the segment size.
+
+.. note::
+
+    If you need to allocate large objects in an MVFF pool,
+    :ref:`contact us <contact>`.
 
 
-It is usually not advisable to use buffered and unbuffered allocation at the same time,because the worst-fit policy of buffer filling will grab all the large blocks, leading to severe fragmentation. Use two separate pools instead.
+.. index::
+   single: MVFF; properties
 
-Note that using buffered allocation prevents (for obscure technical reasons) the pool from allocating across segment boundaries. This can cause added external fragmentation if objects are allocated that are a significant fraction of the segment size. (This quirk will disappear in a future version.)
+MVFF properties
+---------------
+
+* Supports allocation via :c:func:`mps_alloc`.
+
+* Supports allocation via :term:`allocation points`.
+
+* Supports deallocation via :c:func:`mps_free`.
+
+* Supports :term:`allocation frames` but does not use them to improve
+  the efficiency of stack-like allocation.
+
+* Supports :term:`segregated allocation caches`.
+
+* There are no garbage collections in this pool.
+
+* Allocations may be variable in size.
+
+* The :term:`alignment` of blocks is not configurable (it is the
+  natural :term:`word` size of the platform).
+
+* Blocks do not have :term:`dependent objects`.
+
+* Blocks are not automatically :term:`reclaimed`.
+
+* Blocks are not :term:`scanned <scan>`.
+
+* Blocks are not protected by :term:`barriers (1)`.
+
+* Blocks do not :term:`move <moving garbage collector>`.
+
+* Blocks may not be registered for :term:`finalization`.
+
+* Blocks must not belong to an :term:`object format`.
 
 
+.. index::
+   single: MVFF; interface
 
----------------------
-MVFF symbol reference
----------------------
+MVFF interface
+--------------
 
 ::
 
    #include "mpscmvff.h"
-
 
 .. c:function:: mps_class_t mps_class_mvff(void)
 
@@ -67,15 +119,63 @@ MVFF symbol reference
     to the pool's alignment. The minimum alignment supported by pools
     of this class is ``sizeof(void *)``.
 
-    ``slot_high``, ``arena_high``, and ``first_fit`` are undocumented
-    and may be set to (0, 0, 1) or (1, 1, 1). No other setting of
-    these parameters is recommended.
+    ``slot_high`` is undocumented. It must have the same value as
+    ``arena_high``.
+
+    If ``arena_high`` is true, new segments for buffered allocation
+    are acquired at high addresses; if false, at low addresses.
+
+    ``first_fit`` is undocumented and must be set to true.
 
 
-------------
-Undocumented
-------------
+.. c:function:: mps_class_t mps_class_mvff_debug(void)
+
+    A :ref:`debugging <topic-debugging>` version of the MVFF pool
+    class.
+
+    When creating a debugging MVFF pool, :c:func:`mps_pool_create`
+    takes seven extra arguments::
+
+        mps_res_t mps_pool_create(mps_pool_t *pool_o, mps_arena_t arena, 
+                                  mps_class_t mps_class_mvff_debug(),
+                                  mps_debug_option_s debug_option,
+                                  mps_size_t extend_size,
+                                  mps_size_t average_size,
+                                  mps_align_t alignment,
+                                  mps_bool_t slot_high,
+                                  mps_bool_t arena_high,
+                                  mps_bool_t first_fit)
+
+    ``debug_option`` specifies the debugging options. See
+    :c:type:`mps_debug_option_s`.
+
+    The other arguments are the same as for :c:func:`mps_class_mvff`.
+
+
+.. index::
+   pair: MVFF; introspection
+
+MVFF introspection
+------------------
+
+::
+
+   #include "mpscmvff.h"
 
 .. c:function:: size_t mps_mvff_free_size(mps_pool_t mpspool)
+
+    Return the total amount of free space in an MVFF pool.
+
+    ``pool`` is the MVFF pool.
+
+    Returns the total free space in the pool, in :term:`bytes (1)`.
+
+
 .. c:function:: size_t mps_mvff_size(mps_pool_t pool)
-.. c:function:: mps_class_t mps_class_mvff_debug(void)
+
+    Return the total size of an MVFF pool.
+
+    ``pool`` is the MVFF pool.
+
+    Returns the total size of the pool, in :term:`bytes (1)`. This
+    is the sum of allocated space and free space.
