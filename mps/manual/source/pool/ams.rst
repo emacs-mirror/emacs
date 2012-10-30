@@ -4,7 +4,7 @@
     `<https://info.ravenbrook.com/project/mps/master/design/poolams/>`_
 
 .. index::
-   single: AMS; introduction
+   single: AMS
    single: pool class; AMS
 
 .. _pool-ams:

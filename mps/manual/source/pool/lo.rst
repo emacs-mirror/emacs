@@ -4,7 +4,7 @@
     `<https://info.ravenbrook.com/project/mps/master/design/poollo/>`_
 
 .. index::
-   single: LO; introduction
+   single: LO
    single: pool class; LO
 
 .. _pool-lo:

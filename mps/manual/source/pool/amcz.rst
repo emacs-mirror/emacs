@@ -3,7 +3,7 @@
     `<https://info.ravenbrook.com/project/mps/master/manual/wiki/pool_classes.html>`_
 
 .. index::
-   single: AMCZ; introduction
+   single: AMCZ
    single: pool class; AMCZ
 
 .. _pool-amcz:
