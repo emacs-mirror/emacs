@@ -900,6 +900,10 @@ cl-caaar .. cl-cddddr         cl-first .. cl-tenth
 cl-rest     cl-get            cl-getf     cl-subseq
 @end smallexample
 
+@noindent
+Note that for @code{cl-getf} (as for @code{nthcdr}), the list argument
+of the function must itself be a valid @var{place} form.
+
 @item
 General Emacs Lisp functions:
 @smallexample
@@ -2813,10 +2817,10 @@ is given).
 In particular,
 
 @example
-(get sym prop)  @equiv{}  (cl-get (symbol-plist sym) prop)
+(get sym prop)  @equiv{}  (cl-getf (symbol-plist sym) prop)
 @end example
 
-It is valid to use @code{getf} as a @code{setf} place, in which case
+It is valid to use @code{cl-getf} as a @code{setf} place, in which case
 its @var{place} argument must itself be a valid @code{setf} place.
 The @var{default} argument, if any, is ignored in this context.
 The effect is to change (via @code{setcar}) the value cell in the
@@ -2824,7 +2828,7 @@ list that corresponds to @var{property}, or to cons a new property-value
 pair onto the list if the property is not yet present.
 
 @example
-(put sym prop val)  @equiv{}  (setf (cl-get (symbol-plist sym) prop) val)
+(put sym prop val)  @equiv{}  (setf (cl-getf (symbol-plist sym) prop) val)
 @end example
 
 The @code{get} and @code{cl-get} functions are also @code{setf}-able.
@@ -2837,8 +2841,7 @@ The fact that @code{default} is ignored can sometimes be useful:
 Here, symbol @code{foo}'s @code{usage-count} property is incremented
 if it exists, or set to 1 (an incremented 0) otherwise.
 
-@c FIXME cl-getf?
-When not used as a @code{setf} form, @code{getf} is just a regular
+When not used as a @code{setf} form, @code{cl-getf} is just a regular
 function and its @var{place} argument can actually be any Lisp
 expression.
 @end defun

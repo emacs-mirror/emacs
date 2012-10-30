@@ -2025,10 +2025,10 @@ process-filter
 Using any forms other than these in the @var{place} argument to
 @code{setf} will signal an error.
 
-Note that for @code{nthcdr} and @code{getf}, the list argument
-of the function must itself be a valid @var{place} form.  For
-example, @code{(setf (nthcdr 0 foo) 7)} will set @code{foo} itself
-to 7.
+@c And for cl-lib's cl-getf.
+Note that for @code{nthcdr}, the list argument of the function must
+itself be a valid @var{place} form.  For example, @code{(setf (nthcdr
+0 foo) 7)} will set @code{foo} itself to 7.
 @c The use of @code{nthcdr} as a @var{place} form is an extension
 @c to standard Common Lisp.
 

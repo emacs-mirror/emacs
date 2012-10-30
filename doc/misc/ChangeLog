@@ -2,6 +2,9 @@
 
 	* cl.texi (Modify Macros): Update for cl-letf changes.
 	(Obsolete Lexical Macros): Say a little more about letf/cl-letf.
+	(Setf Extensions): Partially restore note about cl-getf,
+	mainly moved to lispref/variables.texi.
+	(Property Lists): Fix cl-getf typos.
 
 2012-10-29  Glenn Morris  <rgm@gnu.org>
 
