@@ -5,6 +5,7 @@
 	(Setf Extensions): Partially restore note about cl-getf,
 	mainly moved to lispref/variables.texi.
 	(Property Lists): Fix cl-getf typos.
+	(Mapping over Sequences): Mention cl-mapc naming oddity.
 
 2012-10-29  Glenn Morris  <rgm@gnu.org>
 

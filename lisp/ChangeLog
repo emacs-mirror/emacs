@@ -1,5 +1,7 @@
 2012-10-30  Glenn Morris  <rgm@gnu.org>
 
+	* emacs-lisp/cl-extra.el (cl-mapc): Add autoload cookie.  Doc fix.
+
 	* emacs-lisp/cl.el (letf): Doc fix.  (Bug#12760)
 
 2012-10-29  Chong Yidong  <cyd@gnu.org>
