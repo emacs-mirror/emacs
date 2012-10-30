@@ -221,7 +221,7 @@ of time and is becoming a standard part of modern programming
 environments. Some will say "the right tool for the right job",
 rejecting automatic memory management in some cases; few today are
 bold enough to suggest that there is never a place for garbage
-collection among tools of the modern programmer -- either as part of a
+collection among tools of the modern programmer---either as part of a
 language or as an add-on component.
 
 
@@ -344,8 +344,8 @@ paper is now rather old and the collector has been much improved since
 then.
 
 
-Manual memory management gives me control -- it doesn't pause
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+Manual memory management gives me control---it doesn't pause
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 It is possible for :term:`manual memory management` to pause for
 considerable periods, either on :term:`allocation <allocate>` or
