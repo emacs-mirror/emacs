@@ -1,3 +1,7 @@
+2012-10-30  Glenn Morris  <rgm@gnu.org>
+
+	* emacs-lisp/cl.el (letf): Doc fix.  (Bug#12760)
+
 2012-10-29  Chong Yidong  <cyd@gnu.org>
 
 	* isearch.el (isearch-other-meta-char): Ensure that a reprocessed

@@ -323,7 +323,10 @@ The difference is that it relies on the `lexical-binding' machinery (as opposed
 to the `lexical-let' machinery used previously) to capture definitions in
 closures, so such closures will only work if `lexical-binding' is in use.
 
++++
 *** `cl-letf' is not exactly like `letf'.
+The only difference is in details that relate to some deprecated usage
+of `symbol-function' in place forms.
 
 +++
 *** `progv' was rewritten to use the `let' machinery.

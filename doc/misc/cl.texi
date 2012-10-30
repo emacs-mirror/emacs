@@ -882,7 +882,7 @@ generalized variables.
 
 @menu
 * Setf Extensions::    Additional @code{setf} places.
-* Modify Macros::      @code{cl-incf}, @code{cl-rotatef}, @code{letf}, @code{cl-callf}, etc.
+* Modify Macros::      @code{cl-incf}, @code{cl-rotatef}, @code{cl-letf}, @code{cl-callf}, etc.
 @end menu
 
 @node Setf Extensions
@@ -1127,7 +1127,7 @@ conveniently exchanges @var{a} and @var{b}.
 The following macros were invented for this package; they have no
 analogues in Common Lisp.
 
-@defmac letf (bindings@dots{}) forms@dots{}
+@defmac cl-letf (bindings@dots{}) forms@dots{}
 This macro is analogous to @code{let}, but for generalized variables
 rather than just symbols.  Each @var{binding} should be of the form
 @code{(@var{place} @var{value})}; the original contents of the
@@ -1140,47 +1140,59 @@ error.
 For example,
 
 @example
-(letf (((point) (point-min))
-       (a 17))
-  ...)
+(cl-letf (((point) (point-min))
+          (a 17))
+     ...)
 @end example
 
 @noindent
-moves ``point'' in the current buffer to the beginning of the buffer,
+moves point in the current buffer to the beginning of the buffer,
 and also binds @code{a} to 17 (as if by a normal @code{let}, since
 @code{a} is just a regular variable).  After the body exits, @code{a}
 is set back to its original value and point is moved back to its
 original position.
 
-Note that @code{letf} on @code{(point)} is not quite like a
+Note that @code{cl-letf} on @code{(point)} is not quite like a
 @code{save-excursion}, as the latter effectively saves a marker
 which tracks insertions and deletions in the buffer.  Actually,
-a @code{letf} of @code{(point-marker)} is much closer to this
+a @code{cl-letf} of @code{(point-marker)} is much closer to this
 behavior.  (@code{point} and @code{point-marker} are equivalent
 as @code{setf} places; each will accept either an integer or a
 marker as the stored value.)
 
 Since generalized variables look like lists, @code{let}'s shorthand
 of using @samp{foo} for @samp{(foo nil)} as a @var{binding} would
-be ambiguous in @code{letf} and is not allowed.
+be ambiguous in @code{cl-letf} and is not allowed.
 
 However, a @var{binding} specifier may be a one-element list
 @samp{(@var{place})}, which is similar to @samp{(@var{place}
 @var{place})}.  In other words, the @var{place} is not disturbed
-on entry to the body, and the only effect of the @code{letf} is
-to restore the original value of @var{place} afterwards.  (The
-redundant access-and-store suggested by the @code{(@var{place}
+on entry to the body, and the only effect of the @code{cl-letf} is
+to restore the original value of @var{place} afterwards.
+@c I suspect this may no longer be true; either way it's
+@c implementation detail and so not essential to document.
+@ignore
+(The redundant access-and-store suggested by the @code{(@var{place}
 @var{place})} example does not actually occur.)
+@end ignore
 
-In most cases, the @var{place} must have a well-defined value on
-entry to the @code{letf} form.  The only exceptions are plain
-variables and calls to @code{symbol-value} and @code{symbol-function}.
-If the symbol is not bound on entry, it is simply made unbound by
-@code{makunbound} or @code{fmakunbound} on exit.
+Note that in this case, and in fact almost every case, @var{place}
+must have a well-defined value outside the @code{cl-letf} body.
+There is essentially only one exception to this, which is @var{place}
+a plain variable with a specified @var{value} (such as @code{(a 17)}
+in the above example).
+@c See http://debbugs.gnu.org/12758
+@c Some or all of this was true for cl.el, but not for cl-lib.el.
+@ignore
+The only exceptions are plain variables and calls to
+@code{symbol-value} and @code{symbol-function}.  If the symbol is not
+bound on entry, it is simply made unbound by @code{makunbound} or
+@code{fmakunbound} on exit.
+@end ignore
 @end defmac
 
 @defmac cl-letf* (bindings@dots{}) forms@dots{}
-This macro is to @code{letf} what @code{let*} is to @code{let}:
+This macro is to @code{cl-letf} what @code{let*} is to @code{let}:
 It does the bindings in sequential rather than parallel order.
 @end defmac
 
@@ -1210,7 +1222,7 @@ equivalent to @code{(cl-callf2 cons @var{x} @var{place})}.
 
 The @code{cl-callf} and @code{cl-callf2} macros serve as building
 blocks for other macros like @code{cl-incf}, and @code{cl-pushnew}.
-The @code{letf} and @code{cl-letf*} macros are used in the processing
+The @code{cl-letf} and @code{cl-letf*} macros are used in the processing
 of symbol macros; @pxref{Macro Bindings}.
 
 
@@ -1221,7 +1233,7 @@ of symbol macros; @pxref{Macro Bindings}.
 These Lisp forms make bindings to variables and function names,
 analogous to Lisp's built-in @code{let} form.
 
-@xref{Modify Macros}, for the @code{letf} and @code{cl-letf*} forms which
+@xref{Modify Macros}, for the @code{cl-letf} and @code{cl-letf*} forms which
 are also related to variable bindings.
 
 @menu
@@ -1370,7 +1382,7 @@ I.e., @code{(setq foo 4)} in the above would be equivalent to
 @code{(setf foo 4)}, which in turn expands to @code{(setf (car bar) 4)}.
 
 Likewise, a @code{let} or @code{let*} binding a symbol macro is
-treated like a @code{letf} or @code{cl-letf*}.  This differs from true
+treated like a @code{cl-letf} or @code{cl-letf*}.  This differs from true
 @c FIXME does it work like this in Emacs with lexical-binding = t?
 Common Lisp, where the rules of lexical scoping cause a @code{let}
 binding to shadow a @code{cl-symbol-macrolet} binding.  In this package,
@@ -4870,7 +4882,10 @@ Replaced by @code{cl-labels} (@pxref{Function Bindings}).
 @end defmac
 
 @defmac letf (bindings@dots{}) forms@dots{}
-Replaced by @code{cl-letf} (@pxref{Modify Macros}).
+This macro is almost exactly the same as @code{cl-letf}, which
+replaces it (@pxref{Modify Macros}).  The only difference is in
+details that relate to some deprecated usage of @code{symbol-function}
+in place forms.
 @end defmac
 
 @node Obsolete Setf Customization

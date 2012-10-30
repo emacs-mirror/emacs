@@ -1,3 +1,8 @@
+2012-10-30  Glenn Morris  <rgm@gnu.org>
+
+	* cl.texi (Modify Macros): Update for cl-letf changes.
+	(Obsolete Lexical Macros): Say a little more about letf/cl-letf.
+
 2012-10-29  Glenn Morris  <rgm@gnu.org>
 
 	* cl.texi (Organization): More details on cl-lib.el versus cl.el.
