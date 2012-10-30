@@ -10,8 +10,8 @@
 ;;;;;;  cl-truncate cl-ceiling cl-floor cl-isqrt cl-lcm cl-gcd cl--set-frame-visible-p
 ;;;;;;  cl--map-overlays cl--map-intervals cl--map-keymap-recursively
 ;;;;;;  cl-notevery cl-notany cl-every cl-some cl-mapcon cl-mapcan
-;;;;;;  cl-mapl cl-maplist cl-map cl--mapcar-many cl-equalp cl-coerce)
-;;;;;;  "cl-extra" "cl-extra.el" "1572ae52fa4fbd9c4bf89b49a068a865")
+;;;;;;  cl-mapl cl-mapc cl-maplist cl-map cl--mapcar-many cl-equalp
+;;;;;;  cl-coerce) "cl-extra" "cl-extra.el" "7d7f65d8a05e954a919fe2555b68fb05")
 ;;; Generated autoloads from cl-extra.el
 
 (autoload 'cl-coerce "cl-extra" "\
@@ -45,6 +45,11 @@ Like `mapcar', except applies to lists and their cdr's rather than to
 the elements themselves.
 
 \(fn FUNCTION LIST...)" nil nil)
+
+(autoload 'cl-mapc "cl-extra" "\
+Like `cl-mapcar', but does not accumulate values returned by the function.
+
+\(fn FUNCTION SEQUENCE...)" nil nil)
 
 (autoload 'cl-mapl "cl-extra" "\
 Like `cl-maplist', but does not accumulate values returned by the function.
