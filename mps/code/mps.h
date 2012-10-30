@@ -75,7 +75,7 @@ typedef size_t mps_align_t;     /* alignment (size_t) */
 typedef unsigned mps_rm_t;      /* root mode (unsigned) */
 typedef unsigned mps_rank_t;    /* ranks (unsigned) */
 typedef unsigned mps_message_type_t;    /* message type (unsigned) */
-typedef unsigned long mps_clock_t;  /* processor time */
+typedef mps_word_t mps_clock_t;  /* processor time */
 
 /* Result Codes */
 /* .result-codes: Keep in sync with <code/mpmtypes.h#result-codes> */
