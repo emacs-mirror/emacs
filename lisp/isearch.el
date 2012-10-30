@@ -2159,6 +2159,8 @@ Isearch mode."
 	       (if (and (integerp key)
 			(>= key ?\s) (/= key 127) (< key 256))
 		   (progn
+		     ;; Ensure that the processed char is recorded in
+		     ;; the keyboard macro, if any (Bug#4894)
 		     (store-kbd-macro-event key)
 		     (isearch-process-search-char key)
 		     (setq keylist (cdr keylist)))
