@@ -37,6 +37,7 @@
 #include <stdio.h>
 #include <string.h>
 #include <ctype.h>
+#include <assert.h>
 
 
 int mps_lib_get_EOF(void)
@@ -95,13 +96,22 @@ int (mps_lib_memcmp)(const void *s1, const void *s2, size_t n)
 /* See http://devworld.apple.com/dev/techsupport/insidemac/OSUtilities/OSUtilities-94.html#MARKER-9-32 */
 mps_clock_t mps_clock(void)
 {
-  return (unsigned long)clock();
+  /* The clock values need to fit in mps_clock_t.  If your platform
+     has a very wide clock type, trim or truncate it. */
+  assert(sizeof(mps_clock_t) >= sizeof(clock_t));
+
+  return (mps_clock_t)clock();
 }
 
 
 mps_clock_t mps_clocks_per_sec(void)
 {
-  return (unsigned long)CLOCKS_PER_SEC;
+  /* The MPS needs at least a millisecond clock to get enough
+       resolution for telemetry tools.  If your platform has a
+       floating point clock, multiply it up here in the plinth. */
+  assert(CLOCKS_PER_SEC >= 1000);
+
+  return (mps_clock_t)CLOCKS_PER_SEC;
 }
 
 
