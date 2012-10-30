@@ -53,7 +53,7 @@ Memory Management Glossary: T
 
         .. seealso:: :term:`tagged architecture`, :term:`in-band header`.
 
-        .. bibref:: [GUDEMAN93]_.
+        .. bibref:: :ref:`Gudeman (1993) <GUDEMAN93>`.
 
         .. mps:specific::
 
@@ -158,7 +158,7 @@ Memory Management Glossary: T
         of :term:`physical memory (1)` but which has a working set of
         ten megabytes will :term:`thrash` badly.
 
-        .. bibref:: [DENNING68]_, [DENNING70]_, [DS72]_.
+        .. bibref:: :ref:`Denning (1968) <DENNING68>`, :ref:`Denning (1970) <DENNING70>`, :ref:`Denning & Schwartz (1972) <DS72>`.
 
     thread
 
@@ -292,9 +292,9 @@ Memory Management Glossary: T
             :align: center
             :alt: Diagram: A treadmill.
 
-            A treadmill. (Based on [JONES12]_.)
+            A treadmill. (Based on :ref:`Jones (2012) <JONES12>`.)
 
-        .. bibref:: [BAKER92C]_.
+        .. bibref:: :ref:`Baker (1992c) <BAKER92C>`.
 
     tri-color invariant
     tri-colour invariant
@@ -311,7 +311,7 @@ Memory Management Glossary: T
         people say "the tri-color invariant" they probably mean the
         strong one.
 
-        .. bibref:: [PIRINEN98]_.
+        .. bibref:: :ref:`Pirinen (1998) <PIRINEN98>`.
 
     tri-color marking
     tri-colour marking
@@ -364,7 +364,7 @@ Memory Management Glossary: T
 
         .. seealso:: :term:`barrier (1)`.
 
-        .. bibref:: [DLMSS76]_.
+        .. bibref:: :ref:`Dijkstra et al. (1976) <DLMSS76>`.
 
     two-space collector
     two space collector

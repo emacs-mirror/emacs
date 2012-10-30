@@ -240,7 +240,7 @@ often dominate interface complexity.  Additionally, garbage collection can reduc
 
 In terms of performance, garbage collection is often faster than manual memory management.  It can also improve performance indirectly, by increasing :term:`locality of reference` and hence reducing the size of the :term:`working set`, and decreasing :term:`paging`.
 
-.. bibref:: [ZORN92]_.
+.. bibref:: :ref:`Zorn (1992) <ZORN92>`.
 
 
 Programs with GC are huge and bloated; GC isn't suitable for small programs or systems
@@ -260,7 +260,7 @@ collectors are designed to work best in certain problem domains, such
 as large programs; these may perform poorly outside their target
 environment.
 
-.. bibref:: [ZORN92]_.
+.. bibref:: :ref:`Zorn (1992) <ZORN92>`.
 
 
 I can't use GC because I can't afford to have my program pause
@@ -293,7 +293,7 @@ benefits. Unfortunately, experience shows that this is generally less
 efficient than implementing a proper real-time garbage collector,
 except in the case where most reference counts are one.
 
-.. bibref:: [WISE93]_.
+.. bibref:: :ref:`Wise (1993) <WISE93>`.
 
 
 Isn't GC unreliable? I've heard that GCs often kill the program
@@ -331,7 +331,7 @@ those for :term:`manual memory management`.
 Doesn't garbage collection make programs slow?
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-No. In [ZORN92]_, Benjamin Zorn found that:
+No. :ref:`Benjamin Zorn (1992) <ZORN92>` found that:
 
     the CPU overhead of :term:`conservative garbage collection` is
     comparable to that of explicit storage management techniques. […]
@@ -391,7 +391,7 @@ mitigate this problem.
 
 .. seealso:: :term:`thrash`
 
-.. bibref:: [DENNING68]_.
+.. bibref:: :ref:`Denning (1968) <DENNING68>`.
 
 
 Where can I find out more about garbage collection?
@@ -404,7 +404,7 @@ Boehm–Weiser collector.
 
 .. seealso:: :term:`garbage collection`
 
-.. bibref:: [WIL94]_, [JONES96]_.
+.. bibref:: :ref:`Jones (1996) <JONES96>`, :ref:`Wilson (1994) <WIL94>`.
 
 .. link::
 
@@ -494,7 +494,7 @@ technology make it hard to keep up with software written by experts.
 In general, improvements to memory management don't make as much
 difference to performance as improvements to the program algorithms.
 
-In [ZORN92]_, Benjamin Zorn found that:
+:ref:`Benjamin Zorn (1992) <ZORN92>` found that:
 
     In four of the programs investigated, the programmer felt
     compelled to avoid using the general-purpose storage allocator by

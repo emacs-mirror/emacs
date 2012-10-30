@@ -50,7 +50,7 @@ Memory Management Glossary: V
 
         .. seealso:: :term:`immutable`.
 
-        .. bibref:: [BAKER93A]_.
+        .. bibref:: :ref:`Baker (1993a) <BAKER93A>`.
 
     variety
 

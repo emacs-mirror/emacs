@@ -65,7 +65,8 @@ A brief history of memory management
 1958
 
     :term:`Heap allocation`, :term:`garbage collection` and
-    :term:`Lisp` invented by John McCarthy [MCCARTHY60]_.
+    :term:`Lisp` invented by John McCarthy :ref:`(McCarthy 1960)
+    <MCCARTHY60>`.
 
     :term:`Algol`, the first block-structured language, appears,
     providing :term:`stack allocation`.
@@ -123,9 +124,9 @@ A brief history of memory management
 
 1975
 
-    :term:`Tri-color marking` invented by Edsger W. Dijkstra and
-    others, the first :term:`incremental garbage collection`
-    algorithm. [DLMSS76]_.
+    :term:`Tri-color marking` invented by :ref:`Edsger W. Dijkstra at
+    al. <DLMSS76>`, the first :term:`incremental garbage collection`
+    algorithm. .
 
 1979
 
@@ -143,13 +144,13 @@ A brief history of memory management
 
 1983
 
-    :term:`Generational garbage collection` developed by Lieberman and
-    Hewitt [LH83]_.
+    :term:`Generational garbage collection` developed by
+    :ref:`Lieberman and Hewitt <LH83>`.
 
 1984
 
     :term:`Generational garbage collection` used for :term:`Smalltalk`
-    by Dave Ungar [UNGAR84]_.
+    by :ref:`Dave Ungar <UNGAR84>`.
 
 1991
 

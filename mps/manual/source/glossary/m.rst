@@ -64,19 +64,19 @@ Memory Management Glossary: M
         programs, but it does not scale well in general, nor does it
         encourage modular or object-oriented programming.
 
-        To quote Ian Joyner [JOYNER96]_:
+        To quote :ref:`Joyner (1996) <JOYNER96>`:
 
             In C++ the programmer must manually manage storage due to
             the lack of :term:`garbage collection`. This is the most
             difficult bookkeeping task C++ programmers face, that
             leads to two opposite problems: firstly, an object can be
             :term:`deallocated <free (1)>` prematurely, while valid
-            :term:`references` still exist
-            (:term:`dangling pointers`); secondly,
-            :term:`dead` objects might not be deallocated, leading to
-            memory filling up with dead objects (:term:`memory leaks`). Attempts to correct either problem can
-            lead to overcompensation and the opposite problem
-            occurring. A correct system is a fine balance.
+            :term:`references` still exist (:term:`dangling
+            pointers`); secondly, :term:`dead` objects might not be
+            deallocated, leading to memory filling up with dead
+            objects (:term:`memory leaks`). Attempts to correct either
+            problem can lead to overcompensation and the opposite
+            problem occurring. A correct system is a fine balance.
 
         .. historical::
 
@@ -165,7 +165,7 @@ Memory Management Glossary: M
         :term:`allocation mechanisms`, by
         making large free blocks available.
 
-        .. bibref:: [EDWARDS]_.
+        .. bibref:: :ref:`Edwards <EDWARDS>`.
 
     mark-sweep
     mark-and-sweep
@@ -190,7 +190,7 @@ Memory Management Glossary: M
 
         .. seealso:: :term:`mark-compact`.
 
-        .. bibref:: [MCCARTHY60]_.
+        .. bibref:: :ref:`McCarthy (1960) <MCCARTHY60>`.
 
     marking
 
@@ -536,7 +536,7 @@ Memory Management Glossary: M
         suitable for use with uncooperative compilers, and may be an
         efficient choice for multi-threaded systems.
 
-        .. bibref:: [BARTLETT89]_, [YIP91]_.
+        .. bibref:: :ref:`Bartlett (1989) <BARTLETT89>`, :ref:`Yip (1991) <YIP91>`.
 
     mostly-exact garbage collection
 
@@ -595,7 +595,7 @@ Memory Management Glossary: M
 
         .. historical::
 
-            This term is due to [DLMSS76]_.
+            This term is due to :ref:`Dijkstra et al. (1976) <DLMSS76>`.
 
         .. opposite:: :term:`collector (2)`.
 

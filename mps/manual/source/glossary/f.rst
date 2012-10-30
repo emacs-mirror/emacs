@@ -61,7 +61,7 @@ Memory Management Glossary: F
 
         .. seealso:: :term:`buddy system`, :term:`allocation mechanism`.
 
-        .. bibref:: [WIL95]_.
+        .. bibref:: :ref:`Wilson et al. (1995) <WIL95>`.
 
     FIFO-ordered first fit
 
@@ -72,15 +72,13 @@ Memory Management Glossary: F
         fit` allocation on this chain. :term:`free (1)` can be very
         quick, depending on the :term:`coalescing <coalesce>` policy.
 
-        According to [WIL95]_, this policy controls fragmentation
-        quite well, better than :term:`LIFO-ordered first fit` and as
-        well as :term:`address-ordered first fit` in some cases,
-        although :term:`locality <locality of reference>` may be
-        worse.
+        According to :ref:`Wilson et al. (1995) <WIL95>`, this policy
+        controls fragmentation quite well, better than
+        :term:`LIFO-ordered first fit` and as well as
+        :term:`address-ordered first fit` in some cases, although
+        :term:`locality <locality of reference>` may be worse.
 
         .. seealso:: :term:`first fit`, :term:`LIFO-ordered first fit`, :term:`address-ordered first fit`, :term:`allocation policy`.
-
-        .. bibref:: [WIL95]_.
 
     file mapping
 
@@ -132,7 +130,7 @@ Memory Management Glossary: F
         First fit is a :term:`sequential fit` :term:`allocation
         mechanism`.
 
-        To quote [WIL95]_:
+        To quote :ref:`Wilson et al. (1995) <WIL95>`:
 
             First fit simply searches the :term:`free list` from the
             beginning, and uses the first :term:`free block` large
@@ -150,8 +148,6 @@ Memory Management Glossary: F
         are :term:`freed (1)`.
 
         .. seealso:: :term:`address-ordered first fit`, :term:`LIFO-ordered first fit`, :term:`FIFO-ordered first fit`, :term:`sequential fit`, :term:`next fit`, :term:`best fit`, :term:`worst fit`.
-
-        .. bibref:: [WIL95]_.
 
     fix
 
@@ -325,7 +321,7 @@ Memory Management Glossary: F
         usually divided into :term:`external fragmentation` and
         :term:`internal fragmentation`.
 
-        .. bibref:: [JW98]_.
+        .. bibref:: :ref:`Johnstone & Wilson (1998) <JW98>`.
 
     frame
 
@@ -380,7 +376,7 @@ Memory Management Glossary: F
 
         .. seealso:: :term:`allocation mechanism`, :term:`free list`.
 
-        .. bibref:: [WIL95]_.
+        .. bibref:: :ref:`Wilson et al. (1995) <WIL95>`.
 
     free block chain
 

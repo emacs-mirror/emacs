@@ -270,7 +270,8 @@ More information
 For more detailed information on the topics covered briefly above,
 please have a look at the :ref:`glossary`. Books and research papers
 are available on many specific techniques, and can be found via our
-:ref:`bibliography`; particularly recommended are: [WIL94]_, which is
-survey of garbage collection techniques; [WIL95]_, which is a survey
-of allocation techniques; and [JONES96]_, which is the first book in
-English dedicated to garbage collection.
+:ref:`bibliography`; particularly recommended are: :ref:`Wilson (1994)
+<WIL94>`, which is survey of garbage collection techniques;
+:ref:`Wilson et al. (1995) <WIL95>`, which is a survey of allocation
+techniques; and :ref:`Jones (1996) <JONES96>`, which is the first book
+in English dedicated to garbage collection.

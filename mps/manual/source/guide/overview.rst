@@ -132,7 +132,7 @@ What next?
 ----------
 
 For a much more detailed technical overview of the MPS, see
-[BROOKSBY02]_.
+:ref:`Brooksby (2002) <BROOKSBY02>`.
 
 If you're going to try it out, see :ref:`guide-build`.
 

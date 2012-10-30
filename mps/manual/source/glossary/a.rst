@@ -117,7 +117,7 @@ Memory Management Glossary: A
 
         .. seealso:: :term:`first fit`, :term:`LIFO-ordered first fit`, :term:`address-ordered first fit`.
 
-        .. bibref:: [WIL95]_.
+        .. bibref:: :ref:`Wilson et al. (1995) <WIL95>`.
 
     aging space
 
@@ -225,7 +225,7 @@ Memory Management Glossary: A
 
         .. seealso:: :term:`constructor (1)`.
 
-        .. bibref:: [WIL95]_.
+        .. bibref:: :ref:`Wilson et al. (1995) <WIL95>`.
 
         .. mps:specific::
 
@@ -261,7 +261,7 @@ Memory Management Glossary: A
         example, "leftmost fit on a balanced tree of free blocks
         ordered by address".
 
-        .. bibref:: [WIL95]_.
+        .. bibref:: :ref:`Wilson et al. (1995) <WIL95>`.
 
     allocation pattern
 
@@ -307,7 +307,7 @@ Memory Management Glossary: A
 
         .. seealso:: :term:`address-ordered first fit`, :term:`best fit`.
 
-        .. bibref:: [WIL95]_.
+        .. bibref:: :ref:`Wilson et al. (1995) <WIL95>`.
 
     allocation strategy
 
@@ -322,7 +322,7 @@ Memory Management Glossary: A
         strategy motivates an :term:`allocation policy`, which is
         implemented by an :term:`allocation mechanism`.
 
-        .. bibref:: [WIL95]_.
+        .. bibref:: :ref:`Wilson et al. (1995) <WIL95>`.
 
     allocator
 

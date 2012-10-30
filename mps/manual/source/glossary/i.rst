@@ -121,7 +121,7 @@ Memory Management Glossary: I
 
         .. seealso:: :term:`tri-color marking`, :term:`barrier (1)`.
 
-        .. bibref:: [AEL88]_, [BDS91]_.
+        .. bibref:: :ref:`Appel et al. (1988) <AEL88>`, :ref:`Boehm et al. (1991) <BDS91>`.
 
     incremental update
 
@@ -143,7 +143,7 @@ Memory Management Glossary: I
 
         Incremental-update algorithms ensure the first condition
         cannot occur, by painting either the black or the white object
-        gray (see [PIRINEN98]_ for details).
+        gray (see :ref:`Pirinen (1998) <PIRINEN98>` for details).
 
         They are so called because they incrementally update the
         collector's view of the graph to track changes made by the
@@ -160,7 +160,7 @@ Memory Management Glossary: I
 
         .. seealso:: :term:`tri-color marking`, :term:`strong tri-color invariant`, :term:`barrier (1)`.
 
-        .. bibref:: [WIL94]_, [PIRINEN98]_.
+        .. bibref:: :ref:`Wilson (1994) <WIL94>`, :ref:`Pirinen (1998) <PIRINEN98>`.
 
     indefinite extent
 
@@ -192,7 +192,7 @@ Memory Management Glossary: I
 
         .. seealso:: :term:`allocation mechanism`, :term:`allocation policy`, :term:`sequential fit`, :term:`bitmapped fit`.
 
-        .. bibref:: [WIL95]_.
+        .. bibref:: :ref:`Wilson et al. (1995) <WIL95>`.
 
     indirect method
 
@@ -217,7 +217,7 @@ Memory Management Glossary: I
 
         .. opposite:: :term:`direct method`.
 
-        .. bibref:: [JONES96]_.
+        .. bibref:: :ref:`Jones (1996) <JONES96>`.
 
     infant mortality
 

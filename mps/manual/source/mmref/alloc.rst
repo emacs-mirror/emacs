@@ -39,9 +39,9 @@ order the free list is kept:
 
     This is not fast for allocation or recycling, but supports
     efficient merging of adjacent free blocks (known as
-    :term:`coalescence <coalesce>`). According to [WIL95]_, this
-    ordering reduces :term:`fragmentation`. It can also improve
-    :term:`locality of reference`.
+    :term:`coalescence <coalesce>`). According to :ref:`Wilson et al.
+    (1995) <WIL95>`, this ordering reduces :term:`fragmentation`. It
+    can also improve :term:`locality of reference`.
 
 **Increasing size**
 

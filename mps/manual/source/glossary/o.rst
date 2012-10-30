@@ -56,8 +56,8 @@ Memory Management Glossary: O
 
         In a :term:`treadmill` :term:`garbage collector`, the
         :term:`color` off-white is used to describe :term:`objects`
-        which are :term:`free (3)`. Henry Baker used the term *ecru*
-        in [BAKER92C]_.
+        which are :term:`free (3)`. :ref:`Baker (1992c) <BAKER92C>`
+        used the term *ecru*.
 
         .. opposite:: :term:`white`, :term:`gray`, :term:`black`.
 
@@ -109,11 +109,12 @@ Memory Management Glossary: O
 
         .. historical::
 
-            The one-bit reference count was suggested by Friedman and
-            Wise [FW77]_. Storing the MRB in the reference was
-            suggested by Stoye, Clarke, and Norman [SCN84]_.
+            The one-bit reference count was suggested by
+            :ref:`Friedman & Wise (1977) <FW77>`. Storing the MRB in
+            the reference was suggested by :ref:`Stoye, Clarke, and
+            Norman (1984) <SCN84>`.
 
-        .. bibref:: [JONES96]_.
+        .. bibref:: :ref:`Jones (1996) <JONES96>`.
 
     opaque type
 

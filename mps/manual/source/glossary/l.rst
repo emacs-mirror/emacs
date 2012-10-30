@@ -27,16 +27,16 @@ Memory Management Glossary: L
         1. In a :term:`copying collector <copying garbage collection>`
            large objects can be managed separately using a
            :term:`mark-and-sweep collector <mark-sweep>` to avoid
-           copying costs. See [UNGAR88]_.
+           copying costs. See :ref:`Ungar (1988) <UNGAR88>`.
 
         2. By aligning large objects on page boundaries, they can be
            :term:`compacted <compaction>` or copied by adjusting their
            :term:`mapping` in :term:`virtual memory`. See
-           [WITHINGTON91]_.
+           :ref:`Withington (1991) <WITHINGTON91>`.
 
         3. Large objects may be split into a header and a body, where
            the header is fixed size and the bulk of the object is in
-           the body. See [UNGAR88]_.
+           the body. See :ref:`Ungar (1988) <UNGAR88>`.
 
         4. By using a page-based :term:`read barrier`, large objects
            can be initialized incrementally. For example, each page of
@@ -45,7 +45,8 @@ Memory Management Glossary: L
 
         5. In a copying collector, large objects can be copied
            incrementally using a similar technique (the new copy is
-           initialized from the old copy). See [BAKER78]_.
+           initialized from the old copy). See :ref:`Baker (1978)
+           <BAKER78>`.
 
         6. Large objects are often :term:`leaf objects`,
            so do not need to be :term:`scanned <scan>`, or are known
@@ -112,7 +113,7 @@ Memory Management Glossary: L
 
         .. seealso:: :term:`first fit`, :term:`FIFO-ordered first fit`, :term:`address-ordered first fit`.
 
-        .. bibref:: [WIL95]_.
+        .. bibref:: :ref:`Wilson et al. (1995) <WIL95>`.
 
     limited-field reference count
 
@@ -219,7 +220,7 @@ Memory Management Glossary: L
             collector <copying garbage collection>` can use this
             observation to improve locality of reference.
 
-        .. bibref:: [GZH93]_, [WLM92]_.
+        .. bibref:: :ref:`Grunwald et al. (1993) <GZH93>`, :ref:`Wilson et al. (1992) <WLM92>`.
 
     location
 

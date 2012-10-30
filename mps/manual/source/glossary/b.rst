@@ -48,7 +48,7 @@ Memory Management Glossary: B
 
         .. seealso:: :term:`read barrier`, :term:`write barrier`.
 
-        .. bibref:: [ZORN90]_, [PIRINEN98]_.
+        .. bibref:: :ref:`Pirinen (1998) <PIRINEN98>`, :ref:`Zorn (1990) <ZORN90>`.
 
     barrier (2)
 
@@ -85,8 +85,8 @@ Memory Management Glossary: B
         This term is commonly used in opposition to :term:`derived
         pointer`.
 
-        Note that in [BC92A]_, Boehm and Chase define "base pointer"
-        to be "any pointer value directly recognizable by the
+        Note that :ref:`Boehm & Chase (1992) <BC92A>` define "base
+        pointer" to be "any pointer value directly recognizable by the
         :term:`collector (1)`", and this may well include
         :term:`interior pointers`.
 
@@ -107,7 +107,7 @@ Memory Management Glossary: B
 
         .. seealso:: :term:`allocation policy`, :term:`first fit`, :term:`sequential fit`.
 
-        .. bibref:: [WIL95]_.
+        .. bibref:: :ref:`Wilson et al. (1995) <WIL95>`.
 
     BIBOP
 
@@ -132,7 +132,7 @@ Memory Management Glossary: B
             techniques that divided the :term:`address space` into
             contiguous blocks for each type.
 
-        .. bibref:: [BAKER79]_, [STEELE77]_.
+        .. bibref:: :ref:`Baker (1979) <BAKER79>`, :ref:`Steele (1977) <STEELE77>`.
 
     big bag of pages
 
@@ -151,7 +151,7 @@ Memory Management Glossary: B
 
         .. seealso:: :term:`buddy system`, :term:`allocation mechanism`.
 
-        .. bibref:: [WIL95]_.
+        .. bibref:: :ref:`Wilson et al. (1995) <WIL95>`.
 
     bit array
 
@@ -192,7 +192,7 @@ Memory Management Glossary: B
 
         .. seealso:: :term:`allocation mechanism`, :term:`sequential fit`, :term:`indexed fit`.
 
-        .. bibref:: [WIL95]_.
+        .. bibref:: :ref:`Wilson et al. (1995) <WIL95>`.
 
     bitmask
 
@@ -228,7 +228,7 @@ Memory Management Glossary: B
         For example, such values can be gathered by scanning the
         :term:`roots` before any :term:`objects` have been allocated.
 
-        .. bibref:: [BOEHM93]_.
+        .. bibref:: :ref:`Boehm (1993) <BOEHM93>`.
 
     block
 
@@ -261,7 +261,7 @@ Memory Management Glossary: B
 
         .. seealso:: :term:`tag`, :term:`BIBOP`.
 
-        .. bibref:: [GUDEMAN93]_.
+        .. bibref:: :ref:`Gudeman (1993) <GUDEMAN93>`.
 
     break-table
 
@@ -345,7 +345,7 @@ Memory Management Glossary: B
 
         .. seealso:: :term:`allocation mechanism`, :term:`segregated free lists`, :term:`segregated fit`, :term:`strict segregated fit`.
 
-        .. bibref:: [WIL95]_.
+        .. bibref:: :ref:`Wilson et al. (1995) <WIL95>`.
 
     buffer
 
@@ -359,7 +359,7 @@ Memory Management Glossary: B
         searching of :term:`free block chains`. Buffers tend to,
         however, lead to :term:`external fragmentation`.
 
-        .. bibref:: [AEL88]_.
+        .. bibref:: :ref:`Appel et al. (1988) <AEL88>`.
 
         .. mps:specific::
 

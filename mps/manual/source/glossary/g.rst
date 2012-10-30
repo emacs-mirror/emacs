@@ -78,7 +78,7 @@ Memory Management Glossary: G
 
         .. seealso:: :term:`conservative garbage collection`, :term:`copying garbage collection`, :term:`distributed garbage collection`, :term:`generational garbage collection`, :term:`incremental garbage collection`, :term:`parallel garbage collection`.
 
-        .. bibref:: [MCCARTHY60]_.
+        .. bibref:: :ref:`McCarthy (1960) <MCCARTHY60>`.
 
     garbage collector
 
@@ -208,7 +208,7 @@ Memory Management Glossary: G
 
         .. seealso:: :term:`best fit`, :term:`allocation policy`, :term:`next fit`, :term:`worst fit`.
 
-        .. bibref:: [WIL95]_.
+        .. bibref:: :ref:`Wilson et al. (1995) <WIL95>`.
 
     GPF
 

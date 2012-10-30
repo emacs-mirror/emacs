@@ -76,7 +76,7 @@ Memory Management Glossary: C
 
         .. seealso:: :term:`cache (1)`, :term:`cache (2)`, :term:`cache (3) <caching (3)>`.
 
-        .. bibref:: [BAKER91]_, [WLM92]_, [ZORN91]_.
+        .. bibref:: :ref:`Baker (1991) <BAKER91>`, :ref:`Wilson et al. (1992) <WLM92>`, :ref:`Zorn (1991) <ZORN91>`.
 
     caching (3)
 
@@ -134,7 +134,7 @@ Memory Management Glossary: C
 
         .. seealso:: :term:`generational garbage collection`.
 
-        .. bibref:: [SOBALVARRO88]_, [HH93]_, [AKPY98]_.
+        .. bibref:: :ref:`Azagury et al. (1998) <AKPY98>`, :ref:`Hosking & Hudson (1993) <HH93>`, :ref:`Sobalvarro (1988) <SOBALVARRO88>`.
 
     cell
 
@@ -150,7 +150,7 @@ Memory Management Glossary: C
         recursion when :term:`tracing <trace>` the :term:`graph` of
         :term:`objects`.
 
-        .. bibref:: [CHENEY70]_.
+        .. bibref:: :ref:`Cheney (1970) <CHENEY70>`.
 
     Cheney scan
 
@@ -238,10 +238,9 @@ Memory Management Glossary: C
         be deferred until some time later (known as :term:`deferred
         coalescing`), or it might not be done at all.
 
-        [WIL95]_ has details about fragmentation, and which coalescing
-        strategies are effective under what circumstances.
-
-        .. bibref:: [WIL95]_.
+        :ref:`Wilson et al. (1995) <WIL95>` has details about
+        fragmentation, and which coalescing strategies are effective
+        under what circumstances.
 
     collect
 
@@ -292,7 +291,8 @@ Memory Management Glossary: C
 
         .. historical::
 
-            This term is due to [DLMSS76]_.
+            This term is due to :ref:`Dijkstra et al. (1976)
+            <DLMSS76>`.
 
         .. opposite:: :term:`mutator`.
 
@@ -455,7 +455,7 @@ Memory Management Glossary: C
 
         .. seealso:: :term:`ambiguous root`, :term:`semi-conservative garbage collection`, :term:`interior pointer`.
 
-        .. bibref:: [BW88]_, [BOEHM93]_.
+        .. bibref:: :ref:`Boehm & Weiser (1988) <BW88>`, :ref:`Boehm (1993) <BOEHM93>`.
 
     constant root
 
