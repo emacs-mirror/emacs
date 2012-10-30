@@ -3,7 +3,7 @@
     `<https://info.ravenbrook.com/project/mps/master/design/poolmvff/>`_
 
 .. index::
-   single: MVFF; introduction
+   single: MVFF
    single: pool class; MVFF
 
 .. _pool-mvff:

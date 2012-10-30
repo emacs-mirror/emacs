@@ -1,5 +1,5 @@
 .. index::
-   single: MV; introduction
+   single: MV
    single: pool class; MV
 
 .. _pool-mv:

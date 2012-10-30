@@ -7,7 +7,7 @@
     NB: `<https://info.ravenbrook.com/mail/2002/04/12/15-56-15/0.txt>`_
 
 .. index::
-   single: AWL; introduction
+   single: AWL
    single: pool class; AWL
 
 .. _pool-awl:
