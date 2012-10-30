@@ -21,9 +21,9 @@ includes a library of :term:`memory pool classes <pool class>`
 implementing specialized memory management policies.
 
 The MPS has been in development since 1994 and deployed in successful
-commercial products since 1997. Bugs are almost unknown in
-production. It is under continuous development and support by
-`Ravenbrook <http://www.ravenbrook.com>`_.
+commercial products since 1997. Bugs are almost unknown in production.
+It is under continuous development and support by `Ravenbrook
+<http://www.ravenbrook.com>`_.
 
 The MPS is distributed under an :ref:`open source license
 <license>`. The license is designed to make it possible for you to use
@@ -36,6 +36,34 @@ system) you can easily license the MPS under different terms from
 Ravenbrook by arrangement. Please :ref:`contact us <contact>` at
 `mps-questions@ravenbrook.com <mailto:mps-questions@ravenbrook.com>`_
 for details.
+
+
+.. index::
+   single: Memory Pool System; supported target platforms
+   single: platforms; supported
+
+Supported target platforms
+--------------------------
+
+The MPS is currently supported for deployment on:
+
+- Windows XP or later, both 32- and 64-bit;
+
+- Linux (Ubuntu 11 and RHEL 6.3 known good, otherwise YMMV);
+
+- FreeBSD 7 or later on IA-32 and x86-64;
+
+- Mac OS X 10.4 or later on IA-32 and x86-64 (single threaded only).
+
+The MPS will *not* work in a multi-threaded 32-bit application on 64-bit
+Windows 7.  This is due to a serious fault in Microsoft's WOW64 emulator
+that we are powerless to correct.  It is due to be fixed in Windows 8.
+See `WOW64 bug: GetThreadContext() may return stale contents <http://zachsaw.blogspot.co.uk/2010/11/wow64-bug-getthreadcontext-may-return.html>`_.
+
+The MPS is highly portable and has run on many other processors and
+operating systems in the past (see :ref:`guide-build`). Most of the
+MPS is written in very pure ANSI C and compiles without warnings on
+anything.
 
 
 .. index::
