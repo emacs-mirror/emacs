@@ -2,6 +2,10 @@
 
      `<http://info.ravenbrook.com/project/mps/doc/2002-06-18/obsolete-mminfo/mmdoc/protocol/mps/format/index.html>`_
 
+.. index::
+   single: object format; introduction
+   single: format; object
+
 .. _topic-format:
 
 Object formats
@@ -37,6 +41,9 @@ Not every :term:`pool class` supports :term:`formatted objects`.
 
     The type of an :term:`object format`.
 
+
+.. index::
+   single: object format; creating
 
 Creating an object format
 -------------------------
@@ -286,6 +293,9 @@ For example::
     :term:`pool` using the format. The pool must be destroyed first.
 
 
+.. index::
+   pair: object format; cautions
+
 Cautions
 --------
 
@@ -345,6 +355,10 @@ Cautions
 
    They must not access other memory managed by the MPS.
 
+
+.. index::
+   single: format method
+   single: object format; format method
 
 Format methods
 --------------
@@ -499,6 +513,9 @@ Format methods
         subtracting ``addr`` from the result) as well as skipping over
         them.
 
+
+.. index::
+   pair: object format; introspection
 
 Object format introspection
 ---------------------------

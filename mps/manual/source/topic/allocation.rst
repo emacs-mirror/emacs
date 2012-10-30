@@ -4,11 +4,18 @@
     `<https://info.ravenbrook.com/project/mps/master/manual/wiki/apguide.html>`_
     `<https://info.ravenbrook.com/project/mps/master/design/buffer/>`_
 
+.. index::
+   single: allocation
+
 .. _topic-allocation:
 
 Allocation
 ==========
 
+
+.. index::
+   single: allocation, manual
+   single: manual allocation
 
 Manual allocation
 -----------------
@@ -68,6 +75,9 @@ Manual allocation
         all.
 
 
+
+.. index::
+   single: allocation point
 
 Allocation points
 -----------------
@@ -130,6 +140,9 @@ many small objects. They must be used according to the
     allocated from it, so long as they were successfully
     :term:`committed (2)` by :c:func:`mps_commit`.
 
+
+.. index::
+   single: allocation point protocol
 
 .. _topic-allocation-point-protocol:
 
@@ -323,6 +336,9 @@ It is not necessary to worry about going around this loop many times:
         may evaluate its arguments multiple times.
 
 
+.. index::
+   single: allocation point protocol; example
+
 Example: allocating a symbol
 ----------------------------
 
@@ -350,6 +366,9 @@ Example: allocating a symbol
         return symbol;
     }
 
+
+.. index::
+   pair: allocation point protocol; cautions
 
 .. _topic-allocation-cautions:
 
@@ -406,6 +425,10 @@ formatted object (at least in the debugging version of your program).
     automatically overwrite free space with a pattern of bytes of your
     choosing. See :ref:`topic-debugging`.
 
+
+.. index::
+   single: allocation point protocol; bugs
+   single: bug; allocation point protocol
 
 Example: inserting into a doubly linked list
 --------------------------------------------
@@ -476,6 +499,9 @@ A correct version of ``insert_link`` looks like this::
         return link;
     }
 
+
+.. index::
+   single: allocation points; implementation
 
 Allocation point implementation
 -------------------------------

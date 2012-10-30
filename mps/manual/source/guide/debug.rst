@@ -1,5 +1,8 @@
 .. highlight:: none
 
+.. index::
+   single: debugging
+
 .. _guide-debug:
 
 Debugging with the Memory Pool System
@@ -25,15 +28,23 @@ General debugging advice
 1. Compile with debugging information turned on (``-g`` on the GCC or
    Clang command line).
 
-2. Build the :term:`cool` :term:`variety` of the MPS (by defining the
+2. .. index::
+      single: cool variety
+      single: variety; cool
+
+   Build the :term:`cool` :term:`variety` of the MPS (by defining the
    preprocessor constant ``CONFIG_VAR_COOL``, for example by setting
    ``-DCONFIG_VAR_COOL`` on the GCC or Clang command line). This
    variety contains many internal consistency checks (including such
-   checks on the :term:`critical path`, which make it too slow for
-   use in production), and can generate debugging output in the form
-   of the :term:`telemetry stream`, discussed below.
+   checks on the :term:`critical path`, which make it too slow for use
+   in production), and can generate profiling output in the form of
+   the :term:`telemetry stream`.
 
-3. Prepare a reproducible test case if possible. The MPS may be
+3. .. index::
+      single: ASLR
+      single: address space layout randomization
+
+   Prepare a reproducible test case if possible. The MPS may be
    :term:`asynchronous <asynchronous garbage collector>`, but it is
    deterministic, so in single-threaded applications you should be
    able to get consistent results. (But you need to beware of `address
@@ -43,7 +54,7 @@ General debugging advice
    differently on each run, which may affect the order of memory
    management operations.)
 
-    .. _address space layout randomization: http://en.wikipedia.org/wiki/Address_space_layout_randomization
+   .. _address space layout randomization: http://en.wikipedia.org/wiki/Address_space_layout_randomization
 
    A fact that assists with reproducibility is that the more
    frequently the collector runs, the sooner and more reliably errors
@@ -55,7 +66,12 @@ General debugging advice
    :c:func:`mps_arena_release`), perhaps as frequently as every
    allocation.
 
-4. Run your test case inside the debugger. Use ``assert`` and
+4. .. index::
+      single: debugger
+      single: abort
+      single: barrier; handling in debugger
+
+   Run your test case inside the debugger. Use ``assert`` and
    ``abort`` in your error handler (rather than ``exit``) so that you
    can enter the debugger with the contents of the control stack
    available for inspection.
@@ -72,6 +88,10 @@ General debugging advice
 
    Add them to your ``.gdbinit`` if appropriate.
 
+
+.. index::
+   single: underscanning
+   single: bug; underscanning
 
 .. _guide-debug-underscanning:
 
@@ -190,6 +210,9 @@ more complex situation this might not yet be clear. In such a
 situation it can be useful to look at the sequence of events leading
 up to the detection of the error. See :ref:`topic-telemetry`.
 
+
+.. index::
+   single: bug; allocating with wrong size
 
 .. _guide-debug-size:
 

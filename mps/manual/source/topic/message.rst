@@ -3,6 +3,9 @@
     `<https://info.ravenbrook.com/project/mps/master/design/message/>`_
     `<https://info.ravenbrook.com/mail/2005/04/05/13-33-11/0.txt>`_
 
+.. index::
+   single: message; introduction
+
 .. _topic-message:
 
 Messages
@@ -37,6 +40,9 @@ garbage collections no longer start until some of these messages are
 retrieved and discarded.
 
 
+.. index::
+   pair: message; finalization
+
 Finalization messages
 ---------------------
 
@@ -52,6 +58,10 @@ removed from the message queue and discarded, by calling
 
 See :ref:`topic-finalization`.
 
+
+.. index::
+   single: message; example
+   single: Scheme; interactive chatter
 
 Example: interactive chatter
 ----------------------------
@@ -132,6 +142,9 @@ Here's how this looks in operation:
         slowing Emacs down and tell them that it had been sped up.
 
 
+.. index::
+   single: message; types
+
 Message types
 -------------
 
@@ -193,6 +206,8 @@ Message types
         already enabled, in which case it has no effect.
 
 
+.. index::
+   single: message; interface
 
 Message interface
 -----------------
@@ -280,6 +295,9 @@ Message interface
     ``message`` is a message retrieved by :c:func:`mps_message_get` and
     not yet discarded.
 
+
+.. index::
+   single: message; queue interface
 
 Message queue interface
 -----------------------

@@ -2,6 +2,9 @@
 
     `<https://info.ravenbrook.com/project/mps/doc/2002-06-18/obsolete-mminfo/mmdoc/protocol/mps/root/>`_
 
+.. index::
+   single: root; introduction
+
 .. _topic-root:
 
 Roots
@@ -22,6 +25,9 @@ assume that all references stored in static data are roots; the Memory
 Pool System is more flexible, but requires the client program to
 declare which references are roots.
 
+
+.. index::
+   single: root; registering
 
 Registering roots
 -----------------
@@ -97,6 +103,9 @@ scan it for references:
    :ref:`topic-root-thread` below.
 
 
+.. index::
+   pair: root; cautions
+
 Cautions
 --------
 
@@ -126,6 +135,10 @@ So the typical sequence of operations when creating a root is:
 3. Fill in the references in the root.
 
 
+.. index::
+   pair: root; thread
+   single: trampoline
+
 .. _topic-root-thread:
 
 Thread roots
@@ -146,6 +159,10 @@ calling :c:func:`mps_tramp`. This means that the bottom of the
 relevant part of stack can be found by taking the address of a local
 variable in the function that calls :c:func:`mps_tramp` (the variable
 ``marker`` in the example below).
+
+.. index::
+   single: Scheme; thread root
+   single: Scheme; trampoline
 
 For example, here's the code from the Scheme example that registers a
 thread root and then trampolines into the program::
@@ -171,6 +188,8 @@ thread root and then trampolines into the program::
     mps_tramp(&r, start, NULL, 0);
 
 
+.. index::
+   pair: root; rank
 
 Ranks
 -----
@@ -196,6 +215,9 @@ Ranks
 
     Return the :term:`rank` of :term:`weak roots`.
 
+
+.. index::
+   pair: root; mode
 
 Root modes
 ----------
@@ -262,6 +284,9 @@ allowing the MPS to detect whether they have changed.
         wants the operating system to be able to access the root. Many
         operating systems can't cope with writing to protected pages.
 
+
+.. index::
+   single: root; interface
 
 Root interface
 --------------
@@ -546,6 +571,9 @@ Root interface
 
     ``root`` is the root.
 
+
+.. index::
+   pair: root; introspection
 
 Root introspection
 ------------------

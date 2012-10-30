@@ -3,6 +3,9 @@
     `<https://info.ravenbrook.com/project/mps/doc/2002-06-18/obsolete-mminfo/mmdoc/protocol/mps/arena/>`_
     `<https://info.ravenbrook.com/project/mps/master/design/arena/>`_
 
+.. index::
+   single: arena
+
 .. _topic-arena:
 
 Arenas
@@ -24,6 +27,9 @@ crashed and you are at the debugger prompt), you can still call
 Other types of objects in the MPS are created "in the arena". They are
 part of the world within the arena, and may interact and affect each
 other.
+
+.. index::
+   single: arena; multiple
 
 .. note::
 
@@ -116,6 +122,10 @@ the way that they acquire the memory to be managed.
     :term:`threads` registered with the arena.
 
 
+.. index::
+   single: arena class; client
+   single: client arena class
+
 .. _topic-arena-client:
 
 Client arenas
@@ -168,6 +178,10 @@ Client arenas
     Return :c:macro:`MPS_RES_OK` if successful, or another
     :term:`result code` if it fails.
 
+
+.. index::
+   single: arena class; virtual memory
+   single: virtual memory arena class
 
 .. _topic-arena-vm:
 
@@ -223,6 +237,9 @@ Virtual memory arenas
     :c:macro:`MPS_RES_MEMORY`. Either ``size`` was far too small or
     the operating system refused to provide enough memory.
 
+
+.. index::
+   single: arena; properties
 
 Arena properties
 ----------------
@@ -417,18 +434,29 @@ Arena properties
     memory.
 
 
+.. index::
+   single: arena; states
+
 Arena states
 ------------
 
 An arena is always in one of three states.
 
-1. In the *unclamped state*, garbage collection may take place,
+1. .. index::
+      single: arena; unclamped state
+      single: unclamped state
+
+   In the *unclamped state*, garbage collection may take place,
    objects may move in memory, references may be updated,
    :term:`location dependencies` may become stale, virtual memory may
    be requested from or return to the operating system, and other
    kinds of background activity may occur. This is the normal state.
 
-2. In the *clamped state*, objects do not move in memory, references
+2. .. index::
+      single: arena; clamped state
+      single: clamped state
+
+   In the *clamped state*, objects do not move in memory, references
    do not change, the staleness of :term:`location dependencies` does
    not change, and memory occupied by :term:`unreachable` objects is
    not recycled.
@@ -437,7 +465,11 @@ An arena is always in one of three states.
    incremental collection may still occur, but it will not be visible
    to the :term:`client program` and no new collections will begin.
 
-3. The *parked state* is the same as the clamped state, with the
+3. .. index::
+      single: arena; parked state
+      single: parked state
+
+   The *parked state* is the same as the clamped state, with the
    additional constraint that no garbage collections are in progress.
 
 The clamped and parked states are used for introspection and
@@ -507,6 +539,10 @@ can only be called in this state.
         :ref:`topic-collection`.
 
 
+.. index::
+   single: garbage collection; running
+   single: collection; running
+
 Running garbage collections
 ---------------------------
 
@@ -561,6 +597,12 @@ allocation and scanning code.
         Contrast with :c:func:`mps_arena_collect`, which does not
         return until the collection has completed.
 
+
+.. index::
+   single: garbage collection; limiting pause
+   single: garbage collection; using idle time
+   single: idle time; using for garbage collection
+   single: pause; limiting
 
 .. _topic-arena-idle:
 
@@ -644,6 +686,9 @@ application.
     state`, it remains there.
 
 
+.. index::
+   pair: arena; introspection
+
 Arena introspection
 -------------------
 
@@ -691,6 +736,9 @@ Arena introspection
         call this function and interpret the result while the arena is
         in the :term:`parked state`.
 
+
+.. index::
+   pair: arena; protection
 
 Protection interface
 --------------------

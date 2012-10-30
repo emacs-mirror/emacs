@@ -4,8 +4,10 @@
     `<https://info.ravenbrook.com/project/mps/doc/2002-06-18/obsolete-mminfo/mmdoc/doc/mps/ref-man/if-conv/>`_
     `<https://info.ravenbrook.com/project/mps/master/design/interface-c/>`_
 
-.. _topic-interface:
+.. index::
+   single: interface; introduction
 
+.. _topic-interface:
 
 Interface conventions
 =====================
@@ -16,6 +18,9 @@ for support for the public identifiers <topic-interface-support>` and
 :ref:`definitions of general types <topic-interface-general>` that
 appear throughout the interface.
 
+
+.. index::
+   pair: interface; support policy
 
 .. _topic-interface-support:
 
@@ -43,12 +48,18 @@ Support policy
     notice in future releases.
 
 
+.. index::
+   pair: interface; language
+
 Language
 --------
 
 1.  The MPS public interface conforms to ANSI/ISO Standard C (IEC
     9899:1990).
 
+
+.. index::
+   pair: interface; headers
 
 Headers
 -------
@@ -68,6 +79,9 @@ Headers
     example, the header for the :term:`virtual memory arena` class is
     ``mpsavm.h``.
 
+
+.. index::
+   pair: interface; identifiers
 
 Identifiers
 -----------
@@ -90,6 +104,9 @@ Identifiers
 
 7.  Union types and tags end with ``_u``.
 
+
+.. index::
+   pair: interface; types
 
 Types
 -----
@@ -125,6 +142,9 @@ There are three kinds of types declared in the MPS interface:
     public and private members.
 
 
+.. index::
+   single: interface; functions
+
 Functions
 ---------
 
@@ -151,6 +171,11 @@ Functions
 
 7.  In/out parameters have names ending with ``_io``.
 
+
+.. index::
+   single: interface; type punning
+   single: punning; type
+   single: type punning
 
 .. _topic-interface-pun:
 
@@ -180,6 +205,9 @@ Instead, we recommend this approach::
 This is portable because conversion from ``void *`` to any other
 :term:`object pointer` type is defined by [ISO90]_ §6.3.2.3.1.
 
+
+.. index::
+   pair: interface; macros
 
 Macros
 ------

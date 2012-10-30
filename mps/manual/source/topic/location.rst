@@ -3,6 +3,10 @@
     <https://info.ravenbrook.com/project/mps/doc/2002-06-18/obsolete-mminfo/mmdoc/doc/mps/guide/ld/index.html>`_
 
 
+.. index::
+   single: location dependency
+   single: dependency; location
+
 .. _topic-location:
 
 Location dependency
@@ -42,6 +46,11 @@ if any of the blocks whose location has been depended on might have
 moved since the respective dependency was made.
 
 
+.. index::
+   single: location dependency; example
+   single: hash table; address-based example 
+   single: Scheme; address-based hash table
+
 Example: ``eq?`` hash table
 ---------------------------
 
@@ -76,6 +85,9 @@ have not been updated to match.
     11616, 1> ht
     #[hash-table (two 2) (three 3) (one 1)]
 
+
+.. index::
+   single: location dependency; creating
 
 Creating dependencies
 ---------------------
@@ -133,6 +145,9 @@ dependencies from the structure. For example, this is normally done
 whenever :c:func:`mps_ld_isstale` returns true.
 
 
+.. index::
+   single: location dependency; adding
+
 Adding dependencies
 -------------------
 
@@ -184,6 +199,10 @@ the location dependency before that:
     being added. We postpone worrying about this until the next
     lookup, when the staleness will be discovered.
 
+
+.. index::
+   single: location dependency; testing staleness
+   single: staleness; testing
 
 Testing dependencies for staleness
 ----------------------------------
@@ -332,6 +351,9 @@ location dependency becomes stale and the table has to be rehashed.
     causes :c:func:`mps_ld_isstale` to be tested.
 
 
+.. index::
+   pair: location dependency; thread safety
+
 Thread safety
 -------------
 
@@ -342,6 +364,9 @@ different location dependencies. The descriptions of the individual
 functions detail their thread-safety attributes if multiple threads
 need to access the same location dependency.
 
+
+.. index::
+   single: location dependency; interface
 
 Location dependency interface
 -----------------------------

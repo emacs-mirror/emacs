@@ -2,6 +2,10 @@
 
     `<https://info.ravenbrook.com/project/mps/master/design/object-debug/>`_
 
+.. index::
+   single: debugging; pool
+   single: pool; debugging
+
 .. _topic-debugging:
 
 Debugging pools
@@ -10,13 +14,21 @@ Debugging pools
 Several :term:`pool classes` have debugging counterparts that provide
 two features that are useful for debugging:
 
-* :dfn:`fenceposts` are patterns of data that are written before and
+* .. index::
+     single: debugging; fencepost
+     single: fencepost
+
+  :dfn:`fenceposts` are patterns of data that are written before and
   after each allocated block. These patterns can be checked, for
   example when the block is deallocated, to see that they are
   unchanged. This helps detect underwriting and :term:`overwriting
   errors`.
 
-* :dfn:`free space splatting` overwrites recycled space with a pattern
+* .. index::
+     single: debugging; free space splatting
+     single: free space splatting
+
+  :dfn:`free space splatting` overwrites recycled space with a pattern
   of data. If the pattern is designed so that it does not resemble a
   live object (and if code checks the consistency of its data
   structues), then this helps to detect :term:`dangling pointer`
