@@ -56,6 +56,18 @@ The plinth is divided into two parts:
    a processor clock.
 
 
+.. c:macro:: CONFIG_PLINTH_NONE
+
+    If this preprocessor constant is defined, exclude the ANSI plinth
+    (``mpsioan.c`` and ``mpsliban.c``) from the MPS. For example::
+
+        cc -DCONFIG_PLINTH_NONE -c mps.c        (Unix/OS X)
+        cl /Gs /DCONFIG_PLINTH_NONE /c mps.c    (Windows)
+
+    Having excluded the ANSI plinth, you must of course supply your
+    own.
+
+
 .. index::
    single: plinth; I/O module
    single: I/O module
