@@ -2332,6 +2332,7 @@ which is the value of the user option
    "-\\_>" ""
    (replace-regexp-in-string
     "-+" "-"
+    ;; FIXME: "todos-insert-item-"
     (concat "todos-item-insert-"
 	    (mapconcat (lambda (e) (if e (symbol-name e))) arglist "-")))))
 
@@ -2341,6 +2342,7 @@ which is the value of the user option
 	  todos-insertion-commands-args)
   "List of names of Todos insertion commands.")
 
+;; FIXME: prefix argument ARG is nil
 (defmacro todos-define-insertion-command (&rest args)
   (let ((name (intern (todos-insertion-command-name args)))
 	(arg0 (nth 0 args))
@@ -2348,11 +2350,14 @@ which is the value of the user option
 	(arg2 (nth 2 args))
 	(arg3 (nth 3 args))
 	(arg4 (nth 4 args)))
-    `(defun ,name (&optional arg)
+    `(defun ,name (&optional arg &rest args)
        "Todos item insertion command generated from ARGS."
-       (interactive)
+       (interactive (list current-prefix-arg))
        (todos-insert-item arg ',arg0 ',arg1 ',arg2 ',arg3 ',arg4))))
 
+;; FIXME: exclude todos-insert-item (or rather from
+;; todos-insertion-key-bindings?), otherwise its doc string won't be
+;; found with C-h k (but it will with M-x todos-insert-item)
 (defvar todos-insertion-commands
   (mapcar (lambda (c)
 	    (eval `(todos-define-insertion-command ,@c)))
@@ -4235,6 +4240,8 @@ the priority is not given by HERE but by prompting."
 			"\\(\n\\)[^[:blank:]]"
 			(concat "\n" (make-string todos-indent-to-here 32))
 			new-item nil nil 1))
+	;; FIXME: after jumping to another category due to `C-u i h',
+	;; item is inserted as first item -- ok?
 	(if here
 	    (cond ((not (eq major-mode 'todos-mode))
 		   (error "Cannot insert a todo item here outside of Todos mode"))
@@ -4618,6 +4625,8 @@ items in this category."
 		(insert diary-nonmarking-symbol))))
 	(todos-forward-item)))))))
 
+;; FIXME: Make NOP if point isn't on a todo item (cf. todos-copy-item,
+;; todos-move-item
 (defun todos-set-item-priority (&optional item cat new arg)
   "Set todo ITEM's priority in CATegory and move item accordingly.
 

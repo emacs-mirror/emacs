@@ -1,3 +1,8 @@
+2012-10-30  Stephen Berman  <stephen.berman@gmx.net>
+
+	* calendar/todos.el (todos-define-insertion-command):
+	Let generated insertion commands accept a prefix argument.
+
 2012-10-08  Stephen Berman  <Stephen.Berman@rub.de>
 
 	* calendar/todos.el (todos-move-item): If user quits before
