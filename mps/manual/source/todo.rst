@@ -73,12 +73,6 @@ Outstanding
 129. What happens if a thread is killed or otherwise terminates
      without being deregistered? Does the MPS go wrong?
 
-130. readme.txt should contain a brief overview and pointers to more
-     documentation, and should (only) duplicate other documentation.
-     There's nothing wrong with it being somewhat redundant. Its
-     supported platforms section doesn't exist elsewhere. Note that
-     the platforms we build with (in build.txt) is not the same list.
-
 132. :c:func:`mps_lib_get_stderr` appears in ``mpslib.h`` and
      ``mpsliban.c`` but is not called by the MPS (it uses
      :c:func:`mps_lib_assert_fail` for assertions). Should this be
@@ -1021,6 +1015,12 @@ Complete
      running out of zones) and then there are emergency collections.
 
      *Action:* created :ref:`topic-low`.
+
+130. readme.txt should contain a brief overview and pointers to more
+     documentation, and should (only) duplicate other documentation.
+     There's nothing wrong with it being somewhat redundant. Its
+     supported platforms section doesn't exist elsewhere. Note that
+     the platforms we build with (in build.txt) is not the same list.
 
 131. Is :c:type:`mps_clock_t` a transparent alias for ``unsigned
      long``? I presume it must be: if it were platform-specific, or
