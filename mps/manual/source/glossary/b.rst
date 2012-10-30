@@ -73,6 +73,10 @@ Memory Management Glossary: B
         These instructions are vital for certain synchronization
         operations.
 
+    barrier hit
+
+        .. see:: :term:`protection fault`.
+
     base pointer
 
         A *base pointer* is a :term:`pointer` to the base or start of

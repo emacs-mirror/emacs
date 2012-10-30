@@ -420,6 +420,22 @@ Memory Management Glossary: R
 
         .. bibref:: [UNGAR84]_, [JONES96]_.
 
+    remote reference
+
+        .. mps:specific::
+
+            A :term:`reference` that logically belongs to a
+            :term:`formatted object` and so must be :term:`fixed` when
+            the object is :term:`scanned <scan>`, but which is not
+            stored within the block containing the object. (For
+            example, in an auxiliary table of some sort.)
+
+            The MPS does not generally support remote references
+            because those references may be :term:`protected
+            <protection>` and so if :term:`scan method` attempts to
+            :term:`fix` them this will hit a :term:`barrier (1)` and
+            cause a re-entrant call to the MPS.
+
     replicating garbage collector
 
         A variant of :term:`copying garbage collection`, which does

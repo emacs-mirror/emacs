@@ -3,33 +3,93 @@
     `<https://info.ravenbrook.com/project/mps/master/manual/wiki/pool_classes.html>`_
     `<https://info.ravenbrook.com/project/mps/master/design/poolamc/>`_
 
+.. index::
+   single: AMC; introduction
+   single: pool class; AMC
+
 .. _pool-amc:
 
-==============================
 AMC (Automatic Mostly-Copying)
 ==============================
 
-General-purpose automatic (collecting) pool class. This is the most 'advanced' pool class in the MPS, intended for most client objects.
+**AMC** is a general-purpose :term:`automatically managed <automatic
+memory management>` :term:`pool class`. This is the most "advanced"
+pool class in the MPS, intended for the majority of objects in the
+client program. Use this pool class unless you need a particular
+feature that it doesn't provide.
 
-AMC is "Automatic, Mostly Copying": it uses copying collection except when prevented by ambiguous references. It is generational.
+"Mostly Copying" means that it uses :term:`copying garbage collection`
+except for blocks that are :term:`pinned <pinning>` by
+:term:`ambiguous references`. 
 
-Chain: specify capacity and mortality of generations 0..N-1. Survivors from N-1 get promoted into an arena-wide topGen (often anachronistically called the "dynamic" generation).
+It uses :term:`generational garbage collection`. That is, it exploits
+assumptions about object lifetimes and inter-connection variously
+referred to as "the generational hypothesis". In particular, the
+following tendencies will be efficiently exploited by an AMC pool:
+
+- most objects die young;
+
+- objects that don't die young will live a long time;
+
+- most references are "backwards in time" (from younger objects to
+  older objects).
+
+In the pool's :term:`generation chain`, specify the capacity and
+mortality of generations 0 to *n*\−1. Survivors from generation *n*\−1
+get promoted into an arena-wide "top" generation.
 
 
-An AMC pool is both scannable and collectable. Objects may contain exact references to other objects that will preserve such other objects. Objects may be reclaimed if they are not reachable from a root. Objects may move during collection, unless reachable via a (direct) ambiguous reference. Objects in an AMC pool may be registered for finalization. Exact (that is, non-ambiguous)references into an object in an AMC pool must be to the start of the object.
+.. index::
+   single: AMC; properties
 
-The AMC pool class exploits assumptions about object lifetimes and inter-connection variously referred to as "the generational hypothesis". In particular, the following tendencies will be efficiently exploited by such a pool:
+AMC properties
+--------------
 
-- Most objects die young;
+* Does not support allocation via :c:func:`mps_alloc` or deallocation
+  via :c:func:`mps_free`.
 
-- Objects that don't die young will live a long time;
+* Supports allocation via :term:`allocation points`. If an allocation
+  point is created in an AMC pool, the call to :c:func:`mps_ap_create`
+  takes no additional parameters.
 
-- Most references are backwards in time.
+* Supports :term:`allocation frames` but does not use them to improve
+  the efficiency of stack-like allocation.
 
-:c:func:`mps_ap_frame_push` and :c:func:`mps_ap_frame_pop` may be used on an allocation point in an AMC pool.They do not declare the affected objects to be definitely dead (compare with the SNC pool class),but have an undefined effect on the collection strategy.
+* Does not support :term:`segregated allocation caches`.
 
-If an allocation point is created in an AMC pool, the call to :c:func:`mps_ap_create` will take no additional parameters.
+* Garbage collections are scheduled automatically. See
+  :ref:`topic-collection-schedule`.
 
+* Blocks may contain :term:`exact references` to blocks in the same or
+  other pools (but may not contain :term:`ambiguous references` or
+  :term:`weak references (1)`, and may not use :term:`remote
+  references`).
+
+* Allocations may be variable in size.
+
+* The :term:`alignment` of blocks is configurable.
+
+* Blocks do not have :term:`dependent objects`.
+
+* Blocks that are not :term:`reachable` from a :term:`root` are
+  automatically :term:`reclaimed`.
+
+* Blocks are :term:`scanned <scan>`.
+
+* Blocks may only be referenced by :term:`base pointers` (unless they
+  belong to an object format of variant auto-header).
+
+* Blocks may be protected by :term:`barriers (1)`.
+
+* Blocks may :term:`move <moving garbage collector>`.
+
+* Blocks may be registered for :term:`finalization`.
+
+* Blocks must belong to an :term:`object format`.
+
+
+.. index::
+   single: AMC; interface
 
 AMC interface
 -------------
@@ -57,8 +117,15 @@ AMC interface
     ``chain`` specifies the :term:`generation chain` for the pool.
 
 
+.. index::
+   pair: AMC; introspection
+
 AMC introspection
 -----------------
+
+::
+
+   #include "mpscamc.h"
 
 .. c:function:: void mps_amc_apply(mps_pool_t pool, mps_amc_apply_stepper_t f, void *p, size_t s)
 

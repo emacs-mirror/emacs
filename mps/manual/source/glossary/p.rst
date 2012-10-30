@@ -513,7 +513,7 @@ Memory Management Glossary: P
 
     protection fault
 
-        .. aka:: *protection exception*, *protection violation*.
+        .. aka:: *barrier hit*, *protection exception*, *protection violation*.
 
         A protection fault is an exception or trap which occurs when a
         process attempts to access :term:`memory (2)` which has been

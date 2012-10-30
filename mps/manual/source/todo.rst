@@ -36,7 +36,7 @@ Outstanding
     Compare the performance with the plain ``scheme.c``. The advanced
     version better be faster!
 
-76. Develop debugging examples that illustrates each of the warnings
+76. Develop debugging examples that illustrate each of the warnings
     about consistency. Also to demonstrate the "garbage collect
     frequently to expose errors as soon as possible" advice.
 
@@ -86,6 +86,27 @@ Outstanding
      left out?
 
 133. What's the purpose of ``mps_SEH_filter`` and ``mps_SEH_handler``?
+     Do they need to be documented?
+
+134. What's the use case for AMS? It's suitable when you have blocks
+     that need to be automatically managed but can't be moved. But
+     when does this happen? If foreign code maintains remembers their
+     location then it seems unlikely that they can be automatically
+     managed (how can these foreign references keep the blocks
+     alive?).
+
+135. Does AMS use protection? I see that it calls ``ShieldExpose`` and
+     ``ShieldCover`` when calling the format's skip method, but not
+     otherwise (e.g. when calling the format's scan method). If it
+     does I need to update the pool choice algorithm.
+
+     Similar question for SNC? It calls ``ShieldExpose`` and
+     ``ShieldCover`` when calling the format's pad method, but not
+     otherwise.
+
+136. It seems possible that MV should not be used. What should I say
+     about this? Should we remove MV from the documentation
+     altogether.
 
 
 Complete
