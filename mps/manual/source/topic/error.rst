@@ -162,6 +162,8 @@ Result codes
     yet supported.
 
 
+.. _topic-error-assertion:
+
 Assertions
 ----------
 
