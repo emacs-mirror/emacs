@@ -4,7 +4,7 @@
     `<https://info.ravenbrook.com/project/mps/master/design/poolamc/>`_
 
 .. index::
-   single: AMC; introduction
+   single: AMC
    single: pool class; AMC
 
 .. _pool-amc:

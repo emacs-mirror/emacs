@@ -3,7 +3,7 @@
     `<https://info.ravenbrook.com/project/mps/master/design/poolmvt/>`_
 
 .. index::
-   single: MVT; introduction
+   single: MVT
    single: pool class; MVT
 
 .. _pool-mvt:

@@ -3,7 +3,7 @@
     `<https://info.ravenbrook.com/project/mps/doc/2002-06-18/obsolete-mminfo/mmdoc/doc/mps/guide/stack-alloc/>`_
 
 .. index::
-   single: SNC; introduction
+   single: SNC
    single: pool class; SNC
 
 .. _pool-snc:
