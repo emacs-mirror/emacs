@@ -5,8 +5,8 @@
 	here...
 
 	* coding.h, coding.c: ... to here, and compile them only when
-	WINDOWSNT or HAVE_NTGUI.  Moving these functions out of cygw32
-	proper lets us write cygw32-agnostic code for the HAVE_NTGUI case.
+	WINDOWSNT or CYGWIN.  Moving these functions out of cygw32 proper
+	lets us write cygw32-agnostic code for the HAVE_NTGUI case.
 
 2012-10-28  Eli Zaretskii  <eliz@gnu.org>
 

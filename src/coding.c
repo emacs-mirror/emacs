@@ -343,7 +343,7 @@ Lisp_Object Qcoding_system_p, Qcoding_system_error;
 Lisp_Object Qemacs_mule, Qraw_text;
 Lisp_Object Qutf_8_emacs;
 
-#if defined (WINDOWSNT) || defined (HAVE_NTGUI)
+#if defined (WINDOWSNT) || defined (CYGWIN)
 static Lisp_Object Qutf_16le;
 #endif
 
