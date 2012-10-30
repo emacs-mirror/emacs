@@ -57,8 +57,7 @@ SNC properties
 
 * Blocks are :term:`scanned <scan>`.
 
-* Blocks may only be referenced by :term:`base pointers` (unless they
-  belong to an object format of variant auto-header).
+* Blocks may only be referenced by :term:`base pointers`.
 
 * Blocks are not protected by :term:`barriers (1)`.
 
