@@ -3317,7 +3317,7 @@ by @var{function} are ignored and thrown away rather than being
 collected into a list.  The return value of @code{cl-mapc} is @var{seq},
 the first sequence.  This function is more general than the Emacs
 primitive @code{mapc}.  (Note that this function is called
-@code{cl-mapc} even in @file{cl.el}, rather than @code{map*} as you
+@code{cl-mapc} even in @file{cl.el}, rather than @code{mapc*} as you
 might expect.)
 @c http://debbugs.gnu.org/6575
 @end defun
