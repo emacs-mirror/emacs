@@ -24,6 +24,13 @@ pools).
 Allocation frames can be used by the :term:`client program` to
 efficiently implement stack-like patterns of allocation.
 
+.. note::
+
+    All :term:`pool classes` that support :term:`allocation points`
+    also support pushing and popping of allocation frames, but only
+    the :ref:`pool-snc` pool class actually uses these frames to
+    manage its blocks.
+
 
 .. c:type:: mps_frame_t
 
