@@ -271,7 +271,7 @@ General types
     The type of a processor time.
 
     It is a :term:`transparent alias <transparent type>` for
-    ``unsigned long``.
+    :c:type:`mps_word_t`.
 
     This is the type returned by the plinth function
     :c:func:`mps_clock`.
