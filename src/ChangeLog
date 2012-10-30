@@ -1,3 +1,7 @@
+2012-10-30  Jan Djärv  <jan.h.d@swipnet.se>
+
+	* frame.c (Fframe_pixel_height): Fix documentation (Bug#12733).
+
 2012-10-30  Kenichi Handa  <handa@gnu.org>
 
 	* font.c (Ffont_at): If WINDOW is specified and it is not

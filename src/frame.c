@@ -2474,11 +2474,8 @@ In the Gtk+ version of Emacs, it includes only any window (including
 the minibuffer or echo area), mode line, and header line.  It does not
 include the tool bar or menu bar.
 
-With the Motif or Lucid toolkits, it also includes the tool bar (but
-not the menu bar).
-
-In a graphical version with no toolkit, it includes both the tool bar
-and menu bar.
+With other graphical versions, it also includes the tool bar and the
+menu bar.
 
 For a text terminal, it includes the menu bar.  In this case, the
 result is really in characters rather than pixels (i.e., is identical
