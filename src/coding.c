@@ -7975,7 +7975,7 @@ preferred_coding_system (void)
   return CODING_ID_NAME (id);
 }
 
-#if defined (WINDOWSNT) || defined (HAVE_NTGUI)
+#if defined (WINDOWSNT) || defined (CYGWIN)
 
 Lisp_Object
 from_unicode (Lisp_Object str)
@@ -8006,7 +8006,8 @@ to_unicode (Lisp_Object str, Lisp_Object *buf)
   *buf = str;
   return WCSDATA (*buf);
 }
-#endif /* WINDOWSNT || HAVE_NTGUI */
+
+#endif /* WINDOWSNT || CYGWIN */
 
 
 #ifdef emacs
@@ -10321,7 +10322,7 @@ syms_of_coding (void)
   DEFSYM (Qutf_8, "utf-8");
   DEFSYM (Qutf_8_emacs, "utf-8-emacs");
 
-#if defined (WINDOWSNT) || defined (HAVE_NTGUI)
+#if defined (WINDOWSNT) || defined (CYGWIN)
   /* No, not utf-16-le: that one has a BOM.  */
   DEFSYM (Qutf_16le, "utf-16le");
 #endif

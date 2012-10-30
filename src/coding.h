@@ -701,7 +701,7 @@ extern void encode_coding_object (struct coding_system *,
                                   Lisp_Object, ptrdiff_t, ptrdiff_t,
                                   ptrdiff_t, ptrdiff_t, Lisp_Object);
 
-#if defined (WINDOWSNT) || defined (HAVE_NTGUI)
+#if defined (WINDOWSNT) || defined (CYGWIN)
 
 /* These functions use Lisp string objects to store the UTF-16LE
    strings that modern versions of Windows expect.  These strings are
@@ -721,7 +721,7 @@ extern wchar_t *to_unicode (Lisp_Object str, Lisp_Object *buf);
    failure modes.  STR itself is not modified.  */
 extern Lisp_Object from_unicode (Lisp_Object str);
 
-#endif /* WINDOWSNT || HAVE_NTGUI */
+#endif /* WINDOWSNT || CYGWIN */
 
 /* Macros for backward compatibility.  */
 
