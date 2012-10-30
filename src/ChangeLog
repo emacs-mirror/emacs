@@ -1,3 +1,8 @@
+2012-10-30  Kenichi Handa  <handa@gnu.org>
+
+	* font.c (Ffont_at): If WINDOW is specified and it is not
+	displaying the current buffer, signal an error.
+
 2012-10-29  Daniel Colascione  <dancol@dancol.org>
 
 	* cygw32.h, cygw32.c (Qutf_16le, from_unicode, to_unicode): In
