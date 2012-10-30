@@ -173,7 +173,7 @@ Memory Management Glossary: P
 
         .. seealso:: :term:`replicating garbage collector`.
 
-        .. bibref:: [DOLIGEZ93]_, [DOLIGEZ94]_.
+        .. bibref:: :ref:`Doligez & Leroy (1993) <DOLIGEZ93>`, :ref:`Doligez & Gonthier (1994) <DOLIGEZ94>`.
 
     parked state
 
@@ -505,7 +505,7 @@ Memory Management Glossary: P
 
         .. seealso:: :term:`read fault`, :term:`write fault`.
 
-        .. bibref:: [AEL88]_, [SINGHAL92]_, [HM93]_.
+        .. bibref:: :ref:`Appel et al. (1988) <AEL88>`, :ref:`Singhal et al. (1992) <SINGHAL92>`, :ref:`Hosking & Moss (1993) <HM93>`.
 
     protection exception
 

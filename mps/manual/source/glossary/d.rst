@@ -126,7 +126,7 @@ Memory Management Glossary: D
         :term:`tracing garbage collector <tracing garbage
         collection>`.
 
-        .. bibref:: [DB76]_.
+        .. bibref:: :ref:`Deutsch & Bobrow (1976) <DB76>`.
 
     dependent object
 
@@ -201,7 +201,7 @@ Memory Management Glossary: D
 
         .. opposite:: :term:`indirect method`.
 
-        .. bibref:: [JONES96]_.
+        .. bibref:: :ref:`Jones (1996) <JONES96>`.
 
     dirty bit
 
@@ -241,7 +241,7 @@ Memory Management Glossary: D
         treated independently: blocks cannot be :term:`split` or
         :term:`coalesced` from one to the other.
 
-        .. bibref:: [WISE78]_.
+        .. bibref:: :ref:`Wise (1978) <WISE78>`.
 
     double free
 

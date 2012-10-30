@@ -42,7 +42,7 @@ Memory Management Glossary: U
 
         .. opposite:: :term:`boxed`.
 
-        .. bibref:: [GUDEMAN93]_.
+        .. bibref:: :ref:`Gudeman (1993) <GUDEMAN93>`.
 
     unclamped state
 
@@ -115,7 +115,7 @@ Memory Management Glossary: U
 
         .. seealso:: :term:`boxed`, :term:`tag`, :term:`value object`.
 
-        .. bibref:: [GUDEMAN93]_.
+        .. bibref:: :ref:`Gudeman (1993) <GUDEMAN93>`.
 
     use after free
 

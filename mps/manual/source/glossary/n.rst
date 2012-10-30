@@ -73,7 +73,7 @@ Memory Management Glossary: N
 
         .. seealso:: :term:`first fit`, :term:`allocation mechanism`.
 
-        .. bibref:: [WIL95]_.
+        .. bibref:: :ref:`Wilson et al. (1995) <WIL95>`.
 
     new space
     newspace

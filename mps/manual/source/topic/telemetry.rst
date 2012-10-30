@@ -6,8 +6,8 @@ Telemetry
 =========
 
 John McCarthy described the first on-line demonstration of
-:term:`Lisp` in an appendix to his paper "History of Lisp"
-[MCCARTHY79]_:
+:term:`Lisp` in an appendix to his paper ":ref:`History of Lisp
+<MCCARTHY79>`":
 
     Everything was going well, if slowly, when suddenly the
     Flexowriter began to type (at ten characters per second) ::

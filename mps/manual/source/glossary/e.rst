@@ -49,7 +49,7 @@ Memory Management Glossary: E
 
         .. seealso:: :term:`generational garbage collection`, :term:`exit table`.
 
-        .. bibref:: [LH83]_.
+        .. bibref:: :ref:`Lieberman & Hewitt (1983) <LH83>`.
 
     entry table (2)
 
@@ -116,7 +116,7 @@ Memory Management Glossary: E
 
         .. seealso:: :term:`segregated fit`, :term:`segregated free list`, :term:`allocation mechanism`.
 
-        .. bibref:: [WIL95]_.
+        .. bibref:: :ref:`Wilson et al. (1995) <WIL95>`.
 
     execution stack
 
@@ -130,7 +130,7 @@ Memory Management Glossary: E
 
         .. seealso:: :term:`entry table (1)`, :term:`entry table (2)`.
 
-        .. bibref:: [LH83]_.
+        .. bibref:: :ref:`Lieberman & Hewitt (1983) <LH83>`.
 
     extent
 
@@ -156,5 +156,5 @@ Memory Management Glossary: E
 
         .. seealso:: :term:`internal fragmentation`.
 
-        .. bibref:: [JW98]_.
+        .. bibref:: :ref:`Johnstone & Wilson (1998) <JW98>`.
 

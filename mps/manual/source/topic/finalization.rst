@@ -52,8 +52,8 @@ the block was allocated.
     program's finalization code may end up running concurrently with
     other code that accesses the underlying resource, and so access to
     the resource need to be guarded with a lock, but then an unlucky
-    scheduling of finalization can result in deadlock. See [BOEHM02]_
-    for a detailed discussion of this issue.
+    scheduling of finalization can result in deadlock. See :ref:`Boehm
+    (2002) <BOEHM02>` for a detailed discussion of this issue.
 
 The :term:`message type` of finalization messages is
 :c:func:`mps_message_type_finalization`, and the client program must
@@ -262,8 +262,8 @@ Cautions
         circumstances.
 
         This is why Java's ``System.runFinalizersOnExit`` is
-        deprecated. See Appendix A of [BOEHM02]_ for a discussion of
-        this problem.
+        deprecated. See Appendix A of :ref:`Boehm (2002) <BOEHM02>`
+        for a discussion of this problem.
 
 4.  Not all :term:`pool classes` support finalization. In general, only
     pools that manage objects whose liveness is determined by garbage

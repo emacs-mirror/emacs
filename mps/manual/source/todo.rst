@@ -11,24 +11,6 @@ Outstanding
 5.  Fix the :ref:`genindex` so that glossary entries like "byte (2)"
     aren't interpreted as subentries? (Or is it OK as is?)
 
-8.  Use a better bibliography extension and update the bibliography.
-    See for example `sphinx-natbib`_.
-
-    .. _sphinx-natbib: http://wnielson.bitbucket.org/projects/sphinx-natbib/
-
-    I tried downloading and using this but it's clearly not ready yet.
-    It uses Pybtex to parse BibTeX, but Pybtex is buggy (its
-    ``CaseInsensitiveDict`` class can't be serialized).
-
-    We could do this "by hand" as it were by using normal Sphinx
-    cross-references. For example::
-
-        * .. _bib-wilson-1995:
-
-          Paul R. Wilson, Mark S. Johnstone, Michael Neely, David
-          Boles. 1995. "Dynamic Storage Allocation: A Survey and
-          Critical Review".
-
 9.  Hyphenate long function names across line endings. It would be
     possible to do this by inserting soft hyphens but if you copied
     the function name you'd copy the soft hyphens too.
@@ -133,6 +115,24 @@ Complete
 6.  Identify ``:term:`` references that point to "see" cross-references.
 
 7.  Re-do the diagrams in vector form and using the colour palette.
+
+8.  Use a better bibliography extension and update the bibliography.
+    See for example `sphinx-natbib`_.
+
+    .. _sphinx-natbib: http://wnielson.bitbucket.org/projects/sphinx-natbib/
+
+    I tried downloading and using this but it's clearly not ready yet.
+    It uses Pybtex to parse BibTeX, but Pybtex is buggy (its
+    ``CaseInsensitiveDict`` class can't be serialized).
+
+    We could do this "by hand" as it were by using normal Sphinx
+    cross-references. For example::
+
+        * .. _WIL95:
+
+          Paul R. Wilson, Mark S. Johnstone, Michael Neely, David
+          Boles. 1995. "Dynamic Storage Allocation: A Survey and
+          Critical Review".
 
 10. Pluralize "Topic" to "Topics" and so on.
 
@@ -670,15 +670,15 @@ Complete
 
     .. _Baker 1991: http://www.pipeline.com/~hbaker1/NoMotionGC.html
 
-    *Answer:* these names come from the diagram in [JONES96]_ and refer
-    to concepts that are missing from the glossary: :term:`fromspace`,
-    :term:`tospace` (with synonyms :term:`old space` and :term:`new
-    space`).
+    *Answer:* these names come from the diagram in :ref:`Jones (1996)
+    <JONES96>` and refer to concepts that are missing from the
+    glossary: :term:`fromspace`, :term:`tospace` (with synonyms
+    :term:`old space` and :term:`new space`).
 
     *Action:* add these concepts to the glossary. Label the treadmill
     diagram with "fromspace", "tospace", and so on, rather than just
-    "from" and "to". Here and elsewhere, refer to [JONES12]_ for
-    preferred terminology. See in particular page 138.
+    "from" and "to". Here and elsewhere, refer to :ref:`Jones (2012)
+    <JONES12>` for preferred terminology. See in particular page 138.
 
 74. ``eventcnv -b <bucket size>`` seems to be useless. See
     `job003331`_, `job003332`_, `job003333`_, `job003334`_, and
@@ -716,8 +716,8 @@ Complete
     the page so maybe we should follow that? It would involve turning
     a bunch of diagrams upside down.
 
-    *Answer:* [JONES12]_ has addresses increasing as they go down the
-    page, so let's follow that.
+    *Answer:* :ref:`Jones (2012) <JONES12>` has addresses increasing
+    as they go down the page, so let's follow that.
 
 79. Suppose that in the Scheme interpreter you wanted to return some
     statistics from the ``(gc)`` function, how would you do this? You
@@ -873,7 +873,7 @@ Complete
      STATISTICS" early Lisp anecdote and put it in
      :ref:`topic-telemetry`.
 
-     The anecdote is at the end of [MCCARTHY79]_.
+     The anecdote is at the end of :ref:`McCarthy (1979) <MCCARTHY79>`.
 
 101. Are there any other use cases for the clamped and parked states?
      Are there any use cases that apply specifically to the parked
