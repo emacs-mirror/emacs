@@ -1,3 +1,11 @@
+2012-10-30  Chong Yidong  <cyd@gnu.org>
+
+	* symbols.texi (Symbol Plists): Document function-get.
+
+	* loading.texi (Autoload): Document autoloadp, autoload-do-load.
+
+	* frames.texi (Visibility of Frames): Document tty-top-frame.
+
 2012-10-28  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* keymaps.texi (Format of Keymaps): Document the multiple

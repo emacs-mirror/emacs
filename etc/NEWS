@@ -898,12 +898,15 @@ result in a warning ("Eager macro-expansion skipped due to cycle")
 describing the cycle.
 
 ** Miscellaneous new functions:
-
++++
 *** `autoloadp'
++++
 *** `autoload-do-load'
 +++
 *** `buffer-narrowed-p' tests if the buffer is narrowed.
++++
 *** `file-name-base' returns a file name sans directory and extension.
++++
 *** `function-get' fetches a function property, following aliases.
 +++
 *** `posnp' tests if an object is a `posn'.
@@ -912,6 +915,7 @@ describing the cycle.
 *** `system-users' returns the user names on the system.
 +++
 *** `system-groups' returns the group names on the system.
++++
 *** `tty-top-frame' returns the topmost frame of a text terminal.
 
 ** New macros `setq-local' and `defvar-local'.
