@@ -4760,14 +4760,22 @@ FONT is a font-spec, font-entity, or font-object. */)
 DEFUN ("font-at", Ffont_at, Sfont_at, 1, 3, 0,
        doc: /* Return a font-object for displaying a character at POSITION.
 Optional second arg WINDOW, if non-nil, is a window displaying
-the current buffer.  It defaults to the currently selected window.  */)
+the current buffer.  It defaults to the currently selected window.
+Optional third arg STRING, if non-nil, is a string containing the target
+character at index specified by POSITION.  */)
   (Lisp_Object position, Lisp_Object window, Lisp_Object string)
 {
   struct window *w;
   ptrdiff_t pos;
 
+  if (NILP (window))
+    window = selected_window;
+  CHECK_LIVE_WINDOW (window);
+  w = XWINDOW (window);
   if (NILP (string))
     {
+      if (XBUFFER (w->buffer) != current_buffer)
+	error ("Specified window is not displaying the current buffer.");
       CHECK_NUMBER_COERCE_MARKER (position);
       if (! (BEGV <= XINT (position) && XINT (position) < ZV))
 	args_out_of_range_3 (position, make_number (BEGV), make_number (ZV));
@@ -4781,10 +4789,6 @@ the current buffer.  It defaults to the currently selected window.  */)
 	args_out_of_range (string, position);
       pos = XINT (position);
     }
-  if (NILP (window))
-    window = selected_window;
-  CHECK_LIVE_WINDOW (window);
-  w = XWINDOW (window);
 
   return font_at (-1, pos, NULL, w, string);
 }
