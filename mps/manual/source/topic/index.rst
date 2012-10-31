@@ -25,3 +25,4 @@ Reference
     debugging
     telemetry
     low
+    weak
