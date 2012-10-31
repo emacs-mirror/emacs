@@ -141,6 +141,7 @@ typedef struct table_s {
 typedef struct buckets_s {
   type_t type;                  /* TYPE_BUCKETS */
   size_t length;                /* number of buckets */
+  size_t used;                  /* number of buckets in use */
   struct bucket_s {
     obj_t key, value;
   } bucket[1];                  /* hash buckets */
@@ -399,6 +400,7 @@ static obj_t make_buckets(size_t length)
   total += size;
   obj->buckets.type = TYPE_BUCKETS;
   obj->buckets.length = length;
+  obj->buckets.used = 0;
   for(i = 0; i < length; ++i) {
     obj->buckets.bucket[i].key = NULL;
     obj->buckets.bucket[i].value = NULL;
@@ -406,14 +408,14 @@ static obj_t make_buckets(size_t length)
   return obj;
 }
 
-static obj_t make_table(void)
+static obj_t make_table(size_t length)
 {
   size_t size = sizeof(table_s);
   obj_t obj = (obj_t)malloc(size);
   if(obj == NULL) error("out of memory");
   total += size;
   obj->table.type = TYPE_TABLE;
-  obj->table.buckets = make_buckets(8);
+  obj->table.buckets = make_buckets(length);
   return obj;
 }
 
@@ -543,6 +545,7 @@ static struct bucket_s *buckets_find(obj_t buckets, obj_t key)
 {
   union {char s[sizeof(obj_t) + 1]; void *addr; } u = {""};
   unsigned long i, h;
+  assert(TYPE(buckets) == TYPE_BUCKETS);
   u.addr = key;
   h = hash(u.s) & (buckets->buckets.length-1);
   i = h;
@@ -560,7 +563,7 @@ static void table_rehash(obj_t tbl)
   size_t i, old_length, new_length;
   obj_t new_buckets;
 
-  assert(tbl->type.type == TYPE_TABLE);
+  assert(TYPE(tbl) == TYPE_TABLE);
   old_length = tbl->table.buckets->buckets.length;
   new_length = old_length * 2;
   new_buckets = make_buckets(new_length);
@@ -572,30 +575,43 @@ static void table_rehash(obj_t tbl)
       assert(b != NULL);	/* new table shouldn't be full */
       assert(b->key == NULL);	/* shouldn't be in new table */
       *b = *old_b;
+      ++ new_buckets->buckets.used;
     }
   }
 
+  assert(new_buckets->buckets.used == tbl->table.buckets->buckets.used);
   tbl->table.buckets = new_buckets;
 }
 
 static obj_t table_ref(obj_t tbl, obj_t key)
 {
-  struct bucket_s *b = buckets_find(tbl->table.buckets, key);
+  struct bucket_s *b;
+  assert(TYPE(tbl) == TYPE_TABLE);
+  b = buckets_find(tbl->table.buckets, key);
   if (b && b->key != NULL)
     return b->value;
   return NULL;
 }
 
+static int table_full(obj_t tbl)
+{
+  assert(TYPE(tbl) == TYPE_TABLE);
+  return tbl->table.buckets->buckets.used >= tbl->table.buckets->buckets.length / 2;
+}
+
 static void table_set(obj_t tbl, obj_t key, obj_t value)
 {
-  struct bucket_s *b = buckets_find(tbl->table.buckets, key);
-  if (b == NULL) {
+  struct bucket_s *b;
+  assert(TYPE(tbl) == TYPE_TABLE);
+  if (table_full(tbl) || (b = buckets_find(tbl->table.buckets, key)) == NULL) {
     table_rehash(tbl);
     b = buckets_find(tbl->table.buckets, key);
     assert(b != NULL);          /* shouldn't be full after rehash */
   }
-  if (b->key == NULL)
+  if (b->key == NULL) {
     b->key = key;
+    ++ tbl->table.buckets->buckets.used;
+  }
   b->value = value;
 }
 
@@ -727,7 +743,7 @@ static void print(obj_t obj, unsigned depth, FILE *stream)
     } break;
 
     case TYPE_TABLE: {
-      fputs("#[hash-table", stream);
+      fputs("#[hashtable", stream);
       print(obj->table.buckets, depth - 1, stream);
       putc(']', stream);
     } break;
@@ -2553,36 +2569,59 @@ static obj_t entry_string_copy(obj_t env, obj_t op_env, obj_t operator, obj_t op
 }
 
 
-/* (make-hash-table)
- * Create a new hash table with no associations.
+/* (make-eq-hashtable)
+ * (make-eq-hashtable k)
+ * Returns a newly allocated mutable hashtable that accepts arbitrary
+ * objects as keys, and compares those keys with eq?. If an argument
+ * is given, the initial capacity of the hashtable is set to
+ * approximately k elements.
+ * See R6RS Library 13.1.
  */
-static obj_t entry_make_hash_table(obj_t env, obj_t op_env, obj_t operator, obj_t operands)
+static obj_t entry_make_eq_hashtable(obj_t env, obj_t op_env, obj_t operator, obj_t operands)
 {
-  eval_args(operator->operator.name, env, op_env, operands, 0);
-  return make_table();
+  obj_t rest;
+  size_t length;
+  eval_args_rest(operator->operator.name, env, op_env, operands, &rest, 0);
+  if (rest == obj_empty)
+    length = 8;
+  else unless(CDR(rest) == obj_empty)
+    error("%s: too many arguments", operator->operator.name);
+  else {
+    obj_t arg = CAR(rest);
+    unless(TYPE(arg) == TYPE_INTEGER)
+      error("%s: first argument must be an integer", operator->operator.name);
+    unless(arg->integer.integer > 0)
+      error("%s: first argument must be positive", operator->operator.name);
+    length = arg->integer.integer;
+  }
+  return make_table(length);
 }
 
 
-/* (hash-table-ref hash-table key)
- * Returns the value associated to key in hash-table.
+/* (hashtable-ref hashtable key default)
+ * Returns the value in hashtable associated with key. If hashtable
+ * does not contain an association for key, default is returned.
+ * See R6RS Library 13.2.
  */
-static obj_t entry_hash_table_ref(obj_t env, obj_t op_env, obj_t operator, obj_t operands)
+static obj_t entry_hashtable_ref(obj_t env, obj_t op_env, obj_t operator, obj_t operands)
 {
-  obj_t tbl, key, value;
-  eval_args(operator->operator.name, env, op_env, operands, 2, &tbl, &key);
+  obj_t tbl, key, def, value;
+  eval_args(operator->operator.name, env, op_env, operands, 3, &tbl, &key, &def);
   unless(TYPE(tbl) == TYPE_TABLE)
     error("%s: first argument must be a hash table", operator->operator.name);
   value = table_ref(tbl, key);
   if (value) return value;
-  return obj_undefined;
+  return def;
 }
 
 
-/* (hash-table-set! hash-table key value)
- * Sets the value associated to key in hash-table. The previous
- * association (if any) is removed.
+/* (hashtable-set! hashtable key value)
+ * Changes hashtable to associate key with obj, adding a new
+ * association or replacing any existing association for key, and
+ * returns unspecified values.
+ * See R6RS Library 13.2.
  */
-static obj_t entry_hash_table_set(obj_t env, obj_t op_env, obj_t operator, obj_t operands)
+static obj_t entry_hashtable_set(obj_t env, obj_t op_env, obj_t operator, obj_t operands)
 {
   obj_t tbl, key, value;
   eval_args(operator->operator.name, env, op_env, operands, 3, &tbl, &key, &value);
@@ -2703,9 +2742,9 @@ static struct {char *name; entry_t entry;} funtab[] = {
   {"string->list", entry_string_to_list},
   {"list->string", entry_list_to_string},
   {"string-copy", entry_string_copy},
-  {"make-hash-table", entry_make_hash_table},
-  {"hash-table-ref", entry_hash_table_ref},
-  {"hash-table-set!", entry_hash_table_set},
+  {"make-eq-hashtable", entry_make_eq_hashtable},
+  {"hashtable-ref", entry_hashtable_ref},
+  {"hashtable-set!", entry_hashtable_set},
 };
 
 
