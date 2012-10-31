@@ -820,12 +820,10 @@ various advanced control structures, including extensions to the
 standard @code{setf} facility, and a number of looping and conditional
 constructs.
 
-@c FIXME
-@c flet is not cl-flet.
 @menu
 * Assignment::             The @code{cl-psetq} form.
 * Generalized Variables::  Extensions to generalized variables.
-* Variable Bindings::      @code{cl-progv}, @code{flet}, @code{cl-macrolet}.
+* Variable Bindings::      @code{cl-progv}, @code{cl-flet}, @code{cl-macrolet}.
 * Conditionals::           @code{cl-case}, @code{cl-typecase}.
 * Blocks and Exits::       @code{cl-block}, @code{cl-return}, @code{cl-return-from}.
 * Iteration::              @code{cl-do}, @code{cl-dotimes}, @code{cl-dolist}, @code{cl-do-symbols}.
@@ -1244,7 +1242,7 @@ are also related to variable bindings.
 
 @menu
 * Dynamic Bindings::     The @code{cl-progv} form.
-* Function Bindings::    @code{flet} and @code{labels}.
+* Function Bindings::    @code{cl-flet} and @code{cl-labels}.
 * Macro Bindings::       @code{cl-macrolet} and @code{cl-symbol-macrolet}.
 @end menu
 
@@ -1275,30 +1273,25 @@ are ignored.
 These forms make @code{let}-like bindings to functions instead
 of variables.
 
-@defmac flet (bindings@dots{}) forms@dots{}
+@defmac cl-flet (bindings@dots{}) forms@dots{}
 This form establishes @code{let}-style bindings on the function
 cells of symbols rather than on the value cells.  Each @var{binding}
 must be a list of the form @samp{(@var{name} @var{arglist}
 @var{forms}@dots{})}, which defines a function exactly as if
 it were a @code{cl-defun} form.  The function @var{name} is defined
-accordingly for the duration of the body of the @code{flet}; then
+accordingly for the duration of the body of the @code{cl-flet}; then
 the old function definition, or lack thereof, is restored.
 
-While @code{flet} in Common Lisp establishes a lexical binding of
-@var{name}, Emacs Lisp @code{flet} makes a dynamic binding.  The
-result is that @code{flet} affects indirect calls to a function as
-well as calls directly inside the @code{flet} form itself.
-
-You can use @code{flet} to disable or modify the behavior of a
+You can use @code{cl-flet} to disable or modify the behavior of a
 function in a temporary fashion.  This will even work on Emacs
 primitives, although note that some calls to primitive functions
 internal to Emacs are made without going through the symbol's
-function cell, and so will not be affected by @code{flet}.  For
+function cell, and so will not be affected by @code{cl-flet}.  For
 example,
 
 @example
-(flet ((message (&rest args) (push args saved-msgs)))
-  (do-something))
+(cl-flet ((message (&rest args) (push args saved-msgs)))
+    (do-something))
 @end example
 
 This code attempts to replace the built-in function @code{message}
@@ -1310,34 +1303,26 @@ generated directly inside Emacs will not be caught since they make
 direct C-language calls to the message routines rather than going
 through the Lisp @code{message} function.
 
-@c Bug#411.
-Also note that many primitives (e.g. @code{+}) have special byte-compile
-handling.  Attempts to redefine such functions using @code{flet} will
-fail if byte-compiled.  In such cases, use @code{labels} instead.
-
-Functions defined by @code{flet} may use the full Common Lisp
+Functions defined by @code{cl-flet} may use the full Common Lisp
 argument notation supported by @code{cl-defun}; also, the function
 body is enclosed in an implicit block as if by @code{cl-defun}.
 @xref{Program Structure}.
 @end defmac
 
-@defmac labels (bindings@dots{}) forms@dots{}
-The @code{labels} form is like @code{flet}, except that it
-makes lexical bindings of the function names rather than
-dynamic bindings.  (In true Common Lisp, both @code{flet} and
-@code{labels} make lexical bindings of slightly different sorts;
-since Emacs Lisp is dynamically bound by default, it seemed
-more appropriate for @code{flet} also to use dynamic binding.
-The @code{labels} form, with its lexical binding, is fully
-compatible with Common Lisp.)
+@defmac cl-labels (bindings@dots{}) forms@dots{}
+The @code{cl-labels} form is like @code{cl-flet}, except that
+the function bindings can be recursive.  The scoping is lexical,
+but you can only capture functions in closures if
+@code{lexical-binding} is non-@code{nil}.
+@xref{Closures,,,elisp,GNU Emacs Lisp Reference Manual}, and
+@ref{Using Lexical Binding,,,elisp,GNU Emacs Lisp Reference Manual}.
 
 Lexical scoping means that all references to the named
 functions must appear physically within the body of the
-@code{labels} form.  References may appear both in the body
-@var{forms} of @code{labels} itself, and in the bodies of
-the functions themselves.  Thus, @code{labels} can define
-local recursive functions, or mutually-recursive sets of
-functions.
+@code{cl-labels} form.  References may appear both in the body
+@var{forms} of @code{cl-labels} itself, and in the bodies of
+the functions themselves.  Thus, @code{cl-labels} can define
+local recursive functions, or mutually-recursive sets of functions.
 
 A ``reference'' to a function name is either a call to that
 function, or a use of its name quoted by @code{quote} or
@@ -1351,7 +1336,7 @@ function, or a use of its name quoted by @code{quote} or
 These forms create local macros and ``symbol macros''.
 
 @defmac cl-macrolet (bindings@dots{}) forms@dots{}
-This form is analogous to @code{flet}, but for macros instead of
+This form is analogous to @code{cl-flet}, but for macros instead of
 functions.  Each @var{binding} is a list of the same form as the
 arguments to @code{cl-defmacro} (i.e., a macro name, argument list,
 and macro-expander forms).  The macro is defined accordingly for
@@ -4598,7 +4583,7 @@ in @code{map-odd-elements} by the time the @code{(+ a x)} function is
 called.
 
 Internally, this package uses lexical binding so that such problems do
-not occur.  @xref{Lexical Bindings}, for a description of the obsolete
+not occur.  @xref{Obsolete Lexical Binding}, for a description of the obsolete
 @code{lexical-let} form that emulates a Common Lisp-style lexical
 binding when dynamic binding is in use.
 
@@ -4750,13 +4735,13 @@ or where versions with a @samp{cl-} prefix do exist they do not behave
 in exactly the same way.
 
 @menu
-* Lexical Bindings::            An approximation of lexical binding.
-* Obsolete Lexical Macros::     Obsolete macros using lexical-let.
+* Obsolete Lexical Binding::    An approximation of lexical binding.
+* Obsolete Macros::             Obsolete macros.
 * Obsolete Setf Customization:: Obsolete ways to customize setf.
 @end menu
 
-@node Lexical Bindings
-@appendixsec Lexical Bindings
+@node Obsolete Lexical Binding
+@appendixsec Obsolete Lexical Binding
 
 The following macros are extensions to Common Lisp, where all bindings
 are lexical unless declared otherwise.  These features are likewise
@@ -4871,21 +4856,43 @@ This form is just like @code{lexical-let}, except that the bindings
 are made sequentially in the manner of @code{let*}.
 @end defmac
 
-@node Obsolete Lexical Macros
-@appendixsec Macros Defined Using Lexical-Let
+@node Obsolete Macros
+@appendixsec Obsolete Macros
 
-The following macros are defined using @code{lexical-let}.
-They are replaced by versions with a @samp{cl-} prefix that use true
-lexical binding (and hence rely on @code{lexical-binding} being set to
-@code{t} in code using them).
+The following macros are obsolete, and are replaced by versions with
+a @samp{cl-} prefix that do not behave in exactly the same way.
+Consequently, the @file{cl.el} versions are not simply aliases to the
+@file{cl-lib.el} versions.
 
 @defmac flet (bindings@dots{}) forms@dots{}
-Replaced by @code{cl-flet} (@pxref{Function Bindings})
-or @code{cl-letf} (@pxref{Modify Macros}).
+This macro is replaced by @code{cl-flet} (@pxref{Function Bindings}),
+which behaves the same way as Common Lisp's @code{flet}.
+This @code{flet} takes the same arguments as @code{cl-flet}, but does
+not behave in precisely the same way.
+
+While @code{flet} in Common Lisp establishes a lexical function
+binding, this @code{flet} makes a dynamic binding (it dates from a
+time before Emacs had lexical binding).  The result is
+that @code{flet} affects indirect calls to a function as well as calls
+directly inside the @code{flet} form itself.
+
+@c Bug#411.
+Note that many primitives (e.g. @code{+}) have special byte-compile
+handling.  Attempts to redefine such functions using @code{flet} will
+fail if byte-compiled.
+@c Or cl-flet.
+@c In such cases, use @code{labels} instead.
 @end defmac
 
 @defmac labels (bindings@dots{}) forms@dots{}
-Replaced by @code{cl-labels} (@pxref{Function Bindings}).
+This macro is replaced by @code{cl-labels} (@pxref{Function Bindings}),
+which behaves the same way as Common Lisp's @code{labels}.
+This @code{labels} takes the same arguments as @code{cl-labels}, but
+does not behave in precisely the same way.
+
+This version of @code{labels} uses the obsolete @code{lexical-let}
+form (@pxref{Obsolete Lexical Binding}), rather than the true
+lexical binding that @code{cl-labels} uses.
 @end defmac
 
 @defmac letf (bindings@dots{}) forms@dots{}

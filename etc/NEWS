@@ -315,9 +315,11 @@ which have not been renamed to `cl-foo*' but just `cl-foo'.
 The old `cl' is now deprecated and is just a bunch of aliases that
 provide the old non-prefixed names.
 
++++
 *** `cl-flet' is not like `flet' (which is deprecated).
 Instead it obeys the behavior of Common-Lisp's `flet'.
 
++++
 *** `cl-labels' is slightly different from `labels'.
 The difference is that it relies on the `lexical-binding' machinery (as opposed
 to the `lexical-let' machinery used previously) to capture definitions in
