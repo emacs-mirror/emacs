@@ -1,3 +1,24 @@
+2012-10-31  Paul Eggert  <eggert@cs.ucla.edu>
+
+	Fix crash when using Emacs as commit editor for git (Bug#12697).
+	* callproc.c (setpgrp): Remove macro, as we now use setpgid
+	and it is configured in conf_post.h.
+	(Fcall_process): Don't invoke both setsid and setpgid; the former
+	is enough, if it exists.
+	* callproc.c (Fcall_process, child_setup):
+	* process.c (create_process): Use setpgid.
+	* conf_post.h (setpgid) [!HAVE_SETPGID]: New macro, which substitutes
+	for the real thing.
+	* dispnew.c (init_display): Initialize the foreground group
+	if we are running a tty display.
+	* emacs.c (main): Do not worry about setpgrp; init_display does it now.
+	* lisp.h (init_foreground_group): New decl.
+	* sysdep.c (inherited_pgroup): New static var.
+	(init_foreground_group, tcsetpgrp_without_stopping)
+	(narrow_foreground_group, widen_foreground_group): New functions.
+	(init_sys_modes): Narrow foreground group.
+	(reset_sys_modes): Widen foreground group.
+
 2012-10-31  Michael Albinus  <michael.albinus@gmx.de>
 
 	* dbusbind.c: Fix cut'n'waste error.  Use HAVE_DBUS_VALIDATE_INTERFACE.

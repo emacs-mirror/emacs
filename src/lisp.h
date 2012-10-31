@@ -3474,6 +3474,7 @@ struct terminal;
 extern char *get_current_dir_name (void);
 #endif
 extern void stuff_char (char c);
+extern void init_foreground_group (void);
 extern void init_sigio (int);
 extern void sys_subshell (void);
 extern void sys_suspend (void);

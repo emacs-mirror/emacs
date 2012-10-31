@@ -1091,19 +1091,14 @@ Using an Emacs configured with --with-x-toolkit=lucid does not have this problem
 #endif /* DOS_NT */
     }
 
+#if defined (HAVE_PTHREAD) && !defined (SYSTEM_MALLOC) && !defined (DOUG_LEA_MALLOC)
   if (! noninteractive)
     {
-#if defined (USG5) && defined (INTERRUPT_INPUT)
-      setpgrp ();
-#endif
-#if defined (HAVE_PTHREAD) && !defined (SYSTEM_MALLOC) && !defined (DOUG_LEA_MALLOC)
-      {
-        extern void malloc_enable_thread (void);
+      extern void malloc_enable_thread (void);
 
-	malloc_enable_thread ();
-      }
-#endif
+      malloc_enable_thread ();
     }
+#endif
 
   init_signals (dumping);
 
