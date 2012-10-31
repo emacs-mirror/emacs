@@ -60,3 +60,14 @@ after calling :c:func:`MPS_FIX2` then it must have just been splatted.
     Depending on the decisions the MPS makes about which objects to
     scan, a weak reference may live on for some time after other weak
     references to the same block have been splatted.
+
+.. note::
+
+    A common way in which weak references are used in programming
+    languages is in :term:`weak-key <weak-key hash table>` and
+    :term:`weak-value hash tables`. A weak-key hash table contains
+    weak references to its keys: when it detects that a key has been
+    splatted, it deletes the corresponding value. The :ref:`pool-awl`
+    pool class supports this by allowing you to specify for each
+    object, a :term:`dependent object` which may be written to by the
+    :term:`scan method`. See :ref:`pool-awl-dependent`.
