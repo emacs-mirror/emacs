@@ -55,6 +55,11 @@ Outstanding
 140. Document MFS. Explain how it works (putting link in the free
      block) and how this is unlike other pools.
 
+144. In AWL, what are the restrictions on the dependent object? Must
+     it be another object in AWL? What are we allowed to do with it?
+     What state will the object be in when we look at it? Does it have
+     to be fixed?
+
 
 Complete
 --------
