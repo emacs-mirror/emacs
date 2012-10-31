@@ -186,7 +186,7 @@ MPS, this may result in this assertion:
 .. code-block:: none
 
     MPS ASSERTION FAILURE: res == 0
-    ../../mps-kit-1.110.0/code/lockix.c
+    code/lockix.c
     125
 
 Or if a client program fails to fix a reference in an :ref:`pool-amc`
@@ -197,7 +197,7 @@ collection`. Such a bug may result in this assertion:
 .. code-block:: none
 
     MPS ASSERTION FAILURE: !AMS_IS_INVALID_COLOUR(seg, i)
-    ../../mps-kit-1.110.0/code/poolams.c
+    code/poolams.c
     1323
 
 It is very rare for an assertion to indicate a bug in the MPS rather
