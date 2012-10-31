@@ -1,3 +1,8 @@
+2012-10-31  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* progmodes/sh-script.el (sh--inside-arithmetic-expression): New func.
+	(sh-font-lock-open-heredoc): Use it (bug#12770).
+
 2012-10-30  Glenn Morris  <rgm@gnu.org>
 
 	* emacs-lisp/cl-extra.el (cl-mapc): Add autoload cookie.  Doc fix.

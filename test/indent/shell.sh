@@ -5,6 +5,10 @@ setlock -n /tmp/getmail.lock && echo getmail isn\'t running
 
 # adsgsdg
 
+echo -n $(( 5 << 2 ))
+# This should not be treated as a heredoc (bug#12770).
+2
+
 declare -a VERSION
 for i in $(ls "$PREFIX/sbin") ; do
     echo -e $N')' $i
