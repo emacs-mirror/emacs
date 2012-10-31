@@ -6,14 +6,11 @@ CFLAGS = @CFLAGS@
 
 MPS = ../../code
 
-TARGETS = scheme-malloc scheme
+TARGETS = scheme-malloc scheme scheme-advanced
 
 all: $(TARGETS)
 
-scheme-malloc: scheme-malloc.c
-	$(CC) $(CFLAGS) -o $@ -I $(MPS) $< $(MPS)/mps.c
-
-scheme: scheme.c
+$(TARGETS): %: %.c
 	$(CC) $(CFLAGS) -o $@ -I $(MPS) $< $(MPS)/mps.c
 
 clean:
