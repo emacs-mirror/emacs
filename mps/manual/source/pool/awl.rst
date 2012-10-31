@@ -55,7 +55,7 @@ AWL properties
   via :c:func:`mps_free`.
 
 * Supports allocation via :term:`allocation points`. If an allocation
-  point is created in an AMC pool, the call to :c:func:`mps_ap_create`
+  point is created in an AWL pool, the call to :c:func:`mps_ap_create`
   takes one additional parameter, a :term:`rank` of type
   :c:type:`mps_rank_t`. The rank must be either
   :c:func:`mps_rank_exact` (to allocate ordinary objects containing

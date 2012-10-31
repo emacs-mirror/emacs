@@ -49,7 +49,9 @@ MVFF properties
 
 * Supports allocation via :c:func:`mps_alloc`.
 
-* Supports allocation via :term:`allocation points`.
+* Supports allocation via :term:`allocation points`. If an allocation
+  point is created in an MVFF pool, the call to
+  :c:func:`mps_ap_create` takes no additional parameters.
 
 * Supports deallocation via :c:func:`mps_free`.
 

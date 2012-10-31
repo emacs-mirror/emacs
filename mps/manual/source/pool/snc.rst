@@ -37,7 +37,9 @@ SNC properties
 
 * Does not support allocation via :c:func:`mps_alloc`.
 
-* Supports allocation via :term:`allocation points` only.
+* Supports allocation via :term:`allocation points` only. If an
+  allocation point is created in an SNC pool, the call to
+  :c:func:`mps_ap_create` takes no additional parameters.
 
 * Does not support deallocation via :c:func:`mps_free`.
 
