@@ -5,87 +5,129 @@ Bibliography
 
 * .. _AD97:
 
-  Ole Agesen, David L. Detlefs. 1997.  "`Finding References in Java Stacks <http://www-plan.cs.colorado.edu/diwan/class-papers/finding-references-in-java.pdf>`_". Sun Labs. OOPSLA97 Workshop on Garbage Collection and Memory Management. <a href="ad97.html">Abstract</a>. 
+  Ole Agesen, David L. Detlefs. 1997.  "`Finding References in Java Stacks <http://www-plan.cs.colorado.edu/diwan/class-papers/finding-references-in-java.pdf>`_". Sun Labs. OOPSLA97 Workshop on Garbage Collection and Memory Management.
+
+  .. abstract: ad97.html
 
 * .. _ADM98:
 
-  Ole Agesen, David L. Detlefs, J. Eliot B. Moss. 1998.  "`Garbage Collection and Local Variable Type-precision and Liveness in Java Virtual Machines  <http://pdf.aminer.org/000/542/332/garbage_collection_and_local_variable_type_precision_and_liveness_in.pdf>`_". ACM. Proceedings of the ACM SIGPLAN '98 conference on Programming language design and implementation, pp. 269--279. <a href="adm98.html">Abstract</a>.
+  Ole Agesen, David L. Detlefs, J. Eliot B. Moss. 1998.  "`Garbage Collection and Local Variable Type-precision and Liveness in Java Virtual Machines  <http://pdf.aminer.org/000/542/332/garbage_collection_and_local_variable_type_precision_and_liveness_in.pdf>`_". ACM. Proceedings of the ACM SIGPLAN '98 conference on Programming language design and implementation, pp. 269--279.
+
+  .. abstract: adm98.html
 
 * .. _AEL88:
 
-  Andrew Appel, John R. Ellis, Kai Li. 1988.  "`Real-time Concurrent Collection on Stock Multiprocessors <http://apotheca.hpl.hp.com/ftp/pub/compaq/SRC/research-reports/SRC-025.pdf>`_". ACM, SIGPLAN. ACM PLDI 88, SIGPLAN Notices 23, 7 (July 88), pp. 11--20. <a href="ael88.html">Abstract</a>. 
+  Andrew Appel, John R. Ellis, Kai Li. 1988.  "`Real-time Concurrent Collection on Stock Multiprocessors <http://apotheca.hpl.hp.com/ftp/pub/compaq/SRC/research-reports/SRC-025.pdf>`_". ACM, SIGPLAN. ACM PLDI 88, SIGPLAN Notices 23, 7 (July 88), pp. 11--20.
+
+  .. abstract: ael88.html
 
 * .. _APPLE94:
 
-  Apple Computer, Inc. 1994. *Inside Macintosh: Memory*. Addison-Wesley. ISBN 0-201-63240-3. <a href="apple94.html">Abstract</a>. 
+  Apple Computer, Inc. 1994. *Inside Macintosh: Memory*. Addison-Wesley. ISBN 0-201-63240-3.
+
+  .. abstract: apple94.html
 
 * .. _ATTARDI94:
 
-  Giuseppe Attardi & Tito Flagella. 1994.  "`A Customisable Memory Management Framework <http://citeseerx.ist.psu.edu/viewdoc/download?doi=10.1.1.50.257&rep=rep1&type=pdf>`_". TR-94-010. <a href="attardi94.html">Abstract</a>. 
+  Giuseppe Attardi & Tito Flagella. 1994.  "`A Customisable Memory Management Framework <http://citeseerx.ist.psu.edu/viewdoc/download?doi=10.1.1.50.257&rep=rep1&type=pdf>`_". TR-94-010.
+
+  .. abstract: attardi94.html
 
 * .. _AFI98:
 
-  Giuseppe Attardi, Tito Flagella, Pietro Iglio. 1998.  "`A customisable memory management framework for C++ <ftp://ftp.di.unipi.it/pub/Papers/attardi/SPE.ps.gz>`_". Software -- Practice and Experience. 28(11), 1143--1183. <a href="afi98.html">Abstract</a>. 
+  Giuseppe Attardi, Tito Flagella, Pietro Iglio. 1998.  "`A customisable memory management framework for C++ <ftp://ftp.di.unipi.it/pub/Papers/attardi/SPE.ps.gz>`_". Software -- Practice and Experience. 28(11), 1143--1183.
+
+  .. abstract: afi98.html
 
 * .. _AKPY98:
 
-  Alain Azagury, Elliot K. Kolodner, Erez Petrank, Zvi Yehudai. 1998.  "`Combining Card Marking with Remembered Sets: How to Save Scanning Time <http://pdf.aminer.org/000/465/100/combining_card_marking_with_remembered_sets_how_to_save_scanning.pdf>`_". ACM. ISMM'98 pp.10--19. <a href="akpy98.html">Abstract</a>. 
+  Alain Azagury, Elliot K. Kolodner, Erez Petrank, Zvi Yehudai. 1998.  "`Combining Card Marking with Remembered Sets: How to Save Scanning Time <http://pdf.aminer.org/000/465/100/combining_card_marking_with_remembered_sets_how_to_save_scanning.pdf>`_". ACM. ISMM'98 pp.10--19.
+
+  .. abstract: akpy98.html
 
 * .. _BAKER77:
 
-  Henry G. Baker, Carl Hewitt. 1977.  "`The Incremental Garbage Collection of Processes <http://home.pipeline.com/~hbaker1/Futures.html>`_". ACM. SIGPLAN Notices 12, 8 (August 1977), pp. 55--59. <a href="baker77.html">Abstract</a>. 
+  Henry G. Baker, Carl Hewitt. 1977.  "`The Incremental Garbage Collection of Processes <http://home.pipeline.com/~hbaker1/Futures.html>`_". ACM. SIGPLAN Notices 12, 8 (August 1977), pp. 55--59.
+
+  .. abstract: baker77.html
 
 * .. _BAKER78:
 
-  Henry G. Baker. 1978.  "`List Processing in Real Time on a Serial Computer <http://home.pipeline.com/~hbaker1/RealTimeGC.html>`_". ACM. Communications of the ACM 21, 4 (April 1978), pp. 280--294. <a href="baker78.html">Abstract</a>. 
+  Henry G. Baker. 1978.  "`List Processing in Real Time on a Serial Computer <http://home.pipeline.com/~hbaker1/RealTimeGC.html>`_". ACM. Communications of the ACM 21, 4 (April 1978), pp. 280--294.
+
+  .. abstract: baker78.html
 
 * .. _BAKER79:
 
-  Henry G. Baker. 1979.  "`Optimizing Allocation and Garbage Collection of Spaces <http://home.pipeline.com/~hbaker1/OptAlloc.html>`_". In Winston and Brown, eds. *Artificial Intelligence: An MIT Perspective.* MIT Press. <a href="baker79.html">Abstract</a>. 
+  Henry G. Baker. 1979.  "`Optimizing Allocation and Garbage Collection of Spaces <http://home.pipeline.com/~hbaker1/OptAlloc.html>`_". In Winston and Brown, eds. *Artificial Intelligence: An MIT Perspective.* MIT Press.
+
+  .. abstract: baker79.html
 
 * .. _BAKER91:
 
-  Henry G. Baker. 1991.  "`Cache-Conscious Copying Collectors <http://home.pipeline.com/~hbaker1/CacheCGC.html>`_". OOPSLA'91/GC'91 Workshop on Garbage Collection. <a href="baker91.html">Abstract</a>. 
+  Henry G. Baker. 1991.  "`Cache-Conscious Copying Collectors <http://home.pipeline.com/~hbaker1/CacheCGC.html>`_". OOPSLA'91/GC'91 Workshop on Garbage Collection.
+
+  .. abstract: baker91.html
 
 * .. _BAKER92A:
 
-  Henry G. Baker. 1992.  "`Lively Linear Lisp -- 'Look Ma, No Garbage!' <http://home.pipeline.com/~hbaker1/LinearLisp.html>`_". ACM. SIGPLAN Notices 27, 8 (August 1992), pp. 89--98. <a href="baker92a.html">Abstract</a>. 
+  Henry G. Baker. 1992.  "`Lively Linear Lisp -- 'Look Ma, No Garbage!' <http://home.pipeline.com/~hbaker1/LinearLisp.html>`_". ACM. SIGPLAN Notices 27, 8 (August 1992), pp. 89--98.
+
+  .. abstract: baker92a.html
 
 * .. _BAKER92C:
 
-  Henry G. Baker. 1992.  "`The Treadmill: Real-Time Garbage Collection Without Motion Sickness <http://home.pipeline.com/~hbaker1/NoMotionGC.html>`_". ACM. SIGPLAN Notices 27, 3 (March 1992), pp. 66--70. <a href="baker92c.html">Abstract</a>. 
+  Henry G. Baker. 1992.  "`The Treadmill: Real-Time Garbage Collection Without Motion Sickness <http://home.pipeline.com/~hbaker1/NoMotionGC.html>`_". ACM. SIGPLAN Notices 27, 3 (March 1992), pp. 66--70.
+
+  .. abstract: baker92c.html
 
 * .. _BAKER92:
 
-  Henry G. Baker. 1992.  "`CONS Should not CONS its Arguments, or, a Lazy Alloc is a Smart Alloc <http://home.pipeline.com/~hbaker1/LazyAlloc.html>`_". ACM. SIGPLAN Notices 27, 3 (March 1992), 24--34. <a href="baker92.html">Abstract</a>. 
+  Henry G. Baker. 1992.  "`CONS Should not CONS its Arguments, or, a Lazy Alloc is a Smart Alloc <http://home.pipeline.com/~hbaker1/LazyAlloc.html>`_". ACM. SIGPLAN Notices 27, 3 (March 1992), 24--34.
+
+  .. abstract: baker92.html
 
 * .. _BAKER92B:
 
-  Henry G. Baker. 1992.  "`NREVERSAL of Fortune -- The Thermodynamics of Garbage Collection <http://home.pipeline.com/~hbaker1/ReverseGC.html>`_". Springer-Verlag. LNCS Vol. 637. <a href="baker92b.html">Abstract</a>. 
+  Henry G. Baker. 1992.  "`NREVERSAL of Fortune -- The Thermodynamics of Garbage Collection <http://home.pipeline.com/~hbaker1/ReverseGC.html>`_". Springer-Verlag. LNCS Vol. 637.
+
+  .. abstract: baker92b.html
 
 * .. _BAKER93:
 
-  Henry G. Baker. 1993.  "`'Infant Mortality' and Generational Garbage Collection <http://home.pipeline.com/~hbaker1/YoungGen.html>`_". ACM. SIGPLAN Notices 28, 4 (April 1993), pp. 55--57. <a href="baker93.html">Abstract</a>. 
+  Henry G. Baker. 1993.  "`'Infant Mortality' and Generational Garbage Collection <http://home.pipeline.com/~hbaker1/YoungGen.html>`_". ACM. SIGPLAN Notices 28, 4 (April 1993), pp. 55--57.
+
+  .. abstract: baker93.html
 
 * .. _BAKER93A:
 
-  Henry G. Baker. 1993.  "`Equal Rights for Functional Objects or, The More Things Change, The More They Are the Same <http://home.pipeline.com/~hbaker1/ObjectIdentity.html>`_". ACM. OOPS Messenger 4, 4 (October 1993), pp. 2--27. <a href="baker93a.html">Abstract</a>. 
+  Henry G. Baker. 1993.  "`Equal Rights for Functional Objects or, The More Things Change, The More They Are the Same <http://home.pipeline.com/~hbaker1/ObjectIdentity.html>`_". ACM. OOPS Messenger 4, 4 (October 1993), pp. 2--27.
+
+  .. abstract: baker93a.html
 
 * .. _BAKER94:
 
-  Henry G. Baker. 1994.  "`Minimizing Reference Count Updating with Deferred and Anchored Pointers for Functional Data Structures <http://home.pipeline.com/~hbaker1/LRefCounts.html>`_". ACM. SIGPLAN Notices 29, 9 (September 1994), pp. 38--43. <a href="baker94.html">Abstract</a>. 
+  Henry G. Baker. 1994.  "`Minimizing Reference Count Updating with Deferred and Anchored Pointers for Functional Data Structures <http://home.pipeline.com/~hbaker1/LRefCounts.html>`_". ACM. SIGPLAN Notices 29, 9 (September 1994), pp. 38--43.
+
+  .. abstract: baker94.html
 
 * .. _BAKER94A:
 
-  Henry G. Baker. 1994.  "`Thermodynamics and Garbage Collection <http://home.pipeline.com/~hbaker1/ThermoGC.html>`_". ACM. SIGPLAN Notices 29, 4 (April 1994), pp. 58--63. <a href="baker94a.html">Abstract</a>. 
+  Henry G. Baker. 1994.  "`Thermodynamics and Garbage Collection <http://home.pipeline.com/~hbaker1/ThermoGC.html>`_". ACM. SIGPLAN Notices 29, 4 (April 1994), pp. 58--63.
+
+  .. abstract: baker94a.html
 
 * .. _BAKER95A:
 
-  Henry G. Baker. 1995.  "`'Use-Once' Variables and Linear Objects -- Storage Management, Reflection and Multi-Threading <http://home.pipeline.com/~hbaker1/Use1Var.html>`_". ACM. SIGPLAN Notices 30, 1 (January 1995), pp. 45--52. <a href="baker95a.html">Abstract</a>. 
+  Henry G. Baker. 1995.  "`'Use-Once' Variables and Linear Objects -- Storage Management, Reflection and Multi-Threading <http://home.pipeline.com/~hbaker1/Use1Var.html>`_". ACM. SIGPLAN Notices 30, 1 (January 1995), pp. 45--52.
+
+  .. abstract: baker95a.html
 
 * .. _BAKER95:
 
-  Henry G. Baker. 1995. *Memory Management: International Workshop IWMM'95*. Springer-Verlag. ISBN 3-540-60368-9. <a href="baker95.html">Abstract</a>. 
+  Henry G. Baker. 1995. *Memory Management: International Workshop IWMM'95*. Springer-Verlag. ISBN 3-540-60368-9.
+
+  .. abstract: baker95.html
 
 * .. _BBW97:
 
@@ -93,47 +135,65 @@ Bibliography
 
 * .. _ZORN93B:
 
-  David A. Barrett, Benjamin Zorn. 1993. "`Using Lifetime Predictors to Improve Memory Allocation Performance <http://citeseerx.ist.psu.edu/viewdoc/download?doi=10.1.1.56.6712&rep=rep1&type=pdf>`_". ACM. SIGPLAN'93 Conference on Programming Language Design and Implementation, pp. 187--196. <a href="zorn93b.html">Abstract</a>.
+  David A. Barrett, Benjamin Zorn. 1993. "`Using Lifetime Predictors to Improve Memory Allocation Performance <http://citeseerx.ist.psu.edu/viewdoc/download?doi=10.1.1.56.6712&rep=rep1&type=pdf>`_". ACM. SIGPLAN'93 Conference on Programming Language Design and Implementation, pp. 187--196.
+
+  .. abstract: zorn93b.html
 
 * .. _BARRETT93:
 
-  David A. Barrett, Benjamin Zorn. 1995. "`Garbage Collection using a Dynamic Threatening Boundary <http://citeseerx.ist.psu.edu/viewdoc/download?doi=10.1.1.45.1835&rep=rep1&type=pdf>`_". ACM. SIGPLAN'95 Conference on Programming Language Design and Implementation, pp. 301--314. <a href="barrett93.html">Abstract</a>. 
+  David A. Barrett, Benjamin Zorn. 1995. "`Garbage Collection using a Dynamic Threatening Boundary <http://citeseerx.ist.psu.edu/viewdoc/download?doi=10.1.1.45.1835&rep=rep1&type=pdf>`_". ACM. SIGPLAN'95 Conference on Programming Language Design and Implementation, pp. 301--314.
+
+  .. abstract: barrett93.html
 
 * .. _BARTLETT88:
 
-  Joel F. Bartlett. 1988. "`Compacting Garbage Collection with Ambiguous Roots <http://computer-refuge.org/classiccmp/ftp.digital.com-jun2004/pub/Compaq/WRL/research-reports/WRL-TR-88.2.pdf>`_". Digital Equipment Corporation. <a href="bartlett88.html">Abstract</a>. 
+  Joel F. Bartlett. 1988. "`Compacting Garbage Collection with Ambiguous Roots <http://computer-refuge.org/classiccmp/ftp.digital.com-jun2004/pub/Compaq/WRL/research-reports/WRL-TR-88.2.pdf>`_". Digital Equipment Corporation.
+
+  .. abstract: bartlett88.html
 
 * .. _BARTLETT89:
 
-  Joel F. Bartlett. 1989. "`Mostly-Copying Garbage Collection Picks Up Generations and C++ <http://www.hpl.hp.com/techreports/Compaq-DEC/WRL-TN-12.pdf>`_". Digital Equipment Corporation. <a href="bartlett89.html">Abstract</a>. 
+  Joel F. Bartlett. 1989. "`Mostly-Copying Garbage Collection Picks Up Generations and C++ <http://www.hpl.hp.com/techreports/Compaq-DEC/WRL-TN-12.pdf>`_". Digital Equipment Corporation.
+
+  .. abstract: bartlett89.html
 
 * .. _BC92:
 
-  Yves Bekkers & Jacques Cohen. 1992. "`Memory Management, International Workshop IWMM 92 <http://www.informatik.uni-trier.de/%7Eley/db/conf/iwmm/iwmm92.html>`_". Springer-Verlag. LNCS Vol. 637, ISBN 3-540-55940-X. 
+  Yves Bekkers & Jacques Cohen. 1992. "`Memory Management, International Workshop IWMM 92 <http://www.informatik.uni-trier.de/%7Eley/db/conf/iwmm/iwmm92.html>`_". Springer-Verlag. LNCS Vol. 637, ISBN 3-540-55940-X.
 
 * .. _BB99:
 
-  Emery D. Berger, Robert D. Blumofe. 1999. "`Hoard: A Fast, Scalable, and Memory-Efficient Allocator for Shared-Memory Multiprocessors <http://citeseerx.ist.psu.edu/viewdoc/download?doi=10.1.1.81.5049&rep=rep1&type=pdf>`_". University of Texas at Austin. UTCS TR99-22. <a href="bb99.html">Abstract</a>. 
+  Emery D. Berger, Robert D. Blumofe. 1999. "`Hoard: A Fast, Scalable, and Memory-Efficient Allocator for Shared-Memory Multiprocessors <http://citeseerx.ist.psu.edu/viewdoc/download?doi=10.1.1.81.5049&rep=rep1&type=pdf>`_". University of Texas at Austin. UTCS TR99-22.
+
+  .. abstract: bb99.html
 
 * .. _BW88:
 
-  Hans-J. Boehm, Mark Weiser. 1988. "`Garbage collection in an uncooperative environment <http://www.hpl.hp.com/personal/Hans_Boehm/spe_gc_paper/preprint.pdf>`_". Software -- Practice and Experience. 18(9):807--820. <a href="bw88.html">Abstract</a>.
+  Hans-J. Boehm, Mark Weiser. 1988. "`Garbage collection in an uncooperative environment <http://www.hpl.hp.com/personal/Hans_Boehm/spe_gc_paper/preprint.pdf>`_". Software -- Practice and Experience. 18(9):807--820.
+
+  .. abstract: bw88.html
 
 * .. _BDS91:
 
-  Hans-J. Boehm, Alan J. Demers, Scott Shenker. 1991. "`Mostly Parallel Garbage Collection <http://www.hpl.hp.com/personal/Hans_Boehm/gc/papers/pldi91.ps.Z>`_". Xerox PARC. ACM PLDI 91, SIGPLAN Notices 26, 6 (June 1991), pp. 157--164. <a href="bds91.html">Abstract</a>. 
+  Hans-J. Boehm, Alan J. Demers, Scott Shenker. 1991. "`Mostly Parallel Garbage Collection <http://www.hpl.hp.com/personal/Hans_Boehm/gc/papers/pldi91.ps.Z>`_". Xerox PARC. ACM PLDI 91, SIGPLAN Notices 26, 6 (June 1991), pp. 157--164.
+
+  .. abstract: bds91.html
 
 * .. _BC92A:
 
-  Hans-J. Boehm, David Chase. 1992. "A Proposal for Garbage-Collector-Safe C Compilation". *Journal of C Language Translation.* vol. 4, 2 (December 1992), pp. 126--141. 
+  Hans-J. Boehm, David Chase. 1992. "A Proposal for Garbage-Collector-Safe C Compilation". *Journal of C Language Translation.* vol. 4, 2 (December 1992), pp. 126--141.
 
 * .. _BOEHM93:
 
-  Hans-J. Boehm. 1993. "`Space Efficient Conservative Garbage Collection <http://www.hpl.hp.com/personal/Hans_Boehm/gc/papers/pldi93.ps.Z>`_". ACM, SIGPLAN. Proceedings of the ACM SIGPLAN '91 Conference on Programming Language Design and Implementation, SIGPLAN Notices 28, 6, pp 197--206. <a href="boehm93.html">Abstract</a>. 
+  Hans-J. Boehm. 1993. "`Space Efficient Conservative Garbage Collection <http://www.hpl.hp.com/personal/Hans_Boehm/gc/papers/pldi93.ps.Z>`_". ACM, SIGPLAN. Proceedings of the ACM SIGPLAN '91 Conference on Programming Language Design and Implementation, SIGPLAN Notices 28, 6, pp 197--206.
+
+  .. abstract: boehm93.html
 
 * .. _BOEHM00:
 
-  Hans-J. Boehm. 2000. "`Reducing Garbage Collector Cache Misses <http://www.hpl.hp.com/techreports/2000/HPL-2000-99.html>`_". ACM. ISMM'00 pp. 59--64. <a href="boehm00.html">Abstract</a>.
+  Hans-J. Boehm. 2000. "`Reducing Garbage Collector Cache Misses <http://www.hpl.hp.com/techreports/2000/HPL-2000-99.html>`_". ACM. ISMM'00 pp. 59--64.
+
+  .. abstract: boehm00.html
 
 * .. _BOEHM02:
 
@@ -149,11 +209,13 @@ Bibliography
 
 * .. _CGZ94:
 
-  Brad Calder, Dirk Grunwald, Benjamin Zorn. 1994. "`Quantifying Behavioral Differences Between C and C++ Programs <http://cseclassic.ucsd.edu/users/calder/papers/JplVersion.pdf>`_". *Journal of Programming Languages.* 2(4):313--351. <a href="cgz94.html">Abstract</a>. 
+  Brad Calder, Dirk Grunwald, Benjamin Zorn. 1994. "`Quantifying Behavioral Differences Between C and C++ Programs <http://cseclassic.ucsd.edu/users/calder/papers/JplVersion.pdf>`_". *Journal of Programming Languages.* 2(4):313--351.
+
+  .. abstract: cgz94.html
 
 * .. _CPC00:
 
-  Dante J. Cannarozzi, Michael P. Plezbert, Ron K. Cytron. 2000. "`Contaminated garbage collection <http://citeseerx.ist.psu.edu/viewdoc/download?doi=10.1.1.58.9649&rep=rep1&type=pdf>`_". ACM. Proceedings of the ACM SIGPLAN '00 conference on on Programming language design and implementation, pp. 264--273. 
+  Dante J. Cannarozzi, Michael P. Plezbert, Ron K. Cytron. 2000. "`Contaminated garbage collection <http://citeseerx.ist.psu.edu/viewdoc/download?doi=10.1.1.58.9649&rep=rep1&type=pdf>`_". ACM. Proceedings of the ACM SIGPLAN '00 conference on on Programming language design and implementation, pp. 264--273.
 
 * .. _CW86:
 
@@ -169,41 +231,53 @@ Bibliography
 
 * .. _CL98:
 
-  Trishul M. Chilimbi, James R. Larus. 1998. "`Using Generational Garbage Collection To Implement Cache-Conscious Data Placement <http://ftp2.cs.wisc.edu/wwt/ismm98_cache_gc.pdf>`_". ACM. ISMM'98 pp.37--48. <a href="cl98.html">Abstract</a>.
+  Trishul M. Chilimbi, James R. Larus. 1998. "`Using Generational Garbage Collection To Implement Cache-Conscious Data Placement <http://ftp2.cs.wisc.edu/wwt/ismm98_cache_gc.pdf>`_". ACM. ISMM'98 pp.37--48.
+
+  .. abstract: cl98.html
 
 * .. _CH97:
 
-  William D Clinger & Lars T Hansen. 1997. "`Generational Garbage Collection and the Radioactive Decay Model <http://citeseerx.ist.psu.edu/viewdoc/download?doi=10.1.1.164.370&rep=rep1&type=pdf>`". ACM. Proceedings of PLDI 1997. <a href="ch97.html">Abstract</a>.
+  William D Clinger & Lars T Hansen. 1997. "`Generational Garbage Collection and the Radioactive Decay Model <http://citeseerx.ist.psu.edu/viewdoc/download?doi=10.1.1.164.370&rep=rep1&type=pdf>`_". ACM. Proceedings of PLDI 1997.
 
-.. links checked down to here:
+  .. abstract: ch97.html
 
 * .. _COHEN81:
 
-  Jacques Cohen. 1981. "Garbage collection of linked data structures". Computing Surveys. Vol. 13, no. 3. <a href="cohen81.html">Abstract</a>.
+  Jacques Cohen. 1981. "Garbage collection of linked data structures". Computing Surveys. Vol. 13, no. 3.
+
+  .. abstract: cohen81.html
 
 * .. _CCZ98:
 
-  Dominique Colnet, Philippe Coucaud, Olivier Zendra. 1998. "`Compiler Support to Customize the Mark and Sweep Algorithm <http://www.acm.org/pubs/citations/proceedings/plan/286860/p154-colnet/>`_". ACM. ISMM'98 pp.154--165. <a href="ccz98.html">Abstract</a>. 
+  Dominique Colnet, Philippe Coucaud, Olivier Zendra. 1998. "`Compiler Support to Customize the Mark and Sweep Algorithm <http://pdf.aminer.org/000/465/134/compiler_support_to_customize_the_mark_and_sweep_algorithm.pdf>`_". ACM. ISMM'98 pp.154--165.
+
+  .. abstract: ccz98.html
 
 * .. _CWZ93:
 
-  Jonathan E. Cook, Alexander L. Wolf, Benjamin Zorn. 1994. "Partition Selection Policies in Object Database Garbage Collection". ACM. SIGMOD. International Conference on the Management of Data (SIGMOD'94), pp. 371--382. <a href="cwz93.html">Abstract</a>.
+  Jonathan E. Cook, Alexander L. Wolf, Benjamin Zorn. 1994. "`Partition Selection Policies in Object Database Garbage Collection <http://citeseerx.ist.psu.edu/viewdoc/download?doi=10.1.1.53.3656&rep=rep1&type=pdf>`_". ACM. SIGMOD. International Conference on the Management of Data (SIGMOD'94), pp. 371--382.
+
+  .. abstract: cwz93.html
 
 * .. _CKWZ96:
 
-  Jonathan E. Cook, Artur Klauser, Alexander L. Wolf, Benjamin Zorn. 1996. "Semi-automatic, Self-adaptive Control of Garbage Collection Rates in Object Databases". ACM, SIGMOD. International Conference on the Management of Data (SIGMOD'96), pp. 377--388.
+  Jonathan E. Cook, Artur Klauser, Alexander L. Wolf, Benjamin Zorn. 1996. "`Semi-automatic, Self-adaptive Control of Garbage Collection Rates in Object Databases <http://citeseerx.ist.psu.edu/viewdoc/download?doi=10.1.1.46.8140&rep=rep1&type=pdf>`_". ACM, SIGMOD. International Conference on the Management of Data (SIGMOD'96), pp. 377--388.
 
 * .. _CNS92:
 
-  Eric Cooper, Scott Nettles, Indira Subramanian. 1992. "Improving the Performance of SML Garbage Collection using Application-Specific Virtual Memory Management". ACM. <a href="cns92.html">Abstract</a>.
+  Eric Cooper, Scott Nettles, Indira Subramanian. 1992. "Improving the Performance of SML Garbage Collection using Application-Specific Virtual Memory Management". ACM Conference on LISP and Functional Programming, pp. 43--52.
+
+  .. abstract: cns92.html
 
 * .. _DACONTA93:
 
-  Michael C. Daconta. 1993. "C Pointers and Dynamic Memory Management". Wiley. ISBN 0-471-56152-5.
+  Michael C. Daconta. 1993. *C Pointers and Dynamic Memory Management.* Wiley. ISBN 0-471-56152-5.
 
 * .. _DACONTA95:
 
-  Michael C. Daconta. 1995. "C++ Pointers and Dynamic Memory Management". Wiley. ISBN 0-471-04998-0. <a href="daconta95.html">Abstract</a>.
+  Michael C. Daconta. 1995. *C++ Pointers and Dynamic Memory Management.* Wiley. ISBN 0-471-04998-0.
+
+  .. abstract: daconta95.html
 
 * .. _DAHL63:
 
@@ -215,55 +289,69 @@ Bibliography
 
 * .. _DENNING70:
 
-  P. J. Denning. 1970. "Virtual Memory". ACM. ACM Computing Surveys, vol. 2, no. 3, pp. 153--190, Sept. 1970.
+  P. J. Denning. 1970. "`Virtual Memory <http://denninginstitute.com/pjd/PUBS/VirtMem_1970.pdf>`_". ACM. ACM Computing Surveys, vol. 2, no. 3, pp. 153--190, Sept. 1970.
 
 * .. _DS72:
 
-  P. J. Denning, S. C. Schwartz. 1972. "Properties of the Working-set Model". CACM. vol. 15, no. 3, pp. 191--198.
+  P. J. Denning, S. C. Schwartz. 1972. "`Properties of the Working-set Model <http://denninginstitute.com/pjd/PUBS/WSProp_1972.pdf>`_". CACM. vol. 15, no. 3, pp. 191--198.
 
 * .. _DETLEFS92:
 
-  David L. Detlefs. 1992. "Garbage collection and runtime typing as a C++ library". USENIX C++ Conference.
+  David L. Detlefs. 1992. "`Garbage collection and runtime typing as a C++ library <http://citeseerx.ist.psu.edu/viewdoc/download?doi=10.1.1.71.2755&rep=rep1&type=pdf>`_". USENIX C++ Conference.
 
 * .. _ZORN93:
 
-  David L. Detlefs, Al Dosser, Benjamin Zorn. 1994. "`Memory Allocation Costs in Large C and C++ Programs <ftp://ftp.cs.colorado.edu/pub/techreports/zorn/CU-CS-665-93.ps.Z>`_". Software -- Practice and Experience. 24(6):527--542. <a href="zorn93.html">Abstract</a>. 
+  David L. Detlefs, Al Dosser, Benjamin Zorn. 1994. "`Memory Allocation Costs in Large C and C++ Programs <http://citeseerx.ist.psu.edu/viewdoc/download?doi=10.1.1.30.3073&rep=rep1&type=pdf>`_". Software -- Practice and Experience. 24(6):527--542.
+
+  .. abstract: zorn93.html
 
 * .. _DB76:
 
-  L. Peter Deutsch, Daniel G. Bobrow. 1976. "An Efficient, Incremental, Automatic Garbage Collector". CACM. vol. 19, no. 9, pp. 522--526.
+  L. Peter Deutsch, Daniel G. Bobrow. 1976. "`An Efficient, Incremental, Automatic Garbage Collector <http://citeseerx.ist.psu.edu/viewdoc/download?doi=10.1.1.63.4603&rep=rep1&type=pdf>`_". CACM. vol. 19, no. 9, pp. 522--526.
 
 * .. _DLMSS76:
 
-  E. W. Dijkstra, Leslie Lamport, A. J. Martin, C. S. Scholten, E. F. M. Steffens. 1976. "On-the-fly Garbage Collection: An Exercise in Cooperation". Springer-Verlag. Lecture Notes in Computer Science, Vol. 46.
+  E. W. Dijkstra, Leslie Lamport, A. J. Martin, C. S. Scholten, E. F. M. Steffens. 1976. "`On-the-fly Garbage Collection: An Exercise in Cooperation <http://citeseerx.ist.psu.edu/viewdoc/download?doi=10.1.1.63.4752&rep=rep1&type=pdf>`_". Springer-Verlag. Lecture Notes in Computer Science, Vol. 46.
 
 * .. _DMH92:
 
-  Amer Diwan, Richard L. Hudson, J. Eliot B. Moss. 1992. "`Compiler Support for Garbage Collection in a Statically Typed Language <http://www.acm.org/pubs/articles/proceedings/pldi/143095/p273-diwan/p273-diwan.pdf>`_". ACM. Proceedings of the 5th ACM SIGPLAN conference on Programming language design and implementation, pp. 273--282. <a href="dmh92.html">Abstract</a>. 
+  Amer Diwan, Richard L. Hudson, J. Eliot B. Moss. 1992. "`Compiler Support for Garbage Collection in a Statically Typed Language <http://citeseerx.ist.psu.edu/viewdoc/download?doi=10.1.1.87.71&rep=rep1&type=pdf>`_". ACM. Proceedings of the 5th ACM SIGPLAN conference on Programming language design and implementation, pp. 273--282.
+
+  .. abstract: dmh92.html
 
 * .. _DTM93:
 
-  Amer Diwan, David Tarditi, J. Eliot B. Moss. 1993. "`Memory Subsystem Performance of Programs with Intensive Heap Allocation <ftp://reports.adm.cs.cmu.edu/usr/anon/1993/CMU-CS-93-227.ps>`_". Carnegie Mellon University. CMU-CS-93-227. <a href="dtm93.html">Abstract</a>. 
+  Amer Diwan, David Tarditi, J. Eliot B. Moss. 1993. "`Memory Subsystem Performance of Programs with Intensive Heap Allocation <http://citeseerx.ist.psu.edu/viewdoc/download?doi=10.1.1.27.9220&rep=rep1&type=pdf>`_". Carnegie Mellon University. CMU-CS-93-227.
+
+  .. abstract: dtm93.html
 
 * .. _DTM93A:
 
-  Amer Diwan, David Tarditi, J. Eliot B. Moss. 1994. "Memory Subsystem Performance of Programs Using Copying Garbage Collection". ACM. CMU-CS-93-210, also in POPL '94. <a href="dtm93a.html">Abstract</a>.
+  Amer Diwan, David Tarditi, J. Eliot B. Moss. 1994. "`Memory Subsystem Performance of Programs Using Copying Garbage Collection <http://citeseerx.ist.psu.edu/viewdoc/download?doi=10.1.1.27.9220&rep=rep1&type=pdf>`_". ACM. CMU-CS-93-210, also in POPL '94.
+
+  .. abstract: dtm93a.html
 
 * .. _DOLIGEZ93:
 
-  Damien Doligez & Xavier Leroy. 1993. "`A concurrent, generational garbage collector for a multithreaded implementation of ML <http://www.acm.org/pubs/citations/proceedings/plan/158511/p113-doligez/>`_". ACM. POPL '93, 113--123. <a href="doligez93.html">Abstract</a>. 
+  Damien Doligez & Xavier Leroy. 1993. "`A concurrent, generational garbage collector for a multithreaded implementation of ML <http://citeseerx.ist.psu.edu/viewdoc/download?doi=10.1.1.52.9494&rep=rep1&type=pdf>`_". ACM. POPL '93, 113--123.
+
+  .. abstract: doligez93.html
 
 * .. _DOLIGEZ94:
 
-  Damien Doligez & Georges Gonthier. 1994. "`Portable, unobtrusive garbage collection for multiprocessor systems <http://www.acm.org/pubs/citations/proceedings/plan/174675/p70-doligez/>`_". ACM. POPL '94, 70--83. <a href="doligez94.html">Abstract</a>. 
+  Damien Doligez & Georges Gonthier. 1994. "`Portable, unobtrusive garbage collection for multiprocessor systems <http://citeseerx.ist.psu.edu/viewdoc/download?doi=10.1.1.52.4710&rep=rep1&type=pdf>`_". ACM. POPL '94, 70--83.
+
+  .. abstract: doligez94.html
 
 * .. _DBE93:
 
-  R. Kent Dybvig, Carl Bruggeman, David Eby. 1993. "`Guardians in a Generation-Based Garbage Collector <ftp://ftp.cs.indiana.edu/pub/scheme-repository/doc/pubs/guardians.ps.gz>`_". SIGPLAN. Proceedings of the ACM SIGPLAN '93 Conference on Programming Language Design and Implementation, June 1993. <a href="dbe93.html">Abstract</a>. 
+  R. Kent Dybvig, Carl Bruggeman, David Eby. 1993. "`Guardians in a Generation-Based Garbage Collector <http://www.cs.indiana.edu/~dyb/pubs/guardians-pldi93.pdf>`_". SIGPLAN. Proceedings of the ACM SIGPLAN '93 Conference on Programming Language Design and Implementation, June 1993.
+
+  .. abstract: dbe93.html
 
 * .. _EDELSON92A:
 
-  Daniel R. Edelson. 1992. "Smart pointers: They're smart, but they're not pointers". USENIX C++ Conference.
+  Daniel R. Edelson. 1992. "`Smart pointers: They're smart, but they're not pointers <http://citeseerx.ist.psu.edu/viewdoc/download?doi=10.1.1.54.530&rep=rep1&type=pdf>`_". USENIX C++ Conference.
 
 * .. _EDELSON92:
 
@@ -271,19 +359,27 @@ Bibliography
 
 * .. _EDWARDS:
 
-  Daniel J. Edwards. n.d. "`Lisp II Garbage Collector <ftp://publications.ai.mit.edu/ai-publications/0-499/AIM-019.ps>`_". MIT. AI Memo 19 (AIM-19). <a href="edwards.html">Abstract</a>. 
+  Daniel J. Edwards. n.d. "`Lisp II Garbage Collector <ftp://publications.ai.mit.edu/ai-publications/0-499/AIM-019.ps>`_". MIT. AI Memo 19 (AIM-19).
+
+  .. abstract: edwards.html
 
 * .. _ELLIS93:
 
-  John R. Ellis, David L. Detlefs. 1993. "Safe, Efficient Garbage Collection for C++". <a href="ellis93.html">Abstract</a>.
+  John R. Ellis, David L. Detlefs. 1993. "`Safe, Efficient Garbage Collection for C++ <http://www.hpl.hp.com/techreports/Compaq-DEC/SRC-RR-102.pdf>`_". Xerox PARC.
+
+  .. abstract: ellis93.html
+
+.. links checked down to here:
 
 * .. _FERREIRA96:
 
-  Paulo Ferreira. 1996. "`Larchant: garbage collection in a cached distributed shared store with persistence by reachability <http://www-sor.inria.fr/publi/ferreira_thesis96.html>`_". Université Paris VI. Thése de doctorat. <a href="ferreira96.html">Abstract</a>. 
+  Paulo Ferreira. 1996. "`Larchant: garbage collection in a cached distributed shared store with persistence by reachability <http://www-sor.inria.fr/publi/ferreira_thesis96.html>`_". Université Paris VI. Thése de doctorat.
+
+  .. abstract: ferreira96.html
 
 * .. _FS98:
 
-  Paulo Ferreira & Marc Shapiro. 1998. "`Modelling a Distributed Cached Store for Garbage Collection <http://www-sor.inria.fr/publi/MDCSGC_ecoop98.html>`_". Springer-Verlag. Proceedings of 12th European Conference on Object-Oriented Programming, ECOOP98, LNCS 1445. 
+  Paulo Ferreira & Marc Shapiro. 1998. "`Modelling a Distributed Cached Store for Garbage Collection <http://www-sor.inria.fr/publi/MDCSGC_ecoop98.html>`_". Springer-Verlag. Proceedings of 12th European Conference on Object-Oriented Programming, ECOOP98, LNCS 1445.
 
 * .. _FW76:
 
@@ -291,7 +387,9 @@ Bibliography
 
 * .. _FW77:
 
-  Daniel P Friedman, David S. Wise. 1977. "The One-Bit Reference Count". *BIT.* (17)3: 351--359. <a href="fw77.html">Abstract</a>.
+  Daniel P Friedman, David S. Wise. 1977. "The One-Bit Reference Count". *BIT.* (17)3: 351--359.
+
+  .. abstract: fw77.html
 
 * .. _FW79:
 
@@ -299,59 +397,79 @@ Bibliography
 
 * .. _GZH93:
 
-  Dirk Grunwald, Benjamin Zorn, R. Henderson. 1993. "`Improving the Cache Locality of Memory Allocation <ftp://ftp.cs.colorado.edu/pub/techreports/grunwald/PLDI-93-locality.ps.Z>`_". SIGPLAN. SIGPLAN '93, Conference on PLDI, June 1993, Albuquerque, New Mexico. <a href="gzh93.html">Abstract</a>. 
+  Dirk Grunwald, Benjamin Zorn, R. Henderson. 1993. "`Improving the Cache Locality of Memory Allocation <ftp://ftp.cs.colorado.edu/pub/techreports/grunwald/PLDI-93-locality.ps.Z>`_". SIGPLAN. SIGPLAN '93, Conference on PLDI, June 1993, Albuquerque, New Mexico.
+
+  .. abstract: gzh93.html
 
 * .. _GRUN92:
 
-  Dirk Grunwald & Benjamin Zorn. 1993. "CustoMalloc: Efficient Synthesized Memory Allocators". Software -- Practice and Experience. 23(8):851--869. <a href="grun92.html">Abstract</a>.
+  Dirk Grunwald & Benjamin Zorn. 1993. "CustoMalloc: Efficient Synthesized Memory Allocators". Software -- Practice and Experience. 23(8):851--869.
+
+  .. abstract: grun92.html
 
 * .. _GUDEMAN93:
 
-  David Gudeman. 1993. "`Representing Type Information in Dynamically Typed Languages <ftp://ftp.cs.indiana.edu/pub/scheme-repository/doc/pubs/typeinfo.ps.gz>`_". University of Arizona at Tucson. Technical Report TR 93-27. <a href="gudeman93.html">Abstract</a>. 
+  David Gudeman. 1993. "`Representing Type Information in Dynamically Typed Languages <ftp://ftp.cs.indiana.edu/pub/scheme-repository/doc/pubs/typeinfo.ps.gz>`_". University of Arizona at Tucson. Technical Report TR 93-27.
+
+  .. abstract: gudeman93.html
 
 * .. _HARRIS99:
 
-  Timothy Harris. 1999. "`Early storage reclamation in a tracing garbage collector <http://www.cl.cam.ac.uk/~tlh20/partitioned-gc.ps.gz>`_". ACM. ACM SIG-PLAN Notices 34:4, pp. 46--53. <a href="harris99.html">Abstract</a>. 
+  Timothy Harris. 1999. "`Early storage reclamation in a tracing garbage collector <http://www.cl.cam.ac.uk/~tlh20/partitioned-gc.ps.gz>`_". ACM. ACM SIG-PLAN Notices 34:4, pp. 46--53.
+
+  .. abstract: harris99.html
 
 * .. _HENRIK94:
 
-  Roger Henriksson. 1994. "`Scheduling Real Time Garbage Collection <http://www.dna.lth.se/Research/ProgEnv/Papers/LU-CS-TR:94-129.ps>`_". Department of Computer Science at Lund University. LU-CS-TR:94-129. <a href="henrik94.html">Abstract</a>. 
+  Roger Henriksson. 1994. "`Scheduling Real Time Garbage Collection <http://www.dna.lth.se/Research/ProgEnv/Papers/LU-CS-TR:94-129.ps>`_". Department of Computer Science at Lund University. LU-CS-TR:94-129.
+
+  .. abstract: henrik94.html
 
 * .. _HENRIK96:
 
-  Roger Henriksson. 1996. "`Adaptive Scheduling of Incremental Copying Garbage Collection for Interactive Applications <http://www.cs.auc.dk/%7Enormark/NWPER96/proceedings/paperD.html>`_". NWPER96. <a href="henrik96.html">Abstract</a>. 
+  Roger Henriksson. 1996. "`Adaptive Scheduling of Incremental Copying Garbage Collection for Interactive Applications <http://www.cs.auc.dk/%7Enormark/NWPER96/proceedings/paperD.html>`_". NWPER96.
+
+  .. abstract: henrik96.html
 
 * .. _HENRIKSSON98:
 
-  Roger Henriksson. 1998. "`Scheduling Garbage Collection in Embedded Systems <http://www.cs.lth.se/~roger/thesis.html>`_". Department of Computer Science at Lund University. Ph.D. thesis. <a href="henriksson98.html">Abstract</a>. 
+  Roger Henriksson. 1998. "`Scheduling Garbage Collection in Embedded Systems <http://www.cs.lth.se/~roger/thesis.html>`_". Department of Computer Science at Lund University. Ph.D. thesis.
+
+  .. abstract: henriksson98.html
 
 * .. _HOSKING91:
 
-  Antony L. Hosking. 1991. "`Main memory management for persistence <ftp://ftp.cs.purdue.edu/pub/hosking/papers/oopsla91gc-alh.pdf>`_". ACM. Proceedings of the ACM OOPSLA'91 Workshop on Garbage Collection. 
+  Antony L. Hosking. 1991. "`Main memory management for persistence <ftp://ftp.cs.purdue.edu/pub/hosking/papers/oopsla91gc-alh.pdf>`_". ACM. Proceedings of the ACM OOPSLA'91 Workshop on Garbage Collection.
 
 * .. _HMS92:
 
-  Antony L. Hosking, J. Eliot B. Moss, Darko Stefanovic. 1992. "`A comparative performance evaluation of write barrier implementations <ftp://ftp.cs.purdue.edu/pub/hosking/papers/oopsla92.pdf>`_". ACM. OOPSLA'92 Conference Proceedings, ACM SIGPLAN Notices 27(10), pp 92--109. 
+  Antony L. Hosking, J. Eliot B. Moss, Darko Stefanovic. 1992. "`A comparative performance evaluation of write barrier implementations <ftp://ftp.cs.purdue.edu/pub/hosking/papers/oopsla92.pdf>`_". ACM. OOPSLA'92 Conference Proceedings, ACM SIGPLAN Notices 27(10), pp 92--109.
 
 * .. _HH93:
 
-  Antony L. Hosking, Richard L. Hudson. 1993. "`Remembered sets can also play cards <ftp://ftp.cs.purdue.edu/pub/hosking/papers/gc-workshop93c.pdf>`_". ACM. Proceedings of the ACM OOPSLA'93 Workshop on Memory Management and Garbage Collection. 
+  Antony L. Hosking, Richard L. Hudson. 1993. "`Remembered sets can also play cards <ftp://ftp.cs.purdue.edu/pub/hosking/papers/gc-workshop93c.pdf>`_". ACM. Proceedings of the ACM OOPSLA'93 Workshop on Memory Management and Garbage Collection.
 
 * .. _HM93:
 
-  Antony L. Hosking, J. Eliot B. Moss. 1993. "`Protection traps and alternatives for memory management of an object-oriented language <ftp://ftp.cs.purdue.edu/pub/hosking/papers/sosp93.pdf>`_". ACM. Proceedings of the Fourteenth ACM Symposium on Operating Systems Principles, ACM Operating Systems Review 27(5), pp 106--119. 
+  Antony L. Hosking, J. Eliot B. Moss. 1993. "`Protection traps and alternatives for memory management of an object-oriented language <ftp://ftp.cs.purdue.edu/pub/hosking/papers/sosp93.pdf>`_". ACM. Proceedings of the Fourteenth ACM Symposium on Operating Systems Principles, ACM Operating Systems Review 27(5), pp 106--119.
 
 * .. _HMDW91:
 
-  Richard L. Hudson, J. Eliot B. Moss, Amer Diwan, Christopher F. Weight. 1991. "A Language-Independent Garbage Collector Toolkit". University of Massachusetts at Amherst. COINS Technical Report 91--47. <a href="hmdw91.html">Abstract</a>.
+  Richard L. Hudson, J. Eliot B. Moss, Amer Diwan, Christopher F. Weight. 1991. "A Language-Independent Garbage Collector Toolkit". University of Massachusetts at Amherst. COINS Technical Report 91--47.
+
+  .. abstract: hmdw91.html
 
 * .. _HM92:
 
-  Richard L. Hudson, J. Eliot B. Moss. 1992. "`Incremental Collection of Mature Objects <ftp://ftp.cs.umass.edu/pub/osl/papers/iwmm92.ps.Z>`_". Springer-Verlag. LNCS #637  International Workshop on Memory Management, St. Malo, France, Sept. 1992, pp. 388--403. <a href="hm92.html">Abstract</a>. 
+  Richard L. Hudson, J. Eliot B. Moss. 1992. "`Incremental Collection of Mature Objects <ftp://ftp.cs.umass.edu/pub/osl/papers/iwmm92.ps.Z>`_". Springer-Verlag. LNCS #637  International Workshop on Memory Management, St. Malo, France, Sept. 1992, pp. 388--403.
+
+  .. abstract: hm92.html
 
 * .. _HMMM97:
 
-  Richard L. Hudson, Ron Morrison, J. Eliot B. Moss, David S. Munro. 1997. "`Garbage Collecting the World: One Car at a Time <http://www.dcs.st-and.ac.uk/rsch/publications/HMM%2B97b.shtml>`_". ACM. Proc. OOPSLA 97, pp.162--175. <a href="hmmm97.html">Abstract</a>. 
+  Richard L. Hudson, Ron Morrison, J. Eliot B. Moss, David S. Munro. 1997. "`Garbage Collecting the World: One Car at a Time <http://www.dcs.st-and.ac.uk/rsch/publications/HMM%2B97b.shtml>`_". ACM. Proc. OOPSLA 97, pp.162--175.
+
+  .. abstract: hmmm97.html
 
 * .. _ISO90:
 
@@ -359,11 +477,15 @@ Bibliography
 
 * .. _JOHNSTONE97:
 
-  Mark S. Johnstone. 1997. "`Non-Compacting Memory Allocation and Real-Time Garbage Collection <ftp://ftp.cs.utexas.edu/pub/garbage/johnstone-dissertation.ps.gz>`_". University of Texas at Austin. <a href="johnstone97.html">Abstract</a>. 
+  Mark S. Johnstone. 1997. "`Non-Compacting Memory Allocation and Real-Time Garbage Collection <ftp://ftp.cs.utexas.edu/pub/garbage/johnstone-dissertation.ps.gz>`_". University of Texas at Austin.
+
+  .. abstract: johnstone97.html
 
 * .. _JW98:
 
-  Mark S. Johnstone, Paul R. Wilson. 1998. "`The Memory Fragmentation Problem: Solved? <http://www.acm.org/pubs/citations/proceedings/plan/286860/p26-johnstone/>`_". ACM. ISMM'98 pp.26--36. <a href="jw98.html">Abstract</a>. 
+  Mark S. Johnstone, Paul R. Wilson. 1998. "`The Memory Fragmentation Problem: Solved? <http://www.acm.org/pubs/citations/proceedings/plan/286860/p26-johnstone/>`_". ACM. ISMM'98 pp.26--36.
+
+  .. abstract: jw98.html
 
 * .. _JONES92:
 
@@ -371,43 +493,55 @@ Bibliography
 
 * .. _JL92:
 
-  Richard E. Jones, Rafael Lins. 1992. "`Cyclic weighted reference counting without delay <http://www.cs.ukc.ac.uk/pubs/1992/122/index.html>`_". Computing Laboratory, The University of Kent at Canterbury. Technical Report 28-92. <a href="jl92.html">Abstract</a>. 
+  Richard E. Jones, Rafael Lins. 1992. "`Cyclic weighted reference counting without delay <http://www.cs.ukc.ac.uk/pubs/1992/122/index.html>`_". Computing Laboratory, The University of Kent at Canterbury. Technical Report 28-92.
+
+  .. abstract: jl92.html
 
 * .. _JONES96:
 
-  Richard E. Jones, Rafael Lins. 1996. "`Garbage Collection: Algorithms for Automatic Dynamic Memory Management <http://www.cs.ukc.ac.uk/people/staff/rej/gcbook/gcbook.html>`_". Wiley. ISBN 0-471-94148-4. <a href="jones96.html">Abstract</a>. 
+  Richard E. Jones, Rafael Lins. 1996. "`Garbage Collection: Algorithms for Automatic Dynamic Memory Management <http://www.cs.ukc.ac.uk/people/staff/rej/gcbook/gcbook.html>`_". Wiley. ISBN 0-471-94148-4.
+
+  .. abstract: jones96.html
 
 * .. _ACM98:
 
-  Richard E. Jones. 1998. "`ISMM'98 International Symposium on Memory Management <http://www.acm.org/pubs/contents/proceedings/plan/286860/>`_". ACM. ISBN 1-58113-114-3. <a href="acm98.html">Abstract</a>. 
+  Richard E. Jones. 1998. "`ISMM'98 International Symposium on Memory Management <http://www.acm.org/pubs/contents/proceedings/plan/286860/>`_". ACM. ISBN 1-58113-114-3.
+
+  .. abstract: acm98.html
 
 * .. _JONES12:
 
-  Richard E. Jones, Antony Hosking, and Eliot Moss. 2012. "The Garbage Collection Handbook". Chapman & Hall. `<http://gchandbook.org/>`_.
+  Richard E. Jones, Antony Hosking, and Eliot Moss. 2012. "`The Garbage Collection Handbook <http://gchandbook.org/>`_". Chapman & Hall.
 
 * .. _JOYNER96:
 
-  Ian Joyner. 1996. *C++??: A Critique of C++*. `<http://www.emu.edu.tr/aelci/Courses/D-318/D-318-Files/cppcrit/index.htm>`_.
+  Ian Joyner. 1996. "`C++??: A Critique of C++ <http://www.emu.edu.tr/aelci/Courses/D-318/D-318-Files/cppcrit/index.htm>`_.".
 
 * .. _KANEFSKY89:
 
-  Bob Kanefsky. 1989. "`Recursive Memory Allocation <http://www.songworm.com/db/songworm-parody/RecursiveMemoryAllocation.html>`_". Bob Kanefsky. Songworm 3, p.?. 
+  Bob Kanefsky. 1989. "`Recursive Memory Allocation <http://www.songworm.com/db/songworm-parody/RecursiveMemoryAllocation.html>`_". Bob Kanefsky. Songworm 3, p.?.
 
 * .. _KQH98:
 
-  Jin-Soo Kim, Xiaohan Qin, Yarsun Hsu. 1998. "`Memory Characterization of a Parallel Data Mining Workload <http://www.computer.org/proceedings/wwc/0450/04500060abs.htm>`_". IEEE. Proc. Workload Characterization: Methodology and Case Studies, pp. . <a href="kqh98.html">Abstract</a>. 
+  Jin-Soo Kim, Xiaohan Qin, Yarsun Hsu. 1998. "`Memory Characterization of a Parallel Data Mining Workload <http://www.computer.org/proceedings/wwc/0450/04500060abs.htm>`_". IEEE. Proc. Workload Characterization: Methodology and Case Studies, pp. .
+
+  .. abstract: kqh98.html
 
 * .. _KH00:
 
-  Jin-Soo Kim & Yarsun Hsu. 2000. "`Memory system behavior of Java programs: methodology and analysis <http://dev.acm.org/pubs/citations/proceedings/metrics/339331/p264-kim/>`_". ACM. Proc. International conference on measurements and modeling of computer systems, pp. 264--274. 
+  Jin-Soo Kim & Yarsun Hsu. 2000. "`Memory system behavior of Java programs: methodology and analysis <http://dev.acm.org/pubs/citations/proceedings/metrics/339331/p264-kim/>`_". ACM. Proc. International conference on measurements and modeling of computer systems, pp. 264--274.
 
 * .. _KOLODNER92:
 
-  Elliot K. Kolodner. 1992. "Atomic Incremental Garbage Collection and Recovery for a Large Stable Heap". Laboratory for Computer Science at MIT. MIT-LCS-TR-534. <a href="kolodner92.html">Abstract</a>.
+  Elliot K. Kolodner. 1992. "Atomic Incremental Garbage Collection and Recovery for a Large Stable Heap". Laboratory for Computer Science at MIT. MIT-LCS-TR-534.
+
+  .. abstract: kolodner92.html
 
 * .. _LK98:
 
-  Per-Åke Larson & Murali Krishnan. 1998. "`Memory Allocation for Long-Running Server Applications <http://www.acm.org/pubs/citations/proceedings/plan/286860/p176-larson/>`_". ACM. ISMM'98 pp.176--185. <a href="lk98.html">Abstract</a>. 
+  Per-Åke Larson & Murali Krishnan. 1998. "`Memory Allocation for Long-Running Server Applications <http://www.acm.org/pubs/citations/proceedings/plan/286860/p176-larson/>`_". ACM. ISMM'98 pp.176--185.
+
+  .. abstract: lk98.html
 
 * .. _LH83:
 
@@ -419,7 +553,9 @@ Bibliography
 
 * .. _MCCARTHY60:
 
-  J. McCarthy. 1960. "`Recursive Functions of Symbolic Expressions and Their Computation by Machine <http://www-formal.stanford.edu/jmc/recursive.html>`_". CACM. <a href="mccarthy60.html">Abstract</a>. 
+  J. McCarthy. 1960. "`Recursive Functions of Symbolic Expressions and Their Computation by Machine <http://www-formal.stanford.edu/jmc/recursive.html>`_". CACM.
+
+  .. abstract: mccarthy60.html
 
 * .. _MCCARTHY79:
 
@@ -427,7 +563,9 @@ Bibliography
 
 * .. _PTM98:
 
-  Veljko Milutinovic, Jelica Protic, Milo Tomasevic. 1997. "`Distributed shared memory: concepts and systems <http://church.computer.org/cspress/CATALOG/bp07737.htm>`_". IEEE Computer Society Press. ISBN 0-8186-7737-6. <a href="ptm98.html">Abstract</a>. 
+  Veljko Milutinovic, Jelica Protic, Milo Tomasevic. 1997. "`Distributed shared memory: concepts and systems <http://church.computer.org/cspress/CATALOG/bp07737.htm>`_". IEEE Computer Society Press. ISBN 0-8186-7737-6.
+
+  .. abstract: ptm98.html
 
 * .. _MINSKY63:
 
@@ -443,7 +581,7 @@ Bibliography
 
 * .. _MOON87:
 
-  David Moon. 1990. "Symbolics Architecture". Wiley. Chapter 3 of "Computers for Artificial Intelligence Processing", ISBN 0-471-84811-5.
+  David Moon. 1990. "Symbolics Architecture". Wiley. Chapter 3 of *Computers for Artificial Intelligence Processing*, ISBN 0-471-84811-5.
 
 * .. _MOON91:
 
@@ -455,67 +593,95 @@ Bibliography
 
 * .. _MOREAU98:
 
-  Luc Moreau. 1998. "`Hierarchical Distributed Reference Counting <http://www.acm.org/pubs/citations/proceedings/plan/286860/p57-moreau/>`_". ACM. ISMM'98 pp.57--67. 
+  Luc Moreau. 1998. "`Hierarchical Distributed Reference Counting <http://www.acm.org/pubs/citations/proceedings/plan/286860/p57-moreau/>`_". ACM. ISMM'98 pp.57--67.
 
 * .. _MFH95:
 
-  Greg Morrisett, Matthias Felleisen, Robert Harper. 1995. "`Abstract Models of Memory Management <http://www.cs.cornell.edu/Info/People/jgm/papers/gc-tr.ps>`_". Carnegie Mellon University. CMU-CS-FOX-95-01. <a href="mfh95.html">Abstract</a>. 
+  Greg Morrisett, Matthias Felleisen, Robert Harper. 1995. "`Abstract Models of Memory Management <http://www.cs.cornell.edu/Info/People/jgm/papers/gc-tr.ps>`_". Carnegie Mellon University. CMU-CS-FOX-95-01.
+
+  .. abstract: mfh95.html
 
 * .. _MBMM99:
 
-  David S. Munro, Alfred Brown, Ron Morrison, J. Eliot B. Moss. 1999. "Incremental Garbage Collection of a Persistent Object Store using PMOS". Morgan Kaufmann. in Advances in Persistent Object Systems, pp. 78--91. <a href="mbmm99.html">Abstract</a>.
+  David S. Munro, Alfred Brown, Ron Morrison, J. Eliot B. Moss. 1999. "Incremental Garbage Collection of a Persistent Object Store using PMOS". Morgan Kaufmann. in Advances in Persistent Object Systems, pp. 78--91.
+
+  .. abstract: mbmm99.html
 
 * .. _NOPH92:
 
-  Scott Nettles, James O'Toole, David Pierce, Nickolas Haines. 1992. "Replication-Based Incremental Copying Collection". IWMM'92. <a href="noph92.html">Abstract</a>.
+  Scott Nettles, James O'Toole, David Pierce, Nickolas Haines. 1992. "Replication-Based Incremental Copying Collection". IWMM'92.
+
+  .. abstract: noph92.html
 
 * .. _NETTLES92:
 
-  Scott Nettles. 1992. "A Larch Specification of Copying Garbage Collection". Carnegie Mellon University. CMU-CS-92-219. <a href="nettles92.html">Abstract</a>.
+  Scott Nettles. 1992. "A Larch Specification of Copying Garbage Collection". Carnegie Mellon University. CMU-CS-92-219.
+
+  .. abstract: nettles92.html
 
 * .. _NO93A:
 
-  Scott Nettles & James O'Toole. 1993. "Implementing Orthogonal Persistence: A Simple Optimization Using Replicating Collection". USENIX. IWOOOS'93. <a href="no93a.html">Abstract</a>.
+  Scott Nettles & James O'Toole. 1993. "Implementing Orthogonal Persistence: A Simple Optimization Using Replicating Collection". USENIX. IWOOOS'93.
+
+  .. abstract: no93a.html
 
 * .. _NO93:
 
-  Scott Nettles & James O'Toole. 1993. "Real-Time Replication Garbage Collection". ACM. PLDI'93. <a href="no93.html">Abstract</a>.
+  Scott Nettles & James O'Toole. 1993. "Real-Time Replication Garbage Collection". ACM. PLDI'93.
+
+  .. abstract: no93.html
 
 * .. _NIELSEN77:
 
-  Norman R. Nielsen. 1977. "Dynamic Memory Allocation in Computer Simulation". ACM. CACM 20:11. <a href="nielsen77.html">Abstract</a>.
+  Norman R. Nielsen. 1977. "Dynamic Memory Allocation in Computer Simulation". ACM. CACM 20:11.
+
+  .. abstract: nielsen77.html
 
 * .. _OTOOLE90:
 
-  James O'Toole. 1990. "Garbage Collecting Locally". <a href="otoole90.html">Abstract</a>.
+  James O'Toole. 1990. "Garbage Collecting Locally".
+
+  .. abstract: otoole90.html
 
 * .. _ON94:
 
-  James O'Toole & Scott Nettles. 1994. "Concurrent Replicating Garbage Collection". ACM. LFP'94. <a href="on94.html">Abstract</a>.
+  James O'Toole & Scott Nettles. 1994. "Concurrent Replicating Garbage Collection". ACM. LFP'94.
+
+  .. abstract: on94.html
 
 * .. _JRR99:
 
-  Simon Peyton Jones, Norman Ramsey, Fermin Reig. 1999. "`C--: a portable assembly language that supports garbage collection <http://research.microsoft.com/Users/simonpj/papers/ppdp.ps.gz>`_". Springer-Verlag. International Conference on Principles and Practice of Declarative Programming 1999, LNCS 1702, pp. 1--28. <a href="jrr99.html">Abstract</a>. 
+  Simon Peyton Jones, Norman Ramsey, Fermin Reig. 1999. "`C--: a portable assembly language that supports garbage collection <http://research.microsoft.com/Users/simonpj/papers/ppdp.ps.gz>`_". Springer-Verlag. International Conference on Principles and Practice of Declarative Programming 1999, LNCS 1702, pp. 1--28.
+
+  .. abstract: jrr99.html
 
 * .. _PIEPER93:
 
-  John S. Pieper. 1993. "Compiler Techniques for Managing Data Motion". Carnegie Mellon University. Technical report number CMU-CS-93-217. <a href="pieper93.html">Abstract</a>.
+  John S. Pieper. 1993. "Compiler Techniques for Managing Data Motion". Carnegie Mellon University. Technical report number CMU-CS-93-217.
+
+  .. abstract: pieper93.html
 
 * .. _PIRINEN98:
 
-  Pekka P. Pirinen. 1998. "`Barrier techniques for incremental tracing <http://www.acm.org/pubs/citations/proceedings/plan/286860/p20-pirinen/>`_". ACM. ISMM'98 pp.20--25. <a href="pirinen98.html">Abstract</a>. 
+  Pekka P. Pirinen. 1998. "`Barrier techniques for incremental tracing <http://www.acm.org/pubs/citations/proceedings/plan/286860/p20-pirinen/>`_". ACM. ISMM'98 pp.20--25.
+
+  .. abstract: pirinen98.html
 
 * .. _PRINTEZIS96:
 
-  Tony Printezis. 1996. "`Disk Garbage Collection Strategies for Persistent Java <http://www.dcs.gla.ac.uk/~tony/research/pjw1.ps.gz>`_". Proceedings of the First International Workshop on Persistence and Java. <a href="printezis96.html">Abstract</a>. 
+  Tony Printezis. 1996. "`Disk Garbage Collection Strategies for Persistent Java <http://www.dcs.gla.ac.uk/~tony/research/pjw1.ps.gz>`_". Proceedings of the First International Workshop on Persistence and Java.
+
+  .. abstract: printezis96.html
 
 * .. _PC96:
 
-  Tony Printezis & Quentin Cutts. 1996. "`Measuring the Allocation Rate of Napier88 <http://www.dcs.gla.ac.uk/~tony/research/measure.ps.gz>`_". Department of Computing Science at University of Glasgow. TR ?. 
+  Tony Printezis & Quentin Cutts. 1996. "`Measuring the Allocation Rate of Napier88 <http://www.dcs.gla.ac.uk/~tony/research/measure.ps.gz>`_". Department of Computing Science at University of Glasgow. TR ?.
 
 * .. _REINHOLD93:
 
-  M. B. Reinhold. 1993. "Cache Performance of Garbage Collected Programming Languages". Laboratory for Computer Science at MIT. MIT/LCS/TR-581. <a href="reinhold93.html">Abstract</a>.
+  M. B. Reinhold. 1993. "Cache Performance of Garbage Collected Programming Languages". Laboratory for Computer Science at MIT. MIT/LCS/TR-581.
+
+  .. abstract: reinhold93.html
 
 * .. _ROBSON77:
 
@@ -523,23 +689,31 @@ Bibliography
 
 * .. _RR97:
 
-  Gustavo Rodriguez-Rivera & Vince Russo. 1997. "Non-intrusive Cloning Garbage Collection with Stock Operating System Support". Software -- Practice and Experience. 27:8. <a href="rr97.html">Abstract</a>.
+  Gustavo Rodriguez-Rivera & Vince Russo. 1997. "Non-intrusive Cloning Garbage Collection with Stock Operating System Support". Software -- Practice and Experience. 27:8.
+
+  .. abstract: rr97.html
 
 * .. _ROJEMO95:
 
-  Niklas Röjemo. 1995. "`Highlights from nhc -- a space-efficient Haskell compiler <ftp://ftp.cs.chalmers.se/pub/users/rojemo/fpca95.ps.gz>`_". Chalmers University of Technology. <a href="rojemo95.html">Abstract</a>. 
+  Niklas Röjemo. 1995. "`Highlights from nhc -- a space-efficient Haskell compiler <ftp://ftp.cs.chalmers.se/pub/users/rojemo/fpca95.ps.gz>`_". Chalmers University of Technology.
+
+  .. abstract: rojemo95.html
 
 * .. _ROJEMO95A:
 
-  Niklas Röjemo. 1995. "`Generational garbage collection for lazy functional languages without temporary space leaks <ftp://ftp.cs.chalmers.se/pub/users/rojemo/iwmm95.ps.gz>`_". <a href="http://www.chalmers.se/">Chalmers University of Technology</a>. 
+  Niklas Röjemo. 1995. "`Generational garbage collection for lazy functional languages without temporary space leaks <ftp://ftp.cs.chalmers.se/pub/users/rojemo/iwmm95.ps.gz>`_". Chalmers University of Technology.
 
 * .. _RR96:
 
-  Niklas Röjemo & Colin Runciman. 1996. "`Lag, drag, void and use -- heap profiling and space-efficient compilation revisited <ftp://ftp.cs.chalmers.se/pub/users/rojemo/icfp96.ps.gz>`_". ACM, SIGPLAN. ICFP'96, ACM SIGPLAN Notices 31:6, ISBN 0-89791-770-7, pp. 34--41. <a href="rr96.html">Abstract</a>. 
+  Niklas Röjemo & Colin Runciman. 1996. "`Lag, drag, void and use -- heap profiling and space-efficient compilation revisited <ftp://ftp.cs.chalmers.se/pub/users/rojemo/icfp96.ps.gz>`_". ACM, SIGPLAN. ICFP'96, ACM SIGPLAN Notices 31:6, ISBN 0-89791-770-7, pp. 34--41.
+
+  .. abstract: rr96.html
 
 * .. _RW99:
 
-  David J. Roth, David S. Wise. 1999. "`One-bit counts between unique and sticky <http://www.acm.org/pubs/citations/proceedings/plan/286860/p49-roth/>`_". ACM. ISMM'98, pp. 49--56. <a href="rw99.html">Abstract</a>.  <a href="http://www.cs.indiana.edu/ftp/techreports/TR516.html">Online</a>.
+  David J. Roth, David S. Wise. 1999. "`One-bit counts between unique and sticky <http://www.cs.indiana.edu/pub/techreports/TR516.pdf>`_". ACM. ISMM'98, pp. 49--56.
+
+  .. abstract: rw99.html
 
 * .. _ROVNER85:
 
@@ -547,27 +721,35 @@ Bibliography
 
 * .. _RUNCIMAN92:
 
-  Colin Runciman & David Wakeling. 1992. "`Heap Profiling of Lazy Functional Programs <ftp://ftp.cs.york.ac.uk/reports/YCS-92-172.ps.Z>`_". University of York. <a href="runciman92.html">Abstract</a>. 
+  Colin Runciman & David Wakeling. 1992. "`Heap Profiling of Lazy Functional Programs <ftp://ftp.cs.york.ac.uk/reports/YCS-92-172.ps.Z>`_". University of York.
+
+  .. abstract: runciman92.html
 
 * .. _RR94:
 
-  Colin Runciman & Niklas Röjemo. 1994. "`New dimensions in heap profiling <ftp://ftp.cs.york.ac.uk/reports/YCS-95-256.ps.Z>`_". University of York. <a href="rr94.html">Abstract</a>. 
+  Colin Runciman & Niklas Röjemo. 1994. "`New dimensions in heap profiling <ftp://ftp.cs.york.ac.uk/reports/YCS-95-256.ps.Z>`_". University of York.
+
+  .. abstract: rr94.html
 
 * .. _RR96A:
 
-  Colin Runciman & Niklas Röjemo. 1996. "`Two-pass heap profiling: a matter of life and death <ftp://ftp.cs.chalmers.se/pub/users/rojemo/ifl96.ps.gz>`_". Department of Computer Science, University of York. 
+  Colin Runciman & Niklas Röjemo. 1996. "`Two-pass heap profiling: a matter of life and death <ftp://ftp.cs.chalmers.se/pub/users/rojemo/ifl96.ps.gz>`_". Department of Computer Science, University of York.
 
 * .. _SG95:
 
-  Jacob Seligmann & Steffen Grarup. 1995. "`Incremental Mature Garbage Collection Using the Train Algorithm <http://www.daimi.aau.dk/%7Ebeta/Papers/Train/>`_". Springer-Verlag. ECOOP'95, Lecture Notes in Computer Science, Vol. 952, pp. 235--252, ISBN 3-540-60160-0. <a href="sg95.html">Abstract</a>. 
+  Jacob Seligmann & Steffen Grarup. 1995. "`Incremental Mature Garbage Collection Using the Train Algorithm <http://www.daimi.aau.dk/%7Ebeta/Papers/Train/>`_". Springer-Verlag. ECOOP'95, Lecture Notes in Computer Science, Vol. 952, pp. 235--252, ISBN 3-540-60160-0.
+
+  .. abstract: sg95.html
 
 * .. _SB00:
 
-  Manuel Serrano, Hans-J. Boehm. 2000. "`Understanding memory allocation of Scheme programs <http://www.hpl.hp.com/techreports/2000/HPL-2000-62.html>_`". ACM. Proceedings of International Conference on Functional Programming 2000.
+  Manuel Serrano, Hans-J. Boehm. 2000. "`Understanding memory allocation of Scheme programs <http://www.hpl.hp.com/techreports/2000/HPL-2000-62.html>`_". ACM. Proceedings of International Conference on Functional Programming 2000.
 
 * .. _SHAPIRO94:
 
-  Marc Shapiro & Paulo Ferreira. 1994. "`Larchant-RDOSS: a distributed shared persistent memory and its garbage collector <http://cs-tr.cs.cornell.edu:80/Dienst/UI/1.0/Display/ncstrl.cornell/TR94-1466?abstract=>`_". INRIA. INRIA Rapport de Recherche no. 2399; Cornell Computer Science TR94-1466. <a href="shapiro94.html">Abstract</a>. 
+  Marc Shapiro & Paulo Ferreira. 1994. "`Larchant-RDOSS: a distributed shared persistent memory and its garbage collector <http://cs-tr.cs.cornell.edu:80/Dienst/UI/1.0/Display/ncstrl.cornell/TR94-1466?abstract=>`_". INRIA. INRIA Rapport de Recherche no. 2399; Cornell Computer Science TR94-1466.
+
+  .. abstract: shapiro94.html
 
 * .. _SHAW87:
 
@@ -579,11 +761,15 @@ Bibliography
 
 * .. _SINGHAL92:
 
-  Vivek Singhal, Sheetal V. Kakkad, Paul R. Wilson. 1992. "`Texas: An Efficient, Portable Persistent Store <ftp://ftp.cs.utexas.edu/pub/garbage/texaspstore.ps>`_". University of Texas at Austin. <a href="singhal92.html">Abstract</a>. 
+  Vivek Singhal, Sheetal V. Kakkad, Paul R. Wilson. 1992. "`Texas: An Efficient, Portable Persistent Store <ftp://ftp.cs.utexas.edu/pub/garbage/texaspstore.ps>`_". University of Texas at Austin.
+
+  .. abstract: singhal92.html
 
 * .. _SOBALVARRO88:
 
-  P. G. Sobalvarro. 1988. "`A Lifetime-based Garbage Collector for LISP Systems on General-Purpose Computers <ftp://publications.ai.mit.edu/ai-publications/1000-1499/AITR-1417.ps.Z>`_". MIT. AITR-1417. <a href="sobalvarro88.html">Abstract</a>. 
+  P. G. Sobalvarro. 1988. "`A Lifetime-based Garbage Collector for LISP Systems on General-Purpose Computers <ftp://publications.ai.mit.edu/ai-publications/1000-1499/AITR-1417.ps.Z>`_". MIT. AITR-1417.
+
+  .. abstract: sobalvarro88.html
 
 * .. _STEELE75:
 
@@ -599,7 +785,7 @@ Bibliography
 
 * .. _SLC99:
 
-  James M. Stichnoth, Guei-Yuan Lueh, Michal Cierniak. 1999. "`Support for Garbage Collection at Every Instruction in a Java Compiler <http://www.acm.org/pubs/citations/proceedings/pldi/301618/p118-stichnoth/>`_". SIGPLAN. Proceedings of the 1999 ACM SIGPLAN Conference on Programming Language Design and Implementation (PLDI). SIGPLAN Notices 34(5). pp. 118--127. 
+  James M. Stichnoth, Guei-Yuan Lueh, Michal Cierniak. 1999. "`Support for Garbage Collection at Every Instruction in a Java Compiler <http://www.acm.org/pubs/citations/proceedings/pldi/301618/p118-stichnoth/>`_". SIGPLAN. Proceedings of the 1999 ACM SIGPLAN Conference on Programming Language Design and Implementation (PLDI). SIGPLAN Notices 34(5). pp. 118--127.
 
 * .. _SCN84:
 
@@ -607,11 +793,15 @@ Bibliography
 
 * .. _TD95:
 
-  David Tarditi & Amer Diwan. 1995. "Measuring the Cost of Storage Management". Carnegie Mellon University. CMU-CS-94-201. <a href="td95.html">Abstract</a>.
+  David Tarditi & Amer Diwan. 1995. "Measuring the Cost of Storage Management". Carnegie Mellon University. CMU-CS-94-201.
+
+  .. abstract: td95.html
 
 * .. _TJ94:
 
-  Stephen Thomas, Richard E. Jones. 1994. "`Garbage Collection for Shared Environment Closure Reducers <http://www.cs.ukc.ac.uk/pubs/1994/147/>`_". Computing Laboratory, The University of Kent at Canterbury. Technical Report 31-94. <a href="tj94.html">Abstract</a>. 
+  Stephen Thomas, Richard E. Jones. 1994. "`Garbage Collection for Shared Environment Closure Reducers <http://www.cs.ukc.ac.uk/pubs/1994/147/>`_". Computing Laboratory, The University of Kent at Canterbury. Technical Report 31-94.
+
+  .. abstract: tj94.html
 
 * .. _THOMAS95:
 
@@ -619,7 +809,9 @@ Bibliography
 
 * .. _TT97:
 
-  Mads Tofte & Jean-Pierre Talpin. 1997. "Region-Based Memory Management". Information and Computation 132(2), pp. 109--176. <a href="tt97.html">Abstract</a>.
+  Mads Tofte & Jean-Pierre Talpin. 1997. "Region-Based Memory Management". Information and Computation 132(2), pp. 109--176.
+
+  .. abstract: tt97.html
 
 * .. _UNGAR84:
 
@@ -627,11 +819,15 @@ Bibliography
 
 * .. _UNGAR88:
 
-  Dave Ungar & Frank Jackson. 1988. "Tenuring Policies for Generation-Based Storage Reclamation". SIGPLAN. OOPSLA '88 Conference Proceedings, ACM SIGPLAN Notices, Vol. 23, No. 11, pp. 1--17. <a href="ungar88.html">Abstract</a>.
+  Dave Ungar & Frank Jackson. 1988. "Tenuring Policies for Generation-Based Storage Reclamation". SIGPLAN. OOPSLA '88 Conference Proceedings, ACM SIGPLAN Notices, Vol. 23, No. 11, pp. 1--17.
+
+  .. abstract: ungar88.html
 
 * .. _VO96:
 
-  Kiem-Phong Vo. 1996. "`Vmalloc: A General and Efficient Memory Allocator <http://www.research.att.com/sw/tools/vmalloc/vmalloc.ps>`_". Software -- Practice and Experience. 26(3): 357--374 (1996). <a href="vo96.html">Abstract</a>. 
+  Kiem-Phong Vo. 1996. "`Vmalloc: A General and Efficient Memory Allocator <http://www.research.att.com/sw/tools/vmalloc/vmalloc.ps>`_". Software -- Practice and Experience. 26(3): 357--374 (1996).
+
+  .. abstract: vo96.html
 
 * .. _WW76:
 
@@ -639,19 +835,27 @@ Bibliography
 
 * .. _WLM92:
 
-  Paul R. Wilson, Michael S. Lam, Thomas G. Moher. 1992. "Caching Considerations for Generational Garbage Collection". ACM. L&FP 92. <a href="wlm92.html">Abstract</a>.
+  Paul R. Wilson, Michael S. Lam, Thomas G. Moher. 1992. "Caching Considerations for Generational Garbage Collection". ACM. L&FP 92.
+
+  .. abstract: wlm92.html
 
 * .. _WIL92A:
 
-  Paul R. Wilson, Sheetal V. Kakkad. 1992. "`Pointer Swizzling at Page Fault Time <ftp://ftp.cs.utexas.edu/pub/garbage/swizz.ps>`_". University of Texas at Austin. <a href="wil92a.html">Abstract</a>. 
+  Paul R. Wilson, Sheetal V. Kakkad. 1992. "`Pointer Swizzling at Page Fault Time <ftp://ftp.cs.utexas.edu/pub/garbage/swizz.ps>`_". University of Texas at Austin.
+
+  .. abstract: wil92a.html
 
 * .. _WIL94:
 
-  Paul R. Wilson. 1994. "`Uniprocessor Garbage Collection Techniques <ftp://ftp.cs.utexas.edu/pub/garbage/bigsurv.ps>`_". University of Texas. <a href="wil94.html">Abstract</a>. 
+  Paul R. Wilson. 1994. "`Uniprocessor Garbage Collection Techniques <ftp://ftp.cs.utexas.edu/pub/garbage/bigsurv.ps>`_". University of Texas.
+
+  .. abstract: wil94.html
 
 * .. _WIL95:
 
-  Paul R. Wilson, Mark S. Johnstone, Michael Neely, David Boles. 1995. "`Dynamic Storage Allocation: A Survey and Critical Review <http://www.cs.utexas.edu/users/oops/papers.html#allocsrv>`_". University of Texas at Austin. <a href="wil95.html">Abstract</a>. 
+  Paul R. Wilson, Mark S. Johnstone, Michael Neely, David Boles. 1995. "`Dynamic Storage Allocation: A Survey and Critical Review <http://www.cs.utexas.edu/users/oops/papers.html#allocsrv>`_". University of Texas at Austin.
+
+  .. abstract: wil95.html
 
 * .. _WISE78:
 
@@ -659,7 +863,7 @@ Bibliography
 
 * .. _WISE79:
 
-  David S. Wise. 1979. "Morris's garbage compaction algorithm restores reference counts". <a href="http://www.acm.org/toplas/">TOPLAS</a>. 1, 1 (July l979): 115--120.
+  David S. Wise. 1979. "Morris's garbage compaction algorithm restores reference counts". TOPLAS. 1, 1 (July l979): 115--120.
 
 * .. _WISE85:
 
@@ -669,23 +873,29 @@ Bibliography
 
   .. _WISE93:
 
-  David S. Wise. 1993. "`Stop-and-copy and one-bit reference counting <http://www.cs.indiana.edu/ftp/techreports/TR360.html>`_". *Information Processing Letters.* 46, 5 (July 1993): 243--249. <a href="wise92.html">Abstract</a>. 
+  David S. Wise. 1993. "`Stop-and-copy and one-bit reference counting <http://www.cs.indiana.edu/ftp/techreports/TR360.html>`_". *Information Processing Letters.* 46, 5 (July 1993): 243--249.
+
+  .. abstract: wise92.html
 
 * .. _WW95:
 
-  David S. Wise, Joshua Walgenbach. 1996. "`Static and Dynamic Partitioning of Pointers as Links and Threads <http://www.acm.org/pubs/citations/proceedings/fp/232627/p42-wise/>`_". SIGPLAN. Proc. 1996 ACM SIGPLAN Intl. Conf. on Functional Programming, SIGPLAN Not. 31, 6 (June 1996), pp. 42--49.  <a href="http://www.cs.indiana.edu/ftp/techreports/TR437.html">Online</a>.
+  David S. Wise, Joshua Walgenbach. 1996. "`Static and Dynamic Partitioning of Pointers as Links and Threads <http://www.acm.org/pubs/citations/proceedings/fp/232627/p42-wise/>`_". SIGPLAN. Proc. 1996 ACM SIGPLAN Intl. Conf. on Functional Programming, SIGPLAN Not. 31, 6 (June 1996), pp. 42--49.
 
 * .. _WHHHO94:
 
-  David S. Wise, Brian Heck, Caleb Hess, Willie Hunt, Eric Ost. 1997. "`Uniprocessor Performance of a Reference-Counting Hardware Heap <http://www.cs.indiana.edu/ftp/techreports/TR401.html>`_". *LISP and Symbolic Computation.* 10, 2 (July 1997), pp. 159--181. 
+  David S. Wise, Brian Heck, Caleb Hess, Willie Hunt, Eric Ost. 1997. "`Uniprocessor Performance of a Reference-Counting Hardware Heap <http://www.cs.indiana.edu/ftp/techreports/TR401.html>`_". *LISP and Symbolic Computation.* 10, 2 (July 1997), pp. 159--181.
 
 * .. _WITHINGTON91:
 
-  P. Tucker Withington. 1991. "`How Real is  <ftp://ftp.cs.utexas.edu/pub/garbage/GC91/withington.ps>`_"Real-Time" Garbage Collection?". ACM. OOPSLA/ECOOP '91 Workshop on Garbage Collection in Object-Oriented Systems. <a href="withington91.html">Abstract</a>. 
+  P. Tucker Withington. 1991. "`How Real is  <ftp://ftp.cs.utexas.edu/pub/garbage/GC91/withington.ps>`_"Real-Time" Garbage Collection?". ACM. OOPSLA/ECOOP '91 Workshop on Garbage Collection in Object-Oriented Systems.
+
+  .. abstract: withington91.html
 
 * .. _YIP91:
 
-  G. May Yip. 1991. "`Incremental, Generational Mostly-Copying Garbage Collection in Uncooperative Environments <ftp://gatekeeper.dec.com/pub/DEC/WRL/research-reports/WRL-TR-91.8.ps>`_". Digital Equipment Corporation. <a href="yip91.html">Abstract</a>. 
+  G. May Yip. 1991. "`Incremental, Generational Mostly-Copying Garbage Collection in Uncooperative Environments <ftp://gatekeeper.dec.com/pub/DEC/WRL/research-reports/WRL-TR-91.8.ps>`_". Digital Equipment Corporation.
+
+  .. abstract: yip91.html
 
 * .. _YUASA90:
 
@@ -693,33 +903,49 @@ Bibliography
 
 * .. _ZORN88:
 
-  Benjamin Zorn & Paul Hilfinger. 1988. "`A Memory Allocation Profiler for C and Lisp Programs <ftp://gatekeeper.dec.com/pub/misc/mprof-3.0.tar.Z>`_". USENIX. Proceedings for the Summer 1988 USENIX Conference, pp. 223--237. <a href="zorn88.html">Abstract</a>. 
+  Benjamin Zorn & Paul Hilfinger. 1988. "`A Memory Allocation Profiler for C and Lisp Programs <ftp://gatekeeper.dec.com/pub/misc/mprof-3.0.tar.Z>`_". USENIX. Proceedings for the Summer 1988 USENIX Conference, pp. 223--237.
+
+  .. abstract: zorn88.html
 
 * .. _ZORN89:
 
-  Benjamin Zorn. 1989. "`Comparative Performance Evaluation of Garbage Collection Algorithms <ftp://ftp.cs.colorado.edu/pub/misc/zorn-phd-thesis.ps>`_". Computer Science Division (EECS) of University of California at Berkeley. Technical Report UCB/CSD 89/544 and PhD thesis. <a href="zorn89.html">Abstract</a>. 
+  Benjamin Zorn. 1989. "`Comparative Performance Evaluation of Garbage Collection Algorithms <ftp://ftp.cs.colorado.edu/pub/misc/zorn-phd-thesis.ps>`_". Computer Science Division (EECS) of University of California at Berkeley. Technical Report UCB/CSD 89/544 and PhD thesis.
+
+  .. abstract: zorn89.html
 
 * .. _ZORN90B:
 
-  Benjamin Zorn. 1990. "Comparing Mark-and-sweep and Stop-and-copy Garbage Collection". ACM. Conference on Lisp and Functional Programming, pp. 87--98. <a href="zorn90b.html">Abstract</a>.
+  Benjamin Zorn. 1990. "Comparing Mark-and-sweep and Stop-and-copy Garbage Collection". ACM. Conference on Lisp and Functional Programming, pp. 87--98.
+
+  .. abstract: zorn90b.html
 
 * .. _ZORN90:
 
-  Benjamin Zorn. 1990. "`Barrier Methods for Garbage Collection <ftp://ftp.cs.colorado.edu/pub/techreports/zorn/CU-CS-494-90.ps.Z>`_". University of Colorado at Boulder. Technical Report CU-CS-494-90. <a href="zorn90.html">Abstract</a>. 
+  Benjamin Zorn. 1990. "`Barrier Methods for Garbage Collection <ftp://ftp.cs.colorado.edu/pub/techreports/zorn/CU-CS-494-90.ps.Z>`_". University of Colorado at Boulder. Technical Report CU-CS-494-90.
+
+  .. abstract: zorn90.html
 
 * .. _ZORN91:
 
-  Benjamin Zorn. 1991. "`The Effect of Garbage Collection on Cache Performance <ftp://ftp.cs.colorado.edu/pub/techreports/zorn/CU-CS-528-91.ps.Z>`_". University of Colorado at Boulder. Technical Report CU-CS-528-91. <a href="zorn91.html">Abstract</a>. 
+  Benjamin Zorn. 1991. "`The Effect of Garbage Collection on Cache Performance <ftp://ftp.cs.colorado.edu/pub/techreports/zorn/CU-CS-528-91.ps.Z>`_". University of Colorado at Boulder. Technical Report CU-CS-528-91.
+
+  .. abstract: zorn91.html
 
 * .. _ZORN92B:
 
-  Benjamin Zorn & Dirk Grunwald. 1992. "`Empirical Measurements of Six Allocation-intensive C Programs <ftp://ftp.cs.colorado.edu/pub/techreports/zorn/CU-CS-604-92.ps.Z>`_". ACM, SIGPLAN. SIGPLAN notices, 27(12):71--80. <a href="zorn92b.html">Abstract</a>. 
+  Benjamin Zorn & Dirk Grunwald. 1992. "`Empirical Measurements of Six Allocation-intensive C Programs <ftp://ftp.cs.colorado.edu/pub/techreports/zorn/CU-CS-604-92.ps.Z>`_". ACM, SIGPLAN. SIGPLAN notices, 27(12):71--80.
+
+  .. abstract: zorn92b.html
 
 * .. _ZORN92:
 
-  Benjamin Zorn. 1993. "`The Measured Cost of Conservative Garbage Collection <ftp://ftp.cs.colorado.edu/pub/techreports/zorn/CU-CS-573-92.ps.Z>`_". Software -- Practice and Experience. 23(7):733--756. <a href="zorn92.html">Abstract</a>. 
+  Benjamin Zorn. 1993. "`The Measured Cost of Conservative Garbage Collection <ftp://ftp.cs.colorado.edu/pub/techreports/zorn/CU-CS-573-92.ps.Z>`_". Software -- Practice and Experience. 23(7):733--756.
+
+  .. abstract: zorn92.html
 
 * .. _ZORN92A:
 
-  Benjamin Zorn & Dirk Grunwald. 1994. "`Evaluating Models of Memory Allocation <ftp://ftp.cs.colorado.edu/pub/techreports/zorn/CU-CS-603-92.ps.Z>`_". ACM. Transactions on Modeling and Computer Simulation 4(1):107--131. <a href="zorn92a.html">Abstract</a>. 
+  Benjamin Zorn & Dirk Grunwald. 1994. "`Evaluating Models of Memory Allocation <ftp://ftp.cs.colorado.edu/pub/techreports/zorn/CU-CS-603-92.ps.Z>`_". ACM. Transactions on Modeling and Computer Simulation 4(1):107--131.
+
+  .. abstract: zorn92a.html
 
