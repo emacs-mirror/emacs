@@ -1,5 +1,8 @@
 2012-10-31  Glenn Morris  <rgm@gnu.org>
 
+	* ert.texi (Introduction, The @code{should} Macro):
+	Refer to "cl-assert" rather than "assert".
+
 	* cl.texi (Function Bindings): Update for cl-flet and cl-labels.
 	(Obsolete Lexical Binding): Rename section from "Lexical Bindings".
 	(Obsolete Macros): Rename section from "Obsolete Lexical Macros".
