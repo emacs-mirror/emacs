@@ -1,5 +1,7 @@
 2012-10-31  Glenn Morris  <rgm@gnu.org>
 
+	* lists.texi (Sets And Lists): Point xref to better location.
+
 	* errors.texi (Standard Errors):
 	* loading.texi (Autoload): Update for cl-lib namespace changes.
 
