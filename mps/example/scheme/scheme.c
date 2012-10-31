@@ -766,7 +766,7 @@ static obj_t intern(char *string) {
  */
 static struct bucket_s *buckets_find(obj_t buckets, obj_t key)
 {
-  union {char s[sizeof(void *) + 1]; void *addr; } u = {""};
+  union {char s[sizeof(void *) + 1]; void *addr;} u = {""};
   unsigned long i, h;
   assert(TYPE(buckets) == TYPE_BUCKETS);
   u.addr = key;
@@ -990,7 +990,7 @@ static void print(obj_t obj, unsigned depth, FILE *stream)
 
     case TYPE_BUCKETS: {
       size_t i;
-      for(i = 0; i < obj->vector.length; ++i) {
+      for(i = 0; i < obj->buckets.length; ++i) {
         struct bucket_s *b = &obj->buckets.bucket[i];
         if(b->key) {
           fputs(" (", stream);
@@ -3077,7 +3077,7 @@ static mps_res_t obj_scan(mps_ss_t ss, mps_addr_t base, mps_addr_t limit)
   MPS_SCAN_BEGIN(ss) {
     while (base < limit) {
       obj_t obj = base;
-      switch (obj->type.type) {
+      switch (TYPE(obj)) {
       case TYPE_PAIR:
         FIX(obj->pair.car);
         FIX(obj->pair.cdr);
@@ -3173,7 +3173,7 @@ static mps_res_t obj_scan(mps_ss_t ss, mps_addr_t base, mps_addr_t limit)
 static mps_addr_t obj_skip(mps_addr_t base)
 {
   obj_t obj = base;
-  switch (obj->type.type) {
+  switch (TYPE(obj)) {
   case TYPE_PAIR:
     base = (char *)base + ALIGN(sizeof(pair_s));
     break;
@@ -3246,7 +3246,7 @@ static mps_addr_t obj_skip(mps_addr_t base)
 static mps_addr_t obj_isfwd(mps_addr_t addr)
 {
   obj_t obj = addr;
-  switch (obj->type.type) {
+  switch (TYPE(obj)) {
   case TYPE_FWD2:
     return obj->fwd2.fwd;
   case TYPE_FWD:
@@ -3272,10 +3272,10 @@ static void obj_fwd(mps_addr_t old, mps_addr_t new)
   size_t size = (char *)limit - (char *)old;
   assert(size >= ALIGN(sizeof(fwd2_s)));
   if (size == ALIGN(sizeof(fwd2_s))) {
-    obj->type.type = TYPE_FWD2;
+    TYPE(obj) = TYPE_FWD2;
     obj->fwd2.fwd = new;
   } else {
-    obj->type.type = TYPE_FWD;
+    TYPE(obj) = TYPE_FWD;
     obj->fwd.fwd = new;
     obj->fwd.size = size;
   }
@@ -3297,9 +3297,9 @@ static void obj_pad(mps_addr_t addr, size_t size)
   obj_t obj = addr;
   assert(size >= ALIGN(sizeof(pad1_s)));
   if (size == ALIGN(sizeof(pad1_s))) {
-    obj->type.type = TYPE_PAD1;
+    TYPE(obj) = TYPE_PAD1;
   } else {
-    obj->type.type = TYPE_PAD;
+    TYPE(obj) = TYPE_PAD;
     obj->pad.size = size;
   }
 }
@@ -3576,7 +3576,7 @@ int main(int argc, char *argv[])
      from the `obj_pool`.  You'd usually want one of these per thread
      for your primary pools.  This interpreter is single threaded, though,
      so we just have it in a global. */
-  res = mps_ap_create(&obj_ap, obj_pool, mps_rank_exact());
+  res = mps_ap_create(&obj_ap, obj_pool);
   if (res != MPS_RES_OK) error("Couldn't create obj allocation point");
 
   /* Register the current thread with the MPS.  The MPS must sometimes
