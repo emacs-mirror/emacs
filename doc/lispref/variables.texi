@@ -2033,7 +2033,7 @@ itself be a valid @var{place} form.  For example, @code{(setf (nthcdr
 @c to standard Common Lisp.
 
 @c FIXME I don't think is a particularly good way to do it,
-@c but these macros are introduced before gvs are.
+@c but these macros are introduced before generalized variables are.
 The macros @code{push} (@pxref{List Variables}) and @code{pop}
 (@pxref{List Elements}) can manipulate generalized variables,
 not just lists.  @code{(pop @var{place})} removes and returns the first

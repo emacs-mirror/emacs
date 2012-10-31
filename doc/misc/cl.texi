@@ -991,7 +991,7 @@ has been made.  @xref{Obsolete Setf Customization}.
 
 @c FIXME should this be in lispref?  It seems self-evident.
 @c Contrast with the cl-incf example later on.
-@c Here it really only serves as a constrast to wrong-order.
+@c Here it really only serves as a contrast to wrong-order.
 The @code{setf} macro takes care to evaluate all subforms in
 the proper left-to-right order; for example,
 
@@ -5129,4 +5129,3 @@ defined later.
 @printindex vr
 
 @bye
-

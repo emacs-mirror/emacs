@@ -519,7 +519,7 @@ term_timers (void)
 void
 init_timers (void)
 {
-  /* GetThreadTimes is not avaiulable on all versions of Windows, so
+  /* GetThreadTimes is not available on all versions of Windows, so
      need to probe for its availability dynamically, and call it
      through a pointer.  */
   s_pfn_Get_Thread_Times = NULL; /* in case dumped Emacs comes with a value */

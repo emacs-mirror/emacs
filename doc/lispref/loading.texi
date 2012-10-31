@@ -615,7 +615,7 @@ specified by an autoload object:
 
 @defun autoload-do-load autoload &optional name macro-only
 This function performs the loading specified by @var{autoload}, which
-whould be an autoload object.  The optional argument @var{name}, if
+should be an autoload object.  The optional argument @var{name}, if
 non-@code{nil}, should be a symbol whose function value is
 @var{autoload}; in that case, the return value of this function is the
 symbol's new function value.  If the value of the optional argument
