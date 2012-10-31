@@ -1,3 +1,7 @@
+2012-10-31  Michael Albinus  <michael.albinus@gmx.de>
+
+	* dbusbind.c: Fix cut'n'waste error.  Use HAVE_DBUS_VALIDATE_INTERFACE.
+
 2012-10-31  Martin Rudalics  <rudalics@gmx.at>
 
 	* minibuf.c (read_minibuf): Restore current buffer since
@@ -6082,7 +6086,7 @@
 	* lisp.h (make_formatted_string): New prototype.
 	* alloc.c (make_formatted_string): New function.
 	* buffer.c (Fgenerate_new_buffer_name): Use it.
-	* dbus.c (syms_of_dbusbind): Likewise.
+	* dbusbind.c (syms_of_dbusbind): Likewise.
 	* editfns.c (Fcurrent_time_zone): Likewise.
 	* filelock.c (get_boot_time): Likewise.
 	* frame.c (make_terminal_frame, set_term_frame_name)
