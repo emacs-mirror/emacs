@@ -47,8 +47,8 @@ yes         no                      exact        :ref:`pool-ams`
 yes         no                      ambiguous    nothing suitable
 yes         no                      weak         nothing suitable
 no          *any*                   none         :ref:`pool-mvt`
-no          *any*                   ambiguous    :ref:`pool-mvt` [1]_
 no          *any*                   exact        :ref:`pool-mvt` [1]_
+no          *any*                   ambiguous    :ref:`pool-mvt` [1]_
 no          *any*                   weak         :ref:`pool-mvt` [1]_
 ==========  ======================  ===========  ====================================
 

@@ -62,8 +62,8 @@ MVFF properties
 
 * Allocations may be variable in size.
 
-* The :term:`alignment` of blocks is not configurable (it is the
-  natural :term:`word` size of the platform).
+* The :term:`alignment` of blocks is configurable (but may not be
+  smaller than the natural :term:`word` size of the platform).
 
 * Blocks do not have :term:`dependent objects`.
 
