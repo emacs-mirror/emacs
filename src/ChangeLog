@@ -1,3 +1,9 @@
+2012-10-31  Martin Rudalics  <rudalics@gmx.at>
+
+	* minibuf.c (read_minibuf): Restore current buffer since
+	choose_minibuf_frame calling Fset_frame_selected_window may
+	change it (Bug#12766).
+
 2012-10-30  Jan Djärv  <jan.h.d@swipnet.se>
 
 	* frame.c (Fframe_pixel_height): Fix documentation (Bug#12733).

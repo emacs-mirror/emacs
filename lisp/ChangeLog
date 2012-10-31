@@ -1,3 +1,9 @@
+2012-10-31  Martin Rudalics  <rudalics@gmx.at>
+
+	* window.el (quit-restore-window): If the window has been
+	created on an existing frame and ended up as the sole window on
+	that frame, do not delete it (Bug#12764).
+
 2012-10-31  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* progmodes/sh-script.el (sh--inside-noncommand-expression):

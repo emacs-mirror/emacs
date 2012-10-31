@@ -3556,7 +3556,12 @@ the buffer of WINDOW.  The following values are handled:
 	 quad entry)
     (cond
      ((and (not prev-buffer)
-	   (memq (nth 1 quit-restore) '(window frame))
+	   (or (eq (nth 1 quit-restore) 'frame)
+	       (and (eq (nth 1 quit-restore) 'window)
+		    ;; If the window has been created on an existing
+		    ;; frame and ended up as the sole window on that
+		    ;; frame, do not delete it (Bug#12764).
+		    (not (eq window (frame-root-window window)))))
 	   (eq (nth 3 quit-restore) buffer)
 	   ;; Delete WINDOW if possible.
 	   (window--delete window nil (eq bury-or-kill 'kill)))
