@@ -1,5 +1,8 @@
 2012-10-31  Glenn Morris  <rgm@gnu.org>
 
+	* modes.texi (Defining Minor Modes): "Generalized Variables"
+	section is now in this manual rather than cl.texi.
+
 	* eval.texi (Special Forms): No longer special forms: defmacro,
 	defun, save-window-excursion, with-output-to-temp-buffer.
 	* functions.texi (Defining Functions): Defun is now a macro.
