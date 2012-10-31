@@ -32,7 +32,7 @@ I'll be quoting the relevant sections of code as needed, but you may
 find it helpful to experiment with this interpeter yourself, in either
 of its versions:
 
-    :download:`scheme-before.c`
+    :download:`scheme-malloc.c <../../../example/scheme/scheme-malloc.c>`
 
         The Scheme interpreter before integration with the MPS, using
         :term:`malloc` and :term:`free (2)` for memory management.
