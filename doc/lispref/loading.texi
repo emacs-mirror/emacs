@@ -520,9 +520,9 @@ the following:
 
 @table @asis
 @item Definitions for function or function-like objects:
-@code{defun} and @code{defmacro}; also @code{defun*} and
-@code{defmacro*} (@pxref{Argument Lists,,,cl,CL Manual}), and
-@code{define-overloadable-function} (see the commentary in
+@code{defun} and @code{defmacro}; also @code{cl-defun} and
+@code{cl-defmacro} (@pxref{Argument Lists,,,cl,Common Lisp Extensions}),
+and @code{define-overloadable-function} (see the commentary in
 @file{mode-local.el}).
 
 @item Definitions for major or minor modes:

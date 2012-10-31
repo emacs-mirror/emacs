@@ -1,5 +1,8 @@
 2012-10-31  Glenn Morris  <rgm@gnu.org>
 
+	* errors.texi (Standard Errors):
+	* loading.texi (Autoload): Update for cl-lib namespace changes.
+
 	* modes.texi (Defining Minor Modes): "Generalized Variables"
 	section is now in this manual rather than cl.texi.
 
