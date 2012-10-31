@@ -1041,3 +1041,7 @@ Complete
 
      *Answer:* this is a bug, fixed in change 180151.
 
+138. The hash table implementation is a bit rubbish: it waits until
+     the table is completely full before rehashing. Should ensure that
+     it never gets more than 50% full. Also the constructor should be
+     called ``make-eq-hashtable`` following R6RS.
