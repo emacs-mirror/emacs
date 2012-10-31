@@ -4,5 +4,17 @@
 
 CFLAGS = @CFLAGS@
 
+MPS = ../../code
+
+TARGETS = scheme-malloc scheme
+
+all: $(TARGETS)
+
+scheme-malloc: scheme-malloc.c
+	$(CC) $(CFLAGS) -o $@ -I $(MPS) $< $(MPS)/mps.c
+
 scheme: scheme.c
-	$(CC) $(CFLAGS) -o scheme -I ../../code scheme.c ../../code/mps.c
+	$(CC) $(CFLAGS) -o $@ -I $(MPS) $< $(MPS)/mps.c
+
+clean:
+	rm $(TARGETS)
