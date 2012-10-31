@@ -55,9 +55,6 @@ Outstanding
 140. Document MFS. Explain how it works (putting link in the free
      block) and how this is unlike other pools.
 
-142. Weakness: how to detect splatting. (In scan.) Cope with NULL. Do
-     all references get splatted at the same time?
-
 
 Complete
 --------
@@ -1099,6 +1096,9 @@ Complete
      *Action:* made `job003352`_.
 
      .. _job003352: https://info.ravenbrook.com/project/mps/issue/job003352/
+
+142. Weakness: how to detect splatting. (In scan.) Cope with NULL. Do
+     all references get splatted at the same time?
 
 143. Document the purpose of AWL and explain that it's for OpenDylan.
      If you require more general implementation of weakness, contact
