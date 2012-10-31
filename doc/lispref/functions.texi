@@ -520,7 +520,7 @@ Scheme.)
 
   We usually give a name to a function when it is first created.  This
 is called @dfn{defining a function}, and it is done with the
-@code{defun} special form.
+@code{defun} macro.
 
 @defmac defun name args [doc] [declare] [interactive] body@dots{}
 @code{defun} is the usual way to define new Lisp functions.  It
@@ -583,7 +583,7 @@ redefinition from unintentional redefinition.
 @cindex function aliases
 @defun defalias name definition &optional doc
 @anchor{Definition of defalias}
-This special form defines the symbol @var{name} as a function, with
+This function defines the symbol @var{name} as a function, with
 definition @var{definition} (which can be any valid Lisp function).
 Its return value is @emph{undefined}.
 
