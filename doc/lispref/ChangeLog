@@ -1,5 +1,7 @@
 2012-10-31  Glenn Morris  <rgm@gnu.org>
 
+	* control.texi (Catch and Throw): Add xref to cl.texi.
+
 	* lists.texi (Sets And Lists): Point xref to better location.
 
 	* errors.texi (Standard Errors):
