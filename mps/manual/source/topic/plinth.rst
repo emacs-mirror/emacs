@@ -304,6 +304,11 @@ Library module
         In the ANSI Library module, ``mpsliban.c``, this returns
         ``stderr``.
 
+    .. note::
+
+        The MPS does not use this at present, but it may be required
+        in future.
+
 
 .. c:function:: mps_lib_FILE *mps_lib_get_stdout(void)
 
@@ -314,6 +319,11 @@ Library module
 
         In the ANSI Library module, ``mpsliban.c``, this returns
         ``stdout``.
+
+    .. note::
+
+        The MPS does not use this at present, but it may be required
+        in future.
 
 
 .. c:function:: int mps_lib_memcmp(const void *s1, const void *s2, size_t n)

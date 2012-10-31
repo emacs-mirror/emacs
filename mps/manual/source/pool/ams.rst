@@ -22,6 +22,18 @@ creating a pool you use a :term:`generation chain` to specify the
 capacity and mortality of a single "generation". These numbers are
 used to schedule the collection of the whole pool.
 
+.. note::
+
+    AMS is likely to be useful as a step in integrating a program with
+    the MPS. It allows you to work on scanning (and investigate errors
+    resulting from underscanning) without having to deal with objects
+    moving as well. When you are confident that scanning is correct,
+    you can switch to :ref:`pool-amc`.
+
+    AMS is not currently suitable for production use. However, it
+    could be developed into a solid mark-and-sweep pool. If you have a
+    use case that needs this, :ref:`contact us <contact>`.
+
 
 .. index::
    single: AMS; properties

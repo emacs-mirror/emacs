@@ -165,12 +165,13 @@ collector will do each time it has an opportunity to do some work. The constrain
    will grow without bound.
 
 With perfect prediction, the collector's work should be smoothly
-distributed. Getting the predicted mortality wrong leads to "lumpy"
-distribution of collection work. If the predicted mortality is too
-high, the collector will bypass opportunities to perform work and then
-find that it has to do more work to catch up later. If the predicted
-mortality is too low, the collector will do extra work up front and
-then find that it is idle later on.
+distributed, with a small maximum pause time. Getting the predicted
+mortality wrong leads to "lumpy" distribution of collection work with
+a longer maximum pause time. If the predicted mortality is too high,
+the collector will start out by taking small time slices and then find
+that it has to catch up later by taking larger time slices. If the
+predicted mortality is too low, the collector will take larger time
+slices up front and then find that it is idle later on.
 
 
 .. index::

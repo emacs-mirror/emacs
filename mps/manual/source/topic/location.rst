@@ -14,10 +14,9 @@ Location dependency
 
 Location dependencies provide a means by which the :term:`client
 program` can depend on the :dfn:`location` of blocks (that is, on the
-representation of pointers to blocks) in the presence of a
-:term:`moving memory manager` (where the location of blocks may change
-and the client program needs to recognize and correctly deal with such
-cases).
+bits in pointers to the blocks) in the presence of a :term:`moving
+memory manager` (where the location of blocks may change and the
+client program needs to recognize and correctly deal with such cases).
 
 The interface is intended to support (amongst other things)
 address-based hash tables and that will be used as a running example.
