@@ -50,6 +50,7 @@
 #include "mps.h"
 #include "mpsavm.h"
 #include "mpscamc.h"
+#include "mpscawl.h"
 
 
 /* LANGUAGE EXTENSION */
@@ -105,7 +106,6 @@ enum {
   TYPE_CHARACTER,
   TYPE_VECTOR,
   TYPE_TABLE,
-  TYPE_BUCKETS,
   TYPE_FWD2,            /* two-word forwarding object */
   TYPE_FWD,             /* three words and up forwarding object */
   TYPE_PAD1,            /* one-word padding object */
@@ -168,6 +168,13 @@ typedef struct vector_s {
   obj_t vector[1];		/* vector elements */
 } vector_s;
 
+typedef struct buckets_s {
+  struct buckets_s *dependent;  /* the dependent object */
+  size_t length;                /* number of buckets * 2 + 1 */
+  size_t used;                  /* number of buckets in use * 2 + 1 */
+  obj_t bucket[1];              /* hash buckets */
+} buckets_s, *buckets_t;
+
 /* %%MPS: The hash table is address-based, and so depends on the
  * location of its keys: when the garbage collector moves the keys,
  * the table needs to be re-hashed. The 'ld' structure is used to
@@ -175,17 +182,9 @@ typedef struct vector_s {
 typedef struct table_s {
   type_t type;                  /* TYPE_TABLE */
   mps_ld_s ld;                  /* location dependency */
-  obj_t buckets;                /* hash buckets */
+  mps_ap_t key_ap, value_ap;    /* allocation points for keys and values */
+  buckets_t keys, values;       /* hash buckets for keys and values */
 } table_s;
-
-typedef struct buckets_s {
-  type_t type;                  /* TYPE_BUCKETS */
-  size_t length;                /* number of buckets */
-  size_t used;                  /* number of buckets in use */
-  struct bucket_s {
-    obj_t key, value;
-  } bucket[1];                  /* hash buckets */
-} buckets_s;
 
 
 /* fwd2, fwd, pad1, pad -- MPS forwarding and padding objects        %%MPS
@@ -242,7 +241,6 @@ typedef union obj_u {
   character_s character;
   vector_s vector;
   table_s table;
-  buckets_s buckets;
   fwd2_s fwd2;
   fwd_s fwd;
   pad_s pad;
@@ -364,11 +362,19 @@ static char error_message[MSGMAX+1];
  * allocation in a memory pool.  This would usually be thread-local, but
  * this interpreter is single-threaded.  See `make_pair` etc. for how this
  * is used with the reserve/commit protocol.
+ *
+ * `buckets_pool` is the memory pool for hash table buckets. There are
+ * two allocation points, one for buckets containing exact (strong)
+ * references, the other for buckets containing weak references.
  */
 
 static mps_arena_t arena;       /* the arena */
 static mps_pool_t obj_pool;     /* pool for ordinary Scheme objects */
 static mps_ap_t obj_ap;         /* allocation point used to allocate objects */
+static mps_pool_t buckets_pool; /* pool for hash table buckets */
+static mps_ap_t strong_buckets_ap; /* allocation point for strong buckets */
+static mps_ap_t weak_buckets_ap; /* allocation point for weak buckets */
+
 
 
 /* SUPPORT FUNCTIONS */
@@ -590,29 +596,29 @@ static obj_t make_vector(size_t length, obj_t fill)
   return obj;
 }
 
-static obj_t make_buckets(size_t length)
+static buckets_t make_buckets(size_t length, mps_ap_t ap)
 {
-  obj_t obj;
+  buckets_t buckets;
   mps_addr_t addr;
-  size_t size = ALIGN(offsetof(buckets_s, bucket) + length * sizeof(obj->buckets.bucket[0]));
+  size_t size;
+  size = ALIGN(offsetof(buckets_s, bucket) + length * sizeof(buckets->bucket[0]));
   do {
-    mps_res_t res = mps_reserve(&addr, obj_ap, size);
+    mps_res_t res = mps_reserve(&addr, ap, size);
     size_t i;
     if (res != MPS_RES_OK) error("out of memory in make_buckets");
-    obj = addr;
-    obj->buckets.type = TYPE_BUCKETS;
-    obj->buckets.length = length;
-    obj->buckets.used = 0;
+    buckets = addr;
+    buckets->dependent = NULL;
+    buckets->length = length * 2 + 1;
+    buckets->used = 1;
     for(i = 0; i < length; ++i) {
-      obj->buckets.bucket[i].key = NULL;
-      obj->buckets.bucket[i].value = NULL;
+      buckets->bucket[i] = NULL;
     }
-  } while(!mps_commit(obj_ap, addr, size));
+  } while(!mps_commit(ap, addr, size));
   total += size;
-  return obj;
+  return buckets;
 }
 
-static obj_t make_table(size_t length)
+static obj_t make_table(size_t length, int weak_key, int weak_value)
 {
   obj_t obj;
   mps_addr_t addr;
@@ -622,10 +628,15 @@ static obj_t make_table(size_t length)
     if (res != MPS_RES_OK) error("out of memory in make_table");
     obj = addr;
     obj->table.type = TYPE_TABLE;
-    obj->table.buckets = NULL;
+    obj->table.keys = obj->table.values = NULL;
   } while(!mps_commit(obj_ap, addr, size));
   total += size;
-  obj->table.buckets = make_buckets(length);
+  obj->table.key_ap = weak_key ? weak_buckets_ap : strong_buckets_ap;
+  obj->table.value_ap = weak_value ? weak_buckets_ap : strong_buckets_ap;
+  obj->table.keys = make_buckets(length, obj->table.key_ap);
+  obj->table.values = make_buckets(length, obj->table.value_ap);
+  obj->table.keys->dependent = obj->table.values;
+  obj->table.values->dependent = obj->table.keys;
   mps_ld_reset(&obj->table.ld, arena);
   return obj;
 }
@@ -764,59 +775,69 @@ static obj_t intern(char *string) {
 /* Hash table implementation
  * Supports eq? hashing (hash-by-identity) only.
  */
-static struct bucket_s *buckets_find(obj_t buckets, obj_t key)
+static int buckets_find(buckets_t buckets, obj_t key, size_t *b)
 {
-  union {char s[sizeof(void *) + 1]; void *addr; } u = {""};
+  union {char s[sizeof(void *) + 1]; void *addr;} u = {""};
   unsigned long i, h;
-  assert(TYPE(buckets) == TYPE_BUCKETS);
+  size_t length = (buckets->length >> 1) - 1;
   u.addr = key;
-  h = hash(u.s) & (buckets->buckets.length-1);
+  h = hash(u.s) & length;
   i = h;
   do {
-    struct bucket_s *b = &buckets->buckets.bucket[i];
-    if(b->key == NULL || b->key == key)
-      return b;
-    i = (i+h+1) & (buckets->buckets.length-1);
+    obj_t k = buckets->bucket[i];
+    if(k == NULL || k == key) {
+      *b = i;
+      return 1;
+    }
+    i = (i+h+1) & length;
   } while(i != h);
-  return NULL;
+  return 0;
 }
 
 /* Rehash 'tbl' so that it has 'new_length' buckets. If 'key' is found
- * during this process, return the bucket containing 'key', otherwise
- * return NULL.
+ * during this process, update 'key_bucket' to be the index of the
+ * bucket containing 'key' and return true, otherwise return false.
  * 
  * %%MPS: When re-hashing the table we reset the associated location
  * dependency and re-add a dependency on each object in the table.
  * This is because the table gets re-hashed when the locations of
  * objects have changed. See topic/location.
  */
-static struct bucket_s *table_rehash(obj_t tbl, size_t new_length, obj_t key)
+static int table_rehash(obj_t tbl, size_t new_length, obj_t key, size_t *key_bucket)
 {
-  size_t i;
-  obj_t new_buckets;
-  struct bucket_s *key_bucket = NULL;
+  size_t i, length, used = 1;
+  buckets_t new_keys, new_values;
+  int result = 0;
 
   assert(TYPE(tbl) == TYPE_TABLE);
-  new_buckets = make_buckets(new_length);
+  length = tbl->table.keys->length >> 1;
+  new_keys = make_buckets(new_length, tbl->table.key_ap);
+  new_values = make_buckets(new_length, tbl->table.value_ap);
   mps_ld_reset(&tbl->table.ld, arena);
 
-  for (i = 0; i < tbl->table.buckets->buckets.length; ++i) {
-    struct bucket_s *old_b = &tbl->table.buckets->buckets.bucket[i];
-    if (old_b->key != NULL) {
-      struct bucket_s *b;
-      mps_ld_add(&tbl->table.ld, arena, old_b->key);
-      b = buckets_find(new_buckets, old_b->key);
-      assert(b != NULL);	/* new table shouldn't be full */
-      assert(b->key == NULL);	/* shouldn't be in new table */
-      *b = *old_b;
-      if (b->key == key) key_bucket = b;
-      ++ new_buckets->buckets.used;
+  for (i = 0; i < length; ++i) {
+    obj_t old_key = tbl->table.keys->bucket[i];
+    if (old_key != NULL) {
+      int found;
+      size_t b;
+      mps_ld_add(&tbl->table.ld, arena, old_key);
+      found = buckets_find(new_keys, old_key, &b);
+      assert(found);            /* new table shouldn't be full */
+      assert(new_keys->bucket[b] == NULL); /* shouldn't be in new table */
+      new_keys->bucket[b] = old_key;
+      new_values->bucket[b] = tbl->table.values->bucket[i];
+      if (old_key == key) {
+        *key_bucket = b;
+        result = 1;
+      }
+      new_keys->used += 2;
     }
   }
 
-  assert(new_buckets->buckets.used == tbl->table.buckets->buckets.used);
-  tbl->table.buckets = new_buckets;
-  return key_bucket;
+  assert(used == tbl->table.keys->used);
+  tbl->table.keys = new_keys;
+  tbl->table.values = new_values;
+  return result;
 }
 
 /* %%MPS: If we fail to find 'key' in the table, and if mps_ld_isstale
@@ -826,15 +847,14 @@ static struct bucket_s *table_rehash(obj_t tbl, size_t new_length, obj_t key)
  */
 static obj_t table_ref(obj_t tbl, obj_t key)
 {
-  struct bucket_s *b;
+  size_t b;
   assert(TYPE(tbl) == TYPE_TABLE);
-  b = buckets_find(tbl->table.buckets, key);
-  if (b && b->key != NULL)
-    return b->value;
-  if (mps_ld_isstale(&tbl->table.ld, arena, key)) {
-    b = table_rehash(tbl, tbl->table.buckets->buckets.length, key);
-    if (b) return b->value;
-  }
+  if (buckets_find(tbl->table.keys, key, &b))
+    if (tbl->table.keys->bucket[b] != NULL)
+      return tbl->table.values->bucket[b];
+  if (mps_ld_isstale(&tbl->table.ld, arena, key))
+    if (table_rehash(tbl, tbl->table.keys->length >> 1, key, &b))
+      return tbl->table.values->bucket[b];
   return NULL;
 }
 
@@ -844,24 +864,23 @@ static obj_t table_ref(obj_t tbl, obj_t key)
  */
 static int table_try_set(obj_t tbl, obj_t key, obj_t value)
 {
-  struct bucket_s *b;
+  size_t b;
   assert(TYPE(tbl) == TYPE_TABLE);
   mps_ld_add(&tbl->table.ld, arena, key);
-  b = buckets_find(tbl->table.buckets, key);
-  if (b == NULL)
+  if (!buckets_find(tbl->table.keys, key, &b))
     return 0;
-  if (b->key == NULL) {
-    b->key = key;
-    ++ tbl->table.buckets->buckets.used;
+  if (tbl->table.keys->bucket[b] == NULL) {
+    tbl->table.keys->bucket[b] = key;
+    tbl->table.keys->used += 2;
   }
-  b->value = value;
+  tbl->table.values->bucket[b] = value;
   return 1;
 }
 
 static int table_full(obj_t tbl)
 {
   assert(TYPE(tbl) == TYPE_TABLE);
-  return tbl->table.buckets->buckets.used >= tbl->table.buckets->buckets.length / 2;
+  return tbl->table.keys->used >= tbl->table.keys->length / 2;
 }
 
 static void table_set(obj_t tbl, obj_t key, obj_t value)
@@ -869,7 +888,7 @@ static void table_set(obj_t tbl, obj_t key, obj_t value)
   assert(TYPE(tbl) == TYPE_TABLE);
   if (table_full(tbl) || !table_try_set(tbl, key, value)) {
     int res;
-    table_rehash(tbl, tbl->table.buckets->buckets.length * 2, NULL);
+    table_rehash(tbl, tbl->table.keys->length * 2, NULL, NULL);
     res = table_try_set(tbl, key, value);
     assert(res);                /* rehash should have made room */
   }
@@ -988,23 +1007,19 @@ static void print(obj_t obj, unsigned depth, FILE *stream)
       putc(')', stream);
     } break;
 
-    case TYPE_BUCKETS: {
-      size_t i;
-      for(i = 0; i < obj->vector.length; ++i) {
-        struct bucket_s *b = &obj->buckets.bucket[i];
-        if(b->key) {
+    case TYPE_TABLE: {
+      size_t i, length = obj->table.keys->length >> 1;
+      fputs("#[hashtable", stream);
+      for(i = 0; i < length; ++i) {
+        obj_t k = obj->table.keys->bucket[i];
+        if(k) {
           fputs(" (", stream);
-          print(b->key, depth - 1, stream);
+          print(k, depth - 1, stream);
           putc(' ', stream);
-          print(b->value, depth - 1, stream);
+          print(obj->table.values->bucket[i], depth - 1, stream);
           putc(')', stream);
         }
       }
-    } break;
-
-    case TYPE_TABLE: {
-      fputs("#[hashtable", stream);
-      print(obj->table.buckets, depth - 1, stream);
       putc(']', stream);
     } break;
 
@@ -2839,15 +2854,7 @@ static obj_t entry_string_copy(obj_t env, obj_t op_env, obj_t operator, obj_t op
 }
 
 
-/* (make-eq-hashtable)
- * (make-eq-hashtable k)
- * Returns a newly allocated mutable hashtable that accepts arbitrary
- * objects as keys, and compares those keys with eq?. If an argument
- * is given, the initial capacity of the hashtable is set to
- * approximately k elements.
- * See R6RS Library 13.1.
- */
-static obj_t entry_make_eq_hashtable(obj_t env, obj_t op_env, obj_t operator, obj_t operands)
+static obj_t entry_make_hashtable(obj_t env, obj_t op_env, obj_t operator, obj_t operands, int weak_key, int weak_value)
 {
   obj_t rest;
   size_t length;
@@ -2864,7 +2871,60 @@ static obj_t entry_make_eq_hashtable(obj_t env, obj_t op_env, obj_t operator, ob
       error("%s: first argument must be positive", operator->operator.name);
     length = arg->integer.integer;
   }
-  return make_table(length);
+  return make_table(length, weak_key, weak_value);
+}
+
+
+/* (make-eq-hashtable)
+ * (make-eq-hashtable k)
+ * Returns a newly allocated mutable hashtable that accepts arbitrary
+ * objects as keys, and compares those keys with eq?. If an argument
+ * is given, the initial capacity of the hashtable is set to
+ * approximately k elements.
+ * See R6RS Library 13.1.
+ */
+static obj_t entry_make_eq_hashtable(obj_t env, obj_t op_env, obj_t operator, obj_t operands)
+{
+  return entry_make_hashtable(env, op_env, operator, operands, 0, 0);
+}
+
+
+/* (make-weak-key-eq-hashtable)
+ * (make-weak-key-eq-hashtable k)
+ * Returns a newly allocated mutable weak-key hashtable that accepts
+ * arbitrary objects as keys, and compares those keys with eq?. If an
+ * argument is given, the initial capacity of the hashtable is set to
+ * approximately k elements.
+ */
+static obj_t entry_make_weak_key_eq_hashtable(obj_t env, obj_t op_env, obj_t operator, obj_t operands)
+{
+  return entry_make_hashtable(env, op_env, operator, operands, 1, 0);
+}
+
+
+/* (make-weak-value-eq-hashtable)
+ * (make-weak-value-eq-hashtable k)
+ * Returns a newly allocated mutable weak-value hashtable that accepts
+ * arbitrary objects as keys, and compares those keys with eq?. If an
+ * argument is given, the initial capacity of the hashtable is set to
+ * approximately k elements.
+ */
+static obj_t entry_make_weak_value_eq_hashtable(obj_t env, obj_t op_env, obj_t operator, obj_t operands)
+{
+  return entry_make_hashtable(env, op_env, operator, operands, 0, 1);
+}
+
+
+/* (make-doubly-weak-eq-hashtable)
+ * (make-doubly-weak-eq-hashtable k)
+ * Returns a newly allocated mutable doubly-weak hashtable that accepts
+ * arbitrary objects as keys, and compares those keys with eq?. If an
+ * argument is given, the initial capacity of the hashtable is set to
+ * approximately k elements.
+ */
+static obj_t entry_make_doubly_weak_eq_hashtable(obj_t env, obj_t op_env, obj_t operator, obj_t operands)
+{
+  return entry_make_hashtable(env, op_env, operator, operands, 1, 1);
 }
 
 
@@ -3032,6 +3092,9 @@ static struct {char *name; entry_t entry;} funtab[] = {
   {"list->string", entry_list_to_string},
   {"string-copy", entry_string_copy},
   {"make-eq-hashtable", entry_make_eq_hashtable},
+  {"make-weak-key-eq-hashtable", entry_make_weak_key_eq_hashtable},
+  {"make-weak-value-eq-hashtable", entry_make_weak_value_eq_hashtable},
+  {"make-doubly-weak-eq-hashtable", entry_make_doubly_weak_eq_hashtable},
   {"hashtable-ref", entry_hashtable_ref},
   {"hashtable-set!", entry_hashtable_set},
   {"gc", entry_gc}
@@ -3077,7 +3140,7 @@ static mps_res_t obj_scan(mps_ss_t ss, mps_addr_t base, mps_addr_t limit)
   MPS_SCAN_BEGIN(ss) {
     while (base < limit) {
       obj_t obj = base;
-      switch (obj->type.type) {
+      switch (TYPE(obj)) {
       case TYPE_PAIR:
         FIX(obj->pair.car);
         FIX(obj->pair.cdr);
@@ -3121,20 +3184,9 @@ static mps_res_t obj_scan(mps_ss_t ss, mps_addr_t base, mps_addr_t limit)
                ALIGN(offsetof(vector_s, vector) +
                      obj->vector.length * sizeof(obj->vector.vector[0]));
         break;
-      case TYPE_BUCKETS:
-        {
-          size_t i;
-          for (i = 0; i < obj->buckets.length; ++i) {
-            FIX(obj->buckets.bucket[i].key);
-            FIX(obj->buckets.bucket[i].value);
-          }
-        }
-        base = (char *)base +
-               ALIGN(offsetof(buckets_s, bucket) +
-                     obj->buckets.length * sizeof(obj->buckets.bucket[0]));
-        break;
       case TYPE_TABLE:
-        FIX(obj->table.buckets);
+        FIX(obj->table.keys);
+        FIX(obj->table.values);
         base = (char *)base + ALIGN(sizeof(table_s));
         break;
       case TYPE_FWD2:
@@ -3173,7 +3225,7 @@ static mps_res_t obj_scan(mps_ss_t ss, mps_addr_t base, mps_addr_t limit)
 static mps_addr_t obj_skip(mps_addr_t base)
 {
   obj_t obj = base;
-  switch (obj->type.type) {
+  switch (TYPE(obj)) {
   case TYPE_PAIR:
     base = (char *)base + ALIGN(sizeof(pair_s));
     break;
@@ -3204,11 +3256,6 @@ static mps_addr_t obj_skip(mps_addr_t base)
     base = (char *)base +
            ALIGN(offsetof(vector_s, vector) +
                  obj->vector.length * sizeof(obj->vector.vector[0]));
-    break;
-  case TYPE_BUCKETS:
-    base = (char *)base +
-           ALIGN(offsetof(buckets_s, bucket) +
-                 obj->buckets.length * sizeof(obj->buckets.bucket[0]));
     break;
   case TYPE_TABLE:
     base = (char *)base + ALIGN(sizeof(table_s));
@@ -3246,7 +3293,7 @@ static mps_addr_t obj_skip(mps_addr_t base)
 static mps_addr_t obj_isfwd(mps_addr_t addr)
 {
   obj_t obj = addr;
-  switch (obj->type.type) {
+  switch (TYPE(obj)) {
   case TYPE_FWD2:
     return obj->fwd2.fwd;
   case TYPE_FWD:
@@ -3272,10 +3319,10 @@ static void obj_fwd(mps_addr_t old, mps_addr_t new)
   size_t size = (char *)limit - (char *)old;
   assert(size >= ALIGN(sizeof(fwd2_s)));
   if (size == ALIGN(sizeof(fwd2_s))) {
-    obj->type.type = TYPE_FWD2;
+    TYPE(obj) = TYPE_FWD2;
     obj->fwd2.fwd = new;
   } else {
-    obj->type.type = TYPE_FWD;
+    TYPE(obj) = TYPE_FWD;
     obj->fwd.fwd = new;
     obj->fwd.size = size;
   }
@@ -3297,9 +3344,9 @@ static void obj_pad(mps_addr_t addr, size_t size)
   obj_t obj = addr;
   assert(size >= ALIGN(sizeof(pad1_s)));
   if (size == ALIGN(sizeof(pad1_s))) {
-    obj->type.type = TYPE_PAD1;
+    TYPE(obj) = TYPE_PAD1;
   } else {
-    obj->type.type = TYPE_PAD;
+    TYPE(obj) = TYPE_PAD;
     obj->pad.size = size;
   }
 }
@@ -3319,6 +3366,81 @@ struct mps_fmt_A_s obj_fmt_s = {
   obj_fwd,
   obj_isfwd,
   obj_pad
+};
+
+
+/* buckets_scan -- buckets format scan method                        %%MPS
+ */
+
+static mps_res_t buckets_scan(mps_ss_t ss, mps_addr_t base, mps_addr_t limit)
+{
+  MPS_SCAN_BEGIN(ss) {
+    while (base < limit) {
+      buckets_t buckets = base;
+      size_t i, length = buckets->length >> 1;
+      for (i = 0; i < length; ++i) {
+        mps_addr_t p = buckets->bucket[i];
+        if (MPS_FIX1(ss, p)) {
+          mps_res_t res = MPS_FIX2(ss, &p);
+          if (res != MPS_RES_OK) return res;
+          if (p == NULL) {
+            /* key/value was splatted: splat value/key too */
+            puts("splat!");
+            buckets->dependent->bucket[i] = NULL;
+            buckets->used -= 2;
+            buckets->dependent->used -= 2;
+          }
+          buckets->bucket[i] = p;
+        }
+      }
+      base = (char *)base +
+        ALIGN(offsetof(buckets_s, bucket) +
+              length * sizeof(buckets->bucket[0]));
+    }
+  } MPS_SCAN_END(ss);
+  return MPS_RES_OK;
+}
+
+
+/* buckets_skip -- buckets format skip method                        %%MPS
+ */
+
+static mps_addr_t buckets_skip(mps_addr_t base)
+{
+  buckets_t buckets = base;
+  size_t length = buckets->length >> 1;
+  return (char *)base +
+    ALIGN(offsetof(buckets_s, bucket) +
+          length * sizeof(buckets->bucket[0]));
+}
+
+
+/* buckets_find_dependent -- find dependent object for buckets       %%MPS
+ *
+ * Each object in an AWL pool can have a "dependent object". The MPS
+ * ensures that when an object is being scanned, its dependent object
+ * is unprotected. This allows prompt deletion of values in a weak-key
+ * hash table, and keys in a weak-value hash table.
+ */
+
+static mps_addr_t buckets_find_dependent(mps_addr_t addr)
+{
+  buckets_t buckets = addr;
+  return buckets->dependent;
+}
+
+
+/* buckets_fmt_s -- buckets format parameter structure               %%MPS
+ */
+
+struct mps_fmt_A_s buckets_fmt_s = {
+  ALIGNMENT,
+  buckets_scan,
+  buckets_skip,
+  NULL,                         /* Obsolete copy method */
+  NULL,                         /* fwd method not used by AWL */
+  NULL,                         /* isfwd method not used by AWL */
+  NULL                          /* pad method not used by AWL */
 };
 
 
@@ -3539,7 +3661,7 @@ int main(int argc, char *argv[])
 {
   mps_res_t res;
   mps_chain_t obj_chain;
-  mps_fmt_t obj_fmt;
+  mps_fmt_t obj_fmt, buckets_fmt;
   mps_thr_t thread;
   mps_root_t reg_root;
   void *r;
@@ -3578,6 +3700,25 @@ int main(int argc, char *argv[])
      so we just have it in a global. */
   res = mps_ap_create(&obj_ap, obj_pool, mps_rank_exact());
   if (res != MPS_RES_OK) error("Couldn't create obj allocation point");
+
+  /* Create the buckets format. */
+  res = mps_fmt_create_A(&buckets_fmt, arena, &buckets_fmt_s);
+  if (res != MPS_RES_OK) error("Couldn't create buckets format");
+
+  /* Create an Automatic Weak Linked (AWL) pool to manage the hash table
+     buckets. */
+  res = mps_pool_create(&buckets_pool,
+                        arena,
+                        mps_class_awl(),
+                        buckets_fmt,
+                        buckets_find_dependent);
+  if (res != MPS_RES_OK) error("Couldn't create buckets pool");
+
+  /* Create allocation points for weak and strong buckets. */
+  res = mps_ap_create(&strong_buckets_ap, buckets_pool, mps_rank_exact());
+  if (res != MPS_RES_OK) error("Couldn't create strong buckets allocation point");
+  res = mps_ap_create(&weak_buckets_ap, buckets_pool, mps_rank_weak());
+  if (res != MPS_RES_OK) error("Couldn't create weak buckets allocation point");
 
   /* Register the current thread with the MPS.  The MPS must sometimes
      control or examine threads to ensure consistency when it is scanning
@@ -3618,6 +3759,10 @@ int main(int argc, char *argv[])
      to destroy MPS objects on exit if possible rather than just quitting. */
   mps_root_destroy(reg_root);
   mps_thread_dereg(thread);
+  mps_ap_destroy(strong_buckets_ap);
+  mps_ap_destroy(weak_buckets_ap);
+  mps_pool_destroy(buckets_pool);
+  mps_fmt_destroy(buckets_fmt);
   mps_ap_destroy(obj_ap);
   mps_pool_destroy(obj_pool);
   mps_chain_destroy(obj_chain);

@@ -332,7 +332,7 @@ Here's the scan method for the Scheme interpreter::
         MPS_SCAN_BEGIN(ss) {
             while (base < limit) {
                 obj_t obj = base;
-                switch (obj->type.type) {
+                switch (TYPE(obj)) {
                 case TYPE_PAIR:
                     FIX(obj->pair.car);
                     FIX(obj->pair.cdr);
@@ -425,7 +425,7 @@ Here's the skip method for the Scheme interpreter::
     static mps_addr_t obj_skip(mps_addr_t base)
     {
         obj_t obj = base;
-        switch (obj->type.type) {
+        switch (TYPE(obj)) {
         case TYPE_PAIR:
             base = (char *)base + ALIGN(sizeof(pair_s));
             break;
@@ -523,10 +523,10 @@ Here's the forward method for the Scheme interpreter::
         size_t size = (char *)limit - (char *)old;
         assert(size >= ALIGN(sizeof(fwd2_s)));
         if (size == ALIGN(sizeof(fwd2_s))) {
-            obj->type.type = TYPE_FWD2;
+            TYPE(obj) = TYPE_FWD2;
             obj->fwd2.fwd = new;
         } else {
-            obj->type.type = TYPE_FWD;
+            TYPE(obj) = TYPE_FWD;
             obj->fwd.fwd = new;
             obj->fwd.size = size;
         }
@@ -580,7 +580,7 @@ Here's the is-forwarded method for the Scheme interpreter::
     static mps_addr_t obj_isfwd(mps_addr_t addr)
     {
         obj_t obj = addr;
-        switch (obj->type.type) {
+        switch (TYPE(obj)) {
         case TYPE_FWD2:
             return obj->fwd2.fwd;
         case TYPE_FWD:
@@ -641,9 +641,9 @@ Here's the padding method::
         obj_t obj = addr;
         assert(size >= ALIGN(sizeof(pad1_s)));
         if (size == ALIGN(sizeof(pad1_s))) {
-            obj->type.type = TYPE_PAD1;
+            TYPE(obj) = TYPE_PAD1;
         } else {
-            obj->type.type = TYPE_PAD;
+            TYPE(obj) = TYPE_PAD;
             obj->pad.size = size;
         }
     }

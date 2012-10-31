@@ -543,7 +543,7 @@ static obj_t intern(char *string) {
  */
 static struct bucket_s *buckets_find(obj_t buckets, obj_t key)
 {
-  union {char s[sizeof(obj_t) + 1]; void *addr; } u = {""};
+  union {char s[sizeof(obj_t) + 1]; void *addr;} u = {""};
   unsigned long i, h;
   assert(TYPE(buckets) == TYPE_BUCKETS);
   u.addr = key;
@@ -730,7 +730,7 @@ static void print(obj_t obj, unsigned depth, FILE *stream)
 
     case TYPE_BUCKETS: {
       size_t i;
-      for(i = 0; i < obj->vector.length; ++i) {
+      for(i = 0; i < obj->buckets.length; ++i) {
         struct bucket_s *b = &obj->buckets.bucket[i];
         if(b->key) {
           fputs(" (", stream);
