@@ -13,6 +13,11 @@
 Allocation frames
 =================
 
+.. deprecated:: starting with version 1.111.
+
+    If you need special handling of stack-like allocation,
+    :ref:`contact us <contact>`.
+
 An allocation frame is a marker that can pushed onto an
 :term:`allocation point` by calling :c:func:`mps_ap_frame_push`, and
 then popped by calling :c:func:`mps_ap_frame_pop` to indicate that all
