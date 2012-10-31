@@ -9,6 +9,11 @@ echo -n $(( 5 << 2 ))
 # This should not be treated as a heredoc (bug#12770).
 2
 
+foo='bar<<'                     # bug#11263
+echo ${foo%<<aa}                # bug#11263
+echo $((1<<8))                  # bug#11263
+echo $[1<<8]                    # bug#11263
+
 declare -a VERSION
 for i in $(ls "$PREFIX/sbin") ; do
     echo -e $N')' $i

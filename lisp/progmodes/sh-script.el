@@ -940,14 +940,16 @@ See `sh-feature'.")
     (concat "<<-?\\s-*\\\\?\\(\\(?:['\"][^'\"]+['\"]\\|\\sw\\|[-/~._]\\)+\\)"
             sh-escaped-line-re "\\(\n\\)")))
 
-(defun sh--inside-arithmetic-expression (pos)
+(defun sh--inside-noncommand-expression (pos)
   (save-excursion
     (let ((ppss (syntax-ppss pos)))
       (when (nth 1 ppss)
         (goto-char (nth 1 ppss))
-        (and (eq ?\( (char-after))
-             (eq ?\( (char-before))
-             (eq ?\$ (char-before (1- (point)))))))))
+        (pcase (char-after)
+          ;; $((...)) or $[...] or ${...}.
+          (`?\( (and (eq ?\( (char-before))
+                     (eq ?\$ (char-before (1- (point))))))
+          ((or `?\{ `?\[) (eq ?\$ (char-before))))))))
 
 (defun sh-font-lock-open-heredoc (start string eol)
   "Determine the syntax of the \\n after a <<EOF.
@@ -958,7 +960,7 @@ be indented (i.e. a <<- was used rather than just <<).
 Point is at the beginning of the next line."
   (unless (or (memq (char-before start) '(?< ?>))
 	      (sh-in-comment-or-string start)
-              (sh--inside-arithmetic-expression start))
+              (sh--inside-noncommand-expression start))
     ;; We're looking at <<STRING, so we add "^STRING$" to the syntactic
     ;; font-lock keywords to detect the end of this here document.
     (let ((str (replace-regexp-in-string "['\"]" "" string))

@@ -1,5 +1,9 @@
 2012-10-31  Stefan Monnier  <monnier@iro.umontreal.ca>
 
+	* progmodes/sh-script.el (sh--inside-noncommand-expression):
+	Rename from sh--inside-arithmetic-expression, handle more cases
+	(bug#11263).
+
 	* progmodes/sh-script.el (sh--inside-arithmetic-expression): New func.
 	(sh-font-lock-open-heredoc): Use it (bug#12770).
 
