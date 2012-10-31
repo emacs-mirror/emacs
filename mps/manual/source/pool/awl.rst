@@ -35,6 +35,15 @@ AWL allows the implementation to splat the value slot at the same time
 that the weak key slot is splatted. (Or the other way around for
 weak-value tables.) See :ref:`pool-awl-dependent`.
 
+.. note::
+
+    AWL is the only pool in the open source MPS that allows its
+    formatted objects to contain weak references. It was designed to
+    support the weak hash tables in `Open Dylan
+    <http://opendylan.org/>`_, and may be awkward to use for other use
+    cases. If you need more general handling of weak references,
+    :ref:`contact us <contact>`.
+
 
 .. index::
    single: AWL; properties

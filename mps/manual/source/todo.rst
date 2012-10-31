@@ -26,6 +26,7 @@ Outstanding
     * Tagged references.
     * Unboxed values.
     * "Bumming cycles out of scan" using tags.
+    * Weak hash table.
 
     Compare the performance with the plain ``scheme.c``. The advanced
     version better be faster!
@@ -51,52 +52,11 @@ Outstanding
 126. Things that are "within reach", i.e. that we could do if people
      needed them. (RB needs to write this.)
 
-127. :c:func:`mps_arena_roots_walk` says, "A client-supplied function
-     is called for every root reference which points to an object in
-     any automatically managed pools". Is this right?
+140. Document MFS. Explain how it works (putting link in the free
+     block) and how this is unlike other pools.
 
-128. From :ref:`topic-thread`: "A thread must be registered with an
-     :term:`arena` if it ever uses a pointer to a location in an
-     :term:`automatically managed <automatic memory management>`
-     :term:`pool` belonging to that arena." This isn't quite right,
-     and the real requirement is quite hard to document, so perhaps we
-     need to make this a documented property of the pool ("whether or
-     not threads that access memory allocated in the pool need to be
-     registered"). Similarly in :c:func:`mps_thread_dereg`.
-
-129. What happens if a thread is killed or otherwise terminates
-     without being deregistered? Does the MPS go wrong?
-
-132. :c:func:`mps_lib_get_stderr` appears in ``mpslib.h`` and
-     ``mpsliban.c`` but is not called by the MPS (it uses
-     :c:func:`mps_lib_assert_fail` for assertions). Should this be
-     documented to reserve the option of using it, or should it be
-     left out?
-
-133. What's the purpose of ``mps_SEH_filter`` and ``mps_SEH_handler``?
-     Do they need to be documented?
-
-134. What's the use case for AMS? It's suitable when you have blocks
-     that need to be automatically managed but can't be moved. But
-     when does this happen? If foreign code maintains remembers their
-     location then it seems unlikely that they can be automatically
-     managed (how can these foreign references keep the blocks
-     alive?).
-
-135. Does AMS use protection? I see that it calls ``ShieldExpose`` and
-     ``ShieldCover`` when calling the format's skip method, but not
-     otherwise (e.g. when calling the format's scan method). If it
-     does I need to update the pool choice algorithm.
-
-     Similar question for SNC? It calls ``ShieldExpose`` and
-     ``ShieldCover`` when calling the format's pad method, but not
-     otherwise.
-
-136. It seems possible that MV should not be used. What should I say
-     about this? Should we remove MV from the documentation
-     altogether.
-
-137. What does the "No Check" in "Stack No Check" refer to?
+142. Weakness: how to detect splatting. (In scan.) Cope with NULL. Do
+     all references get splatted at the same time?
 
 
 Complete
@@ -1028,6 +988,34 @@ Complete
 
      *Action:* created :ref:`topic-low`.
 
+127. :c:func:`mps_arena_roots_walk` says, "A client-supplied function
+     is called for every root reference which points to an object in
+     any automatically managed pools". Is this right?
+
+     *Answer:* the description seems to be right. What's the use case?
+     If none, deprecate it.
+
+128. From :ref:`topic-thread`: "A thread must be registered with an
+     :term:`arena` if it ever uses a pointer to a location in an
+     :term:`automatically managed <automatic memory management>`
+     :term:`pool` belonging to that arena." This isn't quite right,
+     and the real requirement is quite hard to document, so perhaps we
+     need to make this a documented property of the pool ("whether or
+     not threads that access memory allocated in the pool need to be
+     registered"). Similarly in :c:func:`mps_thread_dereg`.
+
+129. What happens if a thread is killed or otherwise terminates
+     without being deregistered? Does the MPS go wrong?
+
+     *Answer:* Probably all we do is try to send signals to it. What
+     does pthreads do with this? It may be hard for the client program
+     to deregister all their threads: better for the MPS to cope
+     gracefully.
+
+     *Action:* made `job003348`_.
+
+     .. _job003348: https://info.ravenbrook.com/project/mps/issue/job003348/
+
 130. readme.txt should contain a brief overview and pointers to more
      documentation, and should (only) duplicate other documentation.
      There's nothing wrong with it being somewhat redundant. Its
@@ -1041,7 +1029,77 @@ Complete
 
      *Answer:* this is a bug, fixed in change 180151.
 
+132. :c:func:`mps_lib_get_stderr` appears in ``mpslib.h`` and
+     ``mpsliban.c`` but is not called by the MPS (it uses
+     :c:func:`mps_lib_assert_fail` for assertions). Should this be
+     documented to reserve the option of using it, or should it be
+     left out?
+
+     *Action:* Keep stderr documented. Add a note that it's not used
+     but for possible future use. Same thing about stdout.
+
+133. What's the purpose of ``mps_SEH_filter`` and ``mps_SEH_handler``?
+     Do they need to be documented?
+
+     *Action:* made `job003349`_.
+
+     .. _job003349: https://info.ravenbrook.com/project/mps/issue/job003349/
+
+134. What's the use case for AMS? It's suitable when you have blocks
+     that need to be automatically managed but can't be moved. But
+     when does this happen? If foreign code maintains remembers their
+     location then it seems unlikely that they can be automatically
+     managed (how can these foreign references keep the blocks
+     alive?).
+
+     *Answer:* It's useful for a step in an integration because its
+     automatic but non-moving. But not ready for production: best to
+     plan to switch to AMC later on. Could be developed into a more
+     solid mark-and-sweep pool. Contact us.
+
+135. Does AMS use protection? I see that it calls ``ShieldExpose`` and
+     ``ShieldCover`` when calling the format's skip method, but not
+     otherwise (e.g. when calling the format's scan method). If it
+     does I need to update the pool choice algorithm.
+
+     Similar question for SNC? It calls ``ShieldExpose`` and
+     ``ShieldCover`` when calling the format's pad method, but not
+     otherwise.
+
+     *Answer:* The rule is "if it needs to be scanned, either it gets
+     scanned atomically on flip, or else it gets read-protected". So
+     objects in both of these pools get protected.
+
+136. It seems possible that MV should not be used. What should I say
+     about this? Should we remove MV from the documentation
+     altogether.
+
+     *Action:* made `job003350`_.
+
+     .. _job003350: https://info.ravenbrook.com/project/mps/issue/job003350/
+
+137. What does the "No Checking" in "Stack No Checking" refer to?
+
+     *Action:* Added to `job003344`_. Deprecated SNC.
+
 138. The hash table implementation is a bit rubbish: it waits until
      the table is completely full before rehashing. Should ensure that
      it never gets more than 50% full. Also the constructor should be
      called ``make-eq-hashtable`` following R6RS.
+
+139. It seems a shame that MVT doesn't support :c:func:`mps_alloc` as
+     this would be fairly trivial via an internal :term:`allocation
+     point`.
+
+     *Action:* added to `job003350`_.
+
+141. Do we support instruction emulation on x86-64? DL says that it's
+     not in yet. What about OS X?
+
+     *Action:* made `job003352`_.
+
+     .. _job003352: https://info.ravenbrook.com/project/mps/issue/job003352/
+
+143. Document the purpose of AWL and explain that it's for OpenDylan.
+     If you require more general implementation of weakness, contact
+     us.
