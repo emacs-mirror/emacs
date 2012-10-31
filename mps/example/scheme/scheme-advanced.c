@@ -168,10 +168,17 @@ typedef struct vector_s {
   obj_t vector[1];		/* vector elements */
 } vector_s;
 
+/* %%MPS: Objects in AWL pools must be formatted so that aligned
+ * pointers (with bottom bit(s) zero) can be distinguished from other
+ * data types (with bottom bit(s) non-zero). Here we use a bottom
+ * bit of 1 for integers. See pool/awl. */
+#define TAG_LENGTH(i) (((i) << 1) + 1)
+#define UNTAG_LENGTH(i) ((i) >> 1)
+
 typedef struct buckets_s {
   struct buckets_s *dependent;  /* the dependent object */
-  size_t length;                /* number of buckets * 2 + 1 */
-  size_t used;                  /* number of buckets in use * 2 + 1 */
+  size_t length;                /* number of buckets (tagged) */
+  size_t used;                  /* number of buckets in use (tagged) */
   obj_t bucket[1];              /* hash buckets */
 } buckets_s, *buckets_t;
 
@@ -371,6 +378,8 @@ static char error_message[MSGMAX+1];
 static mps_arena_t arena;       /* the arena */
 static mps_pool_t obj_pool;     /* pool for ordinary Scheme objects */
 static mps_ap_t obj_ap;         /* allocation point used to allocate objects */
+static mps_pool_t leaf_pool;    /* pool for leaf objects */
+static mps_ap_t leaf_ap;        /* allocation point for leaf objects */
 static mps_pool_t buckets_pool; /* pool for hash table buckets */
 static mps_ap_t strong_buckets_ap; /* allocation point for strong buckets */
 static mps_ap_t weak_buckets_ap; /* allocation point for weak buckets */
@@ -460,12 +469,12 @@ static obj_t make_integer(long integer)
   mps_addr_t addr;
   size_t size = ALIGN(sizeof(integer_s));
   do {
-    mps_res_t res = mps_reserve(&addr, obj_ap, size);
+    mps_res_t res = mps_reserve(&addr, leaf_ap, size);
     if (res != MPS_RES_OK) error("out of memory in make_integer");
     obj = addr;
     obj->integer.type = TYPE_INTEGER;
     obj->integer.integer = integer;
-  } while(!mps_commit(obj_ap, addr, size));
+  } while(!mps_commit(leaf_ap, addr, size));
   total += sizeof(integer_s);
   return obj;
 }
@@ -476,13 +485,13 @@ static obj_t make_symbol(size_t length, char string[])
   mps_addr_t addr;
   size_t size = ALIGN(offsetof(symbol_s, string) + length+1);
   do {
-    mps_res_t res = mps_reserve(&addr, obj_ap, size);
+    mps_res_t res = mps_reserve(&addr, leaf_ap, size);
     if (res != MPS_RES_OK) error("out of memory in make_symbol");
     obj = addr;
     obj->symbol.type = TYPE_SYMBOL;
     obj->symbol.length = length;
     memcpy(obj->symbol.string, string, length+1);
-  } while(!mps_commit(obj_ap, addr, size));
+  } while(!mps_commit(leaf_ap, addr, size));
   total += size;
   return obj;
 }
@@ -493,14 +502,14 @@ static obj_t make_string(size_t length, char string[])
   mps_addr_t addr;
   size_t size = ALIGN(offsetof(string_s, string) + length+1);
   do {
-    mps_res_t res = mps_reserve(&addr, obj_ap, size);
+    mps_res_t res = mps_reserve(&addr, leaf_ap, size);
     if (res != MPS_RES_OK) error("out of memory in make_string");
     obj = addr;
     obj->string.type = TYPE_STRING;
     obj->string.length = length;
     if (string) memcpy(obj->string.string, string, length+1);
     else memset(obj->string.string, 0, length+1);
-  } while(!mps_commit(obj_ap, addr, size));
+  } while(!mps_commit(leaf_ap, addr, size));
   total += size;
   return obj;
 }
@@ -567,12 +576,12 @@ static obj_t make_character(char c)
   mps_addr_t addr;
   size_t size = ALIGN(sizeof(character_s));
   do {
-    mps_res_t res = mps_reserve(&addr, obj_ap, size);
+    mps_res_t res = mps_reserve(&addr, leaf_ap, size);
     if (res != MPS_RES_OK) error("out of memory in make_character");
     obj = addr;
     obj->character.type = TYPE_CHARACTER;
     obj->character.c = c;
-  } while(!mps_commit(obj_ap, addr, size));
+  } while(!mps_commit(leaf_ap, addr, size));
   total += sizeof(character_s);
   return obj;
 }
@@ -608,7 +617,7 @@ static buckets_t make_buckets(size_t length, mps_ap_t ap)
     if (res != MPS_RES_OK) error("out of memory in make_buckets");
     buckets = addr;
     buckets->dependent = NULL;
-    buckets->length = length * 2 + 1;
+    buckets->length = TAG_LENGTH(length);
     buckets->used = 1;
     for(i = 0; i < length; ++i) {
       buckets->bucket[i] = NULL;
@@ -779,9 +788,9 @@ static int buckets_find(buckets_t buckets, obj_t key, size_t *b)
 {
   union {char s[sizeof(void *) + 1]; void *addr;} u = {""};
   unsigned long i, h;
-  size_t length = (buckets->length >> 1) - 1;
+  unsigned long l = UNTAG_LENGTH(buckets->length) - 1;
   u.addr = key;
-  h = hash(u.s) & length;
+  h = hash(u.s) & l;
   i = h;
   do {
     obj_t k = buckets->bucket[i];
@@ -789,7 +798,7 @@ static int buckets_find(buckets_t buckets, obj_t key, size_t *b)
       *b = i;
       return 1;
     }
-    i = (i+h+1) & length;
+    i = (i+h+1) & l;
   } while(i != h);
   return 0;
 }
@@ -805,12 +814,12 @@ static int buckets_find(buckets_t buckets, obj_t key, size_t *b)
  */
 static int table_rehash(obj_t tbl, size_t new_length, obj_t key, size_t *key_bucket)
 {
-  size_t i, length, used = 1;
+  size_t i, length;
   buckets_t new_keys, new_values;
   int result = 0;
 
   assert(TYPE(tbl) == TYPE_TABLE);
-  length = tbl->table.keys->length >> 1;
+  length = UNTAG_LENGTH(tbl->table.keys->length);
   new_keys = make_buckets(new_length, tbl->table.key_ap);
   new_values = make_buckets(new_length, tbl->table.value_ap);
   mps_ld_reset(&tbl->table.ld, arena);
@@ -834,7 +843,7 @@ static int table_rehash(obj_t tbl, size_t new_length, obj_t key, size_t *key_buc
     }
   }
 
-  assert(used == tbl->table.keys->used);
+  assert(new_keys->used == tbl->table.keys->used);
   tbl->table.keys = new_keys;
   tbl->table.values = new_values;
   return result;
@@ -853,7 +862,7 @@ static obj_t table_ref(obj_t tbl, obj_t key)
     if (tbl->table.keys->bucket[b] != NULL)
       return tbl->table.values->bucket[b];
   if (mps_ld_isstale(&tbl->table.ld, arena, key))
-    if (table_rehash(tbl, tbl->table.keys->length >> 1, key, &b))
+    if (table_rehash(tbl, UNTAG_LENGTH(tbl->table.keys->length), key, &b))
       return tbl->table.values->bucket[b];
   return NULL;
 }
@@ -888,7 +897,7 @@ static void table_set(obj_t tbl, obj_t key, obj_t value)
   assert(TYPE(tbl) == TYPE_TABLE);
   if (table_full(tbl) || !table_try_set(tbl, key, value)) {
     int res;
-    table_rehash(tbl, tbl->table.keys->length * 2, NULL, NULL);
+    table_rehash(tbl, UNTAG_LENGTH(tbl->table.keys->length) * 2, NULL, NULL);
     res = table_try_set(tbl, key, value);
     assert(res);                /* rehash should have made room */
   }
@@ -1008,7 +1017,7 @@ static void print(obj_t obj, unsigned depth, FILE *stream)
     } break;
 
     case TYPE_TABLE: {
-      size_t i, length = obj->table.keys->length >> 1;
+      size_t i, length = UNTAG_LENGTH(obj->table.keys->length);
       fputs("#[hashtable", stream);
       for(i = 0; i < length; ++i) {
         obj_t k = obj->table.keys->bucket[i];
@@ -3369,6 +3378,20 @@ struct mps_fmt_A_s obj_fmt_s = {
 };
 
 
+/* leaf_fmt_s -- leaf object format parameter structure              %%MPS
+ */
+
+struct mps_fmt_A_s leaf_fmt_s = {
+  ALIGNMENT,
+  NULL,
+  obj_skip,
+  NULL,                         /* Obsolete copy method */
+  obj_fwd,
+  obj_isfwd,
+  obj_pad
+};
+
+
 /* buckets_scan -- buckets format scan method                        %%MPS
  */
 
@@ -3377,7 +3400,9 @@ static mps_res_t buckets_scan(mps_ss_t ss, mps_addr_t base, mps_addr_t limit)
   MPS_SCAN_BEGIN(ss) {
     while (base < limit) {
       buckets_t buckets = base;
-      size_t i, length = buckets->length >> 1;
+      size_t i, length = UNTAG_LENGTH(buckets->length);
+      assert(buckets->dependent);
+      assert(buckets->dependent->length == buckets->length);
       for (i = 0; i < length; ++i) {
         mps_addr_t p = buckets->bucket[i];
         if (MPS_FIX1(ss, p)) {
@@ -3408,7 +3433,7 @@ static mps_res_t buckets_scan(mps_ss_t ss, mps_addr_t base, mps_addr_t limit)
 static mps_addr_t buckets_skip(mps_addr_t base)
 {
   buckets_t buckets = base;
-  size_t length = buckets->length >> 1;
+  size_t length = UNTAG_LENGTH(buckets->length);
   return (char *)base +
     ALIGN(offsetof(buckets_s, bucket) +
           length * sizeof(buckets->bucket[0]));
@@ -3660,8 +3685,8 @@ static mps_gen_param_s obj_gen_params[] = {
 int main(int argc, char *argv[])
 {
   mps_res_t res;
-  mps_chain_t obj_chain;
-  mps_fmt_t obj_fmt, buckets_fmt;
+  mps_chain_t obj_chain, leaf_chain;
+  mps_fmt_t obj_fmt, leaf_fmt, buckets_fmt;
   mps_thr_t thread;
   mps_root_t reg_root;
   void *r;
@@ -3698,8 +3723,32 @@ int main(int argc, char *argv[])
      from the `obj_pool`.  You'd usually want one of these per thread
      for your primary pools.  This interpreter is single threaded, though,
      so we just have it in a global. */
-  res = mps_ap_create(&obj_ap, obj_pool, mps_rank_exact());
+  res = mps_ap_create(&obj_ap, obj_pool);
   if (res != MPS_RES_OK) error("Couldn't create obj allocation point");
+
+  /* Create generation chain for leaf objects. */
+  res = mps_chain_create(&leaf_chain,
+                         arena,
+                         LENGTH(obj_gen_params),
+                         obj_gen_params);
+  if (res != MPS_RES_OK) error("Couldn't create leaf object chain");
+
+  /* Create the leaf objects format. */
+  res = mps_fmt_create_A(&leaf_fmt, arena, &leaf_fmt_s);
+  if (res != MPS_RES_OK) error("Couldn't create leaf format");
+
+  /* Create an Automatic Mostly-Copying Zero-rank (AMCZ) pool to
+     manage the leaf objects. */
+  res = mps_pool_create(&leaf_pool,
+                        arena,
+                        mps_class_amcz(),
+                        leaf_fmt,
+                        leaf_chain);
+  if (res != MPS_RES_OK) error("Couldn't create leaf pool");
+
+  /* Create allocation point for leaf objects. */
+  res = mps_ap_create(&leaf_ap, leaf_pool);
+  if (res != MPS_RES_OK) error("Couldn't create leaf objects allocation point");
 
   /* Create the buckets format. */
   res = mps_fmt_create_A(&buckets_fmt, arena, &buckets_fmt_s);
@@ -3763,6 +3812,9 @@ int main(int argc, char *argv[])
   mps_ap_destroy(weak_buckets_ap);
   mps_pool_destroy(buckets_pool);
   mps_fmt_destroy(buckets_fmt);
+  mps_ap_destroy(leaf_ap);
+  mps_pool_destroy(leaf_pool);
+  mps_fmt_destroy(leaf_fmt);
   mps_ap_destroy(obj_ap);
   mps_pool_destroy(obj_pool);
   mps_chain_destroy(obj_chain);

@@ -60,6 +60,8 @@ Outstanding
      What state will the object be in when we look at it? Does it have
      to be fixed?
 
+145. Can you use the same generation chain with more than one pool?
+
 
 Complete
 --------
