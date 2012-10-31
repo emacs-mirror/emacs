@@ -31,6 +31,8 @@ time.
 .. index::
    single: thread; registration
 
+.. _topic-thread-register:
+
 Thread registration
 -------------------
 
@@ -41,12 +43,18 @@ scan it, the MPS needs to be able to suspend all threads that might
 access that memory. This means that threads must be registered with
 the MPS by calling :c:func:`mps_thread_reg` (and thread roots created;
 see :ref:`topic-root-thread`).
- 
-A thread must be registered with an :term:`arena` if it ever uses a
-pointer to a location in an :term:`automatically managed <automatic
-memory management>` :term:`pool` belonging to that arena. But for
-simplicity we recommend that all threads be registered with all
-arenas.
+
+For simplicity, we recommend that a thread must be registered with an
+:term:`arena` if:
+
+* its registers and control stack form a root (this is enforced by
+  :c:func:`mps_root_create_reg`); or
+
+* it reads or writes from a location in an :term:`automatically managed
+  <automatic memory management>` :term:`pools` in the arena.
+
+However, some automatically managed pool classes may be more liberal
+than this. See the documentation for the pool class.
 
 .. warning::
 
@@ -139,9 +147,15 @@ Thread interface
     ``thr`` is the description of the thread.
 
     After calling this function, the thread whose registration with an
-    :term:`arena` was recorded in ``thr`` must not use a pointer to a
-    location in an :term:`automatically managed <automatic memory
+    :term:`arena` was recorded in ``thr`` must not read or write from
+    a location in an :term:`automatically managed <automatic memory
     management>` :term:`pool` belonging to that arena.
+
+    .. note::
+
+        Some pool classes may be more liberal about what a thread may
+        do after it has been deregistered. See the documentation for
+        the pool class.
 
     .. note::
 

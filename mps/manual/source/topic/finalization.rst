@@ -212,14 +212,22 @@ Here's an example session showing finalization taking place:
 Cautions
 --------
 
-1.  The MPS provides no guarantees about the promptness of
+1.  Don't rely on finalization for your program to work. Treat it as an
+    optimization that enables the freeing of resources that the
+    garbage collector can prove are unreachable.
+
+2.  The MPS provides no guarantees about the promptness of
     finalization. The MPS does not finalize a block until it
     determines that the block is finalizable, which may require a full
-    garbage collection in the worst case. Or the block may never
-    become finalizable because it is incorrectly determined to be
-    reachable due to an :term:`ambiguous reference` pointing to it.
+    garbage collection in the worst case, and such a collection may
+    not :ref:`scheduled <topic-collection-schedule>` for some time. Or
+    the block may never become finalizable because it is incorrectly
+    determined to be reachable due to an :term:`ambiguous reference`
+    pointing to it. Or the block may never become finalizable because
+    it remains reachable through a reference, even if that reference
+    might never be used.
 
-2.  Even when blocks are finalized in a reasonably timely fashion, the
+3.  Even when blocks are finalized in a reasonably timely fashion, the
     client needs to process the finalization messages in time to avoid
     the resource running out. For example, in the Scheme interpreter,
     finalization messages are only processed at the end of the
@@ -246,7 +254,7 @@ Cautions
     created port has :term:`dynamic extent` (and so can be closed as
     soon as the procedure exits).
 
-3.  The MPS does not finalize objects in the context of
+4.  The MPS does not finalize objects in the context of
     :c:func:`mps_arena_destroy` or :c:func:`mps_pool_destroy`.
     :c:func:`mps_pool_destroy` should therefore not be invoked on pools
     containing objects registered for finalization.
@@ -276,19 +284,19 @@ Cautions
 Finalization interface
 ----------------------
 
-.. c:function:: mps_res_t mps_finalize(mps_arena_t arena, mps_addr_t *ref)
+.. c:function:: mps_res_t mps_finalize(mps_arena_t arena, mps_addr_t *ref_p)
 
     Register a :term:`block` for :term:`finalization`.
 
     ``arena`` is the arena in which the block lives.
 
-    ``ref`` points to a :term:`reference` to the block to be
+    ``ref_p`` points to a :term:`reference` to the block to be
     registered for finalization.
  
     Returns :c:macro:`MPS_RES_OK` if successful, or another
     :term:`result code` if not.
 
-    This function registers the block pointed to by ``*ref`` for
+    This function registers the block pointed to by ``*ref_p`` for
     finalization. This block must have been allocated from a
     :term:`pool` in ``arena``. Violations of this constraint may not
     be checked by the MPS, and may be unsafe, causing the MPS to crash
@@ -301,13 +309,13 @@ Finalization interface
         that the C call stack be a :term:`root`.
 
 
-.. c:function:: mps_res_t mps_definalize(mps_arena_t arena, mps_addr_t *ref)
+.. c:function:: mps_res_t mps_definalize(mps_arena_t arena, mps_addr_t *ref_p)
 
     Deregister a :term:`block` for :term:`finalization`.
 
     ``arena`` is the arena in which the block lives.
 
-    ``ref`` points to a :term:`reference` to the block to be
+    ``ref_p`` points to a :term:`reference` to the block to be
     deregistered for finalization.
 
     Returns :c:macro:`MPS_RES_OK` if successful, or

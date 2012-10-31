@@ -580,6 +580,11 @@ Root introspection
 
 .. c:function:: void mps_arena_roots_walk(mps_arena_t arena, mps_roots_stepper_t f, void *p, size_t s)
 
+    .. deprecated:: starting with version 1.111.
+
+        If you think you need this, there's probably a better way to
+        achieve what you're trying to do. :ref:`Contact us <contact>`.
+
     Visit references in registered :term:`roots` in an
     :term:`arena`.
 

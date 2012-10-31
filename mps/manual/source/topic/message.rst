@@ -54,7 +54,7 @@ difficulties.
 
 The block is not actually reclaimed until the finalization message is
 removed from the message queue and discarded, by calling
-:c:func:`mps_message_get` followed by :c:func:`mps_messsage_discard`.
+:c:func:`mps_message_get` followed by :c:func:`mps_message_discard`.
 
 See :ref:`topic-finalization`.
 
@@ -224,7 +224,7 @@ Message interface
     An :term:`arena` has a :term:`message queue` from which messages
     can be obtained by calling :c:func:`mps_message_get`.
 
-    An :c:func:`mps_message_t` is a :term:`reference` into MPS managed
+    An :c:type:`mps_message_t` is a :term:`reference` into MPS managed
     memory, and can safely be :term:`fixed`.
 
 
@@ -251,9 +251,9 @@ Message interface
     was posted, and this is what :c:func:`mps_message_clock` returns.
 
     The time returned is the :c:func:`mps_clock_t` value returned by
-    the library function :c:func:`mps_clock` at the time the message
-    was posted. You can subtract one clock value from another to get
-    the time interval between the posting of two messages.
+    the :term:`plinth` function :c:func:`mps_clock` at the time the
+    message was posted. You can subtract one clock value from another
+    to get the time interval between the posting of two messages.
 
 
 .. c:function:: void mps_message_discard(mps_arena_t arena, mps_message_t message)

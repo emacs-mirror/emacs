@@ -20,6 +20,19 @@ This pool class is intended for unstructured data that needs to be
 accessed by :term:`foreign code`. It's ideal for allocating a buffer
 that needs to be passed to an operating system I/O function.
 
+.. note::
+
+    A thread that reads or writes from blocks allocated in this pool
+    need not be :ref:`registered with the arena
+    <topic-thread-register>` so long as the :term:`liveness <live>` of
+    the block is independent of that thread.
+
+    This means that you can launch a thread to read or write a buffer
+    allocated in this pool, without having to register the thread, so
+    long as you ensure that the buffer remains alive until the thread
+    has finished (for example, by keeping a reference to the buffer in
+    a :term:`root` or a :term:`scanned <scan>` object).
+
 For leaf objects that can move and be protected, consider
 :ref:`pool-amcz` instead.
 
