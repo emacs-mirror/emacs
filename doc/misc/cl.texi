@@ -1193,6 +1193,9 @@ The only exceptions are plain variables and calls to
 bound on entry, it is simply made unbound by @code{makunbound} or
 @code{fmakunbound} on exit.
 @end ignore
+
+Note that the @file{cl.el} version of this macro behaves slightly
+differently.  @xref{Obsolete Macros}.
 @end defmac
 
 @defmac cl-letf* (bindings@dots{}) forms@dots{}
@@ -1283,11 +1286,13 @@ accordingly for the duration of the body of the @code{cl-flet}; then
 the old function definition, or lack thereof, is restored.
 
 You can use @code{cl-flet} to disable or modify the behavior of a
-function in a temporary fashion.  This will even work on Emacs
-primitives, although note that some calls to primitive functions
-internal to Emacs are made without going through the symbol's
-function cell, and so will not be affected by @code{cl-flet}.  For
-example,
+function in a temporary fashion.  (Compare this with the idea
+of advising functions.
+@xref{Advising Functions,,,elisp,GNU Emacs Lisp Reference Manual}.)
+This will even work on Emacs primitives, although note that some calls
+to primitive functions internal to Emacs are made without going
+through the symbol's function cell, and so will not be affected by
+@code{cl-flet}.  For example,
 
 @example
 (cl-flet ((message (&rest args) (push args saved-msgs)))
@@ -1307,6 +1312,9 @@ Functions defined by @code{cl-flet} may use the full Common Lisp
 argument notation supported by @code{cl-defun}; also, the function
 body is enclosed in an implicit block as if by @code{cl-defun}.
 @xref{Program Structure}.
+
+Note that the @file{cl.el} version of this macro behaves slightly
+differently.  @xref{Obsolete Macros}.
 @end defmac
 
 @defmac cl-labels (bindings@dots{}) forms@dots{}
@@ -1327,6 +1335,9 @@ local recursive functions, or mutually-recursive sets of functions.
 A ``reference'' to a function name is either a call to that
 function, or a use of its name quoted by @code{quote} or
 @code{function} to be passed on to, say, @code{mapcar}.
+
+Note that the @file{cl.el} version of this macro behaves slightly
+differently.  @xref{Obsolete Macros}.
 @end defmac
 
 @node Macro Bindings
