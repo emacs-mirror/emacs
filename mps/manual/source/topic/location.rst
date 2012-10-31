@@ -69,21 +69,24 @@ have not been updated to match.
 .. code-block:: none
 
     MPS Toy Scheme Example
-    10232, 0> (define ht (make-hash-table))
+    10240, 0> (define ht (make-eq-hashtable))
     ht
-    10560, 0> (hash-table-set! ht 'one 1)
-    10744, 0> (hash-table-set! ht 'two 2)
-    10928, 0> (hash-table-set! ht 'three 3)
-    11112, 0> ht
-    #[hash-table (two 2) (three 3) (one 1)]
-    11112, 0> (hash-table-ref ht 'two)
+    10584, 0> (hashtable-set! ht 'one 1)
+    10768, 0> (hashtable-set! ht 'two 2)
+    10952, 0> (hashtable-set! ht 'three 3)
+    11136, 0> ht
+    #[hashtable (two 2) (three 3) (one 1)]
+    11136, 0> (hashtable-ref ht 'two #f)
     2
-    11232, 0> (gc)
-    11256, 1> (hash-table-ref ht 'two)
-    11376, 1> (hash-table-ref ht 'one)
-    11496, 1> (hash-table-ref ht 'three)
-    11616, 1> ht
-    #[hash-table (two 2) (three 3) (one 1)]
+    11280, 0> (gc)
+    11304, 1> (hashtable-ref ht 'one #f)
+    #f
+    11448, 1> (hashtable-ref ht 'two #f)
+    #f
+    11592, 1> (hashtable-ref ht 'three #f)
+    #f
+    11736, 1> ht
+    #[hashtable (two 2) (three 3) (one 1)]
 
 
 .. index::
@@ -315,30 +318,30 @@ location dependency becomes stale and the table has to be rehashed.
     :emphasize-lines: 21, 23
 
     MPS Toy Scheme Example
-    10232, 0> (define ht (make-hash-table))
+    10240, 0> (define ht (make-eq-hashtable))
     ht
-    10576, 0> (hash-table-set! ht 'one 1)
-    10760, 0> ht
-    #[hash-table (one 1)]
-    10760, 0> (gc)
-    10784, 1> (hash-table-ref ht 'one)
+    10584, 0> (hashtable-set! ht 'one 1)
+    10768, 0> ht
+    #[hashtable (one 1)]
+    10768, 0> (gc)
+    10792, 1> (hashtable-ref ht 'one #f)
     Stale!
     1
-    11048, 1> (hash-table-set! ht 'two 2)
-    11232, 1> (gc)
-    11256, 2> (hash-table-ref ht 'one)
+    11080, 1> (hashtable-set! ht 'two 2)
+    11264, 1> (gc)
+    11288, 2> (hashtable-ref ht 'one #f)
     Stale!
     1
-    11520, 2> (hash-table-set! ht 'three 3)
-    11704, 2> (hash-table-ref ht 'two)
+    11576, 2> (hashtable-set! ht 'three 3)
+    11760, 2> (hashtable-ref ht 'two #f)
     2
-    11824, 2> (gc)
-    11848, 3> (hash-table-ref ht 'one)
+    11904, 2> (gc)
+    11928, 3> (hashtable-ref ht 'one #f)
     1
-    11968, 3> (hash-table-ref ht 'two)
+    12072, 3> (hashtable-ref ht 'two #f)
     Stale!
     2
-    12232, 3> (hash-table-ref ht 'three)
+    12360, 3> (hashtable-ref ht 'three #f)
     3
 
 .. note::
