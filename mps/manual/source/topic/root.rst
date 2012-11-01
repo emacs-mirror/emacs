@@ -164,8 +164,8 @@ variable in the function that calls :c:func:`mps_tramp` (the variable
    single: Scheme; thread root
    single: Scheme; trampoline
 
-For example, here's the code from the Scheme example that registers a
-thread root and then trampolines into the program::
+For example, here's the code from the toy Scheme interpreter that
+registers a thread root and then trampolines into the program::
 
     mps_thr_t thread;
     mps_root_t reg_root;
