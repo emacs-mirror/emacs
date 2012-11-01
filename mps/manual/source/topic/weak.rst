@@ -24,7 +24,9 @@ The MPS supports weak references only:
 
 When the MPS determines that a block is only kept alive by one or more
 weak references, it may choose to :dfn:`splat` those references by
-replacing them with null pointers when they are :term:`fixed`.
+replacing them with null pointers when they are :term:`fixed`. When
+all weak references to the block have been splatted, the block may be
+reclaimed.
 
 For example, a :term:`scan method` for objects in an AWL pool might
 look like this::
