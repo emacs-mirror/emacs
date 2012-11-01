@@ -51,19 +51,19 @@ For simplicity, we recommend that a thread must be registered with an
   :c:func:`mps_root_create_reg`); or
 
 * it reads or writes from a location in an :term:`automatically managed
-  <automatic memory management>` :term:`pools` in the arena.
+  <automatic memory management>` :term:`pool` in the arena.
 
 However, some automatically managed pool classes may be more liberal
 than this. See the documentation for the pool class.
 
 .. warning::
 
-    On the Unix platforms, the MPS suspends and resumes threads by
-    sending them signals. There's a shortage of available signals that
-    aren't already dedicated to other purposes (for example,
-    LinuxThreads uses ``SIGUSR1`` and ``SIGUSR2``), so the MPS uses
-    ``SIGXCPU`` and ``SIGXFSZ``. This means that a program that
-    handles these signals needs to co-operate with the MPS.
+    On Unix platforms, the MPS suspends and resumes threads by sending
+    them signals. There's a shortage of available signals that aren't
+    already dedicated to other purposes (for example, LinuxThreads
+    uses ``SIGUSR1`` and ``SIGUSR2``), so the MPS uses ``SIGXCPU`` and
+    ``SIGXFSZ``. This means that a program that handles these signals
+    needs to co-operate with the MPS.
 
     The mechanism for co-operation is currently undocumented: please
     :ref:`contact us <contact>`.
@@ -117,6 +117,20 @@ from inside such an exception handler, that is, inside a call to
 Thread interface
 ----------------
 
+.. c:type:: mps_thr_t
+
+    The type of registered :term:`thread` descriptions.
+
+    In a multi-threaded environment where :term:`incremental garbage
+    collection` is used, threads must be registered with the MPS by
+    calling :c:func:`mps_thread_reg` so that the MPS can suspend them
+    as necessary in order to have exclusive access to their state.
+
+    Even in a single-threaded environment it may be necessary to
+    register a thread with the MPS so that its stack can be registered
+    as a :term:`root` by calling :c:func:`mps_root_create_reg`.
+
+
 .. c:function:: mps_res_t mps_thread_reg(mps_thr_t *thr_o, mps_arena_t arena)
 
     Register the current :term:`thread` with an :term:`arena`.
@@ -161,20 +175,6 @@ Thread interface
 
         It is recommended that threads be deregistered only when they
         are just about to exit.
-
-
-.. c:type:: mps_thr_t
-
-    The type of registered :term:`thread` descriptions.
-
-    In a multi-threaded environment where :term:`incremental garbage
-    collection` is used, threads must be registered with the MPS by
-    calling :c:func:`mps_thread_reg` so that the MPS can suspend them
-    as necessary in order to have exclusive access to their state.
-
-    Even in a single-threaded environment it may be necessary to
-    register a thread with the MPS so that its stack can be registered
-    as a :term:`root` by calling :c:func:`mps_root_create_reg`.
 
 
 .. c:function:: void mps_tramp(void **r_o, mps_tramp_t f, void *p, size_t s)

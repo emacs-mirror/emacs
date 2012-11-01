@@ -105,6 +105,9 @@ For example::
 
     ``chain`` is the generation chain.
 
+    It is an error to destroy a generation chain if there exists a
+    :term:`pool` using the chain. The pool must be destroyed first.
+
 
 .. index::
    single: collection; scheduling
@@ -117,7 +120,7 @@ Scheduling of collections
 
 .. note::
 
-    It's possible that the algorithm the MPS uses to schedule its
+    It's likely that the algorithm the MPS uses to schedule its
     collections will change in future releases. There's a lot of room
     for improvement here.
 
@@ -161,8 +164,8 @@ collector will do each time it has an opportunity to do some work. The constrain
 
 2. The collector needs to keep up with the :term:`client program`:
    that is, it has to collect garbage at least as fast as the client
-   is producing it, otherwise the amount of :term:`floating garbage`
-   will grow without bound.
+   is producing it, otherwise the amount of garbage will grow without
+   bound.
 
 With perfect prediction, the collector's work should be smoothly
 distributed, with a small maximum pause time. Getting the predicted
