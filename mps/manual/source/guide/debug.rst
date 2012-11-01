@@ -107,18 +107,18 @@ might have forgetten to fix the first element of a pair:
     :emphasize-lines: 2
 
     case TYPE_PAIR:
-      /* oops, forgot: FIX(obj->pair.car); */
-      FIX(obj->pair.cdr);
+      /* oops, forgot: FIX(CAR(obj)); */
+      FIX(CDR(obj));
       base = (char *)base + ALIGN(sizeof(pair_s));
       break;
 
 This means that as far as the MPS is concerned, the first element of
 the pair is :term:`unreachable` and so :term:`dead`, so after
 collecting the region of memory containing this object, the space will
-be reused for other objects. So the pointer ``obj->pair.car`` might
-end up pointing to the start of a valid object (but the wrong one), or
-to the middle of a valid object, or to an unused region of memory, or
-into an MPS internal control structure.
+be reused for other objects. So ``CAR(obj)`` might end up pointing to
+the start of a valid object (but the wrong one), or to the middle of a
+valid object, or to an unused region of memory, or into an MPS
+internal control structure.
 
 The reproducible test case is simple. Run a garbage collection by
 calling ``(gc)`` and then evaluate any expression::

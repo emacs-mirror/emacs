@@ -164,9 +164,9 @@ references from one dependency to another.
 
 For example, in an address-based hash table implementation, each key
 that is added to the table must be added to the dependency before its
-address is hashed. In the Scheme example, addresses are hashed during
-the call to the function ``buckets_find``, so the key must be added to
-the location dependency before that:
+address is hashed. In the toy Scheme interpreter, addresses are hashed
+during the call to the function ``buckets_find``, so the key must be
+added to the location dependency before that:
 
 .. code-block:: c
     :emphasize-lines: 4

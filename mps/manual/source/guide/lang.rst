@@ -65,6 +65,8 @@ language::
         port_s port;
         character_s character;
         vector_s vector;
+        table_s table;
+        buckets_s buckets;
     } obj_s;
 
 Each of these types is a structure whose first word is a number
@@ -334,8 +336,8 @@ Here's the scan method for the Scheme interpreter::
                 obj_t obj = base;
                 switch (TYPE(obj)) {
                 case TYPE_PAIR:
-                    FIX(obj->pair.car);
-                    FIX(obj->pair.cdr);
+                    FIX(CAR(obj));
+                    FIX(CDR(obj));
                     base = (char *)base + ALIGN(sizeof(pair_s));
                     break;
                 case TYPE_INTEGER:
@@ -521,8 +523,8 @@ Here's the forward method for the Scheme interpreter::
         obj_t obj = old;
         mps_addr_t limit = obj_skip(old);
         size_t size = (char *)limit - (char *)old;
-        assert(size >= ALIGN(sizeof(fwd2_s)));
-        if (size == ALIGN(sizeof(fwd2_s))) {
+        assert(size >= ALIGN_UP(sizeof(fwd2_s)));
+        if (size == ALIGN_UP(sizeof(fwd2_s))) {
             TYPE(obj) = TYPE_FWD2;
             obj->fwd2.fwd = new;
         } else {
@@ -539,22 +541,34 @@ The fowarding objects must be scannable and skippable, so the
 following code must be added to ``obj_scan`` and ``obj_skip``::
 
     case TYPE_FWD:
-        base = (char *)base + ALIGN(obj->fwd.size);
+        base = (char *)base + ALIGN_UP(obj->fwd.size);
         break;
     case TYPE_FWD2:
-        base = (char *)base + ALIGN(sizeof(fwd2_s));
+        base = (char *)base + ALIGN_UP(sizeof(fwd2_s));
         break;
 
 .. note::
 
-    The Scheme interpreter has no objects consisting of a single word.
-    If it did, this would present problems for the design of the
-    forwarding object. The best approach in such a case would be to
-    allocate the single-word objects from a separate pool: if, as
-    seems likely, these objects do not contain references, they could
-    be allocated from the :ref:`pool-amcz` pool, and so the cost of
-    scanning them could be avoided.
-    
+    Objects that consist of a single word present a problem for the
+    design of the forwarding object. In the Scheme interpreter, this
+    happens on some 64-bit platforms, where a point is 8 bytes long,
+    but a ``character_s`` object (which consists of a 4-byte ``int``
+    and a 1-byte ``char``) is also 8 bytes long.
+
+    There are a couple of solutions to this problem:
+
+    1. Allocate the small objects with enough padding so that they can
+       be forwarded. (This is how the problem is solved in the toy
+       Scheme interpreter.)
+
+    2. Use a :term:`tag` to distinguish between the client object and
+       a forwarding object that replaces it. It might help to allocate
+       the small objects in their own pool so that the number of types
+       that the scan method has to distinguish is minimized. Since
+       these objects do not contain references, they could be
+       allocated from the :ref:`pool-amcz` pool, and so the cost of
+       scanning them could be avoided.
+
 .. topics::
 
     :ref:`topic-format`.
@@ -1275,5 +1289,5 @@ If everything is working for your language, then the next step is
 the chapter :ref:`guide-perf`.
 
 But in the more likely event that things don't work out quite as
-smoothly for your language as they did in the Scheme example, then
+smoothly for your language as they did in the Scheme interpreter, then
 you'll be more interested in the chapter :ref:`guide-debug`.
