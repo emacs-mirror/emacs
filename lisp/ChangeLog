@@ -1,3 +1,8 @@
+2012-11-01  Stephen Berman  <stephen.berman@gmx.net>
+
+	* play/gomoku.el (gomoku-display-statistics): Update mode line
+	only if in Gomoku buffer; don't capitalize "won" (Bug#12771).
+
 2012-10-31  Martin Rudalics  <rudalics@gmx.at>
 
 	* window.el (quit-restore-window): If the window has been
