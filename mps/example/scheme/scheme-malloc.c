@@ -1351,10 +1351,11 @@ static obj_t entry_define(obj_t env, obj_t op_env, obj_t operator, obj_t operand
 {
   obj_t symbol, value;
   unless(TYPE(operands) == TYPE_PAIR &&
-         TYPE(CDR(operands)) == TYPE_PAIR &&
-         CDDR(operands) == obj_empty)
+         TYPE(CDR(operands)) == TYPE_PAIR)
     error("%s: illegal syntax", operator->operator.name);
   if(TYPE(CAR(operands)) == TYPE_SYMBOL) {
+    unless(CDDR(operands) == obj_empty)
+      error("%s: too many arguments", operator->operator.name);
     symbol = CAR(operands);
     value = eval(env, op_env, CADR(operands));
   } else if(TYPE(CAR(operands)) == TYPE_PAIR &&
@@ -2170,6 +2171,111 @@ static obj_t entry_open_input_file(obj_t env, obj_t op_env, obj_t operator, obj_
 }
 
 
+/* (open-output-file filename)
+ * Takes a string naming an output file to be created and returns an
+ * output port capable of writing characters to a new file by that
+ * name. If the file cannot be opened, an error is signalled. If a
+ * file with the given name already exists, the effect is unspecified.
+ * See R4RS 6.10.1
+ */
+static obj_t entry_open_output_file(obj_t env, obj_t op_env, obj_t operator, obj_t operands)
+{
+  obj_t filename;
+  FILE *stream;
+  eval_args(operator->operator.name, env, op_env, operands, 1, &filename);
+  unless(TYPE(filename) == TYPE_STRING)
+    error("%s: argument must be a string", operator->operator.name);
+  stream = fopen(filename->string.string, "w");
+  if(stream == NULL)
+    /* TODO: "an error is signalled" */
+    error("%s: cannot open output file", operator->operator.name);
+  return make_port(filename, stream);
+}
+
+
+/* (close-input-port port)
+ * (close-output-port port)
+ * Closes the file associated with port, rendering the port incapable
+ * of delivering or accepting characters. These routines have no
+ * effect if the file has already been closed. The value returned is
+ * unspecified.
+ * See R4RS 6.10.1.
+ */
+static obj_t entry_close_port(obj_t env, obj_t op_env, obj_t operator, obj_t operands)
+{
+  obj_t port;
+  eval_args(operator->operator.name, env, op_env, operands, 1, &port);
+  unless(TYPE(port) == TYPE_PORT)
+    error("%s: argument must be a port", operator->operator.name);
+  port->port.stream = NULL;
+  return obj_undefined;
+}
+
+
+static FILE *rest_port_stream(obj_t operator, obj_t rest, const char *argnumber, FILE *default_stream) {
+  FILE *stream = default_stream;
+  unless(rest == obj_empty) {
+    unless(CDR(rest) == obj_empty)
+      error("%s: too many arguments", operator->operator.name);
+    unless(TYPE(CAR(rest)) == TYPE_PORT)
+      error("%s: %s argument must be a port", operator->operator.name, argnumber);
+    stream = CAR(rest)->port.stream;
+    unless(stream)
+      error("%s: port is closed", operator->operator.name);
+  }
+  return stream;
+}
+
+
+/* (write obj)
+ * (write obj port)
+ * Writes a written representation of obj to the given port. Strings
+ * that appear in the written representation are enclosed in
+ * doublequotes, and within those strings backslash and doublequote
+ * characters are escaped by backslashes. Write returns an unspecified
+ * value. The port argument may be omitted, in which case it defaults
+ * to the value returned by current-output-port.
+ * See R4RS 6.10.3.
+ */
+static obj_t entry_write(obj_t env, obj_t op_env, obj_t operator, obj_t operands)
+{
+  obj_t arg, rest;
+  eval_args_rest(operator->operator.name, env, op_env, operands, &rest, 1, &arg);
+  /* TODO: default to current-output-port */
+  print(arg, -1, rest_port_stream(operator, rest, "second", stdout));
+  return obj_undefined;
+}
+
+
+static obj_t entry_write_string(obj_t env, obj_t op_env, obj_t operator, obj_t operands)
+{
+  obj_t arg, rest;
+  eval_args_rest(operator->operator.name, env, op_env, operands, &rest, 1, &arg);
+  unless(TYPE(arg) == TYPE_STRING)
+    error("%s: first argument must be a string", operator->operator.name);
+  /* TODO: default to current-output-port */
+  fputs(arg->string.string, rest_port_stream(operator, rest, "second", stdout));
+  return obj_undefined;
+}
+
+
+/* (newline)
+ * (newline port)
+ * Writes an end of line to port. Exactly how this is done differs
+ * from one operating system to another. Returns an unspecified value.
+ * The port argument may be omitted, in which case it defaults to the
+ * value returned by current-output-port.
+ */
+static obj_t entry_newline(obj_t env, obj_t op_env, obj_t operator, obj_t operands)
+{
+  obj_t rest;
+  eval_args_rest(operator->operator.name, env, op_env, operands, &rest, 0);
+  /* TODO: default to current-output-port */
+  putc('\n', rest_port_stream(operator, rest, "first", stdout));
+  return obj_undefined;
+}
+
+
 /* TODO: This doesn't work if the promise refers to its own value. */
 
 static obj_t entry_force(obj_t env, obj_t op_env, obj_t operator, obj_t operands)
@@ -2245,13 +2351,11 @@ static obj_t entry_vectorp(obj_t env, obj_t op_env, obj_t operator, obj_t operan
 
 static obj_t entry_make_vector(obj_t env, obj_t op_env, obj_t operator, obj_t operands)
 {
-  obj_t length, rest, fill;
+  obj_t length, rest, fill = obj_undefined;
   eval_args_rest(operator->operator.name, env, op_env, operands, &rest, 1, &length);
   unless(TYPE(length) == TYPE_INTEGER)
     error("%s: first argument must be an integer", operator->operator.name);
-  if(rest == obj_empty)
-    fill = obj_undefined;
-  else {
+  unless(rest == obj_empty) {
     unless(CDR(rest) == obj_empty)
       error("%s: too many arguments", operator->operator.name);
     fill = CAR(rest);
@@ -2847,6 +2951,12 @@ static struct {char *name; entry_t entry;} funtab[] = {
   {"reverse", entry_reverse},
   {"the-environment", entry_environment},
   {"open-input-file", entry_open_input_file},
+  {"open-output-file", entry_open_output_file},
+  {"close-input-port", entry_close_port},
+  {"close-output-port", entry_close_port},
+  {"write", entry_write},
+  {"write-string", entry_write_string},
+  {"newline", entry_newline},
   {"force", entry_force},
   {"char?", entry_charp},
   {"char->integer", entry_char_to_integer},
