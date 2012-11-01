@@ -1,3 +1,7 @@
+2012-11-01  Glenn Morris  <rgm@gnu.org>
+
+	* cl.texi: General copyedits for style, line-breaks, etc.
+
 2012-10-31  Glenn Morris  <rgm@gnu.org>
 
 	* ert.texi (Introduction, The @code{should} Macro):
