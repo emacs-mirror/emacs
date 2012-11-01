@@ -79,35 +79,35 @@ it makes no sense to ask whether they may contain :term:`weak
 references (1)`.
 
 
-=============================================  =====  =====  =====  =====  =====  =====  =====  =====  =====
-Property                                       AMC    AMCZ   AMS    AWL    LO     MV     MVFF   MVT    SNC
-=============================================  =====  =====  =====  =====  =====  =====  =====  =====  =====
-Supports :c:func:`mps_alloc`?                  no     no     no     no     no     yes    yes    no     no
-Supports :c:func:`mps_free`?                   no     no     no     no     no     yes    yes    yes    no
-Supports allocation points?                    yes    yes    yes    yes    yes    no     yes    yes    yes
-Supports allocation frames?                    yes    yes    yes    yes    yes    no     yes    yes    yes
-Supports segregated allocation caches?         no     no     no     no     no     yes    yes    no     no
-Timing of collections? [2]_                    auto   auto   auto   auto   auto   ---    ---    ---    ---
-May contain references? [3]_                   yes    no     yes    yes    no     no     no     no     yes
-May contain exact references? [4]_             yes    ---    yes    yes    ---    ---    ---    ---    yes
-May contain ambiguous references? [4]_         no     ---    no     no     ---    ---    ---    ---    no
-May contain weak references? [4]_              no     ---    no     yes    ---    ---    ---    ---    no
-Allocations fixed or variable in size?         var    var    var    var    var    var    var    var    var
-Alignment? [5]_                                conf   conf   conf   conf   conf   [6]_   [7]_   [6]_   conf
-Dependent objects? [8]_                        no     ---    no     yes    ---    ---    ---    ---    no
-May use remote references? [9]_                no     ---    no     no     ---    ---    ---    ---    no
-Ambiguous references keep blocks alive?        no     no     no     no     no     ---    ---    ---    no
-Blocks are automatically managed? [10]_        yes    yes    yes    yes    yes    no     no     no     no
-Blocks are manually managed? [10]_             no     no     no     no     no     yes    yes    yes    yes
-Blocks are scanned? [11]_                      yes    no     yes    yes    no     no     no     no     yes
-Blocks support base pointers only? [12]_       yes    yes    yes    yes    yes    ---    ---    ---    yes
-Blocks support internal pointers? [12]_        no     no     no     no     no     ---    ---    ---    no
-Blocks may be protected by barriers?           yes    no     yes    yes    yes    no     no     no     yes
-Blocks may move?                               yes    yes    no     no     no     no     no     no     no
-Blocks may be finalized?                       yes    yes    yes    yes    yes    no     no     no     no
-Blocks must be formatted? [11]_                yes    yes    yes    yes    yes    no     no     no     yes
-Blocks may belong to format auto-header?       yes    yes    yes    yes    yes    ---    ---    ---    no
-=============================================  =====  =====  =====  =====  =====  =====  =====  =====  =====
+=============================================  =====  =====  =====  =====  =====  =====  =====  =====  =====  =====
+Property                                       AMC    AMCZ   AMS    AWL    LO     MFS    MV     MVFF   MVT    SNC
+=============================================  =====  =====  =====  =====  =====  =====  =====  =====  =====  =====
+Supports :c:func:`mps_alloc`?                  no     no     no     no     no     yes    yes    yes    no     no
+Supports :c:func:`mps_free`?                   no     no     no     no     no     yes    yes    yes    yes    no
+Supports allocation points?                    yes    yes    yes    yes    yes    no     no     yes    yes    yes
+Supports allocation frames?                    yes    yes    yes    yes    yes    no     no     yes    yes    yes
+Supports segregated allocation caches?         no     no     no     no     no     yes    yes    yes    no     no
+Timing of collections? [2]_                    auto   auto   auto   auto   auto   ---    ---    ---    ---    ---
+May contain references? [3]_                   yes    no     yes    yes    no     no     no     no     no     yes
+May contain exact references? [4]_             yes    ---    yes    yes    ---    ---    ---    ---    ---    yes
+May contain ambiguous references? [4]_         no     ---    no     no     ---    ---    ---    ---    ---    no
+May contain weak references? [4]_              no     ---    no     yes    ---    ---    ---    ---    ---    no
+Allocations fixed or variable in size?         var    var    var    var    var    fixed  var    var    var    var
+Alignment? [5]_                                conf   conf   conf   conf   conf   [6]_   [6]_   [7]_   [6]_   conf
+Dependent objects? [8]_                        no     ---    no     yes    ---    ---    ---    ---    ---    no
+May use remote references? [9]_                no     ---    no     no     ---    ---    ---    ---    ---    no
+Ambiguous references keep blocks alive?        no     no     no     no     no     ---    ---    ---    ---    no
+Blocks are automatically managed? [10]_        yes    yes    yes    yes    yes    no     no     no     no     no
+Blocks are manually managed? [10]_             no     no     no     no     no     yes    yes    yes    yes    yes
+Blocks are scanned? [11]_                      yes    no     yes    yes    no     no     no     no     no     yes
+Blocks support base pointers only? [12]_       yes    yes    yes    yes    yes    ---    ---    ---    ---    yes
+Blocks support internal pointers? [12]_        no     no     no     no     no     ---    ---    ---    ---    no
+Blocks may be protected by barriers?           yes    no     yes    yes    yes    no     no     no     no     yes
+Blocks may move?                               yes    yes    no     no     no     no     no     no     no     no
+Blocks may be finalized?                       yes    yes    yes    yes    yes    no     no     no     no     no
+Blocks must be formatted? [11]_                yes    yes    yes    yes    yes    no     no     no     no     yes
+Blocks may belong to format auto-header?       yes    yes    yes    yes    yes    ---    ---    ---    ---    no
+=============================================  =====  =====  =====  =====  =====  =====  =====  =====  =====  =====
 
 .. note::
 
@@ -117,8 +117,9 @@ Blocks may belong to format auto-header?       yes    yes    yes    yes    yes  
            <automatic memory management>` and :term:`incrementally
            <incremental garbage collection>`.
 
-    .. [3] Pools that may not contain references are suitable for
-           storing :term:`leaf objects` only.
+    .. [3] The references in question are references to blocks in
+           :term:`automatically managed <automatic memory management>`
+           :term:`pools`.
 
     .. [4] Pools "may contain :term:`ambiguous <ambiguous reference>` /
            :term:`exact <exact reference>` / :term:`weak <weak
@@ -132,9 +133,9 @@ Blocks may belong to format auto-header?       yes    yes    yes    yes    yes  
     .. [6] The alignment of blocks allocated from :ref:`pool-mv` and
            :ref:`pool-mvt` pools is platform-dependent.
 
-    .. [7] :ref:`pool-mvff` pools have configurable alignment, but it may
-           not be smaller than :c:macro:`MPS_PF_ALIGN` (the :term:`natural
-           alignment` for the :term:`platform`).
+    .. [7] :ref:`pool-mvff` pools have configurable alignment, but it
+           may not be smaller than the :term:`natural alignment` for
+           the :term:`platform` (see :c:macro:`MPS_PF_ALIGN`).
 
     .. [8] In pools with this property, each object may specify an
            :term:`dependent object` which the client program

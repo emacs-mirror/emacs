@@ -21,12 +21,12 @@ Outstanding
 37. Need a ``scheme-advanced.c`` to illustrate advanced topics:
 
     * Segregate objects into multiple pools (e.g. strings and integers
-      into :ref:`pool-amcz`).
+      into :ref:`pool-amcz`). [DONE]
     * Global symbol table under MPS management.
     * Tagged references.
     * Unboxed values.
     * "Bumming cycles out of scan" using tags.
-    * Weak hash table.
+    * Weak hashtable. [DONE]
 
     Compare the performance with the plain ``scheme.c``. The advanced
     version better be faster!
@@ -51,9 +51,6 @@ Outstanding
 
 126. Things that are "within reach", i.e. that we could do if people
      needed them. (RB needs to write this.)
-
-140. Document MFS. Explain how it works (putting link in the free
-     block) and how this is unlike other pools.
 
 144. In AWL, what are the restrictions on the dependent object? Must
      it be another object in AWL? What are we allowed to do with it?
@@ -976,7 +973,7 @@ Complete
 
      *Answer:* that's because we hit it: it didn't move.
 
-121. Documentation needs copying into scheme.c.
+121. Documentation needs copying into ``scheme.c``.
 
 122. What's a "class structure"? (See :c:func:`mps_sac_alloc` and
      :c:func:`mps_sac_free`.) Does it mean "exactly the same set of
@@ -1020,18 +1017,21 @@ Complete
 
      .. _job003348: https://info.ravenbrook.com/project/mps/issue/job003348/
 
-130. readme.txt should contain a brief overview and pointers to more
-     documentation, and should (only) duplicate other documentation.
-     There's nothing wrong with it being somewhat redundant. Its
-     supported platforms section doesn't exist elsewhere. Note that
-     the platforms we build with (in build.txt) is not the same list.
+130. ``readme.txt`` should contain a brief overview and pointers to
+     more documentation, and should (only) duplicate other
+     documentation. There's nothing wrong with it being somewhat
+     redundant. Its supported platforms section doesn't exist
+     elsewhere. Note that the platforms we build with (in
+     ``build.txt``) is not the same list.
 
 131. Is :c:type:`mps_clock_t` a transparent alias for ``unsigned
      long``? I presume it must be: if it were platform-specific, or
      supplied by the plinth, then it wouldn't be defined in ``mps.h``,
      surely?
 
-     *Answer:* this is a bug, fixed in change 180151.
+     *Answer:* this is a bug, fixed in `change 180151`_.
+
+    .. _change 180151: http://info.ravenbrook.com/infosys/cgi/perfbrowse.cgi?@describe+180151
 
 132. :c:func:`mps_lib_get_stderr` appears in ``mpslib.h`` and
      ``mpsliban.c`` but is not called by the MPS (it uses
@@ -1039,8 +1039,11 @@ Complete
      documented to reserve the option of using it, or should it be
      left out?
 
-     *Action:* Keep stderr documented. Add a note that it's not used
-     but for possible future use. Same thing about stdout.
+     Similar question for :c:func:`mps_lib_get_stdout`: it's used, but
+     only by the "diagnostic" code which has no public interface.
+
+     *Action:* Keep ``stderr`` documented. Add a note that it's not used
+     but for possible future use. Same thing about ``stdout``.
 
 133. What's the purpose of ``mps_SEH_filter`` and ``mps_SEH_handler``?
      Do they need to be documented?
@@ -1097,6 +1100,9 @@ Complete
 
      *Action:* added to `job003350`_.
 
+140. Document MFS. Explain how it works (putting link in the free
+     block) and how this is unlike other pools.
+
 141. Do we support instruction emulation on x86-64? DL says that it's
      not in yet. What about OS X?
 
@@ -1107,6 +1113,10 @@ Complete
 142. Weakness: how to detect splatting. (In scan.) Cope with NULL. Do
      all references get splatted at the same time?
 
+     *Action:* created :ref:`topic-weak`.
+
 143. Document the purpose of AWL and explain that it's for OpenDylan.
-     If you require more general implementation of weakness, contact
-     us.
+     "If you require more general implementation of weakness, contact
+     us."
+
+     *Action:* see :ref:`pool-awl`.
