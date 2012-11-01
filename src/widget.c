@@ -650,6 +650,16 @@ EmacsFrameInitialize (Widget request, Widget new, ArgList dum1, Cardinal *dum2)
   set_frame_size (ew);
 }
 
+static void
+resize_cb (Widget widget,
+           XtPointer closure,
+           XEvent* event,
+           Boolean* continue_to_dispatch)
+{
+  EmacsFrame ew = (EmacsFrame) widget;
+  EmacsFrameResize (widget);
+}
+
 
 static void
 EmacsFrameRealize (Widget widget, XtValueMask *mask, XSetWindowAttributes *attrs)
@@ -665,6 +675,9 @@ EmacsFrameRealize (Widget widget, XtValueMask *mask, XSetWindowAttributes *attrs
   *mask |= CWEventMask;
   XtCreateWindow (widget, InputOutput, (Visual *)CopyFromParent, *mask,
 		  attrs);
+  /* Some ConfigureNotify events does not end up in EmacsFrameResize so
+     make sure we get them all.  Seen with xfcwm4 for example.  */
+  XtAddRawEventHandler (widget, StructureNotifyMask, False, resize_cb, NULL);
   update_wm_hints (ew);
 }
 
@@ -691,15 +704,22 @@ EmacsFrameResize (Widget widget)
 {
   EmacsFrame ew = (EmacsFrame)widget;
   struct frame *f = ew->emacs_frame.frame;
+  struct x_output *x = f->output_data.x;
   int columns;
   int rows;
 
   pixel_to_char_size (ew, ew->core.width, ew->core.height, &columns, &rows);
-  change_frame_size (f, rows, columns, 0, 1, 0);
-  update_wm_hints (ew);
-  update_various_frame_slots (ew);
+  if (columns != FRAME_COLS (f)
+      || rows != FRAME_LINES (f)
+      || ew->core.width != FRAME_PIXEL_WIDTH (f)
+      || ew->core.height + x->menubar_height != FRAME_PIXEL_HEIGHT (f))
+    {
+      change_frame_size (f, rows, columns, 0, 1, 0);
+      update_wm_hints (ew);
+      update_various_frame_slots (ew);
 
-  cancel_mouse_face (f);
+      cancel_mouse_face (f);
+    }
 }
 
 static Boolean
