@@ -13,6 +13,7 @@ Pool reference
    ams
    awl
    lo
+   mfs
    mv
    mvff
    mvt
