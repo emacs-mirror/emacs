@@ -215,7 +215,7 @@ Virtual memory arenas
     :term:`bytes (1)`, that the arena will reserve (this space is
     initially reserved so that the arena can subsequently use it
     without interference from other parts of the program, but most of
-    it is not committed, so it don't require any RAM or backing
+    it is not committed, so it doesn't require any RAM or backing
     store). The arena may allocate more virtual address space beyond
     this initial reservation as and when it deems it necessary. The
     MPS is most efficient if you reserve an address space that is
@@ -246,8 +246,8 @@ Arena properties
 
 .. c:function:: mps_word_t mps_collections(mps_arena_t arena)
 
-    Return the number of :term:`collection cycles`
-    that have been completed on an :term:`arena` since it was created.
+    Return the number of :term:`flips` that have taken place in an
+    :term:`arena` since it was created.
 
     ``arena`` is the arena.
 
@@ -534,10 +534,6 @@ can only be called in this state.
     While an arena is unclamped, :term:`garbage collection`, object
     motion, and other background activity can take place.
 
-    .. seealso::
-
-        :ref:`topic-collection`.
-
 
 .. index::
    single: garbage collection; running
@@ -621,7 +617,7 @@ incremental work, by calling ``mps_arena_step(arena, 0.010,
 0.0)``. When this returns false to indicate that there is no more work
 to do, the program blocks on the client for two seconds: if this times
 out, it predicts that the user will remain idle for at least a further
-second, so it calls ``mps_arena_step(arena, 0.010, 99.0)`` to tell
+second, so it calls ``mps_arena_step(arena, 0.010, 100.0)`` to tell
 that it's a good time to start a collection taking up to 10 ms × 100
 = 1 second, but not to pause for more than 10 ms.
 
@@ -809,8 +805,8 @@ Protection interface
     MPS has in fact remembered the protection state.
 
     The remembered protection state, if any, is discarded after
-    calling calling :c:func:`mps_arena_unsafe_restore_protection`, or
-    as soon as the arena leaves the :term:`clamped state` by calling
+    calling :c:func:`mps_arena_unsafe_restore_protection`, or as soon
+    as the arena leaves the :term:`clamped state` by calling
     :c:func:`mps_arena_release`.
 
 

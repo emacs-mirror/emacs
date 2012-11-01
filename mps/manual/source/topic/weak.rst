@@ -71,3 +71,11 @@ after calling :c:func:`MPS_FIX2` then it must have just been splatted.
     pool class supports this by allowing you to specify for each
     object, a :term:`dependent object` which may be written to by the
     :term:`scan method`. See :ref:`pool-awl-dependent`.
+
+.. note::
+
+    Weak references do not prevent blocks from being :term:`finalized
+    <finalization>`. At the point that a block is finalized, weak
+    references will still validly refer to the block. The fact that a
+    block is registered for finalization prevents weak references to
+    that block from being deleted.

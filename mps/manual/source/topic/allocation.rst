@@ -436,7 +436,7 @@ Example: inserting into a doubly linked list
 This example contains several mistakes. See the highlighted lines:
 
 .. code-block:: c
-    :emphasize-lines: 20, 21, 22, 24
+    :emphasize-lines: 21, 22, 23, 25
 
     typedef struct link_s {
         type_t type;                       /* TYPE_LINK */
@@ -456,6 +456,7 @@ This example contains several mistakes. See the highlighted lines:
             mps_res_t res = mps_reserve(&p, ap, size);
             if (res != MPS_RES_OK) error("out of memory");
             link = p;
+            link->type = TYPE_LINK;
             link->prev = head;
             link->next = link->prev->next; /* (1) */
             head->next = link;             /* (2) */
@@ -490,6 +491,7 @@ A correct version of ``insert_link`` looks like this::
             mps_res_t res = mps_reserve(&p, ap, size);
             if (res != MPS_RES_OK) error("out of memory");
             link = p;
+            link->type = TYPE_LINK;
             link->prev = head;
             link->next = head->next;
             link->obj = obj;

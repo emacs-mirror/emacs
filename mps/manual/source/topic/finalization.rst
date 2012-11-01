@@ -262,8 +262,8 @@ Cautions
     .. note::
 
         Under normal circumstances, finalization code can assume that
-        objects referenced by the object being finalized ("object A")
-        have themselves not yet been finalized. (Because object A is
+        objects referenced by the object being finalized ("object F")
+        have themselves not yet been finalized. (Because object F is
         keeping them alive.) If finalization code is run at program
         exit, this assumption is no longer true. It is much more
         difficult to write correct code if it has to run under both

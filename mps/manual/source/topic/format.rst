@@ -61,7 +61,7 @@ copying and moving pools.
 * Variant A (:c:type:`mps_fmt_A_s`): for objects without
   :term:`headers <in-band header>`.
 
-* Variant B (:c:type:`mps_fmt_A_s`): as variant A, but with the
+* Variant B (:c:type:`mps_fmt_B_s`): as variant A, but with the
   addition of a class method.
 
 * Variant auto-header (:c:type:`mps_fmt_auto_header_s`): for objects
@@ -243,7 +243,7 @@ For example::
         the header is stored).
 
         In particular, :c:func:`mps_reserve` and :c:func:`mps_alloc`
-        always hand out base pointers, and :c:func:`mps_free` expectst
+        always hand out base pointers, and :c:func:`mps_free` expects
         to receive one.
 
     .. note::
@@ -258,11 +258,6 @@ For example::
         :term:`alignment`, the :term:`padding method` must still be
         able to create :term:`padding objects` down
         to the alignment size.
-
-    .. note::
-
-        Variant auto-header is only supported by :ref:`pool-amc` and
-        :ref:`pool-amcz`.
 
 
 .. c:function:: mps_res_t mps_fmt_create_auto_header(mps_fmt_t *fmt_o, mps_arena_t arena, mps_fmt_auto_header_s *fmt_ah)

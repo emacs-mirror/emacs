@@ -100,7 +100,7 @@ Example: underscanning
 
 An easy mistake to make is to omit to :term:`fix` a :term:`reference`
 when :term:`scanning <scan>` a :term:`formatted object`. For example,
-in the Scheme intrepreter's :ref:`scan method <guide-lang-scan>`, I
+in the Scheme interpreter's :ref:`scan method <guide-lang-scan>`, I
 might have forgetten to fix the first element of a pair:
 
 .. code-block:: c
