@@ -83,7 +83,7 @@ return a block of memory to the pool) and others are
 :term:`automatically managed <automatic memory management>` (the
 :term:`garbage collector` reclaims :term:`unreachable` blocks).
 
-See :ref:`pool` for a list of pool classes.
+See the :ref:`pool` for a list of pool classes.
 
 
 .. c:type:: mps_class_t
@@ -92,8 +92,8 @@ See :ref:`pool` for a list of pool classes.
 
     .. note::
 
-        This should really be called ``mps_pool_class_t`` but it is
-        too late to change it now.
+        This should really have been called ``mps_pool_class_t`` but
+        it is too late to change it now.
 
 
 .. index::

@@ -17,13 +17,13 @@ managed <automatic memory management>` :term:`pools`) reclaims
 the :term:`unreachable` blocks. This is quite efficient and can be a
 very good approximation to :term:`liveness <live>`.
 
-It is therefore important that the all :term:`references`
-that the :term:`client program` can directly access are registered as
-roots, otherwise the garbage collector might recycle an object that
-would be used in the future. Some collectors, for example Boehm's,
-assume that all references stored in static data are roots; the Memory
-Pool System is more flexible, but requires the client program to
-declare which references are roots.
+It is therefore important that all :term:`references` that the
+:term:`client program` can directly access are registered as roots,
+otherwise the garbage collector might recycle an object that would be
+used in the future. Some collectors, for example Boehm's, assume that
+all references stored in static data are roots; the Memory Pool System
+is more flexible, but requires the client program to declare which
+references are roots.
 
 
 .. index::
@@ -223,9 +223,9 @@ Root modes
 ----------
 
 The root mode provides a way for the client to declare various facts
-about a root that will allow the MPS to make optimizations. Roots that
-are declared to be *constant* need not be re-scanned, and roots that
-are declared to be *protectable* may have barriers placed on them,
+about a root that allow the MPS to make optimizations. Roots that are
+declared to be *constant* need not be re-scanned, and roots that are
+declared to be *protectable* may have barriers placed on them,
 allowing the MPS to detect whether they have changed.
 
 .. note::
@@ -239,12 +239,23 @@ allowing the MPS to detect whether they have changed.
 
     The type of :term:`root modes`.
 
-    It should be the sum of some subset of :c:macro:`MPS_RM_CONST` and
-    :c:macro:`MPS_RM_PROT`, or zero (meaning neither constant or
-    protectable).
+    It should be zero (meaning neither constant or protectable), or
+    the sum of some subset of :c:macro:`MPS_RM_CONST` and
+    :c:macro:`MPS_RM_PROT`.
 
 
 .. c:macro:: MPS_RM_CONST
+
+    .. deprecated:: starting with version 1.111.
+
+        This was introduced in the hope of being able to maintain a
+        :term:`remembered set` for the root without needing a
+        :term:`write barrier`, but it can't work as described, since
+        you can't reliably a valid registered constant root that
+        contains any references. (If you add the references before
+        registering the root, they may have become invalid; but you
+        can't add them afterwards because the root is supposed to be
+        constant.)
 
     The :term:`root mode` for :term:`constant roots`.
     This tells the MPS that the :term:`client program` will not change
@@ -253,14 +264,6 @@ allowing the MPS to detect whether they have changed.
     every time. Furthermore, for roots registered by
     :c:func:`mps_root_create_fmt` and :c:func:`mps_root_create_table`,
     the client program will not write to the root at all.
-
-    .. deprecated:: starting with version 1.111.
-
-        This was introduced in the hope of being able to maintain a
-        :term:`remembered set` for the root without needing a
-        :term:`write barrier`, but it can't work as described, since
-        you can never make a valid registered root containing any
-        references.
 
 .. c:macro:: MPS_RM_PROT
 
@@ -475,10 +478,6 @@ Root interface
     passed to :c:func:`mps_thread_reg`. References are assumed to be
     represented as machine words, and are required to be
     4-byte-aligned; unaligned values are ignored.
-
-    .. seealso::
-
-        :ref:`topic-platform`, :ref:`topic-root`.
 
     .. note::
 
