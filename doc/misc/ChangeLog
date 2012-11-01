@@ -1,6 +1,10 @@
 2012-11-01  Glenn Morris  <rgm@gnu.org>
 
 	* cl.texi: General copyedits for style, line-breaks, etc.
+	(Time of Evaluation, Iteration): Add xref to Emacs Lisp manual.
+	(Macro Bindings, Blocks and Exits):
+	Acknowledge existence of lexical-binding.
+	(Iteration): Mainly defer to doc of standard dolist, dotimes.
 
 2012-10-31  Glenn Morris  <rgm@gnu.org>
 

@@ -300,6 +300,7 @@ calls to it may be expanded into in-line code by the byte compiler.
 This is analogous to the @code{defsubst} form;
 @code{cl-defsubst} uses a different method (compiler macros) which
 works in all versions of Emacs, and also generates somewhat more
+@c Really?
 efficient inline expansions.  In particular, @code{cl-defsubst}
 arranges for the processing of keyword arguments, default values,
 etc., to be done at compile-time whenever possible.
@@ -309,7 +310,8 @@ etc., to be done at compile-time whenever possible.
 This is identical to the regular @code{defmacro} form,
 except that @var{arglist} is allowed to be a full Common Lisp
 argument list.  The @code{&environment} keyword is supported as
-described in Steele.  The @code{&whole} keyword is supported only
+described in Steele's book @cite{Common Lisp, the Language}.
+The @code{&whole} keyword is supported only
 within destructured lists (see below); top-level @code{&whole}
 cannot be implemented with the current Emacs Lisp interpreter.
 The macro expander body is enclosed in an implicit block called
@@ -462,7 +464,7 @@ Argument lists support @dfn{destructuring}.  In Common Lisp,
 destructuring is only allowed with @code{defmacro}; this package
 allows it with @code{cl-defun} and other argument lists as well.
 In destructuring, any argument variable (@var{var} in the above
-diagram) can be replaced by a list of variables, or more generally,
+example) can be replaced by a list of variables, or more generally,
 a recursive argument list.  The corresponding argument value must
 be a list whose elements match this recursive argument list.
 For example:
@@ -584,12 +586,12 @@ certain top-level forms, like @code{defmacro} (sort-of) and
 @end defmac
 
 Emacs includes two special forms related to @code{cl-eval-when}.
+@xref{Eval During Compile,,,elisp,GNU Emacs Lisp Reference Manual}.
 One of these, @code{eval-when-compile}, is not quite equivalent to
 any @code{cl-eval-when} construct and is described below.
 
 The other form, @code{(eval-and-compile @dots{})}, is exactly
-equivalent to @samp{(cl-eval-when (compile load eval) @dots{})} and
-so is not itself defined by this package.
+equivalent to @samp{(cl-eval-when (compile load eval) @dots{})}.
 
 @defmac eval-when-compile forms@dots{}
 The @var{forms} are evaluated at compile-time; at execution time,
@@ -703,6 +705,7 @@ integers in the range from 0 to 255.
 @item
 The type symbol @code{float} uses the @code{cl-floatp-safe} predicate
 defined by this package rather than @code{floatp}, so it will work
+@c FIXME are any such platforms still relevant?
 correctly even in Emacs versions without floating-point support.
 
 @item
@@ -781,8 +784,8 @@ type specifier could be implemented if desired; this package does
 not implement @code{unsigned-byte} by default.
 @end defmac
 
-The @code{cl-typecase} and @code{cl-check-type} macros also use type
-names.  @xref{Conditionals}.  @xref{Assertions}.  The @code{cl-map},
+The @code{cl-typecase} (@pxref{Conditionals}) and @code{cl-check-type}
+(@pxref{Assertions}) macros also use type names.  The @code{cl-map},
 @code{cl-concatenate}, and @code{cl-merge} functions take type-name
 arguments to specify the type of sequence to return.  @xref{Sequences}.
 
@@ -1324,7 +1327,7 @@ differently.  @xref{Obsolete Macros}.
 The @code{cl-labels} form is like @code{cl-flet}, except that
 the function bindings can be recursive.  The scoping is lexical,
 but you can only capture functions in closures if
-@code{lexical-binding} is non-@code{nil}.
+@code{lexical-binding} is @code{t}.
 @xref{Closures,,,elisp,GNU Emacs Lisp Reference Manual}, and
 @ref{Using Lexical Binding,,,elisp,GNU Emacs Lisp Reference Manual}.
 
@@ -1356,12 +1359,8 @@ arguments to @code{cl-defmacro} (i.e., a macro name, argument list,
 and macro-expander forms).  The macro is defined accordingly for
 use within the body of the @code{cl-macrolet}.
 
-@c FIXME this should be modified to say ``even when lexical-binding
-@c is code{nil}'', but is that true?  The doc of cl-macrolet just
-@c refers us to cl-flet, which refers to cl-labels, which says that it
-@c behaves differently according to whether l-b is true or not.
-Because of the nature of macros, @code{cl-macrolet} is lexically
-scoped even in Emacs Lisp:  The @code{cl-macrolet} binding will
+Because of the nature of macros, @code{cl-macrolet} is always lexically
+scoped.  The @code{cl-macrolet} binding will
 affect only calls that appear physically within the body
 @var{forms}, possibly after expansion of other macros in the
 body.
@@ -1388,12 +1387,15 @@ I.e., @code{(setq foo 4)} in the above would be equivalent to
 
 Likewise, a @code{let} or @code{let*} binding a symbol macro is
 treated like a @code{cl-letf} or @code{cl-letf*}.  This differs from true
-@c FIXME does it work like this in Emacs with lexical-binding = t?
 Common Lisp, where the rules of lexical scoping cause a @code{let}
-binding to shadow a @code{cl-symbol-macrolet} binding.  In this package,
-@c FIXME obsolete.
-only @code{lexical-let} and @code{lexical-let*} will shadow a symbol
-macro.
+binding to shadow a @code{symbol-macrolet} binding.  In this package,
+such shadowing does not occur, even when @code{lexical-binding} is
+@c See http://debbugs.gnu.org/12119
+@code{t}.  (This behavior predates the addition of lexical binding to
+Emacs Lisp, and may change in future to respect @code{lexical-binding}.)
+At present in this package, only @code{lexical-let} and
+@code{lexical-let*} will shadow a symbol macro.  @xref{Obsolete
+Lexical Binding}.
 
 There is no analogue of @code{defmacro} for symbol macros; all symbol
 macros are local.  A typical use of @code{cl-symbol-macrolet} is in the
@@ -1401,7 +1403,7 @@ expansion of another macro:
 
 @example
 (cl-defmacro my-dolist ((x list) &rest body)
-  (let ((var (gensym)))
+  (let ((var (cl-gensym)))
     (list 'cl-loop 'for var 'on list 'do
           (cl-list* 'cl-symbol-macrolet
                     (list (list x (list 'car var)))
@@ -1516,8 +1518,8 @@ simply returning @code{nil}.
 
 @noindent
 Common Lisp @dfn{blocks} provide a non-local exit mechanism very
-similar to @code{catch} and @code{throw}, but lexically rather than
-dynamically scoped.  This package actually implements @code{cl-block}
+similar to @code{catch} and @code{throw}, with lexical scoping.
+This package actually implements @code{cl-block}
 in terms of @code{catch}; however, the lexical scoping allows the
 optimizing byte-compiler to omit the costly @code{catch} step if the
 body of the block does not actually @code{cl-return-from} the block.
@@ -1532,11 +1534,12 @@ a @code{cl-return-from} occurs.
 The @code{cl-block}/@code{cl-return-from} mechanism is quite similar to
 the @code{catch}/@code{throw} mechanism.  The main differences are
 that block @var{name}s are unevaluated symbols, rather than forms
-(such as quoted symbols) which evaluate to a tag at run-time; and
-also that blocks are lexically scoped whereas @code{catch}/@code{throw}
-are dynamically scoped.  This means that functions called from the
-body of a @code{catch} can also @code{throw} to the @code{catch},
-but the @code{cl-return-from} referring to a block name must appear
+(such as quoted symbols) that evaluate to a tag at run-time; and
+also that blocks are always lexically scoped.
+In a dynamically scoped @code{catch}, functions called from the
+@code{catch} body can also @code{throw} to the @code{catch}.  This
+is not an option for @code{cl-block}, where
+the @code{cl-return-from} referring to a block name must appear
 physically within the @var{forms} that make up the body of the block.
 They may not appear within other called functions, although they may
 appear within macro expansions or @code{lambda}s in the body.  Block
@@ -1546,20 +1549,20 @@ In true Common Lisp, @code{defun} and @code{defmacro} surround
 the function or expander bodies with implicit blocks with the
 same name as the function or macro.  This does not occur in Emacs
 Lisp, but this package provides @code{cl-defun} and @code{cl-defmacro}
-forms which do create the implicit block.
+forms, which do create the implicit block.
 
 The Common Lisp looping constructs defined by this package,
 such as @code{cl-loop} and @code{cl-dolist}, also create implicit blocks
 just as in Common Lisp.
 
-Because they are implemented in terms of Emacs Lisp @code{catch}
+Because they are implemented in terms of Emacs Lisp's @code{catch}
 and @code{throw}, blocks have the same overhead as actual
 @code{catch} constructs (roughly two function calls).  However,
 the optimizing byte compiler will optimize away the @code{catch}
 if the block does
 not in fact contain any @code{cl-return} or @code{cl-return-from} calls
 that jump to it.  This means that @code{cl-do} loops and @code{cl-defun}
-functions which don't use @code{cl-return} don't pay the overhead to
+functions that don't use @code{cl-return} don't pay the overhead to
 support it.
 @end defmac
 
@@ -1581,8 +1584,8 @@ themselves in @code{nil} blocks.
 
 @noindent
 The macros described here provide more sophisticated, high-level
-looping constructs to complement Emacs Lisp's basic @code{while}
-loop.
+looping constructs to complement Emacs Lisp's basic loop forms
+(@pxref{Iteration,,,elisp,GNU Emacs Lisp Reference Manual}).
 
 @defmac cl-loop forms@dots{}
 This package supports both the simple, old-style meaning of
@@ -1646,7 +1649,7 @@ around the loop.  If @var{init} is also omitted it defaults to
 in place of @samp{(@var{var})}, again following the analogy with
 @code{let}.
 
-This example (from Steele) illustrates a loop which applies the
+This example (from Steele) illustrates a loop that applies the
 function @code{f} to successive pairs of values from the lists
 @code{foo} and @code{bar}; it is equivalent to the call
 @code{(cl-mapcar 'f foo bar)}.  Note that this loop has no body
@@ -1683,23 +1686,19 @@ Here is another way to write the above loop:
 @end defmac
 
 @defmac cl-dolist (var list [result]) forms@dots{}
-This is a more specialized loop which iterates across the elements
-of a list.  @var{list} should evaluate to a list; the body @var{forms}
-are executed with @var{var} bound to each element of the list in
-turn.  Finally, the @var{result} form (or @code{nil}) is evaluated
-with @var{var} bound to @code{nil} to produce the result returned by
-the loop.  Unlike with Emacs's built in @code{dolist}, the loop is
-surrounded by an implicit @code{nil} block.
+This is exactly like the standard Emacs Lisp macro @code{dolist},
+but surrounds the loop with an implicit @code{nil} block.
 @end defmac
 
 @defmac cl-dotimes (var count [result]) forms@dots{}
-This is a more specialized loop which iterates a specified number
-of times.  The body is executed with @var{var} bound to the integers
+This is exactly like the standard Emacs Lisp macro @code{dotimes},
+but surrounds the loop with an implicit @code{nil} block.
+The body is executed with @var{var} bound to the integers
 from zero (inclusive) to @var{count} (exclusive), in turn.  Then
+@c FIXME lispref does not state this part explicitly, could move this there.
 the @code{result} form is evaluated with @var{var} bound to the total
 number of iterations that were done (i.e., @code{(max 0 @var{count})})
-to get the return value for the loop form.  Unlike with Emacs's built in
-@code{dolist}, the loop is surrounded by an implicit @code{nil} block.
+to get the return value for the loop form.
 @end defmac
 
 @defmac cl-do-symbols (var [obarray [result]]) forms@dots{}
@@ -1798,8 +1797,8 @@ break out of the loop.)
 
 The following sections give some examples of the Loop Macro in
 action, and describe the particular loop clauses in great detail.
-Consult the second edition of Steele's @dfn{Common Lisp, the Language},
-for additional discussion and examples of the @code{loop} macro.
+Consult the second edition of Steele for additional discussion
+and examples of the @code{loop} macro.
 
 @node Loop Examples
 @subsection Loop Examples
