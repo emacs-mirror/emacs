@@ -2774,7 +2774,7 @@ static obj_t entry_hashtable_size(obj_t env, obj_t op_env, obj_t operator, obj_t
   obj_t arg;
   eval_args(operator->operator.name, env, op_env, operands, 1, &arg);
   unless(TYPE(arg) == TYPE_TABLE)
-    error("%s: first argument must be a hash table", operator->operator.name);
+    error("%s: argument must be a hash table", operator->operator.name);
   return make_integer(table_size(arg));
 }
 
@@ -2854,7 +2854,7 @@ static obj_t entry_hashtable_keys(obj_t env, obj_t op_env, obj_t operator, obj_t
   obj_t tbl, vector;
   eval_args(operator->operator.name, env, op_env, operands, 1, &tbl);
   unless(TYPE(tbl) == TYPE_TABLE)
-    error("%s: first argument must be a hash table", operator->operator.name);
+    error("%s: argument must be a hash table", operator->operator.name);
   vector = make_vector(table_size(tbl), obj_undefined);
   for(i = 0; i < tbl->table.buckets->buckets.length; ++i) {
     struct bucket_s *b = &tbl->table.buckets->buckets.bucket[i];
@@ -2863,6 +2863,22 @@ static obj_t entry_hashtable_keys(obj_t env, obj_t op_env, obj_t operator, obj_t
   }
   assert(j == vector->vector.length);
   return vector;
+}
+
+
+/* (string-hash string)
+ * Returns an integer hash value for string, based on its current
+ * contents. This hash function is suitable for use with string=? as
+ * an equivalence function.
+ * See R6RS Library 13.2.
+ */
+static obj_t entry_string_hash(obj_t env, obj_t op_env, obj_t operator, obj_t operands)
+{
+  obj_t arg;
+  eval_args(operator->operator.name, env, op_env, operands, 1, &arg);
+  unless(TYPE(arg) == TYPE_STRING)
+    error("%s: argument must be a string", operator->operator.name);
+  return make_integer(hash(arg->string.string));
 }
 
 
@@ -2991,6 +3007,7 @@ static struct {char *name; entry_t entry;} funtab[] = {
   {"hashtable-delete!", entry_hashtable_delete},
   {"hashtable-contains?", entry_hashtable_containsp},
   {"hashtable-keys", entry_hashtable_keys},
+  {"string-hash", entry_string_hash},
 };
 
 
