@@ -420,18 +420,17 @@ Fixing interface
 
 .. c:function:: mps_bool_t MPS_FIX1(mps_ss_t ss, mps_addr_t ref)
 
-    Determine whether :term:`reference` needs to be passed to
+    Determine whether a :term:`reference` needs to be passed to
     :c:func:`MPS_FIX2`.
 
-    ``ss`` is the :term:`scan state` that was passed to the scan method.
+    ``ss`` is the :term:`scan state` that was passed to the
+    :term:`scan method`.
 
     ``ref`` is the reference.
 
     Returns a truth value (:c:type:`mps_bool_t`) indicating whether
-    the reference is likely to be interesting to the MPS. If it
-    returns false, the scan method must continue scanning the
-    :term:`block`. If it returns true, the scan method must invoke
-    :c:func:`MPS_FIX2`, to fix the reference.
+    ``ref`` is "interesting" to the MPS. If it returns true, the scan
+    method must invoke :c:func:`MPS_FIX2` to :term:`fix` ``ref``.
 
     This macro must only be used within a :term:`scan method`, between
     :c:func:`MPS_SCAN_BEGIN` and :c:func:`MPS_SCAN_END`.
@@ -492,9 +491,9 @@ Fixing interface
 
     .. note::
 
-        In the common case where the scan method does not need to do
-        anything between :c:func:`MPS_FIX1` and :c:func:`MPS_FIX2`,
-        you can use the convenience macro :c:func:`MPS_FIX12`.
+        In the case where the scan method does not need to do anything
+        between :c:func:`MPS_FIX1` and :c:func:`MPS_FIX2`, you can use
+        the convenience macro :c:func:`MPS_FIX12`.
 
 
 .. c:function:: mps_res_t mps_fix(mps_ss_t ss, mps_addr_t *ref_io)
