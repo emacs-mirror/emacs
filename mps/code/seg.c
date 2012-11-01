@@ -267,7 +267,7 @@ void SegSetGrey(Seg seg, TraceSet grey)
 {
   AVERT(Seg, seg);
   AVER(TraceSetCheck(grey));
-  AVER(SegRankSet(seg) != RankSetEMPTY);
+  AVER(grey == TraceSetEMPTY || SegRankSet(seg) != RankSetEMPTY);
 
   /* Don't dispatch to the class method if there's no actual change in
      greyness, or if the segment doesn't contain any references. */
