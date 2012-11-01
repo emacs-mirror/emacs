@@ -520,12 +520,12 @@ static obj_t make_special(char *string)
   mps_addr_t addr;
   size_t size = ALIGN(sizeof(special_s));
   do {
-    mps_res_t res = mps_reserve(&addr, obj_ap, size);
+    mps_res_t res = mps_reserve(&addr, leaf_ap, size);
     if (res != MPS_RES_OK) error("out of memory in make_special");
     obj = addr;
     obj->special.type = TYPE_SPECIAL;
     obj->special.name = string;
-  } while(!mps_commit(obj_ap, addr, size));
+  } while(!mps_commit(leaf_ap, addr, size));
   total += sizeof(special_s);
   return obj;
 }
@@ -618,7 +618,7 @@ static buckets_t make_buckets(size_t length, mps_ap_t ap)
     buckets = addr;
     buckets->dependent = NULL;
     buckets->length = TAG_LENGTH(length);
-    buckets->used = 1;
+    buckets->used = TAG_LENGTH(0);
     for(i = 0; i < length; ++i) {
       buckets->bucket[i] = NULL;
     }
@@ -839,7 +839,7 @@ static int table_rehash(obj_t tbl, size_t new_length, obj_t key, size_t *key_buc
         *key_bucket = b;
         result = 1;
       }
-      new_keys->used += 2;
+      new_keys->used += 2;      /* tagged */
     }
   }
 
@@ -880,7 +880,7 @@ static int table_try_set(obj_t tbl, obj_t key, obj_t value)
     return 0;
   if (tbl->table.keys->bucket[b] == NULL) {
     tbl->table.keys->bucket[b] = key;
-    tbl->table.keys->used += 2;
+    tbl->table.keys->used += 2; /* tagged */
   }
   tbl->table.values->bucket[b] = value;
   return 1;
@@ -3412,8 +3412,8 @@ static mps_res_t buckets_scan(mps_ss_t ss, mps_addr_t base, mps_addr_t limit)
             /* key/value was splatted: splat value/key too */
             puts("splat!");
             buckets->dependent->bucket[i] = NULL;
-            buckets->used -= 2;
-            buckets->dependent->used -= 2;
+            buckets->used -= 2; /* tagged */
+            buckets->dependent->used -= 2; /* tagged */
           }
           buckets->bucket[i] = p;
         }
