@@ -142,6 +142,7 @@ typedef struct buckets_s {
   type_t type;                  /* TYPE_BUCKETS */
   size_t length;                /* number of buckets */
   size_t used;                  /* number of buckets in use */
+  size_t deleted;               /* number of deleted buckets */
   struct bucket_s {
     obj_t key, value;
   } bucket[1];                  /* hash buckets */
@@ -212,6 +213,7 @@ static obj_t obj_true;		/* #t, boolean true */
 static obj_t obj_false;		/* #f, boolean false */
 static obj_t obj_undefined;	/* undefined result indicator */
 static obj_t obj_tail;          /* tail recursion indicator */
+static obj_t obj_deleted;       /* deleted key in hashtable */
 
 
 /* predefined symbols
@@ -326,7 +328,8 @@ static obj_t make_string(size_t length, char string[])
   total += size;
   obj->string.type = TYPE_STRING;
   obj->string.length = length;
-  memcpy(obj->string.string, string, length+1);
+  if (string) memcpy(obj->string.string, string, length+1);
+  else memset(obj->string.string, 0, length+1);
   return obj;
 }
 
@@ -401,6 +404,7 @@ static obj_t make_buckets(size_t length)
   obj->buckets.type = TYPE_BUCKETS;
   obj->buckets.length = length;
   obj->buckets.used = 0;
+  obj->buckets.deleted = 0;
   for(i = 0; i < length; ++i) {
     obj->buckets.bucket[i].key = NULL;
     obj->buckets.bucket[i].value = NULL;
@@ -425,9 +429,14 @@ static obj_t make_table(size_t length)
 static int getnbc(FILE *stream)
 {
   int c;
-  do
+  do {
     c = getc(stream);
-  while(isspace(c));
+    if(c == ';') {
+      do
+        c = getc(stream);
+      while(c != EOF && c != '\n');
+    }
+  } while(isspace(c));
   return c;
 }
 
@@ -545,6 +554,7 @@ static struct bucket_s *buckets_find(obj_t buckets, obj_t key)
 {
   union {char s[sizeof(obj_t) + 1]; void *addr;} u = {""};
   unsigned long i, h;
+  struct bucket_s *result = NULL;
   assert(TYPE(buckets) == TYPE_BUCKETS);
   u.addr = key;
   h = hash(u.s) & (buckets->buckets.length-1);
@@ -553,9 +563,21 @@ static struct bucket_s *buckets_find(obj_t buckets, obj_t key)
     struct bucket_s *b = &buckets->buckets.bucket[i];
     if(b->key == NULL || b->key == key)
       return b;
+    if(result == NULL && b->key == obj_deleted)
+      result = b;
     i = (i+h+1) & (buckets->buckets.length-1);
   } while(i != h);
-  return NULL;
+  return result;
+}
+
+static size_t table_size(obj_t tbl)
+{
+  size_t used, deleted;
+  assert(TYPE(tbl) == TYPE_TABLE);
+  used = tbl->table.buckets->buckets.used;
+  deleted = tbl->table.buckets->buckets.deleted;
+  assert(used >= deleted);
+  return used - deleted;
 }
 
 static void table_rehash(obj_t tbl)
@@ -570,7 +592,7 @@ static void table_rehash(obj_t tbl)
 
   for (i = 0; i < old_length; ++i) {
     struct bucket_s *old_b = &tbl->table.buckets->buckets.bucket[i];
-    if (old_b->key != NULL) {
+    if (old_b->key != NULL && old_b->key != obj_deleted) {
       struct bucket_s *b = buckets_find(new_buckets, old_b->key);
       assert(b != NULL);	/* new table shouldn't be full */
       assert(b->key == NULL);	/* shouldn't be in new table */
@@ -579,7 +601,7 @@ static void table_rehash(obj_t tbl)
     }
   }
 
-  assert(new_buckets->buckets.used == tbl->table.buckets->buckets.used);
+  assert(new_buckets->buckets.used == table_size(tbl));
   tbl->table.buckets = new_buckets;
 }
 
@@ -588,7 +610,7 @@ static obj_t table_ref(obj_t tbl, obj_t key)
   struct bucket_s *b;
   assert(TYPE(tbl) == TYPE_TABLE);
   b = buckets_find(tbl->table.buckets, key);
-  if (b && b->key != NULL)
+  if (b && b->key != NULL && b->key != obj_deleted)
     return b->value;
   return NULL;
 }
@@ -611,8 +633,23 @@ static void table_set(obj_t tbl, obj_t key, obj_t value)
   if (b->key == NULL) {
     b->key = key;
     ++ tbl->table.buckets->buckets.used;
+  } else if (b->key == obj_deleted) {
+    b->key = key;
+    assert(tbl->table.buckets->buckets.deleted > 0);
+    -- tbl->table.buckets->buckets.deleted;
   }
   b->value = value;
+}
+
+static void table_delete(obj_t tbl, obj_t key)
+{
+  struct bucket_s *b;
+  assert(TYPE(tbl) == TYPE_TABLE);
+  b = buckets_find(tbl->table.buckets, key);
+  if (b != NULL && b->key != NULL) {
+    b->key = obj_deleted;
+    ++ tbl->table.buckets->buckets.deleted;
+  }
 }
 
 
@@ -732,7 +769,7 @@ static void print(obj_t obj, unsigned depth, FILE *stream)
       size_t i;
       for(i = 0; i < obj->buckets.length; ++i) {
         struct bucket_s *b = &obj->buckets.bucket[i];
-        if(b->key) {
+        if(b->key != NULL && b->key != obj_deleted) {
           fputs(" (", stream);
           print(b->key, depth - 1, stream);
           putc(' ', stream);
@@ -1739,12 +1776,26 @@ static obj_t entry_eqp(obj_t env, obj_t op_env, obj_t operator, obj_t operands)
 
 static int equalp(obj_t obj1, obj_t obj2)
 {
+  size_t i;
   if(TYPE(obj1) != TYPE(obj2))
     return 0;
-  if(TYPE(obj1) == TYPE_PAIR)
+  switch(TYPE(obj1)) {
+  case TYPE_PAIR:
     return equalp(CAR(obj1), CAR(obj2)) && equalp(CDR(obj1), CDR(obj2));
-  /* TODO: Similar recursion for vectors. */
-  return eqvp(obj1, obj2);
+  case TYPE_VECTOR:
+    if(obj1->vector.length != obj2->vector.length)
+      return 0;
+    for(i = 0; i < obj1->vector.length; ++i) {
+      if(!equalp(obj1->vector.vector[i], obj2->vector.vector[i]))
+        return 0;
+    }
+    return 1;
+  case TYPE_STRING:
+    return obj1->string.length == obj2->string.length
+      && 0 == strcmp(obj1->string.string, obj2->string.string);
+  default:
+    return eqvp(obj1, obj2);
+  }
 }
 
 static obj_t entry_equalp(obj_t env, obj_t op_env, obj_t operator, obj_t operands)
@@ -2598,6 +2649,32 @@ static obj_t entry_make_eq_hashtable(obj_t env, obj_t op_env, obj_t operator, ob
 }
 
 
+/* (hashtable? hashtable)
+ * Returns #t if hashtable is a hashtable, #f otherwise.
+ * See R6RS Library 13.2.
+ */
+static obj_t entry_hashtablep(obj_t env, obj_t op_env, obj_t operator, obj_t operands)
+{
+  obj_t arg;
+  eval_args(operator->operator.name, env, op_env, operands, 1, &arg);
+  return TYPE(arg) == TYPE_TABLE ? obj_true : obj_false;
+}
+
+/* (hashtable-size hashtable)
+ * Returns the number of keys contained in hashtable as an exact
+ * integer object.
+ * See R6RS Library 13.2.
+ */
+static obj_t entry_hashtable_size(obj_t env, obj_t op_env, obj_t operator, obj_t operands)
+{
+  obj_t arg;
+  eval_args(operator->operator.name, env, op_env, operands, 1, &arg);
+  unless(TYPE(arg) == TYPE_TABLE)
+    error("%s: first argument must be a hash table", operator->operator.name);
+  return make_integer(table_size(arg));
+}
+
+
 /* (hashtable-ref hashtable key default)
  * Returns the value in hashtable associated with key. If hashtable
  * does not contain an association for key, default is returned.
@@ -2632,6 +2709,59 @@ static obj_t entry_hashtable_set(obj_t env, obj_t op_env, obj_t operator, obj_t 
 }
 
 
+/* (hashtable-delete! hashtable key)
+ * Removes any association for key within hashtable and returns
+ * unspecified values.
+ * See R6RS Library 13.2.
+ */
+static obj_t entry_hashtable_delete(obj_t env, obj_t op_env, obj_t operator, obj_t operands)
+{
+  obj_t tbl, key;
+  eval_args(operator->operator.name, env, op_env, operands, 2, &tbl, &key);
+  unless(TYPE(tbl) == TYPE_TABLE)
+    error("%s: first argument must be a hash table", operator->operator.name);
+  table_delete(tbl, key);
+  return obj_undefined;
+}
+
+
+/* (hashtable-contains? hashtable key)
+ * Returns #t if hashtable contains an association for key, #f otherwise.
+ * See R6RS Library 13.2.
+ */
+static obj_t entry_hashtable_containsp(obj_t env, obj_t op_env, obj_t operator, obj_t operands)
+{
+  obj_t tbl, key;
+  eval_args(operator->operator.name, env, op_env, operands, 2, &tbl, &key);
+  unless(TYPE(tbl) == TYPE_TABLE)
+    error("%s: first argument must be a hash table", operator->operator.name);
+  return table_ref(tbl, key) != NULL ? obj_true : obj_false;
+}
+
+
+/* (hashtable-keys hashtable)
+ * Returns a vector of all keys in hashtable. The order of the vector
+ * is unspecified.
+ * See R6RS Library 13.2.
+ */
+static obj_t entry_hashtable_keys(obj_t env, obj_t op_env, obj_t operator, obj_t operands)
+{
+  size_t i, j = 0;
+  obj_t tbl, vector;
+  eval_args(operator->operator.name, env, op_env, operands, 1, &tbl);
+  unless(TYPE(tbl) == TYPE_TABLE)
+    error("%s: first argument must be a hash table", operator->operator.name);
+  vector = make_vector(table_size(tbl), obj_undefined);
+  for(i = 0; i < tbl->table.buckets->buckets.length; ++i) {
+    struct bucket_s *b = &tbl->table.buckets->buckets.bucket[i];
+    if(b->key != NULL && b->key != obj_deleted)
+      vector->vector.vector[j++] = b->value;
+  }
+  assert(j == vector->vector.length);
+  return vector;
+}
+
+
 /* INITIALIZATION */
 
 
@@ -2644,7 +2774,8 @@ static struct {char *name; obj_t *varp;} sptab[] = {
   {"#t", &obj_true},
   {"#f", &obj_false},
   {"#[undefined]", &obj_undefined},
-  {"#[tail]", &obj_tail}
+  {"#[tail]", &obj_tail},
+  {"#[deleted]", &obj_deleted}
 };
 
 
@@ -2743,8 +2874,13 @@ static struct {char *name; entry_t entry;} funtab[] = {
   {"list->string", entry_list_to_string},
   {"string-copy", entry_string_copy},
   {"make-eq-hashtable", entry_make_eq_hashtable},
+  {"hashtable?", entry_hashtablep},
+  {"hashtable-size", entry_hashtable_size},
   {"hashtable-ref", entry_hashtable_ref},
   {"hashtable-set!", entry_hashtable_set},
+  {"hashtable-delete!", entry_hashtable_delete},
+  {"hashtable-contains?", entry_hashtable_containsp},
+  {"hashtable-keys", entry_hashtable_keys},
 };
 
 
