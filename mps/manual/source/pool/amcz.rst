@@ -31,7 +31,8 @@ AMCZ properties
 
 AMCZ is indentical to :ref:`pool-amc`, except that:
 
-* Blocks may not contain :term:`references`.
+* Blocks may not contain :term:`references` to blocks in automatically
+  managed pools.
 
 * Blocks are not :term:`scanned <scan>`. A consequence of this is that
   the pool's :term:`object format` need not provide a :term:`scan

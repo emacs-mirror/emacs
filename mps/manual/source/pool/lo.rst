@@ -58,7 +58,8 @@ LO properties
 * Garbage collections are scheduled automatically. See
   :ref:`topic-collection-schedule`.
 
-* Blocks may not contain :term:`references`.
+* Blocks may not contain :term:`references` to blocks in automatically
+  managed pools.
 
 * Allocations may be variable in size.
 

@@ -62,10 +62,13 @@ MVFF properties
 
 * There are no garbage collections in this pool.
 
+* Blocks may not contain :term:`references` to blocks in automatically
+  managed pools (unless these are registered as :term:`roots`).
+
 * Allocations may be variable in size.
 
-* The :term:`alignment` of blocks is configurable (but may not be
-  smaller than the natural :term:`word` size of the platform).
+* The :term:`alignment` of blocks is configurable, but may not be
+  smaller than the :term:`natural alignment` of the platform.
 
 * Blocks do not have :term:`dependent objects`.
 

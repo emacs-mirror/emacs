@@ -73,10 +73,14 @@ MVT properties
 
 * There are no garbage collections in this pool.
 
+* Blocks may not contain :term:`references` to blocks in automatically
+  managed pools (unless these are registered as :term:`roots`).
+
 * Allocations may be variable in size.
 
-* The :term:`alignment` of blocks is not configurable (it is the
-  natural :term:`word` size of the platform).
+* The :term:`alignment` of blocks is not configurable: it is the
+  :term:`natural alignment` of the platform (see
+  :c:macro:`MPS_PF_ALIGN`).
 
 * Blocks do not have :term:`dependent objects`.
 
