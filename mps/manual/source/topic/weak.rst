@@ -23,7 +23,7 @@ The MPS supports weak references only:
    :c:func:`mps_rank_weak`.
 
 When the MPS determines that a block is only kept alive by one or more
-weak references, it may choose to :dfn:`splat` those references by
+weak references, it may choose to :term:`splat` those references by
 replacing them with null pointers when they are :term:`fixed`. When
 all weak references to the block have been splatted, the block may be
 reclaimed.
@@ -80,4 +80,4 @@ after calling :c:func:`MPS_FIX2` then it must have just been splatted.
     <finalization>`. At the point that a block is finalized, weak
     references will still validly refer to the block. The fact that a
     block is registered for finalization prevents weak references to
-    that block from being deleted.
+    that block from being splatted. See :ref:`topic-finalization`.
