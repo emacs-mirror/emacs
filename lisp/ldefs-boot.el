@@ -3105,7 +3105,7 @@ Obsoletes `c-forward-into-nomenclature'.
 ;;;***
 
 ;;;### (autoloads (c-guess-basic-syntax) "cc-engine" "progmodes/cc-engine.el"
-;;;;;;  (20358 10456))
+;;;;;;  (20556 31413))
 ;;; Generated autoloads from progmodes/cc-engine.el
 
 (autoload 'c-guess-basic-syntax "cc-engine" "\
@@ -4195,7 +4195,7 @@ is run).
 
 ;;;***
 
-;;;### (autoloads (color-name-to-rgb) "color" "color.el" (20355 10320))
+;;;### (autoloads (color-name-to-rgb) "color" "color.el" (20590 49589))
 ;;; Generated autoloads from color.el
 
 (autoload 'color-name-to-rgb "color" "\
@@ -4206,7 +4206,7 @@ string (e.g. \"#ff12ec\").
 Normally the return value is a list of three floating-point
 numbers, (RED GREEN BLUE), each between 0.0 and 1.0 inclusive.
 
-Optional arg FRAME specifies the frame where the color is to be
+Optional argument FRAME specifies the frame where the color is to be
 displayed.  If FRAME is omitted or nil, use the selected frame.
 If FRAME cannot display COLOR, return nil.
 
@@ -8324,7 +8324,7 @@ Other values are interpreted as usual.
 ;;;***
 
 ;;;### (autoloads (report-emacs-bug-query-existing-bugs report-emacs-bug)
-;;;;;;  "emacsbug" "mail/emacsbug.el" (20355 10320))
+;;;;;;  "emacsbug" "mail/emacsbug.el" (20557 52279))
 ;;; Generated autoloads from mail/emacsbug.el
 
 (autoload 'report-emacs-bug "emacsbug" "\
@@ -14202,7 +14202,7 @@ with no args, if that value is non-nil.
 ;;;***
 
 ;;;### (autoloads (idlwave-shell) "idlw-shell" "progmodes/idlw-shell.el"
-;;;;;;  (20355 10320))
+;;;;;;  (20560 28480))
 ;;; Generated autoloads from progmodes/idlw-shell.el
 
 (autoload 'idlwave-shell "idlw-shell" "\
@@ -14362,8 +14362,8 @@ The main features of this mode are
 ;;;;;;  ido-find-alternate-file ido-find-file-other-window ido-find-file
 ;;;;;;  ido-find-file-in-dir ido-switch-buffer-other-frame ido-insert-buffer
 ;;;;;;  ido-kill-buffer ido-display-buffer ido-switch-buffer-other-window
-;;;;;;  ido-switch-buffer ido-mode ido-mode) "ido" "ido.el" (20355
-;;;;;;  10320))
+;;;;;;  ido-switch-buffer ido-mode ido-mode) "ido" "ido.el" (20585
+;;;;;;  31667))
 ;;; Generated autoloads from ido.el
 
 (defvar ido-mode nil "\
@@ -19306,7 +19306,7 @@ running already.
 ;;;***
 
 ;;;### (autoloads (newsticker-treeview) "newst-treeview" "net/newst-treeview.el"
-;;;;;;  (20355 10320))
+;;;;;;  (20590 49589))
 ;;; Generated autoloads from net/newst-treeview.el
 
 (autoload 'newsticker-treeview "newst-treeview" "\
@@ -21908,7 +21908,7 @@ Completion rules for the `cvs' command.
 ;;;***
 
 ;;;### (autoloads (pcomplete/tar pcomplete/make pcomplete/bzip2 pcomplete/gzip)
-;;;;;;  "pcmpl-gnu" "pcmpl-gnu.el" (20355 10320))
+;;;;;;  "pcmpl-gnu" "pcmpl-gnu.el" (20554 38771))
 ;;; Generated autoloads from pcmpl-gnu.el
 
 (autoload 'pcomplete/gzip "pcmpl-gnu" "\
@@ -22026,8 +22026,8 @@ Includes files as well as host names followed by a colon.
 
 ;;;### (autoloads (pcomplete-shell-setup pcomplete-comint-setup pcomplete-list
 ;;;;;;  pcomplete-help pcomplete-expand pcomplete-continue pcomplete-expand-and-complete
-;;;;;;  pcomplete-reverse pcomplete) "pcomplete" "pcomplete.el" (20355
-;;;;;;  10320))
+;;;;;;  pcomplete-reverse pcomplete) "pcomplete" "pcomplete.el" (20582
+;;;;;;  55478))
 ;;; Generated autoloads from pcomplete.el
 
 (autoload 'pcomplete "pcomplete" "\
@@ -25890,7 +25890,7 @@ with your script for an edit-interpret-debug cycle.
 ;;;***
 
 ;;;### (autoloads (list-load-path-shadows) "shadow" "emacs-lisp/shadow.el"
-;;;;;;  (20355 10320))
+;;;;;;  (20559 7608))
 ;;; Generated autoloads from emacs-lisp/shadow.el
 
 (autoload 'list-load-path-shadows "shadow" "\
@@ -27203,7 +27203,7 @@ Major-mode for writing SRecode macros.
 ;;;***
 
 ;;;### (autoloads (starttls-open-stream) "starttls" "gnus/starttls.el"
-;;;;;;  (20355 10320))
+;;;;;;  (20596 25614))
 ;;; Generated autoloads from gnus/starttls.el
 
 (autoload 'starttls-open-stream "starttls" "\
@@ -33756,7 +33756,7 @@ Zone out, completely.
 ;;;;;;  "vc/ediff-ptch.el" "vc/ediff-vers.el" "vc/ediff-wind.el"
 ;;;;;;  "vc/pcvs-info.el" "vc/pcvs-parse.el" "vc/pcvs-util.el" "vc/vc-dav.el"
 ;;;;;;  "vcursor.el" "vt-control.el" "vt100-led.el" "w32-fns.el"
-;;;;;;  "w32-vars.el" "x-dnd.el") (20545 61134 411881))
+;;;;;;  "w32-vars.el" "x-dnd.el") (20626 23115 249901))
 
 ;;;***
 
