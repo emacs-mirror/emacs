@@ -26,10 +26,10 @@ hash table>`, and :term:`doubly weak hash tables`.
 In a weak-key hash table, the keys are weakly referenced, so their
 presence in the table will not prevent the key object from being
 garbage collected. Once the key is no longer :term:`reachable`, weak
-references to it may get :dfn:`splatted` (that is, replaced with null
-pointers). Once that has happened, the client program can't get at the
-value corresponding to the key any more, so the implementation is free
-to splat the value slot as well.
+references to it may get :term:`splatted <splat>` (that is, replaced
+with null pointers). Once that has happened, the client program can't
+get at the value corresponding to the key any more, so the
+implementation is free to splat the value slot as well.
 
 AWL allows the implementation to splat the value slot at the same time
 that the weak key slot is splatted. (Or the other way around for
@@ -115,9 +115,9 @@ Dependent objects
 -----------------
 
 In order to support prompt deletion of values in a :term:`weak-key
-hash table` when the key is splatted (and prompt deletion of keys in
-a :term:`weak-value hash table`), an AWL pool allows each object to
-have a :dfn:`dependent object`.
+hash table` when the key is :term:`splatted <splat>` (and prompt
+deletion of keys in a :term:`weak-value hash table`), an AWL pool
+allows each object to have a :dfn:`dependent object`.
 
 The dependent object is specified by the ``find_dependent`` argument
 to :c:func:`mps_pool_create` when creating an AWL pool. This is a
