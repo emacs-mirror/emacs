@@ -488,6 +488,15 @@ Memory Management Glossary: S
 
         .. see:: :term:`cactus stack`.
 
+    splat
+
+        .. mps:specific::
+
+            To overwrite a :term:`weak reference (1)` with a null
+            pointer, when the MPS has determined that there are no
+            remaining :term:`strong references` to the block referred
+            to. See :ref:`topic-weak`.
+
     split
 
         To divide a :term:`free block` into two smaller free blocks in

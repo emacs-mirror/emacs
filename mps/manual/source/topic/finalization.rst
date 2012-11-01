@@ -38,7 +38,7 @@ below) at *any* future time.
 from being finalized. At the point that a block is finalized, weak
 references will still validly refer to the block. The fact that a
 block is registered for finalization prevents weak references to that
-block from being deleted.
+block from being :term:`splatted <splat>`. See :ref:`topic-weak`.
 
 The Memory Pool System finalizes a block by posting a *finalization
 message* to the :term:`message queue` of the :term:`arena` in which
