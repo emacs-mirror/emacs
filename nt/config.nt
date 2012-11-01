@@ -184,7 +184,7 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #define GC_SETJMP_WORKS 1
 
 /* Define to 1 if the `getpgrp' function requires zero arguments. */
-#undef GETPGRP_VOID
+#define GETPGRP_VOID 1
 
 /* Define if gettimeofday clobbers the localtime buffer. */
 #undef GETTIMEOFDAY_CLOBBERS_LOCALTIME

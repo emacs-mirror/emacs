@@ -236,6 +236,18 @@ setpgrp (int pid, int gid)
   return 0;
 }
 
+pid_t
+getpgrp (void)
+{
+  return getpid ();
+}
+
+int
+setpgid (pid_t pid, pid_t pgid)
+{
+  return 0;
+}
+
 /* Emulations of interval timers.
 
    Limitations: only ITIMER_REAL and ITIMER_PROF are supported.

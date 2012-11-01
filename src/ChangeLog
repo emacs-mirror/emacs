@@ -1,3 +1,7 @@
+2012-11-01  Eli Zaretskii  <eliz@gnu.org>
+
+	* w32proc.c (getpgrp, setpgid): New functions.  (Bug#12776)
+
 2012-10-31  Paul Eggert  <eggert@cs.ucla.edu>
 
 	Fix crash when using Emacs as commit editor for git (Bug#12697).
