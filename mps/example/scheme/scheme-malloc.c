@@ -414,12 +414,14 @@ static obj_t make_buckets(size_t length)
 
 static obj_t make_table(size_t length)
 {
-  size_t size = sizeof(table_s);
+  size_t l, size = sizeof(table_s);
   obj_t obj = (obj_t)malloc(size);
   if(obj == NULL) error("out of memory");
   total += size;
   obj->table.type = TYPE_TABLE;
-  obj->table.buckets = make_buckets(length);
+  /* round up to next power of 2 */
+  for(l = 1; l < length; l *= 2);
+  obj->table.buckets = make_buckets(l);
   return obj;
 }
 
@@ -487,15 +489,17 @@ static unsigned long hash(const char *s) {
  */
 
 static obj_t *find(char *string) {
-  unsigned long i, h;
+  unsigned long i, h, probe;
 
-  h = hash(string) & (symtab_size-1);
-  i = h;
+  h = hash(string);
+  probe = (h >> 8) | 1;
+  h &= (symtab_size-1);
+  i = h;  
   do {
     if(symtab[i] == NULL ||
        strcmp(string, symtab[i]->symbol.string) == 0)
       return &symtab[i];
-    i = (i+h+1) & (symtab_size-1);
+    i = (i+probe) & (symtab_size-1);
   } while(i != h);
 
   return NULL;
@@ -552,12 +556,14 @@ static obj_t intern(char *string) {
  */
 static struct bucket_s *buckets_find(obj_t buckets, obj_t key)
 {
-  union {char s[sizeof(obj_t) + 1]; void *addr;} u = {""};
-  unsigned long i, h;
+  union {char s[sizeof(obj_t) + 1]; obj_t addr;} u = {""};
+  unsigned long i, h, probe;
   struct bucket_s *result = NULL;
   assert(TYPE(buckets) == TYPE_BUCKETS);
   u.addr = key;
-  h = hash(u.s) & (buckets->buckets.length-1);
+  h = hash(u.s);
+  probe = (h >> 8) | 1;
+  h &= (buckets->buckets.length-1);
   i = h;
   do {
     struct bucket_s *b = &buckets->buckets.bucket[i];
@@ -565,7 +571,7 @@ static struct bucket_s *buckets_find(obj_t buckets, obj_t key)
       return b;
     if(result == NULL && b->key == obj_deleted)
       result = b;
-    i = (i+h+1) & (buckets->buckets.length-1);
+    i = (i+probe) & (buckets->buckets.length-1);
   } while(i != h);
   return result;
 }
