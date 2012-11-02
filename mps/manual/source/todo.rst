@@ -52,13 +52,6 @@ Outstanding
 126. Things that are "within reach", i.e. that we could do if people
      needed them. (RB needs to write this.)
 
-144. In AWL, what are the restrictions on the dependent object? Must
-     it be another object in AWL? What are we allowed to do with it?
-     What state will the object be in when we look at it? Does it have
-     to be fixed?
-
-145. Can you use the same generation chain with more than one pool?
-
 
 Complete
 --------
@@ -1120,3 +1113,20 @@ Complete
      us."
 
      *Action:* see :ref:`pool-awl`.
+
+144. In AWL, what are the restrictions on the dependent object? Must
+     it be another object in AWL? What are we allowed to do with it?
+     What state will the object be in when we look at it? Does it have
+     to be fixed?
+
+     *Answer:* better not be in a moving pool (otherwise might point
+     to forwarding object). You can fix it, but the fixed-up reference
+     won't necessarily be exposed. Let's document, "dependent object
+     must be in a non-moving pool, or in memory not managed by the
+     MPS." (Should fix the dependent object; that may result in the
+     reference being splatted if the dependent object died.)
+
+145. Can you use the same generation chain with more than one pool?
+
+     *Answer:* not only can you do this, but you ought to.
+
