@@ -1,5 +1,9 @@
 2012-11-02  Glenn Morris  <rgm@gnu.org>
 
+	* filecache.el: No need to load find-lisp when compiling.
+	(find-lisp-find-files): Autoload it.
+	(file-cache-add-directory-recursively): Don't require find-lisp.
+
 	* image.el (image-type-from-file-name): Trivial simplification.
 
 	* emacs-lisp/bytecomp.el (byte-compile-eval):
