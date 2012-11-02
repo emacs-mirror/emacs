@@ -179,6 +179,7 @@ typedef struct buckets_s {
   struct buckets_s *dependent;  /* the dependent object */
   size_t length;                /* number of buckets (tagged) */
   size_t used;                  /* number of buckets in use (tagged) */
+  size_t deleted;               /* number of deleted buckets (tagged) */
   obj_t bucket[1];              /* hash buckets */
 } buckets_s, *buckets_t;
 
@@ -313,6 +314,7 @@ static obj_t obj_true;		/* #t, boolean true */
 static obj_t obj_false;		/* #f, boolean false */
 static obj_t obj_undefined;	/* undefined result indicator */
 static obj_t obj_tail;          /* tail recursion indicator */
+static obj_t obj_deleted;       /* deleted key in hashtable */
 
 
 /* predefined symbols
@@ -434,8 +436,15 @@ static void error(char *format, ...)
 
 #define ALIGNMENT sizeof(mps_word_t)
 
-#define ALIGN(size) \
+#define ALIGN_UP(size) \
   (((size) + ALIGNMENT - 1) & ~(ALIGNMENT - 1))
+
+/* Align size upwards and ensure that it's big enough to store a
+ * forwarding pointer. */
+#define ALIGN(size)                                \
+    (ALIGN_UP(size) >= ALIGN_UP(sizeof(fwd_s))     \
+     ? ALIGN_UP(size)                              \
+     : ALIGN_UP(sizeof(fwd_s)))
 
 static obj_t make_pair(obj_t car, obj_t cdr)
 {
@@ -619,6 +628,7 @@ static buckets_t make_buckets(size_t length, mps_ap_t ap)
     buckets->dependent = NULL;
     buckets->length = TAG_LENGTH(length);
     buckets->used = TAG_LENGTH(0);
+    buckets->deleted = TAG_LENGTH(0);
     for(i = 0; i < length; ++i) {
       buckets->bucket[i] = NULL;
     }
@@ -631,7 +641,7 @@ static obj_t make_table(size_t length, int weak_key, int weak_value)
 {
   obj_t obj;
   mps_addr_t addr;
-  size_t size = ALIGN(sizeof(table_s));
+  size_t l, size = ALIGN(sizeof(table_s));
   do {
     mps_res_t res = mps_reserve(&addr, obj_ap, size);
     if (res != MPS_RES_OK) error("out of memory in make_table");
@@ -640,10 +650,12 @@ static obj_t make_table(size_t length, int weak_key, int weak_value)
     obj->table.keys = obj->table.values = NULL;
   } while(!mps_commit(obj_ap, addr, size));
   total += size;
+  /* round up to next power of 2 */
+  for(l = 1; l < length; l *= 2);
   obj->table.key_ap = weak_key ? weak_buckets_ap : strong_buckets_ap;
   obj->table.value_ap = weak_value ? weak_buckets_ap : strong_buckets_ap;
-  obj->table.keys = make_buckets(length, obj->table.key_ap);
-  obj->table.values = make_buckets(length, obj->table.value_ap);
+  obj->table.keys = make_buckets(l, obj->table.key_ap);
+  obj->table.values = make_buckets(l, obj->table.value_ap);
   obj->table.keys->dependent = obj->table.values;
   obj->table.values->dependent = obj->table.keys;
   mps_ld_reset(&obj->table.ld, arena);
@@ -656,9 +668,14 @@ static obj_t make_table(size_t length, int weak_key, int weak_value)
 static int getnbc(FILE *stream)
 {
   int c;
-  do
+  do {
     c = getc(stream);
-  while(isspace(c));
+    if(c == ';') {
+      do
+        c = getc(stream);
+      while(c != EOF && c != '\n');
+    }
+  } while(isspace(c));
   return c;
 }
 
@@ -709,15 +726,17 @@ static unsigned long hash(const char *s) {
  */
 
 static obj_t *find(char *string) {
-  unsigned long i, h;
+  unsigned long i, h, probe;
 
-  h = hash(string) & (symtab_size-1);
-  i = h;
+  h = hash(string);
+  probe = (h >> 8) | 1;
+  h &= (symtab_size-1);
+  i = h;  
   do {
     if(symtab[i] == NULL ||
        strcmp(string, symtab[i]->symbol.string) == 0)
       return &symtab[i];
-    i = (i+h+1) & (symtab_size-1);
+    i = (i+probe) & (symtab_size-1);
   } while(i != h);
 
   return NULL;
@@ -786,11 +805,14 @@ static obj_t intern(char *string) {
  */
 static int buckets_find(buckets_t buckets, obj_t key, size_t *b)
 {
-  union {char s[sizeof(void *) + 1]; void *addr;} u = {""};
-  unsigned long i, h;
+  union {char s[sizeof(obj_t) + 1]; obj_t addr;} u = {""};
+  unsigned long i, h, probe;
   unsigned long l = UNTAG_LENGTH(buckets->length) - 1;
+  int result = 0;
   u.addr = key;
-  h = hash(u.s) & l;
+  h = hash(u.s);
+  probe = (h >> 8) | 1;
+  h &= l;
   i = h;
   do {
     obj_t k = buckets->bucket[i];
@@ -798,9 +820,23 @@ static int buckets_find(buckets_t buckets, obj_t key, size_t *b)
       *b = i;
       return 1;
     }
-    i = (i+h+1) & l;
+    if(result == 0 && k == obj_deleted) {
+      *b = i;
+      result = 1;
+    }
+    i = (i+probe) & l;
   } while(i != h);
-  return 0;
+  return result;
+}
+
+static size_t table_size(obj_t tbl)
+{
+  size_t used, deleted;
+  assert(TYPE(tbl) == TYPE_TABLE);
+  used = UNTAG_LENGTH(tbl->table.keys->used);
+  deleted = UNTAG_LENGTH(tbl->table.keys->deleted);
+  assert(used >= deleted);
+  return used - deleted;
 }
 
 /* Rehash 'tbl' so that it has 'new_length' buckets. If 'key' is found
@@ -826,7 +862,7 @@ static int table_rehash(obj_t tbl, size_t new_length, obj_t key, size_t *key_buc
 
   for (i = 0; i < length; ++i) {
     obj_t old_key = tbl->table.keys->bucket[i];
-    if (old_key != NULL) {
+    if (old_key != NULL && old_key != obj_deleted) {
       int found;
       size_t b;
       mps_ld_add(&tbl->table.ld, arena, old_key);
@@ -843,7 +879,7 @@ static int table_rehash(obj_t tbl, size_t new_length, obj_t key, size_t *key_buc
     }
   }
 
-  assert(new_keys->used == tbl->table.keys->used);
+  assert(UNTAG_LENGTH(new_keys->used) == table_size(tbl));
   tbl->table.keys = new_keys;
   tbl->table.values = new_values;
   return result;
@@ -858,9 +894,11 @@ static obj_t table_ref(obj_t tbl, obj_t key)
 {
   size_t b;
   assert(TYPE(tbl) == TYPE_TABLE);
-  if (buckets_find(tbl->table.keys, key, &b))
-    if (tbl->table.keys->bucket[b] != NULL)
+  if (buckets_find(tbl->table.keys, key, &b)) {
+    obj_t k = tbl->table.keys->bucket[b];
+    if (k != NULL && k != obj_deleted)
       return tbl->table.values->bucket[b];
+  }
   if (mps_ld_isstale(&tbl->table.ld, arena, key))
     if (table_rehash(tbl, UNTAG_LENGTH(tbl->table.keys->length), key, &b))
       return tbl->table.values->bucket[b];
@@ -881,6 +919,10 @@ static int table_try_set(obj_t tbl, obj_t key, obj_t value)
   if (tbl->table.keys->bucket[b] == NULL) {
     tbl->table.keys->bucket[b] = key;
     tbl->table.keys->used += 2; /* tagged */
+  } else if (tbl->table.keys->bucket[b] == obj_deleted) {
+    tbl->table.keys->bucket[b] = key;
+    assert(tbl->table.keys->deleted > TAG_LENGTH(0));
+    tbl->table.keys->deleted -= 2; /* tagged */
   }
   tbl->table.values->bucket[b] = value;
   return 1;
@@ -901,6 +943,17 @@ static void table_set(obj_t tbl, obj_t key, obj_t value)
     res = table_try_set(tbl, key, value);
     assert(res);                /* rehash should have made room */
   }
+}
+
+static void table_delete(obj_t tbl, obj_t key)
+{
+  size_t b;
+  assert(TYPE(tbl) == TYPE_TABLE);
+  if(buckets_find(tbl->table.keys, key, &b))
+    if(tbl->table.keys->bucket[b] == key) {
+      tbl->table.keys->bucket[b] = obj_deleted;
+      tbl->table.keys->deleted += 2; /* tagged */
+    }
 }
 
 
@@ -1021,7 +1074,7 @@ static void print(obj_t obj, unsigned depth, FILE *stream)
       fputs("#[hashtable", stream);
       for(i = 0; i < length; ++i) {
         obj_t k = obj->table.keys->bucket[i];
-        if(k) {
+        if(k != NULL && k != obj_deleted) {
           fputs(" (", stream);
           print(k, depth - 1, stream);
           putc(' ', stream);
@@ -1598,10 +1651,11 @@ static obj_t entry_define(obj_t env, obj_t op_env, obj_t operator, obj_t operand
 {
   obj_t symbol, value;
   unless(TYPE(operands) == TYPE_PAIR &&
-         TYPE(CDR(operands)) == TYPE_PAIR &&
-         CDDR(operands) == obj_empty)
+         TYPE(CDR(operands)) == TYPE_PAIR)
     error("%s: illegal syntax", operator->operator.name);
   if(TYPE(CAR(operands)) == TYPE_SYMBOL) {
+    unless(CDDR(operands) == obj_empty)
+      error("%s: too many arguments", operator->operator.name);
     symbol = CAR(operands);
     value = eval(env, op_env, CADR(operands));
   } else if(TYPE(CAR(operands)) == TYPE_PAIR &&
@@ -2023,12 +2077,26 @@ static obj_t entry_eqp(obj_t env, obj_t op_env, obj_t operator, obj_t operands)
 
 static int equalp(obj_t obj1, obj_t obj2)
 {
+  size_t i;
   if(TYPE(obj1) != TYPE(obj2))
     return 0;
-  if(TYPE(obj1) == TYPE_PAIR)
+  switch(TYPE(obj1)) {
+  case TYPE_PAIR:
     return equalp(CAR(obj1), CAR(obj2)) && equalp(CDR(obj1), CDR(obj2));
-  /* TODO: Similar recursion for vectors. */
-  return eqvp(obj1, obj2);
+  case TYPE_VECTOR:
+    if(obj1->vector.length != obj2->vector.length)
+      return 0;
+    for(i = 0; i < obj1->vector.length; ++i) {
+      if(!equalp(obj1->vector.vector[i], obj2->vector.vector[i]))
+        return 0;
+    }
+    return 1;
+  case TYPE_STRING:
+    return obj1->string.length == obj2->string.length
+      && 0 == strcmp(obj1->string.string, obj2->string.string);
+  default:
+    return eqvp(obj1, obj2);
+  }
 }
 
 static obj_t entry_equalp(obj_t env, obj_t op_env, obj_t operator, obj_t operands)
@@ -2049,16 +2117,12 @@ static obj_t entry_pairp(obj_t env, obj_t op_env, obj_t operator, obj_t operands
 }
 
 
-/* entry_cons -- create pair
- *
- * (cons <obj1> <obj2>)
+/* (cons obj1 obj2)
+ * Returns a newly allocated pair whose car is obj1 and whose cdr is
+ * obj2. The pair is guaranteed to be different (in the sense of eqv?)
+ * from every existing object.
  * See R4RS 6.3.
- *
- * Returns a newly allocated pair whose car is obj1 and whose cdr is obj2.
- * The pair is guaranteed to be different (in the sense of eqv?) from every
- * existing object.
  */
-
 static obj_t entry_cons(obj_t env, obj_t op_env, obj_t operator, obj_t operands)
 {
   obj_t car, cdr;
@@ -2067,8 +2131,11 @@ static obj_t entry_cons(obj_t env, obj_t op_env, obj_t operator, obj_t operands)
 }
 
 
-/* entry_car -- R4RS 6.3 */
-
+/* (car pair)
+ * Returns the contents of the car field of pair. Note that it is an
+ * error to take the car of the empty list.
+ * See R4RS 6.3.
+ */
 static obj_t entry_car(obj_t env, obj_t op_env, obj_t operator, obj_t operands)
 {
   obj_t pair;
@@ -2078,7 +2145,11 @@ static obj_t entry_car(obj_t env, obj_t op_env, obj_t operator, obj_t operands)
   return CAR(pair);
 }
 
-
+/* (cdr pair)
+ * Returns the contents of the cdr field of pair. Note that it is an
+ * error to take the cdr of the empty list.
+ * See R4RS 6.3.
+ */
 static obj_t entry_cdr(obj_t env, obj_t op_env, obj_t operator, obj_t operands)
 {
   obj_t pair;
@@ -2089,6 +2160,11 @@ static obj_t entry_cdr(obj_t env, obj_t op_env, obj_t operator, obj_t operands)
 }
 
 
+/* (set-car! pair obj)
+ * Stores obj in the car field of pair. The value returned by set-car!
+ * is unspecified.
+ * See R4RS 6.3.
+ */
 static obj_t entry_setcar(obj_t env, obj_t op_env, obj_t operator, obj_t operands)
 {
   obj_t pair, value;
@@ -2100,6 +2176,11 @@ static obj_t entry_setcar(obj_t env, obj_t op_env, obj_t operator, obj_t operand
 }
 
 
+/* (set-cdr! pair obj)
+ * Stores obj in the cdr field of pair. The value returned by set-cdr!
+ * is unspecified.
+ * See R4RS 6.3.
+ */
 static obj_t entry_setcdr(obj_t env, obj_t op_env, obj_t operator, obj_t operands)
 {
   obj_t pair, value;
@@ -2111,6 +2192,10 @@ static obj_t entry_setcdr(obj_t env, obj_t op_env, obj_t operator, obj_t operand
 }
 
 
+/* (null? obj)
+ * Returns #t if obj is the empty list, otherwise returns #f.
+ * See R4RS 6.3.
+ */
 static obj_t entry_nullp(obj_t env, obj_t op_env, obj_t operator, obj_t operands)
 {
   obj_t arg;
@@ -2119,6 +2204,11 @@ static obj_t entry_nullp(obj_t env, obj_t op_env, obj_t operator, obj_t operands
 }
 
 
+/* (list? obj)
+ * Returns #t if obj is a list, otherwise returns #f. By definition,
+ * all lists have finite length and are terminated by the empty list.
+ * See R4RS 6.3.
+ */
 static obj_t entry_listp(obj_t env, obj_t op_env, obj_t operator, obj_t operands)
 {
   obj_t arg;
@@ -2129,6 +2219,10 @@ static obj_t entry_listp(obj_t env, obj_t op_env, obj_t operator, obj_t operands
 }
 
 
+/* (list obj ...)
+ * Returns a newly allocated list of its arguments.
+ * See R4RS 6.3.
+ */
 static obj_t entry_list(obj_t env, obj_t op_env, obj_t operator, obj_t operands)
 {
   obj_t rest;
@@ -2137,6 +2231,10 @@ static obj_t entry_list(obj_t env, obj_t op_env, obj_t operator, obj_t operands)
 }
 
 
+/* (length list)
+ * Returns the length of list.
+ * See R4RS 6.3.
+ */
 static obj_t entry_length(obj_t env, obj_t op_env, obj_t operator, obj_t operands)
 {
   obj_t arg;
@@ -2184,6 +2282,13 @@ static obj_t entry_integerp(obj_t env, obj_t op_env, obj_t operator, obj_t opera
 }
 
 
+/* (zero? z)
+ * (positive? x)
+ * (negative? x)
+ * These numerical predicates test a number for a particular property,
+ * returning #t or #f.
+ * See R4RS 6.5.5.
+ */
 static obj_t entry_zerop(obj_t env, obj_t op_env, obj_t operator, obj_t operands)
 {
   obj_t arg;
@@ -2214,6 +2319,10 @@ static obj_t entry_negativep(obj_t env, obj_t op_env, obj_t operator, obj_t oper
 }
 
 
+/* (symbol? obj)
+ * Returns #t if obj is a symbol, otherwise returns #f.
+ * See R4RS 6.4.
+ */
 static obj_t entry_symbolp(obj_t env, obj_t op_env, obj_t operator, obj_t operands)
 {
   obj_t arg;
@@ -2360,6 +2469,11 @@ static obj_t entry_greaterthan(obj_t env, obj_t op_env, obj_t operator, obj_t op
 }
 
 
+/* (reverse list)
+ * Returns a newly allocated list consisting of the elements of list
+ * in reverse order.
+ * See R4RS 6.3.
+ */
 static obj_t entry_reverse(obj_t env, obj_t op_env, obj_t operator, obj_t operands)
 {
   obj_t arg, result;
@@ -2371,6 +2485,55 @@ static obj_t entry_reverse(obj_t env, obj_t op_env, obj_t operator, obj_t operan
     result = make_pair(CAR(arg), result);
     arg = CDR(arg);
   }
+  return result;
+}
+
+
+/* (list-tail list k)
+ * Returns the sublist of list obtained by omitting the first k
+ * elements.
+ */
+static obj_t entry_list_tail(obj_t env, obj_t op_env, obj_t operator, obj_t operands)
+{
+  obj_t arg, k;
+  int i;
+  eval_args(operator->operator.name, env, op_env, operands, 2, &arg, &k);
+  unless(TYPE(k) == TYPE_INTEGER)
+    error("%s: second argument must be an integer", operator->operator.name);
+  i = k->integer.integer;
+  unless(i >= 0)
+    error("%s: second argument must be non-negative", operator->operator.name);
+  while(i-- > 0) {
+    unless(TYPE(arg) == TYPE_PAIR)
+      error("%s: first argument must be a list", operator->operator.name);
+    arg = CDR(arg);
+  }
+  return arg;
+}
+
+
+/* (list-ref list k)
+ * Returns the kth element of list.
+ * See R4RS 6.3.
+ */
+static obj_t entry_list_ref(obj_t env, obj_t op_env, obj_t operator, obj_t operands)
+{
+  obj_t arg, k, result;
+  int i;
+  eval_args(operator->operator.name, env, op_env, operands, 2, &arg, &k);
+  unless(TYPE(k) == TYPE_INTEGER)
+    error("%s: second argument must be an integer", operator->operator.name);
+  i = k->integer.integer;
+  unless(i >= 0)
+    error("%s: second argument must be non-negative", operator->operator.name);
+  do {
+    if(arg == obj_empty)
+      error("%s: index %ld out of bounds", operator->operator.name, k->integer.integer);
+    unless(TYPE(arg) == TYPE_PAIR)
+      error("%s: first argument must be a list", operator->operator.name);
+    result = CAR(arg);
+    arg = CDR(arg);
+  } while(i-- > 0);
   return result;
 }
 
@@ -2410,6 +2573,111 @@ static obj_t entry_open_input_file(obj_t env, obj_t op_env, obj_t operator, obj_
   mps_finalize(arena, &port_ref);
 
   return port;
+}
+
+
+/* (open-output-file filename)
+ * Takes a string naming an output file to be created and returns an
+ * output port capable of writing characters to a new file by that
+ * name. If the file cannot be opened, an error is signalled. If a
+ * file with the given name already exists, the effect is unspecified.
+ * See R4RS 6.10.1
+ */
+static obj_t entry_open_output_file(obj_t env, obj_t op_env, obj_t operator, obj_t operands)
+{
+  obj_t filename;
+  FILE *stream;
+  eval_args(operator->operator.name, env, op_env, operands, 1, &filename);
+  unless(TYPE(filename) == TYPE_STRING)
+    error("%s: argument must be a string", operator->operator.name);
+  stream = fopen(filename->string.string, "w");
+  if(stream == NULL)
+    /* TODO: "an error is signalled" */
+    error("%s: cannot open output file", operator->operator.name);
+  return make_port(filename, stream);
+}
+
+
+/* (close-input-port port)
+ * (close-output-port port)
+ * Closes the file associated with port, rendering the port incapable
+ * of delivering or accepting characters. These routines have no
+ * effect if the file has already been closed. The value returned is
+ * unspecified.
+ * See R4RS 6.10.1.
+ */
+static obj_t entry_close_port(obj_t env, obj_t op_env, obj_t operator, obj_t operands)
+{
+  obj_t port;
+  eval_args(operator->operator.name, env, op_env, operands, 1, &port);
+  unless(TYPE(port) == TYPE_PORT)
+    error("%s: argument must be a port", operator->operator.name);
+  port->port.stream = NULL;
+  return obj_undefined;
+}
+
+
+static FILE *rest_port_stream(obj_t operator, obj_t rest, const char *argnumber, FILE *default_stream) {
+  FILE *stream = default_stream;
+  unless(rest == obj_empty) {
+    unless(CDR(rest) == obj_empty)
+      error("%s: too many arguments", operator->operator.name);
+    unless(TYPE(CAR(rest)) == TYPE_PORT)
+      error("%s: %s argument must be a port", operator->operator.name, argnumber);
+    stream = CAR(rest)->port.stream;
+    unless(stream)
+      error("%s: port is closed", operator->operator.name);
+  }
+  return stream;
+}
+
+
+/* (write obj)
+ * (write obj port)
+ * Writes a written representation of obj to the given port. Strings
+ * that appear in the written representation are enclosed in
+ * doublequotes, and within those strings backslash and doublequote
+ * characters are escaped by backslashes. Write returns an unspecified
+ * value. The port argument may be omitted, in which case it defaults
+ * to the value returned by current-output-port.
+ * See R4RS 6.10.3.
+ */
+static obj_t entry_write(obj_t env, obj_t op_env, obj_t operator, obj_t operands)
+{
+  obj_t arg, rest;
+  eval_args_rest(operator->operator.name, env, op_env, operands, &rest, 1, &arg);
+  /* TODO: default to current-output-port */
+  print(arg, -1, rest_port_stream(operator, rest, "second", stdout));
+  return obj_undefined;
+}
+
+
+static obj_t entry_write_string(obj_t env, obj_t op_env, obj_t operator, obj_t operands)
+{
+  obj_t arg, rest;
+  eval_args_rest(operator->operator.name, env, op_env, operands, &rest, 1, &arg);
+  unless(TYPE(arg) == TYPE_STRING)
+    error("%s: first argument must be a string", operator->operator.name);
+  /* TODO: default to current-output-port */
+  fputs(arg->string.string, rest_port_stream(operator, rest, "second", stdout));
+  return obj_undefined;
+}
+
+
+/* (newline)
+ * (newline port)
+ * Writes an end of line to port. Exactly how this is done differs
+ * from one operating system to another. Returns an unspecified value.
+ * The port argument may be omitted, in which case it defaults to the
+ * value returned by current-output-port.
+ */
+static obj_t entry_newline(obj_t env, obj_t op_env, obj_t operator, obj_t operands)
+{
+  obj_t rest;
+  eval_args_rest(operator->operator.name, env, op_env, operands, &rest, 0);
+  /* TODO: default to current-output-port */
+  putc('\n', rest_port_stream(operator, rest, "first", stdout));
+  return obj_undefined;
 }
 
 
@@ -2488,13 +2756,11 @@ static obj_t entry_vectorp(obj_t env, obj_t op_env, obj_t operator, obj_t operan
 
 static obj_t entry_make_vector(obj_t env, obj_t op_env, obj_t operator, obj_t operands)
 {
-  obj_t length, rest, fill;
+  obj_t length, rest, fill = obj_undefined;
   eval_args_rest(operator->operator.name, env, op_env, operands, &rest, 1, &length);
   unless(TYPE(length) == TYPE_INTEGER)
     error("%s: first argument must be an integer", operator->operator.name);
-  if(rest == obj_empty)
-    fill = obj_undefined;
-  else {
+  unless(rest == obj_empty) {
     unless(CDR(rest) == obj_empty)
       error("%s: too many arguments", operator->operator.name);
     fill = CAR(rest);
@@ -2911,6 +3177,32 @@ static obj_t entry_make_weak_key_eq_hashtable(obj_t env, obj_t op_env, obj_t ope
 }
 
 
+/* (hashtable? hashtable)
+ * Returns #t if hashtable is a hashtable, #f otherwise.
+ * See R6RS Library 13.2.
+ */
+static obj_t entry_hashtablep(obj_t env, obj_t op_env, obj_t operator, obj_t operands)
+{
+  obj_t arg;
+  eval_args(operator->operator.name, env, op_env, operands, 1, &arg);
+  return TYPE(arg) == TYPE_TABLE ? obj_true : obj_false;
+}
+
+/* (hashtable-size hashtable)
+ * Returns the number of keys contained in hashtable as an exact
+ * integer object.
+ * See R6RS Library 13.2.
+ */
+static obj_t entry_hashtable_size(obj_t env, obj_t op_env, obj_t operator, obj_t operands)
+{
+  obj_t arg;
+  eval_args(operator->operator.name, env, op_env, operands, 1, &arg);
+  unless(TYPE(arg) == TYPE_TABLE)
+    error("%s: first argument must be a hash table", operator->operator.name);
+  return make_integer(table_size(arg));
+}
+
+
 /* (make-weak-value-eq-hashtable)
  * (make-weak-value-eq-hashtable k)
  * Returns a newly allocated mutable weak-value hashtable that accepts
@@ -2971,6 +3263,60 @@ static obj_t entry_hashtable_set(obj_t env, obj_t op_env, obj_t operator, obj_t 
 }
 
 
+/* (hashtable-delete! hashtable key)
+ * Removes any association for key within hashtable and returns
+ * unspecified values.
+ * See R6RS Library 13.2.
+ */
+static obj_t entry_hashtable_delete(obj_t env, obj_t op_env, obj_t operator, obj_t operands)
+{
+  obj_t tbl, key;
+  eval_args(operator->operator.name, env, op_env, operands, 2, &tbl, &key);
+  unless(TYPE(tbl) == TYPE_TABLE)
+    error("%s: first argument must be a hash table", operator->operator.name);
+  table_delete(tbl, key);
+  return obj_undefined;
+}
+
+
+/* (hashtable-contains? hashtable key)
+ * Returns #t if hashtable contains an association for key, #f otherwise.
+ * See R6RS Library 13.2.
+ */
+static obj_t entry_hashtable_containsp(obj_t env, obj_t op_env, obj_t operator, obj_t operands)
+{
+  obj_t tbl, key;
+  eval_args(operator->operator.name, env, op_env, operands, 2, &tbl, &key);
+  unless(TYPE(tbl) == TYPE_TABLE)
+    error("%s: first argument must be a hash table", operator->operator.name);
+  return table_ref(tbl, key) != NULL ? obj_true : obj_false;
+}
+
+
+/* (hashtable-keys hashtable)
+ * Returns a vector of all keys in hashtable. The order of the vector
+ * is unspecified.
+ * See R6RS Library 13.2.
+ */
+static obj_t entry_hashtable_keys(obj_t env, obj_t op_env, obj_t operator, obj_t operands)
+{
+  size_t length, i, j = 0;
+  obj_t tbl, vector;
+  eval_args(operator->operator.name, env, op_env, operands, 1, &tbl);
+  unless(TYPE(tbl) == TYPE_TABLE)
+    error("%s: first argument must be a hash table", operator->operator.name);
+  vector = make_vector(table_size(tbl), obj_undefined);
+  length = UNTAG_LENGTH(tbl->table.keys->length);
+  for(i = 0; i < length; ++i) {
+    obj_t key = tbl->table.keys->bucket[i];
+    if(key != NULL && key != obj_deleted)
+      vector->vector.vector[j++] = tbl->table.values->bucket[i];
+  }
+  assert(j == vector->vector.length);
+  return vector;
+}
+
+
 /* entry_gc -- full garbage collection now                      %%MPS
  *
  * This is an example of a direct interface from the language to the MPS.
@@ -3002,7 +3348,8 @@ static struct {char *name; obj_t *varp;} sptab[] = {
   {"#t", &obj_true},
   {"#f", &obj_false},
   {"#[undefined]", &obj_undefined},
-  {"#[tail]", &obj_tail}
+  {"#[tail]", &obj_tail},
+  {"#[deleted]", &obj_deleted}
 };
 
 
@@ -3072,8 +3419,16 @@ static struct {char *name; entry_t entry;} funtab[] = {
   {"<", entry_lessthan},
   {">", entry_greaterthan},
   {"reverse", entry_reverse},
+  {"list-tail", entry_list_tail},
+  {"list-ref", entry_list_ref},
   {"the-environment", entry_environment},
   {"open-input-file", entry_open_input_file},
+  {"open-output-file", entry_open_output_file},
+  {"close-input-port", entry_close_port},
+  {"close-output-port", entry_close_port},
+  {"write", entry_write},
+  {"write-string", entry_write_string},
+  {"newline", entry_newline},
   {"force", entry_force},
   {"char?", entry_charp},
   {"char->integer", entry_char_to_integer},
@@ -3104,8 +3459,13 @@ static struct {char *name; entry_t entry;} funtab[] = {
   {"make-weak-key-eq-hashtable", entry_make_weak_key_eq_hashtable},
   {"make-weak-value-eq-hashtable", entry_make_weak_value_eq_hashtable},
   {"make-doubly-weak-eq-hashtable", entry_make_doubly_weak_eq_hashtable},
+  {"hashtable?", entry_hashtablep},
+  {"hashtable-size", entry_hashtable_size},
   {"hashtable-ref", entry_hashtable_ref},
   {"hashtable-set!", entry_hashtable_set},
+  {"hashtable-delete!", entry_hashtable_delete},
+  {"hashtable-contains?", entry_hashtable_containsp},
+  {"hashtable-keys", entry_hashtable_keys},
   {"gc", entry_gc}
 };
 
@@ -3151,8 +3511,8 @@ static mps_res_t obj_scan(mps_ss_t ss, mps_addr_t base, mps_addr_t limit)
       obj_t obj = base;
       switch (TYPE(obj)) {
       case TYPE_PAIR:
-        FIX(obj->pair.car);
-        FIX(obj->pair.cdr);
+        FIX(CAR(obj));
+        FIX(CDR(obj));
         base = (char *)base + ALIGN(sizeof(pair_s));
         break;
       case TYPE_INTEGER:
@@ -3199,16 +3559,16 @@ static mps_res_t obj_scan(mps_ss_t ss, mps_addr_t base, mps_addr_t limit)
         base = (char *)base + ALIGN(sizeof(table_s));
         break;
       case TYPE_FWD2:
-        base = (char *)base + ALIGN(sizeof(fwd2_s));
+        base = (char *)base + ALIGN_UP(sizeof(fwd2_s));
         break;
       case TYPE_FWD:
-        base = (char *)base + ALIGN(obj->fwd.size);
+        base = (char *)base + ALIGN_UP(obj->fwd.size);
         break;
       case TYPE_PAD1:
-        base = (char *)base + ALIGN(sizeof(pad1_s));
+        base = (char *)base + ALIGN_UP(sizeof(pad1_s));
         break;
       case TYPE_PAD:
-        base = (char *)base + ALIGN(obj->pad.size);
+        base = (char *)base + ALIGN_UP(obj->pad.size);
         break;
       default:
         assert(0);
@@ -3270,16 +3630,16 @@ static mps_addr_t obj_skip(mps_addr_t base)
     base = (char *)base + ALIGN(sizeof(table_s));
     break;
   case TYPE_FWD2:
-    base = (char *)base + ALIGN(sizeof(fwd2_s));
+    base = (char *)base + ALIGN_UP(sizeof(fwd2_s));
     break;
   case TYPE_FWD:
-    base = (char *)base + ALIGN(obj->fwd.size);
+    base = (char *)base + ALIGN_UP(obj->fwd.size);
     break;
   case TYPE_PAD:
-    base = (char *)base + ALIGN(obj->pad.size);
+    base = (char *)base + ALIGN_UP(obj->pad.size);
     break;
   case TYPE_PAD1:
-    base = (char *)base + ALIGN(sizeof(pad1_s));
+    base = (char *)base + ALIGN_UP(sizeof(pad1_s));
     break;
   default:
     assert(0);
@@ -3326,8 +3686,8 @@ static void obj_fwd(mps_addr_t old, mps_addr_t new)
   obj_t obj = old;
   mps_addr_t limit = obj_skip(old);
   size_t size = (char *)limit - (char *)old;
-  assert(size >= ALIGN(sizeof(fwd2_s)));
-  if (size == ALIGN(sizeof(fwd2_s))) {
+  assert(size >= ALIGN_UP(sizeof(fwd2_s)));
+  if (size == ALIGN_UP(sizeof(fwd2_s))) {
     TYPE(obj) = TYPE_FWD2;
     obj->fwd2.fwd = new;
   } else {
@@ -3351,8 +3711,8 @@ static void obj_fwd(mps_addr_t old, mps_addr_t new)
 static void obj_pad(mps_addr_t addr, size_t size)
 {
   obj_t obj = addr;
-  assert(size >= ALIGN(sizeof(pad1_s)));
-  if (size == ALIGN(sizeof(pad1_s))) {
+  assert(size >= ALIGN_UP(sizeof(pad1_s)));
+  if (size == ALIGN_UP(sizeof(pad1_s))) {
     TYPE(obj) = TYPE_PAD1;
   } else {
     TYPE(obj) = TYPE_PAD;
@@ -3401,19 +3761,20 @@ static mps_res_t buckets_scan(mps_ss_t ss, mps_addr_t base, mps_addr_t limit)
     while (base < limit) {
       buckets_t buckets = base;
       size_t i, length = UNTAG_LENGTH(buckets->length);
-      assert(buckets->dependent);
-      assert(buckets->dependent->length == buckets->length);
+      if(buckets->dependent)
+        assert(buckets->dependent->length == buckets->length);
       for (i = 0; i < length; ++i) {
         mps_addr_t p = buckets->bucket[i];
         if (MPS_FIX1(ss, p)) {
           mps_res_t res = MPS_FIX2(ss, &p);
           if (res != MPS_RES_OK) return res;
-          if (p == NULL) {
+          if (p == NULL && buckets->dependent) {
             /* key/value was splatted: splat value/key too */
+            p = obj_deleted;
             puts("splat!");
-            buckets->dependent->bucket[i] = NULL;
-            buckets->used -= 2; /* tagged */
-            buckets->dependent->used -= 2; /* tagged */
+            buckets->dependent->bucket[i] = p;
+            buckets->deleted += 2; /* tagged */
+            buckets->dependent->deleted -= 2; /* tagged */
           }
           buckets->bucket[i] = p;
         }
@@ -3560,20 +3921,25 @@ static void mps_chat(void)
  * by the MPS. See topic/thread.
  */
 
+typedef struct tramp_s {
+  int argc;
+  char **argv;
+  int exit_code;
+} tramp_s, *tramp_t;
+
 static void *start(void *p, size_t s)
 {
+  tramp_t tramp = p;
+  int argc = tramp->argc;
+  char **argv = tramp->argv;
+  FILE *input = stdin;
+  int interactive = 1;
   size_t i;
   volatile obj_t env, op_env, obj;
   jmp_buf jb;
   mps_res_t res;
   mps_root_t globals_root;
-  
-  puts("MPS Toy Scheme Example\n"
-       "The prompt shows total allocated bytes and number of collections.\n"
-       "Try (vector-length (make-vector 100000 1)) to see the MPS in action.\n"
-       "You can force a complete garbage collection with (gc).\n"
-       "If you recurse too much the interpreter may crash from using too much C stack.");
-  
+
   total = (size_t)0;
   
   symtab_size = 16;
@@ -3627,18 +3993,47 @@ static void *start(void *p, size_t s)
     abort();
   }
 
-  /* The read-eval-print loop */
+  if(argc >= 2) {
+    /* Non-interactive file execution */
+    input = fopen(argv[1], "r");
+    if(input == NULL) {
+      extern int errno;
+      fprintf(stderr, "Can't open %s: %s\n", argv[1], strerror(errno));
+      tramp->exit_code = EXIT_FAILURE;
+      return NULL;
+    }
+    interactive = 0;
+  } else {
+    /* Ask the MPS to tell us when it's garbage collecting so that we can
+       print some messages.  Completely optional. */
+    mps_message_type_enable(arena, mps_message_type_gc());
+    mps_message_type_enable(arena, mps_message_type_gc_start());
+    
+    puts("MPS Toy Scheme Example\n"
+         "The prompt shows total allocated bytes and number of collections.\n"
+         "Try (vector-length (make-vector 100000 1)) to see the MPS in action.\n"
+         "You can force a complete garbage collection with (gc).\n"
+         "If you recurse too much the interpreter may crash from using too much C stack.");
+  }
+
+
+  /* Read-eval-print loop */
   
   for(;;) {
     if(setjmp(*error_handler) != 0) {
       fprintf(stderr, "%s\n", error_message);
+      if(!interactive) {
+        tramp->exit_code = EXIT_FAILURE;
+        return NULL;
+      }
     }
     
     mps_chat();
 
-    printf("%lu, %lu> ", (unsigned long)total,
-                         (unsigned long)mps_collections(arena));
-    obj = read(stdin);
+    if(interactive)
+      printf("%lu, %lu> ", (unsigned long)total,
+             (unsigned long)mps_collections(arena));
+    obj = read(input);
     if(obj == obj_eof) break;
     obj = eval(env, op_env, obj);
     if(obj != obj_undefined) {
@@ -3647,13 +4042,15 @@ static void *start(void *p, size_t s)
     }
   }
 
-  puts("Bye.");
+  if(interactive)
+    puts("Bye.");
 
   /* See comment at the end of `main` about cleaning up. */
   mps_root_destroy(symtab_root);
   mps_root_destroy(globals_root);
 
-  return 0;
+  tramp->exit_code = EXIT_SUCCESS;
+  return NULL;
 }
 
 
@@ -3684,6 +4081,7 @@ static mps_gen_param_s obj_gen_params[] = {
 
 int main(int argc, char *argv[])
 {
+  tramp_s tramp = {argc, argv};
   mps_res_t res;
   mps_chain_t obj_chain, leaf_chain;
   mps_fmt_t obj_fmt, leaf_fmt, buckets_fmt;
@@ -3790,17 +4188,14 @@ int main(int argc, char *argv[])
                             0);
   if (res != MPS_RES_OK) error("Couldn't create root");
 
-  /* Ask the MPS to tell us when it's garbage collecting so that we can
-     print some messages.  Completely optional. */
+  /* Make sure we can pick up finalization messages. */
   mps_message_type_enable(arena, mps_message_type_finalization());
-  mps_message_type_enable(arena, mps_message_type_gc());
-  mps_message_type_enable(arena, mps_message_type_gc_start());
 
   /* Trampoline into the main program.  The MPS trampoline is unfortunately
      required to mark the top of the stack of the main thread, and on some
      platforms it must also catch exceptions in order to implement hardware
      memory barriers. */
-  mps_tramp(&r, start, NULL, 0);
+  mps_tramp(&r, start, &tramp, 0);
   
   /* Cleaning up the MPS object with destroy methods will allow the MPS to
      check final consistency and warn you about bugs.  It also allows the
@@ -3821,7 +4216,7 @@ int main(int argc, char *argv[])
   mps_fmt_destroy(obj_fmt);
   mps_arena_destroy(arena);
 
-  return 0;
+  return tramp.exit_code;
 }
 
 
