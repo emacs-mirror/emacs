@@ -2674,6 +2674,17 @@ static obj_t entry_eval(obj_t env, obj_t op_env, obj_t operator, obj_t operands)
 }
 
 
+static obj_t entry_error(obj_t env, obj_t op_env, obj_t operator, obj_t operands)
+{
+  obj_t msg;
+  eval_args(operator->operator.name, env, op_env, operands, 1, &msg);
+  unless(TYPE(msg) == TYPE_STRING)
+    error("%s: argument must be a string", operator->operator.name);
+  error(msg->string.string);
+  return obj_undefined;
+}
+
+
 static obj_t entry_symbol_to_string(obj_t env, obj_t op_env, obj_t operator, obj_t operands)
 {
   obj_t symbol;
@@ -3290,6 +3301,7 @@ static struct {char *name; entry_t entry;} funtab[] = {
   {"list->vector", entry_list_to_vector},
   {"vector-fill!", entry_vector_fill},
   {"eval", entry_eval},
+  {"error", entry_error},
   {"symbol->string", entry_symbol_to_string},
   {"string->symbol", entry_string_to_symbol},
   {"string?", entry_stringp},
