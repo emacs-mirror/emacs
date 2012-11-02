@@ -1,3 +1,12 @@
+2012-11-02  Eli Zaretskii  <eliz@gnu.org>
+
+	Implement backtrace output for fatal errors on MS-Windows.
+	* w32fns.c (CaptureStackBackTrace_proc): New typedef.
+	(BACKTRACE_LIMIT_MAX): New macro.
+	(w32_backtrace): New function.
+	(emacs_abort): Use w32_backtrace when the user chooses not to
+	attach a debugger.  Update the text of the abort dialog.
+
 2012-11-02  Dmitry Antipov  <dmantipov@yandex.ru>
 
 	Window-related stuff cleanup here and there.

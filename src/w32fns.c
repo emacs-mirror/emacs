@@ -26,6 +26,7 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #include <limits.h>
 #include <errno.h>
 #include <math.h>
+#include <fcntl.h>
 
 #include "lisp.h"
 #include "w32term.h"
@@ -7697,6 +7698,30 @@ globals_of_w32fns (void)
   syms_of_w32uniscribe ();
 }
 
+typedef USHORT (WINAPI * CaptureStackBackTrace_proc) (ULONG, ULONG, PVOID *,
+						      PULONG);
+
+#define BACKTRACE_LIMIT_MAX 62
+
+int
+w32_backtrace (void **buffer, int limit)
+{
+  static CaptureStackBackTrace_proc s_pfn_CaptureStackBackTrace = NULL;
+  HMODULE hm_kernel32 = NULL;
+
+  if (!s_pfn_CaptureStackBackTrace)
+    {
+      hm_kernel32 = LoadLibrary ("Kernel32.dll");
+      s_pfn_CaptureStackBackTrace =
+	(CaptureStackBackTrace_proc) GetProcAddress (hm_kernel32,
+						     "RtlCaptureStackBackTrace");
+    }
+  if (s_pfn_CaptureStackBackTrace)
+    return s_pfn_CaptureStackBackTrace (0, min (BACKTRACE_LIMIT_MAX, limit),
+					buffer, NULL);
+  return 0;
+}
+
 void
 emacs_abort (void)
 {
@@ -7704,7 +7729,10 @@ emacs_abort (void)
   button = MessageBox (NULL,
 		       "A fatal error has occurred!\n\n"
 		       "Would you like to attach a debugger?\n\n"
-		       "Select YES to debug, NO to abort Emacs"
+		       "Select:\n"
+		       "YES -- to debug Emacs, or\n"
+		       "NO  -- to abort Emacs and produce a backtrace\n"
+		       "       (emacs_backtrace.txt in current directory)."
 #if __GNUC__
 		       "\n\n(type \"gdb -p <emacs-PID>\" and\n"
 		       "\"continue\" inside GDB before clicking YES.)"
@@ -7719,7 +7747,52 @@ emacs_abort (void)
       exit (2);	/* tell the compiler we will never return */
     case IDNO:
     default:
-      abort ();
-      break;
+      {
+	void *stack[BACKTRACE_LIMIT_MAX + 1];
+	int i = w32_backtrace (stack, BACKTRACE_LIMIT_MAX + 1);
+
+	if (i)
+	  {
+	    HANDLE errout = GetStdHandle (STD_ERROR_HANDLE);
+	    int stderr_fd = -1, errfile_fd = -1;
+	    int j;
+
+	    if (errout && errout != INVALID_HANDLE_VALUE)
+	      stderr_fd = _open_osfhandle ((intptr_t)errout, O_APPEND | O_BINARY);
+	    if (stderr_fd >= 0)
+	      write (stderr_fd, "\r\nBacktrace:\r\n", 14);
+	    errfile_fd = _open ("emacs_backtrace.txt", O_RDWR | O_CREAT | O_BINARY, S_IREAD | S_IWRITE);
+	    if (errfile_fd >= 0)
+	      {
+		lseek (errfile_fd, 0L, SEEK_END);
+		write (errfile_fd, "\r\nBacktrace:\r\n", 14);
+	      }
+
+	    for (j = 0; j < i; j++)
+	      {
+		char buf[INT_BUFSIZE_BOUND (void *)];
+
+		/* stack[] gives the return addresses, whereas we want
+		   the address of the call, so decrease each address
+		   by approximate size of 1 CALL instruction.  */
+		sprintf (buf, "0x%p\r\n", stack[j] - sizeof(void *));
+		if (stderr_fd >= 0)
+		  write (stderr_fd, buf, strlen (buf));
+		if (errfile_fd >= 0)
+		  write (errfile_fd, buf, strlen (buf));
+	      }
+	    if (i == BACKTRACE_LIMIT_MAX)
+	      {
+		if (stderr_fd >= 0)
+		  write (stderr_fd, "...\r\n", 5);
+		if (errfile_fd >= 0)
+		  write (errfile_fd, "...\r\n", 5);
+	      }
+	    if (errfile_fd >= 0)
+	      close (errfile_fd);
+	  }
+	abort ();
+	break;
+      }
     }
 }
