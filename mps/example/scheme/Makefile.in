@@ -8,6 +8,8 @@ MPS = ../../code
 
 TARGETS = scheme-malloc scheme scheme-advanced
 
+TESTS = r5rs mps
+
 all: $(TARGETS)
 
 $(TARGETS): %: %.c
@@ -15,3 +17,10 @@ $(TARGETS): %: %.c
 
 clean:
 	rm $(TARGETS)
+
+test: $(TARGETS)
+	for TARGET in $(TARGETS); do \
+	   for TEST in $(TESTS); do \
+	     ./$$TARGET test-$$TEST.scm || exit; \
+	   done \
+	done

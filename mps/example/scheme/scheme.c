@@ -626,7 +626,7 @@ static obj_t make_table(size_t length)
 {
   obj_t obj;
   mps_addr_t addr;
-  size_t size = ALIGN(sizeof(table_s));
+  size_t l, size = ALIGN(sizeof(table_s));
   do {
     mps_res_t res = mps_reserve(&addr, obj_ap, size);
     if (res != MPS_RES_OK) error("out of memory in make_table");
@@ -635,7 +635,9 @@ static obj_t make_table(size_t length)
     obj->table.buckets = NULL;
   } while(!mps_commit(obj_ap, addr, size));
   total += size;
-  obj->table.buckets = make_buckets(length);
+  /* round up to next power of 2 */
+  for(l = 1; l < length; l *= 2);
+  obj->table.buckets = make_buckets(l);
   mps_ld_reset(&obj->table.ld, arena);
   return obj;
 }
@@ -704,15 +706,17 @@ static unsigned long hash(const char *s) {
  */
 
 static obj_t *find(char *string) {
-  unsigned long i, h;
+  unsigned long i, h, probe;
 
-  h = hash(string) & (symtab_size-1);
-  i = h;
+  h = hash(string);
+  probe = (h >> 8) | 1;
+  h &= (symtab_size-1);
+  i = h;  
   do {
     if(symtab[i] == NULL ||
        strcmp(string, symtab[i]->symbol.string) == 0)
       return &symtab[i];
-    i = (i+h+1) & (symtab_size-1);
+    i = (i+probe) & (symtab_size-1);
   } while(i != h);
 
   return NULL;
@@ -781,12 +785,14 @@ static obj_t intern(char *string) {
  */
 static struct bucket_s *buckets_find(obj_t buckets, obj_t key)
 {
-  union {char s[sizeof(void *) + 1]; void *addr;} u = {""};
-  unsigned long i, h;
+  union {char s[sizeof(obj_t) + 1]; obj_t addr;} u = {""};
+  unsigned long i, h, probe;
   struct bucket_s *result = NULL;
   assert(TYPE(buckets) == TYPE_BUCKETS);
   u.addr = key;
-  h = hash(u.s) & (buckets->buckets.length-1);
+  h = hash(u.s);
+  probe = (h >> 8) | 1;
+  h &= (buckets->buckets.length-1);
   i = h;
   do {
     struct bucket_s *b = &buckets->buckets.bucket[i];
@@ -794,7 +800,7 @@ static struct bucket_s *buckets_find(obj_t buckets, obj_t key)
       return b;
     if(result == NULL && b->key == obj_deleted)
       result = b;
-    i = (i+h+1) & (buckets->buckets.length-1);
+    i = (i+probe) & (buckets->buckets.length-1);
   } while(i != h);
   return result;
 }
@@ -2083,16 +2089,12 @@ static obj_t entry_pairp(obj_t env, obj_t op_env, obj_t operator, obj_t operands
 }
 
 
-/* entry_cons -- create pair
- *
- * (cons <obj1> <obj2>)
+/* (cons obj1 obj2)
+ * Returns a newly allocated pair whose car is obj1 and whose cdr is
+ * obj2. The pair is guaranteed to be different (in the sense of eqv?)
+ * from every existing object.
  * See R4RS 6.3.
- *
- * Returns a newly allocated pair whose car is obj1 and whose cdr is obj2.
- * The pair is guaranteed to be different (in the sense of eqv?) from every
- * existing object.
  */
-
 static obj_t entry_cons(obj_t env, obj_t op_env, obj_t operator, obj_t operands)
 {
   obj_t car, cdr;
@@ -2101,8 +2103,11 @@ static obj_t entry_cons(obj_t env, obj_t op_env, obj_t operator, obj_t operands)
 }
 
 
-/* entry_car -- R4RS 6.3 */
-
+/* (car pair)
+ * Returns the contents of the car field of pair. Note that it is an
+ * error to take the car of the empty list.
+ * See R4RS 6.3.
+ */
 static obj_t entry_car(obj_t env, obj_t op_env, obj_t operator, obj_t operands)
 {
   obj_t pair;
@@ -2112,7 +2117,11 @@ static obj_t entry_car(obj_t env, obj_t op_env, obj_t operator, obj_t operands)
   return CAR(pair);
 }
 
-
+/* (cdr pair)
+ * Returns the contents of the cdr field of pair. Note that it is an
+ * error to take the cdr of the empty list.
+ * See R4RS 6.3.
+ */
 static obj_t entry_cdr(obj_t env, obj_t op_env, obj_t operator, obj_t operands)
 {
   obj_t pair;
@@ -2123,6 +2132,11 @@ static obj_t entry_cdr(obj_t env, obj_t op_env, obj_t operator, obj_t operands)
 }
 
 
+/* (set-car! pair obj)
+ * Stores obj in the car field of pair. The value returned by set-car!
+ * is unspecified.
+ * See R4RS 6.3.
+ */
 static obj_t entry_setcar(obj_t env, obj_t op_env, obj_t operator, obj_t operands)
 {
   obj_t pair, value;
@@ -2134,6 +2148,11 @@ static obj_t entry_setcar(obj_t env, obj_t op_env, obj_t operator, obj_t operand
 }
 
 
+/* (set-cdr! pair obj)
+ * Stores obj in the cdr field of pair. The value returned by set-cdr!
+ * is unspecified.
+ * See R4RS 6.3.
+ */
 static obj_t entry_setcdr(obj_t env, obj_t op_env, obj_t operator, obj_t operands)
 {
   obj_t pair, value;
@@ -2145,6 +2164,10 @@ static obj_t entry_setcdr(obj_t env, obj_t op_env, obj_t operator, obj_t operand
 }
 
 
+/* (null? obj)
+ * Returns #t if obj is the empty list, otherwise returns #f.
+ * See R4RS 6.3.
+ */
 static obj_t entry_nullp(obj_t env, obj_t op_env, obj_t operator, obj_t operands)
 {
   obj_t arg;
@@ -2153,6 +2176,11 @@ static obj_t entry_nullp(obj_t env, obj_t op_env, obj_t operator, obj_t operands
 }
 
 
+/* (list? obj)
+ * Returns #t if obj is a list, otherwise returns #f. By definition,
+ * all lists have finite length and are terminated by the empty list.
+ * See R4RS 6.3.
+ */
 static obj_t entry_listp(obj_t env, obj_t op_env, obj_t operator, obj_t operands)
 {
   obj_t arg;
@@ -2163,6 +2191,10 @@ static obj_t entry_listp(obj_t env, obj_t op_env, obj_t operator, obj_t operands
 }
 
 
+/* (list obj ...)
+ * Returns a newly allocated list of its arguments.
+ * See R4RS 6.3.
+ */
 static obj_t entry_list(obj_t env, obj_t op_env, obj_t operator, obj_t operands)
 {
   obj_t rest;
@@ -2171,6 +2203,10 @@ static obj_t entry_list(obj_t env, obj_t op_env, obj_t operator, obj_t operands)
 }
 
 
+/* (length list)
+ * Returns the length of list.
+ * See R4RS 6.3.
+ */
 static obj_t entry_length(obj_t env, obj_t op_env, obj_t operator, obj_t operands)
 {
   obj_t arg;
@@ -2218,6 +2254,13 @@ static obj_t entry_integerp(obj_t env, obj_t op_env, obj_t operator, obj_t opera
 }
 
 
+/* (zero? z)
+ * (positive? x)
+ * (negative? x)
+ * These numerical predicates test a number for a particular property,
+ * returning #t or #f.
+ * See R4RS 6.5.5.
+ */
 static obj_t entry_zerop(obj_t env, obj_t op_env, obj_t operator, obj_t operands)
 {
   obj_t arg;
@@ -2248,6 +2291,10 @@ static obj_t entry_negativep(obj_t env, obj_t op_env, obj_t operator, obj_t oper
 }
 
 
+/* (symbol? obj)
+ * Returns #t if obj is a symbol, otherwise returns #f.
+ * See R4RS 6.4.
+ */
 static obj_t entry_symbolp(obj_t env, obj_t op_env, obj_t operator, obj_t operands)
 {
   obj_t arg;
@@ -2394,6 +2441,11 @@ static obj_t entry_greaterthan(obj_t env, obj_t op_env, obj_t operator, obj_t op
 }
 
 
+/* (reverse list)
+ * Returns a newly allocated list consisting of the elements of list
+ * in reverse order.
+ * See R4RS 6.3.
+ */
 static obj_t entry_reverse(obj_t env, obj_t op_env, obj_t operator, obj_t operands)
 {
   obj_t arg, result;
@@ -2405,6 +2457,55 @@ static obj_t entry_reverse(obj_t env, obj_t op_env, obj_t operator, obj_t operan
     result = make_pair(CAR(arg), result);
     arg = CDR(arg);
   }
+  return result;
+}
+
+
+/* (list-tail list k)
+ * Returns the sublist of list obtained by omitting the first k
+ * elements.
+ */
+static obj_t entry_list_tail(obj_t env, obj_t op_env, obj_t operator, obj_t operands)
+{
+  obj_t arg, k;
+  int i;
+  eval_args(operator->operator.name, env, op_env, operands, 2, &arg, &k);
+  unless(TYPE(k) == TYPE_INTEGER)
+    error("%s: second argument must be an integer", operator->operator.name);
+  i = k->integer.integer;
+  unless(i >= 0)
+    error("%s: second argument must be non-negative", operator->operator.name);
+  while(i-- > 0) {
+    unless(TYPE(arg) == TYPE_PAIR)
+      error("%s: first argument must be a list", operator->operator.name);
+    arg = CDR(arg);
+  }
+  return arg;
+}
+
+
+/* (list-ref list k)
+ * Returns the kth element of list.
+ * See R4RS 6.3.
+ */
+static obj_t entry_list_ref(obj_t env, obj_t op_env, obj_t operator, obj_t operands)
+{
+  obj_t arg, k, result;
+  int i;
+  eval_args(operator->operator.name, env, op_env, operands, 2, &arg, &k);
+  unless(TYPE(k) == TYPE_INTEGER)
+    error("%s: second argument must be an integer", operator->operator.name);
+  i = k->integer.integer;
+  unless(i >= 0)
+    error("%s: second argument must be non-negative", operator->operator.name);
+  do {
+    if(arg == obj_empty)
+      error("%s: index %ld out of bounds", operator->operator.name, k->integer.integer);
+    unless(TYPE(arg) == TYPE_PAIR)
+      error("%s: first argument must be a list", operator->operator.name);
+    result = CAR(arg);
+    arg = CDR(arg);
+  } while(i-- > 0);
   return result;
 }
 
@@ -3244,6 +3345,8 @@ static struct {char *name; entry_t entry;} funtab[] = {
   {"<", entry_lessthan},
   {">", entry_greaterthan},
   {"reverse", entry_reverse},
+  {"list-tail", entry_list_tail},
+  {"list-ref", entry_list_ref},
   {"the-environment", entry_environment},
   {"open-input-file", entry_open_input_file},
   {"open-output-file", entry_open_output_file},
@@ -3665,20 +3768,25 @@ static void mps_chat(void)
  * by the MPS. See topic/thread.
  */
 
+typedef struct tramp_s {
+  int argc;
+  char **argv;
+  int exit_code;
+} tramp_s, *tramp_t;
+
 static void *start(void *p, size_t s)
 {
+  tramp_t tramp = p;
+  int argc = tramp->argc;
+  char **argv = tramp->argv;
+  FILE *input = stdin;
+  int interactive = 1;
   size_t i;
   volatile obj_t env, op_env, obj;
   jmp_buf jb;
   mps_res_t res;
   mps_root_t globals_root;
-  
-  puts("MPS Toy Scheme Example\n"
-       "The prompt shows total allocated bytes and number of collections.\n"
-       "Try (vector-length (make-vector 100000 1)) to see the MPS in action.\n"
-       "You can force a complete garbage collection with (gc).\n"
-       "If you recurse too much the interpreter may crash from using too much C stack.");
-  
+
   total = (size_t)0;
   
   symtab_size = 16;
@@ -3732,18 +3840,47 @@ static void *start(void *p, size_t s)
     abort();
   }
 
-  /* The read-eval-print loop */
+  if(argc >= 2) {
+    /* Non-interactive file execution */
+    input = fopen(argv[1], "r");
+    if(input == NULL) {
+      extern int errno;
+      fprintf(stderr, "Can't open %s: %s\n", argv[1], strerror(errno));
+      tramp->exit_code = EXIT_FAILURE;
+      return NULL;
+    }
+    interactive = 0;
+  } else {
+    /* Ask the MPS to tell us when it's garbage collecting so that we can
+       print some messages.  Completely optional. */
+    mps_message_type_enable(arena, mps_message_type_gc());
+    mps_message_type_enable(arena, mps_message_type_gc_start());
+    
+    puts("MPS Toy Scheme Example\n"
+         "The prompt shows total allocated bytes and number of collections.\n"
+         "Try (vector-length (make-vector 100000 1)) to see the MPS in action.\n"
+         "You can force a complete garbage collection with (gc).\n"
+         "If you recurse too much the interpreter may crash from using too much C stack.");
+  }
+
+
+  /* Read-eval-print loop */
   
   for(;;) {
     if(setjmp(*error_handler) != 0) {
       fprintf(stderr, "%s\n", error_message);
+      if(!interactive) {
+        tramp->exit_code = EXIT_FAILURE;
+        return NULL;
+      }
     }
     
     mps_chat();
 
-    printf("%lu, %lu> ", (unsigned long)total,
-                         (unsigned long)mps_collections(arena));
-    obj = read(stdin);
+    if(interactive)
+      printf("%lu, %lu> ", (unsigned long)total,
+             (unsigned long)mps_collections(arena));
+    obj = read(input);
     if(obj == obj_eof) break;
     obj = eval(env, op_env, obj);
     if(obj != obj_undefined) {
@@ -3752,13 +3889,15 @@ static void *start(void *p, size_t s)
     }
   }
 
-  puts("Bye.");
+  if(interactive)
+    puts("Bye.");
 
   /* See comment at the end of `main` about cleaning up. */
   mps_root_destroy(symtab_root);
   mps_root_destroy(globals_root);
 
-  return 0;
+  tramp->exit_code = EXIT_SUCCESS;
+  return NULL;
 }
 
 
@@ -3789,6 +3928,7 @@ static mps_gen_param_s obj_gen_params[] = {
 
 int main(int argc, char *argv[])
 {
+  tramp_s tramp = {argc, argv};
   mps_res_t res;
   mps_chain_t obj_chain;
   mps_fmt_t obj_fmt;
@@ -3852,17 +3992,14 @@ int main(int argc, char *argv[])
                             0);
   if (res != MPS_RES_OK) error("Couldn't create root");
 
-  /* Ask the MPS to tell us when it's garbage collecting so that we can
-     print some messages.  Completely optional. */
+  /* Make sure we can pick up finalization messages. */
   mps_message_type_enable(arena, mps_message_type_finalization());
-  mps_message_type_enable(arena, mps_message_type_gc());
-  mps_message_type_enable(arena, mps_message_type_gc_start());
 
   /* Trampoline into the main program.  The MPS trampoline is unfortunately
      required to mark the top of the stack of the main thread, and on some
      platforms it must also catch exceptions in order to implement hardware
      memory barriers. */
-  mps_tramp(&r, start, NULL, 0);
+  mps_tramp(&r, start, &tramp, 0);
   
   /* Cleaning up the MPS object with destroy methods will allow the MPS to
      check final consistency and warn you about bugs.  It also allows the
@@ -3876,7 +4013,7 @@ int main(int argc, char *argv[])
   mps_fmt_destroy(obj_fmt);
   mps_arena_destroy(arena);
 
-  return 0;
+  return tramp.exit_code;
 }
 
 
