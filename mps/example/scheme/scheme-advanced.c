@@ -24,8 +24,6 @@
  *
  *
  * MPS TO DO LIST
- * - make the symbol table weak to show how to use weak references
- * - add Scheme operators for talking to the MPS, forcing GC etc.
  * - make an mps_perror
  *
  * 
@@ -122,8 +120,7 @@ typedef struct pair_s {
 
 typedef struct symbol_s {
   type_t type;			/* TYPE_SYMBOL */
-  size_t length;		/* length of symbol string (excl. NUL) */
-  char string[1];		/* symbol string, NUL terminated */
+  obj_t name;                   /* its name (a string) */
 } symbol_s;
 
 typedef struct integer_s {
@@ -284,19 +281,14 @@ static size_t total;
 
 /* symtab -- symbol table                                       %%MPS
  *
- * The symbol table is a hash-table containing objects of TYPE_SYMBOL.
- * When a string is "interned" it is looked up in the table, and added
- * only if it is not there.  This guarantees that all symbols which
- * are equal are actually the same object.
- *
- * The symbol table is simply a malloc'd array of obj_t pointers.  Since
- * it's outside the MPS and refers to objects we want the MPS to keep
- * alive, it must be declared to the MPS as a root.  Search for
- * occurrences of `symtab_root` to see how this is done.
+ * The symbol table is a weak-value hashtable mapping objects of
+ * TYPE_STRING to objects of TYPE_SYMBOL. When a string is "interned"
+ * it is looked up in the table, and added only if it is not there.
+ * This guarantees that all symbols which are equal are actually the
+ * same object.
  */
 
-static obj_t *symtab;
-static size_t symtab_size;
+static obj_t symtab;
 static mps_root_t symtab_root;
 
 
@@ -497,19 +489,19 @@ static obj_t make_integer(long integer)
   return obj;
 }
 
-static obj_t make_symbol(size_t length, char string[])
+static obj_t make_symbol(obj_t name)
 {
   obj_t obj;
   mps_addr_t addr;
-  size_t size = ALIGN(offsetof(symbol_s, string) + length+1);
+  size_t size = ALIGN(sizeof(symbol_s));
+  assert(TYPE(name) == TYPE_STRING);
   do {
-    mps_res_t res = mps_reserve(&addr, leaf_ap, size);
+    mps_res_t res = mps_reserve(&addr, obj_ap, size);
     if (res != MPS_RES_OK) error("out of memory in make_symbol");
     obj = addr;
     obj->symbol.type = TYPE_SYMBOL;
-    obj->symbol.length = length;
-    memcpy(obj->symbol.string, string, length+1);
-  } while(!mps_commit(leaf_ap, addr, size));
+    obj->symbol.name = name;
+  } while(!mps_commit(obj_ap, addr, size));
   total += size;
   return obj;
 }
@@ -732,91 +724,6 @@ static unsigned long hash(const char *s, size_t length) {
 }
 
 
-/* find -- find entry for symbol in symbol table
- *
- * Look for a symbol matching the string in the symbol table.
- * If the symbol was found, returns the address of the symbol
- * table entry which points to the symbol.  Otherwise it
- * either returns the address of a NULL entry into which the
- * new symbol should be inserted, or NULL if the symbol table
- * is full.
- */
-
-static obj_t *find(char *string) {
-  unsigned long i, h, probe;
-
-  h = hash(string, strlen(string));
-  probe = (h >> 8) | 1;
-  h &= (symtab_size-1);
-  i = h;  
-  do {
-    if(symtab[i] == NULL ||
-       strcmp(string, symtab[i]->symbol.string) == 0)
-      return &symtab[i];
-    i = (i+probe) & (symtab_size-1);
-  } while(i != h);
-
-  return NULL;
-}
-
-
-/* rehash -- double size of symbol table */
-
-static void rehash(void) {
-  obj_t *old_symtab = symtab;
-  unsigned old_symtab_size = symtab_size;
-  mps_root_t old_symtab_root = symtab_root;
-  unsigned i;
-  mps_res_t res;
-
-  symtab_size *= 2;
-  symtab = malloc(sizeof(obj_t) * symtab_size);
-  if(symtab == NULL) error("out of memory");
-
-  /* Initialize the new table to NULL so that "find" will work. */
-  for(i = 0; i < symtab_size; ++i)
-    symtab[i] = NULL;
-
-  /* Once the symbol table is initialized with scannable references (NULL
-     in this case) we must register it as a root before we copy objects
-     across from the old symbol table.  The MPS might be moving objects
-     in memory at any time, and will arrange that both copies are updated
-     atomically to the mutator (this interpreter). */
-  res = mps_root_create_table(&symtab_root, arena, mps_rank_exact(), 0,
-                              (mps_addr_t *)symtab, symtab_size);
-  if(res != MPS_RES_OK) error("Couldn't register new symtab root");
-
-  for(i = 0; i < old_symtab_size; ++i)
-    if(old_symtab[i] != NULL) {
-      obj_t *where = find(old_symtab[i]->symbol.string);
-      assert(where != NULL);	/* new table shouldn't be full */
-      assert(*where == NULL);	/* shouldn't be in new table */
-      *where = old_symtab[i];
-    }
-
-  mps_root_destroy(old_symtab_root);
-  free(old_symtab);
-}
-
-/* union-find string in symbol table, rehashing if necessary */
-static obj_t intern(char *string) {
-  obj_t *where;
-
-  where = find(string);
-
-  if(where == NULL) {
-    rehash();
-    where = find(string);
-    assert(where != NULL);	/* shouldn't be full after rehash */
-  }
-  
-  if(*where == NULL)		/* symbol not found in table */
-    *where = make_symbol(strlen(string), string);
-  
-  return *where;
-}
-
-
 /* Hash table implementation */
 
 static unsigned long eq_hash(obj_t obj)
@@ -1030,6 +937,33 @@ static void table_delete(obj_t tbl, obj_t key)
 }
 
 
+static obj_t intern_string(obj_t name)
+{
+  obj_t symbol;
+  assert(TYPE(name) == TYPE_STRING);
+  symbol = table_ref(symtab, name);
+  if(symbol == NULL) {
+    symbol = make_symbol(name);
+    table_set(symtab, name, symbol);
+  }
+  return symbol;
+}
+
+
+static obj_t intern(char *string)
+{
+  return intern_string(make_string(strlen(string), string));
+}
+
+
+static char *symbol_name(obj_t symbol)
+{
+  assert(TYPE(symbol) == TYPE_SYMBOL);
+  assert(TYPE(symbol->symbol.name) == TYPE_STRING);
+  return symbol->symbol.name->string.string;
+}
+
+
 static void print(obj_t obj, unsigned depth, FILE *stream)
 {
   switch(TYPE(obj)) {
@@ -1038,7 +972,7 @@ static void print(obj_t obj, unsigned depth, FILE *stream)
     } break;
     
     case TYPE_SYMBOL: {
-      fputs(obj->symbol.string, stream);
+      fputs(symbol_name(obj), stream);
     } break;
     
     case TYPE_SPECIAL: {
@@ -1481,7 +1415,7 @@ static obj_t eval(obj_t env, obj_t op_env, obj_t exp)
     if(TYPE(exp) == TYPE_SYMBOL) {
       obj_t binding = lookup(env, exp);
       if(binding == obj_undefined)
-        error("eval: unbound symbol \"%s\"", exp->symbol.string);
+        error("eval: unbound symbol \"%s\"", symbol_name(exp));
       return CDR(binding);
     }
     
@@ -1969,7 +1903,7 @@ static obj_t entry_quasiquote(obj_t env, obj_t op_env, obj_t operator, obj_t ope
         CAAR(list) == obj_unquote_splic)) {
       unless(TYPE(CDAR(list)) == TYPE_PAIR &&
              CDDAR(list) == obj_empty)
-        error("%s: illegal %s syntax", operator->operator.name, CAAR(list)->symbol.string);
+        error("%s: illegal %s syntax", operator->operator.name, symbol_name(CAAR(list)));
       insert = eval(env, op_env, CADAR(list));
       if(CAAR(list) == obj_unquote) {
         pair = make_pair(insert, obj_empty);
@@ -2030,7 +1964,7 @@ static obj_t entry_set(obj_t env, obj_t op_env, obj_t operator, obj_t operands)
   binding = lookup(env, symbol);
   if(binding == obj_undefined)
     error("%s: applied to unbound symbol \"%s\"",
-          operator->operator.name, symbol->symbol.string);
+          operator->operator.name, symbol_name(symbol));
   value = eval(env, op_env, CADR(operands));
   CDR(binding) = value;
   return value;
@@ -2980,13 +2914,24 @@ static obj_t entry_eval(obj_t env, obj_t op_env, obj_t operator, obj_t operands)
 }
 
 
+static obj_t entry_error(obj_t env, obj_t op_env, obj_t operator, obj_t operands)
+{
+  obj_t msg;
+  eval_args(operator->operator.name, env, op_env, operands, 1, &msg);
+  unless(TYPE(msg) == TYPE_STRING)
+    error("%s: argument must be a string", operator->operator.name);
+  error(msg->string.string);
+  return obj_undefined;
+}
+
+
 static obj_t entry_symbol_to_string(obj_t env, obj_t op_env, obj_t operator, obj_t operands)
 {
   obj_t symbol;
   eval_args(operator->operator.name, env, op_env, operands, 1, &symbol);
   unless(TYPE(symbol) == TYPE_SYMBOL)
     error("%s: argument must be a symbol", operator->operator.name);
-  return make_string(symbol->symbol.length, symbol->symbol.string);
+  return symbol->symbol.name;   /* safe because strings are immutable */
 }
 
 
@@ -2996,8 +2941,7 @@ static obj_t entry_string_to_symbol(obj_t env, obj_t op_env, obj_t operator, obj
   eval_args(operator->operator.name, env, op_env, operands, 1, &string);
   unless(TYPE(string) == TYPE_STRING)
     error("%s: argument must be a string", operator->operator.name);
-  /* TODO: Should pass length to intern to avoid problems with NUL termination. */
-  return intern(string->string.string);
+  return intern_string(string);
 }
 
 
@@ -3664,6 +3608,7 @@ static struct {char *name; entry_t entry;} funtab[] = {
   {"list->vector", entry_list_to_vector},
   {"vector-fill!", entry_vector_fill},
   {"eval", entry_eval},
+  {"error", entry_error},
   {"symbol->string", entry_symbol_to_string},
   {"string->symbol", entry_string_to_symbol},
   {"string?", entry_stringp},
@@ -3746,8 +3691,8 @@ static mps_res_t obj_scan(mps_ss_t ss, mps_addr_t base, mps_addr_t limit)
         base = (char *)base + ALIGN(sizeof(integer_s));
         break;
       case TYPE_SYMBOL:
-        base = (char *)base +
-               ALIGN(offsetof(symbol_s, string) + obj->symbol.length + 1);
+        FIX(obj->symbol.name);
+        base = (char *)base + ALIGN(sizeof(symbol_s));
         break;
       case TYPE_SPECIAL:
         base = (char *)base + ALIGN(sizeof(special_s));
@@ -3829,8 +3774,7 @@ static mps_addr_t obj_skip(mps_addr_t base)
     base = (char *)base + ALIGN(sizeof(integer_s));
     break;
   case TYPE_SYMBOL:
-    base = (char *)base +
-           ALIGN(offsetof(symbol_s, string) + obj->symbol.length + 1);
+    base = (char *)base + ALIGN(sizeof(symbol_s));
     break;
   case TYPE_SPECIAL:
     base = (char *)base + ALIGN(sizeof(special_s));
@@ -3985,7 +3929,6 @@ static mps_res_t buckets_scan(mps_ss_t ss, mps_addr_t base, mps_addr_t limit)
           if (p == NULL && buckets->dependent) {
             /* key/value was splatted: splat value/key too */
             p = obj_deleted;
-            puts("splat!");
             buckets->dependent->bucket[i] = p;
             buckets->deleted += 2; /* tagged */
             buckets->dependent->deleted += 2; /* tagged */
@@ -4155,23 +4098,20 @@ static void *start(void *p, size_t s)
   mps_root_t globals_root;
 
   total = (size_t)0;
+  error_handler = &jb;
   
-  symtab_size = 16;
-  symtab = malloc(sizeof(obj_t) * symtab_size);
-  if(symtab == NULL) error("out of memory");
-  for(i = 0; i < symtab_size; ++i)
-    symtab[i] = NULL;
-
-  /* Note that since the symbol table is an exact root we must register
-     it with the MPS only after it has been initialized with scannable
-     pointers -- NULL in this case.  Random values look like false
-     references into MPS memory and cause undefined behaviour (most likely
-     assertion failures). See topic/root. */
+  /* We must register the global variable 'symtab' as a root before
+     creating the symbol table, otherwise the symbol table might be
+     collected in the interval between creation and registration. But
+     we must also ensure that 'symtab' is valid before registration
+     (in this case, by setting it to NULL). See topic/root. */
+  symtab = NULL;
   res = mps_root_create_table(&symtab_root, arena, mps_rank_exact(), 0,
-                              (mps_addr_t *)symtab, symtab_size);
+                              (mps_addr_t *)&symtab, 1);
   if(res != MPS_RES_OK) error("Couldn't register symtab root");
 
-  error_handler = &jb;
+  /* The symbol table is strong-key weak-value. */
+  symtab = make_table(16, string_hash, string_equalp, 0, 1);
 
   /* By contrast with the symbol table, we *must* register the globals as
      roots before we start making things to put into them, because making
