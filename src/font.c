@@ -4765,13 +4765,9 @@ Optional third arg STRING, if non-nil, is a string containing the target
 character at index specified by POSITION.  */)
   (Lisp_Object position, Lisp_Object window, Lisp_Object string)
 {
-  struct window *w;
+  struct window *w = decode_live_window (window);
   ptrdiff_t pos;
 
-  if (NILP (window))
-    window = selected_window;
-  CHECK_LIVE_WINDOW (window);
-  w = XWINDOW (window);
   if (NILP (string))
     {
       if (XBUFFER (w->buffer) != current_buffer)

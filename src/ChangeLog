@@ -1,5 +1,21 @@
 2012-11-02  Dmitry Antipov  <dmantipov@yandex.ru>
 
+	Window-related stuff cleanup here and there.
+	* dispnew.c (Finternal_show_cursor, Finternal_show_cursor_p):
+	Use decode_any_window.
+	* fringe.c (Ffringe_bitmaps_at_pos): Likewise.
+	* xdisp.c (Fformat_mode_line): Likewise.
+	* font.c (Ffont_at): Use decode_live_window.
+	* indent.c (Fcompute_motion, Fvertical_motion): Likewise.
+	* window.c (decode_next_window_args): Likewise.
+	(decode_any_window): Remove static.
+	* window.h (decode_any_window): Add prototype.
+	* lisp.h (CHECK_VALID_WINDOW, CHECK_LIVE_WINDOW): Move from here...
+	* window.h: ...to here, redefine via WINDOW_VALID_P and WINDOW_LIVE_P,
+	respectively.
+
+2012-11-02  Dmitry Antipov  <dmantipov@yandex.ru>
+
 	Remove pad from struct input_event.
 	* termhooks.h (struct input_event): Remove padding field.
 	Adjust comment.

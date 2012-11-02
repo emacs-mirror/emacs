@@ -1791,20 +1791,6 @@ typedef struct {
 #define CHECK_WINDOW_CONFIGURATION(x) \
   CHECK_TYPE (WINDOW_CONFIGURATIONP (x), Qwindow_configuration_p, x)
 
-/* A window of any sort, leaf or interior, is "valid" if one of its
-   buffer, vchild, or hchild members is non-nil.  */
-#define CHECK_VALID_WINDOW(x)				\
-  CHECK_TYPE (WINDOWP (x)				\
-	      && (!NILP (XWINDOW (x)->buffer)		\
-		  || !NILP (XWINDOW (x)->vchild)	\
-		  || !NILP (XWINDOW (x)->hchild)),	\
-	      Qwindow_valid_p, x)
-
-/* A window is "live" if and only if it shows a buffer.  */
-#define CHECK_LIVE_WINDOW(x)						\
-  CHECK_TYPE (WINDOWP (x) && !NILP (XWINDOW (x)->buffer),		\
-	      Qwindow_live_p, x)
-
 #define CHECK_PROCESS(x) \
   CHECK_TYPE (PROCESSP (x), Qprocessp, x)
 

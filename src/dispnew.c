@@ -6375,15 +6375,7 @@ don't show a cursor.  */)
   /* Don't change cursor state while redisplaying.  This could confuse
      output routines.  */
   if (!redisplaying_p)
-    {
-      if (NILP (window))
-	window = selected_window;
-      else
-	CHECK_WINDOW (window);
-
-      XWINDOW (window)->cursor_off_p = NILP (show);
-    }
-
+    decode_any_window (window)->cursor_off_p = NILP (show);
   return Qnil;
 }
 
@@ -6394,15 +6386,7 @@ DEFUN ("internal-show-cursor-p", Finternal_show_cursor_p,
 WINDOW nil or omitted means report on the selected window.  */)
   (Lisp_Object window)
 {
-  struct window *w;
-
-  if (NILP (window))
-    window = selected_window;
-  else
-    CHECK_WINDOW (window);
-
-  w = XWINDOW (window);
-  return w->cursor_off_p ? Qnil : Qt;
+  return decode_any_window (window)->cursor_off_p ? Qnil : Qt;
 }
 
 DEFUN ("last-nonminibuffer-frame", Flast_nonminibuf_frame,

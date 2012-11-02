@@ -244,7 +244,7 @@ decode_live_window (register Lisp_Object window)
   return XWINDOW (window);
 }
 
-static struct window *
+struct window *
 decode_any_window (register Lisp_Object window)
 {
   struct window *w;
@@ -2252,10 +2252,7 @@ candidate_window_p (Lisp_Object window, Lisp_Object owindow, Lisp_Object minibuf
 static void
 decode_next_window_args (Lisp_Object *window, Lisp_Object *minibuf, Lisp_Object *all_frames)
 {
-  if (NILP (*window))
-    *window = selected_window;
-  else
-    CHECK_LIVE_WINDOW (*window);
+  struct window *w = decode_live_window (*window);
 
   /* MINIBUF nil may or may not include minibuffers.  Decide if it
      does.  */
@@ -2272,7 +2269,7 @@ decode_next_window_args (Lisp_Object *window, Lisp_Object *minibuf, Lisp_Object 
   if (NILP (*all_frames))
     *all_frames
       = (!EQ (*minibuf, Qlambda)
-	 ? FRAME_MINIBUF_WINDOW (XFRAME (XWINDOW (*window)->frame))
+	 ? FRAME_MINIBUF_WINDOW (XFRAME (w->frame))
 	 : Qnil);
   else if (EQ (*all_frames, Qvisible))
     ;

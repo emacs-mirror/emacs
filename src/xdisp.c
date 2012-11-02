@@ -21018,10 +21018,8 @@ are the selected window and the WINDOW's buffer).  */)
   Lisp_Object str;
   int string_start = 0;
 
-  if (NILP (window))
-    window = selected_window;
-  CHECK_WINDOW (window);
-  w = XWINDOW (window);
+  w = decode_any_window (window);
+  XSETWINDOW (window, w);
 
   if (NILP (buffer))
     buffer = w->buffer;
@@ -21050,7 +21048,7 @@ are the selected window and the WINDOW's buffer).  */)
      and set that to nil so that we don't alter the outer value.  */
   record_unwind_protect (unwind_format_mode_line,
 			 format_mode_line_unwind_data
-			   (XFRAME (WINDOW_FRAME (XWINDOW (window))),
+			   (XFRAME (WINDOW_FRAME (w)),
 			    old_buffer, selected_window, 1));
   mode_line_proptrans_alist = Qnil;
 
