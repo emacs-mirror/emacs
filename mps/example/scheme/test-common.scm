@@ -6,7 +6,7 @@
   (define actually (eval exp))
   (write-string "got: ") (write actually) (newline)
   (if (not (equal? actually result))
-    (error exp)))
+    (error "failed!")))
 
 ;; Return (f (f (f ... (f a) ... ))) with n invocations of f.
 (define (church n f a)
@@ -18,5 +18,5 @@
 (define (all l) (if (null? l) #t (if (car l) (all (cdr l)) #f)))
 (define (range n) (if (eqv? n 0) '() (append (range (- n 1)) (list n))))
 (define (for-each f l) (if (null? l) #f (begin (f (car l)) (for-each f (cdr l)))))
-(define (reduce f l a) (if (null? l a) (f (car l) (reduce f (cdr l)))))
+(define (reduce f l a) (if (null? l) a (f (car l) (reduce f (cdr l) a))))
 (define (sum l) (reduce + l 0))
