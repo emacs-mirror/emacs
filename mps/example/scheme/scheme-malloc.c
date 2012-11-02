@@ -1817,16 +1817,12 @@ static obj_t entry_pairp(obj_t env, obj_t op_env, obj_t operator, obj_t operands
 }
 
 
-/* entry_cons -- create pair
- *
- * (cons <obj1> <obj2>)
+/* (cons obj1 obj2)
+ * Returns a newly allocated pair whose car is obj1 and whose cdr is
+ * obj2. The pair is guaranteed to be different (in the sense of eqv?)
+ * from every existing object.
  * See R4RS 6.3.
- *
- * Returns a newly allocated pair whose car is obj1 and whose cdr is obj2.
- * The pair is guaranteed to be different (in the sense of eqv?) from every
- * existing object.
  */
-
 static obj_t entry_cons(obj_t env, obj_t op_env, obj_t operator, obj_t operands)
 {
   obj_t car, cdr;
@@ -1835,8 +1831,11 @@ static obj_t entry_cons(obj_t env, obj_t op_env, obj_t operator, obj_t operands)
 }
 
 
-/* entry_car -- R4RS 6.3 */
-
+/* (car pair)
+ * Returns the contents of the car field of pair. Note that it is an
+ * error to take the car of the empty list.
+ * See R4RS 6.3.
+ */
 static obj_t entry_car(obj_t env, obj_t op_env, obj_t operator, obj_t operands)
 {
   obj_t pair;
@@ -1846,7 +1845,11 @@ static obj_t entry_car(obj_t env, obj_t op_env, obj_t operator, obj_t operands)
   return CAR(pair);
 }
 
-
+/* (cdr pair)
+ * Returns the contents of the cdr field of pair. Note that it is an
+ * error to take the cdr of the empty list.
+ * See R4RS 6.3.
+ */
 static obj_t entry_cdr(obj_t env, obj_t op_env, obj_t operator, obj_t operands)
 {
   obj_t pair;
@@ -1857,6 +1860,11 @@ static obj_t entry_cdr(obj_t env, obj_t op_env, obj_t operator, obj_t operands)
 }
 
 
+/* (set-car! pair obj)
+ * Stores obj in the car field of pair. The value returned by set-car!
+ * is unspecified.
+ * See R4RS 6.3.
+ */
 static obj_t entry_setcar(obj_t env, obj_t op_env, obj_t operator, obj_t operands)
 {
   obj_t pair, value;
@@ -1868,6 +1876,11 @@ static obj_t entry_setcar(obj_t env, obj_t op_env, obj_t operator, obj_t operand
 }
 
 
+/* (set-cdr! pair obj)
+ * Stores obj in the cdr field of pair. The value returned by set-cdr!
+ * is unspecified.
+ * See R4RS 6.3.
+ */
 static obj_t entry_setcdr(obj_t env, obj_t op_env, obj_t operator, obj_t operands)
 {
   obj_t pair, value;
@@ -1879,6 +1892,10 @@ static obj_t entry_setcdr(obj_t env, obj_t op_env, obj_t operator, obj_t operand
 }
 
 
+/* (null? obj)
+ * Returns #t if obj is the empty list, otherwise returns #f.
+ * See R4RS 6.3.
+ */
 static obj_t entry_nullp(obj_t env, obj_t op_env, obj_t operator, obj_t operands)
 {
   obj_t arg;
@@ -1887,6 +1904,11 @@ static obj_t entry_nullp(obj_t env, obj_t op_env, obj_t operator, obj_t operands
 }
 
 
+/* (list? obj)
+ * Returns #t if obj is a list, otherwise returns #f. By definition,
+ * all lists have finite length and are terminated by the empty list.
+ * See R4RS 6.3.
+ */
 static obj_t entry_listp(obj_t env, obj_t op_env, obj_t operator, obj_t operands)
 {
   obj_t arg;
@@ -1897,6 +1919,10 @@ static obj_t entry_listp(obj_t env, obj_t op_env, obj_t operator, obj_t operands
 }
 
 
+/* (list obj ...)
+ * Returns a newly allocated list of its arguments.
+ * See R4RS 6.3.
+ */
 static obj_t entry_list(obj_t env, obj_t op_env, obj_t operator, obj_t operands)
 {
   obj_t rest;
@@ -1905,6 +1931,10 @@ static obj_t entry_list(obj_t env, obj_t op_env, obj_t operator, obj_t operands)
 }
 
 
+/* (length list)
+ * Returns the length of list.
+ * See R4RS 6.3.
+ */
 static obj_t entry_length(obj_t env, obj_t op_env, obj_t operator, obj_t operands)
 {
   obj_t arg;
@@ -1952,6 +1982,13 @@ static obj_t entry_integerp(obj_t env, obj_t op_env, obj_t operator, obj_t opera
 }
 
 
+/* (zero? z)
+ * (positive? x)
+ * (negative? x)
+ * These numerical predicates test a number for a particular property,
+ * returning #t or #f.
+ * See R4RS 6.5.5.
+ */
 static obj_t entry_zerop(obj_t env, obj_t op_env, obj_t operator, obj_t operands)
 {
   obj_t arg;
@@ -1982,6 +2019,10 @@ static obj_t entry_negativep(obj_t env, obj_t op_env, obj_t operator, obj_t oper
 }
 
 
+/* (symbol? obj)
+ * Returns #t if obj is a symbol, otherwise returns #f.
+ * See R4RS 6.4.
+ */
 static obj_t entry_symbolp(obj_t env, obj_t op_env, obj_t operator, obj_t operands)
 {
   obj_t arg;
@@ -2128,6 +2169,11 @@ static obj_t entry_greaterthan(obj_t env, obj_t op_env, obj_t operator, obj_t op
 }
 
 
+/* (reverse list)
+ * Returns a newly allocated list consisting of the elements of list
+ * in reverse order.
+ * See R4RS 6.3.
+ */
 static obj_t entry_reverse(obj_t env, obj_t op_env, obj_t operator, obj_t operands)
 {
   obj_t arg, result;
@@ -3073,8 +3119,6 @@ int main(int argc, char *argv[])
   volatile obj_t env, op_env, obj;
   jmp_buf jb;
   
-  puts("Scheme Test Harness");
-  
   total = (size_t)0;
   
   symtab_size = 16;
@@ -3118,7 +3162,9 @@ int main(int argc, char *argv[])
       return EXIT_FAILURE;
     }
     interactive = 0;
-  }
+  } else
+    puts("Scheme Test Harness");
+
 
   /* Read-eval-print loop */
   
@@ -3140,7 +3186,8 @@ int main(int argc, char *argv[])
     }
   }
 
-  puts("Bye.");
+  if(interactive)
+    puts("Bye.");
 
   return EXIT_SUCCESS;
 }
