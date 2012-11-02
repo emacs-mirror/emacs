@@ -220,7 +220,7 @@
 (check '(eq? 'mISSISSIppi 'mississippi) '#t)
 (check '(eq? 'bitBlt (string->symbol "bitBlt")) '#f)
 (check '(eq? 'JollyWog (string->symbol (symbol->string 'JollyWog))) '#t)
-;; UNIMPL: (check '(string=? "K. Harper, M.D." (symbol->string (string->symbol "K. Harper, M.D."))) '#t)
+(check '(string=? "K. Harper, M.D." (symbol->string (string->symbol "K. Harper, M.D."))) '#t)
 
 ;;; vector
 
