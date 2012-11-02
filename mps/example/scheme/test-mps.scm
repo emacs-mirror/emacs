@@ -35,13 +35,20 @@
 (check '(range 5) '(1 2 3 4 5))
 (check '(map (lambda (x) (+ 1 x)) (range 10)) (cdr (range 11)))
 
-;; Hashtable
-(check '(let* ((ht (make-eq-hashtable))
-               (e (lambda (n) (string->symbol (make-string n #\a))))
-               (f (lambda (n) (equal? (hashtable-ref ht (e n) #f) n)))
-               (g (lambda (n) (hashtable-set! ht (e n) n))))
-          (repeat 100 g)
-          (all (map f (range 100)))) #t)
+;; Hashtables
+(define (ht-test ht key)
+  (let* ((f (lambda (n) (equal? (hashtable-ref ht (key n) #f) n)))
+         (g (lambda (n) (hashtable-set! ht (key n) n)))
+         (n 100))
+    (repeat n g)
+    (all (map f (range n)))))
+
+(define (stringify n) (make-string n #\b))
+(check '(ht-test (make-hashtable string-hash string=?) stringify) #t)
+(define (symbolize n) (string->symbol (make-string n #\a)))
+(check '(ht-test (make-eq-hashtable) symbolize) #t)
+(define (identity n) n)
+(check '(ht-test (make-eqv-hashtable) identity) #t)
 
 (write-string "All tests pass.")
 (newline)
