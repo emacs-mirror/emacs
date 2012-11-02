@@ -8,7 +8,7 @@ MPS = ../../code
 
 TARGETS = scheme-malloc scheme scheme-advanced
 
-TESTS = r5rs mps
+TESTS = r5rs mps leaf
 
 all: $(TARGETS)
 
