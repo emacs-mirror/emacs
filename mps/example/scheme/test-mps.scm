@@ -42,3 +42,6 @@
                (g (lambda (n) (hashtable-set! ht (e n) n))))
           (repeat 100 g)
           (all (map f (range 100)))) #t)
+
+(write-string "All tests pass.")
+(newline)
