@@ -813,18 +813,30 @@ static int eqp(obj_t obj1, obj_t obj2)
 
 static unsigned long eqv_hash(obj_t obj)
 {
-  if(TYPE(obj) == TYPE_INTEGER)
+  switch(TYPE(obj)) {
+  case TYPE_INTEGER:
     return obj->integer.integer;
-  else
+  case TYPE_CHARACTER:
+    return obj->character.c;
+  default:
     return eq_hash(obj);
+  }
 }
 
 static int eqvp(obj_t obj1, obj_t obj2)
 {
-  return obj1 == obj2 ||
-         (TYPE(obj1) == TYPE_INTEGER &&
-          TYPE(obj2) == TYPE_INTEGER &&
-          obj1->integer.integer == obj2->integer.integer);
+  if (obj1 == obj2)
+    return 1;
+  if (TYPE(obj1) != TYPE(obj2))
+    return 0;
+  switch(TYPE(obj1)) {
+  case TYPE_INTEGER:
+    return obj1->integer.integer == obj2->integer.integer;
+  case TYPE_CHARACTER:
+    return obj1->character.c == obj2->character.c;
+  default:
+    return 0;
+  }
 }
 
 static unsigned long string_hash(obj_t obj)
@@ -3199,6 +3211,22 @@ static obj_t entry_string_hash(obj_t env, obj_t op_env, obj_t operator, obj_t op
 }
 
 
+static obj_t entry_eq_hash(obj_t env, obj_t op_env, obj_t operator, obj_t operands)
+{
+  obj_t arg;
+  eval_args(operator->operator.name, env, op_env, operands, 1, &arg);
+  return make_integer(eq_hash(arg));
+}
+
+
+static obj_t entry_eqv_hash(obj_t env, obj_t op_env, obj_t operator, obj_t operands)
+{
+  obj_t arg;
+  eval_args(operator->operator.name, env, op_env, operands, 1, &arg);
+  return make_integer(eqv_hash(arg));
+}
+
+
 static obj_t make_hashtable(obj_t operator, obj_t rest, hash_t hashf, cmp_t cmpf)
 {
   size_t length;
@@ -3271,10 +3299,17 @@ static obj_t entry_make_hashtable(obj_t env, obj_t op_env, obj_t operator, obj_t
     error("%s: first argument must be a procedure", operator->operator.name);
   unless(TYPE(cmpf) == TYPE_OPERATOR)
     error("%s: first argument must be a procedure", operator->operator.name);
-  unless(hashf->operator.entry == entry_string_hash
-         && cmpf->operator.entry == entry_string_equalp)
-    error("%s: arguments not supported", operator->operator.name);
-  return make_hashtable(operator, rest, string_hash, string_equalp);
+  if (hashf->operator.entry == entry_eq_hash
+      && cmpf->operator.entry == entry_eqp)
+    return make_hashtable(operator, rest, eq_hash, eqp);
+  if (hashf->operator.entry == entry_eqv_hash
+      && cmpf->operator.entry == entry_eqvp)
+    return make_hashtable(operator, rest, eqv_hash, eqvp);
+  if (hashf->operator.entry == entry_string_hash
+      && cmpf->operator.entry == entry_string_equalp)
+    return make_hashtable(operator, rest, string_hash, string_equalp);
+  error("%s: arguments not supported", operator->operator.name);
+  return obj_undefined;
 }
 
 
@@ -3542,6 +3577,8 @@ static struct {char *name; entry_t entry;} funtab[] = {
   {"hashtable-contains?", entry_hashtable_containsp},
   {"hashtable-keys", entry_hashtable_keys},
   {"string-hash", entry_string_hash},
+  {"eq-hash", entry_eq_hash},
+  {"eqv-hash", entry_eqv_hash},
   {"gc", entry_gc}
 };
 
