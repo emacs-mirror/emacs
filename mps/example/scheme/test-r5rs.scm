@@ -172,9 +172,13 @@
 (check '(reverse '(a b c)) '(c b a))
 (check '(reverse '(a (b c) d (e (f)))) '((e (f)) d (b c) a))
 
+;;; list-tail
+
+(check '(list-tail '(a b c d) 2) '(c d))
+
 ;;; list-ref
 
-;; UNIMPL: (check '(list-ref '(a b c d) 2) 'c)
+(check '(list-ref '(a b c d) 2) 'c)
 ;; UNIMPL: (check '(list-ref '(a b c d) (inexact->exact (round 1.8))) 'c)
 
 ;;; memq, memv, member
@@ -325,4 +329,5 @@
 
 ;; UNIMPL: (check '(let loop ((numbers '(3 -2 1 6 -5)) (nonneg '()) (neg '())) (cond ((null? numbers) (list nonneg neg)) ((>= (car numbers) 0) (loop (cdr numbers) (cons (car numbers) nonneg) neg)) ((< (car numbers) 0) (loop (cdr numbers) nonneg (cons (car numbers) neg))))) '((6 1 3) (-5 -2)))
 
+(write-string "All tests pass.")
 (newline)
