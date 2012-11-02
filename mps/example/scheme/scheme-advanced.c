@@ -2342,6 +2342,21 @@ static obj_t entry_procedurep(obj_t env, obj_t op_env, obj_t operator, obj_t ope
 }
 
 
+/* (apply proc args)
+ * Proc must be a procedure and args must be a list. Calls proc with
+ * the elements of args as the actual arguments.
+ * See R4RS 6.9.
+ */
+static obj_t entry_apply(obj_t env, obj_t op_env, obj_t operator, obj_t operands)
+{
+  obj_t proc, args;
+  eval_args(operator->operator.name, env, op_env, operands, 2, &proc, &args);
+  unless(TYPE(proc) == TYPE_OPERATOR)
+    error("%s: first argument must be a procedure", operator->operator.name);
+  return (*proc->operator.entry)(env, op_env, operator, args);
+}
+
+
 static obj_t entry_add(obj_t env, obj_t op_env, obj_t operator, obj_t operands)
 {
   obj_t args;
@@ -3411,6 +3426,7 @@ static struct {char *name; entry_t entry;} funtab[] = {
   {"negative?", entry_negativep},
   {"symbol?", entry_symbolp},
   {"procedure?", entry_procedurep},
+  {"apply", entry_apply},
   {"+", entry_add},
   {"-", entry_subtract},
   {"*", entry_multiply},
@@ -3737,20 +3753,6 @@ struct mps_fmt_A_s obj_fmt_s = {
 };
 
 
-/* leaf_fmt_s -- leaf object format parameter structure              %%MPS
- */
-
-struct mps_fmt_A_s leaf_fmt_s = {
-  ALIGNMENT,
-  NULL,
-  obj_skip,
-  NULL,                         /* Obsolete copy method */
-  obj_fwd,
-  obj_isfwd,
-  obj_pad
-};
-
-
 /* buckets_scan -- buckets format scan method                        %%MPS
  */
 
@@ -4062,12 +4064,7 @@ static void *start(void *p, size_t s)
  * 
  * These numbers are *hints* to the MPS that it may use to make decisions
  * about when and what to collect: nothing will go wrong (other than
- * suboptimal performance) if you make poor choices.
- * 
- * Note that these numbers have deliberately been chosen to be small,
- * so that the MPS is forced to collect often so that you can see it
- * working. Don't just copy these numbers unless you also want to see
- * frequent garbage collections! See topic/collection.
+ * suboptimal performance) if you make poor choices. See topic/collection.
  */
 
 static mps_gen_param_s obj_gen_params[] = {
@@ -4082,8 +4079,8 @@ int main(int argc, char *argv[])
 {
   tramp_s tramp = {argc, argv};
   mps_res_t res;
-  mps_chain_t obj_chain, leaf_chain;
-  mps_fmt_t obj_fmt, leaf_fmt, buckets_fmt;
+  mps_chain_t obj_chain;
+  mps_fmt_t obj_fmt, buckets_fmt;
   mps_thr_t thread;
   mps_root_t reg_root;
   void *r;
@@ -4123,24 +4120,13 @@ int main(int argc, char *argv[])
   res = mps_ap_create(&obj_ap, obj_pool);
   if (res != MPS_RES_OK) error("Couldn't create obj allocation point");
 
-  /* Create generation chain for leaf objects. */
-  res = mps_chain_create(&leaf_chain,
-                         arena,
-                         LENGTH(obj_gen_params),
-                         obj_gen_params);
-  if (res != MPS_RES_OK) error("Couldn't create leaf object chain");
-
-  /* Create the leaf objects format. */
-  res = mps_fmt_create_A(&leaf_fmt, arena, &leaf_fmt_s);
-  if (res != MPS_RES_OK) error("Couldn't create leaf format");
-
   /* Create an Automatic Mostly-Copying Zero-rank (AMCZ) pool to
      manage the leaf objects. */
   res = mps_pool_create(&leaf_pool,
                         arena,
                         mps_class_amcz(),
-                        leaf_fmt,
-                        leaf_chain);
+                        obj_fmt,
+                        obj_chain);
   if (res != MPS_RES_OK) error("Couldn't create leaf pool");
 
   /* Create allocation point for leaf objects. */
@@ -4208,7 +4194,6 @@ int main(int argc, char *argv[])
   mps_fmt_destroy(buckets_fmt);
   mps_ap_destroy(leaf_ap);
   mps_pool_destroy(leaf_pool);
-  mps_fmt_destroy(leaf_fmt);
   mps_ap_destroy(obj_ap);
   mps_pool_destroy(obj_pool);
   mps_chain_destroy(obj_chain);
