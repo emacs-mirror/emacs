@@ -229,7 +229,7 @@ by @code{cl--}.  Here is a complete list of functions prefixed by
 
 @example
 cl-callf           cl-callf2          cl-defsubst
-cl-floatp-safe     cl-letf            cl-letf*
+cl-letf            cl-letf*
 @end example
 
 @c This is not uninteresting I suppose, but is of zero practical relevance
@@ -239,13 +239,13 @@ they do not cause other components like @file{cl-extra} to be loaded.
 
 @example
 cl-evenp           cl-oddp            cl-minusp
-cl-plusp           cl-floatp-safe     cl-endp
+cl-plusp           cl-endp            cl-subst
 cl-copy-list       cl-list*           cl-ldiff
 cl-rest            cl-decf [1]        cl-incf [1]
 cl-acons           cl-adjoin [2]      cl-pairlis
 cl-pushnew [1,2]   cl-declaim         cl-proclaim
 cl-caaar@dots{}cl-cddddr                  cl-first@dots{}cl-tenth
-cl-subst           cl-mapcar [3]
+cl-mapcar [3]
 @end example
 
 @noindent
@@ -300,7 +300,8 @@ calls to it may be expanded into in-line code by the byte compiler.
 This is analogous to the @code{defsubst} form;
 @code{cl-defsubst} uses a different method (compiler macros) which
 works in all versions of Emacs, and also generates somewhat more
-@c Really?
+@c For some examples,
+@c see http://lists.gnu.org/archive/html/emacs-devel/2012-11/msg00009.html
 efficient inline expansions.  In particular, @code{cl-defsubst}
 arranges for the processing of keyword arguments, default values,
 etc., to be done at compile-time whenever possible.
@@ -702,11 +703,13 @@ The type symbol @code{real} is a synonym for @code{number}, and
 The type symbols @code{character} and @code{string-char} match
 integers in the range from 0 to 255.
 
+@c No longer relevant, so covered by first item above (float -> floatp).
+@ignore
 @item
 The type symbol @code{float} uses the @code{cl-floatp-safe} predicate
 defined by this package rather than @code{floatp}, so it will work
-@c FIXME are any such platforms still relevant?
 correctly even in Emacs versions without floating-point support.
+@end ignore
 
 @item
 The type list @code{(integer @var{low} @var{high})} represents all
@@ -2551,7 +2554,7 @@ appears as a standard part of this package:
 (cl-define-compiler-macro cl-member (&whole form a list &rest keys)
      (if (and (null keys)
               (eq (car-safe a) 'quote)
-              (not (floatp-safe (cadr a))))
+              (not (floatp (cadr a))))
          (list 'memq a list)
        form))
 @end example
@@ -2908,7 +2911,7 @@ This section defines a few simple Common Lisp operations on numbers
 which were left out of Emacs Lisp.
 
 @menu
-* Predicates on Numbers::       @code{cl-plusp}, @code{cl-oddp}, @code{cl-floatp-safe}, etc.
+* Predicates on Numbers::       @code{cl-plusp}, @code{cl-oddp}, etc.
 * Numerical Functions::         @code{abs}, @code{cl-floor}, etc.
 * Random Numbers::              @code{cl-random}, @code{cl-make-random-state}.
 * Implementation Parameters::   @code{cl-most-positive-float}.
@@ -2941,11 +2944,13 @@ This predicate tests whether @var{integer} is even.  It is an
 error if the argument is not an integer.
 @end defun
 
+@ignore
 @defun cl-floatp-safe object
 This predicate tests whether @var{object} is a floating-point
 number.  On systems that support floating-point, this is equivalent
 to @code{floatp}.  On other systems, this always returns @code{nil}.
 @end defun
+@end ignore
 
 @node Numerical Functions
 @section Numerical Functions

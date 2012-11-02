@@ -1,3 +1,8 @@
+2012-11-02  Glenn Morris  <rgm@gnu.org>
+
+	* cl.texi (Naming Conventions, Type Predicates, Macros)
+	(Predicates on Numbers): No longer mention cl-floatp-safe.
+
 2012-11-01  Glenn Morris  <rgm@gnu.org>
 
 	* cl.texi: General copyedits for style, line-breaks, etc.
