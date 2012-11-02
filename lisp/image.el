@@ -309,16 +309,13 @@ be determined."
 Value is a symbol specifying the image type, or nil if type cannot
 be determined."
   (let (type first)
-    (or
-     (catch 'found
-       (dolist (elem image-type-file-name-regexps)
-	 (when (string-match-p (car elem) file)
-	   (setq type (cdr elem))
-	   (or first (setq first type))
-	   (if (image-type-available-p type)
-	       (throw 'found type)))))
-     ;; If nothing seems to be supported, return the first type that matched.
-     first)))
+    (catch 'found
+      (dolist (elem image-type-file-name-regexps first)
+	(when (string-match-p (car elem) file)
+	  (if (image-type-available-p (setq type (cdr elem)))
+	      (throw 'found type)
+	    ;; If nothing seems to be supported, return first type that matched.
+	    (or first (setq first type))))))))
 
 ;;;###autoload
 (defun image-type (source &optional type data-p)

@@ -1,5 +1,7 @@
 2012-11-02  Glenn Morris  <rgm@gnu.org>
 
+	* image.el (image-type-from-file-name): Trivial simplification.
+
 	* emacs-lisp/bytecomp.el (byte-compile-eval):
 	Decouple "noruntime" and "cl-functions" warnings.
 
