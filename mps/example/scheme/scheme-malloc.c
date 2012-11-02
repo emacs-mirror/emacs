@@ -2456,6 +2456,36 @@ static obj_t entry_newline(obj_t env, obj_t op_env, obj_t operator, obj_t operan
 }
 
 
+/* (load filename)
+ * Filename should be a string naming an existing file containing
+ * Scheme source code. The load procedure reads expressions and
+ * definitions from the file and evaluates them sequentially. It is
+ * unspecified whether the results of the expressions are printed. The
+ * load procedure does not affect the values returned by
+ * current-input-port and current-output-port. Load returns an
+ * unspecified value.
+ * See R4RS 6.10.4.
+ */
+static obj_t entry_load(obj_t env, obj_t op_env, obj_t operator, obj_t operands)
+{
+  obj_t filename, obj, result = obj_undefined;
+  FILE *stream;
+  eval_args(operator->operator.name, env, op_env, operands, 1, &filename);
+  unless(TYPE(filename) == TYPE_STRING)
+    error("%s: argument must be a string", operator->operator.name);
+  stream = fopen(filename->string.string, "r");
+  if(stream == NULL)
+    /* TODO: "an error is signalled" */
+    error("%s: cannot open input file", operator->operator.name);
+  for(;;) {
+    obj = read(stream);
+    if(obj == obj_eof) break;
+    result = eval(env, op_env, obj);
+  }
+  return result;
+}
+
+
 /* TODO: This doesn't work if the promise refers to its own value. */
 
 static obj_t entry_force(obj_t env, obj_t op_env, obj_t operator, obj_t operands)
@@ -3245,6 +3275,7 @@ static struct {char *name; entry_t entry;} funtab[] = {
   {"write", entry_write},
   {"write-string", entry_write_string},
   {"newline", entry_newline},
+  {"load", entry_load},
   {"force", entry_force},
   {"char?", entry_charp},
   {"char->integer", entry_char_to_integer},
