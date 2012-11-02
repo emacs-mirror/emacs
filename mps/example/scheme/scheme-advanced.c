@@ -30,7 +30,7 @@
  * SCHEME TO DO LIST
  * - unbounded integers, other number types.
  * - do, named let.
- * - Quasiquote implementation is messy.
+ * - quasiquote: vectors; nested; dotted.
  * - Lots of library.
  * - \#foo unsatisfactory in read and print
  */
@@ -1886,62 +1886,64 @@ static obj_t entry_delay(obj_t env, obj_t op_env, obj_t operator, obj_t operands
 }
 
 
-/* entry_quasiquote -- (quasiquote <template>) or `<template> */
-/* TODO: blech. */
-
-static obj_t entry_quasiquote(obj_t env, obj_t op_env, obj_t operator, obj_t operands)
+static obj_t quasiquote(obj_t env, obj_t op_env, obj_t operator, obj_t arg)
 {
-  obj_t list, result = obj_empty, pair, end, insert;
-  unless(TYPE(operands) == TYPE_PAIR &&
-         CDR(operands) == obj_empty)
-    error("%s: illegal syntax", operator->operator.name);
-  list = CAR(operands);
-  while(TYPE(list) == TYPE_PAIR) {
-    if(TYPE(CAR(list)) == TYPE_PAIR &&
-       TYPE(CAAR(list)) == TYPE_SYMBOL &&
-       (CAAR(list) == obj_unquote ||
-        CAAR(list) == obj_unquote_splic)) {
-      unless(TYPE(CDAR(list)) == TYPE_PAIR &&
-             CDDAR(list) == obj_empty)
-        error("%s: illegal %s syntax", operator->operator.name, symbol_name(CAAR(list)));
-      insert = eval(env, op_env, CADAR(list));
-      if(CAAR(list) == obj_unquote) {
-        pair = make_pair(insert, obj_empty);
+  obj_t result = obj_empty, end = NULL, insert;
+  unless(TYPE(arg) == TYPE_PAIR)
+    return arg;
+  while(TYPE(arg) == TYPE_PAIR) {
+    if(TYPE(CAR(arg)) == TYPE_PAIR &&
+       TYPE(CAAR(arg)) == TYPE_SYMBOL &&
+       (CAAR(arg) == obj_unquote ||
+        CAAR(arg) == obj_unquote_splic)) {
+      unless(TYPE(CDAR(arg)) == TYPE_PAIR &&
+             CDDAR(arg) == obj_empty)
+        error("%s: illegal %s syntax", operator->operator.name,
+              symbol_name(CAAR(arg)));
+      insert = eval(env, op_env, CADAR(arg));
+      if(CAAR(arg) == obj_unquote) {
+        obj_t pair = make_pair(insert, obj_empty);
         if(result == obj_empty)
           result = pair;
-        else
+        if(end)
           CDR(end) = pair;
         end = pair;
-      } else if(CAAR(list) == obj_unquote_splic) {
-        if(insert != obj_empty) {
-          if(TYPE(insert) != TYPE_PAIR)
-            error("%s: unquote-splicing expression must return list",
-                   operator->operator.name);
+      } else if(CAAR(arg) == obj_unquote_splic) {
+        while(TYPE(insert) == TYPE_PAIR) {
+          obj_t pair = make_pair(CAR(insert), obj_empty);
           if(result == obj_empty)
-            result = insert;
-          else
-            CDR(end) = insert;
-          while(TYPE(CDR(insert)) == TYPE_PAIR)
-            insert = CDR(insert);
-          if(CDR(insert) != obj_empty)
-            error("%s: unquote-splicing expression must return list",
-                   operator->operator.name);
-          end = insert;
+            result = pair;
+          if(end)
+            CDR(end) = pair;
+          end = pair;
+          insert = CDR(insert);
         }
+        if(insert != obj_empty)
+          error("%s: %s expression must return list",
+                operator->operator.name, symbol_name(CAAR(arg)));
       }
     } else {
-      pair = make_pair(CAR(list), obj_empty);
+      obj_t pair = make_pair(quasiquote(env, op_env, operator, CAR(arg)), obj_empty);
       if(result == obj_empty)
         result = pair;
-      else
+      if(end)
         CDR(end) = pair;
       end = pair;
     }
-    list = CDR(list);
+    arg = CDR(arg);
   }
-  if(list != obj_empty)
-    error("%s: illegal syntax", operator->operator.name);
   return result;
+}
+
+
+/* entry_quasiquote -- (quasiquote <template>) or `<template> */
+
+static obj_t entry_quasiquote(obj_t env, obj_t op_env, obj_t operator, obj_t operands)
+{
+  unless(TYPE(operands) == TYPE_PAIR &&
+         CDR(operands) == obj_empty)
+    error("%s: illegal syntax", operator->operator.name);
+  return quasiquote(env, op_env, operator, CAR(operands));
 }
 
 
