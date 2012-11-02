@@ -3762,6 +3762,7 @@ static mps_res_t buckets_scan(mps_ss_t ss, mps_addr_t base, mps_addr_t limit)
     while (base < limit) {
       buckets_t buckets = base;
       size_t i, length = UNTAG_LENGTH(buckets->length);
+      FIX(buckets->dependent);
       if(buckets->dependent)
         assert(buckets->dependent->length == buckets->length);
       for (i = 0; i < length; ++i) {
