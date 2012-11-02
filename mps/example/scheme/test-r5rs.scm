@@ -304,8 +304,8 @@
 ;;; quasiquote
 
 (check '`(list ,(+ 1 2) 4) '(list 3 4))
-;; UNIMPL: (check '(let ((name 'a)) `(list ,name ',name)) '(list a (quote a)))
-;; UNIMPL: (check '`(a ,(+ 1 2) ,@(map abs '(4 -5 6)) b) '(a 3 4 5 6 b))
+(check '(let ((name 'a)) `(list ,name ',name)) '(list a (quote a)))
+(check '`(a ,(+ 1 2) ,@(map abs '(4 -5 6)) b) '(a 3 4 5 6 b))
 ;; UNIMPL: (check '`((foo ,(- 10 3)) ,@(cdr '(c)) . ,(car '(cons))) '((foo 7) . cons))
 ;; UNIMPL: (check '`#(10 5 ,(abs -4) ,@(map abs '(16 -9)) 8) '#(10 5 4 16 9 8))
 ;; UNIMPL: (check '`(a `(b ,(+ 1 2) ,(foo ,(+ 1 3) d) e) f) '(a `(b ,(+ 1 2) ,(foo 4 d) e) f))
