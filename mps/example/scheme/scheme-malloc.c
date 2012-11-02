@@ -2143,6 +2143,55 @@ static obj_t entry_reverse(obj_t env, obj_t op_env, obj_t operator, obj_t operan
 }
 
 
+/* (list-tail list k)
+ * Returns the sublist of list obtained by omitting the first k
+ * elements.
+ */
+static obj_t entry_list_tail(obj_t env, obj_t op_env, obj_t operator, obj_t operands)
+{
+  obj_t arg, k;
+  int i;
+  eval_args(operator->operator.name, env, op_env, operands, 2, &arg, &k);
+  unless(TYPE(k) == TYPE_INTEGER)
+    error("%s: second argument must be an integer", operator->operator.name);
+  i = k->integer.integer;
+  unless(i >= 0)
+    error("%s: second argument must be non-negative", operator->operator.name);
+  while(i-- > 0) {
+    unless(TYPE(arg) == TYPE_PAIR)
+      error("%s: first argument must be a list", operator->operator.name);
+    arg = CDR(arg);
+  }
+  return arg;
+}
+
+
+/* (list-ref list k)
+ * Returns the kth element of list.
+ * See R4RS 6.3.
+ */
+static obj_t entry_list_ref(obj_t env, obj_t op_env, obj_t operator, obj_t operands)
+{
+  obj_t arg, k, result;
+  int i;
+  eval_args(operator->operator.name, env, op_env, operands, 2, &arg, &k);
+  unless(TYPE(k) == TYPE_INTEGER)
+    error("%s: second argument must be an integer", operator->operator.name);
+  i = k->integer.integer;
+  unless(i >= 0)
+    error("%s: second argument must be non-negative", operator->operator.name);
+  do {
+    if(arg == obj_empty)
+      error("%s: index %ld out of bounds", operator->operator.name, k->integer.integer);
+    unless(TYPE(arg) == TYPE_PAIR)
+      error("%s: first argument must be a list", operator->operator.name);
+    result = CAR(arg);
+    arg = CDR(arg);
+  } while(i-- > 0);
+  return result;
+}
+
+
 static obj_t entry_environment(obj_t env, obj_t op_env, obj_t operator, obj_t operands)
 {
   eval_args(operator->operator.name, env, op_env, operands, 0);
@@ -2965,6 +3014,8 @@ static struct {char *name; entry_t entry;} funtab[] = {
   {"<", entry_lessthan},
   {">", entry_greaterthan},
   {"reverse", entry_reverse},
+  {"list-tail", entry_list_tail},
+  {"list-ref", entry_list_ref},
   {"the-environment", entry_environment},
   {"open-input-file", entry_open_input_file},
   {"open-output-file", entry_open_output_file},
@@ -3016,6 +3067,8 @@ static struct {char *name; entry_t entry;} funtab[] = {
 
 int main(int argc, char *argv[])
 {
+  FILE *input = stdin;
+  int interactive = 1;
   size_t i;
   volatile obj_t env, op_env, obj;
   jmp_buf jb;
@@ -3056,15 +3109,29 @@ int main(int argc, char *argv[])
     abort();
   }
 
-  /* The read-eval-print loop */
+  if(argc >= 2) {
+    /* Non-interactive file execution */
+    input = fopen(argv[1], "r");
+    if(input == NULL) {
+      extern int errno;
+      fprintf(stderr, "Can't open %s: %s\n", argv[1], strerror(errno));
+      return EXIT_FAILURE;
+    }
+    interactive = 0;
+  }
+
+  /* Read-eval-print loop */
   
   for(;;) {
     if(setjmp(*error_handler) != 0) {
       fprintf(stderr, "%s\n", error_message);
+      if(!interactive)
+        return EXIT_FAILURE;
     }
 
-    printf("%lu> ", (unsigned long)total);
-    obj = read(stdin);
+    if(interactive)
+      printf("%lu> ", (unsigned long)total);
+    obj = read(input);
     if(obj == obj_eof) break;
     obj = eval(env, op_env, obj);
     if(obj != obj_undefined) {
@@ -3075,7 +3142,7 @@ int main(int argc, char *argv[])
 
   puts("Bye.");
 
-  return 0;
+  return EXIT_SUCCESS;
 }
 
 
