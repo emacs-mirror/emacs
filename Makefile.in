@@ -632,6 +632,11 @@ install-man:
 	done
 
 ## Install those items from etc/ that need to end up elsewhere.
+
+## If you prefer, choose "emacs22" at installation time.
+## Note: emacs22 does not have all the resolutions.
+EMACS_ICON=emacs
+
 install-etc:
 	umask 022; ${MKDIR_P} $(DESTDIR)${desktopdir}
 	tmp=etc/emacs.tmpdesktop; rm -f $${tmp}; \
@@ -646,10 +651,10 @@ install-etc:
 	for dir in */*/apps */*/mimetypes; do \
 	  [ -d $${dir} ] || continue ; \
 	  ( cd $${thisdir}; ${MKDIR_P} $(DESTDIR)${icondir}/$${dir} ) ; \
-	  for icon in $${dir}/emacs[.-]*; do \
+	  for icon in $${dir}/${EMACS_ICON}[.-]*; do \
 	    [ -r $${icon} ] || continue ; \
 	    ext=`echo "$${icon}" | sed -e 's|.*\.||'`; \
-	    dest=`echo "$${icon}" | sed -e 's|.*/||' -e "s|\.$${ext}$$||" -e '$(TRANSFORM)'`.$${ext} ; \
+	    dest=`echo "$${icon}" | sed -e 's|.*/||' -e "s|\.$${ext}$$||" -e 's/$(EMACS_ICON)/emacs/' -e '$(TRANSFORM)'`.$${ext} ; \
 	    ( cd $${thisdir}; \
 	      ${INSTALL_DATA} ${iconsrcdir}/$${icon} $(DESTDIR)${icondir}/$${dir}/$${dest} ) \
 	    || exit 1; \
