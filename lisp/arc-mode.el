@@ -140,8 +140,10 @@ A local copy of the archive will be used when updating."
   :type 'regexp
   :group 'archive)
 
-(defcustom archive-extract-hooks nil
-  "Hooks to run when an archive member has been extracted."
+(define-obsolete-variable-alias 'archive-extract-hooks
+  'archive-extract-hook "24.3")
+(defcustom archive-extract-hook nil
+  "Hook run when an archive member has been extracted."
   :type 'hook
   :group 'archive)
 ;; ------------------------------
@@ -1078,7 +1080,7 @@ using `make-temp-file', and the generated name is returned."
               ;; We will write out the archive ourselves if it is
               ;; part of another archive.
               (remove-hook 'write-contents-functions 'archive-write-file t))
-            (run-hooks 'archive-extract-hooks)
+            (run-hooks 'archive-extract-hook)
 	    (if archive-read-only
 		(message "Note: altering this archive is not implemented."))))
 	(archive-maybe-update t))

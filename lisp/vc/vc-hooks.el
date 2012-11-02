@@ -224,6 +224,8 @@ VC commands are globally reachable under the prefix `\\[vc-prefix-map]':
 
 (defun vc-file-clearprops (file)
   "Clear all VC properties of FILE."
+  (if (boundp 'vc-parent-buffer)
+      (kill-local-variable 'vc-parent-buffer))
   (setplist (intern file vc-file-prop-obarray) nil))
 
 

@@ -70,9 +70,9 @@ called.  You can use @code{add-hook} to add a function to an abnormal
 hook, but you must write the function to follow the hook's calling
 convention.
 
-  By convention, abnormal hook names end in @samp{-functions} or
-@samp{-hooks}.  If the variable's name ends in @samp{-function}, then
-its value is just a single function, not a list of functions.
+  By convention, abnormal hook names end in @samp{-functions}.  If the
+variable's name ends in @samp{-function}, then its value is just a single
+function, not a list of functions.
 
 @menu
 * Running Hooks::    How to run a hook.
@@ -1595,7 +1595,7 @@ of the mode.  If you specify this, the @var{mode} variable is not
 defined, and any @var{init-value} argument is unused.  @var{place}
 can be a different named variable (which you must define yourself), or
 anything that can be used with the @code{setf} function
-(@pxref{Generalized Variables,,, cl, Common Lisp Extensions}).
+(@pxref{Generalized Variables}).
 @var{place} can also be a cons @code{(@var{get} . @var{set})},
 where @var{get} is an expression that returns the current state,
 and @var{set} is a function of one argument (a state) that sets it.

@@ -241,8 +241,12 @@ representation is in use.  It also adjusts various data in the buffer
 (including overlays, text properties and markers) so that they cover the
 same text as they did before.
 
-You cannot use @code{set-buffer-multibyte} on an indirect buffer,
-because indirect buffers always inherit the representation of the
+This function signals an error if the buffer is narrowed, since the
+narrowing might have occurred in the middle of multibyte character
+sequences.
+
+This function also signals an error if the buffer is an indirect
+buffer.  An indirect buffer always inherits the representation of its
 base buffer.
 @end defun
 

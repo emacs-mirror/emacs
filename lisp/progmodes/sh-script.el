@@ -940,6 +940,17 @@ See `sh-feature'.")
     (concat "<<-?\\s-*\\\\?\\(\\(?:['\"][^'\"]+['\"]\\|\\sw\\|[-/~._]\\)+\\)"
             sh-escaped-line-re "\\(\n\\)")))
 
+(defun sh--inside-noncommand-expression (pos)
+  (save-excursion
+    (let ((ppss (syntax-ppss pos)))
+      (when (nth 1 ppss)
+        (goto-char (nth 1 ppss))
+        (pcase (char-after)
+          ;; $((...)) or $[...] or ${...}.
+          (`?\( (and (eq ?\( (char-before))
+                     (eq ?\$ (char-before (1- (point))))))
+          ((or `?\{ `?\[) (eq ?\$ (char-before))))))))
+
 (defun sh-font-lock-open-heredoc (start string eol)
   "Determine the syntax of the \\n after a <<EOF.
 START is the position of <<.
@@ -948,7 +959,8 @@ INDENTED is non-nil if the here document's content (and the EOF mark) can
 be indented (i.e. a <<- was used rather than just <<).
 Point is at the beginning of the next line."
   (unless (or (memq (char-before start) '(?< ?>))
-	      (sh-in-comment-or-string start))
+	      (sh-in-comment-or-string start)
+              (sh--inside-noncommand-expression start))
     ;; We're looking at <<STRING, so we add "^STRING$" to the syntactic
     ;; font-lock keywords to detect the end of this here document.
     (let ((str (replace-regexp-in-string "['\"]" "" string))
@@ -1033,51 +1045,57 @@ subshells can nest."
 (defun sh-font-lock-paren (start)
   (unless (nth 8 (syntax-ppss))
     (save-excursion
-      (goto-char start)
-      ;; Skip through all patterns
-      (while
-          (progn
-            (while
-                (progn
-                  (forward-comment (- (point-max)))
-                  (when (and (eolp) (sh-is-quoted-p (point)))
-                    (forward-char -1)
-                    t)))
-            ;; Skip through one pattern
-            (while
-                (or (/= 0 (skip-syntax-backward "w_"))
-                    (/= 0 (skip-chars-backward "-$=?[]*@/\\\\"))
-                    (and (sh-is-quoted-p (1- (point)))
-                         (goto-char (- (point) 2)))
-                    (when (memq (char-before) '(?\" ?\' ?\}))
-                      (condition-case nil (progn (backward-sexp 1) t)
-                        (error nil)))))
-            ;; Patterns can be preceded by an open-paren (Bug#1320).
-            (if (eq (char-before (point)) ?\()
+      (let ((open nil))
+        (goto-char start)
+        ;; Skip through all patterns
+        (while
+            (progn
+              (while
+                  (progn
+                    (forward-comment (- (point-max)))
+                    (when (and (eolp) (sh-is-quoted-p (point)))
+                      (forward-char -1)
+                      t)))
+              ;; Skip through one pattern
+              (while
+                  (or (/= 0 (skip-syntax-backward "w_"))
+                      (/= 0 (skip-chars-backward "-$=?[]*@/\\\\"))
+                      (and (sh-is-quoted-p (1- (point)))
+                           (goto-char (- (point) 2)))
+                      (when (memq (char-before) '(?\" ?\' ?\}))
+                        (condition-case nil (progn (backward-sexp 1) t)
+                          (error nil)))))
+              ;; Patterns can be preceded by an open-paren (bug#1320).
+              (when (eq (char-before (point)) ?\()
+                (backward-char 1)
+                (setq open (point)))
+              (while (progn
+                       (forward-comment (- (point-max)))
+                       ;; Maybe we've bumped into an escaped newline.
+                       (sh-is-quoted-p (point)))
                 (backward-char 1))
-            (while (progn
-                     (forward-comment (- (point-max)))
-                     ;; Maybe we've bumped into an escaped newline.
-                     (sh-is-quoted-p (point)))
-              (backward-char 1))
-            (when (eq (char-before) ?|)
-              (backward-char 1) t)))
-      (and (> (point) (1+ (point-min)))
-           (progn (backward-char 2)
-                  (if (> start (line-end-position))
-                      (put-text-property (point) (1+ start)
-                                         'syntax-multiline t))
-                  ;; FIXME: The `in' may just be a random argument to
-                  ;; a normal command rather than the real `in' keyword.
-                  ;; I.e. we should look back to try and find the
-                  ;; corresponding `case'.
-                  (and (looking-at ";[;&]\\|\\_<in")
-                       ;; ";; esac )" is a case that looks like a case-pattern
-                       ;; but it's really just a close paren after a case
-                       ;; statement.  I.e. if we skipped over `esac' just now,
-                       ;; we're not looking at a case-pattern.
-                       (not (looking-at "..[ \t\n]+esac[^[:word:]_]"))))
-           sh-st-punc))))
+              (when (eq (char-before) ?|)
+                (backward-char 1) t)))
+        (and (> (point) (1+ (point-min)))
+             (progn (backward-char 2)
+                    (if (> start (line-end-position))
+                        (put-text-property (point) (1+ start)
+                                           'syntax-multiline t))
+                    ;; FIXME: The `in' may just be a random argument to
+                    ;; a normal command rather than the real `in' keyword.
+                    ;; I.e. we should look back to try and find the
+                    ;; corresponding `case'.
+                    (and (looking-at ";[;&]\\|\\_<in")
+                         ;; ";; esac )" is a case that looks
+                         ;; like a case-pattern but it's really just a close
+                         ;; paren after a case statement.  I.e. if we skipped
+                         ;; over `esac' just now, we're not looking
+                         ;; at a case-pattern.
+                         (not (looking-at "..[ \t\n]+esac[^[:word:]_]"))))
+             (progn
+               (when open
+                 (put-text-property open (1+ open) 'syntax-table sh-st-punc))
+               sh-st-punc))))))
 
 (defun sh-font-lock-backslash-quote ()
   (if (eq (save-excursion (nth 3 (syntax-ppss (match-beginning 0)))) ?\')
@@ -1629,7 +1647,8 @@ before the newline and in that case point should be just before the token."
            (cmd "|" cmd) (cmd "|&" cmd)
            (cmd "&&" cmd) (cmd "||" cmd)
            (cmd ";" cmd) (cmd "&" cmd))
-      (pattern (pattern "|" pattern))
+      (rpattern (rpattern "|" rpattern))
+      (pattern (rpattern) ("case-(" rpattern))
       (branches (branches ";;" branches)
                 (branches ";&" branches) (branches ";;&" branches) ;bash.
                 (pattern "case-)" cmd)))
@@ -1715,6 +1734,7 @@ Does not preserve point."
              (tok (smie-default-forward-token)))
         (cond
          ((equal tok ")") "case-)")
+         ((equal tok "(") "case-(")
          ((and tok (string-match "\\`[a-z]" tok)
                (assoc tok smie-grammar)
                (not
@@ -1759,6 +1779,7 @@ Does not preserve point."
       (let ((tok (smie-default-backward-token)))
         (cond
          ((equal tok ")") "case-)")
+         ((equal tok "(") "case-(")
          ((and tok (string-match "\\`[a-z]" tok)
                (assoc tok smie-grammar)
                (not (save-excursion (sh-smie--sh-keyword-p tok))))

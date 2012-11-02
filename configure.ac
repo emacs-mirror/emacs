@@ -22,7 +22,7 @@ dnl  You should have received a copy of the GNU General Public License
 dnl  along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.
 
 AC_PREREQ(2.65)
-AC_INIT(emacs, 24.2.50)
+AC_INIT(emacs, 24.3.50)
 AC_CONFIG_HEADER(src/config.h:src/config.in)
 AC_CONFIG_SRCDIR(src/lisp.h)
 AC_CONFIG_AUX_DIR(build-aux)
@@ -743,7 +743,7 @@ else
   AH_VERBATIM([FORTIFY_SOURCE],
   [/* Enable compile-time and run-time bounds-checking, and some warnings,
       without upsetting glibc 2.15+. */
-   #if defined __OPTIMIZE__ && __OPTIMIZE__
+   #if !defined _FORTIFY_SOURCE && defined __OPTIMIZE__ && __OPTIMIZE__
    # define _FORTIFY_SOURCE 2
    #endif
   ])
@@ -2538,7 +2538,7 @@ no_return_alloc_pixels
   fi
 
   if test "${HAVE_XPM}" = "yes"; then
-    AC_DEFINE(HAVE_XPM, 1, [Define to 1 if you have the Xpm libary (-lXpm).])
+    AC_DEFINE(HAVE_XPM, 1, [Define to 1 if you have the Xpm library (-lXpm).])
     LIBXPM=-lXpm
   fi
 fi

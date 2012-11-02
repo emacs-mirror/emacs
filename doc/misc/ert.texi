@@ -130,7 +130,7 @@ familiar: This example defines a test named @code{pp-test-quote} that
 will pass if the three calls to @code{equal} all return true
 (non-nil).
 
-@code{should} is a macro with the same meaning as @code{assert} but
+@code{should} is a macro with the same meaning as @code{cl-assert} but
 better error reporting.  @xref{The @code{should} Macro}.
 
 Each test should have a name that describes what functionality it tests.
@@ -342,7 +342,7 @@ to find where a test was defined if the test was loaded from a file.
 Test bodies can include arbitrary code; but to be useful, they need to
 check whether the code being tested (or @emph{code under test})
 does what it is supposed to do.  The macro @code{should} is similar to
-@code{assert} from the cl package
+@code{cl-assert} from the cl package
 (@pxref{Assertions,,, cl, Common Lisp Extensions}),
 but analyzes its argument form and records information that ERT can
 display to help debugging.

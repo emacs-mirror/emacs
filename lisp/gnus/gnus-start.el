@@ -291,7 +291,9 @@ claim them."
 		function
 		(repeat function)))
 
-(defcustom gnus-subscribe-newsgroup-hooks nil
+(define-obsolete-variable-alias 'gnus-subscribe-newsgroup-hooks
+  'gnus-subscribe-newsgroup-functions "24.3")
+(defcustom gnus-subscribe-newsgroup-functions nil
   "*Hooks run after you subscribe to a new group.
 The hooks will be called with new group's name as argument."
   :version "22.1"
@@ -639,7 +641,7 @@ the first newsgroup."
      gnus-level-killed (gnus-group-entry (or next "dummy.group")))
     (gnus-request-update-group-status newsgroup 'subscribe)
     (gnus-message 5 "Subscribe newsgroup: %s" newsgroup)
-    (run-hook-with-args 'gnus-subscribe-newsgroup-hooks newsgroup)
+    (run-hook-with-args 'gnus-subscribe-newsgroup-functions newsgroup)
     t))
 
 (defun gnus-read-active-file-p ()

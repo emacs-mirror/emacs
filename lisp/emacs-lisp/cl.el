@@ -511,7 +511,10 @@ rather than relying on `lexical-binding'."
 
 (defmacro letf (bindings &rest body)
   "Dynamically scoped let-style bindings for places.
-Like `cl-letf', but with some extra backward compatibility."
+For more details, see `cl-letf'.  This macro behaves like that one
+in almost every respect (apart from details that relate to some
+deprecated usage of `symbol-function' in place forms)."  ; bug#12760
+  (declare (indent 1) (debug cl-letf))
   ;; Like cl-letf, but with special handling of symbol-function.
   `(cl-letf ,(mapcar (lambda (x) (if (eq (car-safe (car x)) 'symbol-function)
                                 `((cl--symbol-function ,@(cdar x)) ,@(cdr x))
@@ -568,9 +571,9 @@ well for simple place forms.  In the simple `defsetf' form, `setf's of
 the form (setf (NAME ARGS...) VAL) are transformed to function or macro
 calls of the form (FUNC ARGS... VAL).  Example:
 
-  (cl-defsetf aref aset)
+  (defsetf aref aset)
 
-Alternate form: (cl-defsetf NAME ARGLIST (STORE) BODY...).
+Alternate form: (defsetf NAME ARGLIST (STORE) BODY...).
 Here, the above `setf' call is expanded by binding the argument forms ARGS
 according to ARGLIST, binding the value form VAL to STORE, then executing
 BODY, which must return a Lisp form that does the necessary `setf' operation.
@@ -578,7 +581,7 @@ Actually, ARGLIST and STORE may be bound to temporary variables which are
 introduced automatically to preserve proper execution order of the arguments.
 Example:
 
-  (cl-defsetf nth (n x) (v) `(setcar (nthcdr ,n ,x) ,v))
+  (defsetf nth (n x) (v) `(setcar (nthcdr ,n ,x) ,v))
 
 \(fn NAME [FUNC | ARGLIST (STORE) BODY...])"
   (declare (debug

@@ -1091,19 +1091,14 @@ Using an Emacs configured with --with-x-toolkit=lucid does not have this problem
 #endif /* DOS_NT */
     }
 
+#if defined (HAVE_PTHREAD) && !defined (SYSTEM_MALLOC) && !defined (DOUG_LEA_MALLOC)
   if (! noninteractive)
     {
-#if defined (USG5) && defined (INTERRUPT_INPUT)
-      setpgrp ();
-#endif
-#if defined (HAVE_PTHREAD) && !defined (SYSTEM_MALLOC) && !defined (DOUG_LEA_MALLOC)
-      {
-        extern void malloc_enable_thread (void);
+      extern void malloc_enable_thread (void);
 
-	malloc_enable_thread ();
-      }
-#endif
+      malloc_enable_thread ();
     }
+#endif
 
   init_signals (dumping);
 
@@ -1905,8 +1900,8 @@ shut_down_emacs (int sig, Lisp_Object stuff)
   /* If we are controlling the terminal, reset terminal modes.  */
 #ifndef DOS_NT
   {
-    int pgrp = EMACS_GETPGRP (0);
-    int tpgrp = tcgetpgrp (0);
+    pid_t pgrp = EMACS_GETPGRP (0);
+    pid_t tpgrp = tcgetpgrp (0);
     if ((tpgrp != -1) && tpgrp == pgrp)
       {
 	reset_all_sys_modes ();

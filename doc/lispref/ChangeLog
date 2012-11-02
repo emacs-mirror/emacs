@@ -1,3 +1,129 @@
+2012-10-31  Glenn Morris  <rgm@gnu.org>
+
+	* control.texi (Catch and Throw): Add xref to cl.texi.
+
+	* lists.texi (Sets And Lists): Point xref to better location.
+
+	* errors.texi (Standard Errors):
+	* loading.texi (Autoload): Update for cl-lib namespace changes.
+
+	* modes.texi (Defining Minor Modes): "Generalized Variables"
+	section is now in this manual rather than cl.texi.
+
+	* eval.texi (Special Forms): No longer special forms: defmacro,
+	defun, save-window-excursion, with-output-to-temp-buffer.
+	* functions.texi (Defining Functions): Defun is now a macro.
+	Defalias is a function.
+
+2012-10-30  Glenn Morris  <rgm@gnu.org>
+
+	* variables.texi (Generalized Variables): Fix typo.
+
+2012-10-30  Chong Yidong  <cyd@gnu.org>
+
+	* symbols.texi (Symbol Plists): Document function-get.
+
+	* loading.texi (Autoload): Document autoloadp, autoload-do-load.
+
+	* frames.texi (Visibility of Frames): Document tty-top-frame.
+
+2012-10-28  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* keymaps.texi (Format of Keymaps): Document the multiple
+	inheritance format.
+
+2012-10-28  Martin Rudalics  <rudalics@gmx.at>
+
+	* windows.texi (Basic Windows): Reformulate description of live,
+	internal and valid windows.
+	(Cyclic Window Ordering): Describe new argument of
+	get-lru-window and get-largest-window.  Add description of
+	window-in-direction.
+
+2012-10-27  Glenn Morris  <rgm@gnu.org>
+
+	* variables.texi (Generalized Variables): New section,
+	adapted from misc/cl.texi.
+	* elisp.texi (Top): Add Generalized Variables to menu.
+	* lists.texi (List Elements, List Variables):
+	Mention generalized variables.
+
+	* lists.texi (List Elements): Typo fix.
+
+2012-10-27  Chong Yidong  <cyd@gnu.org>
+
+	* minibuf.texi (High-Level Completion): Don't mention removed
+	function iswitchb-read-buffer.
+
+	* commands.texi (Event Input Misc): Remove last-input-char.
+	(Command Loop Info): Remove last-command-char.
+
+	* frames.texi (Initial Parameters): Don't mention the obsolete
+	special-display feature.
+
+	* windows.texi (Choosing Window): Don't mention the obsolete
+	special display feature.
+	(Choosing Window Options): Remove obsolete special-display
+	variables, and the functions special-display-p and
+	special-display-popup-frame.
+
+	* display.texi (Fringe Bitmaps): Add exclamation-mark bitmap.
+
+	* hooks.texi (Standard Hooks): Remove obsolete hooks.
+
+	* markers.texi (Information from Markers): Remove obsolete
+	function buffer-has-markers-at.
+
+	* text.texi (Yanking): Document yank-handled-properties.
+
+2012-10-24  Paul Eggert  <eggert@penguin.cs.ucla.edu>
+
+	Update manual for new time stamp format (Bug#12706).
+	* buffers.texi (Modification Time):
+	* files.texi (Testing Accessibility, File Attributes):
+	* intro.texi (Version Info):
+	* os.texi (Time of Day):
+	Update for new time stamp format (HIGH LOW MICROSEC PICOSEC).
+	These instances were missed the first time around.
+	Problem reported by Glenn Morris in <http://bugs.gnu.org/12706#25>.
+
+2012-10-24  Chong Yidong  <cyd@gnu.org>
+
+	* minibuf.texi (Text from Minibuffer): Document read-regexp
+	changes.
+
+	* nonascii.texi (Selecting a Representation): Document
+	set-buffer-multibyte changes.
+
+	* keymaps.texi (Toolkit Differences): Node deleted.
+	(Easy Menu): New node.
+
+2012-10-23  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* hooks.texi (Standard Hooks): Clarify that -hooks is deprecated.
+
+2012-10-23  Paul Eggert  <eggert@cs.ucla.edu>
+
+	Fix outdated timestamp documentation in Elisp manual (bug#12706).
+	* files.texi (File Attributes):
+	* text.texi (Undo):
+	Time stamp resolution is now 1 picosecond, not 1 second.
+
+2012-10-23  Chong Yidong  <cyd@gnu.org>
+
+	* display.texi (Font Lookup): Remove font-list-limit.
+
+	* keymaps.texi (Key Sequences): Avoid referring to Edit Macro mode
+	(Bug#12529).
+
+2012-10-22  Glenn Morris  <rgm@gnu.org>
+
+	* os.texi (Recording Input): Tiny fix.
+
+	* intro.texi (Lisp History):
+	* lists.texi (Sets And Lists): Refer to cl-lib rather than cl.
+	* tips.texi (Coding Conventions): Recommend cl-lib over cl.
+
 2012-10-15  Chong Yidong  <cyd@gnu.org>
 
 	* macros.texi (Defining Macros): defmacro is now a macro.

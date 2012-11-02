@@ -368,7 +368,6 @@ static Lisp_Object command_loop (void);
 static Lisp_Object Qextended_command_history;
 EMACS_TIME timer_check (void);
 
-static void record_menu_key (Lisp_Object c);
 static void echo_now (void);
 static ptrdiff_t echo_length (void);
 
@@ -1966,12 +1965,12 @@ safe_run_hooks (Lisp_Object hook)
 
 int poll_suppress_count;
 
+
+#ifdef POLL_FOR_INPUT
+
 /* Asynchronous timer for polling.  */
 
 static struct atimer *poll_timer;
-
-
-#ifdef POLL_FOR_INPUT
 
 /* Poll for input, so that we catch a C-g if it comes in.  This
    function is called from x_make_frame_visible, see comment

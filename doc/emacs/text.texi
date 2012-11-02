@@ -1399,7 +1399,7 @@ This is an example.
 #+end_example
 @end example
 
-  For further details, see @ref{Exporting,,,org, The Org Manual} and
+  For further details, @ref{Exporting,,,org, The Org Manual}, and
 @ref{Publishing,,,org, The Org Manual}.
 
 @node TeX Mode

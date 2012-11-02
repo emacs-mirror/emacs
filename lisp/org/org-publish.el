@@ -916,7 +916,6 @@ directory and force publishing all files."
 	   (if force nil org-publish-use-timestamps-flag)))
       (org-publish-projects org-publish-project-alist))))
 
-
 ;;;###autoload
 (defun org-publish-current-file (&optional force)
   "Publish the current file.
@@ -1191,5 +1190,9 @@ Returns value on success, else nil."
        (cadr (nth 5 attr)))))
 
 (provide 'org-publish)
+
+;; Local variables:
+;; generated-autoload-file: "org-loaddefs.el"
+;; End:
 
 ;;; org-publish.el ends here

@@ -33,7 +33,8 @@
 (declare-function org-fill-template "org" (template alist))
 (declare-function org-table-convert-region "org-table"
 		  (beg0 end0 &optional separator))
-(declare-function orgtbl-to-csv "org-table" (TABLE PARAMS))
+(declare-function orgtbl-to-csv "org-table" (table params))
+(declare-function org-table-to-lisp "org-table" (&optional txt))
 
 (defvar org-babel-default-header-args:sqlite '())
 

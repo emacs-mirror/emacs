@@ -433,7 +433,11 @@ the empty string."
                                     ": ")))
 	   (str
 	    (completing-read prompt
-			     bookmark-alist
+			     (lambda (string pred action)
+                               (if (eq action 'metadata)
+                                   '(metadata (category . bookmark))
+                                 (complete-with-action
+                                  action bookmark-alist string pred)))
 			     nil
 			     0
 			     nil

@@ -1451,4 +1451,8 @@ the alist of previous items."
 
 (provide 'org-docbook)
 
+;; Local variables:
+;; generated-autoload-file: "org-loaddefs.el"
+;; End:
+
 ;;; org-docbook.el ends here

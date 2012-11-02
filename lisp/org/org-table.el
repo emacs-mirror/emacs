@@ -423,6 +423,7 @@ available parameters."
   (concat "\\(" "@[-0-9I$]+" "\\|" "[a-zA-Z]\\{1,2\\}\\([0-9]+\\|&\\)" "\\)")
   "Match a reference that needs translation, for reference display.")
 
+;;;###autoload
 (defun org-table-create-with-table.el ()
   "Use the table.el package to insert a new table.
 If there is already a table at point, convert between Org-mode tables
@@ -439,6 +440,7 @@ and table.el tables."
       (org-table-convert)))
    (t (call-interactively 'table-insert))))
 
+;;;###autoload
 (defun org-table-create-or-convert-from-region (arg)
   "Convert region to table, or create an empty table.
 If there is an active region, convert it to a table, using the function
@@ -451,6 +453,7 @@ If there is no such region, create an empty table with `org-table-create'."
       (org-table-convert-region (region-beginning) (region-end) arg)
     (org-table-create arg)))
 
+;;;###autoload
 (defun org-table-create (&optional size)
   "Query for a size and insert a table skeleton.
 SIZE is a string Columns x Rows like for example \"3x2\"."
@@ -483,6 +486,7 @@ SIZE is a string Columns x Rows like for example \"3x2\"."
 	  (goto-char pos)))
     (org-table-align)))
 
+;;;###autoload
 (defun org-table-convert-region (beg0 end0 &optional separator)
   "Convert region to a table.
 The region goes from BEG0 to END0, but these borders will be moved
@@ -543,6 +547,7 @@ nil      When nil, the command tries to be smart and figure out the
     (goto-char beg)
     (org-table-align)))
 
+;;;###autoload
 (defun org-table-import (file arg)
   "Import FILE as a table.
 The file is assumed to be tab-separated.  Such files can be produced by most
@@ -558,6 +563,7 @@ are found, lines will be split on whitespace into fields."
 
 (defvar org-table-last-alignment)
 (defvar org-table-last-column-widths)
+;;;###autoload
 (defun org-table-export (&optional file format)
   "Export table to a file, with configurable format.
 Such a file can be imported into usual spreadsheet programs.
@@ -673,6 +679,7 @@ When nil, simply write \"#ERROR\" in corrupted fields.")
 (defconst org-narrow-column-arrow "=>"
   "Used as display property in narrowed table columns.")
 
+;;;###autoload
 (defun org-table-align ()
   "Align the table at point by aligning all vertical bars."
   (interactive)
@@ -884,6 +891,7 @@ With argument TABLE-TYPE, go to the end of a table.el-type table."
       (goto-char (match-beginning 0)))
     (point-marker)))
 
+;;;###autoload
 (defun org-table-justify-field-maybe (&optional new)
   "Justify the current field, text to left, number to right.
 Optional argument NEW may specify text to replace the current field content."
@@ -924,6 +932,7 @@ Optional argument NEW may specify text to replace the current field content."
 	  (setq org-table-may-need-update t))
 	(goto-char pos))))))
 
+;;;###autoload
 (defun org-table-next-field ()
   "Go to the next field in the current table, creating new lines as needed.
 Before doing so, re-align the table if necessary."
@@ -953,6 +962,7 @@ Before doing so, re-align the table if necessary."
       (error
        (org-table-insert-row 'below)))))
 
+;;;###autoload
 (defun org-table-previous-field ()
   "Go to the previous field in the table.
 Before doing so, re-align the table if necessary."
@@ -1006,6 +1016,7 @@ With numeric argument N, move N-1 fields backward first."
 	  (forward-char 1)))
     (if (<= (point) pos) (org-table-end-of-field 2))))
 
+;;;###autoload
 (defun org-table-next-row ()
   "Go to the next row (same column) in the current table.
 Before doing so, re-align the table if necessary."
@@ -1029,6 +1040,7 @@ Before doing so, re-align the table if necessary."
       (skip-chars-backward "^|\n\r")
       (if (looking-at " ") (forward-char 1)))))
 
+;;;###autoload
 (defun org-table-copy-down (n)
   "Copy a field down in the current column.
 If the field at the cursor is empty, copy into it the content of
@@ -1173,6 +1185,7 @@ is always the old value."
 	val)
     (forward-char 1) ""))
 
+;;;###autoload
 (defun org-table-field-info (arg)
   "Show info about the current field, and highlight any reference at point."
   (interactive "P")
@@ -1228,6 +1241,7 @@ is always the old value."
 	(message "In table column %d" cnt))
       cnt)))
 
+;;;###autoload
 (defun org-table-current-dline ()
   "Find out what table data line we are in.
 Only data lines count for this."
@@ -1244,6 +1258,7 @@ Only data lines count for this."
 	(message "This is table line %d" cnt))
       cnt)))
 
+;;;###autoload
 (defun org-table-goto-column (n &optional on-delim force)
   "Move the cursor to the Nth column in the current table line.
 With optional argument ON-DELIM, stop with point before the left delimiter
@@ -1266,6 +1281,7 @@ However, when FORCE is non-nil, create new columns if necessary."
 	(backward-char 1)
       (if (looking-at " ") (forward-char 1)))))
 
+;;;###autoload
 (defun org-table-insert-column ()
   "Insert a new column into the table."
   (interactive)
@@ -1335,6 +1351,7 @@ first dline below it is used.  When ABOVE is non-nil, the one above is used."
 	  (setq i (1+ i)))))
     nil))
 
+;;;###autoload
 (defun org-table-delete-column ()
   "Delete a column from the table."
   (interactive)
@@ -1367,15 +1384,18 @@ first dline below it is used.  When ABOVE is non-nil, the one above is used."
       (org-table-fix-formulas "$LR" (list (cons (number-to-string col) "INVALID"))
 			      col -1 col))))
 
+;;;###autoload
 (defun org-table-move-column-right ()
   "Move column to the right."
   (interactive)
   (org-table-move-column nil))
+;;;###autoload
 (defun org-table-move-column-left ()
   "Move column to the left."
   (interactive)
   (org-table-move-column 'left))
 
+;;;###autoload
 (defun org-table-move-column (&optional left)
   "Move the current column to the right.  With arg LEFT, move to the left."
   (interactive "P")
@@ -1415,15 +1435,18 @@ first dline below it is used.  When ABOVE is non-nil, the one above is used."
        "$LR" (list (cons (number-to-string col) (number-to-string colpos))
 		   (cons (number-to-string colpos) (number-to-string col)))))))
 
+;;;###autoload
 (defun org-table-move-row-down ()
   "Move table row down."
   (interactive)
   (org-table-move-row nil))
+;;;###autoload
 (defun org-table-move-row-up ()
   "Move table row up."
   (interactive)
   (org-table-move-row 'up))
 
+;;;###autoload
 (defun org-table-move-row (&optional up)
   "Move the current table line down.  With arg UP, move it up."
   (interactive "P")
@@ -1457,6 +1480,7 @@ first dline below it is used.  When ABOVE is non-nil, the one above is used."
        "@" (list (cons (number-to-string dline1) (number-to-string dline2))
 		 (cons (number-to-string dline2) (number-to-string dline1)))))))
 
+;;;###autoload
 (defun org-table-insert-row (&optional arg)
   "Insert a new row above the current line into the table.
 With prefix ARG, insert below the current line."
@@ -1478,6 +1502,7 @@ With prefix ARG, insert below the current line."
 	      (funcall org-table-fix-formulas-confirm "Fix formulas? "))
       (org-table-fix-formulas "@" nil (1- (org-table-current-dline)) 1))))
 
+;;;###autoload
 (defun org-table-insert-hline (&optional above)
   "Insert a horizontal-line below the current line into the table.
 With prefix ABOVE, insert above the current line."
@@ -1501,6 +1526,7 @@ With prefix ABOVE, insert above the current line."
     (org-move-to-column col)
     (and org-table-overlay-coordinates (org-table-align))))
 
+;;;###autoload
 (defun org-table-hline-and-move (&optional same-column)
   "Insert a hline and move to the row below that line."
   (interactive "P")
@@ -1527,6 +1553,7 @@ In particular, this does handle wide and invisible characters."
 	       t t s)))
     s))
 
+;;;###autoload
 (defun org-table-kill-row ()
   "Delete the current row or horizontal line from the table."
   (interactive)
@@ -1542,6 +1569,7 @@ In particular, this does handle wide and invisible characters."
       (org-table-fix-formulas "@" (list (cons (number-to-string dline) "INVALID"))
 			      dline -1 dline))))
 
+;;;###autoload
 (defun org-table-sort-lines (with-case &optional sorting-type)
   "Sort table lines according to the column at point.
 
@@ -1622,7 +1650,7 @@ should be done in reverse order."
     (org-table-goto-column thiscol)
     (message "%d lines sorted, based on column %d" (length lns) column)))
 
-
+;;;###autoload
 (defun org-table-cut-region (beg end)
   "Copy region in table to the clipboard and blank all relevant fields.
 If there is no active region, use just the field at point."
@@ -1631,6 +1659,7 @@ If there is no active region, use just the field at point."
 		(if (org-region-active-p) (region-end) (point))))
   (org-table-copy-region beg end 'cut))
 
+;;;###autoload
 (defun org-table-copy-region (beg end &optional cut)
   "Copy rectangular region in table to clipboard.
 A special clipboard is used which can only be accessed
@@ -1668,6 +1697,7 @@ with `org-table-paste-rectangle'."
     (if cut (org-table-align))
     org-table-clip))
 
+;;;###autoload
 (defun org-table-paste-rectangle ()
   "Paste a rectangular region into a table.
 The upper right corner ends up in the current field.  All involved fields
@@ -1698,6 +1728,7 @@ lines."
     (org-table-goto-column col)
     (org-table-align)))
 
+;;;###autoload
 (defun org-table-convert ()
   "Convert from `org-mode' table to table.el and back.
 Obviously, this only works within limits.  When an Org-mode table is
@@ -1771,6 +1802,7 @@ Note that horizontal lines disappeared."
                        contents ""))
     (org-table-align)))
 
+;;;###autoload
 (defun org-table-wrap-region (arg)
   "Wrap several fields in a column like a paragraph.
 This is useful if you'd like to spread the contents of a field over several
@@ -1841,6 +1873,7 @@ blank, and the content is appended to the field above."
 
 (defvar org-field-marker nil)
 
+;;;###autoload
 (defun org-table-edit-field (arg)
   "Edit table field in a different window.
 This is mainly useful for fields that contain hidden parts.
@@ -1944,6 +1977,7 @@ table (but see `org-table-exit-follow-field-mode-when-leaving-table')."
 
 (defvar org-timecnt) ; dynamically scoped parameter
 
+;;;###autoload
 (defun org-table-sum (&optional beg end nlast)
   "Sum numbers in region of current table column.
 The result will be displayed in the echo area, and will be available
@@ -2144,9 +2178,10 @@ When NAMED is non-nil, look for a named equation."
 	(bs (org-table-formula-make-cmp-string (car b))))
     (and as bs (string< as bs))))
 
+;;;###autoload
 (defun org-table-get-stored-formulas (&optional noerror)
   "Return an alist with the stored formulas directly after current table."
-  (interactive)
+  (interactive) ;; FIXME interactive?
   (let ((case-fold-search t) scol eq eq-alist strings string seen)
     (save-excursion
       (goto-char (org-table-end))
@@ -2283,6 +2318,7 @@ For all numbers larger than LIMIT, shift them by DELTA."
 	(setq org-table-local-parameters
 	      (append org-table-local-parameters al2))))))
 
+;;;###autoload
 (defun org-table-maybe-eval-formula ()
   "Check if the current field starts with \"=\" or \":=\".
 If yes, store the formula and apply it."
@@ -2313,6 +2349,7 @@ Will be filled automatically during use.")
     ("_" . "Names for values in row below this one.")
     ("^" . "Names for values in row above this one.")))
 
+;;;###autoload
 (defun org-table-rotate-recalc-marks (&optional newchar)
   "Rotate the recalculation mark in the first column.
 If in any row, the first field is not consistent with a mark,
@@ -2374,6 +2411,7 @@ of the new mark."
     (and (org-called-interactively-p 'interactive)
 	 (message "%s" (cdr (assoc new org-recalc-marks))))))
 
+;;;###autoload
 (defun org-table-maybe-recalculate-line ()
   "Recompute the current line if marked for it, and if we haven't just done it."
   (interactive)
@@ -2397,6 +2435,7 @@ of the new mark."
     (cons var (cons value org-tbl-calc-modes)))
   org-tbl-calc-modes)
 
+;;;###autoload
 (defun org-table-eval-formula (&optional arg equation
 					 suppress-align suppress-const
 					 suppress-store suppress-analysis)
@@ -2823,6 +2862,7 @@ LISPP means to return something appropriate for a Lisp list."
 		   elements
 		   ",") "]"))))
 
+;;;###autoload
 (defun org-table-recalculate (&optional all noalign)
   "Recalculate the current table line by applying all stored formulas.
 With prefix arg ALL, do this for all lines in the table.
@@ -2961,6 +3001,7 @@ known that the table will be realigned a little later anyway."
       (or noalign (and org-table-may-need-update (org-table-align))
 	  (and all (message "Re-applying formulas...done"))))))
 
+;;;###autoload
 (defun org-table-iterate (&optional arg)
   "Recalculate the table until it does not change anymore.
 The maximum number of iterations is 10, but you can choose a different value
@@ -2997,10 +3038,9 @@ with the prefix ARG."
   "Iterate all tables in the buffer, to converge inter-table dependencies."
   (interactive)
   (let* ((imax 10)
+	 (i imax)
 	 (checksum (md5 (buffer-string)))
-
-	 c1
-	 (i imax))
+	 c1)
     (save-excursion
       (save-restriction
 	(widen)
@@ -3164,6 +3204,7 @@ Parameters get priority."
 
 (defvar org-pos)
 
+;;;###autoload
 (defun org-table-edit-formulas ()
   "Edit the formulas of the current table in a separate buffer."
   (interactive)
@@ -3801,6 +3842,7 @@ Use COMMAND to do the motion, repeat if necessary to end up in a data line."
 	    (org-overlay-display ov str 'org-special-keyword 'evaporate)))
 	(beginning-of-line 2)))))
 
+;;;###autoload
 (defun org-table-toggle-coordinate-overlays ()
   "Toggle the display of Row/Column numbers in tables."
   (interactive)
@@ -3813,6 +3855,7 @@ Use COMMAND to do the motion, repeat if necessary to end up in a data line."
     (mapc 'delete-overlay org-table-coordinate-overlays)
     (setq org-table-coordinate-overlays nil)))
 
+;;;###autoload
 (defun org-table-toggle-formula-debugger ()
   "Toggle the formula debugger in tables."
   (interactive)
@@ -3851,11 +3894,6 @@ Use COMMAND to do the motion, repeat if necessary to end up in a data line."
 
 (defvar orgtbl-mode-map (make-keymap)
   "Keymap for `orgtbl-mode'.")
-
-;;;###autoload
-(defun turn-on-orgtbl ()
-  "Unconditionally turn on `orgtbl-mode'."
-  (orgtbl-mode 1))
 
 (defvar org-old-auto-fill-inhibit-regexp nil
   "Local variable used by `orgtbl-mode'.")
@@ -4480,6 +4518,7 @@ First element has index 0, or I0 if given."
 			 (*orgtbl-lfmt* *orgtbl-llfmt*))
 		     (orgtbl-format-line prevline))))))
 
+;;;###autoload
 (defun orgtbl-to-generic (table params)
   "Convert the orgtbl-mode TABLE to some other format.
 This generic routine can be used for many standard cases.
@@ -4606,9 +4645,11 @@ directly by `orgtbl-send-table'.  See manual."
 			     (remq nil *orgtbl-rtn*)
 			   *orgtbl-rtn*)) "\n")))
 
+;;;###autoload
 (defun orgtbl-to-tsv (table params)
   "Convert the orgtbl-mode table to TAB separated material."
   (orgtbl-to-generic table (org-combine-plists '(:sep "\t") params)))
+;;;###autoload
 (defun orgtbl-to-csv (table params)
   "Convert the orgtbl-mode table to CSV material.
 This does take care of the proper quoting of fields with comma or quotes."
@@ -4616,6 +4657,7 @@ This does take care of the proper quoting of fields with comma or quotes."
 			    '(:sep "," :fmt org-quote-csv-field)
 			    params)))
 
+;;;###autoload
 (defun orgtbl-to-latex (table params)
   "Convert the orgtbl-mode TABLE to LaTeX.
 TABLE is a list, each entry either the symbol `hline' for a horizontal
@@ -4654,6 +4696,7 @@ this function is called."
 	   :efmt "%s\\,(%s)" :hline "\\hline")))
     (orgtbl-to-generic table (org-combine-plists params2 params))))
 
+;;;###autoload
 (defun orgtbl-to-html (table params)
   "Convert the orgtbl-mode TABLE to HTML.
 TABLE is a list, each entry either the symbol `hline' for a horizontal
@@ -4684,6 +4727,7 @@ so you cannot specify parameters for it."
 	(setq html (replace-match "" t t html)))
     html))
 
+;;;###autoload
 (defun orgtbl-to-texinfo (table params)
   "Convert the orgtbl-mode TABLE to TeXInfo.
 TABLE is a list, each entry either the symbol `hline' for a horizontal
@@ -4722,6 +4766,7 @@ this function is called."
 	   :hlstart "@headitem ")))
     (orgtbl-to-generic table (org-combine-plists params2 params))))
 
+;;;###autoload
 (defun orgtbl-to-orgtbl (table params)
   "Convert the orgtbl-mode TABLE into another orgtbl-mode table.
 Useful when slicing one table into many.  The :hline, :sep,
@@ -4831,5 +4876,9 @@ list of the fields in the rectangle ."
 		  form)))))))))
 
 (provide 'org-table)
+
+;; Local variables:
+;; generated-autoload-file: "org-loaddefs.el"
+;; End:
 
 ;;; org-table.el ends here

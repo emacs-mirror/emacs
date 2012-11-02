@@ -1,3 +1,130 @@
+2012-11-01  Glenn Morris  <rgm@gnu.org>
+
+	* cl.texi: General copyedits for style, line-breaks, etc.
+	(Time of Evaluation, Iteration): Add xref to Emacs Lisp manual.
+	(Macro Bindings, Blocks and Exits):
+	Acknowledge existence of lexical-binding.
+	(Iteration): Mainly defer to doc of standard dolist, dotimes.
+
+2012-10-31  Glenn Morris  <rgm@gnu.org>
+
+	* ert.texi (Introduction, The @code{should} Macro):
+	Refer to "cl-assert" rather than "assert".
+
+	* cl.texi (Function Bindings): Update for cl-flet and cl-labels.
+	(Obsolete Lexical Binding): Rename section from "Lexical Bindings".
+	(Obsolete Macros): Rename section from "Obsolete Lexical Macros".
+	Reword, and add details of flet and labels.
+	(Modify Macros, Function Bindings): Add some xrefs.
+
+2012-10-30  Glenn Morris  <rgm@gnu.org>
+
+	* cl.texi (Modify Macros): Update for cl-letf changes.
+	(Obsolete Lexical Macros): Say a little more about letf/cl-letf.
+	(Setf Extensions): Partially restore note about cl-getf,
+	mainly moved to lispref/variables.texi.
+	(Property Lists): Fix cl-getf typos.
+	(Mapping over Sequences): Mention cl-mapc naming oddity.
+
+2012-10-29  Glenn Morris  <rgm@gnu.org>
+
+	* cl.texi (Organization): More details on cl-lib.el versus cl.el.
+	(Setf Extensions): Remove `apply' setf since it seems to be disabled.
+	(Customizing Setf): Move contents to "Obsolete Setf Customization".
+	(Modify Macros, Multiple Values, Other Clauses):
+	Remove mentions of obsolete features.
+	(Obsolete Setf Customization): Don't mention `apply' setf.
+
+2012-10-28  Glenn Morris  <rgm@gnu.org>
+
+	* cl.texi (Multiple Values, Common Lisp Compatibility):
+	More namespace updates.
+	(Obsolete Features): Copyedits.
+	(Obsolete Lexical Macros, Obsolete Setf Customization):
+	New subsections.
+
+	* cl.texi (Porting Common Lisp, Lexical Bindings):
+	Add some xrefs to the Elisp manual.
+
+	* cl.texi (Lexical Bindings): Move to appendix of obsolete features.
+	(Porting Common Lisp): Emacs Lisp can do true lexical binding now.
+	(Obsolete Features): New appendix.  Move Lexical Bindings here.
+
+2012-10-27  Glenn Morris  <rgm@gnu.org>
+
+	* cl.texi: Use defmac for macros rather than defspec.
+	(Efficiency Concerns): Related copyedit.
+
+	* cl.texi (Control Structure): Update for setf now being in core.
+	(Setf Extensions): Rename from Basic Setf.  Move much of the
+	former content to lispref/variables.texi.
+	(Modify Macros): Move pop, push details to lispref/variables.texi.
+	(Customizing Setf): Copyedits for setf etc being in core.
+	(Modify Macros, Efficiency Concerns, Porting Common Lisp):
+	Further namespaces updates.
+
+2012-10-26  Bastien Guerry  <bzg@gnu.org>
+
+	* org.texi (Installation): Update the link to Org's ELPA.  Also
+	don't mention org-install.el anymore as the replacement file
+	org-loaddefs.el is now loaded by org.el.
+
+2012-10-25  Michael Albinus  <michael.albinus@gmx.de>
+
+	* tramp.texi (Frequently Asked Questions): Mention
+	`tramp-completion-reread-directory-timeout' for performance
+	improvement.
+
+2012-10-25  Glenn Morris  <rgm@gnu.org>
+
+	* cl.texi: Don't mess with the TeX section number counter.
+	Use Texinfo recommended convention for quotes+punctuation.
+	(Overview, Sequence Functions): Rephrase for better line-breaking.
+	(Time of Evaluation, Type Predicates, Modify Macros, Function Bindings)
+	(Macro Bindings, Conditionals, Iteration, Loop Basics)
+	(Random Numbers, Mapping over Sequences, Structures)
+	(Porting Common Lisp): Further updates for cl-lib namespace.
+	(Modify Macros, Declarations, Macro Bindings, Structures):
+	Break long lines in examples.
+	(Dynamic Bindings): Update for changed progv behavior.
+	(Loop Examples, Efficiency Concerns): Markup fixes.
+	(Structures): Remove TeX margin change.
+	(Declarations): Fix typos.
+
+2012-10-24  Glenn Morris  <rgm@gnu.org>
+
+	* cl.texi (Overview, Multiple Values, Creating Symbols)
+	(Numerical Functions): Say less/nothing about the original cl.el.
+	(Old CL Compatibility): Remove.
+	(Assertions): Remove ignore-errors (standard Elisp for some time).
+
+	* cl.texi (Basic Setf, Macros, Declarations, Symbols, Numbers)
+	(Sequences, Lists, Structures, Assertions, Efficiency Concerns)
+	(Efficiency Concerns, Efficiency Concerns)
+	(Common Lisp Compatibility, Old CL Compatibility):
+	Further updates for cl-lib namespace.
+
+2012-10-24  Paul Eggert  <eggert@penguin.cs.ucla.edu>
+
+	Update manual for new time stamp format (Bug#12706).
+	* emacs-mime.texi (time-date): Update for new format.
+	Also, fix bogus time stamp and modernize a bit.
+
+2012-10-23  Glenn Morris  <rgm@gnu.org>
+
+	* cl.texi: Include emacsver.texi.  Use Emacs version number rather
+	than unchanging cl.el version number.
+	End all menu descriptions with a period.
+	Do not use @dfn{CL} for every instance of "CL".
+	(Overview): Remove no-runtime caveat, and note about foo* names.
+	(Usage): Use cl-lib rather than cl.
+	(Organization, Naming Conventions): Update for cl-lib.el.
+	(Installation): Remove long-irrelevant node.
+	(Program Structure, Predicates, Control Structure):
+	Start updating for cl-lib namespace.
+	* Makefile.in ($(buildinfodir)/cl$(INFO_EXT), cl.dvi, cl.pdf):
+	Depend on emacsver.texi.
+
 2012-10-09  Michael Albinus  <michael.albinus@gmx.de>
 
 	* trampver.texi: Update release number.

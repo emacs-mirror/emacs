@@ -384,12 +384,6 @@ Otherwise, if the buffer is already displayed in an existing window,
 are considered, but windows on other frames are also reusable if you
 change @code{pop-up-frames} (see below) to @code{t}.
 
-@item
-Otherwise, if you specified that the buffer should be displayed in a
-special frame by customizing @code{special-display-buffer-names} or
-@code{special-display-regexps}, do so.  @xref{Choosing Window
-Options,,, elisp, The Emacs Lisp Reference Manual}.
-
 @vindex pop-up-frames
 @item
 Otherwise, optionally create a new frame and display the buffer there.

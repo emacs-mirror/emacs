@@ -25,12 +25,9 @@
 ;; A set of semanticdb classes for persistently saving caches on disk.
 ;;
 
-(require 'semantic)
 (require 'semantic/db)
 (require 'cedet-files)
-
-(eval-when-compile
-  (require 'data-debug))
+(require 'data-debug)
 
 (defvar semanticdb-file-version semantic-version
   "Version of semanticdb we are writing files to disk with.")
@@ -70,7 +67,9 @@ passes a list of predicates in `semanticdb-project-predicate-functions'."
   :group 'semanticdb
   :type nil)
 
-(defcustom semanticdb-save-database-hooks nil
+(define-obsolete-variable-alias 'semanticdb-save-database-hooks
+  'semanticdb-save-database-functions "24.3")
+(defcustom semanticdb-save-database-functions nil
   "Abnormal hook run after a database is saved.
 Each function is called with one argument, the object representing
 the database recently written."
@@ -251,7 +250,7 @@ If DB is not specified, then use the current database."
 	       (message "Save Error: %S: %s" (car (cdr foo))
 			objname)
 	     (error "%S" (car (cdr foo))))))))
-      (run-hook-with-args 'semanticdb-save-database-hooks
+      (run-hook-with-args 'semanticdb-save-database-functions
 			  (or DB semanticdb-current-database))
       ;;(message "Saving tag summary for %s...done" objname)
       )

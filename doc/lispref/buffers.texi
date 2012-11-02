@@ -634,7 +634,8 @@ file should not be done.
 @c Emacs 19 feature
 @defun visited-file-modtime
 This function returns the current buffer's recorded last file
-modification time, as a list of the form @code{(@var{high} @var{low})}.
+modification time, as a list of the form @code{(@var{high} @var{low}
+@var{microsec} @var{picosec})}.
 (This is the same format that @code{file-attributes} uses to return
 time values; see @ref{File Attributes}.)
 
@@ -664,9 +665,8 @@ is not @code{nil}, and otherwise to the last modification time of the
 visited file.
 
 If @var{time} is neither @code{nil} nor zero, it should have the form
-@code{(@var{high} . @var{low})} or @code{(@var{high} @var{low})}, in
-either case containing two integers, each of which holds 16 bits of the
-time.
+@code{(@var{high} @var{low} @var{microsec} @var{picosec})},
+the format used by @code{current-time} (@pxref{Time of Day}).
 
 This function is useful if the buffer was not read from the file
 normally, or if the file itself has been changed for some known benign
@@ -1237,4 +1237,3 @@ This function returns the current gap position in the current buffer.
 @defun gap-size
 This function returns the current gap size of the current buffer.
 @end defun
-

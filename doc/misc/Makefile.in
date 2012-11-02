@@ -237,12 +237,12 @@ cc-mode.pdf: ${srcdir}/cc-mode.texi
 	$(ENVADD) $(TEXI2PDF) ${srcdir}/cc-mode.texi
 
 cl : $(buildinfodir)/cl$(INFO_EXT)
-$(buildinfodir)/cl$(INFO_EXT): ${srcdir}/cl.texi
+$(buildinfodir)/cl$(INFO_EXT): ${srcdir}/cl.texi $(emacsdir)/emacsver.texi
 	$(mkinfodir)
 	$(MAKEINFO) $(MAKEINFO_OPTS) $(INFO_OPTS) -o $@ ${srcdir}/cl.texi
-cl.dvi: ${srcdir}/cl.texi
+cl.dvi: ${srcdir}/cl.texi $(emacsdir)/emacsver.texi
 	$(ENVADD) $(TEXI2DVI) ${srcdir}/cl.texi
-cl.pdf: ${srcdir}/cl.texi
+cl.pdf: ${srcdir}/cl.texi $(emacsdir)/emacsver.texi
 	$(ENVADD) $(TEXI2PDF) ${srcdir}/cl.texi
 
 dbus : $(buildinfodir)/dbus$(INFO_EXT)

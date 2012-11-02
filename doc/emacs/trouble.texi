@@ -481,7 +481,8 @@ Instead of browsing the bug tracker as a webpage, you can browse it
 from Emacs using the @code{debbugs} package, which can be downloaded
 via the Package Menu (@pxref{Packages}).  This package provides the
 command @kbd{M-x debbugs-gnu} to list bugs, and @kbd{M-x
-debbugs-gnu-search} to search for a specific bug.
+debbugs-gnu-search} to search for a specific bug.  User tags, applied
+by the Emacs maintainers, are shown by @kbd{M-x debbugs-gnu-usertags}.
 
 @item
 The @samp{bug-gnu-emacs} mailing list (also available as the newsgroup

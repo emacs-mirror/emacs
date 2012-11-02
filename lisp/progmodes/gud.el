@@ -148,7 +148,8 @@ Used to gray out relevant toolbar icons.")
     ([run]	menu-item "Run" gud-run
                   :enable (not gud-running)
 		  :visible (memq gud-minor-mode '(gdbmi gdb dbx jdb)))
-    ([go]	menu-item (if gdb-active-process "Continue" "Run") gud-go
+    ([go]	menu-item (if (bound-and-true-p gdb-active-process)
+			      "Continue" "Run") gud-go
 		  :visible (and (eq gud-minor-mode 'gdbmi)
                                 (gdb-show-run-p)))
     ([stop]	menu-item "Stop" gud-stop-subjob
@@ -178,7 +179,7 @@ Used to gray out relevant toolbar icons.")
 				 '(gdbmi gdb dbx xdb jdb pdb)))
     ([pp]	menu-item "Print S-expression" gud-pp
                   :enable (and (not gud-running)
-				  gdb-active-process)
+				  (bound-and-true-p gdb-active-process))
 		  :visible (and (string-equal
 				 (buffer-local-value
 				  'gud-target-name gud-comint-buffer) "emacs")

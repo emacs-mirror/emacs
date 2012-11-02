@@ -1568,12 +1568,20 @@ Returns the compilation buffer created."
 	;; Then evaluate a cd command if any, but don't perform it yet, else
 	;; start-command would do it again through the shell: (cd "..") AND
 	;; sh -c "cd ..; make"
-	(cd (if (string-match "\\`\\s *cd\\(?:\\s +\\(\\S +?\\)\\)?\\s *[;&\n]"
-			      command)
-		(if (match-end 1)
-		    (substitute-env-vars (match-string 1 command))
-		  "~")
-	      default-directory))
+	(cd (cond
+             ((not (string-match "\\`\\s *cd\\(?:\\s +\\(\\S +?\\|'[^']*'\\|\"\\(?:[^\"`$\\]\\|\\\\.\\)*\"\\)\\)?\\s *[;&\n]"
+                                 command))
+              default-directory)
+             ((not (match-end 1)) "~")
+             ((eq (aref command (match-beginning 1)) ?\')
+              (substring command (1+ (match-beginning 1))
+                         (1- (match-end 1))))
+             ((eq (aref command (match-beginning 1)) ?\")
+              (replace-regexp-in-string
+               "\\\\\\(.\\)" "\\1"
+               (substring command (1+ (match-beginning 1))
+                          (1- (match-end 1)))))
+             (t (substitute-env-vars (match-string 1 command)))))
 	(erase-buffer)
 	;; Select the desired mode.
 	(if (not (eq mode t))

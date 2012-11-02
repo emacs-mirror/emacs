@@ -102,8 +102,7 @@
 ;; There's a fairly strong mutual dependency between erc.el and erc-backend.el.
 ;; Luckily, erc.el does not need erc-backend.el for macroexpansion whereas the
 ;; reverse is true:
-(provide 'erc-backend)
-(require 'erc)
+(eval-when-compile (provide 'erc-backend) (require 'erc))
 
 ;;;; Variables and options
 

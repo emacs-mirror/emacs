@@ -1,3 +1,65 @@
+2012-10-30  Michael Albinus  <michael.albinus@gmx.de>
+
+	* trouble.texi (Known Problems): Mention command `debbugs-gnu-usertags'.
+
+2012-10-29  Chong Yidong  <cyd@gnu.org>
+
+	* dired.texi (Shell Commands in Dired): Document changes to the
+	dired-do-async-shell-command.
+
+2012-10-28  Glenn Morris  <rgm@gnu.org>
+
+	* ack.texi (Acknowledgments): Mention gv.el.
+
+2012-10-27  Bastien Guerry  <bzg@gnu.org>
+
+	* screen.texi (Menu Bar): Fix typo.
+
+2012-10-27  Chong Yidong  <cyd@gnu.org>
+
+	* frames.texi (Mouse Avoidance): Mention new variable
+	mouse-avoidance-banish-position.
+
+	* programs.texi (Which Function): Which Function mode now works in
+	all major modes by default.
+
+	* mule.texi (Recognize Coding): Remove an unreferenced vindex.
+
+	* files.texi (Misc File Ops): Symbolic links on Windows only work
+	on Vista and later.
+
+	* building.texi (Compilation): Document compilation-always-kill.
+
+	* search.texi (Symbol Search): New node.
+
+	* package.texi (Package Menu): Document the "new" status.
+
+	* windows.texi (Window Choice): Don't refer to the obsolete
+	special-display feature.
+
+2012-10-24  Chong Yidong  <cyd@gnu.org>
+
+	* mule.texi (Text Coding): set-buffer-file-coding-system can now
+	be invoked from the mode line.
+
+	* dired.texi (Dired Deletion, Marks vs Flags): Document Emacs 24.3
+	changes to the mark and unmark commands.
+	(Comparison in Dired): Document chages to dired-diff.  Remove M-=,
+	which is no longer bound to dired-backup-diff.
+
+2012-10-23  Bastien Guerry  <bzg@gnu.org>
+
+	* text.texi (Org Authoring): Use a comma after @ref to avoid the
+	insertion of a period in the Info output.
+
+2012-10-23  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* custom.texi (Hooks): Clarify that -hooks is deprecated.
+
+2012-10-23  Chong Yidong  <cyd@gnu.org>
+
+	* kmacro.texi (Edit Keyboard Macro): Fix typo.
+
 2012-10-18  Dani Moncayo  <dmoncayo@gmail.com>
 
 	* mini.texi (Completion Options): Fix off-by-one error.  (Bug#12644)

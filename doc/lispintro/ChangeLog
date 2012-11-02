@@ -1,3 +1,8 @@
+2012-10-24  Paul Eggert  <eggert@penguin.cs.ucla.edu>
+
+	* emacs-lisp-intro.texi (Files List):
+	Update manual for new time stamp format (Bug#12706).
+
 2012-10-17  Gregor Zattler  <grfz@gmx.de>  (tiny change)
 
 	* emacs-lisp-intro.texi (Narrowing advantages):

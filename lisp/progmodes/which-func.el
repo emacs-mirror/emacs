@@ -182,7 +182,8 @@ and you want to simplify them for the mode line
 (defconst which-func-current
   '(:eval (replace-regexp-in-string
 	   "%" "%%"
-	   (gethash (selected-window) which-func-table which-func-unknown))))
+	   (or (gethash (selected-window) which-func-table)
+               which-func-unknown))))
 ;;;###autoload (put 'which-func-current 'risky-local-variable t)
 
 (defvar which-func-mode nil

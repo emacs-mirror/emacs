@@ -971,7 +971,6 @@ Amongst another things, it parses the command-line arguments."
                  (not (eq 0 (cdr tool-bar-lines)))))))
 
   (let ((old-scalable-fonts-allowed scalable-fonts-allowed)
-	(old-font-list-limit font-list-limit)
 	(old-face-ignored-fonts face-ignored-fonts))
 
     ;; Run the site-start library if it exists.  The point of this file is
@@ -1162,7 +1161,6 @@ the `--debug-init' option to view a complete error backtrace."
     ;; face realization, clear the face cache so that new faces will
     ;; be realized.
     (unless (and (eq scalable-fonts-allowed old-scalable-fonts-allowed)
-		 (eq font-list-limit old-font-list-limit)
 		 (eq face-ignored-fonts old-face-ignored-fonts))
       (clear-face-cache)))
 
@@ -1695,7 +1693,6 @@ splash screen in another window."
 	(force-mode-line-update))
       (use-local-map splash-screen-keymap)
       (setq tab-width 22)
-      (message "%s" (startup-echo-area-message))
       (setq buffer-read-only t)
       (goto-char (point-min))
       (forward-line 3))))

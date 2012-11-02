@@ -299,8 +299,8 @@ xd_symbol_to_dbus_type (Lisp_Object object)
       }									\
   } while (0)
 
-#if (HAVE_DBUS_VALIDATE_BUS_NAME || HAVE_DBUS_VALIDATE_PATH \
-     || XD_DBUS_VALIDATE_OBJECT || HAVE_DBUS_VALIDATE_MEMBER)
+#if (HAVE_DBUS_VALIDATE_BUS_NAME || HAVE_DBUS_VALIDATE_PATH		\
+     || HAVE_DBUS_VALIDATE_INTERFACE || HAVE_DBUS_VALIDATE_MEMBER)
 #define XD_DBUS_VALIDATE_OBJECT(object, func)				\
   do {									\
     if (!NILP (object))							\

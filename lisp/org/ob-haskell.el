@@ -147,6 +147,8 @@ specifying a variable of the same value."
     (format "%S" var)))
 
 (defvar org-src-preserve-indentation)
+(declare-function org-export-as-latex "org-latex"
+		  (arg &optional ext-plist to-buffer body-only pub-dir))
 (defun org-babel-haskell-export-to-lhs (&optional arg)
   "Export to a .lhs file with all haskell code blocks escaped.
 When called with a prefix argument the resulting

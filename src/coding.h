@@ -701,6 +701,28 @@ extern void encode_coding_object (struct coding_system *,
                                   Lisp_Object, ptrdiff_t, ptrdiff_t,
                                   ptrdiff_t, ptrdiff_t, Lisp_Object);
 
+#if defined (WINDOWSNT) || defined (CYGWIN)
+
+/* These functions use Lisp string objects to store the UTF-16LE
+   strings that modern versions of Windows expect.  These strings are
+   not particularly useful to Lisp, and all Lisp strings should be
+   native Emacs multibyte.  */
+
+/* Access the wide-character string stored in a Lisp string object.  */
+#define WCSDATA(x) ((wchar_t *) SDATA (x))
+
+/* Convert the multi-byte string in STR to UTF-16LE encoded unibyte
+   string, and store it in *BUF.  BUF may safely point to STR on entry.  */
+extern wchar_t *to_unicode (Lisp_Object str, Lisp_Object *buf);
+
+/* Convert STR, a UTF-16LE encoded string embedded in a unibyte string
+   object, to a multi-byte Emacs string and return it.  This function
+   calls code_convert_string_norecord internally and has all its
+   failure modes.  STR itself is not modified.  */
+extern Lisp_Object from_unicode (Lisp_Object str);
+
+#endif /* WINDOWSNT || CYGWIN */
+
 /* Macros for backward compatibility.  */
 
 #define decode_coding_region(coding, from, to)		\

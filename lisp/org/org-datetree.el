@@ -207,4 +207,8 @@ before running this command, even though the command tries to be smart."
 
 (provide 'org-datetree)
 
+;; Local variables:
+;; generated-autoload-file: "org-loaddefs.el"
+;; End:
+
 ;;; org-datetree.el ends here

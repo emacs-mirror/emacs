@@ -77,18 +77,9 @@ links between the various manuals.
 you want them.
 
 ---
-** On Mac OS X, configure no longer automatically adds the Fink /sw
-directories to the search path.  You must add them yourself if you want them.
-
----
 ** The standalone scripts rcs-checkin and vcdiff have been removed
 (from the bin and libexec directories, respectively).  The former is
 no longer relevant, the latter is replaced by lisp (in vc-sccs.el).
-
----
-** The native Windows user interface is available for Cygwin.  Passing
---with-w32 will configure a Cygwin emacs to use the Windows user
-interface instead of the default, X11.
 
 
 * Startup Changes in Emacs 24.3
@@ -104,26 +95,19 @@ been adding them there, put them somewhere else, eg site-lisp.
 
 * Changes in Emacs 24.3
 
-** minibuffer-electric-default-mode can rewrite (default ...) to [...].
-Just set minibuffer-eldef-shorten-default to t before enabling the mode.
-
 +++
 ** Most y-or-n prompts now allow you to scroll the selected window.
 Typing C-v or M-v at a y-or-n prompt scrolls forward or backward
 respectively, without exiting from the prompt.
-
----
-** In minibuffer filename prompts, `C-M-f' and `C-M-b' now move to the
-next and previous path separator, respectively.
 
 ** Mode line changes
 ---
 *** New option `mode-line-default-help-echo' specifies the help text
 (shown in a tooltip or in the echo area) for any part of the mode line
 that does not have its own specialized help text.
-
-*** You can now click mouse-3 in the coding system indicator to
-invokes `set-buffer-file-coding-system'.
++++
+*** You can now click mouse-3 in the coding system indicator to invoke
+`set-buffer-file-coding-system'.
 
 ** Help changes
 
@@ -138,6 +122,14 @@ correctly.  To disable this, set `help-enable-auto-load' to nil.
 *** `C-h f' now reports previously-autoloaded functions as "autoloaded",
 even after their associated libraries have been loaded (and the
 autoloads have been redefined as functions).
+
+** Minibuffer changes
+---
+*** In minibuffer filename prompts, `C-M-f' and `C-M-b' now move to the
+next and previous path separator, respectively.
+
+*** minibuffer-electric-default-mode can rewrite (default ...) to [...].
+Just set minibuffer-eldef-shorten-default to t before enabling the mode.
 
 ** ImageMagick support, if available, is automatically enabled.
 It is no longer necessary to call `imagemagick-register-types'
@@ -165,6 +157,7 @@ or expression to evaluate.
 ---
 *** New option `server-auth-key' specifies a shared server key.
 
++++
 ** In the Package Menu, newly-available packages are listed as "new",
 and sorted above the other "available" packages by default.
 
@@ -204,9 +197,7 @@ The PCL-CVS commands are still available via the keyboard.
 ---
 *** New input method `vietnamese-vni'.
 
-** NextStep/OSX port changes.
----
-*** OSX 10.4 or newer is required to build Emacs.
+** Nextstep (GNUstep / Mac OS X) port changes
 ---
 *** Fullscreen and frame parameter fullscreen is supported.
 ---
@@ -239,7 +230,7 @@ This applies to both ordinary and regexp Isearch.
 *** New option `replace-lax-whitespace'.
 If non-nil, `query-replace' uses flexible whitespace matching too.
 The default is nil.
-
++++
 *** Global `M-s _' starts a symbol (identifier) incremental search,
 and `M-s _' in Isearch toggles symbol search mode.
 `M-s c' in Isearch toggles search case-sensitivity.
@@ -273,6 +264,7 @@ append-to-register and M-x prepend-to-register.
 ** New command `C-x r M-w' (copy-rectangle-as-kill).
 It copies the region-rectangle as the last rectangle kill.
 
++++
 ** New option `yank-handled-properties' allows processing of text
 properties on yanked text, in more ways that are more general than
 just removing them, as done by `yank-excluded-properties'.
@@ -323,32 +315,44 @@ which have not been renamed to `cl-foo*' but just `cl-foo'.
 The old `cl' is now deprecated and is just a bunch of aliases that
 provide the old non-prefixed names.
 
++++
 *** `cl-flet' is not like `flet' (which is deprecated).
 Instead it obeys the behavior of Common-Lisp's `flet'.
 
++++
 *** `cl-labels' is slightly different from `labels'.
 The difference is that it relies on the `lexical-binding' machinery (as opposed
 to the `lexical-let' machinery used previously) to capture definitions in
 closures, so such closures will only work if `lexical-binding' is in use.
 
++++
+*** `cl-letf' is not exactly like `letf'.
+The only difference is in details that relate to some deprecated usage
+of `symbol-function' in place forms.
+
++++
 *** `progv' was rewritten to use the `let' machinery.
 A side effect is that vars without corresponding value are bound to nil
 rather than making them unbound.
 
-** Compilation mode
+*** The following methods of extending `setf' are obsolete.
+Use gv.el instead (FIXME; details).
+`define-setf-expander', `defsetf', `define-modify-macro'
 
+** Compilation mode
++++
 *** New option `compilation-always-kill'.
 
 ** Customize
-
+---
 *** `custom-reset-button-menu' now defaults to t.
-
+---
 *** Non-option variables are never matched in `customize-apropos' and
 `customize-apropos-options' (i.e. the prefix argument does nothing for
 these commands now).
 
 ** Desktop
-
+---
 *** `desktop-path' no longer includes the "." directory.  Desktop
 files are now located in ~/.emacs.d by default.
 
@@ -398,26 +402,27 @@ changes in context diffs.
 whitespace problems introduced by the diff.
 
 ** Dired
-
++++
 *** `dired-do-async-shell-command' executes each file sequentially
 if the command ends in `;' (when operating on multiple files).
 Otherwise, it executes the command on each file in parallel.
-
+---
 *** Typing M-n in the minibuffer of `dired-do-chmod', `dired-do-chgrp',
 `dired-do-chown', `dired-do-touch' pulls the file attributes of the
 file at point.
-
++++
 *** When the region is active, `m' (`dired-mark'), `u' (`dired-unmark'),
 `DEL' (`dired-unmark-backward'), `d' (`dired-flag-file-deletion')
 mark/unmark/flag all files in the active region.
-
++++
 *** The minibuffer default for `=' (`dired-diff) has changed.
 It is now the backup file for the file at point, if one exists.
 In Transient Mark mode the default is the file at the active mark.
-
++++
 *** `M-=' is no longer bound to `dired-backup-diff' in Dired buffers.
 The global binding for `M-=', `count-words-region' is in effect.
 
+---
 ** Ediff now uses the same color scheme as Diff mode.
 
 ** erc will look up server/channel names via auth-source and use the
@@ -428,9 +433,9 @@ See `flymake-fringe-indicator-position', `flymake-error-bitmap' and
 `flymake-warning-bitmap'.
 
 ** Follow mode
-
+---
 *** The obsolete variable `follow-mode-off-hook' has been removed.
-
+---
 *** Follow mode no longer works by using advice.
 The option `follow-intercept-processes' has been removed.
 
@@ -449,9 +454,9 @@ the FFAP prompt.  The default is now '("ftp").
 The old binding for `/ M' (filter by used-mode) is now bound to `/ m'.
 
 ** Mouse Avoidance mode
-
-The new variable `mouse-avoidance-banish-position' can now be used to
-customize Mouse Avoidance mode further.
++++
+*** New variable `mouse-avoidance-banish-position' specifies where the
+`banish' mouse avoidance setting moves the mouse.
 
 +++
 ** notifications.el supports now version 1.2 of the Notifications API.
@@ -603,6 +608,7 @@ and the `attributes' slot is always nil.
 The `url-retrieve' function now uses this to encode its URL argument,
 in case that is not properly encoded.
 
+---
 ** VHDL mode
 
 *** The free software compiler GHDL is supported (and now the default).
@@ -613,7 +619,10 @@ in case that is not properly encoded.
 
 *** Accepts \r and \f as whitespace.
 
-** which-function-mode now applies to all applicable major modes by default.
+** Which Function mode
++++
+*** `which-func-modes' now defaults to t, so Which Function mode, when
+enabled, applies to all applicable major modes.
 
 ---
 ** winner-mode-hook now runs when the mode is disabled, as well as when it is
@@ -621,6 +630,29 @@ enabled.
 
 ** FIXME something happened to ses.el, 2012-04-17.
 
+** Hooks renamed to avoid obsolete "-hooks" suffix:
+*** semantic-lex-reset-hooks -> semantic-lex-reset-functions
+*** semantic-change-hooks -> semantic-change-functions
+*** semantic-edits-new-change-hooks -> semantic-edits-new-change-functions
+*** semantic-edits-delete-change-hooks -> semantic-edits-delete-change-functions
+*** semantic-edits-reparse-change-hooks -> semantic-edits-reparse-change-functions
+*** semanticdb-save-database-hooks -> semanticdb-save-database-functions
+*** c-prepare-bug-report-hooks -> c-prepare-bug-report-hook
+*** rcirc-sentinel-hooks -> rcirc-sentinel-functions
+*** rcirc-receive-message-hooks -> rcirc-receive-message-functions
+*** rcirc-activity-hooks -> rcirc-activity-functions
+*** rcirc-print-hooks -> rcirc-print-functions
+*** dbus-event-error-hooks -> dbus-event-error-functions
+*** eieio-pre-method-execution-hooks -> eieio-pre-method-execution-functions
+*** checkdoc-style-hooks -> checkdoc-style-functions
+*** checkdoc-comment-style-hooks -> checkdoc-comment-style-functions
+*** archive-extract-hooks -> archive-extract-hook
+*** filesets-cache-fill-content-hooks -> filesets-cache-fill-content-hook
+*** hfy-post-html-hooks -> hfy-post-html-hook
+*** nndiary-request-create-group-hooks -> nndiary-request-create-group-functions
+*** nndiary-request-update-info-hooks -> nndiary-request-update-info-functions
+*** nndiary-request-accept-article-hooks -> nndiary-request-accept-article-functions
+*** gnus-subscribe-newsgroup-hooks -> gnus-subscribe-newsgroup-functions
 
 ** Obsolete packages:
 +++
@@ -650,6 +682,7 @@ gnus-notifications.el, mm-archive.el
 
 * Incompatible Lisp Changes in Emacs 24.3
 
++++
 ** set-buffer-multibyte now signals an error in narrowed buffers.
 
 +++
@@ -692,6 +725,7 @@ still be supported for Emacs 24.x.
 Some Lisp symbols have been renamed to avoid problems with spelling
 that is incorrect or inconsistent with how Emacs normally spells a word.
 
+---
 *** Renamed functions
 
 **** hangul-input-method-inactivate -> hangul-input-method-deactivate
@@ -703,22 +737,22 @@ that is incorrect or inconsistent with how Emacs normally spells a word.
      viper-deactivate-input-method-action
 **** ucs-input-inactivate -> ucs-input-deactivate
 
+---
 *** Renamed hooks
 The old hooks are still supported for backward compatibility, but they
 are deprecated and will be removed eventually.
-
 **** input-method-inactivate-hook -> input-method-deactivate-hook
 **** robin-inactivate-hook -> robin-deactivate-hook
 **** quail-inactivate-hook -> quail-deactivate-hook
 
+---
 *** Renamed Lisp variables
-
 **** follow-deactive-menu -> follow-inactive-menu
 **** inactivate-current-input-method-function ->
      deactivate-current-input-method-function
 
++++
 ** Some obsolete functions, variables, and faces were removed:
-
 *** `facemenu-unlisted-faces'
 *** `rmail-decode-mime-charset'
 *** `last-input-char', `last-command-char', `unread-command-char'.
@@ -749,8 +783,17 @@ systems), or based on memory allocations.
 ** CL-style generalized variables are now in core Elisp.
 `setf' is autoloaded; `push' and `pop' accept generalized variables.
 
++++
 ** `defun' also accepts a (declare DECLS) form, like `defmacro'.
 The interpretation of the DECLS is determined by `defun-declarations-alist'.
+
+** Minibuffer
++++
+*** `read-regexp' has a new argument HISTORY; the first argument PROMPT
+of `read-regexp' accepts a string ending with a colon and space, and its
+second argument DEFAULTS can be a list of strings accessible via M-n
+in the minibuffer ahead of other hard-coded useful regexp-related values.
+More commands use `read-regexp' now to read their regexp arguments.
 
 ** Completion
 
@@ -773,14 +816,6 @@ to work out which code is doing something.
 
 *** New var `inhibit-debugger', automatically set to prevent accidental
 recursive invocations.
-
-** Minibuffer
-
-*** `read-regexp' has a new argument HISTORY; the first argument PROMPT
-of `read-regexp' accepts a string ending with a colon and space, and its
-second argument DEFAULTS can be a list of strings accessible via M-n
-in the minibuffer ahead of other hard-coded useful regexp-related values.
-More commands use `read-regexp' now to read their regexp arguments.
 
 ** Window changes
 
@@ -818,11 +853,17 @@ appropriate entries in the `display-buffer-alist' function introduced
 in Emacs 24.1:
 +++
 **** `display-buffer-reuse-frames'
++++
 **** `special-display-regexps'
++++
 **** `special-display-frame-alist'
++++
 **** `special-display-buffer-names'
++++
 **** `special-display-function'
++++
 **** `display-buffer-function'
+---
 **** `dired-shrink-to-fit'
 
 ** Time
@@ -830,7 +871,7 @@ in Emacs 24.1:
 *** `current-time-string' no longer requires that its argument's year
 must be in the range 1000..9999.  It now works with any year supported
 by the underlying C implementation.
----
+
 *** `current-time' now returns extended-format time stamps
 (HIGH LOW USEC PSEC), where the new PSEC slot specifies picoseconds.
 PSEC is typically a multiple of 1000 on current machines.  Other
@@ -842,6 +883,9 @@ stamps are still accepted.
 [TRIGGERED-P HI-SECS LO-SECS USECS REPEAT-DELAY FUNCTION ARGS IDLE-DELAY PSECS].
 The PSECS slot is new, and uses picosecond resolution.  It can be
 accessed via the new timer--psecs accessor.
+
+*** Last-modified time stamps in undo lists now are of the form
+(t HI-SECS LO-SECS USECS PSECS) instead of (t HI-SECS . LO-SECS).
 
 +++
 ** Floating point functions now always return special values like NaN,
@@ -859,12 +903,15 @@ result in a warning ("Eager macro-expansion skipped due to cycle")
 describing the cycle.
 
 ** Miscellaneous new functions:
-
++++
 *** `autoloadp'
++++
 *** `autoload-do-load'
 +++
 *** `buffer-narrowed-p' tests if the buffer is narrowed.
++++
 *** `file-name-base' returns a file name sans directory and extension.
++++
 *** `function-get' fetches a function property, following aliases.
 +++
 *** `posnp' tests if an object is a `posn'.
@@ -873,41 +920,63 @@ describing the cycle.
 *** `system-users' returns the user names on the system.
 +++
 *** `system-groups' returns the group names on the system.
++++
 *** `tty-top-frame' returns the topmost frame of a text terminal.
 
 ** New macros `setq-local' and `defvar-local'.
 
++++
 ** New fringe bitmap `exclamation-mark'.
 
 ** Face underlining can now use a wave.
 See the "Face Attributes" section of the Elisp manual.
 
 ** The following functions and variables are obsolete:
-
+---
 *** `automount-dir-prefix'
++++
 *** `buffer-has-markers-at'
+---
 *** `macro-declaration-function' (use `macro-declarations-alist')
+---
 *** `window-system-version'
+---
 *** `dired-pop-to-buffer' (use `dired-mark-pop-up')
+---
 *** `query-replace-interactive'
+---
+*** `font-list-limit' (has had no effect since Emacs < 23)
 
 
 * Changes in Emacs 24.3 on non-free operating systems
 
-+++
-** On MS Windows, you can pass --without-libxml2 to configure.bat to omit
-support for libxml2, even if its presence is detected.
-
-** When invoked with the -nw switch to run on the Windows text-mode terminal,
-Emacs now supports mouse highlight, help-echo (in the echo area), and
-`mouse-autoselect-window'.
+---
+** Cygwin builds can use the native MS Windows user interface.
+Pass --with-w32 to configure.  The default remains the X11 interface.
 
 ** Two new functions are available in Cygwin builds:
 `cygwin-convert-path-from-windows' and `cygwin-convert-path-to-windows'.
 These functions allow Lisp code to access the Cygwin file-name mapping
 machinery to convert between Cygwin and Windows-native file names.
 
+** When invoked with the -nw switch to run on the Windows text-mode terminal,
+Emacs now supports mouse highlight, help-echo (in the echo area), and
+`mouse-autoselect-window'.
+
++++
 ** On MS Windows Vista and later Emacs now supports symbolic links.
+
++++
+** On MS Windows, you can pass --without-libxml2 to configure.bat to omit
+support for libxml2, even if its presence is detected.
+
+---
+** On Mac OS X, the Nextstep port requires OS X 10.4 or later.
+
+---
+** On Mac OS X, configure no longer automatically adds the Fink /sw
+directories to the search path.  You must add them yourself if you want them.
+
 
 * Changes in Emacs 24.2
 

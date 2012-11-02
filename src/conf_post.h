@@ -112,6 +112,14 @@ You lose; /* Emacs for DOS must be compiled with DJGPP */
 #endif
 /* End of gnulib-related stuff.  */
 
+#ifndef HAVE_SETPGID
+# ifdef USG
+#  define setpgid(pid, pgid) setpgrp ()
+# else
+#  define setpgid(pid, pgid) setpgrp (pid, pgid)
+# endif
+#endif
+
 /* Define one of these for easier conditionals.  */
 #ifdef HAVE_X_WINDOWS
 /* We need a little extra space, see ../../lisp/loadup.el and the

@@ -10,5 +10,7 @@
 
 extern ssize_t readlink (const char *, char *, size_t);
 extern int symlink (char const *, char const *);
+extern int setpgid (pid_t, pid_t);
+extern pid_t getpgrp (void);
 
 #endif	/* _UNISTD_H */

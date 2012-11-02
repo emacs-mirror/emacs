@@ -236,6 +236,10 @@ This is in contrast to @code{cdr}, which signals an error if
 @defmac pop listname
 This macro is a way of examining the @sc{car} of a list,
 and taking it off the list, all at once.
+@c FIXME I don't think is a particularly good way to do it,
+@c but generalized variables have not been introduced yet.
+(In fact, this macro can act on generalized variables, not just lists.
+@xref{Generalized Variables}.)
 
 It operates on the list which is stored in the symbol @var{listname}.
 It removes this element from the list by setting @var{listname}
@@ -252,7 +256,7 @@ x
 @end example
 
 @noindent
-For the @code{pop} macro, which removes an element from a list,
+For the @code{push} macro, which adds an element to a list,
 @xref{List Variables}.
 @end defmac
 
@@ -682,6 +686,10 @@ to modify a list which is stored in a variable.
 @defmac push newelt listname
 This macro provides an alternative way to write
 @code{(setq @var{listname} (cons @var{newelt} @var{listname}))}.
+@c FIXME I don't think is a particularly good way to do it,
+@c but generalized variables have not been introduced yet.
+(In fact, this macro can act on generalized variables, not just lists.
+@xref{Generalized Variables}.)
 
 @example
 (setq l '(a b))
@@ -1266,8 +1274,9 @@ functions for sets include @code{memq} and @code{delq}, and their
 @quotation
 @b{Common Lisp note:} Common Lisp has functions @code{union} (which
 avoids duplicate elements) and @code{intersection} for set operations.
-Although standard GNU Emacs Lisp does not have them, the @file{cl}
-library provides versions.  @xref{Top,, Overview, cl, Common Lisp Extensions}.
+Although standard GNU Emacs Lisp does not have them, the @file{cl-lib}
+library provides versions.
+@xref{Lists as Sets,,, cl, Common Lisp Extensions}.
 @end quotation
 
 @defun memq object list

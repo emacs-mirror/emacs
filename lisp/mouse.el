@@ -517,8 +517,8 @@ must be one of the symbols `header', `mode', or `vertical'."
       ;; If mouse-2 has never been done by the user, it doesn't have
       ;; the necessary property to be interpreted correctly.
       (put 'mouse-2 'event-kind 'mouse-click)
-      (setcar event 'mouse-2))
-    (push event unread-command-events)))
+      (setcar event 'mouse-2)
+      (push event unread-command-events))))
 
 (defun mouse-drag-mode-line (start-event)
   "Change the height of a window by dragging on the mode line."

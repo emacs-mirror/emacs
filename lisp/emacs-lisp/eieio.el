@@ -2066,7 +2066,9 @@ Keys are a number representing :before, :primary, and :after methods.")
 During executions, the list is first generated, then as each next method
 is called, the next method is popped off the stack.")
 
-(defvar eieio-pre-method-execution-hooks nil
+(define-obsolete-variable-alias 'eieio-pre-method-execution-hooks
+  'eieio-pre-method-execution-functions "24.3")
+(defvar eieio-pre-method-execution-functions nil
   "Abnormal hook run just before an EIEIO method is executed.
 The hook function must accept one argument, the list of forms
 about to be executed.")
@@ -2172,7 +2174,7 @@ This should only be called from a generic function."
 	      (eieiomt-method-list method method-primary nil)))
       )
 
-    (run-hook-with-args 'eieio-pre-method-execution-hooks
+    (run-hook-with-args 'eieio-pre-method-execution-functions
 			primarymethodlist)
 
     ;; Now loop through all occurrences forms which we must execute
@@ -2277,7 +2279,7 @@ for this common case to improve performance."
 
 	;; Do the regular implementation here.
 
-	(run-hook-with-args 'eieio-pre-method-execution-hooks
+	(run-hook-with-args 'eieio-pre-method-execution-functions
 			    lambdas)
 
 	(setq lastval (apply (car lambdas) newargs))
@@ -3046,29 +3048,6 @@ Optional argument NOESCAPE is passed to `prin1-to-string' when appropriate."
 	    ;; (defalias 'edebug-prin1-to-string 'eieio-edebug-prin1-to-string)
 	    )
 	  )
-
-;;; Interfacing with imenu in emacs lisp mode
-;;    (Only if the expression is defined)
-;;
-(if (eval-when-compile (boundp 'lisp-imenu-generic-expression))
-(progn
-
-(defun eieio-update-lisp-imenu-expression ()
-  "Examine `lisp-imenu-generic-expression' and modify it to find `defmethod'."
-  (let ((exp lisp-imenu-generic-expression))
-    (while exp
-      ;; it's of the form '( ( title expr indx ) ... )
-      (let* ((subcar (cdr (car exp)))
-	     (substr (car subcar)))
-	(if (and (not (string-match "|method\\\\" substr))
-		 (string-match "|advice\\\\" substr))
-	    (setcar subcar
-		    (replace-match "|advice\\|method\\" t t substr 0))))
-      (setq exp (cdr exp)))))
-
-(eieio-update-lisp-imenu-expression)
-
-))
 
 ;;; Autoloading some external symbols, and hooking into the help system
 ;;

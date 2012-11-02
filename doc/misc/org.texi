@@ -857,7 +857,7 @@ Theory Ltd.}
 @b{Important:} @i{If you the version of Org that comes with Emacs or as a
 XEmacs package, please skip this section and go directly to @ref{Activation}.
 If you downloaded Org as an ELPA package, please read the instructions on the
-@uref{http://orgmode.org/elpa/, Org ELPA page}.  To see what version of Org
+@uref{http://orgmode.org/elpa.html, Org ELPA page}.  To see what version of Org
 (if any) is part of your Emacs distribution, type @kbd{M-x org-version} (if
 your Emacs distribution does not come with Org, this function will not be
 defined).}
@@ -963,13 +963,6 @@ on your system).
 @example
 make install-info
 @end example
-
-Then add the following line to @file{.emacs}.  It is needed so that
-Emacs can autoload functions that are located in files not immediately loaded
-when Org mode starts.
-@lisp
-(require 'org-install)
-@end lisp
 
 Do not forget to activate Org as described in the following section.
 @page
@@ -1092,9 +1085,6 @@ shown below.
 ;; add latest org-mode to load path
 (add-to-list 'load-path (expand-file-name "/path/to/org-mode/lisp"))
 (add-to-list 'load-path (expand-file-name "/path/to/org-mode/contrib/lisp" t))
-
-;; activate org
-(require 'org-install)
 @end example
 
 If an error occurs, a backtrace can be very useful (see below on how to
@@ -3785,7 +3775,7 @@ mostly if more than two TODO states are possible (@pxref{TODO
 extensions}).  See also @ref{Conflicts}, for a discussion of the interaction
 with @code{shift-selection-mode}.  See also the variable
 @code{org-treat-S-cursor-todo-selection-as-state-change}.
-@orgcmd{C-c / t,org-show-todo-key}
+@orgcmd{C-c / t,org-show-todo-tree}
 @cindex sparse tree, for TODO
 @vindex org-todo-keywords
 View TODO items in a @emph{sparse tree} (@pxref{Sparse trees}).  Folds the
@@ -9386,16 +9376,16 @@ so often, shortcuts are provided using the Easy Templates facility
 @item C-c '
 Edit the source code example at point in its native mode.  This works by
 switching to a temporary buffer with the source code.  You need to exit by
-pressing @kbd{C-c '} again@footnote{Upon exit, lines starting with @samp{*}
-or @samp{#} will get a comma prepended, to keep them from being interpreted
-by Org as outline nodes or special comments.  These commas will be stripped
-for editing with @kbd{C-c '}, and also for export.}.  The edited version will
-then replace the old version in the Org buffer.  Fixed-width regions
-(where each line starts with a colon followed by a space) will be edited
-using @code{artist-mode}@footnote{You may select a different-mode with the
-variable @code{org-edit-fixed-width-region-mode}.} to allow creating ASCII
-drawings easily.  Using this command in an empty line will create a new
-fixed-width region.
+pressing @kbd{C-c '} again@footnote{Upon exit, lines starting with @samp{*},
+@samp{,*}, @samp{#+} and @samp{,#+} will get a comma prepended, to keep them
+from being interpreted by Org as outline nodes or special syntax.  These
+commas will be stripped for editing with @kbd{C-c '}, and also for export.}.
+The edited version will then replace the old version in the Org buffer.
+Fixed-width regions (where each line starts with a colon followed by a space)
+will be edited using @code{artist-mode}@footnote{You may select
+a different-mode with the variable @code{org-edit-fixed-width-region-mode}.}
+to allow creating ASCII drawings easily.  Using this command in an empty line
+will create a new fixed-width region.
 @kindex C-c l
 @item C-c l
 Calling @code{org-store-link} while editing a source code example in a
@@ -14523,14 +14513,13 @@ Be sure to adjust the paths to fit your system.
 #
 DIR=`pwd`
 FILES=""
-ORGINSTALL="~/src/org/lisp/org-install.el"
 
 # wrap each argument in the code required to call tangle on it
 for i in $@@; do
     FILES="$FILES \"$i\""
 done
 
-emacs -Q --batch -l $ORGINSTALL \
+emacs -Q --batch \
 --eval "(progn
 (add-to-list 'load-path (expand-file-name \"~/src/org/lisp/\"))
 (add-to-list 'load-path (expand-file-name \"~/src/org/contrib/lisp/\" t))

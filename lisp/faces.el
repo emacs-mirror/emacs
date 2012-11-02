@@ -2572,6 +2572,12 @@ also the same size as FACE on FRAME, or fail."
 	(car fonts))
     (cdr (assq 'font (frame-parameters (selected-frame))))))
 
+(defcustom font-list-limit 100
+  "This variable is obsolete and has no effect."
+  :type 'integer
+  :group 'display)
+(make-obsolete-variable 'font-list-limit nil "24.3")
+
 (provide 'faces)
 
 ;;; faces.el ends here

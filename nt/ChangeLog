@@ -1,3 +1,13 @@
+2012-11-01  Eli Zaretskii  <eliz@gnu.org>
+
+	* inc/unistd.h (setpgid, getpgrp): Provide prototypes.  (Bug#12776)
+
+	* config.nt (GETPGRP_VOID): Define to 1.
+
+2012-10-24  Juanma Barranquero  <lekktu@gmail.com>
+
+	* config.nt: Sync with autogen/config.in.
+
 2012-10-17  Eli Zaretskii  <eliz@gnu.org>
 
 	* inc/pwd.h (getuid, geteuid): Add prototypes.

@@ -1759,12 +1759,10 @@ create_process (Lisp_Object process, char **new_argv, Lisp_Object current_dir)
 #endif
 	}
 #else /* not HAVE_SETSID */
-#ifdef USG
-      /* It's very important to call setpgrp here and no time
+      /* It's very important to call setpgid here and no time
 	 afterwards.  Otherwise, we lose our controlling tty which
 	 is set when we open the pty. */
-      setpgrp ();
-#endif /* USG */
+      setpgid (0, 0);
 #endif /* not HAVE_SETSID */
 #if defined (LDISC1)
       if (pty_flag && xforkin >= 0)
@@ -1802,11 +1800,7 @@ create_process (Lisp_Object process, char **new_argv, Lisp_Object current_dir)
 	  /* In order to get a controlling terminal on some versions
 	     of BSD, it is necessary to put the process in pgrp 0
 	     before it opens the terminal.  */
-#ifdef HAVE_SETPGID
 	  setpgid (0, 0);
-#else
-	  setpgrp (0, 0);
-#endif
 #endif
 	}
 #endif /* TIOCNOTTY */

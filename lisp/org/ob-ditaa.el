@@ -40,6 +40,7 @@
 
 ;;; Code:
 (require 'ob)
+(require 'org-compat)
 
 (defvar org-ditaa-jar-path) ;; provided by org-exp-blocks
 

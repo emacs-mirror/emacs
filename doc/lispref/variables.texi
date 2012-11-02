@@ -41,6 +41,7 @@ representing the variable.
 * Variable Aliases::            Variables that are aliases for other variables.
 * Variables with Restricted Values::  Non-constant variables whose value can
                                         @emph{not} be an arbitrary Lisp object.
+* Generalized Variables::       Extending the concept of variables.
 @end menu
 
 @node Global Variables
@@ -1946,3 +1947,105 @@ Attempting to assign them any other value will result in an error:
 (setq undo-limit 1000.0)
 @error{} Wrong type argument: integerp, 1000.0
 @end example
+
+@c FIXME?  Not sure this is the right place for this section.
+@node Generalized Variables
+@section Generalized Variables
+
+A @dfn{generalized variable} or @dfn{place form} is one of the many places
+in Lisp memory where values can be stored.  The simplest place form is
+a regular Lisp variable.  But the @sc{car}s and @sc{cdr}s of lists, elements
+of arrays, properties of symbols, and many other locations are also
+places where Lisp values are stored.
+
+@c FIXME?  Not sure this is a useful analogy...
+Generalized variables are analogous to ``lvalues'' in the C
+language, where @samp{x = a[i]} gets an element from an array
+and @samp{a[i] = x} stores an element using the same notation.
+Just as certain forms like @code{a[i]} can be lvalues in C, there
+is a set of forms that can be generalized variables in Lisp.
+
+The @code{setf} macro is the most basic way to operate on generalized
+variables.  The @code{setf} form is like @code{setq}, except that it
+accepts arbitrary place forms on the left side rather than just
+symbols.  For example, @code{(setf (car a) b)} sets the car of
+@code{a} to @code{b}, doing the same operation as @code{(setcar a b)},
+but without having to remember two separate functions for setting and
+accessing every type of place.
+
+@defmac setf [place form]@dots{}
+This macro evaluates @var{form} and stores it in @var{place}, which
+must be a valid generalized variable form.  If there are several
+@var{place} and @var{form} pairs, the assignments are done sequentially
+just as with @code{setq}.  @code{setf} returns the value of the last
+@var{form}.
+@end defmac
+
+The following Lisp forms will work as generalized variables, and
+so may appear in the @var{place} argument of @code{setf}:
+
+@itemize
+@item
+A symbol naming a variable.  In other words, @code{(setf x y)} is
+exactly equivalent to @code{(setq x y)}, and @code{setq} itself is
+strictly speaking redundant given that @code{setf} exists.  Many
+programmers continue to prefer @code{setq} for setting simple
+variables, though, purely for stylistic or historical reasons.
+The macro @code{(setf x y)} actually expands to @code{(setq x y)},
+so there is no performance penalty for using it in compiled code.
+
+@item
+A call to any of the following standard Lisp functions:
+
+@smallexample
+car            cdr            nth            nthcdr
+caar           cadr           cdar           cddr
+aref           elt            get            gethash
+symbol-function        symbol-value          symbol-plist
+@end smallexample
+
+@item
+The following Emacs-specific functions are also @code{setf}-able:
+
+@smallexample
+default-value                 process-get
+frame-parameter               process-sentinel
+terminal-parameter            window-buffer
+keymap-parent                 window-display-table
+match-data                    window-dedicated-p
+overlay-get                   window-hscroll
+overlay-start                 window-parameter
+overlay-end                   window-point
+process-buffer                window-start
+process-filter
+@end smallexample
+@end itemize
+
+@noindent
+Using any forms other than these in the @var{place} argument to
+@code{setf} will signal an error.
+
+@c And for cl-lib's cl-getf.
+Note that for @code{nthcdr}, the list argument of the function must
+itself be a valid @var{place} form.  For example, @code{(setf (nthcdr
+0 foo) 7)} will set @code{foo} itself to 7.
+@c The use of @code{nthcdr} as a @var{place} form is an extension
+@c to standard Common Lisp.
+
+@c FIXME I don't think is a particularly good way to do it,
+@c but these macros are introduced before generalized variables are.
+The macros @code{push} (@pxref{List Variables}) and @code{pop}
+(@pxref{List Elements}) can manipulate generalized variables,
+not just lists.  @code{(pop @var{place})} removes and returns the first
+element of the list stored in @var{place}.  It is analogous to
+@code{(prog1 (car @var{place}) (setf @var{place} (cdr @var{place})))},
+except that it takes care to evaluate all subforms only once.
+@code{(push @var{x} @var{place})} inserts @var{x} at the front of
+the list stored in @var{place}.  It is analogous to @code{(setf
+@var{place} (cons @var{x} @var{place}))}, except for evaluation of the
+subforms.  Note that @code{push} and @code{pop} on an @code{nthcdr}
+place can be used to insert or delete at any position in a list.
+
+The @file{cl-lib} library defines various extensions for generalized
+variables, including additional @code{setf} places.
+@xref{Generalized Variables,,, cl, Common Lisp Extensions}.

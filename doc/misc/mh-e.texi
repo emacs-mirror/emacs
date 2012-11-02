@@ -429,7 +429,7 @@ for a description about @dfn{normal hooks} and @dfn{abnormal hooks}.
 MH-E uses normal hooks in nearly all cases, so you can assume that we
 are talking about normal hooks unless we explicitly mention that a
 hook is abnormal. We also follow the conventions described in that
-section: the name of the abnormal hooks end in @code{-hooks} and all
+section: the name of the abnormal hooks end in @code{-functions} and all
 the rest of the MH-E hooks end in @code{-hook}. You can add hooks with
 either @code{customize-option} or @code{add-hook}.
 
@@ -3749,9 +3749,9 @@ when you press @key{TAB} when prompted for a folder name.
 
 @findex mh-search-p
 @kindex k
-@vindex mh-kill-folder-suppress-prompt-hooks
+@vindex mh-kill-folder-suppress-prompt-functions
 
-The hook @code{mh-kill-folder-suppress-prompt-hooks} is an abnormal
+The hook @code{mh-kill-folder-suppress-prompt-functions} is an abnormal
 hook run at the beginning of the command @kbd{k}. The hook functions
 are called with no arguments and should return a non-nil value to
 suppress the normal prompt when you remove a folder. This is useful

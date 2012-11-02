@@ -578,7 +578,8 @@ that throw back to the editor command loop (@pxref{Recursive Editing}).
 @b{Common Lisp note:} Most other versions of Lisp, including Common Lisp,
 have several ways of transferring control nonsequentially: @code{return},
 @code{return-from}, and @code{go}, for example.  Emacs Lisp has only
-@code{throw}.
+@code{throw}.  The @file{cl-lib} library provides versions of some of
+these.  @xref{Blocks and Exits,,,cl,Common Lisp Extensions}.
 @end quotation
 
 @defspec catch tag body@dots{}

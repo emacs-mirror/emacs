@@ -487,6 +487,12 @@ using @code{eq}, so any object is a legitimate property.
 See @code{put} for an example.
 @end defun
 
+@defun function-get symbol property
+This function is identical to @code{get}, except that if @var{symbol}
+is the name of a function alias, it looks in the property list of the
+symbol naming the actual function.  @xref{Defining Functions}.
+@end defun
+
 @defun put symbol property value
 This function puts @var{value} onto @var{symbol}'s property list under
 the property name @var{property}, replacing any previous property value.

@@ -229,6 +229,8 @@ lisp2 = \
 	$(lispsource)language/greek.elc \
 	$(lispsource)language/hebrew.elc \
 	$(lispsource)language/japanese.elc \
+	$(lispsource)international/cp51932.el \
+	$(lispsource)international/eucjp-ms.el \
 	$(lispsource)language/korean.elc \
 	$(lispsource)language/lao.elc \
 	$(lispsource)language/cham.elc \

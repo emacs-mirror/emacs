@@ -6283,6 +6283,8 @@ init_display (void)
     struct terminal *t;
     struct frame *f = XFRAME (selected_frame);
 
+    init_foreground_group ();
+
     /* Open a display on the controlling tty. */
     t = init_tty (0, terminal_type, 1); /* Errors are fatal. */
 

@@ -71,9 +71,8 @@ been removed, including @code{display-buffer-overriding-action} and
 related variables, as well as the @var{action} argument to
 @code{display-buffer} and other functions.  The way to
 programmatically control how Emacs chooses a window to display a
-buffer is to bind the right combination of
-@code{special-display-regexps}, @code{pop-up-frames}, and other
-variables.
+buffer is to bind the right combination of @code{pop-up-frames} and
+other variables.
 
 @item
 The standard completion interface has been simplified, eliminating the

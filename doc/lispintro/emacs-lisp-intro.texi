@@ -238,7 +238,7 @@ GNU Press,               @hfill @uref{http://www.fsf.org/campaigns/gnu-press/}@*
 a division of the               @hfill email: @email{sales@@fsf.org}@*
 Free Software Foundation, Inc.  @hfill Tel: +1 (617) 542-5942@*
 51 Franklin Street, Fifth Floor @hfill Fax: +1 (617) 542-2652@*
-Boston, MA 02110-1301 USA       
+Boston, MA 02110-1301 USA
 @end iftex
 
 @ifnottex
@@ -249,7 +249,7 @@ GNU Press,                        http://www.fsf.org/campaigns/gnu-press/
 a division of the                 email: sales@@fsf.org
 Free Software Foundation, Inc.    Tel: +1 (617) 542-5942
 51 Franklin Street, Fifth Floor   Fax: +1 (617) 542-2652
-Boston, MA 02110-1301 USA          
+Boston, MA 02110-1301 USA
 @end example
 @end ifnottex
 
@@ -15680,11 +15680,11 @@ nil
 100
 @end group
 @group
-(17733 259)
-(17491 28834)
-(17596 62124)
-13157
-"-rw-rw-r--"
+(20615 27034 579989 697000)
+(17905 55681 0 0)
+(20615 26327 734791 805000)
+13188
+"-rw-r--r--"
 @end group
 @group
 nil
@@ -17909,10 +17909,10 @@ file that set values:
 @group
 ;; Set calendar highlighting colors
 (setq calendar-load-hook
-      '(lambda ()
-         (set-face-foreground 'diary-face   "skyblue")
-         (set-face-background 'holiday-face "slate blue")
-         (set-face-foreground 'holiday-face "white")))
+      (lambda ()
+        (set-face-foreground 'diary-face   "skyblue")
+        (set-face-background 'holiday-face "slate blue")
+        (set-face-foreground 'holiday-face "white")))
 @end group
 @end smallexample
 
@@ -20947,7 +20947,7 @@ not yet seen, @code{mapcar} and @code{lambda}.
 @group
 (defun one-fiftieth (full-range)
   "Return list, each number one-fiftieth of previous."
- (mapcar '(lambda (arg) (/ arg 50)) full-range))
+ (mapcar (lambda (arg) (/ arg 50)) full-range))
 @end group
 @end smallexample
 
@@ -21168,7 +21168,7 @@ and the second argument is @code{full-range}, which will be bound to
 The whole expression looks like this:
 
 @smallexample
-(mapcar '(lambda (arg) (/ arg 50)) full-range))
+(mapcar (lambda (arg) (/ arg 50)) full-range))
 @end smallexample
 
 @xref{Mapping Functions, , Mapping Functions, elisp, The GNU Emacs
@@ -21840,7 +21840,7 @@ each column."
 @group
 (defun one-fiftieth (full-range)
   "Return list, each number of which is 1/50th previous."
- (mapcar '(lambda (arg) (/ arg 50)) full-range))
+ (mapcar (lambda (arg) (/ arg 50)) full-range))
 @end group
 @end smallexample
 

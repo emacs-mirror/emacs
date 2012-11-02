@@ -148,7 +148,7 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 
 /* Enable compile-time and run-time bounds-checking, and some warnings,
       without upsetting glibc 2.15+. */
-   #if defined __OPTIMIZE__ && __OPTIMIZE__
+   #if !defined _FORTIFY_SOURCE && defined __OPTIMIZE__ && __OPTIMIZE__
    # define _FORTIFY_SOURCE 2
    #endif
 
@@ -184,7 +184,7 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #define GC_SETJMP_WORKS 1
 
 /* Define to 1 if the `getpgrp' function requires zero arguments. */
-#undef GETPGRP_VOID
+#define GETPGRP_VOID 1
 
 /* Define if gettimeofday clobbers the localtime buffer. */
 #undef GETTIMEOFDAY_CLOBBERS_LOCALTIME
@@ -701,7 +701,7 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
    Mac OS X. */
 #undef HAVE_NS
 
-/* Define to use native Windows GUI. */
+/* Define to use native MS Windows GUI. */
 #define HAVE_NTGUI 1
 
 /* Define to 1 if libotf has OTF_get_variation_glyphs. */
@@ -1399,7 +1399,7 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #undef USG_SUBTTY_WORKS
 
 /* Version number of package */
-#define VERSION "24.2.50"
+#define VERSION "24.3.50"
 
 /* Define to l, ll, u, ul, ull, etc., as suitable for constants of type
    'wchar_t'. */

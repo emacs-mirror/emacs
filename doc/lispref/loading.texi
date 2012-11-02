@@ -408,9 +408,9 @@ to load automatically from @var{filename}.  The string @var{filename}
 specifies the file to load to get the real definition of @var{function}.
 
 If @var{filename} does not contain either a directory name, or the
-suffix @code{.el} or @code{.elc}, then @code{autoload} insists on adding
-one of these suffixes, and it will not load from a file whose name is
-just @var{filename} with no added suffix.  (The variable
+suffix @code{.el} or @code{.elc}, this function insists on adding one
+of these suffixes, and it will not load from a file whose name is just
+@var{filename} with no added suffix.  (The variable
 @code{load-suffixes} specifies the exact required suffixes.)
 
 The argument @var{docstring} is the documentation string for the
@@ -442,10 +442,11 @@ and calls @code{define-key}; not even if the variable name is the same
 symbol @var{function}.
 
 @cindex function cell in autoload
-If @var{function} already has a non-void function definition that is not
-an autoload object, @code{autoload} does nothing and returns @code{nil}.
-If the function cell of @var{function} is void, or is already an autoload
-object, then it is defined as an autoload object like this:
+if @var{function} already has non-void function definition that is not
+an autoload object, this function does nothing and returns @code{nil}.
+Otherwise, it constructs an autoload object (@pxref{Autoload Type}),
+and stores it as the function definition for @var{function}.  The
+autoload object has this form:
 
 @example
 (autoload @var{filename} @var{docstring} @var{interactive} @var{type})
@@ -466,6 +467,16 @@ refers to the documentation string in the
 @file{emacs/etc/DOC-@var{version}} file (@pxref{Documentation Basics}),
 @code{t} means the function is interactive, and @code{nil} that it is
 not a macro or a keymap.
+@end defun
+
+@defun autoloadp object
+This function returns non-@code{nil} if @var{object} is an autoload
+object.  For example, to check if @code{run-prolog} is defined as an
+autoloaded function, evaluate
+
+@smallexample
+(autoloadp (symbol-function 'run-prolog))
+@end smallexample
 @end defun
 
 @cindex autoload errors
@@ -509,9 +520,9 @@ the following:
 
 @table @asis
 @item Definitions for function or function-like objects:
-@code{defun} and @code{defmacro}; also @code{defun*} and
-@code{defmacro*} (@pxref{Argument Lists,,,cl,CL Manual}), and
-@code{define-overloadable-function} (see the commentary in
+@code{defun} and @code{defmacro}; also @code{cl-defun} and
+@code{cl-defmacro} (@pxref{Argument Lists,,,cl,Common Lisp Extensions}),
+and @code{define-overloadable-function} (see the commentary in
 @file{mode-local.el}).
 
 @item Definitions for major or minor modes:
@@ -598,6 +609,19 @@ override that, e.g., in the ``Local Variables'' section of a
 @file{.el} file (@pxref{File Local Variables}).  The autoload file is
 assumed to contain a trailer starting with a formfeed character.
 @end defvar
+
+  The following function may be used to explicitly load the library
+specified by an autoload object:
+
+@defun autoload-do-load autoload &optional name macro-only
+This function performs the loading specified by @var{autoload}, which
+should be an autoload object.  The optional argument @var{name}, if
+non-@code{nil}, should be a symbol whose function value is
+@var{autoload}; in that case, the return value of this function is the
+symbol's new function value.  If the value of the optional argument
+@var{macro-only} is @code{macro}, this function avoids loading a
+function, only a macro.
+@end defun
 
 @node Repeated Loading
 @section Repeated Loading
@@ -897,8 +921,8 @@ It then restores any autoloads formerly associated with those symbols.
 
 Before restoring the previous definitions, @code{unload-feature} runs
 @code{remove-hook} to remove functions in the library from certain
-hooks.  These hooks include variables whose names end in @samp{hook}
-or @samp{-hooks}, plus those listed in
+hooks.  These hooks include variables whose names end in @samp{-hook}
+(or the deprecated suffix @samp{-hooks}), plus those listed in
 @code{unload-feature-special-hooks}, as well as
 @code{auto-mode-alist}.  This is to prevent Emacs from ceasing to
 function because important hooks refer to functions that are no longer

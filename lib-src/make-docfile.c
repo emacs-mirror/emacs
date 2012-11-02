@@ -1118,7 +1118,9 @@ scan_lisp_file (const char *filename, const char *mode)
   } const uncompiled[] = {
     DEF_ELISP_FILE (loaddefs.el),
     DEF_ELISP_FILE (loadup.el),
-    DEF_ELISP_FILE (charprop.el)
+    DEF_ELISP_FILE (charprop.el),
+    DEF_ELISP_FILE (cp51932.el),
+    DEF_ELISP_FILE (eucjp-ms.el)
   };
   int i, match;
   size_t flen = strlen (filename);

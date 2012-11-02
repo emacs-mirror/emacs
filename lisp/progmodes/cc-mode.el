@@ -1703,7 +1703,9 @@ Key bindings:
   (message "Using CC Mode version %s" c-version)
   (c-keep-region-active))
 
-(defvar c-prepare-bug-report-hooks nil)
+(define-obsolete-variable-alias 'c-prepare-bug-report-hooks
+  'c-prepare-bug-report-hook "24.3")
+(defvar c-prepare-bug-report-hook nil)
 
 ;; Dynamic variables used by reporter.
 (defvar reporter-prompt-for-summary-p)
@@ -1770,7 +1772,7 @@ Key bindings:
 		lookup-syntax-properties))
 	vars)
       (lambda ()
-	(run-hooks 'c-prepare-bug-report-hooks)
+	(run-hooks 'c-prepare-bug-report-hook)
 	(insert (format "Buffer Style: %s\nc-emacs-features: %s\n"
 			style c-features)))))))
 

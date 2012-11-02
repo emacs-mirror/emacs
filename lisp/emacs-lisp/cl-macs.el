@@ -1603,7 +1603,7 @@ before assigning any symbols SYM to the corresponding values.
   "Bind SYMBOLS to VALUES dynamically in BODY.
 The forms SYMBOLS and VALUES are evaluated, and must evaluate to lists.
 Each symbol in the first list is bound to the corresponding value in the
-second list (or made unbound if VALUES is shorter than SYMBOLS); then the
+second list (or to nil if VALUES is shorter than SYMBOLS); then the
 BODY forms are executed and their result is returned.  This is much like
 a `let' form, except that the list of symbols can be computed at run-time."
   (declare (indent 2) (debug (form form body)))

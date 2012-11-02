@@ -244,20 +244,21 @@ install: $(DESTDIR)${archlibdir}
 	@echo "Installing utilities for users to run."
 	umask 022; ${MKDIR_P} $(DESTDIR)${bindir}
 	for file in ${INSTALLABLES} ; do \
-	  $(INSTALL_PROGRAM) $(INSTALL_STRIP) $${file} $(DESTDIR)${bindir}/`echo $${file} | sed '$(TRANSFORM)'` ; \
+	  $(INSTALL_PROGRAM) $(INSTALL_STRIP) $${file} $(DESTDIR)${bindir}/`echo $${file} | sed -e 's/${EXEEXT}$$//' -e '$(TRANSFORM)'`${EXEEXT} ; \
 	done
 	for file in ${INSTALLABLE_SCRIPTS} ; do \
 	  $(INSTALL_SCRIPT) ${srcdir}/$${file} $(DESTDIR)${bindir}/`echo $${file} | sed '$(TRANSFORM)'`  ; \
 	done
 
 uninstall:
-	(cd $(DESTDIR)${bindir}; \
-	for file in ${INSTALLABLES} ${INSTALLABLE_SCRIPTS}; do \
+	for file in ${INSTALLABLES}; do \
+	  rm -f $(DESTDIR)${bindir}/`echo $${file} | sed -e 's/${EXEEXT}$$//' -e '$(TRANSFORM)'`${EXEEXT} ; \
+	done
+	for file in ${INSTALLABLE_SCRIPTS}; do \
 	  rm -f $(DESTDIR)${bindir}/`echo $${file} | sed '$(TRANSFORM)'` ; \
-	done)
+	done
 	if [ -d $(DESTDIR)${archlibdir} ]; then \
-	  (cd $(DESTDIR)${archlibdir} && \
-	   rm -f ${UTILITIES} ${INSTALLABLES} ${SCRIPTS} ${INSTALLABLE_SCRIPTS}) \
+	  (cd $(DESTDIR)${archlibdir} && rm -f ${UTILITIES} ${SCRIPTS}) \
 	fi
 
 mostlyclean:

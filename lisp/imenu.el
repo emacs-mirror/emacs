@@ -1018,7 +1018,7 @@ for more information."
   (if (stringp index-item)
       (setq index-item (assoc index-item (imenu--make-index-alist))))
   (when index-item
-    (push-mark)
+    (push-mark nil t)
     (let* ((is-special-item (listp (cdr index-item)))
 	   (function
 	    (if is-special-item

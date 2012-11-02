@@ -1,3 +1,164 @@
+2012-11-01  Eli Zaretskii  <eliz@gnu.org>
+
+	* w32proc.c (getpgrp, setpgid): New functions.  (Bug#12776)
+
+2012-10-31  Paul Eggert  <eggert@cs.ucla.edu>
+
+	Fix crash when using Emacs as commit editor for git (Bug#12697).
+	* callproc.c (setpgrp): Remove macro, as we now use setpgid
+	and it is configured in conf_post.h.
+	(Fcall_process): Don't invoke both setsid and setpgid; the former
+	is enough, if it exists.
+	* callproc.c (Fcall_process, child_setup):
+	* process.c (create_process): Use setpgid.
+	* conf_post.h (setpgid) [!HAVE_SETPGID]: New macro, which substitutes
+	for the real thing.
+	* dispnew.c (init_display): Initialize the foreground group
+	if we are running a tty display.
+	* emacs.c (main): Do not worry about setpgrp; init_display does it now.
+	* lisp.h (init_foreground_group): New decl.
+	* sysdep.c (inherited_pgroup): New static var.
+	(init_foreground_group, tcsetpgrp_without_stopping)
+	(narrow_foreground_group, widen_foreground_group): New functions.
+	(init_sys_modes): Narrow foreground group.
+	(reset_sys_modes): Widen foreground group.
+
+2012-10-31  Michael Albinus  <michael.albinus@gmx.de>
+
+	* dbusbind.c: Fix cut'n'waste error.  Use HAVE_DBUS_VALIDATE_INTERFACE.
+
+2012-10-31  Martin Rudalics  <rudalics@gmx.at>
+
+	* minibuf.c (read_minibuf): Restore current buffer since
+	choose_minibuf_frame calling Fset_frame_selected_window may
+	change it (Bug#12766).
+
+2012-10-30  Jan Djärv  <jan.h.d@swipnet.se>
+
+	* frame.c (Fframe_pixel_height): Fix documentation (Bug#12733).
+
+2012-10-30  Kenichi Handa  <handa@gnu.org>
+
+	* font.c (Ffont_at): If WINDOW is specified and it is not
+	displaying the current buffer, signal an error.
+
+2012-10-29  Daniel Colascione  <dancol@dancol.org>
+
+	* cygw32.h, cygw32.c (Qutf_16le, from_unicode, to_unicode): In
+	preparation for fixing bug#12739, move these functions from
+	here...
+
+	* coding.h, coding.c: ... to here, and compile them only when
+	WINDOWSNT or CYGWIN.  Moving these functions out of cygw32 proper
+	lets us write cygw32-agnostic code for the HAVE_NTGUI case.
+
+2012-10-28  Eli Zaretskii  <eliz@gnu.org>
+
+	* w32proc.c (TIMER_TICKS_PER_SEC): New macro.
+	(timer_loop, getitimer, setitimer): Use it instead of
+	CLOCKS_PER_SEC, which is no longer pertinent, since we don't use
+	'clock'.
+	(w32_get_timer_time): Use 10*TIMER_TICKS_PER_SEC instead of a
+	literal 10000.
+
+2012-10-28  Jan Djärv  <jan.h.d@swipnet.se>
+
+	* nsterm.m (NO_APPDEFINED_DATA): New define.
+	(last_appdefined_event_data): New variable
+	(last_appdefined_event): Remove.
+	(ns_select): Initialize t from last_appdefined_event_data instead
+	of [last_appdefined_event data1].
+	(sendEvent:): Save [theEvent data1] to last_appdefined_event_data,
+	remove last_appdefined_event (Bug#12698).
+
+2012-10-28  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* frame.c (x_set_font): Catch internal error.
+
+2012-10-27  Eli Zaretskii  <eliz@gnu.org>
+
+	Avoid overflow in w32 implementation of interval timers.
+	When possible, for ITIMER_PROF count only times the main thread
+	actually executes.
+	* w32proc.c <struct itimer_data>: 'expire' and 'reload' are now
+	'volatile ULONGLONG' types.  All the other data which was
+	previously clock_t is now ULONGLONG.  'terminate' is 'volatile int'.
+	(GetThreadTimes_Proc): New typedef.
+	(w32_get_timer_time): New function, returns a suitable time value
+	for the timer.
+	(timer_loop): Enter critical section when accessing ULONGLONG
+	values of the itimer_data struct, as these accesses are no longer
+	atomic.  Call 'w32_get_timer_time' instead of 'clock'.
+	Remove unused variable.
+	(init_timers): Initialize s_pfn_Get_Thread_Times.
+	(start_timer_thread): Don't assign itimer->caller_thread here.
+	(getitimer): Assign itimer->caller_thread here.
+	(setitimer): Always call getitimer to get the value of ticks_now.
+	(sys_spawnve): Avoid compiler warning about format mismatch.
+
+2012-10-26  Eli Zaretskii  <eliz@gnu.org>
+
+	* w32fns.c (w32_wnd_proc) <WM_MOUSEMOVE>: Don't enable tracking of
+	mouse movement events if the menu bar is active.  This avoids
+	producing a busy "hour-glass" cursor by Windows if the mouse
+	pointer is positioned over a tooltip shown for some menu item.
+
+2012-10-25  Paul Eggert  <eggert@cs.ucla.edu>
+
+	Don't assume process IDs fit in int.
+	* emacs.c (shut_down_emacs) [!DOS_NT]:
+	* sysdep.c (sys_suspend) [SIGTSTP && !MSDOS]:
+	* term.c (dissociate_if_controlling_tty) [!DOS_NT]:
+	Use pid_t, not int, to store process IDs, as 'int'
+	is not wide enough on a few platforms (e.g., AIX and IRIX).
+
+2012-10-23  Kenichi Handa  <handa@gnu.org>
+
+	The following change is to make face-font-rescale-alist work
+	correctly for non-ASCII fonts.
+
+	* font.c (font_open_entity): Don't handle Vface_font_rescale_alist.
+	(font_open_for_lface): Handle Vface_font_rescale_alist.
+
+2012-10-23  Chong Yidong  <cyd@gnu.org>
+
+	* xfaces.c (Vfont_list_limit): Move unused variable to faces.el.
+
+2012-10-21  Jan Djärv  <jan.h.d@swipnet.se>
+
+	* nsfont.m (nsfont_open, ns_glyph_metrics): Force integer advancement
+	for screen font.
+	(nsfont_draw): Turn off LCD-smoothing (Bug#11484).
+
+	* xterm.c (x_focus_changed): Check if daemonp when sending focus in
+	event (Bug#12681).
+
+2012-10-21  Glenn Morris  <rgm@gnu.org>
+
+	* lisp.mk (lisp): Add cp51932.el and eucjp-ms.el.
+
+2012-10-20  Paul Eggert  <eggert@cs.ucla.edu>
+
+	Port to OpenBSD 5.1.
+	* frame.c (Fmouse_position, Fmouse_pixel_position):
+	* xdisp.c (produce_stretch_glyph):
+	Declare local vars only when they're needed.
+	This is clearer and avoids a warning on OpenBSD about unused vars.
+	* frame.h (FRAME_WINDOW_P): Always evaluate its argument.
+	This is safer, and avoids OpenBSD warnings about unused vars.
+	* keyboard.c (record_menu_key): Remove unnecessary decl.
+	(poll_timer): Define only if POLL_FOR_INPUT is defined.
+	* unexelf.c (ELFSIZE) [!ElfW]: Do not define if already defined,
+	as our definition clashes with OpenBSD's.
+	* xfaces.c (load_face_colors, check_lface_attrs)
+	(get_lface_attributes_no_remap, get_lface_attributes)
+	(lface_fully_specified_p, x_supports_face_attributes_p)
+	(tty_supports_face_attributes_p, face_fontset, realize_face)
+	(realize_x_face, realize_tty_face):
+	Declare parameters to be Lisp_Object[LFACE_VECTOR_SIZE], not
+	merely Lisp_Object *.  This is more informative and avoids
+	a warning on OpenBSD about accessing beyond an object's size.
+
 2012-10-20  Chong Yidong  <cyd@gnu.org>
 
 	* lread.c (Fload): Doc fix (Bug#12592).
@@ -8,8 +169,8 @@
 
 2012-10-19  Eli Zaretskii  <eliz@gnu.org>
 
-	* puresize.h (BASE_PURESIZE): Bump the base value to 1700000.  See
-	http://lists.gnu.org/archive/html/emacs-devel/2012-10/msg00593.html
+	* puresize.h (BASE_PURESIZE): Bump the base value to 1700000.
+	See http://lists.gnu.org/archive/html/emacs-devel/2012-10/msg00593.html
 	for the reasons.
 
 	* alloc.c (NSTATICS): Decrease to 0x800.
@@ -628,8 +789,8 @@
 	(ns_clear_frame_area): Remove resize handle code.
 
 	* nsfns.m (ns_in_resize): Remove.
-	(x_set_icon_name, ns_set_name, ns_set_name_as_filename): Remove
-	ns_in_resize check.
+	(x_set_icon_name, ns_set_name, ns_set_name_as_filename):
+	Remove ns_in_resize check.
 
 2012-10-07  Eli Zaretskii  <eliz@gnu.org>
 
@@ -5984,7 +6145,7 @@
 	* lisp.h (make_formatted_string): New prototype.
 	* alloc.c (make_formatted_string): New function.
 	* buffer.c (Fgenerate_new_buffer_name): Use it.
-	* dbus.c (syms_of_dbusbind): Likewise.
+	* dbusbind.c (syms_of_dbusbind): Likewise.
 	* editfns.c (Fcurrent_time_zone): Likewise.
 	* filelock.c (get_boot_time): Likewise.
 	* frame.c (make_terminal_frame, set_term_frame_name)

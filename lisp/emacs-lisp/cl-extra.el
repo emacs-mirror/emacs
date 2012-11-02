@@ -149,8 +149,9 @@ the elements themselves.
 	(setq cl-list (cdr cl-list)))
       (nreverse cl-res))))
 
+;;;###autoload
 (defun cl-mapc (cl-func cl-seq &rest cl-rest)
-  "Like `mapcar', but does not accumulate values returned by the function.
+  "Like `cl-mapcar', but does not accumulate values returned by the function.
 \n(fn FUNCTION SEQUENCE...)"
   (if cl-rest
       (progn (apply 'cl-map nil cl-func cl-seq cl-rest)

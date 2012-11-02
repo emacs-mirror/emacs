@@ -186,7 +186,6 @@ buffer: } prompts the user with @samp{Frobnicate buffer: } to enter
 the name of an existing buffer, which becomes the second and final
 argument.
 
-@c Emacs 19 feature
 The prompt string can use @samp{%} to include previous argument values
 (starting with the first argument) in the prompt.  This is done using
 @code{format} (@pxref{Formatting Strings}).  For example, here is how
@@ -205,7 +204,6 @@ If @samp{*} appears at the beginning of the string, then an error is
 signaled if the buffer is read-only.
 
 @cindex @samp{@@} in @code{interactive}
-@c Emacs 19 feature
 If @samp{@@} appears at the beginning of the string, and if the key
 sequence used to invoke the command includes any mouse events, then
 the window associated with the first of those events is selected
@@ -910,7 +908,6 @@ up a menu.  It is also used internally by @code{y-or-n-p}
 @end defvar
 
 @defvar last-command-event
-@defvarx last-command-char
 This variable is set to the last input event that was read by the
 command loop as part of a command.  The principal use of this variable
 is in @code{self-insert-command}, which uses it to decide which
@@ -926,11 +923,8 @@ last-command-event
 
 @noindent
 The value is 5 because that is the @acronym{ASCII} code for @kbd{C-e}.
-
-The alias @code{last-command-char} is obsolete.
 @end defvar
 
-@c Emacs 19 feature
 @defvar last-event-frame
 This variable records which frame the last input event was directed to.
 Usually this is the frame that was selected when the event was
@@ -2386,7 +2380,6 @@ mouse on the window's mode line, you get two events, like this:
 @end example
 
 @defvar num-input-keys
-@c Emacs 19 feature
 This variable's value is the number of key sequences processed so far in
 this Emacs session.  This includes key sequences read from the terminal
 and key sequences read from keyboard macros being executed.
@@ -2539,7 +2532,6 @@ then continues to wait for a valid input character, or keyboard-quit.
 @code{keyboard-translate-table} (if applicable), before returning it
 from @code{read-event}.
 
-@c Emacs 19 feature
 @defvar extra-keyboard-modifiers
 This variable lets Lisp programs ``press'' the modifier keys on the
 keyboard.  The value is a character.  Only the modifiers of the
@@ -2755,7 +2747,6 @@ may return @code{t} when no input is available.
 @end defun
 
 @defvar last-input-event
-@defvarx last-input-char
 This variable records the last terminal input event read, whether
 as part of a command or explicitly by a Lisp program.
 
@@ -2774,8 +2765,6 @@ this expression) remains the value of @code{last-command-event}.
      @result{} 49
 @end group
 @end example
-
-The alias @code{last-input-char} is obsolete.
 @end defvar
 
 @defmac while-no-input body@dots{}

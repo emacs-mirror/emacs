@@ -35,6 +35,7 @@
 (require 'semantic/format)
 (require 'semantic/grammar-wy)
 (require 'semantic/idle)
+(require 'help-fns)
 
 (declare-function semantic-momentary-highlight-tag "semantic/decorate")
 (declare-function semantic-analyze-context "semantic/analyze")
@@ -46,6 +47,9 @@
   (require 'semantic/edit)
   (require 'semantic/find)
   (require 'semantic/db))
+
+(declare-function semantic-grammar-wy--install-parser
+		  "semantic/gram-wy-fallback")
 
 
 ;;;;
@@ -825,6 +829,8 @@ Does nothing if the Lisp code seems up to date.
 If optional argument FORCE is non-nil, unconditionally re-generate the
 Lisp code."
   (interactive "P")
+  (unless (semantic-active-p)
+    (error "You have to activate semantic-mode to create a package."))
   (setq force (or force current-prefix-arg))
   (semantic-fetch-tags)
   (let* (
@@ -1635,6 +1641,12 @@ Select the buffer containing the tag's definition, and move point there."
     (",$9" . "Match Value: Value from match list in slot 9")
     )
   "Association of syntax elements, and the corresponding help.")
+
+(declare-function eldoc-function-argstring "eldoc")
+(declare-function eldoc-docstring-format-sym-doc "eldoc")
+(declare-function eldoc-last-data-store "eldoc")
+(declare-function eldoc-get-fnsym-args-string "eldoc")
+(declare-function eldoc-get-var-docstring "eldoc")
 
 (defun semantic-grammar-eldoc-get-macro-docstring (macro expander)
   "Return a one-line docstring for the given grammar MACRO.
