@@ -1,3 +1,8 @@
+2012-11-02  Glenn Morris  <rgm@gnu.org>
+
+	* emacs-lisp/bytecomp.el (byte-compile-eval):
+	Decouple "noruntime" and "cl-functions" warnings.
+
 2012-11-01  Stephen Berman  <stephen.berman@gmx.net>
 
 	* play/gomoku.el (gomoku-display-statistics): Update mode line

@@ -863,16 +863,7 @@ Each function's symbol gets added to `byte-compile-noruntime-functions'."
 	    (let ((xs (pop hist-new))
 		  old-autoloads)
 	      ;; Make sure the file was not already loaded before.
-	      (unless (or (assoc (car xs) hist-orig)
-			  ;; Don't give both the "noruntime" and
-			  ;; "cl-functions" warning for the same function.
-			  ;; FIXME This seems incorrect - these are two
-			  ;; independent warnings.  For example, you may be
-			  ;; choosing to see the cl warnings but ignore them.
-			  ;; You probably don't want to ignore noruntime in the
-			  ;; same way.
-			  (and (byte-compile-warning-enabled-p 'cl-functions)
-			       (byte-compile-cl-file-p (car xs))))
+	      (unless (assoc (car xs) hist-orig)
 		(dolist (s xs)
 		  (cond
 		   ((and (consp s) (eq t (car s)))
