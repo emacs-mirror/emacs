@@ -9,7 +9,7 @@
  * but it serves the purpose of showing how the Memory Pool System can be
  * used as part of a programming language run-time system.
  *
- * To try it out, "make scheme" then
+ * To try it out, "make scheme-advanced" then
  *
  * $ ./scheme
  * (define (triangle n) (if (eqv? n 0) 0 (+ n (triangle (- n 1)))))
@@ -26,7 +26,6 @@
  * MPS TO DO LIST
  * - make the symbol table weak to show how to use weak references
  * - add Scheme operators for talking to the MPS, forcing GC etc.
- * - cross-references to documentation
  * - make an mps_perror
  *
  * 
@@ -3321,7 +3320,7 @@ static obj_t entry_hashtable_keys(obj_t env, obj_t op_env, obj_t operator, obj_t
  *
  * This is an example of a direct interface from the language to the MPS.
  * The `gc` function in Scheme will cause the MPS to perform a complete
- * garbage collection of the entire arena right away.
+ * garbage collection of the entire arena right away. See topic/arena.
  */
 
 static obj_t entry_gc(obj_t env, obj_t op_env, obj_t operator, obj_t operands)
@@ -3473,7 +3472,7 @@ static struct {char *name; entry_t entry;} funtab[] = {
 /* MPS Format                                                   %%MPS
  *
  * These functions satisfy the MPS Format Protocol for format
- * variant "A".
+ * variant "A". See topic/format.
  *
  * In general, MPS format methods are performance critical, as they're used
  * on the MPS critical path. See topic/critical.
@@ -4068,7 +4067,7 @@ static void *start(void *p, size_t s)
  * Note that these numbers have deliberately been chosen to be small,
  * so that the MPS is forced to collect often so that you can see it
  * working. Don't just copy these numbers unless you also want to see
- * frequent garbage collections!
+ * frequent garbage collections! See topic/collection.
  */
 
 static mps_gen_param_s obj_gen_params[] = {
@@ -4120,7 +4119,7 @@ int main(int argc, char *argv[])
   /* Create an allocation point for fast in-line allocation of objects
      from the `obj_pool`.  You'd usually want one of these per thread
      for your primary pools.  This interpreter is single threaded, though,
-     so we just have it in a global. */
+     so we just have it in a global. See topic/allocation. */
   res = mps_ap_create(&obj_ap, obj_pool);
   if (res != MPS_RES_OK) error("Couldn't create obj allocation point");
 
@@ -4170,14 +4169,14 @@ int main(int argc, char *argv[])
   /* Register the current thread with the MPS.  The MPS must sometimes
      control or examine threads to ensure consistency when it is scanning
      or updating object references, so any threads that access the MPS
-     memory need to be registered. */
+     memory need to be registered. See topic/thread. */
   res = mps_thread_reg(&thread, arena);
   if (res != MPS_RES_OK) error("Couldn't register thread");
 
   /* Register the thread as a root.  This thread's stack and registers will
      need to be scanned by the MPS because we are passing references to
      objects around in C parameters, return values, and keeping them in
-     automatic local variables. */
+     automatic local variables. See topic/root. */
   res = mps_root_create_reg(&reg_root,
                             arena,
                             mps_rank_ambig(),
@@ -4194,7 +4193,7 @@ int main(int argc, char *argv[])
   /* Trampoline into the main program.  The MPS trampoline is unfortunately
      required to mark the top of the stack of the main thread, and on some
      platforms it must also catch exceptions in order to implement hardware
-     memory barriers. */
+     memory barriers. See topic/thread. */
   mps_tramp(&r, start, &tramp, 0);
   
   /* Cleaning up the MPS object with destroy methods will allow the MPS to
