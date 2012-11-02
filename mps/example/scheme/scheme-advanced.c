@@ -833,18 +833,30 @@ static int eqp(obj_t obj1, obj_t obj2)
 
 static unsigned long eqv_hash(obj_t obj)
 {
-  if(TYPE(obj) == TYPE_INTEGER)
+  switch(TYPE(obj)) {
+  case TYPE_INTEGER:
     return obj->integer.integer;
-  else
+  case TYPE_CHARACTER:
+    return obj->character.c;
+  default:
     return eq_hash(obj);
+  }
 }
 
 static int eqvp(obj_t obj1, obj_t obj2)
 {
-  return obj1 == obj2 ||
-         (TYPE(obj1) == TYPE_INTEGER &&
-          TYPE(obj2) == TYPE_INTEGER &&
-          obj1->integer.integer == obj2->integer.integer);
+  if (obj1 == obj2)
+    return 1;
+  if (TYPE(obj1) != TYPE(obj2))
+    return 0;
+  switch(TYPE(obj1)) {
+  case TYPE_INTEGER:
+    return obj1->integer.integer == obj2->integer.integer;
+  case TYPE_CHARACTER:
+    return obj1->character.c == obj2->character.c;
+  default:
+    return 0;
+  }
 }
 
 static unsigned long string_hash(obj_t obj)
@@ -917,6 +929,8 @@ static int table_rehash(obj_t tbl, size_t new_length, obj_t key, size_t *key_buc
   length = UNTAG_LENGTH(tbl->table.keys->length);
   new_keys = make_buckets(new_length, tbl->table.key_ap);
   new_values = make_buckets(new_length, tbl->table.value_ap);
+  new_keys->dependent = new_values;
+  new_values->dependent = new_keys;
   mps_ld_reset(&tbl->table.ld, arena);
 
   for (i = 0; i < length; ++i) {
@@ -930,7 +944,7 @@ static int table_rehash(obj_t tbl, size_t new_length, obj_t key, size_t *key_buc
       assert(new_keys->bucket[b] == NULL); /* shouldn't be in new table */
       new_keys->bucket[b] = old_key;
       new_values->bucket[b] = tbl->table.values->bucket[i];
-      if (old_key == key) {
+      if (key != NULL && tbl->table.cmp(old_key, key)) {
         *key_bucket = b;
         result = 1;
       }
@@ -2726,6 +2740,7 @@ static obj_t entry_write_string(obj_t env, obj_t op_env, obj_t operator, obj_t o
     error("%s: first argument must be a string", operator->operator.name);
   /* TODO: default to current-output-port */
   fputs(arg->string.string, rest_port_stream(operator, rest, "second", stdout));
+  fflush(stdout);
   return obj_undefined;
 }
 
@@ -2744,6 +2759,36 @@ static obj_t entry_newline(obj_t env, obj_t op_env, obj_t operator, obj_t operan
   /* TODO: default to current-output-port */
   putc('\n', rest_port_stream(operator, rest, "first", stdout));
   return obj_undefined;
+}
+
+
+/* (load filename)
+ * Filename should be a string naming an existing file containing
+ * Scheme source code. The load procedure reads expressions and
+ * definitions from the file and evaluates them sequentially. It is
+ * unspecified whether the results of the expressions are printed. The
+ * load procedure does not affect the values returned by
+ * current-input-port and current-output-port. Load returns an
+ * unspecified value.
+ * See R4RS 6.10.4.
+ */
+static obj_t entry_load(obj_t env, obj_t op_env, obj_t operator, obj_t operands)
+{
+  obj_t filename, obj, result = obj_undefined;
+  FILE *stream;
+  eval_args(operator->operator.name, env, op_env, operands, 1, &filename);
+  unless(TYPE(filename) == TYPE_STRING)
+    error("%s: argument must be a string", operator->operator.name);
+  stream = fopen(filename->string.string, "r");
+  if(stream == NULL)
+    /* TODO: "an error is signalled" */
+    error("%s: cannot open input file", operator->operator.name);
+  for(;;) {
+    obj = read(stream);
+    if(obj == obj_eof) break;
+    result = eval(env, op_env, obj);
+  }
+  return result;
 }
 
 
@@ -3227,6 +3272,22 @@ static obj_t entry_string_hash(obj_t env, obj_t op_env, obj_t operator, obj_t op
 }
 
 
+static obj_t entry_eq_hash(obj_t env, obj_t op_env, obj_t operator, obj_t operands)
+{
+  obj_t arg;
+  eval_args(operator->operator.name, env, op_env, operands, 1, &arg);
+  return make_integer(eq_hash(arg));
+}
+
+
+static obj_t entry_eqv_hash(obj_t env, obj_t op_env, obj_t operator, obj_t operands)
+{
+  obj_t arg;
+  eval_args(operator->operator.name, env, op_env, operands, 1, &arg);
+  return make_integer(eqv_hash(arg));
+}
+
+
 static obj_t make_hashtable(obj_t operator, obj_t rest, hash_t hashf, cmp_t cmpf, int weak_key, int weak_value)
 {
   size_t length;
@@ -3278,6 +3339,28 @@ static obj_t entry_make_eqv_hashtable(obj_t env, obj_t op_env, obj_t operator, o
 }
 
 
+static obj_t make_weak_hashtable(obj_t env, obj_t op_env, obj_t operator, obj_t operands, int weak_key, int weak_value)
+{
+  obj_t hashf, cmpf, rest;
+  eval_args_rest(operator->operator.name, env, op_env, operands, &rest, 2, &hashf, &cmpf);
+  unless(TYPE(hashf) == TYPE_OPERATOR)
+    error("%s: first argument must be a procedure", operator->operator.name);
+  unless(TYPE(cmpf) == TYPE_OPERATOR)
+    error("%s: first argument must be a procedure", operator->operator.name);
+  if (hashf->operator.entry == entry_eq_hash
+      && cmpf->operator.entry == entry_eqp)
+    return make_hashtable(operator, rest, eq_hash, eqp, weak_key, weak_value);
+  if (hashf->operator.entry == entry_eqv_hash
+      && cmpf->operator.entry == entry_eqvp)
+    return make_hashtable(operator, rest, eqv_hash, eqvp, weak_key, weak_value);
+  if (hashf->operator.entry == entry_string_hash
+      && cmpf->operator.entry == entry_string_equalp)
+    return make_hashtable(operator, rest, string_hash, string_equalp, weak_key, weak_value);
+  error("%s: arguments not supported", operator->operator.name);
+  return obj_undefined;
+}
+
+
 /* (make-hashtable hash-function equiv)
  * (make-hashtable hash-function equiv k)
  * Hash-function and equiv must be procedures. Hash-function should
@@ -3293,61 +3376,49 @@ static obj_t entry_make_eqv_hashtable(obj_t env, obj_t op_env, obj_t operator, o
  */
 static obj_t entry_make_hashtable(obj_t env, obj_t op_env, obj_t operator, obj_t operands)
 {
-  obj_t hashf, cmpf, rest;
-  eval_args_rest(operator->operator.name, env, op_env, operands, &rest, 2, &hashf, &cmpf);
-  unless(TYPE(hashf) == TYPE_OPERATOR)
-    error("%s: first argument must be a procedure", operator->operator.name);
-  unless(TYPE(cmpf) == TYPE_OPERATOR)
-    error("%s: first argument must be a procedure", operator->operator.name);
-  unless(hashf->operator.entry == entry_string_hash
-         && cmpf->operator.entry == entry_string_equalp)
-    error("%s: arguments not supported", operator->operator.name);
-  return make_hashtable(operator, rest, string_hash, string_equalp, 0, 0);
+  return make_weak_hashtable(env, op_env, operator, operands, 0, 0);
 }
 
 
-/* (make-weak-key-eq-hashtable)
- * (make-weak-key-eq-hashtable k)
- * Returns a newly allocated mutable weak-key hashtable that accepts
- * arbitrary objects as keys, and compares those keys with eq?. If an
- * argument is given, the initial capacity of the hashtable is set to
- * approximately k elements.
+/* (make-weak-key-hashtable hash-function equiv)
+ * (make-weak-key-hashtable hash-function equiv k)
+ * Returns a newly allocated mutable weak-key hashtable. using
+ * hash-function as the hash function and equiv as the equivalence
+ * function used to compare keys. If a third argument is given, the
+ * initial capacity of the hashtable is set to approximately k
+ * elements.
  */
-static obj_t entry_make_weak_key_eq_hashtable(obj_t env, obj_t op_env, obj_t operator, obj_t operands)
+static obj_t entry_make_weak_key_hashtable(obj_t env, obj_t op_env, obj_t operator, obj_t operands)
 {
-  obj_t rest;
-  eval_args_rest(operator->operator.name, env, op_env, operands, &rest, 0);
-  return make_hashtable(operator, rest, eq_hash, eqp, 1, 0);
+  return make_weak_hashtable(env, op_env, operator, operands, 1, 0);
 }
 
 
-/* (make-weak-value-eq-hashtable)
- * (make-weak-value-eq-hashtable k)
- * Returns a newly allocated mutable weak-value hashtable that accepts
- * arbitrary objects as keys, and compares those keys with eq?. If an
- * argument is given, the initial capacity of the hashtable is set to
- * approximately k elements.
+/* (make-weak-value-hashtable hash-function equiv)
+ * (make-weak-value-hashtable hash-function equiv k)
+ * Returns a newly allocated mutable weak-value hashtable. using
+ * hash-function as the hash function and equiv as the equivalence
+ * function used to compare keys. If a third argument is given, the
+ * initial capacity of the hashtable is set to approximately k
+ * elements.
  */
-static obj_t entry_make_weak_value_eq_hashtable(obj_t env, obj_t op_env, obj_t operator, obj_t operands)
+static obj_t entry_make_weak_value_hashtable(obj_t env, obj_t op_env, obj_t operator, obj_t operands)
 {
-  obj_t rest;
-  eval_args_rest(operator->operator.name, env, op_env, operands, &rest, 0);
-  return make_hashtable(operator, rest, eq_hash, eqp, 0, 1);
+  return make_weak_hashtable(env, op_env, operator, operands, 0, 1);
 }
 
 
-/* (make-doubly-weak-eq-hashtable)
- * (make-doubly-weak-eq-hashtable k)
- * Returns a newly allocated mutable doubly-weak hashtable that accepts
- * arbitrary objects as keys, and compares those keys with eq?. If an
- * argument is given, the initial capacity of the hashtable is set to
- * approximately k elements.
+/* (make-doubly-weak-eq-hashtable hash-function equiv)
+ * (make-doubly-weak-eq-hashtable hash-function equiv k)
+ * Returns a newly allocated mutable doubly-weak hashtable. using
+ * hash-function as the hash function and equiv as the equivalence
+ * function used to compare keys. If a third argument is given, the
+ * initial capacity of the hashtable is set to approximately k
+ * elements.
  */
-static obj_t entry_make_doubly_weak_eq_hashtable(obj_t env, obj_t op_env, obj_t operator, obj_t operands)
+static obj_t entry_make_doubly_weak_hashtable(obj_t env, obj_t op_env, obj_t operator, obj_t operands)
 {
-  obj_t rest;
-  eval_args_rest(operator->operator.name, env, op_env, operands, &rest, 0);
-  return make_hashtable(operator, rest, eq_hash, eqp, 1, 1);
+  return make_weak_hashtable(env, op_env, operator, operands, 1, 1);
 }
 
 
@@ -3578,6 +3649,7 @@ static struct {char *name; entry_t entry;} funtab[] = {
   {"write", entry_write},
   {"write-string", entry_write_string},
   {"newline", entry_newline},
+  {"load", entry_load},
   {"force", entry_force},
   {"char?", entry_charp},
   {"char->integer", entry_char_to_integer},
@@ -3608,9 +3680,9 @@ static struct {char *name; entry_t entry;} funtab[] = {
   {"make-eq-hashtable", entry_make_eq_hashtable},
   {"make-eqv-hashtable", entry_make_eqv_hashtable},
   {"make-hashtable", entry_make_hashtable},
-  {"make-weak-key-eq-hashtable", entry_make_weak_key_eq_hashtable},
-  {"make-weak-value-eq-hashtable", entry_make_weak_value_eq_hashtable},
-  {"make-doubly-weak-eq-hashtable", entry_make_doubly_weak_eq_hashtable},
+  {"make-weak-key-hashtable", entry_make_weak_key_hashtable},
+  {"make-weak-value-hashtable", entry_make_weak_value_hashtable},
+  {"make-doubly-weak-hashtable", entry_make_doubly_weak_hashtable},
   {"hashtable?", entry_hashtablep},
   {"hashtable-size", entry_hashtable_size},
   {"hashtable-ref", entry_hashtable_ref},
@@ -3619,6 +3691,8 @@ static struct {char *name; entry_t entry;} funtab[] = {
   {"hashtable-contains?", entry_hashtable_containsp},
   {"hashtable-keys", entry_hashtable_keys},
   {"string-hash", entry_string_hash},
+  {"eq-hash", entry_eq_hash},
+  {"eqv-hash", entry_eqv_hash},
   {"gc", entry_gc}
 };
 
@@ -3914,7 +3988,7 @@ static mps_res_t buckets_scan(mps_ss_t ss, mps_addr_t base, mps_addr_t limit)
             puts("splat!");
             buckets->dependent->bucket[i] = p;
             buckets->deleted += 2; /* tagged */
-            buckets->dependent->deleted -= 2; /* tagged */
+            buckets->dependent->deleted += 2; /* tagged */
           }
           buckets->bucket[i] = p;
         }
