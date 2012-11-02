@@ -592,8 +592,10 @@ Done before generating the new subject of a forward."
   ;; comes back to you (e.g. a mailing-list to which you subscribe, in which
   ;; case you may be removed from the list on the grounds that mail to you
   ;; bounced with a "mailing loop" error).
-  "^Return-receipt\\|^X-Gnus\\|^Gnus-Warning:\\|^>?From \\|^Delivered-To:"
+  "^Return-receipt\\|^X-Gnus\\|^Gnus-Warning:\\|^>?From \\|^Delivered-To:\
+\\|^X-Content-Length:\\|^X-UIDL:"
   "*All headers that match this regexp will be deleted when resending a message."
+  :version "24.4"
   :group 'message-interface
   :link '(custom-manual "(message)Resending")
   :type '(repeat :value-to-internal (lambda (widget value)

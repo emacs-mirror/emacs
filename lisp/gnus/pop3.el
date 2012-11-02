@@ -98,20 +98,53 @@ set this to 1."
   :group 'pop3)
 
 (defcustom pop3-leave-mail-on-server nil
-  "*Non-nil if the mail is to be left on the POP server after fetching.
+  "Non-nil if the mail is to be left on the POP server after fetching.
+Mails once fetched will never be fetched again by the UIDL control.
 
-If `pop3-leave-mail-on-server' is non-nil the mail is to be left
-on the POP server after fetching.  Note that POP servers maintain
-no state information between sessions, so what the client
-believes is there and what is actually there may not match up.
-If they do not, then you may get duplicate mails or the whole
-thing can fall apart and leave you with a corrupt mailbox."
-  ;; We can't use the UILD support from XEmacs mail-lib or cvs.m17n.org:
-  ;; http://thread.gmane.org/v9lld8fml4.fsf@marauder.physik.uni-ulm.de
-  ;; http://thread.gmane.org/b9yy8hzy9ej.fsf@jpl.org
-  ;; Any volunteer to re-implement this?
-  :version "22.1" ;; Oort Gnus
-  :type 'boolean
+If this is neither nil nor a number, all mails will be left on the
+server.  If this is a number, leave mails on the server for this many
+days since you first checked new mails.  If this is nil, mails will be
+deleted on the server right after fetching.
+
+Gnus users should use the `:leave' keyword in a mail source to direct
+the behaviour per server, rather than directly modifying this value.
+
+Note that POP servers maintain no state information between sessions,
+so what the client believes is there and what is actually there may
+not match up.  If they do not, then you may get duplicate mails or
+the whole thing can fall apart and leave you with a corrupt mailbox."
+  :version "24.4"
+  :type '(choice (const :tag "Don't leave mails" nil)
+		 (const :tag "Leave all mails" t)
+		 (number :tag "Leave mails for this many days" :value 14))
+  :group 'pop3)
+
+(defcustom pop3-uidl-file "~/.pop3-uidl"
+  "File used to save UIDL."
+  :version "24.4"
+  :type 'file
+  :group 'pop3)
+
+(defcustom pop3-uidl-file-backup '(0 9)
+  "How to backup the UIDL file `pop3-uidl-file' when updating.
+If it is a list of numbers, the first one binds `kept-old-versions' and
+the other binds `kept-new-versions' to keep number of oldest and newest
+versions.  Otherwise, the value binds `version-control' (which see).
+
+Note: Backup will take place whenever you check new mails on a server.
+So, you may lose the backup files having been saved before a trouble
+if you set it so as to make too few backups whereas you have access to
+many servers."
+  :version "24.4"
+  :type '(choice (group :tag "Keep versions" :format "\n%v" :indent 3
+			(number :tag "oldest")
+			(number :tag "newest"))
+		 (sexp :format "%v"
+		       :match (lambda (widget value)
+				(condition-case nil
+				    (not (and (numberp (car value))
+					      (numberp (car (cdr value)))))
+				  (error t)))))
   :group 'pop3)
 
 (defvar pop3-timestamp nil
@@ -144,34 +177,66 @@ Shorter values mean quicker response, but are more CPU intensive.")
 		       (truncate pop3-read-timeout))
 		    1000))))))
 
+(defvar pop3-uidl)
+;; List of UIDLs of existing messages at pesent in the server:
+;; ("UIDL1" "UIDL2" "UIDL3"...)
+
+(defvar pop3-uidl-saved)
+;; Locally saved UIDL data; an alist of the server, the user, and the UIDL
+;; and timestamp pairs:
+;; (("SERVER_A" ("USER_A1" "UIDL1" TIMESTAMP1 "UIDL2" TIMESTAMP2...)
+;;              ("USER_A2" "UIDL1" TIMESTAMP1 "UIDL2" TIMESTAMP2...)
+;;              ...)
+;;  ("SERVER_B" ("USER_B1" "UIDL1" TIMESTAMP1 "UIDL2" TIMESTAMP2...)
+;;              ("USER_B2" "UIDL1" TIMESTAMP1 "UIDL2" TIMESTAMP2...)
+;;              ...))
+;; Where TIMESTAMP is the most significant two digits of an Emacs time,
+;; i.e. the return value of `current-time'.
+
 ;;;###autoload
 (defun pop3-movemail (file)
   "Transfer contents of a maildrop to the specified FILE.
 Use streaming commands."
-  (let* ((process (pop3-open-server pop3-mailhost pop3-port))
-	 message-count message-total-size)
+  (let ((process (pop3-open-server pop3-mailhost pop3-port))
+	messages total-size
+	pop3-uidl
+	pop3-uidl-saved)
     (pop3-logon process)
-    (with-current-buffer (process-buffer process)
+    (if pop3-leave-mail-on-server
+	(setq messages (pop3-uidl-stat process)
+	      total-size (cadr messages)
+	      messages (car messages))
       (let ((size (pop3-stat process)))
-	(setq message-count (car size)
-	      message-total-size (cadr size)))
-      (when (> message-count 0)
-	(pop3-send-streaming-command
-	 process "RETR" message-count message-total-size)
-	(pop3-write-to-file file)
+	(dotimes (i (car size)) (push (1+ i) messages))
+	(setq messages (nreverse messages)
+	      total-size (cadr size))))
+    (when messages
+      (with-current-buffer (process-buffer process)
+	(pop3-send-streaming-command process "RETR" messages total-size)
+	(pop3-write-to-file file messages)
 	(unless pop3-leave-mail-on-server
-	  (pop3-send-streaming-command
-	   process "DELE" message-count nil))))
-    (pop3-quit process)
+	  (pop3-send-streaming-command process "DELE" messages nil))))
+    (if pop3-leave-mail-on-server
+	(when (prog1 (pop3-uidl-dele process) (pop3-quit process))
+	  (pop3-uidl-save))
+      (pop3-quit process)
+      ;; Remove UIDL data for the account that got not to leave mails.
+      (setq pop3-uidl-saved (pop3-uidl-load))
+      (let ((elt (assoc pop3-maildrop
+			(cdr (assoc pop3-mailhost pop3-uidl-saved)))))
+	(when elt
+	  (setcdr elt nil)
+	  (pop3-uidl-save))))
     t))
 
-(defun pop3-send-streaming-command (process command count total-size)
+(defun pop3-send-streaming-command (process command messages total-size)
   (erase-buffer)
-  (let ((i 1)
+  (let ((count (length messages))
+	(i 1)
 	(start-point (point-min))
 	(waited-for 0))
-    (while (>= count i)
-      (process-send-string process (format "%s %d\r\n" command i))
+    (while messages
+      (process-send-string process (format "%s %d\r\n" command (pop messages)))
       ;; Only do 100 messages at a time to avoid pipe stalls.
       (when (zerop (% i pop3-stream-length))
 	(setq start-point
@@ -207,7 +272,7 @@ Use streaming commands."
     (pop3-accept-process-output process))
   start-point)
 
-(defun pop3-write-to-file (file)
+(defun pop3-write-to-file (file messages)
   (let ((pop-buffer (current-buffer))
 	(start (point-min))
 	beg end
@@ -230,6 +295,8 @@ Use streaming commands."
 	      (pop3-clean-region hstart (point))
 	      (goto-char (point-max))
 	      (pop3-munge-message-separator hstart (point))
+	      (when pop3-leave-mail-on-server
+		(pop3-uidl-add-xheader hstart (pop messages)))
 	      (goto-char (point-max))))))
       (let ((coding-system-for-write 'binary))
 	(goto-char (point-min))
@@ -274,6 +341,184 @@ Use streaming commands."
     (setq message-count (car (pop3-stat process)))
     (pop3-quit process)
     message-count))
+
+(defun pop3-uidl-stat (process)
+  "Return a list of unread message numbers and total size."
+  (pop3-send-command process "UIDL")
+  (let (err messages size)
+    (if (condition-case code
+	    (progn
+	      (pop3-read-response process)
+	      t)
+	  (error (setq err (error-message-string code))
+		 nil))
+	(let ((start pop3-read-point)
+	      saved list)
+	  (with-current-buffer (process-buffer process)
+	    (while (not (re-search-forward "^\\.\r\n" nil t))
+	      (unless (memq (process-status process) '(open run))
+		(error "pop3 server closed the connection"))
+	      (pop3-accept-process-output process)
+	      (goto-char start))
+	    (setq pop3-read-point (point-marker)
+		  pop3-uidl nil)
+	    (while (progn (forward-line -1) (>= (point) start))
+	      (when (looking-at "[0-9]+ \\([^\n\r ]+\\)")
+		(push (match-string 1) pop3-uidl)))
+	    (when pop3-uidl
+	      (setq pop3-uidl-saved (pop3-uidl-load)
+		    saved (cdr (assoc pop3-maildrop
+				      (cdr (assoc pop3-mailhost
+						  pop3-uidl-saved)))))
+	      (let ((i (length pop3-uidl)))
+		(while (> i 0)
+		  (unless (member (nth (1- i) pop3-uidl) saved)
+		    (push i messages))
+		  (decf i)))
+	      (when messages
+		(setq list (pop3-list process)
+		      size 0)
+		(dolist (msg messages)
+		  (setq size (+ size (cdr (assq msg list)))))
+		(list messages size)))))
+      (message "%s doesn't support UIDL (%s), so we try a regressive way..."
+	       pop3-mailhost err)
+      (sit-for 1)
+      (setq size (pop3-stat process))
+      (dotimes (i (car size)) (push (1+ i) messages))
+      (setcar size (nreverse messages))
+      size)))
+
+(defun pop3-uidl-dele (process)
+  "Delete messages according to `pop3-leave-mail-on-server'.
+Return non-nil if it is necessary to update the local UIDL file."
+  (let* ((ctime (current-time))
+	 (srvr (assoc pop3-mailhost pop3-uidl-saved))
+	 (saved (assoc pop3-maildrop (cdr srvr)))
+	 i uidl mod new tstamp dele)
+    (setcdr (cdr ctime) nil)
+    ;; Add new messages to the data to be saved.
+    (cond ((and pop3-uidl saved)
+	   (setq i (1- (length pop3-uidl)))
+	   (while (>= i 0)
+	     (unless (member (setq uidl (nth i pop3-uidl)) (cdr saved))
+	       (push ctime new)
+	       (push uidl new))
+	     (decf i)))
+	  (pop3-uidl
+	   (setq new (apply 'nconc (mapcar (lambda (elt) (list elt ctime))
+					   pop3-uidl)))))
+    (when new (setq mod t))
+    ;; List expirable messages and delete them from the data to be saved.
+    (setq ctime (when (numberp pop3-leave-mail-on-server)
+		  (/ (+ (* (car ctime) 65536.0) (cadr ctime)) 86400))
+	  i (1- (length saved)))
+    (while (> i 0)
+      (if (member (setq uidl (nth (1- i) saved)) pop3-uidl)
+	  (progn
+	    (setq tstamp (nth i saved))
+	    (if (and ctime
+		     (> (- ctime (/ (+ (* (car tstamp) 65536.0) (cadr tstamp))
+				    86400))
+			pop3-leave-mail-on-server))
+		;; Mails to delete.
+		(progn
+		  (setq mod t)
+		  (push uidl dele))
+	      ;; Mails to keep.
+	      (push tstamp new)
+	      (push uidl new)))
+	;; Mails having been deleted in the server.
+	(setq mod t))
+      (decf i 2))
+    (cond (saved
+	   (setcdr saved new))
+	  (srvr
+	   (setcdr (last srvr) (list (cons pop3-maildrop new))))
+	  (t
+	   (add-to-list 'pop3-uidl-saved
+			(list pop3-mailhost (cons pop3-maildrop new))
+			t)))
+    ;; Actually delete the messages in the server.
+    (when dele
+      (setq uidl nil
+	    i (length pop3-uidl))
+      (while (> i 0)
+	(when (member (nth (1- i) pop3-uidl) dele)
+	  (push i uidl))
+	(decf i))
+      (when uidl
+	(pop3-send-streaming-command process "DELE" uidl nil)))
+    mod))
+
+(defun pop3-uidl-load ()
+  "Load saved UIDL."
+  (when (file-exists-p pop3-uidl-file)
+    (with-temp-buffer
+      (condition-case code
+	  (progn
+	    (insert-file-contents pop3-uidl-file)
+	    (goto-char (point-min))
+	    (read (current-buffer)))
+	(error
+	 (message "Error while loading %s (%s)"
+		  pop3-uidl-file (error-message-string code))
+	 (sit-for 1)
+	 nil)))))
+
+(defun pop3-uidl-save ()
+  "Save UIDL."
+  (with-temp-buffer
+    (if pop3-uidl-saved
+	(progn
+	  (insert "(")
+	  (dolist (srvr pop3-uidl-saved)
+	    (when (cdr srvr)
+	      (insert "(\"" (pop srvr) "\"\n  ")
+	      (dolist (elt srvr)
+		(when (cdr elt)
+		  (insert "(\"" (pop elt) "\"\n   ")
+		  (while elt
+		    (insert (format "\"%s\" %s\n   " (pop elt) (pop elt))))
+		  (delete-char -4)
+		  (insert ")\n  ")))
+	      (delete-char -3)
+	      (if (eq (char-before) ?\))
+		  (insert ")\n ")
+		(goto-char (1+ (point-at-bol)))
+		(delete-region (point) (point-max)))))
+	  (when (eq (char-before) ? )
+	    (delete-char -2))
+	  (insert ")\n"))
+      (insert "()\n"))
+    (let ((buffer-file-name pop3-uidl-file)
+	  (delete-old-versions t)
+	  (kept-new-versions kept-new-versions)
+	  (kept-old-versions kept-old-versions)
+	  (version-control version-control))
+      (if (consp pop3-uidl-file-backup)
+	  (setq kept-new-versions (cadr pop3-uidl-file-backup)
+		kept-old-versions (car pop3-uidl-file-backup)
+		version-control t)
+	(setq version-control pop3-uidl-file-backup))
+      (save-buffer))))
+
+(defun pop3-uidl-add-xheader (start msgno)
+  "Add X-UIDL header."
+  (let ((case-fold-search t))
+    (save-restriction
+      (narrow-to-region start (progn
+				(goto-char start)
+				(search-forward "\n\n" nil 'move)
+				(1- (point))))
+      (goto-char start)
+      (while (re-search-forward "^x-uidl:" nil t)
+	(while (progn
+		 (forward-line 1)
+		 (memq (char-after) '(?\t ? ))))
+	(delete-region (match-beginning 0) (point)))
+      (goto-char (point-max))
+      (insert "X-UIDL: " (nth (1- msgno) pop3-uidl) "\n"))))
 
 (defcustom pop3-stream-type nil
   "*Transport security type for POP3 connections.
@@ -662,6 +907,13 @@ and close the connection."
 ;; Restrictions: transaction state
 ;; Possible responses:
 ;;  +OK [all delete marks removed]
+
+;; UIDL [msg]
+;; Arguments: a message-id (optional)
+;; Restrictions: transaction state; msg must not be deleted
+;; Possible responses:
+;;  +OK [uidl listing follows]
+;;  -ERR [no such message]
 
 ;;; UPDATE STATE
 

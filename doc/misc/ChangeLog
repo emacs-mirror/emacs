@@ -1,3 +1,8 @@
+2012-11-02  Katsumi Yamaoka  <yamaoka@jpl.org>
+
+	* gnus.texi (Mail Source Specifiers):
+	Document :leave keyword used for pop mail source.
+
 2012-11-01  Glenn Morris  <rgm@gnu.org>
 
 	* cl.texi: General copyedits for style, line-breaks, etc.
