@@ -342,4 +342,5 @@ AWL interface
     null pointer if there is none.
 
     The dependent object need not be in memory managed by the MPS, but
-    if it is, then it must be in a pool in the same arena as ``addr``.
+    if it is, then it must be in a :term:`non-moving <non-moving
+    garbage collection>` pool in the same arena as ``addr``.

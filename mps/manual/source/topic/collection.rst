@@ -21,10 +21,12 @@ Garbage collection
 Generation chains
 -----------------
 
-Each :term:`automatically managed <automatic memory management>`
-:term:`pool` has an associated :term:`generation chain` which
-describes the structure of the :term:`generations` in
-that pool. You create a generation chain by preparing an array of
+A :term:`generation chain` describes the structure of the
+:term:`generations` in a set of :term:`automatically managed
+<automatic memory management>` :term:`pools`. The same generation
+chain should be used for all pools whose blocks live and die together.
+
+Create a generation chain by preparing an array of
 :c:type:`mps_gen_param_s` structures giving the *capacity* (in
 kilobytes) and *predicted mortality* (between 0 and 1) of each
 generation, and passing them to :c:func:`mps_chain_create`.
