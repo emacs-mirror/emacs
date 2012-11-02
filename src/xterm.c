@@ -6108,7 +6108,6 @@ handle_one_xevent (struct x_display_info *dpyinfo, XEvent *eventptr,
         SELECTION_EVENT_DISPLAY (&inev.sie) = eventp->display;
         SELECTION_EVENT_SELECTION (&inev.sie) = eventp->selection;
         SELECTION_EVENT_TIME (&inev.sie) = eventp->time;
-        inev.ie.frame_or_window = Qnil;
       }
       break;
 
@@ -6128,7 +6127,6 @@ handle_one_xevent (struct x_display_info *dpyinfo, XEvent *eventptr,
           SELECTION_EVENT_TARGET (&inev.sie) = eventp->target;
           SELECTION_EVENT_PROPERTY (&inev.sie) = eventp->property;
           SELECTION_EVENT_TIME (&inev.sie) = eventp->time;
-          inev.ie.frame_or_window = Qnil;
       }
       break;
 

@@ -1,3 +1,15 @@
+2012-11-02  Dmitry Antipov  <dmantipov@yandex.ru>
+
+	Remove pad from struct input_event.
+	* termhooks.h (struct input_event): Remove padding field.
+	Adjust comment.
+	* keyboard.c (event_to_kboard): Simplify because frame_or_window
+	member is never cons for a long time.  Adjust comment.
+	(mark_kboards): Adjust because SELECTION_REQUEST_EVENT and
+	SELECTION_CLEAR_EVENT has no Lisp_Objects to mark.  Add comment.
+	* xterm.c (handle_one_xevent): Do not initialize frame_or_window
+	field of SELECTION_REQUEST_EVENT and SELECTION_CLEAR_EVENT.
+
 2012-11-01  Eli Zaretskii  <eliz@gnu.org>
 
 	* w32proc.c (getpgrp, setpgid): New functions.  (Bug#12776)

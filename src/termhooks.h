@@ -242,16 +242,8 @@ struct input_event
   Lisp_Object x, y;
   Time timestamp;
 
-  /* This is padding just to put the frame_or_window field
-     past the size of struct selection_input_event.  */
-  int *padding[2];
-
-  /* This field is copied into a vector while the event is in the queue,
-     so that garbage collections won't kill it.  */
-  /* In a menu_bar_event, this is a cons cell whose car is the frame
-     and whose cdr is the Lisp object that is the event's value.  */
-  /* This field is last so that struct selection_input_event
-     does not overlap with it.  */
+  /* This field is copied into a vector while the event is in
+     the queue, so that garbage collections won't kill it.  */
   Lisp_Object frame_or_window;
 
   /* Additional event argument.  This is used for TOOL_BAR_EVENTs and
