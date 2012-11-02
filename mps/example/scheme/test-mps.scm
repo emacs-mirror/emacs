@@ -47,8 +47,10 @@
 (check '(ht-test (make-hashtable string-hash string=?) stringify) #t)
 (define (symbolize n) (string->symbol (make-string n #\a)))
 (check '(ht-test (make-eq-hashtable) symbolize) #t)
+(check '(ht-test (make-hashtable eq-hash eq?) symbolize) #t)
 (define (identity n) n)
 (check '(ht-test (make-eqv-hashtable) identity) #t)
+(check '(ht-test (make-hashtable eqv-hash eqv?) identity) #t)
 
 (write-string "All tests pass.")
 (newline)
