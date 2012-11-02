@@ -13,16 +13,7 @@
 ;;; 2011-06-11  RB  Updated for Ruse/SC.
 ;;; 2012-11-01  GDR Updated for toy Scheme in MPS kit.
 
-;; UNIMPL: (define test-environment (env-push (the-environment)))
-
-(define (check exp result)
-  (write-string "test: ") (write exp) (newline)
-  (write-string "expect: ") (write result) (newline)
-  (define actually (eval exp ; UNIMPL: test-environment
-                         ))
-  (write-string "got: ") (write actually) (newline)
-  (if (not (equal? actually result))
-    (error exp)))
+(load "test-common.scm")
 
 ;;; let, let*, letrec
 
