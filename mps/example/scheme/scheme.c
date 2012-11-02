@@ -2314,6 +2314,21 @@ static obj_t entry_procedurep(obj_t env, obj_t op_env, obj_t operator, obj_t ope
 }
 
 
+/* (apply proc args)
+ * Proc must be a procedure and args must be a list. Calls proc with
+ * the elements of args as the actual arguments.
+ * See R4RS 6.9.
+ */
+static obj_t entry_apply(obj_t env, obj_t op_env, obj_t operator, obj_t operands)
+{
+  obj_t proc, args;
+  eval_args(operator->operator.name, env, op_env, operands, 2, &proc, &args);
+  unless(TYPE(proc) == TYPE_OPERATOR)
+    error("%s: first argument must be a procedure", operator->operator.name);
+  return (*proc->operator.entry)(env, op_env, operator, args);
+}
+
+
 static obj_t entry_add(obj_t env, obj_t op_env, obj_t operator, obj_t operands)
 {
   obj_t args;
@@ -3337,6 +3352,7 @@ static struct {char *name; entry_t entry;} funtab[] = {
   {"negative?", entry_negativep},
   {"symbol?", entry_symbolp},
   {"procedure?", entry_procedurep},
+  {"apply", entry_apply},
   {"+", entry_add},
   {"-", entry_subtract},
   {"*", entry_multiply},
