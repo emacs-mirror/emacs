@@ -131,6 +131,10 @@ that the dependent object is not protected. This means that the
 :term:`scan method` in the pool's :term:`object format` can read or
 write the dependent object.
 
+If an object contains a reference to its dependent object, you should
+:term:`fix` that reference, and be aware that if it is a weak
+reference then it may be splatted when the dependent object dies.
+
 The way you would normally use this feature in a weak hash table would
 be to put the table's keys in one object, and its values in another.
 (This would be necessary in any case, because the MPS does not support
@@ -142,9 +146,11 @@ splats the corresponding reference in the dependent object.
 
 For example::
 
+    obj_t obj_deleted;              /* deleted entry in hash table */
+
     typedef struct weak_array_s {
         struct weak_array_s *dependent;
-        size_t length;              /* actually length * 2 + 1 */
+        size_t length;              /* tagged as "length * 2 + 1" */
         obj_t slot[1];
     } weak_array_s, *weak_array_t;
 
@@ -163,18 +169,24 @@ For example::
     {
         MPS_SCAN_BEGIN(ss) {
             while (base < limit) {
+                mps_addr_t p;
                 weak_array_t a = base;
-                size_t i, length = a->length >> 1;
+                size_t i, length = a->length >> 1; /* untag */
+                p = a->dependent;
+                MPS_FIX12(ss, &p);
+                a->dependent = p;
                 for (i = 0; i < length; ++i) {
-                    mps_addr_t p = a->slot[i];
+                    p = a->slot[i];
                     if (MPS_FIX1(ss, p)) {
                         mps_res_t res = MPS_FIX2(ss, &p);
                         if (res != MPS_RES_OK) return res;
-                        if (p == NULL) {
+                        if (p == NULL && a->dependent) {
                             /* key/value was splatted: splat value/key too */
-                            a->dependent->slot[i] = NULL;
+                            a->dependent->slot[i] = obj_deleted;
+                            a->slot[i] = obj_deleted;
+                        } else {
+                            a->slot[i] = p;
                         }
-                        a->slot[i] = p;
                     }
                 }
                 base += offsetof(weak_array_s, slot) + a->length * sizeof a->slot[0];
