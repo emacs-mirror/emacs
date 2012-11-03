@@ -351,51 +351,48 @@ following text.)
 control characters, Emacs provides several types of escape syntax that
 you can use to specify non-@acronym{ASCII} text characters.
 
-@cindex unicode character escape
-  You can specify characters by their Unicode values.
-@code{?\u@var{nnnn}} represents a character that maps to the Unicode
-code point @samp{U+@var{nnnn}} (by convention, Unicode code points are
-given in hexadecimal).  There is a slightly different syntax for
-specifying characters with code points higher than
-@code{U+@var{ffff}}: @code{\U00@var{nnnnnn}} represents the character
-whose code point is @samp{U+@var{nnnnnn}}.  The Unicode Standard only
-defines code points up to @samp{U+@var{10ffff}}, so if you specify a
-code point higher than that, Emacs signals an error.
-
-  This peculiar and inconvenient syntax was adopted for compatibility
-with other programming languages.  Unlike some other languages, Emacs
-Lisp supports this syntax only in character literals and strings.
-
 @cindex @samp{\} in character constant
 @cindex backslash in character constants
-@cindex octal character code
-  The most general read syntax for a character represents the
-character code in either octal or hex.  To use octal, write a question
-mark followed by a backslash and the octal character code (up to three
-octal digits); thus, @samp{?\101} for the character @kbd{A},
-@samp{?\001} for the character @kbd{C-a}, and @code{?\002} for the
-character @kbd{C-b}.  Although this syntax can represent any
-@acronym{ASCII} character, it is preferred only when the precise octal
-value is more important than the @acronym{ASCII} representation.
+@cindex unicode character escape
+  Firstly, you can specify characters by their Unicode values.
+@code{?\u@var{nnnn}} represents a character with Unicode code point
+@samp{U+@var{nnnn}}, where @var{nnnn} is (by convention) a hexadecimal
+number with exactly four digits.  The backslash indicates that the
+subsequent characters form an escape sequence, and the @samp{u}
+specifies a Unicode escape sequence.
 
-@example
-@group
-?\012 @result{} 10         ?\n @result{} 10         ?\C-j @result{} 10
-?\101 @result{} 65         ?A @result{} 65
-@end group
-@end example
+  There is a slightly different syntax for specifying Unicode
+characters with code points higher than @code{U+@var{ffff}}:
+@code{?\U00@var{nnnnnn}} represents the character with code point
+@samp{U+@var{nnnnnn}}, where @var{nnnnnn} is a six-digit hexadecimal
+number.  The Unicode Standard only defines code points up to
+@samp{U+@var{10ffff}}, so if you specify a code point higher than
+that, Emacs signals an error.
 
-  To use hex, write a question mark followed by a backslash, @samp{x},
-and the hexadecimal character code.  You can use any number of hex
-digits, so you can represent any character code in this way.
-Thus, @samp{?\x41} for the character @kbd{A}, @samp{?\x1} for the
-character @kbd{C-a}, and @code{?\xe0} for the Latin-1 character
+  Secondly, you can specify characters by their hexadecimal character
+codes.  A hexadecimal escape sequence consists of a backslash,
+@samp{x}, and the hexadecimal character code.  Thus, @samp{?\x41} is
+the character @kbd{A}, @samp{?\x1} is the character @kbd{C-a}, and
+@code{?\xe0} is the character
 @iftex
 @samp{@`a}.
 @end iftex
 @ifnottex
 @samp{a} with grave accent.
 @end ifnottex
+You can use any number of hex digits, so you can represent any
+character code in this way.
+
+@cindex octal character code
+  Thirdly, you can specify characters by their character code in
+octal.  An octal escape sequence consists of a backslash followed by
+up to three octal digits; thus, @samp{?\101} for the character
+@kbd{A}, @samp{?\001} for the character @kbd{C-a}, and @code{?\002}
+for the character @kbd{C-b}.  Only characters up to octal code 777 can
+be specified this way.
+
+  These escape sequences may also be used in strings.  @xref{Non-ASCII
+in Strings}.
 
 @node Ctl-Char Syntax
 @subsubsection Control-Character Syntax
@@ -1026,40 +1023,53 @@ but the newline is ignored if escaped."
 @node Non-ASCII in Strings
 @subsubsection Non-@acronym{ASCII} Characters in Strings
 
-  You can include a non-@acronym{ASCII} international character in a
-string constant by writing it literally.  There are two text
-representations for non-@acronym{ASCII} characters in Emacs strings
-(and in buffers): unibyte and multibyte (@pxref{Text
-Representations}).  If the string constant is read from a multibyte
-source, such as a multibyte buffer or string, or a file that would be
-visited as multibyte, then Emacs reads the non-@acronym{ASCII}
-character as a multibyte character and automatically makes the string
-a multibyte string.  If the string constant is read from a unibyte
-source, then Emacs reads the non-@acronym{ASCII} character as unibyte,
-and makes the string unibyte.
+  There are two text representations for non-@acronym{ASCII}
+characters in Emacs strings: multibyte and unibyte (@pxref{Text
+Representations}).  Roughly speaking, unibyte strings store raw bytes,
+while multibyte strings store human-readable text.  Each character in
+a unibyte string is a byte, i.e.@: its value is between 0 and 255.  By
+contrast, each character in a multibyte string may have a value
+between 0 to 4194303 (@pxref{Character Type}).  In both cases,
+characters above 127 are non-@acronym{ASCII}.
 
-  Instead of writing a non-@acronym{ASCII} character literally into a
-multibyte string, you can write it as its character code using a hex
-escape, @samp{\x@var{nnnnnnn}}, with as many digits as necessary.
-(Multibyte non-@acronym{ASCII} character codes are all greater than
-256.)  You can also specify a character in a multibyte string using
-the @samp{\u} or @samp{\U} Unicode escape syntax (@pxref{General
-Escape Syntax}).  In either case, any character which is not a valid
-hex digit terminates the construct.  If the next character in the
-string could be interpreted as a hex digit, write @w{@samp{\ }}
-(backslash and space) to terminate the hex escape---for example,
+  You can include a non-@acronym{ASCII} character in a string constant
+by writing it literally.  If the string constant is read from a
+multibyte source, such as a multibyte buffer or string, or a file that
+would be visited as multibyte, then Emacs reads each
+non-@acronym{ASCII} character as a multibyte character and
+automatically makes the string a multibyte string.  If the string
+constant is read from a unibyte source, then Emacs reads the
+non-@acronym{ASCII} character as unibyte, and makes the string
+unibyte.
+
+  Instead of writing a character literally into a multibyte string,
+you can write it as its character code using an escape sequence.
+@xref{General Escape Syntax}, for details about escape sequences.
+
+  If you use any Unicode-style escape sequence @samp{\uNNNN} or
+@samp{\U00NNNNNN} in a string constant (even for an @acronym{ASCII}
+character), Emacs automatically assumes that it is multibyte.
+
+  You can also use hexadecimal escape sequences (@samp{\x@var{n}}) and
+octal escape sequences (@samp{\@var{n}}) in string constants.
+@strong{But beware:} If a string constant contains hexadecimal or
+octal escape sequences, and these escape sequences all specify unibyte
+characters (i.e.@: less than 256), and there are no other literal
+non-@acronym{ASCII} characters or Unicode-style escape sequences in
+the string, then Emacs automatically assumes that it is a unibyte
+string.  That is to say, it assumes that all non-@acronym{ASCII}
+characters occurring in the string are 8-bit raw bytes.
+
+  In hexadecimal and octal escape sequences, the escaped character
+code may contain a variable number of digits, so the first subsequent
+character which is not a valid hexadecimal or octal digit terminates
+the escape sequence.  If the next character in a string could be
+interpreted as a hexadecimal or octal digit, write @w{@samp{\ }}
+(backslash and space) to terminate the escape sequence.  For example,
 @w{@samp{\xe0\ }} represents one character, @samp{a} with grave
 accent.  @w{@samp{\ }} in a string constant is just like
 backslash-newline; it does not contribute any character to the string,
-but it does terminate the preceding hex escape.  Using any hex escape
-in a string (even for an @acronym{ASCII} character) automatically
-forces the string to be multibyte.
-
-  You can represent a unibyte non-@acronym{ASCII} character with its
-character code, which must be in the range from 128 (0200 octal) to
-255 (0377 octal).  If you write all such character codes in octal and
-the string contains no other characters forcing it to be multibyte,
-this produces a unibyte string.
+but it does terminate any preceding hex escape.
 
 @node Nonprinting Characters
 @subsubsection Nonprinting Characters in Strings

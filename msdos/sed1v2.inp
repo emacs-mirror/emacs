@@ -55,11 +55,11 @@ s/\.h\.in/.h-in/
 /^LIB_STANDARD *=/s/@LIB_STANDARD@//
 /^LIB_MATH *=/s/@LIB_MATH@/-lm/
 /^LIB_PTHREAD *=/s/@LIB_PTHREAD@//
-/^LIBTIFF *=/s/@LIBTIFF@//
-/^LIBJPEG *=/s/@LIBJPEG@//
-/^LIBPNG *=/s/@LIBPNG@//
-/^LIBGIF *=/s/@LIBGIF@//
-/^LIBXPM *=/s/@LIBXPM@//
+s/ *@LIBTIFF@//
+s/ *@LIBJPEG@//
+s/ *@LIBPNG@//
+s/ *@LIBGIF@//
+s/ *@LIBXPM@//
 /^XFT_LIBS *=/s/@XFT_LIBS@//
 /^FONTCONFIG_CFLAGS *=/s/@FONTCONFIG_CFLAGS@//
 /^FONTCONFIG_LIBS *=/s/@FONTCONFIG_LIBS@//
@@ -95,10 +95,8 @@ s/\.h\.in/.h-in/
 /^LIBXML2_CFLAGS *=/s/@LIBXML2_CFLAGS@//
 /^WIDGET_OBJ *=/s/@WIDGET_OBJ@//
 /^CYGWIN_OBJ *=/s/@CYGWIN_OBJ@//
+/^WINDOW_SYSTEM_OBJ *=/s/@WINDOW_SYSTEM_OBJ@//
 /^MSDOS_OBJ *=/s/= */= dosfns.o msdos.o w16select.o/
-/^ns_appdir *=/s/@ns_appdir@//
-/^ns_appbindir *=/s/@ns_appbindir@//
-/^ns_appsrc *=/s/@ns_appsrc@//
 /^NS_OBJ *=/s/@NS_OBJ@//
 /^NS_OBJC_OBJ *=/s/@NS_OBJC_OBJ@//
 /^GNU_OBJC_CFLAGS*=/s/@GNU_OBJC_CFLAGS@//
@@ -107,6 +105,7 @@ s/\.h\.in/.h-in/
 /^LIB_PTHREAD_SIGMASK *=/s/@[^@\n]*@//
 /^LIB_CLOCK_GETTIME *=/s/@[^@\n]*@//g
 /^LIB_TIMER_TIME *=/s/@[^@\n]*@//g
+/^LIB_EXECINFO *=/s/@[^@\n]*@//g
 /^LIBGNUTLS_LIBS *=/s/@[^@\n]*@//
 /^LIBGNUTLS_CFLAGS *=/s/@[^@\n]*@//
 /^GETLOADAVG_LIBS *=/s/@[^@\n]*@//
@@ -143,7 +142,7 @@ s/\.h\.in/.h-in/
 /^	 *test "X\$(PAXCTL)" = X/d
 /^	 *test "\$(CANNOT_DUMP)" = "yes"/d
 /^	if test "\$(CANNOT_DUMP)" =/,/^	else /d
-/^	-\{0,1\} *ln -/s/bootstrap-emacs\$(EXEEXT).*$/bootstrap-emacs$(EXEEXT)/
+/^	-\{0,1\} *ln /s/bootstrap-emacs\$(EXEEXT).*$/bootstrap-emacs$(EXEEXT)/
 /^	fi/d
 /^	 *LC_ALL=C \$(RUN_TEMACS)/i\
 	stubedit temacs.exe minstack=1024k
@@ -170,7 +169,7 @@ s/^	[^ 	]*move-if-change /	update /
 /^	#/d
 /^	cd.*make-docfile/s!$!; cd ../src!
 /^	@: /d
-/^	-\{0,1\} *ln -/s/ln -f/cp -pf/
+/^	-\{0,1\} *ln /s/ln /cp /
 /^[ 	]touch /s/touch/djecho $@ >/
 s/@YMF_PASS_LDFLAGS@/flags/
 s/@lisp_frag@//

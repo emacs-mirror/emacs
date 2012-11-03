@@ -1,5 +1,28 @@
 2012-11-03  Glenn Morris  <rgm@gnu.org>
 
+	* emacs-lisp/cl-macs.el (cl-parse-loop-clause):
+	Rename handler properties back from cl-- to cl-.  (Bug#12788)
+
+	* emacs-lisp/cl-macs.el (cl-do-all-symbols): Add doc string.
+
+2012-11-03  Eli Zaretskii  <eliz@gnu.org>
+
+	* term/pc-win.el: Don't load term/internal from here.
+
+	* loadup.el: Load term/internal from here.
+
+2012-11-03  Fabián Ezequiel Gallina  <fgallina@cuca>
+
+	* progmodes/python.el (inferior-python-mode): Fix hang in
+	jit-lock (Bug#12645).
+
+2012-11-03  Martin Rudalics  <rudalics@gmx.at>
+
+	* window.el (switch-to-visible-buffer)
+	(switch-to-buffer-preserve-window-point): Fix doc-strings.
+
+2012-11-03  Glenn Morris  <rgm@gnu.org>
+
 	* emacs-lisp/cl-lib.el (cl--random-time):
 	Rename from cl-random-time.  (Bug#12773)
 	(cl--gensym-counter, cl--random-state): Update callers.

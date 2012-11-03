@@ -1,3 +1,13 @@
+2012-11-03  Eli Zaretskii  <eliz@gnu.org>
+
+	* sedlibmk.inp: Sync with changes in lib/Makefile.in.
+	(HAVE_DECL_ENVIRON, GNULIB_ENVIRON): Edit to require declaration
+	through lib/unistd.h.
+
+	* sed1v2.inp: Sync with changes in src/Makefile.in.
+
+	* sed2v2.inp: Sync with changes in src/config.in.
+
 2012-10-08  Eli Zaretskii  <eliz@gnu.org>
 
 	* sed1v2.inp (W32_LIBS, W32_OBJ): Edit to empty.
