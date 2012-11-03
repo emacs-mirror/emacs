@@ -1,3 +1,10 @@
+2012-11-03  Glenn Morris  <rgm@gnu.org>
+
+	* emacs-lisp/cl-lib.el (cl--random-time):
+	Rename from cl-random-time.  (Bug#12773)
+	(cl--gensym-counter, cl--random-state): Update callers.
+	* emacs-lisp/cl-extra.el (cl-make-random-state): Update callers.
+
 2012-11-03  Chong Yidong  <cyd@gnu.org>
 
 	* cus-start.el: Make cursor-type customizable (Bug#11633).
