@@ -1,3 +1,8 @@
+2012-11-03  Fabián Ezequiel Gallina  <fgallina@cuca>
+
+	* progmodes/python.el (inferior-python-mode): Fix hang in
+	jit-lock (Bug#12645).
+
 2012-11-03  Martin Rudalics  <rudalics@gmx.at>
 
 	* window.el (switch-to-visible-buffer)
