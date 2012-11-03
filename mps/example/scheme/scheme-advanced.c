@@ -168,8 +168,8 @@ typedef struct vector_s {
  * pointers (with bottom bit(s) zero) can be distinguished from other
  * data types (with bottom bit(s) non-zero). Here we use a bottom
  * bit of 1 for integers. See pool/awl. */
-#define TAG_LENGTH(i) (((i) << 1) + 1)
-#define UNTAG_LENGTH(i) ((i) >> 1)
+#define TAG_COUNT(i) (((i) << 1) + 1)
+#define UNTAG_COUNT(i) ((i) >> 1)
 
 typedef struct buckets_s {
   struct buckets_s *dependent;  /* the dependent object */
@@ -179,7 +179,7 @@ typedef struct buckets_s {
   obj_t bucket[1];              /* hash buckets */
 } buckets_s, *buckets_t;
 
-typedef unsigned long (*hash_t)(obj_t obj);
+typedef unsigned long (*hash_t)(obj_t obj, mps_ld_t ld);
 typedef int (*cmp_t)(obj_t obj1, obj_t obj2);
 
 /* %%MPS: The hash table is address-based, and so depends on the
@@ -565,18 +565,26 @@ static obj_t make_operator(char *name,
 
 static obj_t make_port(obj_t name, FILE *stream)
 {
+  mps_addr_t port_ref;
   obj_t obj;
   mps_addr_t addr;
   size_t size = ALIGN(sizeof(port_s));
   do {
     mps_res_t res = mps_reserve(&addr, obj_ap, size);
-    if (res != MPS_RES_OK) error("out of memory in make_operator");
+    if (res != MPS_RES_OK) error("out of memory in make_port");
     obj = addr;
     obj->port.type = TYPE_PORT;
     obj->port.name = name;
     obj->port.stream = stream;
   } while(!mps_commit(obj_ap, addr, size));
   total += sizeof(port_s);
+
+  /* %%MPS: Register the port object for finalization.  When the object is
+     no longer referenced elsewhere, a message will be received in `mps_chat`
+     so that the file can be closed. See topic/finalization. */
+  port_ref = obj;
+  mps_finalize(arena, &port_ref);
+
   return obj;
 }
 
@@ -627,9 +635,9 @@ static buckets_t make_buckets(size_t length, mps_ap_t ap)
     if (res != MPS_RES_OK) error("out of memory in make_buckets");
     buckets = addr;
     buckets->dependent = NULL;
-    buckets->length = TAG_LENGTH(length);
-    buckets->used = TAG_LENGTH(0);
-    buckets->deleted = TAG_LENGTH(0);
+    buckets->length = TAG_COUNT(length);
+    buckets->used = TAG_COUNT(0);
+    buckets->deleted = TAG_COUNT(0);
     for(i = 0; i < length; ++i) {
       buckets->bucket[i] = NULL;
     }
@@ -726,9 +734,13 @@ static unsigned long hash(const char *s, size_t length) {
 
 /* Hash table implementation */
 
-static unsigned long eq_hash(obj_t obj)
+/* %%MPS: When taking the hash of an address, we record the dependency
+ * on its location by calling mps_ld_add. See topic/location.
+ */
+static unsigned long eq_hash(obj_t obj, mps_ld_t ld)
 {
-  union {char s[sizeof(obj_t)]; obj_t addr;} u = {""};
+  union {char s[sizeof(obj_t)]; obj_t addr;} u;
+  if (ld) mps_ld_add(ld, arena, obj);
   u.addr = obj;
   return hash(u.s, sizeof(obj_t));
 }
@@ -738,7 +750,7 @@ static int eqp(obj_t obj1, obj_t obj2)
   return obj1 == obj2;
 }
 
-static unsigned long eqv_hash(obj_t obj)
+static unsigned long eqv_hash(obj_t obj, mps_ld_t ld)
 {
   switch(TYPE(obj)) {
   case TYPE_INTEGER:
@@ -746,7 +758,7 @@ static unsigned long eqv_hash(obj_t obj)
   case TYPE_CHARACTER:
     return obj->character.c;
   default:
-    return eq_hash(obj);
+      return eq_hash(obj, ld);
   }
 }
 
@@ -766,7 +778,7 @@ static int eqvp(obj_t obj1, obj_t obj2)
   }
 }
 
-static unsigned long string_hash(obj_t obj)
+static unsigned long string_hash(obj_t obj, mps_ld_t ld)
 {
   unless(TYPE(obj) == TYPE_STRING)
     error("string-hash: argument must be a string");
@@ -782,13 +794,13 @@ static int string_equalp(obj_t obj1, obj_t obj2)
           0 == strcmp(obj1->string.string, obj2->string.string));
 }
 
-static int buckets_find(obj_t tbl, buckets_t buckets, obj_t key, size_t *b)
+static int buckets_find(obj_t tbl, buckets_t buckets, obj_t key, mps_ld_t ld, size_t *b)
 {
   unsigned long i, h, probe;
-  unsigned long l = UNTAG_LENGTH(buckets->length) - 1;
+  unsigned long l = UNTAG_COUNT(buckets->length) - 1;
   int result = 0;
   assert(TYPE(tbl) == TYPE_TABLE);
-  h = tbl->table.hash(key);
+  h = tbl->table.hash(key, ld);
   probe = (h >> 8) | 1;
   h &= l;
   i = h;
@@ -811,8 +823,8 @@ static size_t table_size(obj_t tbl)
 {
   size_t used, deleted;
   assert(TYPE(tbl) == TYPE_TABLE);
-  used = UNTAG_LENGTH(tbl->table.keys->used);
-  deleted = UNTAG_LENGTH(tbl->table.keys->deleted);
+  used = UNTAG_COUNT(tbl->table.keys->used);
+  deleted = UNTAG_COUNT(tbl->table.keys->deleted);
   assert(used >= deleted);
   return used - deleted;
 }
@@ -833,7 +845,7 @@ static int table_rehash(obj_t tbl, size_t new_length, obj_t key, size_t *key_buc
   int result = 0;
 
   assert(TYPE(tbl) == TYPE_TABLE);
-  length = UNTAG_LENGTH(tbl->table.keys->length);
+  length = UNTAG_COUNT(tbl->table.keys->length);
   new_keys = make_buckets(new_length, tbl->table.key_ap);
   new_values = make_buckets(new_length, tbl->table.value_ap);
   new_keys->dependent = new_values;
@@ -845,8 +857,7 @@ static int table_rehash(obj_t tbl, size_t new_length, obj_t key, size_t *key_buc
     if (old_key != NULL && old_key != obj_deleted) {
       int found;
       size_t b;
-      mps_ld_add(&tbl->table.ld, arena, old_key);
-      found = buckets_find(tbl, new_keys, old_key, &b);
+      found = buckets_find(tbl, new_keys, old_key, &tbl->table.ld, &b);
       assert(found);            /* new table shouldn't be full */
       assert(new_keys->bucket[b] == NULL); /* shouldn't be in new table */
       new_keys->bucket[b] = old_key;
@@ -859,7 +870,7 @@ static int table_rehash(obj_t tbl, size_t new_length, obj_t key, size_t *key_buc
     }
   }
 
-  assert(UNTAG_LENGTH(new_keys->used) == table_size(tbl));
+  assert(UNTAG_COUNT(new_keys->used) == table_size(tbl));
   tbl->table.keys = new_keys;
   tbl->table.values = new_values;
   return result;
@@ -874,34 +885,29 @@ static obj_t table_ref(obj_t tbl, obj_t key)
 {
   size_t b;
   assert(TYPE(tbl) == TYPE_TABLE);
-  if (buckets_find(tbl, tbl->table.keys, key, &b)) {
+  if (buckets_find(tbl, tbl->table.keys, key, NULL, &b)) {
     obj_t k = tbl->table.keys->bucket[b];
     if (k != NULL && k != obj_deleted)
       return tbl->table.values->bucket[b];
   }
   if (mps_ld_isstale(&tbl->table.ld, arena, key))
-    if (table_rehash(tbl, UNTAG_LENGTH(tbl->table.keys->length), key, &b))
+    if (table_rehash(tbl, UNTAG_COUNT(tbl->table.keys->length), key, &b))
       return tbl->table.values->bucket[b];
   return NULL;
 }
 
-/* %%MPS: When adding a key to an address-based hash table, we record
- * the dependency on its location by calling mps_ld_add. See
- * topic/location.
- */
 static int table_try_set(obj_t tbl, obj_t key, obj_t value)
 {
   size_t b;
   assert(TYPE(tbl) == TYPE_TABLE);
-  mps_ld_add(&tbl->table.ld, arena, key);
-  if (!buckets_find(tbl, tbl->table.keys, key, &b))
+  if (!buckets_find(tbl, tbl->table.keys, key, &tbl->table.ld, &b))
     return 0;
   if (tbl->table.keys->bucket[b] == NULL) {
     tbl->table.keys->bucket[b] = key;
     tbl->table.keys->used += 2; /* tagged */
   } else if (tbl->table.keys->bucket[b] == obj_deleted) {
     tbl->table.keys->bucket[b] = key;
-    assert(tbl->table.keys->deleted > TAG_LENGTH(0));
+    assert(tbl->table.keys->deleted > TAG_COUNT(0));
     tbl->table.keys->deleted -= 2; /* tagged */
   }
   tbl->table.values->bucket[b] = value;
@@ -919,7 +925,7 @@ static void table_set(obj_t tbl, obj_t key, obj_t value)
   assert(TYPE(tbl) == TYPE_TABLE);
   if (table_full(tbl) || !table_try_set(tbl, key, value)) {
     int res;
-    table_rehash(tbl, UNTAG_LENGTH(tbl->table.keys->length) * 2, NULL, NULL);
+    table_rehash(tbl, UNTAG_COUNT(tbl->table.keys->length) * 2, NULL, NULL);
     res = table_try_set(tbl, key, value);
     assert(res);                /* rehash should have made room */
   }
@@ -929,7 +935,7 @@ static void table_delete(obj_t tbl, obj_t key)
 {
   size_t b;
   assert(TYPE(tbl) == TYPE_TABLE);
-  if(buckets_find(tbl, tbl->table.keys, key, &b))
+  if(buckets_find(tbl, tbl->table.keys, key, &tbl->table.ld, &b))
     if(tbl->table.keys->bucket[b] == key) {
       tbl->table.keys->bucket[b] = obj_deleted;
       tbl->table.keys->deleted += 2; /* tagged */
@@ -961,6 +967,26 @@ static char *symbol_name(obj_t symbol)
   assert(TYPE(symbol) == TYPE_SYMBOL);
   assert(TYPE(symbol->symbol.name) == TYPE_STRING);
   return symbol->symbol.name->string.string;
+}
+
+
+/* port_close -- close and definalize a port                         %%MPS
+ *
+ * Ports objects are registered for finalization when they are created
+ * (see make_port). When closed, we definalize them. This is purely an
+ * optimization: it would be harmless to finalize them because setting
+ * 'stream' to NULL prevents the stream from being closed multiple
+ * times. See topic/finalization.
+ */
+static void port_close(obj_t port)
+{
+  assert(TYPE(port) == TYPE_PORT);
+  if(port->port.stream != NULL) {
+    mps_addr_t port_ref = port;
+    fclose(port->port.stream);
+    port->port.stream = NULL;
+    mps_definalize(arena, &port_ref);
+  }
 }
 
 
@@ -1077,7 +1103,7 @@ static void print(obj_t obj, unsigned depth, FILE *stream)
     } break;
 
     case TYPE_TABLE: {
-      size_t i, length = UNTAG_LENGTH(obj->table.keys->length);
+      size_t i, length = UNTAG_COUNT(obj->table.keys->length);
       fputs("#[hashtable", stream);
       for(i = 0; i < length; ++i) {
         obj_t k = obj->table.keys->bucket[i];
@@ -1396,8 +1422,6 @@ static void define(obj_t env, obj_t symbol, obj_t value)
 }
 
 
-static obj_t eval(obj_t env, obj_t op_env, obj_t exp);
-
 static obj_t eval(obj_t env, obj_t op_env, obj_t exp)
 {
   for(;;) {
@@ -1447,6 +1471,29 @@ static obj_t eval(obj_t env, obj_t op_env, obj_t exp)
     op_env = CADDR(result);
     exp = CAR(CDDDR(result));
   }
+}
+
+
+static void mps_chat(void);
+
+static obj_t load(obj_t env, obj_t op_env, obj_t filename) {
+  obj_t port, result = obj_undefined;
+  FILE *stream;
+  extern int errno;
+  assert(TYPE(filename) == TYPE_STRING);
+  stream = fopen(filename->string.string, "r");
+  if(stream == NULL)
+    error("load: cannot open %s: %s", filename->string.string, strerror(errno));
+  port = make_port(filename, stream);
+  for(;;) {
+    obj_t obj;
+    mps_chat();
+    obj = read(stream);
+    if(obj == obj_eof) break;
+    result = eval(env, op_env, obj);
+  }
+  port_close(port);
+  return result;
 }
 
 
@@ -2571,24 +2618,13 @@ static obj_t entry_open_input_file(obj_t env, obj_t op_env, obj_t operator, obj_
 {
   obj_t filename;
   FILE *stream;
-  obj_t port;
-  mps_addr_t port_ref;
   eval_args(operator->operator.name, env, op_env, operands, 1, &filename);
   unless(TYPE(filename) == TYPE_STRING)
     error("%s: argument must be a string", operator->operator.name);
   stream = fopen(filename->string.string, "r");
   if(stream == NULL)
-    /* TODO: "an error is signalled" */
     error("%s: cannot open input file", operator->operator.name);
-  port = make_port(filename, stream);
-
-  /* %%MPS: Register the port object for finalization.  When the object is
-     no longer referenced elsewhere, a message will be received in `mps_chat`
-     so that the file can be closed. See topic/finalization. */
-  port_ref = port;
-  mps_finalize(arena, &port_ref);
-
-  return port;
+  return make_port(filename, stream);
 }
 
 
@@ -2608,7 +2644,6 @@ static obj_t entry_open_output_file(obj_t env, obj_t op_env, obj_t operator, obj
     error("%s: argument must be a string", operator->operator.name);
   stream = fopen(filename->string.string, "w");
   if(stream == NULL)
-    /* TODO: "an error is signalled" */
     error("%s: cannot open output file", operator->operator.name);
   return make_port(filename, stream);
 }
@@ -2628,7 +2663,7 @@ static obj_t entry_close_port(obj_t env, obj_t op_env, obj_t operator, obj_t ope
   eval_args(operator->operator.name, env, op_env, operands, 1, &port);
   unless(TYPE(port) == TYPE_PORT)
     error("%s: argument must be a port", operator->operator.name);
-  port->port.stream = NULL;
+  port_close(port);
   return obj_undefined;
 }
 
@@ -2710,21 +2745,11 @@ static obj_t entry_newline(obj_t env, obj_t op_env, obj_t operator, obj_t operan
  */
 static obj_t entry_load(obj_t env, obj_t op_env, obj_t operator, obj_t operands)
 {
-  obj_t filename, obj, result = obj_undefined;
-  FILE *stream;
+  obj_t filename;
   eval_args(operator->operator.name, env, op_env, operands, 1, &filename);
   unless(TYPE(filename) == TYPE_STRING)
     error("%s: argument must be a string", operator->operator.name);
-  stream = fopen(filename->string.string, "r");
-  if(stream == NULL)
-    /* TODO: "an error is signalled" */
-    error("%s: cannot open input file", operator->operator.name);
-  for(;;) {
-    obj = read(stream);
-    if(obj == obj_eof) break;
-    result = eval(env, op_env, obj);
-  }
-  return result;
+  return load(env, op_env, filename);
 }
 
 
@@ -3214,7 +3239,7 @@ static obj_t entry_string_hash(obj_t env, obj_t op_env, obj_t operator, obj_t op
   eval_args(operator->operator.name, env, op_env, operands, 1, &arg);
   unless(TYPE(arg) == TYPE_STRING)
     error("%s: argument must be a string", operator->operator.name);
-  return make_integer(string_hash(arg));
+  return make_integer(string_hash(arg, NULL));
 }
 
 
@@ -3222,7 +3247,7 @@ static obj_t entry_eq_hash(obj_t env, obj_t op_env, obj_t operator, obj_t operan
 {
   obj_t arg;
   eval_args(operator->operator.name, env, op_env, operands, 1, &arg);
-  return make_integer(eq_hash(arg));
+  return make_integer(eq_hash(arg, NULL));
 }
 
 
@@ -3230,7 +3255,7 @@ static obj_t entry_eqv_hash(obj_t env, obj_t op_env, obj_t operator, obj_t opera
 {
   obj_t arg;
   eval_args(operator->operator.name, env, op_env, operands, 1, &arg);
-  return make_integer(eqv_hash(arg));
+  return make_integer(eqv_hash(arg, NULL));
 }
 
 
@@ -3471,7 +3496,7 @@ static obj_t entry_hashtable_keys(obj_t env, obj_t op_env, obj_t operator, obj_t
   unless(TYPE(tbl) == TYPE_TABLE)
     error("%s: first argument must be a hash table", operator->operator.name);
   vector = make_vector(table_size(tbl), obj_undefined);
-  length = UNTAG_LENGTH(tbl->table.keys->length);
+  length = UNTAG_COUNT(tbl->table.keys->length);
   for(i = 0; i < length; ++i) {
     obj_t key = tbl->table.keys->bucket[i];
     if(key != NULL && key != obj_deleted)
@@ -3919,21 +3944,23 @@ static mps_res_t buckets_scan(mps_ss_t ss, mps_addr_t base, mps_addr_t limit)
   MPS_SCAN_BEGIN(ss) {
     while (base < limit) {
       buckets_t buckets = base;
-      size_t i, length = UNTAG_LENGTH(buckets->length);
+      size_t i, length = UNTAG_COUNT(buckets->length);
       FIX(buckets->dependent);
-      if(buckets->dependent)
+      if(buckets->dependent != NULL)
         assert(buckets->dependent->length == buckets->length);
       for (i = 0; i < length; ++i) {
         mps_addr_t p = buckets->bucket[i];
         if (MPS_FIX1(ss, p)) {
           mps_res_t res = MPS_FIX2(ss, &p);
           if (res != MPS_RES_OK) return res;
-          if (p == NULL && buckets->dependent) {
+          if (p == NULL) {
             /* key/value was splatted: splat value/key too */
             p = obj_deleted;
-            buckets->dependent->bucket[i] = p;
             buckets->deleted += 2; /* tagged */
-            buckets->dependent->deleted += 2; /* tagged */
+            if (buckets->dependent != NULL) {
+              buckets->dependent->bucket[i] = p;
+              buckets->dependent->deleted += 2; /* tagged */
+            }
           }
           buckets->bucket[i] = p;
         }
@@ -3953,7 +3980,7 @@ static mps_res_t buckets_scan(mps_ss_t ss, mps_addr_t base, mps_addr_t limit)
 static mps_addr_t buckets_skip(mps_addr_t base)
 {
   buckets_t buckets = base;
-  size_t length = UNTAG_LENGTH(buckets->length);
+  size_t length = UNTAG_COUNT(buckets->length);
   return (char *)base +
     ALIGN(offsetof(buckets_s, bucket) +
           length * sizeof(buckets->bucket[0]));
@@ -4060,9 +4087,12 @@ static void mps_chat(void)
       /* We're only expecting ports to be finalized as they're the only
          objects registered for finalization.  See `entry_open_input_file`. */
       assert(TYPE(port) == TYPE_PORT);
-      printf("Port to file \"%s\" is dying. Closing file.\n",
-             port->port.name->string.string);
-      (void)fclose(port->port.stream);
+      if(port->port.stream) {
+        printf("Port to file \"%s\" is dying. Closing file.\n",
+               port->port.name->string.string);
+        (void)fclose(port->port.stream);
+        port->port.stream = NULL;
+      }
 
     } else {
       printf("Unknown message from MPS!\n");
@@ -4092,7 +4122,6 @@ static void *start(void *p, size_t s)
   int argc = tramp->argc;
   char **argv = tramp->argv;
   FILE *input = stdin;
-  int interactive = 1;
   size_t i;
   volatile obj_t env, op_env, obj;
   jmp_buf jb;
@@ -4151,14 +4180,13 @@ static void *start(void *p, size_t s)
 
   if(argc >= 2) {
     /* Non-interactive file execution */
-    input = fopen(argv[1], "r");
-    if(input == NULL) {
-      extern int errno;
-      fprintf(stderr, "Can't open %s: %s\n", argv[1], strerror(errno));
+    if(setjmp(*error_handler) != 0) {
+      fprintf(stderr, "%s\n", error_message);
       tramp->exit_code = EXIT_FAILURE;
-      return NULL;
+    } else {
+      load(env, op_env, make_string(strlen(argv[1]), argv[1]));
+      tramp->exit_code = EXIT_SUCCESS;
     }
-    interactive = 0;
   } else {
     /* Ask the MPS to tell us when it's garbage collecting so that we can
        print some messages.  Completely optional. */
@@ -4170,42 +4198,29 @@ static void *start(void *p, size_t s)
          "Try (vector-length (make-vector 100000 1)) to see the MPS in action.\n"
          "You can force a complete garbage collection with (gc).\n"
          "If you recurse too much the interpreter may crash from using too much C stack.");
-  }
-
-
-  /* Read-eval-print loop */
-  
-  for(;;) {
-    if(setjmp(*error_handler) != 0) {
-      fprintf(stderr, "%s\n", error_message);
-      if(!interactive) {
-        tramp->exit_code = EXIT_FAILURE;
-        return NULL;
+    for(;;) {
+      if(setjmp(*error_handler) != 0) {
+        fprintf(stderr, "%s\n", error_message);
       }
-    }
-    
-    mps_chat();
 
-    if(interactive)
+      mps_chat();
       printf("%lu, %lu> ", (unsigned long)total,
              (unsigned long)mps_collections(arena));
-    obj = read(input);
-    if(obj == obj_eof) break;
-    obj = eval(env, op_env, obj);
-    if(obj != obj_undefined) {
-      print(obj, 6, stdout);
-      putc('\n', stdout);
+      obj = read(input);
+      if(obj == obj_eof) break;
+      obj = eval(env, op_env, obj);
+      if(obj != obj_undefined) {
+        print(obj, 6, stdout);
+        putc('\n', stdout);
+      }
     }
-  }
-
-  if(interactive)
     puts("Bye.");
+    tramp->exit_code = EXIT_SUCCESS;
+  }
 
   /* See comment at the end of `main` about cleaning up. */
   mps_root_destroy(symtab_root);
   mps_root_destroy(globals_root);
-
-  tramp->exit_code = EXIT_SUCCESS;
   return NULL;
 }
 
