@@ -32,14 +32,14 @@ I'll be quoting the relevant sections of code as needed, but you may
 find it helpful to experiment with this interpeter yourself, in either
 of its versions:
 
-    :download:`scheme-malloc.c <../../../example/scheme/scheme-malloc.c>`
+:download:`scheme-malloc.c <../../../example/scheme/scheme-malloc.c>`
 
-        The Scheme interpreter before integration with the MPS, using
-        :term:`malloc` and :term:`free (2)` for memory management.
+    The Scheme interpreter before integration with the MPS, using
+    :term:`malloc` and :term:`free (2)` for memory management.
 
-    :download:`scheme.c <../../../example/scheme/scheme.c>`
+:download:`scheme.c <../../../example/scheme/scheme.c>`
 
-        The Scheme interpreter after integration with the MPS.
+    The Scheme interpreter after integration with the MPS.
 
 This simple interpreter allocates two kinds of objects on the
 :term:`heap`:
@@ -476,11 +476,11 @@ The :term:`forward method` is a function of type
 object, and its task is to replace the old object with a
 :term:`forwarding object` pointing to the new location of the object.
 
-    .. figure:: ../diagrams/copying.svg
-        :align: center
-        :alt: Diagram: Copying garbage collection.
+.. figure:: ../diagrams/copying.svg
+    :align: center
+    :alt: Diagram: Copying garbage collection.
 
-        Copying garbage collection.
+    Copying garbage collection.
 
 The forwarding object must satisfy these properties:
 
@@ -784,6 +784,8 @@ And finally the :term:`pool`::
 .. index::
    single: root; creating
    single: Scheme; root
+
+.. _guide-lang-root:
 
 Roots
 -----
