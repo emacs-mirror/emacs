@@ -152,20 +152,15 @@ extern bool suppress_checking EXTERNALLY_VISIBLE;
    on the few static Lisp_Objects used: all the defsubr as well
    as the two special buffers buffer_defaults and buffer_local_symbols.  */
 
+/* Number of bits in a Lisp_Object tag.  This can be used in #if.  */
+#define GCTYPEBITS 3
+
+/* 2**GCTYPEBITS.  This must be a macro that expands to a literal
+   integer constant, for MSVC.  */
+#define GCALIGNMENT 8
+
 enum Lisp_Bits
   {
-    /* Number of bits in a Lisp_Object tag.  This can be used in #if,
-       and for GDB's sake also as a regular symbol.  */
-    GCTYPEBITS =
-#define GCTYPEBITS 3
-	GCTYPEBITS,
-
-    /* 2**GCTYPEBITS.  This must also be a macro that expands to a
-       literal integer constant, for MSVC.  */
-    GCALIGNMENT =
-#define GCALIGNMENT 8
-	GCALIGNMENT,
-
     /* Number of bits in a Lisp_Object value, not counting the tag.  */
     VALBITS = BITS_PER_EMACS_INT - GCTYPEBITS,
 
@@ -383,15 +378,11 @@ enum CHECK_LISP_OBJECT_TYPE { CHECK_LISP_OBJECT_TYPE = 0 };
 
 /* In the size word of a vector, this bit means the vector has been marked.  */
 
-static ptrdiff_t const ARRAY_MARK_FLAG
 #define ARRAY_MARK_FLAG PTRDIFF_MIN
-      = ARRAY_MARK_FLAG;
 
 /* In the size word of a struct Lisp_Vector, this bit means it's really
    some other vector-like object.  */
-static ptrdiff_t const PSEUDOVECTOR_FLAG
 #define PSEUDOVECTOR_FLAG (PTRDIFF_MAX - PTRDIFF_MAX / 2)
-      = PSEUDOVECTOR_FLAG;
 
 /* In a pseudovector, the size field actually contains a word with one
    PSEUDOVECTOR_FLAG bit set, and one of the following values extracted
@@ -473,9 +464,7 @@ enum lsb_bits
 
 #else  /* not USE_LSB_TAG */
 
-static EMACS_INT const VALMASK
 #define VALMASK VAL_MAX
-      = VALMASK;
 
 #define XTYPE(a) ((enum Lisp_Type) ((EMACS_UINT) XLI (a) >> VALBITS))
 
@@ -523,14 +512,9 @@ static EMACS_INT const VALMASK
 #define EQ(x, y) (XHASH (x) == XHASH (y))
 
 /* Largest and smallest representable fixnum values.  These are the C
-   values.  They are macros for use in static initializers, and
-   constants for visibility to GDB.  */
-static EMACS_INT const MOST_POSITIVE_FIXNUM =
+   values.  They are macros for use in static initializers.  */
 #define MOST_POSITIVE_FIXNUM (EMACS_INT_MAX >> INTTYPEBITS)
-	MOST_POSITIVE_FIXNUM;
-static EMACS_INT const MOST_NEGATIVE_FIXNUM =
 #define MOST_NEGATIVE_FIXNUM (-1 - MOST_POSITIVE_FIXNUM)
-	MOST_NEGATIVE_FIXNUM;
 
 /* Value is non-zero if I doesn't fit into a Lisp fixnum.  It is
    written this way so that it also works if I is of unsigned
