@@ -66,16 +66,15 @@ See :ref:`topic-finalization`.
 Example: interactive chatter
 ----------------------------
 
-The example Scheme interpreter enables all message types at
-startup::
+The toy Scheme interpreter enables garbage collection messages when
+started in interactive mode::
 
-    mps_message_type_enable(arena, mps_message_type_finalization());
     mps_message_type_enable(arena, mps_message_type_gc());
     mps_message_type_enable(arena, mps_message_type_gc_start());
 
-And then after every interactive command finishes, it reads all
+Then, after every interactive command finishes, it reads these
 messages from the message queue and prints a description of the
-content of each one::
+contents of each one::
 
     static void mps_chat(void)
     {
