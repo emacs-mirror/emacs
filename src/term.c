@@ -3235,7 +3235,6 @@ use the Bourne shell command `TERM=... export TERM' (C-shell:\n\
     FrameCols (tty) = FRAME_COLS (f);
     tty->specified_window = FRAME_LINES (f);
 
-    FRAME_CAN_HAVE_SCROLL_BARS (f) = 0;
     FRAME_VERTICAL_SCROLL_BAR_TYPE (f) = vertical_scroll_bar_none;
     terminal->char_ins_del_ok = 1;
     baud_rate = 19200;

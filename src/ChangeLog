@@ -1,5 +1,12 @@
 2012-11-03  Dmitry Antipov  <dmantipov@yandex.ru>
 
+	* frame.h (struct frame): Drop can_have_scroll_bars member
+	which is meaningless for a long time.  Adjust comments.
+	(FRAME_CAN_HAVE_SCROLL_BARS): Remove.
+	* frame.c, nsfns.m, term.c, w32fns.c, xfns.c: Adjust users.
+
+2012-11-03  Dmitry Antipov  <dmantipov@yandex.ru>
+
 	* window.c (decode_next_window_args): Update window arg after
 	calling decode_live_window and so fix crash reported at
 	http://lists.gnu.org/archive/html/emacs-devel/2012-11/msg00035.html

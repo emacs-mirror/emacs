@@ -4284,9 +4284,6 @@ This function is an internal primitive--use `make-frame' instead.  */)
 
   XSETFRAME (frame, f);
 
-  /* Note that Windows does support scroll bars.  */
-  FRAME_CAN_HAVE_SCROLL_BARS (f) = 1;
-
   /* By default, make scrollbars the system standard width. */
   FRAME_CONFIG_SCROLL_BAR_WIDTH (f) = GetSystemMetrics (SM_CXVSCROLL);
 
@@ -5387,7 +5384,6 @@ x_create_tip_frame (struct w32_display_info *dpyinfo,
   Finsert (1, &text);
   set_buffer_internal_1 (old_buffer);
 
-  FRAME_CAN_HAVE_SCROLL_BARS (f) = 0;
   record_unwind_protect (unwind_create_tip_frame, frame);
 
   /* By setting the output method, we're essentially saying that

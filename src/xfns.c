@@ -3111,9 +3111,6 @@ This function is an internal primitive--use `make-frame' instead.  */)
 
   XSETFRAME (frame, f);
 
-  /* Note that X Windows does support scroll bars.  */
-  FRAME_CAN_HAVE_SCROLL_BARS (f) = 1;
-
   f->terminal = dpyinfo->terminal;
 
   f->output_method = output_x_window;
@@ -4596,7 +4593,6 @@ x_create_tip_frame (struct x_display_info *dpyinfo,
   Finsert (1, &text);
   set_buffer_internal_1 (old_buffer);
 
-  FRAME_CAN_HAVE_SCROLL_BARS (f) = 0;
   record_unwind_protect (unwind_create_tip_frame, frame);
 
   f->terminal = dpyinfo->terminal;
