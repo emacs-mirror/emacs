@@ -1061,7 +1061,7 @@ string.  That is to say, it assumes that all non-@acronym{ASCII}
 characters occurring in the string are 8-bit raw bytes.
 
   In hexadecimal and octal escape sequences, the escaped character
-code may contain any number of digits, so the first subsequent
+code may contain a variable number of digits, so the first subsequent
 character which is not a valid hexadecimal or octal digit terminates
 the escape sequence.  If the next character in a string could be
 interpreted as a hexadecimal or octal digit, write @w{@samp{\ }}
