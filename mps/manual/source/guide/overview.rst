@@ -75,11 +75,11 @@ Technical introduction
 The figure below gives a simplified picture of a program's memory from
 the point of view of the Memory Pool System.
 
-    .. figure:: ../diagrams/overview.svg
-        :align: center
-        :alt: Diagram: Overview of the Memory Pool System.
+.. figure:: ../diagrams/overview.svg
+    :align: center
+    :alt: Diagram: Overview of the Memory Pool System.
 
-        Overview of the Memory Pool System.
+    Overview of the Memory Pool System.
 
 The **arena** is the top-level data structure in the MPS. An
 :term:`arena` is responsible for requesting :term:`memory (3)` from

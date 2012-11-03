@@ -170,11 +170,11 @@ implements the environment as a list of *frames*, each of which is a
 list of *bindings*, each binding being a pair of a symbol and its
 value, as shown here:
 
-    .. figure:: ../diagrams/scheme-env.svg
-        :align: center
-        :alt: Diagram: The environment data structure in the Scheme interpreter.
+.. figure:: ../diagrams/scheme-env.svg
+    :align: center
+    :alt: Diagram: The environment data structure in the Scheme interpreter.
 
-        The environment data structure in the Scheme interpreter.
+    The environment data structure in the Scheme interpreter.
 
 In this case, because the evaluation is taking place at top level,
 there is only one frame in the environment (the global frame). And
