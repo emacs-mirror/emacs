@@ -20,6 +20,8 @@ client program needs to recognize and correctly deal with such cases).
 
 The interface is intended to support (amongst other things)
 address-based hash tables and that will be used as a running example.
+See the section :ref:`guide-advanced-location` in the Guide for a more
+detailed look at this example.
 
 
 Terminology
@@ -46,49 +48,6 @@ moved since the respective dependency was made.
 
 
 .. index::
-   single: location dependency; example
-   single: hash table; address-based example 
-   single: Scheme; address-based hash table
-
-Example: ``eq?`` hash table
----------------------------
-
-The toy Scheme interpreter contains a simple address-based (``eq?``)
-hash table implementation. It hashes the addresses of its keys, and so
-depends on their location.
-
-If it fails to take account of this location dependency, the hash
-tables become invalid after a garbage collection. In the interaction
-shown below (with a naïve version of the code) you'll see that
-although the keys remain present in the table after garbage
-collection, they cannot be found. This is because their locations (and
-hence their hashes) have changed, but their positions in the table
-have not been updated to match.
-
-.. code-block:: none
-
-    MPS Toy Scheme Example
-    10240, 0> (define ht (make-eq-hashtable))
-    ht
-    10584, 0> (hashtable-set! ht 'one 1)
-    10768, 0> (hashtable-set! ht 'two 2)
-    10952, 0> (hashtable-set! ht 'three 3)
-    11136, 0> ht
-    #[hashtable (two 2) (three 3) (one 1)]
-    11136, 0> (hashtable-ref ht 'two #f)
-    2
-    11280, 0> (gc)
-    11304, 1> (hashtable-ref ht 'one #f)
-    #f
-    11448, 1> (hashtable-ref ht 'two #f)
-    #f
-    11592, 1> (hashtable-ref ht 'three #f)
-    #f
-    11736, 1> ht
-    #[hashtable (two 2) (three 3) (one 1)]
-
-
-.. index::
    single: location dependency; creating
 
 Creating dependencies
@@ -99,48 +58,27 @@ The :term:`client program` must provide space for the
 larger structure. This structure can be in memory managed by the MPS
 or elsewhere; that doesn't matter.
 
-For example, the Scheme interpreter inlines the location dependency in
-its hash table structure:
+For example, the toy Scheme interpreter inlines the location
+dependency in its hash table structure:
 
 .. code-block:: c
-    :emphasize-lines: 3
+    :emphasize-lines: 5
 
     typedef struct table_s {
       type_t type;                  /* TYPE_TABLE */
+      hash_t hash;                  /* hash function */
+      cmp_t cmp;                    /* comparison function */
       mps_ld_s ld;                  /* location dependency */
       obj_t buckets;                /* hash buckets */
     } table_s;
 
 Before the first use, the location dependency must be reset by calling
-function :c:func:`mps_ld_reset`.
+the function :c:func:`mps_ld_reset`.
 
 .. note::
 
     This means that it is not possible to statically create a location
     dependency that has been reset.
-
-For example:
-
-.. code-block:: c
-    :emphasize-lines: 15
-
-    static obj_t make_table(void)
-    {
-        obj_t obj;
-        mps_addr_t addr;
-        size_t size = ALIGN(sizeof(table_s));
-        do {
-            mps_res_t res = mps_reserve(&addr, obj_ap, size);
-            if (res != MPS_RES_OK) error("out of memory in make_table");
-            obj = addr;
-            obj->table.type = TYPE_TABLE;
-            obj->table.buckets = NULL;
-        } while (!mps_commit(obj_ap, addr, size));
-        total += size;
-        obj->table.buckets = make_buckets(8);
-        mps_ld_reset(&obj->table.ld, arena);
-        return obj;
-    }
 
 You can call :c:func:`mps_ld_reset` at any later point to clear all
 dependencies from the structure. For example, this is normally done
@@ -164,42 +102,19 @@ references from one dependency to another.
 
 For example, in an address-based hash table implementation, each key
 that is added to the table must be added to the dependency before its
-address is hashed. In the toy Scheme interpreter, addresses are hashed
-during the call to the function ``buckets_find``, so the key must be
-added to the location dependency before that:
+address is hashed. In the toy Scheme interpreter this is most easily
+done in the function that hashes an address:
 
 .. code-block:: c
     :emphasize-lines: 4
 
-    static int table_try_set(obj_t tbl, obj_t key, obj_t value)
+    static unsigned long eq_hash(obj_t obj, mps_ld_t ld)
     {
-        struct bucket_s *b;
-        mps_ld_add(&tbl->table.ld, arena, key);
-        b = buckets_find(tbl->table.buckets, key);
-        if (b == NULL)
-            return 0;
-        if (b->key == NULL)
-            b->key = key;
-        b->value = value;
-        return 1;
+        union {char s[sizeof(obj_t)]; obj_t addr;} u;
+        if (ld) mps_ld_add(ld, arena, obj);
+        u.addr = obj;
+        return hash(u.s, sizeof(obj_t));
     }
-
-    static void table_set(obj_t tbl, obj_t key, obj_t value)
-    {
-        if (!table_try_set(tbl, key, value)) {
-            int res;
-            table_rehash(tbl, tbl->table.buckets->buckets.length * 2, NULL);
-            res = table_try_set(tbl, key, value);
-            assert(res);            /* rehash should have made room */
-        }
-    }
-
-.. note::
-
-    The garbage collector may run at any time during this operation,
-    so the table may already be stale while the new key and value are
-    being added. We postpone worrying about this until the next
-    lookup, when the staleness will be discovered.
 
 
 .. index::
@@ -244,46 +159,15 @@ point you need to:
 3. re-add a dependency on each block.
 
 For example, in the case of a hash table you should rehash based on
-the new locations of the blocks:
+the new locations of the blocks.
 
 .. code-block:: c
-    :emphasize-lines: 13, 19, 37
-
-    /* Rehash 'tbl' so that it has 'new_length' buckets. If 'key' is found
-     * during this process, return the bucket containing 'key', otherwise
-     * return NULL.
-     */
-    static struct bucket_s *table_rehash(obj_t tbl, size_t new_length, obj_t key)
-    {
-        size_t i;
-        obj_t new_buckets;
-        struct bucket_s *key_bucket = NULL;
-
-        assert(tbl->type.type == TYPE_TABLE);
-        new_buckets = make_buckets(new_length);
-        mps_ld_reset(&tbl->table.ld, arena);
-
-        for (i = 0; i < tbl->table.buckets->buckets.length; ++i) {
-            struct bucket_s *old_b = &tbl->table.buckets->buckets.bucket[i];
-            if (old_b->key != NULL) {
-                struct bucket_s *b;
-                mps_ld_add(&tbl->table.ld, arena, old_b->key);
-                b = buckets_find(new_buckets, old_b->key);
-                assert(b != NULL);      /* new table shouldn't be full */
-                assert(b->key == NULL); /* shouldn't be in new table */
-                *b = *old_b;
-                if (b->key == key) key_bucket = b;
-            }
-        }
-
-        tbl->table.buckets = new_buckets;
-        return key_bucket;
-    }
+    :emphasize-lines: 6
 
     static obj_t table_ref(obj_t tbl, obj_t key)
     {
-        struct bucket_s *b = buckets_find(tbl->table.buckets, key);
-        if (b && b->key != NULL)
+        struct bucket_s *b = buckets_find(tbl, tbl->table.buckets, key, NULL);
+        if (b && b->key != NULL && b->key != obj_deleted)
             return b->value;
         if (mps_ld_isstale(&tbl->table.ld, arena, key)) {
             b = table_rehash(tbl, tbl->table.buckets->buckets.length, key);
@@ -305,52 +189,6 @@ back to a non-address-based version of the computation: here, since
 ``table_rehash`` has to loop over all the entries in the table anyway,
 it might as well find the bucket containing ``key`` at the same time
 and return it.
-
-By adding the line::
-
-    puts("Stale!");
-
-after :c:func:`mps_ld_isstale` returns true, we get to see when the
-location dependency becomes stale and the table has to be rehashed.
-
-.. code-block:: none
-    :emphasize-lines: 21, 23
-
-    MPS Toy Scheme Example
-    10240, 0> (define ht (make-eq-hashtable))
-    ht
-    10584, 0> (hashtable-set! ht 'one 1)
-    10768, 0> ht
-    #[hashtable (one 1)]
-    10768, 0> (gc)
-    10792, 1> (hashtable-ref ht 'one #f)
-    Stale!
-    1
-    11080, 1> (hashtable-set! ht 'two 2)
-    11264, 1> (gc)
-    11288, 2> (hashtable-ref ht 'one #f)
-    Stale!
-    1
-    11576, 2> (hashtable-set! ht 'three 3)
-    11760, 2> (hashtable-ref ht 'two #f)
-    2
-    11904, 2> (gc)
-    11928, 3> (hashtable-ref ht 'one #f)
-    1
-    12072, 3> (hashtable-ref ht 'two #f)
-    Stale!
-    2
-    12360, 3> (hashtable-ref ht 'three #f)
-    3
-
-.. note::
-
-    In case you're puzzled by the highlighted lines: the symbol
-    ``'one`` must not have been moved by the collection, and so was
-    found in the table at the correct location. Thus
-    :c:func:`mps_ld_isstale` was not called. The symbol ``'two`` did
-    move in the collection, so it's not found in the table, and that
-    causes :c:func:`mps_ld_isstale` to be tested.
 
 
 .. index::

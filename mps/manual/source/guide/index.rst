@@ -11,3 +11,5 @@ Guide
    lang
    debug
    perf
+   advanced
+

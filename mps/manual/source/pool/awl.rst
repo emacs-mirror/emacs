@@ -16,8 +16,8 @@ AWL (Automatic Weak Linked)
 ===========================
 
 **AWL** is an :term:`automatically managed <automatic memory
-management>` :term:`pool class` that may contain :term:`weak
-references (1)`.
+management>` :term:`non-moving <non-moving garbage collector>`
+:term:`pool class` that may contain :term:`weak references (1)`.
 
 The purpose of this pool class is to allow the client to implement
 :term:`weak-key <weak-key hash table>`, :term:`weak-value <weak-value
@@ -117,7 +117,8 @@ Dependent objects
 In order to support prompt deletion of values in a :term:`weak-key
 hash table` when the key is :term:`splatted <splat>` (and prompt
 deletion of keys in a :term:`weak-value hash table`), an AWL pool
-allows each object to have a :dfn:`dependent object`.
+allows each object to have a :dfn:`dependent object`. (This is where
+the "Linked" in the name of the pool class comes from.)
 
 The dependent object is specified by the ``find_dependent`` argument
 to :c:func:`mps_pool_create` when creating an AWL pool. This is a
@@ -355,4 +356,4 @@ AWL interface
 
     The dependent object need not be in memory managed by the MPS, but
     if it is, then it must be in a :term:`non-moving <non-moving
-    garbage collection>` pool in the same arena as ``addr``.
+    garbage collector>` pool in the same arena as ``addr``.

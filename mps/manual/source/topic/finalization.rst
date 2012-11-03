@@ -108,106 +108,9 @@ either behaviour.
 
 
 .. index::
-   single: finalization; example
-   single: Scheme; finalization
-   single: Scheme; ports
-
-Example: ports in Scheme
-------------------------
-
-In Scheme, an open file is represented by a *port*. In the toy Scheme
-example, a port is a wrapper around a Standard C file handle::
-
-    typedef struct port_s {
-        type_t type;                    /* TYPE_PORT */
-        obj_t name;                     /* name of stream */
-        FILE *stream;
-    } port_s;
-
-The Scheme procedure ``open-input-file`` takes a filename and returns
-a port:
-
-.. code-block:: c
-   :emphasize-lines: 21
-
-    /* (open-input-file filename)
-     * Opens filename for input, with empty file options, and returns the
-     * obtained port.
-     * See R4RS 6.10.1
-     */
-    static obj_t entry_open_input_file(obj_t env, obj_t op_env, obj_t operator, obj_t operands)
-    {
-        obj_t filename;
-        FILE *stream;
-        obj_t port;
-        mps_addr_t port_ref;
-        eval_args(operator->operator.name, env, op_env, operands, 1, &filename);
-        unless(TYPE(filename) == TYPE_STRING)
-            error("%s: argument must be a string", operator->operator.name);
-        stream = fopen(filename->string.string, "r");
-        if(stream == NULL)
-            error("%s: cannot open input file", operator->operator.name);
-        port = make_port(filename, stream);
-
-        port_ref = port;
-        mps_finalize(arena, &port_ref);
-
-        return port;
-    }
-
-Each time around the read–eval–print loop, the interpreter polls the
-message queue for finalization messages, and when it finds one it
-closes the port's underlying file handle:
-
-.. code-block:: c
-   :emphasize-lines: 9, 12
-
-    mps_message_type_t type;
-
-    while (mps_message_queue_type(&type, arena)) {
-        mps_message_t message;
-        mps_bool_t b;
-        b = mps_message_get(&message, arena, type);
-        assert(b); /* we just checked there was one */
-
-        if (type == mps_message_type_finalization()) {
-            mps_addr_t port_ref;
-            obj_t port;
-            mps_message_finalization_ref(&port_ref, arena, message);
-            port = port_ref;
-            assert(TYPE(port) == TYPE_PORT);
-            printf("Port to file \"%s\" is dying. Closing file.\n",
-                   port->port.name->string.string);
-            (void)fclose(port->port.stream);
-        } else {
-            /* ... handle other message types ... */
-        }
-
-        mps_message_discard(arena, message);
-    }
-
-Here's an example session showing finalization taking place:
-
-.. code-block:: none
-   :emphasize-lines: 8
-
-    MPS Toy Scheme Example
-    9960, 0> (open-input-file "scheme.c")
-    #[port "scheme.c"]
-    10064, 0> (gc)
-    Collection started.
-      Why: Client requests: immediate full collection.
-      Clock: 3401
-    Port to file "scheme.c" is dying. Closing file.
-    Collection finished.
-        live 10040
-        condemned 10088
-        not_condemned 0
-        clock: 3807
-
-
-.. index::
    pair: finalization; cautions
+
+.. _topic-finalization-cautions:
 
 Cautions
 --------
@@ -233,7 +136,9 @@ Cautions
     finalization messages are only processed at the end of the
     read–eval–print loop, so a program that opens many files may run
     out of handles even though the associated objects are all
-    finalizable, as shown here::
+    finalizable, as shown here:
+
+    .. code-block:: none
 
         MPS Toy Scheme Example
         9960, 0> (define (repeat n f _) (if (eqv? n 0) '() (repeat (- n 1) f (f))))

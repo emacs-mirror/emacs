@@ -291,6 +291,8 @@ For example::
 .. index::
    pair: object format; cautions
 
+.. _topic-format-cautions:
+
 Cautions
 --------
 

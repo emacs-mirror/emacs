@@ -1,12 +1,13 @@
 ;;; test-common.scm -- common definitions for the Scheme tests
 
 (define (check exp result)
-  (write-string "test: ") (write exp) (newline)
-  (write-string "expect: ") (write result) (newline)
-  (define actually (eval exp))
-  (write-string "got: ") (write actually) (newline)
-  (if (not (equal? actually result))
-    (error "failed!")))
+  (let ((actually (eval exp)))
+    (if (not (equal? actually result))
+        (begin
+          (write-string "test: ") (write exp) (newline)
+          (write-string "expect: ") (write result) (newline)
+          (write-string "got: ") (write actually) (newline)
+          (error "failed!")))))
 
 ;; Return (f (f (f ... (f a) ... ))) with n invocations of f.
 (define (church n f a)
