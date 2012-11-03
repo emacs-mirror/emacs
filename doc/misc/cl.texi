@@ -2867,6 +2867,7 @@ temporary variables.
 This function creates a new, uninterned symbol (using @code{make-symbol})
 with a unique name.  (The name of an uninterned symbol is relevant
 only if the symbol is printed.)  By default, the name is generated
+@c FIXME no longer true?
 from an increasing sequence of numbers, @samp{G1000}, @samp{G1001},
 @samp{G1002}, etc.  If the optional argument @var{x} is a string, that
 string is used as a prefix instead of @samp{G}.  Uninterned symbols
@@ -3207,7 +3208,7 @@ may appear in any order.
 The @code{:key} argument should be passed either @code{nil}, or a
 function of one argument.  This key function is used as a filter
 through which the elements of the sequence are seen; for example,
-@code{(cl-find x y :key 'car)} is similar to @code{(cl-assoc x y)}:
+@code{(cl-find x y :key 'car)} is similar to @code{(cl-assoc x y)}.
 It searches for an element of the list whose @sc{car} equals
 @code{x}, rather than for an element which equals @code{x} itself.
 If @code{:key} is omitted or @code{nil}, the filter is effectively
@@ -3225,7 +3226,7 @@ true (non-@code{nil}) to indicate a match; instead, you may use
 @code{:test-not} to give a function which returns @emph{false} to
 indicate a match.  The default test function is @code{eql}.
 
-Many functions which take @var{item} and @code{:test} or @code{:test-not}
+Many functions that take @var{item} and @code{:test} or @code{:test-not}
 arguments also come in @code{-if} and @code{-if-not} varieties,
 where a @var{predicate} function is passed instead of @var{item},
 and sequence elements match if the predicate returns true on them
@@ -3239,7 +3240,7 @@ and sequence elements match if the predicate returns true on them
 to remove all zeros from sequence @code{seq}.
 
 Some operations can work on a subsequence of the argument sequence;
-these function take @code{:start} and @code{:end} arguments which
+these function take @code{:start} and @code{:end} arguments, which
 default to zero and the length of the sequence, respectively.
 Only elements between @var{start} (inclusive) and @var{end}
 (exclusive) are affected by the operation.  The @var{end} argument
@@ -3347,7 +3348,7 @@ the return values using @code{nconc}.
 @defun cl-some predicate seq &rest more-seqs
 This function calls @var{predicate} on each element of @var{seq}
 in turn; if @var{predicate} returns a non-@code{nil} value,
-@code{some} returns that value, otherwise it returns @code{nil}.
+@code{cl-some} returns that value, otherwise it returns @code{nil}.
 Given several sequence arguments, it steps through the sequences
 in parallel until the shortest one runs out, just as in
 @code{cl-mapcar}.  You can rely on the left-to-right order in which
@@ -3396,7 +3397,7 @@ of left-associative:
         @equiv{} (- 1 (- 2 (- 3 4))) @result{} -2
 @end example
 
-If @code{:key} is specified, it is a function of one argument which
+If @code{:key} is specified, it is a function of one argument, which
 is called on each of the sequence elements in turn.
 
 If @code{:initial-value} is specified, it is effectively added to the
@@ -3465,7 +3466,7 @@ of data copied is simply the shorter of the source and destination
 If @var{seq1} and @var{seq2} are @code{eq}, then the replacement
 will work correctly even if the regions indicated by the start
 and end arguments overlap.  However, if @var{seq1} and @var{seq2}
-are lists which share storage but are not @code{eq}, and the
+are lists that share storage but are not @code{eq}, and the
 start and end arguments specify overlapping regions, the effect
 is undefined.
 @end defun
@@ -3488,7 +3489,7 @@ if @var{count} was also specified).
 @end defun
 
 @defun cl-delete item seq @t{&key :test :test-not :key :count :start :end :from-end}
-This deletes all elements of @var{seq} which match @var{item}.
+This deletes all elements of @var{seq} that match @var{item}.
 It is a destructive operation.  Since Emacs Lisp does not support
 stretchable strings or vectors, this is the same as @code{cl-remove}
 for those sequence types.  On lists, @code{cl-remove} will copy the
@@ -3588,7 +3589,7 @@ elements match (according to @code{:test}, @code{:test-not},
 and @code{:key}), the function returns @code{nil}.  If there is
 a mismatch, the function returns the index (relative to @var{seq1})
 of the first mismatching element.  This will be the leftmost pair of
-elements which do not match, or the position at which the shorter of
+elements that do not match, or the position at which the shorter of
 the two otherwise-matching sequences runs out.
 
 If @code{:from-end} is true, then the elements are compared from right
@@ -3603,7 +3604,7 @@ which compares two strings case-insensitively.
 @defun cl-search seq1 seq2 @t{&key :test :test-not :key :from-end :start1 :end1 :start2 :end2}
 This function searches @var{seq2} for a subsequence that matches
 @var{seq1} (or part of it specified by @code{:start1} and
-@code{:end1}.)  Only matches which fall entirely within the region
+@code{:end1}).  Only matches that fall entirely within the region
 defined by @code{:start2} and @code{:end2} will be considered.
 The return value is the index of the leftmost element of the
 leftmost match, relative to the start of @var{seq2}, or @code{nil}
@@ -3614,7 +3615,7 @@ function finds the @emph{rightmost} matching subsequence.
 @node Sorting Sequences
 @section Sorting Sequences
 
-@defun clsort seq predicate @t{&key :key}
+@defun cl-sort seq predicate @t{&key :key}
 This function sorts @var{seq} into increasing order as determined
 by using @var{predicate} to compare pairs of elements.  @var{predicate}
 should return true (non-@code{nil}) if and only if its first argument
@@ -3625,7 +3626,7 @@ numbers into decreasing rather than increasing order.
 
 This function differs from Emacs's built-in @code{sort} in that it
 can operate on any type of sequence, not just lists.  Also, it
-accepts a @code{:key} argument which is used to preprocess data
+accepts a @code{:key} argument, which is used to preprocess data
 fed to the @var{predicate} function.  For example,
 
 @example
@@ -3636,7 +3637,7 @@ fed to the @var{predicate} function.  For example,
 sorts @var{data}, a sequence of strings, into increasing alphabetical
 order without regard to case.  A @code{:key} function of @code{car}
 would be useful for sorting association lists.  It should only be a
-simple accessor though, it's used heavily in the current
+simple accessor though, since it's used heavily in the current
 implementation.
 
 The @code{cl-sort} function is destructive; it sorts lists by actually
@@ -3692,7 +3693,7 @@ i.e., chains of cons cells.
 
 @defun cl-caddr x
 This function is equivalent to @code{(car (cdr (cdr @var{x})))}.
-Likewise, this package defines all 28 @code{c@var{xxx}r} functions
+Likewise, this package defines all 24 @code{c@var{xxx}r} functions
 where @var{xxx} is up to four @samp{a}s and/or @samp{d}s.
 All of these functions are @code{setf}-able, and calls to them
 are expanded inline by the byte-compiler for maximum efficiency.
@@ -3720,7 +3721,8 @@ This function returns the length of list @var{x}, exactly like
 @code{(length @var{x})}, except that if @var{x} is a circular
 list (where the @sc{cdr}-chain forms a loop rather than terminating
 with @code{nil}), this function returns @code{nil}.  (The regular
-@code{length} function would get stuck if given a circular list.)
+@code{length} function would get stuck if given a circular list.
+See also the @code{safe-length} function.)
 @end defun
 
 @defun cl-list* arg &rest others
@@ -3746,18 +3748,6 @@ is returned.
 @defun cl-copy-list list
 This function returns a copy of the list @var{list}.  It copies
 dotted lists like @code{(1 2 . 3)} correctly.
-@end defun
-
-@defun copy-tree x &optional vecp
-This function returns a copy of the tree of cons cells @var{x}.
-@c FIXME? cl-copy-list is not an alias of copy-sequence.
-Unlike @code{copy-sequence} (and its alias @code{cl-copy-list}),
-which copies only along the @sc{cdr} direction, this function
-copies (recursively) along both the @sc{car} and the @sc{cdr}
-directions.  If @var{x} is not a cons cell, the function simply
-returns @var{x} unchanged.  If the optional @var{vecp} argument
-is true, this function copies vectors (recursively) as well as
-cons cells.
 @end defun
 
 @defun cl-tree-equal x y @t{&key :test :test-not :key}
@@ -3822,7 +3812,7 @@ This is a destructive version of @code{cl-sublis}.
 @section Lists as Sets
 
 @noindent
-These functions perform operations on lists which represent sets
+These functions perform operations on lists that represent sets
 of elements.
 
 @defun cl-member item list @t{&key :test :test-not :key}
@@ -3835,13 +3825,14 @@ are compared by @code{eql} by default; you can use the @code{:test},
 
 The standard Emacs lisp function @code{member} uses @code{equal} for
 comparisons; it is equivalent to @code{(cl-member @var{item} @var{list}
-:test 'equal)}.
+:test 'equal)}.  With no keyword arguments, @code{cl-member} is
+equivalent to @code{memq}.
 @end defun
 
 @findex cl-member-if
 @findex cl-member-if-not
 The @code{cl-member-if} and @code{cl-member-if-not} functions
-analogously search for elements which satisfy a given predicate.
+analogously search for elements that satisfy a given predicate.
 
 @defun cl-tailp sublist list
 This function returns @code{t} if @var{sublist} is a sublist of
@@ -3860,11 +3851,11 @@ become part of the list.
 @end defun
 
 @defun cl-union list1 list2 @t{&key :test :test-not :key}
-This function combines two lists which represent sets of items,
+This function combines two lists that represent sets of items,
 returning a list that represents the union of those two sets.
-The result list will contain all items which appear in @var{list1}
+The resulting list contains all items that appear in @var{list1}
 or @var{list2}, and no others.  If an item appears in both
-@var{list1} and @var{list2} it will be copied only once.  If
+@var{list1} and @var{list2} it is copied only once.  If
 an item is duplicated in @var{list1} or @var{list2}, it is
 undefined whether or not that duplication will survive in the
 result list.  The order of elements in the result list is also
@@ -3879,7 +3870,7 @@ it tries to reuse the storage of the argument lists if possible.
 @defun cl-intersection list1 list2 @t{&key :test :test-not :key}
 This function computes the intersection of the sets represented
 by @var{list1} and @var{list2}.  It returns the list of items
-which appear in both @var{list1} and @var{list2}.
+that appear in both @var{list1} and @var{list2}.
 @end defun
 
 @defun cl-nintersection list1 list2 @t{&key :test :test-not :key}
@@ -3929,7 +3920,7 @@ This function searches the association list @var{a-list} for an
 element whose @sc{car} matches (in the sense of @code{:test},
 @code{:test-not}, and @code{:key}, or by comparison with @code{eql})
 a given @var{item}.  It returns the matching element, if any,
-otherwise @code{nil}.  It ignores elements of @var{a-list} which
+otherwise @code{nil}.  It ignores elements of @var{a-list} that
 are not cons cells.  (This corresponds to the behavior of
 @code{assq} and @code{assoc} in Emacs Lisp; Common Lisp's
 @code{assoc} ignores @code{nil}s but considers any other non-cons
@@ -3990,11 +3981,11 @@ are symbols.  For example,
 @end example
 
 @noindent
-defines a struct type called @code{person} which contains three
+defines a struct type called @code{person} that contains three
 slots.  Given a @code{person} object @var{p}, you can access those
 slots by calling @code{(person-name @var{p})}, @code{(person-age @var{p})},
 and @code{(person-sex @var{p})}.  You can also change these slots by
-using @code{setf} on any of these place forms:
+using @code{setf} on any of these place forms, for example:
 
 @example
 (cl-incf (person-age birthday-boy))
@@ -4011,10 +4002,10 @@ Given a @code{person}, @code{(copy-person @var{p})} makes a new
 object of the same type whose slots are @code{eq} to those of @var{p}.
 
 Given any Lisp object @var{x}, @code{(person-p @var{x})} returns
-true if @var{x} looks like a @code{person}, false otherwise.  (Again,
+true if @var{x} looks like a @code{person}, and false otherwise.  (Again,
 in Common Lisp this predicate would be exact; in Emacs Lisp the
 best it can do is verify that @var{x} is a vector of the correct
-length which starts with the correct tag symbol.)
+length that starts with the correct tag symbol.)
 
 Accessors like @code{person-name} normally check their arguments
 (effectively using @code{person-p}) and signal an error if the
@@ -4051,7 +4042,7 @@ In general, @var{name} is either a name symbol or a list of a name
 symbol followed by any number of @dfn{struct options}; each @var{slot}
 is either a slot symbol or a list of the form @samp{(@var{slot-name}
 @var{default-value} @var{slot-options}@dots{})}.  The @var{default-value}
-is a Lisp form which is evaluated any time an instance of the
+is a Lisp form that is evaluated any time an instance of the
 structure type is created without specifying that slot's value.
 
 Common Lisp defines several slot options, but the only one
@@ -4109,11 +4100,11 @@ The argument names should match the slot names; each slot is
 initialized from the corresponding argument.  Slots whose names
 do not appear in the argument list are initialized based on the
 @var{default-value} in their slot descriptor.  Also, @code{&optional}
-and @code{&key} arguments which don't specify defaults take their
+and @code{&key} arguments that don't specify defaults take their
 defaults from the slot descriptor.  It is valid to include arguments
-which don't correspond to slot names; these are useful if they are
+that don't correspond to slot names; these are useful if they are
 referred to in the defaults for optional, keyword, or @code{&aux}
-arguments which @emph{do} correspond to slots.
+arguments that @emph{do} correspond to slots.
 
 You can specify any number of full-format @code{:constructor}
 options on a structure.  The default constructor is still generated
@@ -4154,7 +4145,7 @@ means not to generate a copier function.  (In this implementation,
 all copier functions are simply synonyms for @code{copy-sequence}.)
 
 @item :predicate
-The argument is an alternate name for the predicate which recognizes
+The argument is an alternate name for the predicate that recognizes
 objects of this type.  The default is @code{@var{name}-p}.  @code{nil}
 means not to generate a predicate function.  (If the @code{:type}
 option is used without the @code{:named} option, no predicate is
@@ -4214,7 +4205,7 @@ work on astronauts just like other people.
 
 @item :print-function
 In full Common Lisp, this option allows you to specify a function
-which is called to print an instance of the structure type.  The
+that is called to print an instance of the structure type.  The
 Emacs Lisp system offers no hooks into the Lisp printer which would
 allow for such a feature, so this package simply ignores
 @code{:print-function}.
@@ -4391,7 +4382,7 @@ You can find out how a macro expands by using the
 This function takes a single Lisp form as an argument and inserts
 a nicely formatted copy of it in the current buffer (which must be
 in Lisp mode so that indentation works properly).  It also expands
-all Lisp macros which appear in the form.  The easiest way to use
+all Lisp macros that appear in the form.  The easiest way to use
 this function is to go to the @file{*scratch*} buffer and type, say,
 
 @example
@@ -4400,7 +4391,7 @@ this function is to go to the @file{*scratch*} buffer and type, say,
 
 @noindent
 and type @kbd{C-x C-e} immediately after the closing parenthesis;
-the expansion
+an expansion similar to:
 
 @example
 (cl-block nil
@@ -4421,7 +4412,11 @@ variable @code{G1004} was created by @code{cl-gensym}.)
 If the optional argument @var{full} is true, then @emph{all}
 macros are expanded, including @code{cl-block}, @code{cl-eval-when},
 and compiler macros.  Expansion is done as if @var{form} were
-a top-level form in a file being compiled.  For example,
+a top-level form in a file being compiled.
+
+@c FIXME none of these examples are still applicable.
+@ignore
+For example,
 
 @example
 (cl-prettyexpand '(cl-pushnew 'x list))
@@ -4431,16 +4426,12 @@ a top-level form in a file being compiled.  For example,
 (cl-prettyexpand '(caddr (cl-member 'a list)) t)
      @print{} (car (cdr (cdr (memq 'a list))))
 @end example
+@end ignore
 
 Note that @code{cl-adjoin}, @code{cl-caddr}, and @code{cl-member} all
 have built-in compiler macros to optimize them in common cases.
 @end defun
 
-@ifinfo
-@example
-
-@end example
-@end ifinfo
 @appendixsec Error Checking
 
 @noindent
@@ -4450,7 +4441,7 @@ where substantial gains were possible at the expense of marginal
 incompatibility.
 
 The Common Lisp standard (as embodied in Steele's book) uses the
-phrase ``it is an error if'' to indicate a situation which is not
+phrase ``it is an error if'' to indicate a situation that is not
 supposed to arise in complying programs; implementations are strongly
 encouraged but not required to signal an error in these situations.
 This package sometimes omits such error checking in the interest of
@@ -4472,20 +4463,16 @@ you can use @code{&allow-other-keys} to omit this check.  Functions
 defined in this package such as @code{cl-find} and @code{cl-member}
 do check their keyword arguments for validity.
 
-@ifinfo
-@example
-
-@end example
-@end ifinfo
-@appendixsec Optimizing Compiler
+@appendixsec Compiler Optimizations
 
 @noindent
-Use of the optimizing Emacs compiler is highly recommended; many of the Common
+Changing the value of @code{byte-optimize} from the default @code{t}
+is highly discouraged; many of the Common
 Lisp macros emit
-code which can be improved by optimization.  In particular,
+code that can be improved by optimization.  In particular,
 @code{cl-block}s (whether explicit or implicit in constructs like
 @code{cl-defun} and @code{cl-loop}) carry a fair run-time penalty; the
-byte-compiler removes @code{cl-block}s which are not actually
+byte-compiler removes @code{cl-block}s that are not actually
 referenced by @code{cl-return} or @code{cl-return-from} inside the block.
 
 @node Common Lisp Compatibility
