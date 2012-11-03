@@ -1,7 +1,7 @@
-2012-11-02  Tassilo Horn  <tsdh@gnu.org>
+2012-11-02  Stephen Eglen  <S.J.Eglen@damtp.cam.ac.uk>
 
 	* gnus-dired.el (gnus-dired-attach): Attach to last used message buffer
-	by default.  Patch provided by Stephen Eglen.
+	by default.
 
 2012-11-02  Katsumi Yamaoka  <yamaoka@jpl.org>
 
