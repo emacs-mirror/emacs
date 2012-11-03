@@ -774,8 +774,7 @@ area is only partially visible, that counts as a whole line; to
 exclude partially-visible lines, use `window-text-height'.  */)
   (Lisp_Object window)
 {
-  struct window *w = decode_live_window (window);
-  return make_number (window_body_lines (w));
+  return make_number (window_body_lines (decode_live_window (window)));
 }
 
 DEFUN ("window-body-width", Fwindow_body_width, Swindow_body_width, 0, 1, 0,
@@ -787,8 +786,7 @@ marginal areas, or scroll bars.  On a graphical display, the width is
 expressed as an integer multiple of the default character width.  */)
   (Lisp_Object window)
 {
-  struct window *w = decode_live_window (window);
-  return make_number (window_body_cols (w));
+  return make_number (window_body_cols (decode_live_window (window)));
 }
 
 DEFUN ("window-hscroll", Fwindow_hscroll, Swindow_hscroll, 0, 1, 0,
@@ -2254,6 +2252,7 @@ decode_next_window_args (Lisp_Object *window, Lisp_Object *minibuf, Lisp_Object 
 {
   struct window *w = decode_live_window (*window);
 
+  XSETWINDOW (*window, w);
   /* MINIBUF nil may or may not include minibuffers.  Decide if it
      does.  */
   if (NILP (*minibuf))

@@ -1,3 +1,12 @@
+2012-11-03  Dmitry Antipov  <dmantipov@yandex.ru>
+
+	* window.c (decode_next_window_args): Update window arg after
+	calling decode_live_window and so fix crash reported at
+	http://lists.gnu.org/archive/html/emacs-devel/2012-11/msg00035.html
+	by Juanma Barranquero <lekktu@gmail.com>.
+	(Fwindow_body_width, Fwindow_body_height): Simplify a bit.
+	* font.c (Ffont_at): Likewise.
+
 2012-11-01  Jan Djärv  <jan.h.d@swipnet.se>
 
 	* widget.c (resize_cb): New function.
