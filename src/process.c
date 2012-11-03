@@ -4354,8 +4354,6 @@ wait_reading_process_output (intmax_t time_limit, int nsecs, int read_kbd,
 
   while (1)
     {
-      int timeout_reduced_for_timers = 0;
-
       /* If calling from keyboard input, do not quit
 	 since we want to return C-g as an input character.
 	 Otherwise, do pending quit if requested.  */
@@ -4435,10 +4433,7 @@ wait_reading_process_output (intmax_t time_limit, int nsecs, int read_kbd,
 	      if (EMACS_TIME_VALID_P (timer_delay))
 		{
 		  if (EMACS_TIME_LT (timer_delay, timeout))
-		    {
-		      timeout = timer_delay;
-		      timeout_reduced_for_timers = 1;
-		    }
+		    timeout = timer_delay;
 		}
 	      else
 		{
@@ -4697,11 +4692,11 @@ wait_reading_process_output (intmax_t time_limit, int nsecs, int read_kbd,
       /*  If we woke up due to SIGWINCH, actually change size now.  */
       do_pending_window_change (0);
 
-      /* The following optimization fails if SIGIO is received between
-	 set_waiting_for_input and select (Bug#11536).
-      if ((time_limit || nsecs) && nfds == 0 && ! timeout_reduced_for_timers)
-	break;
-      */
+      /* We used to break here if nfds == 0, i.e. we seemed to have
+	 waited the full period.  But apparently if Emacs receives
+	 SIGIO between set_waiting_for_input and select, select can
+	 return with nfds == 0 due to the timeout being zeroed out by
+	 the signal handler (Bug#11536).  */
 
       if (nfds < 0)
 	{

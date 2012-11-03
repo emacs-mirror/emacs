@@ -1,3 +1,8 @@
+2012-11-03  Chong Yidong  <cyd@gnu.org>
+
+	* process.c (wait_reading_process_output): Clean up the last
+	change.
+
 2012-11-03  Jim Paris  <jim@jtan.com>  (tiny change)
 
 	* process.c (wait_reading_process_output): Avoid a race condition
