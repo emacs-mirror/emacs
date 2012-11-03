@@ -1,3 +1,10 @@
+2012-11-03  Jan Djärv  <jan.h.d@swipnet.se>
+
+	* widget.c (resize_cb): New function.
+	(EmacsFrameRealize): Add resize_cb as event handler (Bug#12733).
+	(EmacsFrameResize): Check if all is up to date before changing frame
+	size.
+
 2012-11-03  Eli Zaretskii  <eliz@gnu.org>
 
 	* xdisp.c (init_from_display_pos): Fix initialization of the bidi
