@@ -158,6 +158,10 @@ Root must be the root of an Emacs source tree."
   (set-version-in-file root "configure.ac" copyright
 		       (rx (and bol "copyright" (0+ (not (in ?\")))
         			?\" (submatch (1+ (not (in ?\")))) ?\")))
+  (set-version-in-file root "msdos/sed2v2.inp" copyright
+		       (rx (and bol "/^#undef " (1+ not-newline)
+				"define COPYRIGHT" (1+ space)
+				?\" (submatch (1+ (not (in ?\")))) ?\")))
   (set-version-in-file root "nt/config.nt" copyright
 		       (rx (and bol "#" (0+ blank) "define" (1+ blank)
 				"COPYRIGHT" (1+ blank)
