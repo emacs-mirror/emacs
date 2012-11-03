@@ -4697,9 +4697,12 @@ wait_reading_process_output (intmax_t time_limit, int nsecs, int read_kbd,
       /*  If we woke up due to SIGWINCH, actually change size now.  */
       do_pending_window_change (0);
 
+      /* The following optimization fails if SIGIO is received between
+	 set_waiting_for_input and select (Bug#11536).
       if ((time_limit || nsecs) && nfds == 0 && ! timeout_reduced_for_timers)
-	/* We waited the full specified time, so return now.  */
 	break;
+      */
+
       if (nfds < 0)
 	{
 	  if (xerrno == EINTR)
