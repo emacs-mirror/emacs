@@ -1,3 +1,9 @@
+2012-11-03  Eli Zaretskii  <eliz@gnu.org>
+
+	* term/pc-win.el: Don't load term/internal from here.
+
+	* loadup.el: Load term/internal from here.
+
 2012-11-03  Fabián Ezequiel Gallina  <fgallina@cuca>
 
 	* progmodes/python.el (inferior-python-mode): Fix hang in

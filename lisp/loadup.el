@@ -257,6 +257,7 @@
       (load "dos-vars")
       ;; Don't load term/common-win: it isn't appropriate for the `pc'
       ;; ``window system'', which generally behaves like a terminal.
+      (load "term/internal")
       (load "term/pc-win")
       (load "ls-lisp")
       (load "disp-table"))) ; needed to setup ibm-pc char set, see internal.el
