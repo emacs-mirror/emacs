@@ -1579,6 +1579,9 @@ from OBARRAY.
 
 ;;;###autoload
 (defmacro cl-do-all-symbols (spec &rest body)
+  "Like `cl-do-symbols', but use the default obarray.
+
+\(fn (VAR [RESULT]) BODY...)"
   (declare (indent 1) (debug ((symbolp &optional form) cl-declarations body)))
   `(cl-do-symbols (,(car spec) nil ,(cadr spec)) ,@body))
 
