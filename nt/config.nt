@@ -1219,6 +1219,9 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 /* Number of chars of output in the buffer of a stdio stream. */
 #undef PENDING_OUTPUT_COUNT
 
+/* the number of pending output bytes on stream 'fp' */
+#define PENDING_OUTPUT_N_BYTES  (fp->_ptr - fp->_base)
+
 /* Define to empty to suppress deprecation warnings when building with
    --enable-gcc-warnings and with libpng versions before 1.5, which lack
    png_longjmp. */
