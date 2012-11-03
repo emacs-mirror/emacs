@@ -27,6 +27,7 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #include <sys/file.h>
 #include <unistd.h>
 
+#include <close-stream.h>
 #include <ignore-value.h>
 
 #include "lisp.h"
@@ -675,6 +676,22 @@ void (*__malloc_initialize_hook) (void) EXTERNALLY_VISIBLE = malloc_initialize_h
 
 #endif /* DOUG_LEA_MALLOC */
 
+/* Close standard output and standard error, reporting any write
+   errors as best we can.  This is intended for use with atexit.  */
+static void
+close_output_streams (void)
+{
+  if (close_stream (stdout) != 0)
+    {
+      fprintf (stderr, "Write error to standard output: %s\n",
+	       emacs_strerror (errno));
+      fflush (stderr);
+      _exit (EXIT_FAILURE);
+    }
+
+   if (close_stream (stderr) != 0)
+     _exit (EXIT_FAILURE);
+}
 
 /* ARGSUSED */
 int
@@ -889,6 +906,8 @@ main (int argc, char **argv)
      fixup_locale must wait until later, since it builds strings.  */
   if (do_initial_setlocale)
     setlocale (LC_ALL, "");
+
+  atexit (close_output_streams);
 
   inhibit_window_system = 0;
 
@@ -1867,8 +1886,6 @@ all of which are called before Emacs is actually killed.  */)
     exit_code = (XINT (arg) < 0
 		 ? XINT (arg) | INT_MIN
 		 : XINT (arg) & INT_MAX);
-  else if (noninteractive && (fflush (stdout) || ferror (stdout)))
-    exit_code = EXIT_FAILURE;
   else
     exit_code = EXIT_SUCCESS;
   exit (exit_code);

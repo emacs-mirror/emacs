@@ -1,3 +1,11 @@
+2012-11-03  Paul Eggert  <eggert@cs.ucla.edu>
+
+	Fix data-loss with --batch (Bug#9574).
+	* lib/close-stream.c, lib/close-stream.h, lib/fpending.c
+	* lib/fpending.h, m4/close-stream.m4, m4/fpending.m4:
+	New files, from gnulib.
+	* lib/gnulib.mk, m4/gnulib-comp.m4: Regenerate.
+
 2012-11-02  Glenn Morris  <rgm@gnu.org>
 
 	* Makefile.in (EMACS_ICON): New variable.

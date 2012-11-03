@@ -1,5 +1,13 @@
 2012-11-03  Paul Eggert  <eggert@cs.ucla.edu>
 
+	Fix data-loss with --batch (Bug#9574).
+	* emacs.c: Include <close-stream.h>.
+	(close_output_streams): New function.
+	(main): Pass it to atexit, so that Emacs closes stdout and stderr
+	and handles errors appropriately.
+	(Fkill_emacs): Don't worry about flushing, as close_output_stream
+	does that now.
+
 	Fix a race condition that causes Emacs to mess up glib (Bug#8855).
 	The symptom is a diagnostic "GLib-WARNING **: In call to
 	g_spawn_sync(), exit status of a child process was requested but
