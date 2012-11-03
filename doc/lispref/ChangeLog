@@ -1,3 +1,19 @@
+2012-11-03  Martin Rudalics  <rudalics@gmx.at>
+
+	* windows.texi (Switching Buffers): Document option
+	switch-to-buffer-preserve-window-point.
+	(Display Action Functions): Document window-height and
+	window-width alist entries.
+	(Display Action Functions): Document
+	display-buffer-below-selected and
+	display-buffer-in-previous-window.
+	(Quitting Windows): Document quit-restore-window.  Rewrite
+	section.
+	(Window Configurations): In window-state-get mention that
+	argument window must be valid.
+	(Window Parameters): Document quit-restore window parameter
+	(Bug#12158).
+
 2012-10-31  Glenn Morris  <rgm@gnu.org>
 
 	* control.texi (Catch and Throw): Add xref to cl.texi.
