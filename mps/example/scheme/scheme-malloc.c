@@ -2404,7 +2404,10 @@ static obj_t entry_close_port(obj_t env, obj_t op_env, obj_t operator, obj_t ope
   eval_args(operator->operator.name, env, op_env, operands, 1, &port);
   unless(TYPE(port) == TYPE_PORT)
     error("%s: argument must be a port", operator->operator.name);
-  port->port.stream = NULL;
+  if(port->port.stream != NULL) {
+    fclose(port->port.stream);
+    port->port.stream = NULL;
+  }
   return obj_undefined;
 }
 
