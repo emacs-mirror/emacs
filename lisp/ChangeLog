@@ -1,5 +1,8 @@
 2012-11-03  Glenn Morris  <rgm@gnu.org>
 
+	* emacs-lisp/cl-macs.el (cl-parse-loop-clause):
+	Rename handler properties back from cl-- to cl-.  (Bug#12788)
+
 	* emacs-lisp/cl-macs.el (cl-do-all-symbols): Add doc string.
 
 2012-11-03  Eli Zaretskii  <eliz@gnu.org>
