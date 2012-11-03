@@ -1,3 +1,7 @@
+2012-11-03  Eli Zaretskii  <eliz@gnu.org>
+
+	* config.bat: Copy lib/execinfo.in.h to lib/execinfo.in-h if needed.
+
 2012-10-26  Glenn Morris  <rgm@gnu.org>
 
 	* Makefile.in (EMACS_NAME): New variable.

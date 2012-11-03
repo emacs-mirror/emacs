@@ -3305,7 +3305,7 @@ XMenuActivate (Display *foo, XMenu *menu, int *pane, int *selidx,
      Emacs will process them after we return and surprise the user.  */
   discard_mouse_events ();
   mouse_clear_clicks ();
-  if (!kbd_buffer_events_waiting (1))
+  if (!kbd_buffer_events_waiting ())
     clear_input_pending ();
   /* Allow mouse events generation by dos_rawgetc.  */
   mouse_preempted--;
@@ -4214,8 +4214,8 @@ init_gettimeofday (void)
 }
 #endif
 
-void
-emacs_abort (void)
+static void
+msdos_abort (void)
 {
   dos_ttcooked ();
   ScreenSetCursor (10, 0);
@@ -4230,6 +4230,15 @@ emacs_abort (void)
   raise (SIGABRT);
 #endif /* __DJGPP_MINOR__ >= 2 */
   exit (2);
+}
+
+void
+msdos_fatal_signal (int sig)
+{
+  if (sig == SIGABRT)
+    msdos_abort ();
+  else
+    raise (sig);
 }
 
 void

@@ -1,5 +1,14 @@
 2012-11-03  Eli Zaretskii  <eliz@gnu.org>
 
+	* msdos.c (msdos_abort): Rename from emacs_abort, and make static.
+	(msdos_fatal_signal): New function.
+	(XMenuActivate): Adjust the call to kbd_buffer_events_waiting to
+	its argument list.
+
+	* conf_post.h (_GL_EXECINFO_INLINE) [MSDOS]: Define to "inline"
+	for GCC versions before 4.
+	(emacs_raise): Define to call msdos_fatal_signal.
+
 	* xdisp.c (init_from_display_pos): Fix initialization of the bidi
 	iterator when starting in the middle of a display or overlay
 	string.  (Bug#12745)
