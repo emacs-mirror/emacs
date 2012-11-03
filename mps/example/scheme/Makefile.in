@@ -19,8 +19,9 @@ clean:
 	rm $(TARGETS)
 
 test: $(TARGETS)
-	for TARGET in $(TARGETS); do \
+	@for TARGET in $(TARGETS); do \
 	   for TEST in $(TESTS); do \
+	     echo "$$TARGET $$TEST:"; \
 	     ./$$TARGET test-$$TEST.scm || exit; \
 	   done \
 	done
