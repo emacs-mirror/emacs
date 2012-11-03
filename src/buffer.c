@@ -6210,15 +6210,15 @@ is a member of the list.  */);
 		     doc: /* Cursor to use when this buffer is in the selected window.
 Values are interpreted as follows:
 
-  t 		  use the cursor specified for the frame
-  nil		  don't display a cursor
-  box		  display a filled box cursor
-  hollow	  display a hollow box cursor
-  bar		  display a vertical bar cursor with default width
-  (bar . WIDTH)	  display a vertical bar cursor with width WIDTH
-  hbar		  display a horizontal bar cursor with default height
+  t               use the cursor specified for the frame
+  nil             don't display a cursor
+  box             display a filled box cursor
+  hollow          display a hollow box cursor
+  bar             display a vertical bar cursor with default width
+  (bar . WIDTH)   display a vertical bar cursor with width WIDTH
+  hbar            display a horizontal bar cursor with default height
   (hbar . HEIGHT) display a horizontal bar cursor with height HEIGHT
-  ANYTHING ELSE	  display a hollow box cursor
+  ANYTHING ELSE   display a hollow box cursor
 
 When the buffer is displayed in a non-selected window, the
 cursor's appearance is instead controlled by the variable

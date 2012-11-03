@@ -1,3 +1,7 @@
+2012-11-03  Chong Yidong  <cyd@gnu.org>
+
+	* cus-start.el: Make cursor-type customizable (Bug#11633).
+
 2012-11-02  Glenn Morris  <rgm@gnu.org>
 
 	* filecache.el: No need to load find-lisp when compiling.
