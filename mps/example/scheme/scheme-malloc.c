@@ -1221,6 +1221,23 @@ static obj_t eval(obj_t env, obj_t op_env, obj_t exp)
 }
 
 
+static obj_t load(obj_t env, obj_t op_env, const char *filename) {
+  obj_t result = obj_undefined;
+  FILE *stream = fopen(filename, "r");
+  extern int errno;
+  if(stream == NULL)
+    error("load: cannot open %s: %s", filename, strerror(errno));
+  for(;;) {
+    obj_t obj = read(stream);
+    if(obj == obj_eof) break;
+    result = eval(env, op_env, obj);
+  }
+  /* TODO: if there was an error, this doesn't get closed */
+  fclose(stream);
+  return result;
+}
+
+
 /* OPERATOR UTILITIES */
 
 
@@ -2347,7 +2364,6 @@ static obj_t entry_open_input_file(obj_t env, obj_t op_env, obj_t operator, obj_
     error("%s: argument must be a string", operator->operator.name);
   stream = fopen(filename->string.string, "r");
   if(stream == NULL)
-    /* TODO: "an error is signalled" */
     error("%s: cannot open input file", operator->operator.name);
   return make_port(filename, stream);
 }
@@ -2369,7 +2385,6 @@ static obj_t entry_open_output_file(obj_t env, obj_t op_env, obj_t operator, obj
     error("%s: argument must be a string", operator->operator.name);
   stream = fopen(filename->string.string, "w");
   if(stream == NULL)
-    /* TODO: "an error is signalled" */
     error("%s: cannot open output file", operator->operator.name);
   return make_port(filename, stream);
 }
@@ -2470,21 +2485,11 @@ static obj_t entry_newline(obj_t env, obj_t op_env, obj_t operator, obj_t operan
  */
 static obj_t entry_load(obj_t env, obj_t op_env, obj_t operator, obj_t operands)
 {
-  obj_t filename, obj, result = obj_undefined;
-  FILE *stream;
+  obj_t filename;
   eval_args(operator->operator.name, env, op_env, operands, 1, &filename);
   unless(TYPE(filename) == TYPE_STRING)
     error("%s: argument must be a string", operator->operator.name);
-  stream = fopen(filename->string.string, "r");
-  if(stream == NULL)
-    /* TODO: "an error is signalled" */
-    error("%s: cannot open input file", operator->operator.name);
-  for(;;) {
-    obj = read(stream);
-    if(obj == obj_eof) break;
-    result = eval(env, op_env, obj);
-  }
-  return result;
+  return load(env, op_env, filename->string.string);
 }
 
 
@@ -3339,7 +3344,6 @@ static struct {char *name; entry_t entry;} funtab[] = {
 int main(int argc, char *argv[])
 {
   FILE *input = stdin;
-  int interactive = 1;
   size_t i;
   volatile obj_t env, op_env, obj;
   jmp_buf jb;
@@ -3380,41 +3384,30 @@ int main(int argc, char *argv[])
 
   if(argc >= 2) {
     /* Non-interactive file execution */
-    input = fopen(argv[1], "r");
-    if(input == NULL) {
-      extern int errno;
-      fprintf(stderr, "Can't open %s: %s\n", argv[1], strerror(errno));
-      return EXIT_FAILURE;
-    }
-    interactive = 0;
-  } else
-    puts("Scheme Test Harness");
-
-
-  /* Read-eval-print loop */
-  
-  for(;;) {
     if(setjmp(*error_handler) != 0) {
       fprintf(stderr, "%s\n", error_message);
-      if(!interactive)
-        return EXIT_FAILURE;
+      return EXIT_FAILURE;
     }
-
-    if(interactive)
+    load(env, op_env, argv[1]);
+    return EXIT_SUCCESS;
+  } else {
+    /* Interactive read-eval-print loop */
+    puts("Scheme Test Harness");
+    for(;;) {
+      if(setjmp(*error_handler) != 0)
+        fprintf(stderr, "%s\n", error_message);
       printf("%lu> ", (unsigned long)total);
-    obj = read(input);
-    if(obj == obj_eof) break;
-    obj = eval(env, op_env, obj);
-    if(obj != obj_undefined) {
-      print(obj, 6, stdout);
-      putc('\n', stdout);
+      obj = read(input);
+      if(obj == obj_eof) break;
+      obj = eval(env, op_env, obj);
+      if(obj != obj_undefined) {
+        print(obj, 6, stdout);
+        putc('\n', stdout);
+      }
     }
-  }
-
-  if(interactive)
     puts("Bye.");
-
-  return EXIT_SUCCESS;
+    return EXIT_SUCCESS;
+  }
 }
 
 
