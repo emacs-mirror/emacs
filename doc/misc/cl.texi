@@ -2874,21 +2874,17 @@ string is used as a prefix instead of @samp{G}.  Uninterned symbols
 are used in macro expansions for temporary variables, to ensure that
 their names will not conflict with ``real'' variables in the user's
 code.
-@end defun
 
-@c FIXME texinfo renders this as as cl-gensym-counter in info.
-@c It looks fine in the index, and in the pdf version.
-@defvar cl--gensym-counter
-This variable holds the counter used to generate @code{cl-gensym} names.
-It is incremented after each use by @code{cl-gensym}.  In Common Lisp
-this is initialized with 0, but this package initializes it with a
-random (time-dependent) value to avoid trouble when two files that
+(Internally, the variable @code{cl--gensym-counter} holds the counter
+used to generate names.  It is incremented after each use.  In Common
+Lisp this is initialized with 0, but this package initializes it with
+a random time-dependent value to avoid trouble when two files that
 each used @code{cl-gensym} in their compilation are loaded together.
-(Uninterned symbols become interned when the compiler writes them
-out to a file and the Emacs loader loads them, so their names have to
-be treated a bit more carefully than in Common Lisp where uninterned
+Uninterned symbols become interned when the compiler writes them out
+to a file and the Emacs loader loads them, so their names have to be
+treated a bit more carefully than in Common Lisp where uninterned
 symbols remain uninterned after loading.)
-@end defvar
+@end defun
 
 @defun cl-gentemp &optional x
 This function is like @code{cl-gensym}, except that it produces a new
@@ -3051,21 +3047,13 @@ This function returns a random nonnegative number less than
 The @var{state} argument should be a @code{random-state} object
 that holds the state of the random number generator.  The
 function modifies this state object as a side effect.  If
-@var{state} is omitted, it defaults to the variable
+@var{state} is omitted, it defaults to the internal variable
 @code{cl--random-state}, which contains a pre-initialized
-@code{random-state} object.
+default @code{random-state} object.  (Since any number of programs in
+the Emacs process may be accessing @code{cl--random-state} in
+interleaved fashion, the sequence generated from this will be
+irreproducible for all intents and purposes.)
 @end defun
-
-@c FIXME texinfo renders this as cl-random-state in info.
-@c It looks fine in the index, and in the pdf version.
-@defvar cl--random-state
-This variable contains the system ``default'' @code{random-state}
-object, used for calls to @code{cl-random} that do not specify an
-alternative state object.  Since any number of programs in the
-Emacs process may be accessing @code{cl--random-state} in interleaved
-fashion, the sequence generated from this variable will be
-irreproducible for all intents and purposes.
-@end defvar
 
 @defun cl-make-random-state &optional state
 This function creates or copies a @code{random-state} object.

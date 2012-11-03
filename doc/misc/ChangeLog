@@ -4,6 +4,8 @@
 	(List Functions): Remove copy-tree, standard elisp for some time.
 	(Efficiency Concerns): Comment out examples that no longer apply.
 	(Compiler Optimizations): Rename from "Optimizing Compiler"; reword.
+	(Creating Symbols, Random Numbers): De-emphasize internal
+	variables cl--gensym-counter and cl--random-state.  (Bug#12788)
 
 2012-11-02  Glenn Morris  <rgm@gnu.org>
 

@@ -302,6 +302,7 @@ Customize `cal-html-holidays' to change this.
 
 ** CL
 
++++
 *** CL's main entry is now (require 'cl-lib).
 `cl-lib' is like the old `cl' except that it uses the namespace cleanly,
 i.e. all its definitions have the "cl-" prefix (and internal definitions use
@@ -312,8 +313,8 @@ under the name `cl-foo' instead, with the exceptions of the few definitions
 that had to use `foo*' to avoid conflicts with pre-existing Elisp entities,
 which have not been renamed to `cl-foo*' but just `cl-foo'.
 
-The old `cl' is now deprecated and is just a bunch of aliases that
-provide the old non-prefixed names.
+The old `cl' is now deprecated and is mainly just a bunch of aliases that
+provide the old non-prefixed names.  Some exceptions are listed below.
 
 +++
 *** `cl-flet' is not like `flet' (which is deprecated).
