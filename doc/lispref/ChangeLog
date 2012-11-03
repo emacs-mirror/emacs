@@ -1,3 +1,11 @@
+2012-11-03  Chong Yidong  <cyd@gnu.org>
+
+	* objects.texi (General Escape Syntax): Clarify the explanation of
+	escape sequences.
+	(Non-ASCII in Strings): Clarify when a string is unibyte vs
+	multibyte.  Hex escapes do not automatically make a string
+	multibyte.
+
 2012-11-03  Martin Rudalics  <rudalics@gmx.at>
 
 	* windows.texi (Switching Buffers): Document option
