@@ -1,3 +1,12 @@
+2012-11-04  Paul Eggert  <eggert@cs.ucla.edu>
+
+	Fix data-loss with --version (Bug#9574).
+	* emacs.c (close_output_streams): Use strerror, not emacs_strerror,
+	as we can't assume that emacs_strerror is initialized, and strerror
+	is good enough here.
+	(main): Invoke atexit earlier, to catch earlier instances of
+	sending data to stdout and exiting, e.g., "emacs --version >/dev/full".
+
 2012-11-04  Michael Marchionna  <tralfaz@pacbell.net>
 
 	* nsterm.m: Add NSClearLineFunctionKey and keypad keys (Bug#8680).

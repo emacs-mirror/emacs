@@ -684,7 +684,7 @@ close_output_streams (void)
   if (close_stream (stdout) != 0)
     {
       fprintf (stderr, "Write error to standard output: %s\n",
-	       emacs_strerror (errno));
+	       strerror (errno));
       fflush (stderr);
       _exit (EXIT_FAILURE);
     }
@@ -747,6 +747,8 @@ main (int argc, char **argv)
   if (!initialized)
     unexec_init_emacs_zone ();
 #endif
+
+  atexit (close_output_streams);
 
   sort_args (argc, argv);
   argc = 0;
@@ -906,8 +908,6 @@ main (int argc, char **argv)
      fixup_locale must wait until later, since it builds strings.  */
   if (do_initial_setlocale)
     setlocale (LC_ALL, "");
-
-  atexit (close_output_streams);
 
   inhibit_window_system = 0;
 
