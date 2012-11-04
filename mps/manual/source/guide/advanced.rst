@@ -22,7 +22,7 @@ interpreter, a port is a wrapper around a standard C file handle::
     } port_s;
 
 Operating systems limit the number of files that a process can have open
-simultanously, so to avoid running out of file handles, it is necessary
+simultaneously, so to avoid running out of file handles, it is necessary
 to close ports when you are done with them. If a Scheme program fails to
 call ``close-input-file``, then the underlying file handle should still
 be closed when the port object :term:`dies <dead>`. This procedure is
@@ -138,10 +138,11 @@ Here's an example session showing finalization taking place:
         not_condemned 0
         clock: 3807
 
-The toy Scheme interpreter :dfn:`definalizes` ports when they are
-closed. This is purely an optimization: setting ``stream`` to ``NULL``
-ensures that the file handle wouldn't be closed more than once, even if
-the port object were later finalized.
+The toy Scheme interpreter :dfn:`definalizes` ports by calling
+:c:func:`mps_definalize` when they are closed. This is purely an
+optimization: setting ``stream`` to ``NULL`` ensures that the file
+handle wouldn't be closed more than once, even if the port object were
+later finalized.
 
 .. code-block:: c
     :emphasize-lines: 8

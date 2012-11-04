@@ -18,7 +18,7 @@ Adaptive Memory Management Group at `Harlequin Limited
 * Gavin Matthews
 * Pekka P. Pirinen
 * Richard Tucker
-* P. T. Withington
+* P. T. Withington
 
 The Adaptive Memory Management Group no longer exists, and Harlequin
 has become a part of `Global Graphics
@@ -34,7 +34,7 @@ Particular thanks go to Richard Jones for his enormously useful book
 :ref:`The Garbage Collection Handbook <JONES96>`, and for his comments
 on the Reference.
 
-Many people have `made valuable suggestions <contact>` for the
+Many people have :ref:`made valuable suggestions <contact>` for the
 Reference and contributed glossary entries. We are grateful for the
 help of:
 
