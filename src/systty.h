@@ -52,17 +52,6 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #endif /* not CDEL */
 #endif /* not _POSIX_VDISABLE */
 
-/* Get the number of characters queued for output.  */
-
-/* EMACS_OUTQSIZE(FD, int *SIZE) stores the number of characters
-   queued for output to the terminal FD in *SIZE, if FD is a tty.
-   Returns -1 if there was an error (i.e. FD is not a tty), 0
-   otherwise.  */
-#ifdef TIOCOUTQ
-#define EMACS_OUTQSIZE(fd, size) (ioctl ((fd), TIOCOUTQ, (size)))
-#endif
-
-
 /* Manipulate a terminal's current process group.  */
 
 /* EMACS_GETPGRP (arg) returns the process group of the process.  */

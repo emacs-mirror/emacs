@@ -1,5 +1,13 @@
 2012-11-04  Paul Eggert  <eggert@cs.ucla.edu>
 
+	Remove EMACS_OUTQSIZE+sleep hack.
+	* dispnew.c (update_frame_1): Remove hack for terminals slower
+	than 2400 bps, which throttled Emacs by having it sleep.  This
+	code hasn't worked since at least 2007, when the multi-tty stuff
+	was added, and anyway those old terminals are long dead.
+	* systty.h (EMACS_OUTQSIZE): Remove; unused.  The macro isn't used even
+	without the dispnew.c change, as dispnew.c doesn't include systty.h.
+
 	Fix data-loss with --version (Bug#9574).
 	* emacs.c (close_output_streams): Use strerror, not emacs_strerror,
 	as we can't assume that emacs_strerror is initialized, and strerror

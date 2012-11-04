@@ -4650,21 +4650,7 @@ update_frame_1 (struct frame *f, bool force_p, bool inhibit_id_p)
 		  int outq = PENDING_OUTPUT_COUNT (display_output);
 		  if (outq > 900
 		      || (outq > 20 && ((i - 1) % preempt_count == 0)))
-		    {
-		      fflush (display_output);
-		      if (preempt_count == 1)
-			{
-#ifdef EMACS_OUTQSIZE
-			  if (EMACS_OUTQSIZE (0, &outq) < 0)
-			    /* Probably not a tty.  Ignore the error and reset
-			       the outq count.  */
-			    outq = PENDING_OUTPUT_COUNT (FRAME_TTY (f->output));
-#endif
-			  outq *= 10;
-			  if (baud_rate <= outq && baud_rate > 0)
-			    sleep (outq / baud_rate);
-			}
-		    }
+		    fflush (display_output);
 		}
 	    }
 
