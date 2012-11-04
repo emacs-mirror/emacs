@@ -1,3 +1,8 @@
+2012-11-04  Michael Marchionna  <tralfaz@pacbell.net>
+
+	* nsterm.m: Add NSClearLineFunctionKey and keypad keys (Bug#8680).
+	(keyDown): Remap keypad keys to X11 virtual key codes.
+
 2012-11-03  Paul Eggert  <eggert@cs.ucla.edu>
 
 	Fix data-loss with --batch (Bug#9574).
