@@ -8,11 +8,11 @@ MPS = ../../code
 
 TARGETS = scheme-malloc scheme scheme-advanced
 
-TESTS = r5rs mps leaf
+TESTS = r5rs mps
 
 all: $(TARGETS)
 
-$(TARGETS): %: %.c
+$(TARGETS): %: %.c Makefile
 	$(CC) $(CFLAGS) -o $@ -I $(MPS) $< $(MPS)/mps.c
 
 clean:
