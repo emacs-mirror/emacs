@@ -155,9 +155,24 @@ If you want to force an empty list of arguments, use t."
       (vc-svn-command t 0 file "status" (if localp "-v" "-u"))
       (vc-svn-parse-status file))))
 
+;; NB this does not handle svn properties, which can be changed
+;; without changing the file timestamp.
+;; Note that unlike vc-cvs-state-heuristic, this is not called from
+;; vc-svn-state.  AFAICS, it is only called from vc-state-refresh via
+;; vc-after-save (bug#7850).  Therefore the fact that it ignores
+;; properties is irrelevant.  If you want to make vc-svn-state call
+;; this, it should be extended to handle svn properties.
 (defun vc-svn-state-heuristic (file)
   "SVN-specific state heuristic."
-  (vc-svn-state file 'local))
+  ;; If the file has not changed since checkout, consider it `up-to-date'.
+  ;; Otherwise consider it `edited'.  Copied from vc-cvs-state-heuristic.
+  (let ((checkout-time (vc-file-getprop file 'vc-checkout-time))
+        (lastmod (nth 5 (file-attributes file))))
+    (cond
+     ((equal checkout-time lastmod) 'up-to-date)
+     ((string= (vc-working-revision file) "0") 'added)
+     ((null checkout-time) 'unregistered)
+     (t 'edited))))
 
 ;; FIXME it would be better not to have the "remote" argument,
 ;; but to distinguish the two output formats based on content.
