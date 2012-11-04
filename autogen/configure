@@ -3206,6 +3206,7 @@ as_fn_append ac_header_list " sys/un.h"
 as_fn_append ac_func_list " tzset"
 as_fn_append ac_func_list " readlinkat"
 as_fn_append ac_header_list " execinfo.h"
+as_fn_append ac_func_list " __fpending"
 gl_getopt_required=GNU
 as_fn_append ac_header_list " getopt.h"
 as_fn_append ac_func_list " gettimeofday"
@@ -6958,6 +6959,7 @@ esac
   # Code from module c-strcase:
   # Code from module careadlinkat:
   # Code from module clock-time:
+  # Code from module close-stream:
   # Code from module crypto/md5:
   # Code from module crypto/sha1:
   # Code from module crypto/sha256:
@@ -6972,6 +6974,7 @@ esac
 
   # Code from module extern-inline:
   # Code from module filemode:
+  # Code from module fpending:
   # Code from module getloadavg:
   # Code from module getopt-gnu:
   # Code from module getopt-posix:
@@ -16999,6 +17002,8 @@ cat >>confdefs.h <<_ACEOF
 _ACEOF
 
 
+
+
   GNULIB__EXIT=0;
   GNULIB_ATOLL=0;
   GNULIB_CALLOC_POSIX=0;
@@ -20448,6 +20453,16 @@ done
   LIBS=$gl_saved_libs
 
 
+  :
+
+
+
+cat >>confdefs.h <<_ACEOF
+#define GNULIB_CLOSE_STREAM 1
+_ACEOF
+
+
+
 
 
   :
@@ -20685,6 +20700,120 @@ fi
 
 
 
+
+
+
+  fp_headers='
+#     include <stdio.h>
+#     if HAVE_STDIO_EXT_H
+#      include <stdio_ext.h>
+#     endif
+'
+  ac_fn_c_check_decl "$LINENO" "__fpending" "ac_cv_have_decl___fpending" "$fp_headers
+"
+if test "x$ac_cv_have_decl___fpending" = x""yes; then :
+  ac_have_decl=1
+else
+  ac_have_decl=0
+fi
+
+cat >>confdefs.h <<_ACEOF
+#define HAVE_DECL___FPENDING $ac_have_decl
+_ACEOF
+
+
+  if test $ac_cv_func___fpending = no; then
+
+
+
+
+
+
+
+
+  gl_LIBOBJS="$gl_LIBOBJS fpending.$ac_objext"
+
+
+  { $as_echo "$as_me:${as_lineno-$LINENO}: checking how to determine the number of pending output bytes on a stream" >&5
+$as_echo_n "checking how to determine the number of pending output bytes on a stream... " >&6; }
+if test "${ac_cv_sys_pending_output_n_bytes+set}" = set; then :
+  $as_echo_n "(cached) " >&6
+else
+
+      for ac_expr in                                                    \
+                                                                        \
+          '# glibc2'                                                    \
+          'fp->_IO_write_ptr - fp->_IO_write_base'                      \
+                                                                        \
+          '# traditional Unix'                                          \
+          'fp->_ptr - fp->_base'                                        \
+                                                                        \
+          '# BSD'                                                       \
+          'fp->_p - fp->_bf._base'                                      \
+                                                                        \
+          '# SCO, Unixware'                                             \
+          '(fp->__ptr ? fp->__ptr - fp->__base : 0)'                    \
+                                                                        \
+          '# QNX'                                                       \
+          '(fp->_Mode & 0x2000 /*_MWRITE*/ ? fp->_Next - fp->_Buf : 0)' \
+                                                                        \
+          '# old glibc?'                                                \
+          'fp->__bufp - fp->__buffer'                                   \
+                                                                        \
+          '# old glibc iostream?'                                       \
+          'fp->_pptr - fp->_pbase'                                      \
+                                                                        \
+          '# emx+gcc'                                                   \
+          'fp->_ptr - fp->_buffer'                                      \
+                                                                        \
+          '# Minix'                                                     \
+          'fp->_ptr - fp->_buf'                                         \
+                                                                        \
+          '# Plan9'                                                     \
+          'fp->wp - fp->buf'                                            \
+                                                                        \
+          '# VMS'                                                       \
+          '(*fp)->_ptr - (*fp)->_base'                                  \
+                                                                        \
+          '# e.g., DGUX R4.11; the info is not available'               \
+          1                                                             \
+          ; do
+
+        # Skip each embedded comment.
+        case "$ac_expr" in '#'*) continue;; esac
+
+        cat confdefs.h - <<_ACEOF >conftest.$ac_ext
+/* end confdefs.h.  */
+#include <stdio.h>
+int
+main ()
+{
+FILE *fp = stdin; (void) ($ac_expr);
+  ;
+  return 0;
+}
+_ACEOF
+if ac_fn_c_try_compile "$LINENO"; then :
+  fp_done=yes
+
+fi
+rm -f core conftest.err conftest.$ac_objext conftest.$ac_ext
+        test "$fp_done" = yes && break
+      done
+
+      ac_cv_sys_pending_output_n_bytes=$ac_expr
+
+
+fi
+{ $as_echo "$as_me:${as_lineno-$LINENO}: result: $ac_cv_sys_pending_output_n_bytes" >&5
+$as_echo "$ac_cv_sys_pending_output_n_bytes" >&6; }
+
+cat >>confdefs.h <<_ACEOF
+#define PENDING_OUTPUT_N_BYTES $ac_cv_sys_pending_output_n_bytes
+_ACEOF
+
+
+  fi
 
 
 # Persuade glibc <stdlib.h> to declare getloadavg().
