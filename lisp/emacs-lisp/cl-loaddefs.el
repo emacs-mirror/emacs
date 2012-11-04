@@ -265,7 +265,7 @@ Remove from SYMBOL's plist the property PROPNAME and its value.
 ;;;;;;  cl-typecase cl-ecase cl-case cl-load-time-value cl-eval-when
 ;;;;;;  cl-destructuring-bind cl-function cl-defmacro cl-defun cl-gentemp
 ;;;;;;  cl-gensym cl--compiler-macro-cXXr cl--compiler-macro-list*)
-;;;;;;  "cl-macs" "cl-macs.el" "366e9efa4e3e7a81b2253e503611b23a")
+;;;;;;  "cl-macs" "cl-macs.el" "57cf89149db1e8ea6bc1582713980cf8")
 ;;; Generated autoloads from cl-macs.el
 
 (autoload 'cl--compiler-macro-list* "cl-macs" "\
@@ -473,9 +473,9 @@ from OBARRAY.
 (put 'cl-do-symbols 'lisp-indent-function '1)
 
 (autoload 'cl-do-all-symbols "cl-macs" "\
+Like `cl-do-symbols', but use the default obarray.
 
-
-\(fn SPEC &rest BODY)" nil t)
+\(fn (VAR [RESULT]) BODY...)" nil t)
 
 (put 'cl-do-all-symbols 'lisp-indent-function '1)
 
