@@ -385,7 +385,7 @@ Bibliography
 
 * .. _FW77:
 
-  Daniel P Friedman, David S. Wise. 1977. "`The One-Bit Reference Count <http://www.cs.indiana.edu/pub/techreports/TR57.pdf>`_". *BIT.* (17)3: 351--359.
+  Daniel P Friedman, David S. Wise. 1977. "`The One Bit Reference Count <http://www.cs.indiana.edu/pub/techreports/TR57.pdf>`_". *BIT.* (17)3: 351--359.
 
   .. abstract: fw77.html
 
@@ -715,7 +715,7 @@ Bibliography
 
 * .. _ROVNER85:
 
-  Paul Rovner. 1985. "`On Adding Garbage Collection and Runtime Types to a Strongly-Typed, Statically-Checked, Concurrent Language <http://e3k.computer-refuge.org/bitsavers/pdf/xerox/parc/techReports/CSL-84-7_On_Adding_Garbage_Collection_and_Runtime_Types_to_a_Strongly-Typed_Statically-Checked_Concurrent_Language.pdf>`". Xerox PARC. TR CSL-84-7.
+  Paul Rovner. 1985. "`On Adding Garbage Collection and Runtime Types to a Strongly-Typed, Statically-Checked, Concurrent Language <http://e3k.computer-refuge.org/bitsavers/pdf/xerox/parc/techReports/CSL-84-7_On_Adding_Garbage_Collection_and_Runtime_Types_to_a_Strongly-Typed_Statically-Checked_Concurrent_Language.pdf>`_". Xerox PARC. TR CSL-84-7.
 
 * .. _RUNCIMAN92:
 
@@ -857,11 +857,11 @@ Bibliography
 
 * .. _WISE78:
 
-  David S. Wise. 1978. "The double-buddy system". Department of Computer Science at Indiana University. Technical Report 79.
+  David S. Wise. 1978. "`The double buddy system <http://www.cs.indiana.edu/ftp/techreports/>`_". Department of Computer Science at Indiana University. Technical Report 79.
 
 * .. _WISE79:
 
-  David S. Wise. 1979. "Morris's garbage compaction algorithm restores reference counts". TOPLAS. 1, 1 (July l979): 115--120.
+  David S. Wise. 1979. "`Morris's garbage compaction algorithm restores reference counts <http://www.cs.indiana.edu/ftp/techreports/TR75.pdf>`_". TOPLAS. 1, 1 (July l979): 115--120.
 
 * .. _WISE85:
 
