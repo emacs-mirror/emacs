@@ -59,6 +59,10 @@ Memory Management Glossary: L
            :term:`nursery space` of a :term:`generational garbage
            collector <generational garbage collection>`.
 
+    large page
+
+        .. see:: :ref:`huge page`.
+
     leaf object
 
         .. aka:: *atomic object*.
