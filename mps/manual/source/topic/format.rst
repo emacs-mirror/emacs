@@ -236,11 +236,11 @@ For example::
 
     .. note::
 
-        Format methods for formats of this variant will receive
-        *client pointers* (that is, pointers past the header) but all
-        other MPS functions expect to receive and return *base
-        pointers* (that is, pointers to the base of the block where
-        the header is stored).
+        Format methods (other than the :term:`padding method`) for
+        formats of this variant will receive *client pointers* (that
+        is, pointers past the header) but all other MPS functions
+        expect to receive and return *base pointers* (that is,
+        pointers to the base of the block where the header is stored).
 
         In particular, :c:func:`mps_reserve` and :c:func:`mps_alloc`
         always hand out base pointers, and :c:func:`mps_free` expects
@@ -446,6 +446,11 @@ Format methods
     format alignment) size. A padding object must be acceptable to
     other methods in the format (the :term:`scan method`, the
     :term:`skip method`, and so on).
+
+    .. note::
+
+        The padding method always receives a base pointer, even if the
+        object format belongs to variant auto-header.
 
 
 .. c:type:: mps_res_t (*mps_fmt_scan_t)(mps_ss_t ss, mps_addr_t base, mps_addr_t limit)
