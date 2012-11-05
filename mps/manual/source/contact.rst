@@ -3,8 +3,9 @@
 Contact us
 ==========
 
-If you have questions about the project please write to
-`mps-questions@ravenbrook.com <mailto:mps-questions@ravenbrook.com>`_.
+If you have questions about the project, or suggestions for
+improvement, please write to `mps-questions@ravenbrook.com
+<mailto:mps-questions@ravenbrook.com>`_.
 
 You can also join the `mps-discussion mailing list
 <http://mailman.ravenbrook.com/mailman/listinfo/mps-discussion>`_ if
