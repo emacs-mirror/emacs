@@ -27,6 +27,7 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #include <errno.h>
 #include <math.h>
 #include <fcntl.h>
+#include <unistd.h>
 
 #include "lisp.h"
 #include "w32term.h"
@@ -7749,12 +7750,19 @@ emacs_abort (void)
 
 	if (i)
 	  {
+#ifdef CYGWIN
+	    int stderr_fd = 2;
+#else
 	    HANDLE errout = GetStdHandle (STD_ERROR_HANDLE);
-	    int stderr_fd = -1, errfile_fd = -1;
+	    int stderr_fd = -1;
+#endif
+	    int errfile_fd = -1;
 	    int j;
 
+#ifndef CYGWIN
 	    if (errout && errout != INVALID_HANDLE_VALUE)
 	      stderr_fd = _open_osfhandle ((intptr_t)errout, O_APPEND | O_BINARY);
+#endif
 	    if (stderr_fd >= 0)
 	      write (stderr_fd, "\r\nBacktrace:\r\n", 14);
 	    errfile_fd = _open ("emacs_backtrace.txt", O_RDWR | O_CREAT | O_BINARY, S_IREAD | S_IWRITE);

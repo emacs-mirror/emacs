@@ -1,3 +1,11 @@
+2012-11-05  Eli Zaretskii  <eliz@gnu.org>
+
+	* makefile.w32-in ($(BLD)/w32fns.$(O)): Depend on $(NT_INC)/unistd.h.
+
+	* w32fns.c Include unistd.h, to avoid compiler warnings on Cygwin.
+	(emacs_abort) [CYGWIN]: Don't call _open_osfhandle; instead, use
+	file descriptor 2 for standard error.
+
 2012-11-05  Chong Yidong  <cyd@gnu.org>
 
 	* process.c (wait_reading_process_output): Revert previous change.
