@@ -1,3 +1,10 @@
+2012-11-05  Paul Eggert  <eggert@cs.ucla.edu>
+
+	Simplify by assuming __fpending.
+	* dispnew.c: Include <fpending.h>, not <stdio_ext.h>.
+	(update_frame_1): Use __fpending, not PENDING_OUTPUT_COUNT.
+	Do not assume that __fpending's result fits in int.
+
 2012-11-04  Paul Eggert  <eggert@cs.ucla.edu>
 
 	Remove EMACS_OUTQSIZE+sleep hack.

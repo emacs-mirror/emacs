@@ -53,9 +53,7 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #include "systime.h"
 #include <errno.h>
 
-#ifdef DISPNEW_NEEDS_STDIO_EXT
-#include <stdio_ext.h>
-#endif
+#include <fpending.h>
 
 #if defined (HAVE_TERM_H) && defined (GNU_LINUX)
 #include <term.h>		/* for tgetent */
@@ -4647,7 +4645,7 @@ update_frame_1 (struct frame *f, bool force_p, bool inhibit_id_p)
 	      FILE *display_output = FRAME_TTY (f)->output;
 	      if (display_output)
 		{
-		  int outq = PENDING_OUTPUT_COUNT (display_output);
+		  ptrdiff_t outq = __fpending (display_output);
 		  if (outq > 900
 		      || (outq > 20 && ((i - 1) % preempt_count == 0)))
 		    fflush (display_output);

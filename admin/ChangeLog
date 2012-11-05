@@ -1,3 +1,8 @@
+2012-11-05  Paul Eggert  <eggert@cs.ucla.edu>
+
+	Simplify by assuming __fpending.
+	* CPP-DEFINES (PENDING_OUTPUT_COUNT): Remove.
+
 2012-11-03  Glenn Morris  <rgm@gnu.org>
 
 	* admin.el (set-copyright): Add msdos/sed2v2.inp.

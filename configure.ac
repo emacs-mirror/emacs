@@ -1266,7 +1266,7 @@ fi
 dnl checks for header files
 AC_CHECK_HEADERS_ONCE(
   linux/version.h sys/systeminfo.h
-  stdio_ext.h fcntl.h coff.h pty.h
+  fcntl.h coff.h pty.h
   sys/vlimit.h sys/resource.h
   sys/utsname.h pwd.h utmp.h dirent.h util.h)
 
@@ -2874,7 +2874,7 @@ closedir getrusage get_current_dir_name \
 lrand48 setsid \
 fpathconf select euidaccess getpagesize setlocale \
 utimes getrlimit setrlimit setpgid getcwd shutdown getaddrinfo \
-__fpending strsignal setitimer \
+strsignal setitimer \
 sendto recvfrom getsockname getpeername getifaddrs freeifaddrs \
 gai_strerror mkstemp getline getdelim fsync sync \
 difftime posix_memalign \
@@ -3648,100 +3648,6 @@ case $opsys in
     test $emacs_signals_via_chars = yes && AC_DEFINE(SIGNALS_VIA_CHARACTERS, 1)
     ;;
 esac
-
-
-dnl Used in dispnew.c
-AH_TEMPLATE(PENDING_OUTPUT_COUNT, [Number of chars of output in the
-  buffer of a stdio stream.])
-
-AC_MSG_CHECKING([whether we are using the GNU C library])
-AC_PREPROC_IFELSE([AC_LANG_PROGRAM([[
-#include <features.h>
-#ifndef __GNU_LIBRARY__
-# error "this is not the GNU C library"
-#endif
-  ]], [[]])], emacs_glibc=yes, emacs_glibc=no)
-AC_MSG_RESULT([$emacs_glibc])
-
-if test $emacs_glibc = yes; then
-
-  emacs_pending_output=unknown
-
-  case $opsys in
-    gnu | gnu-linux | gnu-kfreebsd )
-      AC_MSG_CHECKING([for style of pending output formalism])
-      dnl In autoconf 2.67 and later, we could use a single test
-      dnl since the preprocessed output is accessible in "conftest.i".
-      AC_PREPROC_IFELSE([AC_LANG_PROGRAM([[
-#include <stdio.h>
-#if !defined (_IO_STDIO_H) && !defined (_STDIO_USES_IOSTREAM)
-# error "stdio definitions not found"
-#endif
-        ]], [[]])], emacs_pending_output=new, [])
-
-      if test $emacs_pending_output = unknown; then
-        case $opsys in
-          gnu-linux | gnu-kfreebsd)
-            AC_PREPROC_IFELSE([AC_LANG_PROGRAM([[
-#include <stdio.h>
-#ifndef __UCLIBC__
-# error "not using uclibc"
-#endif
-            ]], [[]])], emacs_pending_output=uclibc, emacs_pending_output=old)
-            ;;
-        esac
-      fi
-
-      AC_MSG_RESULT([$emacs_pending_output])
-
-      case $emacs_pending_output in
-        new)
-          dnl New C libio names.
-          AC_DEFINE(PENDING_OUTPUT_COUNT(FILE),
-            [((FILE)->_IO_write_ptr - (FILE)->_IO_write_base)])
-          ;;
-        uclibc)
-          dnl Using the uClibc library.
-          AC_DEFINE(PENDING_OUTPUT_COUNT(FILE),
-            [((FILE)->__bufpos - (FILE)->__bufstart)])
-          ;;
-        old)
-          dnl Old C++ iostream names.
-          AC_DEFINE(PENDING_OUTPUT_COUNT(FILE),
-            [((FILE)->_pptr - (FILE)->_pbase)])
-          ;;
-      esac
-    ;;
-  esac                          dnl opsys
-
-  if test $emacs_pending_output = unknown; then
-    AC_DEFINE(PENDING_OUTPUT_COUNT(FILE), [((FILE)->__bufp - (FILE)->__buffer)])
-  fi
-
-else                            dnl !emacs_glibc
-
-  case $opsys in
-    cygwin | darwin | freebsd | netbsd | openbsd )
-      AC_DEFINE(PENDING_OUTPUT_COUNT(FILE), [((FILE)->_p - (FILE)->_bf._base)])
-      ;;
-
-    unixware)
-      AC_DEFINE(PENDING_OUTPUT_COUNT(FILE), [((FILE)->__ptr - (FILE)->__base)])
-      ;;
-
-    *)
-      dnl HAVE_STDIO_EXT_H && HAVE___FPENDING
-      if test x$ac_cv_header_stdio_ext_h = xyes && \
-        test x$ac_cv_func___fpending = xyes; then
-        AC_DEFINE(PENDING_OUTPUT_COUNT(FILE), [__fpending (FILE)])
-        AC_DEFINE(DISPNEW_NEEDS_STDIO_EXT, 1,
-          [Define if dispnew.c should include stdio_ext.h.])
-      else
-        AC_DEFINE(PENDING_OUTPUT_COUNT(FILE), [((FILE)->_ptr - (FILE)->_base)])
-      fi
-      ;;
-  esac
-fi                              dnl emacs_glibc
 
 
 dnl Used in vm-limit.c

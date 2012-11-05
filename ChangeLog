@@ -1,3 +1,11 @@
+2012-11-05  Paul Eggert  <eggert@cs.ucla.edu>
+
+	Simplify by assuming __fpending.
+	Now that Emacs is using the gnulib fpending module,
+	there's no need for Emacs to have a separate implementation.
+	* configure.ac (stdio_ext.h, __fpending): Remove now-duplicate checks.
+	(PENDING_OUTPUT_COUNT, DISPNEW_NEEDS_STDIO_EXT): Remove.
+
 2012-11-03  Eli Zaretskii  <eliz@gnu.org>
 
 	* lib/makefile.w32-in (GNULIBOBJS): Add $(BLD)/fpending.$(O) and
