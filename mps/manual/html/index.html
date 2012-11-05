@@ -1,0 +1,193 @@
+
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>Memory Pool System &mdash; Memory Pool System 1.111.0 documentation</title>
+    
+    <link rel="stylesheet" href="_static/mps.css" type="text/css" />
+    <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '',
+        VERSION:     '1.111.0',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="_static/jquery.js"></script>
+    <script type="text/javascript" src="_static/underscore.js"></script>
+    <script type="text/javascript" src="_static/doctools.js"></script>
+    <link rel="copyright" title="Copyright" href="copyright.html" />
+    <link rel="top" title="Memory Pool System 1.111.0 documentation" href="#" />
+    <link rel="next" title="Guide" href="guide/index.html" /> 
+  </head>
+  <body>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="guide/index.html" title="Guide"
+             accesskey="N">next</a> |</li>
+        <li><a href="#">Memory Pool System 1.111.0 documentation</a> &raquo;</li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body">
+            
+  <div class="section" id="memory-pool-system">
+<h1>Memory Pool System<a class="headerlink" href="#memory-pool-system" title="Permalink to this headline">¶</a></h1>
+<div class="toctree-wrapper compound">
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="guide/index.html">Guide</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="guide/overview.html">1. Overview of the Memory Pool System</a></li>
+<li class="toctree-l2"><a class="reference internal" href="guide/build.html">2. Building the Memory Pool System</a></li>
+<li class="toctree-l2"><a class="reference internal" href="guide/lang.html">3. Garbage collecting a language with the Memory Pool System</a></li>
+<li class="toctree-l2"><a class="reference internal" href="guide/debug.html">4. Debugging with the Memory Pool System</a></li>
+<li class="toctree-l2"><a class="reference internal" href="guide/perf.html">5. Tuning the Memory Pool System for performance</a></li>
+<li class="toctree-l2"><a class="reference internal" href="guide/advanced.html">6. Advanced topics</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="topic/index.html">Reference</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="topic/interface.html">1. Interface conventions</a></li>
+<li class="toctree-l2"><a class="reference internal" href="topic/error.html">2. Error handing</a></li>
+<li class="toctree-l2"><a class="reference internal" href="topic/arena.html">3. Arenas</a></li>
+<li class="toctree-l2"><a class="reference internal" href="topic/pool.html">4. Pools</a></li>
+<li class="toctree-l2"><a class="reference internal" href="topic/allocation.html">5. Allocation</a></li>
+<li class="toctree-l2"><a class="reference internal" href="topic/format.html">6. Object formats</a></li>
+<li class="toctree-l2"><a class="reference internal" href="topic/scanning.html">7. Scanning</a></li>
+<li class="toctree-l2"><a class="reference internal" href="topic/thread.html">8. Threads</a></li>
+<li class="toctree-l2"><a class="reference internal" href="topic/root.html">9. Roots</a></li>
+<li class="toctree-l2"><a class="reference internal" href="topic/collection.html">10. Garbage collection</a></li>
+<li class="toctree-l2"><a class="reference internal" href="topic/message.html">11. Messages</a></li>
+<li class="toctree-l2"><a class="reference internal" href="topic/finalization.html">12. Finalization</a></li>
+<li class="toctree-l2"><a class="reference internal" href="topic/location.html">13. Location dependency</a></li>
+<li class="toctree-l2"><a class="reference internal" href="topic/cache.html">14. Segregated allocation caches</a></li>
+<li class="toctree-l2"><a class="reference internal" href="topic/pattern.html">15. Allocation patterns</a></li>
+<li class="toctree-l2"><a class="reference internal" href="topic/frame.html">16. Allocation frames</a></li>
+<li class="toctree-l2"><a class="reference internal" href="topic/debugging.html">17. Debugging pools</a></li>
+<li class="toctree-l2"><a class="reference internal" href="topic/telemetry.html">18. Telemetry</a></li>
+<li class="toctree-l2"><a class="reference internal" href="topic/low.html">19. Handling low memory</a></li>
+<li class="toctree-l2"><a class="reference internal" href="topic/weak.html">20. Weak references</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="pool/index.html">Pool reference</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="pool/intro.html">1. Choosing a pool class</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pool/intro.html#pool-class-properties">2. Pool class properties</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pool/intro.html#writing-a-new-pool-class">3. Writing a new pool class</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pool/amc.html">4. AMC (Automatic Mostly-Copying)</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pool/amcz.html">5. AMCZ (Automatic Mostly-Copying Zero-rank)</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pool/ams.html">6. AMS (Automatic Mark and Sweep)</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pool/awl.html">7. AWL (Automatic Weak Linked)</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pool/lo.html">8. LO (Leaf Only)</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pool/mfs.html">9. MFS (Manual Fixed Small)</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pool/mv.html">10. MV (Manual Variable)</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pool/mvff.html">11. MVFF (Manual Variable First Fit)</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pool/mvt.html">12. MVT (Manual Variable Temporal)</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pool/snc.html">13. SNC (Stack No Checking)</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="topic/internals.html">Internals</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="topic/plinth.html">1. Plinth</a></li>
+<li class="toctree-l2"><a class="reference internal" href="topic/platform.html">2. Platforms</a></li>
+<li class="toctree-l2"><a class="reference internal" href="topic/critical.html">3. The critical path</a></li>
+</ul>
+</li>
+</ul>
+</div>
+</div>
+<div class="section" id="memory-management-reference">
+<h1>Memory Management Reference<a class="headerlink" href="#memory-management-reference" title="Permalink to this headline">¶</a></h1>
+<div class="toctree-wrapper compound">
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="mmref/index.html">Introduction to memory management</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="mmref/begin.html">1. Overview</a></li>
+<li class="toctree-l2"><a class="reference internal" href="mmref/alloc.html">2. Allocation techniques</a></li>
+<li class="toctree-l2"><a class="reference internal" href="mmref/recycle.html">3. Recycling techniques</a></li>
+<li class="toctree-l2"><a class="reference internal" href="mmref/history.html">4. A brief history of memory management</a></li>
+<li class="toctree-l2"><a class="reference internal" href="mmref/lang.html">5. Memory management in various languages</a></li>
+<li class="toctree-l2"><a class="reference internal" href="mmref/faq.html">6. Frequently Asked Questions</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="mmref/bib.html">Bibliography</a></li>
+<li class="toctree-l1"><a class="reference internal" href="mmref/credit.html">Acknowledgements</a></li>
+</ul>
+</div>
+</div>
+<div class="section" id="appendices">
+<h1>Appendices<a class="headerlink" href="#appendices" title="Permalink to this headline">¶</a></h1>
+<div class="toctree-wrapper compound">
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="glossary/index.html">Memory Management Glossary</a></li>
+<li class="toctree-l1"><a class="reference internal" href="copyright.html">Memory Pool System Kit Open Source License</a></li>
+<li class="toctree-l1"><a class="reference internal" href="contact.html">Contact us</a></li>
+<li class="toctree-l1"><a class="reference internal" href="todo.html">To do</a></li>
+</ul>
+</div>
+<ul class="simple">
+<li><a class="reference internal" href="genindex.html"><em>Index</em></a></li>
+</ul>
+</div>
+
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar">
+        <div class="sphinxsidebarwrapper">
+            <p class="logo"><a href="#">
+              <img class="logo" src="_static/logo.png" alt="Logo"/>
+            </a></p>
+  <h3><a href="#">Table Of Contents</a></h3>
+  <ul>
+<li><a class="reference internal" href="#">Memory Pool System</a><ul>
+</ul>
+</li>
+<li><a class="reference internal" href="#memory-management-reference">Memory Management Reference</a><ul>
+</ul>
+</li>
+<li><a class="reference internal" href="#appendices">Appendices</a><ul>
+</ul>
+</li>
+</ul>
+
+  <h4>Next topic</h4>
+  <p class="topless"><a href="guide/index.html"
+                        title="next chapter">Guide</a></p><h4>Contact us</h4>
+
+<p class="topless"><a href="mailto:mps-questions@ravenbrook.com">mps-questions@ravenbrook.com</a></p>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="guide/index.html" title="Guide"
+             >next</a> |</li>
+        <li><a href="#">Memory Pool System 1.111.0 documentation</a> &raquo;</li> 
+      </ul>
+    </div>
+    <div class="footer">
+        &copy; <a href="copyright.html">Copyright</a> 2012, Ravenbrook Limited.
+      Created using <a href="http://sphinx.pocoo.org/">Sphinx</a> 1.1.3.
+    </div>
+  </body>
+</html>

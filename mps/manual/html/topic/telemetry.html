@@ -1,0 +1,451 @@
+
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>18. Telemetry &mdash; Memory Pool System 1.111.0 documentation</title>
+    
+    <link rel="stylesheet" href="../_static/mps.css" type="text/css" />
+    <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '../',
+        VERSION:     '1.111.0',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="../_static/jquery.js"></script>
+    <script type="text/javascript" src="../_static/underscore.js"></script>
+    <script type="text/javascript" src="../_static/doctools.js"></script>
+    <link rel="copyright" title="Copyright" href="../copyright.html" />
+    <link rel="top" title="Memory Pool System 1.111.0 documentation" href="../index.html" />
+    <link rel="up" title="Reference" href="index.html" />
+    <link rel="next" title="19. Handling low memory" href="low.html" />
+    <link rel="prev" title="17. Debugging pools" href="debugging.html" /> 
+  </head>
+  <body>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="low.html" title="19. Handling low memory"
+             accesskey="N">next</a> |</li>
+        <li class="right" >
+          <a href="debugging.html" title="17. Debugging pools"
+             accesskey="P">previous</a> |</li>
+        <li><a href="../index.html">Memory Pool System 1.111.0 documentation</a> &raquo;</li>
+          <li><a href="index.html" accesskey="U">Reference</a> &raquo;</li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body">
+            
+  <div class="section" id="telemetry">
+<span id="topic-telemetry"></span><h1>18. Telemetry<a class="headerlink" href="#telemetry" title="Permalink to this headline">¶</a></h1>
+<p>John McCarthy described the first on-line demonstration of
+<a class="reference internal" href="../mmref/lang.html#term-lisp"><em class="xref std std-term">Lisp</em></a> in an appendix to his paper &#8220;<a class="reference internal" href="../mmref/bib.html#mccarthy79"><em>History of Lisp</em></a>&#8221;:</p>
+<blockquote>
+<div><p>Everything was going well, if slowly, when suddenly the
+Flexowriter began to type (at ten characters per second)</p>
+<div class="highlight-none"><div class="highlight"><pre>THE GARBAGE COLLECTOR HAS BEEN CALLED.
+SOME INTERESTING STATISTICS ARE AS FOLLOWS:
+</pre></div>
+</div>
+<p>and on and on and on. The garbage collector was quite new at the
+time, we were rather proud of it and curious about it, and our
+normal output was on a line printer, so it printed a full page
+every time it was called giving how many words were marked and how
+many were collected and the size of list space, etc. During a
+previous rehearsal, the garbage collector hadn’t been called, but
+we had not refreshed the LISP core image, so we ran out of free
+storage during the demonstration.</p>
+<p>Nothing had ever been said about the garbage collector, and I
+could only imagine the reaction of the audience. We were already
+behind time on a tight schedule, it was clear that typing out the
+garbage collector message would take all the remaining time
+allocated to the demonstration, and both the lecturer and the
+audience were incapacitated with laughter. I think some of them
+thought we were victims of a practical joker.</p>
+</div></blockquote>
+<div class="section" id="introduction">
+<span id="index-0"></span><h2>18.1. Introduction<a class="headerlink" href="#introduction" title="Permalink to this headline">¶</a></h2>
+<p>In its <a class="reference internal" href="../glossary/c.html#term-cool"><em class="xref std std-term">cool</em></a> and <a class="reference internal" href="../glossary/h.html#term-hot"><em class="xref std std-term">hot</em></a> <a class="reference internal" href="../glossary/v.html#term-variety"><em class="xref std std-term">varieties</em></a>, the MPS is
+capable of outputting a configurable stream of events to assist with
+debugging and profiling.</p>
+<p>The selection of events that appear in the stream is controlled by the
+environment variable <span class="target" id="index-1"></span><a class="reference internal" href="#envvar-MPS_TELEMETRY_CONTROL"><tt class="xref std std-envvar docutils literal"><span class="pre">MPS_TELEMETRY_CONTROL</span></tt></a> (by default
+none), and the stream is written to the file named by the environment
+variable <span class="target" id="index-2"></span><a class="reference internal" href="#envvar-MPS_TELEMETRY_FILENAME"><tt class="xref std std-envvar docutils literal"><span class="pre">MPS_TELEMETRY_FILENAME</span></tt></a> (by default <tt class="docutils literal"><span class="pre">mpsio.log</span></tt>).</p>
+</div>
+<div class="section" id="example">
+<span id="index-3"></span><h2>18.2. Example<a class="headerlink" href="#example" title="Permalink to this headline">¶</a></h2>
+<p>Here&#8217;s an example of turning on telemetry in the debugger and then
+encountering a corrupted object:</p>
+<div class="highlight-none"><div class="highlight"><pre>$ gdb ./scheme
+GNU gdb 6.3.50-20050815 (Apple version gdb-1820) (Sat Jun 16 02:40:11 UTC 2012)
+[...]
+(gdb) set environment MPS_TELEMETRY_CONTROL=all
+(gdb) run
+Starting program: example/scheme/scheme
+Reading symbols for shared libraries +............................. done
+MPS Toy Scheme Example
+[...]
+7944, 0&gt; (gc)
+[...]
+7968, 1&gt; foo
+Assertion failed: (TYPE(frame) == TYPE_PAIR), function lookup_in_frame, file scheme.c, line 1066.
+
+Program received signal SIGABRT, Aborted.
+0x00007fff91aeed46 in __kill ()
+</pre></div>
+</div>
+<p>At this point there&#8217;s still output in the MPS&#8217;s internal event
+buffers, which needs to be flushed. It would be a good idea to add a
+call to <a class="reference internal" href="#mps_telemetry_flush" title="mps_telemetry_flush"><tt class="xref c c-func docutils literal"><span class="pre">mps_telemetry_flush()</span></tt></a> to the error handler, but for
+now we can just call it directly from the debugger:</p>
+<div class="highlight-none"><div class="highlight"><pre>(gdb) print mps_telemetry_flush()
+$1 = void
+</pre></div>
+</div>
+<p>The MPS writes the telemetry to the log in an encoded form for speed.
+It can be decoded using the <strong class="program">eventcnv</strong> program:</p>
+<div class="highlight-none"><div class="highlight"><pre>(gdb) shell eventcnv | sort &gt; mpsio.txt
+</pre></div>
+</div>
+<p>The <tt class="docutils literal"><span class="pre">sort</span></tt> is useful because the events are not necessarily written
+to the telemetry file in time order, but each event starts with a
+timestamp so sorting makes a time series. The decoded events look like
+this, with the timestamp in the first column, the event type in the
+second column, and then addresses or other data related to the event
+in the remaining columns. The source of the timestamp depends on the
+platform; it may be a low-cost high-resolution processor timer, such
+as the <a class="reference external" href="http://en.wikipedia.org/wiki/Time_Stamp_Counter">Time Stamp Counter</a> on IA-32 and
+x86-64, if one is available. All numbers are given in hexadecimal.</p>
+<div class="highlight-none"><div class="highlight"><pre>000AE03973336E3C 2B 1003FC000 1003FD000 1003FE000
+000AE0397333BC6D 2D 1003FC000 1003FD000 1003FE000
+000AE0397334DF9F 1A 2 &quot;Reservoir&quot;
+000AE0397334E0A0 1B 1078C85B8 2
+000AE03973352375 15 1003FD328 1003FD000 1078C85B8
+000AE039733592F9 2B 1003FE000 1003FF000 10992F000
+000AE0397335C8B5 2D 1003FE000 1003FF000 107930000
+000AE03973361D5A 5 1003FD000 2000000 2000000
+</pre></div>
+</div>
+<p>You can search through the telemetry for events related to particular
+addresses of interest.</p>
+<p>In the example, we might look for events related to the address of the
+corrupted <tt class="docutils literal"><span class="pre">frame</span></tt> object:</p>
+<div class="highlight-none"><div class="highlight"><pre>(gdb) frame 3
+#3  0x0000000100003f55 in lookup_in_frame (frame=0x1003fa7d0, symbol=0x1003faf20) at scheme.c:1066
+1066            assert(TYPE(frame) == TYPE_PAIR);
+(gdb) print frame
+$2 = (obj_t) 0x1003fa7d0
+(gdb) shell grep -i 1003fa7d0 mpsio.txt || echo not found
+not found
+</pre></div>
+</div>
+<p>There are no events related to this address, so in particular this
+address was never fixed (no <tt class="docutils literal"><span class="pre">TraceFix</span></tt> event).</p>
+<div class="admonition-note admonition">
+<p class="first admonition-title">Note</p>
+<p>You may find it useful to add the command:</p>
+<div class="highlight-none"><div class="highlight"><pre>set environment MPS_TELEMETRY_CONTROL=all
+</pre></div>
+</div>
+<p class="last">to your <tt class="docutils literal"><span class="pre">.gdbinit</span></tt>.</p>
+</div>
+</div>
+<div class="section" id="event-categories">
+<span id="index-4"></span><h2>18.3. Event categories<a class="headerlink" href="#event-categories" title="Permalink to this headline">¶</a></h2>
+<p>The &#8220;bit&#8221; column gives the bit number in the <a class="reference internal" href="../glossary/t.html#term-telemetry-filter"><em class="xref std std-term">telemetry filter</em></a>.
+These numbers are liable to change, but the current meanings (zero
+being the least significant bit) are:</p>
+<table border="1" class="docutils">
+<colgroup>
+<col width="4%" />
+<col width="14%" />
+<col width="81%" />
+</colgroup>
+<thead valign="bottom">
+<tr class="row-odd"><th class="head">Bit</th>
+<th class="head">Name</th>
+<th class="head">Description</th>
+</tr>
+</thead>
+<tbody valign="top">
+<tr class="row-even"><td>0</td>
+<td><tt class="docutils literal"><span class="pre">Arena</span></tt></td>
+<td>Per space or <a class="reference internal" href="../glossary/a.html#term-arena"><em class="xref std std-term">arena</em></a>.</td>
+</tr>
+<tr class="row-odd"><td>1</td>
+<td><tt class="docutils literal"><span class="pre">Pool</span></tt></td>
+<td>Per <a class="reference internal" href="../glossary/p.html#term-pool"><em class="xref std std-term">pool</em></a>.</td>
+</tr>
+<tr class="row-even"><td>2</td>
+<td><tt class="docutils literal"><span class="pre">Trace</span></tt></td>
+<td>Per <a class="reference internal" href="../glossary/t.html#term-trace"><em class="xref std std-term">trace</em></a> or scan.</td>
+</tr>
+<tr class="row-odd"><td>3</td>
+<td><tt class="docutils literal"><span class="pre">Seg</span></tt></td>
+<td>Per <a class="reference internal" href="../glossary/p.html#term-page"><em class="xref std std-term">page</em></a> (segment).</td>
+</tr>
+<tr class="row-even"><td>4</td>
+<td><tt class="docutils literal"><span class="pre">Ref</span></tt></td>
+<td>Per <a class="reference internal" href="../glossary/r.html#term-reference"><em class="xref std std-term">reference</em></a> or <a class="reference internal" href="../glossary/f.html#term-fix"><em class="xref std std-term">fix</em></a>.</td>
+</tr>
+<tr class="row-odd"><td>5</td>
+<td><tt class="docutils literal"><span class="pre">Object</span></tt></td>
+<td>Per allocation, <a class="reference internal" href="../glossary/b.html#term-block"><em class="xref std std-term">block</em></a>, or <a class="reference internal" href="../glossary/o.html#term-object"><em class="xref std std-term">object</em></a>.</td>
+</tr>
+<tr class="row-even"><td>6</td>
+<td><tt class="docutils literal"><span class="pre">User</span></tt></td>
+<td>User-invoked events: see <a class="reference internal" href="#mps_telemetry_intern" title="mps_telemetry_intern"><tt class="xref c c-func docutils literal"><span class="pre">mps_telemetry_intern()</span></tt></a>.</td>
+</tr>
+</tbody>
+</table>
+</div>
+<div class="section" id="environment-variables">
+<span id="index-5"></span><h2>18.4. Environment variables<a class="headerlink" href="#environment-variables" title="Permalink to this headline">¶</a></h2>
+<p>In the ANSI <a class="reference internal" href="../glossary/p.html#term-plinth"><em class="xref std std-term">plinth</em></a> (the plinth that comes as default with the
+MPS), these two environment variables control the behaviour of the
+telemetry feature.</p>
+<dl class="envvar">
+<dt id="envvar-MPS_TELEMETRY_CONTROL">
+<tt class="descname">MPS_TELEMETRY_CONTROL</tt><a class="headerlink" href="#envvar-MPS_TELEMETRY_CONTROL" title="Permalink to this definition">¶</a></dt>
+<dd><p>The event categories which should be included in the telemetry
+stream.</p>
+<p>If its value can be interpreted as a number, then this number
+represents the set of event categories as a <a class="reference internal" href="../glossary/b.html#term-bitmap"><em class="xref std std-term">bitmap</em></a>. For
+example, this turns on the <tt class="docutils literal"><span class="pre">Pool</span></tt> and <tt class="docutils literal"><span class="pre">Seg</span></tt> event categories:</p>
+<div class="highlight-none"><div class="highlight"><pre>MPS_TELEMETRY_CONTROL=6
+</pre></div>
+</div>
+<p>Otherwise, the value is split into words at spaces, and any word
+that names an event category turns it on. For example:</p>
+<div class="highlight-none"><div class="highlight"><pre>MPS_TELEMETRY_CONTROL=&quot;arena pool trace&quot;
+</pre></div>
+</div>
+<p>The special event category <tt class="docutils literal"><span class="pre">all</span></tt> turns on all events.</p>
+</dd></dl>
+
+<dl class="envvar">
+<dt id="envvar-MPS_TELEMETRY_FILENAME">
+<tt class="descname">MPS_TELEMETRY_FILENAME</tt><a class="headerlink" href="#envvar-MPS_TELEMETRY_FILENAME" title="Permalink to this definition">¶</a></dt>
+<dd><p>The name of the file to which the telemetry stream should be
+written. Defaults to <tt class="docutils literal"><span class="pre">mpsio.log</span></tt>. For example:</p>
+<div class="highlight-none"><div class="highlight"><pre>MPS_TELEMETRY_FILENAME=$(mktemp -t mps)
+</pre></div>
+</div>
+</dd></dl>
+
+</div>
+<div class="section" id="decoding-the-telemetry-stream">
+<span id="telemetry-eventcnv"></span><span id="index-6"></span><h2>18.5. Decoding the telemetry stream<a class="headerlink" href="#decoding-the-telemetry-stream" title="Permalink to this headline">¶</a></h2>
+<p>The MPS writes the telemetry stream in an encoded form for speed. It
+can be decoded using the <tt class="docutils literal"><span class="pre">eventcnv</span></tt> program, which prints (to
+standard output) a representation of each event in the stream.</p>
+<p><tt class="docutils literal"><span class="pre">eventcnv</span></tt> takes the following arguments:</p>
+<dl class="option">
+<dt id="cmdoption-eventcnv-f">
+<tt class="descname">-f</tt><tt class="descclassname"> &lt;filename&gt;</tt><a class="headerlink" href="#cmdoption-eventcnv-f" title="Permalink to this definition">¶</a></dt>
+<dd><p>The name of the file containing the telemetry stream to decode.
+Defaults to <tt class="docutils literal"><span class="pre">mpsio.log</span></tt>.</p>
+</dd></dl>
+
+<dl class="option">
+<dt id="cmdoption-eventcnv-h">
+<tt class="descname">-h</tt><tt class="descclassname"></tt><a class="headerlink" href="#cmdoption-eventcnv-h" title="Permalink to this definition">¶</a></dt>
+<dd><p>Help: print a usage message to standard output.</p>
+</dd></dl>
+
+<div class="admonition-note admonition">
+<p class="first admonition-title">Note</p>
+<p><tt class="docutils literal"><span class="pre">eventcnv</span></tt> can only read telemetry streams that were written by
+an MPS compiled on the same platform.</p>
+<p class="last">The events are printed in the order that they were written by the
+MPS, which is not the same as the order that they
+occurred. However, each event is prefixed by a timestamp, so that
+a time series of events can be obtained by sorting the output:
+<tt class="docutils literal"><span class="pre">eventcnv</span> <span class="pre">|</span> <span class="pre">sort</span></tt>.</p>
+</div>
+</div>
+<div class="section" id="telemetry-interface">
+<span id="index-7"></span><h2>18.6. Telemetry interface<a class="headerlink" href="#telemetry-interface" title="Permalink to this headline">¶</a></h2>
+<dl class="function">
+<dt id="mps_telemetry_control">
+<a class="reference internal" href="interface.html#mps_word_t" title="mps_word_t">mps_word_t</a> <tt class="descname">mps_telemetry_control</tt><big>(</big><a class="reference internal" href="interface.html#mps_word_t" title="mps_word_t">mps_word_t</a><em>&nbsp;reset_mask</em>, <a class="reference internal" href="interface.html#mps_word_t" title="mps_word_t">mps_word_t</a><em>&nbsp;flip_mask</em><big>)</big><a class="headerlink" href="#mps_telemetry_control" title="Permalink to this definition">¶</a></dt>
+<dd><p>Update and return the <a class="reference internal" href="../glossary/t.html#term-telemetry-filter"><em class="xref std std-term">telemetry filter</em></a>.</p>
+<p><tt class="docutils literal"><span class="pre">reset_mask</span></tt> is a <a class="reference internal" href="../glossary/b.html#term-bitmask"><em class="xref std std-term">bitmask</em></a> indicating the bits in the
+telemetry filter that should be reset.</p>
+<p><tt class="docutils literal"><span class="pre">flip_mask</span></tt> is a bitmask indicating the bits in the telemetry
+filter whose value should be flipped after the resetting.</p>
+<p>Returns the previous value of the telemetry filter, prior to the
+reset and the flip.</p>
+<p>The parameters <tt class="docutils literal"><span class="pre">reset_mask</span></tt> and <tt class="docutils literal"><span class="pre">flip_mask</span></tt> allow the
+specification of any binary operation on the filter control. For
+typical operations, the parameters should be set as follows:</p>
+<table border="1" class="docutils">
+<colgroup>
+<col width="31%" />
+<col width="36%" />
+<col width="33%" />
+</colgroup>
+<thead valign="bottom">
+<tr class="row-odd"><th class="head">Operation</th>
+<th class="head"><tt class="docutils literal"><span class="pre">reset_mask</span></tt></th>
+<th class="head"><tt class="docutils literal"><span class="pre">flip_mask</span></tt></th>
+</tr>
+</thead>
+<tbody valign="top">
+<tr class="row-even"><td><tt class="docutils literal"><span class="pre">set(M)</span></tt></td>
+<td><tt class="docutils literal"><span class="pre">M</span></tt></td>
+<td><tt class="docutils literal"><span class="pre">M</span></tt></td>
+</tr>
+<tr class="row-odd"><td><tt class="docutils literal"><span class="pre">reset(M)</span></tt></td>
+<td><tt class="docutils literal"><span class="pre">M</span></tt></td>
+<td><tt class="docutils literal"><span class="pre">0</span></tt></td>
+</tr>
+<tr class="row-even"><td><tt class="docutils literal"><span class="pre">flip(M)</span></tt></td>
+<td><tt class="docutils literal"><span class="pre">0</span></tt></td>
+<td><tt class="docutils literal"><span class="pre">M</span></tt></td>
+</tr>
+<tr class="row-odd"><td><tt class="docutils literal"><span class="pre">read()</span></tt></td>
+<td><tt class="docutils literal"><span class="pre">0</span></tt></td>
+<td><tt class="docutils literal"><span class="pre">0</span></tt></td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="function">
+<dt id="mps_telemetry_flush">
+void <tt class="descname">mps_telemetry_flush</tt><big>(</big>void<big>)</big><a class="headerlink" href="#mps_telemetry_flush" title="Permalink to this definition">¶</a></dt>
+<dd><p>Flush the internal event buffers into the <a class="reference internal" href="../glossary/t.html#term-telemetry-stream"><em class="xref std std-term">telemetry stream</em></a>.</p>
+<p>This function also calls <a class="reference internal" href="plinth.html#mps_io_flush" title="mps_io_flush"><tt class="xref c c-func docutils literal"><span class="pre">mps_io_flush()</span></tt></a> on the event
+stream itself. This ensures that even the latest events are now
+properly recorded, should the <a class="reference internal" href="../glossary/c.html#term-client-program"><em class="xref std std-term">client program</em></a> terminate
+(uncontrollably as a result of a bug, for example) or some
+interactive tool require access to the telemetry stream. You could
+even try calling this from a debugger after a problem.</p>
+</dd></dl>
+
+</div>
+<div class="section" id="telemetry-labels">
+<span id="index-8"></span><h2>18.7. Telemetry labels<a class="headerlink" href="#telemetry-labels" title="Permalink to this headline">¶</a></h2>
+<p>Typical uses of telemetry labels include:</p>
+<ul class="simple">
+<li>labelling pools with a human-meaningful name;</li>
+<li>labelling allocated objects with their type, class, or other description.</li>
+</ul>
+<dl class="function">
+<dt id="mps_telemetry_intern">
+<a class="reference internal" href="interface.html#mps_word_t" title="mps_word_t">mps_word_t</a> <tt class="descname">mps_telemetry_intern</tt><big>(</big>char<em>&nbsp;*label</em><big>)</big><a class="headerlink" href="#mps_telemetry_intern" title="Permalink to this definition">¶</a></dt>
+<dd><p>Registers a string with the MPS, and receives a <a class="reference internal" href="../glossary/t.html#term-telemetry-label"><em class="xref std std-term">telemetry
+label</em></a>, suitable for passing to <a class="reference internal" href="#mps_telemetry_label" title="mps_telemetry_label"><tt class="xref c c-func docutils literal"><span class="pre">mps_telemetry_label()</span></tt></a>.</p>
+<p><tt class="docutils literal"><span class="pre">label</span></tt> is a NUL-terminated string. Its length should not exceed
+256 characters, including the terminating NUL.</p>
+<p>Returns a telemetry label: a unique identifier that may be used to
+represent the string in future.</p>
+<p>The intention of this function is to provide an identifier that
+can be used to concisely represent a string for the purposes of
+<a class="reference internal" href="#mps_telemetry_label" title="mps_telemetry_label"><tt class="xref c c-func docutils literal"><span class="pre">mps_telemetry_label()</span></tt></a>.</p>
+<div class="admonition-note admonition">
+<p class="first admonition-title">Note</p>
+<p class="last">The <tt class="docutils literal"><span class="pre">User</span></tt> event category must be turned on in the
+<a class="reference internal" href="../glossary/t.html#term-telemetry-filter"><em class="xref std std-term">telemetry filter</em></a> (via <a class="reference internal" href="#mps_telemetry_control" title="mps_telemetry_control"><tt class="xref c c-func docutils literal"><span class="pre">mps_telemetry_control()</span></tt></a>)
+before calling this function.</p>
+</div>
+</dd></dl>
+
+<dl class="function">
+<dt id="mps_telemetry_label">
+void <tt class="descname">mps_telemetry_label</tt><big>(</big><a class="reference internal" href="interface.html#mps_addr_t" title="mps_addr_t">mps_addr_t</a><em>&nbsp;addr</em>, <a class="reference internal" href="interface.html#mps_word_t" title="mps_word_t">mps_word_t</a><em>&nbsp;label</em><big>)</big><a class="headerlink" href="#mps_telemetry_label" title="Permalink to this definition">¶</a></dt>
+<dd><p>Associate a telemetry label returned from
+<a class="reference internal" href="#mps_telemetry_intern" title="mps_telemetry_intern"><tt class="xref c c-func docutils literal"><span class="pre">mps_telemetry_intern()</span></tt></a> with an address.</p>
+<p><tt class="docutils literal"><span class="pre">addr</span></tt> is an address.</p>
+<p><tt class="docutils literal"><span class="pre">label</span></tt> is a telemetry label returned from
+<a class="reference internal" href="#mps_telemetry_intern" title="mps_telemetry_intern"><tt class="xref c c-func docutils literal"><span class="pre">mps_telemetry_intern()</span></tt></a>.</p>
+<p>The label will be associated with the address when it appears in
+the <a class="reference internal" href="../glossary/t.html#term-telemetry-stream"><em class="xref std std-term">telemetry stream</em></a>.</p>
+<div class="admonition-note admonition">
+<p class="first admonition-title">Note</p>
+<p class="last">The <tt class="docutils literal"><span class="pre">User</span></tt> event category must be selected in the
+<a class="reference internal" href="../glossary/t.html#term-telemetry-filter"><em class="xref std std-term">telemetry filter</em></a> (via <a class="reference internal" href="#mps_telemetry_control" title="mps_telemetry_control"><tt class="xref c c-func docutils literal"><span class="pre">mps_telemetry_control()</span></tt></a>)
+before calling this function.</p>
+</div>
+</dd></dl>
+
+</div>
+</div>
+
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar">
+        <div class="sphinxsidebarwrapper">
+            <p class="logo"><a href="../index.html">
+              <img class="logo" src="../_static/logo.png" alt="Logo"/>
+            </a></p>
+  <h3><a href="../index.html">Table Of Contents</a></h3>
+  <ul>
+<li><a class="reference internal" href="#">18. Telemetry</a><ul>
+<li><a class="reference internal" href="#introduction">18.1. Introduction</a></li>
+<li><a class="reference internal" href="#example">18.2. Example</a></li>
+<li><a class="reference internal" href="#event-categories">18.3. Event categories</a></li>
+<li><a class="reference internal" href="#environment-variables">18.4. Environment variables</a></li>
+<li><a class="reference internal" href="#decoding-the-telemetry-stream">18.5. Decoding the telemetry stream</a></li>
+<li><a class="reference internal" href="#telemetry-interface">18.6. Telemetry interface</a></li>
+<li><a class="reference internal" href="#telemetry-labels">18.7. Telemetry labels</a></li>
+</ul>
+</li>
+</ul>
+
+  <h4>Previous topic</h4>
+  <p class="topless"><a href="debugging.html"
+                        title="previous chapter">17. Debugging pools</a></p>
+  <h4>Next topic</h4>
+  <p class="topless"><a href="low.html"
+                        title="next chapter">19. Handling low memory</a></p><h4>Contact us</h4>
+
+<p class="topless"><a href="mailto:mps-questions@ravenbrook.com">mps-questions@ravenbrook.com</a></p>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="low.html" title="19. Handling low memory"
+             >next</a> |</li>
+        <li class="right" >
+          <a href="debugging.html" title="17. Debugging pools"
+             >previous</a> |</li>
+        <li><a href="../index.html">Memory Pool System 1.111.0 documentation</a> &raquo;</li>
+          <li><a href="index.html" >Reference</a> &raquo;</li> 
+      </ul>
+    </div>
+    <div class="footer">
+        &copy; <a href="../copyright.html">Copyright</a> 2012, Ravenbrook Limited.
+      Created using <a href="http://sphinx.pocoo.org/">Sphinx</a> 1.1.3.
+    </div>
+  </body>
+</html>
