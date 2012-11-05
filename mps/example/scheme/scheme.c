@@ -993,7 +993,10 @@ static void table_delete(obj_t tbl, obj_t key)
 {
   struct bucket_s *b;
   assert(TYPE(tbl) == TYPE_TABLE);
-  b = buckets_find(tbl, tbl->table.buckets, key, &tbl->table.ld);
+  b = buckets_find(tbl, tbl->table.buckets, key, NULL);
+  if ((b == NULL || b->key == NULL) && mps_ld_isstale(&tbl->table.ld, arena, key)) {
+    b = table_rehash(tbl, tbl->table.buckets->buckets.length, key);
+  }
   if (b != NULL && b->key != NULL) {
     b->key = obj_deleted;
     ++ tbl->table.buckets->buckets.deleted;
