@@ -8,8 +8,8 @@
    <unistd.h> also includes <stdlib.h>, so there's no need to declare
    'environ' here.  */
 
-/* Privide prototypes of library functions that are emulated on w32
-   and whose prototypes are usually found in unistd.h on Posix
+/* Provide prototypes of library functions that are emulated on w32
+   and whose prototypes are usually found in unistd.h on POSIX
    platforms.  */
 extern ssize_t readlink (const char *, char *, size_t);
 extern int symlink (char const *, char const *);

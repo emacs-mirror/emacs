@@ -2,7 +2,7 @@
 
 	* makefile.w32-in ($(BLD)/w32fns.$(O)): Depend on $(NT_INC)/unistd.h.
 
-	* w32fns.c Include unistd.h, to avoid compiler warnings on Cygwin.
+	* w32fns.c: Include unistd.h, to avoid compiler warnings on Cygwin.
 	(emacs_abort) [CYGWIN]: Don't call _open_osfhandle; instead, use
 	file descriptor 2 for standard error.  (Bug#12805)
 
@@ -827,7 +827,7 @@
 	now a supported configuration.
 
 	* Makefile.in: consolidate image variables into LIBIMAGE; add
-	W32_OBJ and W32_LIBS. Compile new files.
+	W32_OBJ and W32_LIBS.  Compile new files.
 
 	* conf_post.h:
 	(_DebPrint) declare tracing facility for W32 debugging.  We need
