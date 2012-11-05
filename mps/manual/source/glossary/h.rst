@@ -108,3 +108,11 @@ Memory Management Glossary: H
             Select it by defining :c:macro:`CONFIG_VAR_HOT`. Compare
             :term:`cool` and :term:`rash`.
 
+    huge page
+
+        .. aka:: *large page*, *superpage*.
+
+        Some processor architectures support multiple :term:`page`
+        sizes. This allows operating systems to better match the page
+        size to the granularity of memory usage and so reduce the size
+        of the :ref:`page table`.
