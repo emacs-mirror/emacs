@@ -112,7 +112,9 @@ AMC interface
                                   mps_chain_t chain)
 
     ``fmt`` specifies the :term:`object format` for the objects
-    allocated in the pool.
+    allocated in the pool. The format must provide a :term:`scan
+    method`, a :term:`skip method`, a :term:`forward method`, an
+    :term:`is-forwarded method` and a :term:`padding method`.
 
     ``chain`` specifies the :term:`generation chain` for the pool.
 
