@@ -419,16 +419,16 @@ the initial frame, specify the same parameters in
 @code{initial-frame-alist} with values that match the X resources.
 @end defopt
 
-If these parameters specify a separate @dfn{minibuffer-only frame} with
-@code{(minibuffer . nil)}, and you have not created one, Emacs creates
-one for you.
-
 @cindex minibuffer-only frame
+If these parameters include @code{(minibuffer . nil)}, that indicates
+that the initial frame should have no minibuffer.  In this case, Emacs
+creates a separate @dfn{minibuffer-only frame} as well.
+
 @defopt minibuffer-frame-alist
 This variable's value is an alist of parameter values used when
-creating an initial minibuffer-only frame.  This is the
-minibuffer-only frame that Emacs creates if @code{initial-frame-alist}
-specifies a frame with no minibuffer.
+creating an initial minibuffer-only frame (i.e.@: the minibuffer-only
+frame that Emacs creates if @code{initial-frame-alist} specifies a
+frame with no minibuffer).
 @end defopt
 
 @defopt default-frame-alist
