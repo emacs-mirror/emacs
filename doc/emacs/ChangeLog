@@ -1,3 +1,7 @@
+2012-11-05  Chong Yidong  <cyd@gnu.org>
+
+	* dired.texi (Dired Updating): Doc fix (Bug#11744).
+
 2012-10-30  Michael Albinus  <michael.albinus@gmx.de>
 
 	* trouble.texi (Known Problems): Mention command `debbugs-gnu-usertags'.
