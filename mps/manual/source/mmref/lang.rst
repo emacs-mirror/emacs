@@ -127,6 +127,35 @@ Memory management in various languages
 
             `Common Lisp HyperSpec <http://www.lispworks.com/documentation/HyperSpec/Front/>`_.
 
+    C#
+
+        C# is a strongly typed object-oriented language developed at
+        Microsoft and designed to run on the Common Language Runtime
+        virtual machine from the .NET Framework. It also runs on the
+        open source Mono runtime.
+
+        Memory is automatically managed: memory is allocated when an
+        object is created, and reclaimed automatically at some point
+        after the object becomes unreachable.
+
+        The language supports :term:`finalization` (classes may have
+        *destructor functions*, which are run just before the object
+        is reclaimed by the memory manager), and :term:`weak
+        references (1)` (via the ``WeakReference`` class).
+
+	The garbage collector in the .NET Framework is configurable to
+	work in soft real time.
+
+        The Mono runtime comes with two collectors: the Boehm–Weiser
+        conservative collector, and a copying generational collector.
+
+        .. link::
+
+            `Automatic memory management in C# <http://msdn.microsoft.com/en-us/library/aa691138.aspx>`_,
+            `WeakReference Class <http://msdn.microsoft.com/en-us/library/system.weakreference.aspx>`_,
+            `Memory Management and Garbage Collection in the .NET Framework <http://msdn.microsoft.com/en-us/library/hh156531.aspx>`_,
+            `Mono project <http://www.mono-project.com/Main_Page>`_.
+
     C++
 
         C++ is a (weakly) object-oriented language, extending the
@@ -402,6 +431,32 @@ Memory management in various languages
         Lisp Machines are used in today's implementations, at a cost
         of a few more cycles.
 
+    Lua
+
+        Lua is a dynamically typed language developed by Roberto
+        Ierusalimschy, Luiz Henrique de Figueiredo, and Waldemar Celes
+        in 1993. The language supports object-oriented and functional
+        styles of programming, and is designed to be easily embedded
+        as an extension language in a larger programming system.
+
+        Lua use :term:`automatic memory management` and comes with an
+        :term:`incremental <incremental garbage collection>`
+        :term:`garbage collector` supporting soft real time
+        applications. This uses a software :term:`barrier (1)` in
+        order to be highly portable.
+
+        The language supports :term:`weak references (1)` in the form
+        of weak (hash) tables, which have the unusual feature that
+        their keys and values can be dynamically switched from being
+        :term:`strong references` to weak references, and vice versa
+        (by assigning to the ``__mode`` field of the table's
+        metatable).
+
+        .. link::
+
+            `Lua <http://lua.org>`_,
+            `Garbage Collection <http://www.lua.org/manual/5.1/manual.html#2.10>`_.
+
     ML
 
         ML is a family of strongly-typed functional languages, of
@@ -529,6 +584,35 @@ Memory management in various languages
 
             `Prolog Standardization <http://people.sju.edu/~jhodgson/wg17/>`_,
             `Prolog Memory Management - Garbage Collection <http://www.informatik.uni-trier.de/%7Eley/db/prolog/gc.html>`_.
+
+    Python
+
+        Python is a "duck-typed" object-oriented language developed by
+        Guido van Rossum.
+
+	There are several implementations running on a variety of
+	virtual machines: the original "CPython" implementation runs
+	on its own virtual machine; IronPython runs on the Common
+	Language Runtime; Jython on the Java Virtual Machine.
+
+        CPython manages memory using a mixture of :term:`reference
+        counting` and :term:`non-moving <non-moving memory
+        manager>` :term:`garbage collection`. Reference counting
+        ensures prompt deletion of objects when their reference count
+        falls to zero, while the garbage collector reclaims
+        :term:`cyclic data structures`.
+
+        The language supports :term:`finalization` (classes may have a
+        __del__ method, which is run just before the object is
+        destroyed), and :term:`weak references (1)` (via the
+        ``weakref`` module).
+        
+        .. link::
+
+            `Python <http://python.org/>`_,
+            `Garbage Collector interface <http://docs.python.org/3/library/gc.html>`_,
+            `__del__ method <http://docs.python.org/3/reference/datamodel.html#object.__del__>`_,
+            `weakref module <http://docs.python.org/3/library/weakref.html>`_.
 
     Scheme
 
