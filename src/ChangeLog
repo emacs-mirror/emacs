@@ -1,3 +1,7 @@
+2012-11-05  Chong Yidong  <cyd@gnu.org>
+
+	* process.c (wait_reading_process_output): Revert previous change.
+
 2012-11-05  Paul Eggert  <eggert@cs.ucla.edu>
 
 	Assume at least POSIX.1-1988 for getpgrp, setpgid, setsid (Bug#12800).
