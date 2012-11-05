@@ -900,6 +900,10 @@ Memory Management Glossary: S
         :term:`edges` in S are also in G; that is, it is a part
         of a graph.
 
+    superpage
+
+        .. see:: :ref:`huge page`.
+
     sure reference
 
         .. see:: :term:`exact reference`.
