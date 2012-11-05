@@ -265,11 +265,21 @@ Memory management in various languages
         Fortran, created in 1957, was one of the first languages
         qualifying as a high-level language. It is popular among
         scientists and has substantial support in the form of
-        numerical libraries. For a long time, it had :term:`static
-        allocation` only. The Fortran 90 standard added recursion with
-        :term:`stack allocation` (automatic arrays). It also added
+        numerical libraries.
+
+        Early versions of Fortran required the size of arrays to be
+        known at compilation time, and the earliest Fortran compilers
+        accordingly used only :term:`static allocation` (however, the
+        1966 standard gave compiler writers freedom to use other
+        allocation mechanisms).
+
+        The Fortran 90 standard added recursion and automatic arrays
+        with :term:`stack allocation` semantics (though many compilers
+        in fact allocate them on the :term:`heap`). It also added
         :term:`dynamic allocation` using ``ALLOCATE`` with manual
-        deallocation using ``DEALLOCATE``.
+        deallocation using ``DEALLOCATE``. Fortran 95 made it explicit
+        that allocated arrays have :term:`dynamic extent` and are
+        automatically deallocated when they go out of scope.
 
         .. link::
 
