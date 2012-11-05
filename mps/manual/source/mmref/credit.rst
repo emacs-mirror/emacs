@@ -44,6 +44,7 @@ help of:
 * Leah Bateman
 * Stephen Bevan
 * Hans Boehm
+* Hans Feldt
 * Lars Hansen
 * Anthony Hosking
 * Paul Jackson
@@ -55,6 +56,7 @@ help of:
 * John S. Pieper
 * Kent Pitman
 * Andrew Shires
+* Walter Spector
 * Martin Simmons
 * David Stoutamire
 * Tom Thomson
