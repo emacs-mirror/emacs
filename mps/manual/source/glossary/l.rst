@@ -61,7 +61,7 @@ Memory Management Glossary: L
 
     large page
 
-        .. see:: :ref:`huge page`.
+        .. see:: :term:`huge page`.
 
     leaf object
 

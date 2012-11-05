@@ -115,4 +115,4 @@ Memory Management Glossary: H
         Some processor architectures support multiple :term:`page`
         sizes. This allows operating systems to better match the page
         size to the granularity of memory usage and so reduce the size
-        of the :ref:`page table`.
+        of the :term:`page table`.

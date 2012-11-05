@@ -901,7 +901,7 @@ Memory Management Glossary: S
 
     superpage
 
-        .. see:: :ref:`huge page`.
+        .. see:: :term:`huge page`.
 
     sure reference
 
