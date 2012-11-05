@@ -1,3 +1,9 @@
+2012-11-05  Eli Zaretskii  <eliz@gnu.org>
+
+	* ralloc.c (relinquish): If real_morecore fails to return memory
+	to the system, don't crash; instead, leave the last heap
+	unchanged and return.  (Bug#12774)
+
 2012-11-03  Eli Zaretskii  <eliz@gnu.org>
 
 	* lisp.mk: Adjust comments to the fact that term/internal is now
