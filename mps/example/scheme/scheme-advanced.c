@@ -935,11 +935,22 @@ static void table_delete(obj_t tbl, obj_t key)
 {
   size_t b;
   assert(TYPE(tbl) == TYPE_TABLE);
-  if(buckets_find(tbl, tbl->table.keys, key, &tbl->table.ld, &b))
-    if(tbl->table.keys->bucket[b] == key) {
-      tbl->table.keys->bucket[b] = obj_deleted;
-      tbl->table.keys->deleted += 2; /* tagged */
-    }
+  if(!buckets_find(tbl, tbl->table.keys, key, NULL, &b) ||
+     tbl->table.keys->bucket[b] == NULL ||
+     tbl->table.keys->bucket[b] == obj_deleted)
+  {
+    if(!mps_ld_isstale(&tbl->table.ld, arena, key))
+      return;
+    if(!table_rehash(tbl, UNTAG_COUNT(tbl->table.keys->length), key, &b))
+      return;
+  }
+  if(tbl->table.keys->bucket[b] != NULL &&
+     tbl->table.keys->bucket[b] != obj_deleted) 
+  {
+    tbl->table.keys->bucket[b] = obj_deleted;
+    tbl->table.keys->deleted += 2; /* tagged */
+    tbl->table.values->bucket[b] = NULL;
+  }
 }
 
 
