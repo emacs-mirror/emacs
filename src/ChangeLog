@@ -4,7 +4,7 @@
 
 	* w32fns.c Include unistd.h, to avoid compiler warnings on Cygwin.
 	(emacs_abort) [CYGWIN]: Don't call _open_osfhandle; instead, use
-	file descriptor 2 for standard error.
+	file descriptor 2 for standard error.  (Bug#12805)
 
 2012-11-05  Chong Yidong  <cyd@gnu.org>
 
