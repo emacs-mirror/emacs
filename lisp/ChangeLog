@@ -1,3 +1,12 @@
+2012-11-05  Glenn Morris  <rgm@gnu.org>
+
+	* emacs-lisp/cl-extra.el (cl-prettyexpand):
+	* emacs-lisp/cl-lib.el (cl-proclaim, cl-declaim):
+	* emacs-lisp/cl-macs.el (cl-destructuring-bind, cl-locally)
+	(cl-the, cl-compiler-macroexpand): Add basic doc strings.
+
+	* emacs-lisp/cl-extra.el (cl-maplist, cl-mapcan): Doc fix.
+
 2012-11-03  Glenn Morris  <rgm@gnu.org>
 
 	* emacs-lisp/cl-macs.el (cl-parse-loop-clause):
