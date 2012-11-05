@@ -357,6 +357,10 @@ Must be greater than 1."
       "ispell")
   "Program invoked by \\[ispell-word] and \\[ispell-region] commands."
   :type 'string
+  :set (lambda (symbol value)
+         (set-default symbol value)
+         (if (featurep 'ispell)
+             (ispell-set-spellchecker-params)))
   :group 'ispell)
 
 (defcustom ispell-alternate-dictionary
