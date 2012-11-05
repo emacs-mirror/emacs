@@ -506,6 +506,8 @@ A correct version of ``insert_link`` looks like this::
 .. index::
    single: allocation points; implementation
 
+.. _topic-allocation-point-implementation:
+
 Allocation point implementation
 -------------------------------
 

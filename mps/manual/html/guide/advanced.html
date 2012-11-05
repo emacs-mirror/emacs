@@ -557,30 +557,31 @@ See the <a class="reference internal" href="../pool/awl.html#pool-awl-caution"><
 <span class="p">}</span> <span class="n">buckets_s</span><span class="p">,</span> <span class="o">*</span><span class="n">buckets_t</span><span class="p">;</span>
 </pre></div>
 </div>
-<p>Now the full details of the scan method can be given:</p>
+<p>Now the full details of the scan method can be given, with the revised
+code highlighted:</p>
 <div class="highlight-c"><div class="highlight"><pre><span class="k">static</span> <span class="n">mps_res_t</span> <span class="nf">buckets_scan</span><span class="p">(</span><span class="n">mps_ss_t</span> <span class="n">ss</span><span class="p">,</span> <span class="n">mps_addr_t</span> <span class="n">base</span><span class="p">,</span> <span class="n">mps_addr_t</span> <span class="n">limit</span><span class="p">)</span>
 <span class="p">{</span>
     <span class="n">MPS_SCAN_BEGIN</span><span class="p">(</span><span class="n">ss</span><span class="p">)</span> <span class="p">{</span>
         <span class="k">while</span> <span class="p">(</span><span class="n">base</span> <span class="o">&lt;</span> <span class="n">limit</span><span class="p">)</span> <span class="p">{</span>
             <span class="n">buckets_t</span> <span class="n">buckets</span> <span class="o">=</span> <span class="n">base</span><span class="p">;</span>
-            <span class="kt">size_t</span> <span class="n">i</span><span class="p">,</span> <span class="n">length</span> <span class="o">=</span> <span class="n">UNTAG_SIZE</span><span class="p">(</span><span class="n">buckets</span><span class="o">-&gt;</span><span class="n">length</span><span class="p">);</span>
-            <span class="n">FIX</span><span class="p">(</span><span class="n">buckets</span><span class="o">-&gt;</span><span class="n">dependent</span><span class="p">);</span>
-            <span class="k">if</span><span class="p">(</span><span class="n">buckets</span><span class="o">-&gt;</span><span class="n">dependent</span> <span class="o">!=</span> <span class="nb">NULL</span><span class="p">)</span>
-                <span class="n">assert</span><span class="p">(</span><span class="n">buckets</span><span class="o">-&gt;</span><span class="n">dependent</span><span class="o">-&gt;</span><span class="n">length</span> <span class="o">==</span> <span class="n">buckets</span><span class="o">-&gt;</span><span class="n">length</span><span class="p">);</span>
-            <span class="k">for</span> <span class="p">(</span><span class="n">i</span> <span class="o">=</span> <span class="mi">0</span><span class="p">;</span> <span class="n">i</span> <span class="o">&lt;</span> <span class="n">length</span><span class="p">;</span> <span class="o">++</span><span class="n">i</span><span class="p">)</span> <span class="p">{</span>
+<span class="hll">            <span class="kt">size_t</span> <span class="n">i</span><span class="p">,</span> <span class="n">length</span> <span class="o">=</span> <span class="n">UNTAG_SIZE</span><span class="p">(</span><span class="n">buckets</span><span class="o">-&gt;</span><span class="n">length</span><span class="p">);</span>
+</span><span class="hll">            <span class="n">FIX</span><span class="p">(</span><span class="n">buckets</span><span class="o">-&gt;</span><span class="n">dependent</span><span class="p">);</span>
+</span><span class="hll">            <span class="k">if</span><span class="p">(</span><span class="n">buckets</span><span class="o">-&gt;</span><span class="n">dependent</span> <span class="o">!=</span> <span class="nb">NULL</span><span class="p">)</span>
+</span><span class="hll">                <span class="n">assert</span><span class="p">(</span><span class="n">buckets</span><span class="o">-&gt;</span><span class="n">dependent</span><span class="o">-&gt;</span><span class="n">length</span> <span class="o">==</span> <span class="n">buckets</span><span class="o">-&gt;</span><span class="n">length</span><span class="p">);</span>
+</span>            <span class="k">for</span> <span class="p">(</span><span class="n">i</span> <span class="o">=</span> <span class="mi">0</span><span class="p">;</span> <span class="n">i</span> <span class="o">&lt;</span> <span class="n">length</span><span class="p">;</span> <span class="o">++</span><span class="n">i</span><span class="p">)</span> <span class="p">{</span>
                 <span class="n">mps_addr_t</span> <span class="n">p</span> <span class="o">=</span> <span class="n">buckets</span><span class="o">-&gt;</span><span class="n">bucket</span><span class="p">[</span><span class="n">i</span><span class="p">];</span>
                 <span class="k">if</span> <span class="p">(</span><span class="n">MPS_FIX1</span><span class="p">(</span><span class="n">ss</span><span class="p">,</span> <span class="n">p</span><span class="p">))</span> <span class="p">{</span>
                     <span class="n">mps_res_t</span> <span class="n">res</span> <span class="o">=</span> <span class="n">MPS_FIX2</span><span class="p">(</span><span class="n">ss</span><span class="p">,</span> <span class="o">&amp;</span><span class="n">p</span><span class="p">);</span>
                     <span class="k">if</span> <span class="p">(</span><span class="n">res</span> <span class="o">!=</span> <span class="n">MPS_RES_OK</span><span class="p">)</span> <span class="k">return</span> <span class="n">res</span><span class="p">;</span>
                     <span class="k">if</span> <span class="p">(</span><span class="n">p</span> <span class="o">==</span> <span class="nb">NULL</span><span class="p">)</span> <span class="p">{</span>
-                        <span class="cm">/* key/value was splatted: splat value/key too */</span>
-                        <span class="n">p</span> <span class="o">=</span> <span class="n">obj_deleted</span><span class="p">;</span>
-                        <span class="n">buckets</span><span class="o">-&gt;</span><span class="n">deleted</span> <span class="o">+=</span> <span class="mi">2</span><span class="p">;</span> <span class="cm">/* tagged */</span>
-                        <span class="k">if</span> <span class="p">(</span><span class="n">buckets</span><span class="o">-&gt;</span><span class="n">dependent</span> <span class="o">!=</span> <span class="nb">NULL</span><span class="p">)</span> <span class="p">{</span>
-                            <span class="n">buckets</span><span class="o">-&gt;</span><span class="n">dependent</span><span class="o">-&gt;</span><span class="n">bucket</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">=</span> <span class="n">p</span><span class="p">;</span>
-                            <span class="n">buckets</span><span class="o">-&gt;</span><span class="n">dependent</span><span class="o">-&gt;</span><span class="n">deleted</span> <span class="o">+=</span> <span class="mi">2</span><span class="p">;</span> <span class="cm">/* tagged */</span>
-                        <span class="p">}</span>
-                    <span class="p">}</span>
+<span class="hll">                        <span class="cm">/* key/value was splatted: splat value/key too */</span>
+</span><span class="hll">                        <span class="n">p</span> <span class="o">=</span> <span class="n">obj_deleted</span><span class="p">;</span>
+</span><span class="hll">                        <span class="n">buckets</span><span class="o">-&gt;</span><span class="n">deleted</span> <span class="o">+=</span> <span class="mi">2</span><span class="p">;</span> <span class="cm">/* tagged */</span>
+</span><span class="hll">                        <span class="k">if</span> <span class="p">(</span><span class="n">buckets</span><span class="o">-&gt;</span><span class="n">dependent</span> <span class="o">!=</span> <span class="nb">NULL</span><span class="p">)</span> <span class="p">{</span>
+</span><span class="hll">                            <span class="n">buckets</span><span class="o">-&gt;</span><span class="n">dependent</span><span class="o">-&gt;</span><span class="n">bucket</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">=</span> <span class="n">p</span><span class="p">;</span>
+</span><span class="hll">                            <span class="n">buckets</span><span class="o">-&gt;</span><span class="n">dependent</span><span class="o">-&gt;</span><span class="n">deleted</span> <span class="o">+=</span> <span class="mi">2</span><span class="p">;</span> <span class="cm">/* tagged */</span>
+</span><span class="hll">                        <span class="p">}</span>
+</span>                    <span class="p">}</span>
                     <span class="n">buckets</span><span class="o">-&gt;</span><span class="n">bucket</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">=</span> <span class="n">p</span><span class="p">;</span>
                 <span class="p">}</span>
             <span class="p">}</span>
@@ -702,7 +703,7 @@ the global symbol table as a strong-key weak-value hash table mapping
 strings to symbols. Each symbol will now contain a reference to its name
 as a string object, instead of containing the name itself.</p>
 <div class="figure align-center">
-<img alt="Diagram: Global symbol table design." src="../_images/symbol-table.svg" /><p class="caption">Global symbol table design.</p>
+<img alt="Diagram: Global symbol table design (weak references shown as dashed lines)." src="../_images/symbol-table.svg" /><p class="caption">Global symbol table design (weak references shown as dashed lines).</p>
 </div>
 <p>This design depends on the string object containing the symbol name
 being immutable. As it happens, all strings are immutable, because the

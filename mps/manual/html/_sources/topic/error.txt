@@ -178,27 +178,10 @@ Assertions
 Bugs in the :term:`client program` may violate the invariants that the
 MPS relies on. Most functions in the MPS (in most *varieties*; see
 below) assert the correctness of their data structures, so these bugs
-will often be discovered by an assertion failure in the MPS.
-
-For example, if a :term:`scan method` makes a re-entrant call into the
-MPS, this may result in this assertion:
-
-.. code-block:: none
-
-    MPS ASSERTION FAILURE: res == 0
-    code/lockix.c
-    125
-
-Or if a client program fails to fix a reference in an :ref:`pool-amc`
-pool, this may violate the :term:`tri-colour invariant` that the MPS
-depends on for the correctness of its :term:`incremental garbage
-collection`. Such a bug may result in this assertion:
-
-.. code-block:: none
-
-    MPS ASSERTION FAILURE: !AMS_IS_INVALID_COLOUR(seg, i)
-    code/poolams.c
-    1323
+will often be discovered by an assertion failure in the MPS. The
+section :ref:`topic-error-cause` below lists commonly encountered
+assertions and explains the kinds of client program bugs that can
+provoke these assertions.
 
 It is very rare for an assertion to indicate a bug in the MPS rather
 than the client program, but it is not unknown, so if you have made
@@ -213,6 +196,80 @@ assertions automatically, by adding the following to your ``.emacs``:
 
     (add-to-list 'compilation-error-regexp-alist
                  '("MPS ASSERTION FAILURE: .*\n\\(.*\\)\n\\([0-9]+\\)" 1 2))
+
+
+.. index::
+   single: assertion; common causes
+
+.. _topic-error-cause:
+
+Common assertions and their causes
+----------------------------------
+
+This section lists some commonly encountered assertions and suggests
+likely causes. If you encounter an assertion not listed here (or an
+assertion that is listed here but for which you discovered a different
+cause), please :ref:`let us know <contact>` so that we can improve
+this documentation.
+
+
+``dbgpool.c: fencepost check on free``
+
+    The client program wrote to a location after the end, or before
+    the beginning of an allocated block. See :ref:`topic-debugging`.
+
+
+``dbgpool.c: free space corrupted on release``
+
+    The client program used an object after it was reclaimed. See
+    :ref:`topic-debugging`.
+
+
+``format.c: SigCheck Format: format``
+
+    The client program called :c:func:`mps_pool_create` for a
+    :term:`pool class` like :ref:`pool-amc` that requires a
+    :term:`object format`, but passed something other than a
+    :c:type:`mps_fmt_t` for this argument.
+
+
+``lockix.c: res == 0``
+
+    The client program has made a re-entrant call into the MPS. Look
+    at the backtrace to see what it was. Common culprits are
+    :term:`format methods` and :term:`stepper functions`.
+
+
+``mpsi.c: SizeIsAligned(size, BufferPool(buf)->alignment)``
+
+    The client program reserved a block by calling
+    :c:func:`mps_reserve` but neglected to round the size up to the
+    alignment required by the pool's :term:`object format`.
+
+
+``pool.c: (pool->class->attr & AttrALLOC) != 0``
+
+    The client program called :c:func:`mps_alloc` on a pool that does
+    not support this form of allocation. Use an :term:`allocation
+    point` instead.
+
+
+``poolams.c: !AMS_IS_INVALID_COLOUR(seg, i)``
+
+    The client program failed to :term:`fix` a reference to an object
+    in an :ref:`pool-ams` pool, violating the :term:`tri-colour
+    invariant` that the MPS depends on for the correctness of its
+    :term:`incremental garbage collection`.
+
+
+``poolams.c: AMS_ALLOCED(seg, i)``
+
+    The client program tried to :term:`fix` a :term:`reference` to a
+    block in an :ref:`pool-ams` pool that died. This may mean that
+    there was a previous collection in which a reference that should
+    have kept the block alive failed to be scanned. Perhaps a
+    :term:`formatted object` was updated in some way that has a race
+    condition?
 
 
 .. index::
@@ -238,7 +295,7 @@ default.
     The cool variety is intended for development and testing.
 
     All functions check the consistency of their data structures and
-    may assert, including function on the :term:`critical path`.
+    may assert, including functions on the :term:`critical path`.
 
     All events are sent to the :term:`telemetry stream`, including
     events on the :term:`critical path`.

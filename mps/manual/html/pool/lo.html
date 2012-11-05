@@ -8,7 +8,7 @@
   <head>
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
     
-    <title>8. LO (Leaf Only) &mdash; Memory Pool System 1.111.0 documentation</title>
+    <title>8. LO (Leaf Object) &mdash; Memory Pool System 1.111.0 documentation</title>
     
     <link rel="stylesheet" href="../_static/mps.css" type="text/css" />
     <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
@@ -54,8 +54,8 @@
         <div class="bodywrapper">
           <div class="body">
             
-  <div class="section" id="lo-leaf-only">
-<span id="pool-lo"></span><span id="index-0"></span><h1>8. LO (Leaf Only)<a class="headerlink" href="#lo-leaf-only" title="Permalink to this headline">¶</a></h1>
+  <div class="section" id="lo-leaf-object">
+<span id="pool-lo"></span><span id="index-0"></span><h1>8. LO (Leaf Object)<a class="headerlink" href="#lo-leaf-object" title="Permalink to this headline">¶</a></h1>
 <p><strong>LO</strong> is an <a class="reference internal" href="../glossary/a.html#term-automatic-memory-management"><em class="xref std std-term">automatically managed</em></a> <a class="reference internal" href="../glossary/p.html#term-pool-class"><em class="xref std std-term">pool class</em></a> for <a class="reference internal" href="../glossary/l.html#term-leaf-object"><em class="xref std std-term">leaf objects</em></a> (objects that
 contain no references). It does not move or protect its objects.</p>
 <p>This pool class is intended for unstructured data that needs to be
@@ -116,7 +116,8 @@ does not need a <a class="reference internal" href="../glossary/p.html#term-padd
 <dl class="function">
 <dt id="mps_class_lo">
 <a class="reference internal" href="../topic/pool.html#mps_class_t" title="mps_class_t">mps_class_t</a> <tt class="descname">mps_class_lo</tt><big>(</big>void<big>)</big><a class="headerlink" href="#mps_class_lo" title="Permalink to this definition">¶</a></dt>
-<dd><p>Return the <a class="reference internal" href="../glossary/p.html#term-pool-class"><em class="xref std std-term">pool class</em></a> for an LO (Leaf Only) <a class="reference internal" href="../glossary/p.html#term-pool"><em class="xref std std-term">pool</em></a>.</p>
+<dd><p>Return the <a class="reference internal" href="../glossary/p.html#term-pool-class"><em class="xref std std-term">pool class</em></a> for an LO (Leaf Object)
+<a class="reference internal" href="../glossary/p.html#term-pool"><em class="xref std std-term">pool</em></a>.</p>
 <p>When creating an LO pool, <a class="reference internal" href="../topic/pool.html#mps_pool_create" title="mps_pool_create"><tt class="xref c c-func docutils literal"><span class="pre">mps_pool_create()</span></tt></a> takes one
 extra argument:</p>
 <div class="highlight-c"><div class="highlight"><pre><span class="n">mps_res_t</span> <span class="n">mps_pool_create</span><span class="p">(</span><span class="n">mps_pool_t</span> <span class="o">*</span><span class="n">pool_o</span><span class="p">,</span> <span class="n">mps_arena_t</span> <span class="n">arena</span><span class="p">,</span>
@@ -125,7 +126,8 @@ extra argument:</p>
 </pre></div>
 </div>
 <p><tt class="docutils literal"><span class="pre">fmt</span></tt> specifies the <a class="reference internal" href="../glossary/o.html#term-object-format"><em class="xref std std-term">object format</em></a> for the objects
-allocated in the pool.</p>
+allocated in the pool. The format must provide a <a class="reference internal" href="../glossary/s.html#term-skip-method"><em class="xref std std-term">skip
+method</em></a>.</p>
 </dd></dl>
 
 </div>
@@ -142,7 +144,7 @@ allocated in the pool.</p>
             </a></p>
   <h3><a href="../index.html">Table Of Contents</a></h3>
   <ul>
-<li><a class="reference internal" href="#">8. LO (Leaf Only)</a><ul>
+<li><a class="reference internal" href="#">8. LO (Leaf Object)</a><ul>
 <li><a class="reference internal" href="#lo-properties">8.1. LO properties</a></li>
 <li><a class="reference internal" href="#lo-interface">8.2. LO interface</a></li>
 </ul>

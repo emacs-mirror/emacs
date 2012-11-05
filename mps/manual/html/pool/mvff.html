@@ -71,10 +71,10 @@ the first allocation point must be created before any call to
 on the same pool, because the worst-fit policy of buffer filling will
 grab all the large blocks, leading to severe fragmentation. If you
 need both forms of allocation, use two separate pools.</p>
-<p>Note that using buffered allocation prevents (for obscure technical
-reasons) the pool from allocating across segment boundaries. This can
-cause added external fragmentation if objects are allocated that are a
-significant fraction of the segment size.</p>
+<p>Note that buffered allocation can&#8217;t allocate across segment boundaries
+(see <a class="reference internal" href="../topic/allocation.html#topic-allocation-point-implementation"><em>Allocation point implementation</em></a> for the technical
+reason). This can cause added external fragmentation if objects are
+allocated that are a significant fraction of the segment size.</p>
 <div class="admonition-note admonition">
 <p class="first admonition-title">Note</p>
 <p class="last">If you need to allocate large objects in an MVFF pool,
@@ -175,7 +175,7 @@ takes seven extra arguments:</p>
 </div>
 <dl class="function">
 <dt id="mps_mvff_free_size">
-size_t <tt class="descname">mps_mvff_free_size</tt><big>(</big><a class="reference internal" href="../topic/pool.html#mps_pool_t" title="mps_pool_t">mps_pool_t</a><em>&nbsp;mpspool</em><big>)</big><a class="headerlink" href="#mps_mvff_free_size" title="Permalink to this definition">¶</a></dt>
+size_t <tt class="descname">mps_mvff_free_size</tt><big>(</big><a class="reference internal" href="../topic/pool.html#mps_pool_t" title="mps_pool_t">mps_pool_t</a><em>&nbsp;pool</em><big>)</big><a class="headerlink" href="#mps_mvff_free_size" title="Permalink to this definition">¶</a></dt>
 <dd><p>Return the total amount of free space in an MVFF pool.</p>
 <p><tt class="docutils literal"><span class="pre">pool</span></tt> is the MVFF pool.</p>
 <p>Returns the total free space in the pool, in <a class="reference internal" href="../glossary/b.html#term-byte-1"><em class="xref std std-term">bytes<sup>(1)</sup></em></a>.</p>

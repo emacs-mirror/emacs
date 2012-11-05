@@ -28,7 +28,7 @@
     <link rel="copyright" title="Copyright" href="../copyright.html" />
     <link rel="top" title="Memory Pool System 1.111.0 documentation" href="../index.html" />
     <link rel="up" title="Pool reference" href="index.html" />
-    <link rel="next" title="8. LO (Leaf Only)" href="lo.html" />
+    <link rel="next" title="8. LO (Leaf Object)" href="lo.html" />
     <link rel="prev" title="6. AMS (Automatic Mark and Sweep)" href="ams.html" /> 
   </head>
   <body>
@@ -39,7 +39,7 @@
           <a href="../genindex.html" title="General Index"
              accesskey="I">index</a></li>
         <li class="right" >
-          <a href="lo.html" title="8. LO (Leaf Only)"
+          <a href="lo.html" title="8. LO (Leaf Object)"
              accesskey="N">next</a> |</li>
         <li class="right" >
           <a href="ams.html" title="6. AMS (Automatic Mark and Sweep)"
@@ -318,7 +318,8 @@ extra arguments:</p>
 </pre></div>
 </div>
 <p><tt class="docutils literal"><span class="pre">fmt</span></tt> specifies the <a class="reference internal" href="../glossary/o.html#term-object-format"><em class="xref std std-term">object format</em></a> for the objects
-allocated in the pool.</p>
+allocated in the pool. The format must provide a <a class="reference internal" href="../glossary/s.html#term-scan-method"><em class="xref std std-term">scan
+method</em></a> and a <a class="reference internal" href="../glossary/s.html#term-skip-method"><em class="xref std std-term">skip method</em></a>.</p>
 <p><tt class="docutils literal"><span class="pre">find_dependent</span></tt> is a function of type
 <a class="reference internal" href="#mps_awl_find_dependent_t" title="mps_awl_find_dependent_t"><tt class="xref c c-type docutils literal"><span class="pre">mps_awl_find_dependent_t</span></tt></a> that specifies how to find the
 <a class="reference internal" href="../glossary/d.html#term-dependent-object"><em class="xref std std-term">dependent object</em></a> for an object in the pool.</p>
@@ -377,7 +378,7 @@ if it is, then it must be in a <a class="reference internal" href="../glossary/n
                         title="previous chapter">6. AMS (Automatic Mark and Sweep)</a></p>
   <h4>Next topic</h4>
   <p class="topless"><a href="lo.html"
-                        title="next chapter">8. LO (Leaf Only)</a></p><h4>Contact us</h4>
+                        title="next chapter">8. LO (Leaf Object)</a></p><h4>Contact us</h4>
 
 <p class="topless"><a href="mailto:mps-questions@ravenbrook.com">mps-questions@ravenbrook.com</a></p>
         </div>
@@ -391,7 +392,7 @@ if it is, then it must be in a <a class="reference internal" href="../glossary/n
           <a href="../genindex.html" title="General Index"
              >index</a></li>
         <li class="right" >
-          <a href="lo.html" title="8. LO (Leaf Only)"
+          <a href="lo.html" title="8. LO (Leaf Object)"
              >next</a> |</li>
         <li class="right" >
           <a href="ams.html" title="6. AMS (Automatic Mark and Sweep)"

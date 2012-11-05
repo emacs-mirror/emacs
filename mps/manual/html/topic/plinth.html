@@ -56,15 +56,15 @@
             
   <div class="section" id="plinth">
 <span id="topic-plinth"></span><span id="index-0"></span><h1>1. Plinth<a class="headerlink" href="#plinth" title="Permalink to this headline">¶</a></h1>
-<p>The <em class="dfn">plinth</em> is a program module providing the MPS with all the
-support it needs from the execution environment. It serves two
-purposes, both relating to operating system support:</p>
+<p>The <em class="dfn">plinth</em> is a program module that provides the MPS with the
+support it needs from the execution environment. The MPS uses the plinth instead of (say) the Standard C Library because:</p>
 <ol class="arabic simple">
 <li>The MPS is designed to be portable to systems that have only a
 <em>conforming freestanding implementation</em> of the C language: that
-is, systems which potentially lack facilities of the Standard C
-Library, such as Standard I/O. The plinth provides all the
-necessary facilities.</li>
+is, systems which potentially lack some of the facilities of the
+Standard C Library, such as standard I/O. The plinth provides a way
+to map MPS requirements to the facilities provided on the platform,
+whatever they are.</li>
 <li>The plinth gives the <a class="reference internal" href="../glossary/c.html#term-client-program"><em class="xref std std-term">client program</em></a> complete control of
 interaction between the MPS and the user, including
 <a class="reference internal" href="error.html#topic-error-assertion"><em>assertions</em></a> and <a class="reference internal" href="telemetry.html#topic-telemetry"><em>telemetry</em></a>.</li>

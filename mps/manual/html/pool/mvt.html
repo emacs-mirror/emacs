@@ -57,18 +57,18 @@
   <div class="section" id="mvt-manual-variable-temporal">
 <span id="pool-mvt"></span><span id="index-0"></span><h1>12. MVT (Manual Variable Temporal)<a class="headerlink" href="#mvt-manual-variable-temporal" title="Permalink to this headline">¶</a></h1>
 <p><strong>MVT</strong> <a class="reference internal" href="../glossary/m.html#term-manual-memory-management"><em class="xref std std-term">manually manages</em></a>
-variable-sized, unformatted objects. It uses an <a class="reference internal" href="../glossary/a.html#term-allocation-policy"><em class="xref std std-term">allocation
-policy</em></a> termed <em class="dfn">temporal fit</em>.</p>
+variable-sized, unformatted objects. It uses the <em class="dfn">temporal fit</em>
+<a class="reference internal" href="../glossary/a.html#term-allocation-policy"><em class="xref std std-term">allocation policy</em></a>.</p>
 <div class="section" id="temporal-fit">
 <span id="index-1"></span><h2>12.1. Temporal fit<a class="headerlink" href="#temporal-fit" title="Permalink to this headline">¶</a></h2>
 <p>Temporal fit attempts to place consecutive allocations next to each
-other. It relies on delaying reuse as long as possible to permit freed
+other. It relies on delaying re-use as long as possible to permit freed
 blocks to <a class="reference internal" href="../glossary/c.html#term-coalesce"><em class="xref std std-term">coalesce</em></a>, thus maximizing the number of consecutive
 allocations that can be co-located. Temporal fit permits a very fast
 allocator and a deallocator competitive in speed with all other known
 policies.</p>
 <p>Temporal fit is intended to take advantage of knowledge of object
-<a class="reference internal" href="../glossary/l.html#term-lifetime"><em class="xref std std-term">lifetimes</em></a>, either <em>a priori</em> knowledge, or knowledge acquired
+<a class="reference internal" href="../glossary/l.html#term-lifetime"><em class="xref std std-term">lifetimes</em></a>: either <em>a priori</em> knowledge, or knowledge acquired
 by profiling. The best performance will be achieved by allocating
 objects with similar expected death times together.</p>
 <p>A simple policy can be implemented to take advantage of MVT. Object
@@ -80,9 +80,9 @@ objects allocated close to each other dying at about the same time.</p>
 life expectancy will best be served by creating a different MVT pool
 instance for each life-expectancy class. A more sophisticated policy
 can use either the programmer&#8217;s knowledge of the expected lifetime of
-an objector any characteristic of objects that correlates with
-lifetime to choose an appropriate pool instance to allocate in.</p>
-<p>Allocating objects with unknown or very different deathtimes together
+an object, or any characteristic of objects that correlates with
+lifetime, to choose an appropriate pool to allocate in.</p>
+<p>Allocating objects with unknown or very different death times together
 will pessimize the space performance of MVT.</p>
 </div>
 <div class="section" id="mvt-properties">
@@ -163,8 +163,8 @@ allocation, even when it is not used by the pool. If this is
 undesirable, a reserve depth of 0 may be used for a pool whose
 object population does vary, at a slight cost in efficiency. The
 reserve does not guarantee any particular amount of allocation.</p>
-<p><tt class="docutils literal"><span class="pre">fragmentation_limit</span></tt> is a percentage in (0,&nbsp;100] that can be used
-to set an upper limit on the space overhead of MVT in case block
+<p><tt class="docutils literal"><span class="pre">fragmentation_limit</span></tt> is a percentage from 1 to 100 (inclusive).
+It sets an upper limit on the space overhead of MVT, in case block
 death times and allocations do not correlate well. If the free
 space managed by the pool as a ratio of all the space managed by
 the pool exceeds <tt class="docutils literal"><span class="pre">fragmentation_limit</span></tt>, the pool falls back to a
@@ -172,14 +172,14 @@ first fit allocation policy, exploiting space more efficiently at
 a cost in time efficiency. A fragmentation limit of 0 would cause
 the pool to operate as a first-fit pool, at a significant cost in
 time efficiency: therefore this is not permitted.</p>
-<p>A fragmentation limit of 100 will cause the pool to use temporal
-fit (unless resources are exhausted). If the objects allocated in
-the pool have similar lifetime expectancies, this mode will have
-the best time- and space-efficiency. If the objects have widely
-varying lifetime expectancies, this mode will be time-efficient,
-but may be space-inefficient. An intermediate setting can be used
-to limit the space-inefficiency of temporal fit due to varying
-object life expectancies.</p>
+<p>A fragmentation limit of 100 causes the pool to always use
+temporal fit (unless resources are exhausted). If the objects
+allocated in the pool have similar lifetime expectancies, this
+mode will have the best time- and space-efficiency. If the objects
+have widely varying lifetime expectancies, this mode will be
+time-efficient, but may be space-inefficient. An intermediate
+setting can be used to limit the space-inefficiency of temporal
+fit due to varying object life expectancies.</p>
 </dd></dl>
 
 </div>

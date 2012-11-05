@@ -120,8 +120,8 @@ extra argument:</p>
 </pre></div>
 </div>
 <p><tt class="docutils literal"><span class="pre">fmt</span></tt> specifies the <a class="reference internal" href="../glossary/o.html#term-object-format"><em class="xref std std-term">object format</em></a> for the objects
-allocated in the pool. The format should provide at least the
-methods scan, skip, and pad.</p>
+allocated in the pool. The format must provide a <a class="reference internal" href="../glossary/s.html#term-scan-method"><em class="xref std std-term">scan
+method</em></a>, a <a class="reference internal" href="../glossary/s.html#term-skip-method"><em class="xref std std-term">skip method</em></a>, and a <a class="reference internal" href="../glossary/p.html#term-padding-method"><em class="xref std std-term">padding method</em></a>.</p>
 <p>When creating an allocation point on an SNC pool,
 <a class="reference internal" href="../topic/allocation.html#mps_ap_create" title="mps_ap_create"><tt class="xref c c-func docutils literal"><span class="pre">mps_ap_create()</span></tt></a> takes one extra argument:</p>
 <div class="highlight-c"><div class="highlight"><pre><span class="n">mps_res_t</span> <span class="n">mps_ap_create</span><span class="p">(</span><span class="n">mps_ap_t</span> <span class="o">*</span><span class="n">ap_o</span><span class="p">,</span> <span class="n">mps_pool_t</span> <span class="n">pool</span><span class="p">,</span>
