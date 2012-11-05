@@ -1,3 +1,7 @@
+2012-11-05  Eli Zaretskii  <eliz@gnu.org>
+
+	* inc/unistd.h (tcgetpgrp, setsid): Provide prototypes.
+
 2012-11-05  Juanma Barranquero  <lekktu@gmail.com>
 
 	* config.nt: Sync with autogen/config.in.
