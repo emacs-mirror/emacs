@@ -167,17 +167,23 @@ AMC introspection
         debugging, not for frequent use in production.
 
 
-.. c:type:: void (*mps_amc_apply_stepper_t)(mps_addr_t object, void *p, size_t s)
+.. c:type:: void (*mps_amc_apply_stepper_t)(mps_addr_t addr, void *p, size_t s)
 
     The type of a :term:`stepper function` for :term:`formatted
     objects` in an AMC pool.
 
-    ``object`` is the address of an object in the pool.
+    ``addr`` is the address of an object in the pool.
     
     ``p`` and ``s`` are the corresponding arguments that were passed
     to :c:func:`mps_amc_apply`.
 
-    A function of this type may not allocate memory or access any
-    automatically managed memory except within ``object``.
+    The function may not call any function in the MPS. It may access:
 
+    a. memory inside the object or block pointed to by ``addr``;
 
+    b. memory managed by the MPS that is in pools that do not protect
+       their contents;
+
+    c. memory not managed by the MPS;
+
+    It must not access other memory managed by the MPS.
