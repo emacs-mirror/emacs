@@ -324,7 +324,8 @@ AWL interface
                                   mps_awl_find_dependent_t find_dependent)
 
     ``fmt`` specifies the :term:`object format` for the objects
-    allocated in the pool.
+    allocated in the pool. The format must provide a :term:`scan
+    method` and a :term:`skip method`.
 
     ``find_dependent`` is a function of type
     :c:type:`mps_awl_find_dependent_t` that specifies how to find the

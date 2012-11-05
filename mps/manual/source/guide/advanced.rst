@@ -582,7 +582,11 @@ A one-bit tag suffices here::
         obj_t bucket[1];              /* hash buckets */
     } buckets_s, *buckets_t;
 
-Now the full details of the scan method can be given::
+Now the full details of the scan method can be given, with the revised
+code highlighted:
+
+.. code-block:: c
+    :emphasize-lines: 6-9, 16-22
 
     static mps_res_t buckets_scan(mps_ss_t ss, mps_addr_t base, mps_addr_t limit)
     {
@@ -730,9 +734,9 @@ as a string object, instead of containing the name itself.
 
 .. figure:: ../diagrams/symbol-table.svg
     :align: center
-    :alt: Diagram: Global symbol table design.
+    :alt: Diagram: Global symbol table design (weak references shown as dashed lines).
 
-    Global symbol table design.
+    Global symbol table design (weak references shown as dashed lines).
 
 This design depends on the string object containing the symbol name
 being immutable. As it happens, all strings are immutable, because the

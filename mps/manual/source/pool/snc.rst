@@ -103,8 +103,8 @@ SNC introspection
                                   mps_fmt_t fmt)
 
     ``fmt`` specifies the :term:`object format` for the objects
-    allocated in the pool. The format should provide at least the
-    methods scan, skip, and pad.
+    allocated in the pool. The format must provide a :term:`scan
+    method`, a :term:`skip method`, and a :term:`padding method`.
 
     When creating an allocation point on an SNC pool,
     :c:func:`mps_ap_create` takes one extra argument::

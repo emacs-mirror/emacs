@@ -12,8 +12,8 @@ MVT (Manual Variable Temporal)
 ==============================
 
 **MVT** :term:`manually manages <manual memory management>`
-variable-sized, unformatted objects. It uses an :term:`allocation
-policy` termed :dfn:`temporal fit`.
+variable-sized, unformatted objects. It uses the :dfn:`temporal fit`
+:term:`allocation policy`.
 
 
 .. index::
@@ -24,14 +24,14 @@ Temporal fit
 ------------
 
 Temporal fit attempts to place consecutive allocations next to each
-other. It relies on delaying reuse as long as possible to permit freed
+other. It relies on delaying re-use as long as possible to permit freed
 blocks to :term:`coalesce`, thus maximizing the number of consecutive
 allocations that can be co-located. Temporal fit permits a very fast
 allocator and a deallocator competitive in speed with all other known
 policies.
 
 Temporal fit is intended to take advantage of knowledge of object
-:term:`lifetimes`, either *a priori* knowledge, or knowledge acquired
+:term:`lifetimes`: either *a priori* knowledge, or knowledge acquired
 by profiling. The best performance will be achieved by allocating
 objects with similar expected death times together.
 
@@ -45,10 +45,10 @@ An application that has several classes of objects of widely differing
 life expectancy will best be served by creating a different MVT pool
 instance for each life-expectancy class. A more sophisticated policy
 can use either the programmer's knowledge of the expected lifetime of
-an objector any characteristic of objects that correlates with
-lifetime to choose an appropriate pool instance to allocate in.
+an object, or any characteristic of objects that correlates with
+lifetime, to choose an appropriate pool to allocate in.
 
-Allocating objects with unknown or very different deathtimes together
+Allocating objects with unknown or very different death times together
 will pessimize the space performance of MVT.
 
 
@@ -158,8 +158,8 @@ MVT interface
     object population does vary, at a slight cost in efficiency. The
     reserve does not guarantee any particular amount of allocation.
 
-    ``fragmentation_limit`` is a percentage in (0, 100] that can be used
-    to set an upper limit on the space overhead of MVT in case block
+    ``fragmentation_limit`` is a percentage from 1 to 100 (inclusive).
+    It sets an upper limit on the space overhead of MVT, in case block
     death times and allocations do not correlate well. If the free
     space managed by the pool as a ratio of all the space managed by
     the pool exceeds ``fragmentation_limit``, the pool falls back to a
@@ -168,14 +168,14 @@ MVT interface
     the pool to operate as a first-fit pool, at a significant cost in
     time efficiency: therefore this is not permitted.
 
-    A fragmentation limit of 100 will cause the pool to use temporal
-    fit (unless resources are exhausted). If the objects allocated in
-    the pool have similar lifetime expectancies, this mode will have
-    the best time- and space-efficiency. If the objects have widely
-    varying lifetime expectancies, this mode will be time-efficient,
-    but may be space-inefficient. An intermediate setting can be used
-    to limit the space-inefficiency of temporal fit due to varying
-    object life expectancies.
+    A fragmentation limit of 100 causes the pool to always use
+    temporal fit (unless resources are exhausted). If the objects
+    allocated in the pool have similar lifetime expectancies, this
+    mode will have the best time- and space-efficiency. If the objects
+    have widely varying lifetime expectancies, this mode will be
+    time-efficient, but may be space-inefficient. An intermediate
+    setting can be used to limit the space-inefficiency of temporal
+    fit due to varying object life expectancies.
 
 
 .. index::

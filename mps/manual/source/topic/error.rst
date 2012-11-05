@@ -295,7 +295,7 @@ default.
     The cool variety is intended for development and testing.
 
     All functions check the consistency of their data structures and
-    may assert, including function on the :term:`critical path`.
+    may assert, including functions on the :term:`critical path`.
 
     All events are sent to the :term:`telemetry stream`, including
     events on the :term:`critical path`.
