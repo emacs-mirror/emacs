@@ -311,7 +311,7 @@ Memory Management Glossary: T
         people say "the tri-color invariant" they probably mean the
         strong one.
 
-        .. bibref:: :ref:`Pirinen (1998) <PIRINEN98>`.
+        .. bibref:: :ref:`Johnstone (1997) <JOHNSTONE97>`, :ref:`Pirinen (1998) <PIRINEN98>`.
 
     tri-color marking
     tri-colour marking
