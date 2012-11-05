@@ -26,7 +26,7 @@ Memory management in various languages
     BASIC
 
         BASIC is a simple and easily-learned programming language
-        developed by T. E. Kurtz and J. G. Kemeny in 1963–4. The
+        created by T. E. Kurtz and J. G. Kemeny in 1963–4. The
         motivation was to make computers easily accessible to
         undergraduate students in all disciplines.
 
@@ -129,25 +129,29 @@ Memory management in various languages
 
     C#
 
-        C# is a strongly typed object-oriented language developed at
-        Microsoft and designed to run on the Common Language Runtime
-        virtual machine from the .NET Framework. It also runs on the
-        open source Mono runtime.
+        C# is a strongly typed object-oriented language created at
+        Microsoft in 1999–2000. It is designed to run on the Common
+        Language Runtime, the virtual machine from the .NET Framework.
+        It also runs on the open source Mono runtime.
 
-        Memory is automatically managed: memory is allocated when an
-        object is created, and reclaimed automatically at some point
-        after the object becomes unreachable.
+        Memory is :term:`automatically managed <automatic memory
+        management>`: memory is allocated when an object is created,
+        and reclaimed at some point after the object becomes
+        :term:`unreachable`.
 
         The language supports :term:`finalization` (classes may have
         *destructor functions*, which are run just before the object
         is reclaimed by the memory manager), and :term:`weak
         references (1)` (via the ``WeakReference`` class).
 
-	The garbage collector in the .NET Framework is configurable to
-	work in soft real time.
+	The :term:`garbage collector` in the .NET Framework is
+	configurable to run in soft real time, or in batch mode.
 
         The Mono runtime comes with two collectors: the Boehm–Weiser
-        conservative collector, and a copying generational collector.
+        :term:`conservative collector <conservative garbage
+        collection>`, and a :term:`generational <generational garbage
+        collection>` :term:`copying collector <copying garbage
+        collection>`.
 
         .. link::
 
@@ -433,13 +437,15 @@ Memory management in various languages
 
     Lua
 
-        Lua is a dynamically typed language developed by Roberto
+        Lua is a dynamically typed language created by Roberto
         Ierusalimschy, Luiz Henrique de Figueiredo, and Waldemar Celes
         in 1993. The language supports object-oriented and functional
         styles of programming, and is designed to be easily embedded
-        as an extension language in a larger programming system.
+        in a larger programming system as an extension or scripting
+        language.
 
-        Lua use :term:`automatic memory management` and comes with an
+        Lua uses :term:`automatic memory management` and comes with a
+        :term:`non-moving <non-moving garbage collector>`
         :term:`incremental <incremental garbage collection>`
         :term:`garbage collector` supporting soft real time
         applications. This uses a software :term:`barrier (1)` in
@@ -587,8 +593,8 @@ Memory management in various languages
 
     Python
 
-        Python is a "duck-typed" object-oriented language developed by
-        Guido van Rossum.
+        Python is a "duck-typed" object-oriented language created in
+        the early 1990s by Guido van Rossum.
 
 	There are several implementations running on a variety of
 	virtual machines: the original "CPython" implementation runs
@@ -596,14 +602,14 @@ Memory management in various languages
 	Language Runtime; Jython on the Java Virtual Machine.
 
         CPython manages memory using a mixture of :term:`reference
-        counting` and :term:`non-moving <non-moving memory
-        manager>` :term:`garbage collection`. Reference counting
-        ensures prompt deletion of objects when their reference count
-        falls to zero, while the garbage collector reclaims
-        :term:`cyclic data structures`.
+        counting` and :term:`non-moving <non-moving memory manager>`
+        :term:`mark-and-sweep` :term:`garbage collection`. Reference
+        counting ensures prompt deletion of objects when their
+        reference count falls to zero, while the garbage collector
+        reclaims :term:`cyclic data structures`.
 
         The language supports :term:`finalization` (classes may have a
-        __del__ method, which is run just before the object is
+        ``__del__`` method, which is run just before the object is
         destroyed), and :term:`weak references (1)` (via the
         ``weakref`` module).
         
