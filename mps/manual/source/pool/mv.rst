@@ -108,7 +108,7 @@ MV interface
     ``debug_option`` specifies the debugging options. See
     :c:type:`mps_debug_option_s`.
 
-    ``extend_szie``, ``average_size`` and ``maximum_size`` are as
+    ``extend_size``, ``average_size`` and ``maximum_size`` are as
     documented in :c:func:`mps_class_mv`.
 
 

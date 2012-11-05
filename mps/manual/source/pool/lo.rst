@@ -9,8 +9,8 @@
 
 .. _pool-lo:
 
-LO (Leaf Only)
-==============
+LO (Leaf Object)
+================
 
 **LO** is an :term:`automatically managed <automatic memory
 management>` :term:`pool class` for :term:`leaf objects` (objects that
@@ -101,7 +101,8 @@ LO interface
 
 .. c:function:: mps_class_t mps_class_lo(void)
 
-    Return the :term:`pool class` for an LO (Leaf Only) :term:`pool`.
+    Return the :term:`pool class` for an LO (Leaf Object)
+    :term:`pool`.
 
     When creating an LO pool, :c:func:`mps_pool_create` takes one
     extra argument::
@@ -111,4 +112,5 @@ LO interface
                                   mps_fmt_t fmt)
 
     ``fmt`` specifies the :term:`object format` for the objects
-    allocated in the pool.
+    allocated in the pool. The format must provide a :term:`skip
+    method`.

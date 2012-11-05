@@ -18,15 +18,15 @@
 Plinth
 ======
 
-The :dfn:`plinth` is a program module providing the MPS with all the
-support it needs from the execution environment. It serves two
-purposes, both relating to operating system support:
+The :dfn:`plinth` is a program module that provides the MPS with the
+support it needs from the execution environment. The MPS uses the plinth instead of (say) the Standard C Library because:
 
 1. The MPS is designed to be portable to systems that have only a
    *conforming freestanding implementation* of the C language: that
-   is, systems which potentially lack facilities of the Standard C
-   Library, such as Standard I/O. The plinth provides all the
-   necessary facilities.
+   is, systems which potentially lack some of the facilities of the
+   Standard C Library, such as standard I/O. The plinth provides a way
+   to map MPS requirements to the facilities provided on the platform,
+   whatever they are.
 
 2. The plinth gives the :term:`client program` complete control of
    interaction between the MPS and the user, including

@@ -112,7 +112,8 @@ AMS interface
                                   mps_chain_t chain)
 
     ``fmt`` specifies the :term:`object format` for the objects
-    allocated in the pool.
+    allocated in the pool. The format must provide a :term:`scan
+    method` and a :term:`skip method`.
 
     ``chain`` specifies the :term:`generation chain` for the pool. It
     must have a single generation.

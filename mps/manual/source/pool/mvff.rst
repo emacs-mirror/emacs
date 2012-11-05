@@ -30,10 +30,10 @@ on the same pool, because the worst-fit policy of buffer filling will
 grab all the large blocks, leading to severe fragmentation. If you
 need both forms of allocation, use two separate pools.
 
-Note that using buffered allocation prevents (for obscure technical
-reasons) the pool from allocating across segment boundaries. This can
-cause added external fragmentation if objects are allocated that are a
-significant fraction of the segment size.
+Note that buffered allocation can't allocate across segment boundaries
+(see :ref:`topic-allocation-point-implementation` for the technical
+reason). This can cause added external fragmentation if objects are
+allocated that are a significant fraction of the segment size.
 
 .. note::
 
@@ -167,7 +167,7 @@ MVFF introspection
 
    #include "mpscmvff.h"
 
-.. c:function:: size_t mps_mvff_free_size(mps_pool_t mpspool)
+.. c:function:: size_t mps_mvff_free_size(mps_pool_t pool)
 
     Return the total amount of free space in an MVFF pool.
 
