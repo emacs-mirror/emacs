@@ -846,8 +846,7 @@ Memory Management Glossary: S
         :term:`copying garbage collector <copying garbage collection>`
         doesn't confuse the mutator. Mutator actions might need to
         change the :term:`color` of the nodes affected in order to
-        preserve the invariant (see :ref:`Pirinen (1998) <PIRINEN98>`
-        for details).
+        preserve the invariant.
 
         Algorithms using this invariant are :term:`incremental update`
         algorithms.
@@ -856,7 +855,7 @@ Memory Management Glossary: S
 
         .. seealso:: :term:`barrier (1)`, :term:`weak tri-color invariant`.
 
-        .. bibref:: :ref:`Pirinen (1998) <PIRINEN98>`.
+        .. bibref:: :ref:`Johnstone (1997) <JOHNSTONE97>`, :ref:`Pirinen (1998) <PIRINEN98>`.
 
     strongly reachable
 

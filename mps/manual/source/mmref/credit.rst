@@ -48,6 +48,7 @@ help of:
 * Lars Hansen
 * Anthony Hosking
 * Paul Jackson
+* Mark S. Johnstone
 * Richard Kistruck
 * Stavros Macrakis
 * Gareth McCaughan
