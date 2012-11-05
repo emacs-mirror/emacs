@@ -406,8 +406,9 @@ Before calling :c:func:`mps_commit`:
 
 You do not have to initialize the whole block so long as you satisfy
 these conditions. For example, it is permissible to defer
-initialization completely by writing ``TYPE_UNINITIALIZED`` into a
-tag field, so long as you handle this correctly in the format methods.
+initialization completely (for example, by writing
+``TYPE_UNINITIALIZED`` into a tag field), so long as you handle this
+correctly in the format methods.
 
 However, if you do not initialize the whole block then you should
 beware: the uninitialized contents of the block is likely to consist
