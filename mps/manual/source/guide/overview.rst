@@ -47,13 +47,13 @@ Supported target platforms
 
 The MPS is currently supported for deployment on:
 
-- Windows XP or later, both 32- and 64-bit;
+- Windows XP or later on IA-32 and x86-64, using Microsoft Visual C/C++;
 
-- Linux (Ubuntu 11 and RHEL 6.3 known good, otherwise YMMV);
+- Linux (Ubuntu 11 and RHEL 6.3 known good, otherwise YMMV) on IA-32 and x86-64, using GCC;
 
-- FreeBSD 7 or later on IA-32 and x86-64;
+- FreeBSD 7 or later, on IA-32 and x86-64, using GCC;
 
-- Mac OS X 10.4 or later on IA-32 and x86-64 (single threaded only).
+- Mac OS X 10.4 or later, on IA-32 and x86-64 (single threaded only), using Clang/LLVM.
 
 The MPS will *not* work in a multi-threaded 32-bit application on 64-bit
 Windows 7.  This is due to a serious fault in Microsoft's WOW64 emulator
