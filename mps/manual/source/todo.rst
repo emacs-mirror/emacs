@@ -22,7 +22,7 @@ Outstanding
 
     * Segregate objects into multiple pools (e.g. strings and integers
       into :ref:`pool-amcz`). [DONE]
-    * Global symbol table under MPS management.
+    * Global symbol table under MPS management. [DONE]
     * Tagged references.
     * Unboxed values.
     * "Bumming cycles out of scan" using tags.
@@ -34,8 +34,6 @@ Outstanding
 76. Develop debugging examples that illustrate each of the warnings
     about consistency. Also to demonstrate the "garbage collect
     frequently to expose errors as soon as possible" advice.
-
-95. Bring :ref:`lang` up to date. Add C#, Lua, Python.
 
 124. In :ref:`guide-debug`, we need to talk about other debuggers.
 
@@ -800,6 +798,8 @@ Complete
     *Action:* fixed in `change 180033`_.
 
     .. _change 180033: http://info.ravenbrook.com/infosys/cgi/perfbrowse.cgi?@describe+180033
+
+95. Bring :ref:`lang` up to date. Add C#, Lua, Python.
 
 96. Change "event" to "event category" in discussion of the telemetry
     filter.
