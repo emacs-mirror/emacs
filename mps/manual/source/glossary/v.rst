@@ -146,7 +146,7 @@ Memory Management Glossary: V
         copy-on-write, and :term:`memory mapping`.
 
             "Virtual" means never knowing where your next byte is
-            coming from.
+            coming from. --- ``fortune(6)``
 
         .. opposite:: :term:`real memory (1)`.
 
