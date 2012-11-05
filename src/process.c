@@ -1739,7 +1739,6 @@ create_process (Lisp_Object process, char **new_argv, Lisp_Object current_dir)
       /* Make the pty be the controlling terminal of the process.  */
 #ifdef HAVE_PTYS
       /* First, disconnect its current controlling terminal.  */
-#ifdef HAVE_SETSID
       /* We tried doing setsid only if pty_flag, but it caused
 	 process_set_signal to fail on SGI when using a pipe.  */
       setsid ();
@@ -1752,12 +1751,6 @@ create_process (Lisp_Object process, char **new_argv, Lisp_Object current_dir)
 	  ioctl (xforkin, TIOCSCTTY, 0);
 #endif
 	}
-#else /* not HAVE_SETSID */
-      /* It's very important to call setpgid here and no time
-	 afterwards.  Otherwise, we lose our controlling tty which
-	 is set when we open the pty. */
-      setpgid (0, 0);
-#endif /* not HAVE_SETSID */
 #if defined (LDISC1)
       if (pty_flag && xforkin >= 0)
 	{
@@ -1790,22 +1783,15 @@ create_process (Lisp_Object process, char **new_argv, Lisp_Object current_dir)
 	      ioctl (j, TIOCNOTTY, 0);
 	      emacs_close (j);
 	    }
-#ifndef USG
-	  /* In order to get a controlling terminal on some versions
-	     of BSD, it is necessary to put the process in pgrp 0
-	     before it opens the terminal.  */
-	  setpgid (0, 0);
-#endif
 	}
 #endif /* TIOCNOTTY */
 
 #if !defined (DONT_REOPEN_PTY)
 /*** There is a suggestion that this ought to be a
-     conditional on TIOCSPGRP,
-     or !(defined (HAVE_SETSID) && defined (TIOCSCTTY)).
+     conditional on TIOCSPGRP, or !defined TIOCSCTTY.
      Trying the latter gave the wrong results on Debian GNU/Linux 1.1;
      that system does seem to need this code, even though
-     both HAVE_SETSID and TIOCSCTTY are defined.  */
+     both TIOCSCTTY is defined.  */
 	/* Now close the pty (if we had it open) and reopen it.
 	   This makes the pty the controlling terminal of the subprocess.  */
       if (pty_flag)

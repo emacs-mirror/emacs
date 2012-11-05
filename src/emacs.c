@@ -1101,9 +1101,7 @@ Using an Emacs configured with --with-x-toolkit=lucid does not have this problem
 	 that it is not accessible to programs started from .emacs.  */
       fcntl (daemon_pipe[1], F_SETFD, FD_CLOEXEC);
 
-#ifdef HAVE_SETSID
       setsid ();
-#endif
 #else /* DOS_NT */
       fprintf (stderr, "This platform does not support the -daemon flag.\n");
       exit (1);
@@ -1915,7 +1913,7 @@ shut_down_emacs (int sig, Lisp_Object stuff)
   /* If we are controlling the terminal, reset terminal modes.  */
 #ifndef DOS_NT
   {
-    pid_t pgrp = EMACS_GETPGRP (0);
+    pid_t pgrp = getpgrp ();
     pid_t tpgrp = tcgetpgrp (0);
     if ((tpgrp != -1) && tpgrp == pgrp)
       {

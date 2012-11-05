@@ -1,5 +1,9 @@
 2012-11-05  Paul Eggert  <eggert@cs.ucla.edu>
 
+	Assume at least POSIX.1-1988 for getpgrp, setpgid, setsid (Bug#12800).
+	* CPP-DEFINES (HAVE_SETPGID, HAVE_SETSID, SETPGRP_RELEASES_CTTY):
+	Remove; obsolete.
+
 	Simplify by assuming __fpending.
 	* CPP-DEFINES (PENDING_OUTPUT_COUNT): Remove.
 

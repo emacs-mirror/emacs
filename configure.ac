@@ -2871,9 +2871,9 @@ AC_SUBST(BLESSMAIL_TARGET)
 
 AC_CHECK_FUNCS(gethostname \
 closedir getrusage get_current_dir_name \
-lrand48 setsid \
+lrand48 \
 fpathconf select euidaccess getpagesize setlocale \
-utimes getrlimit setrlimit setpgid getcwd shutdown getaddrinfo \
+utimes getrlimit setrlimit getcwd shutdown getaddrinfo \
 strsignal setitimer \
 sendto recvfrom getsockname getpeername getifaddrs freeifaddrs \
 gai_strerror mkstemp getline getdelim fsync sync \
@@ -2915,8 +2915,6 @@ fi
 AC_CHECK_HEADERS_ONCE(sys/un.h)
 
 AC_FUNC_FSEEKO
-
-AC_FUNC_GETPGRP
 
 # UNIX98 PTYs.
 AC_CHECK_FUNCS(grantpt)
@@ -3964,8 +3962,6 @@ case $opsys in
   irix6-5)
     AC_DEFINE(PREFER_VSUSP, 1, [Define if process_send_signal should
       use VSUSP instead of VSWTCH.])
-    AC_DEFINE(SETPGRP_RELEASES_CTTY, 1, [Define if process.c:child_setup
-      should not call setpgrp.])
     ;;
 
   sol2-10)

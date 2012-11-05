@@ -1,5 +1,25 @@
 2012-11-05  Paul Eggert  <eggert@cs.ucla.edu>
 
+	Assume at least POSIX.1-1988 for getpgrp, setpgid, setsid (Bug#12800).
+	This removes code that has been obsolete since around 1990.
+	* callproc.c (Fcall_process):
+	* emacs.c (main):
+	* process.c (create_process):
+	* term.c (dissociate_if_controlling_tty):
+	Assume setsid exists.
+	* callproc.c (child_setup): Assume setpgid exists and behaves as
+	per POSIX.1-1988 or later.
+	* conf_post.h (setpgid) [!HAVE_SETPGID]: Remove.
+	* emacs.c (shut_down_emacs):
+	* sysdep.c (sys_suspend, init_foreground_group):
+	Assume getpgrp behaves as per POSIX.1-1998 or later.
+	* msdos.c (setpgrp): Remove.
+	(tcgetpgrp, setpgid, setsid): New functions.
+	* systty.h (EMACS_GETPGRP): Remove.  All callers now use getpgrp.
+	* term.c (no_controlling_tty): Remove; unused.
+	* w32proc.c (setpgrp): Remove.
+	(setsid, tcgetpgrp): New functions.
+
 	Simplify by assuming __fpending.
 	* dispnew.c: Include <fpending.h>, not <stdio_ext.h>.
 	(update_frame_1): Use __fpending, not PENDING_OUTPUT_COUNT.

@@ -3927,8 +3927,10 @@ croak (char *badfunc)
 /*
  * A few unimplemented functions that we silently ignore.
  */
-int setpgrp (void) {return 0; }
+pid_t tcgetpgrp (int fd) { return 0; }
+int setpgid (int pid, int pgid) { return 0; }
 int setpriority (int x, int y, int z) { return 0; }
+pid_t setsid (void) { return 0; }
 
 #if __DJGPP__ == 2 && __DJGPP_MINOR__ < 4
 ssize_t

@@ -52,16 +52,6 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #endif /* not CDEL */
 #endif /* not _POSIX_VDISABLE */
 
-/* Manipulate a terminal's current process group.  */
-
-/* EMACS_GETPGRP (arg) returns the process group of the process.  */
-
-#if defined (GETPGRP_VOID)
-#  define EMACS_GETPGRP(x) getpgrp()
-#else /* !GETPGRP_VOID */
-#  define EMACS_GETPGRP(x) getpgrp(x)
-#endif /* !GETPGRP_VOID */
-
 /* Manipulate a TTY's input/output processing parameters.  */
 
 /* struct emacs_tty is a structure used to hold the current tty
