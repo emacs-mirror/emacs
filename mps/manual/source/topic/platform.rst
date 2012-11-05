@@ -12,7 +12,7 @@ Platform codes
 The MPS uses a six-character platform code to express a combination of
 operating system, CPU architecture, and compiler toolchain. Each
 six-character code breaks down into three pairs of characters:
-``OSARCT``. The first two characters name the operating system:
+``OSARCT``. The first pair of characters names the operating system:
 
 ======  ================  ====================
 ``OS``  Operating system  Constant
@@ -23,7 +23,7 @@ six-character code breaks down into three pairs of characters:
 ``xc``  OS X              :c:macro:`MPS_OS_XC`
 ======  ================  ====================
 
-The second pair of characters name the processor architecture:
+The second pair of characters names the processor architecture:
 
 ======  ======================  ======================
 ``AR``  Processor architecture  Constant
@@ -32,7 +32,7 @@ The second pair of characters name the processor architecture:
 ``i6``  Intel/AMD x86-64        :c:macro:`MPS_ARCH_I6`
 ======  ======================  ======================
 
-The third pair of characters name the compiler toolchain:
+The third pair of characters names the compiler toolchain:
 
 ======  =======================  =======================
 ``CT``  Compiler toolchain       Constant
