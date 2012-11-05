@@ -629,13 +629,6 @@ Memory Management Glossary: S
         possibility of running out of memory. For this reason, this
         scheme is sometimes used in real-time systems.
 
-        .. historical::
-
-            The first high-level language, :term:`Fortran`, only had
-            static allocation to begin with. Later languages usually
-            offer heap and/or stack allocation, but static allocation
-            is often available as an option.
-
         .. similar:: :term:`static storage duration`.
 
         .. opposite:: :term:`stack allocation`, :term:`heap allocation`.
