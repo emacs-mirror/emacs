@@ -1,3 +1,9 @@
+2012-11-05  Eli Zaretskii  <eliz@gnu.org>
+
+	* display.texi (Auto Scrolling): Clarify that scroll-step is
+	ignored when scroll-conservatively is set to a non-zero value.
+	(Bug#12801)
+
 2012-11-05  Chong Yidong  <cyd@gnu.org>
 
 	* dired.texi (Dired Updating): Doc fix (Bug#11744).
