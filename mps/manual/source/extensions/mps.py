@@ -272,7 +272,7 @@ def setup(app):
 
     visit = (visit_admonition_node, depart_admonition_node)
     for d in all_admonitions:
-        app.add_node(d.cls, html = visit, latex = visit, text = visit)
+        app.add_node(d.cls, html = visit, latex = visit, text = visit, man = visit)
         try:
             app.add_directive_to_domain(d.domain, d.cls.__name__, d)
         except AttributeError:
