@@ -194,7 +194,7 @@ well for simple place forms.
 Assignments of VAL to (NAME ARGS...) are expanded by binding the argument
 forms (VAL ARGS...) according to ARGLIST, then executing BODY, which must
 return a Lisp form that does the assignment.
-The first arg in ARLIST (the one that receives VAL) receives an expression
+The first arg in ARGLIST (the one that receives VAL) receives an expression
 which can do arbitrary things, whereas the other arguments are all guaranteed
 to be pure and copyable.  Example use:
   (gv-define-setter aref (v a i) `(aset ,a ,i ,v))"
