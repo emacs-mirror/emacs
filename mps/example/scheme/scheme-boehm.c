@@ -3202,13 +3202,9 @@ static obj_t entry_hashtable_keys(obj_t env, obj_t op_env, obj_t operator, obj_t
 }
 
 
-/* entry_gc -- full garbage collection now                      %%MPS
- *
- * This is an example of a direct interface from the language to the MPS.
- * The `gc` function in Scheme will cause the MPS to perform a complete
- * garbage collection of the entire arena right away. See topic/arena.
+/* (gc)
+ * Run a full garbage collection now.
  */
-
 static obj_t entry_gc(obj_t env, obj_t op_env, obj_t operator, obj_t operands)
 {
   eval_args(operator->operator.name, env, op_env, operands, 0);
