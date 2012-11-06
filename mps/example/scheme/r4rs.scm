@@ -188,3 +188,190 @@
            (string-append "-" (number->string (abs number) radix)))
           ((zero? number) "0")
           (else (list->string (n->s number '()))))))
+
+
+;; (string->number string)
+;; (string->number string radix)
+;; Returns a number of the maximally precise representation expressed
+;; by the given string. Radix must be an exact integer, either 2, 8,
+;; 10, or 16. If radix is not supplied, then the default radix is 10.
+;; If string is not a syntactically valid notation for a number, then
+;; string->number returns #f.
+
+(define (string->number . args)
+  (letrec ((string (car args))
+           (length (string-length string))
+           (radix (if (null? (cdr args)) 10 (cadr args)))
+           (c->d (lambda (c)
+                   (let ((i (char->integer c)))
+                     (cond ((char-numeric? c) (- i (char->integer #\0)))
+                           ((char-upper-case? c) (- i -10 (char->integer #\A)))
+                           ((char-lower-case? c) (- i -10 (char->integer #\a)))
+                           (else #f)))))
+           (s->n (lambda (i a)
+                   (if (>= i length) a
+                       (let ((d (c->d (string-ref string i))))
+                         (cond ((eq? d #f) #f)
+                               ((>= d radix) #f)
+                               (else (s->n (+ i 1) (+ (* a radix) d)))))))))
+    (s->n 0 0)))
+
+
+;; (char=? char1 char2)
+;; (char<? char1 char2)
+;; (char>? char1 char2)
+;; (char<=? char1 char2)
+;; (char>=? char1 char2)
+;; These procedures impose a total ordering on the set of characters.
+;; See R4RS 6.6.
+
+(define (char=? c1 c2) (eqv? (char->integer c1) (char->integer c2)))
+(define (char<? c1 c2) (< (char->integer c1) (char->integer c2)))
+(define (char>? c1 c2) (> (char->integer c1) (char->integer c2)))
+(define (char<=? c1 c2) (<= (char->integer c1) (char->integer c2)))
+(define (char>=? c1 c2) (>= (char->integer c1) (char->integer c2)))
+
+
+;; (char-ci=? char1 char2)
+;; (char-ci<? char1 char2)
+;; (char-ci>? char1 char2)
+;; (char-ci<=? char1 char2)
+;; (char-ci>=? char1 char2)
+;; These procedures are similar to char=? et cetera, but they treat
+;; upper case and lower case letters as the same. For example,
+;; `(char-ci=? #\A #\a)' returns #t.
+;; See R4RS 6.6.
+
+(define (char-ci=? c1 c2) (char=? (char-upcase c1) (char-upcase c2)))
+(define (char-ci<? c1 c2) (char<? (char-upcase c1) (char-upcase c2)))
+(define (char-ci>? c1 c2) (char>? (char-upcase c1) (char-upcase c2)))
+(define (char-ci<=? c1 c2) (char<=? (char-upcase c1) (char-upcase c2)))
+(define (char-ci>=? c1 c2) (char>=? (char-upcase c1) (char-upcase c2)))
+
+
+;; (char-alphabetic? char)
+;; (char-numeric? char)
+;; (char-whitespace? char)
+;; (char-upper-case? letter)
+;; (char-lower-case? letter)
+;; These procedures return #t if their arguments are alphabetic,
+;; numeric, whitespace, upper case, or lower case characters,
+;; respectively, otherwise they return #f. The following remarks,
+;; which are specific to the ASCII character set, are intended only as
+;; a guide: The alphabetic characters are the 52 upper and lower case
+;; letters. The numeric characters are the ten decimal digits. The
+;; whitespace characters are space, tab, line feed, form feed, and
+;; carriage return.
+
+(define (char-alphabetic? c) (or (char-upper-case? c) (char-lower-case? c)))
+(define (char-numeric? c) (and (char>=? c #\0) (char<=? c #\9)))
+(define (char-whitespace? c) (memv (char->integer c) '(8 10 12 13 32)))
+(define (char-upper-case? c) (and (char>=? c #\A) (char<=? c #\Z)))
+(define (char-lower-case? c) (and (char>=? c #\a) (char<=? c #\z)))
+
+
+;; (char-upcase char)
+;; (char-downcase char)
+;; These procedures return a character char2 such that `(char-ci=?
+;; char char2)'. In addition, if char is alphabetic, then the result
+;; of char-upcase is upper case and the result of char-downcase is
+;; lower case.
+
+(define (char-upcase c)
+  (if (char-lower-case? c)
+      (integer->char (- (+ (char->integer c) (char->integer #\A))
+                        (char->integer #\a)))
+      c))
+
+(define (char-downcase c)
+  (if (char-upper-case? c)
+      (integer->char (- (+ (char->integer c) (char->integer #\a))
+                        (char->integer #\A)))
+      c))
+
+
+;; (string-ci=? string1 string2)
+;; Returns #t if the two strings are the same length and contain the
+;; same characters in the same positions, otherwise returns #f.
+;; String-ci=? treats upper and lower case letters as though they were
+;; the same character.
+;; See R4RS 6.7.
+
+(define (string-cmp op1 op2 s1 s2 e1 e2)
+  (letrec ((l1 (string-length s1))
+           (l2 (string-length s2))
+           (sc (lambda (i)
+                 (cond ((and (>= i l1) (>= i l2)) #t)
+                       ((>= i l1) e1)
+                       ((>= i l2) e2)
+                       ((op1 (string-ref s1 i) (string-ref s2 i)) #t)
+                       ((not (op2 (string-ref s1 i) (string-ref s2 i))) #f)
+                       (else (sc (+ 1 i)))))))
+    (sc 0)))
+
+(define (string-ci=? s1 s2) (string-cmp (lambda _ #f) char-ci=? s1 s2 #f #f))
+
+
+;; (string<? string1 string2)
+;; (string>? string1 string2)
+;; (string<=? string1 string2)
+;; (string>=? string1 string2)
+;; (string-ci<? string1 string2)
+;; (string-ci>? string1 string2)
+;; (string-ci<=? string1 string2)
+;; (string-ci>=? string1 string2)
+;; These procedures are the lexicographic extensions to strings of the
+;; corresponding orderings on characters. For example, string<? is the
+;; lexicographic ordering on strings induced by the ordering char<? on
+;; characters. If two strings differ in length but are the same up to
+;; the length of the shorter string, the shorter string is considered
+;; to be lexicographically less than the longer string.
+;; See R4RS 6.7.
+
+(define (string<? s1 s2) (not (string>=? s1 s2)))
+(define (string>? s1 s2) (not (string<=? s1 s2)))
+(define (string<=? s1 s2) (string-cmp char<? char<=? s1 s2 #t #f))
+(define (string>=? s1 s2) (string-cmp char>? char>=? s1 s2 #f #t))
+(define (string-ci<? s1 s2) (not (string-ci>=? s1 s2)))
+(define (string-ci>? s1 s2) (not (string-ci<=? s1 s2)))
+(define (string-ci<=? s1 s2) (string-cmp char-ci<? char-ci<=? s1 s2 #t #f))
+(define (string-ci>=? s1 s2) (string-cmp char-ci>? char-ci>=? s1 s2 #f #t))
+
+
+;; (map proc list1 list2 ...)
+;; The lists must be lists, and proc must be a procedure taking as
+;; many arguments as there are lists. If more than one list is given,
+;; then they must all be the same length. Map applies proc
+;; element-wise to the elements of the lists and returns a list of the
+;; results, in order from left to right. The dynamic order in which
+;; proc is applied to the elements of the lists is unspecified.
+;; See R4RS 6.9.
+
+(define (map proc . args)
+  (letrec ((map1 (lambda (f l) (if (null? l) '() 
+                                   (cons (f (car l)) (map1 f (cdr l))))))
+           (map2 (lambda (l) (if (null? (car l)) '()
+                                 (cons (apply proc (map1 car l))
+                                       (map2 (map1 cdr l)))))))
+    (map2 args)))
+
+(define (map f l) (if (null? l) '() (cons (f (car l)) (map f (cdr l)))))
+
+
+;; (for-each proc list1 list2 ...)
+;; The arguments to for-each are like the arguments to map, but
+;; for-each calls proc for its side effects rather than for its
+;; values. Unlike map, for-each is guaranteed to call proc on the
+;; elements of the lists in order from the first element to the last,
+;; and the value returned by for-each is unspecified.
+;; See R4RS 6.9.
+
+(define (for-each proc . args)
+  (letrec ((map1 (lambda (f l) (if (null? l) '() 
+                                   (cons (f (car l)) (map1 f (cdr l))))))
+           (map2 (lambda (l) (if (null? (car l)) #f
+                                 (begin (apply proc (map1 car l))
+                                        (map2 (map1 cdr l)))))))
+    (map2 args)))
+
+(define (for-each f l) (if (null? l) #f (begin (f (car l)) (for-each f (cdr l)))))
