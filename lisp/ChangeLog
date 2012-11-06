@@ -1,3 +1,8 @@
+2012-11-06  Agustín Martín Domingo  <agustin.martin@hispalinux.es>
+
+	* textmodes/ispell.el (ispell-region): Standard re-indent for better
+	readability.
+
 2012-11-06  Dmitry Antipov  <dmantipov@yandex.ru>
 
 	* emacs-lisp/byte-opt.el (toplevel): Add compare-window-configurations,

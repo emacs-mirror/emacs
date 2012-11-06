@@ -2903,113 +2903,113 @@ amount for last line processed."
       (ispell-accept-buffer-local-defs)) ; set up dictionary, local words, etc.
   (let ((skip-region-start (make-marker))
 	(rstart (make-marker)))
-  (unwind-protect
-      (save-excursion
-	(message "Spell-checking %s using %s with %s dictionary..."
+    (unwind-protect
+	(save-excursion
+	  (message "Spell-checking %s using %s with %s dictionary..."
+		   (if (and (= reg-start (point-min)) (= reg-end (point-max)))
+		       (buffer-name) "region")
+		   (file-name-nondirectory ispell-program-name)
+		   (or ispell-current-dictionary "default"))
+	  ;; Returns cursor to original location.
+	  (save-window-excursion
+	    (goto-char reg-start)
+	    (let ((transient-mark-mode)
+		  (case-fold-search case-fold-search)
+		  (query-fcc t)
+		  in-comment key)
+	      (let (message-log-max)
+		(message "searching for regions to skip"))
+	      (if (re-search-forward (ispell-begin-skip-region-regexp) reg-end t)
+		  (progn
+		    (setq key (match-string-no-properties 0))
+		    (set-marker skip-region-start (- (point) (length key)))
+		    (goto-char reg-start)))
+	      (let (message-log-max)
+		(message
+		 "Continuing spelling check using %s with %s dictionary..."
+		 (file-name-nondirectory ispell-program-name)
+		 (or ispell-current-dictionary "default")))
+	      (set-marker rstart reg-start)
+	      (set-marker ispell-region-end reg-end)
+	      (while (and (not ispell-quit)
+			  (< (point) ispell-region-end))
+		;; spell-check region with skipping
+		(if (and (marker-position skip-region-start)
+			 (<= skip-region-start (point)))
+		    (progn
+		      ;; If region inside line comment, must keep comment start.
+		      (setq in-comment (point)
+			    in-comment
+			    (and comment-start
+				 (or (null comment-end) (string= "" comment-end))
+				 (save-excursion
+				   (beginning-of-line)
+				   (re-search-forward comment-start in-comment t))
+				 comment-start))
+		      ;; Can change skip-regexps (in ispell-message)
+		      (ispell-skip-region key) ; moves pt past region.
+		      (set-marker rstart (point))
+		      ;; check for saving large attachments...
+		      (setq query-fcc (and query-fcc
+					   (ispell-ignore-fcc skip-region-start
+							      rstart)))
+		      (if (and (< rstart ispell-region-end)
+			       (re-search-forward
+				(ispell-begin-skip-region-regexp)
+				ispell-region-end t))
+			  (progn
+			    (setq key (match-string-no-properties 0))
+			    (set-marker skip-region-start
+					(- (point) (length key)))
+			    (goto-char rstart))
+			(set-marker skip-region-start nil))))
+		(setq reg-end (max (point)
+				   (if (marker-position skip-region-start)
+				       (min skip-region-start ispell-region-end)
+				     (marker-position ispell-region-end))))
+		(let* ((ispell-start (point))
+		       (ispell-end (min (point-at-eol) reg-end))
+		       (string (ispell-get-line
+				ispell-start ispell-end in-comment)))
+		  (if in-comment		; account for comment chars added
+		      (setq ispell-start (- ispell-start (length in-comment))
+			    in-comment nil))
+		  (setq ispell-end (point)) ; "end" tracks region retrieved.
+		  (if string		; there is something to spell check!
+		      ;; (special start end)
+		      (setq shift (ispell-process-line string
+						       (and recheckp shift))))
+		  (goto-char ispell-end)))))
+	  (if ispell-quit
+	      nil
+	    (or shift 0)))
+      ;; protected
+      (if (and (not (and recheckp ispell-keep-choices-win))
+	       (get-buffer ispell-choices-buffer))
+	  (kill-buffer ispell-choices-buffer))
+      (set-marker skip-region-start nil)
+      (set-marker rstart nil)
+      (if ispell-quit
+	  (progn
+	    ;; preserve or clear the region for ispell-continue.
+	    (if (not (numberp ispell-quit))
+		(set-marker ispell-region-end nil)
+	      ;; Ispell-continue enabled - ispell-region-end is set.
+	      (goto-char ispell-quit))
+	    ;; Check for aborting
+	    (if (and ispell-checking-message (numberp ispell-quit))
+		(progn
+		  (setq ispell-quit nil)
+		  (error "Message send aborted")))
+	    (if (not recheckp) (setq ispell-quit nil)))
+	(if (not recheckp) (set-marker ispell-region-end nil))
+	;; Only save if successful exit.
+	(ispell-pdict-save ispell-silently-savep)
+	(message "Spell-checking %s using %s with %s dictionary...done"
 		 (if (and (= reg-start (point-min)) (= reg-end (point-max)))
 		     (buffer-name) "region")
 		 (file-name-nondirectory ispell-program-name)
-		 (or ispell-current-dictionary "default"))
-	;; Returns cursor to original location.
-	(save-window-excursion
-	  (goto-char reg-start)
-	  (let ((transient-mark-mode)
-		(case-fold-search case-fold-search)
-		(query-fcc t)
-		in-comment key)
-	    (let (message-log-max)
-	      (message "searching for regions to skip"))
-	    (if (re-search-forward (ispell-begin-skip-region-regexp) reg-end t)
-		(progn
-		  (setq key (match-string-no-properties 0))
-		  (set-marker skip-region-start (- (point) (length key)))
-		  (goto-char reg-start)))
-	    (let (message-log-max)
-	      (message
-               "Continuing spelling check using %s with %s dictionary..."
-               (file-name-nondirectory ispell-program-name)
-               (or ispell-current-dictionary "default")))
-	    (set-marker rstart reg-start)
-	    (set-marker ispell-region-end reg-end)
-	    (while (and (not ispell-quit)
-			(< (point) ispell-region-end))
-	      ;; spell-check region with skipping
-	      (if (and (marker-position skip-region-start)
-		       (<= skip-region-start (point)))
-		  (progn
-		    ;; If region inside line comment, must keep comment start.
-		    (setq in-comment (point)
-			  in-comment
-			  (and comment-start
-			       (or (null comment-end) (string= "" comment-end))
-			       (save-excursion
-				 (beginning-of-line)
-				 (re-search-forward comment-start in-comment t))
-			       comment-start))
-		    ;; Can change skip-regexps (in ispell-message)
-		    (ispell-skip-region key) ; moves pt past region.
-		    (set-marker rstart (point))
-		    ;; check for saving large attachments...
-		    (setq query-fcc (and query-fcc
-					 (ispell-ignore-fcc skip-region-start
-							    rstart)))
-		    (if (and (< rstart ispell-region-end)
-			     (re-search-forward
-			      (ispell-begin-skip-region-regexp)
-			      ispell-region-end t))
-			(progn
-			  (setq key (match-string-no-properties 0))
-			  (set-marker skip-region-start
-				      (- (point) (length key)))
-			  (goto-char rstart))
-		      (set-marker skip-region-start nil))))
-	      (setq reg-end (max (point)
-				 (if (marker-position skip-region-start)
-				     (min skip-region-start ispell-region-end)
-				   (marker-position ispell-region-end))))
-	      (let* ((ispell-start (point))
-		     (ispell-end (min (point-at-eol) reg-end))
-		     (string (ispell-get-line
-                              ispell-start ispell-end in-comment)))
-		(if in-comment		; account for comment chars added
-		    (setq ispell-start (- ispell-start (length in-comment))
-			  in-comment nil))
-		(setq ispell-end (point)) ; "end" tracks region retrieved.
-		(if string		; there is something to spell check!
-		    ;; (special start end)
-		    (setq shift (ispell-process-line string
-						     (and recheckp shift))))
-		(goto-char ispell-end)))))
-	(if ispell-quit
-	    nil
-	  (or shift 0)))
-    ;; protected
-    (if (and (not (and recheckp ispell-keep-choices-win))
-	     (get-buffer ispell-choices-buffer))
-	(kill-buffer ispell-choices-buffer))
-    (set-marker skip-region-start nil)
-    (set-marker rstart nil)
-    (if ispell-quit
-	(progn
-	  ;; preserve or clear the region for ispell-continue.
-	  (if (not (numberp ispell-quit))
-	      (set-marker ispell-region-end nil)
-	    ;; Ispell-continue enabled - ispell-region-end is set.
-	    (goto-char ispell-quit))
-	  ;; Check for aborting
-	  (if (and ispell-checking-message (numberp ispell-quit))
-	      (progn
-		(setq ispell-quit nil)
-		(error "Message send aborted")))
-	  (if (not recheckp) (setq ispell-quit nil)))
-      (if (not recheckp) (set-marker ispell-region-end nil))
-      ;; Only save if successful exit.
-      (ispell-pdict-save ispell-silently-savep)
-      (message "Spell-checking %s using %s with %s dictionary...done"
-	       (if (and (= reg-start (point-min)) (= reg-end (point-max)))
-		   (buffer-name) "region")
-	       (file-name-nondirectory ispell-program-name)
-	       (or ispell-current-dictionary "default"))))))
+		 (or ispell-current-dictionary "default"))))))
 
 
 (defun ispell-begin-skip-region-regexp ()
