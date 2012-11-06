@@ -13,6 +13,9 @@
 	(ispell-buffer-with-debug): New function that creates a debugging
 	buffer and calls `ispell-buffer' with debugging enabled.
 
+	* textmodes/ispell.el (ispell-region): Do not prefix sent string by
+	comment in autoconf mode. (Bug#12768)
+
 2012-11-06  Dmitry Antipov  <dmantipov@yandex.ru>
 
 	* emacs-lisp/byte-opt.el (toplevel): Add compare-window-configurations,

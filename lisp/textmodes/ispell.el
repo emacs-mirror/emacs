@@ -3006,15 +3006,23 @@ amount for last line processed."
 				     (marker-position ispell-region-end))))
 		(let* ((ispell-start (point))
 		       (ispell-end (min (point-at-eol) reg-end))
+		       ;; See if line must be prefixed by comment string to let ispell know this is
+		       ;; part of a comment string.  This is only supported in some modes.
+		       ;; In particular, this is not supported in autoconf mode where adding the
+		       ;; comment string messes everything up because ispell tries to spellcheck the
+		       ;; `dnl' string header causing misalignments in some cases (debbugs.gnu.org: #12768).
+		       (add-comment (and in-comment
+					 (not (string= in-comment "dnl "))
+					 in-comment))
 		       (string (ispell-get-line
-				ispell-start ispell-end in-comment)))
+				ispell-start ispell-end add-comment)))
 		  (ispell-print-if-debug
 		   (format
-		    "ispell-region: string pos (%s->%s), eol: %s, [in-comment]: [%s], [string]: [%s]\n"
-		    ispell-start ispell-end (point-at-eol) in-comment string))
-		  (if in-comment		; account for comment chars added
-		      (setq ispell-start (- ispell-start (length in-comment))
-			    in-comment nil))
+		    "ispell-region: string pos (%s->%s), eol: %s, [in-comment]: [%s], [add-comment]: [%s], [string]: [%s]\n"
+		    ispell-start ispell-end (point-at-eol) in-comment add-comment string))
+		  (if add-comment		; account for comment chars added
+		      (setq ispell-start (- ispell-start (length add-comment))
+			    add-comment nil))
 		  (setq ispell-end (point)) ; "end" tracks region retrieved.
 		  (if string		; there is something to spell check!
 		      ;; (special start end)
