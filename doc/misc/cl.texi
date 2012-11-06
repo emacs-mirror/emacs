@@ -975,7 +975,7 @@ a
 The generalized variable @code{buffer-substring}, listed above,
 also works in this way by replacing a portion of the current buffer.
 
-@c FIXME? Also `eq'? (see cl-lib.el)
+@c FIXME?  Also `eq'? (see cl-lib.el)
 
 @c Currently commented out in cl.el.
 @ignore
@@ -990,13 +990,10 @@ only interesting when used with places you define yourself with
 @xref{Obsolete Setf Customization}.
 @end ignore
 
+@c FIXME?  Is this still true?
 @item
 A macro call, in which case the macro is expanded and @code{setf}
 is applied to the resulting form.
-
-@item
-Any form for which a @code{defsetf} or @code{define-setf-method}
-has been made.  @xref{Obsolete Setf Customization}.
 @end itemize
 
 @c FIXME should this be in lispref?  It seems self-evident.
@@ -4953,10 +4950,14 @@ is completely irregular.
 @end defmac
 
 @defmac defsetf access-fn update-fn
-This is the simpler of two @code{defsetf} forms.  Where
-@var{access-fn} is the name of a function which accesses a place,
-this declares @var{update-fn} to be the corresponding store
-function.  From now on,
+This is the simpler of two @code{defsetf} forms, and is entirely
+obsolete, being replaced by @code{gv-define-simple-setter} in Emacs
+24.3.
+@xref{Adding Generalized Variables,,,elisp,GNU Emacs Lisp Reference Manual}.
+
+Where @var{access-fn} is the name of a function that accesses a place,
+this declares @var{update-fn} to be the corresponding store function.
+From now on,
 
 @example
 (setf (@var{access-fn} @var{arg1} @var{arg2} @var{arg3}) @var{value})
@@ -4971,7 +4972,7 @@ will be expanded to
 
 @noindent
 The @var{update-fn} is required to be either a true function, or
-a macro which evaluates its arguments in a function-like way.  Also,
+a macro that evaluates its arguments in a function-like way.  Also,
 the @var{update-fn} is expected to return @var{value} as its result.
 Otherwise, the above expansion would not obey the rules for the way
 @code{setf} is supposed to behave.
@@ -4982,17 +4983,14 @@ not suitable, so that the above @code{setf} should be expanded to
 something more like
 
 @example
-(let ((temp @var{value}))
-  (@var{update-fn} @var{arg1} @var{arg2} @var{arg3} temp)
-  temp)
+(prog1 @var{value}
+  (@var{update-fn} @var{arg1} @var{arg2} @var{arg3} @var{value}))
 @end example
 
-Some examples of the use of @code{defsetf}, drawn from the standard
-suite of setf methods, are:
+Some examples are:
 
 @example
 (defsetf car setcar)
-(defsetf symbol-value set)
 (defsetf buffer-name rename-buffer t)
 @end example
 @end defmac

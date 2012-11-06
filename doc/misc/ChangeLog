@@ -1,9 +1,11 @@
 2012-11-06  Glenn Morris  <rgm@gnu.org>
 
 	* cl.texi (Overview): Mention EIEIO here, as well as the appendix.
+	(Setf Extensions): Remove obsolete reference.
 	(Obsolete Setf Customization):
 	Move note on lack of setf functions to lispref/variables.texi.
 	Undocument get-setf-method, since it no longer exists.
+	Mention simple defsetf replaced by gv-define-simple-setter.
 
 2012-11-03  Glenn Morris  <rgm@gnu.org>
 
