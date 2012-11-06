@@ -502,6 +502,11 @@ Buffer-Local Variables
 * Default Value::           The default value is seen in buffers
                               that don't have their own buffer-local values.
 
+Generalized Variables
+
+* Setting Generalized Variables::   The @code{setf} macro.
+* Adding Generalized Variables::    Defining new @code{setf} forms.
+
 Functions
 
 * What Is a Function::      Lisp functions vs. primitives; terminology.

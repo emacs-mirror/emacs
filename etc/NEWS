@@ -783,6 +783,8 @@ systems), or based on memory allocations.
 
 ** CL-style generalized variables are now in core Elisp.
 `setf' is autoloaded; `push' and `pop' accept generalized variables.
+You can define your own generalized variables using `gv-define-simple-setter',
+`gv-define-setter', etc.
 
 +++
 ** `defun' also accepts a (declare DECLS) form, like `defmacro'.

@@ -1965,6 +1965,14 @@ and @samp{a[i] = x} stores an element using the same notation.
 Just as certain forms like @code{a[i]} can be lvalues in C, there
 is a set of forms that can be generalized variables in Lisp.
 
+@menu
+* Setting Generalized Variables::   The @code{setf} macro.
+* Adding Generalized Variables::    Defining new @code{setf} forms.
+@end menu
+
+@node Setting Generalized Variables
+@subsection The @code{setf} Macro
+
 The @code{setf} macro is the most basic way to operate on generalized
 variables.  The @code{setf} form is like @code{setq}, except that it
 accepts arbitrary place forms on the left side rather than just
@@ -2049,3 +2057,65 @@ place can be used to insert or delete at any position in a list.
 The @file{cl-lib} library defines various extensions for generalized
 variables, including additional @code{setf} places.
 @xref{Generalized Variables,,, cl, Common Lisp Extensions}.
+
+
+@node Adding Generalized Variables
+@subsection Defining new @code{setf} forms
+
+This section describes how to define new forms that @code{setf} can
+operate on.
+
+@defmac gv-define-simple-setter name setter &optional fix-return
+This macro enables you to easily define @code{setf} methods for simple
+cases.  @var{name} is the name of a function, macro, or special form.
+You can use this macro whenever @var{name} has a directly
+corresponding @var{setter} function that updates it, e.g.,
+@code{(gv-define-simple-setter car setcar)}.
+
+This macro translates a call of the form
+
+@example
+(setf (@var{name} @var{args}@dots{}) @var{value})
+@end example
+
+into
+@example
+(@var{setter} @var{args}@dots{} @var{value})
+@end example
+
+@noindent
+Such a @code{setf} call is documented to return @var{value}.  This is
+no problem with, e.g., @code{car} and @code{setcar}, because
+@code{setcar} returns the value that it set.  If your @var{setter}
+function does not return @var{value}, use a non-@code{nil} value for
+the @var{fix-return} argument of @code{gv-define-simple-setter}.  This
+wraps the @code{setf} expansion in @code{(prog1 @var{value} @dots{})}
+so that it returns the correct result.
+@end defmac
+
+
+@defmac gv-define-setter name arglist &rest body
+This macro allows for more complex @code{setf} expansions than the
+previous form.  You may need to use this form, for example, if there
+is no simple setter function to call, or if there is one but it
+requires different arguments to the place form.
+
+This macro expands the form
+@code{(setf (@var{name} @var{args}@dots{}) @var{value})} by
+first binding the @code{setf} argument forms
+@code{(@var{value} @var{args}@dots{})} according to @var{arglist},
+and then executing @var{body}.  @var{body} should return a Lisp
+form that does the assignment.  Remember that it should return the
+value that was set.  An example of using this macro is:
+
+@example
+(gv-define-setter caar (val x) `(setcar (car ,x) ,val))
+@end example
+@end defmac
+
+@c FIXME?  Not sure what, if anything, to say about this.
+@ignore
+@defmac gv-define-expander name handler
+This is the most general way to define a new @code{setf} expansion.
+@end defmac
+@end ignore

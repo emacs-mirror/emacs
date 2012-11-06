@@ -1,3 +1,10 @@
+2012-11-06  Glenn Morris  <rgm@gnu.org>
+
+	* variables.texi (Setting Generalized Variables):
+	Split most of previous contents into this subsection.
+	(Adding Generalized Variables): New subsection.
+	* elisp.texi: Add Generalized Variables subsections to detailed menu.
+
 2012-11-05  Chong Yidong  <cyd@gnu.org>
 
 	* frames.texi (Initial Parameters): Doc fix (Bug#12144).
