@@ -1,3 +1,8 @@
+2012-11-06  Glenn Morris  <rgm@gnu.org>
+
+	* cl.texi (Obsolete Setf Customization):
+	Move note on lack of setf functions to lispref/variables.texi.
+
 2012-11-03  Glenn Morris  <rgm@gnu.org>
 
 	* cl.texi: Further general copyedits.

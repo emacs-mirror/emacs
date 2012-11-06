@@ -5105,19 +5105,6 @@ See also the source code for the setf-method for
 simpler case, then massaging the result.
 @end defun
 
-@c FIXME does not belong here any more, maybe in lispref?
-Modern Common Lisp defines a second, independent way to specify
-the @code{setf} behavior of a function, namely ``@code{setf}
-functions'' whose names are lists @code{(setf @var{name})}
-rather than symbols.  For example, @code{(defun (setf foo) @dots{})}
-defines the function that is used when @code{setf} is applied to
-@code{foo}.  This package does not currently support @code{setf}
-functions.  In particular, it is a compile-time error to use
-@code{setf} on a form which has not already been @code{defsetf}'d
-or otherwise declared; in newer Common Lisps, this would not be
-an error since the function @code{(setf @var{func})} might be
-defined later.
-
 
 @node GNU Free Documentation License
 @appendix GNU Free Documentation License

@@ -3,6 +3,8 @@
 	* variables.texi (Setting Generalized Variables):
 	Split most of previous contents into this subsection.
 	(Adding Generalized Variables): New subsection.
+	Move note on lack of setf functions here from misc/cl.texi.
+
 	* elisp.texi: Add Generalized Variables subsections to detailed menu.
 
 2012-11-05  Chong Yidong  <cyd@gnu.org>
