@@ -16,7 +16,7 @@ $(TARGETS): %: %.c Makefile
 	$(CC) $(CFLAGS) -o $@ -I $(MPS) $< $(MPS)/mps.c
 
 clean:
-	rm $(TARGETS)
+	rm -f $(TARGETS)
 
 test: $(TARGETS)
 	@for TARGET in $(TARGETS); do \
