@@ -448,14 +448,6 @@ skip method must return the address of the base of the "next object":
 in formats of variant A like this one, this is the address just past
 the end of the object, rounded up to the object format's alignment.
 
-.. note::
-
-    The code in the skip method that computes the "next object" is the
-    same as the corresponding code in the :term:`scan method`, so it's
-    tempting to delegate this part of its functionality from the
-    latter to the former. Before you do this, you should read the
-    documentation for :c:func:`MPS_FIX_CALL`.
-
 .. topics::
 
     :ref:`topic-format`.
