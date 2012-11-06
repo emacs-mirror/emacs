@@ -1,5 +1,40 @@
 2012-11-06  Dmitry Antipov  <dmantipov@yandex.ru>
 
+	Widely used frame validity and checking functions.
+	* frame.h (decode_live_frame, decode_any_frame): Add prototypes.
+	* frame.c (decode_live_frame, decode_any_frame): New functions.
+	(delete_frame, Fredirect_frame_focus, Fframe_parameters)
+	(Fframe_parameter, Fframe_char_height, Fframe_char_width)
+	(Fframe_pixel_height, Fframe_pixel_width, Ftool_bar_pixel_width)
+	(Fframe_pointer_visible_p): Use decode_any_frame.
+	(Fmake_frame_visible, Fmake_frame_invisible, Ficonify_frame)
+	(Fraise_frame, Flower_frame, Fmodify_frame_parameters)
+	(Fset_frame_height, Fset_frame_width): Use decode_live_frame.
+	(Fframe_focus): Likewise.  Allow zero number of arguments.
+	Adjust docstring.
+	(frame_buffer_list, frame_buffer_predicate): Remove.
+	* lisp.h (frame_buffer_predicate): Remove prototype.
+	* buffer.c (Fother_buffer): Use decode_any_frame.
+	* xdisp.c (Ftool_bar_lines_needed): Likewise.
+	* xfaces.c (Fcolor_gray_p, Fcolor_supported_p): Likewise.
+	* font.c (Ffont_face_attributes, Ffont_family_list, Fopen_font)
+	(Fclose_font, Ffont_info): Use decode_live_frame.
+	* fontset.c (check_fontset_name): Likewise.
+	* terminal.c (Fframe_terminal): Likewise.
+	* w32fns.c (check_x_frame): Likewise.
+	* window.c (Fminibuffer_window, Fwindow_at)
+	(Fcurrent_window_configuration): Likewise.
+	(Frun_window_configuration_change_hook, Fwindow_resize_apply):
+	Likewise.  Allow zero number of arguments.  Adjust docstring.
+	* dispnew.c (Fredraw_frame): Likewise.
+	* xfaces.c (frame_or_selected_frame): Remove.
+	(Fx_list_fonts, Finternal_get_lisp_face_attribute, Fface_font)
+	(Finternal_lisp_face_equal_p, Finternal_lisp_face_empty_p)
+	(Fframe_face_alist): Use decode_live_frame.
+	* xfns.c (check_x_frame): Likewise.
+
+2012-11-06  Dmitry Antipov  <dmantipov@yandex.ru>
+
 	* window.c (quad): New function.
 	(Fwindow_edges, Fwindow_pixel_edges, Fwindow_inside_edges)
 	(Fwindow_absolute_pixel_edges, Fwindow_inside_absolute_pixel_edges)

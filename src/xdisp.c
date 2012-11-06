@@ -11916,18 +11916,13 @@ tool_bar_lines_needed (struct frame *f, int *n_rows)
 
 DEFUN ("tool-bar-lines-needed", Ftool_bar_lines_needed, Stool_bar_lines_needed,
        0, 1, 0,
-       doc: /* Return the number of lines occupied by the tool bar of FRAME.  */)
+       doc: /* Return the number of lines occupied by the tool bar of FRAME.
+If FRAME is nil or omitted, use the selected frame.  */)
   (Lisp_Object frame)
 {
-  struct frame *f;
+  struct frame *f = decode_any_frame (frame);
   struct window *w;
   int nlines = 0;
-
-  if (NILP (frame))
-    frame = selected_frame;
-  else
-    CHECK_FRAME (frame);
-  f = XFRAME (frame);
 
   if (WINDOWP (f->tool_bar_window)
       && (w = XWINDOW (f->tool_bar_window),

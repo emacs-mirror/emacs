@@ -360,14 +360,7 @@ If FRAME is nil, the selected frame is used.
 The terminal device is represented by its integer identifier.  */)
   (Lisp_Object frame)
 {
-  struct terminal *t;
-
-  if (NILP (frame))
-    frame = selected_frame;
-
-  CHECK_LIVE_FRAME (frame);
-
-  t = FRAME_TERMINAL (XFRAME (frame));
+  struct terminal *t = FRAME_TERMINAL (decode_live_frame (frame));
 
   if (!t)
     return Qnil;

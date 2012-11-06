@@ -164,12 +164,8 @@ have_menus_p (void)
 FRAME_PTR
 check_x_frame (Lisp_Object frame)
 {
-  FRAME_PTR f;
+  struct frame *f = decode_live_frame (frame);
 
-  if (NILP (frame))
-    frame = selected_frame;
-  CHECK_LIVE_FRAME (frame);
-  f = XFRAME (frame);
   if (! FRAME_X_P (f))
     error ("Non-X frame used");
   return f;

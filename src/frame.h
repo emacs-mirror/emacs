@@ -943,6 +943,8 @@ extern Lisp_Object Qnoelisp;
 extern struct frame *last_nonminibuf_frame;
 
 extern void set_menu_bar_lines (struct frame *, Lisp_Object, Lisp_Object);
+extern struct frame *decode_live_frame (Lisp_Object);
+extern struct frame *decode_any_frame (Lisp_Object);
 extern struct frame *make_initial_frame (void);
 extern struct frame *make_frame (int);
 #ifdef HAVE_WINDOW_SYSTEM

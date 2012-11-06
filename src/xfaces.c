@@ -669,23 +669,6 @@ x_free_gc (struct frame *f, GC gc)
 }
 #endif  /* HAVE_NS */
 
-/* If FRAME is nil, return a pointer to the selected frame.
-   Otherwise, check that FRAME is a live frame, and return a pointer
-   to it.  NPARAM is the parameter number of FRAME, for
-   CHECK_LIVE_FRAME.  This is here because it's a frequent pattern in
-   Lisp function definitions.  */
-
-static struct frame *
-frame_or_selected_frame (Lisp_Object frame, int nparam)
-{
-  if (NILP (frame))
-    frame = selected_frame;
-
-  CHECK_LIVE_FRAME (frame);
-  return XFRAME (frame);
-}
-
-
 /***********************************************************************
 			   Frames and faces
  ***********************************************************************/
@@ -1204,15 +1187,9 @@ FRAME specifies the frame and thus the display for interpreting COLOR.
 If FRAME is nil or omitted, use the selected frame.  */)
   (Lisp_Object color, Lisp_Object frame)
 {
-  struct frame *f;
-
   CHECK_STRING (color);
-  if (NILP (frame))
-    frame = selected_frame;
-  else
-    CHECK_FRAME (frame);
-  f = XFRAME (frame);
-  return face_color_gray_p (f, SSDATA (color)) ? Qt : Qnil;
+  return (face_color_gray_p (decode_any_frame (frame), SSDATA (color))
+	  ? Qt : Qnil);
 }
 
 
@@ -1225,17 +1202,10 @@ If FRAME is nil or omitted, use the selected frame.
 COLOR must be a valid color name.  */)
   (Lisp_Object color, Lisp_Object frame, Lisp_Object background_p)
 {
-  struct frame *f;
-
   CHECK_STRING (color);
-  if (NILP (frame))
-    frame = selected_frame;
-  else
-    CHECK_FRAME (frame);
-  f = XFRAME (frame);
-  if (face_color_supported_p (f, SSDATA (color), !NILP (background_p)))
-    return Qt;
-  return Qnil;
+  return (face_color_supported_p (decode_any_frame (frame),
+				  SSDATA (color), !NILP (background_p))
+	  ? Qt : Qnil);
 }
 
 
@@ -1683,9 +1653,7 @@ the WIDTH times as wide as FACE on FRAME.  */)
 
   /* We can't simply call check_x_frame because this function may be
      called before any frame is created.  */
-  if (NILP (frame))
-    frame = selected_frame;
-  f = frame_or_selected_frame (frame, 2);
+  f = decode_live_frame (frame);
   if (! FRAME_WINDOW_P (f))
     {
       /* Perhaps we have not yet created any frame.  */
@@ -1693,6 +1661,8 @@ the WIDTH times as wide as FACE on FRAME.  */)
       frame = Qnil;
       face = Qnil;
     }
+  else
+    XSETFRAME (frame, f);
 
   /* Determine the width standard for comparison with the fonts we find.  */
 
@@ -3679,20 +3649,11 @@ frame.  If FRAME is t, report on the defaults for face SYMBOL (for new
 frames).  If FRAME is omitted or nil, use the selected frame.  */)
   (Lisp_Object symbol, Lisp_Object keyword, Lisp_Object frame)
 {
-  Lisp_Object lface, value = Qnil;
+  struct frame *f = EQ (frame, Qt) ? NULL : decode_live_frame (frame);
+  Lisp_Object lface = lface_from_face_name (f, symbol, 1), value = Qnil;
 
   CHECK_SYMBOL (symbol);
   CHECK_SYMBOL (keyword);
-
-  if (EQ (frame, Qt))
-    lface = lface_from_face_name (NULL, symbol, 1);
-  else
-    {
-      if (NILP (frame))
-	frame = selected_frame;
-      CHECK_LIVE_FRAME (frame);
-      lface = lface_from_face_name (XFRAME (frame), symbol, 1);
-    }
 
   if (EQ (keyword, QCfamily))
     value = LFACE_FAMILY (lface);
@@ -3876,7 +3837,7 @@ return the font name used for CHARACTER.  */)
     }
   else
     {
-      struct frame *f = frame_or_selected_frame (frame, 1);
+      struct frame *f = decode_live_frame (frame);
       int face_id = lookup_named_face (f, face, 1);
       struct face *fface = FACE_FROM_ID (f, face_id);
 
@@ -3963,14 +3924,11 @@ If FRAME is omitted or nil, use the selected frame.  */)
   struct frame *f;
   Lisp_Object lface1, lface2;
 
-  if (EQ (frame, Qt))
-    f = NULL;
-  else
-    /* Don't use check_x_frame here because this function is called
-       before X frames exist.  At that time, if FRAME is nil,
-       selected_frame will be used which is the frame dumped with
-       Emacs.  That frame is not an X frame.  */
-    f = frame_or_selected_frame (frame, 2);
+  /* Don't use check_x_frame here because this function is called
+     before X frames exist.  At that time, if FRAME is nil,
+     selected_frame will be used which is the frame dumped with
+     Emacs.  That frame is not an X frame.  */
+  f = EQ (frame, Qt) ? NULL : decode_live_frame (frame);
 
   lface1 = lface_from_face_name (f, face1, 1);
   lface2 = lface_from_face_name (f, face2, 1);
@@ -3988,19 +3946,9 @@ If FRAME is t, report on the defaults for face FACE (for new frames).
 If FRAME is omitted or nil, use the selected frame.  */)
   (Lisp_Object face, Lisp_Object frame)
 {
-  struct frame *f;
-  Lisp_Object lface;
+  struct frame *f = EQ (frame, Qt) ? NULL : decode_live_frame (frame);
+  Lisp_Object lface = lface_from_face_name (f, face, 1);
   int i;
-
-  if (NILP (frame))
-    frame = selected_frame;
-  CHECK_LIVE_FRAME (frame);
-  f = XFRAME (frame);
-
-  if (EQ (frame, Qt))
-    lface = lface_from_face_name (NULL, face, 1);
-  else
-    lface = lface_from_face_name (f, face, 1);
 
   for (i = 1; i < LFACE_VECTOR_SIZE; ++i)
     if (!UNSPECIFIEDP (AREF (lface, i)))
@@ -4016,8 +3964,7 @@ DEFUN ("frame-face-alist", Fframe_face_alist, Sframe_face_alist,
 For internal use only.  */)
   (Lisp_Object frame)
 {
-  struct frame *f = frame_or_selected_frame (frame, 0);
-  return f->face_alist;
+  return decode_live_frame (frame)->face_alist;
 }
 
 
@@ -4205,13 +4152,8 @@ or lists of the form (RED GREEN BLUE).
 If FRAME is unspecified or nil, the current frame is used.  */)
   (Lisp_Object color1, Lisp_Object color2, Lisp_Object frame)
 {
-  struct frame *f;
+  struct frame *f = decode_live_frame (frame);
   XColor cdef1, cdef2;
-
-  if (NILP (frame))
-    frame = selected_frame;
-  CHECK_LIVE_FRAME (frame);
-  f = XFRAME (frame);
 
   if (!(CONSP (color1) && parse_rgb_list (color1, &cdef1))
       && !(STRINGP (color1) && defined_color (f, SSDATA (color1), &cdef1, 0)))

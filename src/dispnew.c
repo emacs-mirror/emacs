@@ -3071,14 +3071,12 @@ window_to_frame_hpos (struct window *w, int hpos)
 			    Redrawing Frames
  **********************************************************************/
 
-DEFUN ("redraw-frame", Fredraw_frame, Sredraw_frame, 1, 1, 0,
-       doc: /* Clear frame FRAME and output again what is supposed to appear on it.  */)
+DEFUN ("redraw-frame", Fredraw_frame, Sredraw_frame, 0, 1, 0,
+       doc: /* Clear frame FRAME and output again what is supposed to appear on it.
+If FRAME is omitted or nil, the selected frame is used.  */)
   (Lisp_Object frame)
 {
-  struct frame *f;
-
-  CHECK_LIVE_FRAME (frame);
-  f = XFRAME (frame);
+  struct frame *f = decode_live_frame (frame);
 
   /* Ignore redraw requests, if frame has no glyphs yet.
      (Implementation note: It still has to be checked why we are

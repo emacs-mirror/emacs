@@ -1543,17 +1543,11 @@ list first, followed by the list of all buffers.  If no other buffer
 exists, return the buffer `*scratch*' (creating it if necessary).  */)
   (register Lisp_Object buffer, Lisp_Object visible_ok, Lisp_Object frame)
 {
-  Lisp_Object tail, buf, pred;
-  Lisp_Object notsogood = Qnil;
+  struct frame *f = decode_any_frame (frame);
+  Lisp_Object tail = f->buffer_list, pred = f->buffer_predicate;
+  Lisp_Object buf, notsogood = Qnil;
 
-  if (NILP (frame))
-    frame = selected_frame;
-
-  CHECK_FRAME (frame);
-
-  pred = frame_buffer_predicate (frame);
   /* Consider buffers that have been seen in the frame first.  */
-  tail = XFRAME (frame)->buffer_list;
   for (; CONSP (tail); tail = XCDR (tail))
     {
       buf = XCAR (tail);

@@ -340,10 +340,7 @@ DEFUN ("minibuffer-window", Fminibuffer_window, Sminibuffer_window, 0, 1, 0,
 If FRAME is omitted or nil, it defaults to the selected frame.  */)
   (Lisp_Object frame)
 {
-  if (NILP (frame))
-    frame = selected_frame;
-  CHECK_LIVE_FRAME (frame);
-  return FRAME_MINIBUF_WINDOW (XFRAME (frame));
+  return FRAME_MINIBUF_WINDOW (decode_live_frame (frame));
 }
 
 DEFUN ("window-minibuffer-p", Fwindow_minibuffer_p,
@@ -1371,12 +1368,7 @@ The top left corner of the frame is considered to be row 0,
 column 0.  */)
   (Lisp_Object x, Lisp_Object y, Lisp_Object frame)
 {
-  struct frame *f;
-
-  if (NILP (frame))
-    frame = selected_frame;
-  CHECK_LIVE_FRAME (frame);
-  f = XFRAME (frame);
+  struct frame *f = decode_live_frame (frame);
 
   /* Check that arguments are integers or floats.  */
   CHECK_NUMBER_OR_FLOAT (x);
@@ -3109,12 +3101,12 @@ run_window_configuration_change_hook (struct frame *f)
 }
 
 DEFUN ("run-window-configuration-change-hook", Frun_window_configuration_change_hook,
-       Srun_window_configuration_change_hook, 1, 1, 0,
-       doc: /* Run `window-configuration-change-hook' for FRAME.  */)
+       Srun_window_configuration_change_hook, 0, 1, 0,
+       doc: /* Run `window-configuration-change-hook' for FRAME. 
+If FRAME is omitted or nil, it defaults to the selected frame.  */)
   (Lisp_Object frame)
 {
-  CHECK_LIVE_FRAME (frame);
-  run_window_configuration_change_hook (XFRAME (frame));
+  run_window_configuration_change_hook (decode_live_frame (frame));
   return Qnil;
 }
 
@@ -3641,10 +3633,12 @@ window_resize_apply (struct window *w, int horflag)
 }
 
 
-DEFUN ("window-resize-apply", Fwindow_resize_apply, Swindow_resize_apply, 1, 2, 0,
+DEFUN ("window-resize-apply", Fwindow_resize_apply, Swindow_resize_apply, 0, 2, 0,
        doc: /* Apply requested size values for window-tree of FRAME.
-Optional argument HORIZONTAL omitted or nil means apply requested height
-values.  HORIZONTAL non-nil means apply requested width values.
+If FRAME is omitted or nil, it defaults to the selected frame.
+
+Optional argument HORIZONTAL omitted or nil means apply requested
+height values.  HORIZONTAL non-nil means apply requested width values.
 
 This function checks whether the requested values sum up to a valid
 window layout, recursively assigns the new sizes of all child windows
@@ -3655,16 +3649,9 @@ Note: This function does not check any of `window-fixed-size-p',
 be applied on the Elisp level.  */)
      (Lisp_Object frame, Lisp_Object horizontal)
 {
-  struct frame *f;
-  struct window *r;
+  struct frame *f = decode_live_frame (frame);
+  struct window *r = XWINDOW (FRAME_ROOT_WINDOW (f));
   int horflag = !NILP (horizontal);
-
-  if (NILP (frame))
-    frame = selected_frame;
-  CHECK_LIVE_FRAME (frame);
-
-  f = XFRAME (frame);
-  r = XWINDOW (FRAME_ROOT_WINDOW (f));
 
   if (!window_resize_check (r, horflag)
       || ! EQ (r->new_total,
@@ -6148,12 +6135,7 @@ saved by this function.  */)
   register int n_windows;
   register struct save_window_data *data;
   register int i;
-  FRAME_PTR f;
-
-  if (NILP (frame))
-    frame = selected_frame;
-  CHECK_LIVE_FRAME (frame);
-  f = XFRAME (frame);
+  struct frame *f = decode_live_frame (frame);
 
   n_windows = count_windows (XWINDOW (FRAME_ROOT_WINDOW (f)));
   data = ALLOCATE_PSEUDOVECTOR (struct save_window_data, frame_cols,
