@@ -1,3 +1,13 @@
+2012-11-06  Eli Zaretskii  <eliz@gnu.org>
+
+	* xdisp.c (try_scrolling): Fix correction of aggressive-scroll
+	amount when the scroll margins are too large.  When scrolling
+	backwards in the buffer, give up if cannot reach point or the
+	scroll margin within a reasonable number of screen lines.  Fixes
+	point position in window under scroll-up/down-aggressively when
+	point is positioned many lines beyond the window top/bottom.
+	(Bug#12811)
+
 2012-11-05  Eli Zaretskii  <eliz@gnu.org>
 
 	* ralloc.c (relinquish): If real_morecore fails to return memory
