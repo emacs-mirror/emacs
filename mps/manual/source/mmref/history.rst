@@ -88,7 +88,7 @@ Year  Milestone
 1980  Winchester hard drive produced by Alan Shugart, the first large
       storage device for PCs.
 
-1981  IBM decides that no PC user will ever need more that 640 kB of
+1981  IBM decides that no PC user will ever need more than 640 kB of
       memory.
 
 1983  :term:`Generational garbage collection` developed by
