@@ -2105,8 +2105,8 @@ This macro expands the form
 first binding the @code{setf} argument forms
 @code{(@var{value} @var{args}@dots{})} according to @var{arglist},
 and then executing @var{body}.  @var{body} should return a Lisp
-form that does the assignment.  Remember that it should return the
-value that was set.  An example of using this macro is:
+form that does the assignment, and finally returns the value that was
+set.  An example of using this macro is:
 
 @example
 (gv-define-setter caar (val x) `(setcar (car ,x) ,val))
