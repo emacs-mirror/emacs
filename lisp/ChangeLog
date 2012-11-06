@@ -1,3 +1,23 @@
+2012-11-06  Dmitry Antipov  <dmantipov@yandex.ru>
+
+	* emacs-lisp/byte-opt.el (toplevel): Add compare-window-configurations,
+	frame-first-window, frame-root-window, frame-selected-window,
+	minibuffer-selected-window, minibuffer-window,
+	window-absolute-pixel-edges, window-at, window-body-height,
+	window-body-width, window-display-table, window-combination-limit,
+	window-frame, window-fringes, window-inside-absolute-pixel-edges,
+	window-inside-edges, window-inside-pixel-edges, window-left-child,
+	window-left-column, window-margins, window-next-buffers,
+	window-next-sibling, window-new-normal, window-new-total,
+	window-normal-size, window-parameter, window-parameters, window-parent,
+	window-pixel-edges, window-point, window-prev-buffers,
+	window-prev-sibling, window-redisplay-end-trigger, window-scroll-bars,
+	window-start, window-text-height, window-top-child, window-top-line,
+	window-total-height, window-total-width and window-use-time to the list
+	of functions without side-effects.
+	(toplevel): Add window-valid-p to the list of error-free functions
+	without side-effects.
+
 2012-11-05  Agustín Martín Domingo  <agustin.martin@hispalinux.es>
 
 	* textmodes/ispell.el (ispell-program-name): Update
