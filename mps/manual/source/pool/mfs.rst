@@ -23,7 +23,7 @@ pushes it.
 .. index::
    single: MFS; properties
 
-MSF properties
+MFS properties
 --------------
 
 * Supports allocation via :c:func:`mps_alloc` and deallocation via
