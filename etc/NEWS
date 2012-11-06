@@ -722,6 +722,13 @@ third argument is a frame (that usage was obsolete since Emacs 22.2).
 but keywords or keyword-string pairs.  The old argument list will
 still be supported for Emacs 24.x.
 
++++
+** The CL package's `get-setf-method' function no longer exists.
+Generalized variables are now part of core Emacs Lisp, and implemented
+differently to the way cl.el used to do it.  It is not possible to
+define a compatible replacement for `get-setf-method'.  See the file
+gv.el for internal details of the new implementation.
+
 ** Spelling changes.
 Some Lisp symbols have been renamed to avoid problems with spelling
 that is incorrect or inconsistent with how Emacs normally spells a word.

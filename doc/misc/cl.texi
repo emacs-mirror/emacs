@@ -4948,9 +4948,7 @@ Note that @code{&key} is not allowed in @var{arglist}, but
 Most of the modify macros defined by Common Lisp do not exactly
 follow the pattern of @code{define-modify-macro}.  For example,
 @code{push} takes its arguments in the wrong order, and @code{pop}
-is completely irregular.  You can define these macros ``by hand''
-using @code{get-setf-method}, or consult the source
-to see how to use the internal @code{setf} building blocks.
+is completely irregular.
 @end defmac
 
 @defmac defsetf access-fn update-fn
@@ -5078,6 +5076,8 @@ turn out to be unnecessary, so there is little reason for the
 setf-method itself to optimize.
 @end defmac
 
+@c Removed in Emacs 24.3, not possible to make a compatible replacement.
+@ignore
 @defun get-setf-method place &optional env
 This function returns the setf-method for @var{place}, by
 invoking the definition previously recorded by @code{defsetf}
@@ -5085,12 +5085,12 @@ or @code{define-setf-method}.  The result is a list of five
 values as described above.  You can use this function to build
 your own @code{cl-incf}-like modify macros.
 @c These no longer exist.
-@ignore
-(Actually, it is better to use the internal functions
-@code{cl-setf-do-modify} and @code{cl-setf-do-store}, which are a bit
-easier to use and which also do a number of optimizations; consult the
-source code for the @code{cl-incf} function for a simple example.)
-@end ignore
+@c
+@c (Actually, it is better to use the internal functions
+@c @code{cl-setf-do-modify} and @code{cl-setf-do-store}, which are a bit
+@c easier to use and which also do a number of optimizations; consult the
+@c source code for the @code{cl-incf} function for a simple example.)
+@c
 
 The argument @var{env} specifies the ``environment'' to be
 passed on to @code{macroexpand} if @code{get-setf-method} should
@@ -5104,6 +5104,7 @@ See also the source code for the setf-method for
 @code{substring}, which works by calling @code{get-setf-method} on a
 simpler case, then massaging the result.
 @end defun
+@end ignore
 
 
 @node GNU Free Documentation License
