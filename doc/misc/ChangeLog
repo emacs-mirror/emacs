@@ -1,6 +1,7 @@
 2012-11-06  Glenn Morris  <rgm@gnu.org>
 
-	* cl.texi (Obsolete Setf Customization):
+	* cl.texi (Overview): Mention EIEIO here, as well as the appendix.
+	(Obsolete Setf Customization):
 	Move note on lack of setf functions to lispref/variables.texi.
 	Undocument get-setf-method, since it no longer exists.
 

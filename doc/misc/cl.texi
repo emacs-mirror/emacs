@@ -107,7 +107,8 @@ for various reasons:
 @item
 Some features are too complex or bulky relative to their benefit
 to Emacs Lisp programmers.  CLOS and Common Lisp streams are fine
-examples of this group.
+examples of this group.  (The separate package EIEIO implements
+a subset of CLOS functionality.  @xref{Top, , Introduction, eieio, EIEIO}.)
 
 @item
 Other features cannot be implemented without modification to the
