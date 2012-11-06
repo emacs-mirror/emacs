@@ -1,3 +1,12 @@
+2012-11-06  Paul Eggert  <eggert@cs.ucla.edu>
+
+	Minor adjustments of recently-changed frame functions.
+	* buffer.c (Fbuffer_list): Omit CHECK_FRAME, since arg is already
+	known to be a frame (we're in the FRAMEP branch).
+	* lisp.h (Qframep): Remove decl.  frame.h declares this.
+	* window.c (quad): Args are of type EMACS_INT, not ptrdiff_t,
+	since they're meant for Lisp fixnum values.
+
 2012-11-06  Dmitry Antipov  <dmantipov@yandex.ru>
 
 	* window.c (Fwindow_combination_limit): Revert to the only

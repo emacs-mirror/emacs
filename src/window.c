@@ -273,7 +273,7 @@ decode_valid_window (register Lisp_Object window)
 /* Build a frequently used 4-integer (X Y W H) list.  */
 
 static Lisp_Object
-quad (ptrdiff_t x, ptrdiff_t y, ptrdiff_t w, ptrdiff_t h)
+quad (EMACS_INT x, EMACS_INT y, EMACS_INT w, EMACS_INT h)
 {
   return list4 (make_number (x), make_number (y),
 		make_number (w), make_number (h));
@@ -3105,7 +3105,7 @@ run_window_configuration_change_hook (struct frame *f)
 
 DEFUN ("run-window-configuration-change-hook", Frun_window_configuration_change_hook,
        Srun_window_configuration_change_hook, 0, 1, 0,
-       doc: /* Run `window-configuration-change-hook' for FRAME. 
+       doc: /* Run `window-configuration-change-hook' for FRAME.
 If FRAME is omitted or nil, it defaults to the selected frame.  */)
   (Lisp_Object frame)
 {
