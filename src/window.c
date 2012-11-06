@@ -602,15 +602,18 @@ Return nil if WINDOW has no previous sibling.  */)
   return decode_valid_window (window)->prev;
 }
 
-DEFUN ("window-combination-limit", Fwindow_combination_limit, Swindow_combination_limit, 0, 1, 0,
+DEFUN ("window-combination-limit", Fwindow_combination_limit, Swindow_combination_limit, 1, 1, 0,
        doc: /* Return combination limit of window WINDOW.
-WINDOW must be a valid window and defaults to the selected one.
 If the return value is nil, child windows of WINDOW can be recombined with
 WINDOW's siblings.  A return value of t means that child windows of
-WINDOW are never \(re-)combined with WINDOW's siblings.  */)
+WINDOW are never \(re-)combined with WINDOW's siblings.
+
+WINDOW must be a valid window.  The return value is meaningful for
+internal windows only.  */)
   (Lisp_Object window)
 {
-  return decode_valid_window (window)->combination_limit;
+  CHECK_VALID_WINDOW (window);
+  return XWINDOW (window)->combination_limit;
 }
 
 DEFUN ("set-window-combination-limit", Fset_window_combination_limit, Sset_window_combination_limit, 2, 2, 0,

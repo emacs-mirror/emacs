@@ -1,5 +1,12 @@
 2012-11-06  Dmitry Antipov  <dmantipov@yandex.ru>
 
+	* window.c (Fwindow_combination_limit): Revert to the only
+	required argument and adjust docstring as suggested in
+	http://lists.gnu.org/archive/html/emacs-diffs/2012-11/msg01082.html
+	by Martin Rudalics <rudalics@gmx.at>.
+
+2012-11-06  Dmitry Antipov  <dmantipov@yandex.ru>
+
 	Widely used frame validity and checking functions.
 	* frame.h (decode_live_frame, decode_any_frame): Add prototypes.
 	* frame.c (decode_live_frame, decode_any_frame): New functions.
