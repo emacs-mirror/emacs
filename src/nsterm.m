@@ -145,22 +145,22 @@ static unsigned convert_ns_to_X_keysym[] =
   NSNewlineCharacter,		0x0D,
   NSEnterCharacter,		0x8D,
 
-  0x41,                         0xAE,  /* KP_Decimal */
-  0x43,                         0xAA,  /* KP_Multiply */
-  0x45,                         0xAB,  /* KP_Add */
-  0x4B,                         0xAF,  /* KP_Divide */
-  0x4E,                         0xAD,  /* KP_Subtract */
-  0x51,                         0xBD,  /* KP_Equal */
-  0x52,                         0xB0,  /* KP_0 */
-  0x53,                         0xB1,  /* KP_1 */
-  0x54,                         0xB2,  /* KP_2 */
-  0x55,                         0xB3,  /* KP_3 */
-  0x56,                         0xB4,  /* KP_4 */
-  0x57,                         0xB5,  /* KP_5 */
-  0x58,                         0xB6,  /* KP_6 */
-  0x59,                         0xB7,  /* KP_7 */
-  0x5B,                         0xB8,  /* KP_8 */
-  0x5C,                         0xB9,  /* KP_9 */
+  0x41|NSNumericPadKeyMask,	0xAE,  /* KP_Decimal */
+  0x43|NSNumericPadKeyMask,	0xAA,  /* KP_Multiply */
+  0x45|NSNumericPadKeyMask,	0xAB,  /* KP_Add */
+  0x4B|NSNumericPadKeyMask,	0xAF,  /* KP_Divide */
+  0x4E|NSNumericPadKeyMask,	0xAD,  /* KP_Subtract */
+  0x51|NSNumericPadKeyMask,	0xBD,  /* KP_Equal */
+  0x52|NSNumericPadKeyMask,	0xB0,  /* KP_0 */
+  0x53|NSNumericPadKeyMask,	0xB1,  /* KP_1 */
+  0x54|NSNumericPadKeyMask,	0xB2,  /* KP_2 */
+  0x55|NSNumericPadKeyMask,	0xB3,  /* KP_3 */
+  0x56|NSNumericPadKeyMask,	0xB4,  /* KP_4 */
+  0x57|NSNumericPadKeyMask,	0xB5,  /* KP_5 */
+  0x58|NSNumericPadKeyMask,	0xB6,  /* KP_6 */
+  0x59|NSNumericPadKeyMask,	0xB7,  /* KP_7 */
+  0x5B|NSNumericPadKeyMask,	0xB8,  /* KP_8 */
+  0x5C|NSNumericPadKeyMask,	0xB9,  /* KP_9 */
 
   0x1B,				0x1B   /* escape */
 };
@@ -4829,7 +4829,7 @@ not_in_argv (NSString *arg)
 
       /* is it a "function key"? */
       fnKeysym = (code < 0x00ff && (flags&NSNumericPadKeyMask))
-	? ns_convert_key ([theEvent keyCode])
+	? ns_convert_key ([theEvent keyCode] | NSNumericPadKeyMask)
 	: ns_convert_key (code);
 
       if (fnKeysym)

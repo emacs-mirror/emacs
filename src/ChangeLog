@@ -1,3 +1,8 @@
+2012-11-06  Jan Djärv  <jan.h.d@swipnet.se>
+
+	* nsterm.m (convert_ns_to_X_keysym, keyDown:): Add NSNumericPadKeyMask
+	to keypad keys (Bug#12816).
+
 2012-11-06  Paul Eggert  <eggert@cs.ucla.edu>
 
 	Minor adjustments of recently-changed frame functions.
