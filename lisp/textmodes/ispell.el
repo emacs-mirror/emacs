@@ -907,6 +907,24 @@ Otherwise returns the library directory name, if that is defined."
       (setq default-directory (expand-file-name "~/")))
     (apply 'call-process-region args)))
 
+(defun ispell-create-debug-buffer (&optional append)
+  "Create an ispell debug buffer for debugging output.
+Use APPEND to append the info to previous buffer if exists,
+otherwise is reset.  Returns name of ispell debug buffer.
+See `ispell-buffer-with-debug' for an example of use."
+  (let ((ispell-debug-buffer (get-buffer-create "*ispell-debug*")))
+    (with-current-buffer ispell-debug-buffer
+      (if append
+	  (insert
+	   (format "-----------------------------------------------\n"))
+	(erase-buffer)))
+    ispell-debug-buffer))
+
+(defsubst ispell-print-if-debug (string)
+  "Print STRING to `ispell-debug-buffer' buffer if enabled."
+  (if (boundp 'ispell-debug-buffer)
+      (with-current-buffer ispell-debug-buffer
+	(insert string))))
 
 
 ;; The preparation of the menu bar menu must be autoloaded
@@ -2902,14 +2920,15 @@ amount for last line processed."
   (if (not recheckp)
       (ispell-accept-buffer-local-defs)) ; set up dictionary, local words, etc.
   (let ((skip-region-start (make-marker))
-	(rstart (make-marker)))
+	(rstart (make-marker))
+	(region-type (if (and (= reg-start (point-min)) (= reg-end (point-max)))
+			 (buffer-name) "region"))
+	(program-basename (file-name-nondirectory ispell-program-name))
+	(dictionary (or ispell-current-dictionary "default")))
     (unwind-protect
 	(save-excursion
 	  (message "Spell-checking %s using %s with %s dictionary..."
-		   (if (and (= reg-start (point-min)) (= reg-end (point-max)))
-		       (buffer-name) "region")
-		   (file-name-nondirectory ispell-program-name)
-		   (or ispell-current-dictionary "default"))
+		   region-type program-basename dictionary)
 	  ;; Returns cursor to original location.
 	  (save-window-excursion
 	    (goto-char reg-start)
@@ -2917,18 +2936,30 @@ amount for last line processed."
 		  (case-fold-search case-fold-search)
 		  (query-fcc t)
 		  in-comment key)
-	      (let (message-log-max)
-		(message "searching for regions to skip"))
+	      (ispell-print-if-debug
+	       (concat
+		(format
+		 "ispell-region: (ispell-skip-region-list):\n%s\n"
+		 (ispell-skip-region-list))
+		(format
+		 "ispell-region: (ispell-begin-skip-region-regexp):\n%s\n"
+		 (ispell-begin-skip-region-regexp))
+		"ispell-region: Search for first region to skip after (ispell-begin-skip-region-regexp)\n"))
 	      (if (re-search-forward (ispell-begin-skip-region-regexp) reg-end t)
 		  (progn
 		    (setq key (match-string-no-properties 0))
 		    (set-marker skip-region-start (- (point) (length key)))
-		    (goto-char reg-start)))
-	      (let (message-log-max)
-		(message
-		 "Continuing spelling check using %s with %s dictionary..."
-		 (file-name-nondirectory ispell-program-name)
-		 (or ispell-current-dictionary "default")))
+		    (goto-char reg-start)
+		    (ispell-print-if-debug
+		     (format "ispell-region: First skip: %s at (pos,line,column): (%s,%s,%s).\n"
+			     key
+			     (save-excursion (goto-char skip-region-start) (point))
+			     (line-number-at-pos skip-region-start)
+			     (save-excursion (goto-char skip-region-start) (current-column))))))
+	      (ispell-print-if-debug
+	       (format
+		"ispell-region: Continue spell-checking with %s and %s dictionary...\n"
+		program-basename dictionary))
 	      (set-marker rstart reg-start)
 	      (set-marker ispell-region-end reg-end)
 	      (while (and (not ispell-quit)
@@ -2961,7 +2992,13 @@ amount for last line processed."
 			    (setq key (match-string-no-properties 0))
 			    (set-marker skip-region-start
 					(- (point) (length key)))
-			    (goto-char rstart))
+			    (goto-char rstart)
+			    (ispell-print-if-debug
+			     (format "ispell-region: Next skip: %s at (pos,line,column): (%s,%s,%s).\n"
+				     key
+				     (save-excursion (goto-char skip-region-start) (point))
+				     (line-number-at-pos skip-region-start)
+				     (save-excursion (goto-char skip-region-start) (current-column)))))
 			(set-marker skip-region-start nil))))
 		(setq reg-end (max (point)
 				   (if (marker-position skip-region-start)
@@ -2971,6 +3008,10 @@ amount for last line processed."
 		       (ispell-end (min (point-at-eol) reg-end))
 		       (string (ispell-get-line
 				ispell-start ispell-end in-comment)))
+		  (ispell-print-if-debug
+		   (format
+		    "ispell-region: string pos (%s->%s), eol: %s, [in-comment]: [%s], [string]: [%s]\n"
+		    ispell-start ispell-end (point-at-eol) in-comment string))
 		  (if in-comment		; account for comment chars added
 		      (setq ispell-start (- ispell-start (length in-comment))
 			    in-comment nil))
@@ -3006,10 +3047,7 @@ amount for last line processed."
 	;; Only save if successful exit.
 	(ispell-pdict-save ispell-silently-savep)
 	(message "Spell-checking %s using %s with %s dictionary...done"
-		 (if (and (= reg-start (point-min)) (= reg-end (point-max)))
-		     (buffer-name) "region")
-		 (file-name-nondirectory ispell-program-name)
-		 (or ispell-current-dictionary "default"))))))
+		 region-type program-basename dictionary)))))
 
 
 (defun ispell-begin-skip-region-regexp ()
@@ -3256,10 +3294,19 @@ Returns the sum SHIFT due to changes in word replacements."
 	    ;; Alignment cannot be tracked and this error will occur when
 	    ;; `query-replace' makes multiple corrections on the starting line.
 	    (or (ispell-looking-at (car poss))
-		;; This occurs due to filter pipe problems
-		(error (concat "Ispell misalignment: word "
-			       "`%s' point %d; probably incompatible versions")
-		       (car poss) (marker-position word-start)))
+		;; This error occurs due to filter pipe problems
+		(let* ((ispell-pipe-word (car poss))
+		       (actual-point (marker-position word-start))
+		       (actual-line (line-number-at-pos actual-point))
+		       (actual-column (save-excursion (goto-char actual-point) (current-column))))
+		  (ispell-print-if-debug
+		   (concat
+		    "ispell-process-line: Ispell misalignment error:\n"
+		    (format "  [Word from ispell pipe]: [%s], actual (point,line,column): (%s,%s,%s)\n"
+			    ispell-pipe-word actual-point actual-line actual-column)))
+		  (error (concat "Ispell misalignment: word "
+				 "`%s' point %d; probably incompatible versions")
+			 ispell-pipe-word actual-point)))
 	    ;; ispell-cmd-loop can go recursive & change buffer
 	    (if ispell-keep-choices-win
 		(setq replace (ispell-command-loop
@@ -3393,6 +3440,13 @@ Returns the sum SHIFT due to changes in word replacements."
   (interactive)
   (ispell-region (point-min) (point-max)))
 
+;;;###autoload
+(defun ispell-buffer-with-debug (&optional append)
+  "`ispell-buffer' with some output sent to `ispell-debug-buffer' buffer.
+Use APPEND to append the info to previous buffer if exists."
+  (interactive)
+  (let ((ispell-debug-buffer (ispell-create-debug-buffer append)))
+    (ispell-buffer)))
 
 ;;;###autoload
 (defun ispell-continue ()

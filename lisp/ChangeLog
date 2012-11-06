@@ -3,6 +3,16 @@
 	* textmodes/ispell.el (ispell-region): Standard re-indent for better
 	readability.
 
+	* textmodes/ispell.el: Experimental support for support debugging.
+	(ispell-create-debug-buffer): Create a `ispell-debug-buffer' debug
+	buffer for ispell.
+	(ispell-print-if-debug): New function to print stuff to
+	`ispell-debug-buffer' if debugging is enabled.
+	(ispell-region, ispell-process-line): Use `ispell-print-if-debug' to
+	show some debugging info.
+	(ispell-buffer-with-debug): New function that creates a debugging
+	buffer and calls `ispell-buffer' with debugging enabled.
+
 2012-11-06  Dmitry Antipov  <dmantipov@yandex.ru>
 
 	* emacs-lisp/byte-opt.el (toplevel): Add compare-window-configurations,
