@@ -20,6 +20,8 @@
 #include <assert.h>
 #include <setjmp.h>
 
+#include <gc.h>
+
 
 /* LANGUAGE EXTENSION */
 
@@ -299,7 +301,7 @@ static obj_t make_bool(int condition)
 
 static obj_t make_pair(obj_t car, obj_t cdr)
 {
-  obj_t obj = (obj_t)malloc(sizeof(pair_s));
+  obj_t obj = (obj_t)GC_MALLOC(sizeof(pair_s));
   if(obj == NULL) error("out of memory");
   total += sizeof(pair_s);
   obj->pair.type = TYPE_PAIR;
@@ -310,7 +312,7 @@ static obj_t make_pair(obj_t car, obj_t cdr)
 
 static obj_t make_integer(long integer)
 {
-  obj_t obj = (obj_t)malloc(sizeof(integer_s));
+  obj_t obj = (obj_t)GC_MALLOC(sizeof(integer_s));
   if(obj == NULL) error("out of memory");
   total += sizeof(integer_s);
   obj->integer.type = TYPE_INTEGER;
@@ -321,7 +323,7 @@ static obj_t make_integer(long integer)
 static obj_t make_symbol(size_t length, char string[])
 {
   size_t size = offsetof(symbol_s, string) + length+1;
-  obj_t obj = (obj_t)malloc(size);
+  obj_t obj = (obj_t)GC_MALLOC(size);
   if(obj == NULL) error("out of memory");
   total += size;
   obj->symbol.type = TYPE_SYMBOL;
@@ -333,7 +335,7 @@ static obj_t make_symbol(size_t length, char string[])
 static obj_t make_string(size_t length, char string[])
 {
   size_t size = offsetof(string_s, string) + length+1;
-  obj_t obj = (obj_t)malloc(size);
+  obj_t obj = (obj_t)GC_MALLOC(size);
   if(obj == NULL) error("out of memory");
   total += size;
   obj->string.type = TYPE_STRING;
@@ -345,7 +347,7 @@ static obj_t make_string(size_t length, char string[])
 
 static obj_t make_special(char *string)
 {
-  obj_t obj = (obj_t)malloc(sizeof(special_s));
+  obj_t obj = (obj_t)GC_MALLOC(sizeof(special_s));
   if(obj == NULL) error("out of memory");
   total += sizeof(special_s);
   obj->special.type = TYPE_SPECIAL;
@@ -357,7 +359,7 @@ static obj_t make_operator(char *name,
                            entry_t entry, obj_t arguments,
                            obj_t body, obj_t env, obj_t op_env)
 {
-  obj_t obj = (obj_t)malloc(sizeof(operator_s));
+  obj_t obj = (obj_t)GC_MALLOC(sizeof(operator_s));
   if(obj == NULL) error("out of memory");
   total += sizeof(operator_s);
   obj->operator.type = TYPE_OPERATOR;
@@ -372,7 +374,7 @@ static obj_t make_operator(char *name,
 
 static obj_t make_port(obj_t name, FILE *stream)
 {
-  obj_t obj = (obj_t)malloc(sizeof(port_s));
+  obj_t obj = (obj_t)GC_MALLOC(sizeof(port_s));
   if(obj == NULL) error("out of memory");
   total += sizeof(port_s);
   obj->port.type = TYPE_PORT;
@@ -383,7 +385,7 @@ static obj_t make_port(obj_t name, FILE *stream)
 
 static obj_t make_character(char c)
 {
-  obj_t obj = (obj_t)malloc(sizeof(character_s));
+  obj_t obj = (obj_t)GC_MALLOC(sizeof(character_s));
   if(obj == NULL) error("out of memory");
   total += sizeof(character_s);
   obj->character.type = TYPE_CHARACTER;
@@ -395,7 +397,7 @@ static obj_t make_vector(size_t length, obj_t fill)
 {
   size_t size = offsetof(vector_s, vector) + length * sizeof(obj_t);
   size_t i;
-  obj_t obj = (obj_t)malloc(size);
+  obj_t obj = (obj_t)GC_MALLOC(size);
   if(obj == NULL) error("out of memory");
   total += size;
   obj->vector.type = TYPE_VECTOR;
@@ -408,7 +410,7 @@ static obj_t make_vector(size_t length, obj_t fill)
 static obj_t make_buckets(size_t length)
 {
   size_t i, size = offsetof(buckets_s, bucket) + length * 2 * sizeof(obj_t);
-  obj_t obj = (obj_t)malloc(size);
+  obj_t obj = (obj_t)GC_MALLOC(size);
   if(obj == NULL) error("out of memory");
   total += size;
   obj->buckets.type = TYPE_BUCKETS;
@@ -425,7 +427,7 @@ static obj_t make_buckets(size_t length)
 static obj_t make_table(size_t length, hash_t hashf, cmp_t cmpf)
 {
   size_t l, size = sizeof(table_s);
-  obj_t obj = (obj_t)malloc(size);
+  obj_t obj = (obj_t)GC_MALLOC(size);
   if(obj == NULL) error("out of memory");
   total += size;
   obj->table.type = TYPE_TABLE;
@@ -532,7 +534,7 @@ static void rehash(void) {
   unsigned i;
 
   symtab_size *= 2;
-  symtab = malloc(sizeof(obj_t) * symtab_size);
+  symtab = GC_MALLOC(sizeof(obj_t) * symtab_size);
   if(symtab == NULL) error("out of memory");
 
   /* Initialize the new table to NULL so that "find" will work. */
@@ -546,8 +548,6 @@ static void rehash(void) {
       assert(*where == NULL);	/* shouldn't be in new table */
       *where = old_symtab[i];
     }
-
-  free(old_symtab);
 }
 
 /* union-find string in symbol table, rehashing if necessary */
@@ -3202,6 +3202,21 @@ static obj_t entry_hashtable_keys(obj_t env, obj_t op_env, obj_t operator, obj_t
 }
 
 
+/* entry_gc -- full garbage collection now                      %%MPS
+ *
+ * This is an example of a direct interface from the language to the MPS.
+ * The `gc` function in Scheme will cause the MPS to perform a complete
+ * garbage collection of the entire arena right away. See topic/arena.
+ */
+
+static obj_t entry_gc(obj_t env, obj_t op_env, obj_t operator, obj_t operands)
+{
+  eval_args(operator->operator.name, env, op_env, operands, 0);
+  GC_gcollect();
+  return obj_undefined;
+}
+
+
 /* INITIALIZATION */
 
 
@@ -3338,6 +3353,7 @@ static struct {char *name; entry_t entry;} funtab[] = {
   {"string-hash", entry_string_hash},
   {"eq-hash", entry_eq_hash},
   {"eqv-hash", entry_eqv_hash},
+  {"gc", entry_gc},
 };
 
 
@@ -3351,10 +3367,13 @@ int main(int argc, char *argv[])
   volatile obj_t env, op_env, obj;
   jmp_buf jb;
   
+  GC_INIT();
+  GC_enable_incremental();
+  
   total = (size_t)0;
   
   symtab_size = 16;
-  symtab = malloc(sizeof(obj_t) * symtab_size);
+  symtab = GC_MALLOC(sizeof(obj_t) * symtab_size);
   if(symtab == NULL) error("out of memory");
   for(i = 0; i < symtab_size; ++i)
     symtab[i] = NULL;
