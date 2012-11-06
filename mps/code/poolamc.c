@@ -25,6 +25,7 @@ typedef struct amcGenStruct *amcGen;
 
 /* forward declarations */
 
+static Bool amcNailGetMark(Seg seg, Ref ref);
 static Bool amcSegHasNailboard(Seg seg);
 static Bool AMCCheck(AMC amc);
 static Res AMCFix(Pool pool, ScanState ss, Seg seg, Ref *refIO);
@@ -300,7 +301,7 @@ static Res AMCSegDescribe(Seg seg, mps_lib_FILE *stream)
   if(res != ResOK)
     return res;
 
-  res = WriteF(stream, "  Map:  *===:object  bbbb:buffer\n", NULL);
+  res = WriteF(stream, "  Map:  *===:object  @---:nailed  bbbb:buffer\n", NULL);
   if(res != ResOK)
     return res;
 
@@ -317,18 +318,20 @@ static Res AMCSegDescribe(Seg seg, mps_lib_FILE *stream)
     if(res != ResOK)
       return res;
 
-    /* @@@@ This needs to describe nailboards as well */
     /* @@@@ This misses a header-sized pad at the end. */
     for(j = i; j < AddrAdd(i, row); j = AddrAdd(j, step)) {
       if(j >= limit)
         c = ' ';  /* if seg is not a whole number of print rows */
       else if(j >= init)
         c = 'b';
-      else if(j == p) {
-        c = '*';
-        p = (pool->format->skip)(p);
-      } else {
-        c = '=';
+      else {
+        Bool nailed = amcSegHasNailboard(seg) && amcNailGetMark(seg, j);
+        if(j == p) {
+          c = (nailed ? '@' : '*');
+          p = (pool->format->skip)(p);
+        } else {
+          c = (nailed ? '-' : '=');
+        }
       }
       res = WriteF(stream, "$C", c, NULL);
       if(res != ResOK)
@@ -928,6 +931,31 @@ static Bool amcNailRangeIsMarked(Seg seg, Addr base, Addr limit)
 }
 
 
+/* amcNailRangeIsUnmarked -- check that range in the board is unmarked
+ */
+static Bool amcNailRangeIsUnmarked(Seg seg, Addr base, Addr limit)
+{
+  amcNailboard board;
+  Index ibase, ilimit;
+  Size headerSize;
+
+  AVER(SegBase(seg) <= base);
+  AVER(base < SegLimit(seg));
+  AVER(SegBase(seg) <= limit);
+  AVER(limit <= SegLimit(seg));
+  AVER(base < limit);
+
+  board = amcSegNailboard(seg);
+  AVERT(amcNailboard, board);
+  headerSize = SegPool(seg)->format->headerSize;
+  ibase = (AddrOffset(SegBase(seg), base) + headerSize)
+          >> board->markShift;
+  ilimit = (AddrOffset(SegBase(seg), limit) + headerSize)
+           >> board->markShift;
+  return BTIsResRange(board->mark, ibase, ilimit);
+}
+
+
 /* amcInitComm -- initialize AMC/Z pool
  *
  * See <design/poolamc/#init>.
@@ -1460,7 +1488,7 @@ static Res amcScanNailedOnce(Bool *totalReturn, Bool *moreReturn,
     while(p < limit) {
       Addr q;
       q = (*format->skip)(p);
-      if(amcNailGetMark(seg, p)) {
+      if(!amcNailRangeIsUnmarked(seg, p, q)) {
         res = (*format->scan)(&ss->ss_s, p, q);
         if(res != ResOK) {
           *totalReturn = FALSE;
@@ -1483,7 +1511,7 @@ static Res amcScanNailedOnce(Bool *totalReturn, Bool *moreReturn,
   while(p < limit) {
     Addr q;
     q = (*format->skip)(p);
-    if(amcNailGetMark(seg, p)) {
+    if(!amcNailRangeIsUnmarked(seg, p, q)) {
       res = (*format->scan)(&ss->ss_s, p, q);
       if(res != ResOK) {
         *totalReturn = FALSE;
@@ -1663,6 +1691,7 @@ static void amcFixInPlace(Pool pool, Seg seg, ScanState ss, Ref *refIO)
   EVENT0(AMCFixInPlace);
   if(amcSegHasNailboard(seg)) {
     Bool wasMarked = amcNailGetAndSetMark(seg, ref);
+
     /* If there are no new marks (i.e., no new traces for which we */
     /* are marking, and no new mark bits set) then we can return */
     /* immediately, without changing colour. */
@@ -1789,9 +1818,11 @@ Res AMCFix(Pool pool, ScanState ss, Seg seg, Ref *refIO)
   newRef = (*format->isMoved)(ref);  /* .exposed.seg */
 
   if(newRef == (Addr)0) {
-    /* If object is nailed already then we mustn't copy it: */
+    Addr q = (*format->skip)(ref);
+
+    /* If object is nailed already then we mustn't copy it: */    
     if(SegNailed(seg) != TraceSetEMPTY
-       && (!amcSegHasNailboard(seg) || amcNailGetMark(seg, ref))) {
+       && (!amcSegHasNailboard(seg) || !amcNailRangeIsUnmarked(seg, ref, q))) {
       /* Segment only needs greying if there are new traces for */
       /* which we are nailing. */
       if(!TraceSetSub(ss->traces, SegNailed(seg))) {
@@ -1817,7 +1848,7 @@ Res AMCFix(Pool pool, ScanState ss, Seg seg, Ref *refIO)
     buffer = gen->forward;
     AVER_CRITICAL(buffer != NULL);
 
-    length = AddrOffset(ref, (*format->skip)(ref));  /* .exposed.seg */
+    length = AddrOffset(ref, q);  /* .exposed.seg */
     STATISTIC_STAT(++ss->forwardedCount);
     ss->forwardedSize += length;
     do {
@@ -1930,9 +1961,11 @@ static Res AMCHeaderFix(Pool pool, ScanState ss, Seg seg, Ref *refIO)
   newRef = (*format->isMoved)(ref);  /* .exposed.seg */
 
   if(newRef == (Addr)0) {
+    Addr q = (*format->skip)(ref);
+
     /* If object is nailed already then we mustn't copy it: */
     if(SegNailed(seg) != TraceSetEMPTY
-       && (!amcSegHasNailboard(seg) || amcNailGetMark(seg, ref))) {
+       && (!amcSegHasNailboard(seg) || !amcNailRangeIsUnmarked(seg, ref, q))) {
       /* Segment only needs greying if there are new traces for */
       /* which we are nailing. */
       if(!TraceSetSub(ss->traces, SegNailed(seg))) {
@@ -1958,7 +1991,7 @@ static Res AMCHeaderFix(Pool pool, ScanState ss, Seg seg, Ref *refIO)
     buffer = gen->forward;
     AVER_CRITICAL(buffer != NULL);
 
-    length = AddrOffset(ref, (*format->skip)(ref));  /* .exposed.seg */
+    length = AddrOffset(ref, q);  /* .exposed.seg */
     STATISTIC_STAT(++ss->forwardedCount);
     ss->forwardedSize += length;
     do {
@@ -2047,7 +2080,7 @@ static void amcReclaimNailed(Pool pool, Trace trace, Seg seg)
     q = (*format->skip)(p);
     length = AddrOffset(p, q);
     if(amcSegHasNailboard(seg)
-        ? !amcNailGetMark(seg, p)
+        ? amcNailRangeIsUnmarked(seg, p, q)
         /* If there's no mark table, retain all that hasn't been */
         /* forwarded.  In this case, preservedInPlace* become */
         /* somewhat overstated. */
