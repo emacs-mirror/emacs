@@ -4136,6 +4136,7 @@ static void *start(void *p, size_t s)
   size_t i;
   volatile obj_t env, op_env, obj;
   jmp_buf jb;
+  mps_addr_t ref;
   mps_res_t res;
   mps_root_t globals_root;
 
@@ -4148,8 +4149,9 @@ static void *start(void *p, size_t s)
      we must also ensure that 'symtab' is valid before registration
      (in this case, by setting it to NULL). See topic/root. */
   symtab = NULL;
+  ref = &symtab;
   res = mps_root_create_table(&symtab_root, arena, mps_rank_exact(), 0,
-                              (mps_addr_t *)&symtab, 1);
+                              ref, 1);
   if(res != MPS_RES_OK) error("Couldn't register symtab root");
 
   /* The symbol table is strong-key weak-value. */

@@ -818,9 +818,11 @@ The symbol table now becomes a very simple :term:`root`, that only has
 to be registered once (not :ref:`every time it is rehashed
 <guide-lang-root>`, as previously)::
 
+    mps_addr_t ref;
     symtab = NULL;
+    ref = &symtab;
     res = mps_root_create_table(&symtab_root, arena, mps_rank_exact(), 0,
-                                (mps_addr_t *)&symtab, 1);
+                                ref, 1);
     if(res != MPS_RES_OK) error("Couldn't register symtab root");
     symtab = make_table(16, string_hash, string_equalp, 0, 1);
 

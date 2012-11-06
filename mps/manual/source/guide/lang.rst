@@ -896,8 +896,9 @@ function, :c:func:`mps_root_create_table`, for registering it::
 
     /* ... */
 
+    mps_addr_t ref = symtab;
     res = mps_root_create_table(&symtab_root, arena, mps_rank_exact(), 0,
-                                (mps_addr_t *)symtab, symtab_size);
+                                ref, symtab_size);
     if (res != MPS_RES_OK) error("Couldn't register new symtab root");
 
 .. _guide-lang-roots-rehash:
@@ -910,6 +911,7 @@ changes size::
         unsigned old_symtab_size = symtab_size;
         mps_root_t old_symtab_root = symtab_root;
         unsigned i;
+        mps_addr_t ref;
         mps_res_t res;
 
         symtab_size *= 2;
@@ -920,8 +922,9 @@ changes size::
         for (i = 0; i < symtab_size; ++i)
             symtab[i] = NULL;
 
+        ref = symtab;
         res = mps_root_create_table(&symtab_root, arena, mps_rank_exact(), 0,
-                                    (mps_addr_t *)symtab, symtab_size);
+                                    ref, symtab_size);
         if (res != MPS_RES_OK) error("Couldn't register new symtab root");
 
         for (i = 0; i < old_symtab_size; ++i)
