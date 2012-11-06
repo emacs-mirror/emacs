@@ -10,7 +10,7 @@
 (check '(let ((f (lambda (n) (make-string n #\x))))
           (string-length (apply string-append (map f (range 100)))))
        (triangle 100))
-(check '(sum (map (lambda (n) (sum (range n))) (range 400))) 10746800)
+(check '(sum (map (lambda (n) (sum (range n))) (range 800))) 85653600)
 
 (write-string "All tests pass.")
 (newline)
