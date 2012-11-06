@@ -1,3 +1,12 @@
+2012-11-06  Paul Eggert  <eggert@cs.ucla.edu>
+
+	Restore some duplicate definitions (Bug#12814).
+	This undoes part of the 2012-11-03 changes.  Some people build
+	with plain -g rather than with -g3, and they need the duplicate
+	definitions for .gdbinit to work; see <http://bugs.gnu.org/12814#26>.
+	* lisp.h (GCTYPEBITS, ARRAY_MARK_FLAG, PSEUDOVECTOR_FLAG, VALMASK):
+	Define as macros, as well as as enums or as constants.
+
 2012-11-06  Jan Djärv  <jan.h.d@swipnet.se>
 
 	* nsterm.m (convert_ns_to_X_keysym, keyDown:): Add NSNumericPadKeyMask
