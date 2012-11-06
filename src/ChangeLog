@@ -1,3 +1,15 @@
+2012-11-06  Dmitry Antipov  <dmantipov@yandex.ru>
+
+	* window.c (quad): New function.
+	(Fwindow_edges, Fwindow_pixel_edges, Fwindow_inside_edges)
+	(Fwindow_absolute_pixel_edges, Fwindow_inside_absolute_pixel_edges)
+	(Fwindow_inside_pixel_edges, Fpos_visible_in_window_p)
+	(Fwindow_line_height): Use it.
+	(Fwindow_fringes): Use list3.
+	(Fwindow_scroll_bars): Use list4.
+	(Fwindow_frame, Fwindow_top_child, Fwindow_left_child)
+	(Fwindow_combination_limit): Allow zero number of arguments.
+
 2012-11-05  Eli Zaretskii  <eliz@gnu.org>
 
 	* makefile.w32-in ($(BLD)/w32fns.$(O)): Depend on $(NT_INC)/unistd.h.
