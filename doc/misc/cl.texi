@@ -5085,25 +5085,12 @@ invoking the definition previously recorded by @code{defsetf}
 or @code{define-setf-method}.  The result is a list of five
 values as described above.  You can use this function to build
 your own @code{cl-incf}-like modify macros.
-@c These no longer exist.
-@c
-@c (Actually, it is better to use the internal functions
-@c @code{cl-setf-do-modify} and @code{cl-setf-do-store}, which are a bit
-@c easier to use and which also do a number of optimizations; consult the
-@c source code for the @code{cl-incf} function for a simple example.)
-@c
 
 The argument @var{env} specifies the ``environment'' to be
 passed on to @code{macroexpand} if @code{get-setf-method} should
 need to expand a macro in @var{place}.  It should come from
 an @code{&environment} argument to the macro or setf-method
 that called @code{get-setf-method}.
-
-@c FIXME No longer true.
-See also the source code for the setf-method for
-@c Also @code{apply}, but that is commented out.
-@code{substring}, which works by calling @code{get-setf-method} on a
-simpler case, then massaging the result.
 @end defun
 @end ignore
 
