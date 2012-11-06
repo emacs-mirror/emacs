@@ -14,6 +14,7 @@
 ;;; 2012-11-01  GDR Updated for toy Scheme in MPS kit.
 
 (load "test-common.scm")
+(load "r4rs.scm")
 
 ;;; let, let*, letrec
 
@@ -34,6 +35,11 @@
 (check '(eqv? #f 'nil) '#f)
 (check '(let ((p (lambda (x) x))) (eqv? p p)) '#t)
 
+(check '(boolean? (eqv? "" "")) #t)
+(check '(boolean? (eqv? '#() '#())) #t)
+(check '(boolean? (eqv? (lambda (x) x) (lambda (x) x))) #t)
+(check '(boolean? (eqv? (lambda (x) x) (lambda (y) y))) #t)
+
 (define gen-counter
   (lambda ()
     (let ((n 0))
@@ -48,19 +54,26 @@
 
 (check '(letrec ((f (lambda () (if (eqv? f g) 'f 'both))) (g (lambda () (if (eqv? f g) 'g 'both)))) (eqv? f g)) '#f)
 
+(check '(boolean? (eqv? '(a) '(a))) #t)
+(check '(boolean? (eqv? "a" "a")) #t)
+(check '(boolean? (eqv? '(b) (cdr '(a b)))) #t)
 (check '(let ((x '(a))) (eqv? x x)) '#t)
-
 
 ;;; eq?
 
 (check '(eq? 'a 'a) '#t)
+(check '(boolean? (eq? '(a) '(a))) #t)
 (check '(eq? (list 'a) (list 'a)) '#f)
+(check '(boolean? (eq? "a" "a")) #t)
+(check '(boolean? (eq? "" "")) #t)
 (check '(eq? '() '()) '#t)
+(check '(boolean? (eq? 2 2)) #t)
+(check '(boolean? (eq? #\A #\A)) #t)
 (check '(eq? car car) '#t)
+(check '(boolean? (let ((n (+ 2 3))) (eq? n n))) #t) 
 (check '(let ((x '(a))) (eq? x x)) '#t)
 (check '(let ((x '#())) (eq? x x)) '#t)
 (check '(let ((p (lambda (x) x))) (eq? p p)) '#t)
-
 
 ;;; equal?
 
@@ -70,7 +83,84 @@
 (check '(equal? "abc" "abc") '#t)
 (check '(equal? 2 2) '#t)
 (check '(equal? (make-vector 5 'a) (make-vector 5 'a)) '#t)
+(check '(boolean? (equal? (lambda (x) x) (lambda (y) y))) #t)
 
+;;; Numerical operations
+
+;; UNIMPL: (check '(complex? 3+4i) #t)
+;; UNIMPL: (check '(complex? 3) #t)
+;; UNIMPL: (check '(real? 3) #t)
+;; UNIMPL: (check '(real? -2.5+0.0i) #t)
+;; UNIMPL: (check '(real? #e1e10) #t)
+;; UNIMPL: (check '(rational? 6/10) #t)
+;; UNIMPL: (check '(rational? 6/3) #t)
+;; UNIMPL: (check '(integer? 3+0i) #t)
+;; UNIMPL: (check '(integer? 3.0) #t)
+;; UNIMPL: (check '(integer? 8/4) #t)
+
+(check '(max 3 4) 4)
+;; UNIMPL: (check '(max 3.9 4) 4.0)
+
+(check '(+ 3 4) 7)
+(check '(+ 3) 3)
+(check '(+) 0)
+(check '(* 4) 4)
+(check '(*) 1)
+
+(check '(- 3 4) -1)
+(check '(- 3 4 5) -6)
+(check '(- 3) -3)
+;; UNIMPL: (check '(/ 3 4 5) 3/20)
+;; UNIMPL: (check '(/ 3) 1/3)
+
+(check '(abs -7) 7)
+
+;; UNIMPL: (check '(modulo 13 4) 1)
+(check '(remainder 13 4) 1)
+;; UNIMPL: (check '(modulo -13 4) 3)
+(check '(remainder -13 4) -1)
+;; UNIMPL: (check '(modulo 13 -4) -3)
+(check '(remainder 13 -4) 1)
+;; UNIMPL: (check '(modulo -13 -4) -1)
+(check '(remainder -13 -4) -1)
+;; UNIMPL: (check '(remainder -13 -4.0) -1.0)
+
+;; UNIMPL: (check '(gcd 32 -36) 4)
+;; UNIMPL: (check '(gcd) 0)
+;; UNIMPL: (check '(lcm 32 -36) 288)
+;; UNIMPL: (check '(lcm 32.0 -36) 288.0)
+;; UNIMPL: (check '(lcm) 1)
+
+;; UNIMPL: (check '(numerator (/ 6 4)) 3)
+;; UNIMPL: (check '(denominator (/ 6 4)) 2)
+;; UNIMPL: (check '(denominator (exact->inexact (/ 6 4))) 2.0)
+
+;; UNIMPL: (check '(floor -4.3) -5.0)
+;; UNIMPL: (check '(ceiling -4.3) -4.0)
+;; UNIMPL: (check '(truncate -4.3) -4.0)
+;; UNIMPL: (check '(round -4.3) -4.0)
+
+;; UNIMPL: (check '(floor 3.5) 3.0)
+;; UNIMPL: (check '(ceiling 3.5) 4.0)
+;; UNIMPL: (check '(truncate 3.5) 3.0)
+;; UNIMPL: (check '(round 3.5) 4.0)
+
+;; UNIMPL: (check '(round 7/2) 4)
+;; UNIMPL: (check '(round 7) 7)
+
+;; UNIMPL: (check '(rationalize (inexact->exact .3) 1/10) 1/3)
+;; UNIMPL: (check '(rationalize .3 1/10) #i1/3)
+
+;; UNIMPL: (check '(string->number "100") 100)
+;; UNIMPL: (check '(string->number "100" 16) 256)
+;; UNIMPL: (check '(string->number "1e2") 100.0)
+;; UNIMPL: (check '(string->number "15##") 1500.0)
+
+;;; Booleans
+
+(check '#t #t)
+(check '#f #f)
+(check ''#f #f)
 
 ;;; not?
 
@@ -82,13 +172,11 @@
 (check '(not (list)) '#f)
 (check '(not 'nil) '#f)
 
-
 ;;; boolean?
 
 (check '(boolean? #f) '#t)
 (check '(boolean? 0) '#f)
 (check '(boolean? '()) '#f)
-
 
 ;;; Lists
 
@@ -104,7 +192,6 @@
 (check '(list? y) '#f)
 (set-cdr! x x)
 ;; UNIMPL: (check '(list? x) '#f)
-
 
 ;;; pair?
 
@@ -174,22 +261,22 @@
 
 ;;; memq, memv, member
 
-;; UNIMPL: (check '(memq 'a '(a b c)) '(a b c))
-;; UNIMPL: (check '(memq 'b '(a b c)) '(b c))
-;; UNIMPL: (check '(memq 'a '(b c d)) #f)
-;; UNIMPL: (check '(memq (list 'a) '(b (a) c)) #f)
-;; UNIMPL: (check '(member (list 'a) '(b (a) c)) '((a) c))
-;; UNIMPL: (check '(memv 101 '(100 101 102)) '(101 102))
+(check '(memq 'a '(a b c)) '(a b c))
+(check '(memq 'b '(a b c)) '(b c))
+(check '(memq 'a '(b c d)) #f)
+(check '(memq (list 'a) '(b (a) c)) #f)
+(check '(member (list 'a) '(b (a) c)) '((a) c))
+(check '(memv 101 '(100 101 102)) '(101 102))
 
 ;;; assq, assv, assoc
 
-;; UNIMPL: (define e '((a 1) (b 2) (c 3)))
-;; UNIMPL: (check '(assq 'a e) '(a 1))
-;; UNIMPL: (check '(assq 'b e) '(b 2))
-;; UNIMPL: (check '(assq 'd e) #f)
-;; UNIMPL: (check '(assq (list 'a) '(((a)) ((b)) ((c)))) #f)
-;; UNIMPL: (check '(assoc (list 'a) '(((a)) ((b)) ((c)))) '((a)))
-;; UNIMPL: (check '(assv 5 '((2 3) (5 7) (11 13))) '(5 7))
+(define e '((a 1) (b 2) (c 3)))
+(check '(assq 'a e) '(a 1))
+(check '(assq 'b e) '(b 2))
+(check '(assq 'd e) #f)
+(check '(assq (list 'a) '(((a)) ((b)) ((c)))) #f)
+(check '(assoc (list 'a) '(((a)) ((b)) ((c)))) '((a)))
+(check '(assv 5 '((2 3) (5 7) (11 13))) '(5 7))
 
 ;;; symbol?
 
@@ -212,6 +299,10 @@
 (check '(eq? 'bitBlt (string->symbol "bitBlt")) '#f)
 (check '(eq? 'JollyWog (string->symbol (symbol->string 'JollyWog))) '#t)
 (check '(string=? "K. Harper, M.D." (symbol->string (string->symbol "K. Harper, M.D."))) '#t)
+
+;;; Vectors
+
+(check ''#(0 (2 2 2 2) "Anna") '#(0 (2 2 2 2) "Anna"))
 
 ;;; vector
 
@@ -259,6 +350,24 @@
 
 ;; UNIMPL: (check '(let ((v (make-vector 5))) (for-each (lambda (i) (vector-set! v i (* i i))) '(0 1 2 3 4)) v) '#(0 1 4 9 16))
 
+;;; delay, force
+
+(define (stream-from n) (delay (cons n (stream-from (+ n 1)))))
+(define s0 (stream-from 0))
+(define (head stream) (car (force stream)))
+(define (tail stream) (cdr (force stream)))
+(check '(head (tail (tail s0))) '2)
+
+(define count 0)
+(define p
+  (delay (begin (set! count (+ count 1))
+                (if (> count x)
+                    count
+                    (force p)))))
+(define x 5)
+(check '(force p) '6)
+;; UNIMPL: (check '(begin (set! x 10) (force p)) '6)
+
 ;;; call/cc
 
 ;; UNIMPL: (check '(call-with-current-continuation (lambda (exit) (for-each (lambda (x) (if (negative? x) (exit x))) '(54 0 37 -3 245 19)) #t)) '-3)
@@ -280,26 +389,8 @@
 
 ;;; values, call-with-values
 
-;; UNIMPL: (check '(call-with-values (lambda () (values 4 5)) (lambda (a b) b)) '5)
-;; UNIMPL: (check '(call-with-values * -) '-1)
-
-;;; delay, force
-
-(define (stream-from n) (delay (cons n (stream-from (+ n 1)))))
-(define s0 (stream-from 0))
-(define (head stream) (car (force stream)))
-(define (tail stream) (cdr (force stream)))
-(check '(head (tail (tail s0))) '2)
-
-(define count 0)
-(define p
-  (delay (begin (set! count (+ count 1))
-                (if (> count x)
-                    count
-                    (force p)))))
-(define x 5)
-(check '(force p) '6)
-;; UNIMPL: (check '(begin (set! x 10) (force p)) '6)
+;; UNIMPL: (check '(call-with-values (lambda () (values 4 5)) (lambda (a b) b)) 5)
+;; UNIMPL: (check '(call-with-values * -) -1)
 
 ;;; quasiquote
 

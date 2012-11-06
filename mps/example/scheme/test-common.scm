@@ -21,4 +21,3 @@
 (define (for-each f l) (if (null? l) #f (begin (f (car l)) (for-each f (cdr l)))))
 (define (reduce f l a) (if (null? l) a (f (car l) (reduce f (cdr l) a))))
 (define (sum l) (reduce + l 0))
-(define (abs x) (if (< x 0) (- x) x))
