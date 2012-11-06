@@ -2253,7 +2253,9 @@ Currently set only from '\" t in the first line of the source file.")
 	 (set-face-font 'woman-symbol woman-symbol-font
 			(and (frame-live-p woman-frame) woman-frame)))
 
-    ;; Set syntax and display tables:
+    (setq-local adaptive-fill-mode nil) ; No special "%" "#" etc filling.
+
+        ;; Set syntax and display tables:
     (set-syntax-table woman-syntax-table)
     (woman-set-buffer-display-table)
 
