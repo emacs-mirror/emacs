@@ -2996,16 +2996,14 @@ x_default_font_parameter (struct frame *f, Lisp_Object parms)
 DEFUN ("x-wm-set-size-hint", Fx_wm_set_size_hint, Sx_wm_set_size_hint,
        0, 1, 0,
        doc: /* Send the size hints for frame FRAME to the window manager.
-If FRAME is nil, use the selected frame.  */)
+If FRAME is omitted or nil, use the selected frame.
+Signal error if FRAME is not an X frame.  */)
   (Lisp_Object frame)
 {
-  struct frame *f;
-  if (NILP (frame))
-    frame = selected_frame;
-  f = XFRAME (frame);
+  struct frame *f = check_x_frame (frame);
+
   block_input ();
-  if (FRAME_X_P (f))
-    x_wm_set_size_hint (f, 0, 0);
+  x_wm_set_size_hint (f, 0, 0);
   unblock_input ();
   return Qnil;
 }

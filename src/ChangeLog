@@ -1,3 +1,7 @@
+2012-11-07  Dmitry Antipov  <dmantipov@yandex.ru>
+
+	* xfns.c (Fx_wm_set_size_hint): Use check_x_frame.  Adjust docstring.
+
 2012-11-06  Paul Eggert  <eggert@cs.ucla.edu>
 
 	Restore some duplicate definitions (Bug#12814).
