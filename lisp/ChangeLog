@@ -1,5 +1,8 @@
 2012-11-07  Stefan Monnier  <monnier@iro.umontreal.ca>
 
+	* emacs-lisp/gv.el (gv-define-simple-setter): Don't evaluate `val'
+	twice when `fix-return' is set (bug#12813).
+
 	* emacs-lisp/cl.el (defsetf): Pass the third arg to
 	gv-define-simple-setter (bug#12812).
 

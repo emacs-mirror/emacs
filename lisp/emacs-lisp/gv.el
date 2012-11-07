@@ -213,9 +213,11 @@ If FIX-RETURN is non-nil, then SETTER is not assumed to return VAL and
 instead the assignment is turned into (prog1 VAL (SETTER ARGS... VAL))
 so as to preserve the semantics of `setf'."
   (declare (debug (sexp (&or symbolp lambda-expr) &optional sexp)))
-  (let ((set-call `(cons ',setter (append args (list val)))))
   `(gv-define-setter ,name (val &rest args)
-     ,(if fix-return `(list 'prog1 val ,set-call) set-call))))
+     ,(if fix-return
+          `(macroexp-let2 nil v val
+             (cons ',setter (append args (list v))))
+        `(cons ',setter (append args (list val))))))
 
 ;;; Typical operations on generalized variables.
 
