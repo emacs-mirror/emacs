@@ -1,3 +1,14 @@
+2012-11-07  Chong Yidong  <cyd@gnu.org>
+
+	* variables.texi (Creating Buffer-Local): Document setq-local and
+	defvar-local.
+	(Setting Generalized Variables): Arrange table alphabetically.
+
+	* lists.texi (List Elements, List Variables): Clarify descriptions
+	of push and pop for generalized variables.
+
+	* edebug.texi (Specification List): setf is no longer CL-only.
+
 2012-11-07  Glenn Morris  <rgm@gnu.org>
 
 	* variables.texi (Adding Generalized Variables):

@@ -788,6 +788,7 @@ Try M-x profiler-start ... M-x profiler-stop; and then M-x profiler-report.
 The sampling rate can be based on CPU time (only supported on some
 systems), or based on memory allocations.
 
++++
 ** CL-style generalized variables are now in core Elisp.
 `setf' is autoloaded; `push' and `pop' accept generalized variables.
 You can define your own generalized variables using `gv-define-simple-setter',
@@ -823,7 +824,7 @@ These do not trigger the debugger.
 *** Set `debug-on-message' to enter the debugger when a certain
 message is displayed in the echo area.  This can be useful when trying
 to work out which code is doing something.
-
+---
 *** New var `inhibit-debugger', automatically set to prevent accidental
 recursive invocations.
 
@@ -936,6 +937,7 @@ describing the cycle.
 +++
 *** `tty-top-frame' returns the topmost frame of a text terminal.
 
++++
 ** New macros `setq-local' and `defvar-local'.
 
 +++
