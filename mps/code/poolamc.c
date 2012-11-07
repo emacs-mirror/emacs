@@ -932,12 +932,19 @@ static Bool amcNailRangeIsMarked(Seg seg, Addr base, Addr limit)
 
 
 /* amcNailRangeIsUnmarked -- check that range in the board is unmarked
+ *
+ * Unlike amcNailRangeIsMarked, take arguments as client pointers and
+ * look at the nails for the corresponding base pointers.
  */
 static Bool amcNailRangeIsUnmarked(Seg seg, Addr base, Addr limit)
 {
   amcNailboard board;
   Index ibase, ilimit;
   Size headerSize;
+
+  headerSize = SegPool(seg)->format->headerSize;
+  base = AddrSub(base, headerSize);
+  limit = AddrSub(limit, headerSize);
 
   AVER(SegBase(seg) <= base);
   AVER(base < SegLimit(seg));
@@ -947,11 +954,8 @@ static Bool amcNailRangeIsUnmarked(Seg seg, Addr base, Addr limit)
 
   board = amcSegNailboard(seg);
   AVERT(amcNailboard, board);
-  headerSize = SegPool(seg)->format->headerSize;
-  ibase = (AddrOffset(SegBase(seg), base) + headerSize)
-          >> board->markShift;
-  ilimit = (AddrOffset(SegBase(seg), limit) + headerSize)
-           >> board->markShift;
+  ibase = AddrOffset(SegBase(seg), base) >> board->markShift;
+  ilimit = AddrOffset(SegBase(seg), limit) >> board->markShift;
   return BTIsResRange(board->mark, ibase, ilimit);
 }
 
