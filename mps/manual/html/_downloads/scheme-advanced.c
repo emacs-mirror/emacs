@@ -1,6 +1,6 @@
 /* scheme.c -- SCHEME INTERPRETER EXAMPLE FOR THE MEMORY POOL SYSTEM
  *
- * $Id: //info.ravenbrook.com/project/mps/branch/2012-10-09/user-guide/example/scheme/scheme-advanced.c#13 $
+ * $Id: //info.ravenbrook.com/project/mps/branch/2012-10-09/user-guide/example/scheme/scheme-advanced.c#15 $
  * Copyright (c) 2001-2012 Ravenbrook Limited.  See end of file for license.
  *
  * This is a toy interpreter for a subset of the Scheme programming
@@ -935,11 +935,22 @@ static void table_delete(obj_t tbl, obj_t key)
 {
   size_t b;
   assert(TYPE(tbl) == TYPE_TABLE);
-  if(buckets_find(tbl, tbl->table.keys, key, &tbl->table.ld, &b))
-    if(tbl->table.keys->bucket[b] == key) {
-      tbl->table.keys->bucket[b] = obj_deleted;
-      tbl->table.keys->deleted += 2; /* tagged */
-    }
+  if(!buckets_find(tbl, tbl->table.keys, key, NULL, &b) ||
+     tbl->table.keys->bucket[b] == NULL ||
+     tbl->table.keys->bucket[b] == obj_deleted)
+  {
+    if(!mps_ld_isstale(&tbl->table.ld, arena, key))
+      return;
+    if(!table_rehash(tbl, UNTAG_COUNT(tbl->table.keys->length), key, &b))
+      return;
+  }
+  if(tbl->table.keys->bucket[b] != NULL &&
+     tbl->table.keys->bucket[b] != obj_deleted) 
+  {
+    tbl->table.keys->bucket[b] = obj_deleted;
+    tbl->table.keys->deleted += 2; /* tagged */
+    tbl->table.values->bucket[b] = NULL;
+  }
 }
 
 
@@ -4125,6 +4136,7 @@ static void *start(void *p, size_t s)
   size_t i;
   volatile obj_t env, op_env, obj;
   jmp_buf jb;
+  mps_addr_t ref;
   mps_res_t res;
   mps_root_t globals_root;
 
@@ -4137,8 +4149,9 @@ static void *start(void *p, size_t s)
      we must also ensure that 'symtab' is valid before registration
      (in this case, by setting it to NULL). See topic/root. */
   symtab = NULL;
+  ref = &symtab;
   res = mps_root_create_table(&symtab_root, arena, mps_rank_exact(), 0,
-                              (mps_addr_t *)&symtab, 1);
+                              ref, 1);
   if(res != MPS_RES_OK) error("Couldn't register symtab root");
 
   /* The symbol table is strong-key weak-value. */

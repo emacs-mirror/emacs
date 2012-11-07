@@ -23,7 +23,7 @@ pushes it.
 .. index::
    single: MFS; properties
 
-MSF properties
+MFS properties
 --------------
 
 * Supports allocation via :c:func:`mps_alloc` and deallocation via
@@ -82,14 +82,14 @@ MFS interface
 
         mps_res_t mps_pool_create(mps_pool_t *pool_o, mps_arena_t arena, 
                                   mps_class_t mps_class_mfs(),
-                                  mps_size_t unit_size,
-                                  mps_size_t extend_size)
-
-    ``unit_size`` is the :term:`size` of blocks that will be allocated
-    from this pool, in :term:`bytes (1)`. It must be at least one
-    :term:`word`.
+                                  mps_size_t extend_size,
+                                  mps_size_t unit_size)
 
     ``extend_size`` is the :term:`size` of segment that the pool will
     request from the :term:`arena`. It must be at least as big as
     ``unit_size``. If this is not a multiple of ``unit_size``, there
     will be wasted space in each segment.
+
+    ``unit_size`` is the :term:`size` of blocks that will be allocated
+    from this pool, in :term:`bytes (1)`. It must be at least one
+    :term:`word`.

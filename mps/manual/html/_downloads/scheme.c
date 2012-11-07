@@ -1,6 +1,6 @@
 /* scheme.c -- SCHEME INTERPRETER EXAMPLE FOR THE MEMORY POOL SYSTEM
  *
- * $Id: //info.ravenbrook.com/project/mps/branch/2012-10-09/user-guide/example/scheme/scheme.c#28 $
+ * $Id: //info.ravenbrook.com/project/mps/branch/2012-10-09/user-guide/example/scheme/scheme.c#30 $
  * Copyright (c) 2001-2012 Ravenbrook Limited.  See end of file for license.
  *
  * This is a toy interpreter for a subset of the Scheme programming
@@ -755,6 +755,7 @@ static void rehash(void) {
   unsigned old_symtab_size = symtab_size;
   mps_root_t old_symtab_root = symtab_root;
   unsigned i;
+  mps_addr_t ref;
   mps_res_t res;
 
   symtab_size *= 2;
@@ -770,8 +771,9 @@ static void rehash(void) {
      across from the old symbol table.  The MPS might be moving objects
      in memory at any time, and will arrange that both copies are updated
      atomically to the mutator (this interpreter). */
+  ref = symtab;
   res = mps_root_create_table(&symtab_root, arena, mps_rank_exact(), 0,
-                              (mps_addr_t *)symtab, symtab_size);
+                              ref, symtab_size);
   if(res != MPS_RES_OK) error("Couldn't register new symtab root");
 
   for(i = 0; i < old_symtab_size; ++i)
@@ -993,7 +995,10 @@ static void table_delete(obj_t tbl, obj_t key)
 {
   struct bucket_s *b;
   assert(TYPE(tbl) == TYPE_TABLE);
-  b = buckets_find(tbl, tbl->table.buckets, key, &tbl->table.ld);
+  b = buckets_find(tbl, tbl->table.buckets, key, NULL);
+  if ((b == NULL || b->key == NULL) && mps_ld_isstale(&tbl->table.ld, arena, key)) {
+    b = table_rehash(tbl, tbl->table.buckets->buckets.length, key);
+  }
   if (b != NULL && b->key != NULL) {
     b->key = obj_deleted;
     ++ tbl->table.buckets->buckets.deleted;
@@ -4045,6 +4050,7 @@ static void *start(void *p, size_t s)
   size_t i;
   volatile obj_t env, op_env, obj;
   jmp_buf jb;
+  mps_addr_t ref;
   mps_res_t res;
   mps_root_t globals_root;
 
@@ -4061,8 +4067,9 @@ static void *start(void *p, size_t s)
      pointers -- NULL in this case.  Random values look like false
      references into MPS memory and cause undefined behaviour (most likely
      assertion failures). See topic/root. */
+  ref = symtab;
   res = mps_root_create_table(&symtab_root, arena, mps_rank_exact(), 0,
-                              (mps_addr_t *)symtab, symtab_size);
+                              ref, symtab_size);
   if(res != MPS_RES_OK) error("Couldn't register symtab root");
 
   error_handler = &jb;

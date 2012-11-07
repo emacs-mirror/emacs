@@ -75,11 +75,11 @@ find it helpful to experiment with this interpeter yourself, in either
 of its versions:</p>
 <p><a class="reference download internal" href="../_downloads/scheme-malloc.c"><tt class="xref download docutils literal"><span class="pre">scheme-malloc.c</span></tt></a></p>
 <blockquote>
-<div>The Scheme interpreter before integration with the MPS, using
+<div>The toy Scheme interpreter before integration with the MPS, using
 <a class="reference internal" href="../glossary/m.html#term-malloc"><em class="xref std std-term">malloc</em></a> and <a class="reference internal" href="../glossary/f.html#term-free-2"><em class="xref std std-term">free<sup>(2)</sup></em></a> for memory management.</div></blockquote>
 <p><a class="reference download internal" href="../_downloads/scheme.c"><tt class="xref download docutils literal"><span class="pre">scheme.c</span></tt></a></p>
 <blockquote>
-<div>The Scheme interpreter after integration with the MPS.</div></blockquote>
+<div>The toy Scheme interpreter after integration with the MPS.</div></blockquote>
 <p>This simple interpreter allocates two kinds of objects on the
 <a class="reference internal" href="../glossary/h.html#term-heap"><em class="xref std std-term">heap</em></a>:</p>
 <ol class="arabic simple">
@@ -212,7 +212,7 @@ when integrating your language with the MPS you need not feel
 obliged to move all your memory management to the MPS: you can
 continue to use <tt class="docutils literal"><span class="pre">malloc</span></tt> and <tt class="docutils literal"><span class="pre">free</span></tt> to manage some of your
 memory, for example, while using the MPS for the rest.</p>
-<p class="last">The Scheme interpreter illustrates this by continuing to use
+<p class="last">The toy Scheme interpreter illustrates this by continuing to use
 <tt class="docutils literal"><span class="pre">malloc</span></tt> and <tt class="docutils literal"><span class="pre">free</span></tt> to manage its global symbol table.</p>
 </div>
 <div class="admonition-topic admonition">
@@ -227,12 +227,11 @@ some pool classes use <a class="reference internal" href="../glossary/a.html#ter
 use <a class="reference internal" href="../glossary/m.html#term-manual-memory-management"><em class="xref std std-term">manual</em></a>; some use <a class="reference internal" href="../glossary/m.html#term-moving-garbage-collector"><em class="xref std std-term">moving
 collection</em></a> and others <a class="reference internal" href="../glossary/n.html#term-non-moving-garbage-collector"><em class="xref std std-term">non-moving</em></a>.</p>
 <p>The section <a class="reference internal" href="../pool/intro.html#pool-choose"><em>Choosing a pool class</em></a> in the <a class="reference internal" href="../pool/index.html#pool"><em>Pool reference</em></a> contains a procedure
-for choosing a pool class. In the case of the Scheme interpreter, the
-answers to the questions are (1) yes, the MPS needs to automatically
-reclaim unreachable blocks; (2) yes, it&#8217;s acceptable for the MPS to
-move blocks in memory and protect them with <a class="reference internal" href="../glossary/b.html#term-barrier-1"><em class="xref std std-term">barriers<sup>(1)</sup></em></a>; and
-(3) the Scheme objects will contain <a class="reference internal" href="../glossary/e.html#term-exact-reference"><em class="xref std std-term">exact references</em></a> to other
-Scheme objects in the same pool.</p>
+for choosing a pool class. In the case of the toy Scheme interpreter,
+the answers to the questions are (1) yes, the MPS needs to
+automatically reclaim unreachable blocks; (2) yes, it&#8217;s acceptable for
+the MPS to move blocks in memory and protect them with <a class="reference internal" href="../glossary/b.html#term-barrier-1"><em class="xref std std-term">barriers<sup>(1)</sup></em></a>; and (3) the Scheme objects will contain <a class="reference internal" href="../glossary/e.html#term-exact-reference"><em class="xref std std-term">exact references</em></a>
+to other Scheme objects in the same pool.</p>
 <p>The recommended class is <a class="reference internal" href="../pool/amc.html#pool-amc"><em>AMC (Automatic Mostly-Copying)</em></a>. This pool class uses
 automatic memory management, moving garbage collection,
 <a class="reference internal" href="../glossary/a.html#term-allocation-point"><em class="xref std std-term">allocation points</em></a> and <a class="reference internal" href="../glossary/f.html#term-formatted-object"><em class="xref std std-term">formatted objects</em></a>, so it will
@@ -256,7 +255,7 @@ you need to tell it how to perform various operations on an object
 (<a class="reference internal" href="../glossary/s.html#term-scan"><em class="xref std std-term">scan</em></a> it for <a class="reference internal" href="../glossary/r.html#term-reference"><em class="xref std std-term">references</em></a>; replace it with a
 <a class="reference internal" href="../glossary/f.html#term-forwarding-object"><em class="xref std std-term">forwarding</em></a> or <a class="reference internal" href="../glossary/p.html#term-padding-object"><em class="xref std std-term">padding object</em></a>, and
 so on). You do this by creating an <a class="reference internal" href="../glossary/o.html#term-object-format"><em class="xref std std-term">object format</em></a>. Here&#8217;s the
-code for creating the object format for the Scheme interpreter:</p>
+code for creating the object format for the toy Scheme interpreter:</p>
 <div class="highlight-c"><div class="highlight"><pre><span class="k">struct</span> <span class="n">mps_fmt_A_s</span> <span class="n">obj_fmt_s</span> <span class="o">=</span> <span class="p">{</span>
     <span class="n">ALIGNMENT</span><span class="p">,</span>
     <span class="n">obj_scan</span><span class="p">,</span>
@@ -297,20 +296,17 @@ specified).</p>
 <li><p class="first">The MPS interface provides the type <a class="reference internal" href="../topic/interface.html#mps_word_t" title="mps_word_t"><tt class="xref c c-type docutils literal"><span class="pre">mps_word_t</span></tt></a>, which is
 an unsigned integral type that is the same size as the platform&#8217;s
 <a class="reference internal" href="../glossary/o.html#term-object-pointer"><em class="xref std std-term">object pointer</em></a> types.</p>
-<p>On all the platforms supported by the MPS, the majority of simple
-datatypes may be aligned on word boundaries (the possible
-exceptions being <tt class="docutils literal"><span class="pre">double</span></tt> on 32-bit platforms, and <tt class="docutils literal"><span class="pre">long</span>
-<span class="pre">double</span></tt> and <a class="reference internal" href="../glossary/f.html#term-function-pointer"><em class="xref std std-term">function pointers</em></a> on 32- and
-64-bit platforms), so in applications where these exceptional types
-are not used (like the Scheme interpreter), you can use:</p>
+<p>So if you know that all your objects can be word-aligned, you can
+use:</p>
 <div class="highlight-c"><div class="highlight"><pre><span class="cp">#define ALIGNMENT sizeof(mps_word_t)</span>
 </pre></div>
 </div>
 </li>
 </ol>
-<p>The other elements of the structure are the <a class="reference internal" href="../glossary/f.html#term-format-method"><em class="xref std std-term">format methods</em></a>, which are described in the following sections. (The
-<tt class="docutils literal"><span class="pre">NULL</span></tt> in the structure is a placeholder for the <a class="reference internal" href="../glossary/c.html#term-copy-method"><em class="xref std std-term">copy
-method</em></a>, which is now obsolete.)</p>
+<p>The other elements of the structure are the <a class="reference internal" href="../glossary/f.html#term-format-method"><em class="xref std std-term">format methods</em></a>,
+which are described in the following sections. (The <tt class="docutils literal"><span class="pre">NULL</span></tt> in the
+structure is a placeholder for the <a class="reference internal" href="../glossary/c.html#term-copy-method"><em class="xref std std-term">copy method</em></a>, which is now
+obsolete.)</p>
 <div class="admonition-topic admonition">
 <p class="first admonition-title">Topic</p>
 <p class="last"><a class="reference internal" href="../topic/format.html#topic-format"><em>Object formats</em></a>.</p>
@@ -327,7 +323,7 @@ via the convenience macro <a class="reference internal" href="../topic/scanning.
 which the scan method was called. The scan method is called to
 discover references and so determine which objects are <a class="reference internal" href="../glossary/l.html#term-live"><em class="xref std std-term">alive</em></a> and which are <a class="reference internal" href="../glossary/d.html#term-dead"><em class="xref std std-term">dead</em></a>, and also to update references
 after objects have been moved.</p>
-<p>Here&#8217;s the scan method for the Scheme interpreter:</p>
+<p>Here&#8217;s the scan method for the toy Scheme interpreter:</p>
 <div class="highlight-c"><div class="highlight"><pre><span class="k">static</span> <span class="n">mps_res_t</span> <span class="nf">obj_scan</span><span class="p">(</span><span class="n">mps_ss_t</span> <span class="n">ss</span><span class="p">,</span> <span class="n">mps_addr_t</span> <span class="n">base</span><span class="p">,</span> <span class="n">mps_addr_t</span> <span class="n">limit</span><span class="p">)</span>
 <span class="p">{</span>
     <span class="n">MPS_SCAN_BEGIN</span><span class="p">(</span><span class="n">ss</span><span class="p">)</span> <span class="p">{</span>
@@ -409,7 +405,7 @@ soon as practicable.</li>
 <p>The <a class="reference internal" href="../glossary/s.html#term-skip-method"><em class="xref std std-term">skip method</em></a> is a function of type
 <a class="reference internal" href="../topic/format.html#mps_fmt_skip_t" title="mps_fmt_skip_t"><tt class="xref c c-type docutils literal"><span class="pre">mps_fmt_skip_t</span></tt></a>. It is called by the MPS to skip over an
 object belonging to the format, and also to determine its size.</p>
-<p>Here&#8217;s the skip method for the Scheme interpreter:</p>
+<p>Here&#8217;s the skip method for the toy Scheme interpreter:</p>
 <div class="highlight-c"><div class="highlight"><pre><span class="k">static</span> <span class="n">mps_addr_t</span> <span class="nf">obj_skip</span><span class="p">(</span><span class="n">mps_addr_t</span> <span class="n">base</span><span class="p">)</span>
 <span class="p">{</span>
     <span class="n">obj_t</span> <span class="n">obj</span> <span class="o">=</span> <span class="n">base</span><span class="p">;</span>
@@ -434,14 +430,6 @@ object belonging to the format, and also to determine its size.</p>
 skip method must return the address of the base of the &#8220;next object&#8221;:
 in formats of variant A like this one, this is the address just past
 the end of the object, rounded up to the object format&#8217;s alignment.</p>
-<div class="admonition-note admonition">
-<p class="first admonition-title">Note</p>
-<p class="last">The code in the skip method that computes the &#8220;next object&#8221; is the
-same as the corresponding code in the <a class="reference internal" href="../glossary/s.html#term-scan-method"><em class="xref std std-term">scan method</em></a>, so it&#8217;s
-tempting to delegate this part of its functionality from the
-latter to the former. Before you do this, you should read the
-documentation for <a class="reference internal" href="../topic/scanning.html#MPS_FIX_CALL" title="MPS_FIX_CALL"><tt class="xref c c-func docutils literal"><span class="pre">MPS_FIX_CALL()</span></tt></a>.</p>
-</div>
 <div class="admonition-topic admonition">
 <p class="first admonition-title">Topic</p>
 <p class="last"><a class="reference internal" href="../topic/format.html#topic-format"><em>Object formats</em></a>.</p>
@@ -486,7 +474,7 @@ longer:</p>
 <span class="p">}</span> <span class="n">fwd2_s</span><span class="p">;</span>
 </pre></div>
 </div>
-<p>Here&#8217;s the forward method for the Scheme interpreter:</p>
+<p>Here&#8217;s the forward method for the toy Scheme interpreter:</p>
 <div class="highlight-c"><div class="highlight"><pre><span class="k">static</span> <span class="kt">void</span> <span class="nf">obj_fwd</span><span class="p">(</span><span class="n">mps_addr_t</span> <span class="n">old</span><span class="p">,</span> <span class="n">mps_addr_t</span> <span class="n">new</span><span class="p">)</span>
 <span class="p">{</span>
     <span class="n">obj_t</span> <span class="n">obj</span> <span class="o">=</span> <span class="n">old</span><span class="p">;</span>
@@ -519,9 +507,9 @@ following code must be added to <tt class="docutils literal"><span class="pre">o
 <div class="admonition-note admonition">
 <p class="first admonition-title">Note</p>
 <p>Objects that consist of a single word present a problem for the
-design of the forwarding object. In the Scheme interpreter, this
-happens on some 64-bit platforms, where a point is 8&nbsp;bytes long,
-but a <tt class="docutils literal"><span class="pre">character_s</span></tt> object (which consists of a 4-byte <tt class="docutils literal"><span class="pre">int</span></tt>
+design of the forwarding object. In the toy Scheme interpreter, this
+happens on some 64-bit platforms, where a pointer is 8&nbsp;bytes long,
+and a <tt class="docutils literal"><span class="pre">character_s</span></tt> object (which consists of a 4-byte <tt class="docutils literal"><span class="pre">int</span></tt>
 and a 1-byte <tt class="docutils literal"><span class="pre">char</span></tt>) is also 8 bytes long.</p>
 <p>There are a couple of solutions to this problem:</p>
 <ol class="last arabic simple">
@@ -548,7 +536,7 @@ scanning them could be avoided.</li>
 <a class="reference internal" href="../topic/format.html#mps_fmt_isfwd_t" title="mps_fmt_isfwd_t"><tt class="xref c c-type docutils literal"><span class="pre">mps_fmt_isfwd_t</span></tt></a>. It is called by the MPS to determine if an
 object is a <a class="reference internal" href="../glossary/f.html#term-forwarding-object"><em class="xref std std-term">forwarding object</em></a>, and if it is, to determine the
 location where that object was moved.</p>
-<p>Here&#8217;s the is-forwarded method for the Scheme interpreter:</p>
+<p>Here&#8217;s the is-forwarded method for the toy Scheme interpreter:</p>
 <div class="highlight-c"><div class="highlight"><pre><span class="k">static</span> <span class="n">mps_addr_t</span> <span class="nf">obj_isfwd</span><span class="p">(</span><span class="n">mps_addr_t</span> <span class="n">addr</span><span class="p">)</span>
 <span class="p">{</span>
     <span class="n">obj_t</span> <span class="n">obj</span> <span class="o">=</span> <span class="n">addr</span><span class="p">;</span>
@@ -644,7 +632,7 @@ that generation.</p>
 about when and what to collect: nothing will go wrong (other than
 suboptimal performance) if you make poor choices. Making good choices
 for the capacity and mortality of each generation is not easy, and is postponed to the chapter <a class="reference internal" href="perf.html#guide-perf"><em>Tuning the Memory Pool System for performance</em></a>.</p>
-<p>Here&#8217;s the code for creating the generation chain for the Scheme
+<p>Here&#8217;s the code for creating the generation chain for the toy Scheme
 interpreter:</p>
 <div class="highlight-c"><div class="highlight"><pre><span class="n">mps_gen_param_s</span> <span class="n">obj_gen_params</span><span class="p">[]</span> <span class="o">=</span> <span class="p">{</span>
     <span class="p">{</span> <span class="mi">150</span><span class="p">,</span> <span class="mf">0.85</span> <span class="p">},</span>
@@ -726,13 +714,13 @@ objects are reachable <em>a priori</em>? Such objects are known as
 <a class="reference internal" href="../glossary/r.html#term-root"><em class="xref std std-term">roots</em></a>, and you must register them with the MPS,
 creating root descriptions of type <a class="reference internal" href="../topic/root.html#mps_root_t" title="mps_root_t"><tt class="xref c c-type docutils literal"><span class="pre">mps_root_t</span></tt></a>.</p>
 <p>The most important root consists of the contents of the
-<a class="reference internal" href="../glossary/r.html#term-register"><em class="xref std std-term">registers</em></a> and the <a class="reference internal" href="../glossary/c.html#term-control-stack"><em class="xref std std-term">control stack</em></a> of each
-<a class="reference internal" href="../glossary/t.html#term-thread"><em class="xref std std-term">thread</em></a> in your program: this is covered in <a class="reference internal" href="#guide-lang-threads"><em>Threads</em></a>, below.</p>
+<a class="reference internal" href="../glossary/r.html#term-register"><em class="xref std std-term">registers</em></a> and the <a class="reference internal" href="../glossary/c.html#term-control-stack"><em class="xref std std-term">control stack</em></a> of each <a class="reference internal" href="../glossary/t.html#term-thread"><em class="xref std std-term">thread</em></a>
+in your program: this is covered in <a class="reference internal" href="#guide-lang-threads"><em>Threads</em></a>, below.</p>
 <p>Other roots may be found in static variables in your program, or in
 memory allocated by other memory managers. For these roots you must
 describe to the MPS how to <a class="reference internal" href="../glossary/s.html#term-scan"><em class="xref std std-term">scan</em></a> them for references.</p>
-<p>The Scheme interpreter has a number of static variables that point to
-heap-allocated objects. First, the special objects, including:</p>
+<p>The toy Scheme interpreter has a number of static variables that point
+to heap-allocated objects. First, the special objects, including:</p>
 <div class="highlight-c"><div class="highlight"><pre><span class="k">static</span> <span class="n">obj_t</span> <span class="n">obj_empty</span><span class="p">;</span>         <span class="cm">/* (), the empty list */</span>
 </pre></div>
 </div>
@@ -749,9 +737,9 @@ heap-allocated objects. First, the special objects, including:</p>
 of type <a class="reference internal" href="../topic/root.html#mps_reg_scan_t" title="mps_reg_scan_t"><tt class="xref c c-type docutils literal"><span class="pre">mps_reg_scan_t</span></tt></a>. These functions are similar to the
 <a class="reference internal" href="#guide-lang-scan"><em>scan method</em></a> in an <a class="reference internal" href="../glossary/o.html#term-object-format"><em class="xref std std-term">object format</em></a>,
 described above.</p>
-<p>In the case of the Scheme interpreter, the root scanning function for
-the special objects and the predefined symbols could be written like
-this:</p>
+<p>In the case of the toy Scheme interpreter, the root scanning function
+for the special objects and the predefined symbols could be written
+like this:</p>
 <div class="highlight-c"><div class="highlight"><pre><span class="k">static</span> <span class="n">mps_res_t</span> <span class="nf">globals_scan</span><span class="p">(</span><span class="n">mps_ss_t</span> <span class="n">ss</span><span class="p">,</span> <span class="kt">void</span> <span class="o">*</span><span class="n">p</span><span class="p">,</span> <span class="kt">size_t</span> <span class="n">s</span><span class="p">)</span>
 <span class="p">{</span>
     <span class="n">MPS_SCAN_BEGIN</span><span class="p">(</span><span class="n">ss</span><span class="p">)</span> <span class="p">{</span>
@@ -792,8 +780,9 @@ function to iterate over them:</p>
 of references in the root. &#8220;<a class="reference internal" href="../glossary/e.html#term-exact-reference"><em class="xref std std-term">Exact</em></a>&#8221; means
 that:</p>
 <ol class="arabic simple">
-<li>all references in the root point to another object (there are no
-<a class="reference internal" href="../glossary/a.html#term-ambiguous-reference"><em class="xref std std-term">ambiguous references</em></a>); and</li>
+<li>each reference in the root is a genuine pointer to another object
+managed by the MPS, or else a null pointer (unlike <a class="reference internal" href="../glossary/a.html#term-ambiguous-reference"><em class="xref std std-term">ambiguous
+references</em></a>); and</li>
 <li>each reference keeps the target of the reference alive (unlike
 <a class="reference internal" href="../glossary/w.html#term-weak-reference-1"><em class="xref std std-term">weak references<sup>(1)</sup></em></a>).</li>
 </ol>
@@ -823,8 +812,9 @@ function, <a class="reference internal" href="../topic/root.html#mps_root_create
 
 <span class="cm">/* ... */</span>
 
+<span class="n">mps_addr_t</span> <span class="n">ref</span> <span class="o">=</span> <span class="n">symtab</span><span class="p">;</span>
 <span class="n">res</span> <span class="o">=</span> <span class="n">mps_root_create_table</span><span class="p">(</span><span class="o">&amp;</span><span class="n">symtab_root</span><span class="p">,</span> <span class="n">arena</span><span class="p">,</span> <span class="n">mps_rank_exact</span><span class="p">(),</span> <span class="mi">0</span><span class="p">,</span>
-                            <span class="p">(</span><span class="n">mps_addr_t</span> <span class="o">*</span><span class="p">)</span><span class="n">symtab</span><span class="p">,</span> <span class="n">symtab_size</span><span class="p">);</span>
+                            <span class="n">ref</span><span class="p">,</span> <span class="n">symtab_size</span><span class="p">);</span>
 <span class="k">if</span> <span class="p">(</span><span class="n">res</span> <span class="o">!=</span> <span class="n">MPS_RES_OK</span><span class="p">)</span> <span class="n">error</span><span class="p">(</span><span class="s">&quot;Couldn&#39;t register new symtab root&quot;</span><span class="p">);</span>
 </pre></div>
 </div>
@@ -835,6 +825,7 @@ changes size:</p>
     <span class="kt">unsigned</span> <span class="n">old_symtab_size</span> <span class="o">=</span> <span class="n">symtab_size</span><span class="p">;</span>
     <span class="n">mps_root_t</span> <span class="n">old_symtab_root</span> <span class="o">=</span> <span class="n">symtab_root</span><span class="p">;</span>
     <span class="kt">unsigned</span> <span class="n">i</span><span class="p">;</span>
+    <span class="n">mps_addr_t</span> <span class="n">ref</span><span class="p">;</span>
     <span class="n">mps_res_t</span> <span class="n">res</span><span class="p">;</span>
 
     <span class="n">symtab_size</span> <span class="o">*=</span> <span class="mi">2</span><span class="p">;</span>
@@ -845,8 +836,9 @@ changes size:</p>
     <span class="k">for</span> <span class="p">(</span><span class="n">i</span> <span class="o">=</span> <span class="mi">0</span><span class="p">;</span> <span class="n">i</span> <span class="o">&lt;</span> <span class="n">symtab_size</span><span class="p">;</span> <span class="o">++</span><span class="n">i</span><span class="p">)</span>
         <span class="n">symtab</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">=</span> <span class="nb">NULL</span><span class="p">;</span>
 
+    <span class="n">ref</span> <span class="o">=</span> <span class="n">symtab</span><span class="p">;</span>
     <span class="n">res</span> <span class="o">=</span> <span class="n">mps_root_create_table</span><span class="p">(</span><span class="o">&amp;</span><span class="n">symtab_root</span><span class="p">,</span> <span class="n">arena</span><span class="p">,</span> <span class="n">mps_rank_exact</span><span class="p">(),</span> <span class="mi">0</span><span class="p">,</span>
-                                <span class="p">(</span><span class="n">mps_addr_t</span> <span class="o">*</span><span class="p">)</span><span class="n">symtab</span><span class="p">,</span> <span class="n">symtab_size</span><span class="p">);</span>
+                                <span class="n">ref</span><span class="p">,</span> <span class="n">symtab_size</span><span class="p">);</span>
     <span class="k">if</span> <span class="p">(</span><span class="n">res</span> <span class="o">!=</span> <span class="n">MPS_RES_OK</span><span class="p">)</span> <span class="n">error</span><span class="p">(</span><span class="s">&quot;Couldn&#39;t register new symtab root&quot;</span><span class="p">);</span>
 
     <span class="k">for</span> <span class="p">(</span><span class="n">i</span> <span class="o">=</span> <span class="mi">0</span><span class="p">;</span> <span class="n">i</span> <span class="o">&lt;</span> <span class="n">old_symtab_size</span><span class="p">;</span> <span class="o">++</span><span class="n">i</span><span class="p">)</span>
@@ -900,10 +892,11 @@ must be de-registered before its memory is freed.</li>
 <div class="section" id="threads">
 <span id="guide-lang-threads"></span><span id="index-13"></span><h2>3.8. Threads<a class="headerlink" href="#threads" title="Permalink to this headline">¶</a></h2>
 <p>In a multi-threaded environment where <a class="reference internal" href="../glossary/i.html#term-incremental-garbage-collection"><em class="xref std std-term">incremental garbage
-collection</em></a> is used, you must register each of your <a class="reference internal" href="../glossary/t.html#term-thread"><em class="xref std std-term">threads</em></a> with the MPS so that the MPS can examine their state.</p>
-<p>Even in a single-threaded environment (like the Scheme interpreter) it
-may also be necessary to register the (only) thread if either of these
-conditions apply:</p>
+collection</em></a> is used, you must register each of your <a class="reference internal" href="../glossary/t.html#term-thread"><em class="xref std std-term">threads</em></a>
+with the MPS so that the MPS can examine their state.</p>
+<p>Even in a single-threaded environment (like the toy Scheme
+interpreter) it may also be necessary to register the (only) thread if
+either of these conditions apply:</p>
 <ol class="arabic simple">
 <li>you are using <a class="reference internal" href="../glossary/m.html#term-moving-garbage-collector"><em class="xref std std-term">moving garbage collection</em></a> (as with the <a class="reference internal" href="../pool/amc.html#pool-amc"><em>AMC (Automatic Mostly-Copying)</em></a> pool);</li>
 <li>the thread&#8217;s <a class="reference internal" href="../glossary/r.html#term-register"><em class="xref std std-term">registers</em></a> and <a class="reference internal" href="../glossary/c.html#term-control-stack"><em class="xref std std-term">control stack</em></a>
@@ -943,8 +936,9 @@ variables will always be higher up on the stack than <tt class="docutils literal
 so will be scanned for references by the MPS.</p>
 <p>The condition &#8220;don&#8217;t exit from this function while the MPS is running&#8221;
 will always be satisfied, because you must run your program via the
-<em>MPS trampoline</em>. That is, if your program was previously organized
-like this:</p>
+<em>MPS trampoline</em> (see the documentation for <a class="reference internal" href="../topic/thread.html#mps_tramp" title="mps_tramp"><tt class="xref c c-func docutils literal"><span class="pre">mps_tramp()</span></tt></a> for
+the reason). That is, if your program was previously organized like
+this:</p>
 <div class="highlight-c"><div class="highlight"><pre><span class="kt">int</span> <span class="nf">main</span><span class="p">(</span><span class="kt">int</span> <span class="n">argc</span><span class="p">,</span> <span class="kt">char</span> <span class="o">**</span><span class="n">argv</span><span class="p">)</span>
 <span class="p">{</span>
     <span class="cm">/* ... your program here ... */</span>
@@ -1022,7 +1016,7 @@ immediately after the object has been allocated. In this case, if the
 MPS attempts to scan <tt class="docutils literal"><span class="pre">obj</span></tt> at the indicated point, the object&#8217;s
 <tt class="docutils literal"><span class="pre">type</span></tt> field will be uninitialized, and so the <a class="reference internal" href="../glossary/s.html#term-scan-method"><em class="xref std std-term">scan method</em></a>
 may abort.</p>
-<p>The MPS solves this problem via the fast lockless
+<p>The MPS solves this problem via the fast, nearly lock-free
 <a class="reference internal" href="../topic/allocation.html#topic-allocation-point-protocol"><em>Allocation point protocol</em></a>. This needs an additional
 structure, an <a class="reference internal" href="../glossary/a.html#term-allocation-point"><em class="xref std std-term">allocation point</em></a>, to be attached to the pool by
 calling <a class="reference internal" href="../topic/allocation.html#mps_ap_create" title="mps_ap_create"><tt class="xref c c-func docutils literal"><span class="pre">mps_ap_create()</span></tt></a>:</p>
@@ -1055,8 +1049,7 @@ calling <a class="reference internal" href="../topic/allocation.html#mps_ap_crea
 <p>The function <a class="reference internal" href="../topic/allocation.html#mps_reserve" title="mps_reserve"><tt class="xref c c-func docutils literal"><span class="pre">mps_reserve()</span></tt></a> allocates a block of memory that
 the MPS knows is uninitialized: the MPS promises not to scan this
 block or move it until after it is <a class="reference internal" href="../glossary/c.html#term-committed-2"><em class="xref std std-term">committed<sup>(2)</sup></em></a> by calling
-<a class="reference internal" href="../topic/allocation.html#mps_commit" title="mps_commit"><tt class="xref c c-func docutils literal"><span class="pre">mps_commit()</span></tt></a>. So the new object can be allocated and
-initialized safely.</p>
+<a class="reference internal" href="../topic/allocation.html#mps_commit" title="mps_commit"><tt class="xref c c-func docutils literal"><span class="pre">mps_commit()</span></tt></a>. So the new object can be initialized safely.</p>
 <p>However, there&#8217;s a second problem:</p>
 <div class="highlight-c"><div class="highlight"><pre>    <span class="n">CAR</span><span class="p">(</span><span class="n">obj</span><span class="p">)</span> <span class="o">=</span> <span class="n">car</span><span class="p">;</span>
     <span class="n">CDR</span><span class="p">(</span><span class="n">obj</span><span class="p">)</span> <span class="o">=</span> <span class="n">cdr</span><span class="p">;</span>
@@ -1081,7 +1074,7 @@ we have to initialize the object again (most conveniently done via a
 to you to ensure that the requested size is aligned, because
 <a class="reference internal" href="../topic/allocation.html#mps_reserve" title="mps_reserve"><tt class="xref c c-func docutils literal"><span class="pre">mps_reserve()</span></tt></a> is on the MPS&#8217;s <a class="reference internal" href="../glossary/c.html#term-critical-path"><em class="xref std std-term">critical path</em></a>,
 and so it is highly optimized: in nearly all cases it is just
-an increment to a pointer.</li>
+an increment to a pointer and a test.</li>
 <li>It is very rare for <a class="reference internal" href="../topic/allocation.html#mps_commit" title="mps_commit"><tt class="xref c c-func docutils literal"><span class="pre">mps_commit()</span></tt></a> to return false, but
 in the course of millions of allocations even very rare events
 occur, so it is important not to do anything you don&#8217;t want to
@@ -1104,28 +1097,26 @@ program). So you must make sure that your data structures always obey
 these rules:</p>
 <ol class="arabic">
 <li><p class="first">A <a class="reference internal" href="../glossary/r.html#term-root"><em class="xref std std-term">root</em></a> must be scannable by its root scanning function as
-soon as it has been registered by calling <a class="reference internal" href="../topic/root.html#mps_root_create" title="mps_root_create"><tt class="xref c c-func docutils literal"><span class="pre">mps_root_create()</span></tt></a>
-or one of the other root registration functions.</p>
-<p>See the discussion of the <a class="reference internal" href="#guide-lang-roots-rehash"><em>global symbol table</em></a> in the Scheme interpreter.</p>
+soon as it has been registered.</p>
+<p>See the discussion of the <a class="reference internal" href="#guide-lang-roots-rehash"><em>global symbol table</em></a> in the toy Scheme interpreter.</p>
 </li>
 <li><p class="first">A <a class="reference internal" href="../glossary/f.html#term-formatted-object"><em class="xref std std-term">formatted object</em></a> must be scannable by the <a class="reference internal" href="../glossary/s.html#term-scan-method"><em class="xref std std-term">scan
 method</em></a> as soon as it has been <a class="reference internal" href="../glossary/c.html#term-committed-2"><em class="xref std std-term">committed<sup>(2)</sup></em></a> by calling
 <a class="reference internal" href="../topic/allocation.html#mps_commit" title="mps_commit"><tt class="xref c c-func docutils literal"><span class="pre">mps_commit()</span></tt></a>.</p>
-<p>See the discussion of the <a class="reference internal" href="#guide-lang-allocation"><em>pair constructor</em></a> in the Scheme interpreter.</p>
+<p>See the discussion of the <a class="reference internal" href="#guide-lang-allocation"><em>pair constructor</em></a> in the toy Scheme interpreter.</p>
 </li>
 <li><p class="first">All objects in automatically managed pools that are
 <a class="reference internal" href="../glossary/r.html#term-reachable"><em class="xref std std-term">reachable</em></a> by your code must always be provably reachable
 from a root via a chain of <a class="reference internal" href="../glossary/r.html#term-reference"><em class="xref std std-term">references</em></a> that are
 <a class="reference internal" href="../glossary/f.html#term-fix"><em class="xref std std-term">fixed</em></a> by a scanning function.</p>
-<p>See the discussion of the <a class="reference internal" href="#guide-lang-roots-rehash"><em>global symbol table</em></a> in the Scheme interpreter.</p>
+<p>See the discussion of the <a class="reference internal" href="#guide-lang-roots-rehash"><em>global symbol table</em></a> in the toy Scheme interpreter.</p>
 </li>
 <li><p class="first">Formatted objects must remain scannable throughout their
 <a class="reference internal" href="../glossary/l.html#term-lifetime"><em class="xref std std-term">lifetime</em></a>.</p>
 </li>
 </ol>
-<p>Explanations of what happens if your code breaks these rules, together
-with tactics for tracking down the causes, appear in the chapter
-<a class="reference internal" href="debug.html#guide-debug"><em>Debugging with the Memory Pool System</em></a>.</p>
+<p>Examples of code that breaks these rules, together with tactics for
+tracking down the causes, appear in the chapter <a class="reference internal" href="debug.html#guide-debug"><em>Debugging with the Memory Pool System</em></a>.</p>
 </div>
 <div class="section" id="tidying-up">
 <span id="index-16"></span><h2>3.11. Tidying up<a class="headerlink" href="#tidying-up" title="Permalink to this headline">¶</a></h2>
@@ -1139,7 +1130,7 @@ destroy all <a class="reference internal" href="../glossary/a.html#term-allocati
 <a class="reference internal" href="../glossary/p.html#term-pool"><em class="xref std std-term">pool</em></a> before destroying the pool; destroy all <a class="reference internal" href="../glossary/r.html#term-root"><em class="xref std std-term">roots</em></a> and pools, and deregister all <a class="reference internal" href="../glossary/t.html#term-thread"><em class="xref std std-term">threads</em></a>, that
 were created in an <a class="reference internal" href="../glossary/a.html#term-arena"><em class="xref std std-term">arena</em></a> before destroying the arena, and so
 on.</p>
-<p>Here&#8217;s the tear-down code from the Scheme interpreter:</p>
+<p>Here&#8217;s the tear-down code from the toy Scheme interpreter:</p>
 <div class="highlight-c"><div class="highlight"><pre><span class="n">mps_ap_destroy</span><span class="p">(</span><span class="n">obj_ap</span><span class="p">);</span>
 <span class="n">mps_pool_destroy</span><span class="p">(</span><span class="n">obj_pool</span><span class="p">);</span>
 <span class="n">mps_chain_destroy</span><span class="p">(</span><span class="n">obj_chain</span><span class="p">);</span>
@@ -1158,8 +1149,8 @@ system for a programming language.</p>
 <p>If everything is working for your language, then the next step is
 the chapter <a class="reference internal" href="perf.html#guide-perf"><em>Tuning the Memory Pool System for performance</em></a>.</p>
 <p>But in the more likely event that things don&#8217;t work out quite as
-smoothly for your language as they did in the Scheme interpreter, then
-you&#8217;ll be more interested in the chapter <a class="reference internal" href="debug.html#guide-debug"><em>Debugging with the Memory Pool System</em></a>.</p>
+smoothly for your language as they did in the toy Scheme interpreter,
+then you&#8217;ll be more interested in the chapter <a class="reference internal" href="debug.html#guide-debug"><em>Debugging with the Memory Pool System</em></a>.</p>
 </div>
 </div>
 

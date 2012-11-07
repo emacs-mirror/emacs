@@ -34,12 +34,12 @@ of its versions:
 
 :download:`scheme-malloc.c <../../../example/scheme/scheme-malloc.c>`
 
-    The Scheme interpreter before integration with the MPS, using
+    The toy Scheme interpreter before integration with the MPS, using
     :term:`malloc` and :term:`free (2)` for memory management.
 
 :download:`scheme.c <../../../example/scheme/scheme.c>`
 
-    The Scheme interpreter after integration with the MPS.
+    The toy Scheme interpreter after integration with the MPS.
 
 This simple interpreter allocates two kinds of objects on the
 :term:`heap`:
@@ -186,7 +186,7 @@ some other value if it failed.
     continue to use ``malloc`` and ``free`` to manage some of your
     memory, for example, while using the MPS for the rest.
 
-    The Scheme interpreter illustrates this by continuing to use
+    The toy Scheme interpreter illustrates this by continuing to use
     ``malloc`` and ``free`` to manage its global symbol table.
 
 .. topics::
@@ -207,12 +207,12 @@ collection <moving garbage collector>` and others :term:`non-moving
 <non-moving garbage collector>`.
 
 The section :ref:`pool-choose` in the :ref:`pool` contains a procedure
-for choosing a pool class. In the case of the Scheme interpreter, the
-answers to the questions are (1) yes, the MPS needs to automatically
-reclaim unreachable blocks; (2) yes, it's acceptable for the MPS to
-move blocks in memory and protect them with :term:`barriers (1)`; and
-(3) the Scheme objects will contain :term:`exact references` to other
-Scheme objects in the same pool.
+for choosing a pool class. In the case of the toy Scheme interpreter,
+the answers to the questions are (1) yes, the MPS needs to
+automatically reclaim unreachable blocks; (2) yes, it's acceptable for
+the MPS to move blocks in memory and protect them with :term:`barriers
+(1)`; and (3) the Scheme objects will contain :term:`exact references`
+to other Scheme objects in the same pool.
 
 The recommended class is :ref:`pool-amc`. This pool class uses
 automatic memory management, moving garbage collection,
@@ -244,7 +244,7 @@ you need to tell it how to perform various operations on an object
 (:term:`scan` it for :term:`references`; replace it with a
 :term:`forwarding <forwarding object>` or :term:`padding object`, and
 so on). You do this by creating an :term:`object format`. Here's the
-code for creating the object format for the Scheme interpreter::
+code for creating the object format for the toy Scheme interpreter::
 
     struct mps_fmt_A_s obj_fmt_s = {
         ALIGNMENT,
@@ -286,18 +286,15 @@ you might try:
    an unsigned integral type that is the same size as the platform's
    :term:`object pointer` types.
 
-   On all the platforms supported by the MPS, the majority of simple
-   datatypes may be aligned on word boundaries (the possible
-   exceptions being ``double`` on 32-bit platforms, and ``long
-   double`` and :term:`function pointers` on 32- and
-   64-bit platforms), so in applications where these exceptional types
-   are not used (like the Scheme interpreter), you can use::
+   So if you know that all your objects can be word-aligned, you can
+   use::
 
         #define ALIGNMENT sizeof(mps_word_t)
 
-The other elements of the structure are the :term:`format methods`, which are described in the following sections. (The
-``NULL`` in the structure is a placeholder for the :term:`copy
-method`, which is now obsolete.)
+The other elements of the structure are the :term:`format methods`,
+which are described in the following sections. (The ``NULL`` in the
+structure is a placeholder for the :term:`copy method`, which is now
+obsolete.)
 
 .. topics::
 
@@ -327,7 +324,7 @@ discover references and so determine which objects are :term:`alive
 <live>` and which are :term:`dead`, and also to update references
 after objects have been moved.
 
-Here's the scan method for the Scheme interpreter::
+Here's the scan method for the toy Scheme interpreter::
 
     static mps_res_t obj_scan(mps_ss_t ss, mps_addr_t base, mps_addr_t limit)
     {
@@ -422,7 +419,7 @@ The :term:`skip method` is a function of type
 :c:type:`mps_fmt_skip_t`. It is called by the MPS to skip over an
 object belonging to the format, and also to determine its size.
 
-Here's the skip method for the Scheme interpreter::
+Here's the skip method for the toy Scheme interpreter::
 
     static mps_addr_t obj_skip(mps_addr_t base)
     {
@@ -447,14 +444,6 @@ The argument ``base`` is the address to the base of the object. The
 skip method must return the address of the base of the "next object":
 in formats of variant A like this one, this is the address just past
 the end of the object, rounded up to the object format's alignment.
-
-.. note::
-
-    The code in the skip method that computes the "next object" is the
-    same as the corresponding code in the :term:`scan method`, so it's
-    tempting to delegate this part of its functionality from the
-    latter to the former. Before you do this, you should read the
-    documentation for :c:func:`MPS_FIX_CALL`.
 
 .. topics::
 
@@ -516,7 +505,7 @@ while the second type is suitable for forwarding objects of two words::
         obj_t fwd;                    /* forwarded object */
     } fwd2_s;
 
-Here's the forward method for the Scheme interpreter::
+Here's the forward method for the toy Scheme interpreter::
 
     static void obj_fwd(mps_addr_t old, mps_addr_t new)
     {
@@ -550,9 +539,9 @@ following code must be added to ``obj_scan`` and ``obj_skip``::
 .. note::
 
     Objects that consist of a single word present a problem for the
-    design of the forwarding object. In the Scheme interpreter, this
-    happens on some 64-bit platforms, where a point is 8 bytes long,
-    but a ``character_s`` object (which consists of a 4-byte ``int``
+    design of the forwarding object. In the toy Scheme interpreter, this
+    happens on some 64-bit platforms, where a pointer is 8 bytes long,
+    and a ``character_s`` object (which consists of a 4-byte ``int``
     and a 1-byte ``char``) is also 8 bytes long.
 
     There are a couple of solutions to this problem:
@@ -589,7 +578,7 @@ The :term:`is-forwarded method` is a function of type
 object is a :term:`forwarding object`, and if it is, to determine the
 location where that object was moved.
 
-Here's the is-forwarded method for the Scheme interpreter::
+Here's the is-forwarded method for the toy Scheme interpreter::
 
     static mps_addr_t obj_isfwd(mps_addr_t addr)
     {
@@ -704,7 +693,7 @@ about when and what to collect: nothing will go wrong (other than
 suboptimal performance) if you make poor choices. Making good choices
 for the capacity and mortality of each generation is not easy, and is postponed to the chapter :ref:`guide-perf`.
 
-Here's the code for creating the generation chain for the Scheme
+Here's the code for creating the generation chain for the toy Scheme
 interpreter::
 
     mps_gen_param_s obj_gen_params[] = {
@@ -801,15 +790,15 @@ objects are reachable *a priori*? Such objects are known as
 creating root descriptions of type :c:type:`mps_root_t`.
 
 The most important root consists of the contents of the
-:term:`registers` and the :term:`control stack` of each
-:term:`thread` in your program: this is covered in :ref:`Threads <guide-lang-threads>`, below.
+:term:`registers` and the :term:`control stack` of each :term:`thread`
+in your program: this is covered in :ref:`guide-lang-threads`, below.
 
 Other roots may be found in static variables in your program, or in
 memory allocated by other memory managers. For these roots you must
 describe to the MPS how to :term:`scan` them for references.
 
-The Scheme interpreter has a number of static variables that point to
-heap-allocated objects. First, the special objects, including::
+The toy Scheme interpreter has a number of static variables that point
+to heap-allocated objects. First, the special objects, including::
 
     static obj_t obj_empty;         /* (), the empty list */
 
@@ -827,9 +816,9 @@ of type :c:type:`mps_reg_scan_t`. These functions are similar to the
 :ref:`scan method <guide-lang-scan>` in an :term:`object format`,
 described above.
 
-In the case of the Scheme interpreter, the root scanning function for
-the special objects and the predefined symbols could be written like
-this::
+In the case of the toy Scheme interpreter, the root scanning function
+for the special objects and the predefined symbols could be written
+like this::
 
     static mps_res_t globals_scan(mps_ss_t ss, void *p, size_t s)
     {
@@ -870,8 +859,9 @@ The third argument (here :c:func:`mps_rank_exact`) is the :term:`rank`
 of references in the root. ":term:`Exact <exact reference>`" means
 that:
 
-1. all references in the root point to another object (there are no
-   :term:`ambiguous references`); and
+1. each reference in the root is a genuine pointer to another object
+   managed by the MPS, or else a null pointer (unlike :term:`ambiguous
+   references`); and
 
 2. each reference keeps the target of the reference alive (unlike
    :term:`weak references (1)`).
@@ -906,8 +896,9 @@ function, :c:func:`mps_root_create_table`, for registering it::
 
     /* ... */
 
+    mps_addr_t ref = symtab;
     res = mps_root_create_table(&symtab_root, arena, mps_rank_exact(), 0,
-                                (mps_addr_t *)symtab, symtab_size);
+                                ref, symtab_size);
     if (res != MPS_RES_OK) error("Couldn't register new symtab root");
 
 .. _guide-lang-roots-rehash:
@@ -920,6 +911,7 @@ changes size::
         unsigned old_symtab_size = symtab_size;
         mps_root_t old_symtab_root = symtab_root;
         unsigned i;
+        mps_addr_t ref;
         mps_res_t res;
 
         symtab_size *= 2;
@@ -930,8 +922,9 @@ changes size::
         for (i = 0; i < symtab_size; ++i)
             symtab[i] = NULL;
 
+        ref = symtab;
         res = mps_root_create_table(&symtab_root, arena, mps_rank_exact(), 0,
-                                    (mps_addr_t *)symtab, symtab_size);
+                                    ref, symtab_size);
         if (res != MPS_RES_OK) error("Couldn't register new symtab root");
 
         for (i = 0; i < old_symtab_size; ++i)
@@ -991,11 +984,12 @@ Threads
 -------
 
 In a multi-threaded environment where :term:`incremental garbage
-collection` is used, you must register each of your :term:`threads` with the MPS so that the MPS can examine their state.
+collection` is used, you must register each of your :term:`threads`
+with the MPS so that the MPS can examine their state.
 
-Even in a single-threaded environment (like the Scheme interpreter) it
-may also be necessary to register the (only) thread if either of these
-conditions apply:
+Even in a single-threaded environment (like the toy Scheme
+interpreter) it may also be necessary to register the (only) thread if
+either of these conditions apply:
 
 1. you are using :term:`moving garbage collection <moving garbage
    collector>` (as with the :ref:`pool-amc` pool);
@@ -1038,8 +1032,9 @@ so will be scanned for references by the MPS.
 
 The condition "don't exit from this function while the MPS is running"
 will always be satisfied, because you must run your program via the
-*MPS trampoline*. That is, if your program was previously organized
-like this::
+*MPS trampoline* (see the documentation for :c:func:`mps_tramp` for
+the reason). That is, if your program was previously organized like
+this::
 
     int main(int argc, char **argv)
     {
@@ -1129,7 +1124,7 @@ MPS attempts to scan ``obj`` at the indicated point, the object's
 ``type`` field will be uninitialized, and so the :term:`scan method`
 may abort.
 
-The MPS solves this problem via the fast lockless
+The MPS solves this problem via the fast, nearly lock-free
 :ref:`topic-allocation-point-protocol`. This needs an additional
 structure, an :term:`allocation point`, to be attached to the pool by
 calling :c:func:`mps_ap_create`::
@@ -1162,8 +1157,7 @@ And then the constructor can be implemented like this::
 The function :c:func:`mps_reserve` allocates a block of memory that
 the MPS knows is uninitialized: the MPS promises not to scan this
 block or move it until after it is :term:`committed (2)` by calling
-:c:func:`mps_commit`. So the new object can be allocated and
-initialized safely.
+:c:func:`mps_commit`. So the new object can be initialized safely.
 
 However, there's a second problem::
 
@@ -1190,7 +1184,7 @@ we have to initialize the object again (most conveniently done via a
        to you to ensure that the requested size is aligned, because
        :c:func:`mps_reserve` is on the MPS's :term:`critical path`,
        and so it is highly optimized: in nearly all cases it is just
-       an increment to a pointer.
+       an increment to a pointer and a test.
 
     2. It is very rare for :c:func:`mps_commit` to return false, but
        in the course of millions of allocations even very rare events
@@ -1218,18 +1212,17 @@ program). So you must make sure that your data structures always obey
 these rules:
 
 1. A :term:`root` must be scannable by its root scanning function as
-   soon as it has been registered by calling :c:func:`mps_root_create`
-   or one of the other root registration functions.
+   soon as it has been registered.
 
    See the discussion of the :ref:`global symbol table
-   <guide-lang-roots-rehash>` in the Scheme interpreter.
+   <guide-lang-roots-rehash>` in the toy Scheme interpreter.
 
 2. A :term:`formatted object` must be scannable by the :term:`scan
    method` as soon as it has been :term:`committed (2)` by calling
    :c:func:`mps_commit`.
 
    See the discussion of the :ref:`pair constructor
-   <guide-lang-allocation>` in the Scheme interpreter.
+   <guide-lang-allocation>` in the toy Scheme interpreter.
 
 3. All objects in automatically managed pools that are
    :term:`reachable` by your code must always be provably reachable
@@ -1237,16 +1230,15 @@ these rules:
    :term:`fixed <fix>` by a scanning function.
 
    See the discussion of the :ref:`global symbol table
-   <guide-lang-roots-rehash>` in the Scheme interpreter.
+   <guide-lang-roots-rehash>` in the toy Scheme interpreter.
 
 4. Formatted objects must remain scannable throughout their
    :term:`lifetime`.
 
    .. fixme: refer to example here when written.
 
-Explanations of what happens if your code breaks these rules, together
-with tactics for tracking down the causes, appear in the chapter
-:ref:`guide-debug`.
+Examples of code that breaks these rules, together with tactics for
+tracking down the causes, appear in the chapter :ref:`guide-debug`.
 
 
 .. index::
@@ -1269,7 +1261,7 @@ destroy all :term:`allocation points` created in a
 were created in an :term:`arena` before destroying the arena, and so
 on.
 
-Here's the tear-down code from the Scheme interpreter::
+Here's the tear-down code from the toy Scheme interpreter::
 
     mps_ap_destroy(obj_ap);
     mps_pool_destroy(obj_pool);
@@ -1291,5 +1283,5 @@ If everything is working for your language, then the next step is
 the chapter :ref:`guide-perf`.
 
 But in the more likely event that things don't work out quite as
-smoothly for your language as they did in the Scheme interpreter, then
-you'll be more interested in the chapter :ref:`guide-debug`.
+smoothly for your language as they did in the toy Scheme interpreter,
+then you'll be more interested in the chapter :ref:`guide-debug`.

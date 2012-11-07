@@ -77,7 +77,7 @@ successful as its predecessor.</p>
 </dd>
 <dt id="term-basic">BASIC</dt>
 <dd><p class="first">BASIC is a simple and easily-learned programming language
-developed by T. E. Kurtz and J. G. Kemeny in 1963–4. The
+created by T. E. Kurtz and J. G. Kemeny in 1963–4. The
 motivation was to make computers easily accessible to
 undergraduate students in all disciplines.</p>
 <p>Most BASICs had quite powerful string handling operations that
@@ -166,21 +166,21 @@ include advanced features, such as <a class="reference internal" href="../glossa
 </div>
 </dd>
 <dt id="term-5">C#</dt>
-<dd><p class="first">C# is a strongly typed object-oriented language developed at
-Microsoft and designed to run on the Common Language Runtime
-virtual machine from the .NET Framework. It also runs on the
-open source Mono runtime.</p>
-<p>Memory is automatically managed: memory is allocated when an
-object is created, and reclaimed automatically at some point
-after the object becomes unreachable.</p>
+<dd><p class="first">C# is a strongly typed object-oriented language created at
+Microsoft in 1999–2000. It is designed to run on the Common
+Language Runtime, the virtual machine from the .NET Framework.
+It also runs on the open source Mono runtime.</p>
+<p>Memory is <a class="reference internal" href="../glossary/a.html#term-automatic-memory-management"><em class="xref std std-term">automatically managed</em></a>: memory is allocated when an object is created,
+and reclaimed at some point after the object becomes
+<a class="reference internal" href="../glossary/u.html#term-unreachable"><em class="xref std std-term">unreachable</em></a>.</p>
 <p>The language supports <a class="reference internal" href="../glossary/f.html#term-finalization"><em class="xref std std-term">finalization</em></a> (classes may have
 <em>destructor functions</em>, which are run just before the object
 is reclaimed by the memory manager), and <a class="reference internal" href="../glossary/w.html#term-weak-reference-1"><em class="xref std std-term">weak
 references<sup>(1)</sup></em></a> (via the <tt class="docutils literal"><span class="pre">WeakReference</span></tt> class).</p>
-<p>The garbage collector in the .NET Framework is configurable to
-work in soft real time.</p>
+<p>The <a class="reference internal" href="../glossary/g.html#term-garbage-collector"><em class="xref std std-term">garbage collector</em></a> in the .NET Framework is
+configurable to run in soft real time, or in batch mode.</p>
 <p>The Mono runtime comes with two collectors: the Boehm–Weiser
-conservative collector, and a copying generational collector.</p>
+<a class="reference internal" href="../glossary/c.html#term-conservative-garbage-collection"><em class="xref std std-term">conservative collector</em></a>, and a <a class="reference internal" href="../glossary/g.html#term-generational-garbage-collection"><em class="xref std std-term">generational</em></a> <a class="reference internal" href="../glossary/c.html#term-copying-garbage-collection"><em class="xref std std-term">copying collector</em></a>.</p>
 <div class="admonition-related-link last admonition">
 <p class="first admonition-title">Related links</p>
 <p class="last"><a class="reference external" href="http://msdn.microsoft.com/en-us/library/aa691138.aspx">Automatic memory management in C#</a>,
@@ -437,12 +437,14 @@ Lisp Machines are used in today&#8217;s implementations, at a cost
 of a few more cycles.</p>
 </dd>
 <dt id="term-lua">Lua</dt>
-<dd><p class="first">Lua is a dynamically typed language developed by Roberto
+<dd><p class="first">Lua is a dynamically typed language created by Roberto
 Ierusalimschy, Luiz Henrique de Figueiredo, and Waldemar Celes
 in 1993. The language supports object-oriented and functional
 styles of programming, and is designed to be easily embedded
-as an extension language in a larger programming system.</p>
-<p>Lua use <a class="reference internal" href="../glossary/a.html#term-automatic-memory-management"><em class="xref std std-term">automatic memory management</em></a> and comes with an
+in a larger programming system as an extension or scripting
+language.</p>
+<p>Lua uses <a class="reference internal" href="../glossary/a.html#term-automatic-memory-management"><em class="xref std std-term">automatic memory management</em></a> and comes with a
+<a class="reference internal" href="../glossary/n.html#term-non-moving-garbage-collector"><em class="xref std std-term">non-moving</em></a>
 <a class="reference internal" href="../glossary/i.html#term-incremental-garbage-collection"><em class="xref std std-term">incremental</em></a>
 <a class="reference internal" href="../glossary/g.html#term-garbage-collector"><em class="xref std std-term">garbage collector</em></a> supporting soft real time
 applications. This uses a software <a class="reference internal" href="../glossary/b.html#term-barrier-1"><em class="xref std std-term">barrier<sup>(1)</sup></em></a> in
@@ -578,19 +580,20 @@ the collector.</p>
 </div>
 </dd>
 <dt id="term-python">Python</dt>
-<dd><p class="first">Python is a &#8220;duck-typed&#8221; object-oriented language developed by
-Guido van Rossum.</p>
+<dd><p class="first">Python is a &#8220;duck-typed&#8221; object-oriented language created in
+the early 1990s by Guido van Rossum.</p>
 <p>There are several implementations running on a variety of
 virtual machines: the original &#8220;CPython&#8221; implementation runs
 on its own virtual machine; IronPython runs on the Common
 Language Runtime; Jython on the Java Virtual Machine.</p>
 <p>CPython manages memory using a mixture of <a class="reference internal" href="../glossary/r.html#term-reference-counting"><em class="xref std std-term">reference
-counting</em></a> and <a class="reference internal" href="../glossary/n.html#term-non-moving-memory-manager"><em class="xref std std-term">non-moving</em></a> <a class="reference internal" href="../glossary/g.html#term-garbage-collection"><em class="xref std std-term">garbage collection</em></a>. Reference counting
-ensures prompt deletion of objects when their reference count
-falls to zero, while the garbage collector reclaims
-<a class="reference internal" href="../glossary/c.html#term-cyclic-data-structure"><em class="xref std std-term">cyclic data structures</em></a>.</p>
+counting</em></a> and <a class="reference internal" href="../glossary/n.html#term-non-moving-memory-manager"><em class="xref std std-term">non-moving</em></a>
+<a class="reference internal" href="../glossary/m.html#term-mark-and-sweep"><em class="xref std std-term">mark-and-sweep</em></a> <a class="reference internal" href="../glossary/g.html#term-garbage-collection"><em class="xref std std-term">garbage collection</em></a>. Reference
+counting ensures prompt deletion of objects when their
+reference count falls to zero, while the garbage collector
+reclaims <a class="reference internal" href="../glossary/c.html#term-cyclic-data-structure"><em class="xref std std-term">cyclic data structures</em></a>.</p>
 <p>The language supports <a class="reference internal" href="../glossary/f.html#term-finalization"><em class="xref std std-term">finalization</em></a> (classes may have a
-__del__ method, which is run just before the object is
+<tt class="docutils literal"><span class="pre">__del__</span></tt> method, which is run just before the object is
 destroyed), and <a class="reference internal" href="../glossary/w.html#term-weak-reference-1"><em class="xref std std-term">weak references<sup>(1)</sup></em></a> (via the
 <tt class="docutils literal"><span class="pre">weakref</span></tt> module).</p>
 <div class="admonition-related-link last admonition">

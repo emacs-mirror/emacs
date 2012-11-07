@@ -333,11 +333,6 @@ even before you&#8217;ve added the new key.</p>
 looked up, when the staleness will be discovered. After all, it may
 never be looked up.</p>
 </div>
-<div class="admonition-note admonition">
-<p class="first admonition-title">Note</p>
-<p class="last">Don&#8217;t forget that deleting a key from an address-based hash table
-also results in a dependency on its location.</p>
-</div>
 <p>If you look up a key in an address-based hash table and fail to find it
 there, that might be because the table&#8217;s dependency on the location of
 the key is stale: that is, if the garbage collector moved the key. The
@@ -426,6 +421,38 @@ found in the table at the correct location. Thus
 <a class="reference internal" href="../topic/location.html#mps_ld_isstale" title="mps_ld_isstale"><tt class="xref c c-func docutils literal"><span class="pre">mps_ld_isstale()</span></tt></a> was not called. The symbol <tt class="docutils literal"><span class="pre">'two</span></tt> did
 move in the collection, so it&#8217;s not found in the table, and that
 causes <a class="reference internal" href="../topic/location.html#mps_ld_isstale" title="mps_ld_isstale"><tt class="xref c c-func docutils literal"><span class="pre">mps_ld_isstale()</span></tt></a> to be tested.</p>
+</div>
+<p>Don&#8217;t forget to check the location dependency for staleness if you are
+about to delete a key from a hash table but discover that it&#8217;s not
+there. In the toy Scheme interpreter, deletion looks like this:</p>
+<div class="highlight-c"><div class="highlight"><pre><span class="k">static</span> <span class="kt">void</span> <span class="nf">table_delete</span><span class="p">(</span><span class="n">obj_t</span> <span class="n">tbl</span><span class="p">,</span> <span class="n">obj_t</span> <span class="n">key</span><span class="p">)</span>
+<span class="p">{</span>
+    <span class="k">struct</span> <span class="n">bucket_s</span> <span class="o">*</span><span class="n">b</span><span class="p">;</span>
+    <span class="n">assert</span><span class="p">(</span><span class="n">TYPE</span><span class="p">(</span><span class="n">tbl</span><span class="p">)</span> <span class="o">==</span> <span class="n">TYPE_TABLE</span><span class="p">);</span>
+    <span class="n">b</span> <span class="o">=</span> <span class="n">buckets_find</span><span class="p">(</span><span class="n">tbl</span><span class="p">,</span> <span class="n">tbl</span><span class="o">-&gt;</span><span class="n">table</span><span class="p">.</span><span class="n">buckets</span><span class="p">,</span> <span class="n">key</span><span class="p">,</span> <span class="nb">NULL</span><span class="p">);</span>
+<span class="hll">    <span class="k">if</span> <span class="p">((</span><span class="n">b</span> <span class="o">==</span> <span class="nb">NULL</span> <span class="o">||</span> <span class="n">b</span><span class="o">-&gt;</span><span class="n">key</span> <span class="o">==</span> <span class="nb">NULL</span><span class="p">)</span> <span class="o">&amp;&amp;</span> <span class="n">mps_ld_isstale</span><span class="p">(</span><span class="o">&amp;</span><span class="n">tbl</span><span class="o">-&gt;</span><span class="n">table</span><span class="p">.</span><span class="n">ld</span><span class="p">,</span> <span class="n">arena</span><span class="p">,</span> <span class="n">key</span><span class="p">))</span> <span class="p">{</span>
+</span>        <span class="n">b</span> <span class="o">=</span> <span class="n">table_rehash</span><span class="p">(</span><span class="n">tbl</span><span class="p">,</span> <span class="n">tbl</span><span class="o">-&gt;</span><span class="n">table</span><span class="p">.</span><span class="n">buckets</span><span class="o">-&gt;</span><span class="n">buckets</span><span class="p">.</span><span class="n">length</span><span class="p">,</span> <span class="n">key</span><span class="p">);</span>
+    <span class="p">}</span>
+    <span class="k">if</span> <span class="p">(</span><span class="n">b</span> <span class="o">!=</span> <span class="nb">NULL</span> <span class="o">&amp;&amp;</span> <span class="n">b</span><span class="o">-&gt;</span><span class="n">key</span> <span class="o">!=</span> <span class="nb">NULL</span><span class="p">)</span> <span class="p">{</span>
+        <span class="n">b</span><span class="o">-&gt;</span><span class="n">key</span> <span class="o">=</span> <span class="n">obj_deleted</span><span class="p">;</span>
+        <span class="o">++</span> <span class="n">tbl</span><span class="o">-&gt;</span><span class="n">table</span><span class="p">.</span><span class="n">buckets</span><span class="o">-&gt;</span><span class="n">buckets</span><span class="p">.</span><span class="n">deleted</span><span class="p">;</span>
+    <span class="p">}</span>
+<span class="p">}</span>
+</pre></div>
+</div>
+<p>Again, by adding the line <tt class="docutils literal"><span class="pre">puts(&quot;stale!&quot;);</span></tt> after
+<a class="reference internal" href="../topic/location.html#mps_ld_isstale" title="mps_ld_isstale"><tt class="xref c c-func docutils literal"><span class="pre">mps_ld_isstale()</span></tt></a> returns true, it&#8217;s possible to see when the
+location dependency becomes stale and the table has to be rehashed:</p>
+<div class="highlight-none"><div class="highlight"><pre>MPS Toy Scheme Example
+13248, 0&gt; (define ht (make-eq-hashtable))
+ht
+13624, 0&gt; (hashtable-set! ht &#39;one 1)
+13808, 0&gt; (gc)
+13832, 1&gt; (hashtable-delete! ht &#39;one)
+stale!
+14112, 1&gt; ht
+#[hashtable]
+</pre></div>
 </div>
 <div class="admonition-topic admonition">
 <p class="first admonition-title">Topic</p>
@@ -748,9 +775,11 @@ other strong references keeping it alive.</li>
 </div>
 <p>The symbol table now becomes a very simple <a class="reference internal" href="../glossary/r.html#term-root"><em class="xref std std-term">root</em></a>, that only has
 to be registered once (not <a class="reference internal" href="lang.html#guide-lang-root"><em>every time it is rehashed</em></a>, as previously):</p>
-<div class="highlight-c"><div class="highlight"><pre><span class="n">symtab</span> <span class="o">=</span> <span class="nb">NULL</span><span class="p">;</span>
+<div class="highlight-c"><div class="highlight"><pre><span class="n">mps_addr_t</span> <span class="n">ref</span><span class="p">;</span>
+<span class="n">symtab</span> <span class="o">=</span> <span class="nb">NULL</span><span class="p">;</span>
+<span class="n">ref</span> <span class="o">=</span> <span class="o">&amp;</span><span class="n">symtab</span><span class="p">;</span>
 <span class="n">res</span> <span class="o">=</span> <span class="n">mps_root_create_table</span><span class="p">(</span><span class="o">&amp;</span><span class="n">symtab_root</span><span class="p">,</span> <span class="n">arena</span><span class="p">,</span> <span class="n">mps_rank_exact</span><span class="p">(),</span> <span class="mi">0</span><span class="p">,</span>
-                            <span class="p">(</span><span class="n">mps_addr_t</span> <span class="o">*</span><span class="p">)</span><span class="o">&amp;</span><span class="n">symtab</span><span class="p">,</span> <span class="mi">1</span><span class="p">);</span>
+                            <span class="n">ref</span><span class="p">,</span> <span class="mi">1</span><span class="p">);</span>
 <span class="k">if</span><span class="p">(</span><span class="n">res</span> <span class="o">!=</span> <span class="n">MPS_RES_OK</span><span class="p">)</span> <span class="n">error</span><span class="p">(</span><span class="s">&quot;Couldn&#39;t register symtab root&quot;</span><span class="p">);</span>
 <span class="n">symtab</span> <span class="o">=</span> <span class="n">make_table</span><span class="p">(</span><span class="mi">16</span><span class="p">,</span> <span class="n">string_hash</span><span class="p">,</span> <span class="n">string_equalp</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">);</span>
 </pre></div>
