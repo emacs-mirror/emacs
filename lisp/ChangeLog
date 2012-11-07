@@ -1,3 +1,10 @@
+2012-11-07  Michael Albinus  <michael.albinus@gmx.de>
+
+	* notifications.el (notifications-get-server-information-method):
+	New defconst.
+	(notifications-get-capabilities): Fix docstring.
+	(notifications-get-server-information): New defun.
+
 2012-11-06  Agustín Martín Domingo  <agustin.martin@hispalinux.es>
 
 	* textmodes/ispell.el (ispell-region): Standard re-indent for better
