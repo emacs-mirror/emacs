@@ -4905,15 +4905,17 @@ Common Lisp defines three macros, @code{define-modify-macro},
 @code{defsetf}, and @code{define-setf-method}, that allow the
 user to extend generalized variables in various ways.
 In Emacs, these are obsolete, replaced by various features of
-@file{gv.el} in Emacs 24.3.  Many of the implementation
-details in the following are out-of-date.
-@c FIXME this whole section needs updating.
+@file{gv.el} in Emacs 24.3.
+@xref{Adding Generalized Variables,,,elisp,GNU Emacs Lisp Reference Manual}.
+
 
 @defmac define-modify-macro name arglist function [doc-string]
 This macro defines a ``read-modify-write'' macro similar to
-@code{cl-incf} and @code{cl-decf}.  The macro @var{name} is defined
-to take a @var{place} argument followed by additional arguments
-described by @var{arglist}.  The call
+@code{cl-incf} and @code{cl-decf}.  You can replace this macro
+with @code{gv-letplace}.
+
+The macro @var{name} is defined to take a @var{place} argument
+followed by additional arguments described by @var{arglist}.  The call
 
 @example
 (@var{name} @var{place} @var{args}@dots{})
@@ -4936,8 +4938,8 @@ which in turn is roughly equivalent to
 For example:
 
 @example
-(define-modify-macro cl-incf (&optional (n 1)) +)
-(define-modify-macro cl-concatf (&rest args) concat)
+(define-modify-macro incf (&optional (n 1)) +)
+(define-modify-macro concatf (&rest args) concat)
 @end example
 
 Note that @code{&key} is not allowed in @var{arglist}, but
@@ -4947,14 +4949,28 @@ Most of the modify macros defined by Common Lisp do not exactly
 follow the pattern of @code{define-modify-macro}.  For example,
 @code{push} takes its arguments in the wrong order, and @code{pop}
 is completely irregular.
+
+The above @code{incf} example could be written using
+@code{gv-letplace} as:
+@example
+(defmacro incf (place &optional n)
+  (gv-letplace (getter setter) place
+    (macroexp-let2 nil v (or n 1)
+      (funcall setter `(+ ,v ,getter)))))
+@end example
+@ignore
+(defmacro concatf (place &rest args)
+  (gv-letplace (getter setter) place
+    (macroexp-let2 nil v (mapconcat 'identity args "")
+      (funcall setter `(concat ,getter ,v)))))
+@end ignore
 @end defmac
 
 @defmac defsetf access-fn update-fn
 This is the simpler of two @code{defsetf} forms, and is
-replaced by @code{gv-define-simple-setter} in Emacs 24.3.
-@xref{Adding Generalized Variables,,,elisp,GNU Emacs Lisp Reference Manual}.
+replaced by @code{gv-define-simple-setter}.
 
-Where @var{access-fn} is the name of a function that accesses a place,
+With @var{access-fn} the name of a function that accesses a place,
 this declares @var{update-fn} to be the corresponding store function.
 From now on,
 
@@ -4992,6 +5008,13 @@ Some examples are:
 @example
 (defsetf car setcar)
 (defsetf buffer-name rename-buffer t)
+@end example
+
+These translate directly to @code{gv-define-simple-setter}:
+
+@example
+(gv-define-simple-setter car setcar)
+(gv-define-simple-setter buffer-name rename-buffer t)
 @end example
 @end defmac
 
