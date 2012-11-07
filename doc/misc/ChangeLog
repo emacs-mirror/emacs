@@ -2,7 +2,7 @@
 
 	* cl.texi (Obsolete Setf Customization):
 	Revert defsetf example to the more correct let rather than prog1.
-	Give define-modify-macro gv.el replacement.
+	Give define-modify-macro and defsetf gv.el replacements.
 
 2012-11-06  Glenn Morris  <rgm@gnu.org>
 

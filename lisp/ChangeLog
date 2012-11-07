@@ -1,5 +1,8 @@
 2012-11-07  Glenn Morris  <rgm@gnu.org>
 
+	* emacs-lisp/cl.el (define-setf-expander, defsetf)
+	(define-modify-macro): Doc fixes.
+
 	* emacs-lisp/gv.el (gv-letplace): Fix doc typo.
 	(gv-define-simple-setter): Update doc of `fix-return'.
 

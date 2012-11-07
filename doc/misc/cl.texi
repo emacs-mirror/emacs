@@ -5019,14 +5019,16 @@ These translate directly to @code{gv-define-simple-setter}:
 @end defmac
 
 @defmac defsetf access-fn arglist (store-var) forms@dots{}
-This is the second, more complex, form of @code{defsetf}.  It is
-rather like @code{defmacro} except for the additional @var{store-var}
-argument.  The @var{forms} should return a Lisp form that stores
-the value of @var{store-var} into the generalized variable formed
-by a call to @var{access-fn} with arguments described by @var{arglist}.
-The @var{forms} may begin with a string which documents the @code{setf}
-method (analogous to the doc string that appears at the front of a
-function).
+This is the second, more complex, form of @code{defsetf}.
+It can be replaced by @code{gv-define-setter}.
+
+This form of @code{defsetf} is rather like @code{defmacro} except for
+the additional @var{store-var} argument.  The @var{forms} should
+return a Lisp form that stores the value of @var{store-var} into the
+generalized variable formed by a call to @var{access-fn} with
+arguments described by @var{arglist}.  The @var{forms} may begin with
+a string which documents the @code{setf} method (analogous to the doc
+string that appears at the front of a function).
 
 For example, the simple form of @code{defsetf} is shorthand for
 
@@ -5041,11 +5043,18 @@ macros like @code{cl-incf} that invoke this
 setf-method will insert temporary variables as needed to make
 sure the apparent order of evaluation is preserved.
 
-Another example drawn from the standard package:
+Another standard example:
 
 @example
 (defsetf nth (n x) (store)
-  (list 'setcar (list 'nthcdr n x) store))
+  `(setcar (nthcdr ,n ,x) ,store))
+@end example
+
+You could write this using @code{gv-define-setter} as:
+
+@example
+(gv-define-setter nth (store n x)
+  `(setcar (nthcdr ,n ,x) ,store))
 @end example
 @end defmac
 

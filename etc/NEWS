@@ -339,8 +339,8 @@ rather than making them unbound.
 *** The following methods of extending `setf' are obsolete
 (use features from gv.el instead):
 `define-modify-macro' (use `gv-letplace')
-`defsetf' (use `gv-define-simple-setter', or FIXME)
-`define-setf-expander' (use FIXME)
+`defsetf' (use `gv-define-simple-setter' or `gv-define-setter')
+`define-setf-expander' (use `gv-define-setter' or `gv-define-expander')
 
 ** Compilation mode
 +++
