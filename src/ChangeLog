@@ -3,8 +3,7 @@
 	* w32fns.c (modifier_set): Don't report modifiers from toggle key,
 	such as Scroll Lock, if the respective keys are treated as
 	function keys, not as modifiers.  This avoids destroying non-ASCII
-	keyboard input when Scroll Lock is toggled ON.  (Bug#1280)
-	(modifier_set): Do not omit checking the Num Lock key.
+	keyboard input when Scroll Lock is toggled ON.  (Bug#12806)
 
 2012-11-07  Dmitry Antipov  <dmantipov@yandex.ru>
 

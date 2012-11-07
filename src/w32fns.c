@@ -2099,13 +2099,6 @@ modifier_set (int vkey)
       else
 	return (GetKeyState (vkey) & 0x1);
     }
-  if (vkey == VK_NUMLOCK)
-    {
-      if (NILP (Vw32_enable_num_lock))
-	return 0;
-      else
-	return (GetKeyState (vkey) & 0x1);
-    }
 
   if (!modifiers_recorded)
     return (GetKeyState (vkey) & 0x8000);
