@@ -2865,7 +2865,6 @@ temporary variables.
 This function creates a new, uninterned symbol (using @code{make-symbol})
 with a unique name.  (The name of an uninterned symbol is relevant
 only if the symbol is printed.)  By default, the name is generated
-@c FIXME no longer true?
 from an increasing sequence of numbers, @samp{G1000}, @samp{G1001},
 @samp{G1002}, etc.  If the optional argument @var{x} is a string, that
 string is used as a prefix instead of @samp{G}.  Uninterned symbols
@@ -4479,14 +4478,6 @@ The @code{equal} predicate does not distinguish
 between IEEE floating-point plus and minus zero.  The @code{cl-equalp}
 predicate has several differences with Common Lisp; @pxref{Predicates}.
 
-@c FIXME consider moving to lispref
-@ignore
-The @code{setf} mechanism is entirely compatible, except that
-setf-methods return a list of five values rather than five
-values directly.  Also, the new ``@code{setf} function'' concept
-(typified by @code{(defun (setf foo) @dots{})}) is not implemented.
-@end ignore
-
 The @code{cl-do-all-symbols} form is the same as @code{cl-do-symbols}
 with no @var{obarray} argument.  In Common Lisp, this form would
 iterate over all symbols in all packages.  Since Emacs obarrays
@@ -5059,11 +5050,12 @@ You could write this using @code{gv-define-setter} as:
 @end defmac
 
 @defmac define-setf-method access-fn arglist forms@dots{}
-This is the most general way to create new place forms.  When
-a @code{setf} to @var{access-fn} with arguments described by
-@var{arglist} is expanded, the @var{forms} are evaluated and
-must return a list of five items:
-@c FIXME Is this still true?
+This is the most general way to create new place forms.  You can
+replace this by @code{gv-define-setter} or @code{gv-define-expander}.
+
+When a @code{setf} to @var{access-fn} with arguments described by
+@var{arglist} is expanded, the @var{forms} are evaluated and must
+return a list of five items:
 
 @enumerate
 @item
@@ -5092,6 +5084,9 @@ This is exactly like the Common Lisp macro of the same name,
 except that the method returns a list of five values rather
 than the five values themselves, since Emacs Lisp does not
 support Common Lisp's notion of multiple return values.
+(Note that the @code{setf} implementation provided by @file{gv.el}
+does not use this five item format.  Its use here is only for
+backwards compatibility.)
 
 Once again, the @var{forms} may begin with a documentation string.
 
