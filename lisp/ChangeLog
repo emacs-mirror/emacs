@@ -1,3 +1,9 @@
+2012-11-07  Chong Yidong  <cyd@gnu.org>
+
+	* minibuf-eldef.el (minibuffer-eldef-shorten-default): Convert to
+	a defcustom with an appropriate :set function.
+	(minibuffer-default--in-prompt-regexps): New function.
+
 2012-11-07  Glenn Morris  <rgm@gnu.org>
 
 	* emacs-lisp/cl.el (define-setf-expander, defsetf)

@@ -261,6 +261,7 @@ Basic Editing Commands
 
 The Minibuffer
 
+* Basic Minibuffer::      Basic usage of the minibuffer.
 * Minibuffer File::     Entering file names with the minibuffer.
 * Minibuffer Edit::     How to edit in the minibuffer.
 * Completion::          An abbreviation facility for minibuffer input.

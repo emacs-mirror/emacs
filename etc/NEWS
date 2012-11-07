@@ -127,15 +127,14 @@ autoloads have been redefined as functions).
 ---
 *** In minibuffer filename prompts, `C-M-f' and `C-M-b' now move to the
 next and previous path separator, respectively.
-
++++
 *** minibuffer-electric-default-mode can rewrite (default ...) to [...].
 Just set minibuffer-eldef-shorten-default to t before enabling the mode.
 
 ** ImageMagick support, if available, is automatically enabled.
 It is no longer necessary to call `imagemagick-register-types'
 explicitly to install ImageMagick image types; that function is called
-automatically at startup, or when customizing a relevant imagemagick-
-option.
+automatically at startup, or when customizing an imagemagick- option.
 +++
 *** Setting `imagemagick-types-inhibit' to t now disables the use of
 ImageMagick to view images.  You must call imagemagick-register-types

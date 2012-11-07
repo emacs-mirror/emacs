@@ -1500,6 +1500,7 @@ attempts to wrap the line at word boundaries near the right window
 edge.  This makes the text easier to read, as wrapping does not occur
 in the middle of words.
 
+@cindex mode, Visual Line
 @cindex Visual Line mode
 @findex visual-line-mode
 @findex global-visual-line-mode
