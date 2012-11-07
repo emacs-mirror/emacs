@@ -341,6 +341,7 @@ rather than making them unbound.
 `define-modify-macro' (use `gv-letplace')
 `defsetf' (use `gv-define-simple-setter' or `gv-define-setter')
 `define-setf-expander' (use `gv-define-setter' or `gv-define-expander')
+`get-setf-method' no longer exists (see "Incompatible Lisp Changes")
 
 ** Compilation mode
 +++
