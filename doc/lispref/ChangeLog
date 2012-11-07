@@ -1,3 +1,10 @@
+2012-11-07  Martin Rudalics  <rudalics@gmx.at>
+
+	* elisp.texi (Top): Add Recombining Windows to menu.
+	* windows.texi (Recombining Windows): New subsection.
+	(Splitting Windows): Rewrite text on handling of window
+	combinations and move it to new subsection.
+
 2012-11-07  Chong Yidong  <cyd@gnu.org>
 
 	* variables.texi (Creating Buffer-Local): Document setq-local and

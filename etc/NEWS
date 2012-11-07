@@ -834,7 +834,7 @@ recursive invocations.
 +++
 *** The functions get-lru-window, get-mru-window and get-largest-window
 now accept a third argument to avoid choosing the selected window.
-
++++
 *** Additional values recognized for option `window-combination-limit'.
 
 *** New macro `with-temp-buffer-window'.

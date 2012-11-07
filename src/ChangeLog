@@ -1,3 +1,11 @@
+2012-11-07  Martin Rudalics  <rudalics@gmx.at>
+
+	* window.c (Fsplit_window_internal): Set combination limit of
+	new parent window to t iff Vwindow_combination_limit is t;
+	fixing a regression introduced with the change from 2012-09-22.
+	(Fwindow_combination_limit, Fset_window_combination_limit): Fix
+	doc-strings.
+
 2012-11-06  Eli Zaretskii  <eliz@gnu.org>
 
 	* xdisp.c (try_scrolling): Fix correction of aggressive-scroll

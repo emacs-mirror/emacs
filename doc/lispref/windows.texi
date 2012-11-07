@@ -16,8 +16,10 @@ is displayed in windows.
 * Windows and Frames::      Relating windows to the frame they appear on.
 * Window Sizes::            Accessing a window's size.
 * Resizing Windows::        Changing the sizes of windows.
-* Splitting Windows::       Splitting one window into two windows.
-* Deleting Windows::        Deleting a window gives its space to other windows.
+* Splitting Windows::       Creating a new window.
+* Deleting Windows::        Removing a window from its frame.
+* Recombining Windows::     Preserving the frame layout when splitting and
+                              deleting windows.
 * Selecting Windows::       The selected window is the one that you edit in.
 * Cyclic Window Ordering::  Moving around the existing windows.
 * Buffers and Windows::     Each window displays the contents of a buffer.
@@ -587,7 +589,7 @@ function @code{window-resizable} above.
 The choice of which window edges this function alters depends on the
 values of the option @code{window-combination-resize} and the
 combination limits of the involved windows; in some cases, it may alter
-both edges.  @xref{Splitting Windows}.  To resize by moving only the
+both edges.  @xref{Recombining Windows}.  To resize by moving only the
 bottom or right edge of a window, use the function
 @code{adjust-window-trailing-edge}, below.
 @end defun
@@ -795,6 +797,375 @@ A new live window @var{W2} is created, to the left of the internal
 window @var{W3}.  A new internal window @var{W1} is created, becoming
 the new root window.
 
+   For interactive use, Emacs provides two commands which always split
+the selected window.  These call @code{split-window} internally.
+
+@deffn Command split-window-right &optional size
+This function splits the selected window into two side-by-side
+windows, putting the selected window on the left.  If @var{size} is
+positive, the left window gets @var{size} columns; if @var{size} is
+negative, the right window gets @minus{}@var{size} columns.
+@end deffn
+
+@deffn Command split-window-below &optional size
+This function splits the selected window into two windows, one above
+the other, leaving the upper window selected.  If @var{size} is
+positive, the upper window gets @var{size} lines; if @var{size} is
+negative, the lower window gets @minus{}@var{size} lines.
+@end deffn
+
+@defopt split-window-keep-point
+If the value of this variable is non-@code{nil} (the default),
+@code{split-window-below} behaves as described above.
+
+If it is @code{nil}, @code{split-window-below} adjusts point in each
+of the two windows to minimize redisplay.  (This is useful on slow
+terminals.)  It selects whichever window contains the screen line that
+point was previously on.  Note that this only affects
+@code{split-window-below}, not the lower-level @code{split-window}
+function.
+@end defopt
+
+@node Deleting Windows
+@section Deleting Windows
+@cindex deleting windows
+
+  @dfn{Deleting} a window removes it from the frame's window tree.  If
+the window is a live window, it disappears from the screen.  If the
+window is an internal window, its child windows are deleted too.
+
+  Even after a window is deleted, it continues to exist as a Lisp
+object, until there are no more references to it.  Window deletion can
+be reversed, by restoring a saved window configuration (@pxref{Window
+Configurations}).
+
+@deffn Command delete-window &optional window
+This function removes @var{window} from display and returns
+@code{nil}.  If @var{window} is omitted or @code{nil}, it defaults to
+the selected window.  If deleting the window would leave no more
+windows in the window tree (e.g. if it is the only live window in the
+frame), an error is signaled.
+
+By default, the space taken up by @var{window} is given to one of its
+adjacent sibling windows, if any.  However, if the variable
+@code{window-combination-resize} is non-@code{nil}, the space is
+proportionally distributed among any remaining windows in the window
+combination.  @xref{Recombining Windows}.
+
+The behavior of this function may be altered by the window parameters
+of @var{window}, so long as the variable
+@code{ignore-window-parameters} is @code{nil}.  If the value of
+the @code{delete-window} window parameter is @code{t}, this function
+ignores all other window parameters.  Otherwise, if the value of the
+@code{delete-window} window parameter is a function, that function is
+called with the argument @var{window}, in lieu of the usual action of
+@code{delete-window}.  Otherwise, this function obeys the
+@code{window-atom} or @code{window-side} window parameter, if any.
+@xref{Window Parameters}.
+@end deffn
+
+@deffn Command delete-other-windows &optional window
+This function makes @var{window} fill its frame, by deleting other
+windows as necessary.  If @var{window} is omitted or @code{nil}, it
+defaults to the selected window.  The return value is @code{nil}.
+
+The behavior of this function may be altered by the window parameters
+of @var{window}, so long as the variable
+@code{ignore-window-parameters} is @code{nil}.  If the value of
+the @code{delete-other-windows} window parameter is @code{t}, this
+function ignores all other window parameters.  Otherwise, if the value
+of the @code{delete-other-windows} window parameter is a function,
+that function is called with the argument @var{window}, in lieu of the
+usual action of @code{delete-other-windows}.  Otherwise, this function
+obeys the @code{window-atom} or @code{window-side} window parameter,
+if any.  @xref{Window Parameters}.
+@end deffn
+
+@deffn Command delete-windows-on &optional buffer-or-name frame
+This function deletes all windows showing @var{buffer-or-name}, by
+calling @code{delete-window} on those windows.  @var{buffer-or-name}
+should be a buffer, or the name of a buffer; if omitted or @code{nil},
+it defaults to the current buffer.  If there are no windows showing
+the specified buffer, this function does nothing.  If the specified
+buffer is a minibuffer, an error is signaled.
+
+If there is a dedicated window showing the buffer, and that window is
+the only one on its frame, this function also deletes that frame if it
+is not the only frame on the terminal.
+
+The optional argument @var{frame} specifies which frames to operate
+on:
+
+@itemize @bullet
+@item @code{nil}
+means operate on all frames.
+@item @code{t}
+means operate on the selected frame.
+@item @code{visible}
+means operate on all visible frames.
+@item @code{0}
+means operate on all visible or iconified frames.
+@item A frame
+means operate on that frame.
+@end itemize
+
+Note that this argument does not have the same meaning as in other
+functions which scan all live windows (@pxref{Cyclic Window
+Ordering}).  Specifically, the meanings of @code{t} and @code{nil} here
+are the opposite of what they are in those other functions.
+@end deffn
+
+
+@node Recombining Windows
+@section Recombining Windows
+
+When deleting the last sibling of a window @code{W}, its parent window
+is deleted too, with @code{W} replacing it in the window tree.  This
+means that @code{W} must be recombined with its parent's siblings to
+form a new window combination (@pxref{Windows and Frames}).  In some
+occasions, deleting a live window may even entail the deletion of two
+internal windows.
+
+@smallexample
+@group
+     ______________________________________
+    | ______  ____________________________ |
+    ||      || __________________________ ||
+    ||      ||| ___________  ___________ |||
+    ||      ||||           ||           ||||
+    ||      ||||____W6_____||_____W7____||||
+    ||      |||____________W4____________|||
+    ||      || __________________________ ||
+    ||      |||                          |||
+    ||      |||                          |||
+    ||      |||____________W5____________|||
+    ||__W2__||_____________W3_____________ |
+    |__________________W1__________________|
+
+@end group
+@end smallexample
+
+@noindent
+Deleting @code{W5} in this configuration normally causes the deletion of
+@code{W3} and @code{W4}.  The remaining live windows @code{W2},
+@code{W6} and @code{W7} are recombined to form a new horizontal
+combination with parent @code{W1}.
+
+   Sometimes, however, it makes sense to not delete a parent window like
+@code{W4}.  In particular, a parent window should not be removed when it
+was used to preserve a combination embedded in a combination of the same
+type.  Such embeddings make sense to assure that when you split a window
+and subsequently delete the new window, Emacs reestablishes the layout
+of the associated frame as it existed before the splitting.
+
+   Consider a scenario starting with two live windows @code{W2} and
+@code{W3} and their parent @code{W1}.
+
+@smallexample
+@group
+     ______________________________________
+    | ____________________________________ |
+    ||                                    ||
+    ||                                    ||
+    ||                                    ||
+    ||                                    ||
+    ||                                    ||
+    ||                                    ||
+    ||_________________W2_________________||
+    | ____________________________________ |
+    ||                                    ||
+    ||                                    ||
+    ||_________________W3_________________||
+    |__________________W1__________________|
+
+@end group
+@end smallexample
+
+@noindent
+Split @code{W2} to make a new window @code{W4} as follows.
+
+@smallexample
+@group
+     ______________________________________
+    | ____________________________________ |
+    ||                                    ||
+    ||                                    ||
+    ||_________________W2_________________||
+    | ____________________________________ |
+    ||                                    ||
+    ||                                    ||
+    ||_________________W4_________________||
+    | ____________________________________ |
+    ||                                    ||
+    ||                                    ||
+    ||_________________W3_________________||
+    |__________________W1__________________|
+
+@end group
+@end smallexample
+
+@noindent
+Now, when enlarging a window vertically, Emacs tries to obtain the
+corresponding space from its lower sibling, provided such a window
+exists.  In our scenario, enlarging @code{W4} will steal space from
+@code{W3}.
+
+@smallexample
+@group
+     ______________________________________
+    | ____________________________________ |
+    ||                                    ||
+    ||                                    ||
+    ||_________________W2_________________||
+    | ____________________________________ |
+    ||                                    ||
+    ||                                    ||
+    ||                                    ||
+    ||                                    ||
+    ||_________________W4_________________||
+    | ____________________________________ |
+    ||_________________W3_________________||
+    |__________________W1__________________|
+
+@end group
+@end smallexample
+
+@noindent
+Deleting @code{W4} will now give its entire space to @code{W2},
+including the space earlier stolen from @code{W3}.
+
+@smallexample
+@group
+     ______________________________________
+    | ____________________________________ |
+    ||                                    ||
+    ||                                    ||
+    ||                                    ||
+    ||                                    ||
+    ||                                    ||
+    ||                                    ||
+    ||                                    ||
+    ||                                    ||
+    ||_________________W2_________________||
+    | ____________________________________ |
+    ||_________________W3_________________||
+    |__________________W1__________________|
+
+@end group
+@end smallexample
+
+@noindent
+This can be counterintutive, in particular if @code{W4} were used for
+displaying a buffer only temporarily (@pxref{Temporary Displays}), and
+you want to continue working with the initial layout.
+
+The behavior can be fixed by making a new parent window when splitting
+@code{W2}.  The variable described next allows to do that.
+
+@defopt window-combination-limit
+This variable controls whether splitting a window shall make a new
+parent window.  The following values are recognized:
+
+@table @code
+@item nil
+This means that the new live window is allowed to share the existing
+parent window, if one exists, provided the split occurs in the same
+direction as the existing window combination (otherwise, a new internal
+window is created anyway).
+
+@item window-size
+In this case @code{display-buffer} makes a new parent window if it is
+passed a @code{window-height} or @code{window-width} entry in the
+@var{alist} argument (@pxref{Display Action Functions}).
+
+@item temp-buffer
+This value causes the creation of a new parent window when a window is
+split for showing a temporary buffer (@pxref{Temporary Displays}) only.
+
+@item display-buffer
+This means that when @code{display-buffer} (@pxref{Choosing Window})
+splits a window it always makes a new parent window.
+
+@item t
+In this case a new parent window is always created when splitting a
+window.  Thus, if the value of this variable is at all times @code{t},
+then at all times every window tree is a binary tree (a tree where each
+window except the root window has exactly one sibling).
+@end table
+
+The default is @code{nil}.  Other values are reserved for future use.
+
+If, as a consequence of this variable's setting, @code{split-window}
+makes a new parent window, it also calls
+@code{set-window-combination-limit} (see below) on the newly-created
+internal window.  This affects how the window tree is rearranged when
+the child windows are deleted (see below).
+@end defopt
+
+  If @code{window-combination-limit} is @code{t}, splitting @code{W2} in
+the initial configuration of our scenario would have produced this:
+
+@smallexample
+@group
+     ______________________________________
+    | ____________________________________ |
+    || __________________________________ ||
+    |||                                  |||
+    |||________________W2________________|||
+    || __________________________________ ||
+    |||                                  |||
+    |||________________W4________________|||
+    ||_________________W5_________________||
+    | ____________________________________ |
+    ||                                    ||
+    ||                                    ||
+    ||_________________W3_________________||
+    |__________________W1__________________|
+
+@end group
+@end smallexample
+
+@noindent
+A new internal window @code{W5} has been created; its children are
+@code{W2} and the new live window @code{W4}.  Now, @code{W2} is the only
+sibling of @code{W4}, so enlarging @code{W4} will try to shrink
+@code{W2}, leaving @code{W3} unaffected.  Observe that @code{W5}
+represents a vertical combination of two windows embedded in the
+vertical combination @code{W1}.
+
+@cindex window combination limit
+@defun set-window-combination-limit window limit
+This functions sets the @dfn{combination limit} of the window
+@var{window} to @var{limit}.  This value can be retrieved via the
+function @code{window-combination-limit}.  See below for its effects;
+note that it is only meaningful for internal windows.  The
+@code{split-window} function automatically calls this function, passing
+it @code{t} as @var{limit}, provided the value of the variable
+@code{window-combination-limit} is @code{t} when it is called.
+@end defun
+
+@defun window-combination-limit window
+This function returns the combination limit for @var{window}.
+
+The combination limit is meaningful only for an internal window.  If it
+is @code{nil}, then Emacs is allowed to automatically delete
+@var{window}, in response to a window deletion, in order to group the
+child windows of @var{window} with its sibling windows to form a new
+window combination.  If the combination limit is @code{t}, the child
+windows of @var{window} are never automatically recombined with its
+siblings.
+
+If, in the configuration shown at the beginning of this section, the
+combination limit of @code{W4} (the parent window of @code{W6} and
+@code{W7}) is @code{t}, deleting @code{W5} will not implicitly delete
+@code{W4} too.
+@end defun
+
+Alternatively, the problems sketched above can be avoided by always
+resizing all windows in the same combination whenever one of its windows
+is split or deleted.  This also permits to split windows that would be
+otherwise too small for such an operation.
+
 @defopt window-combination-resize
 If this variable is @code{nil}, @code{split-window} can only split a
 window (denoted by @var{window}) if @var{window}'s screen area is large
@@ -810,11 +1181,11 @@ combination.
 
 The default is @code{nil}.  Other values are reserved for future use.
 The value of this variable is ignored when
-@code{window-combination-limit} is non-@code{nil} (see below).
+@code{window-combination-limit} is non-@code{nil}.
 @end defopt
 
-  To illustrate the effect of @code{window-combination-resize},
-consider the following window configuration:
+  To illustrate the effect of @code{window-combination-resize}, consider
+the following frame layout.
 
 @smallexample
 @group
@@ -885,248 +1256,11 @@ height:
 @end group
 @end smallexample
 
-@defopt window-combination-limit
-If the value of this variable is @code{t}, the @code{split-window}
-function always creates a new internal window.  If the value is
-@code{nil}, the new live window is allowed to share the existing
-parent window, if one exists, provided the split occurs in the same
-direction as the existing window combination (otherwise, a new
-internal window is created anyway).  The default is @code{nil}.  Other
-values are reserved for future use.
-
-Thus, if the value of this variable is at all times @code{t}, then at
-all times every window tree is a binary tree (a tree where each window
-except the root window has exactly one sibling).
-
-Furthermore, @code{split-window} calls
-@code{set-window-combination-limit} on the newly-created internal
-window, recording the current value of this variable.  This affects
-how the window tree is rearranged when the child windows are deleted
-(see below).
-@end defopt
-
-@cindex window combination limit
-@defun set-window-combination-limit window limit
-This functions sets the @dfn{combination limit} of the window
-@var{window} to @var{limit}.  This value can be retrieved via the
-function @code{window-combination-limit}.  See below for its effects;
-note that it is only meaningful for internal windows.  The
-@code{split-window} function automatically calls this function, passing
-the value of the variable @code{window-combination-limit} as
-@var{limit}.
-@end defun
-
-@defun window-combination-limit window
-This function returns the combination limit for @var{window}.
-
-The combination limit is meaningful only for an internal window.  If
-it is @code{nil}, then Emacs is allowed to automatically delete
-@var{window}, in response to a window deletion, in order to group the
-child windows of @var{window} with its sibling windows to form a new
-window combination.  If the combination limit is @code{t}, the child
-windows of @var{window} are never automatically re-combined with its
-siblings.
-@end defun
-
-  To illustrate the effect of @code{window-combination-limit},
-consider the following configuration (throughout this example, we will
-assume that @code{window-combination-resize} is @code{nil}):
-
-@smallexample
-@group
-     ______________________________________
-    | ____________________________________ |
-    ||                                    ||
-    ||                                    ||
-    ||                                    ||
-    ||                                    ||
-    ||                                    ||
-    ||                                    ||
-    ||_________________W2_________________||
-    | ____________________________________ |
-    ||                                    ||
-    ||                                    ||
-    ||_________________W3_________________||
-    |__________________W1__________________|
-
-@end group
-@end smallexample
-
 @noindent
-If @code{window-combination-limit} is @code{nil}, splitting @code{W2}
-into two windows, one above the other, yields
+Deleting any of the live windows @code{W2}, @code{W3} or @code{W4} will
+distribute its space proportionally among the two remaining live
+windows.
 
-@smallexample
-@group
-     ______________________________________
-    | ____________________________________ |
-    ||                                    ||
-    ||                                    ||
-    ||_________________W2_________________||
-    | ____________________________________ |
-    ||                                    ||
-    ||                                    ||
-    ||_________________W4_________________||
-    | ____________________________________ |
-    ||                                    ||
-    ||                                    ||
-    ||_________________W3_________________||
-    |__________________W1__________________|
-
-@end group
-@end smallexample
-
-@noindent
-The newly-created window, @code{W4}, shares the same internal window
-@code{W1}.  If @code{W4} is resized, it is allowed to resize the other
-live window, @code{W3}.
-
-  If @code{window-combination-limit} is @code{t}, splitting @code{W2}
-in the initial configuration would instead have produced this:
-
-@smallexample
-@group
-     ______________________________________
-    | ____________________________________ |
-    || __________________________________ ||
-    |||                                  |||
-    |||________________W2________________|||
-    || __________________________________ ||
-    |||                                  |||
-    |||________________W4________________|||
-    ||_________________W5_________________||
-    | ____________________________________ |
-    ||                                    ||
-    ||                                    ||
-    ||_________________W3_________________||
-    |__________________W1__________________|
-
-@end group
-@end smallexample
-
-@noindent
-A new internal window @code{W5} has been created; its children are
-@code{W2} and the new live window @code{W4}.  Now, @code{W2} is the
-only sibling of @code{W4}, so resizing @code{W4} will resize
-@code{W2}, leaving @code{W3} unaffected.
-
-  For interactive use, Emacs provides two commands which always split
-the selected window.  These call @code{split-window} internally.
-
-@deffn Command split-window-right &optional size
-This function splits the selected window into two side-by-side
-windows, putting the selected window on the left.  If @var{size} is
-positive, the left window gets @var{size} columns; if @var{size} is
-negative, the right window gets @minus{}@var{size} columns.
-@end deffn
-
-@deffn Command split-window-below &optional size
-This function splits the selected window into two windows, one above
-the other, leaving the upper window selected.  If @var{size} is
-positive, the upper window gets @var{size} lines; if @var{size} is
-negative, the lower window gets @minus{}@var{size} lines.
-@end deffn
-
-@defopt split-window-keep-point
-If the value of this variable is non-@code{nil} (the default),
-@code{split-window-below} behaves as described above.
-
-If it is @code{nil}, @code{split-window-below} adjusts point in each
-of the two windows to minimize redisplay.  (This is useful on slow
-terminals.)  It selects whichever window contains the screen line that
-point was previously on.  Note that this only affects
-@code{split-window-below}, not the lower-level @code{split-window}
-function.
-@end defopt
-
-@node Deleting Windows
-@section Deleting Windows
-@cindex deleting windows
-
-  @dfn{Deleting} a window removes it from the frame's window tree.  If
-the window is a live window, it disappears from the screen.  If the
-window is an internal window, its child windows are deleted too.
-
-  Even after a window is deleted, it continues to exist as a Lisp
-object, until there are no more references to it.  Window deletion can
-be reversed, by restoring a saved window configuration (@pxref{Window
-Configurations}).
-
-@deffn Command delete-window &optional window
-This function removes @var{window} from display and returns
-@code{nil}.  If @var{window} is omitted or @code{nil}, it defaults to
-the selected window.  If deleting the window would leave no more
-windows in the window tree (e.g. if it is the only live window in the
-frame), an error is signaled.
-
-By default, the space taken up by @var{window} is given to one of its
-adjacent sibling windows, if any.  However, if the variable
-@code{window-combination-resize} is non-@code{nil}, the space is
-proportionally distributed among any remaining windows in the window
-combination.  @xref{Splitting Windows}.
-
-The behavior of this function may be altered by the window parameters
-of @var{window}, so long as the variable
-@code{ignore-window-parameters} is @code{nil}.  If the value of
-the @code{delete-window} window parameter is @code{t}, this function
-ignores all other window parameters.  Otherwise, if the value of the
-@code{delete-window} window parameter is a function, that function is
-called with the argument @var{window}, in lieu of the usual action of
-@code{delete-window}.  Otherwise, this function obeys the
-@code{window-atom} or @code{window-side} window parameter, if any.
-@xref{Window Parameters}.
-@end deffn
-
-@deffn Command delete-other-windows &optional window
-This function makes @var{window} fill its frame, by deleting other
-windows as necessary.  If @var{window} is omitted or @code{nil}, it
-defaults to the selected window.  The return value is @code{nil}.
-
-The behavior of this function may be altered by the window parameters
-of @var{window}, so long as the variable
-@code{ignore-window-parameters} is @code{nil}.  If the value of
-the @code{delete-other-windows} window parameter is @code{t}, this
-function ignores all other window parameters.  Otherwise, if the value
-of the @code{delete-other-windows} window parameter is a function,
-that function is called with the argument @var{window}, in lieu of the
-usual action of @code{delete-other-windows}.  Otherwise, this function
-obeys the @code{window-atom} or @code{window-side} window parameter,
-if any.  @xref{Window Parameters}.
-@end deffn
-
-@deffn Command delete-windows-on &optional buffer-or-name frame
-This function deletes all windows showing @var{buffer-or-name}, by
-calling @code{delete-window} on those windows.  @var{buffer-or-name}
-should be a buffer, or the name of a buffer; if omitted or @code{nil},
-it defaults to the current buffer.  If there are no windows showing
-the specified buffer, this function does nothing.  If the specified
-buffer is a minibuffer, an error is signaled.
-
-If there is a dedicated window showing the buffer, and that window is
-the only one on its frame, this function also deletes that frame if it
-is not the only frame on the terminal.
-
-The optional argument @var{frame} specifies which frames to operate
-on:
-
-@itemize @bullet
-@item @code{nil}
-means operate on all frames.
-@item @code{t}
-means operate on the selected frame.
-@item @code{visible}
-means operate on all visible frames.
-@item @code{0}
-means operate on all visible or iconified frames.
-@item A frame
-means operate on that frame.
-@end itemize
-
-Note that this argument does not have the same meaning as in other
-functions which scan all live windows (@pxref{Cyclic Window
-Ordering}).  Specifically, the meanings of @code{t} and @code{nil} here
-are the opposite of what they are in those other functions.
-@end deffn
 
 @node Selecting Windows
 @section Selecting Windows

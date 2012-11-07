@@ -600,10 +600,12 @@ Return nil if WINDOW has no previous sibling.  */)
 
 DEFUN ("window-combination-limit", Fwindow_combination_limit, Swindow_combination_limit, 1, 1, 0,
        doc: /* Return combination limit of window WINDOW.
-WINDOW must be a valid window and defaults to the selected one.
-If the return value is nil, child windows of WINDOW can be recombined with
-WINDOW's siblings.  A return value of t means that child windows of
-WINDOW are never \(re-)combined with WINDOW's siblings.  */)
+If the return value is nil, child windows of WINDOW can be recombined
+with WINDOW's siblings.  A return value of t means that child windows of
+WINDOW are never \(re-)combined with WINDOW's siblings.
+
+WINDOW must be a valid window.  The return value is meaningful for
+internal windows only.  */)
   (Lisp_Object window)
 {
   return decode_valid_window (window)->combination_limit;
@@ -611,11 +613,13 @@ WINDOW are never \(re-)combined with WINDOW's siblings.  */)
 
 DEFUN ("set-window-combination-limit", Fset_window_combination_limit, Sset_window_combination_limit, 2, 2, 0,
        doc: /* Set combination limit of window WINDOW to LIMIT; return LIMIT.
-WINDOW must be a valid window and defaults to the selected one.
 If LIMIT is nil, child windows of WINDOW can be recombined with WINDOW's
 siblings.  LIMIT t means that child windows of WINDOW are never
 \(re-)combined with WINDOW's siblings.  Other values are reserved for
-future use.  */)
+future use.
+
+WINDOW must be a valid window.  Setting the combination limit is
+meaningful for internal windows only.  */)
   (Lisp_Object window, Lisp_Object limit)
 {
   wset_combination_limit (decode_valid_window (window), limit);
@@ -3892,9 +3896,10 @@ set correctly.  See the code of `split-window' for how this is done.  */)
 
       make_parent_window (old, horflag);
       p = XWINDOW (o->parent);
-      /* Store t in the new parent's combination_limit slot to avoid
-	that its children get merged into another window.  */
-      wset_combination_limit (p, Qt);
+      if (EQ (Vwindow_combination_limit, Qt))
+	/* Store t in the new parent's combination_limit slot to avoid
+	   that its children get merged into another window.  */
+	wset_combination_limit (p, Qt);
       /* These get applied below.  */
       wset_new_total (p, horflag ? o->total_cols : o->total_lines);
       wset_new_normal (p, new_normal);
