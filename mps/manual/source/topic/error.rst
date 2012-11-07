@@ -235,6 +235,8 @@ this documentation.
 
 ``lockix.c: res == 0``
 
+``lockw3.c: lock->claims == 0``
+
     The client program has made a re-entrant call into the MPS. Look
     at the backtrace to see what it was. Common culprits are
     :term:`format methods` and :term:`stepper functions`.
