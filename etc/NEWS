@@ -336,9 +336,11 @@ of `symbol-function' in place forms.
 A side effect is that vars without corresponding value are bound to nil
 rather than making them unbound.
 
-*** The following methods of extending `setf' are obsolete.
-Use gv.el instead (FIXME; details).
-`define-setf-expander', `defsetf', `define-modify-macro'
+*** The following methods of extending `setf' are obsolete
+(use features from gv.el instead):
+`define-modify-macro' (use `gv-letplace')
+`defsetf' (use `gv-define-simple-setter', or FIXME)
+`define-setf-expander' (use FIXME)
 
 ** Compilation mode
 +++
