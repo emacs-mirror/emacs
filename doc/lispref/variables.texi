@@ -2089,8 +2089,13 @@ no problem with, e.g., @code{car} and @code{setcar}, because
 @code{setcar} returns the value that it set.  If your @var{setter}
 function does not return @var{value}, use a non-@code{nil} value for
 the @var{fix-return} argument of @code{gv-define-simple-setter}.  This
-wraps the @code{setf} expansion in @code{(prog1 @var{value} @dots{})}
-so that it returns the correct result.
+expands into something equivalent to
+@example
+(let ((temp @var{value}))
+  (@var{setter} @var{args}@dots{} temp)
+  temp)
+@end example
+so ensuring that it returns the correct result.
 @end defmac
 
 

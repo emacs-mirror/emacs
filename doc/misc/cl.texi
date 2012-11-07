@@ -4950,9 +4950,8 @@ is completely irregular.
 @end defmac
 
 @defmac defsetf access-fn update-fn
-This is the simpler of two @code{defsetf} forms, and is entirely
-obsolete, being replaced by @code{gv-define-simple-setter} in Emacs
-24.3.
+This is the simpler of two @code{defsetf} forms, and is
+replaced by @code{gv-define-simple-setter} in Emacs 24.3.
 @xref{Adding Generalized Variables,,,elisp,GNU Emacs Lisp Reference Manual}.
 
 Where @var{access-fn} is the name of a function that accesses a place,
@@ -4983,8 +4982,9 @@ not suitable, so that the above @code{setf} should be expanded to
 something more like
 
 @example
-(prog1 @var{value}
-  (@var{update-fn} @var{arg1} @var{arg2} @var{arg3} @var{value}))
+(let ((temp @var{value}))
+  (@var{update-fn} @var{arg1} @var{arg2} @var{arg3} temp)
+  temp)
 @end example
 
 Some examples are:
