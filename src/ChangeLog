@@ -1,3 +1,11 @@
+2012-11-07  Eli Zaretskii  <eliz@gnu.org>
+
+	* w32fns.c (w32_wnd_proc): Don't directly handle key chords
+	including modifiers from toggle key, such as Scroll Lock, if the
+	respective keys are treated as function keys, not as modifiers.
+	This avoids destroying non-ASCII keyboard input when Scroll Lock
+	is toggled ON.  (Bug#1280)
+
 2012-11-07  Dmitry Antipov  <dmantipov@yandex.ru>
 
 	* xfns.c (Fx_wm_set_size_hint): Use check_x_frame.  Adjust docstring.
