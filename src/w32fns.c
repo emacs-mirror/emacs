@@ -2085,7 +2085,7 @@ sync_modifiers (void)
 static int
 modifier_set (int vkey)
 {
-  if (vkey == VK_CAPITAL || vkey == VK_SCROLL)
+  if (vkey == VK_CAPITAL || vkey == VK_SCROLL || vkey == VK_NUMLOCK)
     return (GetKeyState (vkey) & 0x1);
   if (!modifiers_recorded)
     return (GetKeyState (vkey) & 0x8000);
