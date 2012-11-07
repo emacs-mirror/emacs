@@ -7,6 +7,8 @@
 
 2012-11-07  Chong Yidong  <cyd@gnu.org>
 
+	* searching.texi (Replacing Match): Document \? in replace-match.
+
 	* variables.texi (Creating Buffer-Local): Document setq-local and
 	defvar-local.
 	(Setting Generalized Variables): Arrange table alphabetically.

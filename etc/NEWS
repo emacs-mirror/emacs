@@ -699,6 +699,7 @@ sequence in later calls.
 font name as a string.  Whether it returns a font spec or a font name
 depends on the graphical library.
 
++++
 ** If the NEWTEXT arg to `replace-match' contains a substring "\?",
 that substring is inserted literally even if the LITERAL arg is
 non-nil, instead of causing an error to be signaled.
