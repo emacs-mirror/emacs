@@ -1,3 +1,11 @@
+2012-11-07  Chong Yidong  <cyd@gnu.org>
+
+	* buffers.texi (Several Buffers): List Buffer Menu command anmes,
+	and index the keybindings.  Document tabulated-list-sort.
+	(Kill Buffer): Capitalize Buffer Menu.
+
+	* trouble.texi (Memory Full): Capitalize Buffer Menu.
+
 2012-11-05  Eli Zaretskii  <eliz@gnu.org>
 
 	* display.texi (Auto Scrolling): Clarify that scroll-step is

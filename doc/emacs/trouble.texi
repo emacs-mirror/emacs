@@ -275,7 +275,7 @@ will disappear from the mode line.  That means you can safely go on
 editing in the same Emacs session.
 
   Do not use @kbd{M-x buffer-menu} to save or kill buffers when you run
-out of memory, because the buffer menu needs a fair amount of memory
+out of memory, because the Buffer Menu needs a fair amount of memory
 itself, and the reserve supply may not be enough.
 
 @node Crashing

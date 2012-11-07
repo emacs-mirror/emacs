@@ -577,7 +577,7 @@ by a backslash.  The default does not escape the newlines and assumes
 that the sql statement will be terminated by a semicolon.
 
 ** Tabulated List and packages derived from it
-
++++
 *** New command `tabulated-list-sort', bound to `S', sorts the column
 at point, or the Nth column if a numeric prefix argument is given.
 
