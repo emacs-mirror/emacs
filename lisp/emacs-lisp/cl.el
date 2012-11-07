@@ -597,7 +597,7 @@ Example:
                           (cl-function
                            (lambda (,@(car args) ,@arg1) ,@(cdr args)))
 			  do args)))
-    `(gv-define-simple-setter ,name ,arg1)))
+    `(gv-define-simple-setter ,name ,arg1 ,(car args))))
 
 ;; FIXME: CL used to provide a setf method for `apply', but I haven't been able
 ;; to find a case where it worked.  The code below tries to handle it as well.
