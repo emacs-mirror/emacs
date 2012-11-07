@@ -2085,8 +2085,28 @@ sync_modifiers (void)
 static int
 modifier_set (int vkey)
 {
-  if (vkey == VK_CAPITAL || vkey == VK_SCROLL || vkey == VK_NUMLOCK)
-    return (GetKeyState (vkey) & 0x1);
+  if (vkey == VK_CAPITAL)
+    {
+      if (NILP (Vw32_enable_caps_lock))
+	return 0;
+      else
+	return (GetKeyState (vkey) & 0x1);
+    }
+  if (vkey == VK_SCROLL)
+    {
+      if (NILP (Vw32_scroll_lock_modifier))
+	return 0;
+      else
+	return (GetKeyState (vkey) & 0x1);
+    }
+  if (vkey == VK_NUMLOCK)
+    {
+      if (NILP (Vw32_enable_num_lock))
+	return 0;
+      else
+	return (GetKeyState (vkey) & 0x1);
+    }
+
   if (!modifiers_recorded)
     return (GetKeyState (vkey) & 0x8000);
 
@@ -2974,21 +2994,12 @@ w32_wnd_proc (HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
 	    {
 	      DWORD modifiers = construct_console_modifiers ();
 
-	      /* Always let TranslateMessage handle AltGr key chords;
-		 for some reason, ToAscii doesn't always process AltGr
-		 chords correctly.  */
-	      if ((!NILP (Vw32_recognize_altgr)
-		   && modifier_set (VK_LCONTROL) && modifier_set (VK_RMENU))
-		  /* If a toggle key is used as a function key, let
-		     TranslateMessage handle keys pressed while the
-		     toggled key is ON.  This avoids munging non-ASCII
-		     keys, like interpreting them as ASCII keys below,
-		     when, e.g., Scroll Lock is toggled ON.  */
-		  || (NILP (Vw32_scroll_lock_modifier)
-		      && modifier_set (VK_SCROLL))
-		  || (NILP (Vw32_enable_num_lock) && modifier_set (VK_NUMLOCK))
-		  || (NILP (Vw32_enable_caps_lock) && modifier_set (VK_CAPITAL)))
+	      if (!NILP (Vw32_recognize_altgr)
+		  && modifier_set (VK_LCONTROL) && modifier_set (VK_RMENU))
 		{
+		  /* Always let TranslateMessage handle AltGr key chords;
+		     for some reason, ToAscii doesn't always process AltGr
+		     chords correctly.  */
 		  windows_translate = 1;
 		}
 	      else if ((modifiers & (~SHIFT_PRESSED & ~CAPSLOCK_ON)) != 0)
