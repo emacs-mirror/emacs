@@ -1,5 +1,7 @@
 2012-11-07  Chong Yidong  <cyd@gnu.org>
 
+	* misc.texi (Terminal emulator): Document Term mode faces.
+
 	* mini.texi (Basic Minibuffer): New node.  Document
 	minibuffer-electric-default-mode.
 
