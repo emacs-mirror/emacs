@@ -1,3 +1,9 @@
+2012-11-08  Chong Yidong  <cyd@gnu.org>
+
+	* url.texi (Introduction): Rename from Getting Started.  Rewrite
+	the introduction.
+	(URI Parsing): Rewrite.  Omit the obsolete attributes slot.
+
 2012-11-07  Glenn Morris  <rgm@gnu.org>
 
 	* cl.texi (Obsolete Setf Customization):

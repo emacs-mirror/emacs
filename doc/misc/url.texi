@@ -18,7 +18,7 @@
 @end direntry
 
 @copying
-This file documents the Emacs Lisp URL loading package.
+This file documents @code{url} Emacs Lisp library.
 
 Copyright @copyright{} 1993-1999, 2002, 2004-2012 Free Software Foundation, Inc.
 
@@ -57,7 +57,8 @@ developing GNU and promoting software freedom.''
 @end ifnottex
 
 @menu
-* Getting Started::             Preparing your program to use URLs.
+* Introduction::                About the @code{url} library.
+* URI Parsing::                 Parsing (and unparsing) URIs.
 * Retrieving URLs::             How to use this package to retrieve a URL.
 * Supported URL Types::         Descriptions of URL types currently supported.
 * Defining New URLs::           How to define a URL loader for a new protocol.
@@ -70,93 +71,132 @@ developing GNU and promoting software freedom.''
 * Concept Index::
 @end menu
 
-@node Getting Started
-@chapter Getting Started
-@cindex URLs, definition
-@cindex URIs
+@node Introduction
+@chapter Introduction
+@cindex URL
+@cindex URI
+@cindex uniform resource identifier
+@cindex uniform resource locator
 
-@dfn{Uniform Resource Locators} (URLs) are a specific form of
-@dfn{Uniform Resource Identifiers} (URI) described in RFC 2396 which
-updates RFC 1738 and RFC 1808.  RFC 2016 defines uniform resource
-agents.
+A @dfn{Uniform Resource Identifier} (URI) is a specially-formatted
+name, such as an Internet address, which identifies some name or
+resource.  The format of URIs is described in RFC 3986, which updates
+and replaces the earlier RFCs 2732, 2396, 1808, and 1738.  A
+@dfn{Uniform Resource Locator} (URL) is an older but still-common
+term, which basically refers to a URI corresponding to a resource
+which can be accessed over a network.
 
-URIs have the form @var{scheme}:@var{scheme-specific-part}, where the
-@var{scheme}s supported by this library are described below.
-@xref{Supported URL Types}.
-
-FTP, NFS, HTTP, HTTPS, @code{rlogin}, @code{telnet}, tn3270,
-IRC and gopher URLs all have the form
+  Here are some examples of URIs (taken from RFC 3986):
 
 @example
-@var{scheme}://@r{[}@var{userinfo}@@@r{]}@var{hostname}@r{[}:@var{port}@r{]}@r{[}/@var{path}@r{]}
+ftp://ftp.is.co.za/rfc/rfc1808.txt
+http://www.ietf.org/rfc/rfc2396.txt
+ldap://[2001:db8::7]/c=GB?objectClass?one
+mailto:John.Doe@@example.com
+news:comp.infosystems.www.servers.unix
+tel:+1-816-555-1212
+telnet://192.0.2.16:80/
+urn:oasis:names:specification:docbook:dtd:xml:4.1.2
 @end example
-@noindent
-where @samp{@r{[}} and @samp{@r{]}} delimit optional parts.
-@var{userinfo} sometimes takes the form @var{username}:@var{password}
-but you should beware of the security risks of sending cleartext
-passwords.  @var{hostname} may be a domain name or a dotted decimal
-address.  If the @samp{:@var{port}} is omitted then the library will
-use the ``well known'' port for that service when accessing URLs.  With
-the possible exception of @code{telnet}, it is rare for ports to be
-specified, and it is possible using a non-standard port may have
-undesired consequences if a different service is listening on that
-port (e.g., an HTTP URL specifying the SMTP port can cause mail to be
-sent). @c , but @xref{Other Variables, url-bad-port-list}.
-The meaning of the @var{path} component depends on the service.
 
-@menu
-* Configuration::
-* Parsed URLs::                 URLs are parsed into vector structures.
-@end menu
-
-@node Configuration
-@section Configuration
+  This manual describes the @code{url} library, an Emacs Lisp library
+for parsing URIs and retrieving the resources to which they refer.
+(The library is so-named due to historical reasons; nowadays, the
+``URI'' terminology is regarded as the more general one, and ``URL''
+is technically obsolete despite its widespread vernacular usage.)
 
 @defvar url-configuration-directory
-@cindex @file{~/.url}
 @cindex configuration files
-The directory in which URL configuration files, the cache etc.,
-reside.  The old default was @file{~/.url}, and this directory
-is still used if it exists.  The new default is a @file{url/}
-directory in @code{user-emacs-directory}, which is normally
-@file{~/.emacs.d}.
+The value of this variable specifies the name of the directory in
+which the @code{url} library stores its various configuration files,
+cache files, etc.
+
+The default value specifies a subdirectory named @file{url/} in the
+standard Emacs user data directory specified by the variable
+@code{user-emacs-directory} (normally @file{~/.emacs.d}).  However,
+the old default was @file{~/.url}, and this directory is used instead
+if it exists.
 @end defvar
 
-@node Parsed URLs
-@section Parsed URLs
-@cindex parsed URLs
-The library functions typically operate on @dfn{parsed} versions of
-URLs.  These are actually CL structures (vectors) of the form:
+@node URI Parsing
+@chapter URI Parsing
+
+  A URI consists of several @dfn{components}, each having a different
+meaning.  For example, the URI
 
 @example
-[cl-struct-url @var{type} @var{user} @var{password} @var{host} @var{port} @var{filename} @var{target} @var{attributes} @var{fullness} @var{use-cookies}]
+http://www.gnu.org/software/emacs/
 @end example
 
-@noindent where
-@table @var
+@noindent
+specifies the scheme component @samp{http}, the hostname component
+@samp{www.gnu.org}, and the path component @samp{/software/emacs/}.
+
+@cindex parsed URIs
+  The URI format is specified by RFC 3986.  The @code{url} library
+provides the Lisp function @code{url-generic-parse-url}, a
+standard-compliant URI parser, as well as the unparser
+@code{url-recreate-url}:
+
+@defun url-generic-parse-url url
+This function returns a parsed version of the string @var{url}.
+@end defun
+
+@defun url-recreate-url uri
+@cindex unparsing URLs
+Given a parsed URI, this function returns a corresponding URI string.
+@end defun
+
+@cindex parsed URI
+  The return value of @code{url-generic-parse-url}, and the argument
+expected by @code{url-recreate-url}, is a @dfn{parsed URI}, in the
+form of a CL structure whose slots hold the various components of the
+URI.  @xref{top,the CL Manual,,cl,GNU Emacs Common Lisp Emulation},
+for details about CL structures.  Most of the other functions in the
+@code{url} library act on parsed URIs.  Each parsed URI structure
+contains the following slots:
+
+@table @code
 @item type
-is the type of the URL scheme, e.g., @code{http}
+The URI scheme (a string, e.g.@: @code{http}).  @xref{Supported URL
+Types}, for a list of schemes that the @code{url} library knows how to
+process.  This slot can also be @code{nil}, if the URI is not fully
+specified.
+
 @item user
-is the username associated with it, or @code{nil};
+The user name (a string), or @code{nil}.
+
 @item password
-is the user password associated with it, or @code{nil};
+The user password (a string), or @code{nil}.  The use of this URI
+component is strongly discouraged; nowadays, passwords are transmitted
+by other means, not as part of a URI.
+
 @item host
-is the host name associated with it, or @code{nil};
+The host name (a string), or @code{nil}.  If present, this is
+typically a domain name or IP address.
+
 @item port
-is the port number associated with it, or @code{nil};
+The port number (an integer), or @code{nil}.  Omitting this component
+usually means to use the ``standard'' port associated with the URI
+scheme.
+
 @item filename
-is the ``file'' part of it, or @code{nil}.  This doesn't necessarily
-actually refer to a file;
+The combination of the ``path'' and ``query'' components of the URI (a
+string), or @code{nil}.  If the query component is present, it is the
+substring following the first @samp{?} character, and the path
+component is the substring before the @samp{?}.  The meaning of these
+components depends on the service; they do not necessarily refer to a
+file on a disk.
+
 @item target
-is the target part, or @code{nil};
-@item attributes
-is the attributes associated with it, or @code{nil};
+The fragment component (a string), or @code{nil}.  The fragment
+component specifies a ``secondary resource'', such as a section of a
+webpage.
+
 @item fullness
-is @code{t} for a fully-specified URL, with a host part indicated by
-@samp{//} after the scheme part.
-@item use-cookies
-is @code{nil} to neither send or store cookies to the server, @code{t}
-otherwise.
+This is @code{t} if the URI is fully specified, i.e.@: the
+hierarchical components of the URI (the hostname and/or username
+and/or password) are preceded by @samp{//}.
 @end table
 
 @findex url-type
@@ -168,29 +208,17 @@ otherwise.
 @findex url-target
 @findex url-attributes
 @findex url-fullness
-These attributes have accessors named @code{url-@var{part}}, where
-@var{part} is the name of one of the elements above, e.g.,
-@code{url-host}.  These attributes can be set with the same accessors
-using @code{setf}:
+The above slots have accessors named @code{url-@var{part}}, where
+@var{part} is the slot name.  For example, the accessor for the
+@code{host} slot is the function @code{url-host}.  The @code{url-port}
+accessor returns the default port for the URI scheme if the parsed
+URI's @var{port} slot is @code{nil}.
+
+  The slots can be set using @code{setf}.  For example:
 
 @example
 (setf (url-port url) 80)
 @end example
-
-If @var{port} is @var{nil}, @code{url-port} returns the default port
-of the protocol.
-
-There are functions for parsing and unparsing between the string and
-vector forms.
-
-@defun url-generic-parse-url url
-Return a parsed version of the string @var{url}.
-@end defun
-
-@defun url-recreate-url url
-@cindex unparsing URLs
-Recreates a URL string from the parsed @var{url}.
-@end defun
 
 @node Retrieving URLs
 @chapter Retrieving URLs

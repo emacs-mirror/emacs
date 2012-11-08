@@ -454,7 +454,9 @@ specifying URL types which should be converted to remote file names at
 the FFAP prompt.  The default is now '("ftp").
 
 ** Generic-x
-`javascript-generic-mode' is now an obsolete alias for `js-mode'.
+
+---
+*** `javascript-generic-mode' is now an obsolete alias for `js-mode'.
 
 ** Ibuffer
 
@@ -531,6 +533,7 @@ python-send-string        | python-shell-send-string
 python-switch-to-python   | python-shell-switch-to-shell
 python-describe-symbol    | python-eldoc-at-point
 
+---
 ** reStructuredText mode
 
 *** Rebind nearly all keys making room for more keys and complying
@@ -561,6 +564,7 @@ the experience for Sphinx users.
 
 *** Support `imenu' and `which-func'.
 
+---
 ** SH Script mode
 
 *** Pairing of parens/quotes uses electric-pair-mode instead of skeleton-pair.
@@ -575,6 +579,7 @@ the experience for Sphinx users.
 for a new asynchronous shell command when the default output buffer
 `*Async Shell Command*' is already taken by another running command.
 
+---
 ** SQL Mode
 
 *** DB2 added `sql-db2-escape-newlines'
@@ -605,7 +610,7 @@ definitions.  See the manual for details.
 *** Remote processes are now supported also on remote Windows host.
 
 ** URL
-
++++
 *** Structs made by `url-generic-parse-url' have nil `attributes' slot.
 Previously, this slot stored semicolon-separated attribute-value pairs
 appended to some imap URLs, but this is not compatible with RFC 3986.
