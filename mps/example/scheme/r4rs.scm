@@ -355,8 +355,6 @@
                                        (map2 (map1 cdr l)))))))
     (map2 args)))
 
-(define (map f l) (if (null? l) '() (cons (f (car l)) (map f (cdr l)))))
-
 
 ;; (for-each proc list1 list2 ...)
 ;; The arguments to for-each are like the arguments to map, but
@@ -373,5 +371,3 @@
                                  (begin (apply proc (map1 car l))
                                         (map2 (map1 cdr l)))))))
     (map2 args)))
-
-(define (for-each f l) (if (null? l) #f (begin (f (car l)) (for-each f (cdr l)))))
