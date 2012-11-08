@@ -332,7 +332,7 @@
 
 ;;; apply
 
-;; UNIMPL: (check '(apply + (list 3 4)) '7)
+(check '(apply + (list 3 4)) '7)
 (define compose
   (lambda (f g)
     (lambda args
@@ -341,13 +341,13 @@
 
 ;;; map
 
-;; UNIMPL: (check '(map cadr '((a b) (d e) (g h))) '(b e h))
+(check '(map cadr '((a b) (d e) (g h))) '(b e h))
 ;; UNIMPL: (check '(map (lambda (n) (expt n n)) '(1 2 3 4 5)) '(1 4 27 256 3125))
-;; UNIMPL: (check '(map + '(1 2 3) '(4 5 6)) '(5 7 9))
+(check '(map + '(1 2 3) '(4 5 6)) '(5 7 9))
 
 ;;; for-each
 
-;; UNIMPL: (check '(let ((v (make-vector 5))) (for-each (lambda (i) (vector-set! v i (* i i))) '(0 1 2 3 4)) v) '#(0 1 4 9 16))
+(check '(let ((v (make-vector 5))) (for-each (lambda (i) (vector-set! v i (* i i))) '(0 1 2 3 4)) v) '#(0 1 4 9 16))
 
 ;;; delay, force
 
