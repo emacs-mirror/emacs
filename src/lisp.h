@@ -454,9 +454,6 @@ enum More_Lisp_Bits
  For example, if tem is a Lisp_Object whose type is Lisp_Cons,
  XCONS (tem) is the struct Lisp_Cons * pointing to the memory for that cons.  */
 
-/* Return a perfect hash of the Lisp_Object representation.  */
-#define XHASH(a) XLI (a)
-
 #if USE_LSB_TAG
 
 enum lsb_bits
@@ -509,6 +506,11 @@ static EMACS_INT const VALMASK
 
 #endif /* not USE_LSB_TAG */
 
+/* Return a (Lisp-integer sized) hash of the Lisp_Object value.  Happens to be
+   like XUINT right now, but XUINT should only be applied to objects we know
+   are integers.  */
+#define XHASH(a) XUINT (a)
+
 /* For integers known to be positive, XFASTINT sometimes provides
    faster retrieval and XSETFASTINT provides faster storage.
    If not, fallback on the non-accelerated path.  */
@@ -524,7 +526,7 @@ static EMACS_INT const VALMASK
 # define XUNTAG(a, type) XPNTR (a)
 #endif
 
-#define EQ(x, y) (XHASH (x) == XHASH (y))
+#define EQ(x, y) (XLI (x) == XLI (y))
 
 /* Largest and smallest representable fixnum values.  These are the C
    values.  They are macros for use in static initializers.  */

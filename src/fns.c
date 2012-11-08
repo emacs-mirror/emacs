@@ -3479,7 +3479,7 @@ cmpfn_user_defined (struct hash_table_test *ht,
 static EMACS_UINT
 hashfn_eq (struct hash_table_test *ht, Lisp_Object key)
 {
-  EMACS_UINT hash = XUINT (key) ^ XTYPE (key);
+  EMACS_UINT hash = XHASH (key) ^ XTYPE (key);
   return hash;
 }
 
@@ -3494,7 +3494,7 @@ hashfn_eql (struct hash_table_test *ht, Lisp_Object key)
   if (FLOATP (key))
     hash = sxhash (key, 0);
   else
-    hash = XUINT (key) ^ XTYPE (key);
+    hash = XHASH (key) ^ XTYPE (key);
   return hash;
 }
 
@@ -4173,7 +4173,7 @@ sxhash (Lisp_Object obj, int depth)
       break;
 
     case Lisp_Misc:
-      hash = XUINT (obj);
+      hash = XHASH (obj);
       break;
 
     case Lisp_Symbol:
@@ -4197,7 +4197,7 @@ sxhash (Lisp_Object obj, int depth)
       else
 	/* Others are `equal' if they are `eq', so let's take their
 	   address as hash.  */
-	hash = XUINT (obj);
+	hash = XHASH (obj);
       break;
 
     case Lisp_Cons:

@@ -798,7 +798,7 @@ safe_debug_print (Lisp_Object arg)
   else
     fprintf (stderr, "#<%s_LISP_OBJECT 0x%08"pI"x>\r\n",
 	     !valid ? "INVALID" : "SOME",
-	     XHASH (arg));
+	     XLI (arg));
 }
 
 

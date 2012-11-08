@@ -555,15 +555,15 @@ hashfn_profiler (struct hash_table_test *ht, Lisp_Object bt)
 	{
 	  Lisp_Object f = AREF (bt, i);
 	  EMACS_UINT hash1
-	    = (COMPILEDP (f) ? XUINT (AREF (f, COMPILED_BYTECODE))
+	    = (COMPILEDP (f) ? XHASH (AREF (f, COMPILED_BYTECODE))
 	       : (CONSP (f) && CONSP (XCDR (f)) && EQ (Qclosure, XCAR (f)))
-	       ? XUINT (XCDR (XCDR (f))) : XUINT (f));
+	       ? XHASH (XCDR (XCDR (f))) : XHASH (f));
 	  hash = sxhash_combine (hash, hash1);
 	}
       return (hash & INTMASK);
     }
   else
-    return XUINT (bt);
+    return XHASH (bt);
 }
 
 void

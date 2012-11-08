@@ -1,3 +1,10 @@
+2012-11-08  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* lisp.h (XHASH): Redefine to be imperfect and fit in a Lisp int.
+	* fns.c (hashfn_eq, hashfn_eql, sxhash):
+	* profiler.c (hashfn_profiler): Don't use XUINT on non-integers.
+	* buffer.c (compare_overlays): Use XLI rather than XHASH.
+
 2012-11-08  Paul Eggert  <eggert@cs.ucla.edu>
 
 	Use same hash function for hashfn_profiler as for hash_string etc.
