@@ -392,18 +392,21 @@ details.
 
 ** Diff mode
 
+---
 *** Changes are now highlighted using the same color scheme as in
 modern VCSes.  Deletions are displayed in red (new faces
-`diff-refine-removed' and `smerge-refined-removed' and new definition
+`diff-refine-removed' and `smerge-refined-removed', and new definition
 of `diff-removed'), insertions in green (new faces `diff-refine-added'
-and `smerge-refined-added' and new definition of `diff-added').
+and `smerge-refined-added', and new definition of `diff-added').
 
+---
 *** The variable `diff-use-changed-face' defines whether to use the
 face `diff-changed', or `diff-removed' and `diff-added' to highlight
 changes in context diffs.
 
-*** The new command `diff-remove-trailing-whitespace' fixes trailing
-whitespace problems introduced by the diff.
++++
+*** The new command `diff-remove-trailing-whitespace' removes trailing
+whitespace introduced by a diff.
 
 ** Dired
 +++

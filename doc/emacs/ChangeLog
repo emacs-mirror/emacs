@@ -1,3 +1,7 @@
+2012-11-08  Glenn Morris  <rgm@gnu.org>
+
+	* files.texi (Diff Mode): Trailing whitespace updates.
+
 2012-11-07  Chong Yidong  <cyd@gnu.org>
 
 	* misc.texi (Terminal emulator): Document Term mode faces.

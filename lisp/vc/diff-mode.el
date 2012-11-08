@@ -2049,12 +2049,12 @@ I.e. like `add-change-log-entry-other-window' but applied to all hunks."
       (error nil))))
 
 (defun diff-remove-trailing-whitespace ()
-  "When on a buffer that contains a diff, inspects the
-differences and removes trailing whitespace (spaces, tabs) from
-the lines modified or introduced by this diff. Shows a message
-with the name of the altered buffers, which are unsaved.  If a
-file referenced on the diff has no buffer and needs to be fixed,
-a buffer visiting that file is created."
+  "Remove trailing whitespace from the lines modified/added by a diff.
+Called from a buffer containing a diff, this searches for trailing
+whitespace (spaces, tabs) in the modified/added lines.  If the
+file that such a line refers to can be found, it visits it and
+removes the associated whitespace, if it is present.  It does not
+save any changed buffers, it just gives a message naming them."
   (interactive)
   ;; We assume that the diff header has no trailing whitespace.
   (let ((modified-buffers nil))

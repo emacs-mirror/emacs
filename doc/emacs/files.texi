@@ -1470,11 +1470,19 @@ name from the patch itself.  This is useful for making log entries for
 functions that are deleted by the patch.
 @end table
 
-  By default, Diff mode highlights trailing whitespace on modified
-lines, so that they are more obvious.  This is done by enabling
-Whitespace mode in the Diff buffer (@pxref{Useless Whitespace}).  Diff
-mode buffers are set up so that Whitespace mode avoids highlighting
-trailing whitespace occurring in the diff context.
+@c Trailing whitespace is NOT shown by default.
+@c Emacs's dir-locals file enables this (for some reason).
+@cindex trailing whitespace, in diffs
+@findex diff-remove-trailing-whitespace
+  Diff mode has various features for dealing with trailing whitespace
+on modified lines, since this is often an unintentional and unwanted
+change.  If you enable Whitespace mode in a Diff buffer, trailing
+whitespace is highlighted (@pxref{Useless Whitespace}).  The command
+@kbd{M-x diff-remove-trailing-whitespace} searches for trailing
+whitespace in the lines modified or added by a diff.  If it finds any,
+it tries to visit the associated file(s) and remove it.  It does not
+save the modifications, rather it lists any buffers that were modified
+so you can decide for yourself what to do.
 
 @node Misc File Ops
 @section Miscellaneous File Operations
