@@ -1,5 +1,8 @@
 2012-11-08  Stefan Monnier  <monnier@iro.umontreal.ca>
 
+	* files.el (hack-one-local-variable--obsolete): New function.
+	(hack-one-local-variable): Use it for obsolete settings.
+
 	* subr.el (locate-user-emacs-file): If both old and new name exist, use
 	the new name.
 
