@@ -1,3 +1,8 @@
+2012-11-08  Jan Djärv  <jan.h.d@swipnet.se>
+
+	* image.c (xpm_make_color_table_h): Fix compiler error because
+	make_hash_table changed.
+
 2012-11-08  Thomas Kappler <tkappler@gmail.com> (tiny change)
 
 	* nsfont.m (ns_findfonts): Handle empty matchingDescs (Bug#11541).
