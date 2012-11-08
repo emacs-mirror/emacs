@@ -1709,7 +1709,8 @@
 ;; During a normal load this is a noop:
 (require 'advice-preload "advice.el")
 (require 'macroexp)
-(eval-when-compile (require 'cl-lib))
+;; At run-time also, since ad-do-advised-functions returns code that uses it.
+(require 'cl-lib)
 
 ;; @@ Variable definitions:
 ;; ========================

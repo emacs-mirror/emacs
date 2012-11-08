@@ -1,3 +1,8 @@
+2012-11-08  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* emacs-lisp/advice.el: Require `cl-lib' at run-time to fix
+	miscompilation of trace.el.
+
 2012-11-08  Glenn Morris  <rgm@gnu.org>
 
 	* vc/diff-mode.el (diff-remove-trailing-whitespace): Doc fix.
