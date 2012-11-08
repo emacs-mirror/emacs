@@ -1,5 +1,17 @@
 2012-11-08  Stefan Monnier  <monnier@iro.umontreal.ca>
 
+	* progmodes/perl-mode.el (perl-prettify-symbols): New defcustom.
+	(perl--prettify-symbols-alist): New const.
+	(perl--font-lock-compose-symbol, perl--font-lock-symbols-keywords):
+	New functions.
+	(perl-font-lock-keywords-2): Use them.
+	(perl-electric-noindent-p): New function.
+	(perl-mode): Use it to set up electric-indent-mode.
+	(perl-electric-terminator, perl-indent-command): Mark obsolete.
+	(perl-mode-map): Remove bindings for them.
+	(perl-imenu-generic-expression, perl-outline-level):
+	Match functions&packages in column>0.
+
 	* env.el (env--substitute-vars-regexp): New const.
 	(substitute-env-vars): Use it.  Add `only-defined' arg.
 	* net/tramp.el (tramp-replace-environment-variables): Use it.
