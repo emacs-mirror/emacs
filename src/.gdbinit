@@ -654,13 +654,30 @@ define xvectype
   xgetptr $
   set $size = ((struct Lisp_Vector *) $ptr)->header.size
   if ($size & PSEUDOVECTOR_FLAG)
-    output (enum pvec_type) (($size & PVEC_TYPE_MASK) >> PSEUDOVECTOR_SIZE_BITS)
+    output (enum pvec_type) (($size & PVEC_TYPE_MASK) >> PSEUDOVECTOR_AREA_BITS)
   else
-    output $size & ~ARRAY_MARK_FLAG
+    output PVEC_NORMAL_VECTOR
   end
   echo \n
 end
 document xvectype
+Print the type or vector subtype of $.
+This command assumes that $ is a vector or pseudovector.
+end
+
+define xvecsize
+  xgetptr $
+  set $size = ((struct Lisp_Vector *) $ptr)->header.size
+  if ($size & PSEUDOVECTOR_FLAG)
+    output ($size & PSEUDOVECTOR_SIZE_MASK)
+    echo \n
+    output (($size & PSEUDOVECTOR_REST_MASK) >> PSEUDOVECTOR_SIZE_BITS)
+  else
+    output ($size & ~ARRAY_MARK_FLAG)
+  end
+  echo \n
+end
+document xvecsize
 Print the size or vector subtype of $.
 This command assumes that $ is a vector or pseudovector.
 end
@@ -996,7 +1013,7 @@ define xpr
   if $type == Lisp_Vectorlike
     set $size = ((struct Lisp_Vector *) $ptr)->header.size
     if ($size & PSEUDOVECTOR_FLAG)
-      set $vec = (enum pvec_type) (($size & PVEC_TYPE_MASK) >> PSEUDOVECTOR_SIZE_BITS)
+      set $vec = (enum pvec_type) (($size & PVEC_TYPE_MASK) >> PSEUDOVECTOR_AREA_BITS)
       if $vec == PVEC_NORMAL_VECTOR
 	xvector
       end
@@ -1132,7 +1149,7 @@ define xbacktrace
 	xgetptr ($bt->function)
         set $size = ((struct Lisp_Vector *) $ptr)->header.size
         if ($size & PSEUDOVECTOR_FLAG)
-	  output (enum pvec_type) (($size & PVEC_TYPE_MASK) >> PSEUDOVECTOR_SIZE_BITS)
+	  output (enum pvec_type) (($size & PVEC_TYPE_MASK) >> PSEUDOVECTOR_AREA_BITS)
 	else
 	  output $size & ~ARRAY_MARK_FLAG
 	end

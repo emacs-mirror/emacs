@@ -2076,9 +2076,8 @@ internal_equal (Lisp_Object o1, Lisp_Object o2, int depth, bool props)
 	   are sensible to compare, so eliminate the others now.  */
 	if (size & PSEUDOVECTOR_FLAG)
 	  {
-	    if (!(size & ((PVEC_COMPILED | PVEC_CHAR_TABLE
-			   | PVEC_SUB_CHAR_TABLE | PVEC_FONT)
-			  << PSEUDOVECTOR_SIZE_BITS)))
+	    if (((size & PVEC_TYPE_MASK) >> PSEUDOVECTOR_AREA_BITS)
+		< PVEC_COMPILED)
 	      return 0;
 	    size &= PSEUDOVECTOR_SIZE_MASK;
 	  }
@@ -3661,12 +3660,9 @@ copy_hash_table (struct Lisp_Hash_Table *h1)
 {
   Lisp_Object table;
   struct Lisp_Hash_Table *h2;
-  struct Lisp_Vector *next;
 
   h2 = allocate_hash_table ();
-  next = h2->header.next.vector;
   *h2 = *h1;
-  h2->header.next.vector = next;
   h2->key_and_value = Fcopy_sequence (h1->key_and_value);
   h2->hash = Fcopy_sequence (h1->hash);
   h2->next = Fcopy_sequence (h1->next);

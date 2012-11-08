@@ -1,5 +1,52 @@
 2012-11-08  Dmitry Antipov  <dmantipov@yandex.ru>
 
+	Shrink struct vectorlike_header to the only size field.
+	* lisp.h (enum pvec_type): Avoid explicit enum member values.
+	Adjust comment.
+	(enum More_Lisp_Bits): Change PSEUDOVECTOR_SIZE_BITS and
+	PVEC_TYPE_MASK to arrange new bitfield in the vector header.
+	(PSEUDOVECTOR_REST_BITS, PSEUDOVECTOR_REST_MASK): New members.
+	(PSEUDOVECTOR_AREA_BITS): New member used to extract subtype
+	information from the vector header.  Adjust comment.
+	(XSETPVECTYPE, XSETPVECTYPESIZE, XSETTYPED_PSEUDOVECTOR)
+	(PSEUDOVECTOR_TYPEP, DEFUN): Adjust to match new vector header
+	layout.
+	(XSETSUBR, SUBRP): Adjust to match new Lisp_Subr layout.
+	(struct vectorlike_header): Remove next member.  Adjust comment.
+	(struct Lisp_Subr): Add convenient header.  Adjust comment.
+	(allocate_pseudovector): Adjust prototype.
+	* alloc.c (mark_glyph_matrix, mark_face_cache, allocate_string)
+	(sweep_string, lisp_malloc): Remove useless prototypes.
+	(enum mem_type): Adjust comment.
+	(NEXT_IN_FREE_LIST): New macro.
+	(SETUP_ON_FREE_LIST): Adjust XSETPVECTYPESIZE usage.
+	(Fmake_bool_vector): Likewise.
+	(struct large_vector): New type to represent allocation unit for
+	the vectors with the memory footprint more than VBLOOCK_BYTES_MAX.
+	(large_vectors): Change type to struct large_vector.
+	(allocate_vector_from_block): Simplify.
+	(PSEUDOVECTOR_NBYTES): Replace with...
+	(vector_nbytes): ...new function.  Adjust users.
+	(sweep_vectors): Adjust processing of large vectors.
+	(allocate_vectorlike): Likewise.
+	(allocate_pseudovector): Change type of 3rd arg to enum pvec_type.
+	Add easserts.  Adjust XSETPVECTYPESIZE usage.
+	(allocate_buffer): Use BUFFER_PVEC_INIT.
+	(live_vector_p): Adjust to match large vector.
+	* buffer.c (init_buffer_once): Use BUFFER_PVEC_INIT.
+	* buffer.h (struct buffer): Add next member.
+	(BUFFER_LISP_SIZE, BUFFER_REST_SIZE, BUFFER_PVEC_INIT):
+	New macros.
+	(FOR_EACH_BUFFER): Adjust to match struct buffer change.
+	* fns.c (internal_equal): Adjust to match enum pvec_type change.
+	(copy_hash_table): Adjust to match vector header change.
+	* lread.c (defsubr): Use XSETPVECTYPE.
+	* .gdbinit (xpr, xbacktrace): Adjust to match vector header change.
+	(xvectype): Likewise.  Print PVEC_NORMAL_VECTOR for regular vectors.
+	(xvecsize): New command.
+
+2012-11-08  Dmitry Antipov  <dmantipov@yandex.ru>
+
 	* keyboard.c (event_to_kboard): Do not dereference
 	frame_or_window field of SELECTION_REQUEST_EVENT
 	and SELECTION_CLEAR_EVENT events (Bug#12814).
