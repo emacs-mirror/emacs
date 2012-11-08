@@ -443,7 +443,6 @@ This is like the `&' operator of the C language."
     `(cons (lambda () ,getter)
            (lambda (gv--val) ,(funcall setter 'gv--val)))))
 
-;;;###autoload
 (defsubst gv-deref (ref)
   "Dereference REF, returning the referenced value.
 This is like the `*' operator of the C language.
