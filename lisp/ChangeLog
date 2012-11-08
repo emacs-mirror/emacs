@@ -1,3 +1,8 @@
+2012-11-08  Glenn Morris  <rgm@gnu.org>
+
+	* mail/emacsbug.el (report-emacs-bug-query-existing-bugs):
+	Unautoload, and make obsolete.  (Bug#7449)
+
 2012-11-08  Chong Yidong  <cyd@gnu.org>
 
 	* vc/diff-mode.el (diff-delete-trailing-whitespace): Rewrite, and
