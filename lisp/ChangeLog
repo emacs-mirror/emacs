@@ -1,5 +1,8 @@
 2012-11-08  Stefan Monnier  <monnier@iro.umontreal.ca>
 
+	* subr.el (locate-user-emacs-file): If both old and new name exist, use
+	the new name.
+
 	* progmodes/js.el (js--filling-paragraph): New var.
 	(c-forward-sws, c-backward-sws, c-beginning-of-macro): Advise.
 	(js-c-fill-paragraph): Prefer advice to cl-letf so the rebinding is

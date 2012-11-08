@@ -2657,13 +2657,17 @@ See also `locate-user-emacs-file'.")
 
 (defun locate-user-emacs-file (new-name &optional old-name)
   "Return an absolute per-user Emacs-specific file name.
-If OLD-NAME is non-nil and ~/OLD-NAME exists, return ~/OLD-NAME.
+If NEW-NAME exists in `user-emacs-directory', return it.
+Else If OLD-NAME is non-nil and ~/OLD-NAME exists, return ~/OLD-NAME.
 Else return NEW-NAME in `user-emacs-directory', creating the
 directory if it does not exist."
   (convert-standard-filename
    (let* ((home (concat "~" (or init-file-user "")))
-	  (at-home (and old-name (expand-file-name old-name home))))
-     (if (and at-home (file-readable-p at-home))
+	  (at-home (and old-name (expand-file-name old-name home)))
+          (bestname (abbreviate-file-name
+                     (expand-file-name new-name user-emacs-directory))))
+     (if (and at-home (not (file-readable-p bestname))
+              (file-readable-p at-home))
 	 at-home
        ;; Make sure `user-emacs-directory' exists,
        ;; unless we're in batch mode or dumping Emacs
@@ -2677,8 +2681,7 @@ directory if it does not exist."
 		   (set-default-file-modes ?\700)
 		   (make-directory user-emacs-directory))
 	       (set-default-file-modes umask))))
-       (abbreviate-file-name
-        (expand-file-name new-name user-emacs-directory))))))
+       bestname))))
 
 ;;;; Misc. useful functions.
 
