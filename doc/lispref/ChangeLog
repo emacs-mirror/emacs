@@ -1,3 +1,10 @@
+2012-11-08  Michael Albinus  <michael.albinus@gmx.de>
+
+	* os.texi (Notifications): Update descriptions of
+	notifications-notify, notifications-close-notification and
+	notifications-get-capabilities according to latest code changes.
+	Add notifications-get-server-information.
+
 2012-11-03  Chong Yidong  <cyd@gnu.org>
 
 	* objects.texi (General Escape Syntax): Clarify the explanation of
