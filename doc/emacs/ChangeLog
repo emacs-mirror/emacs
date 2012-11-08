@@ -1,5 +1,8 @@
 2012-11-08  Chong Yidong  <cyd@gnu.org>
 
+	* files.texi (Diff Mode): Doc fixes for
+	diff-delete-trailing-whitespace (Bug#12831).
+
 	* trouble.texi (Crashing): Copyedits.
 
 2012-11-08  Glenn Morris  <rgm@gnu.org>

@@ -406,7 +406,7 @@ face `diff-changed', or `diff-removed' and `diff-added' to highlight
 changes in context diffs.
 
 +++
-*** The new command `diff-remove-trailing-whitespace' removes trailing
+*** The new command `diff-delete-trailing-whitespace' removes trailing
 whitespace introduced by a diff.
 
 ** Dired

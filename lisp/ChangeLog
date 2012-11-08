@@ -1,3 +1,8 @@
+2012-11-08  Chong Yidong  <cyd@gnu.org>
+
+	* vc/diff-mode.el (diff-delete-trailing-whitespace): Rewrite, and
+	rename from diff-remove-trailing-whitespace (Bug#12831).
+
 2012-11-08  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* emacs-lisp/advice.el: Require `cl-lib' at run-time to fix
