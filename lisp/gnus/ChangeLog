@@ -1,3 +1,8 @@
+2012-11-08  Katsumi Yamaoka  <yamaoka@jpl.org>
+
+	* gnus-art.el (gnus-article-browse-html-parts): Always replace charset
+	in meta tag with the one the part specifies in its header.
+
 2012-11-02  Stephen Eglen  <S.J.Eglen@damtp.cam.ac.uk>
 
 	* gnus-dired.el (gnus-dired-attach): Attach to last used message buffer
