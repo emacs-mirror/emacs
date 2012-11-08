@@ -1,3 +1,21 @@
+2012-11-05  Paul Eggert  <eggert@cs.ucla.edu>
+
+	Assume at least POSIX.1-1988 for getpgrp, setpgid, setsid (Bug#12800).
+	* CPP-DEFINES (HAVE_SETPGID, HAVE_SETSID, SETPGRP_RELEASES_CTTY):
+	Remove; obsolete.
+
+	Simplify by assuming __fpending.
+	* CPP-DEFINES (PENDING_OUTPUT_COUNT): Remove.
+
+2012-11-03  Glenn Morris  <rgm@gnu.org>
+
+	* admin.el (set-copyright): Add msdos/sed2v2.inp.
+
+2012-11-01  Paul Eggert  <eggert@cs.ucla.edu>
+
+	Fix data-loss with --batch (Bug#9574).
+	* merge-gnulib (GNULIB_MODULES): Add close-stream.
+
 2012-10-12  Kenichi Handa  <handa@gnu.org>
 
 	* charsets/Makefile (JISC6226.map): Add missing mappings.

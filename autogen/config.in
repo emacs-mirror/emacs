@@ -114,9 +114,6 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 /* Character that separates directories in a file name. */
 #undef DIRECTORY_SEP
 
-/* Define if dispnew.c should include stdio_ext.h. */
-#undef DISPNEW_NEEDS_STDIO_EXT
-
 /* Define if process.c does not need to close a pty to make it a controlling
    terminal (it is already a controlling terminal of the subprocess, because
    we did ioctl TIOCSCTTY). */
@@ -177,9 +174,6 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
    garbage collection in the jmp_buf. */
 #undef GC_SETJMP_WORKS
 
-/* Define to 1 if the `getpgrp' function requires zero arguments. */
-#undef GETPGRP_VOID
-
 /* Define if gettimeofday clobbers the localtime buffer. */
 #undef GETTIMEOFDAY_CLOBBERS_LOCALTIME
 
@@ -189,6 +183,10 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 
 /* Define this to enable glyphs debugging code. */
 #undef GLYPH_DEBUG
+
+/* Define to a C preprocessor expression that evaluates to 1 or 0, depending
+   whether the gnulib module close-stream shall be considered present. */
+#undef GNULIB_CLOSE_STREAM
 
 /* Define to a C preprocessor expression that evaluates to 1 or 0, depending
    whether the gnulib module fscanf shall be considered present. */
@@ -311,6 +309,10 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 /* Define to 1 if you have the declaration of `tzname', and to 0 if you don't.
    */
 #undef HAVE_DECL_TZNAME
+
+/* Define to 1 if you have the declaration of `__fpending', and to 0 if you
+   don't. */
+#undef HAVE_DECL___FPENDING
 
 /* Define to 1 if you have the declaration of `__sys_siglist', and to 0 if you
    don't. */
@@ -773,14 +775,8 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 /* Define to 1 if you have the `setlocale' function. */
 #undef HAVE_SETLOCALE
 
-/* Define to 1 if you have the `setpgid' function. */
-#undef HAVE_SETPGID
-
 /* Define to 1 if you have the `setrlimit' function. */
 #undef HAVE_SETRLIMIT
-
-/* Define to 1 if you have the `setsid' function. */
-#undef HAVE_SETSID
 
 /* Define to 1 if you have the `shutdown' function. */
 #undef HAVE_SHUTDOWN
@@ -1206,8 +1202,8 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 /* Define to the version of this package. */
 #undef PACKAGE_VERSION
 
-/* Number of chars of output in the buffer of a stdio stream. */
-#undef PENDING_OUTPUT_COUNT
+/* the number of pending output bytes on stream 'fp' */
+#undef PENDING_OUTPUT_N_BYTES
 
 /* Define to empty to suppress deprecation warnings when building with
    --enable-gcc-warnings and with libpng versions before 1.5, which lack
@@ -1263,9 +1259,6 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 
 /* Character that separates PATH elements. */
 #undef SEPCHAR
-
-/* Define if process.c:child_setup should not call setpgrp. */
-#undef SETPGRP_RELEASES_CTTY
 
 /* How to set up a slave PTY, if needed. */
 #undef SETUP_SLAVE_PTY

@@ -1,3 +1,38 @@
+2012-11-03  Glenn Morris  <rgm@gnu.org>
+
+	* cl.texi: Further general copyedits.
+	(List Functions): Remove copy-tree, standard elisp for some time.
+	(Efficiency Concerns): Comment out examples that no longer apply.
+	(Compiler Optimizations): Rename from "Optimizing Compiler"; reword.
+	(Creating Symbols, Random Numbers): De-emphasize internal
+	variables cl--gensym-counter and cl--random-state.  (Bug#12788)
+	(Naming Conventions, Type Predicates, Macros)
+	(Predicates on Numbers): No longer mention cl-floatp-safe.
+
+2012-11-02  Katsumi Yamaoka  <yamaoka@jpl.org>
+
+	* gnus.texi (Mail Source Specifiers):
+	Document :leave keyword used for pop mail source.
+
+2012-11-01  Glenn Morris  <rgm@gnu.org>
+
+	* cl.texi: General copyedits for style, line-breaks, etc.
+	(Time of Evaluation, Iteration): Add xref to Emacs Lisp manual.
+	(Macro Bindings, Blocks and Exits):
+	Acknowledge existence of lexical-binding.
+	(Iteration): Mainly defer to doc of standard dolist, dotimes.
+
+2012-10-31  Glenn Morris  <rgm@gnu.org>
+
+	* ert.texi (Introduction, The @code{should} Macro):
+	Refer to "cl-assert" rather than "assert".
+
+	* cl.texi (Function Bindings): Update for cl-flet and cl-labels.
+	(Obsolete Lexical Binding): Rename section from "Lexical Bindings".
+	(Obsolete Macros): Rename section from "Obsolete Lexical Macros".
+	Reword, and add details of flet and labels.
+	(Modify Macros, Function Bindings): Add some xrefs.
+
 2012-10-30  Glenn Morris  <rgm@gnu.org>
 
 	* cl.texi (Modify Macros): Update for cl-letf changes.

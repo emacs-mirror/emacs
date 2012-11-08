@@ -64,13 +64,6 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #include "nsterm.h"
 #endif
 
-#ifdef HAVE_SETPGID
-#if !defined (USG)
-#undef setpgrp
-#define setpgrp setpgid
-#endif
-#endif
-
 /* Pattern used by call-process-region to make temp files.  */
 static Lisp_Object Vtemp_file_name_pattern;
 
@@ -618,14 +611,8 @@ usage: (call-process PROGRAM &optional INFILE BUFFER DISPLAY &rest ARGS)  */)
       {
 	if (fd[0] >= 0)
 	  emacs_close (fd[0]);
-#ifdef HAVE_SETSID
+
 	setsid ();
-#endif
-#if defined (USG)
-	setpgrp ();
-#else
-	setpgrp (pid, pid);
-#endif /* USG */
 
 	/* Emacs ignores SIGPIPE, but the child should not.  */
 	signal (SIGPIPE, SIG_DFL);
@@ -1295,15 +1282,7 @@ child_setup (int in, int out, int err, char **new_argv, bool set_pgrp,
   if (err != in && err != out)
     emacs_close (err);
 
-#if defined (USG)
-#ifndef SETPGRP_RELEASES_CTTY
-  setpgrp ();			/* No arguments but equivalent in this case */
-#endif
-#else /* not USG */
-  setpgrp (pid, pid);
-#endif /* not USG */
-
-  /* setpgrp_of_tty is incorrect here; it uses input_fd.  */
+  setpgid (0, 0);
   tcsetpgrp (0, pid);
 
   /* execvp does not accept an environment arg so the only way

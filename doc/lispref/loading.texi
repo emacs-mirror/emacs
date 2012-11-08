@@ -520,9 +520,9 @@ the following:
 
 @table @asis
 @item Definitions for function or function-like objects:
-@code{defun} and @code{defmacro}; also @code{defun*} and
-@code{defmacro*} (@pxref{Argument Lists,,,cl,CL Manual}), and
-@code{define-overloadable-function} (see the commentary in
+@code{defun} and @code{defmacro}; also @code{cl-defun} and
+@code{cl-defmacro} (@pxref{Argument Lists,,,cl,Common Lisp Extensions}),
+and @code{define-overloadable-function} (see the commentary in
 @file{mode-local.el}).
 
 @item Definitions for major or minor modes:
@@ -615,7 +615,7 @@ specified by an autoload object:
 
 @defun autoload-do-load autoload &optional name macro-only
 This function performs the loading specified by @var{autoload}, which
-whould be an autoload object.  The optional argument @var{name}, if
+should be an autoload object.  The optional argument @var{name}, if
 non-@code{nil}, should be a symbol whose function value is
 @var{autoload}; in that case, the return value of this function is the
 symbol's new function value.  If the value of the optional argument

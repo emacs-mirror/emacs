@@ -374,10 +374,12 @@ but outside of this help window when you type them in Isearch mode,
 they exit Isearch mode before displaying global help."
   isearch-help-map)
 
+(defvar isearch--display-help-action '(nil (inhibit-same-window . t)))
+
 (defun isearch-help-for-help ()
   "Display Isearch help menu."
   (interactive)
-  (let (same-window-buffer-names same-window-regexps)
+  (let ((display-buffer-overriding-action isearch--display-help-action))
     (isearch-help-for-help-internal))
   (isearch-update))
 
@@ -385,7 +387,7 @@ they exit Isearch mode before displaying global help."
   "Show a list of all keys defined in Isearch mode, and their definitions.
 This is like `describe-bindings', but displays only Isearch keys."
   (interactive)
-  (let (same-window-buffer-names same-window-regexps)
+  (let ((display-buffer-overriding-action isearch--display-help-action))
     (with-help-window "*Help*"
       (with-current-buffer standard-output
 	(princ "Isearch Mode Bindings:\n")
@@ -394,14 +396,14 @@ This is like `describe-bindings', but displays only Isearch keys."
 (defun isearch-describe-key ()
   "Display documentation of the function invoked by isearch key."
   (interactive)
-  (let (same-window-buffer-names same-window-regexps)
+  (let ((display-buffer-overriding-action isearch--display-help-action))
     (call-interactively 'describe-key))
   (isearch-update))
 
 (defun isearch-describe-mode ()
   "Display documentation of Isearch mode."
   (interactive)
-  (let (same-window-buffer-names same-window-regexps)
+  (let ((display-buffer-overriding-action isearch--display-help-action))
     (describe-function 'isearch-forward))
   (isearch-update))
 

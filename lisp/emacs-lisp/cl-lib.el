@@ -264,12 +264,12 @@ one value.
 
 ;;; Symbols.
 
-(defun cl-random-time ()
+(defun cl--random-time ()
   (let* ((time (copy-sequence (current-time-string))) (i (length time)) (v 0))
     (while (>= (cl-decf i) 0) (setq v (+ (* v 3) (aref time i))))
     v))
 
-(defvar cl--gensym-counter (* (logand (cl-random-time) 1023) 100))
+(defvar cl--gensym-counter (* (logand (cl--random-time) 1023) 100))
 
 
 ;;; Numbers.
@@ -296,7 +296,7 @@ always returns nil."
   "Return t if INTEGER is even."
   (eq (logand integer 1) 0))
 
-(defvar cl--random-state (vector 'cl-random-state-tag -1 30 (cl-random-time)))
+(defvar cl--random-state (vector 'cl-random-state-tag -1 30 (cl--random-time)))
 
 (defconst cl-most-positive-float nil
   "The largest value that a Lisp float can hold.

@@ -1,3 +1,253 @@
+2012-11-06  Dmitry Antipov  <dmantipov@yandex.ru>
+
+	* window.c (quad): New function.
+	(Fwindow_edges, Fwindow_pixel_edges, Fwindow_inside_edges)
+	(Fwindow_absolute_pixel_edges, Fwindow_inside_absolute_pixel_edges)
+	(Fwindow_inside_pixel_edges, Fpos_visible_in_window_p)
+	(Fwindow_line_height): Use it.
+	(Fwindow_fringes): Use list3.
+	(Fwindow_scroll_bars): Use list4.
+	(Fwindow_frame, Fwindow_top_child, Fwindow_left_child)
+	(Fwindow_combination_limit): Allow zero number of arguments.
+
+2012-11-05  Eli Zaretskii  <eliz@gnu.org>
+
+	* makefile.w32-in ($(BLD)/w32fns.$(O)): Depend on $(NT_INC)/unistd.h.
+
+	* w32fns.c: Include unistd.h, to avoid compiler warnings on Cygwin.
+	(emacs_abort) [CYGWIN]: Don't call _open_osfhandle; instead, use
+	file descriptor 2 for standard error.  (Bug#12805)
+
+2012-11-05  Chong Yidong  <cyd@gnu.org>
+
+	* process.c (wait_reading_process_output): Revert previous change.
+
+2012-11-05  Paul Eggert  <eggert@cs.ucla.edu>
+
+	Assume at least POSIX.1-1988 for getpgrp, setpgid, setsid (Bug#12800).
+	This removes code that has been obsolete since around 1990.
+	* callproc.c (Fcall_process):
+	* emacs.c (main):
+	* process.c (create_process):
+	* term.c (dissociate_if_controlling_tty):
+	Assume setsid exists.
+	* callproc.c (child_setup): Assume setpgid exists and behaves as
+	per POSIX.1-1988 or later.
+	* conf_post.h (setpgid) [!HAVE_SETPGID]: Remove.
+	* emacs.c (shut_down_emacs):
+	* sysdep.c (sys_suspend, init_foreground_group):
+	Assume getpgrp behaves as per POSIX.1-1998 or later.
+	* msdos.c (setpgrp): Remove.
+	(tcgetpgrp, setpgid, setsid): New functions.
+	* systty.h (EMACS_GETPGRP): Remove.  All callers now use getpgrp.
+	* term.c (no_controlling_tty): Remove; unused.
+	* w32proc.c (setpgrp): Remove.
+	(setsid, tcgetpgrp): New functions.
+
+	Simplify by assuming __fpending.
+	* dispnew.c: Include <fpending.h>, not <stdio_ext.h>.
+	(update_frame_1): Use __fpending, not PENDING_OUTPUT_COUNT.
+	Do not assume that __fpending's result fits in int.
+
+2012-11-04  Paul Eggert  <eggert@cs.ucla.edu>
+
+	Remove EMACS_OUTQSIZE+sleep hack.
+	* dispnew.c (update_frame_1): Remove hack for terminals slower
+	than 2400 bps, which throttled Emacs by having it sleep.  This
+	code hasn't worked since at least 2007, when the multi-tty stuff
+	was added, and anyway those old terminals are long dead.
+	* systty.h (EMACS_OUTQSIZE): Remove; unused.  The macro isn't used even
+	without the dispnew.c change, as dispnew.c doesn't include systty.h.
+
+	Fix data-loss with --version (Bug#9574).
+	* emacs.c (close_output_streams): Use strerror, not emacs_strerror,
+	as we can't assume that emacs_strerror is initialized, and strerror
+	is good enough here.
+	(main): Invoke atexit earlier, to catch earlier instances of
+	sending data to stdout and exiting, e.g., "emacs --version >/dev/full".
+
+2012-11-04  Michael Marchionna  <tralfaz@pacbell.net>
+
+	* nsterm.m: Add NSClearLineFunctionKey and keypad keys (Bug#8680).
+	(keyDown): Remap keypad keys to X11 virtual key codes.
+
+2012-11-03  Paul Eggert  <eggert@cs.ucla.edu>
+
+	Fix data-loss with --batch (Bug#9574).
+	* emacs.c: Include <close-stream.h>.
+	(close_output_streams): New function.
+	(main): Pass it to atexit, so that Emacs closes stdout and stderr
+	and handles errors appropriately.
+	(Fkill_emacs): Don't worry about flushing, as close_output_stream
+	does that now.
+
+	Fix a race condition that causes Emacs to mess up glib (Bug#8855).
+	The symptom is a diagnostic "GLib-WARNING **: In call to
+	g_spawn_sync(), exit status of a child process was requested but
+	SIGCHLD action was set to SIG_IGN and ECHILD was received by
+	waitpid(), so exit status can't be returned."  The diagnostic
+	is partly wrong, as the SIGCHLD action is not set to SIG_IGN.
+	The real bug is a race condition between Emacs and glib: Emacs
+	does a waitpid (-1, ...) and reaps glib's subprocess by mistake,
+	so that glib can't find it.  Work around the bug by invoking
+	waitpid only on subprocesses that Emacs itself creates.
+	* process.c (create_process, record_child_status_change):
+	Don't use special value -1 in pid field, as the caller now must
+	know the pid rather than having the callee infer it.  The
+	inference was sometimes incorrect anyway, due to another race.
+	(create_process): Set new 'alive' member if child is created.
+	(process_status_retrieved): New function.
+	(record_child_status_change): Use it.
+	Accept negative 1st argument, which means to wait for the
+	processes that Emacs already knows about.  Move special-case code
+	for DOS_NT (which lacks WNOHANG) here, from caller.  Keep track of
+	processes that have already been waited for, by testing and
+	clearing new 'alive' member.
+	(CAN_HANDLE_MULTIPLE_CHILDREN): Remove, as record_child_status_change
+	now does this internally.
+	(handle_child_signal): Let record_child_status_change do all
+	the work, since we do not want to reap all exited child processes,
+	only the child processes that Emacs itself created.
+	* process.h (Lisp_Process): New boolean member 'alive'.
+
+	Omit duplicate definitions no longer needed with gcc -g3.
+	* lisp.h (GCTYPEBITS, GCALIGNMENT, ARRAY_MARK_FLAG, PSEUDOVECTOR_FLAG)
+	(VALMASK, MOST_POSITIVE_FIXNUM, MOST_NEGATIVE_FIXNUM):
+	Define only as macros.  There's no longer any need to also define
+	these symbols as enums or as constants, since we now assume
+	gcc -g3 when debugging.
+
+2012-11-03  Eli Zaretskii  <eliz@gnu.org>
+
+	* lisp.mk: Adjust comments to the fact that term/internal is now
+	loaded from loadup.el.
+
+	* msdos.c (msdos_abort): Rename from emacs_abort, and make static.
+	(msdos_fatal_signal): New function.
+	(XMenuActivate): Adjust the call to kbd_buffer_events_waiting to
+	its argument list.
+
+	* conf_post.h (_GL_EXECINFO_INLINE) [MSDOS]: Define to "inline"
+	for GCC versions before 4.
+	(emacs_raise): Define to call msdos_fatal_signal.
+
+	* xdisp.c (init_from_display_pos): Fix initialization of the bidi
+	iterator when starting in the middle of a display or overlay
+	string.  (Bug#12745)
+
+2012-11-03  Chong Yidong  <cyd@gnu.org>
+
+	* process.c (wait_reading_process_output): Clean up the last
+	change.
+
+2012-11-03  Jim Paris  <jim@jtan.com>  (tiny change)
+
+	* process.c (wait_reading_process_output): Avoid a race condition
+	with SIGIO delivery (Bug#11536).
+
+2012-11-03  Chong Yidong  <cyd@gnu.org>
+
+	* buffer.c (cursor_type): Untabify docstring.
+
+2012-11-03  Dmitry Antipov  <dmantipov@yandex.ru>
+
+	* frame.h (struct frame): Drop can_have_scroll_bars member
+	which is meaningless for a long time.  Adjust comments.
+	(FRAME_CAN_HAVE_SCROLL_BARS): Remove.
+	* frame.c, nsfns.m, term.c, w32fns.c, xfns.c: Adjust users.
+
+2012-11-03  Dmitry Antipov  <dmantipov@yandex.ru>
+
+	* window.c (decode_next_window_args): Update window arg after
+	calling decode_live_window and so fix crash reported at
+	http://lists.gnu.org/archive/html/emacs-devel/2012-11/msg00035.html
+	by Juanma Barranquero <lekktu@gmail.com>.
+	(Fwindow_body_width, Fwindow_body_height): Simplify a bit.
+	* font.c (Ffont_at): Likewise.
+
+2012-11-01  Jan Djärv  <jan.h.d@swipnet.se>
+
+	* widget.c (resize_cb): New function.
+	(EmacsFrameRealize): Add resize_cb as event handler (Bug#12733).
+	(EmacsFrameResize): Check if all is up to date before changing frame
+	size.
+
+2012-11-02  Eli Zaretskii  <eliz@gnu.org>
+
+	Implement backtrace output for fatal errors on MS-Windows.
+	* w32fns.c (CaptureStackBackTrace_proc): New typedef.
+	(BACKTRACE_LIMIT_MAX): New macro.
+	(w32_backtrace): New function.
+	(emacs_abort): Use w32_backtrace when the user chooses not to
+	attach a debugger.  Update the text of the abort dialog.
+
+2012-11-02  Dmitry Antipov  <dmantipov@yandex.ru>
+
+	Window-related stuff cleanup here and there.
+	* dispnew.c (Finternal_show_cursor, Finternal_show_cursor_p):
+	Use decode_any_window.
+	* fringe.c (Ffringe_bitmaps_at_pos): Likewise.
+	* xdisp.c (Fformat_mode_line): Likewise.
+	* font.c (Ffont_at): Use decode_live_window.
+	* indent.c (Fcompute_motion, Fvertical_motion): Likewise.
+	* window.c (decode_next_window_args): Likewise.
+	(decode_any_window): Remove static.
+	* window.h (decode_any_window): Add prototype.
+	* lisp.h (CHECK_VALID_WINDOW, CHECK_LIVE_WINDOW): Move from here...
+	* window.h: ...to here, redefine via WINDOW_VALID_P and WINDOW_LIVE_P,
+	respectively.
+
+2012-11-02  Dmitry Antipov  <dmantipov@yandex.ru>
+
+	Remove pad from struct input_event.
+	* termhooks.h (struct input_event): Remove padding field.
+	Adjust comment.
+	* keyboard.c (event_to_kboard): Simplify because frame_or_window
+	member is never cons for a long time.  Adjust comment.
+	(mark_kboards): Adjust because SELECTION_REQUEST_EVENT and
+	SELECTION_CLEAR_EVENT has no Lisp_Objects to mark.  Add comment.
+	* xterm.c (handle_one_xevent): Do not initialize frame_or_window
+	field of SELECTION_REQUEST_EVENT and SELECTION_CLEAR_EVENT.
+
+2012-11-01  Eli Zaretskii  <eliz@gnu.org>
+
+	* w32proc.c (getpgrp, setpgid): New functions.  (Bug#12776)
+
+2012-10-31  Paul Eggert  <eggert@cs.ucla.edu>
+
+	Fix crash when using Emacs as commit editor for git (Bug#12697).
+	* callproc.c (setpgrp): Remove macro, as we now use setpgid
+	and it is configured in conf_post.h.
+	(Fcall_process): Don't invoke both setsid and setpgid; the former
+	is enough, if it exists.
+	* callproc.c (Fcall_process, child_setup):
+	* process.c (create_process): Use setpgid.
+	* conf_post.h (setpgid) [!HAVE_SETPGID]: New macro, which substitutes
+	for the real thing.
+	* dispnew.c (init_display): Initialize the foreground group
+	if we are running a tty display.
+	* emacs.c (main): Do not worry about setpgrp; init_display does it now.
+	* lisp.h (init_foreground_group): New decl.
+	* sysdep.c (inherited_pgroup): New static var.
+	(init_foreground_group, tcsetpgrp_without_stopping)
+	(narrow_foreground_group, widen_foreground_group): New functions.
+	(init_sys_modes): Narrow foreground group.
+	(reset_sys_modes): Widen foreground group.
+
+2012-10-31  Michael Albinus  <michael.albinus@gmx.de>
+
+	* dbusbind.c: Fix cut'n'waste error.  Use HAVE_DBUS_VALIDATE_INTERFACE.
+
+2012-10-31  Martin Rudalics  <rudalics@gmx.at>
+
+	* minibuf.c (read_minibuf): Restore current buffer since
+	choose_minibuf_frame calling Fset_frame_selected_window may
+	change it (Bug#12766).
+
+2012-10-30  Jan Djärv  <jan.h.d@swipnet.se>
+
+	* frame.c (Fframe_pixel_height): Fix documentation (Bug#12733).
+
 2012-10-30  Kenichi Handa  <handa@gnu.org>
 
 	* font.c (Ffont_at): If WINDOW is specified and it is not
@@ -589,7 +839,7 @@
 	now a supported configuration.
 
 	* Makefile.in: consolidate image variables into LIBIMAGE; add
-	W32_OBJ and W32_LIBS. Compile new files.
+	W32_OBJ and W32_LIBS.  Compile new files.
 
 	* conf_post.h:
 	(_DebPrint) declare tracing facility for W32 debugging.  We need
@@ -6072,7 +6322,7 @@
 	* lisp.h (make_formatted_string): New prototype.
 	* alloc.c (make_formatted_string): New function.
 	* buffer.c (Fgenerate_new_buffer_name): Use it.
-	* dbus.c (syms_of_dbusbind): Likewise.
+	* dbusbind.c (syms_of_dbusbind): Likewise.
 	* editfns.c (Fcurrent_time_zone): Likewise.
 	* filelock.c (get_boot_time): Likewise.
 	* frame.c (make_terminal_frame, set_term_frame_name)

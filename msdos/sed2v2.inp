@@ -30,26 +30,25 @@
 #ifndef MSDOS\
 #define MSDOS\
 #endif
+/^#undef COPYRIGHT *$/s/^.*$/#define COPYRIGHT "Copyright (C) 2012 Free Software Foundation, Inc."/
+/^#undef DIRECTORY_SEP *$/s!^.*$!#define DIRECTORY_SEP '/'!
 /^#undef DOS_NT *$/s/^.*$/#define DOS_NT/
 /^#undef FLOAT_CHECK_DOMAIN *$/s/^.*$/#define FLOAT_CHECK_DOMAIN/
 /^#undef HAVE_ALLOCA *$/s/^.*$/#define HAVE_ALLOCA 1/
-/^#undef HAVE_INVERSE_HYPERBOLIC *$/s/^.*$/#define HAVE_INVERSE_HYPERBOLIC/
 /^#undef HAVE_SETITIMER *$/s/^.*$/#define HAVE_SETITIMER 1/
 /^#undef HAVE_STRUCT_UTIMBUF *$/s/^.*$/#define HAVE_STRUCT_UTIMBUF 1/
 /^#undef LOCALTIME_CACHE *$/s/^.*$/#define LOCALTIME_CACHE 1/
 /^#undef HAVE_TZSET *$/s/^.*$/#define HAVE_TZSET 1/
-/^#undef HAVE_LOGB *$/s/^.*$/#define HAVE_LOGB 1/
-/^#undef HAVE_FREXP *$/s/^.*$/#define HAVE_FREXP 1/
-/^#undef HAVE_FMOD *$/s/^.*$/#define HAVE_FMOD 1/
 /^#undef HAVE_RINT *$/s/^.*$/#define HAVE_RINT 1/
 /^#undef HAVE_C99_STRTOLD *$/s/^.*$/#define HAVE_C99_STRTOLD 1/
-/^#undef HAVE_CBRT *$/s/^.*$/#define HAVE_CBRT 1/
 /^#undef HAVE_DIFFTIME *$/s/^.*$/#define HAVE_DIFFTIME 1/
 /^#undef HAVE_FPATHCONF *$/s/^.*$/#define HAVE_FPATHCONF 1/
 /^#undef HAVE_MEMSET *$/s/^.*$/#define HAVE_MEMSET 1/
 /^#undef HAVE_MEMCMP *$/s/^.*$/#define HAVE_MEMCMP 1/
 /^#undef HAVE_MEMMOVE *$/s/^.*$/#define HAVE_MEMMOVE 1/
+/^#undef HAVE_SETPGID *$/s/^.*$/#define HAVE_SETPGID 1/
 /^#undef HAVE_SETRLIMIT *$/s/^.*$/#define HAVE_SETRLIMIT 1/
+/^#undef HAVE_SIGSETJMP *$/s/^.*$/#define HAVE_SIGSETJMP 1/
 /^#undef HAVE_GETRUSAGE *$/s/^.*$/#define HAVE_GETRUSAGE 1/
 /^#undef GETTIMEOFDAY_TIMEZONE *$/s/^.*$/#define GETTIMEOFDAY_TIMEZONE struct timezone/
 /^#undef HAVE_TM_GMTOFF *$/s/^.*$/#define HAVE_TM_GMTOFF 1/
@@ -70,7 +69,8 @@
 /^#undef PACKAGE_STRING/s/^.*$/#define PACKAGE_STRING ""/
 /^#undef PACKAGE_TARNAME/s/^.*$/#define PACKAGE_TARNAME ""/
 /^#undef PACKAGE_VERSION/s/^.*$/#define PACKAGE_VERSION ""/
-/^#undef VERSION/s/^.*$/#define VERSION "24.2.50"/
+/^#undef PENDING_OUTPUT_COUNT/s/^.*$/#define PENDING_OUTPUT_COUNT(FILE) ((FILE)->_ptr - (FILE)->_base)/
+/^#undef VERSION/s/^.*$/#define VERSION "24.3.50"/
 /^#undef SYSTEM_TYPE/s/^.*$/#define SYSTEM_TYPE "ms-dos"/
 /^#undef HAVE_DECL_GETENV/s/^.*$/#define HAVE_DECL_GETENV 1/
 /^#undef SYS_SIGLIST_DECLARED/s/^.*$/#define SYS_SIGLIST_DECLARED 1/
@@ -95,8 +95,6 @@
 /^#undef NULL_DEVICE *$/s/^.*$/#define NULL_DEVICE "nul"/
 /^#undef SEPCHAR *$/s/^.*$/#define SEPCHAR '\;'/
 /^#undef USER_FULL_NAME *$/s/^.*$/#define USER_FULL_NAME (getenv ("NAME"))/
-/^#undef _setjmp/s/^.*$/#define _setjmp setjmp/
-/^#undef _longjmp/s/^.*$/#define _longjmp longjmp/
 /^#undef inline/s/^.*$/#define inline __inline__/
 /^#undef my_strftime/s/^.*$/#define my_strftime nstrftime/
 /^#undef restrict/s/^.*$/#define restrict __restrict/

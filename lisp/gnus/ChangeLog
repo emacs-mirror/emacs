@@ -1,3 +1,28 @@
+2012-11-02  Stephen Eglen  <S.J.Eglen@damtp.cam.ac.uk>
+
+	* gnus-dired.el (gnus-dired-attach): Attach to last used message buffer
+	by default.
+
+2012-11-02  Katsumi Yamaoka  <yamaoka@jpl.org>
+
+	New UIDL implementation.
+
+	* mail-source.el (mail-sources, mail-source-keyword-map):
+	Add :leave as a pop3 keyword.
+	(mail-source-fetch-pop): Bind pop3-leave-mail-on-server.
+
+	* pop3.el (pop3-leave-mail-on-server): Allow number.
+	(pop3-uidl-file, pop3-uidl-file-backup): New user options.
+	(pop3-movemail): Add UIDL support.
+	(pop3-send-streaming-command): Take a list of mail numbers instead of
+	the number of mails.
+	(pop3-write-to-file): Add X-UIDL header.
+	(pop3-uidl-stat, pop3-uidl-dele, pop3-uidl-load, pop3-uidl-save)
+	(pop3-uidl-add-xheader): New functions.
+
+	* message.el (message-ignored-resent-headers):
+	Add X-Content-Length and X-UIDL headers.
+
 2012-10-23  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* nndiary.el (nndiary-request-create-group-functions)

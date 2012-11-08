@@ -139,9 +139,6 @@
 
 ;;; Code:
 
-(eval-when-compile
-  (require 'find-lisp))
-
 (defgroup file-cache nil
   "Find files using a pre-loaded cache."
   :group 'files
@@ -366,6 +363,8 @@ STRING is passed as an argument to the locate command."
 		string)
   (file-cache-add-from-file-cache-buffer))
 
+(autoload 'find-lisp-find-files "find-lisp")
+
 ;;;###autoload
 (defun file-cache-add-directory-recursively  (dir &optional regexp)
   "Adds DIR and any subdirectories to the file-cache.
@@ -374,18 +373,16 @@ If the optional REGEXP argument is non-nil, only files which match it
 will be added to the cache.  Note that the REGEXP is applied to the
 files in each directory, not to the directory list itself."
   (interactive "DAdd directory: ")
-  (require 'find-lisp)
   (mapcar
-   (function
-    (lambda (file)
-      (or (file-directory-p file)
-	  (let (filtered)
-	    (dolist (regexp file-cache-filter-regexps)
-              (and (string-match regexp file)
-                   (setq filtered t)))
-            filtered)
-	  (file-cache-add-file file))))
-   (find-lisp-find-files dir (if regexp regexp "^"))))
+   (lambda (file)
+     (or (file-directory-p file)
+         (let (filtered)
+           (dolist (regexp file-cache-filter-regexps)
+             (and (string-match regexp file)
+                  (setq filtered t)))
+           filtered)
+         (file-cache-add-file file)))
+   (find-lisp-find-files dir (or regexp "^"))))
 
 (defun file-cache-add-from-file-cache-buffer (&optional regexp)
   "Add any entries found in the file cache buffer.

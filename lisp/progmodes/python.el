@@ -1733,17 +1733,24 @@ variable.
     (set (make-local-variable 'font-lock-defaults)
          '(python-font-lock-keywords nil nil nil nil))
     (set (make-local-variable 'syntax-propertize-function)
-         (syntax-propertize-rules
-          (comint-prompt-regexp
-           (0 (ignore
-               (put-text-property
-                comint-last-input-start end 'syntax-table
-                python-shell-output-syntax-table)
-               (font-lock-unfontify-region comint-last-input-start end))))
-          ((python-rx string-delimiter)
-           (0 (ignore
-               (and (not (eq (get-text-property start 'field) 'output))
-                    (python-syntax-stringify))))))))
+         (eval
+          ;; XXX: Unfortunately eval is needed here to make use of the
+          ;; dynamic value of `comint-prompt-regexp'.
+          `(syntax-propertize-rules
+            (,comint-prompt-regexp
+             (0 (ignore
+                 (put-text-property
+                  comint-last-input-start end 'syntax-table
+                  python-shell-output-syntax-table)
+                 ;; XXX: This might look weird, but it is the easiest
+                 ;; way to ensure font lock gets cleaned up before the
+                 ;; current prompt, which is needed for unclosed
+                 ;; strings to not mess up with current input.
+                 (font-lock-unfontify-region comint-last-input-start end))))
+            (,(python-rx string-delimiter)
+             (0 (ignore
+                 (and (not (eq (get-text-property start 'field) 'output))
+                      (python-syntax-stringify)))))))))
   (compilation-shell-minor-mode 1))
 
 (defun python-shell-make-comint (cmd proc-name &optional pop internal)

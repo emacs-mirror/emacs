@@ -230,10 +230,28 @@ sigismember (const sigset_t *set, int signo)
   return (*set & (1U << signo)) != 0;
 }
 
+pid_t
+getpgrp (void)
+{
+  return getpid ();
+}
+
+pid_t
+tcgetpgrp (int fd)
+{
+  return getpid ();
+}
+
 int
-setpgrp (int pid, int gid)
+setpgid (pid_t pid, pid_t pgid)
 {
   return 0;
+}
+
+pid_t
+setsid (void)
+{
+  return getpid ();
 }
 
 /* Emulations of interval timers.
@@ -519,7 +537,7 @@ term_timers (void)
 void
 init_timers (void)
 {
-  /* GetThreadTimes is not avaiulable on all versions of Windows, so
+  /* GetThreadTimes is not available on all versions of Windows, so
      need to probe for its availability dynamically, and call it
      through a pointer.  */
   s_pfn_Get_Thread_Times = NULL; /* in case dumped Emacs comes with a value */

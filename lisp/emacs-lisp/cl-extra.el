@@ -440,7 +440,7 @@ If STATE is t, return a new state object seeded from the time of day."
   (cond ((null state) (cl-make-random-state cl--random-state))
 	((vectorp state) (copy-tree state t))
 	((integerp state) (vector 'cl-random-state-tag -1 30 state))
-	(t (cl-make-random-state (cl-random-time)))))
+	(t (cl-make-random-state (cl--random-time)))))
 
 ;;;###autoload
 (defun cl-random-state-p (object)

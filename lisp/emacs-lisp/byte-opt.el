@@ -1187,8 +1187,8 @@
 	 boundp buffer-file-name buffer-local-variables buffer-modified-p
 	 buffer-substring byte-code-function-p
 	 capitalize car-less-than-car car cdr ceiling char-after char-before
-	 char-equal char-to-string char-width
-	 compare-strings concat coordinates-in-window-p
+	 char-equal char-to-string char-width compare-strings
+	 compare-window-configurations concat coordinates-in-window-p
 	 copy-alist copy-sequence copy-marker cos count-lines
 	 decode-char
 	 decode-time default-boundp default-value documentation downcase
@@ -1196,17 +1196,18 @@
 	 fboundp fceiling featurep ffloor
 	 file-directory-p file-exists-p file-locked-p file-name-absolute-p
 	 file-newer-than-file-p file-readable-p file-symlink-p file-writable-p
-	 float float-time floor format format-time-string frame-visible-p
-	 fround ftruncate
+	 float float-time floor format format-time-string frame-first-window
+	 frame-root-window frame-selected-window
+	 frame-visible-p fround ftruncate
 	 get gethash get-buffer get-buffer-window getenv get-file-buffer
 	 hash-table-count
 	 int-to-string intern-soft
 	 keymap-parent
 	 length local-variable-if-set-p local-variable-p log log10 logand
 	 logb logior lognot logxor lsh langinfo
-	 make-list make-string make-symbol
-	 marker-buffer max member memq min mod multibyte-char-to-unibyte
-	 next-window nth nthcdr number-to-string
+	 make-list make-string make-symbol marker-buffer max member memq min
+	 minibuffer-selected-window minibuffer-window
+	 mod multibyte-char-to-unibyte next-window nth nthcdr number-to-string
 	 parse-colon-path plist-get plist-member
 	 prefix-numeric-value previous-window prin1-to-string propertize
 	 degrees-to-radians
@@ -1221,9 +1222,19 @@
 	 unibyte-char-to-multibyte upcase user-full-name
 	 user-login-name user-original-login-name custom-variable-p
 	 vconcat
-	 window-buffer window-dedicated-p window-edges window-height
-	 window-hscroll window-minibuffer-p window-width
-	 zerop))
+	 window-absolute-pixel-edges window-at window-body-height
+	 window-body-width window-buffer window-dedicated-p window-display-table
+	 window-combination-limit window-edges window-frame window-fringes
+	 window-height window-hscroll window-inside-edges
+	 window-inside-absolute-pixel-edges window-inside-pixel-edges
+	 window-left-child window-left-column window-margins window-minibuffer-p
+	 window-next-buffers window-next-sibling window-new-normal
+	 window-new-total window-normal-size window-parameter window-parameters
+	 window-parent window-pixel-edges window-point window-prev-buffers 
+	 window-prev-sibling window-redisplay-end-trigger window-scroll-bars
+	 window-start window-text-height window-top-child window-top-line
+	 window-total-height window-total-width window-use-time window-vscroll
+	 window-width zerop))
       (side-effect-and-error-free-fns
        '(arrayp atom
 	 bobp bolp bool-vector-p
@@ -1256,7 +1267,8 @@
 	 this-single-command-raw-keys
 	 user-real-login-name user-real-uid user-uid
 	 vector vectorp visible-frame-list
-	 wholenump window-configuration-p window-live-p windowp)))
+	 wholenump window-configuration-p window-live-p
+	 window-valid-p windowp)))
   (while side-effect-free-fns
     (put (car side-effect-free-fns) 'side-effect-free t)
     (setq side-effect-free-fns (cdr side-effect-free-fns)))

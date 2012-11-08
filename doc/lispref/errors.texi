@@ -65,7 +65,7 @@ circular structure is encountered.  @xref{Circular Objects}.
 
 @item cl-assertion-failed
 The message is @samp{Assertion failed}.  This happens when the
-@code{assert} macro fails a test.  @xref{Assertions,,, cl, Common Lisp
+@code{cl-assert} macro fails a test.  @xref{Assertions,,, cl, Common Lisp
 Extensions}.
 
 @item coding-system-error

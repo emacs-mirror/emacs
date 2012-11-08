@@ -3091,10 +3091,11 @@ before was current this also makes BUFFER the current buffer."
   "If non-nil, allow switching to an already visible buffer.
 If this variable is non-nil, `switch-to-prev-buffer' and
 `switch-to-next-buffer' may switch to an already visible buffer
-provided the buffer was shown in the argument window before.  If
-this variable is nil, `switch-to-prev-buffer' and
-`switch-to-next-buffer' always try to avoid switching to a buffer
-that is already visible in another window on the same frame."
+provided the buffer was shown before in the window specified as
+argument to those functions.  If this variable is nil,
+`switch-to-prev-buffer' and `switch-to-next-buffer' always try to
+avoid switching to a buffer that is already visible in another
+window on the same frame."
   :type 'boolean
   :version "24.1"
   :group 'windows)
@@ -3556,7 +3557,12 @@ the buffer of WINDOW.  The following values are handled:
 	 quad entry)
     (cond
      ((and (not prev-buffer)
-	   (memq (nth 1 quit-restore) '(window frame))
+	   (or (eq (nth 1 quit-restore) 'frame)
+	       (and (eq (nth 1 quit-restore) 'window)
+		    ;; If the window has been created on an existing
+		    ;; frame and ended up as the sole window on that
+		    ;; frame, do not delete it (Bug#12764).
+		    (not (eq window (frame-root-window window)))))
 	   (eq (nth 3 quit-restore) buffer)
 	   ;; Delete WINDOW if possible.
 	   (window--delete window nil (eq bury-or-kill 'kill)))
@@ -5850,8 +5856,8 @@ window on any visible or iconified frame.  If this is t, it
 unconditionally tries to display the buffer at its previous
 position in the selected window.
 
-This variable is ignored if the the buffer is already displayed
-in the selected window or never appeared in it before, or if
+This variable is ignored if the buffer is already displayed in
+the selected window or never appeared in it before, or if
 `switch-to-buffer' calls `pop-to-buffer' to display the buffer."
   :type '(choice
 	  (const :tag "Never" nil)

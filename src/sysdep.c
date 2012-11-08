@@ -452,7 +452,7 @@ sys_suspend (void)
 #if defined (SIGTSTP) && !defined (MSDOS)
 
   {
-    pid_t pgrp = EMACS_GETPGRP (0);
+    pid_t pgrp = getpgrp ();
     EMACS_KILLPG (pgrp, SIGTSTP);
   }
 
@@ -683,6 +683,75 @@ ignore_sigio (void)
 }
 
 
+/* Saving and restoring the process group of Emacs's terminal.  */
+
+/* The process group of which Emacs was a member when it initially
+   started.
+
+   If Emacs was in its own process group (i.e. inherited_pgroup ==
+   getpid ()), then we know we're running under a shell with job
+   control (Emacs would never be run as part of a pipeline).
+   Everything is fine.
+
+   If Emacs was not in its own process group, then we know we're
+   running under a shell (or a caller) that doesn't know how to
+   separate itself from Emacs (like sh).  Emacs must be in its own
+   process group in order to receive SIGIO correctly.  In this
+   situation, we put ourselves in our own pgroup, forcibly set the
+   tty's pgroup to our pgroup, and make sure to restore and reinstate
+   the tty's pgroup just like any other terminal setting.  If
+   inherited_group was not the tty's pgroup, then we'll get a
+   SIGTTmumble when we try to change the tty's pgroup, and a CONT if
+   it goes foreground in the future, which is what should happen.  */
+
+static pid_t inherited_pgroup;
+
+void
+init_foreground_group (void)
+{
+  pid_t pgrp = getpgrp ();
+  inherited_pgroup = getpid () == pgrp ? 0 : pgrp;
+}
+
+/* Safely set a controlling terminal FD's process group to PGID.
+   If we are not in the foreground already, POSIX requires tcsetpgrp
+   to deliver a SIGTTOU signal, which would stop us.  This is an
+   annoyance, so temporarily ignore the signal.
+
+   In practice, platforms lacking SIGTTOU also lack tcsetpgrp, so
+   skip all this unless SIGTTOU is defined.  */
+static void
+tcsetpgrp_without_stopping (int fd, pid_t pgid)
+{
+#ifdef SIGTTOU
+  signal_handler_t handler;
+  block_input ();
+  handler = signal (SIGTTOU, SIG_IGN);
+  tcsetpgrp (fd, pgid);
+  signal (SIGTTOU, handler);
+  unblock_input ();
+#endif
+}
+
+/* Split off the foreground process group to Emacs alone.  When we are
+   in the foreground, but not started in our own process group,
+   redirect the tty device handle FD to point to our own process
+   group.  FD must be the file descriptor of the controlling tty.  */
+static void
+narrow_foreground_group (int fd)
+{
+  if (inherited_pgroup && setpgid (0, 0) == 0)
+    tcsetpgrp_without_stopping (fd, getpid ());
+}
+
+/* Set the tty to our original foreground group.  */
+static void
+widen_foreground_group (int fd)
+{
+  if (inherited_pgroup && setpgid (0, inherited_pgroup) == 0)
+    tcsetpgrp_without_stopping (fd, inherited_pgroup);
+}
+
 /* Getting and setting emacs_tty structures.  */
 
 /* Set *TC to the parameters associated with the terminal FD.
@@ -798,6 +867,8 @@ init_sys_modes (struct tty_display_info *tty_out)
 
   if (!tty_out->output)
     return;                     /* The tty is suspended. */
+
+  narrow_foreground_group (fileno (tty_out->input));
 
   if (! tty_out->old_tty)
     tty_out->old_tty = xmalloc (sizeof *tty_out->old_tty);
@@ -1231,6 +1302,7 @@ reset_sys_modes (struct tty_display_info *tty_out)
   dos_ttcooked ();
 #endif
 
+  widen_foreground_group (fileno (tty_out->input));
 }
 
 #ifdef HAVE_PTYS

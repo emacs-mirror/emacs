@@ -133,10 +133,6 @@ enum no_color_bit
 
 static int max_frame_cols;
 
-/* Non-zero if we have dropped our controlling tty and therefore
-   should not open a frame on stdout. */
-static int no_controlling_tty;
-
 
 
 #ifdef HAVE_GPM
@@ -2918,36 +2914,9 @@ set_tty_hooks (struct terminal *terminal)
 static void
 dissociate_if_controlling_tty (int fd)
 {
-#ifndef DOS_NT
   pid_t pgid = tcgetpgrp (fd); /* If tcgetpgrp succeeds, fd is the ctty. */
-  if (pgid != -1)
-    {
-#if defined (USG5)
-      setpgrp ();
-      no_controlling_tty = 1;
-#elif defined (CYGWIN)
-      setsid ();
-      no_controlling_tty = 1;
-#else
-#ifdef TIOCNOTTY                /* Try BSD ioctls. */
-      sigset_t blocked;
-      sigemptyset (&blocked);
-      sigaddset (&blocked, SIGTTOU);
-      pthread_sigmask (SIG_BLOCK, &blocked, 0);
-      fd = emacs_open (DEV_TTY, O_RDWR, 0);
-      if (fd != -1 && ioctl (fd, TIOCNOTTY, 0) != -1)
-        {
-          no_controlling_tty = 1;
-        }
-      if (fd != -1)
-        emacs_close (fd);
-      pthread_sigmask (SIG_UNBLOCK, &blocked, 0);
-#else
-# error "Unknown system."
-#endif  /* ! TIOCNOTTY */
-#endif  /* ! USG */
-    }
-#endif	/* !DOS_NT */
+  if (0 <= pgid)
+    setsid ();
 }
 
 /* Create a termcap display on the tty device with the given name and
@@ -3235,7 +3204,6 @@ use the Bourne shell command `TERM=... export TERM' (C-shell:\n\
     FrameCols (tty) = FRAME_COLS (f);
     tty->specified_window = FRAME_LINES (f);
 
-    FRAME_CAN_HAVE_SCROLL_BARS (f) = 0;
     FRAME_VERTICAL_SCROLL_BAR_TYPE (f) = vertical_scroll_bar_none;
     terminal->char_ins_del_ok = 1;
     baud_rate = 19200;

@@ -155,8 +155,8 @@ filenames."
 	  (setq destination
 		(if (= (length bufs) 1)
 		    (get-buffer (car bufs))
-		  (gnus-completing-read "Attach to which mail composition buffer"
-                                         bufs t)))
+		  (gnus-completing-read "Attach to buffer"
+                                         bufs t nil nil (car bufs))))
 	;; setup a new mail composition buffer
 	(let ((mail-user-agent gnus-dired-mail-mode)
 	      ;; A workaround to prevent Gnus from displaying the Gnus

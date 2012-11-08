@@ -409,10 +409,6 @@ struct frame
      show no modeline for that window.  */
   unsigned wants_modeline : 1;
 
-  /* Non-zero if the hardware device this frame is displaying on can
-     support scroll bars.  */
-  char can_have_scroll_bars;
-
   /* Non-0 means raise this frame to the top of the heap when selected.  */
   unsigned auto_raise : 1;
 
@@ -438,8 +434,7 @@ struct frame
   /* Nonzero means that the pointer is invisible. */
   unsigned pointer_invisible :1;
 
-  /* If can_have_scroll_bars is non-zero, this is non-zero if we should
-     actually display them on this frame.  */
+  /* Nonzero if we should actually display the scroll bars on this frame.  */
   enum vertical_scroll_bar_type vertical_scroll_bar_type;
 
   /* What kind of text cursor should we draw in the future?
@@ -766,11 +761,6 @@ typedef struct frame *FRAME_PTR;
 #define FRAME_MESSAGE_BUF(f) (f)->message_buf
 #define FRAME_SCROLL_BOTTOM_VPOS(f) (f)->scroll_bottom_vpos
 #define FRAME_FOCUS_FRAME(f) f->focus_frame
-
-/* Nonzero if frame F supports scroll bars.
-   If this is zero, then it is impossible to enable scroll bars
-   on frame F.  */
-#define FRAME_CAN_HAVE_SCROLL_BARS(f) ((f)->can_have_scroll_bars)
 
 /* This frame slot says whether scroll bars are currently enabled for frame F,
    and which side they are on.  */

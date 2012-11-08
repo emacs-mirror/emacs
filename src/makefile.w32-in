@@ -1564,6 +1564,7 @@ $(BLD)/w32fns.$(O) : \
 	$(SRC)/w32.h \
 	$(SRC)/w32common.h \
 	$(SRC)/w32heap.h \
+	$(NT_INC)/unistd.h \
 	$(BUFFER_H) \
 	$(CCL_H) \
 	$(CHARACTER_H) \

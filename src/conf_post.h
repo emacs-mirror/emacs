@@ -110,7 +110,16 @@ You lose; /* Emacs for DOS must be compiled with DJGPP */
 #else
 # define lstat stat
 #endif
+/* The "portable" definition of _GL_INLINE on config.h does not work
+   with DJGPP GCC 3.4.4: it causes unresolved externals in sysdep.c,
+   although lib/execinfo.h is included and the inline functions there
+   are visible.  */
+#if __GNUC__ < 4
+# define _GL_EXECINFO_INLINE inline
+#endif
 /* End of gnulib-related stuff.  */
+
+#define emacs_raise(sig) msdos_fatal_signal (sig)
 
 /* Define one of these for easier conditionals.  */
 #ifdef HAVE_X_WINDOWS

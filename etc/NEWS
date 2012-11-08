@@ -21,6 +21,17 @@ When you add a new item, please add it without either +++ or ---
 so we will look at it and add it to the manual.
 
 
+* Installation Changes in Emacs 24.4
+* Startup Changes in Emacs 24.4
+* Changes in Emacs 24.4
+* Editing Changes in Emacs 24.4
+* Changes in Specialized Modes and Packages in Emacs 24.4
+* New Modes and Packages in Emacs 24.4
+* Incompatible Lisp Changes in Emacs 24.4
+* Lisp changes in Emacs 24.4
+* Changes in Emacs 24.4 on non-free operating systems
+
+
 * Installation Changes in Emacs 24.3
 
 ---
@@ -302,6 +313,7 @@ Customize `cal-html-holidays' to change this.
 
 ** CL
 
++++
 *** CL's main entry is now (require 'cl-lib).
 `cl-lib' is like the old `cl' except that it uses the namespace cleanly,
 i.e. all its definitions have the "cl-" prefix (and internal definitions use
@@ -312,12 +324,14 @@ under the name `cl-foo' instead, with the exceptions of the few definitions
 that had to use `foo*' to avoid conflicts with pre-existing Elisp entities,
 which have not been renamed to `cl-foo*' but just `cl-foo'.
 
-The old `cl' is now deprecated and is just a bunch of aliases that
-provide the old non-prefixed names.
+The old `cl' is now deprecated and is mainly just a bunch of aliases that
+provide the old non-prefixed names.  Some exceptions are listed below.
 
++++
 *** `cl-flet' is not like `flet' (which is deprecated).
 Instead it obeys the behavior of Common-Lisp's `flet'.
 
++++
 *** `cl-labels' is slightly different from `labels'.
 The difference is that it relies on the `lexical-binding' machinery (as opposed
 to the `lexical-let' machinery used previously) to capture definitions in
@@ -816,7 +830,7 @@ to work out which code is doing something.
 recursive invocations.
 
 ** Window changes
-
++++
 *** The functions get-lru-window, get-mru-window and get-largest-window
 now accept a third argument to avoid choosing the selected window.
 
@@ -829,9 +843,12 @@ reused.
 
 *** New function `fit-frame-to-buffer' and new options
 `fit-frame-to-buffer' and `fit-frame-to-buffer-bottom-margin'.
-
++++
+*** New option switch-to-buffer-preserve-window-point to restore a
+window's point when switching buffers.
++++
 *** New display action functions `display-buffer-below-selected',
-`display-buffer-at-bottom' and `display-buffer-in-previous-window'.
+and `display-buffer-in-previous-window'.
 
 *** New display action alist entry `inhibit-switch-frame', if non-nil,
 tells display action functions to avoid changing which frame is
@@ -839,10 +856,10 @@ selected.
 
 *** New display action alist entry `pop-up-frame-parameters', if
 non-nil, specifies frame parameters to give any newly-created frame.
-
++++
 *** New display action alist entry `previous-window', if non-nil,
 specifies window to reuse in `display-buffer-in-previous-window'.
-
++++
 *** New display action alist entries `window-height' and `window-width'
 to specify size of new window created by `display-buffer'.
 

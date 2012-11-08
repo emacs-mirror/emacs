@@ -1731,10 +1731,8 @@ Return nil if POS is not visible in WINDOW.  */)
   struct glyph_row *row;
   ptrdiff_t textpos;
 
-  if (NILP (window))
-    window = selected_window;
-  CHECK_WINDOW (window);
-  w = XWINDOW (window);
+  w = decode_any_window (window);
+  XSETWINDOW (window, w);
 
   if (!NILP (pos))
     {

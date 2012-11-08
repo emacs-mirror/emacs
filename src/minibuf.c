@@ -472,6 +472,10 @@ read_minibuf (Lisp_Object map, Lisp_Object initial, Lisp_Object prompt,
 
   /* Choose the minibuffer window and frame, and take action on them.  */
 
+  /* Prepare for restoring the current buffer since choose_minibuf_frame
+     calling Fset_frame_selected_window may change it (Bug#12766).  */
+  record_unwind_protect (Fset_buffer, Fcurrent_buffer ());
+
   choose_minibuf_frame ();
 
   record_unwind_protect (choose_minibuf_frame_1, Qnil);

@@ -130,6 +130,10 @@ extern int sys_select (int, SELECT_TYPE *, SELECT_TYPE *, SELECT_TYPE *,
 		       EMACS_TIME *, void *);
 #endif
 
+/* This is for DOS_NT ports.  FIXME: Remove this old portability cruft
+   by having DOS_NT ports implement waitpid instead of wait.  Nowadays
+   POSIXish hosts all define waitpid, WNOHANG, and WUNTRACED, as these
+   have been standard since POSIX.1-1988.  */
 #ifndef WNOHANG
 # undef waitpid
 # define waitpid(pid, status, options) wait (status)
@@ -795,9 +799,8 @@ get_process (register Lisp_Object name)
 #ifdef SIGCHLD
 /* Fdelete_process promises to immediately forget about the process, but in
    reality, Emacs needs to remember those processes until they have been
-   treated by the SIGCHLD handler; otherwise this handler would consider the
-   process as being synchronous and say that the synchronous process is
-   dead.  */
+   treated by the SIGCHLD handler and waitpid has been invoked on them;
+   otherwise they might fill up the kernel's process table.  */
 static Lisp_Object deleted_pid_list;
 #endif
 
@@ -1704,16 +1707,7 @@ create_process (Lisp_Object process, char **new_argv, Lisp_Object current_dir)
   if (inchannel > max_process_desc)
     max_process_desc = inchannel;
 
-  /* Until we store the proper pid, enable the SIGCHLD handler
-     to recognize an unknown pid as standing for this process.
-     It is very important not to let this `marker' value stay
-     in the table after this function has returned; if it does
-     it might cause call-process to hang and subsequent asynchronous
-     processes to get their return values scrambled.  */
-  XPROCESS (process)->pid = -1;
-
-  /* This must be called after the above line because it may signal an
-     error. */
+  /* This may signal an error. */
   setup_process_coding_systems (process);
 
   encoded_current_dir = ENCODE_FILE (current_dir);
@@ -1745,7 +1739,6 @@ create_process (Lisp_Object process, char **new_argv, Lisp_Object current_dir)
       /* Make the pty be the controlling terminal of the process.  */
 #ifdef HAVE_PTYS
       /* First, disconnect its current controlling terminal.  */
-#ifdef HAVE_SETSID
       /* We tried doing setsid only if pty_flag, but it caused
 	 process_set_signal to fail on SGI when using a pipe.  */
       setsid ();
@@ -1758,14 +1751,6 @@ create_process (Lisp_Object process, char **new_argv, Lisp_Object current_dir)
 	  ioctl (xforkin, TIOCSCTTY, 0);
 #endif
 	}
-#else /* not HAVE_SETSID */
-#ifdef USG
-      /* It's very important to call setpgrp here and no time
-	 afterwards.  Otherwise, we lose our controlling tty which
-	 is set when we open the pty. */
-      setpgrp ();
-#endif /* USG */
-#endif /* not HAVE_SETSID */
 #if defined (LDISC1)
       if (pty_flag && xforkin >= 0)
 	{
@@ -1798,26 +1783,15 @@ create_process (Lisp_Object process, char **new_argv, Lisp_Object current_dir)
 	      ioctl (j, TIOCNOTTY, 0);
 	      emacs_close (j);
 	    }
-#ifndef USG
-	  /* In order to get a controlling terminal on some versions
-	     of BSD, it is necessary to put the process in pgrp 0
-	     before it opens the terminal.  */
-#ifdef HAVE_SETPGID
-	  setpgid (0, 0);
-#else
-	  setpgrp (0, 0);
-#endif
-#endif
 	}
 #endif /* TIOCNOTTY */
 
 #if !defined (DONT_REOPEN_PTY)
 /*** There is a suggestion that this ought to be a
-     conditional on TIOCSPGRP,
-     or !(defined (HAVE_SETSID) && defined (TIOCSCTTY)).
+     conditional on TIOCSPGRP, or !defined TIOCSCTTY.
      Trying the latter gave the wrong results on Debian GNU/Linux 1.1;
      that system does seem to need this code, even though
-     both HAVE_SETSID and TIOCSCTTY are defined.  */
+     both TIOCSCTTY is defined.  */
 	/* Now close the pty (if we had it open) and reopen it.
 	   This makes the pty the controlling terminal of the subprocess.  */
       if (pty_flag)
@@ -1886,6 +1860,8 @@ create_process (Lisp_Object process, char **new_argv, Lisp_Object current_dir)
 #endif
 
   XPROCESS (process)->pid = pid;
+  if (0 <= pid)
+    XPROCESS (process)->alive = 1;
 
   /* Stop blocking signals in the parent.  */
 #ifdef SIGCHLD
@@ -4443,7 +4419,7 @@ wait_reading_process_output (intmax_t time_limit, int nsecs, int read_kbd,
 		  if (EMACS_TIME_LT (timer_delay, timeout))
 		    {
 		      timeout = timer_delay;
-		      timeout_reduced_for_timers = 1;
+ 		      timeout_reduced_for_timers = 1;
 		    }
 		}
 	      else
@@ -6279,9 +6255,35 @@ process has been transmitted to the serial port.  */)
   return process;
 }
 
-/* On receipt of a signal that a child status has changed, loop asking
-   about children with changed statuses until the system says there
-   are no more.
+/* If the status of the process DESIRED has changed, return true and
+   set *STATUS to its exit status; otherwise, return false.
+   If HAVE is nonnegative, assume that HAVE = waitpid (HAVE, STATUS, ...)
+   has already been invoked, and do not invoke waitpid again.  */
+
+static bool
+process_status_retrieved (pid_t desired, pid_t have, int *status)
+{
+  if (have < 0)
+    {
+      /* Invoke waitpid only with a known process ID; do not invoke
+	 waitpid with a nonpositive argument.  Otherwise, Emacs might
+	 reap an unwanted process by mistake.  For example, invoking
+	 waitpid (-1, ...) can mess up glib by reaping glib's subprocesses,
+	 so that another thread running glib won't find them.  */
+      do
+	have = waitpid (desired, status, WNOHANG | WUNTRACED);
+      while (have < 0 && errno == EINTR);
+    }
+
+  return have == desired;
+}
+
+/* If PID is nonnegative, the child process PID with wait status W has
+   changed its status; record this and return true.
+
+   If PID is negative, ignore W, and look for known child processes
+   of Emacs whose status have changed.  For each one found, record its new
+   status.
 
    All we do is change the status; we do not run sentinels or print
    notifications.  That is saved for the next time keyboard input is
@@ -6304,13 +6306,23 @@ process has been transmitted to the serial port.  */)
    ** Malloc WARNING: This should never call malloc either directly or
    indirectly; if it does, that is a bug  */
 
-/* Record the changed status of the child process PID with wait status W.  */
 void
 record_child_status_change (pid_t pid, int w)
 {
 #ifdef SIGCHLD
-  Lisp_Object proc;
-  struct Lisp_Process *p;
+
+# ifdef WNOHANG
+  /* On POSIXish hosts, record at most one child only if we already
+     know one child that has exited.  */
+  bool record_at_most_one_child = 0 <= pid;
+# else
+  /* On DOS_NT (the only porting target that lacks WNOHANG),
+     record the status of at most one child process, since the SIGCHLD
+     handler must return right away.  If any more processes want to
+     signal us, we will get another signal.  */
+  bool record_at_most_one_child = 1;
+# endif
+
   Lisp_Object tail;
 
   /* Find the process that signaled us, and record its status.  */
@@ -6318,68 +6330,69 @@ record_child_status_change (pid_t pid, int w)
   /* The process can have been deleted by Fdelete_process.  */
   for (tail = deleted_pid_list; CONSP (tail); tail = XCDR (tail))
     {
+      bool all_pids_are_fixnums
+	= (MOST_NEGATIVE_FIXNUM <= TYPE_MINIMUM (pid_t)
+	   && TYPE_MAXIMUM (pid_t) <= MOST_POSITIVE_FIXNUM);
       Lisp_Object xpid = XCAR (tail);
-      if ((INTEGERP (xpid) && pid == XINT (xpid))
-	  || (FLOATP (xpid) && pid == XFLOAT_DATA (xpid)))
+      if (all_pids_are_fixnums ? INTEGERP (xpid) : NUMBERP (xpid))
 	{
-	  XSETCAR (tail, Qnil);
-	  return;
+	  pid_t deleted_pid;
+	  if (INTEGERP (xpid))
+	    deleted_pid = XINT (xpid);
+	  else
+	    deleted_pid = XFLOAT_DATA (xpid);
+	  if (process_status_retrieved (deleted_pid, pid, &w))
+	    {
+	      XSETCAR (tail, Qnil);
+	      if (record_at_most_one_child)
+		return;
+	    }
 	}
     }
 
   /* Otherwise, if it is asynchronous, it is in Vprocess_alist.  */
-  p = 0;
   for (tail = Vprocess_alist; CONSP (tail); tail = XCDR (tail))
     {
-      proc = XCDR (XCAR (tail));
-      p = XPROCESS (proc);
-      if (EQ (p->type, Qreal) && p->pid == pid)
-	break;
-      p = 0;
-    }
-
-  /* Look for an asynchronous process whose pid hasn't been filled
-     in yet.  */
-  if (! p)
-    for (tail = Vprocess_alist; CONSP (tail); tail = XCDR (tail))
-      {
-	proc = XCDR (XCAR (tail));
-	p = XPROCESS (proc);
-	if (p->pid == -1)
-	  break;
-	p = 0;
-      }
-
-  /* Change the status of the process that was found.  */
-  if (p)
-    {
-      int clear_desc_flag = 0;
-
-      p->tick = ++process_tick;
-      p->raw_status = w;
-      p->raw_status_new = 1;
-
-      /* If process has terminated, stop waiting for its output.  */
-      if ((WIFSIGNALED (w) || WIFEXITED (w))
-	  && p->infd >= 0)
-	clear_desc_flag = 1;
-
-      /* We use clear_desc_flag to avoid a compiler bug in Microsoft C.  */
-      if (clear_desc_flag)
+      Lisp_Object proc = XCDR (XCAR (tail));
+      struct Lisp_Process *p = XPROCESS (proc);
+      if (p->alive && process_status_retrieved (p->pid, pid, &w))
 	{
-	  FD_CLR (p->infd, &input_wait_mask);
-	  FD_CLR (p->infd, &non_keyboard_wait_mask);
-	}
+	  /* Change the status of the process that was found.  */
+	  p->tick = ++process_tick;
+	  p->raw_status = w;
+	  p->raw_status_new = 1;
 
-      /* Tell wait_reading_process_output that it needs to wake up and
-	 look around.  */
-      if (input_available_clear_time)
-	*input_available_clear_time = make_emacs_time (0, 0);
+	  /* If process has terminated, stop waiting for its output.  */
+	  if (WIFSIGNALED (w) || WIFEXITED (w))
+	    {
+	      int clear_desc_flag = 0;
+	      p->alive = 0;
+	      if (p->infd >= 0)
+		clear_desc_flag = 1;
+
+	      /* clear_desc_flag avoids a compiler bug in Microsoft C.  */
+	      if (clear_desc_flag)
+		{
+		  FD_CLR (p->infd, &input_wait_mask);
+		  FD_CLR (p->infd, &non_keyboard_wait_mask);
+		}
+	    }
+
+	  /* Tell wait_reading_process_output that it needs to wake up and
+	     look around.  */
+	  if (input_available_clear_time)
+	    *input_available_clear_time = make_emacs_time (0, 0);
+
+	  if (record_at_most_one_child)
+	    return;
+	}
     }
-  /* There was no asynchronous process found for that pid: we have
-     a synchronous process.  */
-  else
+
+  if (0 <= pid)
     {
+      /* The caller successfully waited for a pid but no asynchronous
+	 process was found for it, so this is a synchronous process.  */
+
       synch_process_alive = 0;
 
       /* Report the status of the synchronous process.  */
@@ -6398,38 +6411,10 @@ record_child_status_change (pid_t pid, int w)
 
 #ifdef SIGCHLD
 
-/* On some systems, the SIGCHLD handler must return right away.  If
-   any more processes want to signal us, we will get another signal.
-   Otherwise, loop around to use up all the processes that have
-   something to tell us.  */
-#if (defined WINDOWSNT \
-     || (defined USG && !defined GNU_LINUX \
-	 && !(defined HPUX && defined WNOHANG)))
-enum { CAN_HANDLE_MULTIPLE_CHILDREN = 0 };
-#else
-enum { CAN_HANDLE_MULTIPLE_CHILDREN = 1 };
-#endif
-
 static void
 handle_child_signal (int sig)
 {
-  do
-    {
-      pid_t pid;
-      int status;
-
-      do
-	pid = waitpid (-1, &status, WNOHANG | WUNTRACED);
-      while (pid < 0 && errno == EINTR);
-
-      /* PID == 0 means no processes found, PID == -1 means a real failure.
-	 Either way, we have done all our job.  */
-      if (pid <= 0)
-	break;
-
-      record_child_status_change (pid, status);
-    }
-  while (CAN_HANDLE_MULTIPLE_CHILDREN);
+  record_child_status_change (-1, 0);
 }
 
 static void

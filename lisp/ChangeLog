@@ -1,3 +1,108 @@
+2012-11-06  Dmitry Antipov  <dmantipov@yandex.ru>
+
+	* emacs-lisp/byte-opt.el (toplevel): Add compare-window-configurations,
+	frame-first-window, frame-root-window, frame-selected-window,
+	minibuffer-selected-window, minibuffer-window,
+	window-absolute-pixel-edges, window-at, window-body-height,
+	window-body-width, window-display-table, window-combination-limit,
+	window-frame, window-fringes, window-inside-absolute-pixel-edges,
+	window-inside-edges, window-inside-pixel-edges, window-left-child,
+	window-left-column, window-margins, window-next-buffers,
+	window-next-sibling, window-new-normal, window-new-total,
+	window-normal-size, window-parameter, window-parameters, window-parent,
+	window-pixel-edges, window-point, window-prev-buffers,
+	window-prev-sibling, window-redisplay-end-trigger, window-scroll-bars,
+	window-start, window-text-height, window-top-child, window-top-line,
+	window-total-height, window-total-width and window-use-time to the list
+	of functions without side-effects.
+	(toplevel): Add window-valid-p to the list of error-free functions
+	without side-effects.
+
+2012-11-05  Agustín Martín Domingo  <agustin.martin@hispalinux.es>
+
+	* textmodes/ispell.el (ispell-program-name): Update
+	spellchecker parameters when customized.
+
+2012-11-04  Glenn Morris  <rgm@gnu.org>
+
+	* vc/vc-svn.el (vc-svn-state-heuristic): Avoid calling svn.  (Bug#7850)
+
+2012-11-04  Chong Yidong  <cyd@gnu.org>
+
+	* bookmark.el (bookmark-bmenu-switch-other-window): Avoid binding
+	same-window-* variables.
+
+2012-11-04  Juri Linkov  <juri@jurta.org>
+
+	* isearch.el (isearch-help-for-help, isearch-describe-bindings)
+	(isearch-describe-key, isearch-describe-mode): Use a display
+	action instead of binding same-window-* variables (Bug#10040).
+
+2012-11-03  Glenn Morris  <rgm@gnu.org>
+
+	* emacs-lisp/cl-macs.el (cl-parse-loop-clause):
+	Rename handler properties back from cl-- to cl-.  (Bug#12788)
+
+	* emacs-lisp/cl-macs.el (cl-do-all-symbols): Add doc string.
+
+2012-11-03  Eli Zaretskii  <eliz@gnu.org>
+
+	* term/pc-win.el: Don't load term/internal from here.
+
+	* loadup.el: Load term/internal from here.
+
+2012-11-03  Fabián Ezequiel Gallina  <fgallina@cuca>
+
+	* progmodes/python.el (inferior-python-mode): Fix hang in
+	jit-lock (Bug#12645).
+
+2012-11-03  Martin Rudalics  <rudalics@gmx.at>
+
+	* window.el (switch-to-visible-buffer)
+	(switch-to-buffer-preserve-window-point): Fix doc-strings.
+
+2012-11-03  Glenn Morris  <rgm@gnu.org>
+
+	* emacs-lisp/cl-lib.el (cl--random-time):
+	Rename from cl-random-time.  (Bug#12773)
+	(cl--gensym-counter, cl--random-state): Update callers.
+	* emacs-lisp/cl-extra.el (cl-make-random-state): Update callers.
+
+2012-11-03  Chong Yidong  <cyd@gnu.org>
+
+	* cus-start.el: Make cursor-type customizable (Bug#11633).
+
+2012-11-02  Glenn Morris  <rgm@gnu.org>
+
+	* filecache.el: No need to load find-lisp when compiling.
+	(find-lisp-find-files): Autoload it.
+	(file-cache-add-directory-recursively): Don't require find-lisp.
+
+	* image.el (image-type-from-file-name): Trivial simplification.
+
+	* emacs-lisp/bytecomp.el (byte-compile-eval):
+	Decouple "noruntime" and "cl-functions" warnings.
+
+2012-11-01  Stephen Berman  <stephen.berman@gmx.net>
+
+	* play/gomoku.el (gomoku-display-statistics): Update mode line
+	only if in Gomoku buffer; don't capitalize "won" (Bug#12771).
+
+2012-10-31  Martin Rudalics  <rudalics@gmx.at>
+
+	* window.el (quit-restore-window): If the window has been
+	created on an existing frame and ended up as the sole window on
+	that frame, do not delete it (Bug#12764).
+
+2012-10-31  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* progmodes/sh-script.el (sh--inside-noncommand-expression):
+	Rename from sh--inside-arithmetic-expression, handle more cases
+	(bug#11263).
+
+	* progmodes/sh-script.el (sh--inside-arithmetic-expression): New func.
+	(sh-font-lock-open-heredoc): Use it (bug#12770).
+
 2012-10-30  Glenn Morris  <rgm@gnu.org>
 
 	* emacs-lisp/cl-extra.el (cl-mapc): Add autoload cookie.  Doc fix.

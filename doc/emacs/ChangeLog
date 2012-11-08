@@ -1,3 +1,7 @@
+2012-10-30  Michael Albinus  <michael.albinus@gmx.de>
+
+	* trouble.texi (Known Problems): Mention command `debbugs-gnu-usertags'.
+
 2012-10-29  Chong Yidong  <cyd@gnu.org>
 
 	* dired.texi (Shell Commands in Dired): Document changes to the

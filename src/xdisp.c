@@ -928,6 +928,7 @@ static enum move_it_result
        move_it_in_display_line_to (struct it *, ptrdiff_t, int,
 				   enum move_operation_enum);
 void move_it_vertically_backward (struct it *, int);
+static void get_visually_first_element (struct it *);
 static void init_to_row_start (struct it *, struct window *,
                                struct glyph_row *);
 static int init_to_row_end (struct it *, struct window *,
@@ -3113,6 +3114,40 @@ init_from_display_pos (struct it *it, struct window *w, struct display_pos *pos)
       eassert (STRINGP (it->string));
       it->current.string_pos = pos->string_pos;
       it->method = GET_FROM_STRING;
+      it->end_charpos = SCHARS (it->string);
+      /* Set up the bidi iterator for this overlay string.  */
+      if (it->bidi_p)
+	{
+	  it->bidi_it.string.lstring = it->string;
+	  it->bidi_it.string.s = NULL;
+	  it->bidi_it.string.schars = SCHARS (it->string);
+	  it->bidi_it.string.bufpos = it->overlay_strings_charpos;
+	  it->bidi_it.string.from_disp_str = it->string_from_display_prop_p;
+	  it->bidi_it.string.unibyte = !it->multibyte_p;
+	  bidi_init_it (IT_STRING_CHARPOS (*it), IT_STRING_BYTEPOS (*it),
+			FRAME_WINDOW_P (it->f), &it->bidi_it);
+
+	  /* Synchronize the state of the bidi iterator with
+	     pos->string_pos.  For any string position other than
+	     zero, this will be done automagically when we resume
+	     iteration over the string and get_visually_first_element
+	     is called.  But if string_pos is zero, and the string is
+	     to be reordered for display, we need to resync manually,
+	     since it could be that the iteration state recorded in
+	     pos ended at string_pos of 0 moving backwards in string.  */
+	  if (CHARPOS (pos->string_pos) == 0)
+	    {
+	      get_visually_first_element (it);
+	      if (IT_STRING_CHARPOS (*it) != 0)
+		do {
+		  /* Paranoia.  */
+		  eassert (it->bidi_it.charpos < it->bidi_it.string.schars);
+		  bidi_move_to_visually_next (&it->bidi_it);
+		} while (it->bidi_it.charpos != 0);
+	    }
+	  eassert (IT_STRING_CHARPOS (*it) == it->bidi_it.charpos
+		   && IT_STRING_BYTEPOS (*it) == it->bidi_it.bytepos);
+	}
     }
 
   if (CHARPOS (pos->string_pos) >= 0)
@@ -3122,6 +3157,9 @@ init_from_display_pos (struct it *it, struct window *w, struct display_pos *pos)
 	 IT should already be filled with that string.  */
       it->current.string_pos = pos->string_pos;
       eassert (STRINGP (it->string));
+      if (it->bidi_p)
+	bidi_init_it (IT_STRING_CHARPOS (*it), IT_STRING_BYTEPOS (*it),
+		      FRAME_WINDOW_P (it->f), &it->bidi_it);
     }
 
   /* Restore position in display vector translations, control
@@ -21018,10 +21056,8 @@ are the selected window and the WINDOW's buffer).  */)
   Lisp_Object str;
   int string_start = 0;
 
-  if (NILP (window))
-    window = selected_window;
-  CHECK_WINDOW (window);
-  w = XWINDOW (window);
+  w = decode_any_window (window);
+  XSETWINDOW (window, w);
 
   if (NILP (buffer))
     buffer = w->buffer;
@@ -21050,7 +21086,7 @@ are the selected window and the WINDOW's buffer).  */)
      and set that to nil so that we don't alter the outer value.  */
   record_unwind_protect (unwind_format_mode_line,
 			 format_mode_line_unwind_data
-			   (XFRAME (WINDOW_FRAME (XWINDOW (window))),
+			   (XFRAME (WINDOW_FRAME (w)),
 			    old_buffer, selected_window, 1));
   mode_line_proptrans_alist = Qnil;
 

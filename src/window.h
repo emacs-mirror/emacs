@@ -970,10 +970,18 @@ struct glyph *get_phys_cursor_glyph (struct window *w);
        || !NILP (XWINDOW (WINDOW)->vchild)		\
        || !NILP (XWINDOW (WINDOW)->hchild)))
 
+/* A window of any sort, leaf or interior, is "valid" if one
+   of its buffer, vchild, or hchild members is non-nil.  */
+#define CHECK_VALID_WINDOW(WINDOW)				\
+  CHECK_TYPE (WINDOW_VALID_P (WINDOW), Qwindow_valid_p, WINDOW)
 
 /* Value is non-zero if WINDOW is a live window.  */
 #define WINDOW_LIVE_P(WINDOW)					\
   (WINDOWP (WINDOW) && !NILP (XWINDOW (WINDOW)->buffer))
+
+/* A window is "live" if and only if it shows a buffer.  */
+#define CHECK_LIVE_WINDOW(WINDOW)				\
+  CHECK_TYPE (WINDOW_LIVE_P (WINDOW), Qwindow_live_p, WINDOW)
 
 /* These used to be in lisp.h.  */
 
@@ -981,6 +989,7 @@ extern Lisp_Object Qwindowp, Qwindow_live_p;
 extern Lisp_Object Vwindow_list;
 
 extern struct window *decode_live_window (Lisp_Object);
+extern struct window *decode_any_window (Lisp_Object);
 extern bool compare_window_configurations (Lisp_Object, Lisp_Object, bool);
 extern void mark_window_cursors_off (struct window *);
 extern int window_internal_height (struct window *);

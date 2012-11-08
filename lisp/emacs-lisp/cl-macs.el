@@ -1259,8 +1259,9 @@ Valid clauses are:
 			loop-for-steps)))
 
 	       (t
+		;; This is an advertised interface: (info "(cl)Other Clauses").
 		(let ((handler (and (symbolp word)
-				    (get word 'cl--loop-for-handler))))
+				    (get word 'cl-loop-for-handler))))
 		  (if handler
 		      (funcall handler var)
 		    (error "Expected a `for' preposition, found %s" word)))))
@@ -1407,7 +1408,8 @@ Valid clauses are:
                    ,cl--loop-finish-flag nil) cl--loop-body))
 
      (t
-      (let ((handler (and (symbolp word) (get word 'cl--loop-handler))))
+      ;; This is an advertised interface: (info "(cl)Other Clauses").
+      (let ((handler (and (symbolp word) (get word 'cl-loop-handler))))
 	(or handler (error "Expected a cl-loop keyword, found %s" word))
 	(funcall handler))))
     (if (eq (car cl--loop-args) 'and)
@@ -1579,6 +1581,9 @@ from OBARRAY.
 
 ;;;###autoload
 (defmacro cl-do-all-symbols (spec &rest body)
+  "Like `cl-do-symbols', but use the default obarray.
+
+\(fn (VAR [RESULT]) BODY...)"
   (declare (indent 1) (debug ((symbolp &optional form) cl-declarations body)))
   `(cl-do-symbols (,(car spec) nil ,(cadr spec)) ,@body))
 
