@@ -3711,6 +3711,7 @@ static mps_res_t obj_scan(mps_ss_t ss, mps_addr_t base, mps_addr_t limit)
       obj_t obj = base;
       switch (TYPE(obj)) {
       case TYPE_PAIR:
+      case TYPE_PROMISE:
         FIX(CAR(obj));
         FIX(CDR(obj));
         base = (char *)base + ALIGN(sizeof(pair_s));
@@ -3807,6 +3808,7 @@ static mps_addr_t obj_skip(mps_addr_t base)
   obj_t obj = base;
   switch (TYPE(obj)) {
   case TYPE_PAIR:
+  case TYPE_PROMISE:
     base = (char *)base + ALIGN(sizeof(pair_s));
     break;
   case TYPE_INTEGER:
