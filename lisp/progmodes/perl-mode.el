@@ -1,4 +1,4 @@
-;;; perl-mode.el --- Perl code editing commands for GNU Emacs
+;;; perl-mode.el --- Perl code editing commands for GNU Emacs  -*- coding: utf-8 -*-
 
 ;; Copyright (C) 1990, 1994, 2001-2012 Free Software Foundation, Inc.
 
@@ -101,11 +101,6 @@
 ;;          ] =~ s/;9$//;
 
 ;;; Code:
-
-
-(defvar font-lock-comment-face)
-(defvar font-lock-doc-face)
-(defvar font-lock-string-face)
 
 (defgroup perl nil
   "Major mode for editing Perl code."
@@ -227,24 +222,24 @@ Regexp match data 0 points to the chars."
    perl-font-lock-keywords-1
    `( ;; Fontify keywords, except those fontified otherwise.
      ,(concat "\\<"
-	    (regexp-opt '("if" "until" "while" "elsif" "else" "unless"
-			  "do" "dump" "for" "foreach" "exit" "die"
-			  "BEGIN" "END" "return" "exec" "eval") t)
-	    "\\>")
-    ;;
-    ;; Fontify local and my keywords as types.
+              (regexp-opt '("if" "until" "while" "elsif" "else" "unless"
+                            "do" "dump" "for" "foreach" "exit" "die"
+                            "BEGIN" "END" "return" "exec" "eval") t)
+              "\\>")
+     ;;
+     ;; Fontify local and my keywords as types.
      ("\\<\\(local\\|my\\)\\>" . font-lock-type-face)
-    ;;
-    ;; Fontify function, variable and file name references.
+     ;;
+     ;; Fontify function, variable and file name references.
      ("&\\(\\sw+\\(::\\sw+\\)*\\)" 1 font-lock-function-name-face)
-    ;; Additionally underline non-scalar variables.  Maybe this is a bad idea.
-    ;;'("[$@%*][#{]?\\(\\sw+\\)" 1 font-lock-variable-name-face)
+     ;; Additionally underline non-scalar variables.  Maybe this is a bad idea.
+     ;;'("[$@%*][#{]?\\(\\sw+\\)" 1 font-lock-variable-name-face)
      ("[$*]{?\\(\\sw+\\(::\\sw+\\)*\\)" 1 font-lock-variable-name-face)
      ("\\([@%]\\|\\$#\\)\\(\\sw+\\(::\\sw+\\)*\\)"
       (2 (cons font-lock-variable-name-face '(underline))))
      ("<\\(\\sw+\\)>" 1 font-lock-constant-face)
-    ;;
-    ;; Fontify keywords with/and labels as we do in `c++-font-lock-keywords'.
+     ;;
+     ;; Fontify keywords with/and labels as we do in `c++-font-lock-keywords'.
      ("\\<\\(continue\\|goto\\|last\\|next\\|redo\\)\\>[ \t]*\\(\\sw+\\)?"
       (1 font-lock-keyword-face) (2 font-lock-constant-face nil t))
      ("^[ \t]*\\(\\sw+\\)[ \t]*:[^:]" 1 font-lock-constant-face)
