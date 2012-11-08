@@ -559,7 +559,11 @@ ns_findfonts (Lisp_Object font_spec, BOOL isMatch)
     if (isMatch)
 	[fkeys removeObject: NSFontFamilyAttribute];
 
-    matchingDescs = [fdesc matchingFontDescriptorsWithMandatoryKeys: fkeys];
+    if ([fkeys count] > 0)
+      matchingDescs = [fdesc matchingFontDescriptorsWithMandatoryKeys: fkeys];
+    else
+      matchingDescs = [NSMutableArray array];
+
     if (NSFONT_TRACE)
 	NSLog(@"Got desc %@ and found %d matching fonts from it: ", fdesc,
 	      [matchingDescs count]);

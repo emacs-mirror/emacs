@@ -1,3 +1,7 @@
+2012-11-08  Thomas Kappler <tkappler@gmail.com> (tiny change)
+
+	* nsfont.m (ns_findfonts): Handle empty matchingDescs (Bug#11541).
+
 2012-11-08  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	Use ad-hoc comparison function for the profiler's hash-tables.
