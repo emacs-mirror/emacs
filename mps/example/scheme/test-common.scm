@@ -4,6 +4,7 @@
 
 (define (check exp result)
   (let ((actually (eval exp)))
+    (gc)                   ; frequent collection often turns up errors
     (if (not (equal? actually result))
         (begin
           (write-string "test: ") (write exp) (newline)
