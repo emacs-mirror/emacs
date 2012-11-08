@@ -1,3 +1,7 @@
+2012-11-08  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* emacs-lisp/gv.el (gv-ref, gv-deref): New function and macro.
+
 2012-11-07  Michael Albinus  <michael.albinus@gmx.de>
 
 	* notifications.el (notifications-get-server-information-method):
