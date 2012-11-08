@@ -3416,13 +3416,20 @@ int stop_character EXTERNALLY_VISIBLE;
 static KBOARD *
 event_to_kboard (struct input_event *event)
 {
-  Lisp_Object obj = event->frame_or_window;
-  /* There are some events that set this field to nil or string.  */
-  if (WINDOWP (obj))
-    obj = WINDOW_FRAME (XWINDOW (obj));
-  /* Also ignore dead frames here.  */
-  return ((FRAMEP (obj) && FRAME_LIVE_P (XFRAME (obj)))
-	  ? FRAME_KBOARD (XFRAME (obj)) : NULL);
+  /* Not applicable for these special events.  */
+  if (event->kind == SELECTION_REQUEST_EVENT
+      || event->kind == SELECTION_CLEAR_EVENT)
+    return NULL;
+  else
+    {
+      Lisp_Object obj = event->frame_or_window;
+      /* There are some events that set this field to nil or string.  */
+      if (WINDOWP (obj))
+	obj = WINDOW_FRAME (XWINDOW (obj));
+      /* Also ignore dead frames here.  */
+      return ((FRAMEP (obj) && FRAME_LIVE_P (XFRAME (obj)))
+	      ? FRAME_KBOARD (XFRAME (obj)) : NULL);
+    }
 }
 
 #ifdef subprocesses

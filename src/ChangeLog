@@ -1,3 +1,10 @@
+2012-11-08  Dmitry Antipov  <dmantipov@yandex.ru>
+
+	* keyboard.c (event_to_kboard): Do not dereference
+	frame_or_window field of SELECTION_REQUEST_EVENT
+	and SELECTION_CLEAR_EVENT events (Bug#12814).
+	* xterm.h (struct selection_input_event): Adjust comment.
+
 2012-11-07  Eli Zaretskii  <eliz@gnu.org>
 
 	* w32fns.c (modifier_set): Don't report modifiers from toggle key,
