@@ -1638,6 +1638,8 @@ The variable `ruby-indent-level' controls the amount of indentation.
 
 ;;;###autoload
 (add-to-list 'auto-mode-alist (cons (purecopy "\\.rb\\'") 'ruby-mode))
+;;;###autoload
+(add-to-list 'auto-mode-alist '("Rakefile\\'" . ruby-mode))
 
 ;;;###autoload
 (dolist (name (list "ruby" "rbx" "jruby" "ruby1.9" "ruby1.8"))
