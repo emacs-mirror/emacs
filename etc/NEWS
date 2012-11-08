@@ -164,6 +164,7 @@ and sorted above the other "available" packages by default.
 ** `C-x C-q' is now bound to the new minor mode `read-only-mode'.
 This minor mode replaces `toggle-read-only', which is now obsolete.
 
++++
 ** Emacs now generates backtraces on fatal errors.
 On encountering a fatal error, Emacs now outputs a textual description
 of the fatal signal, and a short backtrace on platforms like glibc
