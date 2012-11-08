@@ -1,3 +1,9 @@
+2012-11-08  Eli Zaretskii  <eliz@gnu.org>
+
+	* w32fns.c (modifier_set): Fix handling of Scroll Lock when the
+	value of w32-scroll-lock-modifier is neither nil nor one of the
+	known key modifiers.  (Bug#12806)
+
 2012-11-08  Dmitry Antipov  <dmantipov@yandex.ru>
 
 	Shrink struct vectorlike_header to the only size field.

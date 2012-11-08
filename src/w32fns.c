@@ -2085,6 +2085,12 @@ sync_modifiers (void)
 static int
 modifier_set (int vkey)
 {
+  /* Warning: The fact that VK_NUMLOCK is not treated as the other 2
+     toggle keys is not an omission!  If you want to add it, you will
+     have to make changes in the default sub-case of the WM_KEYDOWN
+     switch, because if the NUMLOCK modifier is set, the code there
+     will directly convert any key that looks like an ASCII letter,
+     and also downcase those that look like upper-case ASCII.  */
   if (vkey == VK_CAPITAL)
     {
       if (NILP (Vw32_enable_caps_lock))
@@ -2094,7 +2100,15 @@ modifier_set (int vkey)
     }
   if (vkey == VK_SCROLL)
     {
-      if (NILP (Vw32_scroll_lock_modifier))
+      if (NILP (Vw32_scroll_lock_modifier)
+	  /* w32-scroll-lock-modifier can be any non-nil value that is
+	     not one of the modifiers, in which case it shall be ignored.  */
+	  || !(   EQ (Vw32_scroll_lock_modifier, Qhyper)
+	       || EQ (Vw32_scroll_lock_modifier, Qsuper)
+	       || EQ (Vw32_scroll_lock_modifier, Qmeta)
+	       || EQ (Vw32_scroll_lock_modifier, Qalt)
+	       || EQ (Vw32_scroll_lock_modifier, Qcontrol)
+	       || EQ (Vw32_scroll_lock_modifier, Qshift)))
 	return 0;
       else
 	return (GetKeyState (vkey) & 0x1);
