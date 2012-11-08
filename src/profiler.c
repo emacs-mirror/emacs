@@ -558,7 +558,7 @@ hashfn_profiler (struct hash_table_test *ht, Lisp_Object bt)
 	    = (COMPILEDP (f) ? XUINT (AREF (f, COMPILED_BYTECODE))
 	       : (CONSP (f) && CONSP (XCDR (f)) && EQ (Qclosure, XCAR (f)))
 	       ? XUINT (XCDR (XCDR (f))) : XUINT (f));
-	  hash = hash1 + (hash << 1) + (hash == (EMACS_INT) hash);
+	  hash = sxhash_combine (hash, hash1);
 	}
       return (hash & INTMASK);
     }

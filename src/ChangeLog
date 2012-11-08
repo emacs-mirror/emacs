@@ -1,3 +1,12 @@
+2012-11-08  Paul Eggert  <eggert@cs.ucla.edu>
+
+	Use same hash function for hashfn_profiler as for hash_string etc.
+	* fns.c (SXHASH_COMBINE): Remove.  All uses replaced by sxhash_combine.
+	* lisp.h (sxhash_combine): New inline function, with the contents
+	of the old SXHASH_COMBINE.
+	* profiler.c (hashfn_profiler): Use it, instead of having a
+	special hash function containing a comparison that always yields 1.
+
 2012-11-08  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* xfaces.c (Qultra_light, Qreverse_oblique, Qreverse_italic)

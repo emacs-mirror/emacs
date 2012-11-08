@@ -438,7 +438,7 @@ enum More_Lisp_Bits
     /* To calculate the memory footprint of the pseudovector, it's useful
        to store the size of non-Lisp area in word_size units here.  */
     PSEUDOVECTOR_REST_BITS = 12,
-    PSEUDOVECTOR_REST_MASK = (((1 << PSEUDOVECTOR_REST_BITS) - 1) 
+    PSEUDOVECTOR_REST_MASK = (((1 << PSEUDOVECTOR_REST_BITS) - 1)
 			      << PSEUDOVECTOR_SIZE_BITS),
 
     /* Used to extract pseudovector subtype information.  */
@@ -1283,6 +1283,15 @@ static double const DEFAULT_REHASH_THRESHOLD = 0.8;
 /* Default factor by which to increase the size of a hash table.  */
 
 static double const DEFAULT_REHASH_SIZE = 1.5;
+
+/* Combine two integers X and Y for hashing.  The result might not fit
+   into a Lisp integer.  */
+
+LISP_INLINE EMACS_UINT
+sxhash_combine (EMACS_UINT x, EMACS_UINT y)
+{
+  return (x << 4) + (x >> (BITS_PER_EMACS_INT - 4)) + y;
+}
 
 /* These structures are used for various misc types.  */
 

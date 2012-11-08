@@ -4036,13 +4036,6 @@ sweep_weak_hash_tables (void)
 
 #define SXHASH_MAX_LEN   7
 
-/* Combine two integers X and Y for hashing.  The result might not fit
-   into a Lisp integer.  */
-
-#define SXHASH_COMBINE(X, Y)						\
-  ((((EMACS_UINT) (X) << 4) + ((EMACS_UINT) (X) >> (BITS_PER_EMACS_INT - 4))) \
-   + (EMACS_UINT) (Y))
-
 /* Hash X, returning a value that fits into a Lisp integer.  */
 #define SXHASH_REDUCE(X) \
   ((((X) ^ (X) >> (BITS_PER_EMACS_INT - FIXNUM_BITS))) & INTMASK)
@@ -4061,7 +4054,7 @@ hash_string (char const *ptr, ptrdiff_t len)
   while (p != end)
     {
       c = *p++;
-      hash = SXHASH_COMBINE (hash, c);
+      hash = sxhash_combine (hash, c);
     }
 
   return hash;
@@ -4095,7 +4088,7 @@ sxhash_float (double val)
   u.val = val;
   memset (&u.val + 1, 0, sizeof u - sizeof u.val);
   for (i = 0; i < WORDS_PER_DOUBLE; i++)
-    hash = SXHASH_COMBINE (hash, u.word[i]);
+    hash = sxhash_combine (hash, u.word[i]);
   return SXHASH_REDUCE (hash);
 }
 
@@ -4114,13 +4107,13 @@ sxhash_list (Lisp_Object list, int depth)
 	 list = XCDR (list), ++i)
       {
 	EMACS_UINT hash2 = sxhash (XCAR (list), depth + 1);
-	hash = SXHASH_COMBINE (hash, hash2);
+	hash = sxhash_combine (hash, hash2);
       }
 
   if (!NILP (list))
     {
       EMACS_UINT hash2 = sxhash (list, depth + 1);
-      hash = SXHASH_COMBINE (hash, hash2);
+      hash = sxhash_combine (hash, hash2);
     }
 
   return SXHASH_REDUCE (hash);
@@ -4140,7 +4133,7 @@ sxhash_vector (Lisp_Object vec, int depth)
   for (i = 0; i < n; ++i)
     {
       EMACS_UINT hash2 = sxhash (AREF (vec, i), depth + 1);
-      hash = SXHASH_COMBINE (hash, hash2);
+      hash = sxhash_combine (hash, hash2);
     }
 
   return SXHASH_REDUCE (hash);
@@ -4156,7 +4149,7 @@ sxhash_bool_vector (Lisp_Object vec)
 
   n = min (SXHASH_MAX_LEN, XBOOL_VECTOR (vec)->header.size);
   for (i = 0; i < n; ++i)
-    hash = SXHASH_COMBINE (hash, XBOOL_VECTOR (vec)->data[i]);
+    hash = sxhash_combine (hash, XBOOL_VECTOR (vec)->data[i]);
 
   return SXHASH_REDUCE (hash);
 }
