@@ -1,3 +1,10 @@
+2012-11-08  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* progmodes/js.el (js--filling-paragraph): New var.
+	(c-forward-sws, c-backward-sws, c-beginning-of-macro): Advise.
+	(js-c-fill-paragraph): Prefer advice to cl-letf so the rebinding is
+	less sneaky.
+
 2012-11-08  Julien Danjou  <julien@danjou.info>
 
 	* progmodes/ruby-mode.el (auto-mode-alist): Add Rakefile in
