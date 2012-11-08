@@ -24,5 +24,4 @@ Reference
     frame
     debugging
     telemetry
-    low
     weak
