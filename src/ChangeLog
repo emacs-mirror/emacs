@@ -1,3 +1,10 @@
+2012-11-08  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* xfaces.c (Qultra_light, Qreverse_oblique, Qreverse_italic)
+	(Qultra_condensed, Qextra_condensed, Qcondensed, Qsemi_condensed)
+	(Qsemi_expanded, Qextra_expanded, Qexpanded, Qultra_expanded):
+	Remove unused vars.
+
 2012-11-08  Jan Djärv  <jan.h.d@swipnet.se>
 
 	* image.c (xpm_make_color_table_h): Fix compiler error because
@@ -225,8 +232,8 @@
 
 	Remove EMACS_OUTQSIZE+sleep hack.
 	* dispnew.c (update_frame_1): Remove hack for terminals slower
-	than 2400 bps, which throttled Emacs by having it sleep.  This
-	code hasn't worked since at least 2007, when the multi-tty stuff
+	than 2400 bps, which throttled Emacs by having it sleep.
+	This code hasn't worked since at least 2007, when the multi-tty stuff
 	was added, and anyway those old terminals are long dead.
 	* systty.h (EMACS_OUTQSIZE): Remove; unused.  The macro isn't used even
 	without the dispnew.c change, as dispnew.c doesn't include systty.h.
@@ -265,8 +272,8 @@
 	waitpid only on subprocesses that Emacs itself creates.
 	* process.c (create_process, record_child_status_change):
 	Don't use special value -1 in pid field, as the caller now must
-	know the pid rather than having the callee infer it.  The
-	inference was sometimes incorrect anyway, due to another race.
+	know the pid rather than having the callee infer it.
+	The inference was sometimes incorrect anyway, due to another race.
 	(create_process): Set new 'alive' member if child is created.
 	(process_status_retrieved): New function.
 	(record_child_status_change): Use it.
@@ -427,8 +434,8 @@
 
 2012-10-29  Daniel Colascione  <dancol@dancol.org>
 
-	* cygw32.h, cygw32.c (Qutf_16le, from_unicode, to_unicode): In
-	preparation for fixing bug#12739, move these functions from
+	* cygw32.h, cygw32.c (Qutf_16le, from_unicode, to_unicode):
+	In preparation for fixing bug#12739, move these functions from
 	here...
 
 	* coding.h, coding.c: ... to here, and compile them only when
