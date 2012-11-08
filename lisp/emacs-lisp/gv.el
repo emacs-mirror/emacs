@@ -220,7 +220,8 @@ so as to preserve the semantics of `setf'."
   `(gv-define-setter ,name (val &rest args)
      ,(if fix-return
           `(macroexp-let2 nil v val
-             (cons ',setter (append args (list v))))
+             (cons ',setter (append args (list v)))
+             v)
         `(cons ',setter (append args (list val))))))
 
 ;;; Typical operations on generalized variables.
