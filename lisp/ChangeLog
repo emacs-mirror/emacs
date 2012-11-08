@@ -1,5 +1,9 @@
 2012-11-08  Stefan Monnier  <monnier@iro.umontreal.ca>
 
+	* env.el (env--substitute-vars-regexp): New const.
+	(substitute-env-vars): Use it.  Add `only-defined' arg.
+	* net/tramp.el (tramp-replace-environment-variables): Use it.
+
 	* emacs-lisp/bytecomp.el (byte-compile-initial-macro-environment):
 	Byte-compile *before* eval in eval-and-compile.
 	(byte-compile-log-warning): Remove redundant inhibit-read-only.
