@@ -2,7 +2,7 @@
 #
 # $Id$
 
-CFLAGS = @CFLAGS@
+CFLAGS = @CFLAGS@ @CPPFLAGS@ @LDFLAGS@
 
 MPS = ../../code
 
@@ -15,8 +15,12 @@ all: $(TARGETS)
 $(TARGETS): %: %.c Makefile
 	$(CC) $(CFLAGS) -o $@ -I $(MPS) $< $(MPS)/mps.c
 
+
+scheme-boehm: %: %.c Makefile
+	$(CC) $(CFLAGS) -o $@ $< -lgc
+
 clean:
-	rm -f $(TARGETS)
+	rm -f $(TARGETS) scheme-boehm
 
 test: $(TARGETS)
 	@for TARGET in $(TARGETS); do \
