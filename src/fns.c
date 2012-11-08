@@ -2014,7 +2014,7 @@ internal_equal (Lisp_Object o1, Lisp_Object o2, int depth, bool props)
 	d1 = extract_float (o1);
 	d2 = extract_float (o2);
 	/* If d is a NaN, then d != d. Two NaNs should be `equal' even
-	   though they are not =. */
+	   though they are not =.  */
 	return d1 == d2 || (d1 != d1 && d2 != d2);
       }
 
@@ -3424,14 +3424,16 @@ larger_vector (Lisp_Object vec, ptrdiff_t incr_min, ptrdiff_t nitems_max)
 			 Low-level Functions
  ***********************************************************************/
 
+struct hash_table_test hashtest_eq, hashtest_eql, hashtest_equal;
+
 /* Compare KEY1 which has hash code HASH1 and KEY2 with hash code
    HASH2 in hash table H using `eql'.  Value is true if KEY1 and
    KEY2 are the same.  */
 
 static bool
-cmpfn_eql (struct Lisp_Hash_Table *h,
-	   Lisp_Object key1, EMACS_UINT hash1,
-	   Lisp_Object key2, EMACS_UINT hash2)
+cmpfn_eql (struct hash_table_test *ht,
+	   Lisp_Object key1,
+	   Lisp_Object key2)
 {
   return (FLOATP (key1)
 	  && FLOATP (key2)
@@ -3444,11 +3446,11 @@ cmpfn_eql (struct Lisp_Hash_Table *h,
    KEY2 are the same.  */
 
 static bool
-cmpfn_equal (struct Lisp_Hash_Table *h,
-	     Lisp_Object key1, EMACS_UINT hash1,
-	     Lisp_Object key2, EMACS_UINT hash2)
+cmpfn_equal (struct hash_table_test *ht,
+	     Lisp_Object key1,
+	     Lisp_Object key2)
 {
-  return hash1 == hash2 && !NILP (Fequal (key1, key2));
+  return !NILP (Fequal (key1, key2));
 }
 
 
@@ -3457,21 +3459,16 @@ cmpfn_equal (struct Lisp_Hash_Table *h,
    if KEY1 and KEY2 are the same.  */
 
 static bool
-cmpfn_user_defined (struct Lisp_Hash_Table *h,
-		    Lisp_Object key1, EMACS_UINT hash1,
-		    Lisp_Object key2, EMACS_UINT hash2)
+cmpfn_user_defined (struct hash_table_test *ht,
+		    Lisp_Object key1,
+		    Lisp_Object key2)
 {
-  if (hash1 == hash2)
-    {
-      Lisp_Object args[3];
+  Lisp_Object args[3];
 
-      args[0] = h->user_cmp_function;
-      args[1] = key1;
-      args[2] = key2;
-      return !NILP (Ffuncall (3, args));
-    }
-  else
-    return 0;
+  args[0] = ht->user_cmp_function;
+  args[1] = key1;
+  args[2] = key2;
+  return !NILP (Ffuncall (3, args));
 }
 
 
@@ -3480,54 +3477,48 @@ cmpfn_user_defined (struct Lisp_Hash_Table *h,
    in a Lisp integer.  */
 
 static EMACS_UINT
-hashfn_eq (struct Lisp_Hash_Table *h, Lisp_Object key)
+hashfn_eq (struct hash_table_test *ht, Lisp_Object key)
 {
   EMACS_UINT hash = XUINT (key) ^ XTYPE (key);
-  eassert ((hash & ~INTMASK) == 0);
   return hash;
 }
-
 
 /* Value is a hash code for KEY for use in hash table H which uses
    `eql' to compare keys.  The hash code returned is guaranteed to fit
    in a Lisp integer.  */
 
 static EMACS_UINT
-hashfn_eql (struct Lisp_Hash_Table *h, Lisp_Object key)
+hashfn_eql (struct hash_table_test *ht, Lisp_Object key)
 {
   EMACS_UINT hash;
   if (FLOATP (key))
     hash = sxhash (key, 0);
   else
     hash = XUINT (key) ^ XTYPE (key);
-  eassert ((hash & ~INTMASK) == 0);
   return hash;
 }
-
 
 /* Value is a hash code for KEY for use in hash table H which uses
    `equal' to compare keys.  The hash code returned is guaranteed to fit
    in a Lisp integer.  */
 
 static EMACS_UINT
-hashfn_equal (struct Lisp_Hash_Table *h, Lisp_Object key)
+hashfn_equal (struct hash_table_test *ht, Lisp_Object key)
 {
   EMACS_UINT hash = sxhash (key, 0);
-  eassert ((hash & ~INTMASK) == 0);
   return hash;
 }
-
 
 /* Value is a hash code for KEY for use in hash table H which uses as
    user-defined function to compare keys.  The hash code returned is
    guaranteed to fit in a Lisp integer.  */
 
 static EMACS_UINT
-hashfn_user_defined (struct Lisp_Hash_Table *h, Lisp_Object key)
+hashfn_user_defined (struct hash_table_test *ht, Lisp_Object key)
 {
   Lisp_Object args[2], hash;
 
-  args[0] = h->user_hash_function;
+  args[0] = ht->user_hash_function;
   args[1] = key;
   hash = Ffuncall (2, args);
   if (!INTEGERP (hash))
@@ -3563,9 +3554,9 @@ hashfn_user_defined (struct Lisp_Hash_Table *h, Lisp_Object key)
    one of the symbols `key', `value', `key-or-value', or `key-and-value'.  */
 
 Lisp_Object
-make_hash_table (Lisp_Object test, Lisp_Object size, Lisp_Object rehash_size,
-		 Lisp_Object rehash_threshold, Lisp_Object weak,
-		 Lisp_Object user_test, Lisp_Object user_hash)
+make_hash_table (struct hash_table_test test,
+		 Lisp_Object size, Lisp_Object rehash_size,
+		 Lisp_Object rehash_threshold, Lisp_Object weak)
 {
   struct Lisp_Hash_Table *h;
   Lisp_Object table;
@@ -3574,7 +3565,7 @@ make_hash_table (Lisp_Object test, Lisp_Object size, Lisp_Object rehash_size,
   double index_float;
 
   /* Preconditions.  */
-  eassert (SYMBOLP (test));
+  eassert (SYMBOLP (test.name));
   eassert (INTEGERP (size) && XINT (size) >= 0);
   eassert ((INTEGERP (rehash_size) && XINT (rehash_size) > 0)
 	   || (FLOATP (rehash_size) && 1 < XFLOAT_DATA (rehash_size)));
@@ -3598,29 +3589,6 @@ make_hash_table (Lisp_Object test, Lisp_Object size, Lisp_Object rehash_size,
 
   /* Initialize hash table slots.  */
   h->test = test;
-  if (EQ (test, Qeql))
-    {
-      h->cmpfn = cmpfn_eql;
-      h->hashfn = hashfn_eql;
-    }
-  else if (EQ (test, Qeq))
-    {
-      h->cmpfn = NULL;
-      h->hashfn = hashfn_eq;
-    }
-  else if (EQ (test, Qequal))
-    {
-      h->cmpfn = cmpfn_equal;
-      h->hashfn = hashfn_equal;
-    }
-  else
-    {
-      h->user_cmp_function = user_test;
-      h->user_hash_function = user_hash;
-      h->cmpfn = cmpfn_user_defined;
-      h->hashfn = hashfn_user_defined;
-    }
-
   h->weak = weak;
   h->rehash_threshold = rehash_threshold;
   h->rehash_size = rehash_size;
@@ -3776,7 +3744,8 @@ hash_lookup (struct Lisp_Hash_Table *h, Lisp_Object key, EMACS_UINT *hash)
   ptrdiff_t start_of_bucket;
   Lisp_Object idx;
 
-  hash_code = h->hashfn (h, key);
+  hash_code = h->test.hashfn (&h->test, key);
+  eassert ((hash_code & ~INTMASK) == 0);
   if (hash)
     *hash = hash_code;
 
@@ -3788,9 +3757,9 @@ hash_lookup (struct Lisp_Hash_Table *h, Lisp_Object key, EMACS_UINT *hash)
     {
       ptrdiff_t i = XFASTINT (idx);
       if (EQ (key, HASH_KEY (h, i))
-	  || (h->cmpfn
-	      && h->cmpfn (h, key, hash_code,
-			   HASH_KEY (h, i), XUINT (HASH_HASH (h, i)))))
+	  || (h->test.cmpfn
+	      && hash_code == XUINT (HASH_HASH (h, i))
+	      && h->test.cmpfn (&h->test, key, HASH_KEY (h, i))))
 	break;
       idx = HASH_NEXT (h, i);
     }
@@ -3841,7 +3810,8 @@ hash_remove_from_table (struct Lisp_Hash_Table *h, Lisp_Object key)
   ptrdiff_t start_of_bucket;
   Lisp_Object idx, prev;
 
-  hash_code = h->hashfn (h, key);
+  hash_code = h->test.hashfn (&h->test, key);
+  eassert ((hash_code & ~INTMASK) == 0);
   start_of_bucket = hash_code % ASIZE (h->index);
   idx = HASH_INDEX (h, start_of_bucket);
   prev = Qnil;
@@ -3852,9 +3822,9 @@ hash_remove_from_table (struct Lisp_Hash_Table *h, Lisp_Object key)
       ptrdiff_t i = XFASTINT (idx);
 
       if (EQ (key, HASH_KEY (h, i))
-	  || (h->cmpfn
-	      && h->cmpfn (h, key, hash_code,
-			   HASH_KEY (h, i), XUINT (HASH_HASH (h, i)))))
+	  || (h->test.cmpfn
+	      && hash_code == XUINT (HASH_HASH (h, i))
+	      && h->test.cmpfn (&h->test, key, HASH_KEY (h, i))))
 	{
 	  /* Take entry out of collision chain.  */
 	  if (NILP (prev))
@@ -4303,7 +4273,7 @@ usage: (make-hash-table &rest KEYWORD-ARGS)  */)
   (ptrdiff_t nargs, Lisp_Object *args)
 {
   Lisp_Object test, size, rehash_size, rehash_threshold, weak;
-  Lisp_Object user_test, user_hash;
+  struct hash_table_test testdesc;
   char *used;
   ptrdiff_t i;
 
@@ -4315,7 +4285,13 @@ usage: (make-hash-table &rest KEYWORD-ARGS)  */)
   /* See if there's a `:test TEST' among the arguments.  */
   i = get_key_arg (QCtest, nargs, args, used);
   test = i ? args[i] : Qeql;
-  if (!EQ (test, Qeq) && !EQ (test, Qeql) && !EQ (test, Qequal))
+  if (EQ (test, Qeq))
+    testdesc = hashtest_eq;
+  else if (EQ (test, Qeql))
+    testdesc = hashtest_eql;
+  else if (EQ (test, Qequal))
+    testdesc = hashtest_equal;
+  else
     {
       /* See if it is a user-defined test.  */
       Lisp_Object prop;
@@ -4323,11 +4299,12 @@ usage: (make-hash-table &rest KEYWORD-ARGS)  */)
       prop = Fget (test, Qhash_table_test);
       if (!CONSP (prop) || !CONSP (XCDR (prop)))
 	signal_error ("Invalid hash table test", test);
-      user_test = XCAR (prop);
-      user_hash = XCAR (XCDR (prop));
+      testdesc.name = test;
+      testdesc.user_cmp_function = XCAR (prop);
+      testdesc.user_hash_function = XCAR (XCDR (prop));
+      testdesc.hashfn = hashfn_user_defined;
+      testdesc.cmpfn = cmpfn_user_defined;
     }
-  else
-    user_test = user_hash = Qnil;
 
   /* See if there's a `:size SIZE' argument.  */
   i = get_key_arg (QCsize, nargs, args, used);
@@ -4369,8 +4346,7 @@ usage: (make-hash-table &rest KEYWORD-ARGS)  */)
     if (!used[i])
       signal_error ("Invalid argument list", args[i]);
 
-  return make_hash_table (test, size, rehash_size, rehash_threshold, weak,
-			  user_test, user_hash);
+  return make_hash_table (testdesc, size, rehash_size, rehash_threshold, weak);
 }
 
 
@@ -4424,7 +4400,7 @@ DEFUN ("hash-table-test", Fhash_table_test, Shash_table_test, 1, 1, 0,
        doc: /* Return the test TABLE uses.  */)
   (Lisp_Object table)
 {
-  return check_hash_table (table)->test;
+  return check_hash_table (table)->test.name;
 }
 
 
@@ -4988,4 +4964,14 @@ this variable.  */);
   defsubr (&Smd5);
   defsubr (&Ssecure_hash);
   defsubr (&Slocale_info);
+
+  {
+    struct hash_table_test
+      eq = { Qeq, Qnil, Qnil, NULL, hashfn_eq },
+      eql = { Qeql, Qnil, Qnil, cmpfn_eql, hashfn_eql },
+      equal = { Qequal, Qnil, Qnil, cmpfn_equal, hashfn_equal };
+    hashtest_eq = eq;
+    hashtest_eql = eql;
+    hashtest_equal = equal;
+  }
 }

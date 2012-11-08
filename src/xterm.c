@@ -10868,10 +10868,10 @@ default is nil, which is the same as `super'.  */);
 
   DEFVAR_LISP ("x-keysym-table", Vx_keysym_table,
     doc: /* Hash table of character codes indexed by X keysym codes.  */);
-  Vx_keysym_table = make_hash_table (Qeql, make_number (900),
+  Vx_keysym_table = make_hash_table (hashtest_eql, make_number (900),
 				     make_float (DEFAULT_REHASH_SIZE),
 				     make_float (DEFAULT_REHASH_THRESHOLD),
-				     Qnil, Qnil, Qnil);
+				     Qnil);
 }
 
 #endif /* HAVE_X_WINDOWS */

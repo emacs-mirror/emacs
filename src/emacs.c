@@ -1154,6 +1154,7 @@ Using an Emacs configured with --with-x-toolkit=lucid does not have this problem
 
       /* Called before syms_of_fileio, because it sets up Qerror_condition.  */
       syms_of_data ();
+      syms_of_fns ();	   /* Before syms_of_charset which uses hashtables.  */
       syms_of_fileio ();
       /* Before syms_of_coding to initialize Vgc_cons_threshold.  */
       syms_of_alloc ();
@@ -1165,7 +1166,7 @@ Using an Emacs configured with --with-x-toolkit=lucid does not have this problem
 
       init_window_once ();	/* Init the window system.  */
 #ifdef HAVE_WINDOW_SYSTEM
-      init_fringe_once ();	/* Swap bitmaps if necessary. */
+      init_fringe_once ();	/* Swap bitmaps if necessary.  */
 #endif /* HAVE_WINDOW_SYSTEM */
     }
 
@@ -1348,7 +1349,6 @@ Using an Emacs configured with --with-x-toolkit=lucid does not have this problem
       syms_of_lread ();
       syms_of_print ();
       syms_of_eval ();
-      syms_of_fns ();
       syms_of_floatfns ();
 
       syms_of_buffer ();

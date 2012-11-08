@@ -5809,6 +5809,9 @@ mark_object (Lisp_Object arg)
 	      struct Lisp_Hash_Table *h = (struct Lisp_Hash_Table *) ptr;
 
 	      mark_vectorlike (ptr);
+	      mark_object (h->test.name);
+	      mark_object (h->test.user_hash_function);
+	      mark_object (h->test.user_cmp_function);
 	      /* If hash table is not weak, mark all keys and values.
 		 For weak tables, mark only the vector.  */
 	      if (NILP (h->weak))

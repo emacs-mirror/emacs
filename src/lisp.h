@@ -1159,13 +1159,28 @@ struct Lisp_Symbol
 
 /* The structure of a Lisp hash table.  */
 
+struct hash_table_test
+{
+  /* Name of the function used to compare keys.  */
+  Lisp_Object name;
+
+  /* User-supplied hash function, or nil.  */
+  Lisp_Object user_hash_function;
+
+  /* User-supplied key comparison function, or nil.  */
+  Lisp_Object user_cmp_function;
+
+  /* C function to compare two keys.  */
+  bool (*cmpfn) (struct hash_table_test *t, Lisp_Object, Lisp_Object);
+
+  /* C function to compute hash code.  */
+  EMACS_UINT (*hashfn) (struct hash_table_test *t, Lisp_Object);
+};
+
 struct Lisp_Hash_Table
 {
   /* This is for Lisp; the hash table code does not refer to it.  */
   struct vectorlike_header header;
-
-  /* Function used to compare keys.  */
-  Lisp_Object test;
 
   /* Nil if table is non-weak.  Otherwise a symbol describing the
      weakness of the table.  */
@@ -1197,12 +1212,6 @@ struct Lisp_Hash_Table
      hash table size to reduce collisions.  */
   Lisp_Object index;
 
-  /* User-supplied hash function, or nil.  */
-  Lisp_Object user_hash_function;
-
-  /* User-supplied key comparison function, or nil.  */
-  Lisp_Object user_cmp_function;
-
   /* Only the fields above are traced normally by the GC.  The ones below
      `count' are special and are either ignored by the GC or traced in
      a special way (e.g. because of weakness).  */
@@ -1215,17 +1224,12 @@ struct Lisp_Hash_Table
      This is gc_marked specially if the table is weak.  */
   Lisp_Object key_and_value;
 
+  /* The comparison and hash functions.  */
+  struct hash_table_test test;
+
   /* Next weak hash table if this is a weak hash table.  The head
      of the list is in weak_hash_tables.  */
   struct Lisp_Hash_Table *next_weak;
-
-  /* C function to compare two keys.  */
-  bool (*cmpfn) (struct Lisp_Hash_Table *,
-		 Lisp_Object, EMACS_UINT,
-		 Lisp_Object, EMACS_UINT);
-
-  /* C function to compute hash code.  */
-  EMACS_UINT (*hashfn) (struct Lisp_Hash_Table *, Lisp_Object);
 };
 
 
@@ -2707,12 +2711,12 @@ extern Lisp_Object Qstring_lessp;
 extern Lisp_Object QCsize, QCtest, QCweakness, Qequal, Qeq, Qeql;
 EMACS_UINT hash_string (char const *, ptrdiff_t);
 EMACS_UINT sxhash (Lisp_Object, int);
-Lisp_Object make_hash_table (Lisp_Object, Lisp_Object, Lisp_Object,
-                             Lisp_Object, Lisp_Object, Lisp_Object,
-                             Lisp_Object);
+Lisp_Object make_hash_table (struct hash_table_test, Lisp_Object, Lisp_Object,
+                             Lisp_Object, Lisp_Object);
 ptrdiff_t hash_lookup (struct Lisp_Hash_Table *, Lisp_Object, EMACS_UINT *);
 ptrdiff_t hash_put (struct Lisp_Hash_Table *, Lisp_Object, Lisp_Object,
 		    EMACS_UINT);
+extern struct hash_table_test hashtest_eq, hashtest_eql, hashtest_equal;
 
 extern Lisp_Object substring_both (Lisp_Object, ptrdiff_t, ptrdiff_t,
 				   ptrdiff_t, ptrdiff_t);

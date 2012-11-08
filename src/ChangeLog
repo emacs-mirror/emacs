@@ -1,3 +1,30 @@
+2012-11-08  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	Use ad-hoc comparison function for the profiler's hash-tables.
+	* profiler.c (Qprofiler_backtrace_equal, hashtest_profiler): New vars.
+	(make_log): Use them.
+	(handle_profiler_signal): Don't inhibit quit any longer since we don't
+	call Fequal any more.
+	(Ffunction_equal): New function.
+	(cmpfn_profiler, hashfn_profiler): New functions.
+	(syms_of_profiler): Initialize them.
+	* lisp.h (struct hash_table_test): New struct.
+	(struct Lisp_Hash_Table): Use it.
+	* alloc.c (mark_object): Mark hash_table_test fields of hash tables.
+	* fns.c (make_hash_table): Take a struct to describe the test.
+	(cmpfn_eql, cmpfn_equal, cmpfn_user_defined, hashfn_eq, hashfn_eql)
+	(hashfn_equal, hashfn_user_defined): Adjust to new calling convention.
+	(hash_lookup, hash_remove_from_table): Move assertion checking of
+	hashfn result here.  Check hash-equality before calling cmpfn.
+	(Fmake_hash_table): Adjust call to make_hash_table.
+	(hashtest_eq, hashtest_eql, hashtest_equal): New structs.
+	(syms_of_fns): Initialize them.
+	* emacs.c (main): Move syms_of_fns earlier.
+	* xterm.c (syms_of_xterm):
+	* category.c (hash_get_category_set): Adjust call to make_hash_table.
+	* print.c (print_object): Adjust to new hash-table struct.
+	* composite.c (composition_gstring_put_cache): Adjust to new hashfn.
+
 2012-11-08  Eli Zaretskii  <eliz@gnu.org>
 
 	* w32fns.c (modifier_set): Fix handling of Scroll Lock when the
