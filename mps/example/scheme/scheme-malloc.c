@@ -3215,6 +3215,17 @@ static obj_t entry_hashtable_keys(obj_t env, obj_t op_env, obj_t operator, obj_t
 }
 
 
+/* (gc)
+ * Run a full garbage collection now.
+ */
+static obj_t entry_gc(obj_t env, obj_t op_env, obj_t operator, obj_t operands)
+{
+  eval_args(operator->operator.name, env, op_env, operands, 0);
+  /* Nothing to do! */
+  return obj_undefined;
+}
+
+
 /* INITIALIZATION */
 
 
@@ -3351,6 +3362,7 @@ static struct {char *name; entry_t entry;} funtab[] = {
   {"string-hash", entry_string_hash},
   {"eq-hash", entry_eq_hash},
   {"eqv-hash", entry_eqv_hash},
+  {"gc", entry_gc},
 };
 
 
