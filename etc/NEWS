@@ -602,7 +602,7 @@ Previously, this slot stored semicolon-separated attribute-value pairs
 appended to some imap URLs, but this is not compatible with RFC 3986.
 So now the `filename' slot stores the entire path and query components
 and the `attributes' slot is always nil.
-
++++
 *** New function `url-encode-url' for encoding a URI string.
 The `url-retrieve' function now uses this to encode its URL argument,
 in case that is not properly encoded.

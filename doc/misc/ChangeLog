@@ -1,3 +1,14 @@
+2012-11-09  Chong Yidong  <cyd@gnu.org>
+
+	* url.texi (Introduction): Move url-configuration-directory to
+	Customization node.
+	(Parsed URIs): Split into its own node.
+	(URI Encoding): New node.
+	(Defining New URLs): Remove empty chapter.
+	(Retrieving URLs): Add an introduction.  Doc fix for url-retrieve.
+	Improve docs for url-queue-*.
+	(Supported URL Types): Copyedits.  Delete empty subnodes.
+
 2012-11-08  Chong Yidong  <cyd@gnu.org>
 
 	* url.texi (Introduction): Rename from Getting Started.  Rewrite
