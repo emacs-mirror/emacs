@@ -1,6 +1,6 @@
 /* scheme.c -- SCHEME INTERPRETER EXAMPLE FOR THE MEMORY POOL SYSTEM
  *
- * $Id: //info.ravenbrook.com/project/mps/branch/2012-10-09/user-guide/example/scheme/scheme-malloc.c#16 $
+ * $Id: //info.ravenbrook.com/project/mps/branch/2012-10-09/user-guide/example/scheme/scheme-malloc.c#18 $
  * Copyright (c) 2001-2012 Ravenbrook Limited.  See end of file for license.
  * 
  * TO DO
@@ -1179,7 +1179,8 @@ static obj_t eval(obj_t env, obj_t op_env, obj_t exp)
     if(TYPE(exp) == TYPE_INTEGER ||
        (TYPE(exp) == TYPE_SPECIAL && exp != obj_empty) ||
        TYPE(exp) == TYPE_STRING ||
-       TYPE(exp) == TYPE_CHARACTER)
+       TYPE(exp) == TYPE_CHARACTER ||
+       TYPE(exp) == TYPE_OPERATOR)
       return exp;
   
     /* symbol lookup */
@@ -2139,11 +2140,23 @@ static obj_t entry_procedurep(obj_t env, obj_t op_env, obj_t operator, obj_t ope
  */
 static obj_t entry_apply(obj_t env, obj_t op_env, obj_t operator, obj_t operands)
 {
-  obj_t proc, args;
+  obj_t proc, args, qargs = obj_empty, end = NULL, quote;
   eval_args(operator->operator.name, env, op_env, operands, 2, &proc, &args);
   unless(TYPE(proc) == TYPE_OPERATOR)
     error("%s: first argument must be a procedure", operator->operator.name);
-  return (*proc->operator.entry)(env, op_env, operator, args);
+  quote = make_operator("quote", entry_quote, obj_empty, obj_empty, obj_empty, obj_empty);
+  while(args != obj_empty) {
+    obj_t a;
+    assert(TYPE(args) == TYPE_PAIR);
+    a = make_pair(make_pair(quote, make_pair(CAR(args), obj_empty)), obj_empty);
+    if(end != NULL)
+      CDR(end) = a;
+    else
+      qargs = a;
+    end = a;
+    args = CDR(args);
+  }
+  return (*proc->operator.entry)(env, op_env, proc, qargs);
 }
 
 
@@ -3202,6 +3215,17 @@ static obj_t entry_hashtable_keys(obj_t env, obj_t op_env, obj_t operator, obj_t
 }
 
 
+/* (gc)
+ * Run a full garbage collection now.
+ */
+static obj_t entry_gc(obj_t env, obj_t op_env, obj_t operator, obj_t operands)
+{
+  eval_args(operator->operator.name, env, op_env, operands, 0);
+  /* Nothing to do! */
+  return obj_undefined;
+}
+
+
 /* INITIALIZATION */
 
 
@@ -3338,6 +3362,7 @@ static struct {char *name; entry_t entry;} funtab[] = {
   {"string-hash", entry_string_hash},
   {"eq-hash", entry_eq_hash},
   {"eqv-hash", entry_eqv_hash},
+  {"gc", entry_gc},
 };
 
 

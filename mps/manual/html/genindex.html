@@ -82,17 +82,37 @@
   <td style="width: 33%" valign="top"><dl>
       
   <dt>
+    -d &lt;filename&gt;
+  </dt>
+
+      <dd><dl>
+        
+  <dt><a href="topic/telemetry.html#cmdoption-mpseventsql-d">mpseventsql command line option</a>
+  </dt>
+
+      </dl></dd>
+      
+  <dt>
+    -f
+  </dt>
+
+      <dd><dl>
+        
+  <dt><a href="topic/telemetry.html#cmdoption-mpseventsql-f">mpseventsql command line option</a>
+  </dt>
+
+      </dl></dd>
+      
+  <dt>
     -f &lt;filename&gt;
   </dt>
 
       <dd><dl>
         
-  <dt><a href="topic/telemetry.html#cmdoption-eventcnv-f">eventcnv command line option</a>
+  <dt><a href="topic/telemetry.html#cmdoption-mpseventcnv-f">mpseventcnv command line option</a>
   </dt>
 
       </dl></dd>
-  </dl></td>
-  <td style="width: 33%" valign="top"><dl>
       
   <dt>
     -h
@@ -100,7 +120,53 @@
 
       <dd><dl>
         
-  <dt><a href="topic/telemetry.html#cmdoption-eventcnv-h">eventcnv command line option</a>
+  <dt><a href="topic/telemetry.html#cmdoption-mpseventcnv-h">mpseventcnv command line option</a>
+  </dt>
+
+      </dl></dd>
+  </dl></td>
+  <td style="width: 33%" valign="top"><dl>
+      
+  <dt>
+    -l &lt;filename&gt;
+  </dt>
+
+      <dd><dl>
+        
+  <dt><a href="topic/telemetry.html#cmdoption-mpseventsql-l">mpseventsql command line option</a>
+  </dt>
+
+      </dl></dd>
+      
+  <dt>
+    -r
+  </dt>
+
+      <dd><dl>
+        
+  <dt><a href="topic/telemetry.html#cmdoption-mpseventsql-r">mpseventsql command line option</a>
+  </dt>
+
+      </dl></dd>
+      
+  <dt>
+    -t
+  </dt>
+
+      <dd><dl>
+        
+  <dt><a href="topic/telemetry.html#cmdoption-mpseventsql-t">mpseventsql command line option</a>
+  </dt>
+
+      </dl></dd>
+      
+  <dt>
+    -v
+  </dt>
+
+      <dd><dl>
+        
+  <dt><a href="topic/telemetry.html#cmdoption-mpseventsql-v">mpseventsql command line option</a>
   </dt>
 
       </dl></dd>
@@ -1200,6 +1266,10 @@
 
       <dd><dl>
         
+  <dt><a href="topic/telemetry.html#envvar-MPS_EVENT_DATABASE">MPS_EVENT_DATABASE</a>, <a href="topic/telemetry.html#index-8">[1]</a>
+  </dt>
+
+        
   <dt><a href="topic/telemetry.html#index-1">MPS_TELEMETRY_CONTROL</a>, <a href="topic/telemetry.html#envvar-MPS_TELEMETRY_CONTROL">[1]</a>, <a href="topic/plinth.html#index-4">[2]</a>, <a href="topic/plinth.html#index-5">[3]</a>
   </dt>
 
@@ -1232,26 +1302,11 @@
   </dt>
 
       
-  <dt>
-    eventcnv command line option
-  </dt>
-
-      <dd><dl>
-        
-  <dt><a href="topic/telemetry.html#cmdoption-eventcnv-f">-f &lt;filename&gt;</a>
-  </dt>
-
-        
-  <dt><a href="topic/telemetry.html#cmdoption-eventcnv-h">-h</a>
-  </dt>
-
-      </dl></dd>
-  </dl></td>
-  <td style="width: 33%" valign="top"><dl>
-      
   <dt><a href="glossary/e.html#term-exact-garbage-collection"><strong>exact garbage collection</strong></a>
   </dt>
 
+  </dl></td>
+  <td style="width: 33%" valign="top"><dl>
       
   <dt><a href="glossary/e.html#term-exact-reference"><strong>exact reference</strong></a>
   </dt>
@@ -1968,7 +2023,7 @@
 
       <dd><dl>
         
-  <dt><a href="topic/telemetry.html#index-8">telemetry</a>
+  <dt><a href="topic/telemetry.html#index-10">telemetry</a>
   </dt>
 
       </dl></dd>
@@ -2721,6 +2776,10 @@
   </dt>
 
       
+  <dt><a href="topic/telemetry.html#index-8">MPS_EVENT_DATABASE</a>
+  </dt>
+
+      
   <dt><a href="topic/finalization.html#mps_finalize">mps_finalize (C function)</a>
   </dt>
 
@@ -2784,12 +2843,12 @@
   <dt><a href="topic/format.html#mps_fmt_isfwd_t">mps_fmt_isfwd_t (C type)</a>
   </dt>
 
-  </dl></td>
-  <td style="width: 33%" valign="top"><dl>
       
   <dt><a href="topic/format.html#mps_fmt_pad_t">mps_fmt_pad_t (C type)</a>
   </dt>
 
+  </dl></td>
+  <td style="width: 33%" valign="top"><dl>
       
   <dt><a href="topic/format.html#mps_fmt_scan_t">mps_fmt_scan_t (C type)</a>
   </dt>
@@ -3326,6 +3385,52 @@
   <dt><a href="topic/platform.html#MPS_WORD_WIDTH">MPS_WORD_WIDTH (C macro)</a>
   </dt>
 
+      
+  <dt>
+    mpseventcnv command line option
+  </dt>
+
+      <dd><dl>
+        
+  <dt><a href="topic/telemetry.html#cmdoption-mpseventcnv-f">-f &lt;filename&gt;</a>
+  </dt>
+
+        
+  <dt><a href="topic/telemetry.html#cmdoption-mpseventcnv-h">-h</a>
+  </dt>
+
+      </dl></dd>
+      
+  <dt>
+    mpseventsql command line option
+  </dt>
+
+      <dd><dl>
+        
+  <dt><a href="topic/telemetry.html#cmdoption-mpseventsql-d">-d &lt;filename&gt;</a>
+  </dt>
+
+        
+  <dt><a href="topic/telemetry.html#cmdoption-mpseventsql-f">-f</a>
+  </dt>
+
+        
+  <dt><a href="topic/telemetry.html#cmdoption-mpseventsql-l">-l &lt;filename&gt;</a>
+  </dt>
+
+        
+  <dt><a href="topic/telemetry.html#cmdoption-mpseventsql-r">-r</a>
+  </dt>
+
+        
+  <dt><a href="topic/telemetry.html#cmdoption-mpseventsql-t">-t</a>
+  </dt>
+
+        
+  <dt><a href="topic/telemetry.html#cmdoption-mpseventsql-v">-v</a>
+  </dt>
+
+      </dl></dd>
       
   <dt><a href="glossary/m.html#term-mutable"><strong>mutable</strong></a>
   </dt>
@@ -4708,7 +4813,7 @@
   </dt>
 
         
-  <dt><a href="topic/telemetry.html#index-7">interface</a>
+  <dt><a href="topic/telemetry.html#index-9">interface</a>
   </dt>
 
         
@@ -4716,7 +4821,11 @@
   </dt>
 
         
-  <dt><a href="topic/telemetry.html#index-8">labels</a>
+  <dt><a href="topic/telemetry.html#index-10">labels</a>
+  </dt>
+
+        
+  <dt><a href="topic/telemetry.html#index-7">loading into SQLite</a>
   </dt>
 
       </dl></dd>

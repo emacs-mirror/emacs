@@ -85,9 +85,9 @@ now we can just call it directly from the debugger::
     $1 = void
 
 The MPS writes the telemetry to the log in an encoded form for speed.
-It can be decoded using the :program:`eventcnv` program::
+It can be decoded using the :program:`mpseventcnv` program::
 
-    (gdb) shell eventcnv | sort > mpsio.txt
+    (gdb) shell mpseventcnv | sort > mpsio.txt
 
 The ``sort`` is useful because the events are not necessarily written
 to the telemetry file in time order, but each event starts with a
@@ -194,22 +194,32 @@ telemetry feature.
 
         MPS_TELEMETRY_FILENAME=$(mktemp -t mps)
 
+In addition, the following environment variable controls the behaviour
+of the :program:`mpseventsql` program.
+
+.. envvar:: MPS_EVENT_DATABASE
+
+    The name of a SQLite database file that will be updated with the
+    events from the decoded telemetry stream, if it is not specified
+    with the ``-d`` option. If this variable is not assigned,
+    ``mpsevent.db`` is used.
+
 
 .. index::
    single: telemetry; decoding event stream
 
-.. _telemetry-eventcnv:
+.. _telemetry-mpseventcnv:
 
 Decoding the telemetry stream
 -----------------------------
 
 The MPS writes the telemetry stream in an encoded form for speed. It
-can be decoded using the ``eventcnv`` program, which prints (to
+can be decoded using the :program:`mpseventcnv` program, which prints (to
 standard output) a representation of each event in the stream.
 
-``eventcnv`` takes the following arguments:
+:program:`mpseventcnv` takes the following arguments:
 
-.. program:: eventcnv
+.. program:: mpseventcnv
 
 .. option:: -f <filename>
 
@@ -222,14 +232,76 @@ standard output) a representation of each event in the stream.
 
 .. note::
 
-    ``eventcnv`` can only read telemetry streams that were written by
-    an MPS compiled on the same platform.
+    :program:`mpseventcnv` can only read telemetry streams that were
+    written by an MPS compiled on the same platform.
 
     The events are printed in the order that they were written by the
     MPS, which is not the same as the order that they
     occurred. However, each event is prefixed by a timestamp, so that
     a time series of events can be obtained by sorting the output:
-    ``eventcnv | sort``.
+    ``mpseventcnv | sort``.
+
+    The output is not intended for human consumption, but for input to
+    tools like :program:`mpseventsql`. Unlike the encoded telemetry
+    stream, the output is platform-independent, so that you can
+    generate a telemetry stream on one platform and analyze it on another.
+
+
+.. index::
+   single: telemetry; loading into SQLite
+
+.. _telemetry-mpseventsql:
+
+Loading the telemetry stream into SQLite
+----------------------------------------
+
+The decoded telemetry stream (as output by :program:`mpseventcnv`) can
+be loaded into a SQLite database for further analysis by running
+:program:`mpseventsql`.
+
+:program:`mpseventsql` takes the following arguments:
+
+.. program:: mpseventsql
+
+.. option:: -l <filename>
+
+    The name of a file containing a decoded telemetry stream. Defaults
+    to standard input.
+
+.. option:: -d <filename>
+
+    The name of a SQLite database file that will be updated with the
+    events from the decoded telemetry stream specified by the ``-l``
+    option. The database will be created if it does not exist. If not
+    specified, the file named by the environment variable
+    :envvar:`MPS_EVENT_DATABASE` is used; if this variable is not
+    assigned, ``mpsevent.db`` is used.
+
+    Updating a database with events from a file is idempotent unless
+    the ``-f`` option is specified.
+
+.. option:: -f
+
+    Forces the database to be updated with events from the decoded
+    telemetry stream specified by the ``-l`` option, even if those
+    events have previously been added.
+
+.. option:: -v
+
+    Increase the verbosity. With one or more ``-v`` options,
+    :program:`mpseventsql` prints progress messages to standard error.
+    Verbosity levels up to 3 (``-v -v -v``) produce successively more
+    detailed progress reports.
+
+.. option:: -t
+
+    Run internal tests.
+
+.. option:: -r
+
+    Rebuild the tables ``event_kind``, ``event_type``, and
+    ``event_param``. This is necessary if you changed the event
+    descriptions in ``eventdef.h``.
 
 
 .. index::

@@ -28,7 +28,7 @@
     <link rel="copyright" title="Copyright" href="../copyright.html" />
     <link rel="top" title="Memory Pool System 1.111.0 documentation" href="../index.html" />
     <link rel="up" title="Reference" href="index.html" />
-    <link rel="next" title="19. Handling low memory" href="low.html" />
+    <link rel="next" title="19. Weak references" href="weak.html" />
     <link rel="prev" title="17. Debugging pools" href="debugging.html" /> 
   </head>
   <body>
@@ -39,7 +39,7 @@
           <a href="../genindex.html" title="General Index"
              accesskey="I">index</a></li>
         <li class="right" >
-          <a href="low.html" title="19. Handling low memory"
+          <a href="weak.html" title="19. Weak references"
              accesskey="N">next</a> |</li>
         <li class="right" >
           <a href="debugging.html" title="17. Debugging pools"
@@ -122,8 +122,8 @@ $1 = void
 </pre></div>
 </div>
 <p>The MPS writes the telemetry to the log in an encoded form for speed.
-It can be decoded using the <strong class="program">eventcnv</strong> program:</p>
-<div class="highlight-none"><div class="highlight"><pre>(gdb) shell eventcnv | sort &gt; mpsio.txt
+It can be decoded using the <strong class="program">mpseventcnv</strong> program:</p>
+<div class="highlight-none"><div class="highlight"><pre>(gdb) shell mpseventcnv | sort &gt; mpsio.txt
 </pre></div>
 </div>
 <p>The <tt class="docutils literal"><span class="pre">sort</span></tt> is useful because the events are not necessarily written
@@ -252,39 +252,112 @@ written. Defaults to <tt class="docutils literal"><span class="pre">mpsio.log</s
 </div>
 </dd></dl>
 
+<p>In addition, the following environment variable controls the behaviour
+of the <strong class="program">mpseventsql</strong> program.</p>
+<dl class="envvar">
+<dt id="envvar-MPS_EVENT_DATABASE">
+<tt class="descname">MPS_EVENT_DATABASE</tt><a class="headerlink" href="#envvar-MPS_EVENT_DATABASE" title="Permalink to this definition">¶</a></dt>
+<dd><p>The name of a SQLite database file that will be updated with the
+events from the decoded telemetry stream, if it is not specified
+with the <tt class="docutils literal"><span class="pre">-d</span></tt> option. If this variable is not assigned,
+<tt class="docutils literal"><span class="pre">mpsevent.db</span></tt> is used.</p>
+</dd></dl>
+
 </div>
 <div class="section" id="decoding-the-telemetry-stream">
-<span id="telemetry-eventcnv"></span><span id="index-6"></span><h2>18.5. Decoding the telemetry stream<a class="headerlink" href="#decoding-the-telemetry-stream" title="Permalink to this headline">¶</a></h2>
+<span id="telemetry-mpseventcnv"></span><span id="index-6"></span><h2>18.5. Decoding the telemetry stream<a class="headerlink" href="#decoding-the-telemetry-stream" title="Permalink to this headline">¶</a></h2>
 <p>The MPS writes the telemetry stream in an encoded form for speed. It
-can be decoded using the <tt class="docutils literal"><span class="pre">eventcnv</span></tt> program, which prints (to
+can be decoded using the <strong class="program">mpseventcnv</strong> program, which prints (to
 standard output) a representation of each event in the stream.</p>
-<p><tt class="docutils literal"><span class="pre">eventcnv</span></tt> takes the following arguments:</p>
+<p><strong class="program">mpseventcnv</strong> takes the following arguments:</p>
 <dl class="option">
-<dt id="cmdoption-eventcnv-f">
-<tt class="descname">-f</tt><tt class="descclassname"> &lt;filename&gt;</tt><a class="headerlink" href="#cmdoption-eventcnv-f" title="Permalink to this definition">¶</a></dt>
+<dt id="cmdoption-mpseventcnv-f">
+<tt class="descname">-f</tt><tt class="descclassname"> &lt;filename&gt;</tt><a class="headerlink" href="#cmdoption-mpseventcnv-f" title="Permalink to this definition">¶</a></dt>
 <dd><p>The name of the file containing the telemetry stream to decode.
 Defaults to <tt class="docutils literal"><span class="pre">mpsio.log</span></tt>.</p>
 </dd></dl>
 
 <dl class="option">
-<dt id="cmdoption-eventcnv-h">
-<tt class="descname">-h</tt><tt class="descclassname"></tt><a class="headerlink" href="#cmdoption-eventcnv-h" title="Permalink to this definition">¶</a></dt>
+<dt id="cmdoption-mpseventcnv-h">
+<tt class="descname">-h</tt><tt class="descclassname"></tt><a class="headerlink" href="#cmdoption-mpseventcnv-h" title="Permalink to this definition">¶</a></dt>
 <dd><p>Help: print a usage message to standard output.</p>
 </dd></dl>
 
 <div class="admonition-note admonition">
 <p class="first admonition-title">Note</p>
-<p><tt class="docutils literal"><span class="pre">eventcnv</span></tt> can only read telemetry streams that were written by
-an MPS compiled on the same platform.</p>
-<p class="last">The events are printed in the order that they were written by the
+<p><strong class="program">mpseventcnv</strong> can only read telemetry streams that were
+written by an MPS compiled on the same platform.</p>
+<p>The events are printed in the order that they were written by the
 MPS, which is not the same as the order that they
 occurred. However, each event is prefixed by a timestamp, so that
 a time series of events can be obtained by sorting the output:
-<tt class="docutils literal"><span class="pre">eventcnv</span> <span class="pre">|</span> <span class="pre">sort</span></tt>.</p>
+<tt class="docutils literal"><span class="pre">mpseventcnv</span> <span class="pre">|</span> <span class="pre">sort</span></tt>.</p>
+<p class="last">The output is not intended for human consumption, but for input to
+tools like <strong class="program">mpseventsql</strong>. Unlike the encoded telemetry
+stream, the output is platform-independent, so that you can
+generate a telemetry stream on one platform and analyze it on another.</p>
 </div>
+</div>
+<div class="section" id="loading-the-telemetry-stream-into-sqlite">
+<span id="telemetry-mpseventsql"></span><span id="index-7"></span><h2>18.6. Loading the telemetry stream into SQLite<a class="headerlink" href="#loading-the-telemetry-stream-into-sqlite" title="Permalink to this headline">¶</a></h2>
+<p>The decoded telemetry stream (as output by <strong class="program">mpseventcnv</strong>) can
+be loaded into a SQLite database for further analysis by running
+<strong class="program">mpseventsql</strong>.</p>
+<p><strong class="program">mpseventsql</strong> takes the following arguments:</p>
+<dl class="option">
+<dt id="cmdoption-mpseventsql-l">
+<tt class="descname">-l</tt><tt class="descclassname"> &lt;filename&gt;</tt><a class="headerlink" href="#cmdoption-mpseventsql-l" title="Permalink to this definition">¶</a></dt>
+<dd><p>The name of a file containing a decoded telemetry stream. Defaults
+to standard input.</p>
+</dd></dl>
+
+<dl class="option">
+<dt id="cmdoption-mpseventsql-d">
+<tt class="descname">-d</tt><tt class="descclassname"> &lt;filename&gt;</tt><a class="headerlink" href="#cmdoption-mpseventsql-d" title="Permalink to this definition">¶</a></dt>
+<dd><p>The name of a SQLite database file that will be updated with the
+events from the decoded telemetry stream specified by the <tt class="docutils literal"><span class="pre">-l</span></tt>
+option. The database will be created if it does not exist. If not
+specified, the file named by the environment variable
+<span class="target" id="index-8"></span><a class="reference internal" href="#envvar-MPS_EVENT_DATABASE"><tt class="xref std std-envvar docutils literal"><span class="pre">MPS_EVENT_DATABASE</span></tt></a> is used; if this variable is not
+assigned, <tt class="docutils literal"><span class="pre">mpsevent.db</span></tt> is used.</p>
+<p>Updating a database with events from a file is idempotent unless
+the <tt class="docutils literal"><span class="pre">-f</span></tt> option is specified.</p>
+</dd></dl>
+
+<dl class="option">
+<dt id="cmdoption-mpseventsql-f">
+<tt class="descname">-f</tt><tt class="descclassname"></tt><a class="headerlink" href="#cmdoption-mpseventsql-f" title="Permalink to this definition">¶</a></dt>
+<dd><p>Forces the database to be updated with events from the decoded
+telemetry stream specified by the <tt class="docutils literal"><span class="pre">-l</span></tt> option, even if those
+events have previously been added.</p>
+</dd></dl>
+
+<dl class="option">
+<dt id="cmdoption-mpseventsql-v">
+<tt class="descname">-v</tt><tt class="descclassname"></tt><a class="headerlink" href="#cmdoption-mpseventsql-v" title="Permalink to this definition">¶</a></dt>
+<dd><p>Increase the verbosity. With one or more <tt class="docutils literal"><span class="pre">-v</span></tt> options,
+<strong class="program">mpseventsql</strong> prints progress messages to standard error.
+Verbosity levels up to 3 (<tt class="docutils literal"><span class="pre">-v</span> <span class="pre">-v</span> <span class="pre">-v</span></tt>) produce successively more
+detailed progress reports.</p>
+</dd></dl>
+
+<dl class="option">
+<dt id="cmdoption-mpseventsql-t">
+<tt class="descname">-t</tt><tt class="descclassname"></tt><a class="headerlink" href="#cmdoption-mpseventsql-t" title="Permalink to this definition">¶</a></dt>
+<dd><p>Run internal tests.</p>
+</dd></dl>
+
+<dl class="option">
+<dt id="cmdoption-mpseventsql-r">
+<tt class="descname">-r</tt><tt class="descclassname"></tt><a class="headerlink" href="#cmdoption-mpseventsql-r" title="Permalink to this definition">¶</a></dt>
+<dd><p>Rebuild the tables <tt class="docutils literal"><span class="pre">event_kind</span></tt>, <tt class="docutils literal"><span class="pre">event_type</span></tt>, and
+<tt class="docutils literal"><span class="pre">event_param</span></tt>. This is necessary if you changed the event
+descriptions in <tt class="docutils literal"><span class="pre">eventdef.h</span></tt>.</p>
+</dd></dl>
+
 </div>
 <div class="section" id="telemetry-interface">
-<span id="index-7"></span><h2>18.6. Telemetry interface<a class="headerlink" href="#telemetry-interface" title="Permalink to this headline">¶</a></h2>
+<span id="index-9"></span><h2>18.7. Telemetry interface<a class="headerlink" href="#telemetry-interface" title="Permalink to this headline">¶</a></h2>
 <dl class="function">
 <dt id="mps_telemetry_control">
 <a class="reference internal" href="interface.html#mps_word_t" title="mps_word_t">mps_word_t</a> <tt class="descname">mps_telemetry_control</tt><big>(</big><a class="reference internal" href="interface.html#mps_word_t" title="mps_word_t">mps_word_t</a><em>&nbsp;reset_mask</em>, <a class="reference internal" href="interface.html#mps_word_t" title="mps_word_t">mps_word_t</a><em>&nbsp;flip_mask</em><big>)</big><a class="headerlink" href="#mps_telemetry_control" title="Permalink to this definition">¶</a></dt>
@@ -345,7 +418,7 @@ even try calling this from a debugger after a problem.</p>
 
 </div>
 <div class="section" id="telemetry-labels">
-<span id="index-8"></span><h2>18.7. Telemetry labels<a class="headerlink" href="#telemetry-labels" title="Permalink to this headline">¶</a></h2>
+<span id="index-10"></span><h2>18.8. Telemetry labels<a class="headerlink" href="#telemetry-labels" title="Permalink to this headline">¶</a></h2>
 <p>Typical uses of telemetry labels include:</p>
 <ul class="simple">
 <li>labelling pools with a human-meaningful name;</li>
@@ -409,8 +482,9 @@ before calling this function.</p>
 <li><a class="reference internal" href="#event-categories">18.3. Event categories</a></li>
 <li><a class="reference internal" href="#environment-variables">18.4. Environment variables</a></li>
 <li><a class="reference internal" href="#decoding-the-telemetry-stream">18.5. Decoding the telemetry stream</a></li>
-<li><a class="reference internal" href="#telemetry-interface">18.6. Telemetry interface</a></li>
-<li><a class="reference internal" href="#telemetry-labels">18.7. Telemetry labels</a></li>
+<li><a class="reference internal" href="#loading-the-telemetry-stream-into-sqlite">18.6. Loading the telemetry stream into SQLite</a></li>
+<li><a class="reference internal" href="#telemetry-interface">18.7. Telemetry interface</a></li>
+<li><a class="reference internal" href="#telemetry-labels">18.8. Telemetry labels</a></li>
 </ul>
 </li>
 </ul>
@@ -419,8 +493,8 @@ before calling this function.</p>
   <p class="topless"><a href="debugging.html"
                         title="previous chapter">17. Debugging pools</a></p>
   <h4>Next topic</h4>
-  <p class="topless"><a href="low.html"
-                        title="next chapter">19. Handling low memory</a></p><h4>Contact us</h4>
+  <p class="topless"><a href="weak.html"
+                        title="next chapter">19. Weak references</a></p><h4>Contact us</h4>
 
 <p class="topless"><a href="mailto:mps-questions@ravenbrook.com">mps-questions@ravenbrook.com</a></p>
         </div>
@@ -434,7 +508,7 @@ before calling this function.</p>
           <a href="../genindex.html" title="General Index"
              >index</a></li>
         <li class="right" >
-          <a href="low.html" title="19. Handling low memory"
+          <a href="weak.html" title="19. Weak references"
              >next</a> |</li>
         <li class="right" >
           <a href="debugging.html" title="17. Debugging pools"
