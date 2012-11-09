@@ -687,12 +687,6 @@ inefficiency, and not namespace-clean.
 *** cust-print.el
 
 
-* New Modes and Packages in Emacs 24.3
-
-FIXME? erc-desktop-notifications.el, gv.el, profiler.el,
-gnus-notifications.el, mm-archive.el
-
-
 * Incompatible Lisp Changes in Emacs 24.3
 
 +++
@@ -1607,6 +1601,9 @@ instead of using the current buffer.
 The standard directory local variables feature replaces it.
 
 ** ERC changes
+
+*** New package `erc-desktop-notifications.el', which can send a notification
+when you receive a private message or your nickname is mentioned.
 
 *** New options `erc-autojoin-timing' and `erc-autojoin-delay',
 controlling attempts to autojoin a channel.
