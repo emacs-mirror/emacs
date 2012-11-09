@@ -911,9 +911,9 @@ describing the cycle.
 
 ** Miscellaneous new functions:
 +++
-*** `autoloadp'
+*** `autoloadp' tests if its argument is an autoloaded object.
 +++
-*** `autoload-do-load'
+*** `autoload-do-load' performs the autoloading operation.
 +++
 *** `buffer-narrowed-p' tests if the buffer is narrowed.
 +++
@@ -941,13 +941,13 @@ See the "Face Attributes" section of the Elisp manual.
 
 ** The following functions and variables are obsolete:
 ---
-*** `automount-dir-prefix'
+*** `automount-dir-prefix' (use `directory-abbrev-alist')
 +++
 *** `buffer-has-markers-at'
 ---
 *** `macro-declaration-function' (use `macro-declarations-alist')
 ---
-*** `window-system-version'
+*** `window-system-version' (provides no useful information)
 ---
 *** `dired-pop-to-buffer' (use `dired-mark-pop-up')
 ---
