@@ -1,3 +1,8 @@
+2012-11-09  Glenn Morris  <rgm@gnu.org>
+
+	* emacs.texi (Acknowledgments): Add profiler author.
+	* ack.texi (Acknowledgments): Add some recent contributions.
+
 2012-11-08  Chong Yidong  <cyd@gnu.org>
 
 	* files.texi (Diff Mode): Doc fixes for
