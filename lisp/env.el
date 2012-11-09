@@ -58,10 +58,7 @@ If it is also not t, RET does not exit if it does non-null completion."
 (defvar setenv-history nil)
 
 (defconst env--substitute-vars-regexp
-  (rx "$"
-      (or (submatch-n 1 (1+ (regexp "[[:alnum:]_]")))
-          (and "{" (submatch-n 1 (minimal-match (0+ anything))) "}")
-          "$")))
+  "\\$\\(?:\\(?1:[[:alnum:]_]+\\)\\|{\\(?1:[^{}]+\\)}\\|\\$\\)")
 
 (defun substitute-env-vars (string &optional only-defined)
   "Substitute environment variables referred to in STRING.

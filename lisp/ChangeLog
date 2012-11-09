@@ -1,3 +1,7 @@
+2012-11-09  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* env.el (env--substitute-vars-regexp): Don't use rx (for bootstrap).
+
 2012-11-08  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* files.el (hack-one-local-variable--obsolete): New function.
