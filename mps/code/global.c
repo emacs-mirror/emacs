@@ -584,9 +584,12 @@ MutatorFaultContext mps_exception_info = NULL;
 
 Bool ArenaAccess(Addr addr, AccessSet mode, MutatorFaultContext context)
 {
+  static Count count = 0;       /* used to match up ArenaAccess events */
   Seg seg;
   Ring node, nextNode;
   Res res;
+
+  EVENT4(ArenaAccess, 0, ++count, addr, mode);
 
   arenaClaimRingLock();    /* <design/arena/#lock.ring> */
   mps_exception_info = context;
@@ -614,6 +617,7 @@ Bool ArenaAccess(Addr addr, AccessSet mode, MutatorFaultContext context)
         AVER(res == ResOK); /* Mutator can't continue unless this succeeds */
       }
       ArenaLeave(arena);
+      EVENT4(ArenaAccess, arena, count, addr, mode);
       return TRUE;
     } else if (RootOfAddr(&root, arena, addr)) {
       mps_exception_info = NULL;
@@ -622,6 +626,7 @@ Bool ArenaAccess(Addr addr, AccessSet mode, MutatorFaultContext context)
       if (mode != AccessSetEMPTY)
         RootAccess(root, mode);
       ArenaLeave(arena);
+      EVENT4(ArenaAccess, arena, count, addr, mode);
       return TRUE;
     }
 
@@ -680,6 +685,9 @@ void ArenaPoll(Globals globals)
   arena = GlobalsArena(globals);
   start = ClockNow();
   quanta = 0;
+
+  EVENT3(ArenaPoll, arena, start, 0);
+
   while(globals->pollThreshold <= globals->fillMutatorSize) {
     tracedSize = TracePoll(globals);
 
@@ -704,6 +712,8 @@ void ArenaPoll(Globals globals)
   }
 
   AVER(globals->fillMutatorSize < globals->pollThreshold);
+
+  EVENT3(ArenaPoll, arena, start, quanta);
 
   globals->insidePoll = FALSE;
 }
