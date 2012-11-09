@@ -1,3 +1,8 @@
+2012-11-09  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* doc.c (Fdocumentation): Handle new property
+	dynamic-docstring-function to replace the old ad-advice-info.
+
 2012-11-09  Paul Eggert  <eggert@cs.ucla.edu>
 
 	* fns.c (Qeql, hashtest_eq): Now static.

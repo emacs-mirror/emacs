@@ -1,5 +1,15 @@
 2012-11-09  Stefan Monnier  <monnier@iro.umontreal.ca>
 
+	* emacs-lisp/advice.el: Use new dynamic docstrings.
+	(ad-make-advised-definition-docstring, ad-advised-definition-p):
+	Use dynamic-docstring-function instead of ad-advice-info.
+	(ad--make-advised-docstring): New function extracted from
+	ad-make-advised-docstring.
+	(ad-make-advised-docstring): Use it.
+	* progmodes/sql.el (sql--make-help-docstring): New function, extracted
+	from sql-help.
+	(sql-help): Use it with dynamic-docstring-function.
+
 	* env.el (env--substitute-vars-regexp): Don't use rx (for bootstrap).
 
 2012-11-08  Stefan Monnier  <monnier@iro.umontreal.ca>

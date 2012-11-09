@@ -29,6 +29,10 @@ so we will look at it and add it to the manual.
 * New Modes and Packages in Emacs 24.4
 * Incompatible Lisp Changes in Emacs 24.4
 * Lisp changes in Emacs 24.4
+
+** Docstrings can be made dynamic by adding a `dynamic-docstring-function'
+text-property on the first char.
+
 * Changes in Emacs 24.4 on non-free operating systems
 
 

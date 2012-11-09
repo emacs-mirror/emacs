@@ -2414,13 +2414,15 @@ Like `interactive-form', but also works on pieces of advice."
 		    (if (ad-interactive-form definition) 1 0))
 		 (cdr (cdr (ad-lambda-expression definition)))))))
 
-(defun ad-make-advised-definition-docstring (function)
+(defun ad-make-advised-definition-docstring (_function)
   "Make an identifying docstring for the advised definition of FUNCTION.
 Put function name into the documentation string so we can infer
 the name of the advised function from the docstring.  This is needed
 to generate a proper advised docstring even if we are just given a
 definition (see the code for `documentation')."
-  (propertize "Advice doc string" 'ad-advice-info function))
+  (eval-when-compile
+    (propertize "Advice doc string" 'dynamic-docstring-function
+                #'ad--make-advised-docstring)))
 
 (defun ad-advised-definition-p (definition)
   "Return non-nil if DEFINITION was generated from advice information."
@@ -2429,7 +2431,7 @@ definition (see the code for `documentation')."
 	  (ad-compiled-p definition))
       (let ((docstring (ad-docstring definition)))
 	(and (stringp docstring)
-	     (get-text-property 0 'ad-advice-info docstring)))))
+	     (get-text-property 0 'dynamic-docstring-function docstring)))))
 
 (defun ad-definition-type (definition)
   "Return symbol that describes the type of DEFINITION."
@@ -2752,6 +2754,13 @@ Example: `(ad-map-arglists '(a &rest args) '(w x y z))' will return
 (require 'help-fns)	    ;For help-split-fundoc and help-add-fundoc-usage.
 
 (defun ad-make-advised-docstring (function &optional style)
+  (let* ((origdef (ad-real-orig-definition function))
+	 (origdoc
+	  ;; Retrieve raw doc, key substitution will be taken care of later:
+	  (ad-real-documentation origdef t)))
+    (ad--make-advised-docstring origdoc function style)))
+
+(defun ad--make-advised-docstring (origdoc function &optional style)
   "Construct a documentation string for the advised FUNCTION.
 It concatenates the original documentation with the documentation
 strings of the individual pieces of advice which will be formatted
@@ -2761,9 +2770,6 @@ strings corresponds to before/around/after and the individual ordering
 in any of these classes."
   (let* ((origdef (ad-real-orig-definition function))
 	 (origtype (symbol-name (ad-definition-type origdef)))
-	 (origdoc
-	  ;; Retrieve raw doc, key substitution will be taken care of later:
-	  (ad-real-documentation origdef t))
 	 (usage (help-split-fundoc origdoc function))
 	 paragraphs advice-docstring ad-usage)
     (setq usage (if (null usage) t (setq origdoc (cdr usage)) (car usage)))
@@ -2780,7 +2786,9 @@ in any of these classes."
 		      (propertize
 		       ;; separate paragraphs with blank lines:
 		       (mapconcat 'identity (nreverse paragraphs) "\n\n")
-		       'ad-advice-info function)))
+                       ;; FIXME: what is this for?
+		       'dynamic-docstring-function
+                       #'ad--make-advised-docstring)))
     (help-add-fundoc-usage origdoc usage)))
 
 (defun ad-make-plain-docstring (function)
