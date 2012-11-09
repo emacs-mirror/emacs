@@ -3331,8 +3331,8 @@ static struct Lisp_Hash_Table *weak_hash_tables;
 
 /* Various symbols.  */
 
-static Lisp_Object Qhash_table_p, Qkey, Qvalue;
-Lisp_Object Qeq, Qeql, Qequal;
+static Lisp_Object Qhash_table_p, Qkey, Qvalue, Qeql;
+Lisp_Object Qeq, Qequal;
 Lisp_Object QCtest, QCsize, QCrehash_size, QCrehash_threshold, QCweakness;
 static Lisp_Object Qhash_table_test, Qkey_or_value, Qkey_and_value;
 
@@ -3424,7 +3424,8 @@ larger_vector (Lisp_Object vec, ptrdiff_t incr_min, ptrdiff_t nitems_max)
 			 Low-level Functions
  ***********************************************************************/
 
-struct hash_table_test hashtest_eq, hashtest_eql, hashtest_equal;
+static struct hash_table_test hashtest_eq;
+struct hash_table_test hashtest_eql, hashtest_equal;
 
 /* Compare KEY1 which has hash code HASH1 and KEY2 with hash code
    HASH2 in hash table H using `eql'.  Value is true if KEY1 and

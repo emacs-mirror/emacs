@@ -1,3 +1,7 @@
+2012-11-09  Paul Eggert  <eggert@cs.ucla.edu>
+
+	* fns.c (Qeql, hashtest_eq): Now static.
+
 2012-11-08  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* lisp.h (XHASH): Redefine to be imperfect and fit in a Lisp int.
