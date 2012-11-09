@@ -1,5 +1,12 @@
 2012-11-09  Dmitry Antipov  <dmantipov@yandex.ru>
 
+	Fix recently introduced crash on MS-Windows (Bug#12839).
+	* w32term.h (struct scroll_bar): Use convenient header.
+	(SCROLL_BAR_VEC_SIZE): Remove.
+	* w32term.c (x_scroll_bar_create): Use VECSIZE.
+
+2012-11-09  Dmitry Antipov  <dmantipov@yandex.ru>
+
 	Tweak last vectorlike_header change.
 	* alloc.c (struct Lisp_Vectorlike_Free): Special type to represent
 	vectorlike object on the free list.  This is introduced to avoid
