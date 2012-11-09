@@ -650,9 +650,8 @@ If the first type printed is Lisp_Vector or Lisp_Misc,
 a second line gives the more precise type.
 end
 
-define xvectype
-  xgetptr $
-  set $size = ((struct Lisp_Vector *) $ptr)->header.size
+define pvectype
+  set $size = ((struct Lisp_Vector *) $arg0)->header.size
   if ($size & PSEUDOVECTOR_FLAG)
     output (enum pvec_type) (($size & PVEC_TYPE_MASK) >> PSEUDOVECTOR_AREA_BITS)
   else
@@ -660,14 +659,22 @@ define xvectype
   end
   echo \n
 end
-document xvectype
-Print the type or vector subtype of $.
-This command assumes that $ is a vector or pseudovector.
+document pvectype
+Print the subtype of vectorlike object.
+Takes one argument, a pointer to an object.
 end
 
-define xvecsize
+define xvectype
   xgetptr $
-  set $size = ((struct Lisp_Vector *) $ptr)->header.size
+  pvectype $ptr
+end
+document xvectype
+Print the subtype of vectorlike object.
+This command assumes that $ is a Lisp_Object.
+end
+
+define pvecsize
+  set $size = ((struct Lisp_Vector *) $arg0)->header.size
   if ($size & PSEUDOVECTOR_FLAG)
     output ($size & PSEUDOVECTOR_SIZE_MASK)
     echo \n
@@ -677,9 +684,18 @@ define xvecsize
   end
   echo \n
 end
+document pvecsize
+Print the size of vectorlike object.
+Takes one argument, a pointer to an object.
+end
+
+define xvecsize
+  xgetptr $
+  pvecsize $ptr
+end
 document xvecsize
-Print the size or vector subtype of $.
-This command assumes that $ is a vector or pseudovector.
+Print the size of $
+This command assumes that $ is a Lisp_Object.
 end
 
 define xmisctype

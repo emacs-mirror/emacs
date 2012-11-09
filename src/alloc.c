@@ -2611,16 +2611,18 @@ verify (VECTOR_BLOCK_SIZE <= (1 << PSEUDOVECTOR_SIZE_BITS));
 
 #define VINDEX(nbytes) (((nbytes) - VBLOCK_BYTES_MIN) / roundup_size)
 
-/* When V is on the free list, first word after header is used as a pointer
-   to next vector on the free list.  It might be done in a better way with:
+/* This special type is used to represent any block-allocated vectorlike
+   object on the free list.  */
 
-   (*(struct Lisp_Vector **)&(v->contents[0]))
+struct Lisp_Vectorlike_Free
+{
+  struct vectorlike_header header;
+  struct Lisp_Vector *next;
+};
 
-   but this breaks GCC's strict-aliasing rules (which looks more relaxed
-   for char and void pointers).  */
+/* When V is on the free list, it's always treated as Lisp_Vectorlike_Free.  */
 
-#define NEXT_IN_FREE_LIST(v)				\
-  (*(struct Lisp_Vector **)((char *) v + header_size))
+#define NEXT_IN_FREE_LIST(v) ((struct Lisp_Vectorlike_Free *) v)->next
 
 /* Common shortcut to setup vector on a free list.  */
 
