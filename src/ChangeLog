@@ -1,5 +1,7 @@
 2012-11-09  Jan Djärv  <jan.h.d@swipnet.se>
 
+	* image.c (xpm_make_color_table_h): Change to hashtest_equal.
+
 	* nsfont.m (Qcondensed, Qexpanded): New variables.
 	(ns_descriptor_to_entity): Restore Qcondensed, Qexpanded setting.
 	(syms_of_nsfont): Defsym Qcondensed, Qexpanded.
