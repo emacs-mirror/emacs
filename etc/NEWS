@@ -536,33 +536,22 @@ python-describe-symbol    | python-eldoc-at-point
 ---
 ** reStructuredText mode
 
-*** Rebind nearly all keys making room for more keys and complying
-better to usage in other modes.  Describe bindings with C-c C-h.
+*** Keybindings (see `C-c C-h'), TAB indentation, filling and auto-filling,
+fontification, comment handling, and customization have all been revised
+and improved.
 
-*** Major revision of indentation working very similar to other
-modes.  TAB is your friend.
+*** Support for `imenu' and `which-function-mode'.
 
-*** Major revision of filling working fine with most of
-reStructuredText syntax.  Support auto-filling.
-
-*** Major revision of comment handling.
-
-*** Major revision of fontification working with `jit-lock-mode'.
-
-*** Cover reStructuredText syntax more closely.  Improve
-the experience for Sphinx users.
+*** The reStructuredText syntax is more closely covered.
+Sphinx support has been improved.
 
 *** `rst-insert-list' inserts new list or continues existing lists.
 
-*** Extend correct and improve customization.
+*** A negative prefix argument always works for `rst-adjust'.
 
-*** Negative prefix argument always works for `rst-adjust'.
+*** The window configuration is reset after displaying a TOC.
 
-*** Reset window configuration after displaying TOC.
-
-*** Package version in `rst-version'.
-
-*** Support `imenu' and `which-func'.
+*** The constant `rst-version' describes the rst.el package version.
 
 ---
 ** SH Script mode
@@ -580,10 +569,7 @@ for a new asynchronous shell command when the default output buffer
 `*Async Shell Command*' is already taken by another running command.
 
 ---
-** SQL Mode
-
-*** DB2 added `sql-db2-escape-newlines'
-
+** SQL Mode has a new option `sql-db2-escape-newlines'.
 If non-nil, newlines sent to the command interpreter will be escaped
 by a backslash.  The default does not escape the newlines and assumes
 that the sql statement will be terminated by a semicolon.
@@ -675,6 +661,8 @@ And in any case it's just a terrible package: ugly semantics, terrible
 inefficiency, and not namespace-clean.
 ---
 *** bruce.el
++++
+*** cust-print.el
 ---
 *** ledit.el
 ---
@@ -683,8 +671,6 @@ inefficiency, and not namespace-clean.
 *** mouse-sel.el
 ---
 *** patcomp.el
-+++
-*** cust-print.el
 
 
 * Incompatible Lisp Changes in Emacs 24.3
