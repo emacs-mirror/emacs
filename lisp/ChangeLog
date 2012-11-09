@@ -1,3 +1,20 @@
+2012-11-09  Vincent Belaïche  <vincentb1@users.sourceforge.net>
+
+	* ses.el: symbol to coordinate mapping is made by symbol property
+	`ses-cell'. This means that the same mapping is done for all SES
+	sheets. That is good enough for cells with standard A1 names, but
+	not for named cell. So a hash map is added for those
+	latter.
+	(defconst ses-localvars): added local variable ses--named-cell-hashmap
+	(ses-sym-rowcol): Use hashmap for named cell.
+	(ses-is-cell-sym-p): New defun.
+	(ses-decode-cell-symbol): New defun.
+	(ses-create-cell-variable): Add cell to hashmap when name is not A1-like.
+	(ses-rename-cell): Check that cell new name is not already in
+	spreadsheet with the use of ses-is-cell-sym-p
+	(ses-rename-cell): Use hash map for named cells, but accept also
+	renaming back to A1-like.
+
 2012-11-09  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* emacs-lisp/advice.el: Use new dynamic docstrings.
