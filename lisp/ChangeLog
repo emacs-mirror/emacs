@@ -1,5 +1,18 @@
 2012-11-09  Stefan Monnier  <monnier@iro.umontreal.ca>
 
+	* emacs-lisp/advice.el: Miscellaneous cleanup.  Use lexical-binding.
+	(fset, documentation): Don't save real def since we don't advise.
+	(ad-do-advised-functions): Remove problematic `result-form'.
+	(ad-safe-fset): `ad-real-fset' => `fset'.
+	(ad-read-advised-function): Don't assume that ad-do-advised-functions
+	uses CL's dolist internally.
+	(ad-arglist): Remove unused arg `name'.
+	(ad-docstring, ad-make-advised-docstring):
+	`ad-real-documentation' => `documentation'.
+	(warning-suppress-types): Declare.
+	(ad-set-arguments): Simple CSE.
+	(ad-recover-normality): Sanity check.
+
 	* emacs-lisp/bytecomp.el (byte-compile-out-toplevel): Don't turn
 	(funcall '(lambda ..) ..) into ((lambda ..) ..).
 

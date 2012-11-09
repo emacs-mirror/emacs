@@ -1,4 +1,4 @@
-;;; advice.el --- An overloading mechanism for Emacs Lisp functions
+;;; advice.el --- An overloading mechanism for Emacs Lisp functions  -*- lexical-binding: t -*-
 
 ;; Copyright (C) 1993-1994, 2000-2012 Free Software Foundation, Inc.
 
@@ -1795,15 +1795,6 @@ generates a copy of TREE."
                    `((put ',saved-function 'byte-opcode
                       ',(get function 'byte-opcode))))))))
 
-(defun ad-save-real-definitions ()
-  ;; Macro expansion will hardcode the values of the various byte-compiler
-  ;; properties into the compiled version of this function such that the
-  ;; proper values will be available at runtime without loading the compiler:
-  (ad-save-real-definition fset)
-  (ad-save-real-definition documentation))
-
-(ad-save-real-definitions)
-
 
 ;; @@ Advice info access fns:
 ;; ==========================
@@ -1839,15 +1830,13 @@ generates a copy of TREE."
      ad-advised-functions)))
 
 (defmacro ad-do-advised-functions (varform &rest body)
-  "`dolist'-style iterator that maps over `ad-advised-functions'.
-\(ad-do-advised-functions (VAR [RESULT-FORM])
+  "`dolist'-style iterator that maps over advised functions.
+\(ad-do-advised-functions (VAR)
    BODY-FORM...)
 On each iteration VAR will be bound to the name of an advised function
 \(a symbol)."
   (declare (indent 1))
-  `(cl-dolist (,(car varform)
-               ad-advised-functions
-               ,(car (cdr varform)))
+  `(cl-dolist (,(car varform) ad-advised-functions)
      (setq ,(car varform) (intern (car ,(car varform))))
      ,@body))
 
@@ -1866,7 +1855,7 @@ On each iteration VAR will be bound to the name of an advised function
 (defmacro ad-is-advised (function)
   "Return non-nil if FUNCTION has any advice info associated with it.
 This does not mean that the advice is also active."
-  (list 'ad-get-advice-info-macro function))
+  `(ad-get-advice-info-macro ,function))
 
 (defun ad-initialize-advice-info (function)
   "Initialize the advice info for FUNCTION.
@@ -1949,7 +1938,7 @@ Redefining advices affect the construction of an advised definition."
 (defun ad-has-any-advice (function)
   "True if the advice info of FUNCTION defines at least one advice."
   (and (ad-is-advised function)
-       (cl-dolist (class ad-advice-classes nil)
+       (cl-dolist (class ad-advice-classes)
 	 (if (ad-get-advice-info-field function class)
 	     (cl-return t)))))
 
@@ -1989,12 +1978,12 @@ Redefining advices affect the construction of an advised definition."
 ;; appropriate, especially in a safe version of `fset'.
 
 ;; For now define `ad-activate-internal' to the dummy definition:
-(defun ad-activate-internal (function &optional compile)
+(defun ad-activate-internal (_function &optional _compile)
   "Automatic advice activation is disabled. `ad-start-advice' enables it."
   nil)
 
 ;; This is just a copy of the above:
-(defun ad-activate-internal-off (function &optional compile)
+(defun ad-activate-internal-off (_function &optional _compile)
   "Automatic advice activation is disabled. `ad-start-advice' enables it."
   nil)
 
@@ -2008,7 +1997,7 @@ Redefining advices affect the construction of an advised definition."
 (defun ad-safe-fset (symbol definition)
   "A safe `fset' which will never call `ad-activate-internal' recursively."
   (ad-with-auto-activation-disabled
-   (ad-real-fset symbol definition)))
+   (fset symbol definition)))
 
 
 ;; @@ Access functions for original definitions:
@@ -2052,7 +2041,7 @@ function at point for which PREDICATE returns non-nil)."
       (error "ad-read-advised-function: There are no advised functions"))
   (setq default
 	(or default
-	    ;; Prefer func name at point, if it's in ad-advised-functions etc.
+	    ;; Prefer func name at point, if it's an advised function etc.
 	    (let ((function (progn
 			      (require 'help)
 			      (function-called-at-point))))
@@ -2061,24 +2050,20 @@ function at point for which PREDICATE returns non-nil)."
 		   (or (null predicate)
 		       (funcall predicate function))
 		   function))
-	    (ad-do-advised-functions (function)
-	      (if (or (null predicate)
-		      (funcall predicate function))
-		  (cl-return function)))
+            (cl-block nil
+              (ad-do-advised-functions (function)
+                (if (or (null predicate)
+                        (funcall predicate function))
+                    (cl-return function))))
 	    (error "ad-read-advised-function: %s"
 		   "There are no qualifying advised functions")))
-  (let* ((ad-pReDiCaTe predicate)
-	 (function
+  (let* ((function
 	  (completing-read
 	   (format "%s (default %s): " (or prompt "Function") default)
 	   ad-advised-functions
 	   (if predicate
-	       (function
-		(lambda (function)
-		  ;; Oops, no closures - the joys of dynamic scoping:
-		  ;; `predicate' clashed with the `predicate' argument
-		  ;; of `completing-read'.....
-		  (funcall ad-pReDiCaTe (intern (car function))))))
+               (lambda (function)
+                 (funcall predicate (intern (car function)))))
 	   t)))
     (if (equal function "")
 	(if (ad-is-advised default)
@@ -2376,10 +2361,8 @@ See Info node `(elisp)Computed Advice' for detailed documentation."
 	 (cdr definition))
 	(t nil)))
 
-(defun ad-arglist (definition &optional name)
-  "Return the argument list of DEFINITION.
-If DEFINITION could be from a subr then its NAME should be
-supplied to make subr arglist lookup more efficient."
+(defun ad-arglist (definition)
+  "Return the argument list of DEFINITION."
   (require 'help-fns)
   (help-function-arglist
    (if (or (ad-macro-p definition) (ad-advice-p definition))
@@ -2391,7 +2374,7 @@ supplied to make subr arglist lookup more efficient."
   "Return the unexpanded docstring of DEFINITION."
   (let ((docstring
 	 (if (ad-compiled-p definition)
-	     (ad-real-documentation definition t)
+	     (documentation definition t)
 	   (car (cdr (cdr (ad-lambda-expression definition)))))))
     (if (or (stringp docstring)
 	    (natnump docstring))
@@ -2475,6 +2458,7 @@ For that it has to be fbound with a non-autoload definition."
 	   (ad-macro-p (symbol-function function)))
        (not (ad-compiled-p (symbol-function function)))))
 
+(defvar warning-suppress-types)         ;From warnings.el.
 (defun ad-compile-function (function)
   "Byte-compiles FUNCTION (or macro) if it is not yet compiled."
   (interactive "aByte-compile function: ")
@@ -2605,24 +2589,20 @@ The assignment starts at position INDEX."
   (let ((values-index 0)
 	argument-access set-forms)
     (while (setq argument-access (ad-access-argument arglist index))
-      (if (symbolp argument-access)
-	  (setq set-forms
-		(cons (ad-set-argument
-		       arglist index
-		       (ad-element-access values-index 'ad-vAlUeS))
-		      set-forms))
-          (setq set-forms
-                (cons (if (= (car argument-access) 0)
-                          (list 'setq
-                                (car (cdr argument-access))
-                                (ad-list-access values-index 'ad-vAlUeS))
-                          (list 'setcdr
-                                (ad-list-access (1- (car argument-access))
-                                                (car (cdr argument-access)))
-                                (ad-list-access values-index 'ad-vAlUeS)))
-                      set-forms))
-          ;; terminate loop
-          (setq arglist nil))
+      (push (if (symbolp argument-access)
+                (ad-set-argument
+                 arglist index
+                 (ad-element-access values-index 'ad-vAlUeS))
+              (setq arglist nil) ;; Terminate loop.
+              (if (= (car argument-access) 0)
+                  `(setq
+                    ,(car (cdr argument-access))
+                    ,(ad-list-access values-index 'ad-vAlUeS))
+                `(setcdr
+                  ,(ad-list-access (1- (car argument-access))
+                                   (car (cdr argument-access)))
+                  ,(ad-list-access values-index 'ad-vAlUeS))))
+            set-forms)
       (setq index (1+ index))
       (setq values-index (1+ values-index)))
     (if (null set-forms)
@@ -2631,8 +2611,8 @@ The assignment starts at position INDEX."
         (if (= (length set-forms) 1)
             ;; For exactly one set-form we can use values-form directly,...
             (ad-substitute-tree
-             (function (lambda (form) (eq form 'ad-vAlUeS)))
-             (function (lambda (form) values-form))
+             (lambda (form) (eq form 'ad-vAlUeS))
+             (lambda (_form) values-form)
              (car set-forms))
             ;; ...if we have more we have to bind it to a variable:
             `(let ((ad-vAlUeS ,values-form))
@@ -2702,11 +2682,10 @@ Example: `(ad-map-arglists '(a &rest args) '(w x y z))' will return
 	    (cond (need-apply
 		   ;; `apply' can take care of that directly:
 		   (append source-reqopt-args (list source-rest-arg)))
-		  (t (mapcar (function
-			      (lambda (arg)
-				(setq target-arg-index (1+ target-arg-index))
-				(ad-get-argument
-				 source-arglist target-arg-index)))
+		  (t (mapcar (lambda (_arg)
+                               (setq target-arg-index (1+ target-arg-index))
+                               (ad-get-argument
+                                source-arglist target-arg-index))
 			     (append target-reqopt-args
 				     (and target-rest-arg
 					  ;; If we have a rest arg gobble up
@@ -2757,7 +2736,7 @@ Example: `(ad-map-arglists '(a &rest args) '(w x y z))' will return
   (let* ((origdef (ad-real-orig-definition function))
 	 (origdoc
 	  ;; Retrieve raw doc, key substitution will be taken care of later:
-	  (ad-real-documentation origdef t)))
+	  (documentation origdef t)))
     (ad--make-advised-docstring origdoc function style)))
 
 (defun ad--make-advised-docstring (origdoc function &optional style)
@@ -2771,7 +2750,7 @@ in any of these classes."
   (let* ((origdef (ad-real-orig-definition function))
 	 (origtype (symbol-name (ad-definition-type origdef)))
 	 (usage (help-split-fundoc origdoc function))
-	 paragraphs advice-docstring ad-usage)
+	 paragraphs advice-docstring)
     (setq usage (if (null usage) t (setq origdoc (cdr usage)) (car usage)))
     (if origdoc (setq paragraphs (list origdoc)))
     (unless (eq style 'plain)
@@ -2834,7 +2813,7 @@ in any of these classes."
 	     (orig-special-form-p (ad-special-form-p origdef))
 	     (orig-macro-p (ad-macro-p origdef))
 	     ;; Construct the individual pieces that we need for assembly:
-	     (orig-arglist (ad-arglist origdef function))
+	     (orig-arglist (ad-arglist origdef))
 	     (advised-arglist (or (ad-advised-arglist function)
 				  orig-arglist))
 	     (advised-interactive-form (ad-advised-interactive-form function))
@@ -2929,8 +2908,8 @@ should be modified.  The assembled function will be returned."
           (setq around-form-protected t))
       (setq around-form
             (ad-substitute-tree
-             (function (lambda (form) (eq form 'ad-do-it)))
-             (function (lambda (form) around-form))
+             (lambda (form) (eq form 'ad-do-it))
+             (lambda (_form) around-form)
              (macroexp-progn (ad-body-forms (ad-advice-definition advice))))))
 
     (setq after-forms
@@ -3065,10 +3044,10 @@ advised definition from scratch."
 	  (mapcar (function (lambda (advice) (ad-advice-name advice)))
 		  (ad-get-enabled-advices function 'after))
 	  (ad-definition-type original-definition)
-	  (if (equal (ad-arglist original-definition function)
+	  (if (equal (ad-arglist original-definition)
 		     (ad-arglist cached-definition))
 	      t
-	    (ad-arglist original-definition function))
+	    (ad-arglist original-definition))
 	  (if (eq (ad-definition-type original-definition) 'function)
 	      (equal (interactive-form original-definition)
 		     (interactive-form cached-definition))))))
@@ -3113,7 +3092,7 @@ advised definition from scratch."
 	   (and (eq (nth 3 cache-id) (ad-definition-type original-definition))
 		(setq code 'arglist-mismatch)
 		(equal (if (eq (nth 4 cache-id) t)
-			   (ad-arglist original-definition function)
+			   (ad-arglist original-definition)
 			 (nth 4 cache-id) )
 		       (ad-arglist cached-definition))
 		(setq code 'interactive-form-mismatch)
@@ -3227,7 +3206,7 @@ advised definition from scratch."
                  (ad-safe-fset 'ad-make-advised-definition-docstring
                                'ad-make-freeze-docstring)
                  ;; Make sure `unique-origname' is used as the origname:
-                 (ad-safe-fset 'ad-make-origname (lambda (x) unique-origname))
+                 (ad-safe-fset 'ad-make-origname (lambda (_x) unique-origname))
                  ;; No we reset all current advice information to nil and
                  ;; generate an advised definition that's solely determined
                  ;; by ADVICE and the current origdef of FUNCTION:
@@ -3677,28 +3656,24 @@ undone on exit of this macro."
                 ;; Make forms to redefine functions to their
                 ;; original definitions if they are advised:
                 (setq index -1)
-                (mapcar
-                 (function
-                  (lambda (function)
-                   (setq index (1+ index))
-                   `(ad-safe-fset
-                     ',function
-                     (or (ad-get-orig-definition ',function)
-                      ,(car (nth index current-bindings))))))
-                 functions))
+                (mapcar (lambda (function)
+                          (setq index (1+ index))
+                          `(ad-safe-fset
+                            ',function
+                            (or (ad-get-orig-definition ',function)
+                                ,(car (nth index current-bindings)))))
+                        functions))
              ,@body)
         ,@(progn
            ;; Make forms to back-define functions to the definitions
            ;; they had outside this macro call:
            (setq index -1)
-           (mapcar
-            (function
-             (lambda (function)
-              (setq index (1+ index))
-              `(ad-safe-fset
-                ',function
-                ,(car (nth index current-bindings)))))
-            functions))))))
+           (mapcar (lambda (function)
+                     (setq index (1+ index))
+                     `(ad-safe-fset
+                       ',function
+                       ,(car (nth index current-bindings))))
+                   functions))))))
 
 
 ;; @@ Starting, stopping and recovering from the advice package magic:
@@ -3727,7 +3702,9 @@ Use only in REAL emergencies."
   (ad-set-advice-info 'ad-activate-internal nil)
   (ad-safe-fset 'ad-activate-internal 'ad-activate-internal-off)
   (ad-recover-all)
-  (setq ad-advised-functions nil))
+  (ad-do-advised-functions (function)
+    (message "Oops! Left over advised function %S" function)
+    (ad-pop-advised-function function)))
 
 (ad-start-advice)
 
