@@ -1,15 +1,20 @@
+2012-11-09  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* emacs-lisp/bytecomp.el (byte-compile-out-toplevel): Don't turn
+	(funcall '(lambda ..) ..) into ((lambda ..) ..).
+
 2012-11-09  Vincent Belaïche  <vincentb1@users.sourceforge.net>
 
 	* ses.el: symbol to coordinate mapping is made by symbol property
-	`ses-cell'. This means that the same mapping is done for all SES
-	sheets. That is good enough for cells with standard A1 names, but
-	not for named cell. So a hash map is added for those
-	latter.
-	(defconst ses-localvars): added local variable ses--named-cell-hashmap
+	`ses-cell'.  This means that the same mapping is done for all SES
+	sheets.  That is good enough for cells with standard A1 names, but
+	not for named cell.  So a hash map is added for the latter.
+	(defconst ses-localvars): Add local variable ses--named-cell-hashmap
 	(ses-sym-rowcol): Use hashmap for named cell.
 	(ses-is-cell-sym-p): New defun.
 	(ses-decode-cell-symbol): New defun.
-	(ses-create-cell-variable): Add cell to hashmap when name is not A1-like.
+	(ses-create-cell-variable): Add cell to hashmap when name is not
+	A1-like.
 	(ses-rename-cell): Check that cell new name is not already in
 	spreadsheet with the use of ses-is-cell-sym-p
 	(ses-rename-cell): Use hash map for named cells, but accept also
@@ -120,8 +125,8 @@
 
 2012-11-05  Agustín Martín Domingo  <agustin.martin@hispalinux.es>
 
-	* textmodes/ispell.el (ispell-program-name): Update
-	spellchecker parameters when customized.
+	* textmodes/ispell.el (ispell-program-name):
+	Update spellchecker parameters when customized.
 
 2012-11-04  Glenn Morris  <rgm@gnu.org>
 
@@ -515,7 +520,7 @@
 2012-10-19  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* minibuffer.el (minibuffer-force-complete): Make the next completion use
-	the same completion-field (bug@12221).
+	the same completion-field (bug#12221).
 
 2012-10-19  Martin Rudalics  <rudalics@gmx.at>
 
