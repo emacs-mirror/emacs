@@ -48,6 +48,7 @@ Author: Adrian Robert (arobert@cogsci.ucsd.edu)
 extern Lisp_Object Qns;
 extern Lisp_Object Qnormal, Qbold, Qitalic;
 static Lisp_Object Qapple, Qroman, Qmedium;
+static Lisp_Object Qcondensed, Qexpanded;
 extern Lisp_Object Qappend;
 extern float ns_antialias_threshold;
 extern int ns_tmp_flags;
@@ -200,6 +201,9 @@ ns_descriptor_to_entity (NSFontDescriptor *desc,
 /*    FONT_SET_STYLE (font_entity, FONT_SLANT_INDEX,
 		    make_number (100 + 100
 			 * ns_attribute_fvalue (desc, NSFontSlantTrait)));*/
+    FONT_SET_STYLE (font_entity, FONT_WIDTH_INDEX,
+                    traits & NSFontCondensedTrait ? Qcondensed :
+                    traits & NSFontExpandedTrait ? Qexpanded : Qnormal);
 /*    FONT_SET_STYLE (font_entity, FONT_WIDTH_INDEX,
 		    make_number (100 + 100
 			 * ns_attribute_fvalue (desc, NSFontWidthTrait)));*/
@@ -1508,6 +1512,8 @@ syms_of_nsfont (void)
 {
   nsfont_driver.type = Qns;
   register_font_driver (&nsfont_driver, NULL);
+  DEFSYM (Qcondensed, "condensed");
+  DEFSYM (Qexpanded, "expanded");
   DEFSYM (Qapple, "apple");
   DEFSYM (Qroman, "roman");
   DEFSYM (Qmedium, "medium");

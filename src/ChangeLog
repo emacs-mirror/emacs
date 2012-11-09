@@ -1,3 +1,9 @@
+2012-11-09  Jan Djärv  <jan.h.d@swipnet.se>
+
+	* nsfont.m (Qcondensed, Qexpanded): New variables.
+	(ns_descriptor_to_entity): Restore Qcondensed, Qexpanded setting.
+	(syms_of_nsfont): Defsym Qcondensed, Qexpanded.
+
 2012-11-09  Dmitry Antipov  <dmantipov@yandex.ru>
 
 	Fix recently introduced crash on MS-Windows (Bug#12839).
