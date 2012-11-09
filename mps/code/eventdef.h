@@ -68,7 +68,7 @@
  */
  
 #define EventNameMAX ((size_t)19)
-#define EventCodeMAX ((EventCode)0x0075)
+#define EventCodeMAX ((EventCode)0x0077)
 
 #define EVENT_LIST(EVENT, X) \
   /*       0123456789012345678 <- don't exceed without changing EventNameMAX */ \
@@ -181,7 +181,10 @@
   EVENT(X, AWLDeclineTotal    , 0x0072,  TRUE, Trace) \
   EVENT(X, AWLDeclineSeg      , 0x0073,  TRUE, Trace) \
   EVENT(X, EventInit          , 0x0074,  TRUE, Arena) \
-  EVENT(X, EventClockSync     , 0x0075,  TRUE, Arena)
+  EVENT(X, EventClockSync     , 0x0075,  TRUE, Arena) \
+  EVENT(X, ArenaAccess        , 0x0076,  TRUE, Arena) \
+  EVENT(X, ArenaPoll          , 0x0077,  TRUE, Arena)
+
   
 
 /* Remember to update EventNameMAX and EventCodeMAX in eventcom.h! 
@@ -632,6 +635,17 @@
 
 #define EVENT_EventClockSync_PARAMS(PARAM, X) \
   PARAM(X,  0, W, clock)          /* mps_clock() value */
+
+#define EVENT_ArenaAccess_PARAMS(PARAM, X) \
+  PARAM(X,  0, P, arena) \
+  PARAM(X,  1, W, count) \
+  PARAM(X,  2, P, addr) \
+  PARAM(X,  3, U, mode)
+
+#define EVENT_ArenaPoll_PARAMS(PARAM, X) \
+  PARAM(X,  0, P, arena) \
+  PARAM(X,  1, W, start) \
+  PARAM(X,  2, W, quanta)
 
 #endif /* eventdef_h */
 
