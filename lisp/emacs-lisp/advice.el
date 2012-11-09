@@ -1846,8 +1846,12 @@ On each iteration VAR will be bound to the name of an advised function
 (defmacro ad-get-advice-info-macro (function)
   `(get ,function 'ad-advice-info))
 
-(defmacro ad-set-advice-info (function advice-info)
-  `(put ,function 'ad-advice-info ,advice-info))
+(defsubst ad-set-advice-info (function advice-info)
+  (cond
+   (advice-info (put function 'defalias-fset-function #'ad--defalias-fset))
+   ((get function 'defalias-fset-function)
+    (put function 'defalias-fset-function nil)))
+  (put function 'ad-advice-info advice-info))
 
 (defmacro ad-copy-advice-info (function)
   `(copy-tree (get ,function 'ad-advice-info)))
@@ -1954,18 +1958,10 @@ Redefining advices affect the construction of an advised definition."
 ;; @@ Dealing with automatic advice activation via `fset/defalias':
 ;; ================================================================
 
-;; Since Emacs 19.26 the built-in versions of `fset' and `defalias'
-;; take care of automatic advice activation, hence, we don't have to
-;; hack it anymore by advising `fset/defun/defmacro/byte-code/etc'.
+;; Automatic activation happens when a function gets defined via `defalias',
+;; which calls the `defalias-fset-function' (which we set to
+;; `ad--defalias-fset') instead of `fset', if non-nil.
 
-;; The functionality of the new `fset' is as follows:
-;;
-;;     fset(sym,newdef)
-;;       assign NEWDEF to SYM
-;;       if (get SYM 'ad-advice-info)
-;;          ad-activate-internal(SYM, nil)
-;;       return (symbol-function SYM)
-;;
 ;; Whether advised definitions created by automatic activations will be
 ;; compiled depends on the value of `ad-default-compilation-action'.
 
@@ -1976,6 +1972,10 @@ Redefining advices affect the construction of an advised definition."
 ;; `ad-recover-normality' are called). Another is to avoid recursive calls
 ;; to `ad-activate' by using `ad-with-auto-activation-disabled' where
 ;; appropriate, especially in a safe version of `fset'.
+
+(defun ad--defalias-fset (function definition)
+  (fset function definition)
+  (ad-activate-internal function nil))
 
 ;; For now define `ad-activate-internal' to the dummy definition:
 (defun ad-activate-internal (_function &optional _compile)
@@ -1993,12 +1993,6 @@ Redefining advices affect the construction of an advised definition."
 (defmacro ad-with-auto-activation-disabled (&rest body)
   `(let ((ad-activate-on-top-level nil))
     ,@body))
-
-(defun ad-safe-fset (symbol definition)
-  "A safe `fset' which will never call `ad-activate-internal' recursively."
-  (ad-with-auto-activation-disabled
-   (fset symbol definition)))
-
 
 ;; @@ Access functions for original definitions:
 ;; ============================================
@@ -2019,8 +2013,7 @@ Redefining advices affect the construction of an advised definition."
         (symbol-function origname))))
 
 (defmacro ad-set-orig-definition (function definition)
-  `(ad-safe-fset
-    (ad-get-advice-info-field ,function 'origname) ,definition))
+  `(fset (ad-get-advice-info-field ,function 'origname) ,definition))
 
 (defmacro ad-clear-orig-definition (function)
   `(fmakunbound (ad-get-advice-info-field ,function 'origname)))
@@ -3151,7 +3144,7 @@ advised definition from scratch."
       (ad-set-advice-info function old-advice-info)
       ;; Don't `fset' function to nil if it was previously unbound:
       (if function-defined-p
-	  (ad-safe-fset function old-definition)
+	  (fset function old-definition)
 	(fmakunbound function)))))
 
 
@@ -3182,61 +3175,54 @@ advised definition from scratch."
       (error
        "ad-make-freeze-definition: `%s' is not yet defined"
        function))
-  (let* ((name (ad-advice-name advice))
-	 ;; With a unique origname we can have multiple freeze advices
-	 ;; for the same function, each overloading the previous one:
-	 (unique-origname
-	  (intern (format "%s-%s-%s" (ad-make-origname function) class name)))
-	 (orig-definition
-	  ;; If FUNCTION is already advised, we'll use its current origdef
-	  ;; as the original definition of the frozen advice:
-	  (or (ad-get-orig-definition function)
-	      (symbol-function function)))
-	 (old-advice-info
-	  (if (ad-is-advised function)
-	      (ad-copy-advice-info function)))
-	 (real-docstring-fn
-	  (symbol-function 'ad-make-advised-definition-docstring))
-	 (real-origname-fn
-	  (symbol-function 'ad-make-origname))
-	 (frozen-definition
-	  (unwind-protect
-               (progn
-                 ;; Make sure we construct a proper docstring:
-                 (ad-safe-fset 'ad-make-advised-definition-docstring
-                               'ad-make-freeze-docstring)
-                 ;; Make sure `unique-origname' is used as the origname:
-                 (ad-safe-fset 'ad-make-origname (lambda (_x) unique-origname))
-                 ;; No we reset all current advice information to nil and
-                 ;; generate an advised definition that's solely determined
-                 ;; by ADVICE and the current origdef of FUNCTION:
-                 (ad-set-advice-info function nil)
-                 (ad-add-advice function advice class position)
-                 ;; The following will provide proper real docstrings as
-                 ;; well as a definition that will make the compiler happy:
-                 (ad-set-orig-definition function orig-definition)
-                 (ad-make-advised-definition function))
-	    ;; Restore the old advice state:
-	    (ad-set-advice-info function old-advice-info)
-	    ;; Restore functions:
-	    (ad-safe-fset
-	     'ad-make-advised-definition-docstring real-docstring-fn)
-	    (ad-safe-fset 'ad-make-origname real-origname-fn))))
+  (cl-letf*
+      ((name (ad-advice-name advice))
+       ;; With a unique origname we can have multiple freeze advices
+       ;; for the same function, each overloading the previous one:
+       (unique-origname
+        (intern (format "%s-%s-%s" (ad-make-origname function) class name)))
+       (orig-definition
+        ;; If FUNCTION is already advised, we'll use its current origdef
+        ;; as the original definition of the frozen advice:
+        (or (ad-get-orig-definition function)
+            (symbol-function function)))
+       (old-advice-info
+        (if (ad-is-advised function)
+            (ad-copy-advice-info function)))
+       ;; Make sure we construct a proper docstring:
+       ((symbol-function 'ad-make-advised-definition-docstring)
+        #'ad-make-freeze-docstring)
+       ;; Make sure `unique-origname' is used as the origname:
+       ((symbol-function 'ad-make-origname) (lambda (_x) unique-origname))
+       (frozen-definition
+        (unwind-protect
+            (progn
+              ;; No we reset all current advice information to nil and
+              ;; generate an advised definition that's solely determined
+              ;; by ADVICE and the current origdef of FUNCTION:
+              (ad-set-advice-info function nil)
+              (ad-add-advice function advice class position)
+              ;; The following will provide proper real docstrings as
+              ;; well as a definition that will make the compiler happy:
+              (ad-set-orig-definition function orig-definition)
+              (ad-make-advised-definition function))
+          ;; Restore the old advice state:
+          (ad-set-advice-info function old-advice-info))))
     (if frozen-definition
 	(let* ((macro-p (ad-macro-p frozen-definition))
 	       (body (cdr (if macro-p
 			      (ad-lambdafy frozen-definition)
-                              frozen-definition))))
+                            frozen-definition))))
 	  `(progn
-            (if (not (fboundp ',unique-origname))
-                (fset ',unique-origname
-                      ;; avoid infinite recursion in case the function
-                      ;; we want to freeze is already advised:
-                      (or (ad-get-orig-definition ',function)
-                          (symbol-function ',function))))
-            (,(if macro-p 'defmacro 'defun)
-             ,function
-             ,@body))))))
+             (if (not (fboundp ',unique-origname))
+                 (fset ',unique-origname
+                       ;; avoid infinite recursion in case the function
+                       ;; we want to freeze is already advised:
+                       (or (ad-get-orig-definition ',function)
+                           (symbol-function ',function))))
+             (,(if macro-p 'defmacro 'defun)
+              ,function
+              ,@body))))))
 
 
 ;; @@ Activation and definition handling:
@@ -3269,7 +3255,7 @@ The current definition and its cache-id will be put into the cache."
   (let ((verified-cached-definition
 	 (if (ad-verify-cache-id function)
 	     (ad-get-cache-definition function))))
-    (ad-safe-fset function
+    (fset function
 		  (or verified-cached-definition
 		      (ad-make-advised-definition function)))
     (if (ad-should-compile function compile)
@@ -3311,7 +3297,7 @@ the value of `ad-redefinition-action' and de/activate again."
 		    (error "ad-handle-definition (see its doc): `%s' %s"
 			   function "invalidly redefined")
 		  (if (eq ad-redefinition-action 'discard)
-		      (ad-safe-fset function original-definition)
+		      (fset function original-definition)
 		    (ad-set-orig-definition function current-definition)
 		    (if (eq ad-redefinition-action 'warn)
 			(message "ad-handle-definition: `%s' got redefined"
@@ -3386,7 +3372,7 @@ a call to `ad-activate'."
 	   (if (not (ad-get-orig-definition function))
 	       (error "ad-deactivate: `%s' has no original definition"
 		      function)
-	     (ad-safe-fset function (ad-get-orig-definition function))
+	     (fset function (ad-get-orig-definition function))
 	     (ad-set-advice-info-field function 'active nil)
 	     (eval (ad-make-hook-form function 'deactivation))
 	     function)))))
@@ -3424,7 +3410,7 @@ Use in emergencies."
 	  (completing-read "Recover advised function: " obarray nil t))))
   (cond ((ad-is-advised function)
 	 (cond ((ad-get-orig-definition function)
-	        (ad-safe-fset function (ad-get-orig-definition function))
+	        (fset function (ad-get-orig-definition function))
 		(ad-clear-orig-definition function)))
 	 (ad-set-advice-info function nil)
 	 (ad-pop-advised-function function))))
@@ -3658,8 +3644,7 @@ undone on exit of this macro."
                 (setq index -1)
                 (mapcar (lambda (function)
                           (setq index (1+ index))
-                          `(ad-safe-fset
-                            ',function
+                           `(fset ',function
                             (or (ad-get-orig-definition ',function)
                                 ,(car (nth index current-bindings)))))
                         functions))
@@ -3670,8 +3655,7 @@ undone on exit of this macro."
            (setq index -1)
            (mapcar (lambda (function)
                      (setq index (1+ index))
-                     `(ad-safe-fset
-                       ',function
+                       `(fset ',function
                        ,(car (nth index current-bindings))))
                    functions))))))
 
@@ -3684,7 +3668,7 @@ undone on exit of this macro."
   (interactive)
   ;; Advising `ad-activate-internal' means death!!
   (ad-set-advice-info 'ad-activate-internal nil)
-  (ad-safe-fset 'ad-activate-internal 'ad-activate))
+  (fset 'ad-activate-internal 'ad-activate))
 
 (defun ad-stop-advice ()
   "Stop the automatic advice handling magic.
@@ -3692,7 +3676,7 @@ You should only need this in case of Advice-related emergencies."
   (interactive)
   ;; Advising `ad-activate-internal' means death!!
   (ad-set-advice-info 'ad-activate-internal nil)
-  (ad-safe-fset 'ad-activate-internal 'ad-activate-internal-off))
+  (fset 'ad-activate-internal 'ad-activate-internal-off))
 
 (defun ad-recover-normality ()
   "Undo all advice related redefinitions and unadvises everything.
@@ -3700,7 +3684,7 @@ Use only in REAL emergencies."
   (interactive)
   ;; Advising `ad-activate-internal' means death!!
   (ad-set-advice-info 'ad-activate-internal nil)
-  (ad-safe-fset 'ad-activate-internal 'ad-activate-internal-off)
+  (fset 'ad-activate-internal 'ad-activate-internal-off)
   (ad-recover-all)
   (ad-do-advised-functions (function)
     (message "Oops! Left over advised function %S" function)

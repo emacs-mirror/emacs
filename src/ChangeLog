@@ -1,3 +1,14 @@
+2012-11-09  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* lisp.h (AUTOLOADP): New macro.
+	* eval.c (Fautoload): Don't attach to loadhist, call Fdefalias instead.
+	* data.c (Ffset): Remove special ad-advice-info handling.
+	(Fdefalias): Handle autoload definitions and new Qdefalias_fset_function.
+	(Fsubr_arity): CSE.
+	(Finteractive_form): Simplify.
+	(Fquo): Don't insist on having at least 2 arguments.
+	(Qdefalias_fset_function): New var.
+
 2012-11-09  Jan Djärv  <jan.h.d@swipnet.se>
 
 	* image.c (xpm_make_color_table_h): Change to hashtest_equal.
@@ -26,7 +37,7 @@
 
 2012-11-09  Jan Djärv  <jan.h.d@swipnet.se>
 
-	* nsfont.m (ns_descriptor_to_entity): Qcondesed and Qexpanded has
+	* nsfont.m (ns_descriptor_to_entity): Qcondensed and Qexpanded has
 	been removed, so remove them here also.
 
 2012-11-09  Stefan Monnier  <monnier@iro.umontreal.ca>

@@ -38,6 +38,9 @@ spurious warnings about an unused var.
 ** Docstrings can be made dynamic by adding a `dynamic-docstring-function'
 text-property on the first char.
 
+** The `defalias-fset-function' property lets you catch calls to defalias
+and redirect them to your own function instead of `fset'.
+
 * Changes in Emacs 24.4 on non-free operating systems
 
 

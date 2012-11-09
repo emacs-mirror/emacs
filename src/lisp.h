@@ -1694,6 +1694,8 @@ typedef struct {
 #define MARKERP(x) (MISCP (x) && XMISCTYPE (x) == Lisp_Misc_Marker)
 #define SAVE_VALUEP(x) (MISCP (x) && XMISCTYPE (x) == Lisp_Misc_Save_Value)
 
+#define AUTOLOADP(x) (CONSP (x) && EQ (Qautoload, XCAR (x)))
+
 #define INTFWDP(x) (XFWDTYPE (x) == Lisp_Fwd_Int)
 #define BOOLFWDP(x) (XFWDTYPE (x) == Lisp_Fwd_Bool)
 #define OBJFWDP(x) (XFWDTYPE (x) == Lisp_Fwd_Obj)
