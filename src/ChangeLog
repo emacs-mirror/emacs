@@ -1,3 +1,8 @@
+2012-11-09  Jan Djärv  <jan.h.d@swipnet.se>
+
+	* nsfont.m (ns_descriptor_to_entity): Qcondesed and Qexpanded has
+	been removed, so remove them here also.
+
 2012-11-09  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* doc.c (Fdocumentation): Handle new property

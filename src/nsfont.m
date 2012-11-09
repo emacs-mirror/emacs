@@ -46,7 +46,7 @@ Author: Adrian Robert (arobert@cogsci.ucsd.edu)
 #define NSFONT_TRACE 0
 
 extern Lisp_Object Qns;
-extern Lisp_Object Qnormal, Qbold, Qitalic, Qcondensed, Qexpanded;
+extern Lisp_Object Qnormal, Qbold, Qitalic;
 static Lisp_Object Qapple, Qroman, Qmedium;
 extern Lisp_Object Qappend;
 extern float ns_antialias_threshold;
@@ -200,9 +200,6 @@ ns_descriptor_to_entity (NSFontDescriptor *desc,
 /*    FONT_SET_STYLE (font_entity, FONT_SLANT_INDEX,
 		    make_number (100 + 100
 			 * ns_attribute_fvalue (desc, NSFontSlantTrait)));*/
-    FONT_SET_STYLE (font_entity, FONT_WIDTH_INDEX,
-		    traits & NSFontCondensedTrait ? Qcondensed :
-		    traits & NSFontExpandedTrait ? Qexpanded : Qnormal);
 /*    FONT_SET_STYLE (font_entity, FONT_WIDTH_INDEX,
 		    make_number (100 + 100
 			 * ns_attribute_fvalue (desc, NSFontWidthTrait)));*/
