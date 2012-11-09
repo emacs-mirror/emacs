@@ -844,7 +844,8 @@ This handles splitting the command if it would be bigger than
 
     ;; Special case for ns.  This is because DISPLAY may not be set at all
     ;; which in the ns case isn't an error.  The variable display then becomes
-    ;; the fully qualified hostname.
+    ;; the fully qualified hostname, which make-frame-on-display below
+    ;; does not understand and throws an error.
     ;; It may also be a valid X display, but if Emacs is compiled for ns, it
     ;; can not make X frames.
     (if (featurep 'ns-win)
