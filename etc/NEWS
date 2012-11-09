@@ -28,6 +28,11 @@ so we will look at it and add it to the manual.
 * Changes in Specialized Modes and Packages in Emacs 24.4
 * New Modes and Packages in Emacs 24.4
 * Incompatible Lisp Changes in Emacs 24.4
+
+** `dolist' in lexical-binding mode does not bind VAR in RESULT any more.
+VAR was bound to nil which was not tremendously useful and just lead to
+spurious warnings about an unused var.
+
 * Lisp changes in Emacs 24.4
 
 ** Docstrings can be made dynamic by adding a `dynamic-docstring-function'
