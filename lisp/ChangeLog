@@ -1,3 +1,7 @@
+2012-11-09  Jan Djärv  <jan.h.d@swipnet.se>
+
+	* server.el (server-create-window-system-frame): Improved comment.
+
 2012-11-08  Jan Djärv  <jan.h.d@swipnet.se>
 
 	* server.el (server-create-window-system-frame): Handle Nextstep
