@@ -1,5 +1,11 @@
 2012-11-10  Glenn Morris  <rgm@gnu.org>
 
+	* mail/emacsbug.el (report-emacs-bug-tracker-url)
+	(report-emacs-bug-bug-alist, report-emacs-bug-choice-widget)
+	(report-emacs-bug-create-existing-bugs-buffer)
+	(report-emacs-bug-parse-query-results)
+	(report-emacs-bug-query-existing-bugs): Remove.  (Bug#7449)
+
 	* term.el (term-default-fg-color, term-default-bg-color):
 	Make obsolete, rather than just saying "deprecated" in the doc.
 
