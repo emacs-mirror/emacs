@@ -770,16 +770,18 @@ Buffer local variable.")
    term-color-white])
 
 (defcustom term-default-fg-color nil
-  "If non-nil, default color for foreground in Term mode.
-This is deprecated in favor of customizing the `term' face."
+  "If non-nil, default color for foreground in Term mode."
   :group 'term
   :type 'string)
+(make-obsolete-variable 'term-default-fg-color "use the face `term' instead."
+                        "24.3")
 
 (defcustom term-default-bg-color nil
-  "If non-nil, default color for foreground in Term mode.
-This is deprecated in favor of customizing the `term' face."
+  "If non-nil, default color for foreground in Term mode."
   :group 'term
   :type 'string)
+(make-obsolete-variable 'term-default-bg-color "use the face `term' instead."
+                        "24.3")
 
 (defface term
   `((t

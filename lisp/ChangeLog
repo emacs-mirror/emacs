@@ -1,5 +1,8 @@
 2012-11-10  Glenn Morris  <rgm@gnu.org>
 
+	* term.el (term-default-fg-color, term-default-bg-color):
+	Make obsolete, rather than just saying "deprecated" in the doc.
+
 	* term.el (term): Rename from `term-face'.
 	(term-current-face, ansi-term-color-vector)
 	(term-default-fg-color, term-default-bg-color, term-ansi-reset):
