@@ -572,6 +572,14 @@ allocation and scanning code.
     If you do not want the arena to remain in the parked state, you
     must explicitly call :c:func:`mps_arena_release` afterwards.
 
+    .. note::
+
+        It is not normally necessary to call this function: in the
+        :term:`unclamped state`, collections start automatically.
+        However, it may be useful during development and debugging:
+        the more frequently the collector runs, the sooner and more
+        reliably errors are discovered. See :ref:`guide-debug-advice`.
+
 
 .. c:function:: mps_res_t mps_arena_start_collect(mps_arena_t arena)
 
