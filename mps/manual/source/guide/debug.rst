@@ -22,6 +22,8 @@ delayed. And even if it does die, the space it occupies may not be
 re-allocated for some time.
 
 
+.. _guide-debug-advice:
+
 General debugging advice
 ------------------------
 

@@ -94,8 +94,9 @@ Memory management in various languages
 
         COBOL was designed by the CODASYL committee in 1959–60 to be a
         business programming language, and has been extended many
-        times since. It is still the most widely-used programming
-        language (in terms of lines of code in use).
+        times since. A 1997 Gartner Group report estimated that 80% of
+        computer software (by count of source lines) was written in
+        COBOL.
 
         Prior to 2002, COBOL had no :term:`heap allocation`, and did
         well in its application domain without it. COBOL 2002 has
@@ -456,7 +457,8 @@ Memory management in various languages
         their keys and values can be dynamically switched from being
         :term:`strong references` to weak references, and vice versa
         (by assigning to the ``__mode`` field of the table's
-        metatable).
+        metatable). It also supports :term:`finalization` (by
+        assigning the ``__gc`` field of the object's metatable).
 
         .. link::
 
