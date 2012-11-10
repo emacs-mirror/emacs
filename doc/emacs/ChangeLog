@@ -1,3 +1,7 @@
+2012-11-10  Glenn Morris  <rgm@gnu.org>
+
+	* misc.texi (Terminal emulator): Rename `term-face' to `term'.
+
 2012-11-09  Glenn Morris  <rgm@gnu.org>
 
 	* emacs.texi (Acknowledgments): Add profiler author.

@@ -1209,7 +1209,7 @@ VT100-style escape sequences, which are accepted by most modern
 terminals, including @command{xterm}.  (Hence, you can actually run
 Emacs inside an Emacs Term window.)
 
-  The @code{term-face} face specifies the default appearance of text
+  The @code{term} face specifies the default appearance of text
 in the terminal emulator (the default is the same appearance as the
 @code{default} face).  When terminal control codes are used to change
 the appearance of text, these are represented in the terminal emulator

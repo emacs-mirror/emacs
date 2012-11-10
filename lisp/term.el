@@ -452,7 +452,7 @@ state 4: term-terminal-parameter contains pending output.")
   "A queue of strings whose echo we want suppressed.")
 (defvar term-terminal-parameter)
 (defvar term-terminal-previous-parameter)
-(defvar term-current-face 'term-face)
+(defvar term-current-face 'term)
 (defvar term-scroll-start 0 "Top-most line (inclusive) of scrolling region.")
 (defvar term-scroll-end) ; Number of line (zero-based) after scrolling region.
 (defvar term-pager-count nil
@@ -759,7 +759,7 @@ Buffer local variable.")
 
 ;;; Faces
 (defvar ansi-term-color-vector
-  [term-face
+  [term
    term-color-black
    term-color-red
    term-color-green
@@ -771,17 +771,17 @@ Buffer local variable.")
 
 (defcustom term-default-fg-color nil
   "If non-nil, default color for foreground in Term mode.
-This is deprecated in favor of customizing the `term-face' face."
+This is deprecated in favor of customizing the `term' face."
   :group 'term
   :type 'string)
 
 (defcustom term-default-bg-color nil
   "If non-nil, default color for foreground in Term mode.
-This is deprecated in favor of customizing the `term-face' face."
+This is deprecated in favor of customizing the `term' face."
   :group 'term
   :type 'string)
 
-(defface term-face
+(defface term
   `((t
      :foreground ,term-default-fg-color
      :background ,term-default-bg-color
@@ -988,7 +988,7 @@ is buffer-local."
     dt))
 
 (defun term-ansi-reset ()
-  (setq term-current-face 'term-face)
+  (setq term-current-face 'term)
   (setq term-ansi-current-underline nil)
   (setq term-ansi-current-bold nil)
   (setq term-ansi-current-reverse nil)

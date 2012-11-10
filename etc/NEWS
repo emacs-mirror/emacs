@@ -573,7 +573,7 @@ at point, or the Nth column if a numeric prefix argument is given.
 ** Term
 +++
 *** The variables `term-default-fg-color' and `term-default-bg-color' are
-now deprecated in favor of the customizable `term-face' face.
+now deprecated in favor of the customizable face `term'.
 
 *** You can customize how to display ANSI terminal colors and styles
 by customizing the corresponding `term-color-<COLOR>',

@@ -1,3 +1,10 @@
+2012-11-10  Glenn Morris  <rgm@gnu.org>
+
+	* term.el (term): Rename from `term-face'.
+	(term-current-face, ansi-term-color-vector)
+	(term-default-fg-color, term-default-bg-color, term-ansi-reset):
+	Update all users.
+
 2012-11-09  Jan Djärv  <jan.h.d@swipnet.se>
 
 	* server.el (server-create-window-system-frame): Improved comment.
