@@ -3764,7 +3764,7 @@ This is to make them appear as if they were \"virtual buffers\"."
 	       ido-enable-flex-matching
 	       (> (length ido-text) 1)
 	       (not ido-enable-regexp))
-      (setq re (mapconcat #'regexp-quote (split-string ido-text "") ".*"))
+      (setq re (mapconcat #'regexp-quote (split-string ido-text "" t) ".*"))
       (if ido-enable-prefix
 	  (setq re (concat "\\`" re)))
       (mapc

@@ -1,3 +1,8 @@
+2012-11-10  Leo Liu  <sdl.web@gmail.com>
+
+	* ido.el (ido-set-matches-1): Fix split-string args to avoid
+	performance issue.  (Bug#12796)
+
 2012-11-10  Glenn Morris  <rgm@gnu.org>
 
 	* term.el (term-default-fg-color, term-default-bg-color):
