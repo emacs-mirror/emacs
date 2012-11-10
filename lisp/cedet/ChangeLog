@@ -1,3 +1,8 @@
+2012-11-10  Glenn Morris  <rgm@gnu.org>
+
+	* srecode/srt-mode.el (srecode-template-mode):
+	Don't change global values of comment-start, comment-end.  (Bug#12781)
+
 2012-10-25  David Engster  <deng@randomsample.de>
 
 	* semantic/analyze.el (semantic-analyze-dereference-alias): New

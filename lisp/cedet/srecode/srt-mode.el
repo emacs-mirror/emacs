@@ -189,8 +189,8 @@ we can tell font lock about them.")
 ;;;###autoload
 (define-derived-mode srecode-template-mode fundamental-mode "SRecorder"
   "Major-mode for writing SRecode macros."
-  (setq comment-start ";;"
-	comment-end "")
+  (set (make-local-variable 'comment-start) ";;")
+  (set (make-local-variable 'comment-end) "")
   (set (make-local-variable 'parse-sexp-ignore-comments) t)
   (set (make-local-variable 'comment-start-skip)
        "\\(\\(^\\|[^\\\\\n]\\)\\(\\\\\\\\\\)*\\);+ *")
