@@ -1310,22 +1310,31 @@ part of one of the following sequences:
 @table @asis
 @item @samp{\&}
 @cindex @samp{&} in replacement
-@samp{\&} stands for the entire text being replaced.
+This stands for the entire text being replaced.
 
-@item @samp{\@var{n}}
+@item @samp{\@var{n}}, where @var{n} is a digit
 @cindex @samp{\@var{n}} in replacement
-@samp{\@var{n}}, where @var{n} is a digit, stands for the text that
-matched the @var{n}th subexpression in the original regexp.
-Subexpressions are those expressions grouped inside @samp{\(@dots{}\)}.
-If the @var{n}th subexpression never matched, an empty string is substituted.
+This stands for the text that matched the @var{n}th subexpression in
+the original regexp.  Subexpressions are those expressions grouped
+inside @samp{\(@dots{}\)}.  If the @var{n}th subexpression never
+matched, an empty string is substituted.
 
 @item @samp{\\}
 @cindex @samp{\} in replacement
-@samp{\\} stands for a single @samp{\} in the replacement text.
+This stands for a single @samp{\} in the replacement text.
+
+@item @samp{\?}
+This stands for itself (for compatibility with @code{replace-regexp}
+and related commands; @pxref{Regexp Replacement,,, emacs, The GNU
+Emacs Manual}).
 @end table
 
-These substitutions occur after case conversion, if any,
-so the strings they substitute are never case-converted.
+@noindent
+Any other character following @samp{\} signals an error.
+
+The substitutions performed by @samp{\&} and @samp{\@var{n}} occur
+after case conversion, if any.  Therefore, the strings they substitute
+are never case-converted.
 
 If @var{subexp} is non-@code{nil}, that says to replace just
 subexpression number @var{subexp} of the regexp that was matched, not

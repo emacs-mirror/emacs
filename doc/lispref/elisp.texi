@@ -502,6 +502,11 @@ Buffer-Local Variables
 * Default Value::           The default value is seen in buffers
                               that don't have their own buffer-local values.
 
+Generalized Variables
+
+* Setting Generalized Variables::   The @code{setf} macro.
+* Adding Generalized Variables::    Defining new @code{setf} forms.
+
 Functions
 
 * What Is a Function::      Lisp functions vs. primitives; terminology.
@@ -996,6 +1001,8 @@ Windows
 * Resizing Windows::        Changing the sizes of windows.
 * Splitting Windows::       Splitting one window into two windows.
 * Deleting Windows::        Deleting a window gives its space to other windows.
+* Recombining Windows::     Preserving the frame layout when splitting and
+                              deleting windows.
 * Selecting Windows::       The selected window is the one that you edit in.
 * Cyclic Window Ordering::  Moving around the existing windows.
 * Buffers and Windows::     Each window displays the contents of a buffer.

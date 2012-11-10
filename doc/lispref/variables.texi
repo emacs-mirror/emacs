@@ -1262,6 +1262,13 @@ needed if you use the @var{local} argument to @code{add-hook} or
 @code{remove-hook}.
 @end deffn
 
+@defmac setq-local variable value
+This macro creates a buffer-local binding in the current buffer for
+@var{variable}, and gives it the buffer-local value @var{value}.  It
+is equivalent to calling @code{make-local-variable} followed by
+@code{setq}.  @var{variable} should be an unquoted symbol.
+@end defmac
+
 @deffn Command make-variable-buffer-local variable
 This function marks @var{variable} (a symbol) automatically
 buffer-local, so that any subsequent attempt to set it will make it
@@ -1296,6 +1303,14 @@ variable is used for internal purposes in a Lisp program which depends
 on having separate values in separate buffers, then using
 @code{make-variable-buffer-local} can be the best solution.
 @end deffn
+
+@defmac defvar-local variable value &optional docstring
+This macro defines @var{variable} as a variable with initial value
+@var{value} and @var{docstring}, and marks it as automatically
+buffer-local.  It is equivalent to calling @code{defvar} followed by
+@code{make-variable-buffer-local}.  @var{variable} should be an
+unquoted symbol.
+@end defmac
 
 @defun local-variable-p variable &optional buffer
 This returns @code{t} if @var{variable} is buffer-local in buffer
@@ -1948,7 +1963,6 @@ Attempting to assign them any other value will result in an error:
 @error{} Wrong type argument: integerp, 1000.0
 @end example
 
-@c FIXME?  Not sure this is the right place for this section.
 @node Generalized Variables
 @section Generalized Variables
 
@@ -1958,12 +1972,19 @@ a regular Lisp variable.  But the @sc{car}s and @sc{cdr}s of lists, elements
 of arrays, properties of symbols, and many other locations are also
 places where Lisp values are stored.
 
-@c FIXME?  Not sure this is a useful analogy...
 Generalized variables are analogous to ``lvalues'' in the C
 language, where @samp{x = a[i]} gets an element from an array
 and @samp{a[i] = x} stores an element using the same notation.
 Just as certain forms like @code{a[i]} can be lvalues in C, there
 is a set of forms that can be generalized variables in Lisp.
+
+@menu
+* Setting Generalized Variables::   The @code{setf} macro.
+* Adding Generalized Variables::    Defining new @code{setf} forms.
+@end menu
+
+@node Setting Generalized Variables
+@subsection The @code{setf} Macro
 
 The @code{setf} macro is the most basic way to operate on generalized
 variables.  The @code{setf} form is like @code{setq}, except that it
@@ -1998,14 +2019,16 @@ so there is no performance penalty for using it in compiled code.
 A call to any of the following standard Lisp functions:
 
 @smallexample
-car            cdr            nth            nthcdr
-caar           cadr           cdar           cddr
-aref           elt            get            gethash
-symbol-function        symbol-value          symbol-plist
+aref      cddr      symbol-function
+car       elt       symbol-plist
+caar      get       symbol-value
+cadr      gethash
+cdr       nth
+cdar      nthcdr  
 @end smallexample
 
 @item
-The following Emacs-specific functions are also @code{setf}-able:
+A call to any of the following Emacs-specific functions:
 
 @smallexample
 default-value                 process-get
@@ -2022,8 +2045,8 @@ process-filter
 @end itemize
 
 @noindent
-Using any forms other than these in the @var{place} argument to
-@code{setf} will signal an error.
+@code{setf} signals an error if you pass a @var{place} form that it
+does not know how to handle.
 
 @c And for cl-lib's cl-getf.
 Note that for @code{nthcdr}, the list argument of the function must
@@ -2049,3 +2072,81 @@ place can be used to insert or delete at any position in a list.
 The @file{cl-lib} library defines various extensions for generalized
 variables, including additional @code{setf} places.
 @xref{Generalized Variables,,, cl, Common Lisp Extensions}.
+
+
+@node Adding Generalized Variables
+@subsection Defining new @code{setf} forms
+
+This section describes how to define new forms that @code{setf} can
+operate on.
+
+@defmac gv-define-simple-setter name setter &optional fix-return
+This macro enables you to easily define @code{setf} methods for simple
+cases.  @var{name} is the name of a function, macro, or special form.
+You can use this macro whenever @var{name} has a directly
+corresponding @var{setter} function that updates it, e.g.,
+@code{(gv-define-simple-setter car setcar)}.
+
+This macro translates a call of the form
+
+@example
+(setf (@var{name} @var{args}@dots{}) @var{value})
+@end example
+
+into
+@example
+(@var{setter} @var{args}@dots{} @var{value})
+@end example
+
+@noindent
+Such a @code{setf} call is documented to return @var{value}.  This is
+no problem with, e.g., @code{car} and @code{setcar}, because
+@code{setcar} returns the value that it set.  If your @var{setter}
+function does not return @var{value}, use a non-@code{nil} value for
+the @var{fix-return} argument of @code{gv-define-simple-setter}.  This
+expands into something equivalent to
+@example
+(let ((temp @var{value}))
+  (@var{setter} @var{args}@dots{} temp)
+  temp)
+@end example
+so ensuring that it returns the correct result.
+@end defmac
+
+
+@defmac gv-define-setter name arglist &rest body
+This macro allows for more complex @code{setf} expansions than the
+previous form.  You may need to use this form, for example, if there
+is no simple setter function to call, or if there is one but it
+requires different arguments to the place form.
+
+This macro expands the form
+@code{(setf (@var{name} @var{args}@dots{}) @var{value})} by
+first binding the @code{setf} argument forms
+@code{(@var{value} @var{args}@dots{})} according to @var{arglist},
+and then executing @var{body}.  @var{body} should return a Lisp
+form that does the assignment, and finally returns the value that was
+set.  An example of using this macro is:
+
+@example
+(gv-define-setter caar (val x) `(setcar (car ,x) ,val))
+@end example
+@end defmac
+
+@c FIXME?  Not sure what, if anything, to say about this.
+@ignore
+@defmac gv-define-expander name handler
+This is the most general way to define a new @code{setf} expansion.
+@end defmac
+@end ignore
+
+@cindex CL note---no @code{setf} functions
+Common Lisp defines another way to specify the @code{setf} behavior of
+a function, namely ``@code{setf} functions'', whose names are lists
+@code{(setf @var{name})} rather than symbols.  For example,
+@code{(defun (setf foo) @dots{})} defines the function that is used
+when @code{setf} is applied to @code{foo}.  Emacs does not support
+this.  It is a compile-time error to use @code{setf} on a form that
+has not already had an appropriate expansion defined.  In Common Lisp,
+this is not an error since the function @code{(setf @var{func})} might
+be defined later.

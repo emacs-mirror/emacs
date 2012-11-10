@@ -261,6 +261,7 @@ Basic Editing Commands
 
 The Minibuffer
 
+* Basic Minibuffer::      Basic usage of the minibuffer.
 * Minibuffer File::     Entering file names with the minibuffer.
 * Minibuffer Edit::     How to edit in the minibuffer.
 * Completion::          An abbreviation facility for minibuffer input.
@@ -1402,7 +1403,7 @@ Martin Lorentzon, Dave Love, Eric Ludlam, Károly L@H{o}rentey, Sascha
 Lüdecke, Greg McGary, Roland McGrath, Michael McNamara, Alan Mackenzie,
 Christopher J.@: Madsen, Neil M.@: Mager, Ken Manheimer, Bill Mann,
 Brian Marick, Simon Marshall, Bengt Martensson, Charlie Martin,
-Yukihiro Matsumoto, David Maus, Thomas May, Will Mengarini, David
+Yukihiro Matsumoto, Tomohiro Matsuyama, David Maus, Thomas May, Will Mengarini, David
 Megginson, Stefan Merten, Ben A.@: Mesander, Wayne Mesard, Brad
 Miller, Lawrence Mitchell, Richard Mlynarik, Gerd Moellmann, Stefan
 Monnier, Keith Moore, Jan Moringen, Morioka Tomohiko, Glenn Morris,

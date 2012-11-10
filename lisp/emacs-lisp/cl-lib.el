@@ -251,12 +251,17 @@ one value.
 (defvar cl-proclaims-deferred nil)
 
 (defun cl-proclaim (spec)
+  "Record a global declaration specified by SPEC."
   (if (fboundp 'cl-do-proclaim) (cl-do-proclaim spec t)
     (push spec cl-proclaims-deferred))
   nil)
 
 (defmacro cl-declaim (&rest specs)
-  (let ((body (mapcar (function (lambda (x) (list 'cl-proclaim (list 'quote x))))
+  "Like `cl-proclaim', but takes any number of unevaluated, unquoted arguments.
+Puts `(cl-eval-when (compile load eval) ...)' around the declarations
+so that they are registered at compile-time as well as run-time."
+  (let ((body (mapcar (function (lambda (x)
+                                  (list 'cl-proclaim (list 'quote x))))
 		      specs)))
     (if (cl--compiling-file) (cl-list* 'cl-eval-when '(compile load eval) body)
       (cons 'progn body))))   ; avoid loading cl-macs.el for cl-eval-when

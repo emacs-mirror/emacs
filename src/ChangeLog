@@ -1,3 +1,24 @@
+2012-11-10  Martin Rudalics  <rudalics@gmx.at>
+
+	* window.c (Fsplit_window_internal): Set combination limit of
+	new parent window to t iff Vwindow_combination_limit is t;
+	fixing a regression introduced with the change from 2012-09-22.
+	(Fset_window_combination_limit): Fix doc-string.
+
+2012-11-10  Eli Zaretskii  <eliz@gnu.org>
+
+	* xdisp.c (try_scrolling): Fix correction of aggressive-scroll
+	amount when the scroll margins are too large.  When scrolling
+	backwards in the buffer, give up if cannot reach point or the
+	scroll margin within a reasonable number of screen lines.  Fixes
+	point position in window under scroll-up/down-aggressively when
+	point is positioned many lines beyond the window top/bottom.
+	(Bug#12811)
+
+	* ralloc.c (relinquish): If real_morecore fails to return memory
+	to the system, don't crash; instead, leave the last heap
+	unchanged and return.  (Bug#12774)
+
 2012-11-09  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* lisp.h (AUTOLOADP): New macro.

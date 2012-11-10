@@ -1,3 +1,39 @@
+2012-11-10  Martin Rudalics  <rudalics@gmx.at>
+
+	* elisp.texi (Top): Add Recombining Windows to menu.
+	* windows.texi (Recombining Windows): New subsection.
+	(Splitting Windows): Rewrite text on handling of window
+	combinations and move it to new subsection.
+
+2012-11-10  Chong Yidong  <cyd@gnu.org>
+
+	* searching.texi (Replacing Match): Document \? in replace-match.
+
+	* variables.texi (Creating Buffer-Local): Document setq-local and
+	defvar-local.
+	(Setting Generalized Variables): Arrange table alphabetically.
+
+	* lists.texi (List Elements, List Variables): Clarify descriptions
+	of push and pop for generalized variables.
+
+	* edebug.texi (Specification List): setf is no longer CL-only.
+
+2012-11-10  Glenn Morris  <rgm@gnu.org>
+
+	* variables.texi (Adding Generalized Variables):
+	Update description of FIX-RETURN expansion.
+
+	* variables.texi (Setting Generalized Variables):
+	Split most of previous contents into this subsection.
+	(Adding Generalized Variables): New subsection.
+	Move note on lack of setf functions here from misc/cl.texi.
+
+	* elisp.texi: Add Generalized Variables subsections to detailed menu.
+
+2012-11-10  Chong Yidong  <cyd@gnu.org>
+
+	* frames.texi (Initial Parameters): Doc fix (Bug#12144).
+
 2012-11-08  Michael Albinus  <michael.albinus@gmx.de>
 
 	* os.texi (Notifications): Update descriptions of

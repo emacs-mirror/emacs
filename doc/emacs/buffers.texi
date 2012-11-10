@@ -309,7 +309,7 @@ whose names begin with a space, which are used internally by Emacs.
 To kill internal buffers as well, call @code{kill-matching-buffers}
 with a prefix argument.
 
-  The buffer menu feature is also convenient for killing various
+  The Buffer Menu feature is also convenient for killing various
 buffers.  @xref{Several Buffers}.
 
 @vindex kill-buffer-hook
@@ -339,7 +339,7 @@ the Customization buffer to set the variable @code{midnight-mode} to
 
 @node Several Buffers
 @section Operating on Several Buffers
-@cindex buffer menu
+@cindex Buffer Menu
 
 @table @kbd
 @item M-x buffer-menu
@@ -348,7 +348,7 @@ Begin editing a buffer listing all Emacs buffers.
 Similar, but do it in another window.
 @end table
 
-  The @dfn{buffer menu} opened by @kbd{C-x C-b} (@pxref{List Buffers})
+  The @dfn{Buffer Menu} opened by @kbd{C-x C-b} (@pxref{List Buffers})
 does not merely list buffers.  It also allows you to perform various
 operations on buffers, through an interface similar to Dired
 (@pxref{Dired}).  You can save buffers, kill them (here called
@@ -356,105 +356,168 @@ operations on buffers, through an interface similar to Dired
 
 @findex buffer-menu
 @findex buffer-menu-other-window
-  To use the buffer menu, type @kbd{C-x C-b} and switch to the window
+  To use the Buffer Menu, type @kbd{C-x C-b} and switch to the window
 displaying the @file{*Buffer List*} buffer.  You can also type
-@kbd{M-x buffer-menu} to open the buffer menu in the selected window.
+@kbd{M-x buffer-menu} to open the Buffer Menu in the selected window.
 Alternatively, the command @kbd{M-x buffer-menu-other-window} opens
-the buffer menu in another window, and selects that window.
+the Buffer Menu in another window, and selects that window.
 
-  The buffer menu is a read-only buffer, and can be changed only
+  The Buffer Menu is a read-only buffer, and can be changed only
 through the special commands described in this section.  The usual
-cursor motion commands can be used in this buffer.  The
-following commands apply to the buffer described on the current line:
+cursor motion commands can be used in this buffer.  The following
+commands apply to the buffer described on the current line:
 
 @table @kbd
 @item d
-Request to delete (kill) the buffer, then move down.  The request
-shows as a @samp{D} on the line, before the buffer name.  Requested
-deletions take place when you type the @kbd{x} command.
+@findex Buffer-menu-delete
+@kindex d @r{(Buffer Menu)}
+Flag the buffer for deletion (killing), then move point to the next
+line (@code{Buffer-menu-delete}).  The deletion flag is indicated by
+the character @samp{D} on the line, before the buffer name.  The
+deletion occurs only when you type the @kbd{x} command (see below).
+
 @item C-d
-Like @kbd{d} but move up afterwards instead of down.
+@findex Buffer-menu-delete-backwards
+@kindex C-d @r{(Buffer Menu)}
+Like @kbd{d}, but move point up instead of down
+(@code{Buffer-menu-delete-backwards}).
+
 @item s
-Request to save the buffer.  The request shows as an @samp{S} on the
-line.  Requested saves take place when you type the @kbd{x} command.
-You may request both saving and deletion for the same buffer.
+@findex Buffer-menu-save
+@kindex s @r{(Buffer Menu)}
+Flag the buffer for saving (@code{Buffer-menu-save}).  The save flag
+is indicated by the character @samp{S} on the line, before the buffer
+name.  The saving occurs only when you type @kbd{x}.  You may request
+both saving and deletion for the same buffer.
+
 @item x
-Perform previously requested deletions and saves.
+@findex Buffer-menu-execute
+@kindex x @r{(Buffer Menu)}
+Perform all flagged deletions and saves (@code{Buffer-menu-execute}).
+
 @item u
-Remove any request made for the current line, and move down.
+@findex Buffer-menu-unmark
+@kindex u @r{(Buffer Menu)}
+Remove all flags from the current line, and move down
+(@code{Buffer-menu-unmark}).
+
 @item @key{DEL}
-Move to previous line and remove any request made for that line.
+@findex Buffer-menu-backup-unmark
+@kindex DEL @r{(Buffer Menu)}
+Move to the previous line and remove all flags on that line
+(@code{Buffer-menu-backup-unmark}).
 @end table
 
-  The @kbd{d}, @kbd{C-d}, @kbd{s} and @kbd{u} commands to add or remove
-flags also move down (or up) one line.  They accept a numeric argument
-as a repeat count.
+@noindent
+The commands for adding or removing flags, @kbd{d}, @kbd{C-d}, @kbd{s}
+and @kbd{u}, all accept a numeric argument as a repeat count.
 
-  These commands operate immediately on the buffer listed on the current
-line:
+  The following commands operate immediately on the buffer listed on
+the current line.  They also accept a numeric argument as a repeat
+count.
 
 @table @kbd
 @item ~
-Mark the buffer ``unmodified''.  The command @kbd{~} does this
-immediately when you type it.
+@findex Buffer-menu-not-modified
+@kindex ~ @r{(Buffer Menu)}
+Mark the buffer as unmodified (@code{Buffer-menu-not-modified}).
+@xref{Save Commands}.
+
 @item %
-Toggle the buffer's read-only flag.  The command @kbd{%} does
-this immediately when you type it.
+@findex Buffer-menu-toggle-read-only
+@kindex % @r{(Buffer Menu)}
+Toggle the buffer's read-only status
+(@code{Buffer-menu-toggle-read-only}).  @xref{Misc Buffer}.
+
 @item t
-Visit the buffer as a tags table.  @xref{Select Tags Table}.
+@findex Buffer-menu-visit-tags-table
+@kindex % @r{(Buffer Menu)}
+Visit the buffer as a tags table
+(@code{Buffer-menu-visit-tags-table}).  @xref{Select Tags Table}.
 @end table
 
-  There are also commands to select another buffer or buffers:
+  The following commands are used to select another buffer or buffers:
 
 @table @kbd
 @item q
-Quit the buffer menu---immediately display the most recent formerly
-visible buffer in its place.
+@findex quit-window
+@kindex q @r{(Buffer Menu)}
+Quit the Buffer Menu (@code{quit-window}).  The most recent formerly
+visible buffer is displayed in its place.
+
 @item @key{RET}
 @itemx f
-Immediately select this line's buffer in place of the @file{*Buffer
-List*} buffer.
+@findex Buffer-menu-this-window
+@kindex f @r{(Buffer Menu)}
+@kindex RET @r{(Buffer Menu)}
+Select this line's buffer, replacing the @file{*Buffer List*} buffer
+in its window (@code{Buffer-menu-this-window}).
+
 @item o
-Immediately select this line's buffer in another window as if by
-@kbd{C-x 4 b}, leaving @file{*Buffer List*} visible.
+@findex Buffer-menu-other-window
+@kindex o @r{(Buffer Menu)}
+Select this line's buffer in another window, as if by @kbd{C-x 4 b},
+leaving @file{*Buffer List*} visible
+(@code{Buffer-menu-other-window}).
+
 @item C-o
-Immediately display this line's buffer in another window, but don't
-select the window.
+@findex Buffer-menu-switch-other-window
+@kindex C-o @r{(Buffer Menu)}
+Display this line's buffer in another window, without selecting it
+(@code{Buffer-menu-switch-other-window}).
+
 @item 1
-Immediately select this line's buffer in a full-screen window.
+@findex Buffer-menu-1-window
+@kindex 1 @r{(Buffer Menu)}
+Select this line's buffer in a full-frame window
+(@code{Buffer-menu-1-window}).
+
 @item 2
-Immediately set up two windows, with this line's buffer selected in
-one, and the previously current buffer (aside from the buffer
-@file{*Buffer List*}) displayed in the other.
+@findex Buffer-menu-2-window
+@kindex 2 @r{(Buffer Menu)}
+Set up two windows on the current frame, with this line's buffer
+selected in one, and a previously current buffer (aside from
+@file{*Buffer List*}) in the other (@code{Buffer-menu-2-window}).
+
 @item b
-Bury the buffer listed on this line.
+@findex Buffer-menu-bury
+@kindex b @r{(Buffer Menu)}
+Bury this line's buffer (@code{Buffer-menu-bury}).
+
 @item m
+@findex Buffer-menu-mark
+@kindex m @r{(Buffer Menu)}
 Mark this line's buffer to be displayed in another window if you exit
-with the @kbd{v} command.  The request shows as a @samp{>} at the
-beginning of the line.  (A single buffer may not have both a delete
-request and a display request.)
+with the @kbd{v} command (@code{Buffer-menu-mark}).  The display flag
+is indicated by the character @samp{>} at the beginning of the line.
+(A single buffer may not have both deletion and display flags.)
+
 @item v
-Immediately select this line's buffer, and also display in other windows
-any buffers previously marked with the @kbd{m} command.  If you have not
-marked any buffers, this command is equivalent to @kbd{1}.
+@findex Buffer-menu-select
+@kindex v @r{(Buffer Menu)}
+Select this line's buffer, and also display in other windows any
+buffers flagged with the @kbd{m} command (@code{Buffer-menu-select}).
+If you have not flagged any buffers, this command is equivalent to
+@kbd{1}.
 @end table
 
-  There is also a command that affects the entire buffer list:
+  The following commands affect the entire buffer list:
 
 @table @kbd
-@item T
-Delete, or reinsert, lines for non-file buffers.  This command toggles
-the inclusion of such buffers in the buffer list.
-@end table
+@item S
+@findex tabulated-list-sort
+@kindex S @r{(Buffer Menu)}
+Sort the Buffer Menu entries according to their values in the column
+at point.  With a numeric prefix argument @var{n}, sort according to
+the @var{n}-th column (@code{tabulated-list-sort}).
 
-  What @code{buffer-menu} actually does is create and switch to a
-suitable buffer, and turn on Buffer Menu mode in it.  Everything else
-described above is implemented by the special commands provided in
-Buffer Menu mode.  One consequence of this is that you can switch from
-the @file{*Buffer List*} buffer to another Emacs buffer, and edit
-there.  You can reselect the @file{*Buffer List*} buffer later, to
-perform the operations already requested, or you can kill it, or pay
-no further attention to it.
+@item T
+@findex Buffer-menu-toggle-files-only
+@kindex T @r{(Buffer Menu)}
+Delete, or reinsert, lines for non-file buffers
+@code{Buffer-menu-toggle-files-only}).  This command toggles the
+inclusion of such buffers in the buffer list.
+@end table
 
   Normally, the buffer @file{*Buffer List*} is not updated
 automatically when buffers are created and killed; its contents are
@@ -633,7 +696,6 @@ C-b}.  To customize this buffer list, use the @code{bs} Custom group
 @findex msb-mode
 @cindex mode, MSB
 @cindex MSB mode
-@cindex buffer menu
 @findex mouse-buffer-menu
 @kindex C-Down-Mouse-1
   MSB global minor mode (``MSB'' stands for ``mouse select buffer'')

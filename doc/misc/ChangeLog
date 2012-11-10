@@ -1,3 +1,32 @@
+2012-11-10  Chong Yidong  <cyd@gnu.org>
+
+	* url.texi (Introduction): Move url-configuration-directory to
+	Customization node.
+	(Parsed URIs): Split into its own node.
+	(URI Encoding): New node.
+	(Defining New URLs): Remove empty chapter.
+	(Retrieving URLs): Add an introduction.  Doc fix for url-retrieve.
+	Improve docs for url-queue-*.
+	(Supported URL Types): Copyedits.  Delete empty subnodes.
+
+	* url.texi (Introduction): Rename from Getting Started.  Rewrite
+	the introduction.
+	(URI Parsing): Rewrite.  Omit the obsolete attributes slot.
+
+2012-11-10  Glenn Morris  <rgm@gnu.org>
+
+	* cl.texi (Obsolete Setf Customization):
+	Revert defsetf example to the more correct let rather than prog1.
+	Give define-modify-macro, defsetf, and define-setf-method
+	gv.el replacements.
+
+	* cl.texi (Overview): Mention EIEIO here, as well as the appendix.
+	(Setf Extensions): Remove obsolete reference.
+	(Obsolete Setf Customization):
+	Move note on lack of setf functions to lispref/variables.texi.
+	Undocument get-setf-method, since it no longer exists.
+	Mention simple defsetf replaced by gv-define-simple-setter.
+
 2012-11-03  Glenn Morris  <rgm@gnu.org>
 
 	* cl.texi: Further general copyedits.

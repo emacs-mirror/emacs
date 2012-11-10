@@ -1,3 +1,46 @@
+2012-11-10  Glenn Morris  <rgm@gnu.org>
+
+	* misc.texi (Terminal emulator): Rename `term-face' to `term'.
+
+	* emacs.texi (Acknowledgments): Add profiler author.
+	* ack.texi (Acknowledgments): Add some recent contributions.
+
+2012-11-10  Chong Yidong  <cyd@gnu.org>
+
+	* files.texi (Diff Mode): Doc fixes for
+	diff-delete-trailing-whitespace (Bug#12831).
+
+	* trouble.texi (Crashing): Copyedits.
+
+2012-11-10  Glenn Morris  <rgm@gnu.org>
+
+	* files.texi (Diff Mode): Trailing whitespace updates.
+
+2012-11-10  Chong Yidong  <cyd@gnu.org>
+
+	* misc.texi (Terminal emulator): Document Term mode faces.
+
+	* mini.texi (Basic Minibuffer): New node.  Document
+	minibuffer-electric-default-mode.
+
+	* display.texi (Visual Line Mode): Fix index entry.
+
+	* buffers.texi (Several Buffers): List Buffer Menu command anmes,
+	and index the keybindings.  Document tabulated-list-sort.
+	(Kill Buffer): Capitalize Buffer Menu.
+
+	* trouble.texi (Memory Full): Capitalize Buffer Menu.
+
+2012-11-10  Eli Zaretskii  <eliz@gnu.org>
+
+	* display.texi (Auto Scrolling): Clarify that scroll-step is
+	ignored when scroll-conservatively is set to a non-zero value.
+	(Bug#12801)
+
+2012-11-10  Chong Yidong  <cyd@gnu.org>
+
+	* dired.texi (Dired Updating): Doc fix (Bug#11744).
+
 2012-10-30  Michael Albinus  <michael.albinus@gmx.de>
 
 	* trouble.texi (Known Problems): Mention command `debbugs-gnu-usertags'.

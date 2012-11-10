@@ -1,3 +1,78 @@
+2012-11-10  Glenn Morris  <rgm@gnu.org>
+
+	* term.el (term-default-fg-color, term-default-bg-color):
+	Make obsolete, rather than just saying "deprecated" in the doc.
+
+	* term.el (term): Rename from `term-face'.
+	(term-current-face, ansi-term-color-vector)
+	(term-default-fg-color, term-default-bg-color, term-ansi-reset):
+	Update all users.
+
+2012-11-10  Jan Djärv  <jan.h.d@swipnet.se>
+
+	* server.el (server-create-window-system-frame): Handle Nextstep
+	specially (Bug#12780).
+
+2012-11-10  Glenn Morris  <rgm@gnu.org>
+
+	* mail/emacsbug.el (report-emacs-bug-query-existing-bugs):
+	Unautoload, and make obsolete.  (Bug#7449)
+
+2012-11-10  Chong Yidong  <cyd@gnu.org>
+
+	* vc/diff-mode.el (diff-delete-trailing-whitespace): Rewrite, and
+	rename from diff-remove-trailing-whitespace (Bug#12831).
+
+2012-11-10  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* emacs-lisp/advice.el: Require `cl-lib' at run-time to fix
+	miscompilation of trace.el.
+
+2012-11-10  Glenn Morris  <rgm@gnu.org>
+
+	* vc/diff-mode.el (diff-remove-trailing-whitespace): Doc fix.
+
+2012-11-10  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* emacs-lisp/gv.el (gv-define-simple-setter): Fix last change
+	(bug#12812).
+
+2012-11-10  Chong Yidong  <cyd@gnu.org>
+
+	* minibuf-eldef.el (minibuffer-eldef-shorten-default): Convert to
+	a defcustom with an appropriate :set function.
+	(minibuffer-default--in-prompt-regexps): New function.
+
+2012-11-10  Glenn Morris  <rgm@gnu.org>
+
+	* emacs-lisp/cl.el (define-setf-expander, defsetf)
+	(define-modify-macro): Doc fixes.
+
+	* emacs-lisp/gv.el (gv-letplace): Fix doc typo.
+	(gv-define-simple-setter): Update doc of `fix-return'.
+
+2012-11-10  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* emacs-lisp/gv.el (gv-define-simple-setter): Don't evaluate `val'
+	twice when `fix-return' is set (bug#12813).
+
+	* emacs-lisp/cl.el (defsetf): Pass the third arg to
+	gv-define-simple-setter (bug#12812).
+
+	* woman.el (woman-decode-region): Disable adaptive-fill when rendering
+	(bug#12756).
+
+2012-11-10  Glenn Morris  <rgm@gnu.org>
+
+	* emacs-lisp/gv.el (gv-define-setter): Fix doc typo.
+
+	* emacs-lisp/cl-extra.el (cl-prettyexpand):
+	* emacs-lisp/cl-lib.el (cl-proclaim, cl-declaim):
+	* emacs-lisp/cl-macs.el (cl-destructuring-bind, cl-locally)
+	(cl-the, cl-compiler-macroexpand): Add basic doc strings.
+
+	* emacs-lisp/cl-extra.el (cl-maplist, cl-mapcan): Doc fix.
+
 2012-11-10  Leo Liu  <sdl.web@gmail.com>
 
 	* ido.el (ido-set-matches-1): Improve flex matching performance by

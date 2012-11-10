@@ -14786,13 +14786,18 @@ try_scrolling (Lisp_Object window, int just_this_one_p,
 	  if (NUMBERP (aggressive))
 	    {
 	      double float_amount = XFLOATINT (aggressive) * height;
-	      amount_to_scroll = float_amount;
-	      if (amount_to_scroll == 0 && float_amount > 0)
-		amount_to_scroll = 1;
+	      int aggressive_scroll = float_amount;
+	      if (aggressive_scroll == 0 && float_amount > 0)
+		aggressive_scroll = 1;
 	      /* Don't let point enter the scroll margin near top of
-		 the window.  */
-	      if (amount_to_scroll > height - 2*this_scroll_margin + dy)
-		amount_to_scroll = height - 2*this_scroll_margin + dy;
+		 the window.  This could happen if the value of
+		 scroll_up_aggressively is too large and there are
+		 non-zero margins, because scroll_up_aggressively
+		 means put point that fraction of window height
+		 _from_the_bottom_margin_.  */
+	      if (aggressive_scroll + 2*this_scroll_margin > height)
+		aggressive_scroll = height - 2*this_scroll_margin;
+	      amount_to_scroll = dy + aggressive_scroll;
 	    }
 	}
 
@@ -14852,7 +14857,8 @@ try_scrolling (Lisp_Object window, int just_this_one_p,
 	  /* Compute the vertical distance from PT to the scroll
 	     margin position.  Move as far as scroll_max allows, or
 	     one screenful, or 10 screen lines, whichever is largest.
-	     Give up if distance is greater than scroll_max.  */
+	     Give up if distance is greater than scroll_max or if we
+	     didn't reach the scroll margin position.  */
 	  SET_TEXT_POS (pos, PT, PT_BYTE);
 	  start_display (&it, w, pos);
 	  y0 = it.current_y;
@@ -14862,7 +14868,8 @@ try_scrolling (Lisp_Object window, int just_this_one_p,
 		      y_to_move, -1,
 		      MOVE_TO_POS | MOVE_TO_X | MOVE_TO_Y);
 	  dy = it.current_y - y0;
-	  if (dy > scroll_max)
+	  if (dy > scroll_max
+	      || IT_CHARPOS (it) < CHARPOS (scroll_margin_pos))
 	    return SCROLLING_FAILED;
 
 	  /* Compute new window start.  */
@@ -14880,15 +14887,16 @@ try_scrolling (Lisp_Object window, int just_this_one_p,
 	      if (NUMBERP (aggressive))
 		{
 		  double float_amount = XFLOATINT (aggressive) * height;
-		  amount_to_scroll = float_amount;
-		  if (amount_to_scroll == 0 && float_amount > 0)
-		    amount_to_scroll = 1;
-		  amount_to_scroll -=
-		    this_scroll_margin - dy - FRAME_LINE_HEIGHT (f);
+		  int aggressive_scroll = float_amount;
+		  if (aggressive_scroll == 0 && float_amount > 0)
+		    aggressive_scroll = 1;
 		  /* Don't let point enter the scroll margin near
-		     bottom of the window.  */
-		  if (amount_to_scroll > height - 2*this_scroll_margin + dy)
-		    amount_to_scroll = height - 2*this_scroll_margin + dy;
+		     bottom of the window, if the value of
+		     scroll_down_aggressively happens to be too
+		     large.  */
+		  if (aggressive_scroll + 2*this_scroll_margin > height)
+		    aggressive_scroll = height - 2*this_scroll_margin;
+		  amount_to_scroll = dy + aggressive_scroll;
 		}
 	    }
 

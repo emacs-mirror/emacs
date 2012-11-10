@@ -111,7 +111,7 @@ DO must return an Elisp expression."
 GETTER will be bound to a copyable expression that returns the value
 of PLACE.
 SETTER will be bound to a function that takes an expression V and returns
-and new expression that sets PLACE to V.
+a new expression that sets PLACE to V.
 BODY should return some Elisp expression E manipulating PLACE via GETTER
 and SETTER.
 The returned value will then be an Elisp expression that first evaluates
@@ -194,7 +194,7 @@ well for simple place forms.
 Assignments of VAL to (NAME ARGS...) are expanded by binding the argument
 forms (VAL ARGS...) according to ARGLIST, then executing BODY, which must
 return a Lisp form that does the assignment.
-The first arg in ARLIST (the one that receives VAL) receives an expression
+The first arg in ARGLIST (the one that receives VAL) receives an expression
 which can do arbitrary things, whereas the other arguments are all guaranteed
 to be pure and copyable.  Example use:
   (gv-define-setter aref (v a i) `(aset ,a ,i ,v))"
@@ -209,13 +209,20 @@ to be pure and copyable.  Example use:
 This macro is an easy-to-use substitute for `gv-define-expander' that works
 well for simple place forms.  Assignments of VAL to (NAME ARGS...) are
 turned into calls of the form (SETTER ARGS... VAL).
+
 If FIX-RETURN is non-nil, then SETTER is not assumed to return VAL and
-instead the assignment is turned into (prog1 VAL (SETTER ARGS... VAL))
+instead the assignment is turned into something equivalent to
+  \(let ((temp VAL))
+    (SETTER ARGS... temp)
+    temp)
 so as to preserve the semantics of `setf'."
   (declare (debug (sexp (&or symbolp lambda-expr) &optional sexp)))
-  (let ((set-call `(cons ',setter (append args (list val)))))
   `(gv-define-setter ,name (val &rest args)
-     ,(if fix-return `(list 'prog1 val ,set-call) set-call))))
+     ,(if fix-return
+          `(macroexp-let2 nil v val
+             (cons ',setter (append args (list v)))
+             v)
+        `(cons ',setter (append args (list val))))))
 
 ;;; Typical operations on generalized variables.
 

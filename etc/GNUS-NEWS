@@ -9,6 +9,9 @@ For older news, see Gnus info node "New Features".
 
 * New features
 
+** New package `gnus-notifications.el' can send notifications when you
+   receive new messages.
+
 ** If you have the "tnef" program installed, Gnus will display ms-tnef
    files, aka "winmail.dat".
 

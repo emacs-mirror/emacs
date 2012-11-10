@@ -327,6 +327,8 @@ relinquish (void)
 
       if ((char *)last_heap->end - (char *)last_heap->bloc_start <= excess)
 	{
+	  heap_ptr lh_prev;
+
 	  /* This heap should have no blocs in it.  If it does, we
 	     cannot return it to the system.  */
 	  if (last_heap->first_bloc != NIL_BLOC
@@ -335,28 +337,26 @@ relinquish (void)
 
 	  /* Return the last heap, with its header, to the system.  */
 	  excess = (char *)last_heap->end - (char *)last_heap->start;
-	  last_heap = last_heap->prev;
-	  last_heap->next = NIL_HEAP;
+	  lh_prev = last_heap->prev;
+	  /* If the system doesn't want that much memory back, leave
+	     last_heap unaltered to reflect that.  This can occur if
+	     break_value is still within the original data segment.  */
+	  if ((*real_morecore) (- excess) != 0)
+	    {
+	      last_heap = lh_prev;
+	      last_heap->next = NIL_HEAP;
+	    }
 	}
       else
 	{
 	  excess = (char *) last_heap->end
 			- (char *) ROUNDUP ((char *)last_heap->end - excess);
-	  last_heap->end = (char *) last_heap->end - excess;
-	}
-
-      if ((*real_morecore) (- excess) == 0)
-	{
-	  /* If the system didn't want that much memory back, adjust
-             the end of the last heap to reflect that.  This can occur
-             if break_value is still within the original data segment.  */
-	  last_heap->end = (char *) last_heap->end + excess;
-	  /* Make sure that the result of the adjustment is accurate.
-             It should be, for the else clause above; the other case,
-             which returns the entire last heap to the system, seems
-             unlikely to trigger this mode of failure.  */
-	  if (last_heap->end != (*real_morecore) (0))
-	    emacs_abort ();
+	  /* If the system doesn't want that much memory back, leave
+	     the end of the last heap unchanged to reflect that.  This
+	     can occur if break_value is still within the original
+	     data segment.  */
+	  if ((*real_morecore) (- excess) != 0)
+	    last_heap->end = (char *) last_heap->end - excess;
 	}
     }
 }
