@@ -344,9 +344,8 @@ rather than making them unbound.
 `define-setf-expander' (use `gv-define-setter' or `gv-define-expander')
 `get-setf-method' no longer exists (see "Incompatible Lisp Changes")
 
-** Compilation mode
 +++
-*** New option `compilation-always-kill'.
+** New compilation option `compilation-always-kill'.
 
 ** Customize
 ---
@@ -356,10 +355,9 @@ rather than making them unbound.
 `customize-apropos-options' (i.e. the prefix argument does nothing for
 these commands now).
 
-** Desktop
 ---
-*** `desktop-path' no longer includes the "." directory.  Desktop
-files are now located in ~/.emacs.d by default.
+** `desktop-path' no longer includes the "." directory.
+Desktop files are now located in ~/.emacs.d by default.
 
 ** D-Bus
 
@@ -433,39 +431,34 @@ The global binding for `M-=', `count-words-region' is in effect.
 ---
 ** Ediff now uses the same color scheme as Diff mode.
 
-** erc will look up server/channel names via auth-source and use the
-channel keys found, if any.
+** ERC
+
+*** New package `erc-desktop-notifications.el', which can send a notification
+when you receive a private message or your nickname is mentioned.
+
+*** ERC will look up server/channel names via auth-source and use any
+channel keys found.
 
 ** Flymake uses fringe bitmaps to indicate errors and warnings.
 See `flymake-fringe-indicator-position', `flymake-error-bitmap' and
 `flymake-warning-bitmap'.
 
-** Follow mode
 ---
-*** The obsolete variable `follow-mode-off-hook' has been removed.
----
-*** Follow mode no longer works by using advice.
+** Follow mode no longer works by using advice.
 The option `follow-intercept-processes' has been removed.
 
-** FFAP
-
-*** The option `ffap-url-unwrap-remote' can now be a list of strings,
+** The FFAP option `ffap-url-unwrap-remote' can now be a list of strings,
 specifying URL types which should be converted to remote file names at
 the FFAP prompt.  The default is now '("ftp").
 
-** Generic-x
-
----
-*** `javascript-generic-mode' is now an obsolete alias for `js-mode'.
-
-** Ibuffer
-
-*** New `derived-mode' filter, bound to `/ M'.
+** New Ibuffer `derived-mode' filter, bound to `/ M'.
 The old binding for `/ M' (filter by used-mode) is now bound to `/ m'.
 
-** Mouse Avoidance mode
+---
+** `javascript-generic-mode' is now an obsolete alias for `js-mode'.
+
 +++
-*** New variable `mouse-avoidance-banish-position' specifies where the
+** New option `mouse-avoidance-banish-position' specifies where the
 `banish' mouse avoidance setting moves the mouse.
 
 +++
@@ -554,7 +547,7 @@ Sphinx support has been improved.
 *** The constant `rst-version' describes the rst.el package version.
 
 ---
-** SH Script mode
+** Shell Script mode
 
 *** Pairing of parens/quotes uses electric-pair-mode instead of skeleton-pair.
 
@@ -562,14 +555,12 @@ Sphinx support has been improved.
 
 *** `sh-use-smie' lets you choose a new indentation and navigation code.
 
-** Shell
-
-*** New option `async-shell-command-buffer' specifies what buffer to use
+** New option `async-shell-command-buffer' specifies the buffer to use
 for a new asynchronous shell command when the default output buffer
-`*Async Shell Command*' is already taken by another running command.
+`*Async Shell Command*' is already in use.
 
 ---
-** SQL Mode has a new option `sql-db2-escape-newlines'.
+** SQL mode has a new option `sql-db2-escape-newlines'.
 If non-nil, newlines sent to the command interpreter will be escaped
 by a backslash.  The default does not escape the newlines and assumes
 that the sql statement will be terminated by a semicolon.
@@ -581,17 +572,17 @@ at point, or the Nth column if a numeric prefix argument is given.
 
 ** Term
 +++
-The variables `term-default-fg-color' and `term-default-bg-color' are
-now deprecated in favor of the `term-face' face, that you can
-customize.  Also, it is now possible to customize how are displayed the
-ANSI terminal colors and styles by customizing the corresponding
-`term-color-<COLOR>', `term-color-underline' and `term-color-bold'
-faces.
+*** The variables `term-default-fg-color' and `term-default-bg-color' are
+now deprecated in favor of the customizable `term-face' face.
+
+*** You can customize how to display ANSI terminal colors and styles
+by customizing the corresponding `term-color-<COLOR>',
+`term-color-underline' and `term-color-bold' faces.
 
 ** Tramp
 +++
-*** The syntax has been extended in order to allow ad-hoc proxy
-definitions.  See the manual for details.
+*** The syntax has been extended in order to allow ad-hoc proxy definitions.
+See the manual for details.
 +++
 *** Remote processes are now supported also on remote Windows host.
 
@@ -618,9 +609,8 @@ in case that is not properly encoded.
 
 *** Accepts \r and \f as whitespace.
 
-** Which Function mode
 +++
-*** `which-func-modes' now defaults to t, so Which Function mode, when
+** `which-func-modes' now defaults to t, so Which Function mode, when
 enabled, applies to all applicable major modes.
 
 ---
@@ -753,16 +743,18 @@ are deprecated and will be removed eventually.
      deactivate-current-input-method-function
 
 +++
-** Some obsolete functions, variables, and faces were removed:
+** Some obsolete functions, variables, and faces have been removed:
+*** `last-input-char', `last-command-char', `unread-command-char'
 *** `facemenu-unlisted-faces'
 *** `rmail-decode-mime-charset'
-*** `last-input-char', `last-command-char', `unread-command-char'.
 *** `iswitchb-read-buffer'
 *** `sc-version', `sc-submit-bug-report'
 *** `set-char-table-default'
-*** `string-to-sequence' (use `string-to-list' or `string-to-vector').
+*** `string-to-sequence' (use `string-to-list' or `string-to-vector')
 *** `compile-internal'
+*** `modeline'
 *** `mode-line-inverse-video'
+*** `follow-mode-off-hook'
 *** `cvs-commit-buffer-require-final-newline'
 (use `log-edit-require-final-newline' instead)
 *** `cvs-changelog-full-paragraphs'
@@ -771,7 +763,6 @@ are deprecated and will be removed eventually.
 *** `vc-ignore-vc-files' (use `vc-handled-backends' instead)
 *** `vc-master-templates' (use `vc-handled-backends' instead)
 *** `vc-checkout-carefully'
-*** `modeline'
 
 
 * Lisp changes in Emacs 24.3
@@ -1587,9 +1578,6 @@ instead of using the current buffer.
 The standard directory local variables feature replaces it.
 
 ** ERC changes
-
-*** New package `erc-desktop-notifications.el', which can send a notification
-when you receive a private message or your nickname is mentioned.
 
 *** New options `erc-autojoin-timing' and `erc-autojoin-delay',
 controlling attempts to autojoin a channel.
