@@ -96,10 +96,11 @@
         (else (assoc obj (cdr list)))))
 
 
+;; (< x1 x2 x3 ...)
 ;; (<= x1 x2 x3 ...)
 ;; (>= x1 x2 x3 ...)
 ;; These procedures return #t if their arguments are (respectively):
-;; monotonically nondecreasing, or monotonically nonincreasing.
+;; equal, monotonically nondecreasing, or monotonically nonincreasing.
 ;; These predicates are required to be transitive.
 ;; See R4RS 6.5.5.
 
@@ -109,6 +110,7 @@
         ((op (car list) (cadr list)) #f)
         (else (no-fold op (cdr list)))))
 
+(define (= . rest) (and (apply <= rest) (apply >= rest)))
 (define (<= . rest) (no-fold > rest))
 (define (>= . rest) (no-fold < rest))
 
