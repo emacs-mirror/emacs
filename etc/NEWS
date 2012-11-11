@@ -804,7 +804,9 @@ table, but with a different prefix.
 *** New error type and new function `user-error'.
 These do not trigger the debugger.
 
-*** New option `debugger-bury-or-kill'.
++++
+*** New option `debugger-bury-or-kill', saying what to do with the
+debugger buffer when exiting debug.
 
 +++
 *** Set `debug-on-message' to enter the debugger when a certain

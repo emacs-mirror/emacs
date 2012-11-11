@@ -322,6 +322,7 @@ is a message describing the reason that the debugger was invoked (such
 as the error message and associated data, if it was invoked due to an
 error).
 
+@vindex debugger-bury-or-kill
   The backtrace buffer is read-only and uses a special major mode,
 Debugger mode, in which letters are defined as debugger commands.  The
 usual Emacs editing commands are available; thus, you can switch windows
@@ -330,8 +331,12 @@ switch buffers, visit files, or do any other sort of editing.  However,
 the debugger is a recursive editing level (@pxref{Recursive Editing})
 and it is wise to go back to the backtrace buffer and exit the debugger
 (with the @kbd{q} command) when you are finished with it.  Exiting
-the debugger gets out of the recursive edit and kills the backtrace
-buffer.
+the debugger gets out of the recursive edit and buries the backtrace
+buffer.  (You can customize what the @kbd{q} command does with the
+backtrace buffer by setting the variable @code{debugger-bury-or-kill}.
+For example, set it to @code{kill} if you prefer to kill the buffer
+rather than bury it.  Consult the variable's documentation for more
+possibilities.)
 
   When the debugger has been entered, the @code{debug-on-error}
 variable is temporarily set according to

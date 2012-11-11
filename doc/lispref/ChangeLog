@@ -1,6 +1,7 @@
 2012-11-11  Glenn Morris  <rgm@gnu.org>
 
 	* debugging.texi (Error Debugging): Mention debug-on-message.
+	(Using Debugger): Mention debugger-bury-or-kill.
 
 	* control.texi (Signaling Errors):
 	* debugging.texi (Error Debugging):
