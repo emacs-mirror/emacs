@@ -2191,11 +2191,10 @@ static obj_t entry_begin(obj_t env, obj_t op_env, obj_t operator, obj_t operands
 /* BUILT-IN FUNCTIONS */
 
 
-/* entry_not -- (not <obj>)
- *
- * Not returns #t if obj is false, and return #f otherwise.  R4RS 6.1.
+/* (not <obj>)
+ * Not returns #t if obj is false, and return #f otherwise.
+ * See R4RS 6.1.
  */
-
 static obj_t entry_not(obj_t env, obj_t op_env, obj_t operator, obj_t operands)
 {
   obj_t arg;
@@ -2204,11 +2203,10 @@ static obj_t entry_not(obj_t env, obj_t op_env, obj_t operator, obj_t operands)
 }
 
 
-/* entry_booleanp -- (boolean? <obj>)
- *
- * Boolean? return #t if obj is either #t or #f, and #f otherwise.  R4RS 6.1.
+/* (boolean? <obj>)
+ * Boolean? return #t if obj is either #t or #f, and #f otherwise.
+ * See R4RS 6.1.
  */
-
 static obj_t entry_booleanp(obj_t env, obj_t op_env, obj_t operator, obj_t operands)
 {
   obj_t arg;
@@ -2217,8 +2215,11 @@ static obj_t entry_booleanp(obj_t env, obj_t op_env, obj_t operator, obj_t opera
 }
 
 
-/* entry_eqvp -- (eqv? <obj1> <obj2>) */
-
+/* (eqv? <obj1> <obj2>)
+ * The eqv? procedure defines a useful equivalence relation on
+ * objects.
+ * See R4RS 6.2.
+ */
 static obj_t entry_eqvp(obj_t env, obj_t op_env, obj_t operator, obj_t operands)
 {
   obj_t arg1, arg2;
@@ -2227,8 +2228,11 @@ static obj_t entry_eqvp(obj_t env, obj_t op_env, obj_t operator, obj_t operands)
 }
 
 
-/* entry_eqp -- (eq? <obj1> <obj2>) */
-
+/* (eq? <obj1> <obj2>) 
+ * Eq? is similar to eqv? except that in some cases it is capable of
+ * discerning distinctions finer than those detectable by eqv?.
+ * See R4RS 6.2.
+ */
 static obj_t entry_eqp(obj_t env, obj_t op_env, obj_t operator, obj_t operands)
 {
   obj_t arg1, arg2;
@@ -2236,8 +2240,6 @@ static obj_t entry_eqp(obj_t env, obj_t op_env, obj_t operator, obj_t operands)
   return make_bool(arg1 == arg2);
 }
 
-
-/* entry_equalp -- (equal? <obj1> <obj2>) */
 
 static int equalp(obj_t obj1, obj_t obj2)
 {
@@ -2263,6 +2265,14 @@ static int equalp(obj_t obj1, obj_t obj2)
   }
 }
 
+/* (equal? <obj1> <obj2>)
+ * Equal? recursively compares the contents of pairs, vectors, and
+ * strings, applying eqv? on other objects such as numbers and
+ * symbols. A rule of thumb is that objects are generally equal? if
+ * they print the same. Equal? may fail to terminate if its arguments
+ * are circular data structures.
+ * See R4RS 6.2.
+ */
 static obj_t entry_equalp(obj_t env, obj_t op_env, obj_t operator, obj_t operands)
 {
   obj_t arg1, arg2;
@@ -2271,8 +2281,10 @@ static obj_t entry_equalp(obj_t env, obj_t op_env, obj_t operator, obj_t operand
 }
 
 
-/* entry_pairp -- (pair? <obj>) */
-
+/* (pair? <obj>)
+ * Pair? returns #t if obj is a pair, and otherwise returns #f.
+ * See R4RS 6.3.
+ */
 static obj_t entry_pairp(obj_t env, obj_t op_env, obj_t operator, obj_t operands)
 {
   obj_t arg;
@@ -2415,6 +2427,11 @@ static obj_t entry_length(obj_t env, obj_t op_env, obj_t operator, obj_t operand
 }
 
 
+/* (append list ...)
+ * Returns a list consisting of the elements of the first list
+ * followed by the elements of the other lists.
+ * See R4RS 6.3.
+ */
 static obj_t entry_append(obj_t env, obj_t op_env, obj_t operator, obj_t operands)
 {
   obj_t arg1, arg2, result, pair, end;
@@ -2438,6 +2455,12 @@ static obj_t entry_append(obj_t env, obj_t op_env, obj_t operator, obj_t operand
 }
 
 
+/* (integer? obj)
+ * These numerical type predicates can be applied to any kind of
+ * argument, including non-numbers. They return #t if the object is of
+ * the named type, and otherwise they return #f.
+ * See R4RS 6.5.5.
+ */
 static obj_t entry_integerp(obj_t env, obj_t op_env, obj_t operator, obj_t operands)
 {
   obj_t arg;
@@ -2534,6 +2557,10 @@ static obj_t entry_apply(obj_t env, obj_t op_env, obj_t operator, obj_t operands
 }
 
 
+/* (+ z1 ...)
+ * This procedure returns the sum of its arguments.
+ * See R4RS 6.5.5.
+ */
 static obj_t entry_add(obj_t env, obj_t op_env, obj_t operator, obj_t operands)
 {
   obj_t args;
@@ -2551,6 +2578,10 @@ static obj_t entry_add(obj_t env, obj_t op_env, obj_t operator, obj_t operands)
 }
 
 
+/* (* z1 ...)
+ * This procedure returns the product of its arguments.
+ * See R4RS 6.5.5.
+ */
 static obj_t entry_multiply(obj_t env, obj_t op_env, obj_t operator, obj_t operands)
 {
   obj_t args;
@@ -2568,6 +2599,14 @@ static obj_t entry_multiply(obj_t env, obj_t op_env, obj_t operator, obj_t opera
 }
 
 
+/* (- z)
+ * (- z1 z2)
+ * (- z1 z2 ...)
+ * With two or more arguments, this procedure returns the difference
+ * of its arguments, associating to the left. With one argument,
+ * however, it returns the additive inverse of its argument.
+ * See R4RS 6.5.5.
+ */
 static obj_t entry_subtract(obj_t env, obj_t op_env, obj_t operator, obj_t operands)
 {
   obj_t arg, args;
@@ -2591,6 +2630,14 @@ static obj_t entry_subtract(obj_t env, obj_t op_env, obj_t operator, obj_t opera
 }
 
 
+/* (/ z)
+ * (/ z1 z2)
+ * (/ z1 z2 ...)
+ * With two or more arguments, this procedure returns the quotient
+ * of its arguments, associating to the left. With one argument,
+ * however, it returns the multiplicative inverse of its argument.
+ * See R4RS 6.5.5.
+ */
 static obj_t entry_divide(obj_t env, obj_t op_env, obj_t operator, obj_t operands)
 {
   obj_t arg, args;
@@ -2618,6 +2665,11 @@ static obj_t entry_divide(obj_t env, obj_t op_env, obj_t operator, obj_t operand
 }
 
 
+/* (< x1 x2 x3 ...)
+ * This procedure returns #t if its arguments are monotonically
+ * increasing.
+ * See R4RS 6.5.5.
+ */
 static obj_t entry_lessthan(obj_t env, obj_t op_env, obj_t operator, obj_t operands)
 {
   obj_t arg, args;
@@ -2639,6 +2691,11 @@ static obj_t entry_lessthan(obj_t env, obj_t op_env, obj_t operator, obj_t opera
 }
 
 
+/* (> x1 x2 x3 ...)
+ * This procedure returns #t if its arguments are monotonically
+ * decreasing.
+ * See R4RS 6.5.5.
+ */
 static obj_t entry_greaterthan(obj_t env, obj_t op_env, obj_t operator, obj_t operands)
 {
   obj_t arg, args;
@@ -2880,8 +2937,15 @@ static obj_t entry_load(obj_t env, obj_t op_env, obj_t operator, obj_t operands)
 }
 
 
-/* TODO: This doesn't work if the promise refers to its own value. */
-
+/* (force promise)
+ * Forces the value of promise. If no value has been computed for the
+ * promise, then a value is computed and returned. The value of the
+ * promise is cached (or "memoized") so that if it is forced a second
+ * time, the previously computed value is returned.
+ * See R4RS 6.9.
+ *
+ * TODO: This doesn't work if the promise refers to its own value.
+ */
 static obj_t entry_force(obj_t env, obj_t op_env, obj_t operator, obj_t operands)
 {
   obj_t promise;
@@ -2945,6 +3009,10 @@ static obj_t entry_integer_to_char(obj_t env, obj_t op_env, obj_t operator, obj_
 }
 
 
+/* (vector? obj)
+ * Returns #t if obj is a vector, otherwise returns #f.
+ * See R4RS 6.8.
+ */
 static obj_t entry_vectorp(obj_t env, obj_t op_env, obj_t operator, obj_t operands)
 {
   obj_t arg;
@@ -2953,6 +3021,13 @@ static obj_t entry_vectorp(obj_t env, obj_t op_env, obj_t operator, obj_t operan
 }
 
 
+/* (make-vector k)
+ * (make-vector k fill)
+ * Returns a newly allocated vector of k elements. If a second
+ * argument is given, then each element is initialized to fill.
+ * Otherwise the initial contents of each element is unspecified.
+ * See R4RS 6.8.
+ */
 static obj_t entry_make_vector(obj_t env, obj_t op_env, obj_t operator, obj_t operands)
 {
   obj_t length, rest, fill = obj_undefined;
@@ -2968,6 +3043,11 @@ static obj_t entry_make_vector(obj_t env, obj_t op_env, obj_t operator, obj_t op
 }
 
 
+/* (vector obj ...)
+ * Returns a newly allocated vector whose elements contain the given
+ * arguments. Analogous to list.
+ * See R4RS 6.8.
+ */
 static obj_t entry_vector(obj_t env, obj_t op_env, obj_t operator, obj_t operands)
 {
   obj_t rest, vector;
@@ -2978,6 +3058,10 @@ static obj_t entry_vector(obj_t env, obj_t op_env, obj_t operator, obj_t operand
 }
 
 
+/* (vector-length vector)
+ * Returns the number of elements in vector.
+ * See R4RS 6.8.
+ */
 static obj_t entry_vector_length(obj_t env, obj_t op_env, obj_t operator, obj_t operands)
 {
   obj_t vector;
@@ -2988,6 +3072,11 @@ static obj_t entry_vector_length(obj_t env, obj_t op_env, obj_t operator, obj_t 
 }
 
 
+/* (vector-ref vector k)
+ * k must be a valid index of vector. Vector-ref returns the contents
+ * of element k of vector.
+ * See R4RS 6.8.
+ */
 static obj_t entry_vector_ref(obj_t env, obj_t op_env, obj_t operator, obj_t operands)
 {
   obj_t vector, index;
@@ -3003,6 +3092,12 @@ static obj_t entry_vector_ref(obj_t env, obj_t op_env, obj_t operator, obj_t ope
 }
 
 
+/* (vector-set! vector k obj
+ * k must be a valid index of vector. Vector-set! stores obj in
+ * element k of vector. The value returned by vector-set! is
+ * unspecified.
+ * See R4RS 6.8.
+ */
 static obj_t entry_vector_set(obj_t env, obj_t op_env, obj_t operator, obj_t operands)
 {
   obj_t vector, index, obj;
@@ -3019,6 +3114,11 @@ static obj_t entry_vector_set(obj_t env, obj_t op_env, obj_t operator, obj_t ope
 }
 
 
+/* (vector->list vector)
+ * Vector->list returns a newly allocated list of the objects
+ * contained in the elements of vector.
+ * See R4RS 6.8.
+ */
 static obj_t entry_vector_to_list(obj_t env, obj_t op_env, obj_t operator, obj_t operands)
 {
   obj_t vector, list;
@@ -3036,6 +3136,11 @@ static obj_t entry_vector_to_list(obj_t env, obj_t op_env, obj_t operator, obj_t
 }
 
 
+/* (list->vector list)
+ * List->vector returns a newly created vector initialized to the
+ * elements of the list list.
+ * See R4RS 6.8.
+ */
 static obj_t entry_list_to_vector(obj_t env, obj_t op_env, obj_t operator, obj_t operands)
 {
   obj_t list, vector;
@@ -3047,6 +3152,11 @@ static obj_t entry_list_to_vector(obj_t env, obj_t op_env, obj_t operator, obj_t
 }
 
 
+/* (vector-fill! vector fill)
+ * Stores fill in every element of vector. The value returned by
+ * vector-fill! is unspecified.
+ * See R4RS 6.8.
+ */
 static obj_t entry_vector_fill(obj_t env, obj_t op_env, obj_t operator, obj_t operands)
 {
   obj_t vector, obj;
@@ -3079,6 +3189,10 @@ static obj_t entry_error(obj_t env, obj_t op_env, obj_t operator, obj_t operands
 }
 
 
+/* (symbol->string symbol)
+ * Returns the name of symbol as a string.
+ * See R4RS 6.4.
+ */
 static obj_t entry_symbol_to_string(obj_t env, obj_t op_env, obj_t operator, obj_t operands)
 {
   obj_t symbol;
@@ -3089,6 +3203,10 @@ static obj_t entry_symbol_to_string(obj_t env, obj_t op_env, obj_t operator, obj
 }
 
 
+/* (string->symbol symbol)
+ * Returns the symbol whose name is string.
+ * See R4RS 6.4.
+ */
 static obj_t entry_string_to_symbol(obj_t env, obj_t op_env, obj_t operator, obj_t operands)
 {
   obj_t string;
