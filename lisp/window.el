@@ -6065,7 +6065,7 @@ A frame can be resized if and only if its root window is a live
 window.  The height of the root window is subject to the values
 of `fit-frame-to-buffer-max-height' and `window-min-height'."
   :type 'boolean
-  :version "24.2"
+  :version "24.3"
   :group 'help)
 
 (defcustom fit-frame-to-buffer-bottom-margin 4
@@ -6073,7 +6073,7 @@ of `fit-frame-to-buffer-max-height' and `window-min-height'."
 This is the number of lines `fit-frame-to-buffer' leaves free at the
 bottom of the display in order to not obscure the system task bar."
   :type 'integer
-  :version "24.2"
+  :version "24.3"
   :group 'windows)
 
 (defun fit-frame-to-buffer (&optional frame max-height min-height)

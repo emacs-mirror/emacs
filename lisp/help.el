@@ -979,7 +979,7 @@ buffer, and should return a positive integer.  At the time the
 function is called, the window to be resized is selected."
   :type '(choice integer function)
   :group 'help
-  :version "24.2")
+  :version "24.3")
 
 (define-minor-mode temp-buffer-resize-mode
   "Toggle auto-resizing temporary buffer windows (Temp Buffer Resize Mode).

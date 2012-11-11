@@ -1,5 +1,7 @@
 2012-11-11  Glenn Morris  <rgm@gnu.org>
 
+	* help.el (temp-buffer-max-height):
+	* window.el (fit-frame-to-buffer, fit-frame-to-buffer-bottom-margin):
 	* emacs-lisp/debug.el (debugger-bury-or-kill): Fix :version.
 
 2012-11-10  Leo Liu  <sdl.web@gmail.com>
