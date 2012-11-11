@@ -79,7 +79,7 @@ The value used here is passed to `quit-restore-window'."
 	  (const :tag "Bury" bury)
 	  (const :tag "Kill" kill))
   :group 'debugger
-  :version "24.2")
+  :version "24.3")
 
 (defvar debug-function-list nil
   "List of functions currently set for debug on entry.")

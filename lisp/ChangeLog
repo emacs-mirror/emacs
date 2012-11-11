@@ -1,3 +1,7 @@
+2012-11-11  Glenn Morris  <rgm@gnu.org>
+
+	* emacs-lisp/debug.el (debugger-bury-or-kill): Fix :version.
+
 2012-11-10  Leo Liu  <sdl.web@gmail.com>
 
 	* ido.el (ido-set-matches-1): Fix split-string args to avoid
