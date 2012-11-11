@@ -1,5 +1,9 @@
 2012-11-11  Glenn Morris  <rgm@gnu.org>
 
+	* control.texi (Signaling Errors):
+	* debugging.texi (Error Debugging):
+	* errors.texi (Standard Errors): Add user-error.
+
 	* variables.texi (Adding Generalized Variables):
 	Use standard formatting for common lisp note about setf functions.
 

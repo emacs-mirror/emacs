@@ -800,6 +800,7 @@ table, but with a different prefix.
 
 ** Debugger changes
 
++++
 *** New error type and new function `user-error'.
 These do not trigger the debugger.
 

@@ -117,12 +117,12 @@ has any of those condition symbols, or if the error message matches
 any of the regular expressions, then that error does not enter the
 debugger.
 
-The normal value of this variable lists several errors that happen
-often during editing but rarely result from bugs in Lisp programs.
-However, ``rarely'' is not ``never''; if your program fails with an
-error that matches this list, you may try changing this list to debug
-the error.  The easiest way is usually to set
-@code{debug-ignored-errors} to @code{nil}.
+The normal value of this variable includes @code{user-error}, as well
+as several errors that happen often during editing but rarely result
+from bugs in Lisp programs.  However, ``rarely'' is not ``never''; if
+your program fails with an error that matches this list, you may try
+changing this list to debug the error.  The easiest way is usually to
+set @code{debug-ignored-errors} to @code{nil}.
 @end defopt
 
 @defopt eval-expression-debug-on-error
