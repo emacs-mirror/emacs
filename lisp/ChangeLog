@@ -1,5 +1,7 @@
 2012-11-11  Glenn Morris  <rgm@gnu.org>
 
+	* window.el (with-temp-buffer-window): Doc tweak.
+
 	* emacs-lisp/debug.el (debugger-bury-or-kill): Doc tweak.
 
 	* help.el (temp-buffer-max-height):
