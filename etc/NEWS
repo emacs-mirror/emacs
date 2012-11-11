@@ -448,8 +448,9 @@ See `flymake-fringe-indicator-position', `flymake-error-bitmap' and
 ** Follow mode no longer works by using advice.
 The option `follow-intercept-processes' has been removed.
 
+---
 ** The FFAP option `ffap-url-unwrap-remote' can now be a list of strings,
-specifying URL types which should be converted to remote file names at
+specifying URL types that should be converted to remote file names at
 the FFAP prompt.  The default is now '("ftp").
 
 ** New Ibuffer `derived-mode' filter, bound to `/ M'.
@@ -467,11 +468,14 @@ The old binding for `/ M' (filter by used-mode) is now bound to `/ m'.
 The function `notifications-get-capabilities' returns the supported
 server properties.
 
+---
 ** In Perl mode, new option `perl-indent-parens-as-block' causes non-block
 closing brackets to be aligned with the line of the opening bracket.
 
+---
 ** In Proced mode, new command `proced-renice' renices marked processes.
 
+---
 ** Python mode
 
 A new version of python.el, which provides several new features, including:
