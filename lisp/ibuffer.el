@@ -632,9 +632,9 @@ directory, like `default-directory'."
       '(menu-item "Disable all filtering" ibuffer-filter-disable
         :enable (and (featurep 'ibuf-ext) ibuffer-filtering-qualifiers)))
     (define-key-after map [menu-bar view filter filter-by-mode]
-      '(menu-item "Add filter by major mode..." ibuffer-filter-by-mode))
-    (define-key-after map [menu-bar view filter filter-by-mode]
-      '(menu-item "Add filter by major mode in use..."
+      '(menu-item "Add filter by any major mode..." ibuffer-filter-by-mode))
+    (define-key-after map [menu-bar view filter filter-by-used-mode]
+      '(menu-item "Add filter by a major mode in use..."
         ibuffer-filter-by-used-mode))
     (define-key-after map [menu-bar view filter filter-by-name]
       '(menu-item "Add filter by buffer name..." ibuffer-filter-by-name))

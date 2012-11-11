@@ -1,5 +1,8 @@
 2012-11-11  Glenn Morris  <rgm@gnu.org>
 
+	* ibuffer.el (ibuffer-mode-map): Don't have two menu items with
+	the same name shadowing each other.
+
 	* window.el (with-temp-buffer-window): Doc tweak.
 
 	* emacs-lisp/debug.el (debugger-bury-or-kill): Doc tweak.
