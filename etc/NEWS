@@ -806,6 +806,7 @@ These do not trigger the debugger.
 
 *** New option `debugger-bury-or-kill'.
 
++++
 *** Set `debug-on-message' to enter the debugger when a certain
 message is displayed in the echo area.  This can be useful when trying
 to work out which code is doing something.

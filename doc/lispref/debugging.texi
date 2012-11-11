@@ -163,6 +163,14 @@ supported values correspond to the signals @code{SIGUSR1} and
 @code{inhibit-quit} is set and Emacs is not otherwise responding.
 @end defopt
 
+@cindex message, finding what causes a particular message
+@defvar debug-on-message
+If you set @code{debug-on-message} to a regular expression,
+Emacs will enter the debugger if it displays a matching message in the
+echo area.  For example, this can be useful when trying to find the
+cause of a particular message.
+@end defvar
+
   To debug an error that happens during loading of the init
 file, use the option @samp{--debug-init}.  This binds
 @code{debug-on-error} to @code{t} while loading the init file, and
