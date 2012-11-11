@@ -11,7 +11,7 @@
 ;;;;;;  cl--map-overlays cl--map-intervals cl--map-keymap-recursively
 ;;;;;;  cl-notevery cl-notany cl-every cl-some cl-mapcon cl-mapcan
 ;;;;;;  cl-mapl cl-mapc cl-maplist cl-map cl--mapcar-many cl-equalp
-;;;;;;  cl-coerce) "cl-extra" "cl-extra.el" "0e9284b6492cc98eee7c85ae4e5322ee")
+;;;;;;  cl-coerce) "cl-extra" "cl-extra.el" "8e9fee941c465ac0fee9b92a92d64154")
 ;;; Generated autoloads from cl-extra.el
 
 (autoload 'cl-coerce "cl-extra" "\
@@ -41,7 +41,7 @@ TYPE is the sequence type to return.
 
 (autoload 'cl-maplist "cl-extra" "\
 Map FUNCTION to each sublist of LIST or LISTs.
-Like `mapcar', except applies to lists and their cdr's rather than to
+Like `cl-mapcar', except applies to lists and their cdr's rather than to
 the elements themselves.
 
 \(fn FUNCTION LIST...)" nil nil)
@@ -57,7 +57,7 @@ Like `cl-maplist', but does not accumulate values returned by the function.
 \(fn FUNCTION LIST...)" nil nil)
 
 (autoload 'cl-mapcan "cl-extra" "\
-Like `mapcar', but nconc's together the values returned by the function.
+Like `cl-mapcar', but nconc's together the values returned by the function.
 
 \(fn FUNCTION SEQUENCE...)" nil nil)
 
@@ -248,7 +248,9 @@ Remove from SYMBOL's plist the property PROPNAME and its value.
 \(fn SYMBOL PROPNAME)" nil nil)
 
 (autoload 'cl-prettyexpand "cl-extra" "\
-
+Expand macros in FORM and insert the pretty-printed result.
+Optional argument FULL non-nil means to expand all macros,
+including `cl-block' and `cl-eval-when'.
 
 \(fn FORM &optional FULL)" nil nil)
 
@@ -265,7 +267,7 @@ Remove from SYMBOL's plist the property PROPNAME and its value.
 ;;;;;;  cl-typecase cl-ecase cl-case cl-load-time-value cl-eval-when
 ;;;;;;  cl-destructuring-bind cl-function cl-defmacro cl-defun cl-gentemp
 ;;;;;;  cl-gensym cl--compiler-macro-cXXr cl--compiler-macro-list*)
-;;;;;;  "cl-macs" "cl-macs.el" "57cf89149db1e8ea6bc1582713980cf8")
+;;;;;;  "cl-macs" "cl-macs.el" "a7228877484d2b39e1c2bee40b011734")
 ;;; Generated autoloads from cl-macs.el
 
 (autoload 'cl--compiler-macro-list* "cl-macs" "\
@@ -320,7 +322,7 @@ its argument list allows full Common Lisp conventions.
 \(fn FUNC)" nil t)
 
 (autoload 'cl-destructuring-bind "cl-macs" "\
-
+Bind the variables in ARGS to the result of EXPR and execute BODY.
 
 \(fn ARGS EXPR &rest BODY)" nil t)
 
@@ -564,12 +566,12 @@ values.  For compatibility, (cl-values A B C) is a synonym for (list A B C).
 (put 'cl-multiple-value-setq 'lisp-indent-function '1)
 
 (autoload 'cl-locally "cl-macs" "\
-
+Equivalent to `progn'.
 
 \(fn &rest BODY)" nil t)
 
 (autoload 'cl-the "cl-macs" "\
-
+At present this ignores _TYPE and is simply equivalent to FORM.
 
 \(fn TYPE FORM)" nil t)
 
@@ -721,7 +723,10 @@ and then returning foo.
 \(fn FUNC ARGS &rest BODY)" nil t)
 
 (autoload 'cl-compiler-macroexpand "cl-macs" "\
-
+Like `macroexpand', but for compiler macros.
+Expands FORM repeatedly until no further expansion is possible.
+Returns FORM unchanged if it has no compiler macro, or if it has a
+macro that returns its `&whole' argument.
 
 \(fn FORM)" nil nil)
 
