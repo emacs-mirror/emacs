@@ -29420,8 +29420,10 @@ start_hourglass (void)
     delay = make_emacs_time (DEFAULT_HOURGLASS_DELAY, 0);
 
 #ifdef HAVE_NTGUI
-  extern void w32_note_current_window (void);
-  w32_note_current_window ();
+  {
+    extern void w32_note_current_window (void);
+    w32_note_current_window ();
+  }
 #endif /* HAVE_NTGUI */
 
   hourglass_atimer = start_atimer (ATIMER_RELATIVE, delay,
