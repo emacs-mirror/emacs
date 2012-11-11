@@ -29,7 +29,7 @@
  * 
  * SCHEME TO DO LIST
  * - unbounded integers, other number types.
- * - do, named let.
+ * - named let.
  * - quasiquote: vectors; nested; dotted.
  * - Lots of library.
  * - \#foo unsatisfactory in read and print
@@ -1919,10 +1919,85 @@ static obj_t entry_letrec(obj_t env, obj_t op_env, obj_t operator, obj_t operand
 }
 
 
-/* entry_do -- (do ((<var> <init> <step1>) ...) (<test> <exp> ...) <command> ...) */
-
+/* entry_do -- (do ((<var> <init> <step1>) ...) (<test> <exp> ...) <command> ...) 
+ * Do is an iteration construct. It specifies a set of variables to be
+ * bound, how they are to be initialized at the start, and how they
+ * are to be updated on each iteration. When a termination condition
+ * is met, the loop exits with a specified result value.
+ * See R4RS 4.2.4.
+ */
 static obj_t entry_do(obj_t env, obj_t op_env, obj_t operator, obj_t operands)
 {
+  obj_t inner_env, next_env, bindings;
+  unless(TYPE(operands) == TYPE_PAIR &&
+         TYPE(CDR(operands)) == TYPE_PAIR &&
+         TYPE(CADR(operands)) == TYPE_PAIR)
+    error("%s: illegal syntax", operator->operator.name);
+  inner_env = make_pair(obj_empty, env);
+
+  /* Do expressions are evaluated as follows: The <init> expressions
+     are evaluated (in some unspecified order), the <variable>s are
+     bound to fresh locations, the results of the <init> expressions
+     are stored in the bindings of the <variable>s, and then the
+     iteration phase begins. */
+  bindings = CAR(operands);
+  while(TYPE(bindings) == TYPE_PAIR) {
+    obj_t binding = CAR(bindings);
+    unless(TYPE(binding) == TYPE_PAIR &&
+           TYPE(CAR(binding)) == TYPE_SYMBOL &&
+           TYPE(CDR(binding)) == TYPE_PAIR &&
+           (CDDR(binding) == obj_empty ||
+            (TYPE(CDDR(binding)) == TYPE_PAIR &&
+             CDDDR(binding) == obj_empty)))
+      error("%s: illegal binding", operator->operator.name);
+    define(inner_env, CAR(binding), eval(env, op_env, CADR(binding)));
+    bindings = CDR(bindings);
+  }
+  for(;;) {
+    /* Each iteration begins by evaluating <test>; */
+    obj_t test = CADR(operands);
+    if(eval(inner_env, op_env, CAR(test)) == obj_false) {
+      /* if the result is false (see section see section 6.1
+         Booleans), then the <command> expressions are evaluated in
+         order for effect, */
+      obj_t commands = CDDR(operands);
+      while(TYPE(commands) == TYPE_PAIR) {
+        eval(inner_env, op_env, CAR(commands));
+        commands = CDR(commands);
+      }
+      unless(commands == obj_empty)
+        error("%s: illegal syntax", operator->operator.name);
+
+      /* the <step> expressions are evaluated in some unspecified
+         order, the <variable>s are bound to fresh locations, the
+         results of the <step>s are stored in the bindings of the
+         <variable>s, and the next iteration begins. */
+      bindings = CAR(operands);
+      next_env = make_pair(obj_empty, inner_env);
+      while(TYPE(bindings) == TYPE_PAIR) {
+        obj_t binding = CAR(bindings);
+        unless(CDDR(binding) == obj_empty)
+          define(next_env, CAR(binding), eval(inner_env, op_env, CADDR(binding)));
+        bindings = CDR(bindings);
+      }
+      inner_env = next_env;
+    } else {
+      /* If <test> evaluates to a true value, then the <expression>s
+         are evaluated from left to right and the value of the last
+         <expression> is returned as the value of the do expression.
+         If no <expression>s are present, then the value of the do
+         expression is unspecified. */
+      obj_t result = obj_undefined;
+      test = CDR(test);
+      while(TYPE(test) == TYPE_PAIR) {
+        result = eval(inner_env, op_env, CAR(test));
+        test = CDR(test);
+      }
+      unless(test == obj_empty)
+        error("%s: illegal syntax", operator->operator.name);
+      return result;
+    }
+  }
   error("%s: unimplemented", operator->operator.name);
   return obj_error;
 }
