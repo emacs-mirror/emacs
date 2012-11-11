@@ -1,3 +1,8 @@
+2012-11-11  Paul Eggert  <eggert@cs.ucla.edu>
+
+	* window.c (list4i): Rename from 'quad'.  All uses changed.
+	Needed because <sys/types.h> defines 'quad' on Solaris 10.
+
 2012-11-11  Juanma Barranquero  <lekktu@gmail.com>
 
 	* xdisp.c (start_hourglass) [HAVE_NTGUI]: Add block to silence
