@@ -2141,12 +2141,14 @@ This is the most general way to define a new @code{setf} expansion.
 @end ignore
 
 @cindex CL note---no @code{setf} functions
-Common Lisp defines another way to specify the @code{setf} behavior of
-a function, namely ``@code{setf} functions'', whose names are lists
-@code{(setf @var{name})} rather than symbols.  For example,
-@code{(defun (setf foo) @dots{})} defines the function that is used
-when @code{setf} is applied to @code{foo}.  Emacs does not support
-this.  It is a compile-time error to use @code{setf} on a form that
-has not already had an appropriate expansion defined.  In Common Lisp,
-this is not an error since the function @code{(setf @var{func})} might
-be defined later.
+@quotation
+@b{Common Lisp note:} Common Lisp defines another way to specify the
+@code{setf} behavior of a function, namely ``@code{setf} functions'',
+whose names are lists @code{(setf @var{name})} rather than symbols.
+For example, @code{(defun (setf foo) @dots{})} defines the function
+that is used when @code{setf} is applied to @code{foo}.  Emacs does
+not support this.  It is a compile-time error to use @code{setf} on a
+form that has not already had an appropriate expansion defined.  In
+Common Lisp, this is not an error since the function @code{(setf
+@var{func})} might be defined later.
+@end quotation
