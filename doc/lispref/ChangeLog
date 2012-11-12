@@ -1,3 +1,8 @@
+2012-11-12  Glenn Morris  <rgm@gnu.org>
+
+	* variables.texi (Adding Generalized Variables):
+	At least mention gv-define-expander and gv-letplace.
+
 2012-11-11  Glenn Morris  <rgm@gnu.org>
 
 	* debugging.texi (Error Debugging): Mention debug-on-message.

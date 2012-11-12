@@ -2133,12 +2133,14 @@ set.  An example of using this macro is:
 @end example
 @end defmac
 
-@c FIXME?  Not sure what, if anything, to say about this.
-@ignore
-@defmac gv-define-expander name handler
-This is the most general way to define a new @code{setf} expansion.
-@end defmac
-@end ignore
+@findex gv-define-expander
+@findex gv-letplace
+@c FIXME?  Not sure what or how much to say about these.
+@c See cl.texi for an example of using gv-letplace.
+For more control over the expansion, see the macro @code{gv-define-expander}.
+The macro @code{gv-letplace} can be useful in defining macros that
+perform similarly to @code{setf}; for example, the @code{incf} macro
+of Common Lisp.  Consult the source file @file{gv.el} for more details.
 
 @cindex CL note---no @code{setf} functions
 @quotation
