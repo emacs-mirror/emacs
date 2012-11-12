@@ -524,6 +524,8 @@ python-insert-while       | python-skeleton-while
 python-find-function      | python-nav-jump-to-defun
 python-next-statement     | python-nav-forward-sentence
 python-previous-statement | python-nav-backward-sentence
+python-beginning-of-defun-function  | python-nav-beginning-of-defun
+python-end-of-defun-function        | python-nav-end-of-defun
 python-send-buffer        | python-shell-send-buffer
 python-send-defun         | python-shell-send-defun
 python-send-region        | python-shell-send-region
