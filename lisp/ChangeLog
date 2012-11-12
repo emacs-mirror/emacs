@@ -1,3 +1,7 @@
+2012-11-12  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* emacs-lisp/gv.el (gv-define-simple-setter): One more fix (bug#12871).
+
 2012-11-12  Wolfgang Jenkner  <wjenkner@inode.at>
 
 	* ansi-color.el (ansi-color-apply-sequence): Implement SGR codes
@@ -13,7 +17,7 @@
 	correctly.
 	(python-nav-end-of-defun): Rename from
 	python-end-of-defun-function.  Ensure forward movement.
-	(python-info-current-defun): Reimplemented to work as intended
+	(python-info-current-defun): Reimplement to work as intended
 	with new fixed python-nav-{end,beginning}-of-defun.  Stop scanning
 	parent defuns as soon as possible.
 
@@ -62,7 +66,7 @@
 
 2012-11-09  Jan Djärv  <jan.h.d@swipnet.se>
 
-	* server.el (server-create-window-system-frame): Improved comment.
+	* server.el (server-create-window-system-frame): Improve comment.
 
 2012-11-08  Jan Djärv  <jan.h.d@swipnet.se>
 
