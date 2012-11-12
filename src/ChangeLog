@@ -1,3 +1,11 @@
+2012-11-12  Paul Eggert  <eggert@cs.ucla.edu>
+
+	Another tweak to vectorlike_header change.
+	* alloc.c (struct Lisp_Vectorlike_Free, NEXT_IN_FREE_LIST):
+	Remove, and replace all uses with ...
+	(next_in_free_list, set_next_in_free_list):
+	New functions, which respect C's aliasing rules better.
+
 2012-11-11  Paul Eggert  <eggert@cs.ucla.edu>
 
 	* window.c (list4i): Rename from 'quad'.  All uses changed.
