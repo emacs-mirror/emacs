@@ -1,3 +1,9 @@
+2012-11-12  Dmitry Gutov  <dgutov@yandex.ru>
+
+	* progmodes/ruby-mode.el (ruby-move-to-block): When moving
+	backward, always stop at indentation.  Reverts the change from
+	109576 (Bug#12851).
+
 2012-11-11  Glenn Morris  <rgm@gnu.org>
 
 	* ibuffer.el (ibuffer-mode-map, ibuffer-mode):

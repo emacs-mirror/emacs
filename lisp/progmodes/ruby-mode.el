@@ -898,17 +898,7 @@ or blocks containing the current block."
             (back-to-indentation)
             (if (looking-at (concat "\\<\\(" ruby-block-mid-re "\\)\\>"))
                 (setq done nil)))))
-    (back-to-indentation)
-    (when (< n 0)
-      (let ((eol (point-at-eol)) state next)
-        (if (< orig eol) (setq eol orig))
-        (setq orig (point))
-        (while (and (setq next (apply 'ruby-parse-partial eol state))
-                    (< (point) eol))
-          (setq state next))
-        (when (cdaadr state)
-          (goto-char (cdaadr state)))
-        (backward-word)))))
+    (back-to-indentation)))
 
 (defun ruby-beginning-of-block (&optional arg)
   "Move backward to the beginning of the current block.
