@@ -1,3 +1,11 @@
+2012-11-12  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* semantic/mru-bookmark.el (semantic-mru-bookmark-mode):
+	* semantic/grammar.el (semantic-grammar-mode):
+	* semantic/util-modes.el (semantic-highlight-edits-mode)
+	(semantic-show-parser-state-mode): Avoid obsolete name
+	semantic-edits-new-change-hooks (bug#12869).
+
 2012-11-10  Glenn Morris  <rgm@gnu.org>
 
 	* srecode/srt-mode.el (srecode-template-mode):
@@ -5,8 +13,8 @@
 
 2012-10-25  David Engster  <deng@randomsample.de>
 
-	* semantic/analyze.el (semantic-analyze-dereference-alias): New
-	function to dereference aliases.
+	* semantic/analyze.el (semantic-analyze-dereference-alias):
+	New function to dereference aliases.
 	(semantic-analyze-current-context-default): Use it.
 
 	* semantic/grammar.el (semantic-grammar-create-package):
@@ -17,8 +25,8 @@
 
 	* semantic.el (semantic-elapsed-time): Make it a defsubst.
 
-	* srecode/dictionary.el (srecode-adebug-dictionary): Remove
-	require for `semantic'.
+	* srecode/dictionary.el (srecode-adebug-dictionary):
+	Remove require for `semantic'.
 
 	* srecode/map.el:
 	* srecode/insert.el: Declare functions from `data-debug'.
