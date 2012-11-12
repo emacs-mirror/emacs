@@ -542,10 +542,18 @@ which is impossible to ignore.
 You can also type @kbd{M-&} (@code{async-shell-command}) to execute a
 shell command asynchronously; this is exactly like calling @kbd{M-!}
 with a trailing @samp{&}, except that you do not need the @samp{&}.
-The output buffer for asynchronous shell commands is named
+The default output buffer for asynchronous shell commands is named
 @samp{*Async Shell Command*}.  Emacs inserts the output into this
 buffer as it comes in, whether or not the buffer is visible in a
 window.
+
+@vindex async-shell-command-buffer
+  If you want to run more than one asynchronous shell command at the
+same time, they could end up competing for the output buffer.  The
+option @code{async-shell-command-buffer} specifies what to do about
+this; e.g., whether to rename the pre-existing output buffer, or to
+use a different buffer for the new command.  Consult the variable's
+documentation for more possibilities.
 
 @kindex M-|
 @findex shell-command-on-region

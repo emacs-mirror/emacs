@@ -1,3 +1,7 @@
+2012-11-12  Glenn Morris  <rgm@gnu.org>
+
+	* misc.texi (Single Shell): Mention async-shell-command-buffer.
+
 2012-11-10  Glenn Morris  <rgm@gnu.org>
 
 	* misc.texi (Terminal emulator): Rename `term-face' to `term'.

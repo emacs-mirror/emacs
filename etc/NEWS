@@ -561,8 +561,9 @@ Sphinx support has been improved.
 
 *** `sh-use-smie' lets you choose a new indentation and navigation code.
 
++++
 ** New option `async-shell-command-buffer' specifies the buffer to use
-for a new asynchronous shell command when the default output buffer
+for a new asynchronous `shell-command' when the default output buffer
 `*Async Shell Command*' is already in use.
 
 ---
