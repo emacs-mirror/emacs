@@ -80,7 +80,8 @@ static Lisp_Object Qsubrp, Qmany, Qunevalled;
 Lisp_Object Qfont_spec, Qfont_entity, Qfont_object;
 static Lisp_Object Qdefun;
 
-Lisp_Object Qinteractive_form, Qdefalias_fset_function;
+Lisp_Object Qinteractive_form;
+static Lisp_Object Qdefalias_fset_function;
 
 static void swap_in_symval_forwarding (struct Lisp_Symbol *, struct Lisp_Buffer_Local_Value *);
 

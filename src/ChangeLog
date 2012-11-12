@@ -1,5 +1,7 @@
 2012-11-12  Paul Eggert  <eggert@cs.ucla.edu>
 
+	* data.c (Qdefalias_fset_function): Now static.
+
 	Another tweak to vectorlike_header change.
 	* alloc.c (struct Lisp_Vectorlike_Free, NEXT_IN_FREE_LIST):
 	Remove, and replace all uses with ...
