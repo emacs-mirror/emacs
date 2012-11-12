@@ -21380,6 +21380,12 @@ decode_mode_spec (struct window *w, register int c, int field_width,
   Lisp_Object obj;
   struct frame *f = XFRAME (WINDOW_FRAME (w));
   char *decode_mode_spec_buf = f->decode_mode_spec_buffer;
+  /* We are going to use f->decode_mode_spec_buffer as the buffer to
+     produce strings from numerical values, so limit preposterously
+     large values of FIELD_WIDTH to avoid overrunning the buffer's
+     end.  The size of the buffer is enough for FRAME_MESSAGE_BUF_SIZE
+     bytes plus the terminating null.  */
+  int width = min (field_width, FRAME_MESSAGE_BUF_SIZE (f));
   struct buffer *b = current_buffer;
 
   obj = Qnil;
@@ -21475,7 +21481,7 @@ decode_mode_spec (struct window *w, register int c, int field_width,
 	{
 	  ptrdiff_t col = current_column ();
 	  wset_column_number_displayed (w, make_number (col));
-	  pint2str (decode_mode_spec_buf, field_width, col);
+	  pint2str (decode_mode_spec_buf, width, col);
 	  return decode_mode_spec_buf;
 	}
 
@@ -21506,14 +21512,14 @@ decode_mode_spec (struct window *w, register int c, int field_width,
     case 'i':
       {
 	ptrdiff_t size = ZV - BEGV;
-	pint2str (decode_mode_spec_buf, field_width, size);
+	pint2str (decode_mode_spec_buf, width, size);
 	return decode_mode_spec_buf;
       }
 
     case 'I':
       {
 	ptrdiff_t size = ZV - BEGV;
-	pint2hrstr (decode_mode_spec_buf, field_width, size);
+	pint2hrstr (decode_mode_spec_buf, width, size);
 	return decode_mode_spec_buf;
       }
 
@@ -21620,12 +21626,12 @@ decode_mode_spec (struct window *w, register int c, int field_width,
 	line_number_displayed = 1;
 
 	/* Make the string to show.  */
-	pint2str (decode_mode_spec_buf, field_width, topline + nlines);
+	pint2str (decode_mode_spec_buf, width, topline + nlines);
 	return decode_mode_spec_buf;
     no_value:
         {
 	  char* p = decode_mode_spec_buf;
-	  int pad = field_width - 2;
+	  int pad = width - 2;
 	  while (pad-- > 0)
 	    *p++ = ' ';
 	  *p++ = '?';
