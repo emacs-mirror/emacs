@@ -1,3 +1,10 @@
+2012-11-12  Wolfgang Jenkner  <wjenkner@inode.at>
+
+	* ansi-color.el (ansi-color-apply-sequence): Implement SGR codes
+	39 and 49.  This fixes bug#12792.  Also, treat unimplemented
+	parameters as 0, thereby restoring the behavior of revisions prior
+	to 109621.
+
 2012-11-12  Fabián Ezequiel Gallina  <fgallina@cuca>
 
 	Fix end-of-defun misbehavior.
