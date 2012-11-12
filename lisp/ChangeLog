@@ -1,3 +1,15 @@
+2012-11-12  Fabián Ezequiel Gallina  <fgallina@cuca>
+
+	Fix end-of-defun misbehavior.
+	* progmodes/python.el (python-nav-beginning-of-defun): Rename from
+	python-beginning-of-defun-function.  Handle nested defuns
+	correctly.
+	(python-nav-end-of-defun): Rename from
+	python-end-of-defun-function.  Ensure forward movement.
+	(python-info-current-defun): Reimplemented to work as intended
+	with new fixed python-nav-{end,beginning}-of-defun.  Stop scanning
+	parent defuns as soon as possible.
+
 2012-11-12  Glenn Morris  <rgm@gnu.org>
 
 	* progmodes/flymake.el (flymake-error-bitmap)
