@@ -237,7 +237,7 @@ struct frame
 
 #if defined (USE_GTK) || defined (HAVE_NS)
   /* Nonzero means using a tool bar that comes from the toolkit.  */
-  int external_tool_bar;
+  unsigned external_tool_bar : 1;
 #endif
 
   /* Margin at the top of the frame.  Used to display the tool-bar.  */

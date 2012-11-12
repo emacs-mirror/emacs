@@ -1,5 +1,12 @@
 2012-11-12  Dmitry Antipov  <dmantipov@yandex.ru>
 
+	* frame.h (struct frame): Convert external_tool_bar member to
+	1-bit unsigned bitfield.
+	* termhooks.h (struct terminal): Remove mouse_moved member since
+	all users are long dead.  Adjust comment on mouse_position_hook.
+
+2012-11-12  Dmitry Antipov  <dmantipov@yandex.ru>
+
 	Simplify by using FOR_EACH_FRAME here and there.
 	* frame.c (next_frame, prev_frame, other_visible_frames)
 	(delete_frame, visible-frame-list): Use FOR_EACH_FRAME.
