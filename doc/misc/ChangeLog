@@ -1,3 +1,13 @@
+2012-11-12  Vincent Belaïche  <vincentb1@users.sourceforge.net>
+
+	* ses.texi: Doc for ses-rename-cell, ses-repair-cell-reference-all & ses-range.
+	In all file place SES into @acronym{...}.
+	(Advanced Features): Add key index and function index for
+	ses-set-header-row. Add description for function
+	ses-rename-cell. Add description for function
+	ses-repair-cell-reference-all.
+	(Ranges in formulas): Add description for ses-range flags.
+
 2012-11-12  Paul Eggert  <eggert@cs.ucla.edu>
 
 	* texinfo.tex: Merge from gnulib.
