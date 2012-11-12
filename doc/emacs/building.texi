@@ -1244,8 +1244,8 @@ depending on the reason which caused the stop.  Customize the variable
 @code{gdb-switch-reasons} to select the stop reasons which will cause
 a thread switch.
 
-@vindex gdb-stopped-hooks
-  The variable @code{gdb-stopped-hooks} allows you to execute your
+@vindex gdb-stopped-functions
+  The variable @code{gdb-stopped-functions} allows you to execute your
 functions whenever some thread stops.
 
   In non-stop mode, you can switch between different modes for GUD

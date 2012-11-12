@@ -1,3 +1,8 @@
+2012-11-12  Chong Yidong  <cyd@gnu.org>
+
+	* building.texi (Multithreaded Debugging): gdb-stopped-hooks is
+	actually named gdb-stopped-functions.
+
 2012-11-12  Glenn Morris  <rgm@gnu.org>
 
 	* misc.texi (Single Shell): Mention async-shell-command-buffer.
