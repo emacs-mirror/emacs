@@ -1,3 +1,9 @@
+2012-11-12  Glenn Morris  <rgm@gnu.org>
+
+	* flymake.texi (Customizable variables)
+	(Highlighting erroneous lines): Mention flymake-error-bitmap,
+	flymake-warning-bitmap, and flymake-fringe-indicator-position.
+
 2012-11-09  Chong Yidong  <cyd@gnu.org>
 
 	* url.texi (Introduction): Move url-configuration-directory to

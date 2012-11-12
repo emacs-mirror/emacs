@@ -440,6 +440,7 @@ when you receive a private message or your nickname is mentioned.
 *** ERC will look up server/channel names via auth-source and use any
 channel keys found.
 
++++
 ** Flymake uses fringe bitmaps to indicate errors and warnings.
 See `flymake-fringe-indicator-position', `flymake-error-bitmap' and
 `flymake-warning-bitmap'.

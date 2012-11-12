@@ -1,3 +1,9 @@
+2012-11-12  Glenn Morris  <rgm@gnu.org>
+
+	* progmodes/flymake.el (flymake-error-bitmap)
+	(flymake-warning-bitmap, flymake-fringe-indicator-position): Doc fixes.
+	(flymake-error-bitmap, flymake-warning-bitmap): Fix :types.
+
 2012-11-12  Dmitry Gutov  <dgutov@yandex.ru>
 
 	* progmodes/ruby-mode.el (ruby-move-to-block): When moving
