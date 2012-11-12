@@ -1,3 +1,7 @@
+2012-11-12  Paul Eggert  <eggert@cs.ucla.edu>
+
+	* texinfo.tex: Merge from gnulib.
+
 2012-11-10  Chong Yidong  <cyd@gnu.org>
 
 	* url.texi (Introduction): Move url-configuration-directory to
