@@ -1,3 +1,7 @@
+2012-11-12  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* automated/advice-tests.el: New tests.
+
 2012-10-14  Eli Zaretskii  <eliz@gnu.org>
 
 	* automated/compile-tests.el (compile-tests--test-regexps-data):

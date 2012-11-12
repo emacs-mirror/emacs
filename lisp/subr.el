@@ -2809,6 +2809,12 @@ Otherwise, return nil."
 Otherwise, return nil."
   (and (memq object '(nil t)) t))
 
+(defun special-form-p (object)
+  "Non-nil if and only if OBJECT is a special form."
+  (if (and (symbolp object) (fboundp object))
+      (setq object (indirect-function object)))
+  (and (subrp object) (eq (cdr (subr-arity object)) 'unevalled)))
+
 (defun field-at-pos (pos)
   "Return the field at position POS, taking stickiness etc into account."
   (let ((raw-field (get-char-property (field-beginning pos) 'field)))

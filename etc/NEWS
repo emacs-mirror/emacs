@@ -27,6 +27,13 @@ so we will look at it and add it to the manual.
 * Editing Changes in Emacs 24.4
 * Changes in Specialized Modes and Packages in Emacs 24.4
 * New Modes and Packages in Emacs 24.4
+** New nadvice.el package offering lighter-weight advice facilities.
+It is layered as:
+- add-function/remove-function which can be used to add/remove code on any
+  function-carrying place, such as process-filters or `<foo>-function' hooks.
+- advice-add/advice-remove to add/remove a piece of advice on a named function,
+  much like `defadvice' does.
+
 * Incompatible Lisp Changes in Emacs 24.4
 
 ** `dolist' in lexical-binding mode does not bind VAR in RESULT any more.
@@ -35,6 +42,7 @@ spurious warnings about an unused var.
 
 * Lisp changes in Emacs 24.4
 
+** New function special-form-p.
 ** Docstrings can be made dynamic by adding a `dynamic-docstring-function'
 text-property on the first char.
 

@@ -1,3 +1,40 @@
+2012-11-12  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* emacs-lisp/nadvice.el: New package.
+	* subr.el (special-form-p): New function.
+	* emacs-lisp/elp.el: Use lexical-binding and advice-add.
+	(elp-all-instrumented-list): Remove var.
+	(elp-not-profilable): Remove elp-wrapper.
+	(elp-profilable-p): Use autoloadp and special-form-p.
+	(elp--advice-name): New const.
+	(elp-instrument-function): Use advice-add.
+	(elp--instrumented-p): New predicate.
+	(elp-restore-function): Use advice-remove.
+	(elp-restore-all, elp-reset-all): Use mapatoms.
+	(elp-set-master): Use elp--instrumented-p.
+	(elp--make-wrapper): Rename from elp-wrapper, return a function
+	suitable for advice-add.  Use cl-inf.
+	(elp-results): Use mapatoms+elp--instrumented-p.
+	* emacs-lisp/debug.el: Use lexical-binding and advice-add.
+	(debug-function-list): Remove var.
+	(debug): Rename arg, and then let-bind it explicitly inside.
+	(debugger-setup-buffer): Rename arg.
+	(debugger-setup-buffer): Adjust counts to new debug-on-entry setup.
+	(debugger-frame-number): Adjust to new debug-on-entry setup.
+	(debug--implement-debug-on-entry): Rename from
+	implement-debug-on-entry, add argument.
+	(debugger-special-form-p): Remove, use special-form-p instead.
+	(debug-on-entry): Use advice-add.
+	(debug--function-list): New function.
+	(cancel-debug-on-entry): Use it, along with advice-remove.
+	(debug-arglist, debug-convert-byte-code, debug-on-entry-1): Remove.
+	(debugger-list-functions): Use debug--function-list instead of
+	debug-function-list.
+	* emacs-lisp/advice.el (ad-save-real-definition): Remove, unused.
+	(ad-special-form-p): Remove, use special-form-p instead.
+	(ad-set-advice-info): Use add-function and remove-function.
+	(ad--defalias-fset): Adjust accordingly.
+
 2012-11-10  Glenn Morris  <rgm@gnu.org>
 
 	* mail/emacsbug.el (report-emacs-bug-tracker-url)
