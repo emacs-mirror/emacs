@@ -1,3 +1,20 @@
+2012-11-12  Dmitry Antipov  <dmantipov@yandex.ru>
+
+	Simplify by using FOR_EACH_FRAME here and there.
+	* frame.c (next_frame, prev_frame, other_visible_frames)
+	(delete_frame, visible-frame-list): Use FOR_EACH_FRAME.
+	* w32term.c (x_window_to_scroll_bar): Likewise.
+	* window.c (window_list): Likewise.
+	* xdisp.c (x_consider_frame_title): Likewise.
+	* xfaces.c ( Fdisplay_supports_face_attributes_p): Likewise.
+	* xfns.c (x_window_to_frame, x_any_window_to_frame)
+	(x_menubar_window_to_frame, x_top_window_to_frame): Likewise.
+	* xmenu.c (menubar_id_to_frame): Likewise.
+	* xselect.c (frame_for_x_selection): Likewise.
+	* xterm.c (x_frame_of_widget, x_window_to_scroll_bar)
+	(x_window_to_menu_bar): Likewise.
+	* w32fns.c (x_window_to_frame): Likewise.  Adjust comment.
+
 2012-11-12  Paul Eggert  <eggert@cs.ucla.edu>
 
 	* data.c (Qdefalias_fset_function): Now static.

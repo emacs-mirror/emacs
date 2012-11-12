@@ -304,19 +304,14 @@ check_x_display_info (Lisp_Object frame)
 /* Return the Emacs frame-object corresponding to an w32 window.
    It could be the frame's main window or an icon window.  */
 
-/* This function can be called during GC, so use GC_xxx type test macros.  */
-
 struct frame *
 x_window_to_frame (struct w32_display_info *dpyinfo, HWND wdesc)
 {
   Lisp_Object tail, frame;
   struct frame *f;
 
-  for (tail = Vframe_list; CONSP (tail); tail = XCDR (tail))
+  FOR_EACH_FRAME (tail, frame)
     {
-      frame = XCAR (tail);
-      if (!FRAMEP (frame))
-        continue;
       f = XFRAME (frame);
       if (!FRAME_W32_P (f) || FRAME_W32_DISPLAY_INFO (f) != dpyinfo)
 	continue;

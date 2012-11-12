@@ -11096,17 +11096,15 @@ x_consider_frame_title (Lisp_Object frame)
       || f->explicit_name)
     {
       /* Do we have more than one visible frame on this X display?  */
-      Lisp_Object tail;
-      Lisp_Object fmt;
+      Lisp_Object tail, other_frame, fmt;
       ptrdiff_t title_start;
       char *title;
       ptrdiff_t len;
       struct it it;
       ptrdiff_t count = SPECPDL_INDEX ();
 
-      for (tail = Vframe_list; CONSP (tail); tail = XCDR (tail))
+      FOR_EACH_FRAME (tail, other_frame)
 	{
-	  Lisp_Object other_frame = XCAR (tail);
 	  struct frame *tf = XFRAME (other_frame);
 
 	  if (tf != f

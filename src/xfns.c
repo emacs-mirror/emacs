@@ -224,13 +224,11 @@ x_window_to_frame (struct x_display_info *dpyinfo, int wdesc)
   Lisp_Object tail, frame;
   struct frame *f;
 
-  if (wdesc == None) return 0;
+  if (wdesc == None)
+    return NULL;
 
-  for (tail = Vframe_list; CONSP (tail); tail = XCDR (tail))
+  FOR_EACH_FRAME (tail, frame)
     {
-      frame = XCAR (tail);
-      if (!FRAMEP (frame))
-        continue;
       f = XFRAME (frame);
       if (!FRAME_X_P (f) || FRAME_X_DISPLAY_INFO (f) != dpyinfo)
 	continue;
@@ -270,18 +268,16 @@ struct frame *
 x_any_window_to_frame (struct x_display_info *dpyinfo, int wdesc)
 {
   Lisp_Object tail, frame;
-  struct frame *f, *found;
+  struct frame *f, *found = NULL;
   struct x_output *x;
 
-  if (wdesc == None) return NULL;
+  if (wdesc == None)
+    return NULL;
 
-  found = NULL;
-  for (tail = Vframe_list; CONSP (tail) && !found; tail = XCDR (tail))
+  FOR_EACH_FRAME (tail, frame)
     {
-      frame = XCAR (tail);
-      if (!FRAMEP (frame))
-        continue;
-
+      if (found)
+        break;
       f = XFRAME (frame);
       if (FRAME_X_P (f) && FRAME_X_DISPLAY_INFO (f) == dpyinfo)
 	{
@@ -325,13 +321,11 @@ x_menubar_window_to_frame (struct x_display_info *dpyinfo, XEvent *event)
   struct frame *f;
   struct x_output *x;
 
-  if (wdesc == None) return 0;
+  if (wdesc == None)
+    return NULL;
 
-  for (tail = Vframe_list; CONSP (tail); tail = XCDR (tail))
+  FOR_EACH_FRAME (tail, frame)
     {
-      frame = XCAR (tail);
-      if (!FRAMEP (frame))
-        continue;
       f = XFRAME (frame);
       if (!FRAME_X_P (f) || FRAME_X_DISPLAY_INFO (f) != dpyinfo)
 	continue;
@@ -359,13 +353,11 @@ x_top_window_to_frame (struct x_display_info *dpyinfo, int wdesc)
   struct frame *f;
   struct x_output *x;
 
-  if (wdesc == None) return 0;
+  if (wdesc == None)
+    return NULL;
 
-  for (tail = Vframe_list; CONSP (tail); tail = XCDR (tail))
+  FOR_EACH_FRAME (tail, frame)
     {
-      frame = XCAR (tail);
-      if (!FRAMEP (frame))
-        continue;
       f = XFRAME (frame);
       if (!FRAME_X_P (f) || FRAME_X_DISPLAY_INFO (f) != dpyinfo)
 	continue;

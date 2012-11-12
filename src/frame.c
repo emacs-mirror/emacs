@@ -906,7 +906,7 @@ DEFUN ("frame-list", Fframe_list, Sframe_list,
 static Lisp_Object
 next_frame (Lisp_Object frame, Lisp_Object minibuf)
 {
-  Lisp_Object tail;
+  Lisp_Object f, tail;
   int passed = 0;
 
   /* There must always be at least one frame in Vframe_list.  */
@@ -918,12 +918,8 @@ next_frame (Lisp_Object frame, Lisp_Object minibuf)
   CHECK_LIVE_FRAME (frame);
 
   while (1)
-    for (tail = Vframe_list; CONSP (tail); tail = XCDR (tail))
+    FOR_EACH_FRAME (tail, f)
       {
-	Lisp_Object f;
-
-	f = XCAR (tail);
-
 	if (passed
 	    && ((!FRAME_TERMCAP_P (XFRAME (f)) && !FRAME_TERMCAP_P (XFRAME (frame))
                  && FRAME_KBOARD (XFRAME (f)) == FRAME_KBOARD (XFRAME (frame)))
@@ -984,22 +980,13 @@ next_frame (Lisp_Object frame, Lisp_Object minibuf)
 static Lisp_Object
 prev_frame (Lisp_Object frame, Lisp_Object minibuf)
 {
-  Lisp_Object tail;
-  Lisp_Object prev;
+  Lisp_Object f, tail, prev = Qnil;
 
   /* There must always be at least one frame in Vframe_list.  */
-  if (! CONSP (Vframe_list))
-    emacs_abort ();
+  eassert (CONSP (Vframe_list));
 
-  prev = Qnil;
-  for (tail = Vframe_list; CONSP (tail); tail = XCDR (tail))
+  FOR_EACH_FRAME (tail, f)
     {
-      Lisp_Object f;
-
-      f = XCAR (tail);
-      if (!FRAMEP (f))
-	emacs_abort ();
-
       if (EQ (frame, f) && !NILP (prev))
 	return prev;
 
@@ -1100,11 +1087,10 @@ Otherwise, include all frames.  */)
 static int
 other_visible_frames (FRAME_PTR f)
 {
-  Lisp_Object frames;
+  Lisp_Object frames, this;
 
-  for (frames = Vframe_list; CONSP (frames); frames = XCDR (frames))
+  FOR_EACH_FRAME (frames, this)
     {
-      Lisp_Object this = XCAR (frames);
       if (f == XFRAME (this))
 	continue;
 
@@ -1158,15 +1144,10 @@ delete_frame (Lisp_Object frame, Lisp_Object force)
      minibuffer for any other frame?  */
   if (FRAME_HAS_MINIBUF_P (f))
     {
-      Lisp_Object frames;
+      Lisp_Object frames, this;
 
-      for (frames = Vframe_list;
-	   CONSP (frames);
-	   frames = XCDR (frames))
+      FOR_EACH_FRAME (frames, this)
 	{
-	  Lisp_Object this;
-	  this = XCAR (frames);
-
 	  if (! EQ (this, frame)
 	      && EQ (frame,
 		     WINDOW_FRAME (XWINDOW
@@ -1359,15 +1340,13 @@ delete_frame (Lisp_Object frame, Lisp_Object force)
      another one.  */
   if (f == last_nonminibuf_frame)
     {
-      Lisp_Object frames;
+      Lisp_Object frames, this;
 
       last_nonminibuf_frame = 0;
 
-      for (frames = Vframe_list;
-	   CONSP (frames);
-	   frames = XCDR (frames))
+      FOR_EACH_FRAME (frames, this)
 	{
-	  f = XFRAME (XCAR (frames));
+	  f = XFRAME (this);
 	  if (!FRAME_MINIBUF_ONLY_P (f))
 	    {
 	      last_nonminibuf_frame = f;
@@ -1380,27 +1359,13 @@ delete_frame (Lisp_Object frame, Lisp_Object force)
      single-kboard state if we're in it for this kboard.  */
   if (kb != NULL)
     {
-      Lisp_Object frames;
+      Lisp_Object frames, this;
       /* Some frame we found on the same kboard, or nil if there are none.  */
-      Lisp_Object frame_on_same_kboard;
+      Lisp_Object frame_on_same_kboard = Qnil;
 
-      frame_on_same_kboard = Qnil;
-
-      for (frames = Vframe_list;
-	   CONSP (frames);
-	   frames = XCDR (frames))
-	{
-	  Lisp_Object this;
-	  struct frame *f1;
-
-	  this = XCAR (frames);
-	  if (!FRAMEP (this))
-	    emacs_abort ();
-	  f1 = XFRAME (this);
-
-	  if (kb == FRAME_KBOARD (f1))
-	    frame_on_same_kboard = this;
-	}
+      FOR_EACH_FRAME (frames, this)
+	if (kb == FRAME_KBOARD (XFRAME (this)))
+	  frame_on_same_kboard = this;
 
       if (NILP (frame_on_same_kboard))
 	not_single_kboard_state (kb);
@@ -1412,27 +1377,16 @@ delete_frame (Lisp_Object frame, Lisp_Object force)
      frames with other windows.  */
   if (kb != NULL && EQ (frame, KVAR (kb, Vdefault_minibuffer_frame)))
     {
-      Lisp_Object frames;
+      Lisp_Object frames, this;
 
       /* The last frame we saw with a minibuffer, minibuffer-only or not.  */
-      Lisp_Object frame_with_minibuf;
+      Lisp_Object frame_with_minibuf = Qnil;
       /* Some frame we found on the same kboard, or nil if there are none.  */
-      Lisp_Object frame_on_same_kboard;
+      Lisp_Object frame_on_same_kboard = Qnil;
 
-      frame_on_same_kboard = Qnil;
-      frame_with_minibuf = Qnil;
-
-      for (frames = Vframe_list;
-	   CONSP (frames);
-	   frames = XCDR (frames))
+      FOR_EACH_FRAME (frames, this)
 	{
-	  Lisp_Object this;
-	  struct frame *f1;
-
-	  this = XCAR (frames);
-	  if (!FRAMEP (this))
-	    emacs_abort ();
-	  f1 = XFRAME (this);
+	  struct frame *f1 = XFRAME (this);
 
 	  /* Consider only frames on the same kboard
 	     and only those with minibuffers.  */
@@ -1816,20 +1770,12 @@ DEFUN ("visible-frame-list", Fvisible_frame_list, Svisible_frame_list,
        doc: /* Return a list of all frames now \"visible\" (being updated).  */)
   (void)
 {
-  Lisp_Object tail, frame;
-  struct frame *f;
-  Lisp_Object value;
+  Lisp_Object tail, frame, value = Qnil;
 
-  value = Qnil;
-  for (tail = Vframe_list; CONSP (tail); tail = XCDR (tail))
-    {
-      frame = XCAR (tail);
-      if (!FRAMEP (frame))
-	continue;
-      f = XFRAME (frame);
-      if (FRAME_VISIBLE_P (f))
-	value = Fcons (frame, value);
-    }
+  FOR_EACH_FRAME (tail, frame)
+    if (FRAME_VISIBLE_P (XFRAME (frame)))
+      value = Fcons (frame, value);
+
   return value;
 }
 

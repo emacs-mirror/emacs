@@ -1438,7 +1438,7 @@ static struct frame *
 x_frame_of_widget (Widget widget)
 {
   struct x_display_info *dpyinfo;
-  Lisp_Object tail;
+  Lisp_Object tail, frame;
   struct frame *f;
 
   dpyinfo = x_display_info_for_display (XtDisplay (widget));
@@ -1452,15 +1452,15 @@ x_frame_of_widget (Widget widget)
 
   /* Look for a frame with that top-level widget.  Allocate the color
      on that frame to get the right gamma correction value.  */
-  for (tail = Vframe_list; CONSP (tail); tail = XCDR (tail))
-    if (FRAMEP (XCAR (tail))
-	&& (f = XFRAME (XCAR (tail)),
-	    (FRAME_X_P (f)
-             && f->output_data.nothing != 1
-	     && FRAME_X_DISPLAY_INFO (f) == dpyinfo))
-	&& f->output_data.x->widget == widget)
-      return f;
-
+  FOR_EACH_FRAME (tail, frame)
+    {
+      f = XFRAME (frame);
+      if (FRAME_X_P (f)
+	  && f->output_data.nothing != 1
+	  && FRAME_X_DISPLAY_INFO (f) == dpyinfo
+	  && f->output_data.x->widget == widget)
+	return f;
+    }
   emacs_abort ();
 }
 
@@ -4098,20 +4098,15 @@ XTmouse_position (FRAME_PTR *fp, int insist, Lisp_Object *bar_window,
 static struct scroll_bar *
 x_window_to_scroll_bar (Display *display, Window window_id)
 {
-  Lisp_Object tail;
+  Lisp_Object tail, frame;
 
 #if defined (USE_GTK) && defined (USE_TOOLKIT_SCROLL_BARS)
   window_id = (Window) xg_get_scroll_id_for_window (display, window_id);
 #endif /* USE_GTK  && USE_TOOLKIT_SCROLL_BARS */
 
-  for (tail = Vframe_list; CONSP (tail); tail = XCDR (tail))
+  FOR_EACH_FRAME (tail, frame)
     {
-      Lisp_Object frame, bar, condemned;
-
-      frame = XCAR (tail);
-      /* All elements of Vframe_list should be frames.  */
-      if (! FRAMEP (frame))
-	emacs_abort ();
+      Lisp_Object bar, condemned;
 
       if (! FRAME_X_P (XFRAME (frame)))
         continue;
@@ -4143,20 +4138,16 @@ x_window_to_scroll_bar (Display *display, Window window_id)
 static Widget
 x_window_to_menu_bar (Window window)
 {
-  Lisp_Object tail;
+  Lisp_Object tail, frame;
 
-  for (tail = Vframe_list; CONSP (tail); tail = XCDR (tail))
-    {
-      if (FRAME_X_P (XFRAME (XCAR (tail))))
-        {
-          Lisp_Object frame = XCAR (tail);
-          Widget menu_bar = XFRAME (frame)->output_data.x->menubar_widget;
+  FOR_EACH_FRAME (tail, frame)
+    if (FRAME_X_P (XFRAME (frame)))
+      {
+	Widget menu_bar = XFRAME (frame)->output_data.x->menubar_widget;
 
-          if (menu_bar && xlwmenu_window_p (menu_bar, window))
-            return menu_bar;
-        }
-    }
-
+	if (menu_bar && xlwmenu_window_p (menu_bar, window))
+	  return menu_bar;
+      }
   return NULL;
 }
 

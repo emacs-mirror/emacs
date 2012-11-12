@@ -2133,10 +2133,10 @@ window_list (void)
 {
   if (!CONSP (Vwindow_list))
     {
-      Lisp_Object tail;
+      Lisp_Object tail, frame;
 
       Vwindow_list = Qnil;
-      for (tail = Vframe_list; CONSP (tail); tail = XCDR (tail))
+      FOR_EACH_FRAME (tail, frame)
 	{
 	  Lisp_Object args[2];
 
@@ -2144,7 +2144,7 @@ window_list (void)
 	     new windows at the front of args[1], which means we
 	     have to reverse this list at the end.  */
 	  args[1] = Qnil;
-	  foreach_window (XFRAME (XCAR (tail)), add_window_to_list, &args[1]);
+	  foreach_window (XFRAME (frame), add_window_to_list, &args[1]);
 	  args[0] = Vwindow_list;
 	  args[1] = Fnreverse (args[1]);
 	  Vwindow_list = Fnconc (2, args);

@@ -5012,17 +5012,14 @@ face for italic.  */)
   else
     {
       /* Find any frame on DISPLAY.  */
-      Lisp_Object fl_tail;
+      Lisp_Object tail;
 
       frame = Qnil;
-      for (fl_tail = Vframe_list; CONSP (fl_tail); fl_tail = XCDR (fl_tail))
-	{
-	  frame = XCAR (fl_tail);
-	  if (!NILP (Fequal (Fcdr (Fassq (Qdisplay,
-					  XFRAME (frame)->param_alist)),
-			     display)))
-	    break;
-	}
+      FOR_EACH_FRAME (tail, frame)
+	if (!NILP (Fequal (Fcdr (Fassq (Qdisplay,
+					XFRAME (frame)->param_alist)),
+			   display)))
+	  break;
     }
 
   CHECK_LIVE_FRAME (frame);
