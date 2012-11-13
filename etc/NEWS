@@ -629,6 +629,7 @@ enabled.
 
 ** FIXME something happened to ses.el, 2012-04-17.
 
++++
 ** Hooks renamed to avoid obsolete "-hooks" suffix:
 *** semantic-lex-reset-hooks -> semantic-lex-reset-functions
 *** semantic-change-hooks -> semantic-change-functions

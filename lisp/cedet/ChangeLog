@@ -1,3 +1,11 @@
+2012-11-13  Glenn Morris  <rgm@gnu.org>
+
+	* semantic/lex-spp.el (semantic-lex-spp-lex-text-string):
+	* semantic/util.el (semantic-describe-buffer):
+	* semantic/bovine/c.el (semantic-c-parse-lexical-token)
+	(semantic-default-c-setup):
+	Use new names for hooks rather than obsolete aliases.
+
 2012-11-12  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* semantic/mru-bookmark.el (semantic-mru-bookmark-mode):

@@ -1,3 +1,11 @@
+2012-11-13  Glenn Morris  <rgm@gnu.org>
+
+	* gnus-diary.el (nndiary-request-create-group-functions)
+	(nndiary-request-update-info-functions)
+	(gnus-subscribe-newsgroup-functions)
+	(nndiary-request-accept-article-functions):
+	Use new names for hooks rather than obsolete aliases.
+
 2012-10-23  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* nndiary.el (nndiary-request-create-group-functions)
