@@ -3387,30 +3387,39 @@ It is dangerous if either of these conditions are met:
 				(setq ok t)))
 			  ok))))))))
 
+(defun hack-one-local-variable--obsolete (var)
+  (let ((o (get var 'byte-obsolete-variable)))
+    (when o
+      (let ((instead (nth 0 o))
+            (since (nth 2 o)))
+        (message "%s is obsolete%s; %s"
+                 var (if since (format " (since %s)" since))
+                 (if (stringp instead) instead
+                   (format "use `%s' instead" instead)))))))
+
 (defun hack-one-local-variable (var val)
   "Set local variable VAR with value VAL.
 If VAR is `mode', call `VAL-mode' as a function unless it's
 already the major mode."
-  (cond ((eq var 'mode)
-	 (let ((mode (intern (concat (downcase (symbol-name val))
-				     "-mode"))))
-	   (unless (eq (indirect-function mode)
-		       (indirect-function major-mode))
-	     (if (memq mode minor-mode-list)
-		 ;; A minor mode must be passed an argument.
-		 ;; Otherwise, if the user enables the minor mode in a
-		 ;; major mode hook, this would toggle it off.
-		 (funcall mode 1)
-	       (funcall mode)))))
-	((eq var 'eval)
-	 (save-excursion (eval val)))
-	(t
-         ;; Make sure the string has no text properties.
-         ;; Some text properties can get evaluated in various ways,
-         ;; so it is risky to put them on with a local variable list.
-         (if (stringp val)
-             (set-text-properties 0 (length val) nil val))
-         (set (make-local-variable var) val))))
+  (pcase var
+    (`mode
+     (let ((mode (intern (concat (downcase (symbol-name val))
+                                 "-mode"))))
+       (unless (eq (indirect-function mode)
+                   (indirect-function major-mode))
+         (funcall mode))))
+    (`eval
+     (pcase val
+       (`(add-hook ',hook . ,_) (hack-one-local-variable--obsolete hook)))
+     (save-excursion (eval val)))
+    (_
+     (hack-one-local-variable--obsolete var)
+     ;; Make sure the string has no text properties.
+     ;; Some text properties can get evaluated in various ways,
+     ;; so it is risky to put them on with a local variable list.
+     (if (stringp val)
+         (set-text-properties 0 (length val) nil val))
+     (set (make-local-variable var) val))))
 
 ;;; Handling directory-local variables, aka project settings.
 

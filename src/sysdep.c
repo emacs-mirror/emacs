@@ -452,7 +452,7 @@ sys_suspend (void)
 #if defined (SIGTSTP) && !defined (MSDOS)
 
   {
-    pid_t pgrp = EMACS_GETPGRP (0);
+    pid_t pgrp = getpgrp ();
     EMACS_KILLPG (pgrp, SIGTSTP);
   }
 
@@ -709,7 +709,7 @@ static pid_t inherited_pgroup;
 void
 init_foreground_group (void)
 {
-  pid_t pgrp = EMACS_GETPGRP (0);
+  pid_t pgrp = getpgrp ();
   inherited_pgroup = getpid () == pgrp ? 0 : pgrp;
 }
 

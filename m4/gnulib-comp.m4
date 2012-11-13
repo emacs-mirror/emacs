@@ -44,6 +44,7 @@ AC_DEFUN([gl_EARLY],
   # Code from module c-strcase:
   # Code from module careadlinkat:
   # Code from module clock-time:
+  # Code from module close-stream:
   # Code from module crypto/md5:
   # Code from module crypto/sha1:
   # Code from module crypto/sha256:
@@ -58,6 +59,7 @@ AC_DEFUN([gl_EARLY],
   AC_REQUIRE([gl_USE_SYSTEM_EXTENSIONS])
   # Code from module extern-inline:
   # Code from module filemode:
+  # Code from module fpending:
   # Code from module getloadavg:
   # Code from module getopt-gnu:
   # Code from module getopt-posix:
@@ -141,6 +143,8 @@ AC_DEFUN([gl_INIT],
   gl_FUNC_ALLOCA
   AC_CHECK_FUNCS_ONCE([readlinkat])
   gl_CLOCK_TIME
+  gl_CLOSE_STREAM
+  gl_MODULE_INDICATOR([close-stream])
   gl_MD5
   gl_SHA1
   gl_SHA256
@@ -157,6 +161,11 @@ AC_DEFUN([gl_INIT],
   gl_EXECINFO_H
   AC_REQUIRE([gl_EXTERN_INLINE])
   gl_FILEMODE
+  gl_FUNC_FPENDING
+  if test $ac_cv_func___fpending = no; then
+    AC_LIBOBJ([fpending])
+    gl_PREREQ_FPENDING
+  fi
   gl_GETLOADAVG
   if test $HAVE_GETLOADAVG = 0; then
     AC_LIBOBJ([getloadavg])
@@ -534,6 +543,8 @@ AC_DEFUN([gl_FILE_LIST], [
   lib/c-strncasecmp.c
   lib/careadlinkat.c
   lib/careadlinkat.h
+  lib/close-stream.c
+  lib/close-stream.h
   lib/dosname.h
   lib/dtoastr.c
   lib/dtotimespec.c
@@ -542,6 +553,8 @@ AC_DEFUN([gl_FILE_LIST], [
   lib/execinfo.in.h
   lib/filemode.c
   lib/filemode.h
+  lib/fpending.c
+  lib/fpending.h
   lib/ftoastr.c
   lib/ftoastr.h
   lib/getloadavg.c
@@ -609,12 +622,14 @@ AC_DEFUN([gl_FILE_LIST], [
   m4/alloca.m4
   m4/c-strtod.m4
   m4/clock_time.m4
+  m4/close-stream.m4
   m4/dup2.m4
   m4/environ.m4
   m4/execinfo.m4
   m4/extensions.m4
   m4/extern-inline.m4
   m4/filemode.m4
+  m4/fpending.m4
   m4/getloadavg.m4
   m4/getopt.m4
   m4/gettime.m4

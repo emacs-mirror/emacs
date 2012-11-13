@@ -1326,17 +1326,14 @@ static Lisp_Object
 check_fontset_name (Lisp_Object name, Lisp_Object *frame)
 {
   int id;
+  struct frame *f = decode_live_frame (*frame);
 
-  if (NILP (*frame))
-    *frame = selected_frame;
-  CHECK_LIVE_FRAME (*frame);
+  XSETFRAME (*frame, f);
 
   if (EQ (name, Qt))
     return Vdefault_fontset;
   if (NILP (name))
-    {
-      id = FRAME_FONTSET (XFRAME (*frame));
-    }
+    id = FRAME_FONTSET (f);
   else
     {
       CHECK_STRING (name);

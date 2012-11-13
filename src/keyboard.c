@@ -3419,20 +3419,20 @@ int stop_character EXTERNALLY_VISIBLE;
 static KBOARD *
 event_to_kboard (struct input_event *event)
 {
-  Lisp_Object frame;
-  frame = event->frame_or_window;
-  if (CONSP (frame))
-    frame = XCAR (frame);
-  else if (WINDOWP (frame))
-    frame = WINDOW_FRAME (XWINDOW (frame));
-
-  /* There are still some events that don't set this field.
-     For now, just ignore the problem.
-     Also ignore dead frames here.  */
-  if (!FRAMEP (frame) || !FRAME_LIVE_P (XFRAME (frame)))
-    return 0;
+  /* Not applicable for these special events.  */
+  if (event->kind == SELECTION_REQUEST_EVENT
+      || event->kind == SELECTION_CLEAR_EVENT)
+    return NULL;
   else
-    return FRAME_KBOARD (XFRAME (frame));
+    {
+      Lisp_Object obj = event->frame_or_window;
+      /* There are some events that set this field to nil or string.  */
+      if (WINDOWP (obj))
+	obj = WINDOW_FRAME (XWINDOW (obj));
+      /* Also ignore dead frames here.  */
+      return ((FRAMEP (obj) && FRAME_LIVE_P (XFRAME (obj)))
+	      ? FRAME_KBOARD (XFRAME (obj)) : NULL);
+    }
 }
 
 #ifdef subprocesses
@@ -12189,14 +12189,15 @@ mark_kboards (void)
       {
 	if (event == kbd_buffer + KBD_BUFFER_SIZE)
 	  event = kbd_buffer;
+	/* These two special event types has no Lisp_Objects to mark.  */
 	if (event->kind != SELECTION_REQUEST_EVENT
 	    && event->kind != SELECTION_CLEAR_EVENT)
 	  {
 	    mark_object (event->x);
 	    mark_object (event->y);
+	    mark_object (event->frame_or_window);
+	    mark_object (event->arg);
 	  }
-	mark_object (event->frame_or_window);
-	mark_object (event->arg);
       }
   }
 }

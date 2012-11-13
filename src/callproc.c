@@ -612,11 +612,7 @@ usage: (call-process PROGRAM &optional INFILE BUFFER DISPLAY &rest ARGS)  */)
 	if (fd[0] >= 0)
 	  emacs_close (fd[0]);
 
-#ifdef HAVE_SETSID
 	setsid ();
-#else
-	setpgid (0, 0);
-#endif
 
 	/* Emacs ignores SIGPIPE, but the child should not.  */
 	signal (SIGPIPE, SIG_DFL);
@@ -1286,11 +1282,7 @@ child_setup (int in, int out, int err, char **new_argv, bool set_pgrp,
   if (err != in && err != out)
     emacs_close (err);
 
-#if defined HAVE_SETPGID || ! (defined USG && defined SETPGRP_RELEASES_CTTY)
-  setpgid (pid, pid);
-#endif
-
-  /* setpgrp_of_tty is incorrect here; it uses input_fd.  */
+  setpgid (0, 0);
   tcsetpgrp (0, pid);
 
   /* execvp does not accept an environment arg so the only way

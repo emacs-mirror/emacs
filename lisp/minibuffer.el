@@ -51,6 +51,9 @@
 
 ;;; Todo:
 
+;; - Make *Completions* readable even if some of the completion
+;;   entries have LF chars or spaces in them (including at
+;;   beginning/end) or are very long.
 ;; - for M-x, cycle-sort commands that have no key binding first.
 ;; - Make things like icomplete-mode or lightning-completion work with
 ;;   completion-in-region-mode.
@@ -74,6 +77,9 @@
 ;;   - whether the user wants completion to pay attention to case.
 ;;   e.g. we may want to make it possible for the user to say "first try
 ;;   completion case-sensitively, and if that fails, try to ignore case".
+;;   Maybe the trick is that we should distinguish completion-ignore-case in
+;;   try/all-completions (obey user's preference) from its use in
+;;   test-completion (obey the underlying object's semantics).
 
 ;; - add support for ** to pcm.
 ;; - Add vc-file-name-completion-table to read-file-name-internal.
@@ -2048,6 +2054,8 @@ This is only used when the minibuffer area has no active minibuffer.")
           process-environment))
 
 (defconst completion--embedded-envvar-re
+  ;; We can't reuse env--substitute-vars-regexp because we need to match only
+  ;; potentially-unfinished envvars at end of string.
   (concat "\\(?:^\\|[^$]\\(?:\\$\\$\\)*\\)"
           "$\\([[:alnum:]_]*\\|{\\([^}]*\\)\\)\\'"))
 

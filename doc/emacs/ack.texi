@@ -244,8 +244,9 @@ files as ``thumbnails''.
 
 @item
 Julien Danjou wrote an implementation of ``Desktop Notifications''
-(@file{notifications.el}); and @file{color.el}, a library for general
-color manipulation.  He also made various contributions to Gnus.
+(@file{notifications.el}, and related packages for ERC and Gnus);
+and @file{color.el}, a library for general color manipulation.
+He also made various contributions to Gnus.
 
 @item
 Vivek Dasmohapatra wrote @file{htmlfontify.el}, to convert a buffer or
@@ -788,6 +789,9 @@ mode-sensitive insertion of text into new files.
 
 @item
 Yukihiro Matsumoto and Nobuyoshi Nakada wrote Ruby-mode.
+
+@item
+Tomohiro Matsuyama wrote the native Elisp profiler.
 
 @item
 Thomas May wrote @file{blackbox.el}, a version of the traditional

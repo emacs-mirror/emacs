@@ -676,7 +676,7 @@ composition_gstring_put_cache (Lisp_Object gstring, ptrdiff_t len)
   ptrdiff_t i;
 
   header = LGSTRING_HEADER (gstring);
-  hash = h->hashfn (h, header);
+  hash = h->test.hashfn (&h->test, header);
   if (len < 0)
     {
       ptrdiff_t j, glyph_len = LGSTRING_GLYPH_LEN (gstring);
@@ -1382,7 +1382,7 @@ composition_update_it (struct composition_it *cmp_it, ptrdiff_t charpos, ptrdiff
     }
   else
     {
-      /* automatic composition */
+      /* Automatic composition.  */
       Lisp_Object gstring = composition_gstring_from_id (cmp_it->id);
       Lisp_Object glyph;
       ptrdiff_t from;

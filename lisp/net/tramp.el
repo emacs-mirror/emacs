@@ -1748,20 +1748,26 @@ value of `default-file-modes', without execute permissions."
   (or (file-modes filename)
       (logand (default-file-modes) (tramp-compat-octal-to-decimal "0666"))))
 
-(defun tramp-replace-environment-variables (filename)
-  "Replace environment variables in FILENAME.
+(defalias 'tramp-replace-environment-variables
+  (if (ignore-errors
+        (equal "${ tramp?}" (substitute-env-vars "${ tramp?}" 'only-defined)))
+      (lambda (filename)
+        "Like `substitute-env-vars' with `only-defined' non-nil."
+        (substitute-env-vars filename 'only-defined))
+    (lambda (filename)
+      "Replace environment variables in FILENAME.
 Return the string with the replaced variables."
-  (save-match-data
-    (let ((idx (string-match "$\\(\\w+\\)" filename)))
-      ;; `$' is coded as `$$'.
-      (when (and idx
-		 (or (zerop idx) (not (eq ?$ (aref filename (1- idx)))))
-		 (getenv (match-string 1 filename)))
-	(setq filename
-	      (replace-match
-	       (substitute-in-file-name (match-string 0 filename))
-	       t nil filename)))
-      filename)))
+      (save-match-data
+        (let ((idx (string-match "$\\(\\w+\\)" filename)))
+          ;; `$' is coded as `$$'.
+          (when (and idx
+                     (or (zerop idx) (not (eq ?$ (aref filename (1- idx)))))
+                     (getenv (match-string 1 filename)))
+            (setq filename
+                  (replace-match
+                   (substitute-in-file-name (match-string 0 filename))
+                   t nil filename)))
+          filename)))))
 
 ;; In XEmacs, electricity is implemented via a key map for ?/ and ?~,
 ;; which calls corresponding functions (see minibuf.el).

@@ -1,3 +1,39 @@
+2012-11-05  Paul Eggert  <eggert@cs.ucla.edu>
+
+	Assume at least POSIX.1-1988 for getpgrp, setpgid, setsid (Bug#12800).
+	* configure.ac (setpgid, setsid): Assume their existence.
+	(AC_FUNC_GETPGRP, SETPGRP_RELEASES_CTTY): Remove; obsolete.
+
+	Simplify by assuming __fpending.
+	Now that Emacs is using the gnulib fpending module,
+	there's no need for Emacs to have a separate implementation.
+	* configure.ac (stdio_ext.h, __fpending): Remove now-duplicate checks.
+	(PENDING_OUTPUT_COUNT, DISPNEW_NEEDS_STDIO_EXT): Remove.
+
+2012-11-03  Eli Zaretskii  <eliz@gnu.org>
+
+	* lib/makefile.w32-in (GNULIBOBJS): Add $(BLD)/fpending.$(O) and
+	$(BLD)/close-stream.$(O).
+	($(BLD)/close-stream.$(O)):
+	($(BLD)/fpending.$(O)): New dependencies.
+
+2012-11-03  Paul Eggert  <eggert@cs.ucla.edu>
+
+	Fix data-loss with --batch (Bug#9574).
+	* lib/close-stream.c, lib/close-stream.h, lib/fpending.c
+	* lib/fpending.h, m4/close-stream.m4, m4/fpending.m4:
+	New files, from gnulib.
+	* lib/gnulib.mk, m4/gnulib-comp.m4: Regenerate.
+
+2012-11-03  Eli Zaretskii  <eliz@gnu.org>
+
+	* config.bat: Copy lib/execinfo.in.h to lib/execinfo.in-h if needed.
+
+2012-11-02  Glenn Morris  <rgm@gnu.org>
+
+	* Makefile.in (EMACS_ICON): New variable.
+	(install-etc): Use EMACS_ICON to allow choice of icon.
+
 2012-10-26  Glenn Morris  <rgm@gnu.org>
 
 	* Makefile.in (EMACS_NAME): New variable.

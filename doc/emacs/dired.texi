@@ -1170,17 +1170,17 @@ automatically when you revisit it, by setting the variable
 
 @kindex k @r{(Dired)}
 @findex dired-do-kill-lines
-  To delete the specified @emph{file lines} from the buffer---not
-delete the files---type @kbd{k} (@code{dired-do-kill-lines}).  Like
+  To delete @emph{file lines} from the buffer---without actually
+deleting the files---type @kbd{k} (@code{dired-do-kill-lines}).  Like
 the file-operating commands, this command operates on the next @var{n}
-files, or on the marked files if any; but it does not operate on the
-current file as a last resort.
+files, or on the marked files if any.  However, it does not operate on
+the current file, since otherwise mistyping @kbd{k} could be annoying.
 
-  If you use @kbd{k} with a numeric prefix argument to kill the line
-for a file that is a directory, which you have inserted in the Dired
-buffer as a subdirectory, it removed that subdirectory line from the
-buffer as well.  Typing @kbd{C-u k} on the header line for a
-subdirectory also removes the subdirectory line from the Dired buffer.
+  If you use @kbd{k} to kill the line for a directory file which you
+had inserted in the Dired buffer as a subdirectory
+(@pxref{Subdirectories in Dired}), it removes the subdirectory listing
+as well.  Typing @kbd{C-u k} on the header line for a subdirectory
+also removes the subdirectory line from the Dired buffer.
 
   The @kbd{g} command brings back any individual lines that you have
 killed in this way, but not subdirectories---you must use @kbd{i} to

@@ -5076,7 +5076,7 @@ See Info node `(elisp)Modification Time' for more details.  */)
   struct stat st;
   Lisp_Object handler;
   Lisp_Object filename;
-  EMACS_TIME mtime, diff;
+  EMACS_TIME mtime;
 
   if (NILP (buf))
     b = current_buffer;
@@ -5101,13 +5101,7 @@ See Info node `(elisp)Modification Time' for more details.  */)
   mtime = (stat (SSDATA (filename), &st) == 0
 	   ? get_stat_mtime (&st)
 	   : time_error_value (errno));
-  if ((EMACS_TIME_EQ (mtime, b->modtime)
-       /* If both exist, accept them if they are off by one second.  */
-       || (EMACS_TIME_VALID_P (mtime) && EMACS_TIME_VALID_P (b->modtime)
-	   && ((diff = (EMACS_TIME_LT (mtime, b->modtime)
-			? sub_emacs_time (b->modtime, mtime)
-			: sub_emacs_time (mtime, b->modtime))),
-	       EMACS_TIME_LE (diff, make_emacs_time (1, 0)))))
+  if (EMACS_TIME_EQ (mtime, b->modtime)
       && (st.st_size == b->modtime_size
           || b->modtime_size < 0))
     return Qt;

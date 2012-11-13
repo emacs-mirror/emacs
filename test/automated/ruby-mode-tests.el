@@ -36,11 +36,13 @@
 
 The whitespace before and including \"|\" on each line is removed."
   (with-temp-buffer
-    (cl-flet ((fix-indent (s) (replace-regexp-in-string "^[ \t]*|" "" s)))
-      (insert (fix-indent content))
-      (ruby-mode)
-      (indent-region (point-min) (point-max))
-      (should (string= (fix-indent expected) (buffer-string))))))
+    (insert (ruby-test-string content))
+    (ruby-mode)
+    (indent-region (point-min) (point-max))
+    (should (string= (ruby-test-string expected) (buffer-string)))))
+
+(defun ruby-test-string (s &rest args)
+  (apply 'format (replace-regexp-in-string "^[ \t]*|" "" s) args))
 
 (defun ruby-assert-state (content &rest values-plist)
   "Assert syntax state values at the end of CONTENT.
@@ -75,6 +77,14 @@ VALUES-PLIST is a list with alternating index and value elements."
 (ert-deftest ruby-discern-singleton-class-from-heredoc ()
   (ruby-assert-state "foo <<asd\n" 3 ?\n)
   (ruby-assert-state "class <<asd\n" 3 nil))
+
+(ert-deftest ruby-heredoc-font-lock ()
+  (let ((s "foo <<eos.gsub('^ *', '')"))
+    (ruby-assert-face s 9 'font-lock-string-face)
+    (ruby-assert-face s 10 nil)))
+
+(ert-deftest ruby-singleton-class-no-heredoc-font-lock ()
+  (ruby-assert-face "class<<a" 8 nil))
 
 (ert-deftest ruby-deep-indent ()
   (let ((ruby-deep-arglist nil)
@@ -202,13 +212,13 @@ VALUES-PLIST is a list with alternating index and value elements."
    |  end
    |"))
 
-(ert-deftest ruby-move-to-block-stops-at-opening ()
+(ert-deftest ruby-move-to-block-stops-at-indentation ()
   (with-temp-buffer
     (insert "def f\nend")
     (beginning-of-line)
     (ruby-mode)
     (ruby-move-to-block -1)
-    (should (looking-at "f$"))))
+    (should (looking-at "^def"))))
 
 (ert-deftest ruby-toggle-block-to-do-end ()
   (with-temp-buffer
@@ -252,6 +262,26 @@ VALUES-PLIST is a list with alternating index and value elements."
                     30 'font-lock-comment-face)
   (ruby-assert-face "# #{comment}\n \"#{interpolation}\"" 16
                     'font-lock-variable-name-face))
+
+(ert-deftest ruby-add-log-current-method-examples ()
+  (let ((pairs '(("foo" . "#foo")
+                 ("C.foo" . ".foo")
+                 ("self.foo" . ".foo"))))
+    (loop for (name . value) in pairs
+          do (with-temp-buffer
+               (insert (ruby-test-string
+                        "module M
+                        |  class C
+                        |    def %s
+                        |    end
+                        |  end
+                        |end"
+                        name))
+               (ruby-mode)
+               (search-backward "def")
+               (forward-line)
+               (should (string= (ruby-add-log-current-method)
+                                (format "M::C%s" value)))))))
 
 (provide 'ruby-mode-tests)
 

@@ -534,34 +534,39 @@ Returns nil only if there's no match for `ansi-color-parameter-regexp'."
 
 ESCAPE-SEQ is an escape sequence parsed by `ansi-color-parse-sequence'.
 
-If the new codes resulting from ESCAPE-SEQ start with 0, then the
-old codes are discarded and the remaining new codes are
-processed.  Otherwise, for each new code: if it is 21-25 or 27-29
-delete appropriate parameters from the list of codes; any other
-code that makes sense is added to the list of codes.  Finally,
-the so changed list of codes is returned."
+For each new code, the following happens: if it is 1-7, add it to
+the list of codes; if it is 21-25 or 27, delete appropriate
+parameters from the list of codes; if it is 30-37 resp. 39, the
+foreground color code is replaced or added resp. deleted; if it
+is 40-47 resp. 49, the background color code is replaced or added
+resp. deleted; any other code is discarded together with the old
+codes.	Finally, the so changed list of codes is returned."
   (let ((new-codes (ansi-color-parse-sequence escape-sequence)))
     (while new-codes
-      (setq codes
-	    (let ((new (pop new-codes)))
-	      (cond ((zerop new)
-		     nil)
-		    ((or (<= new 20)
-			 (>= new 30))
-		     (if (memq new codes)
-			 codes
-		       (cons new codes)))
-		    ;; The standard says `21 doubly underlined' while
-		    ;; http://en.wikipedia.org/wiki/ANSI_escape_code claims
-		    ;; `21 Bright/Bold: off or Underline: Double'.
-		    ((/= new 26)
-		     (remq (- new 20)
-			   (cond ((= new 22)
-				  (remq 1 codes))
-				 ((= new 25)
-				  (remq 6 codes))
-				 (t codes))))
-		    (t codes)))))
+      (let* ((new (pop new-codes))
+	     (q (/ new 10)))
+	(setq codes
+	      (pcase q
+		(0 (unless (memq new '(0 8 9))
+		     (cons new (remq new codes))))
+		(2 (unless (memq new '(20 26 28 29))
+		     ;; The standard says `21 doubly underlined' while
+		     ;; http://en.wikipedia.org/wiki/ANSI_escape_code claims
+		     ;; `21 Bright/Bold: off or Underline: Double'.
+		     (remq (- new 20) (pcase new
+					(22 (remq 1 codes))
+					(25 (remq 6 codes))
+					(_ codes)))))
+		((or 3 4) (let ((r (mod new 10)))
+			    (unless (= r 8)
+			      (let (beg)
+				(while (and codes (/= q (/ (car codes) 10)))
+				  (push (pop codes) beg))
+				(setq codes (nconc (nreverse beg) (cdr codes)))
+				(if (= r 9)
+				    codes
+				  (cons new codes))))))
+		(_ nil)))))
     codes))
 
 (defun ansi-color-make-color-map ()

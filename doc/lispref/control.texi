@@ -824,6 +824,19 @@ The function @code{signal} never returns.
 @end example
 @end defun
 
+@cindex user errors, signaling
+@defun user-error format-string &rest args
+This function behaves exactly like @code{error}, except that it uses
+the error symbol @code{user-error} rather than @code{error}.  As the
+name suggests, this is intended to report errors on the part of the
+user, rather than errors in the code itself.  For example,
+if you try to use the command @code{Info-history-back} (@kbd{l}) to
+move back beyond the start of your Info browsing history, Emacs
+signals a @code{user-error}.  Such errors do not cause entry to the
+debugger, even when @code{debug-on-error} is non-@code{nil}.
+@xref{Error Debugging}.
+@end defun
+
 @cindex CL note---no continuable errors
 @quotation
 @b{Common Lisp note:} Emacs Lisp has nothing like the Common Lisp

@@ -1940,7 +1940,7 @@ x_handle_selection_notify (XSelectionEvent *event)
 static struct frame *
 frame_for_x_selection (Lisp_Object object)
 {
-  Lisp_Object tail;
+  Lisp_Object tail, frame;
   struct frame *f;
 
   if (NILP (object))
@@ -1949,9 +1949,9 @@ frame_for_x_selection (Lisp_Object object)
       if (FRAME_X_P (f) && FRAME_LIVE_P (f))
 	return f;
 
-      for (tail = Vframe_list; CONSP (tail); tail = XCDR (tail))
+      FOR_EACH_FRAME (tail, frame)
 	{
-	  f = XFRAME (XCAR (tail));
+	  f = XFRAME (frame);
 	  if (FRAME_X_P (f) && FRAME_LIVE_P (f))
 	    return f;
 	}
@@ -1959,15 +1959,14 @@ frame_for_x_selection (Lisp_Object object)
   else if (TERMINALP (object))
     {
       struct terminal *t = get_terminal (object, 1);
+
       if (t->type == output_x_window)
-	{
-	  for (tail = Vframe_list; CONSP (tail); tail = XCDR (tail))
-	    {
-	      f = XFRAME (XCAR (tail));
-	      if (FRAME_LIVE_P (f) && f->terminal == t)
-		return f;
-	    }
-	}
+	FOR_EACH_FRAME (tail, frame)
+	  {
+	    f = XFRAME (frame);
+	    if (FRAME_LIVE_P (f) && f->terminal == t)
+	      return f;
+	  }
     }
   else if (FRAMEP (object))
     {

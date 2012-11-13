@@ -244,7 +244,7 @@ decode_live_window (register Lisp_Object window)
   return XWINDOW (window);
 }
 
-static struct window *
+struct window *
 decode_any_window (register Lisp_Object window)
 {
   struct window *w;
@@ -268,6 +268,15 @@ decode_valid_window (register Lisp_Object window)
   CHECK_VALID_WINDOW (window);
   w = XWINDOW (window);
   return w;
+}
+
+/* Build a frequently used 4-integer (X Y W H) list.  */
+
+static Lisp_Object
+list4i (EMACS_INT x, EMACS_INT y, EMACS_INT w, EMACS_INT h)
+{
+  return list4 (make_number (x), make_number (y),
+		make_number (w), make_number (h));
 }
 
 DEFUN ("windowp", Fwindowp, Swindowp, 1, 1, 0,
@@ -296,7 +305,7 @@ Internal windows and deleted windows are not live.  */)
 }
 
 /* Frames and windows.  */
-DEFUN ("window-frame", Fwindow_frame, Swindow_frame, 1, 1, 0,
+DEFUN ("window-frame", Fwindow_frame, Swindow_frame, 0, 1, 0,
        doc: /* Return the frame that window WINDOW is on.
 WINDOW must be a valid window and defaults to the selected one.  */)
   (Lisp_Object window)
@@ -331,10 +340,7 @@ DEFUN ("minibuffer-window", Fminibuffer_window, Sminibuffer_window, 0, 1, 0,
 If FRAME is omitted or nil, it defaults to the selected frame.  */)
   (Lisp_Object frame)
 {
-  if (NILP (frame))
-    frame = selected_frame;
-  CHECK_LIVE_FRAME (frame);
-  return FRAME_MINIBUF_WINDOW (XFRAME (frame));
+  return FRAME_MINIBUF_WINDOW (decode_live_frame (frame));
 }
 
 DEFUN ("window-minibuffer-p", Fwindow_minibuffer_p,
@@ -556,7 +562,7 @@ Return nil for a window with no parent (e.g. a root window).  */)
   return decode_valid_window (window)->parent;
 }
 
-DEFUN ("window-top-child", Fwindow_top_child, Swindow_top_child, 1, 1, 0,
+DEFUN ("window-top-child", Fwindow_top_child, Swindow_top_child, 0, 1, 0,
        doc: /* Return the topmost child window of window WINDOW.
 WINDOW must be a valid window and defaults to the selected one.
 Return nil if WINDOW is a live window (live windows have no children).
@@ -564,11 +570,10 @@ Return nil if WINDOW is an internal window whose children form a
 horizontal combination.  */)
   (Lisp_Object window)
 {
-  CHECK_WINDOW (window);
   return decode_valid_window (window)->vchild;
 }
 
-DEFUN ("window-left-child", Fwindow_left_child, Swindow_left_child, 1, 1, 0,
+DEFUN ("window-left-child", Fwindow_left_child, Swindow_left_child, 0, 1, 0,
        doc: /* Return the leftmost child window of window WINDOW.
 WINDOW must be a valid window and defaults to the selected one.
 Return nil if WINDOW is a live window (live windows have no children).
@@ -576,7 +581,6 @@ Return nil if WINDOW is an internal window whose children form a
 vertical combination.  */)
   (Lisp_Object window)
 {
-  CHECK_WINDOW (window);
   return decode_valid_window (window)->hchild;
 }
 
@@ -600,22 +604,27 @@ Return nil if WINDOW has no previous sibling.  */)
 
 DEFUN ("window-combination-limit", Fwindow_combination_limit, Swindow_combination_limit, 1, 1, 0,
        doc: /* Return combination limit of window WINDOW.
-WINDOW must be a valid window and defaults to the selected one.
 If the return value is nil, child windows of WINDOW can be recombined with
 WINDOW's siblings.  A return value of t means that child windows of
-WINDOW are never \(re-)combined with WINDOW's siblings.  */)
+WINDOW are never \(re-)combined with WINDOW's siblings.
+
+WINDOW must be a valid window.  The return value is meaningful for
+internal windows only.  */)
   (Lisp_Object window)
 {
-  return decode_valid_window (window)->combination_limit;
+  CHECK_VALID_WINDOW (window);
+  return XWINDOW (window)->combination_limit;
 }
 
 DEFUN ("set-window-combination-limit", Fset_window_combination_limit, Sset_window_combination_limit, 2, 2, 0,
        doc: /* Set combination limit of window WINDOW to LIMIT; return LIMIT.
-WINDOW must be a valid window and defaults to the selected one.
 If LIMIT is nil, child windows of WINDOW can be recombined with WINDOW's
 siblings.  LIMIT t means that child windows of WINDOW are never
 \(re-)combined with WINDOW's siblings.  Other values are reserved for
-future use.  */)
+future use.
+
+WINDOW must be a valid window.  Setting the combination limit is
+meaningful for internal windows only.  */)
   (Lisp_Object window, Lisp_Object limit)
 {
   wset_combination_limit (decode_valid_window (window), limit);
@@ -774,8 +783,7 @@ area is only partially visible, that counts as a whole line; to
 exclude partially-visible lines, use `window-text-height'.  */)
   (Lisp_Object window)
 {
-  struct window *w = decode_live_window (window);
-  return make_number (window_body_lines (w));
+  return make_number (window_body_lines (decode_live_window (window)));
 }
 
 DEFUN ("window-body-width", Fwindow_body_width, Swindow_body_width, 0, 1, 0,
@@ -787,8 +795,7 @@ marginal areas, or scroll bars.  On a graphical display, the width is
 expressed as an integer multiple of the default character width.  */)
   (Lisp_Object window)
 {
-  struct window *w = decode_live_window (window);
-  return make_number (window_body_cols (w));
+  return make_number (window_body_cols (decode_live_window (window)));
 }
 
 DEFUN ("window-hscroll", Fwindow_hscroll, Swindow_hscroll, 0, 1, 0,
@@ -831,10 +838,8 @@ Note that if `automatic-hscrolling' is non-nil, you cannot scroll the
 window so that the location of point moves off-window.  */)
   (Lisp_Object window, Lisp_Object ncol)
 {
-  struct window *w = decode_live_window (window);
-
   CHECK_NUMBER (ncol);
-  return set_window_hscroll (w, XINT (ncol));
+  return set_window_hscroll (decode_live_window (window), XINT (ncol));
 }
 
 DEFUN ("window-redisplay-end-trigger", Fwindow_redisplay_end_trigger,
@@ -879,11 +884,8 @@ header line, and/or mode line.  For the edges of just the text area, use
 {
   register struct window *w = decode_valid_window (window);
 
-  return Fcons (make_number (WINDOW_LEFT_EDGE_COL (w)),
-	 Fcons (make_number (WINDOW_TOP_EDGE_LINE (w)),
-	 Fcons (make_number (WINDOW_RIGHT_EDGE_COL (w)),
-	 Fcons (make_number (WINDOW_BOTTOM_EDGE_LINE (w)),
-		Qnil))));
+  return list4i (WINDOW_LEFT_EDGE_COL (w), WINDOW_TOP_EDGE_LINE (w),
+		 WINDOW_RIGHT_EDGE_COL (w), WINDOW_BOTTOM_EDGE_LINE (w));
 }
 
 DEFUN ("window-pixel-edges", Fwindow_pixel_edges, Swindow_pixel_edges, 0, 1, 0,
@@ -902,11 +904,8 @@ of just the text area, use `window-inside-pixel-edges'.  */)
 {
   register struct window *w = decode_valid_window (window);
 
-  return Fcons (make_number (WINDOW_LEFT_EDGE_X (w)),
-	 Fcons (make_number (WINDOW_TOP_EDGE_Y (w)),
-	 Fcons (make_number (WINDOW_RIGHT_EDGE_X (w)),
-	 Fcons (make_number (WINDOW_BOTTOM_EDGE_Y (w)),
-		Qnil))));
+  return list4i (WINDOW_LEFT_EDGE_X (w), WINDOW_TOP_EDGE_Y (w),
+		 WINDOW_RIGHT_EDGE_X (w), WINDOW_BOTTOM_EDGE_Y (w));
 }
 
 static void
@@ -948,13 +947,13 @@ of just the text area, use `window-inside-absolute-pixel-edges'.  */)
 {
   register struct window *w = decode_valid_window (window);
   int add_x, add_y;
+
   calc_absolute_offset (w, &add_x, &add_y);
 
-  return Fcons (make_number (WINDOW_LEFT_EDGE_X (w) + add_x),
-         Fcons (make_number (WINDOW_TOP_EDGE_Y (w) + add_y),
-	 Fcons (make_number (WINDOW_RIGHT_EDGE_X (w) + add_x),
-	 Fcons (make_number (WINDOW_BOTTOM_EDGE_Y (w) + add_y),
-		Qnil))));
+  return list4i (WINDOW_LEFT_EDGE_X (w) + add_x,
+		 WINDOW_TOP_EDGE_Y (w) + add_y,
+		 WINDOW_RIGHT_EDGE_X (w) + add_x,
+		 WINDOW_BOTTOM_EDGE_Y (w) + add_y);
 }
 
 DEFUN ("window-inside-edges", Fwindow_inside_edges, Swindow_inside_edges, 0, 1, 0,
@@ -973,16 +972,16 @@ display margins, fringes, header line, and/or mode line.  */)
 {
   register struct window *w = decode_live_window (window);
 
-  return list4 (make_number (WINDOW_BOX_LEFT_EDGE_COL (w)
-			     + WINDOW_LEFT_MARGIN_COLS (w)
-			     + WINDOW_LEFT_FRINGE_COLS (w)),
-		make_number (WINDOW_TOP_EDGE_LINE (w)
-			     + WINDOW_HEADER_LINE_LINES (w)),
-		make_number (WINDOW_BOX_RIGHT_EDGE_COL (w)
-			     - WINDOW_RIGHT_MARGIN_COLS (w)
-			     - WINDOW_RIGHT_FRINGE_COLS (w)),
-		make_number (WINDOW_BOTTOM_EDGE_LINE (w)
-			     - WINDOW_MODE_LINE_LINES (w)));
+  return list4i ((WINDOW_BOX_LEFT_EDGE_COL (w)
+		  + WINDOW_LEFT_MARGIN_COLS (w)
+		  + WINDOW_LEFT_FRINGE_COLS (w)),
+		 (WINDOW_TOP_EDGE_LINE (w)
+		  + WINDOW_HEADER_LINE_LINES (w)),
+		 (WINDOW_BOX_RIGHT_EDGE_COL (w)
+		  - WINDOW_RIGHT_MARGIN_COLS (w)
+		  - WINDOW_RIGHT_FRINGE_COLS (w)),
+		 (WINDOW_BOTTOM_EDGE_LINE (w)
+		  - WINDOW_MODE_LINE_LINES (w)));
 }
 
 DEFUN ("window-inside-pixel-edges", Fwindow_inside_pixel_edges, Swindow_inside_pixel_edges, 0, 1, 0,
@@ -1000,16 +999,16 @@ display margins, fringes, header line, and/or mode line.  */)
 {
   register struct window *w = decode_live_window (window);
 
-  return list4 (make_number (WINDOW_BOX_LEFT_EDGE_X (w)
-			     + WINDOW_LEFT_MARGIN_WIDTH (w)
-			     + WINDOW_LEFT_FRINGE_WIDTH (w)),
-		make_number (WINDOW_TOP_EDGE_Y (w)
-			     + WINDOW_HEADER_LINE_HEIGHT (w)),
-		make_number (WINDOW_BOX_RIGHT_EDGE_X (w)
-			     - WINDOW_RIGHT_MARGIN_WIDTH (w)
-			     - WINDOW_RIGHT_FRINGE_WIDTH (w)),
-		make_number (WINDOW_BOTTOM_EDGE_Y (w)
-			     - WINDOW_MODE_LINE_HEIGHT (w)));
+  return list4i ((WINDOW_BOX_LEFT_EDGE_X (w)
+		  + WINDOW_LEFT_MARGIN_WIDTH (w)
+		  + WINDOW_LEFT_FRINGE_WIDTH (w)),
+		 (WINDOW_TOP_EDGE_Y (w)
+		  + WINDOW_HEADER_LINE_HEIGHT (w)),
+		 (WINDOW_BOX_RIGHT_EDGE_X (w)
+		  - WINDOW_RIGHT_MARGIN_WIDTH (w)
+		  - WINDOW_RIGHT_FRINGE_WIDTH (w)),
+		 (WINDOW_BOTTOM_EDGE_Y (w)
+		  - WINDOW_MODE_LINE_HEIGHT (w)));
 }
 
 DEFUN ("window-inside-absolute-pixel-edges",
@@ -1029,18 +1028,19 @@ display margins, fringes, header line, and/or mode line.  */)
 {
   register struct window *w = decode_live_window (window);
   int add_x, add_y;
+
   calc_absolute_offset (w, &add_x, &add_y);
 
-  return list4 (make_number (WINDOW_BOX_LEFT_EDGE_X (w)
-			     + WINDOW_LEFT_MARGIN_WIDTH (w)
-			     + WINDOW_LEFT_FRINGE_WIDTH (w) + add_x),
-		make_number (WINDOW_TOP_EDGE_Y (w)
-			     + WINDOW_HEADER_LINE_HEIGHT (w) + add_y),
-		make_number (WINDOW_BOX_RIGHT_EDGE_X (w)
-			     - WINDOW_RIGHT_MARGIN_WIDTH (w)
-			     - WINDOW_RIGHT_FRINGE_WIDTH (w) + add_x),
-		make_number (WINDOW_BOTTOM_EDGE_Y (w)
-			     - WINDOW_MODE_LINE_HEIGHT (w) + add_y));
+  return list4i ((WINDOW_BOX_LEFT_EDGE_X (w)
+		  + WINDOW_LEFT_MARGIN_WIDTH (w)
+		  + WINDOW_LEFT_FRINGE_WIDTH (w) + add_x),
+		 (WINDOW_TOP_EDGE_Y (w)
+		  + WINDOW_HEADER_LINE_HEIGHT (w) + add_y),
+		 (WINDOW_BOX_RIGHT_EDGE_X (w)
+		  - WINDOW_RIGHT_MARGIN_WIDTH (w)
+		  - WINDOW_RIGHT_FRINGE_WIDTH (w) + add_x),
+		 (WINDOW_BOTTOM_EDGE_Y (w)
+		  - WINDOW_MODE_LINE_HEIGHT (w) + add_y));
 }
 
 /* Test if the character at column X, row Y is within window W.
@@ -1373,12 +1373,7 @@ The top left corner of the frame is considered to be row 0,
 column 0.  */)
   (Lisp_Object x, Lisp_Object y, Lisp_Object frame)
 {
-  struct frame *f;
-
-  if (NILP (frame))
-    frame = selected_frame;
-  CHECK_LIVE_FRAME (frame);
-  f = XFRAME (frame);
+  struct frame *f = decode_live_frame (frame);
 
   /* Check that arguments are integers or floats.  */
   CHECK_NUMBER_OR_FLOAT (x);
@@ -1626,8 +1621,7 @@ display row, and VPOS is the row number (0-based) containing POS.  */)
     {
       Lisp_Object part = Qnil;
       if (!fully_p)
-	part = list4 (make_number (rtop), make_number (rbot),
-			make_number (rowh), make_number (vpos));
+	part = list4i (rtop, rbot, rowh, vpos);
       in_window = Fcons (make_number (x),
 			 Fcons (make_number (y), part));
     }
@@ -1693,23 +1687,19 @@ Return nil if window display is not up-to-date.  In that case, use
       if (!WINDOW_WANTS_HEADER_LINE_P (w))
 	return Qnil;
       row = MATRIX_HEADER_LINE_ROW (w->current_matrix);
-      if (!row->enabled_p)
-	return Qnil;
-      return list4 (make_number (row->height),
-		    make_number (0), make_number (0),
-		    make_number (0));
+      return row->enabled_p ? list4i (row->height, 0, 0, 0) : Qnil;
     }
 
   if (EQ (line, Qmode_line))
     {
       row = MATRIX_MODE_LINE_ROW (w->current_matrix);
-      if (!row->enabled_p)
-	return Qnil;
-      return list4 (make_number (row->height),
-		    make_number (0), /* not accurate */
-		    make_number (WINDOW_HEADER_LINE_HEIGHT (w)
-				 + window_text_bottom_y (w)),
-		    make_number (0));
+      return (row->enabled_p ?
+	      list4i (row->height,
+		      0, /* not accurate */
+		      (WINDOW_HEADER_LINE_HEIGHT (w)
+		       + window_text_bottom_y (w)),
+		      0)
+	      : Qnil);
     }
 
   CHECK_NUMBER (line);
@@ -1738,10 +1728,7 @@ Return nil if window display is not up-to-date.  In that case, use
 
  found_row:
   crop = max (0, (row->y + row->height) - max_y);
-  return list4 (make_number (row->height + min (0, row->y) - crop),
-		make_number (i),
-		make_number (row->y),
-		make_number (crop));
+  return list4i (row->height + min (0, row->y) - crop, i, row->y, crop);
 }
 
 DEFUN ("window-dedicated-p", Fwindow_dedicated_p, Swindow_dedicated_p,
@@ -2146,10 +2133,10 @@ window_list (void)
 {
   if (!CONSP (Vwindow_list))
     {
-      Lisp_Object tail;
+      Lisp_Object tail, frame;
 
       Vwindow_list = Qnil;
-      for (tail = Vframe_list; CONSP (tail); tail = XCDR (tail))
+      FOR_EACH_FRAME (tail, frame)
 	{
 	  Lisp_Object args[2];
 
@@ -2157,7 +2144,7 @@ window_list (void)
 	     new windows at the front of args[1], which means we
 	     have to reverse this list at the end.  */
 	  args[1] = Qnil;
-	  foreach_window (XFRAME (XCAR (tail)), add_window_to_list, &args[1]);
+	  foreach_window (XFRAME (frame), add_window_to_list, &args[1]);
 	  args[0] = Vwindow_list;
 	  args[1] = Fnreverse (args[1]);
 	  Vwindow_list = Fnconc (2, args);
@@ -2252,11 +2239,9 @@ candidate_window_p (Lisp_Object window, Lisp_Object owindow, Lisp_Object minibuf
 static void
 decode_next_window_args (Lisp_Object *window, Lisp_Object *minibuf, Lisp_Object *all_frames)
 {
-  if (NILP (*window))
-    *window = selected_window;
-  else
-    CHECK_LIVE_WINDOW (*window);
+  struct window *w = decode_live_window (*window);
 
+  XSETWINDOW (*window, w);
   /* MINIBUF nil may or may not include minibuffers.  Decide if it
      does.  */
   if (NILP (*minibuf))
@@ -2272,7 +2257,7 @@ decode_next_window_args (Lisp_Object *window, Lisp_Object *minibuf, Lisp_Object 
   if (NILP (*all_frames))
     *all_frames
       = (!EQ (*minibuf, Qlambda)
-	 ? FRAME_MINIBUF_WINDOW (XFRAME (XWINDOW (*window)->frame))
+	 ? FRAME_MINIBUF_WINDOW (XFRAME (w->frame))
 	 : Qnil);
   else if (EQ (*all_frames, Qvisible))
     ;
@@ -3122,12 +3107,12 @@ run_window_configuration_change_hook (struct frame *f)
 }
 
 DEFUN ("run-window-configuration-change-hook", Frun_window_configuration_change_hook,
-       Srun_window_configuration_change_hook, 1, 1, 0,
-       doc: /* Run `window-configuration-change-hook' for FRAME.  */)
+       Srun_window_configuration_change_hook, 0, 1, 0,
+       doc: /* Run `window-configuration-change-hook' for FRAME.
+If FRAME is omitted or nil, it defaults to the selected frame.  */)
   (Lisp_Object frame)
 {
-  CHECK_LIVE_FRAME (frame);
-  run_window_configuration_change_hook (XFRAME (frame));
+  run_window_configuration_change_hook (decode_live_frame (frame));
   return Qnil;
 }
 
@@ -3654,10 +3639,12 @@ window_resize_apply (struct window *w, int horflag)
 }
 
 
-DEFUN ("window-resize-apply", Fwindow_resize_apply, Swindow_resize_apply, 1, 2, 0,
+DEFUN ("window-resize-apply", Fwindow_resize_apply, Swindow_resize_apply, 0, 2, 0,
        doc: /* Apply requested size values for window-tree of FRAME.
-Optional argument HORIZONTAL omitted or nil means apply requested height
-values.  HORIZONTAL non-nil means apply requested width values.
+If FRAME is omitted or nil, it defaults to the selected frame.
+
+Optional argument HORIZONTAL omitted or nil means apply requested
+height values.  HORIZONTAL non-nil means apply requested width values.
 
 This function checks whether the requested values sum up to a valid
 window layout, recursively assigns the new sizes of all child windows
@@ -3668,16 +3655,9 @@ Note: This function does not check any of `window-fixed-size-p',
 be applied on the Elisp level.  */)
      (Lisp_Object frame, Lisp_Object horizontal)
 {
-  struct frame *f;
-  struct window *r;
+  struct frame *f = decode_live_frame (frame);
+  struct window *r = XWINDOW (FRAME_ROOT_WINDOW (f));
   int horflag = !NILP (horizontal);
-
-  if (NILP (frame))
-    frame = selected_frame;
-  CHECK_LIVE_FRAME (frame);
-
-  f = XFRAME (frame);
-  r = XWINDOW (FRAME_ROOT_WINDOW (f));
 
   if (!window_resize_check (r, horflag)
       || ! EQ (r->new_total,
@@ -3892,9 +3872,10 @@ set correctly.  See the code of `split-window' for how this is done.  */)
 
       make_parent_window (old, horflag);
       p = XWINDOW (o->parent);
-      /* Store t in the new parent's combination_limit slot to avoid
-	that its children get merged into another window.  */
-      wset_combination_limit (p, Qt);
+      if (EQ (Vwindow_combination_limit, Qt))
+	/* Store t in the new parent's combination_limit slot to avoid
+	   that its children get merged into another window.  */
+	wset_combination_limit (p, Qt);
       /* These get applied below.  */
       wset_new_total (p, horflag ? o->total_cols : o->total_lines);
       wset_new_normal (p, new_normal);
@@ -6161,12 +6142,7 @@ saved by this function.  */)
   register int n_windows;
   register struct save_window_data *data;
   register int i;
-  FRAME_PTR f;
-
-  if (NILP (frame))
-    frame = selected_frame;
-  CHECK_LIVE_FRAME (frame);
-  f = XFRAME (frame);
+  struct frame *f = decode_live_frame (frame);
 
   n_windows = count_windows (XWINDOW (FRAME_ROOT_WINDOW (f)));
   data = ALLOCATE_PSEUDOVECTOR (struct save_window_data, frame_cols,
@@ -6319,10 +6295,9 @@ Value is a list of the form (LEFT-WIDTH RIGHT-WIDTH OUTSIDE-MARGINS).  */)
 {
   struct window *w = decode_live_window (window);
 
-  return Fcons (make_number (WINDOW_LEFT_FRINGE_WIDTH (w)),
-		Fcons (make_number (WINDOW_RIGHT_FRINGE_WIDTH (w)),
-		       Fcons ((WINDOW_HAS_FRINGES_OUTSIDE_MARGINS (w)
-			       ? Qt : Qnil), Qnil)));
+  return list3 (make_number (WINDOW_LEFT_FRINGE_WIDTH (w)),
+		make_number (WINDOW_RIGHT_FRINGE_WIDTH (w)),
+		WINDOW_HAS_FRINGES_OUTSIDE_MARGINS (w) ? Qt : Qnil);
 }
 
 
@@ -6391,12 +6366,12 @@ value.  */)
   (Lisp_Object window)
 {
   struct window *w = decode_live_window (window);
-  return Fcons (make_number ((WINDOW_CONFIG_SCROLL_BAR_WIDTH (w)
+
+  return list4 (make_number ((WINDOW_CONFIG_SCROLL_BAR_WIDTH (w)
 			      ? WINDOW_CONFIG_SCROLL_BAR_WIDTH (w)
 			      : WINDOW_SCROLL_BAR_AREA_WIDTH (w))),
-		Fcons (make_number (WINDOW_SCROLL_BAR_COLS (w)),
-		       Fcons (w->vertical_scroll_bar_type,
-			      Fcons (Qnil, Qnil))));
+		make_number (WINDOW_SCROLL_BAR_COLS (w)),
+		w->vertical_scroll_bar_type, Qnil);
 }
 
 

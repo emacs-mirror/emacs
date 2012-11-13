@@ -143,37 +143,36 @@ to `display-buffer'."
 	window))))
 
 (defmacro with-temp-buffer-window (buffer-or-name action quit-function &rest body)
-  "Evaluate BODY and display buffer specified by BUFFER-OR-NAME.
-BUFFER-OR-NAME must specify either a live buffer or the name of a
-buffer.  If no buffer with such a name exists, create one.
+  "Evaluate BODY and display the buffer specified by BUFFER-OR-NAME.
+BUFFER-OR-NAME must specify either a live buffer, or the name of a
+buffer (if it does not exist, this macro creates it).
 
 Make sure the specified buffer is empty before evaluating BODY.
 Do not make that buffer current for BODY.  Instead, bind
 `standard-output' to that buffer, so that output generated with
 `prin1' and similar functions in BODY goes into that buffer.
 
-After evaluating BODY, mark the specified buffer unmodified and
-read-only, and display it in a window via `display-buffer'.  Pass
-ACTION as action argument to `display-buffer'.  Automatically
-shrink the window used if `temp-buffer-resize-mode' is enabled.
+After evaluating BODY, this marks the specified buffer unmodified and
+read-only, and displays it in a window via `display-buffer', passing
+ACTION as the action argument to `display-buffer'.  It automatically
+shrinks the relevant window if `temp-buffer-resize-mode' is enabled.
 
-Return the value returned by BODY unless QUIT-FUNCTION specifies
-a function.  In that case, run the function with two arguments -
+Returns the value returned by BODY, unless QUIT-FUNCTION specifies
+a function.  In that case, runs the function with two arguments -
 the window showing the specified buffer and the value returned by
-BODY - and return the value returned by that function.
+BODY - and returns the value returned by that function.
 
 If the buffer is displayed on a new frame, the window manager may
 decide to select that frame.  In that case, it's usually a good
 strategy if the function specified by QUIT-FUNCTION selects the
 window showing the buffer before reading a value from the
-minibuffer, for example, when asking a `yes-or-no-p' question.
+minibuffer; for example, when asking a `yes-or-no-p' question.
 
-This construct is similar to `with-output-to-temp-buffer' but
-does neither put the buffer in help mode nor does it call
-`temp-buffer-show-function'.  It also runs different hooks,
-namely `temp-buffer-window-setup-hook' (with the specified buffer
-current) and `temp-buffer-window-show-hook' (with the specified
-buffer current and the window showing it selected).
+This construct is similar to `with-output-to-temp-buffer', but does
+not put the buffer in help mode, or call `temp-buffer-show-function'.
+It also runs different hooks, namely `temp-buffer-window-setup-hook'
+\(with the specified buffer current) and `temp-buffer-window-show-hook'
+\(with the specified buffer current and the window showing it selected).
 
 Since this macro calls `display-buffer', the window displaying
 the buffer is usually not selected and the specified buffer
@@ -3091,10 +3090,11 @@ before was current this also makes BUFFER the current buffer."
   "If non-nil, allow switching to an already visible buffer.
 If this variable is non-nil, `switch-to-prev-buffer' and
 `switch-to-next-buffer' may switch to an already visible buffer
-provided the buffer was shown in the argument window before.  If
-this variable is nil, `switch-to-prev-buffer' and
-`switch-to-next-buffer' always try to avoid switching to a buffer
-that is already visible in another window on the same frame."
+provided the buffer was shown before in the window specified as
+argument to those functions.  If this variable is nil,
+`switch-to-prev-buffer' and `switch-to-next-buffer' always try to
+avoid switching to a buffer that is already visible in another
+window on the same frame."
   :type 'boolean
   :version "24.1"
   :group 'windows)
@@ -5855,8 +5855,8 @@ window on any visible or iconified frame.  If this is t, it
 unconditionally tries to display the buffer at its previous
 position in the selected window.
 
-This variable is ignored if the the buffer is already displayed
-in the selected window or never appeared in it before, or if
+This variable is ignored if the buffer is already displayed in
+the selected window or never appeared in it before, or if
 `switch-to-buffer' calls `pop-to-buffer' to display the buffer."
   :type '(choice
 	  (const :tag "Never" nil)
@@ -6064,7 +6064,7 @@ A frame can be resized if and only if its root window is a live
 window.  The height of the root window is subject to the values
 of `fit-frame-to-buffer-max-height' and `window-min-height'."
   :type 'boolean
-  :version "24.2"
+  :version "24.3"
   :group 'help)
 
 (defcustom fit-frame-to-buffer-bottom-margin 4
@@ -6072,7 +6072,7 @@ of `fit-frame-to-buffer-max-height' and `window-min-height'."
 This is the number of lines `fit-frame-to-buffer' leaves free at the
 bottom of the display in order to not obscure the system task bar."
   :type 'integer
-  :version "24.2"
+  :version "24.3"
   :group 'windows)
 
 (defun fit-frame-to-buffer (&optional frame max-height min-height)

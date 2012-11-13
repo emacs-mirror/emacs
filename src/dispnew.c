@@ -53,9 +53,7 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #include "systime.h"
 #include <errno.h>
 
-#ifdef DISPNEW_NEEDS_STDIO_EXT
-#include <stdio_ext.h>
-#endif
+#include <fpending.h>
 
 #if defined (HAVE_TERM_H) && defined (GNU_LINUX)
 #include <term.h>		/* for tgetent */
@@ -142,10 +140,6 @@ struct frame *last_nonminibuf_frame;
 /* True means SIGWINCH happened when not safe.  */
 
 static bool delayed_size_change;
-
-/* 1 means glyph initialization has been completed at startup.  */
-
-static bool glyphs_initialized_initially_p;
 
 /* Updated window if != 0.  Set by update_window.  */
 
@@ -1852,43 +1846,6 @@ adjust_glyphs (struct frame *f)
   unblock_input ();
 }
 
-
-/* Adjust frame glyphs when Emacs is initialized.
-
-   To be called from init_display.
-
-   We need a glyph matrix because redraw will happen soon.
-   Unfortunately, window sizes on selected_frame are not yet set to
-   meaningful values.  I believe we can assume that there are only two
-   windows on the frame---the mini-buffer and the root window.  Frame
-   height and width seem to be correct so far.  So, set the sizes of
-   windows to estimated values.  */
-
-static void
-adjust_frame_glyphs_initially (void)
-{
-  struct frame *sf = SELECTED_FRAME ();
-  struct window *root = XWINDOW (sf->root_window);
-  struct window *mini = XWINDOW (root->next);
-  int frame_lines = FRAME_LINES (sf);
-  int frame_cols = FRAME_COLS (sf);
-  int top_margin = FRAME_TOP_MARGIN (sf);
-
-  /* Do it for the root window.  */
-  wset_top_line (root, make_number (top_margin));
-  wset_total_lines (root, make_number (frame_lines - 1 - top_margin));
-  wset_total_cols (root, make_number (frame_cols));
-
-  /* Do it for the mini-buffer window.  */
-  wset_top_line (mini, make_number (frame_lines - 1));
-  wset_total_lines (mini, make_number (1));
-  wset_total_cols (mini, make_number (frame_cols));
-
-  adjust_frame_glyphs (sf);
-  glyphs_initialized_initially_p = 1;
-}
-
-
 /* Allocate/reallocate glyph matrices of a single frame F.  */
 
 static void
@@ -3073,21 +3030,13 @@ window_to_frame_hpos (struct window *w, int hpos)
 			    Redrawing Frames
  **********************************************************************/
 
-DEFUN ("redraw-frame", Fredraw_frame, Sredraw_frame, 1, 1, 0,
-       doc: /* Clear frame FRAME and output again what is supposed to appear on it.  */)
-  (Lisp_Object frame)
+/* Redraw frame F.  */
+
+void
+redraw_frame (struct frame *f)
 {
-  struct frame *f;
-
-  CHECK_LIVE_FRAME (frame);
-  f = XFRAME (frame);
-
-  /* Ignore redraw requests, if frame has no glyphs yet.
-     (Implementation note: It still has to be checked why we are
-     called so early here).  */
-  if (!glyphs_initialized_initially_p)
-    return Qnil;
-
+  /* Error if F has no glyphs.  */
+  eassert (f->glyphs_initialized_p);
   update_begin (f);
 #ifdef MSDOS
   if (FRAME_MSDOS_P (f))
@@ -3104,21 +3053,16 @@ DEFUN ("redraw-frame", Fredraw_frame, Sredraw_frame, 1, 1, 0,
   mark_window_display_accurate (FRAME_ROOT_WINDOW (f), 0);
   set_window_update_flags (XWINDOW (FRAME_ROOT_WINDOW (f)), 1);
   f->garbaged = 0;
+}
+
+DEFUN ("redraw-frame", Fredraw_frame, Sredraw_frame, 0, 1, 0,
+       doc: /* Clear frame FRAME and output again what is supposed to appear on it.
+If FRAME is omitted or nil, the selected frame is used.  */)
+  (Lisp_Object frame)
+{
+  redraw_frame (decode_live_frame (frame));
   return Qnil;
 }
-
-
-/* Redraw frame F.  This is nothing more than a call to the Lisp
-   function redraw-frame.  */
-
-void
-redraw_frame (struct frame *f)
-{
-  Lisp_Object frame;
-  XSETFRAME (frame, f);
-  Fredraw_frame (frame);
-}
-
 
 DEFUN ("redraw-display", Fredraw_display, Sredraw_display, 0, 0, "",
        doc: /* Clear and redisplay all visible frames.  */)
@@ -3128,7 +3072,7 @@ DEFUN ("redraw-display", Fredraw_display, Sredraw_display, 0, 0, "",
 
   FOR_EACH_FRAME (tail, frame)
     if (FRAME_VISIBLE_P (XFRAME (frame)))
-      Fredraw_frame (frame);
+      redraw_frame (XFRAME (frame));
 
   return Qnil;
 }
@@ -4647,24 +4591,10 @@ update_frame_1 (struct frame *f, bool force_p, bool inhibit_id_p)
 	      FILE *display_output = FRAME_TTY (f)->output;
 	      if (display_output)
 		{
-		  int outq = PENDING_OUTPUT_COUNT (display_output);
+		  ptrdiff_t outq = __fpending (display_output);
 		  if (outq > 900
 		      || (outq > 20 && ((i - 1) % preempt_count == 0)))
-		    {
-		      fflush (display_output);
-		      if (preempt_count == 1)
-			{
-#ifdef EMACS_OUTQSIZE
-			  if (EMACS_OUTQSIZE (0, &outq) < 0)
-			    /* Probably not a tty.  Ignore the error and reset
-			       the outq count.  */
-			    outq = PENDING_OUTPUT_COUNT (FRAME_TTY (f->output));
-#endif
-			  outq *= 10;
-			  if (baud_rate <= outq && baud_rate > 0)
-			    sleep (outq / baud_rate);
-			}
-		    }
+		    fflush (display_output);
 		}
 	    }
 
@@ -6226,7 +6156,6 @@ init_display (void)
 	 So call tgetent.  */
       { char b[2044]; tgetent (b, "xterm");}
 #endif
-      adjust_frame_glyphs_initially ();
       return;
     }
 #endif /* HAVE_X_WINDOWS */
@@ -6236,7 +6165,6 @@ init_display (void)
     {
       Vinitial_window_system = Qw32;
       Vwindow_system_version = make_number (1);
-      adjust_frame_glyphs_initially ();
       return;
     }
 #endif /* HAVE_NTGUI */
@@ -6250,7 +6178,6 @@ init_display (void)
     {
       Vinitial_window_system = Qns;
       Vwindow_system_version = make_number (10);
-      adjust_frame_glyphs_initially ();
       return;
     }
 #endif
@@ -6340,7 +6267,6 @@ init_display (void)
       fatal ("screen size %dx%d too big", width, height);
   }
 
-  adjust_frame_glyphs_initially ();
   calculate_costs (XFRAME (selected_frame));
 
   /* Set up faces of the initial terminal frame of a dumped Emacs.  */
@@ -6375,15 +6301,7 @@ don't show a cursor.  */)
   /* Don't change cursor state while redisplaying.  This could confuse
      output routines.  */
   if (!redisplaying_p)
-    {
-      if (NILP (window))
-	window = selected_window;
-      else
-	CHECK_WINDOW (window);
-
-      XWINDOW (window)->cursor_off_p = NILP (show);
-    }
-
+    decode_any_window (window)->cursor_off_p = NILP (show);
   return Qnil;
 }
 
@@ -6394,15 +6312,7 @@ DEFUN ("internal-show-cursor-p", Finternal_show_cursor_p,
 WINDOW nil or omitted means report on the selected window.  */)
   (Lisp_Object window)
 {
-  struct window *w;
-
-  if (NILP (window))
-    window = selected_window;
-  else
-    CHECK_WINDOW (window);
-
-  w = XWINDOW (window);
-  return w->cursor_off_p ? Qnil : Qt;
+  return decode_any_window (window)->cursor_off_p ? Qnil : Qt;
 }
 
 DEFUN ("last-nonminibuffer-frame", Flast_nonminibuf_frame,

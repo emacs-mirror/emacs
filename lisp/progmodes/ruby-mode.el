@@ -898,17 +898,7 @@ or blocks containing the current block."
             (back-to-indentation)
             (if (looking-at (concat "\\<\\(" ruby-block-mid-re "\\)\\>"))
                 (setq done nil)))))
-    (back-to-indentation)
-    (when (< n 0)
-      (let ((eol (point-at-eol)) state next)
-        (if (< orig eol) (setq eol orig))
-        (setq orig (point))
-        (while (and (setq next (apply 'ruby-parse-partial eol state))
-                    (< (point) eol))
-          (setq state next))
-        (when (cdaadr state)
-          (goto-char (cdaadr state)))
-        (backward-word)))))
+    (back-to-indentation)))
 
 (defun ruby-beginning-of-block (&optional arg)
   "Move backward to the beginning of the current block.
@@ -1043,21 +1033,19 @@ For example:
   #exit
   String#gsub
   Net::HTTP#active?
-  File::open.
+  File.open
 
 See `add-log-current-defun-function'."
-  ;; TODO: Document body
-  ;; Why does this append a period to class methods?
   (condition-case nil
       (save-excursion
         (let (mname mlist (indent 0))
-          ;; get current method (or class/module)
+          ;; Get the current method definition (or class/module).
           (if (re-search-backward
                (concat "^[ \t]*" ruby-defun-beg-re "[ \t]+"
                        "\\("
-                       ;; \\. and :: for class method
-                        "\\([A-Za-z_]" ruby-symbol-re "*\\|\\.\\|::" "\\)"
-                        "+\\)")
+                       ;; \\. and :: for class methods
+                       "\\([A-Za-z_]" ruby-symbol-re "*\\|\\.\\|::" "\\)"
+                       "+\\)")
                nil t)
               (progn
                 (setq mname (match-string 2))
@@ -1066,7 +1054,7 @@ See `add-log-current-defun-function'."
                 (goto-char (match-beginning 1))
                 (setq indent (current-column))
                 (beginning-of-line)))
-          ;; nest class/module
+          ;; Walk up the class/module nesting.
           (while (and (> indent 0)
                       (re-search-backward
                        (concat
@@ -1079,28 +1067,26 @@ See `add-log-current-defun-function'."
                   (setq mlist (cons (match-string 2) mlist))
                   (setq indent (current-column))
                   (beginning-of-line))))
+          ;; Process the method name.
           (when mname
             (let ((mn (split-string mname "\\.\\|::")))
               (if (cdr mn)
                   (progn
-                    (cond
-                     ((string-equal "" (car mn))
-                      (setq mn (cdr mn) mlist nil))
-                     ((string-equal "self" (car mn))
-                      (setq mn (cdr mn)))
-                     ((let ((ml (nreverse mlist)))
+                    (unless (string-equal "self" (car mn)) ; def self.foo
+                      ;; def C.foo
+                      (let ((ml (nreverse mlist)))
+                        ;; If the method name references one of the
+                        ;; containing modules, drop the more nested ones.
                         (while ml
                           (if (string-equal (car ml) (car mn))
                               (setq mlist (nreverse (cdr ml)) ml nil))
-                          (or (setq ml (cdr ml)) (nreverse mlist))))))
-                    (if mlist
-                        (setcdr (last mlist) mn)
-                      (setq mlist mn))
-                    (setq mn (last mn 2))
-                    (setq mname (concat "." (cadr mn)))
-                    (setcdr mn nil))
+                          (or (setq ml (cdr ml)) (nreverse mlist))))
+                      (if mlist
+                          (setcdr (last mlist) (butlast mn))
+                        (setq mlist (butlast mn))))
+                    (setq mname (concat "." (car (last mn)))))
                 (setq mname (concat "#" mname)))))
-          ;; generate string
+          ;; Generate the string.
           (if (consp mlist)
               (setq mlist (mapconcat (function identity) mlist "::")))
           (if mname
@@ -1561,7 +1547,8 @@ See `font-lock-syntax-table'.")
           ruby-keyword-end-re)
          2)
    ;; here-doc beginnings
-   (list ruby-here-doc-beg-re 0 'font-lock-string-face)
+   `(,ruby-here-doc-beg-re 0 (unless (ruby-singleton-class-p (match-beginning 0))
+                               'font-lock-string-face))
    ;; variables
    '("\\(^\\|[^_:.@$]\\|\\.\\.\\)\\b\\(nil\\|self\\|true\\|false\\)\\>"
      2 font-lock-variable-name-face)
@@ -1638,6 +1625,8 @@ The variable `ruby-indent-level' controls the amount of indentation.
 
 ;;;###autoload
 (add-to-list 'auto-mode-alist (cons (purecopy "\\.rb\\'") 'ruby-mode))
+;;;###autoload
+(add-to-list 'auto-mode-alist '("Rakefile\\'" . ruby-mode))
 
 ;;;###autoload
 (dolist (name (list "ruby" "rbx" "jruby" "ruby1.9" "ruby1.8"))

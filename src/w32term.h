@@ -415,9 +415,8 @@ extern struct w32_output w32term_display;
 
 struct scroll_bar {
 
-  /* These fields are shared by all vectors.  */
-  EMACS_INT size_from_Lisp_Vector_struct;
-  struct Lisp_Vector *next_from_Lisp_Vector_struct;
+  /* This field is shared by all vectors.  */
+  struct vectorlike_header header;
 
   /* The window we're a scroll bar for.  */
   Lisp_Object window;
@@ -459,12 +458,6 @@ struct scroll_bar {
      bar is extended to the gap between the fringe and the bar.  */
   Lisp_Object fringe_extended_p;
 };
-
-/* The number of elements a vector holding a struct scroll_bar needs.  */
-#define SCROLL_BAR_VEC_SIZE					\
-  ((sizeof (struct scroll_bar)					\
-    - sizeof (EMACS_INT) - sizeof (struct Lisp_Vector *))	\
-   / word_size)
 
 /* Turning a lisp vector value into a pointer to a struct scroll_bar.  */
 #define XSCROLL_BAR(vec) ((struct scroll_bar *) XVECTOR (vec))

@@ -1,3 +1,420 @@
+2012-11-13  Dmitry Gutov  <dgutov@yandex.ru>
+
+	* progmodes/ruby-mode.el (ruby-add-log-current-method): Print the
+	period before class method names, not after.  Remove handling of
+	one impossible case.  Add comments.
+
+2012-11-13  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* emacs-lisp/advice.el: Remove support for freezing.
+	(ad-make-freeze-docstring, ad-make-freeze-definition): Remove functions.
+	(ad-make-single-advice-docstring, ad-defadvice-flags, defadvice):
+	Remove support for `freeze'.
+
+	* emacs-lisp/cl.el (dolist, dotimes, declare): Use advice-add to
+	override the default.
+	* emacs-lisp/cl-macs.el (cl-dolist, cl-dotimes): Rewrite without using
+	cl--dotimes/dolist.
+	* subr.el (dolist, dotimes, declare): Redefine them normally, even when
+	`cl' is loaded.
+
+	* emacs-lisp/nadvice.el (advice--normalize): New function, extracted
+	from add-advice.
+	(advice--strip-macro): New function.
+	(advice--defalias-fset): Use them to handle macros.
+	(advice-add): Use them.
+	(advice-member-p): Correctly handle macros.
+
+2012-11-13  Dmitry Gutov  <dgutov@yandex.ru>
+
+	* progmodes/ruby-mode.el (ruby-font-lock-keywords):
+	Never font-lock the beginning of singleton class as heredoc.
+
+2012-11-13  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* emacs-lisp/gv.el (gv-define-simple-setter): One more fix (bug#12871).
+
+2012-11-13  Wolfgang Jenkner  <wjenkner@inode.at>
+
+	* ansi-color.el (ansi-color-apply-sequence): Implement SGR codes
+	39 and 49 (bug#12792).  Also, treat unimplemented parameters as 0,
+	thereby restoring the behavior of revisions prior to 109621.
+
+2012-11-13  Fabián Ezequiel Gallina  <fgallina@cuca>
+
+	Fix end-of-defun misbehavior.
+	* progmodes/python.el (python-nav-beginning-of-defun): Rename from
+	python-beginning-of-defun-function.  Handle nested defuns
+	correctly.
+	(python-nav-end-of-defun): Rename from
+	python-end-of-defun-function.  Ensure forward movement.
+	(python-info-current-defun): Reimplement to work as intended
+	with new fixed python-nav-{end,beginning}-of-defun.  Stop scanning
+	parent defuns as soon as possible.
+
+2012-11-13  Glenn Morris  <rgm@gnu.org>
+
+	* progmodes/flymake.el (flymake-error-bitmap)
+	(flymake-warning-bitmap, flymake-fringe-indicator-position): Doc fixes.
+	(flymake-error-bitmap, flymake-warning-bitmap): Fix :types.
+
+2012-11-13  Dmitry Gutov  <dgutov@yandex.ru>
+
+	* progmodes/ruby-mode.el (ruby-move-to-block): When moving
+	backward, always stop at indentation.  Reverts the change from
+	109576 (Bug#12851).
+
+2012-11-13  Glenn Morris  <rgm@gnu.org>
+
+	* ibuffer.el (ibuffer-mode-map, ibuffer-mode):
+	Add ibuffer-filter-by-derived-mode.
+
+	* ibuffer.el (ibuffer-mode-map): Don't have two menu items with
+	the same name shadowing each other.
+
+	* window.el (with-temp-buffer-window): Doc tweak.
+
+	* emacs-lisp/debug.el (debugger-bury-or-kill): Doc tweak.
+
+	* help.el (temp-buffer-max-height):
+	* window.el (fit-frame-to-buffer, fit-frame-to-buffer-bottom-margin):
+	* emacs-lisp/debug.el (debugger-bury-or-kill): Fix :version.
+
+2012-11-12  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* emacs-lisp/nadvice.el: New package.
+	* subr.el (special-form-p): New function.
+	* emacs-lisp/elp.el: Use lexical-binding and advice-add.
+	(elp-all-instrumented-list): Remove var.
+	(elp-not-profilable): Remove elp-wrapper.
+	(elp-profilable-p): Use autoloadp and special-form-p.
+	(elp--advice-name): New const.
+	(elp-instrument-function): Use advice-add.
+	(elp--instrumented-p): New predicate.
+	(elp-restore-function): Use advice-remove.
+	(elp-restore-all, elp-reset-all): Use mapatoms.
+	(elp-set-master): Use elp--instrumented-p.
+	(elp--make-wrapper): Rename from elp-wrapper, return a function
+	suitable for advice-add.  Use cl-inf.
+	(elp-results): Use mapatoms+elp--instrumented-p.
+	* emacs-lisp/debug.el: Use lexical-binding and advice-add.
+	(debug-function-list): Remove var.
+	(debug): Rename arg, and then let-bind it explicitly inside.
+	(debugger-setup-buffer): Rename arg.
+	(debugger-setup-buffer): Adjust counts to new debug-on-entry setup.
+	(debugger-frame-number): Adjust to new debug-on-entry setup.
+	(debug--implement-debug-on-entry): Rename from
+	implement-debug-on-entry, add argument.
+	(debugger-special-form-p): Remove, use special-form-p instead.
+	(debug-on-entry): Use advice-add.
+	(debug--function-list): New function.
+	(cancel-debug-on-entry): Use it, along with advice-remove.
+	(debug-arglist, debug-convert-byte-code, debug-on-entry-1): Remove.
+	(debugger-list-functions): Use debug--function-list instead of
+	debug-function-list.
+	* emacs-lisp/advice.el (ad-save-real-definition): Remove, unused.
+	(ad-special-form-p): Remove, use special-form-p instead.
+	(ad-set-advice-info): Use add-function and remove-function.
+	(ad--defalias-fset): Adjust accordingly.
+
+2012-11-10  Glenn Morris  <rgm@gnu.org>
+
+	* mail/emacsbug.el (report-emacs-bug-tracker-url)
+	(report-emacs-bug-bug-alist, report-emacs-bug-choice-widget)
+	(report-emacs-bug-create-existing-bugs-buffer)
+	(report-emacs-bug-parse-query-results)
+	(report-emacs-bug-query-existing-bugs): Remove.  (Bug#7449)
+
+	* term.el (term-default-fg-color, term-default-bg-color):
+	Make obsolete, rather than just saying "deprecated" in the doc.
+
+	* term.el (term): Rename from `term-face'.
+	(term-current-face, ansi-term-color-vector)
+	(term-default-fg-color, term-default-bg-color, term-ansi-reset):
+	Update all users.
+
+2012-11-10  Jan Djärv  <jan.h.d@swipnet.se>
+
+	* server.el (server-create-window-system-frame): Handle Nextstep
+	specially (Bug#12780).
+
+2012-11-10  Glenn Morris  <rgm@gnu.org>
+
+	* mail/emacsbug.el (report-emacs-bug-query-existing-bugs):
+	Unautoload, and make obsolete.  (Bug#7449)
+
+2012-11-10  Chong Yidong  <cyd@gnu.org>
+
+	* vc/diff-mode.el (diff-delete-trailing-whitespace): Rewrite, and
+	rename from diff-remove-trailing-whitespace (Bug#12831).
+
+2012-11-10  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* emacs-lisp/advice.el: Require `cl-lib' at run-time to fix
+	miscompilation of trace.el.
+
+2012-11-10  Glenn Morris  <rgm@gnu.org>
+
+	* vc/diff-mode.el (diff-remove-trailing-whitespace): Doc fix.
+
+2012-11-10  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* emacs-lisp/gv.el (gv-define-simple-setter): Fix last change
+	(bug#12812).
+
+2012-11-10  Chong Yidong  <cyd@gnu.org>
+
+	* minibuf-eldef.el (minibuffer-eldef-shorten-default): Convert to
+	a defcustom with an appropriate :set function.
+	(minibuffer-default--in-prompt-regexps): New function.
+
+2012-11-10  Glenn Morris  <rgm@gnu.org>
+
+	* emacs-lisp/cl.el (define-setf-expander, defsetf)
+	(define-modify-macro): Doc fixes.
+
+	* emacs-lisp/gv.el (gv-letplace): Fix doc typo.
+	(gv-define-simple-setter): Update doc of `fix-return'.
+
+2012-11-10  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* emacs-lisp/gv.el (gv-define-simple-setter): Don't evaluate `val'
+	twice when `fix-return' is set (bug#12813).
+
+	* emacs-lisp/cl.el (defsetf): Pass the third arg to
+	gv-define-simple-setter (bug#12812).
+
+	* woman.el (woman-decode-region): Disable adaptive-fill when rendering
+	(bug#12756).
+
+2012-11-10  Glenn Morris  <rgm@gnu.org>
+
+	* emacs-lisp/gv.el (gv-define-setter): Fix doc typo.
+
+	* emacs-lisp/cl-extra.el (cl-prettyexpand):
+	* emacs-lisp/cl-lib.el (cl-proclaim, cl-declaim):
+	* emacs-lisp/cl-macs.el (cl-destructuring-bind, cl-locally)
+	(cl-the, cl-compiler-macroexpand): Add basic doc strings.
+
+	* emacs-lisp/cl-extra.el (cl-maplist, cl-mapcan): Doc fix.
+
+2012-11-10  Leo Liu  <sdl.web@gmail.com>
+
+	* ido.el (ido-set-matches-1): Improve flex matching performance by
+	removing backtracking in the regexp (suggested by Stefan).  (Bug#12796)
+
+2012-11-09  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* emacs-lisp/advice.el (ad-set-advice-info): Set defalias-fset-function.
+	(ad--defalias-fset): New function.
+	(ad-safe-fset): Remove.
+	(ad-make-freeze-definition): Use cl-letf*.
+
+2012-11-09  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* subr.el (dolist): Don't bind VAR in RESULT.
+
+	* emacs-lisp/advice.el: Miscellaneous cleanup.  Use lexical-binding.
+	(fset, documentation): Don't save real def since we don't advise.
+	(ad-do-advised-functions): Remove problematic `result-form'.
+	(ad-safe-fset): `ad-real-fset' => `fset'.
+	(ad-read-advised-function): Don't assume that ad-do-advised-functions
+	uses CL's dolist internally.
+	(ad-arglist): Remove unused arg `name'.
+	(ad-docstring, ad-make-advised-docstring):
+	`ad-real-documentation' => `documentation'.
+	(warning-suppress-types): Declare.
+	(ad-set-arguments): Simple CSE.
+	(ad-recover-normality): Sanity check.
+
+	* emacs-lisp/bytecomp.el (byte-compile-out-toplevel): Don't turn
+	(funcall '(lambda ..) ..) into ((lambda ..) ..).
+
+2012-11-09  Vincent Belaïche  <vincentb1@users.sourceforge.net>
+
+	* ses.el: symbol to coordinate mapping is made by symbol property
+	`ses-cell'.  This means that the same mapping is done for all SES
+	sheets.  That is good enough for cells with standard A1 names, but
+	not for named cell.  So a hash map is added for the latter.
+	(defconst ses-localvars): Add local variable ses--named-cell-hashmap
+	(ses-sym-rowcol): Use hashmap for named cell.
+	(ses-is-cell-sym-p): New defun.
+	(ses-decode-cell-symbol): New defun.
+	(ses-create-cell-variable): Add cell to hashmap when name is not
+	A1-like.
+	(ses-rename-cell): Check that cell new name is not already in
+	spreadsheet with the use of ses-is-cell-sym-p
+	(ses-rename-cell): Use hash map for named cells, but accept also
+	renaming back to A1-like.
+
+2012-11-09  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* emacs-lisp/advice.el: Use new dynamic docstrings.
+	(ad-make-advised-definition-docstring, ad-advised-definition-p):
+	Use dynamic-docstring-function instead of ad-advice-info.
+	(ad--make-advised-docstring): New function extracted from
+	ad-make-advised-docstring.
+	(ad-make-advised-docstring): Use it.
+	* progmodes/sql.el (sql--make-help-docstring): New function, extracted
+	from sql-help.
+	(sql-help): Use it with dynamic-docstring-function.
+
+	* env.el (env--substitute-vars-regexp): Don't use rx (for bootstrap).
+
+2012-11-08  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* files.el (hack-one-local-variable--obsolete): New function.
+	(hack-one-local-variable): Use it for obsolete settings.
+
+	* subr.el (locate-user-emacs-file): If both old and new name exist, use
+	the new name.
+
+	* progmodes/js.el (js--filling-paragraph): New var.
+	(c-forward-sws, c-backward-sws, c-beginning-of-macro): Advise.
+	(js-c-fill-paragraph): Prefer advice to cl-letf so the rebinding is
+	less sneaky.
+
+2012-11-08  Julien Danjou  <julien@danjou.info>
+
+	* progmodes/ruby-mode.el (auto-mode-alist): Add Rakefile in
+	`auto-mode-alist' (Bug#12835).
+
+2012-11-08  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* progmodes/perl-mode.el (perl-prettify-symbols): New defcustom.
+	(perl--prettify-symbols-alist): New const.
+	(perl--font-lock-compose-symbol, perl--font-lock-symbols-keywords):
+	New functions.
+	(perl-font-lock-keywords-2): Use them.
+	(perl-electric-noindent-p): New function.
+	(perl-mode): Use it to set up electric-indent-mode.
+	(perl-electric-terminator, perl-indent-command): Mark obsolete.
+	(perl-mode-map): Remove bindings for them.
+	(perl-imenu-generic-expression, perl-outline-level):
+	Match functions&packages in column>0.
+
+	* env.el (env--substitute-vars-regexp): New const.
+	(substitute-env-vars): Use it.  Add `only-defined' arg.
+	* net/tramp.el (tramp-replace-environment-variables): Use it.
+
+	* emacs-lisp/bytecomp.el (byte-compile-initial-macro-environment):
+	Byte-compile *before* eval in eval-and-compile.
+	(byte-compile-log-warning): Remove redundant inhibit-read-only.
+	(byte-compile-file-form-autoload): Don't hide actual definition.
+	(byte-compile-maybe-guarded): Accept `functionp' as well.
+
+	* emacs-lisp/gv.el (gv-ref, gv-deref): New function and macro.
+
+2012-11-07  Michael Albinus  <michael.albinus@gmx.de>
+
+	* notifications.el (notifications-get-server-information-method):
+	New defconst.
+	(notifications-get-capabilities): Fix docstring.
+	(notifications-get-server-information): New defun.
+
+2012-11-06  Agustín Martín Domingo  <agustin.martin@hispalinux.es>
+
+	* textmodes/ispell.el (ispell-region): Standard re-indent for better
+	readability.
+
+	* textmodes/ispell.el: Experimental support for support debugging.
+	(ispell-create-debug-buffer): Create a `ispell-debug-buffer' debug
+	buffer for ispell.
+	(ispell-print-if-debug): New function to print stuff to
+	`ispell-debug-buffer' if debugging is enabled.
+	(ispell-region, ispell-process-line): Use `ispell-print-if-debug' to
+	show some debugging info.
+	(ispell-buffer-with-debug): New function that creates a debugging
+	buffer and calls `ispell-buffer' with debugging enabled.
+
+	* textmodes/ispell.el (ispell-region): Do not prefix sent string by
+	comment in autoconf mode. (Bug#12768)
+
+2012-11-06  Dmitry Antipov  <dmantipov@yandex.ru>
+
+	* emacs-lisp/byte-opt.el (toplevel): Add compare-window-configurations,
+	frame-first-window, frame-root-window, frame-selected-window,
+	minibuffer-selected-window, minibuffer-window,
+	window-absolute-pixel-edges, window-at, window-body-height,
+	window-body-width, window-display-table, window-combination-limit,
+	window-frame, window-fringes, window-inside-absolute-pixel-edges,
+	window-inside-edges, window-inside-pixel-edges, window-left-child,
+	window-left-column, window-margins, window-next-buffers,
+	window-next-sibling, window-new-normal, window-new-total,
+	window-normal-size, window-parameter, window-parameters, window-parent,
+	window-pixel-edges, window-point, window-prev-buffers,
+	window-prev-sibling, window-redisplay-end-trigger, window-scroll-bars,
+	window-start, window-text-height, window-top-child, window-top-line,
+	window-total-height, window-total-width and window-use-time to the list
+	of functions without side-effects.
+	(toplevel): Add window-valid-p to the list of error-free functions
+	without side-effects.
+
+2012-11-05  Agustín Martín Domingo  <agustin.martin@hispalinux.es>
+
+	* textmodes/ispell.el (ispell-program-name):
+	Update spellchecker parameters when customized.
+
+2012-11-04  Glenn Morris  <rgm@gnu.org>
+
+	* vc/vc-svn.el (vc-svn-state-heuristic): Avoid calling svn.  (Bug#7850)
+
+2012-11-04  Chong Yidong  <cyd@gnu.org>
+
+	* bookmark.el (bookmark-bmenu-switch-other-window): Avoid binding
+	same-window-* variables.
+
+2012-11-04  Juri Linkov  <juri@jurta.org>
+
+	* isearch.el (isearch-help-for-help, isearch-describe-bindings)
+	(isearch-describe-key, isearch-describe-mode): Use a display
+	action instead of binding same-window-* variables (Bug#10040).
+
+2012-11-03  Glenn Morris  <rgm@gnu.org>
+
+	* emacs-lisp/cl-macs.el (cl-parse-loop-clause):
+	Rename handler properties back from cl-- to cl-.  (Bug#12788)
+
+	* emacs-lisp/cl-macs.el (cl-do-all-symbols): Add doc string.
+
+2012-11-03  Eli Zaretskii  <eliz@gnu.org>
+
+	* term/pc-win.el: Don't load term/internal from here.
+
+	* loadup.el: Load term/internal from here.
+
+2012-11-03  Fabián Ezequiel Gallina  <fgallina@cuca>
+
+	* progmodes/python.el (inferior-python-mode): Fix hang in
+	jit-lock (Bug#12645).
+
+2012-11-03  Martin Rudalics  <rudalics@gmx.at>
+
+	* window.el (switch-to-visible-buffer)
+	(switch-to-buffer-preserve-window-point): Fix doc-strings.
+
+2012-11-03  Glenn Morris  <rgm@gnu.org>
+
+	* emacs-lisp/cl-lib.el (cl--random-time):
+	Rename from cl-random-time.  (Bug#12773)
+	(cl--gensym-counter, cl--random-state): Update callers.
+	* emacs-lisp/cl-extra.el (cl-make-random-state): Update callers.
+
+2012-11-03  Chong Yidong  <cyd@gnu.org>
+
+	* cus-start.el: Make cursor-type customizable (Bug#11633).
+
+2012-11-02  Glenn Morris  <rgm@gnu.org>
+
+	* filecache.el: No need to load find-lisp when compiling.
+	(find-lisp-find-files): Autoload it.
+	(file-cache-add-directory-recursively): Don't require find-lisp.
+
+	* image.el (image-type-from-file-name): Trivial simplification.
+
+	* emacs-lisp/bytecomp.el (byte-compile-eval):
+	Decouple "noruntime" and "cl-functions" warnings.
+
 2012-11-01  Stephen Berman  <stephen.berman@gmx.net>
 
 	* play/gomoku.el (gomoku-display-statistics): Update mode line
@@ -330,7 +747,7 @@
 2012-10-19  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* minibuffer.el (minibuffer-force-complete): Make the next completion use
-	the same completion-field (bug@12221).
+	the same completion-field (bug#12221).
 
 2012-10-19  Martin Rudalics  <rudalics@gmx.at>
 

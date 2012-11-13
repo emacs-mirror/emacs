@@ -13,32 +13,8 @@ special-purpose buffer with a small amount of screen space.  You can
 use the usual Emacs editing commands in the minibuffer to edit the
 argument text.
 
-@cindex prompt
-  When the minibuffer is in use, it appears in the echo area, with a
-cursor.  The minibuffer starts with a @dfn{prompt} in a distinct
-color, usually ending with a colon.  The prompt states what kind of
-input is expected, and how it will be used.
-
-  The simplest way to enter a minibuffer argument is to type the text,
-then @key{RET} to submit the argument and exit the minibuffer.  You
-can cancel the minibuffer, and the command that wants the argument, by
-typing @kbd{C-g}.
-
-@cindex default argument
-  Sometimes, a @dfn{default argument} appears in the prompt, inside
-parentheses before the colon.  This default will be used as the
-argument if you just type @key{RET}.  For example, commands that read
-buffer names usually show a buffer name as the default; you can type
-@key{RET} to operate on that default buffer.
-
-  Since the minibuffer appears in the echo area, it can conflict with
-other uses of the echo area.  If an error message or an informative
-message is emitted while the minibuffer is active, the message hides
-the minibuffer for a few seconds, or until you type something; then
-the minibuffer comes back.  While the minibuffer is in use, keystrokes
-do not echo.
-
 @menu
+* Basic Minibuffer::      Basic usage of the minibuffer.
 * Minibuffer File::       Entering file names with the minibuffer.
 * Minibuffer Edit::       How to edit in the minibuffer.
 * Completion::            An abbreviation facility for minibuffer input.
@@ -47,6 +23,50 @@ do not echo.
 * Passwords::             Entering passwords in the echo area.
 * Yes or No Prompts::     Replying yes or no in the echo area.
 @end menu
+
+@node Basic Minibuffer
+@section Using the Minibuffer
+
+@cindex prompt
+  When the minibuffer is in use, it appears in the echo area, with a
+cursor.  The minibuffer starts with a @dfn{prompt}, usually ending
+with a colon.  The prompt states what kind of input is expected, and
+how it will be used.  The prompt is highlighted using the
+@code{minibuffer-prompt} face (@pxref{Faces}).
+
+  The simplest way to enter a minibuffer argument is to type the text,
+then @key{RET} to submit the argument and exit the minibuffer.
+Alternatively, you can type @kbd{C-g} to exit the minibuffer by
+cancelling the command asking for the argument (@pxref{Quitting}).
+
+@cindex default argument
+  Sometimes, the prompt shows a @dfn{default argument}, inside
+parentheses before the colon.  This default will be used as the
+argument if you just type @key{RET}.  For example, commands that read
+buffer names usually show a buffer name as the default; you can type
+@key{RET} to operate on that default buffer.
+
+@cindex Minibuffer Electric Default mode
+@cindex mode, Minibuffer Electric Default
+@findex minibuffer-electric-default-mode
+@vindex minibuffer-eldef-shorten-default
+  If you enable Minibuffer Electric Default mode, a global minor mode,
+Emacs hides the default argument as soon as you modify the contents of
+the minibuffer (since typing @key{RET} would no longer submit that
+default).  If you ever bring back the original minibuffer text, the
+prompt again shows the default.  Furthermore, if you change the
+variable @code{minibuffer-eldef-shorten-default} to a non-@code{nil}
+value, the default argument is displayed as @samp{[@var{default}]}
+instead of @samp{(default @var{default})}, saving some screen space.
+To enable this minor mode, type @kbd{M-x
+minibuffer-electric-default-mode}.
+
+  Since the minibuffer appears in the echo area, it can conflict with
+other uses of the echo area.  If an error message or an informative
+message is emitted while the minibuffer is active, the message hides
+the minibuffer for a few seconds, or until you type something; then
+the minibuffer comes back.  While the minibuffer is in use, keystrokes
+do not echo.
 
 @node Minibuffer File
 @section Minibuffers for File Names

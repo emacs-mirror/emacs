@@ -26,9 +26,11 @@ LIBS 		=
 GNULIBOBJS = $(BLD)/c-ctype.$(O) \
 	     $(BLD)/c-strcasecmp.$(O) \
 	     $(BLD)/c-strncasecmp.$(O) \
+	     $(BLD)/close-stream.$(O) \
 	     $(BLD)/dtoastr.$(O) \
 	     $(BLD)/dtotimespec.$(O)  \
 	     $(BLD)/execinfo.$(O)  \
+	     $(BLD)/fpending.$(O)  \
 	     $(BLD)/getopt.$(O)  \
 	     $(BLD)/getopt1.$(O) \
 	     $(BLD)/gettime.$(O) \
@@ -120,6 +122,13 @@ $(BLD)/c-strncasecmp.$(O) : \
 	$(CONFIG_H) \
 	$(C_CTYPE_H)
 
+$(BLD)/close-stream.$(O) : \
+	$(GNU_LIB)/close-stream.c \
+	$(GNU_LIB)/close-stream.h \
+	$(GNU_LIB)/fpending.h \
+	$(NT_INC)/stdbool.h \
+	$(CONFIG_H)
+
 $(BLD)/dtoastr.$(O) : \
 	$(GNU_LIB)/dtoastr.c \
 	$(FTOASTR_C)
@@ -133,6 +142,11 @@ $(BLD)/dtotimespec.$(O) : \
 $(BLD)/execinfo.$(O) : \
 	$(GNU_LIB)/execinfo.c \
 	$(GNU_LIB)/execinfo.h \
+	$(CONFIG_H)
+
+$(BLD)/fpending.$(O) : \
+	$(GNU_LIB)/fpending.c \
+	$(GNU_LIB)/fpending.h \
 	$(CONFIG_H)
 
 $(BLD)/getopt.$(O) : \

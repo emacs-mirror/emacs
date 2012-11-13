@@ -1876,26 +1876,19 @@ this does nothing and returns nil.  */)
   CHECK_STRING (file);
 
   /* If function is defined and not as an autoload, don't override.  */
-  if ((CONSP (XSYMBOL (function)->function)
-       && EQ (XCAR (XSYMBOL (function)->function), Qautoload)))
-    /* Remember that the function was already an autoload.  */
-    LOADHIST_ATTACH (Fcons (Qt, function));
-  else if (!EQ (XSYMBOL (function)->function, Qunbound))
+  if (!EQ (XSYMBOL (function)->function, Qunbound)
+      && !AUTOLOADP (XSYMBOL (function)->function))
     return Qnil;
 
-  if (NILP (Vpurify_flag))
-    /* Only add entries after dumping, because the ones before are
-       not useful and else we get loads of them from the loaddefs.el.  */
-    LOADHIST_ATTACH (Fcons (Qautoload, function));
-  else if (EQ (docstring, make_number (0)))
+  if (!NILP (Vpurify_flag) && EQ (docstring, make_number (0)))
     /* `read1' in lread.c has found the docstring starting with "\
        and assumed the docstring will be provided by Snarf-documentation, so it
        passed us 0 instead.  But that leads to accidental sharing in purecopy's
        hash-consing, so we use a (hopefully) unique integer instead.  */
-    docstring = make_number (XUNTAG (function, Lisp_Symbol));
-  return Ffset (function,
-		Fpurecopy (list5 (Qautoload, file, docstring,
-				  interactive, type)));
+    docstring = make_number (XHASH (function));
+  return Fdefalias (function,
+		    list5 (Qautoload, file, docstring, interactive, type),
+		    Qnil);
 }
 
 Lisp_Object

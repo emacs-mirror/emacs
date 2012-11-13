@@ -172,6 +172,9 @@ The message is @samp{Text is read-only}.  This is a subcategory of
 @item undefined-color
 The message is @samp{Undefined color}.  @xref{Color Names}.
 
+@item user-error
+The message is the empty string.  @xref{Signaling Errors}.
+
 @item void-function
 The message is @samp{Symbol's function definition is void}.
 @xref{Function Cells}.

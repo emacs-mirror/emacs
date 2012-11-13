@@ -131,7 +131,7 @@ TYPE is the sequence type to return.
 ;;;###autoload
 (defun cl-maplist (cl-func cl-list &rest cl-rest)
   "Map FUNCTION to each sublist of LIST or LISTs.
-Like `mapcar', except applies to lists and their cdr's rather than to
+Like `cl-mapcar', except applies to lists and their cdr's rather than to
 the elements themselves.
 \n(fn FUNCTION LIST...)"
   (if cl-rest
@@ -170,7 +170,7 @@ the elements themselves.
 
 ;;;###autoload
 (defun cl-mapcan (cl-func cl-seq &rest cl-rest)
-  "Like `mapcar', but nconc's together the values returned by the function.
+  "Like `cl-mapcar', but nconc's together the values returned by the function.
 \n(fn FUNCTION SEQUENCE...)"
   (apply 'nconc (apply 'cl-mapcar cl-func cl-seq cl-rest)))
 
@@ -440,7 +440,7 @@ If STATE is t, return a new state object seeded from the time of day."
   (cond ((null state) (cl-make-random-state cl--random-state))
 	((vectorp state) (copy-tree state t))
 	((integerp state) (vector 'cl-random-state-tag -1 30 state))
-	(t (cl-make-random-state (cl-random-time)))))
+	(t (cl-make-random-state (cl--random-time)))))
 
 ;;;###autoload
 (defun cl-random-state-p (object)
@@ -675,6 +675,9 @@ PROPLIST is a list of the sort returned by `symbol-plist'.
 
 ;;;###autoload
 (defun cl-prettyexpand (form &optional full)
+  "Expand macros in FORM and insert the pretty-printed result.
+Optional argument FULL non-nil means to expand all macros,
+including `cl-block' and `cl-eval-when'."
   (message "Expanding...")
   (let ((cl--compiling-file full)
 	(byte-compile-macro-environment nil))

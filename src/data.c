@@ -81,6 +81,7 @@ Lisp_Object Qfont_spec, Qfont_entity, Qfont_object;
 static Lisp_Object Qdefun;
 
 Lisp_Object Qinteractive_form;
+static Lisp_Object Qdefalias_fset_function;
 
 static void swap_in_symval_forwarding (struct Lisp_Symbol *, struct Lisp_Buffer_Local_Value *);
 
@@ -444,7 +445,7 @@ DEFUN ("floatp", Ffloatp, Sfloatp, 1, 1, 0,
 }
 
 
-/* Extract and set components of lists */
+/* Extract and set components of lists.  */
 
 DEFUN ("car", Fcar, Scar, 1, 1, 0,
        doc: /* Return the car of LIST.  If arg is nil, return nil.
@@ -608,27 +609,18 @@ DEFUN ("fset", Ffset, Sfset, 2, 2, 0,
   (register Lisp_Object symbol, Lisp_Object definition)
 {
   register Lisp_Object function;
-
   CHECK_SYMBOL (symbol);
-  if (NILP (symbol) || EQ (symbol, Qt))
-    xsignal1 (Qsetting_constant, symbol);
 
   function = XSYMBOL (symbol)->function;
 
   if (!NILP (Vautoload_queue) && !EQ (function, Qunbound))
     Vautoload_queue = Fcons (Fcons (symbol, function), Vautoload_queue);
 
-  if (CONSP (function) && EQ (XCAR (function), Qautoload))
+  if (AUTOLOADP (function))
     Fput (symbol, Qautoload, XCDR (function));
 
   set_symbol_function (symbol, definition);
-  /* Handle automatic advice activation.  */
-  if (CONSP (XSYMBOL (symbol)->plist)
-      && !NILP (Fget (symbol, Qad_advice_info)))
-    {
-      call2 (Qad_activate_internal, symbol, Qnil);
-      definition = XSYMBOL (symbol)->function;
-    }
+
   return definition;
 }
 
@@ -642,15 +634,32 @@ The return value is undefined.  */)
   (register Lisp_Object symbol, Lisp_Object definition, Lisp_Object docstring)
 {
   CHECK_SYMBOL (symbol);
-  if (CONSP (XSYMBOL (symbol)->function)
-      && EQ (XCAR (XSYMBOL (symbol)->function), Qautoload))
-    LOADHIST_ATTACH (Fcons (Qt, symbol));
   if (!NILP (Vpurify_flag)
       /* If `definition' is a keymap, immutable (and copying) is wrong.  */
       && !KEYMAPP (definition))
     definition = Fpurecopy (definition);
-  definition = Ffset (symbol, definition);
-  LOADHIST_ATTACH (Fcons (Qdefun, symbol));
+
+  {
+    bool autoload = AUTOLOADP (definition);
+    if (NILP (Vpurify_flag) || !autoload)
+      { /* Only add autoload entries after dumping, because the ones before are
+	   not useful and else we get loads of them from the loaddefs.el.  */
+
+	if (AUTOLOADP (XSYMBOL (symbol)->function))
+	  /* Remember that the function was already an autoload.  */
+	  LOADHIST_ATTACH (Fcons (Qt, symbol));
+	LOADHIST_ATTACH (Fcons (autoload ? Qautoload : Qdefun, symbol));
+      }
+  }
+
+  { /* Handle automatic advice activation.  */
+    Lisp_Object hook = Fget (symbol, Qdefalias_fset_function);
+    if (!NILP (hook))
+      call2 (hook, symbol, definition);
+    else
+      Ffset (symbol, definition);
+  }
+
   if (!NILP (docstring))
     Fput (symbol, Qfunction_documentation, docstring);
   /* We used to return `definition', but now that `defun' and `defmacro' expand
@@ -680,12 +689,10 @@ function with `&rest' args, or `unevalled' for a special form.  */)
   CHECK_SUBR (subr);
   minargs = XSUBR (subr)->min_args;
   maxargs = XSUBR (subr)->max_args;
-  if (maxargs == MANY)
-    return Fcons (make_number (minargs), Qmany);
-  else if (maxargs == UNEVALLED)
-    return Fcons (make_number (minargs), Qunevalled);
-  else
-    return Fcons (make_number (minargs), make_number (maxargs));
+  return Fcons (make_number (minargs),
+		maxargs == MANY ?        Qmany
+		: maxargs == UNEVALLED ? Qunevalled
+		:                        make_number (maxargs));
 }
 
 DEFUN ("subr-name", Fsubr_name, Ssubr_name, 1, 1, 0,
@@ -711,7 +718,7 @@ Value, if non-nil, is a list \(interactive SPEC).  */)
     return Qnil;
 
   /* Use an `interactive-form' property if present, analogous to the
-     function-documentation property. */
+     function-documentation property.  */
   fun = cmd;
   while (SYMBOLP (fun))
     {
@@ -735,6 +742,8 @@ Value, if non-nil, is a list \(interactive SPEC).  */)
       if ((ASIZE (fun) & PSEUDOVECTOR_SIZE_MASK) > COMPILED_INTERACTIVE)
 	return list2 (Qinteractive, AREF (fun, COMPILED_INTERACTIVE));
     }
+  else if (AUTOLOADP (fun))
+    return Finteractive_form (Fautoload_do_load (fun, cmd, Qnil));
   else if (CONSP (fun))
     {
       Lisp_Object funcar = XCAR (fun);
@@ -742,14 +751,6 @@ Value, if non-nil, is a list \(interactive SPEC).  */)
 	return Fassq (Qinteractive, Fcdr (Fcdr (XCDR (fun))));
       else if (EQ (funcar, Qlambda))
 	return Fassq (Qinteractive, Fcdr (XCDR (fun)));
-      else if (EQ (funcar, Qautoload))
-	{
-	  struct gcpro gcpro1;
-	  GCPRO1 (cmd);
-	  Fautoload_do_load (fun, cmd, Qnil);
-	  UNGCPRO;
-	  return Finteractive_form (cmd);
-	}
     }
   return Qnil;
 }
@@ -2695,10 +2696,10 @@ usage: (* &rest NUMBERS-OR-MARKERS)  */)
   return arith_driver (Amult, nargs, args);
 }
 
-DEFUN ("/", Fquo, Squo, 2, MANY, 0,
+DEFUN ("/", Fquo, Squo, 1, MANY, 0,
        doc: /* Return first argument divided by all the remaining arguments.
 The arguments must be numbers or markers.
-usage: (/ DIVIDEND DIVISOR &rest DIVISORS)  */)
+usage: (/ DIVIDEND &rest DIVISORS)  */)
   (ptrdiff_t nargs, Lisp_Object *args)
 {
   ptrdiff_t argnum;
@@ -3063,6 +3064,7 @@ syms_of_data (void)
   DEFSYM (Qfont_object, "font-object");
 
   DEFSYM (Qinteractive_form, "interactive-form");
+  DEFSYM (Qdefalias_fset_function, "defalias-fset-function");
 
   defsubr (&Sindirect_variable);
   defsubr (&Sinteractive_form);

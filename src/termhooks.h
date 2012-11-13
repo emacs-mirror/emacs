@@ -243,16 +243,8 @@ struct input_event
   Lisp_Object x, y;
   Time timestamp;
 
-  /* This is padding just to put the frame_or_window field
-     past the size of struct selection_input_event.  */
-  int *padding[2];
-
-  /* This field is copied into a vector while the event is in the queue,
-     so that garbage collections won't kill it.  */
-  /* In a menu_bar_event, this is a cons cell whose car is the frame
-     and whose cdr is the Lisp object that is the event's value.  */
-  /* This field is last so that struct selection_input_event
-     does not overlap with it.  */
+  /* This field is copied into a vector while the event is in
+     the queue, so that garbage collections won't kill it.  */
   Lisp_Object frame_or_window;
 
   /* Additional event argument.  This is used for TOOL_BAR_EVENTs and
@@ -423,14 +415,6 @@ struct terminal
   int memory_below_frame;	/* Terminal remembers lines scrolled
                                    off bottom */
 
-#if 0  /* These are not used anywhere. */
-  /* EMACS_INT baud_rate; */	/* Output speed in baud */
-  int min_padding_speed;	/* Speed below which no padding necessary. */
-  int dont_calculate_costs;     /* Nonzero means don't bother computing
-                                   various cost tables; we won't use them. */
-#endif
-
-
   /* Window-based redisplay interface for this device (0 for tty
      devices). */
   struct redisplay_interface *rif;
@@ -478,21 +462,13 @@ struct terminal
      Otherwise, set *bar_window to Qnil, and *x and *y to the column and
      row of the character cell the mouse is over.
 
-     Set *time to the time the mouse was at the returned position.
-
-     This should clear mouse_moved until the next motion
-     event arrives.  */
+     Set *time to the time the mouse was at the returned position.  */
   void (*mouse_position_hook) (struct frame **f, int,
                                Lisp_Object *bar_window,
                                enum scroll_bar_part *part,
                                Lisp_Object *x,
                                Lisp_Object *y,
                                Time *);
-
-  /* The window system handling code should set this if the mouse has
-     moved since the last call to the mouse_position_hook.  Calling that
-     hook should clear this.  */
-  int mouse_moved;
 
   /* When a frame's focus redirection is changed, this hook tells the
      window system code to re-decide where to put the highlight.  Under

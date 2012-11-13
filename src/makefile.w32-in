@@ -1476,8 +1476,8 @@ $(BLD)/unexw32.$(O) : \
 	$(SRC)/w32.h \
 	$(SRC)/w32common.h \
 	$(SRC)/w32heap.h \
-	$(LISP_H) \
-	$(CONFIG_H)
+	$(CONFIG_H) \
+	$(LISP_H)
 
 $(BLD)/vm-limit.$(O) : \
 	$(SRC)/vm-limit.c \
@@ -1565,6 +1565,7 @@ $(BLD)/w32fns.$(O) : \
 	$(SRC)/w32.h \
 	$(SRC)/w32common.h \
 	$(SRC)/w32heap.h \
+	$(NT_INC)/unistd.h \
 	$(BUFFER_H) \
 	$(CCL_H) \
 	$(CHARACTER_H) \

@@ -178,7 +178,7 @@ when editing big diffs)."
     ["Unified -> Context"	diff-unified->context
      :help "Convert unified diffs to context diffs"]
     ;;["Fixup Headers"		diff-fixup-modifs	(not buffer-read-only)]
-    ["Remove trailing whitespace" diff-remove-trailing-whitespace
+    ["Remove trailing whitespace" diff-delete-trailing-whitespace
      :help "Remove trailing whitespace problems introduced by the diff"]
     ["Show trailing whitespace" whitespace-mode
      :style toggle :selected (bound-and-true-p whitespace-mode)
@@ -2048,35 +2048,71 @@ I.e. like `add-change-log-entry-other-window' but applied to all hunks."
       ;; When there's no more hunks, diff-hunk-next signals an error.
       (error nil))))
 
-(defun diff-remove-trailing-whitespace ()
-  "When on a buffer that contains a diff, inspects the
-differences and removes trailing whitespace (spaces, tabs) from
-the lines modified or introduced by this diff. Shows a message
-with the name of the altered buffers, which are unsaved.  If a
-file referenced on the diff has no buffer and needs to be fixed,
-a buffer visiting that file is created."
-  (interactive)
-  ;; We assume that the diff header has no trailing whitespace.
-  (let ((modified-buffers nil))
-    (save-excursion
-      (goto-char (point-min))
-      (while (re-search-forward "^[+!>].*[ \t]+$" (point-max) t)
-        (pcase-let ((`(,buf ,line-offset ,pos ,src ,_dst ,_switched)
-                     (diff-find-source-location t t)))
-          (when line-offset
-            (with-current-buffer buf
-              (save-excursion
-                (goto-char (+ (car pos) (cdr src)))
-                (beginning-of-line)
-                (when (re-search-forward "\\([ \t]+\\)$" (line-end-position) t)
-                  (unless (memq buf modified-buffers)
-                    (push buf modified-buffers))
-                  (replace-match ""))))))))
-    (if modified-buffers
-        (message "Deleted new trailing whitespace from: %s"
-                 (mapconcat (lambda (buf) (concat "`" (buffer-name buf) "'"))
-                            modified-buffers " "))
-      (message "No trailing whitespace fixes needed."))))
+(defun diff-delete-trailing-whitespace (&optional other-file)
+  "Remove trailing whitespace from lines modified in this diff.
+This edits both the current Diff mode buffer and the patched
+source file(s).  If `diff-jump-to-old-file' is non-nil, edit the
+original (unpatched) source file instead.  With a prefix argument
+OTHER-FILE, flip the choice of which source file to edit.
+
+If a file referenced in the diff has no buffer and needs to be
+fixed, visit it in a buffer."
+  (interactive "P")
+  (save-excursion
+    (goto-char (point-min))
+    (let* ((other (diff-xor other-file diff-jump-to-old-file))
+  	   (modified-buffers nil)
+  	   (style (save-excursion
+  	   	    (when (re-search-forward diff-hunk-header-re nil t)
+  	   	      (goto-char (match-beginning 0))
+  	   	      (diff-hunk-style))))
+  	   (regexp (concat "^[" (if other "-<" "+>") "!]"
+  	   		   (if (eq style 'context) " " "")
+  	   		   ".*?\\([ \t]+\\)$"))
+	   (inhibit-read-only t)
+	   (end-marker (make-marker))
+	   hunk-end)
+      ;; Move to the first hunk.
+      (re-search-forward diff-hunk-header-re nil 1)
+      (while (progn (save-excursion
+		      (re-search-forward diff-hunk-header-re nil 1)
+		      (setq hunk-end (point)))
+		    (< (point) hunk-end))
+	;; For context diffs, search only in the appropriate half of
+	;; the hunk.  For other diffs, search within the entire hunk.
+  	(if (not (eq style 'context))
+  	    (set-marker end-marker hunk-end)
+  	  (let ((mid-hunk
+  		 (save-excursion
+  		   (re-search-forward diff-context-mid-hunk-header-re hunk-end)
+  		   (point))))
+  	    (if other
+  		(set-marker end-marker mid-hunk)
+  	      (goto-char mid-hunk)
+  	      (set-marker end-marker hunk-end))))
+	(while (re-search-forward regexp end-marker t)
+	  (let ((match-data (match-data)))
+	    (pcase-let ((`(,buf ,line-offset ,pos ,src ,_dst ,_switched)
+			 (diff-find-source-location other-file)))
+	      (when line-offset
+		;; Remove the whitespace in the Diff mode buffer.
+		(set-match-data match-data)
+		(replace-match "" t t nil 1)
+		;; Remove the whitespace in the source buffer.
+		(with-current-buffer buf
+		  (save-excursion
+		    (goto-char (+ (car pos) (cdr src)))
+		    (beginning-of-line)
+		    (when (re-search-forward "\\([ \t]+\\)$" (line-end-position) t)
+		      (unless (memq buf modified-buffers)
+			(push buf modified-buffers))
+		      (replace-match ""))))))))
+	(goto-char hunk-end))
+      (if modified-buffers
+	  (message "Deleted trailing whitespace from %s."
+		   (mapconcat (lambda (buf) (concat "`" (buffer-name buf) "'"))
+			      modified-buffers ", "))
+	(message "No trailing whitespace to delete.")))))
 
 ;; provide the package
 (provide 'diff-mode)

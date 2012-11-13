@@ -164,12 +164,8 @@ have_menus_p (void)
 FRAME_PTR
 check_x_frame (Lisp_Object frame)
 {
-  FRAME_PTR f;
+  struct frame *f = decode_live_frame (frame);
 
-  if (NILP (frame))
-    frame = selected_frame;
-  CHECK_LIVE_FRAME (frame);
-  f = XFRAME (frame);
   if (! FRAME_X_P (f))
     error ("Non-X frame used");
   return f;
@@ -228,13 +224,11 @@ x_window_to_frame (struct x_display_info *dpyinfo, int wdesc)
   Lisp_Object tail, frame;
   struct frame *f;
 
-  if (wdesc == None) return 0;
+  if (wdesc == None)
+    return NULL;
 
-  for (tail = Vframe_list; CONSP (tail); tail = XCDR (tail))
+  FOR_EACH_FRAME (tail, frame)
     {
-      frame = XCAR (tail);
-      if (!FRAMEP (frame))
-        continue;
       f = XFRAME (frame);
       if (!FRAME_X_P (f) || FRAME_X_DISPLAY_INFO (f) != dpyinfo)
 	continue;
@@ -274,18 +268,16 @@ struct frame *
 x_any_window_to_frame (struct x_display_info *dpyinfo, int wdesc)
 {
   Lisp_Object tail, frame;
-  struct frame *f, *found;
+  struct frame *f, *found = NULL;
   struct x_output *x;
 
-  if (wdesc == None) return NULL;
+  if (wdesc == None)
+    return NULL;
 
-  found = NULL;
-  for (tail = Vframe_list; CONSP (tail) && !found; tail = XCDR (tail))
+  FOR_EACH_FRAME (tail, frame)
     {
-      frame = XCAR (tail);
-      if (!FRAMEP (frame))
-        continue;
-
+      if (found)
+        break;
       f = XFRAME (frame);
       if (FRAME_X_P (f) && FRAME_X_DISPLAY_INFO (f) == dpyinfo)
 	{
@@ -329,13 +321,11 @@ x_menubar_window_to_frame (struct x_display_info *dpyinfo, XEvent *event)
   struct frame *f;
   struct x_output *x;
 
-  if (wdesc == None) return 0;
+  if (wdesc == None)
+    return NULL;
 
-  for (tail = Vframe_list; CONSP (tail); tail = XCDR (tail))
+  FOR_EACH_FRAME (tail, frame)
     {
-      frame = XCAR (tail);
-      if (!FRAMEP (frame))
-        continue;
       f = XFRAME (frame);
       if (!FRAME_X_P (f) || FRAME_X_DISPLAY_INFO (f) != dpyinfo)
 	continue;
@@ -363,13 +353,11 @@ x_top_window_to_frame (struct x_display_info *dpyinfo, int wdesc)
   struct frame *f;
   struct x_output *x;
 
-  if (wdesc == None) return 0;
+  if (wdesc == None)
+    return NULL;
 
-  for (tail = Vframe_list; CONSP (tail); tail = XCDR (tail))
+  FOR_EACH_FRAME (tail, frame)
     {
-      frame = XCAR (tail);
-      if (!FRAMEP (frame))
-        continue;
       f = XFRAME (frame);
       if (!FRAME_X_P (f) || FRAME_X_DISPLAY_INFO (f) != dpyinfo)
 	continue;
@@ -3000,16 +2988,14 @@ x_default_font_parameter (struct frame *f, Lisp_Object parms)
 DEFUN ("x-wm-set-size-hint", Fx_wm_set_size_hint, Sx_wm_set_size_hint,
        0, 1, 0,
        doc: /* Send the size hints for frame FRAME to the window manager.
-If FRAME is nil, use the selected frame.  */)
+If FRAME is omitted or nil, use the selected frame.
+Signal error if FRAME is not an X frame.  */)
   (Lisp_Object frame)
 {
-  struct frame *f;
-  if (NILP (frame))
-    frame = selected_frame;
-  f = XFRAME (frame);
+  struct frame *f = check_x_frame (frame);
+
   block_input ();
-  if (FRAME_X_P (f))
-    x_wm_set_size_hint (f, 0, 0);
+  x_wm_set_size_hint (f, 0, 0);
   unblock_input ();
   return Qnil;
 }
@@ -3110,9 +3096,6 @@ This function is an internal primitive--use `make-frame' instead.  */)
     f = make_frame (1);
 
   XSETFRAME (frame, f);
-
-  /* Note that X Windows does support scroll bars.  */
-  FRAME_CAN_HAVE_SCROLL_BARS (f) = 1;
 
   f->terminal = dpyinfo->terminal;
 
@@ -4596,7 +4579,6 @@ x_create_tip_frame (struct x_display_info *dpyinfo,
   Finsert (1, &text);
   set_buffer_internal_1 (old_buffer);
 
-  FRAME_CAN_HAVE_SCROLL_BARS (f) = 0;
   record_unwind_protect (unwind_create_tip_frame, frame);
 
   f->terminal = dpyinfo->terminal;

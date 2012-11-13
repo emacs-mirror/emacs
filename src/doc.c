@@ -21,7 +21,7 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #include <config.h>
 
 #include <sys/types.h>
-#include <sys/file.h>	/* Must be after sys/types.h for USG*/
+#include <sys/file.h>	/* Must be after sys/types.h for USG.  */
 #include <fcntl.h>
 #include <unistd.h>
 
@@ -42,7 +42,7 @@ static ptrdiff_t get_doc_string_buffer_size;
 
 static unsigned char *read_bytecode_pointer;
 
-/* readchar in lread.c calls back here to fetch the next byte.
+/* `readchar' in lread.c calls back here to fetch the next byte.
    If UNREADFLAG is 1, we unread a byte.  */
 
 int
@@ -338,15 +338,9 @@ string is passed through `substitute-command-keys'.  */)
 
   doc = Qnil;
 
-  if (SYMBOLP (function))
-    {
-      Lisp_Object tem = Fget (function, Qfunction_documentation);
-      if (!NILP (tem))
-	return Fdocumentation_property (function, Qfunction_documentation,
-					raw);
-    }
-
   fun = Findirect_function (function, Qnil);
+  if (CONSP (fun) && EQ (XCAR (fun), Qmacro))
+    fun = XCDR (fun);
   if (SUBRP (fun))
     {
       if (XSUBR (fun)->doc == 0)
@@ -400,8 +394,6 @@ string is passed through `substitute-command-keys'.  */)
 	  else
 	    return Qnil;
 	}
-      else if (EQ (funcar, Qmacro))
-	return Fdocumentation (Fcdr (fun), raw);
       else
 	goto oops;
     }
@@ -411,16 +403,19 @@ string is passed through `substitute-command-keys'.  */)
       xsignal1 (Qinvalid_function, fun);
     }
 
-  /* Check for an advised function.  Its doc string
-     has an `ad-advice-info' text property.  */
+  /* Check for a dynamic docstring.  These come with
+     a dynamic-docstring-function text property.  */
   if (STRINGP (doc))
     {
-      Lisp_Object innerfunc;
-      innerfunc = Fget_text_property (make_number (0),
-				      intern ("ad-advice-info"),
+      Lisp_Object func
+	= Fget_text_property (make_number (0),
+			      intern ("dynamic-docstring-function"),
 				      doc);
-      if (! NILP (innerfunc))
-	doc = call1 (intern ("ad-make-advised-docstring"), innerfunc);
+      if (!NILP (func))
+	/* Pass both `doc' and `function' since `function' can be needed, and
+	   finding `doc' can be annoying: calling `documentation' is not an
+	   option because it would infloop.  */
+	doc = call2 (func, doc, function);
     }
 
   /* If DOC is 0, it's typically because of a dumped file missing
@@ -528,6 +523,8 @@ store_function_docstring (Lisp_Object obj, ptrdiff_t offset)
 	{
 	  tem = Fcdr (Fcdr (fun));
 	  if (CONSP (tem) && INTEGERP (XCAR (tem)))
+	    /* FIXME: This modifies typically pure hash-cons'd data, so its
+	       correctness is quite delicate.  */
 	    XSETCAR (tem, make_number (offset));
 	}
       else if (EQ (tem, Qmacro))

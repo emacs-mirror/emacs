@@ -1764,11 +1764,7 @@ visible section of the buffer, and pass LINE and COL as TOPOS.  */)
   else
     hscroll = tab_offset = 0;
 
-  if (NILP (window))
-    window = Fselected_window ();
-  else
-    CHECK_LIVE_WINDOW (window);
-  w = XWINDOW (window);
+  w = decode_live_window (window);
 
   if (XINT (from) < BEGV || XINT (from) > ZV)
     args_out_of_range_3 (from, make_number (BEGV), make_number (ZV));
@@ -1790,8 +1786,7 @@ visible section of the buffer, and pass LINE and COL as TOPOS.  */)
 			       1))
 			 : XINT (XCAR (topos))),
 			(NILP (width) ? -1 : XINT (width)),
-			hscroll, tab_offset,
-			XWINDOW (window));
+			hscroll, tab_offset, w);
 
   XSETFASTINT (bufpos, pos->bufpos);
   XSETINT (hpos, pos->hpos);
@@ -1988,11 +1983,7 @@ whether or not it is currently displayed in some window.  */)
     }
 
   CHECK_NUMBER (lines);
-  if (! NILP (window))
-    CHECK_WINDOW (window);
-  else
-    window = selected_window;
-  w = XWINDOW (window);
+  w = decode_live_window (window);
 
   old_buffer = Qnil;
   GCPRO3 (old_buffer, old_charpos, old_bytepos);

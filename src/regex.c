@@ -28,7 +28,7 @@
      rather than at run-time, so that re_match can be reentrant.
 */
 
-/* AIX requires this to be the first thing in the file. */
+/* AIX requires this to be the first thing in the file.  */
 #if defined _AIX && !defined REGEX_MALLOC
   #pragma alloca
 #endif

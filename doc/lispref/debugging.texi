@@ -117,12 +117,12 @@ has any of those condition symbols, or if the error message matches
 any of the regular expressions, then that error does not enter the
 debugger.
 
-The normal value of this variable lists several errors that happen
-often during editing but rarely result from bugs in Lisp programs.
-However, ``rarely'' is not ``never''; if your program fails with an
-error that matches this list, you may try changing this list to debug
-the error.  The easiest way is usually to set
-@code{debug-ignored-errors} to @code{nil}.
+The normal value of this variable includes @code{user-error}, as well
+as several errors that happen often during editing but rarely result
+from bugs in Lisp programs.  However, ``rarely'' is not ``never''; if
+your program fails with an error that matches this list, you may try
+changing this list to debug the error.  The easiest way is usually to
+set @code{debug-ignored-errors} to @code{nil}.
 @end defopt
 
 @defopt eval-expression-debug-on-error
@@ -162,6 +162,14 @@ supported values correspond to the signals @code{SIGUSR1} and
 @code{SIGUSR2} (this is the default).  This can be helpful when
 @code{inhibit-quit} is set and Emacs is not otherwise responding.
 @end defopt
+
+@cindex message, finding what causes a particular message
+@defvar debug-on-message
+If you set @code{debug-on-message} to a regular expression,
+Emacs will enter the debugger if it displays a matching message in the
+echo area.  For example, this can be useful when trying to find the
+cause of a particular message.
+@end defvar
 
   To debug an error that happens during loading of the init
 file, use the option @samp{--debug-init}.  This binds
@@ -314,6 +322,7 @@ is a message describing the reason that the debugger was invoked (such
 as the error message and associated data, if it was invoked due to an
 error).
 
+@vindex debugger-bury-or-kill
   The backtrace buffer is read-only and uses a special major mode,
 Debugger mode, in which letters are defined as debugger commands.  The
 usual Emacs editing commands are available; thus, you can switch windows
@@ -322,8 +331,12 @@ switch buffers, visit files, or do any other sort of editing.  However,
 the debugger is a recursive editing level (@pxref{Recursive Editing})
 and it is wise to go back to the backtrace buffer and exit the debugger
 (with the @kbd{q} command) when you are finished with it.  Exiting
-the debugger gets out of the recursive edit and kills the backtrace
-buffer.
+the debugger gets out of the recursive edit and buries the backtrace
+buffer.  (You can customize what the @kbd{q} command does with the
+backtrace buffer by setting the variable @code{debugger-bury-or-kill}.
+For example, set it to @code{kill} if you prefer to kill the buffer
+rather than bury it.  Consult the variable's documentation for more
+possibilities.)
 
   When the debugger has been entered, the @code{debug-on-error}
 variable is temporarily set according to

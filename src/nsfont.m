@@ -46,8 +46,9 @@ Author: Adrian Robert (arobert@cogsci.ucsd.edu)
 #define NSFONT_TRACE 0
 
 extern Lisp_Object Qns;
-extern Lisp_Object Qnormal, Qbold, Qitalic, Qcondensed, Qexpanded;
+extern Lisp_Object Qnormal, Qbold, Qitalic;
 static Lisp_Object Qapple, Qroman, Qmedium;
+static Lisp_Object Qcondensed, Qexpanded;
 extern Lisp_Object Qappend;
 extern float ns_antialias_threshold;
 extern int ns_tmp_flags;
@@ -201,8 +202,8 @@ ns_descriptor_to_entity (NSFontDescriptor *desc,
 		    make_number (100 + 100
 			 * ns_attribute_fvalue (desc, NSFontSlantTrait)));*/
     FONT_SET_STYLE (font_entity, FONT_WIDTH_INDEX,
-		    traits & NSFontCondensedTrait ? Qcondensed :
-		    traits & NSFontExpandedTrait ? Qexpanded : Qnormal);
+                    traits & NSFontCondensedTrait ? Qcondensed :
+                    traits & NSFontExpandedTrait ? Qexpanded : Qnormal);
 /*    FONT_SET_STYLE (font_entity, FONT_WIDTH_INDEX,
 		    make_number (100 + 100
 			 * ns_attribute_fvalue (desc, NSFontWidthTrait)));*/
@@ -559,7 +560,11 @@ ns_findfonts (Lisp_Object font_spec, BOOL isMatch)
     if (isMatch)
 	[fkeys removeObject: NSFontFamilyAttribute];
 
-    matchingDescs = [fdesc matchingFontDescriptorsWithMandatoryKeys: fkeys];
+    if ([fkeys count] > 0)
+      matchingDescs = [fdesc matchingFontDescriptorsWithMandatoryKeys: fkeys];
+    else
+      matchingDescs = [NSMutableArray array];
+
     if (NSFONT_TRACE)
 	NSLog(@"Got desc %@ and found %d matching fonts from it: ", fdesc,
 	      [matchingDescs count]);
@@ -1507,6 +1512,8 @@ syms_of_nsfont (void)
 {
   nsfont_driver.type = Qns;
   register_font_driver (&nsfont_driver, NULL);
+  DEFSYM (Qcondensed, "condensed");
+  DEFSYM (Qexpanded, "expanded");
   DEFSYM (Qapple, "apple");
   DEFSYM (Qroman, "roman");
   DEFSYM (Qmedium, "medium");

@@ -26,6 +26,8 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #include <limits.h>
 #include <errno.h>
 #include <math.h>
+#include <fcntl.h>
+#include <unistd.h>
 
 #include "lisp.h"
 #include "w32term.h"
@@ -262,12 +264,8 @@ have_menus_p (void)
 FRAME_PTR
 check_x_frame (Lisp_Object frame)
 {
-  FRAME_PTR f;
+  struct frame *f = decode_live_frame (frame);
 
-  if (NILP (frame))
-    frame = selected_frame;
-  CHECK_LIVE_FRAME (frame);
-  f = XFRAME (frame);
   if (! FRAME_W32_P (f))
     error ("Non-W32 frame used");
   return f;
@@ -306,19 +304,14 @@ check_x_display_info (Lisp_Object frame)
 /* Return the Emacs frame-object corresponding to an w32 window.
    It could be the frame's main window or an icon window.  */
 
-/* This function can be called during GC, so use GC_xxx type test macros.  */
-
 struct frame *
 x_window_to_frame (struct w32_display_info *dpyinfo, HWND wdesc)
 {
   Lisp_Object tail, frame;
   struct frame *f;
 
-  for (tail = Vframe_list; CONSP (tail); tail = XCDR (tail))
+  FOR_EACH_FRAME (tail, frame)
     {
-      frame = XCAR (tail);
-      if (!FRAMEP (frame))
-        continue;
       f = XFRAME (frame);
       if (!FRAME_W32_P (f) || FRAME_W32_DISPLAY_INFO (f) != dpyinfo)
 	continue;
@@ -2087,8 +2080,35 @@ sync_modifiers (void)
 static int
 modifier_set (int vkey)
 {
-  if (vkey == VK_CAPITAL || vkey == VK_SCROLL)
-    return (GetKeyState (vkey) & 0x1);
+  /* Warning: The fact that VK_NUMLOCK is not treated as the other 2
+     toggle keys is not an omission!  If you want to add it, you will
+     have to make changes in the default sub-case of the WM_KEYDOWN
+     switch, because if the NUMLOCK modifier is set, the code there
+     will directly convert any key that looks like an ASCII letter,
+     and also downcase those that look like upper-case ASCII.  */
+  if (vkey == VK_CAPITAL)
+    {
+      if (NILP (Vw32_enable_caps_lock))
+	return 0;
+      else
+	return (GetKeyState (vkey) & 0x1);
+    }
+  if (vkey == VK_SCROLL)
+    {
+      if (NILP (Vw32_scroll_lock_modifier)
+	  /* w32-scroll-lock-modifier can be any non-nil value that is
+	     not one of the modifiers, in which case it shall be ignored.  */
+	  || !(   EQ (Vw32_scroll_lock_modifier, Qhyper)
+	       || EQ (Vw32_scroll_lock_modifier, Qsuper)
+	       || EQ (Vw32_scroll_lock_modifier, Qmeta)
+	       || EQ (Vw32_scroll_lock_modifier, Qalt)
+	       || EQ (Vw32_scroll_lock_modifier, Qcontrol)
+	       || EQ (Vw32_scroll_lock_modifier, Qshift)))
+	return 0;
+      else
+	return (GetKeyState (vkey) & 0x1);
+    }
+
   if (!modifiers_recorded)
     return (GetKeyState (vkey) & 0x8000);
 
@@ -4286,9 +4306,6 @@ This function is an internal primitive--use `make-frame' instead.  */)
 
   XSETFRAME (frame, f);
 
-  /* Note that Windows does support scroll bars.  */
-  FRAME_CAN_HAVE_SCROLL_BARS (f) = 1;
-
   /* By default, make scrollbars the system standard width. */
   FRAME_CONFIG_SCROLL_BAR_WIDTH (f) = GetSystemMetrics (SM_CXVSCROLL);
 
@@ -5389,7 +5406,6 @@ x_create_tip_frame (struct w32_display_info *dpyinfo,
   Finsert (1, &text);
   set_buffer_internal_1 (old_buffer);
 
-  FRAME_CAN_HAVE_SCROLL_BARS (f) = 0;
   record_unwind_protect (unwind_create_tip_frame, frame);
 
   /* By setting the output method, we're essentially saying that
@@ -7700,6 +7716,30 @@ globals_of_w32fns (void)
   syms_of_w32uniscribe ();
 }
 
+typedef USHORT (WINAPI * CaptureStackBackTrace_proc) (ULONG, ULONG, PVOID *,
+						      PULONG);
+
+#define BACKTRACE_LIMIT_MAX 62
+
+int
+w32_backtrace (void **buffer, int limit)
+{
+  static CaptureStackBackTrace_proc s_pfn_CaptureStackBackTrace = NULL;
+  HMODULE hm_kernel32 = NULL;
+
+  if (!s_pfn_CaptureStackBackTrace)
+    {
+      hm_kernel32 = LoadLibrary ("Kernel32.dll");
+      s_pfn_CaptureStackBackTrace =
+	(CaptureStackBackTrace_proc) GetProcAddress (hm_kernel32,
+						     "RtlCaptureStackBackTrace");
+    }
+  if (s_pfn_CaptureStackBackTrace)
+    return s_pfn_CaptureStackBackTrace (0, min (BACKTRACE_LIMIT_MAX, limit),
+					buffer, NULL);
+  return 0;
+}
+
 void
 emacs_abort (void)
 {
@@ -7707,7 +7747,10 @@ emacs_abort (void)
   button = MessageBox (NULL,
 		       "A fatal error has occurred!\n\n"
 		       "Would you like to attach a debugger?\n\n"
-		       "Select YES to debug, NO to abort Emacs"
+		       "Select:\n"
+		       "YES -- to debug Emacs, or\n"
+		       "NO  -- to abort Emacs and produce a backtrace\n"
+		       "       (emacs_backtrace.txt in current directory)."
 #if __GNUC__
 		       "\n\n(type \"gdb -p <emacs-PID>\" and\n"
 		       "\"continue\" inside GDB before clicking YES.)"
@@ -7722,7 +7765,59 @@ emacs_abort (void)
       exit (2);	/* tell the compiler we will never return */
     case IDNO:
     default:
-      abort ();
-      break;
+      {
+	void *stack[BACKTRACE_LIMIT_MAX + 1];
+	int i = w32_backtrace (stack, BACKTRACE_LIMIT_MAX + 1);
+
+	if (i)
+	  {
+#ifdef CYGWIN
+	    int stderr_fd = 2;
+#else
+	    HANDLE errout = GetStdHandle (STD_ERROR_HANDLE);
+	    int stderr_fd = -1;
+#endif
+	    int errfile_fd = -1;
+	    int j;
+
+#ifndef CYGWIN
+	    if (errout && errout != INVALID_HANDLE_VALUE)
+	      stderr_fd = _open_osfhandle ((intptr_t)errout, O_APPEND | O_BINARY);
+#endif
+	    if (stderr_fd >= 0)
+	      write (stderr_fd, "\r\nBacktrace:\r\n", 14);
+	    errfile_fd = _open ("emacs_backtrace.txt", O_RDWR | O_CREAT | O_BINARY, S_IREAD | S_IWRITE);
+	    if (errfile_fd >= 0)
+	      {
+		lseek (errfile_fd, 0L, SEEK_END);
+		write (errfile_fd, "\r\nBacktrace:\r\n", 14);
+	      }
+
+	    for (j = 0; j < i; j++)
+	      {
+		char buf[INT_BUFSIZE_BOUND (void *)];
+
+		/* stack[] gives the return addresses, whereas we want
+		   the address of the call, so decrease each address
+		   by approximate size of 1 CALL instruction.  */
+		sprintf (buf, "0x%p\r\n", stack[j] - sizeof(void *));
+		if (stderr_fd >= 0)
+		  write (stderr_fd, buf, strlen (buf));
+		if (errfile_fd >= 0)
+		  write (errfile_fd, buf, strlen (buf));
+	      }
+	    if (i == BACKTRACE_LIMIT_MAX)
+	      {
+		if (stderr_fd >= 0)
+		  write (stderr_fd, "...\r\n", 5);
+		if (errfile_fd >= 0)
+		  write (errfile_fd, "...\r\n", 5);
+	      }
+	    if (errfile_fd >= 0)
+	      close (errfile_fd);
+	  }
+	abort ();
+	break;
+      }
     }
 }

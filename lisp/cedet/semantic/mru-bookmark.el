@@ -292,13 +292,13 @@ minor mode is enabled."
             (setq semantic-mru-bookmark-mode nil)
             (error "Buffer %s was not set up for parsing"
                    (buffer-name)))
-        (semantic-make-local-hook 'semantic-edits-new-change-hooks)
-        (add-hook 'semantic-edits-new-change-hooks
+        (semantic-make-local-hook 'semantic-edits-new-change-functions)
+        (add-hook 'semantic-edits-new-change-functions
                   'semantic-mru-bookmark-change-hook-fcn nil t)
         (add-hook 'semantic-edits-move-change-hooks
                   'semantic-mru-bookmark-change-hook-fcn nil t))
     ;; Remove hooks
-    (remove-hook 'semantic-edits-new-change-hooks
+    (remove-hook 'semantic-edits-new-change-functions
 		 'semantic-mru-bookmark-change-hook-fcn t)
     (remove-hook 'semantic-edits-move-change-hooks
 		 'semantic-mru-bookmark-change-hook-fcn t)))

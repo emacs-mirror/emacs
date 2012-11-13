@@ -890,10 +890,8 @@ struct scroll_bar
    by this structure.  */
 
 /* For an event of kind SELECTION_REQUEST_EVENT,
-   this structure really describes the contents.
-   **Don't make this struct longer!**
-   If it overlaps the frame_or_window field of struct input_event,
-   that will cause GC to crash.  */
+   this structure really describes the contents.  */
+
 struct selection_input_event
 {
   int kind;

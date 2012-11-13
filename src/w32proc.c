@@ -230,14 +230,14 @@ sigismember (const sigset_t *set, int signo)
   return (*set & (1U << signo)) != 0;
 }
 
-int
-setpgrp (int pid, int gid)
+pid_t
+getpgrp (void)
 {
-  return 0;
+  return getpid ();
 }
 
 pid_t
-getpgrp (void)
+tcgetpgrp (int fd)
 {
   return getpid ();
 }
@@ -246,6 +246,12 @@ int
 setpgid (pid_t pid, pid_t pgid)
 {
   return 0;
+}
+
+pid_t
+setsid (void)
+{
+  return getpid ();
 }
 
 /* Emulations of interval timers.

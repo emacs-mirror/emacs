@@ -1823,22 +1823,31 @@ nil."
 
 ;;; Filling
 
+(defvar js--filling-paragraph nil)
+
+;; FIXME: Such redefinitions are bad style.  We should try and use some other
+;; way to get the same result.
+(defadvice c-forward-sws (around js-fill-paragraph activate)
+  (if js--filling-paragraph
+      (setq ad-return-value (js--forward-syntactic-ws (ad-get-arg 0)))
+    ad-do-it))
+
+(defadvice c-backward-sws (around js-fill-paragraph activate)
+  (if js--filling-paragraph
+      (setq ad-return-value (js--backward-syntactic-ws (ad-get-arg 0)))
+    ad-do-it))
+
+(defadvice c-beginning-of-macro (around js-fill-paragraph activate)
+  (if js--filling-paragraph
+      (setq ad-return-value (js--beginning-of-macro (ad-get-arg 0)))
+    ad-do-it))
+
 (defun js-c-fill-paragraph (&optional justify)
   "Fill the paragraph with `c-fill-paragraph'."
   (interactive "*P")
-  ;; FIXME: Such redefinitions are bad style.  We should try and use some other
-  ;; way to get the same result.
-  (cl-letf (((symbol-function 'c-forward-sws)
-             (lambda (&optional limit)
-               (js--forward-syntactic-ws limit)))
-            ((symbol-function 'c-backward-sws)
-             (lambda (&optional limit)
-               (js--backward-syntactic-ws limit)))
-            ((symbol-function 'c-beginning-of-macro)
-             (lambda (&optional limit)
-               (js--beginning-of-macro limit))))
-    (let ((fill-paragraph-function 'c-fill-paragraph))
-      (c-fill-paragraph justify))))
+  (let ((js--filling-paragraph t)
+        (fill-paragraph-function 'c-fill-paragraph))
+    (c-fill-paragraph justify)))
 
 ;;; Type database and Imenu
 

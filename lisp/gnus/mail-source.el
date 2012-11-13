@@ -63,7 +63,7 @@
 This variable is a list of mail source specifiers.
 See Info node `(gnus)Mail Source Specifiers'."
   :group 'mail-source
-  :version "23.1" ;; No Gnus
+  :version "24.4"
   :link '(custom-manual "(gnus)Mail Source Specifiers")
   :type `(choice
 	  (const :tag "None" nil)
@@ -159,7 +159,18 @@ See Info node `(gnus)Mail Source Specifiers'."
 						   :value nil
 						   (const :tag "Clear" nil)
 						   (const starttls)
-						   (const :tag "SSL/TLS" ssl)))))
+						   (const :tag "SSL/TLS" ssl)))
+				    (group :inline t
+					   (const :format "" :value :leave)
+					   (choice :format "\
+%{Leave mail on server%}:\n\t\t%[Value Menu%] %v"
+						   :value nil
+						   (const :tag "\
+Don't leave mails" nil)
+						   (const :tag "\
+Leave all mails" t)
+						   (number :tag "\
+Leave mails for this many days" :value 14)))))
 		   (cons :tag "Maildir (qmail, postfix...)"
 			 (const :format "" maildir)
 			 (checklist :tag "Options" :greedy t
@@ -340,7 +351,8 @@ Common keywords should be listed here.")
        (:function)
        (:password)
        (:authentication password)
-       (:stream nil))
+       (:stream nil)
+       (:leave))
       (maildir
        (:path (or (getenv "MAILDIR") "~/Maildir/"))
        (:subdirs ("cur" "new"))
@@ -825,7 +837,8 @@ Deleting old (> %s day(s)) incoming mail file `%s'." diff bfile)
 		    (pop3-port port)
 		    (pop3-authentication-scheme
 		     (if (eq authentication 'apop) 'apop 'pass))
-		    (pop3-stream-type stream))
+		    (pop3-stream-type stream)
+		    (pop3-leave-mail-on-server leave))
 		(if (or debug-on-quit debug-on-error)
 		    (save-excursion (pop3-movemail mail-source-crash-box))
 		  (condition-case err

@@ -14759,20 +14759,37 @@ This can be either the symbol @code{password} or the symbol @code{apop}
 and says what authentication scheme to use.  The default is
 @code{password}.
 
+@item :leave
+Non-@code{nil} if the mail is to be left on the @acronym{POP} server
+after fetching.  Mails once fetched will never be fetched again by the
+@acronym{UIDL} control.  Only the built-in @code{pop3-movemail} program
+(the default) supports this keyword.
+
+If this is neither @code{nil} nor a number, all mails will be left on
+the server.  If this is a number, leave mails on the server for this
+many days since you first checked new mails.  If this is @code{nil}
+(the default), mails will be deleted on the server right after fetching.
+
+@vindex pop3-uidl-file
+The @code{pop3-uidl-file} variable specifies the file to which the
+@acronym{UIDL} data are locally stored.  The default value is
+@file{~/.pop3-uidl}.
+
+Note that @acronym{POP} servers maintain no state information between
+sessions, so what the client believes is there and what is actually
+there may not match up.  If they do not, then you may get duplicate
+mails or the whole thing can fall apart and leave you with a corrupt
+mailbox.
+
 @end table
 
-@vindex pop3-movemail
+@findex pop3-movemail
 @vindex pop3-leave-mail-on-server
 If the @code{:program} and @code{:function} keywords aren't specified,
-@code{pop3-movemail} will be used.  If @code{pop3-leave-mail-on-server}
-is non-@code{nil} the mail is to be left on the @acronym{POP} server
-after fetching when using @code{pop3-movemail}.  Note that POP servers
-maintain no state information between sessions, so what the client
-believes is there and what is actually there may not match up.  If they
-do not, then you may get duplicate mails or the whole thing can fall
-apart and leave you with a corrupt mailbox.
+@code{pop3-movemail} will be used.
 
 Here are some examples for getting mail from a @acronym{POP} server.
+
 Fetch from the default @acronym{POP} server, using the default user
 name, and default fetcher:
 
@@ -14785,6 +14802,14 @@ Fetch from a named server with a named user and password:
 @lisp
 (pop :server "my.pop.server"
      :user "user-name" :password "secret")
+@end lisp
+
+Leave mails on the server for 14 days:
+
+@lisp
+(pop :server "my.pop.server"
+     :user "user-name" :password "secret"
+     :leave 14)
 @end lisp
 
 Use @samp{movemail} to move the mail:
