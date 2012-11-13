@@ -1,3 +1,31 @@
+2012-11-13  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* emacs-lisp/advice.el: Layer on top of nadvice.el.
+	Remove out of date self-require hack.
+	(ad-do-advised-functions): Use simple `dolist'.
+	(ad-advice-name, ad-advice-protected, ad-advice-enabled)
+	(ad-advice-definition): Redefine as functions.
+	(ad-advice-classes): Move before first use.
+	(ad-make-origname, ad-set-orig-definition, ad-clear-orig-definition)
+	(ad-make-mapped-call, ad-make-advised-docstring, ad-make-plain-docstring)
+	(ad--defalias-fset): Remove functions.
+	(ad-make-advicefunname, ad-clear-advicefunname-definition): New functions.
+	(ad-get-orig-definition): Rewrite.
+	(ad-make-advised-definition-docstring): Change base docstring.
+	(ad-real-orig-definition): Rewrite.
+	(ad-map-arglists): Change name of called function.
+	(ad--make-advised-docstring): Redirect `function' from ad-Advice-...
+	(ad-make-advised-definition): Simplify.
+	(ad-assemble-advised-definition): Tweak for new calling context.
+	(ad-activate-advised-definition): Setup ad-Advice-* instead of ad-Orig-*.
+	(ad--defalias-fset): Rename from ad-handle-definition.  Make it set the
+	function and call ad-activate if needed.
+	(ad-activate, ad-deactivate): Don't call ad-handle-definition any more.
+	(ad-recover): Clear ad-Advice-* instead of ad-Orig-*.
+	(ad-compile-function): Compile ad-Advice-*.
+	(ad-activate-on-top-level, ad-with-auto-activation-disabled): Remove.
+	(ad-start-advice, ad-stop-advice): Remove.
+
 2012-11-13  Dmitry Gutov  <dgutov@yandex.ru>
 
 	* progmodes/ruby-mode.el (ruby-add-log-current-method): Print the
