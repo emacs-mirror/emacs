@@ -3049,8 +3049,10 @@ WINDOW must be a live window and defaults to the selected one."
 				(set-marker (nth 2 entry) point))
 			;; Make new markers.
 			(list (copy-marker start)
-			      (copy-marker point)))))
-
+			      (copy-marker
+			       ;; Preserve window-point-insertion-type
+			       ;; (Bug#12588).
+			       point window-point-insertion-type)))))
 	  (set-window-prev-buffers
 	   window (cons entry (window-prev-buffers window))))))))
 
@@ -4555,13 +4557,17 @@ element is BUFFER."
 	  ;; If WINDOW has a quit-restore parameter, reset its car.
 	  (setcar (window-parameter window 'quit-restore) 'same))
       ;; WINDOW shows another buffer.
-      (set-window-parameter
-       window 'quit-restore
-       (list 'other
-	     ;; A quadruple of WINDOW's buffer, start, point and height.
-	     (list (window-buffer window) (window-start window)
-		   (window-point window) (window-total-size window))
-	     (selected-window) buffer))))
+      (with-current-buffer (window-buffer window)
+	(set-window-parameter
+	 window 'quit-restore
+	 (list 'other
+	       ;; A quadruple of WINDOW's buffer, start, point and height.
+	       (list (current-buffer) (window-start window)
+		     ;; Preserve window-point-insertion-type (Bug#12588).
+		     (copy-marker
+		      (window-point window) window-point-insertion-type)
+		     (window-total-size window))
+	       (selected-window) buffer)))))
    ((eq type 'window)
     ;; WINDOW has been created on an existing frame.
     (set-window-parameter

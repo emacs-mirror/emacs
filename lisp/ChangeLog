@@ -1,3 +1,9 @@
+2012-11-13  Martin Rudalics  <rudalics@gmx.at>
+
+	* window.el (record-window-buffer)
+	(display-buffer-record-window): When copying the markers to
+	window-point preserve window-point-insertion-type. (Bug#12588)
+
 2012-11-13  Glenn Morris  <rgm@gnu.org>
 
 	* emacs-lisp/eieio-datadebug.el (eieio-debug-methodinvoke):
