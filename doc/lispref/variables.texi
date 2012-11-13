@@ -2133,20 +2133,24 @@ set.  An example of using this macro is:
 @end example
 @end defmac
 
-@c FIXME?  Not sure what, if anything, to say about this.
-@ignore
-@defmac gv-define-expander name handler
-This is the most general way to define a new @code{setf} expansion.
-@end defmac
-@end ignore
+@findex gv-define-expander
+@findex gv-letplace
+@c FIXME?  Not sure what or how much to say about these.
+@c See cl.texi for an example of using gv-letplace.
+For more control over the expansion, see the macro @code{gv-define-expander}.
+The macro @code{gv-letplace} can be useful in defining macros that
+perform similarly to @code{setf}; for example, the @code{incf} macro
+of Common Lisp.  Consult the source file @file{gv.el} for more details.
 
 @cindex CL note---no @code{setf} functions
-Common Lisp defines another way to specify the @code{setf} behavior of
-a function, namely ``@code{setf} functions'', whose names are lists
-@code{(setf @var{name})} rather than symbols.  For example,
-@code{(defun (setf foo) @dots{})} defines the function that is used
-when @code{setf} is applied to @code{foo}.  Emacs does not support
-this.  It is a compile-time error to use @code{setf} on a form that
-has not already had an appropriate expansion defined.  In Common Lisp,
-this is not an error since the function @code{(setf @var{func})} might
-be defined later.
+@quotation
+@b{Common Lisp note:} Common Lisp defines another way to specify the
+@code{setf} behavior of a function, namely ``@code{setf} functions'',
+whose names are lists @code{(setf @var{name})} rather than symbols.
+For example, @code{(defun (setf foo) @dots{})} defines the function
+that is used when @code{setf} is applied to @code{foo}.  Emacs does
+not support this.  It is a compile-time error to use @code{setf} on a
+form that has not already had an appropriate expansion defined.  In
+Common Lisp, this is not an error since the function @code{(setf
+@var{func})} might be defined later.
+@end quotation

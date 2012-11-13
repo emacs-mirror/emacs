@@ -1,3 +1,18 @@
+2012-11-13  Glenn Morris  <rgm@gnu.org>
+
+	* variables.texi (Adding Generalized Variables):
+	At least mention gv-define-expander and gv-letplace.
+
+	* debugging.texi (Error Debugging): Mention debug-on-message.
+	(Using Debugger): Mention debugger-bury-or-kill.
+
+	* control.texi (Signaling Errors):
+	* debugging.texi (Error Debugging):
+	* errors.texi (Standard Errors): Add user-error.
+
+	* variables.texi (Adding Generalized Variables):
+	Use standard formatting for common lisp note about setf functions.
+
 2012-11-10  Martin Rudalics  <rudalics@gmx.at>
 
 	* elisp.texi (Top): Add Recombining Windows to menu.

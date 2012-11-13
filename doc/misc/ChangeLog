@@ -1,3 +1,9 @@
+2012-11-13  Glenn Morris  <rgm@gnu.org>
+
+	* flymake.texi (Customizable variables)
+	(Highlighting erroneous lines): Mention flymake-error-bitmap,
+	flymake-warning-bitmap, and flymake-fringe-indicator-position.
+
 2012-11-12  Vincent Belaïche  <vincentb1@users.sourceforge.net>
 
 	* ses.texi: Doc for ses-rename-cell, ses-repair-cell-reference-all & ses-range.

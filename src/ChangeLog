@@ -1,3 +1,11 @@
+2012-11-13  Eli Zaretskii  <eliz@gnu.org>
+
+	* xdisp.c (decode_mode_spec): Limit the value of WIDTH argument
+	passed to pint2str and pint2hrstr to be at most the size of the
+	frame's decode_mode_spec_buffer.  This avoids crashes with very
+	large values of FIELD_WIDTH argument to decode_mode_spec.
+	(Bug#12867)
+
 2012-11-13  Paul Eggert  <eggert@cs.ucla.edu>
 
 	Fix a race with verify-visited-file-modtime (Bug#12863).

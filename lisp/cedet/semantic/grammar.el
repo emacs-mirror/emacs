@@ -1333,8 +1333,8 @@ the change bounds to encompass the whole nonterminal tag."
   (add-hook 'before-change-functions
             'semantic--grammar-clear-macros-regexp-2 nil t)
   ;; Handle safe re-parse of grammar rules.
-  (semantic-make-local-hook 'semantic-edits-new-change-hooks)
-  (add-hook 'semantic-edits-new-change-hooks
+  (semantic-make-local-hook 'semantic-edits-new-change-functions)
+  (add-hook 'semantic-edits-new-change-functions
             'semantic-grammar-edits-new-change-hook-fcn
             nil t)
   (semantic-run-mode-hooks 'semantic-grammar-mode-hook))

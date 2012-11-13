@@ -162,6 +162,7 @@ next and previous path separator, respectively.
 *** minibuffer-electric-default-mode can rewrite (default ...) to [...].
 Just set minibuffer-eldef-shorten-default to t before enabling the mode.
 
++++
 ** ImageMagick support, if available, is automatically enabled.
 It is no longer necessary to call `imagemagick-register-types'
 explicitly to install ImageMagick image types; that function is called
@@ -470,6 +471,7 @@ when you receive a private message or your nickname is mentioned.
 *** ERC will look up server/channel names via auth-source and use any
 channel keys found.
 
++++
 ** Flymake uses fringe bitmaps to indicate errors and warnings.
 See `flymake-fringe-indicator-position', `flymake-error-bitmap' and
 `flymake-warning-bitmap'.
@@ -478,10 +480,12 @@ See `flymake-fringe-indicator-position', `flymake-error-bitmap' and
 ** Follow mode no longer works by using advice.
 The option `follow-intercept-processes' has been removed.
 
+---
 ** The FFAP option `ffap-url-unwrap-remote' can now be a list of strings,
-specifying URL types which should be converted to remote file names at
+specifying URL types that should be converted to remote file names at
 the FFAP prompt.  The default is now '("ftp").
 
+---
 ** New Ibuffer `derived-mode' filter, bound to `/ M'.
 The old binding for `/ M' (filter by used-mode) is now bound to `/ m'.
 
@@ -497,11 +501,14 @@ The old binding for `/ M' (filter by used-mode) is now bound to `/ m'.
 The function `notifications-get-capabilities' returns the supported
 server properties.
 
+---
 ** In Perl mode, new option `perl-indent-parens-as-block' causes non-block
 closing brackets to be aligned with the line of the opening bracket.
 
+---
 ** In Proced mode, new command `proced-renice' renices marked processes.
 
+---
 ** Python mode
 
 A new version of python.el, which provides several new features, including:
@@ -548,6 +555,8 @@ python-insert-while       | python-skeleton-while
 python-find-function      | python-nav-jump-to-defun
 python-next-statement     | python-nav-forward-sentence
 python-previous-statement | python-nav-backward-sentence
+python-beginning-of-defun-function  | python-nav-beginning-of-defun
+python-end-of-defun-function        | python-nav-end-of-defun
 python-send-buffer        | python-shell-send-buffer
 python-send-defun         | python-shell-send-defun
 python-send-region        | python-shell-send-region
@@ -586,8 +595,9 @@ Sphinx support has been improved.
 
 *** `sh-use-smie' lets you choose a new indentation and navigation code.
 
++++
 ** New option `async-shell-command-buffer' specifies the buffer to use
-for a new asynchronous shell command when the default output buffer
+for a new asynchronous `shell-command' when the default output buffer
 `*Async Shell Command*' is already in use.
 
 ---
@@ -831,11 +841,15 @@ table, but with a different prefix.
 
 ** Debugger changes
 
++++
 *** New error type and new function `user-error'.
 These do not trigger the debugger.
 
-*** New option `debugger-bury-or-kill'.
++++
+*** New option `debugger-bury-or-kill', saying what to do with the
+debugger buffer when exiting debug.
 
++++
 *** Set `debug-on-message' to enter the debugger when a certain
 message is displayed in the echo area.  This can be useful when trying
 to work out which code is doing something.
@@ -900,7 +914,7 @@ in Emacs 24.1:
 *** `current-time-string' no longer requires that its argument's year
 must be in the range 1000..9999.  It now works with any year supported
 by the underlying C implementation.
-
++++
 *** `current-time' now returns extended-format time stamps
 (HIGH LOW USEC PSEC), where the new PSEC slot specifies picoseconds.
 PSEC is typically a multiple of 1000 on current machines.  Other
@@ -912,7 +926,7 @@ stamps are still accepted.
 [TRIGGERED-P HI-SECS LO-SECS USECS REPEAT-DELAY FUNCTION ARGS IDLE-DELAY PSECS].
 The PSECS slot is new, and uses picosecond resolution.  It can be
 accessed via the new timer--psecs accessor.
-
++++
 *** Last-modified time stamps in undo lists now are of the form
 (t HI-SECS LO-SECS USECS PSECS) instead of (t HI-SECS . LO-SECS).
 

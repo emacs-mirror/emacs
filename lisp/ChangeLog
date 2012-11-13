@@ -1,3 +1,53 @@
+2012-11-13  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* emacs-lisp/gv.el (gv-define-simple-setter): One more fix (bug#12871).
+
+2012-11-13  Wolfgang Jenkner  <wjenkner@inode.at>
+
+	* ansi-color.el (ansi-color-apply-sequence): Implement SGR codes
+	39 and 49 (bug#12792).  Also, treat unimplemented parameters as 0,
+	thereby restoring the behavior of revisions prior to 109621.
+
+2012-11-13  Fabián Ezequiel Gallina  <fgallina@cuca>
+
+	Fix end-of-defun misbehavior.
+	* progmodes/python.el (python-nav-beginning-of-defun): Rename from
+	python-beginning-of-defun-function.  Handle nested defuns
+	correctly.
+	(python-nav-end-of-defun): Rename from
+	python-end-of-defun-function.  Ensure forward movement.
+	(python-info-current-defun): Reimplement to work as intended
+	with new fixed python-nav-{end,beginning}-of-defun.  Stop scanning
+	parent defuns as soon as possible.
+
+2012-11-13  Glenn Morris  <rgm@gnu.org>
+
+	* progmodes/flymake.el (flymake-error-bitmap)
+	(flymake-warning-bitmap, flymake-fringe-indicator-position): Doc fixes.
+	(flymake-error-bitmap, flymake-warning-bitmap): Fix :types.
+
+2012-11-13  Dmitry Gutov  <dgutov@yandex.ru>
+
+	* progmodes/ruby-mode.el (ruby-move-to-block): When moving
+	backward, always stop at indentation.  Reverts the change from
+	109576 (Bug#12851).
+
+2012-11-13  Glenn Morris  <rgm@gnu.org>
+
+	* ibuffer.el (ibuffer-mode-map, ibuffer-mode):
+	Add ibuffer-filter-by-derived-mode.
+
+	* ibuffer.el (ibuffer-mode-map): Don't have two menu items with
+	the same name shadowing each other.
+
+	* window.el (with-temp-buffer-window): Doc tweak.
+
+	* emacs-lisp/debug.el (debugger-bury-or-kill): Doc tweak.
+
+	* help.el (temp-buffer-max-height):
+	* window.el (fit-frame-to-buffer, fit-frame-to-buffer-bottom-margin):
+	* emacs-lisp/debug.el (debugger-bury-or-kill): Fix :version.
+
 2012-11-12  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* emacs-lisp/nadvice.el: New package.

@@ -49,9 +49,9 @@ the middle is discarded, and just the beginning and end are displayed."
   :version "21.1")
 
 (defcustom debugger-bury-or-kill 'bury
-  "How to proceed with the debugger buffer when exiting `debug'.
-The value used here affects the behavior of operations on any
-window previously showing the debugger buffer.
+  "What to do with the debugger buffer when exiting `debug'.
+The value affects the behavior of operations on any window
+previously showing the debugger buffer.
 
 `nil' means that if its window is not deleted when exiting the
   debugger, invoking `switch-to-prev-buffer' will usually show
@@ -79,7 +79,7 @@ The value used here is passed to `quit-restore-window'."
 	  (const :tag "Bury" bury)
 	  (const :tag "Kill" kill))
   :group 'debugger
-  :version "24.2")
+  :version "24.3")
 
 (defvar debugger-step-after-exit nil
   "Non-nil means \"single-step\" after the debugger exits.")

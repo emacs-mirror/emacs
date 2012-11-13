@@ -202,13 +202,13 @@ VALUES-PLIST is a list with alternating index and value elements."
    |  end
    |"))
 
-(ert-deftest ruby-move-to-block-stops-at-opening ()
+(ert-deftest ruby-move-to-block-stops-at-indentation ()
   (with-temp-buffer
     (insert "def f\nend")
     (beginning-of-line)
     (ruby-mode)
     (ruby-move-to-block -1)
-    (should (looking-at "f$"))))
+    (should (looking-at "^def"))))
 
 (ert-deftest ruby-toggle-block-to-do-end ()
   (with-temp-buffer
