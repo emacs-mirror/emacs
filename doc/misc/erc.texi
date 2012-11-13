@@ -390,11 +390,6 @@ Complete nicknames and commands (programmable)
 @item fill
 Wrap long lines
 
-@cindex modules, hecomplete
-@item hecomplete
-Complete nicknames and commands (old).  This is the old module---you
-might prefer the ``completion'' module instead.
-
 @cindex modules, identd
 @item identd
 Launch an identd server on port 8113
@@ -426,6 +421,11 @@ Don't display non-IRC commands after evaluation
 @cindex modules, notify
 @item notify
 Notify when the online status of certain users changes
+
+@cindex modules, notifications
+@item notifications
+Send you a notification when you get a private message,
+or your nickname is mentioned
 
 @cindex modules, page
 @item page

@@ -434,8 +434,9 @@ The global binding for `M-=', `count-words-region' is in effect.
 
 ** ERC
 
-*** New package `erc-desktop-notifications.el', which can send a notification
-when you receive a private message or your nickname is mentioned.
++++
+*** New module "notifications", which can send a notification when you
+receive a private message or your nickname is mentioned.
 
 *** ERC will look up server/channel names via auth-source and use any
 channel keys found.
