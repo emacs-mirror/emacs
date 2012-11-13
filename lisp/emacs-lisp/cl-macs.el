@@ -1547,9 +1547,9 @@ An implicit nil block is established around the loop.
 \(fn (VAR LIST [RESULT]) BODY...)"
   (declare (debug ((symbolp form &optional form) cl-declarations body))
            (indent 1))
-  `(cl-block nil
-     (,(if (eq 'cl-dolist (symbol-function 'dolist)) 'cl--dolist 'dolist)
-      ,spec ,@body)))
+  (let ((loop `(dolist ,spec ,@body)))
+    (if (advice-member-p #'cl--wrap-in-nil-block 'dolist)
+        loop `(cl-block nil ,loop))))
 
 ;;;###autoload
 (defmacro cl-dotimes (spec &rest body)
@@ -1560,9 +1560,9 @@ nil.
 
 \(fn (VAR COUNT [RESULT]) BODY...)"
   (declare (debug cl-dolist) (indent 1))
-  `(cl-block nil
-     (,(if (eq 'cl-dotimes (symbol-function 'dotimes)) 'cl--dotimes 'dotimes)
-      ,spec ,@body)))
+  (let ((loop `(dotimes ,spec ,@body)))
+    (if (advice-member-p #'cl--wrap-in-nil-block 'dotimes)
+        loop `(cl-block nil ,loop))))
 
 ;;;###autoload
 (defmacro cl-do-symbols (spec &rest body)

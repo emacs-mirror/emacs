@@ -230,23 +230,49 @@ of the piece of advice."
         (advice--make-1 (aref old 1) (aref old 3)
                         first nrest props)))))
 
+(defun advice--normalize (symbol def)
+  (cond
+   ((special-form-p def)
+    ;; Not worth the trouble trying to handle this, I think.
+    (error "add-advice failure: %S is a special form" symbol))
+   ((and (symbolp def)
+	 (eq 'macro (car-safe (ignore-errors (indirect-function def)))))
+    (let ((newval (cons 'macro (cdr (indirect-function def)))))
+      (put symbol 'advice--saved-rewrite (cons def newval))
+      newval))
+   ;; `f' might be a pure (hence read-only) cons!
+   ((and (eq 'macro (car-safe def))
+	 (not (ignore-errors (setcdr def (cdr def)) t)))
+    (cons 'macro (cdr def)))
+   (t def)))
+
+(defsubst advice--strip-macro (x)
+  (if (eq 'macro (car-safe x)) (cdr x) x))
+
 (defun advice--defalias-fset (fsetfun symbol newdef)
-  (let* ((olddef (if (fboundp symbol) (symbol-function symbol)))
+  (when (get symbol 'advice--saved-rewrite)
+    (put symbol 'advice--saved-rewrite nil))
+  (setq newdef (advice--normalize symbol newdef))
+  (let* ((olddef (advice--strip-macro
+		  (if (fboundp symbol) (symbol-function symbol))))
          (oldadv
           (cond
-             ((null (get symbol 'advice--pending))
-              (or olddef
-                  (progn
-                    (message "Delayed advice activation failed for %s: no data"
-                             symbol)
-                    nil)))
-             ((or (not olddef) (autoloadp olddef))
-              (prog1 (get symbol 'advice--pending)
-                (put symbol 'advice--pending nil)))
+	   ((null (get symbol 'advice--pending))
+	    (or olddef
+		(progn
+		  (message "Delayed advice activation failed for %s: no data"
+			   symbol)
+		  nil)))
+	   ((or (not olddef) (autoloadp olddef))
+	    (prog1 (get symbol 'advice--pending)
+	      (put symbol 'advice--pending nil)))
            (t (message "Dropping left-over advice--pending for %s" symbol)
               (put symbol 'advice--pending nil)
               olddef))))
-    (funcall (or fsetfun #'fset) symbol (advice--subst-main oldadv newdef))))
+    (let* ((snewdef (advice--strip-macro newdef))
+	   (snewadv (advice--subst-main oldadv snewdef)))
+      (funcall (or fsetfun #'fset) symbol
+	       (if (eq snewdef newdef) snewadv (cons 'macro snewadv))))))
     
 
 ;;;###autoload
@@ -269,29 +295,18 @@ is defined as a macro, alias, command, ..."
   ;;   simplest way is to make advice.el build one ad-Advice-foo function for
   ;;   each advised function which is advice-added/removed whenever ad-activate
   ;;   ad-deactivate is called.
-  (let ((f (and (fboundp symbol) (symbol-function symbol))))
-    (cond
-     ((special-form-p f)
-      ;; Not worth the trouble trying to handle this, I think.
-      (error "add-advice failure: %S is a special form" symbol))
-     ((and (symbolp f)
-           (eq 'macro (car-safe (ignore-errors (indirect-function f)))))
-      (let ((newval (cons 'macro (cdr (indirect-function f)))))
-        (put symbol 'advice--saved-rewrite (cons f newval))
-        (fset symbol newval)))
-     ;; `f' might be a pure (hence read-only) cons!
-     ((and (eq 'macro (car-safe f)) (not (ignore-errors (setcdr f (cdr f)) t)))
-      (fset symbol (cons 'macro (cdr f))))
-     ))
-  (let ((f (and (fboundp symbol) (symbol-function symbol))))
+  (let* ((f (and (fboundp symbol) (symbol-function symbol)))
+	 (nf (advice--normalize symbol f)))
+    (unless (eq f nf) ;; Most importantly, if nf == nil!
+      (fset symbol nf))
     (add-function where (cond
-                         ((eq (car-safe f) 'macro) (cdr f))
+                         ((eq (car-safe nf) 'macro) (cdr nf))
                          ;; If the function is not yet defined, we can't yet
                          ;; install the advice.
                          ;; FIXME: If it's an autoloaded command, we also
                          ;; have a problem because we need to load the
                          ;; command to build the interactive-form.
-                         ((or (not f) (and (autoloadp f))) ;; (commandp f)
+                         ((or (not nf) (and (autoloadp nf))) ;; (commandp nf)
                           (get symbol 'advice--pending))
                          (t (symbol-function symbol)))
                   function props)
@@ -316,7 +331,7 @@ of the piece of advice."
                        function)
       (unless (advice--p
                (if (eq (car-safe f) 'macro) (cdr f) (symbol-function symbol)))
-        ;; Not adviced any more.
+        ;; Not advised any more.
         (remove-function (get symbol 'defalias-fset-function)
                          #'advice--defalias-fset)
         (if (eq (symbol-function symbol)
@@ -335,13 +350,15 @@ of the piece of advice."
 ;;       (setq def (advice--cdr def)))))
 
 ;;;###autoload
-(defun advice-member-p (function symbol)
-  "Return non-nil if advice FUNCTION has been added to function SYMBOL.
-Instead of FUNCTION being the actual function, it can also be the `name'
+(defun advice-member-p (advice function-name)
+  "Return non-nil if ADVICE has been added to FUNCTION-NAME.
+Instead of ADVICE being the actual function, it can also be the `name'
 of the piece of advice."
-  (advice--member-p function
-                    (or (get symbol 'advice--pending)
-                        (if (fboundp symbol) (symbol-function symbol)))))
+  (advice--member-p advice
+                    (or (get function-name 'advice--pending)
+			(advice--strip-macro
+			 (if (fboundp function-name)
+			     (symbol-function function-name))))))
 
 
 (provide 'nadvice)

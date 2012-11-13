@@ -195,11 +195,6 @@ value of last one, or nil if there are none.
   (declare (indent 1) (debug t))
   (cons 'if (cons cond (cons nil body))))
 
-(if (null (featurep 'cl))
-    (progn
-  ;; If we reload subr.el after having loaded CL, be careful not to
-  ;; overwrite CL's extended definition of `dolist', `dotimes', `declare'.
-
 (defmacro dolist (spec &rest body)
   "Loop over a list.
 Evaluate BODY with VAR bound to each car from LIST, in turn.
@@ -279,7 +274,6 @@ The possible values of SPECS are specified by
 `defun-declarations-alist' and `macro-declarations-alist'."
   ;; FIXME: edebug spec should pay attention to defun-declarations-alist.
   nil)
-))
 
 (defmacro ignore-errors (&rest body)
   "Execute BODY; if an error occurs, return nil.

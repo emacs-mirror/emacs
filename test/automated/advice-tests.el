@@ -50,6 +50,13 @@
     ((ad-activate 'sm-test2)
      (sm-test2 6) 20)
     ((null (get 'sm-test2 'defalias-fset-function)) t)
+
+    ((advice-add 'sm-test3 :around
+		 (lambda (f &rest args) `(toto ,(apply f args)))
+		 '((name . wrap-with-toto)))
+     (defmacro sm-test3 (x) `(call-test3 ,x))
+     (macroexpand '(sm-test3 56)) (toto (call-test3 56)))
+
     ))
 
 (ert-deftest advice-tests ()

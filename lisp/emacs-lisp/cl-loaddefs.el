@@ -267,7 +267,7 @@ including `cl-block' and `cl-eval-when'.
 ;;;;;;  cl-typecase cl-ecase cl-case cl-load-time-value cl-eval-when
 ;;;;;;  cl-destructuring-bind cl-function cl-defmacro cl-defun cl-gentemp
 ;;;;;;  cl-gensym cl--compiler-macro-cXXr cl--compiler-macro-list*)
-;;;;;;  "cl-macs" "cl-macs.el" "a7228877484d2b39e1c2bee40b011734")
+;;;;;;  "cl-macs" "cl-macs.el" "c7ad09a74a1d2969406e7e2aaf3812fc")
 ;;; Generated autoloads from cl-macs.el
 
 (autoload 'cl--compiler-macro-list* "cl-macs" "\

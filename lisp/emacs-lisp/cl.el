@@ -107,14 +107,6 @@
                ))
   (defvaralias var (intern (format "cl-%s" var))))
 
-;; Before overwriting subr.el's `dotimes' and `dolist', let's remember
-;; them under a different name, so we can use them in our implementation
-;; of `dotimes' and `dolist'.
-(unless (fboundp 'cl--dotimes)
-  (defalias 'cl--dotimes (symbol-function 'dotimes) "The non-CL `dotimes'."))
-(unless (fboundp 'cl--dolist)
-  (defalias 'cl--dolist (symbol-function 'dolist) "The non-CL `dolist'."))
-
 (dolist (fun '(
                (get* . cl-get)
                (random* . cl-random)
@@ -228,7 +220,6 @@
                remf
                psetf
                (define-setf-method . define-setf-expander)
-               declare
                the
                locally
                multiple-value-setq
@@ -239,8 +230,6 @@
                psetq
                do-all-symbols
                do-symbols
-               dotimes
-               dolist
                do*
                do
                loop
@@ -321,6 +310,15 @@
   (let ((new (if (consp fun) (prog1 (cdr fun) (setq fun (car fun)))
                (intern (format "cl-%s" fun)))))
     (defalias fun new)))
+
+(defun cl--wrap-in-nil-block (fun &rest args)
+  `(cl-block nil ,(apply fun args)))
+(advice-add 'dolist :around #'cl--wrap-in-nil-block)
+(advice-add 'dotimes :around #'cl--wrap-in-nil-block)
+
+(defun cl--pass-args-to-cl-declare (&rest specs)
+   (macroexpand `(cl-declare ,@specs)))
+(advice-add 'declare :after #'cl--pass-args-to-cl-declare)
 
 ;;; Features provided a bit differently in Elisp.
 

@@ -1,5 +1,21 @@
 2012-11-13  Stefan Monnier  <monnier@iro.umontreal.ca>
 
+	* emacs-lisp/cl.el (dolist, dotimes, declare): Use advice-add to
+	override the default.
+	* emacs-lisp/cl-macs.el (cl-dolist, cl-dotimes): Rewrite without using
+	cl--dotimes/dolist.
+	* subr.el (dolist, dotimes, declare): Redefine them normally, even when
+	`cl' is loaded.
+
+	* emacs-lisp/nadvice.el (advice--normalize): New function, extracted
+	from add-advice.
+	(advice--strip-macro): New function.
+	(advice--defalias-fset): Use them to handle macros.
+	(advice-add): Use them.
+	(advice-member-p): Correctly handle macros.
+
+2012-11-13  Stefan Monnier  <monnier@iro.umontreal.ca>
+
 	* emacs-lisp/gv.el (gv-define-simple-setter): One more fix (bug#12871).
 
 2012-11-13  Wolfgang Jenkner  <wjenkner@inode.at>
