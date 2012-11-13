@@ -1,3 +1,13 @@
+2012-11-13  Dmitry Antipov  <dmantipov@yandex.ru>
+
+	Omit glyphs initialization at startup.
+	* dispnew.c (glyphs_initialized_initially_p): Remove.
+	(adjust_frame_glyphs_initially): Likewise.  Adjust users.
+	(Fredraw_frame): Move actual code from here...
+	(redraw_here): ...to here.  Add eassert.  Adjust comment.
+	(Fredraw_display): Use redraw_frame.
+	* xdisp.c (clear_garbaged_frames): Likewise.
+
 2012-11-13  Eli Zaretskii  <eliz@gnu.org>
 
 	* xdisp.c (decode_mode_spec): Limit the value of WIDTH argument

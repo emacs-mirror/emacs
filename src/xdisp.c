@@ -10769,7 +10769,7 @@ clear_garbaged_frames (void)
 	    {
 	      if (f->resized_p)
 		{
-		  Fredraw_frame (frame);
+		  redraw_frame (f);
 		  f->force_flush_display_p = 1;
 		}
 	      clear_current_matrices (f);
