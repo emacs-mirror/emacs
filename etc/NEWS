@@ -25,7 +25,14 @@ so we will look at it and add it to the manual.
 * Startup Changes in Emacs 24.4
 * Changes in Emacs 24.4
 * Editing Changes in Emacs 24.4
+
+
 * Changes in Specialized Modes and Packages in Emacs 24.4
+
++++
+** New function `ses-rename-cell' to give SES cells arbitrary names.
+
+
 * New Modes and Packages in Emacs 24.4
 ** New nadvice.el package offering lighter-weight advice facilities.
 It is layered as:
