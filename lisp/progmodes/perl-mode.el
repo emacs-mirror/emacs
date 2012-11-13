@@ -1,4 +1,4 @@
-;;; perl-mode.el --- Perl code editing commands for GNU Emacs
+;;; perl-mode.el --- Perl code editing commands for GNU Emacs  -*- coding: utf-8 -*-
 
 ;; Copyright (C) 1990, 1994, 2001-2012 Free Software Foundation, Inc.
 
@@ -102,11 +102,6 @@
 
 ;;; Code:
 
-
-(defvar font-lock-comment-face)
-(defvar font-lock-doc-face)
-(defvar font-lock-string-face)
-
 (defgroup perl nil
   "Major mode for editing Perl code."
   :link '(custom-group-link :tag "Font Lock Faces group" font-lock-faces)
@@ -119,16 +114,11 @@
 
 (defvar perl-mode-map
   (let ((map (make-sparse-keymap)))
-    (define-key map "{" 'perl-electric-terminator)
-    (define-key map "}" 'perl-electric-terminator)
-    (define-key map ";" 'perl-electric-terminator)
-    (define-key map ":" 'perl-electric-terminator)
     (define-key map "\e\C-a" 'perl-beginning-of-function)
     (define-key map "\e\C-e" 'perl-end-of-function)
     (define-key map "\e\C-h" 'perl-mark-function)
     (define-key map "\e\C-q" 'perl-indent-exp)
     (define-key map "\177" 'backward-delete-char-untabify)
-    (define-key map "\t" 'perl-indent-command)
     map)
   "Keymap used in Perl mode.")
 
@@ -158,15 +148,53 @@
 
 (defvar perl-imenu-generic-expression
   '(;; Functions
-    (nil "^sub\\s-+\\([-A-Za-z0-9+_:]+\\)" 1)
+    (nil "^[ \t]*sub\\s-+\\([-A-Za-z0-9+_:]+\\)" 1)
     ;;Variables
     ("Variables" "^\\(?:my\\|our\\)\\s-+\\([$@%][-A-Za-z0-9+_:]+\\)\\s-*=" 1)
-    ("Packages" "^package\\s-+\\([-A-Za-z0-9+_:]+\\);" 1)
+    ("Packages" "^[ \t]*package\\s-+\\([-A-Za-z0-9+_:]+\\);" 1)
     ("Doc sections" "^=head[0-9][ \t]+\\(.*\\)" 1))
   "Imenu generic expression for Perl mode.  See `imenu-generic-expression'.")
 
 ;; Regexps updated with help from Tom Tromey <tromey@cambric.colorado.edu> and
 ;; Jim Campbell <jec@murzim.ca.boeing.com>.
+
+(defcustom perl-prettify-symbols t
+  "If non-nil, some symbols will be displayed using Unicode chars."
+  :type 'boolean)
+
+(defconst perl--prettify-symbols-alist
+  '(;;("andalso" . ?∧) ("orelse"  . ?∨) ("as" . ?≡)("not" . ?¬)
+    ;;("div" . ?÷) ("*"   . ?×) ("o"   . ?○)
+    ("->"  . ?→)
+    ("=>"  . ?⇒)
+    ;;("<-"  . ?←) ("<>"  . ?≠) (">="  . ?≥) ("<="  . ?≤) ("..." . ?⋯)
+    ("::" . ?∷)
+    ))
+
+(defun perl--font-lock-compose-symbol ()
+  "Compose a sequence of ascii chars into a symbol.
+Regexp match data 0 points to the chars."
+  ;; Check that the chars should really be composed into a symbol.
+  (let* ((start (match-beginning 0))
+	 (end (match-end 0))
+	 (syntaxes (if (eq (char-syntax (char-after start)) ?w)
+		       '(?w) '(?. ?\\))))
+    (if (or (memq (char-syntax (or (char-before start) ?\ )) syntaxes)
+	    (memq (char-syntax (or (char-after end) ?\ )) syntaxes)
+            (nth 8 (syntax-ppss)))
+	;; No composition for you.  Let's actually remove any composition
+	;; we may have added earlier and which is now incorrect.
+	(remove-text-properties start end '(composition))
+      ;; That's a symbol alright, so add the composition.
+      (compose-region start end (cdr (assoc (match-string 0)
+                                            perl--prettify-symbols-alist)))))
+  ;; Return nil because we're not adding any face property.
+  nil)
+
+(defun perl--font-lock-symbols-keywords ()
+  (when perl-prettify-symbols
+    `((,(regexp-opt (mapcar 'car perl--prettify-symbols-alist) t)
+       (0 (perl--font-lock-compose-symbol))))))
 
 (defconst perl-font-lock-keywords-1
   '(;; What is this for?
@@ -190,32 +218,32 @@
   "Subdued level highlighting for Perl mode.")
 
 (defconst perl-font-lock-keywords-2
-  (append perl-font-lock-keywords-1
-   (list
-    ;;
-    ;; Fontify keywords, except those fontified otherwise.
-    (concat "\\<"
-	    (regexp-opt '("if" "until" "while" "elsif" "else" "unless"
-			  "do" "dump" "for" "foreach" "exit" "die"
-			  "BEGIN" "END" "return" "exec" "eval") t)
-	    "\\>")
-    ;;
-    ;; Fontify local and my keywords as types.
-    '("\\<\\(local\\|my\\)\\>" . font-lock-type-face)
-    ;;
-    ;; Fontify function, variable and file name references.
-    '("&\\(\\sw+\\(::\\sw+\\)*\\)" 1 font-lock-function-name-face)
-    ;; Additionally underline non-scalar variables.  Maybe this is a bad idea.
-    ;;'("[$@%*][#{]?\\(\\sw+\\)" 1 font-lock-variable-name-face)
-    '("[$*]{?\\(\\sw+\\(::\\sw+\\)*\\)" 1 font-lock-variable-name-face)
-    '("\\([@%]\\|\\$#\\)\\(\\sw+\\(::\\sw+\\)*\\)"
+  (append
+   perl-font-lock-keywords-1
+   `( ;; Fontify keywords, except those fontified otherwise.
+     ,(concat "\\<"
+              (regexp-opt '("if" "until" "while" "elsif" "else" "unless"
+                            "do" "dump" "for" "foreach" "exit" "die"
+                            "BEGIN" "END" "return" "exec" "eval") t)
+              "\\>")
+     ;;
+     ;; Fontify local and my keywords as types.
+     ("\\<\\(local\\|my\\)\\>" . font-lock-type-face)
+     ;;
+     ;; Fontify function, variable and file name references.
+     ("&\\(\\sw+\\(::\\sw+\\)*\\)" 1 font-lock-function-name-face)
+     ;; Additionally underline non-scalar variables.  Maybe this is a bad idea.
+     ;;'("[$@%*][#{]?\\(\\sw+\\)" 1 font-lock-variable-name-face)
+     ("[$*]{?\\(\\sw+\\(::\\sw+\\)*\\)" 1 font-lock-variable-name-face)
+     ("\\([@%]\\|\\$#\\)\\(\\sw+\\(::\\sw+\\)*\\)"
       (2 (cons font-lock-variable-name-face '(underline))))
-    '("<\\(\\sw+\\)>" 1 font-lock-constant-face)
-    ;;
-    ;; Fontify keywords with/and labels as we do in `c++-font-lock-keywords'.
-    '("\\<\\(continue\\|goto\\|last\\|next\\|redo\\)\\>[ \t]*\\(\\sw+\\)?"
+     ("<\\(\\sw+\\)>" 1 font-lock-constant-face)
+     ;;
+     ;; Fontify keywords with/and labels as we do in `c++-font-lock-keywords'.
+     ("\\<\\(continue\\|goto\\|last\\|next\\|redo\\)\\>[ \t]*\\(\\sw+\\)?"
       (1 font-lock-keyword-face) (2 font-lock-constant-face nil t))
-    '("^[ \t]*\\(\\sw+\\)[ \t]*:[^:]" 1 font-lock-constant-face)))
+     ("^[ \t]*\\(\\sw+\\)[ \t]*:[^:]" 1 font-lock-constant-face)
+     ,@(perl--font-lock-symbols-keywords)))
   "Gaudy level highlighting for Perl mode.")
 
 (defvar perl-font-lock-keywords perl-font-lock-keywords-1
@@ -543,8 +571,10 @@ create a new comment."
 
 (defun perl-outline-level ()
   (cond
-   ((looking-at "package\\s-") 0)
-   ((looking-at "sub\\s-") 1)
+   ((looking-at "[ \t]*\\(package\\)\\s-")
+    (- (match-beginning 1) (match-beginning 0)))
+   ((looking-at "[ \t]*s\\(ub\\)\\s-")
+    (- (match-beginning 1) (match-beginning 0)))
    ((looking-at "=head[0-9]") (- (char-before (match-end 0)) ?0))
    ((looking-at "=cut") 1)
    (t 3)))
@@ -621,6 +651,11 @@ Turning on Perl mode runs the normal hook `perl-mode-hook'."
        #'perl-syntax-propertize-function)
   (add-hook 'syntax-propertize-extend-region-functions
             #'syntax-propertize-multiline 'append 'local)
+  ;; Electricity.
+  ;; FIXME: setup electric-layout-rules.
+  (set (make-local-variable 'electric-indent-chars)
+       (append '(?\{ ?\} ?\; ?\:) electric-indent-chars))
+  (add-hook 'electric-indent-functions #'perl-electric-noindent-p nil t)
   ;; Tell imenu how to handle Perl.
   (set (make-local-variable 'imenu-generic-expression)
        perl-imenu-generic-expression)
@@ -637,7 +672,11 @@ Turning on Perl mode runs the normal hook `perl-mode-hook'."
       0					;Existing comment at bol stays there.
     comment-column))
 
-(defalias 'electric-perl-terminator 'perl-electric-terminator)
+(define-obsolete-function-alias 'electric-perl-terminator
+  'perl-electric-terminator "22.1")
+(defun perl-electric-noindent-p (char)
+  (unless (eolp) 'no-indent))
+
 (defun perl-electric-terminator (arg)
   "Insert character and maybe adjust indentation.
 If at end-of-line, and not in a comment or a quote, correct the indentation."
@@ -661,6 +700,7 @@ If at end-of-line, and not in a comment or a quote, correct the indentation."
 	   (perl-indent-line)
 	   (delete-char -1))))
   (self-insert-command (prefix-numeric-value arg)))
+(make-obsolete 'perl-electric-terminator 'electric-indent-mode "24.4")
 
 ;; not used anymore, but may be useful someday:
 ;;(defun perl-inside-parens-p ()
@@ -744,6 +784,7 @@ following list:
 			(t
 			 (message "Use backslash to quote # characters.")
 			 (ding t)))))))))
+(make-obsolete 'perl-indent-command 'indent-according-to-mode "24.4")
 
 (defun perl-indent-line (&optional nochange parse-start)
   "Indent current line as Perl code.

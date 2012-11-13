@@ -107,14 +107,6 @@
                ))
   (defvaralias var (intern (format "cl-%s" var))))
 
-;; Before overwriting subr.el's `dotimes' and `dolist', let's remember
-;; them under a different name, so we can use them in our implementation
-;; of `dotimes' and `dolist'.
-(unless (fboundp 'cl--dotimes)
-  (defalias 'cl--dotimes (symbol-function 'dotimes) "The non-CL `dotimes'."))
-(unless (fboundp 'cl--dolist)
-  (defalias 'cl--dolist (symbol-function 'dolist) "The non-CL `dolist'."))
-
 (dolist (fun '(
                (get* . cl-get)
                (random* . cl-random)
@@ -228,7 +220,6 @@
                remf
                psetf
                (define-setf-method . define-setf-expander)
-               declare
                the
                locally
                multiple-value-setq
@@ -239,8 +230,6 @@
                psetq
                do-all-symbols
                do-symbols
-               dotimes
-               dolist
                do*
                do
                loop
@@ -321,6 +310,15 @@
   (let ((new (if (consp fun) (prog1 (cdr fun) (setq fun (car fun)))
                (intern (format "cl-%s" fun)))))
     (defalias fun new)))
+
+(defun cl--wrap-in-nil-block (fun &rest args)
+  `(cl-block nil ,(apply fun args)))
+(advice-add 'dolist :around #'cl--wrap-in-nil-block)
+(advice-add 'dotimes :around #'cl--wrap-in-nil-block)
+
+(defun cl--pass-args-to-cl-declare (&rest specs)
+   (macroexpand `(cl-declare ,@specs)))
+(advice-add 'declare :after #'cl--pass-args-to-cl-declare)
 
 ;;; Features provided a bit differently in Elisp.
 
@@ -547,13 +545,15 @@ deprecated usage of `symbol-function' in place forms)."  ; bug#12760
 
 (defmacro define-setf-expander (name arglist &rest body)
   "Define a `setf' method.
-This method shows how to handle `setf's to places of the form (NAME ARGS...).
-The argument forms ARGS are bound according to ARGLIST, as if NAME were
-going to be expanded as a macro, then the BODY forms are executed and must
-return a list of five elements: a temporary-variables list, a value-forms
-list, a store-variables list (of length one), a store-form, and an access-
-form.  See `gv-define-expander', `gv-define-setter', and `gv-define-expander'
-for a better and simpler ways to define setf-methods."
+This method shows how to handle `setf's to places of the form
+\(NAME ARGS...).  The argument forms ARGS are bound according to
+ARGLIST, as if NAME were going to be expanded as a macro, then
+the BODY forms are executed and must return a list of five elements:
+a temporary-variables list, a value-forms list, a store-variables list
+\(of length one), a store-form, and an access- form.
+
+See `gv-define-expander', and `gv-define-setter' for better and
+simpler ways to define setf-methods."
   (declare (debug
             (&define name cl-lambda-list cl-declarations-or-string def-body)))
   `(progn
@@ -566,22 +566,30 @@ for a better and simpler ways to define setf-methods."
 
 (defmacro defsetf (name arg1 &rest args)
   "Define a `setf' method.
-This macro is an easy-to-use substitute for `define-setf-expander' that works
-well for simple place forms.  In the simple `defsetf' form, `setf's of
-the form (setf (NAME ARGS...) VAL) are transformed to function or macro
-calls of the form (FUNC ARGS... VAL).  Example:
+This macro is an easy-to-use substitute for `define-setf-expander'
+that works well for simple place forms.
+
+In the simple `defsetf' form, `setf's of the form (setf (NAME
+ARGS...) VAL) are transformed to function or macro calls of the
+form (FUNC ARGS... VAL).  For example:
 
   (defsetf aref aset)
 
+You can replace this form with `gv-define-simple-setter'.
+
 Alternate form: (defsetf NAME ARGLIST (STORE) BODY...).
-Here, the above `setf' call is expanded by binding the argument forms ARGS
-according to ARGLIST, binding the value form VAL to STORE, then executing
-BODY, which must return a Lisp form that does the necessary `setf' operation.
-Actually, ARGLIST and STORE may be bound to temporary variables which are
-introduced automatically to preserve proper execution order of the arguments.
-Example:
+
+Here, the above `setf' call is expanded by binding the argument
+forms ARGS according to ARGLIST, binding the value form VAL to
+STORE, then executing BODY, which must return a Lisp form that
+does the necessary `setf' operation.  Actually, ARGLIST and STORE
+may be bound to temporary variables which are introduced
+automatically to preserve proper execution order of the arguments.
+For example:
 
   (defsetf nth (n x) (v) `(setcar (nthcdr ,n ,x) ,v))
+
+You can replace this form with `gv-define-setter'.
 
 \(fn NAME [FUNC | ARGLIST (STORE) BODY...])"
   (declare (debug
@@ -597,7 +605,7 @@ Example:
                           (cl-function
                            (lambda (,@(car args) ,@arg1) ,@(cdr args)))
 			  do args)))
-    `(gv-define-simple-setter ,name ,arg1)))
+    `(gv-define-simple-setter ,name ,arg1 ,(car args))))
 
 ;; FIXME: CL used to provide a setf method for `apply', but I haven't been able
 ;; to find a case where it worked.  The code below tries to handle it as well.
@@ -639,8 +647,12 @@ Example:
 
 (defmacro define-modify-macro (name arglist func &optional doc)
   "Define a `setf'-like modify macro.
-If NAME is called, it combines its PLACE argument with the other arguments
-from ARGLIST using FUNC: (define-modify-macro incf (&optional (n 1)) +)"
+If NAME is called, it combines its PLACE argument with the other
+arguments from ARGLIST using FUNC.  For example:
+
+  (define-modify-macro incf (&optional (n 1)) +)
+
+You can replace this macro with `gv-letplace'."
   (declare (debug
             (&define name cl-lambda-list ;; should exclude &key
                      symbolp &optional stringp)))

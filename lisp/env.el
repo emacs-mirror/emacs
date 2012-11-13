@@ -57,31 +57,28 @@ If it is also not t, RET does not exit if it does non-null completion."
 ;; History list for VALUE argument to setenv.
 (defvar setenv-history nil)
 
+(defconst env--substitute-vars-regexp
+  "\\$\\(?:\\(?1:[[:alnum:]_]+\\)\\|{\\(?1:[^{}]+\\)}\\|\\$\\)")
 
-(defun substitute-env-vars (string)
+(defun substitute-env-vars (string &optional only-defined)
   "Substitute environment variables referred to in STRING.
 `$FOO' where FOO is an environment variable name means to substitute
 the value of that variable.  The variable name should be terminated
 with a character not a letter, digit or underscore; otherwise, enclose
 the entire variable name in braces.  For instance, in `ab$cd-x',
 `$cd' is treated as an environment variable.
+If ONLY-DEFINED is nil, references to undefined environment variables
+are replaced by the empty string; if it is non-nil, they are left unchanged.
 
 Use `$$' to insert a single dollar sign."
   (let ((start 0))
-    (while (string-match
-	    (eval-when-compile
-	      (rx (or (and "$" (submatch (1+ (regexp "[[:alnum:]_]"))))
-		      (and "${" (submatch (minimal-match (0+ anything))) "}")
-		      "$$")))
-	    string start)
+    (while (string-match env--substitute-vars-regexp string start)
       (cond ((match-beginning 1)
 	     (let ((value (getenv (match-string 1 string))))
+               (if (and (null value) only-defined)
+                   (setq start (match-end 0))
 	       (setq string (replace-match (or value "") t t string)
-		     start (+ (match-beginning 0) (length value)))))
-	    ((match-beginning 2)
-	     (let ((value (getenv (match-string 2 string))))
-	       (setq string (replace-match (or value "") t t string)
-		     start (+ (match-beginning 0) (length value)))))
+                       start (+ (match-beginning 0) (length value))))))
 	    (t
 	     (setq string (replace-match "$" t t string)
 		   start (+ (match-beginning 0) 1)))))
@@ -185,7 +182,7 @@ VARIABLE should be a string.  Value is nil if VARIABLE is undefined in
 the environment.  Otherwise, value is a string.
 
 If optional parameter FRAME is non-nil, then it should be a
-frame.  This function will look up VARIABLE in its 'environment
+frame.  This function will look up VARIABLE in its `environment'
 parameter.
 
 Otherwise, this function searches `process-environment' for

@@ -406,7 +406,6 @@ followed by the rest of the buffers.  */)
       Lisp_Object framelist, prevlist, tail;
       Lisp_Object args[3];
 
-      CHECK_FRAME (frame);
       framelist = Fcopy_sequence (XFRAME (frame)->buffer_list);
       prevlist = Fnreverse (Fcopy_sequence
 			    (XFRAME (frame)->buried_buffer_list));
@@ -1543,17 +1542,11 @@ list first, followed by the list of all buffers.  If no other buffer
 exists, return the buffer `*scratch*' (creating it if necessary).  */)
   (register Lisp_Object buffer, Lisp_Object visible_ok, Lisp_Object frame)
 {
-  Lisp_Object tail, buf, pred;
-  Lisp_Object notsogood = Qnil;
+  struct frame *f = decode_any_frame (frame);
+  Lisp_Object tail = f->buffer_list, pred = f->buffer_predicate;
+  Lisp_Object buf, notsogood = Qnil;
 
-  if (NILP (frame))
-    frame = selected_frame;
-
-  CHECK_FRAME (frame);
-
-  pred = frame_buffer_predicate (frame);
   /* Consider buffers that have been seen in the frame first.  */
-  tail = XFRAME (frame)->buffer_list;
   for (; CONSP (tail); tail = XCDR (tail))
     {
       buf = XCAR (tail);
@@ -2109,7 +2102,7 @@ set_buffer_internal_1 (register struct buffer *b)
     return;
 
   BUFFER_CHECK_INDIRECTION (b);
-  
+
   old_buf = current_buffer;
   current_buffer = b;
   last_known_column_point = -1;   /* invalidate indentation cache */
@@ -3139,8 +3132,8 @@ compare_overlays (const void *v1, const void *v2)
      between "equal" overlays.  The result can still change between
      invocations of Emacs, but it won't change in the middle of
      `find_field' (bug#6830).  */
-  if (XHASH (s1->overlay) != XHASH (s2->overlay))
-    return XHASH (s1->overlay) < XHASH (s2->overlay) ? -1 : 1;
+  if (!EQ (s1->overlay, s2->overlay))
+    return XLI (s1->overlay) < XLI (s2->overlay) ? -1 : 1;
   return 0;
 }
 
@@ -5112,11 +5105,6 @@ void
 init_buffer_once (void)
 {
   int idx;
-  /* If you add, remove, or reorder Lisp_Objects in a struct buffer, make
-     sure that this is still correct.  Otherwise, mark_vectorlike may not
-     trace all Lisp_Objects in buffer_defaults and buffer_local_symbols.  */
-  const int pvecsize
-    = (offsetof (struct buffer, own_text) - header_size) / word_size;
 
   memset (buffer_permanent_local_flags, 0, sizeof buffer_permanent_local_flags);
 
@@ -5139,8 +5127,8 @@ init_buffer_once (void)
   /* This is not strictly necessary, but let's make them initialized.  */
   bset_name (&buffer_defaults, build_pure_c_string (" *buffer-defaults*"));
   bset_name (&buffer_local_symbols, build_pure_c_string (" *buffer-local-symbols*"));
-  XSETPVECTYPESIZE (&buffer_defaults, PVEC_BUFFER, pvecsize);
-  XSETPVECTYPESIZE (&buffer_local_symbols, PVEC_BUFFER, pvecsize);
+  BUFFER_PVEC_INIT (&buffer_defaults);
+  BUFFER_PVEC_INIT (&buffer_local_symbols);
 
   /* Set up the default values of various buffer slots.  */
   /* Must do these before making the first buffer! */

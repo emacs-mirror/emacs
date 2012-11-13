@@ -275,24 +275,25 @@ will disappear from the mode line.  That means you can safely go on
 editing in the same Emacs session.
 
   Do not use @kbd{M-x buffer-menu} to save or kill buffers when you run
-out of memory, because the buffer menu needs a fair amount of memory
+out of memory, because the Buffer Menu needs a fair amount of memory
 itself, and the reserve supply may not be enough.
 
 @node Crashing
 @subsection When Emacs Crashes
 
-  Emacs is not supposed to crash, but if it does, before it exits it
-reports a brief summary  of the crash to the standard error stream
-@code{stderr}.  If enabled, a crashed Emacs also generates a core dump
-containing voluminous data about the crash.  On many platforms you can
-enable core dumps by putting the shell command @samp{ulimit -c unlimited}
-into your shell startup script.  The crash report and core dump can be
-used when debugging the same version of Emacs on the same platform.
+@cindex crash report
+  Emacs is not supposed to crash, but if it does, it produces a
+@dfn{crash report} prior to exiting.  The crash report is printed to
+the standard error stream.  If Emacs was started from a graphical
+desktop, the standard error stream is commonly redirected to a file
+such as @file{~/.xsession-errors}, so you can look for the crash
+report there.
 
-The format of the crash report depends on the platform, and some
-platforms support backtraces.
-Here is an example, generated on x86-64 GNU/Linux with version 2.15 of
-the GNU C Library:
+  The format of the crash report depends on the platform.  On some
+platforms, such as those using the GNU C Library, the crash report
+includes a @dfn{backtrace} describing the execution state prior to
+crashing, which can be used to help debug the crash.  Here is an
+example:
 
 @example
 Fatal error 11: Segmentation fault
@@ -304,25 +305,18 @@ emacs[0x4ed504]
 /lib64/libpthread.so.0(read+0xe)[0x375220e08e]
 emacs[0x509af6]
 emacs[0x5acc26]
-emacs[0x5adbfb]
-emacs[0x56566b]
-emacs[0x59bac3]
-emacs[0x565151]
-...
+@dots{}
 @end example
 
 @noindent
-The number @samp{11} is the system signal number that corresponds to
-the problem, a segmentation fault here.  The three dots at the end
-indicate that Emacs suppressed further backtrace entries, in the
-interest of brevity.
-
-The hexadecimal program addresses can be useful in debugging sessions.
-For example, the GDB command @samp{list *0x509af6} prints the
-source-code lines corresponding to the @samp{emacs[0x509af6]} entry in
-the backtrace.  Or, if your system has @command{addr2line}, the
-following shell command outputs a backtrace with source-code line
-numbers:
+The number @samp{11} is the system signal number corresponding to the
+crash---in this case a segmentation fault.  The hexadecimal numbers
+are program addresses, which can be associated with source code lines
+using a debugging tool.  For example, the GDB command
+@samp{list *0x509af6} prints the source-code lines corresponding to
+the @samp{emacs[0x509af6]} entry.  If your system has the
+@command{addr2line} utility, the following shell command outputs a
+backtrace with source-code line numbers:
 
 @example
 sed -n 's/.*\[\(.*\)]$/\1/p' @var{backtrace} |
@@ -333,6 +327,15 @@ sed -n 's/.*\[\(.*\)]$/\1/p' @var{backtrace} |
 Here, @var{backtrace} is the name of a text file containing a copy of
 the backtrace, and @var{bindir} is the name of the directory that
 contains the Emacs executable.
+
+@cindex core dump
+  Optionally, Emacs can generate a @dfn{core dump} when it crashes.  A
+core dump is a file containing voluminous data about the state of the
+program prior to the crash, usually examined by loading it into a
+debugger such as GDB.  On many platforms, core dumps are disabled by
+default, and you must explicitly enable them by running the shell
+command @samp{ulimit -c unlimited} (e.g.@: in your shell startup
+script).
 
 @node After a Crash
 @subsection Recovery After a Crash

@@ -1,4 +1,4 @@
-;;; elp.el --- Emacs Lisp Profiler
+;;; elp.el --- Emacs Lisp Profiler  -*- lexical-binding: t -*-
 
 ;; Copyright (C) 1994-1995, 1997-1998, 2001-2012
 ;;   Free Software Foundation, Inc.
@@ -124,6 +124,7 @@
 
 ;;; Code:
 
+(eval-when-compile (require 'cl-lib))
 
 ;; start of user configuration variables
 ;; vvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvv
@@ -148,9 +149,9 @@ Results are displayed with the `elp-results' command."
   "Non-nil specifies ELP results sorting function.
 These functions are currently available:
 
-  elp-sort-by-call-count   -- sort by the highest call count
-  elp-sort-by-total-time   -- sort by the highest total time
-  elp-sort-by-average-time -- sort by the highest average times
+  `elp-sort-by-call-count'   -- sort by the highest call count
+  `elp-sort-by-total-time'   -- sort by the highest total time
+  `elp-sort-by-average-time' -- sort by the highest average times
 
 You can write your own sort function.  It should adhere to the
 interface specified by the PREDICATE argument for `sort'.
@@ -167,7 +168,7 @@ If a number, no function that has been called fewer than that number
 of times will be displayed in the output buffer.  If nil, all
 functions will be displayed."
   :type '(choice integer
-		 (const :tag "Show All" nil))
+                 (const :tag "Show All" nil))
   :group 'elp)
 
 (defcustom elp-use-standard-output nil
@@ -193,9 +194,6 @@ In other words, a new unique buffer is create every time you run
 (defconst elp-timer-info-property 'elp-info
   "ELP information property name.")
 
-(defvar elp-all-instrumented-list nil
-  "List of all functions currently being instrumented.")
-
 (defvar elp-record-p t
   "Controls whether functions should record times or not.
 This variable is set by the master function.")
@@ -205,7 +203,7 @@ This variable is set by the master function.")
 
 (defvar elp-not-profilable
   ;; First, the functions used inside each instrumented function:
-  '(elp-wrapper called-interactively-p
+  '(called-interactively-p
     ;; Then the functions used by the above functions.  I used
     ;; (delq nil (mapcar (lambda (x) (and (symbolp x) (fboundp x) x))
     ;;                   (aref (symbol-function 'elp-wrapper) 2)))
@@ -223,60 +221,21 @@ them would thus lead to infinite recursion.")
        (fboundp fun)
        (not (or (memq fun elp-not-profilable)
                 (keymapp fun)
-                (memq (car-safe (symbol-function fun)) '(autoload macro))
-                (condition-case nil
-                    (when (subrp (indirect-function fun))
-                      (eq 'unevalled
-                          (cdr (subr-arity (indirect-function fun)))))
-                  (error nil))))))
+                (autoloadp (symbol-function fun)) ;FIXME: Why not just load it?
+                (special-form-p fun)))))
 
+(defconst elp--advice-name 'ELP-instrumentation\ )
 
 ;;;###autoload
 (defun elp-instrument-function (funsym)
   "Instrument FUNSYM for profiling.
 FUNSYM must be a symbol of a defined function."
   (interactive "aFunction to instrument: ")
-  ;; restore the function.  this is necessary to avoid infinite
-  ;; recursion of already instrumented functions (i.e. elp-wrapper
-  ;; calling elp-wrapper ad infinitum).  it is better to simply
-  ;; restore the function than to throw an error.  this will work
-  ;; properly in the face of eval-defun because if the function was
-  ;; redefined, only the timer info will be nil'd out since
-  ;; elp-restore-function is smart enough not to trash the new
-  ;; definition.
-  (elp-restore-function funsym)
-  (let* ((funguts (symbol-function funsym))
-	 (infovec (vector 0 0 funguts))
-	 (newguts '(lambda (&rest args))))
-    ;; we cannot profile macros
-    (and (eq (car-safe funguts) 'macro)
-	 (error "ELP cannot profile macro: %s" funsym))
-    ;; TBD: at some point it might be better to load the autoloaded
-    ;; function instead of throwing an error.  if we do this, then we
-    ;; probably want elp-instrument-package to be updated with the
-    ;; newly loaded list of functions.  i'm not sure it's smart to do
-    ;; the autoload here, since that could have side effects, and
-    ;; elp-instrument-function is similar (in my mind) to defun-ish
-    ;; type functionality (i.e. it shouldn't execute the function).
-    (and (autoloadp funguts)
-	 (error "ELP cannot profile autoloaded function: %s" funsym))
+  (let* ((infovec (vector 0 0)))
     ;; We cannot profile functions used internally during profiling.
     (unless (elp-profilable-p funsym)
       (error "ELP cannot profile the function: %s" funsym))
-    ;; put rest of newguts together
-    (if (commandp funsym)
-	(setq newguts (append newguts '((interactive)))))
-    (setq newguts (append newguts `((elp-wrapper
-				     (quote ,funsym)
-				     ,(when (commandp funsym)
-					'(called-interactively-p 'any))
-				     args))))
-    ;; to record profiling times, we set the symbol's function
-    ;; definition so that it runs the elp-wrapper function with the
-    ;; function symbol as an argument.  We place the old function
-    ;; definition on the info vector.
-    ;;
-    ;; The info vector data structure is a 3 element vector.  The 0th
+    ;; The info vector data structure is a 2 element vector.  The 0th
     ;; element is the call-count, i.e. the total number of times this
     ;; function has been entered.  This value is bumped up on entry to
     ;; the function so that non-local exists are still recorded. TBD:
@@ -285,72 +244,45 @@ FUNSYM must be a symbol of a defined function."
     ;; The 1st element is the total amount of time in seconds that has
     ;; been spent inside this function.  This number is added to on
     ;; function exit.
-    ;;
-    ;; The 2nd element is the old function definition list.  This gets
-    ;; funcall'd in between start/end time retrievals. I believe that
-    ;; this lets us profile even byte-compiled functions.
 
-    ;; put the info vector on the property list
+    ;; Put the info vector on the property list.
     (put funsym elp-timer-info-property infovec)
 
     ;; Set the symbol's new profiling function definition to run
-    ;; elp-wrapper.
-    (let ((advice-info (get funsym 'ad-advice-info)))
-      (if advice-info
-	  (progn
-	    ;; If function is advised, don't let Advice change
-	    ;; its definition from under us during the `fset'.
-	    (put funsym 'ad-advice-info nil)
-	    (fset funsym newguts)
-	    (put funsym 'ad-advice-info advice-info))
-	(fset funsym newguts)))
+    ;; ELP wrapper.
+    (advice-add funsym :around (elp--make-wrapper funsym)
+                `((name . ,elp--advice-name)))))
 
-    ;; add this function to the instrumentation list
-    (unless (memq funsym elp-all-instrumented-list)
-      (push funsym elp-all-instrumented-list))))
+(defun elp--instrumented-p (sym)
+  (advice-member-p elp--advice-name sym))
 
 (defun elp-restore-function (funsym)
   "Restore an instrumented function to its original definition.
 Argument FUNSYM is the symbol of a defined function."
-  (interactive "aFunction to restore: ")
-  (let ((info (get funsym elp-timer-info-property)))
-    ;; delete the function from the all instrumented list
-    (setq elp-all-instrumented-list
-	  (delq funsym elp-all-instrumented-list))
+  (interactive
+   (list
+    (intern
+     (completing-read "Function to restore: " obarray
+                      #'elp--instrumented-p t))))
+  ;; If the function was the master, reset the master.
+  (if (eq funsym elp-master)
+      (setq elp-master nil
+            elp-record-p t))
 
-    ;; if the function was the master, reset the master
-    (if (eq funsym elp-master)
-	(setq elp-master nil
-	      elp-record-p t))
+  ;; Zap the properties.
+  (put funsym elp-timer-info-property nil)
 
-    ;; zap the properties
-    (put funsym elp-timer-info-property nil)
-
-    ;; restore the original function definition, but if the function
-    ;; wasn't instrumented do nothing.  we do this after the above
-    ;; because its possible the function got un-instrumented due to
-    ;; circumstances beyond our control.  Also, check to make sure
-    ;; that the current function symbol points to elp-wrapper.  If
-    ;; not, then the user probably did an eval-defun, or loaded a
-    ;; byte-compiled version, while the function was instrumented and
-    ;; we don't want to destroy the new definition.  can it ever be
-    ;; the case that a lisp function can be compiled instrumented?
-    (and info
-	 (functionp funsym)
-	 (not (byte-code-function-p (symbol-function funsym)))
-	 (assq 'elp-wrapper (symbol-function funsym))
-	 (fset funsym (aref info 2)))))
+  (advice-remove funsym elp--advice-name))
 
 ;;;###autoload
 (defun elp-instrument-list (&optional list)
   "Instrument, for profiling, all functions in `elp-function-list'.
 Use optional LIST if provided instead.
 If called interactively, read LIST using the minibuffer."
-  (interactive "PList of functions to instrument: ")
+  (interactive "PList of functions to instrument: ") ;FIXME: Doesn't work?!
   (unless (listp list)
     (signal 'wrong-type-argument (list 'listp list)))
-  (let ((list (or list elp-function-list)))
-    (mapcar 'elp-instrument-function list)))
+  (mapcar #'elp-instrument-function (or list elp-function-list)))
 
 ;;;###autoload
 (defun elp-instrument-package (prefix)
@@ -371,15 +303,13 @@ For example, to instrument all ELP functions, do the following:
 (defun elp-restore-list (&optional list)
   "Restore the original definitions for all functions in `elp-function-list'.
 Use optional LIST if provided instead."
-  (interactive "PList of functions to restore: ")
-  (let ((list (or list elp-function-list)))
-    (mapcar 'elp-restore-function list)))
+  (interactive "PList of functions to restore: ") ;FIXME: Doesn't work!?
+  (mapcar #'elp-restore-function (or list elp-function-list)))
 
 (defun elp-restore-all ()
   "Restore the original definitions of all functions being profiled."
   (interactive)
-  (elp-restore-list elp-all-instrumented-list))
-
+  (mapatoms #'elp-restore-function))
 
 (defun elp-reset-function (funsym)
   "Reset the profiling information for FUNSYM."
@@ -395,30 +325,36 @@ Use optional LIST if provided instead."
 (defun elp-reset-list (&optional list)
   "Reset the profiling information for all functions in `elp-function-list'.
 Use optional LIST if provided instead."
-  (interactive "PList of functions to reset: ")
+  (interactive "PList of functions to reset: ") ;FIXME: Doesn't work!?
   (let ((list (or list elp-function-list)))
     (mapcar 'elp-reset-function list)))
 
 (defun elp-reset-all ()
   "Reset the profiling information for all functions being profiled."
   (interactive)
-  (elp-reset-list elp-all-instrumented-list))
+  (mapatoms (lambda (sym)
+              (if (get sym elp-timer-info-property)
+                  (elp-reset-function sym)))))
 
 (defun elp-set-master (funsym)
   "Set the master function for profiling."
-  (interactive "aMaster function: ")
-  ;; when there's a master function, recording is turned off by
-  ;; default
+  (interactive
+   (list
+    (intern
+     (completing-read "Master function: " obarray
+                      #'elp--instrumented-p
+                      t nil nil (if elp-master (symbol-name elp-master))))))
+  ;; When there's a master function, recording is turned off by default.
   (setq elp-master funsym
 	elp-record-p nil)
-  ;; make sure master function is instrumented
-  (or (memq funsym elp-all-instrumented-list)
+  ;; Make sure master function is instrumented.
+  (or (elp--instrumented-p funsym)
       (elp-instrument-function funsym)))
 
 (defun elp-unset-master ()
   "Unset the master function."
   (interactive)
-  ;; when there's no master function, recording is turned on by default.
+  ;; When there's no master function, recording is turned on by default.
   (setq elp-master nil
 	elp-record-p t))
 
@@ -426,49 +362,40 @@ Use optional LIST if provided instead."
 (defsubst elp-elapsed-time (start end)
   (float-time (time-subtract end start)))
 
-(defun elp-wrapper (funsym interactive-p args)
-  "This function has been instrumented for profiling by the ELP.
+(defun elp--make-wrapper (funsym)
+  "Make the piece of advice that instruments FUNSYM."
+  (lambda (func &rest args)
+    "This function has been instrumented for profiling by the ELP.
 ELP is the Emacs Lisp Profiler.  To restore the function to its
 original definition, use \\[elp-restore-function] or \\[elp-restore-all]."
-  ;; turn on recording if this is the master function
-  (if (and elp-master
-	   (eq funsym elp-master))
-      (setq elp-record-p t))
-  ;; get info vector and original function symbol
-  (let* ((info (get funsym elp-timer-info-property))
-	 (func (aref info 2))
-	 result)
-    (or func
-	(error "%s is not instrumented for profiling" funsym))
-    (if (not elp-record-p)
-	;; when not recording, just call the original function symbol
-	;; and return the results.
-	(setq result
-	      (if interactive-p
-		  (call-interactively func)
-		(apply func args)))
-      ;; we are recording times
-      (let (enter-time exit-time)
-	;; increment the call-counter
-	(aset info 0 (1+ (aref info 0)))
-	;; now call the old symbol function, checking to see if it
-	;; should be called interactively.  make sure we return the
-	;; correct value
-	(if interactive-p
-	    (setq enter-time (current-time)
-		  result (call-interactively func)
-		  exit-time (current-time))
+    ;; turn on recording if this is the master function
+    (if (and elp-master
+             (eq funsym elp-master))
+        (setq elp-record-p t))
+    ;; get info vector and original function symbol
+    (let* ((info (get funsym elp-timer-info-property))
+           result)
+      (or func
+          (error "%s is not instrumented for profiling" funsym))
+      (if (not elp-record-p)
+          ;; when not recording, just call the original function symbol
+          ;; and return the results.
+          (setq result (apply func args))
+        ;; we are recording times
+        (let (enter-time exit-time)
+          ;; increment the call-counter
+          (cl-incf (aref info 0))
 	  (setq enter-time (current-time)
 		result (apply func args)
-		exit-time (current-time)))
-	;; calculate total time in function
-	(aset info 1 (+ (aref info 1) (elp-elapsed-time enter-time exit-time)))
-	))
-    ;; turn off recording if this is the master function
-    (if (and elp-master
-	     (eq funsym elp-master))
-	(setq elp-record-p nil))
-    result))
+                exit-time (current-time))
+          ;; calculate total time in function
+          (cl-incf (aref info 1) (elp-elapsed-time enter-time exit-time))
+          ))
+      ;; turn off recording if this is the master function
+      (if (and elp-master
+               (eq funsym elp-master))
+          (setq elp-record-p nil))
+      result)))
 
 
 ;; shut the byte-compiler up
@@ -582,57 +509,58 @@ displayed."
 	   (elp-et-len    (length et-header))
 	   (at-header "Average Time")
 	   (elp-at-len    (length at-header))
-	   (resvec
-	    (mapcar
-	     (function
-	      (lambda (funsym)
-		(let* ((info (get funsym elp-timer-info-property))
-		       (symname (format "%s" funsym))
-		       (cc (aref info 0))
-		       (tt (aref info 1)))
-		  (if (not info)
-		      (insert "No profiling information found for: "
-			      symname)
-		    (setq longest (max longest (length symname)))
-		    (vector cc tt (if (zerop cc)
-				      0.0 ;avoid arithmetic div-by-zero errors
-				    (/ (float tt) (float cc)))
-			    symname)))))
-	     elp-all-instrumented-list))
+	   (resvec '())
 	   )				; end let*
+      (mapatoms
+       (lambda (funsym)
+         (when (elp--instrumented-p funsym)
+           (let* ((info (get funsym elp-timer-info-property))
+                  (symname (format "%s" funsym))
+                  (cc (aref info 0))
+                  (tt (aref info 1)))
+             (if (not info)
+                 (insert "No profiling information found for: "
+                         symname)
+               (setq longest (max longest (length symname)))
+               (push
+                (vector cc tt (if (zerop cc)
+                                  0.0 ;avoid arithmetic div-by-zero errors
+                                (/ (float tt) (float cc)))
+                        symname)
+                resvec))))))
       ;; If printing to stdout, insert the header so it will print.
       ;; Otherwise use header-line-format.
       (setq elp-field-len (max titlelen longest))
       (if (or elp-use-standard-output noninteractive)
-         (progn
-           (insert title)
-           (if (> longest titlelen)
-               (progn
-                 (insert-char 32 (- longest titlelen))))
-           (insert "  " cc-header "  " et-header "  " at-header "\n")
-           (insert-char ?= elp-field-len)
-           (insert "  ")
-           (insert-char ?= elp-cc-len)
-           (insert "  ")
-           (insert-char ?= elp-et-len)
-           (insert "  ")
-           (insert-char ?= elp-at-len)
-           (insert "\n"))
-       (let ((column 0))
-         (setq header-line-format
-               (mapconcat
-                (lambda (title)
-                  (prog1
-                      (concat
-                       (propertize " "
-                                   'display (list 'space :align-to column)
-                                   'face 'fixed-pitch)
-                       title)
-                    (setq column (+ column 2
-                                    (if (= column 0)
-                                        elp-field-len
-                                      (length title))))))
-                (list title cc-header et-header at-header) ""))))
+          (progn
+            (insert title)
+            (if (> longest titlelen)
+                (progn
+                  (insert-char 32 (- longest titlelen))))
+            (insert "  " cc-header "  " et-header "  " at-header "\n")
+            (insert-char ?= elp-field-len)
+            (insert "  ")
+            (insert-char ?= elp-cc-len)
+            (insert "  ")
+            (insert-char ?= elp-et-len)
+            (insert "  ")
+            (insert-char ?= elp-at-len)
+            (insert "\n"))
+        (let ((column 0))
+          (setq header-line-format
+                (mapconcat
+                 (lambda (title)
+                   (prog1
+                       (concat
+                        (propertize " "
+                                    'display (list 'space :align-to column)
+                                    'face 'fixed-pitch)
+                        title)
+                     (setq column (+ column 2
+                                     (if (= column 0)
+                                         elp-field-len
+                                       (length title))))))
+                 (list title cc-header et-header at-header) ""))))
       ;; if sorting is enabled, then sort the results list. in either
       ;; case, call elp-output-result to output the result in the
       ;; buffer
@@ -644,7 +572,7 @@ displayed."
     (pop-to-buffer resultsbuf)
     ;; copy results to standard-output?
     (if (or elp-use-standard-output noninteractive)
-       (princ (buffer-substring (point-min) (point-max)))
+        (princ (buffer-substring (point-min) (point-max)))
       (goto-char (point-min)))
     ;; reset profiling info if desired
     (and elp-reset-after-results

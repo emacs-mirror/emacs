@@ -1,3 +1,14 @@
+2012-11-13  Dmitry Gutov  <dgutov@yandex.ru>
+
+	* automated/ruby-mode-tests.el (ruby-heredoc-font-lock)
+	(ruby-singleton-class-no-heredoc-font-lock)
+	(ruby-add-log-current-method-examples): New tests.
+	(ruby-test-string): Extract from ruby-should-indent-buffer.
+
+2012-11-12  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* automated/advice-tests.el: New tests.
+
 2012-10-14  Eli Zaretskii  <eliz@gnu.org>
 
 	* automated/compile-tests.el (compile-tests--test-regexps-data):

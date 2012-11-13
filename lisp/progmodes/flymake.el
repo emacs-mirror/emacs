@@ -764,25 +764,39 @@ line number outside the file being compiled."
   (and (overlayp ov) (overlay-get ov 'flymake-overlay)))
 
 (defcustom flymake-error-bitmap '(exclamation-mark error)
-  "Bitmap used in the fringe for indicating errors.
+  "Bitmap (a symbol) used in the fringe for indicating errors.
 The value may also be a list of two elements where the second
-element specifies the face for the bitmap."
+element specifies the face for the bitmap.  For possible bitmap
+symbols, see `fringe-bitmaps'.  See also `flymake-warning-bitmap'.
+
+The option `flymake-fringe-indicator-position' controls how and where
+this is used."
   :group 'flymake
   :version "24.3"
-  :type 'symbol)
+  :type '(choice (symbol :tag "Bitmap")
+                 (list :tag "Bitmap and face"
+                       (symbol :tag "Bitmap")
+                       (face :tag "Face"))))
 
 (defcustom flymake-warning-bitmap 'question-mark
-  "Bitmap used in the fringe for indicating warnings.
+  "Bitmap (a symbol) used in the fringe for indicating warnings.
 The value may also be a list of two elements where the second
-element specifies the face for the bitmap."
+element specifies the face for the bitmap.  For possible bitmap
+symbols, see `fringe-bitmaps'.  See also `flymake-error-bitmap'.
+
+The option `flymake-fringe-indicator-position' controls how and where
+this is used."
   :group 'flymake
   :version "24.3"
-  :type 'symbol)
+  :type '(choice (symbol :tag "Bitmap")
+                 (list :tag "Bitmap and face"
+                       (symbol :tag "Bitmap")
+                       (face :tag "Face"))))
 
 (defcustom flymake-fringe-indicator-position 'left-fringe
   "The position to put flymake fringe indicator.
-The value can be nil, left-fringe or right-fringe.
-Fringe indicators are disabled if nil."
+The value can be nil (do not use indicators), `left-fringe' or `right-fringe'.
+See `flymake-error-bitmap' and `flymake-warning-bitmap'."
   :group 'flymake
   :version "24.3"
   :type '(choice (const left-fringe)

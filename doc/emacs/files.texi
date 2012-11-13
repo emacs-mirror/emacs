@@ -1341,7 +1341,7 @@ contents of the hunk.
   You can edit a Diff mode buffer like any other buffer.  (If it is
 read-only, you need to make it writable first.  @xref{Misc Buffer}.)
 Whenever you change a hunk, Diff mode attempts to automatically
-correct the line numbers in the hunk headers, to ensure that the diff
+correct the line numbers in the hunk headers, to ensure that the patch
 remains ``correct''.  To disable automatic line number correction,
 change the variable @code{diff-update-on-the-fly} to @code{nil}.
 
@@ -1470,11 +1470,22 @@ name from the patch itself.  This is useful for making log entries for
 functions that are deleted by the patch.
 @end table
 
-  By default, Diff mode highlights trailing whitespace on modified
-lines, so that they are more obvious.  This is done by enabling
-Whitespace mode in the Diff buffer (@pxref{Useless Whitespace}).  Diff
-mode buffers are set up so that Whitespace mode avoids highlighting
-trailing whitespace occurring in the diff context.
+@c Trailing whitespace is NOT shown by default.
+@c Emacs's dir-locals file enables this (for some reason).
+@cindex trailing whitespace, in patches
+@findex diff-delete-trailing-whitespace
+  Patches sometimes include trailing whitespace on modified lines, as
+an unintentional and undesired change.  There are two ways to deal
+with this problem.  Firstly, if you enable Whitespace mode in a Diff
+buffer (@pxref{Useless Whitespace}), it automatically highlights
+trailing whitespace in modified lines.  Secondly, you can use the
+command @kbd{M-x diff-delete-trailing-whitespace}, which searches for
+trailing whitespace in the lines modified by the patch, and removes
+that whitespace in both the patch and the patched source file(s).
+This command does not save the modifications that it makes, so you can
+decide whether to save the changes (the list of modified files is
+displayed in the echo area).  With a prefix argument, it tries to
+modify the original source files rather than the patched source files.
 
 @node Misc File Ops
 @section Miscellaneous File Operations

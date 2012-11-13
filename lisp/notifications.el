@@ -66,6 +66,9 @@
 (defconst notifications-get-capabilities-method "GetCapabilities"
   "D-Bus notifications get capabilities method.")
 
+(defconst notifications-get-server-information-method "GetServerInformation"
+  "D-Bus notifications get server information method.")
+
 (defconst notifications-action-signal "ActionInvoked"
   "D-Bus notifications action signal.")
 
@@ -349,7 +352,7 @@ BUS can be a string denoting a D-Bus connection, the default is `:session'."
 (defvar dbus-debug) ; used in the macroexpansion of dbus-ignore-errors
 
 (defun notifications-get-capabilities (&optional bus)
-  "Return the capabilities of the notification server, a list of strings.
+  "Return the capabilities of the notification server, a list of symbols.
 BUS can be a string denoting a D-Bus connection, the default is `:session'.
 The following capabilities can be expected:
 
@@ -371,12 +374,34 @@ The following capabilities can be expected:
 
 Further vendor-specific caps start with `:x-vendor', like `:x-gnome-foo-cap'."
   (dbus-ignore-errors
-   (mapcar
-    (lambda (x) (intern (concat ":" x)))
+    (mapcar
+     (lambda (x) (intern (concat ":" x)))
+     (dbus-call-method (or bus :session)
+		       notifications-service
+		       notifications-path
+		       notifications-interface
+		       notifications-get-capabilities-method))))
+
+(defun notifications-get-server-information (&optional bus)
+  "Return information on the notification server, a list of strings.
+BUS can be a string denoting a D-Bus connection, the default is `:session'.
+The returned list is (NAME VENDOR VERSION SPEC-VERSION).
+
+  NAME         The product name of the server.
+  VENDOR       The vendor name.  For example, \"KDE\", \"GNOME\".
+  VERSION      The server's version number.
+  SPEC-VERSION The specification version the server is compliant with.
+
+If SPEC_VERSION is missing, the server supports a specification
+prior to \"1.0\".
+
+See `notifications-specification-version' for the specification
+version this library is compliant with."
+  (dbus-ignore-errors
     (dbus-call-method (or bus :session)
 		      notifications-service
 		      notifications-path
 		      notifications-interface
-		      notifications-get-capabilities-method))))
+		      notifications-get-server-information-method)))
 
 (provide 'notifications)

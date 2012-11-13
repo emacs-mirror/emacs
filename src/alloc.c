@@ -216,23 +216,19 @@ static Lisp_Object Qpost_gc_hook;
 static void mark_terminals (void);
 static void gc_sweep (void);
 static Lisp_Object make_pure_vector (ptrdiff_t);
-static void mark_glyph_matrix (struct glyph_matrix *);
-static void mark_face_cache (struct face_cache *);
 static void mark_buffer (struct buffer *);
 
 #if !defined REL_ALLOC || defined SYSTEM_MALLOC
 static void refill_memory_reserve (void);
 #endif
-static struct Lisp_String *allocate_string (void);
 static void compact_small_strings (void);
 static void free_large_strings (void);
-static void sweep_strings (void);
 static void free_misc (Lisp_Object);
 extern Lisp_Object which_symbols (Lisp_Object, EMACS_INT) EXTERNALLY_VISIBLE;
 
-/* When scanning the C stack for live Lisp objects, Emacs keeps track
-   of what memory allocated via lisp_malloc is intended for what
-   purpose.  This enumeration specifies the type of memory.  */
+/* When scanning the C stack for live Lisp objects, Emacs keeps track of
+   what memory allocated via lisp_malloc and lisp_align_malloc is intended
+   for what purpose.  This enumeration specifies the type of memory.  */
 
 enum mem_type
 {
@@ -243,19 +239,15 @@ enum mem_type
   MEM_TYPE_MISC,
   MEM_TYPE_SYMBOL,
   MEM_TYPE_FLOAT,
-  /* We used to keep separate mem_types for subtypes of vectors such as
-     process, hash_table, frame, terminal, and window, but we never made
-     use of the distinction, so it only caused source-code complexity
-     and runtime slowdown.  Minor but pointless.  */
+  /* Since all non-bool pseudovectors are small enough to be
+     allocated from vector blocks, this memory type denotes
+     large regular vectors and large bool pseudovectors.  */
   MEM_TYPE_VECTORLIKE,
   /* Special type to denote vector blocks.  */
   MEM_TYPE_VECTOR_BLOCK,
   /* Special type to denote reserved memory.  */
   MEM_TYPE_SPARE
 };
-
-static void *lisp_malloc (size_t, enum mem_type);
-
 
 #if GC_MARK_STACK || defined GC_MALLOC_CHECK
 
@@ -2040,7 +2032,7 @@ LENGTH must be a number.  INIT matters only in whether it is t or nil.  */)
   val = Fmake_vector (make_number (length_in_elts + extra_bool_elts), Qnil);
 
   /* No Lisp_Object to trace in there.  */
-  XSETPVECTYPESIZE (XVECTOR (val), PVEC_BOOL_VECTOR, 0);
+  XSETPVECTYPESIZE (XVECTOR (val), PVEC_BOOL_VECTOR, 0, 0);
 
   p = XBOOL_VECTOR (val);
   p->size = XFASTINT (length);
@@ -2619,18 +2611,53 @@ verify (VECTOR_BLOCK_SIZE <= (1 << PSEUDOVECTOR_SIZE_BITS));
 
 #define VINDEX(nbytes) (((nbytes) - VBLOCK_BYTES_MIN) / roundup_size)
 
+/* Get and set the next field in block-allocated vectorlike objects on
+   the free list.  Doing it this way respects C's aliasing rules.
+   We could instead make 'contents' a union, but that would mean
+   changes everywhere that the code uses 'contents'.  */
+static struct Lisp_Vector *
+next_in_free_list (struct Lisp_Vector *v)
+{
+  intptr_t i = XLI (v->contents[0]);
+  return (struct Lisp_Vector *) i;
+}
+static void
+set_next_in_free_list (struct Lisp_Vector *v, struct Lisp_Vector *next)
+{
+  v->contents[0] = XIL ((intptr_t) next);
+}
+
 /* Common shortcut to setup vector on a free list.  */
 
-#define SETUP_ON_FREE_LIST(v, nbytes, index)			\
-  do {								\
-    XSETPVECTYPESIZE (v, PVEC_FREE, nbytes);			\
-    eassert ((nbytes) % roundup_size == 0);			\
-    (index) = VINDEX (nbytes);					\
-    eassert ((index) < VECTOR_MAX_FREE_LIST_INDEX);		\
-    (v)->header.next.vector = vector_free_lists[index];		\
-    vector_free_lists[index] = (v);				\
-    total_free_vector_slots += (nbytes) / word_size;		\
+#define SETUP_ON_FREE_LIST(v, nbytes, tmp)		\
+  do {							\
+    (tmp) = ((nbytes - header_size) / word_size);	\
+    XSETPVECTYPESIZE (v, PVEC_FREE, 0, (tmp));		\
+    eassert ((nbytes) % roundup_size == 0);		\
+    (tmp) = VINDEX (nbytes);				\
+    eassert ((tmp) < VECTOR_MAX_FREE_LIST_INDEX);	\
+    set_next_in_free_list (v, vector_free_lists[tmp]);	\
+    vector_free_lists[tmp] = (v);			\
+    total_free_vector_slots += (nbytes) / word_size;	\
   } while (0)
+
+/* This internal type is used to maintain the list of large vectors
+   which are allocated at their own, e.g. outside of vector blocks.  */
+
+struct large_vector
+{
+  union {
+    struct large_vector *vector;
+#if USE_LSB_TAG
+    /* We need to maintain ROUNDUP_SIZE alignment for the vector member.  */
+    unsigned char c[vroundup (sizeof (struct large_vector *))];
+#endif
+  } next;
+  struct Lisp_Vector v;
+};
+
+/* This internal type is used to maintain an underlying storage
+   for small vectors.  */
 
 struct vector_block
 {
@@ -2649,7 +2676,7 @@ static struct Lisp_Vector *vector_free_lists[VECTOR_MAX_FREE_LIST_INDEX];
 
 /* Singly-linked list of large vectors.  */
 
-static struct Lisp_Vector *large_vectors;
+static struct large_vector *large_vectors;
 
 /* The only vector with 0 slots, allocated from pure space.  */
 
@@ -2693,7 +2720,7 @@ init_vectors (void)
 static struct Lisp_Vector *
 allocate_vector_from_block (size_t nbytes)
 {
-  struct Lisp_Vector *vector, *rest;
+  struct Lisp_Vector *vector;
   struct vector_block *block;
   size_t index, restbytes;
 
@@ -2706,8 +2733,7 @@ allocate_vector_from_block (size_t nbytes)
   if (vector_free_lists[index])
     {
       vector = vector_free_lists[index];
-      vector_free_lists[index] = vector->header.next.vector;
-      vector->header.next.nbytes = nbytes;
+      vector_free_lists[index] = next_in_free_list (vector);
       total_free_vector_slots -= nbytes / word_size;
       return vector;
     }
@@ -2721,16 +2747,14 @@ allocate_vector_from_block (size_t nbytes)
       {
 	/* This vector is larger than requested.  */
 	vector = vector_free_lists[index];
-	vector_free_lists[index] = vector->header.next.vector;
-	vector->header.next.nbytes = nbytes;
+	vector_free_lists[index] = next_in_free_list (vector);
 	total_free_vector_slots -= nbytes / word_size;
 
 	/* Excess bytes are used for the smaller vector,
 	   which should be set on an appropriate free list.  */
 	restbytes = index * roundup_size + VBLOCK_BYTES_MIN - nbytes;
 	eassert (restbytes % roundup_size == 0);
-	rest = ADVANCE (vector, nbytes);
-	SETUP_ON_FREE_LIST (rest, restbytes, index);
+	SETUP_ON_FREE_LIST (ADVANCE (vector, nbytes), restbytes, index);
 	return vector;
       }
 
@@ -2739,7 +2763,6 @@ allocate_vector_from_block (size_t nbytes)
 
   /* New vector will be at the beginning of this block.  */
   vector = (struct Lisp_Vector *) block->data;
-  vector->header.next.nbytes = nbytes;
 
   /* If the rest of space from this block is large enough
      for one-slot vector at least, set up it on a free list.  */
@@ -2747,11 +2770,10 @@ allocate_vector_from_block (size_t nbytes)
   if (restbytes >= VBLOCK_BYTES_MIN)
     {
       eassert (restbytes % roundup_size == 0);
-      rest = ADVANCE (vector, nbytes);
-      SETUP_ON_FREE_LIST (rest, restbytes, index);
+      SETUP_ON_FREE_LIST (ADVANCE (vector, nbytes), restbytes, index);
     }
   return vector;
- }
+}
 
 /* Nonzero if VECTOR pointer is valid pointer inside BLOCK.  */
 
@@ -2759,15 +2781,30 @@ allocate_vector_from_block (size_t nbytes)
   ((char *) (vector) <= (block)->data		\
    + VECTOR_BLOCK_BYTES - VBLOCK_BYTES_MIN)
 
-/* Number of bytes used by vector-block-allocated object.  This is the only
-   place where we actually use the `nbytes' field of the vector-header.
-   I.e. we could get rid of the `nbytes' field by computing it based on the
-   vector-type.  */
+/* Return the memory footprint of V in bytes.  */
 
-#define PSEUDOVECTOR_NBYTES(vector) \
-  (PSEUDOVECTOR_TYPEP (&vector->header, PVEC_FREE)	\
-   ? vector->header.size & PSEUDOVECTOR_SIZE_MASK	\
-   : vector->header.next.nbytes)
+static ptrdiff_t
+vector_nbytes (struct Lisp_Vector *v)
+{
+  ptrdiff_t size = v->header.size & ~ARRAY_MARK_FLAG;
+
+  if (size & PSEUDOVECTOR_FLAG)
+    {
+      if (PSEUDOVECTOR_TYPEP (&v->header, PVEC_BOOL_VECTOR))
+	size = (bool_header_size
+		+ (((struct Lisp_Bool_Vector *) v)->size
+		   + BOOL_VECTOR_BITS_PER_CHAR - 1)
+		/ BOOL_VECTOR_BITS_PER_CHAR);
+      else
+	size = (header_size
+		+ ((size & PSEUDOVECTOR_SIZE_MASK)
+		   + ((size & PSEUDOVECTOR_REST_MASK)
+		      >> PSEUDOVECTOR_SIZE_BITS)) * word_size);
+    }
+  else
+    size = header_size + size * word_size;
+  return vroundup (size);
+}
 
 /* Reclaim space used by unmarked vectors.  */
 
@@ -2775,7 +2812,8 @@ static void
 sweep_vectors (void)
 {
   struct vector_block *block = vector_blocks, **bprev = &vector_blocks;
-  struct Lisp_Vector *vector, *next, **vprev = &large_vectors;
+  struct large_vector *lv, **lvprev = &large_vectors;
+  struct Lisp_Vector *vector, *next;
 
   total_vectors = total_vector_slots = total_free_vector_slots = 0;
   memset (vector_free_lists, 0, sizeof (vector_free_lists));
@@ -2785,6 +2823,7 @@ sweep_vectors (void)
   for (block = vector_blocks; block; block = *bprev)
     {
       bool free_this_block = 0;
+      ptrdiff_t nbytes;
 
       for (vector = (struct Lisp_Vector *) block->data;
 	   VECTOR_IN_BLOCK (vector, block); vector = next)
@@ -2793,14 +2832,16 @@ sweep_vectors (void)
 	    {
 	      VECTOR_UNMARK (vector);
 	      total_vectors++;
-	      total_vector_slots += vector->header.next.nbytes / word_size;
-	      next = ADVANCE (vector, vector->header.next.nbytes);
+	      nbytes = vector_nbytes (vector);
+	      total_vector_slots += nbytes / word_size;
+	      next = ADVANCE (vector, nbytes);
 	    }
 	  else
 	    {
-	      ptrdiff_t nbytes = PSEUDOVECTOR_NBYTES (vector);
-	      ptrdiff_t total_bytes = nbytes;
+	      ptrdiff_t total_bytes;
 
+	      nbytes = vector_nbytes (vector);
+	      total_bytes = nbytes;
 	      next = ADVANCE (vector, nbytes);
 
 	      /* While NEXT is not marked, try to coalesce with VECTOR,
@@ -2810,7 +2851,7 @@ sweep_vectors (void)
 		{
 		  if (VECTOR_MARKED_P (next))
 		    break;
-		  nbytes = PSEUDOVECTOR_NBYTES (next);
+		  nbytes = vector_nbytes (next);
 		  total_bytes += nbytes;
 		  next = ADVANCE (next, nbytes);
 		}
@@ -2844,8 +2885,9 @@ sweep_vectors (void)
 
   /* Sweep large vectors.  */
 
-  for (vector = large_vectors; vector; vector = *vprev)
+  for (lv = large_vectors; lv; lv = *lvprev)
     {
+      vector = &lv->v;
       if (VECTOR_MARKED_P (vector))
 	{
 	  VECTOR_UNMARK (vector);
@@ -2867,12 +2909,12 @@ sweep_vectors (void)
 	  else
 	    total_vector_slots
 	      += header_size / word_size + vector->header.size;
-	  vprev = &vector->header.next.vector;
+	  lvprev = &lv->next.vector;
 	}
       else
 	{
-	  *vprev = vector->header.next.vector;
-	  lisp_free (vector);
+	  *lvprev = lv->next.vector;
+	  lisp_free (lv);
 	}
     }
 }
@@ -2904,9 +2946,12 @@ allocate_vectorlike (ptrdiff_t len)
 	p = allocate_vector_from_block (vroundup (nbytes));
       else
 	{
-	  p = lisp_malloc (nbytes, MEM_TYPE_VECTORLIKE);
-	  p->header.next.vector = large_vectors;
-	  large_vectors = p;
+	  struct large_vector *lv
+	    = lisp_malloc (sizeof (*lv) + (len - 1) * word_size,
+			   MEM_TYPE_VECTORLIKE);
+	  lv->next.vector = large_vectors;
+	  large_vectors = lv;
+	  p = &lv->v;
 	}
 
 #ifdef DOUG_LEA_MALLOC
@@ -2943,16 +2988,21 @@ allocate_vector (EMACS_INT len)
 /* Allocate other vector-like structures.  */
 
 struct Lisp_Vector *
-allocate_pseudovector (int memlen, int lisplen, int tag)
+allocate_pseudovector (int memlen, int lisplen, enum pvec_type tag)
 {
   struct Lisp_Vector *v = allocate_vectorlike (memlen);
   int i;
+
+  /* Catch bogus values.  */
+  eassert (tag <= PVEC_FONT);
+  eassert (memlen - lisplen <= (1 << PSEUDOVECTOR_REST_BITS) - 1);
+  eassert (lisplen <= (1 << PSEUDOVECTOR_SIZE_BITS) - 1);
 
   /* Only the first lisplen slots will be traced normally by the GC.  */
   for (i = 0; i < lisplen; ++i)
     v->contents[i] = Qnil;
 
-  XSETPVECTYPESIZE (v, tag, lisplen);
+  XSETPVECTYPESIZE (v, tag, lisplen, memlen - lisplen);
   return v;
 }
 
@@ -2961,10 +3011,9 @@ allocate_buffer (void)
 {
   struct buffer *b = lisp_malloc (sizeof *b, MEM_TYPE_BUFFER);
 
-  XSETPVECTYPESIZE (b, PVEC_BUFFER, (offsetof (struct buffer, own_text)
-				     - header_size) / word_size);
+  BUFFER_PVEC_INIT (b);
   /* Put B on the chain of all buffers including killed ones.  */
-  b->header.next.buffer = all_buffers;
+  b->next = all_buffers;
   all_buffers = b;
   /* Note that the rest fields of B are not initialized.  */
   return b;
@@ -4068,16 +4117,15 @@ live_vector_p (struct mem_node *m, void *p)
       while (VECTOR_IN_BLOCK (vector, block)
 	     && vector <= (struct Lisp_Vector *) p)
 	{
-	  if (PSEUDOVECTOR_TYPEP (&vector->header, PVEC_FREE))
-	    vector = ADVANCE (vector, (vector->header.size
-				       & PSEUDOVECTOR_SIZE_MASK));
-	  else if (vector == p)
+	  if (!PSEUDOVECTOR_TYPEP (&vector->header, PVEC_FREE) && vector == p)
 	    return 1;
 	  else
-	    vector = ADVANCE (vector, vector->header.next.nbytes);
+	    vector = ADVANCE (vector, vector_nbytes (vector));
 	}
     }
-  else if (m->type == MEM_TYPE_VECTORLIKE && p == m->start)
+  else if (m->type == MEM_TYPE_VECTORLIKE
+	   && (char *) p == ((char *) m->start
+			     + offsetof (struct large_vector, v)))
     /* This memory node corresponds to a large vector.  */
     return 1;
   return 0;
@@ -5687,7 +5735,7 @@ mark_object (Lisp_Object arg)
 
 	if (ptr->header.size & PSEUDOVECTOR_FLAG)
 	  pvectype = ((ptr->header.size & PVEC_TYPE_MASK)
-		      >> PSEUDOVECTOR_SIZE_BITS);
+		      >> PSEUDOVECTOR_AREA_BITS);
 	else
 	  pvectype = PVEC_NORMAL_VECTOR;
 
@@ -5766,6 +5814,9 @@ mark_object (Lisp_Object arg)
 	      struct Lisp_Hash_Table *h = (struct Lisp_Hash_Table *) ptr;
 
 	      mark_vectorlike (ptr);
+	      mark_object (h->test.name);
+	      mark_object (h->test.user_hash_function);
+	      mark_object (h->test.user_cmp_function);
 	      /* If hash table is not weak, mark all keys and values.
 		 For weak tables, mark only the vector.  */
 	      if (NILP (h->weak))
@@ -6317,7 +6368,7 @@ gc_sweep (void)
     for (buffer = all_buffers; buffer; buffer = *bprev)
       if (!VECTOR_MARKED_P (buffer))
 	{
-	  *bprev = buffer->header.next.buffer;
+	  *bprev = buffer->next;
 	  lisp_free (buffer);
 	}
       else
@@ -6326,7 +6377,7 @@ gc_sweep (void)
 	  /* Do not use buffer_(set|get)_intervals here.  */
 	  buffer->text->intervals = balance_intervals (buffer->text->intervals);
 	  total_buffers++;
-	  bprev = &buffer->header.next.buffer;
+	  bprev = &buffer->next;
 	}
   }
 

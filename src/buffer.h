@@ -482,11 +482,6 @@ struct buffer_text
 
 struct buffer
 {
-  /* HEADER.NEXT is the next buffer, in chain of all buffers, including killed
-     buffers.  This chain, starting from all_buffers, is used only for garbage
-     collection, in order to collect killed buffers properly.  Note that large
-     vectors and large pseudo-vector objects are all on another chain starting
-     from large_vectors.  */
   struct vectorlike_header header;
 
   /* The name of this buffer.  */
@@ -750,6 +745,9 @@ struct buffer
      In an indirect buffer, this is the own_text field of another buffer.  */
   struct buffer_text *text;
 
+  /* Next buffer, in chain of all buffers, including killed ones.  */
+  struct buffer *next;
+
   /* Char position of point in buffer.  */
   ptrdiff_t pt;
 
@@ -959,6 +957,27 @@ bset_width_table (struct buffer *b, Lisp_Object val)
   b->INTERNAL_FIELD (width_table) = val;
 }
 
+/* Number of Lisp_Objects at the beginning of struct buffer.
+   If you add, remove, or reorder Lisp_Objects within buffer
+   structure, make sure that this is still correct.  */
+
+#define BUFFER_LISP_SIZE						\
+  ((offsetof (struct buffer, own_text) - header_size) / word_size)
+
+/* Size of the struct buffer part beyond leading Lisp_Objects, in word_size
+   units.  Rounding is needed for --with-wide-int configuration.  */
+
+#define BUFFER_REST_SIZE						\
+  ((((sizeof (struct buffer) - offsetof (struct buffer, own_text))	\
+     + (word_size - 1)) & ~(word_size - 1)) / word_size)
+
+/* Initialize the pseudovector header of buffer object.  BUFFER_LISP_SIZE
+   is required for GC, but BUFFER_REST_SIZE is set up just to be consistent
+   with other pseudovectors.  */
+
+#define BUFFER_PVEC_INIT(b)                                    \
+  XSETPVECTYPESIZE (b, PVEC_BUFFER, BUFFER_LISP_SIZE, BUFFER_REST_SIZE)
+
 /* Convenient check whether buffer B is live.  */
 
 #define BUFFER_LIVE_P(b) (!NILP (BVAR (b, name)))
@@ -986,7 +1005,7 @@ extern struct buffer *all_buffers;
 /* Used to iterate over the chain above.  */
 
 #define FOR_EACH_BUFFER(b) \
-  for ((b) = all_buffers; (b); (b) = (b)->header.next.buffer)
+  for ((b) = all_buffers; (b); (b) = (b)->next)
 
 /* This points to the current buffer.  */
 

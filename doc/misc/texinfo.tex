@@ -3,7 +3,7 @@
 % Load plain if necessary, i.e., if running under initex.
 \expandafter\ifx\csname fmtname\endcsname\relax\input plain\fi
 %
-\def\texinfoversion{2012-09-12.16}
+\def\texinfoversion{2012-11-08.11}
 %
 % Copyright 1985, 1986, 1988, 1990, 1991, 1992, 1993, 1994, 1995,
 % 1996, 1997, 1998, 1999, 2000, 2001, 2002, 2003, 2004, 2005, 2006,
@@ -6559,16 +6559,9 @@ end
 \makedispenvdef{quotation}{\quotationstart}
 %
 \def\quotationstart{%
-  {\parskip=0pt \aboveenvbreak}% because \aboveenvbreak inserts \parskip
-  \parindent=0pt
-  %
-  % @cartouche defines \nonarrowing to inhibit narrowing at next level down.
+  \indentedblockstart % same as \indentedblock, but increase right margin too.
   \ifx\nonarrowing\relax
-    \advance\leftskip by \lispnarrowing
     \advance\rightskip by \lispnarrowing
-    \exdentamount = \lispnarrowing
-  \else
-    \let\nonarrowing = \relax
   \fi
   \parsearg\quotationlabel
 }
@@ -6593,6 +6586,32 @@ end
     {\bf #1: }%
   \fi
 }
+
+% @indentedblock is like @quotation, but indents only on the left and
+% has no optional argument.
+% 
+\makedispenvdef{indentedblock}{\indentedblockstart}
+%
+\def\indentedblockstart{%
+  {\parskip=0pt \aboveenvbreak}% because \aboveenvbreak inserts \parskip
+  \parindent=0pt
+  %
+  % @cartouche defines \nonarrowing to inhibit narrowing at next level down.
+  \ifx\nonarrowing\relax
+    \advance\leftskip by \lispnarrowing
+    \exdentamount = \lispnarrowing
+  \else
+    \let\nonarrowing = \relax
+  \fi
+}
+
+% Keep a nonzero parskip for the environment, since we're doing normal filling.
+%
+\def\Eindentedblock{%
+  \par
+  {\parskip=0pt \afterenvbreak}%
+}
+\def\Esmallindentedblock{\Eindentedblock}
 
 
 % LaTeX-like @verbatim...@end verbatim and @verb{<char>...<char>}

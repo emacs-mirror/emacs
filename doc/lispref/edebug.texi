@@ -1211,9 +1211,7 @@ A single unevaluated Lisp object, which is not instrumented.
 A single evaluated expression, which is instrumented.
 
 @item place
-@c I can't see that this index entry is useful without any explanation.
-@c @findex edebug-unwrap
-A place to store a value, as in the Common Lisp @code{setf} construct.
+A generalized variable.  @xref{Generalized Variables}.
 
 @item body
 Short for @code{&rest form}.  See @code{&rest} below.

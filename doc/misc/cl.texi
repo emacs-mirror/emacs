@@ -107,7 +107,8 @@ for various reasons:
 @item
 Some features are too complex or bulky relative to their benefit
 to Emacs Lisp programmers.  CLOS and Common Lisp streams are fine
-examples of this group.
+examples of this group.  (The separate package EIEIO implements
+a subset of CLOS functionality.  @xref{Top, , Introduction, eieio, EIEIO}.)
 
 @item
 Other features cannot be implemented without modification to the
@@ -974,7 +975,7 @@ a
 The generalized variable @code{buffer-substring}, listed above,
 also works in this way by replacing a portion of the current buffer.
 
-@c FIXME? Also `eq'? (see cl-lib.el)
+@c FIXME?  Also `eq'? (see cl-lib.el)
 
 @c Currently commented out in cl.el.
 @ignore
@@ -989,13 +990,10 @@ only interesting when used with places you define yourself with
 @xref{Obsolete Setf Customization}.
 @end ignore
 
+@c FIXME?  Is this still true?
 @item
 A macro call, in which case the macro is expanded and @code{setf}
 is applied to the resulting form.
-
-@item
-Any form for which a @code{defsetf} or @code{define-setf-method}
-has been made.  @xref{Obsolete Setf Customization}.
 @end itemize
 
 @c FIXME should this be in lispref?  It seems self-evident.
@@ -2867,7 +2865,6 @@ temporary variables.
 This function creates a new, uninterned symbol (using @code{make-symbol})
 with a unique name.  (The name of an uninterned symbol is relevant
 only if the symbol is printed.)  By default, the name is generated
-@c FIXME no longer true?
 from an increasing sequence of numbers, @samp{G1000}, @samp{G1001},
 @samp{G1002}, etc.  If the optional argument @var{x} is a string, that
 string is used as a prefix instead of @samp{G}.  Uninterned symbols
@@ -4481,14 +4478,6 @@ The @code{equal} predicate does not distinguish
 between IEEE floating-point plus and minus zero.  The @code{cl-equalp}
 predicate has several differences with Common Lisp; @pxref{Predicates}.
 
-@c FIXME consider moving to lispref
-@ignore
-The @code{setf} mechanism is entirely compatible, except that
-setf-methods return a list of five values rather than five
-values directly.  Also, the new ``@code{setf} function'' concept
-(typified by @code{(defun (setf foo) @dots{})}) is not implemented.
-@end ignore
-
 The @code{cl-do-all-symbols} form is the same as @code{cl-do-symbols}
 with no @var{obarray} argument.  In Common Lisp, this form would
 iterate over all symbols in all packages.  Since Emacs obarrays
@@ -4907,15 +4896,17 @@ Common Lisp defines three macros, @code{define-modify-macro},
 @code{defsetf}, and @code{define-setf-method}, that allow the
 user to extend generalized variables in various ways.
 In Emacs, these are obsolete, replaced by various features of
-@file{gv.el} in Emacs 24.3.  Many of the implementation
-details in the following are out-of-date.
-@c FIXME this whole section needs updating.
+@file{gv.el} in Emacs 24.3.
+@xref{Adding Generalized Variables,,,elisp,GNU Emacs Lisp Reference Manual}.
+
 
 @defmac define-modify-macro name arglist function [doc-string]
 This macro defines a ``read-modify-write'' macro similar to
-@code{cl-incf} and @code{cl-decf}.  The macro @var{name} is defined
-to take a @var{place} argument followed by additional arguments
-described by @var{arglist}.  The call
+@code{cl-incf} and @code{cl-decf}.  You can replace this macro
+with @code{gv-letplace}.
+
+The macro @var{name} is defined to take a @var{place} argument
+followed by additional arguments described by @var{arglist}.  The call
 
 @example
 (@var{name} @var{place} @var{args}@dots{})
@@ -4938,8 +4929,8 @@ which in turn is roughly equivalent to
 For example:
 
 @example
-(define-modify-macro cl-incf (&optional (n 1)) +)
-(define-modify-macro cl-concatf (&rest args) concat)
+(define-modify-macro incf (&optional (n 1)) +)
+(define-modify-macro concatf (&rest args) concat)
 @end example
 
 Note that @code{&key} is not allowed in @var{arglist}, but
@@ -4948,16 +4939,31 @@ Note that @code{&key} is not allowed in @var{arglist}, but
 Most of the modify macros defined by Common Lisp do not exactly
 follow the pattern of @code{define-modify-macro}.  For example,
 @code{push} takes its arguments in the wrong order, and @code{pop}
-is completely irregular.  You can define these macros ``by hand''
-using @code{get-setf-method}, or consult the source
-to see how to use the internal @code{setf} building blocks.
+is completely irregular.
+
+The above @code{incf} example could be written using
+@code{gv-letplace} as:
+@example
+(defmacro incf (place &optional n)
+  (gv-letplace (getter setter) place
+    (macroexp-let2 nil v (or n 1)
+      (funcall setter `(+ ,v ,getter)))))
+@end example
+@ignore
+(defmacro concatf (place &rest args)
+  (gv-letplace (getter setter) place
+    (macroexp-let2 nil v (mapconcat 'identity args "")
+      (funcall setter `(concat ,getter ,v)))))
+@end ignore
 @end defmac
 
 @defmac defsetf access-fn update-fn
-This is the simpler of two @code{defsetf} forms.  Where
-@var{access-fn} is the name of a function which accesses a place,
-this declares @var{update-fn} to be the corresponding store
-function.  From now on,
+This is the simpler of two @code{defsetf} forms, and is
+replaced by @code{gv-define-simple-setter}.
+
+With @var{access-fn} the name of a function that accesses a place,
+this declares @var{update-fn} to be the corresponding store function.
+From now on,
 
 @example
 (setf (@var{access-fn} @var{arg1} @var{arg2} @var{arg3}) @var{value})
@@ -4972,7 +4978,7 @@ will be expanded to
 
 @noindent
 The @var{update-fn} is required to be either a true function, or
-a macro which evaluates its arguments in a function-like way.  Also,
+a macro that evaluates its arguments in a function-like way.  Also,
 the @var{update-fn} is expected to return @var{value} as its result.
 Otherwise, the above expansion would not obey the rules for the way
 @code{setf} is supposed to behave.
@@ -4988,25 +4994,32 @@ something more like
   temp)
 @end example
 
-Some examples of the use of @code{defsetf}, drawn from the standard
-suite of setf methods, are:
+Some examples are:
 
 @example
 (defsetf car setcar)
-(defsetf symbol-value set)
 (defsetf buffer-name rename-buffer t)
+@end example
+
+These translate directly to @code{gv-define-simple-setter}:
+
+@example
+(gv-define-simple-setter car setcar)
+(gv-define-simple-setter buffer-name rename-buffer t)
 @end example
 @end defmac
 
 @defmac defsetf access-fn arglist (store-var) forms@dots{}
-This is the second, more complex, form of @code{defsetf}.  It is
-rather like @code{defmacro} except for the additional @var{store-var}
-argument.  The @var{forms} should return a Lisp form that stores
-the value of @var{store-var} into the generalized variable formed
-by a call to @var{access-fn} with arguments described by @var{arglist}.
-The @var{forms} may begin with a string which documents the @code{setf}
-method (analogous to the doc string that appears at the front of a
-function).
+This is the second, more complex, form of @code{defsetf}.
+It can be replaced by @code{gv-define-setter}.
+
+This form of @code{defsetf} is rather like @code{defmacro} except for
+the additional @var{store-var} argument.  The @var{forms} should
+return a Lisp form that stores the value of @var{store-var} into the
+generalized variable formed by a call to @var{access-fn} with
+arguments described by @var{arglist}.  The @var{forms} may begin with
+a string which documents the @code{setf} method (analogous to the doc
+string that appears at the front of a function).
 
 For example, the simple form of @code{defsetf} is shorthand for
 
@@ -5021,20 +5034,28 @@ macros like @code{cl-incf} that invoke this
 setf-method will insert temporary variables as needed to make
 sure the apparent order of evaluation is preserved.
 
-Another example drawn from the standard package:
+Another standard example:
 
 @example
 (defsetf nth (n x) (store)
-  (list 'setcar (list 'nthcdr n x) store))
+  `(setcar (nthcdr ,n ,x) ,store))
+@end example
+
+You could write this using @code{gv-define-setter} as:
+
+@example
+(gv-define-setter nth (store n x)
+  `(setcar (nthcdr ,n ,x) ,store))
 @end example
 @end defmac
 
 @defmac define-setf-method access-fn arglist forms@dots{}
-This is the most general way to create new place forms.  When
-a @code{setf} to @var{access-fn} with arguments described by
-@var{arglist} is expanded, the @var{forms} are evaluated and
-must return a list of five items:
-@c FIXME Is this still true?
+This is the most general way to create new place forms.  You can
+replace this by @code{gv-define-setter} or @code{gv-define-expander}.
+
+When a @code{setf} to @var{access-fn} with arguments described by
+@var{arglist} is expanded, the @var{forms} are evaluated and must
+return a list of five items:
 
 @enumerate
 @item
@@ -5063,6 +5084,9 @@ This is exactly like the Common Lisp macro of the same name,
 except that the method returns a list of five values rather
 than the five values themselves, since Emacs Lisp does not
 support Common Lisp's notion of multiple return values.
+(Note that the @code{setf} implementation provided by @file{gv.el}
+does not use this five item format.  Its use here is only for
+backwards compatibility.)
 
 Once again, the @var{forms} may begin with a documentation string.
 
@@ -5078,45 +5102,22 @@ turn out to be unnecessary, so there is little reason for the
 setf-method itself to optimize.
 @end defmac
 
+@c Removed in Emacs 24.3, not possible to make a compatible replacement.
+@ignore
 @defun get-setf-method place &optional env
 This function returns the setf-method for @var{place}, by
 invoking the definition previously recorded by @code{defsetf}
 or @code{define-setf-method}.  The result is a list of five
 values as described above.  You can use this function to build
 your own @code{cl-incf}-like modify macros.
-@c These no longer exist.
-@ignore
-(Actually, it is better to use the internal functions
-@code{cl-setf-do-modify} and @code{cl-setf-do-store}, which are a bit
-easier to use and which also do a number of optimizations; consult the
-source code for the @code{cl-incf} function for a simple example.)
-@end ignore
 
 The argument @var{env} specifies the ``environment'' to be
 passed on to @code{macroexpand} if @code{get-setf-method} should
 need to expand a macro in @var{place}.  It should come from
 an @code{&environment} argument to the macro or setf-method
 that called @code{get-setf-method}.
-
-@c FIXME No longer true.
-See also the source code for the setf-method for
-@c Also @code{apply}, but that is commented out.
-@code{substring}, which works by calling @code{get-setf-method} on a
-simpler case, then massaging the result.
 @end defun
-
-@c FIXME does not belong here any more, maybe in lispref?
-Modern Common Lisp defines a second, independent way to specify
-the @code{setf} behavior of a function, namely ``@code{setf}
-functions'' whose names are lists @code{(setf @var{name})}
-rather than symbols.  For example, @code{(defun (setf foo) @dots{})}
-defines the function that is used when @code{setf} is applied to
-@code{foo}.  This package does not currently support @code{setf}
-functions.  In particular, it is a compile-time error to use
-@code{setf} on a form which has not already been @code{defsetf}'d
-or otherwise declared; in newer Common Lisps, this would not be
-an error since the function @code{(setf @var{func})} might be
-defined later.
+@end ignore
 
 
 @node GNU Free Documentation License

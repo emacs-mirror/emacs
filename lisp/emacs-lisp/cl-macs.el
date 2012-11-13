@@ -554,6 +554,7 @@ its argument list allows full Common Lisp conventions."
 
 ;;;###autoload
 (defmacro cl-destructuring-bind (args expr &rest body)
+  "Bind the variables in ARGS to the result of EXPR and execute BODY."
   (declare (indent 2)
            (debug (&define cl-macro-list def-form cl-declarations def-body)))
   (let* ((cl--bind-lets nil) (cl--bind-forms nil) (cl--bind-inits nil)
@@ -1546,9 +1547,9 @@ An implicit nil block is established around the loop.
 \(fn (VAR LIST [RESULT]) BODY...)"
   (declare (debug ((symbolp form &optional form) cl-declarations body))
            (indent 1))
-  `(cl-block nil
-     (,(if (eq 'cl-dolist (symbol-function 'dolist)) 'cl--dolist 'dolist)
-      ,spec ,@body)))
+  (let ((loop `(dolist ,spec ,@body)))
+    (if (advice-member-p #'cl--wrap-in-nil-block 'dolist)
+        loop `(cl-block nil ,loop))))
 
 ;;;###autoload
 (defmacro cl-dotimes (spec &rest body)
@@ -1559,9 +1560,9 @@ nil.
 
 \(fn (VAR COUNT [RESULT]) BODY...)"
   (declare (debug cl-dolist) (indent 1))
-  `(cl-block nil
-     (,(if (eq 'cl-dotimes (symbol-function 'dotimes)) 'cl--dotimes 'dotimes)
-      ,spec ,@body)))
+  (let ((loop `(dotimes ,spec ,@body)))
+    (if (advice-member-p #'cl--wrap-in-nil-block 'dotimes)
+        loop `(cl-block nil ,loop))))
 
 ;;;###autoload
 (defmacro cl-do-symbols (spec &rest body)
@@ -1886,10 +1887,12 @@ values.  For compatibility, (cl-values A B C) is a synonym for (list A B C).
 
 ;;;###autoload
 (defmacro cl-locally (&rest body)
+  "Equivalent to `progn'."
   (declare (debug t))
   (cons 'progn body))
 ;;;###autoload
 (defmacro cl-the (_type form)
+  "At present this ignores _TYPE and is simply equivalent to FORM."
   (declare (indent 1) (debug (cl-type-spec form)))
   form)
 
@@ -2537,6 +2540,10 @@ and then returning foo."
 
 ;;;###autoload
 (defun cl-compiler-macroexpand (form)
+  "Like `macroexpand', but for compiler macros.
+Expands FORM repeatedly until no further expansion is possible.
+Returns FORM unchanged if it has no compiler macro, or if it has a
+macro that returns its `&whole' argument."
   (while
       (let ((func (car-safe form)) (handler nil))
 	(while (and (symbolp func)

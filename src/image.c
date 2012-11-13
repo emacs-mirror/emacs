@@ -3731,10 +3731,10 @@ xpm_make_color_table_h (void (**put_func) (Lisp_Object,
 {
   *put_func = xpm_put_color_table_h;
   *get_func = xpm_get_color_table_h;
-  return make_hash_table (Qequal, make_number (DEFAULT_HASH_SIZE),
+  return make_hash_table (hashtest_equal, make_number (DEFAULT_HASH_SIZE),
 			  make_float (DEFAULT_REHASH_SIZE),
 			  make_float (DEFAULT_REHASH_THRESHOLD),
-			  Qnil, Qnil, Qnil);
+			  Qnil);
 }
 
 static void

@@ -33,13 +33,25 @@
 
 ;;; Code:
 
-(defvar minibuffer-eldef-shorten-default nil
-  "If non-nil, shorten \"(default ...)\" to \"[...]\" in minibuffer prompts.")
+(defvar minibuffer-eldef-shorten-default)
 
-(defvar minibuffer-default-in-prompt-regexps
+(defun minibuffer-default--in-prompt-regexps ()
   `(("\\( (default\\(?: is\\)? \\(.*\\))\\):? \\'"
      1 ,(if minibuffer-eldef-shorten-default " [\\2]"))
-    ("\\( \\[.*\\]\\):? *\\'" 1))
+    ("\\( \\[.*\\]\\):? *\\'" 1)))
+
+(defcustom minibuffer-eldef-shorten-default nil
+  "If non-nil, shorten \"(default ...)\" to \"[...]\" in minibuffer prompts."
+  :set (lambda (symbol value)
+         (set-default symbol value)
+	 (setq-default minibuffer-default-in-prompt-regexps
+		       (minibuffer-default--in-prompt-regexps)))
+  :type 'boolean
+  :group 'minibuffer
+  :version "24.3")
+
+(defvar minibuffer-default-in-prompt-regexps
+  (minibuffer-default--in-prompt-regexps)
   "A list of regexps matching the parts of minibuffer prompts showing defaults.
 When `minibuffer-electric-default-mode' is active, these regexps are
 used to identify the portions of prompts to elide.

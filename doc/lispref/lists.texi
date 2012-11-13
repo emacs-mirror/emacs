@@ -234,17 +234,15 @@ This is in contrast to @code{cdr}, which signals an error if
 @end defun
 
 @defmac pop listname
-This macro is a way of examining the @sc{car} of a list,
-and taking it off the list, all at once.
-@c FIXME I don't think is a particularly good way to do it,
-@c but generalized variables have not been introduced yet.
-(In fact, this macro can act on generalized variables, not just lists.
-@xref{Generalized Variables}.)
+This macro provides a convenient way to examine the @sc{car} of a
+list, and take it off the list, all at once.  It operates on the list
+stored in @var{listname}.  It removes the first element from the list,
+saves the @sc{cdr} into @var{listname}, then returns the removed
+element.
 
-It operates on the list which is stored in the symbol @var{listname}.
-It removes this element from the list by setting @var{listname}
-to the @sc{cdr} of its old value---but it also returns the @sc{car}
-of that list, which is the element being removed.
+In the simplest case, @var{listname} is an unquoted symbol naming a
+list; in that case, this macro is equivalent to @w{@code{(prog1
+(car listname) (setq listname (cdr listname)))}}.
 
 @example
 x
@@ -255,7 +253,10 @@ x
      @result{} (b c)
 @end example
 
-@noindent
+More generally, @var{listname} can be a generalized variable.  In that
+case, this macro saves into @var{listname} using @code{setf}.
+@xref{Generalized Variables}.
+
 For the @code{push} macro, which adds an element to a list,
 @xref{List Variables}.
 @end defmac
@@ -683,13 +684,12 @@ Some examples:
   These functions, and one macro, provide convenient ways
 to modify a list which is stored in a variable.
 
-@defmac push newelt listname
-This macro provides an alternative way to write
-@code{(setq @var{listname} (cons @var{newelt} @var{listname}))}.
-@c FIXME I don't think is a particularly good way to do it,
-@c but generalized variables have not been introduced yet.
-(In fact, this macro can act on generalized variables, not just lists.
-@xref{Generalized Variables}.)
+@defmac push element listname
+This macro creates a new list whose @sc{car} is @var{element} and
+whose @sc{cdr} is the list specified by @var{listname}, and saves that
+list in @var{listname}.  In the simplest case, @var{listname} is an
+unquoted symbol naming a list, and this macro is equivalent
+to @w{@code{(setq @var{listname} (cons @var{element} @var{listname}))}}.
 
 @example
 (setq l '(a b))
@@ -700,7 +700,11 @@ l
      @result{} (c a b)
 @end example
 
-@noindent
+More generally, @code{listname} can be a generalized variable.  In
+that case, this macro does the equivalent of @w{@code{(setf
+@var{listname} (cons @var{element} @var{listname}))}}.
+@xref{Generalized Variables}.
+
 For the @code{pop} macro, which removes the first element from a list,
 @xref{List Elements}.
 @end defmac

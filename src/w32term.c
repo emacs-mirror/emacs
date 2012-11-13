@@ -3437,16 +3437,11 @@ w32_handle_tool_bar_click (struct frame *f, struct input_event *button_event)
 static struct scroll_bar *
 x_window_to_scroll_bar (Window window_id)
 {
-  Lisp_Object tail;
+  Lisp_Object tail, frame;
 
-  for (tail = Vframe_list; CONSP (tail); tail = XCDR (tail))
+  FOR_EACH_FRAME (tail, frame)
     {
-      Lisp_Object frame, bar, condemned;
-
-      frame = XCAR (tail);
-      /* All elements of Vframe_list should be frames.  */
-      if (! FRAMEP (frame))
-	emacs_abort ();
+      Lisp_Object bar, condemned;
 
       /* Scan this frame's scroll bar list for a scroll bar with the
 	 right window ID.  */
@@ -3626,7 +3621,7 @@ x_scroll_bar_create (struct window *w, int top, int left, int width, int height)
   HWND hwnd;
   SCROLLINFO si;
   struct scroll_bar *bar
-    = XSCROLL_BAR (Fmake_vector (make_number (SCROLL_BAR_VEC_SIZE), Qnil));
+    = XSCROLL_BAR (Fmake_vector (make_number (VECSIZE (struct scroll_bar)), Qnil));
   Lisp_Object barobj;
 
   block_input ();

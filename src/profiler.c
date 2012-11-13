@@ -35,6 +35,9 @@ saturated_add (EMACS_INT a, EMACS_INT b)
 
 typedef struct Lisp_Hash_Table log_t;
 
+static Lisp_Object Qprofiler_backtrace_equal;
+static struct hash_table_test hashtest_profiler;
+
 static Lisp_Object
 make_log (int heap_size, int max_stack_depth)
 {
@@ -42,10 +45,11 @@ make_log (int heap_size, int max_stack_depth)
      a special way.  This is OK as long as the object is not exposed
      to Elisp, i.e. until it is returned by *-profiler-log, after which
      it can't be used any more.  */
-  Lisp_Object log = make_hash_table (Qequal, make_number (heap_size),
+  Lisp_Object log = make_hash_table (hashtest_profiler,
+				     make_number (heap_size),
 				     make_float (DEFAULT_REHASH_SIZE),
 				     make_float (DEFAULT_REHASH_THRESHOLD),
-				     Qnil, Qnil, Qnil);
+				     Qnil);
   struct Lisp_Hash_Table *h = XHASH_TABLE (log);
 
   /* What is special about our hash-tables is that the keys are pre-filled
@@ -238,8 +242,6 @@ handle_profiler_signal (int signal)
     cpu_gc_count = saturated_add (cpu_gc_count, 1);
   else
     {
-      Lisp_Object oquit;
-      bool saved_pending_signals;
       EMACS_INT count = 1;
 #ifdef HAVE_ITIMERSPEC
       if (profiler_timer_ok)
@@ -249,19 +251,8 @@ handle_profiler_signal (int signal)
 	  count += overruns;
 	}
 #endif
-      /* record_backtrace uses hash functions that call Fequal, which
-	 uses QUIT, which can call malloc, which can cause disaster in
-	 a signal handler.  So inhibit QUIT.  */
-      oquit = Vinhibit_quit;
-      saved_pending_signals = pending_signals;
-      Vinhibit_quit = Qt;
-      pending_signals = 0;
-
       eassert (HASH_TABLE_P (cpu_log));
       record_backtrace (XHASH_TABLE (cpu_log), count);
-
-      Vinhibit_quit = oquit;
-      pending_signals = saved_pending_signals;
     }
 }
 
@@ -515,6 +506,66 @@ malloc_probe (size_t size)
   record_backtrace (XHASH_TABLE (memory_log), min (size, MOST_POSITIVE_FIXNUM));
 }
 
+DEFUN ("function-equal", Ffunction_equal, Sfunction_equal, 2, 2, 0,
+       doc: /* Return non-nil if F1 and F2 come from the same source.
+Used to determine if different closures are just different instances of
+the same lambda expression, or are really unrelated function.  */)
+     (Lisp_Object f1, Lisp_Object f2)
+{
+  bool res;
+  if (EQ (f1, f2))
+    res = true;
+  else if (COMPILEDP (f1) && COMPILEDP (f2))
+    res = EQ (AREF (f1, COMPILED_BYTECODE), AREF (f2, COMPILED_BYTECODE));
+  else if (CONSP (f1) && CONSP (f2) && CONSP (XCDR (f1)) && CONSP (XCDR (f2))
+	   && EQ (Qclosure, XCAR (f1))
+	   && EQ (Qclosure, XCAR (f2)))
+    res = EQ (XCDR (XCDR (f1)), XCDR (XCDR (f2)));
+  else
+    res = false;
+  return res ? Qt : Qnil;
+}
+
+static bool
+cmpfn_profiler (struct hash_table_test *t,
+		Lisp_Object bt1, Lisp_Object bt2)
+{
+  if (VECTORP (bt1) && VECTORP (bt2))
+    {
+      ptrdiff_t i, l = ASIZE (bt1);
+      if (l != ASIZE (bt2))
+	return false;
+      for (i = 0; i < l; i++)
+	if (NILP (Ffunction_equal (AREF (bt1, i), AREF (bt2, i))))
+	  return false;
+      return true;
+    }
+  else
+    return EQ (bt1, bt2);
+}
+
+static EMACS_UINT
+hashfn_profiler (struct hash_table_test *ht, Lisp_Object bt)
+{
+  if (VECTORP (bt))
+    {
+      EMACS_UINT hash = 0;
+      ptrdiff_t i, l = ASIZE (bt);
+      for (i = 0; i < l; i++)
+	{
+	  Lisp_Object f = AREF (bt, i);
+	  EMACS_UINT hash1
+	    = (COMPILEDP (f) ? XHASH (AREF (f, COMPILED_BYTECODE))
+	       : (CONSP (f) && CONSP (XCDR (f)) && EQ (Qclosure, XCAR (f)))
+	       ? XHASH (XCDR (XCDR (f))) : XHASH (f));
+	  hash = sxhash_combine (hash, hash1);
+	}
+      return (hash & INTMASK);
+    }
+  else
+    return XHASH (bt);
+}
+
 void
 syms_of_profiler (void)
 {
@@ -526,6 +577,16 @@ syms_of_profiler (void)
 If the log gets full, some of the least-seen call-stacks will be evicted
 to make room for new entries.  */);
   profiler_log_size = 10000;
+
+  DEFSYM (Qprofiler_backtrace_equal, "profiler-backtrace-equal");
+  {
+    struct hash_table_test test
+      = { Qprofiler_backtrace_equal, Qnil, Qnil,
+	  cmpfn_profiler, hashfn_profiler };
+    hashtest_profiler = test;
+  }
+
+  defsubr (&Sfunction_equal);
 
 #ifdef PROFILER_CPU_SUPPORT
   profiler_cpu_running = NOT_RUNNING;

@@ -2276,13 +2276,19 @@ These arguments should consist of alternating keyword and value pairs.
 The supported keywords and values are as follows:
 
 @table @code
+@item :bus @var{bus}
+The D-Bus bus.  This argument is needed only if a bus other than
+@code{:session} shall be used.
+
 @item :title @var{title}
 The notification title.
 
 @item :body @var{text}
 The notification body text.  Depending on the implementation of the
 notification server, the text could contain HTML markups, like
-@samp{"<b>bold text</b>"}, hyperlinks, or images.
+@samp{"<b>bold text</b>"}, hyperlinks, or images.  Special HTML
+characters must be encoded, as @samp{"Contact
+&lt;postmaster@@localhost&gt;!"}.
 
 @item :app-name @var{name}
 The name of the application sending the notification.  The default is
@@ -2317,7 +2323,10 @@ When this keyword is given, the @var{title} string of the actions is
 interpreted as icon name.
 
 @item :category @var{category}
-The type of notification this is, a string.
+The type of notification this is, a string.  See the
+@uref{http://developer.gnome.org/notification-spec/#categories,
+Desktop Notifications Specification} for a list of standard
+categories.
 
 @item :desktop-entry @var{filename}
 This specifies the name of the desktop filename representing the
@@ -2420,13 +2429,17 @@ A message window opens on the desktop.  Press "I agree"
 @end example
 @end defun
 
-@defun notifications-close-notification id
+@defun notifications-close-notification id &optional bus
 This function closes a notification with identifier @var{id}.
+@var{bus} can be a string denoting a D-Bus connection, the default is
+@code{:session}.
 @end defun
 
-@defun notifications-get-capabilities
-Returns the capabilities of the notification server, a list of strings.
-The following capabilities can be expected:
+@defun notifications-get-capabilities &optional bus
+Returns the capabilities of the notification server, a list of
+symbols.  @var{bus} can be a string denoting a D-Bus connection, the
+default is @code{:session}.  The following capabilities can be
+expected:
 
 @table @code
 @item :actions
@@ -2461,6 +2474,30 @@ The server supports sounds on notifications.
 
 Further vendor-specific caps start with @code{:x-vendor}, like
 @code{:x-gnome-foo-cap}.
+@end defun
+
+@defun notifications-get-server-information &optional bus
+Return information on the notification server, a list of strings.
+@var{bus} can be a string denoting a D-Bus connection, the default is
+@code{:session}.  The returned list is @code{(@var{name} @var{vendor}
+@var{version} @var{spec-version})}.
+
+@table @var
+@item name
+The product name of the server.
+
+@item vendor
+The vendor name.  For example, @samp{"KDE"}, @samp{"GNOME"}.
+
+@item version
+The server's version number.
+
+@item spec-version
+The specification version the server is compliant with.
+@end table
+
+If @var{SPEC_VERSION} is @code{nil}, the server supports a
+specification prior to @samp{"1.0"}.
 @end defun
 
 

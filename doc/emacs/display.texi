@@ -221,20 +221,27 @@ visible portion of the text.
 if you set @code{scroll-conservatively} to a small number @var{n},
 then if you move point just a little off the screen (less than @var{n}
 lines), Emacs scrolls the text just far enough to bring point back on
-screen.  By default, @code{scroll-conservatively} is@tie{}0.  If you
-set @code{scroll-conservatively} to a large number (larger than 100),
-Emacs will never center point as result of scrolling, even if point
-moves far away from the text previously displayed in the window.  With
-such a large value, Emacs will always scroll text just enough for
+screen.  If doing so fails to make point visible, Emacs centers point
+in the window.  By default, @code{scroll-conservatively} is@tie{}0.
+If you set @code{scroll-conservatively} to a large number (larger than
+100), Emacs will never center point as result of scrolling, even if
+point moves far away from the text previously displayed in the window.
+With such a large value, Emacs will always scroll text just enough for
 bringing point into view, so point will end up at the top or bottom of
 the window, depending on the scroll direction.
 
 @vindex scroll-step
-  The variable @code{scroll-step} determines how many lines to scroll
-the window when point moves off the screen.  If moving by that number
-of lines fails to bring point back into view, point is centered
-instead.  The default value is zero, which causes point to always be
-centered after scrolling.
+  An alternative way of controlling how Emacs scrolls text is by
+customizing the variable @code{scroll-step}.  Its value determines how
+many lines to scroll the window when point moves off the screen.  If
+moving by that number of lines fails to bring point back into view,
+point is centered instead.  The default value is zero, which causes
+point to always be centered after scrolling.
+
+  Since both @code{scroll-conservatively} and @code{scroll-step}
+control automatic scrolling in contradicting ways, you should set only
+one of them.  If you customize both, the value of
+@code{scroll-conservatively} takes precedence.
 
 @cindex aggressive scrolling
 @vindex scroll-up-aggressively
@@ -1493,6 +1500,7 @@ attempts to wrap the line at word boundaries near the right window
 edge.  This makes the text easier to read, as wrapping does not occur
 in the middle of words.
 
+@cindex mode, Visual Line
 @cindex Visual Line mode
 @findex visual-line-mode
 @findex global-visual-line-mode

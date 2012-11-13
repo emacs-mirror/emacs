@@ -264,12 +264,8 @@ have_menus_p (void)
 FRAME_PTR
 check_x_frame (Lisp_Object frame)
 {
-  FRAME_PTR f;
+  struct frame *f = decode_live_frame (frame);
 
-  if (NILP (frame))
-    frame = selected_frame;
-  CHECK_LIVE_FRAME (frame);
-  f = XFRAME (frame);
   if (! FRAME_W32_P (f))
     error ("Non-W32 frame used");
   return f;
@@ -308,19 +304,14 @@ check_x_display_info (Lisp_Object frame)
 /* Return the Emacs frame-object corresponding to an w32 window.
    It could be the frame's main window or an icon window.  */
 
-/* This function can be called during GC, so use GC_xxx type test macros.  */
-
 struct frame *
 x_window_to_frame (struct w32_display_info *dpyinfo, HWND wdesc)
 {
   Lisp_Object tail, frame;
   struct frame *f;
 
-  for (tail = Vframe_list; CONSP (tail); tail = XCDR (tail))
+  FOR_EACH_FRAME (tail, frame)
     {
-      frame = XCAR (tail);
-      if (!FRAMEP (frame))
-        continue;
       f = XFRAME (frame);
       if (!FRAME_W32_P (f) || FRAME_W32_DISPLAY_INFO (f) != dpyinfo)
 	continue;
@@ -2089,8 +2080,35 @@ sync_modifiers (void)
 static int
 modifier_set (int vkey)
 {
-  if (vkey == VK_CAPITAL || vkey == VK_SCROLL)
-    return (GetKeyState (vkey) & 0x1);
+  /* Warning: The fact that VK_NUMLOCK is not treated as the other 2
+     toggle keys is not an omission!  If you want to add it, you will
+     have to make changes in the default sub-case of the WM_KEYDOWN
+     switch, because if the NUMLOCK modifier is set, the code there
+     will directly convert any key that looks like an ASCII letter,
+     and also downcase those that look like upper-case ASCII.  */
+  if (vkey == VK_CAPITAL)
+    {
+      if (NILP (Vw32_enable_caps_lock))
+	return 0;
+      else
+	return (GetKeyState (vkey) & 0x1);
+    }
+  if (vkey == VK_SCROLL)
+    {
+      if (NILP (Vw32_scroll_lock_modifier)
+	  /* w32-scroll-lock-modifier can be any non-nil value that is
+	     not one of the modifiers, in which case it shall be ignored.  */
+	  || !(   EQ (Vw32_scroll_lock_modifier, Qhyper)
+	       || EQ (Vw32_scroll_lock_modifier, Qsuper)
+	       || EQ (Vw32_scroll_lock_modifier, Qmeta)
+	       || EQ (Vw32_scroll_lock_modifier, Qalt)
+	       || EQ (Vw32_scroll_lock_modifier, Qcontrol)
+	       || EQ (Vw32_scroll_lock_modifier, Qshift)))
+	return 0;
+      else
+	return (GetKeyState (vkey) & 0x1);
+    }
+
   if (!modifiers_recorded)
     return (GetKeyState (vkey) & 0x8000);
 

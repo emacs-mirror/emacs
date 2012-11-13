@@ -10769,7 +10769,7 @@ clear_garbaged_frames (void)
 	    {
 	      if (f->resized_p)
 		{
-		  Fredraw_frame (frame);
+		  redraw_frame (f);
 		  f->force_flush_display_p = 1;
 		}
 	      clear_current_matrices (f);
@@ -11096,17 +11096,15 @@ x_consider_frame_title (Lisp_Object frame)
       || f->explicit_name)
     {
       /* Do we have more than one visible frame on this X display?  */
-      Lisp_Object tail;
-      Lisp_Object fmt;
+      Lisp_Object tail, other_frame, fmt;
       ptrdiff_t title_start;
       char *title;
       ptrdiff_t len;
       struct it it;
       ptrdiff_t count = SPECPDL_INDEX ();
 
-      for (tail = Vframe_list; CONSP (tail); tail = XCDR (tail))
+      FOR_EACH_FRAME (tail, other_frame)
 	{
-	  Lisp_Object other_frame = XCAR (tail);
 	  struct frame *tf = XFRAME (other_frame);
 
 	  if (tf != f
@@ -11916,18 +11914,13 @@ tool_bar_lines_needed (struct frame *f, int *n_rows)
 
 DEFUN ("tool-bar-lines-needed", Ftool_bar_lines_needed, Stool_bar_lines_needed,
        0, 1, 0,
-       doc: /* Return the number of lines occupied by the tool bar of FRAME.  */)
+       doc: /* Return the number of lines occupied by the tool bar of FRAME.
+If FRAME is nil or omitted, use the selected frame.  */)
   (Lisp_Object frame)
 {
-  struct frame *f;
+  struct frame *f = decode_any_frame (frame);
   struct window *w;
   int nlines = 0;
-
-  if (NILP (frame))
-    frame = selected_frame;
-  else
-    CHECK_FRAME (frame);
-  f = XFRAME (frame);
 
   if (WINDOWP (f->tool_bar_window)
       && (w = XWINDOW (f->tool_bar_window),
@@ -14791,13 +14784,18 @@ try_scrolling (Lisp_Object window, int just_this_one_p,
 	  if (NUMBERP (aggressive))
 	    {
 	      double float_amount = XFLOATINT (aggressive) * height;
-	      amount_to_scroll = float_amount;
-	      if (amount_to_scroll == 0 && float_amount > 0)
-		amount_to_scroll = 1;
+	      int aggressive_scroll = float_amount;
+	      if (aggressive_scroll == 0 && float_amount > 0)
+		aggressive_scroll = 1;
 	      /* Don't let point enter the scroll margin near top of
-		 the window.  */
-	      if (amount_to_scroll > height - 2*this_scroll_margin + dy)
-		amount_to_scroll = height - 2*this_scroll_margin + dy;
+		 the window.  This could happen if the value of
+		 scroll_up_aggressively is too large and there are
+		 non-zero margins, because scroll_up_aggressively
+		 means put point that fraction of window height
+		 _from_the_bottom_margin_.  */
+	      if (aggressive_scroll + 2*this_scroll_margin > height)
+		aggressive_scroll = height - 2*this_scroll_margin;
+	      amount_to_scroll = dy + aggressive_scroll;
 	    }
 	}
 
@@ -14857,7 +14855,8 @@ try_scrolling (Lisp_Object window, int just_this_one_p,
 	  /* Compute the vertical distance from PT to the scroll
 	     margin position.  Move as far as scroll_max allows, or
 	     one screenful, or 10 screen lines, whichever is largest.
-	     Give up if distance is greater than scroll_max.  */
+	     Give up if distance is greater than scroll_max or if we
+	     didn't reach the scroll margin position.  */
 	  SET_TEXT_POS (pos, PT, PT_BYTE);
 	  start_display (&it, w, pos);
 	  y0 = it.current_y;
@@ -14867,7 +14866,8 @@ try_scrolling (Lisp_Object window, int just_this_one_p,
 		      y_to_move, -1,
 		      MOVE_TO_POS | MOVE_TO_X | MOVE_TO_Y);
 	  dy = it.current_y - y0;
-	  if (dy > scroll_max)
+	  if (dy > scroll_max
+	      || IT_CHARPOS (it) < CHARPOS (scroll_margin_pos))
 	    return SCROLLING_FAILED;
 
 	  /* Compute new window start.  */
@@ -14885,15 +14885,16 @@ try_scrolling (Lisp_Object window, int just_this_one_p,
 	      if (NUMBERP (aggressive))
 		{
 		  double float_amount = XFLOATINT (aggressive) * height;
-		  amount_to_scroll = float_amount;
-		  if (amount_to_scroll == 0 && float_amount > 0)
-		    amount_to_scroll = 1;
-		  amount_to_scroll -=
-		    this_scroll_margin - dy - FRAME_LINE_HEIGHT (f);
+		  int aggressive_scroll = float_amount;
+		  if (aggressive_scroll == 0 && float_amount > 0)
+		    aggressive_scroll = 1;
 		  /* Don't let point enter the scroll margin near
-		     bottom of the window.  */
-		  if (amount_to_scroll > height - 2*this_scroll_margin + dy)
-		    amount_to_scroll = height - 2*this_scroll_margin + dy;
+		     bottom of the window, if the value of
+		     scroll_down_aggressively happens to be too
+		     large.  */
+		  if (aggressive_scroll + 2*this_scroll_margin > height)
+		    aggressive_scroll = height - 2*this_scroll_margin;
+		  amount_to_scroll = dy + aggressive_scroll;
 		}
 	    }
 
@@ -21370,6 +21371,12 @@ decode_mode_spec (struct window *w, register int c, int field_width,
   Lisp_Object obj;
   struct frame *f = XFRAME (WINDOW_FRAME (w));
   char *decode_mode_spec_buf = f->decode_mode_spec_buffer;
+  /* We are going to use f->decode_mode_spec_buffer as the buffer to
+     produce strings from numerical values, so limit preposterously
+     large values of FIELD_WIDTH to avoid overrunning the buffer's
+     end.  The size of the buffer is enough for FRAME_MESSAGE_BUF_SIZE
+     bytes plus the terminating null.  */
+  int width = min (field_width, FRAME_MESSAGE_BUF_SIZE (f));
   struct buffer *b = current_buffer;
 
   obj = Qnil;
@@ -21465,7 +21472,7 @@ decode_mode_spec (struct window *w, register int c, int field_width,
 	{
 	  ptrdiff_t col = current_column ();
 	  wset_column_number_displayed (w, make_number (col));
-	  pint2str (decode_mode_spec_buf, field_width, col);
+	  pint2str (decode_mode_spec_buf, width, col);
 	  return decode_mode_spec_buf;
 	}
 
@@ -21496,14 +21503,14 @@ decode_mode_spec (struct window *w, register int c, int field_width,
     case 'i':
       {
 	ptrdiff_t size = ZV - BEGV;
-	pint2str (decode_mode_spec_buf, field_width, size);
+	pint2str (decode_mode_spec_buf, width, size);
 	return decode_mode_spec_buf;
       }
 
     case 'I':
       {
 	ptrdiff_t size = ZV - BEGV;
-	pint2hrstr (decode_mode_spec_buf, field_width, size);
+	pint2hrstr (decode_mode_spec_buf, width, size);
 	return decode_mode_spec_buf;
       }
 
@@ -21610,12 +21617,12 @@ decode_mode_spec (struct window *w, register int c, int field_width,
 	line_number_displayed = 1;
 
 	/* Make the string to show.  */
-	pint2str (decode_mode_spec_buf, field_width, topline + nlines);
+	pint2str (decode_mode_spec_buf, width, topline + nlines);
 	return decode_mode_spec_buf;
     no_value:
         {
 	  char* p = decode_mode_spec_buf;
-	  int pad = field_width - 2;
+	  int pad = width - 2;
 	  while (pad-- > 0)
 	    *p++ = ' ';
 	  *p++ = '?';
@@ -29417,8 +29424,10 @@ start_hourglass (void)
     delay = make_emacs_time (DEFAULT_HOURGLASS_DELAY, 0);
 
 #ifdef HAVE_NTGUI
-  extern void w32_note_current_window (void);
-  w32_note_current_window ();
+  {
+    extern void w32_note_current_window (void);
+    w32_note_current_window ();
+  }
 #endif /* HAVE_NTGUI */
 
   hourglass_atimer = start_atimer (ATIMER_RELATIVE, delay,
