@@ -2686,11 +2686,6 @@ Example: `(ad-map-arglists '(a &rest args) '(w x y z))' will return
   (let ((advice-docstring (ad-docstring (ad-advice-definition advice))))
     (cond ((eq style 'plain)
 	   advice-docstring)
-	  ((eq style 'freeze)
-	   (format "Permanent %s-advice `%s':%s%s"
-		   class (ad-advice-name advice)
-		   (if advice-docstring "\n" "")
-		   (or advice-docstring "")))
 	  (t (if advice-docstring
 		 (format "%s-advice `%s':\n%s"
 			 (capitalize (symbol-name class))
@@ -2713,7 +2708,7 @@ Example: `(ad-map-arglists '(a &rest args) '(w x y z))' will return
   "Construct a documentation string for the advised FUNCTION.
 It concatenates the original documentation with the documentation
 strings of the individual pieces of advice which will be formatted
-according to STYLE.  STYLE can be `plain' or `freeze', everything else
+according to STYLE.  STYLE can be `plain', everything else
 will be interpreted as `default'.  The order of the advice documentation
 strings corresponds to before/around/after and the individual ordering
 in any of these classes."
@@ -2742,8 +2737,6 @@ in any of these classes."
 
 (defun ad-make-plain-docstring (function)
   (ad-make-advised-docstring function 'plain))
-(defun ad-make-freeze-docstring (function)
-  (ad-make-advised-docstring function 'freeze))
 
 ;; @@@ Accessing overriding arglists and interactive forms:
 ;; ========================================================
@@ -3125,83 +3118,6 @@ advised definition from scratch."
 	(fmakunbound function)))))
 
 
-;; @@ Freezing:
-;; ============
-;; Freezing transforms a `defadvice' into a redefining `defun/defmacro'
-;; for the advised function without keeping any advice information. This
-;; feature was jwz's idea: It generates a dumpable function definition
-;; whose documentation can be written to the DOC file, and the generated
-;; code does not need any Advice runtime support. Of course, frozen advices
-;; cannot be undone.
-
-;; Freezing only considers the advice of the particular `defadvice', other
-;; already existing advices for the same function will be ignored. To ensure
-;; proper interaction when an already advised function gets redefined with
-;; a frozen advice, frozen advices always use the actual original definition
-;; of the function, i.e., they are always at the core of the onion. E.g., if
-;; an already advised function gets redefined with a frozen advice and then
-;; unadvised, the frozen advice remains as the new definition of the function.
-
-;; While multiple freeze advices for a single function or freeze-advising
-;; of an already advised function are possible, they are better avoided,
-;; because definition/compile/load ordering is relevant, and it becomes
-;; incomprehensible pretty quickly.
-
-(defun ad-make-freeze-definition (function advice class position)
-  (if (not (ad-has-proper-definition function))
-      (error
-       "ad-make-freeze-definition: `%s' is not yet defined"
-       function))
-  (cl-letf*
-      ((name (ad-advice-name advice))
-       ;; With a unique origname we can have multiple freeze advices
-       ;; for the same function, each overloading the previous one:
-       (unique-origname
-        (intern (format "%s-%s-%s" (ad-make-origname function) class name)))
-       (orig-definition
-        ;; If FUNCTION is already advised, we'll use its current origdef
-        ;; as the original definition of the frozen advice:
-        (or (ad-get-orig-definition function)
-            (symbol-function function)))
-       (old-advice-info
-        (if (ad-is-advised function)
-            (ad-copy-advice-info function)))
-       ;; Make sure we construct a proper docstring:
-       ((symbol-function 'ad-make-advised-definition-docstring)
-        #'ad-make-freeze-docstring)
-       ;; Make sure `unique-origname' is used as the origname:
-       ((symbol-function 'ad-make-origname) (lambda (_x) unique-origname))
-       (frozen-definition
-        (unwind-protect
-            (progn
-              ;; No we reset all current advice information to nil and
-              ;; generate an advised definition that's solely determined
-              ;; by ADVICE and the current origdef of FUNCTION:
-              (ad-set-advice-info function nil)
-              (ad-add-advice function advice class position)
-              ;; The following will provide proper real docstrings as
-              ;; well as a definition that will make the compiler happy:
-              (ad-set-orig-definition function orig-definition)
-              (ad-make-advised-definition function))
-          ;; Restore the old advice state:
-          (ad-set-advice-info function old-advice-info))))
-    (if frozen-definition
-	(let* ((macro-p (ad-macro-p frozen-definition))
-	       (body (cdr (if macro-p
-			      (ad-lambdafy frozen-definition)
-                            frozen-definition))))
-	  `(progn
-             (if (not (fboundp ',unique-origname))
-                 (fset ',unique-origname
-                       ;; avoid infinite recursion in case the function
-                       ;; we want to freeze is already advised:
-                       (or (ad-get-orig-definition ',function)
-                           (symbol-function ',function))))
-             (,(if macro-p 'defmacro 'defun)
-              ,function
-              ,@body))))))
-
-
 ;; @@ Activation and definition handling:
 ;; ======================================
 
@@ -3468,7 +3384,7 @@ deactivation, which might run hooks and get into other trouble."
 ;; Completion alist of valid `defadvice' flags
 (defvar ad-defadvice-flags
   '(("protect") ("disable") ("activate")
-    ("compile") ("preactivate") ("freeze")))
+    ("compile") ("preactivate")))
 
 ;;;###autoload
 (defmacro defadvice (function args &rest body)
@@ -3487,7 +3403,7 @@ POSITION ::= `first' | `last' | NUMBER. Optional, defaults to `first',
 ARGLIST ::= An optional argument list to be used for the advised function
     instead of the argument list of the original.  The first one found in
     before/around/after-advices will be used.
-FLAG ::= `protect'|`disable'|`activate'|`compile'|`preactivate'|`freeze'.
+FLAG ::= `protect'|`disable'|`activate'|`compile'|`preactivate'.
     All flags can be specified with unambiguous initial substrings.
 DOCSTRING ::= Optional documentation for this piece of advice.
 INTERACTIVE-FORM ::= Optional interactive form to be used for the advised
@@ -3512,13 +3428,6 @@ during activation until somebody enables it.
 time.  This generates a compiled advised definition according to the current
 advice state that will be used during activation if appropriate.  Only use
 this if the `defadvice' gets actually compiled.
-
-`freeze': Expands the `defadvice' into a redefining `defun/defmacro' according
-to this particular single advice.  No other advice information will be saved.
-Frozen advices cannot be undone, they behave like a hard redefinition of
-the advised function.  `freeze' implies `activate' and `preactivate'.  The
-documentation of the advised function can be dumped onto the `DOC' file
-during preloading.
 
 See Info node `(elisp)Advising Functions' for comprehensive documentation.
 usage: (defadvice FUNCTION (CLASS NAME [POSITION] [ARGLIST] FLAG...)
@@ -3569,29 +3478,24 @@ usage: (defadvice FUNCTION (CLASS NAME [POSITION] [ARGLIST] FLAG...)
 			    (ad-preactivate-advice
 			     function advice class position))))
     ;; Now for the things to be done at evaluation time:
-    (if (memq 'freeze flags)
-	;; jwz's idea: Freeze the advised definition into a dumpable
-	;; defun/defmacro whose docs can be written to the DOC file:
-	(ad-make-freeze-definition function advice class position)
-        ;; the normal case:
-        `(progn
-          (ad-add-advice ',function ',advice ',class ',position)
-          ,@(if preactivation
-                `((ad-set-cache
-                   ',function
-                   ;; the function will get compiled:
-                   ,(cond ((ad-macro-p (car preactivation))
-                           `(ad-macrofy
-                             (function
-                              ,(ad-lambdafy
-                                (car preactivation)))))
-                          (t `(function
-                               ,(car preactivation))))
-                   ',(car (cdr preactivation)))))
-          ,@(if (memq 'activate flags)
-                `((ad-activate ',function
-                   ,(if (memq 'compile flags) t))))
-          ',function))))
+    `(progn
+       (ad-add-advice ',function ',advice ',class ',position)
+       ,@(if preactivation
+             `((ad-set-cache
+                ',function
+                ;; the function will get compiled:
+                ,(cond ((ad-macro-p (car preactivation))
+                        `(ad-macrofy
+                          (function
+                           ,(ad-lambdafy
+                             (car preactivation)))))
+                       (t `(function
+                            ,(car preactivation))))
+                ',(car (cdr preactivation)))))
+       ,@(if (memq 'activate flags)
+             `((ad-activate ',function
+                            ,(if (memq 'compile flags) t))))
+       ',function)))
 
 
 ;; @@ Tools:

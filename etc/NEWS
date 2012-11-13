@@ -43,6 +43,8 @@ It is layered as:
 
 * Incompatible Lisp Changes in Emacs 24.4
 
+** `defadvice' does not honor the `freeze' flag any more.
+
 ** `dolist' in lexical-binding mode does not bind VAR in RESULT any more.
 VAR was bound to nil which was not tremendously useful and just lead to
 spurious warnings about an unused var.

@@ -1,5 +1,10 @@
 2012-11-13  Stefan Monnier  <monnier@iro.umontreal.ca>
 
+	* emacs-lisp/advice.el: Remove support for freezing.
+	(ad-make-freeze-docstring, ad-make-freeze-definition): Remove functions.
+	(ad-make-single-advice-docstring, ad-defadvice-flags, defadvice):
+	Remove support for `freeze'.
+
 	* emacs-lisp/cl.el (dolist, dotimes, declare): Use advice-add to
 	override the default.
 	* emacs-lisp/cl-macs.el (cl-dolist, cl-dotimes): Rewrite without using
@@ -16,8 +21,8 @@
 
 2012-11-13  Dmitry Gutov  <dgutov@yandex.ru>
 
-	* progmodes/ruby-mode.el (ruby-font-lock-keywords): Never
-	font-lock the beginning of singleton class as heredoc.
+	* progmodes/ruby-mode.el (ruby-font-lock-keywords):
+	Never font-lock the beginning of singleton class as heredoc.
 
 2012-11-13  Stefan Monnier  <monnier@iro.umontreal.ca>
 
