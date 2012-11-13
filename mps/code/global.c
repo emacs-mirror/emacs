@@ -589,8 +589,6 @@ Bool ArenaAccess(Addr addr, AccessSet mode, MutatorFaultContext context)
   Ring node, nextNode;
   Res res;
 
-  EVENT4(ArenaAccess, 0, ++count, addr, mode);
-
   arenaClaimRingLock();    /* <design/arena/#lock.ring> */
   mps_exception_info = context;
   AVER(RingCheck(&arenaRing));
@@ -601,6 +599,8 @@ Bool ArenaAccess(Addr addr, AccessSet mode, MutatorFaultContext context)
     Root root;
 
     ArenaEnter(arena);     /* <design/arena/#lock.arena> */
+    EVENT4(ArenaAccess, arena, ++count, addr, mode);
+
     /* @@@@ The code below assumes that Roots and Segs are disjoint. */
     /* It will fall over (in TraceSegAccess probably) if there is a */
     /* protected root on a segment. */
@@ -616,8 +616,8 @@ Bool ArenaAccess(Addr addr, AccessSet mode, MutatorFaultContext context)
         res = PoolAccess(SegPool(seg), seg, addr, mode, context);
         AVER(res == ResOK); /* Mutator can't continue unless this succeeds */
       }
-      ArenaLeave(arena);
       EVENT4(ArenaAccess, arena, count, addr, mode);
+      ArenaLeave(arena);
       return TRUE;
     } else if (RootOfAddr(&root, arena, addr)) {
       mps_exception_info = NULL;
@@ -625,8 +625,8 @@ Bool ArenaAccess(Addr addr, AccessSet mode, MutatorFaultContext context)
       mode &= RootPM(root);
       if (mode != AccessSetEMPTY)
         RootAccess(root, mode);
-      ArenaLeave(arena);
       EVENT4(ArenaAccess, arena, count, addr, mode);
+      ArenaLeave(arena);
       return TRUE;
     }
 
