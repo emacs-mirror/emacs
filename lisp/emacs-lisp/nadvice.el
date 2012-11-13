@@ -30,7 +30,7 @@
 ;;   holds a function.
 ;;   This part provides mainly 2 macros: `add-function' and `remove-function'.
 ;;
-;; - The second part provides `add-advice' and `remove-advice' which are
+;; - The second part provides `advice-add' and `advice-remove' which are
 ;;   refined version of the previous macros specially tailored for the case
 ;;   where the place that we want to modify is a `symbol-function'.
 
@@ -234,7 +234,7 @@ of the piece of advice."
   (cond
    ((special-form-p def)
     ;; Not worth the trouble trying to handle this, I think.
-    (error "add-advice failure: %S is a special form" symbol))
+    (error "advice-add failure: %S is a special form" symbol))
    ((and (symbolp def)
 	 (eq 'macro (car-safe (ignore-errors (indirect-function def)))))
     (let ((newval (cons 'macro (cdr (indirect-function def)))))
