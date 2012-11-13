@@ -76,6 +76,14 @@ VALUES-PLIST is a list with alternating index and value elements."
   (ruby-assert-state "foo <<asd\n" 3 ?\n)
   (ruby-assert-state "class <<asd\n" 3 nil))
 
+(ert-deftest ruby-heredoc-font-lock ()
+  (let ((s "foo <<eos.gsub('^ *', '')"))
+    (ruby-assert-face s 9 'font-lock-string-face)
+    (ruby-assert-face s 10 nil)))
+
+(ert-deftest ruby-singleton-class-no-heredoc-font-lock ()
+  (ruby-assert-face "class<<a" 8 nil))
+
 (ert-deftest ruby-deep-indent ()
   (let ((ruby-deep-arglist nil)
         (ruby-deep-indent-paren '(?\( ?\{ ?\[ ?\] t)))

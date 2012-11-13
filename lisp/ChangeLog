@@ -14,6 +14,11 @@
 	(advice-add): Use them.
 	(advice-member-p): Correctly handle macros.
 
+2012-11-13  Dmitry Gutov  <dgutov@yandex.ru>
+
+	* progmodes/ruby-mode.el (ruby-font-lock-keywords): Never
+	font-lock the beginning of singleton class as heredoc.
+
 2012-11-13  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* emacs-lisp/gv.el (gv-define-simple-setter): One more fix (bug#12871).

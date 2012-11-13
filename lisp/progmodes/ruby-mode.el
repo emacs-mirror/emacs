@@ -1551,7 +1551,8 @@ See `font-lock-syntax-table'.")
           ruby-keyword-end-re)
          2)
    ;; here-doc beginnings
-   (list ruby-here-doc-beg-re 0 'font-lock-string-face)
+   `(,ruby-here-doc-beg-re 0 (unless (ruby-singleton-class-p (match-beginning 0))
+                               'font-lock-string-face))
    ;; variables
    '("\\(^\\|[^_:.@$]\\|\\.\\.\\)\\b\\(nil\\|self\\|true\\|false\\)\\>"
      2 font-lock-variable-name-face)
