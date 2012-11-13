@@ -1,3 +1,8 @@
+2012-11-13  Kenichi Handa  <handa@gnu.org>
+
+	* font.c (font_unparse_xlfd): Exclude special characters from the
+	generating XLFD name.
+
 2012-11-06  Dmitry Antipov  <dmantipov@yandex.ru>
 
 	* window.c (quad): New function.

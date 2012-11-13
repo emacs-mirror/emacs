@@ -1185,7 +1185,7 @@ ptrdiff_t
 font_unparse_xlfd (Lisp_Object font, int pixel_size, char *name, int nbytes)
 {
   char *p;
-  const char *f[XLFD_REGISTRY_INDEX + 1];
+  char *f[XLFD_REGISTRY_INDEX + 1];
   Lisp_Object val;
   int i, j, len;
 
@@ -1234,8 +1234,21 @@ font_unparse_xlfd (Lisp_Object font, int pixel_size, char *name, int nbytes)
 	f[j] = "*";
       else
 	{
+	  int c, k, l;
+	  ptrdiff_t alloc;
+
 	  val = SYMBOL_NAME (val);
-	  f[j] = SSDATA (val);
+	  alloc = SBYTES (val) + 1;
+	  if (nbytes <= alloc)
+	    return -1;
+	  f[j] = alloca (alloc);
+	  /* Copy the name while excluding '-', '?', ',', and '"'.  */
+	  for (k = l = 0; k < alloc; k++)
+	    {
+	      c = SREF (val, k);
+	      if (c != '-' && c != '?' && c != ',' && c != '"')
+		f[j][l++] = c;
+	    }
 	}
     }
 
