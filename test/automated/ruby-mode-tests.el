@@ -36,11 +36,13 @@
 
 The whitespace before and including \"|\" on each line is removed."
   (with-temp-buffer
-    (cl-flet ((fix-indent (s) (replace-regexp-in-string "^[ \t]*|" "" s)))
-      (insert (fix-indent content))
-      (ruby-mode)
-      (indent-region (point-min) (point-max))
-      (should (string= (fix-indent expected) (buffer-string))))))
+    (insert (ruby-test-string content))
+    (ruby-mode)
+    (indent-region (point-min) (point-max))
+    (should (string= (ruby-test-string expected) (buffer-string)))))
+
+(defun ruby-test-string (s &rest args)
+  (apply 'format (replace-regexp-in-string "^[ \t]*|" "" s) args))
 
 (defun ruby-assert-state (content &rest values-plist)
   "Assert syntax state values at the end of CONTENT.
@@ -260,6 +262,26 @@ VALUES-PLIST is a list with alternating index and value elements."
                     30 'font-lock-comment-face)
   (ruby-assert-face "# #{comment}\n \"#{interpolation}\"" 16
                     'font-lock-variable-name-face))
+
+(ert-deftest ruby-add-log-current-method-examples ()
+  (let ((pairs '(("foo" . "#foo")
+                 ("C.foo" . ".foo")
+                 ("self.foo" . ".foo"))))
+    (loop for (name . value) in pairs
+          do (with-temp-buffer
+               (insert (ruby-test-string
+                        "module M
+                        |  class C
+                        |    def %s
+                        |    end
+                        |  end
+                        |end"
+                        name))
+               (ruby-mode)
+               (search-backward "def")
+               (forward-line)
+               (should (string= (ruby-add-log-current-method)
+                                (format "M::C%s" value)))))))
 
 (provide 'ruby-mode-tests)
 
