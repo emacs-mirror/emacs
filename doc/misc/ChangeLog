@@ -2,6 +2,7 @@
 
 	* erc.texi (Modules): Undocument obsolete "hecomplete".
 	Add "notifications".
+	(Connecting): Add brief section on passwords.
 
 2012-11-12  Glenn Morris  <rgm@gnu.org>
 

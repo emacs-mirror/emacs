@@ -604,6 +604,30 @@ ERC should automatically attempt to connect with another nickname.
 You can manually set another nickname with the /NICK command.
 @end defopt
 
+@subheading Password
+@cindex password
+
+@defopt erc-prompt-for-password
+If non-@code{nil} (the default), @kbd{M-x erc} prompts for a password.
+@end defopt
+
+If you prefer, you can set this option to @code{nil} and use the
+@code{auth-source} mechanism to store your password.  For instance, if
+you use @file{~/.authinfo} as your auth-source backend, then put
+something like the following in that file:
+
+@example
+machine irc.example.net login "#fsf" password sEcReT
+@end example
+
+@noindent
+ERC also consults @code{auth-source} to find any channel keys required
+for the channels that you wish to autojoin, as specified by the
+variable @code{erc-autojoin-channels-alist}.
+
+For more details, @pxref{Top,,auth-source, auth, Emacs auth-source Library}.
+
+
 @subheading Full name
 
 @defun erc-compute-full-name &optional full-name
