@@ -96,7 +96,7 @@
         (else (assoc obj (cdr list)))))
 
 
-;; (< x1 x2 x3 ...)
+;; (= x1 x2 x3 ...)
 ;; (<= x1 x2 x3 ...)
 ;; (>= x1 x2 x3 ...)
 ;; These procedures return #t if their arguments are (respectively):
