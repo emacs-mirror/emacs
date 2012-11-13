@@ -1,3 +1,14 @@
+2012-11-13  Paul Eggert  <eggert@cs.ucla.edu>
+
+	Fix a race with verify-visited-file-modtime (Bug#12863).
+	Since at least 1991 Emacs has ignored an mtime difference of no
+	more than one second, but my guess is that this was to work around
+	file system bugs that were fixed long ago.  Since the race is
+	causing problems now, let's remove that code.
+	* fileio.c (Fverify_visited_file_modtime): Do not accept a file
+	whose time stamp is off by no more than a second.  Insist that the
+	file time stamps match exactly.
+
 2012-11-12  Dmitry Antipov  <dmantipov@yandex.ru>
 
 	* frame.h (struct frame): Convert external_tool_bar member to
