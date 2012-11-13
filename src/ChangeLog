@@ -1,3 +1,8 @@
+2012-11-13  Jan Djärv  <jan.h.d@swipnet.se>
+
+	* nsterm.m (hold_event): Send SIGIO to make sure ns_read_socket is
+	called (Bug#12834).
+
 2012-11-12  Eli Zaretskii  <eliz@gnu.org>
 
 	* xdisp.c (decode_mode_spec): Limit the value of WIDTH argument
