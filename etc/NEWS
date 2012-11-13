@@ -627,8 +627,6 @@ enabled, applies to all applicable major modes.
 ** winner-mode-hook now runs when the mode is disabled, as well as when it is
 enabled.
 
-** FIXME something happened to ses.el, 2012-04-17.
-
 +++
 ** Hooks renamed to avoid obsolete "-hooks" suffix:
 *** semantic-lex-reset-hooks -> semantic-lex-reset-functions
