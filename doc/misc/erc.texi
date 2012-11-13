@@ -530,7 +530,7 @@ parameters.
 @defun erc-compute-server &optional server
 Return an IRC server name.
 
-This tries a number of increasingly more default methods until a non-nil
+This tries a number of increasingly more default methods until a non-@code{nil}
 value is found.
 
 @itemize @bullet
@@ -542,7 +542,7 @@ value is found.
 
 @end defun
 
-@defopt erc-server nil
+@defopt erc-server
 IRC server to use if one is not provided.
 @end defopt
 
@@ -551,7 +551,7 @@ IRC server to use if one is not provided.
 @defun erc-compute-port &optional port
 Return a port for an IRC server.
 
-This tries a number of increasingly more default methods until a non-nil
+This tries a number of increasingly more default methods until a non-@code{nil}
 value is found.
 
 @itemize @bullet
@@ -574,7 +574,7 @@ This can be either a string or a number.
 Return user's IRC nick.
 
 This tries a number of increasingly more default methods until a
-non-nil value is found.
+non-@code{nil} value is found.
 
 @itemize
 @item @var{nick} (the argument passed to this function)
@@ -598,7 +598,7 @@ The string to append to the nick if it is already in use.
 @end defopt
 
 @defopt erc-try-new-nick-p
-If the nickname you chose isn't available, and this option is non-nil,
+If the nickname you chose isn't available, and this option is non-@code{nil},
 ERC should automatically attempt to connect with another nickname.
 
 You can manually set another nickname with the /NICK command.
@@ -634,7 +634,7 @@ For more details, @pxref{Top,,auth-source, auth, Emacs auth-source Library}.
 Return user's full name.
 
 This tries a number of increasingly more default methods until a
-non-nil value is found.
+non-@code{nil} value is found.
 
 @itemize @bullet
 @item @var{full-name} (the argument passed to this function)

@@ -1,6 +1,7 @@
 2012-11-13  Glenn Morris  <rgm@gnu.org>
 
-	* erc.texi (Modules): Undocument obsolete "hecomplete".
+	* erc.texi: Use @code{nil} rather than just "nil".
+	(Modules): Undocument obsolete "hecomplete".
 	Add "notifications".
 	(Connecting): Add brief section on passwords.
 	(Options): Make a start by adding erc-hide-list, erc-lurker-hide-list.
