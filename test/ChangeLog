@@ -4,6 +4,8 @@
 	(ruby-singleton-class-no-heredoc-font-lock)
 	(ruby-add-log-current-method-examples): New tests.
 	(ruby-test-string): Extract from ruby-should-indent-buffer.
+	(ruby-deftest-move-to-block): New macro.
+	Add several move-to-block tests.
 
 2012-11-12  Stefan Monnier  <monnier@iro.umontreal.ca>
 

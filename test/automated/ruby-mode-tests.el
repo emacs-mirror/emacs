@@ -283,6 +283,54 @@ VALUES-PLIST is a list with alternating index and value elements."
                (should (string= (ruby-add-log-current-method)
                                 (format "M::C%s" value)))))))
 
+(defvar ruby-block-test-example
+  (ruby-test-string
+   "class C
+   |  def foo
+   |    1
+   |  end
+   |
+   |  def bar
+   |    2
+   |  end
+   |
+   |  def baz
+   |    some do
+   |    end
+   |  end
+   |end"))
+
+(defmacro ruby-deftest-move-to-block (name &rest body)
+  `(ert-deftest ,(intern (format "ruby-move-to-block-%s" name)) ()
+     (with-temp-buffer
+       (insert ruby-block-test-example)
+       (ruby-mode)
+       ,@body)))
+
+(put 'ruby-deftest-move-to-block 'lisp-indent-function 'defun)
+
+(ruby-deftest-move-to-block works-on-do
+  (goto-line 11)
+  (ruby-end-of-block)
+  (should (= 12 (line-number-at-pos)))
+  (ruby-beginning-of-block)
+  (should (= 11 (line-number-at-pos))))
+
+(ruby-deftest-move-to-block zero-is-noop
+  (goto-line 5)
+  (ruby-move-to-block 0)
+  (should (= 5 (line-number-at-pos))))
+
+(ruby-deftest-move-to-block ok-with-three
+  (goto-line 2)
+  (ruby-move-to-block 3)
+  (should (= 13 (line-number-at-pos))))
+
+(ruby-deftest-move-to-block ok-with-minus-two
+  (goto-line 10)
+  (ruby-move-to-block -2)
+  (should (= 2 (line-number-at-pos))))
+
 (provide 'ruby-mode-tests)
 
 ;;; ruby-mode-tests.el ends here

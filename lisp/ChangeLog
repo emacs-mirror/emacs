@@ -1,3 +1,10 @@
+2012-11-13  Dmitry Gutov  <dgutov@yandex.ru>
+
+	* progmodes/ruby-mode.el (ruby-move-to-block): Looks for a block
+	start/end keyword a bit harder.  Works with different values of N.
+	Add more comments.
+	(ruby-end-of-block): Update accordingly.
+
 2012-11-13  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* woman.el (woman-file-name): Don't mess with unread-command-events
