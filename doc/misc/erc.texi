@@ -737,9 +737,23 @@ stuff, to the current ERC buffer."
 @c PRE5_4: (Node) Document every ERC option (module options go in
 @c previous chapter)
 
-This section has not yet been written.  For now, the easiest way to
-check out the available options for ERC is to do
+This section is extremely incomplete.  For now, the easiest way to
+check out all the available options for ERC is to do
 @kbd{M-x customize-group erc RET}.
+
+@defopt erc-hide-list
+If non, @code{nil}, this is a list of IRC message types to hide, e.g.
+
+@example
+(setq erc-hide-list '("JOIN" "PART" "QUIT"))
+@end example
+@end defopt
+
+@defopt erc-lurker-hide-list
+Like @code{erc-hide-list}, but only applies to messages sent by
+lurkers.  The function @code{erc-lurker-p} determines whether a given
+nickname is considerd a lurker.
+@end defopt
 
 
 @node Getting Help and Reporting Bugs

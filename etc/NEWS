@@ -442,7 +442,9 @@ receive a private message or your nickname is mentioned.
 *** ERC will look up server/channel names via auth-source and use any
 channel keys found.
 
-*** FIXME erc-lurker-hide-list
++++
+*** New option `erc-lurker-hide-list', similar to `erc-hide-list', but
+only applies to messages sent by lurkers.
 
 +++
 ** Flymake uses fringe bitmaps to indicate errors and warnings.
