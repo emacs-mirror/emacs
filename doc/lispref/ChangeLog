@@ -2,6 +2,8 @@
 
 	* keymaps.texi (Searching Keymaps, Tool Bar): Untabify examples,
 	so they align better in info.
+	(Active Keymaps, Searching Keymaps, Controlling Active Maps):
+	Document set-temporary-overlay-map.
 
 2012-11-12  Glenn Morris  <rgm@gnu.org>
 
