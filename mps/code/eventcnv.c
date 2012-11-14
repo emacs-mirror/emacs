@@ -2,22 +2,35 @@
  * Copyright (c) 2001 Ravenbrook Limited.  See end of file for license.
  *
  * This is a command-line tool that converts a binary format telemetry output
- * stream from the MPS into a textual format.
+ * stream from the MPS into a more-portable textual format.
  *
- * The default MPS library will write a telemetry stream to a file called
- * "mpsio.log" when the environment variable MPS_TELEMETRY_CONTROL is set
- * to an integer whose bits select event kinds.  For example:
+ * eventcnv can only read binary-format files that come from an MPS
+ * compiled on the same platform, whereas the text-format files it
+ * produces can be processed on any platform.
+ *
+ * The default MPS library will write a telemetry stream to a file
+ * when the environment variable MPS_TELEMETRY_CONTROL is set to an
+ * integer whose bits select event kinds.  For example:
  *
  *   MPS_TELEMETRY_CONTROL=7 amcss
  *
- * will run the amcss test program and emit a file with event kinds 0, 1, 2.
- * The file can then be converted into text format with a command like:
+ * will run the amcss test program and emit a telemetry file with
+ * event kinds 0, 1, 2.  The file can then be converted into a sorted
+ * text format log with a command like:
  *
- *   eventcnv | sort
+ *   eventcnv | sort > mps-events.txt
  *
- * Note that the eventcnv program can only read streams that come from an
- * MPS compiled on the same platform.
- *
+ * These text-format files have one line per event, and can be
+ * manipulated by various programs systems in the usual Unix way.
+ * 
+ * The binary telemetry filename can be specified with a -f
+ * command-line argument (use -f - to specify standard input).  If no
+ * filename is specified on the command line, the environment variable
+ * MPS_TELEMETRY_FILENAME is consulted (this is the same environment
+ * variable used to specify the telemetry file to the MPS library).
+ * If the environment variable does not exist, the default filename of
+ * "mpsio.log" is used.
+ * 
  * $Id$
  */
 
@@ -46,18 +59,39 @@
 static EventClock eventTime; /* current event time */
 static char *prog; /* program name */
 
-/* everror -- error signalling */
+/* Errors and Warnings */
+
+/* fevwarn -- flush stdout, write message to stderr */
+
+static void fevwarn(const char *prefix, const char *format, va_list args)
+{
+  fflush(stdout); /* sync */
+  fprintf(stderr, "%s: %s @", prog, prefix);
+  EVENT_CLOCK_PRINT(stderr, eventTime);
+  fprintf(stderr, " ");
+  vfprintf(stderr, format, args);
+  fprintf(stderr, "\n");
+}
+
+/* evwarn -- flush stdout, warn to stderr */
+
+static void evwarn(const char *format, ...)
+{
+  va_list args;
+
+  va_start(args, format);
+  fevwarn("Warning", format, args);
+  va_end(args);
+}
+
+/* everror -- flush stdout, mesage to stderr, exit */
 
 static void everror(const char *format, ...)
 {
   va_list args;
 
-  fflush(stdout); /* sync */
-  fprintf(stderr, "%s: @", prog);
-  EVENT_CLOCK_PRINT(stderr, eventTime);
   va_start(args, format);
-  vfprintf(stderr, format, args);
-  fprintf(stderr, "\n");
+  fevwarn("Error", format, args);
   va_end(args);
   exit(EXIT_FAILURE);
 }
@@ -122,7 +156,7 @@ static char *parseArgs(int argc, char *argv[])
 
 static void printHex(ulongest_t val)
 {
-        printf(" %"PRIXLONGEST, (ulongest_t)val);
+  printf(" %"PRIXLONGEST, (ulongest_t)val);
 }
         
 #define printParamP(p) printHex((ulongest_t)p)
@@ -133,7 +167,7 @@ static void printHex(ulongest_t val)
 
 static void printParamD(double d)
 {
-        printf(" %.10G", d);
+  printf(" %.10G", d);
 }
 
 static void printParamS(const char *str)
@@ -164,18 +198,48 @@ static void readLog(EventProc proc)
     if (res != ResOK) everror("Truncated log");
     eventTime = event->any.clock;
     code = event->any.code;
+    
+    /* Special handling for some events, prior to text output */
+
+    switch(code) {
+    case EventEventInitCode:
+      if ((event->EventInit.f0 != EVENT_VERSION_MAJOR) ||
+          (event->EventInit.f1 != EVENT_VERSION_MEDIAN) ||
+          (event->EventInit.f2 != EVENT_VERSION_MINOR))
+        evwarn("Event log version does not match: %d.%d.%d vs %d.%d.%d",
+               event->EventInit.f0,
+               event->EventInit.f1,
+               event->EventInit.f2,
+               EVENT_VERSION_MAJOR,
+               EVENT_VERSION_MEDIAN,
+               EVENT_VERSION_MINOR);
+
+      if (event->EventInit.f3 > EventCodeMAX)
+        evwarn("Event log may contain unknown events with codes from %d to %d",
+               EventCodeMAX+1, event->EventInit.f3);
+
+      if (event->EventInit.f5 != MPS_WORD_WIDTH)
+        /* This probably can't happen; other things will break
+         * before we get here */
+        evwarn("Event log has incompatible word width: %d instead of %d",
+               event->EventInit.f5,
+               MPS_WORD_WIDTH);
+      break;
+    }
 
     EVENT_CLOCK_PRINT(stdout, eventTime);
-    printf(" %X", (unsigned)code);
+    printf(" %4X", (unsigned)code);
 
     switch (code) {
-#define EVENT_PARAM_PRINT(name, index, sort, ident) \
-         printParam##sort(event->name.f##index);
-#define EVENT_PRINT(X, name, code, always, kind) \
-       case code: \
-         EVENT_##name##_PARAMS(EVENT_PARAM_PRINT, name) \
-         break;
-       EVENT_LIST(EVENT_PRINT, X)
+#define EVENT_PARAM_PRINT(name, index, sort, ident)     \
+      printParam##sort(event->name.f##index);
+#define EVENT_PRINT(X, name, code, always, kind)        \
+      case code:                                        \
+        EVENT_##name##_PARAMS(EVENT_PARAM_PRINT, name)  \
+        break;
+      EVENT_LIST(EVENT_PRINT, X)
+    default:
+      evwarn("Unknown event code %d", code);
     }
 
     putchar('\n');
@@ -218,10 +282,9 @@ int main(int argc, char *argv[])
 
   filename = parseArgs(argc, argv);
   if (!filename) {
-          filename = getenv(TELEMETRY_FILENAME_ENVAR
-                            );
-          if(!filename)
-                  filename = DEFAULT_TELEMETRY_FILENAME;
+    filename = getenv(TELEMETRY_FILENAME_ENVAR);
+    if(!filename)
+      filename = DEFAULT_TELEMETRY_FILENAME;
   }
 
   if (strcmp(filename, "-") == 0)
