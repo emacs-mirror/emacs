@@ -1,3 +1,16 @@
+2012-11-14  David Engster  <deng@randomsample.de>
+
+	* semantic/symref/list.el (semantic-symref-symbol): Use
+	`semantic-complete-read-tag-project' instead of
+	`semantic-complete-read-tag-buffer-deep', since the latter is not
+	working correctly.
+
+	* semantic/symref.el (semantic-symref-result-get-tags): Use
+	`find-buffer-visiting' to follow symbolic links.
+
+	* semantic/fw.el (semantic-find-file-noselect): Always set
+	`enable-local-variables' to `:safe' when loading files.
+
 2012-11-13  Glenn Morris  <rgm@gnu.org>
 
 	* semantic/lex-spp.el (semantic-lex-spp-lex-text-string):

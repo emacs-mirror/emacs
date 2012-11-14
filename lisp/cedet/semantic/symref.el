@@ -356,7 +356,7 @@ already."
 	  (lambda (hit)
 	    (let* ((line (car hit))
 		   (file (cdr hit))
-		   (buff (get-file-buffer file))
+		   (buff (find-buffer-visiting file))
 		   (tag nil)
 		   )
 	      (cond
