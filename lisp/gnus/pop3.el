@@ -178,7 +178,7 @@ Shorter values mean quicker response, but are more CPU intensive.")
 		    1000))))))
 
 (defvar pop3-uidl)
-;; List of UIDLs of existing messages at pesent in the server:
+;; List of UIDLs of existing messages at present in the server:
 ;; ("UIDL1" "UIDL2" "UIDL3"...)
 
 (defvar pop3-uidl-saved)

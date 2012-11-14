@@ -482,9 +482,9 @@ show column letters again.
 Pops up a menu to set the current row as the header, or revert to
 column letters.
 @item M-x ses-rename-cell
-@findex ses-rename-cell 
-Rename a cell from a standard A1-like name to any 
-string. 
+@findex ses-rename-cell
+Rename a cell from a standard A1-like name to any
+string.
 @item M-x ses-repair-cell-reference-all
 @findex ses-repair-cell-reference-all
 When you interrupt a cell formula update by clicking @kbd{C-g}, then
@@ -606,15 +606,15 @@ instance @code{(ses-range A1 A4 _ "empty")} will do the same as
 are empty. Similarly, @code{(ses-range A1 A4 _ )} will do the same as
 @code{(list A1 0 A3 0)}.
 @item >v
-When order matters, list cells by reading cells rowwise from top left
+When order matters, list cells by reading cells row-wise from top left
 to bottom right. This flag is provided for completeness only as it is
 the default reading order.
 @item <v
-List cells by reading cells rowwise from top right to bottom left.
+List cells by reading cells row-wise from top right to bottom left.
 @item v>
-List cells by reading cells columnwise from top left to bottom right.
+List cells by reading cells column-wise from top left to bottom right.
 @item v<
-List cells by reading cells columnwise from top right to bottom left.
+List cells by reading cells column-wise from top right to bottom left.
 @item v
 A short hand for @code{v>}.
 @item ^

@@ -897,7 +897,7 @@ current block, a sibling block, or an outer block.  Do that (abs N) times."
          (t
           (setq pos (current-indentation))
           (cond
-           ;; Deeper intendation, we found a block.
+           ;; Deeper indentation, we found a block.
            ;; FIXME: We can't recognize empty blocks this way.
            ((< start pos)
             (setq down t))
