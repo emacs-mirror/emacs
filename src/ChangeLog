@@ -1,3 +1,15 @@
+2012-11-14  Eli Zaretskii  <eliz@gnu.org>
+
+	* w32proc.c (timer_loop): Make sure SuspendThread and ResumeThread
+	use the same value of thread handle.
+	(start_timer_thread): If the timer thread exited (due to error),
+	clean up by closing the two handles it used.  Duplicate the caller
+	thread's handle here, so it gets duplicated only once, when
+	launching the timer thread.  Set priority of the timer thread, not
+	the caller thread.
+	(getitimer): Don't duplicate the caller thread's handle here.
+	(Bug#12832)
+
 2012-11-13  Jan Djärv  <jan.h.d@swipnet.se>
 
 	* nsterm.m (hold_event): Send SIGIO to make sure ns_read_socket is

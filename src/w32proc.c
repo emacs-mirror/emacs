@@ -425,13 +425,14 @@ timer_loop (LPVOID arg)
 	  /* Simulate a signal delivered to the thread which installed
 	     the timer, by suspending that thread while the handler
 	     runs.  */
-	  DWORD result = SuspendThread (itimer->caller_thread);
+	  HANDLE th = itimer->caller_thread;
+	  DWORD result = SuspendThread (th);
 
 	  if (result == (DWORD)-1)
 	    return 2;
 
 	  handler (sig);
-	  ResumeThread (itimer->caller_thread);
+	  ResumeThread (th);
 	}
 
       /* Update expiration time and loop.  */
@@ -556,6 +557,7 @@ static int
 start_timer_thread (int which)
 {
   DWORD exit_code;
+  HANDLE th;
   struct itimer_data *itimer =
     (which == ITIMER_REAL) ? &real_itimer : &prof_itimer;
 
@@ -564,9 +566,29 @@ start_timer_thread (int which)
       && exit_code == STILL_ACTIVE)
     return 0;
 
+  /* Clean up after possibly exited thread.  */
+  if (itimer->timer_thread)
+    {
+      CloseHandle (itimer->timer_thread);
+      itimer->timer_thread = NULL;
+    }
+  if (itimer->caller_thread)
+    {
+      CloseHandle (itimer->caller_thread);
+      itimer->caller_thread = NULL;
+    }
+
   /* Start a new thread.  */
+  if (!DuplicateHandle (GetCurrentProcess (), GetCurrentThread (),
+			GetCurrentProcess (), &th, 0, FALSE,
+			DUPLICATE_SAME_ACCESS))
+    {
+      errno = ESRCH;
+      return -1;
+    }
   itimer->terminate = 0;
   itimer->type = which;
+  itimer->caller_thread = th;
   /* Request that no more than 64KB of stack be reserved for this
      thread, to avoid reserving too much memory, which would get in
      the way of threads we start to wait for subprocesses.  See also
@@ -585,7 +607,7 @@ start_timer_thread (int which)
   /* This is needed to make sure that the timer thread running for
      profiling gets CPU as soon as the Sleep call terminates. */
   if (which == ITIMER_PROF)
-    SetThreadPriority (itimer->caller_thread, THREAD_PRIORITY_TIME_CRITICAL);
+    SetThreadPriority (itimer->timer_thread, THREAD_PRIORITY_TIME_CRITICAL);
 
   return 0;
 }
@@ -620,17 +642,9 @@ getitimer (int which, struct itimerval *value)
 
   itimer = (which == ITIMER_REAL) ? &real_itimer : &prof_itimer;
 
-  if (!DuplicateHandle (GetCurrentProcess (), GetCurrentThread (),
-			GetCurrentProcess (), &itimer->caller_thread, 0,
-			FALSE, DUPLICATE_SAME_ACCESS))
-    {
-      errno = ESRCH;
-      return -1;
-    }
-
   ticks_now = w32_get_timer_time ((which == ITIMER_REAL)
 				  ? NULL
-				  : itimer->caller_thread);
+				  : GetCurrentThread ());
 
   t_expire = &itimer->expire;
   t_reload = &itimer->reload;
