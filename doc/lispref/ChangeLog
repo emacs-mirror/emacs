@@ -1,3 +1,8 @@
+2012-11-14  Glenn Morris  <rgm@gnu.org>
+
+	* keymaps.texi (Searching Keymaps, Tool Bar): Untabify examples,
+	so they align better in info.
+
 2012-11-12  Glenn Morris  <rgm@gnu.org>
 
 	* variables.texi (Adding Generalized Variables):
