@@ -1,3 +1,8 @@
+2012-11-14  Dmitry Antipov  <dmantipov@yandex.ru>
+
+	* xdisp.c (echo_area_display, redisplay_internal):
+	Omit redundant check whether frame_garbaged is set.
+
 2012-11-14  Paul Eggert  <eggert@cs.ucla.edu>
 
 	Use faccessat, not access, when checking file permissions (Bug#12632).
