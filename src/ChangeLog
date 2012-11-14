@@ -1,3 +1,12 @@
+2012-11-14  Eli Zaretskii  <eliz@gnu.org>
+
+	* w32.c (faccessat): Rename from sys_faccessat.  (No need to use a
+	different name, as the MS runtime does not have such a function,
+	and probably never will.)  All callers changed.  Ignore DIRFD
+	value if PATH is an absolute file name, to match Posix spec
+	better.  If AT_SYMLINK_NOFOLLOW is set in FLAGS, don't resolve
+	symlinks.
+
 2012-11-14  Dmitry Antipov  <dmantipov@yandex.ru>
 
 	* xdisp.c (echo_area_display, redisplay_internal):

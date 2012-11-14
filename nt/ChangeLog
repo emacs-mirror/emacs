@@ -1,3 +1,11 @@
+2012-11-14  Eli Zaretskii  <eliz@gnu.org>
+
+	* inc/unistd.h (faccessat): Add prototype.
+	(AT_FDCWD, AT_EACCESS, AT_SYMLINK_NOFOLLOW): New macros; the first
+	2 moved from ms-w32.h.
+
+	* inc/ms-w32.h (AT_FDCWD, AT_EACCESS, faccessat): Remove macros.
+
 2012-11-14  Paul Eggert  <eggert@cs.ucla.edu>
 
 	Use faccessat, not access, when checking file permissions (Bug#12632).

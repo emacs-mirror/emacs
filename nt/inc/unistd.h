@@ -18,4 +18,12 @@ extern pid_t getpgrp (void);
 extern pid_t setsid (void);
 extern pid_t tcgetpgrp (int);
 
+extern int faccessat (int, char const *, int, int);
+
+/* These are normally on fcntl.h, but we don't override that header.  */
+/* Use values compatible with gnulib, as there's no reason to differ.  */
+#define AT_FDCWD (-3041965)
+#define AT_EACCESS 4
+#define AT_SYMLINK_NOFOLLOW 4096
+
 #endif	/* _UNISTD_H */
