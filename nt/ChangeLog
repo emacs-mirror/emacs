@@ -1,3 +1,10 @@
+2012-11-14  Paul Eggert  <eggert@cs.ucla.edu>
+
+	Use faccessat, not access, when checking file permissions (Bug#12632).
+	* inc/ms-w32.h (AT_FDCWD, AT_EACCESS): New symbols.
+	(access): Remove.
+	(faccessat): New macro.
+
 2012-11-05  Eli Zaretskii  <eliz@gnu.org>
 
 	* inc/unistd.h (tcgetpgrp, setsid): Provide prototypes.

@@ -346,7 +346,7 @@ To use this function, you must @code{(require 'url-queue)}.
 The value of this option is an integer specifying the maximum number
 of concurrent @code{url-queue-retrieve} network processes.  If the
 number of @code{url-queue-retrieve} calls is larger than this number,
-later ones are queued until ealier ones are finished.
+later ones are queued until earlier ones are finished.
 @end defopt
 
 @vindex url-queue-timeout

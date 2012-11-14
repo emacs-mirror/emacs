@@ -105,7 +105,10 @@
 (eval-and-compile
   (defconst ruby-here-doc-beg-re
   "\\(<\\)<\\(-\\)?\\(\\([a-zA-Z0-9_]+\\)\\|[\"]\\([^\"]+\\)[\"]\\|[']\\([^']+\\)[']\\)"
-    "Regexp to match the beginning of a heredoc."))
+  "Regexp to match the beginning of a heredoc.")
+
+  (defconst ruby-expression-expansion-re
+    "[^\\]\\(\\\\\\\\\\)*\\(#\\({[^}\n\\\\]*\\(\\\\.[^}\n\\\\]*\\)*}\\|\\(\\$\\|@\\|@@\\)\\(\\w\\|_\\)+\\)\\)"))
 
 (defun ruby-here-doc-end-match ()
   "Return a regexp to find the end of a heredoc.
@@ -384,7 +387,9 @@ and `\\' when preceded by `?'."
          (looking-at "class\\s *<<"))))
 
 (defun ruby-expr-beg (&optional option)
-  "TODO: document."
+  "Check if point is possibly at the beginning of an expression.
+OPTION specifies the type of the expression.
+Can be one of `heredoc', `modifier', `expr-qstr', `expr-re'."
   (save-excursion
     (store-match-data nil)
     (let ((space (skip-chars-backward " \t"))
@@ -397,10 +402,10 @@ and `\\' when preceded by `?'."
                (or (eq (char-syntax (char-before (point))) ?w)
                    (ruby-special-char-p))))
         nil)
-       ((and (eq option 'heredoc) (< space 0))
-        (not (progn (goto-char start) (ruby-singleton-class-p))))
-       ((or (looking-at ruby-operator-re)
-            (looking-at "[\\[({,;]")
+       ((looking-at ruby-operator-re))
+       ((eq option 'heredoc)
+        (and (< space 0) (not (ruby-singleton-class-p start))))
+       ((or (looking-at "[\\[({,;]")
             (and (looking-at "[!?]")
                  (or (not (eq option 'modifier))
                      (bolp)
@@ -865,39 +870,54 @@ calculating indentation on the lines after it."
                 (beginning-of-line)))))
 
 (defun ruby-move-to-block (n)
-  "Move to the beginning (N < 0) or the end (N > 0) of the current block
-or blocks containing the current block."
-  ;; TODO: Make this work for n > 1,
-  ;; make it not loop for n = 0,
-  ;; document body
+  "Move to the beginning (N < 0) or the end (N > 0) of the
+current block, a sibling block, or an outer block.  Do that (abs N) times."
   (let ((orig (point))
         (start (ruby-calculate-indent))
-        (down (looking-at (if (< n 0) ruby-block-end-re
-                            (concat "\\<\\(" ruby-block-beg-re "\\)\\>"))))
-        pos done)
-    (while (and (not done) (not (if (< n 0) (bobp) (eobp))))
-      (forward-line n)
-      (cond
-       ((looking-at "^\\s *$"))
-       ((looking-at "^\\s *#"))
-       ((and (> n 0) (looking-at "^=begin\\>"))
-        (re-search-forward "^=end\\>"))
-       ((and (< n 0) (looking-at "^=end\\>"))
-        (re-search-backward "^=begin\\>"))
-       (t
-        (setq pos (current-indentation))
+        (signum (if (> n 0) 1 -1))
+        (backward (< n 0))
+        down pos done)
+    (dotimes (_ (abs n))
+      (setq done nil)
+      (setq down (save-excursion
+                   (back-to-indentation)
+                   ;; There is a block start or block end keyword on this
+                   ;; line, don't need to look for another block.
+                   (and (re-search-forward
+                         (if backward ruby-block-end-re
+                           (concat "\\_<\\(" ruby-block-beg-re "\\)\\_>"))
+                         (line-end-position) t)
+                        (not (nth 8 (syntax-ppss))))))
+      (while (and (not done) (not (if backward (bobp) (eobp))))
+        (forward-line signum)
         (cond
-         ((< start pos)
-          (setq down t))
-         ((and down (= pos start))
-          (setq done t))
-         ((> start pos)
-          (setq done t)))))
-      (if done
-          (save-excursion
-            (back-to-indentation)
-            (if (looking-at (concat "\\<\\(" ruby-block-mid-re "\\)\\>"))
-                (setq done nil)))))
+         ;; Skip empty and commented out lines.
+         ((looking-at "^\\s *$"))
+         ((looking-at "^\\s *#"))
+         ;; Skip block comments;
+         ((and (not backward) (looking-at "^=begin\\>"))
+          (re-search-forward "^=end\\>"))
+         ((and backward (looking-at "^=end\\>"))
+          (re-search-backward "^=begin\\>"))
+         (t
+          (setq pos (current-indentation))
+          (cond
+           ;; Deeper indentation, we found a block.
+           ;; FIXME: We can't recognize empty blocks this way.
+           ((< start pos)
+            (setq down t))
+           ;; Block found, and same indentation as when started, stop.
+           ((and down (= pos start))
+            (setq done t))
+           ;; Shallower indentation, means outer block, can stop now.
+           ((> start pos)
+            (setq done t)))))
+        (if done
+            (save-excursion
+              (back-to-indentation)
+              ;; Not really at the first or last line of the block, move on.
+              (if (looking-at (concat "\\<\\(" ruby-block-mid-re "\\)\\>"))
+                  (setq done nil))))))
     (back-to-indentation)))
 
 (defun ruby-beginning-of-block (&optional arg)
@@ -909,8 +929,7 @@ With ARG, move up multiple blocks."
 (defun ruby-end-of-block (&optional arg)
   "Move forward to the end of the current block.
 With ARG, move out of multiple blocks."
-  ;; Passing a value > 1 to ruby-move-to-block currently doesn't work.
-  (interactive)
+  (interactive "p")
   (ruby-move-to-block (or arg 1)))
 
 (defun ruby-forward-sexp (&optional arg)
@@ -1233,7 +1252,19 @@ It will be properly highlighted even when the call omits parens."))
           ;; Handle percent literals: %w(), %q{}, etc.
           ((concat "\\(?:^\\|[[ \t\n<+(,=]\\)" ruby-percent-literal-beg-re)
            (1 (prog1 "|" (ruby-syntax-propertize-percent-literal end)))))
-         (point) end))
+         (point) end)
+        (remove-text-properties start end '(ruby-expansion-match-data))
+        (goto-char start)
+        ;; Find all expression expansions and
+        ;; - set the syntax of all text inside to whitespace,
+        ;; - save the match data to a text property, for font-locking later.
+        (while (re-search-forward ruby-expression-expansion-re end 'move)
+          (when (ruby-in-ppss-context-p 'string)
+            (put-text-property (match-beginning 2) (match-end 2)
+                               'syntax-table (string-to-syntax "-"))
+            (put-text-property (match-beginning 2) (1+ (match-beginning 2))
+                               'ruby-expansion-match-data
+                               (match-data)))))
 
       (defun ruby-syntax-propertize-heredoc (limit)
         (let ((ppss (syntax-ppss))
@@ -1566,7 +1597,7 @@ See `font-lock-syntax-table'.")
    '("\\(^\\s *\\|[\[\{\(,]\\s *\\|\\sw\\s +\\)\\(\\(\\sw\\|_\\)+\\):[^:]" 2 font-lock-constant-face)
    ;; expression expansion
    '(ruby-match-expression-expansion
-     0 font-lock-variable-name-face t)
+     2 font-lock-variable-name-face t)
    ;; warn lower camel case
                                         ;'("\\<[a-z]+[a-z0-9]*[A-Z][A-Za-z0-9]*\\([!?]?\\|\\>\\)"
                                         ;  0 font-lock-warning-face)
@@ -1574,9 +1605,14 @@ See `font-lock-syntax-table'.")
   "Additional expressions to highlight in Ruby mode.")
 
 (defun ruby-match-expression-expansion (limit)
-  (when (re-search-forward "[^\\]\\(\\\\\\\\\\)*\\(#\\({[^}\n\\\\]*\\(\\\\.[^}\n\\\\]*\\)*}\\|\\(\\$\\|@\\|@@\\)\\(\\w\\|_\\)+\\)\\)" limit 'move)
-    (or (ruby-in-ppss-context-p 'string)
-        (ruby-match-expression-expansion limit))))
+  (let ((prop 'ruby-expansion-match-data) pos value)
+    (when (and (setq pos (next-single-char-property-change (point) prop
+                                                           nil limit))
+               (> pos (point)))
+      (goto-char pos)
+      (or (and (setq value (get-text-property pos prop))
+               (progn (set-match-data value) t))
+          (ruby-match-expression-expansion limit)))))
 
 ;;;###autoload
 (define-derived-mode ruby-mode prog-mode "Ruby"

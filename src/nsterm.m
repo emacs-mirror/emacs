@@ -4112,8 +4112,6 @@ ns_term_init (Lisp_Object display_name)
 
         color_file = Fexpand_file_name (build_string ("rgb.txt"),
                          Fsymbol_value (intern ("data-directory")));
-        if (NILP (Ffile_readable_p (color_file)))
-          fatal ("Could not find %s.\n", SDATA (color_file));
 
         color_map = Fx_load_color_file (color_file);
         if (NILP (color_map))

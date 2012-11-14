@@ -1403,7 +1403,7 @@ Returns the file's name in absolute form, or nil if not found.
 If SUFFIXES is non-nil, it should be a list of suffixes to append to
 file name when searching.
 If non-nil, PREDICATE is used instead of `file-readable-p'.
-PREDICATE can also be an integer to pass to the access(2) function,
+PREDICATE can also be an integer to pass to the faccessat(2) function,
 in which case file-name-handlers are ignored.
 This function will normally skip directories, so if you want it to find
 directories, make sure the PREDICATE function returns `dir-ok' for them.  */)
@@ -1441,7 +1441,6 @@ static Lisp_Object Qdir_ok;
 int
 openp (Lisp_Object path, Lisp_Object str, Lisp_Object suffixes, Lisp_Object *storeptr, Lisp_Object predicate)
 {
-  int fd;
   ptrdiff_t fn_size = 100;
   char buf[100];
   char *fn = buf;
@@ -1496,7 +1495,6 @@ openp (Lisp_Object path, Lisp_Object str, Lisp_Object suffixes, Lisp_Object *sto
 	{
 	  ptrdiff_t fnlen, lsuffix = SBYTES (XCAR (tail));
 	  Lisp_Object handler;
-	  bool exists;
 
 	  /* Concatenate path element/specified name with the suffix.
 	     If the directory starts with /:, remove that.  */
@@ -1520,6 +1518,7 @@ openp (Lisp_Object path, Lisp_Object str, Lisp_Object suffixes, Lisp_Object *sto
 	  handler = Ffind_file_name_handler (string, Qfile_exists_p);
 	  if ((!NILP (handler) || !NILP (predicate)) && !NATNUMP (predicate))
             {
+	      bool exists;
 	      if (NILP (predicate))
 		exists = !NILP (Ffile_readable_p (string));
 	      else
@@ -1541,36 +1540,39 @@ openp (Lisp_Object path, Lisp_Object str, Lisp_Object suffixes, Lisp_Object *sto
 	    }
 	  else
 	    {
-#ifndef WINDOWSNT
-	      struct stat st;
-#endif
+	      int fd;
 	      const char *pfn;
 
 	      encoded_fn = ENCODE_FILE (string);
 	      pfn = SSDATA (encoded_fn);
-#ifdef WINDOWSNT
-	      exists = access (pfn, F_OK) == 0 && access (pfn, D_OK) < 0;
-#else
-	      exists = (stat (pfn, &st) == 0 && ! S_ISDIR (st.st_mode));
-#endif
-	      if (exists)
-		{
-		  /* Check that we can access or open it.  */
-		  if (NATNUMP (predicate))
-		    fd = (((XFASTINT (predicate) & ~INT_MAX) == 0
-			   && access (pfn, XFASTINT (predicate)) == 0)
-			  ? 1 : -1);
-		  else
-		    fd = emacs_open (pfn, O_RDONLY, 0);
 
-		  if (fd >= 0)
+	      /* Check that we can access or open it.  */
+	      if (NATNUMP (predicate))
+		fd = (((XFASTINT (predicate) & ~INT_MAX) == 0
+		       && (faccessat (AT_FDCWD, pfn, XFASTINT (predicate),
+				      AT_EACCESS)
+			   == 0)
+		       && ! file_directory_p (pfn))
+		      ? 1 : -1);
+	      else
+		{
+		  struct stat st;
+		  fd = emacs_open (pfn, O_RDONLY, 0);
+		  if (0 <= fd
+		      && (fstat (fd, &st) != 0 || S_ISDIR (st.st_mode)))
 		    {
-		      /* We succeeded; return this descriptor and filename.  */
-		      if (storeptr)
-			*storeptr = string;
-		      UNGCPRO;
-		      return fd;
+		      emacs_close (fd);
+		      fd = -1;
 		    }
+		}
+
+	      if (fd >= 0)
+		{
+		  /* We succeeded; return this descriptor and filename.  */
+		  if (storeptr)
+		    *storeptr = string;
+		  UNGCPRO;
+		  return fd;
 		}
 	    }
 	}
@@ -4087,9 +4089,8 @@ load_path_check (void)
       if (STRINGP (dirfile))
         {
           dirfile = Fdirectory_file_name (dirfile);
-          if (access (SSDATA (dirfile), 0) < 0)
-            dir_warning ("Warning: Lisp directory `%s' does not exist.\n",
-                         XCAR (path_tail));
+          if (! file_accessible_directory_p (SSDATA (dirfile)))
+            dir_warning ("Lisp directory", XCAR (path_tail));
         }
     }
 }
@@ -4201,11 +4202,11 @@ init_lread (void)
 	      Lisp_Object tem, tem1;
 
               /* Add to the path the lisp subdir of the installation
-                 dir, if it exists.  Note: in out-of-tree builds,
+                 dir, if it is accessible.  Note: in out-of-tree builds,
                  this directory is empty save for Makefile.  */
               tem = Fexpand_file_name (build_string ("lisp"),
                                        Vinstallation_directory);
-              tem1 = Ffile_exists_p (tem);
+              tem1 = Ffile_accessible_directory_p (tem);
               if (!NILP (tem1))
                 {
                   if (NILP (Fmember (tem, Vload_path)))
@@ -4222,10 +4223,10 @@ init_lread (void)
                    Lisp dirs instead.  */
                 Vload_path = nconc2 (Vload_path, dump_path);
 
-              /* Add leim under the installation dir, if it exists. */
+              /* Add leim under the installation dir, if it is accessible. */
               tem = Fexpand_file_name (build_string ("leim"),
                                        Vinstallation_directory);
-              tem1 = Ffile_exists_p (tem);
+              tem1 = Ffile_accessible_directory_p (tem);
               if (!NILP (tem1))
                 {
                   if (NILP (Fmember (tem, Vload_path)))
@@ -4237,7 +4238,7 @@ init_lread (void)
                 {
                   tem = Fexpand_file_name (build_string ("site-lisp"),
                                            Vinstallation_directory);
-                  tem1 = Ffile_exists_p (tem);
+                  tem1 = Ffile_accessible_directory_p (tem);
                   if (!NILP (tem1))
                     {
                       if (NILP (Fmember (tem, Vload_path)))
@@ -4282,7 +4283,7 @@ init_lread (void)
                         {
                           tem = Fexpand_file_name (build_string ("site-lisp"),
                                                    Vsource_directory);
-                          tem1 = Ffile_exists_p (tem);
+                          tem1 = Ffile_accessible_directory_p (tem);
                           if (!NILP (tem1))
                             {
                               if (NILP (Fmember (tem, Vload_path)))
@@ -4338,21 +4339,28 @@ init_lread (void)
   Vloads_in_progress = Qnil;
 }
 
-/* Print a warning, using format string FORMAT, that directory DIRNAME
-   does not exist.  Print it on stderr and put it in *Messages*.  */
+/* Print a warning that directory intended for use USE and with name
+   DIRNAME cannot be accessed.  On entry, errno should correspond to
+   the access failure.  Print the warning on stderr and put it in
+   *Messages*.  */
 
 void
-dir_warning (const char *format, Lisp_Object dirname)
+dir_warning (char const *use, Lisp_Object dirname)
 {
-  fprintf (stderr, format, SDATA (dirname));
+  static char const format[] = "Warning: %s `%s': %s\n";
+  int access_errno = errno;
+  fprintf (stderr, format, use, SSDATA (dirname), strerror (access_errno));
 
   /* Don't log the warning before we've initialized!!  */
   if (initialized)
     {
+      char const *diagnostic = emacs_strerror (access_errno);
       USE_SAFE_ALLOCA;
-      char *buffer = SAFE_ALLOCA (SBYTES (dirname)
-				  + strlen (format) - (sizeof "%s" - 1) + 1);
-      ptrdiff_t message_len = esprintf (buffer, format, SDATA (dirname));
+      char *buffer = SAFE_ALLOCA (sizeof format - 3 * (sizeof "%s" - 1)
+				  + strlen (use) + SBYTES (dirname)
+				  + strlen (diagnostic));
+      ptrdiff_t message_len = esprintf (buffer, format, use, SSDATA (dirname),
+					diagnostic);
       message_dolog (buffer, message_len, 0, STRING_MULTIBYTE (dirname));
       SAFE_FREE ();
     }

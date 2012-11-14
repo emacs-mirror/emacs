@@ -208,7 +208,7 @@ static EMACS_INT update_tick;
 #ifndef NON_BLOCKING_CONNECT
 #ifdef HAVE_SELECT
 #if defined (HAVE_GETPEERNAME) || defined (GNU_LINUX)
-#if defined (O_NONBLOCK) || defined (O_NDELAY)
+#if O_NONBLOCK || O_NDELAY
 #if defined (EWOULDBLOCK) || defined (EINPROGRESS)
 #define NON_BLOCKING_CONNECT
 #endif /* EWOULDBLOCK || EINPROGRESS */
@@ -655,7 +655,7 @@ allocate_pty (void)
 	PTY_OPEN;
 #else /* no PTY_OPEN */
 	{
-#  ifdef O_NONBLOCK
+#  if O_NONBLOCK
 	  fd = emacs_open (pty_name, O_RDWR | O_NONBLOCK, 0);
 #  else
 	  fd = emacs_open (pty_name, O_RDWR | O_NDELAY, 0);
@@ -672,7 +672,7 @@ allocate_pty (void)
 #else
 	    sprintf (pty_name, "/dev/tty%c%x", c, i);
 #endif /* no PTY_TTY_NAME_SPRINTF */
-	    if (access (pty_name, 6) != 0)
+	    if (faccessat (AT_FDCWD, pty_name, R_OK | W_OK, AT_EACCESS) != 0)
 	      {
 		emacs_close (fd);
 # ifndef __sgi
@@ -1624,7 +1624,7 @@ create_process (Lisp_Object process, char **new_argv, Lisp_Object current_dir)
 #if ! defined (USG) || defined (USG_SUBTTY_WORKS)
       /* On most USG systems it does not work to open the pty's tty here,
 	 then close it and reopen it in the child.  */
-#ifdef O_NOCTTY
+#if O_NOCTTY
       /* Don't let this terminal become our controlling terminal
 	 (in case we don't have one).  */
       forkout = forkin = emacs_open (pty_name, O_RDWR | O_NOCTTY, 0);
@@ -1678,11 +1678,11 @@ create_process (Lisp_Object process, char **new_argv, Lisp_Object current_dir)
     }
 #endif
 
-#ifdef O_NONBLOCK
+#if O_NONBLOCK
   fcntl (inchannel, F_SETFL, O_NONBLOCK);
   fcntl (outchannel, F_SETFL, O_NONBLOCK);
 #else
-#ifdef O_NDELAY
+#if O_NDELAY
   fcntl (inchannel, F_SETFL, O_NDELAY);
   fcntl (outchannel, F_SETFL, O_NDELAY);
 #endif
@@ -1943,7 +1943,7 @@ create_pty (Lisp_Object process)
 #if ! defined (USG) || defined (USG_SUBTTY_WORKS)
       /* On most USG systems it does not work to open the pty's tty here,
 	 then close it and reopen it in the child.  */
-#ifdef O_NOCTTY
+#if O_NOCTTY
       /* Don't let this terminal become our controlling terminal
 	 (in case we don't have one).  */
       int forkout = emacs_open (pty_name, O_RDWR | O_NOCTTY, 0);
@@ -1963,11 +1963,11 @@ create_pty (Lisp_Object process)
     }
 #endif /* HAVE_PTYS */
 
-#ifdef O_NONBLOCK
+#if O_NONBLOCK
   fcntl (inchannel, F_SETFL, O_NONBLOCK);
   fcntl (outchannel, F_SETFL, O_NONBLOCK);
 #else
-#ifdef O_NDELAY
+#if O_NDELAY
   fcntl (inchannel, F_SETFL, O_NDELAY);
   fcntl (outchannel, F_SETFL, O_NDELAY);
 #endif
@@ -2927,7 +2927,7 @@ usage: (make-network-process &rest ARGS)  */)
     {
       /* Don't support network sockets when non-blocking mode is
 	 not available, since a blocked Emacs is not useful.  */
-#if !defined (O_NONBLOCK) && !defined (O_NDELAY)
+#if !O_NONBLOCK && !O_NDELAY
       error ("Network servers not supported");
 #else
       is_server = 1;
@@ -3193,7 +3193,7 @@ usage: (make-network-process &rest ARGS)  */)
 #ifdef NON_BLOCKING_CONNECT
       if (is_non_blocking_client)
 	{
-#ifdef O_NONBLOCK
+#if O_NONBLOCK
 	  ret = fcntl (s, F_SETFL, O_NONBLOCK);
 #else
 	  ret = fcntl (s, F_SETFL, O_NDELAY);
@@ -3410,10 +3410,10 @@ usage: (make-network-process &rest ARGS)  */)
 
   chan_process[inch] = proc;
 
-#ifdef O_NONBLOCK
+#if O_NONBLOCK
   fcntl (inch, F_SETFL, O_NONBLOCK);
 #else
-#ifdef O_NDELAY
+#if O_NDELAY
   fcntl (inch, F_SETFL, O_NDELAY);
 #endif
 #endif
@@ -4145,10 +4145,10 @@ server_accept_connection (Lisp_Object server, int channel)
 
   chan_process[s] = proc;
 
-#ifdef O_NONBLOCK
+#if O_NONBLOCK
   fcntl (s, F_SETFL, O_NONBLOCK);
 #else
-#ifdef O_NDELAY
+#if O_NDELAY
   fcntl (s, F_SETFL, O_NDELAY);
 #endif
 #endif
@@ -4849,11 +4849,11 @@ wait_reading_process_output (intmax_t time_limit, int nsecs, int read_kbd,
 #endif
 	      /* ISC 4.1 defines both EWOULDBLOCK and O_NONBLOCK,
 		 and Emacs uses O_NONBLOCK, so what we get is EAGAIN.  */
-#ifdef O_NONBLOCK
+#if O_NONBLOCK
 	      else if (nread == -1 && errno == EAGAIN)
 		;
 #else
-#ifdef O_NDELAY
+#if O_NDELAY
 	      else if (nread == -1 && errno == EAGAIN)
 		;
 	      /* Note that we cannot distinguish between no input
@@ -7348,7 +7348,7 @@ init_process_emacs (void)
 #ifdef HAVE_GETSOCKNAME
    ADD_SUBFEATURE (QCservice, Qt);
 #endif
-#if defined (O_NONBLOCK) || defined (O_NDELAY)
+#if O_NONBLOCK || O_NDELAY
    ADD_SUBFEATURE (QCserver, Qt);
 #endif
 

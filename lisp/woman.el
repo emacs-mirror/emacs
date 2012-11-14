@@ -1303,12 +1303,12 @@ cache to be re-read."
        ((null (cdr files)) (car (car files))) ; only 1 file for topic.
        (t
 	;; Multiple files for topic, so must select 1.
-	;; Unread the command event (TAB = ?\t = 9) that runs the command
-	;; `minibuffer-complete' in order to automatically complete the
-	;; minibuffer contents as far as possible.
-	(setq unread-command-events '(9)) ; and delete any type-ahead!
-	(completing-read "Manual file: " files nil 1
-			 (try-completion "" files) 'woman-file-history))))))
+	;; Run the command `minibuffer-complete' in order to automatically
+	;; complete the minibuffer contents as far as possible.
+        (minibuffer-with-setup-hook
+            (lambda () (let ((this-command this-command)) (minibuffer-complete)))
+          (completing-read "Manual file: " files nil 1
+                           (try-completion "" files) 'woman-file-history)))))))
 
 (defun woman-select (predicate list)
   "Select unique elements for which PREDICATE is true in LIST.

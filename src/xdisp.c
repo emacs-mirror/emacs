@@ -10816,8 +10816,7 @@ echo_area_display (int update_frame_p)
 #endif /* HAVE_WINDOW_SYSTEM */
 
   /* Redraw garbaged frames.  */
-  if (frame_garbaged)
-    clear_garbaged_frames ();
+  clear_garbaged_frames ();
 
   if (!NILP (echo_area_buffer[0]) || minibuf_level == 0)
     {
@@ -13104,8 +13103,7 @@ redisplay_internal (void)
     }
 
   /* Clear frames marked as garbaged.  */
-  if (frame_garbaged)
-    clear_garbaged_frames ();
+  clear_garbaged_frames ();
 
   /* Build menubar and tool-bar items.  */
   if (NILP (Vmemory_full))
@@ -13189,8 +13187,7 @@ redisplay_internal (void)
 	  /* If window configuration was changed, frames may have been
 	     marked garbaged.  Clear them or we will experience
 	     surprises wrt scrolling.  */
-	  if (frame_garbaged)
-	    clear_garbaged_frames ();
+	  clear_garbaged_frames ();
 	}
     }
   else if (EQ (selected_window, minibuf_window)
@@ -13213,8 +13210,7 @@ redisplay_internal (void)
       /* If window configuration was changed, frames may have been
 	 marked garbaged.  Clear them or we will experience
 	 surprises wrt scrolling.  */
-      if (frame_garbaged)
-	clear_garbaged_frames ();
+      clear_garbaged_frames ();
     }
 
 

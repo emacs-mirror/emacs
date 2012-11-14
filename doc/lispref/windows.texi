@@ -1055,7 +1055,7 @@ including the space earlier stolen from @code{W3}.
 @end smallexample
 
 @noindent
-This can be counterintutive, in particular if @code{W4} were used for
+This can be counterintuitive, in particular if @code{W4} were used for
 displaying a buffer only temporarily (@pxref{Temporary Displays}), and
 you want to continue working with the initial layout.
 
@@ -2343,7 +2343,7 @@ buffer previously shown no longer exists, this function calls
 @code{switch-to-prev-buffer} (@pxref{Window History}) to show some other
 buffer instead.
 
-The optional argument @var{bury-or-kill} specifes how to deal with
+The optional argument @var{bury-or-kill} specifies how to deal with
 @var{window}'s buffer.  The following values are handled:
 
 @table @code
