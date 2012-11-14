@@ -384,7 +384,9 @@ and `\\' when preceded by `?'."
          (looking-at "class\\s *<<"))))
 
 (defun ruby-expr-beg (&optional option)
-  "TODO: document."
+  "Check if point is possibly at the beginning of an expression.
+OPTION specifies the type of the expression.
+Can be one of `heredoc', `modifier', `expr-qstr', `expr-re'."
   (save-excursion
     (store-match-data nil)
     (let ((space (skip-chars-backward " \t"))
@@ -397,10 +399,10 @@ and `\\' when preceded by `?'."
                (or (eq (char-syntax (char-before (point))) ?w)
                    (ruby-special-char-p))))
         nil)
-       ((and (eq option 'heredoc) (< space 0))
-        (not (progn (goto-char start) (ruby-singleton-class-p))))
-       ((or (looking-at ruby-operator-re)
-            (looking-at "[\\[({,;]")
+       ((looking-at ruby-operator-re))
+       ((eq option 'heredoc)
+        (and (< space 0) (not (ruby-singleton-class-p start))))
+       ((or (looking-at "[\\[({,;]")
             (and (looking-at "[!?]")
                  (or (not (eq option 'modifier))
                      (bolp)

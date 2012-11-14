@@ -1,3 +1,8 @@
+2012-11-14  Dmitry Gutov  <dgutov@yandex.ru>
+
+	* progmodes/ruby-mode.el (ruby-expr-beg): Make heredoc detection
+	more strict.  Add docstring.
+
 2012-11-14  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* emacs-lisp/gv.el (setf): Fix debug spec for multiple assignments

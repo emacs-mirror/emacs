@@ -154,7 +154,6 @@ VALUES-PLIST is a list with alternating index and value elements."
    |"))
 
 (ert-deftest ruby-indent-singleton-class ()
-  :expected-result :failed   ; Doesn't work yet, when no space before "<<".
   (ruby-should-indent-buffer
    "class<<bar
    |  foo
@@ -164,6 +163,20 @@ VALUES-PLIST is a list with alternating index and value elements."
    |foo
    |   end
    |"))
+
+(ert-deftest ruby-indent-inside-heredoc-after-operator ()
+  (ruby-should-indent-buffer
+   "b=<<eos
+   |     42"
+   "b=<<eos
+   |     42"))
+
+(ert-deftest ruby-indent-inside-heredoc-after-space ()
+  (ruby-should-indent-buffer
+   "foo <<eos.gsub(' ', '*')
+   |     42"
+   "foo <<eos.gsub(' ', '*')
+   |     42"))
 
 (ert-deftest ruby-indent-array-literal ()
   (let ((ruby-deep-indent-paren nil))
