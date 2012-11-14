@@ -213,11 +213,7 @@ _GL_WARN_ON_USE (openat, "openat is not portable - "
 #endif
 
 #ifndef O_EXEC
-# ifdef O_PATH
-#  define O_EXEC O_PATH
-# else
-#  define O_EXEC O_RDONLY /* This is often close enough in older systems.  */
-# endif
+# define O_EXEC O_RDONLY /* This is often close enough in older systems.  */
 #endif
 
 #ifndef O_IGNORE_CTTY
@@ -274,11 +270,7 @@ _GL_WARN_ON_USE (openat, "openat is not portable - "
 #endif
 
 #ifndef O_SEARCH
-# ifdef O_PATH
-#  define O_SEARCH O_PATH
-# else
-#  define O_SEARCH O_RDONLY /* This is often close enough in older systems.  */
-# endif
+# define O_SEARCH O_RDONLY /* This is often close enough in older systems.  */
 #endif
 
 #ifndef O_SYNC
