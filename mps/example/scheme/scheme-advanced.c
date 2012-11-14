@@ -4459,8 +4459,9 @@ static void *start(void *p, size_t s)
  */
 
 static mps_gen_param_s obj_gen_params[] = {
-  { 6400, 0.85 },
-  { 6400, 0.45 }
+  { 6400, 0.80 },
+  { 6400, 0.80 },
+  { 6400, 0.80 }
 };
 
 
@@ -4481,7 +4482,7 @@ int main(int argc, char *argv[])
      It holds all the MPS "global" state and is where everything happens. */
   res = mps_arena_create(&arena,
                          mps_arena_class_vm(), 
-                         (size_t)(1024ul * 1024 * 1024));
+                         (size_t)(32ul * 1024 * 1024));
   if (res != MPS_RES_OK) error("Couldn't create arena");
 
   /* Create the object format. */
