@@ -1,3 +1,8 @@
+2012-11-14  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* emacs-lisp/gv.el (setf): Fix debug spec for multiple assignments
+	(bug#12879).
+
 2012-11-13  Dmitry Gutov  <dgutov@yandex.ru>
 
 	* progmodes/ruby-mode.el (ruby-move-to-block): Looks for a block
