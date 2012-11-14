@@ -2,6 +2,15 @@
 
 	* progmodes/ruby-mode.el (ruby-expr-beg): Make heredoc detection
 	more strict.  Add docstring.
+	(ruby-expression-expansion-re): Extract from
+	`ruby-match-expression-expansion'.
+	(ruby-syntax-propertize-function): After everything else, search
+	for expansions in string literals, mark their insides as
+	whitespace syntax and save match data for font-lock.
+	(ruby-font-lock-keywords): Use the 2nd group from expression
+	expansion matches.
+	(ruby-match-expression-expansion): Use the match data saved to the
+	text property in ruby-syntax-propertize-function.
 
 2012-11-14  Stefan Monnier  <monnier@iro.umontreal.ca>
 

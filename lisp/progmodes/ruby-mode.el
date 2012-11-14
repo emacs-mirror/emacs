@@ -105,7 +105,10 @@
 (eval-and-compile
   (defconst ruby-here-doc-beg-re
   "\\(<\\)<\\(-\\)?\\(\\([a-zA-Z0-9_]+\\)\\|[\"]\\([^\"]+\\)[\"]\\|[']\\([^']+\\)[']\\)"
-    "Regexp to match the beginning of a heredoc."))
+  "Regexp to match the beginning of a heredoc.")
+
+  (defconst ruby-expression-expansion-re
+    "[^\\]\\(\\\\\\\\\\)*\\(#\\({[^}\n\\\\]*\\(\\\\.[^}\n\\\\]*\\)*}\\|\\(\\$\\|@\\|@@\\)\\(\\w\\|_\\)+\\)\\)"))
 
 (defun ruby-here-doc-end-match ()
   "Return a regexp to find the end of a heredoc.
@@ -1249,7 +1252,19 @@ It will be properly highlighted even when the call omits parens."))
           ;; Handle percent literals: %w(), %q{}, etc.
           ((concat "\\(?:^\\|[[ \t\n<+(,=]\\)" ruby-percent-literal-beg-re)
            (1 (prog1 "|" (ruby-syntax-propertize-percent-literal end)))))
-         (point) end))
+         (point) end)
+        (remove-text-properties start end '(ruby-expansion-match-data))
+        (goto-char start)
+        ;; Find all expression expansions and
+        ;; - set the syntax of all text inside to whitespace,
+        ;; - save the match data to a text property, for font-locking later.
+        (while (re-search-forward ruby-expression-expansion-re end 'move)
+          (when (ruby-in-ppss-context-p 'string)
+            (put-text-property (match-beginning 2) (match-end 2)
+                               'syntax-table (string-to-syntax "-"))
+            (put-text-property (match-beginning 2) (1+ (match-beginning 2))
+                               'ruby-expansion-match-data
+                               (match-data)))))
 
       (defun ruby-syntax-propertize-heredoc (limit)
         (let ((ppss (syntax-ppss))
@@ -1582,7 +1597,7 @@ See `font-lock-syntax-table'.")
    '("\\(^\\s *\\|[\[\{\(,]\\s *\\|\\sw\\s +\\)\\(\\(\\sw\\|_\\)+\\):[^:]" 2 font-lock-constant-face)
    ;; expression expansion
    '(ruby-match-expression-expansion
-     0 font-lock-variable-name-face t)
+     2 font-lock-variable-name-face t)
    ;; warn lower camel case
                                         ;'("\\<[a-z]+[a-z0-9]*[A-Z][A-Za-z0-9]*\\([!?]?\\|\\>\\)"
                                         ;  0 font-lock-warning-face)
@@ -1590,9 +1605,14 @@ See `font-lock-syntax-table'.")
   "Additional expressions to highlight in Ruby mode.")
 
 (defun ruby-match-expression-expansion (limit)
-  (when (re-search-forward "[^\\]\\(\\\\\\\\\\)*\\(#\\({[^}\n\\\\]*\\(\\\\.[^}\n\\\\]*\\)*}\\|\\(\\$\\|@\\|@@\\)\\(\\w\\|_\\)+\\)\\)" limit 'move)
-    (or (ruby-in-ppss-context-p 'string)
-        (ruby-match-expression-expansion limit))))
+  (let ((prop 'ruby-expansion-match-data) pos value)
+    (when (and (setq pos (next-single-char-property-change (point) prop
+                                                           nil limit))
+               (> pos (point)))
+      (goto-char pos)
+      (or (and (setq value (get-text-property pos prop))
+               (progn (set-match-data value) t))
+          (ruby-match-expression-expansion limit)))))
 
 ;;;###autoload
 (define-derived-mode ruby-mode prog-mode "Ruby"

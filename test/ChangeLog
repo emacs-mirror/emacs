@@ -3,6 +3,10 @@
 	* automated/ruby-mode-tests.el (ruby-indent-singleton-class): Pass.
 	(ruby-indent-inside-heredoc-after-operator)
 	(ruby-indent-inside-heredoc-after-space): New tests.
+	Change direct font-lock face references to var references.
+	(ruby-interpolation-suppresses-syntax-inside): New test.
+	(ruby-interpolation-inside-percent-literal-with-paren): New
+	failing test.
 
 2012-11-13  Dmitry Gutov  <dgutov@yandex.ru>
 

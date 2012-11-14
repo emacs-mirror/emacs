@@ -80,7 +80,7 @@ VALUES-PLIST is a list with alternating index and value elements."
 
 (ert-deftest ruby-heredoc-font-lock ()
   (let ((s "foo <<eos.gsub('^ *', '')"))
-    (ruby-assert-face s 9 'font-lock-string-face)
+    (ruby-assert-face s 9 font-lock-string-face)
     (ruby-assert-face s 10 nil)))
 
 (ert-deftest ruby-singleton-class-no-heredoc-font-lock ()
@@ -262,19 +262,35 @@ VALUES-PLIST is a list with alternating index and value elements."
     (should (string= "foo do |b|\n  b + 1\nend" (buffer-string)))))
 
 (ert-deftest ruby-recognize-symbols-starting-with-at-character ()
-  (ruby-assert-face ":@abc" 3 'font-lock-constant-face))
+  (ruby-assert-face ":@abc" 3 font-lock-constant-face))
 
 (ert-deftest ruby-hash-character-not-interpolation ()
   (ruby-assert-face "\"This is #{interpolation}\"" 15
-                    'font-lock-variable-name-face)
+                    font-lock-variable-name-face)
   (ruby-assert-face "\"This is \\#{no interpolation} despite the #\""
-                    15 'font-lock-string-face)
-  (ruby-assert-face "\n#@comment, not ruby code" 5 'font-lock-comment-face)
+                    15 font-lock-string-face)
+  (ruby-assert-face "\n#@comment, not ruby code" 5 font-lock-comment-face)
   (ruby-assert-state "\n#@comment, not ruby code" 4 t)
   (ruby-assert-face "# A comment cannot have #{an interpolation} in it"
-                    30 'font-lock-comment-face)
+                    30 font-lock-comment-face)
   (ruby-assert-face "# #{comment}\n \"#{interpolation}\"" 16
-                    'font-lock-variable-name-face))
+                    font-lock-variable-name-face))
+
+(ert-deftest ruby-interpolation-suppresses-syntax-inside ()
+  (let ((s "\"<ul><li>#{@files.join(\"</li><li>\")}</li></ul>\""))
+    (ruby-assert-state s 8 nil)
+    (ruby-assert-face s 9 font-lock-string-face)
+    (ruby-assert-face s 10 font-lock-variable-name-face)
+    (ruby-assert-face s 41 font-lock-string-face)))
+
+(ert-deftest ruby-interpolation-inside-percent-literal-with-paren ()
+  :expected-result :failed
+  (let ((s "%(^#{\")\"}^)"))
+    (ruby-assert-face s 3 font-lock-string-face)
+    (ruby-assert-face s 4 font-lock-variable-name-face)
+    (ruby-assert-face s 10 font-lock-string-face)
+    ;; It's confused by the closing paren in the middle.
+    (ruby-assert-state s 8 nil)))
 
 (ert-deftest ruby-add-log-current-method-examples ()
   (let ((pairs '(("foo" . "#foo")
