@@ -109,18 +109,33 @@ Each element has the form (WHERE BYTECODE STACK) where:
   (propertize "Advised function"
               'dynamic-docstring-function #'advice--make-docstring)) ;; )
 
+(defun advice-eval-interactive-spec (spec)
+  "Evaluate the interactive spec SPEC."
+  (cond
+   ((stringp spec)
+    ;; There's no direct access to the C code (in call-interactively) that
+    ;; processes those specs, but that shouldn't stop us, should it?
+    ;; FIXME: Despite appearances, this is not faithful: SPEC and
+    ;; (advice-eval-interactive-spec SPEC) will behave subtly differently w.r.t
+    ;; command-history (and maybe a few other details).
+    (call-interactively `(lambda (&rest args) (interactive ,spec) args)))
+   ;; ((functionp spec) (funcall spec))
+   (t (eval spec))))
+
 (defun advice--make-interactive-form (function main)
-  ;; TODO: Make it possible to do around-like advising on the
-  ;; interactive forms (bug#12844).
   ;; TODO: make it so that interactive spec can be a constant which
   ;; dynamically checks the advice--car/cdr to do its job.
-  ;; TODO: Implement interactive-read-args:
-  ;;(when (or (commandp function) (commandp main))
-  ;;  `(interactive-read-args
-  ;;    (cadr (or (interactive-form function) (interactive-form main)))))
-  ;; FIXME: This loads autoloaded functions too eagerly.
+  ;; For that, advice-eval-interactive-spec needs to be more faithful.
+  ;; FIXME: The calls to interactive-form below load autoloaded functions
+  ;; too eagerly.
+  (let ((fspec (cadr (interactive-form function))))
+    (when (eq 'function (car fspec)) ;; Macroexpanded lambda?
+      (setq fspec (nth 1 fspec)))
+    (if (functionp fspec)
+        `(funcall ',fspec
+                  ',(cadr (interactive-form main)))
   (cadr (or (interactive-form function)
-            (interactive-form main))))
+                (interactive-form main))))))
 
 (defsubst advice--make-1 (byte-code stack-depth function main props)
   "Build a function value that adds FUNCTION to MAIN."
@@ -197,7 +212,15 @@ call OLDFUN here:
 If FUNCTION was already added, do nothing.
 PROPS is an alist of additional properties, among which the following have
 a special meaning:
-- `name': a string or symbol.  It can be used to refer to this piece of advice."
+- `name': a string or symbol.  It can be used to refer to this piece of advice.
+
+If one of FUNCTION or OLDFUN is interactive, then the resulting function
+is also interactive.  There are 3 cases:
+- FUNCTION is not interactive: the interactive spec of OLDFUN is used.
+- The interactive spec of FUNCTION is itself a function: it should take one
+  argument (the interactive spec of OLDFUN, which it can pass to
+  `advice-eval-interactive-spec') and return the list of arguments to use.
+- Else, use the interactive spec of FUNCTION and ignore the one of OLDFUN."
   (declare (debug t)) ;;(indent 2)
   `(advice--add-function ,where (gv-ref ,place) ,function ,props))
 
@@ -285,28 +308,21 @@ is defined as a macro, alias, command, ..."
   ;; - change all defadvice in lisp/**/*.el.
   ;; - rewrite advice.el on top of this.
   ;; - obsolete advice.el.
-  ;; To make advice.el and nadvice.el interoperate properly I see 2 different
-  ;; ways:
-  ;; - keep them separate: complete the defalias-fset-function setter with
-  ;;   a matching accessor which both nadvice.el and advice.el will have to use
-  ;;   in place of symbol-function.  This can probably be made to work, but
-  ;;   they have to agree on a "protocol".
-  ;; - layer advice.el on top of nadvice.el.  I prefer this approach.  the
-  ;;   simplest way is to make advice.el build one ad-Advice-foo function for
-  ;;   each advised function which is advice-added/removed whenever ad-activate
-  ;;   ad-deactivate is called.
   (let* ((f (and (fboundp symbol) (symbol-function symbol)))
 	 (nf (advice--normalize symbol f)))
     (unless (eq f nf) ;; Most importantly, if nf == nil!
       (fset symbol nf))
     (add-function where (cond
                          ((eq (car-safe nf) 'macro) (cdr nf))
-                         ;; If the function is not yet defined, we can't yet
-                         ;; install the advice.
-                         ;; FIXME: If it's an autoloaded command, we also
-                         ;; have a problem because we need to load the
-                         ;; command to build the interactive-form.
-                         ((or (not nf) (and (autoloadp nf))) ;; (commandp nf)
+                         ;; Reasons to delay installation of the advice:
+                         ;; - If the function is not yet defined, installing
+                         ;;   the advice would affect `fboundp'ness.
+                         ;; - If it's an autoloaded command,
+                         ;;   advice--make-interactive-form would end up
+                         ;;   loading the command eagerly.
+                         ;; - `autoload' does nothing if the function is
+                         ;;   not an autoload or undefined.
+                         ((or (not nf) (autoloadp nf))
                           (get symbol 'advice--pending))
                          (t (symbol-function symbol)))
                   function props)
