@@ -932,7 +932,9 @@ describing the cycle.
 *** `function-get' fetches a function property, following aliases.
 +++
 *** `posnp' tests if an object is a `posn'.
-*** `set-temporary-overlay-map' sets up a temporary overlay map.
+
+*** `set-temporary-overlay-map' sets up a temporary keymap that
+takes precedence over most other maps for a short while (normally one key).
 +++
 *** `system-users' returns the user names on the system.
 +++
