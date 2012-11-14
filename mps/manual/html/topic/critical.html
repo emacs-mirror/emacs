@@ -299,7 +299,7 @@ implements copying garbage collection), or was already moved when
 fixing a previous reference to it, the reference being fixed must be
 updated (this is the origin of the term &#8220;fix&#8221;).</p>
 <p>As a simple example, <tt class="docutils literal"><span class="pre">LOFix</span></tt> is the pool fix method for the
-<a class="reference internal" href="../pool/lo.html#pool-lo"><em>LO (Leaf Only)</em></a> pool class. It implements a <a class="reference internal" href="../glossary/m.html#term-marking"><em class="xref std std-term">marking</em></a> garbage
+<a class="reference internal" href="../pool/lo.html#pool-lo"><em>LO (Leaf Object)</em></a> pool class. It implements a <a class="reference internal" href="../glossary/m.html#term-marking"><em class="xref std std-term">marking</em></a> garbage
 collector, and does not have to worry about scanning preserved objects
 because it is used to store objects that don&#8217;t contain pointers. (It
 is used in compiler run-time systems to store binary data such as

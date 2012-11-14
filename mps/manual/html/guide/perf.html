@@ -73,11 +73,12 @@ most of the blocks allocated in that generation should be found to be
 <a class="reference internal" href="../glossary/c.html#term-copying-garbage-collection"><em class="xref std std-term">copying</em></a> them can be avoided
 entirely). If a generation is collected when its blocks are mostly
 alive, that is a waste of time.</p>
-<p>In the table below I give the execution time of <tt class="docutils literal"><span class="pre">test-leaf.scm</span></tt> in
+<p>In the tables below I give the execution time of <tt class="docutils literal"><span class="pre">test-leaf.scm</span></tt> in
 the toy Scheme interpreter under different settings for its generation
-chain. (This test case allocates millions of small short-lived
-objects.) In each case the AMC pool is given a chain with a single
-generation with the specified capacity and mortality.</p>
+chain. (This test case allocates hundreds of millions of small
+short-lived objects.)</p>
+<p>First, the effect of varying the capacity of a chain with a single
+generation.</p>
 <table border="1" class="docutils">
 <colgroup>
 <col width="19%" />
@@ -93,59 +94,124 @@ generation with the specified capacity and mortality.</p>
 <tbody valign="top">
 <tr class="row-even"><td>100</td>
 <td>0.80</td>
-<td>39.9</td>
+<td>362.6</td>
 </tr>
 <tr class="row-odd"><td>200</td>
 <td>0.80</td>
-<td>30.2</td>
+<td>354.9</td>
 </tr>
 <tr class="row-even"><td>400</td>
 <td>0.80</td>
-<td>25.5</td>
+<td>349.7</td>
 </tr>
 <tr class="row-odd"><td>800</td>
 <td>0.80</td>
-<td>16.3</td>
+<td>314.4</td>
 </tr>
 <tr class="row-even"><td>1600</td>
 <td>0.80</td>
-<td>9.0</td>
+<td>215.7</td>
 </tr>
 <tr class="row-odd"><td>3200</td>
 <td>0.80</td>
-<td>5.8</td>
+<td>94.0</td>
 </tr>
 <tr class="row-even"><td>6400</td>
-<td>0.20</td>
-<td>4.2</td>
-</tr>
-<tr class="row-odd"><td>6400</td>
-<td>0.40</td>
-<td>4.1</td>
-</tr>
-<tr class="row-even"><td>6400</td>
-<td>0.60</td>
-<td>4.1</td>
-</tr>
-<tr class="row-odd"><td>6400</td>
 <td>0.80</td>
-<td>4.1</td>
-</tr>
-<tr class="row-even"><td>6400</td>
-<td>0.99</td>
-<td>4.2</td>
+<td>53.5</td>
 </tr>
 <tr class="row-odd"><td>12800</td>
 <td>0.80</td>
-<td>4.2</td>
+<td>79.6</td>
 </tr>
 <tr class="row-even"><td>25600</td>
 <td>0.80</td>
-<td>5.2</td>
+<td>77.6</td>
 </tr>
 </tbody>
 </table>
-<p>This table suggests that:</p>
+<p>Second, the effect of varying the mortality of a chain with a single
+generation.</p>
+<table border="1" class="docutils">
+<colgroup>
+<col width="19%" />
+<col width="21%" />
+<col width="60%" />
+</colgroup>
+<thead valign="bottom">
+<tr class="row-odd"><th class="head">Capacity</th>
+<th class="head">Mortality</th>
+<th class="head">Execution time (user+sys)</th>
+</tr>
+</thead>
+<tbody valign="top">
+<tr class="row-even"><td>6400</td>
+<td>0.20</td>
+<td>55.4</td>
+</tr>
+<tr class="row-odd"><td>6400</td>
+<td>0.40</td>
+<td>54.0</td>
+</tr>
+<tr class="row-even"><td>6400</td>
+<td>0.60</td>
+<td>54.0</td>
+</tr>
+<tr class="row-odd"><td>6400</td>
+<td>0.80</td>
+<td>53.5</td>
+</tr>
+<tr class="row-even"><td>6400</td>
+<td>0.99</td>
+<td>54.8</td>
+</tr>
+</tbody>
+</table>
+<p>Third, the effect of varying the number of generations (all
+generations being identical).</p>
+<table border="1" class="docutils">
+<colgroup>
+<col width="21%" />
+<col width="15%" />
+<col width="17%" />
+<col width="47%" />
+</colgroup>
+<thead valign="bottom">
+<tr class="row-odd"><th class="head">Generations</th>
+<th class="head">Capacity</th>
+<th class="head">Mortality</th>
+<th class="head">Execution time (user+sys)</th>
+</tr>
+</thead>
+<tbody valign="top">
+<tr class="row-even"><td>1</td>
+<td>6400</td>
+<td>0.80</td>
+<td>53.5</td>
+</tr>
+<tr class="row-odd"><td>2</td>
+<td>6400</td>
+<td>0.80</td>
+<td>42.4</td>
+</tr>
+<tr class="row-even"><td>3</td>
+<td>6400</td>
+<td>0.80</td>
+<td>42.1</td>
+</tr>
+<tr class="row-odd"><td>4</td>
+<td>6400</td>
+<td>0.80</td>
+<td>42.2</td>
+</tr>
+<tr class="row-even"><td>5</td>
+<td>6400</td>
+<td>0.80</td>
+<td>42.2</td>
+</tr>
+</tbody>
+</table>
+<p>These tables suggest that:</p>
 <ol class="arabic simple">
 <li>The improvement in performance to be gained by getting generation
 sizes right is dramatic: much bigger than the small improvements to
@@ -154,6 +220,8 @@ gained from other techniques.</li>
 execution time (it does affect the distribution of pause times,
 however: see <a class="reference internal" href="../topic/collection.html#topic-collection-schedule"><em>Scheduling of collections</em></a>.)</li>
 <li>You can make generations too big as well as too small.</li>
+<li>There are rapidly diminishing returns to be gained from adding
+generations.</li>
 </ol>
 <div class="admonition-note admonition">
 <p class="first admonition-title">Note</p>
@@ -161,6 +229,109 @@ however: see <a class="reference internal" href="../topic/collection.html#topic-
 are being collected and what proportion of blocks were found to be
 alive.</p>
 </div>
+<p>The table below shows the effect of varying the initial allocation of
+address space to the arena (using three generations each with capacity
+6400 kB, mortality 0.80).</p>
+<table border="1" class="docutils">
+<colgroup>
+<col width="22%" />
+<col width="17%" />
+<col width="19%" />
+<col width="42%" />
+</colgroup>
+<thead valign="bottom">
+<tr class="row-odd"><th class="head">Address space</th>
+<th class="head">Extensions</th>
+<th class="head">Collections</th>
+<th class="head">Execution time (user+sys)</th>
+</tr>
+</thead>
+<tbody valign="top">
+<tr class="row-even"><td>2</td>
+<td>32</td>
+<td>371</td>
+<td>52.0</td>
+</tr>
+<tr class="row-odd"><td>4</td>
+<td>21</td>
+<td>370</td>
+<td>47.0</td>
+</tr>
+<tr class="row-even"><td>8</td>
+<td>0</td>
+<td><a class="footnote-reference" href="#id5" id="id1">[1]</a></td>
+<td><a class="footnote-reference" href="#id5" id="id2">[1]</a></td>
+</tr>
+<tr class="row-odd"><td>14</td>
+<td>0</td>
+<td><a class="footnote-reference" href="#id5" id="id3">[1]</a></td>
+<td><a class="footnote-reference" href="#id5" id="id4">[1]</a></td>
+</tr>
+<tr class="row-even"><td>16</td>
+<td>0</td>
+<td>2436</td>
+<td>160.5</td>
+</tr>
+<tr class="row-odd"><td>18</td>
+<td>0</td>
+<td>1135</td>
+<td>89.1</td>
+</tr>
+<tr class="row-even"><td>20</td>
+<td>0</td>
+<td>673</td>
+<td>60.6</td>
+</tr>
+<tr class="row-odd"><td>22</td>
+<td>0</td>
+<td>484</td>
+<td>48.7</td>
+</tr>
+<tr class="row-even"><td>24</td>
+<td>0</td>
+<td>400</td>
+<td>43.1</td>
+</tr>
+<tr class="row-odd"><td>32</td>
+<td>0</td>
+<td>368</td>
+<td>41.2</td>
+</tr>
+<tr class="row-even"><td>64</td>
+<td>0</td>
+<td>368</td>
+<td>43.1</td>
+</tr>
+<tr class="row-odd"><td>128</td>
+<td>0</td>
+<td>368</td>
+<td>46.4</td>
+</tr>
+<tr class="row-even"><td>256</td>
+<td>0</td>
+<td>368</td>
+<td>46.3</td>
+</tr>
+<tr class="row-odd"><td>512</td>
+<td>0</td>
+<td>368</td>
+<td>49.3</td>
+</tr>
+</tbody>
+</table>
+<div class="admonition-note admonition">
+<p class="first admonition-title">Note</p>
+<table class="last docutils footnote" frame="void" id="id5" rules="none">
+<colgroup><col class="label" /><col /></colgroup>
+<tbody valign="top">
+<tr><td class="label">[1]</td><td><em>(<a class="fn-backref" href="#id1">1</a>, <a class="fn-backref" href="#id2">2</a>, <a class="fn-backref" href="#id3">3</a>, <a class="fn-backref" href="#id4">4</a>)</em> With this initial allocation of address space, the test
+case failed to run to completion after thousands of seconds
+and tens of thousands of garbage collection cycles.</td></tr>
+</tbody>
+</table>
+</div>
+<p>The lesson here is that the allocation of address space has to be
+comfortably larger than the working set of the program.</p>
 </div>
 
 

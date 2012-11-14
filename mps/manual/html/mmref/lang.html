@@ -137,8 +137,9 @@ longer required (see <a class="reference internal" href="../glossary/m.html#term
 <dt id="term-cobol">COBOL</dt>
 <dd><p class="first">COBOL was designed by the CODASYL committee in 1959–60 to be a
 business programming language, and has been extended many
-times since. It is still the most widely-used programming
-language (in terms of lines of code in use).</p>
+times since. A 1997 Gartner Group report estimated that 80% of
+computer software (by count of source lines) was written in
+COBOL.</p>
 <p>Prior to 2002, COBOL had no <a class="reference internal" href="../glossary/h.html#term-heap-allocation"><em class="xref std std-term">heap allocation</em></a>, and did
 well in its application domain without it. COBOL 2002 has
 <a class="reference internal" href="../glossary/p.html#term-pointer"><em class="xref std std-term">pointers</em></a> and heap allocation through <tt class="docutils literal"><span class="pre">ALLOCATE</span></tt> and
@@ -454,7 +455,8 @@ of weak (hash) tables, which have the unusual feature that
 their keys and values can be dynamically switched from being
 <a class="reference internal" href="../glossary/s.html#term-strong-reference"><em class="xref std std-term">strong references</em></a> to weak references, and vice versa
 (by assigning to the <tt class="docutils literal"><span class="pre">__mode</span></tt> field of the table&#8217;s
-metatable).</p>
+metatable). It also supports <a class="reference internal" href="../glossary/f.html#term-finalization"><em class="xref std std-term">finalization</em></a> (by
+assigning the <tt class="docutils literal"><span class="pre">__gc</span></tt> field of the object&#8217;s metatable).</p>
 <div class="admonition-related-link last admonition">
 <p class="first admonition-title">Related links</p>
 <p class="last"><a class="reference external" href="http://lua.org">Lua</a>,

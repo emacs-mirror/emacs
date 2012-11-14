@@ -519,6 +519,14 @@ some objects (such as those near the destination of ambiguous
 references) even though they are not reachable.</p>
 <p>If you do not want the arena to remain in the parked state, you
 must explicitly call <a class="reference internal" href="#mps_arena_release" title="mps_arena_release"><tt class="xref c c-func docutils literal"><span class="pre">mps_arena_release()</span></tt></a> afterwards.</p>
+<div class="admonition-note admonition">
+<p class="first admonition-title">Note</p>
+<p class="last">It is not normally necessary to call this function: in the
+<a class="reference internal" href="../glossary/u.html#term-unclamped-state"><em class="xref std std-term">unclamped state</em></a>, collections start automatically.
+However, it may be useful during development and debugging:
+the more frequently the collector runs, the sooner and more
+reliably errors are discovered. See <a class="reference internal" href="../guide/debug.html#guide-debug-advice"><em>General debugging advice</em></a>.</p>
+</div>
 </dd></dl>
 
 <dl class="function">
