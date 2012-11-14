@@ -1,3 +1,70 @@
+2012-11-14  Paul Eggert  <eggert@cs.ucla.edu>
+
+	Use faccessat, not access, when checking file permissions (Bug#12632).
+	This fixes a bug that has been present in Emacs since its creation.
+	It was reported by Chris Torek in 1983 even before GNU Emacs existed,
+	which must set some sort of record.  (Torek's bug report was against
+	a predecessor of GNU Emacs, but GNU Emacs happened to have the
+	same common flaw.)  See Torek's Usenet posting
+	"setuid/setgid programs & Emacs" Article-I.D.: sri-arpa.858
+	Posted: Fri Apr  8 14:18:56 1983.
+	* Makefile.in (LIB_EACCESS): New macro.
+	(LIBES): Use it.
+	* callproc.c (init_callproc):
+	* charset.c (init_charset):
+	* fileio.c (check_existing, check_executable, check_writable)
+	(Ffile_readable_p):
+	* lread.c (openp, load_path_check):
+	* process.c (allocate_pty):
+	* xrdb.c (file_p):
+	Use effective UID when checking permissions, not real UID.
+	* callproc.c (init_callproc):
+	* charset.c (init_charset):
+	* lread.c (load_path_check, init_lread):
+	Test whether directories are accessible, not merely whether they exist.
+	* conf_post.h (GNULIB_SUPPORT_ONLY_AT_FDCWD): New macro.
+	* fileio.c (check_existing, check_executable, check_writable)
+	(Ffile_readable_p):
+	Use symbolic names instead of integers for the flags, as they're
+	portable now.
+	(check_writable): New arg AMODE.  All uses changed.
+	Set errno on failure.
+	(Ffile_readable_p): Use faccessat, not stat + open + close.
+	(Ffile_writable_p): No need to call check_existing + check_writable.
+	Just call check_writable and then look at errno.  This saves a syscall.
+	dir should never be nil; replace an unnecessary runtime check
+	with an eassert.  When checking the parent directory of a nonexistent
+	file, check that the directory is searchable as well as writable, as
+	we can't create files in unsearchable directories.
+	(file_directory_p): New function, which uses 'stat' on most platforms
+	but faccessat with D_OK (for efficiency) if WINDOWSNT.
+	(Ffile_directory_p, Fset_file_times): Use it.
+	(file_accessible_directory_p): New function, which uses a single
+	syscall for efficiency.
+	(Ffile_accessible_directory_p): Use it.
+	* xrdb.c (file_p): Use file_directory_p.
+	* lisp.h (file_directory_p, file_accessible_directory_p): New decls.
+	* lread.c (openp): When opening a file, use fstat rather than
+	stat, as that avoids a permissions race.  When not opening a file,
+	use file_directory_p rather than stat.
+	(dir_warning): First arg is now a usage string, not a format.
+	Use errno.  All uses changed.
+	* nsterm.m (ns_term_init): Remove unnecessary call to file-readable
+	that merely introduced a race.
+	* process.c, sysdep.c, term.c: All uses of '#ifdef O_NONBLOCK'
+	changed to '#if O_NONBLOCK', to accommodate gnulib O_* style,
+	and similarly for the other O_* flags.
+	* w32.c (sys_faccessat): Rename from sys_access and switch to
+	faccessat's API.  All uses changed.
+	* xrdb.c: Do not include <sys/stat.h>; no longer needed.
+	(magic_db): Rename from magic_file_p.
+	(magic_db, search_magic_path): Return an XrmDatabase rather than a
+	char *, so that we don't have to test for file existence
+	separately from opening the file for reading.  This removes a race
+	fixes a permission-checking problem, and simplifies the code.
+	All uses changed.
+	(file_p): Remove; no longer needed.
+
 2012-11-13  Dmitry Antipov  <dmantipov@yandex.ru>
 
 	Omit glyphs initialization at startup.
