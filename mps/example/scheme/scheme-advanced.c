@@ -35,14 +35,15 @@
  * - \#foo unsatisfactory in read and print
  */
 
+#include <assert.h>
+#include <ctype.h>
+#include <errno.h>
+#include <setjmp.h>
+#include <stdarg.h>
+#include <stddef.h>
 #include <stdio.h>
 #include <stdlib.h>
-#include <stddef.h>
-#include <stdarg.h>
-#include <ctype.h>
 #include <string.h>
-#include <assert.h>
-#include <setjmp.h>
 
 #include "mps.h"
 #include "mpsavm.h"
@@ -1130,10 +1131,9 @@ static void print(obj_t obj, unsigned depth, FILE *stream)
     } break;
 
     case TYPE_OPERATOR: {
-      fprintf(stream, "#[operator \"%s\" %p %p ",
+      fprintf(stream, "#[operator \"%s\" %p ",
               obj->operator.name,
-              (void *)obj,
-              (void *)obj->operator.entry);
+              (void *)obj);
       if(depth == 0)
         fputs("...", stream);
       else {
@@ -1258,6 +1258,7 @@ static obj_t read_list(FILE *stream, int c)
   obj_t list, new, end;
 
   list = obj_empty;
+  end = NULL;                   /* suppress "uninitialized" warning in GCC */
 
   for(;;) {
     c = getnbc(stream);
@@ -1491,7 +1492,6 @@ static void mps_chat(void);
 static obj_t load(obj_t env, obj_t op_env, obj_t filename) {
   obj_t port, result = obj_undefined;
   FILE *stream;
-  extern int errno;
   assert(TYPE(filename) == TYPE_STRING);
   stream = fopen(filename->string.string, "r");
   if(stream == NULL)
@@ -1523,6 +1523,7 @@ static obj_t eval_list(obj_t env, obj_t op_env, obj_t list, char *message)
 {
   obj_t result, end, pair;
   result = obj_empty;
+  end = NULL;                   /* suppress "uninitialized" warning in GCC */
   while(list != obj_empty) {
     if(TYPE(list) != TYPE_PAIR)
       error(message);
@@ -2408,6 +2409,7 @@ static obj_t entry_append(obj_t env, obj_t op_env, obj_t operator, obj_t operand
   obj_t arg1, arg2, result, pair, end;
   eval_args(operator->operator.name, env, op_env, operands, 2, &arg1, &arg2);
   result = obj_empty;
+  end = NULL;                   /* suppress "uninitialized" warning in GCC */
   while(TYPE(arg1) == TYPE_PAIR) {
     pair = make_pair(CAR(arg1), obj_empty);
     if(result == obj_empty)
