@@ -1,3 +1,10 @@
+2012-11-15  Daniel Colascione  <dancol@dancol.org>
+
+	* term/w32-win.el (w32-handle-dropped-file): Use a "file://"
+	prefix instead of "file:" so that when FILE-NAME begins with "//",
+	as it does when the target file is on a network share, url-handler
+	isn't confused.
+
 2012-11-15  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* emacs-lisp/advice.el (ad-definition-type): Make sure we don't use
