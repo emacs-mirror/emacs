@@ -182,17 +182,31 @@ WHERE is a symbol to select an entry in `advice--where-alist'."
             (advice--make-1 (aref flist 1) (aref flist 3)
                             first nrest props)))))))
 
+(defvar advice--buffer-local-function-sample nil)
+
+(defun advice--set-buffer-local (var val)
+  (if (function-equal val advice--buffer-local-function-sample)
+      (kill-local-variable var)
+    (set (make-local-variable var) val)))
+
+;;;###autoload
+(defun advice--buffer-local (var)
+  "Buffer-local value of VAR, presumed to contain a function."
+  (declare (gv-setter advice--set-buffer-local))
+  (if (local-variable-p var) (symbol-value var)
+    (setq advice--buffer-local-function-sample
+          (lambda (&rest args) (apply (default-value var) args)))))
+
 ;;;###autoload
 (defmacro add-function (where place function &optional props)
   ;; TODO:
-  ;; - provide something like `around' for interactive forms.
-  ;; - provide some kind of buffer-local functionality at least when `place'
-  ;;   is a variable.
   ;; - obsolete with-wrapper-hook (mostly requires buffer-local support).
   ;; - provide some kind of control over ordering.  E.g. debug-on-entry, ELP
   ;;   and tracing want to stay first.
-  ;; - maybe also let `where' specify some kind of predicate and use it
+  ;; - maybe let `where' specify some kind of predicate and use it
   ;;   to implement things like mode-local or eieio-defmethod.
+  ;;   Of course, that only makes sense if the predicates of all advices can
+  ;;   be combined and made more efficient.
   ;; :before is like a normal add-hook on a normal hook.
   ;; :before-while is like add-hook on run-hook-with-args-until-failure.
   ;; :before-until is like add-hook on run-hook-with-args-until-success.
@@ -214,6 +228,10 @@ PROPS is an alist of additional properties, among which the following have
 a special meaning:
 - `name': a string or symbol.  It can be used to refer to this piece of advice.
 
+PLACE cannot be a simple variable.  Instead it should either be
+\(default-value 'VAR) or (local 'VAR) depending on whether FUNCTION
+should be applied to VAR buffer-locally or globally.
+
 If one of FUNCTION or OLDFUN is interactive, then the resulting function
 is also interactive.  There are 3 cases:
 - FUNCTION is not interactive: the interactive spec of OLDFUN is used.
@@ -222,6 +240,10 @@ is also interactive.  There are 3 cases:
   `advice-eval-interactive-spec') and return the list of arguments to use.
 - Else, use the interactive spec of FUNCTION and ignore the one of OLDFUN."
   (declare (debug t)) ;;(indent 2)
+  (cond ((eq 'local (car-safe place))
+         (setq place `(advice--buffer-local ,@(cdr place))))
+        ((symbolp place)
+         (error "Use (default-value '%S) or (local '%S)" place place)))
   `(advice--add-function ,where (gv-ref ,place) ,function ,props))
 
 ;;;###autoload
@@ -236,6 +258,10 @@ If FUNCTION was not added to PLACE, do nothing.
 Instead of FUNCTION being the actual function, it can also be the `name'
 of the piece of advice."
   (declare (debug t))
+  (cond ((eq 'local (car-safe place))
+         (setq place `(advice--buffer-local ,@(cdr place))))
+        ((symbolp place)
+         (error "Use (default-value '%S) or (local '%S)" place place)))
   (gv-letplace (getter setter) place
     (macroexp-let2 nil new `(advice--remove-function ,getter ,function)
       `(unless (eq ,new ,getter) ,(funcall setter new)))))

@@ -1,3 +1,10 @@
+2012-11-15  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* emacs-lisp/nadvice.el: Add buffer-local support to add-function.
+	(advice--buffer-local-function-sample): New var.
+	(advice--set-buffer-local, advice--buffer-local): New functions.
+	(add-function, remove-function): Use them.
+
 2012-11-15  Drew Adams  <drew.adams@oracle.com>
 
 	* imenu.el (imenu--split-submenus): Use imenu--subalist-p (bug#12717).
