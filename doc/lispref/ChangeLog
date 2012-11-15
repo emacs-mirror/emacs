@@ -1,3 +1,8 @@
+2012-11-15  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* keymaps.texi (Translation Keymaps): Add a subsection "Interaction
+	with normal keymaps".
+
 2012-11-15  Dmitry Antipov  <dmantipov@yandex.ru>
 
 	* internals.texi (Garbage Collection): Update descriptions

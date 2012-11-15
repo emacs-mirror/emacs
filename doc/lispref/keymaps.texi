@@ -1540,14 +1540,11 @@ sequence, to translate certain event sequences into others.
 being read, as it is read, against @code{input-decode-map}, then
 @code{local-function-key-map}, and then against @code{key-translation-map}.
 
-@defvar input-decode-map
-This variable holds a keymap that describes the character sequences sent
-by function keys on an ordinary character terminal.  This keymap has the
-same structure as other keymaps, but is used differently: it specifies
-translations to make while reading key sequences, rather than bindings
-for key sequences.
+These keymaps have the same structure as other keymaps, but they are used
+differently: they specify translations to make while reading key sequences,
+rather than bindings for key sequences.
 
-If @code{input-decode-map} ``binds'' a key sequence @var{k} to a vector
+If one of these keymaps ``binds'' a key sequence @var{k} to a vector
 @var{v}, then when @var{k} appears as a subsequence @emph{anywhere} in a
 key sequence, it is replaced with the events in @var{v}.
 
@@ -1561,6 +1558,10 @@ Thus, typing @kbd{C-c @key{PF1}} sends the character sequence @kbd{C-c
 @key{ESC} O P}; later the function @code{read-key-sequence} translates
 this back into @kbd{C-c @key{PF1}}, which it returns as the vector
 @code{[?\C-c pf1]}.
+
+@defvar input-decode-map
+This variable holds a keymap that describes the character sequences sent
+by function keys on an ordinary character terminal.
 
 The value of @code{input-decode-map} is usually set up automatically
 according to the terminal's Terminfo or Termcap entry, but sometimes
@@ -1636,8 +1637,6 @@ to turn the character that follows into a Hyper character:
   (let ((symbol (if (symbolp e) e (car e))))
     (setq symbol (intern (concat string
                                  (symbol-name symbol))))
-@end group
-@group
     (if (symbolp e)
         symbol
       (cons symbol (cdr e)))))
@@ -1647,10 +1646,30 @@ to turn the character that follows into a Hyper character:
 @end example
 
   If you have enabled keyboard character set decoding using
-@code{set-keyboard-coding-system}, decoding is done after the
-translations listed above.  @xref{Terminal I/O Encoding}.  However, in
-future Emacs versions, character set decoding may be done at an
-earlier stage.
+@code{set-keyboard-coding-system}, decoding is done before the
+translations listed above.  @xref{Terminal I/O Encoding}.
+
+@subsection Interaction with normal keymaps
+
+The end of a key sequence is detected when that key sequence either is bound
+to a command, or when Emacs determines that no additional event can lead
+to a sequence that is bound to a command.
+
+This means that, while @code{input-decode-map} and @code{key-translation-map}
+apply regardless of whether the original key sequence would have a binding, the
+presence of such a binding can still prevent translation from taking place.
+For example, let us return to our VT100 example above and add a binding for
+@kbd{C-c @key{ESC}} to the global map; now when the user hits @kbd{C-c
+@key{PF1}} Emacs will fail to decode @kbd{C-c @key{ESC} O P} into @kbd{C-c
+@key{PF1}} because it will stop reading keys right after @kbd{C-x @key{ESC}},
+leaving @kbd{O P} for later.  This is in case the user really hit @kbd{C-c
+@key{ESC}}, in which case Emacs should not sit there waiting for the next key
+to decide whether the user really pressed @kbd{@key{ESC}} or @kbd{@key{PF1}}.
+
+For that reason, it is better to avoid binding commands to key sequences where
+the end of the key sequence is a prefix of a key translation.  The main such
+problematic suffixes/prefixes are @kbd{@key{ESC}}, @kbd{M-O} (which is really
+@kbd{@key{ESC} O}) and @kbd{M-[} (which is really @kbd{@key{ESC} [}).
 
 @node Key Binding Commands
 @section Commands for Binding Keys
