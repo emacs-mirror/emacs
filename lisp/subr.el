@@ -3967,7 +3967,7 @@ Note that this does NOT take precedence over the \"overriding\" maps
 found in MAP, the normal key lookup sequence then continues.
 
 Normally, MAP is used only once.  If the optional argument
-KEEP-PRED is `t', MAP stays active if a key from MAP is used.
+KEEP-PRED is t, MAP stays active if a key from MAP is used.
 KEEP-PRED can also be a function of no arguments: if it returns
 non-nil then MAP stays active."
   (let* ((clearfunsym (make-symbol "clear-temporary-overlay-map"))
