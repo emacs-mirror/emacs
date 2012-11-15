@@ -1,3 +1,10 @@
+2012-11-15  Juanma Barranquero  <lekktu@gmail.com>
+
+	* config.nt: Sync with autogen/config.in.
+	(GETGROUPS_T, GETGROUPS_ZERO_BUG, GNULIB_FACCESSAT, HAVE_ACCESS)
+	(HAVE_EACCESS, HAVE_FACCESSAT, HAVE_GETGROUPS, HAVE_LIBGEN_H):
+	New macros.
+
 2012-11-14  Eli Zaretskii  <eliz@gnu.org>
 
 	* inc/unistd.h (faccessat): Add prototype.
