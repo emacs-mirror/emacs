@@ -1,3 +1,8 @@
+2012-11-15  Glenn Morris  <rgm@gnu.org>
+
+	* term.el (ansi-term): Don't let C-x escape-char binding
+	clobber the more standard C-c binding.  (Bug#12842)
+
 2012-11-15  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* emacs-lisp/gv.el (setf): Fix debug spec for multiple assignments
