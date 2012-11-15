@@ -260,9 +260,11 @@ The name is made by appending a number to PREFIX, default \"G\"."
                         (require 'help-fns)
                         (cons (help-add-fundoc-usage
                                (if (stringp (car hdr)) (pop hdr))
-                               (format "%S"
-                                       (cons 'fn
-                                             (cl--make-usage-args orig-args))))
+                               ;; Be careful with make-symbol and (back)quote,
+                               ;; see bug#12884.
+                               (let ((print-gensym nil) (print-quoted t))
+                                 (format "%S" (cons 'fn (cl--make-usage-args
+                                                         orig-args)))))
                               hdr)))
 		    (list `(let* ,cl--bind-lets
                              ,@(nreverse cl--bind-forms)

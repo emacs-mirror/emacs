@@ -1,3 +1,9 @@
+2012-11-15  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* emacs-lisp/cl-macs.el (cl--transform-lambda): Defend against
+	potential binding of print-gensym to t, and prettify (back)quotes in
+	case they appear in args's default values (bug#12884).
+
 2012-11-14  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* emacs-lisp/nadvice.el: Add around advice for interactive specs.
