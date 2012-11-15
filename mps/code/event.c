@@ -119,6 +119,8 @@ Res EventFlush(EventKind kind)
 
   }
 
+  res = ResOK;
+
 failClockSync:  
 failWrite:
 failCreate:
