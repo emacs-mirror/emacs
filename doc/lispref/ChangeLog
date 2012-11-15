@@ -1,3 +1,8 @@
+2012-11-15  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* keymaps.texi (Translation Keymaps): Add a subsection "Interaction
+	with normal keymaps" (bug#12868).
+
 2012-11-15  Glenn Morris  <rgm@gnu.org>
 
 	* display.texi (Face Attributes): Fix :underline COLOR description.
