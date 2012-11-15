@@ -1,5 +1,8 @@
 2012-11-15  Glenn Morris  <rgm@gnu.org>
 
+	* eshell/em-cmpl.el (eshell-pcomplete): New command.  (Bug#12838)
+	(eshell-cmpl-initialize): Bind eshell-pcomplete to TAB, C-i.
+
 	* faces.el (face-underline-p): Doc fix.  Handle :underline being
 	things other than `t' (a string, a list).
 	(face-inverse-video-p): Doc fix.
