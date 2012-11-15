@@ -1,3 +1,7 @@
+2012-11-15  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* emacs-lisp/cl-macs.el (cl-flet, cl-flet*): Fix docstring (bug#12895).
+
 2012-11-15  Glenn Morris  <rgm@gnu.org>
 
 	* eshell/em-cmpl.el (eshell-pcomplete): New command.  (Bug#12838)

@@ -1648,7 +1648,7 @@ a `let' form, except that the list of symbols can be computed at run-time."
 
 ;;;###autoload
 (defmacro cl-flet (bindings &rest body)
-  "Make temporary function definitions.
+  "Make local function definitions.
 Like `cl-labels' but the definitions are not recursive.
 
 \(fn ((FUNC ARGLIST BODY...) ...) FORM...)"
@@ -1672,7 +1672,7 @@ Like `cl-labels' but the definitions are not recursive.
 
 ;;;###autoload
 (defmacro cl-flet* (bindings &rest body)
-  "Make temporary function definitions.
+  "Make local function definitions.
 Like `cl-flet' but the definitions can refer to previous ones.
 
 \(fn ((FUNC ARGLIST BODY...) ...) FORM...)"
