@@ -236,7 +236,7 @@ For example, (setf (cadr x) y) is equivalent to (setcar (cdr x) y).
 The return value is the last VAL in the list.
 
 \(fn PLACE VAL PLACE VAL ...)"
-  (declare (debug (gv-place form)))
+  (declare (debug (&rest [gv-place form])))
   (if (and args (null (cddr args)))
       (let ((place (pop args))
             (val (car args)))

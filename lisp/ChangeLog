@@ -1,3 +1,8 @@
+2012-11-15  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* emacs-lisp/gv.el (setf): Fix debug spec for multiple assignments
+	(bug#12879).
+
 2012-11-14  Glenn Morris  <rgm@gnu.org>
 
 	* subr.el (set-temporary-overlay-map): Doc fix.
