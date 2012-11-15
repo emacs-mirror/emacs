@@ -1,6 +1,8 @@
 2012-11-15  Glenn Morris  <rgm@gnu.org>
 
 	* display.texi (Face Attributes): Fix :underline COLOR description.
+	(Attribute Functions): Update for set-face-underline rename.
+	Tweak descriptions of face-underline-p, face-inverse-video-p.
 
 2012-11-14  Glenn Morris  <rgm@gnu.org>
 

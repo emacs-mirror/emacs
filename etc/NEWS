@@ -948,8 +948,8 @@ takes precedence over most other maps for a short while (normally one key).
 +++
 ** New fringe bitmap `exclamation-mark'.
 
++++
 ** Face underlining can now use a wave.
-See the "Face Attributes" section of the Elisp manual.
 
 ** The following functions and variables are obsolete:
 ---

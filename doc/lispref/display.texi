@@ -2403,7 +2403,7 @@ This sets the @code{:slant} attribute of @var{face} to @var{normal} if
 @var{italic-p} is @code{nil}, and to @var{italic} otherwise.
 @end defun
 
-@defun set-face-underline-p face underline &optional frame
+@defun set-face-underline face underline &optional frame
 This sets the @code{:underline} attribute of @var{face} to
 @var{underline}.
 @end defun
@@ -2466,12 +2466,16 @@ attribute of @var{face} is @code{italic} or @code{oblique}, and
 @code{nil} otherwise.
 @end defun
 
+@c Note the weasel words.  A face that inherits from an underlined
+@c face but does not specify :underline will return nil.
 @defun face-underline-p face &optional frame
-This function returns the @code{:underline} attribute of face @var{face}.
+This function returns non-@code{nil} if face @var{face} specifies
+a non-@code{nil} @code{:underline} attribute.
 @end defun
 
 @defun face-inverse-video-p face &optional frame
-This function returns the @code{:inverse-video} attribute of face @var{face}.
+This function returns non-@code{nil} if face @var{face} specifies
+a non-@code{nil} @code{:inverse-video} attribute.
 @end defun
 
 @node Displaying Faces

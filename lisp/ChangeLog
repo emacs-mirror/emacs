@@ -1,5 +1,13 @@
 2012-11-15  Glenn Morris  <rgm@gnu.org>
 
+	* faces.el (face-underline-p): Doc fix.  Handle :underline being
+	things other than `t' (a string, a list).
+	(face-inverse-video-p): Doc fix.
+	(set-face-underline): Rename it back from set-face-underline-p.
+	Doc fix.  Allow interactive input of values other than t.
+	(read-face-attribute): Apply formatting to :underline,
+	since like :box and :stipple it can take list values.
+
 	* term.el (ansi-term): Don't let C-x escape-char binding
 	clobber the more standard C-c binding.  (Bug#12842)
 
