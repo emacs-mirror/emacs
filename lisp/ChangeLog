@@ -1,3 +1,7 @@
+2012-11-15  Juanma Barranquero  <lekktu@gmail.com>
+
+	* emacs-lisp/cl-macs.el (cl-loop, cl-do, cl-do*): Doc fixes.
+
 2012-11-15  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* emacs-lisp/cl-macs.el (cl-flet, cl-flet*): Fix docstring (bug#12895).

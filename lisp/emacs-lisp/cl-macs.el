@@ -756,7 +756,7 @@ This is compatible with Common Lisp, but note that `defun' and
 
 ;;;###autoload
 (defmacro cl-loop (&rest loop-args)
-  "The Common Lisp `cl-loop' macro.
+  "The Common Lisp `loop' macro.
 Valid clauses are:
   for VAR from/upfrom/downfrom NUM to/upto/downto/above/below NUM by NUM,
   for VAR in LIST by FUNC, for VAR on LIST by FUNC, for VAR = INIT then EXPR,
@@ -1501,7 +1501,7 @@ such that COMBO is equivalent to (and . CLAUSES)."
 
 ;;;###autoload
 (defmacro cl-do (steps endtest &rest body)
-  "The Common Lisp `cl-do' loop.
+  "The Common Lisp `do' loop.
 
 \(fn ((VAR INIT [STEP])...) (END-TEST [RESULT...]) BODY...)"
   (declare (indent 2)
@@ -1513,7 +1513,7 @@ such that COMBO is equivalent to (and . CLAUSES)."
 
 ;;;###autoload
 (defmacro cl-do* (steps endtest &rest body)
-  "The Common Lisp `cl-do*' loop.
+  "The Common Lisp `do*' loop.
 
 \(fn ((VAR INIT [STEP])...) (END-TEST [RESULT...]) BODY...)"
   (declare (indent 2) (debug cl-do))
