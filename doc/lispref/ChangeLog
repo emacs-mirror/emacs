@@ -1,3 +1,11 @@
+2012-11-15  Dmitry Antipov  <dmantipov@yandex.ru>
+
+	* internals.texi (Garbage Collection): Update descriptions
+	of vectorlike_header, garbage-collect and gc-cons-threshold.
+	(Object Internals): Explain Lisp_Object layout and the basics
+	of an internal type system.
+	(Buffer Internals): Update description of struct buffer.
+
 2012-11-13  Glenn Morris  <rgm@gnu.org>
 
 	* variables.texi (Adding Generalized Variables):

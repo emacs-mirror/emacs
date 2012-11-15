@@ -226,12 +226,11 @@ of 8k bytes, and small vectors are packed into blocks of 4k bytes).
   Beyond the basic vector, a lot of objects like window, buffer, and
 frame are managed as if they were vectors.  The corresponding C data
 structures include the @code{struct vectorlike_header} field whose
-@code{next} field points to the next object in the chain:
-@code{header.next.buffer} points to the next buffer (which could be
-a killed buffer), and @code{header.next.vector} points to the next
-vector in a free list.  If a vector is small (smaller than or equal to
-@code{VBLOCK_BYTES_MAX} bytes, see @file{alloc.c}), then
-@code{header.next.nbytes} contains the vector size in bytes.
+@code{size} member contains the subtype enumerated by @code{enum pvec_type}
+and an information about how many @code{Lisp_Object} fields this structure
+contains and what the size of the rest data is.  This information is
+needed to calculate the memory footprint of an object, and used
+by the vector allocation code while iterating over the vector blocks.
 
 @cindex garbage collection
   It is quite common to use some storage for a while, then release it
@@ -284,88 +283,147 @@ the amount of space in use.  (Garbage collection can also occur
 spontaneously if you use more than @code{gc-cons-threshold} bytes of
 Lisp data since the previous garbage collection.)
 
-@code{garbage-collect} returns a list containing the following
-information:
+@code{garbage-collect} returns a list with information on amount of space in
+use, where each entry has the form @samp{(@var{name} @var{size} @var{used})}
+or @samp{(@var{name} @var{size} @var{used} @var{free})}.  In the entry,
+@var{name} is a symbol describing the kind of objects this entry represents,
+@var{size} is the number of bytes used by each one, @var{used} is the number
+of those objects that were found live in the heap, and optional @var{free} is
+the number of those objects that are not live but that Emacs keeps around for
+future allocations.  So an overall result is:
 
 @example
-@group
-((@var{used-conses} . @var{free-conses})
- (@var{used-syms} . @var{free-syms})
-@end group
- (@var{used-miscs} . @var{free-miscs})
- @var{used-string-chars}
- @var{used-vector-slots}
- (@var{used-floats} . @var{free-floats})
- (@var{used-intervals} . @var{free-intervals})
- (@var{used-strings} . @var{free-strings}))
+((@code{conses} @var{cons-size} @var{used-conse} @var{free-conses})
+ (@code{symbols} @var{symbol-size} @var{used-symbols} @var{free-symbols})
+ (@code{miscs} @var{misc-size} @var{used-miscs} @var{free-miscs})
+ (@code{strings} @var{string-size} @var{used-strings} @var{free-strings})
+ (@code{string-bytes} @var{byte-size} @var{used-bytes})
+ (@code{vectors} @var{vector-size} @var{used-vectors})
+ (@code{vector-slots} @var{slot-size} @var{used-slots} @var{free-slots})
+ (@code{floats} @var{float-size} @var{used-floats} @var{free-floats})
+ (@code{intervals} @var{interval-size} @var{used-intervals} @var{free-intervals})
+ (@code{buffers} @var{buffer-size} @var{used-buffers})
+ (@code{heap} @var{unit-size} @var{total-size} @var{free-size}))
 @end example
 
 Here is an example:
 
 @example
-@group
 (garbage-collect)
-     @result{} ((106886 . 13184) (9769 . 0)
-                (7731 . 4651) 347543 121628
-                (31 . 94) (1273 . 168)
-                (25474 . 3569))
-@end group
+      @result{} ((conses 16 49126 8058) (symbols 48 14607 0)
+                 (miscs 40 34 56) (strings 32 2942 2607)
+                 (string-bytes 1 78607) (vectors 16 7247)
+                 (vector-slots 8 341609 29474) (floats 8 71 102)
+                 (intervals 56 27 26) (buffers 944 8)
+                 (heap 1024 11715 2678))
 @end example
 
-Here is a table explaining each element:
+Below is a table explaining each element.  Note that last @code{heap} entry
+is optional and present only if an underlying @code{malloc} implementation
+provides @code{mallinfo} function.
 
 @table @var
+@item cons-size
+Internal size of a cons cell, i.e.@: @code{sizeof (struct Lisp_Cons)}.
+
 @item used-conses
 The number of cons cells in use.
 
 @item free-conses
-The number of cons cells for which space has been obtained from the
-operating system, but that are not currently being used.
+The number of cons cells for which space has been obtained from
+the operating system, but that are not currently being used.
 
-@item used-syms
+@item symbol-size
+Internal size of a symbol, i.e.@: @code{sizeof (struct Lisp_Symbol)}.
+
+@item used-symbols
 The number of symbols in use.
 
-@item free-syms
-The number of symbols for which space has been obtained from the
-operating system, but that are not currently being used.
+@item free-symbols
+The number of symbols for which space has been obtained from
+the operating system, but that are not currently being used.
+
+@item misc-size
+Internal size of a miscellaneous entity, i.e.@:
+@code{sizeof (union Lisp_Misc)}, which is a size of the
+largest type enumerated in @code{enum Lisp_Misc_Type}.
 
 @item used-miscs
-The number of miscellaneous objects in use.  These include markers and
-overlays, plus certain objects not visible to users.
+The number of miscellaneous objects in use.  These include markers
+and overlays, plus certain objects not visible to users.
 
 @item free-miscs
 The number of miscellaneous objects for which space has been obtained
 from the operating system, but that are not currently being used.
 
-@item used-string-chars
-The total size of all strings, in characters.
+@item string-size
+Internal size of a string header, i.e.@: @code{sizeof (struct Lisp_String)}.
 
-@item used-vector-slots
-The total number of elements of existing vectors.
+@item used-strings
+The number of string headers in use.
+
+@item free-strings
+The number of string headers for which space has been obtained
+from the operating system, but that are not currently being used.
+
+@item byte-size
+This is used for convenience and equals to @code{sizeof (char)}.
+
+@item used-bytes
+The total size of all string data in bytes.
+
+@item vector-size
+Internal size of a vector header, i.e.@: @code{sizeof (struct Lisp_Vector)}.
+
+@item used-vectors
+The number of vector headers allocated from the vector blocks.
+
+@item slot-size
+Internal size of a vector slot, always equal to @code{sizeof (Lisp_Object)}.
+
+@item used-slots
+The number of slots in all used vectors.
+
+@item free-slots
+The number of free slots in all vector blocks.
+
+@item float-size
+Internal size of a float object, i.e.@: @code{sizeof (struct Lisp_Float)}.
+(Do not confuse it with the native platform @code{float} or @code{double}.)
 
 @item used-floats
 The number of floats in use.
 
 @item free-floats
-The number of floats for which space has been obtained from the
-operating system, but that are not currently being used.
+The number of floats for which space has been obtained from
+the operating system, but that are not currently being used.
+
+@item interval-size
+Internal size of an interval object, i.e.@: @code{sizeof (struct interval)}.
 
 @item used-intervals
-The number of intervals in use.  Intervals are an internal
-data structure used for representing text properties.
+The number of intervals in use.
 
 @item free-intervals
-The number of intervals for which space has been obtained
-from the operating system, but that are not currently being used.
+The number of intervals for which space has been obtained from
+the operating system, but that are not currently being used.
 
-@item used-strings
-The number of strings in use.
+@item buffer-size
+Internal size of a buffer, i.e.@: @code{sizeof (struct buffer)}.
+(Do not confuse with the value returned by @code{buffer-size} function.)
 
-@item free-strings
-The number of string headers for which the space was obtained from the
-operating system, but which are currently not in use.  (A string
-object consists of a header and the storage for the string text
-itself; the latter is only allocated when the string is created.)
+@item used-buffers
+The number of buffer objects in use.  This includes killed buffers
+invisible to users, i.e.@: all buffers in @code{all_buffers} list.
+
+@item unit-size
+The unit of heap space measurement, always equal to 1024 bytes.
+
+@item total-size
+Total heap size, in @var{unit-size} units.
+
+@item free-size
+Heap space which is not currently used, in @var{unit-size} units.
 @end table
 
 If there was overflow in pure space (@pxref{Pure Storage}),
@@ -388,23 +446,25 @@ careful writing them.
 @defopt gc-cons-threshold
 The value of this variable is the number of bytes of storage that must
 be allocated for Lisp objects after one garbage collection in order to
-trigger another garbage collection.  A cons cell counts as eight bytes,
-a string as one byte per character plus a few bytes of overhead, and so
-on; space allocated to the contents of buffers does not count.  Note
-that the subsequent garbage collection does not happen immediately when
-the threshold is exhausted, but only the next time the Lisp evaluator is
-called.
+trigger another garbage collection.  You can use the result returned by
+@code{garbage-collect} to get an information about size of the particular
+object type; space allocated to the contents of buffers does not count.
+Note that the subsequent garbage collection does not happen immediately
+when the threshold is exhausted, but only the next time the Lisp interpreter
+is called.
 
-The initial threshold value is 800,000.  If you specify a larger
-value, garbage collection will happen less often.  This reduces the
-amount of time spent garbage collecting, but increases total memory use.
-You may want to do this when running a program that creates lots of
-Lisp data.
+The initial threshold value is @code{GC_DEFAULT_THRESHOLD}, defined in
+@file{alloc.c}.  Since it's defined in @code{word_size} units, the value
+is 400,000 for the default 32-bit configuration and 800,000 for the 64-bit
+one.  If you specify a larger value, garbage collection will happen less
+often.  This reduces the amount of time spent garbage collecting, but
+increases total memory use.  You may want to do this when running a program
+that creates lots of Lisp data.
 
-You can make collections more frequent by specifying a smaller value,
-down to 10,000.  A value less than 10,000 will remain in effect only
-until the subsequent garbage collection, at which time
-@code{garbage-collect} will set the threshold back to 10,000.
+You can make collections more frequent by specifying a smaller value, down
+to 1/10th of @code{GC_DEFAULT_THRESHOLD}.  A value less than this minimum
+will remain in effect only until the subsequent garbage collection, at which
+time @code{garbage-collect} will set the threshold back to the minimum.
 @end defopt
 
 @defopt gc-cons-percentage
@@ -639,7 +699,12 @@ in the file @file{lisp.h}.)  If the primitive has no upper limit on
 the number of Lisp arguments, it must have exactly two C arguments:
 the first is the number of Lisp arguments, and the second is the
 address of a block containing their values.  These have types
-@code{int} and @w{@code{Lisp_Object *}} respectively.
+@code{int} and @w{@code{Lisp_Object *}} respectively.  Since 
+@code{Lisp_Object} can hold any Lisp object of any data type, you
+can determine the actual data type only at run time; so if you want
+a primitive to accept only a certain type of argument, you must check
+the type explicitly using a suitable predicate (@pxref{Type Predicates}).
+@cindex type checking internals
 
 @cindex @code{GCPRO} and @code{UNGCPRO}
 @cindex protect C variables from garbage collection
@@ -820,23 +885,70 @@ knows about it.
 @section Object Internals
 @cindex object internals
 
-@c FIXME Is this still true?  Does --with-wide-int affect anything?
-  GNU Emacs Lisp manipulates many different types of data.  The actual
-data are stored in a heap and the only access that programs have to it
-is through pointers.  Each pointer is 32 bits wide on 32-bit machines,
-and 64 bits wide on 64-bit machines; three of these bits are used for
-the tag that identifies the object's type, and the remainder are used
-to address the object.
+  Emacs Lisp provides a rich set of the data types.  Some of them, like cons
+cells, integers and stirngs, are common to nearly all Lisp dialects.  Some
+others, like markers and buffers, are quite special and needed to provide
+the basic support to write editor commands in Lisp.  To implement such
+a variety of object types and provide an efficient way to pass objects between
+the subsystems of an interpreter, there is a set of C data structures and
+a special type to represent the pointers to all of them, which is known as
+@dfn{tagged pointer}.
 
-  Because Lisp objects are represented as tagged pointers, it is always
-possible to determine the Lisp data type of any object.  The C data type
-@code{Lisp_Object} can hold any Lisp object of any data type.  Ordinary
-variables have type @code{Lisp_Object}, which means they can hold any
-type of Lisp value; you can determine the actual data type only at run
-time.  The same is true for function arguments; if you want a function
-to accept only a certain type of argument, you must check the type
-explicitly using a suitable predicate (@pxref{Type Predicates}).
-@cindex type checking internals
+  In C, the tagged pointer is an object of type @code{Lisp_Object}.  Any
+initialized variable of such a type always holds the value of one of the
+following basic data types: integer, symbol, string, cons cell, float,
+vectorlike or miscellaneous object.  Each of these data types has the
+corresponding tag value.  All tags are enumerated by @code{enum Lisp_Type}
+and placed into a 3-bit bitfield of the @code{Lisp_Object}.  The rest of the
+bits is the value itself.  Integer values are immediate, i.e.@: directly
+represented by those @dfn{value bits}, and all other objects are represented
+by the C pointers to a corresponding object allocated from the heap.  Width
+of the @code{Lisp_Object} is platform- and configuration-dependent: usually
+it's equal to the width of an underlying platform pointer (i.e.@: 32-bit on
+a 32-bit machine and 64-bit on a 64-bit one), but also there is a special
+configuration where @code{Lisp_Object} is 64-bit but all pointers are 32-bit.
+The latter trick was designed to overcome the limited range of values for
+Lisp integers on a 32-bit system by using 64-bit @code{long long} type for
+@code{Lisp_Object}.
+
+  The following C data structures are defined in @file{lisp.h} to represent
+the basic data types beyond integers:
+
+@table @code
+@item struct Lisp_Cons
+Cons cell, an object used to construct lists.
+
+@item struct Lisp_String
+String, the basic object to represent a sequence of characters.
+
+@item struct Lisp_Vector
+Array, a fixed-size set of Lisp objects which may be accessed by an index.
+
+@item struct Lisp_Symbol
+Symbol, the unique-named entity commonly used as an identifier.
+
+@item struct Lisp_Float
+Floating point value.
+
+@item union Lisp_Misc
+Miscellaneous kinds of objects which don't fit into any of the above.
+@end table
+
+  These types are the first-class citizens of an internal type system.
+Since the tag space is limited, all other types are the subtypes of either
+@code{Lisp_Vectorlike} or @code{Lisp_Misc}.  Vector subtypes are enumerated
+by @code{enum pvec_type}, and nearly all complex objects like windows, buffers,
+frames, and processes fall into this category.  The rest of special types,
+including markers and overlays, are enumerated by @code{enum Lisp_Misc_Type}
+and form the set of subtypes of @code{Lisp_Misc}.
+
+  Below there is a description of a few subtypes of @code{Lisp_Vectorlike}.
+Buffer object represents the text to display and edit.  Window is the part
+of display structure which shows the buffer or used as a container to
+recursively place other windows on the same frame.  (Do not confuse Emacs Lisp
+window object with the window as an entity managed by the user interface
+system like X; in Emacs terminology, the latter is called frame.)  Finally,
+process object is used to manage the subprocesses.
 
 @menu
 * Buffer Internals::    Components of a buffer structure.
@@ -912,12 +1024,8 @@ Some of the fields of @code{struct buffer} are:
 
 @table @code
 @item header
-A @code{struct vectorlike_header} structure where @code{header.next}
-points to the next buffer, in the chain of all buffers (including
-killed buffers).  This chain is used only for garbage collection, in
-order to collect killed buffers properly.  Note that vectors, and most
-kinds of objects allocated as vectors, are all on one chain, but
-buffers are on a separate chain of their own.
+A header of type @code{struct vectorlike_header} is common to all
+vectorlike objects.
 
 @item own_text
 A @code{struct buffer_text} structure that ordinarily holds the buffer
@@ -927,6 +1035,11 @@ contents.  In indirect buffers, this field is not used.
 A pointer to the @code{buffer_text} structure for this buffer.  In an
 ordinary buffer, this is the @code{own_text} field above.  In an
 indirect buffer, this is the @code{own_text} field of the base buffer.
+
+@item next
+A pointer to the next buffer, in the chain of all buffers, including
+killed buffers.  This chain is used only for allocation and garbage
+collection, in order to collect killed buffers properly.
 
 @item pt
 @itemx pt_byte
