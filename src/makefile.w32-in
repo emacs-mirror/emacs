@@ -737,6 +737,7 @@ $(BLD)/dispnew.$(O) : \
 	$(SRC)/termchar.h \
 	$(SRC)/w32.h \
 	$(NT_INC)/unistd.h \
+	$(GNU_LIB)/fpending.h \
 	$(BUFFER_H) \
 	$(CHARACTER_H) \
 	$(CONFIG_H) \
@@ -802,6 +803,7 @@ $(BLD)/emacs.$(O) : \
 	$(SRC)/w32select.h \
 	$(NT_INC)/sys/file.h \
 	$(NT_INC)/unistd.h \
+	$(GNU_LIB)/close-stream.h \
 	$(GNU_LIB)/ignore-value.h \
 	$(ATIMER_H) \
 	$(BUFFER_H) \
