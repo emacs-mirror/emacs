@@ -1,3 +1,7 @@
+2012-11-15  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* eval.c (Finteractive_p): Revert lexbind-merge mishap.
+
 2012-11-14  Eli Zaretskii  <eliz@gnu.org>
 
 	* w32proc.c (timer_loop): Make sure SuspendThread and ResumeThread
@@ -28,16 +32,16 @@
 	* window.c (Fsplit_window_internal): Set combination limit of
 	new parent window to t iff Vwindow_combination_limit is t;
 	fixing a regression introduced with the change from 2012-09-22.
-	(Fwindow_combination_limit, Fset_window_combination_limit): Fix
-	doc-strings.
+	(Fwindow_combination_limit, Fset_window_combination_limit):
+	Fix doc-strings.
 
 2012-11-06  Eli Zaretskii  <eliz@gnu.org>
 
 	* xdisp.c (try_scrolling): Fix correction of aggressive-scroll
 	amount when the scroll margins are too large.  When scrolling
 	backwards in the buffer, give up if cannot reach point or the
-	scroll margin within a reasonable number of screen lines.  Fixes
-	point position in window under scroll-up/down-aggressively when
+	scroll margin within a reasonable number of screen lines.
+	Fixes point position in window under scroll-up/down-aggressively when
 	point is positioned many lines beyond the window top/bottom.
 	(Bug#12811)
 
@@ -118,8 +122,8 @@
 
 2012-10-29  Daniel Colascione  <dancol@dancol.org>
 
-	* cygw32.h, cygw32.c (Qutf_16le, from_unicode, to_unicode): In
-	preparation for fixing bug#12739, move these functions from
+	* cygw32.h, cygw32.c (Qutf_16le, from_unicode, to_unicode):
+	In preparation for fixing bug#12739, move these functions from
 	here...
 
 	* coding.h, coding.c: ... to here, and compile them only when

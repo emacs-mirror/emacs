@@ -508,7 +508,7 @@ spec that specifies non-nil unconditionally (such as \"p\"); or (ii)
 use `called-interactively-p'.  */)
   (void)
 {
-  return interactive_p () ? Qt : Qnil;
+  return (INTERACTIVE && interactive_p ()) ? Qt : Qnil;
 }
 
 
