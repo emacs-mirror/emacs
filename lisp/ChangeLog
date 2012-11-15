@@ -1,3 +1,8 @@
+2012-11-15  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* emacs-lisp/advice.el (ad-definition-type): Make sure we don't use
+	a preactivated advice from an old advice.el; they're not compatible!
+
 2012-11-15  Katsumi Yamaoka  <yamaoka@jpl.org>
 
 	* emacs-lisp/nadvice.el (advice--make-interactive-form):

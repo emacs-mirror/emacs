@@ -2239,16 +2239,15 @@ definition (see the code for `documentation')."
 
 (defun ad-definition-type (definition)
   "Return symbol that describes the type of DEFINITION."
+  ;; These symbols are only ever used to check a cache entry's validity.
+  ;; The suffix `2' reflects the fact that we're using version 2 of advice
+  ;; representations, so cache entries preactivated with version
+  ;; 1 can't be used.
   (cond
-   ((ad-macro-p definition) 'macro)
-   ((ad-subr-p definition)
-    (if (special-form-p definition)
-        'special-form
-      'subr))
-   ((or (ad-lambda-p definition)
-        (ad-compiled-p definition))
-    'function)
-   ((ad-advice-p definition) 'advice)))
+   ((ad-macro-p definition) 'macro2)
+   ((ad-subr-p definition) 'subr2)
+   ((or (ad-lambda-p definition) (ad-compiled-p definition)) 'fun2)
+   ((ad-advice-p definition) 'advice2))) ;; FIXME: Can this ever happen?
 
 (defun ad-has-proper-definition (function)
   "True if FUNCTION is a symbol with a proper definition.
