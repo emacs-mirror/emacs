@@ -2,7 +2,7 @@
 #
 # $Id$
 
-CFLAGS = @CFLAGS@ @CPPFLAGS@ @LDFLAGS@
+CFLAGS = @CFLAGS@ @CPPFLAGS@ @LDFLAGS@ -std=c99
 
 MPS = ../../code
 
