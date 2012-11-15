@@ -38,7 +38,7 @@
 
 #define EVENT_VERSION_MAJOR  ((unsigned)1)
 #define EVENT_VERSION_MEDIAN ((unsigned)1)
-#define EVENT_VERSION_MINOR  ((unsigned)2)
+#define EVENT_VERSION_MINOR  ((unsigned)3)
 
 
 /* EVENT_LIST -- list of event types and general properties
@@ -68,7 +68,7 @@
  */
  
 #define EventNameMAX ((size_t)19)
-#define EventCodeMAX ((EventCode)0x0077)
+#define EventCodeMAX ((EventCode)0x0078)
 
 #define EVENT_LIST(EVENT, X) \
   /*       0123456789012345678 <- don't exceed without changing EventNameMAX */ \
@@ -183,7 +183,8 @@
   EVENT(X, EventInit          , 0x0074,  TRUE, Arena) \
   EVENT(X, EventClockSync     , 0x0075,  TRUE, Arena) \
   EVENT(X, ArenaAccess        , 0x0076,  TRUE, Arena) \
-  EVENT(X, ArenaPoll          , 0x0077,  TRUE, Arena)
+  EVENT(X, ArenaPoll          , 0x0077,  TRUE, Arena) \
+  EVENT(X, ArenaSetEmergency  , 0x0078,  TRUE, Arena)
 
   
 
@@ -647,6 +648,10 @@
   PARAM(X,  0, P, arena) \
   PARAM(X,  1, W, start) \
   PARAM(X,  2, W, quanta)
+
+#define EVENT_ArenaSetEmergency_PARAMS(PARAM, X) \
+  PARAM(X,  0, P, arena) \
+  PARAM(X,  1, B, emergency)
 
 #endif /* eventdef_h */
 
