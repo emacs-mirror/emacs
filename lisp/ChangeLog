@@ -1,3 +1,7 @@
+2012-11-15  Drew Adams  <drew.adams@oracle.com>
+
+	* imenu.el (imenu--split-submenus): Use imenu--subalist-p (bug#12717).
+
 2012-11-15  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* emacs-lisp/cl-macs.el (cl--transform-lambda): Defend against
