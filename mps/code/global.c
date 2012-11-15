@@ -1076,7 +1076,8 @@ void ArenaSetEmergency(Arena arena, Bool emergency)
 
   DIAG_SINGLEF(( "ArenaSetEmergency",
     "emergency: $U", (WriteFU)emergency, NULL ));
-  
+  EVENT2(ArenaSetEmergency, arena, emergency);
+
   arena->emergency = emergency;
 }
 
