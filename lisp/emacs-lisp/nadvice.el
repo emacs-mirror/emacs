@@ -129,7 +129,7 @@ Each element has the form (WHERE BYTECODE STACK) where:
   ;; FIXME: The calls to interactive-form below load autoloaded functions
   ;; too eagerly.
   (let ((fspec (cadr (interactive-form function))))
-    (when (eq 'function (car fspec)) ;; Macroexpanded lambda?
+    (when (eq 'function (car-safe fspec)) ;; Macroexpanded lambda?
       (setq fspec (nth 1 fspec)))
     (if (functionp fspec)
         `(funcall ',fspec

@@ -2597,7 +2597,7 @@ in any of these classes."
 	   (ad-has-redefining-advice function))
       (let* ((origdef (ad-real-orig-definition function))
 	     ;; Construct the individual pieces that we need for assembly:
-	     (orig-arglist (ad-arglist origdef))
+	     (orig-arglist (and origdef (ad-arglist origdef)))
 	     (advised-arglist (or (ad-advised-arglist function)
 				  orig-arglist))
 	     (interactive-form (ad-advised-interactive-form function))
