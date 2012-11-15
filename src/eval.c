@@ -3369,7 +3369,7 @@ mark_backtrace (void)
 
   for (backlist = backtrace_list; backlist; backlist = backlist->next)
     {
-      mark_object (*backlist->function);
+      mark_object (backlist->function);
 
       if (backlist->nargs == UNEVALLED
 	  || backlist->nargs == MANY) /* FIXME: Can this happen?  */
