@@ -1,3 +1,7 @@
+2012-11-15  Glenn Morris  <rgm@gnu.org>
+
+	* display.texi (Face Attributes): Fix :underline COLOR description.
+
 2012-11-14  Glenn Morris  <rgm@gnu.org>
 
 	* keymaps.texi (Searching Keymaps, Tool Bar): Untabify examples,

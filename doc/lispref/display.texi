@@ -2009,12 +2009,11 @@ Don't underline.
 Underline with the foreground color of the face.
 
 @item @var{color}
-Underline in color @var{color}; which should be either a string
-specifying a color, or the symbol @code{foreground-color}, meaning the
-foreground color of the face.
+Underline in color @var{color}, a string specifying a color.
 
 @item @code{(:color @var{color} :style @var{style})}
-@var{color} is as described above.  Omitting the attribute
+@var{color} is either a string, or the symbol @code{foreground-color},
+meaning the foreground color of the face.  Omitting the attribute
 @code{:color} means to use the foreground color of the face.
 @var{style} should be a symbol @code{line} or @code{wave}, meaning to
 use a straight or wavy line.  Omitting the attribute @code{:style}
