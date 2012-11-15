@@ -3153,7 +3153,7 @@ category is the first)."
   (when todos-skip-archived-categories
     (while (and (zerop (todos-get-count 'todo))
 		(zerop (todos-get-count 'done))
-		(not (zerop (todos-get-count 'archive))))
+		(not (zerop (todos-get-count 'archived))))
       (setq todos-category-number
 	    (apply (if back '1- '1+) (list todos-category-number)))))
   (todos-category-select)

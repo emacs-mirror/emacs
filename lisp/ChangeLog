@@ -1,3 +1,7 @@
+2012-11-15  Stephen Berman  <stephen.berman@gmx.net>
+
+	* calendar/todos.el (todos-forward-category): Fix typo.
+
 2012-10-30  Stephen Berman  <stephen.berman@gmx.net>
 
 	* calendar/todos.el (todos-define-insertion-command):
