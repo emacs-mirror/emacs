@@ -107,8 +107,8 @@ mps_clock_t mps_clock(void)
 mps_clock_t mps_clocks_per_sec(void)
 {
   /* The MPS needs at least a millisecond clock to get enough
-       resolution for telemetry tools.  If your platform has a
-       floating point clock, multiply it up here in the plinth. */
+       resolution.  If your platform has a floating point clock,
+       multiply it up here in the plinth. */
   assert(CLOCKS_PER_SEC >= 1000);
 
   return (mps_clock_t)CLOCKS_PER_SEC;
