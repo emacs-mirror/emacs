@@ -207,10 +207,10 @@ Common objections to garbage collection
 What languages use garbage collection?
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-:term:`Java`, :term:`Lisp`, :term:`Smalltalk`, :term:`Prolog`,
-:term:`ML`, … the list goes on. It surprises many to learn that many
-implementations of :term:`BASIC` use :term:`garbage collection` to
-manage character strings efficiently.
+:term:`Java`, :term:`C#`, :term:`Python`, :term:`Lisp`, :term:`ML`, …
+the list goes on. It surprises many to learn that many implementations
+of :term:`BASIC` use :term:`garbage collection` to manage character
+strings efficiently.
 
 :term:`C++` is sometimes characterized as the last holdout against
 garbage collection, but this is not accurate. See
@@ -404,7 +404,7 @@ Boehm–Weiser collector.
 
 .. seealso:: :term:`garbage collection`
 
-.. bibref:: :ref:`Jones (1996) <JONES96>`, :ref:`Wilson (1994) <WIL94>`.
+.. bibref:: :ref:`Jones et al. (2012) <JONES12>`, :ref:`Wilson (1994) <WIL94>`.
 
 .. link::
 
@@ -557,21 +557,3 @@ store data, there are three problems typically experienced with it:
   that poor :term:`locality of reference` can result in heavy paging.
 
 .. seealso:: :term:`thrash`.
-
-
-Why do I need to reset my X server every week?
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-
-Some X servers are notorious for leaking memory. This is probably
-because the sheer complexity of the X library interface, together with
-those for toolkits such as Motif, makes :term:`manual memory
-management` a nightmare for the programmer.
-
-There have been reports of successful use of the Boehm–Weiser
-collector with X servers.
-
-.. seealso:: :term:`memory leak`
-
-.. link::
-
-    `Boehm–Weiser collector <http://www.hpl.hp.com/personal/Hans_Boehm/gc/>`_.

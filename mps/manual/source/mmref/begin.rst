@@ -78,7 +78,7 @@ Application memory management combines two related tasks:
     recycled for reuse. There are two approaches to recycling memory:
     either the programmer must decide when memory can be reused (known
     as :term:`manual memory management`); or the memory manager must
-    be able to work it out (known as :term`automatic memory
+    be able to work it out (known as :term:`automatic memory
     management`). These are both described in more detail below.
 
 An application memory manager must usually work to several
@@ -89,9 +89,14 @@ constraints, such as:
     The additional time taken by the memory manager while the program
     is running.
 
-**Interactive pause times**
+**Pause times**
 
-    How much delay an interactive user observes.
+    The time it takes for the memory manager to complete an operation
+    and return control to the program.
+
+    This affects the program's ability to respond promptly to
+    interactive events, and also to any asynchronous event such as a
+    network connection.
 
 **Memory overhead**
 
@@ -273,5 +278,5 @@ are available on many specific techniques, and can be found via our
 :ref:`bibliography`; particularly recommended are: :ref:`Wilson (1994)
 <WIL94>`, which is survey of garbage collection techniques;
 :ref:`Wilson et al. (1995) <WIL95>`, which is a survey of allocation
-techniques; and :ref:`Jones (1996) <JONES96>`, which is the first book
-in English dedicated to garbage collection.
+techniques; and :ref:`Jones et al. (2012) <JONES12>`, which is a
+handbook covering all aspects of garbage collection.
