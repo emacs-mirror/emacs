@@ -1,3 +1,7 @@
+2012-11-16  Jürgen Hötzel  <juergen@archlinux.org>  (tiny change)
+
+	* eshell/em-unix.el (eshell/mkdir): Handle "--parents" (bug#12897).
+
 2012-11-16  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* emacs-lisp/advice.el (ad-make-advised-definition): Improve last fix.
