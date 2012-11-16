@@ -664,7 +664,9 @@ additional active keymaps through the variable
 
   The highest precedence normal keymap comes from the @code{keymap}
 text or overlay property.  If that is non-@code{nil}, it is the first
-keymap to be processed, in normal circumstances.
+keymap to be processed, in normal circumstances.  Next comes
+any keymap added by the function @code{set-temporary-overlay-map}.
+@xref{Controlling Active Maps}.
 
   However, there are also special ways for programs to substitute
 other keymaps for some of those.  The variable
@@ -753,12 +755,13 @@ them:
      (overriding-local-map
       (@var{find-in} overriding-local-map))
      ((or (@var{find-in} (get-char-property (point) 'keymap))
-	  (@var{find-in-any} emulation-mode-map-alists)
-	  (@var{find-in-any} minor-mode-overriding-map-alist)
-	  (@var{find-in-any} minor-mode-map-alist)
-	  (if (get-text-property (point) 'local-map)
-	      (@var{find-in} (get-char-property (point) 'local-map))
-	    (@var{find-in} (current-local-map))))))
+          (@var{find-in} @var{temp-map})
+          (@var{find-in-any} emulation-mode-map-alists)
+          (@var{find-in-any} minor-mode-overriding-map-alist)
+          (@var{find-in-any} minor-mode-map-alist)
+          (if (get-text-property (point) 'local-map)
+              (@var{find-in} (get-char-property (point) 'local-map))
+            (@var{find-in} (current-local-map))))))
     (@var{find-in} (current-global-map)))
 @end lisp
 
@@ -770,7 +773,8 @@ Lookup}.)  If the key sequence starts with a mouse event, or a
 symbolic prefix event followed by a mouse event, that event's position
 is used instead of point and the current buffer.  Mouse events on an
 embedded string use non-@code{nil} text properties from that string
-instead of the buffer.
+instead of the buffer.  @var{temp-map} is a pseudo variable that
+represents the effect of a @code{set-temporary-overlay-map} call.
 
   When a match is found (@pxref{Key Lookup}), if the binding in the
 keymap is a function, the search is over.  However if the keymap entry
@@ -949,6 +953,21 @@ binding which is such an alist.  The ``active'' keymaps in each alist
 are used before @code{minor-mode-map-alist} and
 @code{minor-mode-overriding-map-alist}.
 @end defvar
+
+@defun set-temporary-overlay-map keymap &optional keep
+This function adds @var{keymap} as a temporary keymap that takes
+precedence over most other keymaps.  It does not take precedence over
+the ``overriding'' maps (see above); and unlike them, if no match for
+a key is found in @var{keymap}, the search continues.
+
+Normally, @var{keymap} is used only once.  If the optional argument
+@var{pred} is @code{t}, the map stays active if a key from @var{keymap}
+is used.  @var{pred} can also be a function of no arguments: if it returns
+non-@code{nil} then @var{keymap} stays active.
+
+For a pseudo-Lisp description of exactly how and when this keymap applies,
+@pxref{Searching Keymaps}.
+@end defun
 
 @node Key Lookup
 @section Key Lookup
@@ -2648,8 +2667,8 @@ By default, the global map binds @code{[tool-bar]} as follows:
 
 @example
 (global-set-key [tool-bar]
-		`(menu-item ,(purecopy "tool bar") ignore
-			    :filter tool-bar-make-keymap))
+                `(menu-item ,(purecopy "tool bar") ignore
+                            :filter tool-bar-make-keymap))
 @end example
 
 @noindent

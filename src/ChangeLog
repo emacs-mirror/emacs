@@ -1,3 +1,28 @@
+2012-11-16  Glenn Morris  <rgm@gnu.org>
+
+	* editfns.c (Fmessage): Mention message-log-max.  (Bug#12849)
+
+2012-11-16  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* eval.c (Finteractive_p): Revert lexbind-merge mishap.
+
+2012-11-16  Eli Zaretskii  <eliz@gnu.org>
+
+	* w32proc.c (timer_loop): Make sure SuspendThread and ResumeThread
+	use the same value of thread handle.
+	(start_timer_thread): If the timer thread exited (due to error),
+	clean up by closing the two handles it used.  Duplicate the caller
+	thread's handle here, so it gets duplicated only once, when
+	launching the timer thread.  Set priority of the timer thread, not
+	the caller thread.
+	(getitimer): Don't duplicate the caller thread's handle here.
+	(Bug#12832)
+
+2012-11-16  Jan Djärv  <jan.h.d@swipnet.se>
+
+	* nsterm.m (hold_event): Send SIGIO to make sure ns_read_socket is
+	called (Bug#12834).
+
 2012-11-16  Paul Eggert  <eggert@cs.ucla.edu>
 
 	Remove no-longer-used pty_max_bytes variable.

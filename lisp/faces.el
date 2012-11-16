@@ -487,16 +487,21 @@ with the `default' face (which is always completely specified)."
 (defalias 'face-background-pixmap 'face-stipple)
 
 
+;; FIXME all of these -p functions ignore inheritance (cf face-stipple).
+;; Ie, a face that inherits from an underlined face but does not
+;; specify :underline will return nil.
+;; So these functions don't actually tell you anything about how the
+;; face will _appear_.  So not very useful IMO.
 (defun face-underline-p (face &optional frame)
- "Return non-nil if FACE is underlined.
+ "Return non-nil if FACE specifies a non-nil underlining.
 If the optional argument FRAME is given, report on face FACE in that frame.
 If FRAME is t, report on the defaults for face FACE (for new frames).
 If FRAME is omitted or nil, use the selected frame."
- (eq (face-attribute face :underline frame) t))
+ (face-attribute-specified-or (face-attribute face :underline frame) nil))
 
 
 (defun face-inverse-video-p (face &optional frame)
- "Return non-nil if FACE is in inverse video on FRAME.
+ "Return non-nil if FACE specifies a non-nil inverse-video.
 If the optional argument FRAME is given, report on face FACE in that frame.
 If FRAME is t, report on the defaults for face FACE (for new frames).
 If FRAME is omitted or nil, use the selected frame."
@@ -837,21 +842,24 @@ and DATA is a string, containing the raw bits of the bitmap."
   (set-face-attribute face frame :stipple (or stipple 'unspecified)))
 
 
-(defun set-face-underline-p (face underline &optional frame)
+(defun set-face-underline (face underline &optional frame)
   "Specify whether face FACE is underlined.
 UNDERLINE nil means FACE explicitly doesn't underline.
-UNDERLINE non-nil means FACE explicitly does underlining
-with the same of the foreground color.
-If UNDERLINE is a string, underline with the color named UNDERLINE.
+UNDERLINE t means FACE underlines with its foreground color.
+If UNDERLINE is a string, underline with that color.
+
+UNDERLINE may also be a list of the form (:color COLOR :style STYLE),
+where COLOR is a string or `foreground-color', and STYLE is either
+`line' or `wave'.  :color may be omitted, which means to use the
+foreground color.  :style may be omitted, which means to use a line.
+
 FRAME nil or not specified means change face on all frames.
 Use `set-face-attribute' to ``unspecify'' underlining."
-  (interactive
-   (let ((list (read-face-and-attribute :underline)))
-     (list (car list) (eq (car (cdr list)) t))))
+  (interactive (read-face-and-attribute :underline))
   (set-face-attribute face frame :underline underline))
 
-(define-obsolete-function-alias 'set-face-underline
-                                'set-face-underline-p "22.1")
+(define-obsolete-function-alias 'set-face-underline-p
+                                'set-face-underline "24.3")
 
 
 (defun set-face-inverse-video-p (face inverse-video-p &optional frame)
@@ -866,6 +874,9 @@ Use `set-face-attribute' to ``unspecify'' the inverse video attribute."
   (set-face-attribute face frame :inverse-video inverse-video-p))
 
 
+;; The -p suffix is a hostage to fortune.  What if we want to extend
+;; this to allow more than boolean options?  Exactly this happened
+;; to set-face-underline-p.
 (defun set-face-bold-p (face bold-p &optional frame)
   "Specify whether face FACE is bold.
 BOLD-P non-nil means FACE should explicitly display bold.
@@ -1114,6 +1125,9 @@ name of the attribute for prompting.  Value is the new attribute value."
 	   (string-to-number new-value)))))
 
 
+;; FIXME this does allow you to enter the list forms of :box,
+;; :stipple, or :underline, because face-valid-attribute-values does
+;; not return those forms.
 (defun read-face-attribute (face attribute &optional frame)
   "Interactively read a new value for FACE's ATTRIBUTE.
 Optional argument FRAME nil or unspecified means read an attribute value
@@ -1125,12 +1139,11 @@ of a global face.  Value is the new attribute value."
     ;; Represent complex attribute values as strings by printing them
     ;; out.  Stipple can be a vector; (WIDTH HEIGHT DATA).  Box can be
     ;; a list `(:width WIDTH :color COLOR)' or `(:width WIDTH :shadow
-    ;; SHADOW)'.
-    (when (and (or (eq attribute :stipple)
-		   (eq attribute :box))
-	       (or (consp old-value)
-		   (vectorp old-value)))
-      (setq old-value (prin1-to-string old-value)))
+    ;; SHADOW)'.  Underline can be `(:color COLOR :style STYLE)'.
+    (and (memq attribute '(:box :stipple :underline))
+	 (or (consp old-value)
+	     (vectorp old-value))
+	 (setq old-value (prin1-to-string old-value)))
     (cond ((listp valid)
 	   (let ((default
 		   (or (car (rassoc old-value valid))
@@ -1160,11 +1173,10 @@ of a global face.  Value is the new attribute value."
     ;; Convert stipple and box value text we read back to a list or
     ;; vector if it looks like one.  This makes the assumption that a
     ;; pixmap file name won't start with an open-paren.
-    (when (and (or (eq attribute :stipple)
-		   (eq attribute :box))
-	       (stringp new-value)
-	       (string-match "^[[(]" new-value))
-      (setq new-value (read new-value)))
+    (and (memq attribute '(:stipple :box :underline))
+	 (stringp new-value)
+	 (string-match "^[[(]" new-value)
+	 (setq new-value (read new-value)))
     new-value))
 
 (declare-function fontset-list "fontset.c" ())

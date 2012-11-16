@@ -390,11 +390,6 @@ Complete nicknames and commands (programmable)
 @item fill
 Wrap long lines
 
-@cindex modules, hecomplete
-@item hecomplete
-Complete nicknames and commands (old).  This is the old module---you
-might prefer the ``completion'' module instead.
-
 @cindex modules, identd
 @item identd
 Launch an identd server on port 8113
@@ -426,6 +421,11 @@ Don't display non-IRC commands after evaluation
 @cindex modules, notify
 @item notify
 Notify when the online status of certain users changes
+
+@cindex modules, notifications
+@item notifications
+Send you a notification when you get a private message,
+or your nickname is mentioned
 
 @cindex modules, page
 @item page
@@ -530,7 +530,7 @@ parameters.
 @defun erc-compute-server &optional server
 Return an IRC server name.
 
-This tries a number of increasingly more default methods until a non-nil
+This tries a number of increasingly more default methods until a non-@code{nil}
 value is found.
 
 @itemize @bullet
@@ -542,7 +542,7 @@ value is found.
 
 @end defun
 
-@defopt erc-server nil
+@defopt erc-server
 IRC server to use if one is not provided.
 @end defopt
 
@@ -551,7 +551,7 @@ IRC server to use if one is not provided.
 @defun erc-compute-port &optional port
 Return a port for an IRC server.
 
-This tries a number of increasingly more default methods until a non-nil
+This tries a number of increasingly more default methods until a non-@code{nil}
 value is found.
 
 @itemize @bullet
@@ -574,7 +574,7 @@ This can be either a string or a number.
 Return user's IRC nick.
 
 This tries a number of increasingly more default methods until a
-non-nil value is found.
+non-@code{nil} value is found.
 
 @itemize
 @item @var{nick} (the argument passed to this function)
@@ -598,11 +598,35 @@ The string to append to the nick if it is already in use.
 @end defopt
 
 @defopt erc-try-new-nick-p
-If the nickname you chose isn't available, and this option is non-nil,
+If the nickname you chose isn't available, and this option is non-@code{nil},
 ERC should automatically attempt to connect with another nickname.
 
 You can manually set another nickname with the /NICK command.
 @end defopt
+
+@subheading Password
+@cindex password
+
+@defopt erc-prompt-for-password
+If non-@code{nil} (the default), @kbd{M-x erc} prompts for a password.
+@end defopt
+
+If you prefer, you can set this option to @code{nil} and use the
+@code{auth-source} mechanism to store your password.  For instance, if
+you use @file{~/.authinfo} as your auth-source backend, then put
+something like the following in that file:
+
+@example
+machine irc.example.net login "#fsf" password sEcReT
+@end example
+
+@noindent
+ERC also consults @code{auth-source} to find any channel keys required
+for the channels that you wish to autojoin, as specified by the
+variable @code{erc-autojoin-channels-alist}.
+
+For more details, @pxref{Top,,auth-source, auth, Emacs auth-source Library}.
+
 
 @subheading Full name
 
@@ -610,7 +634,7 @@ You can manually set another nickname with the /NICK command.
 Return user's full name.
 
 This tries a number of increasingly more default methods until a
-non-nil value is found.
+non-@code{nil} value is found.
 
 @itemize @bullet
 @item @var{full-name} (the argument passed to this function)
@@ -713,9 +737,23 @@ stuff, to the current ERC buffer."
 @c PRE5_4: (Node) Document every ERC option (module options go in
 @c previous chapter)
 
-This section has not yet been written.  For now, the easiest way to
-check out the available options for ERC is to do
+This section is extremely incomplete.  For now, the easiest way to
+check out all the available options for ERC is to do
 @kbd{M-x customize-group erc RET}.
+
+@defopt erc-hide-list
+If non, @code{nil}, this is a list of IRC message types to hide, e.g.
+
+@example
+(setq erc-hide-list '("JOIN" "PART" "QUIT"))
+@end example
+@end defopt
+
+@defopt erc-lurker-hide-list
+Like @code{erc-hide-list}, but only applies to messages sent by
+lurkers.  The function @code{erc-lurker-p} determines whether a given
+nickname is considerd a lurker.
+@end defopt
 
 
 @node Getting Help and Reporting Bugs

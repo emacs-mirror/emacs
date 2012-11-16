@@ -96,7 +96,7 @@
 ;;
 ;; archive-mode-hook
 ;; archive-foo-mode-hook
-;; archive-extract-hooks
+;; archive-extract-hook
 
 ;;; Code:
 

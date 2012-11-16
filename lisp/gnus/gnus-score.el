@@ -1762,21 +1762,22 @@ score in `gnus-newsgroup-scored' by SCORE."
                 (all-scores scores)
                 (request-func (cond ((string= "head" header)
                                      'gnus-request-head)
-                                    ;; We need to peek at the headers to detect
-                                    ;; the content encoding
                                     ((string= "body" header)
-                                     'gnus-request-article)
+                                     'gnus-request-body)
                                     (t 'gnus-request-article)))
                 entries alist ofunc article last)
            (when articles
              (setq last (mail-header-number (caar (last articles))))
              ;; Not all backends support partial fetching.  In that case,
              ;; we just fetch the entire article.
-             (unless (gnus-check-backend-function
-                      (and (string-match "^gnus-" (symbol-name request-func))
-                           (intern (substring (symbol-name request-func)
-                                              (match-end 0))))
-                      gnus-newsgroup-name)
+             ;; When scoring by body, we need to peek at the headers to detect
+             ;; the content encoding
+             (unless (or (gnus-check-backend-function
+                          (and (string-match "^gnus-" (symbol-name request-func))
+                               (intern (substring (symbol-name request-func)
+                                                  (match-end 0))))
+                          gnus-newsgroup-name)
+                         (string= "body" header))
                (setq ofunc request-func)
                (setq request-func 'gnus-request-article))
              (while articles

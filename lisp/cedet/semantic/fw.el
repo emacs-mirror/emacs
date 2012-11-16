@@ -421,14 +421,7 @@ into `mode-local-init-hook'." file filename)
 	 ;; Don't prompt to insert a template if we visit an empty file
 	 (auto-insert nil)
 	 ;; We don't want emacs to query about unsafe local variables
-	 (enable-local-variables
-	  (if (featurep 'xemacs)
-	      ;; XEmacs only has nil as an option?
-	      nil
-	    ;; Emacs 23 has the spiffy :safe option, nil otherwise.
-	    (if (>= emacs-major-version 22)
-		nil
-	      :safe)))
+	 (enable-local-variables :safe)
 	 ;; ... or eval variables
 	 (enable-local-eval nil)
 	 )

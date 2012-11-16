@@ -931,8 +931,8 @@ the regular parser."
 	  (setq semantic-new-buffer-fcn-was-run t)
 	  (semantic-lex-init)
 	  (semantic-clear-toplevel-cache)
-	  (remove-hook 'semantic-lex-reset-hooks 'semantic-lex-spp-reset-hook
-		       t)
+	  (remove-hook 'semantic-lex-reset-functions
+		       'semantic-lex-spp-reset-hook t)
 	  )
 	;; Get the macro symbol table right.
 	(setq semantic-lex-spp-dynamic-macro-symbol-obarray spp-syms)
@@ -2073,7 +2073,7 @@ actually in their parent which is not accessible.")
         )
 
   (setq semantic-lex-analyzer #'semantic-c-lexer)
-  (add-hook 'semantic-lex-reset-hooks 'semantic-lex-spp-reset-hook nil t)
+  (add-hook 'semantic-lex-reset-functions 'semantic-lex-spp-reset-hook nil t)
   (when (eq major-mode 'c++-mode)
     (add-to-list 'semantic-lex-c-preprocessor-symbol-map '("__cplusplus" . "")))
   )

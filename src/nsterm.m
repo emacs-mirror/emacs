@@ -330,6 +330,8 @@ hold_event (struct input_event *event)
     }
 
   hold_event_q.q[hold_event_q.nr++] = *event;
+  /* Make sure ns_read_socket is called, i.e. we have input.  */
+  kill (0, SIGIO);
 }
 
 static Lisp_Object

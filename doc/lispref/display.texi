@@ -2009,12 +2009,11 @@ Don't underline.
 Underline with the foreground color of the face.
 
 @item @var{color}
-Underline in color @var{color}; which should be either a string
-specifying a color, or the symbol @code{foreground-color}, meaning the
-foreground color of the face.
+Underline in color @var{color}, a string specifying a color.
 
 @item @code{(:color @var{color} :style @var{style})}
-@var{color} is as described above.  Omitting the attribute
+@var{color} is either a string, or the symbol @code{foreground-color},
+meaning the foreground color of the face.  Omitting the attribute
 @code{:color} means to use the foreground color of the face.
 @var{style} should be a symbol @code{line} or @code{wave}, meaning to
 use a straight or wavy line.  Omitting the attribute @code{:style}
@@ -2404,7 +2403,7 @@ This sets the @code{:slant} attribute of @var{face} to @var{normal} if
 @var{italic-p} is @code{nil}, and to @var{italic} otherwise.
 @end defun
 
-@defun set-face-underline-p face underline &optional frame
+@defun set-face-underline face underline &optional frame
 This sets the @code{:underline} attribute of @var{face} to
 @var{underline}.
 @end defun
@@ -2467,12 +2466,16 @@ attribute of @var{face} is @code{italic} or @code{oblique}, and
 @code{nil} otherwise.
 @end defun
 
+@c Note the weasel words.  A face that inherits from an underlined
+@c face but does not specify :underline will return nil.
 @defun face-underline-p face &optional frame
-This function returns the @code{:underline} attribute of face @var{face}.
+This function returns non-@code{nil} if face @var{face} specifies
+a non-@code{nil} @code{:underline} attribute.
 @end defun
 
 @defun face-inverse-video-p face &optional frame
-This function returns the @code{:inverse-video} attribute of face @var{face}.
+This function returns non-@code{nil} if face @var{face} specifies
+a non-@code{nil} @code{:inverse-video} attribute.
 @end defun
 
 @node Displaying Faces
