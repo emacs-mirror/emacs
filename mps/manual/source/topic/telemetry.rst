@@ -342,6 +342,11 @@ Telemetry interface
 
 .. c:function:: mps_word_t mps_telemetry_control(mps_word_t reset_mask, mps_word_t flip_mask)
 
+    .. deprecated:: starting with version 1.111.
+
+        Use :c:func:`mps_telemetry_get`, :c:func:`mps_telemetry_reset`,
+        and :c:func:`mps_telemetry_set` instead.
+
     Update and return the :term:`telemetry filter`.
 
     ``reset_mask`` is a :term:`bitmask` indicating the bits in the
@@ -390,11 +395,38 @@ Telemetry interface
         may want to call :c:func:`mps_telemetry_flush` explicitly.
 
 
+.. c:function:: mps_word_t mps_telemetry_get(void)
+
+    Return the :term:`telemetry filter`.
+
+
+.. c:function:: void mps_telemetry_set(mps_word_t set_mask)
+
+    Set bits in the :term:`telemetry filter`.
+
+    ``set_mask`` is a :term:`bitmask` indicating the bits in the
+    telemetry filter that should be set.
+
+
+.. c:function:: void mps_telemetry_reset(mps_word_t reset_mask)
+
+    Reset bits in the :term:`telemetry filter`.
+
+    ``reset_mask`` is a :term:`bitmask` indicating the bits in the
+    telemetry filter that should be reset.
+
+
 .. index::
    pair: telemetry; labels
 
 Telemetry labels
 ----------------
+
+Telemetry labels allow the :term:`client program` to associate strings
+with addresses in the telemetry stream. The string must first be
+*interned* by calling :c:func:`mps_telemetry_intern`, returning a
+label, and then the address can be associated with the label by
+calling :c:func:`mps_telemetry_label`.
 
 Typical uses of telemetry labels include:
 
@@ -402,8 +434,31 @@ Typical uses of telemetry labels include:
 
 * labelling allocated objects with their type, class, or other description.
 
+It is necessary to enable ``User`` events in the :term:`telemetry
+filter` in order for telemetry labels to work. For example::
 
-.. c:function:: mps_word_t mps_telemetry_intern(char *label)
+    mps_label_t label;
+    mps_telemetry_set(1 << 6);
+    label = mps_telemetry_intern("symbol pool");
+    mps_telemetry_label(symbol_pool, label);
+
+Labels are represented by the type :c:type:`mps_label_t`. These are
+unsigned integers. After processing by :program:`mpseventsql`, the
+association of addresses with labels appears in the ``EVENT_Label``
+table, and the association of labels with strings appears in the
+``EVENT_Intern`` table. These can then be used in queries, for example:
+
+.. code-block:: sql
+
+    /* Pool name and creation time */
+    SELECT I.string, P.time
+    FROM EVENT_PoolInit AS P,
+         EVENT_Label AS L,
+         EVENT_Intern AS I
+    WHERE I.stringId = L.stringId AND L.address = P.pool;
+
+
+.. c:function:: mps_label_t mps_telemetry_intern(const char *label)
 
     Registers a string with the MPS, and receives a :term:`telemetry
     label`, suitable for passing to :c:func:`mps_telemetry_label`.
@@ -426,7 +481,7 @@ Typical uses of telemetry labels include:
         is still returned in this case, but it is useless.
 
 
-.. c:function:: void mps_telemetry_label(mps_addr_t addr, mps_word_t label)
+.. c:function:: void mps_telemetry_label(mps_addr_t addr, mps_label_t label)
 
     Associate a telemetry label returned from
     :c:func:`mps_telemetry_intern` with an address.
