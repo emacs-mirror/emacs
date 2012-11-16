@@ -754,6 +754,9 @@ is detected, we can see this happening:
     :ref:`topic-weak`, :ref:`pool-awl`.
 
 
+.. index::
+   single: Scheme; global symbol table
+
 Global symbol table
 -------------------
 
@@ -852,3 +855,60 @@ detected by the scan method, we can see when symbols are dying:
 
 Here, the symbols ``b``, ``c`` and ``d`` died, but ``a`` was kept alive
 by the reference from the environment.
+
+
+.. index::
+   single: Scheme; segregation
+
+.. _guide-advanced-segregation:
+
+Segregation of objects
+----------------------
+
+When objects of different types have different properties (different
+sizes, lifetimes, references, layouts) it makes sense to segregate
+them into pools of appropriate classes.
+
+For example, the toy Scheme interpreter has a mixture of object types,
+some of which contain references to other objects (for example, pairs)
+that must be :term:`scanned <scan>`, and some of which do not (for
+example, strings). If the :term:`leaf objects` are segregated into a
+pool of an appropriate class, the cost of scanning them can be
+avoided.
+
+Here the appropriate class is :ref:`pool-amcz`, and the necessary code
+changes are straightforward. First, global variables for the new pool
+and its :term:`allocation point`::
+
+    static mps_pool_t leaf_pool;    /* pool for leaf objects */
+    static mps_ap_t leaf_ap;        /* allocation point for leaf objects */
+
+Second, the leaf objects must be allocated on ``leaf_ap`` instead of
+``obj_ap``. And third, the pool and its allocation point must be created::
+
+    /* Create an Automatic Mostly-Copying Zero-rank (AMCZ) pool to
+       manage the leaf objects. */
+    res = mps_pool_create(&leaf_pool,
+                          arena,
+                          mps_class_amcz(),
+                          obj_fmt,
+                          obj_chain);
+    if (res != MPS_RES_OK) error("Couldn't create leaf pool");
+
+    /* Create allocation point for leaf objects. */
+    res = mps_ap_create(&leaf_ap, leaf_pool);
+    if (res != MPS_RES_OK) error("Couldn't create leaf objects allocation point");
+
+Note that the new pool shared a :term:`generation chain` with the old
+pool. This is important, because the leaf objects live and die along
+with the non-leaf objects of similar ages.
+
+As an initial step in making this change, the new pool uses the same
+:term:`object format`. However, we normally wouldn't stop there: we'd
+take advantage of the segregation to simplify the scanning of the
+objects that have been left behind.
+
+.. topics::
+
+    :ref:`pool-amcz`.
+
