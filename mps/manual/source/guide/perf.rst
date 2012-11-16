@@ -116,6 +116,17 @@ Address space  Extensions  Collections  Execution time (user+sys)
 128                     0          368                       46.4
 256                     0          368                       46.3
 512                     0          368                       49.3
+1024                    0          368                       42.0
+2048                    0          368                       43.2
+4096                    0          368                       43.5
+8192                    0          368                       46.1
+16384                   0          368                       49.2
+32768                   0          368                       57.1
+65536                   0          368                       71.1
+131072                  0          368                      101.3
+262144                  0          368                      161.3
+524288                  0          368                      273.0
+1048576                 0          368                      504.6
 =============  ==========  ===========  =========================
 
 .. note::
@@ -125,4 +136,5 @@ Address space  Extensions  Collections  Execution time (user+sys)
            and tens of thousands of garbage collection cycles.
 
 The lesson here is that the allocation of address space has to be
-comfortably larger than the working set of the program.
+comfortably larger than the working set of the program, but that a
+very large address space is ruinous to performance.
