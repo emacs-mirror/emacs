@@ -35,6 +35,9 @@ AWL allows the implementation to splat the value slot at the same time
 that the weak key slot is splatted. (Or the other way around for
 weak-value tables.) See :ref:`pool-awl-dependent`.
 
+See :ref:`guide-advanced-weak` in the :ref:`guide-advanced` section of
+the user guide for a detailed example of using this pool class.
+
 .. note::
 
     AWL is the only pool in the open source MPS that allows its

@@ -46,6 +46,28 @@ demonstration of :term:`Lisp` in an appendix to his paper
     thought we were victims of a practical joker.
 
 
+
+.. index::
+   single: telemetry; utilities
+
+Telemetry utilities
+-------------------
+
+The telemetry system relies on two utility programs:
+
+* :program:`mpseventcnv` decodes the machine-dependent binary event
+  stream into a portable text format. It must be compiled for the same
+  architecture as the MPS-linked program whose event stream it
+  decodes.
+
+* :program:`mpseventsql` takes the output of :program:`mpseventcnv`
+  and loads it into a SQLite database for further analysis.
+
+You must build and install these programs as described in
+:ref:`guide-build`.
+
+
+
 .. index::
    single: telemetry; example
    single: Scheme; telemetry
@@ -194,7 +216,7 @@ telemetry feature.
 In addition, the following environment variable controls the behaviour
 of the :program:`mpseventsql` program.
 
-.. envvar:: MPS_EVENT_DATABASE
+.. envvar:: MPS_TELEMETRY_DATABASE
 
     The name of a SQLite database file that will be updated with the
     events from the decoded telemetry stream, if it is not specified
@@ -271,7 +293,7 @@ be loaded into a SQLite database for further analysis by running
     events from the decoded telemetry stream specified by the ``-l``
     option. The database will be created if it does not exist. If not
     specified, the file named by the environment variable
-    :envvar:`MPS_EVENT_DATABASE` is used; if this variable is not
+    :envvar:`MPS_TELEMETRY_DATABASE` is used; if this variable is not
     assigned, ``mpsevent.db`` is used.
 
     Updating a database with events from a file is idempotent unless
@@ -359,6 +381,14 @@ Telemetry interface
     interactive tool require access to the telemetry stream. You could
     even try calling this from a debugger after a problem.
 
+    .. note::
+
+        Unless all :term:`arenas` are properly destroyed (by calling
+        :c:func:`mps_arena_destroy`), there are likely to be unflushed
+        telemetry events when the program finishes. So in the case of
+        abnormal program termination such as a fatal exception, you
+        may want to call :c:func:`mps_telemetry_flush` explicitly.
+
 
 .. index::
    pair: telemetry; labels
@@ -390,9 +420,10 @@ Typical uses of telemetry labels include:
 
     .. note::
 
-        The ``User`` event category must be turned on in the
+        If the ``User`` event category is not turned on in the
         :term:`telemetry filter` (via :c:func:`mps_telemetry_control`)
-        before calling this function.
+        then the string is not sent to the telemetry stream. A label
+        is still returned in this case, but it is useless.
 
 
 .. c:function:: void mps_telemetry_label(mps_addr_t addr, mps_word_t label)
@@ -410,6 +441,6 @@ Typical uses of telemetry labels include:
 
     .. note::
 
-        The ``User`` event category must be selected in the
+        If the ``User`` event category is not turned on in the
         :term:`telemetry filter` (via :c:func:`mps_telemetry_control`)
-        before calling this function.
+        then calling this function has no effect.

@@ -13,10 +13,10 @@ AMC (Automatic Mostly-Copying)
 ==============================
 
 **AMC** is a general-purpose :term:`automatically managed <automatic
-memory management>` :term:`pool class`. This is the most "advanced"
-pool class in the MPS, intended for the majority of objects in the
-client program. Use this pool class unless you need a particular
-feature that it doesn't provide.
+memory management>` :term:`pool class`. This is the most mature pool
+class in the MPS, intended for the majority of objects in the client
+program. Use this pool class unless you need a particular feature that
+it doesn't provide.
 
 "Mostly Copying" means that it uses :term:`copying garbage collection`
 except for blocks that are :term:`pinned <pinning>` by
@@ -29,10 +29,7 @@ following tendencies will be efficiently exploited by an AMC pool:
 
 - most objects die young;
 
-- objects that don't die young will live a long time;
-
-- most references are "backwards in time" (from younger objects to
-  older objects).
+- objects that don't die young will live a long time.
 
 In the pool's :term:`generation chain`, specify the capacity and
 mortality of generations 0 to *n*\−1. Survivors from generation *n*\−1
@@ -152,9 +149,6 @@ AMC introspection
     distinguish, if necessary, between the two. It may also be called
     on :term:`dead` objects that the collector has not recycled or has
     been unable to recycle.
-
-    The function ``f`` may not allocate memory or access any
-    automatically-managed memory except within ``object``.
 
     .. note::
 

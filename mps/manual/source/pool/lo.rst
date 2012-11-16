@@ -33,8 +33,9 @@ that needs to be passed to an operating system I/O function.
     has finished (for example, by keeping a reference to the buffer in
     a :term:`root` or a :term:`scanned <scan>` object).
 
-For leaf objects that can move and be protected, consider
-:ref:`pool-amcz` instead.
+If LO is used to allocate large numbers of small objects, the garbage
+collection performance will degrade. For leaf objects that can move
+and be protected, it is better to use :ref:`pool-amcz` instead.
 
 
 .. index::

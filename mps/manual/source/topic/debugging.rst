@@ -11,18 +11,30 @@
 Debugging pools
 ===============
 
-Several :term:`pool classes` have debugging counterparts that provide
-two features that are useful for debugging:
+Several :term:`pool classes` have debugging counterparts:
+
+=================  ==============================
+Pool class         Debugging counterpart
+=================  ==============================
+:ref:`pool-ams`    :c:func:`mps_class_ams_debug`
+:ref:`pool-mv`     :c:func:`mps_class_mv_debug`
+:ref:`pool-mvff`   :c:func:`mps_class_mvff_debug`
+=================  ==============================
+
+These debugging pool classes provide two features that are useful for
+debugging:
 
 * .. index::
      single: debugging; fencepost
      single: fencepost
 
   :dfn:`fenceposts` are patterns of data that are written before and
-  after each allocated block. These patterns can be checked, for
-  example when the block is deallocated, to see that they are
-  unchanged. This helps detect underwriting and :term:`overwriting
-  errors`.
+  after each allocated block. In :term:`manually managed <manual
+  memory management>` pools, fenceposts are checked when the block is
+  deallocated, to see that they are unchanged. This helps detect
+  underwriting and :term:`overwriting errors`. Fenceposts for all
+  objects in a pool are checked when the pool is destroyed, and can be
+  checked at any time by calling :c:func:`mps_pool_check_fenceposts`.
 
 * .. index::
      single: debugging; free space splatting
@@ -32,9 +44,11 @@ two features that are useful for debugging:
   of data. If the pattern is designed so that it does not resemble a
   live object (and if code checks the consistency of its data
   structues), then this helps to detect :term:`dangling pointer`
-  dereferences. The pattern can also be checked, for example just
-  before allocation, or when a block of memory is released from the
-  pool to the arena, to see that it is unchanged.
+  dereferences. The pattern is checked just before allocation, and
+  when a block of memory is released from the pool to the arena, to
+  see that it is unchanged. All free space in a pool can be checked
+  for the pattern at any time by calling
+  :c:func:`mps_pool_check_free_space`.
 
 The :term:`client program` specifies templates for both of these
 features via the :c:type:`mps_pool_debug_option_s` structure. This

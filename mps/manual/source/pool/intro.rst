@@ -1,3 +1,6 @@
+.. index::
+   single: pool class; choosing
+
 .. _pool-choose:
 
 Choosing a pool class
@@ -13,7 +16,9 @@ of pools, choosing the most appropriate pool class for each.
     Pool classes can differ in many ways not considered here: speed,
     vulnerability to fragmentation, control overhead, and so on. This
     procedure gives you a decent recommendation, but an expert in the
-    MPS might be able to make a better one.
+    MPS might be able to make a better recommendation. And if no pool
+    class in the open source MPS exactly matches your needs, then it
+    is possible to develop new pool classes. See :ref:`pool-writing`.
 
 First, answer these questions about your data:
 
@@ -65,6 +70,9 @@ no          *any*                   weak         :ref:`pool-mvt` [1]_
 
      `<https://info.ravenbrook.com/project/mps/doc/2002-06-18/obsolete-mminfo/mmdoc/doc/mps/guide/pool-classes/>`_
 
+.. index::
+   single: pool class; table of properties
+
 .. _pool-properties:
 
 Pool class properties
@@ -96,7 +104,6 @@ Allocations fixed or variable in size?         var    var    var    var    var  
 Alignment? [5]_                                conf   conf   conf   conf   conf   [6]_   [6]_   [7]_   [6]_   conf
 Dependent objects? [8]_                        no     ---    no     yes    ---    ---    ---    ---    ---    no
 May use remote references? [9]_                no     ---    no     no     ---    ---    ---    ---    ---    no
-Ambiguous references keep blocks alive?        no     no     no     no     no     ---    ---    ---    ---    no
 Blocks are automatically managed? [10]_        yes    yes    yes    yes    yes    no     no     no     no     no
 Blocks are manually managed? [10]_             no     no     no     no     no     yes    yes    yes    yes    yes
 Blocks are scanned? [11]_                      yes    no     yes    yes    no     no     no     no     no     yes
@@ -171,6 +178,11 @@ Blocks may belong to format auto-header?       yes    yes    yes    yes    yes  
            past the end of the header) is considered to be a reference
            to the block.
 
+
+.. index::
+   single: pool class; writing
+
+.. _pool-writing:
 
 Writing a new pool class
 ========================
