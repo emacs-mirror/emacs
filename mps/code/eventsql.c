@@ -213,7 +213,7 @@ static void parseArgs(int argc, char *argv[])
       break;
     case '?': case 'h': /* help */
       usage();
-      break;
+      exit(EXIT_SUCCESS);
     default:
       usageError();
     }
