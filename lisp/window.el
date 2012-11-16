@@ -6074,22 +6074,26 @@ of `fit-frame-to-buffer-max-height' and `window-min-height'."
   :group 'help)
 
 (defcustom fit-frame-to-buffer-bottom-margin 4
-  "Bottom margin for `fit-frame-to-buffer'.
-This is the number of lines `fit-frame-to-buffer' leaves free at the
-bottom of the display in order to not obscure the system task bar."
+  "Bottom margin for the command `fit-frame-to-buffer'.
+This is the number of lines that function leaves free at the bottom of
+the display, in order to not obscure any system task bar or panel.
+If you do not have one (or if it is vertical) you might want to
+reduce this.  If it is thicker, you might want to increase this."
+  ;; If you set this too small, fit-frame-to-buffer can shift the
+  ;; frame up to avoid the panel.
   :type 'integer
   :version "24.3"
   :group 'windows)
 
 (defun fit-frame-to-buffer (&optional frame max-height min-height)
-  "Adjust height of FRAME to display its buffer's contents exactly.
+  "Adjust height of FRAME to display its buffer contents exactly.
 FRAME can be any live frame and defaults to the selected one.
 
-Optional argument MAX-HEIGHT specifies the maximum height of
-FRAME and defaults to the height of the display below the current
-top line of FRAME minus FIT-FRAME-TO-BUFFER-BOTTOM-MARGIN.
-Optional argument MIN-HEIGHT specifies the minimum height of
-FRAME."
+Optional argument MAX-HEIGHT specifies the maximum height of FRAME.
+It defaults to the height of the display below the current
+top line of FRAME, minus `fit-frame-to-buffer-bottom-margin'.
+Optional argument MIN-HEIGHT specifies the minimum height of FRAME.
+The default corresponds to `window-min-height'."
   (interactive)
   (setq frame (window-normalize-frame frame))
   (let* ((root (frame-root-window frame))
@@ -6165,6 +6169,10 @@ argument MIN-HEIGHT specifies the minimum height of WINDOW and
 defaults to `window-min-height'.  Both MAX-HEIGHT and MIN-HEIGHT
 are specified in lines and include the mode line and header line,
 if any.
+
+If WINDOW is a full height window, then if the option
+`fit-frame-to-buffer' is non-nil, this calls the function
+`fit-frame-to-buffer' to adjust the frame height.
 
 Return the number of lines by which WINDOW was enlarged or
 shrunk.  If an error occurs during resizing, return nil but don't

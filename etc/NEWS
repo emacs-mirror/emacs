@@ -851,8 +851,12 @@ now accept a third argument to avoid choosing the selected window.
 *** `temp-buffer-resize-mode' no longer resizes windows that have been
 reused.
 
-*** New function `fit-frame-to-buffer' and new options
-`fit-frame-to-buffer' and `fit-frame-to-buffer-bottom-margin'.
+*** New command `fit-frame-to-buffer' adjusts the frame height to
+fit the contents.
+
+*** The command `fit-window-to-buffer' can adjust the frame height
+if the new option `fit-frame-to-buffer' is non-nil.
+
 +++
 *** New option switch-to-buffer-preserve-window-point to restore a
 window's point when switching buffers.

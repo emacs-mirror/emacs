@@ -1,5 +1,8 @@
 2012-11-16  Glenn Morris  <rgm@gnu.org>
 
+	* window.el (fit-frame-to-buffer-bottom-margin)
+	(fit-frame-to-buffer, fit-window-to-buffer): Doc fixes.
+
 	* faces.el (face-underline-p): Use face-attribute-specified-or.
 
 2012-11-15  Juanma Barranquero  <lekktu@gmail.com>
