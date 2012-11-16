@@ -497,7 +497,7 @@ with the `default' face (which is always completely specified)."
 If the optional argument FRAME is given, report on face FACE in that frame.
 If FRAME is t, report on the defaults for face FACE (for new frames).
 If FRAME is omitted or nil, use the selected frame."
- (not (memq (face-attribute face :underline frame) '(unspecified nil))))
+ (face-attribute-specified-or (face-attribute face :underline frame) nil))
 
 
 (defun face-inverse-video-p (face &optional frame)
