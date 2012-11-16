@@ -1,3 +1,7 @@
+2012-11-16  Glenn Morris  <rgm@gnu.org>
+
+	* editfns.c (Fmessage): Mention message-log-max.  (Bug#12849)
+
 2012-11-15  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* eval.c (Finteractive_p): Revert lexbind-merge mishap.

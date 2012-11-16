@@ -3434,8 +3434,8 @@ static ptrdiff_t message_length;
 
 DEFUN ("message", Fmessage, Smessage, 1, MANY, 0,
        doc: /* Display a message at the bottom of the screen.
-The message also goes into the `*Messages*' buffer.
-\(In keyboard macros, that's all it does.)
+The message also goes into the `*Messages*' buffer, if `message-log-max'
+is non-nil.  (In keyboard macros, that's all it does.)
 Return the message.
 
 The first argument is a format control string, and the rest are data
