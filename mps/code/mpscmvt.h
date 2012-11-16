@@ -1,11 +1,11 @@
-/* mpscmv2.h: MEMORY POOL SYSTEM CLASS "MVT"
+/* mpscmvt.h: MEMORY POOL SYSTEM CLASS "MVT"
  *
  * $Id$
  * Copyright (c) 2001 Ravenbrook Limited.  See end of file for license.
  */
 
-#ifndef mpscmv2_h
-#define mpscmv2_h
+#ifndef mpscmvt_h
+#define mpscmvt_h
 
 #include "mps.h"
 
@@ -32,7 +32,7 @@ extern mps_class_t mps_class_mvt(void);
 extern size_t mps_mvt_free_size(mps_pool_t mps_pool);
 extern size_t mps_mvt_size(mps_pool_t mps_pool);
 
-#endif /* mpscmv2_h */
+#endif /* mpscmvt_h */
 
 
 /* C. COPYRIGHT AND LICENSE
