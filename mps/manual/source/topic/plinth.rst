@@ -199,9 +199,6 @@ Library module
     Return the time since some epoch, in units given by
     :c:func:`mps_clocks_per_sec`.
 
-    This should be a cheap, high-resolution processor timer. There is
-    no requirement to be able to relate this time to wall clock time.
-
     .. note::
 
         The ANSI Library module, ``mpsliban.c``, calls ``clock``.
@@ -397,6 +394,11 @@ Library module
 
         In the ANSI Library module, ``mpsliban.c``, this is a simple
         wrapper around ``memset``.
+
+    .. note::
+
+        The MPS does not use this at present, but it may be required
+        in future.
 
 
 .. c:function:: unsigned long mps_lib_telemetry_control()
