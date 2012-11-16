@@ -105,7 +105,7 @@ MVT interface
 
 ::
 
-   #include "mpscmv2.h"
+   #include "mpscmvt.h"
 
 .. c:function:: mps_class_t mps_class_mvt(void)
 
@@ -186,7 +186,7 @@ MVT introspection
 
 ::
 
-   #include "mpscmv2.h"
+   #include "mpscmvt.h"
 
 .. c:function:: size_t mps_mvt_free_size(mps_pool_t pool)
 
