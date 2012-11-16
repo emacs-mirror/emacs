@@ -210,7 +210,9 @@ This minor mode replaces `toggle-read-only', which is now obsolete.
 ** Emacs now generates backtraces on fatal errors.
 On encountering a fatal error, Emacs now outputs a textual description
 of the fatal signal, and a short backtrace on platforms like glibc
-that support backtraces.
+that support backtraces, and also on MS-Windows.  On Windows, the
+backtrace is also written to the 'emacs_backtrace.txt' file in the
+directory where Emacs was running.
 
 ---
 ** If your Emacs was built from a bzr checkout, the new variable
