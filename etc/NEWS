@@ -815,6 +815,12 @@ in the presence of quoting, such as file completion in shell buffers.
 *** New function `completion-table-subvert' to use an existing completion
 table, but with a different prefix.
 
+FIXME?
+*** There are several other completion-table- functions that never got
+added to NEWS or documented: completion-table-case-fold (24.1),
+completion-table-with-context (23,1), completion-table-with-terminator (23.1),
+completion-table-with-predicate (23.1), completion-table-in-turn (23.1)
+
 ** Debugger changes
 
 +++
