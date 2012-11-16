@@ -308,6 +308,13 @@ General types
     :c:func:`mps_clock`.
 
 
+.. c:type:: mps_label_t
+
+    The type of a :term:`telemetry label`.
+
+    It is an unsigned integral type.
+
+
 .. c:type:: mps_word_t
     
     An unsigned integral type that is the same size as an

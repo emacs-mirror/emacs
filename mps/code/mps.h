@@ -76,6 +76,7 @@ typedef unsigned mps_rm_t;      /* root mode (unsigned) */
 typedef unsigned mps_rank_t;    /* ranks (unsigned) */
 typedef unsigned mps_message_type_t;    /* message type (unsigned) */
 typedef mps_word_t mps_clock_t;  /* processor time */
+typedef mps_word_t mps_label_t;  /* telemetry label */
 
 /* Result Codes */
 /* .result-codes: Keep in sync with <code/mpmtypes.h#result-codes> */
@@ -583,8 +584,11 @@ enum {
 /* Telemetry */
 
 extern mps_word_t mps_telemetry_control(mps_word_t, mps_word_t);
-extern mps_word_t mps_telemetry_intern(const char *);
-extern void mps_telemetry_label(mps_addr_t, mps_word_t);
+extern void mps_telemetry_set(mps_word_t);
+extern void mps_telemetry_reset(mps_word_t);
+extern mps_word_t mps_telemetry_get(void);
+extern mps_label_t mps_telemetry_intern(const char *);
+extern void mps_telemetry_label(mps_addr_t, mps_label_t);
 extern void mps_telemetry_flush(void);
 
 

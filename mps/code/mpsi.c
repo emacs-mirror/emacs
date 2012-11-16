@@ -1688,19 +1688,35 @@ mps_res_t mps_alert_collection_set(mps_arena_t arena,
 
 /* Telemetry */
 
+/* TODO: need to consider locking. See job003387, job003388. */
+
 mps_word_t mps_telemetry_control(mps_word_t resetMask, mps_word_t flipMask)
 {
-  /* Doesn't require locking and isn't arena-specific. */
   return EventControl((Word)resetMask, (Word)flipMask);
 }
 
-mps_word_t mps_telemetry_intern(const char *label)
+void mps_telemetry_set(mps_word_t setMask)
 {
-  AVER(label != NULL);
-  return (mps_word_t)EventInternString(label);
+  EventControl((Word)setMask, (Word)setMask);
 }
 
-void mps_telemetry_label(mps_addr_t addr, mps_word_t intern_id)
+void mps_telemetry_reset(mps_word_t resetMask)
+{
+  EventControl((Word)resetMask, 0);
+}
+
+mps_word_t mps_telemetry_get(void)
+{
+  return EventControl(0, 0);
+}
+
+mps_label_t mps_telemetry_intern(const char *label)
+{
+  AVER(label != NULL);
+  return (mps_label_t)EventInternString(label);
+}
+
+void mps_telemetry_label(mps_addr_t addr, mps_label_t intern_id)
 {
   EventLabelAddr((Addr)addr, (Word)intern_id);
 }
