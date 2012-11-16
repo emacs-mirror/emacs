@@ -1,5 +1,7 @@
 2012-11-16  Stefan Monnier  <monnier@iro.umontreal.ca>
 
+	* emacs-lisp/advice.el (ad-make-advised-definition): Improve last fix.
+
 	* emacs-lisp/cl-lib.el: Set more meaningful version number.
 
 2012-11-16  Martin Rudalics  <rudalics@gmx.at>
