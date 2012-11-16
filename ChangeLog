@@ -1,3 +1,8 @@
+2012-11-16  Paul Eggert  <eggert@cs.ucla.edu>
+
+	Remove no-longer-used pty_max_bytes variable.
+	* configure.ac (fpathconf): Remove unnecessary check.
+
 2012-11-14  Paul Eggert  <eggert@cs.ucla.edu>
 
 	Use faccessat, not access, when checking file permissions (Bug#12632).

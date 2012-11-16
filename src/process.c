@@ -340,9 +340,6 @@ static struct sockaddr_and_len {
 #define DATAGRAM_CONN_P(proc)	(0)
 #endif
 
-/* Maximum number of bytes to send to a pty without an eof.  */
-static int pty_max_bytes;
-
 /* These setters are used only in this file, so they can be private.  */
 static void
 pset_buffer (struct Lisp_Process *p, Lisp_Object val)
@@ -5530,19 +5527,6 @@ send_process (Lisp_Object proc, const char *buf, ptrdiff_t len,
       len = coding->produced;
       object = coding->dst_object;
       buf = SSDATA (object);
-    }
-
-  if (pty_max_bytes == 0)
-    {
-#if defined (HAVE_FPATHCONF) && defined (_PC_MAX_CANON)
-      pty_max_bytes = fpathconf (p->outfd, _PC_MAX_CANON);
-      if (pty_max_bytes < 0)
-	pty_max_bytes = 250;
-#else
-      pty_max_bytes = 250;
-#endif
-      /* Deduct one, to leave space for the eof.  */
-      pty_max_bytes--;
     }
 
   /* If there is already data in the write_queue, put the new data

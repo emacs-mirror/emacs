@@ -1,3 +1,9 @@
+2012-11-16  Paul Eggert  <eggert@cs.ucla.edu>
+
+	Remove no-longer-used pty_max_bytes variable.
+	* process.c (pty_max_bytes): Remove; unused.
+	(send_process): Do not set it.
+
 2012-11-15  Juanma Barranquero  <lekktu@gmail.com>
 
 	* makefile.w32-in ($(BLD)/dispnew.$(O), $(BLD)/emacs.$(O)):
