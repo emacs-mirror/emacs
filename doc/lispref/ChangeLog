@@ -1,3 +1,11 @@
+2012-11-16  Martin Rudalics  <rudalics@gmx.at>
+
+	* windows.texi (Choosing Window): Rewrite description of
+	display-buffer-alist (Bug#12167).
+	(Display Action Functions): Mention inhibit-switch-frame.  Fix
+	description of display-buffer-below-selected.  Reorder actions.
+	Add example (Bug#12848).
+
 2012-11-15  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* keymaps.texi (Translation Keymaps): Add a subsection "Interaction

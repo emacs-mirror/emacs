@@ -1,3 +1,16 @@
+2012-11-16  Martin Rudalics  <rudalics@gmx.at>
+
+	* window.el (enlarge-window, shrink-window): Don't mention return
+	value in doc-string (Bug#12896).
+	(window--display-buffer): Don't resize frames - it won't work
+	with all window managers and defeat pop-up-frame-alist.
+	(display-buffer-alist): In doc-string explain that CONDITION can
+	be a function and which arguments are passed to it (Bug#12854).
+	(display-buffer-assq-regexp): New argument ACTION.  Handle lambda
+	expressions (Bug#12854).
+	(display-buffer): Pass ACTION argument to
+	display-buffer-assq-regexp.
+
 2012-11-16  Glenn Morris  <rgm@gnu.org>
 
 	* window.el (fit-frame-to-buffer-bottom-margin)

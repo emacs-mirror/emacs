@@ -2571,8 +2571,7 @@ move it as far as possible in the desired direction."
 Interactively, if no argument is given, make the selected window
 one line taller.  If optional argument HORIZONTAL is non-nil,
 make selected window wider by DELTA columns.  If DELTA is
-negative, shrink selected window by -DELTA lines or columns.
-Return nil."
+negative, shrink selected window by -DELTA lines or columns."
   (interactive "p")
   (let ((minibuffer-window (minibuffer-window)))
     (cond
@@ -2605,8 +2604,7 @@ Interactively, if no argument is given, make the selected window
 one line smaller.  If optional argument HORIZONTAL is non-nil,
 make selected window narrower by DELTA columns.  If DELTA is
 negative, enlarge selected window by -DELTA lines or columns.
-Also see the `window-min-height' variable.
-Return nil."
+Also see the `window-min-height' variable."
   (interactive "p")
   (let ((minibuffer-window (minibuffer-window)))
     (cond
@@ -5176,11 +5174,12 @@ is higher than WINDOW."
       (error nil))))
 
 (defun window--display-buffer (buffer window type &optional alist dedicated)
-  "Display BUFFER in WINDOW and make its frame visible.
+  "Display BUFFER in WINDOW.
 TYPE must be one of the symbols `reuse', `window' or `frame' and
-is passed unaltered to `display-buffer-record-window'. Set
-`window-dedicated-p' to DEDICATED if non-nil.  Return WINDOW if
-BUFFER and WINDOW are live."
+is passed unaltered to `display-buffer-record-window'.  ALIST is
+the alist argument of `display-buffer'.  Set `window-dedicated-p'
+to DEDICATED if non-nil.  Return WINDOW if BUFFER and WINDOW are
+live."
   (when (and (buffer-live-p buffer) (window-live-p window))
     (display-buffer-record-window type window buffer)
     (unless (eq buffer (window-buffer window))
@@ -5193,10 +5192,10 @@ BUFFER and WINDOW are live."
     (let ((parameter (window-parameter window 'quit-restore))
 	  (height (cdr (assq 'window-height alist)))
 	  (width (cdr (assq 'window-width alist))))
-      (when (or (memq type '(window frame))
+      (when (or (eq type 'window)
 		(and (eq (car parameter) 'same)
-		     (memq (nth 1 parameter) '(window frame))))
-	;; Adjust height of new window or frame.
+		     (eq (nth 1 parameter) 'window)))
+	;; Adjust height of window if asked for.
 	(cond
 	 ((not height))
 	 ((numberp height)
@@ -5207,19 +5206,12 @@ BUFFER and WINDOW are live."
 		     (* (window-total-size (frame-root-window window))
 			height))))
 		 (delta (- new-height (window-total-size window))))
-	    (cond
-	     ((and (window--resizable-p window delta nil 'safe)
-		   (window-combined-p window))
-	      (window-resize window delta nil 'safe))
-	     ((or (eq type 'frame)
-		  (and (eq (car parameter) 'same)
-		       (eq (nth 1 parameter) 'frame)))
-	      (set-frame-height
-	       (window-frame window)
-	       (+ (frame-height (window-frame window)) delta))))))
+	    (when (and (window--resizable-p window delta nil 'safe)
+		       (window-combined-p window))
+	      (window-resize window delta nil 'safe))))
 	 ((functionp height)
 	  (ignore-errors (funcall height window))))
-	;; Adjust width of a window or frame.
+	;; Adjust width of window if asked for.
 	(cond
 	 ((not width))
 	 ((numberp width)
@@ -5230,18 +5222,12 @@ BUFFER and WINDOW are live."
 		     (* (window-total-size (frame-root-window window) t)
 			width))))
 		 (delta (- new-width (window-total-size window t))))
-	    (cond
-	     ((and (window--resizable-p window delta t 'safe)
-		   (window-combined-p window t))
-	      (window-resize window delta t 'safe))
-	     ((or (eq type 'frame)
-		  (and (eq (car parameter) 'same)
-		       (eq (nth 1 parameter) 'frame)))
-	      (set-frame-width
-	       (window-frame window)
-	       (+ (frame-width (window-frame window)) delta))))))
+	    (when (and (window--resizable-p window delta t 'safe)
+		       (window-combined-p window t))
+	      (window-resize window delta t 'safe))))
 	 ((functionp width)
 	  (ignore-errors (funcall width window))))))
+
     window))
 
 (defun window--maybe-raise-frame (frame)
@@ -5301,13 +5287,19 @@ See `display-buffer' for details.")
   "Alist of conditional actions for `display-buffer'.
 This is a list of elements (CONDITION . ACTION), where:
 
- CONDITION is either a regexp matching buffer names, or a function
-  that takes a buffer and returns a boolean.
+ CONDITION is either a regexp matching buffer names, or a
+  function that takes two arguments - a buffer name and the
+  ACTION argument of `display-buffer' - and returns a boolean.
 
  ACTION is a cons cell (FUNCTION . ALIST), where FUNCTION is a
   function or a list of functions.  Each such function should
   accept two arguments: a buffer to display and an alist of the
-  same form as ALIST.  See `display-buffer' for details."
+  same form as ALIST.  See `display-buffer' for details.
+
+`display-buffer' scans this alist until it either finds a
+matching regular expression or the function specified by a
+condition returns non-nil.  In any of these cases, it adds the
+associated action to the list of actions it will try."
   :type `(alist :key-type
 		(choice :tag "Condition"
 			regexp
@@ -5341,15 +5333,16 @@ specified, e.g. by the user options `display-buffer-alist' or
 `display-buffer-base-action'.  See `display-buffer'.")
 (put 'display-buffer-fallback-action 'risky-local-variable t)
 
-(defun display-buffer-assq-regexp (buffer-name alist)
-  "Retrieve ALIST entry corresponding to BUFFER-NAME."
+(defun display-buffer-assq-regexp (buffer-name alist action)
+  "Retrieve ALIST entry corresponding to BUFFER-NAME.
+ACTION is the action argument passed to `display-buffer'."
   (catch 'match
     (dolist (entry alist)
       (let ((key (car entry)))
 	(when (or (and (stringp key)
 		       (string-match-p key buffer-name))
-		  (and (symbolp key) (functionp key)
-		       (funcall key buffer-name alist)))
+		  (and (functionp key)
+		       (funcall key buffer-name action)))
 	  (throw 'match (cdr entry)))))))
 
 (defvar display-buffer--same-window-action
@@ -5459,8 +5452,8 @@ argument, ACTION is t."
 	(funcall display-buffer-function buffer inhibit-same-window)
       ;; Otherwise, use the defined actions.
       (let* ((user-action
-	      (display-buffer-assq-regexp (buffer-name buffer)
-					  display-buffer-alist))
+	      (display-buffer-assq-regexp
+	       (buffer-name buffer) display-buffer-alist action))
              (special-action (display-buffer--special-action buffer))
 	     ;; Extra actions from the arguments to this function:
 	     (extra-action
