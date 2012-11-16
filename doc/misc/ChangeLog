@@ -1,3 +1,8 @@
+2012-11-16  Glenn Morris  <rgm@gnu.org>
+
+	* cl.texi (Function Bindings): Clarify that cl-flet is lexical.
+	(Obsolete Macros): Move example here from Function Bindings.
+
 2012-11-13  Glenn Morris  <rgm@gnu.org>
 
 	* erc.texi: Use @code{nil} rather than just "nil".

@@ -320,6 +320,8 @@ provide the old non-prefixed names.  Some exceptions are listed below.
 +++
 *** `cl-flet' is not like `flet' (which is deprecated).
 Instead it obeys the behavior of Common-Lisp's `flet'.
+In particular, in cl-flet function definitions are lexically scoped,
+whereas in flet the scoping is dynamic.
 
 +++
 *** `cl-labels' is slightly different from `labels'.
