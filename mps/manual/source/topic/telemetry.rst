@@ -5,9 +5,25 @@
 Telemetry
 =========
 
-John McCarthy described the first on-line demonstration of
-:term:`Lisp` in an appendix to his paper ":ref:`History of Lisp
-<MCCARTHY79>`":
+In its :term:`cool` and :term:`hot` :term:`varieties`, the MPS is
+capable of outputting a configurable stream of events to assist with
+debugging and profiling.
+
+The selection of events that appear in the stream is controlled by the
+environment variable :envvar:`MPS_TELEMETRY_CONTROL` (by default
+none), and the stream is written to the file named by the environment
+variable :envvar:`MPS_TELEMETRY_FILENAME` (by default ``mpsio.log``).
+
+The telemetry system writes blocks of binary output, and is fast
+enough to be left turned on in production code (the :term:`hot`
+variety avoids emitting events on the :term:`critical path`), which
+can be useful for diagnosing memory management problems in production
+environments.
+
+The reporting of garbage collection statistics hasn't always been
+suitable for deployment. John McCarthy described the first on-line
+demonstration of :term:`Lisp` in an appendix to his paper
+":ref:`History of Lisp <MCCARTHY79>`":
 
     Everything was going well, if slowly, when suddenly the
     Flexowriter began to type (at ten characters per second) ::
@@ -19,10 +35,7 @@ John McCarthy described the first on-line demonstration of
     time, we were rather proud of it and curious about it, and our
     normal output was on a line printer, so it printed a full page
     every time it was called giving how many words were marked and how
-    many were collected and the size of list space, etc. During a
-    previous rehearsal, the garbage collector hadn’t been called, but
-    we had not refreshed the LISP core image, so we ran out of free
-    storage during the demonstration.
+    many were collected and the size of list space, etc. [...]
 
     Nothing had ever been said about the garbage collector, and I
     could only imagine the reaction of the audience. We were already
@@ -31,22 +44,6 @@ John McCarthy described the first on-line demonstration of
     allocated to the demonstration, and both the lecturer and the
     audience were incapacitated with laughter. I think some of them
     thought we were victims of a practical joker.
-
-
-.. index::
-   single: telemetry; introduction
-
-Introduction
-------------
-
-In its :term:`cool` and :term:`hot` :term:`varieties`, the MPS is
-capable of outputting a configurable stream of events to assist with
-debugging and profiling.
-
-The selection of events that appear in the stream is controlled by the
-environment variable :envvar:`MPS_TELEMETRY_CONTROL` (by default
-none), and the stream is written to the file named by the environment
-variable :envvar:`MPS_TELEMETRY_FILENAME` (by default ``mpsio.log``).
 
 
 .. index::
@@ -263,12 +260,12 @@ be loaded into a SQLite database for further analysis by running
 
 .. program:: mpseventsql
 
-.. option:: -l <filename>
+.. option:: -i <filename>
 
     The name of a file containing a decoded telemetry stream. Defaults
     to standard input.
 
-.. option:: -d <filename>
+.. option:: -o <filename>
 
     The name of a SQLite database file that will be updated with the
     events from the decoded telemetry stream specified by the ``-l``
@@ -280,18 +277,29 @@ be loaded into a SQLite database for further analysis by running
     Updating a database with events from a file is idempotent unless
     the ``-f`` option is specified.
 
+.. option:: -d
+
+    Delete the database before importing.
+
 .. option:: -f
 
     Forces the database to be updated with events from the decoded
-    telemetry stream specified by the ``-l`` option, even if those
+    telemetry stream specified by the ``-i`` option, even if those
     events have previously been added.
 
 .. option:: -v
 
     Increase the verbosity. With one or more ``-v`` options,
-    :program:`mpseventsql` prints progress messages to standard error.
-    Verbosity levels up to 3 (``-v -v -v``) produce successively more
-    detailed progress reports.
+    :program:`mpseventsql` prints informative messages to standard
+    error. Verbosity levels up to 3 (``-vvv``) produce successively
+    more detailed information.
+
+    This option implies ``-p``.
+
+.. option:: -p
+
+    Show progress by printing a dot to standard output for every
+    100,000 events processed.
 
 .. option:: -t
 
@@ -300,8 +308,8 @@ be loaded into a SQLite database for further analysis by running
 .. option:: -r
 
     Rebuild the tables ``event_kind``, ``event_type``, and
-    ``event_param``. This is necessary if you changed the event
-    descriptions in ``eventdef.h``.
+    ``event_param``. (This is necessary if you changed the event
+    descriptions in ``eventdef.h``.)
 
 
 .. index::
