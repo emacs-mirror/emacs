@@ -1,3 +1,8 @@
+2012-11-16  enami tsugutomo  <tsugutomo.enami@jp.sony.com>
+
+	* unexelf.c (ELFSIZE) [__NetBSD__ && _LP64]: Set to 64.
+	Needed following 2012-10-20 change.  (Bug#12902)
+
 2012-11-16  Glenn Morris  <rgm@gnu.org>
 
 	* editfns.c (Fmessage): Mention message-log-max.  (Bug#12849)
