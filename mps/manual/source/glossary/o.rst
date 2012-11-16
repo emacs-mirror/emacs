@@ -114,7 +114,7 @@ Memory Management Glossary: O
             the reference was suggested by :ref:`Stoye, Clarke, and
             Norman (1984) <SCN84>`.
 
-        .. bibref:: :ref:`Jones (1996) <JONES96>`.
+        .. bibref:: :ref:`Jones et al. (2012) <JONES12>`.
 
     opaque type
 

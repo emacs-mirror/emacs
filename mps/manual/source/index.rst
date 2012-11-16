@@ -35,6 +35,5 @@ Appendices
     glossary/index
     copyright
     contact
-    todo
 
 * :ref:`genindex`

@@ -8,7 +8,6 @@ Introduction to memory management
     begin
     alloc
     recycle
-    history
     lang
     faq
     

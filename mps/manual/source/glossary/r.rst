@@ -418,7 +418,7 @@ Memory Management Glossary: R
 
         .. similar:: :term:`entry table (2)`.
 
-        .. bibref:: :ref:`Ungar (1984) <UNGAR84>`, :ref:`Jones (1996) <JONES96>`.
+        .. bibref:: :ref:`Ungar (1984) <UNGAR84>`, :ref:`Jones et al. (2012) <JONES12>`.
 
     remote reference
 

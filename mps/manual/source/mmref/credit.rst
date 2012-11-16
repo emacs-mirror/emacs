@@ -14,11 +14,15 @@ Adaptive Memory Management Group at `Harlequin Limited
 * Nick Barnes
 * Richard Brooksby
 * David Jones
+* David Lovemore
 * Tony Mann
 * Gavin Matthews
 * Pekka P. Pirinen
 * Richard Tucker
 * P. T. Withington
+
+Gavin Matthews was the original editor of the Memory Management
+Reference.
 
 The Adaptive Memory Management Group no longer exists, and Harlequin
 has become a part of `Global Graphics
@@ -27,11 +31,8 @@ has been aquired by `Ravenbrook Limited`, whose directors are Richard
 Brooksby, the group's chief architect and manager, and Nick Barnes, a
 senior group member.
 
-The award-winning web presentation was designed by its first editor,
-Gavin Matthews.
-
 Particular thanks go to Richard Jones for his enormously useful book
-:ref:`The Garbage Collection Handbook <JONES96>`, and for his comments
+:ref:`The Garbage Collection Handbook <JONES12>`, and for his comments
 on the Reference.
 
 Many people have :ref:`made valuable suggestions <contact>` for the
