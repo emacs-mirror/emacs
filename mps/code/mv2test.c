@@ -10,7 +10,7 @@
 #include "mpstd.h"
 #include <time.h>
 
-#include "mpscmv2.h"
+#include "mpscmvt.h"
 #include "mps.h"
 
 typedef MPS_T_WORD mps_count_t;  /* machine word (target dep.) */
