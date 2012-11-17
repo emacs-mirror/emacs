@@ -1,3 +1,15 @@
+2012-11-17  Eli Zaretskii  <eliz@gnu.org>
+
+	* w32select.c: Include w32common.h before w32term.h, so that
+	windows.h gets included before w32term.h uses some of its
+	features, see below.
+
+	* w32term.h (LOCALE_ENUMPROCA, LOCALE_ENUMPROCW) [_MSC_VER]: New
+	typedefs.
+	(EnumSystemLocalesA, EnumSystemLocalesW) [_MSC_VER]: New
+	prototypes.
+	(EnumSystemLocales) [_MSC_VER]: Define if undefined.  (Bug#12878)
+
 2012-11-17  Jan Djärv  <jan.h.d@swipnet.se>
 
 	* nsterm.m (hold_event): Set send_appdefined to YES (Bug#12834).
