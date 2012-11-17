@@ -1,3 +1,7 @@
+2012-11-17  Glenn Morris  <rgm@gnu.org>
+
+	* window.el (with-temp-buffer-window): Doc fix.
+
 2012-11-16  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* emacs-lisp/cl-lib.el: Set more meaningful version number.
