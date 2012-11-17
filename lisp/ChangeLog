@@ -1,3 +1,23 @@
+2012-11-17  Jay Belanger  <jay.p.belanger@gmail.com>
+
+	* calc/calc.el (calc-gregorian-switch): New variable.
+
+	* calc/calc-forms.el (math-day-in-year, math-dt-before-p)
+	(math-absolute-from-gregorian-dt, math-absolute-from-julian-dt)
+	(math-date-to-julian-dt, math-date-to-gregorian-dt): New functions.
+	(math-leap-year-p): Add option to distinguish between Julian
+	and Gregorian calendars.
+	(math-day-number): Use `math-day-in-year' to do the computations.
+	(math-absolute-from-dt): Rename from `math-absolute-from-date'.
+	Use `math-absolute-from-gregorian' and `math-absolute-from-julian'
+	to do the computations.
+	(math-date-to-dt): Use `math-date-to-julian-dt' and
+	`math-date-to-gregorian-dt' to do the computations.
+	(calcFunc-weekday, math-format-date-part): Use the new version of
+	the DATE to determine the weekday.
+	(calcFunc-newmonth, calcFunc-newyear): Use `calc-gregorian-switch'
+	when necessary.
+
 2012-11-17  Eli Zaretskii  <eliz@gnu.org>
 
 	* term/w32-win.el (w32-handle-dropped-file): Use 'file://' only on
