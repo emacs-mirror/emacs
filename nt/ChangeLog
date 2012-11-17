@@ -1,3 +1,8 @@
+2012-11-17  Juanma Barranquero  <lekktu@gmail.com>
+
+	* config.nt: Sync with autogen/config.in.
+	(HAVE_FPATHCONF): Remove.
+
 2012-11-17  Paul Eggert  <eggert@cs.ucla.edu>
 
 	Assume POSIX 1003.1-1988 or later for fcntl.h (Bug#12881).
