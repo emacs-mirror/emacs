@@ -31,6 +31,7 @@ GNUstep port and post-20 update by Adrian Robert (arobert@cogsci.ucsd.edu)
 #include <config.h>
 
 #include <math.h>
+#include <pthread.h>
 #include <sys/types.h>
 #include <time.h>
 #include <signal.h>
@@ -330,6 +331,8 @@ hold_event (struct input_event *event)
     }
 
   hold_event_q.q[hold_event_q.nr++] = *event;
+  /* Make sure ns_read_socket is called, i.e. we have input.  */
+  raise (SIGIO);
 }
 
 static Lisp_Object
@@ -3387,7 +3390,7 @@ ns_read_socket (struct terminal *terminal, struct input_event *hold_quit)
   if ([NSApp modalWindow] != nil)
     return -1;
 
-  if (hold_event_q.nr > 0) 
+  if (hold_event_q.nr > 0)
     {
       int i;
       for (i = 0; i < hold_event_q.nr; ++i)
@@ -3502,7 +3505,7 @@ ns_select (int nfds, fd_set *readfds, fd_set *writefds,
 
       /* Inform fd_handler that select should be called */
       c = 'g';
-      write (selfds[1], &c, 1);
+      emacs_write (selfds[1], &c, 1);
     }
   else if (nr == 0 && timeout)
     {
@@ -3535,7 +3538,7 @@ ns_select (int nfds, fd_set *readfds, fd_set *writefds,
   if (nr > 0 && readfds)
     {
       c = 's';
-      write (selfds[1], &c, 1);
+      emacs_write (selfds[1], &c, 1);
     }
   unblock_input ();
 
@@ -4112,8 +4115,6 @@ ns_term_init (Lisp_Object display_name)
 
         color_file = Fexpand_file_name (build_string ("rgb.txt"),
                          Fsymbol_value (intern ("data-directory")));
-        if (NILP (Ffile_readable_p (color_file)))
-          fatal ("Could not find %s.\n", SDATA (color_file));
 
         color_map = Fx_load_color_file (color_file);
         if (NILP (color_map))
@@ -4576,11 +4577,8 @@ not_in_argv (NSString *arg)
 
           FD_SET (selfds[0], &fds);
           result = select (selfds[0]+1, &fds, NULL, NULL, NULL);
-          if (result > 0)
-            {
-              read (selfds[0], &c, 1);
-              if (c == 'g') waiting = 0;
-            }
+          if (result > 0 && read (selfds[0], &c, 1) == 1 && c == 'g')
+	    waiting = 0;
         }
       else
         {
@@ -4620,8 +4618,8 @@ not_in_argv (NSString *arg)
             {
               if (FD_ISSET (selfds[0], &readfds))
                 {
-                  read (selfds[0], &c, 1);
-                  if (c == 's') waiting = 1;
+                  if (read (selfds[0], &c, 1) == 1 && c == 's')
+		    waiting = 1;
                 }
               else
                 {
@@ -6696,7 +6694,7 @@ not_in_argv (NSString *arg)
   /* Events may come here even if the event loop is not running.
      If we don't enter the event loop, the scroll bar will not update.
      So send SIGIO to ourselves.  */
-  if (apploopnr == 0) kill (0, SIGIO);
+  if (apploopnr == 0) raise (SIGIO);
 
   return self;
 }

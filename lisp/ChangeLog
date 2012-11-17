@@ -1,3 +1,189 @@
+2012-11-17  Andreas Politz  <politza@fh-trier.de>
+
+	* ibuffer.el (ibuffer-mark-forward, ibuffer-unmark-forward)
+	(ibuffer-unmark-backward, ibuffer-mark-interactive): Support plain
+	prefix and negative numeric prefix args (Bug#12795).
+
+2012-11-17  Stephen Berman  <stephen.berman@gmx.net>
+
+	* play/gamegrid.el (gamegrid-add-score-with-update-game-score-1):
+	Don't signal an error with a score that is too low to add to the
+	list of top scores. (Bug#12779)
+
+2012-11-17  Chong Yidong  <cyd@gnu.org>
+
+	* help-mode.el (help-xref-interned): End on point-min (Bug#12737).
+
+	* filecache.el (file-cache-add-file): Handle relative file name in
+	the argument (Bug#12694).
+
+2012-11-16  Jürgen Hötzel  <juergen@archlinux.org>  (tiny change)
+
+	* eshell/em-unix.el (eshell/mkdir): Handle "--parents" (bug#12897).
+
+2012-11-16  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* emacs-lisp/advice.el (ad-make-advised-definition): Improve last fix.
+
+	* emacs-lisp/cl-lib.el: Set more meaningful version number.
+
+2012-11-16  Martin Rudalics  <rudalics@gmx.at>
+
+	* window.el (enlarge-window, shrink-window): Don't mention return
+	value in doc-string (Bug#12896).
+	(window--display-buffer): Don't resize frames - it won't work
+	with all window managers and defeat pop-up-frame-alist.
+	(display-buffer-alist): In doc-string explain that CONDITION can
+	be a function and which arguments are passed to it (Bug#12854).
+	(display-buffer-assq-regexp): New argument ACTION.  Handle lambda
+	expressions (Bug#12854).
+	(display-buffer): Pass ACTION argument to
+	display-buffer-assq-regexp.
+
+2012-11-16  Glenn Morris  <rgm@gnu.org>
+
+	* window.el (fit-frame-to-buffer-bottom-margin)
+	(fit-frame-to-buffer, fit-window-to-buffer): Doc fixes.
+
+	* faces.el (face-underline-p): Use face-attribute-specified-or.
+
+2012-11-16  Juanma Barranquero  <lekktu@gmail.com>
+
+	* emacs-lisp/cl-macs.el (cl-loop, cl-do, cl-do*): Doc fixes.
+
+2012-11-16  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* emacs-lisp/cl-macs.el (cl-flet, cl-flet*): Fix docstring (bug#12895).
+
+2012-11-16  Glenn Morris  <rgm@gnu.org>
+
+	* eshell/em-cmpl.el (eshell-pcomplete): New command.  (Bug#12838)
+	(eshell-cmpl-initialize): Bind eshell-pcomplete to TAB, C-i.
+
+	* faces.el (face-underline-p): Doc fix.  Handle :underline being
+	things other than `t' (a string, a list).
+	(face-inverse-video-p): Doc fix.
+	(set-face-underline): Rename it back from set-face-underline-p.
+	Doc fix.  Allow interactive input of values other than t.
+	(read-face-attribute): Apply formatting to :underline,
+	since like :box and :stipple it can take list values.
+
+	* term.el (ansi-term): Don't let C-x escape-char binding
+	clobber the more standard C-c binding.  (Bug#12842)
+
+	* subr.el (set-temporary-overlay-map): Doc fix.
+
+2012-11-16  Martin Rudalics  <rudalics@gmx.at>
+
+	* window.el (record-window-buffer)
+	(display-buffer-record-window): When copying the markers to
+	window-point preserve window-point-insertion-type. (Bug#12588)
+
+2012-11-16  Glenn Morris  <rgm@gnu.org>
+
+	* emacs-lisp/eieio-datadebug.el (eieio-debug-methodinvoke):
+	* net/tramp-gvfs.el (tramp-gvfs-dbus-event-error):
+	Use new names for hooks rather than obsolete aliases.
+
+2012-11-15  Daniel Colascione  <dancol@dancol.org>
+
+	* term/w32-win.el (w32-handle-dropped-file): Use a "file://"
+	prefix instead of "file:" so that when FILE-NAME begins with "//",
+	as it does when the target file is on a network share, url-handler
+	isn't confused.
+
+2012-11-15  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* emacs-lisp/advice.el (ad-definition-type): Make sure we don't use
+	a preactivated advice from an old advice.el; they're not compatible!
+
+2012-11-15  Katsumi Yamaoka  <yamaoka@jpl.org>
+
+	* emacs-lisp/nadvice.el (advice--make-interactive-form):
+	Fix string-spec case.
+
+	* emacs-lisp/advice.el (ad-make-advised-definition): Fix undefined case.
+
+2012-11-15  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* emacs-lisp/nadvice.el: Add buffer-local support to add-function.
+	(advice--buffer-local-function-sample): New var.
+	(advice--set-buffer-local, advice--buffer-local): New functions.
+	(add-function, remove-function): Use them.
+
+2012-11-15  Drew Adams  <drew.adams@oracle.com>
+
+	* imenu.el (imenu--split-submenus): Use imenu--subalist-p (bug#12717).
+
+2012-11-15  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* emacs-lisp/cl-macs.el (cl--transform-lambda): Defend against
+	potential binding of print-gensym to t, and prettify (back)quotes in
+	case they appear in args's default values (bug#12884).
+
+2012-11-14  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* emacs-lisp/nadvice.el: Add around advice for interactive specs.
+	(advice-eval-interactive-spec): New function.
+	(advice--make-interactive-form): Support around advice (bug#12844).
+
+2012-11-14  Dmitry Gutov  <dgutov@yandex.ru>
+
+	* progmodes/ruby-mode.el (ruby-expr-beg): Make heredoc detection
+	more strict.  Add docstring.
+	(ruby-expression-expansion-re): Extract from
+	`ruby-match-expression-expansion'.
+	(ruby-syntax-propertize-function): After everything else, search
+	for expansions in string literals, mark their insides as
+	whitespace syntax and save match data for font-lock.
+	(ruby-font-lock-keywords): Use the 2nd group from expression
+	expansion matches.
+	(ruby-match-expression-expansion): Use the match data saved to the
+	text property in ruby-syntax-propertize-function.
+
+2012-11-14  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* emacs-lisp/gv.el (setf): Fix debug spec for multiple assignments
+	(bug#12879).
+
+2012-11-13  Dmitry Gutov  <dgutov@yandex.ru>
+
+	* progmodes/ruby-mode.el (ruby-move-to-block): Looks for a block
+	start/end keyword a bit harder.  Works with different values of N.
+	Add more comments.
+	(ruby-end-of-block): Update accordingly.
+
+2012-11-13  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* woman.el (woman-file-name): Don't mess with unread-command-events
+	(bug#12861).
+
+	* emacs-lisp/advice.el: Layer on top of nadvice.el.
+	Remove out of date self-require hack.
+	(ad-do-advised-functions): Use simple `dolist'.
+	(ad-advice-name, ad-advice-protected, ad-advice-enabled)
+	(ad-advice-definition): Redefine as functions.
+	(ad-advice-classes): Move before first use.
+	(ad-make-origname, ad-set-orig-definition, ad-clear-orig-definition)
+	(ad-make-mapped-call, ad-make-advised-docstring,ad-make-plain-docstring)
+	(ad--defalias-fset): Remove functions.
+	(ad-make-advicefunname, ad-clear-advicefunname-definition): New funs.
+	(ad-get-orig-definition): Rewrite.
+	(ad-make-advised-definition-docstring): Change base docstring.
+	(ad-real-orig-definition): Rewrite.
+	(ad-map-arglists): Change name of called function.
+	(ad--make-advised-docstring): Redirect `function' from ad-Advice-...
+	(ad-make-advised-definition): Simplify.
+	(ad-assemble-advised-definition): Tweak for new calling context.
+	(ad-activate-advised-definition): Setup ad-Advice-* i.s.o ad-Orig-*.
+	(ad--defalias-fset): Rename from ad-handle-definition.  Make it set the
+	function and call ad-activate if needed.
+	(ad-activate, ad-deactivate): Don't call ad-handle-definition any more.
+	(ad-recover): Clear ad-Advice-* instead of ad-Orig-*.
+	(ad-compile-function): Compile ad-Advice-*.
+	(ad-activate-on-top-level, ad-with-auto-activation-disabled): Remove.
+	(ad-start-advice, ad-stop-advice): Remove.
+
 2012-11-13  Dmitry Gutov  <dgutov@yandex.ru>
 
 	* progmodes/ruby-mode.el (ruby-add-log-current-method): Print the

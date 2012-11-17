@@ -1597,7 +1597,7 @@ init_environment (char ** argv)
 	 see if it succeeds.  But I think that's too much to ask.  */
 
       /* MSVCRT's _access crashes with D_OK.  */
-      if (tmp && sys_access (tmp, D_OK) == 0)
+      if (tmp && faccessat (AT_FDCWD, tmp, D_OK, AT_EACCESS) == 0)
 	{
 	  char * var = alloca (strlen (tmp) + 8);
 	  sprintf (var, "TMPDIR=%s", tmp);
@@ -2708,15 +2708,19 @@ logon_network_drive (const char *path)
   WNetAddConnection2 (&resource, NULL, NULL, CONNECT_INTERACTIVE);
 }
 
-/* Shadow some MSVC runtime functions to map requests for long filenames
-   to reasonable short names if necessary.  This was originally added to
-   permit running Emacs on NT 3.1 on a FAT partition, which doesn't support
-   long file names.  */
-
+/* Emulate faccessat(2).  */
 int
-sys_access (const char * path, int mode)
+faccessat (int dirfd, const char * path, int mode, int flags)
 {
   DWORD attributes;
+
+  if (dirfd != AT_FDCWD
+      && !(IS_DIRECTORY_SEP (path[0])
+	   || IS_DEVICE_SEP (path[1])))
+    {
+      errno = EBADF;
+      return -1;
+    }
 
   /* MSVCRT implementation of 'access' doesn't recognize D_OK, and its
      newer versions blow up when passed D_OK.  */
@@ -2725,7 +2729,8 @@ sys_access (const char * path, int mode)
      to get the attributes of its target file.  Note: any symlinks in
      PATH elements other than the last one are transparently resolved
      by GetFileAttributes below.  */
-  if ((volume_info.flags & FILE_SUPPORTS_REPARSE_POINTS) != 0)
+  if ((volume_info.flags & FILE_SUPPORTS_REPARSE_POINTS) != 0
+      && (flags & AT_SYMLINK_NOFOLLOW) == 0)
     path = chase_symlinks (path);
 
   if ((attributes = GetFileAttributes (path)) == -1)
@@ -2757,7 +2762,8 @@ sys_access (const char * path, int mode)
 	}
       return -1;
     }
-  if ((mode & X_OK) != 0 && !is_exec (path))
+  if ((mode & X_OK) != 0
+      && !(is_exec (path) || (attributes & FILE_ATTRIBUTE_DIRECTORY) != 0))
     {
       errno = EACCES;
       return -1;
@@ -2774,6 +2780,11 @@ sys_access (const char * path, int mode)
     }
   return 0;
 }
+
+/* Shadow some MSVC runtime functions to map requests for long filenames
+   to reasonable short names if necessary.  This was originally added to
+   permit running Emacs on NT 3.1 on a FAT partition, which doesn't support
+   long file names.  */
 
 int
 sys_chdir (const char * path)
@@ -2960,7 +2971,7 @@ sys_mktemp (char * template)
 	{
 	  int save_errno = errno;
 	  p[0] = first_char[i];
-	  if (sys_access (template, 0) < 0)
+	  if (faccessat (AT_FDCWD, template, F_OK, AT_EACCESS) < 0)
 	    {
 	      errno = save_errno;
 	      return template;
@@ -4011,7 +4022,7 @@ symlink (char const *filename, char const *linkname)
     {
       /* Non-absolute FILENAME is understood as being relative to
 	 LINKNAME's directory.  We need to prepend that directory to
-	 FILENAME to get correct results from sys_access below, since
+	 FILENAME to get correct results from faccessat below, since
 	 otherwise it will interpret FILENAME relative to the
 	 directory where the Emacs process runs.  Note that
 	 make-symbolic-link always makes sure LINKNAME is a fully
@@ -4025,10 +4036,10 @@ symlink (char const *filename, char const *linkname)
 	strncpy (tem, linkfn, p - linkfn);
       tem[p - linkfn] = '\0';
       strcat (tem, filename);
-      dir_access = sys_access (tem, D_OK);
+      dir_access = faccessat (AT_FDCWD, tem, D_OK, AT_EACCESS);
     }
   else
-    dir_access = sys_access (filename, D_OK);
+    dir_access = faccessat (AT_FDCWD, filename, D_OK, AT_EACCESS);
 
   /* Since Windows distinguishes between symlinks to directories and
      to files, we provide a kludgy feature: if FILENAME doesn't

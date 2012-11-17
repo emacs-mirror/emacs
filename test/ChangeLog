@@ -1,9 +1,21 @@
+2012-11-14  Dmitry Gutov  <dgutov@yandex.ru>
+
+	* automated/ruby-mode-tests.el (ruby-indent-singleton-class): Pass.
+	(ruby-indent-inside-heredoc-after-operator)
+	(ruby-indent-inside-heredoc-after-space): New tests.
+	Change direct font-lock face references to var references.
+	(ruby-interpolation-suppresses-syntax-inside): New test.
+	(ruby-interpolation-inside-percent-literal-with-paren): New
+	failing test.
+
 2012-11-13  Dmitry Gutov  <dgutov@yandex.ru>
 
 	* automated/ruby-mode-tests.el (ruby-heredoc-font-lock)
 	(ruby-singleton-class-no-heredoc-font-lock)
 	(ruby-add-log-current-method-examples): New tests.
 	(ruby-test-string): Extract from ruby-should-indent-buffer.
+	(ruby-deftest-move-to-block): New macro.
+	Add several move-to-block tests.
 
 2012-11-12  Stefan Monnier  <monnier@iro.umontreal.ca>
 

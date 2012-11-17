@@ -43,7 +43,8 @@ It is layered as:
 
 * Incompatible Lisp Changes in Emacs 24.4
 
-** `defadvice' does not honor the `freeze' flag any more.
+** `defadvice' does not honor the `freeze' flag and cannot advise
+special-forms any more.
 
 ** `dolist' in lexical-binding mode does not bind VAR in RESULT any more.
 VAR was bound to nil which was not tremendously useful and just lead to
@@ -209,7 +210,9 @@ This minor mode replaces `toggle-read-only', which is now obsolete.
 ** Emacs now generates backtraces on fatal errors.
 On encountering a fatal error, Emacs now outputs a textual description
 of the fatal signal, and a short backtrace on platforms like glibc
-that support backtraces.
+that support backtraces, and also on MS-Windows.  On Windows, the
+backtrace is also written to the 'emacs_backtrace.txt' file in the
+directory where Emacs was running.
 
 ---
 ** If your Emacs was built from a bzr checkout, the new variable
@@ -360,6 +363,8 @@ provide the old non-prefixed names.  Some exceptions are listed below.
 +++
 *** `cl-flet' is not like `flet' (which is deprecated).
 Instead it obeys the behavior of Common-Lisp's `flet'.
+In particular, in cl-flet function definitions are lexically scoped,
+whereas in flet the scoping is dynamic.
 
 +++
 *** `cl-labels' is slightly different from `labels'.
@@ -474,11 +479,17 @@ The global binding for `M-=', `count-words-region' is in effect.
 
 ** ERC
 
-*** New package `erc-desktop-notifications.el', which can send a notification
-when you receive a private message or your nickname is mentioned.
++++
+*** New module "notifications", which can send a notification when you
+receive a private message or your nickname is mentioned.
 
++++
 *** ERC will look up server/channel names via auth-source and use any
 channel keys found.
+
++++
+*** New option `erc-lurker-hide-list', similar to `erc-hide-list', but
+only applies to messages sent by lurkers.
 
 +++
 ** Flymake uses fringe bitmaps to indicate errors and warnings.
@@ -667,8 +678,7 @@ enabled, applies to all applicable major modes.
 ** winner-mode-hook now runs when the mode is disabled, as well as when it is
 enabled.
 
-** FIXME something happened to ses.el, 2012-04-17.
-
++++
 ** Hooks renamed to avoid obsolete "-hooks" suffix:
 *** semantic-lex-reset-hooks -> semantic-lex-reset-functions
 *** semantic-change-hooks -> semantic-change-functions
@@ -848,6 +858,12 @@ in the presence of quoting, such as file completion in shell buffers.
 *** New function `completion-table-subvert' to use an existing completion
 table, but with a different prefix.
 
+FIXME?
+*** There are several other completion-table- functions that never got
+added to NEWS or documented: completion-table-case-fold (24.1),
+completion-table-with-context (23,1), completion-table-with-terminator (23.1),
+completion-table-with-predicate (23.1), completion-table-in-turn (23.1)
+
 ** Debugger changes
 
 +++
@@ -878,8 +894,12 @@ now accept a third argument to avoid choosing the selected window.
 *** `temp-buffer-resize-mode' no longer resizes windows that have been
 reused.
 
-*** New function `fit-frame-to-buffer' and new options
-`fit-frame-to-buffer' and `fit-frame-to-buffer-bottom-margin'.
+*** New command `fit-frame-to-buffer' adjusts the frame height to
+fit the contents.
+
+*** The command `fit-window-to-buffer' can adjust the frame height
+if the new option `fit-frame-to-buffer' is non-nil.
+
 +++
 *** New option switch-to-buffer-preserve-window-point to restore a
 window's point when switching buffers.
@@ -967,7 +987,9 @@ describing the cycle.
 *** `function-get' fetches a function property, following aliases.
 +++
 *** `posnp' tests if an object is a `posn'.
-*** `set-temporary-overlay-map' sets up a temporary overlay map.
++++
+*** `set-temporary-overlay-map' sets up a temporary keymap that
+takes precedence over most other maps for a short while (normally one key).
 +++
 *** `system-users' returns the user names on the system.
 +++
@@ -981,8 +1003,8 @@ describing the cycle.
 +++
 ** New fringe bitmap `exclamation-mark'.
 
++++
 ** Face underlining can now use a wave.
-See the "Face Attributes" section of the Elisp manual.
 
 ** The following functions and variables are obsolete:
 ---

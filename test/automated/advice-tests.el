@@ -57,6 +57,36 @@
      (defmacro sm-test3 (x) `(call-test3 ,x))
      (macroexpand '(sm-test3 56)) (toto (call-test3 56)))
 
+    ((defadvice sm-test4 (around wrap-with-toto activate)
+       ad-do-it (setq ad-return-value `(toto ,ad-return-value)))
+     (defmacro sm-test4 (x) `(call-test4 ,x))
+     (macroexpand '(sm-test4 56)) (toto (call-test4 56)))
+    ((defmacro sm-test4 (x) `(call-testq ,x))
+     (macroexpand '(sm-test4 56)) (toto (call-testq 56)))
+
+    ;; Combining old style and new style advices.
+    ((defun sm-test5 (x) (+ x 4))
+     (sm-test5 6) 10)
+    ((advice-add 'sm-test5 :around (lambda (f y) (* (funcall f y) 5)))
+     (sm-test5 6) 50)
+    ((defadvice sm-test5 (around test activate)
+       ad-do-it (setq ad-return-value (+ ad-return-value 0.1)))
+     (sm-test5 5) 45.1)
+    ((ad-deactivate 'sm-test5)
+     (sm-test5 6) 50)
+    ((ad-activate 'sm-test5)
+     (sm-test5 6) 50.1)
+    ((defun sm-test5 (x) (+ x 14))
+     (sm-test5 6) 100.1)
+    ((advice-remove 'sm-test5 (lambda (f y) (* (funcall f y) 5)))
+     (sm-test5 6) 20.1)
+
+    ;; This used to signal an error (bug#12858).
+    ((autoload 'sm-test6 "foo")
+     (defadvice sm-test6 (around test activate)
+       ad-do-it)
+     t t)
+
     ))
 
 (ert-deftest advice-tests ()

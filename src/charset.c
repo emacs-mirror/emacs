@@ -2293,7 +2293,7 @@ init_charset (void)
 {
   Lisp_Object tempdir;
   tempdir = Fexpand_file_name (build_string ("charsets"), Vdata_directory);
-  if (access (SSDATA (tempdir), 0) < 0)
+  if (! file_accessible_directory_p (SSDATA (tempdir)))
     {
       /* This used to be non-fatal (dir_warning), but it should not
          happen, and if it does sooner or later it will cause some

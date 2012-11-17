@@ -546,9 +546,7 @@ The returned alist DOES NOT share structure with MENULIST."
 Return a split and sorted copy of ALIST.  The returned alist DOES
 NOT share structure with ALIST."
   (mapcar (lambda (elt)
-            (if (and (consp elt)
-                     (stringp (car elt))
-                     (listp (cdr elt)))
+            (if (imenu--subalist-p elt)
                 (imenu--split-menu (cdr elt) (car elt))
               elt))
 	  alist))

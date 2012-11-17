@@ -282,18 +282,23 @@ itself, and the reserve supply may not be enough.
 @subsection When Emacs Crashes
 
 @cindex crash report
+@cindex backtrace
+@cindex @file{emacs_backtrace.txt} file, MS-Windows
   Emacs is not supposed to crash, but if it does, it produces a
 @dfn{crash report} prior to exiting.  The crash report is printed to
 the standard error stream.  If Emacs was started from a graphical
-desktop, the standard error stream is commonly redirected to a file
-such as @file{~/.xsession-errors}, so you can look for the crash
-report there.
+desktop on a GNU or Unix system, the standard error stream is commonly
+redirected to a file such as @file{~/.xsession-errors}, so you can
+look for the crash report there.  On MS-Windows, the crash report is
+written to a file named @file{emacs_backtrace.txt} in the current
+directory of the Emacs process, in addition to the standard error
+stream.
 
   The format of the crash report depends on the platform.  On some
 platforms, such as those using the GNU C Library, the crash report
 includes a @dfn{backtrace} describing the execution state prior to
 crashing, which can be used to help debug the crash.  Here is an
-example:
+example for a GNU system:
 
 @example
 Fatal error 11: Segmentation fault
@@ -320,22 +325,24 @@ backtrace with source-code line numbers:
 
 @example
 sed -n 's/.*\[\(.*\)]$/\1/p' @var{backtrace} |
-  addr2line -Cfip -e @var{bindir}/emacs
+  addr2line -Cfip -e @var{bindir}/@var{emacs-binary}
 @end example
 
 @noindent
 Here, @var{backtrace} is the name of a text file containing a copy of
-the backtrace, and @var{bindir} is the name of the directory that
-contains the Emacs executable.
+the backtrace, @var{bindir} is the name of the directory that
+contains the Emacs executable, and @var{emacs-binary} is the name of
+the Emacs executable file, normally @file{emacs} on GNU and Unix
+systems and @file{emacs.exe} on MS-Windows and MS-DOS.
 
 @cindex core dump
-  Optionally, Emacs can generate a @dfn{core dump} when it crashes.  A
-core dump is a file containing voluminous data about the state of the
-program prior to the crash, usually examined by loading it into a
-debugger such as GDB.  On many platforms, core dumps are disabled by
-default, and you must explicitly enable them by running the shell
-command @samp{ulimit -c unlimited} (e.g.@: in your shell startup
-script).
+  Optionally, Emacs can generate a @dfn{core dump} when it crashes, on
+systems that support core files.  A core dump is a file containing
+voluminous data about the state of the program prior to the crash,
+usually examined by loading it into a debugger such as GDB.  On many
+platforms, core dumps are disabled by default, and you must explicitly
+enable them by running the shell command @samp{ulimit -c unlimited}
+(e.g.@: in your shell startup script).
 
 @node After a Crash
 @subsection Recovery After a Crash

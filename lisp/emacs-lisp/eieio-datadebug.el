@@ -131,7 +131,7 @@ PREBUTTONTEXT is some text between PREFIX and the object button."
 (defun eieio-debug-methodinvoke (method class)
   "Show the method invocation order for METHOD with CLASS object."
   (interactive "aMethod: \nXClass Expression: ")
-  (let* ((eieio-pre-method-execution-hooks
+  (let* ((eieio-pre-method-execution-functions
 	  (lambda (l) (throw 'moose l) ))
 	 (data
 	  (catch 'moose (eieio-generic-call

@@ -1,3 +1,21 @@
+2012-11-16  Paul Eggert  <eggert@cs.ucla.edu>
+
+	Remove no-longer-used pty_max_bytes variable.
+	* configure.ac (fpathconf): Remove unnecessary check.
+
+2012-11-14  Paul Eggert  <eggert@cs.ucla.edu>
+
+	Use faccessat, not access, when checking file permissions (Bug#12632).
+	* .bzrignore: Add lib/fcntl.h.
+	* configure.ac (euidaccess): Remove check; gnulib does this for us now.
+	(gl_FCNTL_O_FLAGS): Define a dummy version.
+	* lib/at-func.c, lib/euidaccess.c, lib/faccessat.c, lib/fcntl.in.h:
+	* lib/getgroups.c, lib/group-member.c, lib/root-uid.h:
+	* lib/xalloc-oversized.h, m4/euidaccess.m4, m4/faccessat.m4:
+	* m4/fcntl_h.m4, m4/getgroups.m4, m4/group-member.m4:
+	New files, from gnulib.
+	* lib/gnulib.mk, m4/gnulib-comp.m4: Regenerate.
+
 2012-11-05  Paul Eggert  <eggert@cs.ucla.edu>
 
 	Assume at least POSIX.1-1988 for getpgrp, setpgid, setsid (Bug#12800).

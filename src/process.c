@@ -130,18 +130,6 @@ extern int sys_select (int, SELECT_TYPE *, SELECT_TYPE *, SELECT_TYPE *,
 		       EMACS_TIME *, void *);
 #endif
 
-/* This is for DOS_NT ports.  FIXME: Remove this old portability cruft
-   by having DOS_NT ports implement waitpid instead of wait.  Nowadays
-   POSIXish hosts all define waitpid, WNOHANG, and WUNTRACED, as these
-   have been standard since POSIX.1-1988.  */
-#ifndef WNOHANG
-# undef waitpid
-# define waitpid(pid, status, options) wait (status)
-#endif
-#ifndef WUNTRACED
-# define WUNTRACED 0
-#endif
-
 /* Work around GCC 4.7.0 bug with strict overflow checking; see
    <http://gcc.gnu.org/bugzilla/show_bug.cgi?id=52904>.
    These lines can be removed once the GCC bug is fixed.  */
@@ -208,7 +196,7 @@ static EMACS_INT update_tick;
 #ifndef NON_BLOCKING_CONNECT
 #ifdef HAVE_SELECT
 #if defined (HAVE_GETPEERNAME) || defined (GNU_LINUX)
-#if defined (O_NONBLOCK) || defined (O_NDELAY)
+#if O_NONBLOCK || O_NDELAY
 #if defined (EWOULDBLOCK) || defined (EINPROGRESS)
 #define NON_BLOCKING_CONNECT
 #endif /* EWOULDBLOCK || EINPROGRESS */
@@ -339,9 +327,6 @@ static struct sockaddr_and_len {
 #define DATAGRAM_CHAN_P(chan)	(0)
 #define DATAGRAM_CONN_P(proc)	(0)
 #endif
-
-/* Maximum number of bytes to send to a pty without an eof.  */
-static int pty_max_bytes;
 
 /* These setters are used only in this file, so they can be private.  */
 static void
@@ -655,7 +640,7 @@ allocate_pty (void)
 	PTY_OPEN;
 #else /* no PTY_OPEN */
 	{
-#  ifdef O_NONBLOCK
+#  if O_NONBLOCK
 	  fd = emacs_open (pty_name, O_RDWR | O_NONBLOCK, 0);
 #  else
 	  fd = emacs_open (pty_name, O_RDWR | O_NDELAY, 0);
@@ -672,7 +657,7 @@ allocate_pty (void)
 #else
 	    sprintf (pty_name, "/dev/tty%c%x", c, i);
 #endif /* no PTY_TTY_NAME_SPRINTF */
-	    if (access (pty_name, 6) != 0)
+	    if (faccessat (AT_FDCWD, pty_name, R_OK | W_OK, AT_EACCESS) != 0)
 	      {
 		emacs_close (fd);
 # ifndef __sgi
@@ -1624,7 +1609,7 @@ create_process (Lisp_Object process, char **new_argv, Lisp_Object current_dir)
 #if ! defined (USG) || defined (USG_SUBTTY_WORKS)
       /* On most USG systems it does not work to open the pty's tty here,
 	 then close it and reopen it in the child.  */
-#ifdef O_NOCTTY
+#if O_NOCTTY
       /* Don't let this terminal become our controlling terminal
 	 (in case we don't have one).  */
       forkout = forkin = emacs_open (pty_name, O_RDWR | O_NOCTTY, 0);
@@ -1678,11 +1663,11 @@ create_process (Lisp_Object process, char **new_argv, Lisp_Object current_dir)
     }
 #endif
 
-#ifdef O_NONBLOCK
+#if O_NONBLOCK
   fcntl (inchannel, F_SETFL, O_NONBLOCK);
   fcntl (outchannel, F_SETFL, O_NONBLOCK);
 #else
-#ifdef O_NDELAY
+#if O_NDELAY
   fcntl (inchannel, F_SETFL, O_NDELAY);
   fcntl (outchannel, F_SETFL, O_NDELAY);
 #endif
@@ -1943,7 +1928,7 @@ create_pty (Lisp_Object process)
 #if ! defined (USG) || defined (USG_SUBTTY_WORKS)
       /* On most USG systems it does not work to open the pty's tty here,
 	 then close it and reopen it in the child.  */
-#ifdef O_NOCTTY
+#if O_NOCTTY
       /* Don't let this terminal become our controlling terminal
 	 (in case we don't have one).  */
       int forkout = emacs_open (pty_name, O_RDWR | O_NOCTTY, 0);
@@ -1963,11 +1948,11 @@ create_pty (Lisp_Object process)
     }
 #endif /* HAVE_PTYS */
 
-#ifdef O_NONBLOCK
+#if O_NONBLOCK
   fcntl (inchannel, F_SETFL, O_NONBLOCK);
   fcntl (outchannel, F_SETFL, O_NONBLOCK);
 #else
-#ifdef O_NDELAY
+#if O_NDELAY
   fcntl (inchannel, F_SETFL, O_NDELAY);
   fcntl (outchannel, F_SETFL, O_NDELAY);
 #endif
@@ -2927,7 +2912,7 @@ usage: (make-network-process &rest ARGS)  */)
     {
       /* Don't support network sockets when non-blocking mode is
 	 not available, since a blocked Emacs is not useful.  */
-#if !defined (O_NONBLOCK) && !defined (O_NDELAY)
+#if !O_NONBLOCK && !O_NDELAY
       error ("Network servers not supported");
 #else
       is_server = 1;
@@ -3193,7 +3178,7 @@ usage: (make-network-process &rest ARGS)  */)
 #ifdef NON_BLOCKING_CONNECT
       if (is_non_blocking_client)
 	{
-#ifdef O_NONBLOCK
+#if O_NONBLOCK
 	  ret = fcntl (s, F_SETFL, O_NONBLOCK);
 #else
 	  ret = fcntl (s, F_SETFL, O_NDELAY);
@@ -3410,10 +3395,10 @@ usage: (make-network-process &rest ARGS)  */)
 
   chan_process[inch] = proc;
 
-#ifdef O_NONBLOCK
+#if O_NONBLOCK
   fcntl (inch, F_SETFL, O_NONBLOCK);
 #else
-#ifdef O_NDELAY
+#if O_NDELAY
   fcntl (inch, F_SETFL, O_NDELAY);
 #endif
 #endif
@@ -4145,10 +4130,10 @@ server_accept_connection (Lisp_Object server, int channel)
 
   chan_process[s] = proc;
 
-#ifdef O_NONBLOCK
+#if O_NONBLOCK
   fcntl (s, F_SETFL, O_NONBLOCK);
 #else
-#ifdef O_NDELAY
+#if O_NDELAY
   fcntl (s, F_SETFL, O_NDELAY);
 #endif
 #endif
@@ -4849,11 +4834,11 @@ wait_reading_process_output (intmax_t time_limit, int nsecs, int read_kbd,
 #endif
 	      /* ISC 4.1 defines both EWOULDBLOCK and O_NONBLOCK,
 		 and Emacs uses O_NONBLOCK, so what we get is EAGAIN.  */
-#ifdef O_NONBLOCK
+#if O_NONBLOCK
 	      else if (nread == -1 && errno == EAGAIN)
 		;
 #else
-#ifdef O_NDELAY
+#if O_NDELAY
 	      else if (nread == -1 && errno == EAGAIN)
 		;
 	      /* Note that we cannot distinguish between no input
@@ -5530,19 +5515,6 @@ send_process (Lisp_Object proc, const char *buf, ptrdiff_t len,
       len = coding->produced;
       object = coding->dst_object;
       buf = SSDATA (object);
-    }
-
-  if (pty_max_bytes == 0)
-    {
-#if defined (HAVE_FPATHCONF) && defined (_PC_MAX_CANON)
-      pty_max_bytes = fpathconf (p->outfd, _PC_MAX_CANON);
-      if (pty_max_bytes < 0)
-	pty_max_bytes = 250;
-#else
-      pty_max_bytes = 250;
-#endif
-      /* Deduct one, to leave space for the eof.  */
-      pty_max_bytes--;
     }
 
   /* If there is already data in the write_queue, put the new data
@@ -6311,17 +6283,9 @@ record_child_status_change (pid_t pid, int w)
 {
 #ifdef SIGCHLD
 
-# ifdef WNOHANG
   /* On POSIXish hosts, record at most one child only if we already
      know one child that has exited.  */
   bool record_at_most_one_child = 0 <= pid;
-# else
-  /* On DOS_NT (the only porting target that lacks WNOHANG),
-     record the status of at most one child process, since the SIGCHLD
-     handler must return right away.  If any more processes want to
-     signal us, we will get another signal.  */
-  bool record_at_most_one_child = 1;
-# endif
 
   Lisp_Object tail;
 
@@ -7348,7 +7312,7 @@ init_process_emacs (void)
 #ifdef HAVE_GETSOCKNAME
    ADD_SUBFEATURE (QCservice, Qt);
 #endif
-#if defined (O_NONBLOCK) || defined (O_NDELAY)
+#if O_NONBLOCK || O_NDELAY
    ADD_SUBFEATURE (QCserver, Qt);
 #endif
 

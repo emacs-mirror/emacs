@@ -1055,7 +1055,7 @@ including the space earlier stolen from @code{W3}.
 @end smallexample
 
 @noindent
-This can be counterintutive, in particular if @code{W4} were used for
+This can be counterintuitive, in particular if @code{W4} were used for
 displaying a buffer only temporarily (@pxref{Temporary Displays}), and
 you want to continue working with the initial layout.
 
@@ -1766,6 +1766,7 @@ Like @code{switch-to-buffer}, this function updates the buffer list
 unless @var{norecord} is non-@code{nil}.
 @end deffn
 
+
 @node Choosing Window
 @section Choosing a Window for Display
 
@@ -1851,10 +1852,14 @@ default value is empty, i.e. @code{(nil . nil)}.
 @end defvar
 
 @defopt display-buffer-alist
-The value of this option is an alist mapping regular expressions to
-display actions.  If the name of the buffer passed to
-@code{display-buffer} matches a regular expression in this alist, then
-@code{display-buffer} uses the corresponding display action.
+The value of this option is an alist mapping conditions to display
+actions.  Each condition may be either a regular expression matching a
+buffer name or a function that takes two arguments - a buffer name and
+the @var{action} argument passed to @code{display-buffer}.  If the name
+of the buffer passed to @code{display-buffer} either matches a regular
+expression in this alist or the function specified by a condition
+returns non-@code{nil}, then @code{display-buffer} uses the
+corresponding display action to display the buffer.
 @end defopt
 
 @defopt display-buffer-base-action
@@ -1867,6 +1872,7 @@ be used to define a ``standard'' display action for calls to
 This display action specifies the fallback behavior for
 @code{display-buffer} if no other display actions are given.
 @end defvr
+
 
 @node Display Action Functions
 @section Action Functions for @code{display-buffer}
@@ -1911,8 +1917,9 @@ normally searches just the selected frame; however, if the variable
 @code{pop-up-frames} is non-@code{nil}, it searches all frames on the
 current terminal.  @xref{Choosing Window Options}.
 
-If this function chooses a window on another frame, it makes that
-frame visible and raises it if necessary.
+If this function chooses a window on another frame, it makes that frame
+visible and, unless @var{alist} contains an @code{inhibit-switch-frame}
+entry (@pxref{Choosing Window Options}), raises that frame if necessary.
 @end defun
 
 @defun display-buffer-pop-up-frame buffer alist
@@ -1976,16 +1983,12 @@ reason (e.g. if there is just one frame and it has an
 @code{unsplittable} frame parameter; @pxref{Buffer Parameters}).
 @end defun
 
-@defun display-buffer-use-some-window buffer alist
-This function tries to display @var{buffer} by choosing an existing
-window and displaying the buffer in that window.  It can fail if all
-windows are dedicated to another buffer (@pxref{Dedicated Windows}).
-@end defun
-
 @defun display-buffer-below-selected buffer alist
 This function tries to display @var{buffer} in a window below the
-selected window.  This means to either split the selected window or
-reuse the window below the selected one.
+selected window.  This means to either split the selected window or use
+the window below the selected one.  If it does create a new window, it
+will also adjust its size provided @var{alist} contains a suitable
+@code{window-height} or @code{window-width} entry, see above.
 @end defun
 
 @defun display-buffer-in-previous-window buffer alist
@@ -2000,6 +2003,83 @@ If @var{alist} has a @code{previous-window} entry, the window
 specified by that entry will override any other window found by the
 methods above, even if that window never showed @var{buffer} before.
 @end defun
+
+@defun display-buffer-use-some-window buffer alist
+This function tries to display @var{buffer} by choosing an existing
+window and displaying the buffer in that window.  It can fail if all
+windows are dedicated to another buffer (@pxref{Dedicated Windows}).
+@end defun
+
+To illustrate the use of action functions, consider the following
+example.
+
+@example
+@group
+(display-buffer
+ (get-buffer-create "*foo*")
+ '((display-buffer-reuse-window
+    display-buffer-pop-up-window
+    display-buffer-pop-up-frame)
+   (reusable-frames . 0)
+   (window-height . 10) (window-width . 40)))
+@end group
+@end example
+
+@noindent
+Evaluating the form above will cause @code{display-buffer} to proceed as
+follows: If `*foo*' already appears on a visible or iconified frame, it
+will reuse its window.  Otherwise, it will try to pop up a new window
+or, if that is impossible, a new frame.  If all these steps fail, it
+will try to use some existing window.
+
+   Furthermore, @code{display-buffer} will try to adjust a reused window
+(provided `*foo*' was put by @code{display-buffer} there before) or a
+popped-up window as follows: If the window is part of a vertical
+combination, it will set its height to ten lines.  Note that if, instead
+of the number ``10'', we specified the function
+@code{fit-window-to-buffer}, @code{display-buffer} would come up with a
+one-line window to fit the empty buffer.  If the window is part of a
+horizontal combination, it sets its width to 40 columns.  Whether a new
+window is vertically or horizontally combined depends on the shape of
+the window split and the values of
+@code{split-window-preferred-function}, @code{split-height-threshold}
+and @code{split-width-threshold} (@pxref{Choosing Window Options}).
+
+   Now suppose we combine this call with a preexisting setup for
+`display-buffer-alist' as follows.
+
+@example
+@group
+(let ((display-buffer-alist
+       (cons
+        '("\\*foo\\*"
+          (display-buffer-reuse-window display-buffer-below-selected)
+          (reusable-frames)
+          (window-height . 5))
+        display-buffer-alist)))
+  (display-buffer
+   (get-buffer-create "*foo*")
+   '((display-buffer-reuse-window
+      display-buffer-pop-up-window
+      display-buffer-pop-up-frame)
+     (reusable-frames . 0)
+     (window-height . 10) (window-width . 40))))
+@end group
+@end example
+
+@noindent
+Evaluating this form will cause @code{display-buffer} to first try
+reusing a window showing @code{*foo*} on the selected frame.
+If no such window exists, it will try to split the selected window or,
+if that is impossible, use the window below the selected window.
+
+   If there's no window below the selected one, or the window below the
+selected one is dedicated to its buffer, @code{display-buffer} will
+proceed as described in the previous example.  Note, however, that when
+it tries to adjust the height of any reused or popped-up window, it will
+in any case try to set its number of lines to ``5'' since that value
+overrides the corresponding specification in the @var{action} argument
+of @code{display-buffer}.
 
 
 @node Choosing Window Options
@@ -2343,7 +2423,7 @@ buffer previously shown no longer exists, this function calls
 @code{switch-to-prev-buffer} (@pxref{Window History}) to show some other
 buffer instead.
 
-The optional argument @var{bury-or-kill} specifes how to deal with
+The optional argument @var{bury-or-kill} specifies how to deal with
 @var{window}'s buffer.  The following values are handled:
 
 @table @code

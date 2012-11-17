@@ -295,8 +295,8 @@ to writing a completion function."
     'pcomplete-expand-and-complete)
   (define-key eshell-command-map [space] 'pcomplete-expand)
   (define-key eshell-command-map [? ] 'pcomplete-expand)
-  (define-key eshell-mode-map [tab] 'pcomplete)
-  (define-key eshell-mode-map [(control ?i)] 'pcomplete)
+  (define-key eshell-mode-map [tab] 'eshell-pcomplete)
+  (define-key eshell-mode-map [(control ?i)] 'eshell-pcomplete)
   ;; jww (1999-10-19): Will this work on anything but X?
   (if (featurep 'xemacs)
       (define-key eshell-mode-map [iso-left-tab] 'pcomplete-reverse)
@@ -448,6 +448,13 @@ to writing a completion function."
 				 (null completions)))
 			(all-completions filename obarray 'functionp))
 		   completions)))))))
+
+(defun eshell-pcomplete ()
+  "Eshell wrapper for `pcomplete'."
+  (interactive)
+  (if eshell-cmpl-ignore-case
+      (pcomplete-expand-and-complete)  ; hack workaround for bug#12838
+    (pcomplete)))
 
 (provide 'em-cmpl)
 

@@ -80,7 +80,7 @@ VALUES-PLIST is a list with alternating index and value elements."
 
 (ert-deftest ruby-heredoc-font-lock ()
   (let ((s "foo <<eos.gsub('^ *', '')"))
-    (ruby-assert-face s 9 'font-lock-string-face)
+    (ruby-assert-face s 9 font-lock-string-face)
     (ruby-assert-face s 10 nil)))
 
 (ert-deftest ruby-singleton-class-no-heredoc-font-lock ()
@@ -154,7 +154,6 @@ VALUES-PLIST is a list with alternating index and value elements."
    |"))
 
 (ert-deftest ruby-indent-singleton-class ()
-  :expected-result :failed   ; Doesn't work yet, when no space before "<<".
   (ruby-should-indent-buffer
    "class<<bar
    |  foo
@@ -164,6 +163,20 @@ VALUES-PLIST is a list with alternating index and value elements."
    |foo
    |   end
    |"))
+
+(ert-deftest ruby-indent-inside-heredoc-after-operator ()
+  (ruby-should-indent-buffer
+   "b=<<eos
+   |     42"
+   "b=<<eos
+   |     42"))
+
+(ert-deftest ruby-indent-inside-heredoc-after-space ()
+  (ruby-should-indent-buffer
+   "foo <<eos.gsub(' ', '*')
+   |     42"
+   "foo <<eos.gsub(' ', '*')
+   |     42"))
 
 (ert-deftest ruby-indent-array-literal ()
   (let ((ruby-deep-indent-paren nil))
@@ -249,19 +262,35 @@ VALUES-PLIST is a list with alternating index and value elements."
     (should (string= "foo do |b|\n  b + 1\nend" (buffer-string)))))
 
 (ert-deftest ruby-recognize-symbols-starting-with-at-character ()
-  (ruby-assert-face ":@abc" 3 'font-lock-constant-face))
+  (ruby-assert-face ":@abc" 3 font-lock-constant-face))
 
 (ert-deftest ruby-hash-character-not-interpolation ()
   (ruby-assert-face "\"This is #{interpolation}\"" 15
-                    'font-lock-variable-name-face)
+                    font-lock-variable-name-face)
   (ruby-assert-face "\"This is \\#{no interpolation} despite the #\""
-                    15 'font-lock-string-face)
-  (ruby-assert-face "\n#@comment, not ruby code" 5 'font-lock-comment-face)
+                    15 font-lock-string-face)
+  (ruby-assert-face "\n#@comment, not ruby code" 5 font-lock-comment-face)
   (ruby-assert-state "\n#@comment, not ruby code" 4 t)
   (ruby-assert-face "# A comment cannot have #{an interpolation} in it"
-                    30 'font-lock-comment-face)
+                    30 font-lock-comment-face)
   (ruby-assert-face "# #{comment}\n \"#{interpolation}\"" 16
-                    'font-lock-variable-name-face))
+                    font-lock-variable-name-face))
+
+(ert-deftest ruby-interpolation-suppresses-syntax-inside ()
+  (let ((s "\"<ul><li>#{@files.join(\"</li><li>\")}</li></ul>\""))
+    (ruby-assert-state s 8 nil)
+    (ruby-assert-face s 9 font-lock-string-face)
+    (ruby-assert-face s 10 font-lock-variable-name-face)
+    (ruby-assert-face s 41 font-lock-string-face)))
+
+(ert-deftest ruby-interpolation-inside-percent-literal-with-paren ()
+  :expected-result :failed
+  (let ((s "%(^#{\")\"}^)"))
+    (ruby-assert-face s 3 font-lock-string-face)
+    (ruby-assert-face s 4 font-lock-variable-name-face)
+    (ruby-assert-face s 10 font-lock-string-face)
+    ;; It's confused by the closing paren in the middle.
+    (ruby-assert-state s 8 nil)))
 
 (ert-deftest ruby-add-log-current-method-examples ()
   (let ((pairs '(("foo" . "#foo")
@@ -282,6 +311,54 @@ VALUES-PLIST is a list with alternating index and value elements."
                (forward-line)
                (should (string= (ruby-add-log-current-method)
                                 (format "M::C%s" value)))))))
+
+(defvar ruby-block-test-example
+  (ruby-test-string
+   "class C
+   |  def foo
+   |    1
+   |  end
+   |
+   |  def bar
+   |    2
+   |  end
+   |
+   |  def baz
+   |    some do
+   |    end
+   |  end
+   |end"))
+
+(defmacro ruby-deftest-move-to-block (name &rest body)
+  `(ert-deftest ,(intern (format "ruby-move-to-block-%s" name)) ()
+     (with-temp-buffer
+       (insert ruby-block-test-example)
+       (ruby-mode)
+       ,@body)))
+
+(put 'ruby-deftest-move-to-block 'lisp-indent-function 'defun)
+
+(ruby-deftest-move-to-block works-on-do
+  (goto-line 11)
+  (ruby-end-of-block)
+  (should (= 12 (line-number-at-pos)))
+  (ruby-beginning-of-block)
+  (should (= 11 (line-number-at-pos))))
+
+(ruby-deftest-move-to-block zero-is-noop
+  (goto-line 5)
+  (ruby-move-to-block 0)
+  (should (= 5 (line-number-at-pos))))
+
+(ruby-deftest-move-to-block ok-with-three
+  (goto-line 2)
+  (ruby-move-to-block 3)
+  (should (= 13 (line-number-at-pos))))
+
+(ruby-deftest-move-to-block ok-with-minus-two
+  (goto-line 10)
+  (ruby-move-to-block -2)
+  (should (= 2 (line-number-at-pos))))
 
 (provide 'ruby-mode-tests)
 

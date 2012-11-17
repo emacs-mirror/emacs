@@ -289,10 +289,6 @@ wait_for_termination_1 (pid_t pid, int interruptible)
 {
   while (1)
     {
-#ifdef WINDOWSNT
-      wait (0);
-      break;
-#else /* not WINDOWSNT */
       int status;
       int wait_result = waitpid (pid, &status, 0);
       if (wait_result < 0)
@@ -306,7 +302,8 @@ wait_for_termination_1 (pid_t pid, int interruptible)
 	  break;
 	}
 
-#endif /* not WINDOWSNT */
+      /* Note: the MS-Windows emulation of waitpid calls QUIT
+	 internally.  */
       if (interruptible)
 	QUIT;
     }
@@ -1287,7 +1284,7 @@ reset_sys_modes (struct tty_display_info *tty_out)
              old_fcntl_owner[fileno (tty_out->input)]);
     }
 #endif /* F_SETOWN */
-#ifdef O_NDELAY
+#if O_NDELAY
   fcntl (fileno (tty_out->input), F_SETFL,
          fcntl (fileno (tty_out->input), F_GETFL, 0) & ~O_NDELAY);
 #endif
@@ -2384,12 +2381,12 @@ serial_open (char *port)
 
   fd = emacs_open ((char*) port,
 		   O_RDWR
-#ifdef O_NONBLOCK
+#if O_NONBLOCK
 		   | O_NONBLOCK
 #else
 		   | O_NDELAY
 #endif
-#ifdef O_NOCTTY
+#if O_NOCTTY
 		   | O_NOCTTY
 #endif
 		   , 0);

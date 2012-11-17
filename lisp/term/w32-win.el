@@ -116,7 +116,7 @@
                                    "/")
                      "/")))
 		(dnd-handle-one-url window 'private
-				    (concat "file:" file-name)))
+				    (concat "file://" file-name)))
 
 (defun w32-drag-n-drop (event &optional new-frame)
   "Edit the files listed in the drag-n-drop EVENT.

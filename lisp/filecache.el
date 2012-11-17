@@ -310,23 +310,22 @@ files in each directory, not to the directory list itself."
 (defun file-cache-add-file (file)
   "Add FILE to the file cache."
   (interactive "fAdd File: ")
-  (if (not (file-exists-p file))
-      (message "Filecache: file %s does not exist" file)
-    (let* ((file-name (file-name-nondirectory file))
-	   (dir-name  (file-name-directory    file))
-	   (the-entry (assoc-string
-		       file-name file-cache-alist
-		       file-cache-ignore-case)))
-      ;; Does the entry exist already?
-      (if the-entry
-	  (if (or (and (stringp (cdr the-entry))
-		       (string= dir-name (cdr the-entry)))
-		  (and (listp (cdr the-entry))
-		       (member dir-name (cdr the-entry))))
-	      nil
-	    (setcdr the-entry (cons dir-name (cdr the-entry))))
-	;; If not, add it to the cache
-	(push (list file-name dir-name) file-cache-alist)))))
+  (setq file (file-truename file))
+  (unless (file-exists-p file)
+    (error "Filecache: file %s does not exist" file))
+  (let* ((file-name (file-name-nondirectory file))
+	 (dir-name  (file-name-directory file))
+	 (the-entry (assoc-string file-name file-cache-alist
+				  file-cache-ignore-case)))
+    ;; Does the entry exist already?
+    (if the-entry
+	(unless (or (and (stringp (cdr the-entry))
+			 (string= dir-name (cdr the-entry)))
+		    (and (listp (cdr the-entry))
+			 (member dir-name (cdr the-entry))))
+	  (setcdr the-entry (cons dir-name (cdr the-entry))))
+      ;; If not, add it to the cache
+      (push (list file-name dir-name) file-cache-alist))))
 
 ;;;###autoload
 (defun file-cache-add-directory-using-find (directory)

@@ -1,3 +1,160 @@
+2012-11-17  Eli Zaretskii  <eliz@gnu.org>
+
+	* w32.c (faccessat): Pretend that directories have the execute bit
+	set.  Emacs expects that, e.g., in files.el:cd-absolute.
+
+	* w32proc.c (create_child): Don't clip the PID of the child
+	process to fit into an Emacs integer, as this is no longer a
+	restriction.
+	(waitpid): Rename from sys_wait.  Emulate a Posix 'waitpid' by
+	reaping only the process specified by PID argument, if that is
+	positive.  Use PID instead of dead_child to know which process to
+	reap.  Wait for the child to die only if WNOHANG is not in
+	OPTIONS.
+	(sys_select): Don't set dead_child.
+
+	* sysdep.c (wait_for_termination_1): Remove the WINDOWSNT portion,
+	as it is no longer needed.
+
+	* process.c (waitpid, WUNTRACED) [!WNOHANG]: Remove definitions,
+	no longer needed.
+	(record_child_status_change): Remove the setting of
+	record_at_most_one_child for the !WNOHANG case.
+
+2012-11-17  Paul Eggert  <eggert@cs.ucla.edu>
+
+	Fix problems in ns port found by static checking.
+	* nsterm.m: Include <pthread.h>, for pthread_mutex_lock etc.
+	(hold_event, setPosition:portion:whole:): Send SIGIO only to self,
+	not to process group.
+	(ns_select): Use emacs_write, not write, as that's more robust
+	in the presence of signals.
+	(fd_handler:): Check for read errors.
+
+2012-11-16  Glenn Morris  <rgm@gnu.org>
+
+	* editfns.c (Fmessage): Mention message-log-max.  (Bug#12849)
+
+2012-11-16  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* eval.c (Finteractive_p): Revert lexbind-merge mishap.
+
+2012-11-16  Eli Zaretskii  <eliz@gnu.org>
+
+	* w32proc.c (timer_loop): Make sure SuspendThread and ResumeThread
+	use the same value of thread handle.
+	(start_timer_thread): If the timer thread exited (due to error),
+	clean up by closing the two handles it used.  Duplicate the caller
+	thread's handle here, so it gets duplicated only once, when
+	launching the timer thread.  Set priority of the timer thread, not
+	the caller thread.
+	(getitimer): Don't duplicate the caller thread's handle here.
+	(Bug#12832)
+
+2012-11-16  Jan Djärv  <jan.h.d@swipnet.se>
+
+	* nsterm.m (hold_event): Send SIGIO to make sure ns_read_socket is
+	called (Bug#12834).
+
+2012-11-16  Paul Eggert  <eggert@cs.ucla.edu>
+
+	Remove no-longer-used pty_max_bytes variable.
+	* process.c (pty_max_bytes): Remove; unused.
+	(send_process): Do not set it.
+
+2012-11-15  Juanma Barranquero  <lekktu@gmail.com>
+
+	* makefile.w32-in ($(BLD)/dispnew.$(O), $(BLD)/emacs.$(O)):
+	Update dependencies.
+
+2012-11-15  Paul Eggert  <eggert@cs.ucla.edu>
+
+	* eval.c (mark_backtrace) [BYTE_MARK_STACK]: Remove stray '*'.
+	This follows up on the 2012-09-29 patch that removed indirection
+	for the 'function' field.  Reported by Sergey Vinokurov in
+	<http://lists.gnu.org/archive/html/emacs-devel/2012-11/msg00263.html>.
+
+2012-11-14  Eli Zaretskii  <eliz@gnu.org>
+
+	* w32.c (faccessat): Rename from sys_faccessat.  (No need to use a
+	different name, as the MS runtime does not have such a function,
+	and probably never will.)  All callers changed.  Ignore DIRFD
+	value if PATH is an absolute file name, to match Posix spec
+	better.  If AT_SYMLINK_NOFOLLOW is set in FLAGS, don't resolve
+	symlinks.
+
+2012-11-14  Dmitry Antipov  <dmantipov@yandex.ru>
+
+	* xdisp.c (echo_area_display, redisplay_internal):
+	Omit redundant check whether frame_garbaged is set.
+
+2012-11-14  Paul Eggert  <eggert@cs.ucla.edu>
+
+	Use faccessat, not access, when checking file permissions (Bug#12632).
+	This fixes a bug that has been present in Emacs since its creation.
+	It was reported by Chris Torek in 1983 even before GNU Emacs existed,
+	which must set some sort of record.  (Torek's bug report was against
+	a predecessor of GNU Emacs, but GNU Emacs happened to have the
+	same common flaw.)  See Torek's Usenet posting
+	"setuid/setgid programs & Emacs" Article-I.D.: sri-arpa.858
+	Posted: Fri Apr  8 14:18:56 1983.
+	* Makefile.in (LIB_EACCESS): New macro.
+	(LIBES): Use it.
+	* callproc.c (init_callproc):
+	* charset.c (init_charset):
+	* fileio.c (check_existing, check_executable, check_writable)
+	(Ffile_readable_p):
+	* lread.c (openp, load_path_check):
+	* process.c (allocate_pty):
+	* xrdb.c (file_p):
+	Use effective UID when checking permissions, not real UID.
+	* callproc.c (init_callproc):
+	* charset.c (init_charset):
+	* lread.c (load_path_check, init_lread):
+	Test whether directories are accessible, not merely whether they exist.
+	* conf_post.h (GNULIB_SUPPORT_ONLY_AT_FDCWD): New macro.
+	* fileio.c (check_existing, check_executable, check_writable)
+	(Ffile_readable_p):
+	Use symbolic names instead of integers for the flags, as they're
+	portable now.
+	(check_writable): New arg AMODE.  All uses changed.
+	Set errno on failure.
+	(Ffile_readable_p): Use faccessat, not stat + open + close.
+	(Ffile_writable_p): No need to call check_existing + check_writable.
+	Just call check_writable and then look at errno.  This saves a syscall.
+	dir should never be nil; replace an unnecessary runtime check
+	with an eassert.  When checking the parent directory of a nonexistent
+	file, check that the directory is searchable as well as writable, as
+	we can't create files in unsearchable directories.
+	(file_directory_p): New function, which uses 'stat' on most platforms
+	but faccessat with D_OK (for efficiency) if WINDOWSNT.
+	(Ffile_directory_p, Fset_file_times): Use it.
+	(file_accessible_directory_p): New function, which uses a single
+	syscall for efficiency.
+	(Ffile_accessible_directory_p): Use it.
+	* xrdb.c (file_p): Use file_directory_p.
+	* lisp.h (file_directory_p, file_accessible_directory_p): New decls.
+	* lread.c (openp): When opening a file, use fstat rather than
+	stat, as that avoids a permissions race.  When not opening a file,
+	use file_directory_p rather than stat.
+	(dir_warning): First arg is now a usage string, not a format.
+	Use errno.  All uses changed.
+	* nsterm.m (ns_term_init): Remove unnecessary call to file-readable
+	that merely introduced a race.
+	* process.c, sysdep.c, term.c: All uses of '#ifdef O_NONBLOCK'
+	changed to '#if O_NONBLOCK', to accommodate gnulib O_* style,
+	and similarly for the other O_* flags.
+	* w32.c (sys_faccessat): Rename from sys_access and switch to
+	faccessat's API.  All uses changed.
+	* xrdb.c: Do not include <sys/stat.h>; no longer needed.
+	(magic_db): Rename from magic_file_p.
+	(magic_db, search_magic_path): Return an XrmDatabase rather than a
+	char *, so that we don't have to test for file existence
+	separately from opening the file for reading.  This removes a race
+	fixes a permission-checking problem, and simplifies the code.
+	All uses changed.
+	(file_p): Remove; no longer needed.
+
 2012-11-13  Dmitry Antipov  <dmantipov@yandex.ru>
 
 	Omit glyphs initialization at startup.

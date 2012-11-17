@@ -124,7 +124,7 @@
 ;; Adding your own checks:
 ;;
 ;;   You can experiment with adding your own checks by setting the
-;; hooks `checkdoc-style-functions' and `checkdoc-comment-style-hooks'.
+;; hooks `checkdoc-style-functions' and `checkdoc-comment-style-functions'.
 ;; Return a string which is the error you wish to report.  The cursor
 ;; position should be preserved.
 ;;

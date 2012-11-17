@@ -560,7 +560,7 @@ FILE is created there."
         (goto-char (point-min))
         (search-forward (concat (int-to-string score)
 				" " (user-login-name) " "
-				marker-string))
+				marker-string) nil t)
         (beginning-of-line)))))
 
 (defun gamegrid-add-score-insecure (file score &optional directory)
