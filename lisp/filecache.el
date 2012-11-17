@@ -303,7 +303,9 @@ files in each directory, not to the directory list itself."
    directory-list))
 
 (defun file-cache-add-file-list  (file-list)
-  "Add FILE-LIST (a list of files names) to the file cache."
+  "Add FILE-LIST (a list of file names) to the file cache.
+Interactively, FILE-LIST is read as a Lisp expression, which
+should evaluate to the desired list of file names."
   (interactive "XFile List: ")
   (mapcar 'file-cache-add-file file-list))
 

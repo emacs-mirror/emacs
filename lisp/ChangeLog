@@ -1,3 +1,7 @@
+2012-11-17  Chong Yidong  <cyd@gnu.org>
+
+	* filecache.el (file-cache-add-file-list): Doc fix (Bug#12694).
+
 2012-11-17  Glenn Morris  <rgm@gnu.org>
 
 	* woman.el (woman-non-underline-faces):
