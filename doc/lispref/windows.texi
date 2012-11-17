@@ -1932,7 +1932,9 @@ entry (@pxref{Choosing Window Options}), raises that frame if necessary.
 This function creates a new frame, and displays the buffer in that
 frame's window.  It actually performs the frame creation by calling
 the function specified in @code{pop-up-frame-function}
-(@pxref{Choosing Window Options}).
+(@pxref{Choosing Window Options}).  If @var{alist} contains a
+@code{pop-up-frame-parameters} entry, the associated value
+is added to the newly created frame's parameters.
 @end defun
 
 @defun display-buffer-pop-up-window buffer alist

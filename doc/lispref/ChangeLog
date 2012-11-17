@@ -5,6 +5,7 @@
 	* frames.texi (Size and Position): Add fit-frame-to-buffer command.
 	* windows.texi (Resizing Windows): Add fit-frame-to-buffer option.
 	(Window Sizes): Add vindex for window-min-height, window-min-width.
+	(Display Action Functions): Mention pop-up-frame-parameters.
 
 2012-11-16  Martin Rudalics  <rudalics@gmx.at>
 

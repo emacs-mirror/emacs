@@ -868,11 +868,11 @@ window's point when switching buffers.
 +++
 *** New display action functions `display-buffer-below-selected',
 and `display-buffer-in-previous-window'.
-
++++
 *** New display action alist entry `inhibit-switch-frame', if non-nil,
 tells display action functions to avoid changing which frame is
 selected.
-
++++
 *** New display action alist entry `pop-up-frame-parameters', if
 non-nil, specifies frame parameters to give any newly-created frame.
 +++
