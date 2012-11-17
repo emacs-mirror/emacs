@@ -1,3 +1,8 @@
+2012-11-17  Chong Yidong  <cyd@gnu.org>
+
+	* filecache.el (file-cache-add-file): Handle relative file name in
+	the argument (Bug#12694).
+
 2012-11-16  Jürgen Hötzel  <juergen@archlinux.org>  (tiny change)
 
 	* eshell/em-unix.el (eshell/mkdir): Handle "--parents" (bug#12897).
