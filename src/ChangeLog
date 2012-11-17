@@ -1,3 +1,13 @@
+2012-11-17  Paul Eggert  <eggert@cs.ucla.edu>
+
+	Fix problems in ns port found by static checking.
+	* nsterm.m: Include <pthread.h>, for pthread_mutex_lock etc.
+	(hold_event, setPosition:portion:whole:): Send SIGIO only to self,
+	not to process group.
+	(ns_select): Use emacs_write, not write, as that's more robust
+	in the presence of signals.
+	(fd_handler:): Check for read errors.
+
 2012-11-16  Glenn Morris  <rgm@gnu.org>
 
 	* editfns.c (Fmessage): Mention message-log-max.  (Bug#12849)
