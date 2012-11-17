@@ -267,7 +267,7 @@ including `cl-block' and `cl-eval-when'.
 ;;;;;;  cl-typecase cl-ecase cl-case cl-load-time-value cl-eval-when
 ;;;;;;  cl-destructuring-bind cl-function cl-defmacro cl-defun cl-gentemp
 ;;;;;;  cl-gensym cl--compiler-macro-cXXr cl--compiler-macro-list*)
-;;;;;;  "cl-macs" "cl-macs.el" "887ee7c4b9eb5766c6483d27e84aac21")
+;;;;;;  "cl-macs" "cl-macs.el" "a7d9b56ea588b869813de8ed7ec1fbcd")
 ;;; Generated autoloads from cl-macs.el
 
 (autoload 'cl--compiler-macro-list* "cl-macs" "\
@@ -416,7 +416,7 @@ This is compatible with Common Lisp, but note that `defun' and
 (put 'cl-return-from 'lisp-indent-function '1)
 
 (autoload 'cl-loop "cl-macs" "\
-The Common Lisp `cl-loop' macro.
+The Common Lisp `loop' macro.
 Valid clauses are:
   for VAR from/upfrom/downfrom NUM to/upto/downto/above/below NUM by NUM,
   for VAR in LIST by FUNC, for VAR on LIST by FUNC, for VAR = INIT then EXPR,
@@ -432,14 +432,14 @@ Valid clauses are:
 \(fn CLAUSE...)" nil t)
 
 (autoload 'cl-do "cl-macs" "\
-The Common Lisp `cl-do' loop.
+The Common Lisp `do' loop.
 
 \(fn ((VAR INIT [STEP])...) (END-TEST [RESULT...]) BODY...)" nil t)
 
 (put 'cl-do 'lisp-indent-function '2)
 
 (autoload 'cl-do* "cl-macs" "\
-The Common Lisp `cl-do*' loop.
+The Common Lisp `do*' loop.
 
 \(fn ((VAR INIT [STEP])...) (END-TEST [RESULT...]) BODY...)" nil t)
 
@@ -501,7 +501,7 @@ a `let' form, except that the list of symbols can be computed at run-time.
 (put 'cl-progv 'lisp-indent-function '2)
 
 (autoload 'cl-flet "cl-macs" "\
-Make temporary function definitions.
+Make local function definitions.
 Like `cl-labels' but the definitions are not recursive.
 
 \(fn ((FUNC ARGLIST BODY...) ...) FORM...)" nil t)
@@ -509,7 +509,7 @@ Like `cl-labels' but the definitions are not recursive.
 (put 'cl-flet 'lisp-indent-function '1)
 
 (autoload 'cl-flet* "cl-macs" "\
-Make temporary function definitions.
+Make local function definitions.
 Like `cl-flet' but the definitions can refer to previous ones.
 
 \(fn ((FUNC ARGLIST BODY...) ...) FORM...)" nil t)
