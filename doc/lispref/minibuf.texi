@@ -886,6 +886,23 @@ Here is an example:
 @end smallexample
 @end defmac
 
+@c FIXME?  completion-table-with-context?
+
+@findex completion-table-case-fold
+@findex completion-table-in-turn
+@findex completion-table-subvert
+@findex completion-table-with-predicate
+@findex completion-table-with-terminator
+There are several functions that take an existing completion table and
+return a modified version.  @code{completion-table-case-fold} returns
+a case-insensitive table.  @code{completion-table-in-turn} combines
+multiple input tables.  @code{completion-table-subvert} alters a table
+to use a different initial prefix. 
+@code{completion-table-with-terminator} adds a terminating string.
+@code{completion-table-with-predicate} filters a table with a
+predicate function.
+
+
 @node Minibuffer Completion
 @subsection Completion and the Minibuffer
 @cindex minibuffer completion

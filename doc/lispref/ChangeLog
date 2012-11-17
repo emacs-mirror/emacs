@@ -1,3 +1,7 @@
+2012-11-17  Glenn Morris  <rgm@gnu.org>
+
+	* minibuf.texi (Basic Completion): Mention misc completion-table funcs.
+
 2012-11-17  Leo Liu  <sdl.web@gmail.com>
 
 	* minibuf.texi (Programmed Completion): Doc fix for metadata
