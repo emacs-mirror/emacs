@@ -1,3 +1,7 @@
+2012-11-17  Dani Moncayo  <dmoncayo@gmail.com>
+
+	* mark.texi (Disabled Transient Mark): Doc fixes (Bug#12746).
+
 2012-11-12  Chong Yidong  <cyd@gnu.org>
 
 	* building.texi (Multithreaded Debugging): gdb-stopped-hooks is
