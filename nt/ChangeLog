@@ -1,3 +1,10 @@
+2012-11-17  Dani Moncayo  <dmoncayo@gmail.com>
+
+	* zipdist.bat (ZIP_CHECK): Remove unused label.  When invoking 7z
+	to check if it's installed, redirect standard output and standard
+	error to the null device.
+	(ZIP_DIST): Don't build the "barebin" distribution.
+
 2012-11-15  Juanma Barranquero  <lekktu@gmail.com>
 
 	* config.nt: Sync with autogen/config.in.
