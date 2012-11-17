@@ -846,7 +846,9 @@ now accept a third argument to avoid choosing the selected window.
 +++
 *** Additional values recognized for option `window-combination-limit'.
 
-*** New macro `with-temp-buffer-window'.
++++
+*** New macro `with-temp-buffer-window', similar to
+`with-output-to-temp-buffer'.
 
 ---
 *** `temp-buffer-resize-mode' no longer resizes windows that have been

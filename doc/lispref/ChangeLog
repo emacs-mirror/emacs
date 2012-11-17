@@ -1,5 +1,7 @@
 2012-11-17  Glenn Morris  <rgm@gnu.org>
 
+	* display.texi (Temporary Displays): Document with-temp-buffer-window.
+
 	* frames.texi (Size and Position): Add fit-frame-to-buffer command.
 	* windows.texi (Resizing Windows): Add fit-frame-to-buffer option.
 	(Window Sizes): Add vindex for window-min-height, window-min-width.
