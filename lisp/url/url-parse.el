@@ -48,7 +48,7 @@
 
 (defun url-path-and-query (urlobj)
   "Return the path and query components of URLOBJ.
-These two components are store together in the FILENAME slot of
+These two components are stored together in the FILENAME slot of
 the object.  The return value of this function is (PATH . QUERY),
 where each of PATH and QUERY are strings or nil."
   (let ((name (url-filename urlobj))
