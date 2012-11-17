@@ -1,3 +1,8 @@
+2012-11-17  OKAZAKI Tetsurou  <okazaki.tetsurou@gmail.com>  (tiny change)
+
+	* vc/vc-svn.el (vc-svn-merge-news): Properly parse the merge
+	response when the target file is in a subdirectory (Bug#12757).
+
 2012-11-17  Chong Yidong  <cyd@gnu.org>
 
 	* filecache.el (file-cache-add-file-list): Doc fix (Bug#12694).
