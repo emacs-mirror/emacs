@@ -893,6 +893,8 @@ Here is an example:
 @findex completion-table-subvert
 @findex completion-table-with-predicate
 @findex completion-table-with-terminator
+@cindex completion table, modifying
+@cindex completion tables, combining
 There are several functions that take an existing completion table and
 return a modified version.  @code{completion-table-case-fold} returns
 a case-insensitive table.  @code{completion-table-in-turn} combines
