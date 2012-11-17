@@ -1710,8 +1710,9 @@ string, and @var{end} is the position of the end boundary in
 
 @item metadata
 This specifies a request for information about the state of the
-current completion.  The function should return an alist, as described
-below.  The alist may contain any number of elements.
+current completion.  The return value should have the form
+@code{(metadata . @var{alist})}, where @var{alist} is an alist whose
+elements are described below.
 @end table
 
 @noindent

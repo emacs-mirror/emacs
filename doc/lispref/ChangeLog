@@ -1,3 +1,8 @@
+2012-11-17  Leo Liu  <sdl.web@gmail.com>
+
+	* minibuf.texi (Programmed Completion): Doc fix for metadata
+	request (Bug#12850).
+
 2012-11-17  Glenn Morris  <rgm@gnu.org>
 
 	* display.texi (Temporary Displays): Document with-temp-buffer-window.
