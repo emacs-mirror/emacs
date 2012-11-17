@@ -656,13 +656,13 @@ in the Gregorian calendar."
 	       (setcdr math-fd-dt nil))
 	  fmt))))
 
-(defconst math-julian-date-beginning '(float 17214235 -1)
-  "The beginning of the Julian calendar,
-as measured in the number of days before January 1 of the year 1AD.")
+(defconst math-julian-date-beginning '(float 17214225 -1)
+  "The beginning of the Julian date calendar,
+as measured in the number of days before December 31, 1 BC (Gregorian).")
 
-(defconst math-julian-date-beginning-int 1721424
-  "The beginning of the Julian calendar,
-as measured in the integer number of days before January 1 of the year 1AD.")
+(defconst math-julian-date-beginning-int 1721423
+  "The beginning of the Julian date calendar,
+as measured in the integer number of days before December 31, 1 BC (Gregorian).")
 
 (defun math-format-date-part (x)
   (cond ((stringp x)

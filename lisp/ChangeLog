@@ -1,3 +1,8 @@
+2012-11-17  Paul Eggert  <eggert@cs.ucla.edu>
+
+	* calc/calc-forms.el (math-julian-date-beginning)
+	(math-julian-date-beginning-int): Implement [new date numbering].
+
 2012-11-17  Juanma Barranquero  <lekktu@gmail.com>
 
 	* descr-text.el (quail-find-key):
