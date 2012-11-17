@@ -1,3 +1,10 @@
+2012-11-17  Eli Zaretskii  <eliz@gnu.org>
+
+	* term/w32-win.el (w32-handle-dropped-file): Use 'file://' only on
+	Cygwin; otherwise use 'file:'.  (Bug#12914)
+	(cygwin-convert-path-from-windows): Declare, to avoid
+	byte-compiler warnings.
+
 2012-11-17  Andreas Politz  <politza@fh-trier.de>
 
 	* ibuffer.el (ibuffer-mark-forward, ibuffer-unmark-forward)
