@@ -520,7 +520,7 @@ use the Gregorian calendar."
   "Return the number of days of the year up to YEAR MONTH DAY.
 The count includes the given date."
   (if calc-gregorian-switch
-      (cond ((math-equalp year (nth 0 calc-gregorian-switch))
+      (cond ((eq year (nth 0 calc-gregorian-switch))
              (1+
               (- (math-absolute-from-dt year month day)
                  (math-absolute-from-dt year 1 1))))
@@ -586,6 +586,10 @@ in the Gregorian calendar."
                                                     4)))))
      ;; Adjustment, since January 1, 1 (Julian) is absolute day -1
      2)))
+
+;; calc-gregorian-switch is a customizable variable defined in calc.el
+(defvar calc-gregorian-switch)
+
 
 (defun math-absolute-from-dt (year month day)
   "Return the DATE of the day given by the day YEAR MONTH DAY.
