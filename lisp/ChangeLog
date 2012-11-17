@@ -5,6 +5,8 @@
 	Use set-face-underline rather than the alias set-face-underline-p.
 
 	* window.el (with-temp-buffer-window): Doc fix.
+	* subr.el (with-output-to-temp-buffer):
+	Add doc xref to with-temp-buffer-window.
 
 2012-11-16  Stefan Monnier  <monnier@iro.umontreal.ca>
 
