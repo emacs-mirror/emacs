@@ -92,7 +92,7 @@
 (declare-function set-message-beep "w32fns.c")
 
 (declare-function cygwin-convert-path-from-windows "cygw32.c"
-		  (path absolute_p))
+		  (path &optional absolute_p))
 
 ;; Conditional on new-fontset so bootstrapping works on non-GUI compiles
 (if (fboundp 'new-fontset)

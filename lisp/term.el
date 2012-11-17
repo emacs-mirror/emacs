@@ -397,6 +397,12 @@
 (require 'ring)
 (require 'ehelp)
 
+(declare-function ring-empty-p "ring" (ring))
+(declare-function ring-ref "ring" (ring index))
+(declare-function ring-insert-at-beginning "ring" (ring item))
+(declare-function ring-length "ring" (ring))
+(declare-function ring-insert "ring" (ring item))
+
 (defgroup term nil
   "General command interpreter in a window."
   :group 'processes)

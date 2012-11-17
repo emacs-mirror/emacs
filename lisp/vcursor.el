@@ -881,6 +881,8 @@ ALL-FRAMES is also used to decide whether to split the window."
 	(vcursor-disable -1))))
   )
 
+(declare-function compare-windows-skip-whitespace "compare-w" (start))
+
 ;; vcursor-compare-windows is copied from compare-w.el with only
 ;; minor modifications; these are too bound up with the function
 ;; to make it really useful to call compare-windows itself.

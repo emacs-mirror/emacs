@@ -3732,6 +3732,7 @@ Ask means pop up a menu for the user to select one of copy, move or link."
 ;;;;  Desktop support
 
 (eval-when-compile (require 'desktop))
+(declare-function desktop-file-name "desktop" (filename dirname))
 
 (defun dired-desktop-buffer-misc-data (dirname)
   "Auxiliary information to be saved in desktop file."
