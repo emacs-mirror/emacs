@@ -677,7 +677,8 @@ help buffer."
 		    " is also a " "face." "\n\n" facedoc))
 	  ;; Don't record the `describe-function' item in the stack.
 	  (setq help-xref-stack-item nil)
-	  (help-setup-xref (list #'help-xref-interned symbol) nil)))))))
+	  (help-setup-xref (list #'help-xref-interned symbol) nil))))
+      (goto-char (point-min)))))
 
 
 ;; Navigation/hyperlinking with xrefs

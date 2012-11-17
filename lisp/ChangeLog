@@ -1,5 +1,7 @@
 2012-11-17  Chong Yidong  <cyd@gnu.org>
 
+	* help-mode.el (help-xref-interned): End on point-min (Bug#12737).
+
 	* filecache.el (file-cache-add-file): Handle relative file name in
 	the argument (Bug#12694).
 
