@@ -61,6 +61,11 @@ and redirect them to your own function instead of `fset'.
 
 * Changes in Emacs 24.4 on non-free operating systems
 
++++
+** The "generate a backtrace on fatal error" feature now works on MS Windows.
+The backtrace is written to the 'emacs_backtrace.txt' file in the
+directory where Emacs was running.
+
 
 * Installation Changes in Emacs 24.3
 
@@ -210,9 +215,7 @@ This minor mode replaces `toggle-read-only', which is now obsolete.
 ** Emacs now generates backtraces on fatal errors.
 On encountering a fatal error, Emacs now outputs a textual description
 of the fatal signal, and a short backtrace on platforms like glibc
-that support backtraces, and also on MS-Windows.  On Windows, the
-backtrace is also written to the 'emacs_backtrace.txt' file in the
-directory where Emacs was running.
+that support backtraces.
 
 ---
 ** If your Emacs was built from a bzr checkout, the new variable
