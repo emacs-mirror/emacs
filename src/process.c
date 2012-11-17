@@ -6283,8 +6283,8 @@ record_child_status_change (pid_t pid, int w)
 {
 #ifdef SIGCHLD
 
-  /* On POSIXish hosts, record at most one child only if we already
-     know one child that has exited.  */
+  /* Record at most one child only if we already know one child that
+     has exited.  */
   bool record_at_most_one_child = 0 <= pid;
 
   Lisp_Object tail;
