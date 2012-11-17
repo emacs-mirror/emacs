@@ -1,5 +1,8 @@
 2012-11-17  Eli Zaretskii  <eliz@gnu.org>
 
+	* w32.c (faccessat): Pretend that directories have the execute bit
+	set.  Emacs expects that, e.g., in files.el:cd-absolute.
+
 	* w32proc.c (create_child): Don't clip the PID of the child
 	process to fit into an Emacs integer, as this is no longer a
 	restriction.

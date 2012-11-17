@@ -2762,7 +2762,8 @@ faccessat (int dirfd, const char * path, int mode, int flags)
 	}
       return -1;
     }
-  if ((mode & X_OK) != 0 && !is_exec (path))
+  if ((mode & X_OK) != 0
+      && !(is_exec (path) || (attributes & FILE_ATTRIBUTE_DIRECTORY) != 0))
     {
       errno = EACCES;
       return -1;
