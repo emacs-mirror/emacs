@@ -1036,8 +1036,7 @@ init_sys_modes (struct tty_display_info *tty_out)
 #endif
 #endif
 
-#ifdef F_SETFL
-#ifdef F_GETOWN		/* F_SETFL does not imply existence of F_GETOWN */
+#ifdef F_GETOWN
   if (interrupt_input)
     {
       old_fcntl_owner[fileno (tty_out->input)] =
@@ -1055,7 +1054,6 @@ init_sys_modes (struct tty_display_info *tty_out)
 #endif /* HAVE_GPM */
     }
 #endif /* F_GETOWN */
-#endif /* F_SETFL */
 
 #ifdef _IOFBF
   /* This symbol is defined on recent USG systems.
@@ -1275,8 +1273,8 @@ reset_sys_modes (struct tty_display_info *tty_out)
   fsync (fileno (tty_out->output));
 #endif
 
-#ifdef F_SETFL
-#ifdef F_SETOWN		/* F_SETFL does not imply existence of F_SETOWN */
+#ifndef DOS_NT
+#ifdef F_SETOWN
   if (interrupt_input)
     {
       reset_sigio (fileno (tty_out->input));
@@ -1284,11 +1282,9 @@ reset_sys_modes (struct tty_display_info *tty_out)
              old_fcntl_owner[fileno (tty_out->input)]);
     }
 #endif /* F_SETOWN */
-#if O_NDELAY
   fcntl (fileno (tty_out->input), F_SETFL,
-         fcntl (fileno (tty_out->input), F_GETFL, 0) & ~O_NDELAY);
+         fcntl (fileno (tty_out->input), F_GETFL, 0) & ~O_NONBLOCK);
 #endif
-#endif /* F_SETFL */
 
   if (tty_out->old_tty)
     while (emacs_set_tty (fileno (tty_out->input),
@@ -2377,19 +2373,7 @@ safe_strsignal (int code)
 int
 serial_open (char *port)
 {
-  int fd = -1;
-
-  fd = emacs_open ((char*) port,
-		   O_RDWR
-#if O_NONBLOCK
-		   | O_NONBLOCK
-#else
-		   | O_NDELAY
-#endif
-#if O_NOCTTY
-		   | O_NOCTTY
-#endif
-		   , 0);
+  int fd = emacs_open (port, O_RDWR | O_NOCTTY | O_NONBLOCK, 0);
   if (fd < 0)
     {
       error ("Could not open %s: %s",

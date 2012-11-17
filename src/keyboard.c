@@ -6948,7 +6948,7 @@ tty_read_avail_input (struct terminal *terminal,
 #elif defined USG || defined CYGWIN
   /* Read some input if available, but don't wait.  */
   n_to_read = sizeof cbuf;
-  fcntl (fileno (tty->input), F_SETFL, O_NDELAY);
+  fcntl (fileno (tty->input), F_SETFL, O_NONBLOCK);
 #else
 # error "Cannot read without possibly delaying"
 #endif
@@ -6982,7 +6982,7 @@ tty_read_avail_input (struct terminal *terminal,
     }
   while (
          /* We used to retry the read if it was interrupted.
-            But this does the wrong thing when O_NDELAY causes
+            But this does the wrong thing when O_NONBLOCK causes
             an EAGAIN error.  Does anybody know of a situation
             where a retry is actually needed?  */
 #if 0

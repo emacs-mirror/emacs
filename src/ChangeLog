@@ -1,3 +1,30 @@
+2012-11-17  Paul Eggert  <eggert@cs.ucla.edu>
+
+	Assume POSIX 1003.1-1988 or later for fcntl.h (Bug#12881).
+	* callproc.c (relocate_fd): Assume F_DUPFD.
+	* emacs.c, term.c (O_RDWR): Remove.
+	* keyboard.c (tty_read_avail_input): Use O_NONBLOCK rather than
+	O_NDELAY, since O_NONBLOCK is the standard name for this flag.
+	* nsterm.m: Assume <fcntl.h> exists.
+	* process.c (NON_BLOCKING_CONNECT, allocate_pty, create_process)
+	(create_pty, Fmake_network_process, server_accept_connection)
+	(wait_reading_process_output, init_process_emacs):
+	Assume O_NONBLOCK.
+	(wait_reading_process_output): Put in a special case for WINDOWSNT
+	to mimick the older behavior where it had O_NDELAY but not O_NONBLOCK.
+	It's not clear this is needed, but it's a more-conservative change.
+	(create_process): Assume FD_CLOEXEC.
+	(create_process, create_pty): Assume O_NOCTTY.
+	* sysdep.c (init_sys_modes, reset_sys_modes): Assume F_SETFL.
+	(reset_sys_modes): Use O_NONBLOCK rather than O_NDELAY.
+	Omit if not DOS_NT, since F_GETFL is not defined there.
+	(serial_open): Assume O_NONBLOCK and O_NOCTTY.
+	* term.c: Include <fcntl.h>, for flags like O_NOCTTY.
+	(O_NOCTTY): Remove.
+	(init_tty): Assume O_IGNORE_CTTY is defined to 0 on platforms that
+	lack it, since gnulib guarantees this.
+	* w32.c (fcntl): Test for O_NONBLOCK rather than O_NDELAY.
+
 2012-11-17  Eli Zaretskii  <eliz@gnu.org>
 
 	* w32.c (faccessat): Pretend that directories have the execute bit

@@ -196,11 +196,9 @@ static EMACS_INT update_tick;
 #ifndef NON_BLOCKING_CONNECT
 #ifdef HAVE_SELECT
 #if defined (HAVE_GETPEERNAME) || defined (GNU_LINUX)
-#if O_NONBLOCK || O_NDELAY
 #if defined (EWOULDBLOCK) || defined (EINPROGRESS)
 #define NON_BLOCKING_CONNECT
 #endif /* EWOULDBLOCK || EINPROGRESS */
-#endif /* O_NONBLOCK || O_NDELAY */
 #endif /* HAVE_GETPEERNAME || GNU_LINUX */
 #endif /* HAVE_SELECT */
 #endif /* NON_BLOCKING_CONNECT */
@@ -639,13 +637,7 @@ allocate_pty (void)
 #ifdef PTY_OPEN
 	PTY_OPEN;
 #else /* no PTY_OPEN */
-	{
-#  if O_NONBLOCK
-	  fd = emacs_open (pty_name, O_RDWR | O_NONBLOCK, 0);
-#  else
-	  fd = emacs_open (pty_name, O_RDWR | O_NDELAY, 0);
-#  endif
-	}
+	fd = emacs_open (pty_name, O_RDWR | O_NONBLOCK, 0);
 #endif /* no PTY_OPEN */
 
 	if (fd >= 0)
@@ -1583,7 +1575,7 @@ create_process (Lisp_Object process, char **new_argv, Lisp_Object current_dir)
   int inchannel, outchannel;
   pid_t pid;
   int sv[2];
-#if !defined (WINDOWSNT) && defined (FD_CLOEXEC)
+#ifndef WINDOWSNT
   int wait_child_setup[2];
 #endif
 #ifdef SIGCHLD
@@ -1609,13 +1601,9 @@ create_process (Lisp_Object process, char **new_argv, Lisp_Object current_dir)
 #if ! defined (USG) || defined (USG_SUBTTY_WORKS)
       /* On most USG systems it does not work to open the pty's tty here,
 	 then close it and reopen it in the child.  */
-#if O_NOCTTY
       /* Don't let this terminal become our controlling terminal
 	 (in case we don't have one).  */
       forkout = forkin = emacs_open (pty_name, O_RDWR | O_NOCTTY, 0);
-#else
-      forkout = forkin = emacs_open (pty_name, O_RDWR, 0);
-#endif
       if (forkin < 0)
 	report_file_error ("Opening pty", Qnil);
 #else
@@ -1644,7 +1632,7 @@ create_process (Lisp_Object process, char **new_argv, Lisp_Object current_dir)
       forkin = sv[0];
     }
 
-#if !defined (WINDOWSNT) && defined (FD_CLOEXEC)
+#ifndef WINDOWSNT
     {
       int tem;
 
@@ -1663,15 +1651,8 @@ create_process (Lisp_Object process, char **new_argv, Lisp_Object current_dir)
     }
 #endif
 
-#if O_NONBLOCK
   fcntl (inchannel, F_SETFL, O_NONBLOCK);
   fcntl (outchannel, F_SETFL, O_NONBLOCK);
-#else
-#if O_NDELAY
-  fcntl (inchannel, F_SETFL, O_NDELAY);
-  fcntl (outchannel, F_SETFL, O_NDELAY);
-#endif
-#endif
 
   /* Record this as an active process, with its channels.
      As a result, child_setup will close Emacs's side of the pipes.  */
@@ -1830,9 +1811,7 @@ create_process (Lisp_Object process, char **new_argv, Lisp_Object current_dir)
       pid = child_setup (xforkin, xforkout, xforkout,
 			 new_argv, 1, encoded_current_dir);
 #else  /* not WINDOWSNT */
-#ifdef FD_CLOEXEC
       emacs_close (wait_child_setup[0]);
-#endif
       child_setup (xforkin, xforkout, xforkout,
 		   new_argv, 1, encoded_current_dir);
 #endif /* not WINDOWSNT */
@@ -1891,7 +1870,7 @@ create_process (Lisp_Object process, char **new_argv, Lisp_Object current_dir)
 
       pset_tty_name (XPROCESS (process), lisp_pty_name);
 
-#if !defined (WINDOWSNT) && defined (FD_CLOEXEC)
+#ifndef WINDOWSNT
       /* Wait for child_setup to complete in case that vfork is
 	 actually defined as fork.  The descriptor wait_child_setup[1]
 	 of a pipe is closed at the child side either by close-on-exec
@@ -1928,13 +1907,9 @@ create_pty (Lisp_Object process)
 #if ! defined (USG) || defined (USG_SUBTTY_WORKS)
       /* On most USG systems it does not work to open the pty's tty here,
 	 then close it and reopen it in the child.  */
-#if O_NOCTTY
       /* Don't let this terminal become our controlling terminal
 	 (in case we don't have one).  */
       int forkout = emacs_open (pty_name, O_RDWR | O_NOCTTY, 0);
-#else
-      int forkout = emacs_open (pty_name, O_RDWR, 0);
-#endif
       if (forkout < 0)
 	report_file_error ("Opening pty", Qnil);
 #if defined (DONT_REOPEN_PTY)
@@ -1948,15 +1923,8 @@ create_pty (Lisp_Object process)
     }
 #endif /* HAVE_PTYS */
 
-#if O_NONBLOCK
   fcntl (inchannel, F_SETFL, O_NONBLOCK);
   fcntl (outchannel, F_SETFL, O_NONBLOCK);
-#else
-#if O_NDELAY
-  fcntl (inchannel, F_SETFL, O_NDELAY);
-  fcntl (outchannel, F_SETFL, O_NDELAY);
-#endif
-#endif
 
   /* Record this as an active process, with its channels.
      As a result, child_setup will close Emacs's side of the pipes.  */
@@ -2912,13 +2880,9 @@ usage: (make-network-process &rest ARGS)  */)
     {
       /* Don't support network sockets when non-blocking mode is
 	 not available, since a blocked Emacs is not useful.  */
-#if !O_NONBLOCK && !O_NDELAY
-      error ("Network servers not supported");
-#else
       is_server = 1;
       if (TYPE_RANGED_INTEGERP (int, tem))
 	backlog = XINT (tem);
-#endif
     }
 
   /* Make QCaddress an alias for :local (server) or :remote (client).  */
@@ -3178,11 +3142,7 @@ usage: (make-network-process &rest ARGS)  */)
 #ifdef NON_BLOCKING_CONNECT
       if (is_non_blocking_client)
 	{
-#if O_NONBLOCK
 	  ret = fcntl (s, F_SETFL, O_NONBLOCK);
-#else
-	  ret = fcntl (s, F_SETFL, O_NDELAY);
-#endif
 	  if (ret < 0)
 	    {
 	      xerrno = errno;
@@ -3395,13 +3355,7 @@ usage: (make-network-process &rest ARGS)  */)
 
   chan_process[inch] = proc;
 
-#if O_NONBLOCK
   fcntl (inch, F_SETFL, O_NONBLOCK);
-#else
-#if O_NDELAY
-  fcntl (inch, F_SETFL, O_NDELAY);
-#endif
-#endif
 
   p = XPROCESS (proc);
 
@@ -4130,13 +4084,7 @@ server_accept_connection (Lisp_Object server, int channel)
 
   chan_process[s] = proc;
 
-#if O_NONBLOCK
   fcntl (s, F_SETFL, O_NONBLOCK);
-#else
-#if O_NDELAY
-  fcntl (s, F_SETFL, O_NDELAY);
-#endif
-#endif
 
   p = XPROCESS (proc);
 
@@ -4832,23 +4780,17 @@ wait_reading_process_output (intmax_t time_limit, int nsecs, int read_kbd,
 	      else if (nread == -1 && errno == EWOULDBLOCK)
 		;
 #endif
-	      /* ISC 4.1 defines both EWOULDBLOCK and O_NONBLOCK,
-		 and Emacs uses O_NONBLOCK, so what we get is EAGAIN.  */
-#if O_NONBLOCK
 	      else if (nread == -1 && errno == EAGAIN)
 		;
-#else
-#if O_NDELAY
-	      else if (nread == -1 && errno == EAGAIN)
-		;
+#ifdef WINDOWSNT
+	      /* FIXME: Is this special case still needed?  */
 	      /* Note that we cannot distinguish between no input
 		 available now and a closed pipe.
 		 With luck, a closed pipe will be accompanied by
 		 subprocess termination and SIGCHLD.  */
 	      else if (nread == 0 && !NETCONN_P (proc) && !SERIALCONN_P (proc))
 		;
-#endif /* O_NDELAY */
-#endif /* O_NONBLOCK */
+#endif
 #ifdef HAVE_PTYS
 	      /* On some OSs with ptys, when the process on one end of
 		 a pty exits, the other end gets an error reading with
@@ -7312,9 +7254,7 @@ init_process_emacs (void)
 #ifdef HAVE_GETSOCKNAME
    ADD_SUBFEATURE (QCservice, Qt);
 #endif
-#if O_NONBLOCK || O_NDELAY
    ADD_SUBFEATURE (QCserver, Qt);
-#endif
 
    for (sopt = socket_options; sopt->name; sopt++)
      subfeatures = pure_cons (intern_c_string (sopt->name), subfeatures);

@@ -30,6 +30,7 @@ GNUstep port and post-20 update by Adrian Robert (arobert@cogsci.ucsd.edu)
    interpretation of even the system includes. */
 #include <config.h>
 
+#include <fcntl.h>
 #include <math.h>
 #include <pthread.h>
 #include <sys/types.h>
@@ -40,10 +41,6 @@ GNUstep port and post-20 update by Adrian Robert (arobert@cogsci.ucsd.edu)
 #include <c-ctype.h>
 #include <c-strcase.h>
 #include <ftoastr.h>
-
-#ifdef HAVE_FCNTL_H
-#include <fcntl.h>
-#endif
 
 #include "lisp.h"
 #include "blockinput.h"

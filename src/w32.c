@@ -5854,7 +5854,7 @@ fcntl (int s, int cmd, int options)
   check_errno ();
   if (fd_info[s].flags & FILE_SOCKET)
     {
-      if (cmd == F_SETFL && options == O_NDELAY)
+      if (cmd == F_SETFL && options == O_NONBLOCK)
 	{
 	  unsigned long nblock = 1;
 	  int rc = pfn_ioctlsocket (SOCK_HANDLE (s), FIONBIO, &nblock);

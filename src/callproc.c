@@ -1317,16 +1317,7 @@ relocate_fd (int fd, int minfd)
     return fd;
   else
     {
-      int new;
-#ifdef F_DUPFD
-      new = fcntl (fd, F_DUPFD, minfd);
-#else
-      new = dup (fd);
-      if (new != -1)
-	/* Note that we hold the original FD open while we recurse,
-	   to guarantee we'll get a new FD if we need it.  */
-	new = relocate_fd (new, minfd);
-#endif
+      int new = fcntl (fd, F_DUPFD, minfd);
       if (new == -1)
 	{
 	  const char *message_1 = "Error while setting up child: ";

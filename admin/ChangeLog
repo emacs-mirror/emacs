@@ -1,3 +1,9 @@
+2012-11-17  Paul Eggert  <eggert@cs.ucla.edu>
+
+	Assume POSIX 1003.1-1988 or later for fcntl.h (Bug#12881).
+	* CPP-DEFINES (O_RDONLY, O_RDWR, HAVE_FCNTL_H): Remove.
+	* merge-gnulib (GNULIB_MODULES): Add fcntl-h.
+
 2012-11-16  Paul Eggert  <eggert@cs.ucla.edu>
 
 	Remove no-longer-used pty_max_bytes variable.
