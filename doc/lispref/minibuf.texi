@@ -887,10 +887,10 @@ Here is an example:
 @end defmac
 
 @c FIXME?  completion-table-with-context?
-
 @findex completion-table-case-fold
 @findex completion-table-in-turn
 @findex completion-table-subvert
+@findex completion-table-with-quoting
 @findex completion-table-with-predicate
 @findex completion-table-with-terminator
 @cindex completion table, modifying
@@ -899,10 +899,11 @@ There are several functions that take an existing completion table and
 return a modified version.  @code{completion-table-case-fold} returns
 a case-insensitive table.  @code{completion-table-in-turn} combines
 multiple input tables.  @code{completion-table-subvert} alters a table
-to use a different initial prefix. 
-@code{completion-table-with-terminator} adds a terminating string.
+to use a different initial prefix.  @code{completion-table-with-quoting}
+returns a table suitable for operating on quoted text.
 @code{completion-table-with-predicate} filters a table with a
-predicate function.
+predicate function.  @code{completion-table-with-terminator} adds a
+terminating string.
 
 
 @node Minibuffer Completion
