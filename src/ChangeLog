@@ -1,3 +1,23 @@
+2012-11-17  Eli Zaretskii  <eliz@gnu.org>
+
+	* w32proc.c (create_child): Don't clip the PID of the child
+	process to fit into an Emacs integer, as this is no longer a
+	restriction.
+	(waitpid): Rename from sys_wait.  Emulate a Posix 'waitpid' by
+	reaping only the process specified by PID argument, if that is
+	positive.  Use PID instead of dead_child to know which process to
+	reap.  Wait for the child to die only if WNOHANG is not in
+	OPTIONS.
+	(sys_select): Don't set dead_child.
+
+	* sysdep.c (wait_for_termination_1): Remove the WINDOWSNT portion,
+	as it is no longer needed.
+
+	* process.c (waitpid, WUNTRACED) [!WNOHANG]: Remove definitions,
+	no longer needed.
+	(record_child_status_change): Remove the setting of
+	record_at_most_one_child for the !WNOHANG case.
+
 2012-11-17  Paul Eggert  <eggert@cs.ucla.edu>
 
 	Fix problems in ns port found by static checking.

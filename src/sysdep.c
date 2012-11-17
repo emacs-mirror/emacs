@@ -289,10 +289,6 @@ wait_for_termination_1 (pid_t pid, int interruptible)
 {
   while (1)
     {
-#ifdef WINDOWSNT
-      wait (0);
-      break;
-#else /* not WINDOWSNT */
       int status;
       int wait_result = waitpid (pid, &status, 0);
       if (wait_result < 0)
@@ -306,7 +302,8 @@ wait_for_termination_1 (pid_t pid, int interruptible)
 	  break;
 	}
 
-#endif /* not WINDOWSNT */
+      /* Note: the MS-Windows emulation of waitpid calls QUIT
+	 internally.  */
       if (interruptible)
 	QUIT;
     }

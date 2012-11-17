@@ -130,18 +130,6 @@ extern int sys_select (int, SELECT_TYPE *, SELECT_TYPE *, SELECT_TYPE *,
 		       EMACS_TIME *, void *);
 #endif
 
-/* This is for DOS_NT ports.  FIXME: Remove this old portability cruft
-   by having DOS_NT ports implement waitpid instead of wait.  Nowadays
-   POSIXish hosts all define waitpid, WNOHANG, and WUNTRACED, as these
-   have been standard since POSIX.1-1988.  */
-#ifndef WNOHANG
-# undef waitpid
-# define waitpid(pid, status, options) wait (status)
-#endif
-#ifndef WUNTRACED
-# define WUNTRACED 0
-#endif
-
 /* Work around GCC 4.7.0 bug with strict overflow checking; see
    <http://gcc.gnu.org/bugzilla/show_bug.cgi?id=52904>.
    These lines can be removed once the GCC bug is fixed.  */
@@ -6295,17 +6283,9 @@ record_child_status_change (pid_t pid, int w)
 {
 #ifdef SIGCHLD
 
-# ifdef WNOHANG
   /* On POSIXish hosts, record at most one child only if we already
      know one child that has exited.  */
   bool record_at_most_one_child = 0 <= pid;
-# else
-  /* On DOS_NT (the only porting target that lacks WNOHANG),
-     record the status of at most one child process, since the SIGCHLD
-     handler must return right away.  If any more processes want to
-     signal us, we will get another signal.  */
-  bool record_at_most_one_child = 1;
-# endif
 
   Lisp_Object tail;
 
