@@ -1113,6 +1113,21 @@ The argument @var{pretend} has the same meaning as in
 @code{set-frame-height}.
 @end defun
 
+@c FIXME?  Belongs more in Emacs manual than here?
+@c But eg fit-window-to-buffer is in this manual.
+@deffn Command fit-frame-to-buffer &optional frame max-height min-height
+This command adjusts the height of @var{frame} (the default is the
+selected frame) to fit its contents.  The optional arguments
+@var{max-height} and @var{min-height} specify the maximum and minimum
+new frame heights, respectively.
+
+@vindex fit-frame-to-buffer-bottom-margin
+The default minimum height corresponds to @code{window-min-height}.
+The default maximum height is the screen height below the current top
+position of the frame, minus any margin specified by the option
+@code{fit-frame-to-buffer-bottom-margin}.
+@end deffn
+
 @node Geometry
 @subsection Geometry
 
