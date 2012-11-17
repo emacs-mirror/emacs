@@ -1,3 +1,8 @@
+2012-11-17  Chong Yidong  <cyd@gnu.org>
+
+	* emacs-lisp/syntax.el (syntax-propertize-function): Doc fix
+	(Bug#12810).
+
 2012-11-17  OKAZAKI Tetsurou  <okazaki.tetsurou@gmail.com>  (tiny change)
 
 	* vc/vc-svn.el (vc-svn-merge-news): Properly parse the merge
