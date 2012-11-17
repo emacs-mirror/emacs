@@ -1,3 +1,9 @@
+2012-11-17  Andreas Politz  <politza@fh-trier.de>
+
+	* ibuffer.el (ibuffer-mark-forward, ibuffer-unmark-forward)
+	(ibuffer-unmark-backward, ibuffer-mark-interactive): Support plain
+	prefix and negative numeric prefix args (Bug#12795).
+
 2012-11-17  Stephen Berman  <stephen.berman@gmx.net>
 
 	* play/gamegrid.el (gamegrid-add-score-with-update-game-score-1):
