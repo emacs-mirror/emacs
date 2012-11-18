@@ -3206,7 +3206,6 @@ fi
 
 as_fn_append ac_header_list " linux/version.h"
 as_fn_append ac_header_list " sys/systeminfo.h"
-as_fn_append ac_header_list " fcntl.h"
 as_fn_append ac_header_list " coff.h"
 as_fn_append ac_header_list " pty.h"
 as_fn_append ac_header_list " sys/vlimit.h"
@@ -8757,8 +8756,6 @@ _ACEOF
 fi
 
 done
-
-
 
 
 

@@ -369,9 +369,6 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 /* Define to 1 if you have the `faccessat' function. */
 #undef HAVE_FACCESSAT
 
-/* Define to 1 if you have the <fcntl.h> header file. */
-#undef HAVE_FCNTL_H
-
 /* Define to 1 if you have the `fork' function. */
 #undef HAVE_FORK
 
