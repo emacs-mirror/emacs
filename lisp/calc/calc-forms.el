@@ -443,8 +443,8 @@ in the Gregorian calendar and the remaining part determines the time."
                                    (nth 3 calc-gregorian-switch)
                                    (apply 'math-absolute-from-gregorian-dt calc-gregorian-switch))
 ))
-                 (math-date-to-julian-dt value)
-               (math-date-to-gregorian-dt value))))
+                 (math-date-to-julian-dt date)
+               (math-date-to-gregorian-dt date))))
     (if (math-integerp value)
         dt
       (append dt 

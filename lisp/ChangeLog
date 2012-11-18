@@ -1,3 +1,8 @@
+2012-11-18  Jay Belanger  <jay.p.belanger@gmail.com>
+
+	* calc/calc-forms.el (math-date-to-dt): Use integer date when
+	calling `math-date-to-julian-dt' and 'math-date-to-gregorian-dt'.
+
 2012-11-18  Glenn Morris  <rgm@gnu.org>
 
 	* image.el (insert-image, insert-sliced-image): Doc fix.
