@@ -1,5 +1,12 @@
 2012-11-18  Paul Eggert  <eggert@cs.ucla.edu>
 
+	More minor time fixes.
+	* calendar/time-date.el: Commentary fix.
+	* net/tramp-sh.el (tramp-do-file-attributes-with-ls): Undo last change;
+	too much other code depends on (0 0) time stamps.
+	* net/tramp.el (tramp-time-less-p, tramp-time-subtract):
+	Add a couple of FIXME comments.
+
 	Minor cleanup for times as lists of four integers.
 	* files.el (dir-locals-directory-cache):
 	* ps-bdf.el (bdf-file-mod-time, bdf-read-font-info):
