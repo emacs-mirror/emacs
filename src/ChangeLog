@@ -1,3 +1,8 @@
+2012-11-18  Kenichi Handa  <handa@gnu.org>
+
+	* font.c (font_unparse_xlfd): Fix previous change.  Keep "const"
+	for the variable "f".
+
 2012-11-13  Kenichi Handa  <handa@gnu.org>
 
 	* font.c (font_unparse_xlfd): Exclude special characters from the
