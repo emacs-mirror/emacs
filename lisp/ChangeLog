@@ -1,3 +1,7 @@
+2012-11-18  Glenn Morris  <rgm@gnu.org>
+
+	* image.el (insert-image, insert-sliced-image): Doc fix.
+
 2012-11-17  Chong Yidong  <cyd@gnu.org>
 
 	* emacs-lisp/syntax.el (syntax-propertize-function): Doc fix
