@@ -930,6 +930,7 @@ but can also bump into previously unnoticed cyclic dependencies.
 These are generally harmless: they will simply cause the macro calls
 to be left for later expansion (as before), but will result in a
 warning ("Eager macro-expansion skipped due to cycle") describing the cycle.
+You may wish to restructure your code so this does not happen.
 
 ** Miscellaneous new functions:
 +++
