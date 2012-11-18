@@ -1,3 +1,13 @@
+2012-11-18  Paul Eggert  <eggert@cs.ucla.edu>
+
+	Minor cleanup for times as lists of four integers.
+	* files.el (dir-locals-directory-cache):
+	* ps-bdf.el (bdf-file-mod-time, bdf-read-font-info):
+	Doc fixes.
+	* net/tramp-sh.el (tramp-do-file-attributes-with-ls):
+	* ps-bdf.el (bdf-file-newer-than-time):
+	Process four-integers time stamps, not two.  Doc fixes.
+
 2012-11-18  Glenn Morris  <rgm@gnu.org>
 
 	* image.el (insert-image, insert-sliced-image): Doc fix.

@@ -1270,12 +1270,11 @@ target of the symlink differ."
          res-uid
          ;; 3. File gid.
          res-gid
-         ;; 4. Last access time, as a list of two integers. First
-         ;; integer has high-order 16 bits of time, second has low 16
-         ;; bits.
+         ;; 4. Last access time, as a list of integers in the same format
+         ;; as `current-time'.
          ;; 5. Last modification time, likewise.
          ;; 6. Last status change time, likewise.
-         '(0 0) '(0 0) '(0 0)		;CCC how to find out?
+         '(0 0 0 0) '(0 0 0 0) '(0 0 0 0)	;CCC how to find out?
          ;; 7. Size in bytes (-1, if number is out of range).
          res-size
          ;; 8. File modes, as a string of ten letters or dashes as in ls -l.
