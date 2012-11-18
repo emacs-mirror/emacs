@@ -464,7 +464,9 @@ to be identified as that note."
   :type 'string
   :group 'calc)
 
-;; Dates that are built-in options for `calc-gregorian-switch' should be 
+(defvar math-format-date-cache) ; calc-forms.el
+
+;; Dates that are built-in options for `calc-gregorian-switch' should be
 ;; (YEAR MONTH DAY math-date-from-gregorian-dt(YEAR MONTH DAY)) for speed.
 (defcustom calc-gregorian-switch nil
   "The first day the Gregorian calendar is used by Calc's date forms.
@@ -500,8 +502,8 @@ the United States."
                  (const :tag "Sweden (1753 3 1)" (1753 3 1 639965))
                  (const :tag "Switzerland (Catholic) (1584 1 22)" (1584 1 22 578200))
                  (const :tag "Switzerland (Protestant) (1701 1 12)" (1701 1 12 620924))
-                 (list :tag "(YEAR MONTH DAY)" 
-                       (integer :tag "Year") 
+                 (list :tag "(YEAR MONTH DAY)"
+                       (integer :tag "Year")
                        (integer :tag "Month (integer)")
                        (integer :tag "Day")))
   :set (lambda (symbol value)

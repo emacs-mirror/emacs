@@ -2196,7 +2196,7 @@ To be called on original buffer and any .so insertions."
 		 (face-underline-p face))
 	    (let ((face-no-ul (intern (concat face-name "-no-ul"))))
 	      (copy-face face face-no-ul)
-	      (set-face-underline-p face-no-ul nil)))))))
+	      (set-face-underline face-no-ul nil)))))))
 
 ;; Preprocessors
 ;; =============
