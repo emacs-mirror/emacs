@@ -1,3 +1,7 @@
+2012-11-18  Eli Zaretskii  <eliz@gnu.org>
+
+	* inc/unistd.h: Don't include fcntl.h and don't define O_RDWR.
+
 2012-11-17  Juanma Barranquero  <lekktu@gmail.com>
 
 	* config.nt: Sync with autogen/config.in.
