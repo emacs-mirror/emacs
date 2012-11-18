@@ -1,3 +1,8 @@
+2012-11-18  Glenn Morris  <rgm@gnu.org>
+
+	* loading.texi (How Programs Do Loading): Add eager macro expansion.
+	* macros.texi (Expansion): Mention eager macro expansion.
+
 2012-11-17  Glenn Morris  <rgm@gnu.org>
 
 	* minibuf.texi (Basic Completion): Mention misc completion-table funcs.

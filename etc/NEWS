@@ -923,13 +923,13 @@ Previously, they returned NaNs on some platforms but signaled errors
 on others.  The affected functions are acos, asin, tan, exp, expt,
 log, log10, sqrt, and mod.
 
-** Interpreted files are eagerly macro-expanded during load.
++++
+** Emacs tries to macroexpand interpreted (non-compiled) files during load.
 This can significantly speed up execution of non-byte-compiled code,
-but can also bump into harmless and previously unnoticed cyclic
-dependencies.  These should not be fatal: they will simply cause the
-macro-calls to be left for later expansion (as before), but will also
-result in a warning ("Eager macro-expansion skipped due to cycle")
-describing the cycle.
+but can also bump into previously unnoticed cyclic dependencies.
+These are generally harmless: they will simply cause the macro calls
+to be left for later expansion (as before), but will result in a
+warning ("Eager macro-expansion skipped due to cycle") describing the cycle.
 
 ** Miscellaneous new functions:
 +++

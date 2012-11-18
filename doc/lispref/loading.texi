@@ -113,6 +113,25 @@ When loading a source file (not compiled), @code{load} performs
 character set translation just as Emacs would do when visiting the file.
 @xref{Coding Systems}.
 
+@c This is referred to from the Macros chapter.
+@c Not sure if it should be the other way round.
+@cindex eager macro expansion
+When loading an uncompiled file, Emacs tries to expand any macros
+that the file contains (@pxref{Macros}).  We refer to this as
+@dfn{eager macro expansion}.  Doing this (rather than deferring
+the expansion until the relevant code runs) can significantly speed
+up the execution of uncompiled code.  Sometimes, this macro expansion
+cannot be done, owing to a cyclic dependency.  In the simplest
+example of this, the file you are loading refers to a macro defined
+in another file, and that file in turn requires the file you are
+loading.  This is generally harmless.  Emacs prints a warning
+(@samp{Eager macro-expansion skipped due to cycle@dots{}})
+giving details of the problem, but it still loads the file, just
+leaving the macro unexpanded for now.  You may wish to restructure
+your code so that this does not happen.  Loading a compiled file does
+not cause macroexpansion, because this should already have happened
+during compilation.  @xref{Compiling Macros}.
+
 Messages like @samp{Loading foo...} and @samp{Loading foo...done} appear
 in the echo area during loading unless @var{nomessage} is
 non-@code{nil}.
