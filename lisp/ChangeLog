@@ -18,7 +18,6 @@
 
 2012-11-18  Glenn Morris  <rgm@gnu.org>
 
-	* woman.el (woman-non-underline-faces):
 	* emacs-lisp/cl-lib.el (face-underline-p):
 	Use set-face-underline rather than the alias set-face-underline-p.
 
