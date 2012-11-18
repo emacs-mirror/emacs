@@ -1,3 +1,7 @@
+2012-11-18  Paul Eggert  <eggert@cs.ucla.edu>
+
+	* nsterm.m (ns_select): Send SIGIO only to self, not to process group.
+
 2012-11-18  Eli Zaretskii  <eliz@gnu.org>
 
 	* w32select.c: Include w32common.h before w32term.h, so that

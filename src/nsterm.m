@@ -3462,10 +3462,10 @@ ns_select (int nfds, fd_set *readfds, fd_set *writefds,
 
 /*  NSTRACE (ns_select); */
 
-  if (hold_event_q.nr > 0) 
+  if (hold_event_q.nr > 0)
     {
       /* We already have events pending. */
-      kill (0, SIGIO);
+      raise (SIGIO);
       errno = EINTR;
       return -1;
     }
