@@ -213,59 +213,62 @@ entire current defun onto the screen if possible.
 @node Auto Scrolling
 @section Automatic Scrolling
 
+@cindex automatic scrolling
   Emacs performs @dfn{automatic scrolling} when point moves out of the
-visible portion of the text.
+visible portion of the text.  Normally, automatic scrolling centers
+point vertically in the window, but there are several ways to alter
+this behavior.
 
 @vindex scroll-conservatively
-  Normally, this centers point vertically within the window.  However,
-if you set @code{scroll-conservatively} to a small number @var{n},
-then if you move point just a little off the screen (less than @var{n}
-lines), Emacs scrolls the text just far enough to bring point back on
-screen.  If doing so fails to make point visible, Emacs centers point
-in the window.  By default, @code{scroll-conservatively} is@tie{}0.
-If you set @code{scroll-conservatively} to a large number (larger than
-100), Emacs will never center point as result of scrolling, even if
-point moves far away from the text previously displayed in the window.
-With such a large value, Emacs will always scroll text just enough for
-bringing point into view, so point will end up at the top or bottom of
-the window, depending on the scroll direction.
+  If you set @code{scroll-conservatively} to a small number @var{n},
+then moving point just a little off the screen (no more than @var{n}
+lines) causes Emacs to scroll just enough to bring point back on
+screen; if doing so fails to make point visible, Emacs scrolls just
+far enough to center point in the window.  If you set
+@code{scroll-conservatively} to a large number (larger than 100),
+automatic scrolling never centers point, no matter how far point
+moves; Emacs always scrolls text just enough to bring point into view,
+either at the top or bottom of the window depending on the scroll
+direction.  By default, @code{scroll-conservatively} is@tie{}0, which
+means to always center point in the window.
 
 @vindex scroll-step
-  An alternative way of controlling how Emacs scrolls text is by
-customizing the variable @code{scroll-step}.  Its value determines how
-many lines to scroll the window when point moves off the screen.  If
-moving by that number of lines fails to bring point back into view,
-point is centered instead.  The default value is zero, which causes
-point to always be centered after scrolling.
-
-  Since both @code{scroll-conservatively} and @code{scroll-step}
-control automatic scrolling in contradicting ways, you should set only
-one of them.  If you customize both, the value of
-@code{scroll-conservatively} takes precedence.
+  Another way to control automatic scrolling is to customize the
+variable @code{scroll-step}.  Its value determines the number of lines
+by which to automatically scroll, when point moves off the screen.  If
+scrolling by that number of lines fails to bring point back into view,
+point is centered instead.  The default value is zero, which (by
+default) causes point to always be centered after scrolling.
 
 @cindex aggressive scrolling
 @vindex scroll-up-aggressively
 @vindex scroll-down-aggressively
-  When the window does scroll by a distance longer than
-@code{scroll-step}, you can control how aggressively it scrolls by
-setting the variables @code{scroll-up-aggressively} and
-@code{scroll-down-aggressively}.  The value of
-@code{scroll-up-aggressively} should be either @code{nil}, or a
-fraction @var{f} between 0 and 1.  A fraction specifies where on the
-screen to put point when scrolling upward, i.e.@: forward.  When point
-goes off the window end, the new start position is chosen to put point
-@var{f} parts of the window height from the bottom margin.  Thus,
-larger @var{f} means more aggressive scrolling: more new text is
-brought into view.  The default value, @code{nil}, is equivalent to
-0.5.
+  A third way to control automatic scrolling is to customize the
+variables @code{scroll-up-aggressively} and
+@code{scroll-down-aggressively}, which directly specify the vertical
+position of point after scrolling.  The value of
+@code{scroll-up-aggressively} should be either @code{nil} (the
+default), or a floating point number @var{f} between 0 and 1.  The
+latter means that when point goes below the bottom window edge (i.e.@:
+scrolling forward), Emacs scrolls the window so that point is @var{f}
+parts of the window height from the bottom window edge.  Thus, larger
+@var{f} means more aggressive scrolling: more new text is brought into
+view.  The default value, @code{nil}, is equivalent to 0.5.
 
-  Likewise, @code{scroll-down-aggressively} is used for scrolling
-down, i.e.@: backward.  The value specifies how far point should be
-placed from the top margin of the window; thus, as with
-@code{scroll-up-aggressively}, a larger value is more aggressive.
+  Likewise, @code{scroll-down-aggressively} is used when point goes
+above the bottom window edge (i.e.@: scrolling backward).  The value
+specifies how far point should be from the top margin of the window
+after scrolling.  Thus, as with @code{scroll-up-aggressively}, a
+larger value is more aggressive.
 
-  These two variables are ignored if either @code{scroll-step} or
-@code{scroll-conservatively} are set to a non-zero value.
+  Note that the variables @code{scroll-conservatively},
+@code{scroll-step}, and @code{scroll-up-aggressively} /
+@code{scroll-down-aggressively} control automatic scrolling in
+contradictory ways.  Therefore, you should pick no more than one of
+these methods to customize automatic scrolling.  In case you customize
+multiple variables, the order of priority is:
+@code{scroll-conservatively}, then @code{scroll-step}, and finally
+@code{scroll-up-aggressively} / @code{scroll-down-aggressively}.
 
 @vindex scroll-margin
   The variable @code{scroll-margin} restricts how close point can come
@@ -295,10 +298,10 @@ the cursor is left at the edge instead.)
 
 @vindex hscroll-margin
   The variable @code{hscroll-margin} controls how close point can get
-to the window's edges before automatic scrolling occurs.  It is
-measured in columns.  For example, if the value is 5, then moving
-point within 5 columns of an edge causes horizontal scrolling away
-from that edge.
+to the window's left and right edges before automatic scrolling
+occurs.  It is measured in columns.  For example, if the value is 5,
+then moving point within 5 columns of an edge causes horizontal
+scrolling away from that edge.
 
 @vindex hscroll-step
   The variable @code{hscroll-step} determines how many columns to
