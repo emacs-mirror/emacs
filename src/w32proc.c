@@ -1240,7 +1240,6 @@ waitpid (pid_t pid, int *status, int options)
   else
     emacs_abort ();
 
-get_result:
   if (!GetExitCodeProcess (wait_hnd[active], &retval))
     {
       DebPrint (("Wait.GetExitCodeProcess failed with %lu\n",
