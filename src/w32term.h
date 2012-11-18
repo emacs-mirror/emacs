@@ -745,6 +745,21 @@ extern int w32_system_caret_height;
 extern int w32_system_caret_x;
 extern int w32_system_caret_y;
 
+#ifdef _MSC_VER
+#ifndef EnumSystemLocales
+/* MSVC headers define these only for _WIN32_WINNT >= 0x0500.  */
+typedef BOOL (CALLBACK *LOCALE_ENUMPROCA)(LPSTR);
+typedef BOOL (CALLBACK *LOCALE_ENUMPROCW)(LPWSTR);
+BOOL WINAPI EnumSystemLocalesA(LOCALE_ENUMPROCA,DWORD);
+BOOL WINAPI EnumSystemLocalesW(LOCALE_ENUMPROCW,DWORD)
+#ifdef UNICODE
+#define EnumSystemLocales EnumSystemLocalesW
+#else
+#define EnumSystemLocales EnumSystemLocalesA
+#endif
+#endif
+#endif
+
 #if EMACSDEBUG
 extern const char*
 w32_name_of_message (UINT msg);

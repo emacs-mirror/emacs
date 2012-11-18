@@ -430,10 +430,6 @@ mark is by using @kbd{C-x C-x}, which exchanges the positions of the
 point and the mark (@pxref{Setting Mark}).
 
 @item
-Many commands that move point long distances, like @kbd{M-<} and
-@kbd{C-s}, first set the mark where point was.
-
-@item
 Some commands, which ordinarily act on the region when the mark is
 active, no longer do so.  For example, normally @kbd{M-%}
 (@code{query-replace}) performs replacements within the region, if the
@@ -455,9 +451,10 @@ command twice.)
 
 @item C-u C-x C-x
 @kindex C-u C-x C-x
-Activate the mark and enable Transient Mark mode temporarily, until
-the mark is next deactivated.  (This is the @kbd{C-x C-x} command,
-@code{exchange-point-and-mark}, with a prefix argument.)
+Exchange point and mark, activate the mark and enable Transient Mark
+mode temporarily, until the mark is next deactivated.  (This is the
+@kbd{C-x C-x} command, @code{exchange-point-and-mark}, with a prefix
+argument.)
 @end table
 
   These commands set or activate the mark, and enable Transient Mark

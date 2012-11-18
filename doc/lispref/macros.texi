@@ -86,6 +86,10 @@ macro.
 calls to other macros.  It may even be a call to the same macro, though
 this is unusual.
 
+  Note that Emacs tries to expand macros when loading an uncompiled
+Lisp file.  This is not always possible, but if it is, it speeds up
+subsequent execution.  @xref{How Programs Do Loading}.
+
   You can see the expansion of a given macro call by calling
 @code{macroexpand}.
 

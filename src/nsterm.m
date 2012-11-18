@@ -330,6 +330,7 @@ hold_event (struct input_event *event)
   hold_event_q.q[hold_event_q.nr++] = *event;
   /* Make sure ns_read_socket is called, i.e. we have input.  */
   raise (SIGIO);
+  send_appdefined = YES;
 }
 
 static Lisp_Object
@@ -3460,6 +3461,14 @@ ns_select (int nfds, fd_set *readfds, fd_set *writefds,
   char c;
 
 /*  NSTRACE (ns_select); */
+
+  if (hold_event_q.nr > 0) 
+    {
+      /* We already have events pending. */
+      kill (0, SIGIO);
+      errno = EINTR;
+      return -1;
+    }
 
   for (k = 0; k < nfds+1; k++)
     {

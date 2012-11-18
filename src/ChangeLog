@@ -1,3 +1,25 @@
+2012-11-18  Eli Zaretskii  <eliz@gnu.org>
+
+	* w32select.c: Include w32common.h before w32term.h, so that
+	windows.h gets included before w32term.h uses some of its
+	features, see below.
+
+	* w32term.h (LOCALE_ENUMPROCA, LOCALE_ENUMPROCW) [_MSC_VER]: New
+	typedefs.
+	(EnumSystemLocalesA, EnumSystemLocalesW) [_MSC_VER]: New
+	prototypes.
+	(EnumSystemLocales) [_MSC_VER]: Define if undefined.  (Bug#12878)
+
+2012-11-18  Jan Djärv  <jan.h.d@swipnet.se>
+
+	* nsterm.m (hold_event): Set send_appdefined to YES (Bug#12834).
+	(ns_select): Return at once if events are held (Bug#12834).
+
+2012-11-18  enami tsugutomo  <tsugutomo.enami@jp.sony.com>
+
+	* unexelf.c (ELFSIZE) [__NetBSD__ && _LP64]: Set to 64.
+	Needed following 2012-10-20 change.  (Bug#12902)
+
 2012-11-18  Juanma Barranquero  <lekktu@gmail.com>
 
 	* w32proc.c (waitpid): Remove unused label get_result.

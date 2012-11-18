@@ -490,6 +490,8 @@ partially-visible line at the bottom of the text area is not counted.
 aliases are considered obsolete and will be removed in the future.
 
 @cindex fixed-size window
+@vindex window-min-height
+@vindex window-min-width
   Commands that change the size of windows (@pxref{Resizing Windows}),
 or split them (@pxref{Splitting Windows}), obey the variables
 @code{window-min-height} and @code{window-min-width}, which specify
@@ -633,6 +635,10 @@ variable @code{window-min-height}.
 If the optional argument @var{override} is non-@code{nil}, this
 function ignores any size restrictions imposed by
 @code{window-min-height} and @code{window-min-width}.
+
+@vindex fit-frame-to-buffer
+If the option @code{fit-frame-to-buffer} is non-@code{nil}, this
+command may resize the frame to fit its contents.
 @end deffn
 
 @deffn Command shrink-window-if-larger-than-buffer &optional window
@@ -1926,7 +1932,9 @@ entry (@pxref{Choosing Window Options}), raises that frame if necessary.
 This function creates a new frame, and displays the buffer in that
 frame's window.  It actually performs the frame creation by calling
 the function specified in @code{pop-up-frame-function}
-(@pxref{Choosing Window Options}).
+(@pxref{Choosing Window Options}).  If @var{alist} contains a
+@code{pop-up-frame-parameters} entry, the associated value
+is added to the newly created frame's parameters.
 @end defun
 
 @defun display-buffer-pop-up-window buffer alist

@@ -1,3 +1,24 @@
+2012-11-18  Glenn Morris  <rgm@gnu.org>
+
+	* loading.texi (How Programs Do Loading): Add eager macro expansion.
+	* macros.texi (Expansion): Mention eager macro expansion.
+
+	* minibuf.texi (Basic Completion): Mention misc completion-table funcs.
+
+2012-11-18  Leo Liu  <sdl.web@gmail.com>
+
+	* minibuf.texi (Programmed Completion): Doc fix for metadata
+	request (Bug#12850).
+
+2012-11-18  Glenn Morris  <rgm@gnu.org>
+
+	* display.texi (Temporary Displays): Document with-temp-buffer-window.
+
+	* frames.texi (Size and Position): Add fit-frame-to-buffer command.
+	* windows.texi (Resizing Windows): Add fit-frame-to-buffer option.
+	(Window Sizes): Add vindex for window-min-height, window-min-width.
+	(Display Action Functions): Mention pop-up-frame-parameters.
+
 2012-11-16  Martin Rudalics  <rudalics@gmx.at>
 
 	* windows.texi (Choosing Window): Rewrite description of
