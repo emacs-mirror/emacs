@@ -8,6 +8,154 @@
 	* font.c (font_unparse_xlfd): Exclude special characters from the
 	generating XLFD name.
 
+2012-11-18  Paul Eggert  <eggert@cs.ucla.edu>
+
+	* nsterm.m (ns_select): Send SIGIO only to self, not to process group.
+
+2012-11-18  Eli Zaretskii  <eliz@gnu.org>
+
+	* w32select.c: Include w32common.h before w32term.h, so that
+	windows.h gets included before w32term.h uses some of its
+	features, see below.
+
+	* w32term.h (LOCALE_ENUMPROCA, LOCALE_ENUMPROCW) [_MSC_VER]: New
+	typedefs.
+	(EnumSystemLocalesA, EnumSystemLocalesW) [_MSC_VER]: New
+	prototypes.
+	(EnumSystemLocales) [_MSC_VER]: Define if undefined.  (Bug#12878)
+
+2012-11-18  Jan Djärv  <jan.h.d@swipnet.se>
+
+	* nsterm.m (hold_event): Set send_appdefined to YES (Bug#12834).
+	(ns_select): Return at once if events are held (Bug#12834).
+
+2012-11-18  enami tsugutomo  <tsugutomo.enami@jp.sony.com>
+
+	* unexelf.c (ELFSIZE) [__NetBSD__ && _LP64]: Set to 64.
+	Needed following 2012-10-20 change.  (Bug#12902)
+
+2012-11-18  Juanma Barranquero  <lekktu@gmail.com>
+
+	* w32proc.c (waitpid): Remove unused label get_result.
+
+2012-11-17  Juanma Barranquero  <lekktu@gmail.com>
+
+	* makefile.w32-in (SYSWAIT_H): New macro.
+	($(BLD)/callproc.$(O), $(BLD)/w32proc.$(O), $(BLD)/process.$(O))
+	($(BLD)/sysdep.$(O)): Update dependencies.
+
+2012-11-17  Paul Eggert  <eggert@cs.ucla.edu>
+
+	Assume POSIX 1003.1-1988 or later for fcntl.h (Bug#12881).
+	* callproc.c (relocate_fd): Assume F_DUPFD.
+	* emacs.c, term.c (O_RDWR): Remove.
+	* keyboard.c (tty_read_avail_input): Use O_NONBLOCK rather than
+	O_NDELAY, since O_NONBLOCK is the standard name for this flag.
+	* nsterm.m: Assume <fcntl.h> exists.
+	* process.c (NON_BLOCKING_CONNECT, allocate_pty, create_process)
+	(create_pty, Fmake_network_process, server_accept_connection)
+	(wait_reading_process_output, init_process_emacs):
+	Assume O_NONBLOCK.
+	(wait_reading_process_output): Put in a special case for WINDOWSNT
+	to mimick the older behavior where it had O_NDELAY but not O_NONBLOCK.
+	It's not clear this is needed, but it's a more-conservative change.
+	(create_process): Assume FD_CLOEXEC.
+	(create_process, create_pty): Assume O_NOCTTY.
+	* sysdep.c (init_sys_modes, reset_sys_modes): Assume F_SETFL.
+	(reset_sys_modes): Use O_NONBLOCK rather than O_NDELAY.
+	Omit if not DOS_NT, since F_GETFL is not defined there.
+	(serial_open): Assume O_NONBLOCK and O_NOCTTY.
+	* term.c: Include <fcntl.h>, for flags like O_NOCTTY.
+	(O_NOCTTY): Remove.
+	(init_tty): Assume O_IGNORE_CTTY is defined to 0 on platforms that
+	lack it, since gnulib guarantees this.
+	* w32.c (fcntl): Test for O_NONBLOCK rather than O_NDELAY.
+
+2012-11-17  Eli Zaretskii  <eliz@gnu.org>
+
+	* w32.c (faccessat): Pretend that directories have the execute bit
+	set.  Emacs expects that, e.g., in files.el:cd-absolute.
+
+	* w32proc.c (create_child): Don't clip the PID of the child
+	process to fit into an Emacs integer, as this is no longer a
+	restriction.
+	(waitpid): Rename from sys_wait.  Emulate a Posix 'waitpid' by
+	reaping only the process specified by PID argument, if that is
+	positive.  Use PID instead of dead_child to know which process to
+	reap.  Wait for the child to die only if WNOHANG is not in
+	OPTIONS.
+	(sys_select): Don't set dead_child.
+
+	* sysdep.c (wait_for_termination_1): Remove the WINDOWSNT portion,
+	as it is no longer needed.
+
+	* process.c (waitpid, WUNTRACED) [!WNOHANG]: Remove definitions,
+	no longer needed.
+	(record_child_status_change): Remove the setting of
+	record_at_most_one_child for the !WNOHANG case.
+
+2012-11-17  Paul Eggert  <eggert@cs.ucla.edu>
+
+	Fix problems in ns port found by static checking.
+	* nsterm.m: Include <pthread.h>, for pthread_mutex_lock etc.
+	(hold_event, setPosition:portion:whole:): Send SIGIO only to self,
+	not to process group.
+	(ns_select): Use emacs_write, not write, as that's more robust
+	in the presence of signals.
+	(fd_handler:): Check for read errors.
+
+2012-11-16  Glenn Morris  <rgm@gnu.org>
+
+	* editfns.c (Fmessage): Mention message-log-max.  (Bug#12849)
+
+2012-11-16  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* eval.c (Finteractive_p): Revert lexbind-merge mishap.
+
+2012-11-16  Eli Zaretskii  <eliz@gnu.org>
+
+	* w32proc.c (timer_loop): Make sure SuspendThread and ResumeThread
+	use the same value of thread handle.
+	(start_timer_thread): If the timer thread exited (due to error),
+	clean up by closing the two handles it used.  Duplicate the caller
+	thread's handle here, so it gets duplicated only once, when
+	launching the timer thread.  Set priority of the timer thread, not
+	the caller thread.
+	(getitimer): Don't duplicate the caller thread's handle here.
+	(Bug#12832)
+
+2012-11-16  Jan Djärv  <jan.h.d@swipnet.se>
+
+	* nsterm.m (hold_event): Send SIGIO to make sure ns_read_socket is
+	called (Bug#12834).
+
+2012-11-16  Paul Eggert  <eggert@cs.ucla.edu>
+
+	Remove no-longer-used pty_max_bytes variable.
+	* process.c (pty_max_bytes): Remove; unused.
+	(send_process): Do not set it.
+
+2012-11-15  Juanma Barranquero  <lekktu@gmail.com>
+
+	* makefile.w32-in ($(BLD)/dispnew.$(O), $(BLD)/emacs.$(O)):
+	Update dependencies.
+
+2012-11-15  Paul Eggert  <eggert@cs.ucla.edu>
+
+	* eval.c (mark_backtrace) [BYTE_MARK_STACK]: Remove stray '*'.
+	This follows up on the 2012-09-29 patch that removed indirection
+	for the 'function' field.  Reported by Sergey Vinokurov in
+	<http://lists.gnu.org/archive/html/emacs-devel/2012-11/msg00263.html>.
+
+2012-11-14  Eli Zaretskii  <eliz@gnu.org>
+
+	* w32.c (faccessat): Rename from sys_faccessat.  (No need to use a
+	different name, as the MS runtime does not have such a function,
+	and probably never will.)  All callers changed.  Ignore DIRFD
+	value if PATH is an absolute file name, to match Posix spec
+	better.  If AT_SYMLINK_NOFOLLOW is set in FLAGS, don't resolve
+	symlinks.
+
 2012-11-14  Dmitry Antipov  <dmantipov@yandex.ru>
 
 	* xdisp.c (echo_area_display, redisplay_internal):

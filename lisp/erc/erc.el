@@ -1843,7 +1843,7 @@ removed from the list will be disabled."
 	   capab-identify)
     (const :tag "completion: Complete nicknames and commands (programmable)"
 	   completion)
-    (const :tag "hecomplete: Complete nicknames and commands (old)" hecomplete)
+    (const :tag "hecomplete: Complete nicknames and commands (obsolete, use \"completion\")" hecomplete)
     (const :tag "dcc: Provide Direct Client-to-Client support" dcc)
     (const :tag "fill: Wrap long lines" fill)
     (const :tag "identd: Launch an identd server on port 8113" identd)
@@ -1863,6 +1863,8 @@ removed from the list will be disabled."
     (const :tag
 	   "notify: Notify when the online status of certain users changes"
 	   notify)
+    (const :tag "notifications: Send notifications on PRIVMSG or nickname mentions"
+	   notifications)
     (const :tag "page: Process CTCP PAGE requests from IRC" page)
     (const :tag "readonly: Make displayed lines read-only" readonly)
     (const :tag "replace: Replace text in messages" replace)

@@ -886,6 +886,26 @@ Here is an example:
 @end smallexample
 @end defmac
 
+@c FIXME?  completion-table-with-context?
+@findex completion-table-case-fold
+@findex completion-table-in-turn
+@findex completion-table-subvert
+@findex completion-table-with-quoting
+@findex completion-table-with-predicate
+@findex completion-table-with-terminator
+@cindex completion table, modifying
+@cindex completion tables, combining
+There are several functions that take an existing completion table and
+return a modified version.  @code{completion-table-case-fold} returns
+a case-insensitive table.  @code{completion-table-in-turn} combines
+multiple input tables.  @code{completion-table-subvert} alters a table
+to use a different initial prefix.  @code{completion-table-with-quoting}
+returns a table suitable for operating on quoted text.
+@code{completion-table-with-predicate} filters a table with a
+predicate function.  @code{completion-table-with-terminator} adds a
+terminating string.
+
+
 @node Minibuffer Completion
 @subsection Completion and the Minibuffer
 @cindex minibuffer completion
@@ -1710,8 +1730,9 @@ string, and @var{end} is the position of the end boundary in
 
 @item metadata
 This specifies a request for information about the state of the
-current completion.  The function should return an alist, as described
-below.  The alist may contain any number of elements.
+current completion.  The return value should have the form
+@code{(metadata . @var{alist})}, where @var{alist} is an alist whose
+elements are described below.
 @end table
 
 @noindent

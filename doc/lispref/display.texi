@@ -1078,7 +1078,8 @@ editing.  Many help commands use this feature.
 This function executes @var{forms} while arranging to insert any output
 they print into the buffer named @var{buffer-name}, which is first
 created if necessary, and put into Help mode.  Finally, the buffer is
-displayed in some window, but not selected.
+displayed in some window, but not selected.  (See the similar
+form @code{with-temp-buffer-window} below.)
 
 If the @var{forms} do not change the major mode in the output buffer,
 so that it is still Help mode at the end of their execution, then
@@ -1151,6 +1152,37 @@ This normal hook is run by @code{with-output-to-temp-buffer} after
 displaying the temporary buffer.  When the hook runs, the temporary buffer
 is current, and the window it was displayed in is selected.
 @end defvar
+
+@defmac with-temp-buffer-window buffer-or-name action quit-function forms@dots{}
+This macro is similar to @code{with-output-to-temp-buffer}.
+Like that construct, it executes @var{forms} while arranging to insert
+any output they print into the buffer named @var{buffer-or-name}.
+Finally, the buffer is displayed in some window, but not selected.
+Unlike @code{with-output-to-temp-buffer}, this does not switch to Help
+mode.
+
+The argument @var{buffer-or-name} specifies the temporary buffer.
+It can be either a buffer, which must already exist, or a string,
+in which case a buffer of that name is created if necessary.
+The buffer is marked as unmodified and read-only when
+@code{with-temp-buffer-window} exits.
+
+This macro does not call @code{temp-buffer-show-function}.  Rather, it
+passes the @var{action} argument to @code{display-buffer} in order to
+display the buffer.
+
+The value of the last form in @var{forms} is returned, unless the
+argument @var{quit-function} is specified.  In that case,
+it is called with two arguments: the window showing the buffer
+and the result of @var{forms}.  The final return value is then
+whatever @var{quit-function} returns.
+
+@vindex temp-buffer-window-setup-hook
+@vindex temp-buffer-window-show-hook
+This macro uses the normal hooks @code{temp-buffer-window-setup-hook}
+and @code{temp-buffer-window-show-hook} in place of the analogous hooks
+run by @code{with-output-to-temp-buffer}.
+@end defmac
 
 @defun momentary-string-display string position &optional char message
 This function momentarily displays @var{string} in the current buffer at
@@ -2009,12 +2041,11 @@ Don't underline.
 Underline with the foreground color of the face.
 
 @item @var{color}
-Underline in color @var{color}; which should be either a string
-specifying a color, or the symbol @code{foreground-color}, meaning the
-foreground color of the face.
+Underline in color @var{color}, a string specifying a color.
 
 @item @code{(:color @var{color} :style @var{style})}
-@var{color} is as described above.  Omitting the attribute
+@var{color} is either a string, or the symbol @code{foreground-color},
+meaning the foreground color of the face.  Omitting the attribute
 @code{:color} means to use the foreground color of the face.
 @var{style} should be a symbol @code{line} or @code{wave}, meaning to
 use a straight or wavy line.  Omitting the attribute @code{:style}
@@ -2404,7 +2435,7 @@ This sets the @code{:slant} attribute of @var{face} to @var{normal} if
 @var{italic-p} is @code{nil}, and to @var{italic} otherwise.
 @end defun
 
-@defun set-face-underline-p face underline &optional frame
+@defun set-face-underline face underline &optional frame
 This sets the @code{:underline} attribute of @var{face} to
 @var{underline}.
 @end defun
@@ -2467,12 +2498,16 @@ attribute of @var{face} is @code{italic} or @code{oblique}, and
 @code{nil} otherwise.
 @end defun
 
+@c Note the weasel words.  A face that inherits from an underlined
+@c face but does not specify :underline will return nil.
 @defun face-underline-p face &optional frame
-This function returns the @code{:underline} attribute of face @var{face}.
+This function returns non-@code{nil} if face @var{face} specifies
+a non-@code{nil} @code{:underline} attribute.
 @end defun
 
 @defun face-inverse-video-p face &optional frame
-This function returns the @code{:inverse-video} attribute of face @var{face}.
+This function returns non-@code{nil} if face @var{face} specifies
+a non-@code{nil} @code{:inverse-video} attribute.
 @end defun
 
 @node Displaying Faces

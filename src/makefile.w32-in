@@ -472,6 +472,8 @@ SYSSIGNAL_H    = $(SRC)/syssignal.h \
 SYSTTY_H       = $(SRC)/systty.h \
 		 $(NT_INC)/sys/ioctl.h \
 		 $(NT_INC)/unistd.h
+SYSWAIT_H      = $(SRC)/syswait.h \
+		 $(NT_INC)/sys/wait.h
 TERMHOOKS_H    = $(SRC)/termhooks.h \
 		 $(SYSTIME_H)
 W32FONT_H      = $(SRC)/w32font.h \
@@ -566,7 +568,6 @@ $(BLD)/callproc.$(O) : \
 	$(SRC)/commands.h \
 	$(SRC)/composite.h \
 	$(SRC)/epaths.h \
-	$(SRC)/syswait.h \
 	$(SRC)/w32.h \
 	$(NT_INC)/sys/file.h \
 	$(NT_INC)/unistd.h \
@@ -580,6 +581,7 @@ $(BLD)/callproc.$(O) : \
 	$(PROCESS_H) \
 	$(SYSSIGNAL_H) \
 	$(SYSTTY_H) \
+	$(SYSWAIT_H) \
 	$(TERMHOOKS_H)
 
 $(BLD)/casefiddle.$(O) : \
@@ -737,6 +739,7 @@ $(BLD)/dispnew.$(O) : \
 	$(SRC)/termchar.h \
 	$(SRC)/w32.h \
 	$(NT_INC)/unistd.h \
+	$(GNU_LIB)/fpending.h \
 	$(BUFFER_H) \
 	$(CHARACTER_H) \
 	$(CONFIG_H) \
@@ -802,6 +805,7 @@ $(BLD)/emacs.$(O) : \
 	$(SRC)/w32select.h \
 	$(NT_INC)/sys/file.h \
 	$(NT_INC)/unistd.h \
+	$(GNU_LIB)/close-stream.h \
 	$(GNU_LIB)/ignore-value.h \
 	$(ATIMER_H) \
 	$(BUFFER_H) \
@@ -1214,7 +1218,6 @@ $(BLD)/w32inevt.$(O) : \
 
 $(BLD)/w32proc.$(O) : \
 	$(SRC)/w32proc.c \
-	$(SRC)/syswait.h \
 	$(SRC)/w32.h \
 	$(SRC)/w32common.h \
 	$(SRC)/w32heap.h \
@@ -1228,6 +1231,7 @@ $(BLD)/w32proc.$(O) : \
 	$(PROCESS_H) \
 	$(SYSSIGNAL_H) \
 	$(SYSTIME_H) \
+	$(SYSWAIT_H) \
 	$(W32TERM_H)
 
 $(BLD)/w32console.$(O) : \
@@ -1272,7 +1276,6 @@ $(BLD)/process.$(O) : \
 	$(SRC)/composite.h \
 	$(SRC)/gnutls.h \
 	$(SRC)/sysselect.h \
-	$(SRC)/syswait.h \
 	$(SRC)/termopts.h \
 	$(NT_INC)/arpa/inet.h \
 	$(NT_INC)/netdb.h \
@@ -1295,6 +1298,7 @@ $(BLD)/process.$(O) : \
 	$(SYSSIGNAL_H) \
 	$(SYSTIME_H) \
 	$(SYSTTY_H) \
+	$(SYSWAIT_H) \
 	$(TERMHOOKS_H) \
 	$(W32TERM_H) \
 	$(WINDOW_H)
@@ -1378,7 +1382,6 @@ $(BLD)/sysdep.$(O) : \
 	$(SRC)/blockinput.h \
 	$(SRC)/cm.h \
 	$(SRC)/sysselect.h \
-	$(SRC)/syswait.h \
 	$(SRC)/termchar.h \
 	$(SRC)/termopts.h \
 	$(NT_INC)/netdb.h \
@@ -1403,6 +1406,7 @@ $(BLD)/sysdep.$(O) : \
 	$(SYSSIGNAL_H) \
 	$(SYSTIME_H) \
 	$(SYSTTY_H) \
+	$(SYSWAIT_H) \
 	$(TERMHOOKS_H) \
 	$(WINDOW_H)
 

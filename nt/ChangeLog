@@ -1,3 +1,50 @@
+2012-11-17  Juanma Barranquero  <lekktu@gmail.com>
+
+	* config.nt: Sync with autogen/config.in.
+	(HAVE_FPATHCONF): Remove.
+
+2012-11-17  Paul Eggert  <eggert@cs.ucla.edu>
+
+	Assume POSIX 1003.1-1988 or later for fcntl.h (Bug#12881).
+	* inc/sys/socket.h (O_NONBLOCK): Rename from O_NDELAY, since the
+	POSIX name for this flag is O_NONBLOCK.  All uses changed.
+	* inc/unistd.h (O_RDWR, O_NOCTTY): New macros.  Like AT_FDCWD etc.
+	these really should be moved to a replacement <fcntl.h> if and
+	when that gets implemented.  In the meantime, include <fcntl.h>
+	to make sure we don't override its definitions.
+
+2012-11-17  Eli Zaretskii  <eliz@gnu.org>
+
+	* inc/sys/wait.h: New file, with prototype of waitpid and
+	definitions of macros it needs.
+
+	* inc/ms-w32.h (wait): Don't define, 'wait' is not used anymore.
+	(sys_wait): Remove prototype.
+
+	* config.nt (HAVE_SYS_WAIT_H): Define to 1.
+
+2012-11-17  Dani Moncayo  <dmoncayo@gmail.com>
+
+	* zipdist.bat (ZIP_CHECK): Remove unused label.  When invoking 7z
+	to check if it's installed, redirect standard output and standard
+	error to the null device.
+	(ZIP_DIST): Don't build the "barebin" distribution.
+
+2012-11-15  Juanma Barranquero  <lekktu@gmail.com>
+
+	* config.nt: Sync with autogen/config.in.
+	(GETGROUPS_T, GETGROUPS_ZERO_BUG, GNULIB_FACCESSAT, HAVE_ACCESS)
+	(HAVE_EACCESS, HAVE_FACCESSAT, HAVE_GETGROUPS, HAVE_LIBGEN_H):
+	New macros.
+
+2012-11-14  Eli Zaretskii  <eliz@gnu.org>
+
+	* inc/unistd.h (faccessat): Add prototype.
+	(AT_FDCWD, AT_EACCESS, AT_SYMLINK_NOFOLLOW): New macros; the first
+	2 moved from ms-w32.h.
+
+	* inc/ms-w32.h (AT_FDCWD, AT_EACCESS, faccessat): Remove macros.
+
 2012-11-14  Paul Eggert  <eggert@cs.ucla.edu>
 
 	Use faccessat, not access, when checking file permissions (Bug#12632).

@@ -2454,6 +2454,8 @@ when using per-directory thumbnail file storage"))
 (defvar image-dired-widget-list nil
   "List to keep track of meta data in edit buffer.")
 
+(declare-function widget-forward "wid-edit" (arg))
+
 ;;;###autoload
 (defun image-dired-dired-edit-comment-and-tags ()
   "Edit comment and tags of current or marked image files.

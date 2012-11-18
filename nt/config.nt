@@ -180,6 +180,14 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
    setjmp does work.  */
 #define GC_SETJMP_WORKS 1
 
+/* Define to the type of elements in the array set by `getgroups'. Usually
+   this is either `int' or `gid_t'. */
+#undef GETGROUPS_T
+
+/* Define this to 1 if getgroups(0,NULL) does not return the number of groups.
+   */
+#undef GETGROUPS_ZERO_BUG
+
 /* Define if gettimeofday clobbers the localtime buffer. */
 #undef GETTIMEOFDAY_CLOBBERS_LOCALTIME
 
@@ -193,6 +201,10 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 /* Define to a C preprocessor expression that evaluates to 1 or 0, depending
    whether the gnulib module close-stream shall be considered present. */
 #undef GNULIB_CLOSE_STREAM
+
+/* Define to a C preprocessor expression that evaluates to 1 or 0, depending
+   whether the gnulib module faccessat shall be considered present. */
+#undef GNULIB_FACCESSAT
 
 /* Define to a C preprocessor expression that evaluates to 1 or 0, depending
    whether the gnulib module fscanf shall be considered present. */
@@ -214,6 +226,9 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 /* Define to set the G_SLICE environment variable to "always-malloc" at
    startup, if using GTK. */
 #undef G_SLICE_ALWAYS_MALLOC
+
+/* Define to 1 if you have the `access' function. */
+#undef HAVE_ACCESS
 
 /* Define to 1 if the file /usr/lpp/X11/bin/smt.exp exists. */
 #undef HAVE_AIX_SMT_EXP
@@ -339,6 +354,9 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 /* Define to 1 if you have the 'dup2' function. */
 #define HAVE_DUP2 1
 
+/* Define to 1 if you have the `eaccess' function. */
+#undef HAVE_EACCESS
+
 /* Define to 1 if you have the `endgrent' function. */
 #undef HAVE_ENDGRENT
 
@@ -354,14 +372,14 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 /* Define to 1 if you have the <execinfo.h> header file. */
 #define HAVE_EXECINFO_H 1
 
+/* Define to 1 if you have the `faccessat' function. */
+#undef HAVE_FACCESSAT
+
 /* Define to 1 if you have the <fcntl.h> header file. */
 #undef HAVE_FCNTL_H
 
 /* Define to 1 if you have the `fork' function. */
 #undef HAVE_FORK
-
-/* Define to 1 if you have the `fpathconf' function. */
-#undef HAVE_FPATHCONF
 
 /* Define to 1 if you have the `freeifaddrs' function. */
 #undef HAVE_FREEIFADDRS
@@ -404,6 +422,9 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 
 /* Define to 1 if you have the `getgrent' function. */
 #undef HAVE_GETGRENT
+
+/* Define to 1 if your system has a working `getgroups' function. */
+#undef HAVE_GETGROUPS
 
 /* Define to 1 if you have the `gethostname' function. */
 #define HAVE_GETHOSTNAME 1
@@ -570,6 +591,9 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 
 /* Define to 1 if you have the `dnet' library (-ldnet). */
 #undef HAVE_LIBDNET
+
+/* Define to 1 if you have the <libgen.h> header file. */
+#undef HAVE_LIBGEN_H
 
 /* Define to 1 if you have the hesiod library (-lhesiod). */
 #undef HAVE_LIBHESIOD
@@ -959,7 +983,7 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #undef HAVE_SYS_VLIMIT_H
 
 /* Define to 1 if you have <sys/wait.h> that is POSIX.1 compatible. */
-#undef HAVE_SYS_WAIT_H
+#define HAVE_SYS_WAIT_H 1
 
 /* Define to 1 if you have the <term.h> header file. */
 #undef HAVE_TERM_H

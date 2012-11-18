@@ -260,9 +260,11 @@ The name is made by appending a number to PREFIX, default \"G\"."
                         (require 'help-fns)
                         (cons (help-add-fundoc-usage
                                (if (stringp (car hdr)) (pop hdr))
-                               (format "%S"
-                                       (cons 'fn
-                                             (cl--make-usage-args orig-args))))
+                               ;; Be careful with make-symbol and (back)quote,
+                               ;; see bug#12884.
+                               (let ((print-gensym nil) (print-quoted t))
+                                 (format "%S" (cons 'fn (cl--make-usage-args
+                                                         orig-args)))))
                               hdr)))
 		    (list `(let* ,cl--bind-lets
                              ,@(nreverse cl--bind-forms)
@@ -756,7 +758,7 @@ This is compatible with Common Lisp, but note that `defun' and
 
 ;;;###autoload
 (defmacro cl-loop (&rest loop-args)
-  "The Common Lisp `cl-loop' macro.
+  "The Common Lisp `loop' macro.
 Valid clauses are:
   for VAR from/upfrom/downfrom NUM to/upto/downto/above/below NUM by NUM,
   for VAR in LIST by FUNC, for VAR on LIST by FUNC, for VAR = INIT then EXPR,
@@ -1501,7 +1503,7 @@ such that COMBO is equivalent to (and . CLAUSES)."
 
 ;;;###autoload
 (defmacro cl-do (steps endtest &rest body)
-  "The Common Lisp `cl-do' loop.
+  "The Common Lisp `do' loop.
 
 \(fn ((VAR INIT [STEP])...) (END-TEST [RESULT...]) BODY...)"
   (declare (indent 2)
@@ -1513,7 +1515,7 @@ such that COMBO is equivalent to (and . CLAUSES)."
 
 ;;;###autoload
 (defmacro cl-do* (steps endtest &rest body)
-  "The Common Lisp `cl-do*' loop.
+  "The Common Lisp `do*' loop.
 
 \(fn ((VAR INIT [STEP])...) (END-TEST [RESULT...]) BODY...)"
   (declare (indent 2) (debug cl-do))
@@ -1648,7 +1650,7 @@ a `let' form, except that the list of symbols can be computed at run-time."
 
 ;;;###autoload
 (defmacro cl-flet (bindings &rest body)
-  "Make temporary function definitions.
+  "Make local function definitions.
 Like `cl-labels' but the definitions are not recursive.
 
 \(fn ((FUNC ARGLIST BODY...) ...) FORM...)"
@@ -1672,7 +1674,7 @@ Like `cl-labels' but the definitions are not recursive.
 
 ;;;###autoload
 (defmacro cl-flet* (bindings &rest body)
-  "Make temporary function definitions.
+  "Make local function definitions.
 Like `cl-flet' but the definitions can refer to previous ones.
 
 \(fn ((FUNC ARGLIST BODY...) ...) FORM...)"

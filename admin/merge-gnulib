@@ -29,7 +29,7 @@ GNULIB_MODULES='
   alloca-opt c-ctype c-strcase
   careadlinkat close-stream crypto/md5 crypto/sha1 crypto/sha256 crypto/sha512
   dtoastr dtotimespec dup2 environ execinfo faccessat
-  filemode getloadavg getopt-gnu gettime gettimeofday
+  fcntl-h filemode getloadavg getopt-gnu gettime gettimeofday
   ignore-value intprops largefile lstat
   manywarnings mktime pselect pthread_sigmask readlink
   socklen stat-time stdalign stdarg stdbool stdio

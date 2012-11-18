@@ -429,7 +429,7 @@ means display it in the right marginal area."
   "Insert IMAGE into current buffer at point.
 IMAGE is displayed by inserting STRING into the current buffer
 with a `display' property whose value is the image.  STRING
-defaults to the empty string if you omit it.
+defaults to a single space if you omit it.
 AREA is where to display the image.  AREA nil or omitted means
 display it in the text area, a value of `left-margin' means
 display it in the left marginal area, a value of `right-margin'
@@ -467,8 +467,8 @@ height of the image; integer values are taken as pixel values."
 (defun insert-sliced-image (image &optional string area rows cols)
   "Insert IMAGE into current buffer at point.
 IMAGE is displayed by inserting STRING into the current buffer
-with a `display' property whose value is the image.  STRING is
-defaulted if you omit it.
+with a `display' property whose value is the image.  The default
+STRING is a single space.
 AREA is where to display the image.  AREA nil or omitted means
 display it in the text area, a value of `left-margin' means
 display it in the left marginal area, a value of `right-margin'

@@ -369,17 +369,67 @@
 
 ;;; Some of these functions are adapted from Edward Reingold's "calendar.el".
 ;;; These versions are rewritten to use arbitrary-size integers.
-;;; The Julian calendar is used up to 9/2/1752, after which the Gregorian
-;;; calendar is used; the first day after 9/2/1752 is 9/14/1752.
 
 ;;; A numerical date is the number of days since midnight on
-;;; the morning of January 1, 1 A.D.  If the date is a non-integer,
-;;; it represents a specific date and time.
+;;; the morning of December 31, 1 B.C.  Emacs's calendar refers to such
+;;; a date as an absolute date, some function names also use that 
+;;; terminology.  If the date is a non-integer, it represents a specific date and time.
 ;;; A "dt" is a list of the form, (year month day), corresponding to
 ;;; an integer code, or (year month day hour minute second), corresponding
 ;;; to a non-integer code.
 
+(defun math-date-to-gregorian-dt (date)
+  "Return the day (YEAR MONTH DAY) in the Gregorian calendar.
+DATE is the number of days since December 31, -1 in the Gregorian calendar." 
+  (let* ((month 1)
+         day
+         (year (math-quotient (math-add date (if (Math-lessp date 711859)
+                                                 365  ; for speed, we take
+                                               -108)) ; >1950 as a special case
+                              (if (math-negp date) 366 365)))
+					; this result may be an overestimate
+         temp)
+    (while (Math-lessp date (setq temp (math-absolute-from-gregorian-dt year 1 1)))
+        (setq year (math-add year -1)))
+    (if (eq year 0) (setq year -1))
+    (setq date (1+ (math-sub date temp)))
+    (setq temp 
+          (if (math-leap-year-p year)
+              [1 32 61 92 122 153 183 214 245 275 306 336 999]
+            [1 32 60 91 121 152 182 213 244 274 305 335 999]))
+    (while (>= date (aref temp month))
+      (setq month (1+ month)))
+    (setq day (1+ (- date (aref temp (1- month)))))
+    (list year month day)))
+
+(defun math-date-to-julian-dt (date)
+  "Return the day (YEAR MONTH DAY) in the Julian calendar.
+DATE is the number of days since December 31, -1 in the Gregorian calendar." 
+  (let* ((month 1)
+         day
+         (year (math-quotient (math-add date (if (Math-lessp date 711859)
+                                                 365  ; for speed, we take
+                                               -108)) ; >1950 as a special case
+                              (if (math-negp date) 366 365)))
+					; this result may be an overestimate
+         temp)
+    (while (Math-lessp date (setq temp (math-absolute-from-julian-dt year 1 1)))
+        (setq year (math-add year -1)))
+    (if (eq year 0) (setq year -1))
+    (setq date (1+ (math-sub date temp)))
+    (setq temp 
+          (if (math-leap-year-p year t)
+              [1 32 61 92 122 153 183 214 245 275 306 336 999]
+            [1 32 60 91 121 152 182 213 244 274 305 335 999]))
+    (while (>= date (aref temp month))
+      (setq month (1+ month)))
+    (setq day (1+ (- date (aref temp (1- month)))))
+    (list year month day)))
+
 (defun math-date-to-dt (value)
+  "Return the day and time of VALUE.
+The integer part of VALUE is the number of days since Dec 31, -1
+in the Gregorian calendar and the remaining part determines the time."
   (if (eq (car-safe value) 'date)
       (setq value (nth 1 value)))
   (or (math-realp value)
@@ -387,32 +437,21 @@
   (let* ((parts (math-date-parts value))
 	 (date (car parts))
 	 (time (nth 1 parts))
-	 (month 1)
-	 day
-	 (year (math-quotient (math-add date (if (Math-lessp date 711859)
-						 365  ; for speed, we take
-					       -108)) ; >1950 as a special case
-			      (if (math-negp value) 366 365)))
-					; this result may be an overestimate
-	 temp)
-    (while (Math-lessp date (setq temp (math-absolute-from-date year 1 1)))
-      (setq year (math-add year -1)))
-    (if (eq year 0) (setq year -1))
-    (setq date (1+ (math-sub date temp)))
-    (and (eq year 1752) (>= date 247)
-	 (setq date (+ date 11)))
-    (setq temp (if (math-leap-year-p year)
-		   [1 32 61 92 122 153 183 214 245 275 306 336 999]
-		 [1 32 60 91 121 152 182 213 244 274 305 335 999]))
-    (while (>= date (aref temp month))
-      (setq month (1+ month)))
-    (setq day (1+ (- date (aref temp (1- month)))))
+         (dt (if (and calc-gregorian-switch
+                      (Math-lessp value 
+                                  (or
+                                   (nth 3 calc-gregorian-switch)
+                                   (apply 'math-absolute-from-gregorian-dt calc-gregorian-switch))
+))
+                 (math-date-to-julian-dt date)
+               (math-date-to-gregorian-dt date))))
     (if (math-integerp value)
-	(list year month day)
-      (list year month day
-	    (/ time 3600)
-	    (% (/ time 60) 60)
-	    (math-add (% time 60) (nth 2 parts))))))
+        dt
+      (append dt 
+              (list
+               (/ time 3600)
+               (% (/ time 60) 60)
+               (math-add (% time 60) (nth 2 parts)))))))
 
 (defun math-dt-to-date (dt)
   (or (integerp (nth 1 dt))
@@ -423,7 +462,7 @@
       (math-reject-arg (nth 2 dt) 'fixnump))
   (if (or (< (nth 2 dt) 1) (> (nth 2 dt) 31))
       (math-reject-arg (nth 2 dt) "Day value is out of range"))
-  (let ((date (math-absolute-from-date (car dt) (nth 1 dt) (nth 2 dt))))
+  (let ((date (math-absolute-from-dt (car dt) (nth 1 dt) (nth 2 dt))))
     (if (nth 3 dt)
 	(math-add (math-float date)
 		  (math-div (math-add (+ (* (nth 3 dt) 3600)
@@ -446,8 +485,12 @@
 (defun math-this-year ()
   (nth 5 (decode-time)))
 
-(defun math-leap-year-p (year)
-  (if (Math-lessp year 1752)
+(defun math-leap-year-p (year &optional julian)
+  "Non-nil if YEAR is a leap year.
+If JULIAN is non-nil, then use the criterion for leap years
+in the Julian calendar, otherwise use the criterion in the 
+Gregorian calendar."
+  (if julian
       (if (math-negp year)
 	  (= (math-imod (math-neg year) 4) 1)
 	(= (math-imod year 4) 0))
@@ -460,39 +503,104 @@
       29
     (aref [31 28 31 30 31 30 31 31 30 31 30 31] (1- month))))
 
-(defun math-day-number (year month day)
+(defun math-day-in-year (year month day &optional julian)
+  "Return the number of days of the year up to YEAR MONTH DAY.
+The count includes the given date.
+If JULIAN is non-nil, use the Julian calendar, otherwise
+use the Gregorian calendar."
   (let ((day-of-year (+ day (* 31 (1- month)))))
     (if (> month 2)
 	(progn
 	  (setq day-of-year (- day-of-year (/ (+ 23 (* 4 month)) 10)))
-	  (if (math-leap-year-p year)
+	  (if (math-leap-year-p year julian)
 	      (setq day-of-year (1+ day-of-year)))))
-    (and (eq year 1752)
-	 (or (> month 9)
-	     (and (= month 9) (>= day 14)))
-	 (setq day-of-year (- day-of-year 11)))
     day-of-year))
 
-(defun math-absolute-from-date (year month day)
+(defun math-day-number (year month day)
+  "Return the number of days of the year up to YEAR MONTH DAY.
+The count includes the given date."
+  (if calc-gregorian-switch
+      (cond ((eq year (nth 0 calc-gregorian-switch))
+             (1+
+              (- (math-absolute-from-dt year month day)
+                 (math-absolute-from-dt year 1 1))))
+            ((Math-lessp year (nth 0 calc-gregorian-switch))
+             (math-day-in-year year month day t))
+            (t
+             (math-day-in-year year month day)))
+    (math-day-in-year year month day)))
+
+(defun math-dt-before-p (dt1 dt2)
+  "Non-nil if DT1 occurs before DT2.
+A DT is a list of the form (YEAR MONTH DAY)."
+  (or (Math-lessp (nth 0 dt1) (nth 0 dt2))
+      (and (equal (nth 0 dt1) (nth 0 dt2))
+           (or (< (nth 1 dt1) (nth 1 dt2))
+               (and (= (nth 1 dt1) (nth 1 dt2))
+                    (< (nth 2 dt1) (nth 2 dt2)))))))
+
+(defun math-absolute-from-gregorian-dt (year month day)
+  "Return the DATE of the day given by the Gregorian day YEAR MONTH DAY.
+Recall that DATE is the number of days since December 31, -1
+in the Gregorian calendar."
   (if (eq year 0) (setq year -1))
   (let ((yearm1 (math-sub year 1)))
-    (math-sub (math-add (math-day-number year month day)
-			(math-add (math-mul 365 yearm1)
-				  (if (math-posp year)
-				      (math-quotient yearm1 4)
-				    (math-sub 365
-					      (math-quotient (math-sub 3 year)
-							     4)))))
-	      (if (or (Math-lessp year 1753)
-		      (and (eq year 1752) (<= month 9)))
-		  1
-		(let ((correction (math-mul (math-quotient yearm1 100) 3)))
-		  (let ((res (math-idivmod correction 4)))
-		    (math-add (if (= (cdr res) 0)
-				  -1
-				0)
-			      (car res))))))))
+    (math-sub 
+     ;; Add the number of days of the year and the numbers of days
+     ;; in the previous years (leap year days to be added separately)
+     (math-add (math-day-in-year year month day)
+               (math-add (math-mul 365 yearm1)
+                         ;; Add the number of Julian leap years
+                         (if (math-posp year)
+                             (math-quotient yearm1 4)
+                           (math-sub 365
+                                     (math-quotient (math-sub 3 year)
+                                                    4)))))
+     ;; Subtract the number of Julian leap years which are not 
+     ;; Gregorian leap years.  In C=4N+r centuries, there will 
+     ;; be 3N+r of these days.  The following will compute 
+     ;; 3N+r.
+     (let* ((correction (math-mul (math-quotient yearm1 100) 3))
+            (res (math-idivmod correction 4)))
+       (math-add (if (= (cdr res) 0)
+                     0
+                   1)
+                 (car res))))))
 
+(defun math-absolute-from-julian-dt (year month day)
+  "Return the DATE of the day given by the Julian day YEAR MONTH DAY.
+Recall that DATE is the number of days since December 31, -1
+in the Gregorian calendar."
+  (if (eq year 0) (setq year -1))
+  (let ((yearm1 (math-sub year 1)))
+    (math-sub 
+     ;; Add the number of days of the year and the numbers of days
+     ;; in the previous years (leap year days to be added separately)
+     (math-add (math-day-in-year year month day)
+               (math-add (math-mul 365 yearm1)
+                         ;; Add the number of Julian leap years
+                         (if (math-posp year)
+                             (math-quotient yearm1 4)
+                           (math-sub 365
+                                     (math-quotient (math-sub 3 year)
+                                                    4)))))
+     ;; Adjustment, since January 1, 1 (Julian) is absolute day -1
+     2)))
+
+;; calc-gregorian-switch is a customizable variable defined in calc.el
+(defvar calc-gregorian-switch)
+
+
+(defun math-absolute-from-dt (year month day)
+  "Return the DATE of the day given by the day YEAR MONTH DAY.
+Recall that DATE is the number of days since December 31, -1
+in the Gregorian calendar."
+  (if (and calc-gregorian-switch
+           ;; The next few lines determine if the given date
+           ;; occurs before the switch to the Gregorian calendar.
+           (math-dt-before-p (list year month day) calc-gregorian-switch))
+      (math-absolute-from-julian-dt year month day)
+    (math-absolute-from-gregorian-dt year month day)))
 
 ;;; It is safe to redefine these in your init file to use a different
 ;;; language.
@@ -548,13 +656,13 @@
 	       (setcdr math-fd-dt nil))
 	  fmt))))
 
-(defconst math-julian-date-beginning '(float 17214235 -1)
-  "The beginning of the Julian calendar,
-as measured in the number of days before January 1 of the year 1AD.")
+(defconst math-julian-date-beginning '(float 17214225 -1)
+  "The beginning of the Julian date calendar,
+as measured in the number of days before December 31, 1 BC (Gregorian).")
 
-(defconst math-julian-date-beginning-int 1721424
-  "The beginning of the Julian calendar,
-as measured in the integer number of days before January 1 of the year 1AD.")
+(defconst math-julian-date-beginning-int 1721423
+  "The beginning of the Julian date calendar,
+as measured in the integer number of days before December 31, 1 BC (Gregorian).")
 
 (defun math-format-date-part (x)
   (cond ((stringp x)
@@ -585,8 +693,7 @@ as measured in the integer number of days before January 1 of the year 1AD.")
 		       math-fd-year (car math-fd-dt)
 		       math-fd-month (nth 1 math-fd-dt)
 		       math-fd-day (nth 2 math-fd-dt)
-		       math-fd-weekday (math-mod
-                                        (math-add (math-floor math-fd-date) 6) 7)
+		       math-fd-weekday (math-mod (math-floor math-fd-date) 7)
 		       math-fd-hour (nth 3 math-fd-dt)
 		       math-fd-minute (nth 4 math-fd-dt)
 		       math-fd-second (nth 5 math-fd-dt))
@@ -1098,7 +1205,7 @@ as measured in the integer number of days before January 1 of the year 1AD.")
       (setq date (nth 1 date)))
   (or (math-realp date)
       (math-reject-arg date 'datep))
-  (math-mod (math-add (math-floor date) 6) 7))
+  (math-mod (math-floor date) 7))
 
 (defun calcFunc-yearday (date)
   (let ((dt (math-date-to-dt date)))
@@ -1298,7 +1405,7 @@ second, the number of seconds offset for daylight savings."
                  0)))
          (rounded-abs-date 
           (+ 
-           (calendar-absolute-from-gregorian 
+           (calendar-absolute-from-gregorian
             (list (nth 1 dt) (nth 2 dt) (nth 0 dt)))
            (/ (round (* 60 time)) 60.0 24.0))))
     (if (dst-in-effect rounded-abs-date)
@@ -1434,28 +1541,100 @@ and ends on the last Sunday of October at 2 a.m."
   (and (math-messy-integerp day) (setq day (math-trunc day)))
   (or (integerp day) (math-reject-arg day 'fixnump))
   (and (or (< day 0) (> day 31)) (math-reject-arg day 'range))
-  (let ((dt (math-date-to-dt date)))
-    (if (or (= day 0) (> day (math-days-in-month (car dt) (nth 1 dt))))
-	(setq day (math-days-in-month (car dt) (nth 1 dt))))
-    (and (eq (car dt) 1752) (= (nth 1 dt) 9)
-	 (if (>= day 14) (setq day (- day 11))))
-    (list 'date (math-add (math-dt-to-date (list (car dt) (nth 1 dt) 1))
-			  (1- day)))))
+  (let* ((dt (math-date-to-dt date))
+         (dim (math-days-in-month (car dt) (nth 1 dt)))
+         (julian (if calc-gregorian-switch
+                     (math-date-to-dt (math-sub 
+                                       (or (nth 3 calc-gregorian-switch)
+                                           (apply 'math-absolute-from-gregorian-dt calc-gregorian-switch))
+                                       1)))))
+    (if (or (= day 0) (> day dim))
+	(setq day (1- dim))
+      (setq day (1- day)))
+    ;; Adjust if this occurs near the switch to the Gregorian calendar
+    (if calc-gregorian-switch
+        (cond
+         ((and (math-dt-before-p (list (car dt) (nth 1 dt) 1) calc-gregorian-switch)
+               (math-dt-before-p julian (list (car dt) (nth 1 dt) 1)))
+          ;; In this case, CALC-GREGORIAN-SWITCH is the first day of the month
+          (list 'date
+                (math-dt-to-date (list (car calc-gregorian-switch)
+                                       (nth 1 calc-gregorian-switch)
+                                       (if (> (+ (nth 2 calc-gregorian-switch) day) dim)
+                                           dim
+                                         (+ (nth 2 calc-gregorian-switch) day))))))
+         ((and (eq (car dt) (car calc-gregorian-switch))
+               (= (nth 1 dt) (nth 1 calc-gregorian-switch)))
+          ;; In this case, the switch to the Gregorian calendar occurs in the given month
+          (if (< (+ (nth 2 julian) day) (nth 2 calc-gregorian-switch))
+              ;; If the DAYth day occurs before the switch, use it
+              (list 'date (math-dt-to-date (list (car dt) (nth 1 dt) (1+ day))))
+            ;; Otherwise do some computations
+            (let ((tm (+ day (- (nth 2 calc-gregorian-switch) (nth 2 julian)))))
+              (list 'date (math-dt-to-date 
+                           (list (car dt)
+                                 (nth 1 dt)
+                                 ;; 
+                                 (if (> tm dim) dim tm)))))))
+         ((and (eq (car dt) (car julian))
+               (= (nth 1 dt) (nth 1 julian)))
+          ;; In this case, the current month is truncated because of the switch 
+          ;; to the Gregorian calendar
+          (list 'date (math-dt-to-date
+                       (list (car dt)
+                             (nth 1 dt)
+                             (if (>= day (nth 2 julian))
+                                 (nth 2 julian)
+                               (1+ day))))))
+         (t 
+          ;; The default
+          (list 'date (math-add (math-dt-to-date (list (car dt) (nth 1 dt) 1)) day))))
+      (list 'date (math-add (math-dt-to-date (list (car dt) (nth 1 dt) 1)) day)))))
 
 (defun calcFunc-newyear (date &optional day)
+  (if (eq (car-safe date) 'date) (setq date (nth 1 date)))
   (or day (setq day 1))
   (and (math-messy-integerp day) (setq day (math-trunc day)))
   (or (integerp day) (math-reject-arg day 'fixnump))
-  (let ((dt (math-date-to-dt date)))
+  (let* ((dt (math-date-to-dt date))
+         (gregbeg (if calc-gregorian-switch
+                      (or (nth 3 calc-gregorian-switch)
+                          (apply 'math-absolute-from-gregorian-dt calc-gregorian-switch))))
+         (julianend (if calc-gregorian-switch (math-sub gregbeg 1)))
+         (julian (if calc-gregorian-switch
+                     (math-date-to-dt julianend))))
     (if (and (>= day 0) (<= day 366))
-	(let ((max (if (eq (car dt) 1752) 355
-		     (if (math-leap-year-p (car dt)) 366 365))))
+	(let ((max (if (math-leap-year-p (car dt)) 366 365)))
 	  (if (or (= day 0) (> day max)) (setq day max))
-	  (list 'date (math-add (math-dt-to-date (list (car dt) 1 1))
-				(1- day))))
+          (if calc-gregorian-switch
+              ;; Now to break this down into cases
+              (cond
+               ((and (math-dt-before-p (list (car dt) 1 1) calc-gregorian-switch)
+                     (math-dt-before-p julian (list (car dt) 1 1)))
+                ;; In this case, CALC-GREGORIAN-SWITCH is the first day of the year
+                (list 'date (math-min (math-add gregbeg (1- day))
+                                      (math-dt-to-date (list (car calc-gregorian-switch) 12 31)))))
+               ((eq (car dt) (car julian))
+                ;; In this case, the switch to the Gregorian calendar occurs in the given year
+                (if (Math-lessp (car julian) (car calc-gregorian-switch))
+                    ;; Here, the last Julian day is the last day of the year.
+                    (list 'date (math-min (math-add (math-dt-to-date (list (car dt) 1 1)) (1- day))
+                                          julianend))
+                  ;; Otherwise, just make sure the date doesn't go past the end of the year
+                  (list 'date (math-min (math-add (math-dt-to-date (list (car dt) 1 1)) (1- day))
+                                        (math-dt-to-date (list (car dt) 12 31))))))
+               (t 
+                (list 'date (math-add (math-dt-to-date (list (car dt) 1 1))
+                                      (1- day)))))
+            (list 'date (math-add (math-dt-to-date (list (car dt) 1 1))
+                                  (1- day)))))
       (if (and (>= day -12) (<= day -1))
-	  (list 'date (math-dt-to-date (list (car dt) (- day) 1)))
-	(math-reject-arg day 'range)))))
+          (if (and calc-gregorian-switch
+                   (math-dt-before-p (list (car dt) (- day) 1) calc-gregorian-switch)
+                   (math-dt-before-p julian (list (car dt) (- day) 1)))
+              (list 'date gregbeg)
+            (list 'date (math-dt-to-date (list (car dt) (- day) 1))))
+        (math-reject-arg day 'range)))))
 
 (defun calcFunc-incmonth (date &optional step)
   (or step (setq step 1))

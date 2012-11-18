@@ -2870,6 +2870,12 @@ FRAME 0 means change the face on all frames, and change the default
           Lisp_Object key, val, list;
 
           list = value;
+          /* FIXME?  This errs on the side of acceptance.  Eg it accepts:
+               (defface foo '((t :underline 'foo) "doc")
+             Maybe this is intentional, maybe it isn't.
+             Non-nil symbols other than t are not documented as being valid.
+             Eg compare with inverse-video, which explicitly rejects them.
+          */
           valid_p = 1;
 
           while (!NILP (CAR_SAFE(list)))
@@ -5660,6 +5666,8 @@ realize_x_face (struct face_cache *cache, Lisp_Object attrs[LFACE_VECTOR_SIZE])
       face->underline_defaulted_p = 1;
       face->underline_type = FACE_UNDER_LINE;
 
+      /* FIXME?  This is also not robust about checking the precise form.
+         See comments in Finternal_set_lisp_face_attribute.  */
       while (CONSP (underline))
         {
           Lisp_Object keyword, value;

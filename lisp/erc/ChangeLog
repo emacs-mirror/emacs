@@ -1,3 +1,7 @@
+2012-11-16  Glenn Morris  <rgm@gnu.org>
+
+	* erc.el (erc-modules): Add "notifications".  Tweak "hecomplete" doc.
+
 2012-10-28  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* erc-backend.el: Only require `erc' during compilation (bug#12740).

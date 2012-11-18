@@ -55,12 +55,18 @@
   ;; have to flush that cache between each function, and we couldn't use
   ;; syntax-ppss-flush-cache since that would not only flush the cache but also
   ;; reset syntax-propertize--done which should not be done in this case).
-  "Mode-specific function to apply the syntax-table properties.
-Called with two arguments: START and END.
-This function can call `syntax-ppss' on any position before END, but it
-should not call `syntax-ppss-flush-cache', which means that it should not
-call `syntax-ppss' on some position and later modify the buffer on some
-earlier position.")
+  "Mode-specific function to apply `syntax-table' text properties.
+The value of this variable is a function to be called by Font
+Lock mode, prior to performing syntactic fontification on a
+stretch of text.  It is given two arguments, START and END: the
+start and end of the text to be fontified.  Major modes can
+specify a custom function to apply `syntax-table' properties to
+override the default syntax table in special cases.
+
+The specified function may call `syntax-ppss' on any position
+before END, but it should not call `syntax-ppss-flush-cache',
+which means that it should not call `syntax-ppss' on some
+position and later modify the buffer on some earlier position.")
 
 (defvar syntax-propertize-chunk-size 500)
 
@@ -118,7 +124,7 @@ The arg RULES can be of the same form as in `syntax-propertize-rules'.
 The return value is an object that can be passed as a rule to
 `syntax-propertize-rules'.
 I.e. this is useful only when you want to share rules among several
-syntax-propertize-functions."
+`syntax-propertize-function's."
   (declare (debug syntax-propertize-rules))
   ;; Precompile?  Yeah, right!
   ;; Seriously, tho, this is a macro for 2 reasons:

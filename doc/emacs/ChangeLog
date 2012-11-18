@@ -1,3 +1,12 @@
+2012-11-18  Dani Moncayo  <dmoncayo@gmail.com>
+
+	* mark.texi (Disabled Transient Mark): Doc fixes (Bug#12746).
+
+2012-11-16  Eli Zaretskii  <eliz@gnu.org>
+
+	* trouble.texi (Crashing): Add information about MS-Windows and
+	the emacs_backtrace.txt file.  (Bug#12908)
+
 2012-11-13  Chong Yidong  <cyd@gnu.org>
 
 	* building.texi (Multithreaded Debugging): gdb-stopped-hooks is

@@ -1362,24 +1362,27 @@ group."
 (defun ibuffer-mark-forward (arg)
   "Mark the buffer on this line, and move forward ARG lines.
 If point is on a group name, this function operates on that group."
-  (interactive "P")
-  (ibuffer-mark-interactive arg ibuffer-marked-char 1))
+  (interactive "p")
+  (ibuffer-mark-interactive arg ibuffer-marked-char))
 
 (defun ibuffer-unmark-forward (arg)
   "Unmark the buffer on this line, and move forward ARG lines.
 If point is on a group name, this function operates on that group."
-  (interactive "P")
-  (ibuffer-mark-interactive arg ?\s 1))
+  (interactive "p")
+  (ibuffer-mark-interactive arg ?\s))
 
 (defun ibuffer-unmark-backward (arg)
   "Unmark the buffer on this line, and move backward ARG lines.
 If point is on a group name, this function operates on that group."
-  (interactive "P")
-  (ibuffer-mark-interactive arg ?\s -1))
+  (interactive "p")
+  (ibuffer-unmark-forward (- arg)))
 
-(defun ibuffer-mark-interactive (arg mark movement)
+(defun ibuffer-mark-interactive (arg mark &optional movement)
   (ibuffer-assert-ibuffer-mode)
   (or arg (setq arg 1))
+  ;; deprecated movement argument
+  (when (and movement (< movement 0))
+    (setq arg (- arg)))
   (ibuffer-forward-line 0)
   (ibuffer-aif (get-text-property (point) 'ibuffer-filter-group-name)
       (progn
@@ -1389,8 +1392,12 @@ If point is on a group name, this function operates on that group."
     (let ((inhibit-read-only t))
       (while (> arg 0)
 	(ibuffer-set-mark mark)
-	(ibuffer-forward-line movement t)
-	(setq arg (1- arg))))))
+	(ibuffer-forward-line 1 t)
+	(setq arg (1- arg)))
+      (while (< arg 0)
+	(ibuffer-forward-line -1 t)
+	(ibuffer-set-mark mark)
+	(setq arg (1+ arg))))))
 
 (defun ibuffer-set-mark (mark)
   (ibuffer-assert-ibuffer-mode)

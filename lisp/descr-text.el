@@ -374,6 +374,8 @@ This function is semi-obsolete.  Use `get-char-code-property'."
 		 (format "%c:%s" x doc)))
 	     mnemonics ", ")))))
 
+(declare-function quail-find-key "quail" (char))
+
 ;;;###autoload
 (defun describe-char (pos &optional buffer)
   "Describe position POS (interactively, point) and the char after POS.

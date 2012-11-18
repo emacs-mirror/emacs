@@ -91,6 +91,9 @@
 (declare-function w32-send-sys-command "w32fns.c")
 (declare-function set-message-beep "w32fns.c")
 
+(declare-function cygwin-convert-path-from-windows "cygw32.c"
+		  (path &optional absolute_p))
+
 ;; Conditional on new-fontset so bootstrapping works on non-GUI compiles
 (if (fboundp 'new-fontset)
     (require 'fontset))
@@ -116,7 +119,11 @@
                                    "/")
                      "/")))
 		(dnd-handle-one-url window 'private
-				    (concat "file:" file-name)))
+				    (concat
+				     (if (eq system-type 'cygwin)
+					 "file://"
+				       "file:")
+				     file-name)))
 
 (defun w32-drag-n-drop (event &optional new-frame)
   "Edit the files listed in the drag-n-drop EVENT.

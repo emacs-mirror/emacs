@@ -1550,11 +1550,13 @@ Also make each path-info component into a list.
     (woman-dired-define-keys)
   (add-hook 'dired-mode-hook 'woman-dired-define-keys))
 
+(declare-function dired-get-filename "dired"
+                  (&optional localp no-error-if-not-filep))
+
 ;;;###autoload
 (defun woman-dired-find-file ()
   "In dired, run the WoMan man-page browser on this file."
   (interactive)
-  ;; dired-get-filename is defined in dired.el
   (woman-find-file (dired-get-filename)))
 
 
@@ -1947,6 +1949,9 @@ Optional argument REDRAW, if non-nil, forces mode line to be updated."
   (message "Woman fill column set to %s."
 	   (if woman-fill-frame "frame width" woman-fill-column)))
 
+(declare-function apropos-print "apropos"
+                  (do-keys spacing &optional text nosubst))
+
 (defun woman-mini-help ()
   "Display WoMan commands and user options in an `apropos' buffer."
   ;; Based on apropos-command in apropos.el
@@ -2191,7 +2196,7 @@ To be called on original buffer and any .so insertions."
 		 (face-underline-p face))
 	    (let ((face-no-ul (intern (concat face-name "-no-ul"))))
 	      (copy-face face face-no-ul)
-	      (set-face-underline-p face-no-ul nil)))))))
+	      (set-face-underline face-no-ul nil)))))))
 
 ;; Preprocessors
 ;; =============

@@ -1,3 +1,56 @@
+2012-11-18  Glenn Morris  <rgm@gnu.org>
+
+	* loading.texi (How Programs Do Loading): Add eager macro expansion.
+	* macros.texi (Expansion): Mention eager macro expansion.
+
+	* minibuf.texi (Basic Completion): Mention misc completion-table funcs.
+
+2012-11-18  Leo Liu  <sdl.web@gmail.com>
+
+	* minibuf.texi (Programmed Completion): Doc fix for metadata
+	request (Bug#12850).
+
+2012-11-18  Glenn Morris  <rgm@gnu.org>
+
+	* display.texi (Temporary Displays): Document with-temp-buffer-window.
+
+	* frames.texi (Size and Position): Add fit-frame-to-buffer command.
+	* windows.texi (Resizing Windows): Add fit-frame-to-buffer option.
+	(Window Sizes): Add vindex for window-min-height, window-min-width.
+	(Display Action Functions): Mention pop-up-frame-parameters.
+
+2012-11-16  Martin Rudalics  <rudalics@gmx.at>
+
+	* windows.texi (Choosing Window): Rewrite description of
+	display-buffer-alist (Bug#12167).
+	(Display Action Functions): Mention inhibit-switch-frame.  Fix
+	description of display-buffer-below-selected.  Reorder actions.
+	Add example (Bug#12848).
+
+2012-11-16  Glenn Morris  <rgm@gnu.org>
+
+	* display.texi (Face Attributes): Fix :underline COLOR description.
+	(Attribute Functions): Update for set-face-underline rename.
+	Tweak descriptions of face-underline-p, face-inverse-video-p.
+
+	* keymaps.texi (Searching Keymaps, Tool Bar): Untabify examples,
+	so they align better in info.
+	(Active Keymaps, Searching Keymaps, Controlling Active Maps):
+	Document set-temporary-overlay-map.
+
+2012-11-15  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* keymaps.texi (Translation Keymaps): Add a subsection "Interaction
+	with normal keymaps".
+
+2012-11-15  Dmitry Antipov  <dmantipov@yandex.ru>
+
+	* internals.texi (Garbage Collection): Update descriptions
+	of vectorlike_header, garbage-collect and gc-cons-threshold.
+	(Object Internals): Explain Lisp_Object layout and the basics
+	of an internal type system.
+	(Buffer Internals): Update description of struct buffer.
+
 2012-11-13  Glenn Morris  <rgm@gnu.org>
 
 	* variables.texi (Adding Generalized Variables):

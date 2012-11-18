@@ -397,6 +397,12 @@
 (require 'ring)
 (require 'ehelp)
 
+(declare-function ring-empty-p "ring" (ring))
+(declare-function ring-ref "ring" (ring index))
+(declare-function ring-insert-at-beginning "ring" (ring item))
+(declare-function ring-length "ring" (ring))
+(declare-function ring-insert "ring" (ring item))
+
 (defgroup term nil
   "General command interpreter in a window."
   :group 'processes)
@@ -4178,11 +4184,16 @@ the process.  Any more args are arguments to PROGRAM."
   (term-mode)
   (term-char-mode)
 
-  ;; I wanna have find-file on C-x C-f -mm
-  ;; your mileage may definitely vary, maybe it's better to put this in your
-  ;; .emacs ...
-
-  (term-set-escape-char ?\C-x)
+  ;; Historical baggage.  A call to term-set-escape-char used to not
+  ;; undo any previous call to t-s-e-c.  Because of this, ansi-term
+  ;; ended up with both C-x and C-c as escape chars.  Who knows what
+  ;; the original intention was, but people could have become used to
+  ;; either.   (Bug#12842)
+  (let (term-escape-char)
+    ;; I wanna have find-file on C-x C-f -mm
+    ;; your mileage may definitely vary, maybe it's better to put this in your
+    ;; .emacs ...
+    (term-set-escape-char ?\C-x))
 
   (switch-to-buffer term-ansi-buffer-name))
 

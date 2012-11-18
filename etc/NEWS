@@ -61,6 +61,11 @@ and redirect them to your own function instead of `fset'.
 
 * Changes in Emacs 24.4 on non-free operating systems
 
++++
+** The "generate a backtrace on fatal error" feature now works on MS Windows.
+The backtrace is written to the 'emacs_backtrace.txt' file in the
+directory where Emacs was running.
+
 
 * Installation Changes in Emacs 24.3
 
@@ -361,6 +366,8 @@ provide the old non-prefixed names.  Some exceptions are listed below.
 +++
 *** `cl-flet' is not like `flet' (which is deprecated).
 Instead it obeys the behavior of Common-Lisp's `flet'.
+In particular, in cl-flet function definitions are lexically scoped,
+whereas in flet the scoping is dynamic.
 
 +++
 *** `cl-labels' is slightly different from `labels'.
@@ -475,11 +482,17 @@ The global binding for `M-=', `count-words-region' is in effect.
 
 ** ERC
 
-*** New package `erc-desktop-notifications.el', which can send a notification
-when you receive a private message or your nickname is mentioned.
++++
+*** New module "notifications", which can send a notification when you
+receive a private message or your nickname is mentioned.
 
++++
 *** ERC will look up server/channel names via auth-source and use any
 channel keys found.
+
++++
+*** New option `erc-lurker-hide-list', similar to `erc-hide-list', but
+only applies to messages sent by lurkers.
 
 +++
 ** Flymake uses fringe bitmaps to indicate errors and warnings.
@@ -668,8 +681,7 @@ enabled, applies to all applicable major modes.
 ** winner-mode-hook now runs when the mode is disabled, as well as when it is
 enabled.
 
-** FIXME something happened to ses.el, 2012-04-17.
-
++++
 ** Hooks renamed to avoid obsolete "-hooks" suffix:
 *** semantic-lex-reset-hooks -> semantic-lex-reset-functions
 *** semantic-change-hooks -> semantic-change-functions
@@ -846,6 +858,7 @@ More commands use `read-regexp' now to read their regexp arguments.
 *** New function `completion-table-with-quoting' to handle completion
 in the presence of quoting, such as file completion in shell buffers.
 
++++
 *** New function `completion-table-subvert' to use an existing completion
 table, but with a different prefix.
 
@@ -874,24 +887,33 @@ now accept a third argument to avoid choosing the selected window.
 +++
 *** Additional values recognized for option `window-combination-limit'.
 
-*** New macro `with-temp-buffer-window'.
++++
+*** New macro `with-temp-buffer-window', similar to
+`with-output-to-temp-buffer'.
 
+---
 *** `temp-buffer-resize-mode' no longer resizes windows that have been
 reused.
 
-*** New function `fit-frame-to-buffer' and new options
-`fit-frame-to-buffer' and `fit-frame-to-buffer-bottom-margin'.
++++
+*** New command `fit-frame-to-buffer' adjusts the frame height to
+fit the contents.
+
++++
+*** The command `fit-window-to-buffer' can adjust the frame height
+if the new option `fit-frame-to-buffer' is non-nil.
+
 +++
 *** New option switch-to-buffer-preserve-window-point to restore a
 window's point when switching buffers.
 +++
 *** New display action functions `display-buffer-below-selected',
 and `display-buffer-in-previous-window'.
-
++++
 *** New display action alist entry `inhibit-switch-frame', if non-nil,
 tells display action functions to avoid changing which frame is
 selected.
-
++++
 *** New display action alist entry `pop-up-frame-parameters', if
 non-nil, specifies frame parameters to give any newly-created frame.
 +++
@@ -947,13 +969,14 @@ Previously, they returned NaNs on some platforms but signaled errors
 on others.  The affected functions are acos, asin, tan, exp, expt,
 log, log10, sqrt, and mod.
 
-** Interpreted files are eagerly macro-expanded during load.
++++
+** Emacs tries to macroexpand interpreted (non-compiled) files during load.
 This can significantly speed up execution of non-byte-compiled code,
-but can also bump into harmless and previously unnoticed cyclic
-dependencies.  These should not be fatal: they will simply cause the
-macro-calls to be left for later expansion (as before), but will also
-result in a warning ("Eager macro-expansion skipped due to cycle")
-describing the cycle.
+but can also bump into previously unnoticed cyclic dependencies.
+These are generally harmless: they will simply cause the macro calls
+to be left for later expansion (as before), but will result in a
+warning ("Eager macro-expansion skipped due to cycle") describing the cycle.
+You may wish to restructure your code so this does not happen.
 
 ** Miscellaneous new functions:
 +++
@@ -968,7 +991,9 @@ describing the cycle.
 *** `function-get' fetches a function property, following aliases.
 +++
 *** `posnp' tests if an object is a `posn'.
-*** `set-temporary-overlay-map' sets up a temporary overlay map.
++++
+*** `set-temporary-overlay-map' sets up a temporary keymap that
+takes precedence over most other maps for a short while (normally one key).
 +++
 *** `system-users' returns the user names on the system.
 +++
@@ -982,8 +1007,8 @@ describing the cycle.
 +++
 ** New fringe bitmap `exclamation-mark'.
 
++++
 ** Face underlining can now use a wave.
-See the "Face Attributes" section of the Elisp manual.
 
 ** The following functions and variables are obsolete:
 ---

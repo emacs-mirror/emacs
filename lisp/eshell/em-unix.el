@@ -306,12 +306,13 @@ Remove (unlink) the FILE(s).")
   (eshell-eval-using-options
    "mkdir" args
    '((?h "help" nil nil "show this usage screen")
+     (?p "parents" nil em-parents "make parent directories as needed")
      :external "mkdir"
      :show-usage
      :usage "[OPTION] DIRECTORY...
 Create the DIRECTORY(ies), if they do not already exist.")
    (while args
-     (eshell-funcalln 'make-directory (car args))
+     (eshell-funcalln 'make-directory (car args) em-parents)
      (setq args (cdr args)))
    nil))
 

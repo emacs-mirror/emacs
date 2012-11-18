@@ -11010,50 +11010,47 @@ You can use the @kbd{v p} (@code{calc-pack}) and @kbd{v u}
 of a date form.  @xref{Packing and Unpacking}.
 
 Date forms can go arbitrarily far into the future or past.  Negative
-year numbers represent years BC.  Calc uses a combination of the
-Gregorian and Julian calendars, following the history of Great
-Britain and the British colonies.  This is the same calendar that
-is used by the @code{cal} program in most Unix implementations.
+year numbers represent years BC.  There is no ``year 0''; the day
+before @samp{<Mon Jan 1, +1>} is @samp{<Sun Dec 31, -1>}.  These are
+days 1 and 0 respectively in Calc's internal numbering scheme.  The
+Gregorian calendar is used for all dates, including dates before the
+Gregorian calendar was invented.  Thus Calc's use of the day number
+@mathit{-10000} to represent August 15, 28 BC should be taken with a
+grain of salt.
 
 @cindex Julian calendar
 @cindex Gregorian calendar
 Some historical background:  The Julian calendar was created by
-Julius Caesar in the year 46 BC as an attempt to fix the gradual
-drift caused by the lack of leap years in the calendar used
-until that time.  The Julian calendar introduced an extra day in
+Julius Caesar in the year 46 BC as an attempt to fix the confusion
+caused by the irregular Roman calendar that was used before that time.
+The Julian calendar introduced an extra day in
 all years divisible by four.  After some initial confusion, the
-calendar was adopted around the year we call 8 AD.  Some centuries
+calendar was adopted around the year we call 8 AD, although the years were
+numbered differently and did not necessarily begin on January 1.  Some centuries
 later it became apparent that the Julian year of 365.25 days was
 itself not quite right.  In 1582 Pope Gregory XIII introduced the
 Gregorian calendar, which added the new rule that years divisible
 by 100, but not by 400, were not to be considered leap years
 despite being divisible by four.  Many countries delayed adoption
-of the Gregorian calendar because of religious differences;
-in Britain it was put off until the year 1752, by which time
-the Julian calendar had fallen eleven days behind the true
-seasons.  So the switch to the Gregorian calendar in early
-September 1752 introduced a discontinuity:  The day after
-Sep 2, 1752 is Sep 14, 1752.  Calc follows this convention.
-To take another example, Russia waited until 1918 before
-adopting the new calendar, and thus needed to remove thirteen
-days (between Feb 1, 1918 and Feb 14, 1918).  This means that
-Calc's reckoning will be inconsistent with Russian history between
-1752 and 1918, and similarly for various other countries.
+of the Gregorian calendar because of religious differences, and
+used differing year numbers and start-of-year for other reasons;
+for example, in early 1752 England changed the start of its year from
+March 25 to January 1, and in September it switched to the Gregorian
+calendar: in England, the day after December 31, 1750 was January 1,
+1750 and the day after March 24, 1750 was March 25, 1751, but the day
+after December 31, 1751 was January 1, 1752 and the day after
+September 2, 1752 was September 14, 1752.  To take another example,
+Russia switched both year numbering and start-of-year in 1700, but did
+not adopt the Gregorian calendar until 1918.  Calc's reckoning
+therefore matches English practice starting in 1752 and Russian
+practice starting in 1918, but disagrees with earlier dates in both
+countries.
 
 Today's timekeepers introduce an occasional ``leap second'' as
 well, but Calc does not take these minor effects into account.
 (If it did, it would have to report a non-integer number of days
 between, say, @samp{<12:00am Mon Jan 1, 1900>} and
 @samp{<12:00am Sat Jan 1, 2000>}.)
-
-Calc uses the Julian calendar for all dates before the year 1752,
-including dates BC when the Julian calendar technically had not
-yet been invented.  Thus the claim that day number @mathit{-10000} is
-called ``August 16, 28 BC'' should be taken with a grain of salt.
-
-Please note that there is no ``year 0''; the day before
-@samp{<Sat Jan 1, +1>} is @samp{<Fri Dec 31, -1>}.  These are
-days 0 and @mathit{-1} respectively in Calc's internal numbering scheme.
 
 @cindex Julian day counting
 Another day counting system in common use is, confusingly, also called

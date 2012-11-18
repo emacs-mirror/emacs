@@ -1383,6 +1383,10 @@ Used by `pr-menu-bind' and `pr-update-menus'.")
   (eval-when-compile
     (require 'easymenu))		; to avoid compilation gripes
 
+  (declare-function easy-menu-add-item "easymenu"
+                    (map path item &optional before))
+  (declare-function easy-menu-remove-item "easymenu" (map path name))
+
   (eval-and-compile
       (defun pr-global-menubar (pr-menu-spec)
 	(require 'easymenu)
@@ -6079,6 +6083,8 @@ COMMAND.exe, COMMAND.bat and COMMAND.com in this order."
   (and pr-i-region			; let region activated
        (pr-keep-region-active)))
 
+(declare-function widget-field-action "wid-edit" (widget &optional _event))
+(declare-function widget-value-set "wid-edit" (widget value))
 
 (defun pr-insert-section-1 ()
   ;; 1. Print:

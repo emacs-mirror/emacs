@@ -3,7 +3,7 @@
 ;; Copyright (C) 1993, 2001-2012  Free Software Foundation, Inc.
 
 ;; Author: Dave Gillespie <daveg@synaptics.com>
-;; Version: 2.02
+;; Version: 1.0
 ;; Keywords: extensions
 
 ;; This file is part of GNU Emacs.
@@ -661,7 +661,7 @@ If ALIST is non-nil, the new pairs are prepended to it."
 (gv-define-setter face-foreground (x f &optional s)
   `(set-face-foreground ,f ,x ,s))
 (gv-define-setter face-underline-p (x f &optional s)
-  `(set-face-underline-p ,f ,x ,s))
+  `(set-face-underline ,f ,x ,s))
 (gv-define-simple-setter file-modes set-file-modes t)
 (gv-define-simple-setter frame-height set-screen-height t)
 (gv-define-simple-setter frame-parameters modify-frame-parameters t)

@@ -80,6 +80,13 @@
      (sm-test5 6) 100.1)
     ((advice-remove 'sm-test5 (lambda (f y) (* (funcall f y) 5)))
      (sm-test5 6) 20.1)
+
+    ;; This used to signal an error (bug#12858).
+    ((autoload 'sm-test6 "foo")
+     (defadvice sm-test6 (around test activate)
+       ad-do-it)
+     t t)
+
     ))
 
 (ert-deftest advice-tests ()

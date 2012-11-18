@@ -1,3 +1,20 @@
+2012-11-17  Paul Eggert  <eggert@cs.ucla.edu>
+
+	Calc now uses the Gregorian calendar for all dates,
+	and uses January 1, 1 AD as its day number 1.
+	* calc.texi (Date Forms): Document this.
+
+2012-11-16  Glenn Morris  <rgm@gnu.org>
+
+	* cl.texi (Function Bindings): Clarify that cl-flet is lexical.
+	(Obsolete Macros): Move example here from Function Bindings.
+
+	* erc.texi: Use @code{nil} rather than just "nil".
+	(Modules): Undocument obsolete "hecomplete".
+	Add "notifications".
+	(Connecting): Add brief section on passwords.
+	(Options): Make a start by adding erc-hide-list, erc-lurker-hide-list.
+
 2012-11-13  Glenn Morris  <rgm@gnu.org>
 
 	* flymake.texi (Customizable variables)

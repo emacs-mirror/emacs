@@ -95,10 +95,6 @@ extern void moncontrol (int mode);
 #include <sys/personality.h>
 #endif
 
-#ifndef O_RDWR
-#define O_RDWR 2
-#endif
-
 static const char emacs_version[] = VERSION;
 static const char emacs_copyright[] = COPYRIGHT;
 

@@ -1,3 +1,13 @@
+2012-11-17  Juanma Barranquero  <lekktu@gmail.com>
+
+	* makefile.w32-in (SYSWAIT_H): New macro.
+	($(BLD)/movemail.$(O)): Update dependencies.
+
+2012-11-17  Paul Eggert  <eggert@cs.ucla.edu>
+
+	Assume POSIX 1003.1-1988 or later for fcntl.h (Bug#12881).
+	* movemail.c, update-game-score.c: Assume <fcntl.h> exists.
+
 2012-10-26  Glenn Morris  <rgm@gnu.org>
 
 	* Makefile.in (uninstall): No INSTALLABLES live in archlibdir.

@@ -1,3 +1,233 @@
+2012-11-18  Chong Yidong  <cyd@gnu.org>
+
+	* filecache.el (file-cache--read-list): New function.
+	(file-cache-add-directory-list, file-cache-add-file-list)
+	(file-cache-delete-file-list, file-cache-delete-directory-list):
+	Use it to read a list of files or directories (Bug#12846).
+	(file-cache-add-file, file-cache-add-directory)
+	(file-cache-delete-file-list, file-cache-delete-file-regexp)
+	(file-cache-delete-directory): Print an message.
+
+2012-11-18  Jay Belanger  <jay.p.belanger@gmail.com>
+
+	* calc/calc-forms.el (math-date-to-dt): Use integer date when
+	calling `math-date-to-julian-dt' and 'math-date-to-gregorian-dt'.
+
+2012-11-18  Glenn Morris  <rgm@gnu.org>
+
+	* image.el (insert-image, insert-sliced-image): Doc fix.
+
+2012-11-18  Chong Yidong  <cyd@gnu.org>
+
+	* emacs-lisp/syntax.el (syntax-propertize-function): Doc fix
+	(Bug#12810).
+
+2012-11-18  OKAZAKI Tetsurou  <okazaki.tetsurou@gmail.com>  (tiny change)
+
+	* vc/vc-svn.el (vc-svn-merge-news): Properly parse the merge
+	response when the target file is in a subdirectory (Bug#12757).
+
+2012-11-18  Chong Yidong  <cyd@gnu.org>
+
+	* filecache.el (file-cache-add-file-list): Doc fix (Bug#12694).
+
+2012-11-18  Glenn Morris  <rgm@gnu.org>
+
+	* emacs-lisp/cl-lib.el (face-underline-p):
+	Use set-face-underline rather than the alias set-face-underline-p.
+
+	* window.el (with-temp-buffer-window): Doc fix.
+	* subr.el (with-output-to-temp-buffer):
+	Add doc xref to with-temp-buffer-window.
+
+2012-11-18  Juanma Barranquero  <lekktu@gmail.com>
+
+	* woman.el (woman-non-underline-faces): Use `set-face-underline'.
+	* calc/calc.el (math-format-date-cache): Declare.
+
+2012-11-17  Paul Eggert  <eggert@cs.ucla.edu>
+
+	* calc/calc-forms.el (math-julian-date-beginning)
+	(math-julian-date-beginning-int): Implement [new date numbering].
+
+2012-11-17  Juanma Barranquero  <lekktu@gmail.com>
+
+	* descr-text.el (quail-find-key):
+	* dired.el (desktop-file-name):
+	* dirtrack.el (shell-prefixed-directory-name, shell-process-cd):
+	* generic-x.el (comint-mode, comint-exec):
+	* image-dired.el (widget-forward):
+	* info.el (speedbar-add-expansion-list, speedbar-center-buffer-smartly)
+	(speedbar-change-expand-button-char)
+	(speedbar-change-initial-expansion-list, speedbar-delete-subblock)
+	(speedbar-make-specialized-keymap, speedbar-make-tag-line):
+	* printing.el (easy-menu-add-item, easy-menu-remove-item)
+	(widget-field-action, widget-value-set):
+	* speedbar.el (imenu--make-index-alist):
+	* term.el (ring-empty-p, ring-ref, ring-insert-at-beginning)
+	(ring-length, ring-insert):
+	* vcursor.el (compare-windows-skip-whitespace):
+	* woman.el (dired-get-filename):
+	Declare functions.
+
+	* term/w32-win.el (cygwin-convert-path-from-windows): Fix declaration.
+
+2012-11-17  Jay Belanger  <jay.p.belanger@gmail.com>
+
+	* calc/calc.el (calc-gregorian-switch): New variable.
+
+	* calc/calc-forms.el (math-day-in-year, math-dt-before-p)
+	(math-absolute-from-gregorian-dt, math-absolute-from-julian-dt)
+	(math-date-to-julian-dt, math-date-to-gregorian-dt): New functions.
+	(math-leap-year-p): Add option to distinguish between Julian
+	and Gregorian calendars.
+	(math-day-number): Use `math-day-in-year' to do the computations.
+	(math-absolute-from-dt): Rename from `math-absolute-from-date'.
+	Use `math-absolute-from-gregorian' and `math-absolute-from-julian'
+	to do the computations.
+	(math-date-to-dt): Use `math-date-to-julian-dt' and
+	`math-date-to-gregorian-dt' to do the computations.
+	(calcFunc-weekday, math-format-date-part): Use the new version of
+	the DATE to determine the weekday.
+	(calcFunc-newmonth, calcFunc-newyear): Use `calc-gregorian-switch'
+	when necessary.
+
+2012-11-17  Eli Zaretskii  <eliz@gnu.org>
+
+	* term/w32-win.el (w32-handle-dropped-file): Use 'file://' only on
+	Cygwin; otherwise use 'file:'.  (Bug#12914)
+	(cygwin-convert-path-from-windows): Declare, to avoid
+	byte-compiler warnings.
+
+2012-11-17  Andreas Politz  <politza@fh-trier.de>
+
+	* ibuffer.el (ibuffer-mark-forward, ibuffer-unmark-forward)
+	(ibuffer-unmark-backward, ibuffer-mark-interactive): Support plain
+	prefix and negative numeric prefix args (Bug#12795).
+
+2012-11-17  Stephen Berman  <stephen.berman@gmx.net>
+
+	* play/gamegrid.el (gamegrid-add-score-with-update-game-score-1):
+	Don't signal an error with a score that is too low to add to the
+	list of top scores. (Bug#12779)
+
+2012-11-17  Chong Yidong  <cyd@gnu.org>
+
+	* help-mode.el (help-xref-interned): End on point-min (Bug#12737).
+
+	* filecache.el (file-cache-add-file): Handle relative file name in
+	the argument (Bug#12694).
+
+2012-11-16  Jürgen Hötzel  <juergen@archlinux.org>  (tiny change)
+
+	* eshell/em-unix.el (eshell/mkdir): Handle "--parents" (bug#12897).
+
+2012-11-16  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* emacs-lisp/advice.el (ad-make-advised-definition): Improve last fix.
+
+	* emacs-lisp/cl-lib.el: Set more meaningful version number.
+
+2012-11-16  Martin Rudalics  <rudalics@gmx.at>
+
+	* window.el (enlarge-window, shrink-window): Don't mention return
+	value in doc-string (Bug#12896).
+	(window--display-buffer): Don't resize frames - it won't work
+	with all window managers and defeat pop-up-frame-alist.
+	(display-buffer-alist): In doc-string explain that CONDITION can
+	be a function and which arguments are passed to it (Bug#12854).
+	(display-buffer-assq-regexp): New argument ACTION.  Handle lambda
+	expressions (Bug#12854).
+	(display-buffer): Pass ACTION argument to
+	display-buffer-assq-regexp.
+
+2012-11-16  Glenn Morris  <rgm@gnu.org>
+
+	* window.el (fit-frame-to-buffer-bottom-margin)
+	(fit-frame-to-buffer, fit-window-to-buffer): Doc fixes.
+
+	* faces.el (face-underline-p): Use face-attribute-specified-or.
+
+2012-11-16  Juanma Barranquero  <lekktu@gmail.com>
+
+	* emacs-lisp/cl-macs.el (cl-loop, cl-do, cl-do*): Doc fixes.
+
+2012-11-16  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* emacs-lisp/cl-macs.el (cl-flet, cl-flet*): Fix docstring (bug#12895).
+
+2012-11-16  Glenn Morris  <rgm@gnu.org>
+
+	* eshell/em-cmpl.el (eshell-pcomplete): New command.  (Bug#12838)
+	(eshell-cmpl-initialize): Bind eshell-pcomplete to TAB, C-i.
+
+	* faces.el (face-underline-p): Doc fix.  Handle :underline being
+	things other than `t' (a string, a list).
+	(face-inverse-video-p): Doc fix.
+	(set-face-underline): Rename it back from set-face-underline-p.
+	Doc fix.  Allow interactive input of values other than t.
+	(read-face-attribute): Apply formatting to :underline,
+	since like :box and :stipple it can take list values.
+
+	* term.el (ansi-term): Don't let C-x escape-char binding
+	clobber the more standard C-c binding.  (Bug#12842)
+
+	* subr.el (set-temporary-overlay-map): Doc fix.
+
+2012-11-16  Martin Rudalics  <rudalics@gmx.at>
+
+	* window.el (record-window-buffer)
+	(display-buffer-record-window): When copying the markers to
+	window-point preserve window-point-insertion-type. (Bug#12588)
+
+2012-11-16  Glenn Morris  <rgm@gnu.org>
+
+	* emacs-lisp/eieio-datadebug.el (eieio-debug-methodinvoke):
+	* net/tramp-gvfs.el (tramp-gvfs-dbus-event-error):
+	Use new names for hooks rather than obsolete aliases.
+
+2012-11-15  Daniel Colascione  <dancol@dancol.org>
+
+	* term/w32-win.el (w32-handle-dropped-file): Use a "file://"
+	prefix instead of "file:" so that when FILE-NAME begins with "//",
+	as it does when the target file is on a network share, url-handler
+	isn't confused.
+
+2012-11-15  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* emacs-lisp/advice.el (ad-definition-type): Make sure we don't use
+	a preactivated advice from an old advice.el; they're not compatible!
+
+2012-11-15  Katsumi Yamaoka  <yamaoka@jpl.org>
+
+	* emacs-lisp/nadvice.el (advice--make-interactive-form):
+	Fix string-spec case.
+
+	* emacs-lisp/advice.el (ad-make-advised-definition): Fix undefined case.
+
+2012-11-15  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* emacs-lisp/nadvice.el: Add buffer-local support to add-function.
+	(advice--buffer-local-function-sample): New var.
+	(advice--set-buffer-local, advice--buffer-local): New functions.
+	(add-function, remove-function): Use them.
+
+2012-11-15  Drew Adams  <drew.adams@oracle.com>
+
+	* imenu.el (imenu--split-submenus): Use imenu--subalist-p (bug#12717).
+
+2012-11-15  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* emacs-lisp/cl-macs.el (cl--transform-lambda): Defend against
+	potential binding of print-gensym to t, and prettify (back)quotes in
+	case they appear in args's default values (bug#12884).
+
+2012-11-14  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* emacs-lisp/nadvice.el: Add around advice for interactive specs.
+	(advice-eval-interactive-spec): New function.
+	(advice--make-interactive-form): Support around advice (bug#12844).
+
 2012-11-14  Dmitry Gutov  <dgutov@yandex.ru>
 
 	* progmodes/ruby-mode.el (ruby-expr-beg): Make heredoc detection

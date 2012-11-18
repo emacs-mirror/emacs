@@ -4836,6 +4836,17 @@ first line or header line, and for breadcrumb links.")
 ;; current Info node.
 (eval-when-compile (require 'speedbar))
 
+(declare-function speedbar-add-expansion-list "speedbar" (new-list))
+(declare-function speedbar-center-buffer-smartly "speedbar" ())
+(declare-function speedbar-change-expand-button-char "speedbar" (char))
+(declare-function speedbar-change-initial-expansion-list "speedbar" (new-default))
+(declare-function speedbar-delete-subblock "speedbar" (indent))
+(declare-function speedbar-make-specialized-keymap "speedbar" ())
+(declare-function speedbar-make-tag-line "speedbar"
+                  (exp-button-type exp-button-char exp-button-function
+                   exp-button-data tag-button tag-button-function
+                   tag-button-data tag-button-face depth))
+
 (defvar Info-speedbar-key-map nil
   "Keymap used when in the Info display mode.")
 
