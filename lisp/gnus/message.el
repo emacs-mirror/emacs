@@ -6734,7 +6734,7 @@ The function is called with one parameter, a cons cell ..."
 	    mft (and message-use-mail-followup-to
 		     (message-fetch-field "mail-followup-to")))
       ;; Make sure this message goes to the author if this is a wide
-      ;; reply, sine Reply-To address may be a list address a mailing
+      ;; reply, since Reply-To address may be a list address a mailing
       ;; list server added.
       (when (and wide author)
 	(setq cc (concat author ", " cc)))
