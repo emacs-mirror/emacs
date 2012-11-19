@@ -134,9 +134,7 @@ If DATE lacks timezone information, GMT is assumed."
 ;;;###autoload(if (or (featurep 'emacs)
 ;;;###autoload        (and (fboundp 'float-time)
 ;;;###autoload             (subrp (symbol-function 'float-time))))
-;;;###autoload    (progn
-;;;###autoload      (defalias 'time-to-seconds 'float-time)
-;;;###autoload      (make-obsolete 'time-to-seconds 'float-time "21.1"))
+;;;###autoload    (defalias 'time-to-seconds 'float-time)
 ;;;###autoload  (autoload 'time-to-seconds "time-date"))
 
 (eval-when-compile

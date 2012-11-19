@@ -1,3 +1,7 @@
+2012-11-19  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* calendar/time-date.el (time-to-seconds): De-obsolete.
+
 2012-11-19  Jay Belanger  <jay.p.belanger@gmail.com>
 
 	* calc/calc-forms.el (math-leap-year-p):  Fix formula for negative
@@ -7,8 +11,8 @@
 
 2012-11-19  Daniel Colascione  <dancol@dancol.org>
 
-	* term/w32-win.el (cygwin-convert-path-from-windows): Accomodate
-	rename of cygwin_convert_path* to cygwin_convert_file_name*.
+	* term/w32-win.el (cygwin-convert-path-from-windows):
+	Accomodate rename of cygwin_convert_path* to cygwin_convert_file_name*.
 
 2012-11-18  Chong Yidong  <cyd@gnu.org>
 

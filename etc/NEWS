@@ -52,6 +52,7 @@ spurious warnings about an unused var.
 
 * Lisp changes in Emacs 24.4
 
+** time-to-seconds is not obsolete any more.
 ** New function special-form-p.
 ** Docstrings can be made dynamic by adding a `dynamic-docstring-function'
 text-property on the first char.
