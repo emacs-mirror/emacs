@@ -1,5 +1,8 @@
 2012-11-19  Stefan Monnier  <monnier@iro.umontreal.ca>
 
+	* emacs-lisp/byte-run.el (defun-declarations-alist): Don't accept
+	non-symbols for compiler macros (yet).
+
 	* eshell/em-cmpl.el (eshell-pcomplete): Refine fix for bug#12838:
 	Fallback on completion-at-point rather than
 	pcomplete-expand-and-complete, and only if pcomplete actually failed.

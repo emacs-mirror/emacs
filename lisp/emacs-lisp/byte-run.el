@@ -82,7 +82,9 @@ The return value of this function is not used."
              `(make-obsolete ',f ',new-name ,when)))
    (list 'compiler-macro
          #'(lambda (f _args compiler-function)
-             `(put ',f 'compiler-macro #',compiler-function)))
+             (if (not (symbolp compiler-function))
+                 (error "Only symbols are supported in `compiler-macro'")
+               `(put ',f 'compiler-macro #',compiler-function))))
    (list 'doc-string
          #'(lambda (f _args pos)
              (list 'put (list 'quote f) ''doc-string-elt (list 'quote pos))))
