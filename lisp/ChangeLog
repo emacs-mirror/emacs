@@ -1,3 +1,10 @@
+2012-11-19  Jay Belanger  <jay.p.belanger@gmail.com>
+
+	* calc/calc-forms.el (math-leap-year-p):  Fix formula for negative
+	year numbers.
+	(math-date-to-julian-dt): Adjust the initial approximation for the
+	year to deal with the new definition of the DATE.
+
 2012-11-19  Daniel Colascione  <dancol@dancol.org>
 
 	* term/w32-win.el (cygwin-convert-path-from-windows): Accomodate
