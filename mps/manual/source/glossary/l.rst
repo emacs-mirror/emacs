@@ -115,7 +115,7 @@ Memory Management Glossary: L
         smaller objects are allocated, the free block chain fills up
         with fragments a little smaller than the large object size.
 
-        .. seealso:: :term:`first fit`, :term:`FIFO-ordered first fit`, :term:`address-ordered first fit`.
+        .. seealso:: :term:`FIFO-ordered first fit`, :term:`address-ordered first fit`.
 
         .. bibref:: :ref:`Wilson et al. (1995) <WIL95>`.
 

@@ -78,8 +78,6 @@ Memory Management Glossary: F
         :term:`address-ordered first fit` in some cases, although
         :term:`locality <locality of reference>` may be worse.
 
-        .. seealso:: :term:`first fit`, :term:`LIFO-ordered first fit`, :term:`address-ordered first fit`, :term:`allocation policy`.
-
     file mapping
 
         .. see:: :term:`memory mapping`.
