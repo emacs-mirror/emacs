@@ -1,5 +1,12 @@
 2012-11-19  Stefan Monnier  <monnier@iro.umontreal.ca>
 
+	* eshell/em-cmpl.el (eshell-pcomplete): Refine fix for bug#12838:
+	Fallback on completion-at-point rather than
+	pcomplete-expand-and-complete, and only if pcomplete actually failed.
+	(eshell-cmpl-initialize): Setup completion-at-point.
+
+	* pcomplete.el (pcomplete--entries): Obey pcomplete-ignore-case.
+
 	* emacs-lisp/ert.el (ert--expand-should-1): Adapt to cl-lib.
 
 2012-11-19  Michael Albinus  <michael.albinus@gmx.de>
