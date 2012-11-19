@@ -93,9 +93,7 @@
 ;;; Code:
 
 (require 'erc)
-(eval-when-compile
-  (require 'erc-networks)
-  (require 'cl))
+(eval-when-compile (require 'erc-networks))
 
 (defgroup erc-log nil
   "Logging facilities for ERC."
@@ -429,7 +427,8 @@ You can save every individual message by putting this function on
 					file t 'nomessage))))
 		  (let ((coding-system-for-write coding-system))
 		    (write-region start end file t 'nomessage))))
-	      (if (and erc-truncate-buffer-on-save (interactive-p))
+	      (if (and erc-truncate-buffer-on-save
+		       (called-interactively-p 'interactive))
 		  (progn
 		    (let ((inhibit-read-only t)) (erase-buffer))
 		    (move-marker erc-last-saved-position (point-max))

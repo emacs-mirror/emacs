@@ -1,4 +1,4 @@
-;;; ert-tests.el --- ERT's self-tests
+;;; ert-tests.el --- ERT's self-tests  -*- lexical-binding: t -*-
 
 ;; Copyright (C) 2007-2008, 2010-2012 Free Software Foundation, Inc.
 
@@ -27,7 +27,7 @@
 ;;; Code:
 
 (eval-when-compile
-  (require 'cl))
+  (require 'cl-lib))
 (require 'ert)
 
 
@@ -45,7 +45,7 @@
       ;; The buffer name chosen here should not compete with the default
       ;; results buffer name for completion in `switch-to-buffer'.
       (let ((stats (ert-run-tests-interactively "^ert-" " *ert self-tests*")))
-        (assert ert--test-body-was-run)
+        (cl-assert ert--test-body-was-run)
         (if (zerop (ert-stats-completed-unexpected stats))
             ;; Hide results window only when everything went well.
             (set-window-configuration window-configuration)
@@ -71,26 +71,26 @@ failed or if there was a problem."
 
 (ert-deftest ert-test-nested-test-body-runs ()
   "Test that nested test bodies run."
-  (lexical-let ((was-run nil))
+  (let ((was-run nil))
     (let ((test (make-ert-test :body (lambda ()
                                        (setq was-run t)))))
-      (assert (not was-run))
+      (cl-assert (not was-run))
       (ert-run-test test)
-      (assert was-run))))
+      (cl-assert was-run))))
 
 
 ;;; Test that pass/fail works.
 (ert-deftest ert-test-pass ()
   (let ((test (make-ert-test :body (lambda ()))))
     (let ((result (ert-run-test test)))
-      (assert (ert-test-passed-p result)))))
+      (cl-assert (ert-test-passed-p result)))))
 
 (ert-deftest ert-test-fail ()
   (let ((test (make-ert-test :body (lambda () (ert-fail "failure message")))))
     (let ((result (let ((ert-debug-on-error nil))
                     (ert-run-test test))))
-      (assert (ert-test-failed-p result) t)
-      (assert (equal (ert-test-result-with-condition-condition result)
+      (cl-assert (ert-test-failed-p result) t)
+      (cl-assert (equal (ert-test-result-with-condition-condition result)
                      '(ert-test-failed "failure message"))
               t))))
 
@@ -100,50 +100,50 @@ failed or if there was a problem."
         (progn
           (let ((ert-debug-on-error t))
             (ert-run-test test))
-          (assert nil))
+          (cl-assert nil))
       ((error)
-       (assert (equal condition '(ert-test-failed "failure message")) t)))))
+       (cl-assert (equal condition '(ert-test-failed "failure message")) t)))))
 
 (ert-deftest ert-test-fail-debug-with-debugger-1 ()
   (let ((test (make-ert-test :body (lambda () (ert-fail "failure message")))))
-    (let ((debugger (lambda (&rest debugger-args)
-                      (assert nil))))
+    (let ((debugger (lambda (&rest _args)
+                      (cl-assert nil))))
       (let ((ert-debug-on-error nil))
         (ert-run-test test)))))
 
 (ert-deftest ert-test-fail-debug-with-debugger-2 ()
   (let ((test (make-ert-test :body (lambda () (ert-fail "failure message")))))
-    (block nil
-      (let ((debugger (lambda (&rest debugger-args)
-                        (return-from nil nil))))
+    (cl-block nil
+      (let ((debugger (lambda (&rest _args)
+                        (cl-return-from nil nil))))
         (let ((ert-debug-on-error t))
           (ert-run-test test))
-        (assert nil)))))
+        (cl-assert nil)))))
 
 (ert-deftest ert-test-fail-debug-nested-with-debugger ()
   (let ((test (make-ert-test :body (lambda ()
                                      (let ((ert-debug-on-error t))
                                        (ert-fail "failure message"))))))
-    (let ((debugger (lambda (&rest debugger-args)
-                      (assert nil nil "Assertion a"))))
+    (let ((debugger (lambda (&rest _args)
+                      (cl-assert nil nil "Assertion a"))))
       (let ((ert-debug-on-error nil))
         (ert-run-test test))))
   (let ((test (make-ert-test :body (lambda ()
                                      (let ((ert-debug-on-error nil))
                                        (ert-fail "failure message"))))))
-    (block nil
-      (let ((debugger (lambda (&rest debugger-args)
-                        (return-from nil nil))))
+    (cl-block nil
+      (let ((debugger (lambda (&rest _args)
+                        (cl-return-from nil nil))))
         (let ((ert-debug-on-error t))
           (ert-run-test test))
-        (assert nil nil "Assertion b")))))
+        (cl-assert nil nil "Assertion b")))))
 
 (ert-deftest ert-test-error ()
   (let ((test (make-ert-test :body (lambda () (error "Error message")))))
     (let ((result (let ((ert-debug-on-error nil))
                     (ert-run-test test))))
-      (assert (ert-test-failed-p result) t)
-      (assert (equal (ert-test-result-with-condition-condition result)
+      (cl-assert (ert-test-failed-p result) t)
+      (cl-assert (equal (ert-test-result-with-condition-condition result)
                      '(error "Error message"))
               t))))
 
@@ -153,9 +153,9 @@ failed or if there was a problem."
         (progn
           (let ((ert-debug-on-error t))
             (ert-run-test test))
-          (assert nil))
+          (cl-assert nil))
       ((error)
-       (assert (equal condition '(error "Error message")) t)))))
+       (cl-assert (equal condition '(error "Error message")) t)))))
 
 
 ;;; Test that `should' works.
@@ -163,13 +163,13 @@ failed or if there was a problem."
   (let ((test (make-ert-test :body (lambda () (should nil)))))
     (let ((result (let ((ert-debug-on-error nil))
                     (ert-run-test test))))
-      (assert (ert-test-failed-p result) t)
-      (assert (equal (ert-test-result-with-condition-condition result)
+      (cl-assert (ert-test-failed-p result) t)
+      (cl-assert (equal (ert-test-result-with-condition-condition result)
                      '(ert-test-failed ((should nil) :form nil :value nil)))
               t)))
   (let ((test (make-ert-test :body (lambda () (should t)))))
     (let ((result (ert-run-test test)))
-      (assert (ert-test-passed-p result) t))))
+      (cl-assert (ert-test-passed-p result) t))))
 
 (ert-deftest ert-test-should-value ()
   (should (eql (should 'foo) 'foo))
@@ -179,17 +179,18 @@ failed or if there was a problem."
   (let ((test (make-ert-test :body (lambda () (should-not t)))))
     (let ((result (let ((ert-debug-on-error nil))
                     (ert-run-test test))))
-      (assert (ert-test-failed-p result) t)
-      (assert (equal (ert-test-result-with-condition-condition result)
+      (cl-assert (ert-test-failed-p result) t)
+      (cl-assert (equal (ert-test-result-with-condition-condition result)
                      '(ert-test-failed ((should-not t) :form t :value t)))
               t)))
   (let ((test (make-ert-test :body (lambda () (should-not nil)))))
     (let ((result (ert-run-test test)))
-      (assert (ert-test-passed-p result)))))
+      (cl-assert (ert-test-passed-p result)))))
+
 
 (ert-deftest ert-test-should-with-macrolet ()
   (let ((test (make-ert-test :body (lambda ()
-                                     (macrolet ((foo () `(progn t nil)))
+                                     (cl-macrolet ((foo () `(progn t nil)))
                                        (should (foo)))))))
     (let ((result (let ((ert-debug-on-error nil))
                     (ert-run-test test))))
@@ -303,32 +304,33 @@ This macro is used to test if macroexpansion in `should' works."
 
 (ert-deftest ert-test-should-failure-debugging ()
   "Test that `should' errors contain the information we expect them to."
-  (loop for (body expected-condition) in
-        `((,(lambda () (let ((x nil)) (should x)))
-           (ert-test-failed ((should x) :form x :value nil)))
-          (,(lambda () (let ((x t)) (should-not x)))
-           (ert-test-failed ((should-not x) :form x :value t)))
-          (,(lambda () (let ((x t)) (should (not x))))
-           (ert-test-failed ((should (not x)) :form (not t) :value nil)))
-          (,(lambda () (let ((x nil)) (should-not (not x))))
-           (ert-test-failed ((should-not (not x)) :form (not nil) :value t)))
-          (,(lambda () (let ((x t) (y nil)) (should-not
-                                             (ert--test-my-list x y))))
-           (ert-test-failed
-            ((should-not (ert--test-my-list x y))
-             :form (list t nil)
-             :value (t nil))))
-          (,(lambda () (let ((x t)) (should (error "Foo"))))
-           (error "Foo")))
-        do
-        (let ((test (make-ert-test :body body)))
-          (condition-case actual-condition
-              (progn
-                (let ((ert-debug-on-error t))
-                  (ert-run-test test))
-                (assert nil))
-            ((error)
-             (should (equal actual-condition expected-condition)))))))
+  (cl-loop
+   for (body expected-condition) in
+   `((,(lambda () (let ((x nil)) (should x)))
+      (ert-test-failed ((should x) :form x :value nil)))
+     (,(lambda () (let ((x t)) (should-not x)))
+      (ert-test-failed ((should-not x) :form x :value t)))
+     (,(lambda () (let ((x t)) (should (not x))))
+      (ert-test-failed ((should (not x)) :form (not t) :value nil)))
+     (,(lambda () (let ((x nil)) (should-not (not x))))
+      (ert-test-failed ((should-not (not x)) :form (not nil) :value t)))
+     (,(lambda () (let ((x t) (y nil)) (should-not
+                                   (ert--test-my-list x y))))
+      (ert-test-failed
+       ((should-not (ert--test-my-list x y))
+        :form (list t nil)
+        :value (t nil))))
+     (,(lambda () (let ((_x t)) (should (error "Foo"))))
+      (error "Foo")))
+   do
+   (let ((test (make-ert-test :body body)))
+     (condition-case actual-condition
+         (progn
+           (let ((ert-debug-on-error t))
+             (ert-run-test test))
+           (cl-assert nil))
+       ((error)
+        (should (equal actual-condition expected-condition)))))))
 
 (ert-deftest ert-test-deftest ()
   (should (equal (macroexpand '(ert-deftest abc () "foo" :tags '(bar)))
@@ -520,7 +522,7 @@ This macro is used to test if macroexpansion in `should' works."
     (setf (cdr (last a)) (cddr a))
     (should (not (ert--proper-list-p a))))
   (let ((a (list 1 2 3 4)))
-    (setf (cdr (last a)) (cdddr a))
+    (setf (cdr (last a)) (cl-cdddr a))
     (should (not (ert--proper-list-p a)))))
 
 (ert-deftest ert-test-parse-keys-and-body ()
@@ -657,14 +659,14 @@ This macro is used to test if macroexpansion in `should' works."
         (i 0))
     (let ((result (ert--remove-if-not (lambda (x)
                                         (should (eql x (nth i list)))
-                                        (incf i)
+                                        (cl-incf i)
                                         (member i '(2 3)))
                                       list)))
       (should (equal i 4))
       (should (equal result '(b c)))
       (should (equal list '(a b c d)))))
   (should (equal '()
-                 (ert--remove-if-not (lambda (x) (should nil)) '()))))
+                 (ert--remove-if-not (lambda (_x) (should nil)) '()))))
 
 (ert-deftest ert-test-remove* ()
   (let ((list (list 'a 'b 'c 'd))
@@ -676,13 +678,13 @@ This macro is used to test if macroexpansion in `should' works."
                                 (should (eql x (nth key-index list)))
                                 (prog1
                                     (list key-index x)
-                                  (incf key-index)))
+                                  (cl-incf key-index)))
                          :test
                          (lambda (a b)
                            (should (eql a 'foo))
                            (should (equal b (list test-index
                                                   (nth test-index list))))
-                           (incf test-index)
+                           (cl-incf test-index)
                            (member test-index '(2 3))))))
       (should (equal key-index 4))
       (should (equal test-index 4))

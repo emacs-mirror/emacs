@@ -28,7 +28,7 @@
 ;;; Code:
 
 (eval-when-compile
-  (require 'cl))
+  (require 'cl-lib))
 (require 'ert)
 (require 'ert-x)
 
@@ -233,8 +233,8 @@ desired effect."
       (should (equal (buffer-string) ""))
       (let ((message-log-max 2))
         (let ((message-log-max t))
-          (loop for i below 4 do
-                (message "%s" i))
+          (cl-loop for i below 4 do
+                   (message "%s" i))
           (should (equal (buffer-string) "0\n1\n2\n3\n")))
         (should (equal (buffer-string) "0\n1\n2\n3\n"))
         (message "")
@@ -244,28 +244,28 @@ desired effect."
 
 (ert-deftest ert-test-force-message-log-buffer-truncation ()
   :tags '(:causes-redisplay)
-  (labels ((body ()
-             (loop for i below 3 do
-                   (message "%s" i)))
-           ;; Uses the implicit messages buffer truncation implemented
-           ;; in Emacs' C core.
-           (c (x)
-             (ert-with-buffer-renamed ("*Messages*")
-               (let ((message-log-max x))
-                 (body))
-               (with-current-buffer "*Messages*"
-                 (buffer-string))))
-           ;; Uses our lisp reimplementation.
-           (lisp (x)
-             (ert-with-buffer-renamed ("*Messages*")
-               (let ((message-log-max t))
-                 (body))
-               (let ((message-log-max x))
-                 (ert--force-message-log-buffer-truncation))
-               (with-current-buffer "*Messages*"
-                 (buffer-string)))))
-    (loop for x in '(0 1 2 3 4 t) do
-          (should (equal (c x) (lisp x))))))
+  (cl-labels ((body ()
+                (cl-loop for i below 3 do
+                         (message "%s" i)))
+              ;; Uses the implicit messages buffer truncation implemented
+              ;; in Emacs' C core.
+              (c (x)
+                (ert-with-buffer-renamed ("*Messages*")
+                  (let ((message-log-max x))
+                    (body))
+                  (with-current-buffer "*Messages*"
+                    (buffer-string))))
+              ;; Uses our lisp reimplementation.
+              (lisp (x)
+                (ert-with-buffer-renamed ("*Messages*")
+                  (let ((message-log-max t))
+                    (body))
+                  (let ((message-log-max x))
+                    (ert--force-message-log-buffer-truncation))
+                  (with-current-buffer "*Messages*"
+                    (buffer-string)))))
+    (cl-loop for x in '(0 1 2 3 4 t) do
+             (should (equal (c x) (lisp x))))))
 
 
 (provide 'ert-x-tests)

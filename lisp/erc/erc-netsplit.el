@@ -31,7 +31,6 @@
 ;;; Code:
 
 (require 'erc)
-(eval-when-compile (require 'cl))
 
 (defgroup erc-netsplit nil
   "Netsplit detection tries to automatically figure when a
@@ -107,7 +106,7 @@ join from that split has been detected or not.")
     (dolist (elt erc-netsplit-list)
       (if (member nick (nthcdr 3 elt))
 	  (progn
-	    (if (not (caddr elt))
+	    (if (not (nth 2 elt))
 		(progn
 		  (erc-display-message
 		   parsed 'notice (process-buffer proc)
@@ -149,7 +148,7 @@ join from that split has been detected or not.")
 	  ;; element for this netsplit exists already
 	  (progn
 	    (setcdr (nthcdr 2 ass) (cons nick (nthcdr 3 ass)))
-	    (when (caddr ass) 
+	    (when (nth 2 ass)
 	      ;; There was already a netjoin for this netsplit, it
 	      ;; seems like the old one didn't get finished...
 	      (erc-display-message 
@@ -194,7 +193,7 @@ join from that split has been detected or not.")
 	 nil 'notice 'active
 	 'netsplit-wholeft ?s (car elt)
 	 ?n (mapconcat 'erc-extract-nick (nthcdr 3 elt) " ")
-	 ?t (if (caddr elt)
+	 ?t (if (nth 2 elt)
 		"(joining)"
 	      "")))))
   t)

@@ -43,7 +43,6 @@
 (require 'erc)
 (require 'erc-compat)
 (require 'time-date)
-(eval-when-compile (require 'cl))
 
 (defgroup erc-pcomplete nil
   "Programmable completion for ERC"

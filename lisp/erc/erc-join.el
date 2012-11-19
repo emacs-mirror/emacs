@@ -34,7 +34,6 @@
 
 (require 'erc)
 (require 'auth-source)
-(eval-when-compile (require 'cl))
 
 (defgroup erc-autojoin nil
   "Enable autojoining."

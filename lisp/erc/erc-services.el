@@ -62,7 +62,7 @@
 
 (require 'erc)
 (require 'erc-networks)
-(eval-when-compile (require 'cl))
+(eval-when-compile (require 'cl-lib))
 
 ;; Customization:
 

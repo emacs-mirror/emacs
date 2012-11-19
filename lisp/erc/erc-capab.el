@@ -68,7 +68,6 @@
 ;;; Code:
 
 (require 'erc)
-(eval-when-compile (require 'cl))
 
 ;;; Customization:
 

@@ -33,9 +33,6 @@
 
 ;;; Code:
 
-(eval-when-compile
-  (require 'cl))
-
 ;; Emacs < 23.3
 (eval-and-compile
   (unless (boundp 'float-pi)
@@ -69,9 +66,9 @@ RED, GREEN, and BLUE should be numbers between 0.0 and 1.0, inclusive."
 COLOR-NAME should be a string naming a color (e.g. \"white\"), or
 a string specifying a color's RGB components (e.g. \"#ff12ec\")."
   (let ((color (color-name-to-rgb color-name)))
-    (list (- 1.0 (car color))
-          (- 1.0 (cadr color))
-          (- 1.0 (caddr color)))))
+    (list (- 1.0 (nth 0 color))
+          (- 1.0 (nth 1 color))
+          (- 1.0 (nth 2 color)))))
 
 (defun color-gradient (start stop step-number)
   "Return a list with STEP-NUMBER colors from START to STOP.

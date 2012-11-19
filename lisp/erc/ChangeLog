@@ -1,3 +1,16 @@
+2012-11-19  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	Use cl-lib instead of cl, and interactive-p => called-interactively-p.
+	* erc-track.el, erc-networks.el, erc-netsplit.el, erc-dcc.el:
+	* erc-backend.el: Use cl-lib, nth, pcase, and called-interactively-p
+	instead of cl.
+	* erc-speedbar.el, erc-services.el, erc-pcomplete.el, erc-notify.el:
+	* erc-match.el, erc-log.el, erc-join.el, erc-ezbounce.el:
+	* erc-capab.el: Don't require cl since we don't use it.
+	* erc.el: Use cl-lib, nth, pcase, and called-interactively-p i.s.o cl.
+	(erc-lurker-ignore-chars, erc-common-server-suffixes):
+	Move before first use.
+
 2012-11-16  Glenn Morris  <rgm@gnu.org>
 
 	* erc.el (erc-modules): Add "notifications".  Tweak "hecomplete" doc.
