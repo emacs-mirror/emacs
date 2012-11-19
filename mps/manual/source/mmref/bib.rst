@@ -41,7 +41,7 @@ Bibliography
 
 * .. _AKPY98:
 
-  Alain Azagury, Elliot K. Kolodner, Erez Petrank, Zvi Yehudai. 1998.  "`Combining Card Marking with Remembered Sets: How to Save Scanning Time <http://pdf.aminer.org/000/465/100/combining_card_marking_with_remembered_sets_how_to_save_scanning.pdf>`_". ACM. ISMM'98 pp.10--19.
+  Alain Azagury, Elliot K. Kolodner, Erez Petrank, Zvi Yehudai. 1998.  "`Combining Card Marking with Remembered Sets: How to Save Scanning Time <http://pdf.aminer.org/000/465/100/combining_card_marking_with_remembered_sets_how_to_save_scanning.pdf>`_". ACM. ISMM'98 pp. 10--19.
 
   .. abstract: akpy98.html
 
@@ -167,6 +167,10 @@ Bibliography
 
   .. abstract: bb99.html
 
+* .. _BERGER01:
+
+  Emery D. Berger, Benjamin G. Zorn, Kathryn S. McKinley. 2001. "`Composing high-performance memory allocators <http://www.cs.utexas.edu/users/speedway/DaCapo/papers/pldi2001.pdf>`_" ACM SIGPLAN Conference on Programming Language Design and Implementation 2001, pp. 114--124.
+
 * .. _BW88:
 
   Hans-J. Boehm, Mark Weiser. 1988. "`Garbage collection in an uncooperative environment <http://www.hpl.hp.com/personal/Hans_Boehm/spe_gc_paper/preprint.pdf>`_". Software -- Practice and Experience. 18(9):807--820.
@@ -231,7 +235,7 @@ Bibliography
 
 * .. _CL98:
 
-  Trishul M. Chilimbi, James R. Larus. 1998. "`Using Generational Garbage Collection To Implement Cache-Conscious Data Placement <http://ftp2.cs.wisc.edu/wwt/ismm98_cache_gc.pdf>`_". ACM. ISMM'98 pp.37--48.
+  Trishul M. Chilimbi, James R. Larus. 1998. "`Using Generational Garbage Collection To Implement Cache-Conscious Data Placement <http://ftp2.cs.wisc.edu/wwt/ismm98_cache_gc.pdf>`_". ACM. ISMM'98 pp. 37--48.
 
   .. abstract: cl98.html
 
@@ -249,7 +253,7 @@ Bibliography
 
 * .. _CCZ98:
 
-  Dominique Colnet, Philippe Coucaud, Olivier Zendra. 1998. "`Compiler Support to Customize the Mark and Sweep Algorithm <http://pdf.aminer.org/000/465/134/compiler_support_to_customize_the_mark_and_sweep_algorithm.pdf>`_". ACM. ISMM'98 pp.154--165.
+  Dominique Colnet, Philippe Coucaud, Olivier Zendra. 1998. "`Compiler Support to Customize the Mark and Sweep Algorithm <http://pdf.aminer.org/000/465/134/compiler_support_to_customize_the_mark_and_sweep_algorithm.pdf>`_". ACM. ISMM'98 pp. 154--165.
 
   .. abstract: ccz98.html
 
@@ -465,7 +469,7 @@ Bibliography
 
 * .. _HMMM97:
 
-  Richard L. Hudson, Ron Morrison, J. Eliot B. Moss, David S. Munro. 1997. "`Garbage Collecting the World: One Car at a Time <http://www.cs.umass.edu/~moss/papers/oopsla-1997-gc-world.pdf>`_". ACM. Proc. OOPSLA 97, pp.162--175.
+  Richard L. Hudson, Ron Morrison, J. Eliot B. Moss, David S. Munro. 1997. "`Garbage Collecting the World: One Car at a Time <http://www.cs.umass.edu/~moss/papers/oopsla-1997-gc-world.pdf>`_". ACM. Proc. OOPSLA 97, pp. 162--175.
 
   .. abstract: hmmm97.html
 
@@ -475,13 +479,13 @@ Bibliography
 
 * .. _JOHNSTONE97:
 
-  Mark S. Johnstone. 1997. "`Non-Compacting Memory Allocation and Real-Time Garbage Collection <http://www.cs.utexas.edu/ftp/techreports/tr97-29.pdf>`_". University of Texas at Austin.
+  Mark S. Johnstone. 1997. "`Non-Compacting Memory Allocation and Real-Time Garbage Collection <ftp://ftp.cs.utexas.edu/pub/garbage/johnstone-dissertation.ps.gz>`_". University of Texas at Austin.
 
   .. abstract: johnstone97.html
 
 * .. _JW98:
 
-  Mark S. Johnstone, Paul R. Wilson. 1998. "`The Memory Fragmentation Problem: Solved? <http://citeseerx.ist.psu.edu/viewdoc/download?doi=10.1.1.45.3382&rep=rep1&type=pdf>`_". ACM. ISMM'98 pp.26--36.
+  Mark S. Johnstone, Paul R. Wilson. 1998. "`The Memory Fragmentation Problem: Solved? <http://citeseerx.ist.psu.edu/viewdoc/download?doi=10.1.1.45.3382&rep=rep1&type=pdf>`_". ACM. ISMM'98 pp. 26--36.
 
   .. abstract: jw98.html
 
@@ -537,7 +541,7 @@ Bibliography
 
 * .. _LK98:
 
-  Per-Åke Larson & Murali Krishnan. 1998. "`Memory Allocation for Long-Running Server Applications <http://citeseerx.ist.psu.edu/viewdoc/download?doi=10.1.1.45.1947&rep=rep1&type=pdf>`_". ACM. ISMM'98 pp.176--185.
+  Per-Åke Larson & Murali Krishnan. 1998. "`Memory Allocation for Long-Running Server Applications <http://citeseerx.ist.psu.edu/viewdoc/download?doi=10.1.1.45.1947&rep=rep1&type=pdf>`_". ACM. ISMM'98 pp. 176--185.
 
   .. abstract: lk98.html
 
@@ -591,7 +595,7 @@ Bibliography
 
 * .. _MOREAU98:
 
-  Luc Moreau. 1998. "`Hierarchical Distributed Reference Counting <http://citeseerx.ist.psu.edu/viewdoc/download?doi=10.1.1.49.4593&rep=rep1&type=pdf>`_". ACM. ISMM'98 pp.57--67.
+  Luc Moreau. 1998. "`Hierarchical Distributed Reference Counting <http://citeseerx.ist.psu.edu/viewdoc/download?doi=10.1.1.49.4593&rep=rep1&type=pdf>`_". ACM. ISMM'98 pp. 57--67.
 
 * .. _MFH95:
 
@@ -661,7 +665,7 @@ Bibliography
 
 * .. _PIRINEN98:
 
-  Pekka P. Pirinen. 1998. "Barrier techniques for incremental tracing". ACM. ISMM'98 pp.20--25.
+  Pekka P. Pirinen. 1998. "Barrier techniques for incremental tracing". ACM. ISMM'98 pp. 20--25.
 
   .. abstract: pirinen98.html
 
@@ -897,7 +901,7 @@ Bibliography
 
 * .. _YUASA90:
 
-  Taiichi Yuasa. 1990. "Real-Time Garbage Collection on General-Purpose Machines". Journal of Software and Systems. 11:3 pp.181--198.
+  Taiichi Yuasa. 1990. "Real-Time Garbage Collection on General-Purpose Machines". Journal of Software and Systems. 11:3 pp. 181--198.
 
 * .. _ZORN88:
 

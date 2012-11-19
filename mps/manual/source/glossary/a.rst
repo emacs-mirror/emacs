@@ -115,7 +115,7 @@ Memory Management Glossary: A
         :term:`first fit` on a single address-ordered :term:`free
         block chain`. Sometimes just called "first fit".
 
-        .. seealso:: :term:`first fit`, :term:`LIFO-ordered first fit`, :term:`address-ordered first fit`.
+        .. seealso:: :term:`FIFO-ordered first fit`, :term:`LIFO-ordered first fit`.
 
         .. bibref:: :ref:`Wilson et al. (1995) <WIL95>`.
 
