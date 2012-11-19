@@ -1,3 +1,15 @@
+2012-11-19  Eli Zaretskii  <eliz@gnu.org>
+
+	* xdisp.c (start_hourglass) [HAVE_NTGUI]: Don't mix declaration of
+	w32_note_current_window with code.  (Backport from trunk.)
+
+	* w32.c (FILE_DEVICE_FILE_SYSTEM, METHOD_BUFFERED)
+	(FILE_ANY_ACCESS, CTL_CODE, FSCTL_GET_REPARSE_POINT) [_MSC_VER]:
+	Define for the MSVC compiler.
+
+	* w32term.h (EnumSystemLocalesW) [_MSC_VER]: Add a missing
+	semi-colon.
+
 2012-11-18  Eli Zaretskii  <eliz@gnu.org>
 
 	* fileio.c (Fsubstitute_in_file_name, Ffile_name_directory)

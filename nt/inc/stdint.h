@@ -60,6 +60,7 @@ typedef unsigned int uint32_t;
 #endif
 
 #define PTRDIFF_MAX INTPTR_MAX
+#define PTRDIFF_MIN INTPTR_MIN
 
 #endif	/* !__GNUC__ */
 

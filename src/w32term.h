@@ -758,7 +758,7 @@ extern int w32_system_caret_y;
 typedef BOOL (CALLBACK *LOCALE_ENUMPROCA)(LPSTR);
 typedef BOOL (CALLBACK *LOCALE_ENUMPROCW)(LPWSTR);
 BOOL WINAPI EnumSystemLocalesA(LOCALE_ENUMPROCA,DWORD);
-BOOL WINAPI EnumSystemLocalesW(LOCALE_ENUMPROCW,DWORD)
+BOOL WINAPI EnumSystemLocalesW(LOCALE_ENUMPROCW,DWORD);
 #ifdef UNICODE
 #define EnumSystemLocales EnumSystemLocalesW
 #else
