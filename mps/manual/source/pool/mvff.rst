@@ -16,10 +16,22 @@ variable-sized, unformatted objects. It uses the :term:`first fit`
 :term:`allocation policy` for blocks allocated via
 :c:func:`mps_alloc`.
 
-It also supports buffered allocation (that is, allocation via
-:term:`allocation points`), and in this case, the allocation policy is
-different: the buffers are filled according to the :term:`worst fit`
-policy, and allocation always proceeds upwards from the base.
+:ref:`Johnstone (1997) <JOHNSTONE97>` found that in his test cases:
+
+    No version of :term:`best fit` had more than 5% actual
+    :term:`fragmentation <external fragmentation>`. This is also true
+    for all versions of first fit that used an :term:`address-ordered
+    free list <address-ordered first fit>`, and the two versions of
+    first fit that used a :term:`FIFO free list <FIFO-ordered first
+    fit>`. This strongly suggests that the basic best-fit algorithm
+    and the first-fit algorithm with an address-ordered free list are
+    very robust algorithms.
+
+The MVFF pool class also supports buffered allocation (that is,
+allocation via :term:`allocation points`), and in this case, the
+allocation policy is different: the buffers are filled according to
+the :term:`worst fit` policy, and allocation always proceeds upwards
+from the base.
 
 Buffered and unbuffered allocation can be used at the same time, but
 the first allocation point must be created before any call to
