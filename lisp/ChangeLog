@@ -1,5 +1,13 @@
 2012-11-19  Stefan Monnier  <monnier@iro.umontreal.ca>
 
+	* emacs-lisp/byte-run.el (defun-declarations-alist):
+	Allow a compiler-macro to be a lambda expression.
+
+	* progmodes/python.el: Use cl-lib.  Move var declarations outside of
+	eval-when-compile.
+	(python-syntax-context): Add compiler-macro.
+	(python-font-lock-keywords): Simplify with De Morgan.
+
 	* vc/diff-mode.el (diff-hunk): Don't make useless timers.
 
 	* files.el (load-file): Require match in minibuffer selection, as was
