@@ -1,3 +1,12 @@
+2012-11-19  Daniel Colascione  <dancol@dancol.org>
+
+	* w32fns.c (Fx_file_dialog):
+	(Fx_file_dialog): Accomodate rename of cygwin_convert_path* to
+	cygwin_convert_file_name*.
+
+	* cygw32.c (Fcygwin_convert_path_to_windows, syms_of_cygw32):
+	Rename cygwin_convert_path* to cygwin_convert_file_name*.
+
 2012-11-18  Paul Eggert  <eggert@cs.ucla.edu>
 
 	* nsterm.m (ns_select): Send SIGIO only to self, not to process group.

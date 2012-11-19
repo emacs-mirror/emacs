@@ -6167,9 +6167,9 @@ Otherwise, if ONLY-DIR-P is non-nil, the user can only select directories.  */)
       filename = empty_unibyte_string;
 
 #ifdef CYGWIN
-    dir = Fcygwin_convert_path_to_windows (dir, Qt);
+    dir = Fcygwin_convert_file_name_to_windows (dir, Qt);
     if (SCHARS (filename) > 0)
-      filename = Fcygwin_convert_path_to_windows (filename, Qnil);
+      filename = Fcygwin_convert_file_name_to_windows (filename, Qnil);
 #endif
 
     CHECK_STRING (dir);
@@ -6270,7 +6270,7 @@ Otherwise, if ONLY-DIR-P is non-nil, the user can only select directories.  */)
 #endif /* NTGUI_UNICODE */
 
 #ifdef CYGWIN
-        filename = Fcygwin_convert_path_from_windows (filename, Qt);
+        filename = Fcygwin_convert_file_name_from_windows (filename, Qt);
 #endif /* CYGWIN */
 
         /* Strip the dummy filename off the end of the string if we

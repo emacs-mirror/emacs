@@ -91,7 +91,7 @@
 (declare-function w32-send-sys-command "w32fns.c")
 (declare-function set-message-beep "w32fns.c")
 
-(declare-function cygwin-convert-path-from-windows "cygw32.c"
+(declare-function cygwin-convert-file-name-from-windows "cygw32.c"
 		  (path &optional absolute_p))
 
 ;; Conditional on new-fontset so bootstrapping works on non-GUI compiles
@@ -108,7 +108,7 @@
 
 (defun w32-handle-dropped-file (window file-name)
   (let ((f (if (eq system-type 'cygwin)
-               (cygwin-convert-path-from-windows file-name t)
+               (cygwin-convert-file-name-from-windows file-name t)
              (subst-char-in-string ?\\ ?/ file-name)))
         (coding (or file-name-coding-system
                     default-file-name-coding-system)))
