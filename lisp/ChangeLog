@@ -1,3 +1,8 @@
+2012-11-19  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* window.el (switch-to-buffer): Re-add the warning that was lost in the
+	code rewrite.
+
 2012-11-18  Paul Eggert  <eggert@cs.ucla.edu>
 
 	More minor time fixes.
