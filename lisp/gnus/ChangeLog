@@ -1,3 +1,8 @@
+2012-11-19  Katsumi Yamaoka  <yamaoka@jpl.org>
+
+	* message.el (message-get-reply-headers):
+	Make sure the reply goes to the author if it is a wide reply.
+
 2012-11-16  Jan Tatarik  <jan.tatarik@gmail.com>
 
 	* gnus-score.el (gnus-score-body):
