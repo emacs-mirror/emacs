@@ -1,3 +1,8 @@
+2012-11-19  Michael Albinus  <michael.albinus@gmx.de>
+
+	* net/tramp-sh.el (tramp-do-copy-or-rename-file): If both files
+	are remote, check out-of-band property for both.
+
 2012-11-19  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* window.el (switch-to-buffer): Re-add the warning that was lost in the
