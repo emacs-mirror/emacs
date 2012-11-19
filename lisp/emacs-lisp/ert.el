@@ -388,16 +388,11 @@ DATA is displayed to the user and should state the reason of the failure."
 (defun ert--expand-should-1 (whole form inner-expander)
   "Helper function for the `should' macro and its variants."
   (let ((form
-         ;; If `cl-macroexpand' isn't bound, the code that we're
-         ;; compiling doesn't depend on cl and thus doesn't need an
-         ;; environment arg for `macroexpand'.
-         (if (fboundp 'cl-macroexpand)
-             ;; Suppress warning about run-time call to cl function: we
-             ;; only call it if it's fboundp.
-             (with-no-warnings
-               (cl-macroexpand form (and (boundp 'cl-macro-environment)
-                                         cl-macro-environment)))
-           (macroexpand form))))
+         (macroexpand form (cond
+                            ((boundp 'macroexpand-all-environment)
+                             macroexpand-all-environment)
+                            ((boundp 'cl-macro-environment)
+                             cl-macro-environment)))))
     (cond
      ((or (atom form) (ert--special-operator-p (car form)))
       (let ((value (ert--gensym "value-")))
