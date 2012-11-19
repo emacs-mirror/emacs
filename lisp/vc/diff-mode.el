@@ -575,19 +575,21 @@ next hunk if TRY-HARDER is non-nil; otherwise signal an error."
 (easy-mmode-define-navigation
  diff-hunk diff-hunk-header-re "hunk" diff-end-of-hunk diff-restrict-view
  (when diff-auto-refine-mode
-   (setq diff--auto-refine-data (cons (current-buffer) (point-marker)))
-   (run-at-time 0.0 nil
-                (lambda ()
-                  (when diff--auto-refine-data
-                    (let ((buffer (car diff--auto-refine-data))
-                          (point (cdr diff--auto-refine-data)))
-                      (setq diff--auto-refine-data nil)
-                      (with-local-quit
-                        (when (buffer-live-p buffer)
-                          (with-current-buffer buffer
-                            (save-excursion
-                              (goto-char point)
-                              (diff-refine-hunk)))))))))))
+   (unless (prog1 diff--auto-refine-data
+             (setq diff--auto-refine-data
+                   (cons (current-buffer) (point-marker))))
+     (run-at-time 0.0 nil
+                  (lambda ()
+                    (when diff--auto-refine-data
+                      (let ((buffer (car diff--auto-refine-data))
+                            (point (cdr diff--auto-refine-data)))
+                        (setq diff--auto-refine-data nil)
+                        (with-local-quit
+                          (when (buffer-live-p buffer)
+                            (with-current-buffer buffer
+                              (save-excursion
+                                (goto-char point)
+                                (diff-refine-hunk))))))))))))
 
 (easy-mmode-define-navigation
  diff-file diff-file-header-re "file" diff-end-of-file)

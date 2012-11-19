@@ -1,5 +1,7 @@
 2012-11-19  Stefan Monnier  <monnier@iro.umontreal.ca>
 
+	* vc/diff-mode.el (diff-hunk): Don't make useless timers.
+
 	* files.el (load-file): Require match in minibuffer selection, as was
 	the case in Emacs-20 before we changed the spec to allow .elc files
 	(bug#12935).
