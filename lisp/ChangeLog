@@ -1,5 +1,9 @@
 2012-11-19  Stefan Monnier  <monnier@iro.umontreal.ca>
 
+	* files.el (load-file): Require match in minibuffer selection, as was
+	the case in Emacs-20 before we changed the spec to allow .elc files
+	(bug#12935).
+
 	* json.el: Don't require cl since we don't use it.
 	* color.el: Don't require cl.
 	(color-complement): `caddr' -> `nth 2'.

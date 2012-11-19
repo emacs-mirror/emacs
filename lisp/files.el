@@ -730,7 +730,7 @@ The path separator is colon in GNU and GNU-like systems."
   ;; This is a case where .elc makes a lot of sense.
   (interactive (list (let ((completion-ignored-extensions
 			    (remove ".elc" completion-ignored-extensions)))
-		       (read-file-name "Load file: "))))
+		       (read-file-name "Load file: " nil nil 'lambda))))
   (load (expand-file-name file) nil nil t))
 
 (defun locate-file (filename path &optional suffixes predicate)
