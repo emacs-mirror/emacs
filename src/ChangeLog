@@ -1,3 +1,7 @@
+2012-11-20  Paul Eggert  <eggert@cs.ucla.edu>
+
+	* eval.c (interactive_p): Remove no-longer-used decl.
+
 2012-11-20  Dmitry Antipov  <dmantipov@yandex.ru>
 
 	* xdisp.c (buffer_shared): Adjust comment.

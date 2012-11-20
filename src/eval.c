@@ -114,7 +114,6 @@ Lisp_Object Vsignaling_function;
 Lisp_Object inhibit_lisp_code;
 
 static Lisp_Object funcall_lambda (Lisp_Object, ptrdiff_t, Lisp_Object *);
-static bool interactive_p (void);
 static Lisp_Object apply_lambda (Lisp_Object fun, Lisp_Object args);
 
 /* Functions to set Lisp_Object slots of struct specbinding.  */
