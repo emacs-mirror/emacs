@@ -8,6 +8,9 @@
 	(buffer_shared_and_changed): New function.
 	(prepare_menu_bars, redisplay_internal): Use it to
 	decide whether all windows or frames should be updated.
+	(window_outdated): New function.
+	(text_outside_line_unchanged_p, redisplay_window): Use it.
+	(redisplay_internal): Likewise.  Fix indentation.
 
 2012-11-20  Stefan Monnier  <monnier@iro.umontreal.ca>
 

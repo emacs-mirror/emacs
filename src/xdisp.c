@@ -10888,13 +10888,24 @@ echo_area_display (int update_frame_p)
   return window_height_changed_p;
 }
 
-/* True if the current buffer is shown in more than
+/* Nonzero if the current buffer is shown in more than
    one window and was modified since last display.  */
 
 static int
 buffer_shared_and_changed (void)
 {
   return (buffer_shared > 1 && UNCHANGED_MODIFIED < MODIFF);
+}
+
+/* Nonzero if W doesn't reflect the actual state of
+   current buffer due to its text or overlays change.  */
+
+static int
+window_outdated (struct window *w)
+{
+  eassert (XBUFFER (w->buffer) == current_buffer);
+  return (w->last_modified < MODIFF 
+	  || w->last_overlay_modified < OVERLAY_MODIFF);
 }
 
 /***********************************************************************
@@ -12622,8 +12633,7 @@ text_outside_line_unchanged_p (struct window *w,
   int unchanged_p = 1;
 
   /* If text or overlays have changed, see where.  */
-  if (w->last_modified < MODIFF
-      || w->last_overlay_modified < OVERLAY_MODIFF)
+  if (window_outdated (w))
     {
       /* Gap in the line?  */
       if (GPT < start || Z - GPT < end)
@@ -13134,9 +13144,7 @@ redisplay_internal (void)
   if (!NILP (w->column_number_displayed)
       /* This alternative quickly identifies a common case
 	 where no change is needed.  */
-      && !(PT == w->last_point
-	   && w->last_modified >= MODIFF
-	   && w->last_overlay_modified >= OVERLAY_MODIFF)
+      && !(PT == w->last_point && !window_outdated (w))
       && (XFASTINT (w->column_number_displayed) != current_column ()))
     w->update_mode_line = 1;
 
@@ -13198,18 +13206,16 @@ redisplay_internal (void)
 	}
     }
   else if (EQ (selected_window, minibuf_window)
-	   && (current_buffer->clip_changed
-	       || w->last_modified < MODIFF
-	       || w->last_overlay_modified < OVERLAY_MODIFF)
+	   && (current_buffer->clip_changed || window_outdated (w))
 	   && resize_mini_window (w, 0))
     {
       /* Resized active mini-window to fit the size of what it is
          showing if its contents might have changed.  */
       must_finish = 1;
-/* FIXME: this causes all frames to be updated, which seems unnecessary
-   since only the current frame needs to be considered.  This function needs
-   to be rewritten with two variables, consider_all_windows and
-   consider_all_frames.  */
+      /* FIXME: this causes all frames to be updated, which seems unnecessary
+	 since only the current frame needs to be considered.  This function
+	 needs to be rewritten with two variables, consider_all_windows and
+	 consider_all_frames.  */
       consider_all_windows_p = 1;
       ++windows_or_buffers_changed;
       ++update_mode_lines;
@@ -13264,9 +13270,7 @@ redisplay_internal (void)
 	      || FETCH_BYTE (BYTEPOS (tlbufpos)) == '\n'))
 	/* Former continuation line has disappeared by becoming empty.  */
 	goto cancel;
-      else if (w->last_modified < MODIFF
-	       || w->last_overlay_modified < OVERLAY_MODIFF
-	       || MINI_WINDOW_P (w))
+      else if (window_outdated (w) || MINI_WINDOW_P (w))
 	{
 	  /* We have to handle the case of continuation around a
 	     wide-column character (see the comment in indent.c around
@@ -15517,8 +15521,7 @@ redisplay_window (Lisp_Object window, int just_this_one_p)
     = (!NILP (w->window_end_valid)
        && !current_buffer->clip_changed
        && !current_buffer->prevent_redisplay_optimizations_p
-       && w->last_modified >= MODIFF
-       && w->last_overlay_modified >= OVERLAY_MODIFF);
+       && !window_outdated (w));
 
   /* Run the window-bottom-change-functions
      if it is possible that the text on the screen has changed
@@ -15540,8 +15543,7 @@ redisplay_window (Lisp_Object window, int just_this_one_p)
   buffer_unchanged_p
     = (!NILP (w->window_end_valid)
        && !current_buffer->clip_changed
-       && w->last_modified >= MODIFF
-       && w->last_overlay_modified >= OVERLAY_MODIFF);
+       && !window_outdated (w));
 
   /* When windows_or_buffers_changed is non-zero, we can't rely on
      the window end being valid, so set it to nil there.  */
@@ -15566,9 +15568,7 @@ redisplay_window (Lisp_Object window, int just_this_one_p)
   if (!NILP (w->column_number_displayed)
       /* This alternative quickly identifies a common case
 	 where no change is needed.  */
-      && !(PT == w->last_point
-	   && w->last_modified >= MODIFF
-	   && w->last_overlay_modified >= OVERLAY_MODIFF)
+      && !(PT == w->last_point && !window_outdated (w))
       && (XFASTINT (w->column_number_displayed) != current_column ()))
     update_mode_line = 1;
 
@@ -15810,8 +15810,7 @@ redisplay_window (Lisp_Object window, int just_this_one_p)
 	   && (CHARPOS (startp) < ZV
 	       /* Avoid starting at end of buffer.  */
 	       || CHARPOS (startp) == BEGV
-	       || (w->last_modified >= MODIFF
-		   && w->last_overlay_modified >= OVERLAY_MODIFF)))
+	       || !window_outdated (w)))
     {
       int d1, d2, d3, d4, d5, d6;
 
