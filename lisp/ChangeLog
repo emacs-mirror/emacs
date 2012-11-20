@@ -1,5 +1,7 @@
 2012-11-20  Stefan Monnier  <monnier@iro.umontreal.ca>
 
+	* emacs-lisp/bytecomp.el (byte-compile): Fix handling of closures.
+
 	* emacs-lisp/byte-run.el (defun-declarations-alist): Fix last change.
 
 	* subr.el (called-interactively-p-functions): New var.

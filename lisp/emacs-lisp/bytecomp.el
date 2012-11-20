@@ -2509,8 +2509,8 @@ If FORM is a lambda or a macro, byte-compile it as a function."
         (when (symbolp form)
           (unless (memq (car-safe fun) '(closure lambda))
             (error "Don't know how to compile %S" fun))
-          (setq fun (byte-compile--reify-function fun))
-          (setq lexical-binding (eq (car fun) 'closure)))
+          (setq lexical-binding (eq (car fun) 'closure))
+          (setq fun (byte-compile--reify-function fun)))
         (unless (eq (car-safe fun) 'lambda)
           (error "Don't know how to compile %S" fun))
         ;; Expand macros.
