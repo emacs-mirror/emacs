@@ -1,5 +1,9 @@
 2012-11-20  Stefan Monnier  <monnier@iro.umontreal.ca>
 
+	* uniquify.el (uniquify-managed): Use defvar-local.
+	(rename-buffer, create-file-buffer): Advise with advice-add.
+	(uniquify-unload-function): Unadvise accordingly.
+
 	* emacs-lisp/trace.el: Rewrite, use nadvice and lexical-binding.
 	(trace-buffer): Don't purecopy.
 	(trace-entry-message, trace-exit-message): Add `context' arg.
