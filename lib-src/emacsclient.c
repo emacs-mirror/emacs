@@ -1138,7 +1138,7 @@ handle_sigcont (int signalnum)
   else
     {
       /* We are in the background; cancel the continue. */
-      kill (getpid (), SIGSTOP);
+      raise (SIGSTOP);
     }
 
   signal (signalnum, handle_sigcont);
@@ -1165,7 +1165,7 @@ handle_sigtstp (int signalnum)
   sigprocmask (SIG_BLOCK, NULL, &set);
   sigdelset (&set, signalnum);
   signal (signalnum, SIG_DFL);
-  kill (getpid (), signalnum);
+  raise (signalnum);
   sigprocmask (SIG_SETMASK, &set, NULL); /* Let's the above signal through. */
   signal (signalnum, handle_sigtstp);
 
