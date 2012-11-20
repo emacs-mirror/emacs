@@ -988,9 +988,10 @@ takes precedence over most other maps for a short while (normally one key).
 Pass --with-w32 to configure.  The default remains the X11 interface.
 
 ** Two new functions are available in Cygwin builds:
-`cygwin-convert-path-from-windows' and `cygwin-convert-path-to-windows'.
-These functions allow Lisp code to access the Cygwin file-name mapping
-machinery to convert between Cygwin and Windows-native file names.
+`cygwin-convert-file-name-from-windows' and
+`cygwin-convert-file-name-to-windows'.  These functions allow Lisp
+code to access the Cygwin file-name mapping machinery to convert
+between Cygwin and Windows-native file and directory names.
 
 ** When invoked with the -nw switch to run on the Windows text-mode terminal,
 Emacs now supports mouse highlight, help-echo (in the echo area), and

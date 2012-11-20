@@ -1,3 +1,12 @@
+2012-11-20  Daniel Colascione  <dancol@dancol.org>
+
+	* w32fns.c (Fx_file_dialog):
+	(Fx_file_dialog): Accomodate rename of cygwin_convert_path* to
+	cygwin_convert_file_name*.
+
+	* cygw32.c (Fcygwin_convert_path_to_windows, syms_of_cygw32):
+	Rename cygwin_convert_path* to cygwin_convert_file_name*.
+
 2012-11-20  Ken Brown  <kbrown@cornell.edu>
 
 	* emacs.c (main): Set the G_SLICE environment variable for all
