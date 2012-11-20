@@ -710,6 +710,8 @@ else
   nw="$nw -Wfloat-equal"            # warns about high-quality code
   nw="$nw -Winline"                 # OK to ignore 'inline'
   nw="$nw -Wjump-misses-init"       # We sometimes safely jump over init.
+  nw="$nw -Wstrict-overflow"        # OK to optimize assuming that
+                                    # signed overflow has undefined behavior
   nw="$nw -Wsync-nand"              # irrelevant here, and provokes ObjC warning
   nw="$nw -Wunsafe-loop-optimizations" # OK to suppress unsafe optimizations
 
@@ -720,7 +722,7 @@ else
   # The following line should be removable at some point.
   nw="$nw -Wsuggest-attribute=pure"
 
-  AC_MSG_CHECKING([whether to use -Wstack-protector -Wstrict-overflow])
+  AC_MSG_CHECKING([whether to use -Wstack-protector])
   AC_PREPROC_IFELSE(
     [AC_LANG_PROGRAM(
        [[#if (1 <= __LONG_MAX__ >> 31 >> 31 \
@@ -732,8 +734,7 @@ else
        ]])],
     [AC_MSG_RESULT(yes)],
     [AC_MSG_RESULT(no)
-     nw="$nw -Wstack-protector"
-     nw="$nw -Wstrict-overflow"])
+     nw="$nw -Wstack-protector"])
 
   gl_MANYWARN_ALL_GCC([ws])
   gl_MANYWARN_COMPLEMENT([ws], [$ws], [$nw])

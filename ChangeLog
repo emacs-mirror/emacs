@@ -1,8 +1,8 @@
-2012-11-19  Paul Eggert  <eggert@cs.ucla.edu>
+2012-11-20  Paul Eggert  <eggert@cs.ucla.edu>
 
 	Improve static checking of integer overflow and stack smashing.
-	* configure.ac (WARN_CFLAGS): Add -Wstack-protector and
-	-Wstrict-overflow if using GCC 4.7.2 or later on a platform with
+	* configure.ac (WARN_CFLAGS): Add -Wstack-protector
+	if using GCC 4.7.2 or later on a platform with
 	at least 64-bit long int.  This improves static checking on these
 	platforms, when configured with --enable-gcc-warnings.
 
