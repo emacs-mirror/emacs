@@ -1,3 +1,9 @@
+2012-11-20  Glenn Morris  <rgm@gnu.org>
+
+	* debugging.texi (Profiling): New section, in progress.
+	* tips.texi (Compilation Tips): Move profiling to separate section.
+	* elisp.texi: Add Profiling to detailed menu.
+
 2012-11-18  Martin Rudalics  <rudalics@gmx.at>
 
 	* windows.texi (Display Action Functions): Fix recently added

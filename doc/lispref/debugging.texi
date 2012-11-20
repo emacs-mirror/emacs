@@ -43,6 +43,7 @@ function (@pxref{Terminal Output}).
 * Edebug::              A source-level Emacs Lisp debugger.
 * Syntax Errors::       How to find syntax errors.
 * Test Coverage::       Ensuring you have tested all branches in your code.
+* Profiling::           Measuring the resources that your code uses.
 @end menu
 
 @node Debugger
@@ -809,3 +810,42 @@ never return.  If it ever does return, you get a run-time error.
   Edebug also has a coverage testing feature (@pxref{Coverage
 Testing}).  These features partly duplicate each other, and it would
 be cleaner to combine them.
+
+
+@node Profiling
+@section Profiling
+@cindex profiling
+@cindex measuring resource usage
+@cindex memory usage
+
+If your program is working correctly, but you want to make it run more
+quickly or efficiently, the first thing to do is @dfn{profile} your
+code that you know how it is using resources.  If you find that one
+particular function is responsible for a significant portion of the
+runtime, you can start by looking for ways to optimize that piece.
+
+Emacs has built-in support for this.  To begin profiling, type
+@kbd{M-x profiler-start}.  You can choose to profile by processor
+usage, memory usage, or both.  After doing some work, type
+@kbd{M-x profiler-report} to display a summary buffer for each
+resource that you chose to profile.  The names of the report buffers
+include the times at which the reports were generated, so you can
+generate another report later on without erasing previous results.
+When you have finished profiling, type @kbd{M-x profiler-stop} (there
+is a small overhead associated with profiling).
+
+@c FIXME
+@c Basic apperance of the report buffer:
+
+@c The following commands are available in the report buffer:
+
+@cindex @file{elp.el}
+@cindex timing programs
+The @file{elp} library offers an alternative approach.  See the file
+@file{elp.el} for instructions.
+
+@cindex @file{benchmark.el}
+@cindex benchmarking
+You can check the speed of individual Emacs Lisp forms using the
+@file{benchmark} library.  See the functions @code{benchmark-run} and
+@code{benchmark-run-compiled} in @file{benchmark.el}.
