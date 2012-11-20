@@ -94,6 +94,21 @@ int (mps_lib_memcmp)(const void *s1, const void *s2, size_t n)
 
 /* @@@@ Platform specific conversion? */
 /* See http://devworld.apple.com/dev/techsupport/insidemac/OSUtilities/OSUtilities-94.html#MARKER-9-32 */
+
+/* If your platform has a low-resolution clock(), and there are
+ * higher-resolution clocks readily available, then using one of those
+ * will improve MPS scheduling decisions and the quality of telemetry
+ * output.  For instance, with getrusage():
+ * 
+ *   #include <sys/resource.h>
+ *   struct rusage s;
+ *   int res = getrusage(RUSAGE_SELF, &s);
+ *   if (res != 0) {
+ *     ...
+ *   }
+ *   return ((mps_clock_t)s.ru_utime.tv_sec) * 1000000 + s.ru_utime.tv_usec;
+ */
+
 mps_clock_t mps_clock(void)
 {
   /* The clock values need to fit in mps_clock_t.  If your platform
@@ -106,11 +121,7 @@ mps_clock_t mps_clock(void)
 
 mps_clock_t mps_clocks_per_sec(void)
 {
-  /* The MPS needs at least a millisecond clock to get enough
-       resolution for telemetry tools.  If your platform has a
-       floating point clock, multiply it up here in the plinth. */
-  assert(CLOCKS_PER_SEC >= 1000);
-
+  /* must correspond to whatever mps_clock() does */
   return (mps_clock_t)CLOCKS_PER_SEC;
 }
 
