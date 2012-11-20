@@ -1,3 +1,7 @@
+2012-11-20  Eli Zaretskii  <eliz@gnu.org>
+
+	* inc/stdint.h (INTPTR_MIN): Define for MSVC.
+
 2012-11-19  Eli Zaretskii  <eliz@gnu.org>
 
 	* inc/stdint.h (PTRDIFF_MIN) [!__GNUC__]: Define for MSVC.
