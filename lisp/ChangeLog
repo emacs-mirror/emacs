@@ -1,3 +1,9 @@
+2012-11-20  Glenn Morris  <rgm@gnu.org>
+
+	* profiler.el (profiler-report-mode-map): Add a menu.
+	No need to bind `q' because we derive from special-mode.
+	(profiler-report-find-entry): Handle calls from the menu-bar.
+
 2012-11-19  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* emacs-lisp/byte-run.el (defun-declarations-alist):
