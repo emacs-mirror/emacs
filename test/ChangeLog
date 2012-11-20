@@ -1,3 +1,9 @@
+2012-11-20  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* automated/advice-tests.el (advice-tests--data): Remove.
+	(advice-tests): Move the tests directly here instead.
+	Add called-interactively-p tests.
+
 2012-11-19  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* automated/ert-x-tests.el: Use cl-lib.

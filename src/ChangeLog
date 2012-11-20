@@ -1,3 +1,9 @@
+2012-11-20  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* eval.c (Finteractive_p, Fcalled_interactively_p, interactive_p): Remove.
+	(syms_of_eval): Remove corresponding defsubr.
+	* bytecode.c (exec_byte_code): `interactive-p' is now a Lisp function.
+
 2012-11-19  Daniel Colascione  <dancol@dancol.org>
 
 	* w32fns.c (Fx_file_dialog):
@@ -17,10 +23,10 @@
 	windows.h gets included before w32term.h uses some of its
 	features, see below.
 
-	* w32term.h (LOCALE_ENUMPROCA, LOCALE_ENUMPROCW) [_MSC_VER]: New
-	typedefs.
-	(EnumSystemLocalesA, EnumSystemLocalesW) [_MSC_VER]: New
-	prototypes.
+	* w32term.h (LOCALE_ENUMPROCA, LOCALE_ENUMPROCW) [_MSC_VER]:
+	New typedefs.
+	(EnumSystemLocalesA, EnumSystemLocalesW) [_MSC_VER]:
+	New prototypes.
 	(EnumSystemLocales) [_MSC_VER]: Define if undefined.  (Bug#12878)
 
 2012-11-18  Jan Djärv  <jan.h.d@swipnet.se>
@@ -312,8 +318,8 @@
 	* xdisp.c (try_scrolling): Fix correction of aggressive-scroll
 	amount when the scroll margins are too large.  When scrolling
 	backwards in the buffer, give up if cannot reach point or the
-	scroll margin within a reasonable number of screen lines.  Fixes
-	point position in window under scroll-up/down-aggressively when
+	scroll margin within a reasonable number of screen lines.
+	Fixes point position in window under scroll-up/down-aggressively when
 	point is positioned many lines beyond the window top/bottom.
 	(Bug#12811)
 

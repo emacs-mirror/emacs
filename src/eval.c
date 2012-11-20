@@ -489,102 +489,6 @@ usage: (function ARG)  */)
 }
 
 
-DEFUN ("interactive-p", Finteractive_p, Sinteractive_p, 0, 0, 0,
-       doc: /* Return t if the containing function was run directly by user input.
-This means that the function was called with `call-interactively'
-\(which includes being called as the binding of a key)
-and input is currently coming from the keyboard (not a keyboard macro),
-and Emacs is not running in batch mode (`noninteractive' is nil).
-
-The only known proper use of `interactive-p' is in deciding whether to
-display a helpful message, or how to display it.  If you're thinking
-of using it for any other purpose, it is quite likely that you're
-making a mistake.  Think: what do you want to do when the command is
-called from a keyboard macro?
-
-To test whether your function was called with `call-interactively',
-either (i) add an extra optional argument and give it an `interactive'
-spec that specifies non-nil unconditionally (such as \"p\"); or (ii)
-use `called-interactively-p'.  */)
-  (void)
-{
-  return (INTERACTIVE && interactive_p ()) ? Qt : Qnil;
-}
-
-
-DEFUN ("called-interactively-p", Fcalled_interactively_p, Scalled_interactively_p, 0, 1, 0,
-       doc: /* Return t if the containing function was called by `call-interactively'.
-If KIND is `interactive', then only return t if the call was made
-interactively by the user, i.e. not in `noninteractive' mode nor
-when `executing-kbd-macro'.
-If KIND is `any', on the other hand, it will return t for any kind of
-interactive call, including being called as the binding of a key, or
-from a keyboard macro, or in `noninteractive' mode.
-
-The only known proper use of `interactive' for KIND is in deciding
-whether to display a helpful message, or how to display it.  If you're
-thinking of using it for any other purpose, it is quite likely that
-you're making a mistake.  Think: what do you want to do when the
-command is called from a keyboard macro?
-
-Instead of using this function, it is sometimes cleaner to give your
-function an extra optional argument whose `interactive' spec specifies
-non-nil unconditionally (\"p\" is a good way to do this), or via
-\(not (or executing-kbd-macro noninteractive)).  */)
-  (Lisp_Object kind)
-{
-  return (((INTERACTIVE || !EQ (kind, intern ("interactive")))
-	   && interactive_p ())
-	  ? Qt : Qnil);
-}
-
-
-/* Return true if function in which this appears was called using
-   call-interactively and is not a built-in.  */
-
-static bool
-interactive_p (void)
-{
-  struct backtrace *btp;
-  Lisp_Object fun;
-
-  btp = backtrace_list;
-
-  /* If this isn't a byte-compiled function, there may be a frame at
-     the top for Finteractive_p.  If so, skip it.  */
-  fun = Findirect_function (btp->function, Qnil);
-  if (SUBRP (fun) && (XSUBR (fun) == &Sinteractive_p
-		      || XSUBR (fun) == &Scalled_interactively_p))
-    btp = btp->next;
-
-  /* If we're running an Emacs 18-style byte-compiled function, there
-     may be a frame for Fbytecode at the top level.  In any version of
-     Emacs there can be Fbytecode frames for subexpressions evaluated
-     inside catch and condition-case.  Skip past them.
-
-     If this isn't a byte-compiled function, then we may now be
-     looking at several frames for special forms.  Skip past them.  */
-  while (btp
-	 && (EQ (btp->function, Qbytecode)
-	     || btp->nargs == UNEVALLED))
-    btp = btp->next;
-
-  /* `btp' now points at the frame of the innermost function that isn't
-     a special form, ignoring frames for Finteractive_p and/or
-     Fbytecode at the top.  If this frame is for a built-in function
-     (such as load or eval-region) return false.  */
-  fun = Findirect_function (btp->function, Qnil);
-  if (SUBRP (fun))
-    return 0;
-
-  /* `btp' points to the frame of a Lisp function that called interactive-p.
-     Return t if that function was called interactively.  */
-  if (btp && btp->next && EQ (btp->next->function, Qcall_interactively))
-    return 1;
-  return 0;
-}
-
-
 DEFUN ("defvaralias", Fdefvaralias, Sdefvaralias, 2, 3, 0,
        doc: /* Make NEW-ALIAS a variable alias for symbol BASE-VARIABLE.
 Aliased variables always have the same value; setting one sets the other.
@@ -696,8 +600,9 @@ usage: (defvar SYMBOL &optional INITVALUE DOCSTRING)  */)
 	      if (EQ ((--pdl)->symbol, sym) && !pdl->func
 		  && EQ (pdl->old_value, Qunbound))
 		{
-		  message_with_string ("Warning: defvar ignored because %s is let-bound",
-				       SYMBOL_NAME (sym), 1);
+		  message_with_string
+		    ("Warning: defvar ignored because %s is let-bound",
+		     SYMBOL_NAME (sym), 1);
 		  break;
 		}
 	    }
@@ -717,8 +622,8 @@ usage: (defvar SYMBOL &optional INITVALUE DOCSTRING)  */)
     /* A simple (defvar foo) with lexical scoping does "nothing" except
        declare that var to be dynamically scoped *locally* (i.e. within
        the current file or let-block).  */
-    Vinternal_interpreter_environment =
-      Fcons (sym, Vinternal_interpreter_environment);
+    Vinternal_interpreter_environment
+      = Fcons (sym, Vinternal_interpreter_environment);
   else
     {
       /* Simple (defvar <var>) should not count as a definition at all.
@@ -3551,8 +3456,6 @@ alist of active lexical bindings.  */);
   defsubr (&Sunwind_protect);
   defsubr (&Scondition_case);
   defsubr (&Ssignal);
-  defsubr (&Sinteractive_p);
-  defsubr (&Scalled_interactively_p);
   defsubr (&Scommandp);
   defsubr (&Sautoload);
   defsubr (&Sautoload_do_load);

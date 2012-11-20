@@ -1579,7 +1579,9 @@ exec_byte_code (Lisp_Object bytestr, Lisp_Object vector, Lisp_Object maxdepth,
 	  NEXT;
 
 	CASE (Binteractive_p):	/* Obsolete since 24.1.  */
-	  PUSH (Finteractive_p ());
+	  BEFORE_POTENTIAL_GC ();
+	  PUSH (call0 (intern ("interactive-p")));
+	  AFTER_POTENTIAL_GC ();
 	  NEXT;
 
 	CASE (Bforward_char):

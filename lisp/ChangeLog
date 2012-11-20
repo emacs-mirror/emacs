@@ -1,3 +1,15 @@
+2012-11-20  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* subr.el (called-interactively-p-functions): New var.
+	(internal--called-interactively-p--get-frame): New macro.
+	(called-interactively-p, interactive-p): Rewrite in Lisp.
+	* emacs-lisp/nadvice.el (advice--called-interactively-skip): New fun.
+	(called-interactively-p-functions): Use it.
+	* emacs-lisp/edebug.el (edebug--called-interactively-skip): New fun.
+	(called-interactively-p-functions): Use it.
+	* allout.el (allout-called-interactively-p): Don't assume
+	called-interactively-p is a subr.
+
 2012-11-20  Glenn Morris  <rgm@gnu.org>
 
 	* profiler.el (profiler-report-mode-map): Add a menu.

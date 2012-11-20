@@ -1191,8 +1191,6 @@ is converted into a string by expressing it in decimal."
 (make-obsolete 'unfocus-frame "it does nothing." "22.1")
 (make-obsolete 'make-variable-frame-local
 	       "explicitly check for a frame-parameter instead." "22.2")
-(make-obsolete 'interactive-p 'called-interactively-p "23.2")
-(set-advertised-calling-convention 'called-interactively-p '(kind) "23.1")
 (set-advertised-calling-convention
  'all-completions '(string collection &optional predicate) "23.1")
 (set-advertised-calling-convention 'unintern '(name obarray) "23.3")
@@ -3963,6 +3961,152 @@ The properties used on SYMBOL are `composefunc', `sendfunc',
   (put symbol 'abortfunc (or abortfunc 'kill-buffer))
   (put symbol 'hookvar (or hookvar 'mail-send-hook)))
 
+(defvar called-interactively-p-functions nil
+  "Special hook called to skip special frames in `called-interactively-p'.
+The functions are called with 3 arguments: (I FRAME1 FRAME2),
+where FRAME1 is a \"current frame\", FRAME2 is the next frame,
+I is the index of the frame after FRAME2.  It should return nil
+if those frames don't seem special and otherwise, it should return
+the number of frames to skip (minus 1).")
+
+(defmacro internal--called-interactively-p--get-frame (n)
+  ;; `sym' will hold a global variable, which will be used kind of like C's
+  ;; "static" variables.
+  (let ((sym (make-symbol "base-index")))
+    `(progn
+       (defvar ,sym
+         (let ((i 1))
+           (while (not (eq (nth 1 (backtrace-frame i))
+                           'called-interactively-p))
+             (setq i (1+ i)))
+           i))
+       ;; (unless (eq (nth 1 (backtrace-frame ,sym)) 'called-interactively-p)
+       ;;   (error "called-interactively-p: %s is out-of-sync!" ,sym))
+       (backtrace-frame (+ ,sym ,n)))))
+
+(defun called-interactively-p (&optional kind)
+  "Return t if the containing function was called by `call-interactively'.
+If KIND is `interactive', then only return t if the call was made
+interactively by the user, i.e. not in `noninteractive' mode nor
+when `executing-kbd-macro'.
+If KIND is `any', on the other hand, it will return t for any kind of
+interactive call, including being called as the binding of a key or
+from a keyboard macro, even in `noninteractive' mode.
+
+This function is very brittle, it may fail to return the intended result when
+the code is debugged, advised, or instrumented in some form.  Some macros and
+special forms (such as `condition-case') may also sometimes wrap their bodies
+in a `lambda', so any call to `called-interactively-p' from those bodies will
+indicate whether that lambda (rather than the surrounding function) was called
+interactively.
+
+Instead of using this function, it is cleaner and more reliable to give your
+function an extra optional argument whose `interactive' spec specifies
+non-nil unconditionally (\"p\" is a good way to do this), or via
+\(not (or executing-kbd-macro noninteractive)).
+
+The only known proper use of `interactive' for KIND is in deciding
+whether to display a helpful message, or how to display it.  If you're
+thinking of using it for any other purpose, it is quite likely that
+you're making a mistake.  Think: what do you want to do when the
+command is called from a keyboard macro?"
+  (declare (advertised-calling-convention (kind) "23.1"))
+  (when (not (and (eq kind 'interactive)
+                  (or executing-kbd-macro noninteractive)))
+    (let* ((i 1) ;; 0 is the called-interactively-p frame.
+           frame nextframe
+           (get-next-frame
+            (lambda ()
+              (setq frame nextframe)
+              (setq nextframe (internal--called-interactively-p--get-frame i))
+              ;; (message "Frame %d = %S" i nextframe)
+              (setq i (1+ i)))))
+      (funcall get-next-frame) ;; Get the first frame.
+      (while
+          ;; FIXME: The edebug and advice handling should be made modular and
+          ;; provided directly by edebug.el and nadvice.el.
+          (progn
+            ;; frame    =(backtrace-frame i-2)
+            ;; nextframe=(backtrace-frame i-1)
+            (funcall get-next-frame)
+            ;; `pcase' would be a fairly good fit here, but it sometimes moves
+            ;; branches within local functions, which then messes up the
+            ;; `backtrace-frame' data we get,
+            (or
+             ;; Skip special forms (from non-compiled code).
+             (and frame (null (car frame)))
+             ;; Skip also `interactive-p' (because we don't want to know if
+             ;; interactive-p was called interactively but if it's caller was)
+             ;; and `byte-code' (idem; this appears in subexpressions of things
+             ;; like condition-case, which are wrapped in a separate bytecode
+             ;; chunk).
+             ;; FIXME: For lexical-binding code, this is much worse,
+             ;; because the frames look like "byte-code -> funcall -> #[...]",
+             ;; which is not a reliable signature.
+             (memq (nth 1 frame) '(interactive-p 'byte-code))
+             ;; Skip package-specific stack-frames.
+             (let ((skip (run-hook-with-args-until-success
+                          'called-interactively-p-functions
+                          i frame nextframe)))
+               (pcase skip
+                 (`nil nil)
+                 (`0 t)
+                 (_ (setq i (+ i skip -1)) (funcall get-next-frame)))))))
+      ;; Now `frame' should be "the function from which we were called".
+      (pcase (cons frame nextframe)
+        ;; No subr calls `interactive-p', so we can rule that out.
+        (`((,_ ,(pred (lambda (f) (subrp (indirect-function f)))) . ,_) . ,_) nil)
+        ;; Somehow, I sometimes got `command-execute' rather than
+        ;; `call-interactively' on my stacktrace !?
+        ;;(`(,_ . (t command-execute . ,_)) t)
+        (`(,_ . (t call-interactively . ,_)) t)))))
+
+(defun interactive-p ()
+  "Return t if the containing function was run directly by user input.
+This means that the function was called with `call-interactively'
+\(which includes being called as the binding of a key)
+and input is currently coming from the keyboard (not a keyboard macro),
+and Emacs is not running in batch mode (`noninteractive' is nil).
+
+The only known proper use of `interactive-p' is in deciding whether to
+display a helpful message, or how to display it.  If you're thinking
+of using it for any other purpose, it is quite likely that you're
+making a mistake.  Think: what do you want to do when the command is
+called from a keyboard macro or in batch mode?
+
+To test whether your function was called with `call-interactively',
+either (i) add an extra optional argument and give it an `interactive'
+spec that specifies non-nil unconditionally (such as \"p\"); or (ii)
+use `called-interactively-p'."
+  (declare (obsolete called-interactively-p "23.2"))
+  (called-interactively-p 'interactive))
+
+(defun function-arity (f &optional num)
+  "Return the (MIN . MAX) arity of F.
+If the maximum arity is infinite, MAX is `many'.
+F can be a function or a macro.
+If NUM is non-nil, return non-nil iff F can be called with NUM args."
+  (if (symbolp f) (setq f (indirect-function f)))
+  (if (eq (car-safe f) 'macro) (setq f (cdr f)))
+  (let ((res
+	 (if (subrp f)
+	     (let ((x (subr-arity f)))
+	       (if (eq (cdr x) 'unevalled) (cons (car x) 'many)))
+	   (let* ((args (if (consp f) (cadr f) (aref f 0)))
+		  (max (length args))
+		  (opt (memq '&optional args))
+		  (rest (memq '&rest args))
+		  (min (- max (length opt))))
+	     (if opt
+		 (cons min (if rest 'many (1- max)))
+	       (if rest
+		   (cons (- max (length rest)) 'many)
+		 (cons min max)))))))
+    (if (not num)
+	res
+      (and (>= num (car res))
+	   (or (eq 'many (cdr res)) (<= num (cdr res)))))))
+
 (defun set-temporary-overlay-map (map &optional keep-pred)
   "Set MAP as a temporary keymap taking precedence over most other keymaps.
 Note that this does NOT take precedence over the \"overriding\" maps
