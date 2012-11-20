@@ -1,3 +1,10 @@
+2012-11-20  Dmitry Antipov  <dmantipov@yandex.ru>
+
+	* xdisp.c (buffer_shared): Adjust comment.
+	(buffer_shared_and_changed): New function.
+	(prepare_menu_bars, redisplay_internal): Use it to
+	decide whether all windows or frames should be updated.
+
 2012-11-20  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* eval.c (Finteractive_p, Fcalled_interactively_p, interactive_p): Remove.

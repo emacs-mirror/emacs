@@ -515,9 +515,8 @@ Lisp_Object Qmenu_bar_update_hook;
 
 static int overlay_arrow_seen;
 
-/* Number of windows showing the buffer of the selected window (or
-   another buffer with the same base buffer).  keyboard.c refers to
-   this.  */
+/* Number of windows showing the buffer of the selected
+   window (or another buffer with the same base buffer).  */
 
 int buffer_shared;
 
@@ -10889,8 +10888,15 @@ echo_area_display (int update_frame_p)
   return window_height_changed_p;
 }
 
+/* True if the current buffer is shown in more than
+   one window and was modified since last display.  */
 
-
+static int
+buffer_shared_and_changed (void)
+{
+  return (buffer_shared > 1 && UNCHANGED_MODIFIED < MODIFF);
+}
+
 /***********************************************************************
 		     Mode Lines and Frame Titles
  ***********************************************************************/
@@ -11196,7 +11202,7 @@ prepare_menu_bars (void)
   /* Update the menu bar item lists, if appropriate.  This has to be
      done before any actual redisplay or generation of display lines.  */
   all_windows = (update_mode_lines
-		 || buffer_shared > 1
+		 || buffer_shared_and_changed ()
 		 || windows_or_buffers_changed);
   if (all_windows)
     {
@@ -13116,7 +13122,7 @@ redisplay_internal (void)
   if ((SAVE_MODIFF < MODIFF) != w->last_had_star)
     {
       w->update_mode_line = 1;
-      if (buffer_shared > 1)
+      if (buffer_shared_and_changed ())
 	update_mode_lines++;
     }
 
@@ -13141,7 +13147,8 @@ redisplay_internal (void)
   /* The variable buffer_shared is set in redisplay_window and
      indicates that we redisplay a buffer in different windows.  See
      there.  */
-  consider_all_windows_p = (update_mode_lines || buffer_shared > 1
+  consider_all_windows_p = (update_mode_lines
+			    || buffer_shared_and_changed ()
 			    || cursor_type_changed);
 
   /* If specs for an arrow have changed, do thorough redisplay
@@ -13433,7 +13440,7 @@ redisplay_internal (void)
     }
 
   CHARPOS (this_line_start_pos) = 0;
-  consider_all_windows_p |= buffer_shared > 1;
+  consider_all_windows_p |= buffer_shared_and_changed ();
   ++clear_face_cache_count;
 #ifdef HAVE_WINDOW_SYSTEM
   ++clear_image_cache_count;
