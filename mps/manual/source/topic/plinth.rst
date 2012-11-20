@@ -203,11 +203,30 @@ Library module
 
         The ANSI Library module, ``mpsliban.c``, calls ``clock``.
 
+    The MPS calls this function to make scheduling decisions (see
+    :ref:`topic-collection-schedule`), and to calibrate the time
+    stamps on events in the :term:`telemetry stream`. If your platform
+    has a low-resolution ``clock()``, and there are higher-resolution
+    clocks readily available, then using one of those will improve MPS
+    scheduling decisions and the quality of telemetry output. For
+    instance, with ``getrusage()``::
+
+        #include <sys/resource.h>
+
+        mps_clock_t mps_clock(void) {
+            struct rusage s;
+            int res = getrusage(RUSAGE_SELF, &s);
+            if (res != 0) {
+                /* handle error */
+            }
+            return ((mps_clock_t)s.ru_utime.tv_sec) * 1000000 + s.ru_utime.tv_usec;
+        }
+
 
 .. c:function:: mps_clock_t mps_clocks_per_sec(void)
 
-    Return the number of clock units (as returned by
-    :c:func:`mps_clock`) per second.
+    Return the number of clock units per second, as returned by
+    :c:func:`mps_clock`.
 
     .. note::
 
