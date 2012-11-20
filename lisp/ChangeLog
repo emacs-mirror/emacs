@@ -1,3 +1,8 @@
+2012-11-20  Eli Zaretskii  <eliz@gnu.org>
+
+	* simple.el (line-move): Don't call line-move-partial if
+	scroll-conservatively is in effect.  (Bug#12927)
+
 2012-11-20  Michael Albinus  <michael.albinus@gmx.de>
 
 	* net/trampver.el (tramp-version): Downgrade to 2.2.6-24.3, in
