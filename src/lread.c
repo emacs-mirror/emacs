@@ -3957,12 +3957,13 @@ init_obarray (void)
   /* Fmake_symbol inits fields of new symbols with Qunbound and Qnil,
      so those two need to be fixed manually.  */
   SET_SYMBOL_VAL (XSYMBOL (Qunbound), Qunbound);
-  set_symbol_function (Qunbound, Qunbound);
+  set_symbol_function (Qunbound, Qnil);
   set_symbol_plist (Qunbound, Qnil);
   SET_SYMBOL_VAL (XSYMBOL (Qnil), Qnil);
   XSYMBOL (Qnil)->constant = 1;
   XSYMBOL (Qnil)->declared_special = 1;
   set_symbol_plist (Qnil, Qnil);
+  set_symbol_function (Qnil, Qnil);
 
   Qt = intern_c_string ("t");
   SET_SYMBOL_VAL (XSYMBOL (Qt), Qt);

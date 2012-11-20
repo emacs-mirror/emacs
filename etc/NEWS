@@ -52,6 +52,10 @@ It is layered as:
 
 * Incompatible Lisp Changes in Emacs 24.4
 
+** nil and "unbound" are indistinguishable in symbol-function.
+`symbol-function' never signals `void-function' any more.
+`fboundp' returns non-nil if the symbol was `fset' to nil.
+
 ** `defadvice' does not honor the `freeze' flag and cannot advise
 special-forms any more.
 

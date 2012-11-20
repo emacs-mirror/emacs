@@ -1104,7 +1104,7 @@ struct Lisp_Symbol
     union Lisp_Fwd *fwd;
   } val;
 
-  /* Function value of the symbol or Qunbound if not fboundp.  */
+  /* Function value of the symbol or Qnil if not fboundp.  */
   Lisp_Object function;
 
   /* The symbol's property list.  */

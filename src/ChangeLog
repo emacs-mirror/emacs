@@ -1,3 +1,16 @@
+2012-11-20  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	Conflate Qnil and Qunbound for `symbol-function'.
+	* alloc.c (Fmake_symbol): Initialize `function' to Qnil.
+	* lread.c (init_obarray): Set `function' fields to Qnil.
+	* eval.c (Fcommandp): Ignore Qunbound.
+	(Fautoload, eval_sub, Fapply, Ffuncall, Fmacroexpand):
+	* data.c (Ffset, Ffboundp, indirect_function, Findirect_function):
+	Test NILP rather than Qunbound.
+	(Ffmakunbound): Set to Qnil.
+	(Fsymbol_function): Never signal an error.
+	(Finteractive_form): Ignore Qunbound.
+
 2012-11-20  Paul Eggert  <eggert@cs.ucla.edu>
 
 	* eval.c (interactive_p): Remove no-longer-used decl.

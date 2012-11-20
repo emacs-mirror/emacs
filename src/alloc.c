@@ -3212,7 +3212,7 @@ static struct Lisp_Symbol *symbol_free_list;
 
 DEFUN ("make-symbol", Fmake_symbol, Smake_symbol, 1, 1, 0,
        doc: /* Return a newly allocated uninterned symbol whose name is NAME.
-Its value and function definition are void, and its property list is nil.  */)
+Its value is void, and its function definition and property list are nil.  */)
   (Lisp_Object name)
 {
   register Lisp_Object val;
@@ -3249,7 +3249,7 @@ Its value and function definition are void, and its property list is nil.  */)
   set_symbol_plist (val, Qnil);
   p->redirect = SYMBOL_PLAINVAL;
   SET_SYMBOL_VAL (p, Qunbound);
-  set_symbol_function (val, Qunbound);
+  set_symbol_function (val, Qnil);
   set_symbol_next (val, NULL);
   p->gcmarkbit = 0;
   p->interned = SYMBOL_UNINTERNED;

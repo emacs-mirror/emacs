@@ -875,7 +875,7 @@ definitions to shadow the loaded ones for use in file byte-compilation.  */)
 	  if (NILP (tem))
 	    {
 	      def = XSYMBOL (sym)->function;
-	      if (!EQ (def, Qunbound))
+	      if (!NILP (def))
 		continue;
 	    }
 	  break;
@@ -890,7 +890,7 @@ definitions to shadow the loaded ones for use in file byte-compilation.  */)
 	  GCPRO1 (form);
 	  def = Fautoload_do_load (def, sym, Qmacro);
 	  UNGCPRO;
-	  if (EQ (def, Qunbound) || !CONSP (def))
+	  if (!CONSP (def))
 	    /* Not defined or definition not suitable.  */
 	    break;
 	  if (!EQ (XCAR (def), Qmacro))
@@ -1715,12 +1715,12 @@ then strings and vectors are not accepted.  */)
 
   fun = function;
 
-  fun = indirect_function (fun); /* Check cycles. */
-  if (NILP (fun) || EQ (fun, Qunbound))
+  fun = indirect_function (fun); /* Check cycles.  */
+  if (NILP (fun))
     return Qnil;
 
   /* Check an `interactive-form' property if present, analogous to the
-     function-documentation property. */
+     function-documentation property.  */
   fun = function;
   while (SYMBOLP (fun))
     {
@@ -1780,7 +1780,7 @@ this does nothing and returns nil.  */)
   CHECK_STRING (file);
 
   /* If function is defined and not as an autoload, don't override.  */
-  if (!EQ (XSYMBOL (function)->function, Qunbound)
+  if (!NILP (XSYMBOL (function)->function)
       && !AUTOLOADP (XSYMBOL (function)->function))
     return Qnil;
 
@@ -1959,7 +1959,7 @@ eval_sub (Lisp_Object form)
 
   /* Optimize for no indirection.  */
   fun = original_fun;
-  if (SYMBOLP (fun) && !EQ (fun, Qunbound)
+  if (SYMBOLP (fun) && !NILP (fun)
       && (fun = XSYMBOL (fun)->function, SYMBOLP (fun)))
     fun = indirect_function (fun);
 
@@ -2081,7 +2081,7 @@ eval_sub (Lisp_Object form)
     val = apply_lambda (fun, original_args);
   else
     {
-      if (EQ (fun, Qunbound))
+      if (NILP (fun))
 	xsignal1 (Qvoid_function, original_fun);
       if (!CONSP (fun))
 	xsignal1 (Qinvalid_function, original_fun);
@@ -2155,10 +2155,10 @@ usage: (apply FUNCTION &rest ARGUMENTS)  */)
   numargs += nargs - 2;
 
   /* Optimize for no indirection.  */
-  if (SYMBOLP (fun) && !EQ (fun, Qunbound)
+  if (SYMBOLP (fun) && !NILP (fun)
       && (fun = XSYMBOL (fun)->function, SYMBOLP (fun)))
     fun = indirect_function (fun);
-  if (EQ (fun, Qunbound))
+  if (NILP (fun))
     {
       /* Let funcall get the error.  */
       fun = args[0];
@@ -2632,7 +2632,7 @@ usage: (funcall FUNCTION &rest ARGUMENTS)  */)
 
   /* Optimize for no indirection.  */
   fun = original_fun;
-  if (SYMBOLP (fun) && !EQ (fun, Qunbound)
+  if (SYMBOLP (fun) && !NILP (fun)
       && (fun = XSYMBOL (fun)->function, SYMBOLP (fun)))
     fun = indirect_function (fun);
 
@@ -2720,7 +2720,7 @@ usage: (funcall FUNCTION &rest ARGUMENTS)  */)
     val = funcall_lambda (fun, numargs, args + 1);
   else
     {
-      if (EQ (fun, Qunbound))
+      if (NILP (fun))
 	xsignal1 (Qvoid_function, original_fun);
       if (!CONSP (fun))
 	xsignal1 (Qinvalid_function, original_fun);
