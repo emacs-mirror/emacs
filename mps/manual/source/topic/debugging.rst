@@ -126,7 +126,7 @@ For example::
     non-debugging pools.
 
 
-.. c:function:: void mps_pool_check_free_space(mps_pool_t mps_pool)
+.. c:function:: void mps_pool_check_free_space(mps_pool_t pool)
 
     Check all the free space in a :term:`pool` for :term:`overwriting
     errors`.
