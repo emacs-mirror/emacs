@@ -7257,6 +7257,8 @@ fi
   nw="$nw -Wfloat-equal"            # warns about high-quality code
   nw="$nw -Winline"                 # OK to ignore 'inline'
   nw="$nw -Wjump-misses-init"       # We sometimes safely jump over init.
+  nw="$nw -Wstrict-overflow"        # OK to optimize assuming that
+                                    # signed overflow has undefined behavior
   nw="$nw -Wsync-nand"              # irrelevant here, and provokes ObjC warning
   nw="$nw -Wunsafe-loop-optimizations" # OK to suppress unsafe optimizations
 
@@ -7264,10 +7266,37 @@ fi
   # <http://lists.gnu.org/archive/html/emacs-diffs/2011-11/msg00265.html>.
   nw="$nw -Wshadow"
 
-  # The following lines should be removable at some point.
-  nw="$nw -Wstack-protector"
-  nw="$nw -Wstrict-overflow"
+  # The following line should be removable at some point.
   nw="$nw -Wsuggest-attribute=pure"
+
+  { $as_echo "$as_me:${as_lineno-$LINENO}: checking whether to use -Wstack-protector" >&5
+$as_echo_n "checking whether to use -Wstack-protector... " >&6; }
+  cat confdefs.h - <<_ACEOF >conftest.$ac_ext
+/* end confdefs.h.  */
+#if (1 <= __LONG_MAX__ >> 31 >> 31 \
+           && 4 < __GNUC__ + (7 < __GNUC_MINOR__ + (2 <= __GNUC_PATCHLEVEL__)))
+	   /* OK */
+         #else
+	   #error "Not GCC, or GCC before 4.7.2, or 'long int' has < 64 bits."
+	 #endif
+
+int
+main ()
+{
+
+  ;
+  return 0;
+}
+_ACEOF
+if ac_fn_c_try_cpp "$LINENO"; then :
+  { $as_echo "$as_me:${as_lineno-$LINENO}: result: yes" >&5
+$as_echo "yes" >&6; }
+else
+  { $as_echo "$as_me:${as_lineno-$LINENO}: result: no" >&5
+$as_echo "no" >&6; }
+     nw="$nw -Wstack-protector"
+fi
+rm -f conftest.err conftest.$ac_ext
 
 
 
