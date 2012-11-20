@@ -1,3 +1,8 @@
+2012-11-20  Michael Albinus  <michael.albinus@gmx.de>
+
+	* trampver.texi: Downgrade version to 2.2.6-24.3, in order to
+	distinguish from trunk.
+
 2012-11-16  Glenn Morris  <rgm@gnu.org>
 
 	* cl.texi (Function Bindings): Clarify that cl-flet is lexical.
