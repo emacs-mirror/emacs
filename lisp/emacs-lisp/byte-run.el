@@ -88,7 +88,7 @@ The return value of this function is not used."
                      ,(if (eq (car-safe compiler-function) 'lambda)
                           `(lambda ,(append (cadr compiler-function) args)
                              ,@(cddr compiler-function))
-                        #',compiler-function)))))
+                        `#',compiler-function)))))
    (list 'doc-string
          #'(lambda (f _args pos)
              (list 'put (list 'quote f) ''doc-string-elt (list 'quote pos))))

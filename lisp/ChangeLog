@@ -1,5 +1,7 @@
 2012-11-20  Stefan Monnier  <monnier@iro.umontreal.ca>
 
+	* emacs-lisp/byte-run.el (defun-declarations-alist): Fix last change.
+
 	* subr.el (called-interactively-p-functions): New var.
 	(internal--called-interactively-p--get-frame): New macro.
 	(called-interactively-p, interactive-p): Rewrite in Lisp.
