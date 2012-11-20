@@ -1,5 +1,18 @@
 2012-11-20  Stefan Monnier  <monnier@iro.umontreal.ca>
 
+	* emacs-lisp/trace.el: Rewrite, use nadvice and lexical-binding.
+	(trace-buffer): Don't purecopy.
+	(trace-entry-message, trace-exit-message): Add `context' arg.
+	(trace--timer): New var.
+	(trace-make-advice): Adjust for use in nadvice.
+	Add `context' argument.  Delay `display-buffer' via a timer.
+	(trace-function-internal): Use advice-add.
+	(trace--read-args): New function.
+	(trace-function-foreground, trace-function-background): Use it.
+	(trace-function): Rename to trace-function-foreground and redefine as
+	an alias to that new name.
+	(untrace-function, untrace-all): Adjust to the use of nadvice.
+
 	* emacs-lisp/bytecomp.el (byte-compile): Fix handling of closures.
 
 	* emacs-lisp/byte-run.el (defun-declarations-alist): Fix last change.

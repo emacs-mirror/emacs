@@ -32,6 +32,15 @@ so we will look at it and add it to the manual.
 +++
 ** New function `ses-rename-cell' to give SES cells arbitrary names.
 
+** trace-function was largely rewritten.
+New features include:
+- no prompting for the destination buffer, unless a prefix-arg was used.
+- additionally to prompting for a destination buffer, when a prefix-arg is
+  used, the user can enter a "context", i.e. Lisp expression whose value at the
+  time the function is entered/exited will be printed along with the function
+  name and arguments.  Useful to trace the value of (current-buffer) or
+  (point) when the function is invoked.
+
 
 * New Modes and Packages in Emacs 24.4
 ** New nadvice.el package offering lighter-weight advice facilities.
