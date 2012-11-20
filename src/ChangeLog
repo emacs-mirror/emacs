@@ -1,3 +1,9 @@
+2012-11-20  Ken Brown  <kbrown@cornell.edu>
+
+	* emacs.c (main): Set the G_SLICE environment variable for all
+	Cygwin builds, not just GTK builds.  See
+	https://lists.gnu.org/archive/html/emacs-devel/2012-11/msg00368.html.
+
 2012-11-19  Eli Zaretskii  <eliz@gnu.org>
 
 	* xdisp.c (start_hourglass) [HAVE_NTGUI]: Don't mix declaration of
