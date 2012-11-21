@@ -329,10 +329,15 @@ if test "${enableval}" != "no"; then
 fi)
 
 
+dnl The name of this option is unfortunate.  It predates, and has no
+dnl relation to, the "sampling-based elisp profiler" added in 24.3.
+dnl Actually, it stops it working.
+dnl http://lists.gnu.org/archive/html/emacs-devel/2012-11/msg00393.html
 AC_ARG_ENABLE(profiling,
 [AS_HELP_STRING([--enable-profiling],
-		[build emacs with profiling support.
-		 This might not work on all platforms])],
+		[build emacs with low-level, gprof profiling support.
+                Mainly useful for debugging Emacs itself.  May not work on
+                all platforms.  Stops profiler.el working.])],
 [ac_enable_profiling="${enableval}"],[])
 if test x$ac_enable_profiling != x ; then
    PROFILING_CFLAGS="-DPROFILING=1 -pg"

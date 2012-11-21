@@ -1,3 +1,7 @@
+2012-11-21  Glenn Morris  <rgm@gnu.org>
+
+	* configure.ac (--enable-profiling): Doc fix.
+
 2012-11-03  Eli Zaretskii  <eliz@gnu.org>
 
 	* config.bat: Copy lib/execinfo.in.h to lib/execinfo.in-h if needed.
