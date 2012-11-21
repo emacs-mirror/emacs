@@ -2058,8 +2058,9 @@ Optional Features:
                           enable compile time checks for the Lisp_Object data
                           type. This is useful for development for catching
                           certain types of bugs.
-  --enable-profiling      build emacs with profiling support. This might not
-                          work on all platforms
+  --enable-profiling      build emacs with low-level, gprof profiling support.
+                          Mainly useful for debugging Emacs itself. May not
+                          work on all platforms. Stops profiler.el working.
   --enable-autodepend     automatically generate dependencies to .h-files.
                           Requires GNU Make and Gcc. Enabled if GNU Make and
                           Gcc is found
