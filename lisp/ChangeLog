@@ -1,3 +1,20 @@
+2012-11-21  Alan Mackenzie  <acm@muc.de>
+
+	Fix bugs in the state cache.  Enhance a debugging mechanism.
+	* progmodes/cc-engine.el (c-parse-state-get-strategy): Don't use
+	"brace at column zero" strategy for C++.
+	(c-append-lower-brace-pair-to-state-cache): Repair algorithm.
+	(c-parse-state-point): New variable.
+	(c-record-parse-state-state): Record old parse state with
+	`copy-tree'.  Record previous value of point.
+	(c-debug-parse-state-double-cons): New debugging function.
+	(c-debug-parse-state): Call the above new function.
+	(c-toggle-parse-state-debug): Output a confirmatory message.
+
+	* progmodes/cc-mode.el (c-before-change, c-after-change): Call
+	c-invalidate-state-cache from `c-before-change' instead of
+	`c-after-change'.
+
 2012-11-20  Daniel Colascione  <dancol@dancol.org>
 
 	* term/w32-win.el (cygwin-convert-path-from-windows): Accomodate
