@@ -1,3 +1,7 @@
+2012-11-21  Glenn Morris  <rgm@gnu.org>
+
+	* configure.ac (--enable-profiling): Doc fix.
+
 2012-11-20  Paul Eggert  <eggert@cs.ucla.edu>
 
 	Improve static checking of integer overflow and stack smashing.

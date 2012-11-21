@@ -5870,7 +5870,12 @@ the selected window or never appeared in it before, or if
   :version "24.3")
 
 (defun switch-to-buffer (buffer-or-name &optional norecord force-same-window)
-  "Switch to buffer BUFFER-OR-NAME in the selected window.
+  "Display buffer BUFFER-OR-NAME in the selected window.
+
+WARNING: This is NOT the way to work on another buffer temporarily
+within a Lisp program!  Use `set-buffer' instead.  That avoids
+messing with the window-buffer correspondences.
+
 If the selected window cannot display the specified
 buffer (e.g. if it is a minibuffer window or strongly dedicated
 to another buffer), call `pop-to-buffer' to select the buffer in

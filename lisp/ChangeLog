@@ -1,3 +1,46 @@
+2012-11-21  Eli Zaretskii  <eliz@gnu.org>
+
+	* simple.el (line-move): Don't call line-move-partial if
+	scroll-conservatively is in effect.  (Bug#12927)
+
+2012-11-21  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* eshell/em-cmpl.el (eshell-pcomplete): Refine fix for bug#12838:
+	Fallback on completion-at-point rather than
+	pcomplete-expand-and-complete, and only if pcomplete actually failed.
+	(eshell-cmpl-initialize): Setup completion-at-point.
+
+	* pcomplete.el (pcomplete--entries): Obey pcomplete-ignore-case.
+
+	* emacs-lisp/ert.el (ert--expand-should-1): Adapt to cl-lib.
+
+2012-11-21  Michael Albinus  <michael.albinus@gmx.de>
+
+	* net/tramp-sh.el (tramp-do-copy-or-rename-file): If both files
+	are remote, check out-of-band property for both.
+
+2012-11-21  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* window.el (switch-to-buffer): Re-add the warning that was lost in the
+	code rewrite.
+
+2012-11-21  Paul Eggert  <eggert@cs.ucla.edu>
+
+	More minor time fixes.
+	* calendar/time-date.el: Commentary fix.
+	* net/tramp-sh.el (tramp-do-file-attributes-with-ls): Undo last change;
+	too much other code depends on (0 0) time stamps.
+	* net/tramp.el (tramp-time-less-p, tramp-time-subtract):
+	Add a couple of FIXME comments.
+
+	Minor cleanup for times as lists of four integers.
+	* files.el (dir-locals-directory-cache):
+	* ps-bdf.el (bdf-file-mod-time, bdf-read-font-info):
+	Doc fixes.
+	* net/tramp-sh.el (tramp-do-file-attributes-with-ls):
+	* ps-bdf.el (bdf-file-newer-than-time):
+	Process four-integers time stamps, not two.  Doc fixes.
+
 2012-11-20  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* uniquify.el (uniquify-managed): Use defvar-local.

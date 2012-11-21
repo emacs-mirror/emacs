@@ -847,7 +847,7 @@ are deprecated and will be removed eventually.
 ** New sampling-based Elisp profiler.
 Try M-x profiler-start, do some work, and then call M-x profiler-report.
 When finished, use M-x profiler-stop.  The sampling rate can be based on
-CPU time (only supported on some systems) or memory allocations.
+CPU time or memory allocations.
 
 +++
 ** CL-style generalized variables are now in core Elisp.

@@ -3433,7 +3433,7 @@ DIR is the name of the directory.
 CLASS is the name of a variable class (a symbol).
 MTIME is the recorded modification time of the directory-local
 variables file associated with this entry.  This time is a list
-of two integers (the same format as `file-attributes'), and is
+of integers (the same format as `file-attributes'), and is
 used to test whether the cache entry is still valid.
 Alternatively, MTIME can be nil, which means the entry is always
 considered valid.")

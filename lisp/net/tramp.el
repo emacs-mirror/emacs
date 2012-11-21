@@ -3767,6 +3767,7 @@ Invokes `password-read' if available, `read-passwd' else."
     ("oct" . 10) ("nov" . 11) ("dec" . 12))
   "Alist mapping month names to integers.")
 
+;; FIXME: Shouldn't this also look at any subseconds parts of T1 and T2?
 ;;;###tramp-autoload
 (defun tramp-time-less-p (t1 t2)
   "Say whether time value T1 is less than time value T2."
@@ -3776,6 +3777,7 @@ Invokes `password-read' if available, `read-passwd' else."
       (and (= (car t1) (car t2))
 	   (< (nth 1 t1) (nth 1 t2)))))
 
+;; FIXME: Shouldn't this also look at any subseconds parts of T1 and T2?
 (defun tramp-time-subtract (t1 t2)
   "Subtract two time values.
 Return the difference in the format of a time value."

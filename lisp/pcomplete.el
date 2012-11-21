@@ -833,7 +833,8 @@ this is `comint-dynamic-complete-functions'."
                       . ,(lambda (comps)
                            (sort comps pcomplete-compare-entry-function)))
                      ,@(cdr (completion-file-name-table s p a)))
-        (let ((completion-ignored-extensions nil))
+        (let ((completion-ignored-extensions nil)
+	      (completion-ignore-case pcomplete-ignore-case))
           (completion-table-with-predicate
            #'comint-completion-file-name-table pred 'strict s p a))))))
 

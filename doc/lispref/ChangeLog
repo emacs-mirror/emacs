@@ -1,3 +1,20 @@
+2012-11-21  Glenn Morris  <rgm@gnu.org>
+
+	* debugging.texi (Profiling): New section.
+	(Debugging): Mention profiling in the introduction.
+	* tips.texi (Compilation Tips): Move profiling to separate section.
+	* elisp.texi: Add Profiling to detailed menu.
+
+2012-11-21  Martin Rudalics  <rudalics@gmx.at>
+
+	* windows.texi (Display Action Functions): Fix recently added
+	example.  Suggested by Michael Heerdegen.
+
+2012-11-21  Paul Eggert  <eggert@cs.ucla.edu>
+
+	Minor cleanup for times as lists of four integers.
+	* os.texi (Time Parsing): Time values can now be four integers.
+
 2012-11-18  Glenn Morris  <rgm@gnu.org>
 
 	* loading.texi (How Programs Do Loading): Add eager macro expansion.

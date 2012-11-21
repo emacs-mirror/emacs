@@ -119,9 +119,10 @@ typedef struct _PROCESS_MEMORY_COUNTERS_EX {
 #include <aclapi.h>
 
 #ifdef _MSC_VER
-/* MSVC doesn't provide the definition of REPARSE_DATA_BUFFER, except
-   on ntifs.h, which cannot be included because it triggers conflicts
-   with other Windows API headers.  So we define it here by hand.  */
+/* MSVC doesn't provide the definition of REPARSE_DATA_BUFFER and the
+   associated macros, except on ntifs.h, which cannot be included
+   because it triggers conflicts with other Windows API headers.  So
+   we define it here by hand.  */
 
 typedef struct _REPARSE_DATA_BUFFER {
     ULONG  ReparseTag;
@@ -149,6 +150,12 @@ typedef struct _REPARSE_DATA_BUFFER {
     } DUMMYUNIONNAME;
 } REPARSE_DATA_BUFFER, *PREPARSE_DATA_BUFFER;
 
+#define FILE_DEVICE_FILE_SYSTEM	9
+#define METHOD_BUFFERED	        0
+#define FILE_ANY_ACCESS	        0x00000000
+#define CTL_CODE(t,f,m,a)       (((t)<<16)|((a)<<14)|((f)<<2)|(m))
+#define FSCTL_GET_REPARSE_POINT \
+  CTL_CODE(FILE_DEVICE_FILE_SYSTEM, 42, METHOD_BUFFERED, FILE_ANY_ACCESS)
 #endif
 
 /* TCP connection support.  */

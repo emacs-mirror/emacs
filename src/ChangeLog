@@ -1,3 +1,24 @@
+2012-11-21  Ken Brown  <kbrown@cornell.edu>
+
+	* emacs.c (main): Set the G_SLICE environment variable for all
+	Cygwin builds, not just GTK builds.  See
+	https://lists.gnu.org/archive/html/emacs-devel/2012-11/msg00368.html.
+
+2012-11-21  Eli Zaretskii  <eliz@gnu.org>
+
+	* w32.c (FILE_DEVICE_FILE_SYSTEM, METHOD_BUFFERED)
+	(FILE_ANY_ACCESS, CTL_CODE, FSCTL_GET_REPARSE_POINT) [_MSC_VER]:
+	Define for the MSVC compiler.
+
+	* w32term.h (EnumSystemLocalesW) [_MSC_VER]: Add a missing semi-colon.
+
+	* fileio.c (Fsubstitute_in_file_name, Ffile_name_directory)
+	(Fexpand_file_name) [DOS_NT]: Pass encoded file name to
+	dostounix_filename.  Prevents crashes down the road, because
+	dostounix_filename assumes it gets a unibyte string.  Reported by
+	Michel de Ruiter <michel@sentient.nl>, see
+	http://lists.gnu.org/archive/html/help-emacs-windows/2012-11/msg00017.html
+
 2012-11-20  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	Conflate Qnil and Qunbound for `symbol-function'.

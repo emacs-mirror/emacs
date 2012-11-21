@@ -1373,8 +1373,8 @@ on others, years as early as 1901 do work.
 @node Time Parsing
 @section Parsing and Formatting Times
 
-  These functions convert time values (lists of two or three integers)
-to text in a string, and vice versa.
+  These functions convert time values to text in a string, and vice versa.
+Time values are lists of two to four integers (@pxref{Time of Day}).
 
 @defun date-to-time string
 This function parses the time-string @var{string} and returns the

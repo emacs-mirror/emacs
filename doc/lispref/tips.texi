@@ -460,18 +460,8 @@ Lisp programs.
 
 @itemize @bullet
 @item
-@cindex profiling
-@cindex timing programs
-@cindex @file{elp.el}
-Profile your program with the @file{elp} library.  See the file
-@file{elp.el} for instructions.
-
-@item
-@cindex @file{benchmark.el}
-@cindex benchmarking
-Check the speed of individual Emacs Lisp forms using the
-@file{benchmark} library.  See the functions @code{benchmark-run} and
-@code{benchmark-run-compiled} in @file{benchmark.el}.
+Profile your program, to find out where the time is being spent.
+@xref{Profiling}.
 
 @item
 Use iteration rather than recursion whenever possible.

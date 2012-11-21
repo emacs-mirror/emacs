@@ -617,6 +617,7 @@ Debugging Lisp Programs
 * Edebug::                  A source-level Emacs Lisp debugger.
 * Syntax Errors::           How to find syntax errors.
 * Test Coverage::           Ensuring you have tested all branches in your code.
+* Profiling::               Measuring the resources that your code uses.
 
 The Lisp Debugger
 
