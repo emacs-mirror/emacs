@@ -1,3 +1,12 @@
+2012-11-21  Glenn Morris  <rgm@gnu.org>
+
+	* faces.el (set-face-inverse-video, set-face-bold, set-face-italic):
+	Remove -p suffix from names, for consistency with other set-face-*.
+	(set-face-inverse-video): Fix interactive spec.
+	* play/gamegrid.el (gamegrid-make-mono-tty-face):
+	* textmodes/table.el (table--update-cell-face):
+	Use set-face-inverse-video rather than now obsolete alias.
+
 2012-11-21  Eli Zaretskii  <eliz@gnu.org>
 
 	* simple.el (line-move): Don't call line-move-partial if

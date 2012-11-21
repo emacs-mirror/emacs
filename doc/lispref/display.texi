@@ -2425,12 +2425,12 @@ This sets the @code{:stipple} attribute of @var{face} to
 This sets the @code{:font} attribute of @var{face} to @var{font}.
 @end deffn
 
-@defun set-face-bold-p face bold-p &optional frame
+@defun set-face-bold face bold-p &optional frame
 This sets the @code{:weight} attribute of @var{face} to @var{normal}
 if @var{bold-p} is @code{nil}, and to @var{bold} otherwise.
 @end defun
 
-@defun set-face-italic-p face italic-p &optional frame
+@defun set-face-italic face italic-p &optional frame
 This sets the @code{:slant} attribute of @var{face} to @var{normal} if
 @var{italic-p} is @code{nil}, and to @var{italic} otherwise.
 @end defun
@@ -2440,7 +2440,7 @@ This sets the @code{:underline} attribute of @var{face} to
 @var{underline}.
 @end defun
 
-@defun set-face-inverse-video-p face inverse-video-p &optional frame
+@defun set-face-inverse-video face inverse-video-p &optional frame
 This sets the @code{:inverse-video} attribute of @var{face} to
 @var{inverse-video-p}.
 @end defun

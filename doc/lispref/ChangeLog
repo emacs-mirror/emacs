@@ -1,5 +1,8 @@
 2012-11-21  Glenn Morris  <rgm@gnu.org>
 
+	* display.texi (Attribute Functions):
+	Update for set-face-* name changes.
+
 	* debugging.texi (Profiling): New section.
 	(Debugging): Mention profiling in the introduction.
 	* tips.texi (Compilation Tips): Move profiling to separate section.

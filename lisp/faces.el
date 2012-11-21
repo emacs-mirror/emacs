@@ -862,7 +862,7 @@ Use `set-face-attribute' to ``unspecify'' underlining."
                                 'set-face-underline "24.3")
 
 
-(defun set-face-inverse-video-p (face inverse-video-p &optional frame)
+(defun set-face-inverse-video (face inverse-video-p &optional frame)
   "Specify whether face FACE is in inverse video.
 INVERSE-VIDEO-P non-nil means FACE displays explicitly in inverse video.
 INVERSE-VIDEO-P nil means FACE explicitly is not in inverse video.
@@ -870,14 +870,13 @@ FRAME nil or not specified means change face on all frames.
 Use `set-face-attribute' to ``unspecify'' the inverse video attribute."
   (interactive
    (let ((list (read-face-and-attribute :inverse-video)))
-     (list (car list) (eq (car (cdr list)) t))))
+     (list (car list) (if (cadr list) t))))
   (set-face-attribute face frame :inverse-video inverse-video-p))
 
+(define-obsolete-function-alias 'set-face-inverse-video-p
+                                'set-face-inverse-video "24.4")
 
-;; The -p suffix is a hostage to fortune.  What if we want to extend
-;; this to allow more than boolean options?  Exactly this happened
-;; to set-face-underline-p.
-(defun set-face-bold-p (face bold-p &optional frame)
+(defun set-face-bold (face bold-p &optional frame)
   "Specify whether face FACE is bold.
 BOLD-P non-nil means FACE should explicitly display bold.
 BOLD-P nil means FACE should explicitly display non-bold.
@@ -887,8 +886,10 @@ Use `set-face-attribute' or `modify-face' for finer control."
       (make-face-unbold face frame)
     (make-face-bold face frame)))
 
+(define-obsolete-function-alias 'set-face-bold-p 'set-face-bold "24.4")
 
-(defun set-face-italic-p (face italic-p &optional frame)
+
+(defun set-face-italic (face italic-p &optional frame)
   "Specify whether face FACE is italic.
 ITALIC-P non-nil means FACE should explicitly display italic.
 ITALIC-P nil means FACE should explicitly display non-italic.
@@ -897,6 +898,8 @@ Use `set-face-attribute' or `modify-face' for finer control."
   (if (null italic-p)
       (make-face-unitalic face frame)
     (make-face-italic face frame)))
+
+(define-obsolete-function-alias 'set-face-italic-p 'set-face-italic "24.4")
 
 
 (defalias 'set-face-background-pixmap 'set-face-stipple)
