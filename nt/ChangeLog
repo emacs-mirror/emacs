@@ -1,3 +1,8 @@
+2012-11-21  Paul Eggert  <eggert@cs.ucla.edu>
+
+	Assume POSIX 1003.1-1988 or later for unistd.h (Bug#12945).
+	* config.nt (HAVE_GETCWD): Remove.
+
 2012-11-21  Eli Zaretskii  <eliz@gnu.org>
 
 	* nmake.defs: Use !if, not !ifdef.  For the details, see

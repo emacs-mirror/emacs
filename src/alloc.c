@@ -63,10 +63,6 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #endif
 
 #include <unistd.h>
-#ifndef HAVE_UNISTD_H
-extern void *sbrk ();
-#endif
-
 #include <fcntl.h>
 
 #ifdef USE_GTK

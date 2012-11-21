@@ -1148,7 +1148,7 @@ filesystem tree, not (expand-file-name ".."  dirname).  */)
 		newdir = "/";
 	    }
 	  else
-	    getwd (adir);
+	    getcwd (adir, MAXPATHLEN + 1);
 	  newdir = adir;
 	}
 

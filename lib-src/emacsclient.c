@@ -88,10 +88,7 @@ char *w32_getenv (char *);
 
 
 
-char *getenv (const char *), *getwd (char *);
-#ifdef HAVE_GETCWD
-char *(getcwd) (char *, size_t);
-#endif
+char *getenv (const char *);
 
 #ifndef VERSION
 #define VERSION "unspecified"
@@ -223,7 +220,7 @@ get_current_dir_name (void)
   char *buf;
   const char *pwd;
   struct stat dotstat, pwdstat;
-  /* If PWD is accurate, use it instead of calling getwd.  PWD is
+  /* If PWD is accurate, use it instead of calling getcwd.  PWD is
      sometimes a nicer name, and using it may avoid a fatal error if a
      parent directory is searchable but not readable.  */
     if ((pwd = egetenv ("PWD")) != 0
@@ -240,7 +237,6 @@ get_current_dir_name (void)
       buf = (char *) xmalloc (strlen (pwd) + 1);
       strcpy (buf, pwd);
     }
-#ifdef HAVE_GETCWD
   else
     {
       size_t buf_size = 1024;
@@ -267,20 +263,6 @@ get_current_dir_name (void)
 	    }
         }
     }
-#else
-  else
-    {
-      /* We need MAXPATHLEN here.  */
-      buf = (char *) xmalloc (MAXPATHLEN + 1);
-      if (getwd (buf) == NULL)
-        {
-          int tmp_errno = errno;
-          free (buf);
-          errno = tmp_errno;
-          return NULL;
-        }
-    }
-#endif
   return buf;
 }
 #endif
@@ -1592,7 +1574,6 @@ main (int argc, char **argv)
   cwd = get_current_dir_name ();
   if (cwd == 0)
     {
-      /* getwd puts message in STRING if it fails.  */
       message (TRUE, "%s: %s\n", progname,
 	       "Cannot get current working directory");
       fail ();

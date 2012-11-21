@@ -1,3 +1,14 @@
+2012-11-21  Paul Eggert  <eggert@cs.ucla.edu>
+
+	Assume POSIX 1003.1-1988 or later for unistd.h (Bug#12945).
+	* alloc.c: Assume unistd.h exists.
+	* fileio.c (Fexpand_file_name) [DOS_NT]: Use getcwd, not getwd.
+	* sysdep.c (get_current_dir_name): Assume getcwd exists.
+	(getwd) [USG]: Remove; no longer needed.
+	(sys_subshell) [DOS_NT]: Use getcwd, not getwd.
+	* w32.c (getcwd): Rename from getwd, and switch to getcwd's API.
+	* w32.h (getcwd): Remove decl.
+
 2012-11-21  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* xdisp.c (fast_set_selected_frame): Rename from update_tool_bar_unwind.

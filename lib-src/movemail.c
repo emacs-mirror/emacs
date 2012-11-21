@@ -96,13 +96,6 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #include <fcntl.h>
 #endif /* WINDOWSNT */
 
-#ifndef F_OK
-#define F_OK 0
-#define X_OK 1
-#define W_OK 2
-#define R_OK 4
-#endif
-
 #ifdef WINDOWSNT
 #include <sys/locking.h>
 #endif

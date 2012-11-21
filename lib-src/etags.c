@@ -123,19 +123,9 @@ char pot_etags_version[] = "@(#) pot revision number is 17.38.1.4";
 # undef HAVE_NTGUI
 # undef  DOS_NT
 # define DOS_NT
-# ifndef HAVE_GETCWD
-#   define HAVE_GETCWD
-# endif /* undef HAVE_GETCWD */
-#else /* not WINDOWSNT */
-#endif /* !WINDOWSNT */
+#endif /* WINDOWSNT */
 
 #include <unistd.h>
-#ifndef HAVE_UNISTD_H
-# if defined (HAVE_GETCWD) && !defined (WINDOWSNT)
-    extern char *getcwd (char *buf, size_t size);
-# endif
-#endif /* HAVE_UNISTD_H */
-
 #include <stdarg.h>
 #include <stdlib.h>
 #include <string.h>
@@ -152,16 +142,7 @@ char pot_etags_version[] = "@(#) pot revision number is 17.38.1.4";
 # define assert(x) ((void) 0)
 #endif
 
-#ifdef NO_LONG_OPTIONS		/* define this if you don't have GNU getopt */
-# define NO_LONG_OPTIONS TRUE
-# define getopt_long(argc,argv,optstr,lopts,lind) getopt (argc, argv, optstr)
-  extern char *optarg;
-  extern int optind, opterr;
-#else
-# define NO_LONG_OPTIONS FALSE
-# include <getopt.h>
-#endif /* NO_LONG_OPTIONS */
-
+#include <getopt.h>
 #include <regex.h>
 
 /* Define CTAGS to make the program "ctags" compatible with the usual one.
@@ -869,11 +850,7 @@ print_help (argument *argbuffer)
   printf ("Usage: %s [options] [[regex-option ...] file-name] ...\n\
 \n\
 These are the options accepted by %s.\n", progname, progname);
-  if (NO_LONG_OPTIONS)
-    puts ("WARNING: long option names do not work with this executable,\n\
-as it is not linked with GNU getopt.");
-  else
-    puts ("You may use unambiguous abbreviations for the long option names.");
+  puts ("You may use unambiguous abbreviations for the long option names.");
   puts ("  A - as file name means read names from stdin (one per line).\n\
 Absolute names are stored in the output file as they are.\n\
 Relative ones are stored relative to the output file's directory.\n");
@@ -1065,9 +1042,9 @@ main (int argc, char **argv)
 
   /* When the optstring begins with a '-' getopt_long does not rearrange the
      non-options arguments to be at the end, but leaves them alone. */
-  optstring = concat (NO_LONG_OPTIONS ? "" : "-",
-		      "ac:Cf:Il:o:r:RSVhH",
-		      (CTAGS) ? "BxdtTuvw" : "Di:");
+  optstring = concat ("-ac:Cf:Il:o:r:RSVhH",
+		      (CTAGS) ? "BxdtTuvw" : "Di:",
+		      "");
 
   while ((opt = getopt_long (argc, argv, optstring, longopts, NULL)) != EOF)
     switch (opt)
@@ -6333,8 +6310,8 @@ pfatal (const char *s1)
 static void
 suggest_asking_for_help (void)
 {
-  fprintf (stderr, "\tTry `%s %s' for a complete list of options.\n",
-	   progname, NO_LONG_OPTIONS ? "-h" : "--help");
+  fprintf (stderr, "\tTry `%s --help' for a complete list of options.\n",
+	   progname);
   exit (EXIT_FAILURE);
 }
 
@@ -6372,7 +6349,6 @@ concat (const char *s1, const char *s2, const char *s3)
 static char *
 etags_getcwd (void)
 {
-#ifdef HAVE_GETCWD
   int bufsize = 200;
   char *path = xnew (bufsize, char);
 
@@ -6387,34 +6363,6 @@ etags_getcwd (void)
 
   canonicalize_filename (path);
   return path;
-
-#else /* not HAVE_GETCWD */
-#if MSDOS
-
-  char *p, path[MAXPATHLEN + 1]; /* Fixed size is safe on MSDOS.  */
-
-  getwd (path);
-
-  for (p = path; *p != '\0'; p++)
-    if (*p == '\\')
-      *p = '/';
-    else
-      *p = lowcase (*p);
-
-  return strdup (path);
-#else /* not MSDOS */
-  linebuffer path;
-  FILE *pipe;
-
-  linebuffer_init (&path);
-  pipe = (FILE *) popen ("pwd 2>/dev/null", "r");
-  if (pipe == NULL || readline_internal (&path, pipe) == 0)
-    pfatal ("pwd");
-  pclose (pipe);
-
-  return path.buffer;
-#endif /* not MSDOS */
-#endif /* not HAVE_GETCWD */
 }
 
 /* Return a newly allocated string containing the file name of FILE

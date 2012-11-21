@@ -1,3 +1,15 @@
+2012-11-21  Paul Eggert  <eggert@cs.ucla.edu>
+
+	Assume POSIX 1003.1-1988 or later for unistd.h (Bug#12945).
+	* emacsclient.c (getcwd): Remove decl.
+	(get_current_dir_name): Assume getcwd exists.
+	* etags.c (HAVE_GETCWD): Remove.
+	(getcwd): Remove decl.
+	(NO_LONG_OPTIONS): Remove this.  All uses removed.
+	Emacs always has GNU getopt.
+	(etags_getcwd): Assume getcwd exists.
+	* movemail.c (F_OK, X_OK, W_OK, R_OK): Remove.
+
 2012-11-20  Paul Eggert  <eggert@cs.ucla.edu>
 
 	* emacsclient.c (handle_sigcont, handle_sigtstp): Use raise (sig)

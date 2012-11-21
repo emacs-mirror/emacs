@@ -908,8 +908,18 @@ static char startup_dir[MAXPATHLEN];
 
 /* Get the current working directory.  */
 char *
-getwd (char *dir)
+getcwd (char *dir, size_t dirsize)
 {
+  if (!dirsize)
+    {
+      errno = EINVAL;
+      return NULL;
+    }
+  if (dirsize <= strlen (startup_dir))
+    {
+      errno = ERANGE;
+      return NULL;
+    }
 #if 0
   if (GetCurrentDirectory (MAXPATHLEN, dir) > 0)
     return dir;
@@ -1825,7 +1835,7 @@ init_environment (char ** argv)
 	memcpy (*envp, "COMSPEC=", 8);
   }
 
-  /* Remember the initial working directory for getwd.  */
+  /* Remember the initial working directory for getcwd.  */
   /* FIXME: Do we need to resolve possible symlinks in startup_dir?
      Does it matter anywhere in Emacs?  */
   if (!GetCurrentDirectory (MAXPATHLEN, startup_dir))

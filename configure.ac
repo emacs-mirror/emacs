@@ -2894,7 +2894,7 @@ AC_CHECK_FUNCS(gethostname \
 closedir getrusage get_current_dir_name \
 lrand48 \
 select getpagesize setlocale \
-utimes getrlimit setrlimit getcwd shutdown getaddrinfo \
+utimes getrlimit setrlimit shutdown getaddrinfo \
 strsignal setitimer \
 sendto recvfrom getsockname getpeername getifaddrs freeifaddrs \
 gai_strerror mkstemp getline getdelim fsync sync \
@@ -2902,14 +2902,6 @@ difftime posix_memalign \
 getpwent endpwent getgrent endgrent \
 touchlock \
 cfmakeraw cfsetspeed copysign __executable_start)
-
-dnl getwd appears to be buggy on SVR4.2, so we don't use it.
-if test $opsys = unixware; then
-  dnl In case some other test ends up checking for getwd.
-  AC_DEFINE(BROKEN_GETWD, 1, [Define if getwd should not be used.])
-else
-  AC_CHECK_FUNCS(getwd)
-fi
 
 ## Eric Backus <ericb@lsid.hp.com> says, HP-UX 9.x on HP 700 machines
 ## has a broken `rint' in some library versions including math library
