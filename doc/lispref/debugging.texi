@@ -849,3 +849,14 @@ The @file{elp} library offers an alternative approach.  See the file
 You can check the speed of individual Emacs Lisp forms using the
 @file{benchmark} library.  See the functions @code{benchmark-run} and
 @code{benchmark-run-compiled} in @file{benchmark.el}.
+
+@c Not worth putting in the printed manual.
+@ifnottex
+@cindex --enable-profiling option of configure
+For low-level profiling of Emacs itself, you can build it using the
+@option{--enable-profiling} option of @command{configure}.  When Emacs
+exits, it generates a file @file{gmon.out} that you can examine using
+the @command{gprof} utility.  This feature is mainly useful for
+debugging Emacs.  It actually stops the Lisp-level @kbd{M-x
+profiler-@dots{}} commands described above from working.
+@end ifnottex
