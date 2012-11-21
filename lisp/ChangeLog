@@ -1,5 +1,8 @@
 2012-11-21  Glenn Morris  <rgm@gnu.org>
 
+	* faces.el (face-underline-p, face-inverse-video-p, face-bold-p)
+	(face-italic-p): Add optional argument "inherit".
+
 	* faces.el (set-face-inverse-video, set-face-bold, set-face-italic):
 	Remove -p suffix from names, for consistency with other set-face-*.
 	(set-face-inverse-video): Fix interactive spec.

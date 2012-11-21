@@ -487,44 +487,44 @@ with the `default' face (which is always completely specified)."
 (defalias 'face-background-pixmap 'face-stipple)
 
 
-;; FIXME all of these -p functions ignore inheritance (cf face-stipple).
-;; Ie, a face that inherits from an underlined face but does not
-;; specify :underline will return nil.
-;; So these functions don't actually tell you anything about how the
-;; face will _appear_.  So not very useful IMO.
-(defun face-underline-p (face &optional frame)
+(defun face-underline-p (face &optional frame inherit)
  "Return non-nil if FACE specifies a non-nil underlining.
 If the optional argument FRAME is given, report on face FACE in that frame.
 If FRAME is t, report on the defaults for face FACE (for new frames).
-If FRAME is omitted or nil, use the selected frame."
- (face-attribute-specified-or (face-attribute face :underline frame) nil))
+If FRAME is omitted or nil, use the selected frame.
+Optional argument INHERIT is passed to `face-attribute'."
+ (face-attribute-specified-or
+  (face-attribute face :underline frame inherit) nil))
 
 
-(defun face-inverse-video-p (face &optional frame)
+(defun face-inverse-video-p (face &optional frame inherit)
  "Return non-nil if FACE specifies a non-nil inverse-video.
 If the optional argument FRAME is given, report on face FACE in that frame.
 If FRAME is t, report on the defaults for face FACE (for new frames).
-If FRAME is omitted or nil, use the selected frame."
- (eq (face-attribute face :inverse-video frame) t))
+If FRAME is omitted or nil, use the selected frame.
+Optional argument INHERIT is passed to `face-attribute'."
+ (eq (face-attribute face :inverse-video frame inherit) t))
 
 
-(defun face-bold-p (face &optional frame)
+(defun face-bold-p (face &optional frame inherit)
   "Return non-nil if the font of FACE is bold on FRAME.
 If the optional argument FRAME is given, report on face FACE in that frame.
 If FRAME is t, report on the defaults for face FACE (for new frames).
 If FRAME is omitted or nil, use the selected frame.
+Optional argument INHERIT is passed to `face-attribute'.
 Use `face-attribute' for finer control."
-  (let ((bold (face-attribute face :weight frame)))
+  (let ((bold (face-attribute face :weight frame inherit)))
     (memq bold '(semi-bold bold extra-bold ultra-bold))))
 
 
-(defun face-italic-p (face &optional frame)
+(defun face-italic-p (face &optional frame inherit)
   "Return non-nil if the font of FACE is italic on FRAME.
 If the optional argument FRAME is given, report on face FACE in that frame.
 If FRAME is t, report on the defaults for face FACE (for new frames).
 If FRAME is omitted or nil, use the selected frame.
+Optional argument INHERIT is passed to `face-attribute'.
 Use `face-attribute' for finer control."
-  (let ((italic (face-attribute face :slant frame)))
+  (let ((italic (face-attribute face :slant frame inherit)))
     (memq italic '(italic oblique))))
 
 

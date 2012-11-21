@@ -2,6 +2,8 @@
 
 	* display.texi (Attribute Functions):
 	Update for set-face-* name changes.
+	Add new "inherit" argument for face-bold-p etc.
+	Move description of this argument to a common section, like "frame".
 
 	* debugging.texi (Profiling): New section.
 	(Debugging): Mention profiling in the introduction.
