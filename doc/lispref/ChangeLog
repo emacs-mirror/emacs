@@ -1,3 +1,8 @@
+2012-11-21  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* debugging.texi (Profiling): Make it more clear
+	that --enable-profiling is about profiling the C code.
+
 2012-11-21  Glenn Morris  <rgm@gnu.org>
 
 	* debugging.texi (Profiling): Mention --enable-profiling (if !tex).

@@ -866,7 +866,7 @@ You can check the speed of individual Emacs Lisp forms using the
 @c Not worth putting in the printed manual.
 @ifnottex
 @cindex --enable-profiling option of configure
-For low-level profiling of Emacs itself, you can build it using the
+To profile Emacs at the level of its C code, you can build it using the
 @option{--enable-profiling} option of @command{configure}.  When Emacs
 exits, it generates a file @file{gmon.out} that you can examine using
 the @command{gprof} utility.  This feature is mainly useful for
