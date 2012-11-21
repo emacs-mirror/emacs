@@ -1,3 +1,9 @@
+2012-11-21  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* xdisp.c (fast_set_selected_frame): Rename from update_tool_bar_unwind.
+	Make it set selected_window as well.
+	(update_tool_bar): Use it.
+
 2012-11-21  Ken Brown  <kbrown@cornell.edu>
 
 	* emacs.c (main): Set the G_SLICE environment variable for all

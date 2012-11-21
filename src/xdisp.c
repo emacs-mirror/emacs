@@ -11484,11 +11484,18 @@ FRAME_PTR last_mouse_frame;
 
 int last_tool_bar_item;
 
-
+/* Select `frame' temporarily without running all the code in
+   do_switch_frame.
+   FIXME: Maybe do_switch_frame should be trimmed down similarly
+   when `norecord' is set.  */
 static Lisp_Object
-update_tool_bar_unwind (Lisp_Object frame)
+fast_set_selected_frame (Lisp_Object frame)
 {
-  selected_frame = frame;
+  if (!EQ (selected_frame, frame))
+    {
+      selected_frame = frame;
+      selected_window = XFRAME (frame)->selected_window;
+    }
   return Qnil;
 }
 
@@ -11560,9 +11567,13 @@ update_tool_bar (struct frame *f, int save_match_data)
 	     before calling tool_bar_items, because the calculation of
 	     the tool-bar keymap uses the selected frame (see
 	     `tool-bar-make-keymap' in tool-bar.el).  */
-	  record_unwind_protect (update_tool_bar_unwind, selected_frame);
+	  eassert (EQ (selected_window,
+		       /* Since we only explicitly preserve selected_frame,
+			  check that selected_window would be redundant.  */
+		       XFRAME (selected_frame)->selected_window));
+	  record_unwind_protect (fast_set_selected_frame, selected_frame);
 	  XSETFRAME (frame, f);
-	  selected_frame = frame;
+	  fast_set_selected_frame (frame);
 
 	  /* Build desired tool-bar items from keymaps.  */
           new_tool_bar
