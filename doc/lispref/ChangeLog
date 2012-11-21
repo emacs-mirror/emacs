@@ -1,6 +1,8 @@
 2012-11-21  Glenn Morris  <rgm@gnu.org>
 
-	* debugging.texi (Profiling) [!tex]: Mention --enable-profiling.
+	* debugging.texi (Profiling): Mention --enable-profiling (if !tex).
+	Add some basic information about the profile report buffer.
+	(Debugging): Mention profiling in the introduction.
 
 2012-11-20  Glenn Morris  <rgm@gnu.org>
 

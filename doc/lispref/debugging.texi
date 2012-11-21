@@ -32,6 +32,9 @@ program.
 @item
 You can use the ERT package to write regression tests for the program.
 @xref{Top,the ERT manual,, ERT, ERT: Emacs Lisp Regression Testing}.
+
+@item
+You can profile the program to get hints about how to make it more efficient.
 @end itemize
 
   Other useful tools for debugging input and output problems are the
@@ -834,10 +837,20 @@ generate another report later on without erasing previous results.
 When you have finished profiling, type @kbd{M-x profiler-stop} (there
 is a small overhead associated with profiling).
 
-@c FIXME
-@c Basic apperance of the report buffer:
+The profiler report buffer shows, on each line, a function that was
+called, followed by how much resource (processor or memory) it used in
+absolute and percentage times since profiling started.  If a given
+line has a @samp{+} symbol at the left-hand side, you can expand that
+line by typing @key{RET}, in order to see the function(s) called by
+the higher-level function.  Pressing @key{RET} again will collapse
+back to the original state.
 
-@c The following commands are available in the report buffer:
+Press @kbd{j} or @kbd{mouse-2} to jump to the definition of a function.
+Press @kbd{d} to view a function's documentation.
+You can save a profile to a file using @kbd{C-x C-w}.
+You can compare two profiles using @kbd{=}.
+
+@c FIXME reversed calltree?
 
 @cindex @file{elp.el}
 @cindex timing programs
