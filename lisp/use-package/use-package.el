@@ -193,7 +193,7 @@
 ;; if you have that installed.  It's purpose is to remove strings from your
 ;; mode-line that would otherwise always be there and provide no useful
 ;; information.  It is invoked with the `:diminish' keyword, which is passed
-;; the minor mode symbol:
+;; either the minor mode symbol, or a cons of the symbol and a replacement string:
 ;;
 ;;   (use-package abbrev
 ;;     :diminish abbrev-mode
@@ -348,8 +348,14 @@
                    ,config-body
                    (ignore-errors
                      ,@(if (listp diminish-var)
-                           (mapcar (lambda (var) `(diminish (quote ,var)))
-                                   diminish-var)
+                           (if (listp (cdr diminish-var))
+                               (mapcar (lambda (var)
+                                           (if (listp var)
+                                               `(diminish (quote ,(car var)) ,(cdr var))
+                                               `(diminish (quote ,var))))
+                                diminish-var)
+                               `((diminish (quote ,(car diminish-var)) ,(cdr diminish-var)))
+                           )
                          `((diminish (quote ,diminish-var))))))))
 
       (if (and commands (symbolp commands))
