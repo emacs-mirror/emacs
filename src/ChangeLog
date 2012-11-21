@@ -1,3 +1,9 @@
+2012-11-21  Eli Zaretskii  <eliz@gnu.org>
+
+	* indent.c (Fvertical_motion): If the starting position is covered
+	by a display string, return to one position before that, to avoid
+	overshooting it inside move_it_to.  (Bug#12930)
+
 2012-11-20  Daniel Colascione  <dancol@dancol.org>
 
 	* w32fns.c (Fx_file_dialog):
