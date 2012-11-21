@@ -1339,6 +1339,7 @@ Based on `comint-mode-map'.")
 		  "\\(?:\\w+\\s-+\\)*"  ;; optional intervening keywords
 		  "\\(?:table\\|view\\|\\(?:package\\|type\\)\\(?:\\s-+body\\)?\\|proc\\(?:edure\\)?"
 		  "\\|function\\|trigger\\|sequence\\|rule\\|default\\)\\s-+"
+                  "\\(?:if\\s-+not\\s-+exists\\s-+\\)?" ;; IF NOT EXISTS
 		  "\\(\\w+\\)")
 	  1 'font-lock-function-name-face))
 

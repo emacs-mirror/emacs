@@ -1,3 +1,8 @@
+2012-11-21  Daniel Colascione  <dancol@dancol.org>
+
+	* progmodes/sql.el (sql-mode-font-lock-object-name): Support IF NOT EXISTS
+	in SQL declarations.
+
 2012-11-21  Glenn Morris  <rgm@gnu.org>
 
 	* faces.el (face-underline-p, face-inverse-video-p, face-bold-p)
