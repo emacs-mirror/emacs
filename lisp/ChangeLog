@@ -1,7 +1,8 @@
 2012-11-21  Daniel Colascione  <dancol@dancol.org>
 
 	* progmodes/sql.el (sql-mode-font-lock-object-name): Support IF NOT EXISTS
-	in SQL declarations.
+	in SQL declarations for font-lock.
+	(sql-imenu-generic-expression): Teach imenu about IF NOT EXISTS.
 
 2012-11-21  Glenn Morris  <rgm@gnu.org>
 
