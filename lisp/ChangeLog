@@ -1,5 +1,7 @@
 2012-11-21  Alan Mackenzie  <acm@muc.de>
 
+	* progmodes/cc-defs.el (c-version): Bump to 5.32.4.
+
 	Fix bugs in the state cache.  Enhance a debugging mechanism.
 	* progmodes/cc-engine.el (c-parse-state-get-strategy): Don't use
 	"brace at column zero" strategy for C++.
