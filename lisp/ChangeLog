@@ -1,3 +1,8 @@
+2012-11-22  Paul Eggert  <eggert@cs.ucla.edu>
+
+	* calc/calc.el (calc-gregorian-switch): Move to after calc-refresh
+	definition.  This fixes a bootstrap failure.
+
 2012-11-22  Jay Belanger  <jay.p.belanger@gmail.com>
 
 	* calc/calc.el (calc-gregorian-switch): Refresh the Calc buffer
