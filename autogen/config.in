@@ -50,9 +50,6 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 /* Define to the number of bits in type 'wint_t'. */
 #undef BITSIZEOF_WINT_T
 
-/* Define if getwd should not be used. */
-#undef BROKEN_GETWD
-
 /* Define if get_current_dir_name should not be used. */
 #undef BROKEN_GET_CURRENT_DIR_NAME
 
@@ -402,9 +399,6 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 /* Define to 1 if you have the `getaddrinfo' function. */
 #undef HAVE_GETADDRINFO
 
-/* Define to 1 if you have the `getcwd' function. */
-#undef HAVE_GETCWD
-
 /* Define to 1 if you have the `getdelim' function. */
 #undef HAVE_GETDELIM
 
@@ -452,9 +446,6 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 
 /* Define to 1 if you have the `gettimeofday' function. */
 #undef HAVE_GETTIMEOFDAY
-
-/* Define to 1 if you have the `getwd' function. */
-#undef HAVE_GETWD
 
 /* Define to 1 if you have the `get_current_dir_name' function. */
 #undef HAVE_GET_CURRENT_DIR_NAME

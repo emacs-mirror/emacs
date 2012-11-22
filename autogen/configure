@@ -13477,7 +13477,7 @@ for ac_func in gethostname \
 closedir getrusage get_current_dir_name \
 lrand48 \
 select getpagesize setlocale \
-utimes getrlimit setrlimit getcwd shutdown getaddrinfo \
+utimes getrlimit setrlimit shutdown getaddrinfo \
 strsignal setitimer \
 sendto recvfrom getsockname getpeername getifaddrs freeifaddrs \
 gai_strerror mkstemp getline getdelim fsync sync \
@@ -13497,24 +13497,6 @@ _ACEOF
 fi
 done
 
-
-if test $opsys = unixware; then
-
-$as_echo "#define BROKEN_GETWD 1" >>confdefs.h
-
-else
-  for ac_func in getwd
-do :
-  ac_fn_c_check_func "$LINENO" "getwd" "ac_cv_func_getwd"
-if test "x$ac_cv_func_getwd" = x""yes; then :
-  cat >>confdefs.h <<_ACEOF
-#define HAVE_GETWD 1
-_ACEOF
-
-fi
-done
-
-fi
 
 ## Eric Backus <ericb@lsid.hp.com> says, HP-UX 9.x on HP 700 machines
 ## has a broken `rint' in some library versions including math library
