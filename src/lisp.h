@@ -1649,10 +1649,6 @@ typedef struct {
   int mouse_face_face_id;
   Lisp_Object mouse_face_overlay;
 
-  /* 1 if a mouse motion event came and we didn't handle it right away because
-     gc was in progress.  */
-  int mouse_face_deferred_gc;
-
   /* FRAME and X, Y position of mouse when last checked for
      highlighting.  X and Y can be negative or out of range for the frame.  */
   struct frame *mouse_face_mouse_frame;

@@ -5331,11 +5331,11 @@ See Info node `(elisp)Garbage Collection'.  */)
   dump_zombies ();
 #endif
 
-  unblock_input ();
-
   check_cons_list ();
 
   gc_in_progress = 0;
+
+  unblock_input ();
 
   consing_since_gc = 0;
   if (gc_cons_threshold < GC_DEFAULT_THRESHOLD / 10)

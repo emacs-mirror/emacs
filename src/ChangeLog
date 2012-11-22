@@ -1,5 +1,19 @@
 2012-11-22  Dmitry Antipov  <dmantipov@yandex.ru>
 
+	* alloc.c (Fgarbage_collect): Unblock input after clearing
+	gc_in_progress to avoid note_mouse_highlight glitch with GC.
+	* frame.h (FRAME_MOUSE_UPDATE): New macro.
+	* msdos.c (IT_frame_up_to_date): Use it here...
+	* w32term.c (w32_frame_up_to_date): ...here...
+	* xterm.c (XTframe_up_to_date): ...and here...
+	* nsterm.m (ns_frame_up_to_date): ...but not here.
+	* lisp.h (Mouse_HLInfo): Remove mouse_face_deferred_gc member.
+	Adjust users.
+	* xdisp.c (message2_nolog, message3_nolog, note_mouse_highlight):
+	Do not check whether GC is in progress.
+
+2012-11-22  Dmitry Antipov  <dmantipov@yandex.ru>
+
 	* xdisp.c (window_buffer_changed): New function.
 	(update_menu_bar, update_tool_bar): Use it to
 	simplify large 'if' statements.

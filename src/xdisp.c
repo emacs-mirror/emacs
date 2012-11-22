@@ -9642,7 +9642,7 @@ message2_nolog (const char *m, ptrdiff_t nbytes, int multibyte)
       do_pending_window_change (0);
       echo_area_display (1);
       do_pending_window_change (0);
-      if (FRAME_TERMINAL (f)->frame_up_to_date_hook != 0 && ! gc_in_progress)
+      if (FRAME_TERMINAL (f)->frame_up_to_date_hook)
 	(*FRAME_TERMINAL (f)->frame_up_to_date_hook) (f);
     }
 }
@@ -9739,7 +9739,7 @@ message3_nolog (Lisp_Object m, ptrdiff_t nbytes, int multibyte)
       do_pending_window_change (0);
       echo_area_display (1);
       do_pending_window_change (0);
-      if (FRAME_TERMINAL (f)->frame_up_to_date_hook != 0 && ! gc_in_progress)
+      if (FRAME_TERMINAL (f)->frame_up_to_date_hook)
 	(*FRAME_TERMINAL (f)->frame_up_to_date_hook) (f);
     }
 }
@@ -27684,12 +27684,6 @@ note_mouse_highlight (struct frame *f, int x, int y)
 
   if (hlinfo->mouse_face_defer)
     return;
-
-  if (gc_in_progress)
-    {
-      hlinfo->mouse_face_deferred_gc = 1;
-      return;
-    }
 
   /* Which window is that in?  */
   window = window_from_coordinates (f, x, y, &part, 1);
