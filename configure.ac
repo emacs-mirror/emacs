@@ -177,7 +177,7 @@ OPTION_DEFAULT_ON([toolkit-scroll-bars],[don't use Motif or Xaw3d scroll bars])
 OPTION_DEFAULT_ON([xaw3d],[don't use Xaw3d])
 OPTION_DEFAULT_ON([xim],[don't use X11 XIM])
 OPTION_DEFAULT_OFF([ns],[use NeXTstep (Cocoa or GNUstep) windowing system])
-OPTION_DEFAULT_OFF([w32], [use native MS Windows GUI])
+OPTION_DEFAULT_OFF([w32], [use native MS Windows GUI in a Cygwin build])
 
 OPTION_DEFAULT_ON([gpm],[don't use -lgpm for mouse support on a GNU/Linux console])
 OPTION_DEFAULT_ON([dbus],[don't compile with D-Bus support])
@@ -329,15 +329,10 @@ if test "${enableval}" != "no"; then
 fi)
 
 
-dnl The name of this option is unfortunate.  It predates, and has no
-dnl relation to, the "sampling-based elisp profiler" added in 24.3.
-dnl Actually, it stops it working.
-dnl http://lists.gnu.org/archive/html/emacs-devel/2012-11/msg00393.html
 AC_ARG_ENABLE(profiling,
 [AS_HELP_STRING([--enable-profiling],
-		[build emacs with low-level, gprof profiling support.
-                Mainly useful for debugging Emacs itself.  May not work on
-                all platforms.  Stops profiler.el working.])],
+		[build emacs with profiling support.
+		 This might not work on all platforms])],
 [ac_enable_profiling="${enableval}"],[])
 if test x$ac_enable_profiling != x ; then
    PROFILING_CFLAGS="-DPROFILING=1 -pg"
@@ -360,7 +355,7 @@ AC_ARG_ENABLE(autodepend,
 ## Make sure CDPATH doesn't affect cd (in case PWD is relative).
 unset CDPATH
 case "${srcdir}" in
-  /* ) ;;
+  [[\\/]]* | ?:[[\\/]]*) ;;
   . )
     ## We may be able to use the $PWD environment variable to make this
     ## absolute.  But sometimes PWD is inaccurate.
@@ -529,6 +524,7 @@ case "${canonical}" in
     case "${canonical}" in
       *-cygwin )                opsys=cygwin ;;
       *-darwin* )               opsys=darwin ;;
+      *-mingw32 )		opsys=mingw32 ;;
       *-sysv4.2uw* )	  	opsys=unixware ;;
       *-sysv5uw* )	  	opsys=unixware ;;
       *-sysv5OpenUNIX* )  	opsys=unixware ;;
@@ -601,6 +597,9 @@ if test "$ac_test_CFLAGS" != set; then
   if test -n "$emacs_g3_CFLAGS"; then
     emacs_save_CFLAGS=$CFLAGS
     CFLAGS=$emacs_g3_CFLAGS
+    if test $opsys = mingw32; then
+      CFLAGS="$CFLAGS -gdwarf-2"
+    fi
     AC_CACHE_CHECK([whether $CC accepts $emacs_g3_CFLAGS],
       [emacs_cv_prog_cc_g3],
       [AC_LINK_IFELSE([AC_LANG_PROGRAM()],
@@ -715,8 +714,6 @@ else
   nw="$nw -Wfloat-equal"            # warns about high-quality code
   nw="$nw -Winline"                 # OK to ignore 'inline'
   nw="$nw -Wjump-misses-init"       # We sometimes safely jump over init.
-  nw="$nw -Wstrict-overflow"        # OK to optimize assuming that
-                                    # signed overflow has undefined behavior
   nw="$nw -Wsync-nand"              # irrelevant here, and provokes ObjC warning
   nw="$nw -Wunsafe-loop-optimizations" # OK to suppress unsafe optimizations
 
@@ -724,22 +721,10 @@ else
   # <http://lists.gnu.org/archive/html/emacs-diffs/2011-11/msg00265.html>.
   nw="$nw -Wshadow"
 
-  # The following line should be removable at some point.
+  # The following lines should be removable at some point.
+  nw="$nw -Wstack-protector"
+  nw="$nw -Wstrict-overflow"
   nw="$nw -Wsuggest-attribute=pure"
-
-  AC_MSG_CHECKING([whether to use -Wstack-protector])
-  AC_PREPROC_IFELSE(
-    [AC_LANG_PROGRAM(
-       [[#if (1 <= __LONG_MAX__ >> 31 >> 31 \
-           && 4 < __GNUC__ + (7 < __GNUC_MINOR__ + (2 <= __GNUC_PATCHLEVEL__)))
-	   /* OK */
-         #else
-	   #error "Not GCC, or GCC before 4.7.2, or 'long int' has < 64 bits."
-	 #endif
-       ]])],
-    [AC_MSG_RESULT(yes)],
-    [AC_MSG_RESULT(no)
-     nw="$nw -Wstack-protector"])
 
   gl_MANYWARN_ALL_GCC([ws])
   gl_MANYWARN_COMPLEMENT([ws], [$ws], [$nw])
@@ -891,7 +876,6 @@ AC_SUBST(CANNOT_DUMP)
 UNEXEC_OBJ=unexelf.o
 case "$opsys" in
   # MSDOS uses unexcoff.o
-  # MSWindows uses unexw32.o
   aix4-2)
    UNEXEC_OBJ=unexaix.o
    ;;
@@ -903,6 +887,9 @@ case "$opsys" in
    ;;
   hpux10-20 | hpux11)
    UNEXEC_OBJ=unexhp9k800.o
+   ;;
+  mingw32)
+   UNEXEC_OBJ=unexw32.o
    ;;
   sol2-10)
    # Use the Solaris dldump() function, called from unexsol.c, to dump
@@ -934,6 +921,10 @@ case "$opsys" in
   gnu-linux)
    ## cpp test was "ifdef __mips__", but presumably this is equivalent...
    case $host_cpu in mips*) LD_SWITCH_SYSTEM="-G 0";; esac
+   ;;
+
+  mingw32)
+   LD_SWITCH_SYSTEM="-Wl,-stack,0x00800000 -Wl,-heap,0x00100000 -Wl,-image-base,0x01000000 -Wl,-subsystem,console -Wl,-entry,__start -Wl,-Map,./temacs.map"
    ;;
 
   netbsd)
@@ -998,6 +989,7 @@ C_SWITCH_SYSTEM=
 ## additional optimization.  --nils@exp-math.uni-essen.de
 test "$opsys" = "aix4.2" && test "x$GCC" != "xyes" && \
   C_SWITCH_SYSTEM="-ma -qmaxmem=4000"
+test "$opsys" = "mingw32" && C_SWITCH_SYSTEM="-DUSE_CRT_DLL=1 -I../nt/inc"
 ## gnu-linux might need -D_BSD_SOURCE on old libc5 systems.
 ## It is redundant in glibc2, since we define _GNU_SOURCE.
 AC_SUBST(C_SWITCH_SYSTEM)
@@ -1066,6 +1058,9 @@ case $opsys in
   hpux10-20 | hpux11 )
     LIB_STANDARD=-lc
     START_FILES='pre-crt0.o $(CRT_DIR)/crt0.o'
+    ;;
+  mingw32 )
+    LIB_MATH=
     ;;
   dnl NB this may be adjusted below.
   netbsd | openbsd )
@@ -1231,6 +1226,7 @@ AC_DEFUN([PKG_CHECK_MODULES], [
   fi
 ])
 
+test "$opsys" = "mingw32" && with_sound=no
 
 if test "${with_sound}" != "no"; then
   # Sound support for GNU/Linux and the free BSDs.
@@ -1287,7 +1283,7 @@ fi
 dnl checks for header files
 AC_CHECK_HEADERS_ONCE(
   linux/version.h sys/systeminfo.h
-  coff.h pty.h
+  fcntl.h coff.h pty.h
   sys/vlimit.h sys/resource.h
   sys/utsname.h pwd.h utmp.h dirent.h util.h)
 
@@ -1607,11 +1603,23 @@ if test "${with_w32}" != no; then
   AC_CHECK_HEADER([windows.h], [HAVE_W32=yes],
                   [AC_MSG_ERROR([`--with-w32' was specified, but windows.h
                   cannot be found.])])
+fi
+if test "${opsys}" = "mingw32"; then
+  HAVE_W32=yes
+fi
+
+if test "${HAVE_W32}" = "yes"; then
   AC_DEFINE(HAVE_NTGUI, 1, [Define to use native MS Windows GUI.])
   W32_OBJ="w32fns.o w32menu.o w32reg.o w32font.o w32term.o"
   W32_OBJ="$W32_OBJ w32xfns.o w32select.o w32uniscribe.o"
-  W32_LIBS="$W32_LIBS -lkernel32 -luser32 -lgdi32 -lole32 -lcomdlg32"
-  W32_LIBS="$W32_LIBS -lusp10 -lcomctl32 -lwinspool"
+  if test "${opsys}" != "cygwin"; then
+    W32_LIBS="$W32_LIBS -lkernel32 -luser32 -lgdi32 -lole32 -lcomdlg32"
+    W32_LIBS="$W32_LIBS -lusp10 -lcomctl32 -lwinspool"
+  else
+    ## FIXME: set W32_OBJ
+    W32_LIBS="$W32_LIBS -lwinmm -ladvapi32 -lgdi32 -lcomdlg32 -luser32"
+    W32_LIBS="$W32_LIBS -lmpr -lshell32 -lwinspool -lole32 -lcomctl32 -lusp10"
+  fi
 fi
 AC_SUBST(W32_OBJ)
 AC_SUBST(W32_LIBS)
@@ -2893,8 +2901,8 @@ AC_SUBST(BLESSMAIL_TARGET)
 AC_CHECK_FUNCS(gethostname \
 closedir getrusage get_current_dir_name \
 lrand48 \
-select getpagesize setlocale \
-utimes getrlimit setrlimit shutdown getaddrinfo \
+fpathconf select getpagesize setlocale \
+utimes getrlimit setrlimit getcwd shutdown getaddrinfo \
 strsignal setitimer \
 sendto recvfrom getsockname getpeername getifaddrs freeifaddrs \
 gai_strerror mkstemp getline getdelim fsync sync \
@@ -2902,6 +2910,14 @@ difftime posix_memalign \
 getpwent endpwent getgrent endgrent \
 touchlock \
 cfmakeraw cfsetspeed copysign __executable_start)
+
+dnl getwd appears to be buggy on SVR4.2, so we don't use it.
+if test $opsys = unixware; then
+  dnl In case some other test ends up checking for getwd.
+  AC_DEFINE(BROKEN_GETWD, 1, [Define if getwd should not be used.])
+else
+  AC_CHECK_FUNCS(getwd)
+fi
 
 ## Eric Backus <ericb@lsid.hp.com> says, HP-UX 9.x on HP 700 machines
 ## has a broken `rint' in some library versions including math library
