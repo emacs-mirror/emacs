@@ -1186,7 +1186,7 @@ since the large integer arithmetic was there anyway it seemed only
 fair to give the user direct access to it, which in turn made it
 practical to support fractions as well as floats. All these features
 inspired me to look around for other data types that might be worth
-having. 
+having.
 
 Around this time, my friend Rick Koshi showed me his nifty new HP-28
 calculator.  It allowed the user to manipulate formulas as well as
@@ -4461,7 +4461,7 @@ date by one or several months.  @xref{Date Arithmetic}, for more.
 Friday the 13th?  @xref{Types Answer 5, 5}. (@bullet{})
 
 (@bullet{}) @strong{Exercise 6.}  How many leap years will there be
-between now and the year 10001 A.D.?  @xref{Types Answer 6, 6}. (@bullet{})
+between now and the year 10001 AD@?  @xref{Types Answer 6, 6}. (@bullet{})
 
 @cindex Slope and angle of a line
 @cindex Angle and slope of a line
@@ -5693,7 +5693,7 @@ on the stack, we want to be able to type @kbd{*} and get the result
 rearranged.  (This one is rather tricky; the solution at the end of
 this chapter uses 6 rewrite rules.  Hint:  The @samp{constant(x)}
 condition tests whether @samp{x} is a number.)  @xref{Rewrites Answer
-6, 6}. (@bullet{}) 
+6, 6}. (@bullet{})
 
 Just for kicks, try adding the rule @code{2+3 := 6} to @code{EvalRules}.
 What happens?  (Be sure to remove this rule afterward, or you might get
@@ -8697,7 +8697,7 @@ Multiplying by the conjugate helps because @expr{(a+b) (a-b) = a^2 - b^2}.
 @smallexample
 @group
      ___
-1:  V 2 
+1:  V 2
     .
 
   a r a*(b+c) := a*b + a*c
@@ -8897,7 +8897,7 @@ Note that this rule does not mention @samp{O} at all, so it will
 apply to any product-of-sum it encounters---this rule may surprise
 you if you put it into @code{EvalRules}!
 
-In the second rule, the sum of two O's is changed to the smaller O.
+In the second rule, the sum of two O's is changed to the smaller O@.
 The optional constant coefficients are there mostly so that
 @samp{O(x^2) - O(x^3)} and @samp{O(x^3) - O(x^2)} are handled
 as well as @samp{O(x^2) + O(x^3)}.
@@ -10987,7 +10987,7 @@ Input is flexible; date forms can be entered in any of the usual
 notations for dates and times.  @xref{Date Formats}.
 
 Date forms are stored internally as numbers, specifically the number
-of days since midnight on the morning of December 31 of the year 1 BC.
+of days since midnight on the morning of December 31 of the year 1 BC@.
 If the internal number is an integer, the form represents a date only;
 if the internal number is a fraction or float, the form represents
 a date and time.  For example, @samp{<6:00am Thu Jan 10, 1991>}
@@ -11010,13 +11010,13 @@ You can use the @kbd{v p} (@code{calc-pack}) and @kbd{v u}
 of a date form.  @xref{Packing and Unpacking}.
 
 Date forms can go arbitrarily far into the future or past.  Negative
-year numbers represent years BC.  There is no ``year 0''; the day
+year numbers represent years BC@.  There is no ``year 0''; the day
 before @samp{<Mon Jan 1, +1>} is @samp{<Sun Dec 31, -1>}.  These are
 days 1 and 0 respectively in Calc's internal numbering scheme.  The
 Gregorian calendar is used for all dates, including dates before the
 Gregorian calendar was invented (although that can be configured; see
 below).  Thus Calc's use of the day number @mathit{-10000} to
-represent August 15, 28 BC should be taken with a grain of salt. 
+represent August 15, 28 BC should be taken with a grain of salt.
 
 @cindex Julian calendar
 @cindex Gregorian calendar
@@ -11025,7 +11025,7 @@ Julius Caesar in the year 46 BC as an attempt to fix the confusion
 caused by the irregular Roman calendar that was used before that time.
 The Julian calendar introduced an extra day in all years divisible by
 four.  After some initial confusion, the calendar was adopted around
-the year we call 8 AD.  Some centuries later it became
+the year we call 8 AD@.  Some centuries later it became
 apparent that the Julian year of 365.25 days was itself not quite
 right.  In 1582 Pope Gregory XIII introduced the Gregorian calendar,
 which added the new rule that years divisible by 100, but not by 400,
@@ -11039,39 +11039,41 @@ was September 14.  To take another example, Russia did not adopt the
 Gregorian calendar until 1918, and that year in Russia the day after
 January 31 was February 14.  Calc's reckoning therefore matches English
 practice starting in 1752 and Russian practice starting in 1918, but
-disagrees with earlier dates in both countries. 
+disagrees with earlier dates in both countries.
 
 When the Julian calendar was introduced, it had January 1 as the first
 day of the year.  By the Middle Ages, many European countries
 had changed the beginning of a new year to a different date, often to
 a religious festival.  Almost all countries reverted to using January 1
 as the beginning of the year by the time they adopted the Gregorian
-calendar. 
+calendar.
 
 Some calendars attempt to mimic the historical situation by using the
 Gregorian calendar for recent dates and the Julian calendar for older
 dates. The @code{cal} program in most Unix implementations does this,
 for example. While January 1 wasn't always the beginning of a calendar
 year, these hybrid calendars still use January 1 as the beginning of
-the year even for older dates.   The customizable variable 
+the year even for older dates.   The customizable variable
 @code{calc-gregorian-switch} (@pxref{Customizing Calc}) can be set to
 have Calc's date forms switch from the Julian to Gregorian calendar at
-any specified date. 
+any specified date.
 
 Today's timekeepers introduce an occasional ``leap second''.
 These do not occur regularly and Calc does not take these minor
 effects into account.  (If it did, it would have to report a
-non-integer number of days between, say, 
-@samp{<12:00am Mon Jan 1, 1900>} and 
+non-integer number of days between, say,
+@samp{<12:00am Mon Jan 1, 1900>} and
 @samp{<12:00am Sat Jan 1, 2000>}.)
 
 @cindex Julian day counting
 Another day counting system in common use is, confusingly, also called
-``Julian.''  The Julian day number is the numbers of days since
-12:00 noon (GMT) on Jan 1, 4713 BC, which in Calc's scheme (in GMT)
-is @mathit{-1721423.5} (recall that Calc starts at midnight instead
-of noon).  Thus to convert a Calc date code obtained by unpacking a
-date form into a Julian day number, simply add 1721423.5 after
+``Julian.''  Julian days go from noon to noon.  The Julian day number
+is the numbers of days since 12:00 noon (GMT) on November 24, 4714 BC
+in the Gregorian calendar (i.e., January 1, 4713 BC in the Julian
+calendar).  In Calc's scheme (in GMT) the Julian day origin is
+@mathit{-1721422.5}, because Calc starts at midnight instead of noon.
+Thus to convert a Calc date code obtained by unpacking a
+date form into a Julian day number, simply add 1721422.5 after
 compensating for the time zone difference.  The built-in @kbd{t J}
 command performs this conversion for you.
 
@@ -11103,7 +11105,7 @@ the Julian cycle as an astronomical dating system; this idea was taken
 up by other astronomers.  (At the time, noon was the start of the
 astronomical day.  Herschel originally suggested counting the days
 since Jan 1, 4713 BC at noon Alexandria time; this was later amended to
-noon GMT.)  Julian day numbering is largely used in astronomy.
+noon GMT@.)  Julian day numbering is largely used in astronomy.
 
 @cindex Unix time format
 The Unix operating system measures time as an integer number of
@@ -12651,7 +12653,7 @@ are simplified with their unit definitions in mind.
 A common technique is to set the simplification mode down to the lowest
 amount of simplification you will allow to be applied automatically, then
 use manual commands like @kbd{a s} and @kbd{c c} (@code{calc-clean}) to
-perform higher types of simplifications on demand.  
+perform higher types of simplifications on demand.
 @node Declarations, Display Modes, Simplification Modes, Mode Settings
 @section Declarations
 
@@ -13002,7 +13004,7 @@ The @code{dneg} function checks for negative reals.  The @code{dnonneg}
 function checks for nonnegative reals, i.e., reals greater than or
 equal to zero.  Note that Calc's algebraic simplifications, which are
 effectively applied to all conditions in rewrite rules, can simplify
-an expression like @expr{x > 0} to 1 or 0 using @code{dpos}.  
+an expression like @expr{x > 0} to 1 or 0 using @code{dpos}.
 So the actual functions @code{dpos}, @code{dneg}, and @code{dnonneg}
 are rarely necessary.
 
@@ -13437,7 +13439,7 @@ the time part.  The punctuation characters (including spaces) must
 match exactly; letter fields must correspond to suitable text in
 the input.  If this doesn't work, Calc checks if the input is a
 simple number; if so, the number is interpreted as a number of days
-since Jan 1, 1 AD.  Otherwise, Calc tries a much more relaxed and
+since Jan 1, 1 AD@.  Otherwise, Calc tries a much more relaxed and
 flexible algorithm which is described in the next section.
 
 Weekday names are ignored during reading.
@@ -14666,7 +14668,7 @@ Subscripts use double square brackets: @samp{a[[i]]}.
 The @kbd{d W} (@code{calc-maple-language}) command selects the
 conventions of Maple.
 
-Maple's language is much like C.  Underscores are allowed in symbol
+Maple's language is much like C@.  Underscores are allowed in symbol
 names; square brackets are used for subscripts; explicit @samp{*}s for
 multiplications are required.  Use either @samp{^} or @samp{**} to
 denote powers.
@@ -16727,7 +16729,7 @@ number (i.e., pervasively).
 If the simplification mode is set below basic simplification, it is raised
 for the purposes of this command.  Thus, @kbd{c c} applies the basic
 simplifications even if their automatic application is disabled.
-@xref{Simplification Modes}. 
+@xref{Simplification Modes}.
 
 @cindex Roundoff errors, correcting
 A numeric prefix argument to @kbd{c c} sets the floating-point precision
@@ -16804,7 +16806,7 @@ additional argument from the top of the stack.
 @pindex calc-date
 @tindex date
 The @kbd{t D} (@code{calc-date}) [@code{date}] command converts a
-date form into a number, measured in days since Jan 1, 1 AD.  The
+date form into a number, measured in days since Jan 1, 1 AD@.  The
 result will be an integer if @var{date} is a pure date form, or a
 fraction or float if @var{date} is a date/time form.  Or, if its
 argument is a number, it converts this number into a date form.
@@ -16842,7 +16844,7 @@ The last two arguments default to zero if omitted.
 @cindex Julian day counts, conversions
 The @kbd{t J} (@code{calc-julian}) [@code{julian}] command converts
 a date form into a Julian day count, which is the number of days
-since noon (GMT) on Jan 1, 4713 BC.  A pure date is converted to an
+since noon (GMT) on Jan 1, 4713 BC@.  A pure date is converted to an
 integer Julian count representing noon of that day.  A date/time form
 is converted to an exact floating-point Julian count, adjusted to
 interpret the date form in the current time zone but the Julian
@@ -18988,7 +18990,7 @@ modulo operation as numbers 39 and below.)  If @var{m} is a power of
 ten, however, the numbers should be completely unbiased.
 
 The Gaussian random numbers generated by @samp{random(0.0)} use the
-``polar'' method described in Knuth section 3.4.1C.  This method
+``polar'' method described in Knuth section 3.4.1C@.  This method
 generates a pair of Gaussian random numbers at a time, so only every
 other call to @samp{random(0.0)} will require significant calculations.
 
@@ -22188,7 +22190,7 @@ Use @kbd{a v} if you want the variables to ignore their stored values.
 If you give a numeric prefix argument of 2 to @kbd{a v}, it simplifies
 using Calc's algebraic simplifications; @pxref{Simplifying Formulas}.
 If you give a numeric prefix of 3 or more, it uses Extended
-Simplification mode (@kbd{a e}). 
+Simplification mode (@kbd{a e}).
 
 If you give a negative prefix argument @mathit{-1}, @mathit{-2}, or @mathit{-3},
 it simplifies in the corresponding mode but only works on the top-level
@@ -22261,7 +22263,7 @@ If inequalities with opposite direction (e.g., @samp{<} and @samp{>})
 are mapped, the direction of the second inequality is reversed to
 match the first:  Using @kbd{a M +} on @samp{a < b} and @samp{a > 2}
 reverses the latter to get @samp{2 < a}, which then allows the
-combination @samp{a + 2 < b + a}, which the algebraic simplifications 
+combination @samp{a + 2 < b + a}, which the algebraic simplifications
 can reduce to @samp{2 < b}.
 
 Using @kbd{a M *}, @kbd{a M /}, @kbd{a M n}, or @kbd{a M &} to negate
@@ -22408,7 +22410,7 @@ common special case of regular arithmetic commands like @kbd{+} and
 @kbd{Q} [@code{sqrt}], the arguments are simply popped from the stack
 and collected into a suitable function call, which is then simplified
 (the arguments being simplified first as part of the process, as
-described above). 
+described above).
 
 Even the basic set of simplifications are too numerous to describe
 completely here, but this section will describe the ones that apply to the
@@ -22714,7 +22716,7 @@ the algebraic simplification mode, which is the default simplification
 mode.  If you have switched to a different simplification mode, you can
 switch back with the @kbd{m A} command. Even in other simplification
 modes, the @kbd{a s} command will use these algebraic simplifications to
-simplify the formula. 
+simplify the formula.
 
 There is a variable, @code{AlgSimpRules}, in which you can put rewrites
 to be applied. Its use is analogous to @code{EvalRules},
@@ -22751,7 +22753,7 @@ This allows easier comparison of products; for example, the basic
 simplifications will not change @expr{x y + y x} to @expr{2 x y},
 but the algebraic simplifications; it first rewrites the sum to
 @expr{x y + x y} which can then be recognized as a sum of identical
-terms. 
+terms.
 
 The canonical ordering used to sort terms of products has the
 property that real-valued numbers, interval forms and infinities
@@ -22794,10 +22796,10 @@ factor in the numerator and denominator, it is canceled out;
 for example, @expr{(4 x + 6) / 8 x} simplifies to @expr{(2 x + 3) / 4 x}.
 
 Non-constant common factors are not found even by algebraic
-simplifications.  To cancel the factor @expr{a} in 
+simplifications.  To cancel the factor @expr{a} in
 @expr{(a x + a) / a^2} you could first use @kbd{j M} on the product
 @expr{a x} to Merge the numerator to @expr{a (1+x)}, which can then be
-simplified successfully. 
+simplified successfully.
 
 @tex
 \bigskip
@@ -22950,7 +22952,7 @@ as is @expr{x^2 >= 0} if @expr{x} is known to be real.
 @tindex esimplify
 Calc is capable of performing some simplifications which may sometimes
 be desired but which are not ``safe'' in all cases.  The @kbd{a e}
-(@code{calc-simplify-extended}) [@code{esimplify}] command 
+(@code{calc-simplify-extended}) [@code{esimplify}] command
 applies the algebraic simplifications as well as these extended, or
 ``unsafe'', simplifications.  Use this only if you know the values in
 your formula lie in the restricted ranges for which these
@@ -23594,10 +23596,10 @@ forever!)
 @vindex IntegSimpRules
 Another set of rules, stored in @code{IntegSimpRules}, are applied
 every time the integrator uses algebraic simplifications to simplify an
-intermediate result.  For example, putting the rule 
+intermediate result.  For example, putting the rule
 @samp{twice(x) := 2 x} into  @code{IntegSimpRules} would tell Calc to
 convert the @code{twice} function into a form it knows whenever
-integration is attempted. 
+integration is attempted.
 
 One more way to influence the integrator is to define a function with
 the @kbd{Z F} command (@pxref{Algebraic Definitions}).  Calc's
@@ -26762,7 +26764,7 @@ meta-variable @expr{v}.  As usual, if this meta-variable has already
 been matched to something else the two values must be equal; if the
 meta-variable is new then it is bound to the result of the expression.
 This variable can then appear in later conditions, and on the righthand
-side of the rule. 
+side of the rule.
 In fact, @expr{v} may be any pattern in which case the result of
 evaluating @expr{x} is matched to that pattern, binding any
 meta-variables that appear in that pattern.  Note that @code{let}
@@ -27516,7 +27518,7 @@ but only when algebraic simplifications are used to simplify the
 formula.  The variable @code{AlgSimpRules} holds rules for this purpose.
 The @kbd{a s} command will apply @code{EvalRules} and
 @code{AlgSimpRules} to the formula, as well as all of its built-in
-simplifications. 
+simplifications.
 
 Most of the special limitations for @code{EvalRules} don't apply to
 @code{AlgSimpRules}.  Calc simply does an @kbd{a r AlgSimpRules}
@@ -27524,7 +27526,7 @@ command with an infinite repeat count as the first step of algebraic
 simplifications. It then applies its own built-in simplifications
 throughout the formula, and then repeats these two steps (along with
 applying the default simplifications) until no further changes are
-possible. 
+possible.
 
 @cindex @code{ExtSimpRules} variable
 @cindex @code{UnitSimpRules} variable
@@ -28959,9 +28961,9 @@ to select the lefthand side, execute your commands, then type
 All current modes apply when an @samp{=>} operator is computed,
 including the current simplification mode.  Recall that the
 formula @samp{arcsin(sin(x))} will not be handled by Calc's algebraic
-simplifications, but Calc's unsafe simplifications will reduce it to 
+simplifications, but Calc's unsafe simplifications will reduce it to
 @samp{x}.   If you enter @samp{arcsin(sin(x)) =>} normally, the result
-will be @samp{arcsin(sin(x)) => arcsin(sin(x))}.  If you change to 
+will be @samp{arcsin(sin(x)) => arcsin(sin(x))}.  If you change to
 Extended Simplification mode, the result will be
 @samp{arcsin(sin(x)) => x}.  However, just pressing @kbd{a e}
 once will have no effect on @samp{arcsin(sin(x)) => arcsin(sin(x))},
@@ -29579,7 +29581,7 @@ plot on any text-only printer.
 @kindex g O
 @pindex calc-graph-output
 The @kbd{g O} (@code{calc-graph-output}) command sets the name of the
-output file used by GNUPLOT.  For some devices, notably @code{x11} and
+output file used by GNUPLOT@.  For some devices, notably @code{x11} and
 @code{windows}, there is no output file and this information is not
 used.  Many other ``devices'' are really file formats like
 @code{postscript}; in these cases the output in the desired format
@@ -29651,7 +29653,7 @@ window in the upper-left corner of the screen.  This command has no
 effect if the current device is @code{windows}.
 
 The buffer called @samp{*Gnuplot Trail*} holds a transcript of the
-session with GNUPLOT.  This shows the commands Calc has ``typed'' to
+session with GNUPLOT@.  This shows the commands Calc has ``typed'' to
 GNUPLOT and the responses it has received.  Calc tries to notice when an
 error message has appeared here and display the buffer for you when
 this happens.  You can check this buffer yourself if you suspect
@@ -33262,7 +33264,7 @@ in the range @samp{[0 ..@: 60)}.
 
 Date forms are stored as @samp{(date @var{n})}, where @var{n} is
 a real number that counts days since midnight on the morning of
-January 1, 1 AD.  If @var{n} is an integer, this is a pure date
+January 1, 1 AD@.  If @var{n} is an integer, this is a pure date
 form.  If @var{n} is a fraction or float, this is a date/time form.
 
 Modulo forms are stored as @samp{(mod @var{n} @var{m})}, where @var{m} is a
@@ -33770,7 +33772,7 @@ objects into a definite, consistent order.  The @code{beforep}
 function is used by the @kbd{V S} vector-sorting command, and also
 by Calc's algebraic simplifications to put the terms of a product into
 canonical order: This allows @samp{x y + y x} to be simplified easily to
-@samp{2 x y}. 
+@samp{2 x y}.
 @end defun
 
 @defun equal x y
@@ -35605,11 +35607,11 @@ be preserved.  The default value of @code{calc-undo-length} is @expr{100}.
 
 @defvar calc-gregorian-switch
 See @ref{Date Forms}.@*
-The variable @code{calc-gregorian-switch} is either a list of integers 
+The variable @code{calc-gregorian-switch} is either a list of integers
 @code{(@var{YEAR} @var{MONTH} @var{DAY})} or @code{nil}.
 If it is @code{nil}, then Calc's date forms always represent Gregorian dates.
 Otherwise, @code{calc-gregorian-switch} represents the date that the
-calendar switches from Julian dates to Gregorian dates; 
+calendar switches from Julian dates to Gregorian dates;
 @code{(@var{YEAR} @var{MONTH} @var{DAY})} will be the first Gregorian
 date.  The customization buffer will offer several standard dates to
 choose from, or the user can enter their own date.

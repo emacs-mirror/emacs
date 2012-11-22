@@ -1,3 +1,9 @@
+2012-11-22  Paul Eggert  <eggert@cs.ucla.edu>
+
+	* calc.texi: Fix TeX issues with capitals followed by ".", "?", "!".
+	(Date Forms): Correct off-by-one error in explanation of
+	Julian day numbers.  Give Gregorian equivalent of its origin.
+
 2012-11-22  Jay Belanger  <jay.p.belanger@gmail.com>
 
 	* doc/misc/calc.texi (Date Forms): Mention the customizable
