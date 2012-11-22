@@ -1,3 +1,9 @@
+2012-11-22  Jay Belanger  <jay.p.belanger@gmail.com>
+
+	* doc/misc/calc.texi (Date Forms): Mention the customizable
+	Gregorian-Julian switch.
+	(Customizing Calc): Mention the variable `calc-gregorian-switch'.
+
 2012-11-17  Paul Eggert  <eggert@cs.ucla.edu>
 
 	Calc now uses the Gregorian calendar for all dates,

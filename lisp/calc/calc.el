@@ -508,7 +508,8 @@ the United States."
                        (integer :tag "Day")))
   :set (lambda (symbol value)
          (set-default symbol value)
-         (setq math-format-date-cache nil)))
+         (setq math-format-date-cache nil)
+         (calc-refresh)))
 
 (defface calc-nonselected-face
   '((t :inherit shadow

@@ -10987,10 +10987,10 @@ Input is flexible; date forms can be entered in any of the usual
 notations for dates and times.  @xref{Date Formats}.
 
 Date forms are stored internally as numbers, specifically the number
-of days since midnight on the morning of January 1 of the year 1 AD.
+of days since midnight on the morning of December 31 of the year 1 BC.
 If the internal number is an integer, the form represents a date only;
 if the internal number is a fraction or float, the form represents
-a date and time.  For example, @samp{<6:00am Wed Jan 9, 1991>}
+a date and time.  For example, @samp{<6:00am Thu Jan 10, 1991>}
 is represented by the number 726842.25.  The standard precision of
 12 decimal digits is enough to ensure that a (reasonable) date and
 time can be stored without roundoff error.
@@ -11014,42 +11014,55 @@ year numbers represent years BC.  There is no ``year 0''; the day
 before @samp{<Mon Jan 1, +1>} is @samp{<Sun Dec 31, -1>}.  These are
 days 1 and 0 respectively in Calc's internal numbering scheme.  The
 Gregorian calendar is used for all dates, including dates before the
-Gregorian calendar was invented.  Thus Calc's use of the day number
-@mathit{-10000} to represent August 15, 28 BC should be taken with a
-grain of salt.
+Gregorian calendar was invented (although that can be configured; see
+below).  Thus Calc's use of the day number @mathit{-10000} to
+represent August 15, 28 BC should be taken with a grain of salt. 
 
 @cindex Julian calendar
 @cindex Gregorian calendar
 Some historical background:  The Julian calendar was created by
 Julius Caesar in the year 46 BC as an attempt to fix the confusion
 caused by the irregular Roman calendar that was used before that time.
-The Julian calendar introduced an extra day in
-all years divisible by four.  After some initial confusion, the
-calendar was adopted around the year we call 8 AD, although the years were
-numbered differently and did not necessarily begin on January 1.  Some centuries
-later it became apparent that the Julian year of 365.25 days was
-itself not quite right.  In 1582 Pope Gregory XIII introduced the
-Gregorian calendar, which added the new rule that years divisible
-by 100, but not by 400, were not to be considered leap years
-despite being divisible by four.  Many countries delayed adoption
-of the Gregorian calendar because of religious differences, and
-used differing year numbers and start-of-year for other reasons;
-for example, in early 1752 England changed the start of its year from
-March 25 to January 1, and in September it switched to the Gregorian
-calendar: in England, the day after December 31, 1750 was January 1,
-1750 and the day after March 24, 1750 was March 25, 1751, but the day
-after December 31, 1751 was January 1, 1752 and the day after
-September 2, 1752 was September 14, 1752.  To take another example,
-Russia switched both year numbering and start-of-year in 1700, but did
-not adopt the Gregorian calendar until 1918.  Calc's reckoning
-therefore matches English practice starting in 1752 and Russian
-practice starting in 1918, but disagrees with earlier dates in both
-countries.
+The Julian calendar introduced an extra day in all years divisible by
+four.  After some initial confusion, the calendar was adopted around
+the year we call 8 AD.  Some centuries later it became
+apparent that the Julian year of 365.25 days was itself not quite
+right.  In 1582 Pope Gregory XIII introduced the Gregorian calendar,
+which added the new rule that years divisible by 100, but not by 400,
+were not to be considered leap years despite being divisible by four.
+Many countries delayed adoption of the Gregorian calendar
+because of religious differences.  For example, Great Britain and the
+British colonies switched to the Gregorian calendar in September
+1752, when the Julian calendar was eleven days behind the
+Gregorian calendar.  That year in Britain, the day after September 2
+was September 14.  To take another example, Russia did not adopt the
+Gregorian calendar until 1918, and that year in Russia the day after
+January 31 was February 14.  Calc's reckoning therefore matches English
+practice starting in 1752 and Russian practice starting in 1918, but
+disagrees with earlier dates in both countries. 
 
-Today's timekeepers introduce an occasional ``leap second'' as
-well, but Calc does not take these minor effects into account.
-(If it did, it would have to report a non-integer number of days
-between, say, @samp{<12:00am Mon Jan 1, 1900>} and
+When the Julian calendar was introduced, it had January 1 as the first
+day of the year.  By the Middle Ages, many European countries
+had changed the beginning of a new year to a different date, often to
+a religious festival.  Almost all countries reverted to using January 1
+as the beginning of the year by the time they adopted the Gregorian
+calendar. 
+
+Some calendars attempt to mimic the historical situation by using the
+Gregorian calendar for recent dates and the Julian calendar for older
+dates. The @code{cal} program in most Unix implementations does this,
+for example. While January 1 wasn't always the beginning of a calendar
+year, these hybrid calendars still use January 1 as the beginning of
+the year even for older dates.   The customizable variable 
+@code{calc-gregorian-switch} (@pxref{Customizing Calc}) can be set to
+have Calc's date forms switch from the Julian to Gregorian calendar at
+any specified date. 
+
+Today's timekeepers introduce an occasional ``leap second''.
+These do not occur regularly and Calc does not take these minor
+effects into account.  (If it did, it would have to report a
+non-integer number of days between, say, 
+@samp{<12:00am Mon Jan 1, 1900>} and 
 @samp{<12:00am Sat Jan 1, 2000>}.)
 
 @cindex Julian day counting
@@ -35588,6 +35601,20 @@ If @code{calc-undo-length} is a non-negative integer, then this is the
 number of undo steps that will be preserved; if
 @code{calc-undo-length} has any other value, then all undo steps will
 be preserved.  The default value of @code{calc-undo-length} is @expr{100}.
+@end defvar
+
+@defvar calc-gregorian-switch
+See @ref{Date Forms}.@*
+The variable @code{calc-gregorian-switch} is either a list of integers 
+@code{(@var{YEAR} @var{MONTH} @var{DAY})} or @code{nil}.
+If it is @code{nil}, then Calc's date forms always represent Gregorian dates.
+Otherwise, @code{calc-gregorian-switch} represents the date that the
+calendar switches from Julian dates to Gregorian dates; 
+@code{(@var{YEAR} @var{MONTH} @var{DAY})} will be the first Gregorian
+date.  The customization buffer will offer several standard dates to
+choose from, or the user can enter their own date.
+
+The default value of @code{calc-gregorian-switch} is @code{nil}.
 @end defvar
 
 @node Reporting Bugs, Summary, Customizing Calc, Top
