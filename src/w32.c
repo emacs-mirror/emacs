@@ -908,7 +908,7 @@ static char startup_dir[MAXPATHLEN];
 
 /* Get the current working directory.  */
 char *
-getcwd (char *dir, size_t dirsize)
+getcwd (char *dir, int dirsize)
 {
   if (!dirsize)
     {

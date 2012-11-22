@@ -1,3 +1,8 @@
+2012-11-22  Eli Zaretskii  <eliz@gnu.org>
+
+	* w32.c (getcwd): Fix the 2nd argument type, to prevent conflicts
+	with Windows system header.
+
 2012-11-21  Paul Eggert  <eggert@cs.ucla.edu>
 
 	Assume POSIX 1003.1-1988 or later for unistd.h (Bug#12945).
