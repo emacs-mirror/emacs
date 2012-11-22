@@ -2,6 +2,16 @@
 
 	* calc/calc.el (calc-gregorian-switch): Move to after calc-refresh
 	definition.  This fixes a bootstrap failure.
+	(calc-gregorian-switch): In menu, put dates before regions.
+	This is easier to follow, lines up better in the menu, and lets us
+	coalesce regions that switch at the same time.  Give country
+	names, not "Vatican", as that's better for non-expert users.  Use
+	names that are stable between the date of switch and now, e.g.,
+	Bohemia and Moravia (which existed then and now) and not
+	Czechoslovakia (which didn't exist then and doesn't exist now).
+	What is now the U.S. mostly did not switch at the same time as
+	Britain, so omit the U.S.  Correct spelling of "Britain".
+	Catholic Switzerland was too much of a mess, so omit it.
 
 2012-11-22  Jay Belanger  <jay.p.belanger@gmail.com>
 
