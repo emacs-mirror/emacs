@@ -1,3 +1,11 @@
+2012-11-22  Dmitry Antipov  <dmantipov@yandex.ru>
+
+	* xdisp.c (window_buffer_changed): New function.
+	(update_menu_bar, update_tool_bar): Use it to
+	simplify large 'if' statements.
+	(redisplay_internal): Generalize commonly used
+	'tail' and 'frame' local variables.
+
 2012-11-22  Eli Zaretskii  <eliz@gnu.org>
 
 	* w32.c (getcwd): Fix the 2nd argument type, to prevent conflicts

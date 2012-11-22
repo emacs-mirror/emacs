@@ -10908,6 +10908,21 @@ window_outdated (struct window *w)
 	  || w->last_overlay_modified < OVERLAY_MODIFF);
 }
 
+/* Nonzero if W's buffer was changed but not saved or Transient Mark mode
+   is enabled and mark of W's buffer was changed since last W's update.  */
+
+static int
+window_buffer_changed (struct window *w)
+{
+  struct buffer *b = XBUFFER (w->buffer);
+
+  eassert (BUFFER_LIVE_P (b));
+
+  return (((BUF_SAVE_MODIFF (b) < BUF_MODIFF (b)) != w->last_had_star)
+	  || ((!NILP (Vtransient_mark_mode) && !NILP (BVAR (b, mark_active)))
+	      != !NILP (w->region_showing)));
+}
+
 /***********************************************************************
 		     Mode Lines and Frame Titles
  ***********************************************************************/
@@ -11327,12 +11342,7 @@ update_menu_bar (struct frame *f, int save_match_data, int hooks_run)
 	  /* This used to test w->update_mode_line, but we believe
 	     there is no need to recompute the menu in that case.  */
 	  || update_mode_lines
-	  || ((BUF_SAVE_MODIFF (XBUFFER (w->buffer))
-	       < BUF_MODIFF (XBUFFER (w->buffer)))
-	      != w->last_had_star)
-	  || ((!NILP (Vtransient_mark_mode)
-	       && !NILP (BVAR (XBUFFER (w->buffer), mark_active)))
-	      != !NILP (w->region_showing)))
+	  || window_buffer_changed (w))
 	{
 	  struct buffer *prev = current_buffer;
 	  ptrdiff_t count = SPECPDL_INDEX ();
@@ -11532,12 +11542,7 @@ update_tool_bar (struct frame *f, int save_match_data)
       if (windows_or_buffers_changed
 	  || w->update_mode_line
 	  || update_mode_lines
-	  || ((BUF_SAVE_MODIFF (XBUFFER (w->buffer))
-	       < BUF_MODIFF (XBUFFER (w->buffer)))
-	      != w->last_had_star)
-	  || ((!NILP (Vtransient_mark_mode)
-	       && !NILP (BVAR (XBUFFER (w->buffer), mark_active)))
-	      != !NILP (w->region_showing)))
+	  || window_buffer_changed (w))
 	{
 	  struct buffer *prev = current_buffer;
 	  ptrdiff_t count = SPECPDL_INDEX ();
@@ -12988,7 +12993,7 @@ redisplay_internal (void)
   ptrdiff_t count, count1;
   struct frame *sf;
   int polling_stopped_here = 0;
-  Lisp_Object old_frame = selected_frame;
+  Lisp_Object tail, frame, old_frame = selected_frame;
   struct backtrace backtrace;
 
   /* Non-zero means redisplay has to consider all windows on all
@@ -13040,15 +13045,8 @@ redisplay_internal (void)
   backtrace.debug_on_exit = 0;
   backtrace_list = &backtrace;
 
-  {
-    Lisp_Object tail, frame;
-
-    FOR_EACH_FRAME (tail, frame)
-      {
-	struct frame *f = XFRAME (frame);
-	f->already_hscrolled_p = 0;
-      }
-  }
+  FOR_EACH_FRAME (tail, frame)
+    XFRAME (frame)->already_hscrolled_p = 0;
 
  retry:
   /* Remember the currently selected window.  */
@@ -13098,25 +13096,20 @@ redisplay_internal (void)
       FRAME_TTY (sf)->previous_frame = sf;
     }
 
-  /* Set the visible flags for all frames.  Do this before checking
-     for resized or garbaged frames; they want to know if their frames
-     are visible.  See the comment in frame.h for
-     FRAME_SAMPLE_VISIBILITY.  */
-  {
-    Lisp_Object tail, frame;
+  /* Set the visible flags for all frames.  Do this before checking for
+     resized or garbaged frames; they want to know if their frames are
+     visible.  See the comment in frame.h for FRAME_SAMPLE_VISIBILITY.  */
+  number_of_visible_frames = 0;
 
-    number_of_visible_frames = 0;
+  FOR_EACH_FRAME (tail, frame)
+    {
+      struct frame *f = XFRAME (frame);
 
-    FOR_EACH_FRAME (tail, frame)
-      {
-	struct frame *f = XFRAME (frame);
-
-	FRAME_SAMPLE_VISIBILITY (f);
-	if (FRAME_VISIBLE_P (f))
-	  ++number_of_visible_frames;
-	clear_desired_matrices (f);
-      }
-  }
+      FRAME_SAMPLE_VISIBILITY (f);
+      if (FRAME_VISIBLE_P (f))
+	++number_of_visible_frames;
+      clear_desired_matrices (f);
+    }
 
   /* Notice any pending interrupt request to change frame size.  */
   do_pending_window_change (1);
@@ -13467,8 +13460,6 @@ redisplay_internal (void)
 
   if (consider_all_windows_p)
     {
-      Lisp_Object tail, frame;
-
       FOR_EACH_FRAME (tail, frame)
 	XFRAME (frame)->updated_p = 0;
 
@@ -13678,7 +13669,6 @@ redisplay_internal (void)
      frames here explicitly.  */
   if (!pending)
     {
-      Lisp_Object tail, frame;
       int new_count = 0;
 
       FOR_EACH_FRAME (tail, frame)
