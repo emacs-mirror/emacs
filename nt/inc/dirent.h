@@ -1,7 +1,5 @@
 /*
-	<dir.h> -- definitions for 4.2BSD-compatible directory access
-
-	last edit:	09-Jul-1983	D A Gwyn
+	<dirent.h> -- definitions for POSIX-compatible directory access
 
  * The code here is forced by the interface, and is not subject to
  * copyright, constituting the only possible expression of the
@@ -16,7 +14,7 @@
 #endif /* not WINDOWSNT */
 	/* NOTE:  MAXNAMLEN must be one less than a multiple of 4 */
 
-struct direct				/* data from readdir() */
+struct dirent				/* data from readdir() */
 	{
 	long		d_ino;		/* inode number of entry */
 	unsigned short	d_reclen;	/* length of this record */
@@ -33,9 +31,8 @@ typedef struct
 	}	DIR;			/* stream data from opendir() */
 
 extern DIR		*opendir (char *);
-extern struct direct	*readdir (DIR *);
+extern struct dirent	*readdir (DIR *);
 extern void		seekdir (DIR *, long);
 extern void		closedir (DIR *);
 
 #define rewinddir( dirp )	seekdir( dirp, 0L )
-

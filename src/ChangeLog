@@ -1,3 +1,20 @@
+2012-11-23  Paul Eggert  <eggert@cs.ucla.edu>
+
+	Assume POSIX 1003.1-1988 or later for dirent.h (Bug#12958).
+	* dired.c: Assume HAVE_DIRENT_H.
+	(NAMLEN): Remove, replacing with ...
+	(dirent_namelen): New function.  All uses changed.  Use the GNU macro
+	_D_EXACT_NAMELEN if available, as it's faster than strlen.
+	(DIRENTRY): Remove, replacing all uses with 'struct dirent'.
+	(DIRENTRY_NONEMPTY): Remove.  All callers now assume it's nonzero.
+	* makefile.w32-in (DIR_H): Remove.  All uses replaced with
+	$(NT_INC)/dirent.h.
+	($(BLD)/w32.$(O)): Do not depend on $(SRC)/ndir.h.
+	* ndir.h: Rename to ../nt/inc/dirent.h.
+	* sysdep.h (closedir) [!HAVE_CLOSEDIR]: Remove.
+	Do not include <dirent.h>; no longer needed.
+	* w32.c: Include <dirent.h> rather than "ndir.h".
+
 2012-11-23  Chong Yidong  <cyd@gnu.org>
 
 	* xftfont.c (xftfont_open): Remove duplicate assignment.

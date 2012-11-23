@@ -1,3 +1,8 @@
+2012-11-23  Paul Eggert  <eggert@cs.ucla.edu>
+
+	Assume POSIX 1003.1-1988 or later for dirent.h (Bug#12958).
+	* configure.ac: Do not check for dirent.h or closdir.
+
 2012-11-21  Paul Eggert  <eggert@cs.ucla.edu>
 
 	Assume POSIX 1003.1-1988 or later for unistd.h (Bug#12945).

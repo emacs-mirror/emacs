@@ -31,43 +31,9 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #include <errno.h>
 #include <unistd.h>
 
-/* The d_nameln member of a struct dirent includes the '\0' character
-   on some systems, but not on others.  What's worse, you can't tell
-   at compile-time which one it will be, since it really depends on
-   the sort of system providing the filesystem you're reading from,
-   not the system you are running on.  Paul Eggert
-   <eggert@bi.twinsun.com> says this occurs when Emacs is running on a
-   SunOS 4.1.2 host, reading a directory that is remote-mounted from a
-   Solaris 2.1 host and is in a native Solaris 2.1 filesystem.
-
-   Since applying strlen to the name always works, we'll just do that.  */
-#define NAMLEN(p) strlen (p->d_name)
-
-#ifdef HAVE_DIRENT_H
-
 #include <dirent.h>
-#define DIRENTRY struct dirent
-
-#else /* not HAVE_DIRENT_H */
-
-#include <sys/dir.h>
-#include <sys/stat.h>
-
-#define DIRENTRY struct direct
-
-extern DIR *opendir (char *);
-extern struct direct *readdir (DIR *);
-
-#endif /* HAVE_DIRENT_H */
-
 #include <filemode.h>
 #include <stat-time.h>
-
-#ifdef MSDOS
-#define DIRENTRY_NONEMPTY(p) ((p)->d_name[0] != 0)
-#else
-#define DIRENTRY_NONEMPTY(p) ((p)->d_ino)
-#endif
 
 #include "lisp.h"
 #include "systime.h"
@@ -88,6 +54,17 @@ static Lisp_Object Qfile_attributes_lessp;
 
 static ptrdiff_t scmp (const char *, const char *, ptrdiff_t);
 
+/* Return the number of bytes in DP's name.  */
+static ptrdiff_t
+dirent_namelen (struct dirent *dp)
+{
+#ifdef _D_EXACT_NAMLEN
+  return _D_EXACT_NAMLEN (dp);
+#else
+  return strlen (dp->d_name);
+#endif
+}
+
 #ifdef WINDOWSNT
 Lisp_Object
 directory_files_internal_w32_unwind (Lisp_Object arg)
@@ -124,7 +101,7 @@ directory_files_internal (Lisp_Object directory, Lisp_Object full,
   bool needsep = 0;
   ptrdiff_t count = SPECPDL_INDEX ();
   struct gcpro gcpro1, gcpro2, gcpro3, gcpro4, gcpro5;
-  DIRENTRY *dp;
+  struct dirent *dp;
 #ifdef WINDOWSNT
   Lisp_Object w32_save = Qnil;
 #endif
@@ -209,6 +186,11 @@ directory_files_internal (Lisp_Object directory, Lisp_Object full,
   /* Loop reading blocks until EOF or error.  */
   for (;;)
     {
+      ptrdiff_t len;
+      bool wanted = 0;
+      Lisp_Object name, finalname;
+      struct gcpro gcpro1, gcpro2;
+
       errno = 0;
       dp = readdir (d);
 
@@ -225,89 +207,81 @@ directory_files_internal (Lisp_Object directory, Lisp_Object full,
       if (dp == NULL)
 	break;
 
-      if (DIRENTRY_NONEMPTY (dp))
+      len = dirent_namelen (dp);
+      name = finalname = make_unibyte_string (dp->d_name, len);
+      GCPRO2 (finalname, name);
+
+      /* Note: DECODE_FILE can GC; it should protect its argument,
+	 though.  */
+      name = DECODE_FILE (name);
+      len = SBYTES (name);
+
+      /* Now that we have unwind_protect in place, we might as well
+	 allow matching to be interrupted.  */
+      immediate_quit = 1;
+      QUIT;
+
+      if (NILP (match)
+	  || (0 <= re_search (bufp, SSDATA (name), len, 0, len, 0)))
+	wanted = 1;
+
+      immediate_quit = 0;
+
+      if (wanted)
 	{
-	  ptrdiff_t len;
-	  bool wanted = 0;
-	  Lisp_Object name, finalname;
-	  struct gcpro gcpro1, gcpro2;
-
-	  len = NAMLEN (dp);
-	  name = finalname = make_unibyte_string (dp->d_name, len);
-	  GCPRO2 (finalname, name);
-
-	  /* Note: DECODE_FILE can GC; it should protect its argument,
-	     though.  */
-	  name = DECODE_FILE (name);
-	  len = SBYTES (name);
-
-	  /* Now that we have unwind_protect in place, we might as well
-             allow matching to be interrupted.  */
-	  immediate_quit = 1;
-	  QUIT;
-
-	  if (NILP (match)
-	      || (0 <= re_search (bufp, SSDATA (name), len, 0, len, 0)))
-	    wanted = 1;
-
-	  immediate_quit = 0;
-
-	  if (wanted)
+	  if (!NILP (full))
 	    {
-	      if (!NILP (full))
-		{
-		  Lisp_Object fullname;
-		  ptrdiff_t nbytes = len + directory_nbytes + needsep;
-		  ptrdiff_t nchars;
+	      Lisp_Object fullname;
+	      ptrdiff_t nbytes = len + directory_nbytes + needsep;
+	      ptrdiff_t nchars;
 
-		  fullname = make_uninit_multibyte_string (nbytes, nbytes);
-		  memcpy (SDATA (fullname), SDATA (directory),
-			  directory_nbytes);
+	      fullname = make_uninit_multibyte_string (nbytes, nbytes);
+	      memcpy (SDATA (fullname), SDATA (directory),
+		      directory_nbytes);
 
-		  if (needsep)
-		    SSET (fullname, directory_nbytes, DIRECTORY_SEP);
+	      if (needsep)
+		SSET (fullname, directory_nbytes, DIRECTORY_SEP);
 
-		  memcpy (SDATA (fullname) + directory_nbytes + needsep,
-			  SDATA (name), len);
+	      memcpy (SDATA (fullname) + directory_nbytes + needsep,
+		      SDATA (name), len);
 
-		  nchars = chars_in_text (SDATA (fullname), nbytes);
+	      nchars = chars_in_text (SDATA (fullname), nbytes);
 
-		  /* Some bug somewhere.  */
-		  if (nchars > nbytes)
-		    emacs_abort ();
+	      /* Some bug somewhere.  */
+	      if (nchars > nbytes)
+		emacs_abort ();
 
-		  STRING_SET_CHARS (fullname, nchars);
-		  if (nchars == nbytes)
-		    STRING_SET_UNIBYTE (fullname);
+	      STRING_SET_CHARS (fullname, nchars);
+	      if (nchars == nbytes)
+		STRING_SET_UNIBYTE (fullname);
 
-		  finalname = fullname;
-		}
-	      else
-		finalname = name;
-
-	      if (attrs)
-		{
-		  /* Construct an expanded filename for the directory entry.
-		     Use the decoded names for input to Ffile_attributes.  */
-		  Lisp_Object decoded_fullname, fileattrs;
-		  struct gcpro gcpro1, gcpro2;
-
-		  decoded_fullname = fileattrs = Qnil;
-		  GCPRO2 (decoded_fullname, fileattrs);
-
-		  /* Both Fexpand_file_name and Ffile_attributes can GC.  */
-		  decoded_fullname = Fexpand_file_name (name, directory);
-		  fileattrs = Ffile_attributes (decoded_fullname, id_format);
-
-		  list = Fcons (Fcons (finalname, fileattrs), list);
-		  UNGCPRO;
-		}
-	      else
-		list = Fcons (finalname, list);
+	      finalname = fullname;
 	    }
+	  else
+	    finalname = name;
 
-	  UNGCPRO;
+	  if (attrs)
+	    {
+	      /* Construct an expanded filename for the directory entry.
+		 Use the decoded names for input to Ffile_attributes.  */
+	      Lisp_Object decoded_fullname, fileattrs;
+	      struct gcpro gcpro1, gcpro2;
+
+	      decoded_fullname = fileattrs = Qnil;
+	      GCPRO2 (decoded_fullname, fileattrs);
+
+	      /* Both Fexpand_file_name and Ffile_attributes can GC.  */
+	      decoded_fullname = Fexpand_file_name (name, directory);
+	      fileattrs = Ffile_attributes (decoded_fullname, id_format);
+
+	      list = Fcons (Fcons (finalname, fileattrs), list);
+	      UNGCPRO;
+	    }
+	  else
+	    list = Fcons (finalname, list);
 	}
+
+      UNGCPRO;
     }
 
   block_input ();
@@ -442,7 +416,8 @@ These are all file names in directory DIRECTORY which begin with FILE.  */)
   return file_name_completion (file, directory, 1, Qnil);
 }
 
-static int file_name_completion_stat (Lisp_Object dirname, DIRENTRY *dp, struct stat *st_addr);
+static int file_name_completion_stat (Lisp_Object dirname, struct dirent *dp,
+				      struct stat *st_addr);
 static Lisp_Object Qdefault_directory;
 
 static Lisp_Object
@@ -499,7 +474,7 @@ file_name_completion (Lisp_Object file, Lisp_Object dirname, bool all_flag,
   /* (att3b compiler bug requires do a null comparison this way) */
   while (1)
     {
-      DIRENTRY *dp;
+      struct dirent *dp;
       ptrdiff_t len;
       bool canexclude = 0;
 
@@ -517,11 +492,10 @@ file_name_completion (Lisp_Object file, Lisp_Object dirname, bool all_flag,
 
       if (!dp) break;
 
-      len = NAMLEN (dp);
+      len = dirent_namelen (dp);
 
       QUIT;
-      if (! DIRENTRY_NONEMPTY (dp)
-	  || len < SCHARS (encoded_file)
+      if (len < SCHARS (encoded_file)
 	  || 0 <= scmp (dp->d_name, SSDATA (encoded_file),
 			SCHARS (encoded_file)))
 	continue;
@@ -806,9 +780,10 @@ scmp (const char *s1, const char *s2, ptrdiff_t len)
 }
 
 static int
-file_name_completion_stat (Lisp_Object dirname, DIRENTRY *dp, struct stat *st_addr)
+file_name_completion_stat (Lisp_Object dirname, struct dirent *dp,
+			   struct stat *st_addr)
 {
-  ptrdiff_t len = NAMLEN (dp);
+  ptrdiff_t len = dirent_namelen (dp);
   ptrdiff_t pos = SCHARS (dirname);
   int value;
   USE_SAFE_ALLOCA;

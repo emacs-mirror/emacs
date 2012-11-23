@@ -1,3 +1,9 @@
+2012-11-23  Paul Eggert  <eggert@cs.ucla.edu>
+
+	Assume POSIX 1003.1-1988 or later for dirent.h (Bug#12958).
+	* CPP-DEFINES (HAVE_CLOSEDIR, HAVE_DIRENT_H): Remove.
+	* notes/copyright: Adjust to src/ndir.h -> nt/inc/dirent.h renaming.
+
 2012-11-21  Paul Eggert  <eggert@cs.ucla.edu>
 
 	Assume POSIX 1003.1-1988 or later for unistd.h (Bug#12945).

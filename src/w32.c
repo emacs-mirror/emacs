@@ -179,7 +179,7 @@ typedef struct _REPARSE_DATA_BUFFER {
 #undef sendto
 
 #include "w32.h"
-#include "ndir.h"
+#include <dirent.h>
 #include "w32common.h"
 #include "w32heap.h"
 #include "w32select.h"
@@ -2448,7 +2448,7 @@ is_exec (const char * name)
    and readdir.  We can't use the procedures supplied in sysdep.c,
    so we provide them here.  */
 
-struct direct dir_static;       /* simulated directory contents */
+struct dirent dir_static;       /* simulated directory contents */
 static HANDLE dir_find_handle = INVALID_HANDLE_VALUE;
 static int    dir_is_fat;
 static char   dir_pathname[MAXPATHLEN+1];
@@ -2518,7 +2518,7 @@ closedir (DIR *dirp)
   xfree ((char *) dirp);
 }
 
-struct direct *
+struct dirent *
 readdir (DIR *dirp)
 {
   int downcase = !NILP (Vw32_downcase_file_names);
@@ -2572,7 +2572,7 @@ readdir (DIR *dirp)
       downcase = 1;	/* 8+3 aliases are returned in all caps */
     }
   dir_static.d_namlen = strlen (dir_static.d_name);
-  dir_static.d_reclen = sizeof (struct direct) - MAXNAMLEN + 3 +
+  dir_static.d_reclen = sizeof (struct dirent) - MAXNAMLEN + 3 +
     dir_static.d_namlen - dir_static.d_namlen % 4;
 
   /* If the file name in cFileName[] includes `?' characters, it means

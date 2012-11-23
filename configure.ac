@@ -1289,7 +1289,7 @@ AC_CHECK_HEADERS_ONCE(
   linux/version.h sys/systeminfo.h
   coff.h pty.h
   sys/vlimit.h sys/resource.h
-  sys/utsname.h pwd.h utmp.h dirent.h util.h)
+  sys/utsname.h pwd.h utmp.h util.h)
 
 AC_MSG_CHECKING(if personality LINUX32 can be set)
 AC_COMPILE_IFELSE([AC_LANG_PROGRAM([[#include <sys/personality.h>]], [[personality (PER_LINUX32)]])],
@@ -2891,7 +2891,7 @@ AC_SUBST(BLESSMAIL_TARGET)
 
 
 AC_CHECK_FUNCS(gethostname \
-closedir getrusage get_current_dir_name \
+getrusage get_current_dir_name \
 lrand48 \
 select getpagesize setlocale \
 utimes getrlimit setrlimit shutdown getaddrinfo \
