@@ -253,9 +253,6 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 /* Define to 1 if you have the `clock_settime' function. */
 #undef HAVE_CLOCK_SETTIME
 
-/* Define to 1 if you have the `closedir' function. */
-#undef HAVE_CLOSEDIR
-
 /* Define to 1 if you have the <coff.h> header file. */
 #undef HAVE_COFF_H
 
@@ -338,9 +335,6 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 
 /* Define to 1 if you have the `difftime' function. */
 #undef HAVE_DIFFTIME
-
-/* Define to 1 if you have the <dirent.h> header file. */
-#undef HAVE_DIRENT_H
 
 /* Define to 1 if you have the 'dup2' function. */
 #undef HAVE_DUP2

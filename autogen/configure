@@ -3214,7 +3214,6 @@ as_fn_append ac_header_list " sys/resource.h"
 as_fn_append ac_header_list " sys/utsname.h"
 as_fn_append ac_header_list " pwd.h"
 as_fn_append ac_header_list " utmp.h"
-as_fn_append ac_header_list " dirent.h"
 as_fn_append ac_header_list " util.h"
 as_fn_append ac_header_list " sys/socket.h"
 as_fn_append ac_header_list " stdlib.h"
@@ -8809,8 +8808,6 @@ done
 
 
 
-
-
 { $as_echo "$as_me:${as_lineno-$LINENO}: checking if personality LINUX32 can be set" >&5
 $as_echo_n "checking if personality LINUX32 can be set... " >&6; }
 cat confdefs.h - <<_ACEOF >conftest.$ac_ext
@@ -13474,7 +13471,7 @@ esac
 
 
 for ac_func in gethostname \
-closedir getrusage get_current_dir_name \
+getrusage get_current_dir_name \
 lrand48 \
 select getpagesize setlocale \
 utimes getrlimit setrlimit shutdown getaddrinfo \
