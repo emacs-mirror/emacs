@@ -2086,11 +2086,16 @@ specifies addition of text properties.
 @subsection @code{%}-Constructs in the Mode Line
 
   Strings used as mode line constructs can use certain
-@code{%}-constructs to substitute various kinds of data.  Here is a
-list of the defined @code{%}-constructs, and what they mean.  In any
-construct except @samp{%%}, you can add a decimal integer after the
-@samp{%} to specify a minimum field width.  If the width is less, the
-field is padded with spaces to the right.
+@code{%}-constructs to substitute various kinds of data.  The
+following is a list of the defined @code{%}-constructs, and what they
+mean.
+
+  In any construct except @samp{%%}, you can add a decimal integer
+after the @samp{%} to specify a minimum field width.  If the width is
+less, the field is padded to that width.  Purely numeric constructs
+(@samp{c}, @samp{i}, @samp{I}, and @samp{l}) are padded by inserting
+spaces to the left, and others are padded by inserting spaces to the
+right.
 
 @table @code
 @item %b
