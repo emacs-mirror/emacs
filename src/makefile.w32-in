@@ -229,12 +229,12 @@ SOME_MACHINE_OBJECTS = dosfns.o msdos.o \
 obj = $(GLOBAL_SOURCES:.c=.o)
 
 globals.h: gl-stamp
-	@cmd /c rem true
+	@cmd $(SWITCHCHAR)c rem true
 
 gl-stamp: ../lib-src/$(BLD)/make-docfile.exe $(GLOBAL_SOURCES)
 	- $(DEL) gl-tmp
 	"$(THISDIR)/../lib-src/$(BLD)/make-docfile" -d . -g $(SOME_MACHINE_OBJECTS) $(obj) > gl-tmp
-	cmd /c "fc /b gl-tmp globals.h >nul 2>&1 || $(CP) gl-tmp globals.h"
+	fc.exe $(SWITCHCHAR)b gl-tmp globals.h >nul 2>&1 || $(CP) gl-tmp globals.h
 	- $(DEL) gl-tmp
 	echo timestamp > $@
 
