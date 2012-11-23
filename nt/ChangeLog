@@ -1,3 +1,17 @@
+2012-11-23  Eli Zaretskii  <eliz@gnu.org>
+
+	* gmake.defs (SWITCHCHAR): Define to // under MSYS, / otherwise.
+	(Bug#12955)
+
+	* nmake.defs (SWITCHCHAR): Define to /.
+
+2012-11-23  Paul Eggert  <eggert@cs.ucla.edu>
+
+	Assume POSIX 1003.1-1988 or later for dirent.h (Bug#12958).
+	* inc/dirent.h: Rename from ../src/ndir.h, with these changes:
+	(struct dirent): Rename from struct direct.  All uses changed.
+	* inc/sys/dir.h: Remove.
+
 2012-11-21  Paul Eggert  <eggert@cs.ucla.edu>
 
 	Assume POSIX 1003.1-1988 or later for unistd.h (Bug#12945).

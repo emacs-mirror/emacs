@@ -2220,28 +2220,6 @@ emacs_readlink (char const *filename, char initial_buf[READLINK_BUFSIZE])
 		       &emacs_norealloc_allocator, careadlinkatcwd);
 }
 
-/* Directory routines for systems that don't have them. */
-
-#ifdef HAVE_DIRENT_H
-
-#include <dirent.h>
-
-#if !defined (HAVE_CLOSEDIR)
-
-int
-closedir (DIR *dirp /* stream from opendir */)
-{
-  int rtnval;
-
-  rtnval = emacs_close (dirp->dd_fd);
-  xfree (dirp);
-
-  return rtnval;
-}
-#endif /* not HAVE_CLOSEDIR */
-#endif /* HAVE_DIRENT_H */
-
-
 /* Return a struct timeval that is roughly equivalent to T.
    Use the least timeval not less than T.
    Return an extremal value if the result would overflow.  */

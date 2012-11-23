@@ -1,3 +1,9 @@
+2012-11-23  Paul Eggert  <eggert@cs.ucla.edu>
+
+	movemail: treat EACCES etc. failures as permanent
+	* movemail.c (main): Treat any link failure other than EEXIST as a
+	permanent failure, not just EPERM.  EACCES, for example.
+
 2012-11-21  Paul Eggert  <eggert@cs.ucla.edu>
 
 	Assume POSIX 1003.1-1988 or later for unistd.h (Bug#12945).

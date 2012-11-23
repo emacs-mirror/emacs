@@ -380,7 +380,7 @@ Makefile.in does now.
 src/gmalloc.c
   - contains numerous copyrights from the GNU C library. Leave them alone.
 
-src/ndir.h
+nt/inc/dirent.h
   - see comments below. This file is OK to be released with Emacs
   22, but we may want to revisit it afterwards.
 
@@ -429,7 +429,7 @@ admin/check-doc-strings
   File says it's in the public domain, but that might not make it so.
 
 etc/e/eterm-color.ti
-src/ndir.h
+nt/inc/dirent.h
   On legal advice from Matt Norwood, the following comment was added
   to these files in Feb/Mar 2007:
 
