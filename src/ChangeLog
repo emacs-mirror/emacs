@@ -1,3 +1,9 @@
+2012-11-23  Eli Zaretskii  <eliz@gnu.org>
+
+	* .gdbinit (pgx): If the glyph's object is a string, display the
+	pointer to string data, rather than the value of the string object
+	itself (which barfs under CHECK_LISP_OBJECT_TYPE).
+
 2012-11-21  Eli Zaretskii  <eliz@gnu.org>
 
 	* indent.c (Fvertical_motion): If the starting position is covered
