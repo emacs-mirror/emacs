@@ -54,9 +54,6 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 /* Define to the number of bits in type 'wint_t'. */
 #undef BITSIZEOF_WINT_T
 
-/* Define if getwd should not be used. */
-#undef BROKEN_GETWD
-
 /* Define if get_current_dir_name should not be used. */
 #undef BROKEN_GET_CURRENT_DIR_NAME
 
@@ -262,9 +259,6 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 /* Define to 1 if you have the `clock_settime' function. */
 #undef HAVE_CLOCK_SETTIME
 
-/* Define to 1 if you have the `closedir' function. */
-#define HAVE_CLOSEDIR 1
-
 /* Define to 1 if you have the <coff.h> header file. */
 #undef HAVE_COFF_H
 
@@ -348,9 +342,6 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 /* Define to 1 if you have the `difftime' function. */
 #undef HAVE_DIFFTIME
 
-/* Define to 1 if you have the <dirent.h> header file. */
-#undef HAVE_DIRENT_H
-
 /* Define to 1 if you have the 'dup2' function. */
 #define HAVE_DUP2 1
 
@@ -374,9 +365,6 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 
 /* Define to 1 if you have the `faccessat' function. */
 #undef HAVE_FACCESSAT
-
-/* Define to 1 if you have the <fcntl.h> header file. */
-#undef HAVE_FCNTL_H
 
 /* Define to 1 if you have the `fork' function. */
 #undef HAVE_FORK
@@ -458,9 +446,6 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 
 /* Define to 1 if you have the `gettimeofday' function. */
 #define HAVE_GETTIMEOFDAY 1
-
-/* Define to 1 if you have the `getwd' function. */
-#undef HAVE_GETWD
 
 /* Define to 1 if you have the `get_current_dir_name' function. */
 #undef HAVE_GET_CURRENT_DIR_NAME

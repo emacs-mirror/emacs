@@ -1,3 +1,9 @@
+2012-11-23  Juanma Barranquero  <lekktu@gmail.com>
+
+	* config.nt: Sync with autogen/config.in.
+	(BROKEN_GETWD, HAVE_CLOSEDIR, HAVE_DIRENT_H, HAVE_FCNTL_H, HAVE_GETWD):
+	Remove.
+
 2012-11-23  Eli Zaretskii  <eliz@gnu.org>
 
 	* gmake.defs (SWITCHCHAR): Define to // under MSYS, / otherwise.
