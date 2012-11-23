@@ -1,3 +1,7 @@
+2012-11-23  Chong Yidong  <cyd@gnu.org>
+
+	* xftfont.c (xftfont_open): Remove duplicate assignment.
+
 2012-11-22  Dmitry Antipov  <dmantipov@yandex.ru>
 
 	* alloc.c (Fgarbage_collect): Unblock input after clearing
