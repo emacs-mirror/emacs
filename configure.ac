@@ -926,10 +926,6 @@ case "$opsys" in
    case $host_cpu in mips*) LD_SWITCH_SYSTEM="-G 0";; esac
    ;;
 
-  mingw32)
-   LD_SWITCH_SYSTEM="-Wl,-stack,0x00800000 -Wl,-heap,0x00100000 -Wl,-image-base,0x01000000 -Wl,-subsystem,console -Wl,-entry,__start -Wl,-Map,./temacs.map"
-   ;;
-
   netbsd)
 ### It's not our place to do this.  See bug#10313#17.
 ###   LD_SWITCH_SYSTEM="-Wl,-rpath,/usr/pkg/lib -L/usr/pkg/lib -Wl,-rpath,/usr/local/lib -L/usr/local/lib"
@@ -2182,6 +2178,11 @@ if test "${with_gnutls}" = "yes" ; then
   if test "${HAVE_GNUTLS_CALLBACK_CERTIFICATE_VERIFY}" = "yes"; then
     AC_DEFINE(HAVE_GNUTLS_CALLBACK_CERTIFICATE_VERIFY, 1, [Define if using GnuTLS certificate verification callbacks.])
   fi
+
+  # Windows loads GnuTLS dynamically
+  if test "${opsys}" = "mingw32"; then
+    LIBGNUTLS_LIBS=
+  fi
 fi
 
 AC_SUBST(LIBGNUTLS_LIBS)
@@ -2550,7 +2551,6 @@ AC_SUBST(M17N_FLT_LIBS)
 ### mingw32 doesn't use -lXpm, since it loads the library dynamically.
 HAVE_XPM=no
 LIBXPM=
-
 if test "${HAVE_W32}" = "yes" && test "${opsys}" = "cygwin"; then
   if test "${with_xpm}" != "no"; then
     SAVE_CPPFLAGS="$CPPFLAGS"
@@ -2614,14 +2614,8 @@ fi
 
 if test "${opsys}" = "mingw32"; then
   if test "${with_xpm}" != "no"; then
-    AC_CHECK_HEADER(X11/xpm.h, HAVE_XPM=yes, HAVE_XPM=no, [
+    AC_CHECK_HEADERS(X11/xpm.h, HAVE_XPM=yes, HAVE_XPM=no, [
 #define FOR_MSW 1])
-      if test "${HAVE_XPM}" = "yes"; then
-	AC_MSG_RESULT(yes)
-      else
-	AC_MSG_RESULT(no)
-      fi
-    fi
   fi
 
   if test "${HAVE_XPM}" = "yes"; then
@@ -2885,6 +2879,8 @@ if test "${with_xml2}" != "no"; then
     if test "${opsys}" != "mingw32"; then
       LIBS="$LIBXML2_LIBS $LIBS"
       AC_CHECK_LIB(xml2, htmlReadMemory, HAVE_LIBXML2=yes, HAVE_LIBXML2=no)
+    else
+      LIBXML2_LIBS=""
     fi
     if test "${HAVE_LIBXML2}" = "yes"; then
       AC_DEFINE(HAVE_LIBXML2, 1, [Define to 1 if you have the libxml library (-lxml2).])
@@ -3066,7 +3062,7 @@ AC_DEFUN([tputs_link_source], [
 	  return 0;
        }]])
 ])
-if test "${opsys} = "mingw32"; then
+if test "${opsys}" = "mingw32"; then
   msg='none required'
 else
   # Maybe curses should be tried earlier?
@@ -4417,6 +4413,10 @@ case "$opsys" in
   ## had different values in configure (in ac_link) and src/Makefile.in.
   ## It seems clearer therefore to put this piece in LD_SWITCH_SYSTEM_TEMACS.
   gnu*) LD_SWITCH_SYSTEM_TEMACS="\$(LD_SWITCH_X_SITE_RPATH)" ;;
+
+  mingw32)
+   LD_SWITCH_SYSTEM_TEMACS="-Wl,-stack,0x00800000 -Wl,-heap,0x00100000 -Wl,-image-base,0x01000000 -Wl,-subsystem,console -Wl,-entry,__start -Wl,-Map,./temacs.map"
+   ;;
 
   *) LD_SWITCH_SYSTEM_TEMACS= ;;
 esac
