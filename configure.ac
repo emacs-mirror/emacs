@@ -524,7 +524,10 @@ case "${canonical}" in
     case "${canonical}" in
       *-cygwin )                opsys=cygwin ;;
       *-darwin* )               opsys=darwin ;;
-      *-mingw32 )		opsys=mingw32 ;;
+      *-mingw32 )		
+		opsys=mingw32
+		CFLAGS="-mtune=pentium4 $CFLAGS"
+		;;
       *-sysv4.2uw* )	  	opsys=unixware ;;
       *-sysv5uw* )	  	opsys=unixware ;;
       *-sysv5OpenUNIX* )  	opsys=unixware ;;
@@ -1598,25 +1601,29 @@ W32_OBJ=
 W32_LIBS=
 if test "${with_w32}" != no; then
   if test "${opsys}" != "cygwin"; then
-    AC_MSG_ERROR([Using w32 with an autotools build is only supported for Cygwin.])
+    if test "${opsys}" != "mingw32"; then
+      AC_MSG_ERROR([Using w32 with an autotools build is only supported for Cygwin and MinGW32.])
+    fi
   fi
   AC_CHECK_HEADER([windows.h], [HAVE_W32=yes],
                   [AC_MSG_ERROR([`--with-w32' was specified, but windows.h
                   cannot be found.])])
 fi
 if test "${opsys}" = "mingw32"; then
-  HAVE_W32=yes
+  AC_CHECK_HEADER([windows.h], [HAVE_W32=yes],
+                  [AC_MSG_ERROR([The windows.h header file is required,
+		  but cannot be found.])])
 fi
 
 if test "${HAVE_W32}" = "yes"; then
   AC_DEFINE(HAVE_NTGUI, 1, [Define to use native MS Windows GUI.])
   W32_OBJ="w32fns.o w32menu.o w32reg.o w32font.o w32term.o"
   W32_OBJ="$W32_OBJ w32xfns.o w32select.o w32uniscribe.o"
-  if test "${opsys}" != "cygwin"; then
+  if test "${opsys}" = "cygwin"; then
     W32_LIBS="$W32_LIBS -lkernel32 -luser32 -lgdi32 -lole32 -lcomdlg32"
     W32_LIBS="$W32_LIBS -lusp10 -lcomctl32 -lwinspool"
   else
-    ## FIXME: set W32_OBJ
+    W32_OBJ="$W32_OBJ w32.o w32console.o w32heap.o w32inevt.o w32proc.o"
     W32_LIBS="$W32_LIBS -lwinmm -ladvapi32 -lgdi32 -lcomdlg32 -luser32"
     W32_LIBS="$W32_LIBS -lmpr -lshell32 -lwinspool -lole32 -lcomctl32 -lusp10"
   fi
@@ -1938,7 +1945,7 @@ fi
 
 ### Use -lrsvg-2 if available, unless `--with-rsvg=no' is specified.
 HAVE_RSVG=no
-if test "${HAVE_X11}" = "yes" || test "${HAVE_NS}" = "yes"; then
+if test "${HAVE_X11}" = "yes" || test "${HAVE_NS}" = "yes" || test "${opsys}" = "mingw32"; then
   if test "${with_rsvg}" != "no"; then
     RSVG_REQUIRED=2.11.0
     RSVG_MODULE="librsvg-2.0 >= $RSVG_REQUIRED"
@@ -1980,40 +1987,42 @@ HAVE_GTK=no
 GTK_OBJ=
 check_gtk2=no
 gtk3_pkg_errors=
-if test "${with_gtk3}" = "yes" || test "${with_gtk}" = "yes" || test "$USE_X_TOOLKIT" = "maybe"; then
-  GLIB_REQUIRED=2.28
-  GTK_REQUIRED=3.0
-  GTK_MODULES="gtk+-3.0 >= $GTK_REQUIRED glib-2.0 >= $GLIB_REQUIRED"
+if test "${opsys}" != "mingw32"; then
+  if test "${with_gtk3}" = "yes" || test "${with_gtk}" = "yes" || test "$USE_X_TOOLKIT" = "maybe"; then
+    GLIB_REQUIRED=2.28
+    GTK_REQUIRED=3.0
+    GTK_MODULES="gtk+-3.0 >= $GTK_REQUIRED glib-2.0 >= $GLIB_REQUIRED"
 
-  dnl Checks for libraries.
-  PKG_CHECK_MODULES(GTK, $GTK_MODULES, pkg_check_gtk=yes, pkg_check_gtk=no)
-  if test "$pkg_check_gtk" = "no" && test "$with_gtk3" = "yes"; then
-     AC_MSG_ERROR($GTK_PKG_ERRORS)
+    dnl Checks for libraries.
+    PKG_CHECK_MODULES(GTK, $GTK_MODULES, pkg_check_gtk=yes, pkg_check_gtk=no)
+    if test "$pkg_check_gtk" = "no" && test "$with_gtk3" = "yes"; then
+       AC_MSG_ERROR($GTK_PKG_ERRORS)
+    fi
+    if test "$pkg_check_gtk" = "yes"; then
+       AC_DEFINE(HAVE_GTK3, 1, [Define to 1 if using GTK 3 or later.])
+       GTK_OBJ=emacsgtkfixed.o
+       term_header=gtkutil.h
+       USE_GTK_TOOLKIT="GTK3"
+    else
+       check_gtk2=yes
+       gtk3_pkg_errors="$GTK_PKG_ERRORS "
+    fi
   fi
-  if test "$pkg_check_gtk" = "yes"; then
-     AC_DEFINE(HAVE_GTK3, 1, [Define to 1 if using GTK 3 or later.])
-     GTK_OBJ=emacsgtkfixed.o
-     term_header=gtkutil.h
-     USE_GTK_TOOLKIT="GTK3"
-  else
-     check_gtk2=yes
-     gtk3_pkg_errors="$GTK_PKG_ERRORS "
-  fi
-fi
 
-if test "${with_gtk2}" = "yes" || test "$check_gtk2" = "yes"; then
-  GLIB_REQUIRED=2.10
-  GTK_REQUIRED=2.10
-  GTK_MODULES="gtk+-2.0 >= $GTK_REQUIRED glib-2.0 >= $GLIB_REQUIRED"
+  if test "${with_gtk2}" = "yes" || test "$check_gtk2" = "yes"; then
+    GLIB_REQUIRED=2.10
+    GTK_REQUIRED=2.10
+    GTK_MODULES="gtk+-2.0 >= $GTK_REQUIRED glib-2.0 >= $GLIB_REQUIRED"
 
-  dnl Checks for libraries.
-  PKG_CHECK_MODULES(GTK, $GTK_MODULES, pkg_check_gtk=yes, pkg_check_gtk=no)
-  if test "$pkg_check_gtk" = "no" &&
-     { test "$with_gtk" = yes || test "$with_gtk2" = "yes"; }
-  then
-    AC_MSG_ERROR($gtk3_pkg_errors$GTK_PKG_ERRORS)
+    dnl Checks for libraries.
+    PKG_CHECK_MODULES(GTK, $GTK_MODULES, pkg_check_gtk=yes, pkg_check_gtk=no)
+    if test "$pkg_check_gtk" = "no" &&
+       { test "$with_gtk" = yes || test "$with_gtk2" = "yes"; }
+    then
+      AC_MSG_ERROR($gtk3_pkg_errors$GTK_PKG_ERRORS)
+    fi
+    test "$pkg_check_gtk" = "yes" && USE_GTK_TOOLKIT="GTK2"
   fi
-  test "$pkg_check_gtk" = "yes" && USE_GTK_TOOLKIT="GTK2"
 fi
 
 if test x"$pkg_check_gtk" = xyes; then
@@ -2277,6 +2286,9 @@ case $opsys in
   hpux* | aix4-2 )
     test "X$ac_cv_lib_Xmu_XmuConvertStandardSelection" != "Xyes" && LIBXMU=
     ;;
+  mingw32 )
+    LIBXMU=
+    ;;
 esac
 AC_SUBST(LIBXMU)
 
@@ -2535,10 +2547,11 @@ AC_SUBST(M17N_FLT_CFLAGS)
 AC_SUBST(M17N_FLT_LIBS)
 
 ### Use -lXpm if available, unless `--with-xpm=no'.
+### mingw32 doesn't use -lXpm, since it loads the library dynamically.
 HAVE_XPM=no
 LIBXPM=
 
-if test "${HAVE_W32}" = "yes"; then
+if test "${HAVE_W32}" = "yes" && test "${opsys}" = "cygwin"; then
   if test "${with_xpm}" != "no"; then
     SAVE_CPPFLAGS="$CPPFLAGS"
     SAVE_LDFLAGS="$LDFLAGS"
@@ -2599,19 +2612,35 @@ no_return_alloc_pixels
   fi
 fi
 
+if test "${opsys}" = "mingw32"; then
+  if test "${with_xpm}" != "no"; then
+    AC_CHECK_HEADER(X11/xpm.h, HAVE_XPM=yes, HAVE_XPM=no, [
+#define FOR_MSW 1])
+      if test "${HAVE_XPM}" = "yes"; then
+	AC_MSG_RESULT(yes)
+      else
+	AC_MSG_RESULT(no)
+      fi
+    fi
+  fi
+
+  if test "${HAVE_XPM}" = "yes"; then
+    AC_DEFINE(HAVE_XPM, 1, [Define to 1 if you have the Xpm library (-lXpm).])
+  fi
+fi
+
 AC_SUBST(LIBXPM)
 
 ### Use -ljpeg if available, unless `--with-jpeg=no'.
+### mingw32 doesn't use -ljpeg, since it loads the library dynamically.
 HAVE_JPEG=no
 LIBJPEG=
-if test "${HAVE_X11}" = "yes" || test "${HAVE_W32}" = "yes"; then
+if test "${opsys}" = "mingw32"; then
   if test "${with_jpeg}" != "no"; then
     dnl Checking for jpeglib.h can lose because of a redefinition of
-    dnl  HAVE_STDLIB_H.
-    AC_CHECK_HEADER(jerror.h,
-      [AC_CHECK_LIB(jpeg, jpeg_destroy_compress, HAVE_JPEG=yes)])
+    dnl HAVE_STDLIB_H.
+    AC_CHECK_HEADER(jerror.h, HAVE_JPEG=yes, HAVE_JPEG=no)
   fi
-
   AH_TEMPLATE(HAVE_JPEG, [Define to 1 if you have the jpeg library (-ljpeg).])dnl
   if test "${HAVE_JPEG}" = "yes"; then
     AC_DEFINE(HAVE_JPEG)
@@ -2623,6 +2652,25 @@ if test "${HAVE_X11}" = "yes" || test "${HAVE_W32}" = "yes"; then
         [AC_MSG_WARN([libjpeg found, but not version 6b or later])
         HAVE_JPEG=no])
   fi
+elif test "${HAVE_X11}" = "yes" || test "${HAVE_W32}" = "yes"; then
+  if test "${with_jpeg}" != "no"; then
+    dnl Checking for jpeglib.h can lose because of a redefinition of
+    dnl  HAVE_STDLIB_H.
+    AC_CHECK_HEADER(jerror.h,
+      [AC_CHECK_LIB(jpeg, jpeg_destroy_compress, HAVE_JPEG=yes)])
+  fi
+
+  AH_TEMPLATE(HAVE_JPEG, [Define to 1 if you have the jpeg library (-ljpeg).])dnl
+  if test "${HAVE_JPEG}" = "yes"; then
+    AC_DEFINE(HAVE_JPEG)
+    AC_EGREP_CPP([version= *(6[2-9]|[7-9][0-9])],
+	[#include <jpeglib.h>
+	 version=JPEG_LIB_VERSION
+],
+	[AC_DEFINE(HAVE_JPEG)],
+	[AC_MSG_WARN([libjpeg found, but not version 6b or later])
+	HAVE_JPEG=no])
+  fi
   if test "${HAVE_JPEG}" = "yes"; then
     LIBJPEG=-ljpeg
   fi
@@ -2630,9 +2678,30 @@ fi
 AC_SUBST(LIBJPEG)
 
 ### Use -lpng if available, unless `--with-png=no'.
+### mingw32 doesn't use -lpng, since it loads the library dynamically.
 HAVE_PNG=no
 LIBPNG=
-if test "${HAVE_X11}" = "yes" || test "${HAVE_W32}" = "yes"; then
+if test "${opsys}" = "mingw32"; then
+  if test "${with_png}" != "no"; then
+    AC_CHECK_HEADER(png.h, HAVE_PNG=yes, HAVE_PNG=no)
+  fi
+  if test "${HAVE_PNG}" = "yes"; then
+    AC_DEFINE(HAVE_PNG, 1, [Define to 1 if you have the png library (-lpng).])
+
+    AC_CHECK_DECL(png_longjmp,
+      [],
+      [AC_DEFINE(PNG_DEPSTRUCT, [],
+	 [Define to empty to suppress deprecation warnings when building
+	  with --enable-gcc-warnings and with libpng versions before 1.5,
+	  which lack png_longjmp.])],
+      [[#ifdef HAVE_LIBPNG_PNG_H
+	# include <libpng/png.h>
+	#else
+	# include <png.h>
+	#endif
+      ]])
+  fi
+elif test "${HAVE_X11}" = "yes" || test "${HAVE_W32}" = "yes"; then
   if test "${with_png}" != "no"; then
     # Debian unstable as of July 2003 has multiple libpngs, and puts png.h
     # in /usr/include/libpng.
@@ -2663,9 +2732,17 @@ fi
 AC_SUBST(LIBPNG)
 
 ### Use -ltiff if available, unless `--with-tiff=no'.
+### mingw32 doesn't use -ltiff, since it loads the library dynamically.
 HAVE_TIFF=no
 LIBTIFF=
-if test "${HAVE_X11}" = "yes" || test "${HAVE_W32}" = "yes"; then
+if test "${opsys}" = "mingw32"; then
+  if test "${with_tiff}" != "no"; then
+    AC_CHECK_HEADER(tiffio.h, HAVE_TIFF=yes, HAVE_TIFF=no)
+  fi
+  if test "${HAVE_TIFF}" = "yes"; then
+    AC_DEFINE(HAVE_TIFF, 1, [Define to 1 if you have the tiff library (-ltiff).])
+  fi
+elif test "${HAVE_X11}" = "yes" || test "${HAVE_W32}" = "yes"; then
   if test "${with_tiff}" != "no"; then
     AC_CHECK_HEADER(tiffio.h,
       [tifflibs="-lz -lm"
@@ -2683,9 +2760,17 @@ fi
 AC_SUBST(LIBTIFF)
 
 ### Use -lgif or -lungif if available, unless `--with-gif=no'.
+### mingw32 doesn't use -lgif/-lungif, since it loads the library dynamically.
 HAVE_GIF=no
 LIBGIF=
-if test "${HAVE_X11}" = "yes" && test "${with_gif}" != "no" \
+if test "${opsys}" = "mingw32"; then
+  if test "${with_gif}" != "no"; then
+    AC_CHECK_HEADER(gif_lib.h, HAVE_GIF=yes, HAVE_GIF=no)
+  fi
+  if test "${HAVE_GIF}" = "yes"; then
+    AC_DEFINE(HAVE_GIF, 1, [Define to 1 if you have a gif (or ungif) library.])
+  fi
+elif test "${HAVE_X11}" = "yes" && test "${with_gif}" != "no" \
         || test "${HAVE_W32}" = "yes"; then
   AC_CHECK_HEADER(gif_lib.h,
 # EGifPutExtensionLast only exists from version libungif-4.1.0b1.
@@ -2791,13 +2876,16 @@ fi
 AC_SUBST(LIBXSM)
 
 ### Use libxml (-lxml2) if available
+### mingw32 doesn't use -lxml2, since it loads the library dynamically.
 HAVE_LIBXML2=no
 if test "${with_xml2}" != "no"; then
   ### I'm not sure what the version number should be, so I just guessed.
   PKG_CHECK_MODULES(LIBXML2, libxml-2.0 > 2.6.17, HAVE_LIBXML2=yes, HAVE_LIBXML2=no)
   if test "${HAVE_LIBXML2}" = "yes"; then
-    LIBS="$LIBXML2_LIBS $LIBS"
-    AC_CHECK_LIB(xml2, htmlReadMemory, HAVE_LIBXML2=yes, HAVE_LIBXML2=no)
+    if test "${opsys}" != "mingw32"; then
+      LIBS="$LIBXML2_LIBS $LIBS"
+      AC_CHECK_LIB(xml2, htmlReadMemory, HAVE_LIBXML2=yes, HAVE_LIBXML2=no)
+    fi
     if test "${HAVE_LIBXML2}" = "yes"; then
       AC_DEFINE(HAVE_LIBXML2, 1, [Define to 1 if you have the libxml library (-lxml2).])
     else
@@ -2810,6 +2898,10 @@ AC_SUBST(LIBXML2_LIBS)
 AC_SUBST(LIBXML2_CFLAGS)
 
 # If netdb.h doesn't declare h_errno, we must declare it by hand.
+# On MinGW, that is provided by nt/inc/sys/socket.h.
+if test "${opsys}" = "mingw32"; then
+  emacs_cv_netdb_declares_h_errno=yes
+fi
 AC_CACHE_CHECK(whether netdb declares h_errno,
 	       emacs_cv_netdb_declares_h_errno,
 [AC_LINK_IFELSE([AC_LANG_PROGRAM([[#include <netdb.h>]],
@@ -2820,8 +2912,10 @@ if test $emacs_cv_netdb_declares_h_errno = yes; then
 fi
 
 # sqrt and other floating-point functions such as fmod and frexp
-# are found in -lm on most systems.
-AC_CHECK_LIB(m, sqrt)
+# are found in -lm on most systems, but mingw32 doesn't use -lm.
+if test "${opsys}" != "mingw32"; then
+  AC_CHECK_LIB(m, sqrt)
+fi
 
 # Check for mail-locking functions in a "mail" library.  Probably this should
 # have the same check as for liblockfile below.
@@ -2972,25 +3066,29 @@ AC_DEFUN([tputs_link_source], [
 	  return 0;
        }]])
 ])
-# Maybe curses should be tried earlier?
-# See http://debbugs.gnu.org/cgi/bugreport.cgi?bug=9736#35
-for tputs_library in '' tinfo ncurses terminfo termcap curses; do
-  OLIBS=$LIBS
-  if test -z "$tputs_library"; then
-    LIBS_TERMCAP=
-    msg='none required'
-  else
-    LIBS_TERMCAP=-l$tputs_library
-    msg=$LIBS_TERMCAP
-    LIBS="$LIBS_TERMCAP $LIBS"
-  fi
-  AC_RUN_IFELSE([tputs_link_source], [], [msg=no],
-    [AC_LINK_IFELSE([tputs_link_source], [], [msg=no])])
-  LIBS=$OLIBS
-  if test "X$msg" != Xno; then
-    break
-  fi
-done
+if test "${opsys} = "mingw32"; then
+  msg='none required'
+else
+  # Maybe curses should be tried earlier?
+  # See http://debbugs.gnu.org/cgi/bugreport.cgi?bug=9736#35
+  for tputs_library in '' tinfo ncurses terminfo termcap curses; do
+    OLIBS=$LIBS
+    if test -z "$tputs_library"; then
+      LIBS_TERMCAP=
+      msg='none required'
+    else
+      LIBS_TERMCAP=-l$tputs_library
+      msg=$LIBS_TERMCAP
+      LIBS="$LIBS_TERMCAP $LIBS"
+    fi
+    AC_RUN_IFELSE([tputs_link_source], [], [msg=no],
+      [AC_LINK_IFELSE([tputs_link_source], [], [msg=no])])
+    LIBS=$OLIBS
+    if test "X$msg" != Xno; then
+      break
+    fi
+  done
+fi
 AC_MSG_RESULT([$msg])
 if test "X$msg" = Xno; then
   AC_MSG_ERROR([The required function `tputs' was not found in any library.
@@ -3034,6 +3132,11 @@ fail;
       TERMINFO=no
       LIBS_TERMCAP="-ltermcap"
     fi
+    ;;
+
+  mingw32)
+    TERMINFO=no
+    LIBS_TERMCAP=
     ;;
 
   netbsd)
@@ -3328,18 +3431,22 @@ dnl Turned on June 1996 supposing nobody will mind it.
 AC_DEFINE(AMPERSAND_FULL_NAME, 1, [Define to use the convention that &
   in the full name stands for the login id.])
 
-dnl Every platform that uses configure (ie every non-MS platform)
+dnl Every platform that uses configure, except MinGW,
 dnl supports this.  There is a create-lockfiles option you can
 dnl customize if you do not want the lock files to be written.
 dnl So it is not clear that this #define still needs to exist.
-AC_DEFINE(CLASH_DETECTION, 1, [Define if you want lock files to be written,
-  so that Emacs can tell instantly when you try to modify a file that
-  someone else has modified in his/her Emacs.])
+if test "${opsys}" != "mingw32"; then
+  AC_DEFINE(CLASH_DETECTION, 1, [Define if you want lock files to be written,
+    so that Emacs can tell instantly when you try to modify a file that
+    someone else has modified in his/her Emacs.])
+fi
 
 dnl Everybody supports this, except MS.
 dnl Seems like the kind of thing we should be testing for, though.
 ## Note: PTYs are broken on darwin <6.  Use at your own risk.
-AC_DEFINE(HAVE_PTYS, 1, [Define if the system supports pty devices.])
+if test "${opsys}" != "mingw32"; then
+  AC_DEFINE(HAVE_PTYS, 1, [Define if the system supports pty devices.])
+fi
 
 dnl Everybody supports this, except MS-DOS.
 dnl Seems like the kind of thing we should be testing for, though.
@@ -3349,10 +3456,19 @@ AC_DEFINE(HAVE_SOCKETS, 1, [Define if the system supports
 
 AH_TEMPLATE(INTERNAL_TERMINAL, [This is substituted when $TERM is "internal".])
 
-AC_DEFINE(NULL_DEVICE, ["/dev/null"], [Name of the file to open to get
-  a null file, or a data sink.])
+if test "${opsys}" = "mingw32"; then
+  AC_DEFINE(NULL_DEVICE, ["NUL:"], [Name of the file to open to get
+    a null file, or a data sink.])
+else
+  AC_DEFINE(NULL_DEVICE, ["/dev/null"], [Name of the file to open to get
+    a null file, or a data sink.])
+fi
 
-AC_DEFINE(SEPCHAR, [':'], [Character that separates PATH elements.])
+if test "${opsys}" = "mingw32"; then
+  AC_DEFINE(SEPCHAR, [';'], [Character that separates PATH elements.])
+else
+  AC_DEFINE(SEPCHAR, [':'], [Character that separates PATH elements.])
+fi
 
 dnl Everybody supports this, except MS-DOS.
 AC_DEFINE(subprocesses, 1, [Define to enable asynchronous subprocesses.])
@@ -3363,19 +3479,29 @@ AC_DEFINE(USER_FULL_NAME, [pw->pw_gecos], [How to get a user's full name.])
 AC_DEFINE(DIRECTORY_SEP, ['/'],
   [Character that separates directories in a file name.])
 
-dnl Only used on MS platforms.
-AH_TEMPLATE(DEVICE_SEP, [Character that separates a device in a file name.])
+if test "${opsys}" = "mingw32"; then
+  dnl Only used on MS platforms.
+  AC_DEFINE(DEVICE_SEP, ':', [Character that separates a device in a file name.])
+  AC_DEFINE(IS_DEVICE_SEP(_c_), [((_c_) == DEVICE_SEP)],
+    [Returns true if character is a device separator.])
 
-AC_DEFINE(IS_DEVICE_SEP(_c_), 0,
-  [Returns true if character is a device separator.])
+  AC_DEFINE(IS_DIRECTORY_SEP(_c_), [((_c_) == '/' || (_c_) == '\\')],
+    [Returns true if character is a directory separator.])
 
-AC_DEFINE(IS_DIRECTORY_SEP(_c_), [((_c_) == DIRECTORY_SEP)],
-  [Returns true if character is a directory separator.])
+  AC_DEFINE(IS_ANY_SEP(_c_), [(IS_DIRECTORY_SEP (_c_) || IS_DEVICE_SEP(_c_))],
+    [Returns true if character is any form of separator.])
+else
+  AH_TEMPLATE(DEVICE_SEP, [Character that separates a device in a file name.])
 
-dnl On MS, this also accepts IS_DEVICE_SEP.
-AC_DEFINE(IS_ANY_SEP(_c_), [(IS_DIRECTORY_SEP (_c_))],
-  [Returns true if character is any form of separator.])
+  AC_DEFINE(IS_DEVICE_SEP(_c_), 0,
+    [Returns true if character is a device separator.])
 
+  AC_DEFINE(IS_DIRECTORY_SEP(_c_), [((_c_) == DIRECTORY_SEP)],
+    [Returns true if character is a directory separator.])
+
+  AC_DEFINE(IS_ANY_SEP(_c_), [(IS_DIRECTORY_SEP (_c_))],
+    [Returns true if character is any form of separator.])
+fi
 
 AH_TEMPLATE(NO_EDITRES, [Define if XEditRes should not be used.])
 
@@ -3914,6 +4040,11 @@ case $opsys in
     AC_DEFINE(IRIX6_5, [], [Define if the system is IRIX.])
     ;;
 
+  mingw32)
+    AC_DEFINE(DOS_NT, [])
+    AC_DEFINE(WINDOWSNT, 1, [Define if compiling for native MS Windows.])
+    ;;
+
   sol2*)
     AC_DEFINE(USG, [])
     AC_DEFINE(USG5, [])
@@ -3933,6 +4064,10 @@ AC_CACHE_CHECK([for usable FIONREAD], [emacs_cv_usable_FIONREAD],
      aix4-2)
        dnl BUILD 9008 - FIONREAD problem still exists in X-Windows.
        emacs_cv_usable_FIONREAD=no
+       ;;
+
+     mingw32)
+       emacs_cv_usable_FIONREAD=yes
        ;;
 
      *)
@@ -4212,6 +4347,10 @@ if test "$opsys" = "cygwin"; then
   ## Cygwin differs because of its unexec().
   PRE_ALLOC_OBJ=
   POST_ALLOC_OBJ=lastfile.o
+elif test "$opsys" = "mingw32"; then
+  CYGWIN_OBJ=
+  PRE_ALLOC_OBJ=
+  POST_ALLOC_OBJ=lastfile.o
 else
   CYGWIN_OBJ=
   PRE_ALLOC_OBJ=lastfile.o
@@ -4293,7 +4432,7 @@ LD_FIRSTFLAG=
 ORDINARY_LINK=
 case "$opsys" in
   ## gnu: GNU needs its own crt0.
-  aix4-2|cygwin|darwin|gnu|hpux*|irix6-5|sol2*|unixware) ORDINARY_LINK=yes ;;
+  aix4-2|cygwin|darwin|gnu|hpux*|irix6-5|mingw32|sol2*|unixware) ORDINARY_LINK=yes ;;
 
   ## On post 1.3 releases of NetBSD, gcc -nostdlib also clears the
   ## library search parth, i.e. it won't search /usr/lib for libc and
