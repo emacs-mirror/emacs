@@ -1,3 +1,8 @@
+2012-11-23  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* erc-backend.el: Fix last change that missed calls to `second'
+	(bug#12970).
+
 2012-11-19  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	Use cl-lib instead of cl, and interactive-p => called-interactively-p.
