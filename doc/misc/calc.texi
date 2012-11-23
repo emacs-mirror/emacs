@@ -13439,7 +13439,7 @@ the time part.  The punctuation characters (including spaces) must
 match exactly; letter fields must correspond to suitable text in
 the input.  If this doesn't work, Calc checks if the input is a
 simple number; if so, the number is interpreted as a number of days
-since Jan 1, 1 AD@.  Otherwise, Calc tries a much more relaxed and
+since Dec 31, 1 BC@.  Otherwise, Calc tries a much more relaxed and
 flexible algorithm which is described in the next section.
 
 Weekday names are ignored during reading.
