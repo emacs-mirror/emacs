@@ -1,3 +1,7 @@
+2012-11-23  Chong Yidong  <cyd@gnu.org>
+
+	* faces.el (color-defined-p): Doc fix (Bug#12853).
+
 2012-11-23  Juri Linkov  <juri@jurta.org>
 
 	* wdired.el: Revert 2012-10-17 change partly and replace it with
