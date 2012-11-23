@@ -630,8 +630,7 @@ struct ns_output
 /* this dummy decl needed to support TTYs */
 struct x_output
 {
-  unsigned long background_pixel;
-  unsigned long foreground_pixel;
+  int unused;
 };
 
 

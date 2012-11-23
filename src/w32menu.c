@@ -114,17 +114,6 @@ static int fill_in_menu (HMENU, widget_value *);
 
 void w32_free_menu_strings (HWND);
 
-
-
-/* This is set nonzero after the user activates the menu bar, and set
-   to zero again after the menu bars are redisplayed by prepare_menu_bar.
-   While it is nonzero, all calls to set_frame_menubar go deep.
-
-   I don't understand why this is needed, but it does seem to be
-   needed on Motif, according to Marcus Daniels <marcus@sysc.pdx.edu>.  */
-
-int pending_menu_activation;
-
 #ifdef HAVE_MENUS
 
 DEFUN ("x-popup-dialog", Fx_popup_dialog, Sx_popup_dialog, 2, 3, 0,
@@ -388,8 +377,6 @@ set_frame_menubar (FRAME_PTR f, bool first_time, bool deep_p)
   XSETFRAME (Vmenu_updating_frame, f);
 
   if (! menubar_widget)
-    deep_p = 1;
-  else if (pending_menu_activation && !deep_p)
     deep_p = 1;
 
   if (deep_p)

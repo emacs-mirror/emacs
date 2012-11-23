@@ -1,3 +1,19 @@
+2012-11-23  Dmitry Antipov  <dmantipov@yandex.ru>
+
+	* frame.h (struct frame): Remove display_preempted member
+	since all users are dead long ago.
+	* nsterm.h (struct x_output): Use the only dummy member.
+	* w32menu.c (pending_menu_activation): Remove since not
+	really used.
+	(set_frame_menubar): Adjust user.
+	* w32term.h (struct x_output): Drop outdated #if 0 code.
+	(struct w32_output): Use bitfields for explicit_parent,
+	asked_for_visible and menubar_active members.  Drop
+	unused pending_menu_activation member.
+	* xterm.h (struct x_output): Drop outdated #if 0 code.
+	Use bitfields for explicit_parent, asked_for_visible,
+	has_been_visible and net_wm_state_hidden_seen members.
+
 2012-11-23  Eli Zaretskii  <eliz@gnu.org>
 
 	* makefile.w32-in (globals.h, gl-stamp): Use $(SWITCHCHAR) instead
