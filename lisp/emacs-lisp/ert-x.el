@@ -1,4 +1,4 @@
-;;; ert-x.el --- Staging area for experimental extensions to ERT
+;;; ert-x.el --- Staging area for experimental extensions to ERT  -*- lexical-binding: t -*-
 
 ;; Copyright (C) 2008, 2010-2012 Free Software Foundation, Inc.
 
@@ -28,8 +28,7 @@
 
 ;;; Code:
 
-(eval-when-compile
-  (require 'cl))
+(eval-when-compile (require 'cl-lib))
 (require 'ert)
 
 
@@ -90,8 +89,8 @@ ERT--THUNK with that buffer as current."
       (kill-buffer ert--buffer)
       (remhash ert--buffer ert--test-buffers))))
 
-(defmacro* ert-with-test-buffer ((&key ((:name name-form)))
-				 &body body)
+(cl-defmacro ert-with-test-buffer ((&key ((:name name-form)))
+                                   &body body)
   "Create a test buffer and run BODY in that buffer.
 
 To be used in ERT tests.  If BODY finishes successfully, the test
@@ -116,10 +115,10 @@ the name of the test and the result of NAME-FORM."
   "Kill all test buffers that are still live."
   (interactive)
   (let ((count 0))
-    (maphash (lambda (buffer dummy)
+    (maphash (lambda (buffer _dummy)
 	       (when (or (not (buffer-live-p buffer))
 			 (kill-buffer buffer))
-		 (incf count)))
+		 (cl-incf count)))
 	     ert--test-buffers)
     (message "%s out of %s test buffers killed"
 	     count (hash-table-count ert--test-buffers)))
@@ -149,9 +148,9 @@ the rest are arguments to the command.
 
 NOTE: Since the command is not called by `call-interactively'
 test for `called-interactively' in the command will fail."
-  (assert (listp command) t)
-  (assert (commandp (car command)) t)
-  (assert (not unread-command-events) t)
+  (cl-assert (listp command) t)
+  (cl-assert (commandp (car command)) t)
+  (cl-assert (not unread-command-events) t)
   (let (return-value)
     ;; For the order of things here see command_loop_1 in keyboard.c.
     ;;
@@ -175,7 +174,7 @@ test for `called-interactively' in the command will fail."
     (when (boundp 'last-repeatable-command)
       (setq last-repeatable-command real-last-command))
     (when (and deactivate-mark transient-mark-mode) (deactivate-mark))
-    (assert (not unread-command-events) t)
+    (cl-assert (not unread-command-events) t)
     return-value))
 
 (defun ert-run-idle-timers ()
@@ -198,7 +197,7 @@ rather than the entire match."
   (with-temp-buffer
     (insert s)
     (dolist (x regexps)
-      (destructuring-bind (regexp subexp) (if (listp x) x `(,x nil))
+      (cl-destructuring-bind (regexp subexp) (if (listp x) x `(,x nil))
         (goto-char (point-min))
         (while (re-search-forward regexp nil t)
           (replace-match "" t t nil subexp))))
@@ -224,15 +223,15 @@ would return the string \"foo bar baz quux\" where the substring
 None of the ARGS are modified, but the return value may share
 structure with the plists in ARGS."
   (with-temp-buffer
-    (loop with current-plist = nil
-          for x in args do
-          (etypecase x
-            (string (let ((begin (point)))
-                      (insert x)
-                      (set-text-properties begin (point) current-plist)))
-            (list (unless (zerop (mod (length x) 2))
-                    (error "Odd number of args in plist: %S" x))
-                  (setq current-plist x))))
+    (cl-loop with current-plist = nil
+             for x in args do
+             (cl-etypecase x
+               (string (let ((begin (point)))
+                         (insert x)
+                         (set-text-properties begin (point) current-plist)))
+               (list (unless (zerop (mod (length x) 2))
+                       (error "Odd number of args in plist: %S" x))
+                     (setq current-plist x))))
     (buffer-string)))
 
 
@@ -245,8 +244,8 @@ buffer, and renames the original buffer back to BUFFER-NAME.
 
 This is useful if THUNK has undesirable side-effects on an Emacs
 buffer with a fixed name such as *Messages*."
-  (lexical-let ((new-buffer-name (generate-new-buffer-name
-                                  (format "%s orig buffer" buffer-name))))
+  (let ((new-buffer-name (generate-new-buffer-name
+                          (format "%s orig buffer" buffer-name))))
     (with-current-buffer (get-buffer-create buffer-name)
       (rename-buffer new-buffer-name))
     (unwind-protect
@@ -258,7 +257,7 @@ buffer with a fixed name such as *Messages*."
       (with-current-buffer new-buffer-name
         (rename-buffer buffer-name)))))
 
-(defmacro* ert-with-buffer-renamed ((buffer-name-form) &body body)
+(cl-defmacro ert-with-buffer-renamed ((buffer-name-form) &body body)
   "Protect the buffer named BUFFER-NAME from side-effects and run BODY.
 
 See `ert-call-with-buffer-renamed' for details."
