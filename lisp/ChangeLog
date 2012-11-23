@@ -1,3 +1,8 @@
+2012-11-23  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* emacs-lisp/bytecomp.el (byte-compile-file): Setup default value for
+	lexical-binding (bug#12938).
+
 2012-11-23  Wolfgang Jenkner  <wjenkner@inode.at>
 
 	* image-mode.el (image-transform-check-size): Use assertions only
@@ -43,14 +48,14 @@
 	(c-debug-parse-state): Call the above new function.
 	(c-toggle-parse-state-debug): Output a confirmatory message.
 
-	* progmodes/cc-mode.el (c-before-change, c-after-change): Call
-	c-invalidate-state-cache from `c-before-change' instead of
+	* progmodes/cc-mode.el (c-before-change, c-after-change):
+	Call c-invalidate-state-cache from `c-before-change' instead of
 	`c-after-change'.
 
 2012-11-20  Daniel Colascione  <dancol@dancol.org>
 
-	* term/w32-win.el (cygwin-convert-path-from-windows): Accomodate
-	rename of cygwin_convert_path* to cygwin_convert_file_name*.
+	* term/w32-win.el (cygwin-convert-path-from-windows):
+	Accomodate rename of cygwin_convert_path* to cygwin_convert_file_name*.
 	This change is a backport from trunk.
 
 2012-11-20  Eli Zaretskii  <eliz@gnu.org>
