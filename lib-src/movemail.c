@@ -328,11 +328,8 @@ main (int argc, char **argv)
 
 	  tem = link (tempname, lockname);
 
-#ifdef EPERM
-	  if (tem < 0 && errno == EPERM)
-	    fatal ("Unable to create hard link between %s and %s",
-		   tempname, lockname);
-#endif
+	  if (tem < 0 && errno != EEXIST)
+	    pfatal_with_name (lockname);
 
 	  unlink (tempname);
 	  if (tem >= 0)
