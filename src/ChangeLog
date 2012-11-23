@@ -1,5 +1,9 @@
 2012-11-23  Eli Zaretskii  <eliz@gnu.org>
 
+	* xdisp.c (set_cursor_from_row): Skip step 2 only if point is not
+	between bpos_covered and bpos_max.  This fixes cursor display when
+	several display strings follow each other.
+
 	* .gdbinit (pgx): If the glyph's object is a string, display the
 	pointer to string data, rather than the value of the string object
 	itself (which barfs under CHECK_LISP_OBJECT_TYPE).
