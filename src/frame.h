@@ -357,9 +357,6 @@ struct frame
   unsigned int external_menu_bar : 1;
 #endif
 
-  /* Nonzero if last attempt at redisplay on this frame was preempted.  */
-  unsigned display_preempted : 1;
-
   /* visible is nonzero if the frame is currently displayed; we check
      it to see if we should bother updating the frame's contents.
      DON'T SET IT DIRECTLY; instead, use FRAME_SET_VISIBLE.

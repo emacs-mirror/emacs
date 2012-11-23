@@ -506,12 +506,6 @@ struct x_output
      value contains an ID of the fontset, else -1.  */
   int fontset;
 
-  /* Pixel values used for various purposes.
-     border_pixel may be -1 meaning use a gray tile.  */
-#if 0 /* These are also defined in struct frame.  Use that instead.  */
-  unsigned long background_pixel;
-  unsigned long foreground_pixel;
-#endif
   unsigned long cursor_pixel;
   unsigned long border_pixel;
   unsigned long mouse_pixel;
@@ -574,13 +568,13 @@ struct x_output
 
   /* Nonzero means our parent is another application's window
      and was explicitly specified.  */
-  char explicit_parent;
+  unsigned explicit_parent : 1;
 
   /* Nonzero means tried already to make this frame visible.  */
-  char asked_for_visible;
+  unsigned asked_for_visible : 1;
 
   /* Nonzero if this frame was ever previously visible.  */
-  char has_been_visible;
+  unsigned has_been_visible : 1;
 
 #ifdef HAVE_X_I18N
   /* Input context (currently, this means Compose key handler setup).  */
@@ -634,7 +628,7 @@ struct x_output
   int top_before_move;
 
   /* Non-zero if _NET_WM_STATE_HIDDEN is set for this frame.  */
-  int net_wm_state_hidden_seen;
+  unsigned net_wm_state_hidden_seen : 1;
 };
 
 #define No_Cursor (None)
