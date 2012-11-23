@@ -5210,7 +5210,7 @@ instead of the current buffer and returns the OBJECT."
   "Update cell face according to the current mode."
   (if (featurep 'xemacs)
       (set-face-property 'table-cell 'underline table-fixed-width-mode)
-    (set-face-inverse-video-p 'table-cell table-fixed-width-mode)))
+    (set-face-inverse-video 'table-cell table-fixed-width-mode)))
 
 (table--update-cell-face)
 

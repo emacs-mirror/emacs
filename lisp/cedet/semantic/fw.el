@@ -122,15 +122,13 @@
     )
 
 
-  (if (and (not (featurep 'xemacs))
-	   (>= emacs-major-version 21))
-      (defalias 'semantic-make-local-hook 'identity)
-    (defalias 'semantic-make-local-hook 'make-local-hook)
-    )
+  (defalias 'semantic-make-local-hook
+    (if (and (not (featurep 'xemacs))
+             (>= emacs-major-version 21))
+        #'identity  #'make-local-hook))
 
-  (if (featurep 'xemacs)
-      (defalias 'semantic-mode-line-update 'redraw-modeline)
-    (defalias 'semantic-mode-line-update 'force-mode-line-update))
+  (defalias 'semantic-mode-line-update
+    (if (featurep 'xemacs) #'redraw-modeline #'force-mode-line-update))
 
   ;; Since Emacs 22 major mode functions should use `run-mode-hooks' to
   ;; run major mode hooks.

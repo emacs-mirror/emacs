@@ -106,22 +106,24 @@ conv_filename_from_w32_unicode (const wchar_t* in, int absolute_p)
   return unbind_to (count, DECODE_FILE (converted));
 }
 
-DEFUN ("cygwin-convert-path-to-windows",
-       Fcygwin_convert_path_to_windows, Scygwin_convert_path_to_windows,
+DEFUN ("cygwin-convert-file-name-to-windows",
+       Fcygwin_convert_file_name_to_windows,
+       Scygwin_convert_file_name_to_windows,
        1, 2, 0,
-       doc: /* Convert PATH to a Windows path.  If ABSOLUTE-P if
-               non-nil, return an absolute path.*/)
+       doc: /* Convert PATH to a Windows path.  If ABSOLUTE-P is
+non-nil, return an absolute path.*/)
   (Lisp_Object path, Lisp_Object absolute_p)
 {
   return from_unicode (
     conv_filename_to_w32_unicode (path, EQ (absolute_p, Qnil) ? 0 : 1));
 }
 
-DEFUN ("cygwin-convert-path-from-windows",
-       Fcygwin_convert_path_from_windows, Scygwin_convert_path_from_windows,
+DEFUN ("cygwin-convert-file-name-from-windows",
+       Fcygwin_convert_file_name_from_windows,
+       Scygwin_convert_file_name_from_windows,
        1, 2, 0,
        doc: /* Convert a Windows path to a Cygwin path.  If ABSOLUTE-P
-               if non-nil, return an absolute path.*/)
+is non-nil, return an absolute path.*/)
   (Lisp_Object path, Lisp_Object absolute_p)
 {
   return conv_filename_from_w32_unicode (to_unicode (path, &path),
@@ -131,6 +133,6 @@ DEFUN ("cygwin-convert-path-from-windows",
 void
 syms_of_cygw32 (void)
 {
-  defsubr (&Scygwin_convert_path_from_windows);
-  defsubr (&Scygwin_convert_path_to_windows);
+  defsubr (&Scygwin_convert_file_name_from_windows);
+  defsubr (&Scygwin_convert_file_name_to_windows);
 }

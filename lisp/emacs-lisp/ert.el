@@ -1,4 +1,4 @@
-;;; ert.el --- Emacs Lisp Regression Testing
+;;; ert.el --- Emacs Lisp Regression Testing  -*- lexical-binding: t -*-
 
 ;; Copyright (C) 2007-2008, 2010-2012 Free Software Foundation, Inc.
 
@@ -54,8 +54,7 @@
 
 ;;; Code:
 
-(eval-when-compile
-  (require 'cl))
+(eval-when-compile (require 'cl-lib))
 (require 'button)
 (require 'debug)
 (require 'easymenu)
@@ -105,33 +104,33 @@
   "A reimplementation of `remove-if-not'.
 
 ERT-PRED is a predicate, ERT-LIST is the input list."
-  (loop for ert-x in ert-list
-        if (funcall ert-pred ert-x)
-        collect ert-x))
+  (cl-loop for ert-x in ert-list
+           if (funcall ert-pred ert-x)
+           collect ert-x))
 
 (defun ert--intersection (a b)
   "A reimplementation of `intersection'.  Intersect the sets A and B.
 
 Elements are compared using `eql'."
-  (loop for x in a
-        if (memql x b)
-        collect x))
+  (cl-loop for x in a
+           if (memql x b)
+           collect x))
 
 (defun ert--set-difference (a b)
   "A reimplementation of `set-difference'.  Subtract the set B from the set A.
 
 Elements are compared using `eql'."
-  (loop for x in a
-        unless (memql x b)
-        collect x))
+  (cl-loop for x in a
+           unless (memql x b)
+           collect x))
 
 (defun ert--set-difference-eq (a b)
   "A reimplementation of `set-difference'.  Subtract the set B from the set A.
 
 Elements are compared using `eq'."
-  (loop for x in a
-        unless (memq x b)
-        collect x))
+  (cl-loop for x in a
+           unless (memq x b)
+           collect x))
 
 (defun ert--union (a b)
   "A reimplementation of `union'.  Compute the union of the sets A and B.
@@ -149,7 +148,7 @@ Elements are compared using `eql'."
     (make-symbol (format "%s%s"
                          prefix
                          (prog1 ert--gensym-counter
-                           (incf ert--gensym-counter))))))
+                           (cl-incf ert--gensym-counter))))))
 
 (defun ert--coerce-to-vector (x)
   "Coerce X to a vector."
@@ -158,19 +157,19 @@ Elements are compared using `eql'."
       x
     (vconcat x)))
 
-(defun* ert--remove* (x list &key key test)
+(cl-defun ert--remove* (x list &key key test)
   "Does not support all the keywords of remove*."
   (unless key (setq key #'identity))
   (unless test (setq test #'eql))
-  (loop for y in list
-        unless (funcall test x (funcall key y))
-        collect y))
+  (cl-loop for y in list
+           unless (funcall test x (funcall key y))
+           collect y))
 
 (defun ert--string-position (c s)
   "Return the position of the first occurrence of C in S, or nil if none."
-  (loop for i from 0
-        for x across s
-        when (eql x c) return i))
+  (cl-loop for i from 0
+           for x across s
+           when (eql x c) return i))
 
 (defun ert--mismatch (a b)
   "Return index of first element that differs between A and B.
@@ -184,29 +183,30 @@ Like `mismatch'.  Uses `equal' for comparison."
         (t
          (let ((la (length a))
                (lb (length b)))
-           (assert (arrayp a) t)
-           (assert (arrayp b) t)
-           (assert (<= la lb) t)
-           (loop for i below la
-                 when (not (equal (aref a i) (aref b i))) return i
-                 finally (return (if (/= la lb)
-                                     la
-                                   (assert (equal a b) t)
-                                   nil)))))))
+           (cl-assert (arrayp a) t)
+           (cl-assert (arrayp b) t)
+           (cl-assert (<= la lb) t)
+           (cl-loop for i below la
+                    when (not (equal (aref a i) (aref b i))) return i
+                    finally (cl-return (if (/= la lb)
+                                           la
+                                         (cl-assert (equal a b) t)
+                                         nil)))))))
 
 (defun ert--subseq (seq start &optional end)
   "Return a subsequence of SEQ from START to END."
   (when (char-table-p seq) (error "Not supported"))
   (let ((vector (substring (ert--coerce-to-vector seq) start end)))
-    (etypecase seq
+    (cl-etypecase seq
       (vector vector)
       (string (concat vector))
       (list (append vector nil))
-      (bool-vector (loop with result = (make-bool-vector (length vector) nil)
-                         for i below (length vector) do
-                         (setf (aref result i) (aref vector i))
-                         finally (return result)))
-      (char-table (assert nil)))))
+      (bool-vector (cl-loop with result
+                            = (make-bool-vector (length vector) nil)
+                            for i below (length vector) do
+                            (setf (aref result i) (aref vector i))
+                            finally (cl-return result)))
+      (char-table (cl-assert nil)))))
 
 (defun ert-equal-including-properties (a b)
   "Return t if A and B have similar structure and contents.
@@ -225,10 +225,10 @@ Emacs bug 6581 at URL `http://debbugs.gnu.org/cgi/bugreport.cgi?bug=6581'."
 ;;; Defining and locating tests.
 
 ;; The data structure that represents a test case.
-(defstruct ert-test
+(cl-defstruct ert-test
   (name nil)
   (documentation nil)
-  (body (assert nil))
+  (body (cl-assert nil))
   (most-recent-result nil)
   (expected-result-type ':passed)
   (tags '()))
@@ -273,7 +273,7 @@ Returns a two-element list containing the keys-and-values plist
 and the body."
   (let ((extracted-key-accu '())
         (remaining keys-and-body))
-    (while (and (consp remaining) (keywordp (first remaining)))
+    (while (keywordp (car-safe remaining))
       (let ((keyword (pop remaining)))
         (unless (consp remaining)
           (error "Value expected after keyword %S in %S"
@@ -283,13 +283,13 @@ and the body."
                 keys-and-body))
         (push (cons keyword (pop remaining)) extracted-key-accu)))
     (setq extracted-key-accu (nreverse extracted-key-accu))
-    (list (loop for (key . value) in extracted-key-accu
-                collect key
-                collect value)
+    (list (cl-loop for (key . value) in extracted-key-accu
+                   collect key
+                   collect value)
           remaining)))
 
 ;;;###autoload
-(defmacro* ert-deftest (name () &body docstring-keys-and-body)
+(cl-defmacro ert-deftest (name () &body docstring-keys-and-body)
   "Define NAME (a symbol) as a test.
 
 BODY is evaluated as a `progn' when the test is run.  It should
@@ -313,12 +313,13 @@ description of valid values for RESULT-TYPE.
            (indent 2))
   (let ((documentation nil)
         (documentation-supplied-p nil))
-    (when (stringp (first docstring-keys-and-body))
+    (when (stringp (car docstring-keys-and-body))
       (setq documentation (pop docstring-keys-and-body)
             documentation-supplied-p t))
-    (destructuring-bind ((&key (expected-result nil expected-result-supplied-p)
-                               (tags nil tags-supplied-p))
-                         body)
+    (cl-destructuring-bind
+        ((&key (expected-result nil expected-result-supplied-p)
+               (tags nil tags-supplied-p))
+         body)
         (ert--parse-keys-and-body docstring-keys-and-body)
       `(progn
          (ert-set-test ',name
@@ -388,16 +389,11 @@ DATA is displayed to the user and should state the reason of the failure."
 (defun ert--expand-should-1 (whole form inner-expander)
   "Helper function for the `should' macro and its variants."
   (let ((form
-         ;; If `cl-macroexpand' isn't bound, the code that we're
-         ;; compiling doesn't depend on cl and thus doesn't need an
-         ;; environment arg for `macroexpand'.
-         (if (fboundp 'cl-macroexpand)
-             ;; Suppress warning about run-time call to cl function: we
-             ;; only call it if it's fboundp.
-             (with-no-warnings
-               (cl-macroexpand form (and (boundp 'cl-macro-environment)
-                                         cl-macro-environment)))
-           (macroexpand form))))
+         (macroexpand form (cond
+                            ((boundp 'macroexpand-all-environment)
+                             macroexpand-all-environment)
+                            ((boundp 'cl-macro-environment)
+                             cl-macro-environment)))))
     (cond
      ((or (atom form) (ert--special-operator-p (car form)))
       (let ((value (ert--gensym "value-")))
@@ -410,10 +406,10 @@ DATA is displayed to the user and should state the reason of the failure."
      (t
       (let ((fn-name (car form))
             (arg-forms (cdr form)))
-        (assert (or (symbolp fn-name)
-                    (and (consp fn-name)
-                         (eql (car fn-name) 'lambda)
-                         (listp (cdr fn-name)))))
+        (cl-assert (or (symbolp fn-name)
+                       (and (consp fn-name)
+                            (eql (car fn-name) 'lambda)
+                            (listp (cdr fn-name)))))
         (let ((fn (ert--gensym "fn-"))
               (args (ert--gensym "args-"))
               (value (ert--gensym "value-"))
@@ -451,35 +447,34 @@ should return code that calls INNER-FORM and performs the checks
 and error signaling specific to the particular variant of
 `should'.  The code that INNER-EXPANDER returns must not call
 FORM-DESCRIPTION-FORM before it has called INNER-FORM."
-  (lexical-let ((inner-expander inner-expander))
-    (ert--expand-should-1
-     whole form
-     (lambda (inner-form form-description-form value-var)
-       (let ((form-description (ert--gensym "form-description-")))
-         `(let (,form-description)
-            ,(funcall inner-expander
-                      `(unwind-protect
-                           ,inner-form
-                         (setq ,form-description ,form-description-form)
-                         (ert--signal-should-execution ,form-description))
-                      `,form-description
-                      value-var)))))))
+  (ert--expand-should-1
+   whole form
+   (lambda (inner-form form-description-form value-var)
+     (let ((form-description (ert--gensym "form-description-")))
+       `(let (,form-description)
+          ,(funcall inner-expander
+                    `(unwind-protect
+                         ,inner-form
+                       (setq ,form-description ,form-description-form)
+                       (ert--signal-should-execution ,form-description))
+                    `,form-description
+                    value-var))))))
 
-(defmacro* should (form)
+(cl-defmacro should (form)
   "Evaluate FORM.  If it returns nil, abort the current test as failed.
 
 Returns the value of FORM."
   (ert--expand-should `(should ,form) form
-                      (lambda (inner-form form-description-form value-var)
+                      (lambda (inner-form form-description-form _value-var)
                         `(unless ,inner-form
                            (ert-fail ,form-description-form)))))
 
-(defmacro* should-not (form)
+(cl-defmacro should-not (form)
   "Evaluate FORM.  If it returns non-nil, abort the current test as failed.
 
 Returns nil."
   (ert--expand-should `(should-not ,form) form
-                      (lambda (inner-form form-description-form value-var)
+                      (lambda (inner-form form-description-form _value-var)
                         `(unless (not ,inner-form)
                            (ert-fail ,form-description-form)))))
 
@@ -490,10 +485,10 @@ Returns nil."
 Determines whether CONDITION matches TYPE and EXCLUDE-SUBTYPES,
 and aborts the current test as failed if it doesn't."
   (let ((signaled-conditions (get (car condition) 'error-conditions))
-        (handled-conditions (etypecase type
+        (handled-conditions (cl-etypecase type
                               (list type)
                               (symbol (list type)))))
-    (assert signaled-conditions)
+    (cl-assert signaled-conditions)
     (unless (ert--intersection signaled-conditions handled-conditions)
       (ert-fail (append
                  (funcall form-description-fn)
@@ -512,7 +507,7 @@ and aborts the current test as failed if it doesn't."
 
 ;; FIXME: The expansion will evaluate the keyword args (if any) in
 ;; nonstandard order.
-(defmacro* should-error (form &rest keys &key type exclude-subtypes)
+(cl-defmacro should-error (form &rest keys &key type exclude-subtypes)
   "Evaluate FORM and check that it signals an error.
 
 The error signaled needs to match TYPE.  TYPE should be a list
@@ -560,19 +555,19 @@ failed."
 
 (defun ert--proper-list-p (x)
   "Return non-nil if X is a proper list, nil otherwise."
-  (loop
+  (cl-loop
    for firstp = t then nil
    for fast = x then (cddr fast)
    for slow = x then (cdr slow) do
-   (when (null fast) (return t))
-   (when (not (consp fast)) (return nil))
-   (when (null (cdr fast)) (return t))
-   (when (not (consp (cdr fast))) (return nil))
-   (when (and (not firstp) (eq fast slow)) (return nil))))
+   (when (null fast) (cl-return t))
+   (when (not (consp fast)) (cl-return nil))
+   (when (null (cdr fast)) (cl-return t))
+   (when (not (consp (cdr fast))) (cl-return nil))
+   (when (and (not firstp) (eq fast slow)) (cl-return nil))))
 
 (defun ert--explain-format-atom (x)
   "Format the atom X for `ert--explain-equal'."
-  (typecase x
+  (cl-typecase x
     (fixnum (list x (format "#x%x" x) (format "?%c" x)))
     (t x)))
 
@@ -581,7 +576,7 @@ failed."
 Returns nil if they are."
   (if (not (equal (type-of a) (type-of b)))
       `(different-types ,a ,b)
-    (etypecase a
+    (cl-etypecase a
       (cons
        (let ((a-proper-p (ert--proper-list-p a))
              (b-proper-p (ert--proper-list-p b)))
@@ -593,19 +588,19 @@ Returns nil if they are."
                                                       ,a ,b
                                                       first-mismatch-at
                                                       ,(ert--mismatch a b))
-                 (loop for i from 0
-                       for ai in a
-                       for bi in b
-                       for xi = (ert--explain-equal-rec ai bi)
-                       do (when xi (return `(list-elt ,i ,xi)))
-                       finally (assert (equal a b) t)))
+                 (cl-loop for i from 0
+                          for ai in a
+                          for bi in b
+                          for xi = (ert--explain-equal-rec ai bi)
+                          do (when xi (cl-return `(list-elt ,i ,xi)))
+                          finally (cl-assert (equal a b) t)))
              (let ((car-x (ert--explain-equal-rec (car a) (car b))))
                (if car-x
                    `(car ,car-x)
                  (let ((cdr-x (ert--explain-equal-rec (cdr a) (cdr b))))
                    (if cdr-x
                        `(cdr ,cdr-x)
-                     (assert (equal a b) t)
+                     (cl-assert (equal a b) t)
                      nil))))))))
       (array (if (not (equal (length a) (length b)))
                  `(arrays-of-different-length ,(length a) ,(length b)
@@ -613,12 +608,12 @@ Returns nil if they are."
                                               ,@(unless (char-table-p a)
                                                   `(first-mismatch-at
                                                     ,(ert--mismatch a b))))
-               (loop for i from 0
-                     for ai across a
-                     for bi across b
-                     for xi = (ert--explain-equal-rec ai bi)
-                     do (when xi (return `(array-elt ,i ,xi)))
-                     finally (assert (equal a b) t))))
+               (cl-loop for i from 0
+                        for ai across a
+                        for bi across b
+                        for xi = (ert--explain-equal-rec ai bi)
+                        do (when xi (cl-return `(array-elt ,i ,xi)))
+                        finally (cl-assert (equal a b) t))))
       (atom (if (not (equal a b))
                 (if (and (symbolp a) (symbolp b) (string= a b))
                     `(different-symbols-with-the-same-name ,a ,b)
@@ -637,10 +632,10 @@ Returns nil if they are."
 
 (defun ert--significant-plist-keys (plist)
   "Return the keys of PLIST that have non-null values, in order."
-  (assert (zerop (mod (length plist) 2)) t)
-  (loop for (key value . rest) on plist by #'cddr
-        unless (or (null value) (memq key accu)) collect key into accu
-        finally (return accu)))
+  (cl-assert (zerop (mod (length plist) 2)) t)
+  (cl-loop for (key value . rest) on plist by #'cddr
+           unless (or (null value) (memq key accu)) collect key into accu
+           finally (cl-return accu)))
 
 (defun ert--plist-difference-explanation (a b)
   "Return a programmer-readable explanation of why A and B are different plists.
@@ -648,8 +643,8 @@ Returns nil if they are."
 Returns nil if they are equivalent, i.e., have the same value for
 each key, where absent values are treated as nil.  The order of
 key/value pairs in each list does not matter."
-  (assert (zerop (mod (length a) 2)) t)
-  (assert (zerop (mod (length b) 2)) t)
+  (cl-assert (zerop (mod (length a) 2)) t)
+  (cl-assert (zerop (mod (length b) 2)) t)
   ;; Normalizing the plists would be another way to do this but it
   ;; requires a total ordering on all lisp objects (since any object
   ;; is valid as a text property key).  Perhaps defining such an
@@ -659,21 +654,21 @@ key/value pairs in each list does not matter."
          (keys-b (ert--significant-plist-keys b))
          (keys-in-a-not-in-b (ert--set-difference-eq keys-a keys-b))
          (keys-in-b-not-in-a (ert--set-difference-eq keys-b keys-a)))
-    (flet ((explain-with-key (key)
-             (let ((value-a (plist-get a key))
-                   (value-b (plist-get b key)))
-               (assert (not (equal value-a value-b)) t)
-               `(different-properties-for-key
-                 ,key ,(ert--explain-equal-including-properties value-a
-                                                                value-b)))))
+    (cl-flet ((explain-with-key (key)
+                (let ((value-a (plist-get a key))
+                      (value-b (plist-get b key)))
+                  (cl-assert (not (equal value-a value-b)) t)
+                  `(different-properties-for-key
+                    ,key ,(ert--explain-equal-including-properties value-a
+                                                                   value-b)))))
       (cond (keys-in-a-not-in-b
-             (explain-with-key (first keys-in-a-not-in-b)))
+             (explain-with-key (car keys-in-a-not-in-b)))
             (keys-in-b-not-in-a
-             (explain-with-key (first keys-in-b-not-in-a)))
+             (explain-with-key (car keys-in-b-not-in-a)))
             (t
-             (loop for key in keys-a
-                   when (not (equal (plist-get a key) (plist-get b key)))
-                   return (explain-with-key key)))))))
+             (cl-loop for key in keys-a
+                      when (not (equal (plist-get a key) (plist-get b key)))
+                      return (explain-with-key key)))))))
 
 (defun ert--abbreviate-string (s len suffixp)
   "Shorten string S to at most LEN chars.
@@ -697,29 +692,30 @@ Returns a programmer-readable explanation of why A and B are not
 `ert-equal-including-properties', or nil if they are."
   (if (not (equal a b))
       (ert--explain-equal a b)
-    (assert (stringp a) t)
-    (assert (stringp b) t)
-    (assert (eql (length a) (length b)) t)
-    (loop for i from 0 to (length a)
-          for props-a = (text-properties-at i a)
-          for props-b = (text-properties-at i b)
-          for difference = (ert--plist-difference-explanation props-a props-b)
-          do (when difference
-               (return `(char ,i ,(substring-no-properties a i (1+ i))
-                              ,difference
-                              context-before
-                              ,(ert--abbreviate-string
-                                (substring-no-properties a 0 i)
-                                10 t)
-                              context-after
-                              ,(ert--abbreviate-string
-                                (substring-no-properties a (1+ i))
-                                10 nil))))
-          ;; TODO(ohler): Get `equal-including-properties' fixed in
-          ;; Emacs, delete `ert-equal-including-properties', and
-          ;; re-enable this assertion.
-          ;;finally (assert (equal-including-properties a b) t)
-          )))
+    (cl-assert (stringp a) t)
+    (cl-assert (stringp b) t)
+    (cl-assert (eql (length a) (length b)) t)
+    (cl-loop for i from 0 to (length a)
+             for props-a = (text-properties-at i a)
+             for props-b = (text-properties-at i b)
+             for difference = (ert--plist-difference-explanation
+                               props-a props-b)
+             do (when difference
+                  (cl-return `(char ,i ,(substring-no-properties a i (1+ i))
+                                    ,difference
+                                    context-before
+                                    ,(ert--abbreviate-string
+                                      (substring-no-properties a 0 i)
+                                      10 t)
+                                    context-after
+                                    ,(ert--abbreviate-string
+                                      (substring-no-properties a (1+ i))
+                                      10 nil))))
+             ;; TODO(ohler): Get `equal-including-properties' fixed in
+             ;; Emacs, delete `ert-equal-including-properties', and
+             ;; re-enable this assertion.
+             ;;finally (cl-assert (equal-including-properties a b) t)
+             )))
 (put 'ert-equal-including-properties
      'ert-explainer
      'ert--explain-equal-including-properties)
@@ -734,8 +730,8 @@ Returns a programmer-readable explanation of why A and B are not
 
 Bound dynamically.  This is a list of (PREFIX . MESSAGE) pairs.")
 
-(defmacro* ert-info ((message-form &key ((:prefix prefix-form) "Info: "))
-                     &body body)
+(cl-defmacro ert-info ((message-form &key ((:prefix prefix-form) "Info: "))
+                       &body body)
   "Evaluate MESSAGE-FORM and BODY, and report the message if BODY fails.
 
 To be used within ERT tests.  MESSAGE-FORM should evaluate to a
@@ -755,18 +751,19 @@ and is displayed in front of the value of MESSAGE-FORM."
   "Non-nil means enter debugger when a test fails or terminates with an error.")
 
 ;; The data structures that represent the result of running a test.
-(defstruct ert-test-result
+(cl-defstruct ert-test-result
   (messages nil)
   (should-forms nil)
   )
-(defstruct (ert-test-passed (:include ert-test-result)))
-(defstruct (ert-test-result-with-condition (:include ert-test-result))
-  (condition (assert nil))
-  (backtrace (assert nil))
-  (infos (assert nil)))
-(defstruct (ert-test-quit (:include ert-test-result-with-condition)))
-(defstruct (ert-test-failed (:include ert-test-result-with-condition)))
-(defstruct (ert-test-aborted-with-non-local-exit (:include ert-test-result)))
+(cl-defstruct (ert-test-passed (:include ert-test-result)))
+(cl-defstruct (ert-test-result-with-condition (:include ert-test-result))
+  (condition (cl-assert nil))
+  (backtrace (cl-assert nil))
+  (infos (cl-assert nil)))
+(cl-defstruct (ert-test-quit (:include ert-test-result-with-condition)))
+(cl-defstruct (ert-test-failed (:include ert-test-result-with-condition)))
+(cl-defstruct (ert-test-aborted-with-non-local-exit
+               (:include ert-test-result)))
 
 
 (defun ert--record-backtrace ()
@@ -779,7 +776,7 @@ and is displayed in front of the value of MESSAGE-FORM."
   ;; `ert-results-pop-to-backtrace-for-test-at-point' given that we
   ;; already have `ert-results-rerun-test-debugging-errors-at-point'.
   ;; For batch use, however, printing the backtrace may be useful.
-  (loop
+  (cl-loop
    ;; 6 is the number of frames our own debugger adds (when
    ;; compiled; more when interpreted).  FIXME: Need to describe a
    ;; procedure for determining this constant.
@@ -796,33 +793,33 @@ and is displayed in front of the value of MESSAGE-FORM."
         (print-level 8)
         (print-length 50))
     (dolist (frame backtrace)
-      (ecase (first frame)
+      (cl-ecase (car frame)
         ((nil)
          ;; Special operator.
-         (destructuring-bind (special-operator &rest arg-forms)
+         (cl-destructuring-bind (special-operator &rest arg-forms)
              (cdr frame)
            (insert
-            (format "  %S\n" (list* special-operator arg-forms)))))
+            (format "  %S\n" (cons special-operator arg-forms)))))
         ((t)
          ;; Function call.
-         (destructuring-bind (fn &rest args) (cdr frame)
+         (cl-destructuring-bind (fn &rest args) (cdr frame)
            (insert (format "  %S(" fn))
-           (loop for firstp = t then nil
-                 for arg in args do
-                 (unless firstp
-                   (insert " "))
-                 (insert (format "%S" arg)))
+           (cl-loop for firstp = t then nil
+                    for arg in args do
+                    (unless firstp
+                      (insert " "))
+                    (insert (format "%S" arg)))
            (insert ")\n")))))))
 
 ;; A container for the state of the execution of a single test and
 ;; environment data needed during its execution.
-(defstruct ert--test-execution-info
-  (test (assert nil))
-  (result (assert nil))
+(cl-defstruct ert--test-execution-info
+  (test (cl-assert nil))
+  (result (cl-assert nil))
   ;; A thunk that may be called when RESULT has been set to its final
   ;; value and test execution should be terminated.  Should not
   ;; return.
-  (exit-continuation (assert nil))
+  (exit-continuation (cl-assert nil))
   ;; The binding of `debugger' outside of the execution of the test.
   next-debugger
   ;; The binding of `ert-debug-on-error' that is in effect for the
@@ -831,7 +828,7 @@ and is displayed in front of the value of MESSAGE-FORM."
   ;; don't remember whether this feature is important.)
   ert-debug-on-error)
 
-(defun ert--run-test-debugger (info debugger-args)
+(defun ert--run-test-debugger (info args)
   "During a test run, `debugger' is bound to a closure that calls this function.
 
 This function records failures and errors and either terminates
@@ -839,21 +836,21 @@ the test silently or calls the interactive debugger, as
 appropriate.
 
 INFO is the ert--test-execution-info corresponding to this test
-run.  DEBUGGER-ARGS are the arguments to `debugger'."
-  (destructuring-bind (first-debugger-arg &rest more-debugger-args)
-      debugger-args
-    (ecase first-debugger-arg
+run.  ARGS are the arguments to `debugger'."
+  (cl-destructuring-bind (first-debugger-arg &rest more-debugger-args)
+      args
+    (cl-ecase first-debugger-arg
       ((lambda debug t exit nil)
-       (apply (ert--test-execution-info-next-debugger info) debugger-args))
+       (apply (ert--test-execution-info-next-debugger info) args))
       (error
-       (let* ((condition (first more-debugger-args))
-              (type (case (car condition)
+       (let* ((condition (car more-debugger-args))
+              (type (cl-case (car condition)
                       ((quit) 'quit)
                       (otherwise 'failed)))
               (backtrace (ert--record-backtrace))
               (infos (reverse ert--infos)))
          (setf (ert--test-execution-info-result info)
-               (ecase type
+               (cl-ecase type
                  (quit
                   (make-ert-test-quit :condition condition
                                       :backtrace backtrace
@@ -864,39 +861,42 @@ run.  DEBUGGER-ARGS are the arguments to `debugger'."
                                         :infos infos))))
          ;; Work around Emacs's heuristic (in eval.c) for detecting
          ;; errors in the debugger.
-         (incf num-nonmacro-input-events)
+         (cl-incf num-nonmacro-input-events)
          ;; FIXME: We should probably implement more fine-grained
          ;; control a la non-t `debug-on-error' here.
          (cond
           ((ert--test-execution-info-ert-debug-on-error info)
-           (apply (ert--test-execution-info-next-debugger info) debugger-args))
+           (apply (ert--test-execution-info-next-debugger info) args))
           (t))
          (funcall (ert--test-execution-info-exit-continuation info)))))))
 
-(defun ert--run-test-internal (ert-test-execution-info)
-  "Low-level function to run a test according to ERT-TEST-EXECUTION-INFO.
+(defun ert--run-test-internal (test-execution-info)
+  "Low-level function to run a test according to TEST-EXECUTION-INFO.
 
 This mainly sets up debugger-related bindings."
-  (lexical-let ((info ert-test-execution-info))
-    (setf (ert--test-execution-info-next-debugger info) debugger
-          (ert--test-execution-info-ert-debug-on-error info) ert-debug-on-error)
-    (catch 'ert--pass
-      ;; For now, each test gets its own temp buffer and its own
-      ;; window excursion, just to be safe.  If this turns out to be
-      ;; too expensive, we can remove it.
-      (with-temp-buffer
-        (save-window-excursion
-          (let ((debugger (lambda (&rest debugger-args)
-                            (ert--run-test-debugger info debugger-args)))
-                (debug-on-error t)
-                (debug-on-quit t)
-                ;; FIXME: Do we need to store the old binding of this
-                ;; and consider it in `ert--run-test-debugger'?
-                (debug-ignored-errors nil)
-                (ert--infos '()))
-            (funcall (ert-test-body (ert--test-execution-info-test info))))))
-      (ert-pass))
-    (setf (ert--test-execution-info-result info) (make-ert-test-passed)))
+  (setf (ert--test-execution-info-next-debugger test-execution-info) debugger
+        (ert--test-execution-info-ert-debug-on-error test-execution-info)
+        ert-debug-on-error)
+  (catch 'ert--pass
+    ;; For now, each test gets its own temp buffer and its own
+    ;; window excursion, just to be safe.  If this turns out to be
+    ;; too expensive, we can remove it.
+    (with-temp-buffer
+      (save-window-excursion
+        (let ((debugger (lambda (&rest args)
+                          (ert--run-test-debugger test-execution-info
+                                                  args)))
+              (debug-on-error t)
+              (debug-on-quit t)
+              ;; FIXME: Do we need to store the old binding of this
+              ;; and consider it in `ert--run-test-debugger'?
+              (debug-ignored-errors nil)
+              (ert--infos '()))
+          (funcall (ert-test-body (ert--test-execution-info-test
+                                   test-execution-info))))))
+    (ert-pass))
+  (setf (ert--test-execution-info-result test-execution-info)
+        (make-ert-test-passed))
   nil)
 
 (defun ert--force-message-log-buffer-truncation ()
@@ -934,18 +934,18 @@ The elements are of type `ert-test'.")
 
 Returns the result and stores it in ERT-TEST's `most-recent-result' slot."
   (setf (ert-test-most-recent-result ert-test) nil)
-  (block error
-    (lexical-let ((begin-marker
-                   (with-current-buffer (get-buffer-create "*Messages*")
-                     (set-marker (make-marker) (point-max)))))
+  (cl-block error
+    (let ((begin-marker
+           (with-current-buffer (get-buffer-create "*Messages*")
+             (set-marker (make-marker) (point-max)))))
       (unwind-protect
-          (lexical-let ((info (make-ert--test-execution-info
-                               :test ert-test
-                               :result
-                               (make-ert-test-aborted-with-non-local-exit)
-                               :exit-continuation (lambda ()
-                                                    (return-from error nil))))
-                        (should-form-accu (list)))
+          (let ((info (make-ert--test-execution-info
+                       :test ert-test
+                       :result
+                       (make-ert-test-aborted-with-non-local-exit)
+                       :exit-continuation (lambda ()
+                                            (cl-return-from error nil))))
+                (should-form-accu (list)))
             (unwind-protect
                 (let ((ert--should-execution-observer
                        (lambda (form-description)
@@ -987,32 +987,32 @@ t -- Always matches.
                            RESULT."
   ;; It would be easy to add `member' and `eql' types etc., but I
   ;; haven't bothered yet.
-  (etypecase result-type
+  (cl-etypecase result-type
     ((member nil) nil)
     ((member t) t)
     ((member :failed) (ert-test-failed-p result))
     ((member :passed) (ert-test-passed-p result))
     (cons
-     (destructuring-bind (operator &rest operands) result-type
-       (ecase operator
+     (cl-destructuring-bind (operator &rest operands) result-type
+       (cl-ecase operator
          (and
-          (case (length operands)
+          (cl-case (length operands)
             (0 t)
             (t
-             (and (ert-test-result-type-p result (first operands))
-                  (ert-test-result-type-p result `(and ,@(rest operands)))))))
+             (and (ert-test-result-type-p result (car operands))
+                  (ert-test-result-type-p result `(and ,@(cdr operands)))))))
          (or
-          (case (length operands)
+          (cl-case (length operands)
             (0 nil)
             (t
-             (or (ert-test-result-type-p result (first operands))
-                 (ert-test-result-type-p result `(or ,@(rest operands)))))))
+             (or (ert-test-result-type-p result (car operands))
+                 (ert-test-result-type-p result `(or ,@(cdr operands)))))))
          (not
-          (assert (eql (length operands) 1))
-          (not (ert-test-result-type-p result (first operands))))
+          (cl-assert (eql (length operands) 1))
+          (not (ert-test-result-type-p result (car operands))))
          (satisfies
-          (assert (eql (length operands) 1))
-          (funcall (first operands) result)))))))
+          (cl-assert (eql (length operands) 1))
+          (funcall (car operands) result)))))))
 
 (defun ert-test-result-expected-p (test result)
   "Return non-nil if TEST's expected result type matches RESULT."
@@ -1053,9 +1053,9 @@ set implied by them without checking whether it is really
 contained in UNIVERSE."
   ;; This code needs to match the etypecase in
   ;; `ert-insert-human-readable-selector'.
-  (etypecase selector
+  (cl-etypecase selector
     ((member nil) nil)
-    ((member t) (etypecase universe
+    ((member t) (cl-etypecase universe
                   (list universe)
                   ((member t) (ert-select-tests "" universe))))
     ((member :new) (ert-select-tests
@@ -1083,7 +1083,7 @@ contained in UNIVERSE."
                          universe))
     ((member :unexpected) (ert-select-tests `(not :expected) universe))
     (string
-     (etypecase universe
+     (cl-etypecase universe
        ((member t) (mapcar #'ert-get-test
                            (apropos-internal selector #'ert-test-boundp)))
        (list (ert--remove-if-not (lambda (test)
@@ -1093,51 +1093,51 @@ contained in UNIVERSE."
                                  universe))))
     (ert-test (list selector))
     (symbol
-     (assert (ert-test-boundp selector))
+     (cl-assert (ert-test-boundp selector))
      (list (ert-get-test selector)))
     (cons
-     (destructuring-bind (operator &rest operands) selector
-       (ecase operator
+     (cl-destructuring-bind (operator &rest operands) selector
+       (cl-ecase operator
          (member
           (mapcar (lambda (purported-test)
-                    (etypecase purported-test
-                      (symbol (assert (ert-test-boundp purported-test))
+                    (cl-etypecase purported-test
+                      (symbol (cl-assert (ert-test-boundp purported-test))
                               (ert-get-test purported-test))
                       (ert-test purported-test)))
                   operands))
          (eql
-          (assert (eql (length operands) 1))
+          (cl-assert (eql (length operands) 1))
           (ert-select-tests `(member ,@operands) universe))
          (and
           ;; Do these definitions of AND, NOT and OR satisfy de
           ;; Morgan's laws?  Should they?
-          (case (length operands)
+          (cl-case (length operands)
             (0 (ert-select-tests 't universe))
-            (t (ert-select-tests `(and ,@(rest operands))
-                                 (ert-select-tests (first operands)
+            (t (ert-select-tests `(and ,@(cdr operands))
+                                 (ert-select-tests (car operands)
                                                    universe)))))
          (not
-          (assert (eql (length operands) 1))
+          (cl-assert (eql (length operands) 1))
           (let ((all-tests (ert-select-tests 't universe)))
             (ert--set-difference all-tests
-                                 (ert-select-tests (first operands)
+                                 (ert-select-tests (car operands)
                                                    all-tests))))
          (or
-          (case (length operands)
+          (cl-case (length operands)
             (0 (ert-select-tests 'nil universe))
-            (t (ert--union (ert-select-tests (first operands) universe)
-                           (ert-select-tests `(or ,@(rest operands))
+            (t (ert--union (ert-select-tests (car operands) universe)
+                           (ert-select-tests `(or ,@(cdr operands))
                                              universe)))))
          (tag
-          (assert (eql (length operands) 1))
-          (let ((tag (first operands)))
+          (cl-assert (eql (length operands) 1))
+          (let ((tag (car operands)))
             (ert-select-tests `(satisfies
                                 ,(lambda (test)
                                    (member tag (ert-test-tags test))))
                               universe)))
          (satisfies
-          (assert (eql (length operands) 1))
-          (ert--remove-if-not (first operands)
+          (cl-assert (eql (length operands) 1))
+          (ert--remove-if-not (car operands)
                               (ert-select-tests 't universe))))))))
 
 (defun ert--insert-human-readable-selector (selector)
@@ -1146,26 +1146,27 @@ contained in UNIVERSE."
   ;; `backtrace' slot of the result objects in the
   ;; `most-recent-result' slots of test case objects in (eql ...) or
   ;; (member ...) selectors.
-  (labels ((rec (selector)
-             ;; This code needs to match the etypecase in `ert-select-tests'.
-             (etypecase selector
-               ((or (member nil t
-                            :new :failed :passed
-                            :expected :unexpected)
-                    string
-                    symbol)
-                selector)
-               (ert-test
-                (if (ert-test-name selector)
-                    (make-symbol (format "<%S>" (ert-test-name selector)))
-                  (make-symbol "<unnamed test>")))
-               (cons
-                (destructuring-bind (operator &rest operands) selector
-                  (ecase operator
-                    ((member eql and not or)
-                     `(,operator ,@(mapcar #'rec operands)))
-                    ((member tag satisfies)
-                     selector)))))))
+  (cl-labels ((rec (selector)
+                ;; This code needs to match the etypecase in
+                ;; `ert-select-tests'.
+                (cl-etypecase selector
+                  ((or (member nil t
+                               :new :failed :passed
+                               :expected :unexpected)
+                       string
+                       symbol)
+                   selector)
+                  (ert-test
+                   (if (ert-test-name selector)
+                       (make-symbol (format "<%S>" (ert-test-name selector)))
+                     (make-symbol "<unnamed test>")))
+                  (cons
+                   (cl-destructuring-bind (operator &rest operands) selector
+                     (cl-ecase operator
+                       ((member eql and not or)
+                        `(,operator ,@(mapcar #'rec operands)))
+                       ((member tag satisfies)
+                        selector)))))))
     (insert (format "%S" (rec selector)))))
 
 
@@ -1182,21 +1183,21 @@ contained in UNIVERSE."
 ;; that corresponds to this run in order to be able to update the
 ;; statistics correctly when a test is re-run interactively and has a
 ;; different result than before.
-(defstruct ert--stats
-  (selector (assert nil))
+(cl-defstruct ert--stats
+  (selector (cl-assert nil))
   ;; The tests, in order.
-  (tests (assert nil) :type vector)
+  (tests (cl-assert nil) :type vector)
   ;; A map of test names (or the test objects themselves for unnamed
   ;; tests) to indices into the `tests' vector.
-  (test-map (assert nil) :type hash-table)
+  (test-map (cl-assert nil) :type hash-table)
   ;; The results of the tests during this run, in order.
-  (test-results (assert nil) :type vector)
+  (test-results (cl-assert nil) :type vector)
   ;; The start times of the tests, in order, as reported by
   ;; `current-time'.
-  (test-start-times (assert nil) :type vector)
+  (test-start-times (cl-assert nil) :type vector)
   ;; The end times of the tests, in order, as reported by
   ;; `current-time'.
-  (test-end-times (assert nil) :type vector)
+  (test-end-times (cl-assert nil) :type vector)
   (passed-expected 0)
   (passed-unexpected 0)
   (failed-expected 0)
@@ -1246,21 +1247,25 @@ Also changes the counters in STATS to match."
          (results (ert--stats-test-results stats))
          (old-test (aref tests pos))
          (map (ert--stats-test-map stats)))
-    (flet ((update (d)
-             (if (ert-test-result-expected-p (aref tests pos)
-                                             (aref results pos))
-                 (etypecase (aref results pos)
-                   (ert-test-passed (incf (ert--stats-passed-expected stats) d))
-                   (ert-test-failed (incf (ert--stats-failed-expected stats) d))
-                   (null)
-                   (ert-test-aborted-with-non-local-exit)
-                   (ert-test-quit))
-               (etypecase (aref results pos)
-                 (ert-test-passed (incf (ert--stats-passed-unexpected stats) d))
-                 (ert-test-failed (incf (ert--stats-failed-unexpected stats) d))
-                 (null)
-                 (ert-test-aborted-with-non-local-exit)
-                 (ert-test-quit)))))
+    (cl-flet ((update (d)
+                (if (ert-test-result-expected-p (aref tests pos)
+                                                (aref results pos))
+                    (cl-etypecase (aref results pos)
+                      (ert-test-passed
+                       (cl-incf (ert--stats-passed-expected stats) d))
+                      (ert-test-failed
+                       (cl-incf (ert--stats-failed-expected stats) d))
+                      (null)
+                      (ert-test-aborted-with-non-local-exit)
+                      (ert-test-quit))
+                  (cl-etypecase (aref results pos)
+                    (ert-test-passed
+                     (cl-incf (ert--stats-passed-unexpected stats) d))
+                    (ert-test-failed
+                     (cl-incf (ert--stats-failed-unexpected stats) d))
+                    (null)
+                    (ert-test-aborted-with-non-local-exit)
+                    (ert-test-quit)))))
       ;; Adjust counters to remove the result that is currently in stats.
       (update -1)
       ;; Put new test and result into stats.
@@ -1278,11 +1283,11 @@ Also changes the counters in STATS to match."
 SELECTOR is the selector that was used to select TESTS."
   (setq tests (ert--coerce-to-vector tests))
   (let ((map (make-hash-table :size (length tests))))
-    (loop for i from 0
-          for test across tests
-          for key = (ert--stats-test-key test) do
-          (assert (not (gethash key map)))
-          (setf (gethash key map) i))
+    (cl-loop for i from 0
+             for test across tests
+             for key = (ert--stats-test-key test) do
+             (cl-assert (not (gethash key map)))
+             (setf (gethash key map) i))
     (make-ert--stats :selector selector
                      :tests tests
                      :test-map map
@@ -1324,8 +1329,8 @@ SELECTOR is the selector that was used to select TESTS."
             (force-mode-line-update)
             (unwind-protect
                 (progn
-                  (loop for test in tests do
-                        (ert-run-or-rerun-test stats test listener))
+                  (cl-loop for test in tests do
+                           (ert-run-or-rerun-test stats test listener))
                   (setq abortedp nil))
               (setf (ert--stats-aborted-p stats) abortedp)
               (setf (ert--stats-end-time stats) (current-time))
@@ -1349,7 +1354,7 @@ SELECTOR is the selector that was used to select TESTS."
   "Return a character that represents the test result RESULT.
 
 EXPECTEDP specifies whether the result was expected."
-  (let ((s (etypecase result
+  (let ((s (cl-etypecase result
              (ert-test-passed ".P")
              (ert-test-failed "fF")
              (null "--")
@@ -1361,7 +1366,7 @@ EXPECTEDP specifies whether the result was expected."
   "Return a string that represents the test result RESULT.
 
 EXPECTEDP specifies whether the result was expected."
-  (let ((s (etypecase result
+  (let ((s (cl-etypecase result
              (ert-test-passed '("passed" "PASSED"))
              (ert-test-failed '("failed" "FAILED"))
              (null '("unknown" "UNKNOWN"))
@@ -1383,9 +1388,9 @@ Ensures a final newline is inserted."
   "Insert `ert-info' infos from RESULT into current buffer.
 
 RESULT must be an `ert-test-result-with-condition'."
-  (check-type result ert-test-result-with-condition)
+  (cl-check-type result ert-test-result-with-condition)
   (dolist (info (ert-test-result-with-condition-infos result))
-    (destructuring-bind (prefix . message) info
+    (cl-destructuring-bind (prefix . message) info
       (let ((begin (point))
             (indentation (make-string (+ (length prefix) 4) ?\s))
             (end nil))
@@ -1421,14 +1426,14 @@ Returns the stats object."
   (ert-run-tests
    selector
    (lambda (event-type &rest event-args)
-     (ecase event-type
+     (cl-ecase event-type
        (run-started
-        (destructuring-bind (stats) event-args
+        (cl-destructuring-bind (stats) event-args
           (message "Running %s tests (%s)"
                    (length (ert--stats-tests stats))
                    (ert--format-time-iso8601 (ert--stats-start-time stats)))))
        (run-ended
-        (destructuring-bind (stats abortedp) event-args
+        (cl-destructuring-bind (stats abortedp) event-args
           (let ((unexpected (ert-stats-completed-unexpected stats))
                 (expected-failures (ert--stats-failed-expected stats)))
             (message "\n%sRan %s tests, %s results as expected%s (%s)%s\n"
@@ -1446,19 +1451,19 @@ Returns the stats object."
                        (format "\n%s expected failures" expected-failures)))
             (unless (zerop unexpected)
               (message "%s unexpected results:" unexpected)
-              (loop for test across (ert--stats-tests stats)
-                    for result = (ert-test-most-recent-result test) do
-                    (when (not (ert-test-result-expected-p test result))
-                      (message "%9s  %S"
-                               (ert-string-for-test-result result nil)
-                               (ert-test-name test))))
+              (cl-loop for test across (ert--stats-tests stats)
+                       for result = (ert-test-most-recent-result test) do
+                       (when (not (ert-test-result-expected-p test result))
+                         (message "%9s  %S"
+                                  (ert-string-for-test-result result nil)
+                                  (ert-test-name test))))
               (message "%s" "")))))
        (test-started
         )
        (test-ended
-        (destructuring-bind (stats test result) event-args
+        (cl-destructuring-bind (stats test result) event-args
           (unless (ert-test-result-expected-p test result)
-            (etypecase result
+            (cl-etypecase result
               (ert-test-passed
                (message "Test %S passed unexpectedly" (ert-test-name test)))
               (ert-test-result-with-condition
@@ -1484,7 +1489,7 @@ Returns the stats object."
                    (ert--pp-with-indentation-and-newline
                     (ert-test-result-with-condition-condition result)))
                  (goto-char (1- (point-max)))
-                 (assert (looking-at "\n"))
+                 (cl-assert (looking-at "\n"))
                  (delete-char 1)
                  (message "Test %S condition:" (ert-test-name test))
                  (message "%s" (buffer-string))))
@@ -1532,7 +1537,7 @@ the tests)."
       (1 font-lock-keyword-face nil t)
       (2 font-lock-function-name-face nil t)))))
 
-(defun* ert--remove-from-list (list-var element &key key test)
+(cl-defun ert--remove-from-list (list-var element &key key test)
   "Remove ELEMENT from the value of LIST-VAR if present.
 
 This can be used as an inverse of `add-to-list'."
@@ -1557,7 +1562,7 @@ If ADD-DEFAULT-TO-PROMPT is non-nil, PROMPT will be modified to
 include the default, if any.
 
 Signals an error if no test name was read."
-  (etypecase default
+  (cl-etypecase default
     (string (let ((symbol (intern-soft default)))
               (unless (and symbol (ert-test-boundp symbol))
                 (setq default nil))))
@@ -1614,11 +1619,11 @@ Nothing more than an interactive interface to `ert-make-test-unbound'."
 ;;; Display of test progress and results.
 
 ;; An entry in the results buffer ewoc.  There is one entry per test.
-(defstruct ert--ewoc-entry
-  (test (assert nil))
+(cl-defstruct ert--ewoc-entry
+  (test (cl-assert nil))
   ;; If the result of this test was expected, its ewoc entry is hidden
   ;; initially.
-  (hidden-p (assert nil))
+  (hidden-p (cl-assert nil))
   ;; An ewoc entry may be collapsed to hide details such as the error
   ;; condition.
   ;;
@@ -1694,7 +1699,7 @@ Also sets `ert--results-progress-bar-button-begin'."
                           ((ert--stats-current-test stats) 'running)
                           ((ert--stats-end-time stats) 'finished)
                           (t 'preparing))))
-         (ecase state
+         (cl-ecase state
            (preparing
             (insert ""))
            (aborted
@@ -1705,12 +1710,12 @@ Also sets `ert--results-progress-bar-button-begin'."
                   (t
                    (insert "Aborted."))))
            (running
-            (assert (ert--stats-current-test stats))
+            (cl-assert (ert--stats-current-test stats))
             (insert "Running test: ")
             (ert-insert-test-name-button (ert-test-name
                                           (ert--stats-current-test stats))))
            (finished
-            (assert (not (ert--stats-current-test stats)))
+            (cl-assert (not (ert--stats-current-test stats)))
             (insert "Finished.")))
          (insert "\n")
          (if (ert--stats-end-time stats)
@@ -1813,7 +1818,7 @@ non-nil, returns the face for expected results.."
 (defun ert-face-for-stats (stats)
   "Return a face that represents STATS."
   (cond ((ert--stats-aborted-p stats) 'nil)
-        ((plusp (ert-stats-completed-unexpected stats))
+        ((cl-plusp (ert-stats-completed-unexpected stats))
          (ert-face-for-test-result nil))
         ((eql (ert-stats-completed-expected stats) (ert-stats-total stats))
          (ert-face-for-test-result t))
@@ -1824,7 +1829,7 @@ non-nil, returns the face for expected results.."
   (let* ((test (ert--ewoc-entry-test entry))
          (stats ert--results-stats)
          (result (let ((pos (ert--stats-test-pos stats test)))
-                   (assert pos)
+                   (cl-assert pos)
                    (aref (ert--stats-test-results stats) pos)))
          (hiddenp (ert--ewoc-entry-hidden-p entry))
          (expandedp (ert--ewoc-entry-expanded-p entry))
@@ -1850,7 +1855,7 @@ non-nil, returns the face for expected results.."
                         (ert--string-first-line (ert-test-documentation test))
                         'font-lock-face 'font-lock-doc-face)
                        "\n"))
-             (etypecase result
+             (cl-etypecase result
                (ert-test-passed
                 (if (ert-test-result-expected-p test result)
                     (insert "    passed\n")
@@ -1908,9 +1913,10 @@ BUFFER-NAME, if non-nil, is the buffer name to use."
                (make-string (ert-stats-total stats)
                             (ert-char-for-test-result nil t)))
           (set (make-local-variable 'ert--results-listener) listener)
-          (loop for test across (ert--stats-tests stats) do
-                (ewoc-enter-last ewoc
-                                 (make-ert--ewoc-entry :test test :hidden-p t)))
+          (cl-loop for test across (ert--stats-tests stats) do
+                   (ewoc-enter-last ewoc
+                                    (make-ert--ewoc-entry :test test
+                                                          :hidden-p t)))
           (ert--results-update-ewoc-hf ert--results-ewoc ert--results-stats)
           (goto-char (1- (point-max)))
           buffer)))))
@@ -1945,21 +1951,21 @@ and how to display message."
                                  default nil))
          nil))
   (unless message-fn (setq message-fn 'message))
-  (lexical-let ((output-buffer-name output-buffer-name)
-                buffer
-                listener
-                (message-fn message-fn))
+  (let ((output-buffer-name output-buffer-name)
+        buffer
+        listener
+        (message-fn message-fn))
     (setq listener
           (lambda (event-type &rest event-args)
-            (ecase event-type
+            (cl-ecase event-type
               (run-started
-               (destructuring-bind (stats) event-args
+               (cl-destructuring-bind (stats) event-args
                  (setq buffer (ert--setup-results-buffer stats
                                                          listener
                                                          output-buffer-name))
                  (pop-to-buffer buffer)))
               (run-ended
-               (destructuring-bind (stats abortedp) event-args
+               (cl-destructuring-bind (stats abortedp) event-args
                  (funcall message-fn
                           "%sRan %s tests, %s results were as expected%s"
                           (if (not abortedp)
@@ -1976,19 +1982,19 @@ and how to display message."
                                                       ert--results-ewoc)
                                                     stats)))
               (test-started
-               (destructuring-bind (stats test) event-args
+               (cl-destructuring-bind (stats test) event-args
                  (with-current-buffer buffer
                    (let* ((ewoc ert--results-ewoc)
                           (pos (ert--stats-test-pos stats test))
                           (node (ewoc-nth ewoc pos)))
-                     (assert node)
+                     (cl-assert node)
                      (setf (ert--ewoc-entry-test (ewoc-data node)) test)
                      (aset ert--results-progress-bar-string pos
                            (ert-char-for-test-result nil t))
                      (ert--results-update-stats-display-maybe ewoc stats)
                      (ewoc-invalidate ewoc node)))))
               (test-ended
-               (destructuring-bind (stats test result) event-args
+               (cl-destructuring-bind (stats test result) event-args
                  (with-current-buffer buffer
                    (let* ((ewoc ert--results-ewoc)
                           (pos (ert--stats-test-pos stats test))
@@ -2020,28 +2026,28 @@ and how to display message."
 (define-derived-mode ert-results-mode special-mode "ERT-Results"
   "Major mode for viewing results of ERT test runs.")
 
-(loop for (key binding) in
-      '(;; Stuff that's not in the menu.
-        ("\t" forward-button)
-        ([backtab] backward-button)
-        ("j" ert-results-jump-between-summary-and-result)
-        ("L" ert-results-toggle-printer-limits-for-test-at-point)
-        ("n" ert-results-next-test)
-        ("p" ert-results-previous-test)
-        ;; Stuff that is in the menu.
-        ("R" ert-results-rerun-all-tests)
-        ("r" ert-results-rerun-test-at-point)
-        ("d" ert-results-rerun-test-at-point-debugging-errors)
-        ("." ert-results-find-test-at-point-other-window)
-        ("b" ert-results-pop-to-backtrace-for-test-at-point)
-        ("m" ert-results-pop-to-messages-for-test-at-point)
-        ("l" ert-results-pop-to-should-forms-for-test-at-point)
-        ("h" ert-results-describe-test-at-point)
-        ("D" ert-delete-test)
-        ("T" ert-results-pop-to-timings)
-        )
-      do
-      (define-key ert-results-mode-map key binding))
+(cl-loop for (key binding) in
+         '( ;; Stuff that's not in the menu.
+           ("\t" forward-button)
+           ([backtab] backward-button)
+           ("j" ert-results-jump-between-summary-and-result)
+           ("L" ert-results-toggle-printer-limits-for-test-at-point)
+           ("n" ert-results-next-test)
+           ("p" ert-results-previous-test)
+           ;; Stuff that is in the menu.
+           ("R" ert-results-rerun-all-tests)
+           ("r" ert-results-rerun-test-at-point)
+           ("d" ert-results-rerun-test-at-point-debugging-errors)
+           ("." ert-results-find-test-at-point-other-window)
+           ("b" ert-results-pop-to-backtrace-for-test-at-point)
+           ("m" ert-results-pop-to-messages-for-test-at-point)
+           ("l" ert-results-pop-to-should-forms-for-test-at-point)
+           ("h" ert-results-describe-test-at-point)
+           ("D" ert-delete-test)
+           ("T" ert-results-pop-to-timings)
+           )
+         do
+         (define-key ert-results-mode-map key binding))
 
 (easy-menu-define ert-results-mode-menu ert-results-mode-map
   "Menu for `ert-results-mode'."
@@ -2121,15 +2127,15 @@ To be used in the ERT results buffer."
 EWOC-FN specifies the direction and should be either `ewoc-prev'
 or `ewoc-next'.  If there are no more nodes in that direction, an
 error is signaled with the message ERROR-MESSAGE."
-  (loop
+  (cl-loop
    (setq node (funcall ewoc-fn ert--results-ewoc node))
    (when (null node)
      (error "%s" error-message))
    (unless (ert--ewoc-entry-hidden-p (ewoc-data node))
      (goto-char (ewoc-location node))
-     (return))))
+     (cl-return))))
 
-(defun ert--results-expand-collapse-button-action (button)
+(defun ert--results-expand-collapse-button-action (_button)
   "Expand or collapse the test node BUTTON belongs to."
   (let* ((ewoc ert--results-ewoc)
          (node (save-excursion
@@ -2158,11 +2164,11 @@ To be used in the ERT results buffer."
 (defun ert--ewoc-position (ewoc node)
   ;; checkdoc-order: nil
   "Return the position of NODE in EWOC, or nil if NODE is not in EWOC."
-  (loop for i from 0
-        for node-here = (ewoc-nth ewoc 0) then (ewoc-next ewoc node-here)
-        do (when (eql node node-here)
-             (return i))
-        finally (return nil)))
+  (cl-loop for i from 0
+           for node-here = (ewoc-nth ewoc 0) then (ewoc-next ewoc node-here)
+           do (when (eql node node-here)
+                (cl-return i))
+           finally (cl-return nil)))
 
 (defun ert-results-jump-between-summary-and-result ()
   "Jump back and forth between the test run summary and individual test results.
@@ -2210,7 +2216,7 @@ To be used in the ERT results buffer."
   "Return the test at point, or nil.
 
 To be used in the ERT results buffer."
-  (assert (eql major-mode 'ert-results-mode))
+  (cl-assert (eql major-mode 'ert-results-mode))
   (if (ert--results-test-node-or-null-at-point)
       (let* ((node (ert--results-test-node-at-point))
              (test (ert--ewoc-entry-test (ewoc-data node))))
@@ -2282,9 +2288,9 @@ definition."
          (point))
         ((eventp last-command-event)
          (posn-point (event-start last-command-event)))
-        (t (assert nil))))
+        (t (cl-assert nil))))
 
-(defun ert--results-progress-bar-button-action (button)
+(defun ert--results-progress-bar-button-action (_button)
   "Jump to details for the test represented by the character clicked in BUTTON."
   (goto-char (ert--button-action-position))
   (ert-results-jump-between-summary-and-result))
@@ -2294,7 +2300,7 @@ definition."
 
 To be used in the ERT results buffer."
   (interactive)
-  (assert (eql major-mode 'ert-results-mode))
+  (cl-assert (eql major-mode 'ert-results-mode))
   (let ((selector (ert--stats-selector ert--results-stats)))
     (ert-run-tests-interactively selector (buffer-name))))
 
@@ -2303,13 +2309,13 @@ To be used in the ERT results buffer."
 
 To be used in the ERT results buffer."
   (interactive)
-  (destructuring-bind (test redefinition-state)
+  (cl-destructuring-bind (test redefinition-state)
       (ert--results-test-at-point-allow-redefinition)
     (when (null test)
       (error "No test at point"))
     (let* ((stats ert--results-stats)
            (progress-message (format "Running %stest %S"
-                                     (ecase redefinition-state
+                                     (cl-ecase redefinition-state
                                        ((nil) "")
                                        (redefined "new definition of ")
                                        (deleted "deleted "))
@@ -2350,7 +2356,7 @@ To be used in the ERT results buffer."
          (stats ert--results-stats)
          (pos (ert--stats-test-pos stats test))
          (result (aref (ert--stats-test-results stats) pos)))
-    (etypecase result
+    (cl-etypecase result
       (ert-test-passed (error "Test passed, no backtrace available"))
       (ert-test-result-with-condition
        (let ((backtrace (ert-test-result-with-condition-backtrace result))
@@ -2408,13 +2414,14 @@ To be used in the ERT results buffer."
         (ert-simple-view-mode)
         (if (null (ert-test-result-should-forms result))
             (insert "\n(No should forms during this test.)\n")
-          (loop for form-description in (ert-test-result-should-forms result)
-                for i from 1 do
-                (insert "\n")
-                (insert (format "%s: " i))
-                (let ((begin (point)))
-                  (ert--pp-with-indentation-and-newline form-description)
-                  (ert--make-xrefs-region begin (point)))))
+          (cl-loop for form-description
+                   in (ert-test-result-should-forms result)
+                   for i from 1 do
+                   (insert "\n")
+                   (insert (format "%s: " i))
+                   (let ((begin (point)))
+                     (ert--pp-with-indentation-and-newline form-description)
+                     (ert--make-xrefs-region begin (point)))))
         (goto-char (point-min))
         (insert "`should' forms executed during test `")
         (ert-insert-test-name-button (ert-test-name test))
@@ -2443,17 +2450,16 @@ To be used in the ERT results buffer."
 To be used in the ERT results buffer."
   (interactive)
   (let* ((stats ert--results-stats)
-         (start-times (ert--stats-test-start-times stats))
-         (end-times (ert--stats-test-end-times stats))
          (buffer (get-buffer-create "*ERT timings*"))
-         (data (loop for test across (ert--stats-tests stats)
-                     for start-time across (ert--stats-test-start-times stats)
-                     for end-time across (ert--stats-test-end-times stats)
-                     collect (list test
-                                   (float-time (subtract-time end-time
-                                                              start-time))))))
+         (data (cl-loop for test across (ert--stats-tests stats)
+                        for start-time across (ert--stats-test-start-times
+                                               stats)
+                        for end-time across (ert--stats-test-end-times stats)
+                        collect (list test
+                                      (float-time (subtract-time
+                                                   end-time start-time))))))
     (setq data (sort data (lambda (a b)
-                            (> (second a) (second b)))))
+                            (> (cl-second a) (cl-second b)))))
     (pop-to-buffer buffer)
     (let ((inhibit-read-only t))
       (buffer-disable-undo)
@@ -2462,13 +2468,13 @@ To be used in the ERT results buffer."
       (if (null data)
           (insert "(No data)\n")
         (insert (format "%-3s  %8s %8s\n" "" "time" "cumul"))
-        (loop for (test time) in data
-              for cumul-time = time then (+ cumul-time time)
-              for i from 1 do
-              (let ((begin (point)))
-                (insert (format "%3s: %8.3f %8.3f " i time cumul-time))
-                (ert-insert-test-name-button (ert-test-name test))
-                (insert "\n"))))
+        (cl-loop for (test time) in data
+                 for cumul-time = time then (+ cumul-time time)
+                 for i from 1 do
+                 (progn
+                   (insert (format "%3s: %8.3f %8.3f " i time cumul-time))
+                   (ert-insert-test-name-button (ert-test-name test))
+                   (insert "\n"))))
       (goto-char (point-min))
       (insert "Tests by run time (seconds):\n\n")
       (forward-line 1))))
@@ -2481,7 +2487,7 @@ To be used in the ERT results buffer."
     (error "Requires Emacs 24"))
   (let (test-name
         test-definition)
-    (etypecase test-or-test-name
+    (cl-etypecase test-or-test-name
       (symbol (setq test-name test-or-test-name
                     test-definition (ert-get-test test-or-test-name)))
       (ert-test (setq test-name (ert-test-name test-or-test-name)

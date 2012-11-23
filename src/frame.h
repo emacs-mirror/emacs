@@ -933,6 +933,21 @@ typedef struct frame *FRAME_PTR;
 	&& (frame_var = XCAR (list_var), 1));	\
        list_var = XCDR (list_var))
 
+/* Reflect mouse movement when a complete frame update is performed.  */
+
+#define FRAME_MOUSE_UPDATE(frame)				\
+  do {								\
+    Mouse_HLInfo *hlinfo = MOUSE_HL_INFO (frame);		\
+    if (frame == hlinfo->mouse_face_mouse_frame)		\
+      {								\
+	block_input ();						\
+	if (hlinfo->mouse_face_mouse_frame)			\
+	  note_mouse_highlight (hlinfo->mouse_face_mouse_frame,	\
+				hlinfo->mouse_face_mouse_x,     \
+				hlinfo->mouse_face_mouse_y);    \
+	unblock_input ();					\
+      }								\
+  } while (0)
 
 extern Lisp_Object Qframep, Qframe_live_p;
 extern Lisp_Object Qtty, Qtty_type;

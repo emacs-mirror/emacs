@@ -1,3 +1,7 @@
+2012-11-22  Paul Eggert  <eggert@cs.ucla.edu>
+
+	* NEWS: Document Calc changes for Gregorian calendar (Bug#12633).
+
 2012-10-26  Nicolas Goaziou  <n.goaziou@gmail.com>
 
 	* refcards/orgcard.tex: Fix keybindings about

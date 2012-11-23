@@ -1104,7 +1104,7 @@ struct Lisp_Symbol
     union Lisp_Fwd *fwd;
   } val;
 
-  /* Function value of the symbol or Qunbound if not fboundp.  */
+  /* Function value of the symbol or Qnil if not fboundp.  */
   Lisp_Object function;
 
   /* The symbol's property list.  */
@@ -1648,10 +1648,6 @@ typedef struct {
   Lisp_Object mouse_face_window;
   int mouse_face_face_id;
   Lisp_Object mouse_face_overlay;
-
-  /* 1 if a mouse motion event came and we didn't handle it right away because
-     gc was in progress.  */
-  int mouse_face_deferred_gc;
 
   /* FRAME and X, Y position of mouse when last checked for
      highlighting.  X and Y can be negative or out of range for the frame.  */

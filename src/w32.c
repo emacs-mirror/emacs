@@ -119,9 +119,10 @@ typedef struct _PROCESS_MEMORY_COUNTERS_EX {
 #include <aclapi.h>
 
 #ifdef _MSC_VER
-/* MSVC doesn't provide the definition of REPARSE_DATA_BUFFER, except
-   on ntifs.h, which cannot be included because it triggers conflicts
-   with other Windows API headers.  So we define it here by hand.  */
+/* MSVC doesn't provide the definition of REPARSE_DATA_BUFFER and the
+   associated macros, except on ntifs.h, which cannot be included
+   because it triggers conflicts with other Windows API headers.  So
+   we define it here by hand.  */
 
 typedef struct _REPARSE_DATA_BUFFER {
     ULONG  ReparseTag;
@@ -149,6 +150,12 @@ typedef struct _REPARSE_DATA_BUFFER {
     } DUMMYUNIONNAME;
 } REPARSE_DATA_BUFFER, *PREPARSE_DATA_BUFFER;
 
+#define FILE_DEVICE_FILE_SYSTEM	9
+#define METHOD_BUFFERED	        0
+#define FILE_ANY_ACCESS	        0x00000000
+#define CTL_CODE(t,f,m,a)       (((t)<<16)|((a)<<14)|((f)<<2)|(m))
+#define FSCTL_GET_REPARSE_POINT \
+  CTL_CODE(FILE_DEVICE_FILE_SYSTEM, 42, METHOD_BUFFERED, FILE_ANY_ACCESS)
 #endif
 
 /* TCP connection support.  */
@@ -172,7 +179,7 @@ typedef struct _REPARSE_DATA_BUFFER {
 #undef sendto
 
 #include "w32.h"
-#include "ndir.h"
+#include <dirent.h>
 #include "w32common.h"
 #include "w32heap.h"
 #include "w32select.h"
@@ -901,8 +908,18 @@ static char startup_dir[MAXPATHLEN];
 
 /* Get the current working directory.  */
 char *
-getwd (char *dir)
+getcwd (char *dir, int dirsize)
 {
+  if (!dirsize)
+    {
+      errno = EINVAL;
+      return NULL;
+    }
+  if (dirsize <= strlen (startup_dir))
+    {
+      errno = ERANGE;
+      return NULL;
+    }
 #if 0
   if (GetCurrentDirectory (MAXPATHLEN, dir) > 0)
     return dir;
@@ -1818,7 +1835,7 @@ init_environment (char ** argv)
 	memcpy (*envp, "COMSPEC=", 8);
   }
 
-  /* Remember the initial working directory for getwd.  */
+  /* Remember the initial working directory for getcwd.  */
   /* FIXME: Do we need to resolve possible symlinks in startup_dir?
      Does it matter anywhere in Emacs?  */
   if (!GetCurrentDirectory (MAXPATHLEN, startup_dir))
@@ -2431,7 +2448,7 @@ is_exec (const char * name)
    and readdir.  We can't use the procedures supplied in sysdep.c,
    so we provide them here.  */
 
-struct direct dir_static;       /* simulated directory contents */
+struct dirent dir_static;       /* simulated directory contents */
 static HANDLE dir_find_handle = INVALID_HANDLE_VALUE;
 static int    dir_is_fat;
 static char   dir_pathname[MAXPATHLEN+1];
@@ -2501,7 +2518,7 @@ closedir (DIR *dirp)
   xfree ((char *) dirp);
 }
 
-struct direct *
+struct dirent *
 readdir (DIR *dirp)
 {
   int downcase = !NILP (Vw32_downcase_file_names);
@@ -2555,7 +2572,7 @@ readdir (DIR *dirp)
       downcase = 1;	/* 8+3 aliases are returned in all caps */
     }
   dir_static.d_namlen = strlen (dir_static.d_name);
-  dir_static.d_reclen = sizeof (struct direct) - MAXNAMLEN + 3 +
+  dir_static.d_reclen = sizeof (struct dirent) - MAXNAMLEN + 3 +
     dir_static.d_namlen - dir_static.d_namlen % 4;
 
   /* If the file name in cFileName[] includes `?' characters, it means

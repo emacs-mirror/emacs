@@ -402,6 +402,56 @@ of the piece of advice."
 			 (if (fboundp function-name)
 			     (symbol-function function-name))))))
 
+;; When code is advised, called-interactively-p needs to be taught to skip
+;; the advising frames.
+;; FIXME: This Major Ugly Hack won't handle calls to called-interactively-p
+;; done from the advised function if the deepest advice is an around advice!
+;; In other cases (calls from an advice or calls from the advised function when
+;; the deepest advice is not an around advice), it should hopefully get
+;; it right.
+(add-hook 'called-interactively-p-functions
+          #'advice--called-interactively-skip)
+(defun advice--called-interactively-skip (origi frame1 frame2)
+  (let* ((i origi)
+         (get-next-frame
+          (lambda ()
+            (setq frame1 frame2)
+            (setq frame2 (internal--called-interactively-p--get-frame i))
+            ;; (message "Advice Frame %d = %S" i frame2)
+            (setq i (1+ i)))))
+    (when (and (eq (nth 1 frame2) 'apply)
+               (progn
+                 (funcall get-next-frame)
+                 (advice--p (indirect-function (nth 1 frame2)))))
+      (funcall get-next-frame)
+      ;; If we now have the symbol, this was the head advice and
+      ;; we're done.
+      (while (advice--p (nth 1 frame1))
+        ;; This was an inner advice called from some earlier advice.
+        ;; The stack frames look different depending on the particular
+        ;; kind of the earlier advice.
+        (let ((inneradvice (nth 1 frame1)))
+          (if (and (eq (nth 1 frame2) 'apply)
+                   (progn
+                     (funcall get-next-frame)
+                     (advice--p (indirect-function
+                                 (nth 1 frame2)))))
+              ;; The earlier advice was something like a before/after
+              ;; advice where the "next" code is called directly by the
+              ;; advice--p object.
+              (funcall get-next-frame)
+            ;; It's apparently an around advice, where the "next" is
+            ;; called by the body of the advice in any way it sees fit,
+            ;; so we need to skip the frames of that body.
+            (while
+                (progn
+                  (funcall get-next-frame)
+                  (not (and (eq (nth 1 frame2) 'apply)
+                            (eq (nth 3 frame2) inneradvice)))))
+            (funcall get-next-frame)
+            (funcall get-next-frame))))
+      (- i origi 1))))
+
 
 (provide 'nadvice)
 ;;; nadvice.el ends here

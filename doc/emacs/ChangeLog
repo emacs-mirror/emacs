@@ -1,3 +1,9 @@
+2012-11-21  Dani Moncayo  <dmoncayo@gmail.com>
+
+	* display.texi (Auto Scrolling): Fix some inaccuracies, plus
+	clarifications (Bug#12865).
+	(Horizontal Scrolling): Clarifications.
+
 2012-11-18  Dani Moncayo  <dmoncayo@gmail.com>
 
 	* mark.texi (Disabled Transient Mark): Doc fixes (Bug#12746).

@@ -371,9 +371,10 @@
 ;;; These versions are rewritten to use arbitrary-size integers.
 
 ;;; A numerical date is the number of days since midnight on
-;;; the morning of December 31, 1 B.C.  Emacs's calendar refers to such
-;;; a date as an absolute date, some function names also use that 
-;;; terminology.  If the date is a non-integer, it represents a specific date and time.
+;;; the morning of December 31, 1 B.C. (Gregorian) or January 2, 1 A.D. (Julian).
+;;; Emacs's calendar refers to such a date as an absolute date, some Calc function
+;;; names also use that terminology.  If the date is a non-integer, it represents 
+;;; a specific date and time. 
 ;;; A "dt" is a list of the form, (year month day), corresponding to
 ;;; an integer code, or (year month day hour minute second), corresponding
 ;;; to a non-integer code.
@@ -408,8 +409,8 @@ DATE is the number of days since December 31, -1 in the Gregorian calendar."
   (let* ((month 1)
          day
          (year (math-quotient (math-add date (if (Math-lessp date 711859)
-                                                 365  ; for speed, we take
-                                               -108)) ; >1950 as a special case
+                                                 367  ; for speed, we take
+                                               -106)) ; >1950 as a special case
                               (if (math-negp date) 366 365)))
 					; this result may be an overestimate
          temp)
@@ -494,6 +495,8 @@ Gregorian calendar."
       (if (math-negp year)
 	  (= (math-imod (math-neg year) 4) 1)
 	(= (math-imod year 4) 0))
+    (if (math-negp year)
+        (setq year (math-sub -1 year)))
     (setq year (math-imod year 400))
     (or (and (= (% year 4) 0) (/= (% year 100) 0))
 	(= year 0))))

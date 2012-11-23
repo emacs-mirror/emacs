@@ -730,7 +730,7 @@ The path separator is colon in GNU and GNU-like systems."
   ;; This is a case where .elc makes a lot of sense.
   (interactive (list (let ((completion-ignored-extensions
 			    (remove ".elc" completion-ignored-extensions)))
-		       (read-file-name "Load file: "))))
+		       (read-file-name "Load file: " nil nil 'lambda))))
   (load (expand-file-name file) nil nil t))
 
 (defun locate-file (filename path &optional suffixes predicate)
@@ -3433,7 +3433,7 @@ DIR is the name of the directory.
 CLASS is the name of a variable class (a symbol).
 MTIME is the recorded modification time of the directory-local
 variables file associated with this entry.  This time is a list
-of two integers (the same format as `file-attributes'), and is
+of integers (the same format as `file-attributes'), and is
 used to test whether the cache entry is still valid.
 Alternatively, MTIME can be nil, which means the entry is always
 considered valid.")

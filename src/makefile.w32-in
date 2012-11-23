@@ -229,12 +229,12 @@ SOME_MACHINE_OBJECTS = dosfns.o msdos.o \
 obj = $(GLOBAL_SOURCES:.c=.o)
 
 globals.h: gl-stamp
-	@cmd /c rem true
+	@cmd $(SWITCHCHAR)c rem true
 
 gl-stamp: ../lib-src/$(BLD)/make-docfile.exe $(GLOBAL_SOURCES)
 	- $(DEL) gl-tmp
 	"$(THISDIR)/../lib-src/$(BLD)/make-docfile" -d . -g $(SOME_MACHINE_OBJECTS) $(obj) > gl-tmp
-	cmd /c "fc /b gl-tmp globals.h >nul 2>&1 || $(CP) gl-tmp globals.h"
+	fc.exe $(SWITCHCHAR)b gl-tmp globals.h >nul 2>&1 || $(CP) gl-tmp globals.h
 	- $(DEL) gl-tmp
 	echo timestamp > $@
 
@@ -413,8 +413,6 @@ CONF_POST_H    = $(SRC)/conf_post.h \
 		 $(MS_W32_H)
 CONFIG_H       = $(SRC)/config.h \
 		 $(CONF_POST_H)
-DIR_H          = $(NT_INC)/sys/dir.h \
-		 $(SRC)/ndir.h
 W32GUI_H       = $(SRC)/w32gui.h \
 		 $(SYSTIME_H)
 DISPEXTERN_H   = $(SRC)/dispextern.h \
@@ -714,6 +712,7 @@ $(BLD)/dired.$(O) : \
 	$(SRC)/blockinput.h \
 	$(SRC)/commands.h \
 	$(SRC)/regex.h \
+	$(NT_INC)/dirent.h \
 	$(NT_INC)/pwd.h \
 	$(NT_INC)/sys/stat.h \
 	$(NT_INC)/unistd.h \
@@ -722,7 +721,6 @@ $(BLD)/dired.$(O) : \
 	$(CHARSET_H) \
 	$(CODING_H) \
 	$(CONFIG_H) \
-	$(DIR_H) \
 	$(FILEMODE_H) \
 	$(GRP_H) \
 	$(LISP_H) \
@@ -1175,11 +1173,11 @@ $(BLD)/minibuf.$(O) : \
 
 $(BLD)/w32.$(O) : \
 	$(SRC)/w32.c \
-	$(SRC)/ndir.h \
 	$(SRC)/w32.h \
 	$(SRC)/w32common.h \
 	$(SRC)/w32heap.h \
 	$(SRC)/w32select.h \
+	$(NT_INC)/dirent.h \
 	$(NT_INC)/pwd.h \
 	$(NT_INC)/sys/file.h \
 	$(NT_INC)/sys/time.h \

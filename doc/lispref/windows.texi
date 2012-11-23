@@ -2038,7 +2038,8 @@ Evaluating the form above will cause @code{display-buffer} to proceed as
 follows: If `*foo*' already appears on a visible or iconified frame, it
 will reuse its window.  Otherwise, it will try to pop up a new window
 or, if that is impossible, a new frame.  If all these steps fail, it
-will try to use some existing window.
+will proceed using whatever @code{display-buffer-base-action} and
+@code{display-buffer-fallback-action} prescribe.
 
    Furthermore, @code{display-buffer} will try to adjust a reused window
 (provided `*foo*' was put by @code{display-buffer} there before) or a

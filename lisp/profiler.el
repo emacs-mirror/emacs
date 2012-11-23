@@ -404,7 +404,6 @@ RET: expand or collapse"))
 
 (defvar profiler-report-mode-map
   (let ((map (make-sparse-keymap)))
-    ;; FIXME: Add menu.
     (define-key map "n"	    'profiler-report-next-entry)
     (define-key map "p"	    'profiler-report-previous-entry)
     ;; I find it annoying more than helpful to not be able to navigate
@@ -424,8 +423,43 @@ RET: expand or collapse"))
     (define-key map "D"	    'profiler-report-descending-sort)
     (define-key map "="	    'profiler-report-compare-profile)
     (define-key map (kbd "C-x C-w") 'profiler-report-write-profile)
-    (define-key map "q"     'quit-window)
-    map))
+    (easy-menu-define  profiler-report-menu map "Menu for Profiler Report mode."
+      '("Profiler"
+        ["Next Entry" profiler-report-next-entry :active t
+         :help "Move to next entry"]
+        ["Previous Entry" profiler-report-previous-entry :active t
+         :help "Move to previous entry"]
+        "--"
+        ["Toggle Entry" profiler-report-toggle-entry
+         :active (profiler-report-calltree-at-point)
+         :help "Expand or collapse the current entry"]
+        ["Find Entry" profiler-report-find-entry
+         ;; FIXME should deactivate if not on a known function.
+         :active (profiler-report-calltree-at-point)
+         :help "Find the definition of the current entry"]
+        ["Describe Entry" profiler-report-describe-entry
+         :active (profiler-report-calltree-at-point)
+         :help "Show the documentation of the current entry"]
+        "--"
+        ["Show Calltree" profiler-report-render-calltree
+         :active profiler-report-reversed
+         :help "Show calltree view"]
+        ["Show Reversed Calltree" profiler-report-render-reversed-calltree
+         :active (not profiler-report-reversed)
+         :help "Show reversed calltree view"]
+        ["Sort Ascending" profiler-report-ascending-sort
+         :active (not (eq profiler-report-order 'ascending))
+         :help "Sort calltree view in ascending order"]
+        ["Sort Descending" profiler-report-descending-sort
+         :active (not (eq profiler-report-order 'descending))
+         :help "Sort calltree view in descending order"]
+        "--"
+        ["Compare Profile..." profiler-report-compare-profile :active t
+         :help "Compare current profile with another"]
+        ["Write Profile..." profiler-report-write-profile :active t
+         :help "Write current profile to a file"]))
+      map)
+  "Keymap for `profiler-report-mode'.")
 
 (defun profiler-report-make-buffer-name (profile)
   (format "*%s-Profiler-Report %s*"
@@ -529,11 +563,15 @@ otherwise collapse."
 (defun profiler-report-find-entry (&optional event)
   "Find entry at point."
   (interactive (list last-nonmenu-event))
-  (if event (posn-set-point (event-end event)))
-  (let ((tree (profiler-report-calltree-at-point)))
-    (when tree
-      (let ((entry (profiler-calltree-entry tree)))
-	(find-function entry)))))
+  (with-current-buffer
+      (if event (window-buffer (posn-window (event-start event)))
+        (current-buffer))
+    (and event (setq event (event-end event))
+         (posn-set-point event))
+    (let ((tree (profiler-report-calltree-at-point)))
+      (when tree
+        (let ((entry (profiler-calltree-entry tree)))
+          (find-function entry))))))
 
 (defun profiler-report-describe-entry ()
   "Describe entry at point."

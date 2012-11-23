@@ -26,17 +26,6 @@ extern int faccessat (int, char const *, int, int);
 #define AT_EACCESS 4
 #define AT_SYMLINK_NOFOLLOW 4096
 
-/* Here are some more fcntl.h macros that default to gnulib-compatible
-   values.  Include <fcntl.h> first, to make sure we don't override
-   its values if any.  FIXME: If we know <fcntl.h> does not define
-   O_NOCTTY and O_RDWR, this can be replaced with a simple "#define
-   O_NOCTTY 0" and "#define O_RDWR 2".  */
-#include <fcntl.h>
-#ifndef O_NOCTTY
 #define O_NOCTTY 0
-#endif
-#ifndef O_RDWR
-#define O_RDWR 2
-#endif
 
 #endif	/* _UNISTD_H */

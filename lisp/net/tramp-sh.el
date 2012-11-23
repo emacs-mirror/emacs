@@ -1270,9 +1270,10 @@ target of the symlink differ."
          res-uid
          ;; 3. File gid.
          res-gid
-         ;; 4. Last access time, as a list of two integers. First
-         ;; integer has high-order 16 bits of time, second has low 16
-         ;; bits.
+         ;; 4. Last access time, as a list of integers.  Normally this
+         ;; would be in the same format as `current-time', but the
+         ;; subseconds part is not currently implemented, and (0 0)
+         ;; denotes an unknown time.
          ;; 5. Last modification time, likewise.
          ;; 6. Last status change time, likewise.
          '(0 0) '(0 0) '(0 0)		;CCC how to find out?
@@ -1980,6 +1981,7 @@ file names."
     (error "Unknown operation `%s', must be `copy' or `rename'" op))
   (let ((t1 (tramp-tramp-file-p filename))
 	(t2 (tramp-tramp-file-p newname))
+	(length (nth 7 (file-attributes (file-truename filename))))
 	(context (and preserve-selinux-context
 		      (apply 'file-selinux-context (list filename))))
 	pr tm)
@@ -2009,8 +2011,9 @@ file names."
 		 ok-if-already-exists keep-date preserve-uid-gid))
 
 	       ;; Try out-of-band operation.
-	       ((tramp-method-out-of-band-p
-		 v1 (nth 7 (file-attributes (file-truename filename))))
+	       ((and
+		 (tramp-method-out-of-band-p v1 length)
+		 (tramp-method-out-of-band-p v2 length))
 		(tramp-do-copy-or-rename-file-out-of-band
 		 op filename newname keep-date))
 
@@ -2038,8 +2041,7 @@ file names."
 
 	   ;; If the Tramp file has an out-of-band method, the
 	   ;; corresponding copy-program can be invoked.
-	   ((tramp-method-out-of-band-p
-	     v (nth 7 (file-attributes (file-truename filename))))
+	   ((tramp-method-out-of-band-p v length)
 	    (tramp-do-copy-or-rename-file-out-of-band
 	     op filename newname keep-date))
 

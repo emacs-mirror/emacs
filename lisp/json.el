@@ -51,7 +51,6 @@
 
 ;;; Code:
 
-(eval-when-compile (require 'cl))
 
 ;; Compatibility code
 

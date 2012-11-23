@@ -29,8 +29,31 @@ so we will look at it and add it to the manual.
 
 * Changes in Specialized Modes and Packages in Emacs 24.4
 
+** Calc
+
+*** Calc by default now uses the Gregorian calendar for all dates, and
+uses January 1, 1 AD as its day number 1.  Previously Calc used the
+Julian calendar for dates before September 14, 1752, and it used
+December 31, 1 BC as its day number 1; the new scheme is more
+consistent with Calendar's calendrical system and day numbering.
+
+*** The new variable `calc-gregorian-switch' lets you configure the
+date when Calc switches from the Julian to the Gregorian calendar.
+Nil, the default value, means to always use the Gregorian calendar.
+The value (YEAR MONTH DAY) means to start using the Gregorian calendar
+on the given date.
+
 +++
 ** New function `ses-rename-cell' to give SES cells arbitrary names.
+
+** trace-function was largely rewritten.
+New features include:
+- no prompting for the destination buffer, unless a prefix-arg was used.
+- additionally to prompting for a destination buffer, when a prefix-arg is
+  used, the user can enter a "context", i.e. Lisp expression whose value at the
+  time the function is entered/exited will be printed along with the function
+  name and arguments.  Useful to trace the value of (current-buffer) or
+  (point) when the function is invoked.
 
 
 * New Modes and Packages in Emacs 24.4
@@ -43,6 +66,10 @@ It is layered as:
 
 * Incompatible Lisp Changes in Emacs 24.4
 
+** nil and "unbound" are indistinguishable in symbol-function.
+`symbol-function' never signals `void-function' any more.
+`fboundp' returns non-nil if the symbol was `fset' to nil.
+
 ** `defadvice' does not honor the `freeze' flag and cannot advise
 special-forms any more.
 
@@ -52,6 +79,7 @@ spurious warnings about an unused var.
 
 * Lisp changes in Emacs 24.4
 
+** time-to-seconds is not obsolete any more.
 ** New function special-form-p.
 ** Docstrings can be made dynamic by adding a `dynamic-docstring-function'
 text-property on the first char.
@@ -833,7 +861,7 @@ are deprecated and will be removed eventually.
 ** New sampling-based Elisp profiler.
 Try M-x profiler-start, do some work, and then call M-x profiler-report.
 When finished, use M-x profiler-stop.  The sampling rate can be based on
-CPU time (only supported on some systems) or memory allocations.
+CPU time or memory allocations.
 
 +++
 ** CL-style generalized variables are now in core Elisp.
@@ -1034,9 +1062,10 @@ takes precedence over most other maps for a short while (normally one key).
 Pass --with-w32 to configure.  The default remains the X11 interface.
 
 ** Two new functions are available in Cygwin builds:
-`cygwin-convert-path-from-windows' and `cygwin-convert-path-to-windows'.
-These functions allow Lisp code to access the Cygwin file-name mapping
-machinery to convert between Cygwin and Windows-native file names.
+`cygwin-convert-file-name-from-windows' and
+`cygwin-convert-file-name-to-windows'.  These functions allow Lisp
+code to access the Cygwin file-name mapping machinery to convert
+between Cygwin and Windows-native file and directory names.
 
 ** When invoked with the -nw switch to run on the Windows text-mode terminal,
 Emacs now supports mouse highlight, help-echo (in the echo area), and

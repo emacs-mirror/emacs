@@ -1,3 +1,14 @@
+2012-11-20  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* automated/advice-tests.el (advice-tests--data): Remove.
+	(advice-tests): Move the tests directly here instead.
+	Add called-interactively-p tests.
+
+2012-11-19  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* automated/ert-x-tests.el: Use cl-lib.
+	* automated/ert-tests.el: Use lexical-binding and cl-lib.
+
 2012-11-14  Dmitry Gutov  <dgutov@yandex.ru>
 
 	* automated/ruby-mode-tests.el (ruby-indent-singleton-class): Pass.
@@ -5,8 +16,8 @@
 	(ruby-indent-inside-heredoc-after-space): New tests.
 	Change direct font-lock face references to var references.
 	(ruby-interpolation-suppresses-syntax-inside): New test.
-	(ruby-interpolation-inside-percent-literal-with-paren): New
-	failing test.
+	(ruby-interpolation-inside-percent-literal-with-paren):
+	New failing test.
 
 2012-11-13  Dmitry Gutov  <dgutov@yandex.ru>
 

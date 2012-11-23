@@ -411,12 +411,6 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 /* Define to 1 if you have the `getaddrinfo' function. */
 #undef HAVE_GETADDRINFO
 
-/* Define to 1 if you have the `getcwd' function.
-   If you think about defining HAVE_GETCWD, don't: the alternative
-   getwd is redefined on w32.c, and does not really return the current
-   directory, to get the desired results elsewhere in Emacs.  */
-#undef HAVE_GETCWD
-
 /* Define to 1 if you have the `getdelim' function. */
 #undef HAVE_GETDELIM
 

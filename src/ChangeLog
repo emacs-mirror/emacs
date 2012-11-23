@@ -8,6 +8,140 @@
 	* font.c (font_unparse_xlfd): Exclude special characters from the
 	generating XLFD name.
 
+2012-11-23  Eli Zaretskii  <eliz@gnu.org>
+
+	* makefile.w32-in (globals.h, gl-stamp): Use $(SWITCHCHAR) instead
+	of a literal "/".  (Bug#12955)
+	(gl-stamp): Invoke fc.exe directly, not through cmd.
+
+2012-11-23  Paul Eggert  <eggert@cs.ucla.edu>
+
+	Assume POSIX 1003.1-1988 or later for dirent.h (Bug#12958).
+	* dired.c: Assume HAVE_DIRENT_H.
+	(NAMLEN): Remove, replacing with ...
+	(dirent_namelen): New function.  All uses changed.  Use the GNU macro
+	_D_EXACT_NAMELEN if available, as it's faster than strlen.
+	(DIRENTRY): Remove, replacing all uses with 'struct dirent'.
+	(DIRENTRY_NONEMPTY): Remove.  All callers now assume it's nonzero.
+	* makefile.w32-in (DIR_H): Remove.  All uses replaced with
+	$(NT_INC)/dirent.h.
+	($(BLD)/w32.$(O)): Do not depend on $(SRC)/ndir.h.
+	* ndir.h: Rename to ../nt/inc/dirent.h.
+	* sysdep.h (closedir) [!HAVE_CLOSEDIR]: Remove.
+	Do not include <dirent.h>; no longer needed.
+	* w32.c: Include <dirent.h> rather than "ndir.h".
+
+2012-11-23  Chong Yidong  <cyd@gnu.org>
+
+	* xftfont.c (xftfont_open): Remove duplicate assignment.
+
+2012-11-22  Dmitry Antipov  <dmantipov@yandex.ru>
+
+	* alloc.c (Fgarbage_collect): Unblock input after clearing
+	gc_in_progress to avoid note_mouse_highlight glitch with GC.
+	* frame.h (FRAME_MOUSE_UPDATE): New macro.
+	* msdos.c (IT_frame_up_to_date): Use it here...
+	* w32term.c (w32_frame_up_to_date): ...here...
+	* xterm.c (XTframe_up_to_date): ...and here...
+	* nsterm.m (ns_frame_up_to_date): ...but not here.
+	* lisp.h (Mouse_HLInfo): Remove mouse_face_deferred_gc member.
+	Adjust users.
+	* xdisp.c (message2_nolog, message3_nolog, note_mouse_highlight):
+	Do not check whether GC is in progress.
+
+2012-11-22  Dmitry Antipov  <dmantipov@yandex.ru>
+
+	* xdisp.c (window_buffer_changed): New function.
+	(update_menu_bar, update_tool_bar): Use it to
+	simplify large 'if' statements.
+	(redisplay_internal): Generalize commonly used
+	'tail' and 'frame' local variables.
+
+2012-11-22  Eli Zaretskii  <eliz@gnu.org>
+
+	* w32.c (getcwd): Fix the 2nd argument type, to prevent conflicts
+	with Windows system header.
+
+2012-11-21  Paul Eggert  <eggert@cs.ucla.edu>
+
+	Assume POSIX 1003.1-1988 or later for unistd.h (Bug#12945).
+	* alloc.c: Assume unistd.h exists.
+	* fileio.c (Fexpand_file_name) [DOS_NT]: Use getcwd, not getwd.
+	* sysdep.c (get_current_dir_name): Assume getcwd exists.
+	(getwd) [USG]: Remove; no longer needed.
+	(sys_subshell) [DOS_NT]: Use getcwd, not getwd.
+	* w32.c (getcwd): Rename from getwd, and switch to getcwd's API.
+	* w32.h (getcwd): Remove decl.
+
+2012-11-21  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* xdisp.c (fast_set_selected_frame): Rename from update_tool_bar_unwind.
+	Make it set selected_window as well.
+	(update_tool_bar): Use it.
+
+2012-11-21  Ken Brown  <kbrown@cornell.edu>
+
+	* emacs.c (main): Set the G_SLICE environment variable for all
+	Cygwin builds, not just GTK builds.  See
+	https://lists.gnu.org/archive/html/emacs-devel/2012-11/msg00368.html.
+
+2012-11-21  Eli Zaretskii  <eliz@gnu.org>
+
+	* w32.c (FILE_DEVICE_FILE_SYSTEM, METHOD_BUFFERED)
+	(FILE_ANY_ACCESS, CTL_CODE, FSCTL_GET_REPARSE_POINT) [_MSC_VER]:
+	Define for the MSVC compiler.
+
+	* w32term.h (EnumSystemLocalesW) [_MSC_VER]: Add a missing semi-colon.
+
+	* fileio.c (Fsubstitute_in_file_name, Ffile_name_directory)
+	(Fexpand_file_name) [DOS_NT]: Pass encoded file name to
+	dostounix_filename.  Prevents crashes down the road, because
+	dostounix_filename assumes it gets a unibyte string.  Reported by
+	Michel de Ruiter <michel@sentient.nl>, see
+	http://lists.gnu.org/archive/html/help-emacs-windows/2012-11/msg00017.html
+
+2012-11-20  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	Conflate Qnil and Qunbound for `symbol-function'.
+	* alloc.c (Fmake_symbol): Initialize `function' to Qnil.
+	* lread.c (init_obarray): Set `function' fields to Qnil.
+	* eval.c (Fcommandp): Ignore Qunbound.
+	(Fautoload, eval_sub, Fapply, Ffuncall, Fmacroexpand):
+	* data.c (Ffset, Ffboundp, indirect_function, Findirect_function):
+	Test NILP rather than Qunbound.
+	(Ffmakunbound): Set to Qnil.
+	(Fsymbol_function): Never signal an error.
+	(Finteractive_form): Ignore Qunbound.
+
+2012-11-20  Paul Eggert  <eggert@cs.ucla.edu>
+
+	* eval.c (interactive_p): Remove no-longer-used decl.
+
+2012-11-20  Dmitry Antipov  <dmantipov@yandex.ru>
+
+	* xdisp.c (buffer_shared): Adjust comment.
+	(buffer_shared_and_changed): New function.
+	(prepare_menu_bars, redisplay_internal): Use it to
+	decide whether all windows or frames should be updated.
+	(window_outdated): New function.
+	(text_outside_line_unchanged_p, redisplay_window): Use it.
+	(redisplay_internal): Likewise.  Fix indentation.
+
+2012-11-20  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* eval.c (Finteractive_p, Fcalled_interactively_p, interactive_p): Remove.
+	(syms_of_eval): Remove corresponding defsubr.
+	* bytecode.c (exec_byte_code): `interactive-p' is now a Lisp function.
+
+2012-11-19  Daniel Colascione  <dancol@dancol.org>
+
+	* w32fns.c (Fx_file_dialog):
+	(Fx_file_dialog): Accomodate rename of cygwin_convert_path* to
+	cygwin_convert_file_name*.
+
+	* cygw32.c (Fcygwin_convert_path_to_windows, syms_of_cygw32):
+	Rename cygwin_convert_path* to cygwin_convert_file_name*.
+
 2012-11-18  Paul Eggert  <eggert@cs.ucla.edu>
 
 	* nsterm.m (ns_select): Send SIGIO only to self, not to process group.
@@ -18,10 +152,10 @@
 	windows.h gets included before w32term.h uses some of its
 	features, see below.
 
-	* w32term.h (LOCALE_ENUMPROCA, LOCALE_ENUMPROCW) [_MSC_VER]: New
-	typedefs.
-	(EnumSystemLocalesA, EnumSystemLocalesW) [_MSC_VER]: New
-	prototypes.
+	* w32term.h (LOCALE_ENUMPROCA, LOCALE_ENUMPROCW) [_MSC_VER]:
+	New typedefs.
+	(EnumSystemLocalesA, EnumSystemLocalesW) [_MSC_VER]:
+	New prototypes.
 	(EnumSystemLocales) [_MSC_VER]: Define if undefined.  (Bug#12878)
 
 2012-11-18  Jan Djärv  <jan.h.d@swipnet.se>
@@ -313,8 +447,8 @@
 	* xdisp.c (try_scrolling): Fix correction of aggressive-scroll
 	amount when the scroll margins are too large.  When scrolling
 	backwards in the buffer, give up if cannot reach point or the
-	scroll margin within a reasonable number of screen lines.  Fixes
-	point position in window under scroll-up/down-aggressively when
+	scroll margin within a reasonable number of screen lines.
+	Fixes point position in window under scroll-up/down-aggressively when
 	point is positioned many lines beyond the window top/bottom.
 	(Bug#12811)
 

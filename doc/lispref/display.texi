@@ -2425,12 +2425,12 @@ This sets the @code{:stipple} attribute of @var{face} to
 This sets the @code{:font} attribute of @var{face} to @var{font}.
 @end deffn
 
-@defun set-face-bold-p face bold-p &optional frame
+@defun set-face-bold face bold-p &optional frame
 This sets the @code{:weight} attribute of @var{face} to @var{normal}
 if @var{bold-p} is @code{nil}, and to @var{bold} otherwise.
 @end defun
 
-@defun set-face-italic-p face italic-p &optional frame
+@defun set-face-italic face italic-p &optional frame
 This sets the @code{:slant} attribute of @var{face} to @var{normal} if
 @var{italic-p} is @code{nil}, and to @var{italic} otherwise.
 @end defun
@@ -2440,7 +2440,7 @@ This sets the @code{:underline} attribute of @var{face} to
 @var{underline}.
 @end defun
 
-@defun set-face-inverse-video-p face inverse-video-p &optional frame
+@defun set-face-inverse-video face inverse-video-p &optional frame
 This sets the @code{:inverse-video} attribute of @var{face} to
 @var{inverse-video-p}.
 @end defun
@@ -2453,59 +2453,48 @@ This swaps the foreground and background colors of face @var{face}.
 don't specify @var{frame}, they refer to the selected frame; @code{t}
 refers to the default data for new frames.  They return the symbol
 @code{unspecified} if the face doesn't define any value for that
-attribute.
-
-@defun face-foreground face &optional frame inherit
-@defunx face-background face &optional frame inherit
-These functions return the foreground color (or background color,
-respectively) of face @var{face}, as a string.
-
-If @var{inherit} is @code{nil}, only a color directly defined by the face is
-returned.  If @var{inherit} is non-@code{nil}, any faces specified by its
-@code{:inherit} attribute are considered as well, and if @var{inherit}
-is a face or a list of faces, then they are also considered, until a
-specified color is found.  To ensure that the return value is always
-specified, use a value of @code{default} for @var{inherit}.
-@end defun
-
-@defun face-stipple face &optional frame inherit
-This function returns the name of the background stipple pattern of face
-@var{face}, or @code{nil} if it doesn't have one.
-
-If @var{inherit} is @code{nil}, only a stipple directly defined by the
-face is returned.  If @var{inherit} is non-@code{nil}, any faces
-specified by its @code{:inherit} attribute are considered as well, and
-if @var{inherit} is a face or a list of faces, then they are also
-considered, until a specified stipple is found.  To ensure that the
-return value is always specified, use a value of @code{default} for
+attribute.  If @var{inherit} is @code{nil}, only an attribute directly
+defined by the face is returned.  If @var{inherit} is non-@code{nil},
+any faces specified by its @code{:inherit} attribute are considered as
+well, and if @var{inherit} is a face or a list of faces, then they are
+also considered, until a specified attribute is found.  To ensure that
+the return value is always specified, use a value of @code{default} for
 @var{inherit}.
-@end defun
 
 @defun face-font face &optional frame
 This function returns the name of the font of face @var{face}.
 @end defun
 
-@defun face-bold-p face &optional frame
+@defun face-foreground face &optional frame inherit
+@defunx face-background face &optional frame inherit
+These functions return the foreground color (or background color,
+respectively) of face @var{face}, as a string.
+@end defun
+
+@defun face-stipple face &optional frame inherit
+This function returns the name of the background stipple pattern of face
+@var{face}, or @code{nil} if it doesn't have one.
+@end defun
+
+@defun face-bold-p face &optional frame inherit
 This function returns a non-@code{nil} value if the @code{:weight}
 attribute of @var{face} is bolder than normal (i.e., one of
 @code{semi-bold}, @code{bold}, @code{extra-bold}, or
 @code{ultra-bold}).  Otherwise, it returns @code{nil}.
 @end defun
 
-@defun face-italic-p face &optional frame
+@defun face-italic-p face &optional frame inherit
 This function returns a non-@code{nil} value if the @code{:slant}
 attribute of @var{face} is @code{italic} or @code{oblique}, and
 @code{nil} otherwise.
 @end defun
 
-@c Note the weasel words.  A face that inherits from an underlined
-@c face but does not specify :underline will return nil.
-@defun face-underline-p face &optional frame
+@defun face-underline-p face &optional frame inherit
 This function returns non-@code{nil} if face @var{face} specifies
 a non-@code{nil} @code{:underline} attribute.
 @end defun
 
-@defun face-inverse-video-p face &optional frame
+@defun face-inverse-video-p face &optional frame inherit
 This function returns non-@code{nil} if face @var{face} specifies
 a non-@code{nil} @code{:inverse-video} attribute.
 @end defun

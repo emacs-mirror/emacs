@@ -736,15 +736,15 @@ this variable is nil, that buffer is shown using
 
 (defvar sql-imenu-generic-expression
   ;; Items are in reverse order because they are rendered in reverse.
-  '(("Rules/Defaults" "^\\s-*create\\s-+\\(\\w+\\s-+\\)*\\(rule\\|default\\)\\s-+\\(\\w+\\)" 3)
-    ("Sequences" "^\\s-*create\\s-+\\(\\w+\\s-+\\)*sequence\\s-+\\(\\w+\\)" 2)
-    ("Triggers" "^\\s-*create\\s-+\\(\\w+\\s-+\\)*trigger\\s-+\\(\\w+\\)" 2)
-    ("Functions" "^\\s-*\\(create\\s-+\\(\\w+\\s-+\\)*\\)?function\\s-+\\(\\w+\\)" 3)
-    ("Procedures" "^\\s-*\\(create\\s-+\\(\\w+\\s-+\\)*\\)?proc\\(edure\\)?\\s-+\\(\\w+\\)" 4)
-    ("Packages" "^\\s-*create\\s-+\\(\\w+\\s-+\\)*package\\s-+\\(body\\s-+\\)?\\(\\w+\\)" 3)
-    ("Types" "^\\s-*create\\s-+\\(\\w+\\s-+\\)*type\\s-+\\(body\\s-+\\)?\\(\\w+\\)" 3)
-    ("Indexes" "^\\s-*create\\s-+\\(\\w+\\s-+\\)*index\\s-+\\(\\w+\\)" 2)
-    ("Tables/Views" "^\\s-*create\\s-+\\(\\w+\\s-+\\)*\\(table\\|view\\)\\s-+\\(\\w+\\)" 3))
+  '(("Rules/Defaults" "^\\s-*create\\s-+\\(?:\\w+\\s-+\\)*\\(?:rule\\|default\\)\\(?:if\\s-+not\\s-+exists\\s-+\\)?\\s-+\\(\\w+\\)" 1)
+    ("Sequences" "^\\s-*create\\s-+\\(?:\\w+\\s-+\\)*sequence\\s-+\\(?:if\\s-+not\\s-+exists\\s-+\\)?\\(\\w+\\)" 1)
+    ("Triggers" "^\\s-*create\\s-+\\(?:\\w+\\s-+\\)*trigger\\s-+\\(?:if\\s-+not\\s-+exists\\s-+\\)?\\(\\w+\\)" 1)
+    ("Functions" "^\\s-*\\(?:create\\s-+\\(?:\\w+\\s-+\\)*\\)?function\\s-+\\(?:if\\s-+not\\s-+exists\\s-+\\)?\\(\\w+\\)" 1)
+    ("Procedures" "^\\s-*\\(?:create\\s-+\\(?:\\w+\\s-+\\)*\\)?proc\\(?:edure\\)?\\s-+\\(?:if\\s-+not\\s-+exists\\s-+\\)?\\(\\w+\\)" 1)
+    ("Packages" "^\\s-*create\\s-+\\(?:\\w+\\s-+\\)*package\\s-+\\(?:body\\s-+\\)?\\(?:if\\s-+not\\s-+exists\\s-+\\)?\\(\\w+\\)" 1)
+    ("Types" "^\\s-*create\\s-+\\(?:\\w+\\s-+\\)*type\\s-+\\(?:body\\s-+\\)?\\(?:if\\s-+not\\s-+exists\\s-+\\)?\\(\\w+\\)" 1)
+    ("Indexes" "^\\s-*create\\s-+\\(?:\\w+\\s-+\\)*index\\s-+\\(?:if\\s-+not\\s-+exists\\s-+\\)?\\(\\w+\\)" 1)
+    ("Tables/Views" "^\\s-*create\\s-+\\(?:\\w+\\s-+\\)*\\(?:table\\|view\\)\\s-+\\(?:if\\s-+not\\s-+exists\\s-+\\)?\\(\\w+\\)" 1))
   "Define interesting points in the SQL buffer for `imenu'.
 
 This is used to set `imenu-generic-expression' when SQL mode is
@@ -1339,6 +1339,7 @@ Based on `comint-mode-map'.")
 		  "\\(?:\\w+\\s-+\\)*"  ;; optional intervening keywords
 		  "\\(?:table\\|view\\|\\(?:package\\|type\\)\\(?:\\s-+body\\)?\\|proc\\(?:edure\\)?"
 		  "\\|function\\|trigger\\|sequence\\|rule\\|default\\)\\s-+"
+                  "\\(?:if\\s-+not\\s-+exists\\s-+\\)?" ;; IF NOT EXISTS
 		  "\\(\\w+\\)")
 	  1 'font-lock-function-name-face))
 

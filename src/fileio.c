@@ -315,6 +315,7 @@ Given a Unix syntax file name, returns a string ending in slash.  */)
   register const char *beg;
 #else
   register char *beg;
+  Lisp_Object tem_fn;
 #endif
   register const char *p;
   Lisp_Object handler;
@@ -374,10 +375,13 @@ Given a Unix syntax file name, returns a string ending in slash.  */)
 	  p = beg + strlen (beg);
 	}
     }
-  dostounix_filename (beg);
-#endif /* DOS_NT */
-
+  tem_fn = ENCODE_FILE (make_specified_string (beg, -1, p - beg,
+					       STRING_MULTIBYTE (filename)));
+  dostounix_filename (SSDATA (tem_fn));
+  return DECODE_FILE (tem_fn);
+#else  /* DOS_NT */
   return make_specified_string (beg, -1, p - beg, STRING_MULTIBYTE (filename));
+#endif	/* DOS_NT */
 }
 
 DEFUN ("file-name-nondirectory", Ffile_name_nondirectory,
@@ -951,7 +955,18 @@ filesystem tree, not (expand-file-name ".."  dirname).  */)
 #ifdef DOS_NT
 	  /* Make sure directories are all separated with /, but
 	     avoid allocation of a new string when not required. */
-	  dostounix_filename (nm);
+	  if (multibyte)
+	    {
+	      Lisp_Object tem_name = make_specified_string (nm, -1, strlen (nm),
+							    multibyte);
+
+	      tem_name = ENCODE_FILE (tem_name);
+	      dostounix_filename (SSDATA (tem_name));
+	      tem_name = DECODE_FILE (tem_name);
+	      memcpy (nm, SSDATA (tem_name), SBYTES (tem_name) + 1);
+	    }
+	  else
+	    dostounix_filename (nm);
 #ifdef WINDOWSNT
 	  if (IS_DIRECTORY_SEP (nm[1]))
 	    {
@@ -1133,7 +1148,7 @@ filesystem tree, not (expand-file-name ".."  dirname).  */)
 		newdir = "/";
 	    }
 	  else
-	    getwd (adir);
+	    getcwd (adir, MAXPATHLEN + 1);
 	  newdir = adir;
 	}
 
@@ -1305,10 +1320,13 @@ filesystem tree, not (expand-file-name ".."  dirname).  */)
 	target[0] = '/';
 	target[1] = ':';
       }
-    dostounix_filename (target);
-#endif /* DOS_NT */
-
     result = make_specified_string (target, -1, o - target, multibyte);
+    result = ENCODE_FILE (result);
+    dostounix_filename (SSDATA (result));
+    result = DECODE_FILE (result);
+#else  /* !DOS_NT */
+    result = make_specified_string (target, -1, o - target, multibyte);
+#endif /* !DOS_NT */
   }
 
   /* Again look to see if the file name has special constructs in it
@@ -1587,8 +1605,18 @@ those `/' is discarded.  */)
   memcpy (nm, SDATA (filename), SBYTES (filename) + 1);
 
 #ifdef DOS_NT
-  dostounix_filename (nm);
-  substituted = (strcmp (nm, SDATA (filename)) != 0);
+  {
+    Lisp_Object encoded_filename = ENCODE_FILE (filename);
+    Lisp_Object tem_fn;
+
+    dostounix_filename (SDATA (encoded_filename));
+    tem_fn = DECODE_FILE (encoded_filename);
+    nm = alloca (SBYTES (tem_fn) + 1);
+    memcpy (nm, SDATA (tem_fn), SBYTES (tem_fn) + 1);
+    substituted = (memcmp (nm, SDATA (filename), SBYTES (filename)) != 0);
+    if (substituted)
+      filename = tem_fn;
+  }
 #endif
   endp = nm + SBYTES (filename);
 

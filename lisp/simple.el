@@ -4583,6 +4583,9 @@ lines."
     (unless (and auto-window-vscroll try-vscroll
 		 ;; Only vscroll for single line moves
 		 (= (abs arg) 1)
+		 ;; Under scroll-conservatively, the display engine
+		 ;; does this better.
+		 (zerop scroll-conservatively)
 		 ;; But don't vscroll in a keyboard macro.
 		 (not defining-kbd-macro)
 		 (not executing-kbd-macro)

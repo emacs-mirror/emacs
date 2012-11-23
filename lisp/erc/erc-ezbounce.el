@@ -26,7 +26,6 @@
 ;;; Code:
 
 (require 'erc)
-(eval-when-compile (require 'cl))
 
 (defgroup erc-ezbounce nil
   "Interface to the EZBounce IRC bouncer (a virtual IRC server)"

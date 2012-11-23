@@ -101,7 +101,6 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #define _P_WAIT 0
 int _cdecl _spawnlp (int, const char *, const char *, ...);
 int _cdecl _getpid (void);
-extern char *getwd (char *);
 #endif
 
 #include "syssignal.h"
@@ -134,12 +133,12 @@ char*
 get_current_dir_name (void)
 {
   char *buf;
-  char *pwd;
+  char *pwd = getenv ("PWD");
   struct stat dotstat, pwdstat;
-  /* If PWD is accurate, use it instead of calling getwd.  PWD is
+  /* If PWD is accurate, use it instead of calling getcwd.  PWD is
      sometimes a nicer name, and using it may avoid a fatal error if a
      parent directory is searchable but not readable.  */
-    if ((pwd = getenv ("PWD")) != 0
+  if (pwd
       && (IS_DIRECTORY_SEP (*pwd) || (*pwd && IS_DEVICE_SEP (pwd[1])))
       && stat (pwd, &pwdstat) == 0
       && stat (".", &dotstat) == 0
@@ -155,7 +154,6 @@ get_current_dir_name (void)
         return NULL;
       strcpy (buf, pwd);
     }
-#ifdef HAVE_GETCWD
   else
     {
       size_t buf_size = 1024;
@@ -179,22 +177,6 @@ get_current_dir_name (void)
             return NULL;
         }
     }
-#else
-  else
-    {
-      /* We need MAXPATHLEN here.  */
-      buf = malloc (MAXPATHLEN + 1);
-      if (!buf)
-        return NULL;
-      if (getwd (buf) == NULL)
-        {
-          int tmp_errno = errno;
-          free (buf);
-          errno = tmp_errno;
-          return NULL;
-        }
-    }
-#endif
   return buf;
 }
 #endif
@@ -521,7 +503,7 @@ sys_subshell (void)
       const char *sh = 0;
 
 #ifdef DOS_NT    /* MW, Aug 1993 */
-      getwd (oldwd);
+      getcwd (oldwd, sizeof oldwd);
       if (sh == 0)
 	sh = (char *) egetenv ("SUSPEND");	/* KFS, 1994-12-14 */
 #endif
@@ -2237,82 +2219,6 @@ emacs_readlink (char const *filename, char initial_buf[READLINK_BUFSIZE])
   return careadlinkat (AT_FDCWD, filename, initial_buf, READLINK_BUFSIZE,
 		       &emacs_norealloc_allocator, careadlinkatcwd);
 }
-
-#ifdef USG
-/*
- *	All of the following are for USG.
- *
- *	On USG systems the system calls are INTERRUPTIBLE by signals
- *	that the user program has elected to catch.  Thus the system call
- *	must be retried in these cases.  To handle this without massive
- *	changes in the source code, we remap the standard system call names
- *	to names for our own functions in sysdep.c that do the system call
- *	with retries.  Actually, for portability reasons, it is good
- *	programming practice, as this example shows, to limit all actual
- *	system calls to a single occurrence in the source.  Sure, this
- *	adds an extra level of function call overhead but it is almost
- *	always negligible.   Fred Fish, Unisoft Systems Inc.
- */
-
-/*
- *	Warning, this function may not duplicate 4.2 action properly
- *	under error conditions.
- */
-
-#if !defined (HAVE_GETWD) || defined (BROKEN_GETWD)
-
-#ifndef MAXPATHLEN
-/* In 4.1, param.h fails to define this.  */
-#define MAXPATHLEN 1024
-#endif
-
-char *
-getwd (char *pathname)
-{
-  char *npath, *spath;
-  extern char *getcwd (char *, size_t);
-
-  block_input ();			/* getcwd uses malloc */
-  spath = npath = getcwd ((char *) 0, MAXPATHLEN);
-  if (spath == 0)
-    {
-      unblock_input ();
-      return spath;
-    }
-  /* On Altos 3068, getcwd can return @hostname/dir, so discard
-     up to first slash.  Should be harmless on other systems.  */
-  while (*npath && *npath != '/')
-    npath++;
-  strcpy (pathname, npath);
-  free (spath);			/* getcwd uses malloc */
-  unblock_input ();
-  return pathname;
-}
-
-#endif /* !defined (HAVE_GETWD) || defined (BROKEN_GETWD) */
-#endif /* USG */
-
-/* Directory routines for systems that don't have them. */
-
-#ifdef HAVE_DIRENT_H
-
-#include <dirent.h>
-
-#if !defined (HAVE_CLOSEDIR)
-
-int
-closedir (DIR *dirp /* stream from opendir */)
-{
-  int rtnval;
-
-  rtnval = emacs_close (dirp->dd_fd);
-  xfree (dirp);
-
-  return rtnval;
-}
-#endif /* not HAVE_CLOSEDIR */
-#endif /* HAVE_DIRENT_H */
-
 
 /* Return a struct timeval that is roughly equivalent to T.
    Use the least timeval not less than T.

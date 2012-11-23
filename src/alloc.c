@@ -63,10 +63,6 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #endif
 
 #include <unistd.h>
-#ifndef HAVE_UNISTD_H
-extern void *sbrk ();
-#endif
-
 #include <fcntl.h>
 
 #ifdef USE_GTK
@@ -3212,7 +3208,7 @@ static struct Lisp_Symbol *symbol_free_list;
 
 DEFUN ("make-symbol", Fmake_symbol, Smake_symbol, 1, 1, 0,
        doc: /* Return a newly allocated uninterned symbol whose name is NAME.
-Its value and function definition are void, and its property list is nil.  */)
+Its value is void, and its function definition and property list are nil.  */)
   (Lisp_Object name)
 {
   register Lisp_Object val;
@@ -3249,7 +3245,7 @@ Its value and function definition are void, and its property list is nil.  */)
   set_symbol_plist (val, Qnil);
   p->redirect = SYMBOL_PLAINVAL;
   SET_SYMBOL_VAL (p, Qunbound);
-  set_symbol_function (val, Qunbound);
+  set_symbol_function (val, Qnil);
   set_symbol_next (val, NULL);
   p->gcmarkbit = 0;
   p->interned = SYMBOL_UNINTERNED;
@@ -5335,11 +5331,11 @@ See Info node `(elisp)Garbage Collection'.  */)
   dump_zombies ();
 #endif
 
-  unblock_input ();
-
   check_cons_list ();
 
   gc_in_progress = 0;
+
+  unblock_input ();
 
   consing_since_gc = 0;
   if (gc_cons_threshold < GC_DEFAULT_THRESHOLD / 10)

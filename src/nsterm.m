@@ -1186,7 +1186,6 @@ x_free_frame_resources (struct frame *f)
       hlinfo->mouse_face_beg_row = hlinfo->mouse_face_beg_col = -1;
       hlinfo->mouse_face_end_row = hlinfo->mouse_face_end_col = -1;
       hlinfo->mouse_face_window = Qnil;
-      hlinfo->mouse_face_deferred_gc = 0;
       hlinfo->mouse_face_mouse_frame = 0;
     }
 
@@ -1887,8 +1886,7 @@ static void
 ns_frame_up_to_date (struct frame *f)
 /* --------------------------------------------------------------------------
     External (hook): Fix up mouse highlighting right after a full update.
-    Some highlighting was deferred if GC was happening during
-    note_mouse_highlight (), while other highlighting was deferred for update.
+    Can't use FRAME_MOUSE_UPDATE due to ns_frame_begin and ns_frame_end calls.
    -------------------------------------------------------------------------- */
 {
   NSTRACE (ns_frame_up_to_date);
@@ -1896,19 +1894,17 @@ ns_frame_up_to_date (struct frame *f)
   if (FRAME_NS_P (f))
     {
       Mouse_HLInfo *hlinfo = MOUSE_HL_INFO (f);
-      if ((hlinfo->mouse_face_deferred_gc || f ==hlinfo->mouse_face_mouse_frame)
-      /*&& hlinfo->mouse_face_mouse_frame*/)
-        {
-          block_input ();
+      if (f == hlinfo->mouse_face_mouse_frame)
+	{
+	  block_input ();
 	  ns_update_begin(f);
-          if (hlinfo->mouse_face_mouse_frame)
-            note_mouse_highlight (hlinfo->mouse_face_mouse_frame,
-                                  hlinfo->mouse_face_mouse_x,
-                                  hlinfo->mouse_face_mouse_y);
-          hlinfo->mouse_face_deferred_gc = 0;
+	  if (hlinfo->mouse_face_mouse_frame)
+	    note_mouse_highlight (hlinfo->mouse_face_mouse_frame,
+				  hlinfo->mouse_face_mouse_x,
+				  hlinfo->mouse_face_mouse_y);
 	  ns_update_end(f);
-          unblock_input ();
-        }
+	  unblock_input ();
+	}
     }
 }
 
@@ -3869,7 +3865,6 @@ ns_initialize_display_info (struct ns_display_info *dpyinfo)
     dpyinfo->root_window = 42; /* a placeholder.. */
 
     hlinfo->mouse_face_mouse_frame = NULL;
-    hlinfo->mouse_face_deferred_gc = 0;
     hlinfo->mouse_face_beg_row = hlinfo->mouse_face_beg_col = -1;
     hlinfo->mouse_face_end_row = hlinfo->mouse_face_end_col = -1;
     hlinfo->mouse_face_face_id = DEFAULT_FACE_ID;

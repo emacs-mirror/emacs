@@ -1,3 +1,25 @@
+2012-11-23  Paul Eggert  <eggert@cs.ucla.edu>
+
+	Assume POSIX 1003.1-1988 or later for dirent.h (Bug#12958).
+	* configure.ac: Do not check for dirent.h or closdir.
+
+2012-11-21  Paul Eggert  <eggert@cs.ucla.edu>
+
+	Assume POSIX 1003.1-1988 or later for unistd.h (Bug#12945).
+	* configure.ac: Do not check for getcwd or getwd.
+
+2012-11-21  Glenn Morris  <rgm@gnu.org>
+
+	* configure.ac (--enable-profiling): Doc fix.
+
+2012-11-20  Paul Eggert  <eggert@cs.ucla.edu>
+
+	Improve static checking of integer overflow and stack smashing.
+	* configure.ac (WARN_CFLAGS): Add -Wstack-protector
+	if using GCC 4.7.2 or later on a platform with
+	at least 64-bit long int.  This improves static checking on these
+	platforms, when configured with --enable-gcc-warnings.
+
 2012-11-17  Paul Eggert  <eggert@cs.ucla.edu>
 
 	Assume POSIX 1003.1-1988 or later for fcntl.h (Bug#12881).
