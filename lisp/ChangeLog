@@ -205,8 +205,10 @@
 
 2012-11-17  Paul Eggert  <eggert@cs.ucla.edu>
 
+	Calc by default uses the Gregorian calendar for all dates (Bug#12633).
+	It also uses January 1, 1 AD as its day number 1.
 	* calc/calc-forms.el (math-julian-date-beginning)
-	(math-julian-date-beginning-int): Implement [new date numbering].
+	(math-julian-date-beginning-int): Implement this.
 
 2012-11-17  Juanma Barranquero  <lekktu@gmail.com>
 
