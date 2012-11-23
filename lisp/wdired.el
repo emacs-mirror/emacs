@@ -399,6 +399,15 @@ non-nil means return old filename."
             (setq changes t)
             (if (not file-new)		;empty filename!
                 (push file-old files-deleted)
+	      (when wdired-keep-marker-rename
+		(let ((mark (cond ((integerp wdired-keep-marker-rename)
+				   wdired-keep-marker-rename)
+				  (wdired-keep-marker-rename
+				   (cdr (assoc file-old wdired-old-marks)))
+				  (t nil))))
+		  (when mark
+		    (push (cons (substitute-in-file-name file-new) mark)
+			  wdired-old-marks))))
               (push (cons file-old (substitute-in-file-name file-new))
                     files-renamed))))
 	(forward-line -1)))
@@ -416,7 +425,9 @@ non-nil means return old filename."
 		     (= (length files-renamed) 1))
 	    (setq dired-directory (cdr (car files-renamed))))
 	  ;; Re-sort the buffer.
-	  (revert-buffer))
+	  (revert-buffer)
+	  (let ((inhibit-read-only t))
+	    (dired-mark-remembered wdired-old-marks)))
       (let ((inhibit-read-only t))
 	(remove-text-properties (point-min) (point-max)
 				'(old-name nil end-name nil old-link nil
@@ -429,8 +440,6 @@ non-nil means return old filename."
       (dired-log-summary (format "%d rename actions failed" errors) nil)))
   (set-buffer-modified-p nil)
   (setq buffer-undo-list nil))
-
-(declare-function dired-add-entry "dired-aux" (filename &optional marker-char relative))
 
 (defun wdired-do-renames (renames)
   "Perform RENAMES in parallel."
@@ -473,8 +482,7 @@ non-nil means return old filename."
               (push (cons tmp file-new) residue))))
          (t
           (setq progress t)
-          (let* ((file-ori (car rename))
-                 (old-mark (cdr (assoc file-ori wdired-old-marks))))
+          (let ((file-ori (car rename)))
             (if wdired-use-interactive-rename
                 (wdired-search-and-rename file-ori file-new)
               ;; If dired-rename-file autoloads dired-aux while
@@ -485,20 +493,12 @@ non-nil means return old filename."
               (condition-case err
                   (let ((dired-backup-overwrite nil))
                     (dired-rename-file file-ori file-new
-                                       overwrite)
-                    (dired-remove-file file-ori)
-                    (dired-add-file
-		     file-new
-		     (cond ((integerp wdired-keep-marker-rename)
-			    wdired-keep-marker-rename)
-			   (wdired-keep-marker-rename old-mark)
-			   (t nil))))
+                                       overwrite))
                 (error
                  (setq errors (1+ errors))
                  (dired-log (concat "Rename `" file-ori "' to `"
                                     file-new "' failed:\n%s\n")
-                            err)
-                 (dired-add-entry file-ori old-mark)))))))))
+                            err)))))))))
     errors))
 
 

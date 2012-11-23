@@ -1,3 +1,13 @@
+2012-11-23  Juri Linkov  <juri@jurta.org>
+
+	* wdired.el: Revert 2012-10-17 change partly and replace it with
+	Patch by Christopher Schmidt <christopher@ch.ristopher.com>.
+	(wdired-finish-edit): Add marks for new file names to
+	`wdired-old-marks'.  Restore marks using `dired-mark-remembered'
+	after `revert-buffer'.
+	(wdired-do-renames): Remove calls to `dired-remove-file',
+	`dired-add-file', `dired-add-entry'.  (Bug#11795)
+
 2012-11-21  Alan Mackenzie  <acm@muc.de>
 
 	* progmodes/cc-defs.el (c-version): Bump to 5.32.4.
