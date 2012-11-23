@@ -1,3 +1,11 @@
+2012-11-23  Wolfgang Jenkner  <wjenkner@inode.at>
+
+	* image-mode.el (image-transform-check-size): Use assertions only
+	for images of type imagemagick.
+
+	Otherwise no error, image-transform-fit-to-{width,height} is
+	silently ignored, as before.  Doc fix.
+
 2012-11-23  Chong Yidong  <cyd@gnu.org>
 
 	* faces.el (color-defined-p): Doc fix (Bug#12853).
