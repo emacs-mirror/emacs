@@ -1,3 +1,8 @@
+2012-11-23  Chong Yidong  <cyd@gnu.org>
+
+	* find-cmd.el (find-constituents): Add executable, ipath,
+	readable, samefile, writable, daystart, regextype (Bug#12856).
+
 2012-11-23  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* emacs-lisp/ert.el, emacs-lisp/ert-x.el: Use cl-lib and lexical-binding.
