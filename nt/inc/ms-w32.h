@@ -185,14 +185,11 @@ extern char *getenv ();
 
 /* Subprocess calls that are emulated.  */
 #define spawnve sys_spawnve
-#define wait    sys_wait
 #define kill    sys_kill
 #define signal  sys_signal
 
 /* Internal signals.  */
 #define emacs_raise(sig) emacs_abort()
-
-extern int sys_wait (int *);
 
 /* termcap.c calls that are emulated.  */
 #define tputs   sys_tputs

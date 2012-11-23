@@ -1,3 +1,60 @@
+2012-11-23  Paul Eggert  <eggert@cs.ucla.edu>
+
+	Fix a race condition with glib (Bug#8855).
+	This is a backport from the trunk, consisting of:
+
+	2012-11-17  Eli Zaretskii  <eliz@gnu.org>
+
+	* w32proc.c (create_child): Don't clip the PID of the child
+	process to fit into an Emacs integer, as this is no longer a
+	restriction.
+	(waitpid): Rename from sys_wait.  Emulate a Posix 'waitpid' by
+	reaping only the process specified by PID argument, if that is
+	positive.  Use PID instead of dead_child to know which process to
+	reap.  Wait for the child to die only if WNOHANG is not in
+	OPTIONS.
+	(sys_select): Don't set dead_child.
+
+	* sysdep.c (wait_for_termination_1): Remove the WINDOWSNT portion,
+	as it is no longer needed.
+
+	* process.c (waitpid, WUNTRACED) [!WNOHANG]: Remove definitions,
+	no longer needed.
+	(record_child_status_change): Remove the setting of
+	record_at_most_one_child for the !WNOHANG case.
+
+	2012-11-03  Paul Eggert  <eggert@cs.ucla.edu>
+
+	Fix a race condition that causes Emacs to mess up glib (Bug#8855).
+	This is a backport from the trunk.
+	The symptom is a diagnostic "GLib-WARNING **: In call to
+	g_spawn_sync(), exit status of a child process was requested but
+	SIGCHLD action was set to SIG_IGN and ECHILD was received by
+	waitpid(), so exit status can't be returned."  The diagnostic
+	is partly wrong, as the SIGCHLD action is not set to SIG_IGN.
+	The real bug is a race condition between Emacs and glib: Emacs
+	does a waitpid (-1, ...) and reaps glib's subprocess by mistake,
+	so that glib can't find it.  Work around the bug by invoking
+	waitpid only on subprocesses that Emacs itself creates.
+	* process.c (create_process, record_child_status_change):
+	Don't use special value -1 in pid field, as the caller now must
+	know the pid rather than having the callee infer it.  The
+	inference was sometimes incorrect anyway, due to another race.
+	(create_process): Set new 'alive' member if child is created.
+	(process_status_retrieved): New function.
+	(record_child_status_change): Use it.
+	Accept negative 1st argument, which means to wait for the
+	processes that Emacs already knows about.  Move special-case code
+	for DOS_NT (which lacks WNOHANG) here, from caller.  Keep track of
+	processes that have already been waited for, by testing and
+	clearing new 'alive' member.
+	(CAN_HANDLE_MULTIPLE_CHILDREN): Remove, as record_child_status_change
+	now does this internally.
+	(handle_child_signal): Let record_child_status_change do all
+	the work, since we do not want to reap all exited child processes,
+	only the child processes that Emacs itself created.
+	* process.h (Lisp_Process): New boolean member 'alive'.
+
 2012-11-23  Eli Zaretskii  <eliz@gnu.org>
 
 	* xdisp.c (set_cursor_from_row): Skip step 2 only if point is not

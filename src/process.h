@@ -142,6 +142,9 @@ struct Lisp_Process
     /* Flag to set coding-system of the process buffer from the
        coding_system used to decode process output.  */
     unsigned int inherit_coding_system_flag : 1;
+    /* Whether the process is alive, i.e., can be waited for.  Running
+       processes can be waited for, but exited and fake processes cannot.  */
+    unsigned int alive : 1;
     /* Record the process status in the raw form in which it comes from `wait'.
        This is to avoid consing in a signal handler.  The `raw_status_new'
        flag indicates that `raw_status' contains a new status that still

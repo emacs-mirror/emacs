@@ -1,3 +1,16 @@
+2012-11-23  Paul Eggert  <eggert@cs.ucla.edu>
+
+	Fix a race condition with glib (Bug#8855).
+	This is a backport from the trunk, consisting of:
+
+	2012-11-17  Eli Zaretskii  <eliz@gnu.org>
+
+	* inc/sys/wait.h: New file, with prototype of waitpid and
+	definitions of macros it needs.
+	* inc/ms-w32.h (wait): Don't define, 'wait' is not used anymore.
+	(sys_wait): Remove prototype.
+	* config.nt (HAVE_SYS_WAIT_H): Define to 1.
+
 2012-11-20  Eli Zaretskii  <eliz@gnu.org>
 
 	* nmake.defs: Use !if, not !ifdef.  See
