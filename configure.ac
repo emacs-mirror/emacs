@@ -329,10 +329,15 @@ if test "${enableval}" != "no"; then
 fi)
 
 
+dnl The name of this option is unfortunate.  It predates, and has no
+dnl relation to, the "sampling-based elisp profiler" added in 24.3.
+dnl Actually, it stops it working.
+dnl http://lists.gnu.org/archive/html/emacs-devel/2012-11/msg00393.html
 AC_ARG_ENABLE(profiling,
 [AS_HELP_STRING([--enable-profiling],
-		[build emacs with profiling support.
-		 This might not work on all platforms])],
+		[build emacs with low-level, gprof profiling support.
+                Mainly useful for debugging Emacs itself.  May not work on
+                all platforms.  Stops profiler.el working.])],
 [ac_enable_profiling="${enableval}"],[])
 if test x$ac_enable_profiling != x ; then
    PROFILING_CFLAGS="-DPROFILING=1 -pg"
@@ -718,6 +723,8 @@ else
   nw="$nw -Wfloat-equal"            # warns about high-quality code
   nw="$nw -Winline"                 # OK to ignore 'inline'
   nw="$nw -Wjump-misses-init"       # We sometimes safely jump over init.
+  nw="$nw -Wstrict-overflow"        # OK to optimize assuming that
+                                    # signed overflow has undefined behavior
   nw="$nw -Wsync-nand"              # irrelevant here, and provokes ObjC warning
   nw="$nw -Wunsafe-loop-optimizations" # OK to suppress unsafe optimizations
 
@@ -725,10 +732,22 @@ else
   # <http://lists.gnu.org/archive/html/emacs-diffs/2011-11/msg00265.html>.
   nw="$nw -Wshadow"
 
-  # The following lines should be removable at some point.
-  nw="$nw -Wstack-protector"
-  nw="$nw -Wstrict-overflow"
+  # The following line should be removable at some point.
   nw="$nw -Wsuggest-attribute=pure"
+
+  AC_MSG_CHECKING([whether to use -Wstack-protector])
+  AC_PREPROC_IFELSE(
+    [AC_LANG_PROGRAM(
+       [[#if (1 <= __LONG_MAX__ >> 31 >> 31 \
+           && 4 < __GNUC__ + (7 < __GNUC_MINOR__ + (2 <= __GNUC_PATCHLEVEL__)))
+	   /* OK */
+         #else
+	   #error "Not GCC, or GCC before 4.7.2, or 'long int' has < 64 bits."
+	 #endif
+       ]])],
+    [AC_MSG_RESULT(yes)],
+    [AC_MSG_RESULT(no)
+     nw="$nw -Wstack-protector"])
 
   gl_MANYWARN_ALL_GCC([ws])
   gl_MANYWARN_COMPLEMENT([ws], [$ws], [$nw])
@@ -1283,7 +1302,7 @@ fi
 dnl checks for header files
 AC_CHECK_HEADERS_ONCE(
   linux/version.h sys/systeminfo.h
-  fcntl.h coff.h pty.h
+  coff.h pty.h
   sys/vlimit.h sys/resource.h
   sys/utsname.h pwd.h utmp.h util.h)
 
@@ -3003,8 +3022,8 @@ AC_SUBST(BLESSMAIL_TARGET)
 AC_CHECK_FUNCS(gethostname \
 getrusage get_current_dir_name \
 lrand48 \
-fpathconf select getpagesize setlocale \
-utimes getrlimit setrlimit getcwd shutdown getaddrinfo \
+select getpagesize setlocale \
+utimes getrlimit setrlimit shutdown getaddrinfo \
 strsignal setitimer \
 sendto recvfrom getsockname getpeername getifaddrs freeifaddrs \
 gai_strerror mkstemp getline getdelim fsync sync \
@@ -3012,14 +3031,6 @@ difftime posix_memalign \
 getpwent endpwent getgrent endgrent \
 touchlock \
 cfmakeraw cfsetspeed copysign __executable_start)
-
-dnl getwd appears to be buggy on SVR4.2, so we don't use it.
-if test $opsys = unixware; then
-  dnl In case some other test ends up checking for getwd.
-  AC_DEFINE(BROKEN_GETWD, 1, [Define if getwd should not be used.])
-else
-  AC_CHECK_FUNCS(getwd)
-fi
 
 ## Eric Backus <ericb@lsid.hp.com> says, HP-UX 9.x on HP 700 machines
 ## has a broken `rint' in some library versions including math library
