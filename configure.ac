@@ -1609,6 +1609,17 @@ if test "${opsys}" = "mingw32"; then
   AC_CHECK_HEADER([windows.h], [HAVE_W32=yes],
                   [AC_MSG_ERROR([The windows.h header file is required,
 		  but cannot be found.])])
+  AC_MSG_CHECKING([whether Windows API headers are recent enough])
+  AC_COMPILE_IFELSE([AC_LANG_PROGRAM([[
+     #include <windows.h>
+     #include <usp10.h>]],
+   [[void test(PIMAGE_NT_HEADERS pHeader)
+     {PIMAGE_SECTION_HEADER pSection = IMAGE_FIRST_SECTION(pHeader);}]])],
+   emacs_cv_w32api=yes, emacs_cv_w32api=no)
+  AC_MSG_RESULT($emacs_cv_w32api)
+  if test "${emacs_cv_w32api}" = "no"; then
+    AC_MSG_ERROR([the Windows API headers are too old to support this build.])
+  fi
 fi
 
 if test "${HAVE_W32}" = "yes"; then
@@ -2614,7 +2625,7 @@ fi
 
 if test "${opsys}" = "mingw32"; then
   if test "${with_xpm}" != "no"; then
-    AC_CHECK_HEADERS(X11/xpm.h, HAVE_XPM=yes, HAVE_XPM=no, [
+    AC_CHECK_HEADER(X11/xpm.h, HAVE_XPM=yes, HAVE_XPM=no, [
 #define FOR_MSW 1])
   fi
 
