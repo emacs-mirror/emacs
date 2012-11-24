@@ -55,6 +55,11 @@ New features include:
   name and arguments.  Useful to trace the value of (current-buffer) or
   (point) when the function is invoked.
 
+** Woman
+
+*** The commands `woman-default-faces' and `woman-monochrome-faces'
+are obsolete.  Customize the `woman-* faces instead.
+
 
 * New Modes and Packages in Emacs 24.4
 ** New nadvice.el package offering lighter-weight advice facilities.

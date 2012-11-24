@@ -1,5 +1,8 @@
 2012-11-24  Chong Yidong  <cyd@gnu.org>
 
+	* woman.el (woman-default-faces, woman-monochrome-faces): Mark as
+	obsolete.
+
 	* custom.el (custom-theme-set-variables): Use a topological sort
 	for ordering by custom dependencies (Bug#12952).
 	(custom--sort-vars, custom--sort-vars-1): New functions.
