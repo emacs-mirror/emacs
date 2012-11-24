@@ -23512,7 +23512,9 @@ draw_glyphs (struct window *w, int x, struct glyph_row *row,
 
       /* If mouse highlighting is on, we may need to draw adjacent
 	 glyphs using mouse-face highlighting.  */
-      if (area == TEXT_AREA && row->mouse_face_p)
+      if (area == TEXT_AREA && row->mouse_face_p
+	  && hlinfo->mouse_face_beg_row >= 0
+	  && hlinfo->mouse_face_end_row >= 0)
 	{
 	  struct glyph_row *mouse_beg_row, *mouse_end_row;
 
