@@ -1,3 +1,7 @@
+2012-11-24  Ken Brown  <kbrown@cornell.edu>
+
+	* configure.ac (HAVE_MOUSE): Remove.
+
 2012-11-23  Paul Eggert  <eggert@cs.ucla.edu>
 
 	Assume POSIX 1003.1-1988 or later for dirent.h (Bug#12958).

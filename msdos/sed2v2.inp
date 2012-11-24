@@ -60,7 +60,6 @@
 /^#undef HAVE_SYNC *$/s/^.*$/#define HAVE_SYNC 1/
 /^#undef HAVE___BUILTIN_UNWIND_INIT *$/s/^.*$/#define HAVE___BUILTIN_UNWIND_INIT 1/
 /^#undef HAVE_MENUS *$/s/^.*$/#define HAVE_MENUS 1/
-/^#undef HAVE_MOUSE *$/s/^.*$/#define HAVE_MOUSE 1/
 /^#undef DATA_START/s/^.*$/#define DATA_START (\&etext + 1)/
 /^#undef GC_SETJMP_WORKS/s/^.*$/#define GC_SETJMP_WORKS 1/
 /^#undef ORDINARY_LINK/s/^.*$/#define ORDINARY_LINK 1/
