@@ -495,7 +495,8 @@ define pgx
   end
   xgettype ($g.object)
   if ($type == Lisp_String)
-    printf " str=%x[%d]", $g.object, $g.charpos
+    xgetptr $g.object
+    printf " str=0x%x[%d]", ((struct Lisp_String *)$ptr)->data, $g.charpos
   else
     printf " pos=%d", $g.charpos
   end

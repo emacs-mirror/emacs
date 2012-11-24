@@ -1,3 +1,30 @@
+2012-11-24  Martin Rudalics  <rudalics@gmx.at>
+
+	* windows.texi (Basic Windows): Fix typo.
+	(Windows and Frames): Fix example.  Move description of
+	window-in-direction here.
+	(Recombining Windows): Fix example.
+	(Buffers and Windows): Fix description of
+	replace-buffer-in-windows.
+	(Switching Buffers): Reword.
+	(Display Action Functions): Minor adjustments.
+	(Choosing Window Options): Minor fixes.
+	(Window History): Minor rewording.
+	(Dedicated Windows): Correct and reword part describing how
+	dedicatedness affects functions removing buffers or windows.
+	* buffers.texi (The Buffer List): Fix description of
+	bury-buffer.
+
+2012-11-24  Chong Yidong  <cyd@gnu.org>
+
+	* modes.texi (%-Constructs): Fix statement about mode construct
+	padding (Bug#12866).
+
+2012-11-24  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* debugging.texi (Profiling): Make it more clear
+	that --enable-profiling is about profiling the C code.
+
 2012-11-21  Glenn Morris  <rgm@gnu.org>
 
 	* display.texi (Attribute Functions):

@@ -1,3 +1,55 @@
+2012-11-24  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* emacs-lisp/bytecomp.el (byte-compile-file): Setup default value for
+	lexical-binding (bug#12938).
+
+2012-11-24  Wolfgang Jenkner  <wjenkner@inode.at>
+
+	* image-mode.el (image-transform-check-size): Use assertions only
+	for images of type imagemagick.
+
+	Otherwise no error, image-transform-fit-to-{width,height} is
+	silently ignored, as before.  Doc fix.
+
+2012-11-24  Chong Yidong  <cyd@gnu.org>
+
+	* faces.el (color-defined-p): Doc fix (Bug#12853).
+
+2012-11-24  Juri Linkov  <juri@jurta.org>
+
+	* dired.el (dired-mark): Add optional arg `interactive'.
+	Check for `use-region-p' if `interactive' is non-nil.
+	(dired-unmark, dired-flag-file-deletion): Add optional arg
+	`interactive'.  Call `dired-mark' with the arg `interactive'.
+	(Bug#10624)
+
+	* wdired.el: Revert 2012-10-17 change partly and replace it with
+	Patch by Christopher Schmidt <christopher@ch.ristopher.com>.
+	(wdired-finish-edit): Add marks for new file names to
+	`wdired-old-marks'.  Restore marks using `dired-mark-remembered'
+	after `revert-buffer'.
+	(wdired-do-renames): Remove calls to `dired-remove-file',
+	`dired-add-file', `dired-add-entry'.  (Bug#11795)
+
+2012-11-24  Alan Mackenzie  <acm@muc.de>
+
+	* progmodes/cc-defs.el (c-version): Bump to 5.32.4.
+
+	Fix bugs in the state cache.  Enhance a debugging mechanism.
+	* progmodes/cc-engine.el (c-parse-state-get-strategy): Don't use
+	"brace at column zero" strategy for C++.
+	(c-append-lower-brace-pair-to-state-cache): Repair algorithm.
+	(c-parse-state-point): New variable.
+	(c-record-parse-state-state): Record old parse state with
+	`copy-tree'.  Record previous value of point.
+	(c-debug-parse-state-double-cons): New debugging function.
+	(c-debug-parse-state): Call the above new function.
+	(c-toggle-parse-state-debug): Output a confirmatory message.
+
+	* progmodes/cc-mode.el (c-before-change, c-after-change):
+	Call c-invalidate-state-cache from `c-before-change' instead of
+	`c-after-change'.
+
 2012-11-23  Chong Yidong  <cyd@gnu.org>
 
 	* find-cmd.el (find-constituents): Add executable, ipath,

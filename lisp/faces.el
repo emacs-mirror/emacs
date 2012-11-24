@@ -929,13 +929,25 @@ of the default face.  Value is FACE."
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 (defun read-face-name (prompt &optional default multiple)
-  "Read a face, defaulting to the face or faces on the char after point.
-If it has the property `read-face-name', that overrides the `face' property.
-PROMPT should be a string that describes what the caller will do with the face;
-it should not end in a space.
+  "Read a face, defaulting to the face or faces at point.
+If the text at point has the property `read-face-name', that
+overrides the `face' property for determining the default.
+
+PROMPT should be a string that describes what the caller will do
+with the face; it should not end in a space.
+
+
+This function uses `completing-read-multiple' with \",\" as the
+separator character, i.e.
+
+
+
+
+
 The optional argument DEFAULT provides the value to display in the
 minibuffer prompt that is returned if the user just types RET
 unless DEFAULT is a string (in which case nil is returned).
+
 If MULTIPLE is non-nil, return a list of faces (possibly only one).
 Otherwise, return a single face."
   (let ((faceprop (or (get-char-property (point) 'read-face-name)
@@ -1692,12 +1704,16 @@ If FRAME is nil, that stands for the selected frame."
 (declare-function xw-color-defined-p "xfns.c" (color &optional frame))
 
 (defun color-defined-p (color &optional frame)
-  "Return non-nil if color COLOR is supported on frame FRAME.
-If FRAME is omitted or nil, use the selected frame.
-If COLOR is the symbol `unspecified' or one of the strings
-\"unspecified-fg\" or \"unspecified-bg\", the value is nil."
-  (if (member color '(unspecified "unspecified-bg" "unspecified-fg"))
-      nil
+  "Return non-nil if COLOR is supported on frame FRAME.
+COLOR should be a string naming a color (e.g. \"white\"), or a
+string specifying a color's RGB components (e.g. \"#ff12ec\"), or
+the symbol `unspecified'.
+
+This function returns nil if COLOR is the symbol `unspecified',
+or one of the strings \"unspecified-fg\" or \"unspecified-bg\".
+
+If FRAME is omitted or nil, use the selected frame."
+  (unless (member color '(unspecified "unspecified-bg" "unspecified-fg"))
     (if (member (framep (or frame (selected-frame))) '(x w32 ns))
 	(xw-color-defined-p color frame)
       (numberp (tty-color-translate color frame)))))
