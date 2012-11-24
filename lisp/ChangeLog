@@ -1,3 +1,8 @@
+2012-11-24  Vincent Belaïche  <vincentb1@users.sourceforge.net>
+
+	* ses.el (ses-rename-cell): Correct bug on mode-line update after
+	cell renaming.
+
 2012-11-24  Chong Yidong  <cyd@gnu.org>
 
 	* woman.el (woman-default-faces, woman-monochrome-faces): Mark as
