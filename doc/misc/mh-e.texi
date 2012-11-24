@@ -6966,23 +6966,22 @@ swish-e -c /home/user/Mail/.swish/config
 @cindex @command{mairix}
 @cindex Unix commands, @command{mairix}
 
-In the examples below, replace @file{/home/user/Mail} with the path to
-your MH directory.
+In the examples below, replace @file{~/Mail} with the path to your MH
+directory.
 
-First create the directory @file{/home/user/Mail/.mairix}. Then create
-the file @file{/home/user/Mail/.mairix/config} with the following
-contents:
+First create the directory @file{~/Mail/.mairix}. Then create the file
+@file{~/Mail/.mairix/config} with the following contents:
 
 @smallexample
 @group
-base=/home/user/Mail
+base=~/Mail
 
 # List of folders that should be indexed. 3 dots at the end means there
 # are subfolders within the folder
 mh=archive...:inbox:drafts:news:sent:trash
 
-vfolder_format=mh
-database=/home/user/Mail/.mairix/database
+mformat=mh
+database=~/Mail/.mairix/database
 @end group
 @end smallexample
 
@@ -6990,7 +6989,7 @@ Use the following command line to generate the mairix index. Run this daily
 from cron:
 
 @smallexample
-mairix -f /home/user/Mail/.mairix/config
+mairix -f ~/Mail/.mairix/config
 @end smallexample
 
 @subsection namazu
