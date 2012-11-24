@@ -1,3 +1,8 @@
+2012-11-24  Jan Djärv  <jan.h.d@swipnet.se>
+
+	* term/ns-win.el (ns-initialize-window-system): Move creation of
+	fontsets here (Bug#11964).
+
 2012-11-24  Vincent Belaïche  <vincentb1@users.sourceforge.net>
 
 	* ses.el (ses-rename-cell): Correct bug on mode-line update after
