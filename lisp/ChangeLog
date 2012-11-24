@@ -1,3 +1,9 @@
+2012-11-24  Chong Yidong  <cyd@gnu.org>
+
+	* custom.el (custom-theme-set-variables): Use a topological sort
+	for ordering by custom dependencies (Bug#12952).
+	(custom--sort-vars, custom--sort-vars-1): New functions.
+
 2012-11-24  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* emacs-lisp/bytecomp.el (byte-compile-file): Setup default value for

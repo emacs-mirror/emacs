@@ -948,7 +948,6 @@ prior to evaluating EXP).
 
 COMMENT is a comment string about SYMBOL."
   (custom-check-theme theme)
-
   ;; Process all the needed autoloads before anything else, so that the
   ;; subsequent code has all the info it needs (e.g. which var corresponds
   ;; to a minor mode), regardless of the ordering of the variables.
@@ -958,29 +957,7 @@ COMMENT is a comment string about SYMBOL."
                   (memq (get symbol 'custom-autoload) '(nil noset)))
         ;; This symbol needs to be autoloaded, even just for a `set'.
         (custom-load-symbol symbol))))
-
-  ;; Move minor modes and variables with explicit requires to the end.
-  (setq args
-	(sort args
-	      (lambda (a1 a2)
-		(let* ((sym1 (car a1))
-		       (sym2 (car a2))
-		       (1-then-2 (memq sym1 (get sym2 'custom-dependencies)))
-		       (2-then-1 (memq sym2 (get sym1 'custom-dependencies))))
-		  (cond ((and 1-then-2 2-then-1)
-			 (error "Circular custom dependency between `%s' and `%s'"
-				sym1 sym2))
-			(2-then-1 nil)
-			;; 1 is a dependency of 2, so needs to be set first.
-			(1-then-2)
-			;; Put minor modes and symbols with :require last.
-			;; Putting minor modes last ensures that the mode
-			;; function will see other customized values rather
-			;; than default values.
-			(t (or (nth 3 a2)
-                               (eq (get sym2 'custom-set)
-                                   'custom-set-minor-mode))))))))
-
+  (setq args (custom--sort-vars args))
   (dolist (entry args)
     (unless (listp entry)
       (error "Incompatible Custom theme spec"))
@@ -1013,6 +990,60 @@ COMMENT is a comment string about SYMBOL."
 	     (message "Error setting %s: %s" symbol data)))
 	  (and (or now (default-boundp symbol))
 	       (put symbol 'variable-comment comment)))))))
+
+(defvar custom--sort-vars-table)
+(defvar custom--sort-vars-result)
+
+(defun custom--sort-vars (vars)
+  "Sort VARS based on custom dependencies.
+VARS is a list whose elements have the same form as the ARGS
+arguments to `custom-theme-set-variables'.  Return the sorted
+list, in which A occurs before B if B was defined with a
+`:set-after' keyword specifying A (see `defcustom')."
+  (let ((custom--sort-vars-table (make-hash-table))
+	(dependants (make-hash-table))
+	(custom--sort-vars-result nil)
+	last)
+    ;; Construct a pair of tables keyed with the symbols of VARS.
+    (dolist (var vars)
+      (puthash (car var) (cons t var) custom--sort-vars-table)
+      (puthash (car var) var dependants))
+    ;; From the second table, remove symbols that are depended-on.
+    (dolist (var vars)
+      (dolist (dep (get (car var) 'custom-dependencies))
+	(remhash dep dependants)))
+    ;; If a variable is "stand-alone", put it last if it's a minor
+    ;; mode or has a :require flag.  This is not really necessary, but
+    ;; putting minor modes last helps ensure that the mode function
+    ;; sees other customized values rather than default values.
+    (maphash (lambda (sym var)
+	       (when (and (null (get sym 'custom-dependencies))
+			  (or (nth 3 var)
+			      (eq (get sym 'custom-set)
+				  'custom-set-minor-mode)))
+		 (remhash sym dependants)
+		 (push var last)))
+	     dependants)
+    ;; The remaining symbols depend on others but are not
+    ;; depended-upon.  Do a depth-first topological sort.
+    (maphash #'custom--sort-vars-1 dependants)
+    (nreverse (append last custom--sort-vars-result))))
+
+(defun custom--sort-vars-1 (sym &optional _ignored)
+  (let ((elt (gethash sym custom--sort-vars-table)))
+    ;; The car of the hash table value is nil if the variable has
+    ;; already been processed, `dependant' if it is a dependant in the
+    ;; current graph descent, and t otherwise.
+    (when elt
+      (cond
+       ((eq (car elt) 'dependant)
+	(error "Circular custom dependency on `%s'" sym))
+       ((car elt)
+	(setcar elt 'dependant)
+	(dolist (dep (get sym 'custom-dependencies))
+	  (custom--sort-vars-1 dep))
+	(setcar elt nil)
+	(push (cdr elt) custom--sort-vars-result))))))
 
 
 ;;; Defining themes.
