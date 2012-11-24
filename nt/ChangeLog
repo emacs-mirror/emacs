@@ -1,9 +1,7 @@
-2012-11-23  Paul Eggert  <eggert@cs.ucla.edu>
+2012-11-23  Eli Zaretskii  <eliz@gnu.org>
 
 	Fix a race condition with glib (Bug#8855).
 	This is a backport from the trunk, consisting of:
-
-	2012-11-17  Eli Zaretskii  <eliz@gnu.org>
 
 	* inc/sys/wait.h: New file, with prototype of waitpid and
 	definitions of macros it needs.

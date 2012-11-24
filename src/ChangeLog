@@ -1,9 +1,18 @@
 2012-11-23  Paul Eggert  <eggert@cs.ucla.edu>
+	    Eli Zaretskii  <eliz@gnu.org>
 
 	Fix a race condition with glib (Bug#8855).
-	This is a backport from the trunk, consisting of:
+	The symptom is a diagnostic "GLib-WARNING **: In call to
+	g_spawn_sync(), exit status of a child process was requested but
+	SIGCHLD action was set to SIG_IGN and ECHILD was received by
+	waitpid(), so exit status can't be returned."  The diagnostic
+	is partly wrong, as the SIGCHLD action is not set to SIG_IGN.
+	The real bug is a race condition between Emacs and glib: Emacs
+	does a waitpid (-1, ...) and reaps glib's subprocess by mistake,
+	so that glib can't find it.  Work around the bug by invoking
+	waitpid only on subprocesses that Emacs itself creates.
 
-	2012-11-17  Eli Zaretskii  <eliz@gnu.org>
+	This is a backport from the trunk, consisting of:
 
 	* w32proc.c (create_child): Don't clip the PID of the child
 	process to fit into an Emacs integer, as this is no longer a
@@ -20,26 +29,10 @@
 
 	* process.c (waitpid, WUNTRACED) [!WNOHANG]: Remove definitions,
 	no longer needed.
-	(record_child_status_change): Remove the setting of
-	record_at_most_one_child for the !WNOHANG case.
-
-	2012-11-03  Paul Eggert  <eggert@cs.ucla.edu>
-
-	Fix a race condition that causes Emacs to mess up glib (Bug#8855).
-	This is a backport from the trunk.
-	The symptom is a diagnostic "GLib-WARNING **: In call to
-	g_spawn_sync(), exit status of a child process was requested but
-	SIGCHLD action was set to SIG_IGN and ECHILD was received by
-	waitpid(), so exit status can't be returned."  The diagnostic
-	is partly wrong, as the SIGCHLD action is not set to SIG_IGN.
-	The real bug is a race condition between Emacs and glib: Emacs
-	does a waitpid (-1, ...) and reaps glib's subprocess by mistake,
-	so that glib can't find it.  Work around the bug by invoking
-	waitpid only on subprocesses that Emacs itself creates.
-	* process.c (create_process, record_child_status_change):
-	Don't use special value -1 in pid field, as the caller now must
-	know the pid rather than having the callee infer it.  The
-	inference was sometimes incorrect anyway, due to another race.
+	(create_process, record_child_status_change): Don't use special
+	value -1 in pid field, as the caller now must know the pid rather
+	than having the callee infer it.  The inference was sometimes
+	incorrect anyway, due to another race.
 	(create_process): Set new 'alive' member if child is created.
 	(process_status_retrieved): New function.
 	(record_child_status_change): Use it.
@@ -47,7 +40,8 @@
 	processes that Emacs already knows about.  Move special-case code
 	for DOS_NT (which lacks WNOHANG) here, from caller.  Keep track of
 	processes that have already been waited for, by testing and
-	clearing new 'alive' member.
+	clearing new 'alive' member. Remove the setting of
+	record_at_most_one_child for the !WNOHANG case.
 	(CAN_HANDLE_MULTIPLE_CHILDREN): Remove, as record_child_status_change
 	now does this internally.
 	(handle_child_signal): Let record_child_status_change do all
