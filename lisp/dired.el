@@ -3109,7 +3109,7 @@ argument or confirmation)."
 	    (insert dired-marker-char)))
       (forward-line 1))))
 
-(defun dired-mark (arg)
+(defun dired-mark (arg &optional interactive)
   "Mark the file at point in the Dired buffer.
 If the region is active, mark all files in the region.
 Otherwise, with a prefix arg, mark files on the next ARG lines.
@@ -3119,10 +3119,10 @@ If on a subdir headerline, mark all its files except `.' and `..'.
 Use \\[dired-unmark-all-files] to remove all marks
 and \\[dired-unmark] on a subdir to remove the marks in
 this subdir."
-  (interactive "P")
+  (interactive (list current-prefix-arg t))
   (cond
    ;; Mark files in the active region.
-   ((and transient-mark-mode mark-active)
+   ((and interactive (use-region-p))
     (save-excursion
       (let ((beg (region-beginning))
 	    (end (region-end)))
@@ -3139,7 +3139,7 @@ this subdir."
        (prefix-numeric-value arg)
        (function (lambda () (delete-char 1) (insert dired-marker-char))))))))
 
-(defun dired-unmark (arg)
+(defun dired-unmark (arg &optional interactive)
   "Unmark the file at point in the Dired buffer.
 If the region is active, unmark all files in the region.
 Otherwise, with a prefix arg, unmark files on the next ARG lines.
@@ -3147,11 +3147,11 @@ Otherwise, with a prefix arg, unmark files on the next ARG lines.
 If looking at a subdir, unmark all its files except `.' and `..'.
 If the region is active in Transient Mark mode, unmark all files
 in the active region."
-  (interactive "P")
+  (interactive (list current-prefix-arg t))
   (let ((dired-marker-char ?\040))
-    (dired-mark arg)))
+    (dired-mark arg interactive)))
 
-(defun dired-flag-file-deletion (arg)
+(defun dired-flag-file-deletion (arg &optional interactive)
   "In Dired, flag the current line's file for deletion.
 If the region is active, flag all files in the region.
 Otherwise, with a prefix arg, flag files on the next ARG lines.
@@ -3159,9 +3159,9 @@ Otherwise, with a prefix arg, flag files on the next ARG lines.
 If on a subdir headerline, flag all its files except `.' and `..'.
 If the region is active in Transient Mark mode, flag all files
 in the active region."
-  (interactive "P")
+  (interactive (list current-prefix-arg t))
   (let ((dired-marker-char dired-del-marker))
-    (dired-mark arg)))
+    (dired-mark arg interactive)))
 
 (defun dired-unmark-backward (arg)
   "In Dired, move up lines and remove marks or deletion flags there.

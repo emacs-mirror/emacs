@@ -1748,6 +1748,9 @@ The value is non-nil if there were no errors, nil if errors."
         ;; There may be a file local variable setting (bug#10419).
         (setq buffer-read-only nil
               filename buffer-file-name))
+      ;; Don't inherit lexical-binding from caller (bug#12938).
+      (unless (local-variable-p 'lexical-binding)
+        (setq-local lexical-binding nil))
       ;; Set the default directory, in case an eval-when-compile uses it.
       (setq default-directory (file-name-directory filename)))
     ;; Check if the file's local variables explicitly specify not to

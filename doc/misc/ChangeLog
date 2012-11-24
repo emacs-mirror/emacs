@@ -1,3 +1,8 @@
+2012-11-23  Jay Belanger  <jay.p.belanger@gmail.com>
+
+	* calc.texi (Date Formatting Codes): Mention the new beginning of
+	the date numbering system.
+
 2012-11-22  Paul Eggert  <eggert@cs.ucla.edu>
 
 	* calc.texi: Fix TeX issues with capitals followed by ".", "?", "!".
