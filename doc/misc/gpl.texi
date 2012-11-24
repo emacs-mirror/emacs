@@ -2,7 +2,7 @@
 @center Version 3, 29 June 2007
 
 @c This file is intended to be included within another document,
-@c hence no sectioning command or @node.  
+@c hence no sectioning command or @node.
 
 @display
 Copyright @copyright{} 2007 Free Software Foundation, Inc. @url{http://fsf.org/}
@@ -222,7 +222,7 @@ terms of section 4, provided that you also meet all of these
 conditions:
 
 @enumerate a
-@item 
+@item
 The work must carry prominent notices stating that you modified it,
 and giving a relevant date.
 
@@ -670,7 +670,7 @@ state the exclusion of warranty; and each file should have at least
 the ``copyright'' line and a pointer to where the full notice is found.
 
 @smallexample
-@var{one line to give the program's name and a brief idea of what it does.}  
+@var{one line to give the program's name and a brief idea of what it does.}
 Copyright (C) @var{year} @var{name of author}
 
 This program is free software: you can redistribute it and/or modify
@@ -693,7 +693,7 @@ If the program does terminal interaction, make it output a short
 notice like this when it starts in an interactive mode:
 
 @smallexample
-@var{program} Copyright (C) @var{year} @var{name of author} 
+@var{program} Copyright (C) @var{year} @var{name of author}
 This program comes with ABSOLUTELY NO WARRANTY; for details type @samp{show w}.
 This is free software, and you are welcome to redistribute it
 under certain conditions; type @samp{show c} for details.

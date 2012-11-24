@@ -1,5 +1,11 @@
 2012-11-24  Paul Eggert  <eggert@cs.ucla.edu>
 
+	* doclicense.texi: Update to latest version from FSF.
+	These are just minor editorial changes.
+	* elisp.texi (GNU Free Documentation License)
+	(GNU General Public Licens):
+	Provide sectioning, since doclicense.texi no longer does that.
+
 	* loading.texi (Named Features): @ -> @@ to fix typo.
 
 2012-11-24  Martin Rudalics  <rudalics@gmx.at>
