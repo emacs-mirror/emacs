@@ -1,3 +1,8 @@
+2012-11-24  Andreas Schwab  <schwab@linux-m68k.org>
+
+	* buff-menu.el (Buffer-menu-buffer+size-width): Fix customize type
+	and obsoletion message.
+
 2012-11-24  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* emacs-lisp/cl-macs.el (cl--transform-lambda): Add back `declare' in
