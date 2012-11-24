@@ -1,3 +1,8 @@
+2012-11-24  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* emacs-lisp/cl-macs.el (cl--transform-lambda): Add back `declare' in
+	the constructs to keep outside of the `cl-block' (bug#12977).
+
 2012-11-24  Chong Yidong  <cyd@gnu.org>
 
 	* mouse.el (mouse-drag-line): Even if the line is not draggable,
