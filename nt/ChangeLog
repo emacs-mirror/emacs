@@ -1,3 +1,7 @@
+2012-11-24  Paul Eggert  <eggert@cs.ucla.edu>
+
+	Revert recent change for Bug#8855; see ../src/ChangeLog.
+
 2012-11-23  Eli Zaretskii  <eliz@gnu.org>
 
 	Fix a race condition with glib (Bug#8855).

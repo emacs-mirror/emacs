@@ -783,6 +783,7 @@ alarm (int seconds)
 /* Child process management list.  */
 int child_proc_count = 0;
 child_process child_procs[ MAX_CHILDREN ];
+child_process *dead_child = NULL;
 
 static DWORD WINAPI reader_thread (void *arg);
 
@@ -1035,6 +1036,9 @@ create_child (char *exe, char *cmdline, char *env, int is_gui_app,
   if (cp->pid < 0)
     cp->pid = -cp->pid;
 
+  /* pid must fit in a Lisp_Int */
+  cp->pid = cp->pid & INTMASK;
+
   *pPid = cp->pid;
 
   return TRUE;
@@ -1110,110 +1114,55 @@ reap_subprocess (child_process *cp)
     delete_child (cp);
 }
 
-/* Wait for a child process specified by PID, or for any of our
-   existing child processes (if PID is nonpositive) to die.  When it
-   does, close its handle.  Return the pid of the process that died
-   and fill in STATUS if non-NULL.  */
+/* Wait for any of our existing child processes to die
+   When it does, close its handle
+   Return the pid and fill in the status if non-NULL.  */
 
-pid_t
-waitpid (pid_t pid, int *status, int options)
+int
+sys_wait (int *status)
 {
   DWORD active, retval;
   int nh;
+  int pid;
   child_process *cp, *cps[MAX_CHILDREN];
   HANDLE wait_hnd[MAX_CHILDREN];
-  DWORD timeout_ms;
-  int dont_wait = (options & WNOHANG) != 0;
 
   nh = 0;
-  /* According to Posix:
-
-     PID = -1 means status is requested for any child process.
-
-     PID > 0 means status is requested for a single child process
-     whose pid is PID.
-
-     PID = 0 means status is requested for any child process whose
-     process group ID is equal to that of the calling process.  But
-     since Windows has only a limited support for process groups (only
-     for console processes and only for the purposes of passing
-     Ctrl-BREAK signal to them), and since we have no documented way
-     of determining whether a given process belongs to our group, we
-     treat 0 as -1.
-
-     PID < -1 means status is requested for any child process whose
-     process group ID is equal to the absolute value of PID.  Again,
-     since we don't support process groups, we treat that as -1.  */
-  if (pid > 0)
+  if (dead_child != NULL)
     {
-      int our_child = 0;
-
-      /* We are requested to wait for a specific child.  */
-      for (cp = child_procs + (child_proc_count-1); cp >= child_procs; cp--)
-	{
-	  /* Some child_procs might be sockets; ignore them.  Also
-	     ignore subprocesses whose output is not yet completely
-	     read.  */
-	  if (CHILD_ACTIVE (cp)
-	      && cp->procinfo.hProcess
-	      && cp->pid == pid)
-	    {
-	      our_child = 1;
-	      break;
-	    }
-	}
-      if (our_child)
-	{
-	  if (cp->fd < 0 || (fd_info[cp->fd].flags & FILE_AT_EOF) != 0)
-	    {
-	      wait_hnd[nh] = cp->procinfo.hProcess;
-	      cps[nh] = cp;
-	      nh++;
-	    }
-	  else if (dont_wait)
-	    {
-	      /* PID specifies our subprocess, but its status is not
-		 yet available.  */
-	      return 0;
-	    }
-	}
-      if (nh == 0)
-	{
-	  /* No such child process, or nothing to wait for, so fail.  */
-	  errno = ECHILD;
-	  return -1;
-	}
+      /* We want to wait for a specific child */
+      wait_hnd[nh] = dead_child->procinfo.hProcess;
+      cps[nh] = dead_child;
+      if (!wait_hnd[nh]) emacs_abort ();
+      nh++;
+      active = 0;
+      goto get_result;
     }
   else
     {
       for (cp = child_procs + (child_proc_count-1); cp >= child_procs; cp--)
-	{
-	  if (CHILD_ACTIVE (cp)
-	      && cp->procinfo.hProcess
-	      && (cp->fd < 0 || (fd_info[cp->fd].flags & FILE_AT_EOF) != 0))
-	    {
-	      wait_hnd[nh] = cp->procinfo.hProcess;
-	      cps[nh] = cp;
-	      nh++;
-	    }
-	}
-      if (nh == 0)
-	{
-	  /* Nothing to wait on, so fail.  */
-	  errno = ECHILD;
-	  return -1;
-	}
+	/* some child_procs might be sockets; ignore them */
+	if (CHILD_ACTIVE (cp) && cp->procinfo.hProcess
+	    && (cp->fd < 0 || (fd_info[cp->fd].flags & FILE_AT_EOF) != 0))
+	  {
+	    wait_hnd[nh] = cp->procinfo.hProcess;
+	    cps[nh] = cp;
+	    nh++;
+	  }
     }
 
-  if (dont_wait)
-    timeout_ms = 0;
-  else
-    timeout_ms = 1000;	/* check for quit about once a second. */
+  if (nh == 0)
+    {
+      /* Nothing to wait on, so fail */
+      errno = ECHILD;
+      return -1;
+    }
 
   do
     {
+      /* Check for quit about once a second. */
       QUIT;
-      active = WaitForMultipleObjects (nh, wait_hnd, FALSE, timeout_ms);
+      active = WaitForMultipleObjects (nh, wait_hnd, FALSE, 1000);
     } while (active == WAIT_TIMEOUT);
 
   if (active == WAIT_FAILED)
@@ -1243,10 +1192,8 @@ get_result:
     }
   if (retval == STILL_ACTIVE)
     {
-      /* Should never happen.  */
+      /* Should never happen */
       DebPrint (("Wait.WaitForMultipleObjects returned an active process\n"));
-      if (pid > 0 && dont_wait)
-	return 0;
       errno = EINVAL;
       return -1;
     }
@@ -1260,8 +1207,6 @@ get_result:
   else
     retval <<= 8;
 
-  if (pid > 0 && active != 0)
-    emacs_abort ();
   cp = cps[active];
   pid = cp->pid;
 #ifdef FULL_DEBUG
@@ -2050,7 +1995,9 @@ count_children:
 	      DebPrint (("select calling SIGCHLD handler for pid %d\n",
 			 cp->pid));
 #endif
+	      dead_child = cp;
 	      sig_handlers[SIGCHLD] (SIGCHLD);
+	      dead_child = NULL;
 	    }
 	}
       else if (fdindex[active] == -1)

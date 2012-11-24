@@ -1,3 +1,12 @@
+2012-11-24  Paul Eggert  <eggert@cs.ucla.edu>
+
+	Revert recent change for Bug#8855.
+	As reported by Harald Hanche-Olsen in
+	<http://lists.gnu.org/archive/html/emacs-devel/2012-11/msg00445.html>
+	the change introduces a further bug, of creating lots of zombie
+	processes in some cases.  Further work is needed to come up with a
+	better fix for Bug#8855.
+
 2012-11-24  Eli Zaretskii  <eliz@gnu.org>
 
 	* xdisp.c (draw_glyphs): Don't draw in mouse face if mouse
