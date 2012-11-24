@@ -526,7 +526,8 @@ case "${canonical}" in
       *-darwin* )               opsys=darwin ;;
       *-mingw32 )		
 		opsys=mingw32
-		CFLAGS="-mtune=pentium4 $CFLAGS"
+		# MinGW overrides and adds some system headers in nt/inc.
+		GCC_TEST_OPTIONS="-I nt/inc"
 		;;
       *-sysv4.2uw* )	  	opsys=unixware ;;
       *-sysv5uw* )	  	opsys=unixware ;;
@@ -988,7 +989,7 @@ C_SWITCH_SYSTEM=
 ## additional optimization.  --nils@exp-math.uni-essen.de
 test "$opsys" = "aix4.2" && test "x$GCC" != "xyes" && \
   C_SWITCH_SYSTEM="-ma -qmaxmem=4000"
-test "$opsys" = "mingw32" && C_SWITCH_SYSTEM="-DUSE_CRT_DLL=1 -I../nt/inc"
+test "$opsys" = "mingw32" && C_SWITCH_SYSTEM="-mtune=pentium4"
 ## gnu-linux might need -D_BSD_SOURCE on old libc5 systems.
 ## It is redundant in glibc2, since we define _GNU_SOURCE.
 AC_SUBST(C_SWITCH_SYSTEM)
@@ -2905,7 +2906,7 @@ AC_SUBST(LIBXML2_LIBS)
 AC_SUBST(LIBXML2_CFLAGS)
 
 # If netdb.h doesn't declare h_errno, we must declare it by hand.
-# On MinGW, that is provided by nt/inc/sys/socket.h.
+# On MinGW, that is provided by nt/inc/sys/socket.h and w32.c.
 if test "${opsys}" = "mingw32"; then
   emacs_cv_netdb_declares_h_errno=yes
 fi
@@ -3926,10 +3927,14 @@ else
   esac
 fi                              dnl GCC?
 
+dnl In a weird quirk, MS runtime uses _setjmp and longjmp.
 AC_CACHE_CHECK([for _setjmp], [emacs_cv_func__setjmp],
   [AC_LINK_IFELSE(
      [AC_LANG_PROGRAM(
        [[#include <setjmp.h>
+         #ifdef __MINGW32__
+         # define _longjmp longjmp
+         #endif
        ]],
        [[jmp_buf j;
 	 if (! _setjmp (j))
@@ -4275,12 +4280,14 @@ case "$USE_X_TOOLKIT" in
 esac
 AC_SUBST(TOOLKIT_LIBW)
 
-if test "$USE_X_TOOLKIT" = "none"; then
-  LIBXT_OTHER="\$(LIBXSM)"
-  OLDXMENU_TARGET="really-oldXMenu"
-else
-  LIBXT_OTHER="\$(LIBXMU) -lXt \$(LIBXTR6) -lXext"
-  OLDXMENU_TARGET="really-lwlib"
+if test "${opsys}" != "mingw32"; then
+  if test "$USE_X_TOOLKIT" = "none"; then
+    LIBXT_OTHER="\$(LIBXSM)"
+    OLDXMENU_TARGET="really-oldXMenu"
+  else
+    LIBXT_OTHER="\$(LIBXMU) -lXt \$(LIBXTR6) -lXext"
+    OLDXMENU_TARGET="really-lwlib"
+  fi
 fi
 AC_SUBST(LIBXT_OTHER)
 
@@ -4384,6 +4391,12 @@ gl_ASSERT_NO_GNULIB_TESTS
 gl_INIT
 CFLAGS=$SAVE_CFLAGS
 LIBS=$SAVE_LIBS
+
+if test "${opsys}" = "mingw32"; then
+  CPPFLAGS="-DUSE_CRT_DLL=1 -I../nt/inc"
+  # Remove unneeded switches from the value of CC that goes to Makefiles
+  CC=`echo $CC | sed -e "s,$GCC_TEST_OPTIONS,,"`
+fi
 
 case "$opsys" in
   aix4-2) LD_SWITCH_SYSTEM_TEMACS="-Wl,-bnodelcsect" ;;
