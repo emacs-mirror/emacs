@@ -122,7 +122,7 @@ Used by the \\[mh-edit-again] and \\[mh-extract-rejected-mail] commands.")
   "Syntax table used by MH-E while in MH-Letter mode.")
 
 (defvar mh-regexp-in-field-syntax-table nil
-  "Specify a syntax table for mh-regexp-in-field-p to use instead of determining")
+  "Specify a syntax table for `mh-regexp-in-field-p' to use.")
 
 (defvar mh-fcc-syntax-table
   (let ((syntax-table (make-syntax-table text-mode-syntax-table)))
@@ -428,45 +428,49 @@ See also `mh-send'."
     (mh-clean-msg-header (point-min) mh-new-draft-cleaned-headers nil)
     (mh-insert-header-separator)
     ;; Merge in components
-    (mh-mapc (function (lambda (header-field)
-                         (let ((field (car header-field))
-                               (value (cdr header-field))
-                               (case-fold-search t))
-                           (cond
-                            ;; Address field
-                            ((string-match field "^To$\\|^Cc$\\|^From$")
-                             (cond
-                              ((not (mh-goto-header-field (concat field ":")))
-                              ;; Header field does not exist, add it
-                              (mh-goto-header-end 0)
-                              (insert field ": " value "\n"))
-                             ((string-equal value "")
-                               ;; Header field already exists and no value
-                               )
-                             (t
-                              ;; Header field exists and we have a value
-                              (let (address mailbox (alias (mh-alias-expand value)))
-                                (and alias
-                                     (setq address (ietf-drums-parse-address alias))
-                                     (setq mailbox (car address)))
-                                ;; XXX - Need to parse all addresses out of field
-                                (if (and
-                                     (not (mh-regexp-in-field-p (concat "\\b" (regexp-quote value) "\\b") field))
-                                     mailbox
-                                     (not (mh-regexp-in-field-p (concat "\\b" (regexp-quote mailbox) "\\b") field)))
-                                    (insert " " value ","))
-                                ))))
-                            ((string-match field "^Fcc$")
-                             ;; Folder reference
-                             (mh-modify-header-field field value))
-                            ;; Text field, that's an easy case
-                            (t
-                             (mh-modify-header-field field value))))))
-             (mh-components-to-list (mh-find-components)))
+    (mh-mapc
+     (function
+      (lambda (header-field)
+        (let ((field (car header-field))
+              (value (cdr header-field))
+              (case-fold-search t))
+          (cond
+           ;; Address field
+           ((string-match field "^To$\\|^Cc$\\|^From$")
+            (cond
+             ((not (mh-goto-header-field (concat field ":")))
+              ;; Header field does not exist, add it
+              (mh-goto-header-end 0)
+              (insert field ": " value "\n"))
+             ((string-equal value "")
+              ;; Header field already exists and no value
+              )
+             (t
+              ;; Header field exists and we have a value
+              (let (address mailbox (alias (mh-alias-expand value)))
+                (and alias
+                     (setq address (ietf-drums-parse-address alias))
+                     (setq mailbox (car address)))
+                ;; XXX - Need to parse all addresses out of field
+                (if (and
+                     (not (mh-regexp-in-field-p
+                           (concat "\\b" (regexp-quote value) "\\b") field))
+                     mailbox
+                     (not (mh-regexp-in-field-p
+                           (concat "\\b" (regexp-quote mailbox) "\\b") field)))
+                    (insert " " value ","))
+                ))))
+           ((string-match field "^Fcc$")
+            ;; Folder reference
+            (mh-modify-header-field field value))
+           ;; Text field, that's an easy case
+           (t
+            (mh-modify-header-field field value))))))
+     (mh-components-to-list (mh-find-components)))
     (goto-char (point-min))
     (save-buffer)
-    (mh-compose-and-send-mail draft "" from-folder nil nil nil nil nil nil
-                              config)
+    (mh-compose-and-send-mail
+     draft "" from-folder nil nil nil nil nil nil config)
     (mh-letter-mode-message)
     (mh-letter-adjust-point)))
 
@@ -484,7 +488,7 @@ Returns a list of field name and value (which may be null)."
 
 
 (defun mh-components-to-list (components)
-  "Read in the components file and convert to a list of field names and values."
+  "Convert the COMPONENTS file to a list of field names and values."
   (with-current-buffer (get-buffer-create mh-temp-buffer)
     (erase-buffer)
     (insert-file-contents components)
@@ -1190,8 +1194,7 @@ discarded."
   (let ((old-syntax-table (syntax-table)))
     (unwind-protect
         (save-excursion
-          (let ((search-result nil)
-                (field))
+          (let ((search-result nil))
             (while fields
               (let ((field (car fields))
                     (syntax-table mh-regexp-in-field-syntax-table))
@@ -1214,7 +1217,7 @@ discarded."
                   (setq fields (cdr fields)))
                 (set-syntax-table old-syntax-table)))
             search-result))
-    (set-syntax-table old-syntax-table))))
+      (set-syntax-table old-syntax-table))))
 
 (defun mh-ascii-buffer-p ()
   "Check if current buffer is entirely composed of ASCII.

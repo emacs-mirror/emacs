@@ -1,5 +1,10 @@
 2012-11-25  Bill Wohler  <wohler@newt.com>
 
+	* mh-comp.el (mh-regexp-in-field-syntax-table): Fix docstring.
+	(mh-edit-again): Format.
+	(mh-components-to-list): Fix docstring. 
+	(mh-regexp-in-field-p): Remove unused variable `field'.
+
 	* mh-compat.el (mh-define-obsolete-variable-alias)
 	(mh-make-obsolete-variable): New macros to fix XEmacs compiler
 	warnings.
