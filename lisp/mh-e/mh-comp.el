@@ -1140,7 +1140,7 @@ added; otherwise return nil."
           (while list
             (let ((regexp (nth 0 (car list)))
                   (entries (nth 1 (car list))))
-              (when (mh-regexp-in-field-p regexp mh-addr-syntax-table "To:" "cc:")
+              (when (mh-regexp-in-field-p regexp "To:" "cc:")
                 (setq mh-insert-auto-fields-done-local t)
                 (setq fields-inserted t)
                 (if (not non-interactive)
