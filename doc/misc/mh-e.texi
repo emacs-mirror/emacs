@@ -7394,6 +7394,9 @@ The name of the MH sequence for ticked messages (default: @samp{'tick}).
 @item mh-update-sequences-after-mh-show-flag
 On means flush MH sequences to disk after message is shown (default:
 @samp{on}).
+@item mh-whitelist-preserves-sequences-flag
+On means that sequences are preserved when messages are whitelisted
+(default: @samp{on}).
 @end vtable
 
 The following hook is available.
@@ -7599,6 +7602,40 @@ Disposition of junk mail (default: @samp{Delete Spam}).
 Spam program that MH-E should use (default: @samp{Auto-detect}).
 @end vtable
 
+@cindex @samp{mh-sequences} customization group
+@cindex customization group, @samp{mh-sequences}
+
+The following option in the @samp{mh-sequences} customization group is
+also available.
+
+@vtable @code
+@item mh-whitelist-preserves-sequences-flag
+On means that sequences are preserved when messages are whitelisted
+(default: @samp{on}).
+@end vtable
+
+The following hooks are available.
+
+@vtable @code
+@item mh-blacklist-msg-hook
+Hook run by @kbd{J b} (@code{mh-junk-blacklist}) after marking each
+message for blacklisting (default: @code{nil}).
+@c -------------------------
+@item mh-whitelist-msg-hook
+Hook run by @kbd{J w} (@code{mh-junk-whitelist}) after marking each
+message for whitelisting (default @samp{nil}).
+@end vtable
+
+The following faces are available.
+
+@vtable @code
+@item mh-folder-blacklisted
+Blacklisted message face.
+@c -------------------------
+@item mh-folder-whitelisted
+Whitelisted message face
+@end vtable
+
 @cindex SpamProbe
 @cindex Spamassassin
 @cindex bogofilter
@@ -7640,6 +7677,18 @@ In contrast, the command @kbd{J w} (@code{mh-junk-whitelist})
 reclassifies a range of messages (@pxref{Ranges}) as ham if it were
 incorrectly classified as spam. It then refiles the message into the
 @file{+inbox} folder.
+
+@cindex MH profile component, @samp{Previous-Sequence:}
+@cindex @samp{cur} sequence
+@cindex @samp{Previous-Sequence:} MH profile component
+@cindex sequence, @samp{cur}
+@cindex sequence, @samp{Previous-Sequence}
+@vindex mh-whitelist-preserves-sequences-flag
+
+If a message is in any sequence (except @samp{Previous-Sequence:} and
+@samp{cur}) when it is whitelisted, then it will still be in those
+sequences in the destination folder. If this behavior is not desired,
+then turn off the option @code{mh-whitelist-preserves-sequences-flag}.
 
 @cindex @samp{*MH-E Log*}
 @cindex buffers, @samp{*MH-E Log*}
