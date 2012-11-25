@@ -25494,9 +25494,6 @@ if test "$window_system" != "none"; then
 
 $as_echo "#define HAVE_WINDOW_SYSTEM 1" >>confdefs.h
 
-
-$as_echo "#define HAVE_MOUSE 1" >>confdefs.h
-
   WINDOW_SYSTEM_OBJ="fontset.o fringe.o image.o"
 fi
 
