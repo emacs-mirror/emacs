@@ -1,3 +1,30 @@
+2012-11-25  Bill Wohler  <wohler@newt.com>
+
+	* mh-compat.el (mh-define-obsolete-variable-alias)
+	(mh-make-obsolete-variable): New macros to fix XEmacs compiler
+	warnings.
+
+	* mh-letter.el (mh-yank-hooks): Use new mh-make-obsolete-variable
+	macro.
+
+	* mh-e.el (mh-kill-folder-suppress-prompt-hooks): Use
+	new mh-define-obsolete-variable-alias macro.
+
+	* mh-compat.el (mh-cl-flet): New alias for cl-flet on Emacs 24 and
+	flet elsewhere.
+
+	* mh-thread.el (mh-thread-set-tables): Replace flet with new alias
+	mh-cl-flet.
+
+	* mh-show.el (mh-gnus-article-highlight-citation):  Replace flet with new alias
+	mh-cl-flet.
+
+	* mh-mime.el (mh-display-with-external-viewer, mh-mime-display)
+	(mh-press-button, mh-push-button, mh-display-emphasis): Replace
+	flet with new alias mh-cl-flet.
+
+	* mh-e.el (mh-invisible-header-fields-internal): Remove trailing whitespace.
+
 2012-11-25  Jeffrey C Honig  <jch@honig.net>
 
 	* mh-comp.el: (mh-edit-again): Use the components file to specify
@@ -10,8 +37,7 @@
 	(mh-find-components, mh-send-sub): Move code to locate components
 	file into a new function.
 	(mh-insert-auto-fields, mh-modify-header-field): New syntax for
-	calling mh-regexp-in-field-p.
-	(closes SF #1708292)
+	calling mh-regexp-in-field-p (closes SF #1708292).
 
 2012-10-23  Stefan Monnier  <monnier@iro.umontreal.ca>
 

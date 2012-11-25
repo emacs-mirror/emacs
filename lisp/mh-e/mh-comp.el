@@ -888,7 +888,7 @@ Optional argument BUFFER can be used to specify the buffer."
      (t
       (error "Can't find %s in %s or %s"
              mh-comp-formfile mh-user-path mh-lib)))))
-  
+
 (defun mh-send-sub (to cc subject config)
   "Do the real work of composing and sending a letter.
 Expects the TO, CC, and SUBJECT fields as arguments.
@@ -1204,7 +1204,7 @@ discarded."
                         (setq syntax-table mh-fcc-syntax-table))
                        (t
                         (setq syntax-table (syntax-table)))
-                       )))           
+                       )))
                 (if (and (mh-goto-header-field field)
                          (set-syntax-table syntax-table)
                          (re-search-forward

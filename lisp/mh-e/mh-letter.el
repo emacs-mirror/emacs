@@ -68,7 +68,7 @@ citation text as modified.
 
 This is a normal hook, misnamed for historical reasons.
 It is obsolete and is only used if `mail-citation-hook' is nil.")
-(make-obsolete-variable 'mh-yank-hooks 'mail-citation-hook "19.34")
+(mh-make-obsolete-variable 'mh-yank-hooks 'mail-citation-hook "19.34")
 
 
 

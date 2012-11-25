@@ -2671,7 +2671,7 @@ of citations entirely, choose \"None\"."
     "X-MailScanner"                     ; ListProc(tm) by CREN
     "X-Mailutils-Message-Id"            ; GNU Mailutils
     "X-Majordomo:"                      ; Majordomo mailing list manager
-    "X-Match:"				
+    "X-Match:"
     "X-MaxCode-Template:"		; Paypal http://www.paypal.com
     "X-MB-Message-"                     ; AOL WebMail
     "X-MDaemon-Deliver-To:"
@@ -3276,7 +3276,7 @@ function used to insert the signature with
   :group 'mh-letter
   :package-version '(MH-E . "8.0"))
 
-(define-obsolete-variable-alias 'mh-kill-folder-suppress-prompt-hooks
+(mh-define-obsolete-variable-alias 'mh-kill-folder-suppress-prompt-hooks
   'mh-kill-folder-suppress-prompt-functions "24.3")
 (defcustom-mh mh-kill-folder-suppress-prompt-functions '(mh-search-p)
   "Abnormal hook run at the beginning of \\<mh-folder-mode-map>\\[mh-kill-folder].
