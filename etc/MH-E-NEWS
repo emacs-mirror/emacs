@@ -3,6 +3,68 @@
 Copyright (C) 2001-2012  Free Software Foundation, Inc.
 See the end of the file for license conditions.
 
+* Changes in MH-E 8.4
+
+Version 8.4 postpones junk processing and merges in your components
+file when re-editing a draft. A few bugs were also fixed.
+
+** New Features in MH-E 8.4
+
+*** Postpone junk processing
+
+The `J w' (`mh-junk-whitelist') and `J b' (`mh-junk-blacklist')
+commands now mark the message. Like with other marks, this mark can be
+removed with `u' (`mh-undo') and processed with `x'
+(`mh-execute-commands'). Thanks to Ted Phelps (closes SF #2945712).
+
+** New Variables in MH-E 8.4
+
+*** mh-blacklist-msg-hook
+
+Hook run by `J b' (`mh-junk-blacklist') after marking each message for blacklisting.
+
+*** mh-whitelist-msg-hook
+
+Hook run by `J w' (`mh-junk-whitelist') after marking each message for whitelisting.
+
+*** mh-whitelist-preserves-sequences-flag
+
+Non-nil means that sequences are preserved when messages are
+whitelisted.
+
+** New Faces in MH-E 8.4
+
+*** mh-folder-blacklisted
+
+Blacklisted message face.
+
+*** mh-folder-whitelisted
+
+Whitelisted message face.
+
+** Bug Fixes in MH-E 8.4
+
+*** mh-edit-again should add Fcc
+
+More generally, `mh-edit-again' now merges the components file into
+the draft (closes SF #1708292).
+
+*** Loses changes when message column goes from 1 to 2 digits
+
+Call `mh-process-or-undo-commands' before running inc to insure we do
+not lose any pending changes (closes SF #2321115).
+
+*** mh-yank-cur-msg fails in emacs 23
+
+Replace usage of `set-buffer' with `with-current-buffer' (closes SF
+#2830504).
+
+*** Folder pack action (Fp) missing in show mode
+
+Add missing key binding for `mh-show-pack-folder' (closes SF #3466086).
+
+
+
 * Changes in MH-E 8.3.1
 
 This version of MH-E fixes typos in the documentation and is packaged
