@@ -1,3 +1,7 @@
+2012-11-25  Paul Eggert  <eggert@cs.ucla.edu>
+
+	* sysdep.c (sys_subshell): Don't assume pid_t fits in int.
+
 2012-11-24  Ken Brown  <kbrown@cornell.edu>
 
 	* keyboard.c (HAVE_MOUSE):
