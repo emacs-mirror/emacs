@@ -52,27 +52,64 @@ program, see:
   - `mh-bogofilter-blacklist'
   - `mh-spamprobe-blacklist'"
   (interactive (list (mh-interactive-range "Blacklist")))
+  (mh-iterate-on-range () range (mh-blacklist-a-msg nil))
+  (if (looking-at mh-scan-blacklisted-msg-regexp)
+      (mh-next-msg)))
+
+(defun mh-blacklist-a-msg (message)
+  "Blacklist MESSAGE.
+If MESSAGE is nil then the message at point is blacklisted.
+The hook `mh-blacklisted-msg-hook' is called after you mark a message
+for blacklisting."
+  (save-excursion
+    (if (numberp message)
+        (mh-goto-msg message nil t)
+      (beginning-of-line)
+      (setq message (mh-get-msg-num t)))
+    (cond ((looking-at mh-scan-refiled-msg-regexp)
+           (error "Message %d is refiled; undo refile before blacklisting"
+                  message))
+          ((looking-at mh-scan-deleted-msg-regexp)
+           (error "Message %d is deleted; undo delete before blacklisting"
+                  message))
+          ((looking-at mh-scan-whitelisted-msg-regexp)
+           (error "Message %d is whitelisted; undo before blacklisting"
+                  message))
+          ((looking-at mh-scan-blacklisted-msg-regexp) nil)
+          (t
+           (mh-set-folder-modified-p t)
+           (setq mh-blacklist (cons message mh-blacklist))
+           (if (not (memq message mh-seen-list))
+               (setq mh-seen-list (cons message mh-seen-list)))
+           (mh-notate nil mh-note-blacklisted mh-cmd-note)
+           (run-hooks 'mh-blacklist-msg-hook)))))
+
+;;;###mh-autoload
+(defun mh-junk-blacklist-disposition ()
+  "Determines the fate of the selected spam."
+  (cond ((null mh-junk-disposition) nil)
+        ((equal mh-junk-disposition "") "+")
+        ((eq (aref mh-junk-disposition 0) ?+)
+         mh-junk-disposition)
+        ((eq (aref mh-junk-disposition 0) ?@)
+         (concat mh-current-folder "/"
+                 (substring mh-junk-disposition 1)))
+        (t (concat "+" mh-junk-disposition))))
+
+;;;###mh-autoload
+(defun mh-junk-process-blacklist (range)
+  "Blacklist RANGE as spam.
+This command trains the spam program in use (see the option
+`mh-junk-program') with the content of RANGE and then handles the
+message(s) as specified by the option `mh-junk-disposition'."
   (let ((blacklist-func (nth 1 (assoc mh-junk-choice mh-junk-function-alist))))
     (unless blacklist-func
       (error "Customize `mh-junk-program' appropriately"))
-    (let ((dest (cond ((null mh-junk-disposition) nil)
-                      ((equal mh-junk-disposition "") "+")
-                      ((eq (aref mh-junk-disposition 0) ?+)
-                       mh-junk-disposition)
-                      ((eq (aref mh-junk-disposition 0) ?@)
-                       (concat mh-current-folder "/"
-                               (substring mh-junk-disposition 1)))
-                      (t (concat "+" mh-junk-disposition)))))
-      (mh-iterate-on-range msg range
-        (message "Blacklisting message %d..." msg)
-        (funcall (symbol-function blacklist-func) msg)
-        (message "Blacklisting message %d...done" msg)
-        (if (not (memq msg mh-seen-list))
-            (setq mh-seen-list (cons msg mh-seen-list)))
-        (if dest
-            (mh-refile-a-msg nil (intern dest))
-          (mh-delete-a-msg nil)))
-      (mh-next-msg))))
+    (mh-iterate-on-range msg range
+      (message "Blacklisting message %d..." msg)
+      (funcall (symbol-function blacklist-func) msg)
+      (message "Blacklisting message %d...done" msg))
+    (mh-next-msg)))
 
 ;;;###mh-autoload
 (defun mh-junk-whitelist (range)
@@ -85,14 +122,49 @@ refiles the message into the \"+inbox\" folder.
 Check the documentation of `mh-interactive-range' to see how
 RANGE is read in interactive use."
   (interactive (list (mh-interactive-range "Whitelist")))
+  (mh-iterate-on-range () range (mh-junk-whitelist-a-msg nil))
+  (if (looking-at mh-scan-whitelisted-msg-regexp)
+      (mh-next-msg)))
+
+(defun mh-junk-whitelist-a-msg (message)
+  "Whitelist MESSAGE.
+If MESSAGE is nil then the message at point is whitelisted. The
+hook `mh-whitelist-msg-hook' is called after you mark a message
+for whitelisting."
+  (save-excursion
+    (if (numberp message)
+        (mh-goto-msg message nil t)
+      (beginning-of-line)
+      (setq message (mh-get-msg-num t)))
+    (cond ((looking-at mh-scan-refiled-msg-regexp)
+           (error "Message %d is refiled; undo refile before whitelisting"
+                  message))
+          ((looking-at mh-scan-deleted-msg-regexp)
+           (error "Message %d is deleted; undo delete before whitelisting"
+                  message))
+          ((looking-at mh-scan-blacklisted-msg-regexp)
+           (error "Message %d is blacklisted; undo before whitelisting"
+                  message))
+          ((looking-at mh-scan-whitelisted-msg-regexp) nil)
+          (t
+           (mh-set-folder-modified-p t)
+           (setq mh-whitelist (cons message mh-whitelist))
+           (mh-notate nil mh-note-whitelisted mh-cmd-note)
+           (run-hooks 'mh-whitelist-msg-hook)))))
+
+;;;###mh-autoload
+(defun mh-junk-process-whitelist (range)
+  "Whitelist RANGE as ham.
+
+This command reclassifies the RANGE as ham if it were incorrectly
+classified as spam (see the option `mh-junk-program')."
   (let ((whitelist-func (nth 2 (assoc mh-junk-choice mh-junk-function-alist))))
     (unless whitelist-func
       (error "Customize `mh-junk-program' appropriately"))
     (mh-iterate-on-range msg range
       (message "Whitelisting message %d..." msg)
       (funcall (symbol-function whitelist-func) msg)
-      (message "Whitelisting message %d...done" msg)
-      (mh-refile-a-msg nil (intern mh-inbox)))
+      (message "Whitelisting message %d...done" msg))
     (mh-next-msg)))
 
 

@@ -75,6 +75,12 @@ introduced in Emacs 22."
       'cancel-timer
     'delete-itimer))
 
+;; Emacs 24 renamed flet to cl-flet.
+(defalias 'mh-cl-flet
+  (if (fboundp 'cl-flet)
+      'cl-flet
+    'flet))
+
 (defun mh-display-color-cells (&optional display)
   "Return the number of color cells supported by DISPLAY.
 This function is used by XEmacs to return 2 when `device-color-cells'
@@ -241,6 +247,40 @@ This function returns nil on those systems."
   "Emacs 21 and XEmacs don't have `mail-abbrev-make-syntax-table'.
 This function returns nil on those systems."
   nil)
+
+(defmacro mh-define-obsolete-variable-alias
+  (obsolete-name current-name &optional when docstring)
+  "Make OBSOLETE-NAME a variable alias for CURRENT-NAME and mark it obsolete.
+See documentation for `define-obsolete-variable-alias' for a description
+of the arguments OBSOLETE-NAME, CURRENT-NAME, and perhaps WHEN
+and DOCSTRING. This macro is used by XEmacs that lacks WHEN and
+DOCSTRING arguments."
+  (if (featurep 'xemacs)
+      `(define-obsolete-variable-alias ,obsolete-name ,current-name)
+    `(define-obsolete-variable-alias ,obsolete-name ,current-name ,when ,docstring)))
+
+(defmacro mh-make-obsolete-variable (obsolete-name current-name &optional when access-type)
+  "Make the byte-compiler warn that OBSOLETE-NAME is obsolete.
+See documentation for `make-obsolete-variable' for a description
+of the arguments OBSOLETE-NAME, CURRENT-NAME, and perhaps WHEN
+and ACCESS-TYPE. This macro is used by XEmacs that lacks WHEN and
+ACCESS-TYPE arguments."
+  (if (featurep 'xemacs)
+      `(make-obsolete-variable ,obsolete-name ,current-name)
+    `(make-obsolete-variable ,obsolete-name ,current-name ,when ,access-type)))
+
+(defmacro mh-make-obsolete-variable (obsolete-name current-name &optional when access-type)
+  "Make the byte-compiler warn that OBSOLETE-NAME is obsolete.
+See documentation for `make-obsolete-variable' for a description
+of the arguments OBSOLETE-NAME, CURRENT-NAME, and perhaps WHEN
+and ACCESS-TYPE. This macro is used by XEmacs that lacks WHEN and
+ACCESS-TYPE arguments and by Emacs versions that lack ACCESS-TYPE,
+introduced in Emacs 24."
+  (if (featurep 'xemacs)
+      `(make-obsolete-variable ,obsolete-name ,current-name)
+    (if (< emacs-major-version 24)
+        `(make-obsolete-variable ,obsolete-name ,current-name ,when)
+      `(make-obsolete-variable ,obsolete-name ,current-name ,when ,access-type))))
 
 (defun-mh mh-match-string-no-properties
   match-string-no-properties (num &optional string)

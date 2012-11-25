@@ -1449,11 +1449,12 @@ being the list of messages originally from that folder."
 
 ;;;###mh-autoload
 (defun mh-index-execute-commands ()
-  "Delete/refile the actual messages.
-The copies in the searched folder are then deleted/refiled to get
-the desired result. Before deleting the messages we make sure
-that the message being deleted is identical to the one that the
-user has marked in the index buffer."
+  "Perform the outstanding operations on the actual messages.
+The copies in the searched folder are then deleted, refiled,
+blacklisted and whitelisted to get the desired result. Before
+processing the messages we make sure that the message is
+identical to the one that the user has marked in the index
+buffer."
   (save-excursion
     (let ((folders ())
           (mh-speed-flists-inhibit-flag t))
@@ -1466,9 +1467,13 @@ user has marked in the index buffer."
            ;; Otherwise delete the messages in the source buffer...
            (with-current-buffer folder
              (let ((old-refile-list mh-refile-list)
-                   (old-delete-list mh-delete-list))
+                   (old-delete-list mh-delete-list)
+                   (old-blacklist mh-blacklist)
+                   (old-whitelist mh-whitelist))
                (setq mh-refile-list nil
-                     mh-delete-list msgs)
+                     mh-delete-list msgs
+                     mh-blacklist nil
+                     mh-whitelist nil)
                (unwind-protect (mh-execute-commands)
                  (setq mh-refile-list
                        (mapcar (lambda (x)
@@ -1478,13 +1483,21 @@ user has marked in the index buffer."
                                old-refile-list)
                        mh-delete-list
                        (loop for x in old-delete-list
+                             unless (memq x msgs) collect x)
+                       mh-blacklist
+                       (loop for x in old-blacklist
+                             unless (memq x msgs) collect x)
+                       mh-whitelist
+                       (loop for x in old-whitelist
                              unless (memq x msgs) collect x))
                  (mh-set-folder-modified-p (mh-outstanding-commands-p))
                  (when (mh-outstanding-commands-p)
                    (mh-notate-deleted-and-refiled)))))))
        (mh-index-matching-source-msgs (append (loop for x in mh-refile-list
                                                     append (cdr x))
-                                              mh-delete-list)
+                                              mh-delete-list
+                                              mh-blacklist
+                                              mh-whitelist)
                                       t))
       folders)))
 

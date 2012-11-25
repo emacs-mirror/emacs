@@ -43,6 +43,9 @@ Nil, the default value, means to always use the Gregorian calendar.
 The value (YEAR MONTH DAY) means to start using the Gregorian calendar
 on the given date.
 
+** MH-E has been updated to MH-E version 8.4.
+See MH-E-NEWS for details.
+
 +++
 ** New function `ses-rename-cell' to give SES cells arbitrary names.
 
