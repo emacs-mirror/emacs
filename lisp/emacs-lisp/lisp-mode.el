@@ -847,21 +847,8 @@ Reinitialize the face according to the `defface' specification."
 	   (setq face-new-frame-defaults
 		 (assq-delete-all face-symbol face-new-frame-defaults))
 	   (put face-symbol 'face-defface-spec nil)
-	   (put face-symbol 'face-documentation (nth 3 form))
-	   ;; Setting `customized-face' to the new spec after calling
-	   ;; the form, but preserving the old saved spec in `saved-face',
-	   ;; imitates the situation when the new face spec is set
-	   ;; temporarily for the current session in the customize
-	   ;; buffer, thus allowing `face-user-default-spec' to use the
-	   ;; new customized spec instead of the saved spec.
-	   ;; Resetting `saved-face' temporarily to nil is needed to let
-	   ;; `defface' change the spec, regardless of a saved spec.
-	   (prog1 `(prog1 ,form
-		     (put ,(nth 1 form) 'saved-face
-			  ',(get face-symbol 'saved-face))
-		     (put ,(nth 1 form) 'customized-face
-			  ,(nth 2 form)))
-	     (put face-symbol 'saved-face nil))))
+	   (put face-symbol 'face-override-spec nil))
+	 form)
 	((eq (car form) 'progn)
 	 (cons 'progn (mapcar 'eval-defun-1 (cdr form))))
 	(t form)))

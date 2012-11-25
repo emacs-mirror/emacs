@@ -1,3 +1,25 @@
+2012-11-25  Chong Yidong  <cyd@gnu.org>
+
+	* faces.el: Make face-spec-set more analogous to setq.
+	(face-spec-set): Change the third arg to specify whether this
+	function is being called via defface, customize, or a third party.
+	Set the appropriate symbol properties.  Clear the override spec if
+	setting via Custom.  Initialize face if necessary.  (Bug#4988)
+	(face-spec-recalc): Allow theme faces to completely replace the
+	defface spec, in the same way as custom faces (Bug#8454).
+
+	* cus-face.el (custom-declare-face): Move face initialization to
+	face-spec-set.
+	(custom-theme-set-faces): Don't initialize the face name here, as
+	that is now done in face-spec-set.
+
+	* cus-edit.el (custom-face-set, custom-face-mark-to-save)
+	(custom-face-reset-saved, custom-face-mark-to-reset-standard):
+	Simplify by using the new arg to face-spec-set.
+
+	* emacs-lisp/lisp-mode.el (eval-defun-1): When evaluating defface,
+	reset face-override-spec too, and use custom-declare-face.
+
 2012-11-24  Jan Djärv  <jan.h.d@swipnet.se>
 
 	* term/ns-win.el (ns-initialize-window-system): Move creation of
