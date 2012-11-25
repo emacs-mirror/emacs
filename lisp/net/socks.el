@@ -1,6 +1,6 @@
 ;;; socks.el --- A Socks v5 Client for Emacs
 
-;; Copyright (C) 1996-2000, 2002, 2007-2011 Free Software Foundation, Inc.
+;; Copyright (C) 1996-2000, 2002, 2007-2012 Free Software Foundation, Inc.
 
 ;; Author: William M. Perry <wmperry@gnu.org>
 ;;         Dave Love <fx@gnu.org>
@@ -35,6 +35,8 @@
   (require 'wid-edit))
 (require 'custom)
 
+;; FIXME this is bad practice, and who is it for anyway, since Emacs
+;; has split-string since at least 21.1.
 (if (not (fboundp 'split-string))
     (defun split-string (string &optional pattern)
       "Return a list of substrings of STRING which are separated by PATTERN.
@@ -335,9 +337,16 @@ If PATTERN is omitted, it defaults to \"[ \\f\\t\\n\\r\\v]+\"."
 
 (declare-function socks-original-open-network-stream "socks") ; fset
 
+;; FIXME this is a terrible idea.
+;; It is not even compatible with the argument spec of open-network-stream
+;; in 24.1.  If this is really necessary, open-network-stream
+;; could get a wrapper hook, or defer to open-network-stream-function.
+
 (defvar socks-override-functions nil
-  "*Whether to overwrite the open-network-stream function with the SOCKSified
+  "Whether to overwrite the open-network-stream function with the SOCKSified
 version.")
+
+(require 'network-stream)
 
 (if (fboundp 'socks-original-open-network-stream)
     nil				; Do nothing, we've been here already
@@ -414,7 +423,7 @@ version.")
 	       ((= atype socks-address-type-name)
 		(format "%c%s" (length address) address))
 	       (t
-		(error "Unkown address type: %d" atype))))
+		(error "Unknown address type: %d" atype))))
 	(info (gethash proc socks-connections))
 	request version)
     (or info (error "socks-send-command called on non-SOCKS connection %S"
@@ -471,7 +480,7 @@ version.")
 
 ;; Replacement functions for open-network-stream, etc.
 (defvar socks-noproxy nil
-  "*List of regexps matching hosts that we should not socksify connections to")
+  "List of regexps matching hosts that we should not socksify connections to")
 
 (defun socks-find-route (host service)
   (let ((route socks-server)
@@ -617,7 +626,7 @@ version.")
 
 
 (defcustom socks-nslookup-program "nslookup"
-  "*If non-NIL then a string naming the nslookup program."
+  "If non-NIL then a string naming the nslookup program."
   :type '(choice (const :tag "None" :value nil) string)
   :group 'socks)
 

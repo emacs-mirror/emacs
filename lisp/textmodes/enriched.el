@@ -1,6 +1,6 @@
 ;;; enriched.el --- read and save files in text/enriched format
 
-;; Copyright (C) 1994-1996, 2001-2011  Free Software Foundation, Inc.
+;; Copyright (C) 1994-1996, 2001-2012 Free Software Foundation, Inc.
 
 ;; Author: Boris Goldowsky <boris@gnu.org>
 ;; Keywords: wp, faces
@@ -191,6 +191,11 @@ The value is a list of \(VAR VALUE VAR VALUE...).")
   "Minor mode for editing text/enriched files.
 These are files with embedded formatting information in the MIME standard
 text/enriched format.
+
+With a prefix argument ARG, enable the mode if ARG is positive,
+and disable it otherwise.  If called from Lisp, enable the mode
+if ARG is omitted or nil.
+
 Turning the mode on or off runs `enriched-mode-hook'.
 
 More information about Enriched mode is available in the file
@@ -432,7 +437,7 @@ Return value is \(begin end name positive-p), or nil if none was found."
 	      (progn (goto-char (match-beginning 0))
 		     (not (looking-at enriched-annotation-regexp))))
     (forward-char 1)
-    (if (= ?< (char-after (point)))
+    (if (eq ?< (char-after (point)))
 	(delete-char 1)
       ;; A single < that does not start an annotation is an error,
       ;; which we note and then ignore.

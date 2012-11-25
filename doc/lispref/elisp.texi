@@ -1,20 +1,71 @@
 \input texinfo  @c -*-texinfo-*-
 @c %**start of header
 @setfilename elisp
+
+@ifset VOL1
+@set volflag
+@set voltitle Volume 1
+@end ifset
+
+@ifset VOL2
+@set volflag
+@set voltitle Volume 2
+@end ifset
+
+@ifset volflag
+@settitle GNU Emacs Lisp Reference Manual: @value{voltitle}
+@end ifset
+@ifclear volflag
 @settitle GNU Emacs Lisp Reference Manual
+@end ifclear
+
 @c %**end of header
 
+@c See two-volume-cross-refs.txt.
+@tex
+@ifset VOL1
+\message{Formatting for two volume edition...Volume 1...}
+%
+% Read special toc file, set up in two-volume.make.
+\gdef\tocreadfilename{elisp1-toc-ready.toc}
+%
+% Don't make outlines, they're not needed and \readdatafile can't pay
+% attention to the special definition above.
+\global\let\pdfmakeoutlines=\relax
+%
+% Start volume 1 chapter numbering at 1; this must be listed as chapno0.
+\global\chapno=0
+@end ifset
+@ifset VOL2
+\message{Formatting for two volume edition...Volume 2...}
+%
+% Read special toc file, set up in two-volume.make.
+\gdef\tocreadfilename{elisp2-toc-ready.toc}
+%
+% Don't make outlines, they're not needed and \readdatafile can't pay
+% attention to the special definition above.
+\global\let\pdfmakeoutlines=\relax
+%
+% Start volume 2 chapter numbering at 27; this must be listed as chapno26
+\global\chapno=26
+@end ifset
+@end tex
+
+
 @c Version of the manual and of Emacs.
-@c Please remember to update the edition number in README as well.
-@c And also the copies in vol1.texi and vol2.texi.
-@set VERSION  3.0
+@c (See comments for EDITION in emacs.texi)
+@set VERSION  3.1
 @include emacsver.texi
-@set DATE July 2009
+@set DATE May 2012
 
 @c in general, keep the following line commented out, unless doing a
 @c copy of this manual that will be published.  The manual should go
 @c onto the distribution in the full, 8.5 x 11" size.
-@c @smallbook
+@c @set smallbook
+
+@ifset volflag
+@smallbook
+@end ifset
 
 @ifset smallbook
 @smallbook
@@ -26,8 +77,6 @@
 @tex
 @ifset smallbook
 @fonttextsize 10
-\global\let\urlcolor=\Black % don't print links in grayscale
-\global\let\linkcolor=\Black
 @end ifset
 \global\hbadness=6666 % don't worry about not-too-underfull boxes
 @end tex
@@ -41,11 +90,15 @@
 @c @syncodeindex tp fn
 
 @copying
-This is edition @value{VERSION} of the GNU Emacs Lisp Reference Manual,@*
+@iftex
+This is edition @value{VERSION} of the @cite{GNU Emacs Lisp Reference Manual},@*
+@end iftex
+@ifnottex
+This is the @cite{GNU Emacs Lisp Reference Manual}
+@end ifnottex
 corresponding to Emacs version @value{EMACSVER}.
 
-Copyright @copyright{} 1990-1996, 1998-2011  Free Software
-Foundation, Inc.
+Copyright @copyright{} 1990-1996, 1998-2012 Free Software Foundation, Inc.
 
 @quotation
 Permission is granted to copy, distribute and/or modify this document
@@ -71,11 +124,14 @@ developing GNU and promoting software freedom.''
 
 @titlepage
 @title GNU Emacs Lisp Reference Manual
+@ifset volflag
+@subtitle @value{voltitle}
+@end ifset
 @subtitle For Emacs Version @value{EMACSVER}
 @subtitle Revision @value{VERSION}, @value{DATE}
 
-@author by Bil Lewis, Dan LaLiberte, Richard Stallman
-@author and the GNU Manual Group
+@author by Bil Lewis, Dan LaLiberte, Richard Stallman,
+@author the GNU Manual Group, et al.
 @page
 @vskip 0pt plus 1filll
 @insertcopying
@@ -98,13 +154,12 @@ Cover art by Etienne Suvasa.
 
 
 @ifnottex
-@node Top, Introduction, (dir), (dir)
+@node Top
 @top Emacs Lisp
 
 @insertcopying
 @end ifnottex
 
-@c Copy any updates to vol1.texi and vol2.texi.
 @menu
 * Introduction::            Introduction and conventions used.
 
@@ -124,7 +179,7 @@ Cover art by Etienne Suvasa.
 * Functions::               A function is a Lisp program
                               that can be invoked from other functions.
 * Macros::                  Macros are a way to extend the Lisp language.
-* Customization::           Writing customization declarations.
+* Customization::           Making variables and faces customizable.
 
 * Loading::                 Reading files of Lisp code into Lisp.
 * Byte Compilation::        Compilation makes programs run faster.
@@ -164,17 +219,15 @@ Cover art by Etienne Suvasa.
 
 Appendices
 
-* Antinews::                Info for users downgrading to Emacs 22.
+* Antinews::                Info for users downgrading to Emacs 23.
 * GNU Free Documentation License:: The license for this documentation.
 * GPL::                     Conditions for copying and changing GNU Emacs.
 * Tips::                    Advice and coding conventions for Emacs Lisp.
 * GNU Emacs Internals::     Building and dumping Emacs;
                               internal data structures.
-* Standard Errors::         List of all error symbols.
-* Standard Buffer-Local Variables::
-                            List of variables buffer-local in all buffers.
-* Standard Keymaps::        List of standard keymaps.
-* Standard Hooks::          List of standard hook variables.
+* Standard Errors::         List of some standard error symbols.
+* Standard Keymaps::        List of some standard keymaps.
+* Standard Hooks::          List of some standard hook variables.
 
 * Index::                   Index including concepts, functions, variables,
                               and other terms.
@@ -187,7 +240,6 @@ Appendices
 @c be correctly identified by `texinfo-multiple-files-update'.  In
 @c particular, the detailed menu header line MUST be identical to the
 @c value of `texinfo-master-menu-header'.  See texnfo-upd.el.
-@c Copy any updates to vol1.texi and vol2.texi.
 
 @detailmenu
  --- The Detailed Node Listing ---
@@ -202,7 +254,7 @@ Introduction
 * Lisp History::            Emacs Lisp is descended from Maclisp.
 * Conventions::             How the manual is formatted.
 * Version Info::            Which Emacs version is running?
-* Acknowledgements::        The authors, editors, and sponsors of this manual.
+* Acknowledgments::         The authors, editors, and sponsors of this manual.
 
 Conventions
 
@@ -326,7 +378,6 @@ Lists
 * Modifying Lists::         Storing new pieces into an existing list.
 * Sets And Lists::          A list can represent a finite mathematical set.
 * Association Lists::       A list can represent a finite relation or mapping.
-* Rings::                   Managing a fixed-size ring of objects.
 
 Modifying Existing List Structure
 
@@ -344,6 +395,7 @@ Sequences, Arrays, and Vectors
 * Vector Functions::        Functions specifically for vectors.
 * Char-Tables::             How to work with char-tables.
 * Bool-Vectors::            How to work with bool-vectors.
+* Rings::                   Managing a fixed-size ring of objects.
 
 Hash Tables
 
@@ -374,6 +426,7 @@ Evaluation
 * Forms::                   How various sorts of objects are evaluated.
 * Quoting::                 Avoiding evaluation (to put constants in
                               the program).
+* Backquote::               Easier construction of list structure.
 * Eval::                    How to invoke the Lisp interpreter explicitly.
 
 Kinds of Forms
@@ -433,15 +486,14 @@ Variables
 * Variable Aliases::        Variables that are aliases for other variables.
 * Variables with Restricted Values::  Non-constant variables whose value can
                                         @emph{not} be an arbitrary Lisp object.
+* Generalized Variables::   Extending the concept of variables.
 
 Scoping Rules for Variable Bindings
 
-* Scope::                   Scope means where in the program a value
-                              is visible.  Comparison with other languages.
-* Extent::                  Extent means how long in time a value exists.
-* Impl of Scope::           Two ways to implement dynamic scoping.
-* Using Scoping::           How to use dynamic scoping carefully and
-                              avoid problems.
+* Dynamic Binding::         The default for binding local variables in Emacs.
+* Dynamic Binding Tips::    Avoiding problems with dynamic binding.
+* Lexical Binding::         A different type of local variable binding.
+* Using Lexical Binding::   How to enable lexical binding.
 
 Buffer-Local Variables
 
@@ -449,6 +501,11 @@ Buffer-Local Variables
 * Creating Buffer-Local::   Creating and destroying buffer-local bindings.
 * Default Value::           The default value is seen in buffers
                               that don't have their own buffer-local values.
+
+Generalized Variables
+
+* Setting Generalized Variables::   The @code{setf} macro.
+* Adding Generalized Variables::    Defining new @code{setf} forms.
 
 Functions
 
@@ -461,9 +518,11 @@ Functions
 * Anonymous Functions::     Lambda expressions are functions with no names.
 * Function Cells::          Accessing or setting the function definition
                               of a symbol.
+* Closures::                Functions that enclose a lexical environment.
 * Obsolete Functions::      Declaring functions obsolete.
 * Inline Functions::        Defining functions that the compiler
-                              will open code.
+                              will expand inline.
+* Declare Form::          Adding additional information about a function.
 * Declaring Functions::     Telling the compiler that a function is defined.
 * Function Safety::         Determining whether a function is safe to call.
 * Related Topics::          Cross-references to specific Lisp primitives
@@ -483,7 +542,6 @@ Macros
 * Expansion::               How, when and why macros are expanded.
 * Compiling Macros::        How macros are expanded by the compiler.
 * Defining Macros::         How to write a macro definition.
-* Backquote::               Easier construction of list structure.
 * Problems with Macros::    Don't evaluate the macro arguments too many times.
                               Don't hide the user's variables.
 * Indenting Macros::        Specifying how to indent macro calls.
@@ -497,13 +555,15 @@ Common Problems Using Macros
 * Eval During Expansion::  Don't evaluate them; put them in the expansion.
 * Repeated Expansion::     Avoid depending on how many times expansion is done.
 
-Writing Customization Definitions
+Customization Settings
 
 * Common Keywords::         Common keyword arguments for all kinds of
                               customization declarations.
 * Group Definitions::       Writing customization group definitions.
 * Variable Definitions::    Declaring user options.
 * Customization Types::     Specifying the type of a user option.
+* Applying Customizations:: Functions to apply customization settings.
+* Custom Themes::           Writing Custom themes.
 
 Customization Types
 
@@ -549,17 +609,15 @@ Advising Emacs Lisp Functions
 * Preactivation::           Preactivation is a way of speeding up the
                               loading of compiled advice.
 * Argument Access in Advice:: How advice can access the function's arguments.
-* Advising Primitives::     Accessing arguments when advising a primitive.
 * Combined Definition::     How advice is implemented.
 
 Debugging Lisp Programs
 
-* Debugger::                How the Emacs Lisp debugger is implemented.
+* Debugger::                A debugger for the Emacs Lisp evaluator.
 * Edebug::                  A source-level Emacs Lisp debugger.
 * Syntax Errors::           How to find syntax errors.
 * Test Coverage::           Ensuring you have tested all branches in your code.
-* Compilation Errors::      How to find errors that show up in
-                              byte compilation.
+* Profiling::               Measuring the resources that your code uses.
 
 The Lisp Debugger
 
@@ -642,8 +700,8 @@ Minibuffers
 * Multiple Queries::        Asking a series of similar questions.
 * Reading a Password::      Reading a password from the terminal.
 * Minibuffer Commands::     Commands used as key bindings in minibuffers.
-* Minibuffer Contents::     How such commands access the minibuffer text.
 * Minibuffer Windows::      Operating on the special minibuffer windows.
+* Minibuffer Contents::     How such commands access the minibuffer text.
 * Recursive Mini::          Whether recursive entry to minibuffer is allowed.
 * Minibuffer Misc::         Various customization hooks and variables.
 
@@ -653,11 +711,12 @@ Completion
 * Minibuffer Completion::   Invoking the minibuffer with completion.
 * Completion Commands::     Minibuffer commands that do completion.
 * High-Level Completion::   Convenient special cases of completion
-                              (reading buffer name, file name, etc.).
+                              (reading buffer names, variable names, etc.).
 * Reading File Names::      Using completion to read file names and
                               shell commands.
-* Completion Styles::       Specifying rules for performing completion.
-* Programmed Completion::   Writing your own completion-function.
+* Completion Variables::    Variables controlling completion behavior.
+* Programmed Completion::   Writing your own completion function.
+* Completion in Buffers::   Completing text in ordinary buffers.
 
 Command Loop
 
@@ -748,14 +807,12 @@ Menu Keymaps
 * Menu Bar::                How to customize the menu bar.
 * Tool Bar::                A tool bar is a row of images.
 * Modifying Menus::         How to add new items to a menu.
+* Easy Menu::               A convenience macro for defining menus.
 
 Defining Menus
 
-* Simple Menu Items::       A simple kind of menu key binding,
-                              limited in capabilities.
-* Extended Menu Items::     More powerful menu item definitions
-                              let you specify keywords to enable
-                              various features.
+* Simple Menu Items::       A simple kind of menu key binding.
+* Extended Menu Items::     More complex menu item definitions.
 * Menu Separators::         Drawing a horizontal line through a menu.
 * Alias Menu Items::        Using command aliases in menu items.
 
@@ -767,6 +824,7 @@ Major and Minor Modes
 * Mode Line Format::   Customizing the text that appears in the mode line.
 * Imenu::              Providing a menu of definitions made in a buffer.
 * Font Lock Mode::     How modes can highlight text according to syntax.
+* Auto-Indentation::   How to teach Emacs to indent for a major mode.
 * Desktop Save Mode::  How modes can have buffer state saved between
                          Emacs sessions.
 
@@ -783,9 +841,10 @@ Major Modes
 * Derived Modes::           Defining a new major mode based on another major
                               mode.
 * Basic Major Modes::       Modes that other modes are often derived from.
+* Mode Hooks::              Hooks run at the end of major mode functions.
+* Tabulated List Mode::     Parent mode for buffers containing tabulated data.
 * Generic Modes::           Defining a simple major mode that supports
                               comment syntax and Font Lock mode.
-* Mode Hooks::              Hooks run at the end of major mode functions.
 * Example Major Modes::     Text mode and Lisp modes.
 
 Minor Modes
@@ -817,8 +876,6 @@ Font Lock Mode
                                   contents can also specify how to fontify it.
 * Faces for Font Lock::     Special faces specifically for Font Lock.
 * Syntactic Font Lock::     Fontification based on syntax tables.
-* Setting Syntax Properties::   Defining character syntax based on context
-                                  using the Font Lock mechanism.
 * Multiline Font Lock::     How to coerce Font Lock into properly
                               highlighting multiline constructs.
 
@@ -828,10 +885,24 @@ Multiline Font Lock Constructs
 * Region to Refontify::     Controlling which region gets refontified
                               after a buffer change.
 
+Automatic Indentation of code
+
+* SMIE::                    A simple minded indentation engine.
+
+Simple Minded Indentation Engine
+
+* SMIE setup::              SMIE setup and features.
+* Operator Precedence Grammars:: A very simple parsing technique.
+* SMIE Grammar::            Defining the grammar of a language.
+* SMIE Lexer::              Defining tokens.
+* SMIE Tricks::             Working around the parser's limitations.
+* SMIE Indentation::        Specifying indentation rules.
+* SMIE Indentation Helpers:: Helper functions for indentation rules.
+* SMIE Indentation Example:: Sample indentation rules.
+
 Documentation
 
-* Documentation Basics::    Good style for doc strings.
-                              Where to put them.  How Emacs stores them.
+* Documentation Basics::    Where doc strings are defined and stored.
 * Accessing Documentation:: How Lisp programs can access doc strings.
 * Keys in Documentation::   Substituting current key bindings.
 * Describing Characters::   Making printable descriptions of
@@ -847,12 +918,11 @@ Files
 * File Locks::              Locking and unlocking files, to prevent
                               simultaneous editing by two people.
 * Information about Files:: Testing existence, accessibility, size of files.
-* Changing Files::          Renaming files, changing protection, etc.
+* Changing Files::          Renaming files, changing permissions, etc.
 * File Names::              Decomposing and expanding file names.
 * Contents of Directories:: Getting a list of the files in a directory.
 * Create/Delete Dirs::      Creating and Deleting Directories.
-* Magic File Names::        Defining "magic" special handling
-                              for certain file names.
+* Magic File Names::        Special handling for certain file names.
 * Format Conversion::       Conversion to and from various file formats.
 
 Visiting Files
@@ -913,7 +983,7 @@ Buffers
                               is visited.
 * Buffer Modification::     A buffer is @dfn{modified} if it needs to be saved.
 * Modification Time::       Determining whether the visited file was changed
-                              ``behind Emacs's back''.
+                              "behind Emacs's back".
 * Read Only Buffers::       Modifying text is not allowed in a
                               read-only buffer.
 * The Buffer List::         How to look at all the existing buffers.
@@ -932,6 +1002,8 @@ Windows
 * Resizing Windows::        Changing the sizes of windows.
 * Splitting Windows::       Splitting one window into two windows.
 * Deleting Windows::        Deleting a window gives its space to other windows.
+* Recombining Windows::     Preserving the frame layout when splitting and
+                              deleting windows.
 * Selecting Windows::       The selected window is the one that you edit in.
 * Cyclic Window Ordering::  Moving around the existing windows.
 * Buffers and Windows::     Each window displays the contents of a buffer.
@@ -980,7 +1052,7 @@ Frames
 * Window System Selections::Transferring text to and from other X clients.
 * Drag and Drop::               Internals of Drag-and-Drop implementation.
 * Color Names::             Getting the definitions of color names.
-* Text Terminal Colors::    Defining colors for text-only terminals.
+* Text Terminal Colors::    Defining colors for text terminals.
 * Resources::               Getting resource values from the server.
 * Display Feature Testing:: Determining the features of a terminal.
 
@@ -1058,11 +1130,12 @@ Text
 * Case Changes::            Case conversion of parts of the buffer.
 * Text Properties::         Assigning Lisp property lists to text characters.
 * Substitution::            Replacing a given character wherever it appears.
-* Transposition::           Swapping two portions of a buffer.
 * Registers::               How registers are implemented.  Accessing
                               the text or position stored in a register.
+* Transposition::           Swapping two portions of a buffer.
 * Base 64::                 Conversion to or from base 64 encoding.
-* MD5 Checksum::            Compute the MD5 "message digest"/"checksum".
+* Checksum/Hash::           Computing cryptographic hashes.
+* Parsing HTML/XML::        Parsing HTML and XML.
 * Atomic Changes::          Installing several buffer changes "atomically".
 * Change Hooks::            Supplying functions to be run when text is changed.
 
@@ -1175,7 +1248,6 @@ Syntax Tables
 * Motion and Syntax::       Moving over characters with certain syntaxes.
 * Parsing Expressions::     Parsing balanced expressions
                               using the syntax table.
-* Standard Syntax Tables::  Syntax tables used by various major modes.
 * Syntax Table Internals::  How syntax table information is stored.
 * Categories::              Another way of classifying character syntax.
 
@@ -1194,7 +1266,6 @@ Parsing Expressions
 
 Abbrevs and Abbrev Expansion
 
-* Abbrev Mode::             Setting up Emacs for abbreviation.
 * Abbrev Tables::           Creating and working with abbrev tables.
 * Defining Abbrevs::        Specifying abbreviations and their expansions.
 * Abbrev Files::            Saving abbrevs in files.
@@ -1226,8 +1297,7 @@ Processes
 * Datagrams::               UDP network connections.
 * Low-Level Network::       Lower-level but more general function
                               to create connections and servers.
-* Misc Network::            Additional relevant functions for
-                              network connections.
+* Misc Network::            Additional relevant functions for net connections.
 * Serial Ports::            Communicating with serial ports.
 * Byte Packing::            Using bindat to pack and unpack binary data.
 
@@ -1271,16 +1341,13 @@ Emacs Display
 * Display Property::        Enabling special display features.
 * Images::                  Displaying images in Emacs buffers.
 * Buttons::                 Adding clickable buttons to Emacs buffers.
-* Abstract Display::        Emacs' Widget for Object Collections.
+* Abstract Display::        Emacs's Widget for Object Collections.
 * Blinking::                How Emacs shows the matching open parenthesis.
-* Usual Display::           The usual conventions for displaying
-                              nonprinting chars.
-* Display Tables::          How to specify other conventions.
+* Character Display::   How Emacs displays individual characters.
 * Beeping::                 Audible signal to the user.
 * Window Systems::          Which window system is being used.
 * Bidirectional Display::   Display of bidirectional scripts, such as
                               Arabic and Farsi.
-* Glyphless Chars::         How glyphless characters are drawn.
 
 The Echo Area
 
@@ -1295,6 +1362,7 @@ Reporting Warnings
 * Warning Variables::       Variables programs bind to customize
                               their warnings.
 * Warning Options::         Variables users set to control display of warnings.
+* Delayed Warnings::        Deferring a warning until the end of a command.
 
 Overlays
 
@@ -1305,8 +1373,8 @@ Overlays
 
 Faces
 
-* Defining Faces::          How to define a face with @code{defface}.
 * Face Attributes::         What is in a face?
+* Defining Faces::          How to define a face.
 * Attribute Functions::     Functions to examine and set face attributes.
 * Displaying Faces::        How Emacs combines the faces specified for
                               a character.
@@ -1349,10 +1417,12 @@ Images
 * GIF Images::              Special features for GIF format.
 * TIFF Images::             Special features for TIFF format.
 * PostScript Images::       Special features for PostScript format.
+* ImageMagick Images::      Special features available through ImageMagick.
 * Other Image Types::       Various other formats are supported.
 * Defining Images::         Convenient ways to define an image for later use.
 * Showing Images::          Convenient ways to display an image once
                               it is defined.
+* Animated Images::         Some image formats can be animated.
 * Image Cache::             Internal mechanisms of image display.
 
 Buttons
@@ -1368,11 +1438,13 @@ Abstract Display
 * Abstract Display Functions::  Functions in the Ewoc package.
 * Abstract Display Example::    Example of using Ewoc.
 
-Display Tables
+Character Display
 
-* Display Table Format::    What a display table consists of.
-* Active Display Table::    How Emacs selects a display table to use.
-* Glyphs::                  How to define a glyph, and what glyphs mean.
+* Usual Display::       The usual conventions for displaying characters.
+* Display Tables::      What a display table consists of.
+* Active Display Table::  How Emacs selects a display table to use.
+* Glyphs::              How to define a glyph, and what glyphs mean.
+* Glyphless Chars::     How glyphless characters are drawn.
 
 Operating System Interface
 
@@ -1398,13 +1470,8 @@ Operating System Interface
 * Batch Mode::              Running Emacs without terminal interaction.
 * Session Management::      Saving and restoring state with
                               X Session Management.
-
-Preparing Lisp code for distribution
-
-* Packaging Basics::        The basic concepts of Emacs Lisp packages.
-* Simple Packages::         How to package a single .el file.
-* Multi-file Packages::     How to package multiple files.
-* Package Archives::        Maintaining package archives.
+* Notifications::           Desktop notifications.
+* Dynamic Libraries::       On-demand loading of support libraries.
 
 Starting Up Emacs
 
@@ -1423,6 +1490,13 @@ Terminal Input
 
 * Input Modes::             Options for how input is processed.
 * Recording Input::         Saving histories of recent or all input events.
+
+Preparing Lisp code for distribution
+
+* Packaging Basics::        The basic concepts of Emacs Lisp packages.
+* Simple Packages::         How to package a single .el file.
+* Multi-file Packages::     How to package multiple files.
+* Package Archives::        Maintaining package archives.
 
 Tips and Conventions
 
@@ -1452,6 +1526,7 @@ Object Internals
 @end detailmenu
 @end menu
 
+@ifclear VOL2
 @include intro.texi
 @include objects.texi
 @include numbers.texi
@@ -1485,6 +1560,12 @@ Object Internals
 @include files.texi
 
 @include backups.texi
+
+@end ifclear
+
+@c ================ Beginning of Volume 2 ================
+@ifclear VOL1
+
 @include buffers.texi
 @include windows.texi
 @include frames.texi
@@ -1504,26 +1585,27 @@ Object Internals
 
 @include package.texi
 
-@c MOVE to Emacs Manual:  include misc-modes.texi
-
 @c appendices
 
-@c  REMOVE this:  include non-hacker.texi
-
 @include anti.texi
+@node GNU Free Documentation License
+@appendix GNU Free Documentation License
 @include doclicense.texi
+@node GPL
+@appendix GNU General Public License
 @include gpl.texi
 @include tips.texi
 @include internals.texi
 @include errors.texi
-@include locals.texi
 @include maps.texi
 @include hooks.texi
 
 @include index.texi
 
+@end ifclear
+
 @ignore
-@node New Symbols, , Index, Top
+@node New Symbols
 @unnumbered New Symbols Since the Previous Edition
 
 @printindex tp

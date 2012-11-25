@@ -1,6 +1,6 @@
-;;; f90.el --- Fortran-90 mode (free format)
+;;; f90.el --- Fortran-90 mode (free format)  -*- lexical-binding: t -*-
 
-;; Copyright (C) 1995-1997, 2000-2011  Free Software Foundation, Inc.
+;; Copyright (C) 1995-1997, 2000-2012  Free Software Foundation, Inc.
 
 ;; Author: Torbjörn Einarsson <Torbjorn.Einarsson@era.ericsson.se>
 ;; Maintainer: Glenn Morris <rgm@gnu.org>
@@ -102,10 +102,9 @@
 ;;       (abbrev-mode 1)             ; turn on abbreviation mode
 ;;       (f90-add-imenu-menu)        ; extra menu with functions etc.
 ;;       (if f90-auto-keyword-case   ; change case of all keywords on startup
-;;           (f90-change-keywords f90-auto-keyword-case))
-;;       ))
+;;           (f90-change-keywords f90-auto-keyword-case))))
 ;;
-;; in your .emacs file. You can also customize the lists
+;; in your init file. You can also customize the lists
 ;; f90-font-lock-keywords, etc.
 ;;
 ;; The auto-fill and abbreviation minor modes are accessible from the F90 menu,
@@ -233,6 +232,7 @@
   :safe  'stringp
   :group 'f90-indent)
 
+;; Should we add ^# to this?  That's not really a comment.
 (defcustom f90-directive-comment-re "!hpf\\$"
   "Regexp of comment-like directive like \"!HPF\\\\$\", not to be indented."
   :type  'regexp
@@ -627,7 +627,14 @@ logical\\|double[ \t]*precision\\|type[ \t]*(\\sw+)\\|none\\)[ \t]*"
     '("\\<\\(do\\|go[ \t]*to\\)\\>[ \t]*\\([0-9]+\\)"
       (1 font-lock-keyword-face) (2 font-lock-constant-face))
     ;; Line numbers (lines whose first character after number is letter).
-    '("^[ \t]*\\([0-9]+\\)[ \t]*[a-z]+" (1 font-lock-constant-face t))))
+    '("^[ \t]*\\([0-9]+\\)[ \t]*[a-z]+" (1 font-lock-constant-face t))
+    ;; Override eg for "#include".
+    '("^#[ \t]*\\w+" (0 font-lock-preprocessor-face t)
+      ("\\<defined\\>" nil nil (0 font-lock-preprocessor-face)))
+    '("^#" ("\\(&&\\|||\\)" nil nil (0 font-lock-constant-face t)))
+    '("^#[ \t]*define[ \t]+\\(\\w+\\)(" (1 font-lock-function-name-face))
+    '("^#[ \t]*define[ \t]+\\(\\w+\\)" (1 font-lock-variable-name-face))
+    '("^#[ \t]*include[ \t]+\\(<.+>\\)" (1 font-lock-string-face))))
   "Highlights declarations, do-loops and other constructs.")
 
 (defvar f90-font-lock-keywords-3
@@ -651,7 +658,7 @@ logical\\|double[ \t]*precision\\|type[ \t]*(\\sw+)\\|none\\)[ \t]*"
 
 (defvar f90-font-lock-keywords
   f90-font-lock-keywords-2
-  "*Default expressions to highlight in F90 mode.
+  "Default expressions to highlight in F90 mode.
 Can be overridden by the value of `font-lock-maximum-decoration'.")
 
 
@@ -2204,18 +2211,13 @@ Leave point at the end of line."
   "Typing `\\[help-command] or `? lists all the F90 abbrevs.
 Any other key combination is executed normally."
   (interactive "*")
-  (insert last-command-event)
-  (let (char event)
-    (if (fboundp 'next-command-event) ; XEmacs
-        (setq event (next-command-event)
-              char (and (fboundp 'event-to-character)
-                        (event-to-character event)))
-      (setq event (read-event)
-            char event))
-    ;; Insert char if not equal to `?', or if abbrev-mode is off.
-    (if (and abbrev-mode (memq char (list ?? help-char)))
-        (f90-abbrev-help)
-      (setq unread-command-events (list event)))))
+  (self-insert-command 1)
+  (when abbrev-mode
+    (set-temporary-overlay-map
+     (let ((map (make-sparse-keymap)))
+       (define-key map [??] 'f90-abbrev-help)
+       (define-key map (vector help-char) 'f90-abbrev-help)
+       map))))
 
 (defun f90-abbrev-help ()
   "List the currently defined abbrevs in F90 mode."
@@ -2319,7 +2321,6 @@ escape character."
 
 ;; Local Variables:
 ;; coding: utf-8
-;; lexical-binding: t
 ;; End:
 
 ;;; f90.el ends here

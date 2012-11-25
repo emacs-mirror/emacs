@@ -1,6 +1,6 @@
 # emacs-buffer.gdb --- gdb macros for recovering buffers from emacs coredumps
 
-# Copyright (C) 2005-2011 Free Software Foundation, Inc.
+# Copyright (C) 2005-2012 Free Software Foundation, Inc.
 
 # Maintainer: Noah Friedman <friedman@splode.com>
 # Created: 2005-04-28
@@ -70,19 +70,16 @@
 
 # Code:
 
-# Force loading of symbols, enough to give us gdb_valbits etc.
+# Force loading of symbols, enough to give us VALMASK etc.
 set main
 
 # When nonzero, display some extra diagnostics in various commands
 set $yverbose = 1
 set $yfile_buffers_only = 0
 
-set $tagmask = (((long)1 << gdb_gctypebits) - 1)
-set $valmask = gdb_use_lsb ? ~($tagmask) : ((long)1 << gdb_valbits) - 1
-
 define ygetptr
   set $ptr = $arg0
-  set $ptr = (gdb_use_union ? $ptr.u.val : $ptr & $valmask) | gdb_data_seg_bits
+  set $ptr = ((CHECK_LISP_OBJECT_TYPE ? $ptr.i : $ptr) & VALMASK) | DATA_SEG_BITS
 end
 
 define ybuffer-list

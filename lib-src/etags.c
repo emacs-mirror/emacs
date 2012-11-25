@@ -28,7 +28,7 @@ OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN
 IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 
-Copyright (C) 1984, 1987-1989, 1993-1995, 1998-2011
+Copyright (C) 1984, 1987-1989, 1993-1995, 1998-2012
   Free Software Foundation, Inc.
 
 This file is not considered part of GNU Emacs.
@@ -91,25 +91,7 @@ char pot_etags_version[] = "@(#) pot revision number is 17.38.1.4";
 #  define NDEBUG		/* disable assert */
 #endif
 
-#ifdef HAVE_CONFIG_H
-# include <config.h>
-  /* This is probably not necessary any more.  On some systems, config.h
-     used to define static as nothing for the sake of unexec.  We don't
-     want that here since we don't use unexec.  None of these systems
-     are supported any more, but the idea is still mentioned in
-     etc/PROBLEMS.  */
-# undef static
-# ifndef PTR			/* for XEmacs */
-#   define PTR void *
-# endif
-#else  /* no config.h */
-# if defined (__STDC__) && (__STDC__ || defined (__SUNPRO_C))
-#   define PTR void *		/* for generic pointers */
-# else /* not standard C */
-#   define const		/* remove const for old compilers' sake */
-#   define PTR long *		/* don't use void* */
-# endif
-#endif /* !HAVE_CONFIG_H */
+#include <config.h>
 
 #ifndef _GNU_SOURCE
 # define _GNU_SOURCE 1		/* enables some compiler checks on GNU */
@@ -129,10 +111,6 @@ char pot_etags_version[] = "@(#) pot revision number is 17.38.1.4";
 # include <fcntl.h>
 # include <sys/param.h>
 # include <io.h>
-# ifndef HAVE_CONFIG_H
-#   define DOS_NT
-#   include <sys/config.h>
-# endif
 #else
 # define MSDOS FALSE
 #endif /* MSDOS */
@@ -145,19 +123,10 @@ char pot_etags_version[] = "@(#) pot revision number is 17.38.1.4";
 # undef HAVE_NTGUI
 # undef  DOS_NT
 # define DOS_NT
-# ifndef HAVE_GETCWD
-#   define HAVE_GETCWD
-# endif /* undef HAVE_GETCWD */
-#else /* not WINDOWSNT */
-#endif /* !WINDOWSNT */
+#endif /* WINDOWSNT */
 
 #include <unistd.h>
-#ifndef HAVE_UNISTD_H
-# if defined (HAVE_GETCWD) && !defined (WINDOWSNT)
-    extern char *getcwd (char *buf, size_t size);
-# endif
-#endif /* HAVE_UNISTD_H */
-
+#include <stdarg.h>
 #include <stdlib.h>
 #include <string.h>
 #include <stdio.h>
@@ -165,6 +134,7 @@ char pot_etags_version[] = "@(#) pot revision number is 17.38.1.4";
 #include <errno.h>
 #include <sys/types.h>
 #include <sys/stat.h>
+#include <c-strcase.h>
 
 #include <assert.h>
 #ifdef NDEBUG
@@ -172,24 +142,7 @@ char pot_etags_version[] = "@(#) pot revision number is 17.38.1.4";
 # define assert(x) ((void) 0)
 #endif
 
-#ifdef NO_LONG_OPTIONS		/* define this if you don't have GNU getopt */
-# define NO_LONG_OPTIONS TRUE
-# define getopt_long(argc,argv,optstr,lopts,lind) getopt (argc, argv, optstr)
-  extern char *optarg;
-  extern int optind, opterr;
-#else
-# define NO_LONG_OPTIONS FALSE
-# include <getopt.h>
-#endif /* NO_LONG_OPTIONS */
-
-#ifndef HAVE_CONFIG_H		/* this is a standalone compilation */
-# ifdef __CYGWIN__         	/* compiling on Cygwin */
-			     !!! NOTICE !!!
- the regex.h distributed with Cygwin is not compatible with etags, alas!
-If you want regular expression support, you should delete this notice and
-	      arrange to use the GNU regex.h and regex.c.
-# endif
-#endif
+#include <getopt.h>
 #include <regex.h>
 
 /* Define CTAGS to make the program "ctags" compatible with the usual one.
@@ -203,9 +156,9 @@ If you want regular expression support, you should delete this notice and
 #endif
 
 #define streq(s,t)	(assert ((s)!=NULL || (t)!=NULL), !strcmp (s, t))
-#define strcaseeq(s,t)	(assert ((s)!=NULL && (t)!=NULL), !etags_strcasecmp (s, t))
+#define strcaseeq(s,t)	(assert ((s)!=NULL && (t)!=NULL), !c_strcasecmp (s, t))
 #define strneq(s,t,n)	(assert ((s)!=NULL || (t)!=NULL), !strncmp (s, t, n))
-#define strncaseeq(s,t,n) (assert ((s)!=NULL && (t)!=NULL), !etags_strncasecmp (s, t, n))
+#define strncaseeq(s,t,n) (assert ((s)!=NULL && (t)!=NULL), !c_strncasecmp (s, t, n))
 
 #define CHARS 256		/* 2^sizeof(char) */
 #define CHAR(x)		((unsigned int)(x) & (CHARS - 1))
@@ -380,10 +333,10 @@ static void get_tag (char *, char **);
 static void analyse_regex (char *);
 static void free_regexps (void);
 static void regex_tag_multiline (void);
-static void error (const char *, const char *);
-static void suggest_asking_for_help (void) NO_RETURN;
-void fatal (const char *, const char *) NO_RETURN;
-static void pfatal (const char *) NO_RETURN;
+static void error (const char *, ...) ATTRIBUTE_FORMAT_PRINTF (1, 2);
+static _Noreturn void suggest_asking_for_help (void);
+_Noreturn void fatal (const char *, const char *);
+static _Noreturn void pfatal (const char *);
 static void add_node (node *, node **);
 
 static void init (void);
@@ -404,8 +357,6 @@ static char *savenstr (const char *, int);
 static char *savestr (const char *);
 static char *etags_strchr (const char *, int);
 static char *etags_strrchr (const char *, int);
-static int etags_strcasecmp (const char *, const char *);
-static int etags_strncasecmp (const char *, const char *, int);
 static char *etags_getcwd (void);
 static char *relative_filename (char *, char *);
 static char *absolute_filename (char *, char *);
@@ -414,8 +365,8 @@ static bool filename_is_absolute (char *f);
 static void canonicalize_filename (char *);
 static void linebuffer_init (linebuffer *);
 static void linebuffer_setlen (linebuffer *, int);
-static PTR xmalloc (size_t);
-static PTR xrealloc (char *, size_t);
+static void *xmalloc (size_t);
+static void *xrealloc (char *, size_t);
 
 
 static char searchar = '/';	/* use /.../ searches */
@@ -866,8 +817,7 @@ etags --help --lang=ada.");
 static void
 print_version (void)
 {
-  /* Makes it easier to update automatically. */
-  char emacs_copyright[] = "Copyright (C) 2011 Free Software Foundation, Inc.";
+  char emacs_copyright[] = COPYRIGHT;
 
   printf ("%s (%s %s)\n", (CTAGS) ? "ctags" : "etags", EMACS_NAME, VERSION);
   puts (emacs_copyright);
@@ -900,11 +850,7 @@ print_help (argument *argbuffer)
   printf ("Usage: %s [options] [[regex-option ...] file-name] ...\n\
 \n\
 These are the options accepted by %s.\n", progname, progname);
-  if (NO_LONG_OPTIONS)
-    puts ("WARNING: long option names do not work with this executable,\n\
-as it is not linked with GNU getopt.");
-  else
-    puts ("You may use unambiguous abbreviations for the long option names.");
+  puts ("You may use unambiguous abbreviations for the long option names.");
   puts ("  A - as file name means read names from stdin (one per line).\n\
 Absolute names are stored in the output file as they are.\n\
 Relative ones are stored relative to the output file's directory.\n");
@@ -1096,9 +1042,9 @@ main (int argc, char **argv)
 
   /* When the optstring begins with a '-' getopt_long does not rearrange the
      non-options arguments to be at the end, but leaves them alone. */
-  optstring = concat (NO_LONG_OPTIONS ? "" : "-",
-		      "ac:Cf:Il:o:r:RSVhH",
-		      (CTAGS) ? "BxdtTuvw" : "Di:");
+  optstring = concat ("-ac:Cf:Il:o:r:RSVhH",
+		      (CTAGS) ? "BxdtTuvw" : "Di:",
+		      "");
 
   while ((opt = getopt_long (argc, argv, optstring, longopts, NULL)) != EOF)
     switch (opt)
@@ -1140,7 +1086,7 @@ main (int argc, char **argv)
       case 'o':
 	if (tagfile)
 	  {
-	    error ("-o option may only be given once.", (char *)NULL);
+	    error ("-o option may only be given once.");
 	    suggest_asking_for_help ();
 	    /* NOTREACHED */
 	  }
@@ -1224,7 +1170,7 @@ main (int argc, char **argv)
 
   if (nincluded_files == 0 && file_count == 0)
     {
-      error ("no input files specified.", (char *)NULL);
+      error ("no input files specified.");
       suggest_asking_for_help ();
       /* NOTREACHED */
     }
@@ -1447,7 +1393,7 @@ get_language_from_langname (const char *name)
   language *lang;
 
   if (name == NULL)
-    error ("empty language name", (char *)NULL);
+    error ("empty language name");
   else
     {
       for (lang = lang_names; lang->name != NULL; lang++)
@@ -2153,7 +2099,7 @@ invalidate_nodes (fdesc *badfdp, node **npp)
 
 
 static int total_size_of_entries (node *);
-static int number_len (long);
+static int number_len (long) ATTRIBUTE_CONST;
 
 /* Length of a non-negative number's decimal representation. */
 static int
@@ -2233,7 +2179,7 @@ put_entries (register node *np)
 	{
 	  /* Ctags mode */
 	  if (np->name == NULL)
-	    error ("internal error: NULL name in ctags mode.", (char *)NULL);
+	    error ("internal error: NULL name in ctags mode.");
 
 	  if (cxref_style)
 	    {
@@ -2672,17 +2618,11 @@ write_classname (linebuffer *cn, const char *qualifier)
     }
   for (i = 1; i < cstack.nl; i++)
     {
-      char *s;
-      int slen;
-
-      s = cstack.cname[i];
+      char *s = cstack.cname[i];
       if (s == NULL)
 	continue;
-      slen = strlen (s);
-      len += slen + qlen;
-      linebuffer_setlen (cn, len);
-      strncat (cn->buffer, qualifier, qlen);
-      strncat (cn->buffer, s, slen);
+      linebuffer_setlen (cn, len + qlen + strlen (s));
+      len += sprintf (cn->buffer + len, "%s%s", qualifier, s);
     }
 }
 
@@ -2773,7 +2713,7 @@ consider_token (register char *str, register int len, register int c, int *c_ext
      case dignorerest:
        return FALSE;
      default:
-       error ("internal error: definedef value.", (char *)NULL);
+       error ("internal error: definedef value.");
      }
 
    /*
@@ -2897,7 +2837,7 @@ consider_token (register char *str, register int len, register int c, int *c_ext
 	   fvdef = fvnone;
 	   objdef = omethodtag;
 	   linebuffer_setlen (&token_name, len);
-	   strncpy (token_name.buffer, str, len);
+	   memcpy (token_name.buffer, str, len);
 	   token_name.buffer[len] = '\0';
 	   return TRUE;
 	 }
@@ -2909,10 +2849,12 @@ consider_token (register char *str, register int len, register int c, int *c_ext
      case omethodparm:
        if (parlev == 0)
 	 {
+	   int oldlen = token_name.len;
 	   fvdef = fvnone;
 	   objdef = omethodtag;
-	   linebuffer_setlen (&token_name, token_name.len + len);
-	   strncat (token_name.buffer, str, len);
+	   linebuffer_setlen (&token_name, oldlen + len);
+	   memcpy (token_name.buffer + oldlen, str, len);
+	   token_name.buffer[oldlen + len] = '\0';
 	   return TRUE;
 	 }
        return FALSE;
@@ -3061,7 +3003,7 @@ make_C_tag (int isfun)
       make_tag (concat ("INVALID TOKEN:-->", token_name.buffer, ""),
 		token_name.len + 17, isfun, token.line,
 		token.offset+token.length+1, token.lineno, token.linepos);
-      error ("INVALID TOKEN", NULL);
+      error ("INVALID TOKEN");
     }
 
   token.valid = FALSE;
@@ -3341,12 +3283,12 @@ C_entries (int c_ext, FILE *inf)
 			      && nestlev > 0 && definedef == dnone)
 			    /* in struct body */
 			    {
+			      int len;
                               write_classname (&token_name, qualifier);
-			      linebuffer_setlen (&token_name,
-						 token_name.len+qlen+toklen);
-			      strcat (token_name.buffer, qualifier);
-			      strncat (token_name.buffer,
-				       newlb.buffer + tokoff, toklen);
+			      len = token_name.len;
+			      linebuffer_setlen (&token_name, len+qlen+toklen);
+			      sprintf (token_name.buffer + len, "%s%.*s",
+				       qualifier, toklen, newlb.buffer + tokoff);
 			      token.named = TRUE;
 			    }
 			  else if (objdef == ocatseen)
@@ -3354,11 +3296,8 @@ C_entries (int c_ext, FILE *inf)
 			    {
 			      int len = strlen (objtag) + 2 + toklen;
 			      linebuffer_setlen (&token_name, len);
-			      strcpy (token_name.buffer, objtag);
-			      strcat (token_name.buffer, "(");
-			      strncat (token_name.buffer,
-				       newlb.buffer + tokoff, toklen);
-			      strcat (token_name.buffer, ")");
+			      sprintf (token_name.buffer, "%s(%.*s)",
+				       objtag, toklen, newlb.buffer + tokoff);
 			      token.named = TRUE;
 			    }
 			  else if (objdef == omethodtag
@@ -3382,8 +3321,8 @@ C_entries (int c_ext, FILE *inf)
 				  len -= 1;
 				}
 			      linebuffer_setlen (&token_name, len);
-			      strncpy (token_name.buffer,
-				       newlb.buffer + off, len);
+			      memcpy (token_name.buffer,
+				      newlb.buffer + off, len);
 			      token_name.buffer[len] = '\0';
 			      if (defun)
 				while (--len >= 0)
@@ -3394,8 +3333,8 @@ C_entries (int c_ext, FILE *inf)
 			  else
 			    {
 			      linebuffer_setlen (&token_name, toklen);
-			      strncpy (token_name.buffer,
-				       newlb.buffer + tokoff, toklen);
+			      memcpy (token_name.buffer,
+				      newlb.buffer + tokoff, toklen);
 			      token_name.buffer[toklen] = '\0';
 			      /* Name macros and members. */
 			      token.named = (structdef == stagseen
@@ -4689,7 +4628,7 @@ Pascal_functions (FILE *inf)
 	  /* Check if this is an "extern" declaration. */
 	  if (*dbp == '\0')
 	    continue;
-	  if (lowcase (*dbp == 'e'))
+	  if (lowcase (*dbp) == 'e')
 	    {
 	      if (nocase_tail ("extern")) /* superfluous, really! */
 		{
@@ -5191,7 +5130,7 @@ HTML_labels (FILE *inf)
 		  for (end = dbp; *end != '\0' && intoken (*end); end++)
 		    continue;
 		linebuffer_setlen (&token_name, end - dbp);
-		strncpy (token_name.buffer, dbp, end - dbp);
+		memcpy (token_name.buffer, dbp, end - dbp);
 		token_name.buffer[end - dbp] = '\0';
 
 		dbp = end;
@@ -5291,7 +5230,7 @@ Prolog_functions (FILE *inf)
 	  else if (len + 1 > allocated)
 	    xrnew (last, len + 1, char);
 	  allocated = len + 1;
-	  strncpy (last, cp, len);
+	  memcpy (last, cp, len);
 	  last[len] = '\0';
 	}
     }
@@ -5464,7 +5403,7 @@ Erlang_functions (FILE *inf)
 	  else if (len + 1 > allocated)
 	    xrnew (last, len + 1, char);
 	  allocated = len + 1;
-	  strncpy (last, cp, len);
+	  memcpy (last, cp, len);
 	  last[len] = '\0';
 	}
     }
@@ -5706,7 +5645,7 @@ add_regex (char *regexp_pattern, language *lang)
 {
   static struct re_pattern_buffer zeropattern;
   char sep, *pat, *name, *modifiers;
-  char empty[] = "";
+  char empty = '\0';
   const char *err;
   struct re_pattern_buffer *patbuf;
   regexp *rp;
@@ -5719,7 +5658,7 @@ add_regex (char *regexp_pattern, language *lang)
 
   if (strlen (regexp_pattern) < 3)
     {
-      error ("null regexp", (char *)NULL);
+      error ("null regexp");
       return;
     }
   sep = regexp_pattern[0];
@@ -5738,7 +5677,7 @@ add_regex (char *regexp_pattern, language *lang)
   if (modifiers == NULL)	/* no terminating separator --> no name */
     {
       modifiers = name;
-      name = empty;
+      name = &empty;
     }
   else
     modifiers += 1;		/* skip separator */
@@ -5749,7 +5688,7 @@ add_regex (char *regexp_pattern, language *lang)
       {
       case 'N':
 	if (modifiers == name)
-	  error ("forcing explicit tag name but no name, ignoring", NULL);
+	  error ("forcing explicit tag name but no name, ignoring");
 	force_explicit_name = TRUE;
 	break;
       case 'i':
@@ -5763,12 +5702,7 @@ add_regex (char *regexp_pattern, language *lang)
 	need_filebuf = TRUE;
 	break;
       default:
-	{
-	  char wrongmod [2];
-	  wrongmod[0] = modifiers[0];
-	  wrongmod[1] = '\0';
-	  error ("invalid regexp modifier `%s', ignoring", wrongmod);
-	}
+	error ("invalid regexp modifier `%c', ignoring", modifiers[0]);
 	break;
       }
 
@@ -5852,7 +5786,7 @@ substitute (char *in, char *out, struct re_registers *regs)
       {
 	dig = *out - '0';
 	diglen = regs->end[dig] - regs->start[dig];
-	strncpy (t, in + regs->start[dig], diglen);
+	memcpy (t, in + regs->start[dig], diglen);
 	t += diglen;
       }
     else
@@ -6075,7 +6009,7 @@ readline_internal (linebuffer *lbp, register FILE *stream)
 	  filebuf.size *= 2;
 	  xrnew (filebuf.buffer, filebuf.size, char);
 	}
-      strncpy (filebuf.buffer + filebuf.len, lbp->buffer, lbp->len);
+      memcpy (filebuf.buffer + filebuf.len, lbp->buffer, lbp->len);
       filebuf.len += lbp->len;
       filebuf.buffer[filebuf.len++] = '\n';
       filebuf.buffer[filebuf.len] = '\0';
@@ -6298,7 +6232,7 @@ savenstr (const char *cp, int len)
   register char *dp;
 
   dp = xnew (len + 1, char);
-  strncpy (dp, cp, len);
+  memcpy (dp, cp, len);
   dp[len] = '\0';
   return dp;
 }
@@ -6340,48 +6274,6 @@ etags_strchr (register const char *sp, register int c)
   return NULL;
 }
 
-/*
- * Compare two strings, ignoring case for alphabetic characters.
- *
- * Same as BSD's strcasecmp, included for portability.
- */
-static int
-etags_strcasecmp (register const char *s1, register const char *s2)
-{
-  while (*s1 != '\0'
-	 && (ISALPHA (*s1) && ISALPHA (*s2)
-	     ? lowcase (*s1) == lowcase (*s2)
-	     : *s1 == *s2))
-    s1++, s2++;
-
-  return (ISALPHA (*s1) && ISALPHA (*s2)
-	  ? lowcase (*s1) - lowcase (*s2)
-	  : *s1 - *s2);
-}
-
-/*
- * Compare two strings, ignoring case for alphabetic characters.
- * Stop after a given number of characters
- *
- * Same as BSD's strncasecmp, included for portability.
- */
-static int
-etags_strncasecmp (register const char *s1, register const char *s2, register int n)
-{
-  while (*s1 != '\0' && n-- > 0
-	 && (ISALPHA (*s1) && ISALPHA (*s2)
-	     ? lowcase (*s1) == lowcase (*s2)
-	     : *s1 == *s2))
-    s1++, s2++;
-
-  if (n < 0)
-    return 0;
-  else
-    return (ISALPHA (*s1) && ISALPHA (*s2)
-	    ? lowcase (*s1) - lowcase (*s2)
-	    : *s1 - *s2);
-}
-
 /* Skip spaces (end of string is not space), return new pointer. */
 static char *
 skip_spaces (char *cp)
@@ -6418,18 +6310,21 @@ pfatal (const char *s1)
 static void
 suggest_asking_for_help (void)
 {
-  fprintf (stderr, "\tTry `%s %s' for a complete list of options.\n",
-	   progname, NO_LONG_OPTIONS ? "-h" : "--help");
+  fprintf (stderr, "\tTry `%s --help' for a complete list of options.\n",
+	   progname);
   exit (EXIT_FAILURE);
 }
 
-/* Print error message.  `s1' is printf control string, `s2' is arg for it. */
+/* Output a diagnostic with printf-style FORMAT and args.  */
 static void
-error (const char *s1, const char *s2)
+error (const char *format, ...)
 {
+  va_list ap;
+  va_start (ap, format);
   fprintf (stderr, "%s: ", progname);
-  fprintf (stderr, s1, s2);
+  vfprintf (stderr, format, ap);
   fprintf (stderr, "\n");
+  va_end (ap);
 }
 
 /* Return a newly-allocated string whose contents
@@ -6454,7 +6349,6 @@ concat (const char *s1, const char *s2, const char *s3)
 static char *
 etags_getcwd (void)
 {
-#ifdef HAVE_GETCWD
   int bufsize = 200;
   char *path = xnew (bufsize, char);
 
@@ -6469,34 +6363,6 @@ etags_getcwd (void)
 
   canonicalize_filename (path);
   return path;
-
-#else /* not HAVE_GETCWD */
-#if MSDOS
-
-  char *p, path[MAXPATHLEN + 1]; /* Fixed size is safe on MSDOS.  */
-
-  getwd (path);
-
-  for (p = path; *p != '\0'; p++)
-    if (*p == '\\')
-      *p = '/';
-    else
-      *p = lowcase (*p);
-
-  return strdup (path);
-#else /* not MSDOS */
-  linebuffer path;
-  FILE *pipe;
-
-  linebuffer_init (&path);
-  pipe = (FILE *) popen ("pwd 2>/dev/null", "r");
-  if (pipe == NULL || readline_internal (&path, pipe) == 0)
-    pfatal ("pwd");
-  pclose (pipe);
-
-  return path.buffer;
-#endif /* not MSDOS */
-#endif /* not HAVE_GETCWD */
 }
 
 /* Return a newly allocated string containing the file name of FILE
@@ -6687,19 +6553,19 @@ linebuffer_setlen (linebuffer *lbp, int toksize)
 }
 
 /* Like malloc but get fatal error if memory is exhausted. */
-static PTR
+static void *
 xmalloc (size_t size)
 {
-  PTR result = (PTR) malloc (size);
+  void *result = malloc (size);
   if (result == NULL)
     fatal ("virtual memory exhausted", (char *)NULL);
   return result;
 }
 
-static PTR
+static void *
 xrealloc (char *ptr, size_t size)
 {
-  PTR result = (PTR) realloc (ptr, size);
+  void *result = realloc (ptr, size);
   if (result == NULL)
     fatal ("virtual memory exhausted", (char *)NULL);
   return result;

@@ -1,10 +1,8 @@
 @c -*-texinfo-*-
 @c This is part of the GNU Emacs Lisp Reference Manual.
-@c Copyright (C) 1990-1995, 1998-1999, 2001-2011
-@c   Free Software Foundation, Inc.
+@c Copyright (C) 1990-1995, 1998-1999, 2001-2012 Free Software Foundation, Inc.
 @c See the file elisp.texi for copying conditions.
-@setfilename ../../info/frames
-@node Frames, Positions, Windows, Top
+@node Frames
 @chapter Frames
 @cindex frame
 
@@ -24,26 +22,25 @@ into smaller windows.  @xref{Splitting Windows}.
 more Emacs frames.  In Emacs Lisp, a @dfn{terminal object} is a Lisp
 object that represents a terminal.  @xref{Terminal Type}.
 
-@cindex terminal frame
-@cindex window frame
-  There are two classes of terminals: text-only terminals and
-graphical terminals.  Text-only terminals are non-graphics-capable
-display devices, including ``terminal emulators'' such as xterm.  On
-text-only terminals, each frame occupies the entire terminal screen;
-although you can create additional frames and switch between them,
-only one frame can be shown at any given time.  We refer to frames on
-text-only terminals as @dfn{terminal frames}.  Graphical terminals, on
-the other hand, are graphics-capable windowing systems, such as the X
-Window System.  On a graphical terminal, Emacs can display multiple
-frames simultaneously.  We refer to such frames as @dfn{window
-frames}.
+@cindex text terminal
+@cindex graphical terminal
+@cindex graphical display
+  There are two classes of terminals: @dfn{text terminals} and
+@dfn{graphical terminals}.  Text terminals are non-graphics-capable
+displays, including @command{xterm} and other terminal emulators.  On
+a text terminal, each Emacs frame occupies the terminal's entire
+screen; although you can create additional frames and switch between
+them, the terminal only shows one frame at a time.  Graphical
+terminals, on the other hand, are managed by graphical display systems
+such as the X Window System, which allow Emacs to show multiple frames
+simultaneously on the same display.
 
   On GNU and Unix systems, you can create additional frames on any
 available terminal, within a single Emacs session, regardless of
-whether Emacs was started on a text-only or graphical terminal.  Emacs
-can display on both graphical and text-only terminals simultaneously.
-This comes in handy, for instance, when you connect to the same
-session from several remote locations.  @xref{Multiple Terminals}.
+whether Emacs was started on a text or graphical terminal.  Emacs can
+display on both graphical and text terminals simultaneously.  This
+comes in handy, for instance, when you connect to the same session
+from several remote locations.  @xref{Multiple Terminals}.
 
 @defun framep object
 This predicate returns a non-@code{nil} value if @var{object} is a
@@ -51,14 +48,15 @@ frame, and @code{nil} otherwise.  For a frame, the value indicates which
 kind of display the frame uses:
 
 @table @code
-@item x
-The frame is displayed in an X window.
 @item t
-A terminal frame on a character display.
+The frame is displayed on a text terminal.
+@item x
+The frame is displayed on an X graphical terminal.
 @item w32
-The frame is displayed on MS-Windows 9X/NT.
+The frame is displayed on a MS-Windows graphical terminal.
 @item ns
-The frame is displayed on a GNUstep or Macintosh Cocoa display.
+The frame is displayed on a GNUstep or Macintosh Cocoa graphical
+terminal.
 @item pc
 The frame is displayed on an MS-DOS terminal.
 @end table
@@ -72,10 +70,10 @@ selected frame.
 
 @defun terminal-live-p object
 This predicate returns a non-@code{nil} value if @var{object} is a
-terminal that is alive (i.e.@: was not deleted), and @code{nil}
-otherwise.  For live terminals, the return value indicates what kind
-of frames are displayed on that terminal; the list of possible values
-is the same as for @code{framep} above.
+terminal that is live (i.e.@: not deleted), and @code{nil} otherwise.
+For live terminals, the return value indicates what kind of frames are
+displayed on that terminal; the list of possible values is the same as
+for @code{framep} above.
 @end defun
 
 @menu
@@ -100,7 +98,7 @@ is the same as for @code{framep} above.
 * Window System Selections::    Transferring text to and from other X clients.
 * Drag and Drop::               Internals of Drag-and-Drop implementation.
 * Color Names::                 Getting the definitions of color names.
-* Text Terminal Colors::        Defining colors for text-only terminals.
+* Text Terminal Colors::        Defining colors for text terminals.
 * Resources::                   Getting resource values from the server.
 * Display Feature Testing::     Determining the features of a terminal.
 @end menu
@@ -110,7 +108,7 @@ is the same as for @code{framep} above.
 
 To create a new frame, call the function @code{make-frame}.
 
-@defun make-frame &optional alist
+@deffn Command make-frame &optional alist
 This function creates and returns a new frame, displaying the current
 buffer.
 
@@ -119,7 +117,7 @@ for the new frame.  @xref{Frame Parameters}.  If you specify the
 @code{terminal} parameter in @var{alist}, the new frame is created on
 that terminal.  Otherwise, if you specify the @code{window-system}
 frame parameter in @var{alist}, that determines whether the frame
-should be displayed on a text-only or graphical terminal.
+should be displayed on a text terminal or a graphical terminal.
 @xref{Window Systems}.  If neither is specified, the new frame is
 created in the same terminal as the selected frame.
 
@@ -136,7 +134,7 @@ This function itself does not make the new frame the selected frame.
 @xref{Input Focus}.  The previously selected frame remains selected.
 On graphical terminals, however, the windowing system may select the
 new frame for its own reasons.
-@end defun
+@end deffn
 
 @defvar before-make-frame-hook
 A normal hook run by @code{make-frame} before it creates the frame.
@@ -164,15 +162,15 @@ frame.
 @cindex multiple X displays
 @cindex displays, multiple
 
-  Emacs represents each terminal, whether graphical or text-only, as a
-@dfn{terminal object} data type (@pxref{Terminal Type}).  On GNU and
-Unix systems, Emacs can use multiple terminals simultaneously in each
-session.  On other systems, it can only use a single terminal.  Each
-terminal object has the following attributes:
+  Emacs represents each terminal as a @dfn{terminal object} data type
+(@pxref{Terminal Type}).  On GNU and Unix systems, Emacs can use
+multiple terminals simultaneously in each session.  On other systems,
+it can only use a single terminal.  Each terminal object has the
+following attributes:
 
 @itemize @bullet
 @item
-The name of the device used by the terminal (e.g., @samp{:0.0} or
+The name of the device used by the terminal (e.g.@: @samp{:0.0} or
 @file{/dev/tty}).
 
 @item
@@ -181,7 +179,7 @@ The terminal and keyboard coding systems used on the terminal.
 
 @item
 The kind of display associated with the terminal.  This is the symbol
-returned by the function @code{terminal-live-p} (i.e., @code{x},
+returned by the function @code{terminal-live-p} (i.e.@: @code{x},
 @code{t}, @code{w32}, @code{ns}, or @code{pc}).  @xref{Frames}.
 
 @item
@@ -190,7 +188,7 @@ A list of terminal parameters.  @xref{Terminal Parameters}.
 
   There is no primitive for creating terminal objects.  Emacs creates
 them as needed, such as when you call @code{make-frame-on-display}
-(which is described below).
+(described below).
 
 @defun terminal-name &optional terminal
 This function returns the file name of the device used by
@@ -200,7 +198,7 @@ a frame, meaning that frame's terminal.
 @end defun
 
 @defun terminal-list
-This function returns a list of all terminal objects currently in use.
+This function returns a list of all live terminal objects.
 @end defun
 
 @defun get-device-terminal device
@@ -249,15 +247,15 @@ never be buffer-local (@pxref{Buffer-Local Variables}).
 
   On GNU and Unix systems, each X display is a separate graphical
 terminal.  When Emacs is started from within the X window system, it
-uses the X display chosen with the @code{DISPLAY} environment
-variable, or with the @samp{--display} option.  @xref{Initial
-Options,,, emacs, The GNU Emacs Manual}.  Emacs can connect to other X
-displays via the command @code{make-frame-on-display}.  Each X display
-has its own selected frame and its own minibuffer windows; however,
-only one of those frames is ``@emph{the} selected frame'' at any given
-moment (@pxref{Input Focus}).  Emacs can even connect to other
-text-only terminals, by interacting with the @command{emacsclient}
-program.  @xref{Emacs Server,,, emacs, The GNU Emacs Manual}.
+uses the X display specified by the @env{DISPLAY} environment
+variable, or by the @samp{--display} option (@pxref{Initial Options,,,
+emacs, The GNU Emacs Manual}).  Emacs can connect to other X displays
+via the command @code{make-frame-on-display}.  Each X display has its
+own selected frame and its own minibuffer windows; however, only one
+of those frames is ``@emph{the} selected frame'' at any given moment
+(@pxref{Input Focus}).  Emacs can even connect to other text
+terminals, by interacting with the @command{emacsclient} program.
+@xref{Emacs Server,,, emacs, The GNU Emacs Manual}.
 
   A single X server can handle more than one display.  Each X display
 has a three-part name, @samp{@var{host}:@var{server}.@var{screen}}.
@@ -268,8 +266,8 @@ server, Emacs knows by the similarity in their names that they share a
 single keyboard.
 
   On some ``multi-monitor'' setups, a single X display outputs to more
-than one monitor.  Currently, there is no way for Emacs to distinguish
-between the different physical monitors.
+than one physical monitor.  Currently, there is no way for Emacs to
+distinguish between the different physical monitors.
 
 @deffn Command make-frame-on-display display &optional parameters
 This function creates and returns a new frame on @var{display}, taking
@@ -278,8 +276,8 @@ the other frame parameters from the alist @var{parameters}.
 
 Before creating the frame, this function ensures that Emacs is ``set
 up'' to display graphics.  For instance, if Emacs has not processed X
-resources (e.g., if it was started on a text-only terminal), it does
-so at this time.  In all other respects, this function behaves like
+resources (e.g.@: if it was started on a text terminal), it does so at
+this time.  In all other respects, this function behaves like
 @code{make-frame} (@pxref{Creating Frames}).
 @end deffn
 
@@ -325,15 +323,15 @@ on that display (@pxref{Deleting Frames}).
 Just what parameters a frame has depends on what display mechanism it
 uses.
 
-  Frame parameters exist mostly for the sake of window systems.  A
-terminal frame has a few parameters, mostly for compatibility's sake;
-only the @code{height}, @code{width}, @code{name}, @code{title},
-@code{menu-bar-lines}, @code{buffer-list} and @code{buffer-predicate}
-parameters do something special.  If the terminal supports colors, the
-parameters @code{foreground-color}, @code{background-color},
-@code{background-mode} and @code{display-type} are also meaningful.
-If the terminal supports frame transparency, the parameter
-@code{alpha} is also meaningful.
+  Frame parameters exist mostly for the sake of graphical displays.
+Most frame parameters have no effect when applied to a frame on a text
+terminal; only the @code{height}, @code{width}, @code{name},
+@code{title}, @code{menu-bar-lines}, @code{buffer-list} and
+@code{buffer-predicate} parameters do something special.  If the
+terminal supports colors, the parameters @code{foreground-color},
+@code{background-color}, @code{background-mode} and
+@code{display-type} are also meaningful.  If the terminal supports
+frame transparency, the parameter @code{alpha} is also meaningful.
 
 @menu
 * Parameter Access::       How to change a frame's parameters.
@@ -387,12 +385,13 @@ parameter values to frames that will be created henceforth.
 @node Initial Parameters
 @subsection Initial Frame Parameters
 
-You can specify the parameters for the initial startup frame
-by setting @code{initial-frame-alist} in your init file (@pxref{Init File}).
+You can specify the parameters for the initial startup frame by
+setting @code{initial-frame-alist} in your init file (@pxref{Init
+File}).
 
 @defopt initial-frame-alist
-This variable's value is an alist of parameter values used when creating
-the initial window frame.  You can set this variable to specify the
+This variable's value is an alist of parameter values used when
+creating the initial frame.  You can set this variable to specify the
 appearance of the initial frame without altering subsequent frames.
 Each element has the form:
 
@@ -420,15 +419,16 @@ the initial frame, specify the same parameters in
 @code{initial-frame-alist} with values that match the X resources.
 @end defopt
 
-If these parameters specify a separate minibuffer-only frame with
-@code{(minibuffer . nil)}, and you have not created one, Emacs creates
-one for you.
+@cindex minibuffer-only frame
+If these parameters include @code{(minibuffer . nil)}, that indicates
+that the initial frame should have no minibuffer.  In this case, Emacs
+creates a separate @dfn{minibuffer-only frame} as well.
 
 @defopt minibuffer-frame-alist
 This variable's value is an alist of parameter values used when
-creating an initial minibuffer-only frame.  This is the
-minibuffer-only frame that Emacs creates if @code{initial-frame-alist}
-specifies a frame with no minibuffer.
+creating an initial minibuffer-only frame (i.e.@: the minibuffer-only
+frame that Emacs creates if @code{initial-frame-alist} specifies a
+frame with no minibuffer).
 @end defopt
 
 @defopt default-frame-alist
@@ -437,18 +437,18 @@ Emacs frames---the first frame, and subsequent frames.  When using the X
 Window System, you can get the same results by means of X resources
 in many cases.
 
-Setting this variable does not affect existing frames.
+Setting this variable does not affect existing frames.  Furthermore,
+functions that display a buffer in a separate frame may override the
+default parameters by supplying their own parameters.
 @end defopt
 
-Functions that display a buffer in a separate frame can override the
-default parameters by supplying their own parameters.  @xref{Definition
-of special-display-frame-alist}.
-
-If you use options that specify window appearance when you invoke Emacs,
-they take effect by adding elements to @code{default-frame-alist}.  One
-exception is @samp{-geometry}, which adds the specified position to
-@code{initial-frame-alist} instead.  @xref{Emacs Invocation,, Command
-Line Arguments for Emacs Invocation, emacs, The GNU Emacs Manual}.
+If you invoke Emacs with command-line options that specify frame
+appearance, those options take effect by adding elements to either
+@code{initial-frame-alist} or @code{default-frame-alist}.  Options
+which affect just the initial frame, such as @samp{-geometry} and
+@samp{--maximized}, add to @code{initial-frame-alist}; the others add
+to @code{default-frame-alist}.  @pxref{Emacs Invocation,, Command Line
+Arguments for Emacs Invocation, emacs, The GNU Emacs Manual}.
 
 @node Window Frame Parameters
 @subsection Window Frame Parameters
@@ -459,8 +459,8 @@ it uses.  This section describes the parameters that have special
 meanings on some or all kinds of terminals.  Of these, @code{name},
 @code{title}, @code{height}, @code{width}, @code{buffer-list} and
 @code{buffer-predicate} provide meaningful information in terminal
-frames, and @code{tty-color-mode} is meaningful @emph{only} in
-terminal frames.
+frames, and @code{tty-color-mode} is meaningful only for frames on
+text terminals.
 
 @menu
 * Basic Parameters::            Parameters that are fundamental.
@@ -485,7 +485,7 @@ frame.  @code{title} and @code{name} are meaningful on all terminals.
 @item display
 The display on which to open this frame.  It should be a string of the
 form @code{"@var{host}:@var{dpy}.@var{screen}"}, just like the
-@code{DISPLAY} environment variable.
+@env{DISPLAY} environment variable.
 
 @vindex display-type, a frame parameter
 @item display-type
@@ -524,7 +524,7 @@ named, this parameter will be @code{nil}.
 @cindex window position on display
 
   Position parameters' values are normally measured in pixels, but on
-text-only terminals they count characters or lines instead.
+text terminals they count characters or lines instead.
 
 @table @code
 @vindex left, a frame parameter
@@ -561,19 +561,17 @@ to the top (or bottom) edge of the screen.  It works just like
 
 @vindex icon-left, a frame parameter
 @item icon-left
-The screen position of the left edge @emph{of the frame's icon}, in
-pixels, counting from the left edge of the screen.  This takes effect if
-and when the frame is iconified.
-
-If you specify a value for this parameter, then you must also specify
-a value for @code{icon-top} and vice versa.  The window manager may
-ignore these two parameters.
+The screen position of the left edge of the frame's icon, in pixels,
+counting from the left edge of the screen.  This takes effect when the
+frame is iconified, if the window manager supports this feature.  If
+you specify a value for this parameter, then you must also specify a
+value for @code{icon-top} and vice versa.
 
 @vindex icon-top, a frame parameter
 @item icon-top
-The screen position of the top edge @emph{of the frame's icon}, in
-pixels, counting from the top edge of the screen.  This takes effect if
-and when the frame is iconified.
+The screen position of the top edge of the frame's icon, in pixels,
+counting from the top edge of the screen.  This takes effect when the
+frame is iconified, if the window manager supports this feature.
 
 @vindex user-position, a frame parameter
 @item user-position
@@ -601,8 +599,9 @@ parameters represent the user's stated preference; otherwise, use
 @subsubsection Size Parameters
 @cindex window size on display
 
-  Size parameters' values are normally measured in pixels, but on
-text-only terminals they count characters or lines instead.
+  Frame parameters specify frame sizes in character units.  On
+graphical displays, the @code{default} face determines the actual
+pixel sizes of these character units (@pxref{Face Attributes}).
 
 @table @code
 @vindex height, a frame parameter
@@ -757,8 +756,9 @@ If non-@code{nil}, this frame's window is never split automatically.
 @subsubsection Window Management Parameters
 @cindex window manager interaction, and frame parameters
 
-  These frame parameters, meaningful only on window system displays,
-interact with the window manager.
+  The following frame parameters control various aspects of the
+frame's interaction with the window manager.  They have no effect on
+text terminals.
 
 @table @code
 @vindex visibility, a frame parameter
@@ -769,11 +769,13 @@ iconified.  @xref{Visibility of Frames}.
 
 @vindex auto-raise, a frame parameter
 @item auto-raise
-Whether selecting the frame raises it (non-@code{nil} means yes).
+If non-@code{nil}, Emacs automatically raises the frame when it is
+selected.  Some window managers do not allow this.
 
 @vindex auto-lower, a frame parameter
 @item auto-lower
-Whether deselecting the frame lowers it (non-@code{nil} means yes).
+If non-@code{nil}, Emacs automatically lowers the frame when it is
+deselected.  Some window managers do not allow this.
 
 @vindex icon-type, a frame parameter
 @item icon-type
@@ -789,12 +791,15 @@ appears.  If this is @code{nil}, the frame's title is used.
 
 @vindex window-id, a frame parameter
 @item window-id
-The number of the window-system window used by the frame
-to contain the actual Emacs windows.
+The ID number which the graphical display uses for this frame.  Emacs
+assigns this parameter when the frame is created; changing the
+parameter has no effect on the actual ID number.
 
 @vindex outer-window-id, a frame parameter
 @item outer-window-id
-The number of the outermost window-system window used for the whole frame.
+The ID number of the outermost window-system window in which the frame
+exists.  As with @code{window-id}, changing this parameter has no
+actual effect.
 
 @vindex wait-for-wm, a frame parameter
 @item wait-for-wm
@@ -849,31 +854,39 @@ Display a horizontal bar @var{height} pixels high.
 @end table
 
 @vindex cursor-type
-The buffer-local variable @code{cursor-type} overrides the value of
-the @code{cursor-type} frame parameter, but if it is @code{t}, that
-means to use the cursor specified for the frame.
+The @code{cursor-type} frame parameter may be overridden by the
+variables @code{cursor-type} and
+@code{cursor-in-non-selected-windows}:
+
+@defvar cursor-type
+This buffer-local variable controls how the cursor looks in a selected
+window showing the buffer.  If its value is @code{t}, that means to
+use the cursor specified by the @code{cursor-type} frame parameter.
+Otherwise, the value should be one of the cursor types listed above,
+and it overrides the @code{cursor-type} frame parameter.
+@end defvar
+
+@defopt cursor-in-non-selected-windows
+This buffer-local variable controls how the cursor looks in a window
+that is not selected.  It supports the same values as the
+@code{cursor-type} frame parameter; also, @code{nil} means don't
+display a cursor in nonselected windows, and @code{t} (the default)
+means use a standard modification of the usual cursor type (solid box
+becomes hollow box, and bar becomes a narrower bar).
+@end defopt
 
 @defopt blink-cursor-alist
 This variable specifies how to blink the cursor.  Each element has the
 form @code{(@var{on-state} . @var{off-state})}.  Whenever the cursor
 type equals @var{on-state} (comparing using @code{equal}), the
 corresponding @var{off-state} specifies what the cursor looks like
-when it blinks ``off.''  Both @var{on-state} and @var{off-state}
+when it blinks ``off''.  Both @var{on-state} and @var{off-state}
 should be suitable values for the @code{cursor-type} frame parameter.
 
 There are various defaults for how to blink each type of cursor, if
 the type is not mentioned as an @var{on-state} here.  Changes in this
 variable do not take effect immediately, only when you specify the
 @code{cursor-type} frame parameter.
-@end defopt
-
-@defopt cursor-in-non-selected-windows
-This variable controls how the cursor looks in a window that is not
-selected.  It supports the same values as the @code{cursor-type} frame
-parameter; also, @code{nil} means don't display a cursor in
-nonselected windows, and @code{t} (the default) means use a standard
-modification of the usual cursor type (solid box becomes hollow box,
-and bar becomes a narrower bar).
 @end defopt
 
 @node Font and Color Parameters
@@ -888,9 +901,11 @@ and bar becomes a narrower bar).
 A list of symbols, specifying the @dfn{font backends} to use for
 drawing fonts in the frame, in order of priority.  On X, there are
 currently two available font backends: @code{x} (the X core font
-driver) and @code{xft} (the Xft font driver).  On other systems, there
-is only one available font backend, so it does not make sense to
-modify this frame parameter.
+driver) and @code{xft} (the Xft font driver).  On Windows, there are
+currently two available font backends: @code{gdi} and
+@code{uniscribe} (@pxref{Windows Fonts,,, emacs, The GNU Emacs
+Manual}).  On other systems, there is only one available font backend,
+so it does not make sense to modify this frame parameter.
 
 @vindex background-mode, a frame parameter
 @item background-mode
@@ -902,7 +917,7 @@ to whether the background color is a light one or a dark one.
 @cindex standard colors for character terminals
 This parameter overrides the terminal's color support as given by the
 system's terminal capabilities database in that this parameter's value
-specifies the color mode to use in terminal frames.  The value can be
+specifies the color mode to use on a text terminal.  The value can be
 either a symbol or a number.  A number specifies the number of colors
 to use (and, indirectly, what commands to issue to produce each
 color).  For example, @code{(tty-color-mode . 8)} specifies use of the
@@ -1046,17 +1061,17 @@ selected frame.
 @defunx frame-pixel-width &optional frame
 These functions return the height and width of the main display area
 of @var{frame}, measured in pixels.  If you don't supply @var{frame},
-they use the selected frame.  For a text-only terminal, the results are
-in characters rather than pixels.
+they use the selected frame.  For a text terminal, the results are in
+characters rather than pixels.
 
-These values include the internal borders, and windows' scroll bars and
-fringes (which belong to individual windows, not to the frame itself).
-The exact value of the heights depends on the window-system and toolkit
-in use.  With Gtk+, the height does not include any tool bar or menu
-bar.  With the Motif or Lucid toolkits, it includes the tool bar but
-not the menu bar.  In a graphical version with no toolkit, it includes
-both the tool bar and menu bar.  For a text-only terminal, the result
-includes the menu bar.
+These values include the internal borders, and windows' scroll bars
+and fringes (which belong to individual windows, not to the frame
+itself).  The exact value of the heights depends on the window-system
+and toolkit in use.  With GTK+, the height does not include any tool
+bar or menu bar.  With the Motif or Lucid toolkits, it includes the
+tool bar but not the menu bar.  In a graphical version with no
+toolkit, it includes both the tool bar and menu bar.  For a text
+terminal, the result includes the menu bar.
 @end defun
 
 @defun frame-char-height &optional frame
@@ -1083,13 +1098,13 @@ fit.
 
 If @var{pretend} is non-@code{nil}, then Emacs displays @var{lines}
 lines of output in @var{frame}, but does not change its value for the
-actual height of the frame.  This is only useful for a terminal frame.
+actual height of the frame.  This is only useful on text terminals.
 Using a smaller height than the terminal actually implements may be
 useful to reproduce behavior observed on a smaller screen, or if the
 terminal malfunctions when using its whole screen.  Setting the frame
 height ``for real'' does not always work, because knowing the correct
-actual size may be necessary for correct cursor positioning on a
-terminal frame.
+actual size may be necessary for correct cursor positioning on
+text terminals.
 @end defun
 
 @defun set-frame-width frame width &optional pretend
@@ -1098,12 +1113,20 @@ The argument @var{pretend} has the same meaning as in
 @code{set-frame-height}.
 @end defun
 
-@findex set-screen-height
-@findex set-screen-width
-  The older functions @code{set-screen-height} and
-@code{set-screen-width} were used to specify the height and width of the
-screen, in Emacs versions that did not support multiple frames.  They
-are semi-obsolete, but still work; they apply to the selected frame.
+@c FIXME?  Belongs more in Emacs manual than here?
+@c But eg fit-window-to-buffer is in this manual.
+@deffn Command fit-frame-to-buffer &optional frame max-height min-height
+This command adjusts the height of @var{frame} (the default is the
+selected frame) to fit its contents.  The optional arguments
+@var{max-height} and @var{min-height} specify the maximum and minimum
+new frame heights, respectively.
+
+@vindex fit-frame-to-buffer-bottom-margin
+The default minimum height corresponds to @code{window-min-height}.
+The default maximum height is the screen height below the current top
+position of the frame, minus any margin specified by the option
+@code{fit-frame-to-buffer-bottom-margin}.
+@end deffn
 
 @node Geometry
 @subsection Geometry
@@ -1229,9 +1252,10 @@ while processing @code{frame-title-format} or
 @section Deleting Frames
 @cindex deleting frames
 
-Frames remain potentially visible until you explicitly @dfn{delete}
-them.  A deleted frame cannot appear on the screen, but continues to
-exist as a Lisp object until there are no references to it.
+  A @dfn{live frame} is one that has not been deleted.  When a frame
+is deleted, it is removed from its terminal display, although it may
+continue to exist as a Lisp object until there are no more references
+to it.
 
 @deffn Command delete-frame &optional frame force
 @vindex delete-frame-functions
@@ -1262,25 +1286,25 @@ calls the function @code{delete-frame}.  @xref{Misc Events}.
 @cindex frames, scanning all
 
 @defun frame-list
-The function @code{frame-list} returns a list of all the live frames,
-i.e.@: those that have not been deleted.  It is analogous to
-@code{buffer-list} for buffers, and includes frames on all terminals.
-The list that you get is newly created, so modifying the list doesn't
-have any effect on the internals of Emacs.
+This function returns a list of all the live frames, i.e.@: those that
+have not been deleted.  It is analogous to @code{buffer-list} for
+buffers, and includes frames on all terminals.  The list that you get
+is newly created, so modifying the list doesn't have any effect on the
+internals of Emacs.
 @end defun
 
 @defun visible-frame-list
 This function returns a list of just the currently visible frames.
-@xref{Visibility of Frames}.  (Terminal frames always count as
-``visible,'' even though only the selected one is actually displayed.)
+@xref{Visibility of Frames}.  Frames on text terminals always count as
+``visible'', even though only the selected one is actually displayed.
 @end defun
 
 @defun next-frame &optional frame minibuf
-The function @code{next-frame} lets you cycle conveniently through all
-the frames on the current display from an arbitrary starting point.  It
-returns the ``next'' frame after @var{frame} in the cycle.  If
-@var{frame} is omitted or @code{nil}, it defaults to the selected frame
-(@pxref{Input Focus}).
+This function lets you cycle conveniently through all the frames on
+the current display from an arbitrary starting point.  It returns the
+``next'' frame after @var{frame} in the cycle.  If @var{frame} is
+omitted or @code{nil}, it defaults to the selected frame (@pxref{Input
+Focus}).
 
 The second argument, @var{minibuf}, says which frames to consider:
 
@@ -1368,23 +1392,23 @@ function @code{select-frame}.  This does not alter the window system's
 concept of focus; rather, it escapes from the window manager's control
 until that control is somehow reasserted.
 
-When using a text-only terminal, only one frame can be displayed at a
-time on the terminal, so after a call to @code{select-frame}, the next
+When using a text terminal, only one frame can be displayed at a time
+on the terminal, so after a call to @code{select-frame}, the next
 redisplay actually displays the newly selected frame.  This frame
 remains selected until a subsequent call to @code{select-frame}.  Each
-terminal frame has a number which appears in the mode line before the
-buffer name (@pxref{Mode Line Variables}).
+frame on a text terminal has a number which appears in the mode line
+before the buffer name (@pxref{Mode Line Variables}).
 
-@defun select-frame-set-input-focus frame
+@defun select-frame-set-input-focus frame &optional norecord
 This function selects @var{frame}, raises it (should it happen to be
-obscured by other frames) and tries to give it the X server's focus.  On
-a text-only terminal, the next redisplay displays the new frame on the
-entire terminal screen.  The return value of this function is not
-significant.
+obscured by other frames) and tries to give it the X server's focus.
+On a text terminal, the next redisplay displays the new frame on the
+entire terminal screen.  The optional argument @var{norecord} has the
+same meaning as for @code{select-frame} (see below).  The return value
+of this function is not significant.
 @end defun
 
-@c ??? This is not yet implemented properly.
-@defun select-frame frame &optional norecord
+@deffn Command select-frame frame &optional norecord
 This function selects frame @var{frame}, temporarily disregarding the
 focus of the X server if any.  The selection of @var{frame} lasts until
 the next time the user does something to select a different frame, or
@@ -1393,19 +1417,21 @@ window system, the previously selected frame may be restored as the
 selected frame after return to the command loop, because it still may
 have the window system's input focus.)
 
-The specified @var{frame} becomes the selected frame, as explained
-above, and the terminal that @var{frame} is on becomes the selected
-terminal.  The window selected within @var{frame} becomes the selected
-window.  This function returns @var{frame}, or @code{nil} if @var{frame}
-has been deleted.
+The specified @var{frame} becomes the selected frame, and its terminal
+becomes the selected terminal.  This function then calls
+@code{select-window} as a subroutine, passing the window selected
+within @var{frame} as its first argument and @var{norecord} as its
+second argument (hence, if @var{norecord} is non-@code{nil}, this
+avoids changing the order of recently selected windows nor the buffer
+list).  @xref{Selecting Windows}.
 
-Optional argument @var{norecord} non-@code{nil} means to neither change
-the order of recently selected windows nor the buffer list.  @xref{The
-Buffer List}.
+This function returns @var{frame}, or @code{nil} if @var{frame} has
+been deleted.
 
-In general, you should never use @code{select-frame} in a way that could
-switch to a different terminal without switching back when you're done.
-@end defun
+In general, you should never use @code{select-frame} in a way that
+could switch to a different terminal without switching back when
+you're done.
+@end deffn
 
 Emacs cooperates with the window system by arranging to select frames as
 the server and window manager request.  It does so by generating a
@@ -1463,19 +1489,34 @@ position consistent with the new selected frame.
 @cindex visible frame
 @cindex invisible frame
 @cindex iconified frame
+@cindex minimized frame
 @cindex frame visibility
 
-A window frame may be @dfn{visible}, @dfn{invisible}, or
-@dfn{iconified}.  If it is visible, you can see its contents, unless
-other windows cover it.  If it is iconified, the frame's contents do
-not appear on the screen, but an icon does.  (Note: because of the
-way in which some window managers implement the concept of multiple
-workspaces, or desktops, all frames on other workspaces may appear to
-Emacs to be iconified.)  If the frame is invisible, it doesn't show on
-the screen, not even as an icon.
+A frame on a graphical display may be @dfn{visible}, @dfn{invisible},
+or @dfn{iconified}.  If it is visible, its contents are displayed in
+the usual manner.  If it is iconified, its contents are not displayed,
+but there is a little icon somewhere to bring the frame back into view
+(some window managers refer to this state as @dfn{minimized} rather
+than @dfn{iconified}, but from Emacs' point of view they are the same
+thing).  If a frame is invisible, it is not displayed at all.
 
-Visibility is meaningless for terminal frames, since only the selected
+  Visibility is meaningless on text terminals, since only the selected
 one is actually displayed in any case.
+
+@defun frame-visible-p frame
+This function returns the visibility status of frame @var{frame}.  The
+value is @code{t} if @var{frame} is visible, @code{nil} if it is
+invisible, and @code{icon} if it is iconified.
+
+On a text terminal, all frames are considered ``visible'' for the
+purposes of this function, even though only one frame is displayed.
+@xref{Raising and Lowering}.
+@end defun
+
+@deffn Command iconify-frame &optional frame
+This function iconifies frame @var{frame}.  If you omit @var{frame}, it
+iconifies the selected frame.
+@end deffn
 
 @deffn Command make-frame-visible &optional frame
 This function makes frame @var{frame} visible.  If you omit
@@ -1492,51 +1533,24 @@ Unless @var{force} is non-@code{nil}, this function refuses to make
 @var{frame} invisible if all other frames are invisible..
 @end deffn
 
-@deffn Command iconify-frame &optional frame
-This function iconifies frame @var{frame}.  If you omit @var{frame}, it
-iconifies the selected frame.
-@end deffn
-
-@defun frame-visible-p frame
-This returns the visibility status of frame @var{frame}.  The value is
-@code{t} if @var{frame} is visible, @code{nil} if it is invisible, and
-@code{icon} if it is iconified.
-
-On a text-only terminal, all frames are considered visible, whether
-they are currently being displayed or not, and this function returns
-@code{t} for all frames.
-@end defun
-
   The visibility status of a frame is also available as a frame
 parameter.  You can read or change it as such.  @xref{Management
-Parameters}.
-
-  The user can iconify and deiconify frames with the window manager.
-This happens below the level at which Emacs can exert any control, but
-Emacs does provide events that you can use to keep track of such
-changes.  @xref{Misc Events}.
+Parameters}.  The user can also iconify and deiconify frames with the
+window manager.  This happens below the level at which Emacs can exert
+any control, but Emacs does provide events that you can use to keep
+track of such changes.  @xref{Misc Events}.
 
 @node Raising and Lowering
 @section Raising and Lowering Frames
 
-  Most window systems use a desktop metaphor.  Part of this metaphor is
-the idea that windows are stacked in a notional third dimension
-perpendicular to the screen surface, and thus ordered from ``highest''
-to ``lowest.''  Where two windows overlap, the one higher up covers
-the one underneath.  Even a window at the bottom of the stack can be
-seen if no other window overlaps it.
-
-@c @cindex raising a frame  redundant with raise-frame
+@cindex raising a frame
 @cindex lowering a frame
-  A window's place in this ordering is not fixed; in fact, users tend
-to change the order frequently.  @dfn{Raising} a window means moving
-it ``up,'' to the top of the stack.  @dfn{Lowering} a window means
-moving it to the bottom of the stack.  This motion is in the notional
-third dimension only, and does not change the position of the window
-on the screen.
-
-  With Emacs, frames constitute the windows in the metaphor sketched
-above. You can raise and lower frames using these functions:
+  Most window systems use a desktop metaphor.  Part of this metaphor
+is the idea that system-level windows (e.g.@: Emacs frames) are
+stacked in a notional third dimension perpendicular to the screen
+surface.  Where two overlap, the one higher up covers the one
+underneath.  You can @dfn{raise} or @dfn{lower} a frame using the
+functions @code{raise-frame} and @code{lower-frame}.
 
 @deffn Command raise-frame &optional frame
 This function raises frame @var{frame} (default, the selected frame).
@@ -1552,9 +1566,21 @@ If this is non-@code{nil}, activation of the minibuffer raises the frame
 that the minibuffer window is in.
 @end defopt
 
-You can also enable auto-raise (raising automatically when a frame is
-selected) or auto-lower (lowering automatically when it is deselected)
-for any frame using frame parameters.  @xref{Management Parameters}.
+  On window systems, you can also enable auto-raising (on frame
+selection) or auto-lowering (on frame deselection) using frame
+parameters.  @xref{Management Parameters}.
+
+@cindex top frame
+  The concept of raising and lowering frames also applies to text
+terminal frames.  On each text terminal, only the top frame is
+displayed at any one time.
+
+@defun tty-top-frame terminal
+This function returns the top frame on @var{terminal}.  @var{terminal}
+should be a terminal object, a frame (meaning that frame's terminal),
+or @code{nil} (meaning the selected frame's terminal).  If it does not
+refer to a text terminal, the return value is @code{nil}.
+@end defun
 
 @node Frame Configurations
 @section Frame Configurations
@@ -1705,7 +1731,7 @@ displayed on @var{frame} is visible; otherwise it returns @code{nil}.
 @var{frame} omitted or @code{nil} means the selected frame.  This is
 useful when @code{make-pointer-invisible} is set to @code{t}: it
 allows to know if the pointer has been hidden.
-@xref{Mouse Avoidance,,,emacs}.
+@xref{Mouse Avoidance,,,emacs, The Emacs Manual}.
 @end defun
 
 @need 3000
@@ -1763,10 +1789,12 @@ where each pane is a list of form
 (@var{title} @var{item1} @var{item2}...)
 @end example
 
-Each item should normally be a cons cell @code{(@var{line} . @var{value})},
-where @var{line} is a string, and @var{value} is the value to return if
-that @var{line} is chosen.  An item can also be a string; this makes a
-non-selectable line in the menu.
+Each @var{item} should be a cons cell, @code{(@var{line} . @var{value})},
+where @var{line} is a string and @var{value} is the value to return if
+that @var{line} is chosen.  Unlike in a menu keymap, a @code{nil}
+@var{value} does not make the menu item non-selectable.
+Alternatively, each @var{item} can be a string rather than a cons
+cell; this makes a non-selectable menu item.
 
 If the user gets rid of the menu without making a valid choice, for
 instance by clicking the mouse away from a valid choice or by typing
@@ -1804,7 +1832,7 @@ the menu keymap as necessary.
   A dialog box is a variant of a pop-up menu---it looks a little
 different, it always appears in the center of a frame, and it has just
 one level and one or more buttons.  The main use of dialog boxes is
-for asking questions that the user can answer with ``yes,'' ``no,''
+for asking questions that the user can answer with ``yes'', ``no'',
 and a few other alternatives.  With a single button, they can also
 force the user to acknowledge important information.  The functions
 @code{y-or-n-p} and @code{yes-or-no-p} use dialog boxes instead of the
@@ -1871,12 +1899,12 @@ of the buffer contents), the mouse pointer usually uses the
 @code{arrow} style, but you can specify a different style (one of
 those above) by setting @code{void-text-area-pointer}.
 
-@defvar void-text-area-pointer
+@defopt void-text-area-pointer
 This variable specifies the mouse pointer style for void text areas.
 These include the areas after the end of a line or below the last line
 in the buffer.  The default is to use the @code{arrow} (non-text)
 pointer style.
-@end defvar
+@end defopt
 
   When using X, you can specify what the @code{text} pointer style
 really looks like by setting the variable @code{x-pointer-shape}.
@@ -2018,7 +2046,7 @@ colors.)
   These functions provide a way to determine which color names are
 valid, and what they look like.  In some cases, the value depends on the
 @dfn{selected frame}, as described below; see @ref{Input Focus}, for the
-meaning of the term ``selected frame.''
+meaning of the term ``selected frame''.
 
   To read user input of color names with completion, use
 @code{read-color} (@pxref{High-Level Completion, read-color}).
@@ -2107,10 +2135,10 @@ and that name is still supported as an alias.
 
 @node Text Terminal Colors
 @section Text Terminal Colors
-@cindex colors on text-only terminals
+@cindex colors on text terminals
 
-  Text-only terminals usually support only a small number of colors,
-and the computer uses small integers to select colors on the terminal.
+  Text terminals usually support only a small number of colors, and
+the computer uses small integers to select colors on the terminal.
 This means that the computer cannot reliably tell what the selected
 color looks like; instead, you have to inform your application which
 small integers correspond to which colors.  However, Emacs does know
@@ -2124,10 +2152,10 @@ in @ref{Color Names}.
 
   These functions accept a display (either a frame or the name of a
 terminal) as an optional argument.  We hope in the future to make
-Emacs support different colors on different text-only terminals; then
-this argument will specify which terminal to operate on (the default
-being the selected frame's terminal; @pxref{Input Focus}).  At
-present, though, the @var{frame} argument has no effect.
+Emacs support different colors on different text terminals; then this
+argument will specify which terminal to operate on (the default being
+the selected frame's terminal; @pxref{Input Focus}).  At present,
+though, the @var{frame} argument has no effect.
 
 @defun tty-color-define name number &optional rgb frame
 This function associates the color name @var{name} with
@@ -2141,12 +2169,12 @@ Emacs will not know what it looks like.
 @end defun
 
 @defun tty-color-clear &optional frame
-This function clears the table of defined colors for a text-only terminal.
+This function clears the table of defined colors for a text terminal.
 @end defun
 
 @defun tty-color-alist &optional frame
-This function returns an alist recording the known colors supported by a
-text-only terminal.
+This function returns an alist recording the known colors supported by
+a text terminal.
 
 Each element has the form @code{(@var{name} @var{number} . @var{rgb})}
 or @code{(@var{name} @var{number})}.  Here, @var{name} is the color
@@ -2262,8 +2290,8 @@ a mouse.
 @defun display-graphic-p &optional display
 This function returns @code{t} if @var{display} is a graphic display
 capable of displaying several frames and several different fonts at
-once.  This is true for displays that use a window system such as X, and
-false for text-only terminals.
+once.  This is true for displays that use a window system such as X,
+and false for text terminals.
 @end defun
 
 @defun display-mouse-p &optional display
@@ -2415,7 +2443,7 @@ software (as a string).  Really this means whoever distributes the X
 server.
 
 When the developers of X labeled software distributors as
-``vendors,'' they showed their false assumption that no system could
+``vendors'', they showed their false assumption that no system could
 ever be developed and distributed noncommercially.
 @end defun
 

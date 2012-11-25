@@ -1,6 +1,6 @@
 ;;; sb-image --- Image management for speedbar
 
-;; Copyright (C) 1999-2003, 2005-2011 Free Software Foundation, Inc.
+;; Copyright (C) 1999-2003, 2005-2012 Free Software Foundation, Inc.
 
 ;; Author: Eric M. Ludlam <zappo@gnu.org>
 ;; Keywords: file, tags, tools

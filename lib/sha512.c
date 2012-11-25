@@ -1,7 +1,7 @@
 /* sha512.c - Functions to compute SHA512 and SHA384 message digest of files or
    memory blocks according to the NIST specification FIPS-180-2.
 
-   Copyright (C) 2005-2006, 2008-2011 Free Software Foundation, Inc.
+   Copyright (C) 2005-2006, 2008-2012 Free Software Foundation, Inc.
 
    This program is free software: you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -24,7 +24,8 @@
 
 #include "sha512.h"
 
-#include <stddef.h>
+#include <stdalign.h>
+#include <stdint.h>
 #include <stdlib.h>
 #include <string.h>
 
@@ -381,8 +382,7 @@ sha512_process_bytes (const void *buffer, size_t len, struct sha512_ctx *ctx)
   if (len >= 128)
     {
 #if !_STRING_ARCH_unaligned
-# define alignof(type) offsetof (struct { char c; type x; }, x)
-# define UNALIGNED_P(p) (((size_t) p) % alignof (u64) != 0)
+# define UNALIGNED_P(p) ((uintptr_t) (p) % alignof (u64) != 0)
       if (UNALIGNED_P (buffer))
         while (len > 128)
           {
@@ -485,13 +485,15 @@ sha512_process_block (const void *buffer, size_t len, struct sha512_ctx *ctx)
   u64 f = ctx->state[5];
   u64 g = ctx->state[6];
   u64 h = ctx->state[7];
+  u64 lolen = u64size (len);
 
   /* First increment the byte count.  FIPS PUB 180-2 specifies the possible
      length of the file up to 2^128 bits.  Here we only compute the
      number of bytes.  Do a double word increment.  */
-  ctx->total[0] = u64plus (ctx->total[0], u64lo (len));
-  if (u64lt (ctx->total[0], u64lo (len)))
-    ctx->total[1] = u64plus (ctx->total[1], u64lo (1));
+  ctx->total[0] = u64plus (ctx->total[0], lolen);
+  ctx->total[1] = u64plus (ctx->total[1],
+                           u64plus (u64size (len >> 31 >> 31 >> 2),
+                                    u64lo (u64lt (ctx->total[0], lolen))));
 
 #define S0(x) u64xor (u64rol(x, 63), u64xor (u64rol (x, 56), u64shr (x, 7)))
 #define S1(x) u64xor (u64rol (x, 45), u64xor (u64rol (x, 3), u64shr (x, 6)))

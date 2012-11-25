@@ -1,6 +1,6 @@
 ;;; ede/util.el --- EDE utilities
 
-;; Copyright (C) 2000, 2005, 2009-2011  Free Software Foundation, Inc.
+;; Copyright (C) 2000, 2005, 2009-2012  Free Software Foundation, Inc.
 
 ;; Author: Eric M. Ludlam <zappo@gnu.org>
 ;; Keywords: project, make
@@ -87,7 +87,7 @@ their sources to VERSION."
 If BUFFER isn't specified, use the current buffer."
   (save-excursion
     (if buffer (set-buffer buffer))
-    (toggle-read-only -1)))
+    (setq buffer-read-only nil)))
 
 (provide 'ede/util)
 

@@ -24,7 +24,7 @@
 This is version @value{VERSION}@value{EDITION} of @cite{The MH-E
 Manual}, last updated @value{UPDATED}.
 
-Copyright @copyright{} 1995, 2001-2003, 2005-2011  Free Software Foundation, Inc.
+Copyright @copyright{} 1995, 2001-2003, 2005-2012  Free Software Foundation, Inc.
 
 @c This dual license has been agreed upon by the FSF.
 
@@ -429,7 +429,7 @@ for a description about @dfn{normal hooks} and @dfn{abnormal hooks}.
 MH-E uses normal hooks in nearly all cases, so you can assume that we
 are talking about normal hooks unless we explicitly mention that a
 hook is abnormal. We also follow the conventions described in that
-section: the name of the abnormal hooks end in @code{-hooks} and all
+section: the name of the abnormal hooks end in @code{-functions} and all
 the rest of the MH-E hooks end in @code{-hook}. You can add hooks with
 either @code{customize-option} or @code{add-hook}.
 
@@ -3749,9 +3749,9 @@ when you press @key{TAB} when prompted for a folder name.
 
 @findex mh-search-p
 @kindex k
-@vindex mh-kill-folder-suppress-prompt-hooks
+@vindex mh-kill-folder-suppress-prompt-functions
 
-The hook @code{mh-kill-folder-suppress-prompt-hooks} is an abnormal
+The hook @code{mh-kill-folder-suppress-prompt-functions} is an abnormal
 hook run at the beginning of the command @kbd{k}. The hook functions
 are called with no arguments and should return a non-nil value to
 suppress the normal prompt when you remove a folder. This is useful
@@ -6966,23 +6966,22 @@ swish-e -c /home/user/Mail/.swish/config
 @cindex @command{mairix}
 @cindex Unix commands, @command{mairix}
 
-In the examples below, replace @file{/home/user/Mail} with the path to
-your MH directory.
+In the examples below, replace @file{~/Mail} with the path to your MH
+directory.
 
-First create the directory @file{/home/user/Mail/.mairix}. Then create
-the file @file{/home/user/Mail/.mairix/config} with the following
-contents:
+First create the directory @file{~/Mail/.mairix}. Then create the file
+@file{~/Mail/.mairix/config} with the following contents:
 
 @smallexample
 @group
-base=/home/user/Mail
+base=~/Mail
 
 # List of folders that should be indexed. 3 dots at the end means there
 # are subfolders within the folder
 mh=archive...:inbox:drafts:news:sent:trash
 
-vfolder_format=mh
-database=/home/user/Mail/.mairix/database
+mformat=mh
+database=~/Mail/.mairix/database
 @end group
 @end smallexample
 
@@ -6990,7 +6989,7 @@ Use the following command line to generate the mairix index. Run this daily
 from cron:
 
 @smallexample
-mairix -f /home/user/Mail/.mairix/config
+mairix -f ~/Mail/.mairix/config
 @end smallexample
 
 @subsection namazu
@@ -7901,7 +7900,7 @@ PATH=$PATH:/usr/bin/mh
 MAILDIR=$HOME/`mhparam Path`
 
 #
-# Filter messages with win32 executables/virii.
+# Filter messages with w32 executables/virii.
 #
 # These attachments are base64 and have a TVqQAAMAAAAEAAAA//8AALg
 # pattern. The string "this program cannot be run in MS-DOS mode"
@@ -9060,5 +9059,3 @@ Bill Wohler, August 2008
 @c Local Variables:
 @c sentence-end-double-space: nil
 @c End:
-
-

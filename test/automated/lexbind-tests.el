@@ -1,6 +1,6 @@
 ;;; lexbind-tests.el --- Testing the lexbind byte-compiler
 
-;; Copyright (C) 2011  Free Software Foundation, Inc.
+;; Copyright (C) 2011-2012  Free Software Foundation, Inc.
 
 ;; Author: Stefan Monnier <monnier@iro.umontreal.ca>
 ;; Keywords:

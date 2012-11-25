@@ -1,6 +1,6 @@
 ;;; battery.el --- display battery status information  -*- coding: iso-8859-1 -*-
 
-;; Copyright (C) 1997-1998, 2000-2011 Free Software Foundation, Inc.
+;; Copyright (C) 1997-1998, 2000-2012 Free Software Foundation, Inc.
 
 ;; Author: Ralph Schleicher <rs@nunatak.allgaeu.org>
 ;; Keywords: hardware
@@ -31,13 +31,15 @@
 ;;; Code:
 
 (require 'timer)
-(eval-when-compile (require 'cl))
-
+(eval-when-compile (require 'cl-lib))
 
 (defgroup battery nil
   "Display battery status information."
   :prefix "battery-"
   :group 'hardware)
+
+;; Either BATn or yeeloong-bat, basically.
+(defconst battery--linux-sysfs-regexp "[bB][aA][tT][0-9]?$")
 
 (defcustom battery-status-function
   (cond ((and (eq system-type 'gnu/linux)
@@ -48,7 +50,8 @@
 	 'battery-linux-proc-acpi)
 	((and (eq system-type 'gnu/linux)
 	      (file-directory-p "/sys/class/power_supply/")
-	      (directory-files "/sys/class/power_supply/" nil "BAT[0-9]$"))
+	      (directory-files "/sys/class/power_supply/" nil
+                               battery--linux-sysfs-regexp))
 	 'battery-linux-sysfs)
 	((and (eq system-type 'darwin)
 	      (condition-case nil
@@ -57,7 +60,7 @@
 			 (> (buffer-size) 0)))
 		(error nil)))
 	 'battery-pmset)
-	((eq system-type 'windows-nt)
+	((fboundp 'w32-battery-status)
 	 'w32-battery-status))
   "Function for getting battery status information.
 The function has to return an alist of conversion definitions.
@@ -74,7 +77,7 @@ introduced by a `%' character in a control string."
   (cond ((eq battery-status-function 'battery-linux-proc-acpi)
 	 "Power %L, battery %B at %r (%p%% load, remaining time %t)")
 	((eq battery-status-function 'battery-linux-sysfs)
-	 "Power %L, battery %B (%p%% load)")
+	 "Power %L, battery %B (%p%% load, remaining time %t)")
 	((eq battery-status-function 'battery-pmset)
 	 "%L power, battery %B (%p%% load, remaining time %t)")
 	(battery-status-function
@@ -104,6 +107,7 @@ string are substituted as defined by the current value of the variable
 
 (defcustom battery-mode-line-limit 100
   "Percentage of full battery load below which display battery status"
+  :version "24.1"
   :type 'integer
   :group 'battery)
 
@@ -226,7 +230,7 @@ seconds."
   "Regular expression matching contents of `/proc/apm'.")
 
 (defun battery-linux-proc-apm ()
-  "Get APM status information from Linux kernel.
+  "Get APM status information from Linux (the kernel).
 This function works only with the new `/proc/apm' format introduced
 in Linux version 1.3.58.
 
@@ -297,7 +301,7 @@ The following %-sequences are provided:
 ;;; `/proc/acpi/' interface for Linux.
 
 (defun battery-linux-proc-acpi ()
-  "Get ACPI status information from Linux kernel.
+  "Get ACPI status information from Linux (the kernel).
 This function works only with the `/proc/acpi/' format introduced
 in Linux version 2.4.20 and 2.6.0.
 
@@ -337,14 +341,15 @@ The following %-sequences are provided:
 	       (setq charging-state (match-string 1)))
 	  (when (re-search-forward "present rate: +\\([0-9]+\\) \\(m[AW]\\)$"
 				   nil t)
-	    (setq rate (+ (or rate 0) (string-to-number (match-string 1)))
-		  rate-type (or (and rate-type
+	    (setq rate (+ (or rate 0) (string-to-number (match-string 1))))
+	    (when (> rate 0)
+	      (setq rate-type (or (and rate-type
 				     (if (string= rate-type (match-string 2))
 					 rate-type
 				       (error
 					"Inconsistent rate types (%s vs. %s)"
 					rate-type (match-string 2))))
-				(match-string 2))))
+				  (match-string 2)))))
 	  (when (re-search-forward "remaining capacity: +\\([0-9]+\\) m[AW]h$"
 				   nil t)
 	    (setq capacity
@@ -354,16 +359,16 @@ The following %-sequences are provided:
 	(when (re-search-forward "present: +yes$" nil t)
 	  (when (re-search-forward "design capacity: +\\([0-9]+\\) m[AW]h$"
 				   nil t)
-	    (incf design-capacity (string-to-number (match-string 1))))
+	    (cl-incf design-capacity (string-to-number (match-string 1))))
 	  (when (re-search-forward "last full capacity: +\\([0-9]+\\) m[AW]h$"
 				   nil t)
-	    (incf last-full-capacity (string-to-number (match-string 1))))
+	    (cl-incf last-full-capacity (string-to-number (match-string 1))))
 	  (when (re-search-forward
 		 "design capacity warning: +\\([0-9]+\\) m[AW]h$" nil t)
-	    (incf warn (string-to-number (match-string 1))))
+	    (cl-incf warn (string-to-number (match-string 1))))
 	  (when (re-search-forward "design capacity low: +\\([0-9]+\\) m[AW]h$"
 				   nil t)
-	    (incf low (string-to-number (match-string 1)))))))
+	    (cl-incf low (string-to-number (match-string 1)))))))
     (setq full-capacity (if (> last-full-capacity 0)
 			    last-full-capacity design-capacity))
     (and capacity rate
@@ -440,7 +445,8 @@ The following %-sequences are provided:
     (with-temp-buffer
       (dolist (dir (ignore-errors
 		    (directory-files
-		     "/sys/class/power_supply/" t "BAT[0-9]$")))
+		     "/sys/class/power_supply/" t
+                     battery--linux-sysfs-regexp)))
 	(erase-buffer)
 	(ignore-errors (insert-file-contents
 			(expand-file-name "uevent" dir)))
@@ -502,7 +508,7 @@ The following %-sequences are provided:
 		     "N/A"))
 	  (cons ?d (or temperature "N/A"))
 	  (cons ?B (or charging-state "N/A"))
-	  (cons ?p (cond ((> charge-full 0)
+	  (cons ?p (cond ((and (> charge-full 0) (> charge-now 0))
 			  (format "%.1f"
 				  (/ (* 100 charge-now) charge-full)))
 			 ((> energy-full 0)
@@ -517,8 +523,6 @@ The following %-sequences are provided:
 			   "AC"
 			 "BAT")
 		     "N/A")))))
-
-
 
 ;;; `pmset' interface for Darwin (OS X).
 

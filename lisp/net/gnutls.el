@@ -1,6 +1,6 @@
 ;;; gnutls.el --- Support SSL/TLS connections through GnuTLS
 
-;; Copyright (C) 2010-2011 Free Software Foundation, Inc.
+;; Copyright (C) 2010-2012 Free Software Foundation, Inc.
 
 ;; Author: Ted Zlatanov <tzz@lifelogs.com>
 ;; Keywords: comm, tls, ssl, encryption
@@ -35,10 +35,11 @@
 
 ;;; Code:
 
-(eval-when-compile (require 'cl))
+(eval-when-compile (require 'cl-lib))
 
 (defgroup gnutls nil
   "Emacs interface to the GnuTLS library."
+  :version "24.1"
   :prefix "gnutls-"
   :group 'net-utils)
 
@@ -46,18 +47,35 @@
   "If non-nil, this should be a TLS priority string.
 For instance, if you want to skip the \"dhe-rsa\" algorithm,
 set this variable to \"normal:-dhe-rsa\"."
+  :group 'gnutls
   :type '(choice (const nil)
-		 string))
+                 string))
+
+(defcustom gnutls-trustfiles
+  '(
+    "/etc/ssl/certs/ca-certificates.crt" ; Debian, Ubuntu, Gentoo and Arch Linux
+    "/etc/pki/tls/certs/ca-bundle.crt"   ; Fedora and RHEL
+    "/etc/ssl/ca-bundle.pem"             ; Suse
+    "/usr/ssl/certs/ca-bundle.crt"       ; Cygwin
+    )
+  "List of CA bundle location filenames or a function returning said list.
+The files may be in PEM or DER format, as per the GnuTLS documentation.
+The files may not exist, in which case they will be ignored."
+  :group 'gnutls
+  :type '(choice (function :tag "Function to produce list of bundle filenames")
+                 (repeat (file :tag "Bundle filename"))))
 
 ;;;###autoload
-(defcustom gnutls-min-prime-bits nil
-  "The minimum number of bits to be used in Diffie-Hellman key exchange.
+(defcustom gnutls-min-prime-bits 256
+  ;; Several mail servers send fewer bits than the GnuTLS default.
+  ;; Currently, 256 appears to be a reasonable choice (Bug#11267).
+  "Minimum number of prime bits accepted by GnuTLS for key exchange.
+During a Diffie-Hellman handshake, if the server sends a prime
+number with fewer than this number of bits, the handshake is
+rejected.  \(The smaller the prime number, the less secure the
+key exchange is against man-in-the-middle attacks.)
 
-This sets the minimum accepted size of the key to be used in a
-client-server handshake.  If the server sends a prime with fewer than
-the specified number of bits the handshake will fail.
-
-A value of nil says to use the default gnutls value."
+A value of nil says to use the default GnuTLS value."
   :type '(choice (const :tag "Use default value" nil)
                  (integer :tag "Number of bits" 512))
   :group 'gnutls)
@@ -102,7 +120,7 @@ trust and key files, and priority string."
 (declare-function gnutls-boot "gnutls.c" (proc type proplist))
 (declare-function gnutls-errorp "gnutls.c" (error))
 
-(defun* gnutls-negotiate
+(cl-defun gnutls-negotiate
     (&rest spec
            &key process type hostname priority-string
            trustfiles crlfiles keylist min-prime-bits
@@ -116,7 +134,7 @@ TYPE is `gnutls-x509pki' (default) or `gnutls-anon'.  Use nil for the default.
 PROCESS is a process returned by `open-network-stream'.
 HOSTNAME is the remote hostname.  It must be a valid string.
 PRIORITY-STRING is as per the GnuTLS docs, default is \"NORMAL\".
-TRUSTFILES is a list of CA bundles.
+TRUSTFILES is a list of CA bundles.  It defaults to `gnutls-trustfiles'.
 CRLFILES is a list of CRL files.
 KEYLIST is an alist of (client key file, client cert file) pairs.
 MIN-PRIME-BITS is the minimum acceptable size of Diffie-Hellman keys
@@ -154,18 +172,20 @@ here's a recent version of the list.
 It must be omitted, a number, or nil; if omitted or nil it
 defaults to GNUTLS_VERIFY_ALLOW_X509_V1_CA_CRT."
   (let* ((type (or type 'gnutls-x509pki))
-         (default-trustfile "/etc/ssl/certs/ca-certificates.crt")
          (trustfiles (or trustfiles
-                         (when (file-exists-p default-trustfile)
-                           (list default-trustfile))))
+                         (delq nil
+                               (mapcar (lambda (f) (and f (file-exists-p f) f))
+                                       (if (functionp gnutls-trustfiles)
+                                           (funcall gnutls-trustfiles)
+                                         gnutls-trustfiles)))))
          (priority-string (or priority-string
                               (cond
                                ((eq type 'gnutls-anon)
                                 "NORMAL:+ANON-DH:!ARCFOUR-128")
                                ((eq type 'gnutls-x509pki)
-				(if gnutls-algorithm-priority
-				    (upcase gnutls-algorithm-priority)
-				  "NORMAL")))))
+                                (if gnutls-algorithm-priority
+                                    (upcase gnutls-algorithm-priority)
+                                  "NORMAL")))))
          (min-prime-bits (or min-prime-bits gnutls-min-prime-bits))
          (params `(:priority ,priority-string
                              :hostname ,hostname

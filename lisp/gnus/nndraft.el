@@ -1,6 +1,6 @@
 ;;; nndraft.el --- draft article access for Gnus
 
-;; Copyright (C) 1995-2011 Free Software Foundation, Inc.
+;; Copyright (C) 1995-2012 Free Software Foundation, Inc.
 
 ;; Author: Lars Magne Ingebrigtsen <larsi@gnus.org>
 ;; Keywords: news
@@ -37,7 +37,8 @@
 (require 'mm-util)
 (eval-when-compile (require 'cl))
 
-(declare-function nndraft-request-list "nnmh" (&rest args))
+;; The nnoo-import at the end, I think.
+(declare-function nndraft-request-list "nndraft" (&rest args) t)
 
 (nnoo-declare nndraft
   nnmh)
@@ -181,13 +182,14 @@ are generated if and only if they are also in `message-draft-headers'.")
 	   (gnus-get-new-news-hook nil)
 	   (inhibit-read-only t))
       (gnus-group-get-new-news-this-group nil t)
-      (dolist (group groups)
-	(unless (and gnus-permanently-visible-groups
-		     (string-match gnus-permanently-visible-groups
-				   group))
-	  (gnus-group-goto-group group)
-	  (when (zerop (gnus-group-group-unread))
-	    (gnus-delete-line)))))))
+      (save-excursion
+	(dolist (group groups)
+	  (unless (and gnus-permanently-visible-groups
+		       (string-match gnus-permanently-visible-groups
+				     group))
+	    (gnus-group-goto-group group)
+	    (when (zerop (gnus-group-group-unread))
+	      (gnus-delete-line))))))))
 
 (deffoo nndraft-request-associate-buffer (group)
   "Associate the current buffer with some article in the draft group."

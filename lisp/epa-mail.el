@@ -1,5 +1,5 @@
 ;;; epa-mail.el --- the EasyPG Assistant, minor-mode for mail composer -*- lexical-binding: t -*-
-;; Copyright (C) 2006-2011 Free Software Foundation, Inc.
+;; Copyright (C) 2006-2012 Free Software Foundation, Inc.
 
 ;; Author: Daiki Ueno <ueno@unixuser.org>
 ;; Keywords: PGP, GnuPG, mail, message
@@ -47,7 +47,10 @@
 
 ;;;###autoload
 (define-minor-mode epa-mail-mode
-  "A minor-mode for composing encrypted/clearsigned mails."
+  "A minor-mode for composing encrypted/clearsigned mails.
+With a prefix argument ARG, enable the mode if ARG is positive,
+and disable it otherwise.  If called from Lisp, enable the mode
+if ARG is omitted or nil."
   nil " epa-mail" epa-mail-mode-map)
 
 (defun epa-mail--find-usable-key (keys usage)
@@ -167,29 +170,33 @@ Don't use this command in Lisp programs!"
 If no one is selected, symmetric encryption will be performed.  "
 		  recipients)
 	       (if recipients
-		   (mapcar
-		    (lambda (recipient)
-		      (setq recipient-key
-			    (epa-mail--find-usable-key
-			     (epg-list-keys
-			      (epg-make-context epa-protocol)
-			      (if (string-match "@" recipient)
-				  (concat "<" recipient ">")
-				recipient))
-			     'encrypt))
-		      (unless (or recipient-key
-				  (y-or-n-p
-				   (format
-				    "No public key for %s; skip it? "
-				    recipient)))
-			(error "No public key for %s" recipient))
-		      recipient-key)
-		    recipients)))
+		   (apply
+		    'nconc
+		    (mapcar
+		     (lambda (recipient)
+		       (setq recipient-key
+			     (epa-mail--find-usable-key
+			      (epg-list-keys
+			       (epg-make-context epa-protocol)
+			       (if (string-match "@" recipient)
+				   (concat "<" recipient ">")
+				 recipient))
+			      'encrypt))
+		       (unless (or recipient-key
+				   (y-or-n-p
+				    (format
+				     "No public key for %s; skip it? "
+				     recipient)))
+			 (error "No public key for %s" recipient))
+		       (if recipient-key (list recipient-key)))
+		     recipients))))
 	     (setq sign (if verbose (y-or-n-p "Sign? ")))
 	     (if sign
 		 (epa-select-keys context
 				  "Select keys for signing.  "))))))
-  (epa-encrypt-region start end recipients sign signers))
+  ;; Don't let some read-only text stop us from encrypting.
+  (let ((inhibit-read-only t))
+    (epa-encrypt-region start end recipients sign signers)))
 
 ;;;###autoload
 (defun epa-mail-import-keys ()
@@ -202,7 +209,10 @@ Don't use this command in Lisp programs!"
 
 ;;;###autoload
 (define-minor-mode epa-global-mail-mode
-  "Minor mode to hook EasyPG into Mail mode."
+  "Minor mode to hook EasyPG into Mail mode.
+With a prefix argument ARG, enable the mode if ARG is positive,
+and disable it otherwise.  If called from Lisp, enable the mode
+if ARG is omitted or nil."
   :global t :init-value nil :group 'epa-mail :version "23.1"
   (remove-hook 'mail-mode-hook 'epa-mail-mode)
   (if epa-global-mail-mode

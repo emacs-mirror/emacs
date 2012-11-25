@@ -1,6 +1,6 @@
 ;;; viper-cmd.el --- Vi command support for Viper
 
-;; Copyright (C) 1997-2011  Free Software Foundation, Inc.
+;; Copyright (C) 1997-2012  Free Software Foundation, Inc.
 
 ;; Author: Michael Kifer <kifer@cs.stonybrook.edu>
 ;; Package: viper
@@ -1086,8 +1086,17 @@ as a Meta key and any number of multiple escapes are allowed."
 (defun viper-intercept-ESC-key ()
   "Function that implements ESC key in Viper emulation of Vi."
   (interactive)
-  (let ((cmd (or (key-binding (viper-envelop-ESC-key))
-		 (lambda () (interactive) (error "Viper bell")))))
+  ;; `key-binding' needs to be called in a context where Viper's
+  ;; minor-mode map(s) have been temporarily disabled so the ESC
+  ;; binding to viper-intercept-ESC-key doesn't hide the binding we're
+  ;; looking for (Bug#9146):
+  (let* ((event (viper-envelop-ESC-key))
+	 (cmd (cond ((equal event viper-ESC-key)
+		     'viper-intercept-ESC-key)
+		    ((let ((emulation-mode-map-alists nil))
+		       (key-binding event)))
+		    (t
+		     (error "Viper bell")))))
 
     ;; call the actual function to execute ESC (if no other symbols followed)
     ;; or the key bound to the ESC sequence (if the sequence was issued
@@ -2110,7 +2119,7 @@ Undo previous insertion and inserts new."
 (defcustom viper-smart-suffix-list
   '("" "tex" "c" "cc" "C" "java" "el" "html" "htm" "xml"
     "pl" "flr" "P" "p" "h" "H")
-  "*List of suffixes that Viper tries to append to filenames ending with a `.'.
+  "List of suffixes that Viper tries to append to filenames ending with a `.'.
 This is useful when the current directory contains files with the same
 prefix and many different suffixes.  Usually, only one of the suffixes
 represents an editable file.  However, file completion will stop at the `.'
@@ -3453,7 +3462,7 @@ controlled by the sign of prefix numeric value."
 (defun viper-adjust-window ()
   (let ((win-height (if (featurep 'xemacs)
 			(window-displayed-height)
-		      (1- (window-height)))) ; adjust for modeline
+		      (1- (window-height)))) ; adjust for mode line
 	(pt (point))
 	at-top-p at-bottom-p
 	min-scroll direction)
@@ -4397,7 +4406,7 @@ cursor move past the beginning of line."
 
 (defun viper-query-replace ()
   "Query replace.
-If a null string is suplied as the string to be replaced,
+If a null string is supplied as the string to be replaced,
 the query replace mode will toggle between string replace
 and regexp replace."
   (interactive)

@@ -1,6 +1,6 @@
 /* Keyboard macros.
 
-Copyright (C) 1985-1986, 1993, 2000-2011  Free Software Foundation, Inc.
+Copyright (C) 1985-1986, 1993, 2000-2012  Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -19,10 +19,11 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 
 
 #include <config.h>
-#include <setjmp.h>
+
 #include "lisp.h"
 #include "macros.h"
 #include "commands.h"
+#include "character.h"
 #include "buffer.h"
 #include "window.h"
 #include "keyboard.h"
@@ -62,8 +63,7 @@ macro before appending to it. */)
 
   if (!current_kboard->kbd_macro_buffer)
     {
-      current_kboard->kbd_macro_buffer
-	= (Lisp_Object *)xmalloc (30 * sizeof (Lisp_Object));
+      current_kboard->kbd_macro_buffer = xmalloc (30 * word_size);
       current_kboard->kbd_macro_bufsize = 30;
     }
   update_mode_lines++;
@@ -72,8 +72,8 @@ macro before appending to it. */)
       if (current_kboard->kbd_macro_bufsize > 200)
 	{
 	  current_kboard->kbd_macro_buffer
-	    = (Lisp_Object *)xrealloc (current_kboard->kbd_macro_buffer,
-				       30 * sizeof (Lisp_Object));
+	    = xrealloc (current_kboard->kbd_macro_buffer,
+			30 * word_size);
 	  current_kboard->kbd_macro_bufsize = 30;
 	}
       current_kboard->kbd_macro_ptr = current_kboard->kbd_macro_buffer;
@@ -84,7 +84,7 @@ macro before appending to it. */)
     {
       ptrdiff_t i;
       EMACS_INT len;
-      int cvt;
+      bool cvt;
 
       /* Check the type of last-kbd-macro in case Lisp code changed it.  */
       CHECK_VECTOR_OR_STRING (KVAR (current_kboard, Vlast_kbd_macro));
@@ -95,13 +95,14 @@ macro before appending to it. */)
 	 has put another macro there.  */
       if (current_kboard->kbd_macro_bufsize < len + 30)
 	{
-	  if (min (PTRDIFF_MAX, SIZE_MAX) / sizeof (Lisp_Object) - 30
-	      < current_kboard->kbd_macro_bufsize)
+	  if (PTRDIFF_MAX < MOST_POSITIVE_FIXNUM + 30
+	      && PTRDIFF_MAX < len + 30)
 	    memory_full (SIZE_MAX);
-	  current_kboard->kbd_macro_buffer
-	    = (Lisp_Object *)xrealloc (current_kboard->kbd_macro_buffer,
-				       (len + 30) * sizeof (Lisp_Object));
-	  current_kboard->kbd_macro_bufsize = len + 30;
+	  current_kboard->kbd_macro_buffer =
+	    xpalloc (current_kboard->kbd_macro_buffer,
+		     &current_kboard->kbd_macro_bufsize,
+		     len + 30 - current_kboard->kbd_macro_bufsize, -1,
+		     sizeof *current_kboard->kbd_macro_buffer);
 	}
 
       /* Must convert meta modifier when copying string to vector.  */
@@ -126,7 +127,7 @@ macro before appending to it. */)
 
       message ("Appending to kbd macro...");
     }
-  KVAR (current_kboard, defining_kbd_macro) = Qt;
+  kset_defining_kbd_macro (current_kboard, Qt);
 
   return Qnil;
 }
@@ -136,12 +137,13 @@ macro before appending to it. */)
 void
 end_kbd_macro (void)
 {
-  KVAR (current_kboard, defining_kbd_macro) = Qnil;
+  kset_defining_kbd_macro (current_kboard, Qnil);
   update_mode_lines++;
-  KVAR (current_kboard, Vlast_kbd_macro)
-    = make_event_array ((current_kboard->kbd_macro_end
-			 - current_kboard->kbd_macro_buffer),
-			current_kboard->kbd_macro_buffer);
+  kset_last_kbd_macro
+    (current_kboard,
+     make_event_array ((current_kboard->kbd_macro_end
+			- current_kboard->kbd_macro_buffer),
+		       current_kboard->kbd_macro_buffer));
 }
 
 DEFUN ("end-kbd-macro", Fend_kbd_macro, Send_kbd_macro, 0, 2, "p",
@@ -203,8 +205,7 @@ store_kbd_macro_char (Lisp_Object c)
 	      < kb->kbd_macro_bufsize)
 	    memory_full (SIZE_MAX);
 	  nbytes = kb->kbd_macro_bufsize * (2 * sizeof *kb->kbd_macro_buffer);
-	  kb->kbd_macro_buffer
-	    = (Lisp_Object *) xrealloc (kb->kbd_macro_buffer, nbytes);
+	  kb->kbd_macro_buffer = xrealloc (kb->kbd_macro_buffer, nbytes);
 	  kb->kbd_macro_bufsize *= 2;
 	  kb->kbd_macro_ptr = kb->kbd_macro_buffer + ptr_offset;
 	  kb->kbd_macro_end = kb->kbd_macro_buffer + end_offset;
@@ -258,7 +259,7 @@ each iteration of the macro.  Iteration stops if LOOPFUNC returns nil.  */)
      from before this macro started.  */
   Vthis_command = KVAR (current_kboard, Vlast_command);
   /* C-x z after the macro should repeat the macro.  */
-  real_this_command = KVAR (current_kboard, Vlast_kbd_macro);
+  Vreal_this_command = KVAR (current_kboard, Vlast_kbd_macro);
 
   if (! NILP (KVAR (current_kboard, defining_kbd_macro)))
     error ("Can't execute anonymous macro while defining one");
@@ -285,7 +286,7 @@ pop_kbd_macro (Lisp_Object info)
   Vexecuting_kbd_macro = XCAR (info);
   tem = XCDR (info);
   executing_kbd_macro_index = XINT (XCAR (tem));
-  real_this_command = XCDR (tem);
+  Vreal_this_command = XCDR (tem);
   Frun_hooks (1, &Qkbd_macro_termination_hook);
   return Qnil;
 }
@@ -301,7 +302,7 @@ each iteration of the macro.  Iteration stops if LOOPFUNC returns nil.  */)
 {
   Lisp_Object final;
   Lisp_Object tem;
-  int pdlcount = SPECPDL_INDEX ();
+  ptrdiff_t pdlcount = SPECPDL_INDEX ();
   EMACS_INT repeat = 1;
   struct gcpro gcpro1, gcpro2;
   EMACS_INT success_count = 0;
@@ -320,7 +321,7 @@ each iteration of the macro.  Iteration stops if LOOPFUNC returns nil.  */)
 
   tem = Fcons (Vexecuting_kbd_macro,
 	       Fcons (make_number (executing_kbd_macro_index),
-		      real_this_command));
+		      Vreal_this_command));
   record_unwind_protect (pop_kbd_macro, tem);
 
   GCPRO2 (final, loopfunc);
@@ -330,7 +331,7 @@ each iteration of the macro.  Iteration stops if LOOPFUNC returns nil.  */)
       executing_kbd_macro = final;
       executing_kbd_macro_index = 0;
 
-      KVAR (current_kboard, Vprefix_arg) = Qnil;
+      kset_prefix_arg (current_kboard, Qnil);
 
       if (!NILP (loopfunc))
 	{
@@ -351,7 +352,7 @@ each iteration of the macro.  Iteration stops if LOOPFUNC returns nil.  */)
 
   executing_kbd_macro = Qnil;
 
-  real_this_command = Vexecuting_kbd_macro;
+  Vreal_this_command = Vexecuting_kbd_macro;
 
   UNGCPRO;
   return unbind_to (pdlcount, Qnil);

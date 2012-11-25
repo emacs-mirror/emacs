@@ -1,6 +1,6 @@
 ;;; thingatpt.el --- get the `thing' at point
 
-;; Copyright (C) 1991-1998, 2000-2011  Free Software Foundation, Inc.
+;; Copyright (C) 1991-1998, 2000-2012  Free Software Foundation, Inc.
 
 ;; Author: Mike Williams <mikew@gopher.dosli.govt.nz>
 ;; Maintainer: FSF
@@ -133,7 +133,7 @@ positions of the thing found."
 THING should be a symbol specifying a type of syntactic entity.
 Possibilities include `symbol', `list', `sexp', `defun',
 `filename', `url', `email', `word', `sentence', `whitespace',
-`line', and `page'.
+`line', `number', and `page'.
 
 See the file `thingatpt.el' for documentation on how to define
 a symbol as a valid THING."
@@ -457,6 +457,7 @@ backwards ARG times if negative."
 With prefix argument ARG, do it ARG times if positive, or move
 backwards ARG times if negative."
   (interactive "p")
+  (or arg (setq arg 1))
   (while (< arg 0)
     (skip-syntax-backward
      (char-to-string (char-syntax (char-before))))
@@ -508,6 +509,7 @@ Signal an error if the entire string was not used."
 (defun number-at-point ()
   "Return the number at point, or nil if none is found."
   (form-at-point 'sexp 'numberp))
+(put 'number 'thing-at-point 'number-at-point)
 ;;;###autoload
 (defun list-at-point ()
   "Return the Lisp list at point, or nil if none is found."

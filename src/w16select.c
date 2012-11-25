@@ -1,6 +1,6 @@
 /* 16-bit Windows Selection processing for emacs on MS-Windows
 
-Copyright (C) 1996-1997, 2001-2011  Free Software Foundation, Inc.
+Copyright (C) 1996-1997, 2001-2012  Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -31,13 +31,12 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #include <dpmi.h>
 #include <go32.h>
 #include <sys/farptr.h>
-#include <setjmp.h>
 #include "lisp.h"
 #include "dispextern.h"	/* frame.h seems to want this */
 #include "frame.h"	/* Need this to get the X window of selected_frame */
 #include "blockinput.h"
-#include "buffer.h"
 #include "character.h"
+#include "buffer.h"
 #include "coding.h"
 #include "composite.h"
 
@@ -460,7 +459,7 @@ DEFUN ("w16-set-clipboard-data", Fw16_set_clipboard_data, Sw16_set_clipboard_dat
   if ( !FRAME_MSDOS_P (XFRAME (frame)))
     goto done;
 
-  BLOCK_INPUT;
+  block_input ();
 
   if (!open_clipboard ())
     goto error;
@@ -493,7 +492,7 @@ DEFUN ("w16-set-clipboard-data", Fw16_set_clipboard_data, Sw16_set_clipboard_dat
 
       setup_coding_system (Fcheck_coding_system (coding_system), &coding);
       coding.dst_bytes = nbytes * 4;
-      coding.destination = (unsigned char *) xmalloc (coding.dst_bytes);
+      coding.destination = xmalloc (coding.dst_bytes);
       Vnext_selection_coding_system = Qnil;
       coding.mode |= CODING_MODE_LAST_BLOCK;
       dst = coding.destination;
@@ -521,7 +520,7 @@ DEFUN ("w16-set-clipboard-data", Fw16_set_clipboard_data, Sw16_set_clipboard_dat
 
  unblock:
   xfree (dst);
-  UNBLOCK_INPUT;
+  unblock_input ();
 
   /* Notify user if the text is too large to fit into DOS memory.
      (This will happen somewhere after 600K bytes (470K in DJGPP v1.x),
@@ -566,13 +565,13 @@ DEFUN ("w16-get-clipboard-data", Fw16_get_clipboard_data, Sw16_get_clipboard_dat
   if ( !FRAME_MSDOS_P (XFRAME (frame)))
     goto done;
 
-  BLOCK_INPUT;
+  block_input ();
 
   if (!open_clipboard ())
     goto unblock;
 
   if ((data_size = get_clipboard_data_size (CF_OEMTEXT)) == 0 ||
-      (htext = (unsigned char *)xmalloc (data_size)) == 0)
+      (htext = xmalloc (data_size)) == 0)
     goto closeclip;
 
   /* need to know final size after '\r' chars are removed because
@@ -627,7 +626,7 @@ DEFUN ("w16-get-clipboard-data", Fw16_get_clipboard_data, Sw16_get_clipboard_dat
   close_clipboard ();
 
  unblock:
-  UNBLOCK_INPUT;
+  unblock_input ();
 
  done:
 
@@ -637,14 +636,17 @@ DEFUN ("w16-get-clipboard-data", Fw16_get_clipboard_data, Sw16_get_clipboard_dat
 /* Support checking for a clipboard selection. */
 
 DEFUN ("x-selection-exists-p", Fx_selection_exists_p, Sx_selection_exists_p,
-       0, 1, 0,
-       doc: /* Whether there is an owner for the given X Selection.
-The arg should be the name of the selection in question, typically one of
-the symbols `PRIMARY', `SECONDARY', or `CLIPBOARD'.
-\(Those are literal upper-case symbol names, since that's what X expects.)
-For convenience, the symbol nil is the same as `PRIMARY',
-and t is the same as `SECONDARY'.  */)
-  (Lisp_Object selection)
+       0, 2, 0,
+       doc: /* Whether there is an owner for the given X selection.
+SELECTION should be the name of the selection in question, typically
+one of the symbols `PRIMARY', `SECONDARY', or `CLIPBOARD'.  (X expects
+these literal upper-case names.)  The symbol nil is the same as
+`PRIMARY', and t is the same as `SECONDARY'.
+
+TERMINAL should be a terminal object or a frame specifying the X
+server to query.  If omitted or nil, that stands for the selected
+frame's display, or the first available X display.  */)
+  (Lisp_Object selection, Lisp_Object terminal)
 {
   CHECK_SYMBOL (selection);
 

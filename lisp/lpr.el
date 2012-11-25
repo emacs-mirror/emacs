@@ -1,6 +1,6 @@
 ;;; lpr.el --- print Emacs buffer on line printer
 
-;; Copyright (C) 1985, 1988, 1992, 1994, 2001-2011
+;; Copyright (C) 1985, 1988, 1992, 1994, 2001-2012
 ;;   Free Software Foundation, Inc.
 
 ;; Maintainer: FSF
@@ -28,8 +28,6 @@
 ;; variables include `printer-name', `lpr-switches' and `lpr-command'.
 
 ;;; Code:
-
-(eval-when-compile (require 'cl))
 
 ;;;###autoload
 (defvar lpr-windows-system
@@ -281,10 +279,10 @@ for further customization of the printer command."
           (if (markerp end)
               (set-marker end nil))
           (message "Spooling%s...done%s%s" switch-string
-                   (case (count-lines (point-min) (point-max))
+                   (pcase (count-lines (point-min) (point-max))
                      (0 "")
                      (1 ": ")
-                     (t ":\n"))
+                     (_ ":\n"))
                    (buffer-string)))))))
 
 ;; This function copies the text between start and end

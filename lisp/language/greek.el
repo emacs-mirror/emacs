@@ -1,4 +1,4 @@
-;;; greek.el --- support for Greek -*- no-byte-compile: t -*-
+;;; greek.el --- support for Greek
 
 ;; Copyright (C) 2002 Free Software Foundation, Inc.
 ;; Copyright (C) 1995, 1996, 1997, 1998, 1999, 2000, 2001, 2002, 2003, 2004,

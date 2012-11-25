@@ -1,6 +1,6 @@
 ;;; mh-e.el --- GNU Emacs interface to the MH mail system
 
-;; Copyright (C) 1985-1988, 1990, 1992-1995, 1997, 1999-2011
+;; Copyright (C) 1985-1988, 1990, 1992-1995, 1997, 1999-2012
 ;;   Free Software Foundation, Inc.
 
 ;; Author: Bill Wohler <wohler@newt.com>
@@ -352,7 +352,7 @@ Name of the Previous sequence.")
   "Non-nil means that we have \"flists\".")
 
 (defvar mh-index-data-file ".mhe_index"
-  "MH-E specific file where index seach info is stored.")
+  "MH-E specific file where index search info is stored.")
 
 (defvar mh-letter-header-field-regexp "^\\([A-Za-z][A-Za-z0-9-]*\\):")
 
@@ -2532,7 +2532,7 @@ of citations entirely, choose \"None\"."
     "Seal-Send-Time:"
     "See-Also:"                         ; H. Spencer: News Article Format and Transmission, June 1994
     "Sensitivity:"                      ; RFC 2156, 2421
-    "Speach-Act:"                       ; http://people.dsv.su.se/~jpalme/ietf/mail-headers/
+    "Speech-Act:"                       ; http://people.dsv.su.se/~jpalme/ietf/mail-headers/
     "Status:"                           ; sendmail
     "Supersedes:"                       ; H. Spencer: News Article Format and Transmission, June 1994
     "Telefax:"                          ; http://people.dsv.su.se/~jpalme/ietf/mail-headers/
@@ -3276,7 +3276,9 @@ function used to insert the signature with
   :group 'mh-letter
   :package-version '(MH-E . "8.0"))
 
-(defcustom-mh mh-kill-folder-suppress-prompt-hooks '(mh-search-p)
+(define-obsolete-variable-alias 'mh-kill-folder-suppress-prompt-hooks
+  'mh-kill-folder-suppress-prompt-functions "24.3")
+(defcustom-mh mh-kill-folder-suppress-prompt-functions '(mh-search-p)
   "Abnormal hook run at the beginning of \\<mh-folder-mode-map>\\[mh-kill-folder].
 
 The hook functions are called with no arguments and should return

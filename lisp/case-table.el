@@ -1,6 +1,6 @@
 ;;; case-table.el --- code to extend the character set and support case tables
 
-;; Copyright (C) 1988, 1994, 2001-2011 Free Software Foundation, Inc.
+;; Copyright (C) 1988, 1994, 2001-2012 Free Software Foundation, Inc.
 
 ;; Author: Howard Gayle
 ;; Maintainer: FSF

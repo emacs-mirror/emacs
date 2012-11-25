@@ -1,6 +1,6 @@
 ;;; cal-dst.el --- calendar functions for daylight saving rules
 
-;; Copyright (C) 1993-1996, 2001-2011  Free Software Foundation, Inc.
+;; Copyright (C) 1993-1996, 2001-2012  Free Software Foundation, Inc.
 
 ;; Author: Paul Eggert <eggert@twinsun.com>
 ;;         Edward M. Reingold <reingold@cs.uiuc.edu>
@@ -347,8 +347,8 @@ DST-ZONE are equal, and all the DST-* integer variables are 0.
 Some operating systems cannot provide all this information to Emacs; in this
 case, `calendar-current-time-zone' returns a list containing nil for the data
 it can't find."
-  (unless calendar-current-time-zone-cache
-    (setq calendar-current-time-zone-cache (calendar-dst-find-data))))
+  (or calendar-current-time-zone-cache
+      (setq calendar-current-time-zone-cache (calendar-dst-find-data))))
 
 
 ;; Following options should be set based on conditions when the code

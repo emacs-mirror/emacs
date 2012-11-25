@@ -1,6 +1,6 @@
 /* ebrowse.c --- parsing files for the ebrowse C++ browser
 
-Copyright (C) 1992-2011  Free Software Foundation, Inc.
+Copyright (C) 1992-2012  Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -43,17 +43,12 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 
 #define READ_CHUNK_SIZE (100 * 1024)
 
-/* The character used as a separator in path lists (like $PATH).  */
-
 #if defined (__MSDOS__)
-#define PATH_LIST_SEPARATOR ';'
 #define FILENAME_EQ(X,Y)    (strcasecmp (X,Y) == 0)
 #else
 #if defined (WINDOWSNT)
-#define PATH_LIST_SEPARATOR ';'
 #define FILENAME_EQ(X,Y)    (stricmp (X,Y) == 0)
 #else
-#define PATH_LIST_SEPARATOR ':'
 #define FILENAME_EQ(X,Y)    (streq (X,Y))
 #endif
 #endif
@@ -463,10 +458,6 @@ static struct member *add_member (struct sym *, char *, int, int, unsigned);
 static void class_definition (struct sym *, int, int, int);
 static char *operator_name (int *);
 static void parse_qualified_param_ident_or_type (char **);
-static void usage (int) NO_RETURN;
-static void version (void) NO_RETURN;
-
-
 
 /***********************************************************************
 			      Utilities
@@ -981,7 +972,7 @@ make_namespace (char *name, struct sym *context)
 }
 
 
-/* Find the symbol for namespace NAME.  If not found, retrun NULL */
+/* Find the symbol for namespace NAME.  If not found, return NULL */
 
 static struct sym *
 check_namespace (char *name, struct sym *context)
@@ -3421,7 +3412,7 @@ add_search_path (char *path_list)
       char *start = path_list;
       struct search_path *p;
 
-      while (*path_list && *path_list != PATH_LIST_SEPARATOR)
+      while (*path_list && *path_list != SEPCHAR)
         ++path_list;
 
       p = (struct search_path *) xmalloc (sizeof *p);
@@ -3438,7 +3429,7 @@ add_search_path (char *path_list)
       else
         search_path = search_path_tail = p;
 
-      while (*path_list == PATH_LIST_SEPARATOR)
+      while (*path_list == SEPCHAR)
         ++path_list;
     }
 }
@@ -3507,7 +3498,7 @@ Usage: ebrowse [options] {files}\n\
       --version			display version info\n\
 "
 
-static void
+static _Noreturn void
 usage (int error)
 {
   puts (USAGE);
@@ -3522,11 +3513,10 @@ usage (int error)
 # define VERSION "21"
 #endif
 
-static void
+static _Noreturn void
 version (void)
 {
-  /* Makes it easier to update automatically. */
-  char emacs_copyright[] = "Copyright (C) 2011 Free Software Foundation, Inc.";
+  char emacs_copyright[] = COPYRIGHT;
 
   printf ("ebrowse %s\n", VERSION);
   puts (emacs_copyright);

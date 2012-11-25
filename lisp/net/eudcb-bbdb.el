@@ -1,6 +1,6 @@
 ;;; eudcb-bbdb.el --- Emacs Unified Directory Client - BBDB Backend
 
-;; Copyright (C) 1998-2011 Free Software Foundation, Inc.
+;; Copyright (C) 1998-2012 Free Software Foundation, Inc.
 
 ;; Author: Oscar Figueiredo <oscar@cpe.fr>
 ;; Maintainer: Pavel Janík <Pavel@Janik.cz>
@@ -166,18 +166,18 @@ The record is filtered according to `eudc-bbdb-current-return-attributes'"
 				  (symbol-name attr)))
 			 'record))))
        (t
-	(setq val "Unknown BBDB attribute")))
-      (if val
-	(cond
-	 ((memq attr '(phones addresses))
-	  (setq eudc-rec (append val eudc-rec)))
-	 ((and (listp val)
-	  (= 1 (length val)))
-	  (setq eudc-rec (cons (cons attr (car val)) eudc-rec)))
-	 ((> (length val) 0)
-	  (setq eudc-rec (cons (cons attr val) eudc-rec)))
-	 (t
-	  (error "Unexpected attribute value")))))
+	(error "Unknown BBDB attribute")))
+      (cond
+       ((or (not val) (equal val ""))) ; do nothing
+       ((memq attr '(phones addresses))
+	(setq eudc-rec (append val eudc-rec)))
+       ((and (listp val)
+	     (= 1 (length val)))
+	(setq eudc-rec (cons (cons attr (car val)) eudc-rec)))
+       ((> (length val) 0)
+	(setq eudc-rec (cons (cons attr val) eudc-rec)))
+       (t
+	(error "Unexpected attribute value"))))
     (nreverse eudc-rec)))
 
 

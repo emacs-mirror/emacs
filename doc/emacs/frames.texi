@@ -1,8 +1,8 @@
 @c This is part of the Emacs manual.
-@c Copyright (C) 1985-1987, 1993-1995, 1997, 1999-2011
+@c Copyright (C) 1985-1987, 1993-1995, 1997, 1999-2012
 @c   Free Software Foundation, Inc.
 @c See file emacs.texi for copying conditions.
-@node Frames, International, Windows, Top
+@node Frames
 @chapter Frames and Graphical Displays
 @cindex frames
 
@@ -27,13 +27,12 @@ displays (@pxref{Exiting}).  To close just the selected frame, type
 
   This chapter describes Emacs features specific to graphical displays
 (particularly mouse commands), and features for managing multiple
-frames.  On text-only terminals, many of these features are
-unavailable.  However, it is still possible to create multiple
-``frames'' on text-only terminals; such frames are displayed one at a
-time, filling the entire terminal screen (@pxref{Non-Window
-Terminals}).  It is also possible to use the mouse on some text-only
-terminals (@pxref{Text-Only Mouse}, for doing so on GNU and Unix
-systems; and
+frames.  On text terminals, many of these features are unavailable.
+However, it is still possible to create multiple ``frames'' on text
+terminals; such frames are displayed one at a time, filling the entire
+terminal screen (@pxref{Non-Window Terminals}).  It is also possible
+to use the mouse on some text terminals (@pxref{Text-Only Mouse}, for
+doing so on GNU and Unix systems; and
 @iftex
 @pxref{MS-DOS Mouse,,,emacs-xtra,Specialized Emacs Features},
 @end iftex
@@ -52,7 +51,7 @@ for doing so on MS-DOS).
 * Frame Commands::      Iconifying, deleting, and switching frames.
 * Fonts::               Changing the frame font.
 * Speedbar::            How to make and use a speedbar frame.
-* Multiple Displays::   How one Emacs job can talk to several displays.
+* Multiple Displays::   How one Emacs instance can talk to several displays.
 * Frame Parameters::    Changing the colors and other modes of frames.
 * Scroll Bars::         How to enable and disable scroll bars; how to use them.
 * Drag and Drop::       Using drag and drop to open files and insert text.
@@ -62,12 +61,13 @@ for doing so on MS-DOS).
 * Tooltips::            Displaying information at the current mouse position.
 * Mouse Avoidance::     Preventing the mouse pointer from obscuring text.
 * Non-Window Terminals::  Multiple frames on terminals that show only one.
-* Text-Only Mouse::     Using the mouse in text-only terminals.
+* Text-Only Mouse::     Using the mouse in text terminals.
 @end menu
 
 @node Mouse Commands
 @section Mouse Commands for Editing
 @cindex mouse buttons (what they do)
+@cindex mouse, selecting text using
 
 @kindex Mouse-1
 @kindex Mouse-2
@@ -81,8 +81,8 @@ Activate the region around the text selected by dragging, and copy it
 to the kill ring (@code{mouse-set-region}).
 
 @item Mouse-2
-Yank the last killed text at the click position
-(@code{mouse-yank-at-click}).
+Move point to where you click, and insert the contents of the primary
+selection there (@code{mouse-yank-primary}).
 
 @item Mouse-3
 If the region is active, move the nearer end of the region to the
@@ -107,6 +107,7 @@ setting the variable @code{x-mouse-click-focus-ignore-position} to
 selects the frame, without doing anything else; clicking again selects
 the window and sets the cursor position.
 
+@cindex mouse, dragging
 @findex mouse-set-region
   Holding down @kbd{Mouse-1} and ``dragging'' the mouse over a stretch
 of text activates the region around that text
@@ -236,8 +237,8 @@ Select the text you drag across, in the form of whole lines.
 
 @node Mouse References
 @section Following References with the Mouse
-@kindex Mouse-1 @r{(selection)}
-@kindex Mouse-2 @r{(selection)}
+@kindex Mouse-1 @r{(on buttons)}
+@kindex Mouse-2 @r{(on buttons)}
 @cindex hyperlinks
 @cindex links
 @cindex text buttons
@@ -257,7 +258,7 @@ highlighting.
 @key{RET}, or by clicking either @kbd{Mouse-1} or @kbd{Mouse-2} on the
 button.  For example, in a Dired buffer, each file name is a button;
 activating it causes Emacs to visit that file (@pxref{Dired}).  In a
-@samp{*Compilation*} buffer, each error message is a button, and
+@file{*Compilation*} buffer, each error message is a button, and
 activating it visits the source code for that error
 (@pxref{Compilation}).
 
@@ -370,7 +371,6 @@ side-by-side windows with the boundary running through the click
 position (@pxref{Split Window}).
 @end table
 
-@kindex C-Mouse-2 @r{(scroll bar)}
 @kindex Mouse-1 @r{(scroll bar)}
   Furthermore, by clicking and dragging @kbd{Mouse-1} on the divider
 between two side-by-side mode lines, you can move the vertical
@@ -466,9 +466,9 @@ the ordinary, interactive frames are deleted.  In this case, @kbd{C-x
 
   The @kbd{C-x 5 1} (@code{delete-other-frames}) command deletes all
 other frames on the current terminal (this terminal refers to either a
-graphical display, or a text-only terminal; @pxref{Non-Window
-Terminals}).  If the Emacs session has frames open on other graphical
-displays or text terminals, those are not deleted.
+graphical display, or a text terminal; @pxref{Non-Window Terminals}).
+If the Emacs session has frames open on other graphical displays or
+text terminals, those are not deleted.
 
 @vindex focus-follows-mouse
   The @kbd{C-x 5 o} (@code{other-frame}) command selects the next
@@ -494,13 +494,14 @@ this for future sessions, click on @samp{Save Options} in the
 @samp{Options} menu.
 
 @item
-Add a line to your init file (@pxref{Init File}), modifying the
-variable @code{default-frame-alist} to specify the @code{font}
-parameter (@pxref{Creating Frames}), like this:
+Add a line to your init file, modifying the variable
+@code{default-frame-alist} to specify the @code{font} parameter
+(@pxref{Frame Parameters}), like this:
 
-@smallexample
-(add-to-list 'default-frame-alist '(font . "DejaVu Sans Mono-10"))
-@end smallexample
+@example
+(add-to-list 'default-frame-alist
+             '(font . "DejaVu Sans Mono-10"))
+@end example
 
 @cindex X defaults file
 @cindex X resources file
@@ -508,14 +509,14 @@ parameter (@pxref{Creating Frames}), like this:
 Add an @samp{emacs.font} X resource setting to your X resource file,
 like this:
 
-@smallexample
+@example
 emacs.font: DejaVu Sans Mono-12
-@end smallexample
+@end example
 
 @noindent
 You must restart X, or use the @command{xrdb} command, for the X
-resources file to take effect.  @xref{Resources}.  When specifying a
-font in your X resources file, you should not quote it.
+resources file to take effect.  @xref{Resources}.  Do not quote
+font names in X resource files.
 
 @item
 If you are running Emacs on the GNOME desktop, you can tell Emacs to
@@ -537,9 +538,9 @@ names the font that it's rendered in.
 first is to use a @dfn{Fontconfig pattern}.  Fontconfig patterns have
 the following form:
 
-@smallexample
+@example
 @var{fontname}[-@var{fontsize}][:@var{name1}=@var{values1}][:@var{name2}=@var{values2}]...
-@end smallexample
+@end example
 
 @noindent
 Within this format, any of the elements in braces may be omitted.
@@ -579,13 +580,13 @@ One of @samp{monospace}, @samp{proportional}, @samp{dual-width}, or
 @noindent
 Here are some examples of Fontconfig patterns:
 
-@smallexample
+@example
 Monospace
 Monospace-12
 Monospace-12:bold
 DejaVu Sans Mono:bold:italic
 Monospace-12:weight=bold:slant=italic
-@end smallexample
+@end example
 
 For a more detailed description of Fontconfig patterns, see the
 Fontconfig manual, which is distributed with Fontconfig and available
@@ -595,9 +596,9 @@ online at @url{http://fontconfig.org/fontconfig-user.html}.
   The second way to specify a font is to use a @dfn{GTK font pattern}.
 These have the syntax
 
-@smallexample
+@example
 @var{fontname} [@var{properties}] [@var{fontsize}]
-@end smallexample
+@end example
 
 @noindent
 where @var{fontname} is the family name, @var{properties} is a list of
@@ -621,10 +622,10 @@ omitted, a default width is used.
 @noindent
 Here are some examples of GTK font patterns:
 
-@smallexample
+@example
 Monospace 12
 Monospace Bold Italic 12
-@end smallexample
+@end example
 
 @cindex XLFD
 @cindex X Logical Font Description
@@ -633,9 +634,9 @@ Logical Font Description}).  This is the traditional method for
 specifying fonts under X.  Each XLFD consists of fourteen words or
 numbers, separated by dashes, like this:
 
-@smallexample
+@example
 -misc-fixed-medium-r-semicondensed--13-*-*-*-c-60-iso8859-1
-@end smallexample
+@end example
 
 @noindent
 A wildcard character (@samp{*}) in an XLFD matches any sequence of
@@ -646,10 +647,10 @@ results, supply all 14 dashes and use wildcards only within a field.
 Case is insignificant in an XLFD.  The syntax for an XLFD is as
 follows:
 
-@smallexample
+@example
 -@var{maker}-@var{family}-@var{weight}-@var{slant}-@var{widthtype}-@var{style}@dots{}
 @dots{}-@var{pixels}-@var{height}-@var{horiz}-@var{vert}-@var{spacing}-@var{width}-@var{registry}-@var{encoding}
-@end smallexample
+@end example
 
 @noindent
 The entries have the following meanings:
@@ -668,8 +669,8 @@ The font slant---normally @samp{r} (roman), @samp{i} (italic),
 Some font names support other values.
 @item widthtype
 The font width---normally @samp{normal}, @samp{condensed},
-@samp{extended}, or @samp{semicondensed} (some font names support
-other values).
+@samp{semicondensed}, or @samp{extended}.  Some font names support
+other values.
 @item style
 An optional additional style name.  Usually it is empty---most XLFDs
 have two hyphens in a row at this point.
@@ -708,9 +709,9 @@ nickname''.  Certain fonts have shorter nicknames, which you can use
 instead of a normal font specification.  For instance, @samp{6x13} is
 equivalent to
 
-@smallexample
+@example
 -misc-fixed-medium-r-semicondensed--13-*-*-*-c-60-iso8859-1
-@end smallexample
+@end example
 
 @cindex client-side fonts
 @cindex server-side fonts
@@ -909,7 +910,7 @@ scroll bars on the right side of windows), @code{left} (put them on
 the left), or @code{nil} (disable scroll bars).  By default, Emacs
 puts scroll bars on the right if it was compiled with GTK+ support on
 the X Window System, and on MS-Windows or Mac OS; Emacs puts scroll
-bars on the left if compiled on the X Window system without GTK+
+bars on the left if compiled on the X Window System without GTK+
 support (following the old convention for X applications).
 
 @vindex scroll-bar-width
@@ -954,7 +955,7 @@ the use of menu bars at startup, customize the variable
 @code{menu-bar-mode}.
 
 @kindex C-Mouse-3 @r{(when menu bar is disabled)}
-  Expert users often turn off the menu bar, especially on text-only
+  Expert users often turn off the menu bar, especially on text
 terminals, where this makes one additional line available for text.
 If the menu bar is off, you can still pop up a menu of its contents
 with @kbd{C-Mouse-3} on a display which supports pop-up menus.
@@ -1091,17 +1092,19 @@ to various values to move the mouse in several ways:
 
 @table @code
 @item banish
-Move the mouse to the upper-right corner on any key-press;
+Move the pointer to a corner of the frame on any key-press.  You can
+customize the variable @code{mouse-avoidance-banish-position} to
+specify where the pointer goes when it is banished.
 @item exile
-Move the mouse to the corner only if the cursor gets too close,
-and allow it to return once the cursor is out of the way;
+Banish the pointer only if the cursor gets too close, and allow it to
+return once the cursor is out of the way.
 @item jump
-If the cursor gets too close to the mouse, displace the mouse
-a random distance & direction;
+If the cursor gets too close to the pointer, displace the pointer by a
+random distance and direction.
 @item animate
-As @code{jump}, but shows steps along the way for illusion of motion;
+As @code{jump}, but shows steps along the way for illusion of motion.
 @item cat-and-mouse
-The same as @code{animate};
+The same as @code{animate}.
 @item proteus
 As @code{animate}, but changes the shape of the mouse pointer too.
 @end table
@@ -1113,9 +1116,9 @@ raises the frame.
 
 @node Non-Window Terminals
 @section Non-Window Terminals
-@cindex text-only terminal
+@cindex text terminal
 
-  On a text-only terminal, Emacs can display only one Emacs frame at a
+  On a text terminal, Emacs can display only one Emacs frame at a
 time.  However, you can still create multiple Emacs frames, and switch
 between them.  Switching frames on these terminals is much like
 switching between different window configurations.
@@ -1140,11 +1143,11 @@ to select a frame according to its name.  The name you specify appears
 in the mode line when the frame is selected.
 
 @node Text-Only Mouse
-@section Using a Mouse in Text-only Terminals
+@section Using a Mouse in Text Terminals
 @cindex mouse support
 @cindex terminal emulators, mouse support
 
-Some text-only terminals support mouse clicks in the terminal window.
+Some text terminals support mouse clicks in the terminal window.
 
 @cindex xterm
   In a terminal emulator which is compatible with @command{xterm}, you
@@ -1162,9 +1165,9 @@ enable mouse support.  You must have the gpm server installed and
 running on your system in order for this to work.
 
 @iftex
-@pxref{MS-DOS Mouse,,,emacs-xtra,Specialized Emacs Features},
+@xref{MS-DOS Mouse,,,emacs-xtra,Specialized Emacs Features},
 @end iftex
 @ifnottex
-@pxref{MS-DOS Mouse},
+@xref{MS-DOS Mouse},
 @end ifnottex
 for information about mouse support on MS-DOS.

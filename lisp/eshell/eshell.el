@@ -1,6 +1,6 @@
 ;;; eshell.el --- the Emacs command shell
 
-;; Copyright (C) 1999-2011 Free Software Foundation, Inc.
+;; Copyright (C) 1999-2012 Free Software Foundation, Inc.
 
 ;; Author: John Wiegley <johnw@gnu.org>
 ;; Version: 2.4.2
@@ -140,12 +140,12 @@
 ;;   paragraph wasn't discovered until two months after I wrote the
 ;;   text; it was not intentional).
 ;;
-;; @ Emacs' register and bookmarking facilities can be used for
+;; @ Emacs's register and bookmarking facilities can be used for
 ;;   remembering where you've been, and what you've seen -- to varying
 ;;   levels of persistence.  They could perhaps even be tied to
 ;;   specific "moments" during eshell execution, which would include
 ;;   the environment at that time, as well as other variables.
-;;   Although this would require functionality orthogonal to Emacs'
+;;   Although this would require functionality orthogonal to Emacs's
 ;;   own bookmarking facilities, the interface used could be made to
 ;;   operate very similarly.
 ;;
@@ -222,36 +222,33 @@
 ;; things up.
 
 (eval-when-compile
-  (require 'cl)
+  (require 'cl-lib)
   (require 'esh-util))
 (require 'esh-util)
 (require 'esh-mode)
 
 (defgroup eshell nil
-  "A command shell implemented entirely in Emacs Lisp.
+  "Command shell implemented entirely in Emacs Lisp.
 It invokes no external processes beyond those requested by the
 user, and is intended to be a functional replacement for command
 shells such as bash, zsh, rc, 4dos."
-  :tag "The Emacs shell"
   :link '(info-link "(eshell)Top")
   :version "21.1"
   :group 'applications)
-
-;; This is hack to force make-autoload to put the whole definition
-;; into the autoload file (see esh-module.el).
-(defalias 'eshell-defgroup 'defgroup)
 
 ;;;_* User Options
 ;;
 ;; The following user options modify the behavior of Eshell overall.
 (defvar eshell-buffer-name)
 
-(defsubst eshell-add-to-window-buffer-names ()
+(defun eshell-add-to-window-buffer-names ()
   "Add `eshell-buffer-name' to `same-window-buffer-names'."
+  (declare (obsolete nil "24.3"))
   (add-to-list 'same-window-buffer-names eshell-buffer-name))
 
-(defsubst eshell-remove-from-window-buffer-names ()
+(defun eshell-remove-from-window-buffer-names ()
   "Remove `eshell-buffer-name' from `same-window-buffer-names'."
+  (declare (obsolete nil "24.3"))
   (setq same-window-buffer-names
 	(delete eshell-buffer-name same-window-buffer-names)))
 
@@ -260,23 +257,13 @@ shells such as bash, zsh, rc, 4dos."
   :type 'hook
   :group 'eshell)
 
-(defcustom eshell-unload-hook
-  '(eshell-remove-from-window-buffer-names
-    eshell-unload-all-modules)
+(defcustom eshell-unload-hook '(eshell-unload-all-modules)
   "A hook run when Eshell is unloaded from memory."
   :type 'hook
   :group 'eshell)
 
 (defcustom eshell-buffer-name "*eshell*"
   "The basename used for Eshell buffers."
-  :set (lambda (symbol value)
-	 ;; remove the old value of `eshell-buffer-name', if present
-	 (if (boundp 'eshell-buffer-name)
-	     (eshell-remove-from-window-buffer-names))
-	 (set symbol value)
-	 ;; add the new value
-	 (eshell-add-to-window-buffer-names)
-	 value)
   :type 'string
   :group 'eshell)
 
@@ -303,7 +290,7 @@ switches to the session with that number, creating it if necessary.  A
 nonnumeric prefix arg means to create a new session.  Returns the
 buffer selected (or created)."
   (interactive "P")
-  (assert eshell-buffer-name)
+  (cl-assert eshell-buffer-name)
   (let ((buf (cond ((numberp arg)
 		    (get-buffer-create (format "%s<%d>"
 					       eshell-buffer-name
@@ -312,13 +299,8 @@ buffer selected (or created)."
 		    (generate-new-buffer eshell-buffer-name))
 		   (t
 		    (get-buffer-create eshell-buffer-name)))))
-    ;; Simply calling `pop-to-buffer' will not mimic the way that
-    ;; shell-mode buffers appear, since they always reuse the same
-    ;; window that that command was invoked from.  To achieve this,
-    ;; it's necessary to add `eshell-buffer-name' to the variable
-    ;; `same-window-buffer-names', which is done when Eshell is loaded
-    (assert (and buf (buffer-live-p buf)))
-    (pop-to-buffer buf)
+    (cl-assert (and buf (buffer-live-p buf)))
+    (pop-to-buffer-same-window buf)
     (unless (eq major-mode 'eshell-mode)
       (eshell-mode))
     buf))
@@ -385,11 +367,11 @@ With prefix ARG, insert output into the current buffer at point."
 	(when intr
 	  (if (eshell-interactive-process)
 	      (eshell-wait-for-process (eshell-interactive-process)))
-	  (assert (not (eshell-interactive-process)))
+	  (cl-assert (not (eshell-interactive-process)))
 	  (goto-char (point-max))
 	  (while (and (bolp) (not (bobp)))
 	    (delete-char -1)))
-	(assert (and buf (buffer-live-p buf)))
+	(cl-assert (and buf (buffer-live-p buf)))
 	(unless arg
 	  (let ((len (if (not intr) 2
 		       (count-lines (point-min) (point-max)))))
@@ -429,7 +411,7 @@ corresponding to a successful execution."
 		       (list 'eshell-commands
 			     (list 'eshell-command-to-value
 				   (eshell-parse-command command))) t)))
-	  (assert (eq (car result) 'quote))
+	  (cl-assert (eq (car result) 'quote))
 	  (if (and status-var (symbolp status-var))
 	      (set status-var eshell-last-command-status))
 	  (cadr result))))))

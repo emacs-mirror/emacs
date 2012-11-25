@@ -1,6 +1,6 @@
 ;;; custom.el --- tools for declaring and initializing options
 ;;
-;; Copyright (C) 1996-1997, 1999, 2001-2011 Free Software Foundation, Inc.
+;; Copyright (C) 1996-1997, 1999, 2001-2012 Free Software Foundation, Inc.
 ;;
 ;; Author: Per Abrahamsen <abraham@dina.kvl.dk>
 ;; Maintainer: FSF
@@ -120,7 +120,9 @@ the :set function.
 For variables in preloaded files, you can simply use this
 function for the :initialize property.  For autoloaded variables,
 you will also need to add an autoload stanza calling this
-function, and another one setting the standard-value property."
+function, and another one setting the standard-value property.
+Or you can wrap the defcustom in a progn, to force the autoloader
+to include all of it."		   ; see eg vc-sccs-search-project-dir
   ;; No longer true:
   ;; "See `send-mail-function' in sendmail.el for an example."
 
@@ -198,13 +200,21 @@ set to nil, as the value is no longer rogue."
   (run-hooks 'custom-define-hook)
   symbol)
 
-(defmacro defcustom (symbol value doc &rest args)
-  "Declare SYMBOL as a customizable variable that defaults to VALUE.
+(defmacro defcustom (symbol standard doc &rest args)
+  "Declare SYMBOL as a customizable variable.
+SYMBOL is the variable name; it should not be quoted.
+STANDARD is an expression specifying the variable's standard
+value.  It should not be quoted.  It is evaluated once by
+`defcustom', and the value is assigned to SYMBOL if the variable
+is unbound.  The expression itself is also stored, so that
+Customize can re-evaluate it later to get the standard value.
 DOC is the variable documentation.
 
-Neither SYMBOL nor VALUE need to be quoted.
-If SYMBOL is not already bound, initialize it to VALUE.
-The remaining arguments should have the form
+This macro uses `defvar' as a subroutine, which also marks the
+variable as \"special\", so that it is always dynamically bound
+even when `lexical-binding' is t.
+
+The remaining arguments to `defcustom' should have the form
 
    [KEYWORD VALUE]...
 
@@ -227,10 +237,14 @@ The following keywords are meaningful:
 	is `default-value'.
 :require
 	VALUE should be a feature symbol.  If you save a value
-	for this option, then when your `.emacs' file loads the value,
+	for this option, then when your init file loads the value,
 	it does (require VALUE) first.
+:set-after VARIABLES
+	Specifies that SYMBOL should be set after the list of variables
+        VARIABLES when both have been customized.
 :risky	Set SYMBOL's `risky-local-variable' property to VALUE.
 :safe	Set SYMBOL's `safe-local-variable' property to VALUE.
+        See Info node `(elisp) File Local Variables'.
 
 The following common keywords are also meaningful.
 
@@ -299,9 +313,6 @@ The following common keywords are also meaningful.
         Load file FILE (a string) before displaying this customization
         item.  Loading is done with `load', and only if the file is
         not already loaded.
-:set-after VARIABLES
-	Specifies that SYMBOL should be set after the list of variables
-        VARIABLES when both have been customized.
 
 If SYMBOL has a local binding, then this form affects the local
 binding.  This is normally not what you want.  Thus, if you need
@@ -319,14 +330,15 @@ for more information."
   `(custom-declare-variable
     ',symbol
     ,(if lexical-binding    ;FIXME: This is not reliable, but is all we have.
-         ;; The `default' arg should be an expression that evaluates to
-         ;; the value to use.  The use of `eval' for it is spread over
-         ;; many different places and hence difficult to eliminate, yet
-         ;; we want to make sure that the `value' expression is checked by the
-         ;; byte-compiler, and that lexical-binding is obeyed, so quote the
-         ;; expression with `lambda' rather than with `quote'.
-         `(list (lambda () ,value))
-       `',value)
+         ;; The STANDARD arg should be an expression that evaluates to
+         ;; the standard value.  The use of `eval' for it is spread
+         ;; over many different places and hence difficult to
+         ;; eliminate, yet we want to make sure that the `standard'
+         ;; expression is checked by the byte-compiler, and that
+         ;; lexical-binding is obeyed, so quote the expression with
+         ;; `lambda' rather than with `quote'.
+         ``(funcall #',(lambda () ,standard))
+       `',standard)
     ,doc
     ,@args))
 
@@ -338,68 +350,62 @@ FACE does not need to be quoted.
 
 Third argument DOC is the face documentation.
 
-If FACE has been set with `custom-set-faces', set the face attributes
-as specified by that function, otherwise set the face attributes
-according to SPEC.
+If FACE has been set with `custom-set-faces', set the face
+attributes as specified by that function, otherwise set the face
+attributes according to SPEC.
 
-The remaining arguments should have the form
-
-   [KEYWORD VALUE]...
-
+The remaining arguments should have the form [KEYWORD VALUE]...
 For a list of valid keywords, see the common keywords listed in
 `defcustom'.
 
-SPEC should be an alist of the form ((DISPLAY ATTS)...).
+SPEC should be an alist of the form
 
-In the first element, DISPLAY can be `default'.  The ATTS in that
-element then act as defaults for all the following elements.
+   ((DISPLAY . ATTS)...)
 
-Aside from that, DISPLAY specifies conditions to match some or
-all frames.  For each frame, the first element of SPEC where the
-DISPLAY conditions are satisfied is the one that applies to that
-frame.  The ATTRs in this element take effect, and the following
-elements are ignored, on that frame.
+where DISPLAY is a form specifying conditions to match certain
+terminals and ATTS is a property list (ATTR VALUE ATTR VALUE...)
+specifying face attributes and values for frames on those
+terminals.  On each terminal, the first element with a matching
+DISPLAY specification takes effect, and the remaining elements in
+SPEC are disregarded.
 
-In the last element, DISPLAY can be t.  That element applies to a
-frame if none of the previous elements (except the `default' if
-any) did.
+As a special exception, in the first element of SPEC, DISPLAY can
+be the special value `default'.  Then the ATTS in that element
+act as defaults for all the following elements.
 
-ATTS is a list of face attributes followed by their values:
-  (ATTR VALUE ATTR VALUE...)
+For backward compatibility, elements of SPEC can be written
+as (DISPLAY ATTS) instead of (DISPLAY . ATTS).
 
-The possible attributes are `:family', `:width', `:height', `:weight',
-`:slant', `:underline', `:overline', `:strike-through', `:box',
-`:foreground', `:background', `:stipple', `:inverse-video', and `:inherit'.
+Each DISPLAY can have the following values:
+ - `default' (only in the first element).
+ - The symbol t, which matches all terminals.
+ - An alist of conditions.  Each alist element must have the form
+   (REQ ITEM...).  A matching terminal must satisfy each
+   specified condition by matching one of its ITEMs.  Each REQ
+   must be one of the following:
+   - `type' (the terminal type).
+     Each ITEM must be one of the values returned by
+     `window-system'.  Under X, additional allowed values are
+     `motif', `lucid', `gtk' and `x-toolkit'.
+   - `class' (the terminal's color support).
+     Each ITEM should be one of `color', `grayscale', or `mono'.
+   - `background' (what color is used for the background text)
+     Each ITEM should be one of `light' or `dark'.
+   - `min-colors' (the minimum number of supported colors)
+     Each ITEM should be an integer, which is compared with the
+     result of `display-color-cells'.
+   - `supports' (match terminals supporting certain attributes).
+     Each ITEM should be a list of face attributes.  See
+     `display-supports-face-attributes-p' for more information on
+     exactly how testing is done.
 
-DISPLAY can be `default' (only in the first element), the symbol
-t (only in the last element) to match all frames, or an alist of
-conditions of the form \(REQ ITEM...).  For such an alist to
-match a frame, each of the conditions must be satisfied, meaning
-that the REQ property of the frame must match one of the
-corresponding ITEMs.  These are the defined REQ values:
+In the ATTS property list, possible attributes are `:family',
+`:width', `:height', `:weight', `:slant', `:underline',
+`:overline', `:strike-through', `:box', `:foreground',
+`:background', `:stipple', `:inverse-video', and `:inherit'.
 
-`type' (the value of `window-system')
-  Under X, in addition to the values `window-system' can take,
-  `motif', `lucid', `gtk' and `x-toolkit' are allowed, and match when
-  the Motif toolkit, Lucid toolkit, GTK toolkit or any X toolkit is in use.
-
-`class' (the frame's color support)
-  Should be one of `color', `grayscale', or `mono'.
-
-`background' (what color is used for the background text)
-  Should be one of `light' or `dark'.
-
-`min-colors' (the minimum number of colors the frame should support)
-  Should be an integer, it is compared with the result of
-  `display-color-cells'.
-
-`supports' (only match frames that support the specified face attributes)
-  Should be a list of face attributes.  See the documentation for
-  the function `display-supports-face-attributes-p' for more
-  information on exactly how testing is done.
-
-See Info node `(elisp) Customization' in the Emacs Lisp manual
-for more information."
+See Info node `(elisp) Faces' in the Emacs Lisp manual for more
+information."
   (declare (doc-string 3))
   ;; It is better not to use backquote in this file,
   ;; because that makes a bootstrapping problem
@@ -589,13 +595,17 @@ If NOSET is non-nil, don't bother autoloading LOAD when setting the variable."
   (put symbol 'custom-autoload (if noset 'noset t))
   (custom-add-load symbol load))
 
-;; This test is also in the C code of `user-variable-p'.
 (defun custom-variable-p (variable)
-  "Return non-nil if VARIABLE is a custom variable.
-This recursively follows aliases."
-  (setq variable (indirect-variable variable))
-  (or (get variable 'standard-value)
-      (get variable 'custom-autoload)))
+  "Return non-nil if VARIABLE is a customizable variable.
+A customizable variable is either (i) a variable whose property
+list contains a non-nil `standard-value' or `custom-autoload'
+property, or (ii) an alias for another customizable variable."
+  (when (symbolp variable)
+    (setq variable (indirect-variable variable))
+    (or (get variable 'standard-value)
+	(get variable 'custom-autoload))))
+
+(define-obsolete-function-alias 'user-variable-p 'custom-variable-p "24.3")
 
 (defun custom-note-var-changed (variable)
   "Inform Custom that VARIABLE has been set (changed).
@@ -922,18 +932,22 @@ Each of the arguments in ARGS should be a list of this form:
 
   (SYMBOL EXP [NOW [REQUEST [COMMENT]]])
 
-This stores EXP (without evaluating it) as the saved value for SYMBOL.
-If NOW is present and non-nil, then also evaluate EXP and set
-the default value for the SYMBOL to the value of EXP.
+SYMBOL is the variable name, and EXP is an expression which
+evaluates to the customized value.  EXP will also be stored,
+without evaluating it, in SYMBOL's `saved-value' property, so
+that it can be restored via the Customize interface.  It is also
+added to the alist in SYMBOL's `theme-value' property \(by
+calling `custom-push-theme').
 
-REQUEST is a list of features we must require in order to
-handle SYMBOL properly.
-COMMENT is a comment string about SYMBOL.
+NOW, if present and non-nil, means to install the variable's
+value directly now, even if its `defcustom' declaration has not
+been executed.  This is for internal use only.
 
-EXP itself is saved unevaluated as SYMBOL property `saved-value' and
-in SYMBOL's list property `theme-value' \(using `custom-push-theme')."
+REQUEST is a list of features to `require' (which are loaded
+prior to evaluating EXP).
+
+COMMENT is a comment string about SYMBOL."
   (custom-check-theme theme)
-
   ;; Process all the needed autoloads before anything else, so that the
   ;; subsequent code has all the info it needs (e.g. which var corresponds
   ;; to a minor mode), regardless of the ordering of the variables.
@@ -943,29 +957,7 @@ in SYMBOL's list property `theme-value' \(using `custom-push-theme')."
                   (memq (get symbol 'custom-autoload) '(nil noset)))
         ;; This symbol needs to be autoloaded, even just for a `set'.
         (custom-load-symbol symbol))))
-
-  ;; Move minor modes and variables with explicit requires to the end.
-  (setq args
-	(sort args
-	      (lambda (a1 a2)
-		(let* ((sym1 (car a1))
-		       (sym2 (car a2))
-		       (1-then-2 (memq sym1 (get sym2 'custom-dependencies)))
-		       (2-then-1 (memq sym2 (get sym1 'custom-dependencies))))
-		  (cond ((and 1-then-2 2-then-1)
-			 (error "Circular custom dependency between `%s' and `%s'"
-				sym1 sym2))
-			(2-then-1 nil)
-			;; 1 is a dependency of 2, so needs to be set first.
-			(1-then-2)
-			;; Put minor modes and symbols with :require last.
-			;; Putting minor modes last ensures that the mode
-			;; function will see other customized values rather
-			;; than default values.
-			(t (or (nth 3 a2)
-                               (eq (get sym2 'custom-set)
-                                   'custom-set-minor-mode))))))))
-
+  (setq args (custom--sort-vars args))
   (dolist (entry args)
     (unless (listp entry)
       (error "Incompatible Custom theme spec"))
@@ -999,6 +991,60 @@ in SYMBOL's list property `theme-value' \(using `custom-push-theme')."
 	  (and (or now (default-boundp symbol))
 	       (put symbol 'variable-comment comment)))))))
 
+(defvar custom--sort-vars-table)
+(defvar custom--sort-vars-result)
+
+(defun custom--sort-vars (vars)
+  "Sort VARS based on custom dependencies.
+VARS is a list whose elements have the same form as the ARGS
+arguments to `custom-theme-set-variables'.  Return the sorted
+list, in which A occurs before B if B was defined with a
+`:set-after' keyword specifying A (see `defcustom')."
+  (let ((custom--sort-vars-table (make-hash-table))
+	(dependants (make-hash-table))
+	(custom--sort-vars-result nil)
+	last)
+    ;; Construct a pair of tables keyed with the symbols of VARS.
+    (dolist (var vars)
+      (puthash (car var) (cons t var) custom--sort-vars-table)
+      (puthash (car var) var dependants))
+    ;; From the second table, remove symbols that are depended-on.
+    (dolist (var vars)
+      (dolist (dep (get (car var) 'custom-dependencies))
+	(remhash dep dependants)))
+    ;; If a variable is "stand-alone", put it last if it's a minor
+    ;; mode or has a :require flag.  This is not really necessary, but
+    ;; putting minor modes last helps ensure that the mode function
+    ;; sees other customized values rather than default values.
+    (maphash (lambda (sym var)
+	       (when (and (null (get sym 'custom-dependencies))
+			  (or (nth 3 var)
+			      (eq (get sym 'custom-set)
+				  'custom-set-minor-mode)))
+		 (remhash sym dependants)
+		 (push var last)))
+	     dependants)
+    ;; The remaining symbols depend on others but are not
+    ;; depended-upon.  Do a depth-first topological sort.
+    (maphash #'custom--sort-vars-1 dependants)
+    (nreverse (append last custom--sort-vars-result))))
+
+(defun custom--sort-vars-1 (sym &optional _ignored)
+  (let ((elt (gethash sym custom--sort-vars-table)))
+    ;; The car of the hash table value is nil if the variable has
+    ;; already been processed, `dependant' if it is a dependant in the
+    ;; current graph descent, and t otherwise.
+    (when elt
+      (cond
+       ((eq (car elt) 'dependant)
+	(error "Circular custom dependency on `%s'" sym))
+       ((car elt)
+	(setcar elt 'dependant)
+	(dolist (dep (get sym 'custom-dependencies))
+	  (custom--sort-vars-1 dep))
+	(setcar elt nil)
+	(push (cdr elt) custom--sort-vars-result))))))
+
 
 ;;; Defining themes.
 
@@ -1029,6 +1075,7 @@ The optional argument DOC is a doc string describing the theme.
 
 Any theme `foo' should be defined in a file called `foo-theme.el';
 see `custom-make-theme-feature' for more information."
+  (declare (doc-string 2))
   (let ((feature (custom-make-theme-feature theme)))
     ;; It is better not to use backquote in this file,
     ;; because that makes a bootstrapping problem
@@ -1105,12 +1152,14 @@ property `theme-feature' (which is usually a symbol created by
 
 (defcustom custom-safe-themes '(default)
   "Themes that are considered safe to load.
-If the value is a list, each element should be either the `sha1'
+If the value is a list, each element should be either the SHA-256
 hash of a safe theme file, or the symbol `default', which stands
 for any theme in the built-in Emacs theme directory (a directory
 named \"themes\" in `data-directory').
 
-If the value is t, Emacs treats all themes as safe."
+If the value is t, Emacs treats all themes as safe.
+
+This variable cannot be set in a Custom theme."
   :type '(choice (repeat :tag "List of safe themes"
 			 (choice string
 				 (const :tag "Built-in themes" default)))
@@ -1124,12 +1173,14 @@ If the value is t, Emacs treats all themes as safe."
 The theme file is named THEME-theme.el, in one of the directories
 specified by `custom-theme-load-path'.
 
-If optional arg NO-CONFIRM is non-nil, and THEME is not
-considered safe according to `custom-safe-themes', prompt the
-user for confirmation.
+If the theme is not considered safe by `custom-safe-themes',
+prompt the user for confirmation before loading it.  But if
+optional arg NO-CONFIRM is non-nil, load the theme without
+prompting.
 
-Normally, this function also enables THEME; if optional arg
-NO-ENABLE is non-nil, load the theme but don't enable it.
+Normally, this function also enables THEME.  If optional arg
+NO-ENABLE is non-nil, load the theme but don't enable it, unless
+the theme was already enabled.
 
 This function is normally called through Customize when setting
 `custom-enabled-themes'.  If used directly in your init file, it
@@ -1145,6 +1196,10 @@ Return t if THEME was successfully loaded, nil otherwise."
     nil nil))
   (unless (custom-theme-name-valid-p theme)
     (error "Invalid theme name `%s'" theme))
+  ;; If THEME is already enabled, re-enable it after loading, even if
+  ;; NO-ENABLE is t.
+  (if no-enable
+      (setq no-enable (not (custom-theme-enabled-p theme))))
   ;; If reloading, clear out the old theme settings.
   (when (custom-theme-p theme)
     (disable-theme theme)
@@ -1159,7 +1214,7 @@ Return t if THEME was successfully loaded, nil otherwise."
       (error "Unable to find theme file for `%s'" theme))
     (with-temp-buffer
       (insert-file-contents fn)
-      (setq hash (sha1 (current-buffer)))
+      (setq hash (secure-hash 'sha256 (current-buffer)))
       ;; Check file safety with `custom-safe-themes', prompting the
       ;; user if necessary.
       (when (or no-confirm
@@ -1169,7 +1224,8 @@ Return t if THEME was successfully loaded, nil otherwise."
 			    (expand-file-name "themes/" data-directory)))
 		(member hash custom-safe-themes)
 		(custom-theme-load-confirm hash))
-	(let ((custom--inhibit-theme-enable t))
+	(let ((custom--inhibit-theme-enable t)
+              (buffer-file-name fn))    ;For load-history.
 	  (eval-buffer))
 	;; Optimization: if the theme changes the `default' face, put that
 	;; entry first.  This avoids some `frame-set-background-mode' rigmarole
@@ -1193,38 +1249,19 @@ Return t if THEME was successfully loaded, nil otherwise."
   "Query the user about loading a Custom theme that may not be safe.
 The theme should be in the current buffer.  If the user agrees,
 query also about adding HASH to `custom-safe-themes'."
-  (if noninteractive
-      nil
-    (let ((exit-chars '(?y ?n ?\s))
-	  window prompt char)
-      (save-window-excursion
-	(rename-buffer "*Custom Theme*" t)
-	(emacs-lisp-mode)
-	(setq window (display-buffer (current-buffer)))
-	(setq prompt
-	      (format "Loading a theme can run Lisp code.  Really load?%s"
-		      (if (and window
-			       (< (line-number-at-pos (point-max))
-				  (window-body-height)))
-			  " (y or n) "
-			(push ?\C-v exit-chars)
-			"\nType y or n, or C-v to scroll: ")))
-	(goto-char (point-min))
-	(while (null char)
-	  (setq char (read-char-choice prompt exit-chars))
-	  (when (eq char ?\C-v)
-	    (if window
-		(with-selected-window window
-		  (condition-case nil
-		      (scroll-up)
-		    (error (goto-char (point-min))))))
-	    (setq char nil)))
-	(when (memq char '(?\s ?y))
-	  ;; Offer to save to `custom-safe-themes'.
-	  (and (or custom-file user-init-file)
-	       (y-or-n-p "Treat this theme as safe in future sessions? ")
-	       (customize-push-and-save 'custom-safe-themes (list hash)))
-	  t)))))
+  (unless noninteractive
+    (save-window-excursion
+      (rename-buffer "*Custom Theme*" t)
+      (emacs-lisp-mode)
+      (pop-to-buffer (current-buffer))
+      (goto-char (point-min))
+      (prog1 (when (y-or-n-p "Loading a theme can run Lisp code.  Really load? ")
+	       ;; Offer to save to `custom-safe-themes'.
+	       (and (or custom-file user-init-file)
+		    (y-or-n-p "Treat this theme as safe in future sessions? ")
+		    (customize-push-and-save 'custom-safe-themes (list hash)))
+	       t)
+	(quit-window)))))
 
 (defun custom-theme-name-valid-p (name)
   "Return t if NAME is a valid name for a Custom theme, nil otherwise.
@@ -1285,8 +1322,8 @@ precedence (after `user')."
 	 ((eq prop 'theme-face)
 	  (custom-theme-recalc-face symbol))
 	 ((eq prop 'theme-value)
-	  ;; Don't change `custom-enabled-themes'; that's special.
-	  (unless (eq symbol 'custom-enabled-themes)
+	  ;; Ignore `custom-enabled-themes' and `custom-safe-themes'.
+	  (unless (memq symbol '(custom-enabled-themes custom-safe-themes))
 	    (custom-theme-recalc-variable symbol)))))))
   (unless (eq theme 'user)
     (setq custom-enabled-themes

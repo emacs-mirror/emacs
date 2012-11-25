@@ -1,9 +1,7 @@
 @echo off
 rem   ----------------------------------------------------------------------
 rem   Configuration script for MSDOS
-rem   Copyright (C) 1994, 1995, 1996, 1997, 1998, 1999, 2001, 2002, 2003
-rem   2004, 2005, 2006, 2007, 2008, 2009, 2010, 2011  Free Software Foundation,
-rem   Inc.
+rem   Copyright (C) 1994-1999, 2001-2012  Free Software Foundation, Inc.
 
 rem   This file is part of GNU Emacs.
 
@@ -163,22 +161,6 @@ if exist config.in sed -f ../msdos/sed2x.inp < config.in > config.tmp
 if exist ..\autogen\config.in sed -f ../msdos/sed2x.inp < ..\autogen\config.in > config.tmp
 :src4
 sed -f ../msdos/sed2v2.inp <config.tmp >config.h2
-Rem See if DECL_ALIGN can be supported with this GCC
-rm -f junk.c junk.o junk junk.exe
-echo struct { int i; char *p; } __attribute__((__aligned__(8))) foo;  >junk.c
-rem Two percent signs because it is a special character for COMMAND.COM/CMD
-rem Filter thru Sed because "&" is special for CMD.EXE
-echo int main(void) { return (unsigned long)"&"foo %% 8; } | sed "s/.&./\&/"         >>junk.c
-gcc -o junk junk.c
-if not exist junk.exe coff2exe junk
-junk
-If Not ErrorLevel 1 Goto alignOk
-Echo WARNING: Your GCC does not support 8-byte aligned variables.
-Echo WARNING: Therefore Emacs cannot support buffers larger than 128MB.
-rem The following line disables DECL_ALIGN which in turn disables USE_LSB_TAG
-rem For details see lisp.h where it defines USE_LSB_TAG
-echo #define NO_DECL_ALIGN >>config.h2
-:alignOk
 Rem See if they have libxml2 later than v2.2.0 installed
 Echo Checking whether libxml2 v2.2.1 or later is installed ...
 rm -f junk.c junk.o junk junk.exe
@@ -282,14 +264,18 @@ cd lib
 Rem Rename files like djtar on plain DOS filesystem would.
 If Exist build-aux\snippet\c++defs.h update build-aux/snippet/c++defs.h build-aux/snippet/cxxdefs.h
 If Exist alloca.in.h update alloca.in.h alloca.in-h
+If Exist execinfo.in.h update execinfo.in.h execinfo.in-h
 If Exist getopt.in.h update getopt.in.h getopt.in-h
+If Exist stdalign.in.h update stdalign.in.h stdalign.in-h
 If Exist stdbool.in.h update stdbool.in.h stdbool.in-h
 If Exist signal.in.h update signal.in.h signal.in-h
+If Exist stdalign.in.h update stdalign.in.h  stdalign.in-h
 If Exist stddef.in.h update stddef.in.h  stddef.in-h
 If Exist stdint.in.h update stdint.in.h  stdint.in-h
 If Exist stdio.in.h update stdio.in.h stdio.in-h
 If Exist stdlib.in.h update stdlib.in.h stdlib.in-h
 If Exist sys_stat.in.h update sys_stat.in.h sys_stat.in-h
+If Exist sys_types.in.h update sys_types.in.h sys_types.in-h
 If Exist time.in.h update time.in.h time.in-h
 If Exist unistd.in.h update unistd.in.h unistd.in-h
 If Exist Makefile.in sed -f ../msdos/sedlibcf.inp < Makefile.in > makefile.tmp
@@ -346,4 +332,3 @@ set nodebug=
 set djgpp_ver=
 set sys_malloc=
 set libxml=
-

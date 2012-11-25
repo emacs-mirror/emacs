@@ -1,6 +1,6 @@
 ;;; kmacro.el --- enhanced keyboard macros
 
-;; Copyright (C) 2002-2011  Free Software Foundation, Inc.
+;; Copyright (C) 2002-2012  Free Software Foundation, Inc.
 
 ;; Author: Kim F. Storm <storm@cua.dk>
 ;; Keywords: keyboard convenience
@@ -231,12 +231,12 @@ macro to be executed before appending to it."
 ;;; Keyboard macro counter
 
 (defvar kmacro-counter 0
-  "*Current keyboard macro counter.")
+  "Current keyboard macro counter.")
 
 (defvar kmacro-default-counter-format "%d")
 
 (defvar kmacro-counter-format "%d"
-  "*Current keyboard macro counter format.")
+  "Current keyboard macro counter format.")
 
 (defvar kmacro-counter-format-start kmacro-counter-format
   "Macro format at start of macro execution.")
@@ -625,10 +625,11 @@ for details on how to adjust or disable this behavior.
 To make a macro permanent so you can call it even after defining
 others, use \\[kmacro-name-last-macro]."
   (interactive "p")
-  (let ((repeat-key (and (null no-repeat)
-			 (> (length (this-single-command-keys)) 1)
-			 last-input-event))
-	repeat-key-str)
+  (let ((repeat-key (and (or (and (null no-repeat)
+                                  (> (length (this-single-command-keys)) 1))
+                             ;; Used when we're in the process of repeating.
+                             (eq no-repeat 'repeating))
+			 last-input-event)))
     (if end-macro
 	(kmacro-end-macro arg)
       (call-last-kbd-macro arg #'kmacro-loop-setup-function))
@@ -639,25 +640,23 @@ others, use \\[kmacro-name-last-macro]."
 		     (if (eq kmacro-call-repeat-key t)
 			 repeat-key
 		       kmacro-call-repeat-key)))
-      (setq repeat-key-str (format-kbd-macro (vector repeat-key) nil))
-      (while repeat-key
-	;; Issue a hint to the user, if the echo area isn't in use.
-	(unless (current-message)
-	  (message "(Type %s to repeat macro%s)"
-		   repeat-key-str
-		   (if (and kmacro-call-repeat-with-arg
-			    arg (> arg 1))
-		       (format " %d times" arg) "")))
-	(if (equal repeat-key (read-event))
-	    (progn
-	      (clear-this-command-keys t)
-	      (call-last-kbd-macro (and kmacro-call-repeat-with-arg arg)
-				   #'kmacro-loop-setup-function)
-	      (setq last-input-event nil))
-	  (setq repeat-key nil)))
-      (when last-input-event
-	(clear-this-command-keys t)
-	(setq unread-command-events (list last-input-event))))))
+      ;; Issue a hint to the user, if the echo area isn't in use.
+      (unless (current-message)
+	(message "(Type %s to repeat macro%s)"
+		 (format-kbd-macro (vector repeat-key) nil)
+		 (if (and kmacro-call-repeat-with-arg
+			  arg (> arg 1))
+		     (format " %d times" arg) "")))
+      ;; Can't use the `keep-pred' arg because this overlay keymap needs to be
+      ;; removed during the next run of the kmacro (i.e. we need to add&remove
+      ;; this overlay-map at each repetition).
+      (set-temporary-overlay-map
+       (let ((map (make-sparse-keymap)))
+         (define-key map (vector repeat-key)
+           `(lambda () (interactive)
+              (kmacro-call-macro ,(and kmacro-call-repeat-with-arg arg)
+                                 'repeating)))
+         map)))))
 
 
 ;;; Combined function key bindings:

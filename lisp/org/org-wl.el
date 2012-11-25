@@ -1,12 +1,11 @@
 ;;; org-wl.el --- Support for links to Wanderlust messages from within Org-mode
 
-;; Copyright (C) 2004-2011  Free Software Foundation, Inc.
+;; Copyright (C) 2004-2012 Free Software Foundation, Inc.
 
 ;; Author: Tokuya Kameshima <kames at fa2 dot so-net dot ne dot jp>
 ;;         David Maus <dmaus at ictsoc dot de>
 ;; Keywords: outlines, hypermedia, calendar, wp
 ;; Homepage: http://orgmode.org
-;; Version: 7.7
 ;;
 ;; This file is part of GNU Emacs.
 ;;
@@ -35,9 +34,9 @@
 (require 'org)
 
 (defgroup org-wl nil
- "Options concerning the Wanderlust link."
- :tag "Org Startup"
- :group 'org-link)
+  "Options concerning the Wanderlust link."
+  :tag "Org Startup"
+  :group 'org-link)
 
 (defcustom org-wl-link-to-refile-destination t
   "Create a link to the refile destination if the message is marked as refile."
@@ -47,11 +46,13 @@
 (defcustom org-wl-link-remove-filter nil
   "Remove filter condition if message is filter folder."
   :group 'org-wl
+  :version "24.1"
   :type 'boolean)
 
 (defcustom org-wl-shimbun-prefer-web-links nil
   "If non-nil create web links for shimbun messages."
   :group 'org-wl
+  :version "24.1"
   :type 'boolean)
 
 (defcustom org-wl-nntp-prefer-web-links nil
@@ -59,16 +60,19 @@
 When folder name contains string \"gmane\" link to gmane,
 googlegroups otherwise."
   :type 'boolean
+  :version "24.1"
   :group 'org-wl)
 
 (defcustom org-wl-disable-folder-check t
   "Disable check for new messages when open a link."
   :type 'boolean
+  :version "24.1"
   :group 'org-wl)
 
 (defcustom org-wl-namazu-default-index nil
   "Default namazu search index."
   :type 'directory
+  :version "24.1"
   :group 'org-wl)
 
 ;; Declare external functions and variables
@@ -157,7 +161,7 @@ ENTITY is a message entity."
   "Store a link to a WL folder."
   (let* ((folder (wl-folder-get-entity-from-buffer))
 	 (petname (wl-folder-get-petname folder))
-	 (link (org-make-link "wl:" folder)))
+	 (link (concat "wl:" folder)))
     (save-excursion
       (beginning-of-line)
       (unless (and (wl-folder-buffer-group-p)
@@ -242,7 +246,7 @@ ENTITY is a message entity."
 				    :subject subject :message-id message-id
 				    :message-id-no-brackets message-id-no-brackets)
 	      (setq desc (org-email-link-description))
-	      (setq link (org-make-link "wl:" folder-name "#" message-id-no-brackets))
+	      (setq link (concat "wl:" folder-name "#" message-id-no-brackets))
 	      (org-add-link-props :link link :description desc)))
 	    (when date
 	      (org-add-link-props :date date :date-timestamp date-ts
@@ -305,10 +309,8 @@ for namazu index."
 						     article))
 	    (or (wl-summary-jump-to-msg (string-to-number article))
 		(error "No such message: %s" article)))
-	     (wl-summary-redisplay))))))
+	  (wl-summary-redisplay))))))
 
 (provide 'org-wl)
-
-
 
 ;;; org-wl.el ends here

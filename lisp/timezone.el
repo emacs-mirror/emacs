@@ -1,6 +1,6 @@
 ;;; timezone.el --- time zone package for GNU Emacs
 
-;; Copyright (C) 1990-1993, 1996, 1999, 2001-2011
+;; Copyright (C) 1990-1993, 1996, 1999, 2001-2012
 ;;   Free Software Foundation, Inc.
 
 ;; Author: Masanobu Umeda
@@ -51,7 +51,7 @@
     ("GMT-4"  .  -400) ("GMT-5"  .  -500) ("GMT-6"  .  -600)
     ("GMT-7"  .  -700) ("GMT-8"  .  -800) ("GMT-9"  .  -900)
     ("GMT-10" . -1000) ("GMT-11" . -1100) ("GMT-12" . -1200))
-  "*Time differentials of timezone from GMT in +-HHMM form.
+  "Time differentials of timezone from GMT in +-HHMM form.
 This list is obsolescent, and is present only for backwards compatibility,
 because time zone names are ambiguous in practice.
 Use `current-time-zone' instead.")

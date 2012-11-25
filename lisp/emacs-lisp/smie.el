@@ -1,6 +1,6 @@
 ;;; smie.el --- Simple Minded Indentation Engine -*- lexical-binding: t -*-
 
-;; Copyright (C) 2010-2011  Free Software Foundation, Inc.
+;; Copyright (C) 2010-2012  Free Software Foundation, Inc.
 
 ;; Author: Stefan Monnier <monnier@iro.umontreal.ca>
 ;; Keywords: languages, lisp, internal, parsing, indentation
@@ -56,7 +56,7 @@
 ;; building the 2D precedence tables and then computing the precedence levels
 ;; from it) can be found in pages 187-194 of "Parsing techniques" by Dick Grune
 ;; and Ceriel Jacobs (BookBody.pdf available at
-;; http://www.cs.vu.nl/~dick/PTAPG.html).
+;; http://dickgrune.com/Books/PTAPG_1st_Edition/).
 ;;
 ;; OTOH we had to kill many chickens, read many coffee grounds, and practice
 ;; untold numbers of black magic spells, to come up with the indentation code.
@@ -121,7 +121,7 @@
 ;; - smie-indent-comment doesn't interact well with mis-indented lines (where
 ;;   the indent rules don't do what the user wants).  Not sure what to do.
 
-(eval-when-compile (require 'cl))
+(eval-when-compile (require 'cl-lib))
 
 (defgroup smie nil
   "Simple Minded Indentation Engine."
@@ -155,7 +155,7 @@
 (defvar smie-warning-count 0)
 
 (defun smie-set-prec2tab (table x y val &optional override)
-  (assert (and x y))
+  (cl-assert (and x y))
   (let* ((key (cons x y))
          (old (gethash key table)))
     (if (and old (not (eq old val)))
@@ -166,7 +166,7 @@
             ;; don't hide real conflicts.
             (puthash key (gethash key override) table)
           (display-warning 'smie (format "Conflict: %s %s/%s %s" x old val y))
-          (incf smie-warning-count))
+          (cl-incf smie-warning-count))
       (puthash key val table))))
 
 (put 'smie-precs->prec2 'pure t)
@@ -268,8 +268,8 @@ be either:
           (unless (consp rhs)
             (signal 'wrong-type-argument `(consp ,rhs)))
           (if (not (member (car rhs) nts))
-              (pushnew (car rhs) first-ops)
-            (pushnew (car rhs) first-nts)
+              (cl-pushnew (car rhs) first-ops)
+            (cl-pushnew (car rhs) first-nts)
             (when (consp (cdr rhs))
               ;; If the first is not an OP we add the second (which
               ;; should be an OP if BNF is an "operator grammar").
@@ -282,16 +282,16 @@ be either:
               (when (member (cadr rhs) nts)
                 (error "Adjacent non-terminals: %s %s"
                        (car rhs) (cadr rhs)))
-              (pushnew (cadr rhs) first-ops)))
+              (cl-pushnew (cadr rhs) first-ops)))
           (let ((shr (reverse rhs)))
             (if (not (member (car shr) nts))
-                (pushnew (car shr) last-ops)
-              (pushnew (car shr) last-nts)
+                (cl-pushnew (car shr) last-ops)
+              (cl-pushnew (car shr) last-nts)
               (when (consp (cdr shr))
                 (when (member (cadr shr) nts)
                   (error "Adjacent non-terminals: %s %s"
                          (cadr shr) (car shr)))
-                (pushnew (cadr shr) last-ops)))))
+                (cl-pushnew (cadr shr) last-ops)))))
         (push (cons nt first-ops) first-ops-table)
         (push (cons nt last-ops) last-ops-table)
         (push (cons nt first-nts) first-nts-table)
@@ -416,12 +416,12 @@ from the table, e.g. the table will not include things like (\"if\" . \"else\").
           (if no-inners
               (let ((last (car (last rhs))))
                 (unless (member last nts)
-                  (pushnew (cons (car rhs) last) alist :test #'equal)))
+                  (cl-pushnew (cons (car rhs) last) alist :test #'equal)))
             ;; Reverse so that the "real" closer gets there first,
             ;; which is important for smie-close-block.
             (dolist (term (reverse (cdr rhs)))
               (unless (member term nts)
-                (pushnew (cons (car rhs) term) alist :test #'equal)))))))
+                (cl-pushnew (cons (car rhs) term) alist :test #'equal)))))))
     (nreverse alist)))
 
 (defun smie-bnf--set-class (table token class)
@@ -483,7 +483,7 @@ CSTS is a list of pairs representing arcs in a graph."
                            (push (concat "." (car elem)) res))
                        (if (eq (cddr elem) val)
                            (push (concat (car elem) ".") res)))
-                     (assert res)
+                     (cl-assert res)
                      res))
                  cycle)))
     (mapconcat
@@ -498,9 +498,9 @@ CSTS is a list of pairs representing arcs in a graph."
 ;;                      (right (nth 1 (assoc (cdr k) grammar))))
 ;;                  (when (and left right)
 ;;                    (cond
-;;                     ((< left right) (assert (eq v '<)))
-;;                     ((> left right) (assert (eq v '>)))
-;;                     (t (assert (eq v '=))))))))
+;;                     ((< left right) (cl-assert (eq v '<)))
+;;                     ((> left right) (cl-assert (eq v '>)))
+;;                     (t (cl-assert (eq v '=))))))))
 ;;            prec2))
 
 (put 'smie-prec2->grammar 'pure t)
@@ -514,25 +514,28 @@ PREC2 is a table as returned by `smie-precs->prec2' or
   ;; final `table'.  The value of each "variable" is kept in the `car'.
   (let ((table ())
         (csts ())
-        (eqs ())
-        tmp x y)
+        (eqs ()))
     ;; From `prec2' we construct a list of constraints between
     ;; variables (aka "precedence levels").  These can be either
     ;; equality constraints (in `eqs') or `<' constraints (in `csts').
     (maphash (lambda (k v)
                (when (consp k)
-                 (if (setq tmp (assoc (car k) table))
-                     (setq x (cddr tmp))
-                   (setq x (cons nil nil))
-                   (push (cons (car k) (cons nil x)) table))
-                 (if (setq tmp (assoc (cdr k) table))
-                     (setq y (cdr tmp))
-                   (setq y (cons nil (cons nil nil)))
-                   (push (cons (cdr k) y) table))
-                 (ecase v
-                   (= (push (cons x y) eqs))
-                   (< (push (cons x y) csts))
-                   (> (push (cons y x) csts)))))
+                 (let ((tmp (assoc (car k) table))
+                       x y)
+                   (if tmp
+                       (setq x (cddr tmp))
+                     (setq x (cons nil nil))
+                     (push (cons (car k) (cons nil x)) table))
+                   (if (setq tmp (assoc (cdr k) table))
+                       (setq y (cdr tmp))
+                     (setq y (cons nil (cons nil nil)))
+                     (push (cons (cdr k) y) table))
+                   (pcase v
+                     (`= (push (cons x y) eqs))
+                     (`< (push (cons x y) csts))
+                     (`> (push (cons y x) csts))
+                     (_ (error "SMIE error: prec2 has %S↦%S which ∉ {<,+,>}"
+                               k v))))))
              prec2)
     ;; First process the equality constraints.
     (let ((eqs eqs))
@@ -572,13 +575,13 @@ PREC2 is a table as returned by `smie-precs->prec2' or
               (unless (caar cst)
                 (setcar (car cst) i)
                 ;; (smie-check-grammar table prec2 'step1)
-                (incf i))
+                (cl-incf i))
               (setq csts (delq cst csts))))
           (unless progress
             (error "Can't resolve the precedence cycle: %s"
                    (smie-debug--describe-cycle
                     table (smie-debug--prec2-cycle csts)))))
-        (incf i 10))
+        (cl-incf i 10))
       ;; Propagate equality constraints back to their sources.
       (dolist (eq (nreverse eqs))
         (when (null (cadr eq))
@@ -589,8 +592,8 @@ PREC2 is a table as returned by `smie-precs->prec2' or
           ;; So set it here rather than below since doing it below
           ;; makes it more difficult to obey the equality constraints.
           (setcar (cdr eq) i)
-          (incf i))
-        (assert (or (null (caar eq)) (eq (caar eq) (cadr eq))))
+          (cl-incf i))
+        (cl-assert (or (null (caar eq)) (eq (caar eq) (cadr eq))))
         (setcar (car eq) (cadr eq))
         ;; (smie-check-grammar table prec2 'step2)
         )
@@ -599,17 +602,17 @@ PREC2 is a table as returned by `smie-precs->prec2' or
       (dolist (x table)
         (unless (nth 1 x)
           (setf (nth 1 x) i)
-          (incf i))                     ;See other (incf i) above.
+          (cl-incf i))                  ;See other (cl-incf i) above.
         (unless (nth 2 x)
           (setf (nth 2 x) i)
-          (incf i))))                   ;See other (incf i) above.
+          (cl-incf i))))                ;See other (cl-incf i) above.
     ;; Mark closers and openers.
     (dolist (x (gethash :smie-open/close-alist prec2))
       (let* ((token (car x))
-             (cons (case (cdr x)
-                     (closer (cddr (assoc token table)))
-                     (opener (cdr (assoc token table))))))
-        (assert (numberp (car cons)))
+             (cons (pcase (cdr x)
+                     (`closer (cddr (assoc token table)))
+                     (`opener (cdr (assoc token table))))))
+        (cl-assert (numberp (car cons)))
         (setf (car cons) (list (car cons)))))
     (let ((ca (gethash :smie-closer-alist prec2)))
       (when ca (push (cons :smie-closer-alist ca) table)))
@@ -688,6 +691,7 @@ Possible return values:
     is too high.  FORW-LEVEL is the forw-level of TOKEN,
     POS is its start position in the buffer.
   (t POS TOKEN): same thing when we bump on the wrong side of a paren.
+    Instead of t, the `car' can also be some other non-nil non-number value.
   (nil POS TOKEN): we skipped over a paren-like pair.
   nil: we skipped over an identifier, matched parentheses, ..."
   (catch 'return
@@ -704,20 +708,19 @@ Possible return values:
               (when (zerop (length token))
                 (condition-case err
                     (progn (goto-char pos) (funcall next-sexp 1) nil)
-                  (scan-error (throw 'return
-                                     (list t (caddr err)
-                                           (buffer-substring-no-properties
-                                            (caddr err)
-                                            (+ (caddr err)
-                                               (if (< (point) (caddr err))
-                                                   -1 1)))))))
+                  (scan-error
+                   (let ((pos (nth 2 err)))
+                     (throw 'return
+                            (list t pos
+                                  (buffer-substring-no-properties
+                                   pos (+ pos (if (< (point) pos) -1 1))))))))
                 (if (eq pos (point))
                     ;; We did not move, so let's abort the loop.
                     (throw 'return (list t (point))))))
              ((not (numberp (funcall op-back toklevels)))
               ;; A token like a paren-close.
-              (assert (numberp     ; Otherwise, why mention it in smie-grammar.
-                       (funcall op-forw toklevels)))
+              (cl-assert (numberp  ; Otherwise, why mention it in smie-grammar.
+                          (funcall op-forw toklevels)))
               (push toklevels levels))
              (t
               (while (and levels (< (funcall op-back toklevels)
@@ -728,7 +731,8 @@ Possible return values:
                 (if (and halfsexp (numberp (funcall op-forw toklevels)))
                     (push toklevels levels)
                   (throw 'return
-                         (prog1 (list (or (car toklevels) t) (point) token)
+                         (prog1 (list (or (funcall op-forw toklevels) t)
+                                      (point) token)
                            (goto-char pos)))))
                (t
                 (let ((lastlevels levels))
@@ -773,7 +777,8 @@ Possible return values:
                    ((and lastlevels
                          (smie--associative-p (car lastlevels)))
                     (throw 'return
-                           (prog1 (list (or (car toklevels) t) (point) token)
+                           (prog1 (list (or (funcall op-forw toklevels) t)
+                                        (point) token)
                              (goto-char pos))))
                    ;; - it's an associative operator within a larger construct
                    ;;   (e.g. an "elsif"), so we should just ignore it and keep
@@ -793,6 +798,7 @@ Possible return values:
     is too high.  LEFT-LEVEL is the left-level of TOKEN,
     POS is its start position in the buffer.
   (t POS TOKEN): same thing but for an open-paren or the beginning of buffer.
+    Instead of t, the `car' can also be some other non-nil non-number value.
   (nil POS TOKEN): we skipped over a paren-like pair.
   nil: we skipped over an identifier, matched parentheses, ..."
   (smie-next-sexp
@@ -812,7 +818,8 @@ Possible return values:
   (RIGHT-LEVEL POS TOKEN): we couldn't skip TOKEN because its left-level
     is too high.  RIGHT-LEVEL is the right-level of TOKEN,
     POS is its end position in the buffer.
-  (t POS TOKEN): same thing but for an open-paren or the beginning of buffer.
+  (t POS TOKEN): same thing but for a close-paren or the end of buffer.
+    Instead of t, the `car' can also be some other non-nil non-number value.
   (nil POS TOKEN): we skipped over a paren-like pair.
   nil: we skipped over an identifier, matched parentheses, ..."
   (smie-next-sexp
@@ -1073,6 +1080,16 @@ the beginning of a line."
 (defun smie-indent--bolp ()
   "Return non-nil if the current token is the first on the line."
   (save-excursion (skip-chars-backward " \t") (bolp)))
+
+(defun smie-indent--bolp-1 ()
+  ;; Like smie-indent--bolp but also returns non-nil if it's the first
+  ;; non-comment token.  Maybe we should simply always use this?
+  "Return non-nil if the current token is the first on the line.
+Comments are treated as spaces."
+  (let ((bol (line-beginning-position)))
+    (save-excursion
+      (forward-comment (- (point)))
+      (<= (point) bol))))
 
 ;; Dynamically scoped.
 (defvar smie--parent) (defvar smie--after) (defvar smie--token)
@@ -1350,9 +1367,12 @@ should not be computed on the basis of the following token."
         ;; - middle-of-line: "trust current position".
         (cond
          ((smie-indent--rule :before token))
-         ((smie-indent--bolp)           ;I.e. non-virtual indent.
+         ((smie-indent--bolp-1)         ;I.e. non-virtual indent.
           ;; For an open-paren-like thingy at BOL, always indent only
           ;; based on other rules (typically smie-indent-after-keyword).
+          ;; FIXME: we do the same if after a comment, since we may be trying
+          ;; to compute the indentation of this comment and we shouldn't indent
+          ;; based on the indentation of subsequent code.
           nil)
          (t
           ;; By default use point unless we're hanging.
@@ -1453,6 +1473,12 @@ should not be computed on the basis of the following token."
        (save-excursion
          (forward-comment (point-max))
          (skip-chars-forward " \t\r\n")
+         ;; FIXME: We assume here that smie-indent-calculate will compute the
+         ;; indentation of the next token based on text before the comment, but
+         ;; this is not guaranteed, so maybe we should let
+         ;; smie-indent-calculate return some info about which buffer position
+         ;; was used as the "indentation base" and check that this base is
+         ;; before `pos'.
          (smie-indent-calculate))))
 
 (defun smie-indent-comment-continue ()
@@ -1602,6 +1628,36 @@ to which that point should be aligned, if we were to reindent it.")
           (save-excursion (indent-line-to indent))
         (indent-line-to indent)))))
 
+(defun smie-auto-fill ()
+  (let ((fc (current-fill-column)))
+    (while (and fc (> (current-column) fc))
+      (cond
+       ((not (or (nth 8 (save-excursion
+                          (syntax-ppss (line-beginning-position))))
+                 (nth 8 (syntax-ppss))))
+        (save-excursion
+          (beginning-of-line)
+          (smie-indent-forward-token)
+          (let ((bsf (point))
+                (gain 0)
+                curcol)
+            (while (<= (setq curcol (current-column)) fc)
+              ;; FIXME?  `smie-indent-calculate' can (and often will)
+              ;; return a result that actually depends on the presence/absence
+              ;; of a newline, so the gain computed here may not be accurate,
+              ;; but in practice it seems to works well enough.
+              (let* ((newcol (smie-indent-calculate))
+                     (newgain (- curcol newcol)))
+                (when (> newgain gain)
+                  (setq gain newgain)
+                  (setq bsf (point))))
+              (smie-indent-forward-token))
+            (when (> gain 0)
+              (goto-char bsf)
+              (newline-and-indent)))))
+       (t (do-auto-fill))))))
+
+
 (defun smie-setup (grammar rules-function &rest keywords)
   "Setup SMIE navigation and indentation.
 GRAMMAR is a grammar table generated by `smie-prec2->grammar'.
@@ -1612,17 +1668,18 @@ KEYWORDS are additional arguments, which can use the following keywords:
   (set (make-local-variable 'smie-rules-function) rules-function)
   (set (make-local-variable 'smie-grammar) grammar)
   (set (make-local-variable 'indent-line-function) 'smie-indent-line)
+  (set (make-local-variable 'normal-auto-fill-function) 'smie-auto-fill)
   (set (make-local-variable 'forward-sexp-function)
        'smie-forward-sexp-command)
   (while keywords
     (let ((k (pop keywords))
           (v (pop keywords)))
-      (case k
-        (:forward-token
+      (pcase k
+        (`:forward-token
          (set (make-local-variable 'smie-forward-token-function) v))
-        (:backward-token
+        (`:backward-token
          (set (make-local-variable 'smie-backward-token-function) v))
-        (t (message "smie-setup: ignoring unknown keyword %s" k)))))
+        (_ (message "smie-setup: ignoring unknown keyword %s" k)))))
   (let ((ca (cdr (assq :smie-closer-alist grammar))))
     (when ca
       (set (make-local-variable 'smie-closer-alist) ca)

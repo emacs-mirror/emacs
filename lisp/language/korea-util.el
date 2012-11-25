@@ -1,6 +1,6 @@
 ;;; korea-util.el --- utilities for Korean
 
-;; Copyright (C) 1997, 1999, 2001-2011  Free Software Foundation, Inc.
+;; Copyright (C) 1997, 1999, 2001-2012  Free Software Foundation, Inc.
 ;; Copyright (C) 1997, 1998, 1999, 2000, 2001, 2002, 2003, 2004, 2005, 2006,
 ;;   2007, 2008, 2009, 2010, 2011
 ;;   National Institute of Advanced Industrial Science and Technology (AIST)
@@ -32,7 +32,7 @@
    (purecopy (if (string-match "3" (or (getenv "HANGUL_KEYBOARD_TYPE") ""))
       "3"
     ""))
-  "*The kind of Korean keyboard for Korean input method.
+   "The kind of Korean keyboard for Korean input method.
 \"\" for 2, \"3\" for 3.")
 
 ;; functions useful for Korean text input
@@ -41,7 +41,7 @@
   "Turn on or off a Korean text input method for the current buffer."
   (interactive)
   (if current-input-method
-      (inactivate-input-method)
+      (deactivate-input-method)
     (activate-input-method
      (concat "korean-hangul" default-korean-keyboard))))
 

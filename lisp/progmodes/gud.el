@@ -1,6 +1,6 @@
 ;;; gud.el --- Grand Unified Debugger mode for running GDB and other debuggers
 
-;; Copyright (C) 1992-1996, 1998, 2000-2011 Free Software Foundation, Inc.
+;; Copyright (C) 1992-1996, 1998, 2000-2012 Free Software Foundation, Inc.
 
 ;; Author: Eric S. Raymond <esr@snark.thyrsus.com>
 ;; Maintainer: FSF
@@ -37,8 +37,6 @@
 
 ;;; Code:
 
-(eval-when-compile (require 'cl)) ; for case macro
-
 (require 'comint)
 
 (defvar gdb-active-process)
@@ -58,18 +56,19 @@
 ;; GUD commands must be visible in C buffers visited by GUD
 
 (defgroup gud nil
-  "Grand Unified Debugger mode for gdb and other debuggers under Emacs.
-Supported debuggers include gdb, sdb, dbx, xdb, perldb, pdb (Python) and jdb."
+  "The \"Grand Unified Debugger\" interface.
+Supported debuggers include gdb, sdb, dbx, xdb, perldb,
+pdb (Python), and jdb."
   :group 'processes
   :group 'tools)
 
 
 (defcustom gud-key-prefix "\C-x\C-a"
   "Prefix of all GUD commands valid in C buffers."
-  :type 'string
+  :type 'key-sequence
   :group 'gud)
 
-(global-set-key (concat gud-key-prefix "\C-l") 'gud-refresh)
+(global-set-key (vconcat gud-key-prefix "\C-l") 'gud-refresh)
 (define-key ctl-x-map " " 'gud-break)	;; backward compatibility hack
 
 (defvar gud-marker-filter nil)
@@ -149,7 +148,8 @@ Used to gray out relevant toolbar icons.")
     ([run]	menu-item "Run" gud-run
                   :enable (not gud-running)
 		  :visible (memq gud-minor-mode '(gdbmi gdb dbx jdb)))
-    ([go]	menu-item (if gdb-active-process "Continue" "Run") gud-go
+    ([go]	menu-item (if (bound-and-true-p gdb-active-process)
+			      "Continue" "Run") gud-go
 		  :visible (and (eq gud-minor-mode 'gdbmi)
                                 (gdb-show-run-p)))
     ([stop]	menu-item "Stop" gud-stop-subjob
@@ -179,7 +179,7 @@ Used to gray out relevant toolbar icons.")
 				 '(gdbmi gdb dbx xdb jdb pdb)))
     ([pp]	menu-item "Print S-expression" gud-pp
                   :enable (and (not gud-running)
-				  gdb-active-process)
+				  (bound-and-true-p gdb-active-process))
 		  :visible (and (string-equal
 				 (buffer-local-value
 				  'gud-target-name gud-comint-buffer) "emacs")
@@ -527,10 +527,10 @@ required by the caller."
 		       nil 'gdb-edit-value)
 		   nil
 		   (if gdb-show-changed-values
-		       (or parent (case status
-				    (changed 'font-lock-warning-face)
-				    (out-of-scope 'shadow)
-				    (t t)))
+		       (or parent (pcase status
+				    (`changed 'font-lock-warning-face)
+				    (`out-of-scope 'shadow)
+				    (_ t)))
 		     t)
 		   depth)
 		(if (eq status 'out-of-scope) (setq parent 'shadow))
@@ -548,10 +548,10 @@ required by the caller."
 			 nil 'gdb-edit-value)
 		     nil
 		     (if gdb-show-changed-values
-			 (or parent (case status
-				      (changed 'font-lock-warning-face)
-				      (out-of-scope 'shadow)
-				      (t t)))
+			 (or parent (pcase status
+				      (`changed 'font-lock-warning-face)
+				      (`out-of-scope 'shadow)
+				      (_ t)))
 		       t)
 		     depth)
 		  (speedbar-make-tag-line
@@ -749,7 +749,7 @@ directory and source-file directory for your debugger."
 	   "Evaluate C dereferenced pointer expression at point.")
 
   ;; For debugging Emacs only.
-  (gud-def gud-pv "pv1 %e"      "\C-v" "Print the value of the lisp variable.")
+  (gud-def gud-pv "pv %e"      "\C-v" "Print the value of the lisp variable.")
 
   (gud-def gud-until  "until %l" "\C-u" "Continue to current line.")
   (gud-def gud-run    "run"	 nil    "Run the program.")
@@ -1046,7 +1046,7 @@ and source-file directory for your debugger."
 (defvar gud-dbx-history nil)
 
 (defcustom gud-dbx-directories nil
-  "*A list of directories that dbx should search for source code.
+  "A list of directories that dbx should search for source code.
 If nil, only source files in the program directory
 will be known to dbx.
 
@@ -1358,7 +1358,7 @@ and source-file directory for your debugger."
 (defvar gud-xdb-history nil)
 
 (defcustom gud-xdb-directories nil
-  "*A list of directories that xdb should search for source code.
+  "A list of directories that xdb should search for source code.
 If nil, only source files in the program directory
 will be known to xdb.
 
@@ -1646,8 +1646,8 @@ and source-file directory for your debugger."
   (gud-common-init command-line nil 'gud-pdb-marker-filter)
   (set (make-local-variable 'gud-minor-mode) 'pdb)
 
-  (gud-def gud-break  "break %f:%l"  "\C-b" "Set breakpoint at current line.")
-  (gud-def gud-remove "clear %f:%l"  "\C-d" "Remove breakpoint at current line")
+  (gud-def gud-break  "break %d%f:%l"  "\C-b" "Set breakpoint at current line.")
+  (gud-def gud-remove "clear %d%f:%l"  "\C-d" "Remove breakpoint at current line")
   (gud-def gud-step   "step"         "\C-s" "Step one source line with display.")
   (gud-def gud-next   "next"         "\C-n" "Step one line (skip functions).")
   (gud-def gud-cont   "continue"     "\C-r" "Continue with display.")
@@ -1811,7 +1811,7 @@ source file information.")
 
 ;; List of Java source file directories.
 (defvar gud-jdb-directories (list ".")
-  "*A list of directories that gud jdb should search for source code.
+  "A list of directories that gud jdb should search for source code.
 The file names should be absolute, or relative to the current
 directory.
 
@@ -2686,7 +2686,6 @@ Obeying it means displaying in another window the specified file and line."
 (declare-function global-hl-line-highlight  "hl-line" ())
 (declare-function hl-line-highlight         "hl-line" ())
 (declare-function gdb-display-source-buffer "gdb-mi"  (buffer))
-(declare-function gdb-display-buffer "gdb-mi" (buf dedicated &optional size))
 
 ;; Make sure the file named TRUE-FILE is in a buffer that appears on the screen
 ;; and that its line LINE is visible.
@@ -2702,45 +2701,39 @@ Obeying it means displaying in another window the specified file and line."
 	    (gud-find-file true-file)))
 	 (window (and buffer
 		      (or (get-buffer-window buffer)
-			  (if (eq gud-minor-mode 'gdbmi)
-			      (or (if (get-buffer-window buffer 'visible)
-				      (display-buffer buffer nil 'visible))
-				  (unless (gdb-display-source-buffer buffer)
-				    (gdb-display-buffer buffer nil 'visible))))
 			  (display-buffer buffer))))
 	 (pos))
-    (if buffer
-	(progn
-	  (with-current-buffer buffer
-	    (unless (or (verify-visited-file-modtime buffer) gud-keep-buffer)
-		  (if (yes-or-no-p
-		       (format "File %s changed on disk.  Reread from disk? "
-			       (buffer-name)))
-		      (revert-buffer t t)
-		    (setq gud-keep-buffer t)))
-	    (save-restriction
-	      (widen)
-	      (goto-char (point-min))
-	      (forward-line (1- line))
-	      (setq pos (point))
-	      (or gud-overlay-arrow-position
-		  (setq gud-overlay-arrow-position (make-marker)))
-	      (set-marker gud-overlay-arrow-position (point) (current-buffer))
-	      ;; If they turned on hl-line, move the hl-line highlight to
-	      ;; the arrow's line.
-	      (when (featurep 'hl-line)
-		(cond
-		 (global-hl-line-mode
-		  (global-hl-line-highlight))
-		 ((and hl-line-mode hl-line-sticky-flag)
-		  (hl-line-highlight)))))
-	    (cond ((or (< pos (point-min)) (> pos (point-max)))
-		   (widen)
-		   (goto-char pos))))
-	  (when window
-	    (set-window-point window gud-overlay-arrow-position)
-	    (if (eq gud-minor-mode 'gdbmi)
-		(setq gdb-source-window window)))))))
+    (when buffer
+      (with-current-buffer buffer
+	(unless (or (verify-visited-file-modtime buffer) gud-keep-buffer)
+	  (if (yes-or-no-p
+	       (format "File %s changed on disk.  Reread from disk? "
+		       (buffer-name)))
+	      (revert-buffer t t)
+	    (setq gud-keep-buffer t)))
+	(save-restriction
+	  (widen)
+	  (goto-char (point-min))
+	  (forward-line (1- line))
+	  (setq pos (point))
+	  (or gud-overlay-arrow-position
+	      (setq gud-overlay-arrow-position (make-marker)))
+	  (set-marker gud-overlay-arrow-position (point) (current-buffer))
+	  ;; If they turned on hl-line, move the hl-line highlight to
+	  ;; the arrow's line.
+	  (when (featurep 'hl-line)
+	    (cond
+	     (global-hl-line-mode
+	      (global-hl-line-highlight))
+	     ((and hl-line-mode hl-line-sticky-flag)
+	      (hl-line-highlight)))))
+	(cond ((or (< pos (point-min)) (> pos (point-max)))
+	       (widen)
+	       (goto-char pos))))
+      (when window
+	(set-window-point window gud-overlay-arrow-position)
+	(if (eq gud-minor-mode 'gdbmi)
+	    (setq gdb-source-window window))))))
 
 ;; The gud-call function must do the right thing whether its invoking
 ;; keystroke is from the GUD buffer itself (via major-mode binding)
@@ -2762,10 +2755,9 @@ Obeying it means displaying in another window the specified file and line."
 						  (buffer-file-name)
 						(car frame)))))
 	 ((eq key ?F)
-	  (setq subst (file-name-sans-extension
-		       (file-name-nondirectory (if insource
-						   (buffer-file-name)
-						 (car frame))))))
+	  (setq subst (file-name-base (if insource
+                                          (buffer-file-name)
+                                        (car frame)))))
 	 ((eq key ?d)
 	  (setq subst (file-name-directory (if insource
 					       (buffer-file-name)
@@ -3412,11 +3404,11 @@ With arg, dereference expr if ARG is positive, otherwise do not dereference."
 
 (defun gud-tooltip-print-command (expr)
   "Return a suitable command to print the expression EXPR."
-  (case gud-minor-mode
-	(gdbmi (concat "-data-evaluate-expression " expr))
-	(dbx (concat "print " expr))
-	((xdb pdb) (concat "p " expr))
-	(sdb (concat expr "/"))))
+  (pcase gud-minor-mode
+    (`gdbmi (concat "-data-evaluate-expression \"" expr "\""))
+    (`dbx (concat "print " expr))
+    ((or `xdb `pdb) (concat "p " expr))
+    (`sdb (concat expr "/"))))
 
 (declare-function gdb-input "gdb-mi" (command handler))
 (declare-function tooltip-expr-to-print "tooltip" (event))
@@ -3458,7 +3450,10 @@ This function must return nil if it doesn't handle EVENT."
 	    (let ((cmd (gud-tooltip-print-command expr)))
 	      (when (and gud-tooltip-mode (eq gud-minor-mode 'gdb))
 		(gud-tooltip-mode -1)
-		(message-box "Using GUD tooltips in this mode is unsafe\n\
+		;; The blank before the newline is for MS-Windows,
+		;; whose emulation of message box removes newlines and
+		;; displays a single long line.
+		(message-box "Using GUD tooltips in this mode is unsafe \n\
 so they have been disabled."))
 	      (unless (null cmd) ; CMD can be nil if unknown debugger
 		(if (eq gud-minor-mode 'gdbmi)

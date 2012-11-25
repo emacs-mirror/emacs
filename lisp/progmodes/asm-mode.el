@@ -1,6 +1,6 @@
 ;;; asm-mode.el --- mode for editing assembler code
 
-;; Copyright (C) 1991, 2001-2011  Free Software Foundation, Inc.
+;; Copyright (C) 1991, 2001-2012  Free Software Foundation, Inc.
 
 ;; Author: Eric S. Raymond <esr@snark.thyrsus.com>
 ;; Maintainer: FSF
@@ -53,7 +53,7 @@
   :group 'languages)
 
 (defcustom asm-comment-char ?\;
-  "*The comment-start character assumed by Asm mode."
+  "The comment-start character assumed by Asm mode."
   :type 'character
   :group 'asm)
 

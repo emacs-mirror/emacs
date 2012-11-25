@@ -1,7 +1,7 @@
 /* Session management module for systems which understand the X Session
    management protocol.
 
-Copyright (C) 2002-2011  Free Software Foundation, Inc.
+Copyright (C) 2002-2012  Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -29,14 +29,12 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #include <unistd.h>
 #include <sys/param.h>
 #include <stdio.h>
-#include <setjmp.h>
 
 #include "lisp.h"
 #include "systime.h"
 #include "sysselect.h"
 #include "frame.h"
 #include "termhooks.h"
-#include "termopts.h"
 #include "xterm.h"
 #include "process.h"
 #include "keyboard.h"
@@ -97,7 +95,7 @@ ice_connection_closed (void)
    open to a session manager, just return.  */
 
 static void
-x_session_check_input (int fd, void *data, int for_read)
+x_session_check_input (int fd, void *data)
 {
   int ret;
 

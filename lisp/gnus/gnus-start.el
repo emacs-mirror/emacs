@@ -1,6 +1,6 @@
 ;;; gnus-start.el --- startup functions for Gnus
 
-;; Copyright (C) 1996-2011 Free Software Foundation, Inc.
+;; Copyright (C) 1996-2012 Free Software Foundation, Inc.
 
 ;; Author: Lars Magne Ingebrigtsen <larsi@gnus.org>
 ;; Keywords: news
@@ -291,7 +291,9 @@ claim them."
 		function
 		(repeat function)))
 
-(defcustom gnus-subscribe-newsgroup-hooks nil
+(define-obsolete-variable-alias 'gnus-subscribe-newsgroup-hooks
+  'gnus-subscribe-newsgroup-functions "24.3")
+(defcustom gnus-subscribe-newsgroup-functions nil
   "*Hooks run after you subscribe to a new group.
 The hooks will be called with new group's name as argument."
   :version "22.1"
@@ -639,7 +641,7 @@ the first newsgroup."
      gnus-level-killed (gnus-group-entry (or next "dummy.group")))
     (gnus-request-update-group-status newsgroup 'subscribe)
     (gnus-message 5 "Subscribe newsgroup: %s" newsgroup)
-    (run-hook-with-args 'gnus-subscribe-newsgroup-hooks newsgroup)
+    (run-hook-with-args 'gnus-subscribe-newsgroup-functions newsgroup)
     t))
 
 (defun gnus-read-active-file-p ()
@@ -763,8 +765,8 @@ prompt the user for the name of an NNTP server to use."
     ;; Add "native" to gnus-predefined-server-alist just to have a
     ;; name for the native select method.
     (when gnus-select-method
-      (push (cons "native" gnus-select-method)
-	    gnus-predefined-server-alist))
+      (add-to-list 'gnus-predefined-server-alist
+		   (cons "native" gnus-select-method)))
 
     (if gnus-agent
 	(gnus-agentize))
@@ -1369,11 +1371,6 @@ for new groups, and subscribe the new groups as zombies."
 	(funcall gnus-group-change-level-function
 		 group level oldlevel previous)))))
 
-(defun gnus-kill-newsgroup (newsgroup)
-  "Obsolete function.  Kills a newsgroup."
-  (gnus-group-change-level
-   (gnus-group-entry newsgroup) gnus-level-killed))
-
 (defun gnus-check-bogus-newsgroups (&optional confirm)
   "Remove bogus newsgroups.
 If CONFIRM is non-nil, the user has to confirm the deletion of every
@@ -1451,7 +1448,11 @@ newsgroup."
 (defun gnus-activate-group (group &optional scan dont-check method
 				  dont-sub-check)
   "Check whether a group has been activated or not.
-If SCAN, request a scan of that group as well."
+If SCAN, request a scan of that group as well.  If METHOD, use
+that select method instead of determining the method based on the
+group name.  If DONT-CHECK, don't check check whether the group
+actually exists.  If DONT-SUB-CHECK or DONT-CHECK, don't let the
+backend check whether the group actually exists."
   (let ((method (or method (inline (gnus-find-method-for-group group))))
 	active)
     (and (inline (gnus-check-server method))
@@ -1500,8 +1501,6 @@ If SCAN, request a scan of that group as well."
 	     ;; Return the new active info.
 	     active)))))
 
-(defvar gnus-propagate-marks)		; gnus-sum
-
 (defun gnus-get-unread-articles-in-group (info active &optional update)
   (when (and info active)
     ;; Allow the backend to update the info in the group.
@@ -1510,13 +1509,6 @@ If SCAN, request a scan of that group as well."
 		info (inline (gnus-find-method-for-group
 			      (gnus-info-group info)))))
       (gnus-activate-group (gnus-info-group info) nil t))
-
-    ;; Allow backends to update marks,
-    (when gnus-propagate-marks
-      (let ((method (inline (gnus-find-method-for-group
-			     (gnus-info-group info)))))
-	(when (gnus-check-backend-function 'request-marks (car method))
-	  (gnus-request-marks info method))))
 
     (let* ((range (gnus-info-read info))
 	   (num 0))
@@ -1606,7 +1598,7 @@ If SCAN, request a scan of that group as well."
 
 ;; Go though `gnus-newsrc-alist' and compare with `gnus-active-hashtb'
 ;; and compute how many unread articles there are in each group.
-(defun gnus-get-unread-articles (&optional level dont-connect)
+(defun gnus-get-unread-articles (&optional level dont-connect one-level)
   (setq gnus-server-method-cache nil)
   (require 'gnus-agent)
   (let* ((newsrc (cdr gnus-newsrc-alist))
@@ -1663,7 +1655,7 @@ If SCAN, request a scan of that group as well."
 	(push (setq method-group-list (list method method-type nil nil))
 	      type-cache))
       ;; Only add groups that need updating.
-      (if (<= (gnus-info-level info)
+      (if (funcall (if one-level #'= #'<=) (gnus-info-level info)
 	      (if (eq (cadr method-group-list) 'foreign)
 		  foreign-level
 		alevel))
@@ -1709,6 +1701,21 @@ If SCAN, request a scan of that group as well."
 		   (gnus-check-backend-function 'request-list (car method)))
 	  (with-current-buffer nntp-server-buffer
 	    (gnus-read-active-file-1 method nil)))))
+
+    ;; Clear out all the early methods.
+    (dolist (elem type-cache)
+      (destructuring-bind (method method-type infos dummy) elem
+	(when (and method
+		   infos
+		   (gnus-check-backend-function
+		    'retrieve-group-data-early (car method))
+		   (not (gnus-method-denied-p method)))
+	  (when (ignore-errors (gnus-get-function method 'open-server))
+	    (unless (gnus-server-opened method)
+	      (gnus-open-server method))
+	    (when (gnus-server-opened method)
+	      ;; Just mark this server as "cleared".
+	      (gnus-retrieve-group-data-early method nil))))))
 
     ;; Start early async retrieval of data.
     (let ((done-methods nil)
@@ -2211,7 +2218,7 @@ If SCAN, request a scan of that group as well."
 	     (gnus-online method)
 	     (gnus-agent-method-p method))
 	(progn
-	  (gnus-agent-save-active method)
+	  (gnus-agent-save-active method t)
 	  (gnus-active-to-gnus-format method hashtb nil real-active))
 
       (goto-char (point-min))
@@ -2423,7 +2430,9 @@ If FORCE is non-nil, the .newsrc file is read."
 	(when gnus-newsrc-assoc
 	  (setq gnus-newsrc-alist gnus-newsrc-assoc))))
     (dolist (elem gnus-newsrc-alist)
-      (setcar elem (mm-string-as-unibyte (car elem))))
+      ;; Protect against broken .newsrc.el files.
+      (when (car elem)
+	(setcar elem (mm-string-as-unibyte (car elem)))))
     (gnus-make-hashtable-from-newsrc-alist)
     (when (file-newer-than-file-p file ding-file)
       ;; Old format quick file

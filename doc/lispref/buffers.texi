@@ -1,10 +1,9 @@
 @c -*-texinfo-*-
 @c This is part of the GNU Emacs Lisp Reference Manual.
-@c Copyright (C) 1990-1995, 1998-1999, 2001-2011
+@c Copyright (C) 1990-1995, 1998-1999, 2001-2012
 @c   Free Software Foundation, Inc.
 @c See the file elisp.texi for copying conditions.
-@setfilename ../../info/buffers
-@node Buffers, Windows, Backups and Auto-Saving, Top
+@node Buffers
 @chapter Buffers
 @cindex buffer
 
@@ -24,7 +23,7 @@ not be displayed in any windows.
 * Buffer File Name::    The buffer file name indicates which file is visited.
 * Buffer Modification:: A buffer is @dfn{modified} if it needs to be saved.
 * Modification Time::   Determining whether the visited file was changed
-                         ``behind Emacs's back''.
+                         "behind Emacs's back".
 * Read Only Buffers::   Modifying text is not allowed in a read-only buffer.
 * The Buffer List::     How to look at all the existing buffers.
 * Creating Buffers::    Functions that create buffers.
@@ -35,7 +34,6 @@ not be displayed in any windows.
 @end menu
 
 @node Buffer Basics
-@comment  node-name,  next,  previous,  up
 @section Buffer Basics
 
 @ifnottex
@@ -417,7 +415,7 @@ This buffer-local variable holds the abbreviated truename of the file
 visited in the current buffer, or @code{nil} if no file is visited.
 It is a permanent local, unaffected by
 @code{kill-all-local-variables}.  @xref{Truenames}, and
-@ref{Definition of abbreviate-file-name}.
+@ref{abbreviate-file-name}.
 @end defvar
 
 @defvar buffer-file-number
@@ -482,7 +480,7 @@ correspond to the new file name, unless the new name is already in
 use.
 
 If @var{filename} is @code{nil} or the empty string, that stands for
-``no visited file.''  In this case, @code{set-visited-file-name} marks
+``no visited file''.  In this case, @code{set-visited-file-name} marks
 the buffer as having no visited file, without changing the buffer's
 modified flag.
 
@@ -502,9 +500,8 @@ buffer's recorded last file modification time as reported by
 last file modification time, after which @code{visited-file-modtime}
 returns zero.
 
-@c Wordy to avoid overfull hbox.  --rjc 16mar92
-When the function @code{set-visited-file-name} is called interactively, it
-prompts for @var{filename} in the minibuffer.
+When the function @code{set-visited-file-name} is called
+interactively, it prompts for @var{filename} in the minibuffer.
 @end deffn
 
 @defvar list-buffers-directory
@@ -590,7 +587,6 @@ current buffer is used.
 @end defun
 
 @node Modification Time
-@comment  node-name,  next,  previous,  up
 @section Buffer Modification Time
 @cindex comparing file modification time
 @cindex modification time of buffer
@@ -638,7 +634,8 @@ file should not be done.
 @c Emacs 19 feature
 @defun visited-file-modtime
 This function returns the current buffer's recorded last file
-modification time, as a list of the form @code{(@var{high} @var{low})}.
+modification time, as a list of the form @code{(@var{high} @var{low}
+@var{microsec} @var{picosec})}.
 (This is the same format that @code{file-attributes} uses to return
 time values; see @ref{File Attributes}.)
 
@@ -668,9 +665,8 @@ is not @code{nil}, and otherwise to the last modification time of the
 visited file.
 
 If @var{time} is neither @code{nil} nor zero, it should have the form
-@code{(@var{high} . @var{low})} or @code{(@var{high} @var{low})}, in
-either case containing two integers, each of which holds 16 bits of the
-time.
+@code{(@var{high} @var{low} @var{microsec} @var{picosec})},
+the format used by @code{current-time} (@pxref{Time of Day}).
 
 This function is useful if the buffer was not read from the file
 normally, or if the file itself has been changed for some known benign
@@ -734,11 +730,9 @@ The buffer is read-only if this variable is non-@code{nil}.
 @defvar inhibit-read-only
 If this variable is non-@code{nil}, then read-only buffers and,
 depending on the actual value, some or all read-only characters may be
-modified.  Read-only characters in a buffer are those that have
-non-@code{nil} @code{read-only} properties (either text properties or
-overlay properties).  @xref{Special Properties}, for more information
-about text properties.  @xref{Overlays}, for more information about
-overlays and their properties.
+modified.  Read-only characters in a buffer are those that have a
+non-@code{nil} @code{read-only} text property.  @xref{Special
+Properties}, for more information about text properties.
 
 If @code{inhibit-read-only} is @code{t}, all @code{read-only} character
 properties have no effect.  If @code{inhibit-read-only} is a list, then
@@ -746,18 +740,25 @@ properties have no effect.  If @code{inhibit-read-only} is a list, then
 of the list (comparison is done with @code{eq}).
 @end defvar
 
-@deffn Command toggle-read-only &optional arg
-This command toggles whether the current buffer is read-only.  It is
-intended for interactive use; do not use it in programs (it may have
-side-effects, such as enabling View mode, and does not affect
-read-only text properties).  To change the read-only state of a buffer in
-a program, explicitly set @code{buffer-read-only} to the proper value.
-To temporarily ignore a read-only state, bind @code{inhibit-read-only}.
+@deffn Command read-only-mode &optional arg
+This is the mode command for Read Only minor mode, a buffer-local
+minor mode.  When the mode is enabled, @code{buffer-read-only} is
+non-@code{nil} in the buffer; when disabled, @code{buffer-read-only}
+is @code{nil} in the buffer.  The calling convention is the same as
+for other minor mode commands (@pxref{Minor Mode Conventions}).
 
-If @var{arg} is non-@code{nil}, it should be a raw prefix argument.
-@code{toggle-read-only} sets @code{buffer-read-only} to @code{t} if
-the numeric value of that prefix argument is positive and to
-@code{nil} otherwise.  @xref{Prefix Command Arguments}.
+This minor mode mainly serves as a wrapper for
+@code{buffer-read-only}; unlike most minor modes, there is no separate
+@code{read-only-mode} variable.  Even when Read Only mode is disabled,
+characters with non-@code{nil} @code{read-only} text properties remain
+read-only.  To temporarily ignore all read-only states, bind
+@code{inhibit-read-only}, as described above.
+
+When enabling Read Only mode, this mode command also enables View mode
+if the option @code{view-read-only} is non-@code{nil}.  @xref{Misc
+Buffer,,Miscellaneous Buffer Operations, emacs, The GNU Emacs Manual}.
+When disabling Read Only mode, it disables View mode if View mode was
+enabled.
 @end deffn
 
 @defun barf-if-buffer-read-only
@@ -864,7 +865,7 @@ a buffer visible in any window on any visible frame, except as a last
 resort.  If @var{visible-ok} is non-@code{nil}, then it does not matter
 whether a buffer is displayed somewhere or not.
 
-If no suitable buffer exists, the buffer @samp{*scratch*} is returned
+If no suitable buffer exists, the buffer @file{*scratch*} is returned
 (and created, if necessary).
 @end defun
 
@@ -875,7 +876,7 @@ selected frame's buffer list.
 
 The argument @var{visible-ok} is handled as with @code{other-buffer},
 see above.  If no suitable buffer can be found, the buffer
-@samp{*scratch*} is returned.
+@file{*scratch*} is returned.
 @end defun
 
 @deffn Command bury-buffer &optional buffer-or-name
@@ -885,7 +886,7 @@ This buffer therefore becomes the least desirable candidate for
 @code{other-buffer} to return.  The argument can be either a buffer
 itself or the name of one.
 
-This functions operates on each frame's @code{buffer-list} parameter as
+This function operates on each frame's @code{buffer-list} parameter as
 well as the fundamental buffer list; therefore, the buffer that you bury
 will come last in the value of @code{(buffer-list @var{frame})} and in
 the value of @code{(buffer-list)}.  In addition, it also puts the buffer
@@ -895,15 +896,15 @@ History}) provided it is shown in that window.
 If @var{buffer-or-name} is @code{nil} or omitted, this means to bury the
 current buffer.  In addition, if the current buffer is displayed in the
 selected window, this makes sure that the window is either deleted or
-another buffer is shown in it.  More precisely, if the window is
-dedicated (@pxref{Dedicated Windows}) and there are other windows on its
-frame, the window is deleted.  If the window is both dedicated and the
-only window on its frame's terminal, the function specified by
-@code{frame-auto-hide-function} (@pxref{Quitting Windows}) will deal
-with the window.  If the window is not dedicated to its buffer, it calls
-@code{switch-to-prev-buffer} (@pxref{Window History}) to show another
-buffer in that window.  If @var{buffer-or-name} is displayed in some
-other window, it remains displayed there.
+another buffer is shown in it.  More precisely, if the selected window
+is dedicated (@pxref{Dedicated Windows}) and there are other windows on
+its frame, the window is deleted.  If it is the only window on its frame
+and that frame is not the only frame on its terminal, the frame is
+``dismissed'' by calling the function specified by
+@code{frame-auto-hide-function} (@pxref{Quitting Windows}).  Otherwise,
+it calls @code{switch-to-prev-buffer} (@pxref{Window History}) to show
+another buffer in that window.  If @var{buffer-or-name} is displayed in
+some other window, it remains displayed there.
 
 To replace a buffer in all the windows that display it, use
 @code{replace-buffer-in-windows}, @xref{Buffers and Windows}.
@@ -913,7 +914,7 @@ To replace a buffer in all the windows that display it, use
 This command switches to the last buffer in the local buffer list of
 the selected frame.  More precisely, it calls the function
 @code{switch-to-buffer} (@pxref{Switching Buffers}), to display the
-buffer returned by @code{last-buffer}, see above, in the selected
+buffer returned by @code{last-buffer} (see above), in the selected
 window.
 @end deffn
 
@@ -959,11 +960,12 @@ buffer initially disables undo information recording (@pxref{Undo}).
 
 @defun generate-new-buffer name
 This function returns a newly created, empty buffer, but does not make
-it current.  If there is no buffer named @var{name}, then that is the
-name of the new buffer.  If that name is in use, this function adds
-suffixes of the form @samp{<@var{n}>} to @var{name}, where @var{n} is an
-integer.  It tries successive integers starting with 2 until it finds an
-available name.
+it current.  The name of the buffer is generated by passing @var{name}
+to the function @code{generate-new-buffer-name} (@pxref{Buffer
+Names}).  Thus, if there is no buffer named @var{name}, then that is
+the name of the new buffer; if that name is in use, a suffix of the
+form @samp{<@var{n}>}, where @var{n} is an integer, is appended to
+@var{name}.
 
 An error is signaled if @var{name} is not a string.
 
@@ -985,9 +987,6 @@ An error is signaled if @var{name} is not a string.
 The major mode for the new buffer is set to Fundamental mode.  The default
 value of the variable @code{major-mode} is handled at a higher level.
 @xref{Auto Major Mode}.
-
-See the related function @code{generate-new-buffer-name} in @ref{Buffer
-Names}.
 @end defun
 
 @node Killing Buffers
@@ -1005,25 +1004,26 @@ their identity, however; if you kill two distinct buffers, they remain
 distinct according to @code{eq} although both are dead.
 
   If you kill a buffer that is current or displayed in a window, Emacs
-automatically selects or displays some other buffer instead.  This means
-that killing a buffer can in general change the current buffer.
-Therefore, when you kill a buffer, you should also take the precautions
+automatically selects or displays some other buffer instead.  This
+means that killing a buffer can change the current buffer.  Therefore,
+when you kill a buffer, you should also take the precautions
 associated with changing the current buffer (unless you happen to know
 that the buffer being killed isn't current).  @xref{Current Buffer}.
 
   If you kill a buffer that is the base buffer of one or more indirect
-buffers, the indirect buffers are automatically killed as well.
+@iftex
+buffers,
+@end iftex
+@ifnottex
+buffers (@pxref{Indirect Buffers}),
+@end ifnottex
+the indirect buffers are automatically killed as well.
 
-  The @code{buffer-name} of a killed buffer is @code{nil}.  You can use
-this feature to test whether a buffer has been killed:
-
-@example
-@group
-(defun buffer-killed-p (buffer)
-  "Return t if BUFFER is killed."
-  (not (buffer-name buffer)))
-@end group
-@end example
+@cindex live buffer
+  The @code{buffer-name} of a buffer is @code{nil} if, and only if,
+the buffer is killed.  A buffer that has not been killed is called a
+@dfn{live} buffer.  To test whether a buffer is live or killed, use
+the function @code{buffer-live-p} (see below).
 
 @deffn Command kill-buffer &optional buffer-or-name
 This function kills the buffer @var{buffer-or-name}, freeing all its
@@ -1032,9 +1032,8 @@ memory for other uses or to be returned to the operating system.  If
 buffer.
 
 Any processes that have this buffer as the @code{process-buffer} are
-sent the @code{SIGHUP} signal, which normally causes them to terminate.
-(The basic meaning of @code{SIGHUP} is that a dialup line has been
-disconnected.)  @xref{Signals to Processes}.
+sent the @code{SIGHUP} (``hangup'') signal, which normally causes them
+to terminate.  @xref{Signals to Processes}.
 
 If the buffer is visiting a file and contains unsaved changes,
 @code{kill-buffer} asks the user to confirm before the buffer is killed.
@@ -1099,8 +1098,8 @@ automatically becomes buffer-local when set for any reason.
 @end defvar
 
 @defun buffer-live-p object
-This function returns @code{t} if @var{object} is a buffer which has
-not been killed, @code{nil} otherwise.
+This function returns @code{t} if @var{object} is a live buffer (a
+buffer which has not been killed), @code{nil} otherwise.
 @end defun
 
 @node Indirect Buffers
@@ -1238,4 +1237,3 @@ This function returns the current gap position in the current buffer.
 @defun gap-size
 This function returns the current gap size of the current buffer.
 @end defun
-

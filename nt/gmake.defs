@@ -1,5 +1,5 @@
 #  -*- Makefile -*- definition file for building GNU Emacs on Windows NT.
-# Copyright (C) 2000-2011 Free Software Foundation, Inc.
+# Copyright (C) 2000-2012 Free Software Foundation, Inc.
 
 # This file is part of GNU Emacs.
 
@@ -69,10 +69,18 @@ sh_output := $(shell echo)
 ifeq "$(findstring ECHO, $(sh_output))" "ECHO"
 THE_SHELL = $(COMSPEC)$(ComSpec)
 SHELLTYPE=CMD
+SWITCHCHAR=/
 else
 USING_SH = 1
 THE_SHELL = $(SHELL)
 SHELLTYPE=SH
+# MSYS needs to double the slash in cmd-style switches to avoid
+# interpreting /x as a Posix style file name reference
+ifneq ($(MSYSTEM),)
+SWITCHCHAR=//
+else
+SWITCHCHAR=/
+endif
 endif
 
 MAKETYPE=gmake
@@ -139,15 +147,27 @@ OS_TYPE		= windowsnt
  ifeq "$(PROCESSOR_ARCHITECTURE)" "x86"
 ARCH		= i386
 CPU		= i386
+EMACS_HEAPSIZE	= 27
+EMACS_PURESIZE	= 5000000
+EMACS_MANIFEST	= emacs-x86.manifest
  else
   ifeq "$(PROCESSOR_ARCHITECTURE)" "MIPS"
 ARCH		= mips
+EMACS_HEAPSIZE	= 27
+EMACS_PURESIZE	= 5000000
+EMACS_MANIFEST	= emacs-mips.manifest
   else
    ifeq "$(PROCESSOR_ARCHITECTURE)" "ALPHA"
 ARCH		= alpha
+EMACS_HEAPSIZE	= 27
+EMACS_PURESIZE	= 5000000
+EMACS_MANIFEST	= emacs-alpha.manifest
    else
     ifeq "$(PROCESSOR_ARCHITECTURE)" "PPC"
 ARCH		= ppc
+EMACS_HEAPSIZE	= 27
+EMACS_PURESIZE	= 5000000
+EMACS_MANIFEST	= emacs-ppc.manifest
     else
      $(error Unknown architecture type "$(PROCESSOR_ARCHITECTURE)")
     endif
@@ -199,19 +219,15 @@ OBJ1_c		= $(patsubst $(BLD)%.$(O),$(CURDIR)%.c,$(OBJ1))
 OBJ2_c		= $(patsubst $(BLD)%.$(O),$(CURDIR)%.c,$(OBJ2))
 
 ifdef NOOPT
-DEBUG_CFLAGS	= -DEMACSDEBUG
+DEBUG_CFLAGS	= -DEMACSDEBUG -fno-crossjumping -std=gnu99
 else
 DEBUG_CFLAGS	=
 endif
 
-ifdef ENABLECHECKS
-CHECKING_CFLAGS	= -DENABLE_CHECKING -DXASSERTS -fno-crossjumping
-else
-CHECKING_CFLAGS	=
-endif
+MWINDOWS        = -mwindows
 
-CFLAGS          = -I. $(ARCH_CFLAGS) $(DEBUG_CFLAGS) $(CHECKING_CFLAGS) $(PROFILE_CFLAGS) $(USER_CFLAGS) $(LOCAL_FLAGS)
-ESC_CFLAGS      = -I. $(ARCH_CFLAGS) $(DEBUG_CFLAGS) $(CHECKING_CFLAGS) $(PROFILE_CFLAGS) $(ESC_USER_CFLAGS) $(LOCAL_FLAGS)
+CFLAGS          = -I. $(ARCH_CFLAGS) $(DEBUG_CFLAGS) $(PROFILE_CFLAGS) $(USER_CFLAGS) $(LOCAL_FLAGS)
+ESC_CFLAGS      = -I. $(ARCH_CFLAGS) $(DEBUG_CFLAGS) $(PROFILE_CFLAGS) $(ESC_USER_CFLAGS) $(LOCAL_FLAGS)
 EMACS_EXTRA_C_FLAGS = -DUSE_CRT_DLL=1
 
 ifdef PROFILE
@@ -245,9 +261,11 @@ CP_DIR		= cp -rf
 DEL		= rm
 DEL_TREE	= rm -r
 
+DIRNAME		= $(notdir $(CURDIR))
+
 ifdef USING_SH
 
-IFNOTSAMEDIR	= if [ ! -s ../same-dir.tst ] ; then
+IFNOTSAMEDIR	= if [ ! -s ../$(DIRNAME)_same-dir.tst ] ; then
 FOREACH		= for f in
 FORVAR		= $${f}
 FORDO		= ; do
@@ -262,7 +280,7 @@ endif
 
 else
 
-IFNOTSAMEDIR	= if not exist ../same-dir.tst
+IFNOTSAMEDIR	= if not exist ../$(DIRNAME)_same-dir.tst
 FOREACH		= for %%f in (
 FORVAR		= %%f
 FORDO		= ) do
@@ -288,6 +306,8 @@ endif
 ifdef USER_LIBS
 USER_LIBS := $(patsubst %,-l%,$(USER_LIBS))
 endif
+
+PRAGMA_SYSTEM_HEADER = \#pragma GCC system_header
 
 ifeq "$(ARCH)" "i386"
 ifdef NOOPT

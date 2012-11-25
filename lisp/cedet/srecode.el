@@ -1,10 +1,10 @@
 ;;; srecode.el --- Semantic buffer evaluator.
 
-;;; Copyright (C) 2005, 2007-2011 Free Software Foundation, Inc.
+;;; Copyright (C) 2005, 2007-2012 Free Software Foundation, Inc.
 
 ;; Author: Eric M. Ludlam <zappo@gnu.org>
 ;; Keywords: codegeneration
-;; Version: 1.0pre7
+;; Version: 1.0
 
 ;; This file is part of GNU Emacs.
 

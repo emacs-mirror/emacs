@@ -1,9 +1,8 @@
 @c -*-texinfo-*-
 @c This is part of the GNU Emacs Lisp Reference Manual.
-@c Copyright (C) 1990-1995, 1999, 2001-2011  Free Software Foundation, Inc.
+@c Copyright (C) 1990-1995, 1999, 2001-2012 Free Software Foundation, Inc.
 @c See the file elisp.texi for copying conditions.
-@setfilename ../../info/backups
-@node Backups and Auto-Saving, Buffers, Files, Top
+@node Backups and Auto-Saving
 @chapter Backups and Auto-Saving
 @cindex backups and auto-saving
 
@@ -57,12 +56,13 @@ buffer, if appropriate.  It is called by @code{save-buffer} before
 saving the buffer the first time.
 
 If a backup was made by renaming, the return value is a cons cell of
-the form (@var{modes} . @var{backupname}), where @var{modes} are the
-mode bits of the original file, as returned by @code{file-modes}
-(@pxref{File Attributes,, Other Information about Files}), and
-@var{backupname} is the name of the backup.  In all other cases, that
-is, if a backup was made by copying or if no backup was made, this
-function returns @code{nil}.
+the form (@var{modes} @var{context} @var{backupname}), where
+@var{modes} are the mode bits of the original file, as returned by
+@code{file-modes} (@pxref{File Attributes,, Other Information about
+Files}), @var{context} is a list describing the original file's
+SELinux context (@pxref{File Attributes}), and @var{backupname} is the
+name of the backup.  In all other cases, that is, if a backup was made
+by copying or if no backup was made, this function returns @code{nil}.
 @end defun
 
 @defvar buffer-backed-up
@@ -139,8 +139,8 @@ For the common case of all backups going into one directory, the alist
 should contain a single element pairing @samp{"."} with the appropriate
 directory name.
 
-If this variable is @code{nil}, or it fails to match a filename, the
-backup is made in the original file's directory.
+If this variable is @code{nil} (the default), or it fails to match a
+filename, the backup is made in the original file's directory.
 
 On MS-DOS filesystems without long names this variable is always
 ignored.
@@ -191,7 +191,7 @@ significance).  @xref{Saving Buffers}.
 
 @defopt backup-by-copying
 If this variable is non-@code{nil}, Emacs always makes backup files by
-copying.
+copying.  The default is @code{nil}.
 @end defopt
 
   The following three variables, when non-@code{nil}, cause the second
@@ -200,7 +200,7 @@ treatment of files that don't fall into the special cases.
 
 @defopt backup-by-copying-when-linked
 If this variable is non-@code{nil}, Emacs makes backups by copying for
-files with multiple names (hard links).
+files with multiple names (hard links).  The default is @code{nil}.
 
 This variable is significant only if @code{backup-by-copying} is
 @code{nil}, since copying is always used when that variable is
@@ -208,8 +208,9 @@ non-@code{nil}.
 @end defopt
 
 @defopt backup-by-copying-when-mismatch
-If this variable is non-@code{nil}, Emacs makes backups by copying in cases
-where renaming would change either the owner or the group of the file.
+If this variable is non-@code{nil} (the default), Emacs makes backups
+by copying in cases where renaming would change either the owner or
+the group of the file.
 
 The value has no effect when renaming would not alter the owner or
 group of the file; that is, for files which are owned by the user and
@@ -440,11 +441,14 @@ buffer-auto-save-file-name
 @end defvar
 
 @deffn Command auto-save-mode arg
-When used interactively without an argument, this command is a toggle
-switch: it turns on auto-saving of the current buffer if it is off, and
-vice versa.  With an argument @var{arg}, the command turns auto-saving
-on if the value of @var{arg} is @code{t}, a nonempty list, or a positive
-integer.  Otherwise, it turns auto-saving off.
+This is the mode command for Auto Save mode, a buffer-local minor
+mode.  When Auto Save mode is enabled, auto-saving is enabled in the
+buffer.  The calling convention is the same as for other minor mode
+commands (@pxref{Minor Mode Conventions}).
+
+Unlike most minor modes, there is no @code{auto-save-mode} variable.
+Auto Save mode is enabled if @code{buffer-auto-save-file-name} is
+non-@code{nil} and @code{buffer-saved-size} (see below) is non-zero.
 @end deffn
 
 @defun auto-save-file-name-p filename
@@ -698,6 +702,11 @@ the markers in the unchanged text (if any) at the beginning and end of
 the buffer.  Preserving any additional markers would be problematical.
 @end deffn
 
+@defvar revert-buffer-in-progress-p
+@code{revert-buffer} binds this variable to a non-@code{nil} value
+while it is working.
+@end defvar
+
 You can customize how @code{revert-buffer} does its work by setting
 the variables described in the rest of this section.
 
@@ -751,3 +760,16 @@ This normal hook is run by @code{revert-buffer} after inserting
 the modified contents---but only if @code{revert-buffer-function} is
 @code{nil}.
 @end defvar
+
+@c FIXME?  Move this section from arevert-xtra to here?
+@defvar buffer-stale-function
+The value of this variable, if non-@code{nil}, specifies a function
+to call to check whether a non-file buffer needs reverting
+@iftex
+(@pxref{Supporting additional buffers,,, emacs-xtra,  Specialized Emacs Features}).
+@end iftex
+@ifnottex
+(@pxref{Supporting additional buffers,,, emacs}).
+@end ifnottex
+@end defvar
+

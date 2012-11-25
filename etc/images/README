@@ -23,19 +23,19 @@ COPYRIGHT AND LICENSE INFORMATION FOR IMAGE FILES
 
 File: mh-logo.xpm
   Author: Satyaki Das
-  Copyright (C) 2003-2011  Free Software Foundation, Inc.
+  Copyright (C) 2003-2012  Free Software Foundation, Inc.
 
 Files: splash.pbm, splash.xpm, gnus.pbm
   Author: Luis Fernandes <elf@ee.ryerson.ca>
-  Copyright (C) 2001-2011  Free Software Foundation, Inc.
+  Copyright (C) 2001-2012  Free Software Foundation, Inc.
 
 Files: splash.png, splash.svg
   Author: Francesc Rocher <rocher@member.fsf.org>
-  Copyright (C) 2008-2011  Free Software Foundation, Inc.
+  Copyright (C) 2008-2012  Free Software Foundation, Inc.
 
 Files: checked.xpm, unchecked.xpm
   Author: Chong Yidong <cyd@stupidchicken.com>
-  Copyright (C) 2010-2011  Free Software Foundation, Inc.
+  Copyright (C) 2010-2012  Free Software Foundation, Inc.
 
 
 * The following icons are from GTK+ 2.x. They are not part of Emacs, but

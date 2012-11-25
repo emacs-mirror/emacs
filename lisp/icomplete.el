@@ -1,6 +1,6 @@
 ;;; icomplete.el --- minibuffer completion incremental feedback
 
-;; Copyright (C) 1992-1994, 1997, 1999, 2001-2011
+;; Copyright (C) 1992-1994, 1997, 1999, 2001-2012
 ;;   Free Software Foundation, Inc.
 
 ;; Author: Ken Manheimer <klm@i.am>
@@ -209,10 +209,12 @@ Usually run by inclusion in `minibuffer-setup-hook'."
   (when (and icomplete-mode (icomplete-simple-completing-p))
     (set (make-local-variable 'completion-show-inline-help) nil)
     (add-hook 'pre-command-hook
-	      (lambda () (run-hooks 'icomplete-pre-command-hook))
+	      (lambda () (let ((non-essential t))
+                      (run-hooks 'icomplete-pre-command-hook)))
 	      nil t)
     (add-hook 'post-command-hook
-	      (lambda () (run-hooks 'icomplete-post-command-hook))
+	      (lambda () (let ((non-essential t)) ;E.g. don't prompt for password!
+                      (run-hooks 'icomplete-post-command-hook)))
 	      nil t)
     (run-hooks 'icomplete-minibuffer-setup-hook)))
 ;
@@ -285,8 +287,7 @@ The displays for unambiguous matches have ` [Matched]' appended
 matches exist.  \(Keybindings for uniquely matched commands
 are exhibited within the square braces.)"
 
-  (let* ((non-essential t)
-         (md (completion--field-metadata (field-beginning)))
+  (let* ((md (completion--field-metadata (field-beginning)))
 	 (comps (completion-all-sorted-completions))
          (last (if (consp comps) (last comps)))
          (base-size (cdr last))
@@ -333,21 +334,23 @@ are exhibited within the square braces.)"
                  (window-width)))
              (prefix-len
               ;; Find the common prefix among `comps'.
-	      (if (eq t (compare-strings (car comps) nil (length most)
-					 most nil nil completion-ignore-case))
-                  ;; Common case.
-		  (length most)
-                ;; Else, use try-completion.
-		(let ((comps-prefix (try-completion "" comps)))
-                  (and (stringp comps-prefix)
-                       (length comps-prefix)))))
+	      ;; We can't use the optimization below because its assumptions
+	      ;; aren't always true, e.g. when completion-cycling (bug#10850):
+	      ;; (if (eq t (compare-strings (car comps) nil (length most)
+	      ;; 			 most nil nil completion-ignore-case))
+	      ;;     ;; Common case.
+	      ;;     (length most)
+	      ;; Else, use try-completion.
+	      (let ((comps-prefix (try-completion "" comps)))
+		(and (stringp comps-prefix)
+		     (length comps-prefix)))) ;;)
 
 	     prospects most-is-exact comp limit)
 	(if (eq most-try t) ;; (or (null (cdr comps))
 	    (setq prospects nil)
 	  (while (and comps (not limit))
 	    (setq comp
-                  (if prefix-len (substring (car comps) prefix-len) (car comps))
+		  (if prefix-len (substring (car comps) prefix-len) (car comps))
 		  comps (cdr comps))
 	    (cond ((string-equal comp "") (setq most-is-exact t))
 		  ((member comp prospects))

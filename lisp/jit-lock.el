@@ -1,6 +1,6 @@
 ;;; jit-lock.el --- just-in-time fontification
 
-;; Copyright (C) 1998, 2000-2011 Free Software Foundation, Inc.
+;; Copyright (C) 1998, 2000-2012 Free Software Foundation, Inc.
 
 ;; Author: Gerd Moellmann <gerd@gnu.org>
 ;; Keywords: faces files
@@ -29,8 +29,6 @@
 
 
 (eval-when-compile
-  (require 'cl)
-
   (defmacro with-buffer-prepared-for-jit-lock (&rest body)
     "Execute BODY in current buffer, overriding several variables.
 Preserves the `buffer-modified-p' state of the current buffer."

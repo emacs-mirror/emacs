@@ -1,8 +1,200 @@
+2012-11-20  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* automated/advice-tests.el (advice-tests--data): Remove.
+	(advice-tests): Move the tests directly here instead.
+	Add called-interactively-p tests.
+
+2012-11-19  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* automated/ert-x-tests.el: Use cl-lib.
+	* automated/ert-tests.el: Use lexical-binding and cl-lib.
+
+2012-11-14  Dmitry Gutov  <dgutov@yandex.ru>
+
+	* automated/ruby-mode-tests.el (ruby-indent-singleton-class): Pass.
+	(ruby-indent-inside-heredoc-after-operator)
+	(ruby-indent-inside-heredoc-after-space): New tests.
+	Change direct font-lock face references to var references.
+	(ruby-interpolation-suppresses-syntax-inside): New test.
+	(ruby-interpolation-inside-percent-literal-with-paren):
+	New failing test.
+
+2012-11-13  Dmitry Gutov  <dgutov@yandex.ru>
+
+	* automated/ruby-mode-tests.el (ruby-heredoc-font-lock)
+	(ruby-singleton-class-no-heredoc-font-lock)
+	(ruby-add-log-current-method-examples): New tests.
+	(ruby-test-string): Extract from ruby-should-indent-buffer.
+	(ruby-deftest-move-to-block): New macro.
+	Add several move-to-block tests.
+
+2012-11-12  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* automated/advice-tests.el: New tests.
+
+2012-10-14  Eli Zaretskii  <eliz@gnu.org>
+
+	* automated/compile-tests.el (compile-tests--test-regexps-data):
+	Add new data for msft's new format.
+
+2012-09-08  Dmitry Gutov  <dgutov@yandex.ru>
+
+	* automated/ruby-mode-tests.el:
+	(ruby-toggle-block-to-multiline): New test.
+	(ruby-should-indent-buffer, ruby-toggle-block-to-do-end)
+	(ruby-toggle-block-to-brace): Use buffer-string.
+
+2012-09-07  Dmitry Gutov  <dgutov@yandex.ru>
+
+	* automated/ruby-mode-tests.el: New tests (Bug#11613).
+
+2012-08-28  Chong Yidong  <cyd@gnu.org>
+
+	* automated/files.el: Test every combination of values for
+	enable-local-variables and enable-local-eval.
+
+2012-08-19  Chong Yidong  <cyd@gnu.org>
+
+	* redisplay-testsuite.el (test-redisplay): Use switch-to-buffer.
+
+2012-08-18  Chong Yidong  <cyd@gnu.org>
+
+	* redisplay-testsuite.el (test-redisplay-4): New test (Bug#3874).
+
+2012-08-14  Dmitry Gutov  <dgutov@yandex.ru>
+
+	* indent/ruby.rb: Rearrange examples, add new ones.
+
+2012-08-12  Dmitry Gutov  <dgutov@yandex.ru>
+
+	* automated/ruby-mode-tests.el (ruby-move-to-block-stops-at-opening)
+	(ruby-toggle-block-to-do-end, ruby-toggle-block-to-brace): New test.
+
+2012-08-11  Glenn Morris  <rgm@gnu.org>
+
+	* automated/files.el: New file.
+
+	* automated/Makefile.in (all): Fix typo.
+
+2012-08-10  Dmitry Gutov  <dgutov@yandex.ru>
+
+	* automated/ruby-mode-tests.el (ruby-should-indent):
+	Add docstring, check (current-indentation) instead of (current-column).
+	(ruby-should-indent-buffer): New function.
+	Add tests for `ruby-deep-indent-paren' behavior.
+	Port all tests from test/misc/test_ruby_mode.rb in Ruby repo.
+
+2012-08-10  Nobuyoshi Nakada  <nobu@ruby-lang.org>
+
+	Original tests in test_ruby_mode.rb in upstream (author).
+
+2012-08-09  Dmitry Gutov  <dgutov@yandex.ru>
+
+	* automated/ruby-mode-tests.el (ruby-should-indent)
+	(ruby-assert-state): New functions.
+	Add new tests.
+
+2012-07-29  David Engster  <deng@randomsample.de>
+
+	* automated/xml-parse-tests.el (xml-parse-tests--qnames):
+	New variable to hold test data for name expansion.
+	(xml-parse-tests): Test the two different types of name expansion.
+
+2012-07-29  Juri Linkov  <juri@jurta.org>
+
+	* automated/occur-tests.el (occur-test-case): Use predefined
+	buffer name " *test-occur*" instead of a random buffer name.
+
+2012-07-20  Dmitry Gutov  <dgutov@yandex.ru>
+
+	* automated/ruby-mode-tests.el: New file with one test.
+
+2012-07-17  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* indent/shell.sh: Add test case for ${#VAR}.
+
+	* indent/latex-mode.tex: New file.
+
+2012-07-11  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* eshell.el: Use cl-lib.
+
+2012-07-03  Chong Yidong  <cyd@gnu.org>
+
+	* automated/xml-parse-tests.el (xml-parse-tests--bad-data): New.
+
+2012-07-02  Chong Yidong  <cyd@gnu.org>
+
+	* automated/xml-parse-tests.el (xml-parse-tests--data):
+	More testcases.
+
+2012-07-01  Chong Yidong  <cyd@gnu.org>
+
+	* automated/xml-parse-tests.el: New file.
+
+2012-06-27  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* automated/ert-x-tests.el (ert-test-run-tests-interactively-2):
+	Use cl-flet.
+
+2012-06-08  Ulf Jasper  <ulf.jasper@web.de>
+
+	* automated/icalendar-tests.el (icalendar--parse-vtimezone):
+	Test escaped commas in TZID (Bug#11473).
+	(icalendar-import-with-timezone): New.
+	(icalendar-real-world): Add new testcase as given in the bugreport
+	of Bug#11473.
+
+2012-05-29  Ulf Jasper  <ulf.jasper@web.de>
+
+	* automated/icalendar-tests.el (icalendar-tests--test-import):
+	Include UID in import tests (Bug#11525).
+	(icalendar-import-non-recurring, icalendar-import-rrule)
+	(icalendar-import-duration, icalendar-import-bug-6766): Adjust to
+	UID-import change.
+	(icalendar-import-with-uid): New.
+	(icalendar-tests--test-cycle, icalendar-tests--do-test-cycle):
+	Include UID in cycle tests.
+	(icalendar-cycle, icalendar-real-world): UID-import change.
+
+2012-05-21  Glenn Morris  <rgm@gnu.org>
+
+	* automated/Makefile.in (setwins): Scrap superfluous subshell.
+
+2012-05-15  Teodor Zlatanov  <tzz@lifelogs.com>
+
+	* automated/url-util-tests.el: New file to test
+	lisp/url/url-util.el.  Only `url-build-query-string' and
+	`url-parse-query-string' are tested right now (Bug#8706).
+
+2012-04-28  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* indent/shell.sh:
+	* indent/shell.rc: Ad some test cases.
+
+2012-04-24  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* indent/ruby.rb: New file, to test new syntax-propertize code.
+
+2012-04-11  Glenn Morris  <rgm@gnu.org>
+
+	* automated/vc-bzr.el (vc-bzr-test-faulty-bzr-autoloads): New test.
+
+2012-02-13  Teodor Zlatanov  <tzz@lifelogs.com>
+
+	* automated/url-future-tests.el (url-future-tests): Move from
+	lisp/url/url-future.el and rename.
+
+2012-01-29  Ulf Jasper  <ulf.jasper@web.de>
+
+	* automated/icalendar-tests.el (icalendar-import-non-recurring):
+	Fix broken test, caused by missing trailing blank.
+
 2011-12-03  Chong Yidong  <cyd@gnu.org>
 
 	* automated/compile-tests.el (compile-tests--test-regexps-data):
 	Increase column numbers by one to reflect change in how
-	compilation-message is recorded	(Bug#10172).
+	compilation-message is recorded (Bug#10172).
 
 2011-11-22  Glenn Morris  <rgm@gnu.org>
 
@@ -21,7 +213,7 @@
 2011-10-30  Ulf Jasper  <ulf.jasper@web.de>
 
 	* automated/newsticker-tests.el
-	(newsticker--group-manage-orphan-feeds): Removed fsetting of
+	(newsticker--group-manage-orphan-feeds): Remove fsetting of
 	newsticker--treeview-tree-update.
 
 2011-10-29  Ulf Jasper  <ulf.jasper@web.de>
@@ -58,7 +250,7 @@
 	(icalendar--format-ical-event)
 	(icalendar--parse-summary-and-rest)
 	(icalendar-tests--do-test-import)
-	(icalendar-tests--do-test-cycle) : Changed argument order of
+	(icalendar-tests--do-test-cycle): Change argument order of
 	string= to EXPECTED ACTUAL.
 	(icalendar--import-format-sample)
 	(icalendar--format-ical-event)
@@ -66,7 +258,7 @@
 	(icalendar-import-rrule)
 	(icalendar-import-duration)
 	(icalendar-import-bug-6766)
-	(icalendar-real-world): Adjusted to string= instead of
+	(icalendar-real-world): Adjust to string= instead of
 	icalendar-tests--compare-strings.
 	(icalendar-import-multiple-vcalendars): New.
 
@@ -253,8 +445,8 @@
 2010-02-19  Ulf Jasper  <ulf.jasper@web.de>
 
 	* icalendar-testsuite.el
-	(icalendar-testsuite--run-function-tests): Added new tests.
-	(icalendar-testsuite--test-diarytime-to-isotime): Added another
+	(icalendar-testsuite--run-function-tests): Add new tests.
+	(icalendar-testsuite--test-diarytime-to-isotime): Add another
 	testcase.
 	(icalendar-testsuite--test-convert-ordinary-to-ical): New.
 	(icalendar-testsuite--test-convert-weekly-to-ical): New.
@@ -279,14 +471,14 @@
 2009-12-18  Ulf Jasper  <ulf.jasper@web.de>
 
 	* icalendar-testsuite.el
-	(icalendar-testsuite--run-function-tests): Added
-	icalendar-testsuite--test-parse-vtimezone.
+	(icalendar-testsuite--run-function-tests):
+	Add icalendar-testsuite--test-parse-vtimezone.
 	(icalendar-testsuite--test-parse-vtimezone): New.
 	(icalendar-testsuite--do-test-cycle): Doc changes.
-	(icalendar-testsuite--run-real-world-tests): Removed trailing
+	(icalendar-testsuite--run-real-world-tests): Remove trailing
 	whitespace -- see change of icalendar--add-diary-entry in
 	icalendar.el.
-	(icalendar-testsuite--run-cycle-tests): Re-enabled all tests.
+	(icalendar-testsuite--run-cycle-tests): Re-enable all tests.
 
 2009-09-30  Glenn Morris  <rgm@gnu.org>
 
@@ -307,12 +499,12 @@
 2009-01-25  Ulf Jasper  <ulf.jasper@web.de>
 
 	* icalendar-testsuite.el
-	(icalendar-testsuite--run-function-tests): Added
-	icalendar-testsuite--test-diarytime-to-isotime.
-	(icalendar-testsuite--test-parse-summary-and-rest): Adjusted to
+	(icalendar-testsuite--run-function-tests):
+	Add icalendar-testsuite--test-diarytime-to-isotime.
+	(icalendar-testsuite--test-parse-summary-and-rest): Adjust to
 	recent icalendar fixes.
 	(icalendar-testsuite--test-diarytime-to-isotime): New.
-	(icalendar-testsuite--test-create-uid): Adjusted to recent
+	(icalendar-testsuite--test-create-uid): Adjust to recent
 	icalendar changes.
 
 2008-11-30  Shigeru Fukaya  <shigeru.fukaya@gmail.com>
@@ -322,7 +514,7 @@
 2008-10-31  Ulf Jasper  <ulf.jasper@web.de>
 
 	* icalendar-testsuite.el (icalendar-testsuite--run-function-tests):
-	Added `icalendar-testsuite--test-create-uid'.
+	Add `icalendar-testsuite--test-create-uid'.
 	(icalendar-testsuite--test-create-uid): New.
 
 2008-06-14  Ulf Jasper  <ulf.jasper@web.de>
@@ -365,7 +557,7 @@
 ;; coding: utf-8
 ;; End:
 
-  Copyright (C) 2008-2011  Free Software Foundation, Inc.
+  Copyright (C) 2008-2012  Free Software Foundation, Inc.
 
   This file is part of GNU Emacs.
 

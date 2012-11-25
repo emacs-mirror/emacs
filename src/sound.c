@@ -1,5 +1,6 @@
 /* sound.c -- sound support.
-   Copyright (C) 1998-1999, 2001-2011 Free Software Foundation, Inc.
+
+Copyright (C) 1998-1999, 2001-2012 Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -30,7 +31,7 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
   cause an error to be generated.
 
   The Windows implementation of play-sound is implemented via the
-  Win32 API functions mciSendString, waveOutGetVolume, and
+  Windows API functions mciSendString, waveOutGetVolume, and
   waveOutSetVolume which are exported by Winmm.dll.
 */
 
@@ -43,11 +44,10 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #include <unistd.h>
 #include <sys/types.h>
 #include <errno.h>
-#include <setjmp.h>
+
 #include "lisp.h"
 #include "dispextern.h"
 #include "atimer.h"
-#include <signal.h>
 #include "syssignal.h"
 /* END: Common Includes */
 
@@ -109,25 +109,10 @@ enum sound_attr
   SOUND_ATTR_SENTINEL
 };
 
-#ifdef HAVE_ALSA
-static void alsa_sound_perror (const char *, int) NO_RETURN;
-#endif
-static void sound_perror (const char *) NO_RETURN;
-static void sound_warning (const char *);
-static int parse_sound (Lisp_Object, Lisp_Object *);
-
 /* END: Common Definitions */
 
 /* BEGIN: Non Windows Definitions */
 #ifndef WINDOWSNT
-
-#ifndef DEFAULT_SOUND_DEVICE
-#define DEFAULT_SOUND_DEVICE "/dev/dsp"
-#endif
-#ifndef DEFAULT_ALSA_SOUND_DEVICE
-#define DEFAULT_ALSA_SOUND_DEVICE "default"
-#endif
-
 
 /* Structure forward declarations.  */
 
@@ -235,11 +220,11 @@ struct sound_device
 
   /* Return a preferred data size in bytes to be sent to write (below)
      each time.  2048 is used if this is NULL.  */
-  EMACS_INT (* period_size) (struct sound_device *sd);
+  ptrdiff_t (* period_size) (struct sound_device *sd);
 
   /* Write NYBTES bytes from BUFFER to device SD.  */
   void (* write) (struct sound_device *sd, const char *buffer,
-                  EMACS_INT nbytes);
+                  ptrdiff_t nbytes);
 
   /* A place for devices to store additional data.  */
   void *data;
@@ -291,7 +276,7 @@ static void vox_configure (struct sound_device *);
 static void vox_close (struct sound_device *sd);
 static void vox_choose_format (struct sound_device *, struct sound *);
 static int vox_init (struct sound_device *);
-static void vox_write (struct sound_device *, const char *, EMACS_INT);
+static void vox_write (struct sound_device *, const char *, ptrdiff_t);
 static void find_sound_type (struct sound *);
 static u_int32_t le2hl (u_int32_t);
 static u_int16_t le2hs (u_int16_t);
@@ -323,14 +308,19 @@ static int do_play_sound (const char *, unsigned long);
 
 /* Like perror, but signals an error.  */
 
-static void
+static _Noreturn void
 sound_perror (const char *msg)
 {
   int saved_errno = errno;
 
   turn_on_atimers (1);
-#ifdef SIGIO
-  sigunblock (sigmask (SIGIO));
+#ifdef USABLE_SIGIO
+  {
+    sigset_t unblocked;
+    sigemptyset (&unblocked);
+    sigaddset (&unblocked, SIGIO);
+    pthread_sigmask (SIG_UNBLOCK, &unblocked, 0);
+  }
 #endif
   if (saved_errno != 0)
     error ("%s: %s", msg, strerror (saved_errno));
@@ -600,11 +590,11 @@ wav_play (struct sound *s, struct sound_device *sd)
   else
     {
       char *buffer;
-      EMACS_INT nbytes = 0;
-      EMACS_INT blksize = sd->period_size ? sd->period_size (sd) : 2048;
-      EMACS_INT data_left = header->data_length;
+      ptrdiff_t nbytes = 0;
+      ptrdiff_t blksize = sd->period_size ? sd->period_size (sd) : 2048;
+      ptrdiff_t data_left = header->data_length;
 
-      buffer = (char *) alloca (blksize);
+      buffer = alloca (blksize);
       lseek (s->fd, sizeof *header, SEEK_SET);
       while (data_left > 0
              && (nbytes = emacs_read (s->fd, buffer, blksize)) > 0)
@@ -690,15 +680,15 @@ au_play (struct sound *s, struct sound_device *sd)
 	       SBYTES (s->data) - header->data_offset);
   else
     {
-      EMACS_INT blksize = sd->period_size ? sd->period_size (sd) : 2048;
+      ptrdiff_t blksize = sd->period_size ? sd->period_size (sd) : 2048;
       char *buffer;
-      EMACS_INT nbytes;
+      ptrdiff_t nbytes;
 
       /* Seek */
       lseek (s->fd, header->data_offset, SEEK_SET);
 
       /* Copy sound data to the device.  */
-      buffer = (char *) alloca (blksize);
+      buffer = alloca (blksize);
       while ((nbytes = emacs_read (s->fd, buffer, blksize)) > 0)
 	sd->write (sd, buffer, nbytes);
 
@@ -724,7 +714,7 @@ vox_open (struct sound_device *sd)
 {
   const char *file;
 
-  /* Open the sound device.  Default is /dev/dsp.  */
+  /* Open the sound device (eg /dev/dsp).  */
   if (sd->file)
     file = sd->file;
   else
@@ -742,15 +732,20 @@ static void
 vox_configure (struct sound_device *sd)
 {
   int val;
+#ifdef USABLE_SIGIO
+  sigset_t blocked;
+#endif
 
-  xassert (sd->fd >= 0);
+  eassert (sd->fd >= 0);
 
   /* On GNU/Linux, it seems that the device driver doesn't like to be
      interrupted by a signal.  Block the ones we know to cause
      troubles.  */
   turn_on_atimers (0);
-#ifdef SIGIO
-  sigblock (sigmask (SIGIO));
+#ifdef USABLE_SIGIO
+  sigemptyset (&blocked);
+  sigaddset (&blocked, SIGIO);
+  pthread_sigmask (SIG_BLOCK, &blocked, 0);
 #endif
 
   val = sd->format;
@@ -783,8 +778,8 @@ vox_configure (struct sound_device *sd)
     }
 
   turn_on_atimers (1);
-#ifdef SIGIO
-  sigunblock (sigmask (SIGIO));
+#ifdef USABLE_SIGIO
+  pthread_sigmask (SIG_UNBLOCK, &blocked, 0);
 #endif
 }
 
@@ -799,8 +794,11 @@ vox_close (struct sound_device *sd)
       /* On GNU/Linux, it seems that the device driver doesn't like to
 	 be interrupted by a signal.  Block the ones we know to cause
 	 troubles.  */
-#ifdef SIGIO
-      sigblock (sigmask (SIGIO));
+#ifdef USABLE_SIGIO
+      sigset_t blocked;
+      sigemptyset (&blocked);
+      sigaddset (&blocked, SIGIO);
+      pthread_sigmask (SIG_BLOCK, &blocked, 0);
 #endif
       turn_on_atimers (0);
 
@@ -808,8 +806,8 @@ vox_close (struct sound_device *sd)
       ioctl (sd->fd, SNDCTL_DSP_SYNC, NULL);
 
       turn_on_atimers (1);
-#ifdef SIGIO
-      sigunblock (sigmask (SIGIO));
+#ifdef USABLE_SIGIO
+      pthread_sigmask (SIG_UNBLOCK, &blocked, 0);
 #endif
 
       /* Close the device.  */
@@ -857,7 +855,7 @@ vox_choose_format (struct sound_device *sd, struct sound *s)
 	}
     }
   else
-    abort ();
+    emacs_abort ();
 }
 
 
@@ -870,7 +868,7 @@ vox_init (struct sound_device *sd)
   const char *file;
   int fd;
 
-  /* Open the sound device.  Default is /dev/dsp.  */
+  /* Open the sound device (eg /dev/dsp).  */
   if (sd->file)
     file = sd->file;
   else
@@ -895,7 +893,7 @@ vox_init (struct sound_device *sd)
 /* Write NBYTES bytes from BUFFER to device SD.  */
 
 static void
-vox_write (struct sound_device *sd, const char *buffer, EMACS_INT nbytes)
+vox_write (struct sound_device *sd, const char *buffer, ptrdiff_t nbytes)
 {
   if (emacs_write (sd->fd, buffer, nbytes) != nbytes)
     sound_perror ("Error writing to sound device");
@@ -908,7 +906,11 @@ vox_write (struct sound_device *sd, const char *buffer, EMACS_INT nbytes)
 
 /* This driver is available on GNU/Linux. */
 
-static void
+#ifndef DEFAULT_ALSA_SOUND_DEVICE
+#define DEFAULT_ALSA_SOUND_DEVICE "default"
+#endif
+
+static _Noreturn void
 alsa_sound_perror (const char *msg, int err)
 {
   error ("%s: %s", msg, snd_strerror (err));
@@ -938,7 +940,7 @@ alsa_open (struct sound_device *sd)
   else
     file = DEFAULT_ALSA_SOUND_DEVICE;
 
-  p = xmalloc (sizeof (*p));
+  p = xmalloc (sizeof *p);
   p->handle = NULL;
   p->hwparams = NULL;
   p->swparams = NULL;
@@ -952,7 +954,7 @@ alsa_open (struct sound_device *sd)
     alsa_sound_perror (file, err);
 }
 
-static EMACS_INT
+static ptrdiff_t
 alsa_period_size (struct sound_device *sd)
 {
   struct alsa_params *p = (struct alsa_params *) sd->data;
@@ -968,7 +970,7 @@ alsa_configure (struct sound_device *sd)
   struct alsa_params *p = (struct alsa_params *) sd->data;
   snd_pcm_uframes_t buffer_size;
 
-  xassert (p->handle != 0);
+  eassert (p->handle != 0);
 
   err = snd_pcm_hw_params_malloc (&p->hwparams);
   if (err < 0)
@@ -1148,20 +1150,20 @@ alsa_choose_format (struct sound_device *sd, struct sound *s)
 	}
     }
   else
-    abort ();
+    emacs_abort ();
 }
 
 
 /* Write NBYTES bytes from BUFFER to device SD.  */
 
 static void
-alsa_write (struct sound_device *sd, const char *buffer, EMACS_INT nbytes)
+alsa_write (struct sound_device *sd, const char *buffer, ptrdiff_t nbytes)
 {
   struct alsa_params *p = (struct alsa_params *) sd->data;
 
   /* The the third parameter to snd_pcm_writei is frames, not bytes. */
   int fact = snd_pcm_format_size (sd->format, 1) * sd->channels;
-  EMACS_INT nwritten = 0;
+  ptrdiff_t nwritten = 0;
   int err;
 
   while (nwritten < nbytes)
@@ -1348,7 +1350,7 @@ Internal use only, use `play-sound' instead.  */)
   (Lisp_Object sound)
 {
   Lisp_Object attrs[SOUND_ATTR_SENTINEL];
-  int count = SPECPDL_INDEX ();
+  ptrdiff_t count = SPECPDL_INDEX ();
 
 #ifndef WINDOWSNT
   Lisp_Object file;
@@ -1370,12 +1372,10 @@ Internal use only, use `play-sound' instead.  */)
 #ifndef WINDOWSNT
   file = Qnil;
   GCPRO2 (sound, file);
-  current_sound_device = (struct sound_device *) xmalloc (sizeof (struct sound_device));
-  memset (current_sound_device, 0, sizeof (struct sound_device));
-  current_sound = (struct sound *) xmalloc (sizeof (struct sound));
-  memset (current_sound, 0, sizeof (struct sound));
+  current_sound_device = xzalloc (sizeof *current_sound_device);
+  current_sound = xzalloc (sizeof *current_sound);
   record_unwind_protect (sound_cleanup, Qnil);
-  current_sound->header = (char *) alloca (MAX_SOUND_HEADER_BYTES);
+  current_sound->header = alloca (MAX_SOUND_HEADER_BYTES);
 
   if (STRINGP (attrs[SOUND_FILE]))
     {
@@ -1407,7 +1407,7 @@ Internal use only, use `play-sound' instead.  */)
   if (STRINGP (attrs[SOUND_DEVICE]))
     {
       int len = SCHARS (attrs[SOUND_DEVICE]);
-      current_sound_device->file = (char *) alloca (len + 1);
+      current_sound_device->file = alloca (len + 1);
       strcpy (current_sound_device->file, SSDATA (attrs[SOUND_DEVICE]));
     }
 
@@ -1439,7 +1439,7 @@ Internal use only, use `play-sound' instead.  */)
 
   lo_file = Fexpand_file_name (attrs[SOUND_FILE], Qnil);
   len = XSTRING (lo_file)->size;
-  psz_file = (char *) alloca (len + 1);
+  psz_file = alloca (len + 1);
   strcpy (psz_file, XSTRING (lo_file)->data);
   if (INTEGERP (attrs[SOUND_VOLUME]))
     {
@@ -1483,12 +1483,6 @@ syms_of_sound (void)
   DEFSYM (Qplay_sound_functions, "play-sound-functions");
 
   defsubr (&Splay_sound_internal);
-}
-
-
-void
-init_sound (void)
-{
 }
 
 #endif /* HAVE_SOUND */

@@ -1,5 +1,5 @@
-/* Process support for GNU Emacs on the Microsoft W32 API.
-   Copyright (C) 1992, 1995, 1999-2011  Free Software Foundation, Inc.
+/* Process support for GNU Emacs on the Microsoft Windows API.
+   Copyright (C) 1992, 1995, 1999-2012  Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -24,11 +24,11 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #include <stdio.h>
 #include <stdlib.h>
 #include <errno.h>
+#include <ctype.h>
 #include <io.h>
 #include <fcntl.h>
 #include <signal.h>
 #include <sys/file.h>
-#include <setjmp.h>
 
 /* must include CRT headers *before* config.h */
 #include <config.h>
@@ -52,6 +52,7 @@ extern BOOL WINAPI IsValidLocale (LCID, DWORD);
 
 #include "lisp.h"
 #include "w32.h"
+#include "w32common.h"
 #include "w32heap.h"
 #include "systime.h"
 #include "syswait.h"
@@ -63,44 +64,723 @@ extern BOOL WINAPI IsValidLocale (LCID, DWORD);
 
 #define RVA_TO_PTR(var,section,filedata) \
   ((void *)((section)->PointerToRawData					\
-	    + ((DWORD)(var) - (section)->VirtualAddress)		\
+	    + ((DWORD_PTR)(var) - (section)->VirtualAddress)		\
 	    + (filedata).file_base))
 
 Lisp_Object Qhigh, Qlow;
 
-#ifdef EMACSDEBUG
-void
-_DebPrint (const char *fmt, ...)
-{
-  char buf[1024];
-  va_list args;
-
-  va_start (args, fmt);
-  vsprintf (buf, fmt, args);
-  va_end (args);
-  OutputDebugString (buf);
-}
-#endif
-
-typedef void (_CALLBACK_ *signal_handler) (int);
-
 /* Signal handlers...SIG_DFL == 0 so this is initialized correctly.  */
 static signal_handler sig_handlers[NSIG];
 
-/* Fake signal implementation to record the SIGCHLD handler.  */
+static sigset_t sig_mask;
+
+static CRITICAL_SECTION crit_sig;
+
+/* Improve on the CRT 'signal' implementation so that we could record
+   the SIGCHLD handler and fake interval timers.  */
 signal_handler
 sys_signal (int sig, signal_handler handler)
 {
   signal_handler old;
 
-  if (sig != SIGCHLD)
+  /* SIGCHLD is needed for supporting subprocesses, see sys_kill
+     below.  SIGALRM and SIGPROF are used by setitimer.  All the
+     others are the only ones supported by the MS runtime.  */
+  if (!(sig == SIGCHLD || sig == SIGSEGV || sig == SIGILL
+	|| sig == SIGFPE || sig == SIGABRT || sig == SIGTERM
+	|| sig == SIGALRM || sig == SIGPROF))
     {
       errno = EINVAL;
       return SIG_ERR;
     }
   old = sig_handlers[sig];
-  sig_handlers[sig] = handler;
+  /* SIGABRT is treated specially because w32.c installs term_ntproc
+     as its handler, so we don't want to override that afterwards.
+     Aborting Emacs works specially anyway: either by calling
+     emacs_abort directly or through terminate_due_to_signal, which
+     calls emacs_abort through emacs_raise.  */
+  if (!(sig == SIGABRT && old == term_ntproc))
+    {
+      sig_handlers[sig] = handler;
+      if (!(sig == SIGCHLD || sig == SIGALRM || sig == SIGPROF))
+	signal (sig, handler);
+    }
   return old;
+}
+
+/* Emulate sigaction. */
+int
+sigaction (int sig, const struct sigaction *act, struct sigaction *oact)
+{
+  signal_handler old = SIG_DFL;
+  int retval = 0;
+
+  if (act)
+    old = sys_signal (sig, act->sa_handler);
+  else if (oact)
+    old = sig_handlers[sig];
+
+  if (old == SIG_ERR)
+    {
+      errno = EINVAL;
+      retval = -1;
+    }
+  if (oact)
+    {
+      oact->sa_handler = old;
+      oact->sa_flags = 0;
+      oact->sa_mask = empty_mask;
+    }
+  return retval;
+}
+
+/* Emulate signal sets and blocking of signals used by timers.  */
+
+int
+sigemptyset (sigset_t *set)
+{
+  *set = 0;
+  return 0;
+}
+
+int
+sigaddset (sigset_t *set, int signo)
+{
+  if (!set)
+    {
+      errno = EINVAL;
+      return -1;
+    }
+  if (signo < 0 || signo >= NSIG)
+    {
+      errno = EINVAL;
+      return -1;
+    }
+
+  *set |= (1U << signo);
+
+  return 0;
+}
+
+int
+sigfillset (sigset_t *set)
+{
+  if (!set)
+    {
+      errno = EINVAL;
+      return -1;
+    }
+
+  *set = 0xFFFFFFFF;
+  return 0;
+}
+
+int
+sigprocmask (int how, const sigset_t *set, sigset_t *oset)
+{
+  if (!(how == SIG_BLOCK || how == SIG_UNBLOCK || how == SIG_SETMASK))
+    {
+      errno = EINVAL;
+      return -1;
+    }
+
+  if (oset)
+    *oset = sig_mask;
+
+  if (!set)
+    return 0;
+
+  switch (how)
+    {
+    case SIG_BLOCK:
+      sig_mask |= *set;
+      break;
+    case SIG_SETMASK:
+      sig_mask = *set;
+      break;
+    case SIG_UNBLOCK:
+      /* FIXME: Catch signals that are blocked and reissue them when
+	 they are unblocked.  Important for SIGALRM and SIGPROF only.  */
+      sig_mask &= ~(*set);
+      break;
+    }
+
+  return 0;
+}
+
+int
+pthread_sigmask (int how, const sigset_t *set, sigset_t *oset)
+{
+  if (sigprocmask (how, set, oset) == -1)
+    return EINVAL;
+  return 0;
+}
+
+int
+sigismember (const sigset_t *set, int signo)
+{
+  if (signo < 0 || signo >= NSIG)
+    {
+      errno = EINVAL;
+      return -1;
+    }
+  if (signo > sizeof (*set) * BITS_PER_CHAR)
+    emacs_abort ();
+
+  return (*set & (1U << signo)) != 0;
+}
+
+pid_t
+getpgrp (void)
+{
+  return getpid ();
+}
+
+pid_t
+tcgetpgrp (int fd)
+{
+  return getpid ();
+}
+
+int
+setpgid (pid_t pid, pid_t pgid)
+{
+  return 0;
+}
+
+pid_t
+setsid (void)
+{
+  return getpid ();
+}
+
+/* Emulations of interval timers.
+
+   Limitations: only ITIMER_REAL and ITIMER_PROF are supported.
+
+   Implementation: a separate thread is started for each timer type,
+   the thread calls the appropriate signal handler when the timer
+   expires, after stopping the thread which installed the timer.  */
+
+struct itimer_data {
+  volatile ULONGLONG expire;
+  volatile ULONGLONG reload;
+  volatile int terminate;
+  int type;
+  HANDLE caller_thread;
+  HANDLE timer_thread;
+};
+
+static ULONGLONG ticks_now;
+static struct itimer_data real_itimer, prof_itimer;
+static ULONGLONG clocks_min;
+/* If non-zero, itimers are disabled.  Used during shutdown, when we
+   delete the critical sections used by the timer threads.  */
+static int disable_itimers;
+
+static CRITICAL_SECTION crit_real, crit_prof;
+
+/* GetThreadTimes is not available on Windows 9X and possibly also on 2K.  */
+typedef BOOL (WINAPI *GetThreadTimes_Proc) (
+  HANDLE hThread,
+  LPFILETIME lpCreationTime,
+  LPFILETIME lpExitTime,
+  LPFILETIME lpKernelTime,
+  LPFILETIME lpUserTime);
+
+static GetThreadTimes_Proc s_pfn_Get_Thread_Times;
+
+#define MAX_SINGLE_SLEEP    30
+#define TIMER_TICKS_PER_SEC 1000
+
+/* Return a suitable time value, in 1-ms units, for THREAD, a handle
+   to a thread.  If THREAD is NULL or an invalid handle, return the
+   current wall-clock time since January 1, 1601 (UTC).  Otherwise,
+   return the sum of kernel and user times used by THREAD since it was
+   created, plus its creation time.  */
+static ULONGLONG
+w32_get_timer_time (HANDLE thread)
+{
+  ULONGLONG retval;
+  int use_system_time = 1;
+  /* The functions below return times in 100-ns units.  */
+  const int tscale = 10 * TIMER_TICKS_PER_SEC;
+
+  if (thread && thread != INVALID_HANDLE_VALUE
+      && s_pfn_Get_Thread_Times != NULL)
+    {
+      FILETIME creation_ftime, exit_ftime, kernel_ftime, user_ftime;
+      ULARGE_INTEGER temp_creation, temp_kernel, temp_user;
+
+      if (s_pfn_Get_Thread_Times (thread, &creation_ftime, &exit_ftime,
+				  &kernel_ftime, &user_ftime))
+	{
+	  use_system_time = 0;
+	  temp_creation.LowPart = creation_ftime.dwLowDateTime;
+	  temp_creation.HighPart = creation_ftime.dwHighDateTime;
+	  temp_kernel.LowPart = kernel_ftime.dwLowDateTime;
+	  temp_kernel.HighPart = kernel_ftime.dwHighDateTime;
+	  temp_user.LowPart = user_ftime.dwLowDateTime;
+	  temp_user.HighPart = user_ftime.dwHighDateTime;
+	  retval =
+	    temp_creation.QuadPart / tscale + temp_kernel.QuadPart / tscale
+	    + temp_user.QuadPart / tscale;
+	}
+      else
+	DebPrint (("GetThreadTimes failed with error code %lu\n",
+		   GetLastError ()));
+    }
+
+  if (use_system_time)
+    {
+      FILETIME current_ftime;
+      ULARGE_INTEGER temp;
+
+      GetSystemTimeAsFileTime (&current_ftime);
+
+      temp.LowPart = current_ftime.dwLowDateTime;
+      temp.HighPart = current_ftime.dwHighDateTime;
+
+      retval = temp.QuadPart / tscale;
+    }
+
+  return retval;
+}
+
+/* Thread function for a timer thread.  */
+static DWORD WINAPI
+timer_loop (LPVOID arg)
+{
+  struct itimer_data *itimer = (struct itimer_data *)arg;
+  int which = itimer->type;
+  int sig = (which == ITIMER_REAL) ? SIGALRM : SIGPROF;
+  CRITICAL_SECTION *crit = (which == ITIMER_REAL) ? &crit_real : &crit_prof;
+  const DWORD max_sleep = MAX_SINGLE_SLEEP * 1000 / TIMER_TICKS_PER_SEC;
+  HANDLE hth = (which == ITIMER_REAL) ? NULL : itimer->caller_thread;
+
+  while (1)
+    {
+      DWORD sleep_time;
+      signal_handler handler;
+      ULONGLONG now, expire, reload;
+
+      /* Load new values if requested by setitimer.  */
+      EnterCriticalSection (crit);
+      expire = itimer->expire;
+      reload = itimer->reload;
+      LeaveCriticalSection (crit);
+      if (itimer->terminate)
+	return 0;
+
+      if (expire == 0)
+	{
+	  /* We are idle.  */
+	  Sleep (max_sleep);
+	  continue;
+	}
+
+      if (expire > (now = w32_get_timer_time (hth)))
+	sleep_time = expire - now;
+      else
+	sleep_time = 0;
+      /* Don't sleep too long at a time, to be able to see the
+	 termination flag without too long a delay.  */
+      while (sleep_time > max_sleep)
+	{
+	  if (itimer->terminate)
+	    return 0;
+	  Sleep (max_sleep);
+	  EnterCriticalSection (crit);
+	  expire = itimer->expire;
+	  LeaveCriticalSection (crit);
+	  sleep_time =
+	    (expire > (now = w32_get_timer_time (hth))) ? expire - now : 0;
+	}
+      if (itimer->terminate)
+	return 0;
+      if (sleep_time > 0)
+	{
+	  Sleep (sleep_time * 1000 / TIMER_TICKS_PER_SEC);
+	  /* Always sleep past the expiration time, to make sure we
+	     never call the handler _before_ the expiration time,
+	     always slightly after it.  Sleep(5) makes sure we don't
+	     hog the CPU by calling 'w32_get_timer_time' with high
+	     frequency, and also let other threads work.  */
+	  while (w32_get_timer_time (hth) < expire)
+	    Sleep (5);
+	}
+
+      EnterCriticalSection (crit);
+      expire = itimer->expire;
+      LeaveCriticalSection (crit);
+      if (expire == 0)
+	continue;
+
+      /* Time's up.  */
+      handler = sig_handlers[sig];
+      if (!(handler == SIG_DFL || handler == SIG_IGN || handler == SIG_ERR)
+	  /* FIXME: Don't ignore masked signals.  Instead, record that
+	     they happened and reissue them when the signal is
+	     unblocked.  */
+	  && !sigismember (&sig_mask, sig)
+	  /* Simulate masking of SIGALRM and SIGPROF when processing
+	     fatal signals.  */
+	  && !fatal_error_in_progress
+	  && itimer->caller_thread)
+	{
+	  /* Simulate a signal delivered to the thread which installed
+	     the timer, by suspending that thread while the handler
+	     runs.  */
+	  HANDLE th = itimer->caller_thread;
+	  DWORD result = SuspendThread (th);
+
+	  if (result == (DWORD)-1)
+	    return 2;
+
+	  handler (sig);
+	  ResumeThread (th);
+	}
+
+      /* Update expiration time and loop.  */
+      EnterCriticalSection (crit);
+      expire = itimer->expire;
+      if (expire == 0)
+	{
+	  LeaveCriticalSection (crit);
+	  continue;
+	}
+      reload = itimer->reload;
+      if (reload > 0)
+	{
+	  now = w32_get_timer_time (hth);
+	  if (expire <= now)
+	    {
+	      ULONGLONG lag = now - expire;
+
+	      /* If we missed some opportunities (presumably while
+		 sleeping or while the signal handler ran), skip
+		 them.  */
+	      if (lag > reload)
+		expire = now - (lag % reload);
+
+	      expire += reload;
+	    }
+	}
+      else
+	expire = 0;	/* become idle */
+      itimer->expire = expire;
+      LeaveCriticalSection (crit);
+    }
+  return 0;
+}
+
+static void
+stop_timer_thread (int which)
+{
+  struct itimer_data *itimer =
+    (which == ITIMER_REAL) ? &real_itimer : &prof_itimer;
+  int i;
+  DWORD err, exit_code = 255;
+  BOOL status;
+
+  /* Signal the thread that it should terminate.  */
+  itimer->terminate = 1;
+
+  if (itimer->timer_thread == NULL)
+    return;
+
+  /* Wait for the timer thread to terminate voluntarily, then kill it
+     if it doesn't.  This loop waits twice more than the maximum
+     amount of time a timer thread sleeps, see above.  */
+  for (i = 0; i < MAX_SINGLE_SLEEP / 5; i++)
+    {
+      if (!((status = GetExitCodeThread (itimer->timer_thread, &exit_code))
+	    && exit_code == STILL_ACTIVE))
+	break;
+      Sleep (10);
+    }
+  if ((status == FALSE && (err = GetLastError ()) == ERROR_INVALID_HANDLE)
+      || exit_code == STILL_ACTIVE)
+    {
+      if (!(status == FALSE && err == ERROR_INVALID_HANDLE))
+	TerminateThread (itimer->timer_thread, 0);
+    }
+
+  /* Clean up.  */
+  CloseHandle (itimer->timer_thread);
+  itimer->timer_thread = NULL;
+  if (itimer->caller_thread)
+    {
+      CloseHandle (itimer->caller_thread);
+      itimer->caller_thread = NULL;
+    }
+}
+
+/* This is called at shutdown time from term_ntproc.  */
+void
+term_timers (void)
+{
+  if (real_itimer.timer_thread)
+    stop_timer_thread (ITIMER_REAL);
+  if (prof_itimer.timer_thread)
+    stop_timer_thread (ITIMER_PROF);
+
+  /* We are going to delete the critical sections, so timers cannot
+     work after this.  */
+  disable_itimers = 1;
+
+  DeleteCriticalSection (&crit_real);
+  DeleteCriticalSection (&crit_prof);
+  DeleteCriticalSection (&crit_sig);
+}
+
+/* This is called at initialization time from init_ntproc.  */
+void
+init_timers (void)
+{
+  /* GetThreadTimes is not available on all versions of Windows, so
+     need to probe for its availability dynamically, and call it
+     through a pointer.  */
+  s_pfn_Get_Thread_Times = NULL; /* in case dumped Emacs comes with a value */
+  if (os_subtype != OS_9X)
+    s_pfn_Get_Thread_Times =
+      (GetThreadTimes_Proc)GetProcAddress (GetModuleHandle ("kernel32.dll"),
+					   "GetThreadTimes");
+
+  /* Make sure we start with zeroed out itimer structures, since
+     dumping may have left there traces of threads long dead.  */
+  memset (&real_itimer, 0, sizeof real_itimer);
+  memset (&prof_itimer, 0, sizeof prof_itimer);
+
+  InitializeCriticalSection (&crit_real);
+  InitializeCriticalSection (&crit_prof);
+  InitializeCriticalSection (&crit_sig);
+
+  disable_itimers = 0;
+}
+
+static int
+start_timer_thread (int which)
+{
+  DWORD exit_code;
+  HANDLE th;
+  struct itimer_data *itimer =
+    (which == ITIMER_REAL) ? &real_itimer : &prof_itimer;
+
+  if (itimer->timer_thread
+      && GetExitCodeThread (itimer->timer_thread, &exit_code)
+      && exit_code == STILL_ACTIVE)
+    return 0;
+
+  /* Clean up after possibly exited thread.  */
+  if (itimer->timer_thread)
+    {
+      CloseHandle (itimer->timer_thread);
+      itimer->timer_thread = NULL;
+    }
+  if (itimer->caller_thread)
+    {
+      CloseHandle (itimer->caller_thread);
+      itimer->caller_thread = NULL;
+    }
+
+  /* Start a new thread.  */
+  if (!DuplicateHandle (GetCurrentProcess (), GetCurrentThread (),
+			GetCurrentProcess (), &th, 0, FALSE,
+			DUPLICATE_SAME_ACCESS))
+    {
+      errno = ESRCH;
+      return -1;
+    }
+  itimer->terminate = 0;
+  itimer->type = which;
+  itimer->caller_thread = th;
+  /* Request that no more than 64KB of stack be reserved for this
+     thread, to avoid reserving too much memory, which would get in
+     the way of threads we start to wait for subprocesses.  See also
+     new_child below.  */
+  itimer->timer_thread = CreateThread (NULL, 64 * 1024, timer_loop,
+				       (void *)itimer, 0x00010000, NULL);
+
+  if (!itimer->timer_thread)
+    {
+      CloseHandle (itimer->caller_thread);
+      itimer->caller_thread = NULL;
+      errno = EAGAIN;
+      return -1;
+    }
+
+  /* This is needed to make sure that the timer thread running for
+     profiling gets CPU as soon as the Sleep call terminates. */
+  if (which == ITIMER_PROF)
+    SetThreadPriority (itimer->timer_thread, THREAD_PRIORITY_TIME_CRITICAL);
+
+  return 0;
+}
+
+/* Most of the code of getitimer and setitimer (but not of their
+   subroutines) was shamelessly stolen from itimer.c in the DJGPP
+   library, see www.delorie.com/djgpp.  */
+int
+getitimer (int which, struct itimerval *value)
+{
+  volatile ULONGLONG *t_expire;
+  volatile ULONGLONG *t_reload;
+  ULONGLONG expire, reload;
+  __int64 usecs;
+  CRITICAL_SECTION *crit;
+  struct itimer_data *itimer;
+
+  if (disable_itimers)
+    return -1;
+
+  if (!value)
+    {
+      errno = EFAULT;
+      return -1;
+    }
+
+  if (which != ITIMER_REAL && which != ITIMER_PROF)
+    {
+      errno = EINVAL;
+      return -1;
+    }
+
+  itimer = (which == ITIMER_REAL) ? &real_itimer : &prof_itimer;
+
+  ticks_now = w32_get_timer_time ((which == ITIMER_REAL)
+				  ? NULL
+				  : GetCurrentThread ());
+
+  t_expire = &itimer->expire;
+  t_reload = &itimer->reload;
+  crit = (which == ITIMER_REAL) ? &crit_real : &crit_prof;
+
+  EnterCriticalSection (crit);
+  reload = *t_reload;
+  expire = *t_expire;
+  LeaveCriticalSection (crit);
+
+  if (expire)
+    expire -= ticks_now;
+
+  value->it_value.tv_sec    = expire / TIMER_TICKS_PER_SEC;
+  usecs =
+    (expire % TIMER_TICKS_PER_SEC) * (__int64)1000000 / TIMER_TICKS_PER_SEC;
+  value->it_value.tv_usec   = usecs;
+  value->it_interval.tv_sec = reload / TIMER_TICKS_PER_SEC;
+  usecs =
+    (reload % TIMER_TICKS_PER_SEC) * (__int64)1000000 / TIMER_TICKS_PER_SEC;
+  value->it_interval.tv_usec= usecs;
+
+  return 0;
+}
+
+int
+setitimer(int which, struct itimerval *value, struct itimerval *ovalue)
+{
+  volatile ULONGLONG *t_expire, *t_reload;
+  ULONGLONG expire, reload, expire_old, reload_old;
+  __int64 usecs;
+  CRITICAL_SECTION *crit;
+  struct itimerval tem, *ptem;
+
+  if (disable_itimers)
+    return -1;
+
+  /* Posix systems expect timer values smaller than the resolution of
+     the system clock be rounded up to the clock resolution.  First
+     time we are called, measure the clock tick resolution.  */
+  if (!clocks_min)
+    {
+      ULONGLONG t1, t2;
+
+      for (t1 = w32_get_timer_time (NULL);
+	   (t2 = w32_get_timer_time (NULL)) == t1; )
+	;
+      clocks_min = t2 - t1;
+    }
+
+  if (ovalue)
+    ptem = ovalue;
+  else
+    ptem = &tem;
+
+  if (getitimer (which, ptem)) /* also sets ticks_now */
+    return -1;		       /* errno already set */
+
+  t_expire =
+    (which == ITIMER_REAL) ? &real_itimer.expire : &prof_itimer.expire;
+  t_reload =
+    (which == ITIMER_REAL) ? &real_itimer.reload : &prof_itimer.reload;
+
+  crit = (which == ITIMER_REAL) ? &crit_real : &crit_prof;
+
+  if (!value
+      || (value->it_value.tv_sec == 0 && value->it_value.tv_usec == 0))
+    {
+      EnterCriticalSection (crit);
+      /* Disable the timer.  */
+      *t_expire = 0;
+      *t_reload = 0;
+      LeaveCriticalSection (crit);
+      return 0;
+    }
+
+  reload = value->it_interval.tv_sec * TIMER_TICKS_PER_SEC;
+
+  usecs = value->it_interval.tv_usec;
+  if (value->it_interval.tv_sec == 0
+      && usecs && usecs * TIMER_TICKS_PER_SEC < clocks_min * 1000000)
+    reload = clocks_min;
+  else
+    {
+      usecs *= TIMER_TICKS_PER_SEC;
+      reload += usecs / 1000000;
+    }
+
+  expire = value->it_value.tv_sec * TIMER_TICKS_PER_SEC;
+  usecs = value->it_value.tv_usec;
+  if (value->it_value.tv_sec == 0
+      && usecs * TIMER_TICKS_PER_SEC < clocks_min * 1000000)
+    expire = clocks_min;
+  else
+    {
+      usecs *= TIMER_TICKS_PER_SEC;
+      expire += usecs / 1000000;
+    }
+
+  expire += ticks_now;
+
+  EnterCriticalSection (crit);
+  expire_old = *t_expire;
+  reload_old = *t_reload;
+  if (!(expire == expire_old && reload == reload_old))
+    {
+      *t_reload = reload;
+      *t_expire = expire;
+    }
+  LeaveCriticalSection (crit);
+
+  return start_timer_thread (which);
+}
+
+int
+alarm (int seconds)
+{
+#ifdef HAVE_SETITIMER
+  struct itimerval new_values, old_values;
+
+  new_values.it_value.tv_sec = seconds;
+  new_values.it_value.tv_usec = 0;
+  new_values.it_interval.tv_sec = new_values.it_interval.tv_usec = 0;
+
+  if (setitimer (ITIMER_REAL, &new_values, &old_values) < 0)
+    return 0;
+  return old_values.it_value.tv_sec;
+#else
+  return seconds;
+#endif
 }
 
 /* Defined in <process.h> which conflicts with the local copy */
@@ -109,7 +789,6 @@ sys_signal (int sig, signal_handler handler)
 /* Child process management list.  */
 int child_proc_count = 0;
 child_process child_procs[ MAX_CHILDREN ];
-child_process *dead_child = NULL;
 
 static DWORD WINAPI reader_thread (void *arg);
 
@@ -141,7 +820,25 @@ new_child (void)
       cp->char_consumed = CreateEvent (NULL, FALSE, FALSE, NULL);
       if (cp->char_consumed)
         {
-	  cp->thrd = CreateThread (NULL, 1024, reader_thread, cp, 0, &id);
+	  /* The 0x00010000 flag is STACK_SIZE_PARAM_IS_A_RESERVATION.
+	     It means that the 64K stack we are requesting in the 2nd
+	     argument is how much memory should be reserved for the
+	     stack.  If we don't use this flag, the memory requested
+	     by the 2nd argument is the amount actually _committed_,
+	     but Windows reserves 8MB of memory for each thread's
+	     stack.  (The 8MB figure comes from the -stack
+	     command-line argument we pass to the linker when building
+	     Emacs, but that's because we need a large stack for
+	     Emacs's main thread.)  Since we request 2GB of reserved
+	     memory at startup (see w32heap.c), which is close to the
+	     maximum memory available for a 32-bit process on Windows,
+	     the 8MB reservation for each thread causes failures in
+	     starting subprocesses, because we create a thread running
+	     reader_thread for each subprocess.  As 8MB of stack is
+	     way too much for reader_thread, forcing Windows to
+	     reserve less wins the day.  */
+	  cp->thrd = CreateThread (NULL, 64 * 1024, reader_thread, cp,
+				   0x00010000, &id);
 	  if (cp->thrd)
 	    return cp;
 	}
@@ -158,7 +855,7 @@ delete_child (child_process *cp)
   /* Should not be deleting a child that is still needed. */
   for (i = 0; i < MAXDESC; i++)
     if (fd_info[i].cp == cp)
-      abort ();
+      emacs_abort ();
 
   if (!CHILD_ACTIVE (cp))
     return;
@@ -298,7 +995,7 @@ create_child (char *exe, char *cmdline, char *env, int is_gui_app,
   DWORD flags;
   char dir[ MAXPATHLEN ];
 
-  if (cp == NULL) abort ();
+  if (cp == NULL) emacs_abort ();
 
   memset (&start, 0, sizeof (start));
   start.cb = sizeof (start);
@@ -344,9 +1041,6 @@ create_child (char *exe, char *cmdline, char *env, int is_gui_app,
   if (cp->pid < 0)
     cp->pid = -cp->pid;
 
-  /* pid must fit in a Lisp_Int */
-  cp->pid = cp->pid & INTMASK;
-
   *pPid = cp->pid;
 
   return TRUE;
@@ -387,7 +1081,7 @@ register_child (int pid, int fd)
   if (fd_info[fd].cp != NULL)
     {
       DebPrint (("register_child: fd_info[%d] apparently in use!\n", fd));
-      abort ();
+      emacs_abort ();
     }
 
   fd_info[fd].cp = cp;
@@ -422,55 +1116,110 @@ reap_subprocess (child_process *cp)
     delete_child (cp);
 }
 
-/* Wait for any of our existing child processes to die
-   When it does, close its handle
-   Return the pid and fill in the status if non-NULL.  */
+/* Wait for a child process specified by PID, or for any of our
+   existing child processes (if PID is nonpositive) to die.  When it
+   does, close its handle.  Return the pid of the process that died
+   and fill in STATUS if non-NULL.  */
 
-int
-sys_wait (int *status)
+pid_t
+waitpid (pid_t pid, int *status, int options)
 {
   DWORD active, retval;
   int nh;
-  int pid;
   child_process *cp, *cps[MAX_CHILDREN];
   HANDLE wait_hnd[MAX_CHILDREN];
+  DWORD timeout_ms;
+  int dont_wait = (options & WNOHANG) != 0;
 
   nh = 0;
-  if (dead_child != NULL)
+  /* According to Posix:
+
+     PID = -1 means status is requested for any child process.
+
+     PID > 0 means status is requested for a single child process
+     whose pid is PID.
+
+     PID = 0 means status is requested for any child process whose
+     process group ID is equal to that of the calling process.  But
+     since Windows has only a limited support for process groups (only
+     for console processes and only for the purposes of passing
+     Ctrl-BREAK signal to them), and since we have no documented way
+     of determining whether a given process belongs to our group, we
+     treat 0 as -1.
+
+     PID < -1 means status is requested for any child process whose
+     process group ID is equal to the absolute value of PID.  Again,
+     since we don't support process groups, we treat that as -1.  */
+  if (pid > 0)
     {
-      /* We want to wait for a specific child */
-      wait_hnd[nh] = dead_child->procinfo.hProcess;
-      cps[nh] = dead_child;
-      if (!wait_hnd[nh]) abort ();
-      nh++;
-      active = 0;
-      goto get_result;
+      int our_child = 0;
+
+      /* We are requested to wait for a specific child.  */
+      for (cp = child_procs + (child_proc_count-1); cp >= child_procs; cp--)
+	{
+	  /* Some child_procs might be sockets; ignore them.  Also
+	     ignore subprocesses whose output is not yet completely
+	     read.  */
+	  if (CHILD_ACTIVE (cp)
+	      && cp->procinfo.hProcess
+	      && cp->pid == pid)
+	    {
+	      our_child = 1;
+	      break;
+	    }
+	}
+      if (our_child)
+	{
+	  if (cp->fd < 0 || (fd_info[cp->fd].flags & FILE_AT_EOF) != 0)
+	    {
+	      wait_hnd[nh] = cp->procinfo.hProcess;
+	      cps[nh] = cp;
+	      nh++;
+	    }
+	  else if (dont_wait)
+	    {
+	      /* PID specifies our subprocess, but its status is not
+		 yet available.  */
+	      return 0;
+	    }
+	}
+      if (nh == 0)
+	{
+	  /* No such child process, or nothing to wait for, so fail.  */
+	  errno = ECHILD;
+	  return -1;
+	}
     }
   else
     {
       for (cp = child_procs + (child_proc_count-1); cp >= child_procs; cp--)
-	/* some child_procs might be sockets; ignore them */
-	if (CHILD_ACTIVE (cp) && cp->procinfo.hProcess
-	    && (cp->fd < 0 || (fd_info[cp->fd].flags & FILE_AT_EOF) != 0))
-	  {
-	    wait_hnd[nh] = cp->procinfo.hProcess;
-	    cps[nh] = cp;
-	    nh++;
-	  }
+	{
+	  if (CHILD_ACTIVE (cp)
+	      && cp->procinfo.hProcess
+	      && (cp->fd < 0 || (fd_info[cp->fd].flags & FILE_AT_EOF) != 0))
+	    {
+	      wait_hnd[nh] = cp->procinfo.hProcess;
+	      cps[nh] = cp;
+	      nh++;
+	    }
+	}
+      if (nh == 0)
+	{
+	  /* Nothing to wait on, so fail.  */
+	  errno = ECHILD;
+	  return -1;
+	}
     }
 
-  if (nh == 0)
-    {
-      /* Nothing to wait on, so fail */
-      errno = ECHILD;
-      return -1;
-    }
+  if (dont_wait)
+    timeout_ms = 0;
+  else
+    timeout_ms = 1000;	/* check for quit about once a second. */
 
   do
     {
-      /* Check for quit about once a second. */
       QUIT;
-      active = WaitForMultipleObjects (nh, wait_hnd, FALSE, 1000);
+      active = WaitForMultipleObjects (nh, wait_hnd, FALSE, timeout_ms);
     } while (active == WAIT_TIMEOUT);
 
   if (active == WAIT_FAILED)
@@ -489,9 +1238,8 @@ sys_wait (int *status)
       active -= WAIT_ABANDONED_0;
     }
   else
-    abort ();
+    emacs_abort ();
 
-get_result:
   if (!GetExitCodeProcess (wait_hnd[active], &retval))
     {
       DebPrint (("Wait.GetExitCodeProcess failed with %lu\n",
@@ -500,8 +1248,10 @@ get_result:
     }
   if (retval == STILL_ACTIVE)
     {
-      /* Should never happen */
+      /* Should never happen.  */
       DebPrint (("Wait.WaitForMultipleObjects returned an active process\n"));
+      if (pid > 0 && dont_wait)
+	return 0;
       errno = EINVAL;
       return -1;
     }
@@ -515,6 +1265,8 @@ get_result:
   else
     retval <<= 8;
 
+  if (pid > 0 && active != 0)
+    emacs_abort ();
   cp = cps[active];
   pid = cp->pid;
 #ifdef FULL_DEBUG
@@ -531,11 +1283,11 @@ get_result:
 
       /* Report the status of the synchronous process.  */
       if (WIFEXITED (retval))
-	synch_process_retcode = WRETCODE (retval);
+	synch_process_retcode = WEXITSTATUS (retval);
       else if (WIFSIGNALED (retval))
 	{
 	  int code = WTERMSIG (retval);
-	  char *signame;
+	  const char *signame;
 
 	  synchronize_system_messages_locale ();
 	  signame = strsignal (code);
@@ -610,7 +1362,7 @@ w32_executable_type (char * filename,
       if (dos_header->e_magic != IMAGE_DOS_SIGNATURE)
 	goto unwind;
 
-      nt_header = (PIMAGE_NT_HEADERS) ((char *) dos_header + dos_header->e_lfanew);
+      nt_header = (PIMAGE_NT_HEADERS) ((unsigned char *) dos_header + dos_header->e_lfanew);
 
       if ((char *) nt_header > (char *) dos_header + executable.size)
 	{
@@ -759,7 +1511,7 @@ sys_spawnve (int mode, char *cmdname, char **argv, char **envp)
     }
 
   /* Handle executable names without an executable suffix.  */
-  program = make_string (cmdname, strlen (cmdname));
+  program = build_string (cmdname);
   if (NILP (Ffile_executable_p (program)))
     {
       struct gcpro gcpro1;
@@ -781,7 +1533,7 @@ sys_spawnve (int mode, char *cmdname, char **argv, char **envp)
   unixtodos_filename (cmdname);
   argv[0] = cmdname;
 
-  /* Determine whether program is a 16-bit DOS executable, or a w32
+  /* Determine whether program is a 16-bit DOS executable, or a 32-bit Windows
      executable that is implicitly linked to the Cygnus dll (implying it
      was compiled with the Cygnus GNU toolchain and hence relies on
      cygwin.dll to parse the command line - we use this to decide how to
@@ -994,7 +1746,7 @@ sys_spawnve (int mode, char *cmdname, char **argv, char **envp)
       numenv++;
     }
   /* extra env vars... */
-  sprintf (ppid_env_var_buffer, "EM_PARENT_PROCESS_ID=%d",
+  sprintf (ppid_env_var_buffer, "EM_PARENT_PROCESS_ID=%lu",
 	   GetCurrentProcessId ());
   arglen += strlen (ppid_env_var_buffer) + 1;
   numenv++;
@@ -1062,7 +1814,7 @@ extern int proc_buffered_char[];
 
 int
 sys_select (int nfds, SELECT_TYPE *rfds, SELECT_TYPE *wfds, SELECT_TYPE *efds,
-	    EMACS_TIME *timeout)
+	    EMACS_TIME *timeout, void *ignored)
 {
   SELECT_TYPE orfds;
   DWORD timeout_ms, start_time;
@@ -1072,7 +1824,8 @@ sys_select (int nfds, SELECT_TYPE *rfds, SELECT_TYPE *wfds, SELECT_TYPE *efds,
   HANDLE wait_hnd[MAXDESC + MAX_CHILDREN];
   int fdindex[MAXDESC];   /* mapping from wait handles back to descriptors */
 
-  timeout_ms = timeout ? (timeout->tv_sec * 1000 + timeout->tv_usec / 1000) : INFINITE;
+  timeout_ms =
+    timeout ? (timeout->tv_sec * 1000 + timeout->tv_nsec / 1000000) : INFINITE;
 
   /* If the descriptor sets are NULL but timeout isn't, then just Sleep.  */
   if (rfds == NULL && wfds == NULL && efds == NULL && timeout != NULL)
@@ -1170,7 +1923,7 @@ sys_select (int nfds, SELECT_TYPE *rfds, SELECT_TYPE *wfds, SELECT_TYPE *efds,
 #endif
 		wait_hnd[nh] = cp->char_avail;
 		fdindex[nh] = i;
-		if (!wait_hnd[nh]) abort ();
+		if (!wait_hnd[nh]) emacs_abort ();
 		nh++;
 #ifdef FULL_DEBUG
 		DebPrint (("select waiting on child %d fd %d\n",
@@ -1257,7 +2010,7 @@ count_children:
       active -= WAIT_ABANDONED_0;
     }
   else
-    abort ();
+    emacs_abort ();
 
   /* Loop over all handles after active (now officially documented as
      being the first signaled handle in the array).  We do this to
@@ -1302,9 +2055,7 @@ count_children:
 	      DebPrint (("select calling SIGCHLD handler for pid %d\n",
 			 cp->pid));
 #endif
-	      dead_child = cp;
 	      sig_handlers[SIGCHLD] (SIGCHLD);
-	      dead_child = NULL;
 	    }
 	}
       else if (fdindex[active] == -1)
@@ -1367,7 +2118,7 @@ find_child_console (HWND hwnd, LPARAM arg)
 
       GetClassName (hwnd, window_class, sizeof (window_class));
       if (strcmp (window_class,
-		  (os_subtype == OS_WIN95)
+		  (os_subtype == OS_9X)
 		  ? "tty"
 		  : "ConsoleWindowClass") == 0)
 	{
@@ -1379,6 +2130,7 @@ find_child_console (HWND hwnd, LPARAM arg)
   return TRUE;
 }
 
+/* Emulate 'kill', but only for other processes.  */
 int
 sys_kill (int pid, int sig)
 {
@@ -1397,6 +2149,11 @@ sys_kill (int pid, int sig)
   cp = find_child_pid (pid);
   if (cp == NULL)
     {
+      /* We were passed a PID of something other than our subprocess.
+	 If that is our own PID, we will send to ourself a message to
+	 close the selected frame, which does not necessarily
+	 terminates Emacs.  But then we are not supposed to call
+	 sys_kill with our own PID.  */
       proc_hand = OpenProcess (PROCESS_TERMINATE, 0, pid);
       if (proc_hand == NULL)
         {
@@ -1498,7 +2255,7 @@ sys_kill (int pid, int sig)
       if (NILP (Vw32_start_process_share_console) && cp && cp->hwnd)
 	{
 #if 1
-	  if (os_subtype == OS_WIN95)
+	  if (os_subtype == OS_9X)
 	    {
 /*
    Another possibility is to try terminating the VDM out-right by
@@ -1517,7 +2274,7 @@ sys_kill (int pid, int sig)
 
 */
 #if 0
-	      /* On Win95, posting WM_QUIT causes the 16-bit subsystem
+	      /* On Windows 95, posting WM_QUIT causes the 16-bit subsystem
 		 to hang when cmdproxy is used in conjunction with
 		 command.com for an interactive shell.  Posting
 		 WM_CLOSE pops up a dialog that, when Yes is selected,
@@ -1791,7 +2548,7 @@ If successful, the return value is t, otherwise nil.  */)
       CHECK_NUMBER (process);
 
       /* Allow pid to be an internally generated one, or one obtained
-	 externally.  This is necessary because real pids on Win95 are
+	 externally.  This is necessary because real pids on Windows 95 are
 	 negative.  */
 
       pid = XINT (process);
@@ -1930,8 +2687,12 @@ If LCID (a 16-bit number) is not a valid locale, the result is nil.  */)
       got_full = GetLocaleInfo (XINT (lcid),
 				XINT (longform),
 				full_name, sizeof (full_name));
+      /* GetLocaleInfo's return value includes the terminating null
+	 character, when the returned information is a string, whereas
+	 make_unibyte_string needs the string length without the
+	 terminating null.  */
       if (got_full)
-	return make_unibyte_string (full_name, got_full);
+	return make_unibyte_string (full_name, got_full - 1);
     }
 
   return Qnil;
@@ -2067,8 +2828,8 @@ DEFUN ("w32-get-console-codepage", Fw32_get_console_codepage,
 
 DEFUN ("w32-set-console-codepage", Fw32_set_console_codepage,
        Sw32_set_console_codepage, 1, 1, 0,
-       doc: /* Make Windows codepage CP be the current codepage setting for Emacs.
-The codepage setting affects keyboard input and display in tty mode.
+       doc: /* Make Windows codepage CP be the codepage for Emacs tty keyboard input.
+This codepage setting affects keyboard input in tty mode.
 If successful, the new CP is returned, otherwise nil.  */)
   (Lisp_Object cp)
 {
@@ -2095,8 +2856,8 @@ DEFUN ("w32-get-console-output-codepage", Fw32_get_console_output_codepage,
 
 DEFUN ("w32-set-console-output-codepage", Fw32_set_console_output_codepage,
        Sw32_set_console_output_codepage, 1, 1, 0,
-       doc: /* Make Windows codepage CP be the current codepage setting for Emacs.
-The codepage setting affects keyboard input and display in tty mode.
+       doc: /* Make Windows codepage CP be the codepage for Emacs console output.
+This codepage setting affects display in tty mode.
 If successful, the new CP is returned, otherwise nil.  */)
   (Lisp_Object cp)
 {
@@ -2114,7 +2875,7 @@ If successful, the new CP is returned, otherwise nil.  */)
 
 DEFUN ("w32-get-codepage-charset", Fw32_get_codepage_charset,
        Sw32_get_codepage_charset, 1, 1, 0,
-       doc: /* Return charset of codepage CP.
+       doc: /* Return charset ID corresponding to codepage CP.
 Returns nil if the codepage is not valid.  */)
   (Lisp_Object cp)
 {

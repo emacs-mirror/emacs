@@ -1,6 +1,6 @@
 ;;; vera-mode.el --- major mode for editing Vera files
 
-;; Copyright (C) 1997-2011 Free Software Foundation, Inc.
+;; Copyright (C) 1997-2012 Free Software Foundation, Inc.
 
 ;; Author:      Reto Zimmermann <reto@gnu.org>
 ;; Maintainer:  Reto Zimmermann <reto@gnu.org>
@@ -90,12 +90,12 @@
   :group 'languages)
 
 (defcustom vera-basic-offset 2
-  "*Amount of basic offset used for indentation."
+  "Amount of basic offset used for indentation."
   :type 'integer
   :group 'vera)
 
 (defcustom vera-underscore-is-part-of-word nil
-  "*Non-nil means consider the underscore character `_' as part of word.
+  "Non-nil means consider the underscore character `_' as part of word.
 An identifier containing underscores is then treated as a single word in
 select and move operations.  All parts of an identifier separated by underscore
 are treated as single words otherwise."
@@ -103,7 +103,7 @@ are treated as single words otherwise."
   :group 'vera)
 
 (defcustom vera-intelligent-tab t
-  "*Non-nil means `TAB' does indentation, word completion and tab insertion.
+  "Non-nil means `TAB' does indentation, word completion and tab insertion.
 That is, if preceding character is part of a word then complete word,
 else if not at beginning of line then insert tab,
 else if last command was a `TAB' or `RET' then dedent one step,
@@ -587,12 +587,6 @@ Key bindings:
 ;;; Font locking
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
-;; XEmacs compatibility
-(when (featurep 'xemacs)
-  (require 'font-lock)
-  (copy-face 'font-lock-reference-face 'font-lock-constant-face)
-  (copy-face 'font-lock-preprocessor-face 'font-lock-builtin-face))
-
 (defun vera-font-lock-match-item (limit)
   "Match, and move over, any declaration item after point.
 Adapted from `font-lock-match-c-style-declaration-item-and-skip-to-next'."
@@ -670,23 +664,23 @@ Adapted from `font-lock-match-c-style-declaration-item-and-skip-to-next'."
   "Face name to use for interface names.")
 
 (defface vera-font-lock-number
-  '((((class color) (background light)) (:foreground "Gold4"))
-    (((class color) (background dark)) (:foreground "BurlyWood1"))
-    (t (:italic t :bold t)))
+  '((((class color) (background light)) :foreground "Gold4")
+    (((class color) (background dark))  :foreground "BurlyWood1")
+    (t :slant italic :weight bold))
   "Font lock mode face used to highlight @ definitions."
   :group 'font-lock-highlighting-faces)
 
 (defface vera-font-lock-function
-  '((((class color) (background light)) (:foreground "DarkCyan"))
-    (((class color) (background dark)) (:foreground "Orchid1"))
-    (t (:italic t :bold t)))
+  '((((class color) (background light)) :foreground "DarkCyan")
+    (((class color) (background dark))  :foreground "Orchid1")
+    (t :slant italic :weight bold))
   "Font lock mode face used to highlight predefined functions and tasks."
   :group 'font-lock-highlighting-faces)
 
 (defface vera-font-lock-interface
-  '((((class color) (background light)) (:foreground "Grey40"))
-    (((class color) (background dark)) (:foreground "Grey80"))
-    (t (:italic t :bold t)))
+  '((((class color) (background light)) :foreground "Grey40")
+    (((class color) (background dark))  :foreground "Grey80")
+    (t :slant italic :weight bold))
   "Font lock mode face used to highlight interface names."
   :group 'font-lock-highlighting-faces)
 

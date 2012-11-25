@@ -1,6 +1,6 @@
 ;;; cua-base.el --- emulate CUA key bindings
 
-;; Copyright (C) 1997-2011  Free Software Foundation, Inc.
+;; Copyright (C) 1997-2012 Free Software Foundation, Inc.
 
 ;; Author: Kim F. Storm <storm@cua.dk>
 ;; Keywords: keyboard emulations convenience cua
@@ -84,7 +84,7 @@
 
 ;; If you have just replaced a highlighted region with typed text,
 ;; you can repeat the replace with M-v.  This will search forward
-;; for a streach of text identical to the previous contents of the
+;; for a stretch of text identical to the previous contents of the
 ;; region (i.e. the contents of register 0) and replace it with the
 ;; text you typed to replace the original region.  Repeating M-v will
 ;; replace the next matching region and so on.
@@ -116,7 +116,7 @@
 
 ;; CUA register support
 ;; --------------------
-;; Emacs' standard register support is also based on a separate set of
+;; Emacs's standard register support is also based on a separate set of
 ;; "register commands".
 ;;
 ;; CUA's register support is activated by providing a numeric
@@ -134,7 +134,7 @@
 
 ;; CUA rectangle support
 ;; ---------------------
-;; Emacs' normal rectangle support is based on interpreting the region
+;; Emacs's normal rectangle support is based on interpreting the region
 ;; between the mark and point as a "virtual rectangle", and using a
 ;; completely separate set of "rectangle commands" [C-x r ...] on the
 ;; region to copy, kill, fill a.s.o. the virtual rectangle.
@@ -463,7 +463,7 @@ Must be set prior to enabling CUA."
 (defface cua-global-mark
   '((((min-colors 88)(class color)) :foreground "black" :background "yellow1")
     (((class color)) :foreground "black" :background "yellow")
-    (t :bold t))
+    (t :weight bold))
   "Font used by CUA for highlighting the global mark."
   :group 'cua)
 
@@ -1002,15 +1002,21 @@ behavior, see `cua-paste-pop-rotate-temporarily'."
     (setq this-command 'cua-paste-pop))))
 
 (defun cua-exchange-point-and-mark (arg)
-  "Exchanges point and mark, but don't activate the mark.
-Activates the mark if a prefix argument is given."
+  "Exchange point and mark.
+Don't activate the mark if `cua-enable-cua-keys' is non-nil.
+Otherwise, just activate the mark if a prefix ARG is given.
+
+See also `exchange-point-and-mark'."
   (interactive "P")
-  (if arg
-      (setq mark-active t)
-    (let (mark-active)
-      (exchange-point-and-mark)
-      (if cua--rectangle
-	  (cua--rectangle-corner 0)))))
+  (cond ((null cua-enable-cua-keys)
+	 (exchange-point-and-mark arg))
+	(arg
+	 (setq mark-active t))
+	(t
+	 (let (mark-active)
+	   (exchange-point-and-mark)
+	   (if cua--rectangle
+	       (cua--rectangle-corner 0))))))
 
 ;; Typed text that replaced the highlighted region.
 (defvar cua--repeat-replace-text nil)
@@ -1246,22 +1252,7 @@ If ARG is the atom `-', scroll upward by nearly full screen."
    ;;   (and region not started with C-SPC).
    ;; If rectangle is active, expand rectangle in specified direction and
    ;;   ignore the movement.
-   ((if window-system
-        ;; Shortcut for window-system, assuming that input-decode-map is empty.
-	(memq 'shift (event-modifiers
-		      (aref (this-single-command-raw-keys) 0)))
-      (or
-       ;; Check if the final key-sequence was shifted.
-       (memq 'shift (event-modifiers
-		     (aref (this-single-command-keys) 0)))
-       ;; If not, maybe the raw key-sequence was mapped by input-decode-map
-       ;; to a shifted key (and then mapped down to its unshifted form).
-       (let* ((keys (this-single-command-raw-keys))
-              (ev (lookup-key input-decode-map keys)))
-         (or (and (vector ev) (memq 'shift (event-modifiers (aref ev 0))))
-             ;; Or maybe, the raw key-sequence was not an escape sequence
-             ;; and was shifted (and then mapped down to its unshifted form).
-             (memq 'shift (event-modifiers (aref keys 0)))))))
+   (this-command-keys-shift-translated
     (unless mark-active
       (push-mark-command nil t))
     (setq cua--last-region-shifted t)
@@ -1478,6 +1469,7 @@ If ARG is the atom `-', scroll upward by nearly full screen."
   (define-key cua--region-keymap [remap backward-delete-char]	'cua-delete-region)
   (define-key cua--region-keymap [remap backward-delete-char-untabify] 'cua-delete-region)
   (define-key cua--region-keymap [remap delete-char]		'cua-delete-region)
+  (define-key cua--region-keymap [remap delete-forward-char]    'cua-delete-region)
   ;; kill region
   (define-key cua--region-keymap [remap kill-region]		'cua-cut-region)
   (define-key cua--region-keymap [remap clipboard-kill-region]	'cua-cut-region)

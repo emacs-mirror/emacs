@@ -1,8 +1,9 @@
 ;; erc-goodies.el --- Collection of ERC modules
 
-;; Copyright (C) 2001-2011  Free Software Foundation, Inc.
+;; Copyright (C) 2001-2012  Free Software Foundation, Inc.
 
 ;; Author: Jorgen Schaefer <forcer@forcix.cx>
+;; Maintainer: FSF
 
 ;; Most code is taken verbatim from erc.el, see there for the original
 ;; authors.
@@ -60,7 +61,7 @@ argument to `recenter'."
   ((remove-hook 'erc-mode-hook 'erc-add-scroll-to-bottom)
    (dolist (buffer (erc-buffer-list))
      (with-current-buffer buffer
-       (remove-hook 'window-scroll-functions 'erc-scroll-to-bottom t)))))
+       (remove-hook 'post-command-hook 'erc-scroll-to-bottom t)))))
 
 (defun erc-add-scroll-to-bottom ()
   "A hook function for `erc-mode-hook' to recenter output at bottom of window.
@@ -70,35 +71,29 @@ the value of `erc-input-line-position'.
 
 This works whenever scrolling happens, so it's added to
 `window-scroll-functions' rather than `erc-insert-post-hook'."
-  ;;(make-local-hook 'window-scroll-functions)
-  (add-hook 'window-scroll-functions 'erc-scroll-to-bottom nil t))
+  (add-hook 'post-command-hook 'erc-scroll-to-bottom nil t))
 
-(defun erc-scroll-to-bottom (window display-start)
+(defun erc-scroll-to-bottom ()
   "Recenter WINDOW so that `point' is on the last line.
 
 This is added to `window-scroll-functions' by `erc-add-scroll-to-bottom'.
 
 You can control which line is recentered to by customizing the
-variable `erc-input-line-position'.
-
-DISPLAY-START is ignored."
-  (if (window-live-p window)
+variable `erc-input-line-position'."
       ;; Temporarily bind resize-mini-windows to nil so that users who have it
       ;; set to a non-nil value will not suffer from premature minibuffer
       ;; shrinkage due to the below recenter call.  I have no idea why this
       ;; works, but it solves the problem, and has no negative side effects.
       ;; (Fran Litterio, 2003/01/07)
-      (let ((resize-mini-windows nil))
-        (erc-with-selected-window window
-          (save-restriction
-            (widen)
-            (when (and erc-insert-marker
-                       ;; we're editing a line. Scroll.
-                       (> (point) erc-insert-marker))
-              (save-excursion
-                (goto-char (point-max))
-                (recenter (or erc-input-line-position -1))
-                (sit-for 0))))))))
+  (let ((resize-mini-windows nil))
+    (save-restriction
+      (widen)
+      (when (and erc-insert-marker
+		 ;; we're editing a line. Scroll.
+		 (> (point) erc-insert-marker))
+	(save-excursion
+	  (goto-char (point-max))
+	  (recenter (or erc-input-line-position -1)))))))
 
 ;;; Make read only
 (define-erc-module readonly nil
@@ -189,7 +184,7 @@ themselves."
   :group 'erc)
 
 (defcustom erc-interpret-controls-p t
-  "*If non-nil, display IRC colors and other highlighting effects.
+  "If non-nil, display IRC colors and other highlighting effects.
 
 If this is set to the symbol `remove', ERC removes all IRC colors and
 highlighting effects.  When this variable is non-nil, it can cause Emacs to run
@@ -202,7 +197,7 @@ emergency (message flood) it can be turned off to save processing time.  See
                  (const :tag "Display raw control characters" nil)))
 
 (defcustom erc-interpret-mirc-color nil
-  "*If non-nil, ERC will interpret mIRC color codes."
+  "If non-nil, ERC will interpret mIRC color codes."
   :group 'erc-control-characters
   :type 'boolean)
 
@@ -212,112 +207,114 @@ The value `erc-interpret-controls-p' must also be t for this to work."
   :group 'erc-control-characters
   :type 'boolean)
 
-(defface erc-bold-face '((t (:bold t)))
+(defface erc-bold-face '((t :weight bold))
   "ERC bold face."
   :group 'erc-faces)
+
 (defface erc-inverse-face
-  '((t (:foreground "White" :background "Black")))
+  '((t :foreground "White" :background "Black"))
   "ERC inverse face."
   :group 'erc-faces)
-(defface erc-underline-face '((t (:underline t)))
+
+(defface erc-underline-face '((t :underline t))
   "ERC underline face."
   :group 'erc-faces)
 
-(defface fg:erc-color-face0 '((t (:foreground "White")))
+(defface fg:erc-color-face0 '((t :foreground "White"))
   "ERC face."
   :group 'erc-faces)
-(defface fg:erc-color-face1 '((t (:foreground "black")))
+(defface fg:erc-color-face1 '((t :foreground "black"))
   "ERC face."
   :group 'erc-faces)
-(defface fg:erc-color-face2 '((t (:foreground "blue4")))
+(defface fg:erc-color-face2 '((t :foreground "blue4"))
   "ERC face."
   :group 'erc-faces)
-(defface fg:erc-color-face3 '((t (:foreground "green4")))
+(defface fg:erc-color-face3 '((t :foreground "green4"))
   "ERC face."
   :group 'erc-faces)
-(defface fg:erc-color-face4 '((t (:foreground "red")))
+(defface fg:erc-color-face4 '((t :foreground "red"))
   "ERC face."
   :group 'erc-faces)
-(defface fg:erc-color-face5 '((t (:foreground "brown")))
+(defface fg:erc-color-face5 '((t :foreground "brown"))
   "ERC face."
   :group 'erc-faces)
-(defface fg:erc-color-face6 '((t (:foreground "purple")))
+(defface fg:erc-color-face6 '((t :foreground "purple"))
   "ERC face."
   :group 'erc-faces)
-(defface fg:erc-color-face7 '((t (:foreground "orange")))
+(defface fg:erc-color-face7 '((t :foreground "orange"))
   "ERC face."
   :group 'erc-faces)
-(defface fg:erc-color-face8 '((t (:foreground "yellow")))
+(defface fg:erc-color-face8 '((t :foreground "yellow"))
   "ERC face."
   :group 'erc-faces)
-(defface fg:erc-color-face9 '((t (:foreground "green")))
+(defface fg:erc-color-face9 '((t :foreground "green"))
   "ERC face."
   :group 'erc-faces)
-(defface fg:erc-color-face10 '((t (:foreground "lightblue1")))
+(defface fg:erc-color-face10 '((t :foreground "lightblue1"))
   "ERC face."
   :group 'erc-faces)
-(defface fg:erc-color-face11 '((t (:foreground "cyan")))
+(defface fg:erc-color-face11 '((t :foreground "cyan"))
   "ERC face."
   :group 'erc-faces)
-(defface fg:erc-color-face12 '((t (:foreground "blue")))
+(defface fg:erc-color-face12 '((t :foreground "blue"))
   "ERC face."
   :group 'erc-faces)
-(defface fg:erc-color-face13 '((t (:foreground "deeppink")))
+(defface fg:erc-color-face13 '((t :foreground "deeppink"))
   "ERC face."
   :group 'erc-faces)
-(defface fg:erc-color-face14 '((t (:foreground "gray50")))
+(defface fg:erc-color-face14 '((t :foreground "gray50"))
   "ERC face."
   :group 'erc-faces)
-(defface fg:erc-color-face15 '((t (:foreground "gray90")))
+(defface fg:erc-color-face15 '((t :foreground "gray90"))
   "ERC face."
   :group 'erc-faces)
 
-(defface bg:erc-color-face0 '((t (:background "White")))
+(defface bg:erc-color-face0 '((t :background "White"))
   "ERC face."
   :group 'erc-faces)
-(defface bg:erc-color-face1 '((t (:background "black")))
+(defface bg:erc-color-face1 '((t :background "black"))
   "ERC face."
   :group 'erc-faces)
-(defface bg:erc-color-face2 '((t (:background "blue4")))
+(defface bg:erc-color-face2 '((t :background "blue4"))
   "ERC face."
   :group 'erc-faces)
-(defface bg:erc-color-face3 '((t (:background "green4")))
+(defface bg:erc-color-face3 '((t :background "green4"))
   "ERC face."
   :group 'erc-faces)
-(defface bg:erc-color-face4 '((t (:background "red")))
+(defface bg:erc-color-face4 '((t :background "red"))
   "ERC face."
   :group 'erc-faces)
-(defface bg:erc-color-face5 '((t (:background "brown")))
+(defface bg:erc-color-face5 '((t :background "brown"))
   "ERC face."
   :group 'erc-faces)
-(defface bg:erc-color-face6 '((t (:background "purple")))
+(defface bg:erc-color-face6 '((t :background "purple"))
   "ERC face."
   :group 'erc-faces)
-(defface bg:erc-color-face7 '((t (:background "orange")))
+(defface bg:erc-color-face7 '((t :background "orange"))
   "ERC face."
   :group 'erc-faces)
-(defface bg:erc-color-face8 '((t (:background "yellow")))
+(defface bg:erc-color-face8 '((t :background "yellow"))
   "ERC face."
   :group 'erc-faces)
-(defface bg:erc-color-face9 '((t (:background "green")))
+(defface bg:erc-color-face9 '((t :background "green"))
   "ERC face."
   :group 'erc-faces)
-(defface bg:erc-color-face10 '((t (:background "lightblue1")))
+(defface bg:erc-color-face10 '((t :background "lightblue1"))
   "ERC face."
   :group 'erc-faces)
-(defface bg:erc-color-face11 '((t (:background "cyan")))
+(defface bg:erc-color-face11 '((t :background "cyan"))
   "ERC face."
   :group 'erc-faces)
-(defface bg:erc-color-face12 '((t (:background "blue")))
+(defface bg:erc-color-face12 '((t :background "blue"))
   "ERC face."
   :group 'erc-faces)
-(defface bg:erc-color-face13 '((t (:background "deeppink")))
+(defface bg:erc-color-face13 '((t :background "deeppink"))
   "ERC face."
   :group 'erc-faces)
-(defface bg:erc-color-face14 '((t (:background "gray50")))
+(defface bg:erc-color-face14 '((t :background "gray50"))
   "ERC face."
   :group 'erc-faces)
-(defface bg:erc-color-face15 '((t (:background "gray90")))
+(defface bg:erc-color-face15 '((t :background "gray90"))
   "ERC face."
   :group 'erc-faces)
 

@@ -1,18 +1,17 @@
 @c -*-texinfo-*-
 @c This is part of the GNU Emacs Lisp Reference Manual.
-@c Copyright (C) 1990-1995, 1998-1999, 2001-2011  Free Software Foundation, Inc.
+@c Copyright (C) 1990-1995, 1998-1999, 2001-2012 Free Software Foundation, Inc.
 @c See the file elisp.texi for copying conditions.
-@setfilename ../../info/control
-@node Control Structures, Variables, Evaluation, Top
+@node Control Structures
 @chapter Control Structures
 @cindex special forms for control structures
 @cindex control structures
 
-  A Lisp program consists of expressions or @dfn{forms} (@pxref{Forms}).
-We control the order of execution of these forms by enclosing them in
-@dfn{control structures}.  Control structures are special forms which
-control when, whether, or how many times to execute the forms they
-contain.
+  A Lisp program consists of a set of @dfn{expressions}, or
+@dfn{forms} (@pxref{Forms}).  We control the order of execution of
+these forms by enclosing them in @dfn{control structures}.  Control
+structures are special forms which control when, whether, or how many
+times to execute the forms they contain.
 
 @cindex textual order
   The simplest order of execution is sequential execution: first form
@@ -94,8 +93,8 @@ order, returning the result of the final form.
 @end example
 @end defspec
 
-  Two other control constructs likewise evaluate a series of forms but return
-a different value:
+  Two other constructs likewise evaluate a series of forms but return
+different values:
 
 @defspec prog1 form1 forms@dots{}
 This special form evaluates @var{form1} and all of the @var{forms}, in
@@ -160,8 +159,8 @@ If @var{condition} has the value @code{nil}, and no @var{else-forms} are
 given, @code{if} returns @code{nil}.
 
 @code{if} is a special form because the branch that is not selected is
-never evaluated---it is ignored.  Thus, in the example below,
-@code{true} is not printed because @code{print} is never called.
+never evaluated---it is ignored.  Thus, in this example,
+@code{true} is not printed because @code{print} is never called:
 
 @example
 @group
@@ -221,7 +220,7 @@ non-@code{nil}, the clause ``succeeds''; then @code{cond} evaluates its
 @var{body-forms}, and the value of the last of @var{body-forms} becomes
 the value of the @code{cond}.  The remaining clauses are ignored.
 
-If the value of @var{condition} is @code{nil}, the clause ``fails,'' so
+If the value of @var{condition} is @code{nil}, the clause ``fails'', so
 the @code{cond} moves on to the following clause, trying its
 @var{condition}.
 
@@ -258,9 +257,7 @@ clauses was successful.  To do this, we use @code{t} as the
 @var{condition} of the last clause, like this: @code{(t
 @var{body-forms})}.  The form @code{t} evaluates to @code{t}, which is
 never @code{nil}, so this clause never fails, provided the @code{cond}
-gets to it at all.
-
-For example,
+gets to it at all.  For example:
 
 @example
 @group
@@ -559,16 +556,14 @@ the @code{catch} in @code{foo-outer} specifies the same symbol, so that
 @code{catch} in between).
 
   Executing @code{throw} exits all Lisp constructs up to the matching
-@code{catch}, including function calls.  When binding constructs such as
-@code{let} or function calls are exited in this way, the bindings are
-unbound, just as they are when these constructs exit normally
+@code{catch}, including function calls.  When binding constructs such
+as @code{let} or function calls are exited in this way, the bindings
+are unbound, just as they are when these constructs exit normally
 (@pxref{Local Variables}).  Likewise, @code{throw} restores the buffer
 and position saved by @code{save-excursion} (@pxref{Excursions}), and
-the narrowing status saved by @code{save-restriction} and the window
-selection saved by @code{save-window-excursion} (@pxref{Window
-Configurations}).  It also runs any cleanups established with the
-@code{unwind-protect} special form when it exits that form
-(@pxref{Cleanups}).
+the narrowing status saved by @code{save-restriction}.  It also runs
+any cleanups established with the @code{unwind-protect} special form
+when it exits that form (@pxref{Cleanups}).
 
   The @code{throw} need not appear lexically within the @code{catch}
 that it jumps to.  It can equally well be called from another function
@@ -583,7 +578,8 @@ that throw back to the editor command loop (@pxref{Recursive Editing}).
 @b{Common Lisp note:} Most other versions of Lisp, including Common Lisp,
 have several ways of transferring control nonsequentially: @code{return},
 @code{return-from}, and @code{go}, for example.  Emacs Lisp has only
-@code{throw}.
+@code{throw}.  The @file{cl-lib} library provides versions of some of
+these.  @xref{Blocks and Exits,,,cl,Common Lisp Extensions}.
 @end quotation
 
 @defspec catch tag body@dots{}
@@ -623,7 +619,7 @@ error is signaled with data @code{(@var{tag} @var{value})}.
 @subsection Examples of @code{catch} and @code{throw}
 
   One way to use @code{catch} and @code{throw} is to exit from a doubly
-nested loop.  (In most languages, this would be done with a ``goto.'')
+nested loop.  (In most languages, this would be done with a ``goto''.)
 Here we compute @code{(foo @var{i} @var{j})} for @var{i} and @var{j}
 varying from 0 to 9:
 
@@ -812,10 +808,10 @@ handlers that handle the error: @code{condition-case} binds a local
 variable to a list of the form @code{(@var{error-symbol} .@:
 @var{data})} (@pxref{Handling Errors}).
 
-The function @code{signal} never returns (though in older Emacs versions
-it could sometimes return).
+The function @code{signal} never returns.
+@c (though in older Emacs versions it sometimes could).
 
-@smallexample
+@example
 @group
 (signal 'wrong-number-of-arguments '(x y))
      @error{} Wrong number of arguments: x, y
@@ -825,7 +821,20 @@ it could sometimes return).
 (signal 'no-such-error '("My unknown error condition"))
      @error{} peculiar error: "My unknown error condition"
 @end group
-@end smallexample
+@end example
+@end defun
+
+@cindex user errors, signaling
+@defun user-error format-string &rest args
+This function behaves exactly like @code{error}, except that it uses
+the error symbol @code{user-error} rather than @code{error}.  As the
+name suggests, this is intended to report errors on the part of the
+user, rather than errors in the code itself.  For example,
+if you try to use the command @code{Info-history-back} (@kbd{l}) to
+move back beyond the start of your Info browsing history, Emacs
+signals a @code{user-error}.  Such errors do not cause entry to the
+debugger, even when @code{debug-on-error} is non-@code{nil}.
+@xref{Error Debugging}.
 @end defun
 
 @cindex CL note---no continuable errors
@@ -891,9 +900,8 @@ establishing an error handler, with the special form
 
 @noindent
 This deletes the file named @var{filename}, catching any error and
-returning @code{nil} if an error occurs@footnote{
-Actually, you should use @code{ignore-errors} in such a simple case;
-see below.}.
+returning @code{nil} if an error occurs.  (You can use the macro
+@code{ignore-errors} for a simple case like this; see below.)
 
   The @code{condition-case} construct is often used to trap errors that
 are predictable, such as failure to open a file in a call to
@@ -949,6 +957,13 @@ The effect of @code{debug} here is only to prevent
 given error will invoke the debugger only if @code{debug-on-error} and
 the other usual filtering mechanisms say it should.  @xref{Error Debugging}.
 
+@defmac condition-case-unless-debug var protected-form handlers@dots{}
+The macro @code{condition-case-unless-debug} provides another way to
+handle debugging of such forms.  It behaves exactly like
+@code{condition-case}, unless the variable @code{debug-on-error} is
+non-@code{nil}, in which case it does not handle any errors at all.
+@end defmac
+
   Once Emacs decides that a certain handler handles the error, it
 returns control to that handler.  To do so, Emacs unbinds all variable
 bindings made by binding constructs that are being exited, and
@@ -985,7 +1000,7 @@ to allow the debugger to run before the handler); @var{body} is one or more
 Lisp expressions to be executed when this handler handles an error.
 Here are examples of handlers:
 
-@smallexample
+@example
 @group
 (error nil)
 
@@ -995,7 +1010,7 @@ Here are examples of handlers:
  (message
   "Either division by zero or failure to open a file"))
 @end group
-@end smallexample
+@end example
 
 Each error that occurs has an @dfn{error symbol} that describes what
 kind of error it is.  The @code{error-conditions} property of this
@@ -1028,9 +1043,9 @@ Sometimes it is necessary to re-throw a signal caught by
 @code{condition-case}, for some outer-level handler to catch.  Here's
 how to do that:
 
-@smallexample
+@example
   (signal (car err) (cdr err))
-@end smallexample
+@end example
 
 @noindent
 where @code{err} is the error description variable, the first argument
@@ -1049,7 +1064,7 @@ Here is an example of using @code{condition-case} to handle the error
 that results from dividing by zero.  The handler displays the error
 message (but without a beep), then returns a very large number.
 
-@smallexample
+@example
 @group
 (defun safe-divide (dividend divisor)
   (condition-case err
@@ -1070,22 +1085,24 @@ message (but without a beep), then returns a very large number.
      @print{} Arithmetic error: (arith-error)
 @result{} 1000000
 @end group
-@end smallexample
+@end example
 
 @noindent
-The handler specifies condition name @code{arith-error} so that it will handle only division-by-zero errors.  Other kinds of errors will not be handled, at least not by this @code{condition-case}.  Thus,
+The handler specifies condition name @code{arith-error} so that it
+will handle only division-by-zero errors.  Other kinds of errors will
+not be handled (by this @code{condition-case}).  Thus:
 
-@smallexample
+@example
 @group
 (safe-divide nil 3)
      @error{} Wrong type argument: number-or-marker-p, nil
 @end group
-@end smallexample
+@end example
 
   Here is a @code{condition-case} that catches all kinds of errors,
-including those signaled with @code{error}:
+including those from @code{error}:
 
-@smallexample
+@example
 @group
 (setq baz 34)
      @result{} 34
@@ -1103,7 +1120,7 @@ including those signaled with @code{error}:
 @print{} The error was: (error "Rats!  The variable baz was 34, not 35")
 @result{} 2
 @end group
-@end smallexample
+@end example
 
 @defmac ignore-errors body@dots{}
 This construct executes @var{body}, ignoring any errors that occur
@@ -1114,14 +1131,21 @@ otherwise, it returns @code{nil}.
 Here's the example at the beginning of this subsection rewritten using
 @code{ignore-errors}:
 
-@smallexample
+@example
 @group
   (ignore-errors
    (delete-file filename))
 @end group
-@end smallexample
+@end example
 @end defmac
 
+@defmac with-demoted-errors body@dots{}
+This macro is like a milder version of @code{ignore-errors}.  Rather
+than suppressing errors altogether, it converts them into messages.
+Use this form around code that is not expected to signal errors, but
+should be robust if one does occur.  Note that this macro uses
+@code{condition-case-unless-debug} rather than @code{condition-case}.
+@end defmac
 
 @node Error Symbols
 @subsubsection Error Symbols and Condition Names
@@ -1221,7 +1245,7 @@ make it possible to categorize errors at various levels of generality
 when you write an error handler.  Using error symbols alone would
 eliminate all but the narrowest level of classification.
 
-  @xref{Standard Errors}, for a list of all the standard error symbols
+  @xref{Standard Errors}, for a list of the main error symbols
 and their conditions.
 
 @node Cleanups
@@ -1267,7 +1291,7 @@ Variables}).
   For example, here we make an invisible buffer for temporary use, and
 make sure to kill it before finishing:
 
-@smallexample
+@example
 @group
 (let ((buffer (get-buffer-create " *temp*")))
   (with-current-buffer buffer
@@ -1275,7 +1299,7 @@ make sure to kill it before finishing:
         @var{body-form}
       (kill-buffer buffer))))
 @end group
-@end smallexample
+@end example
 
 @noindent
 You might think that we could just as well write @code{(kill-buffer
@@ -1300,7 +1324,7 @@ is protected with a form that guarantees deletion of the process in the
 event of failure.  Otherwise, Emacs might fill up with useless
 subprocesses.
 
-@smallexample
+@example
 @group
 (let ((win nil))
   (unwind-protect
@@ -1311,7 +1335,7 @@ subprocesses.
           (error "Ftp login failed")))
     (or win (and process (delete-process process)))))
 @end group
-@end smallexample
+@end example
 
   This example has a small bug: if the user types @kbd{C-g} to
 quit, and the quit happens immediately after the function

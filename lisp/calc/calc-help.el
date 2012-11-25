@@ -1,6 +1,6 @@
 ;;; calc-help.el --- help display functions for Calc,
 
-;; Copyright (C) 1990-1993, 2001-2011  Free Software Foundation, Inc.
+;; Copyright (C) 1990-1993, 2001-2012  Free Software Foundation, Inc.
 
 ;; Author: David Gillespie <daveg@synaptics.com>
 ;; Maintainer: Jay Belanger <jay.p.belanger@gmail.com>
@@ -642,7 +642,7 @@ C-w  Describe how there is no warranty for Calc."
    '("Deg, Rad, HMS; Frac; Polar; Inf; Alg, Total; Symb; Vec/mat"
      "Working; Xtensions; Mode-save; preserve Embedded modes"
      "SHIFT + Shifted-prefixes, mode-Filename; Record; reCompute"
-     "SHIFT + simplify: Off, Num, Default, Bin, Alg, Ext, Units")
+     "SHIFT + simplify: Off, Num, basIc, Algebraic, Bin, Ext, Units")
    "mode" ?m))
 
 

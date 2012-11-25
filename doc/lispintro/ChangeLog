@@ -1,3 +1,81 @@
+2012-11-24  Paul Eggert  <eggert@cs.ucla.edu>
+
+	* doclicense.texi: Update to latest version from FSF.
+	These are just minor editorial changes.
+
+2012-10-24  Paul Eggert  <eggert@penguin.cs.ucla.edu>
+
+	* emacs-lisp-intro.texi (Files List):
+	Update manual for new time stamp format (Bug#12706).
+
+2012-10-17  Gregor Zattler  <grfz@gmx.de>  (tiny change)
+
+	* emacs-lisp-intro.texi (Narrowing advantages):
+	Minor update for changed what-line implementation.  (Bug#12629)
+
+2012-06-21  Glenn Morris  <rgm@gnu.org>
+
+	* Makefile.in: Rename infodir to buildinfodir throughout.  (Bug#11737)
+
+2012-05-29  Glenn Morris  <rgm@gnu.org>
+
+	* emacs-lisp-intro.texi: Nuke hand-written node pointers.
+	(dolist, dotimes): Fix sectioning.
+
+2012-05-12  Glenn Morris  <rgm@gnu.org>
+
+	* Makefile.in (MKDIR_P): New, set by configure.
+	(mkinfodir): Use $MKDIR_P.
+
+2012-05-05  Glenn Morris  <rgm@gnu.org>
+
+	* emacs-lisp-intro.texi (Making Errors): Don't mention Emacs 20.
+	(Void Function, Wrong Type of Argument, Recursion with list)
+	(Simple Extension): Assume a non-ancient Emacs.
+	(Void Variable, Switching Buffers): Improve page breaks.
+
+	* emacs-lisp-intro.texi: Update GNU Press contact details.
+
+2012-05-04  Glenn Morris  <rgm@gnu.org>
+
+	* Makefile.in (INFO_EXT, INFO_OPTS): New, set by configure.
+	(info, infoclean): Use $INFO_EXT.
+	(${infodir}/eintr$(INFO_EXT)): Use $INFO_EXT and $INFO_OPT.
+	* makefile.w32-in (INFO_EXT, INFO_OPTS): New.
+	(INFO_TARGETS, clean): Use $INFO_EXT.
+	($(infodir)/eintr$(INFO_EXT)): Use $INFO_EXT and $INFO_OPT.
+
+2012-05-02  Glenn Morris  <rgm@gnu.org>
+
+	* emacs-lisp-intro.texi (Syntax): Reword to avoid underfull hbox.
+
+2012-04-14  Glenn Morris  <rgm@gnu.org>
+
+	* Makefile.in: Replace non-portable use of $< in ordinary rules.
+
+2012-02-28  Glenn Morris  <rgm@gnu.org>
+
+	* emacs-lisp-intro.texi: Standardize possessive apostrophe usage.
+
+2012-02-17  Glenn Morris  <rgm@gnu.org>
+
+	* emacs-lisp-intro.texi (Design @value{COUNT-WORDS}, Syntax)
+	(count-words-in-defun): Fix cross-refs to Emacs manual.
+
+2012-01-28  Andreas Schwab  <schwab@linux-m68k.org>
+
+	* emacs-lisp-intro.texi (Top): Move setting of COUNT-WORDS outside
+	of @menu.  (Bug#10628)
+
+2012-01-19  Juanma Barranquero  <lekktu@gmail.com>
+
+	* emacs-lisp-intro.texi (count-words-in-defun):
+	Add missing parenthesis (bug#10544).
+
+2012-01-17  Glenn Morris  <rgm@gnu.org>
+
+	* emacs-lisp-intro.texi (re-search-forward): Fix typo.
+
 2011-11-24  Juanma Barranquero  <lekktu@gmail.com>
 
 	* makefile.w32-in: Update dependencies.
@@ -326,7 +404,7 @@
 	`named' to `selected'.
 	(lengths-list-file): Remove extraneous parenthesis from reference.
 	(lengths-list-many-files): Explain `expand-file-name' better.
-	(Files List): Rephrase sentence regarding Lisp sources directory
+	(Files List): Rephrase sentence regarding Lisp sources directory.
 
 2006-11-04  Robert J. Chassell  <bob@rattlesnake.com>
 
@@ -471,7 +549,7 @@
 ;; coding: utf-8
 ;; End:
 
-  Copyright (C) 2001-2011  Free Software Foundation, Inc.
+  Copyright (C) 2001-2012 Free Software Foundation, Inc.
 
   This file is part of GNU Emacs.
 

@@ -1,54 +1,61 @@
 More Neat Stuff for your Emacs
 
-Copyright (C) 1993, 1999, 2001-2011  Free Software Foundation, Inc.
+Copyright (C) 1993, 1999, 2001-2012 Free Software Foundation, Inc.
 See the end of the file for license conditions.
 
-This file describes GNU Emacs programs and resources that are
+The easiest way to add more features to your Emacs is to use the command
+M-x list-packages.  This contacts the server at <URL:http://elpa.gnu.org>,
+where many Emacs Lisp packages are stored.  These are distributed
+separately from Emacs itself for reasons of space, etc.  You can browse
+the resulting *Packages* buffer to see what is available, and then
+Emacs can automatically download and install the packages that you
+select.  See the section "Emacs Lisp Packages" in the Emacs manual
+for more details.
+
+Below we describe some GNU Emacs programs and resources that are
 maintained by other people.  Some of these may become part of the
-Emacs distribution in the future.  Others we unfortunately can't
-distribute, even though they are free software, because we lack legal
-papers for copyright purposes.  Also included are sites where
-development versions of some packages distributed with Emacs may be
-found.
+Emacs distribution, or GNU ELPA, in the future.  Others we unfortunately
+can't distribute, even though they are free software, because we lack
+legal papers for copyright purposes.
 
-You might also look at the Emacs web page
-<URL:http://www.gnu.org/software/emacs/emacs.html>.  If you use the
-Windows-32 version of Emacs, see the NTEmacs sites listed in the FAQ.
+Also listed are sites where development versions of some packages
+distributed with Emacs may be found.
 
-Please submit a bug report if you find that any of the addresses
-listed here fail.
+It is difficult to keep this file up-to-date, and it only lists a fraction
+of the Emacs modes that are available.  If you are interested in
+a particular feature, then after checking Emacs itself and GNU ELPA,
+a web search is often the best way to find results.
+
+* The gnu-emacs-sources mailing list
+  <URL:https://lists.gnu.org/mailman/listinfo/gnu-emacs-sources>
+  which is gatewayed to the gnu.emacs.sources newsgroup (although the
+  connection between the two can be unreliable) is an official
+  place where people can post or announce their extensions to Emacs.
 
 * The `Emacs Lisp List' at
-  <URL:http://www.damtp.cam.ac.uk/user/eglen/emacs/ell.html> has pointers
-  to sources of a large number of packages.
-
-* gnu.emacs.sources
-
-Packages posted to the gnu.emacs.sources newsgroup (see
-etc/MAILINGLISTS) might be archived specifically (try a web search
-engine) or retrievable from general Usenet archive services.
+  <URL:http://www.damtp.cam.ac.uk/user/sje30/emacs/ell.html> has pointers
+  to sources of a large number of packages.  Unfortunately, at the time
+  of writing it seems to no longer be updating.
 
 * emacswiki.org
+  The Emacs Wiki has an area for storing elisp files
+  <URL:http://www.emacswiki.org/cgi-bin/wiki/ElispArea>.
 
-The Emacs Wiki has an area for storing elisp files
-<URL:http://www.emacswiki.org/cgi-bin/wiki/ElispArea>.
+* WikEmacs
+  <URL:http://wikemacs.org> is an alternative wiki for Emacs.
 
-* Emacs tutorials and manuals
-
- * Emacs slides and tutorials can be found here:
+* Emacs slides and tutorials can be found here:
    <URL:http://web.psung.name/emacs/>
 
 * Maintenance versions of some packages distributed with Emacs
 
 You might find bug-fixes or enhancements in these places.
+In many cases, however, development of these packages has shifted to Emacs,
+so you will find the latest version in Emacs.
 
  * Ada-mode: <URL:http://stephe-leake.org/emacs/ada-mode/emacs-ada-mode.html>
 
  * Battery and Info Look: <URL:http://ralph-schleicher.de/emacs.html>
-
- * BS: <URL:http://www.geekware.de/software/emacs/index.html>
-
- * Calculator: <URL:http://www.barzilay.org/misc/calculator.el>
 
  * CC mode: <URL:http://cc-mode.sourceforge.net/>
 
@@ -56,16 +63,9 @@ You might find bug-fixes or enhancements in these places.
 
  * Ediff and Viper: <URL:http://www.cs.sunysb.edu/~kifer/emacs.html>
 
- * Eldoc and Rlogin:
-   <URL:http://www.splode.com/~friedman/software/emacs-lisp/>
-
  * ERC: <URL:http://savannah.gnu.org/projects/erc/>
 
- * Etags: <URL:http://fly.isti.cnr.it/software/>
-
  * Gnus: <URL:http://www.gnus.org/>
-
- * Ispell: <URL:http://www.kdstevens.com/stevens/ispell-page.html>
 
  * MH-E: <URL:http://mh-e.sourceforge.net/>
 
@@ -73,26 +73,14 @@ You might find bug-fixes or enhancements in these places.
 
  * Org mode: <URL:http://orgmode.org/>
 
- * PS mode: <URL:http://odur.let.rug.nl/%7Ekleiweg/postscript/>
-
- * PS-print: <URL:http://www.emacswiki.org/cgi-bin/wiki/PsPrintPackage>
-
- * Python: <URL:http://www.loveshack.ukfsn.org/emacs/>
-
- * QuickURL: <URL:http://www.davep.org/emacs/>
-
  * RefTeX: <URL:http://www.gnu.org/software/auctex/reftex.html>
 
  * Remember: <URL:https://gna.org/p/remember-el>
 
- * Speedbar, Checkdoc etc: <URL:http://cedet.sourceforge.net/>
-
- * SQL: <URL:http://www.emacswiki.org/cgi-bin/wiki/sql.el>
+ * CEDET: <URL:http://cedet.sourceforge.net/>
 
  * Tramp: Remote file access via rsh/ssh
    <URL:http://savannah.gnu.org/projects/tramp/>
-
- * Webjump: <URL:http://www.neilvandyke.org/webjump>
 
 * Auxiliary files
 
@@ -114,18 +102,16 @@ Emacs for various reasons, sometimes because their authors haven't made
 a copyright assignment to the FSF.  Some of them may be integrated in
 the future.
 
-You might like to check whether they are packaged for your system.
-Several are for Debian GNU/Linux in particular.
+Your operating system distribution may include several of these as optional
+packages that you can install.
 
  * AUCTeX: <URL:http://www.gnu.org/software/auctex/>
    An extensible package that supports writing and formatting TeX
    files (including AMS-TeX, LaTeX, Texinfo, ConTeXt, and docTeX).
+   Available from GNU ELPA.
 
  * BBDB: personal Info Rolodex integrated with mail/news:
-   <URL:http://bbdb.sourceforge.net/>
-   [You might want to set the coding system of your .bbdb file to
-   emacs-mule, say by adding `("\\.bbdb\\'" . emacs-mule)' to
-   `file-coding-system-alist' for non-ASCII characters.]
+   <URL:http://savannah.nongnu.org/projects/bbdb>
 
  * Boxquote: <URL:http://www.davep.org/emacs/>
 
@@ -142,13 +128,6 @@ Several are for Debian GNU/Linux in particular.
 
  * Ee: categorizing information manager:
    <URL:http://www.jurta.org/en/emacs/ee/>
-
- * EFS: enhanced version of ange-ftp:
-   <URL:http://www-pu.informatik.uni-tuebingen.de/users/sperber/software/efs/>
-
- * Elib library: <URL:http://www.gnu.org/software/elib/elib.html>
-   From GNU distribution mirrors.  (Much of this functionality is now
-   in Emacs.)
 
  * EMacro: <URL:http://emacro.sourceforge.net/>
    EMacro is a portable configuration file that configures itself.
@@ -168,32 +147,18 @@ Several are for Debian GNU/Linux in particular.
  * Emacs Wiki Mode: <URL:http://mwolson.org/projects/EmacsWikiMode.html>
    A wiki-like publishing tool and personal information manager
 
- * Gnuserv:
-   <URL:http://www.hpl.hp.com/personal/ange/gnuserv/home.html>
-   Alternative emacsclient/emacsserver.  Also available from this Web
-   page: eiffel-mode.el.
-
  * Go in a buffer: Go Text Protocol client:
    <URL:http://www.gnuvola.org/software/personal-elisp/dist/lisp/diversions/gnugo.el>
    A modified version is also bundled with GNU Go:
    <URL:http://www.gnu.org/software/gnugo/gnugo.html>
 
- * hm--html-menus:
-   <URL:ftp://sunsite.unc.edu/pub/Linux/apps/editors/emacs/>
-   HTML-specific editing.  Can work with PSGML.
-
  * Hyperbole:
-   <URL:http://directory.fsf.org/hyperbole.html>
+   <URL:http://directory.fsf.org/wiki/Hyperbole>
    Hyperbole is an open, efficient, programmable information
    management and hypertext system.
 
  * JDEE: <URL:http://jdee.sourceforge.net/>
    Provides a Java development environment for Emacs.
-
- * Mailcrypt:
-   <URL:http://mailcrypt.sourceforge.net/>
-   PGP and GPG support.  PGP isn't free software, but GPG, the GNU
-   Privacy Guard, is a free replacement <URL:http://www.gnupg.org/>.
 
  * Mew: <URL:http://www.mew.org/>
    A MIME mail reader for Emacs/XEmacs.
@@ -207,9 +172,6 @@ Several are for Debian GNU/Linux in particular.
 
  * Preview LaTeX: embed preview LaTeX images in source buffer.
    <URL:http://www.gnu.org/software/auctex/preview-latex.html>
-
- * PSGML: <URL:http://www.lysator.liu.se/projects/about_psgml.html>
-   DTD-aware serious SGML/XML editing.
 
  * Quack: <URL:http://www.neilvandyke.org/quack/>
    Quack enhances Emacs support for Scheme.
@@ -227,26 +189,17 @@ Several are for Debian GNU/Linux in particular.
  * Tamago: Chinese/Japanese/Korean input method
    <URL:http://www.m17n.org/tamago/index.en.html>
    Emacs Lisp package to provide input methods for CJK characters.
-   It can use these background conversion servers:
-	FreeWnn (jserver, cserver, tserver),
-	Wnn6,
-	SJ3 Ver.2
 
- * Tiny Tools: <URL:http://freshmeat.net/projects/emacs-tiny-tools>
+ * Tiny Tools: <URL:https://savannah.nongnu.org/projects/emacs-tiny-tools>
 
  * VM (View Mail): Alternative mail reader
    <URL:http://launchpad.net/vm>
    Previously hosted at: <URL:http://www.nongnu.org/viewmail/>
-   There are VM newsgroups: <URL:news:gnu.emacs.vm.info>, and
-   <URL:news:gnu.emacs.vm.bug>.
 
- * W3: <URL:http://savannah.gnu.org/projects/w3/>
-   Web browser.  There's a W3 mail list/newsgroup
-   <URL:http://savannah.gnu.org/mail/?group=w3>.
+ * W3 Web browser: <URL:http://savannah.gnu.org/projects/w3/>
 
  * Wanderlust: <URL:http://www.gohome.org/wl/>
-   Yet Another Message Interface on Emacsen. Wanderlust is a mail/news
-   reader supporting IMAP4rev1 for emacsen.
+   Wanderlust is a mail/news reader for Emacs.
 
  * WhizzyTex: <URL:http://cristal.inria.fr/whizzytex/>
    WhizzyTeX provides a minor mode for Emacs or XEmacs, a (bash)
@@ -257,8 +210,8 @@ Several are for Debian GNU/Linux in particular.
 
 Local Variables:
 mode: text
-mode: view
-mode: goto-address
+eval: (view-mode 1)
+eval: (goto-address-mode 1)
 End:
 
 This file is part of GNU Emacs.

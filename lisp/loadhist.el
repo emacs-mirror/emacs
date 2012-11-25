@@ -1,6 +1,6 @@
 ;;; loadhist.el --- lisp functions for working with feature groups
 
-;; Copyright (C) 1995, 1998, 2000-2011 Free Software Foundation, Inc.
+;; Copyright (C) 1995, 1998, 2000-2012 Free Software Foundation, Inc.
 
 ;; Author: Eric S. Raymond <esr@snark.thyrsus.com>
 ;; Maintainer: FSF
@@ -28,8 +28,6 @@
 ;; `feature-file', documented in the Emacs Lisp manual.
 
 ;;; Code:
-
-(eval-when-compile (require 'cl))
 
 (defun feature-symbols (feature)
   "Return the file and list of definitions associated with FEATURE.
@@ -143,13 +141,13 @@ These are symbols with hooklike values whose names don't end in
 `-hook' or `-hooks', from which `unload-feature' should try to remove
 pertinent symbols.")
 
+(define-obsolete-variable-alias 'unload-hook-features-list
+    'unload-function-defs-list "22.2")
 (defvar unload-function-defs-list nil
   "List of definitions in the Lisp library being unloaded.
 
 This is meant to be used by `FEATURE-unload-function'; see the
 documentation of `unload-feature' for details.")
-(define-obsolete-variable-alias 'unload-hook-features-list
-    'unload-function-defs-list "22.2")
 
 (defun unload--set-major-mode ()
   (save-current-buffer
@@ -254,11 +252,11 @@ something strange, such as redefining an Emacs function."
 
       (dolist (x unload-function-defs-list)
 	(if (consp x)
-	    (case (car x)
+	    (pcase (car x)
 	      ;; Remove any feature names that this file provided.
-	      (provide
+	      (`provide
 	       (setq features (delq (cdr x) features)))
-	      ((defun autoload)
+	      ((or `defun `autoload)
 	       (let ((fun (cdr x)))
 		 (when (fboundp fun)
 		   (when (fboundp 'ad-unadvise)
@@ -270,9 +268,9 @@ something strange, such as redefining an Emacs function."
 	      ;; (t . SYMBOL) comes before (defun . SYMBOL)
 	      ;; and says we should restore SYMBOL's autoload
 	      ;; when we undefine it.
-	      ((t) (setq restore-autoload (cdr x)))
-	      ((require defface) nil)
-	      (t (message "Unexpected element %s in load-history" x)))
+	      (`t (setq restore-autoload (cdr x)))
+	      ((or `require `defface) nil)
+	      (_ (message "Unexpected element %s in load-history" x)))
 	  ;; Kill local values as much as possible.
 	  (dolist (buf (buffer-list))
 	    (with-current-buffer buf

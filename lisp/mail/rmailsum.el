@@ -1,6 +1,6 @@
 ;;; rmailsum.el --- make summary buffers for the mail reader
 
-;; Copyright (C) 1985, 1993-1996, 2000-2011 Free Software Foundation, Inc.
+;; Copyright (C) 1985, 1993-1996, 2000-2012 Free Software Foundation, Inc.
 
 ;; Maintainer: FSF
 ;; Keywords: mail
@@ -785,7 +785,7 @@ the message being processed."
 		 (setq pos (point))
 		 (forward-line 1)
 		 (setq str (buffer-substring pos (1- (point))))
-		 (while (looking-at "\\s ")
+		 (while (looking-at "[ \t]")
 		   (setq str (concat str " " 
 				     (buffer-substring (match-end 0)
 						       (line-end-position))))

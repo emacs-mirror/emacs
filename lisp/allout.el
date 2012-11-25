@@ -1,6 +1,6 @@
 ;;; allout.el --- extensive outline mode for use alone and with other modes
 
-;; Copyright (C) 1992-1994, 2001-2011  Free Software Foundation, Inc.
+;; Copyright (C) 1992-1994, 2001-2012  Free Software Foundation, Inc.
 
 ;; Author: Ken Manheimer <ken dot manheimer at gmail...>
 ;; Maintainer: Ken Manheimer <ken dot manheimer at gmail...>
@@ -240,6 +240,7 @@ See the existing keys for examples.
 Functions can be bound to multiple keys, but binding keys to
 multiple functions will not work - the last binding for a key
 prevails."
+  :version "24.1"
   :type 'allout-keybindings-binding
   :group 'allout-keybindings
   :set 'allout-compose-and-institute-keymap
@@ -263,6 +264,7 @@ Use vector format for the keys:
     parentheses, with the literal key, as above, preceded by the name(s)
     of the modifiers, eg: [(control ?a)]
 See the existing keys for examples."
+  :version "24.1"
   :type 'allout-keybindings-binding
   :group 'allout-keybindings
   :set 'allout-compose-and-institute-keymap
@@ -402,6 +404,7 @@ else allout's special hanging-indent maintaining auto-fill function,
 ;;;_  = allout-inhibit-auto-fill-on-headline
 (defcustom allout-inhibit-auto-fill-on-headline nil
   "If non-nil, auto-fill will be inhibited while on topic's header line."
+  :version "24.1"
   :type 'boolean
   :group 'allout)
 (make-variable-buffer-local 'allout-inhibit-auto-fill-on-headline)
@@ -764,6 +767,7 @@ Set this var to the bullet you want to use for file cross-references."
   "If non-nil, `allout-flatten-exposed-to-buffer' abbreviates topic
 numbers to minimal amount with some context.  Otherwise, entire
 numbers are always used."
+  :version "24.1"
   :type 'boolean
   :group 'allout)
 
@@ -941,7 +945,7 @@ case the value of `allout-default-layout' is used.")
 ;;;_  : Topic header format
 ;;;_   = allout-regexp
 (defvar allout-regexp ""
-  "*Regular expression to match the beginning of a heading line.
+  "Regular expression to match the beginning of a heading line.
 
 Any line whose beginning matches this regexp is considered a
 heading.  This var is set according to the user configuration vars
@@ -961,7 +965,7 @@ and `allout-distinctive-bullets-string'.")
 (make-variable-buffer-local 'allout-bullets-string-len)
 ;;;_   = allout-depth-specific-regexp
 (defvar allout-depth-specific-regexp ""
-  "*Regular expression to match a heading line prefix for a particular depth.
+  "Regular expression to match a heading line prefix for a particular depth.
 
 This expression is used to search for depth-specific topic
 headers at depth 2 and greater.  Use `allout-depth-one-regexp'
@@ -974,7 +978,7 @@ topic prefix to be matched.")
 (make-variable-buffer-local 'allout-depth-specific-regexp)
 ;;;_   = allout-depth-one-regexp
 (defvar allout-depth-one-regexp ""
-  "*Regular expression to match a heading line prefix for depth one.
+  "Regular expression to match a heading line prefix for depth one.
 
 This var is set according to the user configuration vars by
 `set-allout-regexp'.  It is prepared with format strings for two
@@ -1399,19 +1403,21 @@ their settings before allout-mode was started."
      ,expr))
 ;;;_   = allout-mode-hook
 (defvar allout-mode-hook nil
-  "*Hook that's run when allout mode starts.")
+  "Hook run when allout mode starts.")
 ;;;_   = allout-mode-deactivate-hook
-(defvar allout-mode-deactivate-hook nil
-  "*Hook that's run when allout mode ends.")
 (define-obsolete-variable-alias 'allout-mode-deactivate-hook
   'allout-mode-off-hook "24.1")
+(defvar allout-mode-deactivate-hook nil
+  "Hook run when allout mode ends.")
 ;;;_   = allout-exposure-category
 (defvar allout-exposure-category nil
   "Symbol for use as allout invisible-text overlay category.")
-;;;_   = allout-exposure-change-hook
-(defvar allout-exposure-change-hook nil
-  "*Hook that's run after allout outline subtree exposure changes.
 
+;;;_   = allout-exposure-change-functions
+(define-obsolete-variable-alias 'allout-exposure-change-hook
+  'allout-exposure-change-functions "24.3")
+(defcustom allout-exposure-change-functions nil
+  "Abnormal hook run after allout outline subtree exposure changes.
 It is run at the conclusion of `allout-flag-region'.
 
 Functions on the hook must take three arguments:
@@ -1420,21 +1426,31 @@ Functions on the hook must take three arguments:
  - TO -- integer indicating the point of the end of the change.
  - FLAG -- change mode: nil for exposure, otherwise concealment.
 
-This hook might be invoked multiple times by a single command.")
-;;;_   = allout-structure-added-hook
-(defvar allout-structure-added-hook nil
-  "*Hook that's run after addition of items to the outline.
+This hook might be invoked multiple times by a single command."
+  :type 'hook
+  :group 'allout
+  :version "24.3")
 
+;;;_   = allout-structure-added-functions
+(define-obsolete-variable-alias 'allout-structure-added-hook
+  'allout-structure-added-functions "24.3")
+(defcustom allout-structure-added-functions nil
+  "Abnormal hook run after adding items to an Allout outline.
 Functions on the hook should take two arguments:
 
  - NEW-START -- integer indicating position of start of the first new item.
  - NEW-END -- integer indicating position of end of the last new item.
 
-This hook might be invoked multiple times by a single command.")
-;;;_   = allout-structure-deleted-hook
-(defvar allout-structure-deleted-hook nil
-  "*Hook that's run after disciplined deletion of subtrees from the outline.
+This hook might be invoked multiple times by a single command."
+  :type 'hook
+  :group 'allout
+  :version "24.3")
 
+;;;_   = allout-structure-deleted-functions
+(define-obsolete-variable-alias 'allout-structure-deleted-hook
+  'allout-structure-deleted-functions "24.3")
+(defcustom allout-structure-deleted-functions nil
+  "Abnormal hook run after deleting subtrees from an Allout outline.
 Functions on the hook must take two arguments:
 
  - DEPTH -- integer indicating the depth of the subtree that was deleted.
@@ -1443,11 +1459,16 @@ Functions on the hook must take two arguments:
 Some edits that remove or invalidate items may be missed by this hook:
 specifically edits that native allout routines do not control.
 
-This hook might be invoked multiple times by a single command.")
-;;;_   = allout-structure-shifted-hook
-(defvar allout-structure-shifted-hook nil
-  "*Hook that's run after shifting of items in the outline.
+This hook might be invoked multiple times by a single command."
+  :type 'hook
+  :group 'allout
+  :version "24.3")
 
+;;;_   = allout-structure-shifted-functions
+(define-obsolete-variable-alias 'allout-structure-shifted-hook
+  'allout-structure-shifted-functions "24.3")
+(defcustom allout-structure-shifted-functions nil
+  "Abnormal hook run after shifting items in an Allout outline.
 Functions on the hook should take two arguments:
 
  - DEPTH-CHANGE -- integer indicating depth increase, negative for decrease
@@ -1456,20 +1477,27 @@ Functions on the hook should take two arguments:
 Some edits that shift items can be missed by this hook: specifically edits
 that native allout routines do not control.
 
-This hook might be invoked multiple times by a single command.")
+This hook might be invoked multiple times by a single command."
+  :type 'hook
+  :group 'allout
+  :version "24.3")
+
 ;;;_   = allout-after-copy-or-kill-hook
-(defvar allout-after-copy-or-kill-hook nil
-  "*Hook that's run after copying outline text.
+(defcustom allout-after-copy-or-kill-hook nil
+  "Normal hook run after copying outline text.."
+  :type 'hook
+  :group 'allout
+  :version "24.3")
 
-Functions on the hook should not require any arguments.")
 ;;;_   = allout-post-undo-hook
-(defvar allout-post-undo-hook nil
-  "*Hook that's run after undo activity.
-
+(defcustom allout-post-undo-hook nil
+  "Normal hook run after undo activity.
 The item that's current when the hook is run *may* be the one
-that was affected by the undo.
+that was affected by the undo.."
+  :type 'hook
+  :group 'allout
+  :version "24.3")
 
-Functions on the hook should not require any arguments.")
 ;;;_   = allout-outside-normal-auto-fill-function
 (defvar allout-outside-normal-auto-fill-function nil
   "Value of `normal-auto-fill-function' outside of allout mode.
@@ -1494,8 +1522,8 @@ The verifier string is retained as an Emacs file variable, as well as in
 the Emacs buffer state, if file variable adjustments are enabled.  See
 `allout-enable-file-variable-adjustment' for details about that.")
 (make-variable-buffer-local 'allout-passphrase-verifier-string)
-(make-obsolete 'allout-passphrase-verifier-string
-               'allout-passphrase-verifier-string "23.3")
+(make-obsolete-variable 'allout-passphrase-verifier-string
+			'allout-passphrase-verifier-string "23.3")
 ;;;###autoload
 (put 'allout-passphrase-verifier-string 'safe-local-variable 'stringp)
 ;;;_   = allout-passphrase-hint-string
@@ -1510,8 +1538,8 @@ state, if file variable adjustments are enabled.  See
 `allout-enable-file-variable-adjustment' for details about that.")
 (make-variable-buffer-local 'allout-passphrase-hint-string)
 (setq-default allout-passphrase-hint-string "")
-(make-obsolete 'allout-passphrase-hint-string
-               'allout-passphrase-hint-string "23.3")
+(make-obsolete-variable 'allout-passphrase-hint-string
+			'allout-passphrase-hint-string "23.3")
 ;;;###autoload
 (put 'allout-passphrase-hint-string 'safe-local-variable 'stringp)
 ;;;_   = allout-after-save-decrypt
@@ -1629,10 +1657,9 @@ and the place for the cursor after the decryption is done."
 (defmacro allout-called-interactively-p ()
   "A version of `called-interactively-p' independent of Emacs version."
   ;; ... to ease maintenance of allout without betraying deprecation.
-  (if (equal (subr-arity (symbol-function 'called-interactively-p))
-             '(0 . 0))
-      '(called-interactively-p)
-    '(called-interactively-p 'interactive)))
+  (if (ignore-errors (called-interactively-p 'interactive) t)
+      '(called-interactively-p 'interactive)
+    '(called-interactively-p)))
 ;;;_   = allout-inhibit-aberrance-doublecheck nil
 ;; In some exceptional moments, disparate topic depths need to be allowed
 ;; momentarily, eg when one topic is being yanked into another and they're
@@ -1660,11 +1687,10 @@ from what it did before, for backwards compatibility.
 
 MODE is the activation mode - see `allout-auto-activation' for
 valid values."
-
+  (declare (obsolete allout-auto-activation "23.3"))
   (custom-set-variables (list 'allout-auto-activation (format "%s" mode)))
   (format "%s" mode))
-(make-obsolete 'allout-init
-               "customize 'allout-auto-activation' instead." "23.3")
+
 ;;;_  > allout-setup-menubar ()
 (defun allout-setup-menubar ()
   "Populate the current buffer's menubar with `allout-mode' stuff."
@@ -1879,10 +1905,10 @@ without changes to the allout core.  Here are key ones:
 `allout-mode-hook'
 `allout-mode-deactivate-hook' (deprecated)
 `allout-mode-off-hook'
-`allout-exposure-change-hook'
-`allout-structure-added-hook'
-`allout-structure-deleted-hook'
-`allout-structure-shifted-hook'
+`allout-exposure-change-functions'
+`allout-structure-added-functions'
+`allout-structure-deleted-functions'
+`allout-structure-shifted-functions'
 `allout-after-copy-or-kill-hook'
 `allout-post-undo-hook'
 
@@ -3841,7 +3867,7 @@ Nuances:
                           (allout-show-children)))
       (end-of-line)
 
-      (run-hook-with-args 'allout-structure-added-hook start end)
+      (run-hook-with-args 'allout-structure-added-functions start end)
       )
     )
   )
@@ -3966,7 +3992,7 @@ Note that refill of indented paragraphs is not done."
 						nil	;;; number-control
 						nil	;;; index
 						t)	;;; do-successors
-                      (run-hook-with-args 'allout-exposure-change-hook
+                      (run-hook-with-args 'allout-exposure-change-functions
                                           from to t))
       (setq arg (1- arg))
       (if (<= arg 0)
@@ -4067,7 +4093,7 @@ this function."
                (not (allout-encrypted-topic-p)))
 	  (allout-reindent-body current-depth new-depth))
 
-      (run-hook-with-args 'allout-exposure-change-hook mb me nil)
+      (run-hook-with-args 'allout-exposure-change-functions mb me nil)
 
       ;; Recursively rectify successive siblings of orig topic if
       ;; caller elected for it:
@@ -4329,7 +4355,7 @@ the file can be adjusted to any positive depth, however."
                   (allout-show-children))))))
     (let ((where (point)))
       (allout-rebullet-topic 1 (and (> arg 1) 'sans-offspring))
-      (run-hook-with-args 'allout-structure-shifted-hook arg where))))
+      (run-hook-with-args 'allout-structure-shifted-functions arg where))))
 ;;;_    > allout-shift-out (arg)
 (defun allout-shift-out (arg)
   "Decrease depth of current heading and any topics collapsed within it.
@@ -4369,7 +4395,7 @@ subtopics into siblings of the item."
                   (goto-char child-point)
                   (allout-shift-out 1))))
           (allout-rebullet-topic (* arg -1))))
-      (run-hook-with-args 'allout-structure-shifted-hook (* arg -1) where))))
+      (run-hook-with-args 'allout-structure-shifted-functions (* arg -1) where))))
 ;;;_   : Surgery (kill-ring) functions with special provisions for outlines:
 ;;;_    > allout-kill-line (&optional arg)
 (defun allout-kill-line (&optional arg)
@@ -4404,7 +4430,7 @@ subtopics into siblings of the item."
               (if (not (save-match-data (looking-at allout-regexp)))
                   (allout-next-heading))
               (allout-renumber-to-depth depth)))
-        (run-hook-with-args 'allout-structure-deleted-hook depth (point))))))
+        (run-hook-with-args 'allout-structure-deleted-functions depth (point))))))
 ;;;_    > allout-copy-line-as-kill ()
 (defun allout-copy-line-as-kill ()
   "Like `allout-kill-topic', but save to kill ring instead of deleting."
@@ -4452,7 +4478,7 @@ Topic exposure is marked with text-properties, to be used by
 
       (save-excursion
         (allout-renumber-to-depth depth))
-      (run-hook-with-args 'allout-structure-deleted-hook depth (point)))))
+      (run-hook-with-args 'allout-structure-deleted-functions depth (point)))))
 ;;;_    > allout-copy-topic-as-kill ()
 (defun allout-copy-topic-as-kill ()
   "Like `allout-kill-topic', but save to kill ring instead of deleting."
@@ -4664,7 +4690,7 @@ however, are left exactly like normal, non-allout-specific yanks."
         (allout-deannotate-hidden (allout-mark-marker t) (point)))
       (if (not resituate)
           (exchange-point-and-mark))
-      (run-hook-with-args 'allout-structure-added-hook subj-beg subj-end))))
+      (run-hook-with-args 'allout-structure-added-functions subj-beg subj-end))))
 ;;;_    > allout-yank (&optional arg)
 (defun allout-yank (&optional arg)
   "`allout-mode' yank, with depth and numbering adjustment of yanked topics.
@@ -4761,9 +4787,9 @@ by pops to non-distinctive yanks.  Bug..."
 ;;;_   > allout-flag-region (from to flag)
 (defun allout-flag-region (from to flag)
   "Conceal text between FROM and TO if FLAG is non-nil, else reveal it.
-
-Exposure-change hook `allout-exposure-change-hook' is run with the same
-arguments as this function, after the exposure changes are made."
+After the exposure changes are made, run the abnormal hook
+`allout-exposure-change-functions' with the same arguments as
+this function."
 
   ;; We use outline invisibility spec.
   (remove-overlays from to 'category 'allout-exposure-category)
@@ -4779,7 +4805,7 @@ arguments as this function, after the exposure changes are made."
                 (overlay-put o (pop props) (pop props))
               (error nil))))))
     (setq allout-this-command-hid-text t))
-  (run-hook-with-args 'allout-exposure-change-hook from to flag))
+  (run-hook-with-args 'allout-exposure-change-functions from to flag))
 ;;;_   > allout-flag-current-subtree (flag)
 (defun allout-flag-current-subtree (flag)
   "Conceal currently-visible topic's subtree if FLAG non-nil, else reveal it."
@@ -5284,11 +5310,11 @@ Examples:
         Expose children and grandchildren of first topic at current
 	level, and expose children of subsequent topics at current
 	level *except* for the last, which should be opened completely."
-  (list 'save-excursion
-	'(if (not (or (allout-goto-prefix-doublechecked)
-		      (allout-next-heading)))
-	     (error "allout-new-exposure: Can't find any outline topics"))
-	(list 'allout-expose-topic (list 'quote spec))))
+  `(save-excursion
+     (if (not (or (allout-goto-prefix-doublechecked)
+		  (allout-next-heading)))
+	 (error "allout-new-exposure: Can't find any outline topics"))
+     (allout-expose-topic ',spec)))
 
 ;;;_ #7 Systematic outline presentation -- copying, printing, flattening
 
@@ -6018,7 +6044,7 @@ See `allout-toggle-current-subtree-encryption' for more details."
           (allout-inhibit-auto-save-info-for-decryption was-buffer-saved-size)
         (allout-maybe-resume-auto-save-info-after-encryption))
 
-      (run-hook-with-args 'allout-structure-added-hook
+      (run-hook-with-args 'allout-structure-added-functions
                           bullet-pos subtree-end))))
 ;;;_  > allout-encrypt-string (text decrypt allout-buffer keymode-cue
 ;;;                                 &optional rejected)

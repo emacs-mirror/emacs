@@ -1,6 +1,6 @@
 # -*- Makefile -*- for the GNU Emacs Lisp Reference Manual.
 
-# Copyright (C) 2003-2011  Free Software Foundation, Inc.
+# Copyright (C) 2003-2012 Free Software Foundation, Inc.
 
 # This file is part of GNU Emacs.
 
@@ -28,6 +28,9 @@ emacsdir = $(srcdir)/../emacs
 # Directory with the (customized) texinfo.tex file.
 texinfodir = $(srcdir)/../misc
 
+INFO_EXT=.info
+INFO_OPTS=--no-split
+
 # Redefine `TEX' if `tex' does not invoke plain TeX.  For example:
 # TEX=platex
 TEX=tex
@@ -38,13 +41,8 @@ MAKEINFO_OPTS = --force --enable-encoding  -I$(srcdir) -I$(emacsdir)
 # The environment variable and its value to add $(srcdir) to the path
 # searched for TeX input files.
 texinputdir = $(srcdir)\..\..\nt\envadd.bat \
-		"TEXINPUTS=$(srcdir);$(texinputdir);$(TEXINPUTS)" \
+		"TEXINPUTS=$(srcdir);$(texinfodir);$(emacsdir);$(TEXINPUTS)" \
 		"MAKEINFO=$(MAKEINFO) $(MAKEINFO_OPTS)" /C
-
-# The name of the manual:
-VERSION=2.9
-## FIXME can this be set by configure, as per Makefile.in?
-manual = elisp-manual-23-$(VERSION)
 
 # List of all the texinfo files in the manual:
 
@@ -53,7 +51,6 @@ srcs = \
   $(srcdir)/abbrevs.texi \
   $(srcdir)/advice.texi \
   $(srcdir)/anti.texi \
-  $(srcdir)/back.texi \
   $(srcdir)/backups.texi \
   $(srcdir)/buffers.texi \
   $(srcdir)/commands.texi \
@@ -77,7 +74,6 @@ srcs = \
   $(srcdir)/keymaps.texi \
   $(srcdir)/lists.texi \
   $(srcdir)/loading.texi \
-  $(srcdir)/locals.texi \
   $(srcdir)/macros.texi \
   $(srcdir)/maps.texi \
   $(srcdir)/markers.texi \
@@ -109,13 +105,13 @@ srcs = \
 
 # The info file is named `elisp'.
 
-info: $(infodir)/elisp
+info: $(infodir)/elisp$(INFO_EXT)
 
 $(infodir)/dir:
 	$(INSTALL_INFO) --info-dir=$(infodir) $(infodir)/elisp
 
-$(infodir)/elisp: $(srcs)
-	$(MAKEINFO) $(MAKEINFO_OPTS) -o $(infodir)/elisp $(srcdir)/elisp.texi
+$(infodir)/elisp$(INFO_EXT): $(srcs)
+	$(MAKEINFO) $(MAKEINFO_OPTS) $(INFO_OPTS) -o $@ $(srcdir)/elisp.texi
 
 elisp.dvi: $(srcs)
 	$(texinputdir) $(TEX) $(srcdir)/elisp.texi
@@ -130,4 +126,4 @@ distclean: clean
 	- $(DEL) makefile
 
 maintainer-clean: distclean
-	- $(DEL) elisp elisp-? elisp-?? elisp.dvi elisp.oaux
+	- $(DEL) elisp$(INFO_EXT) elisp$(INFO_EXT)-? elisp$(INFO_EXT)-?? elisp.dvi elisp.oaux

@@ -1,6 +1,6 @@
 ;;; cc-vars.el --- user customization variables for CC Mode
 
-;; Copyright (C) 1985, 1987, 1992-2011  Free Software Foundation, Inc.
+;; Copyright (C) 1985, 1987, 1992-2012  Free Software Foundation, Inc.
 
 ;; Authors:    2002- Alan Mackenzie
 ;;             1998- Martin Stjernholm
@@ -49,16 +49,6 @@
   (require 'custom)
   (require 'widget))
 
-(cc-eval-when-compile
-  ;; Need the function form of `backquote', which isn't standardized
-  ;; between Emacsen.  It's called `bq-process' in XEmacs, and
-  ;; `backquote-process' in Emacs.  `backquote-process' returns a
-  ;; slightly more convoluted form, so let `bq-process' be the norm.
-  (if (fboundp 'backquote-process)
-      (cc-bytecomp-defmacro bq-process (form)
-	`(cdr (backquote-process ,form)))))
-
-
 ;;; Helpers
 
 ;; This widget exists in newer versions of the Custom library
@@ -349,6 +339,7 @@ Its value is one of:
  go-outward  -- Nested functions are also recognized.  Should a function
                 command hit the beginning/end of a nested scope, it will
                 carry on at the less nested level."
+  :version "24.1"
   :type '(radio
 	  (const :tag "Functions are at the top-level" t)
 	  (const :tag "Functions are also recognized inside declaration scopes" go-outward))

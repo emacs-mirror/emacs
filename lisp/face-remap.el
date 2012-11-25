@@ -1,6 +1,6 @@
-;;; face-remap.el --- Functions for managing `face-remapping-alist'
+;;; face-remap.el --- Functions for managing `face-remapping-alist'  -*- lexical-binding: t -*-
 ;;
-;; Copyright (C) 2008-2011 Free Software Foundation, Inc.
+;; Copyright (C) 2008-2012 Free Software Foundation, Inc.
 ;;
 ;; Author: Miles Bader <miles@gnu.org>
 ;; Keywords: faces, face remapping, display, user commands
@@ -106,21 +106,25 @@ The list structure of ENTRY may be destructively modified."
 ;;;###autoload
 (defun face-remap-add-relative (face &rest specs)
   "Add a face remapping entry of FACE to SPECS in the current buffer.
-
-Return a cookie which can be used to delete the remapping with
+Return a cookie which can be used to delete this remapping with
 `face-remap-remove-relative'.
 
-SPECS can be any value suitable for the `face' text property,
-including a face name, a list of face names, or a face-attribute
-property list.  The attributes given by SPECS will be merged with
-any other currently active face remappings of FACE, and with the
-global definition of FACE.  An attempt is made to sort multiple
-entries so that entries with relative face-attributes are applied
-after entries with absolute face-attributes.
+The remaining arguments, SPECS, should form a list of faces.
+Each list element should be either a face name or a property list
+of face attribute/value pairs.  If more than one face is listed,
+that specifies an aggregate face, in the same way as in a `face'
+text property, except for possible priority changes noted below.
 
-The base (lowest priority) remapping may be set to a specific
-value, instead of the default of the global face definition,
-using `face-remap-set-base'."
+The face remapping specified by SPECS takes effect alongside the
+remappings from other calls to `face-remap-add-relative' for the
+same FACE, as well as the normal definition of FACE (at lowest
+priority).  This function tries to sort multiple remappings for
+the same face, so that remappings specifying relative face
+attributes are applied after remappings specifying absolute face
+attributes.
+
+The base (lowest priority) remapping may be set to something
+other than the normal definition of FACE via `face-remap-set-base'."
   (while (and (consp specs) (null (cdr specs)))
     (setq specs (car specs)))
   (make-local-variable 'face-remapping-alist)
@@ -128,7 +132,10 @@ using `face-remap-set-base'."
     (when (null entry)
       (setq entry (list face face))	; explicitly merge with global def
       (push entry face-remapping-alist))
-    (setcdr entry (face-remap-order (cons specs (cdr entry))))
+    (let ((faces (cdr entry)))
+      (if (symbolp faces)
+	  (setq faces (list faces)))
+      (setcdr entry (face-remap-order (cons specs faces))))
     (cons face specs)))
 
 (defun face-remap-remove-relative (cookie)
@@ -148,7 +155,9 @@ COOKIE should be the return value from that function."
 
 ;;;###autoload
 (defun face-remap-reset-base (face)
-  "Set the base remapping of FACE to inherit from FACE's global definition."
+  "Set the base remapping of FACE to the normal definition of FACE.
+This causes the remappings specified by `face-remap-add-relative'
+to apply on top of the normal definition of FACE."
   (let ((entry (assq face face-remapping-alist)))
     (when entry
       ;; If there's nothing except a base remapping, we simply remove
@@ -163,10 +172,17 @@ COOKIE should be the return value from that function."
 ;;;###autoload
 (defun face-remap-set-base (face &rest specs)
   "Set the base remapping of FACE in the current buffer to SPECS.
-If SPECS is empty, the default base remapping is restored, which
-inherits from the global definition of FACE; note that this is
-different from SPECS containing a single value `nil', which does
-not inherit from the global definition of FACE."
+This causes the remappings specified by `face-remap-add-relative'
+to apply on top of the face specification given by SPECS.
+
+The remaining arguments, SPECS, should form a list of faces.
+Each list element should be either a face name or a property list
+of face attribute/value pairs, like in a `face' text property.
+
+If SPECS is empty, call `face-remap-reset-base' to use the normal
+definition of FACE as the base remapping; note that this is
+different from SPECS containing a single value `nil', which means
+not to inherit from the global definition of FACE at all."
   (while (and (consp specs) (not (null (car specs))) (null (cdr specs)))
     (setq specs (car specs)))
   (if (or (null specs)
@@ -205,6 +221,9 @@ Each positive or negative step scales the default face height by this amount."
 
 (define-minor-mode text-scale-mode
   "Minor mode for displaying buffer text in a larger/smaller font.
+With a prefix argument ARG, enable the mode if ARG is positive,
+and disable it otherwise.  If called from Lisp, enable the mode
+if ARG is omitted or nil.
 
 The amount of scaling is determined by the variable
 `text-scale-mode-amount': one step scales the global default
@@ -269,7 +288,9 @@ See `text-scale-increase' for more details."
 ;;;###autoload (define-key ctl-x-map [(control ?0)] 'text-scale-adjust)
 ;;;###autoload
 (defun text-scale-adjust (inc)
-  "Increase or decrease the height of the default face in the current buffer.
+  "Adjust the height of the default face by INC.
+
+INC may be passed as a numeric prefix argument.
 
 The actual adjustment made depends on the final component of the
 key-binding used to invoke the command, with all modifiers removed:
@@ -278,9 +299,11 @@ key-binding used to invoke the command, with all modifiers removed:
    -      Decrease the default face height by one step
    0      Reset the default face height to the global default
 
-Then, continue to read input events and further adjust the face
-height as long as the input event read (with all modifiers removed)
-is one of the above.
+When adjusting with `+' or `-', continue to read input events and
+further adjust the face height as long as the input event read
+\(with all modifiers removed) is `+' or `-'.
+
+When adjusting with `0', immediately finish.
 
 Each step scales the height of the default face by the variable
 `text-scale-mode-step' (a negative number of steps decreases the
@@ -293,27 +316,25 @@ even when it is bound in a non-top-level keymap.  For binding in
 a top-level keymap, `text-scale-increase' or
 `text-scale-decrease' may be more appropriate."
   (interactive "p")
-  (let ((first t)
-	(step t)
-	(ev last-command-event)
+  (let ((ev last-command-event)
 	(echo-keystrokes nil))
-    (while step
-      (let ((base (event-basic-type ev)))
-	(cond ((or (eq base ?+) (eq base ?=))
-	       (setq step inc))
-	      ((eq base ?-)
-	       (setq step (- inc)))
-	      ((eq base ?0)
-	       (setq step 0))
-	      (first
-	       (setq step inc))
-	      (t
-	       (setq step nil))))
-      (when step
-	(text-scale-increase step)
-	(setq inc 1 first nil)
-	(setq ev (read-event "+,-,0 for further adjustment: "))))
-    (push ev unread-command-events)))
+    (let* ((base (event-basic-type ev))
+           (step
+            (pcase base
+              ((or ?+ ?=) inc)
+              (?- (- inc))
+              (?0 0)
+              (t inc))))
+      (text-scale-increase step)
+      ;; (unless (zerop step)
+      (message "Use +,-,0 for further adjustment")
+      (set-temporary-overlay-map
+       (let ((map (make-sparse-keymap)))
+         (dolist (mods '(() (control)))
+           (dolist (key '(?- ?+ ?= ?0)) ;; = is often unshifted +.
+             (define-key map (vector (append mods (list key)))
+               (lambda () (interactive) (text-scale-adjust (abs inc))))))
+         map))))) ;; )
 
 
 ;; ----------------------------------------------------------------
@@ -334,8 +355,10 @@ plist, etc."
 ;;;###autoload
 (define-minor-mode buffer-face-mode
   "Minor mode for a buffer-specific default face.
-When enabled, the face specified by the variable
-`buffer-face-mode-face' is used to display the buffer text."
+With a prefix argument ARG, enable the mode if ARG is positive,
+and disable it otherwise.  If called from Lisp, enable the mode
+if ARG is omitted or nil.  When enabled, the face specified by the
+variable `buffer-face-mode-face' is used to display the buffer text."
   :lighter " BufFace"
   (when buffer-face-mode-remapping
     (face-remap-remove-relative buffer-face-mode-remapping))
@@ -347,12 +370,14 @@ When enabled, the face specified by the variable
 ;;;###autoload
 (defun buffer-face-set (&rest specs)
   "Enable `buffer-face-mode', using face specs SPECS.
-SPECS can be any value suitable for the `face' text property,
-including a face name, a list of face names, or a face-attribute
-If SPECS is nil, then `buffer-face-mode' is disabled.
+Each argument in SPECS should be a face, i.e. either a face name
+or a property list of face attributes and values.  If more than
+one face is listed, that specifies an aggregate face, like in a
+`face' text property.  If SPECS is nil or omitted, disable
+`buffer-face-mode'.
 
-This function will make the variable `buffer-face-mode-face'
-buffer local, and set it to FACE."
+This function makes the variable `buffer-face-mode-face' buffer
+local, and sets it to FACE."
   (interactive (list (read-face-name "Set buffer face")))
   (while (and (consp specs) (null (cdr specs)))
     (setq specs (car specs)))
@@ -364,8 +389,10 @@ buffer local, and set it to FACE."
 ;;;###autoload
 (defun buffer-face-toggle (&rest specs)
   "Toggle `buffer-face-mode', using face specs SPECS.
-SPECS can be any value suitable for the `face' text property,
-including a face name, a list of face names, or a face-attribute
+Each argument in SPECS should be a face, i.e. either a face name
+or a property list of face attributes and values.  If more than
+one face is listed, that specifies an aggregate face, like in a
+`face' text property.
 
 If `buffer-face-mode' is already enabled, and is currently using
 the face specs SPECS, then it is disabled; if buffer-face-mode is
@@ -388,10 +415,12 @@ buffer local, and set it to SPECS."
 ARG controls whether the mode is enabled or disabled, and is
 interpreted in the usual manner for minor-mode commands.
 
-SPECS can be any value suitable for the `face' text property,
-including a face name, a list of face names, or a face-attribute
+SPECS can be any value suitable for a `face' text property,
+including a face name, a plist of face attributes and values, or
+a list of faces.
 
-If INTERACTIVE is non-nil, a message will be displayed describing the result.
+If INTERACTIVE is non-nil, display a message describing the
+result.
 
 This is a wrapper function which calls `buffer-face-set' or
 `buffer-face-toggle' (depending on ARG), and prints a status

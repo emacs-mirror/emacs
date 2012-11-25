@@ -1,11 +1,10 @@
 ;;; ob-css.el --- org-babel functions for css evaluation
 
-;; Copyright (C) 2009-2011  Free Software Foundation, Inc.
+;; Copyright (C) 2009-2012  Free Software Foundation, Inc.
 
 ;; Author: Eric Schulte
 ;; Keywords: literate programming, reproducible research
 ;; Homepage: http://orgmode.org
-;; Version: 7.7
 
 ;; This file is part of GNU Emacs.
 
@@ -35,7 +34,7 @@
 (defun org-babel-execute:css (body params)
   "Execute a block of CSS code.
 This function is called by `org-babel-execute-src-block'."
- body)
+  body)
 
 (defun org-babel-prep-session:css (session params)
   "Return an error if the :session header argument is set.

@@ -94,7 +94,7 @@ This file documents Calc, the GNU Emacs calculator, included with
 GNU Emacs @value{EMACSVER}.
 @end ifnotinfo
 
-Copyright @copyright{} 1990-1991, 2001-2011 Free Software Foundation, Inc.
+Copyright @copyright{} 1990-1991, 2001-2012 Free Software Foundation, Inc.
 
 @quotation
 Permission is granted to copy, distribute and/or modify this document
@@ -218,7 +218,7 @@ and what are the various ways that it can be used.
 * Notations Used in This Manual::
 * Demonstration of Calc::
 * Using Calc::
-* History and Acknowledgements::
+* History and Acknowledgments::
 @end menu
 
 @node What is Calc, About This Manual, Getting Started, Getting Started
@@ -557,7 +557,7 @@ these equations for the variables @expr{x} and @expr{y}.
 Type @kbd{d B} to view the solutions in more readable notation.
 Type @w{@kbd{d C}} to view them in C language notation, @kbd{d T}
 to view them in the notation for the @TeX{} typesetting system,
-and @kbd{d L} to view them in the notation for the La@TeX{} typesetting
+and @kbd{d L} to view them in the notation for the @LaTeX{} typesetting
 system.  Type @kbd{d N} to return to normal notation.
 
 @noindent
@@ -582,7 +582,7 @@ about the @w{@kbd{t N}} command, @kbd{h f sqrt @key{RET}} to read about the
 Press @key{DEL} repeatedly to remove any leftover results from the stack.
 To exit from Calc, press @kbd{q} or @kbd{C-x * c} again.
 
-@node Using Calc, History and Acknowledgements, Demonstration of Calc, Getting Started
+@node Using Calc, History and Acknowledgments, Demonstration of Calc, Getting Started
 @section Using Calc
 
 @noindent
@@ -910,12 +910,12 @@ The derivative of
 
 is
 
-1 / ln(x) x
+1 / x ln(x)
 @end group
 @end smallexample
 
 (Note that by default, Calc gives division lower precedence than multiplication,
-so that @samp{1 / ln(x) x} is equivalent to @samp{1 / (ln(x) x)}.)
+so that @samp{1 / x ln(x)} is equivalent to @samp{1 / (x ln(x))}.)
 
 To make this look nicer, you might want to press @kbd{d =} to center
 the formula, and even @kbd{d B} to use Big display mode.
@@ -932,14 +932,14 @@ is
 
                                        1
                                     -------
-                                    ln(x) x
+                                    x ln(x)
 @end group
 @end smallexample
 
 Calc has added annotations to the file to help it remember the modes
 that were used for this formula.  They are formatted like comments
 in the @TeX{} typesetting language, just in case you are using @TeX{} or
-La@TeX{}. (In this example @TeX{} is not being used, so you might want
+@LaTeX{}. (In this example @TeX{} is not being used, so you might want
 to move these comments up to the top of the file or otherwise put them
 out of the way.)
 
@@ -964,7 +964,9 @@ and keyboard will revert to the way they were before.
 The related command @kbd{C-x * w} operates on a single word, which
 generally means a single number, inside text.  It searches for an
 expression which ``looks'' like a number containing the point.
-Here's an example of its use:
+Here's an example of its use (before you try this, remove the Calc
+annotations or use a new buffer so that the extra settings in the
+annotations don't take effect):
 
 @smallexample
 A slope of one-third corresponds to an angle of 1 degrees.
@@ -1148,8 +1150,8 @@ and record them as the current keyboard macro.
 its initial state:  Empty stack, and initial mode settings.
 @end table
 
-@node History and Acknowledgements,  , Using Calc, Getting Started
-@section History and Acknowledgements
+@node History and Acknowledgments,  , Using Calc, Getting Started
+@section History and Acknowledgments
 
 @noindent
 Calc was originally started as a two-week project to occupy a lull
@@ -1175,15 +1177,16 @@ turned out to be more open-ended than one might have expected.
 
 Emacs Lisp didn't have built-in floating point math (now it does), so
 this had to be simulated in software.  In fact, Emacs integers would
-only comfortably fit six decimal digits or so---not enough for a decent
-calculator.  So I had to write my own high-precision integer code as
-well, and once I had this I figured that arbitrary-size integers were
-just as easy as large integers.  Arbitrary floating-point precision was
-the logical next step.  Also, since the large integer arithmetic was
-there anyway it seemed only fair to give the user direct access to it,
-which in turn made it practical to support fractions as well as floats.
-All these features inspired me to look around for other data types that
-might be worth having.
+only comfortably fit six decimal digits or so (at the time)---not
+enough for a decent calculator.  So I had to write my own
+high-precision integer code as well, and once I had this I figured
+that arbitrary-size integers were just as easy as large integers.
+Arbitrary floating-point precision was the logical next step.  Also,
+since the large integer arithmetic was there anyway it seemed only
+fair to give the user direct access to it, which in turn made it
+practical to support fractions as well as floats. All these features
+inspired me to look around for other data types that might be worth
+having.
 
 Around this time, my friend Rick Koshi showed me his nifty new HP-28
 calculator.  It allowed the user to manipulate formulas as well as
@@ -1359,15 +1362,14 @@ to control various modes of the Calculator.
 @subsection RPN Calculations and the Stack
 
 @cindex RPN notation
-@ifnottex
 @noindent
+@ifnottex
 Calc normally uses RPN notation.  You may be familiar with the RPN
 system from Hewlett-Packard calculators, FORTH, or PostScript.
 (Reverse Polish Notation, RPN, is named after the Polish mathematician
 Jan Lukasiewicz.)
 @end ifnottex
 @tex
-\noindent
 Calc normally uses RPN notation.  You may be familiar with the RPN
 system from Hewlett-Packard calculators, FORTH, or PostScript.
 (Reverse Polish Notation, RPN, is named after the Polish mathematician
@@ -1473,7 +1475,7 @@ multiplication.)  Figure it out by hand, then try it with Calc to see
 if you're right.  @xref{RPN Answer 1, 1}. (@bullet{})
 
 (@bullet{}) @strong{Exercise 2.}  Compute
-@texline @math{(2\times4) + (7\times9.4) + {5\over4}}
+@texline @math{(2\times4) + (7\times9.5) + {5\over4}}
 @infoline @expr{2*4 + 7*9.5 + 5/4}
 using the stack.  @xref{RPN Answer 2, 2}. (@bullet{})
 
@@ -1964,7 +1966,7 @@ values are left alone, even when you evaluate the formula.
 
 @smallexample
 @group
-1:  2 a + 2 b     1:  34 + 2 b
+1:  2 a + 2 b     1:  2 b + 34
     .                 .
 
  ' 2a+2b @key{RET}          =
@@ -1976,7 +1978,7 @@ alone, as are calls for which the value is undefined.
 
 @smallexample
 @group
-1:  2 + log10(0) + log10(x) + log10(5, 6) + foo(3)
+1:  log10(0) + log10(x) + log10(5, 6) + foo(3) + 2
     .
 
  ' log10(100) + log10(0) + log10(x) + log10(5,6) + foo(3) @key{RET}
@@ -4459,7 +4461,7 @@ date by one or several months.  @xref{Date Arithmetic}, for more.
 Friday the 13th?  @xref{Types Answer 5, 5}. (@bullet{})
 
 (@bullet{}) @strong{Exercise 6.}  How many leap years will there be
-between now and the year 10001 A.D.?  @xref{Types Answer 6, 6}. (@bullet{})
+between now and the year 10001 AD@?  @xref{Types Answer 6, 6}. (@bullet{})
 
 @cindex Slope and angle of a line
 @cindex Angle and slope of a line
@@ -4588,7 +4590,7 @@ that arises in the second one.
 @cindex Fermat, primality test of
 (@bullet{}) @strong{Exercise 10.}  A theorem of Pierre de Fermat
 says that
-@texline @w{@math{x^{n-1} \bmod n = 1}}
+@texline @math{x^{n-1} \bmod n = 1}
 @infoline @expr{x^(n-1) mod n = 1}
 if @expr{n} is a prime number and @expr{x} is an integer less than
 @expr{n}.  If @expr{n} is @emph{not} a prime number, this will
@@ -4704,19 +4706,17 @@ for them.
 
 @smallexample
 @group
-1:  20 degF       1:  11.1111 degC     1:  -20:3 degC    1:  -6.666 degC
+1:  20 degF       1:  11.1111 degC     1:  -6.666 degC
     .                 .                    .                 .
 
-  ' 20 degF @key{RET}       u c degC @key{RET}         U u t degC @key{RET}    c f
+  ' 20 degF @key{RET}       u c degC @key{RET}         U u t degC @key{RET}
 @end group
 @end smallexample
 
 @noindent
 First we convert a change of 20 degrees Fahrenheit into an equivalent
 change in degrees Celsius (or Centigrade).  Then, we convert the
-absolute temperature 20 degrees Fahrenheit into Celsius.  Since
-this comes out as an exact fraction, we then convert to floating-point
-for easier comparison with the other result.
+absolute temperature 20 degrees Fahrenheit into Celsius.
 
 For simple unit conversions, you can put a plain number on the stack.
 Then @kbd{u c} and @kbd{u t} will prompt for both old and new units.
@@ -4775,7 +4775,7 @@ formulas as regular data objects.
 
 @smallexample
 @group
-1:  2 x^2 - 6       1:  6 - 2 x^2       1:  (6 - 2 x^2) (3 x^2 + y)
+1:  2 x^2 - 6       1:  6 - 2 x^2       1:  (3 x^2 + y) (6 - 2 x^2)
     .                   .                   .
 
     ' 2x^2-6 @key{RET}        n                   ' 3x^2+y @key{RET} *
@@ -4791,7 +4791,7 @@ formulas.  Continuing with the formula from the last example,
 
 @smallexample
 @group
-1:  18 x^2 + 6 y - 6 x^4 - 2 x^2 y    1:  (18 - 2 y) x^2 - 6 x^4 + 6 y
+1:  18 x^2 - 6 x^4 + 6 y - 2 y x^2    1:  (18 - 2 y) x^2 - 6 x^4 + 6 y
     .                                     .
 
     a x                                   a c x @key{RET}
@@ -4849,17 +4849,17 @@ the other root(s), let's divide through by @expr{x} and then solve:
 
 @smallexample
 @group
-1:  (34 x - 24 x^3) / x    1:  34 x / x - 24 x^3 / x    1:  34 - 24 x^2
-    .                          .                            .
+1:  (34 x - 24 x^3) / x    1:  34 - 24 x^2
+    .                          .
 
-    ' x @key{RET} /                  a x                          a s
+    ' x @key{RET} /                  a x
 
 @end group
 @end smallexample
 @noindent
 @smallexample
 @group
-1:  34 - 24 x^2 = 0        1:  x = 1.19023
+1:  0.70588 x^2 = 1        1:  x = 1.19023
     .                          .
 
     0 a =  s 3                 a S x @key{RET}
@@ -4867,10 +4867,6 @@ the other root(s), let's divide through by @expr{x} and then solve:
 @end smallexample
 
 @noindent
-Notice the use of @kbd{a s} to ``simplify'' the formula.  When the
-default algebraic simplifications don't do enough, you can use
-@kbd{a s} to tell Calc to spend more time on the job.
-
 Now we compute the second derivative and plug in our values of @expr{x}:
 
 @smallexample
@@ -4905,7 +4901,7 @@ has a maximum value at @expr{x = 1.19023}.  (The function also has a
 local @emph{minimum} at @expr{x = 0}.)
 
 When we solved for @expr{x}, we got only one value even though
-@expr{34 - 24 x^2 = 0} is a quadratic equation that ought to have
+@expr{0.70588 x^2 = 1} is a quadratic equation that ought to have
 two solutions.  The reason is that @w{@kbd{a S}} normally returns a
 single ``principal'' solution.  If it needs to come up with an
 arbitrary sign (as occurs in the quadratic formula) it picks @expr{+}.
@@ -4914,7 +4910,7 @@ solution by pressing @kbd{H} (the Hyperbolic flag) before @kbd{a S}.
 
 @smallexample
 @group
-1:  34 - 24 x^2 = 0    1:  x = 1.19023 s1      1:  x = -1.19023
+1:  0.70588 x^2 = 1    1:  x = 1.19023 s1      1:  x = -1.19023
     .                      .                       .
 
     r 3                    H a S x @key{RET}  s 5        1 n  s l s1 @key{RET}
@@ -5026,7 +5022,7 @@ One more mode that makes reading formulas easier is Big mode.
 Here things like powers, square roots, and quotients and fractions
 are displayed in a two-dimensional pictorial form.  Calc has other
 language modes as well, such as C mode, FORTRAN mode, @TeX{} mode
-and La@TeX{} mode.
+and @LaTeX{} mode.
 
 @smallexample
 @group
@@ -5135,7 +5131,7 @@ also have used plain @kbd{v x} as follows:  @kbd{v x 10 @key{RET} 9 + .1 *}.)
 @smallexample
 @group
 2:  [1, 1.1, ... ]              1:  [0., 0.084941, 0.16993, ... ]
-1:  sin(x) ln(x)                    .
+1:  ln(x) sin(x)                    .
     .
 
     ' sin(x) ln(x) @key{RET}  s 1    m r  p 5 @key{RET}   V M $ @key{RET}
@@ -5168,7 +5164,7 @@ we're not doing too well.  Let's try another approach.
 
 @smallexample
 @group
-1:  sin(x) ln(x)    1:  0.84147 x - 0.84147 + 0.11957 (x - 1)^2 - ...
+1:  ln(x) sin(x)    1:  0.84147 x + 0.11957 (x - 1)^2 - ...
     .                   .
 
     r 1                 a t x=1 @key{RET} 4 @key{RET}
@@ -5277,60 +5273,43 @@ Suppose we want to simplify this trigonometric formula:
 
 @smallexample
 @group
-1:  2 / cos(x)^2 - 2 tan(x)^2
+1:  2 sec(x)^2 / tan(x)^2 - 2 / tan(x)^2
     .
 
-    ' 2/cos(x)^2 - 2tan(x)^2 @key{RET}   s 1
+    ' 2sec(x)^2/tan(x)^2 - 2/tan(x)^2 @key{RET}   s 1
 @end group
 @end smallexample
 
 @noindent
-If we were simplifying this by hand, we'd probably replace the
-@samp{tan} with a @samp{sin/cos} first, then combine over a common
-denominator.  The @kbd{I a s} command will do the former and the @kbd{a n}
-algebra command will do the latter, but we'll do both with rewrite
-rules just for practice.
+If we were simplifying this by hand, we'd probably combine over the common
+denominator.  The @kbd{a n} algebra command will do this, but we'll do
+it with a rewrite rule just for practice.
 
 Rewrite rules are written with the @samp{:=} symbol.
 
 @smallexample
 @group
-1:  2 / cos(x)^2 - 2 sin(x)^2 / cos(x)^2
-    .
-
-    a r tan(a) := sin(a)/cos(a) @key{RET}
-@end group
-@end smallexample
-
-@noindent
-(The ``assignment operator'' @samp{:=} has several uses in Calc.  All
-by itself the formula @samp{tan(a) := sin(a)/cos(a)} doesn't do anything,
-but when it is given to the @kbd{a r} command, that command interprets
-it as a rewrite rule.)
-
-The lefthand side, @samp{tan(a)}, is called the @dfn{pattern} of the
-rewrite rule.  Calc searches the formula on the stack for parts that
-match the pattern.  Variables in a rewrite pattern are called
-@dfn{meta-variables}, and when matching the pattern each meta-variable
-can match any sub-formula.  Here, the meta-variable @samp{a} matched
-the actual variable @samp{x}.
-
-When the pattern part of a rewrite rule matches a part of the formula,
-that part is replaced by the righthand side with all the meta-variables
-substituted with the things they matched.  So the result is
-@samp{sin(x) / cos(x)}.  Calc's normal algebraic simplifications then
-mix this in with the rest of the original formula.
-
-To merge over a common denominator, we can use another simple rule:
-
-@smallexample
-@group
-1:  (2 - 2 sin(x)^2) / cos(x)^2
+1:  (2 sec(x)^2 - 2) / tan(x)^2
     .
 
     a r a/x + b/x := (a+b)/x @key{RET}
 @end group
 @end smallexample
+
+@noindent
+(The ``assignment operator'' @samp{:=} has several uses in Calc.  All
+by itself the formula @samp{a/x + b/x := (a+b)/x} doesn't do anything,
+but when it is given to the @kbd{a r} command, that command interprets
+it as a rewrite rule.)
+
+The lefthand side, @samp{a/x + b/x}, is called the @dfn{pattern} of the
+rewrite rule.  Calc searches the formula on the stack for parts that
+match the pattern.  Variables in a rewrite pattern are called
+@dfn{meta-variables}, and when matching the pattern each meta-variable
+can match any sub-formula.  Here, the meta-variable @samp{a} matched
+the expression @samp{2 sec(x)^2}, the meta-variable @samp{b} matched
+the constant @samp{-2} and the meta-variable @samp{x} matched
+the expression @samp{tan(x)^2}.
 
 This rule points out several interesting features of rewrite patterns.
 First, if a meta-variable appears several times in a pattern, it must
@@ -5340,13 +5319,18 @@ denominators.
 
 Second, meta-variable names are independent from variables in the
 target formula.  Notice that the meta-variable @samp{x} here matches
-the subformula @samp{cos(x)^2}; Calc never confuses the two meanings of
+the subformula @samp{tan(x)^2}; Calc never confuses the two meanings of
 @samp{x}.
 
 And third, rewrite patterns know a little bit about the algebraic
 properties of formulas.  The pattern called for a sum of two quotients;
 Calc was able to match a difference of two quotients by matching
-@samp{a = 2}, @samp{b = -2 sin(x)^2}, and @samp{x = cos(x)^2}.
+@samp{a = 2 sec(x)^2}, @samp{b = -2}, and @samp{x = tan(x)^2}.
+
+When the pattern part of a rewrite rule matches a part of the formula,
+that part is replaced by the righthand side with all the meta-variables
+substituted with the things they matched.  So the result is
+@samp{(2 sec(x)^2 - 2) / tan(x)^2}.
 
 @c [fix-ref Algebraic Properties of Rewrite Rules]
 We could just as easily have written @samp{a/x - b/x := (a-b)/x} for
@@ -5356,19 +5340,19 @@ we could have used the @code{plain} symbol.  @xref{Algebraic Properties
 of Rewrite Rules}, for some examples of this.)
 
 One more rewrite will complete the job.  We want to use the identity
-@samp{sin(x)^2 + cos(x)^2 = 1}, but of course we must first rearrange
+@samp{tan(x)^2 + 1 = sec(x)^2}, but of course we must first rearrange
 the identity in a way that matches our formula.  The obvious rule
-would be @samp{@w{2 - 2 sin(x)^2} := 2 cos(x)^2}, but a little thought shows
-that the rule @samp{sin(x)^2 := 1 - cos(x)^2} will also work.  The
+would be @samp{@w{2 sec(x)^2 - 2} := 2 tan(x)^2}, but a little thought shows
+that the rule @samp{sec(x)^2 := 1 + tan(x)^2} will also work.  The
 latter rule has a more general pattern so it will work in many other
 situations, too.
 
 @smallexample
 @group
-1:  (2 + 2 cos(x)^2 - 2) / cos(x)^2           1:  2
-    .                                            .
+1:  2
+    .
 
-    a r sin(x)^2 := 1 - cos(x)^2 @key{RET}          a s
+    a r sec(x)^2 := 1 + tan(x)^2 @key{RET}
 @end group
 @end smallexample
 
@@ -5383,14 +5367,13 @@ having to retype it.
 
 @smallexample
 @group
-' tan(x) := sin(x)/cos(x) @key{RET}      s t tsc @key{RET}
-' a/x + b/x := (a+b)/x @key{RET}         s t merge @key{RET}
-' sin(x)^2 := 1 - cos(x)^2 @key{RET}     s t sinsqr @key{RET}
+' a/x + b/x := (a+b)/x @key{RET}          s t merge @key{RET}
+' sec(x)^2 := 1 + tan(x)^2 @key{RET}      s t secsqr @key{RET}
 
-1:  2 / cos(x)^2 - 2 tan(x)^2      1:  2
+1:  2 sec(x)^2 / tan(x)^2 - 2 / tan(x)^2    1:  2
     .                                  .
 
-    r 1                a r tsc @key{RET}  a r merge @key{RET}  a r sinsqr @key{RET}  a s
+    r 1                  a r merge @key{RET}  a r secsqr @key{RET}
 @end group
 @end smallexample
 
@@ -5420,20 +5403,20 @@ a variable containing a vector of rules.
 
 @smallexample
 @group
-1:  [tsc, merge, sinsqr]          1:  [tan(x) := sin(x) / cos(x), ... ]
+1:  [merge, secsqr]          1:  [a/x + b/x := (a + b)/x, ... ]
     .                                 .
 
-    ' [tsc,merge,sinsqr] @key{RET}          =
+    ' [merge,sinsqr] @key{RET}          =
 
 @end group
 @end smallexample
 @noindent
 @smallexample
 @group
-1:  1 / cos(x) - sin(x) tan(x)    1:  cos(x)
+1:  2 sec(x)^2 / tan(x)^2 - 2 / tan(x)^2     1:  2
     .                                 .
 
-    s t trig @key{RET}  r 1                 a r trig @key{RET}  a s
+    s t trig @key{RET}  r 1                  a r trig @key{RET}
 @end group
 @end smallexample
 
@@ -5451,10 +5434,10 @@ only one rewrite at a time.
 
 @smallexample
 @group
-1:  1 / cos(x) - sin(x)^2 / cos(x)    1:  (1 - sin(x)^2) / cos(x)
-    .                                     .
+1:  (2 sec(x)^2 - 2) / tan(x)^2         1:  2
+    .                                       .
 
-    r 1  M-1 a r trig @key{RET}                 M-1 a r trig @key{RET}
+    r 1  M-1 a r trig @key{RET}                   M-1 a r trig @key{RET}
 @end group
 @end smallexample
 
@@ -5466,20 +5449,20 @@ with a @samp{::} symbol and the desired condition.  For example,
 
 @smallexample
 @group
-1:  exp(2 pi i) + exp(3 pi i) + exp(4 pi i)
+1:  sin(x + 2 pi) + sin(x + 3 pi) + sin(x + 4 pi)
     .
 
-    ' exp(2 pi i) + exp(3 pi i) + exp(4 pi i) @key{RET}
+    ' sin(x+2pi) + sin(x+3pi) + sin(x+4pi) @key{RET}
 
 @end group
 @end smallexample
 @noindent
 @smallexample
 @group
-1:  1 + exp(3 pi i) + 1
+1:  sin(x + 3 pi) + 2 sin(x)
     .
 
-    a r exp(k pi i) := 1 :: k % 2 = 0 @key{RET}
+    a r sin(a + k pi) := sin(a) :: k % 2 = 0 @key{RET}
 @end group
 @end smallexample
 
@@ -5487,10 +5470,10 @@ with a @samp{::} symbol and the desired condition.  For example,
 (Recall, @samp{k % 2} is the remainder from dividing @samp{k} by 2,
 which will be zero only when @samp{k} is an even integer.)
 
-An interesting point is that the variables @samp{pi} and @samp{i}
-were matched literally rather than acting as meta-variables.
-This is because they are special-constant variables.  The special
-constants @samp{e}, @samp{phi}, and so on also match literally.
+An interesting point is that the variable @samp{pi} was matched
+literally rather than acting as a meta-variable.
+This is because it is a special-constant variable.  The special
+constants @samp{e}, @samp{i}, @samp{phi}, and so on also match literally.
 A common error with rewrite
 rules is to write, say, @samp{f(a,b,c,d,e) := g(a+b+c+d+e)}, expecting
 to match any @samp{f} with five arguments but in fact matching
@@ -5541,7 +5524,7 @@ Now:
 
 @smallexample
 @group
-1:  fib(6) + fib(x) + fib(0)      1:  8 + fib(x) + fib(0)
+1:  fib(6) + fib(x) + fib(0)      1:  fib(x) + fib(0) + 8
     .                                 .
 
     ' fib(6)+fib(x)+fib(0) @key{RET}        a r fib @key{RET}
@@ -5707,10 +5690,10 @@ power series represented as @samp{@var{polynomial} + O(@var{var}^@var{n})}.
 For example, given @samp{1 - x^2 / 2 + O(x^3)} and @samp{x - x^3 / 6 + O(x^4)}
 on the stack, we want to be able to type @kbd{*} and get the result
 @samp{x - 2:3 x^3 + O(x^4)}.  Don't worry if the terms of the sum are
-rearranged or if @kbd{a s} needs to be typed after rewriting.  (This one
-is rather tricky; the solution at the end of this chapter uses 6 rewrite
-rules.  Hint:  The @samp{constant(x)} condition tests whether @samp{x} is
-a number.)  @xref{Rewrites Answer 6, 6}. (@bullet{})
+rearranged.  (This one is rather tricky; the solution at the end of
+this chapter uses 6 rewrite rules.  Hint:  The @samp{constant(x)}
+condition tests whether @samp{x} is a number.)  @xref{Rewrites Answer
+6, 6}. (@bullet{})
 
 Just for kicks, try adding the rule @code{2+3 := 6} to @code{EvalRules}.
 What happens?  (Be sure to remove this rule afterward, or you might get
@@ -5737,7 +5720,7 @@ case @kbd{z} prefix.
 
 @smallexample
 @group
-1:  1 + x + x^2 / 2 + x^3 / 6         1:  1 + x + x^2 / 2 + x^3 / 6
+1:  x + x^2 / 2 + x^3 / 6 + 1         1:  x + x^2 / 2 + x^3 / 6 + 1
     .                                     .
 
     ' 1 + x + x^2/2! + x^3/3! @key{RET}         Z F e myexp @key{RET} @key{RET} @key{RET} y
@@ -5808,7 +5791,7 @@ you may wish to program a keyboard macro to type this for you.
 
     ' y=sqrt(x) @key{RET}       C-x ( H a S x @key{RET} C-x )
 
-1:  y = cos(x)           1:  x = s1 arccos(y) + 2 pi n1
+1:  y = cos(x)           1:  x = s1 arccos(y) + 2 n1 pi
     .                        .
 
     ' y=cos(x) @key{RET}           X
@@ -6874,7 +6857,7 @@ matrix as usual.
 
 @smallexample
 @group
-1:  [6, 10]    2:  [6, 10]         1:  [6 - 4 a / (b - a), 4 / (b - a) ]
+1:  [6, 10]    2:  [6, 10]         1:  [4 a / (a - b) + 6, 4 / (b - a) ]
     .          1:  [ [ 1, a ]          .
                      [ 1, b ] ]
                    .
@@ -6888,9 +6871,9 @@ mode:
 
 @smallexample
 @group
-          4 a     4
-1:  [6 - -----, -----]
-         b - a  b - a
+      4 a         4
+1:  [----- + 6, -----]
+     a - b      b - a
 @end group
 @end smallexample
 
@@ -8442,11 +8425,11 @@ to the other?
 
 @smallexample
 @group
-1:  3.3356 ns     1:  0.81356 ns / ns     1:  0.81356
-2:  4.1 ns            .                       .
+1:  3.3356 ns     1:  0.81356
+2:  4.1 ns            .
     .
 
-  ' 4.1 ns @key{RET}        /                       u s
+  ' 4.1 ns @key{RET}        /
 @end group
 @end smallexample
 
@@ -8523,7 +8506,7 @@ familiar form.
 @noindent
 @smallexample
 @group
-1:  [x - 1.19023, x + 1.19023, x]     1:  (x - 1.19023) (x + 1.19023) x
+1:  [x - 1.19023, x + 1.19023, x]     1:  x*(x + 1.19023) (x - 1.19023)
     .                                     .
 
     V M ' x-$ @key{RET}                         V R *
@@ -8549,7 +8532,7 @@ same as the original polynomial.
 
 @smallexample
 @group
-1:  x sin(pi x)         1:  (sin(pi x) - pi x cos(pi x)) / pi^2
+1:  x sin(pi x)         1:  sin(pi x) / pi^2 - x cos(pi x) / pi
     .                       .
 
   ' x sin(pi x) @key{RET}   m r   a i x @key{RET}
@@ -8560,7 +8543,7 @@ same as the original polynomial.
 @smallexample
 @group
 1:  [y, 1]
-2:  (sin(pi x) - pi x cos(pi x)) / pi^2
+2:  sin(pi x) / pi^2 - x cos(pi x) / pi
     .
 
   ' [y,1] @key{RET} @key{TAB}
@@ -8570,7 +8553,7 @@ same as the original polynomial.
 @noindent
 @smallexample
 @group
-1:  [(sin(pi y) - pi y cos(pi y)) / pi^2, (sin(pi) - pi cos(pi)) / pi^2]
+1:  [sin(pi y) / pi^2 - y cos(pi y) / pi, 1 / pi]
     .
 
     V M $ @key{RET}
@@ -8580,7 +8563,7 @@ same as the original polynomial.
 @noindent
 @smallexample
 @group
-1:  (sin(pi y) - pi y cos(pi y)) / pi^2 + (pi cos(pi) - sin(pi)) / pi^2
+1:  sin(pi y) / pi^2 - y cos(pi y) / pi - 1 / pi
     .
 
     V R -
@@ -8590,7 +8573,7 @@ same as the original polynomial.
 @noindent
 @smallexample
 @group
-1:  (sin(3.14159 y) - 3.14159 y cos(3.14159 y)) / 9.8696 - 0.3183
+1:  sin(3.14159 y) / 9.8696 - y cos(3.14159 y) / 3.14159 - 0.3183
     .
 
     =
@@ -8685,11 +8668,11 @@ We'll use Big mode to make the formulas more readable.
 
 @smallexample
 @group
-                                               ___
-                                          2 + V 2
-1:  (2 + sqrt(2)) / (1 + sqrt(2))     1:  --------
-    .                                          ___
-                                          1 + V 2
+                                           ___
+                                          V 2  + 2
+1:  (2 + sqrt(2)) / (1 + sqrt(2))     1:  ---------
+    .                                      ___
+                                          V 2  + 1
 
                                           .
 
@@ -8713,11 +8696,11 @@ Multiplying by the conjugate helps because @expr{(a+b) (a-b) = a^2 - b^2}.
 @noindent
 @smallexample
 @group
-         ___                         ___
-1:  2 + V 2  - 2                1:  V 2
-    .                               .
+     ___
+1:  V 2
+    .
 
-  a r a*(b+c) := a*b + a*c          a s
+  a r a*(b+c) := a*b + a*c
 @end group
 @end smallexample
 
@@ -8914,7 +8897,7 @@ Note that this rule does not mention @samp{O} at all, so it will
 apply to any product-of-sum it encounters---this rule may surprise
 you if you put it into @code{EvalRules}!
 
-In the second rule, the sum of two O's is changed to the smaller O.
+In the second rule, the sum of two O's is changed to the smaller O@.
 The optional constant coefficients are there mostly so that
 @samp{O(x^2) - O(x^3)} and @samp{O(x^3) - O(x^2)} are handled
 as well as @samp{O(x^2) + O(x^3)}.
@@ -9819,7 +9802,7 @@ stack but resets everything else to its default state.
 @kindex Z ?
 @pindex calc-help
 The @kbd{?} key (@code{calc-help}) displays a series of brief help messages.
-Some keys (such as @kbd{b} and @kbd{d}) are prefix keys, like Emacs'
+Some keys (such as @kbd{b} and @kbd{d}) are prefix keys, like Emacs's
 @key{ESC} and @kbd{C-x} prefixes.  You can type
 @kbd{?} after a prefix to see a list of commands beginning with that
 prefix.  (If the message includes @samp{[MORE]}, press @kbd{?} again
@@ -10140,7 +10123,7 @@ formula that goes onto the stack.  (Thus @kbd{' pi @key{RET}} pushes
 the variable @samp{pi}, but @kbd{' pi M-@key{RET}} pushes 3.1415.)
 
 If you finish your algebraic entry by pressing @key{LFD} (or @kbd{C-j})
-instead of @key{RET}, Calc disables the default simplifications
+instead of @key{RET}, Calc disables simplification
 (as if by @kbd{m O}; @pxref{Simplification Modes}) while the entry
 is being pushed on the stack.  Thus @kbd{' 1+2 @key{RET}} pushes 3
 on the stack, but @kbd{' 1+2 @key{LFD}} pushes the formula @expr{1+2};
@@ -11004,10 +10987,10 @@ Input is flexible; date forms can be entered in any of the usual
 notations for dates and times.  @xref{Date Formats}.
 
 Date forms are stored internally as numbers, specifically the number
-of days since midnight on the morning of January 1 of the year 1 AD.
+of days since midnight on the morning of December 31 of the year 1 BC@.
 If the internal number is an integer, the form represents a date only;
 if the internal number is a fraction or float, the form represents
-a date and time.  For example, @samp{<6:00am Wed Jan 9, 1991>}
+a date and time.  For example, @samp{<6:00am Thu Jan 10, 1991>}
 is represented by the number 726842.25.  The standard precision of
 12 decimal digits is enough to ensure that a (reasonable) date and
 time can be stored without roundoff error.
@@ -11027,58 +11010,70 @@ You can use the @kbd{v p} (@code{calc-pack}) and @kbd{v u}
 of a date form.  @xref{Packing and Unpacking}.
 
 Date forms can go arbitrarily far into the future or past.  Negative
-year numbers represent years BC.  Calc uses a combination of the
-Gregorian and Julian calendars, following the history of Great
-Britain and the British colonies.  This is the same calendar that
-is used by the @code{cal} program in most Unix implementations.
+year numbers represent years BC@.  There is no ``year 0''; the day
+before @samp{<Mon Jan 1, +1>} is @samp{<Sun Dec 31, -1>}.  These are
+days 1 and 0 respectively in Calc's internal numbering scheme.  The
+Gregorian calendar is used for all dates, including dates before the
+Gregorian calendar was invented (although that can be configured; see
+below).  Thus Calc's use of the day number @mathit{-10000} to
+represent August 15, 28 BC should be taken with a grain of salt.
 
 @cindex Julian calendar
 @cindex Gregorian calendar
 Some historical background:  The Julian calendar was created by
-Julius Caesar in the year 46 BC as an attempt to fix the gradual
-drift caused by the lack of leap years in the calendar used
-until that time.  The Julian calendar introduced an extra day in
-all years divisible by four.  After some initial confusion, the
-calendar was adopted around the year we call 8 AD.  Some centuries
-later it became apparent that the Julian year of 365.25 days was
-itself not quite right.  In 1582 Pope Gregory XIII introduced the
-Gregorian calendar, which added the new rule that years divisible
-by 100, but not by 400, were not to be considered leap years
-despite being divisible by four.  Many countries delayed adoption
-of the Gregorian calendar because of religious differences;
-in Britain it was put off until the year 1752, by which time
-the Julian calendar had fallen eleven days behind the true
-seasons.  So the switch to the Gregorian calendar in early
-September 1752 introduced a discontinuity:  The day after
-Sep 2, 1752 is Sep 14, 1752.  Calc follows this convention.
-To take another example, Russia waited until 1918 before
-adopting the new calendar, and thus needed to remove thirteen
-days (between Feb 1, 1918 and Feb 14, 1918).  This means that
-Calc's reckoning will be inconsistent with Russian history between
-1752 and 1918, and similarly for various other countries.
+Julius Caesar in the year 46 BC as an attempt to fix the confusion
+caused by the irregular Roman calendar that was used before that time.
+The Julian calendar introduced an extra day in all years divisible by
+four.  After some initial confusion, the calendar was adopted around
+the year we call 8 AD@.  Some centuries later it became
+apparent that the Julian year of 365.25 days was itself not quite
+right.  In 1582 Pope Gregory XIII introduced the Gregorian calendar,
+which added the new rule that years divisible by 100, but not by 400,
+were not to be considered leap years despite being divisible by four.
+Many countries delayed adoption of the Gregorian calendar
+because of religious differences.  For example, Great Britain and the
+British colonies switched to the Gregorian calendar in September
+1752, when the Julian calendar was eleven days behind the
+Gregorian calendar.  That year in Britain, the day after September 2
+was September 14.  To take another example, Russia did not adopt the
+Gregorian calendar until 1918, and that year in Russia the day after
+January 31 was February 14.  Calc's reckoning therefore matches English
+practice starting in 1752 and Russian practice starting in 1918, but
+disagrees with earlier dates in both countries.
 
-Today's timekeepers introduce an occasional ``leap second'' as
-well, but Calc does not take these minor effects into account.
-(If it did, it would have to report a non-integer number of days
-between, say, @samp{<12:00am Mon Jan 1, 1900>} and
+When the Julian calendar was introduced, it had January 1 as the first
+day of the year.  By the Middle Ages, many European countries
+had changed the beginning of a new year to a different date, often to
+a religious festival.  Almost all countries reverted to using January 1
+as the beginning of the year by the time they adopted the Gregorian
+calendar.
+
+Some calendars attempt to mimic the historical situation by using the
+Gregorian calendar for recent dates and the Julian calendar for older
+dates. The @code{cal} program in most Unix implementations does this,
+for example. While January 1 wasn't always the beginning of a calendar
+year, these hybrid calendars still use January 1 as the beginning of
+the year even for older dates.   The customizable variable
+@code{calc-gregorian-switch} (@pxref{Customizing Calc}) can be set to
+have Calc's date forms switch from the Julian to Gregorian calendar at
+any specified date.
+
+Today's timekeepers introduce an occasional ``leap second''.
+These do not occur regularly and Calc does not take these minor
+effects into account.  (If it did, it would have to report a
+non-integer number of days between, say,
+@samp{<12:00am Mon Jan 1, 1900>} and
 @samp{<12:00am Sat Jan 1, 2000>}.)
-
-Calc uses the Julian calendar for all dates before the year 1752,
-including dates BC when the Julian calendar technically had not
-yet been invented.  Thus the claim that day number @mathit{-10000} is
-called ``August 16, 28 BC'' should be taken with a grain of salt.
-
-Please note that there is no ``year 0''; the day before
-@samp{<Sat Jan 1, +1>} is @samp{<Fri Dec 31, -1>}.  These are
-days 0 and @mathit{-1} respectively in Calc's internal numbering scheme.
 
 @cindex Julian day counting
 Another day counting system in common use is, confusingly, also called
-``Julian.''  The Julian day number is the numbers of days since
-12:00 noon (GMT) on Jan 1, 4713 BC, which in Calc's scheme (in GMT)
-is @mathit{-1721423.5} (recall that Calc starts at midnight instead
-of noon).  Thus to convert a Calc date code obtained by unpacking a
-date form into a Julian day number, simply add 1721423.5 after
+``Julian.''  Julian days go from noon to noon.  The Julian day number
+is the numbers of days since 12:00 noon (GMT) on November 24, 4714 BC
+in the Gregorian calendar (i.e., January 1, 4713 BC in the Julian
+calendar).  In Calc's scheme (in GMT) the Julian day origin is
+@mathit{-1721422.5}, because Calc starts at midnight instead of noon.
+Thus to convert a Calc date code obtained by unpacking a
+date form into a Julian day number, simply add 1721422.5 after
 compensating for the time zone difference.  The built-in @kbd{t J}
 command performs this conversion for you.
 
@@ -11100,7 +11095,7 @@ pairwise relatively prime) is
 @texline @math{15\times 19\times 28 = 7980} years.
 @infoline 15*19*28 = 7980 years.
 This is the length of a Julian cycle.  Working backwards, the previous
-year in which all three cycles began was 4713 BC, and so Scalinger
+year in which all three cycles began was 4713 BC, and so Scaliger
 chose that year as the beginning of a Julian cycle.  Since at the time
 there were no historical records from before 4713 BC, using this year
 as a starting point had the advantage of avoiding negative year
@@ -11110,7 +11105,7 @@ the Julian cycle as an astronomical dating system; this idea was taken
 up by other astronomers.  (At the time, noon was the start of the
 astronomical day.  Herschel originally suggested counting the days
 since Jan 1, 4713 BC at noon Alexandria time; this was later amended to
-noon GMT.)  Julian day numbering is largely used in astronomy.
+noon GMT@.)  Julian day numbering is largely used in astronomy.
 
 @cindex Unix time format
 The Unix operating system measures time as an integer number of
@@ -12586,7 +12581,7 @@ are ``normalized'' when being taken from or pushed onto the stack.
 Some normalizations are unavoidable, such as rounding floating-point
 results to the current precision, and reducing fractions to simplest
 form.  Others, such as simplifying a formula like @expr{a+a} (or @expr{2+3}),
-are done by default but can be turned off when necessary.
+are done automatically but can be turned off when necessary.
 
 When you press a key like @kbd{+} when @expr{2} and @expr{3} are on the
 stack, Calc pops these numbers, normalizes them, creates the formula
@@ -12601,7 +12596,11 @@ followed by a shifted letter.
 The @kbd{m O} (@code{calc-no-simplify-mode}) command turns off all optional
 simplifications.  These would leave a formula like @expr{2+3} alone.  In
 fact, nothing except simple numbers are ever affected by normalization
-in this mode.
+in this mode.  Explicit simplification commands, such as @kbd{=} or
+@kbd{a s}, can still be given to simplify any formulas.
+@xref{Algebraic Definitions}, for a sample use of
+No-Simplification mode.
+
 
 @kindex m N
 @pindex calc-num-simplify-mode
@@ -12616,51 +12615,45 @@ A constant is a number or other numeric object (such as a constant
 error form or modulo form), or a vector all of whose
 elements are constant.
 
-@kindex m D
-@pindex calc-default-simplify-mode
-The @kbd{m D} (@code{calc-default-simplify-mode}) command restores the
-default simplifications for all formulas.  This includes many easy and
+@kindex m I
+@pindex calc-basic-simplify-mode
+The @kbd{m I} (@code{calc-basic-simplify-mode}) command does some basic
+simplifications for all formulas.  This includes many easy and
 fast algebraic simplifications such as @expr{a+0} to @expr{a}, and
 @expr{a + 2 a} to @expr{3 a}, as well as evaluating functions like
 @expr{@tfn{deriv}(x^2, x)} to @expr{2 x}.
 
 @kindex m B
 @pindex calc-bin-simplify-mode
-The @kbd{m B} (@code{calc-bin-simplify-mode}) mode applies the default
+The @kbd{m B} (@code{calc-bin-simplify-mode}) mode applies the basic
 simplifications to a result and then, if the result is an integer,
 uses the @kbd{b c} (@code{calc-clip}) command to clip the integer according
 to the current binary word size.  @xref{Binary Functions}.  Real numbers
 are rounded to the nearest integer and then clipped; other kinds of
-results (after the default simplifications) are left alone.
+results (after the basic simplifications) are left alone.
 
 @kindex m A
 @pindex calc-alg-simplify-mode
-The @kbd{m A} (@code{calc-alg-simplify-mode}) mode does algebraic
-simplification; it applies all the default simplifications, and also
-the more powerful (and slower) simplifications made by @kbd{a s}
-(@code{calc-simplify}).  @xref{Algebraic Simplifications}.
+The @kbd{m A} (@code{calc-alg-simplify-mode}) mode does standard
+algebraic simplifications.  @xref{Algebraic Simplifications}.
 
 @kindex m E
 @pindex calc-ext-simplify-mode
-The @kbd{m E} (@code{calc-ext-simplify-mode}) mode does ``extended''
-algebraic simplification, as by the @kbd{a e} (@code{calc-simplify-extended})
-command.  @xref{Unsafe Simplifications}.
+The @kbd{m E} (@code{calc-ext-simplify-mode}) mode does ``extended'', or
+``unsafe'', algebraic simplification.  @xref{Unsafe Simplifications}.
 
 @kindex m U
 @pindex calc-units-simplify-mode
 The @kbd{m U} (@code{calc-units-simplify-mode}) mode does units
-simplification; it applies the command @kbd{u s}
-(@code{calc-simplify-units}), which in turn
-is a superset of @kbd{a s}.  In this mode, variable names which
+simplification.  @xref{Simplification of Units}.  These include the
+algebraic simplifications, plus variable names which
 are identifiable as unit names (like @samp{mm} for ``millimeters'')
 are simplified with their unit definitions in mind.
 
 A common technique is to set the simplification mode down to the lowest
 amount of simplification you will allow to be applied automatically, then
 use manual commands like @kbd{a s} and @kbd{c c} (@code{calc-clean}) to
-perform higher types of simplifications on demand.  @xref{Algebraic
-Definitions}, for another sample use of No-Simplification mode.
-
+perform higher types of simplifications on demand.
 @node Declarations, Display Modes, Simplification Modes, Mode Settings
 @section Declarations
 
@@ -12870,8 +12863,8 @@ roots (if any) will be included in the list.
 only when certain values are integers (such as @samp{(x^y)^z}
 shown above).
 
-Another command that makes use of declarations is @kbd{a s}, when
-simplifying equations and inequalities.  It will cancel @code{x}
+Calc's algebraic simplifications also make use of declarations when
+simplifying equations and inequalities.  They will cancel @code{x}
 from both sides of @samp{a x = b x} only if it is sure @code{x}
 is non-zero, say, because it has a @code{pos} declaration.
 To declare specifically that @code{x} is real and non-zero,
@@ -13009,10 +13002,10 @@ i.e., is mathematically equal to a real number times @expr{i}.
 The @code{dpos} function checks for positive (but nonzero) reals.
 The @code{dneg} function checks for negative reals.  The @code{dnonneg}
 function checks for nonnegative reals, i.e., reals greater than or
-equal to zero.  Note that the @kbd{a s} command can simplify an
-expression like @expr{x > 0} to 1 or 0 using @code{dpos}, and that
-@kbd{a s} is effectively applied to all conditions in rewrite rules,
-so the actual functions @code{dpos}, @code{dneg}, and @code{dnonneg}
+equal to zero.  Note that Calc's algebraic simplifications, which are
+effectively applied to all conditions in rewrite rules, can simplify
+an expression like @expr{x > 0} to 1 or 0 using @code{dpos}.
+So the actual functions @code{dpos}, @code{dneg}, and @code{dnonneg}
 are rarely necessary.
 
 @ignore
@@ -13038,7 +13031,7 @@ also the set of objects considered ``true'' in conditional contexts.)
 The @code{deven} function returns 1 if its argument is known to be
 an even integer (or integer-valued float); it returns 0 if its argument
 is known not to be even (because it is known to be odd or a non-integer).
-The @kbd{a s} command uses this to simplify a test of the form
+Calc's algebraic simplifications use this to simplify a test of the form
 @samp{x % 2 = 0}.  There is also an analogous @code{dodd} function.
 
 @ignore
@@ -13446,7 +13439,7 @@ the time part.  The punctuation characters (including spaces) must
 match exactly; letter fields must correspond to suitable text in
 the input.  If this doesn't work, Calc checks if the input is a
 simple number; if so, the number is interpreted as a number of days
-since Jan 1, 1 AD.  Otherwise, Calc tries a much more relaxed and
+since Dec 31, 1 BC@.  Otherwise, Calc tries a much more relaxed and
 flexible algorithm which is described in the next section.
 
 Weekday names are ignored during reading.
@@ -13842,7 +13835,7 @@ left or right as you prefer.
 @noindent
 The commands in this section change Calc to use a different notation for
 entry and display of formulas, corresponding to the conventions of some
-other common language such as Pascal or La@TeX{}.  Objects displayed on the
+other common language such as Pascal or @LaTeX{}.  Objects displayed on the
 stack or yanked from the Calculator to an editing buffer will be formatted
 in the current language; objects entered in algebraic entry or yanked from
 another buffer will be interpreted according to the current language.
@@ -13867,10 +13860,10 @@ the brackets in @samp{a[1]} and @samp{a[2]}, would not have known that
 and would have written the formula back with notations (like implicit
 multiplication) which would not have been valid for a C program.
 
-As another example, suppose you are maintaining a C program and a La@TeX{}
+As another example, suppose you are maintaining a C program and a @LaTeX{}
 document, each of which needs a copy of the same formula.  You can grab the
-formula from the program in C mode, switch to La@TeX{} mode, and yank the
-formula into the document in La@TeX{} math-mode format.
+formula from the program in C mode, switch to @LaTeX{} mode, and yank the
+formula into the document in @LaTeX{} math-mode format.
 
 Language modes are selected by typing the letter @kbd{d} followed by a
 shifted letter key.
@@ -14067,7 +14060,7 @@ convert to lower-case on input.  With a negative prefix, these modes
 convert to lower-case for display and input.
 
 @node TeX and LaTeX Language Modes, Eqn Language Mode, C FORTRAN Pascal, Language Modes
-@subsection @TeX{} and La@TeX{} Language Modes
+@subsection @TeX{} and @LaTeX{} Language Modes
 
 @noindent
 @kindex d T
@@ -14079,38 +14072,38 @@ convert to lower-case for display and input.
 The @kbd{d T} (@code{calc-tex-language}) command selects the conventions
 of ``math mode'' in Donald Knuth's @TeX{} typesetting language,
 and the @kbd{d L} (@code{calc-latex-language}) command selects the
-conventions of ``math mode'' in La@TeX{}, a typesetting language that
-uses @TeX{} as its formatting engine.  Calc's La@TeX{} language mode can
-read any formula that the @TeX{} language mode can, although La@TeX{}
+conventions of ``math mode'' in @LaTeX{}, a typesetting language that
+uses @TeX{} as its formatting engine.  Calc's @LaTeX{} language mode can
+read any formula that the @TeX{} language mode can, although @LaTeX{}
 mode may display it differently.
 
 Formulas are entered and displayed in the appropriate notation;
 @texline @math{\sin(a/b)}
 @infoline @expr{sin(a/b)}
 will appear as @samp{\sin\left( @{a \over b@} \right)} in @TeX{} mode and
-@samp{\sin\left(\frac@{a@}@{b@}\right)} in La@TeX{} mode.
+@samp{\sin\left(\frac@{a@}@{b@}\right)} in @LaTeX{} mode.
 Math formulas are often enclosed by @samp{$ $} signs in @TeX{} and
-La@TeX{}; these should be omitted when interfacing with Calc.  To Calc,
+@LaTeX{}; these should be omitted when interfacing with Calc.  To Calc,
 the @samp{$} sign has the same meaning it always does in algebraic
 formulas (a reference to an existing entry on the stack).
 
 Complex numbers are displayed as in @samp{3 + 4i}.  Fractions and
 quotients are written using @code{\over} in @TeX{} mode (as in
-@code{@{a \over b@}}) and @code{\frac} in La@TeX{} mode (as in
+@code{@{a \over b@}}) and @code{\frac} in @LaTeX{} mode (as in
 @code{\frac@{a@}@{b@}});  binomial coefficients are written with
 @code{\choose} in @TeX{} mode (as in @code{@{a \choose b@}}) and
-@code{\binom} in La@TeX{} mode (as in @code{\binom@{a@}@{b@}}).
+@code{\binom} in @LaTeX{} mode (as in @code{\binom@{a@}@{b@}}).
 Interval forms are written with @code{\ldots}, and error forms are
 written with @code{\pm}. Absolute values are written as in
 @samp{|x + 1|}, and the floor and ceiling functions are written with
 @code{\lfloor}, @code{\rfloor}, etc. The words @code{\left} and
-@code{\right} are ignored when reading formulas in @TeX{} and La@TeX{}
+@code{\right} are ignored when reading formulas in @TeX{} and @LaTeX{}
 modes.  Both @code{inf} and @code{uinf} are written as @code{\infty};
 when read, @code{\infty} always translates to @code{inf}.
 
 Function calls are written the usual way, with the function name followed
 by the arguments in parentheses.  However, functions for which @TeX{}
-and La@TeX{} have special names (like @code{\sin}) will use curly braces
+and @LaTeX{} have special names (like @code{\sin}) will use curly braces
 instead of parentheses for very simple arguments.  During input, curly
 braces and parentheses work equally well for grouping, but when the
 document is formatted the curly braces will be invisible.  Thus the
@@ -14125,14 +14118,14 @@ The @TeX{} specific unit names (@pxref{Predefined Units}) will not use
 the @samp{tex} prefix;  the unit name for a @TeX{} point will be
 @samp{pt} instead of @samp{texpt}, for example.
 
-Function and variable names not treated specially by @TeX{} and La@TeX{}
+Function and variable names not treated specially by @TeX{} and @LaTeX{}
 are simply written out as-is, which will cause them to come out in
 italic letters in the printed document.  If you invoke @kbd{d T} or
 @kbd{d L} with a positive numeric prefix argument, names of more than
 one character will instead be enclosed in a protective commands that
 will prevent them from being typeset in the math italics; they will be
 written @samp{\hbox@{@var{name}@}} in @TeX{} mode and
-@samp{\text@{@var{name}@}} in La@TeX{} mode.  The
+@samp{\text@{@var{name}@}} in @LaTeX{} mode.  The
 @samp{\hbox@{ @}} and @samp{\text@{ @}} notations are ignored during
 reading.  If you use a negative prefix argument, such function names are
 written @samp{\@var{name}}, and function names that begin with @code{\} during
@@ -14143,7 +14136,7 @@ any @TeX{} mode.)
 
 During reading, text of the form @samp{\matrix@{ ...@: @}} is replaced
 by @samp{[ ...@: ]}.  The same also applies to @code{\pmatrix} and
-@code{\bmatrix}.  In La@TeX{} mode this also applies to
+@code{\bmatrix}.  In @LaTeX{} mode this also applies to
 @samp{\begin@{matrix@} ... \end@{matrix@}},
 @samp{\begin@{bmatrix@} ... \end@{bmatrix@}},
 @samp{\begin@{pmatrix@} ... \end@{pmatrix@}}, as well as
@@ -14153,7 +14146,7 @@ and the symbols @samp{\cr} and @samp{\\} are interpreted as semicolons.
 During output, matrices are displayed in @samp{\matrix@{ a & b \\ c & d@}}
 format in @TeX{} mode and in
 @samp{\begin@{pmatrix@} a & b \\ c & d \end@{pmatrix@}} format in
-La@TeX{} mode; you may need to edit this afterwards to change to your
+@LaTeX{} mode; you may need to edit this afterwards to change to your
 preferred matrix form.  If you invoke @kbd{d T} or @kbd{d L} with an
 argument of 2 or -2, then matrices will be displayed in two-dimensional
 form, such as
@@ -14177,7 +14170,7 @@ c & d
 @end example
 
 @noindent
-While this wouldn't bother Calc, it is incorrect La@TeX{}.
+While this wouldn't bother Calc, it is incorrect @LaTeX{}.
 (Similarly for @TeX{}.)
 
 Accents like @code{\tilde} and @code{\bar} translate into function
@@ -14185,7 +14178,7 @@ calls internally (@samp{tilde(x)}, @samp{bar(x)}).  The @code{\underline}
 sequence is treated as an accent.  The @code{\vec} accent corresponds
 to the function name @code{Vec}, because @code{vec} is the name of
 a built-in Calc function.  The following table shows the accents
-in Calc, @TeX{}, La@TeX{} and @dfn{eqn} (described in the next section):
+in Calc, @TeX{}, @LaTeX{} and @dfn{eqn} (described in the next section):
 
 @ignore
 @iftex
@@ -14362,7 +14355,7 @@ reading is:
 @end example
 
 Note that, because these symbols are ignored, reading a @TeX{} or
-La@TeX{} formula into Calc and writing it back out may lose spacing and
+@LaTeX{} formula into Calc and writing it back out may lose spacing and
 font information.
 
 Also, the ``discretionary multiplication sign'' @samp{\*} is read
@@ -14528,7 +14521,7 @@ treated the same as a space in @dfn{eqn} mode, as is the @samp{~}
 symbol (these are used to introduce spaces of various widths into
 the typeset output of @dfn{eqn}).
 
-As in La@TeX{} mode, Calc's formatter omits parentheses around the
+As in @LaTeX{} mode, Calc's formatter omits parentheses around the
 arguments of functions like @code{ln} and @code{sin} if they are
 ``simple-looking''; in this case Calc surrounds the argument with
 braces, separated by a @samp{~} from the function name: @samp{sin~@{x@}}.
@@ -14675,7 +14668,7 @@ Subscripts use double square brackets: @samp{a[[i]]}.
 The @kbd{d W} (@code{calc-maple-language}) command selects the
 conventions of Maple.
 
-Maple's language is much like C.  Underscores are allowed in symbol
+Maple's language is much like C@.  Underscores are allowed in symbol
 names; square brackets are used for subscripts; explicit @samp{*}s for
 multiplications are required.  Use either @samp{^} or @samp{**} to
 denote powers.
@@ -15665,7 +15658,7 @@ The exact sequence of events is as follows:  When Calc tries a
 rule, it first matches the pattern as usual.  It then substitutes
 @samp{#1}, @samp{#2}, etc., in the conditions, if any.  Next, the
 conditions are simplified and evaluated in order from left to right,
-as if by the @w{@kbd{a s}} algebra command (@pxref{Simplifying Formulas}).
+using the algebraic simplifications (@pxref{Simplifying Formulas}).
 Each result is true if it is a nonzero number, or an expression
 that can be proven to be nonzero (@pxref{Declarations}).  If the
 results of all conditions are true, the expression (such as
@@ -15893,8 +15886,8 @@ Default simplifications for numeric arguments only (@kbd{m N}).
 @item BinSimp@var{w}
 Binary-integer simplification mode; word size @var{w} (@kbd{m B}, @kbd{b w}).
 
-@item AlgSimp
-Algebraic simplification mode (@kbd{m A}).
+@item BasicSimp
+Basic simplification mode (@kbd{m I}).
 
 @item ExtSimp
 Extended algebraic simplification mode (@kbd{m E}).
@@ -15939,7 +15932,7 @@ FORTRAN language mode (@kbd{d F}).
 @TeX{} language mode (@kbd{d T}; @pxref{TeX and LaTeX Language Modes}).
 
 @item LaTeX
-La@TeX{} language mode (@kbd{d L}; @pxref{TeX and LaTeX Language Modes}).
+@LaTeX{} language mode (@kbd{d L}; @pxref{TeX and LaTeX Language Modes}).
 
 @item Eqn
 @dfn{Eqn} language mode (@kbd{d E}; @pxref{Eqn Language Mode}).
@@ -16733,10 +16726,10 @@ produced!)  Integers and fractions are generally unaffected by this
 operation.  Vectors and formulas are cleaned by cleaning each component
 number (i.e., pervasively).
 
-If the simplification mode is set below the default level, it is raised
-to the default level for the purposes of this command.  Thus, @kbd{c c}
-applies the default simplifications even if their automatic application
-is disabled.  @xref{Simplification Modes}.
+If the simplification mode is set below basic simplification, it is raised
+for the purposes of this command.  Thus, @kbd{c c} applies the basic
+simplifications even if their automatic application is disabled.
+@xref{Simplification Modes}.
 
 @cindex Roundoff errors, correcting
 A numeric prefix argument to @kbd{c c} sets the floating-point precision
@@ -16813,7 +16806,7 @@ additional argument from the top of the stack.
 @pindex calc-date
 @tindex date
 The @kbd{t D} (@code{calc-date}) [@code{date}] command converts a
-date form into a number, measured in days since Jan 1, 1 AD.  The
+date form into a number, measured in days since Jan 1, 1 AD@.  The
 result will be an integer if @var{date} is a pure date form, or a
 fraction or float if @var{date} is a date/time form.  Or, if its
 argument is a number, it converts this number into a date form.
@@ -16851,7 +16844,7 @@ The last two arguments default to zero if omitted.
 @cindex Julian day counts, conversions
 The @kbd{t J} (@code{calc-julian}) [@code{julian}] command converts
 a date form into a Julian day count, which is the number of days
-since noon (GMT) on Jan 1, 4713 BC.  A pure date is converted to an
+since noon (GMT) on Jan 1, 4713 BC@.  A pure date is converted to an
 integer Julian count representing noon of that day.  A date/time form
 is converted to an exact floating-point Julian count, adjusted to
 interpret the date form in the current time zone but the Julian
@@ -18336,7 +18329,7 @@ of the current angular mode.  @xref{Basic Operations on Units}.
 
 Also, the symbolic variable @code{pi} is not ordinarily recognized in
 arguments to trigonometric functions, as in @samp{sin(3 pi / 4)}, but
-the @kbd{a s} (@code{calc-simplify}) command recognizes many such
+the default algebraic simplifications recognize many such
 formulas when the current angular mode is Radians @emph{and} Symbolic
 mode is enabled; this example would be replaced by @samp{sqrt(2) / 2}.
 @xref{Symbolic Mode}.  Beware, this simplification occurs even if you
@@ -18345,7 +18338,7 @@ reason why changing built-in variables is a bad idea.  Arguments of
 the form @expr{x} plus a multiple of @cpiover{2} are also simplified.
 Calc includes similar formulas for @code{cos} and @code{tan}.
 
-The @kbd{a s} command knows all angles which are integer multiples of
+Calc's algebraic simplifications know all angles which are integer multiples of
 @cpiover{12}, @cpiover{10}, or @cpiover{8} radians.  In Degrees mode,
 analogous simplifications occur for integer multiples of 15 or 18
 degrees, and for arguments plus multiples of 90 degrees.
@@ -18912,7 +18905,7 @@ Computer Programming}, Volume II, contains a thorough description
 of the theory of random number generators and their measurement and
 characterization.
 
-If @code{RandSeed} has no stored value, Calc calls Emacs' built-in
+If @code{RandSeed} has no stored value, Calc calls Emacs's built-in
 @code{random} function to get a stream of random numbers, which it
 then treats in various ways to avoid problems inherent in the simple
 random number generators that many systems use to implement @code{random}.
@@ -18997,7 +18990,7 @@ modulo operation as numbers 39 and below.)  If @var{m} is a power of
 ten, however, the numbers should be completely unbiased.
 
 The Gaussian random numbers generated by @samp{random(0.0)} use the
-``polar'' method described in Knuth section 3.4.1C.  This method
+``polar'' method described in Knuth section 3.4.1C@.  This method
 generates a pair of Gaussian random numbers at a time, so only every
 other call to @samp{random(0.0)} will require significant calculations.
 
@@ -22075,8 +22068,8 @@ as well as equations.
 @pindex calc-sel-div-both-sides
 The @kbd{j *} (@code{calc-sel-mult-both-sides}) command prompts for a
 formula using algebraic entry, then multiplies both sides of the
-selected quotient or equation by that formula.  It simplifies each
-side with @kbd{a s} (@code{calc-simplify}) before re-forming the
+selected quotient or equation by that formula.  It performs the
+default algebraic simplifications  before re-forming the
 quotient or equation.  You can suppress this simplification by
 providing a prefix argument: @kbd{C-u j *}.  There is also a @kbd{j /}
 (@code{calc-sel-div-both-sides}) which is similar to @kbd{j *} but
@@ -22143,15 +22136,15 @@ now to take the cosine of the selected part.)
 @kindex j v
 @pindex calc-sel-evaluate
 The @kbd{j v} (@code{calc-sel-evaluate}) command performs the
-normal default simplifications on the selected sub-formula.
-These are the simplifications that are normally done automatically
-on all results, but which may have been partially inhibited by
+basic simplifications on the selected sub-formula.
+These simplifications would normally be done automatically
+on all results, but may have been partially inhibited by
 previous selection-related operations, or turned off altogether
 by the @kbd{m O} command.  This command is just an auto-selecting
 version of the @w{@kbd{a v}} command (@pxref{Algebraic Manipulation}).
 
 With a numeric prefix argument of 2, @kbd{C-u 2 j v} applies
-the @kbd{a s} (@code{calc-simplify}) command to the selected
+the default algebraic simplifications to the selected
 sub-formula.  With a prefix argument of 3 or more, e.g., @kbd{C-u j v}
 applies the @kbd{a e} (@code{calc-simplify-extended}) command.
 @xref{Simplifying Formulas}.  With a negative prefix argument
@@ -22195,9 +22188,9 @@ but which also substitutes stored values for variables in the formula.
 Use @kbd{a v} if you want the variables to ignore their stored values.
 
 If you give a numeric prefix argument of 2 to @kbd{a v}, it simplifies
-as if in Algebraic Simplification mode.  This is equivalent to typing
-@kbd{a s}; @pxref{Simplifying Formulas}.  If you give a numeric prefix
-of 3 or more, it uses Extended Simplification mode (@kbd{a e}).
+using Calc's algebraic simplifications; @pxref{Simplifying Formulas}.
+If you give a numeric prefix of 3 or more, it uses Extended
+Simplification mode (@kbd{a e}).
 
 If you give a negative prefix argument @mathit{-1}, @mathit{-2}, or @mathit{-3},
 it simplifies in the corresponding mode but only works on the top-level
@@ -22270,8 +22263,8 @@ If inequalities with opposite direction (e.g., @samp{<} and @samp{>})
 are mapped, the direction of the second inequality is reversed to
 match the first:  Using @kbd{a M +} on @samp{a < b} and @samp{a > 2}
 reverses the latter to get @samp{2 < a}, which then allows the
-combination @samp{a + 2 < b + a}, which the @kbd{a s} command can
-then simplify to get @samp{2 < b}.
+combination @samp{a + 2 < b + a}, which the algebraic simplifications
+can reduce to @samp{2 < b}.
 
 Using @kbd{a M *}, @kbd{a M /}, @kbd{a M n}, or @kbd{a M &} to negate
 or invert an inequality will reverse the direction of the inequality.
@@ -22340,15 +22333,8 @@ turn the default simplifications off first (with @kbd{m O}).
 @kindex H a s
 @pindex calc-simplify
 @tindex simplify
-The @kbd{a s} (@code{calc-simplify}) [@code{simplify}] command applies
-various algebraic rules to simplify a formula.  This includes rules which
-are not part of the default simplifications because they may be too slow
-to apply all the time, or may not be desirable all of the time.  For
-example, non-adjacent terms of sums are combined, as in @samp{a + b + 2 a}
-to @samp{b + 3 a}, and some formulas like @samp{sin(arcsin(x))} are
-simplified to @samp{x}.
 
-The sections below describe all the various kinds of algebraic
+The sections below describe all the various kinds of
 simplifications Calc provides in full detail.  None of Calc's
 simplification commands are designed to pull rabbits out of hats;
 they simply apply certain specific rules to put formulas into
@@ -22358,17 +22344,20 @@ and rewrite rules.  @xref{Rearranging with Selections}.
 @xref{Rewrite Rules}.
 
 @xref{Simplification Modes}, for commands to control what level of
-simplification occurs automatically.  Normally only the ``default
-simplifications'' occur.
+simplification occurs automatically.  Normally the algebraic
+simplifications described below occur.  If you have turned on a
+simplification mode which does not do these algebraic simplifications,
+you can still apply them to a formula with the @kbd{a s}
+(@code{calc-simplify}) [@code{simplify}] command.
 
 There are some simplifications that, while sometimes useful, are never
 done automatically.  For example, the @kbd{I} prefix can be given to
 @kbd{a s}; the @kbd{I a s} command will change any trigonometric
 function to the appropriate combination of @samp{sin}s and @samp{cos}s
 before simplifying.  This can be useful in simplifying even mildly
-complicated trigonometric expressions.  For example, while @kbd{a s}
-can reduce @samp{sin(x) csc(x)} to @samp{1}, it will not simplify
-@samp{sin(x)^2 csc(x)}.  The command @kbd{I a s} can be used to
+complicated trigonometric expressions.  For example, while the algebraic
+simplifications can reduce @samp{sin(x) csc(x)} to @samp{1}, they will not
+simplify @samp{sin(x)^2 csc(x)}.  The command @kbd{I a s} can be used to
 simplify this latter expression; it will transform @samp{sin(x)^2
 csc(x)} into @samp{sin(x)}.  However, @kbd{I a s} will also perform
 some ``simplifications'' which may not be desired; for example, it
@@ -22379,29 +22368,24 @@ combinations of @samp{sinh}s and @samp{cosh}s before simplifying.
 
 
 @menu
-* Default Simplifications::
+* Basic Simplifications::
 * Algebraic Simplifications::
 * Unsafe Simplifications::
 * Simplification of Units::
 @end menu
 
-@node Default Simplifications, Algebraic Simplifications, Simplifying Formulas, Simplifying Formulas
-@subsection Default Simplifications
+@node Basic Simplifications, Algebraic Simplifications, Simplifying Formulas, Simplifying Formulas
+@subsection Basic Simplifications
 
 @noindent
-@cindex Default simplifications
-This section describes the ``default simplifications,'' those which are
-normally applied to all results.  For example, if you enter the variable
-@expr{x} on the stack twice and push @kbd{+}, Calc's default
-simplifications automatically change @expr{x + x} to @expr{2 x}.
+@cindex Basic simplifications
+This section describes basic simplifications which Calc performs in many
+situations.  For example, both binary simplifications and algebraic
+simplifications begin by performing these basic simplifications.  You
+can type @kbd{m I} to restrict the simplifications done on the stack to
+these simplifications.
 
-The @kbd{m O} command turns off the default simplifications, so that
-@expr{x + x} will remain in this form unless you give an explicit
-``simplify'' command like @kbd{=} or @kbd{a v}.  @xref{Algebraic
-Manipulation}.  The @kbd{m D} command turns the default simplifications
-back on.
-
-The most basic default simplification is the evaluation of functions.
+The most basic simplification is the evaluation of functions.
 For example, @expr{2 + 3} is evaluated to @expr{5}, and @expr{@tfn{sqrt}(9)}
 is evaluated to @expr{3}.  Evaluation does not occur if the arguments
 to a function are somehow of the wrong type @expr{@tfn{tan}([2,3,4])}),
@@ -22419,16 +22403,17 @@ operator) do not evaluate their arguments, @code{if} (the @code{? :}
 operator) does not evaluate all of its arguments, and @code{evalto}
 does not evaluate its lefthand argument.
 
-Most commands apply the default simplifications to all arguments they
-take from the stack, perform a particular operation, then simplify
-the result before pushing it back on the stack.  In the common special
-case of regular arithmetic commands like @kbd{+} and @kbd{Q} [@code{sqrt}],
-the arguments are simply popped from the stack and collected into a
-suitable function call, which is then simplified (the arguments being
-simplified first as part of the process, as described above).
+Most commands apply at least these basic simplifications to all
+arguments they take from the stack, perform a particular operation,
+then simplify the result before pushing it back on the stack.  In the
+common special case of regular arithmetic commands like @kbd{+} and
+@kbd{Q} [@code{sqrt}], the arguments are simply popped from the stack
+and collected into a suitable function call, which is then simplified
+(the arguments being simplified first as part of the process, as
+described above).
 
-The default simplifications are too numerous to describe completely
-here, but this section will describe the ones that apply to the
+Even the basic set of simplifications are too numerous to describe
+completely here, but this section will describe the ones that apply to the
 major arithmetic operators.  This list will be rather technical in
 nature, and will probably be interesting to you only if you are
 a serious user of Calc's algebra facilities.
@@ -22439,14 +22424,14 @@ a serious user of Calc's algebra facilities.
 
 As well as the simplifications described here, if you have stored
 any rewrite rules in the variable @code{EvalRules} then these rules
-will also be applied before any built-in default simplifications.
+will also be applied before any of the basic simplifications.
 @xref{Automatic Rewrites}, for details.
 
 @tex
 \bigskip
 @end tex
 
-And now, on with the default simplifications:
+And now, on with the basic simplifications:
 
 Arithmetic operators like @kbd{+} and @kbd{*} always take two
 arguments in Calc's internal form.  Sums and products of three or
@@ -22465,11 +22450,11 @@ commutative law (@expr{a + b} to @expr{b + a}) except in a few
 special cases described below.  Some algebra programs always
 rearrange terms into a canonical order, which enables them to
 see that @expr{a b + b a} can be simplified to @expr{2 a b}.
-Calc assumes you have put the terms into the order you want
-and generally leaves that order alone, with the consequence
-that formulas like the above will only be simplified if you
-explicitly give the @kbd{a s} command.  @xref{Algebraic
-Simplifications}.
+If you are using Basic Simplification mode, Calc assumes you have put
+the terms into the order you want and generally leaves that order alone,
+with the consequence that formulas like the above will only be
+simplified if you explicitly give the @kbd{a s} command.
+@xref{Algebraic Simplifications}.
 
 Differences @expr{a - b} are treated like sums @expr{a + (-b)}
 for purposes of simplification; one of the default simplifications
@@ -22500,9 +22485,8 @@ for adjacent terms in a larger sum.  Thus @expr{a + b + b + c}
 is simplified to @expr{a + 2 b + c}, but @expr{a + b + c + b}
 is not simplified.  The reason is that comparing all terms of a
 sum with one another would require time proportional to the
-square of the number of terms; Calc relegates potentially slow
-operations like this to commands that have to be invoked
-explicitly, like @kbd{a s}.
+square of the number of terms; Calc omits potentially slow
+operations like this in basic simplification mode.
 
 Finally, @expr{a + 0} and @expr{0 + a} are simplified to @expr{a}.
 A consequence of the above rules is that @expr{0 - a} is simplified
@@ -22699,9 +22683,9 @@ and @expr{b} are known to be real.
 
 Functions like @code{sin} and @code{arctan} generally don't have
 any default simplifications beyond simply evaluating the functions
-for suitable numeric arguments and infinity.  The @kbd{a s} command
-described in the next section does provide some simplifications for
-these functions, though.
+for suitable numeric arguments and infinity.  The algebraic
+simplifications described in the next section do provide some
+simplifications for these functions, though.
 
 One important simplification that does occur is that
 @expr{@tfn{ln}(@tfn{e})} is simplified to 1, and @expr{@tfn{ln}(@tfn{e}^x)} is
@@ -22716,33 +22700,31 @@ and reversing the inequality.  While it might seem reasonable to simplify
 @expr{!!x} to @expr{x}, this would not be valid in general because
 @expr{!!2} is 1, not 2.
 
-Most other Calc functions have few if any default simplifications
+Most other Calc functions have few if any basic simplifications
 defined, aside of course from evaluation when the arguments are
 suitable numbers.
 
-@node Algebraic Simplifications, Unsafe Simplifications, Default Simplifications, Simplifying Formulas
+@node Algebraic Simplifications, Unsafe Simplifications, Basic Simplifications, Simplifying Formulas
 @subsection Algebraic Simplifications
 
 @noindent
 @cindex Algebraic simplifications
-The @kbd{a s} command makes simplifications that may be too slow to
-do all the time, or that may not be desirable all of the time.
-If you find these simplifications are worthwhile, you can type
-@kbd{m A} to have Calc apply them automatically.
-
+@kindex a s
+@kindex m A
 This section describes all simplifications that are performed by
-the @kbd{a s} command.  Note that these occur in addition to the
-default simplifications; even if the default simplifications have
-been turned off by an @kbd{m O} command, @kbd{a s} will turn them
-back on temporarily while it simplifies the formula.
+the algebraic simplification mode, which is the default simplification
+mode.  If you have switched to a different simplification mode, you can
+switch back with the @kbd{m A} command. Even in other simplification
+modes, the @kbd{a s} command will use these algebraic simplifications to
+simplify the formula.
 
 There is a variable, @code{AlgSimpRules}, in which you can put rewrites
-to be applied by @kbd{a s}.  Its use is analogous to @code{EvalRules},
+to be applied. Its use is analogous to @code{EvalRules},
 but without the special restrictions.  Basically, the simplifier does
 @samp{@w{a r} AlgSimpRules} with an infinite repeat count on the whole
 expression being simplified, then it traverses the expression applying
 the built-in rules described below.  If the result is different from
-the original expression, the process repeats with the default
+the original expression, the process repeats with the basic
 simplifications (including @code{EvalRules}), then @code{AlgSimpRules},
 then the built-in simplifications, and so on.
 
@@ -22758,8 +22740,8 @@ commuted to @expr{-x + 2}.
 
 Also, terms of sums are combined by the distributive law, as in
 @expr{x + y + 2 x} to @expr{y + 3 x}.  This always occurs for
-adjacent terms, but @kbd{a s} compares all pairs of terms including
-non-adjacent ones.
+adjacent terms, but Calc's algebraic simplifications compare all pairs
+of terms including non-adjacent ones.
 
 @tex
 \bigskip
@@ -22767,11 +22749,11 @@ non-adjacent ones.
 
 Products are sorted into a canonical order using the commutative
 law.  For example, @expr{b c a} is commuted to @expr{a b c}.
-This allows easier comparison of products; for example, the default
+This allows easier comparison of products; for example, the basic
 simplifications will not change @expr{x y + y x} to @expr{2 x y},
-but @kbd{a s} will; it first rewrites the sum to @expr{x y + x y},
-and then the default simplifications are able to recognize a sum
-of identical terms.
+but the algebraic simplifications; it first rewrites the sum to
+@expr{x y + x y} which can then be recognized as a sum of identical
+terms.
 
 The canonical ordering used to sort terms of products has the
 property that real-valued numbers, interval forms and infinities
@@ -22813,10 +22795,11 @@ as described above.)  If there is any common integer or fractional
 factor in the numerator and denominator, it is canceled out;
 for example, @expr{(4 x + 6) / 8 x} simplifies to @expr{(2 x + 3) / 4 x}.
 
-Non-constant common factors are not found even by @kbd{a s}.  To
-cancel the factor @expr{a} in @expr{(a x + a) / a^2} you could first
-use @kbd{j M} on the product @expr{a x} to Merge the numerator to
-@expr{a (1+x)}, which can then be simplified successfully.
+Non-constant common factors are not found even by algebraic
+simplifications.  To cancel the factor @expr{a} in
+@expr{(a x + a) / a^2} you could first use @kbd{j M} on the product
+@expr{a x} to Merge the numerator to @expr{a (1+x)}, which can then be
+simplified successfully.
 
 @tex
 \bigskip
@@ -22825,11 +22808,10 @@ use @kbd{j M} on the product @expr{a x} to Merge the numerator to
 Integer powers of the variable @code{i} are simplified according
 to the identity @expr{i^2 = -1}.  If you store a new value other
 than the complex number @expr{(0,1)} in @code{i}, this simplification
-will no longer occur.  This is done by @kbd{a s} instead of by default
-in case someone (unwisely) uses the name @code{i} for a variable
-unrelated to complex numbers; it would be unfortunate if Calc
-quietly and automatically changed this formula for reasons the
-user might not have been thinking of.
+will no longer occur.  This is not done by the basic
+simplifications; in case someone (unwisely) wants to use the name
+@code{i} for a variable unrelated to complex numbers, they can use
+basic simplification mode.
 
 Square roots of integer or rational arguments are simplified in
 several ways.  (Note that these will be left unevaluated only in
@@ -22962,21 +22944,26 @@ as is @expr{x^2 >= 0} if @expr{x} is known to be real.
 @cindex Unsafe simplifications
 @cindex Extended simplification
 @kindex a e
+@kindex m E
 @pindex calc-simplify-extended
 @ignore
 @mindex esimpl@idots
 @end ignore
 @tindex esimplify
-The @kbd{a e} (@code{calc-simplify-extended}) [@code{esimplify}] command
-is like @kbd{a s}
-except that it applies some additional simplifications which are not
-``safe'' in all cases.  Use this only if you know the values in your
-formula lie in the restricted ranges for which these simplifications
-are valid.  The symbolic integrator uses @kbd{a e};
-one effect of this is that the integrator's results must be used with
-caution.  Where an integral table will often attach conditions like
-``for positive @expr{a} only,'' Calc (like most other symbolic
-integration programs) will simply produce an unqualified result.
+Calc is capable of performing some simplifications which may sometimes
+be desired but which are not ``safe'' in all cases.  The @kbd{a e}
+(@code{calc-simplify-extended}) [@code{esimplify}] command
+applies the algebraic simplifications as well as these extended, or
+``unsafe'', simplifications.  Use this only if you know the values in
+your formula lie in the restricted ranges for which these
+simplifications are valid.  You can use Extended Simplification mode
+(@kbd{m E}) to have these simplifications done automatically.
+
+The symbolic integrator uses these extended simplifications; one effect
+of this is that the integrator's results must be used with caution.
+Where an integral table will often attach conditions like ``for positive
+@expr{a} only,'' Calc (like most other symbolic integration programs)
+will simply produce an unqualified result.
 
 Because @kbd{a e}'s simplifications are unsafe, it is sometimes better
 to type @kbd{C-u -3 a v}, which does extended simplification only
@@ -22984,21 +22971,20 @@ on the top level of the formula without affecting the sub-formulas.
 In fact, @kbd{C-u -3 j v} allows you to target extended simplification
 to any specific part of a formula.
 
-The variable @code{ExtSimpRules} contains rewrites to be applied by
-the @kbd{a e} command.  These are applied in addition to
+The variable @code{ExtSimpRules} contains rewrites to be applied when
+the extended simplifications are used.  These are applied in addition to
 @code{EvalRules} and @code{AlgSimpRules}.  (The @kbd{a r AlgSimpRules}
 step described above is simply followed by an @kbd{a r ExtSimpRules} step.)
 
-Following is a complete list of ``unsafe'' simplifications performed
-by @kbd{a e}.
+Following is a complete list of the ``unsafe'' simplifications.
 
 @tex
 \bigskip
 @end tex
 
 Inverse trigonometric or hyperbolic functions, called with their
-corresponding non-inverse functions as arguments, are simplified
-by @kbd{a e}.  For example, @expr{@tfn{arcsin}(@tfn{sin}(x))} changes
+corresponding non-inverse functions as arguments, are simplified.
+For example, @expr{@tfn{arcsin}(@tfn{sin}(x))} changes
 to @expr{x}.  Also, @expr{@tfn{arcsin}(@tfn{cos}(x))} and
 @expr{@tfn{arccos}(@tfn{sin}(x))} both change to @expr{@tfn{pi}/2 - x}.
 These simplifications are unsafe because they are valid only for
@@ -23038,8 +23024,8 @@ simplifications are safe if @expr{x} is known to be real).
 Common factors are canceled from products on both sides of an
 equation, even if those factors may be zero:  @expr{a x / b x}
 to @expr{a / b}.  Such factors are never canceled from
-inequalities:  Even @kbd{a e} is not bold enough to reduce
-@expr{a x < b x} to @expr{a < b} (or @expr{a > b}, depending
+inequalities:  Even the extended simplifications are not bold enough to
+reduce @expr{a x < b x} to @expr{a < b} (or @expr{a > b}, depending
 on whether you believe @expr{x} is positive or negative).
 The @kbd{a M /} command can be used to divide a factor out of
 both sides of an inequality.
@@ -23048,13 +23034,14 @@ both sides of an inequality.
 @subsection Simplification of Units
 
 @noindent
-The simplifications described in this section are applied by the
-@kbd{u s} (@code{calc-simplify-units}) command.  These are in addition
-to the regular @kbd{a s} (but not @kbd{a e}) simplifications described
-earlier.  @xref{Basic Operations on Units}.
+The simplifications described in this section (as well as the algebraic
+simplifications) are applied when units need to be simplified.  They can
+be applied using the @kbd{u s} (@code{calc-simplify-units}) command, or
+will be done automatically in Units Simplification mode (@kbd{m U}).
+@xref{Basic Operations on Units}.
 
 The variable @code{UnitSimpRules} contains rewrites to be applied by
-the @kbd{u s} command.  These are applied in addition to @code{EvalRules}
+units simplifications.  These are applied in addition to @code{EvalRules}
 and @code{AlgSimpRules}.
 
 Scalar mode is automatically put into effect when simplifying units.
@@ -23608,10 +23595,11 @@ forever!)
 
 @vindex IntegSimpRules
 Another set of rules, stored in @code{IntegSimpRules}, are applied
-every time the integrator uses @kbd{a s} to simplify an intermediate
-result.  For example, putting the rule @samp{twice(x) := 2 x} into
-@code{IntegSimpRules} would tell Calc to convert the @code{twice}
-function into a form it knows whenever integration is attempted.
+every time the integrator uses algebraic simplifications to simplify an
+intermediate result.  For example, putting the rule
+@samp{twice(x) := 2 x} into  @code{IntegSimpRules} would tell Calc to
+convert the @code{twice} function into a form it knows whenever
+integration is attempted.
 
 One more way to influence the integrator is to define a function with
 the @kbd{Z F} command (@pxref{Algebraic Definitions}).  Calc's
@@ -23629,8 +23617,8 @@ above to try to hint at a more direct path to the desired result, or
 you can use @code{IntegAfterRules}.  This is an extra rule set that
 runs after the main integrator returns its result; basically, Calc does
 an @kbd{a r IntegAfterRules} on the result before showing it to you.
-(It also does an @kbd{a s}, without @code{IntegSimpRules}, after that
-to further simplify the result.)  For example, Calc's integrator
+(It also does algebraic simplifications, without @code{IntegSimpRules},
+after that to further simplify the result.)  For example, Calc's integrator
 sometimes produces expressions of the form @samp{ln(1+x) - ln(1-x)};
 the default @code{IntegAfterRules} rewrite this into the more readable
 form @samp{2 arctanh(x)}.  Note that, unlike @code{IntegRules},
@@ -25441,7 +25429,7 @@ The limits of a sum do not need to be integers.  For example,
 @samp{sum(a_k, k, 0, 2 n, n)} produces @samp{a_0 + a_n + a_(2 n)}.
 Calc computes the number of iterations using the formula
 @samp{1 + (@var{high} - @var{low}) / @var{step}}, which must,
-after simplification as if by @kbd{a s}, evaluate to an integer.
+after algebraic simplification, evaluate to an integer.
 
 If the number of iterations according to the above formula does
 not come out to an integer, the sum is invalid and will be left
@@ -26065,7 +26053,7 @@ rule, this is an additional condition that must be satisfied before
 the rule is accepted.  Once @var{old} has been successfully matched
 to the target expression, @var{cond} is evaluated (with all the
 meta-variables substituted for the values they matched) and simplified
-with @kbd{a s} (@code{calc-simplify}).  If the result is a nonzero
+with Calc's algebraic simplifications.  If the result is a nonzero
 number or any other object known to be nonzero (@pxref{Declarations}),
 the rule is accepted.  If the result is zero or if it is a symbolic
 formula that is not known to be nonzero, the rule is rejected.
@@ -26745,7 +26733,7 @@ whereas @samp{eval(cons(2+3, []))} will be converted to @samp{[5]}.
 @end ignore
 @tindex evalsimp
 The formula @expr{x} has meta-variables substituted in the usual
-way, then algebraically simplified as if by the @kbd{a s} command.
+way, then algebraically simplified.
 
 @item evalextsimp(x)
 @ignore
@@ -26768,15 +26756,15 @@ There are also some special functions you can use in conditions.
 @end ignore
 @tindex let
 The expression @expr{x} is evaluated with meta-variables substituted.
-The @kbd{a s} command's simplifications are @emph{not} applied by
+The algebraic simplifications are @emph{not} applied by
 default, but @expr{x} can include calls to @code{evalsimp} or
 @code{evalextsimp} as described above to invoke higher levels
-of simplification.  The
-result of @expr{x} is then bound to the meta-variable @expr{v}.  As
-usual, if this meta-variable has already been matched to something
-else the two values must be equal; if the meta-variable is new then
-it is bound to the result of the expression.  This variable can then
-appear in later conditions, and on the righthand side of the rule.
+of simplification.  The result of @expr{x} is then bound to the
+meta-variable @expr{v}.  As usual, if this meta-variable has already
+been matched to something else the two values must be equal; if the
+meta-variable is new then it is bound to the result of the expression.
+This variable can then appear in later conditions, and on the righthand
+side of the rule.
 In fact, @expr{v} may be any pattern in which case the result of
 evaluating @expr{x} is matched to that pattern, binding any
 meta-variables that appear in that pattern.  Note that @code{let}
@@ -27526,17 +27514,19 @@ with @code{apply} as the top-level pattern must be tested against
 @cindex @code{AlgSimpRules} variable
 @vindex AlgSimpRules
 Suppose you want @samp{sin(a + b)} to be expanded out not all the time,
-but only when @kbd{a s} is used to simplify the formula.  The variable
-@code{AlgSimpRules} holds rules for this purpose.  The @kbd{a s} command
-will apply @code{EvalRules} and @code{AlgSimpRules} to the formula, as
-well as all of its built-in simplifications.
+but only when algebraic simplifications are used to simplify the
+formula.  The variable @code{AlgSimpRules} holds rules for this purpose.
+The @kbd{a s} command will apply @code{EvalRules} and
+@code{AlgSimpRules} to the formula, as well as all of its built-in
+simplifications.
 
 Most of the special limitations for @code{EvalRules} don't apply to
 @code{AlgSimpRules}.  Calc simply does an @kbd{a r AlgSimpRules}
-command with an infinite repeat count as the first step of @kbd{a s}.
-It then applies its own built-in simplifications throughout the
-formula, and then repeats these two steps (along with applying the
-default simplifications) until no further changes are possible.
+command with an infinite repeat count as the first step of algebraic
+simplifications. It then applies its own built-in simplifications
+throughout the formula, and then repeats these two steps (along with
+applying the default simplifications) until no further changes are
+possible.
 
 @cindex @code{ExtSimpRules} variable
 @cindex @code{UnitSimpRules} variable
@@ -27716,7 +27706,7 @@ to hit the apostrophe key every time you wish to enter units.
 @tindex usimplify
 The @kbd{u s} (@code{calc-simplify-units}) [@code{usimplify}] command
 simplifies a units
-expression.  It uses @kbd{a s} (@code{calc-simplify}) to simplify the
+expression.  It uses Calc's algebraic simplifications to simplify the
 expression first as a regular algebraic formula; it then looks for
 features that can be further simplified by converting one object's units
 to be compatible with another's.  For example, @samp{5 m + 23 mm} will
@@ -27777,6 +27767,11 @@ more strongly than division in Calc formulas, so the units here are
 acres per meter-second.)  Remainder units are expressed in terms of
 ``fundamental'' units like @samp{m} and @samp{s}, regardless of the
 input units.
+
+If you want to disallow using inconsistent units, you can set the customizable variable
+@code{calc-ensure-consistent-units} to @code{t} (@pxref{Customizing Calc}).  In this case,
+if you request units which are inconsistent with the original units, you will be warned about
+it and no conversion will occur.
 
 One special exception is that if you specify a single unit name, and
 a compatible unit appears somewhere in the units expression, then
@@ -27997,7 +27992,7 @@ than the point used by @TeX{}), @code{texdd} (a Didot point),
 @code{texcc} (a Cicero) and @code{texsp} (a scaled @TeX{} point,
 all dimensions representable in @TeX{} are multiples of this value).
 
-When Calc is using the @TeX{} or La@TeX{} language mode (@pxref{TeX
+When Calc is using the @TeX{} or @LaTeX{} language mode (@pxref{TeX
 and LaTeX Language Modes}), the @TeX{} specific unit names will not
 use the @samp{tex} prefix; the unit name for a @TeX{} point will be
 @samp{pt} instead of @samp{texpt}, for example.  To avoid conflicts,
@@ -28795,7 +28790,7 @@ Edit @code{AlgSimpRules}.  @xref{Algebraic Simplifications}.
 @item s D
 Edit @code{Decls}.  @xref{Declarations}.
 @item s E
-Edit @code{EvalRules}.  @xref{Default Simplifications}.
+Edit @code{EvalRules}.  @xref{Basic Simplifications}.
 @item s F
 Edit @code{FitRules}.  @xref{Curve Fitting}.
 @item s G
@@ -28906,7 +28901,7 @@ since the evaluation step will also evaluate @code{pi}.
 @cindex @samp{=>} operator
 The special algebraic symbol @samp{=>} is known as the @dfn{evaluates-to
 operator}.  (It will show up as an @code{evalto} function call in
-other language modes like Pascal and La@TeX{}.)  This is a binary
+other language modes like Pascal and @LaTeX{}.)  This is a binary
 operator, that is, it has a lefthand and a righthand argument,
 although it can be entered with the righthand argument omitted.
 
@@ -28965,19 +28960,16 @@ to select the lefthand side, execute your commands, then type
 
 All current modes apply when an @samp{=>} operator is computed,
 including the current simplification mode.  Recall that the
-formula @samp{x + y + x} is not handled by Calc's default
-simplifications, but the @kbd{a s} command will reduce it to
-the simpler form @samp{y + 2 x}.  You can also type @kbd{m A}
-to enable an Algebraic Simplification mode in which the
-equivalent of @kbd{a s} is used on all of Calc's results.
-If you enter @samp{x + y + x =>} normally, the result will
-be @samp{x + y + x => x + y + x}.  If you change to
-Algebraic Simplification mode, the result will be
-@samp{x + y + x => y + 2 x}.  However, just pressing @kbd{a s}
-once will have no effect on @samp{x + y + x => x + y + x},
+formula @samp{arcsin(sin(x))} will not be handled by Calc's algebraic
+simplifications, but Calc's unsafe simplifications will reduce it to
+@samp{x}.   If you enter @samp{arcsin(sin(x)) =>} normally, the result
+will be @samp{arcsin(sin(x)) => arcsin(sin(x))}.  If you change to
+Extended Simplification mode, the result will be
+@samp{arcsin(sin(x)) => x}.  However, just pressing @kbd{a e}
+once will have no effect on @samp{arcsin(sin(x)) => arcsin(sin(x))},
 because the righthand side depends only on the lefthand side
 and the current mode settings, and the lefthand side is not
-affected by commands like @kbd{a s}.
+affected by commands like @kbd{a e}.
 
 The ``let'' command (@kbd{s l}) has an interesting interaction
 with the @samp{=>} operator.  The @kbd{s l} command evaluates the
@@ -29589,7 +29581,7 @@ plot on any text-only printer.
 @kindex g O
 @pindex calc-graph-output
 The @kbd{g O} (@code{calc-graph-output}) command sets the name of the
-output file used by GNUPLOT.  For some devices, notably @code{x11} and
+output file used by GNUPLOT@.  For some devices, notably @code{x11} and
 @code{windows}, there is no output file and this information is not
 used.  Many other ``devices'' are really file formats like
 @code{postscript}; in these cases the output in the desired format
@@ -29661,7 +29653,7 @@ window in the upper-left corner of the screen.  This command has no
 effect if the current device is @code{windows}.
 
 The buffer called @samp{*Gnuplot Trail*} holds a transcript of the
-session with GNUPLOT.  This shows the commands Calc has ``typed'' to
+session with GNUPLOT@.  This shows the commands Calc has ``typed'' to
 GNUPLOT and the responses it has received.  Calc tries to notice when an
 error message has appeared here and display the buffer for you when
 this happens.  You can check this buffer yourself if you suspect
@@ -30485,7 +30477,7 @@ are visiting your own files.
 
 Calc will try to guess an appropriate language based on the major mode
 of the editing buffer. (@xref{Language Modes}.) If the current buffer is
-in @code{latex-mode}, for example, Calc will set its language to La@TeX{}.
+in @code{latex-mode}, for example, Calc will set its language to @LaTeX{}.
 Similarly, Calc will use @TeX{} language for @code{tex-mode},
 @code{plain-tex-mode} and @code{context-mode}, C language for
 @code{c-mode} and @code{c++-mode}, FORTRAN language for
@@ -30502,7 +30494,7 @@ understands are:
 
 @enumerate
 @item
-The @TeX{} and La@TeX{} math delimiters @samp{$ $}, @samp{$$ $$},
+The @TeX{} and @LaTeX{} math delimiters @samp{$ $}, @samp{$$ $$},
 @samp{\[ \]}, and @samp{\( \)};
 @item
 Lines beginning with @samp{\begin} and @samp{\end} (except matrix delimiters);
@@ -30642,14 +30634,14 @@ you haven't done anything with this formula yet.
 When Embedded mode ``activates'' a formula, i.e., when it examines
 the formula for the first time since the buffer was created or
 loaded, Calc tries to sense the language in which the formula was
-written.  If the formula contains any La@TeX{}-like @samp{\} sequences,
-it is parsed (i.e., read) in La@TeX{} mode.  If the formula appears to
+written.  If the formula contains any @LaTeX{}-like @samp{\} sequences,
+it is parsed (i.e., read) in @LaTeX{} mode.  If the formula appears to
 be written in multi-line Big mode, it is parsed in Big mode.  Otherwise,
 it is parsed according to the current language mode.
 
 Note that Calc does not change the current language mode according
-the formula it reads in.  Even though it can read a La@TeX{} formula when
-not in La@TeX{} mode, it will immediately rewrite this formula using
+the formula it reads in.  Even though it can read a @LaTeX{} formula when
+not in @LaTeX{} mode, it will immediately rewrite this formula using
 whatever language mode is in effect.
 
 @tex
@@ -30670,8 +30662,8 @@ version.
 
 Plain formulas are preceded and followed by @samp{%%%} signs
 by default.  This notation has the advantage that the @samp{%}
-character begins a comment in @TeX{} and La@TeX{}, so if your formula is
-embedded in a @TeX{} or La@TeX{} document its plain version will be
+character begins a comment in @TeX{} and @LaTeX{}, so if your formula is
+embedded in a @TeX{} or @LaTeX{} document its plain version will be
 invisible in the final printed copy.  Certain major modes have different
 delimiters to ensure that the ``plain'' version will be
 in a comment for those modes, also.
@@ -30957,7 +30949,7 @@ a few lines that look like this:
 @noindent
 where the leading and trailing @samp{---} can be replaced by
 any suitable strings (which must be the same on all three lines)
-or omitted altogether; in a @TeX{} or La@TeX{} file, @samp{%} would be a good
+or omitted altogether; in a @TeX{} or @LaTeX{} file, @samp{%} would be a good
 leading string and no trailing string would be necessary.  In a
 C program, @samp{/*} and @samp{*/} would be good leading and
 trailing strings.
@@ -33272,7 +33264,7 @@ in the range @samp{[0 ..@: 60)}.
 
 Date forms are stored as @samp{(date @var{n})}, where @var{n} is
 a real number that counts days since midnight on the morning of
-January 1, 1 AD.  If @var{n} is an integer, this is a pure date
+January 1, 1 AD@.  If @var{n} is an integer, this is a pure date
 form.  If @var{n} is a fraction or float, this is a date/time form.
 
 Modulo forms are stored as @samp{(mod @var{n} @var{m})}, where @var{m} is a
@@ -33778,8 +33770,9 @@ will be the same as @code{lessp}.  But whereas @code{lessp} considers
 other types of objects to be unordered, @code{beforep} puts any two
 objects into a definite, consistent order.  The @code{beforep}
 function is used by the @kbd{V S} vector-sorting command, and also
-by @kbd{a s} to put the terms of a product into canonical order:
-This allows @samp{x y + y x} to be simplified easily to @samp{2 x y}.
+by Calc's algebraic simplifications to put the terms of a product into
+canonical order: This allows @samp{x y + y x} to be simplified easily to
+@samp{2 x y}.
 @end defun
 
 @defun equal x y
@@ -34448,10 +34441,9 @@ sub-formula that is @code{eq} to @var{old} replaced by @var{new}.
 @end defun
 
 @defun simplify expr
-Simplify the expression @var{expr} by applying various algebraic rules.
-This is what the @w{@kbd{a s}} (@code{calc-simplify}) command uses.  This
-always returns a copy of the expression; the structure @var{expr} points
-to remains unchanged in memory.
+Simplify the expression @var{expr} by applying Calc's algebraic
+simplifications.  This  always returns a copy of the expression; the
+structure @var{expr} points to remains unchanged in memory.
 
 More precisely, here is what @code{simplify} does:  The expression is
 first normalized and evaluated by calling @code{normalize}.  If any
@@ -35387,7 +35379,7 @@ The simplest delimiters are blank lines.  Other delimiters that
 Embedded mode understands by default are:
 @enumerate
 @item
-The @TeX{} and La@TeX{} math delimiters @samp{$ $}, @samp{$$ $$},
+The @TeX{} and @LaTeX{} math delimiters @samp{$ $}, @samp{$$ $$},
 @samp{\[ \]}, and @samp{\( \)};
 @item
 Lines beginning with @samp{\begin} and @samp{\end} (except matrix delimiters);
@@ -35591,6 +35583,19 @@ as @samp{a/(b*c)}. If @code{calc-multiplication-has-precedence} is
 of @code{calc-multiplication-has-precedence} is @code{t}.
 @end defvar
 
+@defvar calc-ensure-consistent-units
+When converting units, the variable @code{calc-ensure-consistent-units}
+determines whether or not the target units need to be consistent with the
+original units.  If @code{calc-ensure-consistent-units} is @code{nil}, then
+the target units don't need to have the same dimensions as the original units;
+for example, converting @samp{100 ft/s} to @samp{m} will produce @samp{30.48 m/s}.
+If @code{calc-ensure-consistent-units} is non-@code{nil}, then the target units
+need to have the same dimensions as the original units; for example, converting
+@samp{100 ft/s} to @samp{m} will result in an error, since @samp{ft/s} and @samp{m}
+have different dimensions. The default value of @code{calc-ensure-consistent-units}
+is @code{nil}.
+@end defvar
+
 @defvar calc-undo-length
 The variable @code{calc-undo-length} determines the number of undo
 steps that Calc will keep track of when @code{calc-quit} is called.
@@ -35598,6 +35603,20 @@ If @code{calc-undo-length} is a non-negative integer, then this is the
 number of undo steps that will be preserved; if
 @code{calc-undo-length} has any other value, then all undo steps will
 be preserved.  The default value of @code{calc-undo-length} is @expr{100}.
+@end defvar
+
+@defvar calc-gregorian-switch
+See @ref{Date Forms}.@*
+The variable @code{calc-gregorian-switch} is either a list of integers
+@code{(@var{YEAR} @var{MONTH} @var{DAY})} or @code{nil}.
+If it is @code{nil}, then Calc's date forms always represent Gregorian dates.
+Otherwise, @code{calc-gregorian-switch} represents the date that the
+calendar switches from Julian dates to Gregorian dates;
+@code{(@var{YEAR} @var{MONTH} @var{DAY})} will be the first Gregorian
+date.  The customization buffer will offer several standard dates to
+choose from, or the user can enter their own date.
+
+The default value of @code{calc-gregorian-switch} is @code{nil}.
 @end defvar
 
 @node Reporting Bugs, Summary, Customizing Calc, Top
@@ -36571,7 +36590,7 @@ A plain @kbd{C-u} prefix means to prompt for the step size.
 @c 7
 @item
 A prefix argument specifies simplification level and depth.
-1=Default, 2=like @kbd{a s}, 3=like @kbd{a e}.
+1=Basic simplifications, 2=Algebraic simplifications, 3=Extended simplifications
 
 @c 8
 @item

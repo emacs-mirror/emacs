@@ -1,6 +1,6 @@
 ;;; em-smart.el --- smart display of output
 
-;; Copyright (C) 1999-2011  Free Software Foundation, Inc.
+;; Copyright (C) 1999-2012  Free Software Foundation, Inc.
 
 ;; Author: John Wiegley <johnw@gnu.org>
 
@@ -71,7 +71,8 @@
 (eval-when-compile (require 'eshell))
 
 ;;;###autoload
-(eshell-defgroup eshell-smart nil
+(progn
+(defgroup eshell-smart nil
   "This module combines the facility of normal, modern shells with
 some of the edit/review concepts inherent in the design of Plan 9's
 9term.  See the docs for more details.
@@ -80,7 +81,7 @@ Most likely you will have to turn this option on and play around with
 it to get a real sense of how it works."
   :tag "Smart display of output"
   ;; :link '(info-link "(eshell)Smart display of output")
-  :group 'eshell-module)
+  :group 'eshell-module))
 
 ;;; User Variables:
 

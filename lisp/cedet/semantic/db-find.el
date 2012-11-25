@@ -1,6 +1,6 @@
 ;;; semantic/db-find.el --- Searching through semantic databases.
 
-;; Copyright (C) 2000-2011 Free Software Foundation, Inc.
+;; Copyright (C) 2000-2012 Free Software Foundation, Inc.
 
 ;; Author: Eric M. Ludlam <zappo@gnu.org>
 ;; Keywords: tags
@@ -123,6 +123,7 @@
 
 (defvar data-debug-thing-alist)
 (declare-function data-debug-insert-stuff-list "data-debug")
+(declare-function data-debug-new-buffer "data-debug")
 ;;;(declare-function data-debug-insert-tag-list "adebug")
 (declare-function semantic-scope-reset-cache "semantic/scope")
 (declare-function semanticdb-typecache-notify-reset "semantic/db-typecache")
@@ -166,6 +167,8 @@ the following keys:
                  The Emacs Lisp system DB is an omniscience database."
   :group 'semanticdb
   :type semanticdb-find-throttle-custom-list)
+
+(make-variable-buffer-local 'semanticdb-find-default-throttle)
 
 (defun semanticdb-find-throttle-active-p (access-type)
   "Non-nil if ACCESS-TYPE is an active throttle type."
@@ -325,8 +328,10 @@ Default action as described in `semanticdb-find-translate-path'."
 	 (cond ((null path) semanticdb-current-database)
 	       ((semanticdb-table-p path) (oref path parent-db))
 	       (t (let ((tt (semantic-something-to-tag-table path)))
-		    ;; @todo - What does this DO ??!?!
-		    (with-current-buffer (semantic-tag-buffer (car tt))
+		    (if tt
+			;; @todo - What does this DO ??!?!
+			(with-current-buffer (semantic-tag-buffer (car tt))
+			  semanticdb-current-database)
 		      semanticdb-current-database))))))
     (apply
      #'nconc
@@ -877,8 +882,9 @@ instead."
 		;; Find-file-match allows a tool to make sure the tag is
 		;; 'live', somewhere in a buffer.
 		(cond ((eq find-file-match 'name)
-		       (let ((f (semanticdb-full-filename nametable)))
-			 (semantic--tag-put-property ntag :filename f)))
+		       (or (semantic--tag-get-property ntag :filename)
+			   (let ((f (semanticdb-full-filename nametable)))
+			     (semantic--tag-put-property ntag :filename f))))
 		      ((and find-file-match ntab)
 		       (semanticdb-get-buffer ntab))
 		      )
@@ -1320,7 +1326,12 @@ Returns a table of all matching tags."
   "In TABLE, find all occurrences of tags of CLASS.
 Optional argument TAGS is a list of tags to search.
 Returns a table of all matching tags."
-  (semantic-find-tags-by-class class (or tags (semanticdb-get-tags table))))
+  ;; Delegate 'include' to the overridable
+  ;; `semantic-find-tags-included', which by default will just call
+  ;; `semantic-find-tags-by-class'.
+  (if (eq class 'include)
+      (semantic-find-tags-included (or tags (semanticdb-get-tags table)))
+    (semantic-find-tags-by-class class (or tags (semanticdb-get-tags table)))))
 
 (defmethod semanticdb-find-tags-external-children-of-type-method ((table semanticdb-abstract-table) parent &optional tags)
    "In TABLE, find all occurrences of tags whose parent is the PARENT type.

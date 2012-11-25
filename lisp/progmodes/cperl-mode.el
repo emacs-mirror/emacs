@@ -1,6 +1,6 @@
 ;;; cperl-mode.el --- Perl code editing commands for Emacs
 
-;; Copyright (C) 1985-1987, 1991-2011  Free Software Foundation, Inc.
+;; Copyright (C) 1985-1987, 1991-2012  Free Software Foundation, Inc.
 
 ;; Author: Ilya Zakharevich
 ;;	Bob Olson
@@ -1838,7 +1838,13 @@ or as help on variables `cperl-tips', `cperl-problems',
             (set (make-local-variable 'cperl-syntax-done-to) nil)
             (set (make-local-variable 'syntax-propertize-function)
                  (lambda (start end)
-                   (goto-char start) (cperl-fontify-syntaxically end))))
+                   (goto-char start)
+                   ;; Even if cperl-fontify-syntaxically has already gone
+                   ;; beyond `start', syntax-propertize has just removed
+                   ;; syntax-table properties between start and end, so we have
+                   ;; to re-apply them.
+                   (setq cperl-syntax-done-to start)
+                   (cperl-fontify-syntaxically end))))
 	(make-local-variable 'parse-sexp-lookup-properties)
 	;; Do not introduce variable if not needed, we check it!
 	(set 'parse-sexp-lookup-properties t)
@@ -2322,8 +2328,7 @@ to nil."
 						 nil t)))) ; Only one
 		     (progn
 		       (forward-word 1)
-		       (setq name (file-name-sans-extension
-				   (file-name-nondirectory (buffer-file-name)))
+		       (setq name (file-name-base)
 			     p (point))
 		       (insert " NAME\n\n" name
 			       " - \n\n=head1 SYNOPSIS\n\n\n\n"
@@ -3498,7 +3503,8 @@ Works before syntax recognition is done."
     (if end
 	;; Do the same for end, going small steps
 	(save-excursion
-	  (while (and end (get-text-property end 'syntax-type))
+	  (while (and end (< end (point-max))
+		      (get-text-property end 'syntax-type))
 	    (setq pos end
 		  end (next-single-property-change end 'syntax-type nil (point-max)))
 	    (if end (progn (goto-char end)
@@ -8951,14 +8957,15 @@ do extra unwind via `cperl-unwind-to-safe'."
       (setq cperl-syntax-done-to (min cperl-syntax-done-to beg))))
 
 (defun cperl-update-syntaxification (from to)
-  (if (and cperl-use-syntax-table-text-property
-	   cperl-syntaxify-by-font-lock
-	   (or (null cperl-syntax-done-to)
-	       (< cperl-syntax-done-to to)))
-      (progn
-	(save-excursion
-	  (goto-char from)
-	  (cperl-fontify-syntaxically to)))))
+  (cond
+   ((not cperl-use-syntax-table-text-property) nil)
+   ((fboundp 'syntax-propertize) (syntax-propertize to))
+   ((and cperl-syntaxify-by-font-lock
+         (or (null cperl-syntax-done-to)
+             (< cperl-syntax-done-to to)))
+    (save-excursion
+      (goto-char from)
+      (cperl-fontify-syntaxically to)))))
 
 (defvar cperl-version
   (let ((v  "Revision: 6.2"))

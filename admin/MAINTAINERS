@@ -34,7 +34,6 @@ Eli Zaretskii
 	    src/msdos.[ch]
 	    src/dosfns.[ch]
 	    src/w16select.c
-	    src/s/msdos.h
 	    lisp/term/internal.el
 	    lisp/term/pc-win.el
 	    lisp/dos-fns.el
@@ -171,7 +170,6 @@ src/insdel.c
 src/image.c
 src/lastfile.c
 src/lread.c
-src/m/
 src/macros.c
 src/makefile.w32-in
 src/marker.c
@@ -184,7 +182,6 @@ src/print.c
 src/process.c
 src/ralloc.c
 src/region-cache.c
-src/s/
 src/scroll.c
 src/search.c
 src/sound.c
@@ -220,4 +217,3 @@ src/xmenu.c
 src/xrdb.c
 src/xselect.c
 src/xterm.c
-

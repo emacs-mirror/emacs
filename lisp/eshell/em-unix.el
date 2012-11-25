@@ -1,6 +1,6 @@
 ;;; em-unix.el --- UNIX command aliases
 
-;; Copyright (C) 1999-2011  Free Software Foundation, Inc.
+;; Copyright (C) 1999-2012 Free Software Foundation, Inc.
 
 ;; Author: John Wiegley <johnw@gnu.org>
 
@@ -40,7 +40,8 @@
 (require 'pcomplete)
 
 ;;;###autoload
-(eshell-defgroup eshell-unix nil
+(progn
+(defgroup eshell-unix nil
   "This module defines many of the more common UNIX utilities as
 aliases implemented in Lisp.  These include mv, ln, cp, rm, etc.  If
 the user passes arguments which are too complex, or are unrecognized
@@ -51,7 +52,7 @@ with Eshell makes them more versatile than their traditional cousins
 \(such as being able to use `kill' to kill Eshell background processes
 by name)."
   :tag "UNIX commands in Lisp"
-  :group 'eshell-module)
+  :group 'eshell-module))
 
 (defcustom eshell-unix-load-hook nil
   "A list of functions to run when `eshell-unix' is loaded."
@@ -305,12 +306,13 @@ Remove (unlink) the FILE(s).")
   (eshell-eval-using-options
    "mkdir" args
    '((?h "help" nil nil "show this usage screen")
+     (?p "parents" nil em-parents "make parent directories as needed")
      :external "mkdir"
      :show-usage
      :usage "[OPTION] DIRECTORY...
 Create the DIRECTORY(ies), if they do not already exist.")
    (while args
-     (eshell-funcalln 'make-directory (car args))
+     (eshell-funcalln 'make-directory (car args) em-parents)
      (setq args (cdr args)))
    nil))
 
@@ -599,7 +601,7 @@ symlink, then revert to the system's definition of cat."
       (let ((ext-cat (eshell-search-path "cat")))
 	(if ext-cat
 	    (throw 'eshell-replace-command
-		   (eshell-parse-command ext-cat args))
+		   (eshell-parse-command (eshell-quote-argument ext-cat) args))
 	  (if eshell-in-pipeline-p
 	      (error "Eshell's `cat' does not work in pipelines")
 	    (error "Eshell's `cat' cannot display one of the files given"))))
@@ -712,7 +714,7 @@ available..."
 
 (defun eshell-grep (command args &optional maybe-use-occur)
   "Generic service function for the various grep aliases.
-It calls Emacs' grep utility if the command is not redirecting output,
+It calls Emacs's grep utility if the command is not redirecting output,
 and if it's not part of a command pipeline.  Otherwise, it calls the
 external command."
   (if (and maybe-use-occur eshell-no-grep-available)
@@ -792,8 +794,6 @@ external command."
   (funcall (or (pcomplete-find-completion-function (pcomplete-arg 1))
 	       pcomplete-default-completion-function)))
 
-(defalias 'pcomplete/ssh 'pcomplete/rsh)
-
 (defvar block-size)
 (defvar by-bytes)
 (defvar dereference-links)
@@ -857,7 +857,7 @@ external command."
 			   (file-remote-p (expand-file-name arg) 'method) "ftp")
 			  (throw 'have-ange-path t))))))
 	(throw 'eshell-replace-command
-	       (eshell-parse-command ext-du args))
+	       (eshell-parse-command (eshell-quote-argument ext-du) args))
       (eshell-eval-using-options
        "du" args
        '((?a "all" nil show-all
@@ -965,6 +965,8 @@ Show wall-clock time elapsed during execution of COMMAND.")
     ((string-match "[^[:blank:]]" string) string)
     (nil)))
 
+(autoload 'diff-no-select "diff")
+
 (defun eshell/diff (&rest args)
   "Alias \"diff\" to call Emacs `diff' function."
   (let ((orig-args (eshell-stringify-list (eshell-flatten-list args))))
@@ -986,8 +988,9 @@ Show wall-clock time elapsed during execution of COMMAND.")
 	  (setcdr (last args 3) nil))
 	(with-current-buffer
 	    (condition-case err
-		(diff old new
-		      (nil-blank-string (eshell-flatten-and-stringify args)))
+		(diff-no-select
+		 old new
+		 (nil-blank-string (eshell-flatten-and-stringify args)))
 	      (error
 	       (throw 'eshell-replace-command
 		      (eshell-parse-command "*diff" orig-args))))
@@ -1035,12 +1038,8 @@ Show wall-clock time elapsed during execution of COMMAND.")
 
 (put 'eshell/occur 'eshell-no-numeric-conversions t)
 
-;; Pacify the byte-compiler.
-(defvar tramp-default-proxies-alist)
-
 (defun eshell/su (&rest args)
   "Alias \"su\" to call Tramp."
-  (require 'tramp)
   (setq args (eshell-stringify-list (eshell-flatten-list args)))
   (let ((orig-args (copy-tree args)))
     (eshell-eval-using-options
@@ -1055,29 +1054,29 @@ Become another USER during a login session.")
 		  (host (or (file-remote-p default-directory 'host)
 			    "localhost"))
 		  (dir (or (file-remote-p default-directory 'localname)
-			   (expand-file-name default-directory))))
+			   (expand-file-name default-directory)))
+		  (prefix (file-remote-p default-directory)))
 	      (dolist (arg args)
 		(if (string-equal arg "-") (setq login t) (setq user arg)))
 	      ;; `eshell-eval-using-options' does not handle "-".
 	      (if (member "-" orig-args) (setq login t))
 	      (if login (setq dir "~/"))
-	      (if (and (file-remote-p default-directory)
+	      (if (and prefix
 		       (or
 			(not (string-equal
 			      "su" (file-remote-p default-directory 'method)))
 			(not (string-equal
 			      user (file-remote-p default-directory 'user)))))
-		  (add-to-list
-		   'tramp-default-proxies-alist
-		   (list host user (file-remote-p default-directory))))
-	      (eshell-parse-command
-	       "cd" (list (format "/su:%s@%s:%s" user host dir))))))))
+		  (eshell-parse-command
+		   "cd" (list (format "%s|su:%s@%s:%s"
+				      (substring prefix 0 -1) user host dir)))
+		(eshell-parse-command
+		 "cd" (list (format "/su:%s@%s:%s" user host dir)))))))))
 
 (put 'eshell/su 'eshell-no-numeric-conversions t)
 
 (defun eshell/sudo (&rest args)
   "Alias \"sudo\" to call Tramp."
-  (require 'tramp)
   (setq args (eshell-stringify-list (eshell-flatten-list args)))
   (let ((orig-args (copy-tree args)))
     (eshell-eval-using-options
@@ -1092,21 +1091,28 @@ Execute a COMMAND as the superuser or another USER.")
 		  (host (or (file-remote-p default-directory 'host)
 			    "localhost"))
 		  (dir (or (file-remote-p default-directory 'localname)
-			   (expand-file-name default-directory))))
+			   (expand-file-name default-directory)))
+		  (prefix (file-remote-p default-directory)))
 	      ;; `eshell-eval-using-options' reads options of COMMAND.
 	      (while (and (stringp (car orig-args))
 			  (member (car orig-args) '("-u" "--user")))
 		(setq orig-args (cddr orig-args)))
-	      (if (and (file-remote-p default-directory)
-		       (or
-			(not (string-equal
-			      "sudo" (file-remote-p default-directory 'method)))
-			(not (string-equal
-			      user (file-remote-p default-directory 'user)))))
-		  (add-to-list
-		   'tramp-default-proxies-alist
-		   (list host user (file-remote-p default-directory))))
-	      (let ((default-directory (format "/sudo:%s@%s:%s" user host dir)))
+	      (let ((default-directory
+		      (if (and prefix
+			       (or
+				(not
+				 (string-equal
+				  "sudo"
+				  (file-remote-p default-directory 'method)))
+				(not
+				 (string-equal
+				  user
+				  (file-remote-p default-directory 'user)))))
+			  (format "%s|sudo:%s@%s:%s"
+				  (substring prefix 0 -1) user host dir)
+			(format "/sudo:%s@%s:%s" user host dir))))
+		;; Ensure, that Tramp has connected to that construct already.
+		(ignore (file-exists-p default-directory))
 		(eshell-named-command (car orig-args) (cdr orig-args))))))))
 
 (put 'eshell/sudo 'eshell-no-numeric-conversions t)

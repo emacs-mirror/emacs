@@ -1,8 +1,9 @@
 ;;; erc-track.el --- Track modified channel buffers
 
-;; Copyright (C) 2002-2011 Free Software Foundation, Inc.
+;; Copyright (C) 2002-2012 Free Software Foundation, Inc.
 
 ;; Author: Mario Lang <mlang@delysid.org>
+;; Maintainer: FSF
 ;; Keywords: comm, faces
 ;; URL: http://www.emacswiki.org/cgi-bin/wiki.pl?ErcChannelTracking
 
@@ -24,7 +25,7 @@
 ;;; Commentary:
 
 ;; Highlights keywords and pals (friends), and hides or highlights fools
-;; (using a dark color).  Add to your ~/.emacs:
+;; (using a dark color).  Add to your init file:
 
 ;; (require 'erc-track)
 ;; (erc-track-mode 1)
@@ -33,7 +34,7 @@
 ;; * Add extensibility so that custom functions can track
 ;;   custom modification types.
 
-(eval-when-compile (require 'cl))
+(eval-when-compile (require 'cl-lib))
 (require 'erc)
 (require 'erc-compat)
 (require 'erc-match)
@@ -41,7 +42,7 @@
 ;;; Code:
 
 (defgroup erc-track nil
-  "Track active buffers and show activity in the modeline."
+  "Track active buffers and show activity in the mode line."
   :group 'erc)
 
 (defcustom erc-track-enable-keybindings 'ask
@@ -93,13 +94,13 @@ Activity means that there was no user input in the last 10 seconds."
   :type '(repeat string))
 
 (defcustom erc-track-remove-disconnected-buffers nil
-  "*If true, remove buffers associated with a server that is
+  "If true, remove buffers associated with a server that is
 disconnected from `erc-modified-channels-alist'."
   :group 'erc-track
   :type 'boolean)
 
 (defcustom erc-track-exclude-types '("NICK" "333" "353")
-  "*List of message types to be ignored.
+  "List of message types to be ignored.
 This list could look like '(\"JOIN\" \"PART\").
 
 By default, exclude changes of nicknames (NICK), display of who
@@ -109,7 +110,7 @@ channel (353)."
   :type 'erc-message-type)
 
 (defcustom erc-track-exclude-server-buffer nil
-  "*If true, don't perform tracking on the server buffer; this is
+  "If true, don't perform tracking on the server buffer; this is
 useful for excluding all the things like MOTDs from the server and
 other miscellaneous functions."
   :group 'erc-track
@@ -127,7 +128,7 @@ the mode-line should be reduced to."
   :type 'number)
 
 (defcustom erc-track-shorten-aggressively nil
-  "*If non-nil, channel names will be shortened more aggressively.
+  "If non-nil, channel names will be shortened more aggressively.
 Usually, names are not shortened if this will save only one character.
 Example: If there are two channels, #linux-de and #linux-fr, then
 normally these will not be shortened.  When shortening aggressively,
@@ -150,7 +151,7 @@ This setting is used by `erc-track-shorten-names'."
 		 (const :tag "Max" max)))
 
 (defcustom erc-track-shorten-function 'erc-track-shorten-names
-  "*This function will be used to reduce the channel names before display.
+  "This function will be used to reduce the channel names before display.
 It takes one argument, CHANNEL-NAMES which is a list of strings.
 It should return a list of strings of the same number of elements.
 If nil instead of a function, shortening is disabled."
@@ -169,7 +170,7 @@ notification of channel activity."
   :type 'hook)
 
 (defcustom erc-track-use-faces t
-  "*Use faces in the mode-line.
+  "Use faces in the mode-line.
 The faces used are the same as used for text in the buffers.
 \(e.g. `erc-pal-face' is used if a pal sent a message to that channel.)"
   :group 'erc-track
@@ -196,7 +197,7 @@ The faces used are the same as used for text in the buffers.
     erc-notice-face
     erc-input-face
     erc-prompt-face)
-  "A list of faces used to highlight active buffer names in the modeline.
+  "A list of faces used to highlight active buffer names in the mode line.
 If a message contains one of the faces in this list, the buffer name will
 be highlighted using that face.  The first matching face is used."
   :group 'erc-track
@@ -228,10 +229,10 @@ setting this variable might not be very useful."
     erc-default-face
     erc-action-face)
   "A list of faces considered to be part of normal conversations.
-This list is used to highlight active buffer names in the modeline.
+This list is used to highlight active buffer names in the mode line.
 
 If a message contains one of the faces in this list, and the
-previous modeline face for this buffer is also in this list, then
+previous mode line face for this buffer is also in this list, then
 the buffer name will be highlighted using the face from the
 message.  This gives a rough indication that active conversations
 are occurring in these channels.
@@ -483,7 +484,7 @@ START is the minimum length of the name used."
 
 ;;; Test:
 
-(assert
+(cl-assert
  (and
   ;; verify examples from the doc strings
   (equal (let ((erc-track-shorten-aggressively nil))
@@ -868,11 +869,11 @@ Use `erc-make-mode-line-buffer-name' to create buttons."
   (setq erc-modified-channels-alist
 	(delete (assq buffer erc-modified-channels-alist)
 		erc-modified-channels-alist))
-  (when (interactive-p)
+  (when (called-interactively-p 'interactive)
     (erc-modified-channels-display)))
 
 (defun erc-track-find-face (faces)
-  "Return the face to use in the modeline from the faces in FACES.
+  "Return the face to use in the mode line from the faces in FACES.
 If `erc-track-faces-priority-list' is set, the one from FACES who
 is first in that list will be used.  If nothing matches or if
 `erc-track-faces-priority-list' is not set, the default mode-line
@@ -906,7 +907,7 @@ element."
 
 (defun erc-track-modified-channels ()
   "Hook function for `erc-insert-post-hook' to check if the current
-buffer should be added to the modeline as a hidden, modified
+buffer should be added to the mode line as a hidden, modified
 channel.  Assumes it will only be called when current-buffer
 is in `erc-mode'."
   (let ((this-channel (or (erc-default-target)
@@ -979,7 +980,7 @@ is in `erc-mode'."
 	(add-to-list 'faces cur)))
     faces))
 
-(assert
+(cl-assert
  (let ((str "is bold"))
    (put-text-property 3 (length str)
 		      'face '(bold erc-current-nick-face)
@@ -1029,17 +1030,17 @@ relative to `erc-track-switch-direction'"
   (let ((dir erc-track-switch-direction)
 	offset)
     (when (< arg 0)
-      (setq dir (case dir
-		  (oldest      'newest)
-		  (newest      'oldest)
-		  (mostactive  'leastactive)
-		  (leastactive 'mostactive)
-		  (importance  'oldest)))
+      (setq dir (pcase dir
+		  (`oldest      'newest)
+		  (`newest      'oldest)
+		  (`mostactive  'leastactive)
+		  (`leastactive 'mostactive)
+		  (`importance  'oldest)))
       (setq arg (- arg)))
-    (setq offset (case dir
-		   ((oldest leastactive)
+    (setq offset (pcase dir
+		   ((or `oldest `leastactive)
 		    (- (length erc-modified-channels-alist) arg))
-		   (t (1- arg))))
+		   (_ (1- arg))))
     ;; normalize out of range user input
     (cond ((>= offset (length erc-modified-channels-alist))
 	   (setq offset (1- (length erc-modified-channels-alist))))

@@ -1,6 +1,6 @@
 ;;; calc-aent.el --- algebraic entry functions for Calc
 
-;; Copyright (C) 1990-1993, 2001-2011  Free Software Foundation, Inc.
+;; Copyright (C) 1990-1993, 2001-2012  Free Software Foundation, Inc.
 
 ;; Author: Dave Gillespie <daveg@synaptics.com>
 ;; Maintainer: Jay Belanger <jay.p.belanger@gmail.com>
@@ -286,8 +286,7 @@ The value t means abort and give an error message.")
 
 ;;;###autoload
 (defun calc-alg-entry (&optional initial prompt)
-  (let* ((sel-mode nil)
-	 (calc-dollar-values (mapcar 'calc-get-stack-element
+  (let* ((calc-dollar-values (mapcar #'calc-get-stack-element
 				     (nthcdr calc-stack-top calc-stack)))
 	 (calc-dollar-used 0)
 	 (calc-plain-entry t)

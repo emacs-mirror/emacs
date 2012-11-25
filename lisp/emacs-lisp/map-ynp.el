@@ -1,10 +1,11 @@
 ;;; map-ynp.el --- general-purpose boolean question-asker
 
-;; Copyright (C) 1991-1995, 2000-2011 Free Software Foundation, Inc.
+;; Copyright (C) 1991-1995, 2000-2012 Free Software Foundation, Inc.
 
 ;; Author: Roland McGrath <roland@gnu.org>
 ;; Maintainer: FSF
 ;; Keywords: lisp, extensions
+;; Package: emacs
 
 ;; This file is part of GNU Emacs.
 
@@ -122,16 +123,6 @@ Returns the number of actions taken."
 	    map
             (let ((map (make-sparse-keymap)))
               (set-keymap-parent map query-replace-map)
-              (define-key map [?\C-\M-v] 'scroll-other-window)
-              (define-key map [M-next] 'scroll-other-window)
-              (define-key map [?\C-\M-\S-v] 'scroll-other-window-down)
-              (define-key map [M-prior] 'scroll-other-window-down)
-              ;; The above are rather inconvenient, so maybe we should
-              ;; provide the non-other keys for the other-scroll as well.
-              ;; (define-key map [?\C-v] 'scroll-other-window)
-              ;; (define-key map [next] 'scroll-other-window)
-              ;; (define-key map [?\M-v] 'scroll-other-window-down)
-              ;; (define-key map [prior] 'scroll-other-window-down)
               (dolist (elt action-alist)
                 (define-key map (vector (car elt)) (vector (nth 1 elt))))
               map)))

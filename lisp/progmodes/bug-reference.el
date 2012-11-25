@@ -1,6 +1,6 @@
 ;; bug-reference.el --- buttonize bug references
 
-;; Copyright (C) 2008-2011 Free Software Foundation, Inc.
+;; Copyright (C) 2008-2012 Free Software Foundation, Inc.
 
 ;; Author: Tom Tromey <tromey@redhat.com>
 ;; Created: 21 Mar 2007
@@ -29,6 +29,13 @@
 
 ;; Two minor modes are provided.  One works on any text in the buffer;
 ;; the other operates only on comments and strings.
+
+;;; Code:
+
+(defgroup bug-reference nil
+  "Hyperlinking references to bug reports"
+  ;; Somewhat arbitrary, by analogy with eg goto-address.
+  :group 'comm)
 
 (defvar bug-reference-map
   (let ((map (make-sparse-keymap)))
@@ -61,9 +68,14 @@ so that it is considered safe, see `enable-local-variables'.")
            (and (symbolp s)
                 (get s 'bug-reference-url-format)))))
 
-(defconst bug-reference-bug-regexp
-  "\\([Bb]ug ?#\\|[Pp]atch ?#\\|RFE ?#\\|PR [a-z-+]+/\\)\\([0-9]+\\)"
-  "Regular expression which matches bug references.")
+(defcustom bug-reference-bug-regexp
+  "\\([Bb]ug ?#\\|[Pp]atch ?#\\|RFE ?#\\|PR [a-z-+]+/\\)\\([0-9]+\\(?:#[0-9]+\\)?\\)"
+  "Regular expression matching bug references.
+The second subexpression should match the bug reference (usually a number)."
+  :type 'string
+  :safe 'stringp
+  :version "24.3"			; previously defconst
+  :group 'bug-reference)
 
 (defun bug-reference-set-overlay-properties ()
   "Set properties of bug reference overlays."
@@ -154,4 +166,5 @@ the mode if ARG is omitted or nil."
       (widen)
       (bug-reference-unfontify (point-min) (point-max)))))
 
+(provide 'bug-reference)
 ;;; bug-reference.el ends here

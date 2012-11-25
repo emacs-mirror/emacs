@@ -1,8 +1,9 @@
 ;;; erc-truncate.el --- Functions for truncating ERC buffers
 
-;; Copyright (C) 2003-2004, 2006-2011 Free Software Foundation, Inc.
+;; Copyright (C) 2003-2004, 2006-2012 Free Software Foundation, Inc.
 
 ;; Author: Andreas Fuchs <asf@void.at>
+;; Maintainer: FSF
 ;; Keywords: IRC, chat, client, Internet, logging
 
 ;; This file is part of GNU Emacs.
@@ -36,7 +37,7 @@
   :group 'erc)
 
 (defcustom erc-max-buffer-size 30000
-  "*Maximum size in chars of each ERC buffer.
+  "Maximum size in chars of each ERC buffer.
 Used only when auto-truncation is enabled.
 \(see `erc-truncate-buffer' and `erc-insert-post-hook')."
   :group 'erc-truncate

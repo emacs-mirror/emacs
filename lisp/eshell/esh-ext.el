@@ -1,6 +1,6 @@
 ;;; esh-ext.el --- commands external to Eshell
 
-;; Copyright (C) 1999-2011  Free Software Foundation, Inc.
+;; Copyright (C) 1999-2012  Free Software Foundation, Inc.
 
 ;; Author: John Wiegley <johnw@gnu.org>
 
@@ -34,9 +34,10 @@
 (provide 'esh-ext)
 
 (eval-when-compile
-  (require 'cl)
+  (require 'cl-lib)
   (require 'esh-cmd))
 (require 'esh-util)
+(require 'esh-opt)
 
 (defgroup eshell-ext nil
   "External commands are invoked when operating system executables are
@@ -91,7 +92,7 @@ since nothing else but Eshell will be able to understand
 
 (defcustom eshell-windows-shell-file
   (if (eshell-under-windows-p)
-      (if (string-match "\\(\\`cmdproxy\\|sh\\)\\.\\(com\\|exe\\)"
+      (if (string-match "\\(cmdproxy\\|sh\\)\\.\\(com\\|exe\\)"
 			shell-file-name)
 	  (or (eshell-search-path "cmd.exe")
 	      (eshell-search-path "command.com"))
@@ -108,7 +109,9 @@ wholly ignored."
   ;; argument...
   (setcar args (subst-char-in-string ?/ ?\\ (car args)))
   (throw 'eshell-replace-command
-	 (eshell-parse-command eshell-windows-shell-file (cons "/c" args))))
+	 (eshell-parse-command
+	  (eshell-quote-argument eshell-windows-shell-file)
+	  (cons "/c" args))))
 
 (defcustom eshell-interpreter-alist
   (if (eshell-under-windows-p)
@@ -186,6 +189,7 @@ all the output from the remote command, and sends it all at once,
 causing the user to wonder if anything's really going on..."
   (let ((outbuf (generate-new-buffer " *eshell remote output*"))
 	(errbuf (generate-new-buffer " *eshell remote error*"))
+	(command (or (file-remote-p command 'localname) command))
 	(exitcode 1))
     (unwind-protect
 	(progn
@@ -203,10 +207,15 @@ causing the user to wonder if anything's really going on..."
 (defun eshell-external-command (command args)
   "Insert output from an external COMMAND, using ARGS."
   (setq args (eshell-stringify-list (eshell-flatten-list args)))
-  (if (file-remote-p default-directory)
-      (eshell-remote-command command args))
-  (let ((interp (eshell-find-interpreter command)))
-    (assert interp)
+  (let ((interp (eshell-find-interpreter
+		 command
+		 ;; `eshell-find-interpreter' does not work correctly
+		 ;; for Tramp file name syntax.  But we don't need to
+		 ;; know the interpreter in that case, therefore the
+		 ;; check is suppressed.
+		 (or (and (stringp command) (file-remote-p command))
+		     (file-remote-p default-directory)))))
+    (cl-assert interp)
     (if (functionp (car interp))
 	(apply (car interp) (append (cdr interp) args))
       (eshell-gather-process-output
@@ -222,20 +231,15 @@ causing the user to wonder if anything's really going on..."
 Adds the given PATH to $PATH.")
    (if args
        (progn
-	 (if prepend
-	     (setq args (nreverse args)))
-	 (while args
-	   (setenv "PATH"
-		   (if prepend
-		       (concat (car args) path-separator
-			       (getenv "PATH"))
-		     (concat (getenv "PATH") path-separator
-			     (car args))))
-	   (setq args (cdr args))))
-     (let ((paths (parse-colon-path (getenv "PATH"))))
-       (while paths
-	 (eshell-printn (car paths))
-	 (setq paths (cdr paths)))))))
+	 (setq eshell-path-env (getenv "PATH")
+	       args (mapconcat 'identity args path-separator)
+	       eshell-path-env
+	       (if prepend
+		   (concat args path-separator eshell-path-env)
+		 (concat eshell-path-env path-separator args)))
+	 (setenv "PATH" eshell-path-env))
+     (dolist (dir (parse-colon-path (getenv "PATH")))
+       (eshell-printn dir)))))
 
 (put 'eshell/addpath 'eshell-no-numeric-conversions t)
 

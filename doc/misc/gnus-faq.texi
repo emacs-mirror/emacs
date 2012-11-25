@@ -1,7 +1,7 @@
 @c \input texinfo @c -*-texinfo-*-
 @c Uncomment 1st line before texing this file alone.
 @c %**start of header
-@c Copyright (C) 1995, 2001-2011 Free Software Foundation, Inc.
+@c Copyright (C) 1995, 2001-2012 Free Software Foundation, Inc.
 @c
 @setfilename gnus-faq.info
 @settitle Frequently Asked Questions
@@ -161,7 +161,7 @@ Where and how to get Gnus?
 @subsubheading Answer
 
 Gnus is released independent from releases of Emacs and XEmacs.
-Therefore, the version bundled with Emacs or the version in XEmacs'
+Therefore, the version bundled with Emacs or the version in XEmacs's
 package system might not be up to date (e.g. Gnus 5.9 bundled with Emacs
 21 is outdated).
 You can get the latest released version of Gnus from
@@ -407,7 +407,7 @@ you want, so let's do it the correct way.
 The first thing you've got to do is to
 create a suitable directory (no blanks in directory name
 please) e.g. c:\myhome. Then you must set the environment
-variable HOME to this directory.  To do this under Win9x
+variable HOME to this directory.  To do this under Windows 9x
 or Me include the line
 
 @example
@@ -2109,12 +2109,11 @@ I can't find anything in the Gnus manual about X
 
 @subsubheading Answer
 
-There's not only the Gnus manual but also the manuals
-for message, emacs-mime, sieve and pgg. Those packages
-are distributed with Gnus and used by Gnus but aren't
-really part of core Gnus, so they are documented in
-different info files, you should have a look in those
-manuals, too.
+There's not only the Gnus manual but also the manuals for message,
+emacs-mime, sieve, EasyPG Assistant, and pgg. Those packages are
+distributed with Gnus and used by Gnus but aren't really part of core
+Gnus, so they are documented in different info files, you should have
+a look in those manuals, too.
 
 @node FAQ 8-3
 @subsubheading Question 8.3

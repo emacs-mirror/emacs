@@ -1,6 +1,6 @@
 ;;; cc-cmds.el --- user level commands for CC Mode
 
-;; Copyright (C) 1985, 1987, 1992-2011  Free Software Foundation, Inc.
+;; Copyright (C) 1985, 1987, 1992-2012  Free Software Foundation, Inc.
 
 ;; Authors:    2003- Alan Mackenzie
 ;;             1998- Martin Stjernholm
@@ -310,7 +310,7 @@ left out.
 Turning on auto-newline automatically enables electric indentation.
 
 When the auto-newline feature is enabled (indicated by \"/la\" on the
-modeline after the mode name) newlines are automatically inserted
+mode line after the mode name) newlines are automatically inserted
 after special characters such as brace, comma, semi-colon, and colon."
   (interactive "P")
   (setq c-auto-newline
@@ -329,7 +329,7 @@ positive, turns it off when negative, and just toggles it when zero or
 left out.
 
 When the hungry-delete-key feature is enabled (indicated by \"/h\" on
-the modeline after the mode name) the delete key gobbles all preceding
+the mode line after the mode name) the delete key gobbles all preceding
 whitespace in one fell swoop."
   (interactive "P")
   (setq c-hungry-delete-key (c-calculate-state arg c-hungry-delete-key))
@@ -493,13 +493,16 @@ inside a literal or a macro, nothing special happens."
       (insert-char ?\n 1)
       ;; In AWK (etc.) or in a macro, make sure this CR hasn't changed
       ;; the syntax.  (There might already be an escaped NL there.)
-      (when (or (c-at-vsemi-p (1- (point)))
-		(let ((pt (point)))
-		  (save-excursion
-		    (backward-char)
-		    (and (c-beginning-of-macro)
-			 (progn (c-end-of-macro)
-				(< (point) pt))))))
+      (when (or
+	     (save-excursion
+	       (c-skip-ws-backward (c-point 'bopl))
+	       (c-at-vsemi-p))
+	     (let ((pt (point)))
+	       (save-excursion
+		 (backward-char)
+		 (and (c-beginning-of-macro)
+		      (progn (c-end-of-macro)
+			     (< (point) pt))))))
 	(backward-char)
 	(insert-char ?\\ 1)
 	(forward-char))
@@ -679,7 +682,7 @@ settings of `c-cleanup-list' are done."
 	;; We want to inhibit blinking the paren since this would be
 	;; most disruptive.  We'll blink it ourselves later on.
 	(old-blink-paren blink-paren-function)
-	blink-paren-function)
+	blink-paren-function case-fold-search)
 
     (c-save-buffer-state ()
       (setq safepos (c-safe-position (point) (c-parse-state))
@@ -1086,7 +1089,7 @@ numeric argument is supplied, or the point is inside a literal."
 
   (interactive "*P")
   (let ((c-echo-syntactic-information-p nil)
-	final-pos close-paren-inserted found-delim)
+	final-pos close-paren-inserted found-delim case-fold-search)
 
     (self-insert-command (prefix-numeric-value arg))
     (setq final-pos (point))
@@ -1172,7 +1175,8 @@ newline cleanups are done if appropriate; see the variable `c-cleanup-list'."
   (interactive "*P")
   (let ((literal (c-save-buffer-state () (c-in-literal)))
 	;; shut this up
-	(c-echo-syntactic-information-p nil))
+	(c-echo-syntactic-information-p nil)
+	case-fold-search)
     (self-insert-command (prefix-numeric-value arg))
 
     (if (and (not arg) (not literal))
@@ -1585,7 +1589,7 @@ defun."
 					; structure with other users of c-state-cache.
        (orig-point-min (point-min)) (orig-point-max (point-max))
        lim			    ; Position of { which has been widened to.
-       where pos)
+       where pos case-fold-search)
 
     (save-restriction
       (if (eq c-defun-tactic 'go-outward)
@@ -1709,7 +1713,8 @@ the open-parenthesis that starts a defun; see `beginning-of-defun'."
 				  ; structure with other users of c-state-cache.
        (orig-point-min (point-min)) (orig-point-max (point-max))
        lim
-       where pos)
+       where pos case-fold-search)
+
     (save-restriction
       (if (eq c-defun-tactic 'go-outward)
 	  (setq lim (c-widen-to-enclosing-decl-scope ; e.g. class, namespace
@@ -1769,8 +1774,8 @@ with a brace block."
   (interactive)
   (c-save-buffer-state
       (beginning-of-defun-function end-of-defun-function
-       where pos name-end)
-
+       where pos name-end case-fold-search)
+ 
     (save-restriction
       (widen)
       (save-excursion
@@ -1823,6 +1828,17 @@ with a brace block."
 	    ;; DEFCHECKER(sysconf_arg,prefix=_SC,default=, ...) ==> sysconf_arg
 	    ;; DEFFLAGSET(syslog_opt_flags,LOG_PID ...) ==> syslog_opt_flags
 	    (match-string-no-properties 1))
+
+	   ;; Objc selectors.
+	   ((assq 'objc-method-intro (c-guess-basic-syntax))
+	    (let ((bound (save-excursion (c-end-of-statement) (point)))
+		  (kw-re (concat "\\(?:" c-symbol-key "\\)?:"))
+		  (stretches))
+	      (when (c-syntactic-re-search-forward c-symbol-key bound t t t)
+		(push (match-string-no-properties 0) stretches)
+		(while (c-syntactic-re-search-forward kw-re bound t t t)
+		  (push (match-string-no-properties 0) stretches)))
+	      (apply 'concat (nreverse stretches))))
 
 	   (t
 	    ;; Normal function or initializer.
@@ -1958,13 +1974,18 @@ with a brace block."
 
 (defun c-mark-function ()
   "Put mark at end of the current top-level declaration or macro, point at beginning.
-If point is not inside any then the closest following one is chosen.
+If point is not inside any then the closest following one is
+chosen.  Each successive call of this command extends the marked
+region by one function.
+
+A mark is left where the command started, unless the region is already active
+\(in Transient Mark mode).
 
 As opposed to \\[c-beginning-of-defun] and \\[c-end-of-defun], this
 function does not require the declaration to contain a brace block."
   (interactive)
 
-  (let (decl-limits)
+  (let (decl-limits case-fold-search)
     (c-save-buffer-state nil
       ;; We try to be line oriented, unless there are several
       ;; declarations on the same line.
@@ -1974,17 +1995,34 @@ function does not require the declaration to contain a brace block."
 
     (if (not decl-limits)
 	(error "Cannot find any declaration")
-      (goto-char (car decl-limits))
-      (push-mark (cdr decl-limits) nil t))))
+      (let* ((extend-region-p
+	      (and (eq this-command 'c-mark-function)
+		   (eq last-command 'c-mark-function)))
+	     (push-mark-p (and (eq this-command 'c-mark-function)
+			       (not extend-region-p)
+			       (not (and transient-mark-mode mark-active)))))
+	(if push-mark-p (push-mark (point)))
+	(if extend-region-p
+	    (progn
+	      (exchange-point-and-mark)
+	      (setq decl-limits (c-declaration-limits t))
+	      (when (not decl-limits)
+		(exchange-point-and-mark)
+		(error "Cannot find any declaration"))
+	      (goto-char (cdr decl-limits))
+	      (exchange-point-and-mark))
+	  (goto-char (car decl-limits))
+	  (push-mark (cdr decl-limits) nil t))))))
 
 (defun c-cpp-define-name ()
   "Return the name of the current CPP macro, or NIL if we're not in one."
   (interactive)
-  (save-excursion
-    (and c-opt-cpp-macro-define-start
-	 (c-beginning-of-macro)
-	 (looking-at c-opt-cpp-macro-define-start)
-	 (match-string-no-properties 1))))
+  (let (case-fold-search)
+    (save-excursion
+      (and c-opt-cpp-macro-define-start
+	   (c-beginning-of-macro)
+	   (looking-at c-opt-cpp-macro-define-start)
+	   (match-string-no-properties 1)))))
 
 
 ;; Movement by statements.
@@ -2867,7 +2905,8 @@ See `c-indent-comment-alist' for a description."
 			(eq (match-end 0) eot))
 		   'cpp-end-block)
 		  (t
-		   'other))))
+		   'other)))
+	   case-fold-search)
       (if (and (memq line-type '(anchored-comment empty-line))
 	       c-indent-comments-syntactically-p)
 	  (let ((c-syntactic-context (c-guess-basic-syntax)))
@@ -3003,7 +3042,7 @@ are treated as conditional clause limits.  Normally they are ignored."
   (let* ((forward (> count 0))
 	 (increment (if forward -1 1))
 	 (search-function (if forward 're-search-forward 're-search-backward))
-	 new)
+	 new case-fold-search)
     (unless (integerp target-depth)
       (setq target-depth (if target-depth -1 0)))
     (save-excursion
@@ -3205,7 +3244,7 @@ balanced expression is found."
 In the macro case this also has the effect of realigning any line
 continuation backslashes, unless `c-auto-align-backslashes' is nil."
   (interactive "*")
-  (let ((here (point-marker)) decl-limits)
+  (let ((here (point-marker)) decl-limits case-fold-search)
     (unwind-protect
 	(progn
 	  (c-save-buffer-state nil
@@ -4382,11 +4421,8 @@ Optional prefix ARG means justify paragraph as well."
   (let ((fill-paragraph-function
 	 ;; Avoid infinite recursion.
 	 (if (not (eq fill-paragraph-function 'c-fill-paragraph))
-	     fill-paragraph-function))
-	(start-point (point-marker)))
-    (c-mask-paragraph
-     t nil (lambda () (fill-region-as-paragraph (point-min) (point-max) arg)))
-    (goto-char start-point))
+	     fill-paragraph-function)))
+    (c-mask-paragraph t nil 'fill-paragraph arg))
   ;; Always return t.  This has the effect that if filling isn't done
   ;; above, it isn't done at all, and it's therefore effectively
   ;; disabled in normal code.
@@ -4620,7 +4656,8 @@ inside a preprocessor directive."
 
   (interactive "*")
   (let* (c-lit-limits c-lit-type
-	 (c-macro-start c-macro-start))
+	 (c-macro-start c-macro-start)
+	 case-fold-search)
 
     (c-save-buffer-state ()
       (setq c-lit-limits (c-literal-limits nil nil t)

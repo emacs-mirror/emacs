@@ -569,7 +569,7 @@
 	* emacs-lisp/lisp-mode.el: Give `deftype' a doc-string-elt
 	property (Bug#2984).
 
-2009-04-16  Leo  <sdl.web@gmail.com>  (tiny change)
+2009-04-16  Leo Liu  <sdl.web@gmail.com>  (tiny change)
 
 	* ediff-wind.el (ediff-make-wide-display): Fix typo in frame
 	parameter alist.
@@ -604,7 +604,7 @@
 	* help-at-pt.el (help-at-pt-kbd-string): Reflow docstring.
 	(scan-buf-previous-region): Fix typo in docstring.
 
-2009-04-14  Edward Wiebe  <usenet@pusto.de>  (tiny change)
+2009-04-14  Eduard Wiebe  <usenet@pusto.de>  (tiny change)
 
 	* jit-lock.el (jit-lock-stealth-chunk-start): Fix typo in docstring.
 
@@ -1041,7 +1041,7 @@
 
 	* mail/supercite.el (sc-version): Doc fix.
 
-2009-03-19  Leo  <sdl.web@gmail.com>  (tiny change)
+2009-03-19  Leo Liu  <sdl.web@gmail.com>  (tiny change)
 
 	* mail/supercite.el (sc-version): Fix typo in interactive spec.
 
@@ -7114,7 +7114,7 @@
 	vc-default-mark-resolved.
 	(vc-default-mark-resolved): Change to an alias for ignore.
 
-2008-09-24  Andreas Politz  <politza@fh-trier.de>  (tiny change)
+2008-09-24  Andreas Politz  <politza@fh-trier.de>
 
 	* term.el (term-emulate-terminal): Encode input string before
 	checking its length.
@@ -20551,7 +20551,7 @@ See ChangeLog.13 for earlier changes.
 ;; coding: utf-8
 ;; End:
 
-    Copyright (C) 2008-2011  Free Software Foundation, Inc.
+    Copyright (C) 2008-2012  Free Software Foundation, Inc.
 
   This file is part of GNU Emacs.
 

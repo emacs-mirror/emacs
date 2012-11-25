@@ -1,6 +1,6 @@
 ;;; iso-transl.el --- keyboard input definitions for ISO 8859-1  -*- coding: iso-8859-1 -*-
 
-;; Copyright (C) 1987, 1993-1999, 2001-2011  Free Software Foundation, Inc.
+;; Copyright (C) 1987, 1993-1999, 2001-2012  Free Software Foundation, Inc.
 
 ;; Author: Howard Gayle
 ;; Maintainer: FSF
@@ -38,7 +38,6 @@
 ;;; Code:
 
 ;;; Provide some binding for startup:
-;;;###autoload (or key-translation-map (setq key-translation-map (make-sparse-keymap)))
 ;;;###autoload (define-key key-translation-map "\C-x8" 'iso-transl-ctl-x-8-map)
 ;;;###autoload (autoload 'iso-transl-ctl-x-8-map "iso-transl" "Keymap for C-x 8 prefix." t 'keymap)
 
@@ -282,11 +281,6 @@ sequence VECTOR.  (VECTOR is normally one character long.)")
 ;; The standard mapping comes automatically.  You can partially overlay it
 ;; with a language-specific mapping by using `M-x iso-transl-set-language'.
 (iso-transl-define-keys iso-transl-char-map)
-
-(define-key isearch-mode-map "\C-x" nil)
-(define-key isearch-mode-map [?\C-x t] 'isearch-other-control-char)
-(define-key isearch-mode-map "\C-x8" nil)
-
 
 (provide 'iso-transl)
 

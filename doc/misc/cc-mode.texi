@@ -147,10 +147,7 @@ CC Mode
 @comment !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
 @comment Define an index for syntactic symbols.
-@ifnottex @c In texi2dvi, the @defindex would create an empty cc-mode.ss
-          @c For Info, unlike tex, @syncodeindex needs a matching @defindex.
 @defindex ss
-@end ifnottex
 
 @comment Combine key, syntactic symbol and concept indices into one.
 @syncodeindex ss cp
@@ -159,7 +156,7 @@ CC Mode
 @copying
 This manual is for CC Mode in Emacs.
 
-Copyright @copyright{} 1995-2011  Free Software Foundation, Inc.
+Copyright @copyright{} 1995-2012 Free Software Foundation, Inc.
 
 @quotation
 Permission is granted to copy, distribute and/or modify this document
@@ -704,7 +701,7 @@ in some circumstances---@code{c-insert-tab-function} then defines
 precisely what sort of ``whitespace'' this will be.  Set the standard
 Emacs variable @code{indent-tabs-mode} to @code{t} if you want real
 @samp{tab} characters to be used in the indentation, to @code{nil} if
-you want only spaces.  @xref{Just Spaces,,, @emacsman{},
+you want only spaces.  @xref{Just Spaces,,,@emacsman{},
 @emacsmantitle{}}.
 
 @defopt c-tab-always-indent
@@ -1061,8 +1058,8 @@ set this up for you, so you probably won't have to bother.
 @cindex Auto Fill mode
 @cindex paragraph filling
 Line breaks are by default handled (almost) the same regardless of
-whether they are made by auto fill mode (@pxref{Auto Fill,,,
-@emacsman{}, @emacsmantitle{}}), by paragraph filling (e.g. with
+whether they are made by auto fill mode (@pxref{Auto
+Fill,,,@emacsman{}, @emacsmantitle{}}), by paragraph filling (e.g. with
 @kbd{M-q}), or explicitly with @kbd{M-j} or similar methods.  In
 string literals, the new line gets the same indentation as the
 previous nonempty line.@footnote{You can change this default by
@@ -1405,7 +1402,7 @@ continuation of the preceding @code{if}.
 @vindex abbrev-mode
 @findex abbrev-mode
 @cindex Abbrev mode
-@ccmode{} uses Abbrev mode (@pxref{Abbrevs,,, @emacsman{}, @emacsmantitle{}})
+@ccmode{} uses Abbrev mode (@pxref{Abbrevs,,,@emacsman{}, @emacsmantitle{}})
 to accomplish this. It's therefore turned on by default in all language
 modes except IDL mode, since CORBA IDL doesn't have any statements.
 @end deffn
@@ -2200,7 +2197,7 @@ method, ``Top-level commands or the customization interface''.
 
 If you make conflicting settings in several of these ways, the way
 that takes precedence is the one that appears latest in this list:
-@itemize @asis
+@itemize @w{}
 @item
 @table @asis
 @item Style
@@ -2298,14 +2295,14 @@ to create them.
 A @dfn{file local variable setting} is a setting which applies to an
 individual source file.  You put this in a @dfn{local variables list},
 a special block at the end of the source file (@pxref{Specifying File
-Variables,,, @emacsman{}}).
+Variables,,,@emacsman{}}).
 
 @item File Styles
 A @dfn{file style} is a rarely used variant of the ``style'' mechanism
 described above, which applies to an individual source file.
 @xref{File Styles}.  You use this by setting certain special variables
-in a local variables list (@pxref{Specifying File Variables,,,
-@emacsman{}}).
+in a local variables list (@pxref{Specifying File
+Variables,,,@emacsman{}}).
 
 @item Hooks with Styles
 For ultimate flexibility, you can use hooks and styles together.  For
@@ -2900,7 +2897,7 @@ these offsets or the parent style name.
 
 The Emacs manual describes how you can customize certain variables on a
 per-file basis by including a @dfn{file local variable} block at the end
-of the file (@pxref{File Variables,, Local Variables in Files, @emacsman{},
+of the file (@pxref{File Variables,, Local Variables in Files,@emacsman{},
 @emacsmantitle{}}).
 
 So far, you've only seen a functional interface for setting styles in
@@ -3142,8 +3139,9 @@ results in the current implementation.
 @end defopt
 
 @vindex comment-multi-line
-If inside a comment and @code{comment-multi-line} (@pxref{Auto Fill,,,
-@emacsman{}, @emacsmantitle{}} is non-@code{nil}, the indentation and
+If inside a comment and @code{comment-multi-line} (@pxref{Auto
+Fill,,,@emacsman{}, @emacsmantitle{}} is non-@code{nil}, the
+indentation and
 line prefix are preserved.  If inside a comment and
 @code{comment-multi-line} is @code{nil}, a new comment of the same
 type is started on the next line and indented as appropriate for
@@ -5198,7 +5196,7 @@ indentation.
 @comment !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
 This section explains the structure and semantics of the style
-variable @code{c-offset-alist}, the principal variable for configuring
+variable @code{c-offsets-alist}, the principal variable for configuring
 indentation.  Details of how to set it up, and its relationship to
 @ccmode{}'s style system are given in @ref{Style Variables}.
 
@@ -6661,7 +6659,7 @@ these macros properly, see @ref{Macros with ;}.
 @node     Macro Backslashes, Macros with ;, Custom Macros, Custom Macros
 @comment  node-name,  next,  previous,  up
 @section Customizing Macro Backslashes
-@cindex #define
+@cindex @code{#define}
 @comment !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
 @ccmode{} provides some tools to help keep the line continuation
@@ -6774,7 +6772,7 @@ The stuff that didn't fit in anywhere else is documented here.
 Controls whether a final newline is enforced when the file is saved.
 The value is an association list that for each language mode specifies
 the value to give to @code{require-final-newline} (@pxref{Saving
-Buffers,,, @lispref{}, @lispreftitle{}}) at mode initialization.  If a
+Buffers,,,@lispref{}, @lispreftitle{}}) at mode initialization.  If a
 language isn't present on the association list, CC Mode won't touch
 @code{require-final-newline} in buffers for that language.
 
@@ -6945,7 +6943,7 @@ circumstances, can locate the top-most opening brace much more quickly than
 styles where these braces are hung (e.g. most JDK-derived Java styles),
 this hack can improve performance of the core syntax parsing routines
 from 3 to 60 times.  However, for styles which @emph{do} conform to
-Emacs' recommended style of putting top-level braces in column zero,
+Emacs's recommended style of putting top-level braces in column zero,
 this hack can degrade performance by about as much.  Thus this variable
 is set to @code{nil} by default, since the Emacs-friendly styles should
 be more common (and encouraged!).  Note that this variable has no effect
@@ -7056,7 +7054,7 @@ Set the variable @code{c-basic-offset}.  @xref{Getting Started}.
 @kindex C-j
 @emph{Why doesn't the @kbd{RET} key indent the new line?}
 
-Emacs' convention is that @kbd{RET} just adds a newline, and that
+Emacs's convention is that @kbd{RET} just adds a newline, and that
 @kbd{C-j} adds a newline and indents it.  You can make @kbd{RET} do this
 too by adding this to your @code{c-initialization-hook}:
 

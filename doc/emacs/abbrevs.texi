@@ -1,5 +1,5 @@
 @c This is part of the Emacs manual.
-@c Copyright (C) 1985-1987, 1993-1995, 1997, 2001-2011
+@c Copyright (C) 1985-1987, 1993-1995, 1997, 2001-2012
 @c   Free Software Foundation, Inc.
 @c See file emacs.texi for copying conditions.
 @node Abbrevs
@@ -37,12 +37,12 @@ Automatic Typing}.
 @node Abbrev Concepts
 @section Abbrev Concepts
 
-  An @dfn{abbrev} is a word which has been defined to @dfn{expand} into
+  An @dfn{abbrev} is a word that has been defined to @dfn{expand} into
 a specified @dfn{expansion}.  When you insert a word-separator character
 following the abbrev, that expands the abbrev---replacing the abbrev
 with its expansion.  For example, if @samp{foo} is defined as an abbrev
-expanding to @samp{find outer otter}, then you can insert @samp{find
-outer otter.} into the buffer by typing @kbd{f o o .}.
+expanding to @samp{find outer otter}, then typing @kbd{f o o .} will
+insert @samp{find outer otter.}.
 
 @findex abbrev-mode
 @cindex Abbrev mode
@@ -60,10 +60,10 @@ all major modes.  The same abbrev can have a global definition and various
 mode-specific definitions for different major modes.  A mode-specific
 definition for the current major mode overrides a global definition.
 
-  You can define abbrevs interactively during the editing session.  You
-can also save lists of abbrev definitions in files for use in later
-sessions.  Some users keep extensive lists of abbrevs that they load
-in every session.
+  You can define abbrevs interactively during the editing session,
+irrespective of whether Abbrev mode is enabled.  You can also save
+lists of abbrev definitions in files, which you can the reload for use
+in later sessions.
 
 @node Defining Abbrevs
 @section Defining Abbrevs
@@ -260,12 +260,12 @@ expands to itself, and save it to your abbrev file.
   @kbd{M-x edit-abbrevs} allows you to add, change or kill abbrev
 definitions by editing a list of them in an Emacs buffer.  The list has
 the same format described above.  The buffer of abbrevs is called
-@samp{*Abbrevs*}, and is in Edit-Abbrevs mode.  Type @kbd{C-c C-c} in
+@file{*Abbrevs*}, and is in Edit-Abbrevs mode.  Type @kbd{C-c C-c} in
 this buffer to install the abbrev definitions as specified in the
 buffer---and delete any abbrev definitions not listed.
 
   The command @code{edit-abbrevs} is actually the same as
-@code{list-abbrevs} except that it selects the buffer @samp{*Abbrevs*}
+@code{list-abbrevs} except that it selects the buffer @file{*Abbrevs*}
 whereas @code{list-abbrevs} merely displays it in another window.
 
 @node Saving Abbrevs

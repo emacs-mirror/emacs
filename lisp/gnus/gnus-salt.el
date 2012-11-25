@@ -1,6 +1,6 @@
 ;;; gnus-salt.el --- alternate summary mode interfaces for Gnus
 
-;; Copyright (C) 1996-1999, 2001-2011  Free Software Foundation, Inc.
+;; Copyright (C) 1996-1999, 2001-2012  Free Software Foundation, Inc.
 
 ;; Author: Lars Magne Ingebrigtsen <larsi@gnus.org>
 ;; Keywords: news
@@ -535,12 +535,6 @@ Two predefined functions are available:
 	      (point-min) (point-max) 'gnus-number article)))
     (when pos
       (cons pos (next-single-property-change pos 'gnus-number)))))
-
-(defun gnus-tree-goto-article (article)
-  (let ((pos (text-property-any
-	      (point-min) (point-max) 'gnus-number article)))
-    (when pos
-      (goto-char pos))))
 
 (defun gnus-tree-recenter ()
   "Center point in the tree window."

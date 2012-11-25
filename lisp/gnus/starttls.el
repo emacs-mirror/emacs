@@ -1,6 +1,6 @@
 ;;; starttls.el --- STARTTLS functions
 
-;; Copyright (C) 1999-2011 Free Software Foundation, Inc.
+;; Copyright (C) 1999-2012 Free Software Foundation, Inc.
 
 ;; Author: Daiki Ueno <ueno@unixuser.org>
 ;; Author: Simon Josefsson <simon@josefsson.org>
@@ -149,7 +149,7 @@ These apply when the `starttls' command is used, i.e. when
   :group 'starttls)
 
 (defcustom starttls-extra-arguments nil
-  "Extra arguments to `starttls-program'.
+  "Extra arguments to `starttls-gnutls-program'.
 These apply when GnuTLS is used, i.e. when `starttls-use-gnutls' is non-nil.
 
 For example, non-TLS compliant servers may require
@@ -297,9 +297,10 @@ GnuTLS requires a port number."
 
 (defun starttls-available-p ()
   "Say whether the STARTTLS programs are available."
-  (executable-find (if starttls-use-gnutls
-		       starttls-gnutls-program
-		     starttls-program)))
+  (and (not (memq system-type '(windows-nt ms-dos)))
+       (executable-find (if starttls-use-gnutls
+			    starttls-gnutls-program
+			  starttls-program))))
 
 (defalias 'starttls-any-program-available 'starttls-available-p)
 (make-obsolete 'starttls-any-program-available 'starttls-available-p

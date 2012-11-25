@@ -1,6 +1,6 @@
 ;;; mule-diag.el --- show diagnosis of multilingual environment (Mule)
 
-;; Copyright (C) 1997-1998, 2000-2011  Free Software Foundation, Inc.
+;; Copyright (C) 1997-1998, 2000-2012  Free Software Foundation, Inc.
 ;; Copyright (C) 1995, 1996, 1997, 1998, 1999, 2000, 2001, 2002, 2003, 2004,
 ;;   2005, 2006, 2007, 2008, 2009, 2010, 2011
 ;;   National Institute of Advanced Industrial Science and Technology (AIST)
@@ -208,8 +208,8 @@ Character sets for defining other charsets, or for backward compatibility
   "Decode a character that has code CODE in CODEPAGE.
 Return a decoded character string.  Each CODEPAGE corresponds to a
 coding system cpCODEPAGE."
+  (declare (obsolete decode-char "23.1"))
   (decode-char (intern (format "cp%d" codepage)) code))
-(make-obsolete 'decode-codepage-char 'decode-char "23.1")
 
 ;; A variable to hold charset input history.
 (defvar charset-history nil)

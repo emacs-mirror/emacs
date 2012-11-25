@@ -1,5 +1,5 @@
 /* undo handling for GNU Emacs.
-   Copyright (C) 1990, 1993-1994, 2000-2011  Free Software Foundation, Inc.
+   Copyright (C) 1990, 1993-1994, 2000-2012  Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -18,8 +18,9 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 
 
 #include <config.h>
-#include <setjmp.h>
+
 #include "lisp.h"
+#include "character.h"
 #include "buffer.h"
 #include "commands.h"
 #include "window.h"
@@ -30,7 +31,7 @@ static struct buffer *last_undo_buffer;
 
 /* Position of point last time we inserted a boundary.  */
 static struct buffer *last_boundary_buffer;
-static EMACS_INT last_boundary_position;
+static ptrdiff_t last_boundary_position;
 
 Lisp_Object Qinhibit_read_only;
 
@@ -51,7 +52,7 @@ static Lisp_Object pending_boundary;
    undo record that will be added just after this command terminates.  */
 
 static void
-record_point (EMACS_INT pt)
+record_point (ptrdiff_t pt)
 {
   int at_boundary;
 
@@ -103,8 +104,9 @@ record_point (EMACS_INT pt)
   if (at_boundary
       && current_buffer == last_boundary_buffer
       && last_boundary_position != pt)
-    BVAR (current_buffer, undo_list)
-      = Fcons (make_number (last_boundary_position), BVAR (current_buffer, undo_list));
+    bset_undo_list (current_buffer,
+		    Fcons (make_number (last_boundary_position),
+			   BVAR (current_buffer, undo_list)));
 }
 
 /* Record an insertion that just happened or is about to happen,
@@ -113,7 +115,7 @@ record_point (EMACS_INT pt)
    because we don't need to record the contents.)  */
 
 void
-record_insert (EMACS_INT beg, EMACS_INT length)
+record_insert (ptrdiff_t beg, ptrdiff_t length)
 {
   Lisp_Object lbeg, lend;
 
@@ -140,15 +142,15 @@ record_insert (EMACS_INT beg, EMACS_INT length)
 
   XSETFASTINT (lbeg, beg);
   XSETINT (lend, beg + length);
-  BVAR (current_buffer, undo_list) = Fcons (Fcons (lbeg, lend),
-                                     BVAR (current_buffer, undo_list));
+  bset_undo_list (current_buffer,
+		  Fcons (Fcons (lbeg, lend), BVAR (current_buffer, undo_list)));
 }
 
 /* Record that a deletion is about to take place,
    of the characters in STRING, at location BEG.  */
 
 void
-record_delete (EMACS_INT beg, Lisp_Object string)
+record_delete (ptrdiff_t beg, Lisp_Object string)
 {
   Lisp_Object sbeg;
 
@@ -166,8 +168,9 @@ record_delete (EMACS_INT beg, Lisp_Object string)
       record_point (beg);
     }
 
-  BVAR (current_buffer, undo_list)
-    = Fcons (Fcons (string, sbeg), BVAR (current_buffer, undo_list));
+  bset_undo_list
+    (current_buffer,
+     Fcons (Fcons (string, sbeg), BVAR (current_buffer, undo_list)));
 }
 
 /* Record the fact that MARKER is about to be adjusted by ADJUSTMENT.
@@ -176,7 +179,7 @@ record_delete (EMACS_INT beg, Lisp_Object string)
    won't be inverted automatically by undoing the buffer modification.  */
 
 void
-record_marker_adjustment (Lisp_Object marker, EMACS_INT adjustment)
+record_marker_adjustment (Lisp_Object marker, ptrdiff_t adjustment)
 {
   if (EQ (BVAR (current_buffer, undo_list), Qt))
     return;
@@ -189,9 +192,10 @@ record_marker_adjustment (Lisp_Object marker, EMACS_INT adjustment)
     Fundo_boundary ();
   last_undo_buffer = current_buffer;
 
-  BVAR (current_buffer, undo_list)
-    = Fcons (Fcons (marker, make_number (adjustment)),
-	     BVAR (current_buffer, undo_list));
+  bset_undo_list
+    (current_buffer,
+     Fcons (Fcons (marker, make_number (adjustment)),
+	    BVAR (current_buffer, undo_list)));
 }
 
 /* Record that a replacement is about to take place,
@@ -199,7 +203,7 @@ record_marker_adjustment (Lisp_Object marker, EMACS_INT adjustment)
    The replacement must not change the number of characters.  */
 
 void
-record_change (EMACS_INT beg, EMACS_INT length)
+record_change (ptrdiff_t beg, ptrdiff_t length)
 {
   record_delete (beg, make_buffer_string (beg, beg + length, 1));
   record_insert (beg, length);
@@ -224,16 +228,17 @@ record_first_change (void)
   if (base_buffer->base_buffer)
     base_buffer = base_buffer->base_buffer;
 
-  BVAR (current_buffer, undo_list) =
-    Fcons (Fcons (Qt, INTEGER_TO_CONS (base_buffer->modtime)),
-	   BVAR (current_buffer, undo_list));
+  bset_undo_list
+    (current_buffer,
+     Fcons (Fcons (Qt, make_lisp_time (base_buffer->modtime)),
+	    BVAR (current_buffer, undo_list)));
 }
 
 /* Record a change in property PROP (whose old value was VAL)
    for LENGTH characters starting at position BEG in BUFFER.  */
 
 void
-record_property_change (EMACS_INT beg, EMACS_INT length,
+record_property_change (ptrdiff_t beg, ptrdiff_t length,
 			Lisp_Object prop, Lisp_Object value,
 			Lisp_Object buffer)
 {
@@ -264,7 +269,8 @@ record_property_change (EMACS_INT beg, EMACS_INT length,
   XSETINT (lbeg, beg);
   XSETINT (lend, beg + length);
   entry = Fcons (Qnil, Fcons (prop, Fcons (value, Fcons (lbeg, lend))));
-  BVAR (current_buffer, undo_list) = Fcons (entry, BVAR (current_buffer, undo_list));
+  bset_undo_list (current_buffer,
+		  Fcons (entry, BVAR (current_buffer, undo_list)));
 
   current_buffer = obuf;
 }
@@ -287,11 +293,12 @@ but another undo command will undo to the previous boundary.  */)
 	  /* If we have preallocated the cons cell to use here,
 	     use that one.  */
 	  XSETCDR (pending_boundary, BVAR (current_buffer, undo_list));
-	  BVAR (current_buffer, undo_list) = pending_boundary;
+	  bset_undo_list (current_buffer, pending_boundary);
 	  pending_boundary = Qnil;
 	}
       else
-	BVAR (current_buffer, undo_list) = Fcons (Qnil, BVAR (current_buffer, undo_list));
+	bset_undo_list (current_buffer,
+			Fcons (Qnil, BVAR (current_buffer, undo_list)));
     }
   last_boundary_position = PT;
   last_boundary_buffer = current_buffer;
@@ -308,16 +315,16 @@ truncate_undo_list (struct buffer *b)
 {
   Lisp_Object list;
   Lisp_Object prev, next, last_boundary;
-  int size_so_far = 0;
+  EMACS_INT size_so_far = 0;
 
   /* Make sure that calling undo-outer-limit-function
      won't cause another GC.  */
-  int count = inhibit_garbage_collection ();
+  ptrdiff_t count = inhibit_garbage_collection ();
 
   /* Make the buffer current to get its local values of variables such
      as undo_limit.  Also so that Vundo_outer_limit_function can
      tell which buffer to operate on.  */
-  record_unwind_protect (set_buffer_if_live, Fcurrent_buffer ());
+  record_unwind_current_buffer ();
   set_buffer_internal (b);
 
   list = BVAR (b, undo_list);
@@ -432,10 +439,17 @@ truncate_undo_list (struct buffer *b)
     XSETCDR (last_boundary, Qnil);
   /* There's nothing we decided to keep, so clear it out.  */
   else
-    BVAR (b, undo_list) = Qnil;
+    bset_undo_list (b, Qnil);
 
   unbind_to (count, Qnil);
 }
+
+static _Noreturn void
+user_error (const char *msg)
+{
+  xsignal1 (Quser_error, build_string (msg));
+}
+
 
 DEFUN ("primitive-undo", Fprimitive_undo, Sprimitive_undo, 2, 2, 0,
        doc: /* Undo N records from the front of the list LIST.
@@ -444,8 +458,8 @@ Return what remains of the list.  */)
 {
   struct gcpro gcpro1, gcpro2;
   Lisp_Object next;
-  int count = SPECPDL_INDEX ();
-  register int arg;
+  ptrdiff_t count = SPECPDL_INDEX ();
+  register EMACS_INT arg;
   Lisp_Object oldlist;
   int did_apply = 0;
 
@@ -497,10 +511,23 @@ Return what remains of the list.  */)
 	      cdr = XCDR (next);
 	      if (EQ (car, Qt))
 		{
-		  /* Element (t high . low) records previous modtime.  */
+		  /* Element (t . TIME) records previous modtime.
+		     Preserve any flag of NONEXISTENT_MODTIME_NSECS or
+		     UNKNOWN_MODTIME_NSECS.  */
 		  struct buffer *base_buffer = current_buffer;
-		  time_t mod_time;
-		  CONS_TO_INTEGER (cdr, time_t, mod_time);
+		  EMACS_TIME mod_time;
+
+		  if (CONSP (cdr)
+		      && CONSP (XCDR (cdr))
+		      && CONSP (XCDR (XCDR (cdr)))
+		      && CONSP (XCDR (XCDR (XCDR (cdr))))
+		      && INTEGERP (XCAR (XCDR (XCDR (XCDR (cdr)))))
+		      && XINT (XCAR (XCDR (XCDR (XCDR (cdr))))) < 0)
+		    mod_time =
+		      (make_emacs_time
+		       (0, XINT (XCAR (XCDR (XCDR (XCDR (cdr))))) / 1000));
+		  else
+		    mod_time = lisp_time_argument (cdr);
 
 		  if (current_buffer->base_buffer)
 		    base_buffer = current_buffer->base_buffer;
@@ -508,7 +535,7 @@ Return what remains of the list.  */)
 		  /* If this records an obsolete save
 		     (not matching the actual disk file)
 		     then don't mark unmodified.  */
-		  if (mod_time != base_buffer->modtime)
+		  if (EMACS_TIME_NE (mod_time, base_buffer->modtime))
 		    continue;
 #ifdef CLASH_DETECTION
 		  Funlock_buffer ();
@@ -528,7 +555,7 @@ Return what remains of the list.  */)
 		  end = Fcdr (cdr);
 
 		  if (XINT (beg) < BEGV || XINT (end) > ZV)
-		    error ("Changes to be undone are outside visible portion of buffer");
+		    user_error ("Changes to be undone are outside visible portion of buffer");
 		  Fput_text_property (beg, end, prop, val, Qnil);
 		}
 	      else if (INTEGERP (car) && INTEGERP (cdr))
@@ -537,7 +564,7 @@ Return what remains of the list.  */)
 
 		  if (XINT (car) < BEGV
 		      || XINT (cdr) > ZV)
-		    error ("Changes to be undone are outside visible portion of buffer");
+		    user_error ("Changes to be undone are outside visible portion of buffer");
 		  /* Set point first thing, so that undoing this undo
 		     does not send point back to where it is now.  */
 		  Fgoto_char (car);
@@ -588,14 +615,14 @@ Return what remains of the list.  */)
 		  if (pos < 0)
 		    {
 		      if (-pos < BEGV || -pos > ZV)
-			error ("Changes to be undone are outside visible portion of buffer");
+			user_error ("Changes to be undone are outside visible portion of buffer");
 		      SET_PT (-pos);
 		      Finsert (1, &membuf);
 		    }
 		  else
 		    {
 		      if (pos < BEGV || pos > ZV)
-			error ("Changes to be undone are outside visible portion of buffer");
+			user_error ("Changes to be undone are outside visible portion of buffer");
 		      SET_PT (pos);
 
 		      /* Now that we record marker adjustments
@@ -627,8 +654,9 @@ Return what remains of the list.  */)
      will work right.  */
   if (did_apply
       && EQ (oldlist, BVAR (current_buffer, undo_list)))
-    BVAR (current_buffer, undo_list)
-      = Fcons (list3 (Qapply, Qcdr, Qnil), BVAR (current_buffer, undo_list));
+    bset_undo_list
+      (current_buffer,
+       Fcons (list3 (Qapply, Qcdr, Qnil), BVAR (current_buffer, undo_list)));
 
   UNGCPRO;
   return unbind_to (count, list);

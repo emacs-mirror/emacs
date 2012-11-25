@@ -1,6 +1,6 @@
 ;;; ediff-util.el --- the core commands and utilities of ediff
 
-;; Copyright (C) 1994-2011  Free Software Foundation, Inc.
+;; Copyright (C) 1994-2012  Free Software Foundation, Inc.
 
 ;; Author: Michael Kifer <kifer@cs.stonybrook.edu>
 ;; Package: ediff
@@ -1907,8 +1907,8 @@ in the specified buffer."
 
       (cond ((eq which-diff 'after) (1+ diff-no))
 	    ((eq which-diff 'before) diff-no)
-	    ((< (abs (count-lines pos (max 1 prev-end)))
-		(abs (count-lines pos (max 1 beg))))
+	    ((< (abs (count-lines pos (max (point-min) prev-end)))
+		(abs (count-lines pos (max (point-min) beg))))
 	     diff-no) 	    ; choose prev difference
 	    (t
 	     (1+ diff-no))) ; choose next difference
@@ -3103,7 +3103,7 @@ Hit \\[ediff-recenter] to reset the windows afterward."
 ;; according to context.
 ;; If DEFAULT-FILE is set, it should be used as the default value.
 ;; If DEFAULT-DIR is non-nil, use it as the default directory.
-;; Otherwise, use the value of Emacs' variable `default-directory.'
+;; Otherwise, use the value of `default-directory.'
 (defun ediff-read-file-name (prompt default-dir default-file &optional no-dirs)
   ;; hack default-dir if it is not set
   (setq default-dir

@@ -1,6 +1,6 @@
 ;;; url-handlers.el --- file-name-handler stuff for URL loading
 
-;; Copyright (C) 1996-1999, 2004-2011  Free Software Foundation, Inc.
+;; Copyright (C) 1996-1999, 2004-2012  Free Software Foundation, Inc.
 
 ;; Keywords: comm, data, processes, hypermedia
 
@@ -90,13 +90,7 @@
 ;; verify-visited-file-modtime
 ;; write-region
 
-(defvar url-handler-regexp
-  "\\`\\(https?\\|ftp\\|file\\|nfs\\)://"
-  "*A regular expression for matching URLs handled by `file-name-handler-alist'.
-Some valid URL protocols just do not make sense to visit interactively
-\(about, data, info, irc, mailto, etc\).  This regular expression
-avoids conflicts with local files that look like URLs \(Gnus is
-particularly bad at this\).")
+(defvar url-handler-regexp) ; defined below to avoid recursive load (revno:108572)
 
 ;;;###autoload
 (define-minor-mode url-handler-mode
@@ -105,16 +99,31 @@ With a prefix argument ARG, enable URL Handler mode if ARG is
 positive, and disable it otherwise.  If called from Lisp, enable
 the mode if ARG is omitted or nil."
   :global t :group 'url
-  (if (not (boundp 'file-name-handler-alist))
-      ;; Can't be turned ON anyway.
-      (setq url-handler-mode nil)
-    ;; Remove old entry, if any.
-    (setq file-name-handler-alist
-	  (delq (rassq 'url-file-handler file-name-handler-alist)
-		file-name-handler-alist))
-    (if url-handler-mode
-	(push (cons url-handler-regexp 'url-file-handler)
-	      file-name-handler-alist))))
+  ;; Remove old entry, if any.
+  (setq file-name-handler-alist
+	(delq (rassq 'url-file-handler file-name-handler-alist)
+	      file-name-handler-alist))
+  (if url-handler-mode
+      (push (cons url-handler-regexp 'url-file-handler)
+	    file-name-handler-alist)))
+
+(defcustom url-handler-regexp "\\`\\(https?\\|ftp\\|file\\|nfs\\)://"
+  "Regular expression for URLs handled by `url-handler-mode'.
+When URL Handler mode is enabled, this regular expression is
+added to `file-name-handler-alist'.
+
+Some valid URL protocols just do not make sense to visit
+interactively \(about, data, info, irc, mailto, etc\).  This
+regular expression avoids conflicts with local files that look
+like URLs \(Gnus is particularly bad at this\)."
+  :group 'url
+  :type 'regexp
+  :set (lambda (symbol value)
+	 (let ((enable url-handler-mode))
+	   (url-handler-mode 0)
+	   (set-default symbol value)
+	   (if enable
+	       (url-handler-mode)))))
 
 (defun url-run-real-handler (operation args)
   (let ((inhibit-file-name-handlers (cons 'url-file-handler
@@ -128,11 +137,13 @@ the mode if ARG is omitted or nil."
   "Function called from the `file-name-handler-alist' routines.
 OPERATION is what needs to be done (`file-exists-p', etc).  ARGS are
 the arguments that would have been passed to OPERATION."
-  (let ((fn (or (get operation 'url-file-handlers)
-		(intern-soft (format "url-%s" operation))))
+  (let ((fn (get operation 'url-file-handlers))
 	(val nil)
 	(hooked nil))
-    (if (and fn (fboundp fn))
+    (if (and (not fn) (intern-soft (format "url-%s" operation))
+             (fboundp (intern-soft (format "url-%s" operation))))
+        (error "Missing URL handler mapping for %s" operation))
+    (if fn
 	(setq hooked t
 	      val (save-match-data (apply fn args)))
       (setq hooked nil
@@ -240,6 +251,7 @@ A prefix arg makes KEEP-TIME non-nil."
     (mm-save-part-to-file handle newname)
     (kill-buffer buffer)
     (mm-destroy-parts handle)))
+(put 'copy-file 'url-file-handlers 'url-copy-file)
 
 ;;;###autoload
 (defun url-file-local-copy (url &rest ignored)
@@ -249,6 +261,7 @@ accessible."
   (let ((filename (make-temp-file "url")))
     (url-copy-file url filename 'ok-if-already-exists)
     filename))
+(put 'file-local-copy 'url-file-handlers 'url-file-local-copy)
 
 (defun url-insert (buffer &optional beg end)
   "Insert the body of a URL object.
@@ -291,22 +304,29 @@ They count bytes from the beginning of the body."
           ;; usual heuristic/rules that we apply to files.
           (decode-coding-inserted-region start (point) url visit beg end replace))
         (list url (car size-and-charset))))))
+(put 'insert-file-contents 'url-file-handlers 'url-insert-file-contents)
 
 (defun url-file-name-completion (url directory &optional predicate)
   (error "Unimplemented"))
+(put 'file-name-completion 'url-file-handlers 'url-file-name-completion)
 
 (defun url-file-name-all-completions (file directory)
   (error "Unimplemented"))
+(put 'file-name-all-completions
+     'url-file-handlers 'url-file-name-all-completions)
 
 ;; All other handlers map onto their respective backends.
 (defmacro url-handlers-create-wrapper (method args)
-  `(defun ,(intern (format "url-%s" method)) ,args
-     ,(format "URL file-name-handler wrapper for `%s' call.\n---\n%s" method
-              (or (documentation method t) "No original documentation."))
-     (setq url (url-generic-parse-url url))
-     (when (url-type url)
-       (funcall (url-scheme-get-property (url-type url) (quote ,method))
-                ,@(remove '&rest (remove '&optional args))))))
+  `(progn
+     (defun ,(intern (format "url-%s" method)) ,args
+       ,(format "URL file-name-handler wrapper for `%s' call.\n---\n%s" method
+                (or (documentation method t) "No original documentation."))
+       (setq url (url-generic-parse-url url))
+       (when (url-type url)
+         (funcall (url-scheme-get-property (url-type url) (quote ,method))
+                  ,@(remove '&rest (remove '&optional args)))))
+     (unless (get ',method 'url-file-handlers)
+       (put ',method 'url-file-handlers ',(intern (format "url-%s" method))))))
 
 (url-handlers-create-wrapper file-exists-p (url))
 (url-handlers-create-wrapper file-attributes (url &optional id-format))

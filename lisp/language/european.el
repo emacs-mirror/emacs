@@ -1,6 +1,6 @@
 ;;; european.el --- support for European languages -*- coding: iso-2022-7bit; -*-
 
-;; Copyright (C) 1997-1998, 2000-2011  Free Software Foundation, Inc.
+;; Copyright (C) 1997-1998, 2000-2012  Free Software Foundation, Inc.
 ;; Copyright (C) 1995, 1996, 1997, 1998, 1999, 2000, 2001, 2002, 2003, 2004,
 ;;   2005, 2006, 2007, 2008, 2009, 2010, 2011
 ;;   National Institute of Advanced Industrial Science and Technology (AIST)
@@ -323,6 +323,14 @@ Latin-9 is sometimes nicknamed `Latin-0'."))
   :charset-list '(windows-1257)
   :mime-charset 'windows-1257)
 (define-coding-system-alias 'cp1257 'windows-1257)
+
+(define-coding-system 'cp775
+  "DOS codepage 775 (PC Baltic, MS-DOS Baltic Rim)"
+  :coding-type 'charset
+  :mnemonic ?D
+  :charset-list '(cp775)
+  :mime-charset 'cp775)
+(define-coding-system-alias 'ibm775 'cp775)
 
 (define-coding-system 'cp850
   "DOS codepage 850 (Western European)"

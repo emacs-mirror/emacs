@@ -1,6 +1,6 @@
 ;;; semantic/ia-sb.el --- Speedbar analysis display interactor
 
-;;; Copyright (C) 2002-2004, 2006, 2008-2011  Free Software Foundation, Inc.
+;;; Copyright (C) 2002-2004, 2006, 2008-2012  Free Software Foundation, Inc.
 
 ;; Author: Eric M. Ludlam <zappo@gnu.org>
 ;; Keywords: syntax

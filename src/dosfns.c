@@ -1,6 +1,6 @@
 /* MS-DOS specific Lisp utilities.  Coded by Manabu Higashida, 1991.
    Major changes May-July 1993 Morten Welinder (only 10% original code left)
-   Copyright (C) 1991, 1993, 1996-1998, 2001-2011 Free Software Foundation, Inc.
+   Copyright (C) 1991, 1993, 1996-1998, 2001-2012 Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -23,9 +23,16 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 /* The entire file is within this conditional */
 
 #include <stdio.h>
+/* gettime and settime in dos.h clash with their namesakes from
+   gnulib, so we move out of our way the prototypes in dos.h.  */
+#define gettime dos_h_gettime_
+#define settime dos_h_settime_
 #include <dos.h>
-#include <setjmp.h>
+#undef gettime
+#undef settime
+
 #include "lisp.h"
+#include "character.h"
 #include "buffer.h"
 #include "termchar.h"
 #include "frame.h"
@@ -35,7 +42,6 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #include "dosfns.h"
 #include "msdos.h"
 #include "dispextern.h"
-#include "character.h"
 #include "coding.h"
 #include "process.h"
 #include <dpmi.h>
@@ -65,27 +71,27 @@ REGISTERS should be a vector produced by `make-register' and
   if (no < 0 || no > 0xff || ASIZE (registers) != 8)
     return Qnil;
   for (i = 0; i < 8; i++)
-    CHECK_NUMBER (XVECTOR (registers)->contents[i]);
+    CHECK_NUMBER (AREF (registers, i));
 
-  inregs.x.ax    = (unsigned long) XFASTINT (XVECTOR (registers)->contents[0]);
-  inregs.x.bx    = (unsigned long) XFASTINT (XVECTOR (registers)->contents[1]);
-  inregs.x.cx    = (unsigned long) XFASTINT (XVECTOR (registers)->contents[2]);
-  inregs.x.dx    = (unsigned long) XFASTINT (XVECTOR (registers)->contents[3]);
-  inregs.x.si    = (unsigned long) XFASTINT (XVECTOR (registers)->contents[4]);
-  inregs.x.di    = (unsigned long) XFASTINT (XVECTOR (registers)->contents[5]);
-  inregs.x.cflag = (unsigned long) XFASTINT (XVECTOR (registers)->contents[6]);
-  inregs.x.flags = (unsigned long) XFASTINT (XVECTOR (registers)->contents[7]);
+  inregs.x.ax    = (unsigned long) XFASTINT (AREF (registers, 0));
+  inregs.x.bx    = (unsigned long) XFASTINT (AREF (registers, 1));
+  inregs.x.cx    = (unsigned long) XFASTINT (AREF (registers, 2));
+  inregs.x.dx    = (unsigned long) XFASTINT (AREF (registers, 3));
+  inregs.x.si    = (unsigned long) XFASTINT (AREF (registers, 4));
+  inregs.x.di    = (unsigned long) XFASTINT (AREF (registers, 5));
+  inregs.x.cflag = (unsigned long) XFASTINT (AREF (registers, 6));
+  inregs.x.flags = (unsigned long) XFASTINT (AREF (registers, 7));
 
   int86 (no, &inregs, &outregs);
 
-  XVECTOR (registers)->contents[0] = make_number (outregs.x.ax);
-  XVECTOR (registers)->contents[1] = make_number (outregs.x.bx);
-  XVECTOR (registers)->contents[2] = make_number (outregs.x.cx);
-  XVECTOR (registers)->contents[3] = make_number (outregs.x.dx);
-  XVECTOR (registers)->contents[4] = make_number (outregs.x.si);
-  XVECTOR (registers)->contents[5] = make_number (outregs.x.di);
-  XVECTOR (registers)->contents[6] = make_number (outregs.x.cflag);
-  XVECTOR (registers)->contents[7] = make_number (outregs.x.flags);
+  ASET (registers, 0, make_number (outregs.x.ax));
+  ASET (registers, 1, make_number (outregs.x.bx));
+  ASET (registers, 2, make_number (outregs.x.cx));
+  ASET (registers, 3, make_number (outregs.x.dx));
+  ASET (registers, 4, make_number (outregs.x.si));
+  ASET (registers, 5, make_number (outregs.x.di));
+  ASET (registers, 6, make_number (outregs.x.cflag));
+  ASET (registers, 7, make_number (outregs.x.flags));
 
   return registers;
 }
@@ -109,7 +115,7 @@ Return the updated VECTOR.  */)
   dosmemget (offs, len, buf);
 
   for (i = 0; i < len; i++)
-    XVECTOR (vector)->contents[i] = make_number (buf[i]);
+    ASET (vector, i, make_number (buf[i]));
 
   return vector;
 }
@@ -132,8 +138,8 @@ DEFUN ("msdos-memput", Fdos_memput, Sdos_memput, 2, 2, 0,
 
   for (i = 0; i < len; i++)
     {
-      CHECK_NUMBER (XVECTOR (vector)->contents[i]);
-      buf[i] = (unsigned char) XFASTINT (XVECTOR (vector)->contents[i]) & 0xFF;
+      CHECK_NUMBER (AREF (vector, i));
+      buf[i] = (unsigned char) XFASTINT (AREF (vector, i)) & 0xFF;
     }
 
   dosmemput (buf, len, offs);
@@ -467,16 +473,16 @@ x_set_title (struct frame *f, Lisp_Object name)
 
   update_mode_lines = 1;
 
-  f->title = name;
+  fset_title (f, name);
 
   if (NILP (name))
     name = f->name;
 
   if (FRAME_MSDOS_P (f))
     {
-      BLOCK_INPUT;
+      block_input ();
       w95_set_virtual_machine_title (SDATA (name));
-      UNBLOCK_INPUT;
+      unblock_input ();
     }
 }
 #endif /* !HAVE_X_WINDOWS */
@@ -540,7 +546,6 @@ system_process_attributes (Lisp_Object pid)
       int i;
       Lisp_Object cmd_str, decoded_cmd, tem;
       double pmem;
-      EXFUN (Fget_internal_run_time, 0);
 #ifndef SYSTEM_MALLOC
       extern unsigned long ret_lim_data ();
 #endif
@@ -557,7 +562,7 @@ system_process_attributes (Lisp_Object pid)
 	attrs = Fcons (Fcons (Qgroup, build_string (gr->gr_name)), attrs);
       strcpy (cmd, basename (__crt0_argv[0]));
       /* Command name is encoded in locale-coding-system; decode it.  */
-      cmd_str = make_unibyte_string (cmd, strlen (cmd));
+      cmd_str = build_unibyte_string (cmd);
       decoded_cmd = code_convert_string_norecord (cmd_str,
 						  Vlocale_coding_system, 0);
       attrs = Fcons (Fcons (Qcomm, decoded_cmd), attrs);
@@ -625,7 +630,7 @@ system_process_attributes (Lisp_Object pid)
 	q[-1] = '\0';
 
       /* Command line is encoded in locale-coding-system; decode it.  */
-      cmd_str = make_unibyte_string (cmdline, strlen (cmdline));
+      cmd_str = build_unibyte_string (cmdline);
       decoded_cmd = code_convert_string_norecord (cmd_str,
 						  Vlocale_coding_system, 0);
       xfree (cmdline);
@@ -710,7 +715,7 @@ Implicitly modified when the TZ variable is changed.  */);
 #endif
 
   DEFVAR_LISP ("dos-display-scancodes", Vdos_display_scancodes,
-	       doc: /* *Controls whether DOS raw keyboard events are displayed as you type.
+	       doc: /* Whether DOS raw keyboard events are displayed as you type.
 When non-nil, the keyboard scan-codes are displayed at the bottom right
 corner of the display (typically at the end of the mode line).
 The output format is: scan code:char code*modifiers.  */);
@@ -718,17 +723,17 @@ The output format is: scan code:char code*modifiers.  */);
   Vdos_display_scancodes = Qnil;
 
   DEFVAR_INT ("dos-hyper-key", dos_hyper_key,
-	      doc: /* *If set to 1, use right ALT key as hyper key.
+	      doc: /* If set to 1, use right ALT key as hyper key.
 If set to 2, use right CTRL key as hyper key.  */);
   dos_hyper_key = 0;
 
   DEFVAR_INT ("dos-super-key", dos_super_key,
-	      doc: /* *If set to 1, use right ALT key as super key.
+	      doc: /* If set to 1, use right ALT key as super key.
 If set to 2, use right CTRL key as super key.  */);
   dos_super_key = 0;
 
   DEFVAR_INT ("dos-keypad-mode", dos_keypad_mode,
-	      doc: /* *Controls what key code is returned by a key in the numeric keypad.
+	      doc: /* Controls what key code is returned by a key in the numeric keypad.
 The `numlock ON' action is only taken if no modifier keys are pressed.
 The value is an integer constructed by adding the following bits together:
 
@@ -764,4 +769,3 @@ If zero, the decimal point key returns the country code specific value.  */);
   dos_decimal_point = 0;
 }
 #endif /* MSDOS */
-

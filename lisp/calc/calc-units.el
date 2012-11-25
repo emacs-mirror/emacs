@@ -1,6 +1,6 @@
 ;;; calc-units.el --- unit conversion functions for Calc
 
-;; Copyright (C) 1990-1993, 2001-2011  Free Software Foundation, Inc.
+;; Copyright (C) 1990-1993, 2001-2012  Free Software Foundation, Inc.
 
 ;; Author: David Gillespie <daveg@synaptics.com>
 ;; Maintainer: Jay Belanger <jay.p.belanger@gmail.com>
@@ -302,7 +302,7 @@
 
 
 (defvar math-additional-units nil
-  "*Additional units table for user-defined units.
+  "Additional units table for user-defined units.
 Must be formatted like `math-standard-units'.
 If you change this, be sure to set `math-units-table' to nil to ensure
 that the combined units table will be rebuilt.")
@@ -356,6 +356,8 @@ Entries are (SYMBOL EXPR DOC-STRING TEMP-TYPE BASE-UNITS).")
 				  (math-to-standard-units (calc-top-n 1)
 							  nil))))))
 
+(defvar calc-ensure-consistent-units)
+
 (defun calc-quick-units ()
   (interactive)
   (calc-slow-wrapper
@@ -370,8 +372,11 @@ Entries are (SYMBOL EXPR DOC-STRING TEMP-TYPE BASE-UNITS).")
      (unless (< pos (length units))
        (error "Unit number %d not defined" pos))
      (if (math-units-in-expr-p expr nil)
-	 (calc-enter-result 1 (format "cun%d" num)
-			    (math-convert-units expr (nth pos units)))
+         (progn
+           (if calc-ensure-consistent-units
+               (math-check-unit-consistency expr (nth pos units)))
+           (calc-enter-result 1 (format "cun%d" num)
+                              (math-convert-units expr (nth pos units))))
        (calc-enter-result 1 (format "*un%d" num)
 			  (math-simplify-units
 			   (math-mul expr (nth pos units))))))))
@@ -399,7 +404,7 @@ If EXPR is nil, return nil."
            (math-composition-to-string cexpr))))))
 
 (defvar math-default-units-table
-  (make-hash-table :test 'equal)
+  #s(hash-table test equal data (1 (1)))
   "A table storing previously converted units.")
 
 (defun math-get-default-units (expr)
@@ -413,21 +418,24 @@ If EXPR is nil, return nil."
         (math-make-unit-string (cadr default-units))
       (math-make-unit-string (car default-units)))))
 
-(defun math-put-default-units (expr)
-  "Put the units in EXPR in the default units table."
-  (let* ((units (math-get-units expr))
-         (standard-units (math-get-standard-units expr))
-         (default-units (gethash
-                         standard-units
-                         math-default-units-table)))
-    (cond
-     ((not default-units)
-      (puthash standard-units (list units) math-default-units-table))
-     ((not (equal units (car default-units)))
-      (puthash standard-units
-               (list units (car default-units))
-               math-default-units-table)))))
-
+(defun math-put-default-units (expr &optional comp std)
+  "Put the units in EXPR in the default units table.
+If COMP or STD is non-nil, put that in the units table instead."
+  (let* ((new-units (or comp std (math-get-units expr)))
+         (standard-units (math-get-standard-units 
+                          (cond
+                           (comp (math-simplify-units expr))
+                           (std expr)
+                           (t new-units))))
+         (default-units (gethash standard-units math-default-units-table)))
+    (unless (eq standard-units 1)
+      (cond
+       ((not default-units)
+        (puthash standard-units (list new-units) math-default-units-table))
+       ((not (equal new-units (car default-units)))
+        (puthash standard-units
+                 (list new-units (car default-units))
+                 math-default-units-table))))))
 
 (defun calc-convert-units (&optional old-units new-units)
   (interactive)
@@ -451,45 +459,48 @@ If EXPR is nil, return nil."
 	 (when (eq (car-safe uold) 'error)
 	   (error "Bad format in units expression: %s" (nth 1 uold)))
 	 (setq expr (math-mul expr uold))))
-     (unless new-units
-       (setq defunits (math-get-default-units expr))
-       (setq new-units
-             (read-string (concat
-                           (if uoldname
-                               (concat "Old units: "
-                                       uoldname
-                                       ", new units")
-                            "New units")
-                           (if defunits
-                               (concat
-                                " (default "
-                                defunits
-                                "): ")
-                             ": "))))
-
-       (if (and
-            (string= new-units "")
-            defunits)
-           (setq new-units defunits)))
-     (when (string-match "\\` */" new-units)
-       (setq new-units (concat "1" new-units)))
-     (setq units (math-read-expr new-units))
-     (when (eq (car-safe units) 'error)
-       (error "Bad format in units expression: %s" (nth 2 units)))
-     (math-put-default-units units)
-     (let ((unew (math-units-in-expr-p units t))
-	   (std (and (eq (car-safe units) 'var)
-		     (assq (nth 1 units) math-standard-units-systems))))
-       (if std
-	   (calc-enter-result 1 "cvun" (math-simplify-units
-					(math-to-standard-units expr
-								(nth 1 std))))
-	 (unless unew
+     (setq defunits (math-get-default-units expr))
+     (if (equal defunits "1")
+         (progn
+           (calc-enter-result 1 "cvun" (math-simplify-units expr))
+           (message "All units in expression cancel"))
+       (unless new-units
+         (setq new-units
+               (read-string (concat
+                             (if uoldname
+                                 (concat "Old units: "
+                                         uoldname
+                                         ", new units")
+                               "New units")
+                             (if defunits
+                                 (concat
+                                  " (default "
+                                  defunits
+                                  "): ")
+                               ": "))))
+         (if (and
+              (string= new-units "")
+              defunits)
+             (setq new-units defunits)))
+       (when (string-match "\\` */" new-units)
+         (setq new-units (concat "1" new-units)))
+       (setq units (math-read-expr new-units))
+       (when (eq (car-safe units) 'error)
+         (error "Bad format in units expression: %s" (nth 2 units)))
+       (if calc-ensure-consistent-units
+           (math-check-unit-consistency expr units))
+       (let ((unew (math-units-in-expr-p units t))
+             (std (and (eq (car-safe units) 'var)
+                       (assq (nth 1 units) math-standard-units-systems)))
+             (comp (eq (car-safe units) '+)))
+	 (unless (or unew std)
 	   (error "No units specified"))
-	 (calc-enter-result 1 "cvun"
-			    (math-convert-units
-			     expr units
-			     (and uoldname (not (equal uoldname "1"))))))))))
+         (let ((res
+                (if std
+                    (math-simplify-units (math-to-standard-units expr (nth 1 std)))
+                  (math-convert-units expr units (and uoldname (not (equal uoldname "1")))))))
+           (math-put-default-units res (if comp units))
+           (calc-enter-result 1 "cvun" res)))))))
 
 (defun calc-autorange-units (arg)
   (interactive "P")
@@ -559,7 +570,7 @@ If EXPR is nil, return nil."
 (defun calc-extract-units ()
   (interactive)
   (calc-slow-wrapper
-   (calc-enter-result 1 "rmun" (math-simplify-units
+   (calc-enter-result 1 "exun" (math-simplify-units
 				(math-extract-units (calc-top-n 1))))))
 
 ;; The variables calc-num-units and calc-den-units are local to
@@ -912,6 +923,20 @@ If EXPR is nil, return nil."
 	     'wrong
 	   (math-single-units-in-expr-p (nth 1 expr))))
 	(t 'wrong)))
+
+(defun math-consistent-units-p (expr newunits)
+  "Non-nil if EXPR and NEWUNITS have consistent units."
+  (or
+   (and (eq (car-safe newunits) 'var)
+        (assq (nth 1 newunits) math-standard-units-systems))
+   (math-numberp (math-get-units (list '/ expr newunits)))))
+
+(defun math-check-unit-consistency (expr units)
+  "Give an error if EXPR and UNITS do not have consistent units."
+  (unless  (math-consistent-units-p expr units)
+    (error "New units (%s) are inconsistent with current units (%s)"
+           (math-format-value units)
+           (math-format-value (math-get-units expr)))))
 
 (defun math-check-unit-name (v)
   (and (eq (car-safe v) 'var)
@@ -1456,10 +1481,16 @@ If EXPR is nil, return nil."
 	    (mapcar 'math-remove-units (cdr expr))))))
 
 (defun math-extract-units (expr)
-  (if (memq (car-safe expr) '(* /))
-      (cons (car expr)
-	    (mapcar 'math-extract-units (cdr expr)))
-    (if (math-check-unit-name expr) expr 1)))
+  (cond
+   ((memq (car-safe expr) '(* /))
+    (cons (car expr)
+          (mapcar 'math-extract-units (cdr expr))))
+   ((and
+     (eq (car-safe expr) '^)
+     (math-check-unit-name (nth 1 expr)))
+    expr)
+   ((math-check-unit-name expr) expr)
+   (t 1)))
 
 (defun math-build-units-table-buffer (enter-buffer)
   (if (not (and math-units-table math-units-table-buffer-valid

@@ -1,5 +1,5 @@
-/* Font backend for the Microsoft W32 API.
-   Copyright (C) 2007-2011 Free Software Foundation, Inc.
+/* Font backend for the Microsoft Windows API.
+   Copyright (C) 2007-2012 Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -18,10 +18,10 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 
 #include <config.h>
 #include <windows.h>
+#include <stdio.h>
 #include <math.h>
 #include <ctype.h>
 #include <commdlg.h>
-#include <setjmp.h>
 
 #include "lisp.h"
 #include "w32term.h"
@@ -62,7 +62,6 @@ static Lisp_Object Qserif, Qscript, Qdecorative;
 static Lisp_Object Qraster, Qoutline, Qunknown;
 
 /* antialiasing  */
-extern Lisp_Object Qnone; /* reuse from w32fns.c  */
 static Lisp_Object Qstandard, Qsubpixel, Qnatural;
 
 /* languages */
@@ -75,7 +74,7 @@ static Lisp_Object Qgurmukhi, Qgujarati, Qoriya, Qtamil, Qtelugu;
 static Lisp_Object Qkannada, Qmalayalam, Qsinhala, Qthai, Qlao;
 static Lisp_Object Qtibetan, Qmyanmar, Qgeorgian, Qhangul, Qethiopic;
 static Lisp_Object Qcherokee, Qcanadian_aboriginal, Qogham, Qrunic;
-static Lisp_Object Qkhmer, Qmongolian, Qsymbol, Qbraille, Qhan;
+static Lisp_Object Qkhmer, Qmongolian, Qbraille, Qhan;
 static Lisp_Object Qideographic_description, Qcjk_misc, Qkana, Qbopomofo;
 static Lisp_Object Qkanbun, Qyi, Qbyzantine_musical_symbol;
 static Lisp_Object Qmusical_symbol, Qmathematical, Qcham, Qphonetic;
@@ -235,8 +234,7 @@ get_outline_metrics_w(HDC hdc, UINT cbData, LPOUTLINETEXTMETRICW lpotmw)
 	s_pfn_Get_Outline_Text_MetricsW = (GetOutlineTextMetricsW_Proc)
 	  GetProcAddress (hm_unicows, "GetOutlineTextMetricsW");
     }
-  if (s_pfn_Get_Outline_Text_MetricsW == NULL)
-    abort ();	/* cannot happen */
+  eassert (s_pfn_Get_Outline_Text_MetricsW != NULL);
   return s_pfn_Get_Outline_Text_MetricsW (hdc, cbData, lpotmw);
 }
 
@@ -253,8 +251,7 @@ get_text_metrics_w(HDC hdc, LPTEXTMETRICW lptmw)
 	s_pfn_Get_Text_MetricsW = (GetTextMetricsW_Proc)
 	  GetProcAddress (hm_unicows, "GetTextMetricsW");
     }
-  if (s_pfn_Get_Text_MetricsW == NULL)
-    abort ();	/* cannot happen */
+  eassert (s_pfn_Get_Text_MetricsW != NULL);
   return s_pfn_Get_Text_MetricsW (hdc, lptmw);
 }
 
@@ -272,8 +269,7 @@ get_glyph_outline_w (HDC hdc, UINT uChar, UINT uFormat, LPGLYPHMETRICS lpgm,
 	s_pfn_Get_Glyph_OutlineW = (GetGlyphOutlineW_Proc)
 	  GetProcAddress (hm_unicows, "GetGlyphOutlineW");
     }
-  if (s_pfn_Get_Glyph_OutlineW == NULL)
-    abort ();	/* cannot happen */
+  eassert (s_pfn_Get_Glyph_OutlineW != NULL);
   return s_pfn_Get_Glyph_OutlineW (hdc, uChar, uFormat, lpgm, cbBuffer,
 				   lpvBuffer, lpmat2);
 }
@@ -289,20 +285,12 @@ memq_no_quit (Lisp_Object elt, Lisp_Object list)
 Lisp_Object
 intern_font_name (char * string)
 {
-  Lisp_Object obarray, tem, str;
-  int len;
-
-  str = DECODE_SYSTEM (build_string (string));
-  len = SCHARS (str);
-
-  /* The following code is copied from the function intern (in lread.c).  */
-  obarray = Vobarray;
-  if (!VECTORP (obarray) || ASIZE (obarray) == 0)
-    obarray = check_obarray (obarray);
-  tem = oblookup (obarray, SDATA (str), len, len);
-  if (SYMBOLP (tem))
-    return tem;
-  return Fintern (str, obarray);
+  Lisp_Object str = DECODE_SYSTEM (build_string (string));
+  int len = SCHARS (str);
+  Lisp_Object obarray = check_obarray (Vobarray);
+  Lisp_Object tem = oblookup (obarray, SDATA (str), len, len);
+  /* This code is similar to intern function from lread.c.  */
+  return SYMBOLP (tem) ? tem : Fintern (str, obarray);
 }
 
 /* w32 implementation of get_cache for font backend.
@@ -529,9 +517,7 @@ w32font_text_extents (struct font *font, unsigned *code,
 	  if (!w32_font->cached_metrics[block])
 	    {
 	      w32_font->cached_metrics[block]
-		= xmalloc (CACHE_BLOCKSIZE * sizeof (struct w32_metric_cache));
-	      memset (w32_font->cached_metrics[block], 0,
-		      CACHE_BLOCKSIZE * sizeof (struct w32_metric_cache));
+		= xzalloc (CACHE_BLOCKSIZE * sizeof (struct w32_metric_cache));
 	    }
 
 	  char_metric = w32_font->cached_metrics[block] + pos_in_block;
@@ -649,9 +635,9 @@ w32font_text_extents (struct font *font, unsigned *code,
 /* w32 implementation of draw for font backend.
    Optional.
    Draw glyphs between FROM and TO of S->char2b at (X Y) pixel
-   position of frame F with S->FACE and S->GC.  If WITH_BACKGROUND
-   is nonzero, fill the background in advance.  It is assured that
-   WITH_BACKGROUND is zero when (FROM > 0 || TO < S->nchars).
+   position of frame F with S->FACE and S->GC.  If WITH_BACKGROUND,
+   fill the background in advance.  It is assured that WITH_BACKGROUND
+   is false when (FROM > 0 || TO < S->nchars).
 
    TODO: Currently this assumes that the colors and fonts are already
    set in the DC. This seems to be true now, but maybe only due to
@@ -661,7 +647,7 @@ w32font_text_extents (struct font *font, unsigned *code,
 
 int
 w32font_draw (struct glyph_string *s, int from, int to,
-	      int x, int y, int with_background)
+	      int x, int y, bool with_background)
 {
   UINT options;
   HRGN orig_clip = NULL;
@@ -818,7 +804,7 @@ static int
 w32font_otf_drive (struct font *font, Lisp_Object features,
                    Lisp_Object gstring_in, int from, int to,
                    Lisp_Object gstring_out, int idx,
-                   int alternate_subst);
+                   bool alternate_subst);
   */
 
 /* Internal implementation of w32font_list.
@@ -1001,7 +987,6 @@ w32font_open_internal (FRAME_PTR f, Lisp_Object font_entity,
   font->space_width = font->average_width = w32_font->metrics.tmAveCharWidth;
 
   font->vertical_centering = 0;
-  font->encoding_type = 0;
   font->baseline_offset = 0;
   font->relative_compose = 0;
   font->default_ascent = w32_font->metrics.tmAscent;
@@ -1404,7 +1389,7 @@ font_matches_spec (DWORD type, NEWTEXTMETRICEX *font,
                    currently appear in fontset.el, so it isn't worth
                    creating a mapping table of codepages/scripts to languages
                    or opening the font to see if there are any language tags
-                   in it that the W32 API does not expose. Fontset
+                   in it that the Windows API does not expose. Fontset
 		   spec should have a fallback, as some backends do
 		   not recognize language at all.  */
 		return 0;
@@ -1450,6 +1435,9 @@ w32font_coverage_ok (FONTSIGNATURE * coverage, BYTE charset)
   return 1;
 }
 
+#ifndef WINDOWSNT
+#define _strlwr strlwr
+#endif /* !WINDOWSNT */
 
 static int
 check_face_name (LOGFONT *font, char *full_name)
@@ -2045,8 +2033,11 @@ fill_in_logfont (FRAME_PTR f, LOGFONT *logfont, Lisp_Object font_spec)
         /* Font families are interned, but allow for strings also in case of
            user input.  */
       else if (SYMBOLP (tmp))
-        strncpy (logfont->lfFaceName,
-		 SDATA (ENCODE_SYSTEM (SYMBOL_NAME (tmp))), LF_FACESIZE);
+	{
+	  strncpy (logfont->lfFaceName,
+		   SDATA (ENCODE_SYSTEM (SYMBOL_NAME (tmp))), LF_FACESIZE);
+	  logfont->lfFaceName[LF_FACESIZE-1] = '\0';
+	}
     }
 
   tmp = AREF (font_spec, FONT_ADSTYLE_INDEX);
@@ -2641,7 +2632,6 @@ syms_of_w32font (void)
   DEFSYM (Qrunic, "runic");
   DEFSYM (Qkhmer, "khmer");
   DEFSYM (Qmongolian, "mongolian");
-  DEFSYM (Qsymbol, "symbol");
   DEFSYM (Qbraille, "braille");
   DEFSYM (Qhan, "han");
   DEFSYM (Qideographic_description, "ideographic-description");

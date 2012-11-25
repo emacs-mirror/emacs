@@ -1,6 +1,6 @@
 ;;; electric.el --- window maker and Command loop for `electric' modes
 
-;; Copyright (C) 1985-1986, 1995, 2001-2011 Free Software Foundation, Inc.
+;; Copyright (C) 1985-1986, 1995, 2001-2012 Free Software Foundation, Inc.
 
 ;; Author: K. Shane Hartman
 ;; Maintainer: FSF
@@ -37,8 +37,6 @@
 ;;   electric key behavior.
 
 ;;; Code:
-
-(eval-when-compile (require 'cl))
 
 ;; This loop is the guts for non-standard modes which retain control
 ;; until some event occurs.  It is a `do-forever', the only way out is
@@ -215,6 +213,7 @@ point right after that char, and it should return t to cause indentation,
   ;; it looks challenging.
   (let (pos)
     (when (and
+           electric-indent-mode
            ;; Don't reindent while inserting spaces at beginning of line.
            (or (not (memq last-command-event '(?\s ?\t)))
                (save-excursion (skip-chars-backward " \t") (not (bolp))))
@@ -260,9 +259,9 @@ With a prefix argument ARG, enable Electric Indent mode if ARG is
 positive, and disable it otherwise.  If called from Lisp, enable
 the mode if ARG is omitted or nil.
 
-Electric Indent mode is a global minor mode.  When enabled,
-reindentation is triggered whenever you insert a character listed
-in `electric-indent-chars'."
+This is a global minor mode.  When enabled, it reindents whenever
+the hook `electric-indent-functions' returns non-nil, or you
+insert a character from `electric-indent-chars'."
   :global t
   :group 'electricity
   (if (not electric-indent-mode)
@@ -288,6 +287,8 @@ in `electric-indent-chars'."
 (defcustom electric-pair-pairs
   '((?\" . ?\"))
   "Alist of pairs that should be used regardless of major mode."
+  :group 'electricity
+  :version "24.1"
   :type '(repeat (cons character character)))
 
 (defcustom electric-pair-skip-self t
@@ -296,16 +297,21 @@ When inserting a closing paren character right before the same character,
 just skip that character instead, so that hitting ( followed by ) results
 in \"()\" rather than \"())\".
 This can be convenient for people who find it easier to hit ) than C-f."
+  :group 'electricity
+  :version "24.1"
   :type 'boolean)
+
+(defun electric-pair-syntax (command-event)
+  (and electric-pair-mode
+       (let ((x (assq command-event electric-pair-pairs)))
+	 (cond
+	  (x (if (eq (car x) (cdr x)) ?\" ?\())
+	  ((rassq command-event electric-pair-pairs) ?\))
+	  (t (char-syntax command-event))))))
 
 (defun electric-pair-post-self-insert-function ()
   (let* ((syntax (and (eq (char-before) last-command-event) ; Sanity check.
-                      electric-pair-mode
-                      (let ((x (assq last-command-event electric-pair-pairs)))
-                        (cond
-                         (x (if (eq (car x) (cdr x)) ?\" ?\())
-                         ((rassq last-command-event electric-pair-pairs) ?\))
-                         (t (char-syntax last-command-event))))))
+		      (electric-pair-syntax last-command-event)))
          ;; FIXME: when inserting the closer, we should maybe use
          ;; self-insert-command, although it may prove tricky running
          ;; post-self-insert-hook recursively, and we wouldn't want to trigger
@@ -319,12 +325,13 @@ This can be convenient for people who find it easier to hit ) than C-f."
      ((and (memq syntax '(?\( ?\" ?\$)) (use-region-p))
       (if (> (mark) (point))
           (goto-char (mark))
-        ;; We already inserted the open-paren but at the end of the region,
-        ;; so we have to remove it and start over.
-        (delete-char -1)
-        (save-excursion
+	;; We already inserted the open-paren but at the end of the
+	;; region, so we have to remove it and start over.
+	(delete-char -1)
+	(save-excursion
           (goto-char (mark))
-          (insert last-command-event)))
+	  ;; Do not insert after `save-excursion' marker (Bug#11520).
+          (insert-before-markers last-command-event)))
       (insert closer))
      ;; Backslash-escaped: no pairing, no skipping.
      ((save-excursion
@@ -351,6 +358,10 @@ This can be convenient for people who find it easier to hit ) than C-f."
                (eq (char-syntax (following-char)) ?w)))
       (save-excursion (insert closer))))))
 
+(defun electric-pair-will-use-region ()
+  (and (use-region-p)
+       (memq (electric-pair-syntax last-command-event) '(?\( ?\" ?\$))))
+
 ;;;###autoload
 (define-minor-mode electric-pair-mode
   "Toggle automatic parens pairing (Electric Pair mode).
@@ -360,14 +371,21 @@ the mode if ARG is omitted or nil.
 
 Electric Pair mode is a global minor mode.  When enabled, typing
 an open parenthesis automatically inserts the corresponding
-closing parenthesis.  \(Likewise for brackets, etc.)"
+closing parenthesis.  \(Likewise for brackets, etc.)
+
+See options `electric-pair-pairs' and `electric-pair-skip-self'."
   :global t
   :group 'electricity
   (if electric-pair-mode
-      (add-hook 'post-self-insert-hook
-                #'electric-pair-post-self-insert-function)
+      (progn
+	(add-hook 'post-self-insert-hook
+		  #'electric-pair-post-self-insert-function)
+	(add-hook 'self-insert-uses-region-functions
+		  #'electric-pair-will-use-region))
     (remove-hook 'post-self-insert-hook
-                 #'electric-pair-post-self-insert-function)))
+                 #'electric-pair-post-self-insert-function)
+    (remove-hook 'self-insert-uses-region-functions
+		  #'electric-pair-will-use-region)))
 
 ;; Automatically add newlines after/before/around some chars.
 
@@ -375,8 +393,8 @@ closing parenthesis.  \(Likewise for brackets, etc.)"
   "List of rules saying where to automatically insert newlines.
 Each rule has the form (CHAR . WHERE) where CHAR is the char
 that was just inserted and WHERE specifies where to insert newlines
-and can be: nil, `before', `after', `around', or a function that returns
-one of those symbols.")
+and can be: nil, `before', `after', `around', or a function of no
+arguments that returns one of those symbols.")
 
 (defun electric-layout-post-self-insert-function ()
   (let* ((rule (cdr (assq last-command-event electric-layout-rules)))
@@ -387,16 +405,16 @@ one of those symbols.")
                (not (nth 8 (save-excursion (syntax-ppss pos)))))
       (let ((end (copy-marker (point) t)))
         (goto-char pos)
-        (case (if (functionp rule) (funcall rule) rule)
+        (pcase (if (functionp rule) (funcall rule) rule)
           ;; FIXME: we used `newline' down here which called
           ;; self-insert-command and ran post-self-insert-hook recursively.
           ;; It happened to make electric-indent-mode work automatically with
           ;; electric-layout-mode (at the cost of re-indenting lines
           ;; multiple times), but I'm not sure it's what we want.
-          (before (goto-char (1- pos)) (skip-chars-backward " \t")
+          (`before (goto-char (1- pos)) (skip-chars-backward " \t")
                   (unless (bolp) (insert "\n")))
-          (after  (insert "\n"))       ; FIXME: check eolp before inserting \n?
-          (around (save-excursion
+          (`after  (insert "\n"))      ; FIXME: check eolp before inserting \n?
+          (`around (save-excursion
                     (goto-char (1- pos)) (skip-chars-backward " \t")
                     (unless (bolp) (insert "\n")))
                   (insert "\n")))      ; FIXME: check eolp before inserting \n?
@@ -404,7 +422,11 @@ one of those symbols.")
 
 ;;;###autoload
 (define-minor-mode electric-layout-mode
-  "Automatically insert newlines around some chars."
+  "Automatically insert newlines around some chars.
+With a prefix argument ARG, enable Electric Layout mode if ARG is
+positive, and disable it otherwise.  If called from Lisp, enable
+the mode if ARG is omitted or nil.
+The variable `electric-layout-rules' says when and how to insert newlines."
   :global t
   :group 'electricity
   (if electric-layout-mode

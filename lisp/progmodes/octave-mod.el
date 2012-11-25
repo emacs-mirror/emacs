@@ -1,9 +1,9 @@
 ;;; octave-mod.el --- editing Octave source files under Emacs
 
-;; Copyright (C) 1997, 2001-2011  Free Software Foundation, Inc.
+;; Copyright (C) 1997, 2001-2012 Free Software Foundation, Inc.
 
 ;; Author: Kurt Hornik <Kurt.Hornik@wu-wien.ac.at>
-;; Author: John Eaton <jwe@octave.org>
+;;	   John Eaton <jwe@octave.org>
 ;; Maintainer: FSF
 ;; Keywords: languages
 
@@ -585,12 +585,12 @@ Variables you can use to customize Octave mode
 Turning on Octave mode runs the hook `octave-mode-hook'.
 
 To begin using this mode for all `.m' files that you edit, add the
-following lines to your `.emacs' file:
+following lines to your init file:
 
   (add-to-list 'auto-mode-alist '(\"\\\\.m\\\\'\" . octave-mode))
 
 To automatically turn on the abbrev and auto-fill features,
-add the following lines to your `.emacs' file as well:
+add the following lines to your init file as well:
 
   (add-hook 'octave-mode-hook
 	    (lambda ()
@@ -989,18 +989,13 @@ If Abbrev mode is turned on, typing ` (grave accent) followed by ? or
 executed normally.
 Note that all Octave mode abbrevs start with a grave accent."
   (interactive)
-  (if (not abbrev-mode)
-      (self-insert-command 1)
-    (let (c)
-      (insert last-command-event)
-      (if (if (featurep 'xemacs)
-	      (or (eq (event-to-character (setq c (next-event))) ??)
-		  (eq (event-to-character c) help-char))
-	    (or (eq (setq c (read-event)) ??)
-		(eq c help-char)))
-	  (let ((abbrev-table-name-list '(octave-abbrev-table)))
-	    (list-abbrevs))
-	(setq unread-command-events (list c))))))
+  (self-insert-command 1)
+  (when abbrev-mode
+    (set-temporary-overlay-map
+     (let ((map (make-sparse-keymap)))
+       (define-key map [??] 'list-abbrevs)
+       (define-key map (vector help-char) 'list-abbrevs)
+       map))))
 
 (define-skeleton octave-insert-defun
   "Insert an Octave function skeleton.

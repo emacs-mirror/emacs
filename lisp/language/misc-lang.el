@@ -1,4 +1,4 @@
-;;; misc-lang.el --- support for miscellaneous languages (characters) -*- no-byte-compile: t -*-
+;;; misc-lang.el --- support for miscellaneous languages (characters)
 
 ;; Copyright (C) 1995, 1996, 1997, 1998, 1999, 2000, 2001, 2002, 2003, 2004,
 ;;   2005, 2006, 2007, 2008, 2009, 2010, 2011
@@ -65,6 +65,14 @@ and Italian.")))
 	    (coding-priority utf-8 iso-8859-6 windows-1256)
 	    (input-method . "arabic")
 	    (sample-text . "Arabic	السّلام عليكم")
+	    (documentation . "Bidirectional editing is supported.")))
+
+(set-language-info-alist
+ "Persian" '((charset unicode)
+	    (coding-system utf-8 iso-8859-6 windows-1256)
+	    (coding-priority utf-8 iso-8859-6 windows-1256)
+	    (input-method . "farsi-transliterate-banan")
+	    (sample-text . "Persian	فارسی")
 	    (documentation . "Bidirectional editing is supported.")))
 
 (set-char-table-range

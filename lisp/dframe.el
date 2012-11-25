@@ -1,6 +1,6 @@
 ;;; dframe --- dedicate frame support modes
 
-;; Copyright (C) 1996-2011  Free Software Foundation, Inc.
+;; Copyright (C) 1996-2012  Free Software Foundation, Inc.
 
 ;; Author: Eric M. Ludlam <zappo@gnu.org>
 ;; Keywords: file, tags, tools
@@ -157,22 +157,22 @@ selected frame and the focus will change to that frame."
   :type 'hook)
 
 (defvar dframe-track-mouse-function nil
-  "*A function to call when the mouse is moved in the given frame.
+  "A function to call when the mouse is moved in the given frame.
 Typically used to display info about the line under the mouse.")
 (make-variable-buffer-local 'dframe-track-mouse-function)
 
 (defvar dframe-help-echo-function nil
-  "*A function to call when help-echo is used in newer versions of Emacs.
+  "A function to call when help-echo is used in newer versions of Emacs.
 Typically used to display info about the line under the mouse.")
 (make-variable-buffer-local 'dframe-help-echo-function)
 
 (defvar dframe-mouse-click-function nil
-  "*A function to call when the mouse is clicked.
+  "A function to call when the mouse is clicked.
 Valid clicks are mouse 2, our double mouse 1.")
 (make-variable-buffer-local 'dframe-mouse-click-function)
 
 (defvar dframe-mouse-position-function nil
-  "*A function to call to position the cursor for a mouse click.")
+  "A function to call to position the cursor for a mouse click.")
 (make-variable-buffer-local 'dframe-mouse-position-function)
 
 (defvar dframe-power-click nil
@@ -516,7 +516,7 @@ LOCATION can be one of 'random, 'left-right, or 'top-bottom."
 (defun dframe-needed-height (&optional frame)
   "The needed height for the tool bar FRAME (in characters)."
   (or frame (setq frame (selected-frame)))
-  ;; The 1 is the missing modeline/minibuffer
+  ;; The 1 is the missing mode line or minibuffer
   (+ 1 (/ (frame-pixel-height frame)
 	  ;; This obscure code avoids a byte compiler warning in Emacs.
 	  (let ((f 'face-height))
@@ -969,7 +969,7 @@ broken because of the dedicated frame."
       (switch-to-buffer buffer)
     (call-interactively 'switch-to-buffer nil nil)))
 
-;; XEmacs: this can be implemented using modeline keymaps, but there
+;; XEmacs: this can be implemented using mode line keymaps, but there
 ;; is no use, as we have horizontal scrollbar (as the docstring
 ;; hints.)
 (defun dframe-mouse-hscroll (e)
@@ -987,8 +987,7 @@ mode-line.  This is only useful for non-XEmacs."
 	  ((> click-col (- (window-width) 5))
 	   (scroll-right 2))
 	  (t (dframe-message
-	      "Click on the edge of the modeline to scroll left/right")))
-    ))
+	      "Click on the edge of the mode line to scroll left/right")))))
 
 (provide 'dframe)
 

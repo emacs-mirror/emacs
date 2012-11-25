@@ -1,5 +1,5 @@
 /* Definitions and headers for communication with X protocol.
-   Copyright (C) 1989, 1993-1994, 1998-2011 Free Software Foundation, Inc.
+   Copyright (C) 1989, 1993-1994, 1998-2012 Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -15,6 +15,9 @@ GNU General Public License for more details.
 
 You should have received a copy of the GNU General Public License
 along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
+
+#ifndef XTERM_H
+#define XTERM_H
 
 #include <X11/Xlib.h>
 #include <X11/cursorfont.h>
@@ -367,12 +370,13 @@ extern int use_xim;
 extern void check_x (void);
 
 extern struct frame *x_window_to_frame (struct x_display_info *, int);
-
 extern struct frame *x_any_window_to_frame (struct x_display_info *, int);
 extern struct frame *x_menubar_window_to_frame (struct x_display_info *,
 						XEvent *);
-
 extern struct frame *x_top_window_to_frame (struct x_display_info *, int);
+
+extern struct frame *x_menubar_window_to_frame (struct x_display_info *,
+						XEvent *);
 
 #if ! defined (USE_X_TOOLKIT) && ! defined (USE_GTK)
 #define x_any_window_to_frame x_window_to_frame
@@ -389,7 +393,6 @@ extern struct x_display_info *x_display_list;
 extern Lisp_Object x_display_name_list;
 
 extern struct x_display_info *x_display_info_for_display (Display *);
-extern void x_set_frame_alpha (struct frame *);
 
 extern struct x_display_info *x_term_init (Lisp_Object, char *, char *);
 extern int x_display_ok  (const char *);
@@ -503,12 +506,6 @@ struct x_output
      value contains an ID of the fontset, else -1.  */
   int fontset;
 
-  /* Pixel values used for various purposes.
-     border_pixel may be -1 meaning use a gray tile.  */
-#if 0 /* These are also defined in struct frame.  Use that instead.  */
-  unsigned long background_pixel;
-  unsigned long foreground_pixel;
-#endif
   unsigned long cursor_pixel;
   unsigned long border_pixel;
   unsigned long mouse_pixel;
@@ -544,9 +541,6 @@ struct x_output
   /* Non-zero means hourglass cursor is currently displayed.  */
   unsigned hourglass_p : 1;
 
-  /* Flag to set when the X window needs to be completely repainted.  */
-  int needs_exposure;
-
   /* These are the current window manager hints.  It seems that
      XSetWMHints, when presented with an unset bit in the `flags'
      member of the hints structure, does not leave the corresponding
@@ -574,13 +568,13 @@ struct x_output
 
   /* Nonzero means our parent is another application's window
      and was explicitly specified.  */
-  char explicit_parent;
+  unsigned explicit_parent : 1;
 
   /* Nonzero means tried already to make this frame visible.  */
-  char asked_for_visible;
+  unsigned asked_for_visible : 1;
 
   /* Nonzero if this frame was ever previously visible.  */
-  char has_been_visible;
+  unsigned has_been_visible : 1;
 
 #ifdef HAVE_X_I18N
   /* Input context (currently, this means Compose key handler setup).  */
@@ -634,7 +628,7 @@ struct x_output
   int top_before_move;
 
   /* Non-zero if _NET_WM_STATE_HIDDEN is set for this frame.  */
-  int net_wm_state_hidden_seen;
+  unsigned net_wm_state_hidden_seen : 1;
 };
 
 #define No_Cursor (None)
@@ -736,9 +730,6 @@ enum
 /* This is the Colormap which frame F uses.  */
 #define FRAME_X_COLORMAP(f) FRAME_X_DISPLAY_INFO (f)->cmap
 
-/* This is the 'font_info *' which frame F has.  */
-#define FRAME_X_FONT_TABLE(f) (FRAME_X_DISPLAY_INFO (f)->font_table)
-
 /* The difference in pixels between the top left corner of the
    Emacs window (including possible window manager decorations)
    and FRAME_X_WINDOW (f).  */
@@ -779,8 +770,7 @@ enum
 struct scroll_bar
 {
   /* These fields are shared by all vectors.  */
-  EMACS_INT size_from_Lisp_Vector_struct;
-  struct Lisp_Vector *next_from_Lisp_Vector_struct;
+  struct vectorlike_header header;
 
   /* The window we're a scroll bar for.  */
   Lisp_Object window;
@@ -820,12 +810,6 @@ struct scroll_bar
      bar is extended to the gap between the fringe and the bar.  */
   unsigned int fringe_extended_p : 1;
 };
-
-/* The number of elements a vector holding a struct scroll_bar needs.  */
-#define SCROLL_BAR_VEC_SIZE					\
-  ((sizeof (struct scroll_bar)					\
-    - sizeof (EMACS_INT) - sizeof (struct Lisp_Vector *))	\
-   / sizeof (Lisp_Object))
 
 /* Turning a lisp vector value into a pointer to a struct scroll_bar.  */
 #define XSCROLL_BAR(vec) ((struct scroll_bar *) XVECTOR (vec))
@@ -900,10 +884,8 @@ struct scroll_bar
    by this structure.  */
 
 /* For an event of kind SELECTION_REQUEST_EVENT,
-   this structure really describes the contents.
-   **Don't make this struct longer!**
-   If it overlaps the frame_or_window field of struct input_event,
-   that will cause GC to crash.  */
+   this structure really describes the contents.  */
+
 struct selection_input_event
 {
   int kind;
@@ -944,10 +926,7 @@ void x_handle_property_notify (XPropertyEvent *);
 /* From xfns.c.  */
 
 struct frame *check_x_frame (Lisp_Object);
-EXFUN (Fx_display_grayscale_p, 1);
 extern void x_free_gcs (struct frame *);
-extern int gray_bitmap_width, gray_bitmap_height;
-extern char *gray_bitmap_bits;
 
 /* From xrdb.c.  */
 
@@ -957,7 +936,6 @@ XrmDatabase x_load_resources (Display *, const char *, const char *,
 /* Defined in xterm.c */
 
 extern int x_text_icon (struct frame *, const char *);
-extern int x_bitmap_icon (struct frame *, Lisp_Object);
 extern void x_catch_errors (Display *);
 extern void x_check_errors (Display *, const char *)
   ATTRIBUTE_FORMAT_PRINTF (2, 0);
@@ -967,12 +945,8 @@ extern void x_clear_errors (Display *);
 extern void x_set_window_size (struct frame *, int, int, int);
 extern void x_set_mouse_position (struct frame *, int, int);
 extern void x_set_mouse_pixel_position (struct frame *, int, int);
+extern void xembed_request_focus (struct frame *);
 extern void x_ewmh_activate_frame (struct frame *);
-extern void x_make_frame_visible (struct frame *);
-extern void x_make_frame_invisible (struct frame *);
-extern void x_iconify_frame (struct frame *);
-extern void x_free_frame_resources (struct frame *);
-extern void x_wm_set_size_hint (struct frame *, long, int);
 extern void x_delete_terminal (struct terminal *terminal);
 extern unsigned long x_copy_color (struct frame *, unsigned long);
 #ifdef USE_X_TOOLKIT
@@ -980,12 +954,11 @@ extern XtAppContext Xt_app_con;
 extern void x_activate_timeout_atimer (void);
 #endif
 #ifdef USE_LUCID
-extern int x_alloc_lighter_color_for_widget (Widget, Display *, Colormap,
-                                             unsigned long *,
-                                             double, int);
+extern bool x_alloc_lighter_color_for_widget (Widget, Display *, Colormap,
+					      unsigned long *,
+					      double, int);
 #endif
-extern int x_alloc_nearest_color (struct frame *, Colormap, XColor *);
-extern void x_query_colors (struct frame *f, XColor *, int);
+extern bool x_alloc_nearest_color (struct frame *, Colormap, XColor *);
 extern void x_query_color (struct frame *f, XColor *);
 extern void x_clear_area (Display *, Window, int, int, int, int, int);
 #if defined HAVE_MENUS && !defined USE_X_TOOLKIT && !defined USE_GTK
@@ -995,7 +968,7 @@ extern void x_mouse_leave (struct x_display_info *);
 #ifdef USE_X_TOOLKIT
 extern int x_dispatch_event (XEvent *, Display *);
 #endif
-extern EMACS_INT x_x_to_emacs_modifiers (struct x_display_info *, int);
+extern int x_x_to_emacs_modifiers (struct x_display_info *, int);
 extern int x_display_pixel_height (struct x_display_info *);
 extern int x_display_pixel_width (struct x_display_info *);
 
@@ -1037,14 +1010,13 @@ extern void x_clipboard_manager_save_all (void);
 
 extern struct x_display_info * check_x_display_info (Lisp_Object);
 extern Lisp_Object x_get_focus_frame (struct frame *);
+extern int x_in_use;
 
 #ifdef USE_GTK
 extern int xg_set_icon (struct frame *, Lisp_Object);
 extern int xg_set_icon_from_xpm_data (struct frame *, const char**);
 #endif /* USE_GTK */
 
-extern void x_real_positions (struct frame *, int *, int *);
-extern void x_set_menu_bar_lines (struct frame *, Lisp_Object, Lisp_Object);
 extern void x_implicitly_set_name (struct frame *, Lisp_Object, Lisp_Object);
 extern void xic_free_xfontset (struct frame *);
 extern void create_frame_xic (struct frame *);
@@ -1054,17 +1026,13 @@ extern void xic_set_statusarea (struct frame *);
 extern void xic_set_xfontset (struct frame *, const char *);
 extern int x_pixel_width (struct frame *);
 extern int x_pixel_height (struct frame *);
-extern int x_char_width (struct frame *);
-extern int x_char_height (struct frame *);
-extern void x_sync (struct frame *);
-extern int x_defined_color (struct frame *, const char *, XColor *, int);
+extern bool x_defined_color (struct frame *, const char *, XColor *, bool);
 #ifdef HAVE_X_I18N
 extern void free_frame_xic (struct frame *);
 # if defined HAVE_X_WINDOWS && defined USE_X_TOOLKIT
 extern char * xic_create_fontsetname (const char *base_fontname, int motif);
 # endif
 #endif
-extern void x_set_tool_bar_lines (struct frame *, Lisp_Object, Lisp_Object);
 
 /* Defined in xfaces.c */
 
@@ -1081,10 +1049,8 @@ extern void x_menu_set_in_use (int);
 #ifdef USE_MOTIF
 extern void x_menu_wait_for_event (void *data);
 #endif
-extern void x_activate_menubar (struct frame *);
 extern int popup_activated (void);
 extern void initialize_frame_menubar (struct frame *);
-extern void free_frame_menubar (struct frame *);
 
 /* Defined in widget.c */
 
@@ -1126,3 +1092,5 @@ extern Lisp_Object Qx_gtk_map_stock;
    (nr).y = (ry),					\
    (nr).width = (rwidth),				\
    (nr).height = (rheight))
+
+#endif /* XTERM_H */

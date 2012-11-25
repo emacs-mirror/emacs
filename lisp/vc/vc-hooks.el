@@ -1,6 +1,6 @@
 ;;; vc-hooks.el --- resident support for version-control
 
-;; Copyright (C) 1992-1996, 1998-2011  Free Software Foundation, Inc.
+;; Copyright (C) 1992-1996, 1998-2012  Free Software Foundation, Inc.
 
 ;; Author:     FSF (see vc.el for full credits)
 ;; Maintainer: Andre Spiegel <spiegel@gnu.org>
@@ -30,22 +30,9 @@
 
 ;;; Code:
 
-(eval-when-compile
-  (require 'cl))
+(eval-when-compile (require 'cl-lib))
 
 ;; Customization Variables (the rest is in vc.el)
-
-(defvar vc-ignore-vc-files nil)
-(make-obsolete-variable 'vc-ignore-vc-files
-                        "set `vc-handled-backends' to nil to disable VC."
-			"21.1")
-
-(defvar vc-master-templates ())
-(make-obsolete-variable 'vc-master-templates
- "to define master templates for a given BACKEND, use
-vc-BACKEND-master-templates.  To enable or disable VC for a given
-BACKEND, use `vc-handled-backends'."
- "21.1")
 
 (defcustom vc-ignore-dir-regexp
   ;; Stop SMB, automounter, AFS, and DFS host lookups.
@@ -102,7 +89,7 @@ visited and a warning displayed."
   :group 'vc)
 
 (defcustom vc-display-status t
-  "If non-nil, display revision number and lock status in modeline.
+  "If non-nil, display revision number and lock status in mode line.
 Otherwise, not displayed."
   :type 'boolean
   :group 'vc)
@@ -237,6 +224,8 @@ VC commands are globally reachable under the prefix `\\[vc-prefix-map]':
 
 (defun vc-file-clearprops (file)
   "Clear all VC properties of FILE."
+  (if (boundp 'vc-parent-buffer)
+      (kill-local-variable 'vc-parent-buffer))
   (setplist (intern file vc-file-prop-obarray) nil))
 
 
@@ -311,7 +300,7 @@ non-nil if FILE exists and its contents were successfully inserted."
       (let ((filepos 0))
         (while
 	    (and (< 0 (cadr (insert-file-contents
-			     file nil filepos (incf filepos blocksize))))
+			     file nil filepos (cl-incf filepos blocksize))))
 		 (progn (beginning-of-line)
                         (let ((pos (re-search-forward limit nil 'move)))
                           (when pos (delete-region (match-beginning 0)
@@ -561,7 +550,7 @@ Return non-nil if FILE is unchanged."
             (if (or (not (eq (cadr err)
                              (indirect-function
                               (vc-find-backend-function backend 'diff))))
-                    (not (eq (caddr err) 4)))
+                    (not (eq (cl-caddr err) 4)))
                 (signal (car err) (cdr err))
               (vc-call-backend backend 'diff (list file)))))))
 
@@ -587,16 +576,7 @@ If FILE is not registered, this function always returns nil."
   "Check if FILE is registered in BACKEND using vc-BACKEND-master-templates."
   (let ((sym (vc-make-backend-sym backend 'master-templates)))
     (unless (get backend 'vc-templates-grabbed)
-      (put backend 'vc-templates-grabbed t)
-      (set sym (append (delq nil
-			     (mapcar
-			      (lambda (template)
-				(and (consp template)
-				     (eq (cdr template) backend)
-				     (car template)))
-                              (with-no-warnings
-                               vc-master-templates)))
-		       (symbol-value sym))))
+      (put backend 'vc-templates-grabbed t))
     (let ((result (vc-check-master-templates file (symbol-value sym))))
       (if (stringp result)
 	  (vc-file-setprop file 'vc-name result)
@@ -704,6 +684,8 @@ Before doing that, check if there are any old backups and get rid of them."
   (let ((file buffer-file-name)
         backend)
     (ignore-errors               ;Be careful not to prevent saving the file.
+      (unless (file-exists-p file)
+        (vc-file-clearprops file))
       (and (setq backend (vc-backend file))
            (vc-up-to-date-p file)
            (eq (vc-checkout-model backend (list file)) 'implicit)
@@ -790,7 +772,7 @@ If BACKEND is passed use it as the VC backend when computing the result."
   backend)
 
 (defun vc-default-mode-line-string (backend file)
-  "Return string for placement in modeline by `vc-mode-line' for FILE.
+  "Return a string for `vc-mode-line' to put in the mode line for FILE.
 Format:
 
   \"BACKEND-REV\"        if the file is up-to-date
@@ -866,7 +848,7 @@ current, and kill the buffer that visits the link."
     (let (backend)
       (cond
        ((setq backend (with-demoted-errors (vc-backend buffer-file-name)))
-	;; Compute the state and put it in the modeline.
+	;; Compute the state and put it in the mode line.
 	(vc-mode-line buffer-file-name backend)
 	(unless vc-make-backup-files
 	  ;; Use this variable, not make-backup-files,
@@ -941,72 +923,72 @@ current, and kill the buffer that visits the link."
     (define-key map "~" 'vc-revision-other-window)
     map))
 (fset 'vc-prefix-map vc-prefix-map)
-(define-key global-map "\C-xv" 'vc-prefix-map)
+(define-key ctl-x-map "v" 'vc-prefix-map)
 
 (defvar vc-menu-map
   (let ((map (make-sparse-keymap "Version Control")))
     ;;(define-key map [show-files]
     ;;  '("Show Files under VC" . (vc-directory t)))
-    (define-key map [vc-retrieve-tag]
-      `(menu-item ,(purecopy "Retrieve Tag") vc-retrieve-tag
-		  :help ,(purecopy "Retrieve tagged version or branch")))
-    (define-key map [vc-create-tag]
-      `(menu-item ,(purecopy "Create Tag") vc-create-tag
-		  :help ,(purecopy "Create version tag")))
-    (define-key map [separator1] menu-bar-separator)
-    (define-key map [vc-annotate]
-      `(menu-item ,(purecopy "Annotate") vc-annotate
-		  :help ,(purecopy "Display the edit history of the current file using colors")))
-    (define-key map [vc-rename-file]
-      `(menu-item ,(purecopy "Rename File") vc-rename-file
-		  :help ,(purecopy "Rename file")))
-    (define-key map [vc-revision-other-window]
-      `(menu-item ,(purecopy "Show Other Version") vc-revision-other-window
-		  :help ,(purecopy "Visit another version of the current file in another window")))
-    (define-key map [vc-diff]
-      `(menu-item ,(purecopy "Compare with Base Version") vc-diff
-		  :help ,(purecopy "Compare file set with the base version")))
-    (define-key map [vc-root-diff]
-      `(menu-item ,(purecopy "Compare Tree with Base Version") vc-root-diff
-		  :help ,(purecopy "Compare current tree with the base version")))
-    (define-key map [vc-update-change-log]
-      `(menu-item ,(purecopy "Update ChangeLog") vc-update-change-log
-		  :help ,(purecopy "Find change log file and add entries from recent version control logs")))
-    (define-key map [vc-log-out]
-      `(menu-item ,(purecopy "Show Outgoing Log") vc-log-outgoing
-		  :help ,(purecopy "Show a log of changes that will be sent with a push operation")))
-    (define-key map [vc-log-in]
-      `(menu-item ,(purecopy "Show Incoming Log") vc-log-incoming
-		  :help ,(purecopy "Show a log of changes that will be received with a pull operation")))
-    (define-key map [vc-print-log]
-      `(menu-item ,(purecopy "Show History") vc-print-log
-		  :help ,(purecopy "List the change log of the current file set in a window")))
-    (define-key map [vc-print-root-log]
-      `(menu-item ,(purecopy "Show Top of the Tree History ") vc-print-root-log
-		  :help ,(purecopy "List the change log for the current tree in a window")))
-    (define-key map [separator2] menu-bar-separator)
-    (define-key map [vc-insert-header]
-      `(menu-item ,(purecopy "Insert Header") vc-insert-headers
-		  :help ,(purecopy "Insert headers into a file for use with a version control system.
-")))
-    (define-key map [undo]
-      `(menu-item ,(purecopy "Undo Last Check-In") vc-rollback
-		  :help ,(purecopy "Remove the most recent changeset committed to the repository")))
-    (define-key map [vc-revert]
-      `(menu-item ,(purecopy "Revert to Base Version") vc-revert
-		  :help ,(purecopy "Revert working copies of the selected file set to their repository contents")))
-    (define-key map [vc-update]
-      `(menu-item ,(purecopy "Update to Latest Version") vc-update
-		  :help ,(purecopy "Update the current fileset's files to their tip revisions")))
-    (define-key map [vc-next-action]
-      `(menu-item ,(purecopy "Check In/Out")  vc-next-action
-		  :help ,(purecopy "Do the next logical version control operation on the current fileset")))
-    (define-key map [vc-register]
-      `(menu-item ,(purecopy "Register") vc-register
-		  :help ,(purecopy "Register file set into a version control system")))
-    (define-key map [vc-dir]
-      `(menu-item ,(purecopy "VC Dir")  vc-dir
-		  :help ,(purecopy "Show the VC status of files in a directory")))
+    (bindings--define-key map [vc-retrieve-tag]
+      '(menu-item "Retrieve Tag" vc-retrieve-tag
+		  :help "Retrieve tagged version or branch"))
+    (bindings--define-key map [vc-create-tag]
+      '(menu-item "Create Tag" vc-create-tag
+		  :help "Create version tag"))
+    (bindings--define-key map [separator1] menu-bar-separator)
+    (bindings--define-key map [vc-annotate]
+      '(menu-item "Annotate" vc-annotate
+		  :help "Display the edit history of the current file using colors"))
+    (bindings--define-key map [vc-rename-file]
+      '(menu-item "Rename File" vc-rename-file
+		  :help "Rename file"))
+    (bindings--define-key map [vc-revision-other-window]
+      '(menu-item "Show Other Version" vc-revision-other-window
+		  :help "Visit another version of the current file in another window"))
+    (bindings--define-key map [vc-diff]
+      '(menu-item "Compare with Base Version" vc-diff
+		  :help "Compare file set with the base version"))
+    (bindings--define-key map [vc-root-diff]
+      '(menu-item "Compare Tree with Base Version" vc-root-diff
+		  :help "Compare current tree with the base version"))
+    (bindings--define-key map [vc-update-change-log]
+      '(menu-item "Update ChangeLog" vc-update-change-log
+		  :help "Find change log file and add entries from recent version control logs"))
+    (bindings--define-key map [vc-log-out]
+      '(menu-item "Show Outgoing Log" vc-log-outgoing
+		  :help "Show a log of changes that will be sent with a push operation"))
+    (bindings--define-key map [vc-log-in]
+      '(menu-item "Show Incoming Log" vc-log-incoming
+		  :help "Show a log of changes that will be received with a pull operation"))
+    (bindings--define-key map [vc-print-log]
+      '(menu-item "Show History" vc-print-log
+		  :help "List the change log of the current file set in a window"))
+    (bindings--define-key map [vc-print-root-log]
+      '(menu-item "Show Top of the Tree History " vc-print-root-log
+		  :help "List the change log for the current tree in a window"))
+    (bindings--define-key map [separator2] menu-bar-separator)
+    (bindings--define-key map [vc-insert-header]
+      '(menu-item "Insert Header" vc-insert-headers
+		  :help "Insert headers into a file for use with a version control system.
+"))
+    (bindings--define-key map [undo]
+      '(menu-item "Undo Last Check-In" vc-rollback
+		  :help "Remove the most recent changeset committed to the repository"))
+    (bindings--define-key map [vc-revert]
+      '(menu-item "Revert to Base Version" vc-revert
+		  :help "Revert working copies of the selected file set to their repository contents"))
+    (bindings--define-key map [vc-update]
+      '(menu-item "Update to Latest Version" vc-update
+		  :help "Update the current fileset's files to their tip revisions"))
+    (bindings--define-key map [vc-next-action]
+      '(menu-item "Check In/Out" vc-next-action
+		  :help "Do the next logical version control operation on the current fileset"))
+    (bindings--define-key map [vc-register]
+      '(menu-item "Register" vc-register
+		  :help "Register file set into a version control system"))
+    (bindings--define-key map [vc-dir]
+      '(menu-item "VC Dir"  vc-dir
+		  :help "Show the VC status of files in a directory"))
     map))
 
 (defalias 'vc-menu-map vc-menu-map)

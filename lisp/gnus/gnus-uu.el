@@ -1,6 +1,6 @@
 ;;; gnus-uu.el --- extract (uu)encoded files in Gnus
 
-;; Copyright (C) 1985-1987, 1993-1998, 2000-2011
+;; Copyright (C) 1985-1987, 1993-1998, 2000-2012
 ;;   Free Software Foundation, Inc.
 
 ;; Author: Lars Magne Ingebrigtsen <larsi@gnus.org>
@@ -1614,16 +1614,6 @@ Gnus might fail to display all of it.")
 	   (concat "cd " gnus-uu-work-dir " "
 		   gnus-shell-command-separator  " sh")))))
     state))
-
-;; Returns the name of what the shar file is going to unpack.
-(defun gnus-uu-find-name-in-shar ()
-  (let ((oldpoint (point))
-	res)
-    (goto-char (point-min))
-    (when (re-search-forward gnus-uu-shar-name-marker nil t)
-      (setq res (buffer-substring (match-beginning 1) (match-end 1))))
-    (goto-char oldpoint)
-    res))
 
 ;; `gnus-uu-choose-action' chooses what action to perform given the name
 ;; and `gnus-uu-file-action-list'.  Returns either nil if no action is

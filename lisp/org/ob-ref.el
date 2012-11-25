@@ -1,12 +1,11 @@
 ;;; ob-ref.el --- org-babel functions for referencing external data
 
-;; Copyright (C) 2009-2011  Free Software Foundation, Inc.
+;; Copyright (C) 2009-2012  Free Software Foundation, Inc.
 
-;; Author: Eric Schulte
-;;	Dan Davison
+;; Authors: Eric Schulte
+;;	 Dan Davison
 ;; Keywords: literate programming, reproducible research
 ;; Homepage: http://orgmode.org
-;; Version: 7.7
 
 ;; This file is part of GNU Emacs.
 
@@ -60,10 +59,16 @@
 (declare-function org-at-item-p "org-list" ())
 (declare-function org-narrow-to-subtree "org" ())
 (declare-function org-id-find-id-in-file "org-id" (id file &optional markerp))
+(declare-function org-id-find-id-file "org-id" (id))
 (declare-function org-show-context "org" (&optional key))
+(declare-function org-pop-to-buffer-same-window
+		  "org-compat" (&optional buffer-or-name norecord label))
 
 (defvar org-babel-ref-split-regexp
   "[ \f\t\n\r\v]*\\(.+?\\)[ \f\t\n\r\v]*=[ \f\t\n\r\v]*\\(.+\\)[ \f\t\n\r\v]*")
+
+(defvar org-babel-update-intermediate nil
+  "Update the in-buffer results of code blocks executed to resolve references.")
 
 (defun org-babel-ref-parse (assignment)
   "Parse a variable ASSIGNMENT in a header argument.
@@ -94,7 +99,7 @@ the variable."
 	       (m (when file (org-id-find-id-in-file id file 'marker))))
 	  (when (and file m)
 	    (message "file:%S" file)
-	    (switch-to-buffer (marker-buffer m))
+	    (org-pop-to-buffer-same-window (marker-buffer m))
 	    (goto-char m)
 	    (move-marker m nil)
 	    (org-show-context)
@@ -116,83 +121,89 @@ the variable."
 (defun org-babel-ref-resolve (ref)
   "Resolve the reference REF and return its value."
   (save-window-excursion
-  (save-excursion
-    (let ((case-fold-search t)
-          type args new-refere new-header-args new-referent result
-	  lob-info split-file split-ref index index-row index-col id)
-      ;; if ref is indexed grab the indices -- beware nested indices
-      (when (and (string-match "\\[\\([^\\[]+\\)\\]$" ref)
-		 (let ((str (substring ref 0 (match-beginning 0))))
-		   (= (org-count ?( str) (org-count ?) str))))
-        (setq index (match-string 1 ref))
-        (setq ref (substring ref 0 (match-beginning 0))))
-      ;; assign any arguments to pass to source block
-      (when (string-match
-	     "^\\(.+?\\)\\(\\[\\(.*\\)\\]\\|\\(\\)\\)\(\\(.*\\)\)$" ref)
-        (setq new-refere      (match-string 1 ref))
-	(setq new-header-args (match-string 3 ref))
-        (setq new-referent    (match-string 5 ref))
-        (when (> (length new-refere) 0)
-          (when (> (length new-referent) 0)
-	    (setq args (mapcar (lambda (ref) (cons :var ref))
-			       (org-babel-ref-split-args new-referent))))
-	  (when (> (length new-header-args) 0)
-	    (setq args (append (org-babel-parse-header-arguments
-				new-header-args) args)))
-          (setq ref new-refere)))
-      (when (string-match "^\\(.+\\):\\(.+\\)$" ref)
-        (setq split-file (match-string 1 ref))
-        (setq split-ref (match-string 2 ref))
-        (find-file split-file) (setq ref split-ref))
-      (save-restriction
-	(widen)
-	(goto-char (point-min))
-	(if (let* ((rx (regexp-quote ref))
-		   (res-rx (concat org-babel-result-regexp rx "[ \t]*$"))
-		   (src-rx (concat org-babel-src-name-regexp
-				   rx "\\(\(.*\)\\)?" "[ \t]*$")))
-	      ;; goto ref in the current buffer
-	      (or (and (not args)
-		       (or (re-search-forward res-rx nil t)
-			   (re-search-backward res-rx nil t)))
-		  (re-search-forward src-rx nil t)
-		  (re-search-backward src-rx nil t)
-		  ;; check for local or global headlines by id
-		  (setq id (org-babel-ref-goto-headline-id ref))
-		  ;; check the Library of Babel
-		  (setq lob-info (cdr (assoc (intern ref)
-					     org-babel-library-of-babel)))))
-	    (unless (or lob-info id) (goto-char (match-beginning 0)))
-	  ;; ;; TODO: allow searching for names in other buffers
-	  ;; (setq id-loc (org-id-find ref 'marker)
-	  ;;       buffer (marker-buffer id-loc)
-	  ;;       loc (marker-position id-loc))
-	  ;; (move-marker id-loc nil)
-	  (error "reference '%s' not found in this buffer" ref))
-	(cond
-	 (lob-info (setq type 'lob))
-	 (id (setq type 'id))
-	 (t (while (not (setq type (org-babel-ref-at-ref-p)))
-	      (forward-line 1)
-	      (beginning-of-line)
-	      (if (or (= (point) (point-min)) (= (point) (point-max)))
-		  (error "reference not found")))))
-	(let ((params (append args '((:results . "silent")))))
-	  (setq result
-		(case type
-		  (results-line (org-babel-read-result))
-		  (table        (org-babel-read-table))
-		  (list         (org-babel-read-list))
-		  (file         (org-babel-read-link))
-		  (source-block (org-babel-execute-src-block nil nil params))
-		  (lob          (org-babel-execute-src-block
-				 nil lob-info params))
-		  (id           (org-babel-ref-headline-body)))))
-	(if (symbolp result)
-	    (format "%S" result)
-	  (if (and index (listp result))
-	      (org-babel-ref-index-list index result)
-	    result)))))))
+    (save-excursion
+      (let ((case-fold-search t)
+	    type args new-refere new-header-args new-referent result
+	    lob-info split-file split-ref index index-row index-col id)
+	;; if ref is indexed grab the indices -- beware nested indices
+	(when (and (string-match "\\[\\([^\\[]+\\)\\]$" ref)
+		   (let ((str (substring ref 0 (match-beginning 0))))
+		     (= (org-count ?( str) (org-count ?) str))))
+	  (setq index (match-string 1 ref))
+	  (setq ref (substring ref 0 (match-beginning 0))))
+	;; assign any arguments to pass to source block
+	(when (string-match
+	       "^\\(.+?\\)\\(\\[\\(.*\\)\\]\\|\\(\\)\\)\(\\(.*\\)\)$" ref)
+	  (setq new-refere      (match-string 1 ref))
+	  (setq new-header-args (match-string 3 ref))
+	  (setq new-referent    (match-string 5 ref))
+	  (when (> (length new-refere) 0)
+	    (when (> (length new-referent) 0)
+	      (setq args (mapcar (lambda (ref) (cons :var ref))
+				 (org-babel-ref-split-args new-referent))))
+	    (when (> (length new-header-args) 0)
+	      (setq args (append (org-babel-parse-header-arguments
+				  new-header-args) args)))
+	    (setq ref new-refere)))
+	(when (string-match "^\\(.+\\):\\(.+\\)$" ref)
+	  (setq split-file (match-string 1 ref))
+	  (setq split-ref (match-string 2 ref))
+	  (find-file split-file) (setq ref split-ref))
+	(save-restriction
+	  (widen)
+	  (goto-char (point-min))
+	  (if (let ((src-rx (org-babel-named-src-block-regexp-for-name ref))
+		    (res-rx (org-babel-named-data-regexp-for-name ref)))
+		;; goto ref in the current buffer
+		(or
+		 ;; check for code blocks
+		 (re-search-forward src-rx nil t)
+		 ;; check for named data
+		 (re-search-forward res-rx nil t)
+		 ;; check for local or global headlines by id
+		 (setq id (org-babel-ref-goto-headline-id ref))
+		 ;; check the Library of Babel
+		 (setq lob-info (cdr (assoc (intern ref)
+					    org-babel-library-of-babel)))))
+	      (unless (or lob-info id) (goto-char (match-beginning 0)))
+	    ;; ;; TODO: allow searching for names in other buffers
+	    ;; (setq id-loc (org-id-find ref 'marker)
+	    ;;       buffer (marker-buffer id-loc)
+	    ;;       loc (marker-position id-loc))
+	    ;; (move-marker id-loc nil)
+	    (error "Reference '%s' not found in this buffer" ref))
+	  (cond
+	   (lob-info (setq type 'lob))
+	   (id (setq type 'id))
+	   ((and (looking-at org-babel-src-name-regexp)
+		 (save-excursion
+		   (forward-line 1)
+		   (or (looking-at org-babel-src-block-regexp)
+		       (looking-at org-babel-multi-line-header-regexp))))
+	    (setq type 'source-block))
+	   (t (while (not (setq type (org-babel-ref-at-ref-p)))
+		(forward-line 1)
+		(beginning-of-line)
+		(if (or (= (point) (point-min)) (= (point) (point-max)))
+		    (error "Reference not found")))))
+	  (let ((params (append args '((:results . "silent")))))
+	    (setq result
+		  (case type
+		    (results-line (org-babel-read-result))
+		    (table        (org-babel-read-table))
+		    (list         (org-babel-read-list))
+		    (file         (org-babel-read-link))
+		    (source-block (org-babel-execute-src-block
+				   nil nil (if org-babel-update-intermediate
+					       nil params)))
+		    (lob          (org-babel-execute-src-block
+				   nil lob-info params))
+		    (id           (org-babel-ref-headline-body)))))
+	  (if (symbolp result)
+	      (format "%S" result)
+	    (if (and index (listp result))
+		(org-babel-ref-index-list index result)
+	      result)))))))
 
 (defun org-babel-ref-index-list (index lis)
   "Return the subset of LIS indexed by INDEX.
@@ -208,46 +219,34 @@ returned, or an empty string or \"*\" both of which are
 interpreted to mean the entire range and as such are equivalent
 to \"0:-1\"."
   (if (and (> (length index) 0) (string-match "^\\([^,]*\\),?" index))
-      (let ((ind-re "\\(\\([-[:digit:]]+\\):\\([-[:digit:]]+\\)\\|\*\\)")
-	    (length (length lis))
-            (portion (match-string 1 index))
-            (remainder (substring index (match-end 0))))
-        (flet ((wrap (num) (if (< num 0) (+ length num) num))
-               (open (ls) (if (and (listp ls) (= (length ls) 1)) (car ls) ls)))
-          (open
-           (mapcar
-            (lambda (sub-lis)
-	      (if (listp sub-lis)
-		  (org-babel-ref-index-list remainder sub-lis)
-		sub-lis))
-            (if (or (= 0 (length portion)) (string-match ind-re portion))
-                (mapcar
-		 (lambda (n) (nth n lis))
-		 (apply 'org-number-sequence
-			(if (and (> (length portion) 0) (match-string 2 portion))
-			    (list
-			     (wrap (string-to-number (match-string 2 portion)))
-			     (wrap (string-to-number (match-string 3 portion))))
-			  (list (wrap 0) (wrap -1)))))
-              (list (nth (wrap (string-to-number portion)) lis)))))))
+      (let* ((ind-re "\\(\\([-[:digit:]]+\\):\\([-[:digit:]]+\\)\\|\*\\)")
+	     (lgth (length lis))
+	     (portion (match-string 1 index))
+	     (remainder (substring index (match-end 0)))
+	     (wrap (lambda (num) (if (< num 0) (+ lgth num) num)))
+	     (open (lambda (ls) (if (and (listp ls) (= (length ls) 1)) (car ls) ls))))
+	(funcall
+	 open
+	 (mapcar
+	  (lambda (sub-lis)
+	    (if (listp sub-lis)
+		(org-babel-ref-index-list remainder sub-lis)
+	      sub-lis))
+	  (if (or (= 0 (length portion)) (string-match ind-re portion))
+	      (mapcar
+	       (lambda (n) (nth n lis))
+	       (apply 'org-number-sequence
+		      (if (and (> (length portion) 0) (match-string 2 portion))
+			  (list
+			   (funcall wrap (string-to-number (match-string 2 portion)))
+			   (funcall wrap (string-to-number (match-string 3 portion))))
+			(list (funcall wrap 0) (funcall wrap -1)))))
+	    (list (nth (funcall wrap (string-to-number portion)) lis))))))
     lis))
 
 (defun org-babel-ref-split-args (arg-string)
   "Split ARG-STRING into top-level arguments of balanced parenthesis."
-  (let ((index 0) (depth 0) (buffer "") holder return)
-    ;; crawl along string, splitting at any ","s which are on the top level
-    (while (< index (length arg-string))
-      (setq holder (substring arg-string index (+ 1 index)))
-      (setq buffer (concat buffer holder))
-      (setq index (+ 1 index))
-      (cond
-       ((string= holder ",")
-        (when (= depth 0)
-          (setq return (cons (substring buffer 0 -1) return))
-          (setq buffer "")))
-       ((or (string= holder "(") (string= holder "[")) (setq depth (+ depth 1)))
-       ((or (string= holder ")") (string= holder "]")) (setq depth (- depth 1)))))
-    (mapcar #'org-babel-trim (reverse (cons buffer return)))))
+  (mapcar #'org-babel-trim (org-babel-balanced-split arg-string 44)))
 
 (defvar org-bracket-link-regexp)
 (defun org-babel-ref-at-ref-p ()

@@ -331,7 +331,7 @@
 
 1998-07-30  Paul Eggert  <eggert@twinsun.com>
 
-	* src/Makefile.in (widget.o, xfns.o, xmenu.o):
+	* Makefile.in (widget.o, xfns.o, xmenu.o):
 	Prepend $(srcdir)/ to rule dependencies outside this dir.
 
 1998-07-29  Kenichi Handa  <handa@etl.go.jp>
@@ -2070,7 +2070,7 @@
 	(sys_select): Ignore children dead children with pending input.
 	Delay sending SIGCHLD until all output has been read.
 	(sys_kill): Sleep to allow focus change events to propagate.
-	Use TerminateProcess on Win95.
+	Use TerminateProcess on Windows 95.
 	(int_from_hex, enum_locale_fn, Fw32_get_valid_locale_ids):
 	New functions.
 	(Vw32_valid_locale_ids): New variable.
@@ -4884,14 +4884,13 @@
 	The new GNU C library strftime needs the underlying host's
 	strftime for locale dependent formats.
 
-	* configure.in (AC_CHECK_FUNCS): Add strftime.
-	* src/config.in (HAVE_STRFTIME): New undef.
-	* src/editfns.c (emacs_strftime): New decl.
+	* config.in (HAVE_STRFTIME): New undef.
+	* editfns.c (emacs_strftime): New decl.
 	(Fformat_time_string): Doc fix: %b, %h, %B, %a, %A, and %p depend on
 	locale; don't use actual chars to describe %n and %t.
 
-	* src/Makefile.in (strftime.o):
-	* src/makefile.nt ($(BLD)\strftime.obj):
+	* Makefile.in (strftime.o):
+	* makefile.nt ($(BLD)\strftime.obj):
 	No need to compile with -Dstrftime=emacs_strftime any more.
 
 1997-11-22  Richard Stallman  <rms@gnu.org>
@@ -5720,13 +5719,13 @@
 	Loop over handles round robin to ensure fairness.
 	(sys_kill): Send ctrl-break and ctrl-c keystrokes to subprocesses
 	on SIGINT if not sharing consoles, otherwise generate ctrl-break event.
-	On other termination signals, send WM_QUIT message to Win95 apps
+	On other termination signals, send WM_QUIT message to Windows 95 apps
 	and WM_CLOSE to NT apps.
 	(syms_of_ntproc): Intern new symbols.  defsubr new functions.
 	DEFVAR new variables.
 
-	* w32term.c (SIF_*): Win95 macros defined for NT.
-	(struct tagSCROLLINFO): Win95 struct defined for NT.
+	* w32term.c (SIF_*): Windows 95 macros defined for NT.
+	(struct tagSCROLLINFO): Windows 95 struct defined for NT.
 	(vertical_scroll_bar_min_handle, vertical_scroll_bar_top_border)
 	(vertical_scroll_bar_bottom_border, last_scroll_bar_drag_pos)
 	(Vw32_gab_focus_on_raise, Vw32_capslock_is_shiftlock):
@@ -11092,7 +11091,7 @@ See ChangeLog.6 for earlier changes.
 ;; coding: utf-8
 ;; End:
 
-  Copyright (C) 1997-1998, 2001-2011  Free Software Foundation, Inc.
+  Copyright (C) 1997-1998, 2001-2012  Free Software Foundation, Inc.
 
   This file is part of GNU Emacs.
 

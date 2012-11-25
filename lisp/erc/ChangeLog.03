@@ -200,7 +200,7 @@
 
 	* erc-autoaway.el 1.12 (erc-mode):
 	Reset idletime on connect. Fixes an annoying bug which
-	flooded the server with aways on reconnect.
+	flooded the server with always on reconnect.
 	(erc-autoway-reset-idletime): Accept optional args so we can hook it
 	onto erc-server-001-hook.
 
@@ -2141,7 +2141,7 @@
 
 See ChangeLog.02 for earlier changes.
 
-	Copyright (C) 2003, 2006-2011 Free Software Foundation, Inc.
+	Copyright (C) 2003, 2006-2012 Free Software Foundation, Inc.
 
   This file is part of GNU Emacs.
 

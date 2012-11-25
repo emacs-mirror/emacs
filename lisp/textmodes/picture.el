@@ -1,6 +1,6 @@
 ;;; picture.el --- "Picture mode" -- editing using quarter-plane screen model
 
-;; Copyright (C) 1985, 1994, 2001-2011  Free Software Foundation, Inc.
+;; Copyright (C) 1985, 1994, 2001-2012 Free Software Foundation, Inc.
 
 ;; Author: K. Shane Hartman
 ;; Maintainer: FSF
@@ -31,7 +31,7 @@
 ;;; Code:
 
 (defgroup picture nil
-  "Picture mode --- editing using quarter-plane screen model."
+  "Editing text-based pictures (\"ASCII art\")."
   :prefix "picture-"
   :group 'wp)
 
@@ -63,15 +63,17 @@
 
 ;; Picture Movement Commands
 
-;; When a cursor is on a wide-column character (e.g. Chinese,
-;; Japanese, Korean), this variable tells the desired current column
-;; which may be different from (current-column).
-(defvar picture-desired-column 0)
+(defvar picture-desired-column 0
+  "Desired current column for Picture mode.
+When a cursor is on a wide-column character (e.g. Chinese,
+Japanese, Korean), this may may be different from `current-column'.")
 
-;; If the value of picture-desired-column is far from the current
-;; column, or if the arg ADJUST-TO-CURRENT is non-nil, set it to the
-;; current column.   Return the current column.
+
 (defun picture-update-desired-column (adjust-to-current)
+  "Maybe update `picture-desired-column'.
+If the value of `picture-desired-column' is more than one column
+from `current-column', or if the argument ADJUST-TO-CURRENT is
+non-nil, set it to the current column.  Return `current-column'."
   (let ((current-column (current-column)))
     (if (or adjust-to-current
 	    (< picture-desired-column (1- current-column))
@@ -211,7 +213,7 @@ The mode line is updated to reflect the current direction."
   "Move point in direction of current picture motion in Picture mode.
 With ARG do it that many times.  Useful for delineating rectangles in
 conjunction with diagonal picture motion.
-Do \\[command-apropos]  picture-movement  to see commands which control motion."
+Use \"\\[command-apropos] picture-movement\" to see commands which control motion."
   (interactive "^p")
   (picture-move-down (* arg picture-vertical-step))
   (picture-forward-column (* arg picture-horizontal-step)))
@@ -220,7 +222,7 @@ Do \\[command-apropos]  picture-movement  to see commands which control motion."
   "Move point in direction opposite of current picture motion in Picture mode.
 With ARG do it that many times.  Useful for delineating rectangles in
 conjunction with diagonal picture motion.
-Do \\[command-apropos]  picture-movement  to see commands which control motion."
+Use \"\\[command-apropos] picture-movement\" to see commands which control motion."
   (interactive "^p")
   (picture-motion (- arg)))
 
@@ -240,8 +242,7 @@ Do \\[command-apropos]  picture-movement  to see commands which control motion."
 	     (spacing (when (display-graphic-p frame)
 			(or (with-current-buffer (window-buffer window)
 			      line-spacing)
-			    (frame-parameter frame 'line-spacing))))
-	     rows cols)
+			    (frame-parameter frame 'line-spacing)))))
 	(cond ((floatp spacing)
 	       (setq spacing (truncate (* spacing char-ht))))
 	      ((null spacing)
@@ -280,7 +281,7 @@ Do \\[command-apropos]  picture-movement  to see commands which control motion."
   "Insert this character in place of character previously at the cursor.
 The cursor then moves in the direction you previously specified
 with the commands `picture-movement-right', `picture-movement-up', etc.
-Do \\[command-apropos] `picture-movement' to see those commands."
+Use \"\\[command-apropos] picture-movement\" to see those commands."
   (interactive "p")
   (picture-update-desired-column (not (eq this-command last-command)))
   (picture-insert last-command-event arg)) ; Always a character in this case.
@@ -378,8 +379,10 @@ With positive argument insert that many lines."
 
 (defcustom picture-tab-chars "!-~"
   "A character set which controls behavior of commands.
-\\[picture-set-tab-stops] and \\[picture-tab-search].  It is NOT a
-regular expression, any regexp special characters will be quoted.
+\\[picture-set-tab-stops] and \\[picture-tab-search].
+The syntax for this variable is like the syntax used inside of `[...]'
+in a regular expression--but without the `[' and the `]'.
+It is NOT a regular expression, any regexp special characters will be quoted.
 It defines a set of \"interesting characters\" to look for when setting
 \(or searching for) tab stops, initially \"!-~\" (all printing characters).
 For example, suppose that you are editing a table which is formatted thus:
@@ -602,64 +605,65 @@ Leaves the region surrounding the rectangle."
 
 ;; Picture Keymap, entry and exit points.
 
-(defvar picture-mode-map nil)
+(defalias 'picture-delete-char 'delete-char)
 
-(defun picture-substitute (oldfun newfun)
-  (define-key picture-mode-map (vector 'remap oldfun) newfun))
-
-(if (not picture-mode-map)
-    (progn
-      (setq picture-mode-map (make-keymap))
-      (picture-substitute 'self-insert-command 'picture-self-insert)
-      (picture-substitute 'completion-separator-self-insert-command
+(defvar picture-mode-map
+  (let ((map (make-keymap)))
+    (define-key map [remap self-insert-command] 'picture-self-insert)
+    (define-key map [remap self-insert-command] 'picture-self-insert)
+    (define-key map [remap completion-separator-self-insert-command]
 			  'picture-self-insert)
-      (picture-substitute 'completion-separator-self-insert-autofilling
+    (define-key map [remap completion-separator-self-insert-autofilling]
 			  'picture-self-insert)
-      (picture-substitute 'forward-char 'picture-forward-column)
-      (picture-substitute 'backward-char 'picture-backward-column)
-      (picture-substitute 'delete-char 'picture-clear-column)
+    (define-key map [remap forward-char] 'picture-forward-column)
+    (define-key map [remap right-char] 'picture-forward-column)
+    (define-key map [remap backward-char] 'picture-backward-column)
+    (define-key map [remap left-char] 'picture-backward-column)
+    (define-key map [remap delete-char] 'picture-clear-column)
       ;; There are two possibilities for what is normally on DEL.
-      (picture-substitute 'backward-delete-char-untabify 'picture-backward-clear-column)
-      (picture-substitute 'delete-backward-char 'picture-backward-clear-column)
-      (picture-substitute 'kill-line 'picture-clear-line)
-      (picture-substitute 'open-line 'picture-open-line)
-      (picture-substitute 'newline 'picture-newline)
-      (picture-substitute 'newline-and-indent 'picture-duplicate-line)
-      (picture-substitute 'next-line 'picture-move-down)
-      (picture-substitute 'previous-line 'picture-move-up)
-      (picture-substitute 'beginning-of-line 'picture-beginning-of-line)
-      (picture-substitute 'end-of-line 'picture-end-of-line)
-      (picture-substitute 'mouse-set-point 'picture-mouse-set-point)
-
-      (define-key picture-mode-map "\C-c\C-d" 'delete-char)
-      (define-key picture-mode-map "\e\t" 'picture-toggle-tab-state)
-      (define-key picture-mode-map "\t" 'picture-tab)
-      (define-key picture-mode-map "\e\t" 'picture-tab-search)
-      (define-key picture-mode-map "\C-c\t" 'picture-set-tab-stops)
-      (define-key picture-mode-map "\C-c\C-k" 'picture-clear-rectangle)
-      (define-key picture-mode-map "\C-c\C-w" 'picture-clear-rectangle-to-register)
-      (define-key picture-mode-map "\C-c\C-y" 'picture-yank-rectangle)
-      (define-key picture-mode-map "\C-c\C-x" 'picture-yank-rectangle-from-register)
-      (define-key picture-mode-map "\C-c\C-r" 'picture-draw-rectangle)
-      (define-key picture-mode-map "\C-c\C-c" 'picture-mode-exit)
-      (define-key picture-mode-map "\C-c\C-f" 'picture-motion)
-      (define-key picture-mode-map "\C-c\C-b" 'picture-motion-reverse)
-      (define-key picture-mode-map "\C-c<" 'picture-movement-left)
-      (define-key picture-mode-map "\C-c>" 'picture-movement-right)
-      (define-key picture-mode-map "\C-c^" 'picture-movement-up)
-      (define-key picture-mode-map "\C-c." 'picture-movement-down)
-      (define-key picture-mode-map "\C-c`" 'picture-movement-nw)
-      (define-key picture-mode-map "\C-c'" 'picture-movement-ne)
-      (define-key picture-mode-map "\C-c/" 'picture-movement-sw)
-      (define-key picture-mode-map "\C-c\\" 'picture-movement-se)
-      (define-key picture-mode-map [(control ?c) left]  'picture-movement-left)
-      (define-key picture-mode-map [(control ?c) right] 'picture-movement-right)
-      (define-key picture-mode-map [(control ?c) up]    'picture-movement-up)
-      (define-key picture-mode-map [(control ?c) down]  'picture-movement-down)
-      (define-key picture-mode-map [(control ?c) home]  'picture-movement-nw)
-      (define-key picture-mode-map [(control ?c) prior] 'picture-movement-ne)
-      (define-key picture-mode-map [(control ?c) end]   'picture-movement-sw)
-      (define-key picture-mode-map [(control ?c) next]  'picture-movement-se)))
+    (define-key map [remap backward-delete-char-untabify]
+      'picture-backward-clear-column)
+    (define-key map [remap delete-backward-char] 'picture-backward-clear-column)
+    (define-key map [remap kill-line] 'picture-clear-line)
+    (define-key map [remap open-line] 'picture-open-line)
+    (define-key map [remap newline] 'picture-newline)
+    (define-key map [remap newline-and-indent] 'picture-duplicate-line)
+    (define-key map [remap next-line] 'picture-move-down)
+    (define-key map [remap previous-line] 'picture-move-up)
+    (define-key map [remap move-beginning-of-line] 'picture-beginning-of-line)
+    (define-key map [remap move-end-of-line] 'picture-end-of-line)
+    (define-key map [remap mouse-set-point] 'picture-mouse-set-point)
+    (define-key map "\C-c\C-d" 'picture-delete-char)
+    (define-key map "\e\t" 'picture-toggle-tab-state)
+    (define-key map "\t" 'picture-tab)
+    (define-key map "\e\t" 'picture-tab-search)
+    (define-key map "\C-c\t" 'picture-set-tab-stops)
+    (define-key map "\C-c\C-k" 'picture-clear-rectangle)
+    (define-key map "\C-c\C-w" 'picture-clear-rectangle-to-register)
+    (define-key map "\C-c\C-y" 'picture-yank-rectangle)
+    (define-key map "\C-c\C-x" 'picture-yank-rectangle-from-register)
+    (define-key map "\C-c\C-r" 'picture-draw-rectangle)
+    (define-key map "\C-c\C-c" 'picture-mode-exit)
+    (define-key map "\C-c\C-f" 'picture-motion)
+    (define-key map "\C-c\C-b" 'picture-motion-reverse)
+    (define-key map "\C-c<" 'picture-movement-left)
+    (define-key map "\C-c>" 'picture-movement-right)
+    (define-key map "\C-c^" 'picture-movement-up)
+    (define-key map "\C-c." 'picture-movement-down)
+    (define-key map "\C-c`" 'picture-movement-nw)
+    (define-key map "\C-c'" 'picture-movement-ne)
+    (define-key map "\C-c/" 'picture-movement-sw)
+    (define-key map "\C-c\\" 'picture-movement-se)
+    (define-key map [(control ?c) left]  'picture-movement-left)
+    (define-key map [(control ?c) right] 'picture-movement-right)
+    (define-key map [(control ?c) up]    'picture-movement-up)
+    (define-key map [(control ?c) down]  'picture-movement-down)
+    (define-key map [(control ?c) home]  'picture-movement-nw)
+    (define-key map [(control ?c) prior] 'picture-movement-ne)
+    (define-key map [(control ?c) end]   'picture-movement-sw)
+    (define-key map [(control ?c) next]  'picture-movement-se)
+    map)
+  "Keymap used in `picture-mode'.")
 
 (defcustom picture-mode-hook nil
   "If non-nil, its value is called on entry to Picture mode.
@@ -720,7 +724,7 @@ You can edit tabular text with these commands:
 
 You can manipulate text with these commands:
  Clear ARG columns after point without moving:    \\[picture-clear-column]
- Delete char at point:                            \\[delete-char]
+ Delete char at point:                            \\[picture-delete-char]
  Clear ARG columns backward:                      \\[picture-backward-clear-column]
  Clear ARG lines, advancing over them:            \\[picture-clear-line]
   (the cleared text is saved in the kill ring)

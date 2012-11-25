@@ -1,6 +1,6 @@
 ;;; webjump.el --- programmable Web hotlist
 
-;; Copyright (C) 1996-1997, 2001-2011 Free Software Foundation, Inc.
+;; Copyright (C) 1996-1997, 2001-2012 Free Software Foundation, Inc.
 
 ;; Author:    Neil W. Van Dyke <nwv@acm.org>
 ;; Created:   09-Aug-1996
@@ -38,7 +38,7 @@
 ;; example sites.  You'll probably want to override it with your own favorite
 ;; sites.  The documentation for the variable describes the syntax.
 
-;; You may wish to add something like the following to your `.emacs' file:
+;; You may wish to add something like the following to your init file:
 ;;
 ;;   (require 'webjump)
 ;;   (global-set-key "\C-cj" 'webjump)
@@ -276,7 +276,7 @@ function and the `webjump-sites' variable.")
 
 (defvar webjump-sites
   webjump-sample-sites
-  "*Hotlist for WebJump.
+  "Hotlist for WebJump.
 
 The hotlist is represented as an association list, with the CAR of each cell
 being the name of the Web site, and the CDR being the definition for the URL of

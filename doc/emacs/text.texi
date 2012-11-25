@@ -1,8 +1,8 @@
 @c This is part of the Emacs manual.
-@c Copyright (C) 1985-1987, 1993-1995, 1997, 2000-2011
+@c Copyright (C) 1985-1987, 1993-1995, 1997, 2000-2012
 @c   Free Software Foundation, Inc.
 @c See file emacs.texi for copying conditions.
-@node Text, Programs, Indentation, Top
+@node Text
 @chapter Commands for Human Languages
 @cindex text
 @cindex manipulating text
@@ -34,7 +34,7 @@ publish them in many formats.
 @cindex mode, nXML
 @findex nxml-mode
   Emacs has other major modes for text which contains ``embedded''
-commands, such as @TeX{} and La@TeX{} (@pxref{TeX Mode}); HTML and
+commands, such as @TeX{} and @LaTeX{} (@pxref{TeX Mode}); HTML and
 SGML (@pxref{HTML Mode}); XML
 @ifinfo
 (@pxref{Top,The nXML Mode Manual,,nxml-mode, nXML Mode});
@@ -74,10 +74,10 @@ for editing such pictures.
 * Text Mode::           The major modes for editing text files.
 * Outline Mode::        Editing outlines.
 * Org Mode::            The Emacs organizer.
-* TeX Mode::            Editing input to the formatter TeX.
+* TeX Mode::            Editing TeX and LaTeX files.
 * HTML Mode::           Editing HTML and SGML files.
-* Nroff Mode::          Editing input to the formatter nroff.
-* Enriched Text::       Editing text ``enriched'' with fonts, colors, etc.
+* Nroff Mode::          Editing input to the nroff formatter.
+* Enriched Text::       Editing text "enriched" with fonts, colors, etc.
 * Text Based Tables::   Commands for editing text-based tables.
 * Two-Column::          Splitting text columns into separate windows.
 @end menu
@@ -379,8 +379,8 @@ delimited once again.  The reason @kbd{C-x C-p} includes only the
 following page delimiter in the region is to ensure that.
 
   A numeric argument to @kbd{C-x C-p} specifies which page to go to,
-relative to the current one.  Zero means the current page.  One means
-the next page, and @minus{}1 means the previous one.
+relative to the current one.  Zero means the current page, one
+the next page, and @minus{}1 the previous one.
 
 @kindex C-x l
 @findex count-lines-page
@@ -412,7 +412,7 @@ beginning of a line.
 specified width.  Emacs does filling in two ways.  In Auto Fill mode,
 inserting text with self-inserting characters also automatically fills
 it.  There are also explicit fill commands that you can use when editing
-text leaves it unfilled.
+text.
 
 @menu
 * Auto Fill::      Auto Fill mode breaks long lines automatically.
@@ -546,11 +546,11 @@ made by Text mode and is available only in that and related modes
 newline as the end of a sentence; a period followed by just one space
 indicates an abbreviation, not the end of a sentence.  Accordingly,
 the fill commands will not break a line after a period followed by
-just one space.  If you change the variable
-@code{sentence-end-double-space} to a non-@code{nil} value, the fill
-commands will break a line after a period followed by one space, and
-put just one space after each period.  @xref{Sentences}, for other
-effects and possible drawbacks of this.
+just one space.  If you set the variable
+@code{sentence-end-double-space} to @code{nil}, the fill commands will
+break a line after a period followed by one space, and put just one
+space after each period.  @xref{Sentences}, for other effects and
+possible drawbacks of this.
 
 @vindex colon-double-space
   If the variable @code{colon-double-space} is non-@code{nil}, the
@@ -1015,11 +1015,11 @@ Both accept numeric arguments as repeat counts.
 @kindex C-c C-f @r{(Outline mode)}
 @kindex C-c C-b @r{(Outline mode)}
 @kindex C-c C-u @r{(Outline mode)}
-  The commands @kbd{C-c C-f} (@code{outline-forward-same-level}) and
-@kbd{C-c C-b} (@code{outline-backward-same-level}) move from one
-heading line to another visible heading at the same depth in the
-outline.  @kbd{C-c C-u} (@code{outline-up-heading}) moves backward to
-another heading that is less deeply nested.
+  @kbd{C-c C-f} (@code{outline-forward-same-level}) and @kbd{C-c C-b}
+(@code{outline-backward-same-level}) move from one heading line to
+another visible heading at the same depth in the outline.  @kbd{C-c
+C-u} (@code{outline-up-heading}) moves backward to another heading
+that is less deeply nested.
 
 @node Outline Visibility
 @subsection Outline Visibility Commands
@@ -1240,6 +1240,7 @@ quad click: exit all folds and hide text.
 @end itemize
 @end table
 
+@c FIXME not marked as a user variable
 @vindex foldout-mouse-modifiers
   You can specify different modifier keys (instead of
 @kbd{Control-Meta-}) by setting @code{foldout-mouse-modifiers}; but if
@@ -1248,7 +1249,7 @@ it in order for this to take effect.
 
   To use the Foldout package, you can type @kbd{M-x load-library
 @key{RET} foldout @key{RET}}; or you can arrange for to do that
-automatically by putting this in your init file (@pxref{Init File}):
+automatically by putting the following in your init file:
 
 @example
 (eval-after-load "outline" '(require 'foldout))
@@ -1256,117 +1257,139 @@ automatically by putting this in your init file (@pxref{Init File}):
 
 @node Org Mode
 @section Org Mode
-@kindex TAB @r{(Org Mode)}
-@kindex S-TAB @r{(Org Mode)}
 @cindex organizer
 @cindex planner
+@findex Org mode
+@findex mode, Org
+
 @findex org-mode
-@cindex fold
-@cindex headline
+  Org mode is a variant of Outline mode for using Emacs as an
+organizer and/or authoring system.  Files with names ending in the
+extension @file{.org} are opened in Org mode (@pxref{Choosing Modes}).
+To explicitly switch to Org mode, type @kbd{M-x org-mode}.
+
+  In Org mode, as in Outline mode, each entry has a heading line that
+starts with one or more @samp{*} characters.  @xref{Outline Format}.
+In addition, any line that begins with the @samp{#} character is
+treated as a comment.
+
+@kindex TAB @r{(Org Mode)}
+@findex org-cycle
+  Org mode provides commands for easily viewing and manipulating the
+outline structure.  The simplest of these commands is @key{TAB}
+(@code{org-cycle}).  If invoked on a heading line, it cycles through
+the different visibility states of the subtree: (i) showing only that
+heading line, (ii) showing only the heading line and the heading lines
+of its direct children, if any, and (iii) showing the entire subtree.
+If invoked in a body line, the global binding for @key{TAB} is
+executed.
+
+@kindex S-TAB @r{(Org Mode)}
+@findex org-shifttab
+  Typing @key{S-TAB} (@code{org-shifttab}) anywhere in an Org mode
+buffer cycles the visibility of the entire outline structure, between
+(i) showing only top-level heading lines, (ii) showing all heading
+lines but no body lines, and (iii) showing everything.
+
 @kindex M-<up> @r{(Org Mode)}
 @kindex M-<down> @r{(Org Mode)}
 @kindex M-<left> @r{(Org Mode)}
 @kindex M-<right> @r{(Org Mode)}
-@kindex S-M-<up> @r{(Org Mode)}
-@kindex S-M-<down> @r{(Org Mode)}
-@kindex S-M-<left> @r{(Org Mode)}
-@kindex S-M-<right> @r{(Org Mode)}
+@findex org-metaup
+@findex org-metadown
+@findex org-metaleft
+@findex org-metaright
+  You can move an entire entry up or down in the buffer, including its
+body lines and subtree (if any), by typing @kbd{M-<up>}
+(@code{org-metaup}) or @kbd{M-<down>} (@code{org-metadown}) on the
+heading line.  Similarly, you can promote or demote a heading line
+with @kbd{M-<left>} (@code{org-metaleft}) and @kbd{M-<right>}
+(@code{org-metaright}).  These commands execute their global bindings
+if invoked on a body line.
 
-Org mode extends Outline mode to turn Emacs into an organizer and an
-authoring system.
-
-When editing a file ending with the @file{.org} extension, Emacs
-automatically uses @code{org-mode} as the major mode.  In this mode,
-headlines start with one (or more) leading star(s) and comments start
-with the @code{#} character at the beginning of a line.
-
-@example
-* This is the first headline
-** This is a first sub-headline
-* This is the second headline
-
-Some content here.
-
-# Some comment here.
-@end example
-
-From here, you can use Org mode as a simple outliner: @key{TAB} on a
-headline will cycle through the various folding states of a subtree,
-and @key{S-TAB} anywhere in the buffer will (un)fold the whole
-structure.
-
-You can also manipulate the structure of your document by moving a
-headline up and down with @key{M-<up>} and @key{M-<down>}, or by
-promoting and demoting a headline with @key{M-<left>} and
-@key{M-<left>}.  If you want to act on the whole subtree (i.e. the
-headline and its content, including other headlines), simply add the
-@kbd{Shift} key and use @key{S-M-<up>}, @key{S-M-<down>},
-@key{S-M-<left>} and @key{S-M-<right>}.
-
-For further details, see @ref{Document Structure,,,org, The Org Manual}.
+  The following subsections give basic instructions for using Org mode
+as an organizer and as an authoring system.  For details, @pxref{Top,
+The Org Mode Manual, Introduction, org, The Org Manual}.
 
 @menu
-* Org as an organizer::         Manage TODO lists and agendas
-* Org as an authoring system::  Export to various formats
+* Org Organizer::   Managing TODO lists and agendas.
+* Org Authoring::   Exporting Org buffers to various formats.
 @end menu
 
-@node Org as an organizer
+@node Org Organizer
 @subsection Org as an organizer
+@cindex TODO item
+@cindex Org agenda
 
-@cindex TODO keywords
 @kindex C-c C-t @r{(Org Mode)}
+@findex org-todo
+@vindex org-todo-keywords
+  You can tag an Org entry as a @dfn{TODO} item by typing @kbd{C-c
+C-t} (@code{org-todo}) anywhere in the entry.  This adds the keyword
+@samp{TODO} to the heading line.  Typing @kbd{C-c C-t} again switches
+the keyword to @samp{DONE}; another @kbd{C-c C-t} removes the keyword
+entirely, and so forth.  You can customize the keywords used by
+@kbd{C-c C-t} via the variable @code{org-todo-keywords}.
+
 @kindex C-c C-s @r{(Org Mode)}
 @kindex C-c C-d @r{(Org Mode)}
-@vindex org-todo-keywords
-@findex org-todo
+@findex org-schedule
+@findex org-deadline
+  Apart from marking an entry as TODO, you can attach a date to it, by
+typing @kbd{C-c C-s} (@code{org-schedule}) in the entry.  This prompts
+for a date by popping up the Emacs Calendar (@pxref{Calendar/Diary}),
+and then adds the tag @samp{SCHEDULED}, together with the selected
+date, beneath the heading line.  The command @kbd{C-c C-d}
+(@code{org-deadline}) has the same effect, except that it uses the tag
+@code{DEADLINE}.
+
+@kindex C-c [ @r{(Org Mode)}
+@findex org-agenda-file-to-front
+@vindex org-agenda-files
+  Once you have some TODO items planned in an Org file, you can add
+that file to the list of @dfn{agenda files} by typing @kbd{C-c [}
+(@code{org-agenda-file-to-front}).  Org mode is designed to let you
+easily maintain multiple agenda files, e.g.@: for organizing different
+aspects of your life.  The list of agenda files is stored in the
+variable @code{org-agenda-files}.
+
 @findex org-agenda
-@cindex scheduled
-@cindex deadline
-@cindex agenda
+  To view items coming from your agenda files, type @kbd{M-x
+org-agenda}.  This command prompts for what you want to see: a list of
+things to do this week, a list of TODO items with specific keywords,
+etc.
+@ifnottex
+@xref{Agenda Views,,,org, The Org Manual}, for details.
+@end ifnottex
 
-Each headline can be turned into a TODO item calling @code{org-todo}
-with @key{C-c C-t} anywhere on it.  This will add the TODO keyword
-@code{TODO}.  Hit @key{C-c C-t} to cycle through the list of available
-TODO keywords: you can configure the variable @code{org-todo-keywords}
-to use your own list of keywords.
-
-Now that you have something to do, let's add a date to it: pressing
-@key{C-c C-s} on a headline will add @code{SCHEDULED} below it, and
-you will be prompted for a date through the calendar.  @key{C-c C-d}
-has the same effect, except that the item will have a @code{DEADLINE}
-instead.
-
-Now that some TODO items are planned in the current file, add it to
-the list of agenda files with @key{C-c [}.  Calling the interactive
-command @code{org-agenda} will prompt you for what you want to see: a
-list of things to do this week, a list of TODO items with specific
-keywords, etc.
-
-For further details, see @ref{TODO items,,,org, The Org Manual} and
-@ref{Dates and times,,,org, The Org Manual}.
-
-@node Org as an authoring system
+@node Org Authoring
 @subsection Org as an authoring system
-@cindex export
-@findex org-export
-@cindex publish
-@cindex code block
-@cindex quote
+@cindex Org exporting
 
-You may want to format your Org notes nicely and to prepare them for
-export and publication.  Org supports simple text formatting:
+@findex org-export
+@kindex C-c C-e @r{(Org mode)}
+  You may want to format your Org notes nicely and to prepare them for
+export and publication.  To export the current buffer, type @kbd{C-c
+C-e} (@code{org-export}) anywhere in an Org buffer.  This command
+prompts for an export format; currently supported formats include
+HTML, @LaTeX{}, OpenDocument (@file{.odt}), and PDF.  Some formats,
+such as PDF, require certain system tools to be installed.
+
+@vindex org-publish-project-alist
+  To export several files at once to a specific directory, either
+locally or over the network, you must define a list of projects
+through the variable @code{org-publish-project-alist}.  See its
+documentation for details.
+
+  Org supports a simple markup scheme for applying text formatting to
+exported documents:
 
 @example
 - This text is /emphasized/
-- This item uses *a bold font*
+- This text is *in bold*
 - This text is _underlined_
 - This text uses =a teletype font=
-@end example
 
-If a paragraph is a quote or an example, you can use specific
-environments:
-
-@example
 #+begin_quote
 ``This is a quote.''
 #+end_quote
@@ -1376,29 +1399,17 @@ This is an example.
 #+end_example
 @end example
 
-These environments will be displayed in a specific way with respect
-to the selected export/publish backend.
-
-To export the current buffer, press the @key{C-c C-e} key anywhere in
-an Org buffer.  Supported export formats include @code{HTML}, La@TeX{}
-and @file{.odt} (OpenDocument format.)  Depending on your system
-installation, you can also directly export to @code{pdf}.
-
-To export several files at once to a specific directory either locally
-or on the Internet, you will need to define a list of projects through
-the variable @code{org-publish-project-alist}.
-
-For further details, see @ref{Exporting,,,org, The Org Manual} and
+  For further details, @ref{Exporting,,,org, The Org Manual}, and
 @ref{Publishing,,,org, The Org Manual}.
 
 @node TeX Mode
 @section @TeX{} Mode
 @cindex @TeX{} mode
-@cindex La@TeX{} mode
+@cindex @LaTeX{} mode
 @cindex Sli@TeX{} mode
 @cindex Doc@TeX{} mode
 @cindex mode, @TeX{}
-@cindex mode, La@TeX{}
+@cindex mode, @LaTeX{}
 @cindex mode, Sli@TeX{}
 @cindex mode, Doc@TeX{}
 @findex tex-mode
@@ -1411,15 +1422,15 @@ For further details, see @ref{Exporting,,,org, The Org Manual} and
   Emacs provides special major modes for editing files written in
 @TeX{} and its related formats.  @TeX{} is a powerful text formatter
 written by Donald Knuth; like GNU Emacs, it is free software.
-La@TeX{} is a simplified input format for @TeX{}, implemented using
+@LaTeX{} is a simplified input format for @TeX{}, implemented using
 @TeX{} macros.  Doc@TeX{} is a special file format in which the
-La@TeX{} sources are written, combining sources with documentation.
-Sli@TeX{} is an obsolete special form of La@TeX{}.@footnote{It has
+@LaTeX{} sources are written, combining sources with documentation.
+Sli@TeX{} is an obsolete special form of @LaTeX{}.@footnote{It has
 been replaced by the @samp{slides} document class, which comes with
-La@TeX{}.}
+@LaTeX{}.}
 
 @vindex tex-default-mode
-  @TeX{} mode has four variants: Plain @TeX{} mode, La@TeX{} mode,
+  @TeX{} mode has four variants: Plain @TeX{} mode, @LaTeX{} mode,
 Doc@TeX{} mode, and Sli@TeX{} mode.  These distinct major modes differ
 only slightly, and are designed for editing the four different
 formats.  Emacs selects the appropriate mode by looking at the
@@ -1439,13 +1450,13 @@ which are not documented in this manual:
 @itemize @bullet
 @item
 Bib@TeX{} mode is a major mode for Bib@TeX{} files, which are commonly
-used for keeping bibliographic references for La@TeX{} documents.  For
+used for keeping bibliographic references for @LaTeX{} documents.  For
 more information, see the documentation string for the command
 @code{bibtex-mode}.
 
 @item
 The Ref@TeX{} package provides a minor mode which can be used with
-La@TeX{} mode to manage bibliographic references.
+@LaTeX{} mode to manage bibliographic references.
 @ifinfo
 @xref{Top,The Ref@TeX{} Manual,,reftex}.
 @end ifinfo
@@ -1538,7 +1549,7 @@ text that belongs inside.  Afterward, use the command @kbd{C-c @}}
 point, and inserts two newlines to start a new paragraph.  It outputs
 a message in the echo area if any mismatch is found.  @kbd{M-x
 tex-validate-region} checks a region, paragraph by paragraph.  The
-errors are listed in an @samp{*Occur*} buffer; you can use the usual
+errors are listed in an @file{*Occur*} buffer; you can use the usual
 Occur mode commands in that buffer, such as @kbd{C-c C-c}, to visit a
 particular mismatch (@pxref{Other Repeating Search}).
 
@@ -1550,23 +1561,23 @@ is useful for the various motion commands and automatic match display
 to work with them.
 
 @node LaTeX Editing
-@subsection La@TeX{} Editing Commands
+@subsection @LaTeX{} Editing Commands
 
-  La@TeX{} mode provides a few extra features not applicable to plain
+  @LaTeX{} mode provides a few extra features not applicable to plain
 @TeX{}:
 
 @table @kbd
 @item C-c C-o
-Insert @samp{\begin} and @samp{\end} for La@TeX{} block and position
+Insert @samp{\begin} and @samp{\end} for @LaTeX{} block and position
 point on a line between them (@code{tex-latex-block}).
 @item C-c C-e
-Close the innermost La@TeX{} block not yet closed
+Close the innermost @LaTeX{} block not yet closed
 (@code{tex-close-latex-block}).
 @end table
 
 @findex tex-latex-block
-@kindex C-c C-o @r{(La@TeX{} mode)}
-  In La@TeX{} input, @samp{\begin} and @samp{\end} tags are used to
+@kindex C-c C-o @r{(@LaTeX{} mode)}
+  In @LaTeX{} input, @samp{\begin} and @samp{\end} tags are used to
 group blocks of text.  To insert a block, type @kbd{C-c C-o}
 (@code{tex-latex-block}).  This prompts for a block type, and inserts
 the appropriate matching @samp{\begin} and @samp{\end} tags, leaving a
@@ -1575,18 +1586,21 @@ blank line between the two and moving point there.
 @vindex latex-block-names
   When entering the block type argument to @kbd{C-c C-o}, you can use
 the usual completion commands (@pxref{Completion}).  The default
-completion list contains the standard La@TeX{} block types.  If you
+completion list contains the standard @LaTeX{} block types.  If you
 want additional block types for completion, customize the list
 variable @code{latex-block-names}.
 
 @findex tex-close-latex-block
-@kindex C-c C-e @r{(La@TeX{} mode)}
-  In La@TeX{} input, @samp{\begin} and @samp{\end} tags must balance.
+@kindex C-c C-e @r{(@LaTeX{} mode)}
+@findex latex-electric-env-pair-mode
+  In @LaTeX{} input, @samp{\begin} and @samp{\end} tags must balance.
 You can use @kbd{C-c C-e} (@code{tex-close-latex-block}) to insert an
 @samp{\end} tag which matches the last unmatched @samp{\begin}.  It
 also indents the @samp{\end} to match the corresponding @samp{\begin},
 and inserts a newline after the @samp{\end} tag if point is at the
-beginning of a line.
+beginning of a line.  The minor mode @code{latex-electric-env-pair-mode}
+automatically inserts an @samp{\end} or @samp{\begin} tag for you
+when you type the corresponding one.
 
 @node TeX Print
 @subsection @TeX{} Printing Commands
@@ -1656,7 +1670,7 @@ such as @code{"/tmp"}.
   The buffer's @TeX{} variant determines what shell command @kbd{C-c
 C-b} actually runs.  In Plain @TeX{} mode, it is specified by the
 variable @code{tex-run-command}, which defaults to @code{"tex"}.  In
-La@TeX{} mode, it is specified by @code{latex-run-command}, which
+@LaTeX{} mode, it is specified by @code{latex-run-command}, which
 defaults to @code{"latex"}.  The shell command that @kbd{C-c C-v} runs
 to view the @file{.dvi} output is determined by the variable
 @code{tex-dvi-view-command}, regardless of the @TeX{} variant.  The
@@ -1681,7 +1695,7 @@ name with @samp{*} in the command string.  For example,
 @findex tex-recenter-output-buffer
 @kindex C-c C-l @r{(@TeX{} mode)}
   The terminal output from @TeX{}, including any error messages,
-appears in a buffer called @samp{*tex-shell*}.  If @TeX{} gets an
+appears in a buffer called @file{*tex-shell*}.  If @TeX{} gets an
 error, you can switch to this buffer and feed it input (this works as
 in Shell mode; @pxref{Interactive Shell}).  Without switching to this
 buffer you can scroll it so that its last line is visible by typing
@@ -1711,9 +1725,9 @@ after.  The lines containing the two strings are included in the header.
 If @samp{%**start of header} does not appear within the first 100 lines of
 the buffer, @kbd{C-c C-r} assumes that there is no header.
 
-  In La@TeX{} mode, the header begins with @samp{\documentclass} or
+  In @LaTeX{} mode, the header begins with @samp{\documentclass} or
 @samp{\documentstyle} and ends with @samp{\begin@{document@}}.  These
-are commands that La@TeX{} requires you to use in any case, so nothing
+are commands that @LaTeX{} requires you to use in any case, so nothing
 special needs to be done to identify the header.
 
 @findex tex-file
@@ -1755,7 +1769,7 @@ Variables}.
 @findex tex-bibtex-file
 @kindex C-c TAB @r{(@TeX{} mode)}
 @vindex tex-bibtex-command
-  For La@TeX{} files, you can use Bib@TeX{} to process the auxiliary
+  For @LaTeX{} files, you can use Bib@TeX{} to process the auxiliary
 file for the current buffer's file.  Bib@TeX{} looks up bibliographic
 citations in a data base and prepares the cited references for the
 bibliography section.  The command @kbd{C-c @key{TAB}}
@@ -1873,8 +1887,8 @@ the tag at point.
 @kindex C-c / @r{(SGML mode)}
 @findex sgml-close-tag
 Insert a close tag for the innermost unterminated tag
-(@code{sgml-close-tag}).  If called from within a tag or a comment,
-close this element instead of inserting a close tag.
+(@code{sgml-close-tag}).  If called within a tag or a comment,
+close it instead of inserting a close tag.
 
 @item C-c 8
 @kindex C-c 8 @r{(SGML mode)}
@@ -1935,10 +1949,10 @@ always insert explicit closing tags as well.
 @cindex nroff
 @findex nroff-mode
 @vindex nroff-mode-hook
-  Nroff mode is a major mode derived from Text mode, which is
+  Nroff mode, a major mode derived from Text mode, is
 specialized for editing nroff files (e.g.@: Unix man pages).  Type
 @kbd{M-x nroff-mode} to enter this mode.  Entering Nroff mode runs the
-hook @code{text-mode-hook}, followed by @code{nroff-mode-hook}
+hook @code{text-mode-hook}, then @code{nroff-mode-hook}
 (@pxref{Hooks}).
 
   In Nroff mode, nroff command lines are treated as paragraph
@@ -2196,7 +2210,7 @@ for the right or left margin of a paragraph or a part of a paragraph.
 These margins also affect fill commands such as @kbd{M-q}
 (@pxref{Filling}).
 
-  The Indentation submenu of Text Properties provides four commands
+  The Indentation submenu of Text Properties offers commands
 for specifying indentation:
 
 @table @code
@@ -2279,10 +2293,9 @@ commands do nothing on text with this setting.  You can, however,
 still indent the left margin.
 @end table
 
+@vindex default-justification
   You can also specify justification styles using the Justification
 submenu in the Text Properties menu.
-
-@vindex default-justification
   The default justification style is specified by the per-buffer
 variable @code{default-justification}.  Its value should be one of the
 symbols @code{left}, @code{right}, @code{full}, @code{center}, or
@@ -2298,8 +2311,7 @@ hides text), and @code{intangible} (which disallows moving point
 within the text).  The @samp{Remove Special} menu item removes all of
 these special properties from the text in the region.
 
-  The @code{invisible} and @code{intangible} properties are not saved
-in the @samp{text/enriched} format.
+  The @code{invisible} and @code{intangible} properties are not saved.
 
 @node Text Based Tables
 @section Editing Text-based Tables
@@ -2332,8 +2344,8 @@ large to fit in the cell.  You can use the commands defined in the
 following sections for navigating and editing the table layout.
 
 @findex table-fixed-width-mode
-  To toggle the automatic table resizing feature, type @kbd{M-x
-table-fixed-width-mode}.
+  Type @kbd{M-x table-fixed-width-mode} to toggle the automatic table
+resizing feature.
 
 @menu
 * Table Definition::          What is a text based table.
@@ -2493,15 +2505,16 @@ result in an illegitimate cell layout.
 @cindex text-based tables, splitting cells
 @cindex splitting table cells
   @kbd{M-x table-split-cell} splits the current cell vertically or
-horizontally, prompting for the direction with the minibuffer.  The
-commands @kbd{M-x table-split-cell-vertically} and @kbd{M-x
-table-split-cell-horizontally} split in a specific direction.  When
-splitting vertically, the old cell contents are automatically split
-between the two new cells.  When splitting horizontally, you are
-prompted for how to divide the cell contents, if the cell is
-non-empty; the options are @samp{split} (divide the contents at
-point), @samp{left} (put all the contents in the left cell), and
-@samp{right} (put all the contents in the right cell).
+horizontally, prompting for the direction with the minibuffer.  To
+split in a specific direction, use @kbd{M-x
+table-split-cell-vertically} and @kbd{M-x
+table-split-cell-horizontally}.  When splitting vertically, the old
+cell contents are automatically split between the two new cells.  When
+splitting horizontally, you are prompted for how to divide the cell
+contents, if the cell is non-empty; the options are @samp{split}
+(divide the contents at point), @samp{left} (put all the contents in
+the left cell), and @samp{right} (put all the contents in the right
+cell).
 
   The following commands enlarge or shrink a cell.  By default, they
 resize by one row or column; if a numeric argument is supplied, that
@@ -2565,10 +2578,12 @@ to @code{nil}.
 @findex table-insert-row
   @kbd{M-x table-insert-row} inserts a row of cells before the current
 table row.  The current row, together with point, is pushed down past
-the new row.  To insert rows after the last row at the bottom of a
+the new row.  To insert a row after the last row at the bottom of a
 table, invoke this command with point below the table, just below the
-bottom edge.  A numeric prefix argument specifies the number of rows
-to insert.
+bottom edge.  You can insert more than one row at a time by using a
+numeric prefix argument.
+
+@c A numeric prefix argument specifies the number of rows to insert.
 
 @findex table-insert-column
   Similarly, @kbd{M-x table-insert-column} inserts a column of cells

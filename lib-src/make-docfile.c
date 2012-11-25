@@ -1,6 +1,7 @@
 /* Generate doc-string file for GNU Emacs from source files.
-   Copyright (C) 1985-1986, 1992-1994, 1997, 1999-2011
-                 Free Software Foundation, Inc.
+
+Copyright (C) 1985-1986, 1992-1994, 1997, 1999-2012
+  Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -35,56 +36,40 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 
 #include <config.h>
 
-/* defined to be emacs_main, sys_fopen, etc. in config.h */
-#undef main
-#undef fopen
-#undef chdir
-
 #include <stdio.h>
-#include <stdlib.h>
+#include <stdlib.h>   /* config.h unconditionally includes this anyway */
 #ifdef MSDOS
 #include <fcntl.h>
 #endif /* MSDOS */
 #ifdef WINDOWSNT
+/* Defined to be sys_fopen in ms-w32.h, but only #ifdef emacs, so this
+   is really just insurance.  */
+#undef fopen
 #include <fcntl.h>
 #include <direct.h>
 #endif /* WINDOWSNT */
 
 #ifdef DOS_NT
+/* Defined to be sys_chdir in ms-w32.h, but only #ifdef emacs, so this
+   is really just insurance.
+
+   Similarly, msdos defines this as sys_chdir, but we're not linking with the
+   file where that function is defined.  */
+#undef chdir
 #define READ_TEXT "rt"
 #define READ_BINARY "rb"
+#define IS_SLASH(c)  ((c) == '/' || (c) == '\\' || (c) == ':')
 #else  /* not DOS_NT */
 #define READ_TEXT "r"
 #define READ_BINARY "r"
+#define IS_SLASH(c)  ((c) == '/')
 #endif /* not DOS_NT */
-
-#ifndef DIRECTORY_SEP
-#define DIRECTORY_SEP '/'
-#endif
-
-#ifndef IS_DIRECTORY_SEP
-#define IS_DIRECTORY_SEP(_c_) ((_c_) == DIRECTORY_SEP)
-#endif
-
-/* Use this to suppress gcc's `...may be used before initialized' warnings. */
-#ifdef lint
-# define IF_LINT(Code) Code
-#else
-# define IF_LINT(Code) /* empty */
-#endif
 
 static int scan_file (char *filename);
 static int scan_lisp_file (const char *filename, const char *mode);
 static int scan_c_file (char *filename, const char *mode);
-static void fatal (const char *s1, const char *s2) NO_RETURN;
 static void start_globals (void);
 static void write_globals (void);
-
-#ifdef MSDOS
-/* s/msdos.h defines this as sys_chdir, but we're not linking with the
-   file where that function is defined.  */
-#undef chdir
-#endif
 
 #include <unistd.h>
 
@@ -111,7 +96,7 @@ error (const char *s1, const char *s2)
 /* Print error message and exit.  */
 
 /* VARARGS1 */
-static void
+static _Noreturn void
 fatal (const char *s1, const char *s2)
 {
   error (s1, s2);
@@ -226,7 +211,7 @@ put_filename (char *filename)
 
   for (tmp = filename; *tmp; tmp++)
     {
-      if (IS_DIRECTORY_SEP(*tmp))
+      if (IS_DIRECTORY_SEP (*tmp))
 	filename = tmp + 1;
     }
 
@@ -541,8 +526,8 @@ write_c_args (FILE *out, char *func, char *buf, int minargs, int maxargs)
 	  maxargs--;
 
 	  /* In C code, `default' is a reserved word, so we spell it
-	     `defalt'; unmangle that here.  */
-	  if (ident_length == 6 && strncmp (ident_start, "defalt", 6) == 0)
+	     `defalt'; demangle that here.  */
+	  if (ident_length == 6 && memcmp (ident_start, "defalt", 6) == 0)
 	    fprintf (out, "DEFAULT");
 	  else
 	    while (ident_length-- > 0)
@@ -562,13 +547,15 @@ write_c_args (FILE *out, char *func, char *buf, int minargs, int maxargs)
   putc (')', out);
 }
 
-/* The types of globals.  */
+/* The types of globals.  These are sorted roughly in decreasing alignment
+   order to avoid allocation gaps, except that functions are last.  */
 enum global_type
 {
+  INVALID,
+  LISP_OBJECT,
   EMACS_INTEGER,
   BOOLEAN,
-  LISP_OBJECT,
-  INVALID
+  FUNCTION,
 };
 
 /* A single global.  */
@@ -576,6 +563,7 @@ struct global
 {
   enum global_type type;
   char *name;
+  int value;
 };
 
 /* All the variable names we saw while scanning C sources in `-g'
@@ -585,7 +573,7 @@ int num_globals_allocated;
 struct global *globals;
 
 static void
-add_global (enum global_type type, char *name)
+add_global (enum global_type type, char *name, int value)
 {
   /* Ignore the one non-symbol that can occur.  */
   if (strcmp (name, "..."))
@@ -606,6 +594,7 @@ add_global (enum global_type type, char *name)
 
       globals[num_globals - 1].type = type;
       globals[num_globals - 1].name = name;
+      globals[num_globals - 1].value = value;
     }
 }
 
@@ -614,13 +603,24 @@ compare_globals (const void *a, const void *b)
 {
   const struct global *ga = a;
   const struct global *gb = b;
+
+  if (ga->type != gb->type)
+    return ga->type - gb->type;
+
   return strcmp (ga->name, gb->name);
+}
+
+static void
+close_emacs_globals (void)
+{
+  fprintf (outfile, "};\n");
+  fprintf (outfile, "extern struct emacs_globals globals;\n");
 }
 
 static void
 write_globals (void)
 {
-  int i;
+  int i, seen_defun = 0;
   qsort (globals, num_globals, sizeof (struct global), compare_globals);
   for (i = 0; i < num_globals; ++i)
     {
@@ -632,25 +632,62 @@ write_globals (void)
 	  type = "EMACS_INT";
 	  break;
 	case BOOLEAN:
-	  type = "int";
+	  type = "bool";
 	  break;
 	case LISP_OBJECT:
 	  type = "Lisp_Object";
+	  break;
+	case FUNCTION:
+	  if (!seen_defun)
+	    {
+	      close_emacs_globals ();
+	      fprintf (outfile, "\n");
+	      seen_defun = 1;
+	    }
 	  break;
 	default:
 	  fatal ("not a recognized DEFVAR_", 0);
 	}
 
-      fprintf (outfile, "  %s f_%s;\n", type, globals[i].name);
-      fprintf (outfile, "#define %s globals.f_%s\n",
-	       globals[i].name, globals[i].name);
+      if (globals[i].type != FUNCTION)
+	{
+	  fprintf (outfile, "  %s f_%s;\n", type, globals[i].name);
+	  fprintf (outfile, "#define %s globals.f_%s\n",
+		   globals[i].name, globals[i].name);
+	}
+      else
+	{
+	  /* It would be nice to have a cleaner way to deal with these
+	     special hacks.  */
+	  if (strcmp (globals[i].name, "Fthrow") == 0
+	      || strcmp (globals[i].name, "Ftop_level") == 0
+	      || strcmp (globals[i].name, "Fkill_emacs") == 0
+	      || strcmp (globals[i].name, "Fexit_recursive_edit") == 0
+	      || strcmp (globals[i].name, "Fabort_recursive_edit") == 0)
+	    fprintf (outfile, "_Noreturn ");
+	  fprintf (outfile, "EXFUN (%s, ", globals[i].name);
+	  if (globals[i].value == -1)
+	    fprintf (outfile, "MANY");
+	  else if (globals[i].value == -2)
+	    fprintf (outfile, "UNEVALLED");
+	  else
+	    fprintf (outfile, "%d", globals[i].value);
+	  fprintf (outfile, ");\n");
+	}
+
       while (i + 1 < num_globals
 	     && !strcmp (globals[i].name, globals[i + 1].name))
-	++i;
+	{
+	  if (globals[i].type == FUNCTION
+	      && globals[i].value != globals[i + 1].value)
+	    error ("function '%s' defined twice with differing signatures",
+		   globals[i].name);
+	  ++i;
+	}
     }
 
-  fprintf (outfile, "};\n");
-  fprintf (outfile, "extern struct emacs_globals globals;\n");
+  if (!seen_defun)
+    close_emacs_globals ();
 }
 
 
@@ -675,14 +712,14 @@ scan_c_file (char *filename, const char *mode)
 
   if (infile == NULL && extension == 'o')
     {
-      /* try .m */
+      /* Try .m.  */
       filename[strlen (filename) - 1] = 'm';
       infile = fopen (filename, mode);
       if (infile == NULL)
-        filename[strlen (filename) - 1] = 'c'; /* don't confuse people */
+        filename[strlen (filename) - 1] = 'c'; /* Don't confuse people.  */
     }
 
-  /* No error if non-ex input file */
+  /* No error if non-ex input file.  */
   if (infile == NULL)
     {
       perror (filename);
@@ -700,6 +737,7 @@ scan_c_file (char *filename, const char *mode)
       int defvarperbufferflag = 0;
       int defvarflag = 0;
       enum global_type type = INVALID;
+      char *name IF_LINT (= 0);
 
       if (c != '\n' && c != '\r')
 	{
@@ -765,8 +803,9 @@ scan_c_file (char *filename, const char *mode)
 	}
       else continue;
 
-      if (generate_globals && (!defvarflag || defvarperbufferflag
-			       || type == INVALID))
+      if (generate_globals
+	  && (!defvarflag || defvarperbufferflag || type == INVALID)
+	  && !defunflag)
 	continue;
 
       while (c != '(')
@@ -785,7 +824,6 @@ scan_c_file (char *filename, const char *mode)
       if (generate_globals)
 	{
 	  int i = 0;
-	  char *name;
 
 	  /* Skip "," and whitespace.  */
 	  do
@@ -800,14 +838,18 @@ scan_c_file (char *filename, const char *mode)
 	      input_buffer[i++] = c;
 	      c = getc (infile);
 	    }
-	  while (! (c == ',' || c == ' ' || c == '\t' ||
-		    c == '\n' || c == '\r'));
+	  while (! (c == ',' || c == ' ' || c == '\t'
+		    || c == '\n' || c == '\r'));
 	  input_buffer[i] = '\0';
 
 	  name = xmalloc (i + 1);
 	  memcpy (name, input_buffer, i + 1);
-	  add_global (type, name);
-	  continue;
+
+	  if (!defunflag)
+	    {
+	      add_global (type, name, 0);
+	      continue;
+	    }
 	}
 
       /* DEFVAR_LISP ("name", addr, "doc")
@@ -815,12 +857,12 @@ scan_c_file (char *filename, const char *mode)
 	 DEFVAR_LISP ("name", addr, doc: /\* doc *\/)  */
 
       if (defunflag)
-	commas = 5;
+	commas = generate_globals ? 4 : 5;
       else if (defvarperbufferflag)
 	commas = 3;
       else if (defvarflag)
 	commas = 1;
-      else  /* For DEFSIMPLE and DEFPRED */
+      else  /* For DEFSIMPLE and DEFPRED.  */
 	commas = 2;
 
       while (commas)
@@ -838,11 +880,16 @@ scan_c_file (char *filename, const char *mode)
 		  if (c < 0)
 		    goto eof;
 		  ungetc (c, infile);
-		  if (commas == 2) /* pick up minargs */
+		  if (commas == 2) /* Pick up minargs.  */
 		    scanned = fscanf (infile, "%d", &minargs);
-		  else /* pick up maxargs */
+		  else /* Pick up maxargs.  */
 		    if (c == 'M' || c == 'U') /* MANY || UNEVALLED */
-		      maxargs = -1;
+		      {
+			if (generate_globals)
+			  maxargs = (c == 'M') ? -1 : -2;
+			else
+			  maxargs = -1;
+		      }
 		    else
 		      scanned = fscanf (infile, "%d", &maxargs);
 		  if (scanned < 0)
@@ -853,6 +900,12 @@ scan_c_file (char *filename, const char *mode)
 	  if (c == EOF)
 	    goto eof;
 	  c = getc (infile);
+	}
+
+      if (generate_globals)
+	{
+	  add_global (FUNCTION, name, maxargs);
+	  continue;
 	}
 
       while (c == ' ' || c == '\n' || c == '\r' || c == '\t')
@@ -893,7 +946,7 @@ scan_c_file (char *filename, const char *mode)
 	  fprintf (outfile, "%s\n", input_buffer);
 
 	  if (comment)
-	    getc (infile); 	/* Skip past `*' */
+	    getc (infile); 	/* Skip past `*'.  */
 	  c = read_c_string_or_comment (infile, 1, comment, &saw_usage);
 
 	  /* If this is a defun, find the arguments and print them.  If
@@ -974,12 +1027,12 @@ scan_c_file (char *filename, const char *mode)
  arglist, but the doc string must still have a backslash and newline
  immediately after the double quote.
  The only source files that must follow this convention are preloaded
- uncompiled ones like loaddefs.el and bindings.el; aside
- from that, it is always the .elc file that we look at, and they are no
- problem because byte-compiler output follows this convention.
+ uncompiled ones like loaddefs.el; aside from that, it is always the .elc
+ file that we should look at, and they are no problem because byte-compiler
+ output follows this convention.
  The NAME and DOCSTRING are output.
  NAME is preceded by `F' for a function or `V' for a variable.
- An entry is output only if DOCSTRING has \ newline just after the opening "
+ An entry is output only if DOCSTRING has \ newline just after the opening ".
  */
 
 static void
@@ -1020,20 +1073,83 @@ read_lisp_symbol (FILE *infile, char *buffer)
 }
 
 static int
+search_lisp_doc_at_eol (FILE *infile)
+{
+  char c = 0, c1 = 0, c2 = 0;
+
+  /* Skip until the end of line; remember two previous chars.  */
+  while (c != '\n' && c != '\r' && c != EOF)
+    {
+      c2 = c1;
+      c1 = c;
+      c = getc (infile);
+    }
+
+  /* If two previous characters were " and \,
+     this is a doc string.  Otherwise, there is none.  */
+  if (c2 != '"' || c1 != '\\')
+    {
+#ifdef DEBUG
+      fprintf (stderr, "## non-docstring in %s (%s)\n",
+	       buffer, filename);
+#endif
+      if (c != EOF)
+	ungetc (c, infile);
+      return 0;
+    }
+  return 1;
+}
+
+#define DEF_ELISP_FILE(fn)  { #fn, sizeof(#fn) - 1 }
+
+static int
 scan_lisp_file (const char *filename, const char *mode)
 {
   FILE *infile;
   register int c;
   char *saved_string = 0;
+  /* These are the only files that are loaded uncompiled, and must
+     follow the conventions of the doc strings expected by this
+     function.  These conventions are automatically followed by the
+     byte compiler when it produces the .elc files.  */
+  static struct {
+    const char *fn;
+    size_t fl;
+  } const uncompiled[] = {
+    DEF_ELISP_FILE (loaddefs.el),
+    DEF_ELISP_FILE (loadup.el),
+    DEF_ELISP_FILE (charprop.el),
+    DEF_ELISP_FILE (cp51932.el),
+    DEF_ELISP_FILE (eucjp-ms.el)
+  };
+  int i, match;
+  size_t flen = strlen (filename);
 
   if (generate_globals)
     fatal ("scanning lisp file when -g specified", 0);
+  if (flen > 3 && !strcmp (filename + flen - 3, ".el"))
+    {
+      for (i = 0, match = 0; i < sizeof (uncompiled) / sizeof (uncompiled[0]);
+	   i++)
+	{
+	  if (uncompiled[i].fl <= flen
+	      && !strcmp (filename + flen - uncompiled[i].fl, uncompiled[i].fn)
+	      && (flen == uncompiled[i].fl
+		  || IS_SLASH (filename[flen - uncompiled[i].fl - 1])))
+	    {
+	      match = 1;
+	      break;
+	    }
+	}
+      if (!match)
+	fatal ("uncompiled lisp file %s is not supported", filename);
+    }
 
   infile = fopen (filename, mode);
   if (infile == NULL)
     {
       perror (filename);
-      return 0;				/* No error */
+      return 0;				/* No error.  */
     }
 
   c = '\n';
@@ -1110,7 +1226,7 @@ scan_lisp_file (const char *filename, const char *mode)
 	  type = 'F';
 	  read_lisp_symbol (infile, buffer);
 
-	  /* Skip the arguments: either "nil" or a list in parens */
+	  /* Skip the arguments: either "nil" or a list in parens.  */
 
 	  c = getc (infile);
 	  if (c == 'n') /* nil */
@@ -1154,39 +1270,18 @@ scan_lisp_file (const char *filename, const char *mode)
 	       || ! strcmp (buffer, "defconst")
 	       || ! strcmp (buffer, "defcustom"))
 	{
-	  char c1 = 0, c2 = 0;
 	  type = 'V';
 	  read_lisp_symbol (infile, buffer);
 
 	  if (saved_string == 0)
-	    {
-
-	      /* Skip until the end of line; remember two previous chars.  */
-	      while (c != '\n' && c != '\r' && c >= 0)
-		{
-		  c2 = c1;
-		  c1 = c;
-		  c = getc (infile);
-		}
-
-	      /* If two previous characters were " and \,
-		 this is a doc string.  Otherwise, there is none.  */
-	      if (c2 != '"' || c1 != '\\')
-		{
-#ifdef DEBUG
-		  fprintf (stderr, "## non-docstring in %s (%s)\n",
-			   buffer, filename);
-#endif
-		  continue;
-		}
-	    }
+	    if (!search_lisp_doc_at_eol (infile))
+	      continue;
 	}
 
       else if (! strcmp (buffer, "custom-declare-variable")
 	       || ! strcmp (buffer, "defvaralias")
 	       )
 	{
-	  char c1 = 0, c2 = 0;
 	  type = 'V';
 
 	  c = getc (infile);
@@ -1221,31 +1316,12 @@ scan_lisp_file (const char *filename, const char *mode)
 	    }
 
 	  if (saved_string == 0)
-	    {
-	      /* Skip to end of line; remember the two previous chars.  */
-	      while (c != '\n' && c != '\r' && c >= 0)
-		{
-		  c2 = c1;
-		  c1 = c;
-		  c = getc (infile);
-		}
-
-	      /* If two previous characters were " and \,
-		 this is a doc string.  Otherwise, there is none.  */
-	      if (c2 != '"' || c1 != '\\')
-		{
-#ifdef DEBUG
-		  fprintf (stderr, "## non-docstring in %s (%s)\n",
-			   buffer, filename);
-#endif
-		  continue;
-		}
-	    }
+	    if (!search_lisp_doc_at_eol (infile))
+	      continue;
 	}
 
       else if (! strcmp (buffer, "fset") || ! strcmp (buffer, "defalias"))
 	{
-	  char c1 = 0, c2 = 0;
 	  type = 'F';
 
 	  c = getc (infile);
@@ -1278,26 +1354,8 @@ scan_lisp_file (const char *filename, const char *mode)
 	    }
 
 	  if (saved_string == 0)
-	    {
-	      /* Skip to end of line; remember the two previous chars.  */
-	      while (c != '\n' && c != '\r' && c >= 0)
-		{
-		  c2 = c1;
-		  c1 = c;
-		  c = getc (infile);
-		}
-
-	      /* If two previous characters were " and \,
-		 this is a doc string.  Otherwise, there is none.  */
-	      if (c2 != '"' || c1 != '\\')
-		{
-#ifdef DEBUG
-		  fprintf (stderr, "## non-docstring in %s (%s)\n",
-			   buffer, filename);
-#endif
-		  continue;
-		}
-	    }
+	    if (!search_lisp_doc_at_eol (infile))
+	      continue;
 	}
 
       else if (! strcmp (buffer, "autoload"))
@@ -1339,29 +1397,16 @@ scan_lisp_file (const char *filename, const char *mode)
 	      continue;
 	    }
 	  read_c_string_or_comment (infile, 0, 0, 0);
-	  skip_white (infile);
 
 	  if (saved_string == 0)
-	    {
-	      /* If the next three characters aren't `dquote bslash newline'
-		 then we're not reading a docstring.  */
-	      if ((c = getc (infile)) != '"'
-		  || (c = getc (infile)) != '\\'
-		  || ((c = getc (infile)) != '\n' && c != '\r'))
-		{
-#ifdef DEBUG
-		  fprintf (stderr, "## non-docstring in %s (%s)\n",
-			   buffer, filename);
-#endif
-		  continue;
-		}
-	    }
+	    if (!search_lisp_doc_at_eol (infile))
+	      continue;
 	}
 
 #ifdef DEBUG
       else if (! strcmp (buffer, "if")
 	       || ! strcmp (buffer, "byte-code"))
-	;
+	continue;
 #endif
 
       else
@@ -1373,12 +1418,10 @@ scan_lisp_file (const char *filename, const char *mode)
 	  continue;
 	}
 
-      /* At this point, we should either use the previous
-	 dynamic doc string in saved_string
-	 or gobble a doc string from the input file.
-
-	 In the latter case, the opening quote (and leading
-	 backslash-newline) have already been read.  */
+      /* At this point, we should either use the previous dynamic doc string in
+	 saved_string or gobble a doc string from the input file.
+	 In the latter case, the opening quote (and leading backslash-newline)
+	 have already been read.  */
 
       putc (037, outfile);
       putc (type, outfile);

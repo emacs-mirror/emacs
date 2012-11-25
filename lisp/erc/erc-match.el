@@ -1,8 +1,9 @@
 ;;; erc-match.el --- Highlight messages matching certain regexps
 
-;; Copyright (C) 2002-2011 Free Software Foundation, Inc.
+;; Copyright (C) 2002-2012 Free Software Foundation, Inc.
 
 ;; Author: Andreas Fuchs <asf@void.at>
+;; Maintainer: FSF
 ;; Keywords: comm, faces
 ;; URL: http://www.emacswiki.org/cgi-bin/wiki.pl?ErcMatch
 
@@ -29,12 +30,11 @@
 ;; customizable variables.
 
 ;; Usage:
-;; Put (erc-match-mode 1) into your ~/.emacs file.
+;; Put (erc-match-mode 1) into your init file.
 
 ;;; Code:
 
 (require 'erc)
-(eval-when-compile (require 'cl))
 
 ;; Customization:
 
@@ -83,7 +83,7 @@ Useful to mark nicks from dangerous hosts."
   :type '(repeat regexp))
 
 (defcustom erc-current-nick-highlight-type 'keyword
-  "*Determines how to highlight text in which your current nickname appears
+  "Determines how to highlight text in which your current nickname appears
 \(does not apply to text sent by you\).
 
 The following values are allowed:
@@ -105,7 +105,7 @@ Any other value disables highlighting of current nickname altogether."
 		 (const all)))
 
 (defcustom erc-pal-highlight-type 'nick
-  "*Determines how to highlight messages by pals.
+  "Determines how to highlight messages by pals.
 See `erc-pals'.
 
 The following values are allowed:
@@ -121,7 +121,7 @@ Any other value disables pal highlighting altogether."
 		 (const all)))
 
 (defcustom erc-fool-highlight-type 'nick
-  "*Determines how to highlight messages by fools.
+  "Determines how to highlight messages by fools.
 See `erc-fools'.
 
 The following values are allowed:
@@ -137,7 +137,7 @@ Any other value disables fool highlighting altogether."
 		 (const all)))
 
 (defcustom erc-keyword-highlight-type 'keyword
-  "*Determines how to highlight messages containing keywords.
+  "Determines how to highlight messages containing keywords.
 See variable `erc-keywords'.
 
 The following values are allowed:
@@ -152,7 +152,7 @@ Any other value disables keyword highlighting altogether."
 		 (const all)))
 
 (defcustom erc-dangerous-host-highlight-type 'nick
-  "*Determines how to highlight messages by nicks from dangerous-hosts.
+  "Determines how to highlight messages by nicks from dangerous-hosts.
 See `erc-dangerous-hosts'.
 
 The following values are allowed:
@@ -232,6 +232,14 @@ current-nick, keyword, pal, dangerous-host, fool"
   :group 'erc-match
   :type 'hook)
 
+(defcustom erc-match-exclude-server-buffer nil
+  "If true, don't perform match on the server buffer; this is
+useful for excluding all the things like MOTDs from the server
+and other miscellaneous functions."
+  :group 'erc-match
+  :version "24.3"
+  :type 'boolean)
+
 ;; Internal variables:
 
 ;; This is exactly the same as erc-button-syntax-table.  Should we
@@ -258,26 +266,26 @@ constituents.")
 
 ;; Faces:
 
-(defface erc-current-nick-face '((t (:bold t :foreground "DarkTurquoise")))
+(defface erc-current-nick-face '((t :weight bold :foreground "DarkTurquoise"))
   "ERC face for occurrences of your current nickname."
   :group 'erc-faces)
 
-(defface erc-dangerous-host-face '((t (:foreground "red")))
+(defface erc-dangerous-host-face '((t :foreground "red"))
   "ERC face for people on dangerous hosts.
 See `erc-dangerous-hosts'."
   :group 'erc-faces)
 
-(defface erc-pal-face '((t (:bold t :foreground "Magenta")))
+(defface erc-pal-face '((t :weight bold :foreground "Magenta"))
   "ERC face for your pals.
 See `erc-pals'."
   :group 'erc-faces)
 
-(defface erc-fool-face '((t (:foreground "dim gray")))
+(defface erc-fool-face '((t :foreground "dim gray"))
   "ERC face for fools on the channel.
 See `erc-fools'."
   :group 'erc-faces)
 
-(defface erc-keyword-face '((t (:bold t :foreground "pale green")))
+(defface erc-keyword-face '((t :weight bold :foreground "pale green"))
   "ERC face for your keywords.
 Note that this is the default face to use if
 `erc-keywords' does not specify another."
@@ -449,7 +457,9 @@ Use this defun with `erc-insert-modify-hook'."
 					(+ 2 nick-end)
 				      (point-min))
 				    (point-max))))
-    (when vector
+    (when (and vector
+	       (not (and erc-match-exclude-server-buffer
+			 (erc-server-buffer-p))))
       (mapc
        (lambda (match-type)
 	 (goto-char (point-min))

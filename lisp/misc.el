@@ -1,6 +1,6 @@
 ;;; misc.el --- some nonstandard editing and utility commands for Emacs
 
-;; Copyright (C) 1989, 2001-2011  Free Software Foundation, Inc.
+;; Copyright (C) 1989, 2001-2012  Free Software Foundation, Inc.
 
 ;; Maintainer: FSF
 ;; Keywords: convenience
@@ -99,14 +99,14 @@ Ignores CHAR at point."
 (defun forward-to-word (arg)
   "Move forward until encountering the beginning of a word.
 With argument, do this that many times."
-  (interactive "p")
+  (interactive "^p")
   (or (re-search-forward (if (> arg 0) "\\W\\b" "\\b\\W") nil t arg)
       (goto-char (if (> arg 0) (point-max) (point-min)))))
 
 (defun backward-to-word (arg)
   "Move backward until encountering the end of a word.
 With argument, do this that many times."
-  (interactive "p")
+  (interactive "^p")
   (forward-to-word (- arg)))
 
 ;;;###autoload
@@ -138,6 +138,19 @@ variation of `C-x M-c M-butterfly' from url `http://xkcd.com/378/'."
 (defvar list-dynamic-libraries--loaded-only-p)
 (make-variable-buffer-local 'list-dynamic-libraries--loaded-only-p)
 
+(defun list-dynamic-libraries--loaded (from)
+  "Compute the \"Loaded from\" column.
+Internal use only."
+  (if from
+      (let ((name (car from))
+            (path (or (cdr from) "<unknown>")))
+        ;; This is a roundabout way to change the tooltip without
+        ;; having to replace the default printer function
+        (propertize name
+                    'display (propertize name
+                                         'help-echo (concat "Loaded from: " path))))
+    ""))
+
 (defun list-dynamic-libraries--refresh ()
   "Recompute the list of dynamic libraries.
 Internal use only."
@@ -159,7 +172,7 @@ Internal use only."
       (when (or from
                 (not list-dynamic-libraries--loaded-only-p))
         (push (list id (vector (symbol-name id)
-                               (or from "")
+                               (list-dynamic-libraries--loaded from)
                                (mapconcat 'identity (cdr lib) ", ")))
               tabulated-list-entries)))))
 

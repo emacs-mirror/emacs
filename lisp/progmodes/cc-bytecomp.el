@@ -1,6 +1,6 @@
 ;;; cc-bytecomp.el --- compile time setup for proper compilation
 
-;; Copyright (C) 2000-2011  Free Software Foundation, Inc.
+;; Copyright (C) 2000-2012  Free Software Foundation, Inc.
 
 ;; Author:     Martin Stjernholm
 ;; Maintainer: bug-cc-mode@gnu.org
@@ -337,30 +337,6 @@ at compile time, e.g. for macros and inline functions."
 					 (symbol-name ',fun))))
 	     (cc-bytecomp-debug-msg
 	      "cc-bytecomp-defun: Covered function %s" ',fun))))))
-
-(put 'cc-bytecomp-defmacro 'lisp-indent-function 'defun)
-(defmacro cc-bytecomp-defmacro (fun &rest temp-macro)
-  "Bind the symbol as a macro during compilation (and evaluation) of the
-file.  Don't use outside `eval-when-compile'."
-  `(let ((orig-fun (assq ',fun cc-bytecomp-original-functions)))
-     (if (not orig-fun)
-	 (setq orig-fun
-	       (list ',fun
-		     nil
-		     (if (fboundp ',fun)
-			 (progn
-			   (cc-bytecomp-debug-msg
-			    "cc-bytecomp-defmacro: Saving %s" ',fun)
-			   (symbol-function ',fun))
-		       (cc-bytecomp-debug-msg
-			"cc-bytecomp-defmacro: Saving %s as unbound" ',fun)
-		       'unbound))
-	       cc-bytecomp-original-functions
-	       (cons orig-fun cc-bytecomp-original-functions)))
-     (defmacro ,fun ,@temp-macro)
-     (cc-bytecomp-debug-msg
-      "cc-bytecomp-defmacro: Bound macro %s" ',fun)
-     (setcar (cdr orig-fun) (symbol-function ',fun))))
 
 (defmacro cc-bytecomp-put (symbol propname value)
   "Set a property on a symbol during compilation (and evaluation) of

@@ -1,6 +1,6 @@
 /* A GNU-like <stdio.h>.
 
-   Copyright (C) 2004, 2007-2011 Free Software Foundation, Inc.
+   Copyright (C) 2004, 2007-2012 Free Software Foundation, Inc.
 
    This program is free software; you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -13,8 +13,7 @@
    GNU General Public License for more details.
 
    You should have received a copy of the GNU General Public License
-   along with this program; if not, write to the Free Software Foundation,
-   Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.  */
+   along with this program; if not, see <http://www.gnu.org/licenses/>.  */
 
 #if __GNUC__ >= 3
 @PRAGMA_SYSTEM_HEADER@
@@ -53,7 +52,8 @@
 #include <stddef.h>
 
 /* Get off_t and ssize_t.  Needed on many systems, including glibc 2.8
-   and eglibc 2.11.2.  */
+   and eglibc 2.11.2.
+   May also define off_t to a 64-bit type on native Windows.  */
 #include <sys/types.h>
 
 /* The __attribute__ feature is available in gcc versions 2.5 and later.
@@ -186,7 +186,7 @@ _GL_CXXALIASWARN (fdopen);
 #elif defined GNULIB_POSIXCHECK
 # undef fdopen
 /* Assume fdopen is always declared.  */
-_GL_WARN_ON_USE (fdopen, "fdopen on Win32 platforms is not POSIX compatible - "
+_GL_WARN_ON_USE (fdopen, "fdopen on native Windows platforms is not POSIX compliant - "
                  "use gnulib module fdopen for portability");
 #endif
 
@@ -259,7 +259,7 @@ _GL_CXXALIASWARN (fopen);
 #elif defined GNULIB_POSIXCHECK
 # undef fopen
 /* Assume fopen is always declared.  */
-_GL_WARN_ON_USE (fopen, "fopen on Win32 platforms is not POSIX compatible - "
+_GL_WARN_ON_USE (fopen, "fopen on native Windows platforms is not POSIX compliant - "
                  "use gnulib module fopen for portability");
 #endif
 
@@ -387,7 +387,7 @@ _GL_CXXALIASWARN (freopen);
 # undef freopen
 /* Assume freopen is always declared.  */
 _GL_WARN_ON_USE (freopen,
-                 "freopen on Win32 platforms is not POSIX compatible - "
+                 "freopen on native Windows platforms is not POSIX compliant - "
                  "use gnulib module freopen for portability");
 #endif
 
@@ -699,22 +699,11 @@ _GL_WARN_ON_USE (getline, "getline is unportable - "
 # endif
 #endif
 
-#if @GNULIB_GETS@
-# if @REPLACE_STDIO_READ_FUNCS@ && @GNULIB_STDIO_H_NONBLOCKING@
-#  if !(defined __cplusplus && defined GNULIB_NAMESPACE)
-#   undef gets
-#   define gets rpl_gets
-#  endif
-_GL_FUNCDECL_RPL (gets, char *, (char *s) _GL_ARG_NONNULL ((1)));
-_GL_CXXALIAS_RPL (gets, char *, (char *s));
-# else
-_GL_CXXALIAS_SYS (gets, char *, (char *s));
-#  undef gets
-# endif
-_GL_CXXALIASWARN (gets);
 /* It is very rare that the developer ever has full control of stdin,
-   so any use of gets warrants an unconditional warning.  Assume it is
-   always declared, since it is required by C89.  */
+   so any use of gets warrants an unconditional warning; besides, C11
+   removed it.  */
+#undef gets
+#if HAVE_RAW_DECL_GETS
 _GL_WARN_ON_USE (gets, "gets is a security hole - use fgets instead");
 #endif
 
@@ -779,7 +768,7 @@ _GL_CXXALIASWARN (pclose);
 #elif defined GNULIB_POSIXCHECK
 # undef pclose
 # if HAVE_RAW_DECL_PCLOSE
-_GL_WARN_ON_USE (pclose, "popen is unportable - "
+_GL_WARN_ON_USE (pclose, "pclose is unportable - "
                  "use gnulib module pclose for more portability");
 # endif
 #endif
@@ -1054,9 +1043,9 @@ _GL_WARN_ON_USE (snprintf, "snprintf is unportable - "
 # endif
 #endif
 
-/* Some people would argue that sprintf should be handled like gets
-   (for example, OpenBSD issues a link warning for both functions),
-   since both can cause security holes due to buffer overruns.
+/* Some people would argue that all sprintf uses should be warned about
+   (for example, OpenBSD issues a link warning for it),
+   since it can cause security holes due to buffer overruns.
    However, we believe that sprintf can be used safely, and is more
    efficient than snprintf in those safe cases; and as proof of our
    belief, we use sprintf in several gnulib modules.  So this header

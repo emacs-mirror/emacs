@@ -1,6 +1,6 @@
-;;; url.el --- Uniform Resource Locator retrieval tool
+;;; url.el --- Uniform Resource Locator retrieval tool  -*- lexical-binding: t -*-
 
-;; Copyright (C) 1996-1999, 2001, 2004-2011  Free Software Foundation, Inc.
+;; Copyright (C) 1996-1999, 2001, 2004-2012  Free Software Foundation, Inc.
 
 ;; Author: Bill Perry <wmperry@gnu.org>
 ;; Keywords: comm, data, processes, hypermedia
@@ -26,7 +26,6 @@
 
 ;;; Code:
 
-(eval-when-compile (require 'cl))
 
 (require 'mailcap)
 
@@ -119,17 +118,22 @@ Sometimes while retrieving a URL, the URL library needs to use another buffer
 than the one returned initially by `url-retrieve'.  In this case, it sets this
 variable in the original buffer as a forwarding pointer.")
 
+(defvar url-retrieve-number-of-calls 0)
+(autoload 'url-cache-prune-cache "url-cache")
+
 ;;;###autoload
-(defun url-retrieve (url callback &optional cbargs silent)
+(defun url-retrieve (url callback &optional cbargs silent inhibit-cookies)
   "Retrieve URL asynchronously and call CALLBACK with CBARGS when finished.
-URL is either a string or a parsed URL.
+URL is either a string or a parsed URL.  If it is a string
+containing characters that are not valid in a URI, those
+characters are percent-encoded; see `url-encode-url'.
 
 CALLBACK is called when the object has been completely retrieved, with
 the current buffer containing the object, and any MIME headers associated
 with it.  It is called as (apply CALLBACK STATUS CBARGS).
-STATUS is a list with an even number of elements representing
-what happened during the request, with most recent events first,
-or an empty list if no events have occurred.  Each pair is one of:
+STATUS is a plist representing what happened during the request,
+with most recent events first, or an empty list if no events have
+occurred.  Each pair is one of:
 
 \(:redirect REDIRECTED-TO) - the request was redirected to this URL
 \(:error (ERROR-SYMBOL . DATA)) - an error occurred.  The error can be
@@ -144,7 +148,11 @@ The variables `url-request-data', `url-request-method' and
 request; dynamic binding of other variables doesn't necessarily
 take effect.
 
-If SILENT, then don't message progress reports and the like."
+If SILENT, then don't message progress reports and the like.
+If INHIBIT-COOKIES, cookies will neither be stored nor sent to
+the server.
+If URL is a multibyte string, it will be encoded as utf-8 and
+URL-encoded before it's used."
 ;;; XXX: There is code in Emacs that does dynamic binding
 ;;; of the following variables around url-retrieve:
 ;;; url-standalone-mode, url-gateway-unplugged, w3-honor-stylesheets,
@@ -155,18 +163,27 @@ If SILENT, then don't message progress reports and the like."
 ;;; webmail.el; the latter should be updated.  Is
 ;;; url-cookie-multiple-line needed anymore?  The other url-cookie-*
 ;;; are (for now) only used in synchronous retrievals.
-  (url-retrieve-internal url callback (cons nil cbargs) silent))
+  (url-retrieve-internal url callback (cons nil cbargs) silent
+			 inhibit-cookies))
 
-(defun url-retrieve-internal (url callback cbargs &optional silent)
+(defun url-retrieve-internal (url callback cbargs &optional silent
+				  inhibit-cookies)
   "Internal function; external interface is `url-retrieve'.
-CBARGS is what the callback will actually receive - the first item is
-the list of events, as described in the docstring of `url-retrieve'.
+CBARGS is the list of arguments that the callback function will
+receive; its first element should be a plist specifying what has
+happened so far during the request, as described in the docstring
+of `url-retrieve' (if in doubt, specify nil).
 
-If SILENT, don't message progress reports and the like."
+If SILENT, don't message progress reports and the like.
+If INHIBIT-COOKIES, cookies will neither be stored nor sent to
+the server.
+If URL is a multibyte string, it will be encoded as utf-8 and
+URL-encoded before it's used."
   (url-do-setup)
   (url-gc-dead-buffers)
-  (if (stringp url)
-       (set-text-properties 0 (length url) nil url))
+  (when (stringp url)
+    (set-text-properties 0 (length url) nil url)
+    (setq url (url-encode-url url)))
   (if (not (vectorp url))
       (setq url (url-generic-parse-url url)))
   (if (not (functionp callback))
@@ -174,6 +191,14 @@ If SILENT, don't message progress reports and the like."
   (unless (url-type url)
     (error "Bad url: %s" (url-recreate-url url)))
   (setf (url-silent url) silent)
+  (setf (url-use-cookies url) (not inhibit-cookies))
+  ;; Once in a while, remove old entries from the URL cache.
+  (when (zerop (% url-retrieve-number-of-calls 1000))
+    (condition-case error
+	(url-cache-prune-cache)
+      (file-error
+       (message "Error when expiring the cache: %s" error))))
+  (setq url-retrieve-number-of-calls (1+ url-retrieve-number-of-calls))
   (let ((loader (url-scheme-get-property (url-type url) 'loader))
 	(url-using-proxy (if (url-host url)
 			     (url-find-proxy-for-url url (url-host url))))
@@ -201,8 +226,8 @@ associated with it (the case for dired, info, or mailto URLs that need
 no further processing).  URL is either a string or a parsed URL."
   (url-do-setup)
 
-  (lexical-let ((retrieval-done nil)
-		(asynch-buffer nil))
+  (let ((retrieval-done nil)
+        (asynch-buffer nil))
     (setq asynch-buffer
 	  (url-retrieve url (lambda (&rest ignored)
 			      (url-debug 'retrieval "Synchronous fetching done (%S)" (current-buffer))

@@ -1,6 +1,6 @@
 ;;; esh-io.el --- I/O management
 
-;; Copyright (C) 1999-2011  Free Software Foundation, Inc.
+;; Copyright (C) 1999-2012  Free Software Foundation, Inc.
 
 ;; Author: John Wiegley <johnw@gnu.org>
 
@@ -59,7 +59,7 @@
 (provide 'esh-io)
 
 (eval-when-compile
-  (require 'cl)
+  (require 'cl-lib)
   (require 'eshell))
 
 (defgroup eshell-io nil
@@ -298,7 +298,7 @@ completed successfully.  RESULT is the quoted value of the last
 command.  If nil, then the meta variables for keeping track of the
 last execution result should not be changed."
   (let ((idx 0))
-    (assert (or (not result) (eq (car result) 'quote)))
+    (cl-assert (or (not result) (eq (car result) 'quote)))
     (setq eshell-last-command-status exit-code
 	  eshell-last-command-result (cadr result))
     (while (< idx eshell-number-of-handles)

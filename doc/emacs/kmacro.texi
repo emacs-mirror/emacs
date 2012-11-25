@@ -1,8 +1,8 @@
 @c This is part of the Emacs manual.
-@c Copyright (C) 1985-1987, 1993-1995, 1997, 2000-2011
+@c Copyright (C) 1985-1987, 1993-1995, 1997, 2000-2012
 @c   Free Software Foundation, Inc.
 @c See file emacs.texi for copying conditions.
-@node Keyboard Macros, Files, Fixit, Top
+@node Keyboard Macros
 @chapter Keyboard Macros
 @cindex defining keyboard macros
 @cindex keyboard macro
@@ -35,8 +35,10 @@ intelligent or general.  For such things, Lisp must be used.
 * Basic Keyboard Macro::     Defining and running keyboard macros.
 * Keyboard Macro Ring::      Where previous keyboard macros are saved.
 * Keyboard Macro Counter::   Inserting incrementing numbers in macros.
-* Keyboard Macro Query::     Making keyboard macros do different things each time.
-* Save Keyboard Macro::      Giving keyboard macros names; saving them in files.
+* Keyboard Macro Query::     Making keyboard macros do different things each
+                               time.
+* Save Keyboard Macro::      Giving keyboard macros names; saving them in
+                               files.
 * Edit Keyboard Macro::      Editing keyboard macros.
 * Keyboard Macro Step-Edit:: Interactively executing and editing a keyboard
                                macro.
@@ -223,7 +225,7 @@ desired macro is at the head of the ring.  To execute the new macro
 ring head immediately, just type @kbd{C-k}.
 
   Note that Emacs treats the head of the macro ring as the ``last
-defined keyboard macro.''  For instance, @key{F4} will execute that
+defined keyboard macro''.  For instance, @key{F4} will execute that
 macro, and @kbd{C-x C-k n} will give it a name.
 
 @vindex kmacro-ring-max
@@ -480,10 +482,11 @@ Edit the last 300 keystrokes as a keyboard macro
 @kindex C-x C-k C-e
 @kindex C-x C-k RET
   You can edit the last keyboard macro by typing @kbd{C-x C-k C-e} or
-@kbd{C-x C-k RET} (@code{kmacro-edit-macro}).  This formats the macro
-definition in a buffer and enters a specialized major mode for editing
-it.  Type @kbd{C-h m} once in that buffer to display details of how to
-edit the macro.  When you are finished editing, type @kbd{C-c C-c}.
+@kbd{C-x C-k @key{RET}} (@code{kmacro-edit-macro}).  This formats the
+macro definition in a buffer and enters a specialized major mode for
+editing it.  Type @kbd{C-h m} once in that buffer to display details
+of how to edit the macro.  When you are finished editing, type
+@kbd{C-c C-c}.
 
 @findex edit-kbd-macro
 @kindex C-x C-k e

@@ -1,6 +1,6 @@
 ;;; ediff-mult.el --- support for multi-file/multi-buffer processing in Ediff
 
-;; Copyright (C) 1995-2011 Free Software Foundation, Inc.
+;; Copyright (C) 1995-2012 Free Software Foundation, Inc.
 
 ;; Author: Michael Kifer <kifer@cs.stonybrook.edu>
 ;; Package: ediff
@@ -217,8 +217,9 @@ This can be toggled with `ediff-toggle-filename-truncation'."
   :type 'hook
   :group 'ediff-mult)
 
-(defcustom ediff-before-session-group-setup-hooks nil
-  "Hooks to run before Ediff arranges the window for group-level operations.
+(defcustom ediff-before-session-group-setup-hooks
+  nil ;FIXME: Bad name (should be -hook or -functions) and never run??
+  "Hook run before Ediff arranges the window for group-level operations.
 It is used by commands such as `ediff-directories'.
 This hook can be used to save the previous window config, which can be restored
 on `ediff-quit', `ediff-suspend', or `ediff-quit-session-group-hook'."

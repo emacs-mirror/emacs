@@ -1,6 +1,6 @@
 ;;; easy-mmode.el --- easy definition for major and minor modes
 
-;; Copyright (C) 1997, 2000-2011  Free Software Foundation, Inc.
+;; Copyright (C) 1997, 2000-2012  Free Software Foundation, Inc.
 
 ;; Author: Georges Brun-Cottan <Georges.Brun-Cottan@inria.fr>
 ;; Maintainer: Stefan Monnier <monnier@gnu.org>
@@ -51,8 +51,6 @@
 
 ;;; Code:
 
-(eval-when-compile (require 'cl))
-
 (defun easy-mmode-pretty-mode-name (mode &optional lighter)
   "Turn the symbol MODE into a string intended for the user.
 If provided, LIGHTER will be used to help choose capitalization by,
@@ -67,7 +65,8 @@ replacing its case-insensitive matches with the literal string in LIGHTER."
 			;; "foo-bar-minor" -> "Foo-Bar-Minor"
 			(capitalize (replace-regexp-in-string
 				     ;; "foo-bar-minor-mode" -> "foo-bar-minor"
-				     "-mode\\'" "" (symbol-name mode))))
+				     "toggle-\\|-mode\\'" ""
+                                     (symbol-name mode))))
 		       " mode")))
     (if (not (stringp lighter)) name
       ;; Strip leading and trailing whitespace from LIGHTER.
@@ -86,11 +85,25 @@ replacing its case-insensitive matches with the literal string in LIGHTER."
 ;;;###autoload
 (defmacro define-minor-mode (mode doc &optional init-value lighter keymap &rest body)
   "Define a new minor mode MODE.
-This defines the control variable MODE and the toggle command MODE.
+This defines the toggle command MODE and (by default) a control variable
+MODE (you can override this with the :variable keyword, see below).
 DOC is the documentation for the mode toggle command.
 
+The defined mode command takes one optional (prefix) argument.
+Interactively with no prefix argument, it toggles the mode.
+A prefix argument enables the mode if the argument is positive,
+and disables it otherwise.
+
+When called from Lisp, the mode command toggles the mode if the
+argument is `toggle', disables the mode if the argument is a
+non-positive integer, and enables the mode otherwise (including
+if the argument is omitted or nil or a positive integer).
+
+If DOC is nil, give the mode command a basic doc-string
+documenting what its argument does.
+
 Optional INIT-VALUE is the initial value of the mode's variable.
-Optional LIGHTER is displayed in the modeline when the mode is on.
+Optional LIGHTER is displayed in the mode line when the mode is on.
 Optional KEYMAP is the default keymap bound to the mode keymap.
   If non-nil, it should be a variable name (whose value is a keymap),
   or an expression that returns either a keymap or a list of
@@ -113,21 +126,28 @@ BODY contains code to execute each time the mode is enabled or disabled.
 		buffer-local, so don't make the variable MODE buffer-local.
 		By default, the mode is buffer-local.
 :init-value VAL	Same as the INIT-VALUE argument.
+		Not used if you also specify :variable.
 :lighter SPEC	Same as the LIGHTER argument.
 :keymap MAP	Same as the KEYMAP argument.
 :require SYM	Same as in `defcustom'.
-:variable PLACE	The location (as can be used with `setf') to use instead
-		of the variable MODE to store the state of the mode.  PLACE
-		can also be of the form (GET . SET) where GET is an expression
-		that returns the current state and SET is a function that takes
-		a new state and sets it.  If you specify a :variable, this
-		function assumes it is defined elsewhere.
+:variable PLACE	The location to use instead of the variable MODE to store
+		the state of the mode.	This can be simply a different
+		named variable, or more generally anything that can be used
+		with the CL macro `setf'.  PLACE can also be of the form
+		\(GET . SET), where GET is an expression that returns the
+		current state, and SET is a function that takes one argument,
+		the new state, and sets it.  If you specify a :variable,
+		this function does not define a MODE variable (nor any of
+		the terms used in :variable).
+:after-hook     A single lisp form which is evaluated after the mode hooks
+                have been run.  It should not be quoted.
 
 For example, you could write
   (define-minor-mode foo-mode \"If enabled, foo on you!\"
     :lighter \" Foo\" :require 'foo :global t :group 'hassle :version \"27.5\"
     ...BODY CODE...)"
-  (declare (debug (&define name stringp
+  (declare (doc-string 2)
+           (debug (&define name stringp
 			   [&optional [&not keywordp] sexp
 			    &optional [&not keywordp] sexp
 			    &optional [&not keywordp] sexp]
@@ -137,10 +157,10 @@ For example, you could write
   ;; Allow skipping the first three args.
   (cond
    ((keywordp init-value)
-    (setq body (list* init-value lighter keymap body)
+    (setq body `(,init-value ,lighter ,keymap ,@body)
 	  init-value nil lighter nil keymap nil))
    ((keywordp lighter)
-    (setq body (list* lighter keymap body) lighter nil keymap nil))
+    (setq body `(,lighter ,keymap ,@body) lighter nil keymap nil))
    ((keywordp keymap) (push keymap body) (setq keymap nil)))
 
   (let* ((last-message (make-symbol "last-message"))
@@ -157,32 +177,36 @@ For example, you could write
          (setter nil)            ;The function (if any) to set the mode var.
          (modefun mode)          ;The minor mode function name we're defining.
 	 (require t)
+	 (after-hook nil)
 	 (hook (intern (concat mode-name "-hook")))
 	 (hook-on (intern (concat mode-name "-on-hook")))
 	 (hook-off (intern (concat mode-name "-off-hook")))
-	 keyw keymap-sym)
+	 keyw keymap-sym tmp)
 
     ;; Check keys.
     (while (keywordp (setq keyw (car body)))
       (setq body (cdr body))
-      (case keyw
-	(:init-value (setq init-value (pop body)))
-	(:lighter (setq lighter (purecopy (pop body))))
-	(:global (setq globalp (pop body)))
-	(:extra-args (setq extra-args (pop body)))
-	(:set (setq set (list :set (pop body))))
-	(:initialize (setq initialize (list :initialize (pop body))))
-	(:group (setq group (nconc group (list :group (pop body)))))
-	(:type (setq type (list :type (pop body))))
-	(:require (setq require (pop body)))
-	(:keymap (setq keymap (pop body)))
-        (:variable (setq variable (pop body))
-         (if (not (functionp (cdr-safe variable)))
+      (pcase keyw
+	(`:init-value (setq init-value (pop body)))
+	(`:lighter (setq lighter (purecopy (pop body))))
+	(`:global (setq globalp (pop body)))
+	(`:extra-args (setq extra-args (pop body)))
+	(`:set (setq set (list :set (pop body))))
+	(`:initialize (setq initialize (list :initialize (pop body))))
+	(`:group (setq group (nconc group (list :group (pop body)))))
+	(`:type (setq type (list :type (pop body))))
+	(`:require (setq require (pop body)))
+	(`:keymap (setq keymap (pop body)))
+        (`:variable (setq variable (pop body))
+         (if (not (and (setq tmp (cdr-safe variable))
+                       (or (symbolp tmp)
+                           (functionp tmp))))
              ;; PLACE is not of the form (GET . SET).
              (setq mode variable)
            (setq mode (car variable))
            (setq setter (cdr variable))))
-	(t (push keyw extra-keywords) (push (pop body) extra-keywords))))
+	(`:after-hook (setq after-hook (pop body)))
+	(_ (push keyw extra-keywords) (push (pop body) extra-keywords))))
 
     (setq keymap-sym (if (and keymap (symbolp keymap)) keymap
 		       (intern (concat mode-name "-map"))))
@@ -209,6 +233,7 @@ For example, you could write
          (variable nil)
          ((not globalp)
           `(progn
+             :autoload-end
              (defvar ,mode ,init-value ,(format "Non-nil if %s is enabled.
 Use the command `%s' to change this variable." pretty-name mode))
              (make-variable-buffer-local ',mode)))
@@ -235,13 +260,13 @@ or call the function `%s'."))))
 	      (format (concat "Toggle %s on or off.
 With a prefix argument ARG, enable %s if ARG is
 positive, and disable it otherwise.  If called from Lisp, enable
-the mode if ARG is omitted or nil.
+the mode if ARG is omitted or nil, and toggle it if ARG is `toggle'.
 \\{%s}") pretty-name pretty-name keymap-sym))
 	 ;; Use `toggle' rather than (if ,mode 0 1) so that using
 	 ;; repeat-command still does the toggling correctly.
 	 (interactive (list (or current-prefix-arg 'toggle)))
 	 (let ((,last-message (current-message)))
-           (,@(if setter (list setter)
+           (,@(if setter `(funcall #',setter)
                 (list (if (symbolp mode) 'setq 'setf) mode))
             (if (eq arg 'toggle)
                 (not ,mode)
@@ -260,7 +285,8 @@ the mode if ARG is omitted or nil.
                               (not (equal ,last-message
                                           (current-message))))
                    (message ,(format "%s %%sabled" pretty-name)
-                            (if ,mode "en" "dis"))))))
+                            (if ,mode "en" "dis")))))
+	   ,@(when after-hook `(,after-hook)))
 	 (force-mode-line-update)
 	 ;; Return the new setting.
 	 ,mode)
@@ -286,7 +312,7 @@ the mode if ARG is omitted or nil.
                            ,(if keymap keymap-sym
                                 `(if (boundp ',keymap-sym) ,keymap-sym))
                              nil
-                             ,(unless (eq mode modefun) 'modefun)))))))
+                             ,(unless (eq mode modefun) `',modefun)))))))
 
 ;;;
 ;;; make global minor mode
@@ -315,7 +341,7 @@ enabled, then disabling and reenabling MODE should make MODE work
 correctly with the current major mode.  This is important to
 prevent problems with derived modes, that is, major modes that
 call another major mode in their body."
-
+  (declare (doc-string 2))
   (let* ((global-mode-name (symbol-name global-mode))
 	 (pretty-name (easy-mmode-pretty-mode-name mode))
 	 (pretty-global-name (easy-mmode-pretty-mode-name global-mode))
@@ -333,10 +359,10 @@ call another major mode in their body."
     ;; Check keys.
     (while (keywordp (setq keyw (car keys)))
       (setq keys (cdr keys))
-      (case keyw
-	(:group (setq group (nconc group (list :group (pop keys)))))
-	(:global (setq keys (cdr keys)))
-	(t (push keyw extra-keywords) (push (pop keys) extra-keywords))))
+      (pcase keyw
+	(`:group (setq group (nconc group (list :group (pop keys)))))
+	(`:global (setq keys (cdr keys)))
+	(_ (push keyw extra-keywords) (push (pop keys) extra-keywords))))
 
     (unless group
       ;; We might as well provide a best-guess default group.
@@ -345,8 +371,10 @@ call another major mode in their body."
 				"-mode\\'" "" (symbol-name mode))))))
 
     `(progn
-       (defvar ,MODE-major-mode nil)
-       (make-variable-buffer-local ',MODE-major-mode)
+       (progn
+         :autoload-end
+         (defvar ,MODE-major-mode nil)
+         (make-variable-buffer-local ',MODE-major-mode))
        ;; The actual global minor-mode
        (define-minor-mode ,global-mode
 	 ;; Very short lines to avoid too long lines in the generated
@@ -455,13 +483,13 @@ Valid keywords and arguments are:
     (while args
       (let ((key (pop args))
 	    (val (pop args)))
-	(case key
-	 (:name (setq name val))
-	 (:dense (setq dense val))
-	 (:inherit (setq inherit val))
-	 (:suppress (setq suppress val))
-	 (:group)
-	 (t (message "Unknown argument %s in defmap" key)))))
+	(pcase key
+	 (`:name (setq name val))
+	 (`:dense (setq dense val))
+	 (`:inherit (setq inherit val))
+	 (`:suppress (setq suppress val))
+	 (`:group)
+	 (_ (message "Unknown argument %s in defmap" key)))))
     (unless (keymapp m)
       (setq bs (append m bs))
       (setq m (if dense (make-keymap name) (make-sparse-keymap name))))
@@ -552,8 +580,6 @@ BODY is executed after moving to the destination location."
                  (when was-narrowed (,narrowfun)))))))
     (unless name (setq name base-name))
     `(progn
-       (add-to-list 'debug-ignored-errors
-		    ,(concat "^No \\(previous\\|next\\) " (regexp-quote name)))
        (defun ,next-sym (&optional count)
 	 ,(format "Go to the next COUNT'th %s." name)
 	 (interactive "p")
@@ -564,7 +590,7 @@ BODY is executed after moving to the destination location."
              `(if (not (re-search-forward ,re nil t count))
                   (if (looking-at ,re)
                       (goto-char (or ,(if endfun `(,endfun)) (point-max)))
-                    (error "No next %s" ,name))
+                    (user-error "No next %s" ,name))
                 (goto-char (match-beginning 0))
                 (when (and (eq (current-buffer) (window-buffer (selected-window)))
                            (called-interactively-p 'interactive))
@@ -583,7 +609,7 @@ BODY is executed after moving to the destination location."
 	 (if (< count 0) (,next-sym (- count))
            ,(funcall when-narrowed
              `(unless (re-search-backward ,re nil t count)
-                (error "No previous %s" ,name)))
+                (user-error "No previous %s" ,name)))
            ,@body))
        (put ',prev-sym 'definition-name ',base))))
 

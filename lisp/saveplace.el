@@ -1,6 +1,6 @@
 ;;; saveplace.el --- automatically save place in files
 
-;; Copyright (C) 1993-1994, 2001-2011 Free Software Foundation, Inc.
+;; Copyright (C) 1993-1994, 2001-2012 Free Software Foundation, Inc.
 
 ;; Author: Karl Fogel <kfogel@red-bean.com>
 ;; Maintainer: FSF
@@ -56,13 +56,12 @@ This means when you visit a file, point goes to the last place
 where it was when you previously visited the same file.
 This variable is automatically buffer-local.
 
-If you wish your place in any file to always be automatically saved,
-simply put this in your `~/.emacs' file:
+If you wish your place in any file to always be automatically
+saved, set this to t using the Customize facility, or put the
+following code in your init file:
 
 \(setq-default save-place t)
-\(require 'saveplace)
-
-or else use the Custom facility to set this option."
+\(require 'saveplace)"
   :type 'boolean
   :require 'saveplace
   :group 'save-place)
@@ -130,6 +129,15 @@ Files for which such a check may be inconvenient include those on
 removable and network volumes."
   :type 'regexp :group 'save-place)
 
+(defcustom save-place-ignore-files-regexp
+  "\\(?:COMMIT_EDITMSG\\|hg-editor-[[:alnum:]]+\\.txt\\|svn-commit\\.tmp\\|bzr_log\\.[[:alnum:]]+\\)$"
+  "Regexp matching files for which no position should be recorded.
+Useful for temporary file such as commit message files that are
+automatically created by the VCS.  If set to nil, this feature is
+disabled, i.e., the position is recorded for all files."
+  :version "24.1"
+  :type 'regexp :group 'save-place)
+
 (defun toggle-save-place (&optional parg)
   "Toggle whether to save your place in this file between sessions.
 If this mode is enabled, point is recorded when you kill the buffer
@@ -139,7 +147,8 @@ even in a later Emacs session.
 If called with a prefix arg, the mode is enabled if and only if
 the argument is positive.
 
-To save places automatically in all files, put this in your `.emacs' file:
+To save places automatically in all files, put this in your init
+file:
 
 \(setq-default save-place t\)"
   (interactive "P")
@@ -160,20 +169,22 @@ To save places automatically in all files, put this in your `.emacs' file:
   ;; file.  If not, do so, then feel free to modify the alist.  It
   ;; will be saved again when Emacs is killed.
   (or save-place-loaded (load-save-place-alist-from-file))
-  (if buffer-file-name
-      (progn
-        (let ((cell (assoc buffer-file-name save-place-alist))
-	      (position (if (not (eq major-mode 'hexl-mode))
-			    (point)
-			  (with-no-warnings
-			    (1+ (hexl-current-address))))))
-          (if cell
-              (setq save-place-alist (delq cell save-place-alist)))
-	  (if (and save-place
-		   (not (= position 1)))  ;; Optimize out the degenerate case.
-	      (setq save-place-alist
-		    (cons (cons buffer-file-name position)
-			  save-place-alist)))))))
+  (when (and buffer-file-name
+	     (or (not save-place-ignore-files-regexp)
+		 (not (string-match save-place-ignore-files-regexp
+				    buffer-file-name))))
+    (let ((cell (assoc buffer-file-name save-place-alist))
+	  (position (if (not (eq major-mode 'hexl-mode))
+			(point)
+		      (with-no-warnings
+			(1+ (hexl-current-address))))))
+      (if cell
+	  (setq save-place-alist (delq cell save-place-alist)))
+      (if (and save-place
+	       (not (= position 1)))  ;; Optimize out the degenerate case.
+	  (setq save-place-alist
+		(cons (cons buffer-file-name position)
+		      save-place-alist))))))
 
 (defun save-place-forget-unreadable-files ()
   "Remove unreadable files from `save-place-alist'.

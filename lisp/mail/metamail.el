@@ -1,6 +1,6 @@
 ;;; metamail.el --- Metamail interface for GNU Emacs
 
-;; Copyright (C) 1993, 1996, 2001-2011 Free Software Foundation, Inc.
+;; Copyright (C) 1993, 1996, 2001-2012 Free Software Foundation, Inc.
 
 ;; Author: Masanobu UMEDA <umerin@mse.kyutech.ac.jp>
 ;; Keywords: mail, news, mime, multimedia
@@ -42,23 +42,23 @@
   :group 'processes)
 
 (defcustom metamail-program-name "metamail"
-  "*Metamail program name."
+  "Metamail program name."
   :type 'string
   :group 'metamail)
 
 (defcustom metamail-mailer-name "emacs"
-  "*Mailer name set to MM_MAILER environment variable."
+  "Mailer name set to MM_MAILER environment variable."
   :type 'string
   :group 'metamail)
 
 (defvar metamail-environment '("KEYHEADS=*" "MM_QUIET=1")
-  "*Environment variables passed to `metamail'.
+  "Environment variables passed to `metamail'.
 It must be a list of strings that have the format ENVVARNAME=VALUE.
 It is not expected to be altered globally by `set' or `setq'.
 Instead, change its value temporary using `let' or `let*' form.")
 
 (defcustom metamail-switches '("-x" "-d" "-z")
-  "*Switches for `metamail' program.
+  "Switches for `metamail' program.
 `-z' is required to remove zap file.
 It is not expected to be altered globally by `set' or `setq'.
 Instead, change its value temporary using `let' or `let*' form.

@@ -1,4 +1,4 @@
-;;; sinhala.el --- support for Sinhala -*- coding: utf-8; no-byte-compile: t -*-
+;;; sinhala.el --- support for Sinhala -*- coding: utf-8 -*-
 
 ;; Copyright (C) 2008, 2009, 2010, 2011
 ;;   National Institute of Advanced Industrial Science and Technology (AIST)

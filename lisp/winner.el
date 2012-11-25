@@ -1,6 +1,6 @@
 ;;; winner.el --- Restore old window configurations
 
-;; Copyright (C) 1997-1998, 2001-2011 Free Software Foundation. Inc.
+;; Copyright (C) 1997-1998, 2001-2012  Free Software Foundation, Inc.
 
 ;; Author: Ivar Rummelhoff <ivarru@math.uio.no>
 ;; Created: 27 Feb 1997
@@ -38,20 +38,17 @@
 
 ;;; Code:
 
-(eval-when-compile
-  (require 'cl))
+(eval-when-compile (require 'cl-lib))
 
-
-(defmacro winner-active-region ()
+(defun winner-active-region ()
+  (declare (gv-setter (lambda (store)
+                        (if (featurep 'xemacs)
+                            `(if ,store (zmacs-activate-region)
+                               (zmacs-deactivate-region))
+                          `(setq mark-active ,store)))))
   (if (boundp 'mark-active)
-      'mark-active
-    '(region-active-p)))
-
-(defsetf winner-active-region () (store)
-  (if (featurep 'xemacs)
-      `(if ,store (zmacs-activate-region)
-	 (zmacs-deactivate-region))
-    `(setq mark-active ,store)))
+      mark-active
+    (region-active-p)))
 
 (defalias 'winner-edges
   (if (featurep 'xemacs) 'window-pixel-edges 'window-edges))
@@ -66,19 +63,8 @@
   "Restoring window configurations."
   :group 'windows)
 
-;;;###autoload
-(defcustom winner-mode nil
-  "Toggle Winner mode.
-Setting this variable directly does not take effect;
-use either \\[customize] or the function `winner-mode'."
-  :set #'(lambda (symbol value) (funcall symbol (or value 0)))
-  :initialize 'custom-initialize-default
-  :type    'boolean
-  :group   'winner
-  :require 'winner)
-
 (defcustom winner-dont-bind-my-keys nil
-  "If non-nil: Do not use `winner-mode-map' in Winner mode."
+  "Non-nil means do not bind keys in Winner mode."
   :type  'boolean
   :group 'winner)
 
@@ -88,13 +74,11 @@ use either \\[customize] or the function `winner-mode'."
   :group 'winner)
 
 (defcustom winner-boring-buffers '("*Completions*")
-  "`winner-undo' will not restore windows displaying any of these buffers.
+  "List of buffer names whose windows `winner-undo' will not restore.
 You may want to include buffer names such as *Help*, *Apropos*,
 *Buffer List*, *info* and *Compile-Log*."
   :type '(repeat string)
   :group 'winner)
-
-
 
 
 
@@ -107,15 +91,15 @@ You may want to include buffer names such as *Help*, *Apropos*,
 (defun winner-sorted-window-list ()
   (sort (winner-window-list)
         (lambda (x y)
-          (loop for a in (winner-edges x)
-                for b in (winner-edges y)
-                while (= a b)
-                finally return (< a b)))))
+          (cl-loop for a in (winner-edges x)
+                   for b in (winner-edges y)
+                   while (= a b)
+                   finally return (< a b)))))
 
 (defun winner-win-data ()
   ;; Essential properties of the windows in the selected frame.
-  (loop for win in (winner-sorted-window-list)
-        collect (cons (winner-edges win) (window-buffer win))))
+  (cl-loop for win in (winner-sorted-window-list)
+           collect (cons (winner-edges win) (window-buffer win))))
 
 ;; This variable is updated with the current window configuration
 ;; every time it changes.
@@ -138,7 +122,7 @@ You may want to include buffer names such as *Help*, *Apropos*,
 ;; Consult `winner-currents'.
 (defun winner-configuration (&optional frame)
   (or (cdr (assq (or frame (selected-frame)) winner-currents))
-      (letf (((selected-frame) frame))
+      (with-selected-frame frame
 	(winner-conf))))
 
 
@@ -240,15 +224,15 @@ You may want to include buffer names such as *Help*, *Apropos*,
   (let* ((miniwin  (minibuffer-window))
          (chosen   (selected-window))
          (minisize (window-height miniwin)))
-    (letf (((window-buffer miniwin))
-           ((window-point  miniwin)))
+    (cl-letf (((window-buffer miniwin))
+              ((window-point  miniwin)))
       (set-window-configuration winconf))
     (cond
      ((window-live-p chosen) (select-window chosen))
      ((window-minibuffer-p (selected-window))
       (other-window 1)))
     (when (/= minisize (window-height miniwin))
-      (letf (((selected-window) miniwin) )
+      (with-selected-window miniwin
         (setf (window-height) minisize)))))
 
 
@@ -261,17 +245,17 @@ You may want to include buffer names such as *Help*, *Apropos*,
 ;; Format of entries: (buffer (mark . mark-active) (window . point) ..)
 
 (defun winner-make-point-alist ()
-  (letf (((current-buffer)))
-    (loop with alist
-	  for win in (winner-window-list)
-	  for entry =
-          (or (assq (window-buffer win) alist)
-              (car (push (list (set-buffer (window-buffer win))
-                               (cons (mark t) (winner-active-region)))
-                         alist)))
-	  do (push (cons win (window-point win))
-                   (cddr entry))
-	  finally return alist)))
+  (save-current-buffer
+    (cl-loop with alist
+             for win in (winner-window-list)
+             for entry =
+             (or (assq (window-buffer win) alist)
+                 (car (push (list (set-buffer (window-buffer win))
+                                  (cons (mark t) (winner-active-region)))
+                            alist)))
+             do (push (cons win (window-point win))
+                      (cddr entry))
+             finally return alist)))
 
 (defun winner-get-point (buf win)
   ;; Consult (and possibly extend) `winner-point-alist'.
@@ -282,10 +266,10 @@ You may want to include buffer names such as *Help*, *Apropos*,
        (entry
 	(or (cdr (assq win (cddr entry)))
 	    (cdr (assq nil (cddr entry)))
-	    (letf (((current-buffer) buf))
+	    (with-current-buffer buf
 	      (push (cons nil (point)) (cddr entry))
 	      (point))))
-       (t (letf (((current-buffer) buf))
+       (t (with-current-buffer buf
 	    (push (list buf
 			(cons (mark t) (winner-active-region))
 			(cons nil (point)))
@@ -302,11 +286,11 @@ You may want to include buffer names such as *Help*, *Apropos*,
   (let* ((buffers nil)
 	 (alive
           ;; Possibly update `winner-point-alist'
-	  (loop for buf in (mapcar 'cdr (cdr conf))
-		for pos = (winner-get-point buf nil)
-		if (and pos (not (memq buf buffers)))
-		do (push buf buffers)
-		collect pos)))
+	  (cl-loop for buf in (mapcar 'cdr (cdr conf))
+                   for pos = (winner-get-point buf nil)
+                   if (and pos (not (memq buf buffers)))
+                   do (push buf buffers)
+                   collect pos)))
     (winner-set-conf (car conf))
     (let (xwins)                        ; to be deleted
 
@@ -320,12 +304,12 @@ You may want to include buffer names such as *Help*, *Apropos*,
           (push win xwins)))            ; delete this window
 
       ;; Restore marks
-      (letf (((current-buffer)))
-	(loop for buf in buffers
-	      for entry = (cadr (assq buf winner-point-alist))
-	      do (progn (set-buffer buf)
-			(set-mark (car entry))
-			(setf (winner-active-region) (cdr entry)))))
+      (save-current-buffer
+	(cl-loop for buf in buffers
+                 for entry = (cadr (assq buf winner-point-alist))
+                 do (progn (set-buffer buf)
+                           (set-mark (car entry))
+                           (setf (winner-active-region) (cdr entry)))))
       ;; Delete windows, whose buffers are dead or boring.
       ;; Return t if this is still a possible configuration.
       (or (null xwins)
@@ -340,19 +324,23 @@ You may want to include buffer names such as *Help*, *Apropos*,
 ;;;; Winner mode  (a minor mode)
 
 (defcustom winner-mode-hook nil
-  "Functions to run whenever Winner mode is turned on."
+  "Functions to run whenever Winner mode is turned on or off."
   :type 'hook
   :group 'winner)
 
-(defcustom winner-mode-leave-hook nil
+(define-obsolete-variable-alias 'winner-mode-leave-hook
+  'winner-mode-off-hook "24.3")
+
+(defcustom winner-mode-off-hook nil
   "Functions to run whenever Winner mode is turned off."
   :type 'hook
   :group 'winner)
 
 (defvar winner-mode-map
   (let ((map (make-sparse-keymap)))
-    (define-key map [(control c) left] 'winner-undo)
-    (define-key map [(control c) right] 'winner-redo)
+    (unless winner-dont-bind-my-keys
+      (define-key map [(control c) left] 'winner-undo)
+      (define-key map [(control c) right] 'winner-redo))
     map)
   "Keymap for Winner mode.")
 
@@ -367,37 +355,21 @@ You may want to include buffer names such as *Help*, *Apropos*,
 
 
 ;;;###autoload
-(defun winner-mode (&optional arg)
-  "Toggle Winner mode.
-With arg, turn Winner mode on if and only if arg is positive."
-  (interactive "P")
-  (let ((on-p (if arg (> (prefix-numeric-value arg) 0)
-		(not winner-mode))))
-    (cond
-     ;; Turn mode on
-     (on-p
-      (setq winner-mode t)
-      (cond
-       ((winner-hook-installed-p)
-	(add-hook 'window-configuration-change-hook 'winner-change-fun)
-      (add-hook 'post-command-hook 'winner-save-old-configurations))
-       (t (add-hook 'post-command-hook 'winner-save-conditionally)))
-      (add-hook 'minibuffer-setup-hook 'winner-save-unconditionally)
-      (setq winner-modified-list (frame-list))
-      (winner-save-old-configurations)
-      (run-hooks 'winner-mode-hook)
-      (when (called-interactively-p 'interactive)
-	(message "Winner mode enabled")))
-     ;; Turn mode off
-     (winner-mode
-      (setq winner-mode nil)
-      (remove-hook 'window-configuration-change-hook 'winner-change-fun)
-      (remove-hook 'post-command-hook 'winner-save-old-configurations)
-      (remove-hook 'post-command-hook 'winner-save-conditionally)
-      (remove-hook 'minibuffer-setup-hook 'winner-save-unconditionally)
-      (run-hooks 'winner-mode-leave-hook)
-      (when (called-interactively-p 'interactive)
-	(message "Winner mode disabled"))))))
+(define-minor-mode winner-mode nil :global t ; let d-m-m make the doc
+  (if winner-mode
+      (progn
+        (if (winner-hook-installed-p)
+            (progn
+              (add-hook 'window-configuration-change-hook 'winner-change-fun)
+              (add-hook 'post-command-hook 'winner-save-old-configurations))
+          (add-hook 'post-command-hook 'winner-save-conditionally))
+        (add-hook 'minibuffer-setup-hook 'winner-save-unconditionally)
+        (setq winner-modified-list (frame-list))
+        (winner-save-old-configurations))
+    (remove-hook 'window-configuration-change-hook 'winner-change-fun)
+    (remove-hook 'post-command-hook 'winner-save-old-configurations)
+    (remove-hook 'post-command-hook 'winner-save-conditionally)
+    (remove-hook 'minibuffer-setup-hook 'winner-save-unconditionally)))
 
 ;; Inspired by undo (simple.el)
 
@@ -422,7 +394,7 @@ In other words, \"undo\" changes in window configuration."
  	(setq winner-pending-undo-ring (winner-ring (selected-frame)))
  	(setq winner-undo-counter 0)
  	(setq winner-undone-data (list (winner-win-data))))
-      (incf winner-undo-counter)	; starting at 1
+      (cl-incf winner-undo-counter)	; starting at 1
       (when (and (winner-undo-this)
  		 (not (window-minibuffer-p (selected-window))))
  	(message "Winner undo (%d / %d)"
@@ -433,11 +405,11 @@ In other words, \"undo\" changes in window configuration."
 
 
 (defun winner-undo-this ()		; The heart of winner undo.
-  (loop
+  (cl-loop
    (cond
     ((>= winner-undo-counter (ring-length winner-pending-undo-ring))
      (message "No further window configuration undo information")
-     (return nil))
+     (cl-return nil))
 
     ((and				; If possible configuration
       (winner-set (ring-ref winner-pending-undo-ring
@@ -446,7 +418,7 @@ In other words, \"undo\" changes in window configuration."
       (let ((data (winner-win-data)))
  	(and (not (member data winner-undone-data))
  	     (push data winner-undone-data))))
-     (return t))			; .. then everything is fine.
+     (cl-return t))			; .. then everything is fine.
     (t ;; Otherwise, discharge it (and try the next one).
      (ring-remove winner-pending-undo-ring winner-undo-counter)))))
 
@@ -463,13 +435,6 @@ In other words, \"undo\" changes in window configuration."
     (unless (eq (selected-window) (minibuffer-window))
       (message "Winner undid undo")))
    (t (error "Previous command was not a `winner-undo'"))))
-
-;;; To be evaluated when the package is loaded:
-
-(unless (or (assq 'winner-mode minor-mode-map-alist)
-	    winner-dont-bind-my-keys)
-  (push (cons 'winner-mode winner-mode-map)
-	minor-mode-map-alist))
 
 (provide 'winner)
 ;;; winner.el ends here

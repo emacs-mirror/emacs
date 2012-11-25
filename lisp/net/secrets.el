@@ -1,6 +1,6 @@
 ;;; secrets.el --- Client interface to gnome-keyring and kwallet.
 
-;; Copyright (C) 2010-2011 Free Software Foundation, Inc.
+;; Copyright (C) 2010-2012 Free Software Foundation, Inc.
 
 ;; Author: Michael Albinus <michael.albinus@gmx.de>
 ;; Keywords: comm password passphrase
@@ -78,7 +78,7 @@
 ;;   (secrets-create-collection "my collection")
 
 ;; There exists a special collection called "session", which has the
-;; lifetime of the corresponding client session (aka Emacs'
+;; lifetime of the corresponding client session (aka Emacs's
 ;; lifetime).  It is created automatically when Emacs uses the Secret
 ;; Service interface, and it is deleted when Emacs is killed.
 ;; Therefore, it can be used to store and retrieve secret items
@@ -99,7 +99,7 @@
 
 ;; Secret items can be added or deleted to a collection.  In the
 ;; following examples, we use the special collection "session", which
-;; is bound to Emacs' lifetime.
+;; is bound to Emacs's lifetime.
 ;;
 ;;   (secrets-delete-item "session" "my item")
 ;;   (secrets-create-item "session" "my item" "geheim"
@@ -142,11 +142,8 @@
 ;; Pacify byte-compiler.  D-Bus support in the Emacs core can be
 ;; disabled with configuration option "--without-dbus".  Declare used
 ;; subroutines and variables of `dbus' therefore.
-(eval-when-compile
-  (require 'cl))
+(eval-when-compile (require 'cl-lib))
 
-(declare-function dbus-call-method "dbusbind.c")
-(declare-function dbus-register-signal "dbusbind.c")
 (defvar dbus-debug)
 
 (require 'dbus)
@@ -650,7 +647,7 @@ If there is no such item, return nil."
   (let ((item-path (secrets-item-path collection item)))
     (unless (secrets-empty-path item-path)
       (dbus-byte-array-to-string
-       (caddr
+       (cl-caddr
 	(dbus-call-method
 	 :session secrets-service item-path secrets-interface-item
 	 "GetSecret" :object-path secrets-session-path))))))

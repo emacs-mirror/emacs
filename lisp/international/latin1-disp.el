@@ -1,6 +1,6 @@
 ;;; latin1-disp.el --- display tables for other ISO 8859 on Latin-1 terminals -*-coding: iso-2022-7bit;-*-
 
-;; Copyright (C) 2000-2011  Free Software Foundation, Inc.
+;; Copyright (C) 2000-2012  Free Software Foundation, Inc.
 
 ;; Author: Dave Love <fx@gnu.org>
 ;; Keywords: i18n
@@ -202,8 +202,8 @@ character set: `latin-2', `hebrew' etc."
     (and char (char-displayable-p char))))
 
 ;; Backwards compatibility.
-(defalias 'latin1-char-displayable-p 'char-displayable-p)
-(make-obsolete 'latin1-char-displayable-p 'char-displayable-p "22.1")
+(define-obsolete-function-alias 'latin1-char-displayable-p
+  'char-displayable-p "22.1")
 
 (defun latin1-display-setup (set &optional force)
   "Set up Latin-1 display for characters in the given SET.

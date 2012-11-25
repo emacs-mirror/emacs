@@ -1,5 +1,5 @@
 /* Functions for memory limit warnings.
-   Copyright (C) 1990, 1992, 2001-2011  Free Software Foundation, Inc.
+   Copyright (C) 1990, 1992, 2001-2012  Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -17,7 +17,7 @@ You should have received a copy of the GNU General Public License
 along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 
 #include <config.h>
-#include <setjmp.h>
+#include <unistd.h> /* for 'environ', on AIX */
 #include "lisp.h"
 #include "mem-limits.h"
 
@@ -31,7 +31,7 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 enum warnlevel { not_warned, warned_75, warned_85, warned_95 };
 static enum warnlevel warnlevel;
 
-typedef POINTER_TYPE *POINTER;
+typedef void *POINTER;
 
 /* Function to call to issue a warning;
    0 means don't issue them.  */
@@ -41,7 +41,7 @@ static void (*warn_function) (const char *);
 static POINTER data_space_start;
 
 /* Number of bytes of writable memory we can expect to be able to get.  */
-static unsigned long lim_data;
+static size_t lim_data;
 
 
 #if defined (HAVE_GETRLIMIT) && defined (RLIMIT_AS)
@@ -85,10 +85,12 @@ get_lim_data (void)
 #else /* not USG */
 #ifdef WINDOWSNT
 
+#include "w32heap.h"
+
 static void
 get_lim_data (void)
 {
-  extern unsigned long reserved_heap_size;
+  extern size_t reserved_heap_size;
   lim_data = reserved_heap_size;
 }
 
@@ -166,13 +168,13 @@ static void
 check_memory_limits (void)
 {
 #ifdef REL_ALLOC
-  extern POINTER (*real_morecore) (long);
+  extern POINTER (*real_morecore) (ptrdiff_t);
 #endif
-  extern POINTER (*__morecore) (long);
+  extern POINTER (*__morecore) (ptrdiff_t);
 
   register POINTER cp;
-  unsigned long five_percent;
-  unsigned long data_size;
+  size_t five_percent;
+  size_t data_size;
   enum warnlevel new_warnlevel;
 
   if (lim_data == 0)
@@ -268,7 +270,6 @@ start_of_data (void)
    * is known to live at or near the start of the system crt0.c, and
    * we don't sweat the handful of bytes that might lose.
    */
-  extern char **environ;
   return ((POINTER) &environ);
 #else
   extern int data_start;

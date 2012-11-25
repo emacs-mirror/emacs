@@ -1,6 +1,6 @@
 ;;; regexp-opt.el --- generate efficient regexps to match strings
 
-;; Copyright (C) 1994-2011 Free Software Foundation, Inc.
+;; Copyright (C) 1994-2012 Free Software Foundation, Inc.
 
 ;; Author: Simon Marshall <simon@gnu.org>
 ;; Maintainer: FSF
@@ -136,14 +136,11 @@ This means the number of non-shy regexp grouping constructs
 
 ;;; Workhorse functions.
 
-(eval-when-compile
-  (require 'cl))
-
 (defun regexp-opt-group (strings &optional paren lax)
   "Return a regexp to match a string in the sorted list STRINGS.
 If PAREN non-nil, output regexp parentheses around returned regexp.
 If LAX non-nil, don't output parentheses if it doesn't require them.
-Merges keywords to avoid backtracking in Emacs' regexp matcher."
+Merges keywords to avoid backtracking in Emacs's regexp matcher."
   ;; The basic idea is to find the shortest common prefix or suffix, remove it
   ;; and recurse.  If there is no prefix, we divide the list into two so that
   ;; \(at least) one half will have at least a one-character common prefix.
@@ -237,7 +234,8 @@ Merges keywords to avoid backtracking in Emacs' regexp matcher."
 
 
 (defun regexp-opt-charset (chars)
-  "Return a regexp to match a character in CHARS."
+  "Return a regexp to match a character in CHARS.
+CHARS should be a list of characters."
   ;; The basic idea is to find character ranges.  Also we take care in the
   ;; position of character set meta characters in the character set regexp.
   ;;
@@ -248,15 +246,15 @@ Merges keywords to avoid backtracking in Emacs' regexp matcher."
     ;;
     ;; Make a character map but extract character set meta characters.
     (dolist (char chars)
-      (case char
-	(?\]
-	 (setq bracket "]"))
-	(?^
-	 (setq caret "^"))
-	(?-
-	 (setq dash "-"))
-	(otherwise
-	 (aset charmap char t))))
+      (cond
+       ((eq char ?\])
+	(setq bracket "]"))
+       ((eq char ?^)
+	(setq caret "^"))
+       ((eq char ?-)
+	(setq dash "-"))
+       (t
+	(aset charmap char t))))
     ;;
     ;; Make a character set from the map using ranges where applicable.
     (map-char-table
@@ -268,14 +266,14 @@ Merges keywords to avoid backtracking in Emacs' regexp matcher."
 		   (setq charset (format "%s%c-%c" charset start end))
 		 (while (>= end start)
 		   (setq charset (format "%s%c" charset start))
-		   (incf start)))
+		   (setq start (1+ start))))
 	       (setq start (car c) end (cdr c)))
 	   (if (= (1- c) end) (setq end c)
 	     (if (> end (+ start 2))
 	       (setq charset (format "%s%c-%c" charset start end))
 	     (while (>= end start)
 	       (setq charset (format "%s%c" charset start))
-	       (incf start)))
+	       (setq start (1+ start))))
 	     (setq start c end c)))))
      charmap)
     (when (>= end start)
@@ -283,7 +281,7 @@ Merges keywords to avoid backtracking in Emacs' regexp matcher."
 	  (setq charset (format "%s%c-%c" charset start end))
 	(while (>= end start)
 	  (setq charset (format "%s%c" charset start))
-	  (incf start))))
+	  (setq start (1+ start)))))
     ;;
     ;; Make sure a caret is not first and a dash is first or last.
     (if (and (string-equal charset "") (string-equal bracket ""))

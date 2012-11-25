@@ -1,8 +1,8 @@
 @c This is part of the Emacs manual.
-@c Copyright (C) 1985-1987, 1993-1995, 1997, 2000-2011
+@c Copyright (C) 1985-1987, 1993-1995, 1997, 2000-2012
 @c   Free Software Foundation, Inc.
 @c See file emacs.texi for copying conditions.
-@node Windows, Frames, Buffers, Top
+@node Windows
 @chapter Multiple Windows
 @cindex windows in Emacs
 @cindex multiple windows in Emacs
@@ -36,8 +36,8 @@ has its own value of point.
   At any time, one Emacs window is the @dfn{selected window}; the
 buffer this window is displaying is the current buffer.  On graphical
 displays, the point is indicated by a solid blinking cursor in the
-selected window, and by a hollow box in non-selected windows.  On
-text-only terminals, the cursor is drawn only in the selected window.
+selected window, and by a hollow box in non-selected windows.  On text
+terminals, the cursor is drawn only in the selected window.
 @xref{Cursor Display}.
 
   Commands to move point affect the value of point for the selected
@@ -72,7 +72,7 @@ Split the selected window into two windows, one above the other
 Split the selected window into two windows, positioned side by side
 (@code{split-window-right}).
 @item C-Mouse-2
-In the mode line or scroll bar of a window, split that window.
+In the mode line of a window, split that window.
 @end table
 
 @kindex C-x 2
@@ -125,11 +125,14 @@ lines in every partial-width window regardless of its width.
   On text terminals, side-by-side windows are separated by a vertical
 divider which is drawn using the @code{vertical-border} face.
 
+@kindex C-Mouse-2 @r{(mode line)}
 @kindex C-Mouse-2 @r{(scroll bar)}
-  You can also split a window horizontally or vertically by clicking
-@kbd{C-Mouse-2} in the mode line or the scroll bar.  If you click on
-the mode line, that puts the vertical divider where you click; if you
-click in the scroll bar, that puts the new mode-line where you click.
+  If you click @kbd{C-Mouse-2} in the mode line of a window, that
+splits the window, putting a vertical divider where you click.
+Depending on how Emacs is compiled, you can also split a window by
+clicking @kbd{C-Mouse-2} in the scroll bar, which puts a horizontal
+divider where you click (this feature does not work when Emacs uses
+GTK+ scroll bars).
 
 @node Other Window
 @section Using Other Windows
@@ -148,7 +151,7 @@ selects the window without moving point in it.
 @kindex C-x o
 @findex other-window
 With the keyboard, you can switch windows by typing @kbd{C-x o}
-(@code{other-window}).  That is an @kbd{o}, for ``other,'' not a zero.
+(@code{other-window}).  That is an @kbd{o}, for ``other'', not a zero.
 When there are more than two windows, this command moves through all the
 windows in a cyclic order, generally top to bottom and left to right.
 After the rightmost and bottommost window, it goes back to the one at
@@ -375,19 +378,11 @@ adding the desired buffer's name to the list
 expression to the list @code{same-window-regexps}.  By default, these
 variables are @code{nil}, so this step is skipped.
 
-@vindex display-buffer-reuse-frames
 @item
 Otherwise, if the buffer is already displayed in an existing window,
 ``reuse'' that window.  Normally, only windows on the selected frame
 are considered, but windows on other frames are also reusable if you
-change @code{display-buffer-reuse-frames} to @code{t}, or if you
 change @code{pop-up-frames} (see below) to @code{t}.
-
-@item
-Otherwise, if you specified that the buffer should be displayed in a
-special frame by customizing @code{special-display-buffer-names} or
-@code{special-display-regexps}, do so.  @xref{Choosing Window
-Options,,, elisp, The Emacs Lisp Reference Manual}.
 
 @vindex pop-up-frames
 @item
@@ -449,7 +444,7 @@ buffer.  @xref{Follow Mode}.
   The Windmove package defines commands for moving directionally
 between neighboring windows in a frame.  @kbd{M-x windmove-right}
 selects the window immediately to the right of the currently selected
-one, and similarly for the ``left,'' ``up,'' and ``down''
+one, and similarly for the ``left'', ``up'', and ``down''
 counterparts.  @kbd{M-x windmove-default-keybindings} binds these
 commands to @kbd{S-right} etc.; doing so disables shift selection for
 those keys (@pxref{Shift Selection}).

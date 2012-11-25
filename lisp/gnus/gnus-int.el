@@ -1,6 +1,6 @@
 ;;; gnus-int.el --- backend interface functions for Gnus
 
-;; Copyright (C) 1996-2011 Free Software Foundation, Inc.
+;; Copyright (C) 1996-2012 Free Software Foundation, Inc.
 
 ;; Author: Lars Magne Ingebrigtsen <larsi@gnus.org>
 ;; Keywords: news
@@ -43,11 +43,13 @@
 
 (defcustom gnus-after-set-mark-hook nil
   "Hook called just after marks are set in a group."
+  :version "24.1"
   :group 'gnus-start
   :type 'hook)
 
 (defcustom gnus-before-update-mark-hook nil
   "Hook called just before marks are updated in a group."
+  :version "24.1"
   :group 'gnus-start
   :type 'hook)
 
@@ -245,7 +247,7 @@ If it is down, start it up (again)."
   (eq (nth 1 (assoc method gnus-opened-servers))
       'denied))
 
-(defvar gnus-backend-trace t)
+(defvar gnus-backend-trace nil)
 
 (defun gnus-open-server (gnus-command-method)
   "Open a connection to GNUS-COMMAND-METHOD."
@@ -356,7 +358,7 @@ If it is down, start it up (again)."
 	   infos data))
 
 (defun gnus-retrieve-group-data-early (gnus-command-method infos)
-  "Start early async retrival of data from GNUS-COMMAND-METHOD."
+  "Start early async retrieval of data from GNUS-COMMAND-METHOD."
   (when (stringp gnus-command-method)
     (setq gnus-command-method (gnus-server-to-method gnus-command-method)))
   (funcall (gnus-get-function gnus-command-method 'retrieve-group-data-early)
@@ -396,7 +398,7 @@ If it is down, start it up (again)."
     result))
 
 (defun gnus-request-compact (gnus-command-method)
-  "Request groups compaction  from GNUS-COMMAND-METHOD."
+  "Request groups compaction from GNUS-COMMAND-METHOD."
   (when (stringp gnus-command-method)
     (setq gnus-command-method (gnus-server-to-method gnus-command-method)))
   (funcall (gnus-get-function gnus-command-method 'request-compact)
@@ -414,26 +416,10 @@ If it is down, start it up (again)."
 	     dont-check
 	     info)))
 
-(defun gnus-list-active-group (group)
-  "Request active information on GROUP."
-  (let ((gnus-command-method (gnus-find-method-for-group group))
-	(func 'list-active-group))
-    (when (gnus-check-backend-function func group)
-      (funcall (gnus-get-function gnus-command-method func)
-	       (gnus-group-real-name group) (nth 1 gnus-command-method)))))
-
 (defun gnus-request-group-description (group)
   "Request a description of GROUP."
   (let ((gnus-command-method (gnus-find-method-for-group group))
 	(func 'request-group-description))
-    (when (gnus-check-backend-function func group)
-      (funcall (gnus-get-function gnus-command-method func)
-	       (gnus-group-real-name group) (nth 1 gnus-command-method)))))
-
-(defun gnus-request-group-articles (group)
-  "Request a list of existing articles in GROUP."
-  (let ((gnus-command-method (gnus-find-method-for-group group))
-	(func 'request-group-articles))
     (when (gnus-check-backend-function func group)
       (funcall (gnus-get-function gnus-command-method func)
 	       (gnus-group-real-name group) (nth 1 gnus-command-method)))))
@@ -531,15 +517,69 @@ If BUFFER, insert the article in that group."
 	     header
 	     (gnus-group-real-name group))))
 
+(defun gnus-select-group-with-message-id (group message-id)
+  "Activate and select GROUP with the given MESSAGE-ID selected.
+Returns the article number of the message.
+
+If GROUP is not already selected, the message will be the only one in
+the group's summary.
+"
+  ;; TODO: is there a way to know at this point whether the group will
+  ;; be newly-selected?  If so we could clean up the logic at the end
+  ;;
+  ;; save the new group's display parameter, if any, so we
+  ;; can replace it temporarily with zero.
+  (let ((saved-display
+         (gnus-group-get-parameter group 'display :allow-list)))
+
+    ;; Tell gnus we really don't want any articles 
+    (gnus-group-set-parameter group 'display 0)
+
+    (unwind-protect
+        (gnus-summary-read-group-1
+         group (not :show-all) :no-article (not :kill-buffer)
+         ;; The combination of no-display and this dummy list of
+         ;; articles to select somehow makes it possible to open a
+         ;; group with no articles in it.  Black magic.
+         :no-display '(-1); select-articles
+         )
+      ;; Restore the new group's display parameter
+      (gnus-group-set-parameter group 'display saved-display)))
+
+  ;; The summary buffer was suppressed by :no-display above.
+  ;; Create it now and insert the message
+  (let ((group-is-new (gnus-summary-setup-buffer group)))
+    (condition-case err
+        (let ((article-number 
+               (gnus-summary-insert-subject message-id)))
+          (unless article-number
+            (signal 'error "message-id not in group"))
+          (gnus-summary-select-article nil nil nil article-number)
+          article-number)
+      ;; Clean up the new summary and propagate the error
+      (error (when group-is-new (gnus-summary-exit))
+             (apply 'signal err)))))
+
+(defun gnus-simplify-group-name (group)
+  "Return the simplest representation of the name of GROUP.
+This is the string that Gnus uses to identify the group."
+  (gnus-group-prefixed-name
+   (gnus-group-real-name group)
+   (gnus-group-method group)))
+
 (defun gnus-warp-to-article ()
   "Warps from an article in a virtual group to the article in its
 real group. Does nothing on a real group."
   (interactive)
-  (let ((gnus-command-method
-	 (gnus-find-method-for-group gnus-newsgroup-name)))
-    (when (gnus-check-backend-function
-	   'warp-to-article (car gnus-command-method))
-      (funcall (gnus-get-function gnus-command-method 'warp-to-article)))))
+  (when (gnus-virtual-group-p gnus-newsgroup-name)
+    (let ((gnus-command-method
+           (gnus-find-method-for-group gnus-newsgroup-name)))
+      (or
+       (when (gnus-check-backend-function
+              'warp-to-article (car gnus-command-method))
+         (funcall (gnus-get-function gnus-command-method 'warp-to-article)))
+       (and (bound-and-true-p gnus-registry-enabled)
+            (gnus-try-warping-via-registry))))))
 
 (defun gnus-request-head (article group)
   "Request the head of ARTICLE in GROUP."
@@ -559,7 +599,8 @@ real group. Does nothing on a real group."
 	    clean-up t))
      ;; Use `head' function.
      ((fboundp head)
-      (setq res (funcall head article (gnus-group-real-name group)
+      (setq res (funcall head article
+                         (and (not gnus-override-method) (gnus-group-real-name group))
 			 (nth 1 gnus-command-method))))
      ;; Use `article' function.
      (t
@@ -666,6 +707,10 @@ If GROUP is nil, all groups on GNUS-COMMAND-METHOD are scanned."
 
 (defun gnus-request-expire-articles (articles group &optional force)
   (let* ((gnus-command-method (gnus-find-method-for-group group))
+         ;; Filter out any negative article numbers; they can't be
+         ;; expired here.
+         (articles
+          (delq nil (mapcar (lambda (n) (and (>= n 0) n)) articles)))
 	 (gnus-inhibit-demon t)
 	 (not-deleted
 	  (funcall
@@ -741,11 +786,6 @@ If GROUP is nil, all groups on GNUS-COMMAND-METHOD are scanned."
     (when (and gnus-agent (gnus-agent-method-p gnus-command-method))
       (gnus-agent-regenerate-group group (list article)))
     result))
-
-(defun gnus-request-associate-buffer (group)
-  (let ((gnus-command-method (gnus-find-method-for-group group)))
-    (funcall (gnus-get-function gnus-command-method 'request-associate-buffer)
-	     (gnus-group-real-name group))))
 
 (defun gnus-request-restore-buffer (article group)
   "Request a new buffer restored to the state of ARTICLE."

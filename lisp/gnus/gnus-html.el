@@ -1,6 +1,6 @@
 ;;; gnus-html.el --- Render HTML in a buffer.
 
-;; Copyright (C) 2010-2011  Free Software Foundation, Inc.
+;; Copyright (C) 2010-2012  Free Software Foundation, Inc.
 
 ;; Author: Lars Magne Ingebrigtsen <larsi@gnus.org>
 ;; Keywords: html, web
@@ -390,7 +390,7 @@ Use ALT-TEXT for the image string."
   (if (fboundp 'url-queue-retrieve)
       (url-queue-retrieve (car image)
 			  'gnus-html-image-fetched
-			  (list buffer image) t)
+			  (list buffer image) t t)
     (ignore-errors
       (url-retrieve (car image)
 		    'gnus-html-image-fetched

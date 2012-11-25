@@ -1,8 +1,8 @@
 @c This is part of the Emacs manual.
-@c Copyright (C) 1985-1987, 1993-1995, 1997, 2000-2011
+@c Copyright (C) 1985-1987, 1993-1995, 1997, 2000-2012
 @c   Free Software Foundation, Inc.
 @c See file emacs.texi for copying conditions.
-@node Basic, Minibuffer, Exiting, Top
+@node Basic
 @chapter Basic Editing Commands
 
 @kindex C-h t
@@ -97,28 +97,29 @@ To use decimal or hexadecimal instead of octal, set the variable
 the letters @kbd{a} to @kbd{f} serve as part of a character code,
 just like digits.  Case is ignored.
 
-@findex ucs-insert
+@findex insert-char
 @kindex C-x 8 RET
 @cindex Unicode characters, inserting
 @cindex insert Unicode character
 @cindex characters, inserting by name or code-point
-  Instead of @kbd{C-q}, you can use the command @kbd{C-x 8 @key{RET}}
-(@code{ucs-insert}).  This prompts for the Unicode name or code-point
+  Alternatively, you can use the command @kbd{C-x 8 @key{RET}}
+(@code{insert-char}).  This prompts for the Unicode name or code-point
 of a character, using the minibuffer.  If you enter a name, the
 command provides completion (@pxref{Completion}).  If you enter a
-code-point, it should be a hexadecimal number (which is the convention
-for Unicode).  The command then inserts the corresponding character
-into the buffer.  For example, both of the following insert the
-infinity sign (Unicode code-point @code{U+221E}):
+code-point, it should be as a hexadecimal number (the convention for
+Unicode), or a number with a specified radix, e.g.@: @code{#o23072}
+(octal); @xref{Integer Basics,,, elisp, The Emacs Lisp Reference
+Manual}.  The command then inserts the corresponding character into
+the buffer.  For example, both of the following insert the infinity
+sign (Unicode code-point @code{U+221E}):
 
 @example
 @kbd{C-x 8 @key{RET} infinity @key{RET}}
 @kbd{C-x 8 @key{RET} 221e @key{RET}}
 @end example
 
-  A numeric argument to either @kbd{C-q} or @kbd{C-x 8 @key{RET}}
-specifies how many copies of the character to insert
-(@pxref{Arguments}).
+  A numeric argument to @kbd{C-q} or @kbd{C-x 8 @key{RET}} specifies
+how many copies of the character to insert (@pxref{Arguments}).
 
 @node Moving Point
 @section Changing the Location of Point
@@ -130,11 +131,13 @@ specifies how many copies of the character to insert
 @cindex moving the cursor
   To do more than insert characters, you have to know how to move
 point (@pxref{Point}).  The keyboard commands @kbd{C-f}, @kbd{C-b},
-@kbd{C-n}, and @kbd{C-p} move point to the right, left, up and down
+@kbd{C-n}, and @kbd{C-p} move point to the right, left, down, and up,
 respectively.  You can also move point using the @dfn{arrow keys}
 present on most keyboards: @kbd{@key{right}}, @kbd{@key{left}},
 @kbd{@key{down}}, and @kbd{@key{up}}; however, many Emacs users find
-that it is slower to use the arrow keys than the control keys.
+that it is slower to use the arrow keys than the control keys, because
+you need to move your hand to the area of the keyboard where those
+keys are located.
 
   You can also click the left mouse button to move point to the
 position clicked.  Emacs also provides a variety of additional
@@ -264,7 +267,8 @@ necessary (@code{scroll-up-command}).  @xref{Scrolling}.
 Scroll one screen backward, and move point onscreen if necessary
 (@code{scroll-down-command}).  @xref{Scrolling}.
 
-@item M-x goto-char
+@item M-g c
+@kindex M-g c
 @findex goto-char
 Read a number @var{n} and move point to buffer position @var{n}.
 Position 1 is the beginning of the buffer.
@@ -281,6 +285,13 @@ for @var{n}.  Just type @key{RET} in the minibuffer to use it.  You can
 also specify @var{n} by giving @kbd{M-g M-g} a numeric prefix argument.
 @xref{Select Buffer}, for the behavior of @kbd{M-g M-g} when you give it
 a plain prefix argument.
+
+@item M-g @key{TAB}
+@kindex M-g TAB
+@findex move-to-column
+Read a number @var{n} and move to column @var{n} in the current line.
+Column 0 is the leftmost column.  If called with a prefix argument,
+move to the column number specified by the argument's numeric value.
 
 @item C-x C-n
 @kindex C-x C-n
@@ -343,7 +354,7 @@ moves down into it.
 Delete the character before point, or the region if it is active
 (@code{delete-backward-char}).
 
-@itemx @key{Delete}
+@item @key{Delete}
 Delete the character after point, or the region if it is active
 (@code{delete-forward-char}).
 
@@ -370,7 +381,7 @@ the text in the region.  @xref{Mark}, for a description of the region.
   On most keyboards, @key{DEL} is labeled @key{Backspace}, but we
 refer to it as @key{DEL} in this manual.  (Do not confuse @key{DEL}
 with the @key{Delete} key; we will discuss @key{Delete} momentarily.)
-On some text-only terminals, Emacs may not recognize the @key{DEL} key
+On some text terminals, Emacs may not recognize the @key{DEL} key
 properly.  @xref{DEL Does Not Delete}, if you encounter this problem.
 
   The @key{delete} (@code{delete-forward-char}) command deletes in the
@@ -401,7 +412,8 @@ commands.
 @item C-/
 Undo one entry of the undo records---usually, one command worth
 (@code{undo}).
-@itemx C-x u
+
+@item C-x u
 @itemx C-_
 The same.
 @end table
@@ -528,7 +540,7 @@ too long to fit in the window, and Emacs displays it as two or more
 @dfn{continuation}, and the long logical line is called a
 @dfn{continued line}.  On a graphical display, Emacs indicates line
 wrapping with small bent arrows in the left and right window fringes.
-On a text-only terminal, Emacs indicates line wrapping by displaying a
+On a text terminal, Emacs indicates line wrapping by displaying a
 @samp{\} character at the right margin.
 
   Most commands that act on lines act on logical lines, not screen
@@ -543,9 +555,9 @@ and up, respectively, by one screen line (@pxref{Moving Point}).
 continuing them.  This means that every logical line occupies a single
 screen line; if it is longer than the width of the window, the rest of
 the line is not displayed.  On a graphical display, a truncated line
-is indicated by a small straight arrow in the right fringe; on a
-text-only terminal, it is indicated by a @samp{$} character in the
-right margin.  @xref{Line Truncation}.
+is indicated by a small straight arrow in the right fringe; on a text
+terminal, it is indicated by a @samp{$} character in the right margin.
+@xref{Line Truncation}.
 
   By default, continued lines are wrapped at the right window edge.
 Since the wrapping may occur in the middle of a word, continued lines
@@ -615,12 +627,16 @@ narrowed region and the line number relative to the whole buffer.
 
 @kindex M-=
 @findex count-words-region
-@findex count-words
   @kbd{M-=} (@code{count-words-region}) displays a message reporting
-the number of lines, words, and characters in the region.  @kbd{M-x
-count-words} displays a similar message for the entire buffer, or for
-the region if the region is @dfn{active}.  @xref{Mark}, for an
-explanation of the region.
+the number of lines, words, and characters in the region
+(@pxref{Mark}, for an explanation of the region).  With a prefix
+argument, @kbd{C-u M-=}, the command displays a count for the entire
+buffer.
+
+@findex count-words
+  The command @kbd{M-x count-words} does the same job, but with a
+different calling convention.  It displays a count for the region if
+the region is active, and for the buffer otherwise.
 
 @kindex C-x =
 @findex what-cursor-position
@@ -666,7 +682,7 @@ those two positions are the accessible ones.  @xref{Narrowing}.
 @cindex arguments to commands
 
   In the terminology of mathematics and computing, @dfn{argument}
-means ``data provided to a function or operation.''  You can give any
+means ``data provided to a function or operation''.  You can give any
 Emacs command a @dfn{numeric argument} (also called a @dfn{prefix
 argument}).  Some commands interpret the argument as a repetition
 count.  For example, giving @kbd{C-f} an argument of ten causes it to
@@ -741,7 +757,8 @@ the character @samp{1}.
 value.  For example, the command @kbd{M-q} (@code{fill-paragraph})
 fills text; with an argument, it justifies the text as well.
 (@xref{Filling}, for more information on @kbd{M-q}.)  For these
-commands, it is enough to the argument with a single @kbd{C-u}.
+commands, it is enough to specify the argument with a single
+@kbd{C-u}.
 
   Some commands use the value of the argument as a repeat count, but
 do something special when there is no argument.  For example, the
@@ -760,10 +777,10 @@ described when they come up; they exist to make an individual command
 more convenient, and they are documented in that command's
 documentation string.
 
-  We use the term ``prefix argument'' as well as ``numeric argument,''
-to emphasize that you type these argument before the command, and to
-distinguish them from minibuffer arguments that come after the
-command.
+  We use the term @dfn{prefix argument} to emphasize that you type
+such arguments before the command, and to distinguish them from
+minibuffer arguments (@pxref{Minibuffer}), which are entered after
+invoking the command.
 
 @node Repeating
 @section Repeating a Command

@@ -1,6 +1,6 @@
 ;;; smerge-mode.el --- Minor mode to resolve diff3 conflicts -*- lexical-binding: t -*-
 
-;; Copyright (C) 1999-2011 Free Software Foundation, Inc.
+;; Copyright (C) 1999-2012 Free Software Foundation, Inc.
 
 ;; Author: Stefan Monnier <monnier@iro.umontreal.ca>
 ;; Keywords: vc, tools, revision control, merge, diff3, cvs, conflict
@@ -43,7 +43,7 @@
 
 ;;; Code:
 
-(eval-when-compile (require 'cl))
+(eval-when-compile (require 'cl-lib))
 (require 'diff-mode)                    ;For diff-auto-refine-mode.
 (require 'newcomment)
 
@@ -78,36 +78,36 @@ Used in `smerge-diff-base-mine' and related functions."
   :type 'boolean)
 
 (defface smerge-mine
-  '((((min-colors 88) (background light))
-     (:foreground "blue1"))
-    (((background light))
-     (:foreground "blue"))
-    (((min-colors 88) (background dark))
-     (:foreground "cyan1"))
-    (((background dark))
-     (:foreground "cyan")))
+  '((((class color) (min-colors 88) (background light))
+     :background "#ffdddd")
+    (((class color) (min-colors 88) (background dark))
+     :background "#553333")
+    (((class color))
+     :foreground "red"))
   "Face for your code."
   :group 'smerge)
 (define-obsolete-face-alias 'smerge-mine-face 'smerge-mine "22.1")
 (defvar smerge-mine-face 'smerge-mine)
 
 (defface smerge-other
-  '((((background light))
-     (:foreground "darkgreen"))
-    (((background dark))
-     (:foreground "lightgreen")))
+  '((((class color) (min-colors 88) (background light))
+     :background "#ddffdd")
+    (((class color) (min-colors 88) (background dark))
+     :background "#335533")
+    (((class color))
+     :foreground "green"))
   "Face for the other code."
   :group 'smerge)
 (define-obsolete-face-alias 'smerge-other-face 'smerge-other "22.1")
 (defvar smerge-other-face 'smerge-other)
 
 (defface smerge-base
-  '((((min-colors 88) (background light))
-     (:foreground "red1"))
-    (((background light))
-     (:foreground "red"))
-    (((background dark))
-     (:foreground "orange")))
+  '((((class color) (min-colors 88) (background light))
+     :background "#ffffaa")
+    (((class color) (min-colors 88) (background dark))
+     :background "#888833")
+    (((class color))
+     :foreground "yellow"))
   "Face for the base code."
   :group 'smerge)
 (define-obsolete-face-alias 'smerge-base-face 'smerge-base "22.1")
@@ -124,9 +124,33 @@ Used in `smerge-diff-base-mine' and related functions."
 (defvar smerge-markers-face 'smerge-markers)
 
 (defface smerge-refined-change
-  '((t :background "yellow"))
+  '((t nil))
   "Face used for char-based changes shown by `smerge-refine'."
   :group 'smerge)
+
+(defface smerge-refined-removed
+  '((default
+     :inherit smerge-refined-change)
+    (((class color) (min-colors 88) (background light))
+     :background "#ffbbbb")
+    (((class color) (min-colors 88) (background dark))
+     :background "#aa2222")
+    (t :inverse-video t))
+  "Face used for removed characters shown by `smerge-refine'."
+  :group 'smerge
+  :version "24.3")
+
+(defface smerge-refined-added
+  '((default
+     :inherit smerge-refined-change)
+    (((class color) (min-colors 88) (background light))
+     :background "#aaffaa")
+    (((class color) (min-colors 88) (background dark))
+     :background "#22aa22")
+    (t :inverse-video t))
+  "Face used for added characters shown by `smerge-refine'."
+  :group 'smerge
+  :version "24.3")
 
 (easy-mmode-defmap smerge-basic-map
   `(("n" . smerge-next)
@@ -342,12 +366,11 @@ Can be nil if the style is undecided, or else:
         ))))
 
 (defvar smerge-resolve-function
-  (lambda () (error "Don't know how to resolve"))
+  (lambda () (user-error "Don't know how to resolve"))
   "Mode-specific merge function.
 The function is called with zero or one argument (non-nil if the resolution
 function should only apply safe heuristics) and with the match data set
 according to `smerge-match-conflict'.")
-(add-to-list 'debug-ignored-errors "Don't know how to resolve")
 
 (defvar smerge-text-properties
   `(help-echo "merge conflict: mouse-3 shows a menu"
@@ -626,7 +649,7 @@ major modes.  Uses `smerge-resolve-function' to do the actual work."
             (set-match-data md)
 	    (smerge-keep-n choice))
            (t
-            (error "Don't know how to resolve"))))
+            (user-error "Don't know how to resolve"))))
       (if (buffer-name buf) (kill-buffer buf))
       (if m (delete-file m))
       (if b (delete-file b))
@@ -693,7 +716,7 @@ major modes.  Uses `smerge-resolve-function' to do the actual work."
     (while (or (not (match-end i))
 	       (< (point) (match-beginning i))
 	       (>= (point) (match-end i)))
-      (decf i))
+      (cl-decf i))
     i))
 
 (defun smerge-keep-current ()
@@ -756,7 +779,7 @@ An error is raised if not inside a conflict."
 	       (filename (or (match-string 1) ""))
 
 	       (_ (re-search-forward smerge-end-re))
-	       (_ (assert (< orig-point (match-end 0))))
+	       (_ (cl-assert (< orig-point (match-end 0))))
 
 	       (other-end (match-beginning 0))
 	       (end (match-end 0))
@@ -810,9 +833,7 @@ An error is raised if not inside a conflict."
 				  (when base-start (1- base-start)) base-start
 				  (1- other-start) other-start))
 	  t)
-      (search-failed (error "Point not in conflict region")))))
-
-(add-to-list 'debug-ignored-errors "Point not in conflict region")
+      (search-failed (user-error "Point not in conflict region")))))
 
 (defun smerge-conflict-overlay (pos)
   "Return the conflict overlay at POS if any."
@@ -983,9 +1004,17 @@ chars to try and eliminate some spurious differences."
           (dolist (x props) (overlay-put ol (car x) (cdr x)))
           ol)))))
 
-(defun smerge-refine-subst (beg1 end1 beg2 end2 props &optional preproc)
+(defun smerge-refine-subst (beg1 end1 beg2 end2 props-c &optional preproc props-r props-a)
   "Show fine differences in the two regions BEG1..END1 and BEG2..END2.
-PROPS is an alist of properties to put (via overlays) on the changes.
+PROPS-C is an alist of properties to put (via overlays) on the changes.
+PROPS-R is an alist of properties to put on removed characters.
+PROPS-A is an alist of properties to put on added characters.
+If PROPS-R and PROPS-A are nil, put PROPS-C on all changes.
+If PROPS-C is nil, but PROPS-R and PROPS-A are non-nil,
+put PROPS-A on added characters, PROPS-R on removed characters.
+If PROPS-C, PROPS-R and PROPS-A are non-nil, put PROPS-C on changed characters,
+PROPS-A on added characters, and PROPS-R on removed characters.
+
 If non-nil, PREPROC is called with no argument in a buffer that contains
 a copy of a region, just before preparing it to for `diff'.  It can be
 used to replace chars to try and eliminate some spurious differences."
@@ -1029,19 +1058,27 @@ used to replace chars to try and eliminate some spurious differences."
                     (m5 (match-string 5)))
                 (when (memq op '(?d ?c))
                   (setq last1
-                        (smerge-refine-highlight-change buf beg1 m1 m2 props)))
+                        (smerge-refine-highlight-change
+			 buf beg1 m1 m2
+			 ;; Try to use props-c only for changed chars,
+			 ;; fallback to props-r for changed/removed chars,
+			 ;; but if props-r is nil then fallback to props-c.
+			 (or (and (eq op '?c) props-c) props-r props-c))))
                 (when (memq op '(?a ?c))
                   (setq last2
-                        (smerge-refine-highlight-change buf beg2 m4 m5 props))))
+                        (smerge-refine-highlight-change
+			 buf beg2 m4 m5
+			 ;; Same logic as for removed chars above.
+			 (or (and (eq op '?c) props-c) props-a props-c)))))
               (forward-line 1)                            ;Skip hunk header.
               (and (re-search-forward "^[0-9]" nil 'move) ;Skip hunk body.
                    (goto-char (match-beginning 0))))
-            ;; (assert (or (null last1) (< (overlay-start last1) end1)))
-            ;; (assert (or (null last2) (< (overlay-start last2) end2)))
+            ;; (cl-assert (or (null last1) (< (overlay-start last1) end1)))
+            ;; (cl-assert (or (null last2) (< (overlay-start last2) end2)))
             (if smerge-refine-weight-hack
                 (progn
-                  ;; (assert (or (null last1) (<= (overlay-end last1) end1)))
-                  ;; (assert (or (null last2) (<= (overlay-end last2) end2)))
+                  ;; (cl-assert (or (null last1) (<= (overlay-end last1) end1)))
+                  ;; (cl-assert (or (null last2) (<= (overlay-end last2) end2)))
                   )
               ;; smerge-refine-forward-function when calling in chopup may
               ;; have stopped because it bumped into EOB whereas in
@@ -1084,7 +1121,11 @@ repeating the command will highlight other two parts."
                    ((eq (match-end 3) (match-beginning 3)) 3)
                    (t 2)))
   (let ((n1 (if (eq part 1) 2 1))
-        (n2 (if (eq part 3) 2 3)))
+        (n2 (if (eq part 3) 2 3))
+	(smerge-use-changed-face
+	 (and (face-differs-from-default-p 'smerge-refined-change)
+	      (not (face-equal 'smerge-refined-change 'smerge-refined-added))
+	      (not (face-equal 'smerge-refined-change 'smerge-refined-removed)))))
     (smerge-ensure-match n1)
     (smerge-ensure-match n2)
     (with-silent-modifications
@@ -1093,8 +1134,13 @@ repeating the command will highlight other two parts."
                          (cons (buffer-chars-modified-tick) part)))
     (smerge-refine-subst (match-beginning n1) (match-end n1)
                          (match-beginning n2)  (match-end n2)
-                         '((smerge . refine)
-                           (face . smerge-refined-change)))))
+                         (if smerge-use-changed-face
+			     '((smerge . refine) (face . smerge-refined-change)))
+			 nil
+			 (unless smerge-use-changed-face
+			   '((smerge . refine) (face . smerge-refined-removed)))
+			 (unless smerge-use-changed-face
+			   '((smerge . refine) (face . smerge-refined-added))))))
 
 (defun smerge-diff (n1 n2)
   (smerge-match-conflict)
@@ -1244,8 +1290,8 @@ with a \\[universal-argument] prefix, makes up a 3-way conflict."
          (progn (pop-mark) (mark))
          (when current-prefix-arg (pop-mark) (mark))))
   ;; Start from the end so as to avoid problems with pos-changes.
-  (destructuring-bind (pt1 pt2 pt3 &optional pt4)
-      (sort (list* pt1 pt2 pt3 (if pt4 (list pt4))) '>=)
+  (pcase-let ((`(,pt1 ,pt2 ,pt3 ,pt4)
+               (sort `(,pt1 ,pt2 ,pt3 ,@(if pt4 (list pt4))) '>=)))
     (goto-char pt1) (beginning-of-line)
     (insert ">>>>>>> OTHER\n")
     (goto-char pt2) (beginning-of-line)
@@ -1266,6 +1312,9 @@ with a \\[universal-argument] prefix, makes up a 3-way conflict."
 ;;;###autoload
 (define-minor-mode smerge-mode
   "Minor mode to simplify editing output from the diff3 program.
+With a prefix argument ARG, enable the mode if ARG is positive,
+and disable it otherwise.  If called from Lisp, enable the mode
+if ARG is omitted or nil.
 \\{smerge-mode-map}"
   :group 'smerge :lighter " SMerge"
   (when (and (boundp 'font-lock-mode) font-lock-mode)

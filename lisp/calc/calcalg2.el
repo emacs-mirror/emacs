@@ -1,6 +1,6 @@
 ;;; calcalg2.el --- more algebraic functions for Calc
 
-;; Copyright (C) 1990-1993, 2001-2011 Free Software Foundation, Inc.
+;; Copyright (C) 1990-1993, 2001-2012 Free Software Foundation, Inc.
 
 ;; Author: David Gillespie <daveg@synaptics.com>
 ;; Maintainer: Jay Belanger <jay.p.belanger@gmail.com>
@@ -667,21 +667,18 @@
 (defvar math-integral-limit)
 
 (defmacro math-tracing-integral (&rest parts)
-  (list 'and
-	'trace-buffer
-	(list 'with-current-buffer
-	      'trace-buffer
-	      '(goto-char (point-max))
-	      (list 'and
-		    '(bolp)
-		    '(insert (make-string (- math-integral-limit
-					     math-integ-level) 32)
-			     (format "%2d " math-integ-depth)
-			     (make-string math-integ-level 32)))
-	      ;;(list 'condition-case 'err
-		    (cons 'insert parts)
-		;;    '(error (insert (prin1-to-string err))))
-	      '(sit-for 0))))
+  `(and trace-buffer
+	(with-current-buffer trace-buffer
+	  (goto-char (point-max))
+	  (and (bolp)
+	       (insert (make-string (- math-integral-limit
+				       math-integ-level) 32)
+		       (format "%2d " math-integ-depth)
+		       (make-string math-integ-level 32)))
+	  ;;(condition-case err
+	  (insert ,@parts)
+	  ;;    (error (insert (prin1-to-string err))))
+	  (sit-for 0))))
 
 ;;; The following wrapper caches results and avoids infinite recursion.
 ;;; Each cache entry is: ( A B )          Integral of A is B;

@@ -1,11 +1,10 @@
 ;;; ob-ocaml.el --- org-babel functions for ocaml evaluation
 
-;; Copyright (C) 2009-2011  Free Software Foundation, Inc.
+;; Copyright (C) 2009-2012  Free Software Foundation, Inc.
 
 ;; Author: Eric Schulte
 ;; Keywords: literate programming, reproducible research
 ;; Homepage: http://orgmode.org
-;; Version: 7.7
 
 ;; This file is part of GNU Emacs.
 
@@ -29,7 +28,7 @@
 ;; they can be run, but ocaml code can also be run through an
 ;; interactive interpreter.
 ;;
-;; For now let's only allow evaluation using the ocaml interpreter.
+;; For now lets only allow evaluation using the ocaml interpreter.
 
 ;;; Requirements:
 
@@ -73,7 +72,7 @@
 					 (progn (setq out nil) line)
 				       (when (string-match re line)
 					 (progn (setq out t) nil))))
-				 (mapcar #'org-babel-trim (reverse raw))))))))
+				   (mapcar #'org-babel-trim (reverse raw))))))))
     (org-babel-reassemble-table
      (org-babel-ocaml-parse-output (org-babel-trim clean))
      (org-babel-pick-name
@@ -94,7 +93,7 @@
                            (get-buffer tuareg-interactive-buffer-name))))
 
 (defun org-babel-variable-assignments:ocaml (params)
-  "Return list of ocaml statements assigning the block's variables"
+  "Return list of ocaml statements assigning the block's variables."
   (mapcar
    (lambda (pair) (format "let %s = %s;;" (car pair)
 			  (org-babel-ocaml-elisp-to-ocaml (cdr pair))))
@@ -132,11 +131,11 @@ Emacs-lisp table, otherwise return the results as a string."
   "Convert RESULTS into an elisp table or string.
 If the results look like a table, then convert them into an
 Emacs-lisp table, otherwise return the results as a string."
-    (org-babel-script-escape
-     (replace-regexp-in-string
-      "\\[|" "[" (replace-regexp-in-string
-		  "|\\]" "]" (replace-regexp-in-string
-			      "; " "," results)))))
+  (org-babel-script-escape
+   (replace-regexp-in-string
+    "\\[|" "[" (replace-regexp-in-string
+		"|\\]" "]" (replace-regexp-in-string
+			    "; " "," results)))))
 
 (provide 'ob-ocaml)
 

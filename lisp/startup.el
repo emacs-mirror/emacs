@@ -1,6 +1,6 @@
 ;;; startup.el --- process Emacs shell arguments  -*- lexical-binding: t -*-
 
-;; Copyright (C) 1985-1986, 1992, 1994-2011  Free Software Foundation, Inc.
+;; Copyright (C) 1985-1986, 1992, 1994-2012  Free Software Foundation, Inc.
 
 ;; Maintainer: FSF
 ;; Keywords: internal
@@ -41,9 +41,12 @@
 (defcustom initial-buffer-choice nil
   "Buffer to show after starting Emacs.
 If the value is nil and `inhibit-startup-screen' is nil, show the
-startup screen.  If the value is string, visit the specified file
+startup screen.  If the value is a string, visit the specified file
 or directory using `find-file'.  If t, open the `*scratch*'
-buffer."
+buffer.
+
+A string value also causes emacsclient to open the specified file
+or directory when no target file is specified."
   :type '(choice
 	  (const     :tag "Startup screen" nil)
 	  (directory :tag "Directory" :value "~/")
@@ -65,16 +68,19 @@ once you are familiar with the contents of the startup screen."
 
 (defvar startup-screen-inhibit-startup-screen nil)
 
+;; FIXME? Why does this get such weirdly extreme treatment, when the
+;; more important inhibit-startup-screen does not.
 (defcustom inhibit-startup-echo-area-message nil
   "Non-nil inhibits the initial startup echo area message.
 Setting this variable takes effect
 only if you do it with the customization buffer
-or if your `.emacs' file contains a line of this form:
+or if your init file contains a line of this form:
  (setq inhibit-startup-echo-area-message \"YOUR-USER-NAME\")
-If your `.emacs' file is byte-compiled, use the following form instead:
+If your init file is byte-compiled, use the following form
+instead:
  (eval '(setq inhibit-startup-echo-area-message \"YOUR-USER-NAME\"))
-Thus, someone else using a copy of your `.emacs' file will see
-the startup message unless he personally acts to inhibit it."
+Thus, someone else using a copy of your init file will see the
+startup message unless he personally acts to inhibit it."
   :type '(choice (const :tag "Don't inhibit")
 		 (string :tag "Enter your user name, to inhibit"))
   :group 'initialization)
@@ -99,16 +105,15 @@ the remaining command-line args are in the variable `command-line-args-left'.")
   "List of command-line args not yet processed.")
 
 (defvaralias 'argv 'command-line-args-left
-  ;; FIXME: Bad name for a dynamically bound variable.
   "List of command-line args not yet processed.
 This is a convenience alias, so that one can write \(pop argv\)
 inside of --eval command line arguments in order to access
 following arguments.")
+(internal-make-var-non-special 'argv)
 
-(with-no-warnings
-  ;; FIXME: Bad name for a dynamically bound variable
-  (defvar argi nil
-    "Current command-line argument."))
+(defvar argi nil
+  "Current command-line argument.")
+(internal-make-var-non-special 'argi)
 
 (defvar command-line-functions nil    ;; lrs 7/31/89
   "List of functions to process unrecognized command-line arguments.
@@ -122,8 +127,8 @@ altering `command-line-args-left' to remove them.")
   "Default directory to use for command line arguments.
 This is normally copied from `default-directory' when Emacs starts.")
 
-;;; This is here, rather than in x-win.el, so that we can ignore these
-;;; options when we are not using X.
+;; This is here, rather than in x-win.el, so that we can ignore these
+;; options when we are not using X.
 (defconst command-line-x-option-alist
   '(("-bw" 1 x-handle-numeric-switch border-width)
     ("-d" 1 x-handle-display)
@@ -214,8 +219,8 @@ and VALUE is the value which is given to that frame parameter
     ("-fn" 1 x-handle-switch font)
     ("-font" 1 x-handle-switch font)
     ("-ib" 1 x-handle-numeric-switch internal-border-width)
-    ;;("-g" .               x-handle-geometry)
-    ;;("-geometry" .        x-handle-geometry)
+    ("-g" 1 x-handle-geometry)
+    ("-geometry" 1 x-handle-geometry)
     ("-fg" 1 x-handle-switch foreground-color)
     ("-foreground" 1 x-handle-switch foreground-color)
     ("-bg" 1 x-handle-switch background-color)
@@ -260,10 +265,14 @@ and VALUE is the value which is given to that frame parameter
   "Normal hook run after handling urgent options but before loading init files.")
 
 (defvar after-init-hook nil
-  "Normal hook run after loading the init files, `~/.emacs' and `default.el'.
-There is no `condition-case' around the running of these functions;
-therefore, if you set `debug-on-error' non-nil in `.emacs',
-an error in one of these functions will invoke the debugger.")
+  "Normal hook run after initializing the Emacs session.
+It is run after Emacs loads the init file, `default' library, the
+abbrevs file, and additional Lisp packages (if any), and setting
+the value of `after-init-time'.
+
+There is no `condition-case' around the running of this hook;
+therefore, if `debug-on-error' is non-nil, an error in one of
+these functions will invoke the debugger.")
 
 (defvar emacs-startup-hook nil
   "Normal hook run after loading init files and handling the command line.")
@@ -295,7 +304,7 @@ the user's init file.")
   :group 'initialization)
 
 (defvar init-file-user nil
-  "Identity of user whose `.emacs' file is or was read.
+  "Identity of user whose init file is or was read.
 The value is nil if `-q' or `--no-init-file' was specified,
 meaning do not load any init file.
 
@@ -305,7 +314,7 @@ or it may be a string containing a user's name meaning
 use that person's init file.
 
 In either of the latter cases, `(concat \"~\" init-file-user \"/\")'
-evaluates to the name of the directory where the `.emacs' file was
+evaluates to the name of the directory where the init file was
 looked for.
 
 Setting `init-file-user' does not prevent Emacs from loading
@@ -337,7 +346,9 @@ this variable usefully is to set it while building and dumping Emacs."
 	  (error "Customizing `site-run-file' does not work")))
 
 (defcustom mail-host-address nil
-  "Name of this machine, for purposes of naming users."
+  "Name of this machine, for purposes of naming users.
+If non-nil, Emacs uses this instead of `system-name' when constructing
+email addresses."
   :type '(choice (const nil) string)
   :group 'mail)
 
@@ -362,7 +373,7 @@ init file is read, in case it sets `mail-host-address'."
 	(t
 	 (concat user-emacs-directory "auto-save-list/.saves-")))
   "Prefix for generating `auto-save-list-file-name'.
-This is used after reading your `.emacs' file to initialize
+This is used after reading your init file to initialize
 `auto-save-list-file-name', by appending Emacs's pid and the system name,
 if you have not already set `auto-save-list-file-name' yourself.
 Directories in the prefix will be created if necessary.
@@ -464,6 +475,10 @@ DIRS are relative."
       (setcdr tail (append (mapcar 'expand-file-name dirs) (cdr tail))))))
 
 (defun normal-top-level ()
+  "Emacs calls this function when it first starts up.
+It sets `command-line-processed', processes the command-line,
+reads the initialization files, etc.
+It is the default value of the variable `top-level'."
   (if command-line-processed
       (message "Back to top level.")
     (setq command-line-processed t)
@@ -482,13 +497,20 @@ DIRS are relative."
     ;; of that dir into load-path,
     ;; Look for a leim-list.el file too.  Loading it will register
     ;; available input methods.
-    (let ((tail load-path) dir)
+    (let ((tail load-path)
+          (lispdir (expand-file-name "../lisp" data-directory))
+	  ;; For out-of-tree builds, leim-list is generated in the build dir.
+;;;          (leimdir (expand-file-name "../leim" doc-directory))
+          dir)
       (while tail
         (setq dir (car tail))
         (let ((default-directory dir))
           (load (expand-file-name "subdirs.el") t t t))
-        (let ((default-directory dir))
-          (load (expand-file-name "leim-list.el") t t t))
+	;; Do not scan standard directories that won't contain a leim-list.el.
+	;; http://lists.gnu.org/archive/html/emacs-devel/2009-10/msg00502.html
+	(or (string-match (concat "\\`" lispdir) dir)
+	    (let ((default-directory dir))
+	      (load (expand-file-name "leim-list.el") t t t)))
         ;; We don't use a dolist loop and we put this "setq-cdr" command at
         ;; the end, because the subdirs.el files may add elements to the end
         ;; of load-path and we want to take it into account.
@@ -701,6 +723,8 @@ opening the first frame (e.g. open a connection to an X server).")
 (defvar server-process)
 
 (defun command-line ()
+  "A subroutine of `normal-top-level'.
+Amongst another things, it parses the command-line arguments."
   (setq before-init-time (current-time)
 	after-init-time nil
         command-line-default-directory default-directory)
@@ -866,7 +890,8 @@ opening the first frame (e.g. open a connection to an X server).")
       ;; Initialize the window system. (Open connection, etc.)
       (funcall
        (or (cdr (assq initial-window-system window-system-initialization-alist))
-	   (error "Unsupported window system `%s'" initial-window-system))))
+	   (error "Unsupported window system `%s'" initial-window-system)))
+      (put initial-window-system 'window-system-initialized t))
     ;; If there was an error, print the error message and exit.
     (error
      (princ
@@ -888,33 +913,12 @@ opening the first frame (e.g. open a connection to an X server).")
 
   (run-hooks 'before-init-hook)
 
-  ;; Under X, this creates the X frame and deletes the terminal frame.
+  ;; Under X, create the X frame and delete the terminal frame.
   (unless (daemonp)
-
-    ;; If X resources are available, use them to initialize the values
-    ;; of `tool-bar-mode' and `menu-bar-mode', as well as the value of
-    ;; `no-blinking-cursor' and the `cursor' face.
-    (cond
-     ((or noninteractive emacs-basic-display)
-      (setq menu-bar-mode nil
-	    tool-bar-mode nil
-	    no-blinking-cursor t))
-     ((memq initial-window-system '(x w32 ns))
-      (let ((no-vals  '("no" "off" "false" "0")))
-	(if (member (x-get-resource "menuBar" "MenuBar") no-vals)
-	    (setq menu-bar-mode nil))
-	(if (member (x-get-resource "toolBar" "ToolBar") no-vals)
-	    (setq tool-bar-mode nil))
-	(if (member (x-get-resource "cursorBlink" "CursorBlink")
-		    no-vals)
-	    (setq no-blinking-cursor t)))
-      ;; If the cursorColor X resource exists, alter the `cursor' face
-      ;; spec, but mark it as changed outside of Customize.
-      (let ((color (x-get-resource "cursorColor" "CursorColor")))
-	(when color
-	  (put 'cursor 'theme-face
-	       `((changed ((t :background ,color)))))
-	  (put 'cursor 'face-modified t)))))
+    (if (or noninteractive emacs-basic-display)
+	(setq menu-bar-mode nil
+	      tool-bar-mode nil
+	      no-blinking-cursor t))
     (frame-initialize))
 
   (when (fboundp 'x-create-frame)
@@ -929,7 +933,7 @@ opening the first frame (e.g. open a connection to an X server).")
 	      emacs-basic-display
 	      (and (memq window-system '(x w32 ns))
 		   (not (member (x-get-resource "cursorBlink" "CursorBlink")
-				'("off" "false")))))
+				'("no" "off" "false" "0")))))
     (setq no-blinking-cursor t))
 
   ;; Re-evaluate predefined variables whose initial value depends on
@@ -967,7 +971,6 @@ opening the first frame (e.g. open a connection to an X server).")
                  (not (eq 0 (cdr tool-bar-lines)))))))
 
   (let ((old-scalable-fonts-allowed scalable-fonts-allowed)
-	(old-font-list-limit font-list-limit)
 	(old-face-ignored-fonts face-ignored-fonts))
 
     ;; Run the site-start library if it exists.  The point of this file is
@@ -1006,7 +1009,9 @@ opening the first frame (e.g. open a connection to an X server).")
 	    nil
 	  (display-warning 'initialization
 			   (format "User %s has no home directory"
-				   init-file-user)
+				   (if (equal init-file-user "")
+				       (user-real-login-name)
+				     init-file-user))
 			   :error))))
 
     ;; Load that user's init file, or the default one, or none.
@@ -1152,43 +1157,10 @@ the `--debug-init' option to view a complete error backtrace."
 					    (or mail-host-address
 						(system-name))))))
 
-    ;; Originally face attributes were specified via
-    ;; `font-lock-face-attributes'.  Users then changed the default
-    ;; face attributes by setting that variable.  However, we try and
-    ;; be back-compatible and respect its value if set except for
-    ;; faces where M-x customize has been used to save changes for the
-    ;; face.
-    (when (boundp 'font-lock-face-attributes)
-      (let ((face-attributes font-lock-face-attributes))
-	(while face-attributes
-	  (let* ((face-attribute (pop face-attributes))
-		 (face (car face-attribute)))
-	    ;; Rustle up a `defface' SPEC from a
-	    ;; `font-lock-face-attributes' entry.
-	    (unless (get face 'saved-face)
-	      (let ((foreground (nth 1 face-attribute))
-		    (background (nth 2 face-attribute))
-		    (bold-p (nth 3 face-attribute))
-		    (italic-p (nth 4 face-attribute))
-		    (underline-p (nth 5 face-attribute))
-		    face-spec)
-		(when foreground
-		  (setq face-spec (cons ':foreground (cons foreground face-spec))))
-		(when background
-		  (setq face-spec (cons ':background (cons background face-spec))))
-		(when bold-p
-		  (setq face-spec (append '(:weight bold) face-spec)))
-		(when italic-p
-		  (setq face-spec (append '(:slant italic) face-spec)))
-		(when underline-p
-		  (setq face-spec (append '(:underline t) face-spec)))
-		(face-spec-set face (list (list t face-spec)) nil)))))))
-
     ;; If parameter have been changed in the init file which influence
     ;; face realization, clear the face cache so that new faces will
     ;; be realized.
     (unless (and (eq scalable-fonts-allowed old-scalable-fonts-allowed)
-		 (eq font-list-limit old-font-list-limit)
 		 (eq face-ignored-fonts old-face-ignored-fonts))
       (clear-face-cache)))
 
@@ -1281,6 +1253,29 @@ the `--debug-init' option to view a complete error backtrace."
       (with-no-warnings
 	(emacs-session-restore x-session-previous-id))))
 
+(defun x-apply-session-resources ()
+  "Apply X resources which specify initial values for Emacs variables.
+This is called from a window-system initialization function, such
+as `x-initialize-window-system' for X, either at startup (prior
+to reading the init file), or afterwards when the user first
+opens a graphical frame.
+
+This can set the values of `menu-bar-mode', `tool-bar-mode', and
+`no-blinking-cursor', as well as the `cursor' face.  Changed
+settings will be marked as \"CHANGED outside of Customize\"."
+  (let ((no-vals  '("no" "off" "false" "0"))
+	(settings '(("menuBar" "MenuBar" menu-bar-mode nil)
+		    ("toolBar" "ToolBar" tool-bar-mode nil)
+		    ("cursorBlink" "CursorBlink" no-blinking-cursor t))))
+    (dolist (x settings)
+      (if (member (x-get-resource (nth 0 x) (nth 1 x)) no-vals)
+	  (set (nth 2 x) (nth 3 x)))))
+  (let ((color (x-get-resource "cursorColor" "Foreground")))
+    (when color
+      (put 'cursor 'theme-face
+	   `((changed ((t :background ,color)))))
+      (put 'cursor 'face-modified t))))
+
 (defcustom initial-scratch-message (purecopy "\
 ;; This buffer is for notes you don't want to save, and for Lisp evaluation.
 ;; If you want to create a file, visit that file with C-x C-f,
@@ -1325,7 +1320,15 @@ If this is nil, no message will be displayed."
 	      (title (with-temp-buffer
 		       (insert-file-contents
 			(expand-file-name tut tutorial-directory)
-			nil 0 256)
+			;; We used to read only the first 256 bytes of
+			;; the tutorial, but that prevents the coding:
+			;; setting, if any, in file-local variables
+			;; section to be seen by insert-file-contents,
+			;; and results in gibberish when the language
+			;; environment's preferred encoding is
+			;; different from what the file-local variable
+			;; says.  One case in point is Hebrew.
+			nil)
 		       (search-forward ".")
 		       (buffer-substring (point-min) (1- (point))))))
 	 ;; If there is a specific tutorial for the current language
@@ -1505,7 +1508,8 @@ a face or button specification."
 				   (if (image-type-available-p 'xpm)
 				       "splash.xpm"
 				     "splash.pbm"))
-				  ((image-type-available-p 'svg)
+				  ((or (image-type-available-p 'svg)
+				       (image-type-available-p 'imagemagick))
 				   "splash.svg")
 				  ((image-type-available-p 'png)
 				   "splash.png")
@@ -1689,7 +1693,6 @@ splash screen in another window."
 	(force-mode-line-update))
       (use-local-map splash-screen-keymap)
       (setq tab-width 22)
-      (message "%s" (startup-echo-area-message))
       (setq buffer-read-only t)
       (goto-char (point-min))
       (forward-line 3))))
@@ -2076,6 +2079,7 @@ A fancy display is used on graphic displays, normal otherwise."
 (defalias 'display-splash-screen 'display-startup-screen)
 
 (defun command-line-1 (args-left)
+  "A subroutine of `command-line'."
   (display-startup-echo-area-message)
   (when (and pure-space-overflow
 	     (not noninteractive))
@@ -2330,6 +2334,7 @@ A fancy display is used on graphic displays, normal otherwise."
     (if (or inhibit-startup-screen
 	    initial-buffer-choice
 	    noninteractive
+            (daemonp)
 	    inhibit-x-resources)
 
 	;; Not displaying a startup screen.  If 3 or more files
@@ -2372,9 +2377,7 @@ A fancy display is used on graphic displays, normal otherwise."
       ;; (with-no-warnings
       ;; 	(setq menubar-bindings-done t))
 
-      (if (> file-count 0)
-	  (display-startup-screen t)
-	(display-startup-screen nil)))))
+      (display-startup-screen (> file-count 0)))))
 
 (defun command-line-normalize-file-name (file)
   "Collapse multiple slashes to one, to handle non-Emacs file names."

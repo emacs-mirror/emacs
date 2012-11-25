@@ -1,3 +1,181 @@
+2012-11-24  Ken Brown  <kbrown@cornell.edu>
+
+	* sed2v2.inp (HAVE_MOUSE): Remove.
+
+2012-11-03  Eli Zaretskii  <eliz@gnu.org>
+
+	* sedlibmk.inp: Sync with changes in lib/Makefile.in.
+	(HAVE_DECL_ENVIRON, GNULIB_ENVIRON): Edit to require declaration
+	through lib/unistd.h.
+
+	* sed1v2.inp: Sync with changes in src/Makefile.in.
+
+	* sed2v2.inp: Sync with changes in src/config.in.
+
+2012-10-08  Eli Zaretskii  <eliz@gnu.org>
+
+	* sed1v2.inp (W32_LIBS, W32_OBJ): Edit to empty.
+
+2012-10-04  Paul Eggert  <eggert@cs.ucla.edu>
+
+	Merge from gnulib.
+	* msdos/sedlibmk.inp (REPLACE_PTSNAME): Edit to appropriate value.
+
+2012-09-27  Paul Eggert  <eggert@cs.ucla.edu>
+
+	Check more robustly for timer_settime.
+	* sed1v2.inp, sed3v2.inp (LIB_TIMER_TIME): New macro.
+
+2012-08-04  Eli Zaretskii  <eliz@gnu.org>
+
+	* sedlibmk.inp (allocator.$(OBJEXT), careadlinkat.$(OBJEXT)): Fix
+	editing out.
+
+	* sed2v2.inp (IS_DEVICE_SEP): Edit to match ':'.
+	(IS_DIRECTORY_SEP, INTERNAL_TERMINAL): Fix Sed command syntax.
+	(MSDOS): Define only if undefined, as MSDOS is a built-in macro,
+	unless some std= switch to GCC is used.
+
+2012-08-01  Glenn Morris  <rgm@gnu.org>
+
+	* sed2v2.inp (HAVE_WCHAR_H): Fix typo.
+
+	* sed2v2.inp (MSDOS, DOS_NT, FLOAT_CHECK_DOMAIN)
+	(HAVE_INVERSE_HYPERBOLIC, DEVICE_SEP, IS_DIRECTORY_SEP, IS_ANY_SEP)
+	(INTERNAL_TERMINAL, NULL_DEVICE, SEPCHAR, USER_FULL_NAME)
+	(_setjmp, _longjmp): Move here from src/s/msdos.h.
+	(config_opsysfile, config_machfile): Remove.
+	* sed1v2.inp (M_FILE, S_FILE): Remove.
+	* mainmake.v2 (TAGS, tags): Remove src/s/msdos.h.
+
+2012-07-31  Glenn Morris  <rgm@gnu.org>
+
+	* sed1v2.inp (S_FILE): Update for format change.
+
+2012-07-28  Paul Eggert  <eggert@cs.ucla.edu>
+
+	Use Gnulib stdalign module (Bug#9772, Bug#9960).
+	* sed2v2.inp (HAVE_ATTRIBUTE_ALIGNED): Remove edit.
+	* sedlibmk.inp (STDALIGN_H, @GL_GENERATE_STDALIGN_H_TRUE@)
+	(GL_GENERATE_STDALIGN_H_FALSE): New edits.
+
+2012-07-14  Eli Zaretskii  <eliz@gnu.org>
+
+	* sed1v2.inp: In the recipe for $(leimdir)/leim-list.el, edit the
+	prerequisites to be "temacs$(EXEEXT) $(BOOTSTRAPEMACS)", to avoid
+	the need to rebuild $(bootstrap_exe), which requires a Unixy shell
+	via lisp/Makefile.in's "update-subdirs" command.
+
+	* sedlibmk.inp (am_libgnu_a_OBJECTS): Adjust the removal of
+	careadlinkat.$(OBJEXT) to the changes in lib/Makefile.in.
+
+	* sed2v2.inp (DATA_START, GC_SETJMP_WORKS, HAVE_MENUS)
+	(HAVE_MOUSE): Edit for DJGPP, according to what was previously
+	done on src/s/msdos.h.
+
+2012-06-30  Eli Zaretskii  <eliz@gnu.org>
+
+	* mainmake.v2 (bootstrap-clean): Do a maintainer-clean in lib, not
+	bootstrap-clean (which doesn't exist).
+
+	* inttypes.h (PRIuMAX) [__DJGPP__ < 2.04]: Define to "llu".
+
+	* sedleim.inp (MKDIR_P): Edit to DOS "md" command.
+
+	* sed1v2.inp (LIB_CLOCK_GETTIME): Edit to empty.
+	Remove lines that invoke PAXCTL.
+	(clean): Fix recipe not to run Unixy shell commands.
+
+	* sed2v2.inp (GETTIMEOFDAY_TIMEZONE): Edit to 'struct timezone'.
+	(HAVE_STRNCASECMP): Edit to 1.
+
+	* sed3v2.inp (LIB_CLOCK_GETTIME): Edit to empty.
+	(C_SWITCH_SYSTEM): Add "-I../msdos".
+
+	* sedlibmk.inp (GNULIB_GETTIMEOFDAY, GNULIB_PSELECT)
+	(GNULIB_SELECT, HAVE_STRUCT_TIMEVAL, HAVE_SYS_SELECT_H)
+	(HAVE_SYS_TIME_H, NEXT_AS_FIRST_DIRECTIVE_SYS_SELECT_H)
+	(NEXT_AS_FIRST_DIRECTIVE_SYS_TIME_H, NEXT_SYS_SELECT_H)
+	(NEXT_SYS_TIME_H, REPLACE_GETTIMEOFDAY, REPLACE_PSELECT)
+	(REPLACE_STRUCT_TIMEVAL): Edit to appropriate values.
+	(BUILT_SOURCES): Edit out sys/select.h and sys/time.h.
+	(mostlyclean-local, distclean-generic): Fix recipe not to run
+	Unixy shell commands.
+
+2012-06-26  Paul Eggert  <eggert@cs.ucla.edu>
+
+	Clean out last vestiges of the old HAVE_CONFIG_H stuff.
+	* sedlibmk.inp (DEFS): Don't add -DHAVE_CONFIG_H.
+
+2012-06-11  Glenn Morris  <rgm@gnu.org>
+
+	* sed2v2.inp (SYSTEM_TYPE): Set it.
+
+2012-05-27  Eli Zaretskii  <eliz@gnu.org>
+
+	* sedlibmk.inp (GNULIB_GL_UNISTD_H_GETOPT, GNULIB_POSIX_OPENPT)
+	(GNULIB_ISATTY, GNULIB_PTSNAME_R, GNULIB_RANDOM)
+	(GNULIB_SETHOSTNAME, HAVE_POSIX_OPENPT, HAVE_PTSNAME_R)
+	(HAVE_RANDOM, HAVE_SETHOSTNAME, NEXT_SYS_TYPES_H)
+	(NEXT_AS_FIRST_DIRECTIVE_SYS_TYPES_H, REPLACE_FTRUNCATE)
+	(REPLACE_ISATTY, REPLACE_PTSNAME_R, REPLACE_RANDOM_R)
+	(REPLACE_STRTOIMAX, STDALIGN_H, WINDOWS_64_BIT_OFF_T)
+	(WINDOWS_64_BIT_ST_SIZE, GL_GENERATE_STDALIGN_H_TRUE)
+	(GL_GENERATE_STDALIGN_H_FALSE): Edit as appropriate for DJGPP.
+	(cat FOO): Edit into "sed -e '' FOO >>".
+
+2012-05-25  Eli Zaretskii  <eliz@gnu.org>
+
+	* sed6.inp (INFO_EXT): Edit to .info.
+	(INFO_OPTS): Edit to --no-split.
+
+2012-05-22  Paul Eggert  <eggert@cs.ucla.edu>
+
+	Remove src/m/*.
+	* mainmake.v2 (TAGS tags): Don't look at $(CURDIR)/src/m/intel386.h.
+
+2012-05-19  Paul Eggert  <eggert@cs.ucla.edu>
+
+	* sed2v2.inp (HAVE_MBLEN): Remove.
+	* sed2x.inp (HAVE_XSETWMPROTOCOLS): Remove.
+
+2012-04-21  Eli Zaretskii  <eliz@gnu.org>
+
+	* sedleim.inp (RUN_EMACS): Replace BUILT_EMACS with EMACS.
+	Remove stale editing of "else make quail".
+	(.PHONY, compile-targets): Remove targets.
+	(compile-main): Edit into something that can be done without
+	requiring a Unixy shell.
+	(bootstrap-clean): Likewise: edit to not require $(setwins).
+
+	* sed1v2.inp: Edit "cd $(leimdir) && $(MAKE) ..." into the
+	equivalent "$(MAKE) $(MFLAGS) -C $(leimdir) ..." command.
+
+2012-04-18  Paul Eggert  <eggert@cs.ucla.edu>
+
+	configure: new option --enable-gcc-warnings (Bug#11207)
+	* sed1v2.inp, sed3v2.inp, sedlibmk.inp: GNULIB_WARN_CFLAGS,
+	WARN_CFLAGS, and WERROR_CFLAGS replace C_WARNINGS_SWITCH.
+
+2012-04-11  Glenn Morris  <rgm@gnu.org>
+
+	* sedlibmk.inp, sed1v2.inp: GNUSTEP_CFLAGS replaces C_SWITCH_X_SYSTEM.
+
+2012-04-07  Glenn Morris  <rgm@gnu.org>
+
+	* sed2v2.inp: Bump version to 24.1.50.
+
+2012-02-04  Eli Zaretskii  <eliz@gnu.org>
+
+	* sed3v2.inp (insrcdir): Use $(<F) rather than $<, as
+	command.com's "if not exist" doesn't grok forward slashes in file
+	names.
+
+2012-01-14  Eli Zaretskii  <eliz@gnu.org>
+
+	* sed4.inp (PATH_DUMPLOADSEARCH): Edit to "../lisp", for when the
+	default in src/epaths.in will change, maybe.
+
 2011-10-31  Eli Zaretskii  <eliz@gnu.org>
 
 	* sed3v2.inp (insrcdir): Comment out definition.
@@ -637,7 +815,7 @@
 	b-emacs.exe to 3072K.
 
 	* mainmake.v2 (emacs lispref lispintro): Chdir under doc/.
-	(emacs): Renamed from `man', to reflect changes in doc directory
+	(emacs): Rename from `man', to reflect changes in doc directory
 	structure.  All callers changed.
 	(clean mostlyclean distclean maintainer-clean extraclean): Chdir
 	into doc/ for manuals.  Add misc subdirectory.
@@ -1092,7 +1270,7 @@
 
 1996-08-04  Richard Stallman  <rms@psilocin.gnu.ai.mit.edu>
 
-	* is_exec.c: Renamed from is-exec.c.
+	* is_exec.c: Rename from is-exec.c.
 
 1996-07-27  Richard Stallman  <rms@psilocin.gnu.ai.mit.edu>
 
@@ -1127,7 +1305,7 @@
 
 	* mainmake.v2 (src): Create a file with sed commands instead of using
 	a long sed command line (some versions of Sed don't handle that).
-	(gdb): Merged back into src, undoing April 13 change.
+	(gdb): Merge back into src, undoing April 13 change.
 	(install): Do use if statements, but not a loop.
 
 1996-04-13  Richard Stallman  <rms@mole.gnu.ai.mit.edu>
@@ -1297,7 +1475,7 @@
 ;; coding: utf-8
 ;; End:
 
-  Copyright (C) 1994-1999, 2001-2011  Free Software Foundation, Inc.
+  Copyright (C) 1994-1999, 2001-2012 Free Software Foundation, Inc.
 
   This file is part of GNU Emacs.
 

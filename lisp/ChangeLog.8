@@ -2372,7 +2372,7 @@
 	(sh-mode-map): Added new bindings.
 	(sh-mode): Updated mode doc-string for new commands, added
 	make-local-variable calls, initialize mode-specific variables.
-	(sh-indent-line): Renamed to sh-basic-indent-line;  sh-indent-line
+	(sh-indent-line): Renamed to sh-basic-indent-line; sh-indent-line
 	is now a different function.
 	(sh-header-marker): Changed docstring.
 	(sh-set-shell): Initialize mode-specific variables.
@@ -3571,7 +3571,7 @@
 
 1999-08-15  Yoshiki Hayashi  <t90553@mail.ecc.u-tokyo.ac.jp>
 
-	* lisp/texinfmt.el: Handle @ifnottex.
+	* texinfmt.el: Handle @ifnottex.
 
 1999-08-15  Eli Zaretskii  <eliz@gnu.org>
 
@@ -6906,7 +6906,7 @@
 	standard `print' and `nprint' programs, as well as `lpr' and
 	similar programs.  Only write directly to the printer port if no
 	print program is specified.  Work around a bug in Windows 9x
-	affecting Win32 version of Emacs by invoking command.com to write
+	affecting the w32 version of Emacs by invoking command.com to write
 	to the printer port instead of writing directly.
 	(direct-print-region-function): Use direct-print-region-helper to
 	do most of the work.
@@ -8708,7 +8708,7 @@
 
 1998-10-21  Markus Rost  <rost@delysid.gnu.org>
 
-	* lisp/info.el (Info-next-menu-item): Stay on top of node.
+	* info.el (Info-next-menu-item): Stay on top of node.
 
 	* mail/rmailout.el (rmail-output): Insert newline only if necessary.
 
@@ -9181,7 +9181,7 @@
 	* gnus-art.el (gnus-article-x-face-too-ugly): Fix type.
 	(gnus-saved-headers): Fix type.
 
-	* lisp/textmodes/fill.el (fill-individual-paragraphs-prefix):
+	* textmodes/fill.el (fill-individual-paragraphs-prefix):
 	Avoid nil value of `two-lines-citation-part'.
 
 1998-09-30  Roman Belenov  <roman@nstl.nnov.ru>
@@ -9993,7 +9993,7 @@ See ChangeLog.7 for earlier changes.
 ;; add-log-time-zone-rule: t
 ;; End:
 
-    Copyright (C) 1999, 2001-2011  Free Software Foundation, Inc.
+    Copyright (C) 1999, 2001-2012  Free Software Foundation, Inc.
 
   This file is part of GNU Emacs.
 

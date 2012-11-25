@@ -1,6 +1,6 @@
 ;;; uudecode.el -- elisp native uudecode
 
-;; Copyright (C) 1998-2011 Free Software Foundation, Inc.
+;; Copyright (C) 1998-2012 Free Software Foundation, Inc.
 
 ;; Author: Shenghuo Zhu <zsh@cs.rochester.edu>
 ;; Keywords: uudecode news
@@ -38,20 +38,20 @@
   :group 'news)
 
 (defcustom uudecode-decoder-program "uudecode"
-  "*Non-nil value should be a string that names a uu decoder.
+  "Non-nil value should be a string that names a uu decoder.
 The program should expect to read uu data on its standard
 input and write the converted data to its standard output."
   :type 'string
   :group 'uudecode)
 
 (defcustom uudecode-decoder-switches nil
-  "*List of command line flags passed to `uudecode-decoder-program'."
+  "List of command line flags passed to `uudecode-decoder-program'."
   :group 'uudecode
   :type '(repeat string))
 
 (defcustom uudecode-use-external
   (executable-find uudecode-decoder-program)
-  "*Use external uudecode program."
+  "Use external uudecode program."
   :version "22.1"
   :group 'uudecode
   :type 'boolean)
@@ -197,10 +197,10 @@ If FILE-NAME is non-nil, save the result to FILE-NAME."
 	  (cond
 	   (done)
 	   ((> 0 remain)
-	    (error "uucode line ends unexpectly")
+	    (error "uucode line ends unexpectedly")
 	    (setq done t))
 	   ((and (= (point) end) (not done))
-	    ;;(error "uucode ends unexpectly")
+	    ;;(error "uucode ends unexpectedly")
 	    (setq done t))
 	   ((= counter 3)
 	    (setq result (cons

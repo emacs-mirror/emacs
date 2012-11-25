@@ -1,5 +1,5 @@
 /* Image support for the NeXT/Open/GNUstep and MacOSX window system.
-   Copyright (C) 1989, 1992-1994, 2005-2006, 2008-2011
+   Copyright (C) 1989, 1992-1994, 2005-2006, 2008-2012
      Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
@@ -28,7 +28,6 @@ GNUstep port and post-20 update by Adrian Robert (arobert@cogsci.ucsd.edu)
 /* This should be the first include, as it may set up #defines affecting
    interpretation of even the system includes. */
 #include <config.h>
-#include <setjmp.h>
 
 #include "lisp.h"
 #include "dispextern.h"
@@ -79,7 +78,7 @@ ns_image_from_file (Lisp_Object file)
   return [EmacsImage allocInitFromFile: file];
 }
 
-int
+bool
 ns_load_image (struct frame *f, struct image *img,
                Lisp_Object spec_file, Lisp_Object spec_data)
 {
@@ -96,7 +95,7 @@ ns_load_image (struct frame *f, struct image *img,
     {
       NSData *data;
 
-      data = [NSData dataWithBytes: SDATA (spec_data)
+      data = [NSData dataWithBytes: SSDATA (spec_data)
 			    length: SBYTES (spec_data)];
       eImg = [[EmacsImage alloc] initWithData: data];
       [eImg setPixmapData];
@@ -171,7 +170,7 @@ static EmacsImage *ImageList = nil;
 
   /* look for an existing image of the same name */
   while (image != nil &&
-         [[image name] compare: [NSString stringWithUTF8String: SDATA (file)]]
+         [[image name] compare: [NSString stringWithUTF8String: SSDATA (file)]]
              != NSOrderedSame)
     image = [image imageListNext];
 
@@ -187,7 +186,7 @@ static EmacsImage *ImageList = nil;
     return nil;
 
   image = [[EmacsImage alloc] initByReferencingFile:
-                     [NSString stringWithUTF8String: SDATA (found)]];
+                     [NSString stringWithUTF8String: SSDATA (found)]];
 
 #if defined (NS_IMPL_COCOA) && MAC_OS_X_VERSION_MAX_ALLOWED >= MAC_OS_X_VERSION_10_6
   imgRep = [NSBitmapImageRep imageRepWithData:[image TIFFRepresentation]];
@@ -205,7 +204,7 @@ static EmacsImage *ImageList = nil;
   [image setScalesWhenResized: YES];
   [image setSize: NSMakeSize([imgRep pixelsWide], [imgRep pixelsHigh])];
 
-  [image setName: [NSString stringWithUTF8String: SDATA (file)]];
+  [image setName: [NSString stringWithUTF8String: SSDATA (file)]];
   [image reference];
   ImageList = [image imageListSetNext: ImageList];
 
@@ -302,7 +301,7 @@ static EmacsImage *ImageList = nil;
                   [bmRep release];
                   return nil;
                 }
-#define hexchar(x) (isdigit (x) ? x - '0' : x - 'a' + 10)
+#define hexchar(x) ('0' <= (x) && (x) <= '9' ? (x) - '0' : (x) - 'a' + 10)
               s1 = *s++;
               s2 = *s++;
               c = hexchar (s1) * 0x10 + hexchar (s2);
@@ -334,7 +333,6 @@ static EmacsImage *ImageList = nil;
 - setXBMColor: (NSColor *)color
 {
   NSSize s = [self size];
-  int len = (int) s.width * s.height;
   unsigned char *planes[5];
   CGFloat r, g, b, a;
   NSColor *rgbColor;
@@ -400,12 +398,11 @@ static EmacsImage *ImageList = nil;
   NSImageRep *rep;
 
   reps = [[self representations] objectEnumerator];
-  while (rep = (NSImageRep *) [reps nextObject])
+  while ((rep = (NSImageRep *) [reps nextObject]))
     {
       if ([rep respondsToSelector: @selector (getBitmapDataPlanes:)])
         {
           bmRep = (NSBitmapImageRep *) rep;
-          onTiger = [bmRep respondsToSelector: @selector (colorAtX:y:)];
 
           if ([bmRep numberOfPlanes] >= 3)
               [bmRep getBitmapDataPlanes: pixmapData];
@@ -437,7 +434,7 @@ static EmacsImage *ImageList = nil;
        | (pixmapData[0][loc] << 16) | (pixmapData[1][loc] << 8)
        | (pixmapData[2][loc]);
     }
-  else if (onTiger)
+  else
     {
       NSColor *color = [bmRep colorAtX: x y: y];
       CGFloat r, g, b, a;
@@ -447,7 +444,6 @@ static EmacsImage *ImageList = nil;
         | ((int)(b * 255.0));
 
     }
-  return 0;
 }
 
 - (void) setPixelAtX: (int)x Y: (int)y toRed: (unsigned char)r
@@ -465,7 +461,7 @@ static EmacsImage *ImageList = nil;
       pixmapData[2][loc] = b;
       pixmapData[3][loc] = a;
     }
-  else if (onTiger)
+  else
     {
       [bmRep setColor:
                [NSColor colorWithCalibratedRed: (r/255.0) green: (g/255.0)
@@ -485,7 +481,7 @@ static EmacsImage *ImageList = nil;
 
       pixmapData[3][loc] = a;
     }
-  else if (onTiger)
+  else
     {
       NSColor *color = [bmRep colorAtX: x y: y];
       color = [color colorWithAlphaComponent: (a / 255.0)];
@@ -502,4 +498,3 @@ static EmacsImage *ImageList = nil;
 }
 
 @end
-

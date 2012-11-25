@@ -1,5 +1,5 @@
 ;;; epg.el --- the EasyPG Library -*- lexical-binding: t -*-
-;; Copyright (C) 1999-2000, 2002-2011 Free Software Foundation, Inc.
+;; Copyright (C) 1999-2000, 2002-2012 Free Software Foundation, Inc.
 
 ;; Author: Daiki Ueno <ueno@unixuser.org>
 ;; Keywords: PGP, GnuPG
@@ -1779,6 +1779,7 @@ This function is for internal use only."
     (epg-context-set-result-for context 'import-status nil)))
 
 (defun epg-passphrase-callback-function (context key-id _handback)
+  (declare (obsolete epa-passphrase-callback-function "23.1"))
   (if (eq key-id 'SYM)
       (read-passwd "Passphrase for symmetric encryption: "
 		   (eq (epg-context-operation context) 'encrypt))
@@ -1789,9 +1790,6 @@ This function is for internal use only."
 	 (if entry
 	     (format "Passphrase for %s %s: " key-id (cdr entry))
 	   (format "Passphrase for %s: " key-id)))))))
-
-(make-obsolete 'epg-passphrase-callback-function
-	       'epa-passphrase-callback-function "23.1")
 
 (defun epg--list-keys-1 (context name mode)
   (let ((args (append (if epg-gpg-home-directory
@@ -1951,7 +1949,8 @@ The returned file name (created by appending some random characters at the end
 of PREFIX, and expanding against `temporary-file-directory' if necessary),
 is guaranteed to point to a newly created empty file.
 You can then use `write-region' to write new data into the file."
-      (let (tempdir tempfile)
+      (let ((orig-modes (default-file-modes))
+	    tempdir tempfile)
 	(setq prefix (expand-file-name prefix
 				       (if (featurep 'xemacs)
 					   (temp-directory)
@@ -1959,6 +1958,7 @@ You can then use `write-region' to write new data into the file."
 	(unwind-protect
 	    (let (file)
 	      ;; First, create a temporary directory.
+	      (set-default-file-modes #o700)
 	      (while (condition-case ()
 			 (progn
 			   (setq tempdir (make-temp-name
@@ -1969,14 +1969,12 @@ You can then use `write-region' to write new data into the file."
 			   (make-directory tempdir))
 		       ;; let's try again.
 		       (file-already-exists t)))
-	      (set-file-modes tempdir 448)
 	      ;; Second, create a temporary file in the tempdir.
 	      ;; There *is* a race condition between `make-temp-name'
 	      ;; and `write-region', but we don't care it since we are
 	      ;; in a private directory now.
 	      (setq tempfile (make-temp-name (concat tempdir "/EMU")))
 	      (write-region "" nil tempfile nil 'silent)
-	      (set-file-modes tempfile 384)
 	      ;; Finally, make a hard-link from the tempfile.
 	      (while (condition-case ()
 			 (progn
@@ -1986,6 +1984,7 @@ You can then use `write-region' to write new data into the file."
 		       ;; let's try again.
 		       (file-already-exists t)))
 	      file)
+	  (set-default-file-modes orig-modes)
 	  ;; Cleanup the tempfile.
 	  (and tempfile
 	       (file-exists-p tempfile)
@@ -2561,6 +2560,7 @@ If you use this function, you will need to wait for the completion of
 `epg-reset' to clear a temporary output file.
 If you are unsure, use synchronous version of this function
 `epg-sign-keys' instead."
+  (declare (obsolete nil "23.1"))
   (epg-context-set-operation context 'sign-keys)
   (epg-context-set-result context nil)
   (epg--start context (cons (if local
@@ -2571,10 +2571,10 @@ If you are unsure, use synchronous version of this function
 			      (epg-sub-key-id
 			       (car (epg-key-sub-key-list key))))
 			    keys))))
-(make-obsolete 'epg-start-sign-keys "do not use." "23.1")
 
 (defun epg-sign-keys (context keys &optional local)
   "Sign KEYS from the key ring."
+  (declare (obsolete nil "23.1"))
   (unwind-protect
       (progn
 	(epg-start-sign-keys context keys local)
@@ -2585,7 +2585,6 @@ If you are unsure, use synchronous version of this function
 		      (list "Sign keys failed"
 			    (epg-errors-to-string errors))))))
     (epg-reset context)))
-(make-obsolete 'epg-sign-keys "do not use." "23.1")
 
 (defun epg-start-generate-key (context parameters)
   "Initiate a key generation.

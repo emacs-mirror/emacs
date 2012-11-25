@@ -1,12 +1,11 @@
 ;;; ob-perl.el --- org-babel functions for perl evaluation
 
-;; Copyright (C) 2009-2011  Free Software Foundation
+;; Copyright (C) 2009-2012  Free Software Foundation, Inc.
 
-;; Author: Dan Davison
-;;	Eric Schulte
+;; Authors: Dan Davison
+;;	 Eric Schulte
 ;; Keywords: literate programming, reproducible research
 ;; Homepage: http://orgmode.org
-;; Version: 7.7
 
 ;; This file is part of GNU Emacs.
 
@@ -48,7 +47,7 @@ This function is called by `org-babel-execute-src-block'."
          (result-type (cdr (assoc :result-type params)))
          (full-body (org-babel-expand-body:generic
 		     body params (org-babel-variable-assignments:perl params)))
-	(session (org-babel-perl-initiate-session session)))
+	 (session (org-babel-perl-initiate-session session)))
     (org-babel-reassemble-table
      (org-babel-perl-evaluate session full-body result-type)
      (org-babel-pick-name
@@ -58,10 +57,10 @@ This function is called by `org-babel-execute-src-block'."
 
 (defun org-babel-prep-session:perl (session params)
   "Prepare SESSION according to the header arguments in PARAMS."
-  (error "Sessions are not supported for Perl."))
+  (error "Sessions are not supported for Perl"))
 
 (defun org-babel-variable-assignments:perl (params)
-  "Return list of perl statements assigning the block's variables"
+  "Return list of perl statements assigning the block's variables."
   (mapcar
    (lambda (pair)
      (format "$%s=%s;"
@@ -82,8 +81,8 @@ specifying a var of the same value."
 (defvar org-babel-perl-buffers '(:default . nil))
 
 (defun org-babel-perl-initiate-session (&optional session params)
-  "Return nil because sessions are not supported by perl"
-nil)
+  "Return nil because sessions are not supported by perl."
+  nil)
 
 (defvar org-babel-perl-wrapper-method
   "
@@ -102,7 +101,7 @@ print o join(\"\\n\", @r), \"\\n\"")
 If RESULT-TYPE equals 'output then return a list of the outputs
 of the statements in BODY, if RESULT-TYPE equals 'value then
 return the value of the last statement in BODY, as elisp."
-  (when session (error "Sessions are not supported for Perl."))
+  (when session (error "Sessions are not supported for Perl"))
   (case result-type
     (output (org-babel-eval org-babel-perl-command body))
     (value (let ((tmp-file (org-babel-temp-file "perl-")))

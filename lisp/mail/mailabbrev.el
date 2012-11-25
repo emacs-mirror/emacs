@@ -1,6 +1,6 @@
 ;;; mailabbrev.el --- abbrev-expansion of mail aliases
 
-;; Copyright (C) 1985-1987, 1992-1993, 1996-1997, 2000-2011
+;; Copyright (C) 1985-1987, 1992-1993, 1996-1997, 2000-2012
 ;;   Free Software Foundation, Inc.
 
 ;; Author: Jamie Zawinski <jwz@lucid.com; now jwz@jwz.org>
@@ -254,10 +254,12 @@ By default this is the file specified by `mail-personal-alias-file'."
     mail-abbrevs)
   (message "Parsing %s... done" file))
 
-(defvar mail-alias-separator-string ", "
-  "*A string inserted between addresses in multi-address mail aliases.
+(defcustom mail-alias-separator-string ", "
+  "String inserted between addresses in multi-address mail aliases.
 This has to contain a comma, so \", \" is a reasonable value.  You might
-also want something like \",\\n    \" to get each address on its own line.")
+also want something like \",\\n    \" to get each address on its own line."
+  :type 'string
+  :group 'mail-abbrev)
 
 ;; define-mail-abbrev sets this flag, which causes mail-resolve-all-aliases
 ;; to be called before expanding abbrevs if it's necessary.
@@ -389,46 +391,37 @@ double-quotes."
 (defun mail-abbrev-expand-hook ()
   "For use as the fourth arg to `define-abbrev'.
 After expanding a mail-abbrev, if Auto Fill mode is on and we're past the
-fill-column, break the line at the previous comma, and indent the next line."
-  ;; Disable abbrev mode to avoid recursion in indent-relative expanding
-  ;; part of the abbrev expansion as an abbrev itself.
-  (let ((abbrev-mode nil))
-    (save-excursion
-      (let ((p (point))
-	    bol comma fp)
-	(beginning-of-line)
-	(setq bol (point))
-	(goto-char p)
-	(while (and auto-fill-function
-		    (>= (current-column) fill-column)
-		    (search-backward "," bol t))
-	  (setq comma (point))
-	  (forward-char 1)		; Now we are just past the comma.
-	  (insert "\n")
-	  (delete-horizontal-space)
-	  (setq p (point))
-	  (indent-relative)
-	  (setq fp (buffer-substring p (point)))
-	  ;; Go to the end of the new line.
-	  (end-of-line)
-	  (if (> (current-column) fill-column)
-	      ;; It's still too long; do normal auto-fill.
-	      (let ((fill-prefix (or fp "\t")))
-		(do-auto-fill)))
-	  ;; Resume the search.
-	  (goto-char comma)
-	  )))))
+fill-column, break the line at the previous comma, and indent the next line
+with a space."
+  (when auto-fill-function
+    (let (p)
+      (save-excursion
+	(while (>= (current-column) fill-column)
+	  (while (and (search-backward "," (point-at-bol) 'move)
+		      (>= (current-column) (1- fill-column))
+		      (setq p (point))))
+	  (when (or (not (bolp))
+		    (and p (goto-char p)))
+	    (setq p nil)
+	    (forward-char 1)
+	    (insert "\n")
+	    (when (looking-at "[\t ]+")
+	      (delete-region (point) (match-end 0)))
+	    (insert " ")
+	    (end-of-line)))))))
 
 ;;; Syntax tables and abbrev-expansion
 
-(defvar mail-abbrev-mode-regexp
+(defcustom mail-abbrev-mode-regexp
   "^\\(Resent-\\)?\\(To\\|From\\|CC\\|BCC\\|Reply-to\\):"
-  "*Regexp to select mail-headers in which mail abbrevs should be expanded.
+  "Regexp matching mail headers in which mail abbrevs should be expanded.
 This string will be handed to `looking-at' with point at the beginning
 of the current line; if it matches, abbrev mode will be turned on, otherwise
 it will be turned off.  (You don't need to worry about continuation lines.)
 This should be set to match those mail fields in which you want abbreviations
-turned on.")
+turned on."
+  :type 'regexp
+  :group 'mail-abbrev)
 
 (defvar mail-abbrev-syntax-table nil
   "The syntax-table used for abbrev-expansion purposes.

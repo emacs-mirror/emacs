@@ -1,6 +1,6 @@
 ;;; x-win.el --- parse relevant switches and set up for X  -*-coding: iso-2022-7bit;-*-
 
-;; Copyright (C) 1993-1994, 2001-2011 Free Software Foundation, Inc.
+;; Copyright (C) 1993-1994, 2001-2012 Free Software Foundation, Inc.
 
 ;; Author: FSF
 ;; Keywords: terminals, i18n
@@ -66,6 +66,8 @@
 
 ;; An alist of X options and the function which handles them.  See
 ;; ../startup.el.
+
+(eval-when-compile (require 'cl-lib))
 
 (if (not (fboundp 'x-create-frame))
     (error "%s: Loading x-win.el but not compiled for X" (invocation-name)))
@@ -1305,12 +1307,15 @@ Request data types in the order specified by `x-select-request-type'."
 (declare-function accelerate-menu "xmenu.c" (&optional frame) t)
 
 (defun x-menu-bar-open (&optional frame)
-  "Open the menu bar if `menu-bar-mode' is on, otherwise call `tmm-menubar'."
+  "Open the menu bar if it is shown.
+`popup-menu' is used if it is off."
   (interactive "i")
-  (if (and menu-bar-mode
-	   (fboundp 'accelerate-menu))
-      (accelerate-menu frame)
-    (tmm-menubar)))
+  (cond
+   ((and (not (zerop (or (frame-parameter nil 'menu-bar-lines) 0)))
+	 (fboundp 'accelerate-menu))
+    (accelerate-menu frame))
+   (t
+    (popup-menu (mouse-menu-bar-map) last-nonmenu-event))))
 
 
 ;;; Window system initialization.
@@ -1335,6 +1340,8 @@ Request data types in the order specified by `x-select-request-type'."
 
 (defun x-initialize-window-system ()
   "Initialize Emacs for X frames and open the first connection to an X server."
+  (cl-assert (not x-initialized))
+
   ;; Make sure we have a valid resource name.
   (or (stringp x-resource-name)
       (let (i)
@@ -1408,11 +1415,12 @@ Request data types in the order specified by `x-select-request-type'."
 		(cons '(reverse . t) default-frame-alist)))))
 
   ;; Set x-selection-timeout, measured in milliseconds.
-  (let ((res-selection-timeout
-	 (x-get-resource "selectionTimeout" "SelectionTimeout")))
-    (setq x-selection-timeout 20000)
-    (if res-selection-timeout
-	(setq x-selection-timeout (string-to-number res-selection-timeout))))
+  (let ((res-selection-timeout (x-get-resource "selectionTimeout"
+					       "SelectionTimeout")))
+    (setq x-selection-timeout
+	  (if res-selection-timeout
+	      (string-to-number res-selection-timeout)
+	    5000)))
 
   ;; Don't let Emacs suspend under X.
   (add-hook 'suspend-hook 'x-win-suspend-error)
@@ -1444,8 +1452,10 @@ Request data types in the order specified by `x-select-request-type'."
   ;; 			:help "Paste (yank) text most recently cut/copied")
   ;; 	    nil))
 
+  (x-apply-session-resources)
   (setq x-initialized t))
 
+(add-to-list 'display-format-alist '("\\`[^:]*:[0-9]+\\(\\.[0-9]+\\)?\\'" . x))
 (add-to-list 'handle-args-function-alist '(x . x-handle-args))
 (add-to-list 'frame-creation-function-alist '(x . x-create-frame-with-faces))
 (add-to-list 'window-system-initialization-alist '(x . x-initialize-window-system))

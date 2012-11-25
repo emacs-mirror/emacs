@@ -1,6 +1,6 @@
 ;;; fortran.el --- Fortran mode for GNU Emacs
 
-;; Copyright (C) 1986, 1993-1995, 1997-2011  Free Software Foundation, Inc.
+;; Copyright (C) 1986, 1993-1995, 1997-2012  Free Software Foundation, Inc.
 
 ;; Author: Michael D. Prange <prange@erl.mit.edu>
 ;; Maintainer: Glenn Morris <rgm@gnu.org>
@@ -165,7 +165,7 @@ allow trailing comments on a line."
 (defcustom fortran-directive-re
   "^[ \t]*#.*"
   "Regexp to match a directive line.
-The matching text will be fontified with `font-lock-keyword-face'.
+The matching text will be fontified with `font-lock-preprocessor-face'.
 The matching line will be given zero indentation."
   :version "22.1"
   :type    'regexp
@@ -452,7 +452,7 @@ The only difference is, it returns t in a case when the default returns nil."
     ;; Standard continuation character and in a TAB-formatted line.
     '("^ \\{5\\}\\([^ 0\n]\\)" 1 font-lock-string-face)
     '("^\t\\([1-9]\\)"         1 font-lock-string-face))
-   `((,fortran-directive-re (0 font-lock-keyword-face t)))
+   `((,fortran-directive-re (0 font-lock-preprocessor-face t)))
    ;; `fortran-font-lock-keywords-2' without types (see above).
    (cdr (nthcdr (length fortran-font-lock-keywords-1)
                 fortran-font-lock-keywords-2)))

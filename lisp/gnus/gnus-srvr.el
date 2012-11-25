@@ -1,6 +1,6 @@
 ;;; gnus-srvr.el --- virtual server support for Gnus
 
-;; Copyright (C) 1995-2011 Free Software Foundation, Inc.
+;; Copyright (C) 1995-2012 Free Software Foundation, Inc.
 
 ;; Author: Lars Magne Ingebrigtsen <larsi@gnus.org>
 ;; Keywords: news
@@ -330,7 +330,7 @@ The following commands are available:
     (dolist (open gnus-opened-servers)
       (when (and (not (member (car open) done))
 		 ;; Just ignore ephemeral servers.
-		 (not (member (car open) gnus-ephemeral-servers)))
+		 (not (gnus-method-ephemeral-p (car open))))
 	(push (car open) done)
 	(gnus-server-insert-server-line
 	 (setq op-ser (format "%s:%s" (caar open) (nth 1 (car open))))
@@ -490,8 +490,7 @@ The following commands are available:
       (error "No such server: %s" server))
     (gnus-server-set-status method 'ok)
     (prog1
-	(or (gnus-open-server method)
-	    (progn (message "Couldn't open %s" server) nil))
+	(gnus-open-server method)
       (gnus-server-update-server server)
       (gnus-server-position-point))))
 

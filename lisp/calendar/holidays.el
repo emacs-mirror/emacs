@@ -1,6 +1,6 @@
 ;;; holidays.el --- holiday functions for the calendar package
 
-;; Copyright (C) 1989-1990, 1992-1994, 1997, 2001-2011
+;; Copyright (C) 1989-1990, 1992-1994, 1997, 2001-2012
 ;;   Free Software Foundation, Inc.
 
 ;; Author: Edward M. Reingold <reingold@cs.uiuc.edu>
@@ -250,7 +250,7 @@ See the documentation for `calendar-holidays' for details."
     (if calendar-christian-all-holidays-flag
         (append
          (holiday-fixed 1 6 "Epiphany")
-         (holiday-julian 12 25 "Eastern Orthodox Christmas")
+         (holiday-julian 12 25 "Christmas (Julian calendar)")
          (holiday-greek-orthodox-easter)
          (holiday-fixed 8 15 "Assumption")
          (holiday-advent 0 "Advent")))))
@@ -292,16 +292,16 @@ See the documentation for `calendar-holidays' for details."
   (mapcar 'purecopy
   '((holiday-bahai-new-year)
     (holiday-bahai-ridvan)      ; respects calendar-bahai-all-holidays-flag
-    (holiday-fixed  5 23 "Declaration of the Bab")
-    (holiday-fixed  5 29 "Ascension of Baha'u'llah")
-    (holiday-fixed  7  9 "Martyrdom of the Bab")
-    (holiday-fixed 10 20 "Birth of the Bab")
-    (holiday-fixed 11 12 "Birth of Baha'u'llah")
+    (holiday-fixed  5 23 "Declaration of the Báb")
+    (holiday-fixed  5 29 "Ascension of Bahá'u'lláh")
+    (holiday-fixed  7  9 "Martyrdom of the Báb")
+    (holiday-fixed 10 20 "Birth of the Báb")
+    (holiday-fixed 11 12 "Birth of Bahá'u'lláh")
     (if calendar-bahai-all-holidays-flag
         (append
          (holiday-fixed 11 26 "Day of the Covenant")
-         (holiday-fixed 11 28 "Ascension of `Abdu'l-Baha")))))
-  "Baha'i holidays.
+         (holiday-fixed 11 28 "Ascension of `Abdu'l-Bahá")))))
+  "Bahá'í holidays.
 See the documentation for `calendar-holidays' for details."
   :type 'sexp
   :group 'holidays)
@@ -343,12 +343,12 @@ See the documentation for `calendar-holidays' for details."
   "List of notable days for the command \\[holidays].
 
 Additional holidays are easy to add to the list, just put them in the
-list `holiday-other-holidays' in your .emacs file.  Similarly, by setting
+list `holiday-other-holidays' in your init file.  Similarly, by setting
 any of `holiday-general-holidays', `holiday-local-holidays',
 `holiday-christian-holidays', `holiday-hebrew-holidays',
 `holiday-islamic-holidays', `holiday-bahai-holidays',
 `holiday-oriental-holidays', or `holiday-solar-holidays' to nil in your
-.emacs file, you can eliminate unwanted categories of holidays.
+init file, you can eliminate unwanted categories of holidays.
 
 The aforementioned variables control the holiday choices offered
 by the function `holiday-list' when it is called interactively.
@@ -376,7 +376,7 @@ Several basic functions are provided for this purpose:
                                K>0, and MONTH's last day otherwise.
     (holiday-hebrew MONTH DAY STRING)  a fixed date on the Hebrew calendar
     (holiday-islamic MONTH DAY STRING) a fixed date on the Islamic calendar
-    (holiday-bahai MONTH DAY STRING)   a fixed date on the Baha'i calendar
+    (holiday-bahai MONTH DAY STRING)   a fixed date on the Bahá'í calendar
     (holiday-julian MONTH DAY STRING)  a fixed date on the Julian calendar
     (holiday-sexp SEXP STRING) SEXP is a Gregorian-date-valued expression
                                in the variable `year'; if it evaluates to
@@ -404,11 +404,11 @@ To add the Islamic feast celebrating Mohammed's birthday, use
      (holiday-islamic 3 12 \"Mohammed's Birthday\")
 
 since the Islamic months are numbered from 1 starting with Muharram.
-To add an entry for the Baha'i festival of Ridvan, use
+To add an entry for the Bahá'í festival of Ridvan, use
 
      (holiday-bahai 2 13 \"Festival of Ridvan\")
 
-since the Baha'i months are numbered from 1 starting with Baha.
+since the Bahá'í months are numbered from 1 starting with Bahá.
 To add Thomas Jefferson's birthday, April 2, 1743 (Julian), use
 
      (holiday-julian 4 2 \"Jefferson's Birthday\")
@@ -458,17 +458,20 @@ with descriptive strings such as
 (defun calendar-holiday-list ()
   "Form the list of holidays that occur on dates in the calendar window.
 The holidays are those in the list `calendar-holidays'."
-  (let (res h)
+  (let (res h err)
     (sort
      (dolist (p calendar-holidays res)
        (if (setq h (if calendar-debug-sexp
                        (let ((debug-on-error t))
                          (eval p))
-                     (condition-case nil
+                     (condition-case err
                          (eval p)
-                       (error (beep)
-                              (message "Bad holiday list item: %s" p)
-                              (sleep-for 2)))))
+                       (error
+                        (display-warning
+                         :error
+                         (format "Bad holiday list item: %s\nError: %s\n"
+                                 p err))
+                        nil))))
            (setq res (append h res))))
      'calendar-date-compare)))
 
@@ -520,7 +523,7 @@ use instead of point."
 (defun holidays (&optional arg)
   "Display the holidays for last month, this month, and next month.
 If called with an optional prefix argument ARG, prompts for month and year.
-This function is suitable for execution in a .emacs file."
+This function is suitable for execution in a init file."
   (interactive "P")
   (save-excursion
     (let* ((completion-ignore-case t)
@@ -582,7 +585,7 @@ The optional LABEL is used to label the buffer created."
             (if holiday-islamic-holidays
                 (cons "Islamic" holiday-islamic-holidays))
             (if holiday-bahai-holidays
-                (cons "Baha'i" holiday-bahai-holidays))
+                (cons "Bahá'í" holiday-bahai-holidays))
             (if holiday-oriental-holidays
                 (cons "Oriental" holiday-oriental-holidays))
             (if holiday-solar-holidays
@@ -634,7 +637,7 @@ The optional LABEL is used to label the buffer created."
   "Check the list of holidays for any that occur on DATE.
 DATE is a list (month day year).  This function considers the
 holidays from the list `calendar-holidays', and returns a list of
-strings describing those holidays that apply on DATE."
+strings describing those holidays that apply on DATE, or nil if none do."
   (let ((displayed-month (calendar-extract-month date))
         (displayed-year (calendar-extract-year date))
         holiday-list)
@@ -644,6 +647,33 @@ strings describing those holidays that apply on DATE."
 
 (define-obsolete-function-alias
   'check-calendar-holidays 'calendar-check-holidays "23.1")
+
+
+;; Formerly cal-tex-list-holidays.
+(defun holiday-in-range (d1 d2)
+  "Generate a list of all holidays in range from absolute date D1 to D2."
+  (let* ((start (calendar-gregorian-from-absolute d1))
+         (displayed-month (calendar-extract-month start))
+         (displayed-year (calendar-extract-year start))
+         (end (calendar-gregorian-from-absolute d2))
+         (end-month (calendar-extract-month end))
+         (end-year (calendar-extract-year end))
+         (number-of-intervals
+          (1+ (/ (calendar-interval displayed-month displayed-year
+                                    end-month end-year)
+                 3)))
+         holidays in-range a)
+    (calendar-increment-month displayed-month displayed-year 1)
+    (dotimes (_idummy number-of-intervals)
+      (setq holidays (append holidays (calendar-holiday-list)))
+      (calendar-increment-month displayed-month displayed-year 3))
+    (dolist (hol holidays)
+      (and (car hol)
+           (setq a (calendar-absolute-from-gregorian (car hol)))
+           (and (<= d1 a) (<= a d2))
+           (setq in-range (append (list hol) in-range))))
+    in-range))
+
 
 (declare-function x-popup-menu "menu.c" (position menu))
 
@@ -919,5 +949,9 @@ is non-nil)."
         (list (list nicaean-easter "Pascha (Greek Orthodox Easter)")))))
 
 (provide 'holidays)
+
+;; Local Variables:
+;; coding: utf-8
+;; End:
 
 ;;; holidays.el ends here

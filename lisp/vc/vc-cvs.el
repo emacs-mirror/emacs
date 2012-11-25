@@ -1,6 +1,6 @@
-;;; vc-cvs.el --- non-resident support for CVS version-control
+;;; vc-cvs.el --- non-resident support for CVS version-control  -*- lexical-binding: t -*-
 
-;; Copyright (C) 1995, 1998-2011 Free Software Foundation, Inc.
+;; Copyright (C) 1995, 1998-2012 Free Software Foundation, Inc.
 
 ;; Author:      FSF (see vc.el for full credits)
 ;; Maintainer:  Andre Spiegel <spiegel@gnu.org>
@@ -25,7 +25,7 @@
 
 ;;; Code:
 
-(eval-when-compile (require 'cl) (require 'vc))
+(eval-when-compile (require 'vc))
 
 ;; Clear up the cache to force vc-call to check again and discover
 ;; new functions when we reload this file.
@@ -59,6 +59,11 @@
 ;;; Customization options
 ;;;
 
+(defgroup vc-cvs nil
+  "VC CVS backend."
+  :version "24.1"
+  :group 'vc)
+
 (defcustom vc-cvs-global-switches nil
   "Global switches to pass to any CVS command."
   :type '(choice (const :tag "None" nil)
@@ -67,7 +72,7 @@
 			 :value ("")
 			 string))
   :version "22.1"
-  :group 'vc)
+  :group 'vc-cvs)
 
 (defcustom vc-cvs-register-switches nil
   "Switches for registering a file into CVS.
@@ -79,7 +84,7 @@ If t, use no switches."
 		 (string :tag "Argument String")
 		 (repeat :tag "Argument List" :value ("") string))
   :version "21.1"
-  :group 'vc)
+  :group 'vc-cvs)
 
 (defcustom vc-cvs-diff-switches nil
   "String or list of strings specifying switches for CVS diff under VC.
@@ -89,13 +94,13 @@ If nil, use the value of `vc-diff-switches'.  If t, use no switches."
                  (string :tag "Argument String")
                  (repeat :tag "Argument List" :value ("") string))
   :version "21.1"
-  :group 'vc)
+  :group 'vc-cvs)
 
 (defcustom vc-cvs-header '("\$Id\$")
   "Header keywords to be inserted by `vc-insert-headers'."
   :version "24.1"     ; no longer consult the obsolete vc-header-alist
   :type '(repeat string)
-  :group 'vc)
+  :group 'vc-cvs)
 
 (defcustom vc-cvs-use-edit t
   "Non-nil means to use `cvs edit' to \"check out\" a file.
@@ -103,7 +108,7 @@ This is only meaningful if you don't use the implicit checkout model
 \(i.e. if you have $CVSREAD set)."
   :type 'boolean
   :version "21.1"
-  :group 'vc)
+  :group 'vc-cvs)
 
 (defcustom vc-cvs-stay-local 'only-file
   "Non-nil means use local operations when possible for remote repositories.
@@ -131,7 +136,7 @@ by these regular expressions."
                                :tag "if it matches")
                        (repeat :format "%v%i\n" :inline t (regexp :tag "or"))))
   :version "23.1"
-  :group 'vc)
+  :group 'vc-cvs)
 
 (defcustom vc-cvs-sticky-date-format-string "%c"
   "Format string for mode-line display of sticky date.
@@ -139,7 +144,7 @@ Format is according to `format-time-string'.  Only used if
 `vc-cvs-sticky-tag-display' is t."
   :type '(string)
   :version "22.1"
-  :group 'vc)
+  :group 'vc-cvs)
 
 (defcustom vc-cvs-sticky-tag-display t
   "Specify the mode-line display of sticky tags.
@@ -178,7 +183,7 @@ displayed.  Date and time is displayed for sticky dates.
 See also variable `vc-cvs-sticky-date-format-string'."
   :type '(choice boolean function)
   :version "22.1"
-  :group 'vc)
+  :group 'vc-cvs)
 
 ;;;
 ;;; Internal variables
@@ -251,7 +256,7 @@ See also variable `vc-cvs-sticky-date-format-string'."
   (vc-file-getprop file 'vc-working-revision))
 
 (defun vc-cvs-mode-line-string (file)
-  "Return string for placement into the modeline for FILE.
+  "Return a string for `vc-mode-line' to put in the mode line for FILE.
 Compared to the default implementation, this function does two things:
 Handle the special case of a CVS file that is added but not yet
 committed and support display of sticky tags."
@@ -275,7 +280,7 @@ committed and support display of sticky tags."
 ;;; State-changing functions
 ;;;
 
-(defun vc-cvs-register (files &optional rev comment)
+(defun vc-cvs-register (files &optional _rev comment)
   "Register FILES into the CVS version-control system.
 COMMENT can be used to provide an initial description of FILES.
 Passes either `vc-cvs-register-switches' or `vc-register-switches'
@@ -319,7 +324,7 @@ its parents."
   (unless (or (not rev) (vc-cvs-valid-revision-number-p rev))
     (if (not (vc-cvs-valid-symbolic-tag-name-p rev))
 	(error "%s is not a valid symbolic tag name" rev)
-      ;; If the input revison is a valid symbolic tag name, we create it
+      ;; If the input revision is a valid symbolic tag name, we create it
       ;; as a branch, commit and switch to it.
       (apply 'vc-cvs-command nil 0 files "tag" "-b" (list rev))
       (apply 'vc-cvs-command nil 0 files "update" "-r" (list rev))
@@ -389,7 +394,7 @@ REV is the revision to check out."
              (if vc-cvs-use-edit
                  (vc-cvs-command nil 0 file "edit")
                (set-file-modes file (logior (file-modes file) 128))
-               (if (equal file buffer-file-name) (toggle-read-only -1))))
+               (if (equal file buffer-file-name) (read-only-mode -1))))
       ;; Check out a particular revision (or recreate the file).
       (vc-file-setprop file 'vc-working-revision nil)
       (apply 'vc-cvs-command nil 0 file
@@ -497,7 +502,7 @@ Will fail unless you have administrative privileges on the repo."
 
 (declare-function vc-rcs-print-log-cleanup "vc-rcs" ())
 
-(defun vc-cvs-print-log (files buffer &optional shortlog start-revision-ignored limit)
+(defun vc-cvs-print-log (files buffer &optional _shortlog _start-revision limit)
   "Get change logs associated with FILES."
   (require 'vc-rcs)
   ;; It's just the catenation of the individual logs.
@@ -785,7 +790,7 @@ For an empty string, nil is returned (invalid CVS root)."
            ((= len 3)
             ;; :METHOD:PATH or :METHOD:USER@HOSTNAME/PATH
             (cons (cadr root-list)
-                  (vc-cvs-parse-uhp (caddr root-list))))
+                  (vc-cvs-parse-uhp (nth 2 root-list))))
            (t
             ;; :METHOD:[USER@]HOST:PATH
             (cdr root-list)))))
@@ -1001,7 +1006,7 @@ state."
       (vc-exec-after
        `(vc-cvs-after-dir-status (quote ,update-function))))))
 
-(defun vc-cvs-dir-status-files (dir files default-state update-function)
+(defun vc-cvs-dir-status-files (dir files _default-state update-function)
   "Create a list of conses (file . state) for DIR."
   (apply 'vc-cvs-command (current-buffer) 'async dir "-f" "status" files)
   (vc-exec-after
@@ -1016,7 +1021,7 @@ state."
 	(buffer-substring (point) (point-max)))
     (file-error nil)))
 
-(defun vc-cvs-dir-extra-headers (dir)
+(defun vc-cvs-dir-extra-headers (_dir)
   "Extract and represent per-directory properties of a CVS working copy."
   (let ((repo
 	 (condition-case nil
@@ -1173,7 +1178,11 @@ is non-nil."
                                (parse-time-string (concat time " +0000")))))
       (cond ((and (not (string-match "\\+" time))
                   (car parsed-time)
-                  (equal mtime (apply 'encode-time parsed-time)))
+                  ;; Compare just the seconds part of the file time,
+                  ;; since CVS file time stamp resolution is just 1 second.
+                  (let ((ptime (apply 'encode-time parsed-time)))
+                    (and (eq (car mtime) (car ptime))
+                         (eq (cadr mtime) (cadr ptime)))))
              (vc-file-setprop file 'vc-checkout-time mtime)
              (if set-state (vc-file-setprop file 'vc-state 'up-to-date)))
             (t
@@ -1201,10 +1210,8 @@ is non-nil."
       res)))
 
 (defun vc-cvs-revision-completion-table (files)
-  (lexical-let ((files files)
-                table)
-    (setq table (lazy-completion-table
-                 table (lambda () (vc-cvs-revision-table (car files)))))
+  (letrec ((table (lazy-completion-table
+                   table (lambda () (vc-cvs-revision-table (car files))))))
     table))
 
 

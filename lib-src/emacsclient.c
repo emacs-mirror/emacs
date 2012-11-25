@@ -1,5 +1,6 @@
 /* Client process that communicates with GNU Emacs acting as server.
-   Copyright (C) 1986-1987, 1994, 1999-2011 Free Software Foundation, Inc.
+
+Copyright (C) 1986-1987, 1994, 1999-2012 Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -21,7 +22,7 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 
 #ifdef WINDOWSNT
 
-/* config.h defines these, which disables sockets altogether! */
+/* ms-w32.h defines these, which disables sockets altogether!  */
 # undef _WINSOCKAPI_
 # undef _WINSOCK_H
 
@@ -42,6 +43,10 @@ char *w32_getenv (char *);
 #define egetenv(VAR) w32_getenv(VAR)
 
 #else /* !WINDOWSNT */
+
+# ifdef HAVE_NTGUI
+# include <windows.h>
+# endif /* HAVE_NTGUI */
 
 # include "syswait.h"
 
@@ -83,10 +88,7 @@ char *w32_getenv (char *);
 
 
 
-char *getenv (const char *), *getwd (char *);
-#ifdef HAVE_GETCWD
-char *(getcwd) (char *, size_t);
-#endif
+char *getenv (const char *);
 
 #ifndef VERSION
 #define VERSION "unspecified"
@@ -112,12 +114,10 @@ char *(getcwd) (char *, size_t);
 /* Additional space when allocating buffers for filenames, etc.  */
 #define EXTRA_SPACE 100
 
-/* Use this to suppress gcc's `...may be used before initialized' warnings. */
-#ifdef lint
-# define IF_LINT(Code) Code
-#else
-# define IF_LINT(Code) /* empty */
+#ifdef min
+#undef min
 #endif
+#define min(x, y) (((x) < (y)) ? (x) : (y))
 
 
 /* Name used to invoke this program.  */
@@ -141,6 +141,9 @@ int current_frame = 1;
 /* The display on which Emacs should work.  --display.  */
 const char *display = NULL;
 
+/* The alternate display we should try if Emacs does not support display.  */
+const char *alt_display = NULL;
+
 /* The parent window ID, if we are opening a frame via XEmbed.  */
 char *parent_id = NULL;
 
@@ -152,7 +155,7 @@ int tty = 0;
 const char *alternate_editor = NULL;
 
 /* If non-NULL, the filename of the UNIX socket.  */
-char *socket_name = NULL;
+const char *socket_name = NULL;
 
 /* If non-NULL, the filename of the authentication file.  */
 const char *server_file = NULL;
@@ -164,8 +167,7 @@ int emacs_pid = 0;
    be used for the new frame */
 const char *frame_parameters = NULL;
 
-static void print_help_and_exit (void) NO_RETURN;
-static void fail (void) NO_RETURN;
+static _Noreturn void print_help_and_exit (void);
 
 
 struct option longopts[] =
@@ -184,9 +186,7 @@ struct option longopts[] =
   { "socket-name",	required_argument, NULL, 's' },
 #endif
   { "server-file",	required_argument, NULL, 'f' },
-#ifndef WINDOWSNT
   { "display",	required_argument, NULL, 'd' },
-#endif
   { "parent-id", required_argument, NULL, 'p' },
   { 0, 0, 0, 0 }
 };
@@ -209,21 +209,6 @@ xmalloc (size_t size)
 /* From sysdep.c */
 #if !defined (HAVE_GET_CURRENT_DIR_NAME) || defined (BROKEN_GET_CURRENT_DIR_NAME)
 
-/* From lisp.h */
-#ifndef DIRECTORY_SEP
-#define DIRECTORY_SEP '/'
-#endif
-#ifndef IS_DIRECTORY_SEP
-#define IS_DIRECTORY_SEP(_c_) ((_c_) == DIRECTORY_SEP)
-#endif
-#ifndef IS_DEVICE_SEP
-#ifndef DEVICE_SEP
-#define IS_DEVICE_SEP(_c_) 0
-#else
-#define IS_DEVICE_SEP(_c_) ((_c_) == DEVICE_SEP)
-#endif
-#endif
-
 char *get_current_dir_name (void);
 
 /* Return the current working directory.  Returns NULL on errors.
@@ -235,7 +220,7 @@ get_current_dir_name (void)
   char *buf;
   const char *pwd;
   struct stat dotstat, pwdstat;
-  /* If PWD is accurate, use it instead of calling getwd.  PWD is
+  /* If PWD is accurate, use it instead of calling getcwd.  PWD is
      sometimes a nicer name, and using it may avoid a fatal error if a
      parent directory is searchable but not readable.  */
     if ((pwd = egetenv ("PWD")) != 0
@@ -252,7 +237,6 @@ get_current_dir_name (void)
       buf = (char *) xmalloc (strlen (pwd) + 1);
       strcpy (buf, pwd);
     }
-#ifdef HAVE_GETCWD
   else
     {
       size_t buf_size = 1024;
@@ -279,20 +263,6 @@ get_current_dir_name (void)
 	    }
         }
     }
-#else
-  else
-    {
-      /* We need MAXPATHLEN here.  */
-      buf = (char *) xmalloc (MAXPATHLEN + 1);
-      if (getwd (buf) == NULL)
-        {
-          int tmp_errno = errno;
-          free (buf);
-          errno = tmp_errno;
-          return NULL;
-        }
-    }
-#endif
   return buf;
 }
 #endif
@@ -402,32 +372,6 @@ w32_getenv (char *envvar)
   return NULL;
 }
 
-void
-w32_set_user_model_id (void)
-{
-  HMODULE shell;
-  HRESULT (WINAPI * set_user_model) (wchar_t * id);
-
-  /* On Windows 7 and later, we need to set the user model ID
-     to associate emacsclient launched files with Emacs frames
-     in the UI.  */
-  shell = LoadLibrary ("shell32.dll");
-  if (shell)
-    {
-      set_user_model
-	= (void *) GetProcAddress (shell,
-				   "SetCurrentProcessExplicitAppUserModelID");
-      /* If the function is defined, then we are running on Windows 7
-	 or newer, and the UI uses this to group related windows
-	 together.  Since emacs, runemacs, emacsclient are related, we
-	 want them grouped even though the executables are different,
-	 so we need to set a consistent ID between them.  */
-      if (set_user_model)
-	set_user_model (L"GNU.Emacs");
-
-      FreeLibrary (shell);
-    }
-}
 
 int
 w32_window_app (void)
@@ -447,19 +391,19 @@ w32_window_app (void)
   return window_app;
 }
 
-/*
-  execvp wrapper for Windows.  Quotes arguments with embedded spaces.
+/* execvp wrapper for Windows.  Quotes arguments with embedded spaces.
 
   This is necessary due to the broken implementation of exec* routines in
   the Microsoft libraries: they concatenate the arguments together without
   quoting special characters, and pass the result to CreateProcess, with
   predictably bad results.  By contrast, POSIX execvp passes the arguments
-  directly into the argv array of the child process.
-*/
+  directly into the argv array of the child process.  */
+
 int
 w32_execvp (const char *path, char **argv)
 {
   int i;
+  extern int execvp (const char*, char **);
 
   /* Required to allow a .BAT script as alternate editor.  */
   argv[0] = (char *) alternate_editor;
@@ -622,48 +566,52 @@ decode_options (int argc, char **argv)
      Without the -c option, we used to set `display' to $DISPLAY by
      default, but this changed the default behavior and is sometimes
      inconvenient.  So we force users to use "--display $DISPLAY" if
-     they want Emacs to connect to their current display.  */
+     they want Emacs to connect to their current display.
+
+     Some window systems have a notion of default display not
+     reflected in the DISPLAY variable.  If the user didn't give us an
+     explicit display, try this platform-specific after trying the
+     display in DISPLAY (if any).  */
   if (!current_frame && !tty && !display)
     {
-      display = egetenv ("DISPLAY");
-#ifdef NS_IMPL_COCOA
-      /* Under Cocoa, we don't really use displays the same way as in X,
-         so provide a dummy. */
-      if (!display || strlen (display) == 0)
-        display = "ns";
+      /* Set these here so we use a default_display only when the user
+         didn't give us an explicit display.  */
+#if defined (NS_IMPL_COCOA)
+      alt_display = "ns";
+#elif defined (HAVE_NTGUI)
+      alt_display = "w32";
 #endif
+
+      display = egetenv ("DISPLAY");
+    }
+
+  if (!display)
+    {
+      display = alt_display;
+      alt_display = NULL;
     }
 
   /* A null-string display is invalid.  */
   if (display && strlen (display) == 0)
     display = NULL;
 
-#ifdef WINDOWSNT
-  /* Emacs on Windows does not support GUI and console frames in the same
-     instance.  So, it makes sense to treat the -t and -c options as
-     equivalent, and open a new frame regardless of whether the running
-     instance is GUI or console.  Ideally, we would only set tty = 1 when
-     the instance is running in a console, but alas we don't know that.
-     The simplest workaround is to always ask for a tty frame, and let
-     server.el check whether it makes sense.  */
-  if (tty || !current_frame)
-    {
-      display = (const char *) ttyname;
-      current_frame = 0;
-      tty = 1;
-    }
-#endif
-
   /* If no display is available, new frames are tty frames.  */
   if (!current_frame && !display)
     tty = 1;
 
-  /* --no-wait implies --current-frame on ttys when there are file
-     arguments or expressions given.  */
-  if (nowait && tty && argc - optind > 0)
-    current_frame = 1;
-
 #ifdef WINDOWSNT
+  /* Emacs on Windows does not support graphical and text terminal
+     frames in the same instance.  So, treat the -t and -c options as
+     equivalent, and open a new frame on the server's terminal.
+     Ideally, we would only set tty = 1 when the serve is running in a
+     console, but alas we don't know that.  As a workaround, always
+     ask for a tty frame, and let server.el figure it out.  */
+  if (!current_frame)
+    {
+      display = NULL;
+      tty = 1;
+    }
+
   if (alternate_editor && alternate_editor[0] == '\0')
     {
       message (TRUE, "--alternate-editor argument or ALTERNATE_EDITOR variable cannot be\n\
@@ -674,7 +622,7 @@ an empty string");
 }
 
 
-static void
+static _Noreturn void
 print_help_and_exit (void)
 {
   /* Spaces and tabs are significant in this message; they're chosen so the
@@ -717,12 +665,11 @@ Report bugs with M-x report-emacs-bug.\n", progname);
   exit (EXIT_SUCCESS);
 }
 
-/*
-  Try to run a different command, or --if no alternate editor is
-  defined-- exit with an errorcode.
-  Uses argv, but gets it from the global variable main_argv.
-*/
-static void
+/* Try to run a different command, or --if no alternate editor is
+   defined-- exit with an errorcode.
+   Uses argv, but gets it from the global variable main_argv.  */
+
+static _Noreturn void
 fail (void)
 {
   if (alternate_editor)
@@ -755,16 +702,15 @@ main (int argc, char **argv)
 #define AUTH_KEY_LENGTH      64
 #define SEND_BUFFER_SIZE   4096
 
-extern char *strerror (int);
-
 /* Buffer to accumulate data to send in TCP connections.  */
 char send_buffer[SEND_BUFFER_SIZE + 1];
 int sblen = 0;	/* Fill pointer for the send buffer.  */
 /* Socket used to communicate with the Emacs server process.  */
 HSOCKET emacs_socket = 0;
 
-/* On Windows, the socket library was historically separate from the standard
-   C library, so errors are handled differently.  */
+/* On Windows, the socket library was historically separate from the
+   standard C library, so errors are handled differently.  */
+
 static void
 sock_err_message (const char *function_name)
 {
@@ -792,33 +738,35 @@ sock_err_message (const char *function_name)
 static void
 send_to_emacs (HSOCKET s, const char *data)
 {
-  while (data)
+  size_t dlen;
+
+  if (!data)
+    return;
+
+  dlen = strlen (data);
+  while (*data)
     {
-      size_t dlen = strlen (data);
-      if (dlen + sblen >= SEND_BUFFER_SIZE)
-	{
-	  int part = SEND_BUFFER_SIZE - sblen;
-	  strncpy (&send_buffer[sblen], data, part);
-	  data += part;
-	  sblen = SEND_BUFFER_SIZE;
-	}
-      else if (dlen)
-	{
-	  strcpy (&send_buffer[sblen], data);
-	  data = NULL;
-	  sblen += dlen;
-	}
-      else
-	break;
+      size_t part = min (dlen, SEND_BUFFER_SIZE - sblen);
+      memcpy (&send_buffer[sblen], data, part);
+      data += part;
+      sblen += part;
 
       if (sblen == SEND_BUFFER_SIZE
 	  || (sblen > 0 && send_buffer[sblen-1] == '\n'))
 	{
 	  int sent = send (s, send_buffer, sblen, 0);
+	  if (sent < 0)
+	    {
+	      message (TRUE, "%s: failed to send %d bytes to socket: %s\n",
+		       progname, sblen, strerror (errno));
+	      fail ();
+	    }
 	  if (sent != sblen)
-	    strcpy (send_buffer, &send_buffer[sent]);
+	    memmove (send_buffer, &send_buffer[sent], sblen - sent);
 	  sblen -= sent;
 	}
+
+      dlen -= part;
     }
 }
 
@@ -867,7 +815,7 @@ quote_argument (HSOCKET s, const char *str)
 
 
 /* The inverse of quote_argument.  Removes quoting in string STR by
-   modifying the string in place.   Returns STR. */
+   modifying the string in place.   Returns STR.  */
 
 static char *
 unquote_argument (char *str)
@@ -950,41 +898,41 @@ initialize_sockets (void)
 #endif /* WINDOWSNT */
 
 
-/*
- * Read the information needed to set up a TCP comm channel with
- * the Emacs server: host, port, and authentication string.
- */
+/* Read the information needed to set up a TCP comm channel with
+   the Emacs server: host, port, and authentication string.  */
+
 static int
-get_server_config (struct sockaddr_in *server, char *authentication)
+get_server_config (const char *config_file, struct sockaddr_in *server,
+		   char *authentication)
 {
   char dotted[32];
   char *port;
   FILE *config = NULL;
 
-  if (file_name_absolute_p (server_file))
-    config = fopen (server_file, "rb");
+  if (file_name_absolute_p (config_file))
+    config = fopen (config_file, "rb");
   else
     {
       const char *home = egetenv ("HOME");
 
       if (home)
         {
-	  char *path = xmalloc (strlen (home) + strlen (server_file)
+	  char *path = xmalloc (strlen (home) + strlen (config_file)
 				+ EXTRA_SPACE);
 	  strcpy (path, home);
 	  strcat (path, "/.emacs.d/server/");
-	  strcat (path, server_file);
+	  strcat (path, config_file);
           config = fopen (path, "rb");
 	  free (path);
         }
 #ifdef WINDOWSNT
       if (!config && (home = egetenv ("APPDATA")))
         {
-	  char *path = xmalloc (strlen (home) + strlen (server_file)
+	  char *path = xmalloc (strlen (home) + strlen (config_file)
 				+ EXTRA_SPACE);
 	  strcpy (path, home);
 	  strcat (path, "/.emacs.d/server/");
-	  strcat (path, server_file);
+	  strcat (path, config_file);
           config = fopen (path, "rb");
 	  free (path);
         }
@@ -1019,32 +967,28 @@ get_server_config (struct sockaddr_in *server, char *authentication)
 }
 
 static HSOCKET
-set_tcp_socket (void)
+set_tcp_socket (const char *local_server_file)
 {
   HSOCKET s;
   struct sockaddr_in server;
   struct linger l_arg = {1, 1};
   char auth_string[AUTH_KEY_LENGTH + 1];
 
-  if (! get_server_config (&server, auth_string))
+  if (! get_server_config (local_server_file, &server, auth_string))
     return INVALID_SOCKET;
 
   if (server.sin_addr.s_addr != inet_addr ("127.0.0.1") && !quiet)
     message (FALSE, "%s: connected to remote socket at %s\n",
              progname, inet_ntoa (server.sin_addr));
 
-  /*
-   * Open up an AF_INET socket
-   */
+  /* Open up an AF_INET socket.  */
   if ((s = socket (AF_INET, SOCK_STREAM, IPPROTO_TCP)) < 0)
     {
       sock_err_message ("socket");
       return INVALID_SOCKET;
     }
 
-  /*
-   * Set up the socket
-   */
+  /* Set up the socket.  */
   if (connect (s, (struct sockaddr *) &server, sizeof server) < 0)
     {
       sock_err_message ("connect");
@@ -1053,9 +997,7 @@ set_tcp_socket (void)
 
   setsockopt (s, SOL_SOCKET, SO_LINGER, (char *) &l_arg, sizeof l_arg);
 
-  /*
-   * Send the authentication
-   */
+  /* Send the authentication.  */
   auth_string[AUTH_KEY_LENGTH] = '\0';
 
   send_to_emacs (s, "-auth ");
@@ -1178,7 +1120,7 @@ handle_sigcont (int signalnum)
   else
     {
       /* We are in the background; cancel the continue. */
-      kill (getpid (), SIGSTOP);
+      raise (SIGSTOP);
     }
 
   signal (signalnum, handle_sigcont);
@@ -1189,7 +1131,7 @@ handle_sigcont (int signalnum)
    going to sleep.  Normally the suspend is initiated by Emacs via
    server-handle-suspend-tty, but if the server gets out of sync with
    reality, we may get a SIGTSTP on C-z.  Handling this signal and
-   notifying Emacs about it should get things under control again. */
+   notifying Emacs about it should get things under control again.  */
 
 static void
 handle_sigtstp (int signalnum)
@@ -1205,7 +1147,7 @@ handle_sigtstp (int signalnum)
   sigprocmask (SIG_BLOCK, NULL, &set);
   sigdelset (&set, signalnum);
   signal (signalnum, SIG_DFL);
-  kill (getpid (), signalnum);
+  raise (signalnum);
   sigprocmask (SIG_SETMASK, &set, NULL); /* Let's the above signal through. */
   signal (signalnum, handle_sigtstp);
 
@@ -1236,15 +1178,12 @@ init_signals (void)
 
 
 static HSOCKET
-set_local_socket (void)
+set_local_socket (const char *local_socket_name)
 {
   HSOCKET s;
   struct sockaddr_un server;
 
-  /*
-   * Open up an AF_UNIX socket in this person's home directory
-   */
-
+  /* Open up an AF_UNIX socket in this person's home directory.  */
   if ((s = socket (AF_UNIX, SOCK_STREAM, 0)) < 0)
     {
       message (TRUE, "%s: socket: %s\n", progname, strerror (errno));
@@ -1254,27 +1193,20 @@ set_local_socket (void)
   server.sun_family = AF_UNIX;
 
   {
-    int sock_status = 0;
-    int default_sock = !socket_name;
-    int saved_errno = 0;
-    const char *server_name = "server";
+    int sock_status;
+    int use_tmpdir = 0;
+    int saved_errno;
+    const char *server_name = local_socket_name;
     const char *tmpdir IF_LINT ( = NULL);
     char *tmpdir_storage = NULL;
     char *socket_name_storage = NULL;
 
-    if (socket_name && !strchr (socket_name, '/')
-	&& !strchr (socket_name, '\\'))
+    if (!strchr (local_socket_name, '/') && !strchr (local_socket_name, '\\'))
       {
 	/* socket_name is a file name component.  */
- 	server_name = socket_name;
- 	socket_name = NULL;
- 	default_sock = 1;	/* Try both UIDs.  */
-      }
-
-    if (default_sock)
-      {
 	long uid = geteuid ();
 	ptrdiff_t tmpdirlen;
+	use_tmpdir = 1;
 	tmpdir = egetenv ("TMPDIR");
 	if (!tmpdir)
           {
@@ -1286,33 +1218,34 @@ set_local_socket (void)
             if (n > 0)
               {
 		tmpdir = tmpdir_storage = xmalloc (n);
-                confstr (_CS_DARWIN_USER_TEMP_DIR, tmpdir, n);
+		confstr (_CS_DARWIN_USER_TEMP_DIR, tmpdir_storage, n);
               }
             else
 #endif
               tmpdir = "/tmp";
           }
 	tmpdirlen = strlen (tmpdir);
-	socket_name = socket_name_storage =
+	socket_name_storage =
 	  xmalloc (tmpdirlen + strlen (server_name) + EXTRA_SPACE);
-	strcpy (socket_name, tmpdir);
-	sprintf (socket_name + tmpdirlen, "/emacs%ld/", uid);
-	strcat (socket_name + tmpdirlen, server_name);
+	strcpy (socket_name_storage, tmpdir);
+	sprintf (socket_name_storage + tmpdirlen, "/emacs%ld/", uid);
+	strcat (socket_name_storage + tmpdirlen, server_name);
+	local_socket_name = socket_name_storage;
       }
 
-    if (strlen (socket_name) < sizeof (server.sun_path))
-      strcpy (server.sun_path, socket_name);
+    if (strlen (local_socket_name) < sizeof (server.sun_path))
+      strcpy (server.sun_path, local_socket_name);
     else
       {
         message (TRUE, "%s: socket-name %s too long\n",
-                 progname, socket_name);
+                 progname, local_socket_name);
         fail ();
       }
 
     /* See if the socket exists, and if it's owned by us. */
     sock_status = socket_status (server.sun_path);
     saved_errno = errno;
-    if (sock_status && default_sock)
+    if (sock_status && use_tmpdir)
       {
 	/* Failing that, see if LOGNAME or USER exist and differ from
 	   our euid.  If so, look for a socket based on the UID
@@ -1333,21 +1266,21 @@ set_local_socket (void)
 		/* We're running under su, apparently. */
 		long uid = pw->pw_uid;
 		ptrdiff_t tmpdirlen = strlen (tmpdir);
-		socket_name = xmalloc (tmpdirlen + strlen (server_name)
-				       + EXTRA_SPACE);
-		strcpy (socket_name, tmpdir);
-		sprintf (socket_name + tmpdirlen, "/emacs%ld/", uid);
-		strcat (socket_name + tmpdirlen, server_name);
+		char *user_socket_name
+		  = xmalloc (tmpdirlen + strlen (server_name) + EXTRA_SPACE);
+		strcpy (user_socket_name, tmpdir);
+		sprintf (user_socket_name + tmpdirlen, "/emacs%ld/", uid);
+		strcat (user_socket_name + tmpdirlen, server_name);
 
-		if (strlen (socket_name) < sizeof (server.sun_path))
-		  strcpy (server.sun_path, socket_name);
+		if (strlen (user_socket_name) < sizeof (server.sun_path))
+		  strcpy (server.sun_path, user_socket_name);
 		else
 		  {
 		    message (TRUE, "%s: socket-name %s too long\n",
-			     progname, socket_name);
+			     progname, user_socket_name);
 		    exit (EXIT_FAILURE);
 		  }
-		free (socket_name);
+		free (user_socket_name);
 
 		sock_status = socket_status (server.sun_path);
                 saved_errno = errno;
@@ -1401,6 +1334,7 @@ static HSOCKET
 set_socket (int no_exit_if_error)
 {
   HSOCKET s;
+  const char *local_server_file = server_file;
 
   INITIALIZE ();
 
@@ -1408,7 +1342,7 @@ set_socket (int no_exit_if_error)
   /* Explicit --socket-name argument.  */
   if (socket_name)
     {
-      s = set_local_socket ();
+      s = set_local_socket (socket_name);
       if ((s != INVALID_SOCKET) || no_exit_if_error)
 	return s;
       message (TRUE, "%s: error accessing socket \"%s\"\n",
@@ -1418,30 +1352,29 @@ set_socket (int no_exit_if_error)
 #endif
 
   /* Explicit --server-file arg or EMACS_SERVER_FILE variable.  */
-  if (!server_file)
-    server_file = egetenv ("EMACS_SERVER_FILE");
+  if (!local_server_file)
+    local_server_file = egetenv ("EMACS_SERVER_FILE");
 
-  if (server_file)
+  if (local_server_file)
     {
-      s = set_tcp_socket ();
+      s = set_tcp_socket (local_server_file);
       if ((s != INVALID_SOCKET) || no_exit_if_error)
 	return s;
 
       message (TRUE, "%s: error accessing server file \"%s\"\n",
-	       progname, server_file);
+	       progname, local_server_file);
       exit (EXIT_FAILURE);
     }
 
 #ifndef NO_SOCKETS_IN_FILE_SYSTEM
   /* Implicit local socket.  */
-  s = set_local_socket ();
+  s = set_local_socket ("server");
   if (s != INVALID_SOCKET)
     return s;
 #endif
 
   /* Implicit server file.  */
-  server_file = "server";
-  s = set_tcp_socket ();
+  s = set_tcp_socket ("server");
   if ((s != INVALID_SOCKET) || no_exit_if_error)
     return s;
 
@@ -1456,9 +1389,36 @@ set_socket (int no_exit_if_error)
   exit (EXIT_FAILURE);
 }
 
-#ifdef WINDOWSNT
+#ifdef HAVE_NTGUI
 FARPROC set_fg;  /* Pointer to AllowSetForegroundWindow.  */
 FARPROC get_wc;  /* Pointer to RealGetWindowClassA.  */
+
+void
+w32_set_user_model_id (void)
+{
+  HMODULE shell;
+  HRESULT (WINAPI * set_user_model) (wchar_t * id);
+
+  /* On Windows 7 and later, we need to set the user model ID
+     to associate emacsclient launched files with Emacs frames
+     in the UI.  */
+  shell = LoadLibrary ("shell32.dll");
+  if (shell)
+    {
+      set_user_model
+	= (void *) GetProcAddress (shell,
+				   "SetCurrentProcessExplicitAppUserModelID");
+      /* If the function is defined, then we are running on Windows 7
+	 or newer, and the UI uses this to group related windows
+	 together.  Since emacs, runemacs, emacsclient are related, we
+	 want them grouped even though the executables are different,
+	 so we need to set a consistent ID between them.  */
+      if (set_user_model)
+	set_user_model (L"GNU.Emacs");
+
+      FreeLibrary (shell);
+    }
+}
 
 BOOL CALLBACK
 w32_find_emacs_process (HWND hWnd, LPARAM lParam)
@@ -1484,10 +1444,9 @@ w32_find_emacs_process (HWND hWnd, LPARAM lParam)
   return FALSE;
 }
 
-/*
- * Search for a window of class "Emacs" and owned by a process with
- * process id = emacs_pid.  If found, allow it to grab the focus.
- */
+/* Search for a window of class "Emacs" and owned by a process with
+   process id = emacs_pid.  If found, allow it to grab the focus.  */
+
 void
 w32_give_focus (void)
 {
@@ -1509,7 +1468,7 @@ w32_give_focus (void)
       && (get_wc = GetProcAddress (user32, "RealGetWindowClassA")))
     EnumWindows (w32_find_emacs_process, (LPARAM) 0);
 }
-#endif
+#endif /* HAVE_NTGUI */
 
 /* Start the emacs daemon and try to connect to it.  */
 
@@ -1573,19 +1532,19 @@ main (int argc, char **argv)
   int rl = 0, needlf = 0;
   char *cwd, *str;
   char string[BUFSIZ+1];
-  int null_socket_name IF_LINT ( = 0);
-  int null_server_file IF_LINT ( = 0);
   int start_daemon_if_needed;
   int exit_status = EXIT_SUCCESS;
 
   main_argv = argv;
   progname = argv[0];
 
-#ifdef WINDOWSNT
-  /* On Windows 7 and later, we need to explicitly associate emacsclient
-     with emacs so the UI behaves sensibly.  */
+#ifdef HAVE_NTGUI
+  /* On Windows 7 and later, we need to explicitly associate
+     emacsclient with emacs so the UI behaves sensibly.  This
+     association does no harm if we're not actually connecting to an
+     Emacs using a window display.  */
   w32_set_user_model_id ();
-#endif
+#endif /* HAVE_NTGUI */
 
   /* Process options.  */
   decode_options (argc, argv);
@@ -1602,14 +1561,6 @@ main (int argc, char **argv)
      in case of failure to connect.  */
   start_daemon_if_needed = (alternate_editor
 			    && (alternate_editor[0] == '\0'));
-  if (start_daemon_if_needed)
-    {
-      /* set_socket changes the values for socket_name and
-	 server_file, we need to reset them, if they were NULL before
-	 for the second call to set_socket.  */
-      null_socket_name = (socket_name == NULL);
-      null_server_file = (server_file == NULL);
-    }
 
   emacs_socket = set_socket (alternate_editor || start_daemon_if_needed);
   if (emacs_socket == INVALID_SOCKET)
@@ -1617,37 +1568,25 @@ main (int argc, char **argv)
       if (! start_daemon_if_needed)
 	fail ();
 
-      /* Reset socket_name and server_file if they were NULL
-	 before the set_socket call.  */
-      if (null_socket_name)
-	socket_name = NULL;
-      if (null_server_file)
-	server_file = NULL;
-
       start_daemon_and_retry_set_socket ();
     }
 
   cwd = get_current_dir_name ();
   if (cwd == 0)
     {
-      /* getwd puts message in STRING if it fails.  */
       message (TRUE, "%s: %s\n", progname,
 	       "Cannot get current working directory");
       fail ();
     }
 
-#ifdef WINDOWSNT
+#ifdef HAVE_NTGUI
+  if (display && !strcmp (display, "w32"))
   w32_give_focus ();
-#endif
+#endif /* HAVE_NTGUI */
 
   /* Send over our environment and current directory. */
   if (!current_frame)
     {
-#ifndef WINDOWSNT
-      /* This is defined in stdlib.h on MS-Windows.  It's defined in
-	 unistd.h on some POSIX hosts, but not all (Bug#10155).  */
-      extern char **environ;
-#endif
       int i;
       for (i = 0; environ[i]; i++)
         {
@@ -1689,10 +1628,10 @@ main (int argc, char **argv)
       send_to_emacs (emacs_socket, " ");
     }
 
-  /* If using the current frame, send tty information to Emacs anyway.
-     In daemon mode, Emacs may need to occupy this tty if no other
-     frame is available.  */
-  if (tty || (current_frame && !eval))
+  /* Unless we are certain we don't want to occupy the tty, send our
+     tty information to Emacs.  For example, in daemon mode Emacs may
+     need to occupy this tty if no other frame is available.  */
+  if (!current_frame || !eval)
     {
       const char *tty_type, *tty_name;
 
@@ -1790,7 +1729,7 @@ main (int argc, char **argv)
   /* Now, wait for an answer and print any messages.  */
   while (exit_status == EXIT_SUCCESS)
     {
-      char *p;
+      char *p, *end_p;
       do
         {
           errno = 0;
@@ -1805,61 +1744,82 @@ main (int argc, char **argv)
 
       string[rl] = '\0';
 
-      p = string + strlen (string) - 1;
-      while (p > string && *p == '\n')
-        *p-- = 0;
+      /* Loop over all NL-terminated messages.  */
+      for (end_p = p = string; end_p != NULL && *end_p != '\0'; p = end_p)
+	{
+	  end_p = strchr (p, '\n');
+	  if (end_p != NULL)
+	    *end_p++ = '\0';
 
-      if (strprefix ("-emacs-pid ", string))
-        {
-          /* -emacs-pid PID: The process id of the Emacs process. */
-          emacs_pid = strtol (string + strlen ("-emacs-pid"), NULL, 10);
-        }
-      else if (strprefix ("-window-system-unsupported ", string))
-        {
-          /* -window-system-unsupported: Emacs was compiled without X
-              support.  Try again on the terminal. */
-          nowait = 0;
-          tty = 1;
-          goto retry;
-        }
-      else if (strprefix ("-print ", string))
-        {
-          /* -print STRING: Print STRING on the terminal. */
-          str = unquote_argument (string + strlen ("-print "));
-          if (needlf)
-            printf ("\n");
-          printf ("%s", str);
-          needlf = str[0] == '\0' ? needlf : str[strlen (str) - 1] != '\n';
-        }
-      else if (strprefix ("-error ", string))
-        {
-          /* -error DESCRIPTION: Signal an error on the terminal. */
-          str = unquote_argument (string + strlen ("-error "));
-          if (needlf)
-            printf ("\n");
-          fprintf (stderr, "*ERROR*: %s", str);
-          needlf = str[0] == '\0' ? needlf : str[strlen (str) - 1] != '\n';
-	  exit_status = EXIT_FAILURE;
-        }
+          if (strprefix ("-emacs-pid ", p))
+            {
+              /* -emacs-pid PID: The process id of the Emacs process. */
+              emacs_pid = strtol (p + strlen ("-emacs-pid"), NULL, 10);
+            }
+          else if (strprefix ("-window-system-unsupported ", p))
+            {
+              /* -window-system-unsupported: Emacs was compiled without support
+                 for whatever window system we tried.  Try the alternate
+                 display, or, failing that, try the terminal.  */
+              if (alt_display)
+                {
+                  display = alt_display;
+                  alt_display = NULL;
+                }
+              else
+                {
+                  nowait = 0;
+                  tty = 1;
+                }
+
+              goto retry;
+            }
+          else if (strprefix ("-print ", p))
+            {
+              /* -print STRING: Print STRING on the terminal. */
+              str = unquote_argument (p + strlen ("-print "));
+              if (needlf)
+                printf ("\n");
+              printf ("%s", str);
+              needlf = str[0] == '\0' ? needlf : str[strlen (str) - 1] != '\n';
+            }
+          else if (strprefix ("-print-nonl ", p))
+            {
+              /* -print-nonl STRING: Print STRING on the terminal.
+                 Used to continue a preceding -print command.  */
+              str = unquote_argument (p + strlen ("-print-nonl "));
+              printf ("%s", str);
+              needlf = str[0] == '\0' ? needlf : str[strlen (str) - 1] != '\n';
+            }
+          else if (strprefix ("-error ", p))
+            {
+              /* -error DESCRIPTION: Signal an error on the terminal. */
+              str = unquote_argument (p + strlen ("-error "));
+              if (needlf)
+                printf ("\n");
+              fprintf (stderr, "*ERROR*: %s", str);
+              needlf = str[0] == '\0' ? needlf : str[strlen (str) - 1] != '\n';
+              exit_status = EXIT_FAILURE;
+            }
 #ifdef SIGSTOP
-      else if (strprefix ("-suspend ", string))
-        {
-          /* -suspend: Suspend this terminal, i.e., stop the process. */
-          if (needlf)
-            printf ("\n");
-          needlf = 0;
-          kill (0, SIGSTOP);
-        }
+	  else if (strprefix ("-suspend ", p))
+	    {
+	      /* -suspend: Suspend this terminal, i.e., stop the process. */
+	      if (needlf)
+		printf ("\n");
+	      needlf = 0;
+	      kill (0, SIGSTOP);
+	    }
 #endif
-      else
-        {
-          /* Unknown command. */
-          if (needlf)
-            printf ("\n");
-          printf ("*ERROR*: Unknown message: %s", string);
-          needlf = string[0]
-	    == '\0' ? needlf : string[strlen (string) - 1] != '\n';
-        }
+	  else
+	    {
+	      /* Unknown command. */
+	      if (needlf)
+		printf ("\n");
+	      needlf = 0;
+	      printf ("*ERROR*: Unknown message: %s\n", p);
+	    }
+	}
     }
 
   if (needlf)
@@ -1875,22 +1835,3 @@ main (int argc, char **argv)
 }
 
 #endif /* HAVE_SOCKETS && HAVE_INET_SOCKETS */
-
-
-#ifndef HAVE_STRERROR
-char *
-strerror (errnum)
-     int errnum;
-{
-  extern char *sys_errlist[];
-  extern int sys_nerr;
-
-  if (errnum >= 0 && errnum < sys_nerr)
-    return sys_errlist[errnum];
-  return (char *) "Unknown error";
-}
-
-#endif /* ! HAVE_STRERROR */
-
-
-/* emacsclient.c ends here */

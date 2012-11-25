@@ -1,8 +1,8 @@
 @c This is part of the Emacs manual.
-@c Copyright (C) 1985-1987, 1993-1995, 1997, 2000-2011
+@c Copyright (C) 1985-1987, 1993-1995, 1997, 2000-2012
 @c   Free Software Foundation, Inc.
 @c See file emacs.texi for copying conditions.
-@node Microsoft Windows, Manifesto, Mac OS / GNUstep, Top
+@node Microsoft Windows
 @appendix Emacs and Microsoft Windows/MS-DOS
 @cindex Microsoft Windows
 @cindex MS-Windows, Emacs peculiarities
@@ -40,7 +40,7 @@ here.
 * Windows Fonts::       Specifying fonts on MS-Windows.
 * Windows Misc::        Miscellaneous Windows features.
 @ifnottex
-* MS-DOS::              Using Emacs on MS-DOS (otherwise known as @dfn{MS-DOG}).
+* MS-DOS::              Using Emacs on MS-DOS.
 @end ifnottex
 @end menu
 
@@ -109,6 +109,21 @@ invoked---that will always give you an editor.  When invoked via
 the program that invoked @command{emacsclient}.
 @end enumerate
 
+@cindex emacsclient, on MS-Windows
+Note that, due to limitations of MS-Windows, Emacs cannot have both
+GUI and text-mode frames in the same session.  It also cannot open
+text-mode frames on more than a single @dfn{Command Prompt} window,
+because each Windows program can have only one console at any given
+time.  For these reasons, if you invoke @command{emacsclient} with the
+@option{-c} option, and the Emacs server runs in a text-mode session,
+Emacs will always create a new text-mode frame in the same
+@dfn{Command Prompt} window where it was started; a GUI frame will be
+created only if the server runs in a GUI session.  Similarly, if you
+invoke @command{emacsclient} with the @option{-t} option, Emacs will
+create a GUI frame if the server runs in a GUI session, or a text-mode
+frame when the session runs in text mode in a @dfn{Command Prompt}
+window.  @xref{emacsclient Options}.
+
 @node Text and Binary
 @section Text Files and Binary Files
 @cindex text and binary files on MS-DOS/MS-Windows
@@ -159,7 +174,8 @@ save a buffer in a specified EOL format with the @kbd{C-x @key{RET} f}
 command.  For example, to save a buffer with Unix EOL format, type
 @kbd{C-x @key{RET} f unix @key{RET} C-x C-s}.  If you visit a file
 with DOS EOL conversion, then save it with Unix EOL format, that
-effectively converts the file to Unix EOL style, like @code{dos2unix}.
+effectively converts the file to Unix EOL style, like the
+@code{dos2unix} program.
 
 @cindex untranslated file system
 @findex add-untranslated-filesystem
@@ -221,7 +237,7 @@ for files which are known to be Windows-style text files with
 carriage-return linefeed EOL format, such as @file{CONFIG.SYS}; Emacs
 always writes those files with Windows-style EOLs.
 
-  If a file which belongs to an untranslated file system matches one of
+  If a file that belongs to an untranslated file system matches one of
 the file-name patterns in @code{file-name-buffer-file-type-alist}, the
 EOL conversion is determined by @code{file-name-buffer-file-type-alist}.
 
@@ -263,8 +279,8 @@ FAT32, and XFAT volumes.
 @cindex Dired, and MS-Windows/MS-DOS
 @cindex @code{ls} emulation
 
-  Dired normally uses the external program @code{ls} (or its close
-work-alike) to produce the directory listing displayed in Dired
+  Dired normally uses the external program @code{ls}
+to produce the directory listing displayed in Dired
 buffers (@pxref{Dired}).  However, MS-Windows and MS-DOS systems don't
 come with such a program, although several ports of @sc{gnu} @code{ls}
 are available.  Therefore, Emacs on those systems @emph{emulates}
@@ -281,8 +297,8 @@ they are described in this section.
   The @code{ls} emulation supports many of the @code{ls} switches, but
 it doesn't support all of them.  Here's the list of the switches it
 does support: @option{-A}, @option{-a}, @option{-B}, @option{-C},
-@option{-c}, @option{-i}, @option{-G}, @option{-g}, @option{-R},
-@option{-r}, @option{-S}, @option{-s}, @option{-t}, @option{-U},
+@option{-c}, @option{-G}, @option{-g}, @option{-h}, @option{-i}, @option{-n},
+@option{-R}, @option{-r}, @option{-S}, @option{-s}, @option{-t}, @option{-U},
 @option{-u}, and @option{-X}.  The @option{-F} switch is partially
 supported (it appends the character that classifies the file, but does
 not prevent symlink following).
@@ -399,23 +415,22 @@ names, which might cause misalignment of columns in Dired display.
 @section HOME and Startup Directories on MS-Windows
 @cindex @code{HOME} directory on MS-Windows
 
-  The Windows equivalent of the @code{HOME} directory is the
-@dfn{user-specific application data directory}.  The actual location
-depends on the Windows version; typical values are @file{C:\Documents
-and Settings\@var{username}\Application Data} on Windows 2K/XP/2K3,
-@file{C:\Users\@var{username}\AppData\Roaming} on Windows Vista/7/2K8,
-and either @file{C:\WINDOWS\Application Data} or
-@file{C:\WINDOWS\Profiles\@var{username}\Application Data} on the
-older Windows 9X/ME systems.  If this directory does not exist or
-cannot be accessed, Emacs falls back to @file{C:\} as the default
-value of @code{HOME}.
+  The Windows equivalent of @code{HOME} is the @dfn{user-specific
+application data directory}.  The actual location depends on the
+Windows version; typical values are @file{C:\Documents and
+Settings\@var{username}\Application Data} on Windows 2000/XP/2K3,
+@file{C:\Users\@var{username}\AppData\Roaming} on Windows
+Vista/7/2008, and either @file{C:\WINDOWS\Application Data} or
+@file{C:\WINDOWS\Profiles\@var{username}\Application Data} on Windows
+9X/ME.  If this directory does not exist or cannot be accessed, Emacs
+falls back to @file{C:\} as the default value of @code{HOME}.
 
   You can override this default value of @code{HOME} by explicitly
 setting the environment variable @env{HOME} to point to any directory
 on your system.  @env{HOME} can be set either from the command shell
-prompt or from the @samp{My Computer}s @samp{Properties} dialog.
-@code{HOME} can also be set in the system registry, for details see
-@ref{MS-Windows Registry}.
+prompt or from @samp{Properties} dialog of @samp{My Computer}.
+@code{HOME} can also be set in the system registry,
+@pxref{MS-Windows Registry}.
 
   For compatibility with older versions of Emacs@footnote{
 Older versions of Emacs didn't check the application data directory.
@@ -431,9 +446,9 @@ deprecated.
   Whatever the final place is, Emacs sets the internal value of the
 @env{HOME} environment variable to point to it, and it will use that
 location for other files and directories it normally looks for or
-creates in the user's home directory.
+creates in your home directory.
 
-  You can always find out where Emacs thinks is your home directory's
+  You can always find out what Emacs thinks is your home directory's
 location by typing @kbd{C-x d ~/ @key{RET}}.  This should present the
 list of files in the home directory, and show its full name on the
 first line.  Likewise, to visit your init file, type @kbd{C-x C-f
@@ -510,7 +525,7 @@ otherwise it returns @code{nil}.
 @cindex @kbd{M-@key{TAB}} vs @kbd{Alt-@key{TAB}} (MS-Windows)
 @cindex @kbd{Alt-@key{TAB}} vs @kbd{M-@key{TAB}} (MS-Windows)
   For example, @code{(w32-register-hot-key [M-tab])} lets you use
-@kbd{M-TAB} normally in Emacs, for instance, to complete the word or
+@kbd{M-TAB} normally in Emacs; for instance, to complete the word or
 symbol at point at top level, or to complete the current search string
 against previously sought strings during incremental search.
 
@@ -573,7 +588,7 @@ then change their minds; if this has the effect of bringing up the
 Windows menu, it alters the meaning of subsequent commands.  Many
 users find this frustrating.
 
-  You can re-enable Windows' default handling of tapping the @key{ALT}
+  You can re-enable Windows's default handling of tapping the @key{ALT}
 key by setting @code{w32-pass-alt-to-system} to a non-@code{nil}
 value.
 
@@ -589,7 +604,7 @@ of these variables.  Passing each of these keys to Windows produces
 its normal effect: for example, @kbd{@key{Lwindow}} opens the
 @code{Start} menu, etc.@footnote{
 Some combinations of the ``Windows'' keys with other keys are caught
-by Windows at low level in a way that Emacs currently cannot prevent.
+by Windows at a low level in a way that Emacs currently cannot prevent.
 For example, @kbd{@key{Lwindow} r} always pops up the Windows
 @samp{Run} dialog.  Customizing the value of
 @code{w32-phantom-key-code} might help in some cases, though.}
@@ -612,7 +627,7 @@ modifiers.
 @cindex mouse, and MS-Windows
 
   This section describes the Windows-specific variables related to
-mouse.
+the mouse.
 
 @vindex w32-mouse-button-tolerance
 @cindex simulation of middle mouse button
@@ -689,8 +704,8 @@ to do its job.
 @vindex w32-quote-process-args
   The variable @code{w32-quote-process-args} controls how Emacs quotes
 the process arguments.  Non-@code{nil} means quote with the @code{"}
-character.  If the value is a character, use that character to escape
-any quote characters that appear; otherwise chose a suitable escape
+character.  If the value is a character, Emacs uses that character to escape
+any quote characters that appear; otherwise it chooses a suitable escape
 character based on the type of the program.
 
 @ifnottex
@@ -713,9 +728,9 @@ Posix-style @code{lpr} program is unavailable.  The same Emacs
 variables control printing on all systems, but in some cases they have
 different default values on MS-DOS and MS-Windows.
 
-  Emacs on Windows automatically determines your default printer and
-sets the variable @code{printer-name} to that printer's name.  But in
-some rare cases this can fail, or you may wish to use a different
+  Emacs on MS Windows attempts to determine your default printer
+automatically (using the function @code{default-printer-name}).
+But in some rare cases this can fail, or you may wish to use a different
 printer from within Emacs.  The rest of this section explains how to
 tell Emacs which printer to use.
 
@@ -723,7 +738,7 @@ tell Emacs which printer to use.
   If you want to use your local printer, then set the Lisp variable
 @code{lpr-command} to @code{""} (its default value on Windows) and
 @code{printer-name} to the name of the printer port---for example,
-@code{"PRN"}, the usual local printer port or @code{"LPT2"}, or
+@code{"PRN"}, the usual local printer port, or @code{"LPT2"}, or
 @code{"COM1"} for a serial printer.  You can also set
 @code{printer-name} to a file name, in which case ``printed'' output
 is actually appended to that file.  If you set @code{printer-name} to
@@ -738,7 +753,7 @@ printers, run the command @samp{net view} from the command prompt to
 obtain a list of servers, and @samp{net view @var{server-name}} to see
 the names of printers (and directories) shared by that server.
 Alternatively, click the @samp{Network Neighborhood} icon on your
-desktop, and look for machines which share their printers via the
+desktop, and look for machines that share their printers via the
 network.
 
 @cindex @samp{net use}, and printing on MS-Windows
@@ -797,8 +812,8 @@ specified by @code{printer-name}.
   Finally, if you do have an @code{lpr} work-alike, you can set the
 variable @code{lpr-command} to @code{"lpr"}.  Then Emacs will use
 @code{lpr} for printing, as on other systems.  (If the name of the
-program isn't @code{lpr}, set @code{lpr-command} to specify where to
-find it.)  The variable @code{lpr-switches} has its standard meaning
+program isn't @code{lpr}, set @code{lpr-command} to the appropriate value.)
+The variable @code{lpr-switches} has its standard meaning
 when @code{lpr-command} is not @code{""}.  If the variable
 @code{printer-name} has a string value, it is used as the value for the
 @code{-P} option to @code{lpr}, as on Unix.
@@ -822,7 +837,7 @@ ports, and only one of them is a PostScript printer.)
 @cindex Ghostscript, use for PostScript printing
   The default value of the variable @code{ps-lpr-command} is @code{""},
 which causes PostScript output to be sent to the printer port specified
-by @code{ps-printer-name}, but @code{ps-lpr-command} can also be set to
+by @code{ps-printer-name}; but @code{ps-lpr-command} can also be set to
 the name of a program which will accept PostScript files.  Thus, if you
 have a non-PostScript printer, you can set this variable to the name of
 a PostScript interpreter program (such as Ghostscript).  Any switches
@@ -980,7 +995,7 @@ the system default antialiasing.
 determines whether to make the system caret visible.  The default when
 no screen reader software is in use is @code{nil}, which means Emacs
 draws its own cursor to indicate the position of point.  A
-non-@code{nil} value means Emacs will indicate point location by the
+non-@code{nil} value means Emacs will indicate point location with the
 system caret; this facilitates use of screen reader software, and is
 the default when such software is detected when running Emacs.
 When this variable is non-@code{nil}, other variables affecting the

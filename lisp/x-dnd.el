@@ -1,6 +1,6 @@
 ;;; x-dnd.el --- drag and drop support for X  -*- coding: utf-8 -*-
 
-;; Copyright (C) 2004-2011  Free Software Foundation, Inc.
+;; Copyright (C) 2004-2012  Free Software Foundation, Inc.
 
 ;; Author: Jan Djärv <jan.h.d@swipnet.se>
 ;; Maintainer: FSF
@@ -431,7 +431,7 @@ otherwise return the frame coordinates."
 (declare-function x-send-client-message "xselect.c"
 		  (display dest from message-type format values))
 (declare-function x-get-selection-internal "xselect.c"
-		  (selection-symbol target-type &optional time-stamp))
+		  (selection-symbol target-type &optional time-stamp terminal))
 
 (defun x-dnd-version-from-flags (flags)
   "Return the version byte from the 32 bit FLAGS in an XDndEnter message"

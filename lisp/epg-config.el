@@ -1,6 +1,6 @@
 ;;; epg-config.el --- configuration of the EasyPG Library
 
-;; Copyright (C) 2006-2011 Free Software Foundation, Inc.
+;; Copyright (C) 2006-2012 Free Software Foundation, Inc.
 
 ;; Author: Daiki Ueno <ueno@unixuser.org>
 ;; Keywords: PGP, GnuPG
@@ -33,9 +33,11 @@
   "Report bugs to this address.")
 
 (defgroup epg ()
-  "The EasyPG library."
+  "Interface to the GNU Privacy Guard (GnuPG)."
+  :tag "EasyPG"
   :version "23.1"
-  :group 'data)
+  :group 'data
+  :group 'external)
 
 (defcustom epg-gpg-program (or (executable-find "gpg")
 			       (executable-find "gpg2")

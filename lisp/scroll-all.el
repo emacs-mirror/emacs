@@ -1,6 +1,6 @@
 ;;; scroll-all.el --- scroll all buffers together minor mode
 
-;; Copyright (C) 1997, 2001-2011 Free Software Foundation, Inc.
+;; Copyright (C) 1997, 2001-2012 Free Software Foundation, Inc.
 
 ;; Author: Gary D. Foster <Gary.Foster@corp.sun.com>
 ;; Keywords: scroll crisp brief lock
@@ -111,7 +111,6 @@ one window apply to all visible windows in the same frame."
   nil " *SL*" nil
   :global t
   :group 'windows
-  :group 'scrolling
   (if scroll-all-mode
       (add-hook 'post-command-hook 'scroll-all-check-to-scroll)
     (remove-hook 'post-command-hook 'scroll-all-check-to-scroll)))

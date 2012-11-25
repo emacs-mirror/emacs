@@ -1,6 +1,6 @@
 # Makefile for the GNU Emacs Lisp Reference Manual.
 
-# Copyright (C) 1990-1996, 1998-2011  Free Software Foundation, Inc.
+# Copyright (C) 1990-1996, 1998-2012 Free Software Foundation, Inc.
 
 # This file is part of GNU Emacs.
 
@@ -24,11 +24,17 @@ srcdir = @srcdir@
 
 version=@version@
 
-infodir = $(srcdir)/../../info
+buildinfodir = $(srcdir)/../../info
 # Directory with the (customized) texinfo.tex file.
 texinfodir = $(srcdir)/../misc
 # Directory with emacsver.texi.
 emacsdir =  $(srcdir)/../emacs
+
+MKDIR_P = @MKDIR_P@
+
+INFO_EXT=@INFO_EXT@
+# Options used only when making info output.
+INFO_OPTS=@INFO_OPTS@
 
 MAKEINFO = @MAKEINFO@
 MAKEINFO_OPTS = --force --enable-encoding -I $(emacsdir) -I $(srcdir)
@@ -36,7 +42,7 @@ TEXI2DVI = texi2dvi
 TEXI2PDF = texi2pdf
 DVIPS = dvips
 
-ENVADD = TEXINPUTS="$(srcdir):$(texinfodir):$(TEXINPUTS)" \
+ENVADD = TEXINPUTS="$(srcdir):$(texinfodir):$(emacsdir):$(TEXINPUTS)" \
          MAKEINFO="$(MAKEINFO) $(MAKEINFO_OPTS)"
 
 # List of all the texinfo files in the manual:
@@ -47,7 +53,6 @@ srcs = \
   $(srcdir)/abbrevs.texi \
   $(srcdir)/advice.texi \
   $(srcdir)/anti.texi \
-  $(srcdir)/back.texi \
   $(srcdir)/backups.texi \
   $(srcdir)/buffers.texi \
   $(srcdir)/commands.texi \
@@ -70,7 +75,6 @@ srcs = \
   $(srcdir)/keymaps.texi \
   $(srcdir)/lists.texi \
   $(srcdir)/loading.texi \
-  $(srcdir)/locals.texi \
   $(srcdir)/macros.texi \
   $(srcdir)/maps.texi \
   $(srcdir)/markers.texi \
@@ -97,31 +101,32 @@ srcs = \
   $(srcdir)/gpl.texi \
   $(srcdir)/doclicense.texi
 
-mkinfodir = @test -d ${infodir} || mkdir ${infodir} || test -d ${infodir}
+mkinfodir = @${MKDIR_P} ${buildinfodir}
 
 .PHONY: info dvi pdf ps
 
-info: $(infodir)/elisp
+info: $(buildinfodir)/elisp$(INFO_EXT)
 dvi: elisp.dvi
 html: elisp.html
 pdf: elisp.pdf
 ps: elisp.ps
 
-$(infodir)/elisp: $(srcs)
+## Note: "<" is not portable in ordinary make rules.
+$(buildinfodir)/elisp$(INFO_EXT): $(srcs)
 	$(mkinfodir)
-	$(MAKEINFO) $(MAKEINFO_OPTS) -o $@ $<
+	$(MAKEINFO) $(MAKEINFO_OPTS) $(INFO_OPTS) -o $@ $(srcdir)/elisp.texi
 
 elisp.dvi: $(srcs)
-	$(ENVADD) $(TEXI2DVI) $<
+	$(ENVADD) $(TEXI2DVI) $(srcdir)/elisp.texi
 
 elisp.html: $(srcs)
-	$(MAKEINFO) $(MAKEINFO_OPTS) --html -o $@ $<
+	$(MAKEINFO) $(MAKEINFO_OPTS) --html -o $@ $(srcdir)/elisp.texi
 
 elisp.ps: elisp.dvi
-	$(DVIPS) -o $@ $<
+	$(DVIPS) -o $@ elisp.dvi
 
 elisp.pdf: $(srcs)
-	$(ENVADD) $(TEXI2PDF) $<
+	$(ENVADD) $(TEXI2PDF) $(srcdir)/elisp.texi
 
 .PHONY: mostlyclean clean distclean maintainer-clean infoclean
 
@@ -129,17 +134,18 @@ elisp.pdf: $(srcs)
 mostlyclean:
 	rm -f *.aux *.log *.toc *.cp *.cps *.fn *.fns *.ky *.kys \
 	  *.op *.ops *.pg *.pgs *.tp *.tps *.vr *.vrs
-	rm -f elisp[12]*
+	rm -f elisp[12]* vol[12].tmp
 
 clean: mostlyclean
-	rm -f elisp.dvi elisp.pdf elisp.ps vol[12].pdf
+	rm -f elisp.dvi elisp.pdf elisp.ps
+	rm -f vol[12].dvi vol[12].pdf vol[12].ps
 	rm -rf elisp.html
 	rm -f emacs-lispref-${version}.tar*
 
 distclean: clean
 
 infoclean:
-	-cd $(infodir) && rm -f elisp elisp-[1-9] elisp-[1-9][0-9]
+	-cd $(buildinfodir) && rm -f elisp$(INFO_EXT) elisp$(INFO_EXT)-[1-9] elisp$(INFO_EXT)-[1-9][0-9]
 
 maintainer-clean: distclean infoclean
 
@@ -154,7 +160,8 @@ dist:
 	  ${srcdir}/README emacs-lispref-${version}/
 	sed -e 's/@sr[c]dir@/./' -e 's/^\(texinfodir *=\).*/\1 ./' \
 	  -e 's/^\(emacsdir *=\).*/\1 ./' \
-	  -e 's/^\(infodir *=\).*/\1 ./' -e 's/^\(clean:.*\)/\1 infoclean/' \
+	  -e 's/^\(buildinfodir *=\).*/\1 ./' \
+	  -e 's/^\(clean:.*\)/\1 infoclean/' \
 	  -e "s/@ver[s]ion@/${version}/" \
 	  ${srcdir}/Makefile.in > emacs-lispref-${version}/Makefile
 	tar -cf emacs-lispref-${version}.tar emacs-lispref-${version}

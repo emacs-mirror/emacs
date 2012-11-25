@@ -1,6 +1,6 @@
 ;;; erc-hecomplete.el --- Provides Nick name completion for ERC
 
-;; Copyright (C) 2001-2002, 2004, 2006-2011 Free Software Foundation, Inc.
+;; Copyright (C) 2001-2002, 2004, 2006-2012 Free Software Foundation, Inc.
 
 ;; Author: Alex Schroeder <alex@gnu.org>
 ;; URL: http://www.emacswiki.org/cgi-bin/wiki.pl?ErcCompletion
@@ -73,7 +73,7 @@ or you may use an arbitrary lisp expression."
   :group 'erc-hecomplete)
 
 (defcustom erc-nick-completion-ignore-case t
-  "*Non-nil means don't consider case significant in nick completion.
+  "Non-nil means don't consider case significant in nick completion.
 Case will be automatically corrected when non-nil.
 For instance if you type \"dely TAB\" the word completes and changes to
 \"delYsid\"."
@@ -92,7 +92,7 @@ typing \"f o TAB\" will directly give you foobar.  Use this with
    (erc-get-channel-nickname-list)))
 
 (defcustom erc-nick-completion-postfix ": "
-  "*When `erc-complete' is used in the first word after the prompt,
+  "When `erc-complete' is used in the first word after the prompt,
 add this string when a unique expansion was found."
   :group 'erc-hecomplete
   :type 'string)

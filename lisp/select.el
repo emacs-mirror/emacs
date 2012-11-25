@@ -1,6 +1,6 @@
 ;;; select.el --- lisp portion of standard selection support
 
-;; Copyright (C) 1993-1994, 2001-2011  Free Software Foundation, Inc.
+;; Copyright (C) 1993-1994, 2001-2012  Free Software Foundation, Inc.
 
 ;; Maintainer: FSF
 ;; Keywords: internal
@@ -72,7 +72,7 @@ variable is set, it is used for the next communication only.
 After the communication, this variable is set to nil.")
 
 (declare-function x-get-selection-internal "xselect.c"
-		  (selection-symbol target-type &optional time-stamp))
+		  (selection-symbol target-type &optional time-stamp terminal))
 
 ;; Only declared obsolete in 23.3.
 (define-obsolete-function-alias 'x-selection 'x-get-selection "at least 19.34")
@@ -106,7 +106,7 @@ in `selection-converter-alist', which see."
 			     ((eq data-type 'STRING)
 			      'iso-8859-1)
 			     (t
-			      (error "Unknow selection data type: %S" type))))
+			      (error "Unknown selection data type: %S" type))))
 	    data (if coding (decode-coding-string data coding)
 		   (string-to-multibyte data)))
       (setq next-selection-coding-system nil)
@@ -118,9 +118,9 @@ in `selection-converter-alist', which see."
   (x-get-selection-internal 'CLIPBOARD 'STRING))
 
 (declare-function x-own-selection-internal "xselect.c"
-		  (selection-name selection-value))
+		  (selection-name selection-value &optional frame))
 (declare-function x-disown-selection-internal "xselect.c"
-		  (selection &optional time))
+		  (selection &optional time terminal))
 
 (defun x-set-selection (type data)
   "Make an X selection of type TYPE and value DATA.
@@ -213,44 +213,55 @@ two markers or an overlay.  Otherwise, it is nil."
 (defun xselect--int-to-cons (n)
   (cons (ash n -16) (logand n 65535)))
 
-(defun xselect-convert-to-string (_selection type value)
-  (let (str coding)
-    ;; Get the actual string from VALUE.
-    (cond ((stringp value)
-	   (setq str value))
-	  ((setq value (xselect--selection-bounds value))
-	   (with-current-buffer (nth 2 value)
-	     (setq str (buffer-substring (nth 0 value)
-					 (nth 1 value))))))
-    (when str
-      ;; If TYPE is nil, this is a local request, thus return STR as
-      ;; is.  Otherwise, encode STR.
-      (if (not type)
-	  str
-	(setq coding (or next-selection-coding-system selection-coding-system))
+(defun xselect--encode-string (type str &optional can-modify)
+  (when str
+    ;; If TYPE is nil, this is a local request; return STR as-is.
+    (if (null type)
+	str
+      ;; Otherwise, encode STR.
+      (let ((coding (or next-selection-coding-system
+			selection-coding-system)))
 	(if coding
 	    (setq coding (coding-system-base coding)))
 	(let ((inhibit-read-only t))
 	  ;; Suppress producing escape sequences for compositions.
+	  ;; But avoid modifying the string if it's a buffer name etc.
+	  (unless can-modify (setq str (substring str 0)))
 	  (remove-text-properties 0 (length str) '(composition nil) str)
-	  (if (eq type 'TEXT)
-	      ;; TEXT is a polymorphic target.  We must select the
-	      ;; actual type from `UTF8_STRING', `COMPOUND_TEXT',
-	      ;; `STRING', and `C_STRING'.
-	      (if (not (multibyte-string-p str))
-		  (setq type 'C_STRING)
-		(let (non-latin-1 non-unicode eight-bit)
-		  (mapc #'(lambda (x)
-			    (if (>= x #x100)
-				(if (< x #x110000)
-				    (setq non-latin-1 t)
-				  (if (< x #x3FFF80)
-				      (setq non-unicode t)
-				    (setq eight-bit t)))))
-			str)
-		  (setq type (if non-unicode 'COMPOUND_TEXT
-			       (if non-latin-1 'UTF8_STRING
-				 (if eight-bit 'C_STRING 'STRING)))))))
+	  ;; For X selections, TEXT is a polymorphic target; choose
+	  ;; the actual type from `UTF8_STRING', `COMPOUND_TEXT',
+	  ;; `STRING', and `C_STRING'.  On Nextstep, always use UTF-8
+	  ;; (see ns_string_to_pasteboard_internal in nsselect.m).
+	  (when (eq type 'TEXT)
+	    (cond
+	     ((featurep 'ns)
+	      (setq type 'UTF8_STRING))
+	     ((not (multibyte-string-p str))
+	      (setq type 'C_STRING))
+	     (t
+	      (let (non-latin-1 non-unicode eight-bit)
+		(mapc #'(lambda (x)
+			  (if (>= x #x100)
+			      (if (< x #x110000)
+				  (setq non-latin-1 t)
+				(if (< x #x3FFF80)
+				    (setq non-unicode t)
+				  (setq eight-bit t)))))
+		      str)
+		(setq type (if (or non-unicode
+				   (and
+				    non-latin-1
+				    ;; If a coding is specified for
+				    ;; selection, and that is
+				    ;; compatible with COMPOUND_TEXT,
+				    ;; use it.
+				    coding
+				    (eq (coding-system-get coding :mime-charset)
+					'x-ctext)))
+			       'COMPOUND_TEXT
+			     (if non-latin-1 'UTF8_STRING
+			       (if eight-bit 'C_STRING
+				 'STRING))))))))
 	  (cond
 	   ((eq type 'UTF8_STRING)
 	    (if (or (not coding)
@@ -278,6 +289,14 @@ two markers or an overlay.  Otherwise, it is nil."
 
       (setq next-selection-coding-system nil)
       (cons type str))))
+
+(defun xselect-convert-to-string (_selection type value)
+  (let ((str (cond ((stringp value) value)
+		   ((setq value (xselect--selection-bounds value))
+		    (with-current-buffer (nth 2 value)
+		      (buffer-substring (nth 0 value)
+					(nth 1 value)))))))
+    (xselect--encode-string type str t)))
 
 (defun xselect-convert-to-length (_selection _type value)
   (let ((len (cond ((stringp value)
@@ -311,7 +330,7 @@ two markers or an overlay.  Otherwise, it is nil."
 
 (defun xselect-convert-to-filename (_selection _type value)
   (when (setq value (xselect--selection-bounds value))
-    (buffer-file-name (nth 2 value))))
+    (xselect--encode-string 'TEXT (buffer-file-name (nth 2 value)))))
 
 (defun xselect-convert-to-charpos (_selection _type value)
   (when (setq value (xselect--selection-bounds value))
@@ -337,13 +356,13 @@ two markers or an overlay.  Otherwise, it is nil."
 			    (xselect--int-to-cons (max beg end))))))))
 
 (defun xselect-convert-to-os (_selection _type _size)
-  (symbol-name system-type))
+  (xselect--encode-string 'TEXT (symbol-name system-type)))
 
 (defun xselect-convert-to-host (_selection _type _size)
-  (system-name))
+  (xselect--encode-string 'TEXT (system-name)))
 
 (defun xselect-convert-to-user (_selection _type _size)
-  (user-full-name))
+  (xselect--encode-string 'TEXT (user-full-name)))
 
 (defun xselect-convert-to-class (_selection _type _size)
   "Convert selection to class.

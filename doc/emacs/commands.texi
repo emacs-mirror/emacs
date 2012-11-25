@@ -1,5 +1,5 @@
 @c This is part of the Emacs manual.
-@c Copyright (C) 1985-1987, 1993-1995, 1997, 2001-2011
+@c Copyright (C) 1985-1987, 1993-1995, 1997, 2001-2012
 @c   Free Software Foundation, Inc.
 @c See file emacs.texi for copying conditions.
 @iftex
@@ -15,7 +15,7 @@ input.
 @raisesections
 @end ifnottex
 
-@node User Input, Keys, Screen, Top
+@node User Input
 @section Kinds of User Input
 @cindex input with the keyboard
 @cindex keyboard input
@@ -62,7 +62,7 @@ starting with @key{ESC}.  Thus, you can enter @kbd{M-a} by typing
 C-a}.  Unlike @key{Meta}, @key{ESC} is entered as a separate
 character.  You don't hold down @key{ESC} while typing the next
 character; instead, press @key{ESC} and release it, then enter the
-next character.  This feature is useful on certain text-only terminals
+next character.  This feature is useful on certain text terminals
 where the @key{Meta} key does not function reliably.
 
 @cindex keys stolen by window manager
@@ -80,7 +80,7 @@ as @dfn{input events}.  For details about how Emacs internally handles
 input events, see @ref{Input Events,,, elisp, The Emacs Lisp Reference
 Manual}.
 
-@node Keys, Commands, User Input, Top
+@node Keys
 @section Keys
 
   Some Emacs commands are invoked by just one input event; for
@@ -133,7 +133,7 @@ exception to this rule is @key{ESC}: @kbd{@key{ESC} C-h} is equivalent
 to @kbd{C-M-h}, which does something else entirely.  You can, however,
 use @key{F1} to display a list of commands starting with @key{ESC}.
 
-@node Commands, Entering Emacs, Keys, Top
+@node Commands
 @section Keys and Commands
 
 @cindex binding
@@ -166,7 +166,7 @@ commands, even though strictly speaking the key is bound to a command.
 Usually we state the name of the command which really does the work in
 parentheses after mentioning the key that runs it.  For example, we
 will say that ``The command @kbd{C-n} (@code{next-line}) moves point
-vertically down,'' meaning that the command @code{next-line} moves
+vertically down'', meaning that the command @code{next-line} moves
 vertically down, and the key @kbd{C-n} is normally bound to it.
 
   Since we are discussing customization, we should tell you about

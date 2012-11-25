@@ -1,6 +1,6 @@
 ;;; fontset.el --- commands for handling fontset
 
-;; Copyright (C) 1997-2011  Free Software Foundation, Inc.
+;; Copyright (C) 1997-2012  Free Software Foundation, Inc.
 ;; Copyright (C) 1995, 1996, 1997, 1998, 1999, 2000, 2001, 2002, 2003, 2004,
 ;;   2005, 2006, 2007, 2008, 2009, 2010, 2011
 ;;   National Institute of Advanced Industrial Science and Technology (AIST)
@@ -58,6 +58,7 @@
 	("jisx0208" . japanese-jisx0208)
 	("jisx0201" . jisx0201)
 	("jisx0212" . japanese-jisx0212)
+	("ksx1001" . korean-ksc5601)
 	("ksc5601.1987" . korean-ksc5601)
 	("cns11643.1992.*1" . chinese-cns11643-1)
 	("cns11643.1992.*2" . chinese-cns11643-2)

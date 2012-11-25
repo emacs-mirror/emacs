@@ -1,6 +1,6 @@
 ;;; whitespace.el --- minor mode to visualize TAB, (HARD) SPACE, NEWLINE
 
-;; Copyright (C) 2000-2011  Free Software Foundation, Inc.
+;; Copyright (C) 2000-2012  Free Software Foundation, Inc.
 
 ;; Author: Vinicius Jose Latorre <viniciusjl@ig.com.br>
 ;; Maintainer: Vinicius Jose Latorre <viniciusjl@ig.com.br>
@@ -165,10 +165,10 @@
 ;; There are also the following useful commands:
 ;;
 ;; `whitespace-newline-mode'
-;;    Toggle NEWLINE minor mode visualization ("nl" on modeline).
+;;    Toggle NEWLINE minor mode visualization ("nl" on mode line).
 ;;
 ;; `global-whitespace-newline-mode'
-;;    Toggle NEWLINE global minor mode visualization ("NL" on modeline).
+;;    Toggle NEWLINE global minor mode visualization ("NL" on mode line).
 ;;
 ;; `whitespace-report'
 ;;    Report some blank problems in buffer.
@@ -309,8 +309,8 @@
 ;;				buffer is visited or written.
 ;;
 ;;
-;; Acknowledgements
-;; ----------------
+;; Acknowledgments
+;; ---------------
 ;;
 ;; Thanks to felix (EmacsWiki) for keeping highlight when switching between
 ;; major modes on a file.
@@ -565,10 +565,10 @@ Used when `whitespace-style' includes the value `spaces'."
 
 (defface whitespace-space
   '((((class color) (background dark))
-     (:background "grey20"      :foreground "darkgray"))
+     :background "grey20"      :foreground "darkgray")
     (((class color) (background light))
-     (:background "LightYellow" :foreground "lightgray"))
-    (t (:inverse-video t)))
+     :background "LightYellow" :foreground "lightgray")
+    (t :inverse-video t))
   "Face used to visualize SPACE."
   :group 'whitespace)
 
@@ -583,10 +583,10 @@ Used when `whitespace-style' includes the value `spaces'."
 
 (defface whitespace-hspace		; 'nobreak-space
   '((((class color) (background dark))
-     (:background "grey24"        :foreground "darkgray"))
+     :background "grey24"        :foreground "darkgray")
     (((class color) (background light))
-     (:background "LemonChiffon3" :foreground "lightgray"))
-    (t (:inverse-video t)))
+     :background "LemonChiffon3" :foreground "lightgray")
+    (t :inverse-video t))
   "Face used to visualize HARD SPACE."
   :group 'whitespace)
 
@@ -601,10 +601,10 @@ Used when `whitespace-style' includes the value `tabs'."
 
 (defface whitespace-tab
   '((((class color) (background dark))
-     (:background "grey22" :foreground "darkgray"))
+     :background "grey22" :foreground "darkgray")
     (((class color) (background light))
-     (:background "beige"  :foreground "lightgray"))
-    (t (:inverse-video t)))
+     :background "beige"  :foreground "lightgray")
+    (t :inverse-video t))
   "Face used to visualize TAB."
   :group 'whitespace)
 
@@ -621,15 +621,13 @@ and `newline'."
 
 
 (defface whitespace-newline
-  '((((class color) (background dark))
-     (:foreground "darkgray" :bold nil))
-    (((class color) (min-colors 88) (background light))
-     (:foreground "lightgray" :bold nil))
+  '((default :weight normal)
+    (((class color) (background dark)) :foreground "darkgray")
+    (((class color) (min-colors 88) (background light)) :foreground "lightgray")
     ;; Displays with 16 colors use lightgray as background, so using a
     ;; lightgray foreground makes the newline mark invisible.
-    (((class color) (background light))
-     (:foreground "brown" :bold nil))
-    (t (:underline t :bold nil)))
+    (((class color) (background light)) :foreground "brown")
+    (t :underline t))
   "Face used to visualize NEWLINE char mapping.
 
 See `whitespace-display-mappings'."
@@ -645,8 +643,9 @@ Used when `whitespace-style' includes the value `trailing'."
 
 
 (defface whitespace-trailing		; 'trailing-whitespace
-  '((((class mono)) (:inverse-video t :bold t :underline t))
-    (t (:background "red1" :foreground "yellow" :bold t)))
+  '((default :weight bold)
+    (((class mono)) :inverse-video t :underline t)
+    (t :background "red1" :foreground "yellow"))
   "Face used to visualize trailing blanks."
   :group 'whitespace)
 
@@ -662,8 +661,8 @@ Used when `whitespace-style' includes the value `line'."
 
 
 (defface whitespace-line
-  '((((class mono)) (:inverse-video t :bold t :underline t))
-    (t (:background "gray20" :foreground "violet")))
+  '((((class mono)) :inverse-video t :weight bold :underline t)
+    (t :background "gray20" :foreground "violet"))
   "Face used to visualize \"long\" lines.
 
 See `whitespace-line-column'."
@@ -679,8 +678,8 @@ Used when `whitespace-style' includes the value `space-before-tab'."
 
 
 (defface whitespace-space-before-tab
-  '((((class mono)) (:inverse-video t :bold t :underline t))
-    (t (:background "DarkOrange" :foreground "firebrick")))
+  '((((class mono)) :inverse-video t :weight bold :underline t)
+    (t :background "DarkOrange" :foreground "firebrick"))
   "Face used to visualize SPACEs before TAB."
   :group 'whitespace)
 
@@ -694,8 +693,8 @@ Used when `whitespace-style' includes the value `indentation'."
 
 
 (defface whitespace-indentation
-  '((((class mono)) (:inverse-video t :bold t :underline t))
-    (t (:background "yellow" :foreground "firebrick")))
+  '((((class mono)) :inverse-video t :weight bold :underline t)
+    (t :background "yellow" :foreground "firebrick"))
   "Face used to visualize 8 or more SPACEs at beginning of line."
   :group 'whitespace)
 
@@ -709,8 +708,8 @@ Used when `whitespace-style' includes the value `empty'."
 
 
 (defface whitespace-empty
-  '((((class mono)) (:inverse-video t :bold t :underline t))
-    (t (:background "yellow" :foreground "firebrick")))
+  '((((class mono)) :inverse-video t :weight bold :underline t)
+    (t :background "yellow" :foreground "firebrick"))
   "Face used to visualize empty lines at beginning and/or end of buffer."
   :group 'whitespace)
 
@@ -724,8 +723,8 @@ Used when `whitespace-style' includes the value `space-after-tab'."
 
 
 (defface whitespace-space-after-tab
-  '((((class mono)) (:inverse-video t :bold t :underline t))
-    (t (:background "yellow" :foreground "firebrick")))
+  '((((class mono)) :inverse-video t :weight bold :underline t)
+    (t :background "yellow" :foreground "firebrick"))
   "Face used to visualize 8 or more SPACEs after TAB."
   :group 'whitespace)
 
@@ -928,17 +927,13 @@ Used when `whitespace-style' includes `lines' or `lines-tail'."
   '(
     (space-mark   ?\     [?\u00B7]     [?.])		; space - centered dot
     (space-mark   ?\xA0  [?\u00A4]     [?_])		; hard space - currency
-    (space-mark   ?\x8A0 [?\x8A4]      [?_])		; hard space - currency
-    (space-mark   ?\x920 [?\x924]      [?_])		; hard space - currency
-    (space-mark   ?\xE20 [?\xE24]      [?_])		; hard space - currency
-    (space-mark   ?\xF20 [?\xF24]      [?_])		; hard space - currency
     ;; NEWLINE is displayed using the face `whitespace-newline'
     (newline-mark ?\n    [?$ ?\n])			; eol - dollar sign
     ;; (newline-mark ?\n    [?\u21B5 ?\n] [?$ ?\n])	; eol - downwards arrow
     ;; (newline-mark ?\n    [?\u00B6 ?\n] [?$ ?\n])	; eol - pilcrow
-    ;; (newline-mark ?\n    [?\x8AF ?\n]  [?$ ?\n])	; eol - overscore
-    ;; (newline-mark ?\n    [?\x8AC ?\n]  [?$ ?\n])	; eol - negation
-    ;; (newline-mark ?\n    [?\x8B0 ?\n]  [?$ ?\n])	; eol - grade
+    ;; (newline-mark ?\n    [?\u00AF ?\n]  [?$ ?\n])	; eol - overscore
+    ;; (newline-mark ?\n    [?\u00AC ?\n]  [?$ ?\n])	; eol - negation
+    ;; (newline-mark ?\n    [?\u00B0 ?\n]  [?$ ?\n])	; eol - degrees
     ;;
     ;; WARNING: the mapping below has a problem.
     ;; When a TAB occupies exactly one column, it will display the
@@ -1533,8 +1528,7 @@ documentation."
 	(when (memq 'empty whitespace-style)
 	  (let (overwrite-mode)		; enforce no overwrite
 	    (goto-char (point-min))
-	    (when (re-search-forward
-		   (concat "\\`" whitespace-empty-at-bob-regexp) nil t)
+	    (when (looking-at whitespace-empty-at-bob-regexp)
 	      (delete-region (match-beginning 1) (match-end 1)))
 	    (when (re-search-forward
 		   (concat whitespace-empty-at-eob-regexp "\\'") nil t)

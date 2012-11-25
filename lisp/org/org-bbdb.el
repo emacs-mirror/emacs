@@ -1,12 +1,11 @@
 ;;; org-bbdb.el --- Support for links to BBDB entries from within Org-mode
 
-;; Copyright (C) 2004-2011  Free Software Foundation, Inc.
+;; Copyright (C) 2004-2012  Free Software Foundation, Inc.
 
-;; Author: Carsten Dominik <carsten at orgmode dot org>,
-;;         Thomas Baumann <thomas dot baumann at ch dot tum dot de>
+;; Authors: Carsten Dominik <carsten at orgmode dot org>
+;;       Thomas Baumann <thomas dot baumann at ch dot tum dot de>
 ;; Keywords: outlines, hypermedia, calendar, wp
 ;; Homepage: http://orgmode.org
-;; Version: 7.7
 ;;
 ;; This file is part of GNU Emacs.
 ;;
@@ -110,14 +109,20 @@
 (declare-function bbdb-record-getprop "ext:bbdb" (record property))
 (declare-function bbdb-record-name "ext:bbdb" (record))
 (declare-function bbdb-records "ext:bbdb"
-          (&optional dont-check-disk already-in-db-buffer))
+		  (&optional dont-check-disk already-in-db-buffer))
 (declare-function bbdb-split "ext:bbdb" (string separators))
 (declare-function bbdb-string-trim "ext:bbdb" (string))
+(declare-function bbdb-record-get-field "ext:bbdb" (record field))
+(declare-function bbdb-search-name "ext:bbdb-com" (regexp &optional layout))
+(declare-function bbdb-search-organization "ext:bbdb-com" (regexp &optional layout))
+
+;; `bbdb-record-note' is part of BBDB v3.x
+(declare-function bbdb-record-note "ext:bbdb" (record label))
 
 (declare-function calendar-leap-year-p "calendar" (year))
 (declare-function diary-ordinal-suffix "diary-lib" (n))
 
-(defvar date)   ;; dynamically scoped from Org
+(org-no-warnings (defvar date)) ;; unprefixed, from calendar.el
 
 ;; Customization
 
@@ -132,30 +137,31 @@
   :require 'bbdb)
 
 (defcustom org-bbdb-anniversary-format-alist
-  '(("birthday" lambda
-     (name years suffix)
-     (concat "Birthday: [[bbdb:" name "][" name " ("
-	     (format "%s" years)        ; handles numbers as well as strings
-	     suffix ")]]"))
-    ("wedding" lambda
-     (name years suffix)
-     (concat "[[bbdb:" name "][" name "'s "
-	     (format "%s" years)
-	     suffix " wedding anniversary]]")))
+  '(("birthday" .
+     (lambda (name years suffix)
+       (concat "Birthday: [[bbdb:" name "][" name " ("
+    	       (format "%s" years)        ; handles numbers as well as strings
+    	       suffix ")]]")))
+    ("wedding" .
+     (lambda (name years suffix)
+       (concat "[[bbdb:" name "][" name "'s "
+    	       (format "%s" years)
+    	       suffix " wedding anniversary]]"))))
   "How different types of anniversaries should be formatted.
 An alist of elements (STRING . FORMAT) where STRING is the name of an
 anniversary class and format is either:
 1) A format string with the following substitutions (in order):
-    * the name of the record containing this anniversary
-    * the number of years
-    * an ordinal suffix (st, nd, rd, th) for the year
+    - the name of the record containing this anniversary
+    - the number of years
+    - an ordinal suffix (st, nd, rd, th) for the year
 
 2) A function to be called with three arguments: NAME YEARS SUFFIX
    (string int string) returning a string for the diary or nil.
 
 3) An Emacs Lisp form that should evaluate to a string (or nil) in the
    scope of variables NAME, YEARS and SUFFIX (among others)."
-  :type 'sexp
+  :type '(alist :key-type   (string   :tag "Class")
+		:value-type (function :tag "Function"))
   :group 'org-bbdb-anniversaries
   :require 'bbdb)
 
@@ -196,9 +202,12 @@ date year)."
   "Store a link to a BBDB database entry."
   (when (eq major-mode 'bbdb-mode)
     ;; This is BBDB, we make this link!
-    (let* ((name (bbdb-record-name (bbdb-current-record)))
-	   (company (bbdb-record-getprop (bbdb-current-record) 'company))
-	   (link (org-make-link "bbdb:" name)))
+    (let* ((rec (bbdb-current-record))
+           (name (bbdb-record-name rec))
+	   (company (if (fboundp 'bbdb-record-getprop)
+                        (bbdb-record-getprop rec 'company)
+                      (car (bbdb-record-get-field rec 'organization))))
+	   (link (concat "bbdb:" name)))
       (org-store-link-props :type "bbdb" :name name :company company
 			    :link link :description name)
       link)))
@@ -212,37 +221,64 @@ italicized, in all other cases it is left unchanged."
   (cond
    ((eq format 'html) (format "<i>%s</i>" desc))
    ((eq format 'latex) (format "\\textit{%s}" desc))
+   ((eq format 'odt)
+    (format "<text:span text:style-name=\"Emphasis\">%s</text:span>" desc))
    (t desc)))
 
 (defun org-bbdb-open (name)
   "Follow a BBDB link to NAME."
-  (require 'bbdb)
+  (require 'bbdb-com)
   (let ((inhibit-redisplay (not debug-on-error))
 	(bbdb-electric-p nil))
-    (catch 'exit
-      ;; Exact match on name
-      (bbdb-name (concat "\\`" name "\\'") nil)
-      (if (< 0 (buffer-size (get-buffer "*BBDB*"))) (throw 'exit nil))
-      ;; Exact match on name
-      (bbdb-company (concat "\\`" name "\\'") nil)
-      (if (< 0 (buffer-size (get-buffer "*BBDB*"))) (throw 'exit nil))
-      ;; Partial match on name
-      (bbdb-name name nil)
-      (if (< 0 (buffer-size (get-buffer "*BBDB*"))) (throw 'exit nil))
-      ;; Partial match on company
-      (bbdb-company name nil)
-      (if (< 0 (buffer-size (get-buffer "*BBDB*"))) (throw 'exit nil))
-      ;; General match including network address and notes
-      (bbdb name nil)
-      (when (= 0 (buffer-size (get-buffer "*BBDB*")))
-	(delete-window (get-buffer-window "*BBDB*"))
-	(error "No matching BBDB record")))))
+    (if (fboundp 'bbdb-name)
+        (org-bbdb-open-old name)
+      (org-bbdb-open-new name))))
+
+(defun org-bbdb-open-old (name)
+  (catch 'exit
+    ;; Exact match on name
+    (bbdb-name (concat "\\`" name "\\'") nil)
+    (if (< 0 (buffer-size (get-buffer "*BBDB*"))) (throw 'exit nil))
+    ;; Exact match on name
+    (bbdb-company (concat "\\`" name "\\'") nil)
+    (if (< 0 (buffer-size (get-buffer "*BBDB*"))) (throw 'exit nil))
+    ;; Partial match on name
+    (bbdb-name name nil)
+    (if (< 0 (buffer-size (get-buffer "*BBDB*"))) (throw 'exit nil))
+    ;; Partial match on company
+    (bbdb-company name nil)
+    (if (< 0 (buffer-size (get-buffer "*BBDB*"))) (throw 'exit nil))
+    ;; General match including network address and notes
+    (bbdb name nil)
+    (when (= 0 (buffer-size (get-buffer "*BBDB*")))
+      (delete-window (get-buffer-window "*BBDB*"))
+      (error "No matching BBDB record"))))
+
+(defun org-bbdb-open-new (name)
+  (catch 'exit
+    ;; Exact match on name
+    (bbdb-search-name (concat "\\`" name "\\'") nil)
+    (if (< 0 (buffer-size (get-buffer "*BBDB*"))) (throw 'exit nil))
+    ;; Exact match on name
+    (bbdb-search-organization (concat "\\`" name "\\'") nil)
+    (if (< 0 (buffer-size (get-buffer "*BBDB*"))) (throw 'exit nil))
+    ;; Partial match on name
+    (bbdb-search-name name nil)
+    (if (< 0 (buffer-size (get-buffer "*BBDB*"))) (throw 'exit nil))
+    ;; Partial match on company
+    (bbdb-search-organization name nil)
+    (if (< 0 (buffer-size (get-buffer "*BBDB*"))) (throw 'exit nil))
+    ;; General match including network address and notes
+    (bbdb name nil)
+    (when (= 0 (buffer-size (get-buffer "*BBDB*")))
+      (delete-window (get-buffer-window "*BBDB*"))
+      (error "No matching BBDB record"))))
 
 (defun org-bbdb-anniv-extract-date (time-str)
   "Convert YYYY-MM-DD to (month date year).
 Argument TIME-STR is the value retrieved from BBDB.  If YYYY- is omitted
 it will be considered unknown."
-  (multiple-value-bind (a b c) (values-list (bbdb-split time-str "-"))
+  (multiple-value-bind (a b c) (values-list (org-split-string time-str "-"))
     (if (eq c nil)
         (list (string-to-number a)
               (string-to-number b)
@@ -269,13 +305,19 @@ The hash table is created on first use.")
 (defun org-bbdb-make-anniv-hash ()
   "Create a hash with anniversaries extracted from BBDB, for fast access.
 The anniversaries are assumed to be stored `org-bbdb-anniversary-field'."
-
-  (let (split tmp annivs)
+  (let ((old-bbdb (fboundp 'bbdb-record-getprop))
+	split tmp annivs)
     (clrhash org-bbdb-anniv-hash)
     (dolist (rec (bbdb-records))
-      (when (setq annivs (bbdb-record-getprop
-                          rec org-bbdb-anniversary-field))
-        (setq annivs (bbdb-split annivs "\n"))
+      (when (setq annivs (if old-bbdb
+			     (bbdb-record-getprop
+			      rec org-bbdb-anniversary-field)
+			   (bbdb-record-note
+			    rec org-bbdb-anniversary-field)))
+        (setq annivs (if old-bbdb
+			 (bbdb-split annivs "\n")
+		       ;; parameter order is reversed in new bbdb
+		       (bbdb-split "\n" annivs)))
         (while annivs
           (setq split (org-bbdb-anniv-split (pop annivs)))
           (multiple-value-bind (m d y)
@@ -296,7 +338,7 @@ This is used by Org to re-create the anniversary hash table."
 (add-hook 'bbdb-after-change-hook 'org-bbdb-updated)
 
 ;;;###autoload
-(defun org-bbdb-anniversaries()
+(defun org-bbdb-anniversaries ()
   "Extract anniversaries from BBDB for display in the agenda."
   (require 'bbdb)
   (require 'diary-lib)
@@ -357,7 +399,7 @@ This is used by Org to re-create the anniversary hash table."
 	  (bbdb-record-name (car (bbdb-completing-read-record "Name: ")))))
 
 (defun org-bbdb-anniv-export-ical ()
-  "Extract anniversaries from BBDB and convert them to iCalendar format."
+  "Extract anniversaries from BBDB and convert them to icalendar format."
   (require 'bbdb)
   (require 'diary-lib)
   (unless (hash-table-p org-bbdb-anniv-hash)
@@ -391,6 +433,8 @@ END:VEVENT\n"
 
 (provide 'org-bbdb)
 
-
+;; Local variables:
+;; generated-autoload-file: "org-loaddefs.el"
+;; End:
 
 ;;; org-bbdb.el ends here

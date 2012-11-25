@@ -1,6 +1,6 @@
 /* Declaration of functions and data types used for MD5 sum computing
    library functions.
-   Copyright (C) 1995-1997, 1999-2001, 2004-2006, 2008-2011 Free Software
+   Copyright (C) 1995-1997, 1999-2001, 2004-2006, 2008-2012 Free Software
    Foundation, Inc.
    This file is part of the GNU C Library.
 
@@ -15,8 +15,7 @@
    GNU General Public License for more details.
 
    You should have received a copy of the GNU General Public License
-   along with this program; if not, write to the Free Software Foundation,
-   Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.  */
+   along with this program; if not, see <http://www.gnu.org/licenses/>.  */
 
 #ifndef _MD5_H
 #define _MD5_H 1
@@ -73,7 +72,7 @@ struct md5_ctx
 
 /*
  * The following three functions are build up the low level used in
- * the functions `md5_stream' and `md5_buffer'.
+ * the functions 'md5_stream' and 'md5_buffer'.
  */
 
 /* Initialize structure containing state of computation.

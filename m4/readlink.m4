@@ -1,5 +1,5 @@
-# readlink.m4 serial 11
-dnl Copyright (C) 2003, 2007, 2009-2011 Free Software Foundation, Inc.
+# readlink.m4 serial 12
+dnl Copyright (C) 2003, 2007, 2009-2012 Free Software Foundation, Inc.
 dnl This file is free software; the Free Software Foundation
 dnl gives unlimited permission to copy and/or distribute it,
 dnl with or without modifications, as long as this notice is preserved.
@@ -7,6 +7,7 @@ dnl with or without modifications, as long as this notice is preserved.
 AC_DEFUN([gl_FUNC_READLINK],
 [
   AC_REQUIRE([gl_UNISTD_H_DEFAULTS])
+  AC_REQUIRE([AC_CANONICAL_HOST]) dnl for cross-compiles
   AC_CHECK_FUNCS_ONCE([readlink])
   if test $ac_cv_func_readlink = no; then
     HAVE_READLINK=0
@@ -32,15 +33,26 @@ AC_DEFUN([gl_FUNC_READLINK],
 ]], [[char buf[20];
       return readlink ("conftest.lnk2/", buf, sizeof buf) != -1;]])],
          [gl_cv_func_readlink_works=yes], [gl_cv_func_readlink_works=no],
-         [gl_cv_func_readlink_works="guessing no"])
+         [case "$host_os" in
+                    # Guess yes on glibc systems.
+            *-gnu*) gl_cv_func_readlink_works="guessing yes" ;;
+                    # If we don't know, assume the worst.
+            *)      gl_cv_func_readlink_works="guessing no" ;;
+          esac
+         ])
       rm -f conftest.link conftest.lnk2])
-    if test "$gl_cv_func_readlink_works" != yes; then
-      AC_DEFINE([READLINK_TRAILING_SLASH_BUG], [1], [Define to 1 if readlink
-        fails to recognize a trailing slash.])
-      REPLACE_READLINK=1
-    elif test "$gl_cv_decl_readlink_works" != yes; then
-      REPLACE_READLINK=1
-    fi
+    case "$gl_cv_func_readlink_works" in
+      *yes)
+        if test "$gl_cv_decl_readlink_works" != yes; then
+          REPLACE_READLINK=1
+        fi
+        ;;
+      *)
+        AC_DEFINE([READLINK_TRAILING_SLASH_BUG], [1], [Define to 1 if readlink
+          fails to recognize a trailing slash.])
+        REPLACE_READLINK=1
+        ;;
+    esac
   fi
 ])
 

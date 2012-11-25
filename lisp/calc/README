@@ -1,11 +1,11 @@
-Copyright (C) 2001-2011  Free Software Foundation, Inc.
+Copyright (C) 2001-2012  Free Software Foundation, Inc.
 See the end of the file for license conditions.
 
 
 This directory contains Calc, an advanced desk calculator for GNU
 Emacs.
 
-"Calc"  Copyright (C) 1990-1993, 2001-2011  Free Software Foundation, Inc.
+"Calc"  Copyright (C) 1990-1993, 2001-2012  Free Software Foundation, Inc.
 
 Written by:
 	Dave Gillespie
@@ -69,6 +69,19 @@ opinions.
 
 Summary of changes to "Calc"
 ------- -- ------- --  ----
+
+Emacs 24.4
+
+* The date forms use the Gregorian calendar for all dates.
+  (Previously they were a combination of Julian and Gregorian
+  dates.)  This can be configured with the customizable variable
+  `calc-gregorian-switch'.
+
+Emacs 24.3
+
+* Algebraic simplification mode is now the default.
+  To restrict to the limited simplifications given by the former
+  default simplification mode, use `m I'.
 
 Emacs 24.1
 

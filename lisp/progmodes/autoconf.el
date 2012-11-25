@@ -1,6 +1,6 @@
-;;; autoconf.el --- mode for editing Autoconf configure.in files
+;;; autoconf.el --- mode for editing Autoconf configure.ac files
 
-;; Copyright (C) 2000-2011  Free Software Foundation, Inc.
+;; Copyright (C) 2000-2012  Free Software Foundation, Inc.
 
 ;; Author: Dave Love <fx@gnu.org>
 ;; Keywords: languages
@@ -23,19 +23,17 @@
 ;;; Commentary:
 
 ;; Provides fairly minimal font-lock, imenu and indentation support
-;; for editing configure.in files.  Only Autoconf syntax is processed.
+;; for editing configure.ac files.  Only Autoconf syntax is processed.
 ;; There is no attempt to deal with shell text -- probably that will
 ;; always lose.
 
-;; This is specialized for configure.in files.  It doesn't inherit the
+;; This is specialized for configure.ac files.  It doesn't inherit the
 ;; general M4 stuff from M4 mode.
 
 ;; There is also an autoconf-mode.el in existence.  That appears to be
-;; for editing the Autoconf M4 source, rather than configure.in files.
+;; for editing the Autoconf M4 source, rather than configure.ac files.
 
 ;;; Code:
-
-(defvar font-lock-syntactic-keywords)
 
 (defvar autoconf-mode-map (make-sparse-keymap))
 
@@ -43,13 +41,13 @@
   "Hook run by `autoconf-mode'.")
 
 (defconst autoconf-definition-regexp
-  "AC_\\(SUBST\\|DEFINE\\(_UNQUOTED\\)?\\)(\\[*\\(\\sw+\\)\\]*")
+  "A\\(?:H_TEMPLATE\\|C_\\(?:SUBST\\|DEFINE\\(?:_UNQUOTED\\)?\\)\\)(\\[*\\(\\sw+\\)\\]*")
 
 (defvar autoconf-font-lock-keywords
   `(("\\_<A[CHMS]_\\sw+" . font-lock-keyword-face)
     (,autoconf-definition-regexp
-     3 font-lock-function-name-face)
-    ;; Are any other M4 keywords really appropriate for configure.in,
+     1 font-lock-function-name-face)
+    ;; Are any other M4 keywords really appropriate for configure.ac,
     ;; given that we do `dnl'?
     ("changequote" . font-lock-keyword-face)))
 
@@ -61,7 +59,7 @@
     table))
 
 (defvar autoconf-imenu-generic-expression
-  (list (list nil autoconf-definition-regexp 3)))
+  (list (list nil autoconf-definition-regexp 1)))
 
 ;; It's not clear how best to implement this.
 (defun autoconf-current-defun-function ()
@@ -71,14 +69,15 @@ searching backwards at another AC_... command."
   (save-excursion
     (with-syntax-table (copy-syntax-table autoconf-mode-syntax-table)
       (modify-syntax-entry ?_ "w")
+      (skip-syntax-forward "w" (line-end-position))
       (if (re-search-backward autoconf-definition-regexp
 			      (save-excursion (beginning-of-defun) (point))
 			      t)
-	  (match-string-no-properties 3)))))
+	  (match-string-no-properties 1)))))
 
 ;;;###autoload
 (define-derived-mode autoconf-mode prog-mode "Autoconf"
-  "Major mode for editing Autoconf configure.in files."
+  "Major mode for editing Autoconf configure.ac files."
   (set (make-local-variable 'parens-require-spaces) nil) ; for M4 arg lists
   (set (make-local-variable 'defun-prompt-regexp)
        "^[ \t]*A[CM]_\\(\\sw\\|\\s_\\)+")

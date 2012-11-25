@@ -1,7 +1,7 @@
 /* A Gtk Widget that inherits GtkFixed, but can be shrunk.
 This file is only use when compiling with Gtk+ 3.
 
-Copyright (C) 2011  Free Software Foundation, Inc.
+Copyright (C) 2011-2012  Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -21,12 +21,38 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #include <config.h>
 
 #include "emacsgtkfixed.h"
-#include <signal.h>
 #include <stdio.h>
-#include <setjmp.h>
+
 #include "lisp.h"
 #include "frame.h"
 #include "xterm.h"
+
+/* Silence a bogus diagnostic; see GNOME bug 683906.  */
+#if (__GNUC__ == 4 && 6 <= __GNUC_MINOR__) || 4 < __GNUC__
+# pragma GCC diagnostic push
+# pragma GCC diagnostic ignored "-Wunused-local-typedefs"
+#endif
+
+#define EMACS_TYPE_FIXED emacs_fixed_get_type ()
+#define EMACS_FIXED(obj) \
+  G_TYPE_CHECK_INSTANCE_CAST (obj, EMACS_TYPE_FIXED, EmacsFixed)
+
+typedef struct _EmacsFixed EmacsFixed;
+typedef struct _EmacsFixedPrivate EmacsFixedPrivate;
+typedef struct _EmacsFixedClass EmacsFixedClass;
+
+struct _EmacsFixed
+{
+  GtkFixed container;
+
+  /*< private >*/
+  EmacsFixedPrivate *priv;
+};
+
+struct _EmacsFixedClass
+{
+  GtkFixedClass parent_class;
+};
 
 struct _EmacsFixedPrivate
 {
@@ -40,26 +66,19 @@ static void emacs_fixed_get_preferred_width  (GtkWidget *widget,
 static void emacs_fixed_get_preferred_height (GtkWidget *widget,
                                               gint      *minimum,
                                               gint      *natural);
+static GType emacs_fixed_get_type (void);
 G_DEFINE_TYPE (EmacsFixed, emacs_fixed, GTK_TYPE_FIXED)
 
 static void
 emacs_fixed_class_init (EmacsFixedClass *klass)
 {
   GtkWidgetClass *widget_class;
-  GtkFixedClass *fixed_class;
 
   widget_class = (GtkWidgetClass*) klass;
-  fixed_class = (GtkFixedClass*) klass;
 
   widget_class->get_preferred_width = emacs_fixed_get_preferred_width;
   widget_class->get_preferred_height = emacs_fixed_get_preferred_height;
   g_type_class_add_private (klass, sizeof (EmacsFixedPrivate));
-}
-
-static GType
-emacs_fixed_child_type (GtkFixed *container)
-{
-  return GTK_TYPE_WIDGET;
 }
 
 static void

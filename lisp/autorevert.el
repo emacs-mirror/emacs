@@ -1,6 +1,6 @@
 ;;; autorevert.el --- revert buffers when files on disk change
 
-;; Copyright (C) 1997-1999, 2001-2011 Free Software Foundation, Inc.
+;; Copyright (C) 1997-1999, 2001-2012 Free Software Foundation, Inc.
 
 ;; Author: Anders Lindgren <andersl@andersl.com>
 ;; Keywords: convenience
@@ -94,9 +94,6 @@
 
 (require 'timer)
 
-(eval-when-compile (require 'cl))
-
-
 ;; Custom Group:
 ;;
 ;; The two modes will be placed next to Auto Save Mode under the
@@ -104,9 +101,8 @@
 
 (defgroup auto-revert nil
   "Revert individual buffers when files on disk change.
-
-Auto-Revert Mode can be activated for individual buffer.
-Global Auto-Revert Mode applies to all buffers."
+Auto-Revert mode enables auto-revert in individual buffers.
+Global Auto-Revert mode does so in all buffers."
   :group 'files
   :group 'convenience)
 
@@ -439,17 +435,18 @@ This is an internal function used by Auto-Revert Mode."
     (let* ((buffer (current-buffer)) size
 	   (revert
 	    (or (and buffer-file-name
-		     (file-readable-p buffer-file-name)
 		     (if auto-revert-tail-mode
 			 ;; Tramp caches the file attributes.  Setting
 			 ;; `remote-file-name-inhibit-cache' forces Tramp
 			 ;; to reread the values.
 			 (let ((remote-file-name-inhibit-cache t))
-			   (/= auto-revert-tail-pos
-			       (setq size
-				     (nth 7 (file-attributes
-					     buffer-file-name)))))
+			   (and (file-readable-p buffer-file-name)
+				(/= auto-revert-tail-pos
+				    (setq size
+					  (nth 7 (file-attributes
+						  buffer-file-name))))))
 		       (and (not (file-remote-p buffer-file-name))
+			    (file-readable-p buffer-file-name)
 			    (not (verify-visited-file-modtime buffer)))))
 		(and (or auto-revert-mode
 			 global-auto-revert-non-file-buffers)

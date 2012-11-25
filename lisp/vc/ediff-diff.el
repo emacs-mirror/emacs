@@ -1,6 +1,6 @@
 ;;; ediff-diff.el --- diff-related utilities
 
-;; Copyright (C) 1994-2011  Free Software Foundation, Inc.
+;; Copyright (C) 1994-2012  Free Software Foundation, Inc.
 
 ;; Author: Michael Kifer <kifer@cs.stonybrook.edu>
 ;; Package: ediff
@@ -101,7 +101,7 @@ the command \\[ediff-show-diff-output]. Use the variable
   :group 'ediff-diff)
 
 (ediff-defvar-local ediff-ignore-case nil
-  "*If t, skip over difference regions that differ only in letter case.
+  "If t, skip over difference regions that differ only in letter case.
 This variable can be set either in .emacs or toggled interactively.
 Use `setq-default' if setting it in .emacs")
 
@@ -165,12 +165,12 @@ This variable can be set either in .emacs or toggled interactively.
 Use `setq-default' if setting it in .emacs")
 
 (ediff-defvar-local ediff-ignore-similar-regions nil
-  "*If t, skip over difference regions that differ only in the white space and line breaks.
+  "If t, skip over difference regions that differ only in the white space and line breaks.
 This variable can be set either in .emacs or toggled interactively.
 Use `setq-default' if setting it in .emacs")
 
 (ediff-defvar-local ediff-auto-refine-limit 14000
-  "*Auto-refine only the regions of this size \(in bytes\) or less.")
+  "Auto-refine only the regions of this size \(in bytes\) or less.")
 
 ;;; General
 
@@ -1288,38 +1288,38 @@ delimiter regions"))
 ;;; Word functions used to refine the current diff
 
 (defvar ediff-forward-word-function 'ediff-forward-word
-  "*Function to call to move to the next word.
+  "Function to call to move to the next word.
 Used for splitting difference regions into individual words.")
 (make-variable-buffer-local 'ediff-forward-word-function)
 
 ;; \240 is Unicode symbol for nonbreakable whitespace
 (defvar ediff-whitespace " \n\t\f\r\240"
-  "*Characters constituting white space.
+  "Characters constituting white space.
 These characters are ignored when differing regions are split into words.")
 (make-variable-buffer-local 'ediff-whitespace)
 
 (defvar ediff-word-1
   (if (featurep 'xemacs) "a-zA-Z---_" "-[:word:]_")
-  "*Characters that constitute words of type 1.
+  "Characters that constitute words of type 1.
 More precisely, [ediff-word-1] is a regexp that matches type 1 words.
 See `ediff-forward-word' for more details.")
 (make-variable-buffer-local 'ediff-word-1)
 
 (defvar ediff-word-2 "0-9.,"
-  "*Characters that constitute words of type 2.
+  "Characters that constitute words of type 2.
 More precisely, [ediff-word-2] is a regexp that matches type 2 words.
 See `ediff-forward-word' for more details.")
 (make-variable-buffer-local 'ediff-word-2)
 
 (defvar ediff-word-3 "`'?!:;\"{}[]()"
-  "*Characters that constitute words of type 3.
+  "Characters that constitute words of type 3.
 More precisely, [ediff-word-3] is a regexp that matches type 3 words.
 See `ediff-forward-word' for more details.")
 (make-variable-buffer-local 'ediff-word-3)
 
 (defvar ediff-word-4
   (concat "^" ediff-word-1 ediff-word-2 ediff-word-3 ediff-whitespace)
-  "*Characters that constitute words of type 4.
+  "Characters that constitute words of type 4.
 More precisely, [ediff-word-4] is a regexp that matches type 4 words.
 See `ediff-forward-word' for more details.")
 (make-variable-buffer-local 'ediff-word-4)
@@ -1406,13 +1406,27 @@ arguments to `skip-chars-forward'."
   "Return t if files F1 and F2 have identical contents."
   (if (and (not (file-directory-p f1))
            (not (file-directory-p f2)))
-      (let ((res
-	     (apply 'call-process ediff-cmp-program nil nil nil
-		    (append ediff-cmp-options (list (expand-file-name f1)
-						    (expand-file-name f2))))
-	     ))
-	(and (numberp res) (eq res 0)))
-    ))
+      (if (equal (file-remote-p f1) (file-remote-p f2))
+	  (let ((res
+		 ;; In the remote case, this works only if F1 and F2 are
+		 ;; located on the same remote host.
+		 (apply 'process-file ediff-cmp-program nil nil nil
+			(append ediff-cmp-options
+				(list (or (file-remote-p f1 'localname)
+					  (expand-file-name f1))
+				      (or (file-remote-p f2 'localname)
+					  (expand-file-name f2)))))
+		 ))
+	    (and (numberp res) (eq res 0)))
+
+	;; F1 and F2 are not located on the same host.
+	(let ((t1 (file-local-copy f1))
+	      (t2 (file-local-copy f2)))
+	  (unwind-protect
+	      (ediff-same-file-contents (or t1 f1) (or t2 f2))
+	    (and t1 (delete-file t1))
+	    (and t2 (delete-file t2))))
+    )))
 
 
 (defun ediff-same-contents (d1 d2 &optional filter-re)

@@ -1,6 +1,6 @@
 ;;; tooltip.el --- show tooltip windows
 
-;; Copyright (C) 1997, 1999-2011 Free Software Foundation, Inc.
+;; Copyright (C) 1997, 1999-2012 Free Software Foundation, Inc.
 
 ;; Author: Gerd Moellmann <gerd@acm.org>
 ;; Keywords: help c mouse tools
@@ -25,6 +25,8 @@
 
 ;;; Code:
 
+(require 'syntax)
+
 (defvar comint-prompt-regexp)
 
 (defgroup tooltip nil
@@ -39,18 +41,17 @@
 ;;; Switching tooltips on/off
 
 (define-minor-mode tooltip-mode
-  "Toggle use of graphical tooltips (Tooltip mode).
-With a prefix argument ARG, enable Tooltip mode if ARG is
-positive, and disable it otherwise.  If called from Lisp, enable
-it if ARG is omitted or nil.
+  "Toggle Tooltip mode.
+With a prefix argument ARG, enable Tooltip mode if ARG is positive,
+and disable it otherwise.  If called from Lisp, enable the mode
+if ARG is omitted or nil.
 
-When Tooltip mode is enabled, Emacs displays help text in a
-pop-up window for buttons and menu items that you put the mouse
-on.  \(However, if `tooltip-use-echo-area' is non-nil, this and
-all pop-up help appears in the echo area.)
+When this global minor mode is enabled, Emacs displays help
+text (e.g. for buttons and menu items that you put the mouse on)
+in a pop-up window.
 
-When Tooltip mode is disabled, Emacs displays one line of
-the help text in the echo area, and does not make a pop-up window."
+When Tooltip mode is disabled, Emacs displays help text in the
+echo area, instead of making a pop-up window."
   :global t
   ;; Even if we start on a text-only terminal, make this non-nil by
   ;; default because we can open a graphical frame later (multi-tty).
@@ -144,13 +145,18 @@ of the `tooltip' face are used instead."
 
 (defcustom tooltip-use-echo-area nil
   "Use the echo area instead of tooltip frames for help and GUD tooltips.
-To display multi-line help text in the echo area, set this to t
-and enable `tooltip-mode'."
+This variable is obsolete; instead of setting it to t, disable
+`tooltip-mode' (which has a similar effect)."
   :type 'boolean
   :group 'tooltip)
 
+(make-obsolete-variable 'tooltip-use-echo-area
+			"disable Tooltip mode instead" "24.1")
+
 
 ;;; Variables that are not customizable.
+
+(define-obsolete-variable-alias 'tooltip-hook 'tooltip-functions "23.1")
 
 (defvar tooltip-functions nil
   "Functions to call to display tooltips.
@@ -158,8 +164,6 @@ Each function is called with one argument EVENT which is a copy
 of the last mouse movement event that occurred.  If one of these
 functions displays the tooltip, it should return non-nil and the
 rest are not called.")
-
-(define-obsolete-variable-alias 'tooltip-hook 'tooltip-functions "23.1")
 
 (defvar tooltip-timeout-id nil
   "The id of the timeout started when Emacs becomes idle.")
@@ -275,8 +279,11 @@ Value is nil if no identifier exists at point.  Identifier extraction
 is based on the current syntax table."
   (save-excursion
     (goto-char point)
-    (let ((start (progn (skip-syntax-backward "w_") (point))))
-      (unless (looking-at "[0-9]")
+    (let* ((start (progn (skip-syntax-backward "w_") (point)))
+	   (pstate (syntax-ppss)))
+      (unless (or (looking-at "[0-9]")
+		  (nth 3 pstate)
+		  (nth 4 pstate))
 	(skip-syntax-forward "w_")
 	(when (> (point) start)
 	  (buffer-substring start (point)))))))

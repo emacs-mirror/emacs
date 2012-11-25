@@ -1,7 +1,6 @@
 ;;; help.el --- help commands for Emacs
 
-;; Copyright (C) 1985-1986, 1993-1994, 1998-2011
-;;   Free Software Foundation, Inc.
+;; Copyright (C) 1985-1986, 1993-1994, 1998-2012 Free Software Foundation, Inc.
 
 ;; Maintainer: FSF
 ;; Keywords: help, internal
@@ -24,7 +23,7 @@
 
 ;;; Commentary:
 
-;; This code implements GNU Emacs' on-line help system, the one invoked by
+;; This code implements GNU Emacs's on-line help system, the one invoked by
 ;; `M-x help-for-help'.
 
 ;;; Code:
@@ -40,9 +39,10 @@
 ;; `help-window-point-marker' is a marker you can move to a valid
 ;; position of the buffer shown in the help window in order to override
 ;; the standard positioning mechanism (`point-min') chosen by
-;; `with-output-to-temp-buffer'.  `with-help-window' has this point
-;; nowhere before exiting.  Currently used by `view-lossage' to assert
-;; that the last keystrokes are always visible.
+;; `with-output-to-temp-buffer' and `with-temp-buffer-window'.
+;; `with-help-window' has this point nowhere before exiting.  Currently
+;; used by `view-lossage' to assert that the last keystrokes are always
+;; visible.
 (defvar help-window-point-marker (make-marker)
   "Marker to override default `window-point' in help windows.")
 
@@ -145,10 +145,6 @@ specifies what to do when the user exits the help buffer."
 		     ;; manager, not with Emacs.
 		     ;; Secondly, the buffer has not been displayed yet,
 		     ;; so we don't know whether its frame will be selected.
-		     nil)
-		    (display-buffer-reuse-frames
-		     (setq help-return-method (cons (selected-window)
-						    'quit-window))
 		     nil)
 		    ((not (one-window-p t))
 		     (setq help-return-method
@@ -589,6 +585,8 @@ temporarily enables it to allow getting help on disabled items and buttons."
 	     (setq saved-yank-menu (copy-sequence yank-menu))
 	     (menu-bar-update-yank-menu "(any string)" nil))
 	   (setq key (read-key-sequence "Describe key (or click or menu item): "))
+	   ;; Clear the echo area message (Bug#7014).
+	   (message nil)
 	   ;; If KEY is a down-event, read and discard the
 	   ;; corresponding up-event.  Note that there are also
 	   ;; down-events on scroll bars and mode lines: the actual
@@ -784,7 +782,10 @@ descriptions of the minor modes, each on a separate page.
 
 For this to work correctly for a minor mode, the mode's indicator
 variable \(listed in `minor-mode-alist') must also be a function
-whose documentation describes the minor mode."
+whose documentation describes the minor mode.
+
+If called from Lisp with a non-nil BUFFER argument, display
+documentation for the major and minor modes of that buffer."
   (interactive "@")
   (unless buffer (setq buffer (current-buffer)))
   (help-setup-xref (list #'describe-mode buffer)
@@ -940,7 +941,7 @@ is currently activated with completion."
       (error "Cannot find minor mode for `%s'" indicator))))
 
 (defun lookup-minor-mode-from-indicator (indicator)
-  "Return a minor mode symbol from its indicator on the modeline."
+  "Return a minor mode symbol from its indicator on the mode line."
   ;; remove first space if existed
   (if (and (< 0 (length indicator))
 	   (eq (aref indicator 0) ?\s))
@@ -963,7 +964,11 @@ is currently activated with completion."
     result))
 
 ;;; Automatic resizing of temporary buffers.
-(defcustom temp-buffer-max-height (lambda (buffer) (/ (- (frame-height) 2) 2))
+(defcustom temp-buffer-max-height
+  (lambda (buffer)
+    (if (eq (selected-window) (frame-root-window))
+	(/ (x-display-pixel-height) (frame-char-height) 2)
+      (/ (- (frame-height) 2) 2)))
   "Maximum height of a window displaying a temporary buffer.
 This is effective only when Temp Buffer Resize mode is enabled.
 The value is the maximum height (in lines) which
@@ -974,18 +979,23 @@ buffer, and should return a positive integer.  At the time the
 function is called, the window to be resized is selected."
   :type '(choice integer function)
   :group 'help
-  :version "20.4")
+  :version "24.3")
 
 (define-minor-mode temp-buffer-resize-mode
-  "Toggle auto-shrinking temp buffer windows (Temp Buffer Resize mode).
+  "Toggle auto-resizing temporary buffer windows (Temp Buffer Resize Mode).
 With a prefix argument ARG, enable Temp Buffer Resize mode if ARG
 is positive, and disable it otherwise.  If called from Lisp,
 enable the mode if ARG is omitted or nil.
 
 When Temp Buffer Resize mode is enabled, the windows in which we
-show a temporary buffer are automatically reduced in height to
+show a temporary buffer are automatically resized in height to
 fit the buffer's contents, but never more than
 `temp-buffer-max-height' nor less than `window-min-height'.
+
+A window is resized only if it has been specially created for the
+buffer.  Windows that have shown another buffer before are not
+resized.  A frame is resized only if `fit-frame-to-buffer' is
+non-nil.
 
 This mode is used by `help', `apropos' and `completion' buffers,
 and some others."
@@ -996,19 +1006,36 @@ and some others."
       (add-hook 'temp-buffer-show-hook 'resize-temp-buffer-window 'append)
     (remove-hook 'temp-buffer-show-hook 'resize-temp-buffer-window)))
 
-(defun resize-temp-buffer-window ()
-  "Resize the selected window to fit its contents.
-Will not make it higher than `temp-buffer-max-height' nor smaller
-than `window-min-height'.  Do nothing if the selected window is
-not vertically combined or some of its contents are scrolled out
-of view."
-  (when (and (pos-visible-in-window-p (point-min))
-	     (window-combined-p))
-    (fit-window-to-buffer
-     nil
-     (if (functionp temp-buffer-max-height)
-	 (funcall temp-buffer-max-height (window-buffer))
-       temp-buffer-max-height))))
+(defun resize-temp-buffer-window (&optional window)
+  "Resize WINDOW to fit its contents.
+WINDOW can be any live window and defaults to the selected one.
+
+Do not make WINDOW higher than `temp-buffer-max-height' nor
+smaller than `window-min-height'.  Do nothing if WINDOW is not
+vertically combined, some of its contents are scrolled out of
+view, or WINDOW was not created by `display-buffer'."
+  (setq window (window-normalize-window window t))
+  (let ((buffer-name (buffer-name (window-buffer window))))
+    (let ((height (if (functionp temp-buffer-max-height)
+		      (with-selected-window window
+			(funcall temp-buffer-max-height (window-buffer)))
+		    temp-buffer-max-height))
+	  (quit-cadr (cadr (window-parameter window 'quit-restore))))
+      (cond
+       ;; Resize WINDOW iff it was split off by `display-buffer'.
+       ((and (eq quit-cadr 'window)
+	     (pos-visible-in-window-p (point-min) window)
+	     (window-combined-p window))
+	(fit-window-to-buffer window height))
+       ;; Resize FRAME iff it was created by `display-buffer'.
+       ((and fit-frame-to-buffer
+	     (eq quit-cadr 'frame)
+	     (eq window (frame-root-window window)))
+	(let ((frame (window-frame window)))
+	  (fit-frame-to-buffer
+	   frame (+ (frame-height frame)
+		    (- (window-total-size window))
+		    height))))))))
 
 ;;; Help windows.
 (defcustom help-window-select 'other
@@ -1027,6 +1054,16 @@ by `with-help-window'"
 		 (const :tag "always (t)" t))
   :group 'help
   :version "23.1")
+
+(defcustom help-enable-auto-load t
+  "Whether Help commands can perform autoloading.
+If non-nil, whenever \\[describe-function] is called for an
+autoloaded function whose docstring contains any key substitution
+construct (see `substitute-command-keys'), the library is loaded,
+so that the documentation can show the right key bindings."
+  :type 'boolean
+  :group 'help
+  :version "24.3")
 
 (defun help-window-display-message (quit-part window &optional scroll)
   "Display message telling how to quit and scroll help window.

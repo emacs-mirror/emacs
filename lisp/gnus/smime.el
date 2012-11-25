@@ -1,6 +1,6 @@
 ;;; smime.el --- S/MIME support library
 
-;; Copyright (C) 2000-2011  Free Software Foundation, Inc.
+;; Copyright (C) 2000-2012  Free Software Foundation, Inc.
 
 ;; Author: Simon Josefsson <simon@josefsson.org>
 ;; Keywords: SMIME X.509 PEM OpenSSL
@@ -678,7 +678,7 @@ The following commands are available:
 		  "x509" "-in" (expand-file-name certfile) "-text")
     (fundamental-mode)
     (set-buffer-modified-p nil)
-    (toggle-read-only t)
+    (setq buffer-read-only t)
     (goto-char (point-min))))
 
 (defun smime-draw-buffer ()

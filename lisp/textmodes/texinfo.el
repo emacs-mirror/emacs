@@ -1,6 +1,6 @@
 ;;; texinfo.el --- major mode for editing Texinfo files -*- coding: utf-8 -*-
 
-;; Copyright (C) 1985, 1988-1993, 1996-1997, 2000-2011
+;; Copyright (C) 1985, 1988-1993, 1996-1997, 2000-2012
 ;;   Free Software Foundation, Inc.
 
 ;; Author: Robert J. Chassell
@@ -32,7 +32,7 @@
 
 ;;; Code:
 
-(eval-when-compile (require 'tex-mode) (require 'cl))
+(eval-when-compile (require 'tex-mode))
 (defvar outline-heading-alist)
 
 (defgroup texinfo nil

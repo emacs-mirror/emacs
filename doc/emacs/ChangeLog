@@ -1,7 +1,997 @@
+2012-11-24  Paul Eggert  <eggert@cs.ucla.edu>
+
+	* doclicense.texi, gpl.texi: Update to latest version from FSF.
+	These are just minor editorial changes.
+
+2012-11-21  Dani Moncayo  <dmoncayo@gmail.com>
+
+	* display.texi (Auto Scrolling): Fix some inaccuracies, plus
+	clarifications (Bug#12865).
+	(Horizontal Scrolling): Clarifications.
+
+2012-11-18  Dani Moncayo  <dmoncayo@gmail.com>
+
+	* mark.texi (Disabled Transient Mark): Doc fixes (Bug#12746).
+
+2012-11-16  Eli Zaretskii  <eliz@gnu.org>
+
+	* trouble.texi (Crashing): Add information about MS-Windows and
+	the emacs_backtrace.txt file.  (Bug#12908)
+
+2012-11-13  Chong Yidong  <cyd@gnu.org>
+
+	* building.texi (Multithreaded Debugging): gdb-stopped-hooks is
+	actually named gdb-stopped-functions.
+
+2012-11-13  Glenn Morris  <rgm@gnu.org>
+
+	* misc.texi (Single Shell): Mention async-shell-command-buffer.
+
+2012-11-10  Glenn Morris  <rgm@gnu.org>
+
+	* misc.texi (Terminal emulator): Rename `term-face' to `term'.
+
+	* emacs.texi (Acknowledgments): Add profiler author.
+	* ack.texi (Acknowledgments): Add some recent contributions.
+
+2012-11-10  Chong Yidong  <cyd@gnu.org>
+
+	* files.texi (Diff Mode): Doc fixes for
+	diff-delete-trailing-whitespace (Bug#12831).
+
+	* trouble.texi (Crashing): Copyedits.
+
+2012-11-10  Glenn Morris  <rgm@gnu.org>
+
+	* files.texi (Diff Mode): Trailing whitespace updates.
+
+2012-11-10  Chong Yidong  <cyd@gnu.org>
+
+	* misc.texi (Terminal emulator): Document Term mode faces.
+
+	* mini.texi (Basic Minibuffer): New node.  Document
+	minibuffer-electric-default-mode.
+
+	* display.texi (Visual Line Mode): Fix index entry.
+
+	* buffers.texi (Several Buffers): List Buffer Menu command anmes,
+	and index the keybindings.  Document tabulated-list-sort.
+	(Kill Buffer): Capitalize Buffer Menu.
+
+	* trouble.texi (Memory Full): Capitalize Buffer Menu.
+
+2012-11-10  Eli Zaretskii  <eliz@gnu.org>
+
+	* display.texi (Auto Scrolling): Clarify that scroll-step is
+	ignored when scroll-conservatively is set to a non-zero value.
+	(Bug#12801)
+
+2012-11-10  Chong Yidong  <cyd@gnu.org>
+
+	* dired.texi (Dired Updating): Doc fix (Bug#11744).
+
+2012-10-30  Michael Albinus  <michael.albinus@gmx.de>
+
+	* trouble.texi (Known Problems): Mention command `debbugs-gnu-usertags'.
+
+2012-10-29  Chong Yidong  <cyd@gnu.org>
+
+	* dired.texi (Shell Commands in Dired): Document changes to the
+	dired-do-async-shell-command.
+
+2012-10-28  Glenn Morris  <rgm@gnu.org>
+
+	* ack.texi (Acknowledgments): Mention gv.el.
+
+2012-10-27  Bastien Guerry  <bzg@gnu.org>
+
+	* screen.texi (Menu Bar): Fix typo.
+
+2012-10-27  Chong Yidong  <cyd@gnu.org>
+
+	* frames.texi (Mouse Avoidance): Mention new variable
+	mouse-avoidance-banish-position.
+
+	* programs.texi (Which Function): Which Function mode now works in
+	all major modes by default.
+
+	* mule.texi (Recognize Coding): Remove an unreferenced vindex.
+
+	* files.texi (Misc File Ops): Symbolic links on Windows only work
+	on Vista and later.
+
+	* building.texi (Compilation): Document compilation-always-kill.
+
+	* search.texi (Symbol Search): New node.
+
+	* package.texi (Package Menu): Document the "new" status.
+
+	* windows.texi (Window Choice): Don't refer to the obsolete
+	special-display feature.
+
+2012-10-24  Chong Yidong  <cyd@gnu.org>
+
+	* mule.texi (Text Coding): set-buffer-file-coding-system can now
+	be invoked from the mode line.
+
+	* dired.texi (Dired Deletion, Marks vs Flags): Document Emacs 24.3
+	changes to the mark and unmark commands.
+	(Comparison in Dired): Document chages to dired-diff.  Remove M-=,
+	which is no longer bound to dired-backup-diff.
+
+2012-10-23  Bastien Guerry  <bzg@gnu.org>
+
+	* text.texi (Org Authoring): Use a comma after @ref to avoid the
+	insertion of a period in the Info output.
+
+2012-10-23  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* custom.texi (Hooks): Clarify that -hooks is deprecated.
+
+2012-10-23  Chong Yidong  <cyd@gnu.org>
+
+	* kmacro.texi (Edit Keyboard Macro): Fix typo.
+
+2012-10-18  Dani Moncayo  <dmoncayo@gmail.com>
+
+	* mini.texi (Completion Options): Fix off-by-one error.  (Bug#12644)
+
+2012-10-17  Glenn Morris  <rgm@gnu.org>
+
+	* mini.texi (Repetition): Further copyedit.
+
+2012-10-17  Dani Moncayo  <dmoncayo@gmail.com>
+
+	* mini.texi (Repetition): Copyedit.
+
+2012-10-16  Juri Linkov  <juri@jurta.org>
+
+	* search.texi (Query Replace): Document multi-buffer replacement
+	keys.  (Bug#12655)
+
+	* maintaining.texi (Tags Search): Change link "Replace" to
+	"Query Replace".
+
+2012-10-13  Chong Yidong  <cyd@gnu.org>
+
+	* files.texi (File Conveniences): ImageMagick enabled by default.
+
+2012-10-10  Dani Moncayo  <dmoncayo@gmail.com>
+
+	* basic.texi (Arguments): Fix typos.
+
+2012-10-08  Glenn Morris  <rgm@gnu.org>
+
+	* cal-xtra.texi (Calendar Customizing): Mention calendar-month-header.
+
+	* calendar.texi (Writing Calendar Files): Mention cal-html-holidays.
+
+2012-10-06  Glenn Morris  <rgm@gnu.org>
+
+	* calendar.texi (Writing Calendar Files): Tweak week descriptions.
+	Mention cal-tex-cursor-week2-summary.
+
+2012-10-06  Chong Yidong  <cyd@gnu.org>
+
+	* mini.texi (Passwords): Fix typo.
+
+2012-10-02  Glenn Morris  <rgm@gnu.org>
+
+	* maintaining.texi (VC Directory Commands):
+	Remove duplicate `q' entry.  (Bug#12553)
+
+2012-09-30  Chong Yidong  <cyd@gnu.org>
+
+	* killing.texi (Rectangles): Document copy-rectangle-as-kill.
+
+	* search.texi (Special Isearch): Document the lax space search
+	feature and M-s SPC.
+	(Regexp Search): Move main search-whitespace-regexp description to
+	Special Isearch.
+	(Replace): Document replace-lax-whitespace.
+
+	* basic.texi (Position Info): Document C-u M-=.
+	(Moving Point): Document move-to-column.
+
+	* display.texi (Useless Whitespace): Add delete-trailing-lines.
+
+	* misc.texi (emacsclient Options): Document the effect of
+	initial-buffer-choice on client frames.  Document server-auth-dir.
+	Do not document server-host, which is bad security practice.
+
+	* building.texi (Lisp Libraries): Docstring lookups can trigger
+	autoloading.  Document help-enable-auto-load.
+
+	* mini.texi (Yes or No Prompts): New node.
+
+	* ack.texi (Acknowledgments): Remove obsolete packages.
+
+2012-09-27  Glenn Morris  <rgm@gnu.org>
+
+	* cal-xtra.texi (Advanced Calendar/Diary Usage):
+	Rename the section to be more general.
+	* emacs.texi: Update menu.
+
+2012-09-23  Chong Yidong  <cyd@gnu.org>
+
+	* buffers.texi (Misc Buffer): Replace toggle-read-only with
+	read-only-mode.
+
+	* files.texi (Visiting): Likewise.
+
+2012-09-22  Paul Eggert  <eggert@cs.ucla.edu>
+
+	* trouble.texi (Crashing): Document ulimit -c.
+
+2012-09-21  Paul Eggert  <eggert@cs.ucla.edu>
+
+	* trouble.texi (Crashing): Document addr2line.
+
+2012-09-19  Chong Yidong  <cyd@gnu.org>
+
+	* killing.texi (Yanking): Minor clarification (Bug#12469).
+
+2012-09-17  Chong Yidong  <cyd@gnu.org>
+
+	* building.texi (GDB User Interface Layout): Remove reference to
+	removed variable gdb-use-separate-io-buffer (Bug#12454).
+
+2012-09-08  Jambunathan K  <kjambunathan@gmail.com>
+
+	* regs.texi (Text Registers): `C-x r +' can now be used instead of
+	M-x append-to-register.  New option `register-separator'.
+	(Number Registers): Mention that `C-x r +' is polymorphic.
+
+2012-09-07  Chong Yidong  <cyd@gnu.org>
+
+	* windows.texi (Window Choice): Don't mention obsolete
+	display-buffer-reuse-frames.
+
+2012-09-04  Paul Eggert  <eggert@cs.ucla.edu>
+
+	Give more-useful info on a fatal error (Bug#12328).
+	* trouble.texi (Crashing): New section, documenting this.
+
+2012-08-24  Michael Albinus  <michael.albinus@gmx.de>
+
+	* cmdargs.texi (General Variables):
+	Setting $DBUS_SESSION_BUS_ADDRESS to a dummy value suppresses
+	connections to the D-Bus session bus.  (Bug#12112)
+
+2012-08-14  Eli Zaretskii  <eliz@gnu.org>
+
+	* building.texi (Debugger Operation): Correct and improve
+	documentation of the GUD Tooltip mode.
+
+2012-07-31  Chong Yidong  <cyd@gnu.org>
+
+	* emacs.texi: Fix ISBN (Bug#12080).
+
+2012-08-05  Chong Yidong  <cyd@gnu.org>
+
+	* display.texi (Faces): Document frame-background-mode (Bug#7774).
+
+	* custom.texi (Face Customization): Move discussion of face
+	inheritance here, from Faces section.
+
+2012-07-28  Eli Zaretskii  <eliz@gnu.org>
+
+	* frames.texi (Mouse Commands): Fix the description of mouse-2.
+	(Bug#11958)
+
+2012-07-19  Chong Yidong  <cyd@gnu.org>
+
+	* emacs.texi: Update ISBN.
+
+2012-07-17  Chong Yidong  <cyd@gnu.org>
+
+	* basic.texi (Inserting Text): Replace ucs-insert with
+	insert-char.  Provide more details of input.
+
+	* mule.texi (International Chars, Input Methods): Likewise.
+
+2012-07-13  Chong Yidong  <cyd@gnu.org>
+
+	* custom.texi (Examining): Update C-h v message.
+
+	* buffers.texi (Misc Buffer): Document view-read-only.
+
+2012-07-07  Chong Yidong  <cyd@gnu.org>
+
+	* custom.texi (Init File): Index site-lisp (Bug#11435).
+
+2012-07-06  Chong Yidong  <cyd@gnu.org>
+
+	* emacs.texi: Re-order top-level menu to correspond to logical
+	order, to avoid makeinfo warnings.
+
+	* ack.texi (Acknowledgments): Note new python.el.
+
+2012-06-29  Chong Yidong  <cyd@gnu.org>
+
+	* maintaining.texi (Basic VC Editing, VC Pull, Merging):
+	* basic.texi (Erasing, Basic Undo): Fix markup.
+
+2012-06-29  Glenn Morris  <rgm@gnu.org>
+
+	* fixit.texi (Undo): Grammar fixes.  (Bug#11779)
+
+2012-06-29  Michael Witten  <mfwitten@gmail.com>  (tiny change)
+
+	* fixit.texi (Undo): Fix typo.  (Bug#11775)
+
+2012-06-27  Glenn Morris  <rgm@gnu.org>
+
+	* ack.texi (Acknowledgments): Tiny update.
+
+2012-06-21  Glenn Morris  <rgm@gnu.org>
+
+	* Makefile.in: Rename infodir to buildinfodir throughout.  (Bug#11737)
+
+2012-06-17  Chong Yidong  <cyd@gnu.org>
+
+	* emacs.texi: Remove urlcolor setting.  Update ISBN and edition number.
+
+	* anti.texi:
+	* building.texi:
+	* cmdargs.texi:
+	* custom.texi:
+	* display.texi:
+	* files.texi:
+	* frames.texi:
+	* glossary.texi:
+	* misc.texi:
+	* mule.texi:
+	* programs.texi:
+	* sending.texi:
+	* text.texi: Copyedits to avoid underfull/overfull in 7x9 manual.
+
+2012-06-06  Michael Albinus  <michael.albinus@gmx.de>
+
+	* custom.texi (Directory Variables): Mention enable-remote-dir-locals.
+
+2012-05-28  Glenn Morris  <rgm@gnu.org>
+
+	* ack.texi, building.texi, calendar.texi, custom.texi:
+	* maintaining.texi, text.texi: Use @LaTeX rather than La@TeX.
+
+2012-05-27  Glenn Morris  <rgm@gnu.org>
+
+	* emacs.texi: Simplify following removal of node pointers.
+
+	* ack.texi, anti.texi, basic.texi, buffers.texi, building.texi:
+	* cmdargs.texi, commands.texi, display.texi, emacs.texi:
+	* entering.texi, files.texi, fixit.texi, frames.texi, glossary.texi:
+	* gnu.texi, help.texi, indent.texi, killing.texi, kmacro.texi:
+	* m-x.texi, macos.texi, maintaining.texi, mark.texi, mini.texi:
+	* misc.texi, modes.texi, msdog.texi, mule.texi, programs.texi:
+	* regs.texi, screen.texi, search.texi, text.texi, trouble.texi:
+	* windows.texi, xresources.texi: Nuke hand-written node pointers.
+
+2012-05-22  Glenn Morris  <rgm@gnu.org>
+
+	* emacs.texi (Acknowledgments): Add another contributor.
+
+2012-05-12  Glenn Morris  <rgm@gnu.org>
+
+	* Makefile.in (MKDIR_P): New, set by configure.
+	(mkinfodir): Use $MKDIR_P.
+
+2012-05-10  Glenn Morris  <rgm@gnu.org>
+
+	* mule.texi (Disabling Multibyte): Replace the obsolete "unibyte: t"
+	with "coding: raw-text".
+
+	* files.texi (Interlocking): Mention create-lockfiles option.
+
+2012-05-09  Chong Yidong  <cyd@gnu.org>
+
+	* frames.texi (Mouse References, Mouse Commands): Fix index
+	entries (Bug#11362).
+
+2012-05-05  Glenn Morris  <rgm@gnu.org>
+
+	* custom.texi (Customization Groups, Custom Themes, Examining):
+	Improve page breaks.
+
+	* rmail.texi (Rmail Display): Use example rather than smallexample.
+
+	* calendar.texi: Convert inforefs to refs.
+
+	* dired.texi (Dired Enter): Improve page break.
+
+	* abbrevs.texi (Abbrev Concepts): Copyedits.
+
+	* maintaining.texi (Registering, Tag Syntax):
+	Tweak line and page breaks.
+
+	* programs.texi (Programs, Electric C): Copyedits.
+	(Program Modes): Add xref to Fortran.
+	(Left Margin Paren): Remove what was (oddly enough) the only use
+	of defvar in the entire Emacs manual.
+	(Hungry Delete): Remove footnote about ancient Emacs version.
+	(Other C Commands): Use example rather than smallexample.
+
+	* text.texi (Pages, Filling, Foldout, Org Mode, HTML Mode)
+	(Nroff Mode, Enriched Indentation, Table Rows and Columns):
+	Tweak line and page breaks.
+
+	* modes.texi (Major Modes, Minor Modes): Reword to improve page-breaks.
+	(Major Modes): Use example rather than smallexample.
+
+	* mule.texi (Output Coding): Reword to improve page-breaks.
+
+	* frames.texi (Fonts): Tweak line and page breaks.
+	Use example rather than smallexample.  Change cross-reference.
+	(Text-Only Mouse): Fix xref.
+
+	* buffers.texi (Buffers, Kill Buffer, Several Buffers)
+	(Indirect Buffers): Tweak line- and page-breaks.
+
+	* fixit.texi (Fixit, Undo): Reword to improve page-breaks.
+
+2012-05-04  Glenn Morris  <rgm@gnu.org>
+
+	* Makefile.in (INFO_EXT, INFO_OPTS): New, set by configure.
+	(info, infoclean): Use $INFO_EXT.
+	($(infodir)/emacs$(INFO_EXT)): Use $INFO_EXT and $INFO_OPT.
+	* makefile.w32-in (INFO_EXT, INFO_OPTS): New.
+	(INFO_TARGETS): Use $INFO_EXT.
+	($(infodir)/emacs$(INFO_EXT)): Use $INFO_EXT and $INFO_OPT, and -o.
+
+2012-05-02  Glenn Morris  <rgm@gnu.org>
+
+	* emacs.texi (@copying): Only print EDITION in the TeX version.
+
+	* search.texi (Regexp Search): Just say "Emacs".
+
+	* display.texi (Auto Scrolling):
+	Reword to avoid repetition and improve page break.
+
+	* xresources.texi (Resources):
+	* mule.texi (Language Environments):
+	* misc.texi (Amusements):
+	* maintaining.texi (VC Change Log):
+	* frames.texi (Fonts):
+	* custom.texi (Specifying File Variables, Minibuffer Maps):
+	* cmdargs.texi (Initial Options):
+	* building.texi (Flymake):
+	Reword to remove/reduce some overly long/short lines.
+
+2012-04-27  Glenn Morris  <rgm@gnu.org>
+
+	* emacs.texi: Some fixes for detailed menu.
+
+	* emacs.texi: Add "et al." to authors.
+
+	* ack.texi, basic.texi, buffers.texi, building.texi:
+	* calendar.texi, cmdargs.texi, commands.texi, custom.texi:
+	* dired.texi, display.texi, emerge-xtra.texi, files.texi:
+	* fortran-xtra.texi, help.texi, kmacro.texi, mini.texi, misc.texi:
+	* msdog-xtra.texi, picture-xtra.texi, programs.texi, rmail.texi:
+	* search.texi, trouble.texi, windows.texi:
+	Use Texinfo recommended convention for quotes+punctuation.
+
+2012-04-27  Eli Zaretskii  <eliz@gnu.org>
+
+	* mule.texi (Bidirectional Editing): Improve indexing.
+	Minor wording tweaks.
+
+2012-04-15  Chong Yidong  <cyd@gnu.org>
+
+	* misc.texi (emacsclient Options): More clarifications.
+
+2012-04-15  Glenn Morris  <rgm@gnu.org>
+
+	* msdog.texi (Windows Printing): It doesn't set printer-name.
+
+	* mule.texi (Language Environments): Move font info to "Fontsets".
+	(Fontsets): Move intlfonts etc here from "Language Environments".
+	Copyedits.
+	(Defining Fontsets, Modifying Fontsets, Undisplayable Characters)
+	(Unibyte Mode, Charsets, Bidirectional Editing): Copyedits.
+
+2012-04-15  Chong Yidong  <cyd@gnu.org>
+
+	* glossary.texi (Glossary): Standardize on "text terminal"
+	terminology.  All callers changed.
+
+	* misc.texi (emacsclient Options): Document "client frame" concept
+	and its effect on C-x C-c more carefully.
+
+2012-04-15  Glenn Morris  <rgm@gnu.org>
+
+	* frames.texi (Scroll Bars):
+	* glossary.texi (Glossary): Use consistent case for "X Window System".
+
+	* mule.texi (Select Input Method, Coding Systems):
+	State command names in kbd tables.
+	(Recognize Coding): Add cross-ref.
+	(Output Coding): Don't mention message mode in particular.
+	(Text Coding, Communication Coding, File Name Coding, Terminal Coding):
+	Copyedits.
+
+2012-04-14  Glenn Morris  <rgm@gnu.org>
+
+	* mule.texi (Select Input Method, Coding Systems, Recognize Coding):
+	Copyedits.
+	(Coding Systems): Mac OS X apparently uses newlines for EOL.
+	(Recognize Coding): Remove old auto-coding-regexp-alist example.
+	auto-coding-functions does not override coding: tags.
+	Remove rmail-decode-mime-charset; it no longer has any effect.
+
+2012-04-14  Chong Yidong  <cyd@gnu.org>
+
+	* custom.texi (Creating Custom Themes): Add reference to Custom
+	Themes node in Lisp manual.
+
+2012-04-14  Glenn Morris  <rgm@gnu.org>
+
+	* mule.texi (International): Copyedits.
+	(International Chars): Update C-x = example output.
+	(Disabling Multibyte): Rename from "Enabling Multibyte".
+	Clarify what "unibyte: t" does, and mode-line description.
+	(Unibyte Mode): Update for "Disabling Multibyte" node name change.
+	Use Texinfo recommended convention for quotes+punctuation.
+	(Language Environments): Copyedits.
+	(Input Methods): Copyedits.  Use "^" for the postfix example,
+	because it is less confusing inside Info's `quotes'.
+
+	* custom.texi (Specifying File Variables): Fix "unibyte" description.
+	Update for "Disabling Multibyte" node name change.
+	* emacs.texi: Update for "Disabling Multibyte" node name change.
+
+	* abbrevs.texi, arevert-xtra.texi, buffers.texi, building.texi:
+	* cmdargs.texi, custom.texi, entering.texi, files.texi, frames.texi:
+	* glossary.texi, help.texi, macos.texi, maintaining.texi, mini.texi:
+	* misc.texi, package.texi, programs.texi, screen.texi, search.texi:
+	* sending.texi, text.texi, trouble.texi:
+	Use @file for buffers, per the Texinfo manual.
+
+	* entering.texi (Entering Emacs):
+	Do not mention initial-buffer-choice = t.
+
+	* misc.texi (Gnus Startup): Use @env for environment variables.
+
+	* Makefile.in: Replace non-portable use of $< in ordinary rules.
+
+2012-04-12  Glenn Morris  <rgm@gnu.org>
+
+	* ack.texi (Acknowledgments): Don't mention obsolete mailpost.el.
+
+2012-04-07  Glenn Morris  <rgm@gnu.org>
+
+	* emacsver.texi (EMACSVER): Bump version to 24.1.50.
+
+2012-04-05  Glenn Morris  <rgm@gnu.org>
+
+	* glossary.texi (Glossary): Use anchors for internal cross-references.
+
+2012-04-04  Glenn Morris  <rgm@gnu.org>
+
+	* glossary.texi (Glossary): Copyedits.
+	Use Texinfo-recommended convention for quotes and punctuation.
+	Comment out a few specialized (Rmail) items.
+	New items: Bidirectional Text, Client, Directory Local Variable,
+	File Local Variable, Package, Server, Theme, Trash Can.
+
+2012-04-03  Chong Yidong  <cyd@gnu.org>
+
+	* sending.texi (Mail Misc): Fix an index entry.
+
+2012-04-02  Eli Zaretskii  <eliz@gnu.org>
+
+	* msdog.texi (Windows Startup): Add description of emacsclient
+	operation under -c and -t on MS-Windows.
+
+	* misc.texi (emacsclient Options): Add cross-reference to "Windows
+	Startup".  (Bug#11091)
+
+2012-04-02  Dani Moncayo  <dmoncayo@gmail.com>
+
+	* custom.texi (Changing a Variable): Fix example.
+
+2012-04-01  Eli Zaretskii  <eliz@gnu.org>
+
+	* misc.texi (emacsclient Options): More clarifications about -t
+	and -c on MS-Windows.  (Bug#11091)
+
+2012-03-31  Eli Zaretskii  <eliz@gnu.org>
+
+	* misc.texi (emacsclient Options): Document peculiarities of new
+	frame creation on MS-Windows under -c or -t options.  (Bug#11091)
+
+2012-03-30  Chong Yidong  <cyd@gnu.org>
+
+	* files.texi (File Conveniences): Clarify Imagemagick discussion.
+
+2012-03-22  Glenn Morris  <rgm@gnu.org>
+
+	* dired.texi (Operating on Files): Fix dired-recursive-copies default.
+
+2012-03-17  Chong Yidong  <cyd@gnu.org>
+
+	* package.texi (Package Installation): Document use of
+	package-initialize in init file.
+
+2012-03-16  Glenn Morris  <rgm@gnu.org>
+
+	* help.texi (Language Help):
+	* mule.texi (International Chars):
+	etc/HELLO is for character demonstration.
+
+2012-03-15  Dani Moncayo  <dmoncayo@gmail.com>
+
+	* dired.texi (Shell Commands in Dired): Fix typo.
+
+2012-03-04  Chong Yidong  <cyd@gnu.org>
+
+	* killing.texi (Clipboard): Document clipboard manager.
+
+2012-02-29  Glenn Morris  <rgm@gnu.org>
+
+	* ack.texi (Acknowledgments): Use @Tex{} in more places.
+
+	* emacs.texi, help.texi, text.texi: Use "" quotes in menus.
+
+	* dired.texi, emacs.texi: Use @code{} in menus when appropriate.
+
+2012-02-28  Glenn Morris  <rgm@gnu.org>
+
+	* custom.texi, display.texi, emacs.texi, files.texi:
+	* msdog-xtra.texi, msdog.texi, vc-xtra.texi:
+	Standardize possessive apostrophe usage.
+
+2012-02-25  Jan Djärv  <jan.h.d@swipnet.se>
+
+	* macos.texi (Mac / GNUstep Customization): Remove text about
+	ns-find-file and ns-drag-file (Bug#5855, Bug#10050).
+
+2012-02-25  Dani Moncayo  <dmoncayo@gmail.com>
+
+	* buffers.texi (Select Buffer): Mention that saving in a new file
+	name can switch to a different major mode.
+
+2012-02-23  Glenn Morris  <rgm@gnu.org>
+
+	* mini.texi (Minibuffer File, Completion Options, Repetition):
+	Copyedits.
+	(Completion Example): Other M-x au* commands may be defined.
+	(Completion Styles): Mention emacs21 and completion-category-overrides.
+
+	* msdog.texi (Text and Binary, ls in Lisp, Windows HOME)
+	(Windows Keyboard, Windows Mouse, Windows Processes)
+	(Windows Printing, Windows Misc): Copyedits.
+	(ls in Lisp): Update switches list.
+
+	* msdog-xtra.texi (MS-DOS Display): Update list-colors-display xref.
+	Update dos-mode* function names.
+	(MS-DOS Printing, MS-DOS and MULE): Copyedits.
+	(MS-DOS Processes): Add xref to main ls-lisp section.
+
+	* ack.texi (Acknowledgments): Mention smie.
+
+2012-02-22  Glenn Morris  <rgm@gnu.org>
+
+	* macos.texi: Copyedits.  Fix @key/@kbd usage.
+	(Mac / GNUstep Basics): Don't mention the panels, since the next
+	section covers them.
+	(Mac / GNUstep Customization): Merge some panel info from previous.
+
+2012-02-21  Glenn Morris  <rgm@gnu.org>
+
+	* emerge-xtra.texi (Emerge, Submodes of Emerge, Combining in Emerge):
+	Small fixes.
+
+	* emacs-xtra.texi: Picture mode is no longer a chapter.
+
+	* picture-xtra.texi (Basic Picture): C-a does get remapped.
+
+	* ack.texi (Acknowledgments): Small changes, including resorting,
+	and removal of things no longer distributed.
+
+2012-02-20  Glenn Morris  <rgm@gnu.org>
+
+	* emacs.texi (Top, Preface): Small rephrasings.
+	(menu, detailmenu): Update entries, and reformat some descriptions.
+	* building.texi, display.texi, emacs-xtra.texi, files.texi:
+	* frames.texi, kmacro.texi, msdog.texi, programs.texi, text.texi:
+	Reformat some menu descriptions.
+
+	* ack.texi (Acknowledgments): More updates.
+
+	* emacs.texi (Acknowledgments): Add several names from ack.texi,
+	and from Author: headers.
+	(Distrib): Small updates.
+
+2012-02-18  Glenn Morris  <rgm@gnu.org>
+
+	* ack.texi (Acknowledgments): Add xref to Org manual.
+
+	* rmail.texi: Copyedits.  Use 'mail composition buffer' in place
+	of '*mail*', since Message does not call it that.
+	(Rmail Reply): Rename rmail-dont-reply-to-names.
+	\\`info- no longer handled specially.
+	Update for rmail-enable-mime-composing.
+	Don't mention 'm' for replies.
+	Don't mention rmail-mail-new-frame and cancelling, since it does
+	not work for Message at the moment.
+
+	* cal-xtra.texi: Copyedits.
+
+	* emacs-xtra.texi: Set encoding to ISO-8859-1.
+
+2012-02-17  Glenn Morris  <rgm@gnu.org>
+
+	* maintaining.texi (Old Revisions): Fix cross-refs to Ediff manual.
+
+	* ack.texi (Acknowledgments): Mention Gnulib.
+
+	* ack.texi, calendar.texi, cal-xtra.texi: Use "Bahá'í".
+
+	* calendar.texi: Misc small changes, including updating the dates
+	of examples.
+
+2012-02-16  Glenn Morris  <rgm@gnu.org>
+
+	* calendar.texi: Misc small changes.
+
+	* vc1-xtra.texi (VC Delete/Rename, CVS Options):
+	* cal-xtra.texi (Diary Display): Fix TeX cross-refs to other manuals.
+
+	* dired-xtra.texi (Subdir Switches): Small fixes.
+
+	* fortran-xtra.texi: Tiny changes and some adjustments to line breaks.
+
+2012-02-15  Glenn Morris  <rgm@gnu.org>
+
+	* sending.texi (Mail Sending): smtpmail-auth-credentials was removed.
+
+2012-02-12  Glenn Morris  <rgm@gnu.org>
+
+	* ack.texi (Acknowledgments):
+	* emacs.texi (Acknowledgments): Updates for new files in 24.1.
+
+2012-02-10  Glenn Morris  <rgm@gnu.org>
+
+	* mini.texi (Minibuffer Edit): Mention minibuffer-inactive-mode.
+
+	* programs.texi (Misc for Programs): Mention electric-layout-mode.
+
+2012-02-09  Glenn Morris  <rgm@gnu.org>
+
+	* buffers.texi (Misc Buffer): M-x info does not seem to require a
+	buffer switch after M-x rename-uniquely.
+
+	* trouble.texi (Checklist): Mention C-c m in report-emacs-bug.
+
+2012-02-09  Jay Belanger  <jay.p.belanger@gmail.com>
+
+	* text.texi (Org Mode): Fix typo.
+
+2012-02-08  Glenn Morris  <rgm@gnu.org>
+
+	* ack.texi (Acknowledgments): Update emacs-lock info.
+
+	* rmail.texi (Rmail Display): Mention rmail-epa-decrypt.
+
+	* text.texi (LaTeX Editing): Mention latex-electric-env-pair-mode.
+
+2012-02-07  Glenn Morris  <rgm@gnu.org>
+
+	* files.texi (File Conveniences): Mention ImageMagick images.
+
+2012-02-05  Glenn Morris  <rgm@gnu.org>
+
+	* trouble.texi (Checklist): Mention debug-on-event.
+
+	* maintaining.texi (Maintaining): Add cross-ref to ERT.
+
+2012-02-04  Glenn Morris  <rgm@gnu.org>
+
+	* macos.texi (Customization options specific to Mac OS / GNUstep):
+	New subsection.
+
+	* display.texi (Colors): Mention list-colors-sort.
+
+	* files.texi (File Conveniences): Mention image animation.
+
+2012-01-31  Chong Yidong  <cyd@gnu.org>
+
+	* windows.texi (Split Window): C-mouse-2 doesn't work on GTK+
+	scroll bars (Bug#10666).
+
+2012-01-28  Chong Yidong  <cyd@gnu.org>
+
+	* files.texi (Filesets): Fix typos.
+
+	* display.texi (Faces): Add xref to Colors node.
+
+2012-01-27  Dani Moncayo  <dmoncayo@gmail.com>
+
+	* buffers.texi (Select Buffer): Clarify explanation of switching
+	to new buffers.  Fix description of next-buffer and
+	previous-buffer (Bug#10334).
+	(Misc Buffer): Add xref to View Mode.
+
+	* text.texi (Fill Commands): Fix description of
+	sentence-end-double-space.
+
+2012-01-23  Chong Yidong  <cyd@gnu.org>
+
+	* anti.texi (Antinews): Add Emacs 23 antinews.
+
+2012-01-16  Volker Sobek  <reklov@live.com>  (tiny change)
+
+	* programs.texi (Comment Commands): Typo (bug#10514).
+
+2012-01-15  Chong Yidong  <cyd@gnu.org>
+
+	* xresources.texi (X Resources): Describe GTK+ case first.
+	(Resources): Don't use borderWidth as an example, since it doesn't
+	work with GTK+.
+	(Table of Resources): Clarify role of several resources, including
+	the Emacs 24 behavior of cursorBlink etc.
+	(Face Resources): Node deleted.  Recommend using Customize
+	instead.  Add paragraph to `Table of Resources' node summarizing
+	how to use X resources for changing faces.
+	(Lucid Resources): Rewrite, omitting description of font names,
+	referring to the Fonts node instead.
+	(LessTif Resources): Copyedits.
+	(GTK resources): Rewrite, describing the difference between gtk2
+	and gtk3.
+	(GTK Resource Basics): New node.
+	(GTK Widget Names, GTK Names in Emacs): Rewrite.
+	(GTK styles): Just refer to Fonts node for GTK font format.
+
+	* display.texi (Faces): Document the cursor face.
+
+2012-01-14  Chong Yidong  <cyd@gnu.org>
+
+	* cmdargs.texi (Action Arguments): No need to mention EMACSLOADPATH.
+	(General Variables): Add xref to Lisp Libraries.
+	(Initial Options): Copyedits.
+	(Resume Arguments): Node deleted; emacs.bash/csh are obsolete.
+	(Environment): Clarify what getenv does.
+	(General Variables): Clarify EMACSPATH etc.  Emacs does not assume
+	light backgrounds on xterms.
+	(Misc Variables): TEMP and TMP are not Windows-specific.
+	(Display X): Copyedits.
+	(Colors X): -bd does nothing for GTK.
+	(Icons X): Gnome 3 doesn't use taskbars.
+
+	* misc.texi (Shell): Document exec-path here.
+
+	* rmail.texi (Movemail): Add xref for exec-path.
+
+2012-01-13  Glenn Morris  <rgm@gnu.org>
+
+	* dired.texi (Dired and Find): Clarify find-ls-options.
+
+2012-01-09  Chong Yidong  <cyd@gnu.org>
+
+	* custom.texi (Custom Themes): Switch custom-safe-themes to use
+	SHA-256.
+
+2012-01-07  Chong Yidong  <cyd@gnu.org>
+
+	* display.texi (Useless Whitespace): Add Whitespace mode.
+
+	* custom.texi (Hooks): Discuss how to disable minor modes.
+
+	* files.texi (Diff Mode): Discuss diff-auto-refine-mode
+	(Bug#10309).  Discuss use of Whitespace mode (Bug#10300).
+
+	* trouble.texi (Lossage): Refer to Bugs node for problems.
+	(DEL Does Not Delete): Don't use "usual erasure key" teminology.
+	(Screen Garbled): Don't refer to terminal "manufacturers".
+	(Total Frustration): Node deleted.  Eliza is documented in
+	Amusements now.
+	(Known Problems): More info about using the bug tracker.
+	Mention debbugs package.
+	(Bug Criteria): Copyedits.
+	(Understanding Bug Reporting): Mention emacs -Q.
+
+2012-01-06  Chong Yidong  <cyd@gnu.org>
+
+	* custom.texi (Specifying File Variables): The mode: keyword
+	doesn't have to be first anymore.  Add example of specifying minor
+	modes.
+	(Directory Variables): Simplify example.  Mention application to
+	non-file buffers.
+	(Disabling): Use "initialization file" terminology.
+	(Init Examples): Fix hook example.
+
+2012-01-06  Eli Zaretskii  <eliz@gnu.org>
+
+	* cmdargs.texi (MS-Windows Registry): Shorten the index entry.
+	(Bug#10422)
+	Move the stuff about resources to xresources.texi.
+
+	* xresources.texi (Resources): Move information about setting X
+	resources in the Registry from cmdargs.texi.  Make the index entry
+	be similar to the one in cmdargs.texi.
+
+2012-01-05  Chong Yidong  <cyd@gnu.org>
+
+	* custom.texi (Customization Groups): Update example.
+	(Browsing Custom): Document the new search field.
+	(Changing a Variable): Update example for Emacs 24 changes.
+	Document Custom-set and Custom-save commands.
+	(Face Customization): Document Emacs 24 changes.  De-document
+	modify-face.
+	(Specific Customization): Mention customize-variable.
+	(Custom Themes): Add customize-themes, custom-theme-load-path,
+	custom-theme-directory, and describe-theme.
+	(Creating Custom Themes): New node.
+	(Examining): Mention M-:.
+
+	* package.texi (Packages): Fix typo.
+
+2012-01-03  Chong Yidong  <cyd@gnu.org>
+
+	* misc.texi (Single Shell): Don't document Lisp usage of
+	shell-command.  Tidy up discussion of synchronicity.  Add index
+	entries for async-shell-command.
+	(Interactive Shell): Note that M-x shell uses shell-file-name.
+	Note change in behavior in Emacs 24.
+	(Shell Mode): Shell mode now uses completion-at-point.
+	(Shell Prompts): Emphasize that comint-use-prompt-regexp isn't the
+	default method for recognizing prompts nowadays.
+	(Shell Ring): Add xref to Minibuffer History.
+	(Directory Tracking): Explain Dirtrack mode in more detail.
+	(Term Mode): Fix index entries.
+	(Paging in Term): Merge into Term Mode.
+	(Serial Terminal, Emacs Server, emacsclient Options): Copyedits.
+	(Printing): Fix xref.  State default of lpr-switches.
+	(PostScript): Remove obsolete sentence.  Omit description of
+	non-interactive behaviors.
+	(Hyperlinking): Improve description.
+	(Browse-URL): Using compose-mail for mailto URLs is the default.
+	Document browse-url-mailto-function.
+	(Goto Address mode): Add index entries.  Add xref to Browse-URL.
+	(FFAP): FFAP is not a minor mode.
+	(Amusements): M-x lm was renamed to M-x landmark.
+	Document nato-region.
+
+2012-01-01  Chong Yidong  <cyd@gnu.org>
+
+	* misc.texi (Gnus, Buffers of Gnus): Copyedits.
+	(Gnus Startup): Note that the system might not be set up for news.
+	Describe group levels more clearly.
+	(Gnus Group Buffer, Gnus Summary Buffer): New nodes, split from
+	Summary of Gnus.
+	(Document View): Copyedits.  Move zoom commads to DocView
+	Navigation node.
+	(DocView Navigation, DocView Searching, DocView Slicing)
+	(DocView Conversion): Nodes renamed from Navigation, etc.
+
+	* sending.texi (Mail Sending): Add message-kill-buffer-on-exit.
+
+2011-12-31  Eli Zaretskii  <eliz@gnu.org>
+
+	* basic.texi (Moving Point): Fix the description of C-n and C-p.
+	(Bug#10380)
+
+2011-12-30  Chong Yidong  <cyd@gnu.org>
+
+	* sending.texi (Sending Mail): Document initial mail buffer name,
+	and changed multiple mail buffer behavior.
+	(Mail Format): Put the example at the top of the section.
+	(Mail Headers): Move discussion of "From" to the top.
+	(Mail Sending): Document sendmail-query-once.
+	(Citing Mail): Make it less Rmail-specific.
+
+2011-12-29  Chong Yidong  <cyd@gnu.org>
+
+	* text.texi (Org Mode): Copyedits.  Refer to Outline Format for
+	example.  Add index entries.
+	(Org Organizer, Org Authoring): Nodes renamed.  Copyedits.
+
 2011-12-26  Chong Yidong  <cyd@gnu.org>
 
-	* dired.texi (Dired Enter, Misc Dired Features): Document
-	dired-use-ls-dired changes.  Mention quit-window.
+	* dired.texi (Dired Enter, Misc Dired Features):
+	Document dired-use-ls-dired changes.  Mention quit-window.
 	(Dired Navigation): Add index entries.
 	(Dired Visiting): Fix View Mode xref.
 	(Marks vs Flags): Prefer C-/ binding for undo.
@@ -44,8 +1034,8 @@
 
 	* vc1-xtra.texi (Version Headers): Note that these are for
 	Subversion, CVS, etc. only.
-	(General VC Options): De-document vc-keep-workfiles.  Fix
-	RCS-isms.
+	(General VC Options): De-document vc-keep-workfiles.
+	Fix RCS-isms.
 
 2011-12-22  Eli Zaretskii  <eliz@gnu.org>
 
@@ -61,8 +1051,8 @@
 
 	* vc1-xtra.texi (Remote Repositories): Update introduction.
 	(Local Version Control): Node deleted (obsolete with DVCSes).
-	(Remote Repositories, Version Backups): Node deleted.  Move
-	documentation of vc-cvs-stay-local to CVS Options.
+	(Remote Repositories, Version Backups): Node deleted.
+	Move documentation of vc-cvs-stay-local to CVS Options.
 	(CVS Options): Reduce verbosity of description of obscure CVS
 	locking feature.
 	(Making Revision Tags, Revision Tag Caveats): Merge into Revision
@@ -115,11 +1105,11 @@
 	less CVS-specific.
 	(VC With A Merging VCS, VC With A Locking VCS): Add xref to
 	Registering node.
-	(Secondary VC Commands): Deleted.  Promote subnodes.
+	(Secondary VC Commands): Delete.  Promote subnodes.
 	(Log Buffer): Add command name for C-c C-c.  Fix the name of the
 	log buffer.  Add index entries.
-	(VCS Changesets, Types of Log File, VC With A Merging VCS): Use
-	"commit" terminology.
+	(VCS Changesets, Types of Log File, VC With A Merging VCS):
+	Use "commit" terminology.
 	(Old Revisions): Move it to just before VC Change Log.  "Tag" here
 	doesn't refer to tags tables.  Note other possible forms of the
 	revision ID.  C-x v = does not save.
@@ -144,8 +1134,8 @@
 	(Lisp Eval): Note that listed commands are available globally.
 	Explain the meaning of "defun" in the C-M-x context.
 	(Lisp Interaction): Copyedits.
-	(External Lisp): Fix name of inferior Lisp buffer.  Mention
-	Scheme.
+	(External Lisp): Fix name of inferior Lisp buffer.
+	Mention Scheme.
 	(Compilation): Define "inferior process".
 
 2011-12-10  Eli Zaretskii  <eliz@gnu.org>
@@ -160,8 +1150,8 @@
 	(Compilation Mode): Add xref for grep, occur, and mouse
 	references.  Define "locus".
 	(Grep Searching): Use @command.
-	(Debuggers, Commands of GUD, GDB Graphical Interface): Clarify
-	intro.
+	(Debuggers, Commands of GUD, GDB Graphical Interface):
+	Clarify intro.
 	(Starting GUD): Clarify how arguments are specified.
 	(Debugger Operation): Index entry for "GUD interaction buffer",
 	and move basic description here from Commands of GUD node.
@@ -169,8 +1159,8 @@
 	(Source Buffers): Remove gdb-find-source-frame, which is not in
 	gdb-mi.el.
 	(Other GDB Buffers): Remove gdb-use-separate-io-buffer and
-	toggle-gdb-all-registers, which are not in gdb-mi.el.  Don't
-	re-document GUD interaction buffers.
+	toggle-gdb-all-registers, which are not in gdb-mi.el.
+	Don't re-document GUD interaction buffers.
 
 	* programs.texi (Symbol Completion): M-TAB can now use Semantic.
 	(Semantic): Add cindex entries for Semantic.
@@ -200,8 +1190,8 @@
 
 	* programs.texi (Program Modes): Mention modes that are not
 	included with Emacs.  Fix references to other manuals for tex.
-	Add index entry for backward-delete-char-untabify.  Mention
-	prog-mode-hook.
+	Add index entry for backward-delete-char-untabify.
+	Mention prog-mode-hook.
 	(Which Function): Use "global minor mode" terminology.
 	(Basic Indent, Multi-line Indent): Refer to previous descriptions
 	in Indentation chapter to avoid duplication.
@@ -233,12 +1223,12 @@
 	(TeX Editing): Add xref to documentation for Occur.
 	(LaTeX Editing): Add xref to Completion node.
 	(TeX Print): Fix description of tex-directory.
-	(Enriched Text): Renamed from Formatted Text.  Make this node and
+	(Enriched Text): Rename from Formatted Text.  Make this node and
 	its subnodes less verbose, since text/enriched files are
 	practically unused.
-	(Enriched Mode): Renamed from Requesting Formatted Text.
+	(Enriched Mode): Rename from Requesting Formatted Text.
 	(Format Colors): Node deleted.
-	(Enriched Faces): Renamed from Format Faces.  Describe commands
+	(Enriched Faces): Rename from Format Faces.  Describe commands
 	for applying colors too.
 	(Forcing Enriched Mode): Node deleted; merged into Enriched Mode.
 
@@ -473,12 +1463,12 @@
 2011-10-18  Chong Yidong  <cyd@gnu.org>
 
 	* display.texi (Faces): Simplify discussion.  Move documentation
-	of list-faces-display here, from Standard Faces node.  Note
-	special role of `default' background.
-	(Standard Faces): Note special role of `default' background.  Note
-	that region face may be taken fom GTK.  Add xref to Text Display.
-	(Text Scale): Rename from "Temporary Face Changes".  Callers
-	changed.  Don't bother documenting variable-pitch-mode.
+	of list-faces-display here, from Standard Faces node.
+	Note special role of `default' background.
+	(Standard Faces): Note special role of `default' background.
+	Note that region face may be taken fom GTK.  Add xref to Text Display.
+	(Text Scale): Rename from "Temporary Face Changes".
+	Callers changed.  Don't bother documenting variable-pitch-mode.
 	(Font Lock): Copyedits.  Remove font-lock-maximum-size.
 	(Useless Whitespace): Simplify description of
 	delete-trailing-whitespace.  Note active region case.
@@ -500,8 +1490,8 @@
 
 2011-10-13  Chong Yidong  <cyd@stupidchicken.com>
 
-	* killing.texi (Deletion): Add xref to Using Region.  Document
-	delete-forward-char.
+	* killing.texi (Deletion): Add xref to Using Region.
+	Document delete-forward-char.
 	(Yanking): Move yank-excluded-properties to Lisp manual.  Move C-y
 	description here.  Recommend C-u C-SPC for jumping to mark.
 	(Kill Ring): Move kill ring variable documentation here.
@@ -521,10 +1511,10 @@
 	selection changes.  Mention that commands like C-y set the mark.
 	(Marking Objects): Add xref to Words node.  Note that mark-word
 	and mark-sexp also have the "extend region" behavior.
-	(Using Region): Mention M-$ in the table.  Document
-	mark-even-if-inactive here instead of in Mark Ring.
-	(Mark Ring): Move mark-even-if-inactive to Using Region.  Take
-	note of the "Mark Set" behavior.
+	(Using Region): Mention M-$ in the table.
+	Document mark-even-if-inactive here instead of in Mark Ring.
+	(Mark Ring): Move mark-even-if-inactive to Using Region.
+	Take note of the "Mark Set" behavior.
 	(Disabled Transient Mark): Rename from "Persistent Mark"
 	(Bug#9688).  Callers changed.
 
@@ -539,8 +1529,8 @@
 	(Name Help): Remove an over-long joke.
 	(Apropos): Document prefix args.  Remove duplicated descriptions.
 	(Help Mode): Add C-c C-b to table.  Update TAB binding.
-	(Package Keywords): Rename from "Library by Keyword".  Describe
-	new package menu interface.
+	(Package Keywords): Rename from "Library by Keyword".
+	Describe new package menu interface.
 	(Help Files, Help Echo): Tweak description.
 
 	* mini.texi (Completion Options): Add completion-cycle-threshold.
@@ -552,8 +1542,8 @@
 
 2011-10-08  Chong Yidong  <cyd@stupidchicken.com>
 
-	* basic.texi (Position Info): Omit page commands.  Document
-	count-words-region and count-words.
+	* basic.texi (Position Info): Omit page commands.
+	Document count-words-region and count-words.
 
 	* text.texi (Pages): Move what-page documentation here.
 
@@ -576,8 +1566,8 @@
 
 2011-10-07  Chong Yidong  <cyd@stupidchicken.com>
 
-	* basic.texi (Inserting Text): Add xref to Completion.  Add
-	ucs-insert example, and document prefix argument.
+	* basic.texi (Inserting Text): Add xref to Completion.
+	Add ucs-insert example, and document prefix argument.
 	(Moving Point): Fix introduction; C-f/C-b are no longer equivalent
 	to left/right.  Tweak left-char and right-char descriptions.
 	M-left and M-right are now bound to left-word/right-word.
@@ -610,7 +1600,6 @@
 	* custom.texi (Mouse Buttons):
 	* rmail.texi (Rmail Scrolling):
 	* search.texi (Isearch Scroll):
-
 	* display.texi (Scrolling): Replace scroll-up/down with
 	scroll-up/down-command.  Fix scroll-preserve-screen-position
 	description.  Document scroll-error-top-bottom.
@@ -981,8 +1970,8 @@
 
 2011-04-24  Chong Yidong  <cyd@stupidchicken.com>
 
-	* maintaining.texi (List Tags): Document next-file.  Suggested by
-	Uday S Reddy.
+	* maintaining.texi (List Tags): Document next-file.
+	Suggested by Uday S Reddy.
 
 2011-04-23  Juanma Barranquero  <lekktu@gmail.com>
 
@@ -2429,9 +3418,9 @@
 	* ack.texi (Acknowledgments): General update based on AUTHORS,
 	including removal of some stuff no longer distributed.
 
-2008-12-19  Agustin Martin  <agustin.martin@hispalinux.es>
+2008-12-19  Agustín Martín  <agustin.martin@hispalinux.es>
 
-	* fixit.texi: Mention hunspell
+	* fixit.texi: Mention hunspell.
 
 2008-12-19  Glenn Morris  <rgm@gnu.org>
 
@@ -8683,7 +9672,7 @@
 ;; coding: utf-8
 ;; End:
 
-  Copyright (C) 1993-1999, 2001-2011  Free Software Foundation, Inc.
+  Copyright (C) 1993-1999, 2001-2012 Free Software Foundation, Inc.
 
   This file is part of GNU Emacs.
 

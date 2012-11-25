@@ -1,6 +1,6 @@
 ;;; url-ldap.el --- LDAP Uniform Resource Locator retrieval code
 
-;; Copyright (C) 1998-1999, 2004-2011 Free Software Foundation, Inc.
+;; Copyright (C) 1998-1999, 2004-2012 Free Software Foundation, Inc.
 
 ;; Keywords: comm, data, processes
 
@@ -64,7 +64,7 @@
     ("facsimiletelephonenumber" . "Fax")
     ("postaladdress"            . "Mailing Address")
     ("description"              . "Notes"))
-  "*An assoc list mapping LDAP attribute names to pretty descriptions of them.")
+  "An assoc list mapping LDAP attribute names to pretty descriptions of them.")
 
 (defvar url-ldap-attribute-formatters
   '(("mail"       . (lambda (x) (format "<a href='mailto:%s'>%s</a>" x x)))
@@ -76,7 +76,7 @@
     ("namingcontexts" . url-ldap-dn-formatter)
     ("defaultnamingcontext" . url-ldap-dn-formatter)
     ("member"     . url-ldap-dn-formatter))
-  "*An assoc list mapping LDAP attribute names to pretty formatters for them.")
+  "An assoc list mapping LDAP attribute names to pretty formatters for them.")
 
 (defsubst url-ldap-attribute-pretty-name (n)
   (or (cdr-safe (assoc (downcase n) url-ldap-pretty-names)) n))

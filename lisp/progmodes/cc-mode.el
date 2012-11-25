@@ -1,6 +1,6 @@
 ;;; cc-mode.el --- major mode for editing C and similar languages
 
-;; Copyright (C) 1985, 1987, 1992-2011  Free Software Foundation, Inc.
+;; Copyright (C) 1985, 1987, 1992-2012 Free Software Foundation, Inc.
 
 ;; Authors:    2003- Alan Mackenzie
 ;;             1998- Martin Stjernholm
@@ -490,6 +490,7 @@ that requires a literal mode spec at compile time."
   (make-local-variable 'paragraph-ignore-fill-prefix)
   (make-local-variable 'adaptive-fill-mode)
   (make-local-variable 'adaptive-fill-regexp)
+  (make-local-variable 'fill-paragraph-handle-comment)
 
   ;; now set their values
   (set (make-local-variable 'parse-sexp-ignore-comments) t)
@@ -499,6 +500,9 @@ that requires a literal mode spec at compile time."
   (set (make-local-variable 'comment-multi-line) t)
   (set (make-local-variable 'comment-line-break-function)
        'c-indent-new-comment-line)
+
+  ;; For the benefit of adaptive file, which otherwise mis-fills.
+  (setq fill-paragraph-handle-comment nil)
 
   ;; Install `c-fill-paragraph' on `fill-paragraph-function' so that a
   ;; direct call to `fill-paragraph' behaves better.  This still
@@ -921,8 +925,8 @@ Note that the style variables are always made local to the buffer."
     ;; inside a string, comment, or macro.
     (setq new-bounds (c-extend-font-lock-region-for-macros
 		      c-new-BEG c-new-END old-len))
-    (setq c-new-BEG (car new-bounds)
-	  c-new-END (cdr new-bounds))
+    (setq c-new-BEG (max (car new-bounds) (c-determine-limit 500 begg))
+	  c-new-END (min (cdr new-bounds) (c-determine-+ve-limit 500 endd)))
     ;; Clear all old relevant properties.
     (c-clear-char-property-with-value c-new-BEG c-new-END 'syntax-table '(1))
     (c-clear-char-property-with-value c-new-BEG c-new-END 'category 'c-cpp-delimiter)
@@ -1030,7 +1034,10 @@ Note that the style variables are always made local to the buffer."
 	    (mapc (lambda (fn)
 		    (funcall fn beg end))
 		  c-get-state-before-change-functions))
-	))))
+	)))
+  ;; The following must be done here rather than in `c-after-change' because
+  ;; newly inserted parens would foul up the invalidation algorithm.
+  (c-invalidate-state-cache beg))
 
 (defvar c-in-after-change-fontification nil)
 (make-variable-buffer-local 'c-in-after-change-fontification)
@@ -1078,7 +1085,7 @@ Note that the style variables are always made local to the buffer."
 
 	(c-trim-found-types beg end old-len) ; maybe we don't need all of these.
 	(c-invalidate-sws-region-after beg end)
-	(c-invalidate-state-cache beg)
+	;; (c-invalidate-state-cache beg) ; moved to `c-before-change'.
 	(c-invalidate-find-decl-cache beg)
 
 	(when c-recognize-<>-arglists
@@ -1102,7 +1109,7 @@ Note that the style variables are always made local to the buffer."
   ;; nested.
   ;;
   ;; This function is called indirectly from font locking stuff - either from
-  ;; c-after-change (to prepare for after-change font-lockng) or from font
+  ;; c-after-change (to prepare for after-change font-locking) or from font
   ;; lock context (etc.) fontification.
   (let ((lit-limits (c-literal-limits))
 	(new-pos pos)
@@ -1110,7 +1117,7 @@ Note that the style variables are always made local to the buffer."
     (goto-char (c-point 'bol new-pos))
     (when lit-limits			; Comment or string.
       (goto-char (car lit-limits)))
-    (setq bod-lim (max (- (point) 500) (point-min)))
+    (setq bod-lim (c-determine-limit 500))
 
     (while
 	;; Go to a less nested declaration each time round this loop.
@@ -1128,11 +1135,12 @@ Note that the style variables are always made local to the buffer."
 	 ;; Try and go out a level to search again.
 	 (progn
 	   (c-backward-syntactic-ws bod-lim)
-	   (or (memq (char-before) '(?\( ?\[))
-	       (and (eq (char-before) ?\<)
-		    (eq (c-get-char-property
-			 (1- (point)) 'syntax-table)
-			c-<-as-paren-syntax))))
+	   (and (> (point) bod-lim)
+		(or (memq (char-before) '(?\( ?\[))
+		    (and (eq (char-before) ?\<)
+			 (eq (c-get-char-property
+			      (1- (point)) 'syntax-table)
+			     c-<-as-paren-syntax)))))
 	 (not (bobp)))
       (backward-char))
     new-pos))				; back over (, [, <.
@@ -1158,7 +1166,7 @@ Note that the style variables are always made local to the buffer."
   ;; Effectively advice around `font-lock-fontify-region' which extends the
   ;; region (BEG END), for example, to avoid context fontification chopping
   ;; off the start of the context.  Do not do anything if it's already been
-  ;; done (i.e. from and after-change fontification.  An example (C++) where
+  ;; done (i.e. from an after-change fontification.  An example (C++) where
   ;; this used to happen is this:
   ;;
   ;;     template <typename T>
@@ -1168,7 +1176,7 @@ Note that the style variables are always made local to the buffer."
   ;; 
   ;; Type a space in the first blank line, and the fontification of the next
   ;; line was fouled up by context fontification.
-  (let ((new-beg beg) (new-end end) new-region)
+  (let ((new-beg beg) (new-end end) new-region case-fold-search)
     (if c-in-after-change-fontification
 	(setq c-in-after-change-fontification nil)
       (save-restriction
@@ -1180,10 +1188,10 @@ Note that the style variables are always made local to the buffer."
 		c-before-context-fontification-functions))))
     (funcall c-standard-font-lock-fontify-region-function
 	     new-beg new-end verbose)))
-  
+
 (defun c-after-font-lock-init ()
   ;; Put on `font-lock-mode-hook'.  This function ensures our after-change
-  ;; function will get excuted before the font-lock one.  Amongst other
+  ;; function will get executed before the font-lock one.  Amongst other
   ;; things.
   (remove-hook 'after-change-functions 'c-after-change t)
   (add-hook 'after-change-functions 'c-after-change nil t)
@@ -1579,7 +1587,7 @@ Key bindings:
 (easy-menu-define c-pike-menu pike-mode-map "Pike Mode Commands"
 		  (cons "Pike" (c-lang-const c-mode-menu pike)))
 
-;;;###autoload (add-to-list 'auto-mode-alist '("\\.\\(u?lpc\\|pike\\|pmod\\(.in\\)?\\)\\'" . pike-mode))
+;;;###autoload (add-to-list 'auto-mode-alist '("\\.\\(u?lpc\\|pike\\|pmod\\(\\.in\\)?\\)\\'" . pike-mode))
 ;;;###autoload (add-to-list 'interpreter-mode-alist '("pike" . pike-mode))
 
 ;;;###autoload
@@ -1698,7 +1706,9 @@ Key bindings:
   (message "Using CC Mode version %s" c-version)
   (c-keep-region-active))
 
-(defvar c-prepare-bug-report-hooks nil)
+(define-obsolete-variable-alias 'c-prepare-bug-report-hooks
+  'c-prepare-bug-report-hook "24.3")
+(defvar c-prepare-bug-report-hook nil)
 
 ;; Dynamic variables used by reporter.
 (defvar reporter-prompt-for-summary-p)
@@ -1765,7 +1775,7 @@ Key bindings:
 		lookup-syntax-properties))
 	vars)
       (lambda ()
-	(run-hooks 'c-prepare-bug-report-hooks)
+	(run-hooks 'c-prepare-bug-report-hook)
 	(insert (format "Buffer Style: %s\nc-emacs-features: %s\n"
 			style c-features)))))))
 

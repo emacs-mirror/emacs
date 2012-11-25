@@ -1,6 +1,6 @@
 ;;; checkdoc.el --- check documentation strings for style requirements
 
-;; Copyright (C) 1997-1998, 2001-2011  Free Software Foundation, Inc.
+;; Copyright (C) 1997-1998, 2001-2012  Free Software Foundation, Inc.
 
 ;; Author: Eric M. Ludlam <zappo@gnu.org>
 ;; Version: 0.6.2
@@ -124,7 +124,7 @@
 ;; Adding your own checks:
 ;;
 ;;   You can experiment with adding your own checks by setting the
-;; hooks `checkdoc-style-hooks' and `checkdoc-comment-style-hooks'.
+;; hooks `checkdoc-style-functions' and `checkdoc-comment-style-functions'.
 ;; Return a string which is the error you wish to report.  The cursor
 ;; position should be preserved.
 ;;
@@ -274,17 +274,21 @@ made in the style guide relating to order."
   :type 'boolean)
 ;;;###autoload(put 'checkdoc-arguments-in-order-flag 'safe-local-variable 'booleanp)
 
-(defvar checkdoc-style-hooks nil
-  "Hooks called after the standard style check is completed.
-All hooks must return nil or a string representing the error found.
+(define-obsolete-variable-alias 'checkdoc-style-hooks
+  'checkdoc-style-functions "24.3")
+(defvar checkdoc-style-functions nil
+  "Hook run after the standard style check is completed.
+All functions must return nil or a string representing the error found.
 Useful for adding new user implemented commands.
 
 Each hook is called with two parameters, (DEFUNINFO ENDPOINT).
 DEFUNINFO is the return value of `checkdoc-defun-info'.  ENDPOINT is the
 location of end of the documentation string.")
 
-(defvar checkdoc-comment-style-hooks nil
-  "Hooks called after the standard comment style check is completed.
+(define-obsolete-variable-alias 'checkdoc-comment-style-hooks
+  'checkdoc-comment-style-functions "24.3")
+(defvar checkdoc-comment-style-functions nil
+  "Hook run after the standard comment style check is completed.
 Must return nil if no errors are found, or a string describing the
 problem discovered.  This is useful for adding additional checks.")
 
@@ -916,7 +920,7 @@ is the starting location.  If this is nil, `point-min' is used instead."
 	(progn
 	  (goto-char wrong)
 	  (if (not take-notes)
-	      (error "%s" (checkdoc-error-text msg)))))
+	      (user-error "%s" (checkdoc-error-text msg)))))
     (checkdoc-show-diagnostics)
     (if (called-interactively-p 'interactive)
 	(message "No style warnings."))))
@@ -949,7 +953,7 @@ if there is one."
 	 (e (checkdoc-file-comments-engine))
          (checkdoc-generate-compile-warnings-flag
           (or take-notes checkdoc-generate-compile-warnings-flag)))
-    (if e (error "%s" (checkdoc-error-text e)))
+    (if e (user-error "%s" (checkdoc-error-text e)))
     (checkdoc-show-diagnostics)
     e))
 
@@ -987,7 +991,7 @@ Optional argument TAKE-NOTES causes all errors to be logged."
     (if (not (called-interactively-p 'interactive))
 	e
       (if e
-	  (error "%s" (checkdoc-error-text e))
+	  (user-error "%s" (checkdoc-error-text e))
 	(checkdoc-show-diagnostics)))
     (goto-char p))
   (if (called-interactively-p 'interactive)
@@ -1027,19 +1031,14 @@ space at the end of each line."
 	      (car (memq checkdoc-spellcheck-documentation-flag
                          '(defun t))))
 	     (beg (save-excursion (beginning-of-defun) (point)))
-	     (end (save-excursion (end-of-defun) (point)))
-	     (msg (checkdoc-this-string-valid)))
-	(if msg (if no-error
-		    (message "%s" (checkdoc-error-text msg))
-		  (error "%s" (checkdoc-error-text msg)))
-	  (setq msg (checkdoc-message-text-search beg end))
-	  (if msg (if no-error
-		      (message "%s" (checkdoc-error-text msg))
-		    (error "%s" (checkdoc-error-text msg)))
-	    (setq msg (checkdoc-rogue-space-check-engine beg end))
-	    (if msg (if no-error
-			(message "%s" (checkdoc-error-text msg))
-		      (error "%s" (checkdoc-error-text msg))))))
+	     (end (save-excursion (end-of-defun) (point))))
+        (dolist (fun (list #'checkdoc-this-string-valid
+                           (lambda () (checkdoc-message-text-search beg end))
+                           (lambda () (checkdoc-rogue-space-check-engine beg end))))
+          (let ((msg (funcall fun)))
+            (if msg (if no-error
+                        (message "%s" (checkdoc-error-text msg))
+                      (user-error "%s" (checkdoc-error-text msg))))))
 	(if (called-interactively-p 'interactive)
 	    (message "Checkdoc: done."))))))
 
@@ -1848,7 +1847,7 @@ Replace with \"%s\"? " original replace)
      ;; and reliance on the Ispell program.
      (checkdoc-ispell-docstring-engine e)
      ;; User supplied checks
-     (save-excursion (checkdoc-run-hooks 'checkdoc-style-hooks fp e))
+     (save-excursion (checkdoc-run-hooks 'checkdoc-style-functions fp e))
      ;; Done!
      )))
 
@@ -1943,7 +1942,7 @@ from the comment."
 A code fragment is identified by an open parenthesis followed by a
 symbol which is a valid function or a word in all CAPS, or a parenthesis
 that is quoted with the ' character.  Only the region from START to LIMIT
-is is allowed while searching for the bounding parenthesis."
+is allowed while searching for the bounding parenthesis."
   (save-match-data
     (save-restriction
       (narrow-to-region start limit)
@@ -2358,7 +2357,7 @@ Code:, and others referenced in the style guide."
        err
        (or
 	;; Generic Full-file checks (should be comment related)
-	(checkdoc-run-hooks 'checkdoc-comment-style-hooks)
+	(checkdoc-run-hooks 'checkdoc-comment-style-functions)
 	err))
       ;; Done with full file comment checks
       err)))
@@ -2643,12 +2642,6 @@ function called to create the messages."
 	nil)))
 
 (custom-add-option 'emacs-lisp-mode-hook 'checkdoc-minor-mode)
-
-(add-to-list 'debug-ignored-errors
-	     "Argument `.*' should appear (as .*) in the doc string")
-(add-to-list 'debug-ignored-errors
-	     "Lisp symbol `.*' should appear in quotes")
-(add-to-list 'debug-ignored-errors "Disambiguate .* by preceding .*")
 
 (provide 'checkdoc)
 

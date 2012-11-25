@@ -3,7 +3,7 @@
 ;;		 and a venomous VI PERil.
 ;;		 Viper Is also a Package for Emacs Rebels.
 
-;; Copyright (C) 1994-2011 Free Software Foundation, Inc.
+;; Copyright (C) 1994-2012 Free Software Foundation, Inc.
 
 ;; Author: Michael Kifer <kifer@cs.stonybrook.edu>
 ;; Keywords: emulations
@@ -87,7 +87,7 @@
 ;;    facility in the original Vi.
 ;;    First, one can execute any Emacs command while defining a
 ;;    macro, not just the Vi commands.  Second, macros are defined in a
-;;    WYSYWYG mode, using an interface to Emacs' WYSIWYG style of defining
+;;    WYSYWYG mode, using an interface to Emacs's WYSIWYG style of defining
 ;;    macros.  Third, in Viper, one can define macros that are specific to
 ;;    a given buffer, a given major mode, or macros defined for all buffers.
 ;;    The same macro name can have several different definitions:
@@ -103,8 +103,8 @@
 ;;  (require 'viper)
 ;;
 
-;;; Acknowledgements:
-;;  -----------------
+;;; Acknowledgments:
+;;  ----------------
 ;;  Bug reports and ideas contributed by many users have helped
 ;;  improve Viper and the various versions of VIP.
 ;;  See the on-line manual for a complete list of contributors.
@@ -351,7 +351,7 @@ user decide when to invoke Viper in a major mode."
 If t, viperize Emacs.  If nil -- don't.  If `ask', ask the user.
 This variable is used primarily when Viper is being loaded.
 
-Must be set in `~/.emacs' before Viper is loaded.
+Must be set in your init file before Viper is loaded.
 DO NOT set this variable interactively, unless you are using the customization
 widget."
   :type '(choice (const nil) (const t) (const ask))
@@ -435,7 +435,7 @@ widget."
     view-mode
     vm-mode
     vm-summary-mode)
-  "*A list of major modes that should come up in Emacs state.
+  "A list of major modes that should come up in Emacs state.
 Normally, Viper would bring buffers up in Emacs state, unless the corresponding
 major mode has been placed on `viper-vi-state-mode-list' or
 `viper-insert-state-mode-list'.  So, don't place a new mode on this list,
@@ -451,7 +451,7 @@ unless it is coming up in a wrong Viper state."
     erc-mode
     eshell-mode
     shell-mode)
-  "*A list of major modes that should come up in Vi Insert state."
+  "A list of major modes that should come up in Vi Insert state."
   :type '(repeat symbol)
   :group 'viper-misc)
 
@@ -561,7 +561,7 @@ and improving upon much of it.
       use Emacs productively, you are advised to reach user level 3 or higher.
 
       At user level 2 or higher, ^X and ^C have Emacs, not Vi, bindings;
-      ^Z toggles Vi/Emacs states; ^G is Emacs' keyboard-quit (like ^C in Vi).
+      ^Z toggles Vi/Emacs states; ^G is Emacs's keyboard-quit (like ^C in Vi).
 
    2. Vi exit functions (e.g., :wq, ZZ) work on INDIVIDUAL files -- they
       do not cause Emacs to quit, except at user level 1 (for a novice).
@@ -971,9 +971,9 @@ It also can't undo some Viper settings."
   (if (featurep 'emacs)
       (eval-after-load "mule-cmds"
 	'(progn
-	   (defadvice inactivate-input-method (after viper-mule-advice activate)
+	   (defadvice deactivate-input-method (after viper-mule-advice activate)
 	     "Set viper-special-input-method to disable intl. input methods."
-	     (viper-inactivate-input-method-action))
+	     (viper-deactivate-input-method-action))
 	   (defadvice activate-input-method (after viper-mule-advice activate)
 	     "Set viper-special-input-method to enable intl. input methods."
 	     (viper-activate-input-method-action))
@@ -985,14 +985,14 @@ It also can't undo some Viper settings."
       '(progn
 	 (add-hook 'input-method-activate-hook
 		   'viper-activate-input-method-action t)
-	 (add-hook 'input-method-inactivate-hook
-		   'viper-inactivate-input-method-action t)))
+	 (add-hook 'input-method-deactivate-hook
+		   'viper-deactivate-input-method-action t)))
     )
   (eval-after-load "mule-cmds"
     '(defadvice toggle-input-method (around viper-mule-advice activate)
        "Adjust input-method toggling in vi-state."
        (if (and viper-special-input-method (eq viper-current-state 'vi-state))
-	   (viper-inactivate-input-method)
+	   (viper-deactivate-input-method)
 	 ad-do-it)))
 
   ) ; viper-set-hooks
@@ -1173,7 +1173,7 @@ If you wish to Viperize AND make this your way of life, please put
 	(setq viper-mode t)
 	(require 'viper)
 
-in your .emacs file (preferably, close to the top).
+in your init file (preferably, close to the top).
 These two lines must come in the order given.
 
 ** Viper users:

@@ -2898,7 +2898,7 @@
 
 2003-06-01  Peter S Galbraith  <psg@debian.org>
 
-	* mh-comp.el (mh-modify-header-field): Bug fix.  Calling with with
+	* mh-comp.el (mh-modify-header-field): Bug fix.  Calling with
 	a value that was already inserted causes it to get inserted a
 	second time.  I have wrapped the value around \b word delimiters.
 	Hope there are no side effects for other code.
@@ -9493,9 +9493,9 @@
 	* mh-utils.el (mh-find-progs): Run PATH search only when mh-progs,
 	mh-lib and mh-lib-progs are not all already set.  This allows the
 	user to set them using a simple setq prior to loading mh-e.  This
-	is useful for implementation of mh-e on win32.  Note that many
+	is useful for implementation of mh-e on w32.  Note that many
 	commands still call mh-find-path which also parses the mh_profile
-	file (that may still fail on win32), so this is still done often.
+	file (that may still fail on w32), so this is still done often.
 	But it lets us change the mh_profile file and have mh-e see the
 	changed file without exiting emacs and starting over so I left
 	that in.
@@ -9952,7 +9952,7 @@
 	* mh-mime.el (compilation): Code rearrangement to remove compiler
 	warnings.
 	(mh-defun-compat): New macro to define to useful functions that
-	aren't present present in old Gnus.
+	aren't present in old Gnus.
 	(mh-destroy-postponed-handles): New function to cleanup handles
 	that are associated with external viewers.
 	(mh-handle-set-external-undisplayer): New function to replace
@@ -10930,7 +10930,7 @@
 
 	* mh-utils.el (mh-prompt-for-folder): Exit with error if no folder
 	specified, otherwise mh-refile-msg may try to create a folder with
-	empty name, and this creates problems;  even mh-undo can't handle
+	empty name, and this creates problems; even mh-undo can't handle
 	it (Closes SF #476824).
 
 	* mh-comp.el (mh-letter-tool-bar-map): Info button needed to
@@ -11400,7 +11400,7 @@
 	(dist): Leave release in current directory.
 
 
-  Copyright (C) 2003-2011  Free Software Foundation, Inc.
+  Copyright (C) 2003-2012  Free Software Foundation, Inc.
 
   This file is part of GNU Emacs.
 

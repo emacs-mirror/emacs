@@ -1,6 +1,6 @@
 ;;; mm-view.el --- functions for viewing MIME objects
 
-;; Copyright (C) 1998-2011  Free Software Foundation, Inc.
+;; Copyright (C) 1998-2012  Free Software Foundation, Inc.
 
 ;; Author: Lars Magne Ingebrigtsen <larsi@gnus.org>
 ;; This file is part of GNU Emacs.
@@ -496,9 +496,6 @@
 (defun mm-inline-audio (handle)
   (message "Not implemented"))
 
-(defun mm-view-sound-file ()
-  (message "Not implemented"))
-
 (defun mm-w3-prepare-buffer ()
   (require 'w3)
   (let ((url-standalone-mode t)
@@ -600,10 +597,11 @@ If MODE is not set, try to find mode automatically."
 		     text)))
       (require 'font-lock)
       ;; I find font-lock a bit too verbose.
-      (let ((font-lock-verbose nil))
+      (let ((font-lock-verbose nil)
+	    (font-lock-support-mode nil))
 	;; Disable support modes, e.g., jit-lock, lazy-lock, etc.
+	;; Note: XEmacs people use `font-lock-mode-hook' to run those modes.
 	(set (make-local-variable 'font-lock-mode-hook) nil)
-	(set (make-local-variable 'font-lock-support-mode) nil)
         (setq buffer-file-name (mm-handle-filename handle))
         (set (make-local-variable 'enable-local-variables) nil)
 	(with-demoted-errors

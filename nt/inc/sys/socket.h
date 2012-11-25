@@ -1,4 +1,4 @@
-/* Copyright (C) 1995, 2001-2011  Free Software Foundation, Inc.
+/* Copyright (C) 1995, 2001-2012  Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -119,49 +119,154 @@ int sys_sendto (int s, const char * buf, int len, int flags,
    an fcntl function, for setting sockets to non-blocking mode.  */
 int fcntl (int s, int cmd, int options);
 #define F_SETFL   4
-#define O_NDELAY  04000
+#define O_NONBLOCK  04000
 
 /* we are providing a real h_errno variable */
 #undef h_errno
 extern int h_errno;
 
 /* map winsock error codes to standard names */
+#if defined(EWOULDBLOCK)
+#undef EWOULDBLOCK
+#endif
 #define EWOULDBLOCK             WSAEWOULDBLOCK
+#if defined(EINPROGRESS)
+#undef EINPROGRESS
+#endif
 #define EINPROGRESS             WSAEINPROGRESS
+#if defined(EALREADY)
+#undef EALREADY
+#endif
 #define EALREADY                WSAEALREADY
+#if defined(ENOTSOCK)
+#undef ENOTSOCK
+#endif
 #define ENOTSOCK                WSAENOTSOCK
+#if defined(EDESTADDRREQ)
+#undef EDESTADDRREQ
+#endif
 #define EDESTADDRREQ            WSAEDESTADDRREQ
+#if defined(EMSGSIZE)
+#undef EMSGSIZE
+#endif
 #define EMSGSIZE                WSAEMSGSIZE
+#if defined(EPROTOTYPE)
+#undef EPROTOTYPE
+#endif
 #define EPROTOTYPE              WSAEPROTOTYPE
+#if defined(ENOPROTOOPT)
+#undef ENOPROTOOPT
+#endif
 #define ENOPROTOOPT             WSAENOPROTOOPT
+#if defined(EPROTONOSUPPORT)
+#undef EPROTONOSUPPORT
+#endif
 #define EPROTONOSUPPORT         WSAEPROTONOSUPPORT
+#if defined(ESOCKTNOSUPPORT)
+#undef ESOCKTNOSUPPORT
+#endif
 #define ESOCKTNOSUPPORT         WSAESOCKTNOSUPPORT
+#if defined(EOPNOTSUPP)
+#undef EOPNOTSUPP
+#endif
 #define EOPNOTSUPP              WSAEOPNOTSUPP
+#if defined(EPFNOSUPPORT)
+#undef EPFNOSUPPORT
+#endif
 #define EPFNOSUPPORT            WSAEPFNOSUPPORT
+#if defined(EAFNOSUPPORT)
+#undef EAFNOSUPPORT
+#endif
 #define EAFNOSUPPORT            WSAEAFNOSUPPORT
+#if defined(EADDRINUSE)
+#undef EADDRINUSE
+#endif
 #define EADDRINUSE              WSAEADDRINUSE
+#if defined(EADDRNOTAVAIL)
+#undef EADDRNOTAVAIL
+#endif
 #define EADDRNOTAVAIL           WSAEADDRNOTAVAIL
+#if defined(ENETDOWN)
+#undef ENETDOWN
+#endif
 #define ENETDOWN                WSAENETDOWN
+#if defined(ENETUNREACH)
+#undef ENETUNREACH
+#endif
 #define ENETUNREACH             WSAENETUNREACH
+#if defined(ENETRESET)
+#undef ENETRESET
+#endif
 #define ENETRESET               WSAENETRESET
+#if defined(ECONNABORTED)
+#undef ECONNABORTED
+#endif
 #define ECONNABORTED            WSAECONNABORTED
+#if defined(ECONNRESET)
+#undef ECONNRESET
+#endif
 #define ECONNRESET              WSAECONNRESET
+#if defined(ENOBUFS)
+#undef ENOBUFS
+#endif
 #define ENOBUFS                 WSAENOBUFS
+#if defined(EISCONN)
+#undef EISCONN
+#endif
 #define EISCONN                 WSAEISCONN
+#if defined(ENOTCONN)
+#undef ENOTCONN
+#endif
 #define ENOTCONN                WSAENOTCONN
+#if defined(ESHUTDOWN)
+#undef ESHUTDOWN
+#endif
 #define ESHUTDOWN               WSAESHUTDOWN
+#if defined(ETOOMANYREFS)
+#undef ETOOMANYREFS
+#endif
 #define ETOOMANYREFS            WSAETOOMANYREFS
+#if defined(ETIMEDOUT)
+#undef ETIMEDOUT
+#endif
 #define ETIMEDOUT               WSAETIMEDOUT
+#if defined(ECONNREFUSED)
+#undef ECONNREFUSED
+#endif
 #define ECONNREFUSED            WSAECONNREFUSED
+#if defined(ELOOP)
+#undef ELOOP
+#endif
 #define ELOOP                   WSAELOOP
 /* #define ENAMETOOLONG            WSAENAMETOOLONG */
+#if defined(EHOSTDOWN)
+#undef EHOSTDOWN
+#endif
 #define EHOSTDOWN               WSAEHOSTDOWN
+#if defined(EHOSTUNREACH)
+#undef EHOSTUNREACH
+#endif
 #define EHOSTUNREACH            WSAEHOSTUNREACH
 /* #define ENOTEMPTY               WSAENOTEMPTY */
+#if defined(EPROCLIM)
+#undef EPROCLIM
+#endif
 #define EPROCLIM                WSAEPROCLIM
+#if defined(EUSERS)
+#undef EUSERS
+#endif
 #define EUSERS                  WSAEUSERS
+#if defined(EDQUOT)
+#undef EDQUOT
+#endif
 #define EDQUOT                  WSAEDQUOT
+#if defined(ESTALE)
+#undef ESTALE
+#endif
 #define ESTALE                  WSAESTALE
+#if defined(EREMOTE)
+#undef EREMOTE
+#endif
 #define EREMOTE                 WSAEREMOTE
 
 #endif /* _SOCKET_H_ */

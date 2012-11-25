@@ -1,5 +1,9 @@
 /* Utility and Unix shadow routines for GNU Emacs support programs on NT.
-   Copyright (C) 1994, 2001-2011  Free Software Foundation, Inc.
+
+Copyright (C) 1994, 2001-2012 Free Software Foundation, Inc.
+
+Author: Geoff Voelker (voelker@cs.washington.edu)
+Created: 10-8-94
 
 This file is part of GNU Emacs.
 
@@ -14,11 +18,7 @@ MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 GNU General Public License for more details.
 
 You should have received a copy of the GNU General Public License
-along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.
-
-
-   Geoff Voelker (voelker@cs.washington.edu)                         10-8-94
-*/
+along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 
 #include <windows.h>
 #include <stdlib.h>
@@ -29,8 +29,16 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.
 #include <sys/stat.h>
 #include <errno.h>
 #include <ctype.h>
+#include <sys/timeb.h>
+#include <mbstring.h>
 
 #include "ntlib.h"
+
+struct timezone
+{
+  int		tz_minuteswest;	/* minutes west of Greenwich */
+  int		tz_dsttime;	/* type of dst correction */
+};
 
 #define MAXPATHLEN _MAX_PATH
 
@@ -202,6 +210,29 @@ getpass (const char * prompt)
   return NULL;
 }
 
+/* This is needed because lib/gettime.c calls gettimeofday, which MSVC
+   doesn't have.  Copied from w32.c.  */
+void
+gettimeofday (struct timeval *tv, struct timezone *tz)
+{
+  struct _timeb tb;
+  _ftime (&tb);
+
+  tv->tv_sec = tb.time;
+  tv->tv_usec = tb.millitm * 1000L;
+  /* Implementation note: _ftime sometimes doesn't update the dstflag
+     according to the new timezone when the system timezone is
+     changed.  We could fix that by using GetSystemTime and
+     GetTimeZoneInformation, but that doesn't seem necessary, since
+     Emacs always calls gettimeofday with the 2nd argument NULL (see
+     current_emacs_time).  */
+  if (tz)
+    {
+      tz->tz_minuteswest = tb.timezone;	/* minutes west of Greenwich  */
+      tz->tz_dsttime = tb.dstflag;	/* type of dst correction  */
+    }
+}
+
 int
 fchown (int fd, unsigned uid, unsigned gid)
 {
@@ -260,6 +291,7 @@ is_exec (const char * name)
 	 stricmp (p, ".cmd") == 0));
 }
 
+/* FIXME?  This is in config.nt now - is this still needed?  */
 #define IS_DIRECTORY_SEP(x) ((x) == '/' || (x) == '\\')
 
 /* We need this because nt/inc/sys/stat.h defines struct stat that is
@@ -372,5 +404,11 @@ stat (const char * path, struct stat * buf)
   buf->st_mode |= permission | (permission >> 3) | (permission >> 6);
 
   return 0;
+}
+
+int
+lstat (const char * path, struct stat * buf)
+{
+  return stat (path, buf);
 }
 

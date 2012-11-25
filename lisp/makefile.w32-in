@@ -1,5 +1,5 @@
-# -*- Makefile -*- for GNU Emacs on the Microsoft W32 API.
-# Copyright (C) 2000-2011  Free Software Foundation, Inc.
+# -*- Makefile -*- for GNU Emacs on the Microsoft Windows API.
+# Copyright (C) 2000-2012 Free Software Foundation, Inc.
 
 # This file is part of GNU Emacs.
 
@@ -70,25 +70,20 @@ AUTOGENEL = $(lisp)/loaddefs.el $(LOADDEFS) $(lisp)/cus-load.el \
 # During bootstrapping the byte-compiler is run interpreted when compiling
 # itself, and uses more stack than usual.
 #
-BIG_STACK_DEPTH = 1200
+BIG_STACK_DEPTH = 2200
 BIG_STACK_OPTS = --eval "(setq max-lisp-eval-depth $(BIG_STACK_DEPTH))"
 
 BYTE_COMPILE_FLAGS = $(BIG_STACK_OPTS) $(BYTE_COMPILE_EXTRA_FLAGS)
 
 # Files to compile before others during a bootstrap.  This is done to
-# speed up the bootstrap process.  The CC files are compiled first
-# because CC mode tweaks the compilation process, and requiring
-# cc-mode when it is not compiled doesn't work during the
-# bootstrapping.
+# speed up the bootstrap process.
 
 COMPILE_FIRST = \
-	$(lisp)/emacs-lisp/byte-opt.el \
-	$(lisp)/emacs-lisp/bytecomp.el \
 	$(lisp)/emacs-lisp/macroexp.el \
 	$(lisp)/emacs-lisp/cconv.el \
-	$(lisp)/subr.el \
-	$(lisp)/progmodes/cc-mode.el \
-	$(lisp)/progmodes/cc-vars.el
+	$(lisp)/emacs-lisp/byte-opt.el \
+	$(lisp)/emacs-lisp/bytecomp.el \
+	$(lisp)/emacs-lisp/autoload.el
 
 # The actual Emacs command run in the targets below.
 # The quotes around $(EMACS) are here because the user could type
@@ -173,12 +168,12 @@ $(lisp)/cus-load.el:
 
 # WARNING: Do NOT split the part inside $(ARGQUOTE)s into multiple lines as
 #          this can break with GNU Make 3.81 and later if sh.exe is used.
-custom-deps: $(lisp)/cus-load.el $(lisp)/loaddefs.el doit
+custom-deps: $(lisp)/cus-load.el $(lisp)/loaddefs.el $(lisp)/subdirs.el doit
 	@echo Directories: $(WINS_UPDATES)
 	-$(emacs) -l cus-dep --eval $(ARGQUOTE)(setq find-file-hook nil)$(ARGQUOTE) \
 		  -f custom-make-dependencies $(lisp) $(WINS_UPDATES)
 
-finder-data: $(lisp)/loaddefs.el doit
+finder-data: $(lisp)/loaddefs.el $(lisp)/subdirs.el doit
 	@echo Directories: $(WINS_UPDATES)
 	$(emacs) -l finder -f finder-compile-keywords-make-dist $(lisp) $(WINS_UPDATES)
 
@@ -243,12 +238,12 @@ update-subdirs-CMD: doit
 	echo ;; End:>> $(lisp)/subdirs.el
 
 update-subdirs-SH: doit
-	$(srcdir)/update-subdirs $(lisp); \
+	$(srcdir)/build-aux/update-subdirs $(lisp); \
 	for file in $(WINS_SUBDIR); do \
-	   $(srcdir)/update-subdirs $$file; \
+	   $(srcdir)/build-aux/update-subdirs $$file; \
 	done;
 
-updates: update-subdirs autoloads mh-autoloads finder-data custom-deps
+updates: $(lisp)/subdirs.el autoloads mh-autoloads finder-data custom-deps
 
 # This is useful after "bzr up".
 bzr-update: recompile autoloads finder-data custom-deps
@@ -316,16 +311,16 @@ TAGS-LISP-CMD: $(lisptagsfiles1) $(lisptagsfiles2) $(lisptagsfiles3) $(lisptagsf
 # compiled find the right files.
 
 # Need separate version for sh and native cmd.exe
-compile: $(lisp)/subdirs.el mh-autoloads compile-$(SHELLTYPE) doit
+compile: $(lisp)/subdirs.el compile-$(SHELLTYPE) doit
 
-compile-CMD:
+compile-CMD: autoloads
 #	-for %%f in ($(lisp) $(WINS)) do for %%g in (%%f\*.elc) do @attrib -r %%g
 	for %%f in ($(COMPILE_FIRST)) do \
 	  $(emacs) -l loaddefs $(BYTE_COMPILE_FLAGS) -f batch-byte-compile-if-not-done %%f
 	for %%f in (. $(WINS)) do for %%g in (%%f/*.el) do \
 	  $(emacs) -l loaddefs $(BYTE_COMPILE_FLAGS) -f batch-byte-compile-if-not-done %%f/%%g
 
-compile-SH:
+compile-SH: autoloads
 #	for elc in $(lisp)/*.elc $(lisp)/*/*.elc; do attrib -r $$elc; done
 	for el in $(COMPILE_FIRST); do \
 	  echo Compiling $$el; \
@@ -388,7 +383,7 @@ backup-compiled-files:
 compile-after-backup: backup-compiled-files compile-always
 
 compile-first: 	$(lisp)/emacs-lisp/bytecomp.elc $(lisp)/emacs-lisp/byte-opt.elc \
-	$(lisp)/emacs-lisp/autoload.elc
+	$(lisp)/emacs-lisp/autoload.elc $(lisp)/subdirs.el
 
 # Recompile all Lisp files which are newer than their .elc files.
 # Note that this doesn't create .elc files.  It only recompiles if an
@@ -398,7 +393,7 @@ compile-first: 	$(lisp)/emacs-lisp/bytecomp.elc $(lisp)/emacs-lisp/byte-opt.elc 
 recompile: compile-first autoloads doit $(lisp)/progmodes/cc-mode.elc
 	$(emacs) --eval $(ARGQUOTE)(batch-byte-recompile-directory 0)$(ARGQUOTE) $(lisp)
 
-$(lisp)/calendar/cal-loaddefs.el:
+$(lisp)/calendar/cal-loaddefs.el: $(lisp)/subdirs.el
 	"$(EMACS)" $(EMACSOPT) -l autoload \
 	   --eval "(setq generate-autoload-cookie \";;;###cal-autoload\")" \
 	   --eval "(setq find-file-suppress-same-file-warnings t)" \
@@ -406,7 +401,7 @@ $(lisp)/calendar/cal-loaddefs.el:
 	   -f w32-batch-update-autoloads "$(lisp)/calendar/cal-loaddefs.el" \
 	      $(MAKE) ./calendar
 
-$(lisp)/calendar/diary-loaddefs.el:
+$(lisp)/calendar/diary-loaddefs.el: $(lisp)/subdirs.el
 	"$(EMACS)" $(EMACSOPT) -l autoload \
 	   --eval "(setq generate-autoload-cookie \";;;###diary-autoload\")" \
 	   --eval "(setq find-file-suppress-same-file-warnings t)" \
@@ -414,7 +409,7 @@ $(lisp)/calendar/diary-loaddefs.el:
 	   -f w32-batch-update-autoloads $(lisp)/calendar/diary-loaddefs.el \
 	      $(MAKE) ./calendar
 
-$(lisp)/calendar/hol-loaddefs.el:
+$(lisp)/calendar/hol-loaddefs.el: $(lisp)/subdirs.el
 	"$(EMACS)" $(EMACSOPT) -l autoload \
 	   --eval "(setq generate-autoload-cookie \";;;###holiday-autoload\")" \
 	   --eval "(setq find-file-suppress-same-file-warnings t)" \
@@ -442,7 +437,7 @@ MH_E_SRC = $(lisp)/mh-e/mh-acros.el $(lisp)/mh-e/mh-alias.el	\
 # See the commentary for autoloads above for why we use ./mh-e below
 # instead of $(lisp)/mh-e.
 mh-autoloads: $(lisp)/mh-e/mh-loaddefs.el
-$(lisp)/mh-e/mh-loaddefs.el: $(MH_E_SRC)
+$(lisp)/mh-e/mh-loaddefs.el: $(MH_E_SRC) $(lisp)/subdirs.el
 	"$(EMACS)" $(EMACSOPT) \
 	   -l autoload \
 	   --eval $(ARGQUOTE)(setq generate-autoload-cookie $(DQUOTE);;;###mh-autoload$(DQUOTE))$(ARGQUOTE) \
@@ -461,7 +456,7 @@ TRAMP_SRC = $(lisp)/net/tramp.el  $(lisp)/net/tramp-cache.el  \
 	$(lisp)/net/tramp-smb.el  $(lisp)/net/tramp-uu.el     \
 	$(lisp)/net/trampver.el
 
-$(lisp)/net/tramp-loaddefs.el: $(TRAMP_SRC)
+$(lisp)/net/tramp-loaddefs.el: $(TRAMP_SRC) $(lisp)/subdirs.el
 	"$(EMACS)" $(EMACSOPT) \
 	   -l autoload \
 	   --eval $(ARGQUOTE)(setq generate-autoload-cookie $(DQUOTE);;;###tramp-autoload$(DQUOTE))$(ARGQUOTE) \
@@ -486,6 +481,7 @@ $(lisp)/net/tramp-loaddefs.el: $(TRAMP_SRC)
 # Need separate version for sh and native cmd.exe
 bootstrap-clean:
 	- $(DEL) $(lisp)/loaddefs.el
+	- $(DEL) $(lisp)/subdirs.el
 	$(MAKE) $(MFLAGS) bootstrap-clean-$(SHELLTYPE)
 
 bootstrap-clean-CMD:
@@ -501,7 +497,7 @@ bootstrap-clean-SH:
 # When done, remove bootstrap-emacs from ../bin, so that
 # it will not be mistaken for an installed binary.
 
-bootstrap: update-subdirs autoloads mh-autoloads compile finder-data custom-deps
+bootstrap: $(lisp)/subdirs.el compile finder-data custom-deps
 	- $(DEL) "$(EMACS)"
 
 #
@@ -510,9 +506,9 @@ bootstrap: update-subdirs autoloads mh-autoloads compile finder-data custom-deps
 #
 install:
 		- mkdir "$(INSTALL_DIR)/lisp"
-		- $(DEL) ../same-dir.tst
-		- $(DEL) "$(INSTALL_DIR)/same-dir.tst"
-		echo SameDirTest > "$(INSTALL_DIR)/same-dir.tst"
+		- $(DEL) ../$(DIRNAME)_same-dir.tst
+		- $(DEL) "$(INSTALL_DIR)/$(DIRNAME)_same-dir.tst"
+		echo SameDirTest > "$(INSTALL_DIR)/$(DIRNAME)_same-dir.tst"
 #ifdef COPY_LISP_SOURCE
 		$(IFNOTSAMEDIR) $(MAKE) $(MFLAGS) install-lisp-$(SHELLTYPE) $(ENDIF)
 #else
@@ -528,8 +524,8 @@ install:
 #		$(IFNOTSAMEDIR) $(CP) international/latin-*.el "$(INSTALL_DIR)/lisp/international" $(ENDIF)
 #		$(IFNOTSAMEDIR) $(CP) international/mule-conf.el "$(INSTALL_DIR)/lisp/international" $(ENDIF)
 #endif
-		- $(DEL) ../same-dir.tst
-		- $(DEL) "$(INSTALL_DIR)/same-dir.tst"
+		- $(DEL) ../$(DIRNAME)_same-dir.tst
+		- $(DEL) "$(INSTALL_DIR)/$(DIRNAME)_same-dir.tst"
 
 # Need to copy *.el files first, to avoid "source file is newer" annoyance
 # since cp does not preserve time stamps
@@ -605,7 +601,8 @@ $(lisp)/progmodes/cc-langs.elc: $(lisp)/progmodes/cc-vars.elc \
 $(lisp)/progmodes/cc-mode.elc: $(lisp)/progmodes/cc-langs.elc \
    $(lisp)/progmodes/cc-vars.elc $(lisp)/progmodes/cc-engine.elc \
    $(lisp)/progmodes/cc-styles.elc $(lisp)/progmodes/cc-cmds.elc \
-   $(lisp)/progmodes/cc-align.elc $(lisp)/progmodes/cc-menus.elc
+   $(lisp)/progmodes/cc-align.elc $(lisp)/progmodes/cc-menus.elc \
+   $(lisp)/subdirs.el
 
 $(lisp)/progmodes/cc-styles.elc: $(lisp)/progmodes/cc-vars.elc \
    $(lisp)/progmodes/cc-align.elc

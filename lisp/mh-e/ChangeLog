@@ -13,6 +13,19 @@
 	calling mh-regexp-in-field-p.
 	(closes SF #1708292)
 
+2012-10-23  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* mh-letter.el (mh-yank-hooks): Use make-obsolete-variable.
+
+2012-04-25  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* mh-utils.el (minibuffer-completing-file-name): Don't declare, unused.
+
+2012-04-21  Juanma Barranquero  <lekktu@gmail.com>
+
+	* mh-folder.el (top): Check whether which-func-modes is t before
+	adding mh-folder-mode.
+
 2012-01-07  Jeffrey C Honig  <jch@honig.net>
 
 	* mh-e.el (mh-invisible-header-fields-internal): Added: X-xsi.
@@ -151,7 +164,7 @@
 	pop-to-buffer-same-window.
 	* mh-folder.el (mh-inc-folder, mh-modify, mh-scan-folder)
 	(mh-make-folder): Call mh-pop-to-buffer-same-window instead of
-	switch-to-buffer. The previous change which used pop-to-buffer
+	switch-to-buffer.  The previous change which used pop-to-buffer
 	produced the wrong behavior.
 
 2011-07-12  Henrique Martins  <henrique@martins.cc>  (tiny change)
@@ -172,8 +185,8 @@
 
 	* mh-folder.el (mh-inc-folder, mh-modify, mh-scan-folder)
 	(mh-make-folder): Replace calls to switch-to-buffer with of
-	pop-to-buffer. The former is intended for interactive use only and
-	generates warnings in Emacs 24.
+	pop-to-buffer.  The former is intended for interactive use only
+	and generates warnings in Emacs 24.
 
 2011-07-09  Bill Wohler  <wohler@newt.com>
 
@@ -195,7 +208,7 @@
 	* mh-e.el: Just require mh-loaddefs since loading it in an
 	eval-and-compile block causes compilation errors in XEmacs.
 
-	* mh-acros.el, 	mh-comp.el, mh-e.el, mh-folder.el, mh-letter.el:
+	* mh-acros.el, mh-comp.el, mh-e.el, mh-folder.el, mh-letter.el:
 	* mh-mime.el, mh-search.el, mh-seq.el: Shush XEmacs compiler in
 	mh-do-in-xemacs block.
 
@@ -206,7 +219,7 @@
 
 	* mh-letter.el (mh-letter-mode-map, mh-letter-complete)
 	(mh-complete-word): Remove FIXME comments since these functions
-	are still needed in other Emacsen. However, they can probably
+	are still needed in other Emacsen.  However, they can probably
 	stand to be generalized like completion-at-point.
 	(mh-letter-complete-or-space): Remove unused variable.
 
@@ -272,9 +285,9 @@
 2010-05-14  Peter S Galbraith  <psg@debian.org>
 
 	* mh-mime.el (mh-decode-message-subject): New function to decode
-	RFC2047 encoded Subject lines. Used for reply drafts.
-	* mh-comp.el (mh-compose-and-send-mail): Call
-	`mh-decode-message-subject' on (reply or forward) message drafts.
+	RFC2047 encoded Subject lines.  Used for reply drafts.
+	* mh-comp.el (mh-compose-and-send-mail):
+	Call `mh-decode-message-subject' on (reply or forward) message drafts.
 
 2010-05-07  Chong Yidong  <cyd@stupidchicken.com>
 
@@ -447,8 +460,8 @@
 	* mh-show.el (mh-show-preferred-alternative)
 	* mh-e.el (mh-annotate-msg-hook): Sync docstring with manual.
 
-	* mh-comp.el (mh-send-letter, mh-redistribute): Mention
-	mh-annotate-msg-hook in docstring.
+	* mh-comp.el (mh-send-letter, mh-redistribute):
+	Mention mh-annotate-msg-hook in docstring.
 
 2008-06-29  Jeffrey C Honig  <jch@honig.net>
 
@@ -498,8 +511,8 @@
 
 2008-05-23  Bill Wohler  <wohler@newt.com>
 
-	* mh-e.el (mh-invisible-header-fields-internal): Remove
-	DKIM-Signature as it is covered by DKIM-.  Fully qualify X-EID.
+	* mh-e.el (mh-invisible-header-fields-internal):
+	Remove DKIM-Signature as it is covered by DKIM-.  Fully qualify X-EID.
 
 2008-05-19  Sergey Poznyakoff  <gray@gnu.org.ua>
 
@@ -582,8 +595,8 @@
 
 2007-08-21  Jeffrey C Honig  <jch@honig.net>
 
-	* mh-folder.el (mh-folder-message-menu, mh-folder-mode-map): Add
-	folder mode support for mh-show-preferred-alternative (closes SF
+	* mh-folder.el (mh-folder-message-menu, mh-folder-mode-map):
+	Add folder mode support for mh-show-preferred-alternative (closes SF
 	#1777321).
 
 	* mh-show.el (mh-show-preferred-alternative)
@@ -594,8 +607,8 @@
 	HTML when text content is lacking (closes SF #1777321).
 
 	* mh-e.el:
-	(mh-invisible-header-fields-internal): Exclude Fax and Phone.  Put
-	known exclusions as comments before the list and move parens to
+	(mh-invisible-header-fields-internal): Exclude Fax and Phone.
+	Put known exclusions as comments before the list and move parens to
 	separate lines to aid in sorting (closes SF #1701231).
 
 	* mh-mime.el (mm-decode-body): Remove explicit autoload of
@@ -844,16 +857,16 @@
 	(mh-tool-bar-folder-buttons-set, mh-tool-bar-letter-buttons-set):
 	Call it (closes SF #1452718).
 
-	* mh-folder.el (mh-folder-buttons-init-flag): Delete.  Use
-	mh-folder-tool-bar-map instead.
+	* mh-folder.el (mh-folder-buttons-init-flag): Delete.
+	Use mh-folder-tool-bar-map instead.
 	(image-load-path): Delete.  No longer used.
-	(mh-folder-mode): Moved setting of image-load-path into
+	(mh-folder-mode): Move setting of image-load-path into
 	mh-tool-bar-folder-buttons-init.
 
-	* mh-letter.el (mh-letter-buttons-init-flag): Delete.  Use
-	mh-letter-tool-bar-map instead.
+	* mh-letter.el (mh-letter-buttons-init-flag): Delete.
+	Use mh-letter-tool-bar-map instead.
 	(image-load-path): Delete.  No longer used.
-	(mh-letter-mode): Moved setting of image-load-path into
+	(mh-letter-mode): Move setting of image-load-path into
 	mh-tool-bar-letter-buttons-init.
 
 	* mh-seq.el (mh-narrow-to-seq, mh-widen): Use with-current-buffer
@@ -1101,8 +1114,8 @@
 	(mh-print-background-flag, mh-show-maximum-size)
 	(mh-show-use-xface-flag, mh-store-default-directory)
 	(mh-summary-height, mh-speed-update-interval)
-	(mh-show-threads-flag, mh-tool-bar-search-function): Add
-	:package-version keyword to these options (closes SF #1452724).
+	(mh-show-threads-flag, mh-tool-bar-search-function):
+	Add :package-version keyword to these options (closes SF #1452724).
 	(mh-after-commands-processed-hook)
 	(mh-alias-reloaded-hook, mh-before-commands-processed-hook)
 	(mh-before-quit-hook, mh-before-send-letter-hook)
@@ -1129,15 +1142,15 @@
 	(mh-speedbar-selected-folder-with-unseen-messages): : Add
 	:package-version keyword to these faces (closes SF #1452724).
 
-	* mh-tool-bar.el (mh-tool-bar-define): Added commented-out
+	* mh-tool-bar.el (mh-tool-bar-define): Add commented-out
 	:package-version keywords (closes SF #1452724).
 
 2006-03-28  Bill Wohler  <wohler@newt.com>
 
 	* mh-tool-bar.el: Use clipboard-kill-region,
 	clipboard-kill-ring-save, and clipboard-yank instead of undo,
-	kill-region, and menu-bar-kill-ring-save respectively.  In
-	MH-Letter mode, move save-buffer and mh-fully-kill-draft icons in
+	kill-region, and menu-bar-kill-ring-save respectively.
+	In MH-Letter mode, move save-buffer and mh-fully-kill-draft icons in
 	front of mh-compose-insertion to be consistent with other mailers,
 	such as Evolution.  In MH-Folder mode, move vanilla reply icon to
 	the left of the other reply icons.  Use mail/inbox icon instead of
@@ -1193,8 +1206,8 @@
 
 2006-03-14  Bill Wohler  <wohler@newt.com>
 
-	* mh-compat.el (mh-image-load-path-for-library): Incorporate
-	changes from image-load-path-for-library, which are:
+	* mh-compat.el (mh-image-load-path-for-library):
+	Incorporate changes from image-load-path-for-library, which are:
 	(image-load-path-for-library): Pass value of path rather than
 	symbol.  Always return list of directories.  Guarantee that image
 	directory comes first.
@@ -1220,8 +1233,8 @@
 	flag to replace-in-string.  This was badly needed by
 	mh-quote-pick-expr in order to properly quote subjects when using
 	/ s on XEmacs (closes SF #1447598).
-	(mh-image-load-path-for-library): Merged changes from Reiner.  Add
-	no-error argument.  If path t, just return directory.
+	(mh-image-load-path-for-library): Merged changes from Reiner.
+	Add no-error argument.  If path t, just return directory.
 
 	* mh-e.el (mh-profile-component): Drop `s' from mhparam
 	-components for Mailutils compatibility (closes SF #1446985).
@@ -1279,8 +1292,8 @@
 	local variable mh-image-directory to image-directory.  Move error
 	checks to default case in cond and simplify.
 
-	* mh-comp.el (mh-send-letter, mh-insert-auto-fields): Sync
-	docstrings with manual.
+	* mh-comp.el (mh-send-letter, mh-insert-auto-fields):
+	Sync docstrings with manual.
 
 2006-03-02  Bill Wohler  <wohler@newt.com>
 
@@ -1306,8 +1319,8 @@
 
 	* mh-utils.el (mh-image-directory)
 	(mh-image-load-path-called-flag): Delete.
-	(mh-image-load-path): Incorporate changes from Gnus team.  Biggest
-	changes are that it no longer uses/sets mh-image-directory or
+	(mh-image-load-path): Incorporate changes from Gnus team.
+	Biggest changes are that it no longer uses/sets mh-image-directory or
 	mh-image-load-path-called-flag, and returns the updated path
 	rather than change it.
 	(mh-logo-display): Change usage of mh-image-load-path.
@@ -1372,8 +1385,8 @@
 	goto-addr.el.
 	(mh-alias-suggest-alias): Use goto-address-mail-regexp instead of
 	mh-address-mail-regexp.
-	(mh-alias-add-address-under-point): Use
-	goto-address-find-address-at-point instead of
+	(mh-alias-add-address-under-point):
+	Use goto-address-find-address-at-point instead of
 	mh-goto-address-find-address-at-point.
 
 	* mh-e.el (mh-show-use-goto-addr-flag): Delete.
@@ -1454,7 +1467,7 @@
 
 2006-02-08  Peter S Galbraith  <psg@debian.org>
 
-	* mh-e.el (mh-invisible-header-fields-internal): Added entries
+	* mh-e.el (mh-invisible-header-fields-internal): Add entries
 	"X-BrightmailFiltered:", "X-Brightmail-Tracker:" and "X-Hashcash".
 
 2006-02-04  Bill Wohler  <wohler@newt.com>
@@ -1523,17 +1536,17 @@
 
 	* mh-search.el (which-func-mode): Shush compiler on Emacs 21 too.
 
-	* mh-alias.el (mh-alias-gecos-name): Use
-	mh-replace-regexp-in-string instead of replace-regexp-in-string.
+	* mh-alias.el (mh-alias-gecos-name):
+	Use mh-replace-regexp-in-string instead of replace-regexp-in-string.
 	(crm, multi-prompt): Use mh-require instead of require.
-	(mh-goto-address-find-address-at-point): Use
-	mh-line-beginning-position and mh-line-end-position instead of
-	line-beginning-position and line-end-position.  Use
-	mh-match-string-no-properties instead of
+	(mh-goto-address-find-address-at-point):
+	Use mh-line-beginning-position and mh-line-end-position instead of
+	line-beginning-position and line-end-position.
+	Use mh-match-string-no-properties instead of
 	match-string-no-properties.
 
-	* mh-comp.el (mh-modify-header-field): Use
-	mh-line-beginning-position and mh-line-end-position instead of
+	* mh-comp.el (mh-modify-header-field):
+	Use mh-line-beginning-position and mh-line-end-position instead of
 	line-beginning-position and line-end-position.
 
 	* mh-compat.el (mailabbrev): Use mh-require instead of require.
@@ -1568,16 +1581,16 @@
 	mh-line-end-position instead of line-beginning-position and
 	line-end-position.
 
-	* mh-limit.el (mh-subject-to-sequence-unthreaded): Use
-	mh-match-string-no-properties instead of
+	* mh-limit.el (mh-subject-to-sequence-unthreaded):
+	Use mh-match-string-no-properties instead of
 	match-string-no-properties.
 	(mh-narrow-to-header-field): Use mh-line-beginning-position and
 	mh-line-end-position instead of line-beginning-position and
 	line-end-position.
 
 	* mh-mime.el (mh-mime-inline-part, mh-mm-display-part)
-	(mh-mh-quote-unescaped-sharp, mh-mh-directive-present-p): Use
-	mh-line-beginning-position and mh-line-end-position instead of
+	(mh-mh-quote-unescaped-sharp, mh-mh-directive-present-p):
+	Use mh-line-beginning-position and mh-line-end-position instead of
 	line-beginning-position and line-end-position.
 
 	* mh-search.el (which-func): Use mh-require instead of require.
@@ -1586,8 +1599,8 @@
 	(mh-mairix-next-result, mh-namazu-next-result)
 	(mh-pick-next-result, mh-grep-next-result)
 	(mh-index-create-imenu-index, mh-index-match-checksum)
-	(mh-md5sum-parser, mh-openssl-parser, mh-index-update-maps): Use
-	mh-line-beginning-position and mh-line-end-position instead of
+	(mh-md5sum-parser, mh-openssl-parser, mh-index-update-maps):
+	Use mh-line-beginning-position and mh-line-end-position instead of
 	line-beginning-position and line-end-position.
 
 	* mh-seq.el (mh-list-sequences): Use mh-view-mode-enter instead of
@@ -1610,8 +1623,8 @@
 	(mh-speed-flists): Use mh-cancel-timer instead of cancel-timer.
 
 	* mh-thread.el (mh-thread-find-children)
-	(mh-thread-parse-scan-line, mh-thread-generate): Use
-	mh-line-beginning-position and mh-line-end-position instead of
+	(mh-thread-parse-scan-line, mh-thread-generate):
+	Use mh-line-beginning-position and mh-line-end-position instead of
 	line-beginning-position and line-end-position.
 
 	* mh-utils.el (mh-colors-available-p): Use mh-display-color-cells
@@ -1832,8 +1845,8 @@
 	(mh-letter-header-field-regexp, mh-pgp-support-flag)
 	(mh-x-mailer-string): Move here from mh-comp.el.
 	(mh-folder-line-matches-show-buffer-p): Move to mh-alias.el.
-	(mh-thread-scan-line-map, mh-thread-scan-line-map-stack): Move
-	here from mh-seq.el.
+	(mh-thread-scan-line-map, mh-thread-scan-line-map-stack):
+	Move here from mh-seq.el.
 	(mh-draft-folder, mh-inbox, mh-user-path, mh-current-folder)
 	(mh-previous-window-config, mh-seen-list, mh-seq-list)
 	(mh-show-buffer, mh-showing-mode, mh-globals-hash)
@@ -2136,10 +2149,10 @@
 	(mh-show-mouse, mh-modify, mh-goto-msg, mh-set-folder-modified-p):
 	Move to new file mh-folder.el.
 	(with-mh-folder-updating, mh-in-show-buffer)
-	(mh-do-at-event-location, mh-seq-msgs): Moved to mh-acros.el.
+	(mh-do-at-event-location, mh-seq-msgs): Move to mh-acros.el.
 	(mh-make-seq, mh-seq-name, mh-notate, mh-find-seq)
 	(mh-seq-to-msgs, mh-add-msgs-to-seq, mh-canonicalize-sequence):
-	Moved to mh-seq.el.
+	Move to mh-seq.el.
 	(mh-show-xface-function, mh-uncompface-executable, mh-face-to-png)
 	(mh-uncompface, mh-icontopbm, mh-face-foreground-compat)
 	(mh-face-background-compat, mh-face-display-function)
@@ -2164,8 +2177,8 @@
 	mh-init.el.
 	(mh-help-messages): Now an alist of modes to an alist of messages.
 	(mh-set-help): New function used to set mh-help-messages.
-	(mh-help): Adjust for new format of mh-help-messages.  Add
-	help-messages argument.
+	(mh-help): Adjust for new format of mh-help-messages.
+	Add help-messages argument.
 	(mh-prefix-help): Refactor to use mh-help.
 	(mh-coalesce-msg-list, mh-greaterp, mh-lessp): Move here from
 	mh-e.el.
@@ -2296,8 +2309,8 @@
 	(mh-search-mode-map): Autoload so that keys are shown in help even
 	before mh-search is loaded.
 	(mh-search-mode): Sync docstring with manual.
-	(mh-index-do-search): Rename argument indexer to searcher.  Sync
-	docstring with manual.
+	(mh-index-do-search): Rename argument indexer to searcher.
+	Sync docstring with manual.
 	(mh-pick-do-search): Sync docstring with manual.
 	(mh-index-p): Rename to mh-search-p.
 	(mh-indexer-choices): Rename to mh-search-choices.
@@ -2314,7 +2327,7 @@
 
 2006-01-13  Bill Wohler  <wohler@newt.com>
 
-	* mh-acros.el (require): Added Satyaki's comment regarding what
+	* mh-acros.el (require): Add Satyaki's comment regarding what
 	needs to happen to remove this defadvice which caused a little
 	discussion on emacs-devel today (see Subject: mh-e/mh-acros.el
 	advices `require' incorrectly).
@@ -2386,8 +2399,8 @@
 	* mh-gnus.el: Require mh-acros.
 	(mh-defmacro-compat, mh-defun-compat): Move to mh-acros.el.
 
-	* mh-utils.el (mh-x-image-url-cache-canonicalize): Use
-	url-hexify-string to remove special characters from filenames
+	* mh-utils.el (mh-x-image-url-cache-canonicalize):
+	Use url-hexify-string to remove special characters from filenames
 	(closes SF #1396499).  Note that this invalidates the existing
 	names in your cache so you might as well remove
 	~/Mail/.mhe-x-image-cache/* now.
@@ -2446,16 +2459,16 @@
 	than file-executable-p which returns t for directories.
 	(mh-file-command-p): Move here from mh-utils, since
 	mh-variant-*-info are the only functions to use it.
-	(mh-variant-set, mh-variant-set-variant, mh-variant-p): Use
-	function mh-variants instead of variable.  More robust.
+	(mh-variant-set, mh-variant-set-variant, mh-variant-p):
+	Use function mh-variants instead of variable.  More robust.
 	(mh-find-path-run): Move here from mh-utils.el.  Mention that
 	checking this variable is unnecessary.
 	(mh-find-path): Move here from mh-utils.el.  With the advent of MH
 	variants and an mhparam command that doesn't work if there isn't
-	an MH profile, we can't get libdir for running install-mh.  So
-	don't bother.  If there's an issue with the environment, direct the
-	user to install MH and run install-mh (closes SF #835192).  Don't
-	read ~/.mh_profile directly.  Use mh-profile-component which uses
+	an MH profile, we can't get libdir for running install-mh.
+	So don't bother.  If there's an issue with the environment, direct the
+	user to install MH and run install-mh (closes SF #835192).
+	Don't read ~/.mh_profile directly.  Use mh-profile-component which uses
 	mhparam (closes SF #1016027).
 
 	* mh-utils.el (mh-get-profile-field): Rename to
@@ -2470,12 +2483,12 @@
 	(mh-no-install, mh-install): Delete.
 
 	* mh-customize.el (mh-folder-msg-number):
-	* mh-mime.el (mh-file-mime-type): Removed trailing whitespace.
+	* mh-mime.el (mh-file-mime-type): Remove trailing whitespace.
 
 2006-01-09  Bill Wohler  <wohler@newt.com>
 
-	* mh-init.el (mh-variant-mu-mh-info, mh-variant-nmh-info): Applied
-	patch from Satyaki from SF #1016027.
+	* mh-init.el (mh-variant-mu-mh-info, mh-variant-nmh-info):
+	Applied patch from Satyaki from SF #1016027.
 
 	* mh-e.el (mh-rescan-folder): Try to keep cursor at current
 	message, even if cur sequence is no longer present (closes SF
@@ -2523,7 +2536,7 @@
 
 	* mh-comp.el: Require cleanup, wrap compiler-shushing defvars with
 	eval-when-compile.
-	(mh-file-is-vcard-p): Removed redundant test.
+	(mh-file-is-vcard-p): Remove redundant test.
 
 	* mh-customize.el: Require cleanup, wrap compiler-shushing defvars
 	with eval-when-compile.
@@ -2549,8 +2562,8 @@
 
 	* mh-mime.el: Wrap compiler-shushing defvars with
 	eval-when-compile.
-	(mh-have-file-command): Initialize variable to 'undefined.  Add
-	docstring.  Update function of same name accordingly.  Also don't
+	(mh-have-file-command): Initialize variable to 'undefined.
+	Add docstring.  Update function of same name accordingly.  Also don't
 	need to load executable any more.
 	(mh-mime-content-types): Delete.
 	(mh-minibuffer-read-type): Prompt user for type if
@@ -2789,11 +2802,11 @@
 	with manual.
 	(mh-yank-cur-msg): Mention that mh-ins-buf-prefix isn't used if
 	you have added a mail-citation-hook and neither are used if you
-	use one of the supercite flavors of mh-yank-behavior.  Sync
-	docstrings with manual.
+	use one of the supercite flavors of mh-yank-behavior.
+	Sync docstrings with manual.
 
-	* mh-customize.el (mh-kill-folder-suppress-prompt-hooks): Rename
-	from mh-kill-folder-suppress-prompt-hook since it is an abnormal
+	* mh-customize.el (mh-kill-folder-suppress-prompt-hooks):
+	Rename from mh-kill-folder-suppress-prompt-hook since it is an abnormal
 	hook.  Use "Hook run by `function'..." instead of "Invoked...".
 	Sync docstrings with manual.
 	(mh-ins-buf-prefix, mh-yank-behavior): Mention that
@@ -2918,13 +2931,13 @@
 
 	* mh-customize.el (mh-speed-flists-interval): Rename to
 	mh-speed-update-interval.
-	(mh-speed-run-flists-flag): Delete.  Setting
-	mh-speed-flists-interval to 0 accomplishes the same thing.
+	(mh-speed-run-flists-flag): Delete.
+	Setting mh-speed-flists-interval to 0 accomplishes the same thing.
 
-	* mh-speed.el (mh-folder-speedbar-buttons, mh-speed-flists): Use
-	mh-speed-update-interval instead of mh-speed-run-flists-flag.
-	(mh-speed-toggle, mh-speed-view, mh-speed-refresh): Sync
-	docstrings with manual.
+	* mh-speed.el (mh-folder-speedbar-buttons, mh-speed-flists):
+	Use mh-speed-update-interval instead of mh-speed-run-flists-flag.
+	(mh-speed-toggle, mh-speed-view, mh-speed-refresh):
+	Sync docstrings with manual.
 
 2005-12-09  Bill Wohler  <wohler@newt.com>
 
@@ -2941,8 +2954,8 @@
 	(mh-invisible-header-fields-internal): Add X-Bugzilla-* and
 	X-Virus-Scanned.
 
-	* mh-customize.el (mh-insert-signature-hook): Rename
-	mh-letter-insert-signature-hook to mh-insert-signature-hook.
+	* mh-customize.el (mh-insert-signature-hook):
+	Rename mh-letter-insert-signature-hook to mh-insert-signature-hook.
 
 	* mh-comp.el (mh-insert-signature): Ditto.
 
@@ -3044,10 +3057,10 @@
 	(mh-next-undeleted-msg, mh-previous-undeleted-msg): Rename arg to
 	count.  Sync docstrings with manual.
 	(mh-refile-or-write-again): Use output from mh-write-msg-to-file
-	so that message doesn't change when using this command.  Sync
-	docstrings with manual.
-	(mh-page-msg, mh-previous-page): Rename arg to lines.  Sync
-	docstrings with manual.
+	so that message doesn't change when using this command.
+	Sync docstrings with manual.
+	(mh-page-msg, mh-previous-page): Rename arg to lines.
+	Sync docstrings with manual.
 	(mh-write-msg-to-file): Rename msg to message.  Rename no-headers
 	to no-header.  Sync docstrings with manual.
 	(mh-ps-print-map): Delete keybindings for deleted commands
@@ -3071,8 +3084,8 @@
 	Sync docstrings with manual.
 	(mh-toggle-mh-decode-mime-flag): Use English in message, not Lisp.
 	Sync docstrings with manual.
-	(mh-mm-display-part, mh-mm-inline-message): Use
-	mh-highlight-citation-style instead of mh-highlight-citation-p.
+	(mh-mm-display-part, mh-mm-inline-message):
+	Use mh-highlight-citation-style instead of mh-highlight-citation-p.
 	(mh-press-button): Sync docstrings with manual.
 	(mh-display-with-external-viewer): Fix default output in
 	minibuffer.  Sync docstrings with manual.
@@ -3163,8 +3176,8 @@
 	(mh-smail, mh-extract-rejected-mail, mh-forward, mh-redistribute)
 	(mh-reply, mh-send, mh-send-other-window)
 	(mh-fill-paragraph-function): Sync docstrings with manual.
-	(mh-edit-again, mh-extract-rejected-mail, mh-redistribute): Rename
-	msg argument to message (to make for a better docstring).
+	(mh-edit-again, mh-extract-rejected-mail, mh-redistribute):
+	Rename msg argument to message (to make for a better docstring).
 
 	* mh-customize.el (mh-redist-full-contents-flag): Convert defvar
 	to defcustom.  Rename by adding -flag.
@@ -3189,8 +3202,8 @@
 	* mh-customize.el (mh-compose-space-does-completion-flag)
 	(mh-signature-separator-flag, mh-interpret-number-as-range-flag)
 	(mh-adaptive-cmd-note-flag): Use "Non-nil means" instead of "On
-	means" to remain checkdoc clean and consistent with Emacs.  I
-	raised this issue with the Emacs developers and Stallman agrees
+	means" to remain checkdoc clean and consistent with Emacs.
+	I raised this issue with the Emacs developers and Stallman agrees
 	that "On means" should be allowed in custom docstrings but that
 	this change requires thought and should wait until after the Emacs
 	22 release.
@@ -3202,14 +3215,14 @@
 
 	* mh-customize.el (mh-interpret-number-as-range-flag): Add * to
 	docstring.
-	(mh-adaptive-cmd-note-flag-check, mh-scan-format-file-check): New
-	functions to check input for mh-adaptive-cmd-note-flag and
+	(mh-adaptive-cmd-note-flag-check, mh-scan-format-file-check):
+	New functions to check input for mh-adaptive-cmd-note-flag and
 	mh-scan-format-file respectively.
 	(mh-adaptive-cmd-note-flag, mh-scan-format-file): Docstring fixes,
 	add :set.
 
-	* mh-e.el (mh-scan-field-destination-offset): New variable.  The
-	destination is the -, t, b, c, or n character for Replied, To, cc,
+	* mh-e.el (mh-scan-field-destination-offset): New variable.
+	The destination is the -, t, b, c, or n character for Replied, To, cc,
 	Bcc, or Newsgroups respectively.
 	(mh-make-folder, mh-regenerate-headers, mh-generate-new-cmd-note):
 	Call new function mh-msg-num-width-to-column to make leap between
@@ -3329,10 +3342,10 @@
 
 2005-10-23  Bill Wohler  <wohler@newt.com>
 
-	* mh-comp.el (mh-letter-menu): Rename
-	mh-mhn-compose-external-compressed-tar to
-	mh-mh-compose-external-compressed-tar.  Rename
-	mh-mhn-compose-anon-ftp to mh-mh-compose-anon-ftp.  Rename
+	* mh-comp.el (mh-letter-menu):
+	Rename mh-mhn-compose-external-compressed-tar to
+	mh-mh-compose-external-compressed-tar.
+	Rename mh-mhn-compose-anon-ftp to mh-mh-compose-anon-ftp.  Rename
 	mh-edit-mhn to mh-mh-to-mime.  Rename mh-mhn-directive-present-p to
 	mh-mh-directive-present-p.  Rename mh-revert-mhn-edit to
 	mh-mh-to-mime-undo.  Rename mh-gnus-pgp-support-flag to
@@ -3342,21 +3355,21 @@
 	mh-mh-directive-present-p.
 	(mh-send-letter): Rename mh-mhn-directive-present-p to
 	mh-mh-directive-present-p.  Rename mh-edit-mhn to mh-mh-to-mime.
-	(mh-letter-mode-map): Rename mh-edit-mhn to mh-mh-to-mime.  Rename
-	mh-mhn-compose-anon-ftp to mh-mh-compose-anon-ftp.  Rename
-	mh-mhn-compose-external-compressed-tar to
+	(mh-letter-mode-map): Rename mh-edit-mhn to mh-mh-to-mime.
+	Rename mh-mhn-compose-anon-ftp to mh-mh-compose-anon-ftp.
+	Rename mh-mhn-compose-external-compressed-tar to
 	mh-mh-compose-external-compressed-tar.  Rename mh-revert-mhn-edit
 	to mh-mh-to-mime-undo.  Rename mh-mhn-compose-external-type to
 	mh-mh-compose-external-type.  Rename mh-mhn-compose-anon-ftp to
-	mh-mh-compose-anon-ftp.  Rename
-	mh-mhn-compose-external-compressed-tar to
+	mh-mh-compose-anon-ftp.
+	Rename mh-mhn-compose-external-compressed-tar to
 	mh-mh-compose-external-compressed-tar.  Rename mh-revert-mhn-edit
 	to mh-mh-to-mime-undo.  Rename mh-mhn-compose-external-type to
 	mh-mh-compose-external-type.
 	(mh-send-letter, mh-letter-mode-map): Rename mh-edit-mhn to
 	mh-mh-to-mime, mh-revert-mhn-edit to mh-mh-to-mime-undo.
-	(mh-reply, mh-yank-cur-msg, mh-insert-prefix-string): Rename
-	mh-yank-from-start-of-msg to mh-yank-behavior.
+	(mh-reply, mh-yank-cur-msg, mh-insert-prefix-string):
+	Rename mh-yank-from-start-of-msg to mh-yank-behavior.
 	(mh-letter-mode, mh-to-field, mh-to-fcc, mh-insert-signature)
 	(mh-check-whom, mh-insert-auto-fields, mh-send-letter)
 	(mh-insert-letter, mh-yank-cur-msg, mh-insert-prefix-string)
@@ -3399,8 +3412,8 @@
 	(mh-mhn-compose-anon-ftp): Rename to mh-mh-compose-anon-ftp.
 	Rename mh-mhn-compose-external-type to mh-mh-compose-external-type.
 	(mh-mhn-compose-external-compressed-tar): Rename to
-	mh-mh-compose-external-compressed-tar.  Rename
-	mh-mhn-compose-external-type to mh-mh-compose-external-type.
+	mh-mh-compose-external-compressed-tar.
+	Rename mh-mhn-compose-external-type to mh-mh-compose-external-type.
 	(mh-mhn-compose-external-type): Rename to mh-mh-compose-external-type.
 	(mh-edit-mhn): Rename to mh-mh-to-mime.  Rename mh-mhn-args to
 	mh-mh-to-mime-args.  Rename mh-edit-mhn-hook to mh-mh-to-mime-hook.
@@ -3417,8 +3430,8 @@
 	(mh-mh-compose-external-type): Rename extra-param argument to
 	parameters.
 	(mh-mml-to-mime, mh-secure-message, mh-mml-unsecure-message)
-	(mh-mime-display-part, mh-mime-display-single): Rename
-	mh-gnus-pgp-support-flag to mh-pgp-support-flag.
+	(mh-mime-display-part, mh-mime-display-single):
+	Rename mh-gnus-pgp-support-flag to mh-pgp-support-flag.
 	(mh-compose-insertion): Rename mh-mhn-compose-insertion to
 	mh-mh-attach-file.
 	(mh-compose-forward): Rename mh-mhn-compose-forw to
@@ -3483,8 +3496,8 @@
 
 	* mh-init.el (mh-image-load-path-called-flag): New variable which
 	is used by mh-image-load-path so that it runs only once.
-	(mh-image-load-path): Modify so that it gets run only once.  Also
-	flatten out heavily nested if statements to make it clearer.
+	(mh-image-load-path): Modify so that it gets run only once.
+	Also flatten out heavily nested if statements to make it clearer.
 
 	* mh-e.el (mh-folder-mode): Call mh-image-load-path to allow Emacs
 	to find images used in the toolbar.
@@ -3508,11 +3521,11 @@
 	need to be indented.
 
 	* mh-e.el: mh-folder-tick-face had been renamed to mh-folder-tick
-	but the code that invoked the face had not been updated.  Tick
-	highlighting working again.
+	but the code that invoked the face had not been updated.
+	Tick highlighting working again.
 
-	* mh-seq.el (mh-non-seq-mode-line-annotation): Move
-	make-variable-buffer-local call to top level to avoid warnings in
+	* mh-seq.el (mh-non-seq-mode-line-annotation):
+	Move make-variable-buffer-local call to top level to avoid warnings in
 	CVS Emacs.
 
 	* mh-comp.el (mh-insert-letter): Replace deprecated read-input
@@ -3534,7 +3547,7 @@
 	* ChangeLog.1: New file.  Contains old ChangeLog.
 
 
-	Copyright (C) 2005-2011  Free Software Foundation, Inc.
+	Copyright (C) 2005-2012  Free Software Foundation, Inc.
 
   This file is part of GNU Emacs.
 

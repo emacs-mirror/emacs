@@ -1,6 +1,6 @@
 ;;; srecode/document.el --- Documentation (comment) generation
 
-;; Copyright (C) 2008-2011 Free Software Foundation, Inc.
+;; Copyright (C) 2008-2012 Free Software Foundation, Inc.
 
 ;; Author: Eric M. Ludlam <eric@siege-engine.com>
 
@@ -167,7 +167,7 @@ doesn't always work correctly."
     ("str\\(ing\\)?" . "string")
     ("use?r" . "user")
     ("num\\(ber\\)?" . "number")
-    ("\\(^\\|\\s-\\)id\\($\\|\\s-\\)" . "Identifier") ;complex cause ;common sylable
+    ("\\(^\\|\\s-\\)id\\($\\|\\s-\\)" . "Identifier") ;complex cause ;common syllable
     )
   "List of common English abbreviations or full words.
 These are nouns (as opposed to verbs) for use in creating expanded

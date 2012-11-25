@@ -1,5 +1,5 @@
 /* Cursor motion subroutines for GNU Emacs.
-   Copyright (C) 1985, 1995, 2001-2011  Free Software Foundation, Inc.
+   Copyright (C) 1985, 1995, 2001-2012  Free Software Foundation, Inc.
     based primarily on public domain code written by Chris Torek
 
 This file is part of GNU Emacs.
@@ -20,7 +20,6 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 
 #include <config.h>
 #include <stdio.h>
-#include <setjmp.h>
 
 #include "lisp.h"
 #include "frame.h"
@@ -119,7 +118,7 @@ cmcheckmagic (struct tty_display_info *tty)
   if (curX (tty) == FrameCols (tty))
     {
       if (!MagicWrap (tty) || curY (tty) >= FrameRows (tty) - 1)
-	abort ();
+	emacs_abort ();
       if (tty->termscript)
 	putc ('\r', tty->termscript);
       putc ('\r', tty->output);

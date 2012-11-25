@@ -1,6 +1,6 @@
 ;;; url-nfs.el --- NFS URL interface
 
-;; Copyright (C) 1996-1999, 2004-2011 Free Software Foundation, Inc.
+;; Copyright (C) 1996-1999, 2004-2012 Free Software Foundation, Inc.
 
 ;; Keywords: comm, data, processes
 
@@ -23,13 +23,11 @@
 
 ;;; Code:
 
-(eval-when-compile (require 'cl))
 (require 'url-parse)
 (require 'url-file)
 
-(defvar url-nfs-automounter-directory-spec
-  "file:/net/%h%f"
-  "*How to invoke the NFS automounter.  Certain % sequences are recognized.
+(defcustom url-nfs-automounter-directory-spec "file:/net/%h%f"
+  "How to invoke the NFS automounter.  Certain % sequences are recognized.
 
 %h -- the hostname of the NFS server
 %n -- the port # of the NFS server
@@ -38,7 +36,9 @@
 %f -- the filename on the remote server
 %% -- a literal %
 
-Each can be used any number of times.")
+Each can be used any number of times."
+  :group 'url
+  :type 'string)
 
 (defun url-nfs-unescape (format host port user pass file)
   (with-current-buffer (get-buffer-create " *nfs-parse*")
@@ -48,7 +48,7 @@ Each can be used any number of times.")
     (while (re-search-forward "%\\(.\\)" nil t)
        (let ((escape (aref (match-string 1) 0)))
 	 (replace-match "" t t)
-	 (case escape
+	 (pcase escape
 	   (?% (insert "%"))
 	   (?h (insert host))
 	   (?n (insert (or port "")))

@@ -1,6 +1,6 @@
 ;;; gnus-win.el --- window configuration functions for Gnus
 
-;; Copyright (C) 1996-2011 Free Software Foundation, Inc.
+;; Copyright (C) 1996-2012 Free Software Foundation, Inc.
 
 ;; Author: Lars Magne Ingebrigtsen <larsi@gnus.org>
 ;; Keywords: news
@@ -239,7 +239,8 @@ See the Gnus manual for an explanation of the syntax used.")
 
 (defun gnus-configure-frame (split &optional window)
   "Split WINDOW according to SPLIT."
-  (let* ((current-window (or (get-buffer-window (current-buffer)) (selected-window)))
+  (let* ((current-window (or (get-buffer-window (current-buffer))
+                             (selected-window)))
          (window (or window current-window)))
     (select-window window)
     ;; The SPLIT might be something that is to be evalled to
@@ -269,9 +270,23 @@ See the Gnus manual for an explanation of the syntax used.")
 	  (let ((buf (gnus-get-buffer-create
 		      (gnus-window-to-buffer-helper buffer))))
 	    (when (buffer-name buf)
-	      (if (eq buf (window-buffer (selected-window)))
-		  (set-buffer buf)
-		(switch-to-buffer buf))))
+	      (cond
+               ((eq buf (window-buffer (selected-window)))
+                (set-buffer buf))
+               ((eq t (window-dedicated-p
+		       ;; XEmacs version of `window-dedicated-p' requires it.
+		       (selected-window)))
+                ;; If the window is hard-dedicated, we have a problem because
+                ;; we just can't do what we're asked.  But signaling an error,
+                ;; like `switch-to-buffer' would do, is not an option because
+                ;; it would prevent things like "^" (to jump to the *Servers*)
+                ;; in a dedicated *Group*.
+                ;; FIXME: Maybe a better/additional fix would be to change
+                ;; gnus-configure-windows so that when called
+                ;; from a hard-dedicated frame, it creates (and
+                ;; configures) a new frame, leaving the dedicated frame alone.
+                (pop-to-buffer buf))
+               (t (switch-to-buffer buf)))))
 	  (when (memq 'frame-focus split)
 	    (setq gnus-window-frame-focus window))
 	  ;; We return the window if it has the `point' spec.
@@ -340,9 +355,9 @@ See the Gnus manual for an explanation of the syntax used.")
 	  ;; fashion.
 	  (setq comp-subs (nreverse comp-subs))
 	  (while comp-subs
-	    (if (null (cdr comp-subs))
-		(setq new-win window)
-	      (setq new-win
+	    (setq new-win
+                  (if (null (cdr comp-subs))
+                      window
 		    (split-window window (cadar comp-subs)
 				  (eq type 'horizontal))))
 	    (setq result (or (gnus-configure-frame
@@ -464,6 +479,7 @@ should have point."
 	(unless buffer
 	  (error "Invalid buffer type: %s" type))
 	(if (and (setq buf (get-buffer (gnus-window-to-buffer-helper buffer)))
+		 (buffer-live-p buf)
 		 (setq win (gnus-get-buffer-window buf t)))
 	    (if (memq 'point split)
 		(setq all-visible win))

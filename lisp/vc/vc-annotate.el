@@ -1,6 +1,6 @@
 ;;; vc-annotate.el --- VC Annotate Support
 
-;; Copyright (C) 1997-1998, 2000-2011 Free Software Foundation, Inc.
+;; Copyright (C) 1997-1998, 2000-2012 Free Software Foundation, Inc.
 
 ;; Author:     Martin Lorentzson  <emwson@emw.ericsson.se>
 ;; Maintainer: FSF
@@ -29,8 +29,7 @@
 (require 'vc)
 
 ;;; Code:
-(eval-when-compile
-  (require 'cl))
+(eval-when-compile (require 'cl-lib))
 
 (defcustom vc-annotate-display-mode 'fullscale
   "Which mode to color the output of \\[vc-annotate] with by default."
@@ -195,7 +194,7 @@ The current time is used as the offset."
   (let ((bol (point))
         (date (vc-call-backend vc-annotate-backend 'annotate-time))
         (inhibit-read-only t))
-    (assert (>= (point) bol))
+    (cl-assert (>= (point) bol))
     (put-text-property bol (point) 'invisible 'vc-annotate-annotation)
     date))
 
@@ -522,12 +521,12 @@ the file in question, search for the log entry required and move point."
 	     (car rev-at-line) t 1)))))))
 
 (defun vc-annotate-show-diff-revision-at-line-internal (filediff)
-  (if (not (equal major-mode 'vc-annotate-mode))
+  (if (not (derived-mode-p 'vc-annotate-mode))
       (message "Cannot be invoked outside of a vc annotate buffer")
     (let* ((rev-at-line (vc-annotate-extract-revision-at-line))
-	  (prev-rev nil)
-	  (rev (car rev-at-line))
-	  (fname (cdr rev-at-line)))
+           (prev-rev nil)
+           (rev (car rev-at-line))
+           (fname (cdr rev-at-line)))
       (if (not rev-at-line)
 	  (message "Cannot extract revision number from the current line")
 	(setq prev-rev
@@ -535,17 +534,15 @@ the file in question, search for the log entry required and move point."
                                (if filediff fname nil) rev))
 	(if (not prev-rev)
 	    (message "Cannot diff from any revision prior to %s" rev)
-	  (save-window-excursion
-	    (vc-diff-internal
-	     nil
-	     ;; The value passed here should follow what
-	     ;; `vc-deduce-fileset' returns.
-	     (list vc-annotate-backend
-		   (if filediff
-		       (list fname)
-		     nil))
-	     prev-rev rev))
-	  (switch-to-buffer "*vc-diff*"))))))
+          (vc-diff-internal
+           t
+           ;; The value passed here should follow what
+           ;; `vc-deduce-fileset' returns.
+           (list vc-annotate-backend
+                 (if filediff
+                     (list fname)
+                   nil))
+           prev-rev rev))))))
 
 (defun vc-annotate-show-diff-revision-at-line ()
   "Visit the diff of the revision at line from its previous revision."

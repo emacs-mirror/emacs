@@ -1,6 +1,6 @@
 ;;; ws-mode.el --- WordStar emulation mode for GNU Emacs
 
-;; Copyright (C) 1991, 2001-2011  Free Software Foundation, Inc.
+;; Copyright (C) 1991, 2001-2012  Free Software Foundation, Inc.
 
 ;; Author: Juergen Nickelsen <nickel@cs.tu-berlin.de>
 ;; Version: 0.7
@@ -716,7 +716,7 @@ This will only work for errors raised by WordStar mode functions."
 
 (defun ws-query-replace (from to)
   "In WordStar mode: Search string, remember string for repetition."
-  (interactive "sReplace:
+  (interactive "sReplace: \n\
 sWith: " )
   (setq ws-search-string from)
   (setq ws-search-direction t)

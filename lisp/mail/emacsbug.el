@@ -1,6 +1,6 @@
 ;;; emacsbug.el --- command to report Emacs bugs to appropriate mailing list
 
-;; Copyright (C) 1985, 1994, 1997-1998, 2000-2011
+;; Copyright (C) 1985, 1994, 1997-1998, 2000-2012
 ;;   Free Software Foundation, Inc.
 
 ;; Author: K. Shane Hartman
@@ -32,6 +32,9 @@
 
 ;;; Code:
 
+(require 'sendmail)
+(require 'message)
+
 (defgroup emacsbug nil
   "Sending Emacs bug reports."
   :group 'maint
@@ -57,10 +60,6 @@
 
 ;; User options end here.
 
-(defvar report-emacs-bug-tracker-url "http://debbugs.gnu.org/cgi/"
-  "Base URL of the GNU bugtracker.
-Used for querying duplicates and linking to existing bugs.")
-
 (defvar report-emacs-bug-orig-text nil
   "The automatically-created initial text of the bug report.")
 
@@ -78,13 +77,16 @@ Used for querying duplicates and linking to existing bugs.")
 (defvar message-strip-special-text-properties)
 
 (defun report-emacs-bug-can-use-osx-open ()
-  "Check if OSX open can be used to insert bug report into mailer"
+  "Return non-nil if the OS X \"open\" command is available for mailing."
   (and (featurep 'ns)
        (equal (executable-find "open") "/usr/bin/open")
        (memq system-type '(darwin))))
 
+;; FIXME this duplicates much of the logic from browse-url-can-use-xdg-open.
 (defun report-emacs-bug-can-use-xdg-email ()
-  "Check if xdg-email can be used, i.e. we are on Gnome, KDE or xfce4."
+  "Return non-nil if the \"xdg-email\" command can be used.
+xdg-email is a desktop utility that calls your preferred mail client.
+This requires you to be running either Gnome, KDE, or Xfce4."
   (and (getenv "DISPLAY")
        (executable-find "xdg-email")
        (or (getenv "GNOME_DESKTOP_SESSION_ID")
@@ -98,16 +100,23 @@ Used for querying duplicates and linking to existing bugs.")
 				  "org.gnome.SessionManager.CanShutdown"))
 	     (error nil))
 	   (equal (getenv "KDE_FULL_SESSION") "true")
+	   ;; FIXME? browse-url-can-use-xdg-open also accepts LXDE.
+	   ;; Is that no good here, or just overlooked?
 	   (condition-case nil
 	       (eq 0 (call-process
 		      "/bin/sh" nil nil nil
 		      "-c"
+		      ;; FIXME use string-match rather than grep.
 		      "xprop -root _DT_SAVE_MODE|grep xfce4"))
 	     (error nil)))))
 
 (defun report-emacs-bug-insert-to-mailer ()
+  "Send the message to your preferred mail client.
+This requires either the OS X \"open\" command, or the freedesktop
+\"xdg-email\" command to be available."
   (interactive)
   (save-excursion
+    ;; FIXME? use mail-fetch-field?
     (let* ((to (progn
 		 (goto-char (point-min))
 		 (forward-line)
@@ -169,7 +178,9 @@ Prompts for bug subject.  Leaves you in a mail buffer."
       (set (make-local-variable 'message-strip-special-text-properties) nil))
     (rfc822-goto-eoh)
     (forward-line 1)
-    (let ((signature (buffer-substring (point) (point-max))))
+    ;; Move the mail signature to the proper place.
+    (let ((signature (buffer-substring (point) (point-max)))
+	  (inhibit-read-only t))
       (delete-region (point) (point-max))
       (insert signature)
       (backward-char (length signature)))
@@ -197,7 +208,7 @@ Prompts for bug subject.  Leaves you in a mail buffer."
 
 	(insert ".  Please check that
 the From: line contains a valid email address.  After a delay of up
-to one day, you should receive an acknowledgement at that address.
+to one day, you should receive an acknowledgment at that address.
 
 Please write in English if possible, as the Emacs maintainers
 usually do not have translators for other languages.\n\n")))
@@ -224,6 +235,8 @@ usually do not have translators for other languages.\n\n")))
     (add-text-properties (1+ user-point) (point) prompt-properties)
 
     (insert "\n\nIn " (emacs-version) "\n")
+    (if (stringp emacs-bzr-version)
+	(insert "Bzr revision: " emacs-bzr-version "\n"))
     (if (fboundp 'x-server-vendor)
 	(condition-case nil
             ;; This is used not only for X11 but also W32 and others.
@@ -231,15 +244,25 @@ usually do not have translators for other languages.\n\n")))
                     "', version "
 		    (mapconcat 'number-to-string (x-server-version) ".") "\n")
 	  (error t)))
-    (if (and system-configuration-options
-	     (not (equal system-configuration-options "")))
-	(insert "configured using `configure "
-		system-configuration-options "'\n\n"))
+    (let ((lsb (with-temp-buffer
+		 (if (eq 0 (ignore-errors
+			     (call-process "lsb_release" nil '(t nil)
+					   nil "-d")))
+		     (buffer-string)))))
+      (if (stringp lsb)
+	  (insert "System " lsb "\n")))
+    (when (and system-configuration-options
+	       (not (equal system-configuration-options "")))
+      (insert "Configured using:\n `configure "
+	      system-configuration-options "'\n\n")
+      (fill-region (line-beginning-position -1) (point)))
     (insert "Important settings:\n")
     (mapc
      (lambda (var)
-       (insert (format "  value of $%s: %s\n" var (getenv var))))
-     '("LC_ALL" "LC_COLLATE" "LC_CTYPE" "LC_MESSAGES"
+       (let ((val (getenv var)))
+	 (if val (insert (format "  value of $%s: %s\n" var val)))))
+     '("EMACSDATA" "EMACSDOC" "EMACSLOADPATH" "EMACSPATH"
+       "LC_ALL" "LC_COLLATE" "LC_CTYPE" "LC_MESSAGES"
        "LC_MONETARY" "LC_NUMERIC" "LC_TIME" "LANG" "XMODIFIERS"))
     (insert (format "  locale-coding-system: %s\n" locale-coding-system))
     (insert (format "  default enable-multibyte-characters: %s\n"
@@ -288,9 +311,14 @@ usually do not have translators for other languages.\n\n")))
       (insert "\n"))
     (insert "\n")
     (insert "Load-path shadows:\n")
-    (message "Checking for load-path shadows...")
-    (let ((shadows (list-load-path-shadows t)))
-      (message "Checking for load-path shadows...done")
+    (let* ((msg "Checking for load-path shadows...")
+	   (result "done")
+	   (shadows (progn (message "%s" msg)
+			   (condition-case nil (list-load-path-shadows t)
+			     (error
+			      (setq result "error")
+			      "Error during checking")))))
+      (message "%s%s" msg result)
       (insert (if (zerop (length shadows))
                   "None found.\n"
                 shadows)))
@@ -298,7 +326,7 @@ usually do not have translators for other languages.\n\n")))
     (fill-region (line-beginning-position 0) (point))
     ;; This is so the user has to type something in order to send easily.
     (use-local-map (nconc (make-sparse-keymap) (current-local-map)))
-    (define-key (current-local-map) "\C-c\C-i" 'report-emacs-bug-info)
+    (define-key (current-local-map) "\C-c\C-i" 'info-emacs-bug)
     (if can-insert-mail
 	(define-key (current-local-map) "\C-cm"
 	  'report-emacs-bug-insert-to-mailer))
@@ -318,10 +346,10 @@ usually do not have translators for other languages.\n\n")))
 		"  Type \\[kill-buffer] RET to cancel (don't send it).\n"))
 	(if can-insert-mail
 	    (princ (substitute-command-keys
-		    "  Type \\[report-emacs-bug-insert-to-mailer] to insert text to you preferred mail program.\n")))
+		    "  Type \\[report-emacs-bug-insert-to-mailer] to copy text to your preferred mail program.\n")))
 	(terpri)
 	(princ (substitute-command-keys
-		"  Type \\[report-emacs-bug-info] to visit in Info the Emacs Manual section
+		"  Type \\[info-emacs-bug] to visit in Info the Emacs Manual section
     about when and how to write a bug report, and what
     information you should include to help fix the bug.")))
       (shrink-window-if-larger-than-buffer (get-buffer-window "*Bug Help*")))
@@ -335,10 +363,7 @@ usually do not have translators for other languages.\n\n")))
           (buffer-substring-no-properties (point-min) (point)))
     (goto-char user-point)))
 
-(defun report-emacs-bug-info ()
-  "Go to the Info node on reporting Emacs bugs."
-  (interactive)
-  (info "(emacs)Bugs"))
+(define-obsolete-function-alias 'report-emacs-bug-info 'info-emacs-bug "24.3")
 
 ;; It's the default mail mode, so it seems OK to use its features.
 (autoload 'message-bogus-recipient-p "message")
@@ -354,26 +379,7 @@ usually do not have translators for other languages.\n\n")))
          (string-equal (buffer-substring-no-properties (point-min) (point))
                        report-emacs-bug-orig-text)
          (error "No text entered in bug report"))
-    (or report-emacs-bug-no-confirmation
-	;; mailclient.el does not handle From (at present).
-	(if (derived-mode-p 'message-mode)
-	    (eq message-send-mail-function 'message-send-mail-with-mailclient)
-	  (eq send-mail-function 'mailclient-send-it))
-	;; Not narrowing to the headers, but that's OK.
-	(let ((from (mail-fetch-field "From")))
-	  (and (or (not from)
-		   (message-bogus-recipient-p from)
-		   ;; This is the default user-mail-address.  On today's
-		   ;; systems, it seems more likely to be wrong than right,
-		   ;; since most people don't run their own mail server.
-		   (string-match (format "\\<%s@%s\\>"
-					 (regexp-quote (user-login-name))
-					 (regexp-quote (system-name)))
-				 from))
-	       (not (yes-or-no-p
-		     (format "Is `%s' really your email address? " from)))
-	       (error "Please edit the From address and try again"))))
-    ;; The last warning for novice users.
+    ;; Warning for novice users.
     (unless (or report-emacs-bug-no-confirmation
 		(yes-or-no-p
 		 "Send this bug report to the Emacs maintainers? "))
@@ -396,7 +402,35 @@ and send the mail again%s."
                                     report-emacs-bug-send-command)
                           "")))))
       (error "M-x report-emacs-bug was cancelled, please read *Bug Help* buffer"))
-
+    ;; Query the user for the SMTP method, so that we can skip
+    ;; questions about From header validity if the user is going to
+    ;; use mailclient, anyway.
+    (when (or (and (derived-mode-p 'message-mode)
+		   (eq message-send-mail-function 'sendmail-query-once))
+	      (and (not (derived-mode-p 'message-mode))
+		   (eq send-mail-function 'sendmail-query-once)))
+      (sendmail-query-user-about-smtp)
+      (when (derived-mode-p 'message-mode)
+	(setq message-send-mail-function (message-default-send-mail-function))))
+    (or report-emacs-bug-no-confirmation
+	;; mailclient.el does not need a valid From
+	(if (derived-mode-p 'message-mode)
+	    (eq message-send-mail-function 'message-send-mail-with-mailclient)
+	  (eq send-mail-function 'mailclient-send-it))
+	;; Not narrowing to the headers, but that's OK.
+	(let ((from (mail-fetch-field "From")))
+	  (and (or (not from)
+		   (message-bogus-recipient-p from)
+		   ;; This is the default user-mail-address.  On today's
+		   ;; systems, it seems more likely to be wrong than right,
+		   ;; since most people don't run their own mail server.
+		   (string-match (format "\\<%s@%s\\>"
+					 (regexp-quote (user-login-name))
+					 (regexp-quote (system-name)))
+				 from))
+	       (not (yes-or-no-p
+		     (format "Is `%s' really your email address? " from)))
+	       (error "Please edit the From address and try again"))))
     ;; Delete the uninteresting text that was just to help fill out the report.
     (rfc822-goto-eoh)
     (forward-line 1)
@@ -405,90 +439,6 @@ and send the mail again%s."
                                           'field 'emacsbug-prompt))
         (delete-region pos (field-end (1+ pos)))))))
 
-
-;; Querying the bug database
-
-(defvar report-emacs-bug-bug-alist nil)
-(make-variable-buffer-local 'report-emacs-bug-bug-alist)
-(defvar report-emacs-bug-choice-widget nil)
-(make-variable-buffer-local 'report-emacs-bug-choice-widget)
-
-(defun report-emacs-bug-create-existing-bugs-buffer (bugs keywords)
-  (switch-to-buffer (get-buffer-create "*Existing Emacs Bugs*"))
-  (setq buffer-read-only t)
-  (let ((inhibit-read-only t))
-    (erase-buffer)
-    (setq report-emacs-bug-bug-alist bugs)
-    (widget-insert (propertize (concat "Already known bugs ("
-				       keywords "):\n\n")
-			       'face 'bold))
-    (if bugs
-	(setq report-emacs-bug-choice-widget
-	      (apply 'widget-create 'radio-button-choice
-		     :value (caar bugs)
-		     (let (items)
-		       (dolist (bug bugs)
-			 (push (list
-				'url-link
-				:format (concat "Bug#" (number-to-string (nth 2 bug))
-						": " (cadr bug) "\n    %[%v%]\n")
-				;; FIXME: Why is only the link of the
-				;; active item clickable?
-				(car bug))
-			       items))
-		       (nreverse items))))
-      (widget-insert "No bugs matching your keywords found.\n"))
-    (widget-insert "\n")
-    (widget-create 'push-button
-		   :notify (lambda (&rest ignore)
-			     ;; TODO: Do something!
-			     (message "Reporting new bug!"))
-		   "Report new bug")
-    (when bugs
-      (widget-insert " ")
-      (widget-create 'push-button
-		     :notify (lambda (&rest ignore)
-			       (let ((val (widget-value report-emacs-bug-choice-widget)))
-				 ;; TODO: Do something!
-				 (message "Appending to bug %s!"
-					  (nth 2 (assoc val report-emacs-bug-bug-alist)))))
-		     "Append to chosen bug"))
-    (widget-insert " ")
-    (widget-create 'push-button
-		   :notify (lambda (&rest ignore)
-			     (kill-buffer))
-		   "Quit reporting bug")
-    (widget-insert "\n"))
-  (use-local-map widget-keymap)
-  (widget-setup)
-  (goto-char (point-min)))
-
-(defun report-emacs-bug-parse-query-results (status keywords)
-  (goto-char (point-min))
-  (let (buglist)
-    (while (re-search-forward "<a href=\"bugreport\\.cgi\\?bug=\\([[:digit:]]+\\)\">\\([^<]+\\)</a>" nil t)
-      (let ((number (match-string 1))
-	    (subject (match-string 2)))
-	(when (not (string-match "^#" subject))
-	  (push (list
-		 ;; first the bug URL
-		 (concat report-emacs-bug-tracker-url
-			 "bugreport.cgi?bug=" number)
-		 ;; then the subject and number
-		 subject (string-to-number number))
-		buglist))))
-    (report-emacs-bug-create-existing-bugs-buffer (nreverse buglist) keywords)))
-
-;;;###autoload
-(defun report-emacs-bug-query-existing-bugs (keywords)
-  "Query for KEYWORDS at `report-emacs-bug-tracker-url', and return the result.
-The result is an alist with items of the form (URL SUBJECT NO)."
-  (interactive "sBug keywords (comma separated): ")
-  (url-retrieve (concat report-emacs-bug-tracker-url
-			"pkgreport.cgi?include=subject%3A"
-			(replace-regexp-in-string "[[:space:]]+" "+" keywords)
-			";package=emacs")
-		'report-emacs-bug-parse-query-results (list keywords)))
 
 (provide 'emacsbug)
 

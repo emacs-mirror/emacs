@@ -7,7 +7,7 @@ Check cross-references between the manuals (eg from emacs to elisp)
 are correct.  You can use something like the following in the info
 directory in the Emacs build tree:
 
-emacs -Q --eval "(setq Info-default-directory-list '(\".\"))" \
+emacs -Q --eval "(progn (require 'info) (setq Info-directory-list '(\".\")))" \
   -f info-xref-check-all
 
 make emacs.dvi, elisp.dvi, and deal with any errors (undefined
@@ -31,12 +31,22 @@ its own at the start of a line.  It looks better if you reword/respace
 things to avoid these.  (AFAIK, there is no way to find these except
 paging through the whole manual.)  This should be the very last thing
 you do, since any change can alter the layout.
+(Actually, there is probably little point in trying to do this.
+It's only really relevant if printed versions of the manuals are going
+to be published.  End-users are not likely to print out all 1000+
+pages of the manuals, and even if they do, the resulting page breaks
+depend on what paper and font size they use.  This also means that if
+you _are_ going to do this, it should be done with the paper and font
+size that the GNU Press are going to use when they print the manuals.
+I think this is different to what you get if you just use eg `make
+emacs.pdf' (e.g., enable "smallbook").
 
 ** Check the keybindings in the refcards are correct, and add any new ones.
 Regenerate the pdf versions in etc/refcards/.
 What paper size are the English versions supposed to be on?
 On Debian testing, the packages texlive-lang-czechslovak and
 texlive-lang-polish will let you generate the cs-* and sk-* pdfs.
+(You may need texlive-lang-cyrillic, texlive-lang-german for others.)
 The Makefile rules did not work for me, I had to use something like:
 csplain -output-format=pdf cs-refcard
 
@@ -53,18 +63,18 @@ pt-br	Rodrigo Real
 ru	Alex Ott              
 sk	Miroslav Vaško        
 
+** For a major release, add a "New in Emacs XX" section to faq.texi.
+
 ** Remove temporary +++/--- lines in NEWS.
 
 ** Try to reorder NEWS: most important things first, related items together.
 
 ** Consider bumping customize-changed-options-previous-release.
 
-* BUGS
+** cusver-check from admin.el can help find new defcustoms missing
+:version tags.
 
-** rms: gnus-dired.el is a mistake.  Those features should not
-be part of Gnus.  They should be moved to some other part of Emacs.
-rsteib: Gnus dependencies in `gnus-dired.el' (and `mailcap.el') have been
-minimized.  I don't know what is left to do here.
+* BUGS
 
 ** Check for modes which bind M-s that conflicts with a new global binding M-s
 and change key bindings where necessary.  The current list of modes:
@@ -83,9 +93,10 @@ and change key bindings where necessary.  The current list of modes:
    `log-edit-comment-search-forward'.  Perhaps search commands
    on the global key binding `M-s' are useless in these modes.
 
-* DOCUMENTATION
+5. Rmail binds `\es' to `rmail-search'/`rmail-summary-search'.
 
-** Document XEmbed support
+
+* DOCUMENTATION
 
 ** Check the Emacs Tutorial.
 
@@ -99,142 +110,136 @@ names of the people who have checked it.
 
 SECTION                  READERS
 ----------------------------------
-TUTORIAL             
-TUTORIAL.bg          
+TUTORIAL             cyd
+TUTORIAL.bg          ogi
 TUTORIAL.cn
 TUTORIAL.cs          
-TUTORIAL.de          
+TUTORIAL.de          wl
 TUTORIAL.eo
 TUTORIAL.es          
 TUTORIAL.fr          
-TUTORIAL.he
+TUTORIAL.he          eliz
 TUTORIAL.it          
 TUTORIAL.ja		 
 TUTORIAL.ko
-TUTORIAL.nl		 
+TUTORIAL.nl	     Pieter Schoenmakers
 TUTORIAL.pl          
 TUTORIAL.pt_BR       
 TUTORIAL.ro
-TUTORIAL.ru          
+TUTORIAL.ru          Alex Ott
 TUTORIAL.sk          
-TUTORIAL.sl          
-TUTORIAL.sv          
+TUTORIAL.sl          Primoz PETERLIN
+TUTORIAL.sv          Mats Lidell
 TUTORIAL.th          
 TUTORIAL.zh
 
 ** Check the manual.
 
 abbrevs.texi      cyd
-ack.texi          
-anti.texi
+ack.texi          rgm
+anti.texi         cyd
 arevert-xtra.texi cyd
 basic.texi        cyd
 buffers.texi      cyd
 building.texi     cyd
-calendar.texi     
-cal-xtra.texi     
-cmdargs.texi      
+calendar.texi     rgm
+cal-xtra.texi     rgm
+cmdargs.texi      cyd
 commands.texi     cyd
-custom.texi       
+custom.texi       cyd
 dired.texi        cyd
-dired-xtra.texi
+dired-xtra.texi   rgm
 display.texi      cyd
-emacs.texi        
-emacs-xtra.texi
-emerge-xtra.texi
+emacs.texi        rgm
+emacs-xtra.texi   rgm
+emerge-xtra.texi  rgm
 entering.texi     cyd
 files.texi        cyd
-fixit.texi        
-fortran-xtra.texi 
+fixit.texi        cyd
+fortran-xtra.texi rgm
 frames.texi       cyd
-glossary.texi
+glossary.texi     rgm
 help.texi         cyd
 indent.texi       cyd
 killing.texi      cyd
 kmacro.texi       cyd
-macos.texi        
+macos.texi        rgm  (can't actually test any of it though)
 maintaining.texi  cyd
-major.texi        
 mark.texi         cyd
-mini.texi         
-misc.texi         
+mini.texi         rgm
+misc.texi         cyd
 modes.texi        cyd
-msdog.texi        
-msdog-xtra.texi   
-mule.texi         
+msdog.texi        rgm  (can't actually test any of it though)
+msdog-xtra.texi   rgm  (can't actually test any of it though)
+mule.texi         rgm  (not 100% sure about "Fontsets")
 m-x.texi          cyd
-picture-xtra.texi
+package.texi      cyd
+picture-xtra.texi rgm
 programs.texi     cyd
 regs.texi         cyd
-rmail.texi        
+rmail.texi        rgm
 screen.texi       cyd
 search.texi       cyd
-sending.texi      
+sending.texi      cyd
 text.texi         cyd
-trouble.texi      
+trouble.texi      cyd
 vc-xtra.texi      cyd
 vc1-xtra.texi     cyd
 windows.texi      cyd
-xresources.texi   
+xresources.texi   cyd
 
 ** Check the Lisp manual.
 
-abbrevs.texi      
-advice.texi       
-anti.texi         
-back.texi
-backups.texi      
-buffers.texi      
-commands.texi     
-compile.texi      
-control.texi      
-customize.texi    
-debugging.texi    
-display.texi      
-edebug.texi
+abbrevs.texi      rgm
+advice.texi       cyd
+anti.texi         rgm
+back.texi         rgm
+backups.texi      cyd
+buffers.texi      cyd
+commands.texi     cyd
+compile.texi      cyd
+control.texi      cyd
+customize.texi    cyd
+debugging.texi    cyd
+display.texi      cyd
+edebug.texi       rgm
 elisp.texi
-errors.texi       
-eval.texi         
-files.texi        
-frames.texi       
-functions.texi    
-hash.texi         
-help.texi         
-hooks.texi        
+errors.texi       rgm
+eval.texi         cyd
+files.texi        cyd
+frames.texi       cyd
+functions.texi    cyd
+hash.texi         cyd
+help.texi         cyd
+hooks.texi        rgm
 index.texi
-internals.texi    
-intro.texi        
-keymaps.texi      
-lists.texi        
-loading.texi      
-locals.texi       
-macros.texi       
-maps.texi         
-markers.texi      
-minibuf.texi      
-modes.texi        
-nonascii.texi     
-numbers.texi      
-objects.texi      
-os.texi           
-package.texi
-positions.texi    
-processes.texi
-searching.texi    
-sequences.texi    
-streams.texi      
-strings.texi      
-symbols.texi      
-syntax.texi       
-text.texi         
-tips.texi         
-variables.texi    
-windows.texi      
-
-* PLANNED ADDITIONS
-
-** pov-mode (probably not for Emacs-23: waiting for a Free POV-Ray).
-** gas-mode ?
+internals.texi    rgm  cyd
+intro.texi        cyd
+keymaps.texi      cyd
+lists.texi        cyd
+loading.texi      cyd
+macros.texi       cyd
+maps.texi         rgm
+markers.texi      rgm
+minibuf.texi      rgm
+modes.texi        cyd
+nonascii.texi     cyd
+numbers.texi      cyd
+objects.texi      cyd
+os.texi           cyd
+package.texi      rgm
+positions.texi    cyd
+processes.texi    rgm
+searching.texi    rgm
+sequences.texi    cyd
+streams.texi      cyd
+strings.texi      cyd
+symbols.texi      cyd
+syntax.texi       cyd
+text.texi         cyd
+tips.texi         rgm
+variables.texi    cyd
+windows.texi      rgm (skimmed)
 
 
 Local variables:

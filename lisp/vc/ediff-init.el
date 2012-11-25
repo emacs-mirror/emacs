@@ -1,6 +1,6 @@
 ;;; ediff-init.el --- Macros, variables, and defsubsts used by Ediff
 
-;; Copyright (C) 1994-2011 Free Software Foundation, Inc.
+;; Copyright (C) 1994-2012 Free Software Foundation, Inc.
 
 ;; Author: Michael Kifer <kifer@cs.stonybrook.edu>
 ;; Package: ediff
@@ -594,7 +594,7 @@ highlighted using ASCII flags."
 (ediff-defvar-local ediff-start-narrowed t
   "Non-nil means start narrowed, if doing ediff-windows-* or ediff-regions-*")
 (ediff-defvar-local ediff-quit-widened t
-  "*Non-nil means: when finished, Ediff widens buffers A/B.
+  "Non-nil means: when finished, Ediff widens buffers A/B.
 Actually, Ediff restores the scope of visibility that existed at startup.")
 
 (defcustom ediff-keep-variants t
@@ -753,6 +753,7 @@ to temp files in buffer jobs and when Ediff needs to find fine differences."
   "Check the current version against MAJOR and MINOR version numbers.
 The comparison uses operator OP, which may be any of: =, >, >=, <, <=.
 TYPE-OF-EMACS is either 'xemacs or 'emacs."
+  (declare (obsolete version< "23.1"))
   (and (cond ((eq type-of-emacs 'xemacs) (featurep 'xemacs))
 	     ((eq type-of-emacs 'emacs) (featurep 'emacs))
 	     (t))
@@ -766,9 +767,6 @@ TYPE-OF-EMACS is either 'xemacs or 'emacs."
 		     t)))
 	     (t
 	      (error "%S: Invalid op in ediff-check-version" op)))))
-
-;; ediff-check-version seems to be totally unused anyway.
-(make-obsolete 'ediff-check-version 'version< "23.1")
 
 (defun ediff-color-display-p ()
   (condition-case nil
@@ -786,19 +784,12 @@ TYPE-OF-EMACS is either 'xemacs or 'emacs."
   "")
 
 
-(if (ediff-window-display-p)
-    (if (featurep 'xemacs)
-	(progn
-	  (defalias 'ediff-display-pixel-width 'device-pixel-width)
-	  (defalias 'ediff-display-pixel-height 'device-pixel-height))
-      (defalias 'ediff-display-pixel-width
-	(if (fboundp 'display-pixel-width)
-	    'display-pixel-width
-	  'x-display-pixel-width))
-      (defalias 'ediff-display-pixel-height
-	(if (fboundp 'display-pixel-height)
-	    'display-pixel-height
-	  'x-display-pixel-height))))
+(if (featurep 'xemacs)
+    (progn
+      (defalias 'ediff-display-pixel-width 'device-pixel-width)
+      (defalias 'ediff-display-pixel-height 'device-pixel-height))
+  (defalias 'ediff-display-pixel-width 'display-pixel-width)
+  (defalias 'ediff-display-pixel-height 'display-pixel-height))
 
 ;; A-list of current-diff-overlay symbols associated with buf types
 (defconst ediff-current-diff-overlay-alist
@@ -860,7 +851,11 @@ TYPE-OF-EMACS is either 'xemacs or 'emacs."
 
 (defface ediff-current-diff-A
   (if (featurep 'emacs)
-      '((((class color) (min-colors 16))
+      '((((class color) (min-colors 88) (background light))
+	 :background "#ffdddd")
+	(((class color) (min-colors 88) (background dark))
+	 :background "#553333")
+	(((class color) (min-colors 16))
 	 (:foreground "firebrick" :background "pale green"))
 	(((class color))
 	 (:foreground "blue3" :background "yellow3"))
@@ -889,7 +884,11 @@ this variable represents.")
 
 (defface ediff-current-diff-B
   (if (featurep 'emacs)
-      '((((class color) (min-colors 16))
+      '((((class color) (min-colors 88) (background light))
+	 :background "#ddffdd")
+	(((class color) (min-colors 88) (background dark))
+	 :background "#335533")
+	(((class color) (min-colors 16))
 	 (:foreground "DarkOrchid" :background "Yellow"))
 	(((class color))
 	 (:foreground "magenta3" :background "yellow3"
@@ -919,7 +918,11 @@ this variable represents.")
 
 (defface ediff-current-diff-C
   (if (featurep 'emacs)
-      '((((class color) (min-colors 16))
+      '((((class color) (min-colors 88) (background light))
+	 :background "#ffffaa")
+	(((class color) (min-colors 88) (background dark))
+	 :background "#888833")
+	(((class color) (min-colors 16))
 	 (:foreground "Navy" :background "Pink"))
 	(((class color))
 	 (:foreground "cyan3" :background "yellow3" :weight bold))
@@ -975,7 +978,11 @@ this variable represents.")
 
 (defface ediff-fine-diff-A
   (if (featurep 'emacs)
-      '((((class color) (min-colors 16))
+      '((((class color) (min-colors 88) (background light))
+	 :background "#ffbbbb")
+	(((class color) (min-colors 88) (background dark))
+	 :background "#aa2222")
+	(((class color) (min-colors 16))
 	 (:foreground "Navy" :background "sky blue"))
 	(((class color))
 	 (:foreground "white" :background "sky blue" :weight bold))
@@ -996,7 +1003,11 @@ this variable represents.")
 
 (defface ediff-fine-diff-B
   (if (featurep 'emacs)
-      '((((class color) (min-colors 16))
+      '((((class color) (min-colors 88) (background light))
+	 :background "#aaffaa")
+	(((class color) (min-colors 88) (background dark))
+	 :background "#22aa22")
+	(((class color) (min-colors 16))
 	 (:foreground "Black" :background "cyan"))
 	(((class color))
 	 (:foreground "magenta3" :background "cyan3"))
@@ -1017,7 +1028,11 @@ this variable represents.")
 
 (defface ediff-fine-diff-C
   (if (featurep 'emacs)
-      '((((type pc))
+      '((((class color) (min-colors 88) (background light))
+	 :background "#ffff55")
+	(((class color) (min-colors 88) (background dark))
+	 :background "#aaaa22")
+	(((type pc))
 	 (:foreground "white" :background "Turquoise"))
 	(((class color) (min-colors 16))
 	 (:foreground "Black" :background "Turquoise"))
@@ -1743,8 +1758,10 @@ Unless optional argument INPLACE is non-nil, return a new string."
 
 ;; If ediff modified mode line, strip the modification
 (defsubst ediff-strip-mode-line-format ()
-  (if (member (car mode-line-format) '(" A: " " B: " " C: " " Ancestor: "))
-      (setq mode-line-format (nth 2 mode-line-format))))
+  (and (consp mode-line-format)
+       (member (car mode-line-format)
+	       '(" A: " " B: " " C: " " Ancestor: "))
+       (setq mode-line-format (nth 2 mode-line-format))))
 
 ;; Verify that we have a difference selected.
 (defsubst ediff-valid-difference-p (&optional n)

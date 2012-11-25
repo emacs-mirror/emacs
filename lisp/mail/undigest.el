@@ -1,6 +1,6 @@
 ;;; undigest.el --- digest-cracking support for the RMAIL mail reader
 
-;; Copyright (C) 1985-1986, 1994, 1996, 2001-2011
+;; Copyright (C) 1985-1986, 1994, 1996, 2001-2012
 ;;   Free Software Foundation, Inc.
 
 ;; Maintainer: FSF
@@ -32,7 +32,7 @@
 
 (defcustom rmail-forward-separator-regex
   "^----.*\\([Ff]orwarded\\|[Oo]riginal\\).*[Mm]essage"
-  "*Regexp to match the string that introduces forwarded messages.
+  "Regexp to match the string that introduces forwarded messages.
 This is not a header, but a string contained in the body of the message.
 You may need to customize it for local needs."
   :type 'regexp
@@ -228,8 +228,9 @@ Leaves original message, deleted, before the undigestified messages."
 ;;;###autoload
 (defun unforward-rmail-message ()
   "Extract a forwarded message from the containing message.
-This puts the forwarded message into a separate rmail message
-following the containing message."
+This puts the forwarded message into a separate rmail message following
+the containing message.  This command is only useful when messages are
+forwarded with `rmail-enable-mime-composing' set to nil."
   (interactive)
   (set-buffer rmail-buffer)
   (let ((buff (current-buffer))

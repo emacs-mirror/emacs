@@ -1,6 +1,6 @@
 /* Functions for the X window system.
 
-Copyright (C) 1989, 1992-2011  Free Software Foundation, Inc.
+Copyright (C) 1989, 1992-2012  Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -20,8 +20,6 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #include <config.h>
 #include <stdio.h>
 #include <math.h>
-#include <setjmp.h>
-#include <ctype.h>
 #include <unistd.h>
 
 /* This makes the fields of a Display accessible, in Xlib header files.  */
@@ -32,13 +30,13 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #include "xterm.h"
 #include "frame.h"
 #include "window.h"
+#include "character.h"
 #include "buffer.h"
 #include "intervals.h"
 #include "dispextern.h"
 #include "keyboard.h"
 #include "blockinput.h"
 #include <epaths.h>
-#include "character.h"
 #include "charset.h"
 #include "coding.h"
 #include "fontset.h"
@@ -50,7 +48,6 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 
 #ifdef HAVE_X_WINDOWS
 
-#include <ctype.h>
 #include <sys/types.h>
 #include <sys/stat.h>
 
@@ -126,31 +123,18 @@ extern LWLIB_ID widget_id_tick;
 
 #define MAXREQUEST(dpy) (XMaxRequestSize (dpy))
 
-/* The gray bitmap `bitmaps/gray'.  This is done because xterm.c uses
-   it, and including `bitmaps/gray' more than once is a problem when
-   config.h defines `static' as an empty replacement string.  */
-
-int gray_bitmap_width = gray_width;
-int gray_bitmap_height = gray_height;
-char *gray_bitmap_bits = gray_bits;
-
 /* Nonzero if using X.  */
 
-static int x_in_use;
+int x_in_use;
 
-static Lisp_Object Qnone;
 static Lisp_Object Qsuppress_icon;
 static Lisp_Object Qundefined_color;
 static Lisp_Object Qcompound_text, Qcancel_timer;
 Lisp_Object Qfont_param;
 
-#if GLYPH_DEBUG
+#ifdef GLYPH_DEBUG
 static ptrdiff_t image_cache_refcount;
 static int dpyinfo_refcount;
-#endif
-
-#if defined (USE_GTK) && defined (HAVE_FREETYPE)
-static char *x_last_font_name;
 #endif
 
 static struct x_display_info *x_display_info_for_name (Lisp_Object);
@@ -180,12 +164,8 @@ have_menus_p (void)
 FRAME_PTR
 check_x_frame (Lisp_Object frame)
 {
-  FRAME_PTR f;
+  struct frame *f = decode_live_frame (frame);
 
-  if (NILP (frame))
-    frame = selected_frame;
-  CHECK_LIVE_FRAME (frame);
-  f = XFRAME (frame);
   if (! FRAME_X_P (f))
     error ("Non-X frame used");
   return f;
@@ -244,13 +224,11 @@ x_window_to_frame (struct x_display_info *dpyinfo, int wdesc)
   Lisp_Object tail, frame;
   struct frame *f;
 
-  if (wdesc == None) return 0;
+  if (wdesc == None)
+    return NULL;
 
-  for (tail = Vframe_list; CONSP (tail); tail = XCDR (tail))
+  FOR_EACH_FRAME (tail, frame)
     {
-      frame = XCAR (tail);
-      if (!FRAMEP (frame))
-        continue;
       f = XFRAME (frame);
       if (!FRAME_X_P (f) || FRAME_X_DISPLAY_INFO (f) != dpyinfo)
 	continue;
@@ -290,18 +268,16 @@ struct frame *
 x_any_window_to_frame (struct x_display_info *dpyinfo, int wdesc)
 {
   Lisp_Object tail, frame;
-  struct frame *f, *found;
+  struct frame *f, *found = NULL;
   struct x_output *x;
 
-  if (wdesc == None) return NULL;
+  if (wdesc == None)
+    return NULL;
 
-  found = NULL;
-  for (tail = Vframe_list; CONSP (tail) && !found; tail = XCDR (tail))
+  FOR_EACH_FRAME (tail, frame)
     {
-      frame = XCAR (tail);
-      if (!FRAMEP (frame))
-        continue;
-
+      if (found)
+        break;
       f = XFRAME (frame);
       if (FRAME_X_P (f) && FRAME_X_DISPLAY_INFO (f) == dpyinfo)
 	{
@@ -345,13 +321,11 @@ x_menubar_window_to_frame (struct x_display_info *dpyinfo, XEvent *event)
   struct frame *f;
   struct x_output *x;
 
-  if (wdesc == None) return 0;
+  if (wdesc == None)
+    return NULL;
 
-  for (tail = Vframe_list; CONSP (tail); tail = XCDR (tail))
+  FOR_EACH_FRAME (tail, frame)
     {
-      frame = XCAR (tail);
-      if (!FRAMEP (frame))
-        continue;
       f = XFRAME (frame);
       if (!FRAME_X_P (f) || FRAME_X_DISPLAY_INFO (f) != dpyinfo)
 	continue;
@@ -379,13 +353,11 @@ x_top_window_to_frame (struct x_display_info *dpyinfo, int wdesc)
   struct frame *f;
   struct x_output *x;
 
-  if (wdesc == None) return 0;
+  if (wdesc == None)
+    return NULL;
 
-  for (tail = Vframe_list; CONSP (tail); tail = XCDR (tail))
+  FOR_EACH_FRAME (tail, frame)
     {
-      frame = XCAR (tail);
-      if (!FRAMEP (frame))
-        continue;
       f = XFRAME (frame);
       if (!FRAME_X_P (f) || FRAME_X_DISPLAY_INFO (f) != dpyinfo)
 	continue;
@@ -441,7 +413,7 @@ x_real_positions (FRAME_PTR f, int *xptr, int *yptr)
   unsigned char *tmp_data = NULL;
   Atom target_type = XA_CARDINAL;
 
-  BLOCK_INPUT;
+  block_input ();
 
   x_catch_errors (dpy);
 
@@ -468,7 +440,7 @@ x_real_positions (FRAME_PTR f, int *xptr, int *yptr)
       if (! success)
 	break;
 
-      XFree ((char *) tmp_children);
+      XFree (tmp_children);
 
       if (wm_window == rootw || had_errors)
         break;
@@ -559,7 +531,7 @@ x_real_positions (FRAME_PTR f, int *xptr, int *yptr)
 
   x_uncatch_errors ();
 
-  UNBLOCK_INPUT;
+  unblock_input ();
 
   if (had_errors) return;
 
@@ -591,27 +563,27 @@ gamma_correct (struct frame *f, XColor *color)
 
 
 /* Decide if color named COLOR_NAME is valid for use on frame F.  If
-   so, return the RGB values in COLOR.  If ALLOC_P is non-zero,
-   allocate the color.  Value is zero if COLOR_NAME is invalid, or
+   so, return the RGB values in COLOR.  If ALLOC_P,
+   allocate the color.  Value is false if COLOR_NAME is invalid, or
    no color could be allocated.  */
 
-int
+bool
 x_defined_color (struct frame *f, const char *color_name,
-		 XColor *color, int alloc_p)
+		 XColor *color, bool alloc_p)
 {
-  int success_p = 0;
+  bool success_p = 0;
   Display *dpy = FRAME_X_DISPLAY (f);
   Colormap cmap = FRAME_X_COLORMAP (f);
 
-  BLOCK_INPUT;
+  block_input ();
 #ifdef USE_GTK
   success_p = xg_check_special_colors (f, color_name, color);
 #endif
   if (!success_p)
-    success_p = XParseColor (dpy, cmap, color_name, color);
+    success_p = XParseColor (dpy, cmap, color_name, color) != 0;
   if (success_p && alloc_p)
     success_p = x_alloc_nearest_color (f, cmap, color);
-  UNBLOCK_INPUT;
+  unblock_input ();
 
   return success_p;
 }
@@ -672,8 +644,8 @@ x_set_tool_bar_position (struct frame *f,
   if (EQ (new_value, old_value)) return;
 
 #ifdef USE_GTK
-  if (xg_change_toolbar_position (f, new_value))
-    f->tool_bar_position = new_value;
+  xg_change_toolbar_position (f, new_value);
+  fset_tool_bar_position (f, new_value);
 #endif
 }
 
@@ -695,7 +667,7 @@ xg_set_icon (FRAME_PTR f, Lisp_Object file)
       GdkPixbuf *pixbuf;
       GError *err = NULL;
       char *filename = SSDATA (found);
-      BLOCK_INPUT;
+      block_input ();
 
       pixbuf = gdk_pixbuf_new_from_file (filename, &err);
 
@@ -710,7 +682,7 @@ xg_set_icon (FRAME_PTR f, Lisp_Object file)
       else
 	g_error_free (err);
 
-      UNBLOCK_INPUT;
+      unblock_input ();
     }
 
   return result;
@@ -753,7 +725,7 @@ x_set_foreground_color (struct frame *f, Lisp_Object arg, Lisp_Object oldval)
     {
       Display *dpy = FRAME_X_DISPLAY (f);
 
-      BLOCK_INPUT;
+      block_input ();
       XSetForeground (dpy, x->normal_gc, fg);
       XSetBackground (dpy, x->reverse_gc, fg);
 
@@ -764,7 +736,7 @@ x_set_foreground_color (struct frame *f, Lisp_Object arg, Lisp_Object oldval)
 	  XSetBackground (dpy, x->cursor_gc, x->cursor_pixel);
 	}
 
-      UNBLOCK_INPUT;
+      unblock_input ();
 
       update_face_from_frame_parameter (f, Qforeground_color, arg);
 
@@ -789,7 +761,7 @@ x_set_background_color (struct frame *f, Lisp_Object arg, Lisp_Object oldval)
     {
       Display *dpy = FRAME_X_DISPLAY (f);
 
-      BLOCK_INPUT;
+      block_input ();
       XSetBackground (dpy, x->normal_gc, bg);
       XSetForeground (dpy, x->reverse_gc, bg);
       XSetWindowBackground (dpy, FRAME_X_WINDOW (f), bg);
@@ -813,7 +785,7 @@ x_set_background_color (struct frame *f, Lisp_Object arg, Lisp_Object oldval)
       }
 #endif /* USE_TOOLKIT_SCROLL_BARS */
 
-      UNBLOCK_INPUT;
+      unblock_input ();
       update_face_from_frame_parameter (f, Qbackground_color, arg);
 
       if (FRAME_VISIBLE_P (f))
@@ -870,7 +842,7 @@ x_set_mouse_color (struct frame *f, Lisp_Object arg, Lisp_Object oldval)
   unload_color (f, x->mouse_pixel);
   x->mouse_pixel = pixel;
 
-  BLOCK_INPUT;
+  block_input ();
 
   /* It's not okay to crash if the user selects a screwy cursor.  */
   x_catch_errors (dpy);
@@ -990,7 +962,7 @@ x_set_mouse_color (struct frame *f, Lisp_Object arg, Lisp_Object oldval)
   x->horizontal_drag_cursor = horizontal_drag_cursor;
 
   XFlush (dpy);
-  UNBLOCK_INPUT;
+  unblock_input ();
 
   update_face_from_frame_parameter (f, Qmouse_color, arg);
 }
@@ -1047,10 +1019,10 @@ x_set_cursor_color (struct frame *f, Lisp_Object arg, Lisp_Object oldval)
 
   if (FRAME_X_WINDOW (f) != 0)
     {
-      BLOCK_INPUT;
+      block_input ();
       XSetBackground (FRAME_X_DISPLAY (f), x->cursor_gc, x->cursor_pixel);
       XSetForeground (FRAME_X_DISPLAY (f), x->cursor_gc, fore_pixel);
-      UNBLOCK_INPUT;
+      unblock_input ();
 
       if (FRAME_VISIBLE_P (f))
 	{
@@ -1074,9 +1046,9 @@ x_set_border_pixel (struct frame *f, int pix)
 
   if (FRAME_X_WINDOW (f) != 0 && f->border_width > 0)
     {
-      BLOCK_INPUT;
+      block_input ();
       XSetWindowBorder (FRAME_X_DISPLAY (f), FRAME_X_WINDOW (f), pix);
-      UNBLOCK_INPUT;
+      unblock_input ();
 
       if (FRAME_VISIBLE_P (f))
         redraw_frame (f);
@@ -1128,7 +1100,7 @@ x_set_icon_type (struct frame *f, Lisp_Object arg, Lisp_Object oldval)
   else if (!STRINGP (oldval) && EQ (oldval, Qnil) == EQ (arg, Qnil))
     return;
 
-  BLOCK_INPUT;
+  block_input ();
   if (NILP (arg))
     result = x_text_icon (f,
 			  SSDATA ((!NILP (f->icon_name)
@@ -1139,12 +1111,12 @@ x_set_icon_type (struct frame *f, Lisp_Object arg, Lisp_Object oldval)
 
   if (result)
     {
-      UNBLOCK_INPUT;
+      unblock_input ();
       error ("No icon window available");
     }
 
   XFlush (FRAME_X_DISPLAY (f));
-  UNBLOCK_INPUT;
+  unblock_input ();
 }
 
 static void
@@ -1160,12 +1132,12 @@ x_set_icon_name (struct frame *f, Lisp_Object arg, Lisp_Object oldval)
   else if (!NILP (arg) || NILP (oldval))
     return;
 
-  f->icon_name = arg;
+  fset_icon_name (f, arg);
 
   if (f->output_data.x->icon_bitmap != 0)
     return;
 
-  BLOCK_INPUT;
+  block_input ();
 
   result = x_text_icon (f,
 			SSDATA ((!NILP (f->icon_name)
@@ -1176,12 +1148,12 @@ x_set_icon_name (struct frame *f, Lisp_Object arg, Lisp_Object oldval)
 
   if (result)
     {
-      UNBLOCK_INPUT;
+      unblock_input ();
       error ("No icon window available");
     }
 
   XFlush (FRAME_X_DISPLAY (f));
-  UNBLOCK_INPUT;
+  unblock_input ();
 }
 
 
@@ -1200,7 +1172,7 @@ x_set_menu_bar_lines (struct frame *f, Lisp_Object value, Lisp_Object oldval)
   if (FRAME_MINIBUF_ONLY_P (f))
     return;
 
-  if (INTEGERP (value))
+  if (TYPE_RANGED_INTEGERP (int, value))
     nlines = XINT (value);
   else
     nlines = 0;
@@ -1215,7 +1187,7 @@ x_set_menu_bar_lines (struct frame *f, Lisp_Object value, Lisp_Object oldval)
       FRAME_EXTERNAL_MENU_BAR (f) = 1;
       if (FRAME_X_P (f) && f->output_data.x->menubar_widget == 0)
 	/* Make sure next redisplay shows the menu bar.  */
-	XWINDOW (FRAME_SELECTED_WINDOW (f))->update_mode_line = Qt;
+	XWINDOW (FRAME_SELECTED_WINDOW (f))->update_mode_line = 1;
     }
   else
     {
@@ -1244,10 +1216,10 @@ x_set_menu_bar_lines (struct frame *f, Lisp_Object value, Lisp_Object oldval)
 	{
 	  y = FRAME_TOP_MARGIN_HEIGHT (f);
 
-	  BLOCK_INPUT;
+	  block_input ();
 	  x_clear_area (FRAME_X_DISPLAY (f), FRAME_X_WINDOW (f),
 			0, y, width, height, False);
-	  UNBLOCK_INPUT;
+	  unblock_input ();
 	}
 
       if (nlines > 1 && nlines > olines)
@@ -1255,10 +1227,10 @@ x_set_menu_bar_lines (struct frame *f, Lisp_Object value, Lisp_Object oldval)
 	  y = (olines == 0 ? 1 : olines) * FRAME_LINE_HEIGHT (f);
 	  height = nlines * FRAME_LINE_HEIGHT (f) - y;
 
-	  BLOCK_INPUT;
+	  block_input ();
 	  x_clear_area (FRAME_X_DISPLAY (f), FRAME_X_WINDOW (f),
 			0, y, width, height, False);
-	  UNBLOCK_INPUT;
+	  unblock_input ();
 	}
 
       if (nlines == 0 && WINDOWP (f->menu_bar_window))
@@ -1286,8 +1258,8 @@ x_set_tool_bar_lines (struct frame *f, Lisp_Object value, Lisp_Object oldval)
   if (FRAME_MINIBUF_ONLY_P (f))
     return;
 
-  /* Use VALUE only if an integer >= 0.  */
-  if (INTEGERP (value) && XINT (value) >= 0)
+  /* Use VALUE only if an int >= 0.  */
+  if (RANGED_INTEGERP (0, value, INT_MAX))
     nlines = XFASTINT (value);
   else
     nlines = 0;
@@ -1299,7 +1271,7 @@ x_set_tool_bar_lines (struct frame *f, Lisp_Object value, Lisp_Object oldval)
       FRAME_EXTERNAL_TOOL_BAR (f) = 1;
       if (FRAME_X_P (f) && f->output_data.x->toolbar_widget == 0)
 	/* Make sure next redisplay shows the tool bar.  */
-	XWINDOW (FRAME_SELECTED_WINDOW (f))->update_mode_line = Qt;
+	XWINDOW (FRAME_SELECTED_WINDOW (f))->update_mode_line = 1;
       update_frame_tool_bar (f);
     }
   else
@@ -1354,10 +1326,10 @@ x_set_tool_bar_lines (struct frame *f, Lisp_Object value, Lisp_Object oldval)
       /* height can be zero here. */
       if (height > 0 && width > 0)
 	{
-          BLOCK_INPUT;
+          block_input ();
           x_clear_area (FRAME_X_DISPLAY (f), FRAME_X_WINDOW (f),
                         0, y, width, height, False);
-          UNBLOCK_INPUT;
+          unblock_input ();
         }
 
       if (WINDOWP (f->tool_bar_window))
@@ -1510,7 +1482,7 @@ x_set_name_internal (FRAME_PTR f, Lisp_Object name)
 {
   if (FRAME_X_WINDOW (f))
     {
-      BLOCK_INPUT;
+      block_input ();
       {
 	XTextProperty text, icon;
 	ptrdiff_t bytes;
@@ -1602,7 +1574,7 @@ x_set_name_internal (FRAME_PTR f, Lisp_Object name)
 	if (do_free_text_value)
 	  xfree (text.value);
       }
-      UNBLOCK_INPUT;
+      unblock_input ();
     }
 }
 
@@ -1651,7 +1623,7 @@ x_set_name (struct frame *f, Lisp_Object name, int explicit)
   if (! NILP (Fstring_equal (name, f->name)))
     return;
 
-  f->name = name;
+  fset_name (f, name);
 
   /* For setting the frame title, the title parameter should override
      the name parameter.  */
@@ -1691,7 +1663,7 @@ x_set_title (struct frame *f, Lisp_Object name, Lisp_Object old_name)
 
   update_mode_lines = 1;
 
-  f->title = name;
+  fset_title (f, name);
 
   if (NILP (name))
     name = f->name;
@@ -1795,7 +1767,7 @@ hack_wm_protocols (FRAME_PTR f, Widget widget)
   int need_focus = 1;
   int need_save = 1;
 
-  BLOCK_INPUT;
+  block_input ();
   {
     Atom type;
     unsigned char *catoms;
@@ -1843,7 +1815,7 @@ hack_wm_protocols (FRAME_PTR f, Widget widget)
 		       XA_ATOM, 32, PropModeAppend,
 		       (unsigned char *) props, count);
   }
-  UNBLOCK_INPUT;
+  unblock_input ();
 }
 #endif
 
@@ -1889,10 +1861,9 @@ xic_create_fontsetname (const char *base_fontname, int motif)
 
   /* Make a fontset name from the base font name.  */
   if (xic_default_fontset == base_fontname)
-    { /* There is no base font name, use the default.  */
-      ptrdiff_t len = strlen (base_fontname) + 2;
-      fontsetname = xmalloc (len);
-      memset (fontsetname, 0, len);
+    {
+      /* There is no base font name, use the default.  */
+      fontsetname = xmalloc (strlen (base_fontname) + 2);
       strcpy (fontsetname, base_fontname);
     }
   else
@@ -1908,13 +1879,12 @@ xic_create_fontsetname (const char *base_fontname, int motif)
       for (i = 0; *p; p++)
 	if (*p == '-') i++;
       if (i != 14)
-	{ /* As the font name doesn't conform to XLFD, we can't
+	{
+	  /* As the font name doesn't conform to XLFD, we can't
 	     modify it to generalize it to allcs and allfamilies.
 	     Use the specified font plus the default.  */
-	  ptrdiff_t len =
-	    strlen (base_fontname) + strlen (xic_default_fontset) + 3;
-	  fontsetname = xmalloc (len);
-	  memset (fontsetname, 0, len);
+	  fontsetname = xmalloc (strlen (base_fontname)
+				 + strlen (xic_default_fontset) + 3);
 	  strcpy (fontsetname, base_fontname);
 	  strcat (fontsetname, sep);
 	  strcat (fontsetname, xic_default_fontset);
@@ -1963,24 +1933,21 @@ xic_create_fontsetname (const char *base_fontname, int motif)
 
 	  /* Build the font spec that matches all charsets.  */
 	  len = p - base_fontname + strlen (allcs) + 1;
-	  font_allcs = (char *) alloca (len);
-	  memset (font_allcs, 0, len);
+	  font_allcs = alloca (len);
 	  memcpy (font_allcs, base_fontname, p - base_fontname);
 	  strcat (font_allcs, allcs);
 
 	  /* Build the font spec that matches all families and
 	     add-styles.  */
 	  len = p - p1 + strlen (allcs) + strlen (allfamilies) + 1;
-	  font_allfamilies = (char *) alloca (len);
-	  memset (font_allfamilies, 0, len);
+	  font_allfamilies = alloca (len);
 	  strcpy (font_allfamilies, allfamilies);
 	  memcpy (font_allfamilies + strlen (allfamilies), p1, p - p1);
 	  strcat (font_allfamilies, allcs);
 
 	  /* Build the font spec that matches all.  */
 	  len = p - p2 + strlen (allcs) + strlen (all) + strlen (allfamilies) + 1;
-	  font_all = (char *) alloca (len);
-	  memset (font_all, 0, len);
+	  font_all = alloca (len);
 	  strcpy (font_all, allfamilies);
 	  strcat (font_all, all);
 	  memcpy (font_all + strlen (all) + strlen (allfamilies), p2, p - p2);
@@ -1990,7 +1957,6 @@ xic_create_fontsetname (const char *base_fontname, int motif)
 	  len = strlen (base_fontname) + strlen (font_allcs)
 	    + strlen (font_allfamilies) + strlen (font_all) + 5;
 	  fontsetname = xmalloc (len);
-	  memset (fontsetname, 0, len);
 	  strcpy (fontsetname, base_fontname);
 	  strcat (fontsetname, sep);
 	  strcat (fontsetname, font_allcs);
@@ -2372,7 +2338,7 @@ x_window (struct frame *f, long window_prompting, int minibuffer_only)
   Arg al [25];
   int ac;
 
-  BLOCK_INPUT;
+  block_input ();
 
   /* Use the resource name as the top-level widget name
      for looking up resources.  Make a non-Lisp copy
@@ -2382,7 +2348,7 @@ x_window (struct frame *f, long window_prompting, int minibuffer_only)
 
   {
     char *str = SSDATA (Vx_resource_name);
-    f->namebuf = (char *) xmalloc (strlen (str) + 1);
+    f->namebuf = xmalloc (strlen (str) + 1);
     strcpy (f->namebuf, str);
   }
 
@@ -2439,7 +2405,6 @@ x_window (struct frame *f, long window_prompting, int minibuffer_only)
 
   /* Do some needed geometry management.  */
   {
-    ptrdiff_t len;
     char *tem, shell_position[sizeof "=x++" + 4 * INT_STRLEN_BOUND (int)];
     Arg gal[10];
     int gac = 0;
@@ -2508,13 +2473,11 @@ x_window (struct frame *f, long window_prompting, int minibuffer_only)
         }
     }
 
-    len = strlen (shell_position) + 1;
     /* We don't free this because we don't know whether
        it is safe to free it while the frame exists.
        It isn't worth the trouble of arranging to free it
        when the frame is deleted.  */
-    tem = (char *) xmalloc (len);
-    strncpy (tem, shell_position, len);
+    tem = xstrdup (shell_position);
     XtSetArg (gal[gac], XtNgeometry, tem); gac++;
     XtSetValues (shell_widget, gal, gac);
   }
@@ -2589,7 +2552,7 @@ x_window (struct frame *f, long window_prompting, int minibuffer_only)
 
     f->explicit_name = 0;
     name = f->name;
-    f->name = Qnil;
+    fset_name (f, Qnil);
     x_set_name (f, name, explicit);
   }
 
@@ -2597,7 +2560,7 @@ x_window (struct frame *f, long window_prompting, int minibuffer_only)
 		 f->output_data.x->current_cursor
                  = f->output_data.x->text_cursor);
 
-  UNBLOCK_INPUT;
+  unblock_input ();
 
   /* This is a no-op, except under Motif.  Make sure main areas are
      set to something reasonable, in case we get an error later.  */
@@ -2616,7 +2579,7 @@ x_window (FRAME_PTR f)
   FRAME_XIC (f) = NULL;
   if (use_xim)
   {
-    BLOCK_INPUT;
+    block_input ();
     create_frame_xic (f);
     if (FRAME_XIC (f))
       {
@@ -2638,7 +2601,7 @@ x_window (FRAME_PTR f)
 				     attribute_mask, &attributes);
 	  }
       }
-    UNBLOCK_INPUT;
+    unblock_input ();
   }
 #endif
 }
@@ -2663,7 +2626,7 @@ x_window (struct frame *f)
   attribute_mask = (CWBackPixel | CWBorderPixel | CWBitGravity | CWEventMask
 		    | CWColormap);
 
-  BLOCK_INPUT;
+  block_input ();
   FRAME_X_WINDOW (f)
     = XCreateWindow (FRAME_X_DISPLAY (f),
 		     f->output_data.x->parent_desc,
@@ -2732,7 +2695,7 @@ x_window (struct frame *f)
 
     f->explicit_name = 0;
     name = f->name;
-    f->name = Qnil;
+    fset_name (f, Qnil);
     x_set_name (f, name, explicit);
   }
 
@@ -2740,7 +2703,7 @@ x_window (struct frame *f)
 		 f->output_data.x->current_cursor
                  = f->output_data.x->text_cursor);
 
-  UNBLOCK_INPUT;
+  unblock_input ();
 
   if (FRAME_X_WINDOW (f) == 0)
     error ("Unable to create window");
@@ -2787,13 +2750,13 @@ x_icon (struct frame *f, Lisp_Object parms)
   icon_y = x_frame_get_and_record_arg (f, parms, Qicon_top, 0, 0, RES_TYPE_NUMBER);
   if (!EQ (icon_x, Qunbound) && !EQ (icon_y, Qunbound))
     {
-      CHECK_NUMBER (icon_x);
-      CHECK_NUMBER (icon_y);
+      CHECK_TYPE_RANGED_INTEGER (int, icon_x);
+      CHECK_TYPE_RANGED_INTEGER (int, icon_y);
     }
   else if (!EQ (icon_x, Qunbound) || !EQ (icon_y, Qunbound))
     error ("Both left and top icon corners of icon must be specified");
 
-  BLOCK_INPUT;
+  block_input ();
 
   if (! EQ (icon_x, Qunbound))
     x_wm_set_icon_position (f, XINT (icon_x), XINT (icon_y));
@@ -2812,7 +2775,7 @@ x_icon (struct frame *f, Lisp_Object parms)
 			   ? f->icon_name
 			   : f->name)));
 
-  UNBLOCK_INPUT;
+  unblock_input ();
 }
 
 /* Make the GCs needed for this window, setting the
@@ -2824,7 +2787,7 @@ x_make_gc (struct frame *f)
 {
   XGCValues gc_values;
 
-  BLOCK_INPUT;
+  block_input ();
 
   /* Create the GCs of this frame.
      Note that many default values are used.  */
@@ -2872,7 +2835,7 @@ x_make_gc (struct frame *f)
 	FRAME_BACKGROUND_PIXEL (f),
 	DefaultDepth (FRAME_X_DISPLAY (f), FRAME_X_SCREEN_NUMBER (f))));
 
-  UNBLOCK_INPUT;
+  unblock_input ();
 }
 
 
@@ -2883,7 +2846,7 @@ x_free_gcs (struct frame *f)
 {
   Display *dpy = FRAME_X_DISPLAY (f);
 
-  BLOCK_INPUT;
+  block_input ();
 
   if (f->output_data.x->normal_gc)
     {
@@ -2909,7 +2872,7 @@ x_free_gcs (struct frame *f)
       f->output_data.x->border_tile = 0;
     }
 
-  UNBLOCK_INPUT;
+  unblock_input ();
 }
 
 
@@ -2931,17 +2894,17 @@ unwind_create_frame (Lisp_Object frame)
   /* If frame is ``official'', nothing to do.  */
   if (NILP (Fmemq (frame, Vframe_list)))
     {
-#if GLYPH_DEBUG && XASSERTS
+#if defined GLYPH_DEBUG && defined ENABLE_CHECKING
       struct x_display_info *dpyinfo = FRAME_X_DISPLAY_INFO (f);
 #endif
 
       x_free_frame_resources (f);
       free_glyphs (f);
 
-#if GLYPH_DEBUG
+#if defined GLYPH_DEBUG && defined ENABLE_CHECKING
       /* Check that reference counts are indeed correct.  */
-      xassert (dpyinfo->reference_count == dpyinfo_refcount);
-      xassert (dpyinfo->terminal->image_cache->refcount == image_cache_refcount);
+      eassert (dpyinfo->reference_count == dpyinfo_refcount);
+      eassert (dpyinfo->terminal->image_cache->refcount == image_cache_refcount);
 #endif
       return Qt;
     }
@@ -2949,6 +2912,12 @@ unwind_create_frame (Lisp_Object frame)
   return Qnil;
 }
 
+static Lisp_Object
+unwind_create_frame_1 (Lisp_Object val)
+{
+  inhibit_lisp_code = val;
+  return Qnil;
+}
 
 static void
 x_default_font_parameter (struct frame *f, Lisp_Object parms)
@@ -2967,11 +2936,7 @@ x_default_font_parameter (struct frame *f, Lisp_Object parms)
          read yet.  */
       const char *system_font = xsettings_get_system_font ();
       if (system_font)
-        {
-          char *name = xstrdup (system_font);
-          font = font_open_by_name (f, name);
-          xfree (name);
-        }
+	font = font_open_by_name (f, build_unibyte_string (system_font));
     }
 
   if (NILP (font))
@@ -3001,7 +2966,7 @@ x_default_font_parameter (struct frame *f, Lisp_Object parms)
 
       for (i = 0; names[i]; i++)
 	{
-	  font = font_open_by_name (f, names[i]);
+	  font = font_open_by_name (f, build_unibyte_string (names[i]));
 	  if (! NILP (font))
 	    break;
 	}
@@ -3023,17 +2988,15 @@ x_default_font_parameter (struct frame *f, Lisp_Object parms)
 DEFUN ("x-wm-set-size-hint", Fx_wm_set_size_hint, Sx_wm_set_size_hint,
        0, 1, 0,
        doc: /* Send the size hints for frame FRAME to the window manager.
-If FRAME is nil, use the selected frame.  */)
+If FRAME is omitted or nil, use the selected frame.
+Signal error if FRAME is not an X frame.  */)
   (Lisp_Object frame)
 {
-  struct frame *f;
-  if (NILP (frame))
-    frame = selected_frame;
-  f = XFRAME (frame);
-  BLOCK_INPUT;
-  if (FRAME_X_P (f))
-    x_wm_set_size_hint (f, 0, 0);
-  UNBLOCK_INPUT;
+  struct frame *f = check_x_frame (frame);
+
+  block_input ();
+  x_wm_set_size_hint (f, 0, 0);
+  unblock_input ();
   return Qnil;
 }
 
@@ -3073,7 +3036,7 @@ This function is an internal primitive--use `make-frame' instead.  */)
   int minibuffer_only = 0;
   long window_prompting = 0;
   int width, height;
-  int count = SPECPDL_INDEX ();
+  ptrdiff_t count = SPECPDL_INDEX ();
   struct gcpro gcpro1, gcpro2, gcpro3, gcpro4;
   Lisp_Object display;
   struct x_display_info *dpyinfo = NULL;
@@ -3134,14 +3097,10 @@ This function is an internal primitive--use `make-frame' instead.  */)
 
   XSETFRAME (frame, f);
 
-  /* Note that X Windows does support scroll bars.  */
-  FRAME_CAN_HAVE_SCROLL_BARS (f) = 1;
-
   f->terminal = dpyinfo->terminal;
 
   f->output_method = output_x_window;
-  f->output_data.x = (struct x_output *) xmalloc (sizeof (struct x_output));
-  memset (f->output_data.x, 0, sizeof (struct x_output));
+  f->output_data.x = xzalloc (sizeof *f->output_data.x);
   f->output_data.x->icon_bitmap = -1;
   FRAME_FONTSET (f) = -1;
   f->output_data.x->scroll_bar_foreground_pixel = -1;
@@ -3151,11 +3110,11 @@ This function is an internal primitive--use `make-frame' instead.  */)
   f->output_data.x->scroll_bar_bottom_shadow_pixel = -1;
 #endif /* USE_TOOLKIT_SCROLL_BARS */
 
-  f->icon_name
-    = x_get_arg (dpyinfo, parms, Qicon_name, "iconName", "Title",
-		 RES_TYPE_STRING);
+  fset_icon_name (f,
+		  x_get_arg (dpyinfo, parms, Qicon_name, "iconName", "Title",
+			     RES_TYPE_STRING));
   if (! STRINGP (f->icon_name))
-    f->icon_name = Qnil;
+    fset_icon_name (f, Qnil);
 
   FRAME_X_DISPLAY_INFO (f) = dpyinfo;
 
@@ -3212,12 +3171,12 @@ This function is an internal primitive--use `make-frame' instead.  */)
      be set.  */
   if (EQ (name, Qunbound) || NILP (name))
     {
-      f->name = build_string (dpyinfo->x_id_name);
+      fset_name (f, build_string (dpyinfo->x_id_name));
       f->explicit_name = 0;
     }
   else
     {
-      f->name = name;
+      fset_name (f, name);
       f->explicit_name = 1;
       /* use the frame's title when getting resources for this frame.  */
       specbind (Qx_resource_name, name);
@@ -3307,7 +3266,7 @@ This function is an internal primitive--use `make-frame' instead.  */)
 					"scrollBarBackground",
 					"ScrollBarBackground", 0);
 
-#if GLYPH_DEBUG
+#ifdef GLYPH_DEBUG
   image_cache_refcount =
     FRAME_IMAGE_CACHE (f) ? FRAME_IMAGE_CACHE (f)->refcount : 0;
   dpyinfo_refcount = dpyinfo->reference_count;
@@ -3321,17 +3280,30 @@ This function is an internal primitive--use `make-frame' instead.  */)
      happen.  */
   init_frame_faces (f);
 
-  /* The X resources controlling the menu-bar and tool-bar are
-     processed specially at startup, and reflected in the mode
-     variables; ignore them here.  */
-  x_default_parameter (f, parms, Qmenu_bar_lines,
-		       NILP (Vmenu_bar_mode)
-		       ? make_number (0) : make_number (1),
-		       NULL, NULL, RES_TYPE_NUMBER);
-  x_default_parameter (f, parms, Qtool_bar_lines,
-		       NILP (Vtool_bar_mode)
-		       ? make_number (0) : make_number (1),
-		       NULL, NULL, RES_TYPE_NUMBER);
+  /* Set the menu-bar-lines and tool-bar-lines parameters.  We don't
+     look up the X resources controlling the menu-bar and tool-bar
+     here; they are processed specially at startup, and reflected in
+     the values of the mode variables.
+
+     Avoid calling window-configuration-change-hook; otherwise we
+     could get an infloop in next_frame since the frame is not yet in
+     Vframe_list.  */
+  {
+    ptrdiff_t count2 = SPECPDL_INDEX ();
+    record_unwind_protect (unwind_create_frame_1, inhibit_lisp_code);
+    inhibit_lisp_code = Qt;
+
+    x_default_parameter (f, parms, Qmenu_bar_lines,
+			 NILP (Vmenu_bar_mode)
+			 ? make_number (0) : make_number (1),
+			 NULL, NULL, RES_TYPE_NUMBER);
+    x_default_parameter (f, parms, Qtool_bar_lines,
+			 NILP (Vtool_bar_mode)
+			 ? make_number (0) : make_number (1),
+			 NULL, NULL, RES_TYPE_NUMBER);
+
+    unbind_to (count2, Qnil);
+  }
 
   x_default_parameter (f, parms, Qbuffer_predicate, Qnil,
 		       "bufferPredicate", "BufferPredicate",
@@ -3416,9 +3388,9 @@ This function is an internal primitive--use `make-frame' instead.  */)
   /* Tell the server what size and position, etc, we want, and how
      badly we want them.  This should be done after we have the menu
      bar so that its size can be taken into account.  */
-  BLOCK_INPUT;
+  block_input ();
   x_wm_set_size_hint (f, window_prompting, 0);
-  UNBLOCK_INPUT;
+  unblock_input ();
 
   /* Make the window appear on the frame and enable display, unless
      the caller says not to.  However, with explicit parent, Emacs
@@ -3442,7 +3414,7 @@ This function is an internal primitive--use `make-frame' instead.  */)
 	}
     }
 
-  BLOCK_INPUT;
+  block_input ();
 
   /* Set machine name and pid for the purpose of window managers.  */
   set_machine_and_pid_properties (f);
@@ -3458,20 +3430,20 @@ This function is an internal primitive--use `make-frame' instead.  */)
                        (unsigned char *) &dpyinfo->client_leader_window, 1);
     }
 
-  UNBLOCK_INPUT;
+  unblock_input ();
 
   /* Initialize `default-minibuffer-frame' in case this is the first
      frame on this terminal.  */
   if (FRAME_HAS_MINIBUF_P (f)
       && (!FRAMEP (KVAR (kb, Vdefault_minibuffer_frame))
           || !FRAME_LIVE_P (XFRAME (KVAR (kb, Vdefault_minibuffer_frame)))))
-    KVAR (kb, Vdefault_minibuffer_frame) = frame;
+    kset_default_minibuffer_frame (kb, frame);
 
   /* All remaining specified parameters, which have not been "used"
      by x_get_arg and friends, now go in the misc. alist of the frame.  */
   for (tem = parms; CONSP (tem); tem = XCDR (tem))
     if (CONSP (XCAR (tem)) && !NILP (XCAR (XCAR (tem))))
-      f->param_alist = Fcons (XCAR (tem), f->param_alist);
+      fset_param_alist (f, Fcons (XCAR (tem), f->param_alist));
 
   UNGCPRO;
 
@@ -3517,13 +3489,25 @@ FRAME nil means use the selected frame.  */)
   struct frame *f = check_x_frame (frame);
   Display *dpy = FRAME_X_DISPLAY (f);
 
-  BLOCK_INPUT;
+  block_input ();
   x_catch_errors (dpy);
-  XSetInputFocus (FRAME_X_DISPLAY (f), FRAME_X_WINDOW (f),
-		  RevertToParent, CurrentTime);
-  x_ewmh_activate_frame (f);
+
+  if (FRAME_X_EMBEDDED_P (f))
+    {
+      /* For Xembedded frames, normally the embedder forwards key
+	 events.  See XEmbed Protocol Specification at
+	 http://freedesktop.org/wiki/Specifications/xembed-spec  */
+      xembed_request_focus (f);
+    }
+  else
+    {
+      XSetInputFocus (FRAME_X_DISPLAY (f), FRAME_X_WINDOW (f),
+		      RevertToParent, CurrentTime);
+      x_ewmh_activate_frame (f);
+    }
+
   x_uncatch_errors ();
-  UNBLOCK_INPUT;
+  unblock_input ();
 
   return Qnil;
 }
@@ -3944,7 +3928,7 @@ select_visual (struct x_display_info *dpyinfo)
       /* VALUE should be of the form CLASS-DEPTH, where CLASS is one
 	 of `PseudoColor', `TrueColor' etc. and DEPTH is the color
 	 depth, a decimal number.  NAME is compared with case ignored.  */
-      char *s = (char *) alloca (SBYTES (value) + 1);
+      char *s = alloca (SBYTES (value) + 1);
       char *dash;
       int i, class = -1;
       XVisualInfo vinfo;
@@ -3992,7 +3976,7 @@ select_visual (struct x_display_info *dpyinfo)
 	fatal ("Can't get proper X visual info");
 
       dpyinfo->n_planes = vinfo->depth;
-      XFree ((char *) vinfo);
+      XFree (vinfo);
     }
 }
 
@@ -4151,9 +4135,9 @@ If TERMINAL is omitted or nil, that stands for the selected frame's display.  */
 void
 x_sync (FRAME_PTR f)
 {
-  BLOCK_INPUT;
+  block_input ();
   XSync (FRAME_X_DISPLAY (f), False);
-  UNBLOCK_INPUT;
+  unblock_input ();
 }
 
 
@@ -4176,9 +4160,10 @@ If TYPE is not given or nil, the type is STRING.
 FORMAT gives the size in bits of each element if VALUE is a list.
 It must be one of 8, 16 or 32.
 If VALUE is a string or FORMAT is nil or not given, FORMAT defaults to 8.
-If OUTER_P is non-nil, the property is changed for the outer X window of
+If OUTER-P is non-nil, the property is changed for the outer X window of
 FRAME.  Default is to change on the edit X window.  */)
-  (Lisp_Object prop, Lisp_Object value, Lisp_Object frame, Lisp_Object type, Lisp_Object format, Lisp_Object outer_p)
+  (Lisp_Object prop, Lisp_Object value, Lisp_Object frame,
+   Lisp_Object type, Lisp_Object format, Lisp_Object outer_p)
 {
   struct frame *f = check_x_frame (frame);
   Atom prop_atom;
@@ -4193,11 +4178,11 @@ FRAME.  Default is to change on the edit X window.  */)
   if (! NILP (format))
     {
       CHECK_NUMBER (format);
-      element_format = XFASTINT (format);
 
-      if (element_format != 8 && element_format != 16
-          && element_format != 32)
+      if (XINT (format) != 8 && XINT (format) != 16
+          && XINT (format) != 32)
         error ("FORMAT must be one of 8, 16 or 32");
+      element_format = XINT (format);
     }
 
   if (CONSP (value))
@@ -4227,7 +4212,7 @@ FRAME.  Default is to change on the edit X window.  */)
       nelements = SBYTES (value);
     }
 
-  BLOCK_INPUT;
+  block_input ();
   prop_atom = XInternAtom (FRAME_X_DISPLAY (f), SSDATA (prop), False);
   if (! NILP (type))
     {
@@ -4246,7 +4231,7 @@ FRAME.  Default is to change on the edit X window.  */)
 
   /* Make sure the property is set when we return.  */
   XFlush (FRAME_X_DISPLAY (f));
-  UNBLOCK_INPUT;
+  unblock_input ();
 
   return value;
 }
@@ -4262,13 +4247,13 @@ FRAME nil or omitted means use the selected frame.  Value is PROP.  */)
   Atom prop_atom;
 
   CHECK_STRING (prop);
-  BLOCK_INPUT;
+  block_input ();
   prop_atom = XInternAtom (FRAME_X_DISPLAY (f), SSDATA (prop), False);
   XDeleteProperty (FRAME_X_DISPLAY (f), FRAME_X_WINDOW (f), prop_atom);
 
   /* Make sure the property is removed when we return.  */
   XFlush (FRAME_X_DISPLAY (f));
-  UNBLOCK_INPUT;
+  unblock_input ();
 
   return prop;
 }
@@ -4279,19 +4264,20 @@ DEFUN ("x-window-property", Fx_window_property, Sx_window_property,
        doc: /* Value is the value of window property PROP on FRAME.
 If FRAME is nil or omitted, use the selected frame.
 
-On MS Windows, this function only accepts the PROP and FRAME arguments.
-
 On X Windows, the following optional arguments are also accepted:
 If TYPE is nil or omitted, get the property as a string.
 Otherwise TYPE is the name of the atom that denotes the type expected.
 If SOURCE is non-nil, get the property on that window instead of from
 FRAME.  The number 0 denotes the root window.
-If DELETE_P is non-nil, delete the property after retrieving it.
-If VECTOR_RET_P is non-nil, don't return a string but a vector of values.
+If DELETE-P is non-nil, delete the property after retrieving it.
+If VECTOR-RET-P is non-nil, don't return a string but a vector of values.
+
+On MS Windows, this function accepts but ignores those optional arguments.
 
 Value is nil if FRAME hasn't a property with name PROP or if PROP has
 no value of TYPE (always string in the MS Windows case).  */)
-  (Lisp_Object prop, Lisp_Object frame, Lisp_Object type, Lisp_Object source, Lisp_Object delete_p, Lisp_Object vector_ret_p)
+  (Lisp_Object prop, Lisp_Object frame, Lisp_Object type,
+   Lisp_Object source, Lisp_Object delete_p, Lisp_Object vector_ret_p)
 {
   struct frame *f = check_x_frame (frame);
   Atom prop_atom;
@@ -4315,7 +4301,7 @@ no value of TYPE (always string in the MS Windows case).  */)
 	target_window = FRAME_X_DISPLAY_INFO (f)->root_window;
     }
 
-  BLOCK_INPUT;
+  block_input ();
   if (STRINGP (type))
     {
       if (strcmp ("AnyPropertyType", SSDATA (type)) == 0)
@@ -4381,7 +4367,7 @@ no value of TYPE (always string in the MS Windows case).  */)
       if (tmp_data) XFree (tmp_data);
     }
 
-  UNBLOCK_INPUT;
+  unblock_input ();
   UNGCPRO;
   return prop_value;
 }
@@ -4412,7 +4398,7 @@ show_hourglass (struct atimer *timer)
     {
       Lisp_Object rest, frame;
 
-      BLOCK_INPUT;
+      block_input ();
 
       FOR_EACH_FRAME (rest, frame)
 	{
@@ -4456,7 +4442,7 @@ show_hourglass (struct atimer *timer)
 	}
 
       hourglass_shown_p = 1;
-      UNBLOCK_INPUT;
+      unblock_input ();
     }
 }
 
@@ -4471,7 +4457,7 @@ hide_hourglass (void)
     {
       Lisp_Object rest, frame;
 
-      BLOCK_INPUT;
+      block_input ();
       FOR_EACH_FRAME (rest, frame)
 	{
 	  struct frame *f = XFRAME (frame);
@@ -4490,7 +4476,7 @@ hide_hourglass (void)
 	}
 
       hourglass_shown_p = 0;
-      UNBLOCK_INPUT;
+      unblock_input ();
     }
 }
 
@@ -4555,7 +4541,7 @@ x_create_tip_frame (struct x_display_info *dpyinfo,
   Lisp_Object frame;
   Lisp_Object name;
   int width, height;
-  int count = SPECPDL_INDEX ();
+  ptrdiff_t count = SPECPDL_INDEX ();
   struct gcpro gcpro1, gcpro2, gcpro3;
   int face_change_count_before = face_change_count;
   Lisp_Object buffer;
@@ -4581,17 +4567,18 @@ x_create_tip_frame (struct x_display_info *dpyinfo,
   XSETFRAME (frame, f);
 
   buffer = Fget_buffer_create (build_string (" *tip*"));
-  Fset_window_buffer (FRAME_ROOT_WINDOW (f), buffer, Qnil);
+  /* Use set_window_buffer instead of Fset_window_buffer (see
+     discussion of bug#11984, bug#12025, bug#12026).  */
+  set_window_buffer (FRAME_ROOT_WINDOW (f), buffer, 0, 0);
   old_buffer = current_buffer;
   set_buffer_internal_1 (XBUFFER (buffer));
-  BVAR (current_buffer, truncate_lines) = Qnil;
+  bset_truncate_lines (current_buffer, Qnil);
   specbind (Qinhibit_read_only, Qt);
   specbind (Qinhibit_modification_hooks, Qt);
   Ferase_buffer ();
   Finsert (1, &text);
   set_buffer_internal_1 (old_buffer);
 
-  FRAME_CAN_HAVE_SCROLL_BARS (f) = 0;
   record_unwind_protect (unwind_create_tip_frame, frame);
 
   f->terminal = dpyinfo->terminal;
@@ -4601,8 +4588,7 @@ x_create_tip_frame (struct x_display_info *dpyinfo,
      from this point on, x_destroy_window might screw up reference
      counts etc.  */
   f->output_method = output_x_window;
-  f->output_data.x = (struct x_output *) xmalloc (sizeof (struct x_output));
-  memset (f->output_data.x, 0, sizeof (struct x_output));
+  f->output_data.x = xzalloc (sizeof *f->output_data.x);
   f->output_data.x->icon_bitmap = -1;
   FRAME_FONTSET (f) = -1;
   f->output_data.x->scroll_bar_foreground_pixel = -1;
@@ -4611,7 +4597,7 @@ x_create_tip_frame (struct x_display_info *dpyinfo,
   f->output_data.x->scroll_bar_top_shadow_pixel = -1;
   f->output_data.x->scroll_bar_bottom_shadow_pixel = -1;
 #endif /* USE_TOOLKIT_SCROLL_BARS */
-  f->icon_name = Qnil;
+  fset_icon_name (f, Qnil);
   FRAME_X_DISPLAY_INFO (f) = dpyinfo;
   f->output_data.x->parent_desc = FRAME_X_DISPLAY_INFO (f)->root_window;
   f->output_data.x->explicit_parent = 0;
@@ -4653,12 +4639,12 @@ x_create_tip_frame (struct x_display_info *dpyinfo,
      be set.  */
   if (EQ (name, Qunbound) || NILP (name))
     {
-      f->name = build_string (dpyinfo->x_id_name);
+      fset_name (f, build_string (dpyinfo->x_id_name));
       f->explicit_name = 0;
     }
   else
     {
-      f->name = name;
+      fset_name (f, name);
       f->explicit_name = 1;
       /* use the frame's title when getting resources for this frame.  */
       specbind (Qx_resource_name, name);
@@ -4716,7 +4702,7 @@ x_create_tip_frame (struct x_display_info *dpyinfo,
   x_default_parameter (f, parms, Qborder_color, build_string ("black"),
 		       "borderColor", "BorderColor", RES_TYPE_STRING);
 
-#if GLYPH_DEBUG
+#ifdef GLYPH_DEBUG
   image_cache_refcount =
     FRAME_IMAGE_CACHE (f) ? FRAME_IMAGE_CACHE (f)->refcount : 0;
   dpyinfo_refcount = dpyinfo->reference_count;
@@ -4739,7 +4725,7 @@ x_create_tip_frame (struct x_display_info *dpyinfo,
     unsigned long mask;
     Atom type = FRAME_X_DISPLAY_INFO (f)->Xatom_net_window_type_tooltip;
 
-    BLOCK_INPUT;
+    block_input ();
     mask = CWBackPixel | CWOverrideRedirect | CWEventMask;
     if (DoesSaveUnders (dpyinfo->screen))
       mask |= CWSaveUnder;
@@ -4766,7 +4752,7 @@ x_create_tip_frame (struct x_display_info *dpyinfo,
                      FRAME_X_DISPLAY_INFO (f)->Xatom_net_window_type,
                      XA_ATOM, 32, PropModeReplace,
                      (unsigned char *)&type, 1);
-    UNBLOCK_INPUT;
+    unblock_input ();
   }
 
   x_make_gc (f);
@@ -4880,10 +4866,10 @@ compute_tip_xy (struct frame *f, Lisp_Object parms, Lisp_Object dx, Lisp_Object 
      show it.  */
   if (!INTEGERP (left) || !INTEGERP (top))
     {
-      BLOCK_INPUT;
+      block_input ();
       XQueryPointer (FRAME_X_DISPLAY (f), FRAME_X_DISPLAY_INFO (f)->root_window,
 		     &root, &child, root_x, root_y, &win_x, &win_y, &pmask);
-      UNBLOCK_INPUT;
+      unblock_input ();
     }
 
   if (INTEGERP (top))
@@ -4952,7 +4938,7 @@ Text larger than the specified size is clipped.  */)
   int i, width, height, seen_reversed_p;
   struct gcpro gcpro1, gcpro2, gcpro3, gcpro4;
   int old_windows_or_buffers_changed = windows_or_buffers_changed;
-  int count = SPECPDL_INDEX ();
+  ptrdiff_t count = SPECPDL_INDEX ();
 
   specbind (Qinhibit_redisplay, Qt);
 
@@ -4981,20 +4967,21 @@ Text larger than the specified size is clipped.  */)
 #ifdef USE_GTK
   if (x_gtk_use_system_tooltips)
     {
-      int ok;
+      bool ok;
 
       /* Hide a previous tip, if any.  */
       Fx_hide_tip ();
 
-      BLOCK_INPUT;
-      if ((ok = xg_prepare_tooltip (f, string, &width, &height)) != 0)
+      block_input ();
+      ok = xg_prepare_tooltip (f, string, &width, &height);
+      if (ok)
         {
 	  compute_tip_xy (f, parms, dx, dy, width, height, &root_x, &root_y);
           xg_show_tooltip (f, root_x, root_y);
           /* This is used in Fx_hide_tip.  */
           XSETFRAME (tip_frame, f);
         }
-      UNBLOCK_INPUT;
+      unblock_input ();
       if (ok) goto start_timer;
     }
 #endif /* USE_GTK */
@@ -5022,12 +5009,12 @@ Text larger than the specified size is clipped.  */)
 	      call1 (Qcancel_timer, timer);
 	    }
 
-	  BLOCK_INPUT;
+	  block_input ();
 	  compute_tip_xy (tip_f, parms, dx, dy, FRAME_PIXEL_WIDTH (tip_f),
 			  FRAME_PIXEL_HEIGHT (tip_f), &root_x, &root_y);
 	  XMoveWindow (FRAME_X_DISPLAY (tip_f), FRAME_X_WINDOW (tip_f),
 		       root_x, root_y);
-	  UNBLOCK_INPUT;
+	  unblock_input ();
 	  goto start_timer;
 	}
     }
@@ -5059,21 +5046,20 @@ Text larger than the specified size is clipped.  */)
 
   /* Set up the frame's root window.  */
   w = XWINDOW (FRAME_ROOT_WINDOW (f));
-  w->left_col = w->top_line = make_number (0);
+  wset_left_col (w, make_number (0));
+  wset_top_line (w, make_number (0));
 
   if (CONSP (Vx_max_tooltip_size)
-      && INTEGERP (XCAR (Vx_max_tooltip_size))
-      && XINT (XCAR (Vx_max_tooltip_size)) > 0
-      && INTEGERP (XCDR (Vx_max_tooltip_size))
-      && XINT (XCDR (Vx_max_tooltip_size)) > 0)
+      && RANGED_INTEGERP (1, XCAR (Vx_max_tooltip_size), INT_MAX)
+      && RANGED_INTEGERP (1, XCDR (Vx_max_tooltip_size), INT_MAX))
     {
-      w->total_cols = XCAR (Vx_max_tooltip_size);
-      w->total_lines = XCDR (Vx_max_tooltip_size);
+      wset_total_cols (w, XCAR (Vx_max_tooltip_size));
+      wset_total_lines (w, XCDR (Vx_max_tooltip_size));
     }
   else
     {
-      w->total_cols = make_number (80);
-      w->total_lines = make_number (40);
+      wset_total_cols (w, make_number (80));
+      wset_total_lines (w, make_number (40));
     }
 
   FRAME_TOTAL_COLS (f) = XINT (w->total_cols);
@@ -5083,7 +5069,7 @@ Text larger than the specified size is clipped.  */)
   /* Display the tooltip text in a temporary buffer.  */
   old_buffer = current_buffer;
   set_buffer_internal_1 (XBUFFER (XWINDOW (FRAME_ROOT_WINDOW (f))->buffer));
-  BVAR (current_buffer, truncate_lines) = Qnil;
+  bset_truncate_lines (current_buffer, Qnil);
   clear_glyph_matrix (w->desired_matrix);
   clear_glyph_matrix (w->current_matrix);
   SET_TEXT_POS (pos, BEGV, BEGV_BYTE);
@@ -5143,7 +5129,7 @@ Text larger than the specified size is clipped.  */)
       /* w->total_cols and FRAME_TOTAL_COLS want the width in columns,
 	 not in pixels.  */
       width /= WINDOW_FRAME_COLUMN_WIDTH (w);
-      w->total_cols = make_number (width);
+      wset_total_cols (w, make_number (width));
       FRAME_TOTAL_COLS (f) = width;
       adjust_glyphs (f);
       clear_glyph_matrix (w->desired_matrix);
@@ -5182,11 +5168,11 @@ Text larger than the specified size is clipped.  */)
      show it.  */
   compute_tip_xy (f, parms, dx, dy, width, height, &root_x, &root_y);
 
-  BLOCK_INPUT;
+  block_input ();
   XMoveResizeWindow (FRAME_X_DISPLAY (f), FRAME_X_WINDOW (f),
 		     root_x, root_y, width, height);
   XMapRaised (FRAME_X_DISPLAY (f), FRAME_X_WINDOW (f));
-  UNBLOCK_INPUT;
+  unblock_input ();
 
   /* Draw into the window.  */
   w->must_be_updated_p = 1;
@@ -5211,7 +5197,7 @@ DEFUN ("x-hide-tip", Fx_hide_tip, Sx_hide_tip, 0, 0, 0,
 Value is t if tooltip was open, nil otherwise.  */)
   (void)
 {
-  int count;
+  ptrdiff_t count;
   Lisp_Object deleted, frame, timer;
   struct gcpro gcpro1, gcpro2;
 
@@ -5258,9 +5244,9 @@ Value is t if tooltip was open, nil otherwise.  */)
 	if (!DoesSaveUnders (FRAME_X_DISPLAY_INFO (f)->screen)
 	    && w != NULL)
 	  {
-	    BLOCK_INPUT;
+	    block_input ();
 	    xlwmenu_redisplay (w);
-	    UNBLOCK_INPUT;
+	    unblock_input ();
 	  }
       }
 #endif /* USE_LUCID */
@@ -5324,11 +5310,11 @@ clean_up_file_dialog (Lisp_Object arg)
   Widget dialog = (Widget) p->pointer;
 
   /* Clean up.  */
-  BLOCK_INPUT;
+  block_input ();
   XtUnmanageChild (dialog);
   XtDestroyWidget (dialog);
   x_menu_set_in_use (0);
-  UNBLOCK_INPUT;
+  unblock_input ();
 
   return Qnil;
 }
@@ -5340,7 +5326,7 @@ Use a file selection dialog.  Select DEFAULT-FILENAME in the dialog's file
 selection box, if specified.  If MUSTMATCH is non-nil, the returned file
 or directory must exist.
 
-This function is only defined on MS Windows, and X Windows with the
+This function is only defined on NS, MS Windows, and X Windows with the
 Motif or Gtk toolkits.  With the Motif toolkit, ONLY-DIR-P is ignored.
 Otherwise, if ONLY-DIR-P is non-nil, the user can only select directories.  */)
   (Lisp_Object prompt, Lisp_Object dir, Lisp_Object default_filename, Lisp_Object mustmatch, Lisp_Object only_dir_p)
@@ -5353,7 +5339,7 @@ Otherwise, if ONLY-DIR-P is non-nil, the user can only select directories.  */)
   Arg al[10];
   int ac = 0;
   XmString dir_xmstring, pattern_xmstring;
-  int count = SPECPDL_INDEX ();
+  ptrdiff_t count = SPECPDL_INDEX ();
   struct gcpro gcpro1, gcpro2, gcpro3, gcpro4, gcpro5, gcpro6;
 
   check_x ();
@@ -5369,12 +5355,12 @@ Otherwise, if ONLY-DIR-P is non-nil, the user can only select directories.  */)
   /* Prevent redisplay.  */
   specbind (Qinhibit_redisplay, Qt);
 
-  BLOCK_INPUT;
+  block_input ();
 
   /* Create the dialog with PROMPT as title, using DIR as initial
      directory and using "*" as pattern.  */
   dir = Fexpand_file_name (dir, Qnil);
-  dir_xmstring = XmStringCreateLocalized (SDATA (dir));
+  dir_xmstring = XmStringCreateLocalized (SSDATA (dir));
   pattern_xmstring = XmStringCreateLocalized ("*");
 
   XtSetArg (al[ac], XmNtitle, SDATA (prompt)); ++ac;
@@ -5427,12 +5413,12 @@ Otherwise, if ONLY-DIR-P is non-nil, the user can only select directories.  */)
 
       XmTextPosition last_pos = XmTextFieldGetLastPosition (wtext);
       XmTextFieldReplace (wtext, 0, last_pos,
-                          (SDATA (Ffile_name_nondirectory (default_filename))));
+                          (SSDATA (Ffile_name_nondirectory (default_filename))));
 
       /* Select DEFAULT_FILENAME in the files list box.  DEFAULT_FILENAME
          must include the path for this to work.  */
 
-      default_xmstring = XmStringCreateLocalized (SDATA (default_filename));
+      default_xmstring = XmStringCreateLocalized (SSDATA (default_filename));
 
       if (XmListItemExists (list, default_xmstring))
         {
@@ -5483,7 +5469,7 @@ Otherwise, if ONLY-DIR-P is non-nil, the user can only select directories.  */)
   else
     file = Qnil;
 
-  UNBLOCK_INPUT;
+  unblock_input ();
   UNGCPRO;
 
   /* Make "Cancel" equivalent to C-g.  */
@@ -5513,7 +5499,7 @@ Use a file selection dialog.  Select DEFAULT-FILENAME in the dialog's file
 selection box, if specified.  If MUSTMATCH is non-nil, the returned file
 or directory must exist.
 
-This function is only defined on MS Windows, and X Windows with the
+This function is only defined on NS, MS Windows, and X Windows with the
 Motif or Gtk toolkits.  With the Motif toolkit, ONLY-DIR-P is ignored.
 Otherwise, if ONLY-DIR-P is non-nil, the user can only select directories.  */)
   (Lisp_Object prompt, Lisp_Object dir, Lisp_Object default_filename, Lisp_Object mustmatch, Lisp_Object only_dir_p)
@@ -5522,7 +5508,7 @@ Otherwise, if ONLY-DIR-P is non-nil, the user can only select directories.  */)
   char *fn;
   Lisp_Object file = Qnil;
   Lisp_Object decoded_file;
-  int count = SPECPDL_INDEX ();
+  ptrdiff_t count = SPECPDL_INDEX ();
   struct gcpro gcpro1, gcpro2, gcpro3, gcpro4, gcpro5, gcpro6;
   char *cdef_file;
 
@@ -5540,7 +5526,7 @@ Otherwise, if ONLY-DIR-P is non-nil, the user can only select directories.  */)
   specbind (Qinhibit_redisplay, Qt);
   record_unwind_protect (clean_up_dialog, Qnil);
 
-  BLOCK_INPUT;
+  block_input ();
 
   if (STRINGP (default_filename))
     cdef_file = SSDATA (default_filename);
@@ -5557,7 +5543,7 @@ Otherwise, if ONLY-DIR-P is non-nil, the user can only select directories.  */)
       xfree (fn);
     }
 
-  UNBLOCK_INPUT;
+  unblock_input ();
   UNGCPRO;
 
   /* Make "Cancel" equivalent to C-g.  */
@@ -5573,19 +5559,20 @@ Otherwise, if ONLY-DIR-P is non-nil, the user can only select directories.  */)
 #ifdef HAVE_FREETYPE
 
 DEFUN ("x-select-font", Fx_select_font, Sx_select_font, 0, 2, 0,
-       doc: /* Read a font name using a GTK font selection dialog.
-Return a GTK-style font string corresponding to the selection.
+       doc: /* Read a font using a GTK dialog.
+Return either a font spec (for GTK versions >= 3.2) or a string
+containing a GTK-style font name.
 
-If FRAME is omitted or nil, it defaults to the selected frame. */)
+FRAME is the frame on which to pop up the font chooser.  If omitted or
+nil, it defaults to the selected frame. */)
   (Lisp_Object frame, Lisp_Object ignored)
 {
   FRAME_PTR f = check_x_frame (frame);
-  char *name;
   Lisp_Object font;
   Lisp_Object font_param;
   char *default_name = NULL;
   struct gcpro gcpro1, gcpro2;
-  int count = SPECPDL_INDEX ();
+  ptrdiff_t count = SPECPDL_INDEX ();
 
   check_x ();
 
@@ -5596,7 +5583,7 @@ If FRAME is omitted or nil, it defaults to the selected frame. */)
   specbind (Qinhibit_redisplay, Qt);
   record_unwind_protect (clean_up_dialog, Qnil);
 
-  BLOCK_INPUT;
+  block_input ();
 
   GCPRO2 (font_param, font);
 
@@ -5611,33 +5598,10 @@ If FRAME is omitted or nil, it defaults to the selected frame. */)
         default_name = xstrdup (SSDATA (font_param));
     }
 
-  if (default_name == NULL && x_last_font_name != NULL)
-    default_name = xstrdup (x_last_font_name);
-
-  /* Convert fontconfig names to Gtk names, i.e. remove - before number */
-  if (default_name)
-    {
-      char *p = strrchr (default_name, '-');
-      if (p)
-        {
-          char *ep = p+1;
-          while (isdigit (*ep))
-            ++ep;
-          if (*ep == '\0') *p = ' ';
-        }
-    }
-
-  name = xg_get_font_name (f, default_name);
+  font = xg_get_font (f, default_name);
   xfree (default_name);
 
-  if (name)
-    {
-      font = build_string (name);
-      g_free (x_last_font_name);
-      x_last_font_name = name;
-    }
-
-  UNBLOCK_INPUT;
+  unblock_input ();
 
   if (NILP (font))
     Fsignal (Qquit, Qnil);
@@ -5674,14 +5638,14 @@ present and mapped to the usual X keysyms.  */)
   Lisp_Object have_keys;
   int major, minor, op, event, error_code;
 
-  BLOCK_INPUT;
+  block_input ();
 
   /* Check library version in case we're dynamically linked.  */
   major = XkbMajorVersion;
   minor = XkbMinorVersion;
   if (!XkbLibraryVersion (&major, &minor))
     {
-      UNBLOCK_INPUT;
+      unblock_input ();
       return Qlambda;
     }
 
@@ -5690,7 +5654,7 @@ present and mapped to the usual X keysyms.  */)
   minor = XkbMinorVersion;
   if (!XkbQueryExtension (dpy, &op, &event, &error_code, &major, &minor))
     {
-      UNBLOCK_INPUT;
+      unblock_input ();
       return Qlambda;
     }
 
@@ -5743,7 +5707,7 @@ present and mapped to the usual X keysyms.  */)
 	  && XKeysymToKeycode (dpy, XK_BackSpace) == backspace_keycode)
 	have_keys = Qt;
     }
-  UNBLOCK_INPUT;
+  unblock_input ();
   return have_keys;
 #else /* not HAVE_XKBGETKEYBOARD */
   return Qlambda;
@@ -5805,7 +5769,6 @@ syms_of_xfns (void)
   /* The section below is built by the lisp expression at the top of the file,
      just above where these variables are declared.  */
   /*&&& init symbols here &&&*/
-  DEFSYM (Qnone, "none");
   DEFSYM (Qsuppress_icon, "suppress-icon");
   DEFSYM (Qundefined_color, "undefined-color");
   DEFSYM (Qcompound_text, "compound-text");
@@ -5814,9 +5777,9 @@ syms_of_xfns (void)
   /* This is the end of symbol initialization.  */
 
   Fput (Qundefined_color, Qerror_conditions,
-	pure_cons (Qundefined_color, pure_cons (Qerror, Qnil)));
+	listn (CONSTYPE_PURE, 2, Qundefined_color, Qerror));
   Fput (Qundefined_color, Qerror_message,
-	make_pure_c_string ("Undefined color"));
+	build_pure_c_string ("Undefined color"));
 
   DEFVAR_LISP ("x-pointer-shape", Vx_pointer_shape,
     doc: /* The shape of the pointer when over text.
@@ -5889,32 +5852,32 @@ Chinese, Japanese, and Korean.  */);
 
 /* This is not ifdef:ed, so other builds than GTK can customize it.  */
   DEFVAR_BOOL ("x-gtk-use-old-file-dialog", x_gtk_use_old_file_dialog,
-    doc: /* *Non-nil means prompt with the old GTK file selection dialog.
+    doc: /* Non-nil means prompt with the old GTK file selection dialog.
 If nil or if the file selection dialog is not available, the new GTK file
 chooser is used instead.  To turn off all file dialogs set the
 variable `use-file-dialog'.  */);
   x_gtk_use_old_file_dialog = 0;
 
   DEFVAR_BOOL ("x-gtk-show-hidden-files", x_gtk_show_hidden_files,
-    doc: /* *If non-nil, the GTK file chooser will by default show hidden files.
+    doc: /* If non-nil, the GTK file chooser will by default show hidden files.
 Note that this is just the default, there is a toggle button on the file
 chooser to show or not show hidden files on a case by case basis.  */);
   x_gtk_show_hidden_files = 0;
 
   DEFVAR_BOOL ("x-gtk-file-dialog-help-text", x_gtk_file_dialog_help_text,
-    doc: /* *If non-nil, the GTK file chooser will show additional help text.
+    doc: /* If non-nil, the GTK file chooser will show additional help text.
 If more space for files in the file chooser dialog is wanted, set this to nil
 to turn the additional text off.  */);
   x_gtk_file_dialog_help_text = 1;
 
   DEFVAR_BOOL ("x-gtk-whole-detached-tool-bar", x_gtk_whole_detached_tool_bar,
-    doc: /* *If non-nil, a detached tool bar is shown in full.
+    doc: /* If non-nil, a detached tool bar is shown in full.
 The default is to just show an arrow and pressing on that arrow shows
 the tool bar buttons.  */);
   x_gtk_whole_detached_tool_bar = 0;
 
   DEFVAR_BOOL ("x-gtk-use-system-tooltips", x_gtk_use_system_tooltips,
-    doc: /* *If non-nil with a Gtk+ built Emacs, the Gtk+ tooltip is used.
+    doc: /* If non-nil with a Gtk+ built Emacs, the Gtk+ tooltip is used.
 Otherwise use Emacs own tooltip implementation.
 When using Gtk+ tooltips, the tooltip face is not used.  */);
   x_gtk_use_system_tooltips = 1;
@@ -5944,10 +5907,10 @@ When using Gtk+ tooltips, the tooltip face is not used.  */);
   DEFVAR_LISP ("gtk-version-string", Vgtk_version_string,
                doc: /* Version info for GTK+.  */);
   {
-    char gtk_version[40];
-    g_snprintf (gtk_version, sizeof (gtk_version), "%u.%u.%u",
-                GTK_MAJOR_VERSION, GTK_MINOR_VERSION, GTK_MICRO_VERSION);
-    Vgtk_version_string = make_pure_string (gtk_version, strlen (gtk_version), strlen (gtk_version), 0);
+    char gtk_version[sizeof ".." + 3 * INT_STRLEN_BOUND (int)];
+    int len = sprintf (gtk_version, "%d.%d.%d",
+		       GTK_MAJOR_VERSION, GTK_MINOR_VERSION, GTK_MICRO_VERSION);
+    Vgtk_version_string = make_pure_string (gtk_version, len, len, 0);
   }
 #endif /* USE_GTK */
 
@@ -6002,7 +5965,6 @@ When using Gtk+ tooltips, the tooltip face is not used.  */);
 
 #if defined (USE_GTK) && defined (HAVE_FREETYPE)
   defsubr (&Sx_select_font);
-  x_last_font_name = NULL;
 #endif
 }
 

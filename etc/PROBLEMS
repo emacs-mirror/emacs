@@ -1,6 +1,6 @@
 Known Problems with GNU Emacs
 
-Copyright (C) 1987-1989, 1993-1999, 2001-2011
+Copyright (C) 1987-1989, 1993-1999, 2001-2012
   Free Software Foundation, Inc.
 See the end of the file for license conditions.
 
@@ -255,6 +255,36 @@ result in an endless loop.
 If you need Emacs to be able to recover from closing displays, compile
 it with the Lucid toolkit instead of GTK.
 
+** Emacs crashes when you try to view a file with complex characters.
+For example, the etc/HELLO file (as shown by C-h h).
+The message "symbol lookup error: /usr/bin/emacs: undefined symbol: OTF_open"
+is shown in the terminal from which you launched Emacs.
+This problem only happens when you use a graphical display (ie not
+with -nw) and compiled Emacs with the "libotf" library for complex
+text handling.
+
+This problem occurs because unfortunately there are two libraries
+called "libotf".  One is the library for handling OpenType fonts,
+http://www.m17n.org/libotf/, which is the one that Emacs expects.
+The other is a library for Open Trace Format, and is used by some
+versions of the MPI message passing interface for parallel
+programming.
+
+For example, on RHEL6 GNU/Linux, the OpenMPI rpm provides a version
+of "libotf.so" in /usr/lib/openmpi/lib.  This directory is not
+normally in the ld search path, but if you want to use OpenMPI,
+you must issue the command "module load openmpi".  This adds
+/usr/lib/openmpi/lib to LD_LIBRARY_PATH.  If you then start Emacs from
+the same shell, you will encounter this crash.
+Ref: <URL:https://bugzilla.redhat.com/show_bug.cgi?id=806031>
+
+There is no good solution to this problem if you need to use both
+OpenMPI and Emacs with libotf support.  The best you can do is use a
+wrapper shell script (or function) "emacs" that removes the offending
+element from LD_LIBRARY_PATH before starting emacs proper.
+Or you could recompile Emacs with an -Wl,-rpath option that
+gives the location of the correct libotf.
+
 * General runtime problems
 
 ** Lisp problems
@@ -301,6 +331,12 @@ Help mode due to setting `temp-buffer-show-hook' rather than using
 'help-mode-maybe)' after loading Hyperbole should fix this.
 
 ** Keyboard problems
+
+*** Unable to enter the M-| key on some German keyboards.
+Some users have reported that M-| suffers from "keyboard ghosting".
+This can't be fixed by Emacs, as the keypress never gets passed to it
+at all (as can be verified using "xev").  You can work around this by
+typing `ESC |' instead.
 
 *** "Compose Character" key does strange things when used as a Meta key.
 
@@ -352,7 +388,7 @@ There are two different protocols in general use.  One of them uses
 the `flock' system call.  The other involves creating a lock file;
 `movemail' must be able to write in /usr/spool/mail in order to do
 this.  You control which one is used by defining, or not defining,
-the macro MAIL_USE_FLOCK in config.h or the m- or s- file it includes.
+the macro MAIL_USE_FLOCK in config.h.
 IF YOU DON'T USE THE FORM OF INTERLOCKING THAT IS NORMAL ON YOUR
 SYSTEM, YOU CAN LOSE MAIL!
 
@@ -407,8 +443,8 @@ Thus, you could start by adding this to config.h:
 #define LIBS_SYSTEM -lresolv
 
 Then if this gives you an error for redefining a macro, and you see that
-the s- file defines LIBS_SYSTEM as -lfoo -lbar, you could change config.h
-again to say this:
+config.h already defines LIBS_SYSTEM as -lfoo -lbar at some other point
+(possibly in an included file) you could change it to say this:
 
 #define LIBS_SYSTEM -lresolv -lfoo -lbar
 
@@ -1357,6 +1393,28 @@ single copies.  You do not need any other drivers or options.
             Option	"Device"           "/dev/input/mice"
     EndSection
 
+*** Emacs is slow to exit in X
+
+After you use e.g. C-x C-c to exit, it takes many seconds before the
+Emacs window disappears.  If Emacs was started from a terminal, you
+see the message:
+
+  Error saving to X clipboard manager.
+  If the problem persists, set `x-select-enable-clipboard-manager' to nil.
+
+As the message suggests, this problem occurs when Emacs thinks you
+have a clipboard manager program running, but has trouble contacting it.
+If you don't want to use a clipboard manager, you can set the
+suggested variable.  Or you can make Emacs not wait so long by
+reducing the value of `x-selection-timeout', either in .emacs or with
+X resources.
+
+Sometimes this problem is due to a bug in your clipboard manager.
+Updating to the latest version of the manager can help.
+For example, in the Xfce 4.8 desktop environment, the clipboard
+manager in versions of xfce4-settings-helper before 4.8.2 is buggy;
+https://bugzilla.xfce.org/show_bug.cgi?id=7588 .
+
 * Runtime problems on character terminals
 
 ** The meta key does not work on xterm.
@@ -1651,6 +1709,23 @@ recommended way of turning on Font-lock is by typing "M-x
 global-font-lock-mode RET" or by customizing the variable
 `global-font-lock-mode'.
 
+** Unexpected characters inserted into the buffer when you start Emacs.
+See eg http://debbugs.gnu.org/11129
+
+This can happen when you start Emacs in -nw mode in an Xterm.
+For example, in the *scratch* buffer, you might see something like:
+
+  0;276;0c
+
+This is more likely to happen if you are using Emacs over a slow
+connection, and begin typing before Emacs is ready to respond.
+
+This occurs when Emacs tries to query the terminal to see what
+capabilities it supports, and gets confused by the answer.
+To avoid it, set xterm-extra-capabilities to a value other than
+`check' (the default).  See that variable's documentation (in
+term/xterm.el) for more details.
+
 * Runtime problems specific to individual Unix variants
 
 ** GNU/Linux
@@ -1809,8 +1884,8 @@ Emacs uses symbolic links to implement file locks.  In a directory
 with +t bit, the directory owner becomes the owner of the symbolic
 link, so that it cannot be removed by anyone else.
 
-If you don't like those useless links, you can let Emacs not to using
-file lock by adding #undef CLASH_DETECTION to config.h.
+If you don't like those useless links, you can customize
+the option `create-lockfiles'.
 
 *** FreeBSD: Getting a Meta key on the console.
 
@@ -2213,10 +2288,10 @@ printer drivers. A workaround on MS-Windows is to use Windows' basic
 built in editor to print (this is possibly the only useful purpose it
 has):
 
-(setq printer-name "")         ;; notepad takes the default
-(setq lpr-command "notepad")   ;; notepad
-(setq lpr-switches nil)        ;; not needed
-(setq lpr-printer-switch "/P") ;; run notepad as batch printer
+(setq printer-name "")         ; notepad takes the default
+(setq lpr-command "notepad")   ; notepad
+(setq lpr-switches nil)        ; not needed
+(setq lpr-printer-switch "/P") ; run notepad as batch printer
 
 ** Antivirus software interacts badly with the MS-Windows version of Emacs.
 
@@ -2733,18 +2808,10 @@ build Emacs in a directory on a local disk.
 
 *** The dumped Emacs crashes when run, trying to write pure data.
 
-Two causes have been seen for such problems.
-
-1) On a system where getpagesize is not a system call, it is defined
+On a system where getpagesize is not a system call, it is defined
 as a macro.  If the definition (in both unex*.c and malloc.c) is wrong,
 it can cause problems like this.  You might be able to find the correct
 value in the man page for a.out (5).
-
-2) Some systems allocate variables declared static among the
-initialized variables.  Emacs makes all initialized variables in most
-of its files pure after dumping, but the variables declared static and
-not initialized are not supposed to be pure.  On these systems you
-may need to add "#define static" to the m- or the s- file.
 
 * Runtime problems on legacy systems
 
@@ -2836,10 +2903,6 @@ should do.
 
 pen@lysator.liu.se says (Feb 1998) that the Compose key does work
 if you link with the MIT X11 libraries instead of the Solaris X11 libraries.
-
-*** HP/UX 10: Large file support is disabled.
-(HP/UX 10 was end-of-lifed in May 1999.)
-See the comments in src/s/hpux10-20.h.
 
 *** HP/UX: Emacs is slow using X11R5.
 
@@ -3167,50 +3230,6 @@ putting the argument into a temporary variable first, as in
 causes the problem to go away.
 The `contents' field of a Lisp vector is an array of Lisp_Objects,
 so you may see the problem happening with indexed references to that.
-
-** 68000 C compiler problems
-
-Various 68000 compilers have different problems.
-These are some that have been observed.
-
-*** Using value of assignment expression on union type loses.
-This means that  x = y = z;  or  foo (x = z);  does not work
-if x is of type Lisp_Object.
-
-*** "cannot reclaim" error.
-
-This means that an expression is too complicated.  You get the correct
-line number in the error message.  The code must be rewritten with
-simpler expressions.
-
-*** XCONS, XSTRING, etc macros produce incorrect code.
-
-If temacs fails to run at all, this may be the cause.
-Compile this test program and look at the assembler code:
-
-struct foo { char x; unsigned int y : 24; };
-
-lose (arg)
-     struct foo arg;
-{
-  test ((int *) arg.y);
-}
-
-If the code is incorrect, your compiler has this problem.
-In the XCONS, etc., macros in lisp.h you must replace (a).u.val with
-((a).u.val + coercedummy) where coercedummy is declared as int.
-
-This problem will only happen if USE_LISP_UNION_TYPE is manually
-defined in lisp.h.
-
-** C compilers lose on returning unions.
-
-I hear that some C compilers cannot handle returning a union type.
-Most of the functions in GNU Emacs return type Lisp_Object, which is
-defined as a union on some rare architectures.
-
-This problem will only happen if USE_LISP_UNION_TYPE is manually
-defined in lisp.h.
 
 
 This file is part of GNU Emacs.

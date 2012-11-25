@@ -1,6 +1,6 @@
 ;;; url-misc.el --- Misc Uniform Resource Locator retrieval code
 
-;; Copyright (C) 1996-1999, 2002, 2004-2011 Free Software Foundation, Inc.
+;; Copyright (C) 1996-1999, 2002, 2004-2012 Free Software Foundation, Inc.
 
 ;; Keywords: comm, data, processes
 
@@ -21,7 +21,6 @@
 
 ;;; Code:
 
-(eval-when-compile (require 'cl))
 (require 'url-vars)
 (require 'url-parse)
 (autoload 'Info-goto-node "info" "" t)
@@ -47,23 +46,23 @@
 (defun url-do-terminal-emulator (type server port user)
   (terminal-emulator
    (generate-new-buffer (format "%s%s" (if user (concat user "@") "") server))
-   (case type
-     (rlogin "rlogin")
-     (telnet "telnet")
-     (tn3270 "tn3270")
-     (otherwise
+   (pcase type
+     (`rlogin "rlogin")
+     (`telnet "telnet")
+     (`tn3270 "tn3270")
+     (_
       (error "Unknown terminal emulator required: %s" type)))
-   (case type
-     (rlogin
+   (pcase type
+     (`rlogin
       (if user
 	  (list server "-l" user)
 	(list server)))
-     (telnet
+     (`telnet
       (if user (message "Please log in as user: %s" user))
       (if port
 	  (list server port)
 	(list server)))
-     (tn3270
+     (`tn3270
       (if user (message "Please log in as user: %s" user))
       (list server)))))
 

@@ -1,6 +1,6 @@
 ;;; mh-folder.el --- MH-Folder mode
 
-;; Copyright (C) 2002-2003, 2005-2011  Free Software Foundation, Inc.
+;; Copyright (C) 2002-2003, 2005-2012  Free Software Foundation, Inc.
 
 ;; Author: Bill Wohler <wohler@newt.com>
 ;; Maintainer: Bill Wohler <wohler@newt.com>
@@ -526,7 +526,7 @@ font-lock is done highlighting.")
 
 ;; Register mh-folder-mode as supporting which-function-mode...
 (mh-require 'which-func nil t)
-(when (boundp 'which-func-modes)
+(when (and (boundp 'which-func-modes) (listp which-func-modes))
   (add-to-list 'which-func-modes 'mh-folder-mode))
 
 ;; Shush compiler.

@@ -2,6 +2,7 @@ buildobj.h
 config.h
 epaths.h
 stamp_BLD
+stamp-h.in
 
 oo/
 oo-spd/

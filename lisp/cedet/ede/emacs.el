@@ -1,6 +1,6 @@
 ;;; ede/emacs.el --- Special project for Emacs
 
-;; Copyright (C) 2008-2011 Free Software Foundation, Inc.
+;; Copyright (C) 2008-2012 Free Software Foundation, Inc.
 
 ;; Author: Eric M. Ludlam <eric@siege-engine.com>
 
@@ -74,13 +74,16 @@ DIR is the directory to search from."
   "Find the Emacs version for the Emacs src in DIR.
 Return a tuple of ( EMACSNAME . VERSION )."
   (let ((buff (get-buffer-create " *emacs-query*"))
+	(configure_ac "configure.ac")
 	(emacs "Emacs")
 	(ver ""))
     (with-current-buffer buff
       (erase-buffer)
       (setq default-directory (file-name-as-directory dir))
+      (or (file-exists-p configure_ac)
+	  (setq configure_ac "configure.in"))
       ;(call-process "egrep" nil buff nil "-n" "-e" "^version=" "Makefile")
-      (call-process "egrep" nil buff nil "-n" "-e" "AC_INIT" "configure.in")
+      (call-process "egrep" nil buff nil "-n" "-e" "AC_INIT" configure_ac)
       (goto-char (point-min))
       ;(re-search-forward "version=\\([0-9.]+\\)")
       (cond
@@ -96,11 +99,22 @@ emacs_beta_version=\\([0-9]+\\)")
 			  (match-string 2) "."
 			  (match-string 3)))
 	)
+       ((file-exists-p "sxemacs.pc.in")
+	(setq emacs "SXEmacs")
+	(insert-file-contents "sxemacs_version.m4")
+	(goto-char (point-min))
+	(re-search-forward "m4_define(\\[SXEM4CS_MAJOR_VERSION\\], \\[\\([0-9]+\\)\\])
+m4_define(\\[SXEM4CS_MINOR_VERSION\\], \\[\\([0-9]+\\)\\])
+m4_define(\\[SXEM4CS_BETA_VERSION\\], \\[\\([0-9]+\\)\\])")
+	(setq ver (concat (match-string 1) "."
+			  (match-string 2) "."
+			  (match-string 3)))
+	)
        ;; Insert other Emacs here...
 
        ;; Vaguely recent version of GNU Emacs?
        (t
-	(insert-file-contents "configure.in")
+	(insert-file-contents configure_ac)
 	(goto-char (point-min))
 	(re-search-forward "AC_INIT(emacs,\\s-*\\([0-9.]+\\)\\s-*)")
 	(setq ver (match-string 1))
@@ -122,28 +136,29 @@ Argument DIR is the directory it is created for.
 ROOTPROJ is nil, since there is only one project."
   (or (ede-emacs-file-existing dir)
       ;; Doesn't already exist, so let's make one.
-      (let* ((vertuple (ede-emacs-version dir)))
-	(ede-emacs-project (car vertuple)
-			   :name (car vertuple)
-			   :version (cdr vertuple)
-			   :directory (file-name-as-directory dir)
-			   :file (expand-file-name "src/emacs.c"
-						   dir)))
-      (ede-add-project-to-global-list this)
-      )
-  )
+      (let* ((vertuple (ede-emacs-version dir))
+	     (proj (ede-emacs-project
+		    (car vertuple)
+		    :name (car vertuple)
+		    :version (cdr vertuple)
+		    :directory (file-name-as-directory dir)
+		    :file (expand-file-name "src/emacs.c"
+					    dir))))
+	(ede-add-project-to-global-list proj))))
 
 ;;;###autoload
-(add-to-list 'ede-project-class-files
-	     (ede-project-autoload "emacs"
-	      :name "EMACS ROOT"
-	      :file 'ede/emacs
-	      :proj-file "src/emacs.c"
-	      :proj-root 'ede-emacs-project-root
-	      :load-type 'ede-emacs-load
-	      :class-sym 'ede-emacs-project
-	      :new-p nil)
-	     t)
+(ede-add-project-autoload
+ (ede-project-autoload "emacs"
+		       :name "EMACS ROOT"
+		       :file 'ede/emacs
+		       :proj-file "src/emacs.c"
+		       :proj-root-dirmatch "emacs[^/]*"
+		       :proj-root 'ede-emacs-project-root
+		       :load-type 'ede-emacs-load
+		       :class-sym 'ede-emacs-project
+		       :new-p nil
+		       :safe-p t)
+ 'unique)
 
 (defclass ede-emacs-target-c (ede-target)
   ()

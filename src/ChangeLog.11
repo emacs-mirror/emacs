@@ -533,8 +533,8 @@
 	* deps.mk (getloadavg.o): Remove; gnulib now does this.
 	* lisp.h (getloadavg) [!defined HAVE_GETLOADAVG]: Remove; gnulib
 	now does this.
-	* src/s/freebsd.h (HAVE_GETLOADAVG): Remove; gnulib now does this.
-	* src/s/netbsd.h (HAVE_GETLOADAVG): Likewise.
+	* s/freebsd.h (HAVE_GETLOADAVG): Remove; gnulib now does this.
+	* s/netbsd.h (HAVE_GETLOADAVG): Likewise.
 	* config.in: Regenerate.
 
 2011-02-15  Eli Zaretskii  <eliz@gnu.org>
@@ -3538,7 +3538,6 @@
 	* nsmenu.m (syms_of_nsmenu):
 	* nsfns.m (syms_of_nsfns):
 	* msdos.c (syms_of_msdos):
-
 	* image.c (syms_of_image):
 	* charset.c (syms_of_charset): Use intern_c_string instead of intern.
 
@@ -3995,7 +3994,8 @@
 
 2010-09-24  Juanma Barranquero  <lekktu@gmail.com>
 
-	Remove W32 API function pointer unused since 2005-02-15 (revno 60055).
+	Remove Windows API function pointer unused since 2005-02-15 (revno
+	60055).
 	* w32fns.c (clipboard_sequence_fn): Don't declare.
 	(globals_of_w32fns): Don't initialize it.
 
@@ -4388,7 +4388,7 @@
 	* xml.c (Fxml_parse_string, Fxml_parse_string): Revert last change.
 	Don't make first argument optional.  Doc fix.
 
-2010-09-14  Leo  <sdl.web@gmail.com>  (tiny change)
+2010-09-14  Leo Liu  <sdl.web@gmail.com>  (tiny change)
 
 	* xml.c (Fxml_parse_string, Fhtml_parse_string): Fix up the
 	parameters for the doc string.
@@ -5532,7 +5532,7 @@
 	(update_frame_tool_bar): Remove old_req, new_req.  Do not get tool bar
 	height, call xg_update_tool_bar_sizes instead.
 	(free_frame_tool_bar): Remove from hbox or vbox depending on
-	toolbar_in_hbox,  Set all FRAME_TOOLBAR_*_(WIDTH|HEIGHT) to zero.
+	toolbar_in_hbox.  Set all FRAME_TOOLBAR_*_(WIDTH|HEIGHT) to zero.
 	(xg_change_toolbar_position): New function.
 
 	* frame.h (struct frame): Add tool_bar_position.
@@ -9628,7 +9628,7 @@
 	* frame.c (Vdefault_frame_scroll_bars): Put non-GTK X scroll-bars
 	on left.
 
-2010-03-13  Andreas Politz  <politza@fh-trier.de>  (tiny change)
+2010-03-13  Andreas Politz  <politza@fh-trier.de>
 
 	* editfns.c (Fformat): Account for string precision when computing
 	field width (Bug#5710).
@@ -9642,7 +9642,7 @@
 
 2010-03-12  Eli Zaretskii  <eliz@gnu.org>
 
-	These changes remove termcap.c from the build on Posix platforms.
+	These changes remove termcap.c from the build on POSIX platforms.
 	* Makefile.in (termcapobj): Move termcap.o from here...
 	(MSDOS_OBJ): ...to here.
 	(termcapobj) [!LIBS_TERMCAP]: Remove specialized value, as it is
@@ -12540,7 +12540,7 @@
 
 2009-06-23  Jim Meyering  <meyering@redhat.com>
 
-	* src/ftfont.c (setup_otf_gstring, ftfont_shape_by_flt):
+	* ftfont.c (setup_otf_gstring, ftfont_shape_by_flt):
 	Use xmalloc and xrealloc (not malloc and realloc), so subsequent heap
 	pointer dereferences are guaranteed to be valid.
 
@@ -29523,7 +29523,7 @@
 	(Fdisplay_buffer): Use it.
 	(syms_of_window): Export, and initialize it.
 
-2007-09-06  Pixel  <pixel@mandriva.com>  (tiny change)
+2007-09-06  Pascal Rigaux  <pixel@mandriva.com>  (tiny change)
 
 	* image.c (gif_load): Fix bug: Handle nonexistent colormap.
 
@@ -31383,7 +31383,7 @@ See ChangeLog.10 for earlier changes.
 ;; coding: utf-8
 ;; End:
 
-  Copyright (C) 2007-2011  Free Software Foundation, Inc.
+  Copyright (C) 2007-2012  Free Software Foundation, Inc.
 
   This file is part of GNU Emacs.
 

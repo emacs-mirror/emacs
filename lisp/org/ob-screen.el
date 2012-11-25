@@ -1,11 +1,10 @@
 ;;; ob-screen.el --- org-babel support for interactive terminal
 
-;; Copyright (C) 2009-2011  Free Software Foundation
+;; Copyright (C) 2009-2012  Free Software Foundation, Inc.
 
 ;; Author: Benjamin Andresen
 ;; Keywords: literate programming, interactive shell
 ;; Homepage: http://orgmode.org
-;; Version: 7.7
 
 ;; This file is part of GNU Emacs.
 
@@ -24,7 +23,7 @@
 
 ;;; Commentary:
 
-;; Org-Babel support for interactive terminals. Mostly shell scripts.
+;; Org-Babel support for interactive terminals.  Mostly shell scripts.
 ;; Heavily inspired by 'eev' from Eduardo Ochs
 ;;
 ;; Adding :cmd and :terminal as header arguments
@@ -38,7 +37,7 @@
 (require 'ob-ref)
 
 (defvar org-babel-screen-location "screen"
-  "The command location for screen. 
+  "The command location for screen.
 In case you want to use a different screen than one selected by your $PATH")
 
 (defvar org-babel-default-header-args:screen
@@ -65,8 +64,8 @@ In case you want to use a different screen than one selected by your $PATH")
          (process-name (concat "org-babel: terminal (" session ")")))
     (apply 'start-process process-name "*Messages*"
            terminal `("-T" ,(concat "org-babel: " session) "-e" ,org-babel-screen-location
-                           "-c" "/dev/null" "-mS" ,(concat "org-babel-session-" session)
-                           ,cmd))
+		      "-c" "/dev/null" "-mS" ,(concat "org-babel-session-" session)
+		      ,cmd))
     ;; XXX: Is there a better way than the following?
     (while (not (org-babel-screen-session-socketname session))
       ;; wait until screen session is available before returning
@@ -82,8 +81,8 @@ In case you want to use a different screen than one selected by your $PATH")
         (apply 'start-process (concat "org-babel: screen (" session ")") "*Messages*"
                org-babel-screen-location
                `("-S" ,socket "-X" "eval" "msgwait 0"
-                      ,(concat "readreg z " tmpfile)
-                      "paste z"))))))
+		 ,(concat "readreg z " tmpfile)
+		 "paste z"))))))
 
 (defun org-babel-screen-session-socketname (session)
   "Check if SESSION exists by parsing output of \"screen -ls\"."
@@ -112,7 +111,7 @@ In case you want to use a different screen than one selected by your $PATH")
     (with-temp-file tmpfile
       (insert body)
 
-      ;; org-babel has superflous spaces
+      ;; org-babel has superfluous spaces
       (goto-char (point-min))
       (delete-matching-lines "^ +$"))
     tmpfile))
@@ -138,7 +137,7 @@ The terminal should shortly flicker."
     (message (concat "org-babel-screen: Setup "
                      (if (string-match random-string tmp-string)
                          "WORKS."
-                         "DOESN'T work.")))))
+		       "DOESN'T work.")))))
 
 (provide 'ob-screen)
 

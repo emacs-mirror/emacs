@@ -1,5 +1,5 @@
 /* testsppreplaced.c --- unit test for CPP/SPP Replacement
-   Copyright (C) 2007-2011 Free Software Foundation, Inc.
+   Copyright (C) 2007-2012 Free Software Foundation, Inc.
 
    Author: Eric M. Ludlam <eric@siege-engine.com>
 

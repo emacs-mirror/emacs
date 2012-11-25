@@ -1,6 +1,6 @@
-;;; authors.el --- utility for maintaining Emacs' AUTHORS file -*-coding: utf-8;-*-
+;;; authors.el --- utility for maintaining Emacs's AUTHORS file -*-coding: utf-8 -*-
 
-;; Copyright (C) 2000-2011  Free Software Foundation, Inc.
+;; Copyright (C) 2000-2012 Free Software Foundation, Inc.
 
 ;; Author: Gerd Moellmann <gerd@gnu.org>
 ;; Maintainer: Kim F. Storm <storm@cua.dk>
@@ -25,7 +25,7 @@
 ;;; Commentary:
 
 ;; Use M-x authors RET to create an *Authors* buffer that can used as
-;; or merged with Emacs' AUTHORS file.
+;; or merged with Emacs's AUTHORS file.
 
 ;;; Code:
 
@@ -41,23 +41,28 @@ files.")
 (defconst authors-aliases
   '(
     ("Aaron S. Hawley" "Aaron Hawley")
+    ("Alexandru Harsanyi" "Alex Harsanyi")
     ("Andrew Csillag" "Drew Csillag")
     ("Anna M. Bigatti" "Anna Bigatti")
     ("Barry A. Warsaw" "Barry A. Warsaw, Century Computing, Inc."
      "Barry A. Warsaw, ITB" "Barry Warsaw")
+    ("Bill Carpenter" "WJ Carpenter")
     ("Bill Mann" "William F. Mann")
     ("Bill Rozas" "Guillermo J. Rozas")
     ("Björn Torkelsson" "Bjorn Torkelsson")
     ("Brian Fox" "Brian J. Fox")
+    ("Brian Sniffen" "Brian T. Sniffen")
     ("Christoph Wedler" "Christoph.Wedler@sap.com")
     ("Daniel Pfeiffer" "<Daniel.Pfeiffer@Informatik.START.db.de>"
      "<Daniel.Pfeiffer@Informatik.START.dbp.de>")
+    ("David Abrahams" "Dave Abrahams")
     ("David De La Harpe Golden" "David Golden")
     ("David Gillespie" "Dave Gillespie")
     ("David Kågedal" "David K..edal")
     ("David M. Koppelman" "David M. Koppelman, Koppel@Ec?e.Lsu.Edu"
      "David Koppelman")
     ("David M. Smith" "David Smith" "David M Smith")
+    ("David O'Toole" "David T. O'Toole")
     ("Deepak Goel" "D. Goel")
     ("Ed L. Cashin" "Ed L Cashin")
     ("Edward M. Reingold" "Ed Reingold" "Edward M Reingold"
@@ -76,6 +81,8 @@ files.")
     ("Gerd Möllmann" "Gerd Moellmann")
     ("Hallvard B. Furuseth" "Hallvard B Furuseth" "Hallvard Furuseth")
     ("Hrvoje Nikšić" "Hrvoje Niksic")
+    ;; lisp/org/ChangeLog 2010-11-11.
+    (nil "aaa bbb")
     ;; src/ChangeLog.4, 1994-01-11, since fixed.
 ;;;    (nil "(afs@hplb.hpl.hp.com)")
     ;; lisp/gnus/ChangeLog.1, 1998-01-15.
@@ -92,6 +99,7 @@ files.")
     ("Jens-Ulrik Holger Petersen" "Jens-Ulrik Petersen")
     ("Jeremy Bertram Maitin-Shepard" "Jeremy Maitin-Shepard")
     ("Johan Bockgård" "Johan Bockgard")
+    ("John J Foerch" "John Foerch")
     ("John W. Eaton" "John Eaton")
     ("Jonathan I. Kamens" "Jonathan Kamens")
     ("Joseph Arceneaux" "Joe Arceneaux")
@@ -109,10 +117,11 @@ files.")
     ("Kevin Greiner" "Kevin J. Greiner")
     ("Kim F. Storm" "Kim Storm")
     ("Kyle Jones" "Kyle E. Jones")
+    ("Lars Magne Ingebrigtsen" "Lars Ingebrigtsen")
     ("Marcus G. Daniels" "Marcus Daniels")
     ("Mark D. Baushke" "Mark D Baushke")
     ("Marko Kohtala" "Kohtala Marko")
-    ("Agustín Martín" "Agustin Martin")
+    ("Agustín Martín" "Agustin Martin" "Agustín Martín Domingo")
     ("Martin Lorentzon" "Martin Lorentzson")
     ("Matt Swift" "Matthew Swift")
     ("Maxime Edouard Robert Froumentin" "Max Froumentin")
@@ -124,12 +133,14 @@ files.")
     ("Michael Sperber" "Michael Sperber \\[Mr. Preprocessor\\]")
     ("Mikio Nakajima" "Nakajima Mikio")
     ("Nelson Jose dos Santos Ferreira" "Nelson Ferreira")
+    ("Noorul Islam" "Noorul Islam K M")
     ("Paul Eggert" "eggert")
     ("Paul Reilly" "(pmr@legacy.pajato.com)")
     ("Pavel Janík" "Pavel Janík Ml." "Pavel Janik Ml." "Pavel Janik" "Pavel Janík" "Pavel@Janik.Cz")
     ("Pavel Kobiakov" "Pavel Kobyakov")
     ("Per Abrahamsen" "Per Abhiddenware")
     ("Per Starbäck" "Per Starback")
+    ("Peter J. Weisberg" "PJ Weisberg")
     ("Peter S. Galbraith" "Peter Galbraith")
     ("Peter Runestig" "Peter 'luna' Runestig")
     ("Peter S. Galbraith" "Peter S Galbraith")
@@ -144,23 +155,28 @@ files.")
     ("Sacha Chua" "Sandra Jean Chua")
     ("Sam Steingold" "Sam Shteingold")
     ("Satyaki Das" "Indexed search by Satyaki Das")
+    ("Sébastien Vauban" "Sebastien Vauban")
     ;; There are other Stefans.
 ;;;    ("Stefan Monnier" "Stefan")
     ("Stephen A. Wood" "(saw@cebaf.gov)")
     ("Steven L. Baur" "SL Baur" "Steven L Baur")
     ("Stewart M. Clamen" "Stewart Clamen")
     ("Stuart D. Herring" "Stuart Herring" "Davis Herring")
+    ("T.V. Raman" "T\\. V\\. Raman")
     ("Taichi Kawabata" "KAWABATA,? Taichi")
     ("Takaaki Ota" "Tak Ota")
     ("Takahashi Naoto" "Naoto Takahashi")
     ("Teodor Zlatanov" "Ted Zlatanov")
+    ("Thomas Dye" "Tom Dye")
     ("Thomas Horsley" "Tom Horsley")	; FIXME ?
     ("Thomas Wurgler" "Tom Wurgler")
+    ("Toby Cubitt" "Toby S\\. Cubitt")
     ("Tomohiko Morioka" "MORIOKA Tomohiko")
     ("Torbjörn Axelsson" "Torbjvrn Axelsson")
     ("Torbjörn Einarsson" "Torbj.*rn Einarsson")
     ("Toru Tomabechi" "Toru Tomabechi,")
     ("Tsugutomo Enami" "enami tsugutomo")
+    ("Ulrich Müller" "Ulrich Mueller")
     ("Vincent Del Vecchio" "Vince Del Vecchio")
     ("William M. Perry" "Bill Perry")
     ("Wlodzimierz Bzyl" "W.*dek Bzyl")
@@ -174,6 +190,7 @@ Each entry is of the form (REALNAME REGEXP...).  If an author's name
 matches one of the REGEXPs, use REALNAME instead.
 If REALNAME is nil, ignore that author.")
 
+;; FIXME seems it would be less fragile to check for O', Mc, etc.
 (defconst authors-fixed-case
   '("Bryan O'Sullivan"
     "Christian von Roques"
@@ -182,6 +199,7 @@ If REALNAME is nil, ignore that author.")
     "David J. MacKenzie"
     "David McCabe"
     "David O'Toole"
+    "Devon Sean McCullough"
     "Dominique de Waleffe"
     "Edward O'Connor"
     "Exal de Jesus Garcia Carrillo"
@@ -194,8 +212,11 @@ If REALNAME is nil, ignore that author.")
     "Nelson Jose dos Santos Ferreira"
     "Peter von der Ahe"
     "Peter O'Gorman"
+    "Piet van Oostrum"
     "Roland McGrath"
-    "Sean O'Rourke")
+    "Sean O'Halpin"
+    "Sean O'Rourke"
+    "Tijs van Bakel")
   "List of authors whose names cannot be simply capitalized.")
 
 (defvar authors-public-domain-files
@@ -222,11 +243,12 @@ If REALNAME is nil, ignore that author.")
     ".*loaddefs.el$"			; not obsolete, but auto-generated
     "\\.\\(cvs\\|git\\)ignore$"		; obsolete or uninteresting
     "\\.arch-inventory$"
+    ;; TODO lib/? Matches other things?
+    "build-aux/" "m4/" "Emacs.xcodeproj" "charsets" "mapfiles"
     "preferences\\.\\(nib\\|gorm\\)"
     "vc-\\(rcs\\|cvs\\|sccs\\)-hooks\\.el$")
   "List of regexps matching obsolete files.
-Changes to files matching one of the regexps in this list are not
-listed.")
+Changes to files matching one of the regexps in this list are not listed.")
 
 (defconst authors-ignored-files
   '("external-lisp"
@@ -257,7 +279,12 @@ listed.")
     "*.el"
     ;; Autogen:
     "cus-load.el" "finder-inf.el" "ldefs-boot.el"
+    "compile" "config.guess" "config.sub" "depcomp"
+    ;; Only existed briefly, then renamed:
+    "images/icons/allout-widgets-dark-bg"
+    "images/icons/allout-widgets-light-bg"
     ;; Never had any meaningful changes logged, now deleted:
+    "unidata/bidimirror.awk" "unidata/biditype.awk"
     "split-man" "Xkeymap.txt" "ms-7bkermit" "ulimit.hack"
     "gnu-hp300" "refcard.bit" "ledit.l" "forms.README" "forms-d2.dat"
     "CXTERM-DIC/PY.tit" "CXTERM-DIC/ZIRANMA.tit"
@@ -308,29 +335,47 @@ Changes to files in this list are not listed.")
     "complete.el"
     "cpp.el"
     "ctxt.el"
+    "custom.el"
+    "cyrillic.el"
+    "czech.el"
     "debug.el"
     "dired.el"
     "el.el"
+    "eshell.el"
+    "ethiopic.el"
+    "f90.el"
     "files.el"
     "find.el"
     "format.el"
+    "generic.el"
+    "georgian.el"
+    "greek.el"
     "grep.el"
+    "hebrew.el"
     "imenu.el"
+    "indian.el"
+    "japanese.el"
     "java.el"
+    "lao.el"
     "linux.el"
     "locate.el"
     "make.el"
     "mode.el"
     "python.el"
+    "rmailmm.el"
     "semantic.el"
     "shell.el"
     "simple.el"
+    "slovak.el"
     "sort.el"
     "speedbar.el"
     "srecode.el"
     "table.el"
     "texi.el"
+    "thai.el"
+    "tibetan.el"
     "util.el"
+    "vc-bzr.el"
     "wisent.el")
   "List of basenames occurring more than once in the source.")
 
@@ -354,7 +399,7 @@ Changes to files in this list are not listed.")
     ("Lawrence R. Dodd" :cowrote "dired-x.el")
     ;; No longer distributed.
 ;;;    ("Viktor Dukhovni" :wrote "unexsunos4.c")
-    ("Paul Eggert" :wrote "rcs2log" "vcdiff")
+    ("Paul Eggert" :wrote "rcs2log") ; "vcdiff"
     ("Fred Fish" :changed "unexcoff.c")
     ;; No longer distributed.
 ;;;    ("Tim Fleehart" :wrote "makefile.nt")
@@ -382,7 +427,7 @@ Changes to files in this list are not listed.")
     ;; No longer distributed.
 ;;;    ("Ishikawa Chiaki" :changed "aviion.h" "dgux.h")
     ;; ymakefile no longer distributed.
-    ("Michael K. Johnson" :changed "configure.in" "emacs.c" "intel386.h"
+    ("Michael K. Johnson" :changed "configure.ac" "emacs.c" "intel386.h"
      "mem-limits.h" "process.c" "template.h" "sysdep.c" "syssignal.h"
      "systty.h" "unexcoff.c" "linux.h")
     ;; No longer distributed.
@@ -421,7 +466,8 @@ Changes to files in this list are not listed.")
      "vt220.el" "vt240.el")
     ("Motorola" :changed "buff-menu.el")
     ("Hiroshi Nakano" :changed "ralloc.c")
-    ("Sundar Narasimhan" :changed "rnewspost.el")
+    ;; File removed in Emacs 24.1.
+;;;    ("Sundar Narasimhan" :changed "rnewspost.el")
     ;; No longer distributed.
 ;;;    ("NeXT, Inc." :wrote "unexnext.c")
     ("Mark Neale" :changed "fortran.el")
@@ -452,7 +498,7 @@ Changes to files in this list are not listed.")
     ("William Sommerfeld" :wrote "emacsclient.c" "scribe.el")
     ;; No longer distributed: emacsserver.c.
     ("Leigh Stoller" :changed "emacsclient.c" "server.el")
-    ("Steve Strassman" :wrote "spook.el")
+    ("Steve Strassmann" :wrote "spook.el")
     ("Shinichirou Sugou" :changed "etags.c")
     ;; No longer distributed: emacsserver.c.
     ("Sun Microsystems, Inc" :changed "emacsclient.c" "server.el"
@@ -532,8 +578,10 @@ in the repository.")
     ("w32console.c" . "w32term.c")
     ("unexnt.c" . "unexw32.c")
     ("s/windowsnt.h" . "s/ms-w32.h")
+    ("s/ms-w32.h" . "inc/ms-w32.h")
     ("winnt.el" . "w32-fns.el")
     ("config.emacs" . "configure")
+    ("configure.in" . "configure.ac")
     ("config.h.dist" . "config.in")
     ("config.h-dist" . "config.in")
     ("config.h.in" . "config.in")
@@ -587,6 +635,7 @@ in the repository.")
     ("texi/url.txi" . "url.texi")
     ("edt-user.doc" . "edt.texi")
     ("DEV-NOTES" . "nextstep")
+    ("org/COPYRIGHT-AND-LICENSE" . "org/README")
     ;; Moved to different directories.
     ("ctags.1" . "ctags.1")
     ("etags.1" . "etags.1")
@@ -655,7 +704,7 @@ or is on the list of removed files.  Returns the non-directory part of
 the file name.  Only uses the LOG-FILE position POS and associated AUTHOR
 to print a message if FILE is not found."
   ;; FILE should be re-checked in every different directory associated
-  ;; with a LOG-FILE.  Eg configure.in from src/ChangeLog is not the
+  ;; with a LOG-FILE.  Eg configure.ac from src/ChangeLog is not the
   ;; same as that from top-level/ChangeLog.
   (let* ((fullname (expand-file-name file (file-name-directory log-file)))
 	 (entry (assoc fullname authors-checked-files-alist))
@@ -783,7 +832,7 @@ with the file and the number of each action:
 	 (enable-local-eval nil)
 	 (existing-buffer (get-file-buffer log-file))
 	 (buffer (find-file-noselect log-file))
-	 authors file pos)
+	 authors pos)
     (with-current-buffer buffer
       (save-restriction
 	(widen)
@@ -897,8 +946,7 @@ and changed by AUTHOR."
 	       (file (car change))
 	       (filestat (if (authors-public-domain-p file)
 			     (concat file " (public domain)")
-			   file))
-	       slot)
+			   file)))
 	  (cond ((assq :wrote actions)
 		 (setq wrote-list (cons filestat wrote-list)))
 		((assq :cowrote actions)

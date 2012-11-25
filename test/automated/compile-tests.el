@@ -1,6 +1,6 @@
 ;;; compile-tests.el --- Test suite for font parsing.
 
-;; Copyright (C) 2011 Free Software Foundation, Inc.
+;; Copyright (C) 2011-2012 Free Software Foundation, Inc.
 
 ;; Author: Chong Yidong <cyd@stupidchicken.com>
 ;; Keywords:       internal
@@ -199,6 +199,8 @@
     ;; maven
     ("FooBar.java:[111,53] no interface expected here"
      1 53 111 "FooBar.java")
+    ("  [ERROR] /Users/cinsk/hello.java:[651,96] ';' expected"
+     15 96 651 "/Users/cinsk/hello.java") ;Bug#11517.
     ;; mips-1 mips-2
     ("TrimMask (255) in solomon.c may be indistinguishable from TrimMasks (93) in solomo.c due to truncation"
      11 nil 255 "solomon.c")
@@ -213,6 +215,10 @@
      1 nil 23 "d:\\tmp\\test.c")
     ("d:\\tmp\\test.c(1145) : see declaration of 'nsRefPtr'"
      1 nil 1145 "d:\\tmp\\test.c")
+    ("1>test_main.cpp(29): error C2144: syntax error : 'int' should be preceded by ';'"
+     3 nil 29 "test_main.cpp")
+    ("1>test_main.cpp(29): error C4430: missing type specifier - int assumed. Note: C++ does not support default-int"
+     3 nil 29 "test_main.cpp")
     ;; watcom
     ("..\src\ctrl\lister.c(109): Error! E1009: Expecting ';' but found '{'"
      1 nil 109 "..\src\ctrl\lister.c")

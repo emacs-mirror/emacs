@@ -1,6 +1,6 @@
 ;;; parse-time.el --- parsing time strings
 
-;; Copyright (C) 1996, 2000-2011  Free Software Foundation, Inc.
+;; Copyright (C) 1996, 2000-2012  Free Software Foundation, Inc.
 
 ;; Author: Erik Naggum <erik@naggum.no>
 ;; Keywords: util
@@ -34,7 +34,7 @@
 
 ;;; Code:
 
-(eval-when-compile (require 'cl))	;and ah ain't kiddin' 'bout it
+(eval-when-compile (require 'cl-lib))
 
 (defvar parse-time-digits (make-vector 256 nil))
 
@@ -43,8 +43,8 @@
 (defvar parse-time-val)
 
 (unless (aref parse-time-digits ?0)
-  (loop for i from ?0 to ?9
-    do (aset parse-time-digits i (- i ?0))))
+  (cl-loop for i from ?0 to ?9
+           do (aset parse-time-digits i (- i ?0))))
 
 (defsubst digit-char-p (char)
   (aref parse-time-digits char))
@@ -92,11 +92,11 @@
 	(index 0)
 	(c nil))
     (while (< index end)
-      (while (and (< index end)		;skip invalid characters
+      (while (and (< index end)		;Skip invalid characters.
 		  (not (setq c (parse-time-string-chars (aref string index)))))
-	(incf index))
+	(cl-incf index))
       (setq start index all-digits (eq c ?0))
-      (while (and (< (incf index) end)	;scan valid characters
+      (while (and (< (cl-incf index) end)	;Scan valid characters.
 		  (setq c (parse-time-string-chars (aref string index))))
 	(setq all-digits (and all-digits (eq c ?0))))
       (if (<= index end)
@@ -193,28 +193,29 @@ unknown are returned as nil."
 		 (predicate (pop rule))
 		 (parse-time-val))
 	    (when (and (not (nth (car slots) time)) ;not already set
-		       (setq parse-time-val (cond ((and (consp predicate)
-					     (not (eq (car predicate)
-						      'lambda)))
-					(and (numberp parse-time-elt)
-					     (<= (car predicate) parse-time-elt)
-					     (<= parse-time-elt (cadr predicate))
-					     parse-time-elt))
-				       ((symbolp predicate)
-					(cdr (assoc parse-time-elt
-						    (symbol-value predicate))))
-				       ((funcall predicate)))))
+		       (setq parse-time-val
+			     (cond ((and (consp predicate)
+					 (not (eq (car predicate)
+						  'lambda)))
+				    (and (numberp parse-time-elt)
+					 (<= (car predicate) parse-time-elt)
+					 (<= parse-time-elt (cadr predicate))
+					 parse-time-elt))
+				   ((symbolp predicate)
+				    (cdr (assoc parse-time-elt
+						(symbol-value predicate))))
+				   ((funcall predicate)))))
 	      (setq exit t)
 	      (while slots
-		(let ((new-val (and rule
-				    (let ((this (pop rule)))
-				      (if (vectorp this)
-					  (parse-integer
-					   parse-time-elt
-					   (aref this 0) (aref this 1))
-					(funcall this))))))
-		  (rplaca (nthcdr (pop slots) time)
-			  (or new-val parse-time-val)))))))))
+		(let ((new-val (if rule
+				   (let ((this (pop rule)))
+				     (if (vectorp this)
+					 (parse-integer
+					  parse-time-elt
+					  (aref this 0) (aref this 1))
+				       (funcall this)))
+				 parse-time-val)))
+		  (rplaca (nthcdr (pop slots) time) new-val))))))))
     time))
 
 (provide 'parse-time)

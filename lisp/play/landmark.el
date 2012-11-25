@@ -1,6 +1,6 @@
 ;;; landmark.el --- neural-network robot that learns landmarks
 
-;; Copyright (C) 1996-1997, 2000-2011  Free Software Foundation, Inc.
+;; Copyright (C) 1996-1997, 2000-2012 Free Software Foundation, Inc.
 
 ;; Author: Terrence Brannon (was: <brannon@rana.usc.edu>)
 ;; Created: December 16, 1996 - first release to usenet
@@ -56,7 +56,7 @@
 ;; concise problem description.
 
 ;;;_* Require
-(eval-when-compile (require 'cl))
+(eval-when-compile (require 'cl-lib))
 
 ;;;_* From Gomoku
 
@@ -139,16 +139,16 @@
 ;; look rectangular, but spacings SHOULD be at least 2 (MUST BE at least 1).
 
 (defconst landmark-square-width 2
-  "*Horizontal spacing between squares on the Landmark board.")
+  "Horizontal spacing between squares on the Landmark board.")
 
 (defconst landmark-square-height 1
-  "*Vertical spacing between squares on the Landmark board.")
+  "Vertical spacing between squares on the Landmark board.")
 
 (defconst landmark-x-offset 3
-  "*Number of columns between the Landmark board and the side of the window.")
+  "Number of columns between the Landmark board and the side of the window.")
 
 (defconst landmark-y-offset 1
-  "*Number of lines between the Landmark board and the top of the window.")
+  "Number of lines between the Landmark board and the top of the window.")
 
 
 ;;;_ +  LANDMARK MODE AND KEYMAP.
@@ -206,11 +206,11 @@
 
 
 (defvar landmark-emacs-won ()
-  "*For making font-lock use the winner's face for the line.")
+  "For making font-lock use the winner's face for the line.")
 
 (defface landmark-font-lock-face-O '((((class color)) :foreground "red")
 			       (t :weight bold))
-  "Face to use for Emacs' O."
+  "Face to use for Emacs's O."
   :version "22.1"
   :group 'landmark)
 
@@ -226,7 +226,7 @@
     ("[-|/\\]" 0 (if landmark-emacs-won
 		     'landmark-font-lock-face-O
 		   'landmark-font-lock-face-X)))
-  "*Font lock rules for Landmark.")
+  "Font lock rules for Landmark.")
 
 (put 'landmark-mode 'front-sticky
      (put 'landmark-mode 'rear-nonsticky '(intangible)))
@@ -1417,7 +1417,7 @@ After this limit is reached, landmark-random-move is called to push him out of i
   (put 'z 't-1 (get 'z 't))
   (put 'z 't (calc-smell-internal 'landmark-tree))
   (if (= (- (get 'z 't) (get 'z 't-1)) 0.0)
-      (incf landmark-no-payoff)
+      (cl-incf landmark-no-payoff)
     (setf landmark-no-payoff 0)))
 
 (defun landmark-store-old-y_t ()
@@ -1464,7 +1464,7 @@ After this limit is reached, landmark-random-move is called to push him out of i
 	    (landmark-e forward-char)
 	    (landmark-w backward-char)))
   (landmark-plot-square (landmark-point-square) 1)
-  (incf landmark-number-of-moves)
+  (cl-incf landmark-number-of-moves)
   (if landmark-output-moves
       (message "Moves made: %d" landmark-number-of-moves)))
 
@@ -1591,11 +1591,11 @@ If the game is finished, this command requests for another game."
 ; this a worka!
 ; (eval  (cons '+ list))
 ;;;_  - landmark-set-landmark-signal-strengths ()
-;;; on a screen higher than wide, I noticed that the robot would amble
-;;; left and right and not move forward. examining *landmark-blackbox*
-;;; revealed that there was no scent from the north and south
-;;; landmarks, hence, they need less factoring down of the effect of
-;;; distance on scent.
+;; on a screen higher than wide, I noticed that the robot would amble
+;; left and right and not move forward. examining *landmark-blackbox*
+;; revealed that there was no scent from the north and south
+;; landmarks, hence, they need less factoring down of the effect of
+;; distance on scent.
 
 (defun landmark-set-landmark-signal-strengths ()
   (setq landmark-tree-r (* (sqrt (+ (square landmark-cx) (square landmark-cy))) 1.5))
@@ -1682,8 +1682,6 @@ Use \\[describe-mode] for more info."
 ;;;Local variables:
 ;;;allout-layout: (0 : -1 -1 0)
 ;;;End:
-
-(random t)
 
 (provide 'landmark)
 

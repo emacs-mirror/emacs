@@ -1,6 +1,6 @@
 ;;; cus-theme.el -- custom theme creation user interface
 ;;
-;; Copyright (C) 2001-2011 Free Software Foundation, Inc.
+;; Copyright (C) 2001-2012 Free Software Foundation, Inc.
 ;;
 ;; Author: Alex Schroeder <alex@gnu.org>
 ;; Maintainer: FSF
@@ -81,7 +81,9 @@ Do not call this mode function yourself.  It is meant for internal use."
 (defun customize-create-theme (&optional theme buffer)
   "Create or edit a custom theme.
 THEME, if non-nil, should be an existing theme to edit.  If THEME
-is `user', provide an option to remove these as custom settings.
+is `user', the resulting *Custom Theme* buffer also contains a
+checkbox for removing the theme settings specified in the buffer
+from the Custom save file.
 BUFFER, if non-nil, should be a buffer to use; the default is
 named *Custom Theme*."
   (interactive)
@@ -209,6 +211,8 @@ remove them from your saved Custom file.\n\n"))
     (message "")))
 
 (defun custom-theme-revert (_ignore-auto noconfirm)
+  "Revert the current *Custom Theme* buffer.
+This is the `revert-buffer-function' for `custom-new-theme-mode'."
   (when (or noconfirm (y-or-n-p "Discard current changes? "))
     (customize-create-theme custom-theme--save-name (current-buffer))))
 
@@ -329,11 +333,16 @@ SPEC, if non-nil, should be a face spec to which to set the widget."
     (load-theme theme nil t))
   (let ((settings (reverse (get theme 'theme-settings))))
     (dolist (setting settings)
-      (funcall (if (eq (car setting) 'theme-value)
-		   'custom-theme-add-variable
-		 'custom-theme-add-face)
-	       (nth 1 setting)
-	       (nth 3 setting))))
+      (let ((option (eq (car setting) 'theme-value))
+	    (name   (nth 1 setting))
+	    (value  (nth 3 setting)))
+	(unless (and option
+		     (memq name '(custom-enabled-themes
+				  custom-safe-themes)))
+	  (funcall (if option
+		       'custom-theme-add-variable
+		     'custom-theme-add-face)
+		   name value)))))
   theme)
 
 ;; From cus-edit.el
@@ -432,14 +441,17 @@ It includes all faces in list FACES."
       (princ theme)
       (princ "\n")
       (dolist (spec faces)
+	;; Insert the face iff the checkbox widget is checked.
 	(when (widget-get (nth 1 spec) :value)
 	  (let* ((symbol (nth 0 spec))
 		 (widget (nth 2 spec))
 		 (value
-		  (if (car-safe (widget-get widget :children))
-		      (custom-face-widget-to-spec widget)
-		    ;; Child is null if the widget is closed (hidden).
-		    (widget-get widget :shown-value))))
+		  (cond
+		   ((car-safe (widget-get widget :children))
+		    (custom-face-widget-to-spec widget))
+		   ;; Child is null if the widget is closed (hidden).
+		   ((widget-get widget :shown-value))
+		   (t (custom-face-get-current-spec symbol)))))
 	    (when (and (facep symbol) value)
 	      (princ (if (bolp) " '(" "\n '("))
 	      (prin1 symbol)
@@ -516,6 +528,7 @@ It includes all faces in list FACES."
 
 (defcustom custom-theme-allow-multiple-selections nil
   "Whether to allow multi-selections in the *Custom Themes* buffer."
+  :version "24.1"
   :type 'boolean
   :group 'custom-buffer)
 

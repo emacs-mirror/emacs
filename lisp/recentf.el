@@ -1,6 +1,6 @@
 ;;; recentf.el --- setup a menu of recently opened files
 
-;; Copyright (C) 1999-2011 Free Software Foundation, Inc.
+;; Copyright (C) 1999-2012 Free Software Foundation, Inc.
 
 ;; Author: David Ponce <david@dponce.com>
 ;; Created: July 19 1999
@@ -1061,6 +1061,8 @@ Go to the beginning of buffer if not found."
   (let ((km (copy-keymap recentf--shortcuts-keymap)))
     (set-keymap-parent km widget-keymap)
     (define-key km "q" 'recentf-cancel-dialog)
+    (define-key km "n" 'next-line)
+    (define-key km "p" 'previous-line)
     (define-key km [follow-link] "\C-m")
     km)
   "Keymap used in recentf dialogs.")

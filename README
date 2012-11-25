@@ -1,8 +1,8 @@
-Copyright (C) 2001-2011  Free Software Foundation, Inc.
+Copyright (C) 2001-2012  Free Software Foundation, Inc.
 See the end of the file for license conditions.
 
 
-This directory tree holds version 24.0.92 of GNU Emacs, the extensible,
+This directory tree holds version 24.3.50 of GNU Emacs, the extensible,
 customizable, self-documenting real-time display editor.
 
 The file INSTALL in this directory says how to build and install GNU
@@ -37,13 +37,18 @@ oddities of your processor and operating system.  It creates the file
 process of building and installing Emacs.  See INSTALL for more
 detailed information.
 
-The file `configure.in' is the input used by the autoconf program to
+The file `configure.ac' is the input used by the autoconf program to
 construct the `configure' script.  Since Emacs has some configuration
 requirements that autoconf can't meet directly, and for historical
-reasons, `configure.in' uses an unholy marriage of custom-baked
-configuration code and autoconf macros.  If you want to rebuild
-`configure' from `configure.in', you will need to install a recent
-version of autoconf and GNU m4.
+reasons, `configure.ac' uses an unholy marriage of custom-baked
+configuration code and autoconf macros.
+
+The shell script `autogen.sh' generates 'configure' and other files by
+running the GNU build tools autoconf and automake, which in turn use
+GNU m4 and Perl.  If you want to use it, you will need to install
+recent versions of these build tools.  This should be needed only if
+you edit files like `configure.ac' that specify Emacs's autobuild
+procedure.
 
 The file `Makefile.in' is a template used by `configure' to create
 `Makefile'.

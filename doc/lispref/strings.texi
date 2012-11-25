@@ -1,11 +1,9 @@
 @c -*-texinfo-*-
 @c This is part of the GNU Emacs Lisp Reference Manual.
-@c Copyright (C) 1990-1995, 1998-1999, 2001-2011
+@c Copyright (C) 1990-1995, 1998-1999, 2001-2012
 @c   Free Software Foundation, Inc.
 @c See the file elisp.texi for copying conditions.
-@setfilename ../../info/strings
-@node Strings and Characters, Lists, Numbers, Top
-@comment  node-name,  next,  previous,  up
+@node Strings and Characters
 @chapter Strings and Characters
 @cindex strings
 @cindex character arrays
@@ -37,26 +35,31 @@ keyboard character events.
 @node String Basics
 @section String and Character Basics
 
-  Characters are represented in Emacs Lisp as integers;
-whether an integer is a character or not is determined only by how it is
-used.  Thus, strings really contain integers.  @xref{Character Codes},
-for details about character representation in Emacs.
+  A character is a Lisp object which represents a single character of
+text.  In Emacs Lisp, characters are simply integers; whether an
+integer is a character or not is determined only by how it is used.
+@xref{Character Codes}, for details about character representation in
+Emacs.
 
-  The length of a string (like any array) is fixed, and cannot be
-altered once the string exists.  Strings in Lisp are @emph{not}
-terminated by a distinguished character code.  (By contrast, strings in
-C are terminated by a character with @acronym{ASCII} code 0.)
+  A string is a fixed sequence of characters.  It is a type of
+sequence called a @dfn{array}, meaning that its length is fixed and
+cannot be altered once it is created (@pxref{Sequences Arrays
+Vectors}).  Unlike in C, Emacs Lisp strings are @emph{not} terminated
+by a distinguished character code.
 
   Since strings are arrays, and therefore sequences as well, you can
-operate on them with the general array and sequence functions.
-(@xref{Sequences Arrays Vectors}.)  For example, you can access or
-change individual characters in a string using the functions @code{aref}
-and @code{aset} (@pxref{Array Functions}).
+operate on them with the general array and sequence functions
+documented in @ref{Sequences Arrays Vectors}.  For example, you can
+access or change individual characters in a string using the functions
+@code{aref} and @code{aset} (@pxref{Array Functions}).  However, note
+that @code{length} should @emph{not} be used for computing the width
+of a string on display; use @code{string-width} (@pxref{Width})
+instead.
 
-  There are two text representations for non-@acronym{ASCII} characters in
-Emacs strings (and in buffers): unibyte and multibyte (@pxref{Text
-Representations}).  For most Lisp programming, you don't need to be
-concerned with these two representations.
+  There are two text representations for non-@acronym{ASCII}
+characters in Emacs strings (and in buffers): unibyte and multibyte.
+For most Lisp programming, you don't need to be concerned with these
+two representations.  @xref{Text Representations}, for details.
 
   Sometimes key sequences are represented as unibyte strings.  When a
 unibyte string is a key sequence, string elements in the range 128 to
@@ -88,7 +91,7 @@ for information about the syntax of characters and strings.
 representations and to encode and decode character codes.
 
 @node Predicates for Strings
-@section The Predicates for Strings
+@section Predicates for Strings
 
 For more information about general sequence and array predicates,
 see @ref{Sequences Arrays Vectors}, and @ref{Arrays}.
@@ -410,8 +413,13 @@ in case if @code{case-fold-search} is non-@code{nil}.
 @defun string= string1 string2
 This function returns @code{t} if the characters of the two strings
 match exactly.  Symbols are also allowed as arguments, in which case
-their print names are used.
-Case is always significant, regardless of @code{case-fold-search}.
+the symbol names are used.  Case is always significant, regardless of
+@code{case-fold-search}.
+
+This function is equivalent to @code{equal} for comparing two strings
+(@pxref{Equality Predicates}).  In particular, the text properties of
+the two strings are ignored.  But if either argument is not a string
+or symbol, an error is signaled.
 
 @example
 (string= "abc" "abc")
@@ -421,10 +429,6 @@ Case is always significant, regardless of @code{case-fold-search}.
 (string= "ab" "ABC")
      @result{} nil
 @end example
-
-The function @code{string=} ignores the text properties of the two
-strings.  When @code{equal} (@pxref{Equality Predicates}) compares two
-strings, it uses @code{string=}.
 
 For technical reasons, a unibyte and a multibyte string are
 @code{equal} if and only if they contain the same sequence of
@@ -505,6 +509,13 @@ are used.
 @code{string-lessp} is another name for @code{string<}.
 @end defun
 
+@defun string-prefix-p string1 string2 &optional ignore-case
+This function returns non-@code{nil} if @var{string1} is a prefix of
+@var{string2}; i.e., if @var{string2} starts with @var{string1}.  If
+the optional argument @var{ignore-case} is non-@code{nil}, the
+comparison ignores case differences.
+@end defun
+
 @defun compare-strings string1 start1 end1 string2 start2 end2 &optional ignore-case
 This function compares the specified part of @var{string1} with the
 specified part of @var{string2}.  The specified part of @var{string1}
@@ -545,7 +556,6 @@ against a string, can be used for a kind of string comparison; see
 @ref{Regexp Search}.
 
 @node String Conversion
-@comment  node-name,  next,  previous,  up
 @section Conversion of Characters and Strings
 @cindex conversion of strings
 
@@ -661,7 +671,6 @@ This function converts a byte of character data into a unibyte string.
 @end table
 
 @node Formatting Strings
-@comment  node-name,  next,  previous,  up
 @section Formatting Strings
 @cindex formatting strings
 @cindex strings, formatting them
@@ -894,7 +903,6 @@ shows only the first three characters of the representation for
 characters.
 
 @node Case Conversion
-@comment node-name, next, previous, up
 @section Case Conversion in Lisp
 @cindex upper case
 @cindex lower case
@@ -1107,7 +1115,7 @@ Exits}).
 @acronym{ASCII} characters; for example, in the Turkish language
 environment, the @acronym{ASCII} character @samp{I} is downcased into
 a Turkish ``dotless i''.  This can interfere with code that requires
-ordinary ASCII case conversion, such as implementations of
+ordinary @acronym{ASCII} case conversion, such as implementations of
 @acronym{ASCII}-based network protocols.  In that case, use the
 @code{with-case-table} macro with the variable @var{ascii-case-table},
 which stores the unmodified case table for the @acronym{ASCII}

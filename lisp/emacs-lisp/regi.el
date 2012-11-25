@@ -1,6 +1,6 @@
 ;;; regi.el --- REGular expression Interpreting engine
 
-;; Copyright (C) 1993, 2001-2011 Free Software Foundation, Inc.
+;; Copyright (C) 1993, 2001-2012 Free Software Foundation, Inc.
 
 ;; Author: 1993 Barry A. Warsaw, Century Computing, Inc. <bwarsaw@cen.com>
 ;; Maintainer:    bwarsaw@cen.com

@@ -1,6 +1,6 @@
 ;;; copyright.el --- update the copyright notice in current buffer
 
-;; Copyright (C) 1991-1995, 1998, 2001-2011  Free Software Foundation, Inc.
+;; Copyright (C) 1991-1995, 1998, 2001-2012  Free Software Foundation, Inc.
 
 ;; Author: Daniel Pfeiffer <occitan@esperanto.org>
 ;; Keywords: maint, tools
@@ -85,7 +85,7 @@ The second \\( \\) construct must match the years."
   "Non-nil if individual consecutive years should be replaced with a range.
 For example: 2005, 2006, 2007, 2008 might be replaced with 2005-2008.
 If you use ranges, you should add an explanatory note in a README file.
-The function `copyright-fix-year' respects this variable."
+The function `copyright-fix-years' respects this variable."
   :group 'copyright
   :type 'boolean
   :version "24.1")
@@ -110,7 +110,7 @@ When this is `function', only ask when called non-interactively."
 
 ;; This is a defvar rather than a defconst, because the year can
 ;; change during the Emacs session.
-(defvar copyright-current-year (substring (current-time-string) -4)
+(defvar copyright-current-year (format-time-string "%Y")
   "String representing the current year.")
 
 (defsubst copyright-limit ()            ; re-search-forward BOUND
@@ -181,8 +181,7 @@ skips to the end of all the years."
   ;; This uses the match-data from copyright-find-copyright/end.
   (goto-char (match-end 1))
   (copyright-find-end)
-  ;; Note that `current-time-string' isn't locale-sensitive.
-  (setq copyright-current-year (substring (current-time-string) -4))
+  (setq copyright-current-year (format-time-string "%Y"))
   (unless (string= (buffer-substring (- (match-end 3) 2) (match-end 3))
 		   (substring copyright-current-year -2))
     (if (or noquery
@@ -347,7 +346,7 @@ independently replaces consecutive years with a range."
   "Insert a copyright by $ORGANIZATION notice at cursor."
   "Company: "
   comment-start
-  "Copyright (C) " `(substring (current-time-string) -4) " by "
+  "Copyright (C) " `(format-time-string "%Y") " by "
   (or (getenv "ORGANIZATION")
       str)
   '(if (copyright-offset-too-large-p)
@@ -363,10 +362,11 @@ If FIX is non-nil, run `copyright-fix-years' instead."
   (dolist (file (directory-files directory t match nil))
     (unless (file-directory-p file)
       (message "Updating file `%s'" file)
-      (find-file file)
-      (let ((inhibit-read-only t)
-	    (enable-local-variables :safe)
-	    copyright-query)
+      ;; FIXME we should not use find-file+save+kill.
+      (let ((enable-local-variables :safe)
+	    (enable-local-eval nil))
+	(find-file file))
+      (let ((inhibit-read-only t))
 	(if fix
 	    (copyright-fix-years)
 	  (copyright-update)))

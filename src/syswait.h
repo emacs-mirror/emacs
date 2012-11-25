@@ -1,5 +1,5 @@
 /* Define wait system call interface for Emacs.
-   Copyright (C) 1993-1995, 2000-2011  Free Software Foundation, Inc.
+   Copyright (C) 1993-1995, 2000-2012  Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -51,9 +51,11 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #define WTERMSIG(status) ((status) & 0x7f)
 #endif
 
-#undef WRETCODE
-#define WRETCODE(status) WEXITSTATUS (status)
+/* Defined in process.c.  */
+extern void record_child_status_change (pid_t, int);
 
+/* Defined in sysdep.c.  */
+extern void wait_for_termination (pid_t);
+extern void interruptible_wait_for_termination (pid_t);
 
 #endif /* EMACS_SYSWAIT_H */
-

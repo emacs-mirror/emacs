@@ -1,45 +1,53 @@
 @c -*-texinfo-*-
 @c This is part of the GNU Emacs Lisp Reference Manual.
-@c Copyright (C) 1990-1994, 1998-1999, 2001-2011 Free Software Foundation, Inc.
+@c Copyright (C) 1990-1994, 1998-1999, 2001-2012 Free Software Foundation, Inc.
 @c See the file elisp.texi for copying conditions.
-@setfilename ../../info/debugging
-@node Debugging, Read and Print, Advising Functions, Top
+@node Debugging
 @chapter Debugging Lisp Programs
 
-  There are three ways to investigate a problem in an Emacs Lisp program,
-depending on what you are doing with the program when the problem appears.
+  There are several ways to find and investigate problems in an Emacs
+Lisp program.
 
 @itemize @bullet
 @item
-If the problem occurs when you run the program, you can use a Lisp
-debugger to investigate what is happening during execution.  In addition
-to the ordinary debugger, Emacs comes with a source-level debugger,
-Edebug.  This chapter describes both of them.
+If a problem occurs when you run the program, you can use the built-in
+Emacs Lisp debugger to suspend the Lisp evaluator, and examine and/or
+alter its internal state.
 
 @item
-If the problem is syntactic, so that Lisp cannot even read the program,
-you can use the Emacs facilities for editing Lisp to localize it.
+You can use Edebug, a source-level debugger for Emacs Lisp.
 
 @item
-If the problem occurs when trying to compile the program with the byte
-compiler, you need to know how to examine the compiler's input buffer.
+If a syntactic problem is preventing Lisp from even reading the
+program, you can locate it using Lisp editing commands.
+
+@item
+You can look at the error and warning messages produced by the byte
+compiler when it compiles the program.  @xref{Compiler Errors}.
+
+@item
+You can use the Testcover package to perform coverage testing on the
+program.
+
+@item
+You can use the ERT package to write regression tests for the program.
+@xref{Top,the ERT manual,, ERT, ERT: Emacs Lisp Regression Testing}.
+
+@item
+You can profile the program to get hints about how to make it more efficient.
 @end itemize
 
+  Other useful tools for debugging input and output problems are the
+dribble file (@pxref{Terminal Input}) and the @code{open-termscript}
+function (@pxref{Terminal Output}).
+
 @menu
-* Debugger::            How the Emacs Lisp debugger is implemented.
+* Debugger::            A debugger for the Emacs Lisp evaluator.
 * Edebug::              A source-level Emacs Lisp debugger.
 * Syntax Errors::       How to find syntax errors.
 * Test Coverage::       Ensuring you have tested all branches in your code.
-* Compilation Errors::  How to find errors that show up in byte compilation.
+* Profiling::           Measuring the resources that your code uses.
 @end menu
-
-  Another useful debugging tool is the dribble file.  When a dribble
-file is open, Emacs copies all keyboard input characters to that file.
-Afterward, you can examine the file to find out what input was used.
-@xref{Terminal Input}.
-
-  For debugging problems in terminal descriptions, the
-@code{open-termscript} function can be useful.  @xref{Terminal Output}.
 
 @node Debugger
 @section The Lisp Debugger
@@ -76,25 +84,29 @@ happens.  This allows you to investigate the immediate causes of the
 error.
 
   However, entry to the debugger is not a normal consequence of an
-error.  Many commands frequently cause Lisp errors when invoked
-inappropriately, and during ordinary editing it would be very
-inconvenient to enter the debugger each time this happens.  So if you
-want errors to enter the debugger, set the variable
-@code{debug-on-error} to non-@code{nil}.  (The command
-@code{toggle-debug-on-error} provides an easy way to do this.)
+error.  Many commands signal Lisp errors when invoked inappropriately,
+and during ordinary editing it would be very inconvenient to enter the
+debugger each time this happens.  So if you want errors to enter the
+debugger, set the variable @code{debug-on-error} to non-@code{nil}.
+(The command @code{toggle-debug-on-error} provides an easy way to do
+this.)
 
 @defopt debug-on-error
 This variable determines whether the debugger is called when an error
 is signaled and not handled.  If @code{debug-on-error} is @code{t},
 all kinds of errors call the debugger, except those listed in
 @code{debug-ignored-errors} (see below).  If it is @code{nil}, none
-call the debugger.  (Note that @code{eval-expression-debug-on-error}
-affects the setting of this variable in some cases; see below.)
+call the debugger.
 
-The value can also be a list of error conditions that should call the
-debugger.  For example, if you set it to the list
-@code{(void-variable)}, then only errors about a variable that has no
-value invoke the debugger.
+The value can also be a list of error conditions (@pxref{Signaling
+Errors}).  Then the debugger is called only for error conditions in
+this list (except those also listed in @code{debug-ignored-errors}).
+For example, if you set @code{debug-on-error} to the list
+@code{(void-variable)}, the debugger is only called for errors about a
+variable that has no value.
+
+Note that @code{eval-expression-debug-on-error} overrides this
+variable in some cases; see below.
 
 When this variable is non-@code{nil}, Emacs does not create an error
 handler around process filter functions and sentinels.  Therefore,
@@ -102,51 +114,66 @@ errors in these functions also invoke the debugger.  @xref{Processes}.
 @end defopt
 
 @defopt debug-ignored-errors
-This variable specifies certain kinds of errors that should not enter
-the debugger.  Its value is a list of error condition symbols and/or
-regular expressions.  If the error has any of those condition symbols,
-or if the error message matches any of the regular expressions, then
-that error does not enter the debugger, regardless of the value of
-@code{debug-on-error}.
+This variable specifies errors which should not enter the debugger,
+regardless of the value of @code{debug-on-error}.  Its value is a list
+of error condition symbols and/or regular expressions.  If the error
+has any of those condition symbols, or if the error message matches
+any of the regular expressions, then that error does not enter the
+debugger.
 
-The normal value of this variable lists several errors that happen often
-during editing but rarely result from bugs in Lisp programs.  However,
-``rarely'' is not ``never''; if your program fails with an error that
-matches this list, you will need to change this list in order to debug
-the error.  The easiest way is usually to set
-@code{debug-ignored-errors} to @code{nil}.
+The normal value of this variable includes @code{user-error}, as well
+as several errors that happen often during editing but rarely result
+from bugs in Lisp programs.  However, ``rarely'' is not ``never''; if
+your program fails with an error that matches this list, you may try
+changing this list to debug the error.  The easiest way is usually to
+set @code{debug-ignored-errors} to @code{nil}.
 @end defopt
 
 @defopt eval-expression-debug-on-error
-If this variable has a non-@code{nil} value, then
-@code{debug-on-error} is set to @code{t} when evaluating with the
-command @code{eval-expression}.  If
-@code{eval-expression-debug-on-error} is @code{nil}, then the value of
-@code{debug-on-error} is not changed.  @xref{Lisp Eval,, Evaluating
+If this variable has a non-@code{nil} value (the default), running the
+command @code{eval-expression} causes @code{debug-on-error} to be
+temporarily bound to to @code{t}.  @xref{Lisp Eval,, Evaluating
 Emacs-Lisp Expressions, emacs, The GNU Emacs Manual}.
+
+If @code{eval-expression-debug-on-error} is @code{nil}, then the value
+of @code{debug-on-error} is not changed during @code{eval-expression}.
 @end defopt
 
-@defopt debug-on-signal
-Normally, errors that are caught by @code{condition-case} never run the
-debugger, even if @code{debug-on-error} is non-@code{nil}.  In other
-words, @code{condition-case} gets a chance to handle the error before
-the debugger gets a chance.
+@defvar debug-on-signal
+Normally, errors caught by @code{condition-case} never invoke the
+debugger.  The @code{condition-case} gets a chance to handle the error
+before the debugger gets a chance.
 
-If you set @code{debug-on-signal} to a non-@code{nil} value, then the
-debugger gets the first chance at every error; an error will invoke the
-debugger regardless of any @code{condition-case}, if it fits the
-criteria specified by the values of @code{debug-on-error} and
-@code{debug-ignored-errors}.
+If you change @code{debug-on-signal} to a non-@code{nil} value, the
+debugger gets the first chance at every error, regardless of the
+presence of @code{condition-case}.  (To invoke the debugger, the error
+must still fulfill the criteria specified by @code{debug-on-error} and
+@code{debug-ignored-errors}.)
 
-@strong{Warning:} This variable is strong medicine!  Various parts of
-Emacs handle errors in the normal course of affairs, and you may not
-even realize that errors happen there.  If you set
-@code{debug-on-signal} to a non-@code{nil} value, those errors will
-enter the debugger.
+@strong{Warning:} Setting this variable to non-@code{nil} may have
+annoying effects.  Various parts of Emacs catch errors in the normal
+course of affairs, and you may not even realize that errors happen
+there.  If you need to debug code wrapped in @code{condition-case},
+consider using @code{condition-case-unless-debug} (@pxref{Handling
+Errors}).
+@end defvar
 
-@strong{Warning:} @code{debug-on-signal} has no effect when
-@code{debug-on-error} is @code{nil}.
+@defopt debug-on-event
+If you set @code{debug-on-event} to a special event (@pxref{Special
+Events}), Emacs will try to enter the debugger as soon as it receives
+this event, bypassing @code{special-event-map}.  At present, the only
+supported values correspond to the signals @code{SIGUSR1} and
+@code{SIGUSR2} (this is the default).  This can be helpful when
+@code{inhibit-quit} is set and Emacs is not otherwise responding.
 @end defopt
+
+@cindex message, finding what causes a particular message
+@defvar debug-on-message
+If you set @code{debug-on-message} to a regular expression,
+Emacs will enter the debugger if it displays a matching message in the
+echo area.  For example, this can be useful when trying to find the
+cause of a particular message.
+@end defvar
 
   To debug an error that happens during loading of the init
 file, use the option @samp{--debug-init}.  This binds
@@ -162,27 +189,26 @@ init file.
 @cindex stopping an infinite loop
 
   When a program loops infinitely and fails to return, your first
-problem is to stop the loop.  On most operating systems, you can do this
-with @kbd{C-g}, which causes a @dfn{quit}.
+problem is to stop the loop.  On most operating systems, you can do
+this with @kbd{C-g}, which causes a @dfn{quit}.  @xref{Quitting}.
 
   Ordinary quitting gives no information about why the program was
 looping.  To get more information, you can set the variable
-@code{debug-on-quit} to non-@code{nil}.  Quitting with @kbd{C-g} is not
-considered an error, and @code{debug-on-error} has no effect on the
-handling of @kbd{C-g}.  Likewise, @code{debug-on-quit} has no effect on
-errors.
+@code{debug-on-quit} to non-@code{nil}.  Once you have the debugger
+running in the middle of the infinite loop, you can proceed from the
+debugger using the stepping commands.  If you step through the entire
+loop, you may get enough information to solve the problem.
 
-  Once you have the debugger running in the middle of the infinite loop,
-you can proceed from the debugger using the stepping commands.  If you
-step through the entire loop, you will probably get enough information
-to solve the problem.
+  Quitting with @kbd{C-g} is not considered an error, and
+@code{debug-on-error} has no effect on the handling of @kbd{C-g}.
+Likewise, @code{debug-on-quit} has no effect on errors.
 
 @defopt debug-on-quit
-This variable determines whether the debugger is called when @code{quit}
-is signaled and not handled.  If @code{debug-on-quit} is non-@code{nil},
-then the debugger is called whenever you quit (that is, type @kbd{C-g}).
-If @code{debug-on-quit} is @code{nil}, then the debugger is not called
-when you quit.  @xref{Quitting}.
+This variable determines whether the debugger is called when
+@code{quit} is signaled and not handled.  If @code{debug-on-quit} is
+non-@code{nil}, then the debugger is called whenever you quit (that
+is, type @kbd{C-g}).  If @code{debug-on-quit} is @code{nil} (the
+default), then the debugger is not called when you quit.
 @end defopt
 
 @node Function Debugging
@@ -284,17 +310,23 @@ of @code{(debug)} isn't ignored, it will alter the execution of the
 program!)  The most common suitable places are inside a @code{progn} or
 an implicit @code{progn} (@pxref{Sequencing}).
 
+  If you don't know exactly where in the source code you want to put
+the debug statement, but you want to display a backtrace when a
+certain message is displayed, you can set @code{debug-on-message} to a
+regular expression matching the desired message.
+
 @node Using Debugger
 @subsection Using the Debugger
 
   When the debugger is entered, it displays the previously selected
-buffer in one window and a buffer named @samp{*Backtrace*} in another
+buffer in one window and a buffer named @file{*Backtrace*} in another
 window.  The backtrace buffer contains one line for each level of Lisp
 function execution currently going on.  At the beginning of this buffer
 is a message describing the reason that the debugger was invoked (such
 as the error message and associated data, if it was invoked due to an
 error).
 
+@vindex debugger-bury-or-kill
   The backtrace buffer is read-only and uses a special major mode,
 Debugger mode, in which letters are defined as debugger commands.  The
 usual Emacs editing commands are available; thus, you can switch windows
@@ -303,8 +335,12 @@ switch buffers, visit files, or do any other sort of editing.  However,
 the debugger is a recursive editing level (@pxref{Recursive Editing})
 and it is wise to go back to the backtrace buffer and exit the debugger
 (with the @kbd{q} command) when you are finished with it.  Exiting
-the debugger gets out of the recursive edit and kills the backtrace
-buffer.
+the debugger gets out of the recursive edit and buries the backtrace
+buffer.  (You can customize what the @kbd{q} command does with the
+backtrace buffer by setting the variable @code{debugger-bury-or-kill}.
+For example, set it to @code{kill} if you prefer to kill the buffer
+rather than bury it.  Consult the variable's documentation for more
+possibilities.)
 
   When the debugger has been entered, the @code{debug-on-error}
 variable is temporarily set according to
@@ -312,7 +348,7 @@ variable is temporarily set according to
 non-@code{nil}, @code{debug-on-error} will temporarily be set to
 @code{t}.  This means that any further errors that occur while doing a
 debugging session will (by default) trigger another backtrace.  If
-this is not want you want, you can either set
+this is not what you want, you can either set
 @code{eval-expression-debug-on-error} to @code{nil}, or set
 @code{debug-on-error} to @code{nil} in @code{debugger-mode-hook}.
 
@@ -328,8 +364,8 @@ that exiting that frame will call the debugger again.  This is useful
 for examining the return value of a function.
 
   If a function name is underlined, that means the debugger knows
-where its source code is located.  You can click @kbd{Mouse-2} on that
-name, or move to it and type @key{RET}, to visit the source code.
+where its source code is located.  You can click with the mouse on
+that name, or move to it and type @key{RET}, to visit the source code.
 
   The debugger itself must be run byte-compiled, since it makes
 assumptions about how many stack frames are used for the debugger
@@ -355,14 +391,10 @@ to step through a primitive function.
 
 @table @kbd
 @item c
-Exit the debugger and continue execution.  When continuing is possible,
-it resumes execution of the program as if the debugger had never been
-entered (aside from any side-effects that you caused by changing
-variable values or data structures while inside the debugger).
-
-Continuing is possible after entry to the debugger due to function entry
-or exit, explicit invocation, or quitting.  You cannot continue if the
-debugger was entered because of an error.
+Exit the debugger and continue execution.  This resumes execution of
+the program as if the debugger had never been entered (aside from any
+side-effects that you caused by changing variable values or data
+structures while inside the debugger).
 
 @item d
 Continue execution, but enter the debugger the next time any Lisp
@@ -401,7 +433,7 @@ the variable values within the debugger.
 
 @item R
 Like @kbd{e}, but also save the result of evaluation in the
-buffer @samp{*Debugger-record*}.
+buffer @file{*Debugger-record*}.
 
 @item q
 Terminate the program being debugged; return to top-level Emacs
@@ -437,9 +469,9 @@ erroneously show up in this list.
   Here we describe in full detail the function @code{debug} that is used
 to invoke the debugger.
 
-@defun debug &rest debugger-args
+@deffn Command debug &rest debugger-args
 This function enters the debugger.  It switches buffers to a buffer
-named @samp{*Backtrace*} (or @samp{*Backtrace*<2>} if it is the second
+named @file{*Backtrace*} (or @file{*Backtrace*<2>} if it is the second
 recursive entry to the debugger, etc.), and fills it with information
 about the stack of Lisp function calls.  It then enters a recursive
 edit, showing the backtrace buffer in Debugger mode.
@@ -450,7 +482,7 @@ buffer and returns to whatever called @code{debug}.  This is the only
 way the function @code{debug} can return to its caller.
 
 The use of the @var{debugger-args} is that @code{debug} displays the
-rest of its arguments at the top of the @samp{*Backtrace*} buffer, so
+rest of its arguments at the top of the @file{*Backtrace*} buffer, so
 that the user can see them.  Except as described below, this is the
 @emph{only} way these arguments are used.
 
@@ -524,7 +556,7 @@ are printed on the top line of the buffer.  You can use this feature to
 display messages---for example, to remind yourself of the conditions
 under which @code{debug} is called.
 @end table
-@end defun
+@end deffn
 
 @node Internals of Debugger
 @subsection Internals of the Debugger
@@ -549,7 +581,7 @@ of @code{debug} (@pxref{Invoking the Debugger}).
 @cindex call stack
 This function prints a trace of Lisp function calls currently active.
 This is the function used by @code{debug} to fill up the
-@samp{*Backtrace*} buffer.  It is written in C, since it must have access
+@file{*Backtrace*} buffer.  It is written in C, since it must have access
 to the stack to determine which function calls are active.  The return
 value is always @code{nil}.
 
@@ -782,28 +814,62 @@ never return.  If it ever does return, you get a run-time error.
 Testing}).  These features partly duplicate each other, and it would
 be cleaner to combine them.
 
-@node Compilation Errors
-@section Debugging Problems in Compilation
-@cindex debugging byte compilation problems
 
-  When an error happens during byte compilation, it is normally due to
-invalid syntax in the program you are compiling.  The compiler prints a
-suitable error message in the @samp{*Compile-Log*} buffer, and then
-stops.  The message may state a function name in which the error was
-found, or it may not.  Either way, here is how to find out where in the
-file the error occurred.
+@node Profiling
+@section Profiling
+@cindex profiling
+@cindex measuring resource usage
+@cindex memory usage
 
-  What you should do is switch to the buffer @w{@samp{ *Compiler Input*}}.
-(Note that the buffer name starts with a space, so it does not show
-up in @kbd{M-x list-buffers}.)  This buffer contains the program being
-compiled, and point shows how far the byte compiler was able to read.
+If your program is working correctly, but you want to make it run more
+quickly or efficiently, the first thing to do is @dfn{profile} your
+code so that you know how it is using resources.  If you find that one
+particular function is responsible for a significant portion of the
+runtime, you can start looking for ways to optimize that piece.
 
-  If the error was due to invalid Lisp syntax, point shows exactly where
-the invalid syntax was @emph{detected}.  The cause of the error is not
-necessarily near by!  Use the techniques in the previous section to find
-the error.
+Emacs has built-in support for this.  To begin profiling, type
+@kbd{M-x profiler-start}.  You can choose to profile by processor
+usage, memory usage, or both.  After doing some work, type
+@kbd{M-x profiler-report} to display a summary buffer for each
+resource that you chose to profile.  The names of the report buffers
+include the times at which the reports were generated, so you can
+generate another report later on without erasing previous results.
+When you have finished profiling, type @kbd{M-x profiler-stop} (there
+is a small overhead associated with profiling).
 
-  If the error was detected while compiling a form that had been read
-successfully, then point is located at the end of the form.  In this
-case, this technique can't localize the error precisely, but can still
-show you which function to check.
+The profiler report buffer shows, on each line, a function that was
+called, followed by how much resource (processor or memory) it used in
+absolute and percentage times since profiling started.  If a given
+line has a @samp{+} symbol at the left-hand side, you can expand that
+line by typing @key{RET}, in order to see the function(s) called by
+the higher-level function.  Pressing @key{RET} again will collapse
+back to the original state.
+
+Press @kbd{j} or @kbd{mouse-2} to jump to the definition of a function.
+Press @kbd{d} to view a function's documentation.
+You can save a profile to a file using @kbd{C-x C-w}.
+You can compare two profiles using @kbd{=}.
+
+@c FIXME reversed calltree?
+
+@cindex @file{elp.el}
+@cindex timing programs
+The @file{elp} library offers an alternative approach.  See the file
+@file{elp.el} for instructions.
+
+@cindex @file{benchmark.el}
+@cindex benchmarking
+You can check the speed of individual Emacs Lisp forms using the
+@file{benchmark} library.  See the functions @code{benchmark-run} and
+@code{benchmark-run-compiled} in @file{benchmark.el}.
+
+@c Not worth putting in the printed manual.
+@ifnottex
+@cindex --enable-profiling option of configure
+To profile Emacs at the level of its C code, you can build it using the
+@option{--enable-profiling} option of @command{configure}.  When Emacs
+exits, it generates a file @file{gmon.out} that you can examine using
+the @command{gprof} utility.  This feature is mainly useful for
+debugging Emacs.  It actually stops the Lisp-level @kbd{M-x
+profiler-@dots{}} commands described above from working.
+@end ifnottex

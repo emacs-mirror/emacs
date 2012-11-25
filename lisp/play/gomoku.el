@@ -1,6 +1,6 @@
 ;;; gomoku.el --- Gomoku game between you and Emacs
 
-;; Copyright (C) 1988, 1994, 1996, 2001-2011  Free Software Foundation, Inc.
+;; Copyright (C) 1988, 1994, 1996, 2001-2012 Free Software Foundation, Inc.
 
 ;; Author: Philippe Schnoebelen <phs@lsv.ens-cachan.fr>
 ;; Maintainer: FSF
@@ -89,16 +89,16 @@ One useful value to include is `turn-on-font-lock' to highlight the pieces."
 ;; look rectangular, but spacings SHOULD be at least 2 (MUST BE at least 1).
 
 (defconst gomoku-square-width 4
-  "*Horizontal spacing between squares on the Gomoku board.")
+  "Horizontal spacing between squares on the Gomoku board.")
 
 (defconst gomoku-square-height 2
-  "*Vertical spacing between squares on the Gomoku board.")
+  "Vertical spacing between squares on the Gomoku board.")
 
 (defconst gomoku-x-offset 3
-  "*Number of columns between the Gomoku board and the side of the window.")
+  "Number of columns between the Gomoku board and the side of the window.")
 
 (defconst gomoku-y-offset 1
-  "*Number of lines between the Gomoku board and the top of the window.")
+  "Number of lines between the Gomoku board and the top of the window.")
 
 
 (defvar gomoku-mode-map
@@ -161,7 +161,7 @@ One useful value to include is `turn-on-font-lock' to highlight the pieces."
 
 (defface gomoku-O
     '((((class color)) (:foreground "red" :weight bold)))
-  "Face to use for Emacs' O."
+  "Face to use for Emacs's O."
   :group 'gomoku)
 
 (defface gomoku-X
@@ -173,7 +173,7 @@ One useful value to include is `turn-on-font-lock' to highlight the pieces."
   '(("O" . 'gomoku-O)
     ("X" . 'gomoku-X)
     ("[-|/\\]" 0 (if gomoku-emacs-won 'gomoku-O 'gomoku-X)))
-  "*Font lock rules for Gomoku.")
+  "Font lock rules for Gomoku.")
 
 (put 'gomoku-mode 'front-sticky
      (put 'gomoku-mode 'rear-nonsticky '(intangible)))
@@ -1054,16 +1054,18 @@ If the game is finished, this command requests for another game."
 
 (defun gomoku-display-statistics ()
   "Obnoxiously display some statistics about previous games in mode line."
-  ;; We store this string in the mode-line-process local variable.
-  ;; This is certainly not the cleanest way out ...
-  (setq mode-line-process
-	(format ": Won %d, lost %d%s"
-		gomoku-number-of-human-wins
-		gomoku-number-of-emacs-wins
-		(if (zerop gomoku-number-of-draws)
-		    ""
-		  (format ", drew %d" gomoku-number-of-draws))))
-  (force-mode-line-update))
+  ;; Update mode line only if Gomoku buffer is current (Bug#12771).
+  (when (string-equal (buffer-name) gomoku-buffer-name)
+    ;; We store this string in the mode-line-process local variable.
+    ;; This is certainly not the cleanest way out ...
+    (setq mode-line-process
+	  (format ": won %d, lost %d%s"
+		  gomoku-number-of-human-wins
+		  gomoku-number-of-emacs-wins
+		  (if (zerop gomoku-number-of-draws)
+		      ""
+		    (format ", drew %d" gomoku-number-of-draws))))
+    (force-mode-line-update)))
 
 (defun gomoku-switch-to-window ()
   "Find or create the Gomoku buffer, and display it."
@@ -1196,8 +1198,6 @@ If the game is finished, this command requests for another game."
   (interactive)
   (move-to-column (+ gomoku-x-offset
 		     (* gomoku-square-width (1- gomoku-board-width)))))
-
-(random t)
 
 (provide 'gomoku)
 

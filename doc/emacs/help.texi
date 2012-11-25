@@ -1,8 +1,8 @@
 @c This is part of the Emacs manual.
-@c Copyright (C) 1985-1987, 1993-1995, 1997, 2000-2011
+@c Copyright (C) 1985-1987, 1993-1995, 1997, 2000-2012
 @c   Free Software Foundation, Inc.
 @c See file emacs.texi for copying conditions.
-@node Help, Mark, M-x, Top
+@node Help
 @chapter Help
 @kindex Help
 @cindex help
@@ -71,7 +71,7 @@ meanings for it, but they all support @key{F1} for help.)
 * Language Help::       Help relating to international language support.
 * Misc Help::           Other help commands.
 * Help Files::          Commands to display auxiliary help files.
-* Help Echo::           Help on active text and tooltips (`balloon help').
+* Help Echo::           Help on active text and tooltips ("balloon help").
 @end menu
 
 @iftex
@@ -96,13 +96,13 @@ of the major mode, then global bindings (@code{describe-bindings}).
 @item C-h c @var{key}
 Show the name of the command that the key sequence @var{key} is bound
 to (@code{describe-key-briefly}).  Here @kbd{c} stands for
-``character.''  For more extensive information on @var{key}, use
+``character''.  For more extensive information on @var{key}, use
 @kbd{C-h k}.
 @item C-h d @var{topics} @key{RET}
 Display the commands and variables whose documentation matches
 @var{topics} (@code{apropos-documentation}).
 @item C-h e
-Display the @code{*Messages*} buffer
+Display the @file{*Messages*} buffer
 (@code{view-echo-area-messages}).
 @item C-h f @var{function} @key{RET}
 Display documentation on the Lisp function named @var{function}
@@ -168,7 +168,7 @@ programming language you are editing (@code{info-lookup-symbol}).
 @item C-h .
 Display the help message for a special text area, if point is in one
 (@code{display-local-help}).  (These include, for example, links in
-@samp{*Help*} buffers.)
+@file{*Help*} buffers.)
 @end table
 
 @node Key Help
@@ -243,7 +243,7 @@ by the innermost Lisp expression in the buffer around point,
 (That name appears as the default while you enter the argument.)  For
 example, if point is located following the text @samp{(make-vector
 (car x)}, the innermost list containing point is the one that starts
-with @samp{(make-vector}, so @kbd{C-h f @key{RET}} will describe the
+with @samp{(make-vector}, so @kbd{C-h f @key{RET}} describes the
 function @code{make-vector}.
 
   @kbd{C-h f} is also useful just to verify that you spelled a
@@ -464,7 +464,8 @@ listing the associated character sets, coding systems, and input
 methods, as well as some sample text for that language environment.
 
   The command @kbd{C-h h} (@code{view-hello-file}) displays the file
-@file{etc/HELLO}, which shows how to say ``hello'' in many languages.
+@file{etc/HELLO}, which demonstrates various character sets by showing
+how to say ``hello'' in many languages.
 
   The command @kbd{C-h I} (@code{describe-input-method}) describes an
 input method---either a specified input method, or by default the
@@ -518,7 +519,7 @@ use @kbd{C-h c} to find out what they do.
 @findex view-echo-area-messages
   To review recent echo area messages, use @kbd{C-h e}
 (@code{view-echo-area-messages}).  This displays the buffer
-@code{*Messages*}, where those messages are kept.
+@file{*Messages*}, where those messages are kept.
 
 @kindex C-h m
 @findex describe-mode

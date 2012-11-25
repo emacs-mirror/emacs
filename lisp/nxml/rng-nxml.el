@@ -1,6 +1,6 @@
 ;;; rng-nxml.el --- make nxml-mode take advantage of rng-validate-mode
 
-;; Copyright (C) 2003, 2007-2011  Free Software Foundation, Inc.
+;; Copyright (C) 2003, 2007-2012  Free Software Foundation, Inc.
 
 ;; Author: James Clark
 ;; Keywords: XML, RelaxNG
@@ -54,7 +54,7 @@
   :group 'relax-ng)
 
 (defvar rng-complete-end-tags-after-< t
-  "*Non-nil means immediately after < complete on end-tag names.
+  "Non-nil means immediately after < complete on end-tag names.
 Complete on start-tag names regardless.")
 
 (defvar rng-nxml-easy-menu

@@ -1,5 +1,5 @@
 /* GnuTLS glue for GNU Emacs.
-   Copyright (C) 2010-2011  Free Software Foundation, Inc.
+   Copyright (C) 2010-2012  Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -18,7 +18,6 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 
 #include <config.h>
 #include <errno.h>
-#include <setjmp.h>
 
 #include "lisp.h"
 #include "process.h"
@@ -31,15 +30,14 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #include "w32.h"
 #endif
 
-static int
-emacs_gnutls_handle_error (gnutls_session_t, int err);
+static bool emacs_gnutls_handle_error (gnutls_session_t, int);
 
 static Lisp_Object Qgnutls_dll;
 static Lisp_Object Qgnutls_code;
 static Lisp_Object Qgnutls_anon, Qgnutls_x509pki;
 static Lisp_Object Qgnutls_e_interrupted, Qgnutls_e_again,
   Qgnutls_e_invalid_session, Qgnutls_e_not_ready_for_handshake;
-static int gnutls_global_initialized;
+static bool gnutls_global_initialized;
 
 /* The following are for the property list of `gnutls-boot'.  */
 static Lisp_Object QCgnutls_bootprop_priority;
@@ -125,6 +123,7 @@ DEF_GNUTLS_FN (ssize_t, gnutls_record_send,
 	       (gnutls_session_t, const void *, size_t));
 DEF_GNUTLS_FN (const char *, gnutls_strerror, (int));
 DEF_GNUTLS_FN (void, gnutls_transport_set_errno, (gnutls_session_t, int));
+DEF_GNUTLS_FN (const char *, gnutls_check_version, (const char *));
 DEF_GNUTLS_FN (void, gnutls_transport_set_lowat, (gnutls_session_t, int));
 DEF_GNUTLS_FN (void, gnutls_transport_set_ptr2,
 	       (gnutls_session_t, gnutls_transport_ptr_t,
@@ -141,13 +140,13 @@ DEF_GNUTLS_FN (int, gnutls_x509_crt_import,
 		gnutls_x509_crt_fmt_t));
 DEF_GNUTLS_FN (int, gnutls_x509_crt_init, (gnutls_x509_crt_t *));
 
-static int
-init_gnutls_functions (Lisp_Object libraries)
+static bool
+init_gnutls_functions (void)
 {
   HMODULE library;
   int max_log_level = 1;
 
-  if (!(library = w32_delayed_load (libraries, Qgnutls_dll)))
+  if (!(library = w32_delayed_load (Qgnutls_dll)))
     {
       GNUTLS_LOG (1, max_log_level, "GnuTLS library not found");
       return 0;
@@ -184,7 +183,11 @@ init_gnutls_functions (Lisp_Object libraries)
   LOAD_GNUTLS_FN (library, gnutls_record_send);
   LOAD_GNUTLS_FN (library, gnutls_strerror);
   LOAD_GNUTLS_FN (library, gnutls_transport_set_errno);
-  LOAD_GNUTLS_FN (library, gnutls_transport_set_lowat);
+  LOAD_GNUTLS_FN (library, gnutls_check_version);
+  /* We don't need to call gnutls_transport_set_lowat in GnuTLS 2.11.1
+     and later, and the function was removed entirely in 3.0.0.  */
+  if (!fn_gnutls_check_version ("2.11.1"))
+    LOAD_GNUTLS_FN (library, gnutls_transport_set_lowat);
   LOAD_GNUTLS_FN (library, gnutls_transport_set_ptr2);
   LOAD_GNUTLS_FN (library, gnutls_transport_set_pull_function);
   LOAD_GNUTLS_FN (library, gnutls_transport_set_push_function);
@@ -195,8 +198,12 @@ init_gnutls_functions (Lisp_Object libraries)
 
   max_log_level = global_gnutls_log_level;
 
-  GNUTLS_LOG2 (1, max_log_level, "GnuTLS library loaded:",
-	       SDATA (Fget (Qgnutls_dll, QCloaded_from)));
+  {
+    Lisp_Object name = CAR_SAFE (Fget (Qgnutls_dll, QCloaded_from));
+    GNUTLS_LOG2 (1, max_log_level, "GnuTLS library loaded:",
+                 STRINGP (name) ? (const char *) SDATA (name) : "unknown");
+  }
+
   return 1;
 }
 
@@ -242,16 +249,25 @@ init_gnutls_functions (Lisp_Object libraries)
 #endif /* !WINDOWSNT */
 
 
+/* Function to log a simple message.  */
 static void
 gnutls_log_function (int level, const char* string)
 {
   message ("gnutls.c: [%d] %s", level, string);
 }
 
+/* Function to log a message and a string.  */
 static void
 gnutls_log_function2 (int level, const char* string, const char* extra)
 {
   message ("gnutls.c: [%d] %s %s", level, string, extra);
+}
+
+/* Function to log a message and an integer.  */
+static void
+gnutls_log_function2i (int level, const char* string, int extra)
+{
+  message ("gnutls.c: [%d] %s %d", level, string, extra);
 }
 
 static int
@@ -282,7 +298,12 @@ emacs_gnutls_handshake (struct Lisp_Process *proc)
 	 (Note: this is probably not strictly necessary as the lowat
 	  value is only used when no custom pull/push functions are
 	  set.)  */
-      fn_gnutls_transport_set_lowat (state, 0);
+      /* According to GnuTLS NEWS file, lowat level has been set to
+	 zero by default in version 2.11.1, and the function
+	 gnutls_transport_set_lowat was removed from the library in
+	 version 2.99.0.  */
+      if (!fn_gnutls_check_version ("2.11.1"))
+	fn_gnutls_transport_set_lowat (state, 0);
 #else
       /* This is how GnuTLS takes sockets: as file descriptors passed
 	 in.  For an Emacs process socket, infd and outfd are the
@@ -299,6 +320,7 @@ emacs_gnutls_handshake (struct Lisp_Process *proc)
     {
       ret = fn_gnutls_handshake (state);
       emacs_gnutls_handle_error (state, ret);
+      QUIT;
     }
   while (ret < 0 && fn_gnutls_error_is_fatal (ret) == 0);
 
@@ -328,22 +350,23 @@ emacs_gnutls_transport_set_errno (gnutls_session_t state, int err)
   fn_gnutls_transport_set_errno (state, err);
 }
 
-EMACS_INT
-emacs_gnutls_write (struct Lisp_Process *proc, const char *buf, EMACS_INT nbyte)
+ptrdiff_t
+emacs_gnutls_write (struct Lisp_Process *proc, const char *buf, ptrdiff_t nbyte)
 {
   ssize_t rtnval = 0;
-  EMACS_INT bytes_written;
+  ptrdiff_t bytes_written;
   gnutls_session_t state = proc->gnutls_state;
 
-  if (proc->gnutls_initstage != GNUTLS_STAGE_READY) {
+  if (proc->gnutls_initstage != GNUTLS_STAGE_READY)
+    {
 #ifdef EWOULDBLOCK
-    errno = EWOULDBLOCK;
+      errno = EWOULDBLOCK;
 #endif
 #ifdef EAGAIN
-    errno = EAGAIN;
+      errno = EAGAIN;
 #endif
-    return 0;
-  }
+      return 0;
+    }
 
   bytes_written = 0;
 
@@ -353,10 +376,24 @@ emacs_gnutls_write (struct Lisp_Process *proc, const char *buf, EMACS_INT nbyte)
 
       if (rtnval < 0)
 	{
-	  if (rtnval == GNUTLS_E_AGAIN || rtnval == GNUTLS_E_INTERRUPTED)
+	  if (rtnval == GNUTLS_E_INTERRUPTED)
 	    continue;
 	  else
-	    break;
+	    {
+	      /* If we get GNUTLS_E_AGAIN, then set errno
+		 appropriately so that send_process retries the
+		 correct way instead of erroring out. */
+	      if (rtnval == GNUTLS_E_AGAIN)
+		{
+#ifdef EWOULDBLOCK
+		  errno = EWOULDBLOCK;
+#endif
+#ifdef EAGAIN
+		  errno = EAGAIN;
+#endif
+		}
+	      break;
+	    }
 	}
 
       buf += rtnval;
@@ -368,16 +405,31 @@ emacs_gnutls_write (struct Lisp_Process *proc, const char *buf, EMACS_INT nbyte)
   return (bytes_written);
 }
 
-EMACS_INT
-emacs_gnutls_read (struct Lisp_Process *proc, char *buf, EMACS_INT nbyte)
+ptrdiff_t
+emacs_gnutls_read (struct Lisp_Process *proc, char *buf, ptrdiff_t nbyte)
 {
   ssize_t rtnval;
   gnutls_session_t state = proc->gnutls_state;
 
+  int log_level = proc->gnutls_log_level;
+
   if (proc->gnutls_initstage != GNUTLS_STAGE_READY)
     {
-      emacs_gnutls_handshake (proc);
-      return -1;
+      /* If the handshake count is under the limit, try the handshake
+         again and increment the handshake count.  This count is kept
+         per process (connection), not globally.  */
+      if (proc->gnutls_handshakes_tried < GNUTLS_EMACS_HANDSHAKES_LIMIT)
+        {
+          proc->gnutls_handshakes_tried++;
+          emacs_gnutls_handshake (proc);
+          GNUTLS_LOG2i (5, log_level, "Retried handshake",
+                        proc->gnutls_handshakes_tried);
+          return -1;
+        }
+
+      GNUTLS_LOG (2, log_level, "Giving up on handshake; resetting retries");
+      proc->gnutls_handshakes_tried = 0;
+      return 0;
     }
   rtnval = fn_gnutls_record_recv (state, buf, nbyte);
   if (rtnval >= 0)
@@ -385,7 +437,7 @@ emacs_gnutls_read (struct Lisp_Process *proc, char *buf, EMACS_INT nbyte)
   else if (rtnval == GNUTLS_E_UNEXPECTED_PACKET_LENGTH)
     /* The peer closed the connection. */
     return 0;
-  else if (emacs_gnutls_handle_error (state, rtnval) == 0)
+  else if (emacs_gnutls_handle_error (state, rtnval))
     /* non-fatal error */
     return -1;
   else {
@@ -394,19 +446,19 @@ emacs_gnutls_read (struct Lisp_Process *proc, char *buf, EMACS_INT nbyte)
   }
 }
 
-/* report a GnuTLS error to the user.
-   Returns zero if the error code was successfully handled. */
-static int
+/* Report a GnuTLS error to the user.
+   Return true if the error code was successfully handled.  */
+static bool
 emacs_gnutls_handle_error (gnutls_session_t session, int err)
 {
   int max_log_level = 0;
 
-  int ret;
+  bool ret;
   const char *str;
 
   /* TODO: use a Lisp_Object generated by gnutls_make_error?  */
   if (err >= 0)
-    return 0;
+    return 1;
 
   max_log_level = global_gnutls_log_level;
 
@@ -418,12 +470,12 @@ emacs_gnutls_handle_error (gnutls_session_t session, int err)
 
   if (fn_gnutls_error_is_fatal (err))
     {
-      ret = err;
+      ret = 0;
       GNUTLS_LOG2 (0, max_log_level, "fatal error:", str);
     }
   else
     {
-      ret = 0;
+      ret = 1;
       GNUTLS_LOG2 (1, max_log_level, "non-fatal error:", str);
       /* TODO: EAGAIN AKA Qgnutls_e_again should be level 2.  */
     }
@@ -546,7 +598,7 @@ usage: (gnutls-error-fatalp ERROR)  */)
 	}
     }
 
-  if (!NUMBERP (err))
+  if (! TYPE_RANGED_INTEGERP (int, err))
     error ("Not an error symbol or code");
 
   if (0 == fn_gnutls_error_is_fatal (XINT (err)))
@@ -578,7 +630,7 @@ usage: (gnutls-error-string ERROR)  */)
 	}
     }
 
-  if (!NUMBERP (err))
+  if (! TYPE_RANGED_INTEGERP (int, err))
     return build_string ("Not an error symbol or code");
 
   return build_string (fn_gnutls_strerror (XINT (err)));
@@ -603,7 +655,7 @@ DEFUN ("gnutls-available-p", Fgnutls_available_p, Sgnutls_available_p, 0, 0, 0,
   else
     {
       Lisp_Object status;
-      status = init_gnutls_functions (Vdynamic_library_alist) ? Qt : Qnil;
+      status = init_gnutls_functions () ? Qt : Qnil;
       Vlibrary_cache = Fcons (Fcons (Qgnutls_dll, status), Vlibrary_cache);
       return status;
     }
@@ -751,7 +803,10 @@ one trustfile (usually a CA bundle).  */)
     error ("gnutls-boot: invalid :hostname parameter");
   c_hostname = SSDATA (hostname);
 
-  if (NUMBERP (loglevel))
+  state = XPROCESS (proc)->gnutls_state;
+  XPROCESS (proc)->gnutls_p = 1;
+
+  if (TYPE_RANGED_INTEGERP (int, loglevel))
     {
       fn_gnutls_global_set_log_function (gnutls_log_function);
       fn_gnutls_global_set_log_level (XINT (loglevel));
@@ -773,7 +828,7 @@ one trustfile (usually a CA bundle).  */)
   XPROCESS (proc)->gnutls_state = NULL;
   XPROCESS (proc)->gnutls_x509_cred = NULL;
   XPROCESS (proc)->gnutls_anon_cred = NULL;
-  XPROCESS (proc)->gnutls_cred_type = type;
+  pset_gnutls_cred_type (XPROCESS (proc), type);
   GNUTLS_INITSTAGE (proc) = GNUTLS_STAGE_EMPTY;
 
   GNUTLS_LOG (1, max_log_level, "allocating credentials");
@@ -814,9 +869,9 @@ one trustfile (usually a CA bundle).  */)
       int file_format = GNUTLS_X509_FMT_PEM;
       Lisp_Object tail;
 
-      for (tail = trustfiles; !NILP (tail); tail = Fcdr (tail))
+      for (tail = trustfiles; CONSP (tail); tail = XCDR (tail))
 	{
-	  Lisp_Object trustfile = Fcar (tail);
+	  Lisp_Object trustfile = XCAR (tail);
 	  if (STRINGP (trustfile))
 	    {
 	      GNUTLS_LOG2 (1, max_log_level, "setting the trustfile: ",
@@ -836,9 +891,9 @@ one trustfile (usually a CA bundle).  */)
 	    }
 	}
 
-      for (tail = crlfiles; !NILP (tail); tail = Fcdr (tail))
+      for (tail = crlfiles; CONSP (tail); tail = XCDR (tail))
 	{
-	  Lisp_Object crlfile = Fcar (tail);
+	  Lisp_Object crlfile = XCAR (tail);
 	  if (STRINGP (crlfile))
 	    {
 	      GNUTLS_LOG2 (1, max_log_level, "setting the CRL file: ",
@@ -856,10 +911,10 @@ one trustfile (usually a CA bundle).  */)
 	    }
 	}
 
-      for (tail = keylist; !NILP (tail); tail = Fcdr (tail))
+      for (tail = keylist; CONSP (tail); tail = XCDR (tail))
 	{
-	  Lisp_Object keyfile = Fcar (Fcar (tail));
-	  Lisp_Object certfile = Fcar (Fcdr (tail));
+	  Lisp_Object keyfile = Fcar (XCAR (tail));
+	  Lisp_Object certfile = Fcar (Fcdr (XCAR (tail)));
 	  if (STRINGP (keyfile) && STRINGP (certfile))
 	    {
 	      GNUTLS_LOG2 (1, max_log_level, "setting the client key file: ",
@@ -1108,7 +1163,10 @@ syms_of_gnutls (void)
   defsubr (&Sgnutls_available_p);
 
   DEFVAR_INT ("gnutls-log-level", global_gnutls_log_level,
-	      doc: /* Logging level used by the GnuTLS functions.  */);
+	      doc: /* Logging level used by the GnuTLS functions.
+Set this larger than 0 to get debug output in the *Messages* buffer.
+1 is for important messages, 2 is for debug data, and higher numbers
+are as per the GnuTLS logging conventions.  */);
   global_gnutls_log_level = 0;
 }
 

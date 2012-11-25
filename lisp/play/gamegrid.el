@@ -1,6 +1,6 @@
 ;;; gamegrid.el --- library for implementing grid-based games on Emacs
 
-;; Copyright (C) 1997-1998, 2001-2011  Free Software Foundation, Inc.
+;; Copyright (C) 1997-1998, 2001-2012  Free Software Foundation, Inc.
 
 ;; Author: Glynn Clements <glynn@sensei.co.uk>
 ;; Version: 1.02
@@ -25,9 +25,6 @@
 ;;; Commentary:
 
 ;;; Code:
-
-(eval-when-compile
-  (require 'cl))
 
 ;; ;;;;;;;;;;;;; buffer-local variables ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
@@ -178,7 +175,7 @@ static unsigned char gamegrid_bits[] = {
 
 (defun gamegrid-make-mono-tty-face ()
   (let ((face (make-face 'gamegrid-mono-tty-face)))
-    (set-face-inverse-video-p face t)
+    (set-face-inverse-video face t)
     face))
 
 (defun gamegrid-make-color-tty-face (color)
@@ -212,20 +209,20 @@ static unsigned char gamegrid_bits[] = {
 (defun gamegrid-make-face (data-spec-list color-spec-list)
   (let ((data (gamegrid-match-spec-list data-spec-list))
 	(color (gamegrid-match-spec-list color-spec-list)))
-    (case data
-      (color-x
+    (pcase data
+      (`color-x
        (gamegrid-make-color-x-face color))
-      (grid-x
+      (`grid-x
        (unless gamegrid-grid-x-face
 	 (setq gamegrid-grid-x-face (gamegrid-make-grid-x-face)))
        gamegrid-grid-x-face)
-      (mono-x
+      (`mono-x
        (unless gamegrid-mono-x-face
 	 (setq gamegrid-mono-x-face (gamegrid-make-mono-x-face)))
        gamegrid-mono-x-face)
-      (color-tty
+      (`color-tty
        (gamegrid-make-color-tty-face color))
-      (mono-tty
+      (`mono-tty
        (unless gamegrid-mono-tty-face
 	 (setq gamegrid-mono-tty-face (gamegrid-make-mono-tty-face)))
        gamegrid-mono-tty-face))))
@@ -311,13 +308,13 @@ static unsigned char gamegrid_bits[] = {
 		   (intern (concat "gamegrid-face-" (buffer-name)))))
   (when (eq gamegrid-display-mode 'glyph)
     (let ((max-height nil))
-      (loop for c from 0 to 255 do
-	    (let ((glyph (aref gamegrid-display-table c)))
-	      (when (and (listp glyph) (eq (car  glyph) 'image))
-		(let ((height (cdr (image-size glyph))))
-		  (if (or (null max-height)
-			  (< max-height height))
-		      (setq max-height height))))))
+      (dotimes (c 256)
+        (let ((glyph (aref gamegrid-display-table c)))
+          (when (and (listp glyph) (eq (car  glyph) 'image))
+            (let ((height (cdr (image-size glyph))))
+              (if (or (null max-height)
+                      (< max-height height))
+                  (setq max-height height))))))
       (when (and max-height (< max-height 1))
 	(let ((default-font-height (face-attribute 'default :height))
 	      (resy (/ (display-pixel-height) (/ (display-mm-height) 25.4)))
@@ -332,10 +329,10 @@ static unsigned char gamegrid_bits[] = {
   (setq gamegrid-display-mode (gamegrid-display-type))
   (setq gamegrid-display-table (make-display-table))
   (setq gamegrid-face-table (make-vector 256 nil))
-  (loop for c from 0 to 255 do
+  (dotimes (c 256)
     (let* ((spec (aref gamegrid-display-options c))
-	   (glyph (gamegrid-make-glyph (car spec) (caddr spec)))
-	   (face (gamegrid-make-face (cadr spec) (caddr spec))))
+	   (glyph (gamegrid-make-glyph (car spec) (nth 2 spec)))
+	   (face (gamegrid-make-face (cadr spec) (nth 2 spec))))
       (aset gamegrid-face-table c face)
       (aset gamegrid-display-table c glyph)))
   (gamegrid-setup-default-font)
@@ -451,10 +448,10 @@ group.  You probably need special user privileges to do this.
 On non-POSIX systems Emacs searches for FILE in the directory
 specified by the variable `temporary-file-directory'.  If necessary,
 FILE is created there."
-  (case system-type
-    ((ms-dos windows-nt)
+  (pcase system-type
+    ((or `ms-dos `windows-nt)
      (gamegrid-add-score-insecure file score))
-    (t
+    (_
      (gamegrid-add-score-with-update-game-score file score))))
 
 
@@ -563,7 +560,7 @@ FILE is created there."
         (goto-char (point-min))
         (search-forward (concat (int-to-string score)
 				" " (user-login-name) " "
-				marker-string))
+				marker-string) nil t)
         (beginning-of-line)))))
 
 (defun gamegrid-add-score-insecure (file score &optional directory)

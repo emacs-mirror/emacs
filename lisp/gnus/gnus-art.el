@@ -1,6 +1,6 @@
 ;;; gnus-art.el --- article mode commands for Gnus
 
-;; Copyright (C) 1996-2011 Free Software Foundation, Inc.
+;; Copyright (C) 1996-2012 Free Software Foundation, Inc.
 
 ;; Author: Lars Magne Ingebrigtsen <larsi@gnus.org>
 ;; Keywords: news
@@ -1794,14 +1794,6 @@ Initialized from `text-mode-syntax-table.")
     (put-text-property (max (1- b) (point-min))
 		       b 'intangible nil)))
 
-(defun gnus-article-hide-text-of-type (type)
-  "Hide text of TYPE in the current buffer."
-  (save-excursion
-    (let ((b (point-min))
-	  (e (point-max)))
-      (while (setq b (text-property-any b e 'article-type type))
-	(add-text-properties b (incf b) gnus-hidden-properties)))))
-
 (defun gnus-article-delete-text-of-type (type)
   "Delete text of TYPE in the current buffer."
   (save-excursion
@@ -1833,10 +1825,6 @@ Initialized from `text-mode-syntax-table.")
 	(delete-region
 	 b (or (text-property-not-all b (point-max) 'invisible t)
 	       (point-max)))))))
-
-(defun gnus-article-text-type-exists-p (type)
-  "Say whether any text of type TYPE exists in the buffer."
-  (text-property-any (point-min) (point-max) 'article-type type))
 
 (defsubst gnus-article-header-rank ()
   "Give the rank of the string HEADER as given by `gnus-sorted-header-list'."
@@ -2146,23 +2134,6 @@ try this wash."
 				       props)
 		(insert replace)))))))))
 
-(defun article-translate-characters (from to)
-  "Translate all characters in the body of the article according to FROM and TO.
-FROM is a string of characters to translate from; to is a string of
-characters to translate to."
-  (save-excursion
-    (when (article-goto-body)
-      (let ((inhibit-read-only t)
-	    (x (make-string 225 ?x))
-	    (i -1))
-	(while (< (incf i) (length x))
-	  (aset x i i))
-	(setq i 0)
-	(while (< i (length from))
-	  (aset x (aref from i) (aref to i))
-	  (incf i))
-	(translate-region (point) (point-max) x)))))
-
 (defun article-translate-strings (map)
   "Translate all string in the body of the article according to MAP.
 MAP is an alist where the elements are on the form (\"from\" \"to\")."
@@ -2231,7 +2202,8 @@ unfolded."
 		 (unfoldable
 		  (or (equal gnus-article-unfold-long-headers t)
 		      (and (stringp gnus-article-unfold-long-headers)
-			   (string-match gnus-article-unfold-long-headers header)))))
+			   (string-match gnus-article-unfold-long-headers
+					 header)))))
 	    (with-temp-buffer
 	      (insert header)
 	      (goto-char (point-min))
@@ -2465,9 +2437,10 @@ long lines if and only if arg is positive."
 			(apply 'gnus-create-image png 'png t
 			       (cdr (assq 'png gnus-face-properties-alist))))
 		  (goto-char from)
-		  (gnus-add-wash-type 'face)
-		  (gnus-add-image 'face image)
-		  (gnus-put-image image nil 'face))))))))))
+		  (when image
+		    (gnus-add-wash-type 'face)
+		    (gnus-add-image 'face image)
+		    (gnus-put-image image nil 'face)))))))))))
 
 (defun article-display-x-face (&optional force)
   "Look for an X-Face header and display it if present."
@@ -2754,9 +2727,11 @@ If READ-CHARSET, ask for a coding system."
   (let ((handles nil)
 	(buffer-read-only nil))
     (when (gnus-buffer-live-p gnus-original-article-buffer)
-      (setq handles (mm-dissect-buffer t t)))
+      (with-current-buffer gnus-original-article-buffer
+	(setq handles (mm-dissect-buffer t t))))
     (article-goto-body)
     (delete-region (point) (point-max))
+    (mm-enable-multibyte)
     (mm-inline-text-html handles)))
 
 (defvar gnus-article-browse-html-temp-list nil
@@ -2785,10 +2760,12 @@ summary buffer."
 	       (or how (setq how gnus-article-browse-delete-temp))
 	       (if (eq how 'ask)
 		   (let ((files (length gnus-article-browse-html-temp-list)))
-		     (gnus-y-or-n-p (format
-				     "Delete all %s temporary HTML file%s? "
-				     files
-				     (if (> files 1) "s" ""))))
+		     (or (gnus-y-or-n-p
+			  (if (= files 1)
+			      "Delete the temporary HTML file? "
+			    (format "Delete all %s temporary HTML files? "
+				    files)))
+			 (setq gnus-article-browse-html-temp-list nil)))
 		 how)))
     (dolist (file gnus-article-browse-html-temp-list)
       (cond ((file-directory-p file)
@@ -2900,7 +2877,7 @@ message header will be added to the bodies of the \"text/html\" parts."
 	     ;; Add a meta html tag to specify charset and a header.
 	     (cond
 	      (header
-	       (let (title eheader body hcharset coding force-charset)
+	       (let (title eheader body hcharset coding)
 		 (with-temp-buffer
 		   (mm-enable-multibyte)
 		   (setq case-fold-search t)
@@ -2923,8 +2900,7 @@ message header will be added to the bodies of the \"text/html\" parts."
 							      charset)
 			     title (when title
 				     (mm-encode-coding-string title charset))
-			     body (mm-encode-coding-string content charset)
-			     force-charset t)
+			     body (mm-encode-coding-string content charset))
 		     (setq hcharset (mm-find-mime-charset-region (point-min)
 								 (point-max)))
 		     (cond ((= (length hcharset) 1)
@@ -2955,8 +2931,7 @@ message header will be added to the bodies of the \"text/html\" parts."
 				       body (mm-encode-coding-string
 					     (mm-decode-coding-string
 					      content body)
-					     charset)
-				       force-charset t)))
+					     charset))))
 			   (setq charset hcharset
 				 eheader (mm-encode-coding-string
 					  (buffer-string) coding)
@@ -2970,7 +2945,7 @@ message header will be added to the bodies of the \"text/html\" parts."
 		   (mm-disable-multibyte)
 		   (insert body)
 		   (when charset
-		     (mm-add-meta-html-tag handle charset force-charset))
+		     (mm-add-meta-html-tag handle charset t))
 		   (when title
 		     (goto-char (point-min))
 		     (unless (search-forward "<title>" nil t)
@@ -3239,9 +3214,16 @@ always hide."
 Point is left at the beginning of the narrowed-to region."
   (narrow-to-region
    (goto-char (point-min))
-   (if (search-forward "\n\n" nil 1)
-       (1- (point))
-     (point-max)))
+   (cond
+    ;; Absolutely no headers displayed.
+    ((looking-at "\n")
+     (point))
+    ;; Normal headers.
+    ((search-forward "\n\n" nil 1)
+     (1- (point)))
+    ;; Nothing but headers.
+    (t
+     (point-max))))
   (goto-char (point-min)))
 
 (defun article-goto-body ()
@@ -4571,8 +4553,12 @@ commands:
 (defun gnus-article-stop-animations ()
   (dolist (timer (and (boundp 'timer-list)
 		      timer-list))
-    (when (eq (elt timer 5) 'image-animate-timeout)
+    (when (eq (gnus-timer--function timer) 'image-animate-timeout)
       (cancel-timer timer))))
+
+(defun gnus-stop-downloads ()
+  (when (boundp 'url-queue)
+    (set (intern "url-queue" obarray) nil)))
 
 ;; Set article window start at LINE, where LINE is the number of lines
 ;; from the head of the article.
@@ -4796,10 +4782,10 @@ If a prefix ARG is given, ask for confirmation."
   (dolist (buf (gnus-buffers))
     (with-current-buffer buf
       (when (eq major-mode 'gnus-sticky-article-mode)
-	(if (not arg)
-	    (gnus-kill-buffer buf)
-	  (when (yes-or-no-p (concat "Kill buffer " (buffer-name buf) "? "))
-	    (gnus-kill-buffer buf)))))))
+       (if (not arg)
+           (gnus-kill-buffer buf)
+         (when (yes-or-no-p (concat "Kill buffer " (buffer-name buf) "? "))
+           (gnus-kill-buffer buf)))))))
 
 ;;;
 ;;; Gnus MIME viewing functions
@@ -5315,9 +5301,8 @@ Compressed files like .gz and .bz2 are decompressed."
 		(or (cdr (assq arg
 			       gnus-summary-show-article-charset-alist))
 		    (mm-read-coding-system "Charset: "))))
-	 (t
-	  (if (mm-handle-undisplayer handle)
-	      (mm-remove-part handle))))
+	 ((mm-handle-undisplayer handle)
+	  (mm-remove-part handle)))
 	(forward-line 2)
         (mm-display-inline handle)
 	(goto-char b)))))
@@ -5607,7 +5592,9 @@ all parts."
     (let ((handle (cdr (assq n gnus-article-mime-handle-alist))))
       (when (gnus-article-goto-part n)
 	(if (equal (car handle) "multipart/alternative")
-	    (gnus-article-press-button)
+	    (progn
+	      (beginning-of-line) ;; Make it toggle subparts
+	      (gnus-article-press-button))
 	  (when (eq (gnus-mm-display-part handle) 'internal)
 	    (gnus-set-window-start)))))))
 
@@ -6186,12 +6173,13 @@ Provided for backwards compatibility."
 	     (not gnus-inhibit-hiding))
     (gnus-article-hide-headers)))
 
-(declare-function shr-put-image "shr" (data alt))
+(declare-function shr-put-image "shr" (data alt &optional flags))
 
-(defun gnus-shr-put-image (data alt)
+(defun gnus-shr-put-image (data alt &optional flags)
   "Put image DATA with a string ALT.  Enable image to be deleted."
   (let ((image (shr-put-image data (propertize (or alt "*")
-					       'gnus-image-category 'shr))))
+					       'gnus-image-category 'shr)
+			      flags)))
     (when image
       (gnus-add-image 'shr image))))
 
@@ -6510,7 +6498,8 @@ not have a face in `gnus-article-boring-faces'."
 	    (ding)
 	  (unless (member keys nosave-in-article)
 	    (set-buffer gnus-article-current-summary))
-	  (when (get func 'disabled)
+	  (when (and (symbolp func)
+		     (get func 'disabled))
 	    (error "Function %s disabled" func))
 	  (call-interactively func)
 	  (setq new-sum-point (point)))
@@ -6751,11 +6740,6 @@ If given a prefix, show the hidden text instead."
   (gnus-article-hide-list-identifiers arg)
   (gnus-article-hide-citation-maybe arg force)
   (gnus-article-hide-signature arg))
-
-(defun gnus-article-maybe-highlight ()
-  "Do some article highlighting if article highlighting is requested."
-  (when (gnus-visual-p 'article-highlight 'highlight)
-    (gnus-article-highlight-some)))
 
 (defun gnus-check-group-server ()
   ;; Make sure the connection to the server is alive.

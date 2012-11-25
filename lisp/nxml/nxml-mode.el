@@ -1,6 +1,6 @@
 ;;; nxml-mode.el --- a new XML mode
 
-;; Copyright (C) 2003-2004, 2007-2011  Free Software Foundation, Inc.
+;; Copyright (C) 2003-2004, 2007-2012  Free Software Foundation, Inc.
 
 ;; Author: James Clark
 ;; Keywords: XML
@@ -29,7 +29,7 @@
 (when (featurep 'mucs)
   (error "nxml-mode is not compatible with Mule-UCS"))
 
-(eval-when-compile (require 'cl))	; for assert
+(eval-when-compile (require 'cl-lib))
 
 (require 'xmltok)
 (require 'nxml-enc)
@@ -54,9 +54,9 @@
 
 (defcustom nxml-char-ref-display-glyph-flag t
   "Non-nil means display glyph following character reference.
-The glyph is displayed in face `nxml-glyph'.  The hook
-`nxml-glyph-set-hook' can be used to customize for which characters
-glyphs are displayed."
+The glyph is displayed in face `nxml-glyph'.  The abnormal hook
+`nxml-glyph-set-functions' can be used to change the characters
+for which glyphs are displayed."
   :group 'nxml
   :type 'boolean)
 
@@ -86,18 +86,9 @@ as the first attribute on the previous line."
   :group 'nxml
   :type 'integer)
 
-(defcustom nxml-bind-meta-tab-to-complete-flag (not window-system)
-  "Non-nil means bind M-TAB in `nxml-mode-map' to `nxml-complete'.
-C-return will be bound to `nxml-complete' in any case.
-M-TAB gets swallowed by many window systems/managers, and
-`documentation' will show M-TAB rather than C-return as the
-binding for `nxml-complete' when both are bound.  So it's better
-to bind M-TAB only when it will work."
+(defcustom nxml-bind-meta-tab-to-complete-flag t
+  "Non-nil means to use nXML completion in \\[completion-at-point]."
   :group 'nxml
-  :set (lambda (sym flag)
-	 (set-default sym flag)
-	 (when (and (boundp 'nxml-mode-map) nxml-mode-map)
-	   (define-key nxml-mode-map "\M-\t" (and flag 'nxml-complete))))
   :type 'boolean)
 
 (defcustom nxml-prefer-utf-16-to-utf-8-flag nil
@@ -418,9 +409,7 @@ reference.")
     (define-key map "\C-c\C-o" nxml-outline-prefix-map)
     (define-key map [S-mouse-2] 'nxml-mouse-hide-direct-text-content)
     (define-key map "/" 'nxml-electric-slash)
-    (define-key map [C-return] 'nxml-complete)
-    (when nxml-bind-meta-tab-to-complete-flag
-      (define-key map "\M-\t" 'nxml-complete))
+    (define-key map "\M-\t" 'completion-at-point)
     map)
   "Keymap for nxml-mode.")
 
@@ -479,7 +468,7 @@ the start-tag, point, and end-tag are all left on separate lines.
 If `nxml-slash-auto-complete-flag' is non-nil, then inserting a `</'
 automatically inserts the rest of the end-tag.
 
-\\[nxml-complete] performs completion on the symbol preceding point.
+\\[completion-at-point] performs completion on the symbol preceding point.
 
 \\[nxml-dynamic-markup-word] uses the contents of the current buffer
 to choose a tag to put around the word preceding point.
@@ -555,6 +544,8 @@ Many aspects this mode can be customized using
         (nxml-clear-inside (point-min) (point-max))
 	(nxml-with-invisible-motion
 	  (nxml-scan-prolog)))))
+  (add-hook 'completion-at-point-functions
+            #'nxml-completion-at-point-function nil t)
   (add-hook 'after-change-functions 'nxml-after-change nil t)
   (add-hook 'change-major-mode-hook 'nxml-cleanup nil t)
 
@@ -939,16 +930,16 @@ Called with `font-lock-beg' and `font-lock-end' dynamically bound."
     (nxml-debug-change "nxml-fontify-matcher" (point) bound)
 
     (when (< (point) nxml-prolog-end)
-      ;; prolog needs to be fontified in one go, and
+      ;; Prolog needs to be fontified in one go, and
       ;; nxml-extend-region makes sure we start at BOB.
-      (assert (bobp))
+      (cl-assert (bobp))
       (nxml-fontify-prolog)
       (goto-char nxml-prolog-end))
 
     (let (xmltok-dependent-regions
           xmltok-errors)
       (while (and (nxml-tokenize-forward)
-                  (<= (point) bound)) ; intervals are open-ended
+                  (<= (point) bound))   ; Intervals are open-ended.
         (nxml-apply-fontify-rule)))
 
     (setq nxml-last-fontify-end (point)))
@@ -1245,7 +1236,7 @@ on the line, reindent the line."
     (unless arg
       (if nxml-slash-auto-complete-flag
 	  (if end-tag-p
-	      (condition-case err
+	      (condition-case nil
 		  (let ((start-tag-end
 			 (nxml-scan-element-backward (1- slash-pos) t)))
 		    (when start-tag-end
@@ -1443,7 +1434,7 @@ its line.  Otherwise return nil."
 		 (nxml-token-after)
 		 (= xmltok-start bol))
 	       (eq xmltok-type 'data))
-	   (condition-case err
+	   (condition-case nil
 	       (nxml-scan-element-backward
 		(point)
 		nil
@@ -1568,8 +1559,7 @@ This expects the xmltok-* variables to be set up as by `xmltok-forward'."
 	(off 0))
     (if value-boundary
 	;; inside an attribute value
-	(let ((value-start (car value-boundary))
-	      (value-end (cdr value-boundary)))
+	(let ((value-start (car value-boundary)))
 	  (goto-char pos)
 	  (forward-line -1)
 	  (if (< (point) value-start)
@@ -1653,6 +1643,11 @@ depend on `nxml-completion-hook'."
     ;; Eventually we will complete on entity names here.
     (ding)
     (message "Cannot complete in this context")))
+
+(defun nxml-completion-at-point-function ()
+  "Call `nxml-complete' to perform completion at point."
+  (when nxml-bind-meta-tab-to-complete-flag
+    #'nxml-complete))
 
 ;;; Movement
 
@@ -1757,7 +1752,7 @@ single name.  A character reference contains a character number."
 	 xmltok-name-end)
 	(t end)))
 
-(defun nxml-scan-backward-within (end)
+(defun nxml-scan-backward-within (_end)
   (setq xmltok-start
 	(+ xmltok-start
 	   (nxml-start-delimiter-length xmltok-type)))
@@ -2267,7 +2262,7 @@ ENDP is t in the former case, nil in the latter."
 		 'nxml-in-mixed-content-hook))
 	   nil)
 	  ;; See if the matching tag does not start or end a line.
-	  ((condition-case err
+	  ((condition-case nil
 	       (progn
 		 (setq matching-tag-pos
 		       (xmltok-save
@@ -2405,7 +2400,7 @@ Repeating \\[nxml-dynamic-markup-word] immediately after successful
 \\[nxml-dynamic-markup-word] removes the previously inserted markup
 and attempts to find another possible way to do the markup."
   (interactive "*")
-  (let (search-start-pos done)
+  (let (search-start-pos)
     (if (and (integerp nxml-dynamic-markup-prev-pos)
 	     (= nxml-dynamic-markup-prev-pos (point))
 	     (eq last-command this-command)

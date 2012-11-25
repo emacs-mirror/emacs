@@ -1,8 +1,9 @@
 ;;; erc-pcomplete.el --- Provides programmable completion for ERC
 
-;; Copyright (C) 2002-2004, 2006-2011 Free Software Foundation, Inc.
+;; Copyright (C) 2002-2004, 2006-2012 Free Software Foundation, Inc.
 
 ;; Author: Sacha Chua <sacha@free.net.ph>
+;; Maintainer: FSF
 ;; Keywords: comm, convenience
 ;; URL: http://www.emacswiki.org/cgi-bin/wiki.pl?ErcCompletion
 
@@ -42,14 +43,13 @@
 (require 'erc)
 (require 'erc-compat)
 (require 'time-date)
-(eval-when-compile (require 'cl))
 
 (defgroup erc-pcomplete nil
   "Programmable completion for ERC"
   :group 'erc)
 
 (defcustom erc-pcomplete-nick-postfix ":"
-  "*When `pcomplete' is used in the first word after the prompt,
+  "When `pcomplete' is used in the first word after the prompt,
 add this string to nicks completed."
   :group 'erc-pcomplete
   :type 'string)

@@ -333,7 +333,7 @@ Additional mappings for Rafe and Yiddish ligatures.
 (quail-define-package
  "hebrew-full" "Hebrew" ",Hr$,1,T,K(B" nil "Hebrew Full method.
 
-Provides access to all Hebrew characters suiltable to Modern Hebrew.
+Provides access to all Hebrew characters suitable to Modern Hebrew.
 " nil t t t t nil nil nil nil nil t)
 
 (quail-define-rules
@@ -456,7 +456,7 @@ Provides access to all Hebrew characters suiltable to Modern Hebrew.
 "Biblical Hebrew Tiro input method.
 
 Based on Society of Biblical Literature's Tiro keyboard layout.
-Not suiltable for modern Hebrew input.
+Not suitable for modern Hebrew input.
  'q' is used to switch levels instead of Alt-Gr.
  Combining dot above (Called Masora dot) ($,1%G(B) is mapped to 'q1'.
 " nil t t t t nil nil nil nil nil t)
@@ -602,7 +602,7 @@ Not suiltable for modern Hebrew input.
 "Biblical Hebrew SIL input method.
 
 Based on Society of Biblical Literature's SIL keyboard layout.
-Phonetic and not suiltable for modern Hebrew input.
+Phonetic and not suitable for modern Hebrew input.
  '`' is used to switch levels instead of Alt-Gr.
  Euro Sign (,F$(B) is mapped to 'Z'.
 " nil t t t t nil nil nil nil nil t)
@@ -773,9 +773,9 @@ Better for yiddish than Hebrew methods.
  ("@" ?,Y%(B)  ; Double Low-9 Quotation Mark
  ("(" ?\))  ; mirroring
  (")" ?\()  ; mirroring
- ("Q" ?,A=(B)  ; Right Double Quotation Mark
- ("W" ?,A<(B)
- ("E" ?,A>(B)  ; Yiddish Double Yod (x2)
+ ("Q" ?,Y4(B)  ; Left Double Quotation Mark
+ ("W" ?,Y!(B)  ; Right Double Quotation Mark
+ ("E" ?$,1-2(B)  ; Yiddish Double Yod (x2)
  ("R" [ ",H`$,1,W(B" ])  ; Patah Alef (Pasekh Alef)
 ; ("T" "")
  ("Y" ?$,1-1(B)  ; Ligature Yiddish Vav Yod (vov yud)

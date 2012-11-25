@@ -12449,7 +12449,7 @@
 
 	* calendar/appt.el (diary-selective-display): Add defvar.
 
-	* sort.el (sort-columns): Use Posix arg syntax for `sort'.
+	* sort.el (sort-columns): Use POSIX arg syntax for `sort'.
 
 	* isearch.el (search-whitespace-regexp): Fix custom type.
 
@@ -33346,7 +33346,7 @@ See ChangeLog.11 for earlier changes.
 ;; add-log-time-zone-rule: t
 ;; End:
 
-    Copyright (C) 2005-2011 Free Software Foundation, Inc.
+    Copyright (C) 2005-2012 Free Software Foundation, Inc.
 
   This file is part of GNU Emacs.
 

@@ -1,5 +1,5 @@
 @c This is part of the Emacs manual.
-@c Copyright (C) 2004-2011  Free Software Foundation, Inc.
+@c Copyright (C) 2004-2012 Free Software Foundation, Inc.
 @c See file emacs.texi for copying conditions.
 @c
 @c This file is included either in emacs-xtra.texi (when producing the
@@ -93,9 +93,10 @@ deleting or changing marks or flags will mark it modified again.
 
 Remote Dired buffers are not auto-reverted (because it may be slow).
 Neither are Dired buffers for which you used shell wildcards or file
-arguments to list only some of the files.  @samp{*Find*} and
-@samp{*Locate*} buffers do not auto-revert either.
+arguments to list only some of the files.  @file{*Find*} and
+@file{*Locate*} buffers do not auto-revert either.
 
+@c FIXME?  This should be in the elisp manual?
 @node Supporting additional buffers
 @subsection Adding Support for Auto-Reverting additional Buffers.
 
@@ -108,6 +109,7 @@ revert-buffer-function,, Reverting, elisp, the Emacs Lisp Reference Manual}.
 
 In addition, it @emph{must} have a @code{buffer-stale-function}.
 
+@c FIXME only defvar in all of doc/emacs!
 @defvar buffer-stale-function
 The value of this variable is a function to check whether a non-file
 buffer needs reverting.  This should be a function with one optional

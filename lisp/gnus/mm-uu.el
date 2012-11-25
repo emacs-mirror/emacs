@@ -1,6 +1,6 @@
 ;;; mm-uu.el --- Return uu stuff as mm handles
 
-;; Copyright (C) 1998-2011 Free Software Foundation, Inc.
+;; Copyright (C) 1998-2012 Free Software Foundation, Inc.
 
 ;; Author: Shenghuo Zhu <zsh@cs.rochester.edu>
 ;; Keywords: postscript uudecode binhex shar forward gnatsweb pgp
@@ -187,7 +187,7 @@ This can be either \"inline\" or \"attachment\".")
      nil)
     (verbatim-marks
      ;; slrn-style verbatim marks, see
-     ;; http://www.slrn.org/manual/slrn-manual-6.html#ss6.81
+     ;; http://slrn.sourceforge.net/docs/slrn-manual-6.html#process_verbatim_marks
      "^#v\\+"
      "^#v\\-$"
      (lambda () (mm-uu-verbatim-marks-extract 0 0))
@@ -430,7 +430,11 @@ apply the face `mm-uu-extract'."
 
 (defun mm-uu-forward-extract ()
   (mm-make-handle (mm-uu-copy-to-buffer
-		   (progn (goto-char start-point) (forward-line) (point))
+		   (progn
+		     (goto-char start-point)
+		     (forward-line)
+		     (skip-chars-forward "\n")
+		     (point))
 		   (progn (goto-char end-point) (forward-line -1) (point)))
 		  '("message/rfc822" (charset . gnus-decoded))))
 

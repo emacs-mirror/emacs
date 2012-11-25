@@ -1,6 +1,6 @@
 ;;; gssapi.el --- GSSAPI/Kerberos 5 interface for Emacs
 
-;; Copyright (C) 2011 Free Software Foundation, Inc.
+;; Copyright (C) 2011-2012 Free Software Foundation, Inc.
 
 ;; Author: Simon Josefsson <simon@josefsson.org>
 ;;         Lars Magne Ingebrigtsen <larsi@gnus.org>
@@ -37,6 +37,7 @@
 and %l with the user name.  The program should accept commands on
 stdin and return responses to stdout.  Each entry in the list is
 tried until a successful connection is made."
+  :version "24.1"
   :group 'network
   :type '(repeat string))
 

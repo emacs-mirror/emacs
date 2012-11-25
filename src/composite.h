@@ -1,5 +1,5 @@
 /* Header for composite sequence handler.
-   Copyright (C) 2001-2011 Free Software Foundation, Inc.
+   Copyright (C) 2001-2012 Free Software Foundation, Inc.
    Copyright (C) 1997, 1998, 1999, 2000, 2001, 2002, 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010, 2011
      National Institute of Advanced Industrial Science and Technology (AIST)
      Registration Number H14PRO021
@@ -24,6 +24,11 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 
 #ifndef EMACS_COMPOSITE_H
 #define EMACS_COMPOSITE_H
+
+INLINE_HEADER_BEGIN
+#ifndef COMPOSITE_INLINE
+# define COMPOSITE_INLINE INLINE
+#endif
 
 /* Methods to display a sequence of components of a composition.  */
 enum composition_method {
@@ -108,7 +113,7 @@ extern Lisp_Object composition_temp;
    && (end - start) == COMPOSITION_LENGTH (prop))
 
 /* Return the Nth glyph of composition specified by CMP.  CMP is a
-   pointer to `struct composition'. */
+   pointer to `struct composition'.  */
 #define COMPOSITION_GLYPH(cmp, n)					\
   XINT (XVECTOR (XVECTOR (XHASH_TABLE (composition_hash_table)		\
 			  ->key_and_value)				\
@@ -186,7 +191,7 @@ struct composition {
   enum composition_method method;
 
   /* Index to the composition hash table.  */
-  EMACS_INT hash_index;
+  ptrdiff_t hash_index;
 
   /* For which font we have calculated the remaining members.  The
      actual type is device dependent.  */
@@ -216,16 +221,16 @@ extern ptrdiff_t n_compositions;
 
 extern Lisp_Object Qcomposition;
 extern Lisp_Object composition_hash_table;
-extern ptrdiff_t get_composition_id (EMACS_INT, EMACS_INT, EMACS_INT,
+extern ptrdiff_t get_composition_id (ptrdiff_t, ptrdiff_t, ptrdiff_t,
 				     Lisp_Object, Lisp_Object);
-extern int find_composition (EMACS_INT, EMACS_INT, EMACS_INT *, EMACS_INT *,
-			     Lisp_Object *, Lisp_Object);
-extern void update_compositions (EMACS_INT, EMACS_INT, int);
+extern bool find_composition (ptrdiff_t, ptrdiff_t, ptrdiff_t *, ptrdiff_t *,
+			      Lisp_Object *, Lisp_Object);
+extern void update_compositions (ptrdiff_t, ptrdiff_t, int);
 extern void make_composition_value_copy (Lisp_Object);
 extern void compose_region (int, int, Lisp_Object, Lisp_Object,
                             Lisp_Object);
 extern void syms_of_composite (void);
-extern void compose_text (EMACS_INT, EMACS_INT, Lisp_Object, Lisp_Object,
+extern void compose_text (ptrdiff_t, ptrdiff_t, Lisp_Object, Lisp_Object,
                           Lisp_Object);
 
 /* Macros for lispy glyph-string.  This is completely different from
@@ -247,6 +252,11 @@ extern void compose_text (EMACS_INT, EMACS_INT, Lisp_Object, Lisp_Object,
 #define LGSTRING_GLYPH_LEN(lgs) (ASIZE ((lgs)) - 2)
 #define LGSTRING_GLYPH(lgs, idx) AREF ((lgs), (idx) + 2)
 #define LGSTRING_SET_GLYPH(lgs, idx, val) ASET ((lgs), (idx) + 2, (val))
+COMPOSITE_INLINE Lisp_Object *
+lgstring_glyph_addr (Lisp_Object lgs, ptrdiff_t idx)
+{
+  return aref_addr (lgs, idx + 2);
+}
 
 /* Vector size of Lispy glyph.  */
 enum lglyph_indices
@@ -298,22 +308,23 @@ struct composition_it;
 struct face;
 struct font_metrics;
 
-extern Lisp_Object composition_gstring_put_cache (Lisp_Object, EMACS_INT);
+extern Lisp_Object composition_gstring_put_cache (Lisp_Object, ptrdiff_t);
 extern Lisp_Object composition_gstring_from_id (ptrdiff_t);
-extern int composition_gstring_p (Lisp_Object);
-extern int composition_gstring_width (Lisp_Object, EMACS_INT, EMACS_INT,
+extern bool composition_gstring_p (Lisp_Object);
+extern int composition_gstring_width (Lisp_Object, ptrdiff_t, ptrdiff_t,
                                       struct font_metrics *);
 
 extern void composition_compute_stop_pos (struct composition_it *,
-                                          EMACS_INT, EMACS_INT, EMACS_INT,
+                                          ptrdiff_t, ptrdiff_t, ptrdiff_t,
                                           Lisp_Object);
-extern int composition_reseat_it (struct composition_it *,
-                                  EMACS_INT, EMACS_INT, EMACS_INT,
-                                  struct window *, struct face *,
-                                  Lisp_Object);
+extern bool composition_reseat_it (struct composition_it *, ptrdiff_t,
+				   ptrdiff_t, ptrdiff_t, struct window *,
+				   struct face *, Lisp_Object);
 extern int composition_update_it (struct composition_it *,
-                                  EMACS_INT, EMACS_INT, Lisp_Object);
+                                  ptrdiff_t, ptrdiff_t, Lisp_Object);
 
-extern EMACS_INT composition_adjust_point (EMACS_INT, EMACS_INT);
+extern ptrdiff_t composition_adjust_point (ptrdiff_t, ptrdiff_t);
+
+INLINE_HEADER_END
 
 #endif /* not EMACS_COMPOSITE_H */

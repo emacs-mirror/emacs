@@ -1,6 +1,6 @@
 ;;; add-log.el --- change log maintenance commands for Emacs
 
-;; Copyright (C) 1985-1986, 1988, 1993-1994, 1997-1998, 2000-2011
+;; Copyright (C) 1985-1986, 1988, 1993-1994, 1997-1998, 2000-2012
 ;;   Free Software Foundation, Inc.
 
 ;; Maintainer: FSF
@@ -136,12 +136,10 @@ this variable."
   :type 'boolean
   :group 'change-log)
 
-(defcustom add-log-buffer-file-name-function nil
+(defvar add-log-buffer-file-name-function 'buffer-file-name
   "If non-nil, function to call to identify the full filename of a buffer.
-This function is called with no argument.  If this is nil, the default is to
-use `buffer-file-name'."
-  :type '(choice (const nil) function)
-  :group 'change-log)
+This function is called with no argument.  The default is to
+use `buffer-file-name'.")
 
 (defcustom add-log-file-name-function nil
   "If non-nil, function to call to identify the filename for a ChangeLog entry.
@@ -223,13 +221,15 @@ Note: The search is conducted only within 10%, at the beginning of the file."
 (define-obsolete-face-alias 'change-log-function-face
   'change-log-function "22.1")
 
-(defface change-log-acknowledgement
+(defface change-log-acknowledgment
   '((t (:inherit font-lock-comment-face)))
   "Face for highlighting acknowledgments."
   :version "21.1"
   :group 'change-log)
+(define-obsolete-face-alias 'change-log-acknowledgement
+  'change-log-acknowledgment "24.3")
 (define-obsolete-face-alias 'change-log-acknowledgement-face
-  'change-log-acknowledgement "22.1")
+  'change-log-acknowledgment "22.1")
 
 (defconst change-log-file-names-re "^\\( +\\|\t\\)\\* \\([^ ,:([\n]+\\)")
 (defconst change-log-start-entry-re "^\\sw.........[0-9:+ ]*")
@@ -271,14 +271,14 @@ Note: The search is conducted only within 10%, at the beginning of the file."
     ;; Function of change.
     ("<\\([^>\n]+\\)>\\(:\\| (\\)" (1 'change-log-function))
     ;;
-    ;; Acknowledgements.
+    ;; Acknowledgments.
     ;; Don't include plain "From" because that is vague;
     ;; we want to encourage people to say something more specific.
     ;; Note that the FSF does not use "Patches by"; our convention
     ;; is to put the name of the author of the changes at the top
     ;; of the change log entry.
     ("\\(^\\( +\\|\t\\)\\|  \\)\\(Thanks to\\|Patch\\(es\\)? by\\|Report\\(ed by\\| from\\)\\|Suggest\\(ed by\\|ion from\\)\\)"
-     3 'change-log-acknowledgement))
+     3 'change-log-acknowledgment))
   "Additional expressions to highlight in Change Log mode.")
 
 (defun change-log-search-file-name (where)
@@ -804,9 +804,7 @@ non-nil, otherwise in local time."
   (let* ((defun (add-log-current-defun))
 	 (version (and change-log-version-info-enabled
 		       (change-log-version-number-search)))
-	 (buf-file-name (if add-log-buffer-file-name-function
-			    (funcall add-log-buffer-file-name-function)
-			  buffer-file-name))
+	 (buf-file-name (funcall add-log-buffer-file-name-function))
 	 (buffer-file (if buf-file-name (expand-file-name buf-file-name)))
 	 (file-name (expand-file-name (find-change-log file-name buffer-file)))
 	 ;; Set ITEM to the file name to use in the new item.
@@ -1047,6 +1045,7 @@ Runs `change-log-mode-hook'.
 	show-trailing-whitespace t)
   (set (make-local-variable 'fill-forward-paragraph-function)
        'change-log-fill-forward-paragraph)
+  (set (make-local-variable 'comment-start) nil)
   ;; Make sure we call `change-log-indent' when filling.
   (set (make-local-variable 'fill-indent-according-to-mode) t)
   ;; Avoid that filling leaves behind a single "*" on a line.
@@ -1122,17 +1121,17 @@ parentheses."
 ;;;###autoload
 (defvar add-log-lisp-like-modes
   '(emacs-lisp-mode lisp-mode scheme-mode dsssl-mode lisp-interaction-mode)
-  "*Modes that look like Lisp to `add-log-current-defun'.")
+  "Modes that look like Lisp to `add-log-current-defun'.")
 
 ;;;###autoload
 (defvar add-log-c-like-modes
   '(c-mode c++-mode c++-c-mode objc-mode)
-  "*Modes that look like C to `add-log-current-defun'.")
+  "Modes that look like C to `add-log-current-defun'.")
 
 ;;;###autoload
 (defvar add-log-tex-like-modes
   '(TeX-mode plain-TeX-mode LaTeX-mode tex-mode)
-  "*Modes that look like TeX to `add-log-current-defun'.")
+  "Modes that look like TeX to `add-log-current-defun'.")
 
 (declare-function c-cpp-define-name "cc-cmds" ())
 (declare-function c-defun-name      "cc-cmds" ())

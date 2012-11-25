@@ -1,6 +1,6 @@
 ;;; meta-mode.el --- major mode for editing Metafont or MetaPost sources -*- lexical-binding:t -*-
 
-;; Copyright (C) 1997, 2001-2011  Free Software Foundation, Inc.
+;; Copyright (C) 1997, 2001-2012  Free Software Foundation, Inc.
 
 ;; Author: Ulrik Vieth <vieth@thphy.uni-duesseldorf.de>
 ;; Version: 1.0
@@ -384,7 +384,7 @@ Each entry is a list with the following elements:
 1. Regexp matching the preceding text.
 2. A number indicating the subgroup in the regexp containing the text.
 3. A function returning an alist of possible completions.
-4. Text to append after a succesful completion (if any).
+4. Text to append after a successful completion (if any).
 
 Or alternatively:
 1. Regexp matching the preceding text.
@@ -829,6 +829,7 @@ The environment marked is the one that contains point or follows point."
     st)
   "Syntax table used in Metafont or MetaPost mode.")
 
+(define-obsolete-variable-alias 'meta-mode-map 'meta-common-mode-map "24.1")
 (defvar meta-common-mode-map
   (let ((map (make-sparse-keymap)))
     ;; Comment Paragraphs:
@@ -858,7 +859,6 @@ The environment marked is the one that contains point or follows point."
     ;; (define-key map "\C-c\C-l"  'meta-recenter-output)
     map)
   "Keymap used in Metafont or MetaPost mode.")
-(define-obsolete-variable-alias 'meta-mode-map 'meta-common-mode-map "24.1")
 
 (easy-menu-define
  meta-mode-menu meta-common-mode-map

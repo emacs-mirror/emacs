@@ -1,6 +1,6 @@
 ;;; em-basic.el --- basic shell builtin commands
 
-;; Copyright (C) 1999-2011  Free Software Foundation, Inc.
+;; Copyright (C) 1999-2012  Free Software Foundation, Inc.
 
 ;; Author: John Wiegley <johnw@gnu.org>
 
@@ -66,14 +66,15 @@
 (require 'esh-opt)
 
 ;;;###autoload
-(eshell-defgroup eshell-basic nil
+(progn
+(defgroup eshell-basic nil
   "The \"basic\" code provides a set of convenience functions which
 are traditionally considered shell builtins.  Since all of the
 functionality provided by them is accessible through Lisp, they are
 not really builtins at all, but offer a command-oriented way to do the
 same thing."
   :tag "Basic shell commands"
-  :group 'eshell-module)
+  :group 'eshell-module))
 
 (defcustom eshell-plain-echo-behavior nil
   "If non-nil, `echo' tries to behave like an ordinary shell echo.

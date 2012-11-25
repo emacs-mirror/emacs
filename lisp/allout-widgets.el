@@ -1,6 +1,6 @@
 ;; allout-widgets.el --- Visually highlight allout outline structure.
 
-;; Copyright (C) 2005-2011 Free Software Foundation, Inc.
+;; Copyright (C) 2005-2012 Free Software Foundation, Inc.
 
 ;; Author: Ken Manheimer <ken dot manheimer at gmail...>
 ;; Maintainer: Ken Manheimer <ken dot manheimer at gmail...>
@@ -8,6 +8,21 @@
 ;; Created: Dec 2005
 ;; Keywords: outlines
 ;; Website: http://myriadicity.net/software-and-systems/craft/emacs-allout
+
+;; This file is part of GNU Emacs.
+
+;; GNU Emacs is free software: you can redistribute it and/or modify
+;; it under the terms of the GNU General Public License as published by
+;; the Free Software Foundation, either version 3 of the License, or
+;; (at your option) any later version.
+
+;; GNU Emacs is distributed in the hope that it will be useful,
+;; but WITHOUT ANY WARRANTY; without even the implied warranty of
+;; MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+;; GNU General Public License for more details.
+
+;; You should have received a copy of the GNU General Public License
+;; along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.
 
 ;;; Commentary:
 
@@ -49,7 +64,7 @@
 ;; systematically couple overlays, graphics, and other features with
 ;; allout-governed text.
 
-;;;_: Code (structured with comments that delineate an allout outline)
+;;; Code:
 
 ;;;_ : General Environment
 (require 'allout)
@@ -131,13 +146,14 @@ explicitly invoke `allout-widgets-mode' in allout buffers where
 you want allout widgets operation.
 
 See `allout-widgets-mode' for allout widgets mode features."
+  :version "24.1"
   :type 'boolean
   :group 'allout-widgets
   :set 'allout-widgets-setup
  )
 ;; ;;;_  = allout-widgets-allow-unruly-edits
 ;; (defcustom allout-widgets-allow-unruly-edits nil
-;;   "*Control whether manual edits are restricted to maintain outline integrity.
+;;   "Control whether manual edits are restricted to maintain outline integrity.
 
 ;; When nil, manual edits must either be within an item's body or encompass
 ;; one or more items completely - eg, killing topics as entities, rather than
@@ -155,16 +171,19 @@ See `allout-widgets-mode' for allout widgets mode features."
 ;;;_  = allout-widgets-icons-dark-subdir
 (defcustom allout-widgets-icons-dark-subdir "icons/allout-widgets/dark-bg/"
   "Directory on `image-load-path' holding allout icons for dark backgrounds."
+  :version "24.1"
   :type 'string
   :group 'allout-widgets)
 ;;;_  = allout-widgets-icons-light-subdir
 (defcustom allout-widgets-icons-light-subdir "icons/allout-widgets/light-bg/"
   "Directory on `image-load-path' holding allout icons for light backgrounds."
+  :version "24.1"
   :type 'string
   :group 'allout-widgets)
 ;;;_  = allout-widgets-icon-types
 (defcustom allout-widgets-icon-types '(xpm png)
   "File extensions for the icon graphic format types, in order of preference."
+  :version "24.1"
   :type '(repeat symbol)
   :group 'allout-widgets)
 
@@ -172,29 +191,33 @@ See `allout-widgets-mode' for allout widgets mode features."
 ;;;_   = allout-widgets-theme-dark-background
 (defcustom allout-widgets-theme-dark-background "allout-dark-bg"
   "Identify the outline's icon theme to use with a dark background."
+  :version "24.1"
   :type '(string)
   :group 'allout-widgets)
 ;;;_   = allout-widgets-theme-light-background
 (defcustom allout-widgets-theme-light-background "allout-light-bg"
   "Identify the outline's icon theme to use with a light background."
+  :version "24.1"
   :type '(string)
   :group 'allout-widgets)
 ;;;_   = allout-widgets-item-image-properties-emacs
 (defcustom allout-widgets-item-image-properties-emacs
   '(:ascent center :mask (heuristic t))
-  "*Default properties item widget images in mainline Emacs."
+  "Default properties item widget images in mainline Emacs."
+  :version "24.1"
   :type 'plist
   :group 'allout-widgets)
 ;;;_   = allout-widgets-item-image-properties-xemacs
 (defcustom allout-widgets-item-image-properties-xemacs
   nil
-  "*Default properties item widget images in XEmacs."
+  "Default properties item widget images in XEmacs."
+  :version "24.1"
   :type 'plist
   :group 'allout-widgets)
 ;;;_  . Developer
 ;;;_   = allout-widgets-run-unit-tests-on-load
 (defcustom allout-widgets-run-unit-tests-on-load nil
-  "*When non-nil, unit tests will be run at end of loading allout-widgets.
+  "When non-nil, unit tests will be run at end of loading allout-widgets.
 
 Generally, allout widgets code developers are the only ones who'll want to
 set this.
@@ -204,37 +227,41 @@ doing byte-compilation with a repeat count, so the file is loaded after
 compilation.)
 
 See `allout-widgets-run-unit-tests' to see what's run."
+  :version "24.1"
   :type 'boolean
   :group 'allout-widgets-developer)
 ;;;_   = allout-widgets-time-decoration-activity
 (defcustom allout-widgets-time-decoration-activity nil
-  "*Retain timing info of the last cooperative redecoration.
+  "Retain timing info of the last cooperative redecoration.
 
 The details are retained as the value of
 `allout-widgets-last-decoration-timing'.
 
 Generally, allout widgets code developers are the only ones who'll want to
 set this."
+  :version "24.1"
   :type 'boolean
   :group 'allout-widgets-developer)
 ;;;_   = allout-widgets-hook-error-post-time 0
 (defcustom allout-widgets-hook-error-post-time 0
-  "*Amount of time to sit showing hook error messages.
+  "Amount of time to sit showing hook error messages.
 
 0 is minimal, or nil to not post to the message area.
 
 This is for debugging purposes."
+  :version "24.1"
   :type 'integer
   :group 'allout-widgets-developer)
 ;;;_   = allout-widgets-maintain-tally nil
 (defcustom allout-widgets-maintain-tally nil
-  "*If non-nil, maintain a collection of widgets, `allout-widgets-tally'.
+  "If non-nil, maintain a collection of widgets, `allout-widgets-tally'.
 
 This is for debugging purposes.
 
 The tally shows the total number of item widgets in the current
 buffer, and tracking increases as new widgets are added and
 decreases as obsolete widgets are garbage collected."
+  :version "24.1"
   :type 'boolean
   :group 'allout-widgets-developer)
 (defvar allout-widgets-tally nil
@@ -263,11 +290,12 @@ The number varies according to the evanescence of objects on a
     (format ":%s" (hash-table-count allout-widgets-tally))))
 ;;;_   = allout-widgets-track-decoration nil
 (defcustom allout-widgets-track-decoration nil
-  "*If non-nil, show cursor position of each item decoration.
+  "If non-nil, show cursor position of each item decoration.
 
 This is for debugging purposes, and generally set at need in a
 buffer rather than as a prevailing configuration \(but it's handy
 to publicize it by making it a customization variable\)."
+  :version "24.1"
   :type 'boolean
   :group 'allout-widgets-developer)
 (make-variable-buffer-local 'allout-widgets-track-decoration)
@@ -388,7 +416,7 @@ onto the front.")
 ;;;_   , Widget-specific outline text format
 ;;;_    = allout-escaped-prefix-regexp
 (defvar allout-escaped-prefix-regexp ""
-  "*Regular expression for body text that would look like an item prefix if
+  "Regular expression for body text that would look like an item prefix if
 not altered with an escape sequence.")
 (make-variable-buffer-local 'allout-escaped-prefix-regexp)
 ;;;_   , Widget element formatting
@@ -551,13 +579,13 @@ outline hot-spot navigation \(see `allout-mode')."
         (if (current-local-map)
             (set-keymap-parent allout-item-body-keymap (current-local-map)))
 
-        (add-hook 'allout-exposure-change-hook
+        (add-hook 'allout-exposure-change-functions
                   'allout-widgets-exposure-change-recorder nil 'local)
-        (add-hook 'allout-structure-added-hook
+        (add-hook 'allout-structure-added-functions
                   'allout-widgets-additions-recorder nil 'local)
-        (add-hook 'allout-structure-deleted-hook
+        (add-hook 'allout-structure-deleted-functions
                   'allout-widgets-deletions-recorder nil 'local)
-        (add-hook 'allout-structure-shifted-hook
+        (add-hook 'allout-structure-shifted-functions
                   'allout-widgets-shifts-recorder nil 'local)
         (add-hook 'allout-after-copy-or-kill-hook
                   'allout-widgets-after-copy-or-kill-function nil 'local)
@@ -598,13 +626,13 @@ outline hot-spot navigation \(see `allout-mode')."
 
       (remove-hook 'after-change-functions
                    'allout-widgets-after-change-handler 'local)
-      (remove-hook 'allout-exposure-change-hook
+      (remove-hook 'allout-exposure-change-functions
                    'allout-widgets-exposure-change-recorder 'local)
-      (remove-hook 'allout-structure-added-hook
+      (remove-hook 'allout-structure-added-functions
                    'allout-widgets-additions-recorder 'local)
-      (remove-hook 'allout-structure-deleted-hook
+      (remove-hook 'allout-structure-deleted-functions
                    'allout-widgets-deletions-recorder 'local)
-      (remove-hook 'allout-structure-shifted-hook
+      (remove-hook 'allout-structure-shifted-functions
                    'allout-widgets-shifts-recorder 'local)
       (remove-hook 'allout-after-copy-or-kill-hook
                    'allout-widgets-after-copy-or-kill-function 'local)
@@ -964,7 +992,7 @@ Records changes in `allout-widgets-changes-record'."
 (defun allout-widgets-exposure-change-processor (changes)
   "Widgetize and adjust item widgets tracking allout outline exposure changes.
 
-Generally invoked via `allout-exposure-change-hook'."
+Generally invoked via `allout-exposure-change-functions'."
 
   (let ((changes (sort changes (function (lambda (this next)
                                            (< (cadr this) (cadr next))))))
@@ -1031,7 +1059,7 @@ Generally invoked via `allout-exposure-change-hook'."
 (defun allout-widgets-additions-recorder (from to)
   "Record allout item additions for tracking during post-command processing.
 
-Intended for use on `allout-structure-added-hook'.
+Intended for use on `allout-structure-added-functions'.
 
 FROM point at the start of the first new item and TO is point at the start
 of the last one.
@@ -1078,8 +1106,7 @@ Dispatched by `allout-widgets-post-command-business' in response to
 ;;;_   > allout-widgets-deletions-recorder (depth from)
 (defun allout-widgets-deletions-recorder (depth from)
   "Record allout item deletions for tracking during post-command processing.
-
-Intended for use on `allout-structure-deleted-hook'.
+Intended for use on `allout-structure-deleted-functions'.
 
 DEPTH is the depth of the deleted subtree, and FROM is the point from which
 the subtree was deleted.
@@ -1106,8 +1133,7 @@ Dispatched by `allout-widgets-post-command-business' in response to
 ;;;_   > allout-widgets-shifts-recorder (shifted-amount at)
 (defun allout-widgets-shifts-recorder (shifted-amount at)
   "Record outline subtree shifts for tracking during post-command processing.
-
-Intended for use on `allout-structure-shifted-hook'.
+Intended for use on `allout-structure-shifted-functions'.
 
 SHIFTED-AMOUNT is the depth change and AT is the point at the start of the
 subtree that's been shifted.
@@ -1348,7 +1374,6 @@ FROM and TO must be in increasing order, as must be the pairs in RANGES."
 ;;              (time-trial
 ;;               '(let ((size 10000)
 ;;                      doing)
-;;                  (random t)
 ;;                  (dotimes (count size)
 ;;                    (setq doing (random size))
 ;;                    (funcall try doing (+ doing (random 5)))
@@ -1635,7 +1660,7 @@ Use this to redecorate only the item, when you know that its
 situation with respect to siblings, parent, and offspring is
 unchanged from its last decoration.  Use
 `allout-decorate-item-and-context' instead to reassess and adjust
-relevent context, when suitable."
+relevant context, when suitable."
   (if (not (equal (widget-get item-widget :last-decorated-tick)
                   allout-command-counter))
       (let ((was-modified (buffer-modified-p))

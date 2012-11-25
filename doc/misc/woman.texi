@@ -18,7 +18,7 @@
 This file documents WoMan: A program to browse Unix manual pages `W.O.
 (without) man'.
 
-Copyright @copyright{} 2001-2011 Free Software Foundation, Inc.
+Copyright @copyright{} 2001-2012 Free Software Foundation, Inc.
 
 @quotation
 Permission is granted to copy, distribute and/or modify this document
@@ -94,7 +94,7 @@ Mile End Road, London E1 4NS, UK
 * Log::                 The *WoMan-Log* Buffer
 * Technical::           Technical Details
 * Bugs::                Reporting Bugs
-* Acknowledgements::    Acknowledgements
+* Acknowledgments::     Acknowledgments
 * GNU Free Documentation License:: The license for this documentation.
 * Command Index::       Command Index
 * Variable Index::      Variable Index
@@ -432,7 +432,7 @@ slow.  @xref{Cache, , The WoMan Topic Cache}, for further details.
 
 @menu
 * Cache::               The WoMan Topic Cache
-* Word at point::       Using the ``Word at Point'' as a Topic Suggestion
+* Word at point::       Using the "Word at Point" as a Topic Suggestion
 @end menu
 
 @node Cache, Word at point, Topic, Topic
@@ -472,7 +472,7 @@ time it is run in a new Emacs session.
 
 @node Word at point,  , Cache, Topic
 @comment  node-name,  next,  previous,  up
-@subsection Using the ``Word at Point'' as a Topic Suggestion
+@subsection Using the "Word at Point" as a Topic Suggestion
 @cindex word at point
 @cindex point, word at
 
@@ -1306,7 +1306,7 @@ is output.
 
 @c ===================================================================
 
-@node Bugs, Acknowledgements, Technical, Top
+@node Bugs, Acknowledgments, Technical, Top
 @comment  node-name,  next,  previous,  up
 @chapter Reporting Bugs
 @cindex reporting bugs
@@ -1331,10 +1331,10 @@ man source file from, but do not send it unless asked to send it.
 
 @c ===================================================================
 
-@node Acknowledgements, GNU Free Documentation License, Bugs, Top
+@node Acknowledgments, GNU Free Documentation License, Bugs, Top
 @comment  node-name,  next,  previous,  up
-@chapter Acknowledgements
-@cindex acknowledgements
+@chapter Acknowledgments
+@cindex acknowledgments
 
 For Heather, Kathryn and Madelyn, the women in my life (although they
 will probably never use it)!
@@ -1388,7 +1388,7 @@ Eli Zaretskii, @email{eliz@@is.elta.co.il}
 @page
 
 
-@node GNU Free Documentation License, Command Index, Acknowledgements, Top
+@node GNU Free Documentation License, Command Index, Acknowledgments, Top
 @appendix GNU Free Documentation License
 @include doclicense.texi
 

@@ -1,6 +1,6 @@
 ;;; cc-defs.el --- compile time definitions for CC Mode
 
-;; Copyright (C) 1985, 1987, 1992-2011  Free Software Foundation, Inc.
+;; Copyright (C) 1985, 1987, 1992-2012  Free Software Foundation, Inc.
 
 ;; Authors:    2003- Alan Mackenzie
 ;;             1998- Martin Stjernholm
@@ -93,7 +93,7 @@
 
 ;;; Variables also used at compile time.
 
-(defconst c-version "5.32.2"
+(defconst c-version "5.32.4"
   "CC Mode version number.")
 
 (defconst c-version-sym (intern c-version))
@@ -1818,9 +1818,7 @@ system."
 	       (t
 		;; Being evaluated interactively.
 		(buffer-file-name)))))
-    (and file
-	 (file-name-sans-extension
-	  (file-name-nondirectory file)))))
+    (and file (file-name-base file))))
 
 (defmacro c-lang-defconst-eval-immediately (form)
   "Can be used inside a VAL in `c-lang-defconst' to evaluate FORM
@@ -1831,7 +1829,7 @@ itself is evaluated."
   (eval form))
 
 ;; Only used at compile time - suppress "might not be defined at runtime".
-(declare-function cl-macroexpand-all "cl-extra" (form &optional env))
+(declare-function cl-macroexpand-all "cl" (form &optional env))
 
 (defmacro c-lang-defconst (name &rest args)
   "Set the language specific values of the language constant NAME.

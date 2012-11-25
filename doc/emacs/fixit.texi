@@ -1,16 +1,16 @@
 @c This is part of the Emacs manual.
-@c Copyright (C) 1985-1987, 1993-1995, 1997, 2001-2011
+@c Copyright (C) 1985-1987, 1993-1995, 1997, 2001-2012
 @c   Free Software Foundation, Inc.
 @c See file emacs.texi for copying conditions.
-@node Fixit, Keyboard Macros, Search, Top
+@node Fixit
 @chapter Commands for Fixing Typos
 @cindex typos, fixing
 @cindex mistakes, correcting
 
   In this chapter we describe commands that are useful when you catch
-a mistake while editing.  The most fundamental command for correcting
-erroneous editing is the undo command @kbd{C-/} (which is also bound
-to @kbd{C-x u} and @kbd{C-_}).  This undoes a single command, or a
+a mistake while editing.  The most fundamental of these commands is
+the undo command @kbd{C-/} (also bound to @kbd{C-x u} and @kbd{C-_}).
+This undoes a single command, or a
 part of a command (as in the case of @code{query-replace}), or several
 consecutive character insertions.  Consecutive repetitions of
 @kbd{C-/} undo earlier and earlier changes, back to the limit of the
@@ -35,7 +35,7 @@ These were described earlier in this manual.  @xref{Erasing}.
   The @dfn{undo} command reverses recent changes in the buffer's text.
 Each buffer records changes individually, and the undo command always
 applies to the current buffer.  You can undo all the changes in a
-buffer for as far as back its records go.  Usually, each editing
+buffer for as far back as the buffer's records go.  Usually, each editing
 command makes a separate entry in the undo records, but some commands
 such as @code{query-replace} divide their changes into multiple
 entries for flexibility in undoing.  Consecutive character insertion
@@ -57,10 +57,9 @@ Undo one entry in the current buffer's undo records (@code{undo}).
 @kbd{C-x u})@footnote{Aside from @kbd{C-/}, the @code{undo} command is
 also bound to @kbd{C-x u} because that is more straightforward for
 beginners to remember: @samp{u} stands for ``undo''.  It is also bound
-to @kbd{C-_} because typing @kbd{C-/} on some text-only terminals
-actually enters @kbd{C-_}.}.  This undoes the most recent change in
-the buffer, and moves point back to where it was before that change.
-
+to @kbd{C-_} because typing @kbd{C-/} on some text terminals actually
+enters @kbd{C-_}.}.  This undoes the most recent change in the buffer,
+and moves point back to where it was before that change.
   Consecutive repetitions of @kbd{C-/} (or its aliases) undo earlier
 and earlier changes in the current buffer.  If all the recorded
 changes have already been undone, the undo command signals an error.
@@ -75,7 +74,7 @@ changes you have undone, type @kbd{C-f} or any other command that
 harmlessly breaks the sequence of undoing; then type @kbd{C-/} to undo
 the undo command.
 
-  On the other hand, if you want to resume undoing, without redoing
+  Alternatively, if you want to resume undoing, without redoing
 previous undo commands, use @kbd{M-x undo-only}.  This is like
 @code{undo}, but will not redo changes you have just undone.
 
@@ -110,9 +109,9 @@ Emacs to hold text that users don't normally look at or edit.
 @vindex undo-strong-limit
 @vindex undo-outer-limit
 @cindex undo limit
-  When the undo records for a buffer becomes too large, Emacs discards
-the oldest undo records from time to time (during @dfn{garbage
-collection}).  You can specify how much undo records to keep by
+  When the undo information for a buffer becomes too large, Emacs discards
+the oldest records from time to time (during @dfn{garbage
+collection}).  You can specify how much undo information to keep by
 setting the variables @code{undo-limit}, @code{undo-strong-limit}, and
 @code{undo-outer-limit}.  Their values are expressed in bytes.
 
@@ -356,7 +355,7 @@ Show the list of options.
   In Text mode and related modes, @kbd{M-@key{TAB}}
 (@code{ispell-complete-word}) performs in-buffer completion based on
 spelling correction.  Insert the beginning of a word, and then type
-@kbd{M-@key{TAB}}; this shows shows a list of completions.  (If your
+@kbd{M-@key{TAB}}; this shows a list of completions.  (If your
 window manager intercepts @kbd{M-@key{TAB}}, type @kbd{@key{ESC}
 @key{TAB}} or @kbd{C-M-i}.)  Each completion is listed with a digit or
 character; type that digit or character to choose it.

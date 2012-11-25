@@ -1,6 +1,6 @@
 ;;; sort.el --- commands to sort text in an Emacs buffer
 
-;; Copyright (C) 1986-1987, 1994-1995, 2001-2011
+;; Copyright (C) 1986-1987, 1994-1995, 2001-2012
 ;;   Free Software Foundation, Inc.
 
 ;; Author: Howie Kaye
@@ -401,18 +401,23 @@ the sort order."
 
 ;;;###autoload
 (defun sort-regexp-fields (reverse record-regexp key-regexp beg end)
-  "Sort the region lexicographically as specified by RECORD-REGEXP and KEY.
-RECORD-REGEXP specifies the textual units which should be sorted.
-  For example, to sort lines RECORD-REGEXP would be \"^.*$\"
-KEY specifies the part of each record (ie each match for RECORD-REGEXP)
-  is to be used for sorting.
-  If it is \"\\\\digit\" then the digit'th \"\\\\(...\\\\)\" match field from
-  RECORD-REGEXP is used.
-  If it is \"\\\\&\" then the whole record is used.
-  Otherwise, it is a regular-expression for which to search within the record.
-If a match for KEY is not found within a record then that record is ignored.
+  "Sort the text in the region region lexicographically.
+If called interactively, prompt for two regular expressions,
+RECORD-REGEXP and KEY-REGEXP.
 
-With a negative prefix arg sorts in reverse order.
+RECORD-REGEXP specifies the textual units to be sorted.
+  For example, to sort lines, RECORD-REGEXP would be \"^.*$\".
+
+KEY-REGEXP specifies the part of each record (i.e. each match for
+  RECORD-REGEXP) to be used for sorting.
+  If it is \"\\\\digit\", use the digit'th \"\\\\(...\\\\)\"
+  match field specified by RECORD-REGEXP.
+  If it is \"\\\\&\", use the whole record.
+  Otherwise, KEY-REGEXP should be a regular expression with which
+  to search within the record.  If a match for KEY-REGEXP is not
+  found within a record, that record is ignored.
+
+With a negative prefix arg, sort in reverse order.
 
 The variable `sort-fold-case' determines whether alphabetic case affects
 the sort order.
@@ -423,7 +428,7 @@ For example: to sort lines in the region by the first word on each line
   ;; using negative prefix arg to mean "reverse" is now inconsistent with
   ;; other sort-.*fields functions but then again this was before, since it
   ;; didn't use the magnitude of the arg to specify anything.
-  (interactive "P\nsRegexp specifying records to sort:
+  (interactive "P\nsRegexp specifying records to sort: \n\
 sRegexp specifying key within record: \nr")
   (cond ((or (equal key-regexp "") (equal key-regexp "\\&"))
 	 (setq key-regexp 0))

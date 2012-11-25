@@ -1,6 +1,6 @@
 # Top-level Makefile for Emacs under MS-DOS/DJGPP v2.0 or higher. -*-makefile-*-
 
-# Copyright (C) 1996-2011 Free Software Foundation, Inc.
+# Copyright (C) 1996-2012 Free Software Foundation, Inc.
 
 # This file is part of GNU Emacs.
 
@@ -161,8 +161,7 @@ TAGS tags:	lib-src FRC
 	cd src
 	../bin/etags --include=../lisp/TAGS \
 	 --regex='/[ 	]*DEFVAR_[A-Z_ 	(]+"\([^"]+\)"/' \
-	 $(CURDIR)/src/*.c $(CURDIR)/src/*.h \
-         $(CURDIR)/src/s/msdos.h $(CURDIR)/src/m/intel386.h
+	 $(CURDIR)/src/*.c $(CURDIR)/src/*.h
 	cd ..
 	./bin/etags --include=src/TAGS
 
@@ -269,7 +268,7 @@ extraclean:
 
 bootstrap-clean: FRC
 	cd lib
-	$(MAKE) $(MFLAGS) $@
+	-$(MAKE) $(MFLAGS) maintainer-clean
 	cd ..
 	cd src
 	$(MAKE) $(MFLAGS) $@
@@ -299,4 +298,3 @@ bootstrap-clean: FRC
 bootstrap: bootstrap-clean FRC
 	command.com /e:2048 /c config msdos
 	$(MAKE) $(MFLAGS) info all
-

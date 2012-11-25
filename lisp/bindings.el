@@ -1,6 +1,6 @@
 ;;; bindings.el --- define standard key bindings and some variables
 
-;; Copyright (C) 1985-1987, 1992-1996, 1999-2011
+;; Copyright (C) 1985-1987, 1992-1996, 1999-2012
 ;;   Free Software Foundation, Inc.
 
 ;; Maintainer: FSF
@@ -38,63 +38,54 @@ corresponding to the mode line clicked."
 (defun mode-line-toggle-read-only (event)
   "Like `toggle-read-only', for the mode-line."
   (interactive "e")
-  (save-selected-window
-    (select-window (posn-window (event-start event)))
-    (toggle-read-only)
-    (force-mode-line-update)))
-
+  (with-selected-window (posn-window (event-start event))
+    (read-only-mode 'toggle)))
 
 (defun mode-line-toggle-modified (event)
   "Toggle the buffer-modified flag from the mode-line."
   (interactive "e")
-  (save-selected-window
-    (select-window (posn-window (event-start event)))
+  (with-selected-window (posn-window (event-start event))
     (set-buffer-modified-p (not (buffer-modified-p)))
     (force-mode-line-update)))
-
 
 (defun mode-line-widen (event)
   "Widen a buffer from the mode-line."
   (interactive "e")
-  (save-selected-window
-    (select-window (posn-window (event-start event)))
+  (with-selected-window (posn-window (event-start event))
     (widen)
     (force-mode-line-update)))
-
 
 (defvar mode-line-input-method-map
   (let ((map (make-sparse-keymap)))
     (define-key map [mode-line mouse-2]
       (lambda (e)
 	(interactive "e")
-	(save-selected-window
-	  (select-window
-	   (posn-window (event-start e)))
+	(with-selected-window (posn-window (event-start e))
 	  (toggle-input-method)
 	  (force-mode-line-update))))
     (define-key map [mode-line mouse-3]
       (lambda (e)
 	(interactive "e")
-	(save-selected-window
-	  (select-window
-	   (posn-window (event-start e)))
+	(with-selected-window (posn-window (event-start e))
 	  (describe-current-input-method))))
     (purecopy map)))
-
 
 (defvar mode-line-coding-system-map
   (let ((map (make-sparse-keymap)))
     (define-key map [mode-line mouse-1]
       (lambda (e)
 	(interactive "e")
-	(save-selected-window
-	  (select-window (posn-window (event-start e)))
+	(with-selected-window (posn-window (event-start e))
 	  (when (and enable-multibyte-characters
 		     buffer-file-coding-system)
 	    (describe-coding-system buffer-file-coding-system)))))
+    (define-key map [mode-line mouse-3]
+      (lambda (e)
+	(interactive "e")
+	(with-selected-window (posn-window (event-start e))
+	  (call-interactively 'set-buffer-file-coding-system))))
     (purecopy map))
   "Local keymap for the coding-system part of the mode line.")
-
 
 (defun mode-line-change-eol (event)
   "Cycle through the various possible kinds of end-of-line styles."
@@ -116,7 +107,7 @@ corresponding to the mode line clicked."
       (setq desc
 	    (propertize
 	     mnemonic
-	     'help-echo (format "End-of-line style: %s\nmouse-1 to cycle"
+	     'help-echo (format "End-of-line style: %s\nmouse-1: Cycle"
 				(if (eq eol 0) "Unix-style LF"
 				  (if (eq eol 1) "DOS-style CRLF"
 				    (if (eq eol 2) "Mac-style CR"
@@ -130,13 +121,39 @@ corresponding to the mode line clicked."
       (push (cons eol (cons mnemonic desc)) mode-line-eol-desc-cache)
       desc)))
 
-(defvar mode-line-client
-  `(""
-    (:propertize ("" (:eval (if (frame-parameter nil 'client) "@" "")))
-		 help-echo ,(purecopy "emacsclient frame")))
-  "Mode-line control for identifying emacsclient frames.")
-;;;###autoload
-(put 'mode-line-client 'risky-local-variable t)
+
+;;; Mode line contents
+
+(defcustom mode-line-default-help-echo
+  "mouse-1: Select (drag to resize)\n\
+mouse-2: Make current window occupy the whole frame\n\
+mouse-3: Remove current window from display"
+  "Default help text for the mode line.
+If the value is a string, it specifies the tooltip or echo area
+message to display when the mouse is moved over the mode line.
+If the text at the mouse position has a `help-echo' text
+property, that overrides this variable."
+  :type '(choice (const :tag "No help" :value nil) string)
+  :version "24.3"
+  :group 'mode-line)
+
+(defvar mode-line-front-space '(:eval (if (display-graphic-p) " " "-"))
+  "Mode line construct to put at the front of the mode line.
+By default, this construct is displayed right at the beginning of
+the mode line, except that if there is a memory-full message, it
+is displayed first.")
+(put 'mode-line-front-space 'risky-local-variable t)
+
+(defun mode-line-mule-info-help-echo (window _object _point)
+  "Return help text specifying WINDOW's buffer coding system."
+  (with-current-buffer (window-buffer window)
+    (if buffer-file-coding-system
+	(format "Buffer coding system (%s): %s
+mouse-1: Describe coding system
+mouse-3: Set coding system"
+		(if enable-multibyte-characters "multi-byte" "unibyte")
+		(symbol-name buffer-file-coding-system))
+      "Buffer coding system: none specified")))
 
 (defvar mode-line-mule-info
   `(""
@@ -152,88 +169,55 @@ mouse-3: Describe current input method"))
 		  mouse-face mode-line-highlight))
     ,(propertize
       "%z"
-      'help-echo
-      (lambda (window _object _point)
-	(with-current-buffer (window-buffer window)
-	  ;; Don't show this tip if the coding system is nil,
-	  ;; it reads like a bug, and is not useful anyway.
-	  (when buffer-file-coding-system
-	    (format "Buffer coding system %s\nmouse-1: describe coding system"
-		    (if enable-multibyte-characters
-			(concat "(multi-byte): "
-				(symbol-name buffer-file-coding-system))
-		      (concat "(unibyte): "
-			      (symbol-name buffer-file-coding-system)))))))
+      'help-echo 'mode-line-mule-info-help-echo
       'mouse-face 'mode-line-highlight
       'local-map mode-line-coding-system-map)
     (:eval (mode-line-eol-desc)))
-  "Mode-line control for displaying information of multilingual environment.
+  "Mode line construct to report the multilingual environment.
 Normally it displays current input method (if any activated) and
 mnemonics of the following coding systems:
   coding system for saving or writing the current buffer
-  coding system for keyboard input (if Emacs is running on terminal)
-  coding system for terminal output (if Emacs is running on terminal)"
-  ;; Currently not:
-  ;;  coding system for decoding output of buffer process (if any)
-  ;;  coding system for encoding text to send to buffer process (if any)."
-)
-
+  coding system for keyboard input (on a text terminal)
+  coding system for terminal output (on a text terminal)")
 ;;;###autoload
 (put 'mode-line-mule-info 'risky-local-variable t)
 (make-variable-buffer-local 'mode-line-mule-info)
 
-;; MSDOS frames have window-system, but want the Fn identification.
-(defun mode-line-frame-control ()
-  "Compute mode-line control for frame identification.
-Value is used for `mode-line-frame-identification', which see."
-  (if (or (null window-system)
-	  (eq window-system 'pc))
-      "-%F  "
-    "  "))
-
-;; We need to defer the call to mode-line-frame-control to the time
-;; the mode line is actually displayed.
-(defvar mode-line-frame-identification '(:eval (mode-line-frame-control))
-  "Mode-line control to describe the current frame.")
+(defvar mode-line-client
+  `(""
+    (:propertize ("" (:eval (if (frame-parameter nil 'client) "@" "")))
+		 help-echo ,(purecopy "emacsclient frame")))
+  "Mode line construct for identifying emacsclient frames.")
 ;;;###autoload
-(put 'mode-line-frame-identification 'risky-local-variable t)
+(put 'mode-line-client 'risky-local-variable t)
 
-(defvar mode-line-process nil "\
-Mode-line control for displaying info on process status.
-Normally nil in most modes, since there is no process to display.")
+(defun mode-line-read-only-help-echo (window _object _point)
+  "Return help text specifying WINDOW's buffer read-only status."
+  (format "Buffer is %s\nmouse-1: Toggle"
+	  (if (buffer-local-value 'buffer-read-only (window-buffer window))
+	      "read-only"
+	    "writable")))
 
-;;;###autoload
-(put 'mode-line-process 'risky-local-variable t)
-(make-variable-buffer-local 'mode-line-process)
+(defun mode-line-modified-help-echo (window _object _point)
+  "Return help text specifying WINDOW's buffer modification status."
+  (format "Buffer is %smodified\nmouse-1: Toggle modification state"
+	  (if (buffer-modified-p (window-buffer window)) "" "not ")))
 
 (defvar mode-line-modified
   (list (propertize
 	 "%1*"
-	 'help-echo (purecopy (lambda (window _object _point)
- 				(format "Buffer is %s\nmouse-1 toggles"
-					(save-selected-window
-					  (select-window window)
-					  (if buffer-read-only
-					      "read-only"
-					    "writable")))))
+	 'help-echo 'mode-line-read-only-help-echo
 	 'local-map (purecopy (make-mode-line-mouse-map
 			       'mouse-1
 			       #'mode-line-toggle-read-only))
 	 'mouse-face 'mode-line-highlight)
 	(propertize
 	 "%1+"
-	 'help-echo  (purecopy (lambda (window _object _point)
-				 (format "Buffer is %sodified\nmouse-1 toggles modified state"
-					 (save-selected-window
-					   (select-window window)
-					   (if (buffer-modified-p)
-					     "m"
-					   "not m")))))
+	 'help-echo 'mode-line-modified-help-echo
 	 'local-map (purecopy (make-mode-line-mouse-map
 			       'mouse-1 #'mode-line-toggle-modified))
 	 'mouse-face 'mode-line-highlight))
-  "Mode-line control for displaying whether current buffer is modified.")
-
+  "Mode line construct for displaying whether current buffer is modified.")
 ;;;###autoload
 (put 'mode-line-modified 'risky-local-variable t)
 (make-variable-buffer-local 'mode-line-modified)
@@ -244,40 +228,68 @@ Normally nil in most modes, since there is no process to display.")
 	 'mouse-face 'mode-line-highlight
 	 'help-echo (purecopy (lambda (window _object _point)
  				(format "%s"
-					(save-selected-window
-					  (select-window window)
+					(with-selected-window window
 					  (concat
 					   (if (file-remote-p default-directory)
 					       "Current directory is remote: "
 					     "Current directory is local: ")
 					   default-directory)))))))
-  "Mode-line flag to show if default-directory for current buffer is remote.")
+  "Mode line construct to indicate a remote buffer.")
 ;;;###autoload
 (put 'mode-line-remote 'risky-local-variable t)
-
 (make-variable-buffer-local 'mode-line-remote)
 
-;; Actual initialization is below.
-(defvar mode-line-position nil
-  "Mode-line control for displaying the position in the buffer.
-Normally displays the buffer percentage and, optionally, the
-buffer size, the line number and the column number.")
-;;;###autoload
-(put 'mode-line-position 'risky-local-variable t)
+;; MSDOS frames have window-system, but want the Fn identification.
+(defun mode-line-frame-control ()
+  "Compute mode line construct for frame identification.
+Value is used for `mode-line-frame-identification', which see."
+  (if (or (null window-system)
+	  (eq window-system 'pc))
+      "-%F  "
+    "  "))
 
-(defvar mode-line-modes nil
-  "Mode-line control for displaying major and minor modes.")
+;; We need to defer the call to mode-line-frame-control to the time
+;; the mode line is actually displayed.
+(defvar mode-line-frame-identification '(:eval (mode-line-frame-control))
+  "Mode line construct to describe the current frame.")
 ;;;###autoload
-(put 'mode-line-modes 'risky-local-variable t)
+(put 'mode-line-frame-identification 'risky-local-variable t)
+
+(defvar mode-line-process nil
+  "Mode line construct for displaying info on process status.
+Normally nil in most modes, since there is no process to display.")
+;;;###autoload
+(put 'mode-line-process 'risky-local-variable t)
+(make-variable-buffer-local 'mode-line-process)
+
+(defun bindings--define-key (map key item)
+  "Make as much as possible of the menus pure."
+  (declare (indent 2))
+  (define-key map key
+    (cond
+     ((not (consp item)) item)     ;Not sure that could be other than a symbol.
+     ;; Keymaps can't be made pure otherwise users can't remove/add elements
+     ;; from/to them any more.
+     ((keymapp item) item)
+     ((stringp (car item))
+      (if (keymapp (cdr item))
+          (cons (purecopy (car item)) (cdr item))
+        (purecopy item)))
+     ((eq 'menu-item (car item))
+      (if (keymapp (nth 2 item))
+          `(menu-item ,(purecopy (nth 1 item)) ,(nth 2 item)
+                      ,@(purecopy (nthcdr 3 item)))
+        (purecopy item)))
+     (t (message "non-menu-item: %S" item) item))))
 
 (defvar mode-line-mode-menu (make-sparse-keymap "Minor Modes") "\
 Menu of mode operations in the mode line.")
 
 (defvar mode-line-major-mode-keymap
   (let ((map (make-sparse-keymap)))
-    (define-key map [mode-line down-mouse-1]
-      `(menu-item ,(purecopy "Menu Bar") ignore
-        :filter (lambda (_) (mouse-menu-major-mode-map))))
+    (bindings--define-key map [mode-line down-mouse-1]
+      `(menu-item "Menu Bar" ignore
+        :filter ,(lambda (_) (mouse-menu-major-mode-map))))
     (define-key map [mode-line mouse-2] 'describe-mode)
     (define-key map [mode-line down-mouse-3] mode-line-mode-menu)
     map) "\
@@ -292,129 +304,91 @@ Keymap to display on major mode.")
     map) "\
 Keymap to display on minor modes.")
 
+(defvar mode-line-modes
+  (let ((recursive-edit-help-echo "Recursive edit, type C-M-c to get out"))
+    (list (propertize "%[" 'help-echo recursive-edit-help-echo)
+	  "("
+	  `(:propertize ("" mode-name)
+			help-echo "Major mode\n\
+mouse-1: Display major mode menu\n\
+mouse-2: Show help for major mode\n\
+mouse-3: Toggle minor modes"
+			mouse-face mode-line-highlight
+			local-map ,mode-line-major-mode-keymap)
+	  '("" mode-line-process)
+	  `(:propertize ("" minor-mode-alist)
+			mouse-face mode-line-highlight
+			help-echo "Minor mode\n\
+mouse-1: Display minor mode menu\n\
+mouse-2: Show help for minor mode\n\
+mouse-3: Toggle minor modes"
+			local-map ,mode-line-minor-mode-keymap)
+	  (propertize "%n" 'help-echo "mouse-2: Remove narrowing from buffer"
+		      'mouse-face 'mode-line-highlight
+		      'local-map (make-mode-line-mouse-map
+				  'mouse-2 #'mode-line-widen))
+	  ")"
+	  (propertize "%]" 'help-echo recursive-edit-help-echo)
+	  " "))
+  "Mode line construct for displaying major and minor modes.")
+(put 'mode-line-modes 'risky-local-variable t)
+
 (defvar mode-line-column-line-number-mode-map
   (let ((map (make-sparse-keymap))
 	(menu-map (make-sparse-keymap "Toggle Line and Column Number Display")))
-    (define-key menu-map [line-number-mode]
-      `(menu-item ,(purecopy "Display Line Numbers") line-number-mode
-		  :help ,(purecopy "Toggle displaying line numbers in the mode-line")
+    (bindings--define-key menu-map [line-number-mode]
+      '(menu-item "Display Line Numbers" line-number-mode
+		  :help "Toggle displaying line numbers in the mode-line"
 		  :button (:toggle . line-number-mode)))
-    (define-key menu-map [column-number-mode]
-      `(menu-item ,(purecopy "Display Column Numbers") column-number-mode
-		  :help ,(purecopy "Toggle displaying column numbers in the mode-line")
+    (bindings--define-key menu-map [column-number-mode]
+      '(menu-item "Display Column Numbers" column-number-mode
+		  :help "Toggle displaying column numbers in the mode-line"
 		  :button (:toggle . column-number-mode)))
     (define-key map [mode-line down-mouse-1] menu-map)
     map) "\
 Keymap to display on column and line numbers.")
 
-(let* ((help-echo
-	;; The multi-line message doesn't work terribly well on the
-	;; bottom mode line...  Better ideas?
-	;; 	  "\
-	;; mouse-1: select window, mouse-2: delete others, mouse-3: delete,
-	;; drag-mouse-1: resize, C-mouse-2: split horizontally"
-	"mouse-1: Select (drag to resize)\n\
-mouse-2: Make current window occupy the whole frame\n\
-mouse-3: Remove current window from display")
-       (recursive-edit-help-echo "Recursive edit, type C-M-c to get out")
-       (spaces (propertize " " 'help-echo help-echo))
-       (standard-mode-line-format
-	(list
-	 "%e"
-	 `(:eval (if (display-graphic-p)
-		     ,(propertize " " 'help-echo help-echo)
-		   ,(propertize "-" 'help-echo help-echo)))
-	 'mode-line-mule-info
-	 'mode-line-client
-	 'mode-line-modified
-	 'mode-line-remote
-	 'mode-line-frame-identification
-	 'mode-line-buffer-identification
-	 (propertize "   " 'help-echo help-echo)
-	 'mode-line-position
-	 '(vc-mode vc-mode)
-	 (propertize "  " 'help-echo help-echo)
-	 'mode-line-modes
-	 `(which-func-mode ("" which-func-format ,spaces))
-	 `(global-mode-string ("" global-mode-string ,spaces))
-	 `(:eval (unless (display-graphic-p)
-		   ,(propertize "-%-" 'help-echo help-echo)))))
-       (standard-mode-line-modes
-	(list
-	 (propertize "%[" 'help-echo recursive-edit-help-echo)
-	 (propertize "(" 'help-echo help-echo)
-	 `(:propertize ("" mode-name)
-		       help-echo "Major mode\n\
-mouse-1: Display major mode menu\n\
-mouse-2: Show help for major mode\n\
-mouse-3: Toggle minor modes"
-		       mouse-face mode-line-highlight
-		       local-map ,mode-line-major-mode-keymap)
-	 '("" mode-line-process)
-	 `(:propertize ("" minor-mode-alist)
-		       mouse-face mode-line-highlight
-		       help-echo "Minor mode\n\
-mouse-1: Display minor mode menu\n\
-mouse-2: Show help for minor mode\n\
-mouse-3: Toggle minor modes"
-		       local-map ,mode-line-minor-mode-keymap)
-	 (propertize "%n" 'help-echo "mouse-2: Remove narrowing from the current buffer"
-		     'mouse-face 'mode-line-highlight
-		     'local-map (make-mode-line-mouse-map
-				 'mouse-2 #'mode-line-widen))
-	 (propertize ")" 'help-echo help-echo)
-	 (propertize "%]" 'help-echo recursive-edit-help-echo)
-	 spaces))
-
-       (standard-mode-line-position
-	`((-3 ,(propertize
-		"%p"
-		'local-map mode-line-column-line-number-mode-map
-		'mouse-face 'mode-line-highlight
-		;; XXX needs better description
-		'help-echo "Size indication mode\n\
+(defvar mode-line-position
+  `((-3 ,(propertize
+	  "%p"
+	  'local-map mode-line-column-line-number-mode-map
+	  'mouse-face 'mode-line-highlight
+	  ;; XXX needs better description
+	  'help-echo "Size indication mode\n\
 mouse-1: Display Line and Column Mode Menu"))
-	  (size-indication-mode
-	   (8 ,(propertize
-		" of %I"
-		'local-map mode-line-column-line-number-mode-map
-		'mouse-face 'mode-line-highlight
-		;; XXX needs better description
-		'help-echo "Size indication mode\n\
+    (size-indication-mode
+     (8 ,(propertize
+	  " of %I"
+	  'local-map mode-line-column-line-number-mode-map
+	  'mouse-face 'mode-line-highlight
+	  ;; XXX needs better description
+	  'help-echo "Size indication mode\n\
 mouse-1: Display Line and Column Mode Menu")))
-	  (line-number-mode
-	   ((column-number-mode
-	     (10 ,(propertize
-		   " (%l,%c)"
-		   'local-map mode-line-column-line-number-mode-map
-		   'mouse-face 'mode-line-highlight
-		   'help-echo "Line number and Column number\n\
+    (line-number-mode
+     ((column-number-mode
+       (10 ,(propertize
+	     " (%l,%c)"
+	     'local-map mode-line-column-line-number-mode-map
+	     'mouse-face 'mode-line-highlight
+	     'help-echo "Line number and Column number\n\
 mouse-1: Display Line and Column Mode Menu"))
-	     (6 ,(propertize
-		  " L%l"
-		  'local-map mode-line-column-line-number-mode-map
-		  'mouse-face 'mode-line-highlight
-		  'help-echo "Line Number\n\
+       (6 ,(propertize
+	    " L%l"
+	    'local-map mode-line-column-line-number-mode-map
+	    'mouse-face 'mode-line-highlight
+	    'help-echo "Line Number\n\
 mouse-1: Display Line and Column Mode Menu"))))
-	   ((column-number-mode
-	     (5 ,(propertize
-		  " C%c"
-		  'local-map mode-line-column-line-number-mode-map
-		  'mouse-face 'mode-line-highlight
-		  'help-echo "Column number\n\
-mouse-1: Display Line and Column Mode Menu"))))))))
-
-  (setq-default mode-line-format standard-mode-line-format)
-  (put 'mode-line-format 'standard-value
-       (list `(quote ,standard-mode-line-format)))
-
-  (setq-default mode-line-modes standard-mode-line-modes)
-  (put 'mode-line-modes 'standard-value
-       (list `(quote ,standard-mode-line-modes)))
-
-  (setq-default mode-line-position standard-mode-line-position)
-  (put 'mode-line-position 'standard-value
-       (list `(quote ,standard-mode-line-position))))
+     ((column-number-mode
+       (5 ,(propertize
+	    " C%c"
+	    'local-map mode-line-column-line-number-mode-map
+	    'mouse-face 'mode-line-highlight
+	    'help-echo "Column number\n\
+mouse-1: Display Line and Column Mode Menu"))))))
+  "Mode line construct for displaying the position in the buffer.
+Normally displays the buffer percentage and, optionally, the
+buffer size, the line number and the column number.")
+(put 'mode-line-position 'risky-local-variable t)
 
 (defvar mode-line-buffer-identification-keymap
   ;; Add menu of buffer operations to the buffer identification part
@@ -438,34 +412,65 @@ text properties for face, help-echo, and local-map to it."
   (list (propertize fmt
 		    'face 'mode-line-buffer-id
 		    'help-echo
-		    (purecopy "Buffer name\n\
-mouse-1: previous buffer\n\
-mouse-3: next buffer")
+		    (purecopy "Buffer name
+mouse-1: Previous buffer\nmouse-3: Next buffer")
 		    'mouse-face 'mode-line-highlight
 		    'local-map mode-line-buffer-identification-keymap)))
 
-(defvar mode-line-buffer-identification (propertized-buffer-identification "%12b") "\
-Mode-line control for identifying the buffer being displayed.
+(defvar mode-line-buffer-identification
+  (propertized-buffer-identification "%12b")
+  "Mode line construct for identifying the buffer being displayed.
 Its default value is (\"%12b\") with some text properties added.
 Major modes that edit things other than ordinary files may change this
 \(e.g. Info, Dired,...)")
-
 ;;;###autoload
 (put 'mode-line-buffer-identification 'risky-local-variable t)
 (make-variable-buffer-local 'mode-line-buffer-identification)
 
+(defvar mode-line-misc-info
+  '((which-func-mode ("" which-func-format " "))
+    (global-mode-string ("" global-mode-string " ")))
+  "Mode line construct for miscellaneous information.
+By default, this shows the information specified by
+`which-func-mode' and `global-mode-string'.")
+(put 'mode-line-misc-info 'risky-local-variable t)
+
+(defvar mode-line-end-spaces '(:eval (unless (display-graphic-p) "-%-"))
+  "Mode line construct to put at the end of the mode line.")
+(put 'mode-line-end-spaces 'risky-local-variable t)
+
+;; Default value of the top-level `mode-line-format' variable:
+(let ((standard-mode-line-format
+       (list "%e"
+	     'mode-line-front-space
+	     'mode-line-mule-info
+	     'mode-line-client
+	     'mode-line-modified
+	     'mode-line-remote
+	     'mode-line-frame-identification
+	     'mode-line-buffer-identification
+	     "   "
+	     'mode-line-position
+	     '(vc-mode vc-mode)
+	     "  "
+	     'mode-line-modes
+	     'mode-line-misc-info
+	     'mode-line-end-spaces)))
+  (setq-default mode-line-format standard-mode-line-format)
+  (put 'mode-line-format 'standard-value
+       (list `(quote ,standard-mode-line-format))))
+
+
 (defun mode-line-unbury-buffer (event) "\
 Call `unbury-buffer' in this window."
   (interactive "e")
-  (save-selected-window
-    (select-window (posn-window (event-start event)))
+  (with-selected-window (posn-window (event-start event))
     (unbury-buffer)))
 
 (defun mode-line-bury-buffer (event) "\
 Like `bury-buffer', but temporarily select EVENT's window."
   (interactive "e")
-  (save-selected-window
-    (select-window (posn-window (event-start event)))
+  (with-selected-window (posn-window (event-start event))
     (bury-buffer)))
 
 (defun mode-line-other-buffer () "\
@@ -476,15 +481,13 @@ Switch to the most recently selected buffer other than the current one."
 (defun mode-line-next-buffer (event)
   "Like `next-buffer', but temporarily select EVENT's window."
   (interactive "e")
-  (save-selected-window
-    (select-window (posn-window (event-start event)))
+  (with-selected-window (posn-window (event-start event))
     (next-buffer)))
 
 (defun mode-line-previous-buffer (event)
   "Like `previous-buffer', but temporarily select EVENT's window."
   (interactive "e")
-  (save-selected-window
-    (select-window (posn-window (event-start event)))
+  (with-selected-window (posn-window (event-start event))
     (previous-buffer)))
 
 (defmacro bound-and-true-p (var)
@@ -493,51 +496,51 @@ Switch to the most recently selected buffer other than the current one."
 
 ;; Use mode-line-mode-menu for local minor-modes only.
 ;; Global ones can go on the menubar (Options --> Show/Hide).
-(define-key mode-line-mode-menu [overwrite-mode]
-  `(menu-item ,(purecopy "Overwrite (Ovwrt)") overwrite-mode
-	      :help ,(purecopy "Overwrite mode: typed characters replace existing text")
+(bindings--define-key mode-line-mode-menu [overwrite-mode]
+  '(menu-item "Overwrite (Ovwrt)" overwrite-mode
+	      :help "Overwrite mode: typed characters replace existing text"
 	      :button (:toggle . overwrite-mode)))
-(define-key mode-line-mode-menu [outline-minor-mode]
-  `(menu-item ,(purecopy "Outline (Outl)") outline-minor-mode
+(bindings--define-key mode-line-mode-menu [outline-minor-mode]
+  '(menu-item "Outline (Outl)" outline-minor-mode
 	      ;; XXX: This needs a good, brief description.
-	      :help ,(purecopy "")
+	      :help ""
 	      :button (:toggle . (bound-and-true-p outline-minor-mode))))
-(define-key mode-line-mode-menu [highlight-changes-mode]
-  `(menu-item ,(purecopy "Highlight changes (Chg)") highlight-changes-mode
-	      :help ,(purecopy "Show changes in the buffer in a distinctive color")
+(bindings--define-key mode-line-mode-menu [highlight-changes-mode]
+  '(menu-item "Highlight changes (Chg)" highlight-changes-mode
+	      :help "Show changes in the buffer in a distinctive color"
 	      :button (:toggle . (bound-and-true-p highlight-changes-mode))))
-(define-key mode-line-mode-menu [hide-ifdef-mode]
-  `(menu-item ,(purecopy "Hide ifdef (Ifdef)") hide-ifdef-mode
-	      :help ,(purecopy "Show/Hide code within #ifdef constructs")
+(bindings--define-key mode-line-mode-menu [hide-ifdef-mode]
+  '(menu-item "Hide ifdef (Ifdef)" hide-ifdef-mode
+	      :help "Show/Hide code within #ifdef constructs"
 	      :button (:toggle . (bound-and-true-p hide-ifdef-mode))))
-(define-key mode-line-mode-menu [glasses-mode]
-  `(menu-item ,(purecopy "Glasses (o^o)") glasses-mode
-	      :help ,(purecopy "Insert virtual separators to make long identifiers easy to read")
+(bindings--define-key mode-line-mode-menu [glasses-mode]
+  '(menu-item "Glasses (o^o)" glasses-mode
+	      :help "Insert virtual separators to make long identifiers easy to read"
 	      :button (:toggle . (bound-and-true-p glasses-mode))))
-(define-key mode-line-mode-menu [font-lock-mode]
-  `(menu-item ,(purecopy "Font Lock") font-lock-mode
-	      :help ,(purecopy "Syntax coloring")
+(bindings--define-key mode-line-mode-menu [font-lock-mode]
+  '(menu-item "Font Lock" font-lock-mode
+	      :help "Syntax coloring"
 	      :button (:toggle . font-lock-mode)))
-(define-key mode-line-mode-menu [flyspell-mode]
-  `(menu-item ,(purecopy "Flyspell (Fly)") flyspell-mode
-	      :help ,(purecopy "Spell checking on the fly")
+(bindings--define-key mode-line-mode-menu [flyspell-mode]
+  '(menu-item "Flyspell (Fly)" flyspell-mode
+	      :help "Spell checking on the fly"
 	      :button (:toggle . (bound-and-true-p flyspell-mode))))
-(define-key mode-line-mode-menu [auto-revert-tail-mode]
-  `(menu-item ,(purecopy "Auto revert tail (Tail)") auto-revert-tail-mode
-	      :help ,(purecopy "Revert the tail of the buffer when buffer grows")
+(bindings--define-key mode-line-mode-menu [auto-revert-tail-mode]
+  '(menu-item "Auto revert tail (Tail)" auto-revert-tail-mode
+	      :help "Revert the tail of the buffer when buffer grows"
 	      :enable (buffer-file-name)
 	      :button (:toggle . (bound-and-true-p auto-revert-tail-mode))))
-(define-key mode-line-mode-menu [auto-revert-mode]
-  `(menu-item ,(purecopy "Auto revert (ARev)") auto-revert-mode
-	      :help ,(purecopy "Revert the buffer when the file on disk changes")
+(bindings--define-key mode-line-mode-menu [auto-revert-mode]
+  '(menu-item "Auto revert (ARev)" auto-revert-mode
+	      :help "Revert the buffer when the file on disk changes"
 	      :button (:toggle . (bound-and-true-p auto-revert-mode))))
-(define-key mode-line-mode-menu [auto-fill-mode]
-  `(menu-item ,(purecopy "Auto fill (Fill)") auto-fill-mode
-	      :help ,(purecopy "Automatically insert new lines")
+(bindings--define-key mode-line-mode-menu [auto-fill-mode]
+  '(menu-item "Auto fill (Fill)" auto-fill-mode
+	      :help "Automatically insert new lines"
 	      :button (:toggle . auto-fill-function)))
-(define-key mode-line-mode-menu [abbrev-mode]
-  `(menu-item ,(purecopy "Abbrev (Abbrev)") abbrev-mode
-	      :help ,(purecopy "Automatically expand abbreviations")
+(bindings--define-key mode-line-mode-menu [abbrev-mode]
+  '(menu-item "Abbrev (Abbrev)" abbrev-mode
+	      :help "Automatically expand abbreviations"
 	      :button (:toggle . abbrev-mode)))
 
 (defun mode-line-minor-mode-help (event)
@@ -551,8 +554,8 @@ Alist saying how to show minor modes in the mode line.
 Each element looks like (VARIABLE STRING);
 STRING is included in the mode line if VARIABLE's value is non-nil.
 
-Actually, STRING need not be a string; any possible mode-line element
-is okay.  See `mode-line-format'.")
+Actually, STRING need not be a string; any mode-line construct is
+okay.  See `mode-line-format'.")
 ;;;###autoload
 (put 'minor-mode-alist 'risky-local-variable t)
 ;; Don't use purecopy here--some people want to change these strings.
@@ -623,28 +626,30 @@ is okay.  See `mode-line-format'.")
 ;; Packages should add to this list appropriately when they are
 ;; loaded, rather than listing everything here.
 (setq debug-ignored-errors
+      ;; FIXME: Maybe beginning-of-line, beginning-of-buffer, end-of-line,
+      ;; end-of-buffer, end-of-file, buffer-read-only, and
+      ;; file-supersession should all be user-errors!
       `(beginning-of-line beginning-of-buffer end-of-line
 	end-of-buffer end-of-file buffer-read-only
 	file-supersession
-      	,(purecopy "^Previous command was not a yank$")
-	,(purecopy "^Minibuffer window is not active$")
-	,(purecopy "^No previous history search regexp$")
-	,(purecopy "^No later matching history item$")
-	,(purecopy "^No earlier matching history item$")
-	,(purecopy "^End of history; no default available$")
-	,(purecopy "^End of defaults; no next item$")
-	,(purecopy "^Beginning of history; no preceding item$")
-	,(purecopy "^No recursive edit is in progress$")
-	,(purecopy "^Changes to be undone are outside visible portion of buffer$")
-	,(purecopy "^No undo information in this buffer$")
-	,(purecopy "^No further undo information")
-	,(purecopy "^Save not confirmed$")
-	,(purecopy "^Recover-file cancelled\\.$")
-	,(purecopy "^Cannot switch buffers in a dedicated window$")
+        user-error ;; That's the main one!
         ))
 
-
 (make-variable-buffer-local 'indent-tabs-mode)
+
+;; These per-buffer variables are never reset by
+;; `kill-all-local-variables', because they have no default value.
+;; For consistency, we give them the `permanent-local' property, even
+;; though `kill-all-local-variables' does not actually consult it.
+
+(mapc (lambda (sym) (put sym 'permanent-local t))
+      '(buffer-file-name default-directory buffer-backed-up
+	buffer-saved-size buffer-auto-save-file-name
+	buffer-read-only buffer-undo-list mark-active
+	point-before-scroll buffer-file-truename
+	buffer-file-format buffer-auto-save-file-format
+	buffer-display-count buffer-display-time
+	enable-multibyte-characters))
 
 ;; We have base64, md5 and sha1 functions built in now.
 (provide 'base64)
@@ -797,16 +802,20 @@ if `inhibit-field-text-motion' is non-nil."
 
 (define-key ctl-x-map [right] 'next-buffer)
 (define-key ctl-x-map [C-right] 'next-buffer)
+(define-key global-map [XF86Forward] 'next-buffer)
 (define-key ctl-x-map [left] 'previous-buffer)
 (define-key ctl-x-map [C-left] 'previous-buffer)
+(define-key global-map [XF86Back] 'previous-buffer)
 
 (let ((map minibuffer-local-map))
   (define-key map "\en"   'next-history-element)
   (define-key map [next]  'next-history-element)
   (define-key map [down]  'next-history-element)
+  (define-key map [XF86Forward] 'next-history-element)
   (define-key map "\ep"   'previous-history-element)
   (define-key map [prior] 'previous-history-element)
   (define-key map [up]    'previous-history-element)
+  (define-key map [XF86Back] 'previous-history-element)
   (define-key map "\es"   'next-matching-history-element)
   (define-key map "\er"   'previous-matching-history-element)
   ;; Override the global binding (which calls indent-relative via
@@ -868,12 +877,14 @@ if `inhibit-field-text-motion' is non-nil."
   "Keymap for navigation commands.")
 (define-key esc-map "g" goto-map)
 
+(define-key goto-map    "c" 'goto-char)
 (define-key goto-map    "g" 'goto-line)
 (define-key goto-map "\M-g" 'goto-line)
 (define-key goto-map    "n" 'next-error)
 (define-key goto-map "\M-n" 'next-error)
 (define-key goto-map    "p" 'previous-error)
 (define-key goto-map "\M-p" 'previous-error)
+(define-key goto-map   "\t" 'move-to-column)
 
 (defvar search-map (make-sparse-keymap)
   "Keymap for search related commands.")
@@ -1158,7 +1169,30 @@ if `inhibit-field-text-motion' is non-nil."
 (define-key ctl-x-5-map "m" 'compose-mail-other-frame)
 
 
-(defvar ctl-x-r-map (make-sparse-keymap)
+(defvar ctl-x-r-map
+  (let ((map (make-sparse-keymap)))
+    (define-key map "c" 'clear-rectangle)
+    (define-key map "k" 'kill-rectangle)
+    (define-key map "d" 'delete-rectangle)
+    (define-key map "y" 'yank-rectangle)
+    (define-key map "o" 'open-rectangle)
+    (define-key map "t" 'string-rectangle)
+    (define-key map "N" 'rectangle-number-lines)
+    (define-key map "\M-w" 'copy-rectangle-as-kill)
+    (define-key map "\C-@" 'point-to-register)
+    (define-key map [?\C-\ ] 'point-to-register)
+    (define-key map " " 'point-to-register)
+    (define-key map "j" 'jump-to-register)
+    (define-key map "s" 'copy-to-register)
+    (define-key map "x" 'copy-to-register)
+    (define-key map "i" 'insert-register)
+    (define-key map "g" 'insert-register)
+    (define-key map "r" 'copy-rectangle-to-register)
+    (define-key map "n" 'number-to-register)
+    (define-key map "+" 'increment-register)
+    (define-key map "w" 'window-configuration-to-register)
+    (define-key map "f" 'frame-configuration-to-register)
+    map)
   "Keymap for subcommands of C-x r.")
 (define-key ctl-x-map "r" ctl-x-r-map)
 
@@ -1200,6 +1234,7 @@ if `inhibit-field-text-motion' is non-nil."
 ;; (define-key ctl-x-map "\-" 'inverse-add-global-abbrev)
 (define-key esc-map "'" 'abbrev-prefix-mark)
 (define-key ctl-x-map "'" 'expand-abbrev)
+(define-key ctl-x-map "\C-b" 'list-buffers)
 
 (define-key ctl-x-map "z" 'repeat)
 

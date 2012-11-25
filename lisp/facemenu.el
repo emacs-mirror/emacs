@@ -1,6 +1,6 @@
 ;;; facemenu.el --- create a face menu for interactively adding fonts to text
 
-;; Copyright (C) 1994-1996, 2001-2011 Free Software Foundation, Inc.
+;; Copyright (C) 1994-1996, 2001-2012 Free Software Foundation, Inc.
 
 ;; Author: Boris Goldowsky <boris@gnu.org>
 ;; Keywords: faces
@@ -126,15 +126,6 @@ This should be nil to put them at the top of the menu, or t to put them
 just before \"Other\" at the end."
   :type 'boolean
   :group 'facemenu)
-
-(defvar facemenu-unlisted-faces
-  `(modeline region secondary-selection highlight scratch-face
-    ,(purecopy "^font-lock-") ,(purecopy "^gnus-") ,(purecopy "^message-")
-    ,(purecopy "^ediff-") ,(purecopy "^term-") ,(purecopy "^vc-")
-    ,(purecopy "^widget-") ,(purecopy "^custom-") ,(purecopy "^vm-"))
-  "*List of faces that are of no interest to the user.")
-(make-obsolete-variable 'facemenu-unlisted-faces 'facemenu-listed-faces
-			"22.1,\n  and has no effect on the Face menu")
 
 (defcustom facemenu-listed-faces nil
   "List of faces to include in the Face menu.
@@ -473,7 +464,8 @@ These special properties include `invisible', `intangible' and `read-only'."
 `(rgb-dist . COLOR)' sorts by the RGB distance to the specified color.
 `hsv' sorts by hue, saturation, value.
 `(hsv-dist . COLOR)' sorts by the HSV distance to the specified color
-and excludes grayscale colors."
+and excludes grayscale colors.
+`luminance' sorts by relative luminance in the CIE XYZ color space."
   :type '(choice (const :tag "Unsorted" nil)
 		 (const :tag "Color Name" name)
 		 (const :tag "Red-Green-Blue" rgb)
@@ -483,7 +475,8 @@ and excludes grayscale colors."
 		 (const :tag "Hue-Saturation-Value" hsv)
 		 (cons :tag "Distance on HSV cylinder"
 		       (const :tag "Distance from Color" hsv-dist)
-		       (color :tag "Source Color Name")))
+		       (color :tag "Source Color Name"))
+		 (const :tag "Luminance" luminance))
   :group 'facemenu
   :version "24.1")
 
@@ -513,23 +506,25 @@ filter out the color from the output."
 	(+ (expt (- 180 (abs (- 180 (abs (- (nth 0 c-hsv) ; wrap hue
 					    (nth 0 o-hsv)))))) 2)
 	   (expt (- (nth 1 c-hsv) (nth 1 o-hsv)) 2)
-	   (expt (- (nth 2 c-hsv) (nth 2 o-hsv)) 2)))))))
+	   (expt (- (nth 2 c-hsv) (nth 2 o-hsv)) 2)))))
+   ((eq list-colors-sort 'luminance)
+    (let ((c-rgb (color-name-to-rgb color)))
+      (+ (* (nth 0 c-rgb) 0.21266729)
+	 (* (nth 1 c-rgb) 0.7151522)
+	 (* (nth 2 c-rgb) 0.0721750))))))
 
 (defun list-colors-display (&optional list buffer-name callback)
   "Display names of defined colors, and show what they look like.
 If the optional argument LIST is non-nil, it should be a list of
 colors to display.  Otherwise, this command computes a list of
-colors that the current display can handle.
+colors that the current display can handle.  Customize
+`list-colors-sort' to change the order in which colors are shown.
 
-If the optional argument BUFFER-NAME is nil, it defaults to
-*Colors*.
+If the optional argument BUFFER-NAME is nil, it defaults to *Colors*.
 
 If the optional argument CALLBACK is non-nil, it should be a
 function to call each time the user types RET or clicks on a
-color.  The function should accept a single argument, the color
-name.
-
-You can change the color sort order by customizing `list-colors-sort'."
+color.  The function should accept a single argument, the color name."
   (interactive)
   (when (and (null list) (> (display-color-cells) 0))
     (setq list (list-colors-duplicates (defined-colors)))

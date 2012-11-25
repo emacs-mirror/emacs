@@ -1,6 +1,6 @@
 ;;; avl-tree.el --- balanced binary trees, AVL-trees
 
-;; Copyright (C) 1995, 2007-2011  Free Software Foundation, Inc.
+;; Copyright (C) 1995, 2007-2012  Free Software Foundation, Inc.
 
 ;; Author: Per Cederqvist <ceder@lysator.liu.se>
 ;;         Inge Wallin <inge@lysator.liu.se>
@@ -31,7 +31,7 @@
 ;; deleting, and retrieving data from an AVL tree containing n elements
 ;; is O(log n). It is somewhat more rigidly balanced than other
 ;; self-balancing binary trees (such as red-black trees and AA trees),
-;; making insertion slighty slower, deletion somewhat slower, and
+;; making insertion slightly slower, deletion somewhat slower, and
 ;; retrieval somewhat faster (the asymptotic scaling is of course the
 ;; same for all types). Thus it may be a good choice when the tree will
 ;; be relatively static, i.e. data will be retrieved more often than
@@ -260,7 +260,7 @@ Return t if the height of the tree has grown."
 	(opp (avl-tree--switch-dir dir))
 	;; direction 0,1 -> sign factor -1,+1
 	(sgn (avl-tree--dir-to-sign dir))
-        p1 p2 b2 result)
+        p1 p2 b2)
     (cond
      ((< (* sgn (avl-tree--node-balance br)) 0)
       (setf (avl-tree--node-balance br) 0)
@@ -295,9 +295,9 @@ Return t if the height of the tree has grown."
 	        (if (> (* sgn b2) 0) (- sgn) 0)
 	      (avl-tree--node-balance p1)
 	        (if (< (* sgn b2) 0) sgn 0)
-	      (avl-tree--node-branch node branch) p2
-	      (avl-tree--node-balance
-	       (avl-tree--node-branch node branch)) 0))
+                (avl-tree--node-branch node branch) p2))
+      (setf (avl-tree--node-balance
+             (avl-tree--node-branch node branch)) 0)
       nil))))
 
 (defun avl-tree--do-enter (cmpfun root branch data &optional updatefun)
@@ -338,6 +338,16 @@ inserted data."
 	(setf (avl-tree--node-data br) newdata)
 	(cons nil newdata))  ; return value
       ))))
+
+(defun avl-tree--check (tree)
+  "Check the tree's balance."
+  (avl-tree--check-node (avl-tree--root tree)))
+(defun avl-tree--check-node (node)
+  (if (null node) 0
+    (let ((dl (avl-tree--check-node (avl-tree--node-left node)))
+	  (dr (avl-tree--check-node (avl-tree--node-right node))))
+      (assert (= (- dr dl) (avl-tree--node-balance node)))
+      (1+ (max dl dr)))))
 
 ;; ----------------------------------------------------------------
 

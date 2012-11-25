@@ -1,6 +1,6 @@
 ;;; gnus-cus.el --- customization commands for Gnus
 
-;; Copyright (C) 1996, 1999-2011 Free Software Foundation, Inc.
+;; Copyright (C) 1996, 1999-2012 Free Software Foundation, Inc.
 
 ;; Author: Per Abrahamsen <abraham@dina.kvl.dk>
 ;; Keywords: news
@@ -417,6 +417,11 @@ category."))
 	    (delq elem tmp))
 	  (setq tmp (cdr tmp))))
 
+      ;; Decode values posting-style holds.
+      (dolist (style (cdr (assq 'posting-style values)))
+	(when (stringp (cadr style))
+	  (setcdr style (list (mm-decode-coding-string (cadr style) 'utf-8)))))
+
       (setq gnus-custom-params
             (apply 'widget-create 'group
                    :value values
@@ -487,14 +492,17 @@ form, but who cares?"
 (defun gnus-group-customize-done (&rest ignore)
   "Apply changes and bury the buffer."
   (interactive)
-  (if gnus-custom-topic
-      (gnus-topic-set-parameters gnus-custom-topic
-				 (widget-value gnus-custom-params))
-    (gnus-group-edit-group-done 'params gnus-custom-group
-				(widget-value gnus-custom-params))
-    (gnus-group-edit-group-done 'method gnus-custom-group
-				(widget-value gnus-custom-method)))
-  (bury-buffer))
+  (let ((params (widget-value gnus-custom-params)))
+    ;; Encode values posting-style holds.
+    (dolist (style (cdr (assq 'posting-style params)))
+      (when (stringp (cadr style))
+	(setcdr style (list (mm-encode-coding-string (cadr style) 'utf-8)))))
+    (if gnus-custom-topic
+	(gnus-topic-set-parameters gnus-custom-topic params)
+      (gnus-group-edit-group-done 'params gnus-custom-group params)
+      (gnus-group-edit-group-done 'method gnus-custom-group
+				  (widget-value gnus-custom-method)))
+    (bury-buffer)))
 
 ;;; Score Customization:
 
@@ -922,7 +930,7 @@ will add a new `thread' match for each article that has X in its
 `Message-ID's of these matching articles.)  This will ensure that you
 can raise/lower the score of an entire thread, even though some
 articles in the thread may not have complete `References' headers.
-Note that using this may lead to undeterministic scores of the
+Note that using this may lead to nondeterministic scores of the
 articles in the thread.
 ")
 				     ,@types)

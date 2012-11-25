@@ -1,6 +1,6 @@
 ;;; xterm.el --- define function key sequences and standard colors for xterm
 
-;; Copyright (C) 1995, 2001-2011 Free Software Foundation, Inc.
+;; Copyright (C) 1995, 2001-2012 Free Software Foundation, Inc.
 
 ;; Author: FSF
 ;; Keywords: terminals
@@ -27,12 +27,19 @@
 (defgroup xterm nil
   "XTerm support."
   :version "24.1"
-  :group 'emacs)
+  :group 'environment)
 
 (defcustom xterm-extra-capabilities 'check
-  "Set to a list if the XTerm supports modifyOtherKeys or
-reporting the background color.  Set to 'check to check for those
-features.  Set to nil to skip the checks."
+  "Whether Xterm supports some additional, more modern, features.
+If nil, just assume that it does not.
+If `check', try to check if it does.
+If a list, assume that the listed features are supported, without checking.
+
+The relevant features are:
+  modifyOtherKeys  -- if supported, more key bindings work (e.g, \"\\C-,\")
+  reportBackground -- if supported, Xterm reports its background color
+"
+  :version "24.1"
   :group 'xterm
   :type '(choice (const :tag "No" nil)
                  (const :tag "Check" check)
@@ -473,7 +480,7 @@ features.  Set to nil to skip the checks."
 
       ;; Use inheritance to let the main keymap override those defaults.
       ;; This way we don't override terminfo-derived settings or settings
-      ;; made in the .emacs file.
+      ;; made in the init file.
       (set-keymap-parent map (keymap-parent input-decode-map))
       (set-keymap-parent input-decode-map map)))
 
@@ -532,6 +539,7 @@ features.  Set to nil to skip the checks."
                 (and (memq 'reportBackground tocheck-capabilities)
                      version
                      (>= version 242)))
+	(discard-input)
         (send-string-to-terminal "\e]11;?\e\\")
         (when (and (equal (read-event nil nil 2) ?\e)
                    (equal (read-event nil nil 2) ?\]))

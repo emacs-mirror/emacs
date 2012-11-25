@@ -1,6 +1,6 @@
 ;;; bs.el --- menu for selecting and displaying buffers -*- lexical-binding: t -*-
 
-;; Copyright (C) 1998-2011  Free Software Foundation, Inc.
+;; Copyright (C) 1998-2012 Free Software Foundation, Inc.
 ;; Author: Olaf Sylvester <Olaf.Sylvester@netsurf.de>
 ;; Maintainer: Olaf Sylvester <Olaf.Sylvester@netsurf.de>
 ;; Keywords: convenience
@@ -123,8 +123,6 @@
 ;;; History:
 
 ;;; Code:
-
-(eval-when-compile (require 'cl))
 
 ;; ----------------------------------------------------------------------
 ;; Globals for customization
@@ -618,7 +616,7 @@ Used from `window-size-change-functions'."
 (put 'bs-mode 'mode-class 'special)
 
 (define-derived-mode bs-mode nil "Buffer-Selection-Menu"
-  "Major mode for editing a subset of Emacs' buffers.
+  "Major mode for editing a subset of Emacs's buffers.
 \\<bs-mode-map>
 Aside from two header lines each line describes one buffer.
 Move to a line representing the buffer you want to edit and select
@@ -830,10 +828,10 @@ See `visit-tags-table'."
   (interactive)
   (let ((res
          (with-current-buffer (bs--current-buffer)
-           (setq bs-buffer-show-mark (case bs-buffer-show-mark
-                                       ((nil)   'never)
-                                       ((never) 'always)
-                                       (t       nil))))))
+           (setq bs-buffer-show-mark (pcase bs-buffer-show-mark
+                                       (`nil   'never)
+                                       (`never 'always)
+                                       (_       nil))))))
     (bs--update-current-line)
     (bs--set-window-height)
     (bs--show-config-message res)))
@@ -964,7 +962,7 @@ Default is `bs--current-sort-function'."
 Uses function `toggle-read-only'."
   (interactive)
   (with-current-buffer (bs--current-buffer)
-    (toggle-read-only))
+    (read-only-mode 'toggle))
   (bs--update-current-line))
 
 (defun bs-clear-modified ()
@@ -1414,7 +1412,8 @@ for buffer selection."
 	(bs--restore-window-config)
 	(setq bs--window-config-coming-from (current-window-configuration))
 	(when (> (window-height (selected-window)) 7)
-          (select-window (split-window-below))))
+          ;; Errors would mess with the window configuration (bug#10882).
+          (ignore-errors (select-window (split-window-below)))))
       (bs-show-in-buffer liste)
       (bs-message-without-log "%s" (bs--current-config-message)))))
 

@@ -1,6 +1,6 @@
 ;; dos-w32.el --- Functions shared among MS-DOS and W32 (NT/95) platforms
 
-;; Copyright (C) 1996, 2001-2011 Free Software Foundation, Inc.
+;; Copyright (C) 1996, 2001-2012 Free Software Foundation, Inc.
 
 ;; Maintainer: Geoff Voelker <voelker@cs.washington.edu>
 ;; Keywords: internal
@@ -38,9 +38,8 @@
 (setq null-device "NUL")
 
 ;; For distinguishing file types based upon suffixes.
-(defvar file-name-buffer-file-type-alist
-  '(
-    ("[:/].*config.sys$" . nil)		; config.sys text
+(defcustom file-name-buffer-file-type-alist
+  '(("[:/].*config.sys$" . nil)		; config.sys text
     ("\\.\\(obj\\|exe\\|com\\|lib\\|sys\\|bin\\|ico\\|pif\\|class\\)$" . t)
 					; MS-Dos stuff
     ("\\.\\(dll\\|drv\\|386\\|vxd\\|fon\\|fnt\\|fot\\|ttf\\|grp\\)$" . t)
@@ -55,9 +54,12 @@
     ("\\.tp[ulpw]$" . t)		; borland Pascal stuff
     ("[:/]tags$" . nil)			; emacs TAGS file
     )
-  "*Alist for distinguishing text files from binary files.
+  "Alist for distinguishing text files from binary files.
 Each element has the form (REGEXP . TYPE), where REGEXP is matched
-against the file name, and TYPE is nil for text, t for binary.")
+against the file name, and TYPE is nil for text, t for binary."
+  :type '(repeat (cons regexp boolean))
+  :group 'dos-fns
+  :group 'w32)
 
 ;; Return the pair matching filename on file-name-buffer-file-type-alist,
 ;; or nil otherwise.
@@ -282,8 +284,11 @@ filesystem mounted on drive Z:, FILESYSTEM could be \"Z:\"."
 
 ;;; Support for printing under DOS/Windows, see lpr.el and ps-print.el.
 
-(defvar direct-print-region-use-command-dot-com t
-  "*Control whether command.com is used to print on Windows 9x.")
+(defcustom direct-print-region-use-command-dot-com t
+  "If non-nil, use command.com to print on Windows 9x."
+  :type 'boolean
+  :group 'dos-fns
+  :group 'w32)
 
 ;; Function to actually send data to the printer port.
 ;; Supports writing directly, and using various programs.
@@ -356,7 +361,7 @@ filesystem mounted on drive Z:, FILESYSTEM could be \"Z:\"."
 	  (apply 'call-process lpr-prog nil errbuf nil rest))
 	 ;; Run command.com to access printer port on Windows 9x, unless
 	 ;; we are supposed to append to an existing (non-empty) file,
-	 ;; to work around a bug in Windows 9x that prevents Win32
+	 ;; to work around a bug in Windows 9x that prevents Windows
 	 ;; programs from accessing LPT ports reliably.
 	 ((and (eq system-type 'windows-nt)
 	       (getenv "winbootdir")

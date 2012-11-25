@@ -1,11 +1,10 @@
 ;;; ob-octave.el --- org-babel functions for octave and matlab evaluation
 
-;; Copyright (C) 2010-2011  Free Software Foundation, Inc.
+;; Copyright (C) 2010-2012  Free Software Foundation, Inc.
 
 ;; Author: Dan Davison
 ;; Keywords: literate programming, reproducible research
 ;; Homepage: http://orgmode.org
-;; Version: 7.7
 
 ;; This file is part of GNU Emacs.
 
@@ -53,7 +52,7 @@
   to a non-nil value.")
 
 (defvar org-babel-matlab-emacs-link-wrapper-method
-   "%s
+  "%s
 if ischar(ans), fid = fopen('%s', 'w'); fprintf(fid, '%%s\\n', ans); fclose(fid);
 else, save -ascii %s ans
 end
@@ -87,20 +86,31 @@ end")
 	  (org-babel-expand-body:generic
 	   body params (org-babel-variable-assignments:octave params)))
 	 (result (org-babel-octave-evaluate
-		  session full-body result-type matlabp)))
-    (org-babel-reassemble-table
-     result
-     (org-babel-pick-name
-      (cdr (assoc :colname-names params)) (cdr (assoc :colnames params)))
-     (org-babel-pick-name
-      (cdr (assoc :rowname-names params)) (cdr (assoc :rownames params))))))
+		  session
+		  (if (org-babel-octave-graphical-output-file params)
+		      (mapconcat 'identity
+				 (list
+				  "set (0, \"defaultfigurevisible\", \"off\");"
+				  full-body
+				  (format "print -dpng %s" (org-babel-octave-graphical-output-file params)))
+				 "\n")
+		    full-body)
+		  result-type matlabp)))
+    (if (org-babel-octave-graphical-output-file params)
+	nil
+      (org-babel-reassemble-table
+       result
+       (org-babel-pick-name
+	(cdr (assoc :colname-names params)) (cdr (assoc :colnames params)))
+       (org-babel-pick-name
+	(cdr (assoc :rowname-names params)) (cdr (assoc :rownames params)))))))
 
 (defun org-babel-prep-session:matlab (session params)
   "Prepare SESSION according to PARAMS."
   (org-babel-prep-session:octave session params 'matlab))
 
 (defun org-babel-variable-assignments:octave (params)
-  "Return list of octave statements assigning the block's variables"
+  "Return list of octave statements assigning the block's variables."
   (mapcar
    (lambda (pair)
      (format "%s=%s;"
@@ -118,7 +128,11 @@ specifying a variable of the same value."
   (if (listp var)
       (concat "[" (mapconcat #'org-babel-octave-var-to-octave var
 			     (if (listp (car var)) "; " ",")) "]")
-    (format "%s" (or var "nil"))))
+    (cond
+     ((stringp var)
+      (format "\'%s\'" var))
+     (t
+      (format "%s" var)))))
 
 (defun org-babel-prep-session:octave (session params &optional matlabp)
   "Prepare SESSION according to the header arguments specified in PARAMS."
@@ -133,13 +147,13 @@ specifying a variable of the same value."
 (defun org-babel-matlab-initiate-session (&optional session params)
   "Create a matlab inferior process buffer.
 If there is not a current inferior-process-buffer in SESSION then
-create. Return the initialized session."
+create.  Return the initialized session."
   (org-babel-octave-initiate-session session params 'matlab))
 
 (defun org-babel-octave-initiate-session (&optional session params matlabp)
   "Create an octave inferior process buffer.
 If there is not a current inferior-process-buffer in SESSION then
-create. Return the initialized session."
+create.  Return the initialized session."
   (if matlabp (require 'matlab) (require 'octave-inf))
   (unless (string= session "none")
     (let ((session (or session
@@ -211,9 +225,9 @@ value of the last statement in BODY, as elisp."
 		      (message "Waiting for Matlab Emacs Link")
 		      (while (file-exists-p wait-file) (sit-for 0.01))
 		      "")) ;; matlab-shell-run-region doesn't seem to
-			   ;; make *matlab* buffer contents easily
-			   ;; available, so :results output currently
-			   ;; won't work
+		;; make *matlab* buffer contents easily
+		;; available, so :results output currently
+		;; won't work
 		(org-babel-comint-with-output
 		    (session
 		     (if matlabp
@@ -251,10 +265,15 @@ This removes initial blank and comment lines and then calls
     (org-babel-import-elisp-from-file temp-file '(16))))
 
 (defun org-babel-octave-read-string (string)
-  "Strip \\\"s from around octave string"
+  "Strip \\\"s from around octave string."
   (if (string-match "^\"\\([^\000]+\\)\"$" string)
       (match-string 1 string)
     string))
+
+(defun org-babel-octave-graphical-output-file (params)
+  "Name of file to which maxima should send graphical output."
+  (and (member "graphics" (cdr (assq :result-params params)))
+       (cdr (assq :file params))))
 
 (provide 'ob-octave)
 

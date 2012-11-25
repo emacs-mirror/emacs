@@ -1,6 +1,6 @@
 ;;; unrmail.el --- convert Rmail Babyl files to mailbox files
 
-;; Copyright (C) 1992, 2001-2011  Free Software Foundation, Inc.
+;; Copyright (C) 1992, 2001-2012  Free Software Foundation, Inc.
 
 ;; Maintainer: FSF
 ;; Keywords: mail
@@ -61,15 +61,15 @@ For example, invoke `emacs -batch -f batch-unrmail RMAIL'."
 	(error "This file is not in Babyl format"))
 
     ;; Decode the file contents just as Rmail did.
-    (let ((modifiedp (buffer-modified-p))
-	  (coding-system rmail-file-coding-system)
+    (let ((coding-system rmail-file-coding-system)
 	  from to)
       (goto-char (point-min))
       (search-forward "\n\^_" nil t)	; Skip BABYL header.
       (setq from (point))
       (goto-char (point-max))
       (search-backward "\n\^_" from 'mv)
-      (setq to (point))
+      (if (= from (setq to (point)))
+	  (error "The input file contains no messages"))
       (unless (and coding-system
 		   (coding-system-p coding-system))
 	(setq coding-system

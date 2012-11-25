@@ -1,6 +1,6 @@
 ;;; nnweb.el --- retrieving articles via web search engines
 
-;; Copyright (C) 1996-2011 Free Software Foundation, Inc.
+;; Copyright (C) 1996-2012 Free Software Foundation, Inc.
 
 ;; Author: Lars Magne Ingebrigtsen <larsi@gnus.org>
 ;; Keywords: news
@@ -365,7 +365,7 @@ Valid types include `google', `dejanews', and `gmane'.")
 			       (match-string 1)
 			       (match-string 2)
 			       (or (match-string 3)
-				   (substring (current-time-string) -4)))
+				   (format-time-string "%Y")))
 		     (current-time-string)))
 	(setq From (match-string 4)))
       (widen)

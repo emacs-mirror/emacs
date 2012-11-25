@@ -1,11 +1,10 @@
 ;;; org-ascii.el --- ASCII export for Org-mode
 
-;; Copyright (C) 2004-2011  Free Software Foundation, Inc.
+;; Copyright (C) 2004-2012  Free Software Foundation, Inc.
 
 ;; Author: Carsten Dominik <carsten at orgmode dot org>
 ;; Keywords: outlines, hypermedia, calendar, wp
 ;; Homepage: http://orgmode.org
-;; Version: 7.7
 ;;
 ;; This file is part of GNU Emacs.
 ;;
@@ -37,7 +36,7 @@
   :tag "Org Export ASCII"
   :group 'org-export)
 
-(defcustom org-export-ascii-underline '(?\- ?\= ?\~ ?^ ?\# ?\$)
+(defcustom org-export-ascii-underline '(?\= ?\- ?\~ ?\^ ?\. ?\# ?\$)
   "Characters for underlining headings in ASCII export.
 In the given sequence, these characters will be used for level 1, 2, ..."
   :group 'org-export-ascii
@@ -109,7 +108,7 @@ utf8      Use all UTF-8 characters")
 (defun org-export-as-utf8 (&rest args)
   "Like `org-export-as-ascii', use encoding for special symbols."
   (interactive)
-  (org-export-as-encoding 'org-export-as-ascii 
+  (org-export-as-encoding 'org-export-as-ascii
 			  (org-called-interactively-p 'any)
 			  'utf8 args))
 
@@ -145,9 +144,9 @@ command to convert it."
   (interactive "r")
   (let (reg ascii buf pop-up-frames)
     (save-window-excursion
-      (if (org-mode-p)
+      (if (derived-mode-p 'org-mode)
 	  (setq ascii (org-export-region-as-ascii
-		      beg end t 'string))
+		       beg end t 'string))
 	(setq reg (buffer-substring beg end)
 	      buf (get-buffer-create "*Org tmp*"))
 	(with-current-buffer buf
@@ -155,7 +154,7 @@ command to convert it."
 	  (insert reg)
 	  (org-mode)
 	  (setq ascii (org-export-region-as-ascii
-		      (point-min) (point-max) t 'string)))
+		       (point-min) (point-max) t 'string)))
 	(kill-buffer buf)))
     (delete-region beg end)
     (insert ascii)))
@@ -194,7 +193,7 @@ in a window.  A non-interactive call will only return the buffer."
 
 ;;;###autoload
 (defun org-export-as-ascii (arg &optional hidden ext-plist
-			       to-buffer body-only pub-dir)
+				to-buffer body-only pub-dir)
   "Export the outline as a pretty ASCII file.
 If there is an active region, export only the region.
 The prefix ARG specifies how many levels of the outline should become
@@ -284,7 +283,7 @@ publishing directory."
 		    "UNTITLED"))
 	 (email (plist-get opt-plist :email))
 	 (language (plist-get opt-plist :language))
-	 (quote-re0 (concat "^[ \t]*" org-quote-string "\\>"))
+	 (quote-re0 (concat "^\\(" org-quote-string "\\)\\( +\\|[ \t]*$\\)"))
 	 (todo nil)
 	 (lang-words nil)
 	 (region
@@ -374,54 +373,54 @@ publishing directory."
 	  (push (concat (make-string (string-width (nth 3 lang-words)) ?=)
 			"\n") thetoc)
 	  (mapc #'(lambda (line)
-		   (if (string-match org-todo-line-regexp
-				     line)
-		       ;; This is a headline
-		       (progn
-			 (setq have-headings t)
-			 (setq level (- (match-end 1) (match-beginning 1)
-					level-offset)
-			       level (org-tr-level level)
-			       txt (match-string 3 line)
-			       todo
-			       (or (and org-export-mark-todo-in-toc
-					(match-beginning 2)
-					(not (member (match-string 2 line)
-						     org-done-keywords)))
+		    (if (string-match org-todo-line-regexp
+				      line)
+			;; This is a headline
+			(progn
+			  (setq have-headings t)
+			  (setq level (- (match-end 1) (match-beginning 1)
+					 level-offset)
+				level (org-tr-level level)
+				txt (match-string 3 line)
+				todo
+				(or (and org-export-mark-todo-in-toc
+					 (match-beginning 2)
+					 (not (member (match-string 2 line)
+						      org-done-keywords)))
 					; TODO, not DONE
-				   (and org-export-mark-todo-in-toc
-					(= level umax-toc)
-					(org-search-todo-below
-					 line lines level))))
-			 (setq txt (org-html-expand-for-ascii txt))
+				    (and org-export-mark-todo-in-toc
+					 (= level umax-toc)
+					 (org-search-todo-below
+					  line lines level))))
+			  (setq txt (org-html-expand-for-ascii txt))
 
-			 (while (string-match org-bracket-link-regexp txt)
-			   (setq txt
-				 (replace-match
-				  (match-string (if (match-end 2) 3 1) txt)
-				  t t txt)))
+			  (while (string-match org-bracket-link-regexp txt)
+			    (setq txt
+				  (replace-match
+				   (match-string (if (match-end 2) 3 1) txt)
+				   t t txt)))
 
-			 (if (and (memq org-export-with-tags '(not-in-toc nil))
-				  (string-match
-				   (org-re "[ \t]+:[[:alnum:]_@#%:]+:[ \t]*$")
-				   txt))
-			     (setq txt (replace-match "" t t txt)))
-			 (if (string-match quote-re0 txt)
-			     (setq txt (replace-match "" t t txt)))
+			  (if (and (memq org-export-with-tags '(not-in-toc nil))
+				   (string-match
+				    (org-re "[ \t]+:[[:alnum:]_@#%:]+:[ \t]*$")
+				    txt))
+			      (setq txt (replace-match "" t t txt)))
+			  (if (string-match quote-re0 txt)
+			      (setq txt (replace-match "" t t txt 1)))
 
-			 (if org-export-with-section-numbers
-			     (setq txt (concat (org-section-number level)
-					       " " txt)))
-			 (if (<= level umax-toc)
-			     (progn
-			       (push
-				(concat
-				 (make-string
-				  (* (max 0 (- level org-min-level)) 4) ?\ )
-				 (format (if todo "%s (*)\n" "%s\n") txt))
-				thetoc)
-			       (setq org-last-level level))
-			   ))))
+			  (if org-export-with-section-numbers
+			      (setq txt (concat (org-section-number level)
+						" " txt)))
+			  (if (<= level umax-toc)
+			      (progn
+				(push
+				 (concat
+				  (make-string
+				   (* (max 0 (- level org-min-level)) 4) ?\ )
+				  (format (if todo "%s (*)\n" "%s\n") txt))
+				 thetoc)
+				(setq org-last-level level))
+			    ))))
 		lines)
 	  (setq thetoc (if have-headings (nreverse thetoc) nil))))
 
@@ -439,7 +438,9 @@ publishing directory."
 	      link (concat (match-string 1 line) path)
 	      type (match-string 2 line)
 	      desc0 (match-string 5 line)
-	      desc (or desc0 link))
+	      desc0 (replace-regexp-in-string "\\\\_" "_" desc0)
+	      desc (or desc0 link)
+	      desc (replace-regexp-in-string "\\\\_" "_" desc))
 	(if (and (> (length link) 8)
 		 (equal (substring link 0 8) "coderef:"))
 	    (setq line (replace-match
@@ -552,6 +553,7 @@ publishing directory."
 	  (kill-buffer (current-buffer)))
       (current-buffer))))
 
+;;;###autoload
 (defun org-export-ascii-preprocess (parameters)
   "Do extra work for ASCII export."
   ;;
@@ -725,5 +727,8 @@ publishing directory."
 
 (provide 'org-ascii)
 
+;; Local variables:
+;; generated-autoload-file: "org-loaddefs.el"
+;; End:
 
 ;;; org-ascii.el ends here

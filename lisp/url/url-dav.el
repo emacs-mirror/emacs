@@ -1,6 +1,6 @@
 ;;; url-dav.el --- WebDAV support
 
-;; Copyright (C) 2001, 2004-2011  Free Software Foundation, Inc.
+;; Copyright (C) 2001, 2004-2012  Free Software Foundation, Inc.
 
 ;; Author: Bill Perry <wmperry@gnu.org>
 ;; Maintainer: Bill Perry <wmperry@gnu.org>
@@ -27,8 +27,7 @@
 
 ;;; Code:
 
-(eval-when-compile
-  (require 'cl))
+(eval-when-compile (require 'cl-lib))
 
 (require 'xml)
 (require 'url-util)
@@ -36,6 +35,10 @@
 
 (defvar url-dav-supported-protocols '(1 2)
   "List of supported DAV versions.")
+
+(defvar url-http-content-type)
+(defvar url-http-response-status)
+(defvar url-http-end-of-headers)
 
 (defun url-intersection (l1 l2)
   "Return a list of the elements occurring in both of the lists L1 and L2."
@@ -50,10 +53,10 @@
 
 ;;;###autoload
 (defun url-dav-supported-p (url)
-  (and (featurep 'xml)
-       (fboundp 'xml-expand-namespace)
-       (url-intersection url-dav-supported-protocols
-			 (plist-get (url-http-options url) 'dav))))
+  "Return WebDAV protocol version supported by URL.
+Returns nil if WebDAV is not supported."
+  (url-intersection url-dav-supported-protocols
+		    (plist-get (url-http-options url) 'dav)))
 
 (defun url-dav-node-text (node)
   "Return the text data from the XML node NODE."
@@ -198,25 +201,25 @@
 			"unknown"))
 	    value nil)
 
-      (case node-type
-	((dateTime.iso8601tz
-	  dateTime.iso8601
-	  dateTime.tz
-	  dateTime.rfc1123
-	  dateTime
-	  date)				; date is our 'special' one...
+      (pcase node-type
+	((or `dateTime.iso8601tz
+             `dateTime.iso8601
+             `dateTime.tz
+             `dateTime.rfc1123
+             `dateTime
+             `date)                     ; date is our 'special' one...
 	 ;; Some type of date/time string.
 	 (setq value (url-dav-process-date-property node)))
-	(int
+	(`int
 	 ;; Integer type...
 	 (setq value (url-dav-process-integer-property node)))
-	((number float)
+	((or `number `float)
 	 (setq value (url-dav-process-number-property node)))
-	(boolean
+	(`boolean
 	 (setq value (url-dav-process-boolean-property node)))
-	(uri
+	(`uri
 	 (setq value (url-dav-process-uri-property node)))
-	(otherwise
+	(_
 	 (if (not (eq node-type 'unknown))
 	     (url-debug 'dav "Unknown data type in url-dav-process-prop: %s"
 			node-type))
@@ -377,15 +380,17 @@
 
 The buffer must have been retrieved by HTTP or HTTPS and contain an
 XML document."
-  (declare (special url-http-content-type
-		    url-http-response-status
-		    url-http-end-of-headers))
   (let ((tree nil)
 	(overall-status nil))
     (when buffer
       (unwind-protect
 	  (with-current-buffer buffer
+	    ;; First remove all indentation and line endings
 	    (goto-char url-http-end-of-headers)
+	    (indent-rigidly (point) (point-max) -1000)
+	    (save-excursion
+	      (while (re-search-forward "\r?\n" nil t)
+		(replace-match "")))
 	    (setq overall-status url-http-response-status)
 
 	    ;; XML documents can be transferred as either text/xml or
@@ -395,7 +400,7 @@ XML document."
 		 url-http-content-type
 		 (string-match "\\`\\(text\\|application\\)/xml"
 			       url-http-content-type))
-		(setq tree (xml-parse-region (point) (point-max)))))
+		(setq tree (xml-parse-region (point) (point-max) nil nil 'symbol-qnames))))
 	;; Clean up after ourselves.
 	(kill-buffer buffer)))
 
@@ -411,6 +416,7 @@ XML document."
 	;; nobody but us needs to know the difference.
 	(list (cons url properties))))))
 
+;;;###autoload
 (defun url-dav-request (url method tag body
 				 &optional depth headers namespaces)
   "Perform WebDAV operation METHOD on URL.  Return the parsed responses.
@@ -478,7 +484,7 @@ names (ie: DAV:resourcetype)."
 
 ;;; Locking support
 (defvar url-dav-lock-identifier (concat "mailto:" user-mail-address)
-  "*URL used as contact information when creating locks in DAV.
+  "URL used as contact information when creating locks in DAV.
 This will be used as the contents of the DAV:owner/DAV:href tag to
 identify the owner of a LOCK when requesting it.  This will be shown
 to other users when the DAV:lockdiscovery property is requested, so
@@ -561,7 +567,6 @@ FAILURE-RESULTS is a list of (URL STATUS)."
 (defun url-dav-unlock-resource (url lock-token)
   "Release the lock on URL represented by LOCK-TOKEN.
 Returns t if the lock was successfully released."
-  (declare (special url-http-response-status))
   (let* ((url-request-extra-headers (list (cons "Lock-Token"
 						(concat "<" lock-token ">"))))
 	 (url-request-method "UNLOCK")
@@ -603,16 +608,16 @@ Returns t if the lock was successfully released."
     (while supported-locks
       (setq lock (car supported-locks)
 	    supported-locks (cdr supported-locks))
-      (case (car lock)
-	(DAV:write
-	 (case (cdr lock)
-	   (DAV:shared			; group permissions (possibly world)
+      (pcase (car lock)
+	(`DAV:write
+	 (pcase (cdr lock)
+	   (`DAV:shared			; group permissions (possibly world)
 	    (aset modes 5 ?w))
-	   (DAV:exclusive
+	   (`DAV:exclusive
 	    (aset modes 2 ?w))		; owner permissions?
-	   (otherwise
+	   (_
 	    (url-debug 'dav "Unrecognized DAV:lockscope (%S)" (cdr lock)))))
-	(otherwise
+	(_
 	 (url-debug 'dav "Unrecognized DAV:locktype (%S)" (car lock)))))
     modes))
 
@@ -674,7 +679,6 @@ Returns t if the lock was successfully released."
   "Save OBJ as URL using WebDAV.
 URL must be a fully qualified URL.
 OBJ may be a buffer or a string."
-  (declare (special url-http-response-status))
   (let ((buffer nil)
 	(result nil)
 	(url-request-extra-headers nil)
@@ -770,8 +774,8 @@ files in the collection as well."
 (defun url-dav-directory-files (url &optional full match nosort files-only)
   "Return a list of names of files in URL.
 There are three optional arguments:
-If FULL is non-nil, return absolute file names.  Otherwise return names
- that are relative to the specified directory.
+If FULL is non-nil, return absolute URLs.  Otherwise return names
+ that are relative to the specified URL.
 If MATCH is non-nil, mention only file names that match the regexp MATCH.
 If NOSORT is non-nil, the list is not sorted--its order is unpredictable.
  NOSORT is useful if you plan to sort the result yourself."
@@ -781,8 +785,9 @@ If NOSORT is non-nil, the list is not sorted--its order is unpredictable.
 	(files nil)
 	(parsed-url (url-generic-parse-url url)))
 
-    (if (= (length properties) 1)
-	(signal 'file-error (list "Opening directory" "not a directory" url)))
+    (when (and (= (length properties) 1)
+	       (not (url-dav-file-directory-p url)))
+      (signal 'file-error (list "Opening directory" "not a directory" url)))
 
     (while properties
       (setq child-props (pop properties)
@@ -796,7 +801,9 @@ If NOSORT is non-nil, the list is not sorted--its order is unpredictable.
 	;; are not supposed to return fully-qualified names.
 	(setq child-url (url-expand-file-name child-url parsed-url))
 	(if (not full)
-	    (setq child-url (substring child-url (length url))))
+	    ;; Parts of the URL might be hex'ed.
+	    (setq child-url (substring (url-unhex-string child-url)
+				       (length url))))
 
 	;; We don't want '/' as the last character in filenames...
 	(if (string-match "/$" child-url)
@@ -816,11 +823,11 @@ If NOSORT is non-nil, the list is not sorted--its order is unpredictable.
 (defun url-dav-file-directory-p (url)
   "Return t if URL names an existing DAV collection."
   (let ((properties (cdar (url-dav-get-properties url '(DAV:resourcetype)))))
-    (eq (plist-get properties 'DAV:resourcetype) 'DAV:collection)))
+    (when (member 'DAV:collection (plist-get properties 'DAV:resourcetype))
+      t)))
 
 (defun url-dav-make-directory (url &optional parents)
   "Create the directory DIR and any nonexistent parent dirs."
-  (declare (special url-http-response-status))
   (let* ((url-request-extra-headers nil)
 	 (url-request-method "MKCOL")
 	 (url-request-data nil)
@@ -829,7 +836,7 @@ If NOSORT is non-nil, the list is not sorted--its order is unpredictable.
     (when buffer
       (unwind-protect
 	  (with-current-buffer buffer
-	    (case url-http-response-status
+	    (pcase url-http-response-status
 	      (201			; Collection created in its entirety
 	       (setq result t))
 	      (403			; Forbidden
@@ -842,7 +849,7 @@ If NOSORT is non-nil, the list is not sorted--its order is unpredictable.
 	       nil)
 	      (507			; Insufficient storage
 	       nil)
-	      (otherwise
+	      (_
 	       nil)))
 	(kill-buffer buffer)))
     result))
@@ -924,7 +931,7 @@ Returns nil if URL contains no name starting with FILE."
 		(setq failed t)))
 	  (if failed
 	      (setq searching nil)
-	    (incf n)))
+	    (cl-incf n)))
 	(substring (car matches) 0 n))))))
 
 (defun url-dav-register-handler (op)

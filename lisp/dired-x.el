@@ -1,6 +1,6 @@
 ;;; dired-x.el --- extra Dired functionality
 
-;; Copyright (C) 1993-1994, 1997, 2001-2011 Free Software Foundation, Inc.
+;; Copyright (C) 1993-1994, 1997, 2001-2012 Free Software Foundation, Inc.
 
 ;; Author: Sebastian Kremer <sk@thp.uni-koeln.de>
 ;;	Lawrence R. Dodd <dodd@roebling.poly.edu>
@@ -85,12 +85,12 @@ use \\[customize]."
   :set (lambda (sym val)
          (if (set sym val)
              (progn
-               (define-key global-map "\C-x\C-j" 'dired-jump)
-               (define-key global-map "\C-x4\C-j" 'dired-jump-other-window))
-           (if (eq 'dired-jump (lookup-key global-map "\C-x\C-j"))
-               (define-key global-map "\C-x\C-j" nil))
-           (if (eq 'dired-jump-other-window (lookup-key global-map "\C-x4\C-j"))
-               (define-key global-map "\C-x4\C-j" nil))))
+               (define-key ctl-x-map "\C-j" 'dired-jump)
+               (define-key ctl-x-4-map "\C-j" 'dired-jump-other-window))
+           (if (eq 'dired-jump (lookup-key ctl-x-map "\C-j"))
+               (define-key ctl-x-map "\C-j" nil))
+           (if (eq 'dired-jump-other-window (lookup-key ctl-x-4-map "\C-j"))
+               (define-key ctl-x-4-map "\C-j" nil))))
   :group 'dired-keys)
 
 (defcustom dired-bind-man t
@@ -132,6 +132,8 @@ If nil, there is no maximum size."
   :type '(choice (const :tag "no maximum" nil) integer)
   :group 'dired-x)
 
+;; For backward compatibility
+(define-obsolete-variable-alias 'dired-omit-files-p 'dired-omit-mode "22.1")
 (define-minor-mode dired-omit-mode
   "Toggle omission of uninteresting files in Dired (Dired-Omit mode).
 With a prefix argument ARG, enable Dired-Omit mode if ARG is
@@ -157,9 +159,6 @@ See Info node `(dired-x) Omitting Variables' for more information."
 
 (put 'dired-omit-mode 'safe-local-variable 'booleanp)
 
-;; For backward compatibility
-(define-obsolete-variable-alias 'dired-omit-files-p 'dired-omit-mode "22.1")
-
 (defcustom dired-omit-files "^\\.?#\\|^\\.$\\|^\\.\\.$"
   "Filenames matching this regexp will not be displayed.
 This only has effect when `dired-omit-mode' is t.  See interactive function
@@ -172,6 +171,7 @@ files and lock files."
 (defcustom dired-omit-verbose t
   "When non-nil, show messages when omitting files.
 When nil, don't show messages."
+  :version "24.1"
   :type 'boolean
   :group 'dired-x)
 
@@ -723,14 +723,12 @@ determine a default directory.")
 (defun dired-default-directory ()
   "Return the `dired-default-directory-alist' entry for the current major-mode.
 If none, return `default-directory'."
+  ;; It looks like this was intended to be something of a "general"
+  ;; feature, but it only ever seems to have been used in
+  ;; dired-smart-shell-command, and doesn't seem worth keeping around.
+  (declare (obsolete nil "24.1"))
   (or (eval (cdr (assq major-mode dired-default-directory-alist)))
       default-directory))
-
-;; It looks like this was intended to be something of a "general" feature,
-;; but it only ever seems to have been used in dired-smart-shell-command,
-;; and does not seem worth keeping around (?).
-(make-obsolete 'dired-default-directory
-               "this feature is due to be removed." "24.1")
 
 (defun dired-smart-shell-command (command &optional output-buffer error-buffer)
   "Like function `shell-command', but in the current Virtual Dired directory."
@@ -782,6 +780,7 @@ See also `dired-enable-local-variables'."
 
 (defun dired-hack-local-variables ()
   "Evaluate local variables in `dired-local-variables-file' for dired buffer."
+  (declare (obsolete hack-dir-local-variables-non-file-buffer "24.1"))
   (and (stringp dired-local-variables-file)
        (file-exists-p dired-local-variables-file)
        (let ((opoint (point-max))
@@ -800,17 +799,15 @@ See also `dired-enable-local-variables'."
                (hack-local-variables))
            ;; Delete this stuff: `eobp' is used to find last subdir by dired.el.
            (delete-region opoint (point-max)))
-         ;; Make sure that the modeline shows the proper information.
-         (dired-sort-set-modeline))))
-
-(make-obsolete 'dired-hack-local-variables
-               'hack-dir-local-variables-non-file-buffer "24.1")
+         ;; Make sure that the mode line shows the proper information.
+         (dired-sort-set-mode-line))))
 
 ;; Does not seem worth a dedicated command.
 ;; See the more general features in files-x.el.
 (defun dired-omit-here-always ()
   "Create `dir-locals-file' setting `dired-omit-mode' to t in `dired-mode'.
 If in a Dired buffer, reverts it."
+  (declare (obsolete add-dir-local-variable "24.1"))
   (interactive)
   (if (file-exists-p dired-local-variables-file)
       (error "Old-style dired-local-variables-file `./%s' found;
@@ -829,8 +826,6 @@ replace it with a dir-locals-file `./%s'"
       (hack-dir-local-variables-non-file-buffer)
       (dired-extra-startup)
       (dired-revert))))
-
-(make-obsolete 'dired-omit-here-always 'add-dir-local-variable "24.1")
 
 
 ;;; GUESS SHELL COMMAND.
@@ -963,24 +958,26 @@ replace it with a dir-locals-file `./%s'"
    ;; FIXME "man ./" does not work with dired-do-shell-command,
    ;; because there seems to be no way for us to modify the filename,
    ;; only the command.  Hmph.  `dired-man' works though.
-   (list "\\.\\(?:[0-9]\\|man\\)\\'" '(let ((loc (Man-support-local-filenames)))
-                                        (cond ((eq loc 'man-db) "man -l")
-                                              ((eq loc 'man) "man ./")
-                                              (t
-                                               "cat * | tbl | nroff -man -h"))))
+   (list "\\.\\(?:[0-9]\\|man\\)\\'"
+         '(let ((loc (Man-support-local-filenames)))
+            (cond ((eq loc 'man-db) "man -l")
+                  ((eq loc 'man) "man ./")
+                  (t
+                   "cat * | tbl | nroff -man -h | col -b"))))
    (list "\\.\\(?:[0-9]\\|man\\)\\.g?z\\'"
          '(let ((loc (Man-support-local-filenames)))
             (cond ((eq loc 'man-db)
                    "man -l")
                   ((eq loc 'man)
                    "man ./")
-                  (t "gunzip -qc * | tbl | nroff -man -h")))
+                  (t "gunzip -qc * | tbl | nroff -man -h | col -b")))
 	 ;; Optional decompression.
 	 '(concat "gunzip" (if dired-guess-shell-gzip-quiet " -q")))
-   (list "\\.[0-9]\\.Z\\'" '(let ((loc (Man-support-local-filenames)))
-                              (cond ((eq loc 'man-db) "man -l")
-                                    ((eq loc 'man) "man ./")
-                                    (t "zcat * | tbl | nroff -man -h")))
+   (list "\\.[0-9]\\.Z\\'"
+         '(let ((loc (Man-support-local-filenames)))
+            (cond ((eq loc 'man-db) "man -l")
+                  ((eq loc 'man) "man ./")
+                  (t "zcat * | tbl | nroff -man -h | col -b")))
 	 ;; Optional conversion to gzip format.
 	 '(concat "znew" (if dired-guess-shell-gzip-quiet " -q")
 		  " " dired-guess-shell-znew-switches))

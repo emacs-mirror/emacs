@@ -1,9 +1,8 @@
 @c -*-texinfo-*-
 @c This is part of the GNU Emacs Lisp Reference Manual.
-@c Copyright (C) 2010-2011  Free Software Foundation, Inc.
+@c Copyright (C) 2010-2012 Free Software Foundation, Inc.
 @c See the file elisp.texi for copying conditions.
-@setfilename ../../info/package
-@node Packaging, Antinews, System Interface, Top
+@node Packaging
 @chapter Preparing Lisp code for distribution
 @cindex package
 @cindex Lisp package
@@ -15,6 +14,8 @@ install, uninstall, and upgrade it.
 
   The following sections describe how to create a package, and how to
 put it in a @dfn{package archive} for others to download.
+@xref{Packages,,, emacs, The GNU Emacs Manual}, for a description of
+user-level features of the packaging system.
 
 @menu
 * Packaging Basics::        The basic concepts of Emacs Lisp packages.
@@ -75,8 +76,8 @@ if any dependency cannot be found, the package cannot be installed.
 @end table
 
 @cindex content directory, package
-  Installing a package, either via the Package Menu, or via the
-command @code{package-install-file}, creates a subdirectory of
+  Installing a package, either via the command @code{package-install-file},
+or via the Package Menu, creates a subdirectory of
 @code{package-user-dir} named @file{@var{name}-@var{version}}, where
 @var{name} is the package's name and @var{version} its version
 (e.g. @file{~/.emacs.d/elpa/auctex-11.86/}).  We call this the
@@ -91,17 +92,34 @@ definitions are saved to a file named @file{@var{name}-autoloads.el}
 in the content directory.  They are typically used to autoload the
 principal user commands defined in the package, but they can also
 perform other tasks, such as adding an element to
-@code{auto-mode-alist} (@pxref{Auto Major Mode}).  During this time,
-Emacs will also byte-compile the Lisp files.
+@code{auto-mode-alist} (@pxref{Auto Major Mode}).  Note that a package
+typically does @emph{not} autoload every function and variable defined
+within it---only the handful of commands typically called to begin
+using the package.  Emacs then byte-compiles every Lisp file in the
+package.
 
-  After installation, and (by default) each time Emacs is started, the
-installed package is @dfn{activated}.  During activation, Emacs adds
-the package's content directory to @code{load-path}, and evaluates the
-autoload definitions in @file{@var{name}-autoloads.el}.
+  After installation, the installed package is @dfn{loaded}: Emacs
+adds the package's content directory to @code{load-path}, and
+evaluates the autoload definitions in @file{@var{name}-autoloads.el}.
 
-  Note that a package typically does @emph{not} autoload every
-function and variable defined within it---only the handful of commands
-typically called to begin using the package.
+  Whenever Emacs starts up, it automatically calls the function
+@code{package-initialize} to load installed packages.  This is done
+after loading the init file and abbrev file (if any) and before
+running @code{after-init-hook} (@pxref{Startup Summary}).  Automatic
+package loading is disabled if the user option
+@code{package-enable-at-startup} is @code{nil}.
+
+@deffn Command package-initialize &optional no-activate
+This function initializes Emacs' internal record of which packages are
+installed, and loads them.  The user option @code{package-load-list}
+specifies which packages to load; by default, all installed packages
+are loaded.  @xref{Package Installation,,, emacs, The GNU Emacs
+Manual}.
+
+The optional argument @var{no-activate}, if non-@code{nil}, causes
+Emacs to update its record of installed packages without actually
+loading them; it is for internal use only.
+@end deffn
 
 @node Simple Packages
 @section Simple Packages
@@ -276,8 +294,8 @@ How to accomplish this is beyond the scope of this manual.
 
   A convenient way to set up and update a package archive is via the
 @code{package-x} library.  This is included with Emacs, but not loaded
-by default; type @kbd{M-x load-library @kbd{RET} package-x @kbd{RET}}
-to load it, or add @code{(require 'package-x)} to your init file.
+by default; type @kbd{M-x load-library @key{RET} package-x @key{RET}} to
+load it, or add @code{(require 'package-x)} to your init file.
 @xref{Lisp Libraries,, Lisp Libraries, emacs, The GNU Emacs Manual}.
 Once loaded, you can make use of the following:
 

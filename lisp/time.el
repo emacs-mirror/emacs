@@ -1,6 +1,6 @@
 ;;; time.el --- display time, load and mail indicator in mode line of Emacs -*-coding: utf-8 -*-
 
-;; Copyright (C) 1985-1987, 1993-1994, 1996, 2000-2011
+;; Copyright (C) 1985-1987, 1993-1994, 1996, 2000-2012
 ;;   Free Software Foundation, Inc.
 
 ;; Maintainer: FSF
@@ -64,13 +64,14 @@ directory `display-time-mail-directory' contains nonempty files."
 
 (defcustom display-time-default-load-average 0
   "Which load average value will be shown in the mode line.
-Almost every system can provide values of load for past 1 minute, past 5 or
-past 15 minutes.  The default is to display 1 minute load average.
+Almost every system can provide values of load for the past 1 minute,
+past 5 or past 15 minutes.  The default is to display 1-minute load average.
 The value can be one of:
 
   0   => 1 minute load
   1   => 5 minutes load
-  2   => 15 minutes load"
+  2   => 15 minutes load
+  nil => None (do not display the load average)"
   :type '(choice (const :tag "1 minute load" 0)
 		 (const :tag "5 minutes load" 1)
 		 (const :tag "15 minutes load" 2)
@@ -78,7 +79,10 @@ The value can be one of:
   :group 'display-time)
 
 (defvar display-time-load-average nil
-  "Load average currently being shown in mode line.")
+  "Value of the system's load average currently shown on the mode line.
+See `display-time-default-load-average'.
+
+This is an internal variable; setting it has no effect.")
 
 (defcustom display-time-load-average-threshold 0.1
   "Load-average values below this value won't be shown in the mode line."
@@ -201,12 +205,6 @@ a string to display as the label of that TIMEZONE's time."
   :group 'display-time
   :type 'integer
   :version "23.1")
-
-(defvar display-time-world-mode-map
-  (let ((map (make-sparse-keymap)))
-    (define-key map "q" 'kill-this-buffer)
-    map)
-  "Keymap of Display Time World mode.")
 
 ;;;###autoload
 (defun display-time ()
@@ -349,6 +347,8 @@ would give mode line times like `94/12/30 21:07:48 (UTC)'."
 	  (timer-activate timer)))))
 
 (defun display-time-next-load-average ()
+  "Switch between different load averages in the mode line.
+Switches from the 1 to 5 to 15 minute load average, and then back to 1."
   (interactive)
   (if (= 3 (setq display-time-load-average (1+ display-time-load-average)))
       (setq display-time-load-average 0))
@@ -459,7 +459,7 @@ update which can wait for the next redisplay."
          (seconds (substring time 17 19))
          (time-zone (car (cdr (current-time-zone now))))
          (day (substring time 8 10))
-         (year (substring time 20 24))
+         (year (format-time-string "%Y" now))
          (monthname (substring time 4 7))
          (month
           (cdr
@@ -517,7 +517,7 @@ runs the normal hook `display-time-hook' after each update."
 		 'display-time-event-handler)))
 
 
-(define-derived-mode display-time-world-mode nil "World clock"
+(define-derived-mode display-time-world-mode special-mode "World clock"
   "Major mode for buffer that displays times in various time zones.
 See `display-time-world'."
   (setq show-trailing-whitespace nil))
@@ -543,8 +543,8 @@ See `display-time-world'."
       (setenv "TZ" old-tz))
     (setq fmt (concat "%-" (int-to-string max-width) "s %s\n"))
     (dolist (timedata (nreverse result))
-      (insert (format fmt (car timedata) (cdr timedata)))))
-  (delete-char -1))
+      (insert (format fmt (car timedata) (cdr timedata))))
+    (delete-char -1)))
 
 ;;;###autoload
 (defun display-time-world ()
@@ -556,10 +556,10 @@ To turn off the world time display, go to that window and type `q'."
              (not (get-buffer display-time-world-buffer-name)))
     (run-at-time t display-time-world-timer-second 'display-time-world-timer))
   (with-current-buffer (get-buffer-create display-time-world-buffer-name)
-    (display-time-world-display display-time-world-list))
-  (pop-to-buffer display-time-world-buffer-name)
-  (fit-window-to-buffer)
-  (display-time-world-mode))
+    (display-time-world-display display-time-world-list)
+    (display-buffer display-time-world-buffer-name
+		    (cons nil '((window-height . fit-window-to-buffer))))
+    (display-time-world-mode)))
 
 (defun display-time-world-timer ()
   (if (get-buffer display-time-world-buffer-name)
@@ -569,7 +569,8 @@ To turn off the world time display, go to that window and type `q'."
     (let ((list timer-list))
       (while list
         (let ((elt (pop list)))
-          (when (equal (symbol-name (aref elt 5)) "display-time-world-timer")
+          (when (equal (symbol-name (timer--function elt))
+		       "display-time-world-timer")
             (cancel-timer elt)))))))
 
 ;;;###autoload

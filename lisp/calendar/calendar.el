@@ -1,6 +1,6 @@
 ;;; calendar.el --- calendar functions
 
-;; Copyright (C) 1988-1995, 1997, 2000-2011  Free Software Foundation, Inc.
+;; Copyright (C) 1988-1995, 1997, 2000-2012  Free Software Foundation, Inc.
 
 ;; Author: Edward M. Reingold <reingold@cs.uiuc.edu>
 ;; Maintainer: Glenn Morris <rgm@gnu.org>
@@ -41,7 +41,7 @@
 ;; can be translated from the (usual) Gregorian calendar to the day of
 ;; the year/days remaining in year, to the ISO commercial calendar, to
 ;; the Julian (old style) calendar, to the Hebrew calendar, to the
-;; Islamic calendar, to the Baha'i calendar, to the French
+;; Islamic calendar, to the Bahá'í calendar, to the French
 ;; Revolutionary calendar, to the Mayan calendar, to the Chinese
 ;; calendar, to the Coptic calendar, to the Ethiopic calendar, and to
 ;; the astronomical (Julian) day number.  Times of sunrise/sunset can
@@ -52,7 +52,7 @@
 ;; The following files are part of the calendar/diary code:
 
 ;;    appt.el                    Appointment notification
-;;    cal-bahai.el               Baha'i calendar
+;;    cal-bahai.el               Bahá'í calendar
 ;;    cal-china.el               Chinese calendar
 ;;    cal-coptic.el              Coptic/Ethiopic calendars
 ;;    cal-dst.el                 Daylight saving time rules
@@ -511,7 +511,7 @@ Must be at least one less than `calendar-column-width'."
   :version "23.1")
 
 (defcustom calendar-intermonth-header nil
-  "Header text display in the space to the left of each calendar month.
+  "Header text to display in the space to the left of each calendar month.
 See `calendar-intermonth-text'."
   :group 'calendar
   :initialize 'custom-initialize-default
@@ -593,7 +593,7 @@ You can customize `diary-date-forms' to your preferred format.
 Three default styles are provided: `diary-american-date-forms',
 `diary-european-date-forms', and `diary-iso-date-forms'.
 You can choose between these by setting `calendar-date-style' in your
-.emacs file, or by using `calendar-set-date-style' when in the calendar.
+init file, or by using `calendar-set-date-style' when in the calendar.
 
 A diary entry can be preceded by the character `diary-nonmarking-symbol'
 \(ordinarily `&') to make that entry nonmarking--that is, it will not be
@@ -642,7 +642,7 @@ causes the diary entry \"Vacation\" to appear from November 1 through
 November 10, 1990.  See the documentation for the function
 `diary-list-sexp-entries' for more details.
 
-Diary entries based on the Hebrew, the Islamic and/or the Baha'i
+Diary entries based on the Hebrew, the Islamic and/or the Bahá'í
 calendar are also possible, but because these are somewhat slow, they
 are ignored unless you set the `diary-nongregorian-listing-hook' and
 the `diary-nongregorian-marking-hook' appropriately.  See the
@@ -679,7 +679,7 @@ details, see the documentation for the variable `diary-list-entries-hook'."
   'diary-bahai-entry-symbol "23.1")
 
 (defcustom diary-bahai-entry-symbol "B"
-  "Symbol indicating a diary entry according to the Baha'i calendar."
+  "Symbol indicating a diary entry according to the Bahá'í calendar."
   :type 'string
   :group 'diary)
 
@@ -921,6 +921,64 @@ styles."
                                    calendar-american-date-display-form)
   :group 'calendar)
 
+(defcustom calendar-american-month-header
+  '(propertize (format "%s %d" (calendar-month-name month) year)
+               'font-lock-face 'font-lock-function-name-face)
+  "Default format for calendar month headings with the American date style.
+Normally you should not customize this, but `calender-month-header'."
+  :group 'calendar
+  :risky t
+  :type 'sexp
+  :version "24.3")
+
+(defcustom calendar-european-month-header
+  '(propertize (format "%s %d" (calendar-month-name month) year)
+               'font-lock-face 'font-lock-function-name-face)
+  "Default format for calendar month headings with the European date style.
+Normally you should not customize this, but `calender-month-header'."
+  :group 'calendar
+  :risky t
+  :type 'sexp
+  :version "24.3")
+
+(defcustom calendar-iso-month-header
+  '(propertize (format "%d %s" year (calendar-month-name month))
+               'font-lock-face 'font-lock-function-name-face)
+  "Default format for calendar month headings with the ISO date style.
+Normally you should not customize this, but `calender-month-header'."
+  :group 'calendar
+  :risky t
+  :type 'sexp
+  :version "24.3")
+
+(defcustom calendar-month-header
+  (cond ((eq calendar-date-style 'iso)
+         calendar-iso-month-header)
+        ((eq calendar-date-style 'european)
+         calendar-european-month-header)
+        (t calendar-american-month-header))
+  "Expression to evaluate to return the calendar month headings.
+When this expression is evaluated, the variables MONTH and YEAR are
+integers appropriate to the relevant month.  The result is padded
+to the width of `calendar-month-digit-width'.
+
+For examples of three common styles, see `calendar-american-month-header',
+`calendar-european-month-header', and `calendar-iso-month-header'.
+
+Changing this variable without using customize has no effect on
+pre-existing calendar windows."
+  :group 'calendar
+  :initialize 'custom-initialize-default
+  :risky t
+  :set (lambda (sym val)
+         (set sym val)
+         (calendar-redraw))
+  :set-after '(calendar-date-style calendar-american-month-header
+                                   calendar-european-month-header
+                                   calendar-iso-month-header)
+  :type 'sexp
+  :version "24.3")
+
 (defun calendar-set-date-style (style)
   "Set the style of calendar and diary dates to STYLE (a symbol).
 The valid styles are described in the documentation of `calendar-date-style'."
@@ -934,23 +992,24 @@ The valid styles are described in the documentation of `calendar-date-style'."
         calendar-date-display-form
         (symbol-value (intern-soft
                        (format "calendar-%s-date-display-form" style)))
+        calendar-month-header
+        (symbol-value (intern-soft (format "calendar-%s-month-header" style)))
         diary-date-forms
         (symbol-value (intern-soft (format "diary-%s-date-forms" style))))
+  (calendar-redraw)
   (calendar-update-mode-line))
 
 (defun european-calendar ()
   "Set the interpretation and display of dates to the European style."
+  (declare (obsolete calendar-set-date-style "23.1"))
   (interactive)
   (calendar-set-date-style 'european))
 
-(make-obsolete 'european-calendar 'calendar-set-date-style "23.1")
-
 (defun american-calendar ()
   "Set the interpretation and display of dates to the American style."
+  (declare (obsolete calendar-set-date-style "23.1"))
   (interactive)
   (calendar-set-date-style 'american))
-
-(make-obsolete 'american-calendar 'calendar-set-date-style "23.1")
 
 (define-obsolete-variable-alias 'holidays-in-diary-buffer
   'diary-show-holidays-flag "23.1")
@@ -1005,9 +1064,9 @@ calendar."
   'calendar-bahai-all-holidays-flag "23.1")
 
 (defcustom calendar-bahai-all-holidays-flag nil
-  "If nil, show only major holidays from the Baha'i calendar.
+  "If nil, show only major holidays from the Bahá'í calendar.
 These are the days on which work and school must be suspended.
-Otherwise, show all the holidays that would appear in a complete Baha'i
+Otherwise, show all the holidays that would appear in a complete Bahá'í
 calendar."
   :type 'boolean
   :group 'holidays)
@@ -1087,13 +1146,12 @@ MON defaults to `displayed-month'.  YR defaults to `displayed-year'."
   "Execute a for loop.
 Evaluate BODY with VAR bound to successive integers from INIT to FINAL,
 inclusive.  The standard macro `dotimes' is preferable in most cases."
-  (declare (debug (symbolp "from" form "to" form "do" body))
+  (declare (obsolete "use `dotimes' or `while' instead." "23.1")
+	   (debug (symbolp "from" form "to" form "do" body))
            (indent defun))
   `(let ((,var (1- ,init)))
     (while (>= ,final (setq ,var (1+ ,var)))
       ,@body)))
-
-(make-obsolete 'calendar-for-loop "use `dotimes' or `while' instead." "23.1")
 
 (defmacro calendar-sum (index initial condition expression)
   "For INDEX = INITIAL, +1, ... (as long as CONDITION holds), sum EXPRESSION."
@@ -1105,14 +1163,14 @@ inclusive.  The standard macro `dotimes' is preferable in most cases."
             ,index (1+ ,index)))
     sum))
 
-;; FIXME bind q to bury-buffer?
 (defmacro calendar-in-read-only-buffer (buffer &rest body)
-  "Switch to BUFFER and executes the forms in BODY.
+  "Switch to BUFFER and execute the forms in BODY.
 First creates or erases BUFFER as needed.  Leaves BUFFER read-only,
 with disabled undo.  Leaves point at point-min, displays BUFFER."
   (declare (indent 1) (debug t))
   `(progn
      (set-buffer (get-buffer-create ,buffer))
+     (or (derived-mode-p 'special-mode) (special-mode))
      (setq buffer-read-only nil
            buffer-undo-list t)
      (erase-buffer)
@@ -1276,7 +1334,7 @@ Runs the following hooks:
    generating a calendar, if today's date is visible or not, respectively
 `calendar-initial-window-hook' - after first creating a calendar
 
-This function is suitable for execution in a .emacs file."
+This function is suitable for execution in an init file."
   (interactive "P")
   ;; Avoid loading cal-x unless it will be used.
   (if (and (memq calendar-setup '(one-frame two-frames calendar-only))
@@ -1424,16 +1482,24 @@ Optional integers MON and YR are used instead of today's date."
   "Move to column INDENT, adding spaces as needed.
 Inserts STRING so that it ends at INDENT.  STRING is either a
 literal string, or a sexp to evaluate to return such.  Truncates
-STRING to length TRUNCATE, ensure a trailing space."
+STRING to length TRUNCATE, and ensures a trailing space."
   (if (not (ignore-errors (stringp (setq string (eval string)))))
       (calendar-move-to-column indent)
-    (if (> (length string) truncate)
-        (setq string (substring string 0 truncate)))
+    (if (> (string-width string) truncate)
+        (setq string (truncate-string-to-width string truncate)))
     (or (string-match " $" string)
-        (if (= (length string) truncate)
-            (aset string (1- truncate) ?\s)
-          (setq string (concat string " "))))
-    (calendar-move-to-column (- indent (length string)))
+        (setq string (concat (if (= (string-width string) truncate)
+                                 (substring string 0 -1)
+                               string)
+                             ;; Avoid inserting text properties unless
+                             ;; we have to (ie, non-unit-width chars).
+                             ;; This is by no means essential.
+                             (if (= (string-width string) (length string))
+                                 " "
+                               ;; Cribbed from buff-menu.el.
+                               (propertize
+                                " " 'display `(space :align-to ,indent))))))
+    (calendar-move-to-column (- indent (string-width string)))
     (insert string)))
 
 (defun calendar-generate-month (month year indent)
@@ -1455,9 +1521,8 @@ line."
    (goto-char (point-min))
    (calendar-move-to-column indent)
    (insert
-    (calendar-string-spread
-     (list (format "%s %d" (calendar-month-name month) year))
-     ?\s calendar-month-digit-width))
+    (calendar-string-spread (list calendar-month-header)
+                            ?\s calendar-month-digit-width))
    (calendar-ensure-newline)
    (calendar-insert-at-column indent calendar-intermonth-header trunc)
    ;; Use the first two characters of each day to head the columns.
@@ -1618,8 +1683,9 @@ line."
     (define-key map "td" 'cal-tex-cursor-day)
     (define-key map "tw1" 'cal-tex-cursor-week)
     (define-key map "tw2" 'cal-tex-cursor-week2)
-    (define-key map "tw3" 'cal-tex-cursor-week-iso)
-    (define-key map "tw4" 'cal-tex-cursor-week-monday)
+    (define-key map "tw3" 'cal-tex-cursor-week-iso) ; FIXME twi ?
+    (define-key map "tw4" 'cal-tex-cursor-week-monday) ; twm ?
+    (define-key map "twW" 'cal-tex-cursor-week2-summary)
     (define-key map "tfd" 'cal-tex-cursor-filofax-daily)
     (define-key map "tfw" 'cal-tex-cursor-filofax-2week)
     (define-key map "tfW" 'cal-tex-cursor-filofax-week)
@@ -1730,6 +1796,7 @@ For a complete description, see the info node `Calendar/Diary'.
   (setq buffer-read-only t
         buffer-undo-list t
         indent-tabs-mode nil)
+  (set (make-local-variable 'scroll-margin) 0) ; bug#10379
   (calendar-update-mode-line)
   (make-local-variable 'calendar-mark-ring)
   (make-local-variable 'displayed-month) ; month in middle of window
@@ -1755,8 +1822,8 @@ the STRINGS are just concatenated and the result truncated."
                           (if (< (length strings) 2)
                               (append (list "") strings (list ""))
                             strings)))
-         (n (- length (length (apply 'concat strings))))
-         (m (1- (length strings)))
+         (n (- length (string-width (apply 'concat strings))))
+         (m (* (1- (length strings)) (char-width char)))
          (s (car strings))
          (strings (cdr strings))
          (i 0))
@@ -1765,7 +1832,7 @@ the STRINGS are just concatenated and the result truncated."
                       (make-string (max 0 (/ (+ n i) m)) char)
                       string)
             i (1+ i)))
-    (substring s 0 length)))
+    (truncate-string-to-width s length)))
 
 (defun calendar-update-mode-line ()
   "Update the calendar mode line with the current date and date style."
@@ -1784,19 +1851,6 @@ the STRINGS are just concatenated and the result truncated."
                          ?\s (- calendar-right-margin (1- start))))))
         (force-mode-line-update))))
 
-(defun calendar-window-list ()
-  "List of all calendar-related windows."
-  (let ((calendar-buffers (calendar-buffer-list))
-        list)
-    ;; Using 0 rather than t for last argument - see bug#2199.
-    ;; This is only used with calendar-hide-window, which ignores
-    ;; iconified frames anyway, so could use 'visible rather than 0.
-    (walk-windows (lambda (w)
-                    (if (memq (window-buffer w) calendar-buffers)
-                        (push w list)))
-                  nil 0)
-    list))
-
 (defun calendar-buffer-list ()
   "List of all calendar-related buffers (as buffers, not strings)."
   (let (buffs)
@@ -1808,40 +1862,29 @@ the STRINGS are just concatenated and the result truncated."
            (push b buffs)))
     buffs))
 
-(defun calendar-exit ()
+(defun calendar-exit (&optional kill)
   "Get out of the calendar window and hide it and related buffers."
-  (interactive)
-  (let ((diary-buffer (get-file-buffer diary-file)))
-    (if (or (not diary-buffer)
-            (not (buffer-modified-p diary-buffer))
-            (yes-or-no-p
-             "Diary modified; do you really want to exit the calendar? "))
-        ;; Need to do this multiple times because one time can replace some
-        ;; calendar-related buffers with other calendar-related buffers.
-        (mapc (lambda (x)
-                (mapc 'calendar-hide-window (calendar-window-list)))
-              (calendar-window-list)))))
+  (interactive "P")
+  (let ((diary-buffer (get-file-buffer diary-file))
+        (calendar-buffers (calendar-buffer-list)))
+    (when (or (not diary-buffer)
+              (not (buffer-modified-p diary-buffer))
+              (yes-or-no-p
+               "Diary modified; do you really want to exit the calendar? "))
+      (if (and calendar-setup (display-multi-frame-p))
+          ;; FIXME: replace this cruft with the `quit-restore' window property
+          (dolist (w (window-list-1 nil nil t))
+            (if (and (memq (window-buffer w) calendar-buffers)
+                     (window-dedicated-p w))
+                (if (eq (window-deletable-p w) 'frame)
+		    (if calendar-remove-frame-by-deleting
+			(delete-frame (window-frame w))
+		      (iconify-frame (window-frame w)))
+		  (quit-window kill w))))
+        (dolist (b calendar-buffers)
+          (quit-windows-on b kill))))))
 
 (define-obsolete-function-alias 'exit-calendar 'calendar-exit "23.1")
-
-(defun calendar-hide-window (window)
-  "Hide WINDOW if it is calendar-related."
-  (let ((buffer (if (window-live-p window) (window-buffer window))))
-    (if (memq buffer (calendar-buffer-list))
-        (cond
-         ((and (display-multi-frame-p)
-               (eq 'icon (cdr (assoc 'visibility
-                                     (frame-parameters
-                                      (window-frame window))))))
-          nil)
-         ((and (display-multi-frame-p) (window-dedicated-p window))
-          (if calendar-remove-frame-by-deleting
-              (delete-frame (window-frame window))
-              (iconify-frame (window-frame window))))
-         ((not (and (select-window window) (one-window-p window)))
-          (delete-window window))
-         (t (set-buffer buffer)
-            (bury-buffer))))))
 
 (defun calendar-current-date (&optional offset)
   "Return the current date in a list (month day year).
@@ -1879,7 +1922,7 @@ use instead of point."
         ;; or on or before the digit of a 1-digit date.
         (if (not (and (looking-at "[ 0-9]?[0-9][^0-9]")
                       (get-text-property (point) 'date)))
-            (if error (error "Not on a date!"))
+            (if error (user-error "Not on a date!"))
           ;; Convert segment to real month and year.
           (if (zerop month) (setq month 12))
           ;; Go back to before the first date digit.
@@ -1893,8 +1936,6 @@ use instead of point."
                  ((and (= 12 month) (zerop segment)) (1- displayed-year))
                  ((and (= 1 month) (= segment 2)) (1+ displayed-year))
                  (t displayed-year))))))))
-
-(add-to-list 'debug-ignored-errors "Not on a date!")
 
 ;; The following version of calendar-gregorian-from-absolute is preferred for
 ;; reasons of clarity, BUT it's much slower than the version that follows it.
@@ -2239,9 +2280,12 @@ Negative years are interpreted as years BC; -1 being 1 BC, and so on."
      (- mon2 mon1)))
 
 (defvar calendar-font-lock-keywords
+  ;; Month and year.  Not really needed now that calendar-month-header
+  ;; contains propertize, and not correct for non-american forms
+  ;; of that variable.
   `((,(concat (regexp-opt (mapcar 'identity calendar-month-name-array) t)
               " -?[0-9]+")
-     . font-lock-function-name-face) ; month and year
+     . font-lock-function-name-face)
     (,(regexp-opt
        (list (substring (aref calendar-day-name-array 6)
                         0 calendar-day-header-width)
@@ -2252,7 +2296,7 @@ Negative years are interpreted as years BC; -1 being 1 BC, and so on."
     ;; First two chars of each day are used in the calendar.
     (,(regexp-opt (mapcar (lambda (x) (substring x 0 calendar-day-header-width))
                           calendar-day-name-array))
-     . font-lock-reference-face))
+     . font-lock-constant-face))
   "Default keywords to highlight in Calendar mode.")
 
 (defun calendar-day-name (date &optional abbrev absolute)
@@ -2551,7 +2595,7 @@ DATE is (month day year).  Calendars that do not apply are omitted."
            (unless (string-equal
                     (setq odate (calendar-bahai-date-string date))
                     "")
-             (format "Baha'i date: %s" odate))
+             (format "Bahá'í date: %s" odate))
            (format "Chinese date: %s"
                    (calendar-chinese-date-string date))
            (unless (string-equal
@@ -2601,7 +2645,7 @@ If called by a mouse-event, pops up a menu with the result."
     ;; If no frame exists yet, we have no idea what width to use.
     (and (= width 10)
          (not window-system)
-         (setq width (or (getenv "COLUMNS") 80)))
+         (setq width (string-to-number (or (getenv "COLUMNS") "80"))))
     (setq mode-line-format
           (if buffer-file-name
               `("-" mode-line-modified
@@ -2609,13 +2653,7 @@ If called by a mouse-event, pops up a menu with the result."
                 "---")
             (calendar-string-spread (list str) ?- width)))))
 
-(defun calendar-version ()
-  "Display the Calendar version."
-  (interactive)
-  (message "GNU Emacs %s" emacs-version))
-
-(make-obsolete 'calendar-version 'emacs-version "23.1")
-
+(define-obsolete-function-alias 'calendar-version 'emacs-version "23.1")
 
 (run-hooks 'calendar-load-hook)
 
@@ -2623,6 +2661,7 @@ If called by a mouse-event, pops up a menu with the result."
 
 ;; Local variables:
 ;; byte-compile-dynamic: t
+;; coding: utf-8
 ;; End:
 
 ;;; calendar.el ends here

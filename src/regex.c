@@ -2,7 +2,7 @@
    0.12.  (Implements POSIX draft P1003.2/D11.2, except for some of the
    internationalization features.)
 
-   Copyright (C) 1993-2011  Free Software Foundation, Inc.
+   Copyright (C) 1993-2012  Free Software Foundation, Inc.
 
    This program is free software; you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -28,14 +28,25 @@
      rather than at run-time, so that re_match can be reentrant.
 */
 
-/* AIX requires this to be the first thing in the file. */
+/* AIX requires this to be the first thing in the file.  */
 #if defined _AIX && !defined REGEX_MALLOC
   #pragma alloca
 #endif
 
-#ifdef HAVE_CONFIG_H
-# include <config.h>
+/* Ignore some GCC warnings for now.  This section should go away
+   once the Emacs and Gnulib regex code is merged.  */
+#if (__GNUC__ == 4 && 5 <= __GNUC_MINOR__) || 4 < __GNUC__
+# pragma GCC diagnostic ignored "-Wstrict-overflow"
+# ifndef emacs
+#  pragma GCC diagnostic ignored "-Wunused-but-set-variable"
+#  pragma GCC diagnostic ignored "-Wunused-function"
+#  pragma GCC diagnostic ignored "-Wunused-macros"
+#  pragma GCC diagnostic ignored "-Wunused-result"
+#  pragma GCC diagnostic ignored "-Wunused-variable"
+# endif
 #endif
+
+#include <config.h>
 
 #include <stddef.h>
 
@@ -115,15 +126,14 @@
    that make sense only in Emacs. */
 #ifdef emacs
 
-# include <setjmp.h>
 # include "lisp.h"
+# include "character.h"
 # include "buffer.h"
 
 /* Make syntax table lookup grant data in gl_state.  */
 # define SYNTAX_ENTRY_VIA_PROPERTY
 
 # include "syntax.h"
-# include "character.h"
 # include "category.h"
 
 # ifdef malloc
@@ -198,11 +208,10 @@
 
 /* When used in Emacs's lib-src, we need xmalloc and xrealloc. */
 
-void *
+static void *
 xmalloc (size_t size)
 {
-  register void *val;
-  val = (void *) malloc (size);
+  void *val = malloc (size);
   if (!val && size)
     {
       write (2, "virtual memory exhausted\n", 25);
@@ -211,16 +220,16 @@ xmalloc (size_t size)
   return val;
 }
 
-void *
+static void *
 xrealloc (void *block, size_t size)
 {
-  register void *val;
+  void *val;
   /* We must call malloc explicitly when BLOCK is 0, since some
      reallocs don't do this.  */
   if (! block)
-    val = (void *) malloc (size);
+    val = malloc (size);
   else
-    val = (void *) realloc (block, size);
+    val = realloc (block, size);
   if (!val && size)
     {
       write (2, "virtual memory exhausted\n", 25);
@@ -238,14 +247,13 @@ xrealloc (void *block, size_t size)
 # endif
 # define realloc xrealloc
 
+# include <stdbool.h>
 # include <string.h>
 
 /* Define the syntax stuff for \<, \>, etc.  */
 
 /* Sword must be nonzero for the wordchar pattern commands in re_match_2.  */
 enum syntaxcode { Swhitespace = 0, Sword = 1, Ssymbol = 2 };
-
-#  define SWITCH_ENUM_CAST(x) (x)
 
 /* Dummy macros for non-Emacs environments.  */
 # define CHAR_CHARSET(c) 0
@@ -421,17 +429,7 @@ init_syntax_once (void)
 
 #endif /* not emacs */
 
-/* We remove any previous definition of `SIGN_EXTEND_CHAR',
-   since ours (we hope) works properly with all combinations of
-   machines, compilers, `char' and `unsigned char' argument types.
-   (Per Bothner suggested the basic approach.)  */
-#undef SIGN_EXTEND_CHAR
-#if __STDC__
-# define SIGN_EXTEND_CHAR(c) ((signed char) (c))
-#else  /* not __STDC__ */
-/* As in Harbison and Steele.  */
-# define SIGN_EXTEND_CHAR(c) ((((unsigned char) (c)) ^ 128) - 128)
-#endif
+#define SIGN_EXTEND_CHAR(c) ((signed char) (c))
 
 /* Should we use malloc or alloca?  If REGEX_MALLOC is not defined, we
    use `alloca' instead of `malloc'.  This is because using malloc in
@@ -537,15 +535,13 @@ typedef const unsigned char re_char;
 #endif
 
 typedef char boolean;
-#define false 0
-#define true 1
 
-static regoff_t re_match_2_internal _RE_ARGS ((struct re_pattern_buffer *bufp,
-					       re_char *string1, size_t size1,
-					       re_char *string2, size_t size2,
-					       ssize_t pos,
-					       struct re_registers *regs,
-					       ssize_t stop));
+static regoff_t re_match_2_internal (struct re_pattern_buffer *bufp,
+				     re_char *string1, size_t size1,
+				     re_char *string2, size_t size2,
+				     ssize_t pos,
+				     struct re_registers *regs,
+				     ssize_t stop);
 
 /* These are the command codes that appear in compiled regular
    expressions.  Some opcodes are followed by argument bytes.  A
@@ -722,11 +718,8 @@ typedef enum
   } while (0)
 
 #ifdef DEBUG
-static void extract_number _RE_ARGS ((int *dest, re_char *source));
 static void
-extract_number (dest, source)
-    int *dest;
-    re_char *source;
+extract_number (int *dest, re_char *source)
 {
   int temp = SIGN_EXTEND_CHAR (*(source + 1));
   *dest = *source & 0377;
@@ -750,12 +743,8 @@ extract_number (dest, source)
   } while (0)
 
 #ifdef DEBUG
-static void extract_number_and_incr _RE_ARGS ((int *destination,
-					       re_char **source));
 static void
-extract_number_and_incr (destination, source)
-    int *destination;
-    re_char **source;
+extract_number_and_incr (int *destination, re_char **source)
 {
   extract_number (destination, *source);
   *source += 2;
@@ -1392,7 +1381,7 @@ typedef struct
 #ifdef MATCH_MAY_ALLOCATE
 # define INIT_FAIL_STACK()						\
   do {									\
-    fail_stack.stack = (fail_stack_elt_t *)				\
+    fail_stack.stack =							\
       REGEX_ALLOCATE_STACK (INIT_FAILURE_ALLOC * TYPICAL_FAILURE_SIZE	\
 			    * sizeof (fail_stack_elt_t));		\
 									\
@@ -1435,8 +1424,7 @@ typedef struct
     >= re_max_failures * TYPICAL_FAILURE_SIZE)				\
    ? 0									\
    : ((fail_stack).stack						\
-      = (fail_stack_elt_t *)						\
-	REGEX_REALLOCATE_STACK ((fail_stack).stack,			\
+      = REGEX_REALLOCATE_STACK ((fail_stack).stack,			\
 	  (fail_stack).size * sizeof (fail_stack_elt_t),		\
 	  MIN (re_max_failures * TYPICAL_FAILURE_SIZE,			\
 	       ((fail_stack).size * sizeof (fail_stack_elt_t)		\
@@ -1659,25 +1647,22 @@ do {									\
 
 /* Subroutine declarations and macros for regex_compile.  */
 
-static reg_errcode_t regex_compile _RE_ARGS ((re_char *pattern, size_t size,
-					      reg_syntax_t syntax,
-					      struct re_pattern_buffer *bufp));
-static void store_op1 _RE_ARGS ((re_opcode_t op, unsigned char *loc, int arg));
-static void store_op2 _RE_ARGS ((re_opcode_t op, unsigned char *loc,
-				 int arg1, int arg2));
-static void insert_op1 _RE_ARGS ((re_opcode_t op, unsigned char *loc,
-				  int arg, unsigned char *end));
-static void insert_op2 _RE_ARGS ((re_opcode_t op, unsigned char *loc,
-				  int arg1, int arg2, unsigned char *end));
-static boolean at_begline_loc_p _RE_ARGS ((re_char *pattern,
-					   re_char *p,
-					   reg_syntax_t syntax));
-static boolean at_endline_loc_p _RE_ARGS ((re_char *p,
-					   re_char *pend,
-					   reg_syntax_t syntax));
-static re_char *skip_one_char _RE_ARGS ((re_char *p));
-static int analyse_first _RE_ARGS ((re_char *p, re_char *pend,
-				    char *fastmap, const int multibyte));
+static reg_errcode_t regex_compile (re_char *pattern, size_t size,
+				    reg_syntax_t syntax,
+				    struct re_pattern_buffer *bufp);
+static void store_op1 (re_opcode_t op, unsigned char *loc, int arg);
+static void store_op2 (re_opcode_t op, unsigned char *loc, int arg1, int arg2);
+static void insert_op1 (re_opcode_t op, unsigned char *loc,
+			int arg, unsigned char *end);
+static void insert_op2 (re_opcode_t op, unsigned char *loc,
+			int arg1, int arg2, unsigned char *end);
+static boolean at_begline_loc_p (re_char *pattern, re_char *p,
+				 reg_syntax_t syntax);
+static boolean at_endline_loc_p (re_char *p, re_char *pend,
+				 reg_syntax_t syntax);
+static re_char *skip_one_char (re_char *p);
+static int analyse_first (re_char *p, re_char *pend,
+			  char *fastmap, const int multibyte);
 
 /* Fetch the next character in the uncompiled pattern, with no
    translation.  */
@@ -1749,20 +1734,6 @@ static int analyse_first _RE_ARGS ((re_char *p, re_char *pend,
    into the pattern are two bytes long.  So if 2^15 bytes turns out to
    be too small, many things would have to change.  */
 # define MAX_BUF_SIZE (1L << 15)
-
-#if 0  /* This is when we thought it could be 2^16 bytes.  */
-/* Any other compiler which, like MSC, has allocation limit below 2^16
-   bytes will have to use approach similar to what was done below for
-   MSC and drop MAX_BUF_SIZE a bit.  Otherwise you may end up
-   reallocating to 0 bytes.  Such thing is not going to work too well.
-   You have been warned!!  */
-#if defined _MSC_VER  && !defined WIN32
-/* Microsoft C 16-bit versions limit malloc to approx 65512 bytes.  */
-# define MAX_BUF_SIZE  65500L
-#else
-# define MAX_BUF_SIZE (1L << 16)
-#endif
-#endif /* 0 */
 
 /* Extend the buffer by twice its current size via realloc and
    reset the pointers that pointed into the old block to point to the
@@ -1860,10 +1831,9 @@ typedef struct
 /* The next available element.  */
 #define COMPILE_STACK_TOP (compile_stack.stack[compile_stack.avail])
 
-/* Explicit quit checking is only used on NTemacs and whenever we
-   use polling to process input events.  */
-#if defined emacs && (defined WINDOWSNT || defined SYNC_INPUT) && defined QUIT
-extern int immediate_quit;
+/* Explicit quit checking is needed for Emacs, which uses polling to
+   process input events.  */
+#ifdef emacs
 # define IMMEDIATE_QUIT_CHECK			\
     do {					\
       if (immediate_quit) QUIT;			\
@@ -2150,12 +2120,7 @@ static void
 extend_range_table_work_area (struct range_table_work_area *work_area)
 {
   work_area->allocated += 16 * sizeof (int);
-  if (work_area->table)
-    work_area->table
-      = (int *) realloc (work_area->table, work_area->allocated);
-  else
-    work_area->table
-      = (int *) malloc (work_area->allocated);
+  work_area->table = realloc (work_area->table, work_area->allocated);
 }
 
 #if 0
@@ -2429,9 +2394,8 @@ regex_grow_registers (int num_regs)
 
 #endif /* not MATCH_MAY_ALLOCATE */
 
-static boolean group_in_compile_stack _RE_ARGS ((compile_stack_type
-						 compile_stack,
-						 regnum_t regnum));
+static boolean group_in_compile_stack (compile_stack_type compile_stack,
+				       regnum_t regnum);
 
 /* `regex_compile' compiles PATTERN (of length SIZE) according to SYNTAX.
    Returns one of error codes defined in `regex.h', or zero for success.
@@ -3751,16 +3715,8 @@ regex_compile (const re_char *pattern, size_t size, reg_syntax_t syntax, struct 
     if (fail_stack.size < re_max_failures * TYPICAL_FAILURE_SIZE)
       {
 	fail_stack.size = re_max_failures * TYPICAL_FAILURE_SIZE;
-
-	if (! fail_stack.stack)
-	  fail_stack.stack
-	    = (fail_stack_elt_t *) malloc (fail_stack.size
-					   * sizeof (fail_stack_elt_t));
-	else
-	  fail_stack.stack
-	    = (fail_stack_elt_t *) realloc (fail_stack.stack,
-					    (fail_stack.size
-					     * sizeof (fail_stack_elt_t)));
+	falk_stack.stack = realloc (fail_stack.stack,
+				    fail_stack.size * sizeof *falk_stack.stack);
       }
 
     regex_grow_registers (num_regs);
@@ -3832,18 +3788,37 @@ static boolean
 at_begline_loc_p (const re_char *pattern, const re_char *p, reg_syntax_t syntax)
 {
   re_char *prev = p - 2;
-  boolean prev_prev_backslash = prev > pattern && prev[-1] == '\\';
+  boolean odd_backslashes;
 
-  return
-       /* After a subexpression?  */
-       (*prev == '(' && (syntax & RE_NO_BK_PARENS || prev_prev_backslash))
-       /* After an alternative?	 */
-    || (*prev == '|' && (syntax & RE_NO_BK_VBAR || prev_prev_backslash))
-       /* After a shy subexpression?  */
-    || ((syntax & RE_SHY_GROUPS) && prev - 2 >= pattern
-	&& prev[-1] == '?' && prev[-2] == '('
-	&& (syntax & RE_NO_BK_PARENS
-	    || (prev - 3 >= pattern && prev[-3] == '\\')));
+  /* After a subexpression?  */
+  if (*prev == '(')
+    odd_backslashes = (syntax & RE_NO_BK_PARENS) == 0;
+
+  /* After an alternative?  */
+  else if (*prev == '|')
+    odd_backslashes = (syntax & RE_NO_BK_VBAR) == 0;
+
+  /* After a shy subexpression?  */
+  else if (*prev == ':' && (syntax & RE_SHY_GROUPS))
+    {
+      /* Skip over optional regnum.  */
+      while (prev - 1 >= pattern && prev[-1] >= '0' && prev[-1] <= '9')
+	--prev;
+
+      if (!(prev - 2 >= pattern
+	    && prev[-1] == '?' && prev[-2] == '('))
+	return false;
+      prev -= 2;
+      odd_backslashes = (syntax & RE_NO_BK_PARENS) == 0;
+    }
+  else
+    return false;
+
+  /* Count the number of preceding backslashes.  */
+  p = prev;
+  while (prev - 1 >= pattern && prev[-1] == '\\')
+    --prev;
+  return (p - prev) & odd_backslashes;
 }
 
 
@@ -3933,7 +3908,7 @@ analyse_first (const re_char *p, const re_char *pend, char *fastmap, const int m
 	 as used for the *? operator.  */
       re_char *p1 = p;
 
-      switch (SWITCH_ENUM_CAST ((re_opcode_t) *p++))
+      switch (*p++)
 	{
 	case succeed:
 	  return 1;
@@ -4108,7 +4083,7 @@ analyse_first (const re_char *p, const re_char *pend, char *fastmap, const int m
 	       visited.  `re_compile' should make sure this is true.  */
 	    break;
 	  p += j;
-	  switch (SWITCH_ENUM_CAST ((re_opcode_t) *p))
+	  switch (*p)
 	    {
 	    case on_failure_jump:
 	    case on_failure_keep_string_jump:
@@ -4541,10 +4516,10 @@ WEAK_ALIAS (__re_search_2, re_search_2)
 
 /* Declarations and macros for re_match_2.  */
 
-static int bcmp_translate _RE_ARGS ((re_char *s1, re_char *s2,
-                                     register ssize_t len,
-                                     RE_TRANSLATE_TYPE translate,
-                                     const int multibyte));
+static int bcmp_translate (re_char *s1, re_char *s2,
+			   register ssize_t len,
+			   RE_TRANSLATE_TYPE translate,
+			   const int multibyte);
 
 /* This converts PTR, a pointer into one of the search strings `string1'
    and `string2' into an offset from the beginning of that string.  */
@@ -4641,7 +4616,7 @@ static int bcmp_translate _RE_ARGS ((re_char *s1, re_char *s2,
 static re_char *
 skip_one_char (const re_char *p)
 {
-  switch (SWITCH_ENUM_CAST (*p++))
+  switch (*p++)
     {
     case anychar:
       break;
@@ -4686,7 +4661,7 @@ skip_noops (const re_char *p, const re_char *pend)
   int mcnt;
   while (p < pend)
     {
-      switch (SWITCH_ENUM_CAST ((re_opcode_t) *p))
+      switch (*p)
 	{
 	case start_memory:
 	case stop_memory:
@@ -4731,7 +4706,7 @@ mutually_exclusive_p (struct re_pattern_buffer *bufp, const re_char *p1, const r
 
   op2 = p2 == pend ? succeed : *p2;
 
-  switch (SWITCH_ENUM_CAST (op2))
+  switch (op2)
     {
     case succeed:
     case endbuf:
@@ -4855,7 +4830,7 @@ mutually_exclusive_p (struct re_pattern_buffer *bufp, const re_char *p1, const r
       break;
 
     case charset_not:
-      switch (SWITCH_ENUM_CAST (*p1))
+      switch (*p1)
 	{
 	case exactn:
 	case charset:
@@ -5333,7 +5308,7 @@ re_match_2_internal (struct re_pattern_buffer *bufp, const re_char *string1,
 	}
 
       /* Otherwise match next pattern command.  */
-      switch (SWITCH_ENUM_CAST ((re_opcode_t) *p++))
+      switch (*p++)
 	{
 	/* Ignore these.  Used to ignore the n of succeed_n's which
 	   currently have n == 0.  */
@@ -6255,7 +6230,7 @@ re_match_2_internal (struct re_pattern_buffer *bufp, const re_char *string1,
 	  /* A restart point is known.  Restore to that state.  */
 	  DEBUG_PRINT1 ("\nFAIL:\n");
 	  POP_FAILURE_POINT (str, pat);
-	  switch (SWITCH_ENUM_CAST ((re_opcode_t) *pat++))
+	  switch (*pat++)
 	    {
 	    case on_failure_keep_string_jump:
 	      assert (str == NULL);
@@ -6399,13 +6374,13 @@ re_comp (const char *s)
 
   if (!re_comp_buf.buffer)
     {
-      re_comp_buf.buffer = (unsigned char *) malloc (200);
+      re_comp_buf.buffer = malloc (200);
       if (re_comp_buf.buffer == NULL)
 	/* Yes, we're discarding `const' here if !HAVE_LIBINTL.  */
 	return (char *) gettext (re_error_msgid[(int) REG_ESPACE]);
       re_comp_buf.allocated = 200;
 
-      re_comp_buf.fastmap = (char *) malloc (1 << BYTEWIDTH);
+      re_comp_buf.fastmap = malloc (1 << BYTEWIDTH);
       if (re_comp_buf.fastmap == NULL)
 	/* Yes, we're discarding `const' here if !HAVE_LIBINTL.  */
 	return (char *) gettext (re_error_msgid[(int) REG_ESPACE]);
@@ -6489,15 +6464,13 @@ regcomp (regex_t *__restrict preg, const char *__restrict pattern,
   preg->used = 0;
 
   /* Try to allocate space for the fastmap.  */
-  preg->fastmap = (char *) malloc (1 << BYTEWIDTH);
+  preg->fastmap = malloc (1 << BYTEWIDTH);
 
   if (cflags & REG_ICASE)
     {
       unsigned i;
 
-      preg->translate
-	= (RE_TRANSLATE_TYPE) malloc (CHAR_SET_SIZE
-				      * sizeof (*(RE_TRANSLATE_TYPE)0));
+      preg->translate = malloc (CHAR_SET_SIZE * sizeof *preg->translate);
       if (preg->translate == NULL)
 	return (int) REG_ESPACE;
 
@@ -6652,7 +6625,7 @@ regerror (int err_code, const regex_t *preg, char *errbuf, size_t errbuf_size)
     {
       if (msg_size > errbuf_size)
 	{
-	  strncpy (errbuf, msg, errbuf_size - 1);
+	  memcpy (errbuf, msg, errbuf_size - 1);
 	  errbuf[errbuf_size - 1] = 0;
 	}
       else

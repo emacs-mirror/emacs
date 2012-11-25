@@ -1,6 +1,6 @@
 ;;; locate.el --- interface to the locate command
 
-;; Copyright (C) 1996, 1998, 2001-2011  Free Software Foundation, Inc.
+;; Copyright (C) 1996, 1998, 2001-2012  Free Software Foundation, Inc.
 
 ;; Author: Peter Breton <pbreton@cs.umb.edu>
 ;; Keywords: unix files
@@ -34,7 +34,7 @@
 ;;
 ;;   SHELLPROGRAM  Name-to-find
 ;;
-;; set the variable `locate-command' in your .emacs file.
+;; set the variable `locate-command' in your init file.
 ;;
 ;;   To use a more complicated expression, create a function which
 ;; takes a string (the name to find) as input and returns a list.

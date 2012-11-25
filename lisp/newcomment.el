@@ -1,6 +1,6 @@
 ;;; newcomment.el --- (un)comment regions of buffers -*- lexical-binding: t -*-
 
-;; Copyright (C) 1999-2011 Free Software Foundation, Inc.
+;; Copyright (C) 1999-2012 Free Software Foundation, Inc.
 
 ;; Author: code extracted from Emacs-20's simple.el
 ;; Maintainer: Stefan Monnier <monnier@iro.umontreal.ca>
@@ -24,7 +24,13 @@
 
 ;;; Commentary:
 
-;; A replacement for simple.el's comment-related functions.
+;; This library contains functions and variables for commenting and
+;; uncommenting source code.
+
+;; Prior to calling any `comment-*' function, you should ensure that
+;; `comment-normalize-vars' is first called to set up the appropriate
+;; variables; except for the `comment-*' commands, which call
+;; `comment-normalize-vars' automatically as a subroutine.
 
 ;;; Bugs:
 
@@ -102,30 +108,35 @@ Comments might be indented to a different value in order not to go beyond
   :type 'integer
   :group 'comment)
 (make-variable-buffer-local 'comment-column)
-;;;###autoload(put 'comment-column 'safe-local-variable 'integerp)
+;;;###autoload
+(put 'comment-column 'safe-local-variable 'integerp)
 
 ;;;###autoload
 (defvar comment-start nil
-  "*String to insert to start a new comment, or nil if no comment syntax.")
-;;;###autoload(put 'comment-start 'safe-local-variable 'string-or-null-p)
+  "String to insert to start a new comment, or nil if no comment syntax.")
+;;;###autoload
+(put 'comment-start 'safe-local-variable 'string-or-null-p)
 
 ;;;###autoload
 (defvar comment-start-skip nil
-  "*Regexp to match the start of a comment plus everything up to its body.
+  "Regexp to match the start of a comment plus everything up to its body.
 If there are any \\(...\\) pairs, the comment delimiter text is held to begin
 at the place matched by the close of the first pair.")
-;;;###autoload(put 'comment-start-skip 'safe-local-variable 'string-or-null-p)
+;;;###autoload
+(put 'comment-start-skip 'safe-local-variable 'stringp)
 
 ;;;###autoload
 (defvar comment-end-skip nil
   "Regexp to match the end of a comment plus everything back to its body.")
-;;;###autoload(put 'comment-end-skip 'safe-local-variable 'string-or-null-p)
+;;;###autoload
+(put 'comment-end-skip 'safe-local-variable 'stringp)
 
 ;;;###autoload
 (defvar comment-end (purecopy "")
-  "*String to insert to end a new comment.
+  "String to insert to end a new comment.
 Should be an empty string if comments are terminated by end-of-line.")
-;;;###autoload(put 'comment-end 'safe-local-variable 'string-or-null-p)
+;;;###autoload
+(put 'comment-end 'safe-local-variable 'stringp)
 
 ;;;###autoload
 (defvar comment-indent-function 'comment-indent-default
@@ -185,6 +196,7 @@ The `plain' comment style doubles this value.
 This should generally stay 0, except for a few modes like Lisp where
 it is 1 so that regions are commented with two or three semi-colons.")
 
+;;;###autoload
 (defconst comment-styles
   '((plain      nil nil nil nil
                 "Start in column 0 (do not indent), as in Emacs-20")
@@ -224,7 +236,7 @@ ALIGN specifies that the `comment-end' markers should be aligned.
      /* bli */
   if `comment-end' is empty, this has no effect, unless EXTRA is also set,
   in which case the comment gets wrapped in a box.
-  
+
 EXTRA specifies that an extra line should be used before and after the
   region to comment (to put the `comment-end' and `comment-start').
   e.g. in C it comments regions as
@@ -268,6 +280,19 @@ makes the comment easier to read.  Default is 1.  nil means 0."
   :type '(choice string integer (const nil))
   :group 'comment)
 
+(defcustom comment-inline-offset 1
+  "Inline comments have to be preceded by at least this many spaces.
+This is useful when style-conventions require a certain minimal offset.
+Python's PEP8 for example recommends two spaces, so you could do:
+
+\(add-hook 'python-mode-hook
+   (lambda () (set (make-local-variable 'comment-inline-offset) 2)))
+
+See `comment-padding' for whole-line comments."
+  :version "24.3"
+  :type 'integer
+  :group 'comment)
+
 ;;;###autoload
 (defcustom comment-multi-line nil
   "Non-nil means `comment-indent-new-line' continues comments.
@@ -307,10 +332,11 @@ terminated by the end of line (i.e. `comment-end' is empty)."
 
 ;;;###autoload
 (defun comment-normalize-vars (&optional noerror)
-  "Check and setup the variables needed by other commenting functions.
-Functions autoloaded from newcomment.el, being entry points, should call
-this function before any other, so the rest of the code can assume that
-the variables are properly set."
+  "Check and set up variables needed by other commenting functions.
+All the `comment-*' commands call this function to set up various
+variables, like `comment-start', to ensure that the commenting
+functions work correctly.  Lisp callers of any other `comment-*'
+function should first call this function explicitly."
   (unless (and (not comment-start) noerror)
     (unless comment-start
       (let ((cs (read-string "No comment syntax is defined.  Use: ")))
@@ -586,7 +612,7 @@ Point is expected to be at the start of the comment."
                    (save-excursion (end-of-line) (current-column)))))
         (other nil)
         (min (save-excursion (skip-chars-backward " \t")
-                             (1+ (current-column)))))
+                             (if (bolp) 0 (+ comment-inline-offset (current-column))))))
     ;; Fix up the range.
     (if (< max min) (setq max min))
     ;; Don't move past the fill column.
@@ -686,7 +712,8 @@ If CONTINUE is non-nil, use the `comment-continue' markers if any."
 	  (save-excursion
 	    (skip-chars-backward " \t")
 	    (unless (bolp)
-	      (setq indent (max indent (1+ (current-column))))))
+	      (setq indent (max indent
+                                (+ (current-column) comment-inline-offset)))))
 	  ;; If that's different from comment's current position, change it.
 	  (unless (= (current-column) indent)
 	    (delete-region (point) (progn (skip-chars-backward " \t") (point)))
@@ -872,14 +899,15 @@ comment markers."
 	  (when (and sre (looking-at (concat "\\s-*\n\\s-*" srei)))
 	    (goto-char (match-end 0)))
 	  (if (null arg) (delete-region (point-min) (point))
-	    (skip-syntax-backward " ")
-	    (delete-char (- numarg))
-	    (unless (or (bobp)
-			(save-excursion (goto-char (point-min))
-					(looking-at comment-start-skip)))
-	      ;; If there's something left but it doesn't look like
-	      ;; a comment-start any more, just remove it.
-	      (delete-region (point-min) (point))))
+            (let ((opoint (point-marker)))
+              (skip-syntax-backward " ")
+              (delete-char (- numarg))
+              (unless (and (not (bobp))
+                           (save-excursion (goto-char (point-min))
+                                           (looking-at comment-start-skip)))
+                ;; If there's something left but it doesn't look like
+                ;; a comment-start any more, just remove it.
+                (delete-region (point-min) opoint))))
 
 	  ;; Remove the end-comment (and leading padding and such).
 	  (goto-char (point-max)) (comment-enter-backward)

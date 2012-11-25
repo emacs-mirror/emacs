@@ -1,7 +1,7 @@
 /* unexec() support for Cygwin;
    complete rewrite of xemacs Cygwin unexec() code
 
-   Copyright (C) 2004-2011 Free Software Foundation, Inc.
+   Copyright (C) 2004-2012 Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -20,8 +20,8 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 
 #include <config.h>
 #include "unexec.h"
+#include "w32common.h"
 
-#include <setjmp.h>
 #include <lisp.h>
 #include <stdio.h>
 #include <fcntl.h>

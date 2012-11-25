@@ -1,6 +1,6 @@
 ;;; wid-browse.el --- functions for browsing widgets
 ;;
-;; Copyright (C) 1997, 2001-2011 Free Software Foundation, Inc.
+;; Copyright (C) 1997, 2001-2012 Free Software Foundation, Inc.
 ;;
 ;; Author: Per Abrahamsen <abraham@dina.kvl.dk>
 ;; Keywords: extensions
@@ -30,7 +30,6 @@
 (require 'easymenu)
 (require 'custom)
 (require 'wid-edit)
-(eval-when-compile (require 'cl))
 
 (defgroup widget-browse nil
   "Customization support for browsing widgets."
@@ -270,7 +269,10 @@ VALUE is assumed to be a list of widgets."
 
 ;;;###autoload
 (define-minor-mode widget-minor-mode
-  "Minor mode for traversing widgets."
+  "Minor mode for traversing widgets.
+With a prefix argument ARG, enable the mode if ARG is positive,
+and disable it otherwise.  If called from Lisp, enable the mode
+if ARG is omitted or nil."
   :lighter " Widget")
 
 ;;; The End:

@@ -1,4 +1,4 @@
-/* Copyright (C) 1985-1988, 1990, 1992, 1999-2011
+/* Copyright (C) 1985-1988, 1990, 1992, 1999-2012
                  Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
@@ -461,7 +461,7 @@ typedef struct {
 /*
  * NetBSD does not have normal-looking user-land ELF support.
  */
-# if defined __alpha__ || defined __sparc_v9__
+# if defined __alpha__ || defined __sparc_v9__ || defined _LP64
 #  define ELFSIZE	64
 # else
 #  define ELFSIZE	32
@@ -506,15 +506,13 @@ typedef struct {
 #endif
 
 #ifndef ElfW
-# ifdef __STDC__
-#  define ElfBitsW(bits, type) Elf##bits##_##type
-# else
-#  define ElfBitsW(bits, type) Elf/**/bits/**/_/**/type
-# endif
-# ifdef _LP64
-#  define ELFSIZE 64
-# else
-#  define ELFSIZE 32
+# define ElfBitsW(bits, type) Elf##bits##_##type
+# ifndef ELFSIZE
+#  ifdef _LP64
+#   define ELFSIZE 64
+#  else
+#   define ELFSIZE 32
+#  endif
 # endif
   /* This macro expands `bits' before invoking ElfBitsW.  */
 # define ElfExpandBitsW(bits, type) ElfBitsW (bits, type)

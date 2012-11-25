@@ -1,6 +1,6 @@
 ;;; refbib.el --- convert refer-style references to ones usable by Latex bib
 
-;; Copyright (C) 1989, 2001-2011 Free Software Foundation, Inc.
+;; Copyright (C) 1989, 2001-2012 Free Software Foundation, Inc.
 
 ;; Author: Henry Kautz <kautz@research.att.com>
 ;; Maintainer: FSF
@@ -64,7 +64,7 @@
   :group 'wp)
 
 (defcustom r2b-trace-on nil
-  "*Non-nil means trace conversion."
+  "Non-nil means trace conversion."
   :type 'boolean
   :group 'refbib)
 
@@ -128,7 +128,7 @@ in `r2b-proceedings-list' (although it wouldn't cause an error)."
 This is in addition to the `r2b-capitalize-title-stop-words'.")
 
 (defcustom r2b-delimit-with-quote t
-  "*If true, then use \" to delimit fields, otherwise use braces."
+  "If true, then use \" to delimit fields, otherwise use braces."
   :type 'boolean
   :group 'refbib)
 
@@ -204,12 +204,12 @@ This is in addition to the `r2b-capitalize-title-stop-words'.")
    (buffer-substring (match-beginning exp) (match-end exp)))
 
 (defcustom r2b-out-buf-name "*Out*"
-  "*Name of buffer for output from refer-to-bibtex."
+  "Name of buffer for output from refer-to-bibtex."
   :type 'string
   :group 'refbib)
 
 (defcustom r2b-log-name "*Log*"
-  "*Name of buffer for logs errors from refer-to-bibtex."
+  "Name of buffer for logs errors from refer-to-bibtex."
   :type 'string
   :group 'refbib)
 

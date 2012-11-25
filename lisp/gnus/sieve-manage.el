@@ -1,6 +1,6 @@
 ;;; sieve-manage.el --- Implementation of the managesieve protocol in elisp
 
-;; Copyright (C) 2001-2011  Free Software Foundation, Inc.
+;; Copyright (C) 2001-2012  Free Software Foundation, Inc.
 
 ;; Author: Simon Josefsson <simon@josefsson.org>
 
@@ -157,6 +157,7 @@ for doing the actual authentication."
 (defcustom sieve-manage-default-stream 'network
   "Default stream type to use for `sieve-manage'.
 Must be a name of a stream in `sieve-manage-stream-alist'."
+  :version "24.1"
   :type 'symbol
   :group 'sieve-manage)
 

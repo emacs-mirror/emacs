@@ -1,6 +1,6 @@
 ;;; cal-menu.el --- calendar functions for menu bar and popup menu support
 
-;; Copyright (C) 1994-1995, 2001-2011  Free Software Foundation, Inc.
+;; Copyright (C) 1994-1995, 2001-2012  Free Software Foundation, Inc.
 
 ;; Author: Edward M. Reingold <reingold@cs.uiuc.edu>
 ;;         Lara Rios <lrios@coewl.cen.uiuc.edu>
@@ -52,7 +52,7 @@
     ["Insert Anniversary" diary-insert-anniversary-entry]
     ["Insert Block" diary-insert-block-entry]
     ["Insert Cyclic" diary-insert-cyclic-entry]
-    ("Insert Baha'i"
+    ("Insert Bahá'í"
      ["One time" diary-bahai-insert-entry]
      ["Monthly" diary-bahai-insert-monthly-entry]
      ["Yearly" diary-bahai-insert-yearly-entry])
@@ -127,7 +127,7 @@
     ["Astronomical Date" calendar-astro-goto-day-number]
     ["Hebrew Date" calendar-hebrew-goto-date]
     ["Persian Date" calendar-persian-goto-date]
-    ["Baha'i Date" calendar-bahai-goto-date]
+    ["Bahá'í Date" calendar-bahai-goto-date]
     ["Islamic Date" calendar-islamic-goto-date]
     ["Julian Date" calendar-julian-goto-date]
     ["Chinese Date" calendar-chinese-goto-date]
@@ -237,10 +237,11 @@ is non-nil."
     ;; These did not work if called without calendar window selected.
     ("Prepare LaTeX buffer"
      ["Daily (1 page)" cal-tex-cursor-day]
-     ["Weekly (1 page)" cal-tex-cursor-week]
-     ["Weekly (2 pages)" cal-tex-cursor-week2]
-     ["Weekly (other style; 1 page)" cal-tex-cursor-week-iso]
-     ["Weekly (yet another style; 1 page)" cal-tex-cursor-week-monday]
+     ["Weekly (1 page, with hours)" cal-tex-cursor-week]
+     ["Weekly (2 pages, with hours)" cal-tex-cursor-week2]
+     ["Weekly (1 page, no hours)" cal-tex-cursor-week-iso]
+     ["Weekly (1 page, with hours, different style)" cal-tex-cursor-week-monday]
+     ["Weekly (2 pages, no hours)" cal-tex-cursor-week2-summary]
      ["Monthly" cal-tex-cursor-month]
      ["Monthly (landscape)" cal-tex-cursor-month-landscape]
      ["Yearly" cal-tex-cursor-year]
@@ -281,5 +282,9 @@ is non-nil."
 (run-hooks 'cal-menu-load-hook)
 
 (provide 'cal-menu)
+
+;; Local Variables:
+;; coding: utf-8
+;; End:
 
 ;;; cal-menu.el ends here

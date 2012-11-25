@@ -1,6 +1,6 @@
 ;;; forms.el --- Forms mode: edit a file as a form to fill in
 
-;; Copyright (C) 1991, 1994-1997, 2001-2011 Free Software Foundation, Inc.
+;; Copyright (C) 1991, 1994-1997, 2001-2012 Free Software Foundation, Inc.
 
 ;; Author: Johan Vromans <jvromans@squirrel.nl>
 
@@ -21,7 +21,7 @@
 
 ;;; Commentary:
 
-;; Visit a file using a form.  See forms-d2.el for examples.
+;; Visit a file using a form.  See etc/forms for examples.
 ;;
 ;; === Naming conventions
 ;;
@@ -581,7 +581,7 @@ Commands:                        Equivalent keys in read-only mode:
 	    (error (concat "Forms control file error: "
 			   "`forms-modified-record-filter' is not a function")))
 
-	;; The filters acces the contents of the forms using `forms-fields'.
+	;; The filters access the contents of the forms using `forms-fields'.
 	(make-local-variable 'forms-fields)
 
 	;; Dynamic text support.
@@ -669,7 +669,7 @@ Commands:                        Equivalent keys in read-only mode:
 
   ;;(message "forms: proceeding setup...")
 
-  ;; Since we aren't really implementing a minor mode, we hack the modeline
+  ;; Since we aren't really implementing a minor mode, we hack the mode line
   ;; directly to get the text " View " into forms-read-only form buffers.  For
   ;; that reason, this variable must be buffer only.
   (make-local-variable 'minor-mode-alist)
@@ -2030,8 +2030,10 @@ Usage: (setq forms-number-of-fields
 
 ;;; Debugging
 
-(defvar forms--debug nil
-  "*Enables forms-mode debugging if not nil.")
+(defcustom forms--debug nil
+  "If non-nil, enable Forms mode debugging."
+  :type 'boolean
+  :group 'forms)
 
 (defun forms--debug (&rest args)
   "Internal debugging routine."

@@ -1,3 +1,288 @@
+2012-10-13  Liam Stitt  <stittl@cuug.ab.ca>  (tiny change)
+
+	* url-vars.el (url-uncompressor-alist):
+	* url-file.el (url-file-find-possibly-compressed-file, url-file):
+	Recognize .xz compression (Bug#11839).
+
+2012-10-13  Chong Yidong  <cyd@gnu.org>
+
+	* url-http.el (url-http):
+	* url.el (url-retrieve-internal): Doc fix (Bug#6407).
+
+2012-10-08  Glenn Morris  <rgm@gnu.org>
+
+	* url-methods.el (url-scheme-get-property): url-https.el was
+	merged into url-http.el, so load the latter for https.  (Bug#12599)
+
+2012-10-02  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* url-http.el (url-http-user-agent-string): Leak less info.
+	(url-http, url-http-file-exists-p, url-http-file-readable-p)
+	(url-http-file-attributes, url-http-options, url-https-default-port)
+	(url-https-asynchronous-p): Don't autoload.
+
+2012-09-30  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* url-handlers.el (url-file-handler): Don't assume any url-FOO function
+	is a good handler for FOO.
+	(url-copy-file, url-file-local-copy, url-insert-file-contents)
+	(url-file-name-completion, url-file-name-all-completions)
+	(url-handlers-create-wrapper): Explicitly register as handler.
+
+2012-09-29  Bastien Guerry  <bzg@gnu.org>
+
+	* url-util.el (url-insert-entities-in-string)
+	(url-build-query-string): Fix docstrings.
+
+2012-09-25  Chong Yidong  <cyd@gnu.org>
+
+	* url-parse.el (url-recreate-url-attributes):
+	* url-util.el (url-generate-unique-filename): Use declare to mark
+	obsolete.
+
+2012-08-14  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* url-http.el (url-http-parse-headers): Re-enable file-name-handlers
+	(bug#11981).
+
+2012-08-12  David Engster  <deng@randomsample.de>
+
+	* url-util.el (url-file-directory, url-file-nondirectory): Avoid
+	file-name-directory and file-name-nondirectory internally (bug#11981).
+
+2012-08-11  Jason Rumney  <jasonr@gnu.org>
+
+	* url-http.el (url-http-create-request): Use url-http-proxy to
+	look up proxy credentials (Bug#12069).
+
+2012-07-28  David Engster  <deng@randomsample.de>
+
+	* url-dav.el (url-dav-supported-p): Add doc-string and remove
+	check for feature `xml' and function `xml-expand-namespace' which
+	never existed in Emacs proper.
+	(url-dav-process-response): Remove all indentation and newlines
+	from XML before parsing.  Change call to `xml-parse-region' to do
+	namespace expansion with simple qualified names (Bug#11916).
+	(url-dav-request): Add autoload.
+	(url-dav-directory-files): Properly deal with empty directories.
+	Unhex URL before generating relative URLs.
+	(url-dav-file-directory-p): Fix check for 'DAV:collection.
+
+2012-07-11  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* url.el, url-queue.el, url-parse.el, url-http.el, url-future.el:
+	* url-dav.el, url-cookie.el: Use cl-lib.
+	* url-util.el, url-privacy.el, url-nfs.el, url-misc.el, url-methods.el:
+	* url-gw.el, url-file.el, url-expand.el: Dont use CL.
+
+2012-06-30  Glenn Morris  <rgm@gnu.org>
+
+	* url-vars.el (mm-mime-mule-charset-alist, mm-coding-system-p):
+	Declare.
+
+2012-06-21  Chong Yidong  <cyd@gnu.org>
+
+	* url.el (url-retrieve-internal): Fix last change (Bug#11627).
+
+2012-06-13  Juanma Barranquero  <lekktu@gmail.com>
+
+	* url-handlers.el (url-handler-regexp): Declare.
+
+2012-06-12  Chong Yidong  <cyd@gnu.org>
+
+	* url-handlers.el: Re-order file to avoid recursive load.
+
+2012-06-12  Chong Yidong  <cyd@gnu.org>
+
+	* url-handlers.el (url-handler-regexp):
+	* url-nfs.el (url-nfs-automounter-directory-spec):
+	* url-vars.el (url-load-hook): Convert to defcustom.
+
+2012-05-25  Leo Liu  <sdl.web@gmail.com>
+
+	* url-http.el (url-http-codes): Fix mal-formed defconst.
+
+2012-05-15  Ian Eure  <ian@simplegeo.com>
+
+	* url-util.el (url-build-query-string): New function (Bug#8706).
+	(url-parse-query-string): Allow that '=' is not required and split
+	URL parameters on ';', not just '&'.
+
+2012-05-14  Lars Magne Ingebrigtsen  <larsi@gnus.org>
+
+	* url-expand.el (url-default-expander): Copy over the fullness of
+	the new URL object based on the definition URL object.
+
+2012-05-10  Chong Yidong  <cyd@gnu.org>
+
+	* url-parse.el (url-path-and-query, url-port-if-non-default):
+	New functions.
+	(url-generic-parse-url): Don't set the portspec slot if it is not
+	specified; that is what `url-port' is for.
+	(url-port): Only require the scheme to be specified to call
+	url-scheme-get-property.
+
+	* url-util.el (url-encode-url): Use url-path-and-query.
+
+	* url-vars.el (url-mime-charset-string): Load mm-util lazily.
+
+2012-05-09  Chong Yidong  <cyd@gnu.org>
+
+	* url-util.el (url-encode-url): New function for URL quoting.
+	(url-encoding-table, url-host-allowed-chars)
+	(url-path-allowed-chars): New constants.
+	(url--allowed-chars): New helper function.  Use upper-case.
+	(url-hexify-string): Use them.
+
+	* url-parse.el: Improve RFC 3986 conformance.
+	(url-generic-parse-url): Do not populate the ATTRIBUTES slot,
+	since this is not reliable for general RFC 3986 URIs.  Keep the
+	whole path and query inside the FILENAME slot.  Improve docstring.
+	(url-recreate-url-attributes): Mark as obsolete.
+	(url-recreate-url): Handle missing scheme and userinfo.
+	(url-path-and-query): New function.
+
+	* url-http.el (url-http-create-request): Ignore obsolete
+	attributes slot of url-object.
+
+	* url-vars.el (url-nonrelative-link): Make the regexp stricter.
+
+	* url.el (url-retrieve-internal): Use url-encode-url (Bug#7017).
+
+2012-04-26  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* url.el (url-retrieve-synchronously): Replace lexical-let by
+	lexical-binding.
+
+2012-04-10  William Xu  <william.xwl@gmail.com>  (tiny change)
+
+	* url.el (url-retrieve-internal): Hexify multibye URL string first
+	when necessary (bug#7017).
+
+2012-04-10  Lars Magne Ingebrigtsen  <larsi@gnus.org>
+
+	* url.el (url-retrieve-internal): Mention utf-8 encoding.
+	(url-retrieve): Ditto.
+
+2012-04-10  Lars Magne Ingebrigtsen  <larsi@gnus.org>
+
+	* url-domsurf.el: New file (bug#1401).
+
+	* url-cookie.el (url-cookie-two-dot-domains): Remove.
+	(url-cookie-host-can-set-p): Use `url-domsuf-cookie-allowed-p'
+	instead of the variable above.
+
+2012-03-25  Lars Magne Ingebrigtsen  <larsi@gnus.org>
+
+	* url-queue.el (url-queue-kill-job): Check whether the buffer has
+	been killed asynchronously before selecting it.
+
+2012-03-14  Lars Magne Ingebrigtsen  <larsi@gnus.org>
+
+	* url-queue.el (url-queue-kill-job): Make sure that the callback
+	is always called, even if we have a timeout.
+
+2012-03-11  Chong Yidong  <cyd@gnu.org>
+
+	* url-http.el (url-http-end-of-document-sentinel):
+	Handle keepalive expiry by calling url-http again (Bug#10223).
+	(url-http): New arg, for the above.
+
+2012-03-11  Devon Sean McCullough  <emacs-hacker2012@jovi.net>
+
+	* url-http.el (url-http-find-free-connection): Don't pass a nil
+	argument to url-http-mark-connection-as-busy (bug#10891).
+
+2012-02-20  Lars Ingebrigtsen  <larsi@gnus.org>
+
+	* url-queue.el (url-queue-kill-job): Delete the process sentinel
+	before killing the process to avoid a race condition between the
+	two processes killing off the process buffer.
+
+	* url.el (url-retrieve-internal): Warn about file errors when
+	pruning the cache instead of bugging out (bug#10831).
+
+2012-02-19  Lars Ingebrigtsen  <larsi@gnus.org>
+
+	* url-queue.el (url-queue-callback-function): Remove the job from
+	the queue so that we don't kill the current buffer, which will
+	then make the callback function kill a random buffer.
+
+2012-02-14  Lars Ingebrigtsen  <larsi@gnus.org>
+
+	* url-queue.el (url-queue-kill-job): Refactored out code.
+	(url-queue-remove-jobs-from-host): Use it to kill jobs that are in
+	flight.
+
+2012-02-14  Teodor Zlatanov  <tzz@lifelogs.com>
+
+	* url-future.el: Minor doc update.
+
+2012-02-14  Leo Liu  <sdl.web@gmail.com>
+
+	* url-future.el: Fix last change.
+
+2012-02-13  Teodor Zlatanov  <tzz@lifelogs.com>
+
+	* url-future.el (url-future-test): Move to test/automated.
+
+2012-02-10  Lars Ingebrigtsen  <larsi@gnus.org>
+
+	* url-http.el (url-http-parse-headers): When redirecting, pass on
+	the `inhibit-cookie' parameter.
+
+2012-02-10  Glenn Morris  <rgm@gnu.org>
+
+	* url-queue.el (url-queue-retrieve): Fic previous doc fix.
+
+2012-02-10  Andreas Schwab  <schwab@linux-m68k.org>
+
+	* url-http.el (url-http-clean-headers): Return the number of
+	removed characters.
+	(url-http-wait-for-headers-change-function): Adjust end position
+	after cleaning the headers.  (Bug#10768)
+
+2012-02-10  Glenn Morris  <rgm@gnu.org>
+
+	* url-queue.el (url-queue-retrieve): Doc fix.
+
+2012-02-08  Lars Ingebrigtsen  <larsi@gnus.org>
+
+	* url-parse.el (url): Add the `use-cookies' slot to the URL struct
+	to be able to keep track of whether to do cookies or not on a
+	per-URL basis.
+
+	* url-queue.el (url-queue-retrieve): Take an optional
+	`inhibit-cookies' parameter.
+
+	* url.el (url-retrieve): Ditto.
+
+	* url-http.el (url-http-create-request): Don't send cookies unless
+	requested.
+	(url-http-parse-headers): Don't store cookies unless requested.
+
+2012-02-06  Lars Ingebrigtsen  <larsi@gnus.org>
+
+	* url-cache.el (url-cache-prune-cache): New function.
+	(url-cache-prune-cache): Check that the directory exists before
+	trying to delete it.
+
+	* url.el (url-retrieve-number-of-calls): New variable.
+	(url-retrieve-internal): Use it to expire the cache once in a
+	while.
+
+	* url-queue.el (url-queue-setup-runners): New function that uses
+	`run-with-idle-timer' for extra asynchronicity.
+	(url-queue-remove-jobs-from-host): New function.
+	(url-queue-callback-function): Remove jobs from the same host if
+	connection failed.
+
+2012-01-12  Glenn Morris  <rgm@gnu.org>
+
+	* url-auth.el (url-basic-auth, url-digest-auth):
+	Allow reading usernames etc when the minibuffer is already in use,
+	eg in url-handler-mode.  (Bug#10298)
+
 2011-11-15  Juanma Barranquero  <lekktu@gmail.com>
 
 	* url-dav.el (url-dav-delete-file): Fix typo.
@@ -51,8 +336,8 @@
 
 2011-07-03  Lars Magne Ingebrigtsen  <larsi@gnus.org>
 
-	* url-http.el (url-http-wait-for-headers-change-function): Remove
-	pointless "HTTP/0.9 How I hate thee!" message (bug#6735).
+	* url-http.el (url-http-wait-for-headers-change-function):
+	Remove pointless "HTTP/0.9 How I hate thee!" message (bug#6735).
 
 2011-06-04  Andreas Schwab  <schwab@linux-m68k.org>
 
@@ -80,16 +365,15 @@
 2011-05-02  Lars Magne Ingebrigtsen  <larsi@gnus.org>
 
 	* url-queue.el: New file.
-	(url-queue-run-queue): Pick the first waiting job, and not the
-	last.
+	(url-queue-run-queue): Pick the first waiting job, and not the last.
 	(url-queue-parallel-processes): Lower the concurrency level, since
 	Emacs doesn't seem to like too many async processes.
 	(url-queue-prune-old-entries): Fix up the pruning code.
 
 2011-04-16  Lars Magne Ingebrigtsen  <larsi@gnus.org>
 
-	* url-http.el (url-http-wait-for-headers-change-function): Protect
-	against malformed headerless responses from servers.
+	* url-http.el (url-http-wait-for-headers-change-function):
+	Protect against malformed headerless responses from servers.
 
 2011-04-02  Chong Yidong  <cyd@stupidchicken.com>
 
@@ -117,9 +401,9 @@
 
 2011-02-03  Lars Ingebrigtsen  <larsi@gnus.org>
 
-	* url-http.el (url-http-wait-for-headers-change-function): Don't
-	move point if the callback function has moved changed/killed the
-	process buffer.
+	* url-http.el (url-http-wait-for-headers-change-function):
+	Don't move point if the callback function has moved/changed/killed
+	the process buffer.
 
 2010-12-16  Miles Bader  <miles@gnu.org>
 
@@ -192,8 +476,8 @@
 
 2010-10-01  Lars Magne Ingebrigtsen  <larsi@gnus.org>
 
-	* url-cookie.el (url-cookie-handle-set-cookie): Use
-	url-lazy-message for the cookie warning, which isn't very interesting.
+	* url-cookie.el (url-cookie-handle-set-cookie): Use url-lazy-message
+	for the cookie warning, which isn't very interesting.
 
 	* url-http.el (url-http-async-sentinel): Check that the buffer is
 	still alive before switching to it.
@@ -259,13 +543,13 @@
 2010-07-01  Mark A. Hershberger  <mah@everybody.org>
 
 	* url-http.el (url-http-create-request): Add a CRLF on the end so
-	that POSTs with content to https urls work.
+	that POSTs with content to https URLs work.
 	See <https://bugs.launchpad.net/mediawiki-el/+bug/540759>
 
 2010-06-22  Mark A. Hershberger  <mah@everybody.org>
 
 	* url-parse.el (url-user-for-url, url-password-for-url):
-	Convenience functions that get usernames and passwords for urls
+	Convenience functions that get usernames and passwords for URLs
 	from auth-source functions.
 
 2010-06-12  Štěpán Němec  <stepnem@gmail.com>  (tiny change)
@@ -2500,7 +2784,7 @@
 ;; coding: utf-8
 ;; End:
 
-	Copyright (C) 1999, 2001-2002, 2004-2011  Free Software Foundation, Inc.
+	Copyright (C) 1999, 2001-2002, 2004-2012  Free Software Foundation, Inc.
 
   This file is part of GNU Emacs.
 

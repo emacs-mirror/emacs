@@ -1,6 +1,6 @@
 ;;; tool-bar.el --- setting up the tool bar
 
-;; Copyright (C) 2000-2011  Free Software Foundation, Inc.
+;; Copyright (C) 2000-2012  Free Software Foundation, Inc.
 
 ;; Author: Dave Love <fx@gnu.org>
 ;; Keywords: mouse frames
@@ -287,6 +287,7 @@ holds a keymap."
 Possible values are `top' (tool bar on top), `bottom' (tool bar at bottom),
 `left' (tool bar on left) and `right' (tool bar on right).
 Customize `tool-bar-mode' if you want to show or hide the tool bar."
+      :version "24.1"
       :type '(choice (const top)
 		     (const bottom)
 		     (const left)

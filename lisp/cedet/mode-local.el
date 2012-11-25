@@ -1,6 +1,6 @@
 ;;; mode-local.el --- Support for mode local facilities
 ;;
-;; Copyright (C) 2004-2005, 2007-2011  Free Software Foundation, Inc.
+;; Copyright (C) 2004-2005, 2007-2012  Free Software Foundation, Inc.
 ;;
 ;; Author: David Ponce <david@dponce.com>
 ;; Maintainer: David Ponce <david@dponce.com>
@@ -522,6 +522,9 @@ See also the function `define-overload'."
         (list (mode-local--override name args body))
       result)))
 
+;;;###autoload
+(put 'define-overloadable-function 'doc-string-elt 3)
+
 (defmacro define-overloadable-function (name args docstring &rest body)
   "Define a new function, as with `defun', which can be overloaded.
 NAME is the name of the function to create.
@@ -546,6 +549,7 @@ defined.  The default is to call the function `NAME-default' with the
 appropriate arguments deduced from ARGS.
 OVERARGS is a list of arguments passed to the override and
 `NAME-default' function, in place of those deduced from ARGS."
+  (declare (doc-string 3))
   `(eval-and-compile
      (defun ,name ,args
        ,docstring

@@ -1,7 +1,7 @@
 ;;; info-look.el --- major-mode-sensitive Info index lookup facility -*- lexical-binding: t -*-
 ;; An older version of this was known as libc.el.
 
-;; Copyright (C) 1995-1999, 2001-2011 Free Software Foundation, Inc.
+;; Copyright (C) 1995-1999, 2001-2012 Free Software Foundation, Inc.
 
 ;; Author: Ralph Schleicher <rs@nunatak.allgaeu.org>
 ;;         (did not show signs of life (Nov 2001)  -stef)
@@ -732,7 +732,7 @@ Return nil if there is nothing appropriate in the buffer near point."
  :parse-rule "\\$[^({]\\|\\.[_A-Z]*\\|[_a-zA-Z0-9-]+\\|##\\|\\+="
  :doc-spec   '(
                ;; "(automake)Macro Index" is autoconf macros used in
-               ;; configure.in, not Makefile.am, so don't have that here.
+               ;; configure.ac, not Makefile.am, so don't have that here.
                ("(automake)Variable Index" nil "^[ \t]*`" "'")
                ;; In automake 1.4 macros and variables were a combined node.
                ("(automake)Macro and Variable Index" nil "^[ \t]*`" "'")

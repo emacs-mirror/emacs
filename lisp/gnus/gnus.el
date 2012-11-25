@@ -1,6 +1,6 @@
 ;;; gnus.el --- a newsreader for GNU Emacs
 
-;; Copyright (C) 1987-1990, 1993-1998, 2000-2011
+;; Copyright (C) 1987-1990, 1993-1998, 2000-2012
 ;;   Free Software Foundation, Inc.
 
 ;; Author: Masanobu UMEDA <umerin@flab.flab.fujitsu.junet>
@@ -1009,10 +1009,11 @@ be set in `.emacs' instead."
     (purp "#9999cc" "#666699")
     (no "#ff0000" "#ffff00")
     (neutral "#b4b4b4" "#878787")
+    (ma "#2020e0" "#8080ff")
     (september "#bf9900" "#ffcc00"))
   "Color alist used for the Gnus logo.")
 
-(defcustom gnus-logo-color-style 'no
+(defcustom gnus-logo-color-style 'ma
   "*Color styles used for the Gnus logo."
   :type `(choice ,@(mapcar (lambda (elem) (list 'const (car elem)))
 			   gnus-logo-color-alist))
@@ -1271,15 +1272,18 @@ Set this variable in `.emacs' instead."
   :type '(choice (const :tag "current" nil)
 		 directory))
 
-;; Site dependent variables.  These variables should be defined in
-;; paths.el.
+;; Site dependent variables.
 
-(defvar gnus-default-nntp-server nil
-  "Specify a default NNTP server.
-This variable should be defined in paths.el, and should never be set
-by the user.
-If you want to change servers, you should use `gnus-select-method'.
-See the documentation to that variable.")
+;; Should this be obsolete?
+(defcustom gnus-default-nntp-server nil
+  "The hostname of the default NNTP server.
+The empty string, or nil, means to use the local host.
+You may wish to set this on a site-wide basis.
+
+If you want to change servers, you should use `gnus-select-method'."
+  :group 'gnus-server
+  :type '(choice (const :tag "local host" nil)
+                 (string :tag "host name")))
 
 (defcustom gnus-nntpserver-file "/etc/nntpserver"
   "A file with only the name of the nntp server in it."
@@ -1326,6 +1330,8 @@ If you use this variable, you must set `gnus-nntp-server' to nil.
 
 There is a lot more to know about select methods and virtual servers -
 see the manual for details."
+  ;; Emacs has set-after since 22.1.
+  ;set-after '(gnus-default-nntp-server)
   :group 'gnus-server
   :group 'gnus-start
   :initialize 'custom-initialize-default
@@ -1626,7 +1632,7 @@ slower."
     ("nnagent" post-mail)
     ("nnimap" post-mail address prompt-address physical-address respool
      server-marks)
-    ("nnmaildir" mail respool address)
+    ("nnmaildir" mail respool address server-marks)
     ("nnnil" none))
   "*An alist of valid select methods.
 The first element of each list lists should be a string with the name
@@ -1641,12 +1647,13 @@ this variable.  I think."
 					     (const :format "%v " mail)
 					     (const :format "%v " none)
 					     (const post-mail))
-			(checklist :inline t
+			(checklist :inline t :greedy t
 				   (const :format "%v " address)
 				   (const :format "%v " prompt-address)
 				   (const :format "%v " physical-address)
-				   (const :format "%v " virtual)
-				   (const respool))))
+				   (const virtual)
+				   (const :format "%v " respool)
+				   (const server-marks))))
   :version "24.1")
 
 (defun gnus-redefine-select-method-widget ()
@@ -2798,6 +2805,8 @@ gnus-registry.el will populate this if it's loaded.")
      ("gnus-kill" gnus-kill gnus-apply-kill-file-internal
       gnus-kill-file-edit-file gnus-kill-file-raise-followups-to-author
       gnus-execute gnus-expunge gnus-batch-kill gnus-batch-score)
+     ("gnus-registry" gnus-try-warping-via-registry
+      gnus-registry-handle-action)
      ("gnus-cache" gnus-cache-possibly-enter-article gnus-cache-save-buffers
       gnus-cache-possibly-remove-articles gnus-cache-request-article
       gnus-cache-retrieve-headers gnus-cache-possibly-alter-active
@@ -3404,15 +3413,6 @@ that that variable is buffer-local to the summary buffers."
 	(t				;Has positive number
 	 (eq (gnus-request-type group article) 'news)))) ;use it.
 
-;; Returns a list of writable groups.
-(defun gnus-writable-groups ()
-  (let ((alist gnus-newsrc-alist)
-	groups group)
-    (while (setq group (car (pop alist)))
-      (unless (gnus-group-read-only-p group)
-	(push group groups)))
-    (nreverse groups)))
-
 ;; Check whether to use long file names.
 (defun gnus-use-long-file-name (symbol)
   ;; The variable has to be set...
@@ -3609,6 +3609,13 @@ that that variable is buffer-local to the summary buffers."
       ;; If p2 now is empty, they were equal.
       (null p2))))
 
+(defun gnus-method-ephemeral-p (method)
+  (let ((equal nil))
+    (dolist (ephemeral gnus-ephemeral-servers)
+      (when (gnus-sloppily-equal-method-parameters method ephemeral)
+	(setq equal t)))
+    equal))
+
 (defun gnus-methods-sloppily-equal (m1 m2)
   ;; Same method.
   (or
@@ -3681,20 +3688,9 @@ server is native)."
       group
     (concat (gnus-method-to-server-name method) ":" group)))
 
-(defun gnus-group-guess-prefixed-name (group)
-  "Guess the whole name from GROUP and METHOD."
-  (gnus-group-prefixed-name group (gnus-find-method-for-group
-			       group)))
-
 (defun gnus-group-full-name (group method)
   "Return the full name from GROUP and METHOD, even if the method is native."
   (gnus-group-prefixed-name group method t))
-
-(defun gnus-group-guess-full-name (group)
-  "Guess the full name from GROUP, even if the method is native."
-  (if (gnus-group-prefixed-p group)
-      group
-    (gnus-group-full-name group (gnus-find-method-for-group group))))
 
 (defun gnus-group-guess-full-name-from-command-method (group)
   "Guess the full name from GROUP, even if the method is native."
@@ -3828,12 +3824,28 @@ You should probably use `gnus-find-method-for-group' instead."
   "Go through PARAMETERS and expand them according to the match data."
   (let (new)
     (dolist (elem parameters)
-      (if (and (stringp (cdr elem))
-	       (string-match "\\\\[0-9&]" (cdr elem)))
-	  (push (cons (car elem)
-		      (gnus-expand-group-parameter match (cdr elem) group))
-		new)
-	(push elem new)))
+      (cond
+       ((and (stringp (cdr elem))
+             (string-match "\\\\[0-9&]" (cdr elem)))
+        (push (cons (car elem)
+                    (gnus-expand-group-parameter match (cdr elem) group))
+              new))
+       ;; For `sieve' group parameters, perform substitutions for every
+       ;; string within the match rule.  This allows for parameters such
+       ;; as:
+       ;;  ("list\\.\\(.*\\)"
+       ;;   (sieve header :is "list-id" "<\\1.domain.org>"))
+       ((eq 'sieve (car elem))
+        (push (mapcar (lambda (sieve-elem)
+                        (if (and (stringp sieve-elem)
+                                 (string-match "\\\\[0-9&]" sieve-elem))
+                            (gnus-expand-group-parameter match sieve-elem
+                                                         group)
+                          sieve-elem))
+                      (cdr elem))
+              new))
+       (t
+	(push elem new))))
     new))
 
 (defun gnus-group-fast-parameter (group symbol &optional allow-list)
@@ -3860,13 +3872,25 @@ The function `gnus-group-find-parameter' will do that for you."
 	  ;; The car is regexp matching for matching the group name.
 	  (when (string-match (car head) group)
 	    ;; The cdr is the parameters.
-	    (setq result (gnus-group-parameter-value (cdr head)
-						     symbol allow-list))
-	    (when result
-	      ;; Expand if necessary.
-	      (if (and (stringp result) (string-match "\\\\[0-9&]" result))
-		  (setq result (gnus-expand-group-parameter (car head)
-							    result group))))))
+	    (let ((this-result
+		   (gnus-group-parameter-value (cdr head) symbol allow-list t)))
+	      (when this-result
+		(setq result (car this-result))
+		;; Expand if necessary.
+		(cond
+                 ((and (stringp result) (string-match "\\\\[0-9&]" result))
+                  (setq result (gnus-expand-group-parameter
+                                (car head) result group)))
+                 ;; For `sieve' group parameters, perform substitutions
+                 ;; for every string within the match rule (see above).
+                 ((eq symbol 'sieve)
+                  (setq result
+                        (mapcar (lambda (elem)
+                                  (if (stringp elem)
+                                      (gnus-expand-group-parameter (car head)
+                                                                   elem group)
+                                    elem))
+                                result))))))))
 	;; Done.
 	result))))
 
@@ -3876,7 +3900,9 @@ If SYMBOL, return the value of that symbol in the group parameters.
 
 If you call this function inside a loop, consider using the faster
 `gnus-group-fast-parameter' instead."
-  (with-current-buffer gnus-group-buffer
+  (with-current-buffer (if (buffer-live-p (get-buffer gnus-group-buffer))
+			   gnus-group-buffer
+			 (current-buffer))
     (if symbol
 	(gnus-group-fast-parameter group symbol allow-list)
       (nconc
@@ -4113,12 +4139,17 @@ parameters."
   (if (or (not (inline (gnus-similar-server-opened method)))
 	  (not (cddr method)))
       method
-    (setq method
-	  `(,(car method) ,(concat (cadr method) "+" group)
-	    (,(intern (format "%s-address" (car method))) ,(cadr method))
-	    ,@(cddr method)))
-    (push method gnus-extended-servers)
-    method))
+    (let ((address-slot
+	   (intern (format "%s-address" (car method)))))
+      (setq method
+	    (if (assq address-slot (cddr method))
+		`(,(car method) ,(concat (cadr method) "+" group)
+		  ,@(cddr method))
+	      `(,(car method) ,(concat (cadr method) "+" group)
+		(,address-slot ,(cadr method))
+		,@(cddr method))))
+      (push method gnus-extended-servers)
+      method)))
 
 (defun gnus-server-status (method)
   "Return the status of METHOD."
@@ -4382,7 +4413,9 @@ prompt the user for the name of an NNTP server to use."
     (gnus-1 arg dont-connect slave)
     (gnus-final-warning)))
 
-(autoload 'debbugs-gnu "debbugs-gnu")
+(eval-and-compile
+  (unless (fboundp 'debbugs-gnu)
+    (autoload 'debbugs-gnu "debbugs-gnu" "List all outstanding Emacs bugs." t)))
 (defun gnus-list-debbugs ()
   "List all open Gnus bug reports."
   (interactive)

@@ -1,6 +1,6 @@
 ;;; cc-langs.el --- language specific settings for CC Mode
 
-;; Copyright (C) 1985, 1987, 1992-2011  Free Software Foundation, Inc.
+;; Copyright (C) 1985, 1987, 1992-2012  Free Software Foundation, Inc.
 
 ;; Authors:    2002- Alan Mackenzie
 ;;             1998- Martin Stjernholm
@@ -208,9 +208,10 @@ the evaluated constant value at compile time."
 
 ;; Suppress "might not be defined at runtime" warning.
 ;; This file is only used when compiling other cc files.
-(declare-function delete-duplicates "cl-seq" (cl-seq &rest cl-keys))
-(declare-function mapcan "cl-extra" (cl-func cl-seq &rest cl-rest))
-(declare-function cl-macroexpand-all "cl-extra" (form &optional env))
+;; These are defined in cl as aliases to the cl- versions.
+(declare-function delete-duplicates "cl-seq" (cl-seq &rest cl-keys) t)
+(declare-function mapcan "cl-extra" (cl-func cl-seq &rest cl-rest) t)
+(declare-function cl-macroexpand-all "cl" (form &optional env))
 
 (eval-and-compile
   ;; Some helper functions used when building the language constants.
@@ -459,8 +460,10 @@ so that all identifiers are recognized as words.")
   ;; For documentation see the following c-lang-defvar of the same name.
   ;; The value here may be a list of functions or a single function.
   t nil
-  c++ '(c-extend-region-for-CPP c-before-change-check-<>-operators)
-  (c objc) 'c-extend-region-for-CPP
+  c++ '(c-extend-region-for-CPP
+	c-before-change-check-<>-operators
+	c-invalidate-macro-cache)
+  (c objc) '(c-extend-region-for-CPP c-invalidate-macro-cache)
   ;; java 'c-before-change-check-<>-operators
   awk 'c-awk-record-region-clear-NL)
 (c-lang-defvar c-get-state-before-change-functions
@@ -576,7 +579,7 @@ keyword.  It's unspecified how far it matches.	Does not contain a \\|
 operator at the top level."
   t    (concat "[" c-alpha "_]")
   java (concat "[" c-alpha "_@]")
-  objc (concat "[" c-alpha "@]")
+  objc (concat "[" c-alpha "_@]")
   pike (concat "[" c-alpha "_`]"))
 (c-lang-defvar c-symbol-start (c-lang-const c-symbol-start))
 
@@ -2937,6 +2940,12 @@ expression is considered to be a type."
   t (or (consp (c-lang-const c-<>-type-kwds))
 	(consp (c-lang-const c-<>-arglist-kwds))))
 (c-lang-defvar c-recognize-<>-arglists (c-lang-const c-recognize-<>-arglists))
+
+(c-lang-defconst c-enums-contain-decls
+  "Non-nil means that an enum structure can contain declarations."
+  t nil
+  java t)
+(c-lang-defvar c-enums-contain-decls (c-lang-const c-enums-contain-decls))
 
 (c-lang-defconst c-recognize-paren-inits
   "Non-nil means that parenthesis style initializers exist,

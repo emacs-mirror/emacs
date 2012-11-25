@@ -1,8 +1,8 @@
 @c This is part of the Emacs manual.
-@c Copyright (C) 1985-1987, 1993-1995, 1997, 2000-2011
+@c Copyright (C) 1985-1987, 1993-1995, 1997, 2000-2012
 @c   Free Software Foundation, Inc.
 @c See file emacs.texi for copying conditions.
-@node Search, Fixit, Display, Top
+@node Search
 @chapter Searching and Replacement
 @cindex searching
 @cindex finding strings within text
@@ -17,11 +17,11 @@ thing, but search for patterns instead of fixed strings.
 (@pxref{Operating on Files}), or ask the @code{grep} program to do it
 (@pxref{Grep Searching}).
 
-
 @menu
 * Incremental Search::        Search happens as you type the string.
 * Nonincremental Search::     Specify entire string and then search.
 * Word Search::               Search for sequence of words.
+* Symbol Search::             Search for a source code symbol.
 * Regexp Search::             Search for match for a regexp.
 * Regexps::                   Syntax of regular expressions.
 * Regexp Backslash::          Regular expression constructs starting with `\'.
@@ -146,7 +146,7 @@ you don't like this feature, you can disable it by setting
   After exiting a search, you can search for the same string again by
 typing just @kbd{C-s C-s}.  The first @kbd{C-s} is the key that
 invokes incremental search, and the second @kbd{C-s} means ``search
-again.''  Similarly, @kbd{C-r C-r} searches backward for the last
+again''.  Similarly, @kbd{C-r C-r} searches backward for the last
 search string.  In determining the last search string, it doesn't
 matter whether the string was searched for with @kbd{C-s} or
 @kbd{C-r}.
@@ -217,6 +217,24 @@ search.
 
   Some of the characters you type during incremental search have
 special effects.
+
+@cindex lax space matching
+@kindex M-s SPC @r{(Incremental search)}
+@kindex SPC @r{(Incremental search)}
+@findex isearch-toggle-lax-whitespace
+@vindex search-whitespace-regexp
+  By default, incremental search performs @dfn{lax space matching}:
+each space, or sequence of spaces, matches any sequence of one or more
+spaces in the text.  Hence, @samp{foo bar} matches @samp{foo bar},
+@samp{foo  bar}, @samp{foo   bar}, and so on (but not @samp{foobar}).
+More precisely, Emacs matches each sequence of space characters in the
+search string to a regular expression specified by the variable
+@code{search-whitespace-regexp}.  For example, set it to
+@samp{"[[:space:]\n]+"} to make spaces match sequences of newlines as
+well as spaces.  To toggle lax space matching, type @kbd{M-s SPC}
+(@code{isearch-toggle-lax-whitespace}).  To disable this feature
+entirely, change @code{search-whitespace-regexp} to @code{nil}; then
+each space in the search string matches exactly one space
 
   If the search string you entered contains only lower-case letters,
 the search is case-insensitive; as long as an upper-case letter exists
@@ -450,13 +468,54 @@ the search string can match part of a word, so that the matching
 proceeds incrementally as you type.  This additional laxity does not
 apply to the lazy highlight, which always matches whole words.
 
+@node Symbol Search
+@section Symbol Search
+@cindex symbol search
+
+  A @dfn{symbol search} is much like an ordinary search, except that
+the boundaries of the search must match the boundaries of a symbol.
+The meaning of @dfn{symbol} in this context depends on the major mode,
+and usually refers to a source code token, such as a Lisp symbol in
+Emacs Lisp mode.  For instance, if you perform an incremental symbol
+search for the Lisp symbol @code{forward-word}, it would not match
+@code{isearch-forward-word}.  This feature is thus mainly useful for
+searching source code.
+
+@table @kbd
+@item M-s _
+If incremental search is active, toggle symbol search mode
+(@code{isearch-toggle-symbol}); otherwise, begin an incremental
+forward symbol search (@code{isearch-forward-symbol}).
+@item M-s _ @key{RET} @var{symbol} @key{RET}
+Search forward for @var{symbol}, nonincrementally.
+@item M-s _ C-r @key{RET} @var{symbol} @key{RET}
+Search backward for @var{symbol}, nonincrementally.
+@end table
+
+@kindex M-s _
+@findex isearch-forward-symbol
+  To begin a forward incremental symbol search, type @kbd{M-s _}.  If
+incremental search is not already active, this runs the command
+@code{isearch-forward-symbol}.  If incremental search is already
+active, @kbd{M-s _} switches to a symbol search, preserving the
+direction of the search and the current search string; you can disable
+symbol search by typing @kbd{M-s _} again.  In incremental symbol
+search, only the beginning of the search string is required to match
+the beginning of a symbol.
+
+  To begin a nonincremental symbol search, type @kbd{M-s _ @key{RET}}
+for a forward search, or @kbd{M-s _ C-r @key{RET}} or a backward
+search.  In nonincremental symbol searches, the beginning and end of
+the search string are required to match the beginning and end of a
+symbol, respectively.
+
 @node Regexp Search
 @section Regular Expression Search
 @cindex regexp search
 @cindex search for a regular expression
 
   A @dfn{regular expression} (or @dfn{regexp} for short) is a pattern
-that denotes a class of alternative strings to match.  GNU Emacs
+that denotes a class of alternative strings to match.  Emacs
 provides both incremental and nonincremental ways to search for a
 match for a regexp.  The syntax of regular expressions is explained in
 the next section.
@@ -492,12 +551,12 @@ Incremental regexp and non-regexp searches have independent defaults.
 They also have separate search rings, which you can access with
 @kbd{M-p} and @kbd{M-n}.
 
-@vindex search-whitespace-regexp
-  If you type @key{SPC} in incremental regexp search, it matches any
-sequence of whitespace characters, including newlines.  If you want to
-match just a space, type @kbd{C-q @key{SPC}}.  You can control what a
-bare space matches by setting the variable
-@code{search-whitespace-regexp} to the desired regexp.
+  Just as in ordinary incremental search, any @key{SPC} typed in
+incremental regexp search matches any sequence of one or more
+whitespace characters.  The variable @code{search-whitespace-regexp}
+specifies the regexp for the lax space matching, and @kbd{M-s SPC}
+(@code{isearch-toggle-lax-whitespace}) toggles the feature.
+@xref{Special Isearch}.
 
   In some cases, adding characters to the regexp in an incremental
 regexp search can make the cursor move back and start again.  For
@@ -552,7 +611,7 @@ therefore @samp{f} is a regular expression that matches the string
 @samp{ff}.)  Likewise, @samp{o} is a regular expression that matches
 only @samp{o}.  (When case distinctions are being ignored, these regexps
 also match @samp{F} and @samp{O}, but we consider this a generalization
-of ``the same string,'' rather than an exception.)
+of ``the same string'', rather than an exception.)
 
   Any two regular expressions @var{a} and @var{b} can be concatenated.
 The result is a regular expression which matches a string if @var{a}
@@ -801,7 +860,7 @@ After the end of a @samp{\( @dots{} \)} construct, the matcher remembers
 the beginning and end of the text matched by that construct.  Then,
 later on in the regular expression, you can use @samp{\} followed by the
 digit @var{d} to mean ``match the same text matched the @var{d}th time
-by the @samp{\( @dots{} \)} construct.''
+by the @samp{\( @dots{} \)} construct''.
 
 The strings matching the first nine @samp{\( @dots{} \)} constructs
 appearing in a regular expression are assigned numbers 1 through 9 in
@@ -974,6 +1033,13 @@ instead (@pxref{Mark}).  The basic replace commands replace one
 is possible to perform several replacements in parallel, using the
 command @code{expand-region-abbrevs} (@pxref{Expanding Abbrevs}).
 
+@vindex replace-lax-whitespace
+  Unlike incremental search, the replacement commands do not use lax
+space matching (@pxref{Special Isearch}) by default.  To enable lax
+space matching for replacement, change the variable
+@code{replace-lax-whitespace} to @code{t}.  (This only affects how
+Emacs finds the text to replace, not the replacement text.)
+
 @menu
 * Unconditional Replace::   Replacing all matches for a string.
 * Regexp Replace::          Replacing all matches for a regexp.
@@ -981,7 +1047,7 @@ command @code{expand-region-abbrevs} (@pxref{Expanding Abbrevs}).
 * Query Replace::           How to use querying.
 @end menu
 
-@node Unconditional Replace, Regexp Replace, Replace, Replace
+@node Unconditional Replace
 @subsection Unconditional Replacement
 @findex replace-string
 
@@ -1011,7 +1077,7 @@ surrounded by word boundaries.
   @xref{Replacement and Case}, for details about case-sensitivity in
 replace commands.
 
-@node Regexp Replace, Replacement and Case, Unconditional Replace, Replace
+@node Regexp Replace
 @subsection Regexp Replacement
 @findex replace-regexp
 
@@ -1030,7 +1096,7 @@ it can refer to all or part of what is matched by the @var{regexp}.
 @samp{\&} in @var{newstring} stands for the entire match being
 replaced.  @samp{\@var{d}} in @var{newstring}, where @var{d} is a
 digit, stands for whatever matched the @var{d}th parenthesized
-grouping in @var{regexp}.  (This is called a ``back reference.'')
+grouping in @var{regexp}.  (This is called a ``back reference''.)
 @samp{\#} refers to the count of replacements already made in this
 command, as a decimal number.  In the first replacement, @samp{\#}
 stands for @samp{0}; in the second, for @samp{1}; and so on.  For
@@ -1098,7 +1164,7 @@ M-x replace-regexp @key{RET} ^.\@{0,72\@}$ @key{RET}
 \,(format "%-72sABC%05d" \& \#) @key{RET}
 @end example
 
-@node Replacement and Case, Query Replace, Regexp Replace, Replace
+@node Replacement and Case
 @subsection Replace Commands and Case
 
   If the first argument of a replace command is all lower case, the
@@ -1130,7 +1196,7 @@ exactly as given, with no case conversion.  Likewise, if either
 @code{case-replace} or @code{case-fold-search} is set to @code{nil},
 replacement is done without case conversion.
 
-@node Query Replace,, Replacement and Case, Replace
+@node Query Replace
 @subsection Query Replace
 @cindex query replace
 
@@ -1214,6 +1280,19 @@ occurrences.
 
 @item !
 to replace all remaining occurrences without asking again.
+
+@item Y @r{(Upper-case)}
+to replace all remaining occurrences in all remaining buffers in
+multi-buffer replacements (like the Dired `Q' command which performs
+query replace on selected files).  It answers this question and all
+subsequent questions in the series with "yes", without further
+user interaction.
+
+@item N @r{(Upper-case)}
+to skip to the next buffer in multi-buffer replacements without
+replacing remaining occurrences in the current buffer.  It answers
+this question "no", gives up on the questions for the current buffer,
+and continues to the next buffer in the sequence.
 
 @item ^
 to go back to the position of the previous occurrence (or what used to
@@ -1308,7 +1387,7 @@ displayed before and after each matching line.
 @kindex RET @r{(Occur mode)}
 @kindex o @r{(Occur mode)}
 @kindex C-o @r{(Occur mode)}
-In the @samp{*Occur*} buffer, you can click on each entry, or move
+In the @file{*Occur*} buffer, you can click on each entry, or move
 point there and type @key{RET}, to visit the corresponding position in
 the buffer that was searched.  @kbd{o} and @kbd{C-o} display the match
 in another window; @kbd{C-o} does not select it.  Alternatively, you
@@ -1317,7 +1396,7 @@ occurrences one by one (@pxref{Compilation Mode}).
 
 @cindex Occur Edit mode
 @cindex mode, Occur Edit
-Typing @kbd{e} in the @samp{*Occur*} buffer switches to Occur Edit
+Typing @kbd{e} in the @file{*Occur*} buffer switches to Occur Edit
 mode, in which edits made to the entries are also applied to the text
 in the originating buffer.  Type @kbd{C-c C-c} to return to Occur
 mode.

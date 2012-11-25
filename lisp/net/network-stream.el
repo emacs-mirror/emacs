@@ -1,6 +1,6 @@
 ;;; network-stream.el --- open network processes, possibly with encryption
 
-;; Copyright (C) 2010-2011 Free Software Foundation, Inc.
+;; Copyright (C) 2010-2012 Free Software Foundation, Inc.
 
 ;; Author: Lars Magne Ingebrigtsen <larsi@gnus.org>
 ;; Keywords: network
@@ -125,9 +125,8 @@ values:
   certificate.  This parameter will only be used when doing TLS
   or STARTTLS connections.
 
-If :use-starttls-if-possible is non-nil, do opportunistic
-STARTTLS upgrades even if Emacs doesn't have built-in TLS
-functionality.
+:use-starttls-if-possible is a boolean that says to do opportunistic
+STARTTLS upgrades even if Emacs doesn't have built-in TLS functionality.
 
 :nowait is a boolean that says the connection should be made
   asynchronously, if possible."
@@ -299,13 +298,19 @@ functionality.
 	       ;; support, or no gnutls-cli installed.
 	       (eq resulting-type 'plain))
       (setq error
-	    (if starttls-available
+	    (if (or (null starttls-command)
+		    starttls-available)
 		"Server does not support TLS"
-	      (concat "Emacs does not support TLS, and no external `"
-		      (if starttls-use-gnutls
-			  starttls-gnutls-program
-			starttls-program)
-		      "' program was found")))
+	      ;; See `starttls-available-p'.  If this predicate
+	      ;; changes to allow running under Windows, the error
+	      ;; message below should be amended.
+	      (if (memq system-type '(windows-nt ms-dos))
+		  (concat "Emacs does not support TLS")
+		(concat "Emacs does not support TLS, and no external `"
+			(if starttls-use-gnutls
+			    starttls-gnutls-program
+			  starttls-program)
+			"' program was found"))))
       (delete-process stream)
       (setq stream nil))
     ;; Return value:

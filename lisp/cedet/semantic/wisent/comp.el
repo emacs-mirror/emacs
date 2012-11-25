@@ -1,6 +1,6 @@
 ;;; semantic/wisent/comp.el --- GNU Bison for Emacs - Grammar compiler
 
-;; Copyright (C) 1984, 1986, 1989, 1992, 1995, 2000-2007, 2009-2011
+;; Copyright (C) 1984, 1986, 1989, 1992, 1995, 2000-2007, 2009-2012
 ;;   Free Software Foundation, Inc.
 
 ;; Author: David Ponce <david@dponce.com>
@@ -134,8 +134,11 @@ If optional LEFT is non-nil insert spaces on left."
 ;;;; ------------------------
 
 (defconst wisent-BITS-PER-WORD
-  (let ((i 1))
-    (while (not (zerop (lsh 1 i)))
+  (let ((i 1)
+	(do-shift (if (boundp 'most-positive-fixnum)
+		      (lambda (i) (lsh most-positive-fixnum (- i)))
+		    (lambda (i) (lsh 1 i)))))
+    (while (not (zerop (funcall do-shift i)))
       (setq i (1+ i)))
     i))
 
@@ -550,7 +553,7 @@ S must be a vector of integers."
               N  Ns)))
     (setq N Np)))
 
-(defun wisent-inaccessable-symbols ()
+(defun wisent-inaccessible-symbols ()
   "Find out which productions are reachable and which symbols are used."
   ;; Starting with an empty set of productions and a set of symbols
   ;; which only has the start symbol in it, iterate over all
@@ -709,7 +712,7 @@ S must be a vector of integers."
         nuseless-productions  0)
 
   (wisent-useless-nonterminals)
-  (wisent-inaccessable-symbols)
+  (wisent-inaccessible-symbols)
 
   (when (> (+ nuseless-nonterminals nuseless-productions) 0)
     (wisent-total-useless)
@@ -3538,5 +3541,13 @@ See also `wisent-compile-grammar' for more details on AUTOMATON."
         ,obn))))
 
 (provide 'semantic/wisent/comp)
+
+;; Disable messages with regards to lexical scoping, since this will
+;; produce a bunch of 'lacks a prefix' warnings with the
+;; `wisent-defcontext' trickery above.
+
+;; Local variables:
+;; byte-compile-warnings: (not lexical)
+;; End:
 
 ;;; semantic/wisent/comp.el ends here

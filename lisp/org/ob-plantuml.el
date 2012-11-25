@@ -1,11 +1,10 @@
 ;;; ob-plantuml.el --- org-babel functions for plantuml evaluation
 
-;; Copyright (C) 2010-2011  Free Software Foundation, Inc.
+;; Copyright (C) 2010-2012  Free Software Foundation, Inc.
 
 ;; Author: Zhang Weize
 ;; Keywords: literate programming, reproducible research
 ;; Homepage: http://orgmode.org
-;; Version: 7.7
 
 ;; This file is part of GNU Emacs.
 
@@ -45,6 +44,7 @@
 (defcustom org-plantuml-jar-path nil
   "Path to the plantuml.jar file."
   :group 'org-babel
+  :version "24.1"
   :type 'string)
 
 (defun org-babel-execute:plantuml (body params)
@@ -52,12 +52,13 @@
 This function is called by `org-babel-execute-src-block'."
   (let* ((result-params (split-string (or (cdr (assoc :results params)) "")))
 	 (out-file (or (cdr (assoc :file params))
-		       (error "plantuml requires a \":file\" header argument")))
+		       (error "PlantUML requires a \":file\" header argument")))
 	 (cmdline (cdr (assoc :cmdline params)))
 	 (in-file (org-babel-temp-file "plantuml-"))
+	 (java (or (cdr (assoc :java params)) ""))
 	 (cmd (if (not org-plantuml-jar-path)
 		  (error "`org-plantuml-jar-path' is not set")
-		(concat "java -jar "
+		(concat "java " java " -jar "
 			(shell-quote-argument
 			 (expand-file-name org-plantuml-jar-path))
 			(if (string= (file-name-extension out-file) "svg")

@@ -1,6 +1,6 @@
 ;;; disp-table.el --- functions for dealing with char tables
 
-;; Copyright (C) 1987, 1994-1995, 1999, 2001-2011
+;; Copyright (C) 1987, 1994-1995, 1999, 2001-2012
 ;;   Free Software Foundation, Inc.
 
 ;; Author: Erik Naggum <erik@naggum.no>

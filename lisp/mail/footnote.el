@@ -1,6 +1,6 @@
 ;;; footnote.el --- footnote support for message mode  -*- coding: utf-8;-*-
 
-;; Copyright (C) 1997, 2000-2011 Free Software Foundation, Inc.
+;; Copyright (C) 1997, 2000-2012 Free Software Foundation, Inc.
 
 ;; Author: Steven L Baur <steve@xemacs.org>
 ;; Keywords: mail, news
@@ -35,9 +35,8 @@
 
 ;;; Code:
 
-(eval-when-compile
-  (require 'cl)
-  (defvar filladapt-token-table))
+(eval-when-compile (require 'cl-lib))
+(defvar filladapt-token-table)
 
 (defgroup footnote nil
   "Support for footnotes in mail and news messages."
@@ -126,10 +125,12 @@ has no effect on buffers already displaying footnotes."
   :type 'string
   :group 'footnote)
 
-(defvar footnote-signature-separator (if (boundp 'message-signature-separator)
-					 message-signature-separator
-				       "^-- $")
-  "*String used to recognize .signatures.")
+(defcustom footnote-signature-separator (if (boundp 'message-signature-separator)
+					    message-signature-separator
+					  "^-- $")
+  "Regexp used by Footnote mode to recognize signatures."
+  :type 'regexp
+  :group 'footnote)
 
 ;;; Private variables
 
@@ -642,12 +643,12 @@ If the variable `footnote-narrow-to-footnotes-when-editing' is set,
 the buffer is narrowed to the footnote body.  The restriction is removed
 by using `Footnote-back-to-message'."
   (interactive "*P")
-  (let (num)
-    (if footnote-text-marker-alist
-	(if (< (point) (cadar (last footnote-pointer-marker-alist)))
-	    (setq num (Footnote-make-hole))
-	  (setq num (1+ (caar (last footnote-text-marker-alist)))))
-      (setq num 1))
+  (let ((num
+         (if footnote-text-marker-alist
+             (if (< (point) (cl-cadar (last footnote-pointer-marker-alist)))
+                 (Footnote-make-hole)
+               (1+ (caar (last footnote-text-marker-alist))))
+           1)))
     (message "Adding footnote %d" num)
     (Footnote-insert-footnote num)
     (insert-before-markers (make-string footnote-body-tag-spacing ? ))

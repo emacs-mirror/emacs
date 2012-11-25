@@ -1,6 +1,6 @@
 ;;; m4-mode.el --- m4 code editing commands for Emacs
 
-;; Copyright (C) 1996-1997, 2001-2011  Free Software Foundation, Inc.
+;; Copyright (C) 1996-1997, 2001-2012  Free Software Foundation, Inc.
 
 ;; Author: Andrew Csillag <drew_csillag@geocities.com>
 ;; Maintainer: Andrew Csillag <drew_csillag@geocities.com>
@@ -80,7 +80,7 @@
   "Default font-lock-keywords for `m4 mode'.")
 
 (defcustom m4-mode-hook nil
-  "*Hook called by `m4-mode'."
+  "Hook called by `m4-mode'."
   :type 'hook
   :group 'm4)
 

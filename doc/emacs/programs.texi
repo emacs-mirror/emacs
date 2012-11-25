@@ -1,15 +1,15 @@
 @c This is part of the Emacs manual.
-@c Copyright (C) 1985-1987, 1993-1995, 1997, 1999-2011
+@c Copyright (C) 1985-1987, 1993-1995, 1997, 1999-2012
 @c   Free Software Foundation, Inc.
 @c See file emacs.texi for copying conditions.
-@node Programs, Building, Text, Top
+@node Programs
 @chapter Editing Programs
 @cindex Lisp editing
 @cindex C editing
 @cindex program editing
 
   This chapter describes Emacs features for facilitating editing
-programs.  Some of these features can:
+programs.  Some of the things these features can do are:
 
 @itemize @bullet
 @item
@@ -128,8 +128,7 @@ IDL/Pike/AWK (@pxref{Top, , CC Mode, ccmode, CC Mode}), and IDLWAVE
 @ifnotinfo
   The Emacs distribution contains Info manuals for the major modes for
 Ada, C/C++/Objective C/Java/Corba IDL/Pike/AWK, and IDLWAVE.  For
-Fortran mode, see the ``Fortran'' section in the Info version of the
-Emacs manual, which is not included in this printed version.
+Fortran mode, @pxref{Fortran,,, emacs-xtra, Specialized Emacs Features}.
 @end ifnotinfo
 
 @node Defuns
@@ -186,15 +185,13 @@ delimiter from starting a defun.  Here's an example:
 highlights confusing opening delimiters (those that ought to be
 quoted) in bold red.
 
+@vindex open-paren-in-column-0-is-defun-start
   If you need to override this convention, you can do so by setting
-this user option:
-
-@defvar open-paren-in-column-0-is-defun-start
+the variable @code{open-paren-in-column-0-is-defun-start}.
 If this user option is set to @code{t} (the default), opening
-parentheses or braces at column zero always start defuns.  When it's
+parentheses or braces at column zero always start defuns.  When it is
 @code{nil}, defuns are found by searching for parens or braces at the
 outermost level.
-@end defvar
 
   Usually, you should leave this option at its default value of
 @code{t}.  If your buffer contains parentheses or braces in column
@@ -329,12 +326,13 @@ as you move around in a buffer.
 @findex which-function-mode
 @vindex which-func-modes
   To either enable or disable Which Function mode, use the command
-@kbd{M-x which-function-mode}.  Although Which Function mode is a
-global minor mode, it takes effect only in certain major modes: those
-listed in the variable @code{which-func-modes}.  If the value of
-@code{which-func-modes} is @code{t} rather than a list of modes, then
-Which Function mode applies to all major modes that know how to
-support it---in other words, all the major modes that support Imenu.
+@kbd{M-x which-function-mode}.  Which Function mode is a global minor
+mode.  By default, it takes effect in all major modes major modes that
+know how to support it (i.e.@: all the major modes that support
+Imenu).  You can restrict it to a specific list of major modes by
+changing the value of the variable @code{which-func-modes} from
+@code{t} (which means to support all available major modes) to a list
+of major mode names.
 
 @node Program Indent
 @section Indentation for Programs
@@ -952,7 +950,7 @@ comment text.
 comment on the current line, along with the whitespace before it.
 Since the comment is saved to the kill ring, you can reinsert it on
 another line by moving to the end of that line, doing @kbd{C-y}, and
-then @kbd{M-;} to realign the command.  You can achieve the same
+then @kbd{M-;} to realign the comment.  You can achieve the same
 effect as @kbd{C-u M-;} by typing @kbd{M-x comment-kill}
 (@code{comment-dwim} actually calls @code{comment-kill} as a
 subroutine when it is given a prefix argument).
@@ -1084,8 +1082,7 @@ documentation of functions, variables and commands that you plan to
 use in your program.
 
 @menu
-* Info Lookup::         Looking up library functions and commands
-                          in Info files.
+* Info Lookup::         Looking up library functions and commands in Info files.
 * Man Page::            Looking up man pages of library functions and commands.
 * Lisp Doc::            Looking up Emacs Lisp functions, etc.
 @end menu
@@ -1110,7 +1107,7 @@ You can also use @kbd{M-x info-lookup-file} to look for documentation
 for a file name.
 
   If you use @kbd{C-h S} in a major mode that does not support it,
-it asks you to specify the ``symbol help mode.''  You should enter
+it asks you to specify the ``symbol help mode''.  You should enter
 a command such as @code{c-mode} that would select a major
 mode which @kbd{C-h S} does support.
 
@@ -1131,7 +1128,7 @@ prompts for a topic, with completion (@pxref{Completion}), and runs
 the @command{man} program to format the corresponding man page.  If
 the system permits, it runs @command{man} asynchronously, so that you
 can keep on editing while the page is being formatted.  The result
-goes in a buffer named @samp{*Man @var{topic}*}.  These buffers use a
+goes in a buffer named @file{*Man @var{topic}*}.  These buffers use a
 special major mode, Man mode, that facilitates scrolling and jumping
 to other manual pages.  For details, type @kbd{C-h m} while in a Man
 mode buffer.
@@ -1166,7 +1163,7 @@ command.  Unlike @kbd{M-x man}, it does not run any external programs
 to format and display the man pages; the formatting is done by Emacs,
 so it works on systems such as MS-Windows where the @command{man}
 program may be unavailable.  It prompts for a man page, and displays
-it in a buffer named @samp{*WoMan @var{section} @var{topic}}.
+it in a buffer named @file{*WoMan @var{section} @var{topic}}.
 
   @kbd{M-x woman} computes the completion list for manpages the first
 time you invoke the command.  With a numeric argument, it recomputes
@@ -1415,6 +1412,12 @@ paragraph commands to work on.  Auto Fill mode, if enabled in a
 programming language major mode, indents the new lines which it
 creates.
 
+@findex electric-layout-mode
+  Electric Layout mode (@kbd{M-x electric-layout-mode}) is a global
+minor mode that automatically inserts newlines when you type certain
+characters; for example, @samp{@{}, @samp{@}} and @samp{;} in Javascript
+mode.
+
   Apart from Hideshow mode (@pxref{Hideshow}), another way to
 selectively display parts of a program is to use the selective display
 feature (@pxref{Selective Display}).  Programming modes often also
@@ -1446,7 +1449,7 @@ with the Foldout package (@pxref{Foldout}).
 
   This section gives a brief description of the special features
 available in C, C++, Objective-C, Java, CORBA IDL, Pike and AWK modes.
-(These are called ``C mode and related modes.'')
+(These are called ``C mode and related modes''.)
 @ifinfo
 @xref{Top,, CC Mode, ccmode, CC Mode}, for more details.
 @end ifinfo
@@ -1548,8 +1551,8 @@ after the mode name:
 @kindex C-c C-l @r{(C mode)}
 @findex c-toggle-electric-state
 Toggle electric action (@code{c-toggle-electric-state}).  With a
-prefix argument, this command enables electric action if the argument
-is positive, disables it if it is negative.
+positive prefix argument, this command enables electric action, with a
+negative one it disables it.
 @end table
 
   Electric characters insert newlines only when, in addition to the
@@ -1586,8 +1589,7 @@ preprocessor commands.
 @findex c-hungry-delete-backwards
 @kindex C-c C-@key{DEL} (C Mode)
 @kindex C-c @key{DEL} (C Mode)
-@code{c-hungry-delete-backwards}---Delete the entire block of whitespace
-preceding point.
+Delete the entire block of whitespace preceding point (@code{c-hungry-delete-backwards}).
 
 @item C-c C-d
 @itemx C-c C-@key{DELETE}
@@ -1596,8 +1598,7 @@ preceding point.
 @kindex C-c C-d (C Mode)
 @kindex C-c C-@key{DELETE} (C Mode)
 @kindex C-c @key{DELETE} (C Mode)
-@code{c-hungry-delete-forward}---Delete the entire block of whitespace
-following point.
+Delete the entire block of whitespace after point (@code{c-hungry-delete-forward}).
 @end table
 
   As an alternative to the above commands, you can enable @dfn{hungry
@@ -1610,9 +1611,7 @@ preceding whitespace, not just one space, and a single @kbd{C-c C-d}
 @item M-x c-toggle-hungry-state
 @findex c-toggle-hungry-state
 Toggle the hungry-delete feature
-(@code{c-toggle-hungry-state})@footnote{This command had the binding
-@kbd{C-c C-d} in earlier versions of Emacs.  @kbd{C-c C-d} is now
-bound to @code{c-hungry-delete-forward}.}.  With a prefix argument,
+(@code{c-toggle-hungry-state}).  With a prefix argument,
 this command turns the hungry-delete feature on if the argument is
 positive, and off if it is negative.
 @end table
@@ -1651,11 +1650,12 @@ needs a binding to be useful.  The following code will bind it to
 @kbd{C-j}.  We use @code{c-initialization-hook} here to make sure
 the keymap is loaded before we try to change it.
 
-@smallexample
+@example
 (defun my-bind-clb ()
-  (define-key c-mode-base-map "\C-j" 'c-context-line-break))
+  (define-key c-mode-base-map "\C-j"
+              'c-context-line-break))
 (add-hook 'c-initialization-hook 'my-bind-clb)
-@end smallexample
+@end example
 
 @item C-M-h
 Put mark at the end of a function definition, and put point at the
@@ -1700,7 +1700,7 @@ inserted on that line, and any @samp{\} there is deleted.
 @cindex preprocessor highlighting
 @findex cpp-highlight-buffer
 Highlight parts of the text according to its preprocessor conditionals.
-This command displays another buffer named @samp{*CPP Edit*}, which
+This command displays another buffer named @file{*CPP Edit*}, which
 serves as a graphic menu for selecting how to display particular kinds
 of conditionals and their contents.  After changing various settings,
 click on @samp{[A]pply these settings} (or go to that buffer and type

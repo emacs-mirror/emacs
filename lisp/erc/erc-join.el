@@ -1,8 +1,9 @@
 ;;; erc-join.el --- autojoin channels on connect and reconnects
 
-;; Copyright (C) 2002-2004, 2006-2011 Free Software Foundation, Inc.
+;; Copyright (C) 2002-2004, 2006-2012 Free Software Foundation, Inc.
 
 ;; Author: Alex Schroeder <alex@gnu.org>
+;; Maintainer: FSF
 ;; Keywords: irc
 ;; URL: http://www.emacswiki.org/cgi-bin/wiki.pl?ErcAutoJoin
 
@@ -32,7 +33,7 @@
 ;;; Code:
 
 (require 'erc)
-(eval-when-compile (require 'cl))
+(require 'auth-source)
 
 (defgroup erc-autojoin nil
   "Enable autojoining."
@@ -56,6 +57,13 @@ Every element in the alist has the form (SERVER . CHANNELS).
 SERVER is a regexp matching the server, and channels is the
 list of channels to join.
 
+If the channel(s) require channel keys for joining, the passwords
+are found via auth-source.  For instance, if you use ~/.authinfo
+as your auth-source backend, then put something like the
+following in that file:
+
+machine irc.example.net login \"#fsf\" password sEcReT
+
 Customize this variable to set the value for your first connect.
 Once you are connected and join and part channels, this alist
 keeps track of what channels you are on, and will join them
@@ -75,8 +83,9 @@ If the value is `ident', autojoin after successful NickServ
 identification, or after `erc-autojoin-delay' seconds.
 Any other value means the same as `connect'."
   :group 'erc-autojoin
-  :type  '(choice (const :tag "On Connection" 'connect)
-		  (const :tag "When Identified" 'ident)))
+  :version "24.1"
+  :type  '(choice (const :tag "On Connection" connect)
+		  (const :tag "When Identified" ident)))
 
 (defcustom erc-autojoin-delay 30
   "Number of seconds to wait before attempting to autojoin channels.
@@ -84,6 +93,7 @@ This only takes effect if `erc-autojoin-timing' is `ident'.
 If NickServ identification occurs before this delay expires, ERC
 autojoins immediately at that time."
   :group 'erc-autojoin
+  :version "24.1"
   :type  'integer)
 
 (defcustom erc-autojoin-domain-only t
@@ -129,7 +139,7 @@ This function is run from `erc-nickserv-identified-hook'."
 	(when (string-match (car l) server)
 	  (dolist (chan (cdr l))
 	    (unless (erc-member-ignore-case chan joined)
-	      (erc-server-send (concat "join " chan))))))))
+	      (erc-server-join-channel server chan)))))))
   nil)
 
 (defun erc-autojoin-channels (server nick)
@@ -146,9 +156,24 @@ This function is run from `erc-nickserv-identified-hook'."
     (dolist (l erc-autojoin-channels-alist)
       (when (string-match (car l) server)
 	(dolist (chan (cdr l))
-	  (erc-server-send (concat "join " chan))))))
+	  (erc-server-join-channel server chan)))))
   ;; Return nil to avoid stomping on any other hook funcs.
   nil)
+
+(defun erc-server-join-channel (server channel)
+  (let* ((secret (plist-get (nth 0 (auth-source-search
+				    :max 1
+				    :host server
+				    :port "irc"
+				    :user channel))
+			    :secret))
+	 (password (if (functionp secret)
+		       (funcall secret)
+		     secret)))
+    (erc-server-send (concat "join " channel
+			     (if password
+				 (concat " " password)
+			       "")))))
 
 (defun erc-autojoin-add (proc parsed)
   "Add the channel being joined to `erc-autojoin-channels-alist'."

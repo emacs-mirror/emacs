@@ -1,6 +1,6 @@
 ;;; mail-extr.el --- extract full name and address from RFC 822 mail header -*- coding: utf-8 -*-
 
-;; Copyright (C) 1991-1994, 1997, 2001-2011  Free Software Foundation, Inc.
+;; Copyright (C) 1991-1994, 1997, 2001-2012  Free Software Foundation, Inc.
 
 ;; Author: Joe Wells <jbw@cs.bu.edu>
 ;; Maintainer: FSF
@@ -218,14 +218,14 @@
 ;;
 
 (defcustom mail-extr-guess-middle-initial nil
-  "*Whether to try to guess middle initial from mail address.
+  "Whether to try to guess middle initial from mail address.
 If true, then when we see an address like \"John Smith <jqs@host.com>\"
 we will assume that \"John Q. Smith\" is the fellow's name."
   :type 'boolean
   :group 'mail-extr)
 
 (defcustom mail-extr-ignore-single-names nil
-  "*Whether to ignore a name that is just a single word.
+  "Whether to ignore a name that is just a single word.
 If true, then when we see an address like \"Idiot <dumb@stupid.com>\"
 we will act as though we couldn't find a full name in the address."
   :type 'boolean
@@ -244,19 +244,19 @@ we will act as though we couldn't find a full name in the address."
 (defcustom mail-extr-full-name-prefixes
   (purecopy
    "\\(Prof\\|D[Rr]\\|Mrs?\\|Rev\\|Rabbi\\|SysOp\\|LCDR\\)\\.?[ \t\n]")
-  "*Matches prefixes to the full name that identify a person's position.
+  "Matches prefixes to the full name that identify a person's position.
 These are stripped from the full name because they do not contribute to
 uniquely identifying the person."
   :type 'regexp
   :group 'mail-extr)
 
 (defcustom mail-extr-@-binds-tighter-than-! nil
-  "*Whether the local mail transport agent looks at ! before @."
+  "Whether the local mail transport agent looks at ! before @."
   :type 'boolean
   :group 'mail-extr)
 
 (defcustom mail-extr-mangle-uucp nil
-  "*Whether to throw away information in UUCP addresses
+  "Whether to throw away information in UUCP addresses
 by translating things like \"foo!bar!baz@host\" into \"baz@bar.UUCP\"."
   :type 'boolean
   :group 'mail-extr)
@@ -394,7 +394,7 @@ by translating things like \"foo!bar!baz@host\" into \"baz@bar.UUCP\"."
 ;; Matches ham radio call signs.
 ;; Help from: Mat Maessen N2NJZ <maessm@rpi.edu>, Mark Feit
 ;; <mark@era.com>, Michael Covington <mcovingt@ai.uga.edu>.
-;; Examples: DX504 DX515 K5MRU K8DHK KA9WGN KA9WGN KD3FU KD6EUI KD6HBW
+;; Examples: DX504 DX515 K5MRU K8DHK KA9WGN KD3FU KD6EUI KD6HBW
 ;; KE9TV KF0NV N1API N3FU N3GZE N3IGS N4KCC N7IKQ N9HHU W4YHF W6ANK WA2SUH
 ;; WB7VZI N2NJZ NR3G KJ4KK AB4UM AL7NI KH6OH WN3KBT N4TMI W1A N0NZO
 (defconst mail-extr-ham-call-sign-pattern
@@ -1454,7 +1454,7 @@ consing a string.)"
     ))
 
 (defcustom mail-extr-disable-voodoo "\\cj"
-  "*If it is a regexp, names matching it will never be modified.
+  "If it is a regexp, names matching it will never be modified.
 If it is neither nil nor a string, modifying of names will never take
 place.  It affects how `mail-extract-address-components' works."
   :type '(choice (regexp :size 0)

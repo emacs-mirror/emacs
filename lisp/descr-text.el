@@ -1,6 +1,6 @@
 ;;; descr-text.el --- describe text mode
 
-;; Copyright (C) 1994-1996, 2001-2011 Free Software Foundation, Inc.
+;; Copyright (C) 1994-1996, 2001-2012 Free Software Foundation, Inc.
 
 ;; Author: Boris Goldowsky <boris@gnu.org>
 ;; Maintainer: FSF
@@ -140,7 +140,7 @@ otherwise."
 
 (defun describe-text-properties-1 (pos output-buffer)
   (let* ((properties (text-properties-at pos))
-	 (overlays (overlays-at pos))
+	 (overlays (overlays-in pos (1+ pos)))
 	 (wid-field (get-char-property pos 'field))
 	 (wid-button (get-char-property pos 'button))
 	 (wid-doc (get-char-property pos 'widget-doc))
@@ -374,14 +374,25 @@ This function is semi-obsolete.  Use `get-char-code-property'."
 		 (format "%c:%s" x doc)))
 	     mnemonics ", ")))))
 
+(declare-function quail-find-key "quail" (char))
+
 ;;;###autoload
 (defun describe-char (pos &optional buffer)
-  "Describe the character after POS (interactively, the character after point).
-Is POS is taken to be in buffer BUFFER or current buffer if nil.
-The information includes character code, charset and code points in it,
-syntax, category, how the character is encoded in a file,
-character composition information (if relevant),
-as well as widgets, buttons, overlays, and text properties."
+  "Describe position POS (interactively, point) and the char after POS.
+POS is taken to be in BUFFER, or the current buffer if BUFFER is nil.
+The information is displayed in buffer `*Help*'.
+
+The position information includes POS; the total size of BUFFER; the
+region limits, if narrowed; the column number; and the horizontal
+scroll amount, if the buffer is horizontally scrolled.
+
+The character information includes the character code; charset and
+code points in it; syntax; category; how the character is encoded in
+BUFFER and in BUFFER's file; character composition information (if
+relevant); the font and font glyphs used to display the character;
+the character's canonical name and other properties defined by the
+Unicode Data Base; and widgets, buttons, overlays, and text properties
+relevant to POS."
   (interactive "d")
   (unless (buffer-live-p buffer) (setq buffer (current-buffer)))
   (let ((src-buf (current-buffer)))
@@ -511,8 +522,27 @@ as well as widgets, buttons, overlays, and text properties."
             (setq composition nil)))
 
       (setq item-list
-            `(("character"
-               ,(format "%s (%d, #o%o, #x%x)"
+            `(("position"
+               ,(let* ((beg      (point-min))
+                       (end      (point-max))
+                       (total    (buffer-size))
+                       (percent  (if (> total 50000) ; Avoid overflow multiplying by 100
+                                     (/ (+ (/ total 200) (1- pos))  (max (/ total 100) 1))
+                                   (/ (+ (/ total 2) (* 100 (1- pos)))  (max total 1))))
+                       (hscroll  (if (= (window-hscroll) 0)
+                                     ""
+                                   (format ", Hscroll: %d" (window-hscroll))))
+                       (col      (current-column)))
+                  (if (or (/= beg 1)  (/= end (1+ total)))
+                      (format "%d of %d (%d%%), restriction: <%d-%d>, column: %d%s"
+                              pos total percent beg end col hscroll)
+                    (if (= pos end)
+                        (format "%d of %d (EOB), column: %d%s" pos total col hscroll)
+                      (format "%d of %d (%d%%), column: %d%s"
+                              pos total percent col hscroll)))))
+              ("character"
+               ,(format "%s (displayed as %s) (codepoint %d, #o%o, #x%x)"
+			char-description
                         (apply 'propertize char-description
                                (text-properties-at pos))
                         char char char))
@@ -521,7 +551,7 @@ as well as widgets, buttons, overlays, and text properties."
                   ,(symbol-name charset)
                   'type 'help-character-set 'help-args '(,charset))
                ,(format "(%s)" (charset-description charset)))
-              ("code point"
+              ("code point in charset"
                ,(let ((str (if (integerp code)
                                (format (if (< code 256) "0x%02X" "0x%04X")
                                        code)
@@ -569,7 +599,10 @@ as well as widgets, buttons, overlays, and text properties."
                                  `(insert-text-button
                                    ,current-input-method
                                    'type 'help-input-method
-                                   'help-args '(,current-input-method)))))))
+                                   'help-args '(,current-input-method))
+				 "input method")
+			 (list
+			  "type \"C-x 8 RET HEX-CODEPOINT\" or \"C-x 8 RET NAME\"")))))
               ("buffer code"
                ,(if multibyte-p
                     (encoded-string-description
@@ -648,23 +681,17 @@ as well as widgets, buttons, overlays, and text properties."
               (when (cadr elt)
                 (insert (format formatter (car elt)))
                 (dolist (clm (cdr elt))
-                  (if (eq (car-safe clm) 'insert-text-button)
-                      (progn (insert " ") (eval clm))
-                    (when (>= (+ (current-column)
-                                 (or (string-match-p "\n" clm)
-                                     (string-width clm))
-                                 1)
-                              (window-width))
-                      (insert "\n")
-                      (indent-to (1+ max-width)))
-                    (unless (zerop (length clm))
-                      (insert " " clm))))
+		  (cond ((eq (car-safe clm) 'insert-text-button)
+			 (insert " ")
+			 (eval clm))
+			((not (zerop (length clm)))
+			 (insert " " clm))))
                 (insert "\n"))))
 
           (when overlays
             (save-excursion
               (goto-char (point-min))
-              (re-search-forward "character:[ \t\n]+")
+              (re-search-forward "(displayed as ")
               (let ((end (+ (point) (length char-description))))
                 (mapc (lambda (props)
                         (let ((o (make-overlay (point) end)))
@@ -778,7 +805,7 @@ as well as widgets, buttons, overlays, and text properties."
                             (format "  %s: %s\n" elt val)))))))
 
           (if text-props-desc (insert text-props-desc))
-          (toggle-read-only 1))))))
+          (setq buffer-read-only t))))))
 
 (define-obsolete-function-alias 'describe-char-after 'describe-char "22.1")
 

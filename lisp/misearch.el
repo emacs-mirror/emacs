@@ -1,6 +1,6 @@
 ;;; misearch.el --- isearch extensions for multi-buffer search
 
-;; Copyright (C) 2007-2011  Free Software Foundation, Inc.
+;; Copyright (C) 2007-2012  Free Software Foundation, Inc.
 
 ;; Author: Juri Linkov <juri@jurta.org>
 ;; Keywords: matching
@@ -130,13 +130,7 @@ Intended to be added to `isearch-mode-hook'."
   (lambda (string bound noerror)
     (let ((search-fun
 	   ;; Use standard functions to search within one buffer
-	   (cond
-	    (isearch-word
-	     (if isearch-forward 'word-search-forward 'word-search-backward))
-	    (isearch-regexp
-	     (if isearch-forward 're-search-forward 're-search-backward))
-	    (t
-	     (if isearch-forward 'search-forward 'search-backward))))
+	   (isearch-search-fun-default))
 	  found buffer)
       (or
        ;; 1. First try searching in the initial buffer
@@ -379,5 +373,5 @@ whose file names match the specified wildcard."
 
 
 (provide 'multi-isearch)
-
+(provide 'misearch)
 ;;; misearch.el ends here

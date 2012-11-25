@@ -1,6 +1,6 @@
 ;;; em-cmpl.el --- completion using the TAB key
 
-;; Copyright (C) 1999-2011  Free Software Foundation, Inc.
+;; Copyright (C) 1999-2012  Free Software Foundation, Inc.
 
 ;; Author: John Wiegley <johnw@gnu.org>
 
@@ -70,17 +70,18 @@
 ;;; Code:
 
 (eval-when-compile
-  (require 'cl)
+  (require 'cl-lib)
   (require 'eshell))
 (require 'esh-util)
 
 ;;;###autoload
-(eshell-defgroup eshell-cmpl nil
+(progn
+(defgroup eshell-cmpl nil
   "This module provides a programmable completion function bound to
 the TAB key, which allows for completing command names, file names,
 variable names, arguments, etc."
   :tag "Argument completion"
-  :group 'eshell-module)
+  :group 'eshell-module))
 
 ;;; User Variables:
 
@@ -294,13 +295,14 @@ to writing a completion function."
     'pcomplete-expand-and-complete)
   (define-key eshell-command-map [space] 'pcomplete-expand)
   (define-key eshell-command-map [? ] 'pcomplete-expand)
-  (define-key eshell-mode-map [tab] 'pcomplete)
-  (define-key eshell-mode-map [(control ?i)] 'pcomplete)
+  (define-key eshell-mode-map [tab] 'eshell-pcomplete)
+  (define-key eshell-mode-map [(control ?i)] 'eshell-pcomplete)
+  (add-hook 'completion-at-point-functions
+            #'pcomplete-completions-at-point nil t)
   ;; jww (1999-10-19): Will this work on anything but X?
   (if (featurep 'xemacs)
       (define-key eshell-mode-map [iso-left-tab] 'pcomplete-reverse)
-    (define-key eshell-mode-map [(shift iso-lefttab)] 'pcomplete-reverse)
-    (define-key eshell-mode-map [(shift control ?i)] 'pcomplete-reverse))
+    (define-key eshell-mode-map [backtab] 'pcomplete-reverse))
   (define-key eshell-mode-map [(meta ??)] 'pcomplete-list))
 
 (defun eshell-completion-command-name ()
@@ -358,7 +360,7 @@ to writing a completion function."
 	    (nconc posns (list pos)))
 	(setq pos (1+ pos))))
     (setq posns (cdr posns))
-    (assert (= (length args) (length posns)))
+    (cl-assert (= (length args) (length posns)))
     (let ((a args)
 	  (i 0)
 	  l final)
@@ -370,7 +372,7 @@ to writing a completion function."
       (and l
 	   (setq args (nthcdr (1+ l) args)
 		 posns (nthcdr (1+ l) posns))))
-    (assert (= (length args) (length posns)))
+    (cl-assert (= (length args) (length posns)))
     (when (and args (eq (char-syntax (char-before end)) ? )
 	       (not (eq (char-before (1- end)) ?\\)))
       (nconc args (list ""))
@@ -383,7 +385,7 @@ to writing a completion function."
 			 (let ((result
 				(eshell-do-eval
 				 (list 'eshell-commands arg) t)))
-			   (assert (eq (car result) 'quote))
+			   (cl-assert (eq (car result) 'quote))
 			   (cadr result))
 		       arg)))
 		(if (numberp val)
@@ -448,6 +450,13 @@ to writing a completion function."
 				 (null completions)))
 			(all-completions filename obarray 'functionp))
 		   completions)))))))
+
+(defun eshell-pcomplete ()
+  "Eshell wrapper for `pcomplete'."
+  (interactive)
+  (condition-case nil
+      (pcomplete)
+    (text-read-only (completion-at-point)))) ; Workaround for bug#12838.
 
 (provide 'em-cmpl)
 

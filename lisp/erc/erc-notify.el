@@ -1,8 +1,9 @@
 ;;; erc-notify.el --- Online status change notification
 
-;; Copyright (C) 2002-2004, 2006-2011 Free Software Foundation, Inc.
+;; Copyright (C) 2002-2004, 2006-2012 Free Software Foundation, Inc.
 
 ;; Author: Mario Lang <mlang@lexx.delysid.org>
+;; Maintainer: FSF
 ;; Keywords: comm
 
 ;; This file is part of GNU Emacs.
@@ -29,9 +30,7 @@
 
 (require 'erc)
 (require 'erc-networks)
-(eval-when-compile
- (require 'cl)
- (require 'pcomplete))
+(eval-when-compile (require 'pcomplete))
 
 ;;;; Customizable variables
 
@@ -40,19 +39,19 @@
   :group 'erc)
 
 (defcustom erc-notify-list nil
-  "*List of nicknames you want to be notified about online/offline
+  "List of nicknames you want to be notified about online/offline
 status change."
   :group 'erc-notify
   :type '(repeat string))
 
 (defcustom erc-notify-interval 60
-  "*Time interval (in seconds) for checking online status of notified
+  "Time interval (in seconds) for checking online status of notified
 people."
   :group 'erc-notify
   :type 'integer)
 
 (defcustom erc-notify-signon-hook nil
-  "*Hook run after someone on `erc-notify-list' has signed on.
+  "Hook run after someone on `erc-notify-list' has signed on.
 Two arguments are passed to the function, SERVER and NICK, both
 strings."
   :group 'erc-notify
@@ -60,7 +59,7 @@ strings."
   :options '(erc-notify-signon))
 
 (defcustom erc-notify-signoff-hook nil
-  "*Hook run after someone on `erc-notify-list' has signed off.
+  "Hook run after someone on `erc-notify-list' has signed off.
 Two arguments are passed to the function, SERVER and NICK, both
 strings."
   :group 'erc-notify

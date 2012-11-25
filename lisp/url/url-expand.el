@@ -1,6 +1,6 @@
 ;;; url-expand.el --- expand-file-name for URLs
 
-;; Copyright (C) 1999, 2004-2011  Free Software Foundation, Inc.
+;; Copyright (C) 1999, 2004-2012  Free Software Foundation, Inc.
 
 ;; Keywords: comm, data, processes
 
@@ -24,7 +24,6 @@
 (require 'url-methods)
 (require 'url-util)
 (require 'url-parse)
-(eval-when-compile (require 'cl))
 
 (defun url-expander-remove-relative-links (name)
   ;; Strip . and .. from pathnames
@@ -116,13 +115,17 @@ path components followed by `..' are removed, along with the `..' itself."
     (setf (url-port urlobj) (or (url-port urlobj)
                                 (and (string= (url-type urlobj)
                                               (url-type defobj))
-                                     (url-port defobj))))
+				     (url-port defobj))))
     (if (not (string= "file" (url-type urlobj)))
 	(setf (url-host urlobj) (or (url-host urlobj) (url-host defobj))))
     (if (string= "ftp"  (url-type urlobj))
 	(setf (url-user urlobj) (or (url-user urlobj) (url-user defobj))))
     (if (string= (url-filename urlobj) "")
 	(setf (url-filename urlobj) "/"))
+    ;; If the object we're expanding from is full, then we are now
+    ;; full.
+    (unless (url-fullness urlobj)
+      (setf (url-fullness urlobj) (url-fullness defobj)))
     (if (string-match "^/" (url-filename urlobj))
 	nil
       (let ((query nil)

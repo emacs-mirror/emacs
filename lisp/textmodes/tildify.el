@@ -1,6 +1,6 @@
 ;;; tildify.el --- adding hard spaces into texts
 
-;; Copyright (C) 1997-2011 Free Software Foundation, Inc.
+;; Copyright (C) 1997-2012 Free Software Foundation, Inc.
 
 ;; Author:     Milan Zamazal <pdm@zamazal.org>
 ;; Version:    4.5
@@ -51,7 +51,7 @@
 
 
 (defgroup tildify nil
-  "Adding missing hard spaces or other text fragments into texts."
+  "Add hard spaces or other text fragments to text buffers."
   :version "21.1"
   :group 'wp)
 

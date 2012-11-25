@@ -1,11 +1,10 @@
 ;;; ob-js.el --- org-babel functions for Javascript
 
-;; Copyright (C) 2010-2011 Free Software Foundation
+;; Copyright (C) 2010-2012  Free Software Foundation, Inc.
 
 ;; Author: Eric Schulte
 ;; Keywords: literate programming, reproducible research, js
 ;; Homepage: http://orgmode.org
-;; Version: 7.7
 
 ;; This file is part of GNU Emacs.
 
@@ -56,6 +55,7 @@
 (defcustom org-babel-js-cmd "node"
   "Name of command used to evaluate js blocks."
   :group 'org-babel
+  :version "24.1"
   :type 'string)
 
 (defvar org-babel-js-function-wrapper
@@ -130,7 +130,7 @@ specifying a variable of the same value."
     session))
 
 (defun org-babel-variable-assignments:js (params)
-  "Return list of Javascript statements assigning the block's variables"
+  "Return list of Javascript statements assigning the block's variables."
   (mapcar
    (lambda (pair) (format "var %s=%s;"
 			  (car pair) (org-babel-js-var-to-js (cdr pair))))
@@ -152,9 +152,9 @@ then create.  Return the initialized session."
 	  (sit-for .5)
 	  (org-babel-js-initiate-session session))))
      ((string= "node" org-babel-js-cmd )
-      (error "session evaluation with node.js is not supported"))
+      (error "Session evaluation with node.js is not supported"))
      (t
-      (error "sessions are only supported with mozrepl add \":cmd mozrepl\"")))))
+      (error "Sessions are only supported with mozrepl add \":cmd mozrepl\"")))))
 
 (provide 'ob-js)
 

@@ -1,12 +1,11 @@
 ;;; ob-clojure.el --- org-babel functions for clojure evaluation
 
-;; Copyright (C) 2009-2011  Free Software Foundation, Inc.
+;; Copyright (C) 2009-2012  Free Software Foundation, Inc.
 
 ;; Author: Joel Boehland
 ;;	Eric Schulte
 ;; Keywords: literate programming, reproducible research
 ;; Homepage: http://orgmode.org
-;; Version: 7.7
 
 ;; This file is part of GNU Emacs.
 
@@ -32,7 +31,6 @@
 ;;; - clojure (at least 1.2.0)
 ;;; - clojure-mode
 ;;; - slime
-;;; - swank-clojure
 
 ;;; By far, the best way to install these components is by following
 ;;; the directions as set out by Phil Hagelberg (Technomancy) on the
@@ -47,7 +45,7 @@
 (add-to-list 'org-babel-tangle-lang-exts '("clojure" . "clj"))
 
 (defvar org-babel-default-header-args:clojure '())
-(defvar org-babel-header-arg-names:clojure '(package))
+(defvar org-babel-header-args:clojure '((package . :any)))
 
 (defun org-babel-expand-body:clojure (body params)
   "Expand BODY according to PARAMS, return the expanded body."
@@ -76,7 +74,7 @@
 
 (defun org-babel-execute:clojure (body params)
   "Execute a block of Clojure code with Babel."
-  (require 'slime) (require 'swank-clojure)
+  (require 'slime)
   (with-temp-buffer
     (insert (org-babel-expand-body:clojure body params))
     ((lambda (result)
@@ -87,7 +85,7 @@
 	   (condition-case nil (org-babel-script-escape result)
 	     (error result)))))
      (slime-eval
-      `(swank:interactive-eval-region
+      `(swank:eval-and-grab-output
      	,(buffer-substring-no-properties (point-min) (point-max)))
       (cdr (assoc :package params))))))
 

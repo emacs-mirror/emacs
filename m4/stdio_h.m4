@@ -1,5 +1,5 @@
-# stdio_h.m4 serial 40
-dnl Copyright (C) 2007-2011 Free Software Foundation, Inc.
+# stdio_h.m4 serial 42
+dnl Copyright (C) 2007-2012 Free Software Foundation, Inc.
 dnl This file is free software; the Free Software Foundation
 dnl gives unlimited permission to copy and/or distribute it,
 dnl with or without modifications, as long as this notice is preserved.
@@ -13,12 +13,13 @@ AC_DEFUN([gl_STDIO_H],
   dnl No need to create extra modules for these functions. Everyone who uses
   dnl <stdio.h> likely needs them.
   GNULIB_FSCANF=1
+  gl_MODULE_INDICATOR([fscanf])
   GNULIB_SCANF=1
+  gl_MODULE_INDICATOR([scanf])
   GNULIB_FGETC=1
   GNULIB_GETC=1
   GNULIB_GETCHAR=1
   GNULIB_FGETS=1
-  GNULIB_GETS=1
   GNULIB_FREAD=1
   dnl This ifdef is necessary to avoid an error "missing file lib/stdio-read.c"
   dnl "expected source file, required through AC_LIBSOURCES, not found". It is
@@ -72,10 +73,10 @@ AC_DEFUN([gl_STDIO_H],
 
   dnl Check for declarations of anything we want to poison if the
   dnl corresponding gnulib module is not in use, and which is not
-  dnl guaranteed by C89.
+  dnl guaranteed by both C89 and C11.
   gl_WARN_ON_USE_PREPARE([[#include <stdio.h>
-    ]], [dprintf fpurge fseeko ftello getdelim getline pclose popen renameat
-    snprintf tmpfile vdprintf vsnprintf])
+    ]], [dprintf fpurge fseeko ftello getdelim getline gets pclose popen
+    renameat snprintf tmpfile vdprintf vsnprintf])
 ])
 
 AC_DEFUN([gl_STDIO_MODULE_INDICATOR],
@@ -113,7 +114,6 @@ AC_DEFUN([gl_STDIO_H_DEFAULTS],
   GNULIB_GETCHAR=0;              AC_SUBST([GNULIB_GETCHAR])
   GNULIB_GETDELIM=0;             AC_SUBST([GNULIB_GETDELIM])
   GNULIB_GETLINE=0;              AC_SUBST([GNULIB_GETLINE])
-  GNULIB_GETS=0;                 AC_SUBST([GNULIB_GETS])
   GNULIB_OBSTACK_PRINTF=0;       AC_SUBST([GNULIB_OBSTACK_PRINTF])
   GNULIB_OBSTACK_PRINTF_POSIX=0; AC_SUBST([GNULIB_OBSTACK_PRINTF_POSIX])
   GNULIB_PCLOSE=0;               AC_SUBST([GNULIB_PCLOSE])

@@ -1,11 +1,9 @@
 @c -*-coding: iso-latin-1-*-
 @c This is part of the GNU Emacs Lisp Reference Manual.
-@c Copyright (C) 1990-1994, 2001-2011  Free Software Foundation, Inc.
+@c Copyright (C) 1990-1994, 2001-2012 Free Software Foundation, Inc.
 @c See the file elisp.texi for copying conditions.
-@setfilename ../../info/intro
 
-@node Introduction, Lisp Data Types, Top, Top
-@comment  node-name,  next,  previous,  up
+@node Introduction
 @chapter Introduction
 
   Most of the GNU Emacs text editor is written in the programming
@@ -34,15 +32,19 @@ Lisp that have counterparts in many programming languages, and later
 chapters describe features that are peculiar to Emacs Lisp or relate
 specifically to editing.
 
-  This is edition @value{VERSION} of the GNU Emacs Lisp Reference
-Manual, corresponding to Emacs version @value{EMACSVER}.
+  This is
+@iftex
+edition @value{VERSION} of
+@end iftex
+the @cite{GNU Emacs Lisp Reference Manual},
+corresponding to Emacs version @value{EMACSVER}.
 
 @menu
 * Caveats::             Flaws and a request for help.
 * Lisp History::        Emacs Lisp is descended from Maclisp.
 * Conventions::         How the manual is formatted.
 * Version Info::        Which Emacs version is running?
-* Acknowledgements::    The authors, editors, and sponsors of this manual.
+* Acknowledgments::     The authors, editors, and sponsors of this manual.
 @end menu
 
 @node Caveats
@@ -70,7 +72,7 @@ real-life example for a function or group of functions, please make an
 effort to write it up and send it in.  Please reference any comments to
 the chapter name, section name, and function name, as appropriate, since
 page numbers and chapter and section numbers will change and we may have
-trouble finding the text you are talking about.  Also state the number
+trouble finding the text you are talking about.  Also state the version
 of the edition you are criticizing.
 @end iftex
 @ifnottex
@@ -117,10 +119,10 @@ worry about it; this manual is self-contained.
 
 @pindex cl
   A certain amount of Common Lisp emulation is available via the
-@file{cl} library.  @inforef{Top, Overview, cl}.
+@file{cl-lib} library.  @xref{Top,, Overview, cl, Common Lisp Extensions}.
 
   Emacs Lisp is not at all influenced by Scheme; but the GNU project has
-an implementation of Scheme, called Guile.  We use Guile in all new GNU
+an implementation of Scheme, called Guile.  We use it in all new GNU
 software that calls for extensibility.
 
 @node Conventions
@@ -147,7 +149,7 @@ printer'' refer to those routines in Lisp that convert textual
 representations of Lisp objects into actual Lisp objects, and vice
 versa.  @xref{Printed Representation}, for more details.  You, the
 person reading this manual, are thought of as ``the programmer'' and are
-addressed as ``you.''  ``The user'' is the person who uses Lisp
+addressed as ``you''.  ``The user'' is the person who uses Lisp
 programs, including those you write.
 
 @cindex typographic conventions
@@ -162,7 +164,7 @@ being described, are formatted like this: @var{first-number}.
 
 @cindex @code{nil}
 @cindex false
-  In Lisp, the symbol @code{nil} has three separate meanings: it
+  In Emacs Lisp, the symbol @code{nil} has three separate meanings: it
 is a symbol with the name @samp{nil}; it is the logical truth value
 @var{false}; and it is the empty list---the list of zero elements.
 When used as a variable, @code{nil} always has the value @code{nil}.
@@ -220,7 +222,7 @@ the examples in this manual, this is indicated with @samp{@result{}}:
 @end example
 
 @noindent
-You can read this as ``@code{(car '(1 2))} evaluates to 1.''
+You can read this as ``@code{(car '(1 2))} evaluates to 1''.
 
   When a form is a macro call, it expands into a new form for Lisp to
 evaluate.  We show the result of the expansion with
@@ -233,7 +235,7 @@ evaluation of the expanded form.
      @result{} c
 @end example
 
-  Sometimes to help describe one form we show another form that
+  To help describe one form, we sometimes show another form that
 produces identical results.  The exact equivalence of two forms is
 indicated with @samp{@equiv{}}.
 
@@ -247,14 +249,14 @@ indicated with @samp{@equiv{}}.
 
   Many of the examples in this manual print text when they are
 evaluated.  If you execute example code in a Lisp Interaction buffer
-(such as the buffer @samp{*scratch*}), the printed text is inserted into
+(such as the buffer @file{*scratch*}), the printed text is inserted into
 the buffer.  If you execute the example by other means (such as by
 evaluating the function @code{eval-region}), the printed text is
 displayed in the echo area.
 
   Examples in this manual indicate printed text with @samp{@print{}},
 irrespective of where that text goes.  The value returned by
-evaluating the form (here @code{bar}) follows on a separate line with
+evaluating the form follows on a separate line with
 @samp{@result{}}.
 
 @example
@@ -349,7 +351,7 @@ you call the function.
 
   The keyword @code{&rest} (which must be followed by a single
 argument name) indicates that any number of arguments can follow.  The
-single argument name following @code{&rest} will receive, as its
+single argument name following @code{&rest} receives, as its
 value, a list of all the remaining arguments passed to the function.
 Do not write @code{&rest} when you call the function.
 
@@ -377,32 +379,34 @@ More generally,
 @end example
 @end defun
 
-  Any argument whose name contains the name of a type (e.g.,
-@var{integer}, @var{integer1} or @var{buffer}) is expected to be of that
-type.  A plural of a type (such as @var{buffers}) often means a list of
-objects of that type.  Arguments named @var{object} may be of any type.
-(@xref{Lisp Data Types}, for a list of Emacs object types.)  Arguments
-with other sorts of names (e.g., @var{new-file}) are discussed
-specifically in the description of the function.  In some sections,
-features common to the arguments of several functions are described at
-the beginning.
+  By convention, any argument whose name contains the name of a type
+(e.g.@: @var{integer}, @var{integer1} or @var{buffer}) is expected to
+be of that type.  A plural of a type (such as @var{buffers}) often
+means a list of objects of that type.  An argument named @var{object}
+may be of any type.  (For a list of Emacs object types, @pxref{Lisp
+Data Types}.)  An argument with any other sort of name
+(e.g.@: @var{new-file}) is specific to the function; if the function
+has a documentation string, the type of the argument should be
+described there (@pxref{Documentation}).
 
-  @xref{Lambda Expressions}, for a more complete description of optional
-and rest arguments.
+  @xref{Lambda Expressions}, for a more complete description of
+arguments modified by @code{&optional} and @code{&rest}.
 
   Command, macro, and special form descriptions have the same format,
-but the word `Function' is replaced by `Command', `Macro', or `Special
-Form', respectively.  Commands are simply functions that may be called
-interactively; macros process their arguments differently from functions
-(the arguments are not evaluated), but are presented the same way.
+but the word @samp{Function} is replaced by @samp{Command},
+@samp{Macro}, or @samp{Special Form}, respectively.  Commands are
+simply functions that may be called interactively; macros process
+their arguments differently from functions (the arguments are not
+evaluated), but are presented the same way.
 
-  Special form descriptions use a more complex notation to specify
-optional and repeated arguments because they can break the argument
-list down into separate arguments in more complicated ways.
-@samp{@r{[}@var{optional-arg}@r{]}} means that @var{optional-arg} is
-optional and @samp{@var{repeated-args}@dots{}} stands for zero or more
-arguments.  Parentheses are used when several arguments are grouped into
-additional levels of list structure.  Here is an example:
+  The descriptions of macros and special forms use a more complex
+notation to specify optional and repeated arguments, because they can
+break the argument list down into separate arguments in more
+complicated ways.  @samp{@r{[}@var{optional-arg}@r{]}} means that
+@var{optional-arg} is optional and @samp{@var{repeated-args}@dots{}}
+stands for zero or more arguments.  Parentheses are used when several
+arguments are grouped into additional levels of list structure.  Here
+is an example:
 
 @defspec count-loop (@var{var} [@var{from} @var{to} [@var{inc}]]) @var{body}@dots{}
 This imaginary special form implements a loop that executes the
@@ -442,11 +446,14 @@ from @var{body}, which includes all remaining elements of the form.
 @cindex variable descriptions
 @cindex option descriptions
 
-  A @dfn{variable} is a name that can hold a value.  Although nearly
-all variables can be set by the user, certain variables exist
-specifically so that users can change them; these are called @dfn{user
-options}.  Ordinary variables and user options are described using a
-format like that for functions except that there are no arguments.
+  A @dfn{variable} is a name that can be @dfn{bound} (or @dfn{set}) to
+an object.  The object to which a variable is bound is called a
+@dfn{value}; we say also that variable holds that value.
+Although nearly all variables can be set by the user, certain
+variables exist specifically so that users can change them; these are
+called @dfn{user options}.  Ordinary variables and user options are
+described using a format like that for functions, except that there
+are no arguments.
 
   Here is a description of the imaginary @code{electric-future-map}
 variable.@refill
@@ -457,8 +464,8 @@ Future mode.  The functions in this map allow you to edit commands you
 have not yet thought about executing.
 @end defvar
 
-  User option descriptions have the same format, but `Variable' is
-replaced by `User Option'.
+  User option descriptions have the same format, but @samp{Variable}
+is replaced by @samp{User Option}.
 
 @node Version Info
 @section Version Information
@@ -485,14 +492,14 @@ giving a prefix argument makes @var{here} non-@code{nil}.
 @end deffn
 
 @defvar emacs-build-time
-The value of this variable indicates the time at which Emacs was built
-at the local site.  It is a list of three integers, like the value
-of @code{current-time} (@pxref{Time of Day}).
+The value of this variable indicates the time at which Emacs was
+built.  It is a list of four integers, like the value of
+@code{current-time} (@pxref{Time of Day}).
 
 @example
 @group
 emacs-build-time
-     @result{} (18846 52016 156039)
+     @result{} (20614 63694 515336 438000)
 @end group
 @end example
 @end defvar
@@ -501,12 +508,10 @@ emacs-build-time
 The value of this variable is the version of Emacs being run.  It is a
 string such as @code{"23.1.1"}.  The last number in this string is not
 really part of the Emacs release version number; it is incremented
-each time you build Emacs in any given directory.  A value with four
+each time Emacs is built in any given directory.  A value with four
 numeric components, such as @code{"22.0.91.1"}, indicates an
 unreleased test version.
 @end defvar
-
-  The following two variables have existed since Emacs version 19.23:
 
 @defvar emacs-major-version
 The major version number of Emacs, as an integer.  For Emacs version
@@ -518,19 +523,19 @@ The minor version number of Emacs, as an integer.  For Emacs version
 23.1, the value is 1.
 @end defvar
 
-@node Acknowledgements
-@section Acknowledgements
+@node Acknowledgments
+@section Acknowledgments
 
-  This manual was written by Robert Krawitz, Bil Lewis, Dan LaLiberte,
-Richard@tie{}M. Stallman and Chris Welty, the volunteers of the GNU
-manual group, in an effort extending over several years.
+  This manual was originally written by Robert Krawitz, Bil Lewis, Dan
+LaLiberte, Richard@tie{}M. Stallman and Chris Welty, the volunteers of
+the GNU manual group, in an effort extending over several years.
 Robert@tie{}J. Chassell helped to review and edit the manual, with the
 support of the Defense Advanced Research Projects Agency, ARPA Order
 6082, arranged by Warren@tie{}A. Hunt, Jr.@: of Computational Logic,
-Inc.  Additional sections were written by Miles Bader, Lars Brinkhoff,
-Chong Yidong, Kenichi Handa, Lute Kamstra, Juri Linkov, Glenn Morris,
-Thien-Thi Nguyen, Dan Nicolaescu, Martin Rudalics, Kim F. Storm, Luc
-Teirlinck, and Eli Zaretskii.
+Inc.  Additional sections have since been written by Miles Bader, Lars
+Brinkhoff, Chong Yidong, Kenichi Handa, Lute Kamstra, Juri Linkov,
+Glenn Morris, Thien-Thi Nguyen, Dan Nicolaescu, Martin Rudalics, Kim
+F. Storm, Luc Teirlinck, and Eli Zaretskii, and others.
 
   Corrections were supplied by Drew Adams, Juanma Barranquero, Karl
 Berry, Jim Blandy, Bard Bloom, Stephane Boucher, David Boyes, Alan
@@ -545,3 +550,6 @@ Friedrich Pukelsheim, Arnold D. Robbins, Raul Rockwell, Jason Rumney,
 Per Starbäck, Shinichirou Sugou, Kimmo Suominen, Edward Tharp, Bill
 Trost, Rickard Westman, Jean White, Eduard Wiebe, Matthew Wilding,
 Carl Witty, Dale Worley, Rusty Wright, and David D. Zuhn.
+
+  For a more complete list of contributors, please see the relevant
+ChangeLog file in the Emacs sources.

@@ -1,6 +1,6 @@
 ;;; view.el --- peruse file or buffer without editing
 
-;; Copyright (C) 1985, 1989, 1994-1995, 1997, 2000-2011
+;; Copyright (C) 1985, 1989, 1994-1995, 1997, 2000-2012
 ;;   Free Software Foundation, Inc.
 
 ;; Author: K. Shane Hartman
@@ -309,15 +309,15 @@ this argument instead of explicitly setting `view-exit-action'.
 Do not set EXIT-ACTION to `kill-buffer' when BUFFER visits a
 file: Users may suspend viewing in order to modify the buffer.
 Exiting View mode will then discard the user's edits.  Setting
-EXIT-ACTION to `kill-buffer-if-not-modified' avoids this."
+EXIT-ACTION to `kill-buffer-if-not-modified' avoids this.
+
+This function does not enable View mode if the buffer's major-mode
+has a `special' mode-class, because such modes usually have their
+own View-like bindings."
   (interactive "bView buffer: ")
-  (if (eq (with-current-buffer buffer
-	    (get major-mode 'mode-class))
-	  'special)
-      (progn
-	(switch-to-buffer buffer)
-	(message "Not using View mode because the major mode is special"))
-    (switch-to-buffer buffer)
+  (switch-to-buffer buffer)
+  (if (eq (get major-mode 'mode-class) 'special)
+      (message "Not using View mode because the major mode is special")
     (view-mode-enter nil exit-action)))
 
 ;;;###autoload
@@ -335,11 +335,17 @@ Optional argument NOT-RETURN is ignored.
 
 Optional argument EXIT-ACTION is either nil or a function with buffer as
 argument.  This function is called when finished viewing buffer.  Use
-this argument instead of explicitly setting `view-exit-action'."
+this argument instead of explicitly setting `view-exit-action'.
+
+This function does not enable View mode if the buffer's major-mode
+has a `special' mode-class, because such modes usually have their
+own View-like bindings."
   (interactive "bIn other window view buffer:\nP")
   (let ((pop-up-windows t))
     (pop-to-buffer buffer t))
-  (view-mode-enter nil exit-action))
+  (if (eq (get major-mode 'mode-class) 'special)
+      (message "Not using View mode because the major mode is special")
+    (view-mode-enter nil exit-action)))
 
 ;;;###autoload
 (defun view-buffer-other-frame (buffer &optional not-return exit-action)
@@ -356,11 +362,17 @@ Optional argument NOT-RETURN is ignored.
 
 Optional argument EXIT-ACTION is either nil or a function with buffer as
 argument.  This function is called when finished viewing buffer.  Use
-this argument instead of explicitly setting `view-exit-action'."
+this argument instead of explicitly setting `view-exit-action'.
+
+This function does not enable View mode if the buffer's major-mode
+has a `special' mode-class, because such modes usually have their
+own View-like bindings."
   (interactive "bView buffer in other frame: \nP")
   (let ((pop-up-frames t))
     (pop-to-buffer buffer t))
-  (view-mode-enter nil exit-action))
+  (if (eq (get major-mode 'mode-class) 'special)
+      (message "Not using View mode because the major mode is special")
+    (view-mode-enter nil exit-action)))
 
 ;;;###autoload
 (define-minor-mode view-mode
@@ -501,6 +513,7 @@ that can be added see the RETURN-TO-ALIST argument of the
 function `view-mode-exit'.  If `view-return-to-alist' contains an
 entry for the selected window, purge that entry from
 `view-return-to-alist' before adding ITEM."
+  (declare (obsolete "this function has no effect." "24.1"))
   (with-current-buffer buffer
     (when view-return-to-alist
       (let* ((list view-return-to-alist)
@@ -523,7 +536,6 @@ entry for the selected window, purge that entry from
     (when item
       (setq view-return-to-alist
 	    (cons item view-return-to-alist)))))
-(make-obsolete 'view-return-to-alist-update "this function has no effect." "24.1")
 
 ;;;###autoload
 (defun view-mode-enter (&optional quit-restore exit-action)

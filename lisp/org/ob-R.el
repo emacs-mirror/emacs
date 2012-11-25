@@ -1,12 +1,11 @@
 ;;; ob-R.el --- org-babel functions for R code evaluation
 
-;; Copyright (C) 2009-2011  Free Software Foundation, Inc.
+;; Copyright (C) 2009-2012  Free Software Foundation, Inc.
 
 ;; Author: Eric Schulte
 ;;	Dan Davison
 ;; Keywords: literate programming, reproducible research, R, statistics
 ;; Homepage: http://orgmode.org
-;; Version: 7.7
 
 ;; This file is part of GNU Emacs.
 
@@ -40,24 +39,48 @@
 (declare-function ess-make-buffer-current "ext:ess-inf" ())
 (declare-function ess-eval-buffer "ext:ess-inf" (vis))
 (declare-function org-number-sequence "org-compat" (from &optional to inc))
+(declare-function org-remove-if-not "org" (predicate seq))
 
-(defconst org-babel-header-arg-names:R
-  '(width height bg units pointsize antialias quality compression
-	  res type family title fonts version paper encoding
-	  pagecentre colormodel useDingbats horizontal)
+(defconst org-babel-header-args:R
+  '((width		 . :any)
+    (height		 . :any)
+    (bg			 . :any)
+    (units		 . :any)
+    (pointsize		 . :any)
+    (antialias		 . :any)
+    (quality		 . :any)
+    (compression	 . :any)
+    (res		 . :any)
+    (type		 . :any)
+    (family		 . :any)
+    (title		 . :any)
+    (fonts		 . :any)
+    (version		 . :any)
+    (paper		 . :any)
+    (encoding		 . :any)
+    (pagecentre		 . :any)
+    (colormodel		 . :any)
+    (useDingbats	 . :any)
+    (horizontal		 . :any)
+    (results             . ((file list vector table scalar verbatim)
+			    (raw org html latex code pp wrap)
+			    (replace silent append prepend)
+			    (output value graphics))))
   "R-specific header arguments.")
 
 (defvar org-babel-default-header-args:R '())
 
-(defvar org-babel-R-command "R --slave --no-save"
-  "Name of command to use for executing R code.")
+(defcustom org-babel-R-command "R --slave --no-save"
+  "Name of command to use for executing R code."
+  :group 'org-babel
+  :version "24.1"
+  :type 'string)
 
-(defvar ess-local-process-name)
+(defvar ess-local-process-name) ; dynamically scoped
 (defun org-babel-edit-prep:R (info)
   (let ((session (cdr (assoc :session (nth 2 info)))))
     (when (and session (string-match "^\\*\\(.+?\\)\\*$" session))
-      (save-match-data (org-babel-R-initiate-session session nil))
-      (setq ess-local-process-name (match-string 1 session)))))
+      (save-match-data (org-babel-R-initiate-session session nil)))))
 
 (defun org-babel-expand-body:R (body params &optional graphics-file)
   "Expand BODY according to PARAMS, return the expanded body."
@@ -80,7 +103,8 @@
   "Execute a block of R code.
 This function is called by `org-babel-execute-src-block'."
   (save-excursion
-    (let* ((result-type (cdr (assoc :result-type params)))
+    (let* ((result-params (cdr (assoc :result-params params)))
+	   (result-type (cdr (assoc :result-type params)))
            (session (org-babel-R-initiate-session
 		     (cdr (assoc :session params)) params))
 	   (colnames-p (cdr (assoc :colnames params)))
@@ -89,7 +113,7 @@ This function is called by `org-babel-execute-src-block'."
 	   (full-body (org-babel-expand-body:R body params graphics-file))
 	   (result
 	    (org-babel-R-evaluate
-	     session full-body result-type
+	     session full-body result-type result-params
 	     (or (equal "yes" colnames-p)
 		 (org-babel-pick-name
 		  (cdr (assoc :colname-names params)) colnames-p))
@@ -120,7 +144,7 @@ This function is called by `org-babel-execute-src-block'."
 ;; helper functions
 
 (defun org-babel-variable-assignments:R (params)
-  "Return list of R statements assigning the block's variables"
+  "Return list of R statements assigning the block's variables."
   (let ((vars (mapcar #'cdr (org-babel-get-header params :var))))
     (mapcar
      (lambda (pair)
@@ -146,25 +170,45 @@ This function is called by `org-babel-execute-src-block'."
 (defun org-babel-R-assign-elisp (name value colnames-p rownames-p)
   "Construct R code assigning the elisp VALUE to a variable named NAME."
   (if (listp value)
-      (let ((transition-file (org-babel-temp-file "R-import-")))
+      (let ((max (apply #'max (mapcar #'length (org-remove-if-not
+						#'sequencep value))))
+	    (min (apply #'min (mapcar #'length (org-remove-if-not
+						#'sequencep value))))
+	    (transition-file (org-babel-temp-file "R-import-")))
         ;; ensure VALUE has an orgtbl structure (depth of at least 2)
         (unless (listp (car value)) (setq value (list value)))
         (with-temp-file transition-file
-          (insert (orgtbl-to-tsv value '(:fmt org-babel-R-quote-tsv-field)))
-          (insert "\n"))
-        (format "%s <- read.table(\"%s\", header=%s, row.names=%s, sep=\"\\t\", as.is=TRUE)"
-                name (org-babel-process-file-name transition-file 'noquote)
-		(if (or (eq (nth 1 value) 'hline) colnames-p) "TRUE" "FALSE")
-		(if rownames-p "1" "NULL")))
+          (insert
+	   (orgtbl-to-tsv value '(:fmt org-babel-R-quote-tsv-field))
+	   "\n"))
+	(let ((file (org-babel-process-file-name transition-file 'noquote))
+	      (header (if (or (eq (nth 1 value) 'hline) colnames-p)
+			  "TRUE" "FALSE"))
+	      (row-names (if rownames-p "1" "NULL")))
+	  (if (= max min)
+	      (format "%s <- read.table(\"%s\",
+                      header=%s,
+                      row.names=%s,
+                      sep=\"\\t\",
+                      as.is=TRUE)" name file header row-names)
+	    (format "%s <- read.table(\"%s\",
+                   header=%s,
+                   row.names=%s,
+                   sep=\"\\t\",
+                   as.is=TRUE,
+                   fill=TRUE,
+                   col.names = paste(\"V\", seq_len(%d), sep =\"\"))"
+		    name file header row-names max))))
     (format "%s <- %s" name (org-babel-R-quote-tsv-field value))))
 
-(defvar ess-ask-for-ess-directory nil)
+(defvar ess-ask-for-ess-directory) ; dynamically scoped
 (defun org-babel-R-initiate-session (session params)
   "If there is not a current R process then create one."
   (unless (string= session "none")
     (let ((session (or session "*R*"))
 	  (ess-ask-for-ess-directory
-	   (and ess-ask-for-ess-directory (not (cdr (assoc :dir params))))))
+	   (and (and (boundp 'ess-ask-for-ess-directory) ess-ask-for-ess-directory)
+		(not (cdr (assoc :dir params))))))
       (if (org-babel-comint-buffer-livep session)
 	  session
 	(save-window-excursion
@@ -177,7 +221,6 @@ This function is called by `org-babel-execute-src-block'."
 	       (buffer-name))))
 	  (current-buffer))))))
 
-(defvar ess-local-process-name nil)
 (defun org-babel-R-associate-session (session)
   "Associate R code buffer with an R session.
 Make SESSION be the inferior ESS process associated with the
@@ -197,6 +240,7 @@ current code buffer."
 	 '((:bmp . "bmp")
 	   (:jpg . "jpeg")
 	   (:jpeg . "jpeg")
+	   (:tex . "tikz")
 	   (:tiff . "tiff")
 	   (:png . "png")
 	   (:svg . "svg")
@@ -214,11 +258,11 @@ current code buffer."
     (setq device (or (and device (cdr (assq (intern (concat ":" device))
 					    devices))) "png"))
     (setq filearg
-	  (if (member device '("pdf" "postscript" "svg")) "file" "filename"))
+	  (if (member device '("pdf" "postscript" "svg" "tikz")) "file" "filename"))
     (setq args (mapconcat
 		(lambda (pair)
 		  (if (member (car pair) allowed-args)
-		      (format ",%s=%s"
+		      (format ",%s=%S"
 			      (substring (symbol-name (car pair)) 1)
 			      (cdr pair)) ""))
 		params ""))
@@ -232,19 +276,19 @@ current code buffer."
 (defvar org-babel-R-write-object-command "{function(object,transfer.file){object;invisible(if(inherits(try({tfile<-tempfile();write.table(object,file=tfile,sep=\"\\t\",na=\"nil\",row.names=%s,col.names=%s,quote=FALSE);file.rename(tfile,transfer.file)},silent=TRUE),\"try-error\")){if(!file.exists(transfer.file))file.create(transfer.file)})}}(object=%s,transfer.file=\"%s\")")
 
 (defun org-babel-R-evaluate
-  (session body result-type column-names-p row-names-p)
+  (session body result-type result-params column-names-p row-names-p)
   "Evaluate R code in BODY."
   (if session
       (org-babel-R-evaluate-session
-       session body result-type column-names-p row-names-p)
+       session body result-type result-params column-names-p row-names-p)
     (org-babel-R-evaluate-external-process
-     body result-type column-names-p row-names-p)))
+     body result-type result-params column-names-p row-names-p)))
 
 (defun org-babel-R-evaluate-external-process
-  (body result-type column-names-p row-names-p)
+  (body result-type result-params column-names-p row-names-p)
   "Evaluate BODY in external R process.
 If RESULT-TYPE equals 'output then return standard output as a
-string. If RESULT-TYPE equals 'value then return the value of the
+string.  If RESULT-TYPE equals 'value then return the value of the
 last statement in BODY, as elisp."
   (case result-type
     (value
@@ -258,21 +302,28 @@ last statement in BODY, as elisp."
 			       (format "{function ()\n{\n%s\n}}()" body)
 			       (org-babel-process-file-name tmp-file 'noquote)))
        (org-babel-R-process-value-result
-	(org-babel-import-elisp-from-file tmp-file '(16)) column-names-p)))
+	(if (or (member "scalar" result-params)
+		(member "verbatim" result-params))
+	    (with-temp-buffer
+	      (insert-file-contents tmp-file)
+	      (buffer-string))
+	  (org-babel-import-elisp-from-file tmp-file '(16)))
+	column-names-p)))
     (output (org-babel-eval org-babel-R-command body))))
 
 (defun org-babel-R-evaluate-session
-  (session body result-type column-names-p row-names-p)
+  (session body result-type result-params column-names-p row-names-p)
   "Evaluate BODY in SESSION.
 If RESULT-TYPE equals 'output then return standard output as a
-string. If RESULT-TYPE equals 'value then return the value of the
+string.  If RESULT-TYPE equals 'value then return the value of the
 last statement in BODY, as elisp."
   (case result-type
     (value
      (with-temp-buffer
        (insert (org-babel-chomp body))
        (let ((ess-local-process-name
-	      (process-name (get-buffer-process session))))
+	      (process-name (get-buffer-process session)))
+	     (ess-eval-visibly-p nil))
 	 (ess-eval-buffer nil)))
      (let ((tmp-file (org-babel-temp-file "R-")))
        (org-babel-comint-eval-invisibly-and-wait-for-file
@@ -284,7 +335,13 @@ last statement in BODY, as elisp."
 		  "FALSE")
 		".Last.value" (org-babel-process-file-name tmp-file 'noquote)))
        (org-babel-R-process-value-result
-	(org-babel-import-elisp-from-file tmp-file '(16))  column-names-p)))
+	(if (or (member "scalar" result-params)
+		(member "verbatim" result-params))
+	    (with-temp-buffer
+	      (insert-file-contents tmp-file)
+	      (buffer-string))
+	  (org-babel-import-elisp-from-file tmp-file '(16)))
+	column-names-p)))
     (output
      (mapconcat
       #'org-babel-chomp
@@ -295,7 +352,7 @@ last statement in BODY, as elisp."
 	      (mapcar
 	       (lambda (line) ;; cleanup extra prompts left in output
 		 (if (string-match
-		      "^\\([ ]*[>+][ ]?\\)+\\([[0-9]+\\|[ ]\\)" line)
+		      "^\\([ ]*[>+\\.][ ]?\\)+\\([[0-9]+\\|[ ]\\)" line)
 		     (substring line (match-end 1))
 		   line))
 	       (org-babel-comint-with-output (session org-babel-R-eoe-output)

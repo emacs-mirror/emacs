@@ -1,6 +1,6 @@
 ;;; indian.el --- Quail packages for inputting Indian
 
-;; Copyright (C) 2000-2011  Free Software Foundation, Inc.
+;; Copyright (C) 2000-2012  Free Software Foundation, Inc.
 
 ;; Author: KAWABATA, Taichi <kawabata@m17n.org>
 
@@ -56,6 +56,11 @@
 (quail-define-indian-trans-package
  indian-dev-itrans-v5-hash "devanagari-itrans" "Devanagari" "DevIT"
  "Devanagari transliteration by ITRANS method.")
+(quail-defrule "..." ?॥)
+(quail-defrule "\\'" ?॑)
+(quail-defrule "\\_" ?॒)
+(quail-defrule "\\__" ?_)
+(quail-defrule "\\''" ?')
 
 (if nil
     (quail-define-package "devanagari-kyoto-harvard" "Devanagari" "DevKH" t "Devanagari Kyoto-Harvard"))
@@ -304,7 +309,7 @@ Full key sequences are listed below:")
 (defun quail-define-inscript-package (char-tables key-tables pkgname lang
                                                   title docstring)
   (funcall 'quail-define-package pkgname lang title nil docstring
-	   nil nil nil nil nil nil nil nil)
+	   nil nil nil t nil nil nil nil)
   (let (char-table key-table char key)
     (while (and char-tables key-tables)
       (setq char-table  (car char-tables)
@@ -440,7 +445,7 @@ Full key sequences are listed below:")
 (if nil
     (quail-define-package "telugu-inscript" "Telugu" "TlgIS" t "Telugu keyboard Inscript"))
 (quail-define-inscript-package
- indian-dev-base-table inscript-dev-keytable
+ indian-tlg-base-table inscript-dev-keytable
  "telugu-inscript" "Telugu" "TlgIS"
  "Telugu keyboard Inscript.")
 

@@ -1,6 +1,6 @@
 ;;; handwrite.el --- turns your emacs buffer into a handwritten document -*- coding: iso-latin-1; -*-
 
-;; Copyright (C) 1996, 2001-2011  Free Software Foundation, Inc.
+;; Copyright (C) 1996, 2001-2012 Free Software Foundation, Inc.
 
 ;; Author: Danny Roozendaal (was: <danny@tvs.kun.nl>)
 ;; Created: October 21 1996
@@ -45,7 +45,7 @@
 ;;  Installation
 ;;
 ;; type at your prompt "emacs -l handwrite.el" or put this file on your
-;; Emacs-Lisp load path,  add the following into your ~/.emacs startup file
+;; Emacs-Lisp load path, add the following into your init file:
 ;;
 ;;                (require 'handwrite)
 ;;
@@ -189,7 +189,7 @@ Variables: `handwrite-linespace'     (default 12)
     (setq next-line-add-newlines t)
     (switch-to-buffer ps-buf-name)
     (handwrite-insert-header buf-name)
-    (insert "%%Creator: GNU Emacs' handwrite version " emacs-version  "\n")
+    (insert "%%Creator: GNU Emacs's handwrite version " emacs-version  "\n")
     (handwrite-insert-preamble)
     (handwrite-insert-info)
     (handwrite-insert-font)

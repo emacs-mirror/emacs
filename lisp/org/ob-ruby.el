@@ -1,11 +1,10 @@
 ;;; ob-ruby.el --- org-babel functions for ruby evaluation
 
-;; Copyright (C) 2009-2011  Free Software Foundation
+;; Copyright (C) 2009-2012  Free Software Foundation, Inc.
 
 ;; Author: Eric Schulte
 ;; Keywords: literate programming, reproducible research
 ;; Homepage: http://orgmode.org
-;; Version: 7.7
 
 ;; This file is part of GNU Emacs.
 
@@ -29,10 +28,10 @@
 ;;; Requirements:
 
 ;; - ruby and irb executables :: http://www.ruby-lang.org/
-;; 
+;;
 ;; - ruby-mode :: Can be installed through ELPA, or from
 ;;   http://github.com/eschulte/rinari/raw/master/util/ruby-mode.el
-;;   
+;;
 ;; - inf-ruby mode :: Can be installed through ELPA, or from
 ;;   http://github.com/eschulte/rinari/raw/master/util/inf-ruby.el
 
@@ -65,12 +64,12 @@ This function is called by `org-babel-execute-src-block'."
 		     body params (org-babel-variable-assignments:ruby params)))
          (result (if (member "xmp" result-params)
 		     (with-temp-buffer
-		     (require 'rcodetools)
-		     (insert full-body)
-		     (xmp (cdr (assoc :xmp-option params)))
-		     (buffer-string))
+		       (require 'rcodetools)
+		       (insert full-body)
+		       (xmp (cdr (assoc :xmp-option params)))
+		       (buffer-string))
 		   (org-babel-ruby-evaluate
-		      session full-body result-type result-params))))
+		    session full-body result-type result-params))))
     (org-babel-reassemble-table
      result
      (org-babel-pick-name (cdr (assoc :colname-names params))
@@ -103,7 +102,7 @@ This function is called by `org-babel-execute-src-block'."
 ;; helper functions
 
 (defun org-babel-variable-assignments:ruby (params)
-  "Return list of ruby statements assigning the block's variables"
+  "Return list of ruby statements assigning the block's variables."
   (mapcar
    (lambda (pair)
      (format "%s=%s"
@@ -129,8 +128,8 @@ Emacs-lisp table, otherwise return the results as a string."
   "Initiate a ruby session.
 If there is not a current inferior-process-buffer in SESSION
 then create one.  Return the initialized session."
-  (require 'inf-ruby)
   (unless (string= session "none")
+    (require 'inf-ruby)
     (let ((session-buffer (save-window-excursion
 			    (run-ruby nil session) (current-buffer))))
       (if (org-babel-comint-buffer-livep session-buffer)

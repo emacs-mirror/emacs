@@ -1,5 +1,5 @@
 /* Internal declarations for getopt.
-   Copyright (C) 1989-1994, 1996-1999, 2001, 2003-2004, 2009-2011 Free Software
+   Copyright (C) 1989-1994, 1996-1999, 2001, 2003-2004, 2009-2012 Free Software
    Foundation, Inc.
    This file is part of the GNU C Library.
 
@@ -40,7 +40,7 @@ extern int _getopt_internal (int ___argc, char **___argv,
    stop option processing when the first non-option is seen.
    This is what Unix does.
    This mode of operation is selected by either setting the environment
-   variable POSIXLY_CORRECT, or using `+' as the first character
+   variable POSIXLY_CORRECT, or using '+' as the first character
    of the list of option characters, or by calling getopt.
 
    PERMUTE is the default.  We permute the contents of ARGV as we
@@ -52,12 +52,12 @@ extern int _getopt_internal (int ___argc, char **___argv,
    written to expect options and other ARGV-elements in any order
    and that care about the ordering of the two.  We describe each
    non-option ARGV-element as if it were the argument of an option
-   with character code 1.  Using `-' as the first character of the
+   with character code 1.  Using '-' as the first character of the
    list of option characters selects this mode of operation.
 
-   The special argument `--' forces an end of option-scanning regardless
-   of the value of `ordering'.  In the case of RETURN_IN_ORDER, only
-   `--' can cause `getopt' to return -1 with `optind' != ARGC.  */
+   The special argument '--' forces an end of option-scanning regardless
+   of the value of 'ordering'.  In the case of RETURN_IN_ORDER, only
+   '--' can cause 'getopt' to return -1 with 'optind' != ARGC.  */
 
 enum __ord
   {
@@ -99,8 +99,8 @@ struct _getopt_data
   /* Handle permutation of arguments.  */
 
   /* Describe the part of ARGV that contains non-options that have
-     been skipped.  `first_nonopt' is the index in ARGV of the first
-     of them; `last_nonopt' is the index after the last of them.  */
+     been skipped.  'first_nonopt' is the index in ARGV of the first
+     of them; 'last_nonopt' is the index after the last of them.  */
 
   int __first_nonopt;
   int __last_nonopt;

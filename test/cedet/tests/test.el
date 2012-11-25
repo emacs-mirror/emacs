@@ -1,6 +1,6 @@
 ;;; test.el --- Unit test file for Semantic Emacs Lisp support.
 
-;; Copyright (C) 2005-2011  Free Software Foundation, Inc.
+;; Copyright (C) 2005-2012  Free Software Foundation, Inc.
 
 ;; Author: Eric M. Ludlam <eric@siege-engine.com>
 

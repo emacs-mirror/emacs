@@ -1,6 +1,8 @@
 ;;; erc-sound.el --- CTCP SOUND support for ERC
 
-;; Copyright (C) 2002-2003, 2006-2011 Free Software Foundation, Inc.
+;; Copyright (C) 2002-2003, 2006-2012 Free Software Foundation, Inc.
+
+;; Maintainer: FSF
 
 ;; This file is part of GNU Emacs.
 
@@ -62,7 +64,7 @@ and play sound files as requested."
   :group 'erc)
 
 (defcustom erc-play-sound t
-  "*Play sounds when you receive CTCP SOUND requests."
+  "Play sounds when you receive CTCP SOUND requests."
   :group 'erc-sound
   :type 'boolean)
 

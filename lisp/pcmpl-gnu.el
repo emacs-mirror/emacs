@@ -1,6 +1,6 @@
 ;;; pcmpl-gnu.el --- completions for GNU project tools -*- lexical-binding: t -*-
 
-;; Copyright (C) 1999-2011 Free Software Foundation, Inc.
+;; Copyright (C) 1999-2012 Free Software Foundation, Inc.
 
 ;; Package: pcomplete
 
@@ -128,8 +128,9 @@
       (pcomplete-uniqify-list rules))))
 
 (defcustom pcmpl-gnu-tarfile-regexp
-  "\\.t\\(ar\\(\\.\\(gz\\|bz2\\|Z\\)\\)?\\|gz\\|a[zZ]\\|z2\\)\\'"
+  "\\.t\\(ar\\(\\.\\(gz\\|bz2\\|Z\\|xz\\)\\)?\\|gz\\|a[zZ]\\|z2\\)\\'"
   "A regexp which matches any tar archive."
+  :version "24.3"                       ; added xz
   :type 'regexp
   :group 'pcmpl-gnu)
 
@@ -243,6 +244,8 @@
                    "--volno-file=")))
           (pcomplete-opt "01234567ABCFGKLMNOPRSTUVWXZbcdfghiklmoprstuvwxz"))
         (cond
+         ((pcomplete-match "\\`-\\'" 0)
+          (pcomplete-here*))
          ((pcomplete-match "\\`--after-date=" 0)
           (pcomplete-here*))
          ((pcomplete-match "\\`--backup=" 0)

@@ -1,6 +1,6 @@
 ;;; cfengine.el --- mode for editing Cfengine files
 
-;; Copyright (C) 2001-2011  Free Software Foundation, Inc.
+;; Copyright (C) 2001-2012  Free Software Foundation, Inc.
 
 ;; Author: Dave Love <fx@gnu.org>
 ;; Maintainer: Ted Zlatanov <tzz@lifelogs.com>
@@ -54,7 +54,7 @@
   :group 'languages)
 
 (defcustom cfengine-indent 2
-  "*Size of a CFEngine indentation step in columns."
+  "Size of a CFEngine indentation step in columns."
   :group 'cfengine
   :type 'integer)
 

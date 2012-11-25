@@ -1,6 +1,6 @@
 ;;; viper-init.el --- some common definitions for Viper
 
-;; Copyright (C) 1997-2011  Free Software Foundation, Inc.
+;; Copyright (C) 1997-2012  Free Software Foundation, Inc.
 
 ;; Author: Michael Kifer <kifer@cs.stonybrook.edu>
 ;; Package: viper
@@ -96,6 +96,10 @@ In all likelihood, you don't need to bother with this setting."
 ;;; Macros
 
 (defmacro viper-deflocalvar (var default-value &optional documentation)
+  "Define VAR as a buffer-local variable.
+DEFAULT-VALUE is the default value, and DOCUMENTATION is the
+docstring.  The variable becomes buffer-local whenever set."
+  (declare (indent defun))
   `(progn
     (defvar ,var ,default-value
       ,(format "%s\n\(buffer local\)" documentation))
@@ -103,6 +107,7 @@ In all likelihood, you don't need to bother with this setting."
 
 ;; (viper-loop COUNT BODY) Execute BODY COUNT times.
 (defmacro viper-loop (count &rest body)
+  (declare (indent defun))
   `(let ((count ,count))
     (while (> count 0)
       ,@body
@@ -316,7 +321,7 @@ Use `M-x viper-set-expert-level' to change this.")
     ))
 
 ;; viper hook to run on input-method deactivation
-(defun viper-inactivate-input-method-action ()
+(defun viper-deactivate-input-method-action ()
   (if (null viper-mule-hook-flag)
       ()
     (setq viper-special-input-method nil)
@@ -328,9 +333,9 @@ Use `M-x viper-set-expert-level' to change this.")
 			     (or current-input-method default-input-method))
 		   "")))))
 
-(defun viper-inactivate-input-method ()
-  (cond ((and (featurep 'emacs) (fboundp 'inactivate-input-method))
-	 (inactivate-input-method))
+(defun viper-deactivate-input-method ()
+  (cond ((and (featurep 'emacs) (fboundp 'deactivate-input-method))
+	 (deactivate-input-method))
 	((and (featurep 'xemacs) (boundp 'current-input-method))
 	 ;; XEmacs had broken quail-mode for some time, so we are working around
 	 ;; it here
@@ -339,7 +344,9 @@ Use `M-x viper-set-expert-level' to change this.")
 	     (quail-delete-overlays))
 	 (setq describe-current-input-method-function nil)
 	 (setq current-input-method nil)
-	 (run-hooks 'input-method-inactivate-hook)
+	 (run-hooks
+	  'input-method-inactivate-hook ; for backward compatibility
+	  'input-method-deactivate-hook)
 	 (force-mode-line-update))
 	))
 (defun viper-activate-input-method ()
@@ -356,7 +363,7 @@ Use `M-x viper-set-expert-level' to change this.")
 	   ;; activate input method
 	   (viper-activate-input-method))
 	  (t ; deactivate input method
-	   (viper-inactivate-input-method)))
+	   (viper-deactivate-input-method)))
     ))
 
 
@@ -372,7 +379,7 @@ Use `M-x viper-set-expert-level' to change this.")
 (defconst viper-buffer-undo-list-mark 'viper)
 
 (defcustom viper-keep-point-on-undo nil
-  "*Non-nil means not to move point while undoing commands.
+  "Non-nil means not to move point while undoing commands.
 This style is different from Emacs and Vi.  Try it to see if
 it better fits your working style."
   :type 'boolean
@@ -403,7 +410,7 @@ delete the text being replaced, as in standard Vi."
   :group 'viper)
 
 (defcustom viper-replace-overlay-cursor-color "Red"
-  "*Cursor color when Viper is in Replace state."
+  "Cursor color when Viper is in Replace state."
   :type 'string
   :group 'viper)
 
@@ -450,7 +457,7 @@ is non-nil."
 (defcustom viper-use-replace-region-delimiters
   (or (not (viper-has-face-support-p))
       (and (featurep 'xemacs) (eq (viper-device-type) 'tty)))
-  "*If non-nil, Viper will always use `viper-replace-region-end-delimiter' and
+  "If non-nil, Viper will always use `viper-replace-region-end-delimiter' and
 `viper-replace-region-start-delimiter' to delimit replacement regions, even on
 color displays.  By default, the delimiters are used only on TTYs."
   :type 'boolean
@@ -519,7 +526,7 @@ text."
 
 ;; Fast keyseq and ESC keyseq timeouts
 (defcustom viper-fast-keyseq-timeout 200
-  "*Key sequence separated by no more than this many milliseconds is viewed as a Vi-style macro, if such a macro is defined.
+  "Key sequence separated by no more than this many milliseconds is viewed as a Vi-style macro, if such a macro is defined.
 Setting this too high may slow down your typing.  Setting this value too low
 will make it hard to use Vi-style timeout macros."
   :type 'integer
@@ -549,14 +556,14 @@ will make it hard to use Vi-style timeout macros."
 
 (viper-deflocalvar viper-auto-indent nil "")
 (defcustom viper-auto-indent nil
-  "*Enable autoindent, if t.
+  "Enable autoindent, if t.
 This is a buffer-local variable."
   :type 'boolean
   :group 'viper)
 
 (viper-deflocalvar viper-electric-mode t "")
 (defcustom viper-electric-mode t
-  "*If t, electrify Viper.
+  "If t, electrify Viper.
 Currently, this only electrifies auto-indentation, making it appropriate to the
 mode of the buffer.
 This means that auto-indentation will depart from standard Vi and will indent
@@ -566,7 +573,7 @@ programs and LaTeX documents."
   :group 'viper)
 
 (defcustom viper-shift-width 8
-  "*The value of the shiftwidth.
+  "The value of the shiftwidth.
 This determines the number of columns by which the Ctl-t moves the cursor in
 the Insert state."
   :type 'integer
@@ -575,7 +582,7 @@ the Insert state."
 ;; Variables for repeating destructive commands
 
 (defcustom viper-keep-point-on-repeat t
-  "*If t, don't move point when repeating previous command.
+  "If t, don't move point when repeating previous command.
 This is useful for doing repeated changes with the '.' key.
 The user can change this to nil, if she likes when the cursor moves
 to a new place after repeating previous Vi command."
@@ -668,18 +675,18 @@ to a new place after repeating previous Vi command."
 (defvar viper-s-forward nil)
 
 (defcustom viper-case-fold-search nil
-  "*If not nil, search ignores cases."
+  "If not nil, search ignores cases."
   :type 'boolean
   :group 'viper-search)
 
 (defcustom viper-re-search t
-  "*If not nil, search is regexp search, otherwise vanilla search."
+  "If not nil, search is regexp search, otherwise vanilla search."
   :type 'boolean
   :tag "Regexp Search"
   :group 'viper-search)
 
 (defcustom viper-search-scroll-threshold 2
-  "*If search lands within this threshold from the window top/bottom,
+  "If search lands within this threshold from the window top/bottom,
 the window will be scrolled up or down appropriately, to reveal context.
 If you want Viper search to behave as usual in Vi, set this variable to a
 negative number."
@@ -687,32 +694,32 @@ negative number."
   :group 'viper-search)
 
 (defcustom viper-re-query-replace t
-  "*If t then do regexp replace, if nil then do string replace."
+  "If t then do regexp replace, if nil then do string replace."
   :type 'boolean
   :tag "Regexp Query Replace"
   :group 'viper-search)
 
 (defcustom viper-re-replace t
-  "*If t, do regexp replace.  nil means do string replace."
+  "If t, do regexp replace.  nil means do string replace."
   :type 'boolean
   :tag "Regexp Replace"
   :group 'viper-search)
 
 (defcustom viper-parse-sexp-ignore-comments t
-  "*If t, `%' ignores the parentheses that occur inside comments."
+  "If t, `%' ignores the parentheses that occur inside comments."
   :type 'boolean
   :group 'viper)
 
 (viper-deflocalvar viper-ex-style-motion t "")
 (defcustom viper-ex-style-motion t
-  "*If t, the commands l,h do not cross lines, etc (Ex-style).
+  "If t, the commands l,h do not cross lines, etc (Ex-style).
 If nil, these commands cross line boundaries."
   :type 'boolean
   :group 'viper)
 
 (viper-deflocalvar viper-ex-style-editing t "")
 (defcustom viper-ex-style-editing t
-  "*If t, Ex-style behavior while editing in Vi command and insert states.
+  "If t, Ex-style behavior while editing in Vi command and insert states.
 `Backspace' and `Delete' don't cross line boundaries in insert.
 `X' and `x' can't delete characters across line boundary in Vi, etc.
 Note: this doesn't preclude `Backspace' and `Delete' from deleting characters
@@ -724,32 +731,32 @@ If nil, the above commands can work across lines."
 
 (viper-deflocalvar viper-ESC-moves-cursor-back viper-ex-style-editing "")
 (defcustom viper-ESC-moves-cursor-back nil
-  "*If t, ESC moves cursor back when changing from insert to vi state.
+  "If t, ESC moves cursor back when changing from insert to vi state.
 If nil, the cursor stays where it was when ESC was hit."
   :type 'boolean
   :group 'viper)
 
 (viper-deflocalvar viper-delete-backwards-in-replace nil "")
 (defcustom viper-delete-backwards-in-replace nil
-  "*If t, DEL key will delete characters while moving the cursor backwards.
+  "If t, DEL key will delete characters while moving the cursor backwards.
 If nil, the cursor will move backwards without deleting anything."
   :type 'boolean
   :group 'viper)
 
 (defcustom viper-buffer-search-char nil
-  "*Key used for buffer-searching.  Must be a character type, e.g., ?g."
+  "Key used for buffer-searching.  Must be a character type, e.g., ?g."
   :type '(choice (const nil) character)
   :group 'viper-search)
 
 (defcustom viper-search-wrap-around t
-  "*If t, search wraps around."
+  "If t, search wraps around."
   :type 'boolean
   :tag "Search Wraps Around"
   :group 'viper-search)
 
 (viper-deflocalvar viper-related-files-and-buffers-ring nil "")
 (defcustom viper-related-files-and-buffers-ring nil
-  "*List of file and buffer names that are considered to be related to the current buffer.
+  "List of file and buffer names that are considered to be related to the current buffer.
 Related buffers can be cycled through via :R and :P commands."
   :type 'boolean
   :group 'viper-misc)
@@ -771,7 +778,7 @@ Related buffers can be cycled through via :R and :P commands."
 	  "^\\\\[sb][a-z]*{.*}\\s-*$\\|"	    		; latex
 	  "^@node\\|@table\\|^@m?enu\\|^@itemize\\|^@if\\|"	; texinfo
 	  "^.+:-")			                        ; prolog
-  "*Regexps for Headings.  Used by \[\[ and \]\].")
+  "Regexps for Headings.  Used by \[\[ and \]\].")
 
 (defvar viper-heading-end
   (concat "^}\\|"						; C/C++
@@ -826,7 +833,7 @@ Related buffers can be cycled through via :R and :P commands."
 (defface viper-search
   '((((class color)) (:foreground "Black" :background "khaki"))
     (t (:underline t :stipple "gray3")))
-  "*Face used to flash out the search pattern."
+  "Face used to flash out the search pattern."
   :group 'viper-highlighting)
 ;; An internal variable.  Viper takes the face from here.
 (defvar viper-search-face 'viper-search
@@ -838,7 +845,7 @@ this variable represents.")
 (defface viper-replace-overlay
   '((((class color)) (:foreground "Black" :background "darkseagreen2"))
     (t (:underline t :stipple "gray3")))
-  "*Face for highlighting replace regions on a window display."
+  "Face for highlighting replace regions on a window display."
   :group 'viper-highlighting)
 ;; An internal variable.  Viper takes the face from here.
 (defvar viper-replace-overlay-face 'viper-replace-overlay
@@ -946,19 +953,19 @@ Should be set in `~/.viper' file."
   :group 'viper)
 
 (defcustom viper-vi-state-hook 'viper-restore-cursor-type
-  "*Hooks run just before the switch to Vi mode is completed."
+  "Hooks run just before the switch to Vi mode is completed."
   :type 'hook
   :group 'viper-hooks)
 (defcustom viper-insert-state-hook 'viper-set-insert-cursor-type
-  "*Hooks run just before the switch to Insert mode is completed."
+  "Hooks run just before the switch to Insert mode is completed."
   :type 'hook
   :group 'viper-hooks)
 (defcustom viper-replace-state-hook 'viper-restore-cursor-type
-  "*Hooks run just before the switch to Replace mode is completed."
+  "Hooks run just before the switch to Replace mode is completed."
   :type 'hook
   :group 'viper-hooks)
 (defcustom viper-emacs-state-hook 'viper-restore-cursor-type
-  "*Hooks run just before the switch to Emacs mode is completed."
+  "Hooks run just before the switch to Emacs mode is completed."
   :type 'hook
   :group 'viper-hooks)
 
@@ -980,7 +987,7 @@ Should be set in `~/.viper' file."
     (setq cursor-type '(bar . 2))))
 
 (defun viper-ESC-keyseq-timeout ()
-  "*Key sequence beginning with ESC and separated by no more than this many milliseconds is considered to be generated by a keyboard function key.
+  "Key sequence beginning with ESC and separated by no more than this many milliseconds is considered to be generated by a keyboard function key.
 Setting this too high may slow down switching from insert to vi state.  Setting
 this value too low will make it impossible to use function keys in insert mode
 on a dumb terminal."

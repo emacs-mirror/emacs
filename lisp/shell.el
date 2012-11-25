@@ -1,6 +1,6 @@
 ;;; shell.el --- specialized comint.el for running the shell -*- lexical-binding: t -*-
 
-;; Copyright (C) 1988, 1993-1997, 2000-2011  Free Software Foundation, Inc.
+;; Copyright (C) 1988, 1993-1997, 2000-2012 Free Software Foundation, Inc.
 
 ;; Author: Olin Shivers <shivers@cs.cmu.edu>
 ;;	Simon Marshall <simon@gnu.org>
@@ -46,7 +46,7 @@
 
 ;; YOUR .EMACS FILE
 ;;=============================================================================
-;; Some suggestions for your .emacs file.
+;; Some suggestions for your init file.
 ;;
 ;; ;; Define M-# to run some strange command:
 ;; (eval-after-load "shell"
@@ -96,7 +96,6 @@
 
 ;;; Code:
 
-(eval-when-compile (require 'cl))
 (require 'comint)
 (require 'pcomplete)
 
@@ -137,9 +136,7 @@ how Shell mode treats paragraphs.
 
 The pattern should probably not match more than one line.  If it does,
 Shell mode may become confused trying to distinguish prompt from input
-on lines which don't start with a prompt.
-
-This is a fine thing to set in your `.emacs' file."
+on lines which don't start with a prompt."
   :type 'regexp
   :group 'shell)
 
@@ -147,55 +144,51 @@ This is a fine thing to set in your `.emacs' file."
   "List of suffixes to be disregarded during file/command completion.
 This variable is used to initialize `comint-completion-fignore' in the shell
 buffer.  The default is nil, for compatibility with most shells.
-Some people like (\"~\" \"#\" \"%\").
-
-This is a fine thing to set in your `.emacs' file."
+Some people like (\"~\" \"#\" \"%\")."
   :type '(repeat (string :tag "Suffix"))
   :group 'shell)
 
-(defcustom shell-delimiter-argument-list nil ; '(?\| ?& ?< ?> ?\( ?\) ?\;)
+(defcustom shell-delimiter-argument-list '(?\| ?& ?< ?> ?\( ?\) ?\;)
   "List of characters to recognize as separate arguments.
 This variable is used to initialize `comint-delimiter-argument-list' in the
 shell buffer.  The value may depend on the operating system or shell."
   :type '(choice (const nil)
 		 (repeat :tag "List of characters" character))
-  :version "24.1"			; changed to nil (bug#8027)
   :group 'shell)
 
-(defvar shell-file-name-chars
+(defcustom shell-file-name-chars
   (if (memq system-type '(ms-dos windows-nt cygwin))
       "~/A-Za-z0-9_^$!#%&{}@`'.,:()-"
     "[]~/A-Za-z0-9+@:_.$#%,={}-")
   "String of characters valid in a file name.
 This variable is used to initialize `comint-file-name-chars' in the
-shell buffer.  The value may depend on the operating system or shell.
+shell buffer.  The value may depend on the operating system or shell."
+  :type 'string
+  :group 'shell)
 
-This is a fine thing to set in your `.emacs' file.")
-
-(defvar shell-file-name-quote-list
+(defcustom shell-file-name-quote-list
   (if (memq system-type '(ms-dos windows-nt))
       nil
     (append shell-delimiter-argument-list '(?\s ?$ ?\* ?\! ?\" ?\' ?\` ?\# ?\\)))
   "List of characters to quote when in a file name.
 This variable is used to initialize `comint-file-name-quote-list' in the
-shell buffer.  The value may depend on the operating system or shell.
+shell buffer.  The value may depend on the operating system or shell."
+  :type '(repeat character)
+  :group 'shell)
 
-This is a fine thing to set in your `.emacs' file.")
-
-(defvar shell-dynamic-complete-functions
+(defcustom shell-dynamic-complete-functions
   '(comint-c-a-p-replace-by-expanded-history
     shell-environment-variable-completion
     shell-command-completion
     shell-c-a-p-replace-by-expanded-directory
     pcomplete-completions-at-point
     shell-filename-completion
-    ;; Not sure when this one would still be useful.  --Stef
     comint-filename-completion)
   "List of functions called to perform completion.
 This variable is used to initialize `comint-dynamic-complete-functions' in the
-shell buffer.
-
-This is a fine thing to set in your `.emacs' file.")
+shell buffer."
+  :type '(repeat function)
+  :group 'shell)
 
 (defcustom shell-command-regexp "[^;&|\n]+"
   "Regexp to match a single command within a pipeline.
@@ -372,20 +365,57 @@ Thus, this does not include the shell's current directory.")
 
 ;;; Basic Procedures
 
-(defcustom shell-dir-cookie-re nil
-  "Regexp matching your prompt, including some part of the current directory.
-If your prompt includes the current directory or the last few elements of it,
-set this to a pattern that matches your prompt and whose subgroup 1 matches
-the directory part of it.
-This is used by `shell-dir-cookie-watcher' to try and use this info
-to track your current directory.  It can be used instead of or in addition
-to `dirtrack-mode'."
-  :group 'shell
-  :type '(choice (const nil) regexp)
-  :version "24.1")
+(defun shell--unquote&requote-argument (qstr &optional upos)
+  (unless upos (setq upos 0))
+  (let* ((qpos 0)
+         (dquotes nil)
+         (ustrs '())
+         (re (concat
+              "[\"']"
+              "\\|\\$\\(?:\\([[:alpha:]][[:alnum:]]*\\)"
+              "\\|{\\(?1:[^{}]+\\)}\\)"
+              (when (memq system-type '(ms-dos windows-nt))
+                "\\|%\\(?1:[^\\\\/]*\\)%")
+              (when comint-file-name-quote-list
+                "\\|\\\\\\(.\\)")))
+         (qupos nil)
+         (push (lambda (str end)
+                 (push str ustrs)
+                 (setq upos (- upos (length str)))
+                 (unless (or qupos (> upos 0))
+                   (setq qupos (if (< end 0) (- end) (+ upos end))))))
+         match)
+    (while (setq match (string-match re qstr qpos))
+      (funcall push (substring qstr qpos match) match)
+      (cond
+       ((match-beginning 2) (funcall push (match-string 2 qstr) (match-end 0)))
+       ((match-beginning 1) (funcall push (getenv (match-string 1 qstr))
+                                     (- (match-end 0))))
+       ((eq (aref qstr match) ?\") (setq dquotes (not dquotes)))
+       ((eq (aref qstr match) ?\')
+        (cond
+         (dquotes (funcall push "'" (match-end 0)))
+         ((< match (1+ (length qstr)))
+          (let ((end (string-match "'" qstr (1+ match))))
+            (funcall push (substring qstr (1+ match) end)
+                     (or end (length qstr)))))
+         (t nil)))
+       (t (error "Unexpected case in shell--unquote&requote-argument!")))
+      (setq qpos (match-end 0)))
+    (funcall push (substring qstr qpos) (length qstr))
+    (list (mapconcat #'identity (nreverse ustrs) "")
+          qupos #'comint-quote-filename)))
 
-(defun shell-parse-pcomplete-arguments ()
+(defun shell--unquote-argument (str)
+  (car (shell--unquote&requote-argument str)))
+(defun shell--requote-argument (upos qstr)
+  ;; See `completion-table-with-quoting'.
+  (let ((res (shell--unquote&requote-argument qstr upos)))
+    (cons (nth 1 res) (nth 2 res))))
+
+(defun shell--parse-pcomplete-arguments ()
   "Parse whitespace separated arguments in the current region."
+  ;; FIXME: share code with shell--unquote&requote-argument.
   (let ((begin (save-excursion (shell-backward-command 1) (point)))
 	(end (point))
 	begins args)
@@ -405,18 +435,31 @@ to `dirtrack-mode'."
             (goto-char (match-end 0))
             (cond
              ((match-beginning 3)       ;Backslash escape.
-              (push (if (= (match-beginning 3) (match-end 3))
-                        "\\" (match-string 3))
+              (push (cond
+                     ((null comint-file-name-quote-list)
+                      (goto-char (match-beginning 3)) "\\")
+                     ((= (match-beginning 3) (match-end 3)) "\\")
+                     (t (match-string 3)))
                     arg))
              ((match-beginning 2)       ;Double quote.
-              (push (replace-regexp-in-string
-                     "\\\\\\(.\\)" "\\1" (match-string 2))
+              (push (if (null comint-file-name-quote-list) (match-string 2)
+                      (replace-regexp-in-string
+                       "\\\\\\(.\\)" "\\1" (match-string 2)))
                     arg))
              ((match-beginning 1)       ;Single quote.
               (push (match-string 1) arg))
              (t (push (match-string 0) arg))))
           (push (mapconcat #'identity (nreverse arg) "") args)))
       (cons (nreverse args) (nreverse begins)))))
+
+(defun shell-command-completion-function ()
+  "Completion function for shell command names.
+This is the value of `pcomplete-command-completion-function' for
+Shell buffers.  It implements `shell-completion-execonly' for
+`pcomplete' completion."
+  (pcomplete-here (pcomplete-entries nil
+				     (if shell-completion-execonly
+					 'file-executable-p))))
 
 (defun shell-completion-vars ()
   "Setup completion vars for `shell-mode' and `read-shell-command'."
@@ -429,16 +472,18 @@ to `dirtrack-mode'."
        shell-file-name-quote-list)
   (set (make-local-variable 'comint-dynamic-complete-functions)
        shell-dynamic-complete-functions)
+  (setq-local comint-unquote-function #'shell--unquote-argument)
+  (setq-local comint-requote-function #'shell--requote-argument)
   (set (make-local-variable 'pcomplete-parse-arguments-function)
-       #'shell-parse-pcomplete-arguments)
-  (set (make-local-variable 'pcomplete-arg-quote-list)
-       (append "\\ \t\n\r\"'`$|&;(){}[]<>#" nil))
+       #'shell--parse-pcomplete-arguments)
   (set (make-local-variable 'pcomplete-termination-string)
        (cond ((not comint-completion-addsuffix) "")
              ((stringp comint-completion-addsuffix)
               comint-completion-addsuffix)
              ((not (consp comint-completion-addsuffix)) " ")
              (t (cdr comint-completion-addsuffix))))
+  (set (make-local-variable 'pcomplete-command-completion-function)
+       #'shell-command-completion-function)
   ;; Don't use pcomplete's defaulting mechanism, rely on
   ;; shell-dynamic-complete-functions instead.
   (set (make-local-variable 'pcomplete-default-completion-function) #'ignore)
@@ -472,7 +517,7 @@ to continue it.
 keep this buffer's default directory the same as the shell's working directory.
 While directory tracking is enabled, the shell's working directory is displayed
 by \\[list-buffers] or \\[mouse-buffer-menu] in the `File' field.
-\\[dirs] queries the shell and resyncs Emacs' idea of what the current
+\\[dirs] queries the shell and resyncs Emacs's idea of what the current
     directory stack is.
 \\[shell-dirtrack-mode] turns directory tracking on and off.
 \(The `dirtrack' package provides an alternative implementation of this
@@ -511,6 +556,16 @@ buffer."
   (set (make-local-variable 'shell-dirstack) nil)
   (set (make-local-variable 'shell-last-dir) nil)
   (shell-dirtrack-mode 1)
+
+  ;; By default, ansi-color applies faces using overlays.  This is
+  ;; very inefficient in Shell buffers (e.g. Bug#10835).  We use a
+  ;; custom `ansi-color-apply-face-function' to convert color escape
+  ;; sequences into `font-lock-face' properties.
+  (set (make-local-variable 'ansi-color-apply-face-function)
+       (lambda (beg end face)
+	 (when face
+	   (put-text-property beg end 'font-lock-face face))))
+
   ;; This is not really correct, since the shell buffer does not really
   ;; edit this directory.  But it is useful in the buffer list and menus.
   (setq list-buffers-directory (expand-file-name default-directory))
@@ -546,10 +601,6 @@ buffer."
       (when (string-equal shell "bash")
         (add-hook 'comint-preoutput-filter-functions
                   'shell-filter-ctrl-a-ctrl-b nil t)))
-    (when shell-dir-cookie-re
-      ;; Watch for magic cookies in the output to track the current dir.
-      (add-hook 'comint-output-filter-functions
-		'shell-dir-cookie-watcher nil t))
     (comint-read-input-ring t)))
 
 (defun shell-filter-ctrl-a-ctrl-b (string)
@@ -630,7 +681,6 @@ Otherwise, one argument `-i' is passed to the shell.
 		      (read-directory-name
 		       "Default directory: " default-directory default-directory
 		       t nil))))))))
-  (require 'ansi-color)
   (setq buffer (if (or buffer (not (derived-mode-p 'shell-mode))
                        (comint-check-proc (current-buffer)))
                    (get-buffer-create (or buffer "*shell*"))
@@ -709,20 +759,6 @@ Otherwise, one argument `-i' is passed to the shell.
 ;; directory tracking machinery currently used in this package, and
 ;; replace it with a process filter that watches for and strips out
 ;; these messages.
-
-(defun shell-dir-cookie-watcher (text)
-  ;; This is fragile: the TEXT could be split into several chunks and we'd
-  ;; miss it.  Oh well.  It's a best effort anyway.  I'd expect that it's
-  ;; rather unusual to have the prompt split into several packets, but
-  ;; I'm sure Murphy will prove me wrong.
-  (when (and shell-dir-cookie-re (string-match shell-dir-cookie-re text))
-    (let ((dir (match-string 1 text)))
-      (cond
-       ((file-name-absolute-p dir) (shell-cd dir))
-       ;; Let's try and see if it seems to be up or down from where we were.
-       ((string-match "\\`\\(.*\\)\\(?:/.*\\)?\n\\(.*/\\)\\1\\(?:/.*\\)?\\'"
-		      (setq text (concat dir "\n" default-directory)))
-	(shell-cd (concat (match-string 2 text) dir)))))))
 
 (defun shell-directory-tracker (str)
   "Tracks cd, pushd and popd commands issued to the shell.
@@ -1200,7 +1236,7 @@ Returns non-nil if successful."
              (variables (mapcar (lambda (x)
                                   (substring x 0 (string-match "=" x)))
                                 process-environment))
-             (suffix (case (char-before start) (?\{ "}") (?\( ")") (t ""))))
+             (suffix (pcase (char-before start) (?\{ "}") (?\( ")") (_ ""))))
         (list start end variables
               :exit-function
               (lambda (s finished)

@@ -1,6 +1,6 @@
 /* X Communication module for terminals which understand the X protocol.
 
-Copyright (C) 1989, 1993-2011  Free Software Foundation, Inc.
+Copyright (C) 1989, 1993-2012 Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -21,17 +21,12 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 /* Xt features made by Fred Pierresteguy.  */
 
 #include <config.h>
-#include <signal.h>
 #include <stdio.h>
-#include <setjmp.h>
 
 #ifdef HAVE_X_WINDOWS
 
 #include "lisp.h"
 #include "blockinput.h"
-
-/* Need syssignal.h for various externs and definitions that may be required
-   by some configurations for calls to signal later in this source file.  */
 #include "syssignal.h"
 
 /* This may include sys/types.h, and that somehow loses
@@ -50,9 +45,7 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #include "systime.h"
 
 #include <fcntl.h>
-#include <ctype.h>
 #include <errno.h>
-#include <setjmp.h>
 #include <sys/stat.h>
 /* Caused redefinition of DBL_DIG on Netbsd; seems not to be needed.  */
 /* #include <sys/param.h>  */
@@ -83,10 +76,6 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 
 #ifdef USE_X_TOOLKIT
 #include <X11/Shell.h>
-#endif
-
-#ifdef HAVE_SYS_TIME_H
-#include <sys/time.h>
 #endif
 
 #include <unistd.h>
@@ -139,6 +128,8 @@ extern void _XEditResCheckMessages (Widget, XtPointer, XEvent *, Boolean *);
 #endif
 #endif
 
+#include "bitmaps/gray.xbm"
+
 /* Default to using XIM if available.  */
 #ifdef USE_XIM
 int use_xim = 1;
@@ -167,13 +158,6 @@ struct x_display_info *x_display_list;
    records previous values returned by x-list-fonts.  */
 
 Lisp_Object x_display_name_list;
-
-/* Frame being updated by update_frame.  This is declared in term.c.
-   This is set by update_begin and looked at by all the XT functions.
-   It is zero while not inside an update.  In that case, the XT
-   functions assume that `selected_frame' is the frame to apply to.  */
-
-extern struct frame *updating_frame;
 
 /* This is a frame waiting to be auto-raised, within XTread_socket.  */
 
@@ -256,11 +240,7 @@ static Time last_user_time;
 /* Incremented by XTread_socket whenever it really tries to read
    events.  */
 
-#ifdef __STDC__
 static int volatile input_signal_count;
-#else
-static int input_signal_count;
-#endif
 
 /* Used locally within XTread_socket.  */
 
@@ -307,7 +287,7 @@ enum xembed_message
 
 /* Used in x_flush.  */
 
-static int x_alloc_nearest_color_1 (Display *, Colormap, XColor *);
+static bool x_alloc_nearest_color_1 (Display *, Colormap, XColor *);
 static void x_set_window_size_1 (struct frame *, int, int, int);
 static void x_raise_frame (struct frame *);
 static void x_lower_frame (struct frame *);
@@ -322,7 +302,7 @@ static void XTframe_up_to_date (struct frame *);
 static void XTset_terminal_modes (struct terminal *);
 static void XTreset_terminal_modes (struct terminal *);
 static void x_clear_frame (struct frame *);
-static void x_ins_del_lines (struct frame *, int, int) NO_RETURN;
+static _Noreturn void x_ins_del_lines (struct frame *, int, int);
 static void frame_highlight (struct frame *);
 static void frame_unhighlight (struct frame *);
 static void x_new_focus_frame (struct x_display_info *, struct frame *);
@@ -355,7 +335,7 @@ static int handle_one_xevent (struct x_display_info *, XEvent *,
 #ifdef USE_GTK
 static int x_dispatch_event (XEvent *, Display *);
 #endif
-/* Don't declare this NO_RETURN because we want no
+/* Don't declare this _Noreturn because we want no
    interference with debugging failing X calls.  */
 static void x_connection_closed (Display *, const char *);
 static void x_wm_set_window_state (struct frame *, int);
@@ -373,7 +353,7 @@ x_flush (struct frame *f)
   if (!NILP (Vinhibit_redisplay))
     return;
 
-  BLOCK_INPUT;
+  block_input ();
   if (f == NULL)
     {
       Lisp_Object rest, frame;
@@ -383,7 +363,7 @@ x_flush (struct frame *f)
     }
   else if (FRAME_X_P (f))
     XFlush (FRAME_X_DISPLAY (f));
-  UNBLOCK_INPUT;
+  unblock_input ();
 }
 
 
@@ -526,7 +506,7 @@ x_set_frame_alpha (struct frame *f)
     if (rc == Success && actual != None)
       {
         unsigned long value = *(unsigned long *)data;
-	XFree ((void *) data);
+	XFree (data);
 	if (value == opac)
 	  {
 	    x_uncatch_errors ();
@@ -584,7 +564,7 @@ x_update_window_begin (struct window *w)
   updated_window = w;
   set_output_cursor (&w->cursor);
 
-  BLOCK_INPUT;
+  block_input ();
 
   if (f == hlinfo->mouse_face_mouse_frame)
     {
@@ -597,7 +577,7 @@ x_update_window_begin (struct window *w)
 	hlinfo->mouse_face_window = Qnil;
     }
 
-  UNBLOCK_INPUT;
+  unblock_input ();
 }
 
 
@@ -638,7 +618,7 @@ x_update_window_end (struct window *w, int cursor_on_p, int mouse_face_overwritt
 
   if (!w->pseudo_window_p)
     {
-      BLOCK_INPUT;
+      block_input ();
 
       if (cursor_on_p)
 	display_and_set_cursor (w, 1, output_cursor.hpos,
@@ -648,7 +628,7 @@ x_update_window_end (struct window *w, int cursor_on_p, int mouse_face_overwritt
       if (draw_window_fringes (w, 1))
 	x_draw_vertical_border (w);
 
-      UNBLOCK_INPUT;
+      unblock_input ();
     }
 
   /* If a row with mouse-face was overwritten, arrange for
@@ -674,9 +654,9 @@ x_update_end (struct frame *f)
   MOUSE_HL_INFO (f)->mouse_face_defer = 0;
 
 #ifndef XFlush
-  BLOCK_INPUT;
+  block_input ();
   XFlush (FRAME_X_DISPLAY (f));
-  UNBLOCK_INPUT;
+  unblock_input ();
 #endif
 }
 
@@ -689,21 +669,7 @@ static void
 XTframe_up_to_date (struct frame *f)
 {
   if (FRAME_X_P (f))
-    {
-      Mouse_HLInfo *hlinfo = MOUSE_HL_INFO (f);
-
-      if (hlinfo->mouse_face_deferred_gc
-	  || f == hlinfo->mouse_face_mouse_frame)
-	{
-	  BLOCK_INPUT;
-	  if (hlinfo->mouse_face_mouse_frame)
-	    note_mouse_highlight (hlinfo->mouse_face_mouse_frame,
-				  hlinfo->mouse_face_mouse_x,
-				  hlinfo->mouse_face_mouse_y);
-	  hlinfo->mouse_face_deferred_gc = 0;
-	  UNBLOCK_INPUT;
-	}
-    }
+    FRAME_MOUSE_UPDATE (f);
 }
 
 
@@ -721,7 +687,7 @@ x_after_update_window_line (struct glyph_row *desired_row)
   struct frame *f;
   int width, height;
 
-  xassert (w);
+  eassert (w);
 
   if (!desired_row->mode_line_p && !w->pseudo_window_p)
     desired_row->redraw_fringe_bitmaps_p = 1;
@@ -742,13 +708,13 @@ x_after_update_window_line (struct glyph_row *desired_row)
     {
       int y = WINDOW_TO_FRAME_PIXEL_Y (w, max (0, desired_row->y));
 
-      BLOCK_INPUT;
+      block_input ();
       x_clear_area (FRAME_X_DISPLAY (f), FRAME_X_WINDOW (f),
 		    0, y, width, height, False);
       x_clear_area (FRAME_X_DISPLAY (f), FRAME_X_WINDOW (f),
 		    FRAME_PIXEL_WIDTH (f) - width,
 		    y, width, height, False);
-      UNBLOCK_INPUT;
+      unblock_input ();
     }
 }
 
@@ -914,13 +880,13 @@ static void x_draw_glyph_string_foreground (struct glyph_string *);
 static void x_draw_composite_glyph_string_foreground (struct glyph_string *);
 static void x_draw_glyph_string_box (struct glyph_string *);
 static void x_draw_glyph_string  (struct glyph_string *);
-static void x_delete_glyphs (struct frame *, int) NO_RETURN;
+static _Noreturn void x_delete_glyphs (struct frame *, int);
 static void x_compute_glyph_string_overhangs (struct glyph_string *);
 static void x_set_cursor_gc (struct glyph_string *);
 static void x_set_mode_line_face_gc (struct glyph_string *);
 static void x_set_mouse_face_gc (struct glyph_string *);
-static int x_alloc_lighter_color (struct frame *, Display *, Colormap,
-                                  unsigned long *, double, int);
+static bool x_alloc_lighter_color (struct frame *, Display *, Colormap,
+				   unsigned long *, double, int);
 static void x_setup_relief_color (struct frame *, struct relief *,
                                   double, int, unsigned long);
 static void x_setup_relief_colors (struct glyph_string *);
@@ -937,7 +903,7 @@ static void x_draw_box_rect (struct glyph_string *, int, int, int, int,
                              int, int, int, XRectangle *);
 static void x_scroll_bar_clear (struct frame *);
 
-#if GLYPH_DEBUG
+#ifdef GLYPH_DEBUG
 static void x_check_font (struct frame *, struct font *);
 #endif
 
@@ -1039,7 +1005,7 @@ x_set_mouse_face_gc (struct glyph_string *s)
       s->gc = FRAME_X_DISPLAY_INFO (s->f)->scratch_cursor_gc;
 
     }
-  xassert (s->gc != 0);
+  eassert (s->gc != 0);
 }
 
 
@@ -1047,7 +1013,7 @@ x_set_mouse_face_gc (struct glyph_string *s)
    Faces to use in the mode line have already been computed when the
    matrix was built, so there isn't much to do, here.  */
 
-static inline void
+static void
 x_set_mode_line_face_gc (struct glyph_string *s)
 {
   s->gc = s->face->gc;
@@ -1058,7 +1024,7 @@ x_set_mode_line_face_gc (struct glyph_string *s)
    S->stippled_p to a non-zero value if the face of S has a stipple
    pattern.  */
 
-static inline void
+static void
 x_set_glyph_string_gc (struct glyph_string *s)
 {
   PREPARE_FACE_FOR_DISPLAY (s->f, s->face);
@@ -1096,14 +1062,14 @@ x_set_glyph_string_gc (struct glyph_string *s)
     }
 
   /* GC must have been set.  */
-  xassert (s->gc != 0);
+  eassert (s->gc != 0);
 }
 
 
 /* Set clipping for output of glyph string S.  S may be part of a mode
    line or menu if we don't have X toolkit support.  */
 
-static inline void
+static void
 x_set_glyph_string_clipping (struct glyph_string *s)
 {
   XRectangle *r = s->clip;
@@ -1176,7 +1142,7 @@ x_compute_glyph_string_overhangs (struct glyph_string *s)
 
 /* Fill rectangle X, Y, W, H with background color of glyph string S.  */
 
-static inline void
+static void
 x_clear_glyph_string_rect (struct glyph_string *s, int x, int y, int w, int h)
 {
   XGCValues xgcv;
@@ -1444,12 +1410,12 @@ x_draw_glyphless_glyph_string_foreground (struct glyph_string *s)
 
 #ifdef USE_X_TOOLKIT
 
-static struct frame *x_frame_of_widget (Widget);
 static Boolean cvt_string_to_pixel (Display *, XrmValue *, Cardinal *,
                                     XrmValue *, XrmValue *, XtPointer *);
 static void cvt_pixel_dtor (XtAppContext, XrmValue *, XtPointer,
                             XrmValue *, Cardinal *);
 
+#ifdef USE_LUCID
 
 /* Return the frame on which widget WIDGET is used.. Abort if frame
    cannot be determined.  */
@@ -1458,7 +1424,7 @@ static struct frame *
 x_frame_of_widget (Widget widget)
 {
   struct x_display_info *dpyinfo;
-  Lisp_Object tail;
+  Lisp_Object tail, frame;
   struct frame *f;
 
   dpyinfo = x_display_info_for_display (XtDisplay (widget));
@@ -1472,29 +1438,26 @@ x_frame_of_widget (Widget widget)
 
   /* Look for a frame with that top-level widget.  Allocate the color
      on that frame to get the right gamma correction value.  */
-  for (tail = Vframe_list; CONSP (tail); tail = XCDR (tail))
-    if (FRAMEP (XCAR (tail))
-	&& (f = XFRAME (XCAR (tail)),
-	    (FRAME_X_P (f)
-             && f->output_data.nothing != 1
-	     && FRAME_X_DISPLAY_INFO (f) == dpyinfo))
-	&& f->output_data.x->widget == widget)
-      return f;
-
-  abort ();
+  FOR_EACH_FRAME (tail, frame)
+    {
+      f = XFRAME (frame);
+      if (FRAME_X_P (f)
+	  && f->output_data.nothing != 1
+	  && FRAME_X_DISPLAY_INFO (f) == dpyinfo
+	  && f->output_data.x->widget == widget)
+	return f;
+    }
+  emacs_abort ();
 }
-
-
-#ifdef USE_LUCID
 
 /* Allocate a color which is lighter or darker than *PIXEL by FACTOR
    or DELTA.  Try a color with RGB values multiplied by FACTOR first.
    If this produces the same color as PIXEL, try a color where all RGB
    values have DELTA added.  Return the allocated color in *PIXEL.
    DISPLAY is the X display, CMAP is the colormap to operate on.
-   Value is non-zero if successful.  */
+   Value is true if successful.  */
 
-int
+bool
 x_alloc_lighter_color_for_widget (Widget widget, Display *display, Colormap cmap,
 				  unsigned long *pixel, double factor, int delta)
 {
@@ -1502,7 +1465,7 @@ x_alloc_lighter_color_for_widget (Widget widget, Display *display, Colormap cmap
   return x_alloc_lighter_color (f, display, cmap, pixel, factor, delta);
 }
 
-#endif
+#endif /* USE_LUCID */
 
 
 /* Structure specifying which arguments should be passed by Xt to
@@ -1697,8 +1660,8 @@ x_query_colors (struct frame *f, XColor *colors, int ncolors)
       for (i = 0; i < ncolors; ++i)
 	{
 	  unsigned long pixel = colors[i].pixel;
-	  xassert (pixel < dpyinfo->ncolor_cells);
-	  xassert (dpyinfo->color_cells[pixel].pixel == pixel);
+	  eassert (pixel < dpyinfo->ncolor_cells);
+	  eassert (dpyinfo->color_cells[pixel].pixel == pixel);
 	  colors[i] = dpyinfo->color_cells[pixel];
 	}
     }
@@ -1719,15 +1682,15 @@ x_query_color (struct frame *f, XColor *color)
 
 /* Allocate the color COLOR->pixel on DISPLAY, colormap CMAP.  If an
    exact match can't be allocated, try the nearest color available.
-   Value is non-zero if successful.  Set *COLOR to the color
+   Value is true if successful.  Set *COLOR to the color
    allocated.  */
 
-static int
+static bool
 x_alloc_nearest_color_1 (Display *dpy, Colormap cmap, XColor *color)
 {
-  int rc;
+  bool rc;
 
-  rc = XAllocColor (dpy, cmap, color);
+  rc = XAllocColor (dpy, cmap, color) != 0;
   if (rc == 0)
     {
       /* If we got to this point, the colormap is full, so we're going
@@ -1758,7 +1721,7 @@ x_alloc_nearest_color_1 (Display *dpy, Colormap cmap, XColor *color)
       color->red   = cells[nearest].red;
       color->green = cells[nearest].green;
       color->blue  = cells[nearest].blue;
-      rc = XAllocColor (dpy, cmap, color);
+      rc = XAllocColor (dpy, cmap, color) != 0;
     }
   else
     {
@@ -1791,10 +1754,10 @@ x_alloc_nearest_color_1 (Display *dpy, Colormap cmap, XColor *color)
 
 /* Allocate the color COLOR->pixel on frame F, colormap CMAP.  If an
    exact match can't be allocated, try the nearest color available.
-   Value is non-zero if successful.  Set *COLOR to the color
+   Value is true if successful.  Set *COLOR to the color
    allocated.  */
 
-int
+bool
 x_alloc_nearest_color (struct frame *f, Colormap cmap, XColor *color)
 {
   gamma_correct (f, color);
@@ -1812,10 +1775,10 @@ x_copy_color (struct frame *f, long unsigned int pixel)
   XColor color;
 
   color.pixel = pixel;
-  BLOCK_INPUT;
+  block_input ();
   x_query_color (f, &color);
   XAllocColor (FRAME_X_DISPLAY (f), FRAME_X_COLORMAP (f), &color);
-  UNBLOCK_INPUT;
+  unblock_input ();
 #ifdef DEBUG_X_COLORS
   register_color (pixel);
 #endif
@@ -1844,19 +1807,19 @@ x_copy_color (struct frame *f, long unsigned int pixel)
    DISPLAY is the X display, CMAP is the colormap to operate on.
    Value is non-zero if successful.  */
 
-static int
+static bool
 x_alloc_lighter_color (struct frame *f, Display *display, Colormap cmap, long unsigned int *pixel, double factor, int delta)
 {
   XColor color, new;
   long bright;
-  int success_p;
+  bool success_p;
 
   /* Get RGB color values.  */
   color.pixel = *pixel;
   x_query_color (f, &color);
 
   /* Change RGB values by specified FACTOR.  Avoid overflow!  */
-  xassert (factor >= 0);
+  eassert (factor >= 0);
   new.red = min (0xffff, factor * color.red);
   new.green = min (0xffff, factor * color.green);
   new.blue = min (0xffff, factor * color.blue);
@@ -2292,7 +2255,8 @@ x_draw_image_foreground (struct glyph_string *s)
 static void
 x_draw_image_relief (struct glyph_string *s)
 {
-  int x0, y0, x1, y1, thick, raised_p, extra;
+  int x0, y0, x1, y1, thick, raised_p;
+  int extra_x, extra_y;
   XRectangle r;
   int x = s->x;
   int y = s->ybase - image_ascent (s->img, s->face, &s->slice);
@@ -2323,13 +2287,24 @@ x_draw_image_relief (struct glyph_string *s)
       raised_p = s->img->relief > 0;
     }
 
-  extra = s->face->id == TOOL_BAR_FACE_ID
-    ? XINT (Vtool_bar_button_margin) : 0;
+  extra_x = extra_y = 0;
+  if (s->face->id == TOOL_BAR_FACE_ID)
+    {
+      if (CONSP (Vtool_bar_button_margin)
+	  && INTEGERP (XCAR (Vtool_bar_button_margin))
+	  && INTEGERP (XCDR (Vtool_bar_button_margin)))
+	{
+	  extra_x = XINT (XCAR (Vtool_bar_button_margin));
+	  extra_y = XINT (XCDR (Vtool_bar_button_margin));
+	}
+      else if (INTEGERP (Vtool_bar_button_margin))
+	extra_x = extra_y = XINT (Vtool_bar_button_margin);
+    }
 
-  x0 = x - thick - extra;
-  y0 = y - thick - extra;
-  x1 = x + s->slice.width + thick - 1 + extra;
-  y1 = y + s->slice.height + thick - 1 + extra;
+  x0 = x - thick - extra_x;
+  y0 = y - thick - extra_y;
+  x1 = x + s->slice.width + thick - 1 + extra_x;
+  y1 = y + s->slice.height + thick - 1 + extra_y;
 
   x_setup_relief_colors (s);
   get_glyph_string_clip_rect (s, &r);
@@ -2556,7 +2531,7 @@ x_draw_image_glyph_string (struct glyph_string *s)
 static void
 x_draw_stretch_glyph_string (struct glyph_string *s)
 {
-  xassert (s->first_glyph->type == STRETCH_GLYPH);
+  eassert (s->first_glyph->type == STRETCH_GLYPH);
 
   if (s->hl == DRAW_CURSOR
       && !x_stretch_cursor_p)
@@ -2651,6 +2626,68 @@ x_draw_stretch_glyph_string (struct glyph_string *s)
     }
 
   s->background_filled_p = 1;
+}
+
+/*
+   Draw a wavy line under S. The wave fills wave_height pixels from y0.
+
+                    x0         wave_length = 2
+                                 --
+                y0   *   *   *   *   *
+                     |* * * * * * * * *
+    wave_height = 3  | *   *   *   *
+
+*/
+
+static void
+x_draw_underwave (struct glyph_string *s)
+{
+  int wave_height = 2, wave_length = 3;
+  int dx, dy, x0, y0, width, x1, y1, x2, y2, odd, xmax;
+  XRectangle wave_clip, string_clip, final_clip;
+
+  dx = wave_length;
+  dy = wave_height - 1;
+  x0 = s->x;
+  y0 = s->ybase + 1;
+  width = s->width;
+  xmax = x0 + width;
+
+  /* Find and set clipping rectangle */
+
+  wave_clip = (XRectangle){ x0, y0, width, wave_height };
+  get_glyph_string_clip_rect (s, &string_clip);
+
+  if (!x_intersect_rectangles (&wave_clip, &string_clip, &final_clip))
+    return;
+
+  XSetClipRectangles (s->display, s->gc, 0, 0, &final_clip, 1, Unsorted);
+
+  /* Draw the waves */
+
+  x1 = x0 - (x0 % dx);
+  x2 = x1 + dx;
+  odd = (x1/dx) % 2;
+  y1 = y2 = y0;
+
+  if (odd)
+    y1 += dy;
+  else
+    y2 += dy;
+
+  if (INT_MAX - dx < xmax)
+    emacs_abort ();
+
+  while (x1 <= xmax)
+    {
+      XDrawLine (s->display, s->window, s->gc, x1, y1, x2, y2);
+      x1  = x2, y1 = y2;
+      x2 += dx, y2 = y0 + odd*dy;
+      odd = !odd;
+    }
+
+  /* Restore previous clipping rectangle(s) */
+  XSetClipRectangles (s->display, s->gc, 0, 0, s->clip, s->num_clips, Unsorted);
 }
 
 
@@ -2748,75 +2785,90 @@ x_draw_glyph_string (struct glyph_string *s)
       break;
 
     default:
-      abort ();
+      emacs_abort ();
     }
 
   if (!s->for_overlaps)
     {
       /* Draw underline.  */
       if (s->face->underline_p)
-	{
-	  unsigned long thickness, position;
-	  int y;
+        {
+          if (s->face->underline_type == FACE_UNDER_WAVE)
+            {
+              if (s->face->underline_defaulted_p)
+                x_draw_underwave (s);
+              else
+                {
+                  XGCValues xgcv;
+                  XGetGCValues (s->display, s->gc, GCForeground, &xgcv);
+                  XSetForeground (s->display, s->gc, s->face->underline_color);
+                  x_draw_underwave (s);
+                  XSetForeground (s->display, s->gc, xgcv.foreground);
+                }
+            }
+          else if (s->face->underline_type == FACE_UNDER_LINE)
+            {
+              unsigned long thickness, position;
+              int y;
 
-	  if (s->prev && s->prev->face->underline_p)
-	    {
-	      /* We use the same underline style as the previous one.  */
-	      thickness = s->prev->underline_thickness;
-	      position = s->prev->underline_position;
-	    }
-	  else
-	    {
-	      /* Get the underline thickness.  Default is 1 pixel.  */
-	      if (s->font && s->font->underline_thickness > 0)
-		thickness = s->font->underline_thickness;
-	      else
-		thickness = 1;
-	      if (x_underline_at_descent_line)
-		position = (s->height - thickness) - (s->ybase - s->y);
-	      else
-		{
-		  /* Get the underline position.  This is the recommended
-		     vertical offset in pixels from the baseline to the top of
-		     the underline.  This is a signed value according to the
-		     specs, and its default is
+              if (s->prev && s->prev->face->underline_p)
+                {
+                  /* We use the same underline style as the previous one.  */
+                  thickness = s->prev->underline_thickness;
+                  position = s->prev->underline_position;
+                }
+              else
+                {
+                  /* Get the underline thickness.  Default is 1 pixel.  */
+                  if (s->font && s->font->underline_thickness > 0)
+                    thickness = s->font->underline_thickness;
+                  else
+                    thickness = 1;
+                  if (x_underline_at_descent_line)
+                    position = (s->height - thickness) - (s->ybase - s->y);
+                  else
+                    {
+                      /* Get the underline position.  This is the recommended
+                         vertical offset in pixels from the baseline to the top of
+                         the underline.  This is a signed value according to the
+                         specs, and its default is
 
-		     ROUND ((maximum descent) / 2), with
-		     ROUND(x) = floor (x + 0.5)  */
+                         ROUND ((maximum descent) / 2), with
+                         ROUND(x) = floor (x + 0.5)  */
 
-		  if (x_use_underline_position_properties
-		      && s->font && s->font->underline_position >= 0)
-		    position = s->font->underline_position;
-		  else if (s->font)
-		    position = (s->font->descent + 1) / 2;
-		  else
-		    position = underline_minimum_offset;
-		}
-	      position = max (position, underline_minimum_offset);
-	    }
-	  /* Check the sanity of thickness and position.  We should
-	     avoid drawing underline out of the current line area.  */
-	  if (s->y + s->height <= s->ybase + position)
-	    position = (s->height - 1) - (s->ybase - s->y);
-	  if (s->y + s->height < s->ybase + position + thickness)
-	    thickness = (s->y + s->height) - (s->ybase + position);
-	  s->underline_thickness = thickness;
-	  s->underline_position = position;
-	  y = s->ybase + position;
-	  if (s->face->underline_defaulted_p)
-	    XFillRectangle (s->display, s->window, s->gc,
-			    s->x, y, s->width, thickness);
-	  else
-	    {
-	      XGCValues xgcv;
-	      XGetGCValues (s->display, s->gc, GCForeground, &xgcv);
-	      XSetForeground (s->display, s->gc, s->face->underline_color);
-	      XFillRectangle (s->display, s->window, s->gc,
-			      s->x, y, s->width, thickness);
-	      XSetForeground (s->display, s->gc, xgcv.foreground);
-	    }
-	}
-
+                      if (x_use_underline_position_properties
+                          && s->font && s->font->underline_position >= 0)
+                        position = s->font->underline_position;
+                      else if (s->font)
+                        position = (s->font->descent + 1) / 2;
+                      else
+                        position = underline_minimum_offset;
+                    }
+                  position = max (position, underline_minimum_offset);
+                }
+              /* Check the sanity of thickness and position.  We should
+                 avoid drawing underline out of the current line area.  */
+              if (s->y + s->height <= s->ybase + position)
+                position = (s->height - 1) - (s->ybase - s->y);
+              if (s->y + s->height < s->ybase + position + thickness)
+                thickness = (s->y + s->height) - (s->ybase + position);
+              s->underline_thickness = thickness;
+              s->underline_position = position;
+              y = s->ybase + position;
+              if (s->face->underline_defaulted_p)
+                XFillRectangle (s->display, s->window, s->gc,
+                                s->x, y, s->width, thickness);
+              else
+                {
+                  XGCValues xgcv;
+                  XGetGCValues (s->display, s->gc, GCForeground, &xgcv);
+                  XSetForeground (s->display, s->gc, s->face->underline_color);
+                  XFillRectangle (s->display, s->window, s->gc,
+                                  s->x, y, s->width, thickness);
+                  XSetForeground (s->display, s->gc, xgcv.foreground);
+                }
+            }
+        }
       /* Draw overline.  */
       if (s->face->overline_p)
 	{
@@ -2907,6 +2959,7 @@ x_draw_glyph_string (struct glyph_string *s)
 		XSetClipMask (next->display, next->gc, None);
 		next->hl = save;
 		next->num_clips = 0;
+		next->clip_head = s->next;
 	      }
 	}
     }
@@ -2933,7 +2986,7 @@ x_shift_glyphs_for_insert (struct frame *f, int x, int y, int width, int height,
 static void
 x_delete_glyphs (struct frame *f, register int n)
 {
-  abort ();
+  emacs_abort ();
 }
 
 
@@ -2943,7 +2996,7 @@ x_delete_glyphs (struct frame *f, register int n)
 void
 x_clear_area (Display *dpy, Window window, int x, int y, int width, int height, int exposures)
 {
-  xassert (width > 0 && height > 0);
+  eassert (width > 0 && height > 0);
   XClearArea (dpy, window, x, y, width, height, exposures);
 }
 
@@ -2961,7 +3014,7 @@ x_clear_frame (struct frame *f)
 
   /* We don't set the output cursor here because there will always
      follow an explicit cursor_to.  */
-  BLOCK_INPUT;
+  block_input ();
 
   XClearWindow (FRAME_X_DISPLAY (f), FRAME_X_WINDOW (f));
 
@@ -2978,55 +3031,17 @@ x_clear_frame (struct frame *f)
 
   XFlush (FRAME_X_DISPLAY (f));
 
-  UNBLOCK_INPUT;
+  unblock_input ();
 }
 
 
 
 /* Invert the middle quarter of the frame for .15 sec.  */
 
-/* We use the select system call to do the waiting, so we have to make
-   sure it's available.  If it isn't, we just won't do visual bells.  */
-
-#if defined (HAVE_TIMEVAL) && defined (HAVE_SELECT)
-
-
-/* Subtract the `struct timeval' values X and Y, storing the result in
-   *RESULT.  Return 1 if the difference is negative, otherwise 0.  */
-
-static int
-timeval_subtract (struct timeval *result, struct timeval x, struct timeval y)
-{
-  /* Perform the carry for the later subtraction by updating y.  This
-     is safer because on some systems the tv_sec member is unsigned.  */
-  if (x.tv_usec < y.tv_usec)
-    {
-      int nsec = (y.tv_usec - x.tv_usec) / 1000000 + 1;
-      y.tv_usec -= 1000000 * nsec;
-      y.tv_sec += nsec;
-    }
-
-  if (x.tv_usec - y.tv_usec > 1000000)
-    {
-      int nsec = (y.tv_usec - x.tv_usec) / 1000000;
-      y.tv_usec += 1000000 * nsec;
-      y.tv_sec -= nsec;
-    }
-
-  /* Compute the time remaining to wait.  tv_usec is certainly
-     positive.  */
-  result->tv_sec = x.tv_sec - y.tv_sec;
-  result->tv_usec = x.tv_usec - y.tv_usec;
-
-  /* Return indication of whether the result should be considered
-     negative.  */
-  return x.tv_sec < y.tv_sec;
-}
-
 static void
 XTflash (struct frame *f)
 {
-  BLOCK_INPUT;
+  block_input ();
 
   {
 #ifdef USE_GTK
@@ -3123,34 +3138,25 @@ XTflash (struct frame *f)
       x_flush (f);
 
       {
-	struct timeval wakeup;
-
-	EMACS_GET_TIME (wakeup);
-
-	/* Compute time to wait until, propagating carry from usecs.  */
-	wakeup.tv_usec += 150000;
-	wakeup.tv_sec += (wakeup.tv_usec / 1000000);
-	wakeup.tv_usec %= 1000000;
+	EMACS_TIME delay = make_emacs_time (0, 150 * 1000 * 1000);
+	EMACS_TIME wakeup = add_emacs_time (current_emacs_time (), delay);
 
 	/* Keep waiting until past the time wakeup or any input gets
 	   available.  */
 	while (! detect_input_pending ())
 	  {
-	    struct timeval current;
-	    struct timeval timeout;
+	    EMACS_TIME current = current_emacs_time ();
+	    EMACS_TIME timeout;
 
-	    EMACS_GET_TIME (current);
-
-	    /* Break if result would be negative.  */
-	    if (timeval_subtract (&current, wakeup, current))
+	    /* Break if result would not be positive.  */
+	    if (EMACS_TIME_LE (wakeup, current))
 	      break;
 
 	    /* How long `select' should wait.  */
-	    timeout.tv_sec = 0;
-	    timeout.tv_usec = 10000;
+	    timeout = make_emacs_time (0, 10 * 1000 * 1000);
 
 	    /* Try to wait that long--but we might wake up sooner.  */
-	    select (0, NULL, NULL, NULL, &timeout);
+	    pselect (0, NULL, NULL, NULL, &timeout, NULL);
 	  }
       }
 
@@ -3188,16 +3194,14 @@ XTflash (struct frame *f)
     }
   }
 
-  UNBLOCK_INPUT;
+  unblock_input ();
 }
-
-#endif /* defined (HAVE_TIMEVAL) && defined (HAVE_SELECT) */
 
 
 static void
 XTtoggle_invisible_pointer (FRAME_PTR f, int invisible)
 {
-  BLOCK_INPUT;
+  block_input ();
   if (invisible)
     {
       if (FRAME_X_DISPLAY_INFO (f)->invisible_cursor != 0)
@@ -3208,7 +3212,7 @@ XTtoggle_invisible_pointer (FRAME_PTR f, int invisible)
     XDefineCursor (FRAME_X_DISPLAY (f), FRAME_X_WINDOW (f),
                    f->output_data.x->current_cursor);
   f->pointer_invisible = invisible;
-  UNBLOCK_INPUT;
+  unblock_input ();
 }
 
 
@@ -3219,16 +3223,14 @@ XTring_bell (struct frame *f)
 {
   if (FRAME_X_DISPLAY (f))
     {
-#if defined (HAVE_TIMEVAL) && defined (HAVE_SELECT)
       if (visible_bell)
 	XTflash (f);
       else
-#endif
 	{
-	  BLOCK_INPUT;
+	  block_input ();
 	  XBell (FRAME_X_DISPLAY (f), 0);
 	  XFlush (FRAME_X_DISPLAY (f));
-	  UNBLOCK_INPUT;
+	  unblock_input ();
 	}
     }
 }
@@ -3257,7 +3259,7 @@ XTset_terminal_window (struct frame *f, int n)
 static void
 x_ins_del_lines (struct frame *f, int vpos, int n)
 {
-  abort ();
+  emacs_abort ();
 }
 
 
@@ -3325,7 +3327,7 @@ x_scroll_run (struct window *w, struct run *run)
 	height = run->height;
     }
 
-  BLOCK_INPUT;
+  block_input ();
 
   /* Cursor off.  Will be switched on again in x_update_window_end.  */
   updated_window = w;
@@ -3338,7 +3340,7 @@ x_scroll_run (struct window *w, struct run *run)
 	     width, height,
 	     x, to_y);
 
-  UNBLOCK_INPUT;
+  unblock_input ();
 }
 
 
@@ -3355,7 +3357,7 @@ frame_highlight (struct frame *f)
      the ICCCM (section 4.1.6) says that the window's border pixmap
      and border pixel are window attributes which are "private to the
      client", so we can always change it to whatever we want.  */
-  BLOCK_INPUT;
+  block_input ();
   /* I recently started to get errors in this XSetWindowBorder, depending on
      the window-manager in use, tho something more is at play since I've been
      using that same window-manager binary for ever.  Let's not crash just
@@ -3364,7 +3366,7 @@ frame_highlight (struct frame *f)
   XSetWindowBorder (FRAME_X_DISPLAY (f), FRAME_X_WINDOW (f),
 		    f->output_data.x->border_pixel);
   x_uncatch_errors ();
-  UNBLOCK_INPUT;
+  unblock_input ();
   x_update_cursor (f, 1);
   x_set_frame_alpha (f);
 }
@@ -3376,13 +3378,13 @@ frame_unhighlight (struct frame *f)
      the ICCCM (section 4.1.6) says that the window's border pixmap
      and border pixel are window attributes which are "private to the
      client", so we can always change it to whatever we want.  */
-  BLOCK_INPUT;
+  block_input ();
   /* Same as above for XSetWindowBorder (bug#9310).  */
   x_catch_errors (FRAME_X_DISPLAY (f));
   XSetWindowBorderPixmap (FRAME_X_DISPLAY (f), FRAME_X_WINDOW (f),
 			  f->output_data.x->border_tile);
   x_uncatch_errors ();
-  UNBLOCK_INPUT;
+  unblock_input ();
   x_update_cursor (f, 1);
   x_set_frame_alpha (f);
 }
@@ -3432,7 +3434,8 @@ x_focus_changed (int type, int state, struct x_display_info *dpyinfo, struct fra
 
           /* Don't stop displaying the initial startup message
              for a switch-frame event we don't need.  */
-          if (NILP (Vterminal_frame)
+          /* When run as a daemon, Vterminal_frame is always NIL.  */
+          if ((NILP (Vterminal_frame) || EQ (Fdaemonp(), Qt))
               && CONSP (Vframe_list)
               && !NILP (XCDR (Vframe_list)))
             {
@@ -3556,7 +3559,7 @@ x_frame_rehighlight (struct x_display_info *dpyinfo)
 	   : dpyinfo->x_focus_frame);
       if (! FRAME_LIVE_P (dpyinfo->x_highlight_frame))
 	{
-	  FRAME_FOCUS_FRAME (dpyinfo->x_focus_frame) = Qnil;
+	  fset_focus_frame (dpyinfo->x_focus_frame, Qnil);
 	  dpyinfo->x_highlight_frame = dpyinfo->x_focus_frame;
 	}
     }
@@ -3681,31 +3684,30 @@ x_find_modifier_meanings (struct x_display_info *dpyinfo)
       dpyinfo->alt_mod_mask &= ~dpyinfo->meta_mod_mask;
     }
 
-  XFree ((char *) syms);
+  XFree (syms);
   XFreeModifiermap (mods);
 }
 
 /* Convert between the modifier bits X uses and the modifier bits
    Emacs uses.  */
 
-EMACS_INT
+int
 x_x_to_emacs_modifiers (struct x_display_info *dpyinfo, int state)
 {
-  EMACS_INT mod_meta = meta_modifier;
-  EMACS_INT mod_alt  = alt_modifier;
-  EMACS_INT mod_hyper = hyper_modifier;
-  EMACS_INT mod_super = super_modifier;
+  int mod_meta = meta_modifier;
+  int mod_alt  = alt_modifier;
+  int mod_hyper = hyper_modifier;
+  int mod_super = super_modifier;
   Lisp_Object tem;
 
   tem = Fget (Vx_alt_keysym, Qmodifier_value);
-  if (INTEGERP (tem)) mod_alt = XINT (tem);
+  if (INTEGERP (tem)) mod_alt = XINT (tem) & INT_MAX;
   tem = Fget (Vx_meta_keysym, Qmodifier_value);
-  if (INTEGERP (tem)) mod_meta = XINT (tem);
+  if (INTEGERP (tem)) mod_meta = XINT (tem) & INT_MAX;
   tem = Fget (Vx_hyper_keysym, Qmodifier_value);
-  if (INTEGERP (tem)) mod_hyper = XINT (tem);
+  if (INTEGERP (tem)) mod_hyper = XINT (tem) & INT_MAX;
   tem = Fget (Vx_super_keysym, Qmodifier_value);
-  if (INTEGERP (tem)) mod_super = XINT (tem);
-
+  if (INTEGERP (tem)) mod_super = XINT (tem) & INT_MAX;
 
   return (  ((state & (ShiftMask | dpyinfo->shift_lock_mask)) ? shift_modifier : 0)
             | ((state & ControlMask)			? ctrl_modifier	: 0)
@@ -3718,10 +3720,10 @@ x_x_to_emacs_modifiers (struct x_display_info *dpyinfo, int state)
 static int
 x_emacs_to_x_modifiers (struct x_display_info *dpyinfo, EMACS_INT state)
 {
-  int mod_meta = meta_modifier;
-  int mod_alt  = alt_modifier;
-  int mod_hyper = hyper_modifier;
-  int mod_super = super_modifier;
+  EMACS_INT mod_meta = meta_modifier;
+  EMACS_INT mod_alt  = alt_modifier;
+  EMACS_INT mod_hyper = hyper_modifier;
+  EMACS_INT mod_super = super_modifier;
 
   Lisp_Object tem;
 
@@ -3750,9 +3752,9 @@ x_get_keysym_name (int keysym)
 {
   char *value;
 
-  BLOCK_INPUT;
+  block_input ();
   value = XKeysymToString (keysym);
-  UNBLOCK_INPUT;
+  unblock_input ();
 
   return value;
 }
@@ -3882,7 +3884,7 @@ XTmouse_position (FRAME_PTR *fp, int insist, Lisp_Object *bar_window,
 {
   FRAME_PTR f1;
 
-  BLOCK_INPUT;
+  block_input ();
 
   if (! NILP (last_mouse_scroll_bar) && insist == 0)
     x_scroll_bar_report_motion (fp, bar_window, part, x, y, timestamp);
@@ -4063,7 +4065,7 @@ XTmouse_position (FRAME_PTR *fp, int insist, Lisp_Object *bar_window,
       }
     }
 
-  UNBLOCK_INPUT;
+  unblock_input ();
 }
 
 
@@ -4082,20 +4084,15 @@ XTmouse_position (FRAME_PTR *fp, int insist, Lisp_Object *bar_window,
 static struct scroll_bar *
 x_window_to_scroll_bar (Display *display, Window window_id)
 {
-  Lisp_Object tail;
+  Lisp_Object tail, frame;
 
 #if defined (USE_GTK) && defined (USE_TOOLKIT_SCROLL_BARS)
   window_id = (Window) xg_get_scroll_id_for_window (display, window_id);
 #endif /* USE_GTK  && USE_TOOLKIT_SCROLL_BARS */
 
-  for (tail = Vframe_list; CONSP (tail); tail = XCDR (tail))
+  FOR_EACH_FRAME (tail, frame)
     {
-      Lisp_Object frame, bar, condemned;
-
-      frame = XCAR (tail);
-      /* All elements of Vframe_list should be frames.  */
-      if (! FRAMEP (frame))
-	abort ();
+      Lisp_Object bar, condemned;
 
       if (! FRAME_X_P (XFRAME (frame)))
         continue;
@@ -4127,20 +4124,16 @@ x_window_to_scroll_bar (Display *display, Window window_id)
 static Widget
 x_window_to_menu_bar (Window window)
 {
-  Lisp_Object tail;
+  Lisp_Object tail, frame;
 
-  for (tail = Vframe_list; CONSP (tail); tail = XCDR (tail))
-    {
-      if (FRAME_X_P (XFRAME (XCAR (tail))))
-        {
-          Lisp_Object frame = XCAR (tail);
-          Widget menu_bar = XFRAME (frame)->output_data.x->menubar_widget;
+  FOR_EACH_FRAME (tail, frame)
+    if (FRAME_X_P (XFRAME (frame)))
+      {
+	Widget menu_bar = XFRAME (frame)->output_data.x->menubar_widget;
 
-          if (menu_bar && xlwmenu_window_p (menu_bar, window))
-            return menu_bar;
-        }
-    }
-
+	if (menu_bar && xlwmenu_window_p (menu_bar, window))
+	  return menu_bar;
+      }
   return NULL;
 }
 
@@ -4252,7 +4245,7 @@ x_send_scroll_bar_event (Lisp_Object window, int part, int portion, int whole)
   struct frame *f = XFRAME (w->frame);
   ptrdiff_t i;
 
-  BLOCK_INPUT;
+  block_input ();
 
   /* Construct a ClientMessage event to send to the frame.  */
   ev->type = ClientMessage;
@@ -4299,7 +4292,7 @@ x_send_scroll_bar_event (Lisp_Object window, int part, int portion, int whole)
      be sent to the client that created the window, and if that
      window no longer exists, no event will be sent.  */
   XSendEvent (FRAME_X_DISPLAY (f), FRAME_X_WINDOW (f), False, 0, &event);
-  UNBLOCK_INPUT;
+  unblock_input ();
 }
 
 
@@ -4390,9 +4383,9 @@ xm_scroll_callback (Widget widget, XtPointer client_data, XtPointer call_data)
 	int slider_size;
 
 	/* Get the slider size.  */
-	BLOCK_INPUT;
+	block_input ();
 	XtVaGetValues (widget, XmNsliderSize, &slider_size, NULL);
-	UNBLOCK_INPUT;
+	unblock_input ();
 
 	whole = XM_SB_MAX - slider_size;
 	portion = min (cs->value, whole);
@@ -4513,14 +4506,14 @@ xaw_jump_callback (Widget widget, XtPointer client_data, XtPointer call_data)
   int part;
 
   /* Get the size of the thumb, a value between 0 and 1.  */
-  BLOCK_INPUT;
+  block_input ();
   XtVaGetValues (widget, XtNshown, &shown, XtNheight, &height, NULL);
-  UNBLOCK_INPUT;
+  unblock_input ();
 
   whole = 10000000;
   portion = shown < 1 ? top * whole : 0;
 
-  if (shown < 1 && (eabs (top + shown - 1) < 1.0/height))
+  if (shown < 1 && (eabs (top + shown - 1) < 1.0f / height))
     /* Some derivatives of Xaw refuse to shrink the thumb when you reach
        the bottom, so we force the scrolling whenever we see that we're
        too close to the bottom (in x_set_toolkit_scroll_bar_thumb
@@ -4555,9 +4548,9 @@ xaw_scroll_callback (Widget widget, XtPointer client_data, XtPointer call_data)
   int part;
 
   /* Get the height of the scroll bar.  */
-  BLOCK_INPUT;
+  block_input ();
   XtVaGetValues (widget, XtNheight, &height, NULL);
-  UNBLOCK_INPUT;
+  unblock_input ();
 
   if (eabs (position) >= height)
     part = (position < 0) ? scroll_bar_above_handle : scroll_bar_below_handle;
@@ -4588,11 +4581,11 @@ x_create_toolkit_scroll_bar (struct frame *f, struct scroll_bar *bar)
 {
   const char *scroll_bar_name = SCROLL_BAR_NAME;
 
-  BLOCK_INPUT;
+  block_input ();
   xg_create_scroll_bar (f, bar, G_CALLBACK (xg_scroll_callback),
                         G_CALLBACK (xg_end_scroll_callback),
                         scroll_bar_name);
-  UNBLOCK_INPUT;
+  unblock_input ();
 }
 
 #else /* not USE_GTK */
@@ -4604,10 +4597,10 @@ x_create_toolkit_scroll_bar (struct frame *f, struct scroll_bar *bar)
   Widget widget;
   Arg av[20];
   int ac = 0;
-  char const *scroll_bar_name = SCROLL_BAR_NAME;
+  const char *scroll_bar_name = SCROLL_BAR_NAME;
   unsigned long pixel;
 
-  BLOCK_INPUT;
+  block_input ();
 
 #ifdef USE_MOTIF
   /* Set resources.  Create the widget.  */
@@ -4634,7 +4627,7 @@ x_create_toolkit_scroll_bar (struct frame *f, struct scroll_bar *bar)
     }
 
   widget = XmCreateScrollBar (f->output_data.x->edit_widget,
-			      scroll_bar_name, av, ac);
+			      (char *) scroll_bar_name, av, ac);
 
   /* Add one callback for everything that can happen.  */
   XtAddCallback (widget, XmNdecrementCallback, xm_scroll_callback,
@@ -4791,7 +4784,7 @@ x_create_toolkit_scroll_bar (struct frame *f, struct scroll_bar *bar)
   xwindow = XtWindow (widget);
   bar->x_window = xwindow;
 
-  UNBLOCK_INPUT;
+  unblock_input ();
 }
 #endif /* not USE_GTK */
 
@@ -4815,7 +4808,7 @@ x_set_toolkit_scroll_bar_thumb (struct scroll_bar *bar, int portion, int positio
   Widget widget = SCROLL_BAR_X_WIDGET (FRAME_X_DISPLAY (f), bar);
   float top, shown;
 
-  BLOCK_INPUT;
+  block_input ();
 
 #ifdef USE_MOTIF
 
@@ -4885,7 +4878,7 @@ x_set_toolkit_scroll_bar_thumb (struct scroll_bar *bar, int portion, int positio
     else
       top = old_top;
     /* Keep two pixels available for moving the thumb down.  */
-    shown = max (0, min (1 - top - (2.0 / height), shown));
+    shown = max (0, min (1 - top - (2.0f / height), shown));
 
     /* If the call to XawScrollbarSetThumb below doesn't seem to work,
        check that your system's configuration file contains a define
@@ -4906,7 +4899,7 @@ x_set_toolkit_scroll_bar_thumb (struct scroll_bar *bar, int portion, int positio
   }
 #endif /* !USE_MOTIF */
 
-  UNBLOCK_INPUT;
+  unblock_input ();
 }
 #endif /* not USE_GTK */
 
@@ -4929,8 +4922,9 @@ x_scroll_bar_create (struct window *w, int top, int left, int width, int height)
   struct frame *f = XFRAME (w->frame);
   struct scroll_bar *bar
     = ALLOCATE_PSEUDOVECTOR (struct scroll_bar, x_window, PVEC_OTHER);
+  Lisp_Object barobj;
 
-  BLOCK_INPUT;
+  block_input ();
 
 #ifdef USE_TOOLKIT_SCROLL_BARS
   x_create_toolkit_scroll_bar (f, bar);
@@ -4989,7 +4983,8 @@ x_scroll_bar_create (struct window *w, int top, int left, int width, int height)
   /* Add bar to its frame's list of scroll bars.  */
   bar->next = FRAME_SCROLL_BARS (f);
   bar->prev = Qnil;
-  XSETVECTOR (FRAME_SCROLL_BARS (f), bar);
+  XSETVECTOR (barobj, bar);
+  fset_scroll_bars (f, barobj);
   if (!NILP (bar->next))
     XSETVECTOR (XSCROLL_BAR (bar->next)->prev, bar);
 
@@ -5017,7 +5012,7 @@ x_scroll_bar_create (struct window *w, int top, int left, int width, int height)
   XMapRaised (FRAME_X_DISPLAY (f), bar->x_window);
 #endif /* not USE_TOOLKIT_SCROLL_BARS */
 
-  UNBLOCK_INPUT;
+  unblock_input ();
   return bar;
 }
 
@@ -5051,7 +5046,7 @@ x_scroll_bar_set_handle (struct scroll_bar *bar, int start, int end, int rebuild
       && end == bar->end)
     return;
 
-  BLOCK_INPUT;
+  block_input ();
 
   {
     int inside_width = VERTICAL_SCROLL_BAR_INSIDE_WIDTH (f, bar->width);
@@ -5127,7 +5122,7 @@ x_scroll_bar_set_handle (struct scroll_bar *bar, int start, int end, int rebuild
 
   }
 
-  UNBLOCK_INPUT;
+  unblock_input ();
 }
 
 #endif /* !USE_TOOLKIT_SCROLL_BARS */
@@ -5139,7 +5134,7 @@ static void
 x_scroll_bar_remove (struct scroll_bar *bar)
 {
   struct frame *f = XFRAME (WINDOW_FRAME (XWINDOW (bar->window)));
-  BLOCK_INPUT;
+  block_input ();
 
 #ifdef USE_TOOLKIT_SCROLL_BARS
 #ifdef USE_GTK
@@ -5152,9 +5147,9 @@ x_scroll_bar_remove (struct scroll_bar *bar)
 #endif
 
   /* Dissociate this scroll bar from its window.  */
-  XWINDOW (bar->window)->vertical_scroll_bar = Qnil;
+  wset_vertical_scroll_bar (XWINDOW (bar->window), Qnil);
 
-  UNBLOCK_INPUT;
+  unblock_input ();
 }
 
 
@@ -5167,6 +5162,7 @@ static void
 XTset_vertical_scroll_bar (struct window *w, int portion, int whole, int position)
 {
   struct frame *f = XFRAME (w->frame);
+  Lisp_Object barobj;
   struct scroll_bar *bar;
   int top, height, left, sb_left, width, sb_width;
   int window_y, window_height;
@@ -5221,7 +5217,7 @@ XTset_vertical_scroll_bar (struct window *w, int portion, int whole, int positio
     {
       if (width > 0 && height > 0)
 	{
-	  BLOCK_INPUT;
+	  block_input ();
 #ifdef USE_TOOLKIT_SCROLL_BARS
 	  if (fringe_extended_p)
 	    x_clear_area (FRAME_X_DISPLAY (f), FRAME_X_WINDOW (f),
@@ -5230,7 +5226,7 @@ XTset_vertical_scroll_bar (struct window *w, int portion, int whole, int positio
 #endif
 	    x_clear_area (FRAME_X_DISPLAY (f), FRAME_X_WINDOW (f),
 			  left, top, width, height, False);
-	  UNBLOCK_INPUT;
+	  unblock_input ();
 	}
 
       bar = x_scroll_bar_create (w, top, sb_left, sb_width, height);
@@ -5242,7 +5238,7 @@ XTset_vertical_scroll_bar (struct window *w, int portion, int whole, int positio
 
       bar = XSCROLL_BAR (w->vertical_scroll_bar);
 
-      BLOCK_INPUT;
+      block_input ();
 
       if (sb_left != bar->left)
 	mask |= CWX;
@@ -5339,7 +5335,7 @@ XTset_vertical_scroll_bar (struct window *w, int portion, int whole, int positio
       bar->width = sb_width;
       bar->height = height;
 
-      UNBLOCK_INPUT;
+      unblock_input ();
     }
 
 #ifdef USE_TOOLKIT_SCROLL_BARS
@@ -5364,7 +5360,8 @@ XTset_vertical_scroll_bar (struct window *w, int portion, int whole, int positio
     }
 #endif /* not USE_TOOLKIT_SCROLL_BARS */
 
-  XSETVECTOR (w->vertical_scroll_bar, bar);
+  XSETVECTOR (barobj, bar);
+  wset_vertical_scroll_bar (w, barobj);
 }
 
 
@@ -5388,12 +5385,12 @@ XTcondemn_scroll_bars (FRAME_PTR frame)
     {
       Lisp_Object bar;
       bar = FRAME_SCROLL_BARS (frame);
-      FRAME_SCROLL_BARS (frame) = XSCROLL_BAR (bar)->next;
+      fset_scroll_bars (frame, XSCROLL_BAR (bar)->next);
       XSCROLL_BAR (bar)->next = FRAME_CONDEMNED_SCROLL_BARS (frame);
       XSCROLL_BAR (bar)->prev = Qnil;
       if (! NILP (FRAME_CONDEMNED_SCROLL_BARS (frame)))
 	XSCROLL_BAR (FRAME_CONDEMNED_SCROLL_BARS (frame))->prev = bar;
-      FRAME_CONDEMNED_SCROLL_BARS (frame) = bar;
+      fset_condemned_scroll_bars (frame, bar);
     }
 }
 
@@ -5406,10 +5403,11 @@ XTredeem_scroll_bar (struct window *window)
 {
   struct scroll_bar *bar;
   struct frame *f;
+  Lisp_Object barobj;
 
   /* We can't redeem this window's scroll bar if it doesn't have one.  */
   if (NILP (window->vertical_scroll_bar))
-    abort ();
+    emacs_abort ();
 
   bar = XSCROLL_BAR (window->vertical_scroll_bar);
 
@@ -5424,11 +5422,11 @@ XTredeem_scroll_bar (struct window *window)
 	return;
       else if (EQ (FRAME_CONDEMNED_SCROLL_BARS (f),
 		   window->vertical_scroll_bar))
-	FRAME_CONDEMNED_SCROLL_BARS (f) = bar->next;
+	fset_condemned_scroll_bars (f, bar->next);
       else
 	/* If its prev pointer is nil, it must be at the front of
 	   one or the other!  */
-	abort ();
+	emacs_abort ();
     }
   else
     XSCROLL_BAR (bar->prev)->next = bar->next;
@@ -5438,7 +5436,8 @@ XTredeem_scroll_bar (struct window *window)
 
   bar->next = FRAME_SCROLL_BARS (f);
   bar->prev = Qnil;
-  XSETVECTOR (FRAME_SCROLL_BARS (f), bar);
+  XSETVECTOR (barobj, bar);
+  fset_scroll_bars (f, barobj);
   if (! NILP (bar->next))
     XSETVECTOR (XSCROLL_BAR (bar->next)->prev, bar);
 }
@@ -5455,7 +5454,7 @@ XTjudge_scroll_bars (FRAME_PTR f)
 
   /* Clear out the condemned list now so we won't try to process any
      more events on the hapless scroll bars.  */
-  FRAME_CONDEMNED_SCROLL_BARS (f) = Qnil;
+  fset_condemned_scroll_bars (f, Qnil);
 
   for (; ! NILP (bar); bar = next)
     {
@@ -5487,7 +5486,7 @@ x_scroll_bar_expose (struct scroll_bar *bar, XEvent *event)
   GC gc = f->output_data.x->normal_gc;
   int width_trim = VERTICAL_SCROLL_BAR_WIDTH_TRIM;
 
-  BLOCK_INPUT;
+  block_input ();
 
   x_scroll_bar_set_handle (bar, bar->start, bar->end, 1);
 
@@ -5509,7 +5508,7 @@ x_scroll_bar_expose (struct scroll_bar *bar, XEvent *event)
      XSetForeground (FRAME_X_DISPLAY (f), gc,
 		     FRAME_FOREGROUND_PIXEL (f));
 
-   UNBLOCK_INPUT;
+   unblock_input ();
 
 }
 #endif /* not USE_TOOLKIT_SCROLL_BARS */
@@ -5525,7 +5524,7 @@ static void
 x_scroll_bar_handle_click (struct scroll_bar *bar, XEvent *event, struct input_event *emacs_event)
 {
   if (! WINDOWP (bar->window))
-    abort ();
+    emacs_abort ();
 
   emacs_event->kind = SCROLL_BAR_CLICK_EVENT;
   emacs_event->code = event->xbutton.button - Button1;
@@ -5622,7 +5621,7 @@ x_scroll_bar_report_motion (FRAME_PTR *fp, Lisp_Object *bar_window,
   int dummy_coord;
   unsigned int dummy_mask;
 
-  BLOCK_INPUT;
+  block_input ();
 
   /* Get the mouse's position relative to the scroll bar window, and
      report that.  */
@@ -5674,7 +5673,7 @@ x_scroll_bar_report_motion (FRAME_PTR *fp, Lisp_Object *bar_window,
 
   *timestamp = last_mouse_movement_time;
 
-  UNBLOCK_INPUT;
+  unblock_input ();
 }
 
 
@@ -5742,9 +5741,9 @@ static struct x_display_info *next_noop_dpyinfo;
      do									\
        {								\
 	 if (f->output_data.x->saved_menu_event == 0)			\
-           f->output_data.x->saved_menu_event				\
-	     = (XEvent *) xmalloc (sizeof (XEvent));			\
-         *f->output_data.x->saved_menu_event = event;                   \
+           f->output_data.x->saved_menu_event =				\
+	     xmalloc (sizeof (XEvent));					\
+         *f->output_data.x->saved_menu_event = event;			\
 	 inev.ie.kind = MENU_BAR_ACTIVATE_EVENT;			\
 	 XSETFRAME (inev.ie.frame_or_window, f);			\
        }								\
@@ -5795,7 +5794,7 @@ event_handler_gdk (GdkXEvent *gxev, GdkEvent *ev, gpointer data)
 {
   XEvent *xev = (XEvent *) gxev;
 
-  BLOCK_INPUT;
+  block_input ();
   if (current_count >= 0)
     {
       struct x_display_info *dpyinfo;
@@ -5810,7 +5809,7 @@ event_handler_gdk (GdkXEvent *gxev, GdkEvent *ev, gpointer data)
 	  && dpyinfo
 	  && x_filter_event (dpyinfo, xev))
 	{
-	  UNBLOCK_INPUT;
+	  unblock_input ();
 	  return GDK_FILTER_REMOVE;
 	}
 #endif
@@ -5825,7 +5824,7 @@ event_handler_gdk (GdkXEvent *gxev, GdkEvent *ev, gpointer data)
   else
     current_finish = x_dispatch_event (xev, xev->xany.display);
 
-  UNBLOCK_INPUT;
+  unblock_input ();
 
   if (current_finish == X_EVENT_GOTO_OUT || current_finish == X_EVENT_DROP)
     return GDK_FILTER_REMOVE;
@@ -6086,7 +6085,6 @@ handle_one_xevent (struct x_display_info *dpyinfo, XEvent *eventptr,
         SELECTION_EVENT_DISPLAY (&inev.sie) = eventp->display;
         SELECTION_EVENT_SELECTION (&inev.sie) = eventp->selection;
         SELECTION_EVENT_TIME (&inev.sie) = eventp->time;
-        inev.ie.frame_or_window = Qnil;
       }
       break;
 
@@ -6106,7 +6104,6 @@ handle_one_xevent (struct x_display_info *dpyinfo, XEvent *eventptr,
           SELECTION_EVENT_TARGET (&inev.sie) = eventp->target;
           SELECTION_EVENT_PROPERTY (&inev.sie) = eventp->property;
           SELECTION_EVENT_TIME (&inev.sie) = eventp->time;
-          inev.ie.frame_or_window = Qnil;
       }
       break;
 
@@ -6415,7 +6412,7 @@ handle_one_xevent (struct x_display_info *dpyinfo, XEvent *eventptr,
               if (status_return == XBufferOverflow)
                 {
                   copy_bufsiz = nbytes + 1;
-                  copy_bufptr = (unsigned char *) alloca (copy_bufsiz);
+                  copy_bufptr = alloca (copy_bufsiz);
                   nbytes = XmbLookupString (FRAME_XIC (f),
                                             &event.xkey, (char *) copy_bufptr,
                                             copy_bufsiz, &keysym,
@@ -6431,7 +6428,7 @@ handle_one_xevent (struct x_display_info *dpyinfo, XEvent *eventptr,
                 }
               else if (status_return != XLookupKeySym
                        && status_return != XLookupBoth)
-                abort ();
+                emacs_abort ();
             }
           else
             nbytes = XLookupString (&event.xkey, (char *) copy_bufptr,
@@ -6480,9 +6477,10 @@ handle_one_xevent (struct x_display_info *dpyinfo, XEvent *eventptr,
 
 	  /* Now non-ASCII.  */
 	  if (HASH_TABLE_P (Vx_keysym_table)
-	      && (NATNUMP (c = Fgethash (make_number (keysym),
- 					 Vx_keysym_table,
- 					 Qnil))))
+	      && (c = Fgethash (make_number (keysym),
+				Vx_keysym_table,
+				Qnil),
+		  NATNUMP (c)))
  	    {
  	      inev.ie.kind = (SINGLE_BYTE_CHAR_P (XFASTINT (c))
                               ? ASCII_KEYSTROKE_EVENT
@@ -7019,10 +7017,10 @@ handle_one_xevent (struct x_display_info *dpyinfo, XEvent *eventptr,
     default:
     OTHER:
 #ifdef USE_X_TOOLKIT
-    BLOCK_INPUT;
+      block_input ();
     if (*finish != X_EVENT_DROP)
       XtDispatchEvent (&event);
-    UNBLOCK_INPUT;
+    unblock_input ();
 #endif /* USE_X_TOOLKIT */
     break;
     }
@@ -7087,41 +7085,23 @@ x_dispatch_event (XEvent *event, Display *display)
 
 
 /* Read events coming from the X server.
-   This routine is called by the SIGIO handler.
-   We return as soon as there are no more events to be read.
+   Return as soon as there are no more events to be read.
 
-   We return the number of characters stored into the buffer,
+   Return the number of characters stored into the buffer,
    thus pretending to be `read' (except the characters we store
    in the keyboard buffer can be multibyte, so are not necessarily
-   C chars).
-
-   EXPECTED is nonzero if the caller knows input is available.  */
+   C chars).  */
 
 static int
-XTread_socket (struct terminal *terminal, int expected, struct input_event *hold_quit)
+XTread_socket (struct terminal *terminal, struct input_event *hold_quit)
 {
   int count = 0;
   int event_found = 0;
 
-  if (interrupt_input_blocked)
-    {
-      interrupt_input_pending = 1;
-#ifdef SYNC_INPUT
-      pending_signals = 1;
-#endif
-      return -1;
-    }
-
-  interrupt_input_pending = 0;
-#ifdef SYNC_INPUT
-  pending_signals = pending_atimers;
-#endif
-  BLOCK_INPUT;
+  block_input ();
 
   /* So people can tell when we have read the available input.  */
   input_signal_count++;
-
-  ++handling_signal;
 
   /* For debugging, this gives a way to fake an I/O error.  */
   if (terminal->display_info.x == XTread_socket_fake_io_error)
@@ -7211,8 +7191,7 @@ XTread_socket (struct terminal *terminal, int expected, struct input_event *hold
       pending_autoraise_frame = 0;
     }
 
-  --handling_signal;
-  UNBLOCK_INPUT;
+  unblock_input ();
 
   return count;
 }
@@ -7464,7 +7443,7 @@ x_draw_window_cursor (struct window *w, struct glyph_row *glyph_row, int x, int 
 	      break;
 
 	    default:
-	      abort ();
+	      emacs_abort ();
 	    }
 	}
 
@@ -7629,7 +7608,7 @@ x_error_catcher (Display *display, XErrorEvent *event)
 void
 x_catch_errors (Display *dpy)
 {
-  struct x_error_message_stack *data = xmalloc (sizeof (*data));
+  struct x_error_message_stack *data = xmalloc (sizeof *data);
 
   /* Make sure any errors from previous requests have been dealt with.  */
   XSync (dpy, False);
@@ -7648,7 +7627,7 @@ x_uncatch_errors (void)
 {
   struct x_error_message_stack *tmp;
 
-  BLOCK_INPUT;
+  block_input ();
 
   /* The display may have been closed before this function is called.
      Check if it is still open before calling XSync.  */
@@ -7658,7 +7637,7 @@ x_uncatch_errors (void)
   tmp = x_error_message;
   x_error_message = x_error_message->prev;
   xfree (tmp);
-  UNBLOCK_INPUT;
+  unblock_input ();
 }
 
 /* If any X protocol errors have arrived since the last call to
@@ -7721,24 +7700,6 @@ x_trace_wire (void)
 #endif /* ! 0 */
 
 
-/* Handle SIGPIPE, which can happen when the connection to a server
-   simply goes away.  SIGPIPE is handled by x_connection_signal.
-   Don't need to do anything, because the write which caused the
-   SIGPIPE will fail, causing Xlib to invoke the X IO error handler,
-   which will do the appropriate cleanup for us.  */
-
-static void
-x_connection_signal (int signalnum)	/* If we don't have an argument, */
-                   		/* some compilers complain in signal calls.  */
-{
-#ifdef USG
-  /* USG systems forget handlers when they are used;
-     must reestablish each time */
-  signal (signalnum, x_connection_signal);
-#endif /* USG */
-}
-
-
 /************************************************************************
 			  Handling X errors
  ************************************************************************/
@@ -7755,11 +7716,10 @@ x_connection_closed (Display *dpy, const char *error_message)
 {
   struct x_display_info *dpyinfo = x_display_info_for_display (dpy);
   Lisp_Object frame, tail;
-  int idx = SPECPDL_INDEX ();
+  ptrdiff_t idx = SPECPDL_INDEX ();
 
-  error_msg = (char *) alloca (strlen (error_message) + 1);
+  error_msg = alloca (strlen (error_message) + 1);
   strcpy (error_msg, error_message);
-  handling_signal = 0;
 
   /* Inhibit redisplay while frames are being deleted. */
   specbind (Qinhibit_redisplay, Qt);
@@ -7795,7 +7755,7 @@ x_connection_closed (Display *dpy, const char *error_message)
       {
 	/* Set this to t so that delete_frame won't get confused
 	   trying to find a replacement.  */
-	KVAR (FRAME_KBOARD (XFRAME (frame)), Vdefault_minibuffer_frame) = Qt;
+	kset_default_minibuffer_frame (FRAME_KBOARD (XFRAME (frame)), Qt);
 	delete_frame (frame, Qnoelisp);
       }
 
@@ -7811,13 +7771,13 @@ x_connection_closed (Display *dpy, const char *error_message)
 	 (https://bugzilla.gnome.org/show_bug.cgi?id=85715).  Once,
 	 the resulting Glib error message loop filled a user's disk.
 	 To avoid this, kill Emacs unconditionally on disconnect.  */
-      shut_down_emacs (0, 0, Qnil);
+      shut_down_emacs (0, Qnil);
       fprintf (stderr, "%s\n\
 When compiled with GTK, Emacs cannot recover from X disconnects.\n\
 This is a GTK bug: https://bugzilla.gnome.org/show_bug.cgi?id=85715\n\
 For details, see etc/PROBLEMS.\n",
 	       error_msg);
-      abort ();
+      emacs_abort ();
 #endif /* USE_GTK */
 
       /* Indicate that this display is dead.  */
@@ -7827,7 +7787,7 @@ For details, see etc/PROBLEMS.\n",
       dpyinfo->terminal->reference_count--;
       if (dpyinfo->reference_count != 0)
         /* We have just closed all frames on this display. */
-        abort ();
+        emacs_abort ();
 
       {
 	Lisp_Object tmp;
@@ -7843,12 +7803,7 @@ For details, see etc/PROBLEMS.\n",
       /* NOTREACHED */
     }
 
-  /* Ordinary stack unwind doesn't deal with these.  */
-#ifdef SIGIO
-  sigunblock (sigmask (SIGIO));
-#endif
-  sigunblock (sigmask (SIGALRM));
-  TOTALLY_UNBLOCK_INPUT;
+  totally_unblock_input ();
 
   unbind_to (idx, Qnil);
   clear_waiting_for_input ();
@@ -7987,9 +7942,9 @@ x_new_font (struct frame *f, Lisp_Object font_object, int fontset)
   if (FRAME_XIC (f)
       && (FRAME_XIC_STYLE (f) & (XIMPreeditPosition | XIMStatusArea)))
     {
-      BLOCK_INPUT;
+      block_input ();
       xic_set_xfontset (f, SSDATA (fontset_ascii (fontset)));
-      UNBLOCK_INPUT;
+      unblock_input ();
     }
 #endif
 
@@ -8015,7 +7970,7 @@ xim_destroy_callback (XIM xim, XPointer client_data, XPointer call_data)
   struct x_display_info *dpyinfo = (struct x_display_info *) client_data;
   Lisp_Object frame, tail;
 
-  BLOCK_INPUT;
+  block_input ();
 
   /* No need to call XDestroyIC.. */
   FOR_EACH_FRAME (tail, frame)
@@ -8031,7 +7986,7 @@ xim_destroy_callback (XIM xim, XPointer client_data, XPointer call_data)
   /* No need to call XCloseIM.  */
   dpyinfo->xim = NULL;
   XFree (dpyinfo->xim_styles);
-  UNBLOCK_INPUT;
+  unblock_input ();
 }
 
 #endif /* HAVE_X11R6 */
@@ -8106,7 +8061,7 @@ xim_instantiate_callback (Display *display, XPointer client_data, XPointer call_
     {
       Lisp_Object tail, frame;
 
-      BLOCK_INPUT;
+      block_input ();
       FOR_EACH_FRAME (tail, frame)
 	{
 	  struct frame *f = XFRAME (frame);
@@ -8126,7 +8081,7 @@ xim_instantiate_callback (Display *display, XPointer client_data, XPointer call_
 	      }
 	}
 
-      UNBLOCK_INPUT;
+      unblock_input ();
     }
 }
 
@@ -8146,14 +8101,13 @@ xim_initialize (struct x_display_info *dpyinfo, char *resource_name)
   if (use_xim)
     {
 #ifdef HAVE_X11R6_XIM
-      struct xim_inst_t *xim_inst;
+      struct xim_inst_t *xim_inst = xmalloc (sizeof *xim_inst);
       ptrdiff_t len;
 
-      xim_inst = (struct xim_inst_t *) xmalloc (sizeof (struct xim_inst_t));
       dpyinfo->xim_callback_data = xim_inst;
       xim_inst->dpyinfo = dpyinfo;
       len = strlen (resource_name);
-      xim_inst->resource_name = (char *) xmalloc (len + 1);
+      xim_inst->resource_name = xmalloc (len + 1);
       memcpy (xim_inst->resource_name, resource_name, len + 1);
       XRegisterIMInstantiateCallback (dpyinfo->display, dpyinfo->xrdb,
 				      resource_name, emacs_class,
@@ -8274,7 +8228,7 @@ x_set_offset (struct frame *f, register int xoff, register int yoff, int change_
     }
   x_calc_absolute_position (f);
 
-  BLOCK_INPUT;
+  block_input ();
   x_wm_set_size_hint (f, (long) 0, 0);
 
   modified_left = f->left_pos;
@@ -8313,7 +8267,7 @@ x_set_offset (struct frame *f, register int xoff, register int yoff, int change_
                && FRAME_X_OUTPUT (f)->move_offset_top == 0))))
     x_check_expected_move (f, modified_left, modified_top);
 
-  UNBLOCK_INPUT;
+  unblock_input ();
 }
 
 /* Return non-zero if _NET_SUPPORTING_WM_CHECK window exists and _NET_SUPPORTED
@@ -8336,7 +8290,7 @@ wm_supports (struct frame *f, Atom want_atom)
   unsigned char *tmp_data = NULL;
   Atom target_type = XA_WINDOW;
 
-  BLOCK_INPUT;
+  block_input ();
 
   x_catch_errors (dpy);
   rc = XGetWindowProperty (dpy, target_window,
@@ -8349,7 +8303,7 @@ wm_supports (struct frame *f, Atom want_atom)
     {
       if (tmp_data) XFree (tmp_data);
       x_uncatch_errors ();
-      UNBLOCK_INPUT;
+      unblock_input ();
       return 0;
     }
 
@@ -8362,7 +8316,7 @@ wm_supports (struct frame *f, Atom want_atom)
   if (x_had_errors_p (dpy))
     {
       x_uncatch_errors ();
-      UNBLOCK_INPUT;
+      unblock_input ();
       return 0;
     }
 
@@ -8387,7 +8341,7 @@ wm_supports (struct frame *f, Atom want_atom)
         {
           if (tmp_data) XFree (tmp_data);
           x_uncatch_errors ();
-          UNBLOCK_INPUT;
+          unblock_input ();
           return 0;
         }
 
@@ -8402,7 +8356,7 @@ wm_supports (struct frame *f, Atom want_atom)
     rc = dpyinfo->net_supported_atoms[i] == want_atom;
 
   x_uncatch_errors ();
-  UNBLOCK_INPUT;
+  unblock_input ();
 
   return rc;
 }
@@ -8461,7 +8415,7 @@ get_current_wm_state (struct frame *f,
   *sticky = 0;
   *size_state = FULLSCREEN_NONE;
 
-  BLOCK_INPUT;
+  block_input ();
   x_catch_errors (dpy);
   rc = XGetWindowProperty (dpy, window, dpyinfo->Xatom_net_wm_state,
                            0, max_len, False, target_type,
@@ -8472,7 +8426,7 @@ get_current_wm_state (struct frame *f,
     {
       if (tmp_data) XFree (tmp_data);
       x_uncatch_errors ();
-      UNBLOCK_INPUT;
+      unblock_input ();
       return ! f->iconified;
     }
 
@@ -8507,7 +8461,7 @@ get_current_wm_state (struct frame *f,
     }
 
   if (tmp_data) XFree (tmp_data);
-  UNBLOCK_INPUT;
+  unblock_input ();
   return ! is_hidden;
 }
 
@@ -8587,10 +8541,10 @@ XTfullscreen_hook (FRAME_PTR f)
 {
   if (f->async_visible)
     {
-      BLOCK_INPUT;
+      block_input ();
       x_check_fullscreen (f);
       x_sync (f);
-      UNBLOCK_INPUT;
+      unblock_input ();
     }
 }
 
@@ -8770,25 +8724,26 @@ x_wait_for_event (struct frame *f, int eventtype)
 
   /* Set timeout to 0.1 second.  Hopefully not noticeable.
      Maybe it should be configurable.  */
-  EMACS_SET_SECS_USECS (tmo, 0, 100000);
-  EMACS_GET_TIME (tmo_at);
-  EMACS_ADD_TIME (tmo_at, tmo_at, tmo);
+  tmo = make_emacs_time (0, 100 * 1000 * 1000);
+  tmo_at = add_emacs_time (current_emacs_time (), tmo);
 
   while (pending_event_wait.eventtype)
     {
-      interrupt_input_pending = 1;
-      TOTALLY_UNBLOCK_INPUT;
+      pending_signals = 1;
+      totally_unblock_input ();
       /* XTread_socket is called after unblock.  */
-      BLOCK_INPUT;
+      block_input ();
       interrupt_input_blocked = level;
 
       FD_ZERO (&fds);
       FD_SET (fd, &fds);
 
-      EMACS_GET_TIME (time_now);
-      EMACS_SUB_TIME (tmo, tmo_at, time_now);
+      time_now = current_emacs_time ();
+      if (EMACS_TIME_LT (tmo_at, time_now))
+	break;
 
-      if (EMACS_TIME_NEG_P (tmo) || select (fd+1, &fds, NULL, NULL, &tmo) == 0)
+      tmo = sub_emacs_time (tmo_at, time_now);
+      if (pselect (fd + 1, &fds, NULL, NULL, &tmo, NULL) == 0)
         break; /* Timeout */
     }
   pending_event_wait.f = 0;
@@ -8868,7 +8823,7 @@ x_set_window_size_1 (struct frame *f, int change_gravity, int cols, int rows)
 void
 x_set_window_size (struct frame *f, int change_gravity, int cols, int rows)
 {
-  BLOCK_INPUT;
+  block_input ();
 
   if (NILP (tip_frame) || XFRAME (tip_frame) != f)
     {
@@ -8916,7 +8871,7 @@ x_set_window_size (struct frame *f, int change_gravity, int cols, int rows)
      so don't try--just let the highlighting be done afresh with new size.  */
   cancel_mouse_face (f);
 
-  UNBLOCK_INPUT;
+  unblock_input ();
 }
 
 /* Mouse warping.  */
@@ -8935,11 +8890,11 @@ x_set_mouse_position (struct frame *f, int x, int y)
   if (pix_y < 0) pix_y = 0;
   if (pix_y > FRAME_PIXEL_HEIGHT (f)) pix_y = FRAME_PIXEL_HEIGHT (f);
 
-  BLOCK_INPUT;
+  block_input ();
 
   XWarpPointer (FRAME_X_DISPLAY (f), None, FRAME_X_WINDOW (f),
 		0, 0, 0, 0, pix_x, pix_y);
-  UNBLOCK_INPUT;
+  unblock_input ();
 }
 
 /* Move the mouse to position pixel PIX_X, PIX_Y relative to frame F.  */
@@ -8947,11 +8902,11 @@ x_set_mouse_position (struct frame *f, int x, int y)
 void
 x_set_mouse_pixel_position (struct frame *f, int pix_x, int pix_y)
 {
-  BLOCK_INPUT;
+  block_input ();
 
   XWarpPointer (FRAME_X_DISPLAY (f), None, FRAME_X_WINDOW (f),
 		0, 0, 0, 0, pix_x, pix_y);
-  UNBLOCK_INPUT;
+  unblock_input ();
 }
 
 /* Raise frame F.  */
@@ -8959,12 +8914,12 @@ x_set_mouse_pixel_position (struct frame *f, int pix_x, int pix_y)
 void
 x_raise_frame (struct frame *f)
 {
-  BLOCK_INPUT;
+  block_input ();
   if (f->async_visible)
     XRaiseWindow (FRAME_X_DISPLAY (f), FRAME_OUTER_WINDOW (f));
 
   XFlush (FRAME_X_DISPLAY (f));
-  UNBLOCK_INPUT;
+  unblock_input ();
 }
 
 /* Lower frame F.  */
@@ -8974,11 +8929,23 @@ x_lower_frame (struct frame *f)
 {
   if (f->async_visible)
     {
-      BLOCK_INPUT;
+      block_input ();
       XLowerWindow (FRAME_X_DISPLAY (f), FRAME_OUTER_WINDOW (f));
       XFlush (FRAME_X_DISPLAY (f));
-      UNBLOCK_INPUT;
+      unblock_input ();
     }
+}
+
+/* Request focus with XEmbed */
+
+void
+xembed_request_focus (FRAME_PTR f)
+{
+  /* See XEmbed Protocol Specification at
+     http://freedesktop.org/wiki/Specifications/xembed-spec  */
+  if (f->async_visible)
+    xembed_send_message (f, CurrentTime,
+			 XEMBED_REQUEST_FOCUS, 0, 0, 0);
 }
 
 /* Activate frame with Extended Window Manager Hints */
@@ -9074,7 +9041,7 @@ x_make_frame_visible (struct frame *f)
 
  retry:
 
-  BLOCK_INPUT;
+  block_input ();
 
   type = x_icon_type (f);
   if (!NILP (type))
@@ -9133,7 +9100,7 @@ x_make_frame_visible (struct frame *f)
     original_top = f->top_pos;
 
     /* This must come after we set COUNT.  */
-    UNBLOCK_INPUT;
+    unblock_input ();
 
     /* We unblock here so that arriving X events are processed.  */
 
@@ -9156,7 +9123,7 @@ x_make_frame_visible (struct frame *f)
 	int x, y;
 	unsigned int width, height, border, depth;
 
-	BLOCK_INPUT;
+	block_input ();
 
 	/* On some window managers (such as FVWM) moving an existing
 	   window, even to the same place, causes the window manager
@@ -9172,7 +9139,7 @@ x_make_frame_visible (struct frame *f)
 	  XMoveWindow (FRAME_X_DISPLAY (f), FRAME_OUTER_WINDOW (f),
 		       original_left, original_top);
 
-	UNBLOCK_INPUT;
+	unblock_input ();
       }
 
     XSETFRAME (frame, f);
@@ -9239,7 +9206,7 @@ x_make_frame_invisible (struct frame *f)
   if (FRAME_X_DISPLAY_INFO (f)->x_highlight_frame == f)
     FRAME_X_DISPLAY_INFO (f)->x_highlight_frame = 0;
 
-  BLOCK_INPUT;
+  block_input ();
 
   /* Before unmapping the window, update the WM_SIZE_HINTS property to claim
      that the current position of the window is user-specified, rather than
@@ -9262,7 +9229,7 @@ x_make_frame_invisible (struct frame *f)
   if (! XWithdrawWindow (FRAME_X_DISPLAY (f), window,
 			 DefaultScreen (FRAME_X_DISPLAY (f))))
     {
-      UNBLOCK_INPUT_RESIGNAL;
+      unblock_input ();
       error ("Can't notify window manager of window withdrawal");
     }
   }
@@ -9279,7 +9246,7 @@ x_make_frame_invisible (struct frame *f)
 
   x_sync (f);
 
-  UNBLOCK_INPUT;
+  unblock_input ();
 }
 
 /* Change window state from mapped to iconified.  */
@@ -9299,7 +9266,7 @@ x_iconify_frame (struct frame *f)
   if (f->async_iconified)
     return;
 
-  BLOCK_INPUT;
+  block_input ();
 
   FRAME_SAMPLE_VISIBILITY (f);
 
@@ -9318,7 +9285,7 @@ x_iconify_frame (struct frame *f)
       f->visible = 1;
       f->async_iconified = 1;
       f->async_visible = 0;
-      UNBLOCK_INPUT;
+      unblock_input ();
       return;
     }
 #endif
@@ -9338,14 +9305,14 @@ x_iconify_frame (struct frame *f)
       f->visible = 1;
       f->async_iconified = 1;
       f->async_visible = 0;
-      UNBLOCK_INPUT;
+      unblock_input ();
       return;
     }
 
   result = XIconifyWindow (FRAME_X_DISPLAY (f),
 			   XtWindow (f->output_data.x->widget),
 			   DefaultScreen (FRAME_X_DISPLAY (f)));
-  UNBLOCK_INPUT;
+  unblock_input ();
 
   if (!result)
     error ("Can't notify window manager of iconification");
@@ -9354,9 +9321,9 @@ x_iconify_frame (struct frame *f)
   f->async_visible = 0;
 
 
-  BLOCK_INPUT;
+  block_input ();
   XFlush (FRAME_X_DISPLAY (f));
-  UNBLOCK_INPUT;
+  unblock_input ();
 #else /* not USE_X_TOOLKIT */
 
   /* Make sure the X server knows where the window should be positioned,
@@ -9386,7 +9353,7 @@ x_iconify_frame (struct frame *f)
 		      SubstructureRedirectMask | SubstructureNotifyMask,
 		      &msg))
       {
-	UNBLOCK_INPUT_RESIGNAL;
+	unblock_input ();
 	error ("Can't notify window manager of iconification");
       }
   }
@@ -9405,7 +9372,7 @@ x_iconify_frame (struct frame *f)
   f->async_visible = 0;
 
   XFlush (FRAME_X_DISPLAY (f));
-  UNBLOCK_INPUT;
+  unblock_input ();
 #endif /* not USE_X_TOOLKIT */
 }
 
@@ -9422,7 +9389,7 @@ x_free_frame_resources (struct frame *f)
   struct scroll_bar *b;
 #endif
 
-  BLOCK_INPUT;
+  block_input ();
 
   /* If a display connection is dead, don't try sending more
      commands to the X server.  */
@@ -9521,11 +9488,10 @@ x_free_frame_resources (struct frame *f)
       hlinfo->mouse_face_end_row
 	= hlinfo->mouse_face_end_col = -1;
       hlinfo->mouse_face_window = Qnil;
-      hlinfo->mouse_face_deferred_gc = 0;
       hlinfo->mouse_face_mouse_frame = 0;
     }
 
-  UNBLOCK_INPUT;
+  unblock_input ();
 }
 
 
@@ -9550,13 +9516,13 @@ x_destroy_window (struct frame *f)
 /* Set the normal size hints for the window manager, for frame F.
    FLAGS is the flags word to use--or 0 meaning preserve the flags
    that the window now has.
-   If USER_POSITION is nonzero, we set the USPosition
+   If USER_POSITION, set the USPosition
    flag (this is useful when FLAGS is 0).
-   The GTK version is in gtkutils.c  */
+   The GTK version is in gtkutils.c.  */
 
 #ifndef USE_GTK
 void
-x_wm_set_size_hint (struct frame *f, long flags, int user_position)
+x_wm_set_size_hint (struct frame *f, long flags, bool user_position)
 {
   XSizeHints size_hints;
   Window window = FRAME_OUTER_WINDOW (f);
@@ -9746,7 +9712,7 @@ x_wm_set_icon_position (struct frame *f, int icon_x, int icon_y)
 				Fonts
  ***********************************************************************/
 
-#if GLYPH_DEBUG
+#ifdef GLYPH_DEBUG
 
 /* Check that FONT is valid on frame F.  It is if it can be found in F's
    font table.  */
@@ -9754,12 +9720,12 @@ x_wm_set_icon_position (struct frame *f, int icon_x, int icon_y)
 static void
 x_check_font (struct frame *f, struct font *font)
 {
-  xassert (font != NULL && ! NILP (font->props[FONT_TYPE_INDEX]));
+  eassert (font != NULL && ! NILP (font->props[FONT_TYPE_INDEX]));
   if (font->driver->check)
-    xassert (font->driver->check (f, font) == 0);
+    eassert (font->driver->check (f, font) == 0);
 }
 
-#endif /* GLYPH_DEBUG != 0 */
+#endif /* GLYPH_DEBUG */
 
 
 /***********************************************************************
@@ -9905,7 +9871,7 @@ x_term_init (Lisp_Object display_name, char *xrm_option, char *resource_name)
   Mouse_HLInfo *hlinfo;
   ptrdiff_t lim;
 
-  BLOCK_INPUT;
+  block_input ();
 
   if (!x_initialized)
     {
@@ -9966,11 +9932,13 @@ x_term_init (Lisp_Object display_name, char *xrm_option, char *resource_name)
            Call before gtk_init so Gtk+ event filters comes after our.  */
         gdk_window_add_filter (NULL, event_handler_gdk, NULL);
 
+        /* gtk_init does set_locale.  Fix locale before and after.  */
+        fixup_locale ();
         gtk_init (&argc, &argv2);
+        fixup_locale ();
+
         g_log_remove_handler ("GLib", id);
 
-        /* gtk_init does set_locale.  We must fix locale after calling it.  */
-        fixup_locale ();
         xg_initialize ();
 
         dpy = DEFAULT_GDK_DISPLAY ();
@@ -9981,7 +9949,7 @@ x_term_init (Lisp_Object display_name, char *xrm_option, char *resource_name)
           const char *file = "~/.emacs.d/gtkrc";
           Lisp_Object s, abs_file;
 
-          s = make_string (file, strlen (file));
+          s = build_string (file);
           abs_file = Fexpand_file_name (s, Qnil);
 
           if (! NILP (abs_file) && !NILP (Ffile_readable_p (abs_file)))
@@ -10037,14 +10005,13 @@ x_term_init (Lisp_Object display_name, char *xrm_option, char *resource_name)
   /* Detect failure.  */
   if (dpy == 0)
     {
-      UNBLOCK_INPUT;
+      unblock_input ();
       return 0;
     }
 
   /* We have definitely succeeded.  Record the new connection.  */
 
-  dpyinfo = (struct x_display_info *) xmalloc (sizeof (struct x_display_info));
-  memset (dpyinfo, 0, sizeof *dpyinfo);
+  dpyinfo = xzalloc (sizeof *dpyinfo);
   hlinfo = &dpyinfo->mouse_highlight;
 
   terminal = x_create_terminal (dpyinfo);
@@ -10062,9 +10029,9 @@ x_term_init (Lisp_Object display_name, char *xrm_option, char *resource_name)
       terminal->kboard = share->terminal->kboard;
     else
       {
-	terminal->kboard = (KBOARD *) xmalloc (sizeof (KBOARD));
+	terminal->kboard = xmalloc (sizeof *terminal->kboard);
 	init_kboard (terminal->kboard);
-	KVAR (terminal->kboard, Vwindow_system) = Qx;
+	kset_window_system (terminal->kboard, Qx);
 
 	/* Add the keyboard to the list before running Lisp code (via
            Qvendor_specific_keysyms below), since these are not traced
@@ -10085,11 +10052,12 @@ x_term_init (Lisp_Object display_name, char *xrm_option, char *resource_name)
 
 	    /* Temporarily hide the partially initialized terminal.  */
 	    terminal_list = terminal->next_terminal;
-	    UNBLOCK_INPUT;
-	    KVAR (terminal->kboard, Vsystem_key_alist)
-	      = call1 (Qvendor_specific_keysyms,
-		       vendor ? build_string (vendor) : empty_unibyte_string);
-	    BLOCK_INPUT;
+	    unblock_input ();
+	    kset_system_key_alist
+	      (terminal->kboard,
+	       call1 (Qvendor_specific_keysyms,
+		      vendor ? build_string (vendor) : empty_unibyte_string));
+	    block_input ();
 	    terminal->next_terminal = terminal_list;
  	    terminal_list = terminal;
 	    UNGCPRO;
@@ -10116,8 +10084,8 @@ x_term_init (Lisp_Object display_name, char *xrm_option, char *resource_name)
   dpyinfo->display = dpy;
 
   /* Set the name of the terminal. */
-  terminal->name = (char *) xmalloc (SBYTES (display_name) + 1);
-  strncpy (terminal->name, SSDATA (display_name), SBYTES (display_name));
+  terminal->name = xmalloc (SBYTES (display_name) + 1);
+  memcpy (terminal->name, SSDATA (display_name), SBYTES (display_name));
   terminal->name[SBYTES (display_name)] = 0;
 
 #if 0
@@ -10127,10 +10095,8 @@ x_term_init (Lisp_Object display_name, char *xrm_option, char *resource_name)
   lim = min (PTRDIFF_MAX, SIZE_MAX) - sizeof "@";
   if (lim - SBYTES (Vinvocation_name) < SBYTES (Vsystem_name))
     memory_full (SIZE_MAX);
-  dpyinfo->x_id_name
-    = (char *) xmalloc (SBYTES (Vinvocation_name)
-			+ SBYTES (Vsystem_name)
-			+ 2);
+  dpyinfo->x_id_name = xmalloc (SBYTES (Vinvocation_name)
+				+ SBYTES (Vsystem_name) + 2);
   strcat (strcat (strcpy (dpyinfo->x_id_name, SSDATA (Vinvocation_name)), "@"),
 	  SSDATA (Vsystem_name));
 
@@ -10172,7 +10138,6 @@ x_term_init (Lisp_Object display_name, char *xrm_option, char *resource_name)
   dpyinfo->bitmaps_last = 0;
   dpyinfo->scratch_cursor_gc = 0;
   hlinfo->mouse_face_mouse_frame = 0;
-  hlinfo->mouse_face_deferred_gc = 0;
   hlinfo->mouse_face_beg_row = hlinfo->mouse_face_beg_col = -1;
   hlinfo->mouse_face_end_row = hlinfo->mouse_face_end_col = -1;
   hlinfo->mouse_face_face_id = DEFAULT_FACE_ID;
@@ -10318,16 +10283,18 @@ x_term_init (Lisp_Object display_name, char *xrm_option, char *resource_name)
     const int atom_count = sizeof (atom_refs) / sizeof (atom_refs[0]);
     /* 1 for _XSETTINGS_SN  */
     const int total_atom_count = 1 + atom_count;
-    Atom *atoms_return = xmalloc (sizeof (Atom) * total_atom_count);
-    char **atom_names = xmalloc (sizeof (char *) * total_atom_count);
-    char xsettings_atom_name[64];
+    Atom *atoms_return = xmalloc (total_atom_count * sizeof *atoms_return);
+    char **atom_names = xmalloc (total_atom_count * sizeof *atom_names);
+    static char const xsettings_fmt[] = "_XSETTINGS_S%d";
+    char xsettings_atom_name[sizeof xsettings_fmt - 2
+			     + INT_STRLEN_BOUND (int)];
 
     for (i = 0; i < atom_count; i++)
       atom_names[i] = (char *) atom_refs[i].name;
 
     /* Build _XSETTINGS_SN atom name */
-    snprintf (xsettings_atom_name, sizeof (xsettings_atom_name),
-              "_XSETTINGS_S%d", XScreenNumberOfScreen (dpyinfo->screen));
+    sprintf (xsettings_atom_name, xsettings_fmt,
+	     XScreenNumberOfScreen (dpyinfo->screen));
     atom_names[i] = xsettings_atom_name;
 
     XInternAtoms (dpyinfo->display, atom_names, total_atom_count,
@@ -10345,7 +10312,7 @@ x_term_init (Lisp_Object display_name, char *xrm_option, char *resource_name)
 
   dpyinfo->x_dnd_atoms_size = 8;
   dpyinfo->x_dnd_atoms_length = 0;
-  dpyinfo->x_dnd_atoms = xmalloc (sizeof (*dpyinfo->x_dnd_atoms)
+  dpyinfo->x_dnd_atoms = xmalloc (sizeof *dpyinfo->x_dnd_atoms
                                   * dpyinfo->x_dnd_atoms_size);
 
   dpyinfo->net_supported_atoms = NULL;
@@ -10354,14 +10321,10 @@ x_term_init (Lisp_Object display_name, char *xrm_option, char *resource_name)
 
   connection = ConnectionNumber (dpyinfo->display);
   dpyinfo->connection = connection;
-
-  {
-    dpyinfo->gray
-      = XCreatePixmapFromBitmapData (dpyinfo->display, dpyinfo->root_window,
-				     gray_bitmap_bits,
-				     gray_bitmap_width, gray_bitmap_height,
-				     1, 0, 1);
-  }
+  dpyinfo->gray
+    = XCreatePixmapFromBitmapData (dpyinfo->display, dpyinfo->root_window,
+				   gray_bits, gray_width, gray_height,
+				   1, 0, 1);
 
 #ifdef HAVE_X_I18N
   xim_initialize (dpyinfo, resource_name);
@@ -10377,10 +10340,8 @@ x_term_init (Lisp_Object display_name, char *xrm_option, char *resource_name)
   fcntl (connection, F_SETOWN, getpid ());
 #endif /* ! defined (F_SETOWN) */
 
-#ifdef SIGIO
   if (interrupt_input)
     init_sigio (connection);
-#endif /* ! defined (SIGIO) */
 
 #ifdef USE_LUCID
   {
@@ -10396,7 +10357,7 @@ x_term_init (Lisp_Object display_name, char *xrm_option, char *resource_name)
     to.addr = (XPointer)&font;
     x_catch_errors (dpy);
     if (!XtCallConverter (dpy, XtCvtStringToFont, &d, 1, &fr, &to, NULL))
-      abort ();
+      emacs_abort ();
     if (x_had_errors_p (dpy) || !XQueryFont (dpy, font))
       XrmPutLineResource (&xrdb, "Emacs.dialog.*.font: 9x15");
     x_uncatch_errors ();
@@ -10444,7 +10405,7 @@ x_term_init (Lisp_Object display_name, char *xrm_option, char *resource_name)
     x_session_initialize (dpyinfo);
 #endif
 
-  UNBLOCK_INPUT;
+  unblock_input ();
 
   return dpyinfo;
 }
@@ -10524,7 +10485,7 @@ x_delete_display (struct x_display_info *dpyinfo)
 static void
 x_process_timeouts (struct atimer *timer)
 {
-  BLOCK_INPUT;
+  block_input ();
   x_timeout_atimer_activated_flag = 0;
   if (toolkit_scroll_bar_interaction || popup_activated ())
     {
@@ -10533,7 +10494,7 @@ x_process_timeouts (struct atimer *timer)
       /* Reactivate the atimer for next time.  */
       x_activate_timeout_atimer ();
     }
-  UNBLOCK_INPUT;
+  unblock_input ();
 }
 
 /* Install an asynchronous timer that processes Xt timeout events
@@ -10547,24 +10508,20 @@ x_process_timeouts (struct atimer *timer)
 void
 x_activate_timeout_atimer (void)
 {
-  BLOCK_INPUT;
+  block_input ();
   if (!x_timeout_atimer_activated_flag)
     {
-      EMACS_TIME interval;
-
-      EMACS_SET_SECS_USECS (interval, 0, 100000);
+      EMACS_TIME interval = make_emacs_time (0, 100 * 1000 * 1000);
       start_atimer (ATIMER_RELATIVE, interval, x_process_timeouts, 0);
       x_timeout_atimer_activated_flag = 1;
     }
-  UNBLOCK_INPUT;
+  unblock_input ();
 }
 
 #endif /* USE_X_TOOLKIT */
 
 
 /* Set up use of X before we make the first connection.  */
-
-extern frame_parm_handler x_frame_parm_handlers[];
 
 static struct redisplay_interface x_redisplay_interface =
   {
@@ -10611,7 +10568,7 @@ x_delete_terminal (struct terminal *terminal)
   if (!terminal->name)
     return;
 
-  BLOCK_INPUT;
+  block_input ();
 #ifdef HAVE_X_I18N
   /* We must close our connection to the XIM server before closing the
      X display.  */
@@ -10666,7 +10623,7 @@ x_delete_terminal (struct terminal *terminal)
   /* Mark as dead. */
   dpyinfo->display = NULL;
   x_delete_display (dpyinfo);
-  UNBLOCK_INPUT;
+  unblock_input ();
 }
 
 /* Create a struct terminal, initialize it with the X11 specific
@@ -10768,10 +10725,6 @@ x_initialize (void)
      original error handler.  */
   XSetErrorHandler (x_error_handler);
   XSetIOErrorHandler (x_io_error_quitter);
-
-  signal (SIGPIPE, x_connection_signal);
-
-  xgselect_initialize ();
 }
 
 
@@ -10793,7 +10746,7 @@ syms_of_xterm (void)
   last_mouse_press_frame = Qnil;
 
 #ifdef USE_GTK
-  xg_default_icon_file = make_pure_c_string ("icons/hicolor/scalable/apps/emacs.svg");
+  xg_default_icon_file = build_pure_c_string ("icons/hicolor/scalable/apps/emacs.svg");
   staticpro (&xg_default_icon_file);
 
   DEFSYM (Qx_gtk_map_stock, "x-gtk-map-stock");
@@ -10801,7 +10754,7 @@ syms_of_xterm (void)
 
   DEFVAR_BOOL ("x-use-underline-position-properties",
 	       x_use_underline_position_properties,
-     doc: /* *Non-nil means make use of UNDERLINE_POSITION font properties.
+     doc: /* Non-nil means make use of UNDERLINE_POSITION font properties.
 A value of nil means ignore them.  If you encounter fonts with bogus
 UNDERLINE_POSITION font properties, for example 7x13 on XFree prior
 to 4.1, set this to nil.  You can also use `underline-minimum-offset'
@@ -10811,7 +10764,7 @@ sizes.  */);
 
   DEFVAR_BOOL ("x-underline-at-descent-line",
 	       x_underline_at_descent_line,
-     doc: /* *Non-nil means to draw the underline at the same place as the descent line.
+     doc: /* Non-nil means to draw the underline at the same place as the descent line.
 A value of nil means to draw the underline according to the value of the
 variable `x-use-underline-position-properties', which is usually at the
 baseline level.  The default value is nil.  */);
@@ -10832,7 +10785,7 @@ selected window or cursor position is preserved.  */);
 A value of nil means Emacs doesn't use toolkit scroll bars.
 With the X Window system, the value is a symbol describing the
 X toolkit.  Possible values are: gtk, motif, xaw, or xaw3d.
-With MS Windows, the value is t.  */);
+With MS Windows or Nextstep, the value is t.  */);
 #ifdef USE_TOOLKIT_SCROLL_BARS
 #ifdef USE_MOTIF
   Vx_toolkit_scroll_bars = intern_c_string ("motif");
@@ -10890,10 +10843,10 @@ default is nil, which is the same as `super'.  */);
 
   DEFVAR_LISP ("x-keysym-table", Vx_keysym_table,
     doc: /* Hash table of character codes indexed by X keysym codes.  */);
-  Vx_keysym_table = make_hash_table (Qeql, make_number (900),
+  Vx_keysym_table = make_hash_table (hashtest_eql, make_number (900),
 				     make_float (DEFAULT_REHASH_SIZE),
 				     make_float (DEFAULT_REHASH_THRESHOLD),
-				     Qnil, Qnil, Qnil);
+				     Qnil);
 }
 
 #endif /* HAVE_X_WINDOWS */

@@ -1,6 +1,6 @@
 ;;; pcvs-defs.el --- variable definitions for PCL-CVS
 
-;; Copyright (C) 1991-2011  Free Software Foundation, Inc.
+;; Copyright (C) 1991-2012  Free Software Foundation, Inc.
 
 ;; Author: Stefan Monnier <monnier@iro.umontreal.ca>
 ;; Keywords: pcl-cvs
@@ -26,14 +26,13 @@
 
 ;;; Code:
 
-(eval-when-compile (require 'cl))
 (require 'pcvs-util)
 
 ;;;; -------------------------------------------------------
 ;;;;	    START OF THINGS TO CHECK WHEN INSTALLING
 
 (defvar cvs-program "cvs"
-  "*Name or full path of the cvs executable.")
+  "Name or full path of the cvs executable.")
 
 (defvar cvs-version
   ;; With the divergence of the CVSNT codebase and version numbers, this is
@@ -46,23 +45,19 @@
                                nil t)
 	(cons (string-to-number (match-string 1))
 	      (string-to-number (match-string 2))))))
-  "*Version of `cvs' installed on your system.
+  "Version of `cvs' installed on your system.
 It must be in the (MAJOR . MINOR) format.")
 
 ;; FIXME: this is only used by cvs-mode-diff-backup
 (defvar cvs-diff-program (or (and (boundp 'diff-command) diff-command) "diff")
-  "*Name or full path of the best diff program you've got.
+  "Name or full path of the best diff program you've got.
 NOTE:  there are some nasty bugs in the context diff variants of some vendor
 versions, such as the one in SunOS-4.")
 
 ;;;;	     END OF THINGS TO CHECK WHEN INSTALLING
 ;;;; --------------------------------------------------------
 
-;;;;
 ;;;;	User configuration variables:
-;;;;
-;;;; NOTE: these should be set in your ~/.emacs (or site-lisp/default.el) file.
-;;;;
 
 (defgroup pcl-cvs nil
   "Special support for the CVS versioning system."
@@ -89,7 +84,7 @@ will select a shared-flag.")
   "List of flags whose settings is shared among several commands.")
 
 (defvar cvs-cvsroot nil
-  "*Specifies where the (current) cvs master repository is.
+  "Specifies where the (current) cvs master repository is.
 Overrides the environment variable $CVSROOT by sending \" -d dir\" to
 all CVS commands. This switch is useful if you have multiple CVS
 repositories. It can be set interactively with \\[cvs-change-cvsroot.]
@@ -138,14 +133,9 @@ current line.  See also `cvs-invert-ignore-marks'"
   :group 'pcl-cvs
   :type '(boolean))
 
-(defvar cvs-diff-ignore-marks t)
-(make-obsolete-variable 'cvs-diff-ignore-marks
-                        'cvs-invert-ignore-marks
-			"21.1")
-
 (defcustom cvs-invert-ignore-marks
   (let ((l ()))
-    (unless (equal cvs-diff-ignore-marks cvs-default-ignore-marks)
+    (unless (equal cvs-default-ignore-marks t)
       (push "diff" l))
     (when (and cvs-force-dir-tag (not cvs-default-ignore-marks))
       (push "tag" l))
@@ -176,11 +166,6 @@ If set to nil, `cvs-mode-add' will always prompt for a message."
   :type '(choice (const :tag "Prompt" nil)
 		 (string)))
 
-(defvar cvs-diff-buffer-name "*cvs-diff*")
-(make-obsolete-variable 'cvs-diff-buffer-name
-                        'cvs-buffer-name-alist
-			"21.1")
-
 (defcustom cvs-find-file-and-jump nil
   "Jump to the modified area when finding a file.
 If non-nil, `cvs-mode-find-file' will place the cursor at the beginning of
@@ -190,7 +175,7 @@ have no effect."
   :type '(boolean))
 
 (defcustom cvs-buffer-name-alist
-  '(("diff" cvs-diff-buffer-name diff-mode)
+  '(("diff" "*cvs-diff*" diff-mode)
     ("status" "*cvs-info*" cvs-status-mode)
     ("tree" "*cvs-info*" cvs-status-mode)
     ("message" "*cvs-commit*" nil log-edit)
@@ -243,7 +228,7 @@ the directory name of the cvs buffer.")
   ;; Was '(expand-file-name " *cvs-tmp*" dir), but that causes them to
   ;; become non-hidden if uniquification is done `forward'.
   " *cvs-tmp*"
-  "*Name of the cvs temporary buffer.
+  "Name of the cvs temporary buffer.
 Output from cvs is placed here for asynchronous commands.")
 
 (defcustom cvs-idiff-imerge-handlers

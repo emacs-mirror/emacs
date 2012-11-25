@@ -1,6 +1,6 @@
 ;;; sieve-mode.el --- Sieve code editing commands for Emacs
 
-;; Copyright (C) 2001-2011  Free Software Foundation, Inc.
+;; Copyright (C) 2001-2012  Free Software Foundation, Inc.
 
 ;; Author: Simon Josefsson <simon@josefsson.org>
 
@@ -173,7 +173,7 @@
 (defvar sieve-mode-map
   (let ((map (make-sparse-keymap)))
     (define-key map "\C-c\C-l" 'sieve-upload)
-    (define-key map "\C-c\C-c" 'sieve-upload-and-bury)
+    (define-key map "\C-c\C-c" 'sieve-upload-and-kill)
     (define-key map "\C-c\C-m" 'sieve-manage)
     map)
   "Key map used in sieve mode.")
