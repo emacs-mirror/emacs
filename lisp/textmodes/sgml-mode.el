@@ -671,13 +671,13 @@ in your `.emacs':
       (if (eq v2 t) (setq v2 nil))
       ;; We use `identity' to prevent skeleton from passing
       ;; `str' through `skeleton-transformation-function' a second time.
-      '(("") v2 _ v2 "</" (identity ',str) ?>))
+      '(("") v2 _ v2 "</" (identity ',str) ?> >))
      ((eq (car v2) t)
       (cons '("") (cdr v2)))
      (t
       (append '(("") (car v2))
 	      (cdr v2)
-	      '(resume: (car v2) _ "</" (identity ',str) ?>))))))
+	      '(resume: (car v2) _ "</" (identity ',str) ?> >))))))
 
 (autoload 'skeleton-read "skeleton")
 
