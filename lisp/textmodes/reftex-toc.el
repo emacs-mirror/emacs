@@ -785,7 +785,7 @@ PRO-OR-DE is assumed to be dynamically scoped into this function."
          (marker (nth 4 data)))
     (with-current-buffer (marker-buffer marker)
       (goto-char (marker-position marker))
-      (if (looking-at (concat "\\([ \t]*\\\\\\)" (regexp-quote name)))
+      (if (looking-at (concat "\\([ \t]*" reftex-section-pre-regexp "\\)" (regexp-quote name)))
           (replace-match (concat "\\1" newname))
         (error "Fatal error during %smotion" pro-or-de)))))
 

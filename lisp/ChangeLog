@@ -1,3 +1,20 @@
+2012-11-24  Vincent Belaïche  <vincentb1@users.sourceforge.net>
+
+	* textmodes/reftex-parse.el (reftex-parse-from-file): Use variable
+	reftex-section-info-function in order to be compatible with
+	Texinfo integration.
+
+	* textmodes/reftex.el (reftex-section-pre-regexp)
+	(reftex-section-post-regexp, reftex-section-info-function): New
+	variable.
+	(reftex-compile-variables): Use variables
+	reftex-section-pre-regexp, reftex-section-post-regexp, and
+	reftex-section-info-function in order to be compatible with Texinfo integration.
+
+	* textmodes/reftex-toc.el (reftex-toc-promote-action): use
+	reftex-section-pre-regexp variable in order to be compatible with
+	Texinfo integration.
+
 2012-11-25  Chong Yidong  <cyd@gnu.org>
 
 	* faces.el: Make face-spec-set more analogous to setq.
