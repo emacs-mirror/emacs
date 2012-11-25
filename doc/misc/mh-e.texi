@@ -8,12 +8,12 @@
 @c %**end of header
 
 @c Version of the software and manual.
-@set VERSION 8.3
+@set VERSION 8.4
 @c Edition of the manual. It is either empty for the first edition or
 @c has the form ", nth Edition" (without the quotes).
 @set EDITION
-@set UPDATED 2011-09-20
-@set UPDATE-MONTH September, 2011
+@set UPDATED 2012-11-25
+@set UPDATE-MONTH November, 2012
 
 @c Other variables.
 @set MH-BOOK-HOME http://rand-mh.sourceforge.net/book/mh
@@ -212,7 +212,7 @@ more niceties about GNU Emacs and MH@. Now I'm fully hooked on both of
 them.
 
 The MH-E package is distributed with Emacs@footnote{Version
-@value{VERSION} of MH-E appeared in Emacs 24.1. It is supported in GNU
+@value{VERSION} of MH-E appeared in Emacs 24.4. It is supported in GNU
 Emacs 23 and higher, as well as XEmacs 21.4.22 and 21.5.31. MH-E is
 known not to work with GNU Emacs versions 20 and below, and XEmacs
 version 21.5.9 - 21.5.16. It is compatible with MH versions 6.8.4 and
@@ -8525,7 +8525,7 @@ necessary, they are extremely useful.
 [12]
 [13] # Place mail sent to any MH-E mailing list in +mh-e.
 [14] :0 w: mh-e$LOCKEXT
-[15] * ^TO.*mh-e-.*@.*sourceforge.net
+[15] * ^TO.*mh-e-.*@@.*sourceforge.net
 [16] | myrcvstore -create +mh-e
 @end smallexample
 
@@ -8631,7 +8631,7 @@ MAILDIR=$HOME/`mhparam Path`
 # Place mail sent to the GnuCash mailing list in gnucash.spool, where
 # Gnus will pick it up.
 :0:
-* ^TO.*gnucash.*@.*gnucash.org
+* ^TO.*gnucash.*@@.*gnucash.org
 gnucash.spool
 @end smallexample
 

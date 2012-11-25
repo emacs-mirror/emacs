@@ -87,6 +87,16 @@ spurious warnings about an unused var.
 
 * Lisp changes in Emacs 24.4
 
+** Face changes
+
+*** The `face-spec-set' is now analogous to `setq' for face specs.
+Its third arg now accepts values specifying exactly which face spec to
+set (defface, custom, or user spec), and it directly sets the relevant
+property using the supplied face spec.
+
+*** Face specs set via Custom themes now replace the `defface' spec
+rather than inheriting from it (as do face specs set via Customize).
+
 ** time-to-seconds is not obsolete any more.
 ** New function special-form-p.
 ** Docstrings can be made dynamic by adding a `dynamic-docstring-function'

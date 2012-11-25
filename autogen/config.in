@@ -681,9 +681,6 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 /* Define to 1 if you have a working `mmap' system call. */
 #undef HAVE_MMAP
 
-/* Define if you have mouse support. */
-#undef HAVE_MOUSE
-
 /* Define to 1 if you have the `nanotime' function. */
 #undef HAVE_NANOTIME
 
