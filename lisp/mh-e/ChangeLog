@@ -25,14 +25,15 @@
 	* mh-thread.el (mh-thread-set-tables): Replace flet with new alias
 	mh-cl-flet.
 
-	* mh-show.el (mh-gnus-article-highlight-citation):  Replace flet with new alias
-	mh-cl-flet.
+	* mh-show.el (mh-gnus-article-highlight-citation):
+	Replace flet with new alias mh-cl-flet.
 
 	* mh-mime.el (mh-display-with-external-viewer, mh-mime-display)
 	(mh-press-button, mh-push-button, mh-display-emphasis): Replace
 	flet with new alias mh-cl-flet.
 
-	* mh-e.el (mh-invisible-header-fields-internal): Remove trailing whitespace.
+	* mh-e.el (mh-invisible-header-fields-internal):
+	Remove trailing whitespace.
 
 2012-11-25  Jeffrey C Honig  <jch@honig.net>
 
@@ -48,31 +49,15 @@
 	(mh-insert-auto-fields, mh-modify-header-field): New syntax for
 	calling mh-regexp-in-field-p (closes SF #1708292).
 
-2012-10-23  Stefan Monnier  <monnier@iro.umontreal.ca>
-
-	* mh-letter.el (mh-yank-hooks): Use make-obsolete-variable.
-
-2012-04-25  Stefan Monnier  <monnier@iro.umontreal.ca>
-
-	* mh-utils.el (minibuffer-completing-file-name): Don't declare, unused.
-
-2012-04-21  Juanma Barranquero  <lekktu@gmail.com>
-
-	* mh-folder.el (top): Check whether which-func-modes is t before
-	adding mh-folder-mode.
-
-2012-01-07  Jeffrey C Honig  <jch@honig.net>
-
 	* mh-e.el (mh-invisible-header-fields-internal): Added: X-xsi.
 	(addresses SF #1916032).
-
-2011-12-28  Jeffrey C Honig  <jch@honig.net>
 
 	* mh-folder.el (mh-inc-folder): Call mh-process-or-undo-commands
 	before running to insure we do not lose any pending changes.
 	(closes SF #2321115).
 
-2011-12-27  Ted Phelps  <phelps@gnusto.com>
+2012-11-25  Ted Phelps  <phelps@gnusto.com>
+
 	Postpone junk processing (closes SF #2945712). Patch submitted by
 	Ted Phelps and refined by Bill Wohler.
 
@@ -108,7 +93,8 @@
 	* mh-search.el (mh-index-execute-commands): Handle blacklisted and
 	whitelisted messages.
 
-2011-12-27  Jeffrey C Honig  <jch@honig.net>
+2012-11-25  Jeffrey C Honig  <jch@honig.net>
+
 	* mh-e.el (mh-invisible-header-fields-internal): Added:
 	Bounces-To:, Bounces_to:, X-ACL-Warn:, X-BFI:, X-BPS1:, X-BPS2:,
 	X-Campaign-Id:, X-Campaign:, X-Cloudmark-SP-, X-Destination-ID:,
@@ -121,7 +107,7 @@
 	X-XWALL-, X-ZixNet:. Changed X-Habeas-SWE- to X-Habeas-. Updated
 	the comment. (addresses SF #1916032).
 
-2011-12-27  Bill Wohler  <wohler@newt.com>
+2012-11-25  Bill Wohler  <wohler@newt.com>
 
 	* mh-e.el (mh-invisible-header-fields-internal): Add
 	X-AnalysisOut, X-Authentication-Info, X-Auto-Response-Suppress,
@@ -131,7 +117,7 @@
 	X-Notification-, X-Notifications, X-Oracle-Calendar. Replace
 	X-DCC-Usenix-Metrics with X-DCC- (addresses SF #1916032).
 
-2011-12-27  Jeffrey C Honig  <jch@honig.net>
+2012-11-25  Jeffrey C Honig  <jch@honig.net>
 
 	* mh-letter.el (mh-yank-cur-msg): Replace usage of set-buffer with
 	with-current-buffer in mh-yang-cur-msg, semantics changed in emacs
@@ -141,9 +127,22 @@
 	* mh-show.el (mh-show-folder-map): Add missing key binding for
 	mh-show-pack-folder (closes SF #3466086).
 
-2011-12-25  Bill Wohler  <wohler@newt.com>
+2012-11-25  Bill Wohler  <wohler@newt.com>
 
 	* mh-e.el (Version, mh-version): Add +bzr to version.
+
+2012-10-23  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* mh-letter.el (mh-yank-hooks): Use make-obsolete-variable.
+
+2012-04-25  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* mh-utils.el (minibuffer-completing-file-name): Don't declare, unused.
+
+2012-04-21  Juanma Barranquero  <lekktu@gmail.com>
+
+	* mh-folder.el (top): Check whether which-func-modes is t before
+	adding mh-folder-mode.
 
 2011-11-20  Bill Wohler  <wohler@newt.com>
 
