@@ -8525,7 +8525,7 @@ necessary, they are extremely useful.
 [12]
 [13] # Place mail sent to any MH-E mailing list in +mh-e.
 [14] :0 w: mh-e$LOCKEXT
-[15] * ^TO.*mh-e-.*@.*sourceforge.net
+[15] * ^TO.*mh-e-.*@@.*sourceforge.net
 [16] | myrcvstore -create +mh-e
 @end smallexample
 
@@ -8631,7 +8631,7 @@ MAILDIR=$HOME/`mhparam Path`
 # Place mail sent to the GnuCash mailing list in gnucash.spool, where
 # Gnus will pick it up.
 :0:
-* ^TO.*gnucash.*@.*gnucash.org
+* ^TO.*gnucash.*@@.*gnucash.org
 gnucash.spool
 @end smallexample
 
