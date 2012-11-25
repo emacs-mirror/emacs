@@ -1,8 +1,12 @@
 2012-11-25  Bill Wohler  <wohler@newt.com>
 
+	Release MH-E version 8.4.
+
+	* mh-e.el (Version, mh-version): Update for release 8.4.
+
 	* mh-comp.el (mh-regexp-in-field-syntax-table): Fix docstring.
 	(mh-edit-again): Format.
-	(mh-components-to-list): Fix docstring. 
+	(mh-components-to-list): Fix docstring.
 	(mh-regexp-in-field-p): Remove unused variable `field'.
 
 	* mh-compat.el (mh-define-obsolete-variable-alias)
@@ -36,7 +40,7 @@
 	default values for missing headers in the draft.
 	(mh-regexp-in-field-syntax-table, mh-fcc-syntax-table)
 	(mh-addr-syntax-table, mh-regexp-in-field-p): Use a syntax table
-	so we'll properly parse non-address fields. 
+	so we'll properly parse non-address fields.
 	(mh-components-to-list, mh-extract-header-field): New functions to
 	read components file.
 	(mh-find-components, mh-send-sub): Move code to locate components
