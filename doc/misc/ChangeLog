@@ -5,6 +5,11 @@
 	* mh-e.texi: (VERSION, EDITION, UPDATED, UPDATE-MONTH, Preface):
 	Update for release 8.4.
 
+	* mh-e.texi (Sequences): Add mh-whitelist-preserves-sequences-flag.
+	(Junk): Add mh-whitelist-preserves-sequences-flag,
+	mh-blacklist-msg-hook, mh-whitelist-msg-hook,
+	mh-folder-blacklisted, mh-folder-whitelisted (closes SF #2945712).
+
 2012-11-25  Paul Eggert  <eggert@cs.ucla.edu>
 
 	* mh-e.texi (Procmail): Fix two @ typos.
