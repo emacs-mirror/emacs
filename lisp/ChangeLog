@@ -1,3 +1,8 @@
+2012-11-25  Eli Zaretskii  <eliz@gnu.org>
+
+	* descr-text.el (describe-char-padded-string): Call
+	internal-char-font only on GUI frames.  (Bug#11964)
+
 2012-11-24  Andreas Schwab  <schwab@linux-m68k.org>
 
 	* buff-menu.el (Buffer-menu-buffer+size-width): Fix customize type
