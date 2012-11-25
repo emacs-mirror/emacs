@@ -1,3 +1,18 @@
+2012-11-25  Jeffrey C Honig  <jch@honig.net>
+
+	* mh-comp.el: (mh-edit-again): Use the components file to specify
+	default values for missing headers in the draft.
+	(mh-regexp-in-field-syntax-table, mh-fcc-syntax-table)
+	(mh-addr-syntax-table, mh-regexp-in-field-p): Use a syntax table
+	so we'll properly parse non-address fields. 
+	(mh-components-to-list, mh-extract-header-field): New functions to
+	read components file.
+	(mh-find-components, mh-send-sub): Move code to locate components
+	file into a new function.
+	(mh-insert-auto-fields, mh-modify-header-field): New syntax for
+	calling mh-regexp-in-field-p.
+	(closes SF #1708292)
+
 2012-01-07  Jeffrey C Honig  <jch@honig.net>
 
 	* mh-e.el (mh-invisible-header-fields-internal): Added: X-xsi.
