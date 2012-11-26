@@ -1,3 +1,12 @@
+2012-11-26  Stephen Berman  <stephen.berman@gmx.net>
+
+	* calendar/todos.el (todos-make-categories-list)
+	(todos-convert-legacy-files, todos-jump-to-item)
+	(todos-move-category, todos-merge-category)
+	(todos-archive-done-item, todos-unarchive-items): Include end of
+	line in regex searches for beginning of category, in order not to
+	get a category whose name contains the searched for category name.
+
 2012-11-15  Stephen Berman  <stephen.berman@gmx.net>
 
 	* calendar/todos.el (todos-forward-category): Fix typo.
@@ -10,7 +19,7 @@
 2012-10-08  Stephen Berman  <Stephen.Berman@rub.de>
 
 	* calendar/todos.el (todos-move-item): If user quits before
-	completing movement, restore display of initial category; If item
+	completing movement, restore display of initial category; if item
 	is moved to end of target category, make sure the items above it
 	are displayed in the window.
 

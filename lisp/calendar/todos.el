@@ -1258,7 +1258,8 @@ the file."
 		       (widen)
 		       (goto-char (point-min))
 		       (when (re-search-forward
-			      (concat (regexp-quote todos-category-beg) cat)
+			      (concat "^" (regexp-quote todos-category-beg)
+				      cat "$")
 			      (point-max) t)
 			 (forward-line)
 			 (while (not (or (looking-at
@@ -3090,7 +3091,8 @@ saved (the latter as a Todos Archive file) with a new name in
 		      (delete-region beg (1+ end))
 		      (set-marker beg (point))
 		      (re-search-backward
-		       (concat "^" (regexp-quote (concat todos-category-beg cat)))
+		       (concat "^" (regexp-quote (concat todos-category-beg cat))
+			       "$")
 		       nil t)
 		      (forward-line)
 		      (if (re-search-forward
@@ -3273,7 +3275,7 @@ The category is chosen by prompt, with TAB completion."
       (widen)
       (goto-char (point-min))
       (re-search-forward
-       (concat "^" (regexp-quote (concat todos-category-beg cat))) nil t)
+       (concat "^" (regexp-quote (concat todos-category-beg cat)) "$") nil t)
       (search-forward str)
       (setq beg (match-beginning 0)))
     (kill-buffer buf)
@@ -3808,8 +3810,8 @@ archive of the file moved to, creating it if it does not exist."
 	  (widen)
 	  (goto-char (point-max))
 	  (let* ((beg (re-search-backward
-		       (concat "^"
-			       (regexp-quote (concat todos-category-beg cat)))
+		       (concat "^" (regexp-quote (concat todos-category-beg cat))
+			       "$")
 		       nil t))
 		 (end (if (re-search-forward
 			   (concat "^" (regexp-quote todos-category-beg))
@@ -3850,7 +3852,7 @@ archive of the file moved to, creating it if it does not exist."
 		  (goto-char (point-max))
 		  (re-search-backward
 		   (concat "^" (regexp-quote todos-category-beg)
-			   "\\(" (regexp-quote cat) "\\)") nil t)
+			   "\\(" (regexp-quote cat) "\\)$") nil t)
 		  (replace-match new nil nil nil 1)))
 	      (setq todos-categories
 		    (append todos-categories (list (cons new counts))))
@@ -3934,7 +3936,8 @@ category."
 	;; Merge any todo items.
 	(unless (zerop (length todo))
 	  (re-search-forward
-	   (concat "^" (regexp-quote (concat todos-category-beg goal))) nil t)
+	   (concat "^" (regexp-quote (concat todos-category-beg goal)) "$")
+	   nil t)
 	  (re-search-forward
 	   (concat "^" (regexp-quote todos-category-done)) nil t)
 	  (forward-line -1)
@@ -3965,14 +3968,14 @@ category."
 	      (cbeg (save-excursion
 		      (when (re-search-forward
 			     (concat "^" (regexp-quote
-					  (concat todos-category-beg cat)))
+					  (concat todos-category-beg cat)) "$")
 			     nil t)
 			(goto-char (match-beginning 0))
 			(point-marker))))
 	      (gbeg (save-excursion
 		      (when (re-search-forward
 			     (concat "^" (regexp-quote
-					  (concat todos-category-beg goal)))
+					  (concat todos-category-beg goal)) "$")
 			     nil t)
 			(goto-char (match-beginning 0))
 			(point-marker))))
@@ -5128,11 +5131,10 @@ this category does not exist in the archive, it is created."
 	      (let (buffer-read-only)
 		(widen)
 		(goto-char (point-min))
-		(if (and (re-search-forward (concat "^"
-						    (regexp-quote
-						     (concat todos-category-beg
-							     cat)))
-					    nil t)
+		(if (and (re-search-forward
+			  (concat "^" (regexp-quote
+				       (concat todos-category-beg cat)) "$")
+			  nil t)
 			 (re-search-forward (regexp-quote todos-category-done)
 					    nil t))
 		    ;; Start of done items section in existing category.
@@ -5230,7 +5232,7 @@ archive, the archive file is deleted."
 	    (widen)
 	    (goto-char (point-min))
 	    (re-search-forward (concat "^" (regexp-quote
-					    (concat todos-category-beg cat)))
+					    (concat todos-category-beg cat)) "$")
 			       nil t)
 	    ;; Go to end of category's done section.
 	    (if (re-search-forward (concat "^" (regexp-quote todos-category-beg))
@@ -5279,7 +5281,7 @@ archive, the archive file is deleted."
 	  (when (eq (point-min) (point-max))
 	    (widen)
 	    (let ((beg (re-search-backward
-			(concat "^" (regexp-quote todos-category-beg) cat)
+			(concat "^" (regexp-quote todos-category-beg) cat "$")
 			nil t))
 		  (end (if (re-search-forward
 			    (concat "^" (regexp-quote todos-category-beg))
