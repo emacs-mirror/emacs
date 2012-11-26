@@ -1,5 +1,11 @@
 2012-11-26  Fabián Ezequiel Gallina  <fgallina@cuca>
 
+	* progmodes/python.el:
+	(python-indent-guess-indent-offset): If indentation is guessed
+	make python-indent-offset variable buffer local.
+
+2012-11-26  Fabián Ezequiel Gallina  <fgallina@cuca>
+
 	Fix Imenu regression.
 	* progmodes/python.el:
 	(python-nav-beginning-of-defun): Fix forward movement when

@@ -647,7 +647,7 @@ These make `python-indent-calculate-indentation' subtract the value of
                  (python-util-forward-comment)
                  (current-indentation))))
           (if indentation
-              (setq python-indent-offset indentation)
+              (set (make-local-variable 'python-indent-offset) indentation)
             (message "Can't guess python-indent-offset, using defaults: %s"
                      python-indent-offset)))))))
 
