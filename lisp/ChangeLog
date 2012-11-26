@@ -3,7 +3,7 @@
 	* subr.el (buffer-file-type): Declare with defvar-local.  Doc fix.
 
 	* dos-w32.el (find-file-not-found-set-buffer-file-coding-system):
-	Don't set buffer-file-type.  (Bug#12989)
+	Don't set buffer-file-type.  Return nil.  (Bug#12989)
 
 2012-11-26  Glenn Morris  <rgm@gnu.org>
 
