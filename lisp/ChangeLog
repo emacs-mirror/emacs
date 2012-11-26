@@ -1,15 +1,16 @@
+2012-11-26  Glenn Morris  <rgm@gnu.org>
+
+	* vc/vc-hooks.el (vc-mistrust-permissions):
+	Default to t, to avoid data-loss.  (Bug#11490)
+
 2012-11-26  Fabián Ezequiel Gallina  <fgallina@cuca>
 
-	* progmodes/python.el:
-	(python-indent-guess-indent-offset): If indentation is guessed
-	make python-indent-offset variable buffer local.
-
-2012-11-26  Fabián Ezequiel Gallina  <fgallina@cuca>
+	* progmodes/python.el (python-indent-guess-indent-offset):
+	If indentation is guessed make python-indent-offset buffer-local.
 
 	Fix Imenu regression.
-	* progmodes/python.el:
-	(python-nav-beginning-of-defun): Fix forward movement when
-	statement(s) separates point from defun.
+	* progmodes/python.el (python-nav-beginning-of-defun):
+	Fix forward movement when statement(s) separates point from defun.
 	(python-imenu-prev-index-position): New function.
 
 2012-11-26  Eli Zaretskii  <eliz@gnu.org>
