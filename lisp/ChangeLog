@@ -1,3 +1,11 @@
+2012-11-26  Fabián Ezequiel Gallina  <fgallina@cuca>
+
+	Fix Imenu regression.
+	* progmodes/python.el:
+	(python-nav-beginning-of-defun): Fix forward movement when
+	statement(s) separates point from defun.
+	(python-imenu-prev-index-position): New function.
+
 2012-11-26  Eli Zaretskii  <eliz@gnu.org>
 
 	* subr.el (buffer-file-type): Declare with defvar-local.  Doc fix.
