@@ -1,3 +1,8 @@
+2012-11-26  Eli Zaretskii  <eliz@gnu.org>
+
+	* fontset.c (Finternal_char_font): Return nil on non-GUI frames.
+	(Bug#11964)
+
 2012-11-24  Paul Eggert  <eggert@cs.ucla.edu>
 
 	Revert recent change for Bug#8855.
