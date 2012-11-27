@@ -1,3 +1,8 @@
+2012-11-27  Glenn Morris  <rgm@gnu.org>
+
+	* emacs-lisp/derived.el (derived-mode-make-docstring):
+	Don't mention "abbrev" or "syntax" if nil.  (Bug#11277)
+
 2012-11-27  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* textmodes/table.el (table-insert): Don't use `symbol-name' on
