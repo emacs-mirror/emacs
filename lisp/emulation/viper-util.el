@@ -1323,7 +1323,7 @@ sets the default value."
   (viper-update-syntax-classes))
 
 (defcustom viper-syntax-preference 'reformed-vi
-  "*Syntax type characterizing Viper's alphanumeric symbols.
+  "Syntax type characterizing Viper's alphanumeric symbols.
 Affects movement and change commands that deal with Vi-style words.
 Works best when set in the hooks to various major modes.
 

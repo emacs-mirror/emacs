@@ -66,8 +66,9 @@ Each hook function can find the citation between point and mark.
 And each hook function should leave point and mark around the
 citation text as modified.
 
-This is a normal hook, misnamed for historical reasons. It is
-semi-obsolete and is only used if `mail-citation-hook' is nil.")
+This is a normal hook, misnamed for historical reasons.
+It is obsolete and is only used if `mail-citation-hook' is nil.")
+(make-obsolete-variable 'mh-yank-hooks 'mail-citation-hook "19.34")
 
 
 

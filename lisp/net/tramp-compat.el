@@ -29,8 +29,6 @@
 
 ;;; Code:
 
-(require 'tramp-loaddefs)
-
 (eval-when-compile
 
   ;; Pacify byte-compiler.
@@ -38,10 +36,23 @@
 
 (eval-and-compile
 
+  ;; Some packages must be required for XEmacs, because we compile
+  ;; with -no-autoloads.
+  (when (featurep 'xemacs)
+    (require 'cus-edit)
+    (require 'env)
+    (require 'executable)
+    (require 'outline)
+    (require 'passwd)
+    (require 'pp)
+    (require 'regexp-opt))
+
   (require 'advice)
   (require 'custom)
   (require 'format-spec)
   (require 'shell)
+
+  (require 'tramp-loaddefs)
 
   ;; As long as password.el is not part of (X)Emacs, it shouldn't be
   ;; mandatory.
@@ -61,7 +72,8 @@
     (require 'timer))
 
   ;; We check whether `start-file-process' is bound.
-  (unless (fboundp 'start-file-process)
+  ;; Note: we deactivate this.  There are problems, at least in SXEmacs.
+  (unless t;(fboundp 'start-file-process)
 
     ;; tramp-util offers integration into other (X)Emacs packages like
     ;; compile.el, gud.el etc.  Not necessary in Emacs 23.
@@ -127,7 +139,8 @@
     (defalias 'file-remote-p
       (lambda (file &optional identification connected)
 	(when (tramp-tramp-file-p file)
-	  (tramp-file-name-handler
+	  (tramp-compat-funcall
+	   'tramp-file-name-handler
 	   'file-remote-p file identification connected)))))
 
   ;; `process-file' does not exist in XEmacs.
@@ -153,8 +166,8 @@
     (defalias 'set-file-times
       (lambda (filename &optional time)
 	(when (tramp-tramp-file-p filename)
-	  (tramp-file-name-handler
-	   'set-file-times filename time)))))
+	  (tramp-compat-funcall
+	   'tramp-file-name-handler 'set-file-times filename time)))))
 
   ;; We currently use "[" and "]" in the filename format for IPv6
   ;; hosts of GNU Emacs.  This means that Emacs wants to expand
@@ -194,6 +207,22 @@
     "Display MESSAGE temporarily if non-nil while BODY is evaluated."
     `(progn ,@body)))
 
+;; `condition-case-unless-debug' is introduced with Emacs 24.
+(if (fboundp 'condition-case-unless-debug)
+    (defalias 'tramp-compat-condition-case-unless-debug
+      'condition-case-unless-debug)
+  (defmacro tramp-compat-condition-case-unless-debug
+    (var bodyform &rest handlers)
+  "Like `condition-case' except that it does not catch anything when debugging."
+    (declare (debug condition-case) (indent 2))
+    (let ((bodysym (make-symbol "body")))
+      `(let ((,bodysym (lambda () ,bodyform)))
+	 (if debug-on-error
+	     (funcall ,bodysym)
+	   (condition-case ,var
+	       (funcall ,bodysym)
+	     ,@handlers))))))
+
 ;; `font-lock-add-keywords' does not exist in XEmacs.
 (defun tramp-compat-font-lock-add-keywords (mode keywords &optional how)
   "Add highlighting KEYWORDS for MODE."
@@ -204,19 +233,23 @@
   "Return name of directory for temporary files (compat function).
 For Emacs, this is the variable `temporary-file-directory', for XEmacs
 this is the function `temp-directory'."
-  (cond
-   ((boundp 'temporary-file-directory) (symbol-value 'temporary-file-directory))
-   ((fboundp 'temp-directory) (tramp-compat-funcall 'temp-directory))
-   ((let ((d (getenv "TEMP"))) (and d (file-directory-p d)))
-    (file-name-as-directory (getenv "TEMP")))
-   ((let ((d (getenv "TMP"))) (and d (file-directory-p d)))
-    (file-name-as-directory (getenv "TMP")))
-   ((let ((d (getenv "TMPDIR"))) (and d (file-directory-p d)))
-    (file-name-as-directory (getenv "TMPDIR")))
-   ((file-exists-p "c:/temp") (file-name-as-directory "c:/temp"))
-   (t (message (concat "Neither `temporary-file-directory' nor "
-		       "`temp-directory' is defined -- using /tmp."))
-      (file-name-as-directory "/tmp"))))
+  (let (file-name-handler-alist)
+    ;; We must return a local directory.  If it is remote, we could
+    ;; run into an infloop.
+    (cond
+     ((and (boundp 'temporary-file-directory)
+	   (eval (car (get 'temporary-file-directory 'standard-value)))))
+     ((fboundp 'temp-directory) (tramp-compat-funcall 'temp-directory))
+     ((let ((d (getenv "TEMP"))) (and d (file-directory-p d)))
+      (file-name-as-directory (getenv "TEMP")))
+     ((let ((d (getenv "TMP"))) (and d (file-directory-p d)))
+      (file-name-as-directory (getenv "TMP")))
+     ((let ((d (getenv "TMPDIR"))) (and d (file-directory-p d)))
+      (file-name-as-directory (getenv "TMPDIR")))
+     ((file-exists-p "c:/temp") (file-name-as-directory "c:/temp"))
+     (t (message (concat "Neither `temporary-file-directory' nor "
+			 "`temp-directory' is defined -- using /tmp."))
+	(file-name-as-directory "/tmp")))))
 
 ;; `make-temp-file' exists in Emacs only.  On XEmacs, we use our own
 ;; implementation with `make-temp-name', creating the temporary file
@@ -282,7 +315,8 @@ Not actually used.  Use `(format \"%o\" i)' instead?"
    ((or (null id-format) (eq id-format 'integer))
     (file-attributes filename))
    ((tramp-tramp-file-p filename)
-    (tramp-file-name-handler 'file-attributes filename id-format))
+    (tramp-compat-funcall
+     'tramp-file-name-handler 'file-attributes filename id-format))
    (t (condition-case nil
 	  (tramp-compat-funcall 'file-attributes filename id-format)
 	(wrong-number-of-arguments (file-attributes filename))))))
@@ -308,43 +342,49 @@ Not actually used.  Use `(format \"%o\" i)' instead?"
 ;; `copy-directory' is a new function in Emacs 23.2.  Implementation
 ;; is taken from there.
 (defun tramp-compat-copy-directory
-  (directory newname &optional keep-time parents)
+  (directory newname &optional keep-time parents copy-contents)
   "Make a copy of DIRECTORY (compat function)."
-  (if (fboundp 'copy-directory)
-      (tramp-compat-funcall 'copy-directory directory newname keep-time parents)
+  (condition-case nil
+      (tramp-compat-funcall
+       'copy-directory directory newname keep-time parents copy-contents)
 
-    ;; If `default-directory' is a remote directory, make sure we find
-    ;; its `copy-directory' handler.
-    (let ((handler (or (find-file-name-handler directory 'copy-directory)
-		       (find-file-name-handler newname 'copy-directory))))
-      (if handler
-	  (funcall handler 'copy-directory directory newname keep-time parents)
+    ;; `copy-directory' is either not implemented, or it does not
+    ;; support the the COPY-CONTENTS flag.  For the time being, we
+    ;; ignore COPY-CONTENTS as well.
 
-	;; Compute target name.
-	(setq directory (directory-file-name (expand-file-name directory))
-	      newname   (directory-file-name (expand-file-name newname)))
-	(if (and (file-directory-p newname)
-		 (not (string-equal (file-name-nondirectory directory)
-				    (file-name-nondirectory newname))))
-	    (setq newname
-		  (expand-file-name
-		   (file-name-nondirectory directory) newname)))
-	(if (not (file-directory-p newname)) (make-directory newname parents))
+    (error
+     ;; If `default-directory' is a remote directory, make sure we
+     ;; find its `copy-directory' handler.
+     (let ((handler (or (find-file-name-handler directory 'copy-directory)
+			(find-file-name-handler newname 'copy-directory))))
+       (if handler
+	   (funcall handler 'copy-directory directory newname keep-time parents)
 
-	;; Copy recursively.
-	(mapc
-	 (lambda (file)
-	   (if (file-directory-p file)
-	       (tramp-compat-copy-directory file newname keep-time parents)
-	     (copy-file file newname t keep-time)))
-	 ;; We do not want to delete "." and "..".
-	 (directory-files
-	  directory 'full "^\\([^.]\\|\\.\\([^.]\\|\\..\\)\\).*"))
+	 ;; Compute target name.
+	 (setq directory (directory-file-name (expand-file-name directory))
+	       newname   (directory-file-name (expand-file-name newname)))
+	 (if (and (file-directory-p newname)
+		  (not (string-equal (file-name-nondirectory directory)
+				     (file-name-nondirectory newname))))
+	     (setq newname
+		   (expand-file-name
+		    (file-name-nondirectory directory) newname)))
+	 (if (not (file-directory-p newname)) (make-directory newname parents))
 
-	;; Set directory attributes.
-	(set-file-modes newname (file-modes directory))
-	(if keep-time
-	    (set-file-times newname (nth 5 (file-attributes directory))))))))
+	 ;; Copy recursively.
+	 (mapc
+	  (lambda (file)
+	    (if (file-directory-p file)
+		(tramp-compat-copy-directory file newname keep-time parents)
+	      (copy-file file newname t keep-time)))
+	  ;; We do not want to delete "." and "..".
+	  (directory-files
+	   directory 'full "^\\([^.]\\|\\.\\([^.]\\|\\..\\)\\).*"))
+
+	 ;; Set directory attributes.
+	 (set-file-modes newname (file-modes directory))
+	 (if keep-time
+	     (set-file-times newname (nth 5 (file-attributes directory)))))))))
 
 ;; TRASH has been introduced with Emacs 24.1.
 (defun tramp-compat-delete-file (filename &optional trash)

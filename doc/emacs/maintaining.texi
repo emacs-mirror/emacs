@@ -2,7 +2,7 @@
 @c Copyright (C) 1985-1987, 1993-1995, 1997, 1999-2012
 @c   Free Software Foundation, Inc.
 @c See file emacs.texi for copying conditions.
-@node Maintaining, Abbrevs, Building, Top
+@node Maintaining
 @chapter Maintaining Large Programs
 
   This chapter describes Emacs features for maintaining large
@@ -1186,11 +1186,8 @@ point is on a directory entry, mark all files in that directory tree
 (@code{vc-dir-mark-all-files}).  With a prefix argument, mark all
 listed files and directories.
 
-@kindex q @r{(VC Directory)}
-@findex quit-window
 @item q
-Bury the VC Directory buffer, and delete its window if the window was
-created just for that buffer.
+Quit the VC Directory buffer, and bury it (@code{quit-window}).
 
 @item u
 Unmark the file or directory on the current line.  If the region is
@@ -1205,9 +1202,6 @@ files and directories.
 @item x
 Hide files with @samp{up-to-date} status
 (@code{vc-dir-hide-up-to-date}).
-
-@item q
-Quit the VC Directory buffer, and bury it (@code{quit-window}).
 @end table
 
 @findex vc-dir-mark
@@ -1659,7 +1653,7 @@ Tags for variables and functions in classes are named
 @samp{@var{class}.@var{variable}} and @samp{@var{class}.@var{function}}.
 
 @item
-In La@TeX{} documents, the arguments for @code{\chapter},
+In @LaTeX{} documents, the arguments for @code{\chapter},
 @code{\section}, @code{\subsection}, @code{\subsubsection},
 @code{\eqno}, @code{\label}, @code{\ref}, @code{\cite},
 @code{\bibitem}, @code{\part}, @code{\appendix}, @code{\entry},
@@ -2227,7 +2221,7 @@ the current buffer, followed by the remaining files of the tags table.
 reads a regexp to search for and a string to replace with, just like
 ordinary @kbd{M-x query-replace-regexp}.  It searches much like @kbd{M-x
 tags-search}, but repeatedly, processing matches according to your
-input.  @xref{Replace}, for more information on query replace.
+input.  @xref{Query Replace}, for more information on query replace.
 
 @vindex tags-case-fold-search
 @cindex case-sensitivity and tags search

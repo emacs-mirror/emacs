@@ -105,8 +105,6 @@
 
 ;;{{{ Dependencies
 
-(eval-when-compile (require 'cl))
-
 (require 'custom)
 (require 'font-lock)
 (require 'cc-mode)
@@ -118,12 +116,6 @@
   "Highlight suspicious C and C++ constructions."
   :version "21.1"
   :group 'faces)
-
-(defvar cwarn-mode nil
-  "*Non-nil when Cwarn mode is active.
-
-Never set this variable directly, use the command `cwarn-mode'
-instead.")
 
 (defcustom cwarn-configuration
   '((c-mode (not reference))
@@ -199,13 +191,7 @@ if ARG is omitted or nil."
   (if font-lock-mode (font-lock-fontify-buffer)))
 
 ;;;###autoload
-(defun turn-on-cwarn-mode ()
-  "Turn on CWarn mode.
-
-This function is designed to be added to hooks, for example:
-  (add-hook 'c-mode-hook 'turn-on-cwarn-mode)"
-  (cwarn-mode 1))
-(make-obsolete 'turn-on-cwarn-mode 'cwarn-mode "24.1")
+(define-obsolete-function-alias 'turn-on-cwarn-mode 'cwarn-mode "24.1")
 
 ;;}}}
 ;;{{{ Help functions

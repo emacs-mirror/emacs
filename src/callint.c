@@ -19,15 +19,14 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 
 
 #include <config.h>
-#include <setjmp.h>
 
 #include "lisp.h"
+#include "character.h"
 #include "buffer.h"
 #include "commands.h"
 #include "keyboard.h"
 #include "window.h"
 #include "keymap.h"
-#include "character.h"
 
 Lisp_Object Qminus, Qplus;
 Lisp_Object Qcall_interactively;
@@ -97,7 +96,7 @@ r -- Region: point and mark as 2 numeric args, smallest first.  Does no I/O.
 s -- Any string.  Does not inherit the current input method.
 S -- Any symbol.
 U -- Mouse up event discarded by a previous k or K argument.
-v -- Variable name: symbol that is user-variable-p.
+v -- Variable name: symbol that is `custom-variable-p'.
 x -- Lisp expression read but not evaluated.
 X -- Lisp expression read and evaluated.
 z -- Coding system.
@@ -150,7 +149,7 @@ static const char *callint_argfuns[]
     = {"", "point", "mark", "region-beginning", "region-end"};
 
 static void
-check_mark (int for_region)
+check_mark (bool for_region)
 {
   Lisp_Object tem;
   tem = Fmarker_buffer (BVAR (current_buffer, mark));
@@ -205,7 +204,7 @@ fix_command (Lisp_Object input, Lisp_Object values)
 	      if (CONSP (elt))
 		{
 		  Lisp_Object presflag, carelt;
-		  carelt = Fcar (elt);
+		  carelt = XCAR (elt);
 		  /* If it is (if X Y), look at Y.  */
 		  if (EQ (carelt, Qif)
 		      && EQ (Fnthcdr (make_number (3), elt), Qnil))
@@ -257,11 +256,11 @@ invoke it.  If KEYS is omitted or nil, the return value of
   Lisp_Object teml;
   Lisp_Object up_event;
   Lisp_Object enable;
-  int speccount = SPECPDL_INDEX ();
+  ptrdiff_t speccount = SPECPDL_INDEX ();
 
   /* The index of the next element of this_command_keys to examine for
      the 'e' interactive code.  */
-  int next_event;
+  ptrdiff_t next_event;
 
   Lisp_Object prefix_arg;
   char *string;
@@ -273,18 +272,18 @@ invoke it.  If KEYS is omitted or nil, the return value of
   signed char *varies;
 
   ptrdiff_t i, nargs;
-  int foo;
-  int arg_from_tty = 0;
+  ptrdiff_t mark;
+  bool arg_from_tty = 0;
   struct gcpro gcpro1, gcpro2, gcpro3, gcpro4, gcpro5;
-  int key_count;
-  int record_then_fail = 0;
+  ptrdiff_t key_count;
+  bool record_then_fail = 0;
 
   Lisp_Object save_this_command, save_last_command;
   Lisp_Object save_this_original_command, save_real_this_command;
 
   save_this_command = Vthis_command;
   save_this_original_command = Vthis_original_command;
-  save_real_this_command = real_this_command;
+  save_real_this_command = Vreal_this_command;
   save_last_command = KVAR (current_kboard, Vlast_command);
 
   if (NILP (keys))
@@ -295,7 +294,7 @@ invoke it.  If KEYS is omitted or nil, the return value of
       key_count = ASIZE (keys);
     }
 
-  /* Save this now, since use of minibuffer will clobber it. */
+  /* Save this now, since use of minibuffer will clobber it.  */
   prefix_arg = Vcurrent_prefix_arg;
 
   if (SYMBOLP (function))
@@ -310,7 +309,8 @@ invoke it.  If KEYS is omitted or nil, the return value of
      The feature is not fully implemented.  */
   filter_specs = Qnil;
 
-  /* If k or K discard an up-event, save it here so it can be retrieved with U */
+  /* If k or K discard an up-event, save it here so it can be retrieved with
+     U.  */
   up_event = Qnil;
 
   /* Set SPECS to the interactive form, or barf if not interactive.  */
@@ -330,7 +330,7 @@ invoke it.  If KEYS is omitted or nil, the return value of
     {
       /* Make a copy of string so that if a GC relocates specs,
 	 `string' will still be valid.  */
-      string = (char *) alloca (SBYTES (specs) + 1);
+      string = alloca (SBYTES (specs) + 1);
       memcpy (string, SSDATA (specs), SBYTES (specs) + 1);
     }
   else
@@ -370,14 +370,14 @@ invoke it.  If KEYS is omitted or nil, the return value of
 
       Vthis_command = save_this_command;
       Vthis_original_command = save_this_original_command;
-      real_this_command= save_real_this_command;
-      KVAR (current_kboard, Vlast_command) = save_last_command;
+      Vreal_this_command = save_real_this_command;
+      kset_last_command (current_kboard, save_last_command);
 
       temporarily_switch_to_single_kboard (NULL);
       return unbind_to (speccount, apply1 (function, specs));
     }
 
-  /* Here if function specifies a string to control parsing the defaults */
+  /* Here if function specifies a string to control parsing the defaults.  */
 
   /* Set next_event to point to the first event with parameters.  */
   for (next_event = 0; next_event < key_count; next_event++)
@@ -464,13 +464,13 @@ invoke it.  If KEYS is omitted or nil, the return value of
     }
 
   if (min (MOST_POSITIVE_FIXNUM,
-	   min (PTRDIFF_MAX, SIZE_MAX) / sizeof (Lisp_Object))
+	   min (PTRDIFF_MAX, SIZE_MAX) / word_size)
       < nargs)
     memory_full (SIZE_MAX);
 
-  args = (Lisp_Object *) alloca (nargs * sizeof (Lisp_Object));
-  visargs = (Lisp_Object *) alloca (nargs * sizeof (Lisp_Object));
-  varies = (signed char *) alloca (nargs);
+  args = alloca (nargs * sizeof *args);
+  visargs = alloca (nargs * sizeof *visargs);
+  varies = alloca (nargs * sizeof *varies);
 
   for (i = 0; i < nargs; i++)
     {
@@ -577,7 +577,7 @@ invoke it.  If KEYS is omitted or nil, the return value of
 
 	case 'k':		/* Key sequence. */
 	  {
-	    int speccount1 = SPECPDL_INDEX ();
+	    ptrdiff_t speccount1 = SPECPDL_INDEX ();
 	    specbind (Qcursor_in_echo_area, Qt);
 	    /* Prompt in `minibuffer-prompt' face.  */
 	    Fput_text_property (make_number (0),
@@ -609,7 +609,7 @@ invoke it.  If KEYS is omitted or nil, the return value of
 
 	case 'K':		/* Key sequence to be defined. */
 	  {
-	    int speccount1 = SPECPDL_INDEX ();
+	    ptrdiff_t speccount1 = SPECPDL_INDEX ();
 	    specbind (Qcursor_in_echo_area, Qt);
 	    /* Prompt in `minibuffer-prompt' face.  */
 	    Fput_text_property (make_number (0),
@@ -684,7 +684,7 @@ invoke it.  If KEYS is omitted or nil, the return value of
 	    goto have_prefix_arg;
 	case 'n':		/* Read number from minibuffer.  */
 	  {
-	    int first = 1;
+	    bool first = 1;
 	    do
 	      {
 		Lisp_Object str;
@@ -725,11 +725,11 @@ invoke it.  If KEYS is omitted or nil, the return value of
 	  check_mark (1);
 	  set_marker_both (point_marker, Qnil, PT, PT_BYTE);
 	  /* visargs[i+1] = Qnil; */
-	  foo = marker_position (BVAR (current_buffer, mark));
+	  mark = marker_position (BVAR (current_buffer, mark));
 	  /* visargs[i] = Qnil; */
-	  args[i] = PT < foo ? point_marker : BVAR (current_buffer, mark);
+	  args[i] = PT < mark ? point_marker : BVAR (current_buffer, mark);
 	  varies[i] = 3;
-	  args[++i] = PT > foo ? point_marker : BVAR (current_buffer, mark);
+	  args[++i] = PT > mark ? point_marker : BVAR (current_buffer, mark);
 	  varies[i] = 4;
 	  break;
 
@@ -748,7 +748,7 @@ invoke it.  If KEYS is omitted or nil, the return value of
 	  break;
 
 	case 'v':		/* Variable name: symbol that is
-				   user-variable-p. */
+				   custom-variable-p. */
 	  args[i] = Fread_variable (callint_message, Qnil);
 	  visargs[i] = last_minibuf_string;
 	  break;
@@ -841,8 +841,8 @@ invoke it.  If KEYS is omitted or nil, the return value of
 
   Vthis_command = save_this_command;
   Vthis_original_command = save_this_original_command;
-  real_this_command= save_real_this_command;
-  KVAR (current_kboard, Vlast_command) = save_last_command;
+  Vreal_this_command = save_real_this_command;
+  kset_last_command (current_kboard, save_last_command);
 
   {
     Lisp_Object val;
@@ -887,10 +887,11 @@ syms_of_callint (void)
   callint_message = Qnil;
   staticpro (&callint_message);
 
-  preserved_fns = pure_cons (intern_c_string ("region-beginning"),
-			 pure_cons (intern_c_string ("region-end"),
-				pure_cons (intern_c_string ("point"),
-				       pure_cons (intern_c_string ("mark"), Qnil))));
+  preserved_fns = listn (CONSTYPE_PURE, 4,
+			 intern_c_string ("region-beginning"),
+			 intern_c_string ("region-end"),
+			 intern_c_string ("point"),
+			 intern_c_string ("mark"));
 
   DEFSYM (Qlist, "list");
   DEFSYM (Qlet, "let");
@@ -945,7 +946,7 @@ may be set by the debugger as a reminder for itself.  */);
   Vcommand_debug_status = Qnil;
 
   DEFVAR_LISP ("mark-even-if-inactive", Vmark_even_if_inactive,
-	       doc: /* *Non-nil means you can use the mark even when inactive.
+	       doc: /* Non-nil means you can use the mark even when inactive.
 This option makes a difference in Transient Mark mode.
 When the option is non-nil, deactivation of the mark
 turns off region highlighting, but commands that use the mark

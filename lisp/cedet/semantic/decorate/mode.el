@@ -265,6 +265,8 @@ minor mode is enabled."
         (semantic-make-local-hook 'semantic-after-toplevel-cache-change-hook)
         (add-hook 'semantic-after-toplevel-cache-change-hook
                   'semantic-decorate-tags-after-full-reparse nil t)
+	;; Decorate includes by default
+	(require 'semantic/decorate/include)
         ;; Add decorations to available tags.  The above hooks ensure
         ;; that new tags will be decorated when they become available.
         (semantic-decorate-add-decorations (semantic-fetch-available-tags)))

@@ -123,6 +123,7 @@
 
 (defvar sun-raw-prefix-hooks nil
   "List of forms to evaluate after setting sun-raw-prefix.")
+(make-obsolete-variable 'sun-raw-prefix-hooks 'term-setup-hook "21.1")
 
 
 

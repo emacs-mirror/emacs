@@ -60,17 +60,17 @@
 ;; User variables.
 
 (defcustom ps-mode-auto-indent t
-  "*Should we use autoindent?"
+  "Should we use autoindent?"
   :group 'PostScript-edit
   :type 'boolean)
 
 (defcustom ps-mode-tab 4
-  "*Number of spaces to use when indenting."
+  "Number of spaces to use when indenting."
   :group 'PostScript-edit
   :type 'integer)
 
 (defcustom ps-mode-paper-size '(595 842)
-  "*Default paper size.
+  "Default paper size.
 
 When inserting an EPSF template these values are used
 to set the boundingbox to include the whole page.
@@ -117,12 +117,12 @@ When the figure is finished these values should be replaced."
 	   (lpr-command (if (memq system-type '(usg-unix-v hpux irix))
 			    "lp" "lpr")))
        (lpr-buffer)))
-  "*Lisp function to print current buffer as PostScript."
+  "Lisp function to print current buffer as PostScript."
   :group 'PostScript-edit
   :type 'function)
 
 (defcustom ps-run-prompt "\\(GS\\(<[0-9]+\\)?>\\)+"
-  "*Regexp to match prompt in interactive PostScript."
+  "Regexp to match prompt in interactive PostScript."
   :group 'PostScript-interaction
   :type 'regexp)
 
@@ -139,7 +139,7 @@ When the figure is finished these values should be replaced."
 	    ("^\\(Current file position is\\) \\([0-9]+\\)"
 	     (1 font-lock-comment-face nil nil)
 	     (2 font-lock-warning-face nil nil))))
-  "*Medium level highlighting of messages from the PostScript interpreter.
+  "Medium level highlighting of messages from the PostScript interpreter.
 
 See documentation on font-lock for details."
   :group 'PostScript-interaction
@@ -155,17 +155,17 @@ See documentation on font-lock for details."
 				     (boolean :tag "Laxmatch" :value t))))))
 
 (defcustom ps-run-x '("gs" "-r72" "-sPAPERSIZE=a4")
-  "*Command as list to run PostScript with graphic display."
+  "Command as list to run PostScript with graphic display."
   :group 'PostScript-interaction
   :type '(repeat string))
 
 (defcustom ps-run-dumb '("gs" "-dNODISPLAY")
-  "*Command as list to run PostScript without graphic display."
+  "Command as list to run PostScript without graphic display."
   :group 'PostScript-interaction
   :type '(repeat string))
 
 (defcustom ps-run-init nil
-  "*String of commands to send to PostScript to start interactive.
+  "String of commands to send to PostScript to start interactive.
 
 Example: \"executive\"
 
@@ -174,13 +174,13 @@ You won't need to set this option for Ghostscript."
   :type '(choice (const nil) string))
 
 (defcustom ps-run-error-line-numbers nil
-  "*What values are used by the PostScript interpreter in error messages?"
+  "What values are used by the PostScript interpreter in error messages?"
   :group 'PostScript-interaction
   :type '(choice (const :tag "line numbers" t)
                  (const :tag "byte counts" nil)))
 
 (defcustom ps-run-tmp-dir nil
-  "*Name of directory to place temporary file.
+  "Name of directory to place temporary file.
 If nil, use `temporary-file-directory'."
   :group 'PostScript-interaction
   :type '(choice (const nil) directory))
@@ -213,9 +213,9 @@ If nil, use `temporary-file-directory'."
 ;;  - 8bit characters (warning face)
 ;; Multiline strings are not supported. Strings with nested brackets are.
 (defconst ps-mode-font-lock-keywords-1
-  '(("\\`%!PS.*" . font-lock-reference-face)
+  '(("\\`%!PS.*" . font-lock-constant-face)
     ("^%%BoundingBox:[ \t]+-?[0-9]+[ \t]+-?[0-9]+[ \t]+-?[0-9]+[ \t]+-?[0-9]+[ \t]*$"
-     . font-lock-reference-face)
+     . font-lock-constant-face)
     (ps-mode-match-string-or-comment
      (1 font-lock-comment-face nil t)
      (2 font-lock-string-face nil t))

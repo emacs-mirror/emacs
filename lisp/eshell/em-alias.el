@@ -95,11 +95,12 @@
 (require 'eshell)
 
 ;;;###autoload
-(eshell-defgroup eshell-alias nil
+(progn
+(defgroup eshell-alias nil
   "Command aliases allow for easy definition of alternate commands."
   :tag "Command aliases"
   ;; :link '(info-link "(eshell)Command aliases")
-  :group 'eshell-module)
+  :group 'eshell-module))
 
 (defcustom eshell-aliases-file (expand-file-name "alias" eshell-directory-name)
   "The file in which aliases are kept.
@@ -132,10 +133,10 @@ Each element of this alias is a list of the form:
 Where NAME is the textual name of the alias, and DEFINITION is the
 command string to replace that command with.
 
-Note: this list should not be modified in your '.emacs' file.  Rather,
-any desired alias definitions should be declared using the `alias'
-command, which will automatically write them to the file named by
-`eshell-aliases-file'.")
+Note: this list should not be modified in your init file.
+Rather, any desired alias definitions should be declared using
+the `alias' command, which will automatically write them to the
+file named by `eshell-aliases-file'.")
 
 (put 'eshell-command-aliases-list 'risky-local-variable t)
 

@@ -21,7 +21,6 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 
 #include <config.h>
 #include <stdio.h>
-#include <setjmp.h>
 #include <X11/Xlib.h>
 #include <X11/Xft/Xft.h>
 
@@ -39,7 +38,7 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 
 /* Xft font driver.  */
 
-static Lisp_Object Qxft;
+Lisp_Object Qxft;
 static Lisp_Object QChinting, QCautohint, QChintstyle, QCrgba, QCembolden,
   QClcdfilter;
 
@@ -52,7 +51,7 @@ struct xftfont_info
   /* The following five members must be here in this order to be
      compatible with struct ftfont_info (in ftfont.c).  */
 #ifdef HAVE_LIBOTF
-  int maybe_otf;	  /* Flag to tell if this may be OTF or not.  */
+  bool maybe_otf;	  /* Flag to tell if this may be OTF or not.  */
   OTF *otf;
 #endif	/* HAVE_LIBOTF */
   FT_Size ft_size;
@@ -92,9 +91,9 @@ xftfont_get_colors (FRAME_PTR f, struct face *face, GC gc, struct xftface_info *
   else
     {
       XGCValues xgcv;
-      int fg_done = 0, bg_done = 0;
+      bool fg_done = 0, bg_done = 0;
 
-      BLOCK_INPUT;
+      block_input ();
       XGetGCValues (FRAME_X_DISPLAY (f), gc,
 		    GCForeground | GCBackground, &xgcv);
       if (xftface_info)
@@ -111,7 +110,7 @@ xftfont_get_colors (FRAME_PTR f, struct face *face, GC gc, struct xftface_info *
 	    *bg = xftface_info->xft_fg, bg_done = 1;
 	}
 
-      if (fg_done + bg_done < 2)
+      if (! (fg_done & bg_done))
 	{
 	  XColor colors[2];
 
@@ -132,23 +131,10 @@ xftfont_get_colors (FRAME_PTR f, struct face *face, GC gc, struct xftface_info *
 	      bg->color.blue = colors[1].blue;
 	    }
 	}
-      UNBLOCK_INPUT;
+      unblock_input ();
     }
 }
 
-
-static Lisp_Object xftfont_list (Lisp_Object, Lisp_Object);
-static Lisp_Object xftfont_match (Lisp_Object, Lisp_Object);
-static Lisp_Object xftfont_open (FRAME_PTR, Lisp_Object, int);
-static void xftfont_close (FRAME_PTR, struct font *);
-static int xftfont_prepare_face (FRAME_PTR, struct face *);
-static void xftfont_done_face (FRAME_PTR, struct face *);
-static int xftfont_has_char (Lisp_Object, int);
-static unsigned xftfont_encode_char (struct font *, int);
-static int xftfont_text_extents (struct font *, unsigned *, int,
-                                 struct font_metrics *);
-static int xftfont_draw (struct glyph_string *, int, int, int, int, int);
-static int xftfont_end_for_frame (FRAME_PTR f);
 
 struct font_driver xftfont_driver;
 
@@ -338,7 +324,7 @@ xftfont_open (FRAME_PTR f, Lisp_Object entity, int pixel_size)
   FcPatternAddInteger (pat, FC_INDEX, XINT (idx));
 
 
-  BLOCK_INPUT;
+  block_input ();
   /* Make sure that the Xrender extension is added before the Xft one.
      Otherwise, the close-display hook set by Xft is called after the
      one for Xrender, and the former tries to re-add the latter.  This
@@ -359,12 +345,12 @@ xftfont_open (FRAME_PTR f, Lisp_Object entity, int pixel_size)
   xftfont = XftFontOpenPattern (display, match);
   if (!xftfont)
     {
-      UNBLOCK_INPUT;
+      unblock_input ();
       XftPatternDestroy (match);
       return Qnil;
     }
   ft_face = XftLockFace (xftfont);
-  UNBLOCK_INPUT;
+  unblock_input ();
 
   /* We should not destroy PAT here because it is kept in XFTFONT and
      destroyed automatically when XFTFONT is closed.  */
@@ -413,28 +399,33 @@ xftfont_open (FRAME_PTR f, Lisp_Object entity, int pixel_size)
       for (ch = 0; ch < 95; ch++)
 	ascii_printable[ch] = ' ' + ch;
     }
-  BLOCK_INPUT;
+  block_input ();
+
+  /* Unfortunately Xft doesn't provide a way to get minimum char
+     width.  So, we set min_width to space_width.  */
+
   if (spacing != FC_PROPORTIONAL
 #ifdef FC_DUAL
       && spacing != FC_DUAL
 #endif	/* FC_DUAL */
       )
     {
-      font->min_width = font->average_width = font->space_width
-	= xftfont->max_advance_width;
+      font->min_width = font->max_width = font->average_width
+	= font->space_width = xftfont->max_advance_width;
       XftTextExtents8 (display, xftfont, ascii_printable + 1, 94, &extents);
     }
   else
     {
       XftTextExtents8 (display, xftfont, ascii_printable, 1, &extents);
-      font->space_width = extents.xOff;
+      font->min_width = font->max_width = font->space_width
+	= extents.xOff;
       if (font->space_width <= 0)
 	/* dirty workaround */
 	font->space_width = pixel_size;
       XftTextExtents8 (display, xftfont, ascii_printable + 1, 94, &extents);
       font->average_width = (font->space_width + extents.xOff) / 95;
     }
-  UNBLOCK_INPUT;
+  unblock_input ();
 
   font->ascent = xftfont->ascent;
   font->descent = xftfont->descent;
@@ -465,14 +456,10 @@ xftfont_open (FRAME_PTR f, Lisp_Object entity, int pixel_size)
       font->underline_thickness = 0;
     }
 #ifdef HAVE_LIBOTF
-  xftfont_info->maybe_otf = ft_face->face_flags & FT_FACE_FLAG_SFNT;
+  xftfont_info->maybe_otf = (ft_face->face_flags & FT_FACE_FLAG_SFNT) != 0;
   xftfont_info->otf = NULL;
 #endif	/* HAVE_LIBOTF */
   xftfont_info->ft_size = ft_face->size;
-
-  /* Unfortunately Xft doesn't provide a way to get minimum char
-     width.  So, we use space_width instead.  */
-  font->min_width = font->space_width;
 
   font->baseline_offset = 0;
   font->relative_compose = 0;
@@ -507,10 +494,10 @@ xftfont_close (FRAME_PTR f, struct font *font)
   if (xftfont_info->otf)
     OTF_close (xftfont_info->otf);
 #endif
-  BLOCK_INPUT;
+  block_input ();
   XftUnlockFace (xftfont_info->xftfont);
   XftFontClose (xftfont_info->display, xftfont_info->xftfont);
-  UNBLOCK_INPUT;
+  unblock_input ();
 }
 
 static int
@@ -527,7 +514,7 @@ xftfont_prepare_face (FRAME_PTR f, struct face *face)
     }
 #endif
 
-  xftface_info = malloc (sizeof (struct xftface_info));
+  xftface_info = malloc (sizeof *xftface_info);
   if (! xftface_info)
     return -1;
   xftfont_get_colors (f, face, face->gc, NULL,
@@ -594,10 +581,10 @@ xftfont_text_extents (struct font *font, unsigned int *code, int nglyphs, struct
   struct xftfont_info *xftfont_info = (struct xftfont_info *) font;
   XGlyphInfo extents;
 
-  BLOCK_INPUT;
+  block_input ();
   XftGlyphExtents (xftfont_info->display, xftfont_info->xftfont, code, nglyphs,
 		   &extents);
-  UNBLOCK_INPUT;
+  unblock_input ();
   if (metrics)
     {
       metrics->lbearing = - extents.x;
@@ -616,21 +603,21 @@ xftfont_get_xft_draw (FRAME_PTR f)
 
   if (! xft_draw)
     {
-      BLOCK_INPUT;
+      block_input ();
       xft_draw= XftDrawCreate (FRAME_X_DISPLAY (f),
 			       FRAME_X_WINDOW (f),
 			       FRAME_X_VISUAL (f),
 			       FRAME_X_COLORMAP (f));
-      UNBLOCK_INPUT;
-      if (! xft_draw)
-	abort ();
+      unblock_input ();
+      eassert (xft_draw != NULL);
       font_put_frame_data (f, &xftfont_driver, xft_draw);
     }
   return xft_draw;
 }
 
 static int
-xftfont_draw (struct glyph_string *s, int from, int to, int x, int y, int with_background)
+xftfont_draw (struct glyph_string *s, int from, int to, int x, int y,
+              bool with_background)
 {
   FRAME_PTR f = s->f;
   struct face *face = s->face;
@@ -646,7 +633,7 @@ xftfont_draw (struct glyph_string *s, int from, int to, int x, int y, int with_b
     xftface_info = (struct xftface_info *) face->extra;
   xftfont_get_colors (f, face, s->gc, xftface_info,
 		      &fg, with_background ? &bg : NULL);
-  BLOCK_INPUT;
+  block_input ();
   if (s->num_clips > 0)
     XftDrawSetClipRectangles (xft_draw, 0, 0, s->clip, s->num_clips);
   else
@@ -667,7 +654,7 @@ xftfont_draw (struct glyph_string *s, int from, int to, int x, int y, int with_b
   else
     XftDrawGlyphs (xft_draw, &fg, xftfont_info->xftfont,
 		   x, y, code, len);
-  UNBLOCK_INPUT;
+  unblock_input ();
 
   return len;
 }
@@ -703,23 +690,25 @@ xftfont_end_for_frame (FRAME_PTR f)
 
   if (xft_draw)
     {
-      BLOCK_INPUT;
+      block_input ();
       XftDrawDestroy (xft_draw);
-      UNBLOCK_INPUT;
+      unblock_input ();
       font_put_frame_data (f, &xftfont_driver, NULL);
     }
   return 0;
 }
 
-static int
-xftfont_cached_font_ok (struct frame *f, Lisp_Object font_object, Lisp_Object entity)
+static bool
+xftfont_cached_font_ok (struct frame *f, Lisp_Object font_object,
+                        Lisp_Object entity)
 {
   struct xftfont_info *info = (struct xftfont_info *) XFONT_OBJECT (font_object);
   FcPattern *oldpat = info->xftfont->pattern;
   Display *display = FRAME_X_DISPLAY (f);
   FcPattern *pat = FcPatternCreate ();
   FcBool b1, b2;
-  int ok = 0, i1, i2, r1, r2;
+  bool ok = 0;
+  int i1, i2, r1, r2;
 
   xftfont_add_rendering_parameters (pat, entity);
   XftDefaultSubstitute (display, FRAME_X_SCREEN_NUMBER (f), pat);
@@ -764,6 +753,8 @@ syms_of_xftfont (void)
   DEFSYM (QCrgba, ":rgba");
   DEFSYM (QCembolden, ":embolden");
   DEFSYM (QClcdfilter, ":lcdfilter");
+
+  ascii_printable[0] = 0;
 
   xftfont_driver = ftfont_driver;
   xftfont_driver.type = Qxft;

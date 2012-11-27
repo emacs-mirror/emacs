@@ -343,12 +343,12 @@ See the documentation for `calendar-holidays' for details."
   "List of notable days for the command \\[holidays].
 
 Additional holidays are easy to add to the list, just put them in the
-list `holiday-other-holidays' in your .emacs file.  Similarly, by setting
+list `holiday-other-holidays' in your init file.  Similarly, by setting
 any of `holiday-general-holidays', `holiday-local-holidays',
 `holiday-christian-holidays', `holiday-hebrew-holidays',
 `holiday-islamic-holidays', `holiday-bahai-holidays',
 `holiday-oriental-holidays', or `holiday-solar-holidays' to nil in your
-.emacs file, you can eliminate unwanted categories of holidays.
+init file, you can eliminate unwanted categories of holidays.
 
 The aforementioned variables control the holiday choices offered
 by the function `holiday-list' when it is called interactively.
@@ -458,17 +458,20 @@ with descriptive strings such as
 (defun calendar-holiday-list ()
   "Form the list of holidays that occur on dates in the calendar window.
 The holidays are those in the list `calendar-holidays'."
-  (let (res h)
+  (let (res h err)
     (sort
      (dolist (p calendar-holidays res)
        (if (setq h (if calendar-debug-sexp
                        (let ((debug-on-error t))
                          (eval p))
-                     (condition-case nil
+                     (condition-case err
                          (eval p)
-                       (error (beep)
-                              (message "Bad holiday list item: %s" p)
-                              (sleep-for 2)))))
+                       (error
+                        (display-warning
+                         :error
+                         (format "Bad holiday list item: %s\nError: %s\n"
+                                 p err))
+                        nil))))
            (setq res (append h res))))
      'calendar-date-compare)))
 
@@ -520,7 +523,7 @@ use instead of point."
 (defun holidays (&optional arg)
   "Display the holidays for last month, this month, and next month.
 If called with an optional prefix argument ARG, prompts for month and year.
-This function is suitable for execution in a .emacs file."
+This function is suitable for execution in a init file."
   (interactive "P")
   (save-excursion
     (let* ((completion-ignore-case t)
@@ -644,6 +647,33 @@ strings describing those holidays that apply on DATE, or nil if none do."
 
 (define-obsolete-function-alias
   'check-calendar-holidays 'calendar-check-holidays "23.1")
+
+
+;; Formerly cal-tex-list-holidays.
+(defun holiday-in-range (d1 d2)
+  "Generate a list of all holidays in range from absolute date D1 to D2."
+  (let* ((start (calendar-gregorian-from-absolute d1))
+         (displayed-month (calendar-extract-month start))
+         (displayed-year (calendar-extract-year start))
+         (end (calendar-gregorian-from-absolute d2))
+         (end-month (calendar-extract-month end))
+         (end-year (calendar-extract-year end))
+         (number-of-intervals
+          (1+ (/ (calendar-interval displayed-month displayed-year
+                                    end-month end-year)
+                 3)))
+         holidays in-range a)
+    (calendar-increment-month displayed-month displayed-year 1)
+    (dotimes (_idummy number-of-intervals)
+      (setq holidays (append holidays (calendar-holiday-list)))
+      (calendar-increment-month displayed-month displayed-year 3))
+    (dolist (hol holidays)
+      (and (car hol)
+           (setq a (calendar-absolute-from-gregorian (car hol)))
+           (and (<= d1 a) (<= a d2))
+           (setq in-range (append (list hol) in-range))))
+    in-range))
+
 
 (declare-function x-popup-menu "menu.c" (position menu))
 

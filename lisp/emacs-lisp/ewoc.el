@@ -1,4 +1,4 @@
-;;; ewoc.el --- utility to maintain a view of a list of objects in a buffer
+;;; ewoc.el --- utility to maintain a view of a list of objects in a buffer  -*- lexical-binding: t -*-
 
 ;; Copyright (C) 1991-2012 Free Software Foundation, Inc.
 
@@ -96,11 +96,11 @@
 
 ;;; Code:
 
-(eval-when-compile (require 'cl))
+(eval-when-compile (require 'cl-lib))
 
 ;; The doubly linked list is implemented as a circular list with a dummy
 ;; node first and last. The dummy node is used as "the dll".
-(defstruct (ewoc--node
+(cl-defstruct (ewoc--node
 	    (:type vector)		;ewoc--node-nth needs this
             (:constructor nil)
 	    (:constructor ewoc--node-create (start-marker data)))
@@ -140,7 +140,7 @@ and (ewoc--node-nth dll -1) returns the last node."
 
 ;;; The ewoc data type
 
-(defstruct (ewoc
+(cl-defstruct (ewoc
 	    (:constructor nil)
 	    (:constructor ewoc--create (buffer pretty-printer dll))
 	    (:conc-name ewoc--))
@@ -216,10 +216,9 @@ NODE and leaving the new node's start there.  Return the new node."
     (ewoc--adjust m (point) R dll)))
 
 (defun ewoc--wrap (func)
-  (lexical-let ((ewoc--user-pp func))
-    (lambda (data)
-      (funcall ewoc--user-pp data)
-      (insert "\n"))))
+  (lambda (data)
+    (funcall func data)
+    (insert "\n")))
 
 
 ;;; ===========================================================================

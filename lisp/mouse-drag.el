@@ -46,7 +46,7 @@
 ;; If you like mouse-drag, you should also check out mouse-copy
 ;; for ``one-click text copy and move''.
 ;;
-;; To use mouse-drag, place the following in your .emacs file:
+;; To use mouse-drag, place the following in your init file:
 ;; -either-
 ;;     (global-set-key [down-mouse-2] 'mouse-drag-throw)
 ;; -or-
@@ -169,7 +169,7 @@ Basically, we check for existing horizontal scrolling."
 	     nil))))))
 
 (defvar mouse-throw-with-scroll-bar nil
-  "*Set direction of mouse-throwing.
+  "Set direction of mouse-throwing.
 If nil, the text moves in the direction the mouse moves.
 If t, the scroll bar moves in the direction the mouse moves.")
 (defconst mouse-throw-magnifier-min -6)

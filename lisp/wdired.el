@@ -75,7 +75,6 @@
 
 (defvar dired-backup-overwrite) ; Only in Emacs 20.x this is a custom var
 
-(eval-when-compile (require 'cl))
 (require 'dired)
 (autoload 'dired-do-create-files-regexp "dired-aux")
 
@@ -141,6 +140,20 @@ program `dired-chmod-program', which must exist."
 		 (other :tag "Bits freely editable" advanced))
   :group 'wdired)
 
+(defcustom wdired-keep-marker-rename t
+  ;; Use t as default so that renamed files "take their markers with them".
+  "Controls marking of files renamed in WDired.
+If t, files keep their previous marks when they are renamed.
+If a character, renamed files (whether previously marked or not)
+are afterward marked with that character.
+This option affects only files renamed by `wdired-finish-edit'.
+See `dired-keep-marker-rename' if you want to do the same for files
+renamed by `dired-do-rename' and `dired-do-rename-regexp'."
+  :type '(choice (const :tag "Keep" t)
+		 (character :tag "Mark" :value ?R))
+  :version "24.3"
+  :group 'wdired)
+
 (defvar wdired-mode-map
   (let ((map (make-sparse-keymap)))
     (define-key map "\C-x\C-s" 'wdired-finish-edit)
@@ -181,17 +194,24 @@ program `dired-chmod-program', which must exist."
 (defvar wdired-col-perm) ;; Column where the permission bits start
 (defvar wdired-old-content)
 (defvar wdired-old-point)
-
+(defvar wdired-old-marks)
 
 (defun wdired-mode ()
-  "\\<wdired-mode-map>File Names Editing mode.
+  "Writable Dired (WDired) mode.
+\\<wdired-mode-map>
+In WDired mode, you can edit the names of the files in the
+buffer, the target of the links, and the permission bits of the
+files.
 
-Press \\[wdired-finish-edit] to make the changes to take effect
-and exit.  To abort the edit, use \\[wdired-abort-changes].
+Type \\[wdired-finish-edit] to exit WDired mode, returning to
+Dired mode, and make your edits \"take effect\" by modifying the
+file and directory names, link targets, and/or file permissions
+on disk.  If you delete the filename of a file, it is flagged for
+deletion in the Dired buffer.
 
-In this mode you can edit the names of the files, the target of
-the links and the permission bits of the files.  You can use
-\\[customize-group] RET wdired to customize WDired behavior.
+Type \\[wdired-abort-changes] to abort your edits and exit WDired mode.
+
+Type \\[customize-group] RET wdired to customize WDired behavior.
 
 The only editable texts in a WDired buffer are filenames,
 symbolic link targets, and filenames permission."
@@ -202,18 +222,21 @@ symbolic link targets, and filenames permission."
 
 ;;;###autoload
 (defun wdired-change-to-wdired-mode ()
-  "Put a dired buffer in a mode in which filenames are editable.
+  "Put a Dired buffer in Writable Dired (WDired) mode.
 \\<wdired-mode-map>
-This mode allows the user to change the names of the files, and after
-typing \\[wdired-finish-edit] Emacs renames the files and directories
-in disk.
+In WDired mode, you can edit the names of the files in the
+buffer, the target of the links, and the permission bits of the
+files.  After typing \\[wdired-finish-edit], Emacs modifies the files and
+directories to reflect your edits.
 
 See `wdired-mode'."
   (interactive)
-  (or (eq major-mode 'dired-mode)
-      (error "Not a Dired buffer"))
+  (unless (eq major-mode 'dired-mode)
+    (error "Not a Dired buffer"))
   (set (make-local-variable 'wdired-old-content)
        (buffer-substring (point-min) (point-max)))
+  (set (make-local-variable 'wdired-old-marks)
+       (dired-remember-marks (point-min) (point-max)))
   (set (make-local-variable 'wdired-old-point) (point))
   (set (make-local-variable 'query-replace-skip-read-only) t)
   (set (make-local-variable 'isearch-filter-predicate)
@@ -376,6 +399,15 @@ non-nil means return old filename."
             (setq changes t)
             (if (not file-new)		;empty filename!
                 (push file-old files-deleted)
+	      (when wdired-keep-marker-rename
+		(let ((mark (cond ((integerp wdired-keep-marker-rename)
+				   wdired-keep-marker-rename)
+				  (wdired-keep-marker-rename
+				   (cdr (assoc file-old wdired-old-marks)))
+				  (t nil))))
+		  (when mark
+		    (push (cons (substitute-in-file-name file-new) mark)
+			  wdired-old-marks))))
               (push (cons file-old (substitute-in-file-name file-new))
                     files-renamed))))
 	(forward-line -1)))
@@ -393,7 +425,9 @@ non-nil means return old filename."
 		     (= (length files-renamed) 1))
 	    (setq dired-directory (cdr (car files-renamed))))
 	  ;; Re-sort the buffer.
-	  (revert-buffer))
+	  (revert-buffer)
+	  (let ((inhibit-read-only t))
+	    (dired-mark-remembered wdired-old-marks)))
       (let ((inhibit-read-only t))
 	(remove-text-properties (point-min) (point-max)
 				'(old-name nil end-name nil old-link nil

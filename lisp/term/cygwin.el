@@ -1,4 +1,4 @@
-;;; cygwin.el --- support for the Cygwin terminal -*- no-byte-compile: t -*-
+;;; cygwin.el --- support for the Cygwin terminal
 
 ;;; The Cygwin terminal can't really display underlines.
 

@@ -103,8 +103,7 @@
 			    :date-timestamp-inactive date-ts-ia))
       (setq message-id (org-remove-angle-brackets message-id))
       (setq desc (org-email-link-description))
-      (setq link (org-make-link "mew:" folder-name
-				"#" message-id))
+      (setq link (concat "mew:" folder-name "#" message-id))
       (org-add-link-props :link link :description desc)
       link)))
 

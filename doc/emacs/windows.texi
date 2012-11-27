@@ -2,7 +2,7 @@
 @c Copyright (C) 1985-1987, 1993-1995, 1997, 2000-2012
 @c   Free Software Foundation, Inc.
 @c See file emacs.texi for copying conditions.
-@node Windows, Frames, Buffers, Top
+@node Windows
 @chapter Multiple Windows
 @cindex windows in Emacs
 @cindex multiple windows in Emacs
@@ -378,19 +378,11 @@ adding the desired buffer's name to the list
 expression to the list @code{same-window-regexps}.  By default, these
 variables are @code{nil}, so this step is skipped.
 
-@vindex display-buffer-reuse-frames
 @item
 Otherwise, if the buffer is already displayed in an existing window,
 ``reuse'' that window.  Normally, only windows on the selected frame
 are considered, but windows on other frames are also reusable if you
-change @code{display-buffer-reuse-frames} to @code{t}, or if you
 change @code{pop-up-frames} (see below) to @code{t}.
-
-@item
-Otherwise, if you specified that the buffer should be displayed in a
-special frame by customizing @code{special-display-buffer-names} or
-@code{special-display-regexps}, do so.  @xref{Choosing Window
-Options,,, elisp, The Emacs Lisp Reference Manual}.
 
 @vindex pop-up-frames
 @item

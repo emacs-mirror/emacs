@@ -25,14 +25,11 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #ifdef emacs
 
 #include <config.h>
-#include <setjmp.h>
+
 #include "lisp.h"		/* Needed for VALBITS.  */
 #include "blockinput.h"
 
 #include <unistd.h>
-
-typedef POINTER_TYPE *POINTER;
-typedef size_t SIZE;
 
 #ifdef DOUG_LEA_MALLOC
 #define M_TOP_PAD           -2
@@ -47,9 +44,6 @@ extern size_t __malloc_extra_blocks;
 
 #include <stddef.h>
 
-typedef size_t SIZE;
-typedef void *POINTER;
-
 #include <unistd.h>
 #include <malloc.h>
 
@@ -58,6 +52,8 @@ typedef void *POINTER;
 
 #include "getpagesize.h"
 
+typedef size_t SIZE;
+typedef void *POINTER;
 #define NIL ((POINTER) 0)
 
 /* A flag to indicate whether we have initialized ralloc yet.  For
@@ -76,7 +72,7 @@ static void r_alloc_init (void);
 /* Declarations for working with the malloc, ralloc, and system breaks.  */
 
 /* Function to set the real break value.  */
-POINTER (*real_morecore) (long int);
+POINTER (*real_morecore) (ptrdiff_t);
 
 /* The break value, as seen by malloc.  */
 static POINTER virtual_break_value;
@@ -95,20 +91,18 @@ static int extra_bytes;
 /* Macros for rounding.  Note that rounding to any value is possible
    by changing the definition of PAGE.  */
 #define PAGE (getpagesize ())
-#define ALIGNED(addr) (((unsigned long int) (addr) & (page_size - 1)) == 0)
-#define ROUNDUP(size) (((unsigned long int) (size) + page_size - 1) \
-		       & ~(page_size - 1))
-#define ROUND_TO_PAGE(addr) (addr & (~(page_size - 1)))
+#define ROUNDUP(size) (((size_t) (size) + page_size - 1) \
+		       & ~((size_t)(page_size - 1)))
 
 #define MEM_ALIGN sizeof (double)
-#define MEM_ROUNDUP(addr) (((unsigned long int)(addr) + MEM_ALIGN - 1) \
-				   & ~(MEM_ALIGN - 1))
+#define MEM_ROUNDUP(addr) (((size_t)(addr) + MEM_ALIGN - 1) \
+			   & ~(MEM_ALIGN - 1))
 
 /* The hook `malloc' uses for the function which gets more space
    from the system.  */
 
 #ifndef SYSTEM_MALLOC
-extern POINTER (*__morecore) (long int);
+extern POINTER (*__morecore) (ptrdiff_t);
 #endif
 
 
@@ -151,7 +145,6 @@ typedef struct heap
 } *heap_ptr;
 
 #define NIL_HEAP ((heap_ptr) 0)
-#define HEAP_PTR_SIZE (sizeof (struct heap))
 
 /* This is the first heap object.
    If we need additional heap objects, each one resides at the beginning of
@@ -244,7 +237,7 @@ obtain (POINTER address, SIZE size)
     }
 
   if (! heap)
-    abort ();
+    emacs_abort ();
 
   /* If we can't fit SIZE bytes in that heap,
      try successive later heaps.  */
@@ -315,7 +308,7 @@ static void
 relinquish (void)
 {
   register heap_ptr h;
-  long excess = 0;
+  ptrdiff_t excess = 0;
 
   /* Add the amount of space beyond break_value
      in all heaps which have extend beyond break_value at all.  */
@@ -334,46 +327,38 @@ relinquish (void)
 
       if ((char *)last_heap->end - (char *)last_heap->bloc_start <= excess)
 	{
-	  /* This heap should have no blocs in it.  */
+	  heap_ptr lh_prev;
+
+	  /* This heap should have no blocs in it.  If it does, we
+	     cannot return it to the system.  */
 	  if (last_heap->first_bloc != NIL_BLOC
 	      || last_heap->last_bloc != NIL_BLOC)
-	    abort ();
+	    return;
 
 	  /* Return the last heap, with its header, to the system.  */
 	  excess = (char *)last_heap->end - (char *)last_heap->start;
-	  last_heap = last_heap->prev;
-	  last_heap->next = NIL_HEAP;
+	  lh_prev = last_heap->prev;
+	  /* If the system doesn't want that much memory back, leave
+	     last_heap unaltered to reflect that.  This can occur if
+	     break_value is still within the original data segment.  */
+	  if ((*real_morecore) (- excess) != 0)
+	    {
+	      last_heap = lh_prev;
+	      last_heap->next = NIL_HEAP;
+	    }
 	}
       else
 	{
 	  excess = (char *) last_heap->end
 			- (char *) ROUNDUP ((char *)last_heap->end - excess);
-	  last_heap->end = (char *) last_heap->end - excess;
-	}
-
-      if ((*real_morecore) (- excess) == 0)
-	{
-	  /* If the system didn't want that much memory back, adjust
-             the end of the last heap to reflect that.  This can occur
-             if break_value is still within the original data segment.  */
-	  last_heap->end = (char *) last_heap->end + excess;
-	  /* Make sure that the result of the adjustment is accurate.
-             It should be, for the else clause above; the other case,
-             which returns the entire last heap to the system, seems
-             unlikely to trigger this mode of failure.  */
-	  if (last_heap->end != (*real_morecore) (0))
-	    abort ();
+	  /* If the system doesn't want that much memory back, leave
+	     the end of the last heap unchanged to reflect that.  This
+	     can occur if break_value is still within the original
+	     data segment.  */
+	  if ((*real_morecore) (- excess) != 0)
+	    last_heap->end = (char *) last_heap->end - excess;
 	}
     }
-}
-
-/* Return the total size in use by relocating allocator,
-   above where malloc gets space.  */
-
-long
-r_alloc_size_in_use (void)
-{
-  return (char *) break_value - (char *) virtual_break_value;
 }
 
 /* The meat - allocating, freeing, and relocating blocs.  */
@@ -412,7 +397,7 @@ get_bloc (SIZE size)
   register bloc_ptr new_bloc;
   register heap_ptr heap;
 
-  if (! (new_bloc = (bloc_ptr) malloc (BLOC_PTR_SIZE))
+  if (! (new_bloc = malloc (BLOC_PTR_SIZE))
       || ! (new_bloc->data = obtain (break_value, size)))
     {
       free (new_bloc);
@@ -468,7 +453,7 @@ relocate_blocs (bloc_ptr bloc, heap_ptr heap, POINTER address)
 
   /* No need to ever call this if arena is frozen, bug somewhere!  */
   if (r_alloc_freeze_level)
-    abort ();
+    emacs_abort ();
 
   while (b)
     {
@@ -592,7 +577,7 @@ resize_bloc (bloc_ptr bloc, SIZE size)
 
   /* No need to ever call this if arena is frozen, bug somewhere!  */
   if (r_alloc_freeze_level)
-    abort ();
+    emacs_abort ();
 
   if (bloc == NIL_BLOC || size == bloc->size)
     return 1;
@@ -604,7 +589,7 @@ resize_bloc (bloc_ptr bloc, SIZE size)
     }
 
   if (heap == NIL_HEAP)
-    abort ();
+    emacs_abort ();
 
   old_size = bloc->size;
   bloc->size = size;
@@ -767,8 +752,8 @@ free_bloc (bloc_ptr bloc)
    __morecore hook values - in particular, __default_morecore in the
    GNU malloc package.  */
 
-POINTER
-r_alloc_sbrk (long int size)
+static POINTER
+r_alloc_sbrk (ptrdiff_t size)
 {
   register bloc_ptr b;
   POINTER address;
@@ -953,7 +938,7 @@ r_alloc_free (register POINTER *ptr)
 
   dead_bloc = find_bloc (ptr);
   if (dead_bloc == NIL_BLOC)
-    abort (); /* Double free? PTR not originally used to allocate?  */
+    emacs_abort (); /* Double free? PTR not originally used to allocate?  */
 
   free_bloc (dead_bloc);
   *ptr = 0;
@@ -995,7 +980,7 @@ r_re_alloc (POINTER *ptr, SIZE size)
 
   bloc = find_bloc (ptr);
   if (bloc == NIL_BLOC)
-    abort (); /* Already freed? PTR not originally used to allocate?  */
+    emacs_abort (); /* Already freed? PTR not originally used to allocate?  */
 
   if (size < bloc->size)
     {
@@ -1031,52 +1016,6 @@ r_re_alloc (POINTER *ptr, SIZE size)
         }
     }
   return *ptr;
-}
-
-/* Disable relocations, after making room for at least SIZE bytes
-   of non-relocatable heap if possible.  The relocatable blocs are
-   guaranteed to hold still until thawed, even if this means that
-   malloc must return a null pointer.  */
-
-void
-r_alloc_freeze (long int size)
-{
-  if (! r_alloc_initialized)
-    r_alloc_init ();
-
-  /* If already frozen, we can't make any more room, so don't try.  */
-  if (r_alloc_freeze_level > 0)
-    size = 0;
-  /* If we can't get the amount requested, half is better than nothing.  */
-  while (size > 0 && r_alloc_sbrk (size) == 0)
-    size /= 2;
-  ++r_alloc_freeze_level;
-  if (size > 0)
-    r_alloc_sbrk (-size);
-}
-
-void
-r_alloc_thaw (void)
-{
-
-  if (! r_alloc_initialized)
-    r_alloc_init ();
-
-  if (--r_alloc_freeze_level < 0)
-    abort ();
-
-  /* This frees all unused blocs.  It is not too inefficient, as the resize
-     and memcpy is done only once.  Afterwards, all unreferenced blocs are
-     already shrunk to zero size.  */
-  if (!r_alloc_freeze_level)
-    {
-      bloc_ptr *b = &first_bloc;
-      while (*b)
-	if (!(*b)->variable)
-	  free_bloc (*b);
-	else
-	  b = &(*b)->next;
-    }
 }
 
 
@@ -1214,7 +1153,7 @@ r_alloc_reset_variable (POINTER *old, POINTER *new)
     }
 
   if (bloc == NIL_BLOC || bloc->variable != old)
-    abort (); /* Already freed? OLD not originally used to allocate?  */
+    emacs_abort (); /* Already freed? OLD not originally used to allocate?  */
 
   /* Update variable to point to the new location.  */
   bloc->variable = new;
@@ -1255,20 +1194,26 @@ r_alloc_init (void)
   first_heap->start = first_heap->bloc_start
     = virtual_break_value = break_value = (*real_morecore) (0);
   if (break_value == NIL)
-    abort ();
+    emacs_abort ();
 
   extra_bytes = ROUNDUP (50000);
 #endif
 
 #ifdef DOUG_LEA_MALLOC
-  BLOCK_INPUT;
+  block_input ();
   mallopt (M_TOP_PAD, 64 * 4096);
-  UNBLOCK_INPUT;
+  unblock_input ();
 #else
 #ifndef SYSTEM_MALLOC
-  /* Give GNU malloc's morecore some hysteresis
-     so that we move all the relocatable blocks much less often.  */
-  __malloc_extra_blocks = 64;
+  /* Give GNU malloc's morecore some hysteresis so that we move all
+     the relocatable blocks much less often.  The number used to be
+     64, but alloc.c would override that with 32 in code that was
+     removed when SYNC_INPUT became the only input handling mode.
+     That code was conditioned on !DOUG_LEA_MALLOC, so the call to
+     mallopt above is left unchanged.  (Actually, I think there's no
+     system nowadays that uses DOUG_LEA_MALLOC and also uses
+     REL_ALLOC.)  */
+  __malloc_extra_blocks = 32;
 #endif
 #endif
 

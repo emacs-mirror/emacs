@@ -4,8 +4,6 @@
 
 ;; Author: Carsten Dominik <dominik@science.uva.nl>
 ;; Maintainer: auctex-devel@gnu.org
-;; Version: 4.31
-;; Package: reftex
 
 ;; This file is part of GNU Emacs.
 
@@ -27,7 +25,7 @@
 ;;; Code:
 
 (eval-when-compile (require 'cl))
-(provide 'reftex-parse)
+
 (require 'reftex)
 
 (defmacro reftex-with-special-syntax (&rest body)
@@ -241,8 +239,17 @@ of master file."
 
                 ((match-end 3)
                  ;; It is a section
-                 (setq bound (point))
 
+		 ;; Use the beginning as bound and not the end
+		 ;; (i.e. (point)) because the section command might
+		 ;; be the start of the current environment to be
+		 ;; found by `reftex-label-info'.
+                 (setq bound (match-beginning 0))
+		 ;; The section regexp matches a character at the end
+		 ;; we are not interested in.  Especially if it is the
+		 ;; backslash of a following macro we want to find in
+		 ;; the next parsing iteration.
+		 (when (eq (char-before) ?\\) (backward-char))
                  ;; Insert in List
                  (setq toc-entry (reftex-section-info file))
                  (when toc-entry
@@ -1071,5 +1078,7 @@ of master file."
         (setq string (concat string s)
               nrest (- nrest i))))
     string))
+
+(provide 'reftex-parse)
 
 ;;; reftex-parse.el ends here

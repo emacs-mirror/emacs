@@ -40,13 +40,17 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #endif
 
 #ifndef BASE_PURESIZE
-#define BASE_PURESIZE (1620000 + SYSTEM_PURESIZE_EXTRA + SITELOAD_PURESIZE_EXTRA)
+#define BASE_PURESIZE (1700000 + SYSTEM_PURESIZE_EXTRA + SITELOAD_PURESIZE_EXTRA)
 #endif
 
 /* Increase BASE_PURESIZE by a ratio depending on the machine's word size.  */
 #ifndef PURESIZE_RATIO
-#if BITS_PER_EMACS_INT > 32
-#define PURESIZE_RATIO 10/6	/* Don't surround with `()'. */
+#if EMACS_INT_MAX >> 31 != 0
+#if PTRDIFF_MAX >> 31 != 0
+#define PURESIZE_RATIO 10 / 6	/* Don't surround with `()'.  */
+#else
+#define PURESIZE_RATIO 8 / 6	/* Don't surround with `()'.  */
+#endif
 #else
 #define PURESIZE_RATIO 1
 #endif
@@ -56,7 +60,7 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 /* ENABLE_CHECKING somehow increases the purespace used, probably because
    it tends to cause some macro arguments to be evaluated twice.  This is
    a bug, but it's difficult to track it down.  */
-#define PURESIZE_CHECKING_RATIO 12/10	/* Don't surround with `()'. */
+#define PURESIZE_CHECKING_RATIO 12 / 10	/* Don't surround with `()'.  */
 #else
 #define PURESIZE_CHECKING_RATIO 1
 #endif
@@ -71,7 +75,7 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
   { if (PURE_P (obj))	  \
       pure_write_error (); }
 
-extern void pure_write_error (void) NO_RETURN;
+extern _Noreturn void pure_write_error (void);
 
 /* Define PURE_P.  */
 

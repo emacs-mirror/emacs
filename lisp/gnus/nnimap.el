@@ -117,7 +117,7 @@ some servers.")
 
 (defvoo nnimap-fetch-partial-articles nil
   "If non-nil, Gnus will fetch partial articles.
-If t, nnimap will fetch only the first part.  If a string, it
+If t, Gnus will fetch only the first part.  If a string, it
 will fetch all parts that have types that match that string.  A
 likely value would be \"text/\" to automatically fetch all
 textual parts.")
@@ -475,6 +475,8 @@ textual parts.")
 	    (when nnimap-object
 	      (when (nnimap-capability "QRESYNC")
 		(nnimap-command "ENABLE QRESYNC"))
+              (nnheader-message 7 "Opening connection to %s...done"
+				nnimap-address)
 	      (nnimap-process nnimap-object))))))))
 
 (autoload 'rfc2104-hash "rfc2104")

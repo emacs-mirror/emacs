@@ -75,7 +75,7 @@
 		  (context plain recipients &optional sign always-trust))
 
 (defgroup org-crypt nil
-  "Org Crypt"
+  "Org Crypt."
   :tag "Org Crypt"
   :group 'org)
 
@@ -111,6 +111,7 @@ nil      : Leave auto-save-mode enabled.
            NOTE: This only works for entries which have a tag
            that matches `org-crypt-tag-matcher'."
   :group 'org-crypt
+  :version "24.1"
   :type '(choice (const :tag "Always"  t)
                  (const :tag "Never"   nil)
                  (const :tag "Ask"     ask)
@@ -129,13 +130,13 @@ See `org-crypt-disable-auto-save'."
        (eq org-crypt-disable-auto-save t)
        (and
 	(eq org-crypt-disable-auto-save 'ask)
-	(y-or-n-p "org-decrypt: auto-save-mode may cause leakage. Disable it for current buffer? ")))
+	(y-or-n-p "org-decrypt: auto-save-mode may cause leakage.  Disable it for current buffer? ")))
       (message (concat "org-decrypt: Disabling auto-save-mode for " (or (buffer-file-name) (current-buffer))))
-      ; The argument to auto-save-mode has to be "-1", since
-      ; giving a "nil" argument toggles instead of disabling.
+					; The argument to auto-save-mode has to be "-1", since
+					; giving a "nil" argument toggles instead of disabling.
       (auto-save-mode -1))
      ((eq org-crypt-disable-auto-save nil)
-      (message "org-decrypt: Decrypting entry with auto-save-mode enabled. This may cause leakage."))
+      (message "org-decrypt: Decrypting entry with auto-save-mode enabled.  This may cause leakage."))
      ((eq org-crypt-disable-auto-save 'encrypt)
       (message "org-decrypt: Enabling re-encryption on auto-save.")
       (add-hook 'auto-save-hook
@@ -221,7 +222,7 @@ See `org-crypt-disable-auto-save'."
 	    ;; outline property starts at the \n of the heading.
 	    (delete-region (1- (point)) end)
 	    ;; Store a checksum of the decrypted and the encrypted
-	    ;; text value. This allow to reuse the same encrypted text
+	    ;; text value.  This allow to reuse the same encrypted text
 	    ;; if the text does not change, and therefore avoid a
 	    ;; re-encryption process.
 	    (insert "\n" (propertize decrypted-text
@@ -250,6 +251,14 @@ See `org-crypt-disable-auto-save'."
      'org-decrypt-entry
      (cdr (org-make-tags-matcher org-crypt-tag-matcher))
      todo-only)))
+
+(defun org-at-encrypted-entry-p ()
+  "Is the current entry encrypted?"
+  (unless (org-before-first-heading-p)
+    (save-excursion
+      (org-back-to-heading t)
+      (search-forward "-----BEGIN PGP MESSAGE-----"
+		      (save-excursion (org-end-of-subtree t)) t))))
 
 (defun org-crypt-use-before-save-magic ()
   "Add a hook to automatically encrypt entries before a file is saved to disk."

@@ -916,8 +916,10 @@ to the directories specified in `bibtex-string-file-path'."
   :group 'bibtex
   :type '(repeat file))
 
-(defvar bibtex-string-file-path (getenv "BIBINPUTS")
-  "*Colon separated list of paths to search for `bibtex-string-files'.")
+(defcustom bibtex-string-file-path (getenv "BIBINPUTS")
+  "Colon-separated list of paths to search for `bibtex-string-files'."
+  :group 'bibtex
+  :type 'string)
 
 (defcustom bibtex-files nil
   "List of BibTeX files that are searched for entry keys.
@@ -930,8 +932,10 @@ See also `bibtex-search-entry-globally'."
   :type '(repeat (choice (const :tag "bibtex-file-path" bibtex-file-path)
                          directory file)))
 
-(defvar bibtex-file-path (getenv "BIBINPUTS")
-  "*Colon separated list of paths to search for `bibtex-files'.")
+(defcustom bibtex-file-path (getenv "BIBINPUTS")
+  "Colon separated list of paths to search for `bibtex-files'."
+  :group 'bibtex
+  :type 'string)
 
 (defcustom bibtex-search-entry-globally nil
   "If non-nil, interactive calls of `bibtex-search-entry' search globally.
@@ -998,6 +1002,7 @@ See `bibtex-generate-autokey' for details."
     ("\\\\`\\|\\\\'\\|\\\\\\^\\|\\\\~\\|\\\\=\\|\\\\\\.\\|\\\\u\\|\\\\v\\|\\\\H\\|\\\\t\\|\\\\c\\|\\\\d\\|\\\\b" . "")
     ;; braces, quotes, concatenation.
     ("[`'\"{}#]" . "")
+    ("\\\\-" . "")                        ; \-            ->
     ;; spaces
     ("\\\\?[ \t\n]+\\|~" . " "))
   "Alist of (OLD-REGEXP . NEW-STRING) pairs.
@@ -1614,7 +1619,7 @@ Initialized by `bibtex-set-dialect'.")
     ,@(mapcar (lambda (matcher)
                 `((lambda (bound) (bibtex-font-lock-cite ',matcher bound))))
               bibtex-cite-matcher-alist))
-  "*Default expressions to highlight in BibTeX mode.")
+  "Default expressions to highlight in BibTeX mode.")
 
 (defvar bibtex-font-lock-url-regexp
   ;; Assume that field names begin at the beginning of a line.
@@ -4889,21 +4894,22 @@ If mark is active reformat entries in region, if not in whole buffer."
                  (if use-previous-options
                      bibtex-reformat-previous-options
                    (setq bibtex-reformat-previous-options
-                         (mapcar (lambda (option)
-                                   (if (y-or-n-p (car option)) (cdr option)))
-                                 `(("Realign entries (recommended)? " . 'realign)
-                                   ("Remove empty optional and alternative fields? " . 'opts-or-alts)
-                                   ("Remove delimiters around pure numerical fields? " . 'numerical-fields)
-                                   (,(concat (if bibtex-comma-after-last-field "Insert" "Remove")
-                                             " comma at end of entry? ") . 'last-comma)
-                                   ("Replace double page dashes by single ones? " . 'page-dashes)
-                                   ("Delete whitespace at the beginning and end of fields? " . 'whitespace)
-                                   ("Inherit booktitle? " . 'inherit-booktitle)
-                                   ("Force delimiters? " . 'delimiters)
-                                   ("Unify case of entry types and field names? " . 'unify-case)
-                                   ("Enclose parts of field entries by braces? " . 'braces)
-                                   ("Replace parts of field entries by string constants? " . 'strings)
-                                   ("Sort fields? " . 'sort-fields))))))
+                         (delq nil
+                               (mapcar (lambda (option)
+                                         (if (y-or-n-p (car option)) (cdr option)))
+                                       `(("Realign entries (recommended)? " . realign)
+                                         ("Remove empty optional and alternative fields? " . opts-or-alts)
+                                         ("Remove delimiters around pure numerical fields? " . numerical-fields)
+                                         (,(concat (if bibtex-comma-after-last-field "Insert" "Remove")
+                                                   " comma at end of entry? ") . last-comma)
+                                         ("Replace double page dashes by single ones? " . page-dashes)
+                                         ("Delete whitespace at the beginning and end of fields? " . whitespace)
+                                         ("Inherit booktitle? " . inherit-booktitle)
+                                         ("Force delimiters? " . delimiters)
+                                         ("Unify case of entry types and field names? " . unify-case)
+                                         ("Enclose parts of field entries by braces? " . braces)
+                                         ("Replace parts of field entries by string constants? " . strings)
+                                         ("Sort fields? " . sort-fields)))))))
                 ;; Do not include required-fields because `bibtex-reformat'
                 ;; cannot handle the error messages of `bibtex-format-entry'.
                 ;; Use `bibtex-validate' to check for required fields.

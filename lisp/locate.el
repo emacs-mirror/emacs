@@ -34,7 +34,7 @@
 ;;
 ;;   SHELLPROGRAM  Name-to-find
 ;;
-;; set the variable `locate-command' in your .emacs file.
+;; set the variable `locate-command' in your init file.
 ;;
 ;;   To use a more complicated expression, create a function which
 ;; takes a string (the name to find) as input and returns a list.

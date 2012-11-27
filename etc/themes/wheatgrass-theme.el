@@ -33,6 +33,10 @@ of green, brown, and blue.")
    `(error ((,class (:foreground "salmon1"))))
    `(warning ((,class (:foreground "orange"))))
    `(success ((,class (:foreground "yellow green"))))
+   ;; Compilation faces
+   `(compilation-mode-line-fail ((,class (:foreground "dark green"))))
+   `(compilation-mode-line-run  ((,class (:foreground "dark goldenrod"))))
+   `(compilation-mode-line-exit ((,class (:foreground "SpringGreen4"))))
    ;; Highlighting faces
    `(highlight ((,class (:foreground "white" :background "dark green"))))
    `(region ((,class (:foreground "white" :background "dark green"))))

@@ -179,8 +179,9 @@ return nil."
 	  nil)
       (with-current-buffer b
 	(goto-char (point-min))
-	(re-search-forward "fnid - \\([0-9.]+\\)" nil t)
-	(setq rev (match-string 1))
+	(if (re-search-forward "fnid - \\([0-9.]+\\)" nil t)
+	    (setq rev (match-string 1))
+	  (setq rev "0"))
 	(if (inversion-check-version rev nil cedet-idutils-min-version)
 	    (if noerror
 		nil

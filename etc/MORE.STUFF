@@ -210,8 +210,8 @@ packages that you can install.
 
 Local Variables:
 mode: text
-mode: view
-mode: goto-address
+eval: (view-mode 1)
+eval: (goto-address-mode 1)
 End:
 
 This file is part of GNU Emacs.

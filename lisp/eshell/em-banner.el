@@ -39,20 +39,21 @@
 ;;; Code:
 
 (eval-when-compile
-  (require 'cl)
+  (require 'cl-lib)
   (require 'esh-mode)
   (require 'eshell))
 
 (require 'esh-util)
 
 ;;;###autoload
-(eshell-defgroup eshell-banner nil
+(progn
+(defgroup eshell-banner nil
   "This sample module displays a welcome banner at login.
 It exists so that others wishing to create their own Eshell extension
 modules may have a simple template to begin with."
   :tag "Login banner"
   ;; :link '(info-link "(eshell)Login banner")
-  :group 'eshell-module)
+  :group 'eshell-module))
 
 ;;; User Variables:
 
@@ -76,10 +77,10 @@ This can be any sexp, and should end with at least two newlines."
   ;; `insert', because `insert' doesn't know how to interact with the
   ;; I/O code used by Eshell
   (unless eshell-non-interactive-p
-    (assert eshell-mode)
-    (assert eshell-banner-message)
+    (cl-assert eshell-mode)
+    (cl-assert eshell-banner-message)
     (let ((msg (eval eshell-banner-message)))
-      (assert msg)
+      (cl-assert msg)
       (eshell-interactive-print msg))))
 
 (provide 'em-banner)

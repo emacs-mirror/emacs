@@ -27,7 +27,7 @@
 (defgroup xterm nil
   "XTerm support."
   :version "24.1"
-  :group 'emacs)
+  :group 'environment)
 
 (defcustom xterm-extra-capabilities 'check
   "Whether Xterm supports some additional, more modern, features.
@@ -480,7 +480,7 @@ The relevant features are:
 
       ;; Use inheritance to let the main keymap override those defaults.
       ;; This way we don't override terminfo-derived settings or settings
-      ;; made in the .emacs file.
+      ;; made in the init file.
       (set-keymap-parent map (keymap-parent input-decode-map))
       (set-keymap-parent input-decode-map map)))
 
@@ -539,6 +539,7 @@ The relevant features are:
                 (and (memq 'reportBackground tocheck-capabilities)
                      version
                      (>= version 242)))
+	(discard-input)
         (send-string-to-terminal "\e]11;?\e\\")
         (when (and (equal (read-event nil nil 2) ?\e)
                    (equal (read-event nil nil 2) ?\]))

@@ -1615,16 +1615,6 @@ Gnus might fail to display all of it.")
 		   gnus-shell-command-separator  " sh")))))
     state))
 
-;; Returns the name of what the shar file is going to unpack.
-(defun gnus-uu-find-name-in-shar ()
-  (let ((oldpoint (point))
-	res)
-    (goto-char (point-min))
-    (when (re-search-forward gnus-uu-shar-name-marker nil t)
-      (setq res (buffer-substring (match-beginning 1) (match-end 1))))
-    (goto-char oldpoint)
-    res))
-
 ;; `gnus-uu-choose-action' chooses what action to perform given the name
 ;; and `gnus-uu-file-action-list'.  Returns either nil if no action is
 ;; found, or the name of the command to run if such a rule is found.

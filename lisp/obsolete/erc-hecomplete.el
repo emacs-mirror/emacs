@@ -73,7 +73,7 @@ or you may use an arbitrary lisp expression."
   :group 'erc-hecomplete)
 
 (defcustom erc-nick-completion-ignore-case t
-  "*Non-nil means don't consider case significant in nick completion.
+  "Non-nil means don't consider case significant in nick completion.
 Case will be automatically corrected when non-nil.
 For instance if you type \"dely TAB\" the word completes and changes to
 \"delYsid\"."
@@ -92,7 +92,7 @@ typing \"f o TAB\" will directly give you foobar.  Use this with
    (erc-get-channel-nickname-list)))
 
 (defcustom erc-nick-completion-postfix ": "
-  "*When `erc-complete' is used in the first word after the prompt,
+  "When `erc-complete' is used in the first word after the prompt,
 add this string when a unique expansion was found."
   :group 'erc-hecomplete
   :type 'string)

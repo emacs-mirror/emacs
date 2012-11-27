@@ -40,8 +40,6 @@
     (error "%s: Loading pc-win.el but not compiled for MS-DOS"
 	   (invocation-name)))
 
-(load "term/internal" nil t)
-
 (declare-function msdos-remember-default-colors "msdos.c")
 (declare-function w16-set-clipboard-data "w16select.c")
 (declare-function w16-get-clipboard-data "w16select.c")

@@ -111,7 +111,7 @@ For @file{dired-x.el} as distributed with GNU Emacs @value{EMACSVER}.
 
 @end ifnottex
 
-@node Introduction, Installation, Top, Top
+@node Introduction
 @chapter Introduction
 
 This documents some @emph{extra} features for GNU Emacs's Dired Mode
@@ -125,7 +125,7 @@ original @file{dired-x.el}).
 @end menu
 @end ifnottex
 
-@node Features, Technical Details, , Introduction
+@node Features
 @section Features
 @cindex Features
 
@@ -157,7 +157,7 @@ also binds @kbd{C-x C-f} and @kbd{C-x 4 C-f} to
 @code{dired-x-find-file} and @code{dired-x-find-file-other-window},
 respectively (@pxref{Find File At Point}).
 
-@node Technical Details, , Features, Introduction
+@node Technical Details
 @section Technical Details
 @cindex Modified functions
 @cindex @file{dired-aux.el}
@@ -173,7 +173,7 @@ Dired}), if it is active.  @code{dired-find-buffer-nocreate} and
 @code{dired-guess-shell-command} (@pxref{Shell Command Guessing}) to
 offer a smarter default command.
 
-@node Installation, Omitting Files in Dired, Introduction, Top
+@node Installation
 @chapter Installation
 
 @noindent
@@ -211,7 +211,7 @@ when you first type @kbd{C-x d}).
 @end menu
 @end ifnottex
 
-@node Optional Installation Dired Jump, Optional Installation File At Point, , Installation
+@node Optional Installation Dired Jump
 @section Optional Installation Dired Jump
 
 @cindex Autoloading @code{dired-jump} and @code{dired-jump-other-window}
@@ -232,7 +232,7 @@ for these functions.  In your @file{.emacs} file put
 (define-key global-map "\C-x4\C-j" 'dired-jump-other-window)
 @end example
 
-@node Optional Installation File At Point, , Optional Installation Dired Jump, Installation
+@node Optional Installation File At Point
 @section Optional Installation File At Point
 
 @cindex Binding @code{dired-x-find-file}
@@ -251,7 +251,7 @@ or call @code{dired-x-bind-find-file} after changing the value.
             ))
 @end example
 
-@node Omitting Files in Dired, Local Variables, Installation, Top
+@node Omitting Files in Dired
 @chapter Omitting Files in Dired
 
 @cindex Omitting Files in Dired
@@ -307,7 +307,7 @@ inside @code{dired-load-hook} (@pxref{Installation}) and then evaluate
 @end menu
 @end ifnottex
 
-@node Omitting Variables, Omitting Examples, , Omitting Files in Dired
+@node Omitting Variables
 @section Omitting Variables
 
 @cindex Customizing file omitting
@@ -403,7 +403,7 @@ will show up again after reverting the buffer, unlike the others.
 
 @end table
 
-@node Omitting Examples, Omitting Technical, Omitting Variables, Omitting Files in Dired
+@node Omitting Examples
 @section Examples of Omitting Various File Types
 
 @itemize @bullet
@@ -429,7 +429,7 @@ in the @code{dired-load-hook} (@pxref{Installation}).  This assumes
 @cindex Tib files, how to omit them in Dired
 @cindex Omitting tib files in Dired
 If you use @code{tib}, the bibliography program for use with @TeX{} and
-La@TeX{}, and you
+@LaTeX{}, and you
 want to omit the @file{INDEX} and the @file{*-t.tex} files, then put
 
 @example
@@ -458,7 +458,7 @@ better way to achieve this particular goal is simply to omit @samp{-a} from
 
 @end itemize
 
-@node Omitting Technical, , Omitting Examples, Omitting Files in Dired
+@node Omitting Technical
 @section Some Technical Details of Omitting
 
 Loading @file{dired-x.el} will install Dired Omit by putting
@@ -466,7 +466,7 @@ Loading @file{dired-x.el} will install Dired Omit by putting
 call @code{dired-extra-startup}, which in turn calls @code{dired-omit-startup}
 in your @code{dired-mode-hook}.
 
-@node Local Variables, Shell Command Guessing, Omitting Files in Dired, Top
+@node Local Variables
 @chapter Local Variables for Dired Directories
 
 @cindex Local Variables for Dired Directories
@@ -537,7 +537,7 @@ the Dired Local Variables are hacked.  It takes the same values as that
 variable.  A value of @code{nil} means to ignore any Dired Local Variables.
 @end table
 
-@node Shell Command Guessing, Virtual Dired, Local Variables, Top
+@node Shell Command Guessing
 @chapter Shell Command Guessing
 @cindex Guessing shell commands for files.
 
@@ -643,7 +643,7 @@ smaller than the @file{.gz} file.
 History list for commands that read dired-shell commands.
 @end table
 
-@node Virtual Dired, Advanced Mark Commands, Shell Command Guessing, Top
+@node Virtual Dired
 @chapter Virtual Dired
 
 @cindex Virtual Dired
@@ -684,7 +684,7 @@ virtual Dired mode from the @code{auto-mode-alist}.  To edit all
 The regexp is a bit more complicated than usual to exclude @file{.dired}
 local-variable files.
 
-@node Advanced Mark Commands, Multiple Dired Directories, Virtual Dired, Top
+@node Advanced Mark Commands
 @chapter Advanced Mark Commands
 
 @table @kbd
@@ -730,7 +730,7 @@ Flag all files with a certain extension for deletion.  A @samp{.} is
 @end menu
 @end ifnottex
 
-@node Advanced Cleaning Functions, Advanced Cleaning Variables, , Advanced Mark Commands
+@node Advanced Cleaning Functions
 @section Advanced Cleaning Functions
 
 @table @code
@@ -741,7 +741,7 @@ variable @code{dired-patch-unclean-extensions}.
 
 @item dired-clean-tex
 @findex dired-clean-tex
-Flag dispensable files created by @TeX{}, La@TeX{}, and @samp{texinfo} for
+Flag dispensable files created by @TeX{}, @LaTeX{}, and @samp{texinfo} for
 deletion.  See the following variables (@pxref{Advanced Cleaning Variables}):
 
 @itemize @bullet
@@ -757,11 +757,11 @@ deletion.  See the following variables (@pxref{Advanced Cleaning Variables}):
 
 @item dired-very-clean-tex
 @findex dired-very-clean-tex
-Flag dispensable files created by @TeX{}, La@TeX{}, @samp{texinfo},
+Flag dispensable files created by @TeX{}, @LaTeX{}, @samp{texinfo},
 and @file{*.dvi} files for deletion.
 @end table
 
-@node Advanced Cleaning Variables, Special Marking Function, Advanced Cleaning Functions, Advanced Mark Commands
+@node Advanced Cleaning Variables
 @section Advanced Cleaning Variables
 
 @noindent Variables used by the above cleaning commands (and in the default value for
@@ -791,7 +791,7 @@ List of extensions of dispensable files created by @samp{texinfo}.
 @vindex dired-latex-unclean-extensions
 Default: @code{(".idx" ".lof" ".lot" ".glo")}
 
-List of extensions of dispensable files created by La@TeX{}.
+List of extensions of dispensable files created by @LaTeX{}.
 
 @item dired-bibtex-unclean-extensions
 @vindex dired-bibtex-unclean-extensions
@@ -800,7 +800,7 @@ Default:  @code{(".blg" ".bbl")}
 List of extensions of dispensable files created by Bib@TeX{}.
 @end table
 
-@node Special Marking Function, , Advanced Cleaning Variables, Advanced Mark Commands
+@node Special Marking Function
 @section Special Marking Function
 
 @table @kbd
@@ -856,7 +856,7 @@ to mark all @file{.el} files without a corresponding @file{.elc} file.
 
 @end table
 
-@node Multiple Dired Directories, Find File At Point, Advanced Mark Commands, Top
+@node Multiple Dired Directories
 @chapter Multiple Dired Directories and Non-Dired Commands
 
 @cindex Multiple Dired directories
@@ -876,8 +876,8 @@ The command @code{dired-smart-shell-command}, bound to @kbd{M-!} in
 Dired buffers, is like @code{shell-command}, but it runs with
 @code{default-directory} bound to the current Dired directory.
 
-@node Find File At Point, Miscellaneous Commands, Multiple Dired Directories, Top
-@section Find File At Point
+@node Find File At Point
+@chapter Find File At Point
 @cindex Visiting a file mentioned in a buffer
 @cindex Finding a file at point
 
@@ -952,7 +952,7 @@ that uses the value of @code{dired-x-hands-off-my-keys} to determine if
 @code{find-file-other-window}.  See @xref{Optional Installation File At Point}.
 @end table
 
-@node Miscellaneous Commands, Bugs, Find File At Point, Top
+@node Miscellaneous Commands
 @chapter Miscellaneous Commands
 
 Miscellaneous features not fitting anywhere else:
@@ -1082,7 +1082,7 @@ Bound to @kbd{%Y}.  Relative symlink all marked files containing
 info.
 @end table
 
-@node Bugs, GNU Free Documentation License, Miscellaneous Commands, Top
+@node Bugs
 @chapter Bugs
 @cindex Bugs
 
@@ -1090,23 +1090,23 @@ info.
 If you encounter a bug in this package, or wish to suggest an
 enhancement, then please use @kbd{M-x report-emacs-bug} to report it.
 
-@node GNU Free Documentation License, Concept Index, Bugs, Top
+@node GNU Free Documentation License
 @appendix GNU Free Documentation License
 @include doclicense.texi
 
-@node     Concept Index, Command Index, GNU Free Documentation License, Top
+@node     Concept Index
 @unnumbered Concept Index
 @printindex cp
 
-@node     Command Index, Key Index, Concept Index, Top
+@node     Command Index
 @unnumbered Function Index
 @printindex fn
 
-@node     Key Index, Variable Index, Command Index, Top
+@node     Key Index
 @unnumbered Key Index
 @printindex ky
 
-@node     Variable Index,  , Key Index, Top
+@node     Variable Index
 @unnumbered Variable Index
 @printindex vr
 

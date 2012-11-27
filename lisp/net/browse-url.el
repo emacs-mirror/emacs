@@ -122,8 +122,7 @@
 ;; the buffer, use:
 ;; M-x browse-url
 
-;; To display a URL by shift-clicking on it, put this in your ~/.emacs
-;; file:
+;; To display a URL by shift-clicking on it, put this in your init file:
 ;;      (global-set-key [S-mouse-2] 'browse-url-at-mouse)
 ;; (Note that using Shift-mouse-1 is not desirable because
 ;; that event has a standard meaning in Emacs.)
@@ -204,8 +203,6 @@
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Variables
-
-(eval-when-compile (require 'cl))
 
 (defgroup browse-url nil
   "Use a web browser to look at a URL."
@@ -467,7 +464,7 @@ commands reverses the effect of this variable.  Requires Netscape version
     ;; it in anonymous cases.  If it's not anonymous the next regexp
     ;; applies.
     ("^/\\([^:@]+@\\)?\\([^:]+\\):/*" . "ftp://\\1\\2/")
-    ,@(if (memq system-type '(windows-nt ms-dos cygwin))
+    ,@(if (memq system-type '(windows-nt ms-dos))
           '(("^\\([a-zA-Z]:\\)[\\/]" . "file:///\\1/")
             ("^[\\/][\\/]+" . "file://")))
     ("^/+" . "file:///"))
@@ -642,7 +639,7 @@ CHARS is a regexp-like character alternative (e.g., \"[)$]\")."
 	(s 0))
     (while (setq s (string-match chars encoded-text s))
       (setq encoded-text
-	    (replace-match (format "%%%x"
+	    (replace-match (format "%%%X"
 				   (string-to-char (match-string 0 encoded-text)))
 			   t t encoded-text)
 	    s (1+ s)))
@@ -655,7 +652,7 @@ regarding its parameter treatment."
   ;; FIXME: Is there an actual example of a web browser getting
   ;; confused?  (This used to encode commas, but at least Firefox
   ;; handles commas correctly and doesn't accept encoded commas.)
-  (browse-url-url-encode-chars url "[)$]"))
+  (browse-url-url-encode-chars url "[\")$] "))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; URL input
@@ -724,12 +721,6 @@ interactively.  Turn the filename into a URL with function
 (defun browse-url-file-url (file)
   "Return the URL corresponding to FILE.
 Use variable `browse-url-filename-alist' to map filenames to URLs."
-  ;; De-munge Cygwin filenames before passing them to Windows browser.
-  (if (eq system-type 'cygwin)
-      (let ((winfile (with-output-to-string
-		       (call-process "cygpath" nil standard-output
-				     nil "-m" file))))
-	(setq file (substring winfile 0 -1))))
   (let ((coding (and (default-value 'enable-multibyte-characters)
 		     (or file-name-coding-system
 			 default-file-name-coding-system))))
@@ -751,7 +742,7 @@ narrowed."
     (and buffer (set-buffer buffer))
     (let ((file-name
 	   ;; Ignore real name if restricted
-	   (and (= (- (point-max) (point-min)) (buffer-size))
+	   (and (not (buffer-narrowed-p))
 		(or buffer-file-name
 		    (and (boundp 'dired-directory) dired-directory)))))
       (or file-name
@@ -1627,22 +1618,21 @@ from `browse-url-elinks-wrapper'."
 
 (defun browse-url-elinks-sentinel (process url)
   "Determines if Elinks is running or a new one has to be started."
-  (let ((exit-status (process-exit-status process)))
-    ;; Try to determine if an instance is running or if we have to
-    ;; create a new one.
-    (case exit-status
-	  (5
-	   ;; No instance, start a new one.
-	   (browse-url-elinks-new-window url))
-	  (0
-	   ;; Found an instance, open URL in new tab.
-	   (let ((process-environment (browse-url-process-environment)))
-	     (start-process (concat "elinks:" url) nil
-			    "elinks" "-remote"
-			    (concat "openURL(\"" url "\",new-tab)"))))
-	  (otherwise
-	   (error "Unrecognized exit-code %d of process `elinks'"
-		  exit-status)))))
+  ;; Try to determine if an instance is running or if we have to
+  ;; create a new one.
+  (pcase (process-exit-status process)
+    (5
+     ;; No instance, start a new one.
+     (browse-url-elinks-new-window url))
+    (0
+     ;; Found an instance, open URL in new tab.
+     (let ((process-environment (browse-url-process-environment)))
+       (start-process (concat "elinks:" url) nil
+                      "elinks" "-remote"
+                      (concat "openURL(\"" url "\",new-tab)"))))
+    (exit-status
+     (error "Unrecognized exit-code %d of process `elinks'"
+            exit-status))))
 
 (provide 'browse-url)
 

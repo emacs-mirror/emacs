@@ -337,6 +337,17 @@ been reported.
 A custom face for highlighting lines for which at least one warning
 and no errors have been reported.
 
+@item flymake-error-bitmap
+A bitmap used in the fringe to mark lines for which an error has
+been reported.
+
+@item flymake-warning-bitmap
+A bitmap used in the fringe to mark lines for which a warning has
+been reported.
+
+@item flymake-fringe-indicator-position
+Which fringe (if any) should show the warning/error bitmaps.
+
 @end table
 
 @node Adding support for a new syntax check tool
@@ -717,6 +728,15 @@ sentinel, after calling the cleanup function. Two customizable faces
 are used: @code{flymake-errline} and
 @code{flymake-warnline}.  Errors belonging outside the current
 buffer are considered to belong to line 1 of the current buffer.
+
+@c This manual does not use vindex.
+@c @vindex flymake-fringe-indicator-position
+@c @vindex flymake-error-bitmap
+@c @vindex flymake-warning-bitmap
+If the option @code{flymake-fringe-indicator-position} is non-@code{nil},
+errors and warnings are also highlighted in the left or right fringe,
+using the bitmaps specified by @code{flymake-error-bitmap}
+and @code{flymake-warning-bitmap}.
 
 @node Interaction with other modes
 @section Interaction with other modes

@@ -110,8 +110,8 @@
 (eval-when-compile
   (require 'pcomplete)
   (require 'esh-util)
-  (require 'esh-opt)
   (require 'esh-mode))
+(require 'esh-opt)
 (require 'env)
 (require 'ring)
 

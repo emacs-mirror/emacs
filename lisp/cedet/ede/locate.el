@@ -49,13 +49,7 @@
 ;; when it is available.
 
 (require 'ede)
-(eval-when-compile (require 'data-debug)
-		   (require 'eieio-datadebug)
-		   (require 'cedet-global)
-		   (require 'cedet-idutils)
-		   (require 'cedet-cscope))
-
-(require 'locate)
+(eval-when-compile (require 'locate))
 
 ;;; Code:
 (defcustom ede-locate-setup-options
@@ -214,6 +208,12 @@ that created this EDE locate object."
 
 ;;; GLOBAL
 ;;
+
+(declare-function cedet-gnu-global-version-check "cedet-global")
+(declare-function cedet-gnu-global-root "cedet-global")
+(declare-function cedet-gnu-global-expand-filename "cedet-global")
+(declare-function cedet-gnu-global-create/update-database "cedet-global")
+
 (defclass ede-locate-global (ede-locate-base)
   ()
   "EDE Locator using GNU Global.
@@ -260,6 +260,12 @@ that created this EDE locate object."
 
 ;;; IDUTILS
 ;;
+
+(declare-function cedet-idutils-version-check "cedet-idutils")
+(declare-function cedet-idutils-support-for-directory "cedet-idutils")
+(declare-function cedet-idutils-expand-filename "cedet-idutils")
+(declare-function cedet-idutils-create/update-database "cedet-idutils")
+
 (defclass ede-locate-idutils (ede-locate-base)
   ()
   "EDE Locator using IDUtils.
@@ -303,6 +309,12 @@ that created this EDE locate object."
 
 ;;; CSCOPE
 ;;
+
+(declare-function cedet-cscope-version-check "cedet-scope")
+(declare-function cedet-cscope-support-for-directory "cedet-scope")
+(declare-function cedet-cscope-expand-filename "cedet-cscope")
+(declare-function cedet-cscope-create/update-database "cedet-cscope")
+
 (defclass ede-locate-cscope (ede-locate-base)
   ()
   "EDE Locator using Cscope.
@@ -315,6 +327,7 @@ file name searching variable `cedet-cscope-file-command'.")
   ;; Get ourselves initialized.
   (call-next-method)
   ;; Do the checks.
+  (require 'cedet-cscope)
   (cedet-cscope-version-check)
   (when (not (cedet-cscope-support-for-directory (oref loc root)))
     (error "Cannot use Cscope in %s"
@@ -324,6 +337,7 @@ file name searching variable `cedet-cscope-file-command'.")
 (defmethod ede-locate-ok-in-project :static ((loc ede-locate-cscope)
 					     root)
   "Is it ok to use this project type under ROOT."
+  (require 'cedet-cscope)
   (cedet-cscope-version-check)
   (when (cedet-cscope-support-for-directory root)
     root))
@@ -334,11 +348,13 @@ file name searching variable `cedet-cscope-file-command'.")
 Searches are done under the current root of the EDE project
 that created this EDE locate object."
   (let ((default-directory (oref loc root)))
+    (require 'cedet-cscope)
     (cedet-cscope-expand-filename filesubstring)))
 
 (defmethod ede-locate-create/update-root-database :STATIC
   ((loc ede-locate-cscope) root)
   "Create or update the GNU Global database for the current project."
+  (require 'cedet-cscope)
   (cedet-cscope-create/update-database root))
 
 (provide 'ede/locate)

@@ -1,6 +1,6 @@
 /* floating point to accurate string
 
-   Copyright (C) 2010-2011 Free Software Foundation, Inc.
+   Copyright (C) 2010-2012 Free Software Foundation, Inc.
 
    This program is free software: you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -58,7 +58,7 @@ enum
     FTOASTR_ALWAYS_SIGNED = 2,
 
     /* Output " " before positive numbers; ignored if
-       FTOASTER_ALWAYS_SIGNED is also given.  */
+       FTOASTR_ALWAYS_SIGNED is also given.  */
     FTOASTR_SPACE_POSITIVE = 4,
 
     /* Pad with zeros instead of spaces; ignored if FTOASTR_LEFT_JUSTIFY

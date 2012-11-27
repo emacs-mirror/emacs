@@ -34,7 +34,7 @@
 
 ;;; Code:
 
-(eval-when-compile (require 'cl))	;and ah ain't kiddin' 'bout it
+(eval-when-compile (require 'cl-lib))
 
 (defvar parse-time-digits (make-vector 256 nil))
 
@@ -43,8 +43,8 @@
 (defvar parse-time-val)
 
 (unless (aref parse-time-digits ?0)
-  (loop for i from ?0 to ?9
-    do (aset parse-time-digits i (- i ?0))))
+  (cl-loop for i from ?0 to ?9
+           do (aset parse-time-digits i (- i ?0))))
 
 (defsubst digit-char-p (char)
   (aref parse-time-digits char))
@@ -92,11 +92,11 @@
 	(index 0)
 	(c nil))
     (while (< index end)
-      (while (and (< index end)		;skip invalid characters
+      (while (and (< index end)		;Skip invalid characters.
 		  (not (setq c (parse-time-string-chars (aref string index)))))
-	(incf index))
+	(cl-incf index))
       (setq start index all-digits (eq c ?0))
-      (while (and (< (incf index) end)	;scan valid characters
+      (while (and (< (cl-incf index) end)	;Scan valid characters.
 		  (setq c (parse-time-string-chars (aref string index))))
 	(setq all-digits (and all-digits (eq c ?0))))
       (if (<= index end)

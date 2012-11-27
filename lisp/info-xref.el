@@ -45,8 +45,7 @@
 ;;; Code:
 
 (require 'info)
-(eval-when-compile
-  (require 'cl)) ;; for `incf'
+(eval-when-compile (require 'cl-lib)) ;; for `incf'
 
 ;;-----------------------------------------------------------------------------
 ;; vaguely generic
@@ -239,11 +238,11 @@ buffer's line and column of point."
 
         ;; if the file exists, try the node
         (cond ((not (cdr (assoc file info-xref-xfile-alist)))
-               (incf info-xref-unavail))
+               (cl-incf info-xref-unavail))
               ((info-xref-goto-node-p node)
-               (incf info-xref-good))
+               (cl-incf info-xref-good))
               (t
-               (incf info-xref-bad)
+               (cl-incf info-xref-bad)
                (info-xref-output-error "no such node: %s" node)))))))
 
 
@@ -447,8 +446,8 @@ and can take a long time."
           (if (eq :tag (cadr link))
               (setq link (cddr link)))
           (if (info-xref-goto-node-p (cadr link))
-              (incf info-xref-good)
-            (incf info-xref-bad)
+              (cl-incf info-xref-good)
+            (cl-incf info-xref-bad)
             ;; symbol-file gives nil for preloaded variables, would need
             ;; to copy what describe-variable does to show the right place
             (info-xref-output "Symbol `%s' (file %s): cannot goto node: %s"

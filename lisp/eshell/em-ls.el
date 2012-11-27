@@ -27,20 +27,21 @@
 ;;; Code:
 
 (eval-when-compile
-  (require 'cl)
+  (require 'cl-lib)
   (require 'eshell))
 (require 'esh-util)
 (require 'esh-opt)
 
 ;;;###autoload
-(eshell-defgroup eshell-ls nil
+(progn
+(defgroup eshell-ls nil
   "This module implements the \"ls\" utility fully in Lisp.  If it is
 passed any unrecognized command switches, it will revert to the
 operating system's version.  This version of \"ls\" uses text
 properties to colorize its output based on the setting of
 `eshell-ls-use-colors'."
   :tag "Implementation of `ls' in Lisp"
-  :group 'eshell-module)
+  :group 'eshell-module))
 
 ;;; User Variables:
 
@@ -311,7 +312,7 @@ instead."
   (let ((insert-func 'eshell-buffered-print)
 	(error-func 'eshell-error)
 	(flush-func 'eshell-flush))
-    (eshell-do-ls args)))
+    (apply 'eshell-do-ls args)))
 
 (put 'eshell/ls 'eshell-no-numeric-conversions t)
 
@@ -462,7 +463,7 @@ name should be displayed as, etc.  Think of it as cooking a FILEINFO."
 	  (progn
 	    (setcdr fileinfo attr)
 	    (setcar fileinfo (eshell-ls-decorated-name fileinfo)))
-	(assert (eq listing-style 'long-listing))
+	(cl-assert (eq listing-style 'long-listing))
 	(setcar fileinfo
 		(concat (eshell-ls-decorated-name fileinfo) " -> "
 			(eshell-ls-decorated-name
@@ -697,7 +698,7 @@ Each member of FILES is either a string or a cons cell of the form
       (let* ((col-vals
 	      (if (eq listing-style 'by-columns)
 		  (eshell-ls-find-column-lengths display-files)
-		(assert (eq listing-style 'by-lines))
+		(cl-assert (eq listing-style 'by-lines))
 		(eshell-ls-find-column-widths display-files)))
 	     (col-widths (car col-vals))
 	     (display-files (cdr col-vals))

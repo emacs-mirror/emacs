@@ -21,9 +21,9 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 
 #include <config.h>
 #include <stdio.h>
-#include <setjmp.h>
 
 #include "lisp.h"
+#include "character.h"
 #include "buffer.h"
 #include "region-cache.h"
 
@@ -131,15 +131,13 @@ static void revalidate_region_cache (struct buffer *buf, struct region_cache *c)
 struct region_cache *
 new_region_cache (void)
 {
-  struct region_cache *c
-    = (struct region_cache *) xmalloc (sizeof (struct region_cache));
+  struct region_cache *c = xmalloc (sizeof *c);
 
   c->gap_start = 0;
   c->gap_len = NEW_CACHE_GAP;
   c->cache_len = 0;
-  c->boundaries =
-    (struct boundary *) xmalloc ((c->gap_len + c->cache_len)
-                                 * sizeof (*c->boundaries));
+  c->boundaries = xmalloc ((c->gap_len + c->cache_len)
+			   * sizeof (*c->boundaries));
 
   c->beg_unchanged = 0;
   c->end_unchanged = 0;
@@ -195,7 +193,7 @@ find_cache_boundary (struct region_cache *c, ptrdiff_t pos)
   if (BOUNDARY_POS (c, low) > pos
       || (low + 1 < c->cache_len
           && BOUNDARY_POS (c, low + 1) <= pos))
-      abort ();
+      emacs_abort ();
 
   return low;
 }
@@ -218,12 +216,12 @@ move_cache_gap (struct region_cache *c, ptrdiff_t pos, ptrdiff_t min_size)
 
   if (pos < 0
       || pos > c->cache_len)
-    abort ();
+    emacs_abort ();
 
   /* We mustn't ever try to put the gap before the dummy start
      boundary.  That must always be start-relative.  */
   if (pos == 0)
-    abort ();
+    emacs_abort ();
 
   /* Need we move the gap right?  */
   while (gap_start < pos)
@@ -246,16 +244,16 @@ move_cache_gap (struct region_cache *c, ptrdiff_t pos, ptrdiff_t min_size)
      when the portion after the gap is smallest.  */
   if (gap_len < min_size)
     {
-      ptrdiff_t i;
+      ptrdiff_t i, nboundaries = c->cache_len;
 
       c->boundaries =
-	xpalloc (c->boundaries, &c->cache_len, min_size, -1,
+	xpalloc (c->boundaries, &nboundaries, min_size - gap_len, -1,
 		 sizeof *c->boundaries);
 
       /* Some systems don't provide a version of the copy routine that
          can be trusted to shift memory upward into an overlapping
          region.  memmove isn't widely available.  */
-      min_size -= gap_len;
+      min_size = nboundaries - c->cache_len - gap_len;
       for (i = c->cache_len - 1; i >= gap_start; i--)
         {
           c->boundaries[i + min_size].pos   = c->boundaries[i + gap_len].pos;
@@ -292,24 +290,24 @@ insert_cache_boundary (struct region_cache *c, ptrdiff_t i, ptrdiff_t pos,
 {
   /* i must be a valid cache index.  */
   if (i < 0 || i > c->cache_len)
-    abort ();
+    emacs_abort ();
 
   /* We must never want to insert something before the dummy first
      boundary.  */
   if (i == 0)
-    abort ();
+    emacs_abort ();
 
   /* We must only be inserting things in order.  */
   if (! (BOUNDARY_POS (c, i - 1) < pos
          && (i == c->cache_len
              || pos < BOUNDARY_POS (c, i))))
-    abort ();
+    emacs_abort ();
 
   /* The value must be different from the ones around it.  However, we
      temporarily create boundaries that establish the same value as
      the subsequent boundary, so we're not going to flag that case.  */
   if (BOUNDARY_VALUE (c, i - 1) == value)
-    abort ();
+    emacs_abort ();
 
   move_cache_gap (c, i, 1);
 
@@ -332,16 +330,16 @@ delete_cache_boundaries (struct region_cache *c,
   /* Gotta be in range.  */
   if (start < 0
       || end > c->cache_len)
-    abort ();
+    emacs_abort ();
 
   /* Gotta be in order.  */
   if (start > end)
-    abort ();
+    emacs_abort ();
 
   /* Can't delete the dummy entry.  */
   if (start == 0
       && end >= 1)
-    abort ();
+    emacs_abort ();
 
   /* Minimize gap motion.  If we're deleting nothing, do nothing.  */
   if (len == 0)
@@ -381,10 +379,10 @@ set_cache_region (struct region_cache *c,
 		  ptrdiff_t start, ptrdiff_t end, int value)
 {
   if (start > end)
-    abort ();
+    emacs_abort ();
   if (start < c->buffer_beg
       || end   > c->buffer_end)
-    abort ();
+    emacs_abort ();
 
   /* Eliminate this case; then we can assume that start and end-1 are
      both the locations of real characters in the buffer.  */

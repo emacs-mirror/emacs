@@ -57,7 +57,7 @@ clipboard as well.
 
 On Nextstep, put TEXT in the pasteboard (`x-select-enable-clipboard'
 is not used)."
-  (cond ((eq system-type 'windows-nt)
+  (cond ((eq (framep (selected-frame)) 'w32)
 	 (if x-select-enable-clipboard
 	     (w32-set-clipboard-data text))
 	 (setq x-last-selected-text text))

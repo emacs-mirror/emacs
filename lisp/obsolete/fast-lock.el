@@ -247,7 +247,7 @@
 ;; User Variables:
 
 (defcustom fast-lock-minimum-size 25600
-  "*Minimum size of a buffer for cached fontification.
+  "Minimum size of a buffer for cached fontification.
 Only buffers more than this can have associated Font Lock cache files saved.
 If nil, means cache files are never created.
 If a list, each element should be a cons pair of the form (MAJOR-MODE . SIZE),
@@ -271,7 +271,7 @@ for buffers in Rmail mode, and size is irrelevant otherwise."
 (defcustom fast-lock-cache-directories '("~/.emacs-flc")
 ; - `internal', keep each file's Font Lock cache file in the same file.
 ; - `external', keep each file's Font Lock cache file in the same directory.
-  "*Directories in which Font Lock cache files are saved and read.
+  "Directories in which Font Lock cache files are saved and read.
 Each item should be either DIR or a cons pair of the form (REGEXP . DIR) where
 DIR is a directory name (relative or absolute) and REGEXP is a regexp.
 
@@ -297,7 +297,7 @@ to avoid the possibility of using the cache of another user."
 (put 'fast-lock-cache-directories 'risky-local-variable t)
 
 (defcustom fast-lock-save-events '(kill-buffer kill-emacs)
-  "*Events under which caches will be saved.
+  "Events under which caches will be saved.
 Valid events are `save-buffer', `kill-buffer' and `kill-emacs'.
 If concurrent editing sessions use the same associated cache file for a file's
 buffer, then you should add `save-buffer' to this list."
@@ -307,14 +307,14 @@ buffer, then you should add `save-buffer' to this list."
   :group 'fast-lock)
 
 (defcustom fast-lock-save-others t
-  "*If non-nil, save Font Lock cache files irrespective of file owner.
+  "If non-nil, save Font Lock cache files irrespective of file owner.
 If nil, means only buffer files known to be owned by you can have associated
 Font Lock cache files saved.  Ownership may be unknown for networked files."
   :type 'boolean
   :group 'fast-lock)
 
 (defcustom fast-lock-verbose font-lock-verbose
-  "*If non-nil, means show status messages for cache processing.
+  "If non-nil, means show status messages for cache processing.
 If a number, only buffers greater than this size have processing messages."
   :type '(choice (const :tag "never" nil)
 		 (other :tag "always" t)

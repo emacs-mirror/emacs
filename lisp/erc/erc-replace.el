@@ -3,7 +3,7 @@
 ;; Copyright (C) 2001-2002, 2004, 2006-2012 Free Software Foundation, Inc.
 
 ;; Author: Andreas Fuchs <asf@void.at>
-;; Maintainer: Mario Lang (mlang@delysid.org)
+;; Maintainer: FSF
 ;; Keywords: IRC, client, Internet
 
 ;; This file is part of GNU Emacs.
@@ -25,7 +25,7 @@
 
 ;; This module allows you to systematically replace text in incoming
 ;; messages.  Load erc-replace, and customize `erc-replace-alist'.
-;; Then add to your ~/.emacs:
+;; Then add to your init file:
 
 ;; (require 'erc-replace)
 ;; (erc-replace-mode 1)

@@ -22,6 +22,7 @@
 ;; along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.
 
 %package semantic-make-by
+%provide semantic/bovine/make-by
 
 %languagemode  makefile-mode
 %start         Makefile

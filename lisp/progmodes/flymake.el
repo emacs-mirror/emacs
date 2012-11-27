@@ -35,7 +35,7 @@
 
 ;;; Code:
 
-(eval-when-compile (require 'cl))
+(eval-when-compile (require 'cl-lib))
 (if (featurep 'xemacs) (require 'overlay))
 
 (defvar flymake-is-running nil
@@ -253,7 +253,7 @@ are the string substitutions (see `format')."
 (make-variable-buffer-local 'flymake-output-residual)
 
 (defgroup flymake nil
-  "A universal on-the-fly syntax checker."
+  "Universal on-the-fly syntax checker."
   :version "23.1"
   :group 'tools)
 
@@ -408,7 +408,7 @@ File contents are not checked."
 This function is used in sort to move most possible file names
 to the beginning of the list (File.h -> File.cpp moved to top)."
   (and (equal (file-name-sans-extension flymake-included-file-name)
-	      (file-name-sans-extension (file-name-nondirectory file-one)))
+	      (file-name-base file-one))
        (not (equal file-one file-two))))
 
 (defcustom flymake-check-file-limit 8192
@@ -684,7 +684,7 @@ It's flymake process filter."
 (defun flymake-er-get-line-err-info-list (err-info)
   (nth 1 err-info))
 
-(defstruct (flymake-ler
+(cl-defstruct (flymake-ler
             (:constructor nil)
             (:constructor flymake-ler-make-ler (file line type text &optional full-file)))
   file line type text full-file)
@@ -763,15 +763,63 @@ line number outside the file being compiled."
   "Determine whether overlay OV was created by flymake."
   (and (overlayp ov) (overlay-get ov 'flymake-overlay)))
 
-(defun flymake-make-overlay (beg end tooltip-text face mouse-face)
+(defcustom flymake-error-bitmap '(exclamation-mark error)
+  "Bitmap (a symbol) used in the fringe for indicating errors.
+The value may also be a list of two elements where the second
+element specifies the face for the bitmap.  For possible bitmap
+symbols, see `fringe-bitmaps'.  See also `flymake-warning-bitmap'.
+
+The option `flymake-fringe-indicator-position' controls how and where
+this is used."
+  :group 'flymake
+  :version "24.3"
+  :type '(choice (symbol :tag "Bitmap")
+                 (list :tag "Bitmap and face"
+                       (symbol :tag "Bitmap")
+                       (face :tag "Face"))))
+
+(defcustom flymake-warning-bitmap 'question-mark
+  "Bitmap (a symbol) used in the fringe for indicating warnings.
+The value may also be a list of two elements where the second
+element specifies the face for the bitmap.  For possible bitmap
+symbols, see `fringe-bitmaps'.  See also `flymake-error-bitmap'.
+
+The option `flymake-fringe-indicator-position' controls how and where
+this is used."
+  :group 'flymake
+  :version "24.3"
+  :type '(choice (symbol :tag "Bitmap")
+                 (list :tag "Bitmap and face"
+                       (symbol :tag "Bitmap")
+                       (face :tag "Face"))))
+
+(defcustom flymake-fringe-indicator-position 'left-fringe
+  "The position to put flymake fringe indicator.
+The value can be nil (do not use indicators), `left-fringe' or `right-fringe'.
+See `flymake-error-bitmap' and `flymake-warning-bitmap'."
+  :group 'flymake
+  :version "24.3"
+  :type '(choice (const left-fringe)
+		 (const right-fringe)
+		 (const :tag "No fringe indicators" nil)))
+
+(defun flymake-make-overlay (beg end tooltip-text face bitmap mouse-face)
   "Allocate a flymake overlay in range BEG and END."
   (when (not (flymake-region-has-flymake-overlays beg end))
-    (let ((ov (make-overlay beg end nil t t)))
+    (let ((ov (make-overlay beg end nil t t))
+	  (fringe (and flymake-fringe-indicator-position
+		       (propertize "!" 'display
+				   (cons flymake-fringe-indicator-position
+					 (if (listp bitmap)
+					     bitmap
+					   (list bitmap)))))))
       (overlay-put ov 'face           face)
       (overlay-put ov 'mouse-face     mouse-face)
       (overlay-put ov 'help-echo      tooltip-text)
       (overlay-put ov 'flymake-overlay  t)
       (overlay-put ov 'priority 100)
+      (overlay-put ov 'evaporate t)
+      (overlay-put ov 'before-string fringe)
       ;;+(flymake-log 3 "created overlay %s" ov)
       ov)
     (flymake-log 3 "created an overlay at (%d-%d)" beg end)))
@@ -796,16 +844,12 @@ Return t if it has at least one flymake overlay, nil if no overlay."
     has-flymake-overlays))
 
 (defface flymake-errline
-  '((((class color) (background dark)) (:background "Firebrick4"))
-    (((class color) (background light)) (:background "LightPink"))
-    (t (:bold t)))
+  '((t :inherit error))
   "Face used for marking error lines."
   :group 'flymake)
 
 (defface flymake-warnline
-  '((((class color) (background dark)) (:background "DarkBlue"))
-    (((class color) (background light)) (:background "LightBlue2"))
-    (t (:bold t)))
+  '((t :inherit warning))
   "Face used for marking warning lines."
   :group 'flymake)
 
@@ -819,7 +863,8 @@ Perhaps use text from LINE-ERR-INFO-LIST to enhance highlighting."
 	 (beg      line-beg)
 	 (end      line-end)
 	 (tooltip-text (flymake-ler-text (nth 0 line-err-info-list)))
-	 (face     nil))
+	 (face     nil)
+	 (bitmap   nil))
 
     (goto-char line-beg)
     (while (looking-at "[ \t]")
@@ -843,10 +888,12 @@ Perhaps use text from LINE-ERR-INFO-LIST to enhance highlighting."
       (setq end (point)))
 
     (if (> (flymake-get-line-err-count line-err-info-list "e") 0)
-	(setq face 'flymake-errline)
-      (setq face 'flymake-warnline))
+	(setq face 'flymake-errline
+	      bitmap flymake-error-bitmap)
+      (setq face 'flymake-warnline
+	    bitmap flymake-warning-bitmap))
 
-    (flymake-make-overlay beg end tooltip-text face nil)))
+    (flymake-make-overlay beg end tooltip-text face bitmap nil)))
 
 (defun flymake-parse-err-lines (err-info-list lines)
   "Parse err LINES, store info in ERR-INFO-LIST."
@@ -1359,8 +1406,12 @@ if ARG is omitted or nil."
       (setq flymake-timer
             (run-at-time nil 1 'flymake-on-timer-event (current-buffer)))
 
-      (when flymake-start-syntax-check-on-find-file
-        (flymake-start-syntax-check)))))
+      (when (and flymake-start-syntax-check-on-find-file
+                 ;; Since we write temp files in current dir, there's no point
+                 ;; trying if the directory is read-only (bug#8954).
+                 (file-writable-p (file-name-directory buffer-file-name)))
+        (with-demoted-errors
+          (flymake-start-syntax-check))))))
 
    ;; Turning the mode OFF.
    (t
@@ -1498,10 +1549,11 @@ if ARG is omitted or nil."
     (error "Invalid file-name"))
   (or prefix
       (setq prefix "flymake"))
-  (let* ((temp-name   (concat (file-name-sans-extension file-name)
-			      "_" prefix
-			      (and (file-name-extension file-name)
-				   (concat "." (file-name-extension file-name))))))
+  (let* ((ext (file-name-extension file-name))
+	 (temp-name (file-truename
+		     (concat (file-name-sans-extension file-name)
+			     "_" prefix
+			     (and ext (concat "." ext))))))
     (flymake-log 3 "create-temp-inplace: file=%s temp=%s" file-name temp-name)
     temp-name))
 

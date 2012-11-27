@@ -92,12 +92,11 @@ PREBUTTONTEXT is some text between PREFIX and the object button."
 				  "Class: ")
     ;; Loop over all the public slots
     (let ((publa (aref cv class-public-a))
-	  (publd (aref cv class-public-d))
 	  )
       (while publa
 	(if (slot-boundp obj (car publa))
-	    (let ((i (class-slot-initarg cl (car publa)))
-		  (v (eieio-oref obj (car publa))))
+	    (let* ((i (class-slot-initarg cl (car publa)))
+		   (v (eieio-oref obj (car publa))))
 	      (data-debug-insert-thing
 	       v prefix (concat
 			 (if i (symbol-name i)
@@ -112,7 +111,7 @@ PREBUTTONTEXT is some text between PREFIX and the object button."
 		     " ")
 	     'font-lock-keyword-face))
 	  )
-	(setq publa (cdr publa) publd (cdr publd))))))
+	(setq publa (cdr publa))))))
 
 ;;; Augment the Data debug thing display list.
 (data-debug-add-specialized-thing (lambda (thing) (object-p thing))
@@ -132,7 +131,7 @@ PREBUTTONTEXT is some text between PREFIX and the object button."
 (defun eieio-debug-methodinvoke (method class)
   "Show the method invocation order for METHOD with CLASS object."
   (interactive "aMethod: \nXClass Expression: ")
-  (let* ((eieio-pre-method-execution-hooks
+  (let* ((eieio-pre-method-execution-functions
 	  (lambda (l) (throw 'moose l) ))
 	 (data
 	  (catch 'moose (eieio-generic-call

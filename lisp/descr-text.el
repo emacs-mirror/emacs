@@ -140,7 +140,7 @@ otherwise."
 
 (defun describe-text-properties-1 (pos output-buffer)
   (let* ((properties (text-properties-at pos))
-	 (overlays (overlays-at pos))
+	 (overlays (overlays-in pos (1+ pos)))
 	 (wid-field (get-char-property pos 'field))
 	 (wid-button (get-char-property pos 'button))
 	 (wid-doc (get-char-property pos 'widget-doc))
@@ -354,7 +354,8 @@ This function is semi-obsolete.  Use `get-char-code-property'."
 ;; Return a string of CH with composition for padding on both sides.
 ;; It is displayed without overlapping with the left/right columns.
 (defsubst describe-char-padded-string (ch)
-  (if (internal-char-font nil ch)
+  (if (and (display-multi-font-p)
+	   (internal-char-font nil ch))
       (compose-string (string ch) 0 1 (format "\t%c\t" ch))
     (string ch)))
 
@@ -533,7 +534,7 @@ relevant to POS."
                        (col      (current-column)))
                   (if (or (/= beg 1)  (/= end (1+ total)))
                       (format "%d of %d (%d%%), restriction: <%d-%d>, column: %d%s"
-                              pos total percent col beg end hscroll)
+                              pos total percent beg end col hscroll)
                     (if (= pos end)
                         (format "%d of %d (EOB), column: %d%s" pos total col hscroll)
                       (format "%d of %d (%d%%), column: %d%s"
@@ -597,7 +598,10 @@ relevant to POS."
                                  `(insert-text-button
                                    ,current-input-method
                                    'type 'help-input-method
-                                   'help-args '(,current-input-method)))))))
+                                   'help-args '(,current-input-method))
+				 "input method")
+			 (list
+			  "type \"C-x 8 RET HEX-CODEPOINT\" or \"C-x 8 RET NAME\"")))))
               ("buffer code"
                ,(if multibyte-p
                     (encoded-string-description
@@ -676,23 +680,17 @@ relevant to POS."
               (when (cadr elt)
                 (insert (format formatter (car elt)))
                 (dolist (clm (cdr elt))
-                  (if (eq (car-safe clm) 'insert-text-button)
-                      (progn (insert " ") (eval clm))
-                    (when (>= (+ (current-column)
-                                 (or (string-match-p "\n" clm)
-                                     (string-width clm))
-                                 1)
-                              (window-width))
-                      (insert "\n")
-                      (indent-to (1+ max-width)))
-                    (unless (zerop (length clm))
-                      (insert " " clm))))
+		  (cond ((eq (car-safe clm) 'insert-text-button)
+			 (insert " ")
+			 (eval clm))
+			((not (zerop (length clm)))
+			 (insert " " clm))))
                 (insert "\n"))))
 
           (when overlays
             (save-excursion
               (goto-char (point-min))
-              (re-search-forward "character:[ \t\n]+")
+              (re-search-forward "(displayed as ")
               (let ((end (+ (point) (length char-description))))
                 (mapc (lambda (props)
                         (let ((o (make-overlay (point) end)))
@@ -806,7 +804,7 @@ relevant to POS."
                             (format "  %s: %s\n" elt val)))))))
 
           (if text-props-desc (insert text-props-desc))
-          (toggle-read-only 1))))))
+          (setq buffer-read-only t))))))
 
 (define-obsolete-function-alias 'describe-char-after 'describe-char "22.1")
 

@@ -39,7 +39,7 @@
 ;; look under one of the level-2 headings, position the cursor on it and do C-c
 ;; C-z again.  This exposes the level-2 body and its level-3 child subheadings
 ;; and narrows the buffer again.  You can keep on zooming in on successive
-;; subheadings as much as you like.  A string in the modeline tells you how
+;; subheadings as much as you like.  A string in the mode line tells you how
 ;; deep you've gone.
 ;;
 ;; When zooming in on a heading you might only want to see the child
@@ -194,7 +194,7 @@
 ;; shows only the subheadings.
 
 ;; 1.2	  28-Jan-94
-;; Fixed a dumb bug - didn't make `foldout-modeline-string' buffer-local :-(
+;; Fixed a dumb bug - didn't make `foldout-mode-line-string' buffer-local :-(
 ;;
 ;; Changed `foldout-exit-fold' to use prefix arg to say how many folds to exit.
 ;; Negative arg means exit but don't hide text.  Zero arg means exit all folds.
@@ -218,15 +218,15 @@
 An end marker of nil means the fold ends after (point-max).")
 (make-variable-buffer-local 'foldout-fold-list)
 
-(defvar foldout-modeline-string nil
-  "Modeline string announcing that we are in an outline fold.")
-(make-variable-buffer-local 'foldout-modeline-string)
+(defvar foldout-mode-line-string nil
+  "Mode line string announcing that we are in an outline fold.")
+(make-variable-buffer-local 'foldout-mode-line-string)
 
 ;; put our minor mode string immediately following outline-minor-mode's
-(or (assq 'foldout-modeline-string minor-mode-alist)
+(or (assq 'foldout-mode-line-string minor-mode-alist)
     (let ((outl-entry (memq (assq 'outline-minor-mode minor-mode-alist)
 			    minor-mode-alist))
-	  (foldout-entry '((foldout-modeline-string foldout-modeline-string))))
+	  (foldout-entry '((foldout-mode-line-string foldout-mode-line-string))))
 
       ;; something's wrong with outline if we can't find it
       (if (null outl-entry)
@@ -296,8 +296,8 @@ optional arg EXPOSURE \(interactively with prefix arg\) changes this:-
       (setq foldout-fold-list (cons (cons start-marker end-marker)
 				    foldout-fold-list))
 
-      ;; update the modeline
-      (foldout-update-modeline)
+      ;; update the mode line
+      (foldout-update-mode-line)
       )))
 
 
@@ -375,8 +375,7 @@ exited and text is left visible."
 
       ;; zap the markers so they don't slow down editing
       (set-marker start-marker nil)
-      (if end-marker (set-marker end-marker nil))
-      )
+      (if end-marker (set-marker end-marker nil)))
 
     ;; narrow to the enclosing fold if there is one
     (if foldout-fold-list
@@ -386,32 +385,29 @@ exited and text is left visible."
 	  (narrow-to-region start-marker
 			    (if end-marker
 				(1- (marker-position end-marker))
-			      (point-max)))
-	  ))
+			      (point-max)))))
     (recenter)
 
-    ;; update the modeline
-    (foldout-update-modeline)
-    ))
+    ;; update the mode line
+    (foldout-update-mode-line)))
 
 
-(defun foldout-update-modeline ()
-  "Set the modeline string to indicate our fold depth."
+(defun foldout-update-mode-line ()
+  "Set the mode line to indicate our fold depth."
   (let ((depth (length foldout-fold-list)))
-    (setq foldout-modeline-string
+    (setq foldout-mode-line-string
 	  (cond
 	   ;; if we're not in a fold, keep quiet
 	   ((zerop depth)
 	    nil)
-	   ;; in outline-minor-mode we're after "Outl:xx" in the modeline
+	   ;; in outline-minor-mode we're after "Outl:xx" in the mode line
 	   (outline-minor-mode
 	    (format ":%d" depth))
 	   ;; otherwise just announce the depth (I guess we're in outline-mode)
 	   ((= depth 1)
 	    " Inside 1 fold")
 	   (t
-	    (format " Inside %d folds" depth))
-	   ))))
+	    (format " Inside %d folds" depth))))))
 
 
 (defun foldout-mouse-zoom (event)

@@ -956,7 +956,7 @@ ELisp variables can be pretty long, so track this one too.")
 ;;
 (add-hook 'lisp-mode-hook 'semantic-default-elisp-setup)
 
-(eval-after-load "semanticdb"
+(eval-after-load "semantic/db"
   '(require 'semantic/db-el)
   )
 

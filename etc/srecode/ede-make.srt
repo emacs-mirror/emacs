@@ -46,4 +46,36 @@ template ede-vars
 {{NAME}}={{#VALUE}} {{VAL}}{{/VALUE}}{{/VARIABLE}}
 ----
 
+;; Some extra templates for Arduino based Makefiles.
+;; Perhaps split this out someday in the future.
+context arduino
+
+template ede-empty :file
+----
+# Automatically Generated {{FILE}} by EDE.
+# For use with Make for an Arduino project.
+#
+# DO NOT MODIFY THIS FILE OR YOUR CHANGES MAY BE LOST.
+# EDE is the Emacs Development Environment.
+# http://cedet.sourceforge.net/ede.shtml
+
+ARDUINO_DIR  = {{ARDUINO_HOME}}
+
+TARGET       = {{TARGET}}
+ARDUINO_LIBS = {{ARDUINO_LIBS}}
+
+MCU          = {{MCU}}
+F_CPU        = {{F_CPU}}
+ARDUINO_PORT = {{PORT}}
+BOARD_TAG    = {{BOARD}}
+
+AVRDUDE_ARD_BAUDRATE = {{AVRDUDE_ARD_BAUDRATE}}
+AVRDUDE_ARD_PROGRAMMER = {{AVRDUDE_ARD_PROGRAMMER}}
+
+include {{ARDUINO_MK}}
+
+# End of Makefile
+----
+
+
 ;; end

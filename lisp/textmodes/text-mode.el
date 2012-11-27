@@ -80,18 +80,29 @@ Turning on Paragraph-Indent Text mode runs the normal hooks
   :abbrev-table nil :syntax-table nil
   (paragraph-indent-minor-mode))
 
-(defun paragraph-indent-minor-mode ()
+(define-minor-mode paragraph-indent-minor-mode
   "Minor mode for editing text, with leading spaces starting a paragraph.
 In this mode, you do not need blank lines between paragraphs when the
 first line of the following paragraph starts with whitespace, as with
 `paragraph-indent-text-mode'.
 Turning on Paragraph-Indent minor mode runs the normal hook
 `paragraph-indent-text-mode-hook'."
-  (interactive)
-  (set (make-local-variable 'paragraph-start)
-       (concat "[ \t\n\f]\\|" paragraph-start))
-  (set (make-local-variable 'indent-line-function) 'indent-to-left-margin)
-  (run-hooks 'paragraph-indent-text-mode-hook))
+  :initial-value nil
+  ;; Change the definition of a paragraph start.
+  (let ((ps-re "[ \t\n\f]\\|"))
+    (if (eq t (compare-strings ps-re nil nil
+                               paragraph-start nil (length ps-re)))
+        (if (not paragraph-indent-minor-mode)
+            (set (make-local-variable 'paragraph-start)
+                 (substring paragraph-start (length ps-re))))
+      (if paragraph-indent-minor-mode
+          (set (make-local-variable 'paragraph-start)
+               (concat ps-re paragraph-start)))))
+  ;; Change the indentation function.
+  (if paragraph-indent-minor-mode
+      (set (make-local-variable 'indent-line-function) 'indent-to-left-margin)
+    (if (eq indent-line-function 'indent-to-left-margin)
+        (set (make-local-variable 'indent-line-function) 'indent-region))))
 
 (defalias 'indented-text-mode 'text-mode)
 

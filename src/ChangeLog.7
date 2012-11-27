@@ -2070,7 +2070,7 @@
 	(sys_select): Ignore children dead children with pending input.
 	Delay sending SIGCHLD until all output has been read.
 	(sys_kill): Sleep to allow focus change events to propagate.
-	Use TerminateProcess on Win95.
+	Use TerminateProcess on Windows 95.
 	(int_from_hex, enum_locale_fn, Fw32_get_valid_locale_ids):
 	New functions.
 	(Vw32_valid_locale_ids): New variable.
@@ -5719,13 +5719,13 @@
 	Loop over handles round robin to ensure fairness.
 	(sys_kill): Send ctrl-break and ctrl-c keystrokes to subprocesses
 	on SIGINT if not sharing consoles, otherwise generate ctrl-break event.
-	On other termination signals, send WM_QUIT message to Win95 apps
+	On other termination signals, send WM_QUIT message to Windows 95 apps
 	and WM_CLOSE to NT apps.
 	(syms_of_ntproc): Intern new symbols.  defsubr new functions.
 	DEFVAR new variables.
 
-	* w32term.c (SIF_*): Win95 macros defined for NT.
-	(struct tagSCROLLINFO): Win95 struct defined for NT.
+	* w32term.c (SIF_*): Windows 95 macros defined for NT.
+	(struct tagSCROLLINFO): Windows 95 struct defined for NT.
 	(vertical_scroll_bar_min_handle, vertical_scroll_bar_top_border)
 	(vertical_scroll_bar_bottom_border, last_scroll_bar_drag_pos)
 	(Vw32_gab_focus_on_raise, Vw32_capslock_is_shiftlock):

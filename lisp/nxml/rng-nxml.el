@@ -54,7 +54,7 @@
   :group 'relax-ng)
 
 (defvar rng-complete-end-tags-after-< t
-  "*Non-nil means immediately after < complete on end-tag names.
+  "Non-nil means immediately after < complete on end-tag names.
 Complete on start-tag names regardless.")
 
 (defvar rng-nxml-easy-menu

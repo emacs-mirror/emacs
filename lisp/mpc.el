@@ -1,6 +1,6 @@
 ;;; mpc.el --- A client for the Music Player Daemon   -*- coding: utf-8; lexical-binding: t -*-
 
-;; Copyright (C) 2006-2012  Free Software Foundation, Inc.
+;; Copyright (C) 2006-2012 Free Software Foundation, Inc.
 
 ;; Author: Stefan Monnier <monnier@iro.umontreal.ca>
 ;; Keywords: multimedia
@@ -92,10 +92,10 @@
 ;; UI-commands       : mpc-
 ;; internal          : mpc--
 
-(eval-when-compile (require 'cl))
+(eval-when-compile (require 'cl-lib))
 
 (defgroup mpc ()
-  "A Client for the Music Player Daemon."
+  "Client for the Music Player Daemon (mpd)."
   :prefix "mpc-"
   :group 'multimedia
   :group 'applications)
@@ -184,10 +184,7 @@ numerically rather than lexicographically."
                     (abs res))
                 res))))))))
 
-(defun mpc-string-prefix-p (str1 str2)
-  ;; FIXME: copied from pcvs-util.el.
-  "Tell whether STR1 is a prefix of STR2."
-  (eq t (compare-strings str2 nil (length str1) str1 nil nil)))
+(define-obsolete-function-alias 'mpc-string-prefix-p 'string-prefix-p "24.3")
 
 ;; This can speed up mpc--song-search significantly.  The table may grow
 ;; very large, tho.  It's only bounded by the fact that it gets flushed
@@ -202,9 +199,10 @@ numerically rather than lexicographically."
 (defcustom mpc-host
   (concat (or (getenv "MPD_HOST") "localhost")
           (if (getenv "MPD_PORT") (concat ":" (getenv "MPD_PORT"))))
-  "Host (and port) where the Music Player Daemon is running.
-The format is \"HOST\" or \"HOST:PORT\" where PORT defaults to 6600
-and HOST defaults to localhost."
+  "Host (and port) where the Music Player Daemon is running.  The
+format is \"HOST\", \"HOST:PORT\", \"PASSWORD@HOST\" or
+\"PASSWORD@HOST:PORT\" where PASSWORD defaults to no password, PORT
+defaults to 6600 and HOST defaults to localhost."
   :type 'string)
 
 (defvar mpc-proc nil)
@@ -255,20 +253,30 @@ and HOST defaults to localhost."
                 (funcall callback)))))))))
 
 (defun mpc--proc-connect (host)
-  (mpc--debug "Connecting to %s..." host)
-  (with-current-buffer (get-buffer-create (format " *mpc-%s*" host))
-    ;; (pop-to-buffer (current-buffer))
-    (let (proc)
-      (while (and (setq proc (get-buffer-process (current-buffer)))
-                  (progn ;; (debug)
-                         (delete-process proc)))))
-    (erase-buffer)
-    (let ((port 6600))
-      (when (string-match ":[^.]+\\'" host)
-        (setq port (substring host (1+ (match-beginning 0))))
-        (setq host (substring host 0 (match-beginning 0)))
-        (unless (string-match "[^[:digit:]]" port)
-          (setq port (string-to-number port))))
+  (let ((port 6600)
+        pass)
+
+    (when (string-match "\\`\\(?:\\(.*\\)@\\)?\\(.*?\\)\\(?::\\(.*\\)\\)?\\'"
+                        host)
+      (let ((v (match-string 1 host)))
+        (when (and (stringp v) (not (string= "" v)))
+          (setq pass v)))
+      (let ((v (match-string 3 host)))
+        (setq host (match-string 2 host))
+        (when (and (stringp v) (not (string= "" v)))
+          (setq port
+                (if (string-match "[^[:digit:]]" v)
+                    (string-to-number v)
+                  v)))))
+
+    (mpc--debug "Connecting to %s:%s..." host port)
+    (with-current-buffer (get-buffer-create (format " *mpc-%s:%s*" host port))
+      ;; (pop-to-buffer (current-buffer))
+      (let (proc)
+        (while (and (setq proc (get-buffer-process (current-buffer)))
+                    (progn ;; (debug)
+                      (delete-process proc)))))
+      (erase-buffer)
       (let* ((coding-system-for-read 'utf-8-unix)
              (coding-system-for-write 'utf-8-unix)
              (proc (open-network-stream "MPC" (current-buffer) host port)))
@@ -285,7 +293,9 @@ and HOST defaults to localhost."
         (set-process-query-on-exit-flag proc nil)
         ;; This may be called within a process filter ;-(
         (with-local-quit (mpc-proc-sync proc))
-        proc))))
+        (setq mpc-proc proc)
+        (when pass
+          (mpc-proc-cmd (list "password" pass) nil))))))
 
 (defun mpc--proc-quote-string (s)
   (if (numberp s) (number-to-string s)
@@ -295,7 +305,7 @@ and HOST defaults to localhost."
 (defconst mpc--proc-alist-to-alists-starters '(file directory))
 
 (defun mpc--proc-alist-to-alists (alist)
-  (assert (or (null alist)
+  (cl-assert (or (null alist)
               (memq (caar alist) mpc--proc-alist-to-alists-starters)))
   (let ((starter (caar alist))
         (alists ())
@@ -309,11 +319,11 @@ and HOST defaults to localhost."
     (nreverse alists)))
 
 (defun mpc-proc ()
-  (or (and mpc-proc
-           (buffer-live-p (process-buffer mpc-proc))
-           (not (memq (process-status mpc-proc) '(closed)))
-           mpc-proc)
-      (setq mpc-proc (mpc--proc-connect mpc-host))))
+  (unless (and mpc-proc
+               (buffer-live-p (process-buffer mpc-proc))
+               (not (memq (process-status mpc-proc) '(closed))))
+    (mpc--proc-connect mpc-host))
+  mpc-proc)
 
 (defun mpc-proc-check (proc)
   (let ((error-text (process-get proc 'mpc-proc-error)))
@@ -409,7 +419,7 @@ which will be concatenated with proper quoting before passing them to MPD."
                             (funcall callback (prog1 (mpc-proc-buf-to-alist
                                                       (current-buffer))
                                                 (set-buffer buf))))))
-    ;; (lexical-let ((res nil))
+    ;; (let ((res nil))
     ;;   (mpc-proc-cmd-to-alist cmd (lambda (alist) (setq res alist)))
     ;;   (mpc-proc-sync)
     ;;   res)
@@ -460,7 +470,7 @@ to call FUN for any change whatsoever.")
   (let ((old-status mpc-status))
     ;; Update the alist.
     (setq mpc-status (mpc-proc-buf-to-alist))
-    (assert mpc-status)
+    (cl-assert mpc-status)
     (unless (equal old-status mpc-status)
       ;; Run the relevant refresher functions.
       (dolist (pair mpc-status-callbacks)
@@ -547,7 +557,7 @@ Any call to `mpc-status-refresh' may cause it to be restarted."
 ;; (defun mpc--queue-pop ()
 ;;   (when mpc-queue                       ;Can be nil if out of sync.
 ;;     (let ((song (car mpc-queue)))
-;;       (assert song)
+;;       (cl-assert song)
 ;;       (push (if (and (consp song) (cddr song))
 ;;                 ;; The queue's first element is itself a list of
 ;;                 ;; songs, where the first element isn't itself a song
@@ -556,7 +566,7 @@ Any call to `mpc-status-refresh' may cause it to be restarted."
 ;;               (prog1 (if (consp song) (cadr song) song)
 ;;                 (setq mpc-queue (cdr mpc-queue))))
 ;;             mpc-queue-back)
-;;       (assert (stringp (car mpc-queue-back))))))
+;;       (cl-assert (stringp (car mpc-queue-back))))))
 
 ;; (defun mpc--queue-refresh ()
 ;;   ;; Maintain the queue.
@@ -614,7 +624,7 @@ The songs are returned as alists."
                        (i 0))
                    (mapcar (lambda (s)
                              (prog1 (cons (cons 'Pos (number-to-string i)) s)
-                               (incf i)))
+                               (cl-incf i)))
                            l)))
                 ((eq tag 'Search)
                  (mpc-proc-buf-to-alists
@@ -830,8 +840,8 @@ If PLAYLIST is t or nil or missing, use the main playlist."
                          (list "move" song-pos dest-pos))
                   (if (< song-pos dest-pos)
                       ;; This move has shifted dest-pos by 1.
-                      (decf dest-pos))
-                  (incf i)))
+                      (cl-decf dest-pos))
+                  (cl-incf i)))
               ;; Sort them from last to first, so the renumbering
               ;; caused by the earlier deletions affect
               ;; later ones a bit less.
@@ -975,8 +985,8 @@ If PLAYLIST is t or nil or missing, use the main playlist."
                (right-align (match-end 1))
                (text
                 (if (eq info 'self) (symbol-name tag)
-                  (case tag
-                    ((Time Duration)
+                  (pcase tag
+                    ((or `Time `Duration)
                      (let ((time (cdr (or (assq 'time info) (assq 'Time info)))))
                        (setq pred (list nil)) ;Just assume it's never eq.
                        (when time
@@ -984,7 +994,7 @@ If PLAYLIST is t or nil or missing, use the main playlist."
                                                     (string-match ":" time))
                                                (substring time (match-end 0))
                                              time)))))
-                    (Cover
+                    (`Cover
                      (let* ((dir (file-name-directory (cdr (assq 'file info))))
                             (cover (concat dir "cover.jpg"))
                             (file (condition-case err
@@ -1007,7 +1017,7 @@ If PLAYLIST is t or nil or missing, use the main playlist."
                              (mpc-tempfiles-add image tempfile)))
                          (setq size nil)
                          (propertize dir 'display image))))
-                    (t (let ((val (cdr (assq tag info))))
+                    (_ (let ((val (cdr (assq tag info))))
                          ;; For Streaming URLs, there's no other info
                          ;; than the URL in `file'.  Pretend it's in `Title'.
                          (when (and (null val) (eq tag 'Title))
@@ -1225,7 +1235,7 @@ If PLAYLIST is t or nil or missing, use the main playlist."
   (beginning-of-line))
 
 (defun mpc-select-make-overlay ()
-  (assert (not (get-char-property (point) 'mpc-select)))
+  (cl-assert (not (get-char-property (point) 'mpc-select)))
   (let ((ol (make-overlay
              (line-beginning-position) (line-beginning-position 2))))
     (overlay-put ol 'mpc-select t)
@@ -1261,7 +1271,7 @@ If PLAYLIST is t or nil or missing, use the main playlist."
                    (> (overlay-end ol) (point)))
               (delete-overlay ol)
             (push ol ols)))
-        (assert (= (1+ (length ols)) (length mpc-select)))
+        (cl-assert (= (1+ (length ols)) (length mpc-select)))
         (setq mpc-select ols)))
      ;; We're trying to select *ALL* additionally to others.
      ((mpc-tagbrowser-all-p) nil)
@@ -1289,12 +1299,12 @@ If PLAYLIST is t or nil or missing, use the main playlist."
           (while (and (zerop (forward-line 1))
                       (get-char-property (point) 'mpc-select))
             (setq end (1+ (point)))
-            (incf after))
+            (cl-incf after))
           (goto-char mid)
           (while (and (zerop (forward-line -1))
                       (get-char-property (point) 'mpc-select))
             (setq start (point))
-            (incf before))
+            (cl-incf before))
           (if (and (= after 0) (= before 0))
               ;; Shortening an already minimum-size region: do nothing.
               nil
@@ -1318,13 +1328,13 @@ If PLAYLIST is t or nil or missing, use the main playlist."
               (start (line-beginning-position)))
           (while (and (zerop (forward-line 1))
                       (not (get-char-property (point) 'mpc-select)))
-            (incf count))
+            (cl-incf count))
           (unless (get-char-property (point) 'mpc-select)
             (setq count nil))
           (goto-char start)
           (while (and (zerop (forward-line -1))
                       (not (get-char-property (point) 'mpc-select)))
-            (incf before))
+            (cl-incf before))
           (unless (get-char-property (point) 'mpc-select)
             (setq before nil))
           (when (and before (or (null count) (< before count)))
@@ -1433,7 +1443,7 @@ when constructing the set of constraints."
   (mpc-select-save
     (widen)
     (goto-char (point-min))
-    (assert (looking-at (regexp-quote mpc-tagbrowser-all-name)))
+    (cl-assert (looking-at (regexp-quote mpc-tagbrowser-all-name)))
     (forward-line 1)
     (let ((inhibit-read-only t))
       (delete-region (point) (point-max))
@@ -1690,7 +1700,7 @@ Return non-nil if a selection was deactivated."
         (process-put (mpc-proc) prop
                      (delq nil
                            (mapcar (lambda (x)
-                                     (if (mpc-string-prefix-p name x)
+                                     (if (string-prefix-p name x)
                                          nil x))
                                    new)))))
     (mpc-tagbrowser-refresh)))
@@ -1919,7 +1929,7 @@ This is used so that they can be compared with `eq', which is needed for
                                                 (cdr (assq 'file song1))
                                                 (cdr (assq 'file song2)))))
                                       (and (integerp cmp) (< cmp 0)))))))
-              (incf totaltime (string-to-number (or (cdr (assq 'Time song)) "0")))
+              (cl-incf totaltime (string-to-number (or (cdr (assq 'Time song)) "0")))
               (mpc-format mpc-songs-format song)
               (delete-char (- (skip-chars-backward " "))) ;Remove trailing space.
               (insert "\n")
@@ -2043,7 +2053,7 @@ This is used so that they can be compared with `eq', which is needed for
                                        (- (point) (car prev)))
                                     next prev)
                               (or next prev)))))
-              (assert sn)
+              (cl-assert sn)
               (mpc-proc-cmd (concat "play " sn))))))))))
 
 (define-derived-mode mpc-songs-mode mpc-mode "MPC-song"
@@ -2158,12 +2168,12 @@ This is used so that they can be compared with `eq', which is needed for
     (dolist (song (car context))
       (and (zerop (forward-line -1))
            (eq (get-text-property (point) 'mpc-file) song)
-           (incf count)))
+           (cl-incf count)))
     (goto-char pos)
     (dolist (song (cdr context))
       (and (zerop (forward-line 1))
            (eq (get-text-property (point) 'mpc-file) song)
-           (incf count)))
+           (cl-incf count)))
     count))
 
 (defun mpc-songpointer-refresh-hairy ()
@@ -2204,13 +2214,13 @@ This is used so that they can be compared with `eq', which is needed for
                ((< score context-size) nil)
                (t
                 ;; Score is equal and increasing context might help: try it.
-                (incf context-size)
+                (cl-incf context-size)
                 (let ((new-context
                        (mpc-songpointer-context context-size plbuf)))
                   (if (null new-context)
                       ;; There isn't more context: choose one arbitrarily
                       ;; and keep looking for a better match elsewhere.
-                      (decf context-size)
+                      (cl-decf context-size)
                     (setq context new-context)
                     (setq score (mpc-songpointer-score context pos))
                     (save-excursion

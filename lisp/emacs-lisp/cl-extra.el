@@ -1,6 +1,6 @@
-;;; cl-extra.el --- Common Lisp features, part 2
+;;; cl-extra.el --- Common Lisp features, part 2  -*- lexical-binding: t -*-
 
-;; Copyright (C) 1993, 2000-2012  Free Software Foundation, Inc.
+;; Copyright (C) 1993, 2000-2012 Free Software Foundation, Inc.
 
 ;; Author: Dave Gillespie <daveg@synaptics.com>
 ;; Keywords: extensions
@@ -37,12 +37,12 @@
 
 ;;; Code:
 
-(require 'cl)
+(require 'cl-lib)
 
 ;;; Type coercion.
 
 ;;;###autoload
-(defun coerce (x type)
+(defun cl-coerce (x type)
   "Coerce OBJECT to type TYPE.
 TYPE is a Common Lisp type specifier.
 \n(fn OBJECT TYPE)"
@@ -51,16 +51,16 @@ TYPE is a Common Lisp type specifier.
 	((eq type 'string) (if (stringp x) x (concat x)))
 	((eq type 'array) (if (arrayp x) x (vconcat x)))
 	((and (eq type 'character) (stringp x) (= (length x) 1)) (aref x 0))
-	((and (eq type 'character) (symbolp x)) (coerce (symbol-name x) type))
+	((and (eq type 'character) (symbolp x)) (cl-coerce (symbol-name x) type))
 	((eq type 'float) (float x))
-	((typep x type) x)
+	((cl-typep x type) x)
 	(t (error "Can't coerce %s to type %s" x type))))
 
 
 ;;; Predicates.
 
 ;;;###autoload
-(defun equalp (x y)
+(defun cl-equalp (x y)
   "Return t if two Lisp objects have similar structures and contents.
 This is like `equal', except that it accepts numerically equal
 numbers of different types (float vs. integer), and also compares
@@ -73,14 +73,14 @@ strings case-insensitively."
 	((numberp x)
 	 (and (numberp y) (= x y)))
 	((consp x)
-	 (while (and (consp x) (consp y) (equalp (car x) (car y)))
+	 (while (and (consp x) (consp y) (cl-equalp (car x) (car y)))
 	   (setq x (cdr x) y (cdr y)))
-	 (and (not (consp x)) (equalp x y)))
+	 (and (not (consp x)) (cl-equalp x y)))
 	((vectorp x)
 	 (and (vectorp y) (= (length x) (length y))
 	      (let ((i (length x)))
 		(while (and (>= (setq i (1- i)) 0)
-			    (equalp (aref x i) (aref y i))))
+			    (cl-equalp (aref x i) (aref y i))))
 		(< i 0))))
 	(t (equal x y))))
 
@@ -88,7 +88,7 @@ strings case-insensitively."
 ;;; Control structures.
 
 ;;;###autoload
-(defun cl-mapcar-many (cl-func cl-seqs)
+(defun cl--mapcar-many (cl-func cl-seqs)
   (if (cdr (cdr cl-seqs))
       (let* ((cl-res nil)
 	     (cl-n (apply 'min (mapcar 'length cl-seqs)))
@@ -115,23 +115,23 @@ strings case-insensitively."
 	    (cl-i -1))
 	(while (< (setq cl-i (1+ cl-i)) cl-n)
 	  (push (funcall cl-func
-			    (if (consp cl-x) (pop cl-x) (aref cl-x cl-i))
-			    (if (consp cl-y) (pop cl-y) (aref cl-y cl-i)))
-		   cl-res)))
+                         (if (consp cl-x) (pop cl-x) (aref cl-x cl-i))
+                         (if (consp cl-y) (pop cl-y) (aref cl-y cl-i)))
+                cl-res)))
       (nreverse cl-res))))
 
 ;;;###autoload
-(defun map (cl-type cl-func cl-seq &rest cl-rest)
+(defun cl-map (cl-type cl-func cl-seq &rest cl-rest)
   "Map a FUNCTION across one or more SEQUENCEs, returning a sequence.
 TYPE is the sequence type to return.
 \n(fn TYPE FUNCTION SEQUENCE...)"
-  (let ((cl-res (apply 'mapcar* cl-func cl-seq cl-rest)))
-    (and cl-type (coerce cl-res cl-type))))
+  (let ((cl-res (apply 'cl-mapcar cl-func cl-seq cl-rest)))
+    (and cl-type (cl-coerce cl-res cl-type))))
 
 ;;;###autoload
-(defun maplist (cl-func cl-list &rest cl-rest)
+(defun cl-maplist (cl-func cl-list &rest cl-rest)
   "Map FUNCTION to each sublist of LIST or LISTs.
-Like `mapcar', except applies to lists and their cdr's rather than to
+Like `cl-mapcar', except applies to lists and their cdr's rather than to
 the elements themselves.
 \n(fn FUNCTION LIST...)"
   (if cl-rest
@@ -149,44 +149,45 @@ the elements themselves.
 	(setq cl-list (cdr cl-list)))
       (nreverse cl-res))))
 
+;;;###autoload
 (defun cl-mapc (cl-func cl-seq &rest cl-rest)
-  "Like `mapcar', but does not accumulate values returned by the function.
+  "Like `cl-mapcar', but does not accumulate values returned by the function.
 \n(fn FUNCTION SEQUENCE...)"
   (if cl-rest
-      (progn (apply 'map nil cl-func cl-seq cl-rest)
+      (progn (apply 'cl-map nil cl-func cl-seq cl-rest)
 	     cl-seq)
     (mapc cl-func cl-seq)))
 
 ;;;###autoload
-(defun mapl (cl-func cl-list &rest cl-rest)
-  "Like `maplist', but does not accumulate values returned by the function.
+(defun cl-mapl (cl-func cl-list &rest cl-rest)
+  "Like `cl-maplist', but does not accumulate values returned by the function.
 \n(fn FUNCTION LIST...)"
   (if cl-rest
-      (apply 'maplist cl-func cl-list cl-rest)
+      (apply 'cl-maplist cl-func cl-list cl-rest)
     (let ((cl-p cl-list))
       (while cl-p (funcall cl-func cl-p) (setq cl-p (cdr cl-p)))))
   cl-list)
 
 ;;;###autoload
-(defun mapcan (cl-func cl-seq &rest cl-rest)
-  "Like `mapcar', but nconc's together the values returned by the function.
+(defun cl-mapcan (cl-func cl-seq &rest cl-rest)
+  "Like `cl-mapcar', but nconc's together the values returned by the function.
 \n(fn FUNCTION SEQUENCE...)"
-  (apply 'nconc (apply 'mapcar* cl-func cl-seq cl-rest)))
+  (apply 'nconc (apply 'cl-mapcar cl-func cl-seq cl-rest)))
 
 ;;;###autoload
-(defun mapcon (cl-func cl-list &rest cl-rest)
-  "Like `maplist', but nconc's together the values returned by the function.
+(defun cl-mapcon (cl-func cl-list &rest cl-rest)
+  "Like `cl-maplist', but nconc's together the values returned by the function.
 \n(fn FUNCTION LIST...)"
-  (apply 'nconc (apply 'maplist cl-func cl-list cl-rest)))
+  (apply 'nconc (apply 'cl-maplist cl-func cl-list cl-rest)))
 
 ;;;###autoload
-(defun some (cl-pred cl-seq &rest cl-rest)
+(defun cl-some (cl-pred cl-seq &rest cl-rest)
   "Return true if PREDICATE is true of any element of SEQ or SEQs.
 If so, return the true (non-nil) value returned by PREDICATE.
 \n(fn PREDICATE SEQ...)"
   (if (or cl-rest (nlistp cl-seq))
       (catch 'cl-some
-	(apply 'map nil
+	(apply 'cl-map nil
 	       (function (lambda (&rest cl-x)
 			   (let ((cl-res (apply cl-pred cl-x)))
 			     (if cl-res (throw 'cl-some cl-res)))))
@@ -196,12 +197,12 @@ If so, return the true (non-nil) value returned by PREDICATE.
       cl-x)))
 
 ;;;###autoload
-(defun every (cl-pred cl-seq &rest cl-rest)
+(defun cl-every (cl-pred cl-seq &rest cl-rest)
   "Return true if PREDICATE is true of every element of SEQ or SEQs.
 \n(fn PREDICATE SEQ...)"
   (if (or cl-rest (nlistp cl-seq))
       (catch 'cl-every
-	(apply 'map nil
+	(apply 'cl-map nil
 	       (function (lambda (&rest cl-x)
 			   (or (apply cl-pred cl-x) (throw 'cl-every nil))))
 	       cl-seq cl-rest) t)
@@ -210,23 +211,19 @@ If so, return the true (non-nil) value returned by PREDICATE.
     (null cl-seq)))
 
 ;;;###autoload
-(defun notany (cl-pred cl-seq &rest cl-rest)
+(defun cl-notany (cl-pred cl-seq &rest cl-rest)
   "Return true if PREDICATE is false of every element of SEQ or SEQs.
 \n(fn PREDICATE SEQ...)"
-  (not (apply 'some cl-pred cl-seq cl-rest)))
+  (not (apply 'cl-some cl-pred cl-seq cl-rest)))
 
 ;;;###autoload
-(defun notevery (cl-pred cl-seq &rest cl-rest)
+(defun cl-notevery (cl-pred cl-seq &rest cl-rest)
   "Return true if PREDICATE is false of some element of SEQ or SEQs.
 \n(fn PREDICATE SEQ...)"
-  (not (apply 'every cl-pred cl-seq cl-rest)))
-
-;;; Support for `loop'.
-;;;###autoload
-(defalias 'cl-map-keymap 'map-keymap)
+  (not (apply 'cl-every cl-pred cl-seq cl-rest)))
 
 ;;;###autoload
-(defun cl-map-keymap-recursively (cl-func-rec cl-map &optional cl-base)
+(defun cl--map-keymap-recursively (cl-func-rec cl-map &optional cl-base)
   (or cl-base
       (setq cl-base (copy-sequence [0])))
   (map-keymap
@@ -234,14 +231,14 @@ If so, return the true (non-nil) value returned by PREDICATE.
     (lambda (cl-key cl-bind)
       (aset cl-base (1- (length cl-base)) cl-key)
       (if (keymapp cl-bind)
-	  (cl-map-keymap-recursively
+	  (cl--map-keymap-recursively
 	   cl-func-rec cl-bind
 	   (vconcat cl-base (list 0)))
 	(funcall cl-func-rec cl-base cl-bind))))
    cl-map))
 
 ;;;###autoload
-(defun cl-map-intervals (cl-func &optional cl-what cl-prop cl-start cl-end)
+(defun cl--map-intervals (cl-func &optional cl-what cl-prop cl-start cl-end)
   (or cl-what (setq cl-what (current-buffer)))
   (if (bufferp cl-what)
       (let (cl-mark cl-mark2 (cl-next t) cl-next2)
@@ -269,7 +266,7 @@ If so, return the true (non-nil) value returned by PREDICATE.
 	(setq cl-start cl-next)))))
 
 ;;;###autoload
-(defun cl-map-overlays (cl-func &optional cl-buffer cl-start cl-end cl-arg)
+(defun cl--map-overlays (cl-func &optional cl-buffer cl-start cl-end cl-arg)
   (or cl-buffer (setq cl-buffer (current-buffer)))
   (if (fboundp 'overlay-lists)
 
@@ -311,36 +308,17 @@ If so, return the true (non-nil) value returned by PREDICATE.
 
 ;;; Support for `setf'.
 ;;;###autoload
-(defun cl-set-frame-visible-p (frame val)
+(defun cl--set-frame-visible-p (frame val)
   (cond ((null val) (make-frame-invisible frame))
 	((eq val 'icon) (iconify-frame frame))
 	(t (make-frame-visible frame)))
   val)
 
-;;; Support for `progv'.
-(defvar cl-progv-save)
-;;;###autoload
-(defun cl-progv-before (syms values)
-  (while syms
-    (push (if (boundp (car syms))
-		 (cons (car syms) (symbol-value (car syms)))
-	       (car syms)) cl-progv-save)
-    (if values
-	(set (pop syms) (pop values))
-      (makunbound (pop syms)))))
-
-(defun cl-progv-after ()
-  (while cl-progv-save
-    (if (consp (car cl-progv-save))
-	(set (car (car cl-progv-save)) (cdr (car cl-progv-save)))
-      (makunbound (car cl-progv-save)))
-    (pop cl-progv-save)))
-
 
 ;;; Numbers.
 
 ;;;###autoload
-(defun gcd (&rest args)
+(defun cl-gcd (&rest args)
   "Return the greatest common divisor of the arguments."
   (let ((a (abs (or (pop args) 0))))
     (while args
@@ -349,18 +327,18 @@ If so, return the true (non-nil) value returned by PREDICATE.
     a))
 
 ;;;###autoload
-(defun lcm (&rest args)
+(defun cl-lcm (&rest args)
   "Return the least common multiple of the arguments."
   (if (memq 0 args)
       0
     (let ((a (abs (or (pop args) 1))))
       (while args
 	(let ((b (abs (pop args))))
-	  (setq a (* (/ a (gcd a b)) b))))
+	  (setq a (* (/ a (cl-gcd a b)) b))))
       a)))
 
 ;;;###autoload
-(defun isqrt (x)
+(defun cl-isqrt (x)
   "Return the integer square root of the argument."
   (if (and (integerp x) (> x 0))
       (let ((g (cond ((<= x 100) 10) ((<= x 10000) 100)
@@ -372,35 +350,35 @@ If so, return the true (non-nil) value returned by PREDICATE.
     (if (eq x 0) 0 (signal 'arith-error nil))))
 
 ;;;###autoload
-(defun floor* (x &optional y)
+(defun cl-floor (x &optional y)
   "Return a list of the floor of X and the fractional part of X.
 With two arguments, return floor and remainder of their quotient."
   (let ((q (floor x y)))
     (list q (- x (if y (* y q) q)))))
 
 ;;;###autoload
-(defun ceiling* (x &optional y)
+(defun cl-ceiling (x &optional y)
   "Return a list of the ceiling of X and the fractional part of X.
 With two arguments, return ceiling and remainder of their quotient."
-  (let ((res (floor* x y)))
+  (let ((res (cl-floor x y)))
     (if (= (car (cdr res)) 0) res
       (list (1+ (car res)) (- (car (cdr res)) (or y 1))))))
 
 ;;;###autoload
-(defun truncate* (x &optional y)
+(defun cl-truncate (x &optional y)
   "Return a list of the integer part of X and the fractional part of X.
 With two arguments, return truncation and remainder of their quotient."
   (if (eq (>= x 0) (or (null y) (>= y 0)))
-      (floor* x y) (ceiling* x y)))
+      (cl-floor x y) (cl-ceiling x y)))
 
 ;;;###autoload
-(defun round* (x &optional y)
+(defun cl-round (x &optional y)
   "Return a list of X rounded to the nearest integer and the remainder.
 With two arguments, return rounding and remainder of their quotient."
   (if y
       (if (and (integerp x) (integerp y))
 	  (let* ((hy (/ y 2))
-		 (res (floor* (+ x hy) y)))
+		 (res (cl-floor (+ x hy) y)))
 	    (if (and (= (car (cdr res)) 0)
 		     (= (+ hy hy) y)
 		     (/= (% (car res) 2) 0))
@@ -413,29 +391,28 @@ With two arguments, return rounding and remainder of their quotient."
 	(list q (- x q))))))
 
 ;;;###autoload
-(defun mod* (x y)
+(defun cl-mod (x y)
   "The remainder of X divided by Y, with the same sign as Y."
-  (nth 1 (floor* x y)))
+  (nth 1 (cl-floor x y)))
 
 ;;;###autoload
-(defun rem* (x y)
+(defun cl-rem (x y)
   "The remainder of X divided by Y, with the same sign as X."
-  (nth 1 (truncate* x y)))
+  (nth 1 (cl-truncate x y)))
 
 ;;;###autoload
-(defun signum (x)
+(defun cl-signum (x)
   "Return 1 if X is positive, -1 if negative, 0 if zero."
   (cond ((> x 0) 1) ((< x 0) -1) (t 0)))
 
 
 ;; Random numbers.
 
-(defvar *random-state*)
 ;;;###autoload
-(defun random* (lim &optional state)
+(defun cl-random (lim &optional state)
   "Return a random nonnegative number less than LIM, an integer or float.
 Optional second arg STATE is a random-state object."
-  (or state (setq state *random-state*))
+  (or state (setq state cl--random-state))
   ;; Inspired by "ran3" from Numerical Recipes.  Additive congruential method.
   (let ((vec (aref state 3)))
     (if (integerp vec)
@@ -444,29 +421,29 @@ Optional second arg STATE is a random-state object."
 	  (aset vec 0 j)
 	  (while (> (setq i (% (+ i 21) 55)) 0)
 	    (aset vec i (setq j (prog1 k (setq k (- j k))))))
-	  (while (< (setq i (1+ i)) 200) (random* 2 state))))
+	  (while (< (setq i (1+ i)) 200) (cl-random 2 state))))
     (let* ((i (aset state 1 (% (1+ (aref state 1)) 55)))
 	   (j (aset state 2 (% (1+ (aref state 2)) 55)))
 	   (n (logand 8388607 (aset vec i (- (aref vec i) (aref vec j))))))
       (if (integerp lim)
 	  (if (<= lim 512) (% n lim)
-	    (if (> lim 8388607) (setq n (+ (lsh n 9) (random* 512 state))))
+	    (if (> lim 8388607) (setq n (+ (lsh n 9) (cl-random 512 state))))
 	    (let ((mask 1023))
 	      (while (< mask (1- lim)) (setq mask (1+ (+ mask mask))))
-	      (if (< (setq n (logand n mask)) lim) n (random* lim state))))
+	      (if (< (setq n (logand n mask)) lim) n (cl-random lim state))))
 	(* (/ n '8388608e0) lim)))))
 
 ;;;###autoload
-(defun make-random-state (&optional state)
-  "Return a copy of random-state STATE, or of `*random-state*' if omitted.
+(defun cl-make-random-state (&optional state)
+  "Return a copy of random-state STATE, or of the internal state if omitted.
 If STATE is t, return a new state object seeded from the time of day."
-  (cond ((null state) (make-random-state *random-state*))
-	((vectorp state) (cl-copy-tree state t))
+  (cond ((null state) (cl-make-random-state cl--random-state))
+	((vectorp state) (copy-tree state t))
 	((integerp state) (vector 'cl-random-state-tag -1 30 state))
-	(t (make-random-state (cl-random-time)))))
+	(t (cl-make-random-state (cl-random-time)))))
 
 ;;;###autoload
-(defun random-state-p (object)
+(defun cl-random-state-p (object)
   "Return t if OBJECT is a random-state object."
   (and (vectorp object) (= (length object) 4)
        (eq (aref object 0) 'cl-random-state-tag)))
@@ -474,8 +451,8 @@ If STATE is t, return a new state object seeded from the time of day."
 
 ;; Implementation limits.
 
-(defun cl-finite-do (func a b)
-  (condition-case err
+(defun cl--finite-do (func a b)
+  (condition-case _
       (let ((res (funcall func a b)))   ; check for IEEE infinity
 	(and (numberp res) (/= res (/ res 2)) res))
     (arith-error nil)))
@@ -483,51 +460,55 @@ If STATE is t, return a new state object seeded from the time of day."
 ;;;###autoload
 (defun cl-float-limits ()
   "Initialize the Common Lisp floating-point parameters.
-This sets the values of: `most-positive-float', `most-negative-float',
-`least-positive-float', `least-negative-float', `float-epsilon',
-`float-negative-epsilon', `least-positive-normalized-float', and
-`least-negative-normalized-float'."
-  (or most-positive-float (not (numberp '2e1))
+This sets the values of: `cl-most-positive-float', `cl-most-negative-float',
+`cl-least-positive-float', `cl-least-negative-float', `cl-float-epsilon',
+`cl-float-negative-epsilon', `cl-least-positive-normalized-float', and
+`cl-least-negative-normalized-float'."
+  (or cl-most-positive-float (not (numberp '2e1))
       (let ((x '2e0) y z)
 	;; Find maximum exponent (first two loops are optimizations)
-	(while (cl-finite-do '* x x) (setq x (* x x)))
-	(while (cl-finite-do '* x (/ x 2)) (setq x (* x (/ x 2))))
-	(while (cl-finite-do '+ x x) (setq x (+ x x)))
+	(while (cl--finite-do '* x x) (setq x (* x x)))
+	(while (cl--finite-do '* x (/ x 2)) (setq x (* x (/ x 2))))
+	(while (cl--finite-do '+ x x) (setq x (+ x x)))
 	(setq z x y (/ x 2))
-	;; Now fill in 1's in the mantissa.
-	(while (and (cl-finite-do '+ x y) (/= (+ x y) x))
+	;; Now cl-fill in 1's in the mantissa.
+	(while (and (cl--finite-do '+ x y) (/= (+ x y) x))
 	  (setq x (+ x y) y (/ y 2)))
-	(setq most-positive-float x
-	      most-negative-float (- x))
+	(setq cl-most-positive-float x
+	      cl-most-negative-float (- x))
 	;; Divide down until mantissa starts rounding.
 	(setq x (/ x z) y (/ 16 z) x (* x y))
-	(while (condition-case err (and (= x (* (/ x 2) 2)) (> (/ y 2) 0))
+	(while (condition-case _ (and (= x (* (/ x 2) 2)) (> (/ y 2) 0))
 		 (arith-error nil))
 	  (setq x (/ x 2) y (/ y 2)))
-	(setq least-positive-normalized-float y
-	      least-negative-normalized-float (- y))
+	(setq cl-least-positive-normalized-float y
+	      cl-least-negative-normalized-float (- y))
 	;; Divide down until value underflows to zero.
 	(setq x (/ 1 z) y x)
-	(while (condition-case err (> (/ x 2) 0) (arith-error nil))
+	(while (condition-case _ (> (/ x 2) 0) (arith-error nil))
 	  (setq x (/ x 2)))
-	(setq least-positive-float x
-	      least-negative-float (- x))
+	(setq cl-least-positive-float x
+	      cl-least-negative-float (- x))
 	(setq x '1e0)
 	(while (/= (+ '1e0 x) '1e0) (setq x (/ x 2)))
-	(setq float-epsilon (* x 2))
+	(setq cl-float-epsilon (* x 2))
 	(setq x '1e0)
 	(while (/= (- '1e0 x) '1e0) (setq x (/ x 2)))
-	(setq float-negative-epsilon (* x 2))))
+	(setq cl-float-negative-epsilon (* x 2))))
   nil)
 
 
 ;;; Sequence functions.
 
 ;;;###autoload
-(defun subseq (seq start &optional end)
+(defun cl-subseq (seq start &optional end)
   "Return the subsequence of SEQ from START to END.
 If END is omitted, it defaults to the length of the sequence.
 If START or END is negative, it counts from the end."
+  (declare (gv-setter
+            (lambda (new)
+              `(progn (cl-replace ,seq ,new :start1 ,start :end1 ,end)
+                      ,new))))
   (if (stringp seq) (substring seq start end)
     (let (len)
       (and end (< end 0) (setq end (+ end (setq len (length seq)))))
@@ -550,7 +531,7 @@ If START or END is negative, it counts from the end."
 	       res))))))
 
 ;;;###autoload
-(defun concatenate (type &rest seqs)
+(defun cl-concatenate (type &rest seqs)
   "Concatenate, into a sequence of type TYPE, the argument SEQUENCEs.
 \n(fn TYPE SEQUENCE...)"
   (cond ((eq type 'vector) (apply 'vconcat seqs))
@@ -562,17 +543,17 @@ If START or END is negative, it counts from the end."
 ;;; List functions.
 
 ;;;###autoload
-(defun revappend (x y)
+(defun cl-revappend (x y)
   "Equivalent to (append (reverse X) Y)."
   (nconc (reverse x) y))
 
 ;;;###autoload
-(defun nreconc (x y)
+(defun cl-nreconc (x y)
   "Equivalent to (nconc (nreverse X) Y)."
   (nconc (nreverse x) y))
 
 ;;;###autoload
-(defun list-length (x)
+(defun cl-list-length (x)
   "Return the length of list X.  Return nil if list is circular."
   (let ((n 0) (fast x) (slow x))
     (while (and (cdr fast) (not (and (eq fast slow) (> n 0))))
@@ -580,51 +561,62 @@ If START or END is negative, it counts from the end."
     (if fast (if (cdr fast) nil (1+ n)) n)))
 
 ;;;###autoload
-(defun tailp (sublist list)
+(defun cl-tailp (sublist list)
   "Return true if SUBLIST is a tail of LIST."
   (while (and (consp list) (not (eq sublist list)))
     (setq list (cdr list)))
   (if (numberp sublist) (equal sublist list) (eq sublist list)))
 
-(defalias 'cl-copy-tree 'copy-tree)
-
-
 ;;; Property lists.
 
 ;;;###autoload
-(defun get* (sym tag &optional def)    ; See compiler macro in cl-macs.el
+(defun cl-get (sym tag &optional def)
   "Return the value of SYMBOL's PROPNAME property, or DEFAULT if none.
 \n(fn SYMBOL PROPNAME &optional DEFAULT)"
+  (declare (compiler-macro cl--compiler-macro-get)
+           (gv-setter (lambda (store) `(put ,sym ,tag ,store))))
   (or (get sym tag)
       (and def
+           ;; Make sure `def' is really absent as opposed to set to nil.
 	   (let ((plist (symbol-plist sym)))
 	     (while (and plist (not (eq (car plist) tag)))
 	       (setq plist (cdr (cdr plist))))
 	     (if plist (car (cdr plist)) def)))))
+(autoload 'cl--compiler-macro-get "cl-macs")
 
 ;;;###autoload
-(defun getf (plist tag &optional def)
+(defun cl-getf (plist tag &optional def)
   "Search PROPLIST for property PROPNAME; return its value or DEFAULT.
 PROPLIST is a list of the sort returned by `symbol-plist'.
 \n(fn PROPLIST PROPNAME &optional DEFAULT)"
+  (declare (gv-expander
+            (lambda (do)
+              (gv-letplace (getter setter) plist
+                (macroexp-let2 nil k tag
+                  (macroexp-let2 nil d def
+                    (funcall do `(cl-getf ,getter ,k ,d)
+                             (lambda (v)
+                               (funcall setter
+                                        `(cl--set-getf ,getter ,k ,v))))))))))
   (setplist '--cl-getf-symbol-- plist)
   (or (get '--cl-getf-symbol-- tag)
-      ;; Originally we called get* here,
-      ;; but that fails, because get* has a compiler macro
+      ;; Originally we called cl-get here,
+      ;; but that fails, because cl-get has a compiler macro
       ;; definition that uses getf!
       (when def
+        ;; Make sure `def' is really absent as opposed to set to nil.
 	(while (and plist (not (eq (car plist) tag)))
 	  (setq plist (cdr (cdr plist))))
 	(if plist (car (cdr plist)) def))))
 
 ;;;###autoload
-(defun cl-set-getf (plist tag val)
+(defun cl--set-getf (plist tag val)
   (let ((p plist))
     (while (and p (not (eq (car p) tag))) (setq p (cdr (cdr p))))
-    (if p (progn (setcar (cdr p) val) plist) (list* tag val plist))))
+    (if p (progn (setcar (cdr p) val) plist) (cl-list* tag val plist))))
 
 ;;;###autoload
-(defun cl-do-remf (plist tag)
+(defun cl--do-remf (plist tag)
   (let ((p (cdr plist)))
     (while (and (cdr p) (not (eq (car (cdr p)) tag))) (setq p (cdr (cdr p))))
     (and (cdr p) (progn (setcdr p (cdr (cdr (cdr p)))) t))))
@@ -636,41 +628,7 @@ PROPLIST is a list of the sort returned by `symbol-plist'.
   (let ((plist (symbol-plist sym)))
     (if (and plist (eq tag (car plist)))
 	(progn (setplist sym (cdr (cdr plist))) t)
-      (cl-do-remf plist tag))))
-;;;###autoload
-(defalias 'remprop 'cl-remprop)
-
-
-
-;;; Hash tables.
-;; This is just kept for compatibility with code byte-compiled by Emacs-20.
-
-;; No idea if this might still be needed.
-(defun cl-not-hash-table (x &optional y &rest z)
-  (signal 'wrong-type-argument (list 'cl-hash-table-p (or y x))))
-
-(defvar cl-builtin-gethash (symbol-function 'gethash))
-(defvar cl-builtin-remhash (symbol-function 'remhash))
-(defvar cl-builtin-clrhash (symbol-function 'clrhash))
-(defvar cl-builtin-maphash (symbol-function 'maphash))
-
-;;;###autoload
-(defalias 'cl-gethash 'gethash)
-;;;###autoload
-(defalias 'cl-puthash 'puthash)
-;;;###autoload
-(defalias 'cl-remhash 'remhash)
-;;;###autoload
-(defalias 'cl-clrhash 'clrhash)
-;;;###autoload
-(defalias 'cl-maphash 'maphash)
-;; These three actually didn't exist in Emacs-20.
-;;;###autoload
-(defalias 'cl-make-hash-table 'make-hash-table)
-;;;###autoload
-(defalias 'cl-hash-table-p 'hash-table-p)
-;;;###autoload
-(defalias 'cl-hash-table-count 'hash-table-count)
+      (cl--do-remf plist tag))))
 
 ;;; Some debugging aids.
 
@@ -686,15 +644,15 @@ PROPLIST is a list of the sort returned by `symbol-plist'.
       (forward-sexp)
       (delete-char 1))
     (goto-char (1+ pt))
-    (cl-do-prettyprint)))
+    (cl--do-prettyprint)))
 
-(defun cl-do-prettyprint ()
+(defun cl--do-prettyprint ()
   (skip-chars-forward " ")
   (if (looking-at "(")
       (let ((skip (or (looking-at "((") (looking-at "(prog")
 		      (looking-at "(unwind-protect ")
 		      (looking-at "(function (")
-		      (looking-at "(cl-block-wrapper ")))
+		      (looking-at "(cl--block-wrapper ")))
 	    (two (or (looking-at "(defun ") (looking-at "(defmacro ")))
 	    (let (or (looking-at "(let\\*? ") (looking-at "(while ")))
 	    (set (looking-at "(p?set[qf] ")))
@@ -704,104 +662,27 @@ PROPLIST is a list of the sort returned by `symbol-plist'.
 		  (and (>= (current-column) 78) (progn (backward-sexp) t))))
 	    (let ((nl t))
 	      (forward-char 1)
-	      (cl-do-prettyprint)
-	      (or skip (looking-at ")") (cl-do-prettyprint))
-	      (or (not two) (looking-at ")") (cl-do-prettyprint))
+	      (cl--do-prettyprint)
+	      (or skip (looking-at ")") (cl--do-prettyprint))
+	      (or (not two) (looking-at ")") (cl--do-prettyprint))
 	      (while (not (looking-at ")"))
 		(if set (setq nl (not nl)))
 		(if nl (insert "\n"))
 		(lisp-indent-line)
-		(cl-do-prettyprint))
+		(cl--do-prettyprint))
 	      (forward-char 1))))
     (forward-sexp)))
 
-(defvar cl-macroexpand-cmacs nil)
-(defvar cl-closure-vars nil)
-
-;;;###autoload
-(defun cl-macroexpand-all (form &optional env)
-  "Expand all macro calls through a Lisp FORM.
-This also does some trivial optimizations to make the form prettier."
-  (while (or (not (eq form (setq form (macroexpand form env))))
-	     (and cl-macroexpand-cmacs
-		  (not (eq form (setq form (compiler-macroexpand form)))))))
-  (cond ((not (consp form)) form)
-	((memq (car form) '(let let*))
-	 (if (null (nth 1 form))
-	     (cl-macroexpand-all (cons 'progn (cddr form)) env)
-	   (let ((letf nil) (res nil) (lets (cadr form)))
-	     (while lets
-	       (push (if (consp (car lets))
-			    (let ((exp (cl-macroexpand-all (caar lets) env)))
-			      (or (symbolp exp) (setq letf t))
-			      (cons exp (cl-macroexpand-body (cdar lets) env)))
-			  (let ((exp (cl-macroexpand-all (car lets) env)))
-			    (if (symbolp exp) exp
-			      (setq letf t) (list exp nil)))) res)
-	       (setq lets (cdr lets)))
-	     (list* (if letf (if (eq (car form) 'let) 'letf 'letf*) (car form))
-		    (nreverse res) (cl-macroexpand-body (cddr form) env)))))
-	((eq (car form) 'cond)
-	 (cons (car form)
-	       (mapcar (function (lambda (x) (cl-macroexpand-body x env)))
-		       (cdr form))))
-	((eq (car form) 'condition-case)
-	 (list* (car form) (nth 1 form) (cl-macroexpand-all (nth 2 form) env)
-		(mapcar (function
-			 (lambda (x)
-			   (cons (car x) (cl-macroexpand-body (cdr x) env))))
-			(cdddr form))))
-	((memq (car form) '(quote function))
-	 (if (eq (car-safe (nth 1 form)) 'lambda)
-	     (let ((body (cl-macroexpand-body (cddadr form) env)))
-	       (if (and cl-closure-vars (eq (car form) 'function)
-			(cl-expr-contains-any body cl-closure-vars))
-		   (let* ((new (mapcar 'gensym cl-closure-vars))
-			  (sub (pairlis cl-closure-vars new)) (decls nil))
-		     (while (or (stringp (car body))
-				(eq (car-safe (car body)) 'interactive))
-		       (push (list 'quote (pop body)) decls))
-		     (put (car (last cl-closure-vars)) 'used t)
-                     `(list 'lambda '(&rest --cl-rest--)
-                            ,@(sublis sub (nreverse decls))
-                            (list 'apply
-                                  (list 'quote
-                                        #'(lambda ,(append new (cadadr form))
-                                            ,@(sublis sub body)))
-                                  ,@(nconc (mapcar (lambda (x) `(list 'quote ,x))
-                                                   cl-closure-vars)
-                                           '((quote --cl-rest--))))))
-		 (list (car form) (list* 'lambda (cadadr form) body))))
-	   (let ((found (assq (cadr form) env)))
-	     (if (and found (ignore-errors
-			      (eq (cadr (caddr found)) 'cl-labels-args)))
-		 (cl-macroexpand-all (cadr (caddr (cadddr found))) env)
-	       form))))
-	((memq (car form) '(defun defmacro))
-	 (list* (car form) (nth 1 form) (cl-macroexpand-body (cddr form) env)))
-	((and (eq (car form) 'progn) (not (cddr form)))
-	 (cl-macroexpand-all (nth 1 form) env))
-	((eq (car form) 'setq)
-	 (let* ((args (cl-macroexpand-body (cdr form) env)) (p args))
-	   (while (and p (symbolp (car p))) (setq p (cddr p)))
-	   (if p (cl-macroexpand-all (cons 'setf args)) (cons 'setq args))))
-        ((consp (car form))
-         (cl-macroexpand-all (list* 'funcall
-                                    (list 'function (car form))
-                                    (cdr form))
-                             env))
-	(t (cons (car form) (cl-macroexpand-body (cdr form) env)))))
-
-(defun cl-macroexpand-body (body &optional env)
-  (mapcar (function (lambda (x) (cl-macroexpand-all x env))) body))
-
 ;;;###autoload
 (defun cl-prettyexpand (form &optional full)
+  "Expand macros in FORM and insert the pretty-printed result.
+Optional argument FULL non-nil means to expand all macros,
+including `cl-block' and `cl-eval-when'."
   (message "Expanding...")
-  (let ((cl-macroexpand-cmacs full) (cl-compiling-file full)
+  (let ((cl--compiling-file full)
 	(byte-compile-macro-environment nil))
-    (setq form (cl-macroexpand-all form
-				   (and (not full) '((block) (eval-when)))))
+    (setq form (macroexpand-all form
+                                (and (not full) '((cl-block) (cl-eval-when)))))
     (message "Formatting...")
     (prog1 (cl-prettyprint form)
       (message ""))))
@@ -812,7 +693,6 @@ This also does some trivial optimizations to make the form prettier."
 
 ;; Local variables:
 ;; byte-compile-dynamic: t
-;; byte-compile-warnings: (not cl-functions)
 ;; generated-autoload-file: "cl-loaddefs.el"
 ;; End:
 

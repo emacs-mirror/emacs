@@ -1,9 +1,8 @@
 @c -*-texinfo-*-
 @c This is part of the GNU Emacs Lisp Reference Manual.
-@c Copyright (C) 1990-1995, 1998-1999, 2001-2012  Free Software Foundation, Inc.
+@c Copyright (C) 1990-1995, 1998-1999, 2001-2012 Free Software Foundation, Inc.
 @c See the file elisp.texi for copying conditions.
-@setfilename ../../info/lists
-@node Lists, Sequences Arrays Vectors, Strings and Characters, Top
+@node Lists
 @chapter Lists
 @cindex lists
 @cindex element (of list)
@@ -235,13 +234,15 @@ This is in contrast to @code{cdr}, which signals an error if
 @end defun
 
 @defmac pop listname
-This macro is a way of examining the @sc{car} of a list,
-and taking it off the list, all at once.
+This macro provides a convenient way to examine the @sc{car} of a
+list, and take it off the list, all at once.  It operates on the list
+stored in @var{listname}.  It removes the first element from the list,
+saves the @sc{cdr} into @var{listname}, then returns the removed
+element.
 
-It operates on the list which is stored in the symbol @var{listname}.
-It removes this element from the list by setting @var{listname}
-to the @sc{cdr} of its old value---but it also returns the @sc{car}
-of that list, which is the element being removed.
+In the simplest case, @var{listname} is an unquoted symbol naming a
+list; in that case, this macro is equivalent to @w{@code{(prog1
+(car listname) (setq listname (cdr listname)))}}.
 
 @example
 x
@@ -252,8 +253,11 @@ x
      @result{} (b c)
 @end example
 
-@noindent
-For the @code{pop} macro, which removes an element from a list,
+More generally, @var{listname} can be a generalized variable.  In that
+case, this macro saves into @var{listname} using @code{setf}.
+@xref{Generalized Variables}.
+
+For the @code{push} macro, which adds an element to a list,
 @xref{List Variables}.
 @end defmac
 
@@ -370,7 +374,6 @@ making a copy of the list.
 @end defun
 
 @node Building Lists
-@comment  node-name,  next,  previous,  up
 @section Building Cons Cells and Lists
 @cindex cons cells
 @cindex building lists
@@ -681,9 +684,12 @@ Some examples:
   These functions, and one macro, provide convenient ways
 to modify a list which is stored in a variable.
 
-@defmac push newelt listname
-This macro provides an alternative way to write
-@code{(setq @var{listname} (cons @var{newelt} @var{listname}))}.
+@defmac push element listname
+This macro creates a new list whose @sc{car} is @var{element} and
+whose @sc{cdr} is the list specified by @var{listname}, and saves that
+list in @var{listname}.  In the simplest case, @var{listname} is an
+unquoted symbol naming a list, and this macro is equivalent
+to @w{@code{(setq @var{listname} (cons @var{element} @var{listname}))}}.
 
 @example
 (setq l '(a b))
@@ -694,7 +700,11 @@ l
      @result{} (c a b)
 @end example
 
-@noindent
+More generally, @code{listname} can be a generalized variable.  In
+that case, this macro does the equivalent of @w{@code{(setf
+@var{listname} (cons @var{element} @var{listname}))}}.
+@xref{Generalized Variables}.
+
 For the @code{pop} macro, which removes the first element from a list,
 @xref{List Elements}.
 @end defmac
@@ -1268,8 +1278,9 @@ functions for sets include @code{memq} and @code{delq}, and their
 @quotation
 @b{Common Lisp note:} Common Lisp has functions @code{union} (which
 avoids duplicate elements) and @code{intersection} for set operations.
-Although standard GNU Emacs Lisp does not have them, the @file{cl}
-library provides versions.  @xref{Top,, Overview, cl, Common Lisp Extensions}.
+Although standard GNU Emacs Lisp does not have them, the @file{cl-lib}
+library provides versions.
+@xref{Lists as Sets,,, cl, Common Lisp Extensions}.
 @end quotation
 
 @defun memq object list
@@ -1295,14 +1306,19 @@ compare @var{object} against the elements of the list.  For example:
 @defun delq object list
 @cindex deleting list elements
 This function destructively removes all elements @code{eq} to
-@var{object} from @var{list}.  The letter @samp{q} in @code{delq} says
-that it uses @code{eq} to compare @var{object} against the elements of
-the list, like @code{memq} and @code{remq}.
+@var{object} from @var{list}, and returns the resulting list.  The
+letter @samp{q} in @code{delq} says that it uses @code{eq} to compare
+@var{object} against the elements of the list, like @code{memq} and
+@code{remq}.
+
+Typically, when you invoke @code{delq}, you should use the return
+value by assigning it to the variable which held the original list.
+The reason for this is explained below.
 @end defun
 
-When @code{delq} deletes elements from the front of the list, it does so
-simply by advancing down the list and returning a sublist that starts
-after those elements:
+The @code{delq} function deletes elements from the front of the list
+by simply advancing down the list, and returning a sublist that starts
+after those elements.  For example:
 
 @example
 @group
@@ -1310,6 +1326,7 @@ after those elements:
 @end group
 @end example
 
+@noindent
 When an element to be deleted appears in the middle of the list,
 removing it involves changing the @sc{cdr}s (@pxref{Setcdr}).
 
@@ -1434,12 +1451,15 @@ Compare this with @code{memq}:
 @end defun
 
 @defun delete object sequence
-If @code{sequence} is a list, this function destructively removes all
-elements @code{equal} to @var{object} from @var{sequence}.  For lists,
-@code{delete} is to @code{delq} as @code{member} is to @code{memq}: it
-uses @code{equal} to compare elements with @var{object}, like
-@code{member}; when it finds an element that matches, it cuts the
-element out just as @code{delq} would.
+This function removes all elements @code{equal} to @var{object} from
+@var{sequence}, and returns the resulting sequence.
+
+If @var{sequence} is a list, @code{delete} is to @code{delq} as
+@code{member} is to @code{memq}: it uses @code{equal} to compare
+elements with @var{object}, like @code{member}; when it finds an
+element that matches, it cuts the element out just as @code{delq}
+would.  As with @code{delq}, you should typically use the return value
+by assigning it to the variable which held the original list.
 
 If @code{sequence} is a vector or string, @code{delete} returns a copy
 of @code{sequence} with all elements @code{equal} to @code{object}

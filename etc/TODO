@@ -1,6 +1,6 @@
 Emacs TODO List                                                   -*-outline-*-
 
-Copyright (C) 2001-2012  Free Software Foundation, Inc.
+Copyright (C) 2001-2012 Free Software Foundation, Inc.
 See the end of the file for license conditions.
 
 
@@ -18,13 +18,12 @@ to the FSF.
   "which form of concurrency" we'll want.
 ** Overhaul of customize: sounds wonderful.
 ** better support for dynamic embedded graphics: I like this idea (my
-  mpc.el code could use it for the volume widget), tho I wonder if the
+  mpc.el code could use it for the volume widget), though I wonder if the
   resulting efficiency will be sufficient.
 ** Spread Semantic.
 ** Improve the "code snippets" support: consolidate skeleton.el, tempo.el,
   and expand.el (any other?) and then advertise/use/improve it.
 ** Improve VC: yes, there's a lot of work to be done there :-(
-  And most of it could/should make it into Emacs-23.3.
 
 ** Random things that cross my mind right now that I'd like to see (some of
 them from my local hacks), but it's not obvious at all whether they'll
@@ -433,18 +432,13 @@ http://lists.gnu.org/archive/html/emacs-devel/2008-02/msg02234.html
 ** Highlight rectangles (`mouse-track-rectangle-p' in XEmacs).  Already in CUA,
   but it's a valuable feature worth making more general.
 
-** Provide MIME support for Rmail using the Gnus MIME library.  [Maybe
-  not now feasible, given Gnus maintenance decisions.  fx looked at
-  this and can say where some of the problems are.]
-
 ** Eliminate the storm of warnings concerning char/unsigned char
   mismatches that we get with GCC 4.x and proprietary compilers on
   various systems.  They make it difficult to spot the important warnings.
 
 ** Fix anything necessary to use `long long' EMACS_INTs with GCC.
 
-** Split out parts of lisp.h [and generate Makefile dependencies automatically.]
-[the last bit is done, see DEPFLAGS etc in src/Makefile.in ]
+** Split out parts of lisp.h.
 
 ** Update the FAQ.
 
@@ -528,15 +522,15 @@ http://lists.gnu.org/archive/html/emacs-devel/2008-02/msg02234.html
   artist, ansi-color, array, battery, calculator, cdl, cmuscheme,
   completion, cua, delim-col, dirtrack, double, echistory, elide-head,
   easymenu, expand, flow-ctrl, format [format-alist],
-  generic/generic-x [various modes], kermit, log-edit, ledit
-  [obsolete?], makesum, midnight [other than in Kill Buffer node],
+  generic/generic-x [various modes], kermit, log-edit,
+  makesum, midnight [other than in Kill Buffer node],
   mouse-copy [?], mouse-drag, mouse-sel, net-utils, rcompile,
   snmp-mode [?], soundex [should be interactive?], strokes [start from
   the web page], talk, thingatpt [interactive functions?], type-break,
-  vcursor, xscheme, zone-mode [?], mlconvert [?], iso-cvt, iso-swed,
-  swedish, feedmail [?], uce, bruce, gametree, meese, page-ext,
+  vcursor, xscheme, zone-mode [?], mlconvert [?], iso-cvt,
+  feedmail [?], uce, gametree, meese, page-ext,
   refbib, refer, scribe, sgml-mode, spell, texinfo, underline,
-  cmacexp, hideif, mantemp [obsolete?], pcomplete, assoc, xml,
+  cmacexp, hideif, mantemp [obsolete?], pcomplete, xml,
   cvs-status (should be described in PCL-CVS manual); other progmodes,
   probably in separate manual.
 
@@ -619,6 +613,15 @@ http://lists.gnu.org/archive/html/emacs-devel/2008-02/msg02234.html
 ** NeXTstep port
 
 *** Bugs
+
+**** The event loop relies on polling and that hurts performance.
+     A better strategy is to have the select part in its own thread and let
+     the main thread communicate with that thread (see how Gdk does it for
+     inspiration).  A problem is that redraw don't happen during resize,
+     because we can't break out from the NSapp loop during resize.
+     There is a special trick to detect mouse press in the lower right
+     corner and track mouse movements, but this does not work well, and is
+     not scalable to the new Lion "resize on every window edge" behavior.
 
 **** (mouse-avoidance-mode 'banish) then minimize Emacs, will pop window back
 up on top of all others
@@ -1217,6 +1220,8 @@ systems for HTML/XML files automatically."
    this.]
 
 ** Rewrite make-docfile to be clean and maintainable.
+   It might be better to replace it with Lisp, using the byte compiler.
+   http://lists.gnu.org/archive/html/emacs-devel/2012-06/msg00037.html
 
 ** Add an inferior-comint-minor-mode to capture the common set of operations
    offered by major modes that offer an associated inferior
@@ -1224,17 +1229,19 @@ systems for HTML/XML files automatically."
    For use by sml-mode, python-mode, tex-mode, scheme-mode, lisp-mode,
    haskell-mode, tuareg-mode, ...
 
-** Make SYNC_INPUT the default. [true since 2008-03-11]
-   All loops using immediate_quit need to be checked to ensure that
-   C-g can interrupt them, in case of an infinite loop.  Once we
-   switch to using SYNC_INPUT, we can remove the BLOCK_INPUTs in the
-   allocation functions (allocate_string etc.) without worrying about
-   data munging.
-
 ** Add "link" button class
    Add a standard button-class named "link", and make all other link-like
    button classes inherit from it.  Set the default face of the "link" button
    class to the standard "link" face.
+
+* Wishlist items:
+
+** Maybe replace etags.c with a Lisp implementation.
+http://lists.gnu.org/archive/html/emacs-devel/2012-06/msg00354.html
+
+** Maybe replace lib-src/rcs2log with a Lisp implementation.
+It wouldn't have to be a complete replacement, just enough
+for vc-rcs-update-changelog.
 
 * Other known bugs:
 

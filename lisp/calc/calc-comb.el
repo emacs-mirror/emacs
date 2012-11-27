@@ -77,7 +77,7 @@
      4877 4889 4903 4909 4919 4931 4933 4937 4943 4951 4957 4967 4969 4973
      4987 4993 4999 5003])
 
-;; The variable math-prime-factors-finished is set by calcFunc-prfac to 
+;; The variable math-prime-factors-finished is set by calcFunc-prfac to
 ;; indicate whether factoring is complete, and used by calcFunc-factors,
 ;; calcFunc-totient and calcFunc-moebius.
 (defvar math-prime-factors-finished)
@@ -510,8 +510,8 @@
       (while (<= (length math-stirling-local-cache) n)
 	(let ((i (1- (length math-stirling-local-cache)))
 	      row)
-	  (setq math-stirling-local-cache 
-                (vconcat math-stirling-local-cache 
+	  (setq math-stirling-local-cache
+                (vconcat math-stirling-local-cache
                          (make-vector (length math-stirling-local-cache) nil)))
 	  (aset math-stirling-cache k math-stirling-local-cache)
 	  (while (< (setq i (1+ i)) (length math-stirling-local-cache))
@@ -572,7 +572,6 @@
 	(let ((i 200))
 	  (while (> (setq i (1- i)) 0)
 	    (math-random-base))))
-    (random t)
     (setq var-RandSeed nil
 	  math-random-cache nil
 	  math-random-shift -4)  ; assume RAND_MAX >= 16383
@@ -629,7 +628,7 @@
          (i (/ (+ n slop) 3))
          (rnum 0))
     (while (> i 0)
-      (setq rnum 
+      (setq rnum
             (math-add
              (math-random-three-digit-number)
              (math-mul rnum 1000)))
@@ -823,11 +822,11 @@
                                 (setq sum (%
                                            (+
                                             sum
-                                            (calcFunc-mod 
+                                            (calcFunc-mod
                                              q 1000000))
                                            111111))
-                                (setq q 
-                                      (math-quotient 
+                                (setq q
+                                      (math-quotient
                                        q 1000000)))
 			      (cond ((= (% sum 3) 0) '(nil 3))
 				    ((= (% sum 7) 0) '(nil 7))

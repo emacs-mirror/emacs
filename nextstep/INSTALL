@@ -16,7 +16,8 @@ In order to run Emacs.app, you must run:
 
   make install
 
-This will assemble the app in nextstep/Emacs.app.
+This will assemble the app in nextstep/Emacs.app (i.e., the --prefix
+argument has no effect in this case).
 
 If you pass the --disable-ns-self-contained option to configure, the lisp
 files will be installed under whatever 'prefix' is set to (defaults to

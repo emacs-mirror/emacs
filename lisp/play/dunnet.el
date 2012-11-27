@@ -3010,7 +3010,6 @@ drwxr-xr-x  3 root     staff          2048 Jan 1 1970 ..")
     (dun-uexit nil)))
 
 
-(random t)
 (setq tloc (+ 60 (random 18)))
 (dun-replace dun-room-objects tloc
 	     (append (nth tloc dun-room-objects) (list 18)))

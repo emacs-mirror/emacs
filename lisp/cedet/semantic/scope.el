@@ -56,6 +56,7 @@
 (declare-function semantic-analyze-princ-sequence "semantic/analyze")
 (declare-function semanticdb-typecache-merge-streams "semantic/db-typecache")
 (declare-function semanticdb-typecache-add-dependant "semantic/db-typecache")
+(declare-function semantic-tag-similar-p "semantic/tag-ls")
 
 ;;; Code:
 
@@ -158,7 +159,7 @@ If nil, then the typescope is reset."
 ;; tag can be passed in and a scope derived from it.
 
 (defun semantic-scope-tag-clone-with-scope (tag scopetags)
-  "Close TAG, and return it.  Add SCOPETAGS as a tag-local scope.
+  "Clone TAG, and return it.  Add SCOPETAGS as a tag-local scope.
 Stores the SCOPETAGS as a set of tag properties on the cloned tag."
   (let ((clone (semantic-tag-clone tag))
 	)
@@ -197,7 +198,7 @@ Use `semantic-ctxt-scoped-types' to find types."
 		       (semanticdb-typecache-find (car sp)))
 		       ;(semantic-analyze-find-tag (car sp) 'type))
 		      ((semantic-tag-p (car sp))
-		       (if (semantic-analyze-tag-prototype-p (car sp))
+		       (if (semantic-tag-prototype-p (car sp))
 			   (semanticdb-typecache-find (semantic-tag-name (car sp)))
 			   ;;(semantic-analyze-find-tag (semantic-tag-name (car sp)) 'type)
 			 (car sp)))
@@ -271,9 +272,11 @@ are from nesting data types."
 	    (setq stack (reverse stack))
 	    ;; Add things to STACK until we cease finding tags of class type.
 	    (while (and stack (eq (semantic-tag-class (car stack)) 'type))
-	      ;; Otherwise, just add this to the returnlist.
-	      (setq returnlist (cons (car stack) returnlist))
-	      (setq stack (cdr stack)))
+	      ;; Otherwise, just add this to the returnlist, but make
+	      ;; sure we didn't already have that tag in scopetypes
+             (unless (member (car stack) scopetypes)
+               (setq returnlist (cons (car stack) returnlist)))
+	     (setq stack (cdr stack)))
 
 	    (setq returnlist (nreverse returnlist))
 	    ))

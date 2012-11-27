@@ -2085,4 +2085,3 @@
 	      (setcar x (cdr x)) (setcdr x tmp)))
 	map)
   (define-translation-table 'eucjp-ms-encode map))
-

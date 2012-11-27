@@ -26,9 +26,6 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #ifdef HAVE_NS
 
 #ifdef NS_IMPL_COCOA
-#ifndef MAC_OS_X_VERSION_10_3
-#define MAC_OS_X_VERSION_10_3 1030
-#endif
 #ifndef MAC_OS_X_VERSION_10_4
 #define MAC_OS_X_VERSION_10_4 1040
 #endif
@@ -37,6 +34,12 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #endif
 #ifndef MAC_OS_X_VERSION_10_6
 #define MAC_OS_X_VERSION_10_6 1060
+#endif
+#ifndef MAC_OS_X_VERSION_10_7
+#define MAC_OS_X_VERSION_10_7 1070
+#endif
+#ifndef MAC_OS_X_VERSION_10_8
+#define MAC_OS_X_VERSION_10_8 1080
 #endif
 #endif /* NS_IMPL_COCOA */
 
@@ -56,7 +59,7 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 - (void)sendEvent: (NSEvent *)theEvent;
 - (void)showPreferencesWindow: (id)sender;
 - (BOOL) openFile: (NSString *)fileName;
-- (void)fd_handler: (NSTimer *) fdEntry;
+- (void)fd_handler: (id)unused;
 - (void)timeout_handler: (NSTimer *)timedEntry;
 - (BOOL)fulfillService: (NSString *)name withArg: (NSString *)arg;
 @end
@@ -80,6 +83,10 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
    BOOL windowClosing;
    NSString *workingText;
    BOOL processingCompose;
+   int fs_state, fs_before_fs, next_maximized;
+   int tibar_height, tobar_height, bwidth;
+   int maximized_width, maximized_height;
+   NSWindow *nonfs_window;
 @public
    struct frame *emacsframe;
    int rows, cols;
@@ -89,7 +96,7 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
    }
 
 /* AppKit-side interface */
-- menuDown: sender;
+- menuDown: (id)sender;
 - toolbarClicked: (id)item;
 - toggleToolbar: (id)sender;
 - (void)keyDown: (NSEvent *)theEvent;
@@ -103,6 +110,10 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 - (void) setWindowClosing: (BOOL)closing;
 - (EmacsToolbar *) toolbar;
 - (void) deleteWorkingText;
+- (void) updateFrameSize: (BOOL) delay;
+- (void) handleFS;
+- (void) setFSValue: (int)value;
+- (void) toggleFullScreen: (id) sender;
 
 #ifdef NS_IMPL_GNUSTEP
 /* Not declared, but useful. */
@@ -118,6 +129,12 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 }
 @end
 
+
+/* Fullscreen version of the above.  */
+@interface EmacsFSWindow : EmacsWindow
+{
+}
+@end
 
 /* ==========================================================================
 
@@ -144,7 +161,7 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 - (EmacsMenu *)addSubmenuWithTitle: (const char *)title forFrame: (struct frame *)f;
 - (void) clear;
 - (Lisp_Object)runMenuAt: (NSPoint)p forFrame: (struct frame *)f
-                 keymaps: (int)keymaps;
+                 keymaps: (bool)keymaps;
 @end
 
 
@@ -195,12 +212,17 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
    NSTextField *title;
    NSMatrix *matrix;
    int rows, cols;
+   BOOL timer_fired, window_closed;
+   Lisp_Object dialog_return;
+   Lisp_Object *button_values;
    }
 - initFromContents: (Lisp_Object)menu isQuestion: (BOOL)isQ;
-- addButton: (char *)str value: (Lisp_Object)val row: (int)row;
-- addString: (char *)str row: (int)row;
-- addSplit;
+- (void)process_dialog: (Lisp_Object)list;
+- (void)addButton: (char *)str value: (int)tag row: (int)row;
+- (void)addString: (char *)str row: (int)row;
+- (void)addSplit;
 - (Lisp_Object)runDialogAt: (NSPoint)p;
+- (void)timeout_handler: (NSTimer *)timedEntry;
 @end
 
 #if defined (NS_IMPL_COCOA) && MAC_OS_X_VERSION_MAX_ALLOWED >= MAC_OS_X_VERSION_10_6
@@ -261,7 +283,6 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
   int refCount;
   NSBitmapImageRep *bmRep; /* used for accessing pixel data */
   unsigned char *pixmapData[5]; /* shortcut to access pixel data */
-  BOOL onTiger;
   NSColor *stippleMask;
 }
 + allocInitFromFile: (Lisp_Object)file;
@@ -330,7 +351,7 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 
 /* ==========================================================================
 
-   Rendering on Panther and above
+   Rendering
 
    ========================================================================== */
 
@@ -355,7 +376,7 @@ extern NSString *ns_app_name;
 extern EmacsMenu *mainMenu, *svcsMenu, *dockMenu;
 
 /* Apple removed the declaration, but kept the implementation */
-#if defined (NS_IMPL_COCOA) && MAC_OS_X_VERSION_MAX_ALLOWED >= MAC_OS_X_VERSION_10_4
+#if defined (NS_IMPL_COCOA)
 @interface NSApplication (EmacsApp)
 - (void)setAppleMenu: (NSMenu *)menu;
 @end
@@ -448,17 +469,19 @@ struct nsfont_info
   struct font font;
 
   char *name;  /* PostScript name, uniquely identifies on NS systems */
-  float width;  /* this and following metrics stored as float rather than int */
+
+  /* The following metrics are stored as float rather than int. */
+
+  float width;  /* Maximum advance for the font.  */
   float height;
   float underpos;
   float underwidth;
   float size;
 #ifdef __OBJC__
   NSFont *nsfont;
-  /* cgfont and synthItal are used only on OS X 10.3+ */
-#if defined (NS_IMPL_COCOA) && (MAC_OS_X_VERSION_MAX_ALLOWED >= MAC_OS_X_VERSION_10_3)
+#if defined (NS_IMPL_COCOA)
   CGFontRef cgfont;
-#else /* GNUstep or OS X < 10.3 */
+#else /* GNUstep */
   void *cgfont;
 #endif
 #else /* ! OBJC */
@@ -535,7 +558,7 @@ struct ns_display_info
 extern struct ns_display_info *x_display_list;
 
 extern Lisp_Object ns_display_name_list;
-extern struct ns_display_info *ns_display_info_for_name ();
+extern struct ns_display_info *ns_display_info_for_name (Lisp_Object name);
 
 struct ns_display_info *check_x_display_info (Lisp_Object frame);
 FRAME_PTR check_x_frame (Lisp_Object frame);
@@ -623,6 +646,8 @@ struct x_output
 /* This is the `Display *' which frame F is on.  */
 #define FRAME_NS_DISPLAY(f) (0)
 #define FRAME_X_DISPLAY(f) (0)
+#define FRAME_X_SCREEN(f) (0)
+#define FRAME_X_VISUAL(f) FRAME_NS_DISPLAY_INFO(f)->visual
 
 #define FRAME_FOREGROUND_COLOR(f) ((f)->output_data.ns->foreground_color)
 #define FRAME_BACKGROUND_COLOR(f) ((f)->output_data.ns->background_color)
@@ -697,7 +722,7 @@ struct x_output
   (! (FRAME_HAS_VERTICAL_SCROLL_BARS_ON_LEFT (f)) ? 0 \
    : FRAME_SCROLL_BAR_COLS (f))
 
-extern struct ns_display_info *ns_term_init ();
+extern struct ns_display_info *ns_term_init (Lisp_Object display_name);
 extern void ns_term_shutdown (int sig);
 
 /* constants for text rendering */
@@ -707,8 +732,6 @@ extern void ns_term_shutdown (int sig);
 #define NS_DUMPGLYPH_MOUSEFACE          3
 
 
-EXFUN (Fx_display_grayscale_p, 1);
-EXFUN (Fx_display_planes, 1);
 
 /* In nsfont, called from fontset.c */
 extern void nsfont_make_fontset_for_font (Lisp_Object name,
@@ -727,23 +750,24 @@ extern void ns_clear_frame (struct frame *f);
 extern const char *ns_xlfd_to_fontname (const char *xlfd);
 
 extern void check_ns (void);
-extern Lisp_Object ns_map_event_to_object ();
-extern Lisp_Object ns_string_from_pasteboard ();
-extern void ns_string_to_pasteboard ();
+extern Lisp_Object ns_map_event_to_object (void);
+#ifdef __OBJC__
+extern Lisp_Object ns_string_from_pasteboard (id pb);
+extern void ns_string_to_pasteboard (id pb, Lisp_Object str);
+#endif
 extern Lisp_Object ns_get_local_selection (Lisp_Object selection_name,
                                            Lisp_Object target_type);
-extern void nxatoms_of_nsselect ();
-extern int ns_lisp_to_cursor_type ();
+extern void nxatoms_of_nsselect (void);
+extern int ns_lisp_to_cursor_type (Lisp_Object arg);
 extern Lisp_Object ns_cursor_type_to_lisp (int arg);
-extern Lisp_Object Qnone;
 extern void ns_set_name_as_filename (struct frame *f);
 extern void ns_set_doc_edited (struct frame *f, Lisp_Object arg);
 
-extern int
+extern bool
 ns_defined_color (struct frame *f,
                   const char *name,
-                  XColor *color_def, int alloc,
-                  char makeIndex);
+                  XColor *color_def, bool alloc,
+                  bool makeIndex);
 extern void
 ns_query_color (void *col, XColor *color_def, int setPixel);
 
@@ -758,9 +782,9 @@ extern void ns_free_indexed_color (unsigned long idx, struct frame *f);
 /* C access to ObjC functionality */
 extern void  ns_release_object (void *obj);
 extern void  ns_retain_object (void *obj);
-extern void *ns_alloc_autorelease_pool ();
-extern void ns_release_autorelease_pool ();
-extern const char *ns_get_defaults_value ();
+extern void *ns_alloc_autorelease_pool (void);
+extern void ns_release_autorelease_pool (void *);
+extern const char *ns_get_defaults_value (const char *key);
 
 /* in nsmenu */
 extern void update_frame_tool_bar (FRAME_PTR f);
@@ -768,39 +792,17 @@ extern void free_frame_tool_bar (FRAME_PTR f);
 extern void find_and_call_menu_selection (FRAME_PTR f,
     int menu_bar_items_used, Lisp_Object vector, void *client_data);
 extern Lisp_Object find_and_return_menu_selection (FRAME_PTR f,
-                                                   int keymaps,
+                                                   bool keymaps,
                                                    void *client_data);
 extern Lisp_Object ns_popup_dialog (Lisp_Object position, Lisp_Object contents,
                                     Lisp_Object header);
 
-/* More prototypes that should be moved to a more general include file */
-extern void set_frame_menubar (struct frame *f, int first_time, int deep_p);
-extern void x_set_window_size (struct frame *f, int change_grav,
-                              int cols, int rows);
-extern void x_sync (struct frame *);
-extern Lisp_Object x_get_focus_frame (struct frame *);
-extern void x_set_mouse_position (struct frame *f, int h, int v);
-extern void x_set_mouse_pixel_position (struct frame *f, int pix_x, int pix_y);
-extern void x_make_frame_visible (struct frame *f);
-extern void x_make_frame_invisible (struct frame *f);
-extern void x_iconify_frame (struct frame *f);
-extern int x_char_width (struct frame *f);
-extern int x_char_height (struct frame *f);
-extern int x_pixel_width (struct frame *f);
-extern int x_pixel_height (struct frame *f);
-extern void x_set_frame_alpha (struct frame *f);
-extern void x_set_menu_bar_lines (struct frame *, Lisp_Object, Lisp_Object);
-extern void x_set_tool_bar_lines (struct frame *f,
-                                  Lisp_Object value,
-                                  Lisp_Object oldval);
-extern void x_activate_menubar (struct frame *);
-extern void free_frame_menubar (struct frame *);
-extern void x_free_frame_resources (struct frame *);
-
 #define NSAPP_DATA2_RUNASSCRIPT 10
 extern void ns_run_ascript (void);
 
-extern void ns_init_paths (void);
+extern const char *ns_etc_directory (void);
+extern const char *ns_exec_path (void);
+extern const char *ns_load_path (void);
 extern void syms_of_nsterm (void);
 extern void syms_of_nsfns (void);
 extern void syms_of_nsmenu (void);
@@ -811,8 +813,8 @@ struct image;
 extern void *ns_image_from_XBM (unsigned char *bits, int width, int height);
 extern void *ns_image_for_XPM (int width, int height, int depth);
 extern void *ns_image_from_file (Lisp_Object file);
-extern int ns_load_image (struct frame *f, struct image *img,
-                          Lisp_Object spec_file, Lisp_Object spec_data);
+extern bool ns_load_image (struct frame *f, struct image *img,
+			   Lisp_Object spec_file, Lisp_Object spec_data);
 extern int ns_image_width (void *img);
 extern int ns_image_height (void *img);
 extern unsigned long ns_get_pixel (void *img, int x, int y);
@@ -824,7 +826,8 @@ extern int x_display_pixel_width (struct ns_display_info *);
 
 /* This in nsterm.m */
 extern int ns_select (int nfds, fd_set *readfds, fd_set *writefds,
-                      fd_set *exceptfds, struct timeval *timeout);
+                      fd_set *exceptfds, EMACS_TIME *timeout,
+		      sigset_t *sigmask);
 extern unsigned long ns_get_rgb_color (struct frame *f,
                                        float r, float g, float b, float a);
 extern NSPoint last_mouse_motion_position;

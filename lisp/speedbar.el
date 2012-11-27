@@ -1,6 +1,6 @@
 ;;; speedbar --- quick access to files and tags in a frame
 
-;; Copyright (C) 1996-2012  Free Software Foundation, Inc.
+;; Copyright (C) 1996-2012 Free Software Foundation, Inc.
 
 ;; Author: Eric M. Ludlam <zappo@gnu.org>
 ;; Keywords: file, tags, tools
@@ -125,7 +125,6 @@ this version is not backward compatible to 0.14 or earlier.")
 ;;; TODO:
 ;; - Timeout directories we haven't visited in a while.
 
-(require 'assoc)
 (require 'easymenu)
 (require 'dframe)
 (require 'sb-image)
@@ -707,7 +706,7 @@ will be stripped by a simplified optimizer when compiled into a
 singular expression.  This variable will be turned into
 `speedbar-file-regexp' for use with speedbar.  You should use the
 function `speedbar-add-supported-extension' to add a new extension at
-runtime, or use the configuration dialog to set it in your .emacs file.
+runtime, or use the configuration dialog to set it in your init file.
 If you add an extension to this list, and it does not appear, you may
 need to also modify `completion-ignored-extension' which will also help
 file completion."
@@ -764,7 +763,7 @@ DIRECTORY-EXPRESSION to `speedbar-ignored-directory-expressions'."
   "Non-nil means to automatically update the display.
 When this is nil then speedbar will not follow the attached frame's directory.
 If you want to change this while speedbar is active, either use
-\\[customize] or call \\<speedbar-key-map> `\\[speedbar-toggle-updates]'."
+\\[customize] or call \\<speedbar-mode-map> `\\[speedbar-toggle-updates]'."
   :group 'speedbar
   :initialize 'custom-initialize-default
   :set (lambda (sym val)
@@ -775,6 +774,8 @@ If you want to change this while speedbar is active, either use
 (defvar speedbar-update-flag-disable nil
   "Permanently disable changing of the update flag.")
 
+(define-obsolete-variable-alias
+  'speedbar-syntax-table 'speedbar-mode-syntax-table "24.1")
 (defvar speedbar-mode-syntax-table
   (let ((st (make-syntax-table)))
     ;; Turn off paren matching around here.
@@ -788,10 +789,9 @@ If you want to change this while speedbar is active, either use
     (modify-syntax-entry ?\]  " " st)
     st)
   "Syntax-table used on the speedbar.")
-(define-obsolete-variable-alias
-  'speedbar-syntax-table 'speedbar-mode-syntax-table "24.1")
 
 
+(define-obsolete-variable-alias 'speedbar-key-map 'speedbar-mode-map "24.1")
 (defvar speedbar-mode-map
   (let ((map (make-keymap)))
     (suppress-keymap map t)
@@ -826,7 +826,6 @@ If you want to change this while speedbar is active, either use
     (dframe-update-keymap map)
     map)
   "Keymap used in speedbar buffer.")
-(define-obsolete-variable-alias 'speedbar-key-map 'speedbar-mode-map "24.1")
 
 (defun speedbar-make-specialized-keymap ()
   "Create a keymap for use with a speedbar major or minor display mode.
@@ -1022,7 +1021,7 @@ supported at a time.
   (set (make-local-variable 'dframe-delete-frame-function)
        'speedbar-handle-delete-frame)
   ;; hscroll
-  (set (make-local-variable 'automatic-hscrolling) nil) ; Emacs 21
+  (set (make-local-variable 'auto-hscroll-mode) nil)
   ;; reset the selection variable
   (setq speedbar-last-selected-file nil))
 
@@ -1084,7 +1083,7 @@ Return nil if it doesn't exist."
 
 (define-derived-mode speedbar-mode fundamental-mode "Speedbar"
   "Major mode for managing a display of directories and tags.
-\\<speedbar-key-map>
+\\<speedbar-mode-map>
 The first line represents the default directory of the speedbar frame.
 Each directory segment is a button which jumps speedbar's default
 directory to that directory.  Buttons are activated by clicking `\\[speedbar-click]'.
@@ -1121,7 +1120,7 @@ category of tags.  Click the {+} to expand the category.  Jump-able
 tags start with >.  Click the name of the tag to go to that position
 in the selected file.
 
-\\{speedbar-key-map}"
+\\{speedbar-mode-map}"
   (save-excursion
     (setq font-lock-keywords nil) ;; no font-locking please
     (setq truncate-lines t)
@@ -1413,9 +1412,10 @@ Argument ARG represents to force a refresh past any caches that may exist."
 	(dframe-power-click arg)
 	deactivate-mark)
     ;; We need to hack something so this works in detached frames.
-    (while dl
-      (adelete 'speedbar-directory-contents-alist (car dl))
-      (setq dl (cdr dl)))
+    (dolist (d dl)
+      (setq speedbar-directory-contents-alist
+            (delq (assoc d speedbar-directory-contents-alist)
+                  speedbar-directory-contents-alist)))
     (if (<= 1 speedbar-verbosity-level)
 	(speedbar-message "Refreshing speedbar..."))
     (speedbar-update-contents)
@@ -1864,9 +1864,7 @@ of the special mode functions."
 	      ;; If it is autoloaded, we need to load it now so that
 	      ;; we have access to the variable -speedbar-menu-items.
 	      ;; Is this XEmacs safe?
-	      (let ((sf (symbol-function v)))
-		(if (and (listp sf) (eq (car sf) 'autoload))
-		    (load-library (car (cdr sf)))))
+              (autoload-do-load (symbol-function v) v)
 	      (setq speedbar-special-mode-expansion-list (list v))
 	      (setq v (intern-soft (concat ms "-speedbar-key-map")))
 	      (if (not v)
@@ -1898,12 +1896,9 @@ matching ignored headers.  Cache any directory files found in
 `speedbar-directory-contents-alist' and use that cache before scanning
 the file-system."
   (setq directory (expand-file-name directory))
-  ;; If in powerclick mode, then the directory we are getting
-  ;; should be rescanned.
-  (if dframe-power-click
-      (adelete 'speedbar-directory-contents-alist directory))
   ;; find the directory, either in the cache, or build it.
-  (or (cdr-safe (assoc directory speedbar-directory-contents-alist))
+  (or (and (not dframe-power-click) ;; In powerclick mode, always rescan.
+           (cdr-safe (assoc directory speedbar-directory-contents-alist)))
       (let ((default-directory directory)
 	    (dir (directory-files directory nil))
 	    (dirs nil)
@@ -1917,8 +1912,11 @@ the file-system."
 		  (setq dirs (cons (car dir) dirs))
 		(setq files (cons (car dir) files))))
 	  (setq dir (cdr dir)))
-	(let ((nl (cons (nreverse dirs) (list (nreverse files)))))
-	  (aput 'speedbar-directory-contents-alist directory nl)
+	(let ((nl (cons (nreverse dirs) (list (nreverse files))))
+              (ae (assoc directory speedbar-directory-contents-alist)))
+          (if ae (setcdr ae nl)
+            (push (cons directory nl)
+                  speedbar-directory-contents-alist))
 	  nl))
       ))
 
@@ -4005,73 +4003,68 @@ TEXT is the buffer's name, TOKEN and INDENT are unused."
 ;;; Color loading section.
 ;;
 (defface speedbar-button-face '((((class color) (background light))
-				 (:foreground "green4"))
+				 :foreground "green4")
 				(((class color) (background dark))
-				 (:foreground "green3")))
-  "Face used for +/- buttons."
+				 :foreground "green3"))
+  "Speedbar face for +/- buttons."
   :group 'speedbar-faces)
 
 (defface speedbar-file-face '((((class color) (background light))
-			       (:foreground "cyan4"))
+			       :foreground "cyan4")
 			      (((class color) (background dark))
-			       (:foreground "cyan"))
-			      (t (:bold t)))
-  "Face used for file names."
+			       :foreground "cyan")
+			      (t :weight bold))
+  "Speedbar face for file names."
   :group 'speedbar-faces)
 
 (defface speedbar-directory-face '((((class color) (background light))
-				    (:foreground "blue4"))
+				    :foreground "blue4")
 				   (((class color) (background dark))
-				    (:foreground "light blue")))
-  "Face used for directory names."
+				    :foreground "light blue"))
+  "Speedbar face for directory names."
   :group 'speedbar-faces)
+
 (defface speedbar-tag-face '((((class color) (background light))
-			      (:foreground "brown"))
+			      :foreground "brown")
 			     (((class color) (background dark))
-			      (:foreground "yellow")))
-  "Face used for displaying tags."
+			      :foreground "yellow"))
+  "Speedbar face for tags."
   :group 'speedbar-faces)
 
 (defface speedbar-selected-face '((((class color) (background light))
-				    (:foreground "red" :underline t))
+				   :foreground "red" :underline t)
 				  (((class color) (background dark))
-				   (:foreground "red" :underline t))
-				  (t (:underline t)))
-  "Face used to underline the file in the active window."
+				   :foreground "red" :underline t)
+				  (t :underline t))
+  "Speedbar face for the file in the active window."
   :group 'speedbar-faces)
 
 (defface speedbar-highlight-face '((((class color) (background light))
-				    (:background "green"))
+				    :background "green")
 				   (((class color) (background dark))
-				    (:background "sea green"))
-				   (((class grayscale monochrome)
-				     (background light))
-				    (:background "black"))
-				   (((class grayscale monochrome)
-				     (background dark))
-				    (:background "white")))
-  "Face used for highlighting buttons with the mouse."
+				    :background "sea green"))
+  "Speedbar face for highlighting buttons with the mouse."
   :group 'speedbar-faces)
 
 (defface speedbar-separator-face '((((class color) (background light))
-				    (:background "blue"
-				     :foreground "white"
-				     :overline "gray"))
+				    :background "blue"
+				    :foreground "white"
+				    :overline "gray")
 				   (((class color) (background dark))
-				    (:background "blue"
-				     :foreground "white"
-				     :overline "gray"))
+				    :background "blue"
+				    :foreground "white"
+				    :overline "gray")
 				   (((class grayscale monochrome)
 				     (background light))
-				    (:background "black"
-				     :foreground "white"
-				     :overline "white"))
+				    :background "black"
+				    :foreground "white"
+				    :overline "white")
 				   (((class grayscale monochrome)
 				     (background dark))
-				    (:background "white"
-				     :foreground "black"
-				     :overline "black")))
-  "Face used for separator labels in a display."
+				    :background "white"
+				    :foreground "black"
+				    :overline "black"))
+  "Speedbar face for separator labels in a display."
   :group 'speedbar-faces)
 
 ;; some edebug hooks

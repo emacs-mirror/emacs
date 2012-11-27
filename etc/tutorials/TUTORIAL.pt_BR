@@ -46,7 +46,7 @@ META, EDIT ou ALT).
 Os comandos a seguir são úteis para visualizar telas inteiras
 
         C-v     Move para tela inteira posterior
-	M-x     Move para tela inteira anterior
+	M-v     Move para tela inteira anterior
 	C-l     Limpa a tela e re-mostrá todo o texto, movendo o texto ao
 		redor do cursor para o centro da tela. (Isso é
 		control-L, não control-1.)

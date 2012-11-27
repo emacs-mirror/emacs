@@ -124,8 +124,8 @@ struct tty_display_info
                                    each as vpos and hpos) */
 
   const char *TS_enter_bold_mode; /* "md" -- turn on bold (extra bright mode).  */
+  const char *TS_enter_italic_mode; /* "ZH" -- turn on italics mode.  */
   const char *TS_enter_dim_mode; /* "mh" -- turn on half-bright mode.  */
-  const char *TS_enter_blink_mode; /* "mb" -- enter blinking mode.  */
   const char *TS_enter_reverse_mode; /* "mr" -- enter reverse video mode.  */
   const char *TS_exit_underline_mode; /* "us" -- start underlining.  */
   const char *TS_enter_underline_mode; /* "ue" -- end underlining.  */
@@ -207,6 +207,6 @@ extern struct tty_display_info *tty_list;
   (((f)->output_method == output_termcap	\
     || (f)->output_method == output_msdos_raw)	\
    ? (f)->terminal->display_info.tty            \
-   : (abort (), (struct tty_display_info *) 0))
+   : (emacs_abort (), (struct tty_display_info *) 0))
 
 #define CURTTY() FRAME_TTY (SELECTED_FRAME())

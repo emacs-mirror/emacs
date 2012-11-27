@@ -797,7 +797,7 @@ If called with an optional prefix argument ARG, prompt for date.
 If called with an optional double prefix argument, prompt for
 longitude, latitude, time zone, and date, and always use standard time.
 
-This function is suitable for execution in a .emacs file."
+This function is suitable for execution in an init file."
   (interactive "p")
   (or arg (setq arg 1))
   (if (and (< arg 16)

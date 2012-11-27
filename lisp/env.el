@@ -34,8 +34,6 @@
 
 ;;; Code:
 
-(eval-when-compile (require 'cl))
-
 ;; History list for environment variable names.
 (defvar read-envvar-name-history nil)
 

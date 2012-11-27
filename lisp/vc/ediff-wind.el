@@ -63,20 +63,25 @@
 
 ;; Determine which window setup function to use based on current window system.
 (defun ediff-choose-window-setup-function-automatically ()
+  (declare (obsolete ediff-setup-windows-default "24.3"))
   (if (ediff-window-display-p)
       'ediff-setup-windows-multiframe
     'ediff-setup-windows-plain))
 
-(defcustom ediff-window-setup-function (ediff-choose-window-setup-function-automatically)
+(defcustom ediff-window-setup-function 'ediff-setup-windows-default
   "Function called to set up windows.
-Ediff provides a choice of two functions: `ediff-setup-windows-plain', for
-doing everything in one frame and `ediff-setup-windows-multiframe', which sets
-the control panel in a separate frame. By default, the appropriate function is
-chosen automatically depending on the current window system.
-However, `ediff-toggle-multiframe' can be used to toggle between the multiframe
-display and the single frame display.
-If the multiframe function detects that one of the buffers A/B is seen in some
-other frame, it will try to keep that buffer in that frame.
+Ediff provides a choice of three functions:
+ (1) `ediff-setup-windows-multiframe', which sets the control panel
+     in a separate frame.
+ (2) `ediff-setup-windows-plain', which does everything in one frame
+ (3) `ediff-setup-windows-default' (the default), which does (1)
+     on a graphical display and (2) on a text terminal.
+
+The command \\[ediff-toggle-multiframe] can be used to toggle
+between the multiframe display and the single frame display.  If
+the multiframe function detects that one of the buffers A/B is
+seen in some other frame, it will try to keep that buffer in that
+frame.
 
 If you don't like any of the two provided functions, write your own one.
 The basic guidelines:
@@ -90,10 +95,12 @@ The basic guidelines:
        Buffer C may not be used in jobs that compare only two buffers.
 If you plan to do something fancy, take a close look at how the two
 provided functions are written."
-  :type '(choice (const :tag "Multi Frame" ediff-setup-windows-multiframe)
+  :type '(choice (const :tag "Choose Automatically" ediff-setup-windows-default)
+		 (const :tag "Multi Frame" ediff-setup-windows-multiframe)
 		 (const :tag "Single Frame" ediff-setup-windows-plain)
 		 (function :tag "Other function"))
-  :group 'ediff-window)
+  :group 'ediff-window
+  :version "24.3")
 
 ;; indicates if we are in a multiframe setup
 (ediff-defvar-local ediff-multiframe nil "")
@@ -332,6 +339,12 @@ into icons, regardless of the window manager."
        (ediff-with-current-buffer control-buffer ediff-window-setup-function)
        buffer-A buffer-B buffer-C control-buffer))
   (run-hooks 'ediff-after-setup-windows-hook))
+
+(defun ediff-setup-windows-default (buffer-A buffer-B buffer-C control-buffer)
+  (funcall (if (display-graphic-p)
+	       'ediff-setup-windows-multiframe
+	     'ediff-setup-windows-plain)
+	   buffer-A buffer-B buffer-C control-buffer))
 
 ;; Just set up 3 windows.
 ;; Usually used without windowing systems
@@ -942,7 +955,7 @@ into icons, regardless of the window manager."
 	  (and (eq this-command 'ediff-toggle-help)
 	       dont-iconify-ctl-frame))
 
-    ;; 1 more line for the modeline
+    ;; 1 more line for the mode line
     (setq lines (1+ (count-lines (point-min) (point-max)))
 	  fheight lines
 	  fwidth (max (+ (ediff-help-message-line-length) 2)
@@ -1126,7 +1139,7 @@ It assumes that it is called from within the control buffer."
 
 
 ;; Revise the mode line to display which difference we have selected
-;; Also resets modelines of buffers A/B, since they may be clobbered by
+;; Also resets mode lines of buffers A/B, since they may be clobbered by
 ;; other invocations of Ediff.
 (defun ediff-refresh-mode-lines ()
   (let (buf-A-state-diff buf-B-state-diff buf-C-state-diff buf-C-state-merge)

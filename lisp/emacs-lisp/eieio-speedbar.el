@@ -3,7 +3,6 @@
 ;; Copyright (C) 1999-2002, 2005, 2007-2012  Free Software Foundation, Inc.
 
 ;; Author: Eric M. Ludlam <zappo@gnu.org>
-;; Version: 0.2
 ;; Keywords: OO, tools
 ;; Package: eieio
 
@@ -191,23 +190,24 @@ that path."
 
 ;;; DEFAULT SUPERCLASS baseline methods
 ;;
-;; First, define methods onto the superclass so all classes
-;; will have some minor support.
+;; First, define methods with no class defined.  These will work as if
+;; on the default superclass.  Specifying no class will allow these to be used
+;; when no other methods are found, allowing multiple inheritance to work
+;; reliably with eieio-speedbar.
 
-(defmethod eieio-speedbar-description ((object eieio-default-superclass))
+(defmethod eieio-speedbar-description (object)
   "Return a string describing OBJECT."
   (object-name-string object))
 
-(defmethod eieio-speedbar-derive-line-path ((object eieio-default-superclass))
+(defmethod eieio-speedbar-derive-line-path (object)
   "Return the path which OBJECT has something to do with."
   nil)
 
-(defmethod eieio-speedbar-object-buttonname ((object eieio-default-superclass))
+(defmethod eieio-speedbar-object-buttonname (object)
   "Return a string to use as a speedbar button for OBJECT."
   (object-name-string object))
 
-(defmethod eieio-speedbar-make-tag-line ((object eieio-default-superclass)
-					 depth)
+(defmethod eieio-speedbar-make-tag-line (object depth)
   "Insert a tag line into speedbar at point for OBJECT.
 By default, all objects appear as simple TAGS with no need to inherit from
 the special `eieio-speedbar' classes.  Child classes should redefine this
@@ -220,7 +220,7 @@ Argument DEPTH is the depth at which the tag line is inserted."
 			  'speedbar-tag-face
 			  depth))
 
-(defmethod eieio-speedbar-handle-click ((object eieio-default-superclass))
+(defmethod eieio-speedbar-handle-click (object)
   "Handle a click action on OBJECT in speedbar.
 Any object can be represented as a tag in SPEEDBAR without special
 attributes.  These default objects will be pulled up in a custom

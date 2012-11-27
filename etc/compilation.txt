@@ -308,6 +308,13 @@ made it more strict about the error message that follows.
 keyboard handler.c(537) : warning C4005: 'min' : macro redefinition
 d:\tmp\test.c(23) : error C2143: syntax error : missing ';' before 'if'
 d:\tmp\test.c(1145) : see declaration of 'nsRefPtr'
+1>test_main.cpp(29): error C2144: syntax error : 'int' should be preceded by ';'
+1>test_main.cpp(29): error C4430: missing type specifier - int assumed. Note: C++ does not support default-int
+1>
+1>Build FAILED.
+1>
+1>Time Elapsed 00:00:01.46
+========== Build: 0 succeeded, 1 failed, 0 up-to-date, 0 skipped ==========
 
 
 * Open Watcom

@@ -46,7 +46,7 @@
 
 ;; YOUR .EMACS FILE
 ;;=============================================================================
-;; Some suggestions for your .emacs file.
+;; Some suggestions for your init file.
 ;;
 ;; ;; Define M-# to run some strange command:
 ;; (eval-after-load "shell"
@@ -96,7 +96,6 @@
 
 ;;; Code:
 
-(eval-when-compile (require 'cl))
 (require 'comint)
 (require 'pcomplete)
 
@@ -137,9 +136,7 @@ how Shell mode treats paragraphs.
 
 The pattern should probably not match more than one line.  If it does,
 Shell mode may become confused trying to distinguish prompt from input
-on lines which don't start with a prompt.
-
-This is a fine thing to set in your `.emacs' file."
+on lines which don't start with a prompt."
   :type 'regexp
   :group 'shell)
 
@@ -147,9 +144,7 @@ This is a fine thing to set in your `.emacs' file."
   "List of suffixes to be disregarded during file/command completion.
 This variable is used to initialize `comint-completion-fignore' in the shell
 buffer.  The default is nil, for compatibility with most shells.
-Some people like (\"~\" \"#\" \"%\").
-
-This is a fine thing to set in your `.emacs' file."
+Some people like (\"~\" \"#\" \"%\")."
   :type '(repeat (string :tag "Suffix"))
   :group 'shell)
 
@@ -159,31 +154,29 @@ This variable is used to initialize `comint-delimiter-argument-list' in the
 shell buffer.  The value may depend on the operating system or shell."
   :type '(choice (const nil)
 		 (repeat :tag "List of characters" character))
-  ;; Reverted.
-;;  :version "24.1"			; changed to nil (bug#8027)
   :group 'shell)
 
-(defvar shell-file-name-chars
+(defcustom shell-file-name-chars
   (if (memq system-type '(ms-dos windows-nt cygwin))
       "~/A-Za-z0-9_^$!#%&{}@`'.,:()-"
     "[]~/A-Za-z0-9+@:_.$#%,={}-")
   "String of characters valid in a file name.
 This variable is used to initialize `comint-file-name-chars' in the
-shell buffer.  The value may depend on the operating system or shell.
+shell buffer.  The value may depend on the operating system or shell."
+  :type 'string
+  :group 'shell)
 
-This is a fine thing to set in your `.emacs' file.")
-
-(defvar shell-file-name-quote-list
+(defcustom shell-file-name-quote-list
   (if (memq system-type '(ms-dos windows-nt))
       nil
     (append shell-delimiter-argument-list '(?\s ?$ ?\* ?\! ?\" ?\' ?\` ?\# ?\\)))
   "List of characters to quote when in a file name.
 This variable is used to initialize `comint-file-name-quote-list' in the
-shell buffer.  The value may depend on the operating system or shell.
+shell buffer.  The value may depend on the operating system or shell."
+  :type '(repeat character)
+  :group 'shell)
 
-This is a fine thing to set in your `.emacs' file.")
-
-(defvar shell-dynamic-complete-functions
+(defcustom shell-dynamic-complete-functions
   '(comint-c-a-p-replace-by-expanded-history
     shell-environment-variable-completion
     shell-command-completion
@@ -193,9 +186,9 @@ This is a fine thing to set in your `.emacs' file.")
     comint-filename-completion)
   "List of functions called to perform completion.
 This variable is used to initialize `comint-dynamic-complete-functions' in the
-shell buffer.
-
-This is a fine thing to set in your `.emacs' file.")
+shell buffer."
+  :type '(repeat function)
+  :group 'shell)
 
 (defcustom shell-command-regexp "[^;&|\n]+"
   "Regexp to match a single command within a pipeline.
@@ -372,8 +365,57 @@ Thus, this does not include the shell's current directory.")
 
 ;;; Basic Procedures
 
-(defun shell-parse-pcomplete-arguments ()
+(defun shell--unquote&requote-argument (qstr &optional upos)
+  (unless upos (setq upos 0))
+  (let* ((qpos 0)
+         (dquotes nil)
+         (ustrs '())
+         (re (concat
+              "[\"']"
+              "\\|\\$\\(?:\\([[:alpha:]][[:alnum:]]*\\)"
+              "\\|{\\(?1:[^{}]+\\)}\\)"
+              (when (memq system-type '(ms-dos windows-nt))
+                "\\|%\\(?1:[^\\\\/]*\\)%")
+              (when comint-file-name-quote-list
+                "\\|\\\\\\(.\\)")))
+         (qupos nil)
+         (push (lambda (str end)
+                 (push str ustrs)
+                 (setq upos (- upos (length str)))
+                 (unless (or qupos (> upos 0))
+                   (setq qupos (if (< end 0) (- end) (+ upos end))))))
+         match)
+    (while (setq match (string-match re qstr qpos))
+      (funcall push (substring qstr qpos match) match)
+      (cond
+       ((match-beginning 2) (funcall push (match-string 2 qstr) (match-end 0)))
+       ((match-beginning 1) (funcall push (getenv (match-string 1 qstr))
+                                     (- (match-end 0))))
+       ((eq (aref qstr match) ?\") (setq dquotes (not dquotes)))
+       ((eq (aref qstr match) ?\')
+        (cond
+         (dquotes (funcall push "'" (match-end 0)))
+         ((< match (1+ (length qstr)))
+          (let ((end (string-match "'" qstr (1+ match))))
+            (funcall push (substring qstr (1+ match) end)
+                     (or end (length qstr)))))
+         (t nil)))
+       (t (error "Unexpected case in shell--unquote&requote-argument!")))
+      (setq qpos (match-end 0)))
+    (funcall push (substring qstr qpos) (length qstr))
+    (list (mapconcat #'identity (nreverse ustrs) "")
+          qupos #'comint-quote-filename)))
+
+(defun shell--unquote-argument (str)
+  (car (shell--unquote&requote-argument str)))
+(defun shell--requote-argument (upos qstr)
+  ;; See `completion-table-with-quoting'.
+  (let ((res (shell--unquote&requote-argument qstr upos)))
+    (cons (nth 1 res) (nth 2 res))))
+
+(defun shell--parse-pcomplete-arguments ()
   "Parse whitespace separated arguments in the current region."
+  ;; FIXME: share code with shell--unquote&requote-argument.
   (let ((begin (save-excursion (shell-backward-command 1) (point)))
 	(end (point))
 	begins args)
@@ -394,13 +436,13 @@ Thus, this does not include the shell's current directory.")
             (cond
              ((match-beginning 3)       ;Backslash escape.
               (push (cond
-                     ((null pcomplete-arg-quote-list)
+                     ((null comint-file-name-quote-list)
                       (goto-char (match-beginning 3)) "\\")
                      ((= (match-beginning 3) (match-end 3)) "\\")
                      (t (match-string 3)))
                     arg))
              ((match-beginning 2)       ;Double quote.
-              (push (if (null pcomplete-arg-quote-list) (match-string 2)
+              (push (if (null comint-file-name-quote-list) (match-string 2)
                       (replace-regexp-in-string
                        "\\\\\\(.\\)" "\\1" (match-string 2)))
                     arg))
@@ -430,10 +472,10 @@ Shell buffers.  It implements `shell-completion-execonly' for
        shell-file-name-quote-list)
   (set (make-local-variable 'comint-dynamic-complete-functions)
        shell-dynamic-complete-functions)
+  (setq-local comint-unquote-function #'shell--unquote-argument)
+  (setq-local comint-requote-function #'shell--requote-argument)
   (set (make-local-variable 'pcomplete-parse-arguments-function)
-       #'shell-parse-pcomplete-arguments)
-  (set (make-local-variable 'pcomplete-arg-quote-list)
-       comint-file-name-quote-list)
+       #'shell--parse-pcomplete-arguments)
   (set (make-local-variable 'pcomplete-termination-string)
        (cond ((not comint-completion-addsuffix) "")
              ((stringp comint-completion-addsuffix)
@@ -1194,7 +1236,7 @@ Returns non-nil if successful."
              (variables (mapcar (lambda (x)
                                   (substring x 0 (string-match "=" x)))
                                 process-environment))
-             (suffix (case (char-before start) (?\{ "}") (?\( ")") (t ""))))
+             (suffix (pcase (char-before start) (?\{ "}") (?\( ")") (_ ""))))
         (list start end variables
               :exit-function
               (lambda (s finished)

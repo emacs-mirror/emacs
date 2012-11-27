@@ -284,10 +284,10 @@ in the file it applies to."
   "Normal hook to be run after outline visibility changes.")
 
 (defvar outline-mode-hook nil
-  "*This hook is run when outline mode starts.")
+  "This hook is run when outline mode starts.")
 
 (defvar outline-blank-line nil
-  "*Non-nil means to leave unhidden blank line before heading.")
+  "Non-nil means to leave unhidden blank line before heading.")
 
 ;;;###autoload
 (define-derived-mode outline-mode text-mode "Outline"
@@ -380,7 +380,7 @@ See the command `outline-mode' for more information on this mode."
     (show-all)))
 
 (defvar outline-level 'outline-level
-  "*Function of no args to compute a header's nesting level in an outline.
+  "Function of no args to compute a header's nesting level in an outline.
 It can assume point is at the beginning of a header line and that the match
 data reflects the `outline-regexp'.")
 ;;;###autoload(put 'outline-level 'risky-local-variable t)

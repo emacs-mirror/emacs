@@ -1,4 +1,4 @@
-;;; vc-arch.el --- VC backend for the Arch version-control system
+;;; vc-arch.el --- VC backend for the Arch version-control system  -*- lexical-binding: t -*-
 
 ;; Copyright (C) 2004-2012  Free Software Foundation, Inc.
 
@@ -54,12 +54,12 @@
 
 ;;; Code:
 
-(eval-when-compile (require 'vc) (require 'cl))
+(eval-when-compile (require 'vc))
 
 ;;; Properties of the backend
 
 (defun vc-arch-revision-granularity () 'repository)
-(defun vc-arch-checkout-model (files) 'implicit)
+(defun vc-arch-checkout-model (_files) 'implicit)
 
 ;;;
 ;;; Customization options
@@ -227,7 +227,7 @@ Only the value `maybe' can be trusted :-(."
 	  (vc-file-setprop
 	   file 'arch-root root)))))
 
-(defun vc-arch-register (files &optional rev comment)
+(defun vc-arch-register (files &optional rev _comment)
   (if rev (error "Explicit initial revision not supported for Arch"))
   (dolist (file files)
     (let ((tagmet (vc-arch-tagging-method file)))
@@ -258,7 +258,7 @@ Only the value `maybe' can be trusted :-(."
 	       ;; Strip the terminating newline.
 	       (buffer-substring (point-min) (1- (point-max)))))))))
 
-(defun vc-arch-workfile-unchanged-p (file)
+(defun vc-arch-workfile-unchanged-p (_file)
   "Stub: arch workfiles are always considered to be in a changed state,"
   nil)
 
@@ -385,15 +385,15 @@ CALLBACK expects (ENTRIES &optional MORE-TO-COME); see
   :group 'vc-arch)
 
 (defun vc-arch-mode-line-string (file)
-  "Return string for placement in modeline by `vc-mode-line' for FILE."
+  "Return a string for `vc-mode-line' to put in the mode line for FILE."
   (let ((rev (vc-working-revision file)))
     (dolist (rule vc-arch-mode-line-rewrite)
       (if (string-match (car rule) rev)
 	  (setq rev (replace-match (cdr rule) t nil rev))))
     (format "Arch%c%s"
-	    (case (vc-state file)
-	      ((up-to-date needs-update) ?-)
-	      (added ?@)
+	    (pcase (vc-state file)
+	      ((or `up-to-date `needs-update) ?-)
+	      (`added ?@)
 	      (t ?:))
 	    rev)))
 
@@ -508,12 +508,11 @@ CALLBACK expects (ENTRIES &optional MORE-TO-COME); see
 		    "*"))))))
 
 (defun vc-arch-revision-completion-table (files)
-  (lexical-let ((files files))
-    (lambda (string pred action)
-      ;; FIXME: complete revision patches as well.
-      (let* ((root (expand-file-name "{arch}" (vc-arch-root (car files))))
-             (table (vc-arch--version-completion-table root string)))
-	(complete-with-action action table string pred)))))
+  (lambda (string pred action)
+    ;; FIXME: complete revision patches as well.
+    (let* ((root (expand-file-name "{arch}" (vc-arch-root (car files))))
+           (table (vc-arch--version-completion-table root string)))
+      (complete-with-action action table string pred))))
 
 ;;; Trimming revision libraries.
 
@@ -547,13 +546,12 @@ CALLBACK expects (ENTRIES &optional MORE-TO-COME); see
     minrev))
 
 (defun vc-arch-trim-make-sentinel (revs)
-  (if (null revs) (lambda (proc msg) (message "VC-Arch trimming ... done"))
-    (lexical-let ((revs revs))
-      (lambda (proc msg)
-        (message "VC-Arch trimming %s..." (file-name-nondirectory (car revs)))
-        (rename-file (car revs) (concat (car revs) "*rm*"))
-       (setq proc (start-process "vc-arch-trim" nil
-                                  "rm" "-rf" (concat (car revs) "*rm*")))
+  (if (null revs) (lambda (_proc _msg) (message "VC-Arch trimming ... done"))
+    (lambda (_proc _msg)
+      (message "VC-Arch trimming %s..." (file-name-nondirectory (car revs)))
+      (rename-file (car revs) (concat (car revs) "*rm*"))
+      (let ((proc (start-process "vc-arch-trim" nil
+                                 "rm" "-rf" (concat (car revs) "*rm*"))))
         (set-process-sentinel proc (vc-arch-trim-make-sentinel (cdr revs)))))))
 
 (defun vc-arch-trim-one-revlib (dir)
@@ -572,7 +570,7 @@ CALLBACK expects (ENTRIES &optional MORE-TO-COME); see
                'car-less-than-car))
         (subdirs nil))
     (when (cddr revs)
-      (dotimes (i (/ (length revs) 2))
+      (dotimes (_i (/ (length revs) 2))
         (let ((minrev (vc-arch-trim-find-least-useful-rev revs)))
           (setq revs (delq minrev revs))
           (push minrev subdirs)))

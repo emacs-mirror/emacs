@@ -80,6 +80,20 @@
 
 ;;; Code:
 
+(defvar subword-forward-function 'subword-forward-internal
+  "Function to call for forward subword movement.")
+
+(defvar subword-backward-function 'subword-backward-internal
+  "Function to call for backward subword movement.")
+
+(defvar subword-forward-regexp
+  "\\W*\\(\\([[:upper:]]*\\W?\\)[[:lower:][:digit:]]*\\)"
+  "Regexp used by `subword-forward-internal'.")
+
+(defvar subword-backward-regexp
+  "\\(\\(\\W\\|[[:lower:][:digit:]]\\)\\([[:upper:]]+\\W*\\)\\|\\W\\w+\\)"
+  "Regexp used by `subword-backward-internal'.")
+
 (defvar subword-mode-map
   (let ((map (make-sparse-keymap)))
     (dolist (cmd '(forward-word backward-word mark-word kill-word
@@ -138,10 +152,10 @@ Optional argument ARG is the same as for `forward-word'."
   (cond
    ((< 0 arg)
     (dotimes (i arg (point))
-      (subword-forward-internal)))
+      (funcall subword-forward-function)))
    ((> 0 arg)
     (dotimes (i (- arg) (point))
-      (subword-backward-internal)))
+      (funcall subword-backward-function)))
    (t
     (point))))
 
@@ -249,9 +263,7 @@ Optional argument ARG is the same as for `capitalize-word'."
   (if (and
        (save-excursion
 	 (let ((case-fold-search nil))
-	   (re-search-forward
-	    (concat "\\W*\\(\\([[:upper:]]*\\W?\\)[[:lower:][:digit:]]*\\)")
-	    nil t)))
+	   (re-search-forward subword-forward-regexp nil t)))
        (> (match-end 0) (point)))
       (goto-char
        (cond
@@ -265,11 +277,7 @@ Optional argument ARG is the same as for `capitalize-word'."
 (defun subword-backward-internal ()
   (if (save-excursion
 	(let ((case-fold-search nil))
-	  (re-search-backward
-	   (concat
-	    "\\(\\(\\W\\|[[:lower:][:digit:]]\\)\\([[:upper:]]+\\W*\\)"
-	    "\\|\\W\\w+\\)")
-	   nil t)))
+	  (re-search-backward subword-backward-regexp nil t)))
       (goto-char
        (cond
 	((and (match-end 3)

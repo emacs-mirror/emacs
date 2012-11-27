@@ -721,12 +721,6 @@ Deleting old (> %s day(s)) incoming mail file `%s'." diff bfile)
       ;; Return whether we moved successfully or not.
       to)))
 
-(defun mail-source-movemail-and-remove (from to)
-  "Move FROM to TO using movemail, then remove FROM if empty."
-  (or (not (mail-source-movemail from to))
-      (not (zerop (nth 7 (file-attributes from))))
-      (delete-file from)))
-
 (defun mail-source-fetch-with-program (program)
   (eq 0 (call-process shell-file-name nil nil nil
 		      shell-command-switch program)))

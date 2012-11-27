@@ -1,27 +1,150 @@
-2012-08-24  Chong Yidong  <cyd@gnu.org>
+2012-10-14  Eli Zaretskii  <eliz@gnu.org>
 
-	* Version 24.2 released.
+	* automated/compile-tests.el (compile-tests--test-regexps-data):
+	Add new data for msft's new format.
 
-2012-08-14  Chong Yidong  <cyd@gnu.org>
+2012-09-08  Dmitry Gutov  <dgutov@yandex.ru>
+
+	* automated/ruby-mode-tests.el:
+	(ruby-toggle-block-to-multiline): New test.
+	(ruby-should-indent-buffer, ruby-toggle-block-to-do-end)
+	(ruby-toggle-block-to-brace): Use buffer-string.
+
+2012-09-07  Dmitry Gutov  <dgutov@yandex.ru>
+
+	* automated/ruby-mode-tests.el: New tests (Bug#11613).
+
+2012-08-28  Chong Yidong  <cyd@gnu.org>
 
 	* automated/files.el: Test every combination of values for
 	enable-local-variables and enable-local-eval.
 
-2012-08-10  Glenn Morris  <rgm@gnu.org>
+2012-08-19  Chong Yidong  <cyd@gnu.org>
 
-	* automated/files.el (files-test-disable-local-variables): New test.
+	* redisplay-testsuite.el (test-redisplay): Use switch-to-buffer.
 
-2012-08-08  Glenn Morris  <rgm@gnu.org>
+2012-08-18  Chong Yidong  <cyd@gnu.org>
+
+	* redisplay-testsuite.el (test-redisplay-4): New test (Bug#3874).
+
+2012-08-14  Dmitry Gutov  <dgutov@yandex.ru>
+
+	* indent/ruby.rb: Rearrange examples, add new ones.
+
+2012-08-12  Dmitry Gutov  <dgutov@yandex.ru>
+
+	* automated/ruby-mode-tests.el (ruby-move-to-block-stops-at-opening)
+	(ruby-toggle-block-to-do-end, ruby-toggle-block-to-brace): New test.
+
+2012-08-11  Glenn Morris  <rgm@gnu.org>
 
 	* automated/files.el: New file.
 
-2012-08-07  Glenn Morris  <rgm@gnu.org>
-
 	* automated/Makefile.in (all): Fix typo.
 
-2012-06-01  Chong Yidong  <cyd@gnu.org>
+2012-08-10  Dmitry Gutov  <dgutov@yandex.ru>
 
-	* Version 24.1 released.
+	* automated/ruby-mode-tests.el (ruby-should-indent):
+	Add docstring, check (current-indentation) instead of (current-column).
+	(ruby-should-indent-buffer): New function.
+	Add tests for `ruby-deep-indent-paren' behavior.
+	Port all tests from test/misc/test_ruby_mode.rb in Ruby repo.
+
+2012-08-10  Nobuyoshi Nakada  <nobu@ruby-lang.org>
+
+	Original tests in test_ruby_mode.rb in upstream (author).
+
+2012-08-09  Dmitry Gutov  <dgutov@yandex.ru>
+
+	* automated/ruby-mode-tests.el (ruby-should-indent)
+	(ruby-assert-state): New functions.
+	Add new tests.
+
+2012-07-29  David Engster  <deng@randomsample.de>
+
+	* automated/xml-parse-tests.el (xml-parse-tests--qnames):
+	New variable to hold test data for name expansion.
+	(xml-parse-tests): Test the two different types of name expansion.
+
+2012-07-29  Juri Linkov  <juri@jurta.org>
+
+	* automated/occur-tests.el (occur-test-case): Use predefined
+	buffer name " *test-occur*" instead of a random buffer name.
+
+2012-07-20  Dmitry Gutov  <dgutov@yandex.ru>
+
+	* automated/ruby-mode-tests.el: New file with one test.
+
+2012-07-17  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* indent/shell.sh: Add test case for ${#VAR}.
+
+	* indent/latex-mode.tex: New file.
+
+2012-07-11  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* eshell.el: Use cl-lib.
+
+2012-07-03  Chong Yidong  <cyd@gnu.org>
+
+	* automated/xml-parse-tests.el (xml-parse-tests--bad-data): New.
+
+2012-07-02  Chong Yidong  <cyd@gnu.org>
+
+	* automated/xml-parse-tests.el (xml-parse-tests--data):
+	More testcases.
+
+2012-07-01  Chong Yidong  <cyd@gnu.org>
+
+	* automated/xml-parse-tests.el: New file.
+
+2012-06-27  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* automated/ert-x-tests.el (ert-test-run-tests-interactively-2):
+	Use cl-flet.
+
+2012-06-08  Ulf Jasper  <ulf.jasper@web.de>
+
+	* automated/icalendar-tests.el (icalendar--parse-vtimezone):
+	Test escaped commas in TZID (Bug#11473).
+	(icalendar-import-with-timezone): New.
+	(icalendar-real-world): Add new testcase as given in the bugreport
+	of Bug#11473.
+
+2012-05-29  Ulf Jasper  <ulf.jasper@web.de>
+
+	* automated/icalendar-tests.el (icalendar-tests--test-import):
+	Include UID in import tests (Bug#11525).
+	(icalendar-import-non-recurring, icalendar-import-rrule)
+	(icalendar-import-duration, icalendar-import-bug-6766): Adjust to
+	UID-import change.
+	(icalendar-import-with-uid): New.
+	(icalendar-tests--test-cycle, icalendar-tests--do-test-cycle):
+	Include UID in cycle tests.
+	(icalendar-cycle, icalendar-real-world): UID-import change.
+
+2012-05-21  Glenn Morris  <rgm@gnu.org>
+
+	* automated/Makefile.in (setwins): Scrap superfluous subshell.
+
+2012-05-15  Teodor Zlatanov  <tzz@lifelogs.com>
+
+	* automated/url-util-tests.el: New file to test
+	lisp/url/url-util.el.  Only `url-build-query-string' and
+	`url-parse-query-string' are tested right now (Bug#8706).
+
+2012-04-28  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* indent/shell.sh:
+	* indent/shell.rc: Ad some test cases.
+
+2012-04-24  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* indent/ruby.rb: New file, to test new syntax-propertize code.
+
+2012-04-11  Glenn Morris  <rgm@gnu.org>
+
+	* automated/vc-bzr.el (vc-bzr-test-faulty-bzr-autoloads): New test.
 
 2012-02-13  Teodor Zlatanov  <tzz@lifelogs.com>
 
@@ -314,8 +437,8 @@
 2009-12-18  Ulf Jasper  <ulf.jasper@web.de>
 
 	* icalendar-testsuite.el
-	(icalendar-testsuite--run-function-tests): Add
-	icalendar-testsuite--test-parse-vtimezone.
+	(icalendar-testsuite--run-function-tests):
+	Add icalendar-testsuite--test-parse-vtimezone.
 	(icalendar-testsuite--test-parse-vtimezone): New.
 	(icalendar-testsuite--do-test-cycle): Doc changes.
 	(icalendar-testsuite--run-real-world-tests): Remove trailing
@@ -357,7 +480,7 @@
 2008-10-31  Ulf Jasper  <ulf.jasper@web.de>
 
 	* icalendar-testsuite.el (icalendar-testsuite--run-function-tests):
-	Added `icalendar-testsuite--test-create-uid'.
+	Add `icalendar-testsuite--test-create-uid'.
 	(icalendar-testsuite--test-create-uid): New.
 
 2008-06-14  Ulf Jasper  <ulf.jasper@web.de>

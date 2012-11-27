@@ -277,18 +277,18 @@ Optional prefix (or REVERSE argument) means sort in reverse order."
 
 ;; Called when a group is subscribed. This is needed because groups created
 ;; because of mail splitting are *not* created with the back end function.
-;; Thus, `nndiary-request-create-group-hooks' is inoperative.
+;; Thus, `nndiary-request-create-group-functions' is inoperative.
 (defun gnus-diary-maybe-update-group-parameters (group)
   (when (eq (car (gnus-find-method-for-group group)) 'nndiary)
     (gnus-diary-update-group-parameters group)))
 
-(add-hook 'nndiary-request-create-group-hooks
+(add-hook 'nndiary-request-create-group-functions
 	  'gnus-diary-update-group-parameters)
-;; Now that we have `gnus-subscribe-newsgroup-hooks', this is not needed
+;; Now that we have `gnus-subscribe-newsgroup-functions', this is not needed
 ;; anymore. Maybe I should remove this completely.
-(add-hook 'nndiary-request-update-info-hooks
+(add-hook 'nndiary-request-update-info-functions
 	  'gnus-diary-update-group-parameters)
-(add-hook 'gnus-subscribe-newsgroup-hooks
+(add-hook 'gnus-subscribe-newsgroup-functions
 	  'gnus-diary-maybe-update-group-parameters)
 
 
@@ -384,7 +384,7 @@ If ARG (or prefix) is non-nil, force prompting for all fields."
      nndiary-headers)
     ))
 
-(add-hook 'nndiary-request-accept-article-hooks
+(add-hook 'nndiary-request-accept-article-functions
 	  (lambda () (gnus-diary-check-message nil)))
 
 (define-key message-mode-map "\C-c\C-fd" 'gnus-diary-check-message)

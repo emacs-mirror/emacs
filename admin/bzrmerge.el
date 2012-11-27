@@ -1,9 +1,9 @@
 ;;; bzrmerge.el --- help merge one Emacs bzr branch to another
 
-;; Copyright (C) 2010-2012  Free Software Foundation, Inc.
+;; Copyright (C) 2010-2012 Free Software Foundation, Inc.
 
 ;; Author: Stefan Monnier <monnier@iro.umontreal.ca>
-;; Keywords: 
+;; Keywords: maint
 
 ;; GNU Emacs is free software: you can redistribute it and/or modify
 ;; it under the terms of the GNU General Public License as published by
@@ -24,11 +24,11 @@
 
 ;;; Code:
 
-(eval-when-compile
-  (require 'cl))                        ; assert
+(eval-when-compile (require 'cl-lib))
 
 (defvar bzrmerge-skip-regexp
-  "back[- ]?port\\|merge\\|sync\\|re-?generate\\|bump version"
+  "back[- ]?port\\|merge\\|sync\\|re-?generate\\|bump version\\|from trunk\\|\
+Auto-commit"
   "Regexp matching logs of revisions that might be skipped.
 `bzrmerge-missing' will ask you if it should skip any matches.")
 
@@ -45,16 +45,23 @@ The list returned is sorted by oldest-first."
     (erase-buffer)
     ;; We generally want to make sure we start with a clean tree, but we also
     ;; want to allow restarts (i.e. with some part of FROM already merged but
-    ;; not yet committed).
+    ;; not yet committed).  Unversioned (unknown) files in the tree
+    ;; are also ok.
     (call-process "bzr" nil t nil "status" "-v")
     (goto-char (point-min))
     (when (re-search-forward "^conflicts:\n" nil t)
       (error "You still have unresolved conflicts"))
-    (let ((merges ()))
+    (let ((merges ())
+          found)
       (if (not (re-search-forward "^pending merges:\n" nil t))
           (when (save-excursion
                   (goto-char (point-min))
-                  (re-search-forward "^[a-z ]*:\n" nil t))
+                  (while (and
+                          (re-search-forward "^\\([a-z ]*\\):\n" nil t)
+                          (not
+                           (setq found
+                                 (not (equal "unknown" (match-string 1)))))))
+                  found)
             (error "You still have uncommitted changes"))
         ;; This is really stupid, but it seems there's no easy way to figure
         ;; out which revisions have been merged already.  The only info I can
@@ -138,17 +145,17 @@ Type `y' to skip this revision,
 `N' to include it and go on to the next revision,
 `n' to not skip, but continue to search this log entry for skip regexps,
 `q' to quit merging."))
-                    (case (save-excursion
+                    (pcase (save-excursion
                             (read-char-choice
                              (format "%s: Skip (y/n/N/q/%s)? " str
                                      (key-description (vector help-char)))
                              '(?y ?n ?N ?q)))
-                      (?y (setq skip t))
-                      (?q (keyboard-quit))
+                      (`?y (setq skip t))
+                      (`?q (keyboard-quit))
                       ;; A single log entry can match skip-regexp multiple
                       ;; times.  If you are sure you don't want to skip it,
                       ;; you don't want to be asked multiple times.
-                      (?N (setq skip 'no))))))
+                      (`?N (setq skip 'no))))))
               (if (eq skip t)
                   (push revno skipped)
                 (push revno revnos)))))
@@ -256,17 +263,17 @@ Does not make other difference."
           ;; Do a "skip" (i.e. merge the meta-data only).
           (setq beg (1- (car skip)))
           (while (and skip (or (null merge) (< (car skip) (car merge))))
-            (assert (> (car skip) (or end beg)))
+            (cl-assert (> (car skip) (or end beg)))
             (setq end (pop skip)))
           (message "Skipping %s..%s" beg end)
           (bzrmerge-add-metadata from end))
 
          (t
           ;; Do a "normal" merge.
-          (assert (or (null skip) (< (car merge) (car skip))))
+          (cl-assert (or (null skip) (< (car merge) (car skip))))
           (setq beg (1- (car merge)))
           (while (and merge (or (null skip) (< (car merge) (car skip))))
-            (assert (> (car merge) (or end beg)))
+            (cl-assert (> (car merge) (or end beg)))
             (setq end (pop merge)))
           (message "Merging %s..%s" beg end)
           (if (with-temp-buffer

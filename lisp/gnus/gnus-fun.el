@@ -85,13 +85,6 @@ PNG format."
     (call-process shell-file-name nil (list standard-output nil)
 		  nil shell-command-switch command)))
 
-(defun gnus-shell-command-on-region (start end command)
-  "A simplified `shell-command-on-region'.
-Output to the current buffer, replace text, and don't mingle error."
-  (call-process-region start end shell-file-name t
-		       (list (current-buffer) nil)
-		       nil shell-command-switch command))
-
 ;;;###autoload
 (defun gnus-random-x-face ()
   "Return X-Face header data chosen randomly from `gnus-x-face-directory'."
@@ -284,6 +277,10 @@ colors of the displayed X-Faces."
     (push (format format i i i i i i)
 	  values))
   (mapconcat 'identity values " ")))
+
+(defun gnus-funcall-no-warning (function &rest args)
+  (when (fboundp function)
+    (apply function args)))
 
 (provide 'gnus-fun)
 

@@ -23,9 +23,6 @@
 
 ;;; Code:
 
-(eval-when-compile
-  (require 'cl))
-
 ;; This loads up some of the small, silly URLs that I really don't
 ;; want to bother putting in their own separate files.
 (require 'url-parse)
@@ -82,7 +79,7 @@
 
     ;; Store any proxying information - this will not overwrite an old
     ;; entry, so that people can still set this information in their
-    ;; .emacs file
+    ;; init file
     (cond
      (cur-proxy nil)			; Keep their old settings
      ((null env-proxy) nil)		; No proxy setup
@@ -121,7 +118,9 @@ it has not already been loaded."
 	(let* ((stub (concat "url-" scheme))
 	       (loader (intern stub)))
 	  (condition-case ()
-	      (require loader)
+	      ;; url-https.el was merged into url-http because of 8+3
+	      ;; filename limitations, so we have to do this dance.
+	      (require (if (equal "https" scheme) 'url-http loader))
 	    (error nil))
 	  (if (fboundp loader)
 	      (progn
@@ -134,17 +133,17 @@ it has not already been loaded."
 		  (let ((symbol (intern-soft (format "%s-%s" stub (car cell))))
 			(type (cdr cell)))
 		    (if symbol
-			(case type
-			  (function
+			(pcase type
+			  (`function
 			   ;; Store the symbol name of a function
 			   (if (fboundp symbol)
 			       (setq desc (plist-put desc (car cell) symbol))))
-			  (variable
+			  (`variable
 			   ;; Store the VALUE of a variable
 			   (if (boundp symbol)
 			       (setq desc (plist-put desc (car cell)
 						     (symbol-value symbol)))))
-			  (otherwise
+			  (_
 			   (error "Malformed url-scheme-methods entry: %S"
 				  cell))))))
 		(puthash scheme desc url-scheme-registry)))))

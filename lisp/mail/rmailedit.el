@@ -111,6 +111,8 @@ This function runs the hooks `text-mode-hook' and `rmail-edit-mode-hook'.
 	      ;; Even if the message is in `raw' state, boundaries etc
 	      ;; are still missing.  All we can do is insert the real
 	      ;; raw message.  (Bug#9840)
+	      ;; FIXME?  Since the 2012-09-17 changes to rmail-mime,
+	      ;; can we just use that function now?
 	      (when (and entity
 			 (not (equal "text/plain"
 				     (car (rmail-mime-entity-type entity)))))

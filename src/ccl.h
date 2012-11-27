@@ -1,6 +1,6 @@
 /* Header for CCL (Code Conversion Language) interpreter.
    Copyright (C) 1995, 1996, 1997, 1998, 1999, 2000, 2001, 2002, 2003, 2004,
-     2005, 2006, 2007, 2008, 2009, 2010, 2011
+     2005, 2006, 2007, 2008, 2009, 2010, 2011, 2012
      National Institute of Advanced Industrial Science and Technology (AIST)
      Registration Number H14PRO021
    Copyright (C) 2003
@@ -26,6 +26,8 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #ifndef EMACS_CCL_H
 #define EMACS_CCL_H
 
+#include "character.h" /* For MAX_MULTIBYTE_LENGTH */
+
 /* Macros for exit status of CCL program.  */
 #define CCL_STAT_SUCCESS	0 /* Terminated successfully.  */
 #define CCL_STAT_SUSPEND_BY_SRC	1 /* Terminated by empty input.  */
@@ -37,7 +39,7 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 /* Structure to hold information about running CCL code.  Read
    comments in the file ccl.c for the detail of each field.  */
 struct ccl_program {
-  int idx;			/* Index number of the CCL program.
+  ptrdiff_t idx;		/* Index number of the CCL program.
 				   -1 means that the program was given
 				   by a vector, not by a program
 				   name.  */
@@ -100,8 +102,6 @@ extern void ccl_driver (struct ccl_program *, int *, int *, int, int,
                         Lisp_Object);
 
 extern Lisp_Object Qccl, Qcclp;
-
-EXFUN (Fccl_program_p, 1);
 
 #define CHECK_CCL_PROGRAM(x)			\
   do {						\

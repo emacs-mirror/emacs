@@ -496,9 +496,6 @@
 (defun mm-inline-audio (handle)
   (message "Not implemented"))
 
-(defun mm-view-sound-file ()
-  (message "Not implemented"))
-
 (defun mm-w3-prepare-buffer ()
   (require 'w3)
   (let ((url-standalone-mode t)

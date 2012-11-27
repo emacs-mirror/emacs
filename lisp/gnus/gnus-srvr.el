@@ -490,8 +490,7 @@ The following commands are available:
       (error "No such server: %s" server))
     (gnus-server-set-status method 'ok)
     (prog1
-	(or (gnus-open-server method)
-	    (progn (message "Couldn't open %s" server) nil))
+	(gnus-open-server method)
       (gnus-server-update-server server)
       (gnus-server-position-point))))
 

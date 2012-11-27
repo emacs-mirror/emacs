@@ -1,4 +1,4 @@
-/* Menu support for GNU Emacs on the Microsoft W32 API.
+/* Menu support for GNU Emacs on the Microsoft Windows API.
    Copyright (C) 1986, 1988, 1993-1994, 1996, 1998-1999, 2001-2012
                  Free Software Foundation, Inc.
 
@@ -21,7 +21,6 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 
 #include <signal.h>
 #include <stdio.h>
-#include <mbstring.h>
 #include <setjmp.h>
 
 #include "lisp.h"
@@ -31,6 +30,7 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #include "termhooks.h"
 #include "window.h"
 #include "blockinput.h"
+#include "character.h"
 #include "buffer.h"
 #include "charset.h"
 #include "coding.h"
@@ -40,7 +40,13 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
    if this is not done before the other system files.  */
 #include "w32term.h"
 
-#include "w32heap.h"
+/* Cygwin does not support the multibyte string functions declared in
+ * mbstring.h below --- but that's okay: because Cygwin is
+ * UNICODE-only, we don't need to use these functions anyway.  */
+
+#ifndef NTGUI_UNICODE
+#include <mbstring.h>
+#endif /* !NTGUI_UNICODE */
 
 /* Load sys/types.h if not already loaded.
    In some systems loading it twice is suicidal.  */
@@ -49,6 +55,8 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #endif
 
 #include "dispextern.h"
+
+#include "w32common.h"	/* for osinfo_cache */
 
 #undef HAVE_DIALOGS /* TODO: Implement native dialogs.  */
 
@@ -78,14 +86,21 @@ typedef int (WINAPI * MessageBoxW_Proc) (
     IN WCHAR *caption,
     IN UINT type);
 
+#ifdef NTGUI_UNICODE
+#define get_menu_item_info GetMenuItemInfoA
+#define set_menu_item_info SetMenuItemInfoA
+#define unicode_append_menu AppendMenuW
+#define unicode_message_box MessageBoxW
+#else /* !NTGUI_UNICODE */
 GetMenuItemInfoA_Proc get_menu_item_info = NULL;
 SetMenuItemInfoA_Proc set_menu_item_info = NULL;
 AppendMenuW_Proc unicode_append_menu = NULL;
 MessageBoxW_Proc unicode_message_box = NULL;
+#endif /* NTGUI_UNICODE */
 
 Lisp_Object Qdebug_on_next_call;
 
-void set_frame_menubar (FRAME_PTR, int, int);
+void set_frame_menubar (FRAME_PTR, bool, bool);
 
 #ifdef HAVE_DIALOGS
 static Lisp_Object w32_dialog_show (FRAME_PTR, int, Lisp_Object, char**);
@@ -98,6 +113,7 @@ static void utf8to16 (unsigned char *, int, WCHAR *);
 static int fill_in_menu (HMENU, widget_value *);
 
 void w32_free_menu_strings (HWND);
+
 
 
 /* This is set nonzero after the user activates the menu bar, and set
@@ -161,13 +177,12 @@ otherwise it is "Question". */)
     }
   else if (CONSP (position))
     {
-      Lisp_Object tem;
-      tem = Fcar (position);
+      Lisp_Object tem = XCAR (position);
       if (CONSP (tem))
-	window = Fcar (Fcdr (position));
+	window = Fcar (XCDR (position));
       else
 	{
-	  tem = Fcar (Fcdr (position));  /* EVENT_START (position) */
+	  tem = Fcar (XCDR (position));  /* EVENT_START (position) */
 	  window = Fcar (tem);	     /* POSN_WINDOW (tem) */
 	}
     }
@@ -222,9 +237,9 @@ otherwise it is "Question". */)
     list_of_panes (Fcons (contents, Qnil));
 
     /* Display them in a dialog box.  */
-    BLOCK_INPUT;
+    block_input ();
     selection = w32_dialog_show (f, 0, title, header, &error_name);
-    UNBLOCK_INPUT;
+    unblock_input ();
 
     discard_menu_items ();
     FRAME_X_DISPLAY_INFO (f)->grabbed = 0;
@@ -276,7 +291,7 @@ menubar_selection_callback (FRAME_PTR f, void * client_data)
   if (!f)
     return;
   entry = Qnil;
-  subprefix_stack = (Lisp_Object *) alloca (f->menu_bar_items_used * sizeof (Lisp_Object));
+  subprefix_stack = (Lisp_Object *) alloca (f->menu_bar_items_used * word_size);
   vector = f->menu_bar_vector;
   prefix = Qnil;
   i = 0;
@@ -357,7 +372,7 @@ menubar_selection_callback (FRAME_PTR f, void * client_data)
    it is set the first time this is called, from initialize_frame_menubar.  */
 
 void
-set_frame_menubar (FRAME_PTR f, int first_time, int deep_p)
+set_frame_menubar (FRAME_PTR f, bool first_time, bool deep_p)
 {
   HMENU menubar_widget = f->output_data.w32->menubar_widget;
   Lisp_Object items;
@@ -383,11 +398,11 @@ set_frame_menubar (FRAME_PTR f, int first_time, int deep_p)
 
       struct buffer *prev = current_buffer;
       Lisp_Object buffer;
-      int specpdl_count = SPECPDL_INDEX ();
+      ptrdiff_t specpdl_count = SPECPDL_INDEX ();
       int previous_menu_items_used = f->menu_bar_items_used;
       Lisp_Object *previous_items
 	= (Lisp_Object *) alloca (previous_menu_items_used
-				  * sizeof (Lisp_Object));
+				  * word_size);
 
       /* If we are making a new widget, its contents are empty,
 	 do always reinitialize them.  */
@@ -413,14 +428,14 @@ set_frame_menubar (FRAME_PTR f, int first_time, int deep_p)
       /* Run the hooks.  */
       safe_run_hooks (Qactivate_menubar_hook);
       safe_run_hooks (Qmenu_bar_update_hook);
-      FRAME_MENU_BAR_ITEMS (f) = menu_bar_items (FRAME_MENU_BAR_ITEMS (f));
+      fset_menu_bar_items (f, menu_bar_items (FRAME_MENU_BAR_ITEMS (f)));
 
       items = FRAME_MENU_BAR_ITEMS (f);
 
       /* Save the frame's previous menu bar contents data.  */
       if (previous_menu_items_used)
 	memcpy (previous_items, XVECTOR (f->menu_bar_vector)->contents,
-		previous_menu_items_used * sizeof (Lisp_Object));
+		previous_menu_items_used * word_size);
 
       /* Fill in menu_items with the current menu bar contents.
 	 This can evaluate Lisp code.  */
@@ -500,7 +515,7 @@ set_frame_menubar (FRAME_PTR f, int first_time, int deep_p)
 	  return;
 	}
 
-      f->menu_bar_vector = menu_items;
+      fset_menu_bar_vector (f, menu_items);
       f->menu_bar_items_used = menu_items_used;
 
       /* This undoes save_menu_items.  */
@@ -572,7 +587,7 @@ set_frame_menubar (FRAME_PTR f, int first_time, int deep_p)
 
   /* Create or update the menu bar widget.  */
 
-  BLOCK_INPUT;
+  block_input ();
 
   if (menubar_widget)
     {
@@ -602,7 +617,7 @@ set_frame_menubar (FRAME_PTR f, int first_time, int deep_p)
       x_set_window_size (f, 0, FRAME_COLS (f), FRAME_LINES (f));
   }
 
-  UNBLOCK_INPUT;
+  unblock_input ();
 }
 
 /* Called from Fx_create_frame to create the initial menubar of a frame
@@ -615,7 +630,7 @@ initialize_frame_menubar (FRAME_PTR f)
 {
   /* This function is called before the first chance to redisplay
      the frame.  It has to be, so the frame will have the right size.  */
-  FRAME_MENU_BAR_ITEMS (f) = menu_bar_items (FRAME_MENU_BAR_ITEMS (f));
+  fset_menu_bar_items (f, menu_bar_items (FRAME_MENU_BAR_ITEMS (f)));
   set_frame_menubar (f, 1, 1);
 }
 
@@ -625,7 +640,7 @@ initialize_frame_menubar (FRAME_PTR f)
 void
 free_frame_menubar (FRAME_PTR f)
 {
-  BLOCK_INPUT;
+  block_input ();
 
   {
     HMENU old = GetMenu (FRAME_W32_WINDOW (f));
@@ -634,7 +649,7 @@ free_frame_menubar (FRAME_PTR f)
     DestroyMenu (old);
   }
 
-  UNBLOCK_INPUT;
+  unblock_input ();
 }
 
 
@@ -665,7 +680,7 @@ w32_menu_show (FRAME_PTR f, int x, int y, int for_click, int keymaps,
   widget_value **submenu_stack
     = (widget_value **) alloca (menu_items_used * sizeof (widget_value *));
   Lisp_Object *subprefix_stack
-    = (Lisp_Object *) alloca (menu_items_used * sizeof (Lisp_Object));
+    = (Lisp_Object *) alloca (menu_items_used * word_size);
   int submenu_depth = 0;
   int first_pane;
 
@@ -820,7 +835,7 @@ w32_menu_show (FRAME_PTR f, int x, int y, int for_click, int keymaps,
 	  else if (EQ (type, QCradio))
 	    wv->button_type = BUTTON_TYPE_RADIO;
 	  else
-	    abort ();
+	    emacs_abort ();
 
 	  wv->selected = !NILP (selected);
 
@@ -1062,7 +1077,7 @@ w32_dialog_show (FRAME_PTR f, int keymaps,
 	if (!NILP (descrip))
 	  wv->key = SSDATA (descrip);
 	wv->value = SSDATA (item_name);
-	wv->call_data = (void *) &AREF (menu_items, i);
+	wv->call_data = aref_addr (menu_items, i);
 	wv->enabled = !NILP (enable);
 	wv->help = Qnil;
 	prev_wv = wv;
@@ -1243,7 +1258,7 @@ simple_dialog_show (FRAME_PTR f, Lisp_Object contents, Lisp_Object header)
 	     one utf16 word, so we cannot simply use the character
 	     length of temp.  */
 	  int utf8_len = strlen (utf8_text);
-	  SAFE_ALLOCA (text, WCHAR *, (utf8_len + 1) * sizeof (WCHAR));
+	  text = SAFE_ALLOCA ((utf8_len + 1) * sizeof (WCHAR));
 	  utf8to16 (utf8_text, utf8_len, text);
 	}
       else
@@ -1386,8 +1401,7 @@ add_menu_item (HMENU menu, widget_value *wv, HMENU item)
 
       if (wv->key != NULL)
 	{
-	  SAFE_ALLOCA (out_string, char *,
-		       strlen (wv->name) + strlen (wv->key) + 2);
+	  out_string = SAFE_ALLOCA (strlen (wv->name) + strlen (wv->key) + 2);
 	  strcpy (out_string, wv->name);
 	  strcat (out_string, "\t");
 	  strcat (out_string, wv->key);
@@ -1407,6 +1421,7 @@ add_menu_item (HMENU menu, widget_value *wv, HMENU item)
                 nlen++;
             }
         }
+#ifndef NTGUI_UNICODE
       else
         {
           /* If encoded with the system codepage, use multibyte string
@@ -1417,11 +1432,12 @@ add_menu_item (HMENU menu, widget_value *wv, HMENU item)
                 nlen++;
             }
         }
+#endif /* !NTGUI_UNICODE */
 
       if (nlen > orig_len)
         {
           p = out_string;
-          SAFE_ALLOCA (out_string, char *, nlen + 1);
+          out_string = SAFE_ALLOCA (nlen + 1);
           q = out_string;
           while (*p)
             {
@@ -1431,6 +1447,7 @@ add_menu_item (HMENU menu, widget_value *wv, HMENU item)
                     *q++ = *p;
                   *q++ = *p++;
                 }
+#ifndef NTGUI_UNICODE
               else
                 {
                   if (_mbsnextc (p) == '&')
@@ -1442,6 +1459,7 @@ add_menu_item (HMENU menu, widget_value *wv, HMENU item)
                   p = _mbsinc (p);
                   q = _mbsinc (q);
                 }
+#endif /* !NTGUI_UNICODE */
             }
           *q = '\0';
         }
@@ -1481,13 +1499,15 @@ add_menu_item (HMENU menu, widget_value *wv, HMENU item)
       if (fuFlags & MF_OWNERDRAW)
 	utf16_string = local_alloc ((utf8_len + 1) * sizeof (WCHAR));
       else
-	SAFE_ALLOCA (utf16_string, WCHAR *, (utf8_len + 1) * sizeof (WCHAR));
+	utf16_string = SAFE_ALLOCA ((utf8_len + 1) * sizeof (WCHAR));
 
       utf8to16 (out_string, utf8_len, utf16_string);
       return_value = unicode_append_menu (menu, fuFlags,
-					  item != NULL ? (UINT) item
-					    : (UINT) wv->call_data,
+					  item != NULL ? (UINT_PTR) item
+					    : (UINT_PTR) wv->call_data,
 					  utf16_string);
+
+#ifndef NTGUI_UNICODE /* Fallback does not apply when always UNICODE */
       if (!return_value)
 	{
 	  /* On W9x/ME, Unicode menus are not supported, though AppendMenuW
@@ -1498,7 +1518,7 @@ add_menu_item (HMENU menu, widget_value *wv, HMENU item)
 	     of minor importance compared with menus not working at all.  */
 	  return_value =
 	    AppendMenu (menu, fuFlags,
-			item != NULL ? (UINT) item: (UINT) wv->call_data,
+			item != NULL ? (UINT_PTR) item: (UINT_PTR) wv->call_data,
 			out_string);
 	  /* Don't use Unicode menus in future, unless this is Windows
 	     NT or later, where a failure of AppendMenuW does NOT mean
@@ -1506,6 +1526,7 @@ add_menu_item (HMENU menu, widget_value *wv, HMENU item)
 	  if (osinfo_cache.dwPlatformId != VER_PLATFORM_WIN32_NT)
 	    unicode_append_menu = NULL;
 	}
+#endif /* NTGUI_UNICODE */
 
       if (unicode_append_menu && (fuFlags & MF_OWNERDRAW))
 	local_free (out_string);
@@ -1515,7 +1536,7 @@ add_menu_item (HMENU menu, widget_value *wv, HMENU item)
       return_value =
 	AppendMenu (menu,
 		    fuFlags,
-		    item != NULL ? (UINT) item : (UINT) wv->call_data,
+		    item != NULL ? (UINT_PTR) item : (UINT_PTR) wv->call_data,
 		    out_string );
     }
 
@@ -1533,11 +1554,14 @@ add_menu_item (HMENU menu, widget_value *wv, HMENU item)
 	     until it is ready to be displayed, since GC can happen while
 	     menus are active.  */
 	  if (!NILP (wv->help))
-#ifdef USE_LISP_UNION_TYPE
-	    info.dwItemData = (DWORD) (wv->help).i;
-#else
-	    info.dwItemData = (DWORD) (wv->help);
-#endif
+	    {
+	      /* As of Jul-2012, w32api headers say that dwItemData
+		 has DWORD type, but that's a bug: it should actually
+		 be ULONG_PTR, which is correct for 32-bit and 64-bit
+		 Windows alike.  MSVC headers get it right; hopefully,
+		 MinGW headers will, too.  */
+	      info.dwItemData = (ULONG_PTR) XLI (wv->help);
+	    }
 	  if (wv->button_type == BUTTON_TYPE_RADIO)
 	    {
 	      /* CheckMenuRadioItem allows us to differentiate TOGGLE and
@@ -1549,7 +1573,7 @@ add_menu_item (HMENU menu, widget_value *wv, HMENU item)
 	    }
 
 	  set_menu_item_info (menu,
-			      item != NULL ? (UINT) item : (UINT) wv->call_data,
+			      item != NULL ? (UINT_PTR) item : (UINT_PTR) wv->call_data,
 			      FALSE, &info);
 	}
     }
@@ -1612,12 +1636,7 @@ w32_menu_display_help (HWND owner, HMENU menu, UINT item, UINT flags)
 	  info.fMask = MIIM_DATA;
 	  get_menu_item_info (menu, item, FALSE, &info);
 
-#ifdef USE_LISP_UNION_TYPE
-	  help = info.dwItemData ? (Lisp_Object) ((EMACS_INT) info.dwItemData)
-	                         : Qnil;
-#else
-	  help = info.dwItemData ? (Lisp_Object) info.dwItemData : Qnil;
-#endif
+	  help = info.dwItemData ? XIL (info.dwItemData) : Qnil;
 	}
 
       /* Store the help echo in the keyboard buffer as the X toolkit
@@ -1727,10 +1746,12 @@ syms_of_w32menu (void)
 void
 globals_of_w32menu (void)
 {
+#ifndef NTGUI_UNICODE
   /* See if Get/SetMenuItemInfo functions are available.  */
   HMODULE user32 = GetModuleHandle ("user32.dll");
   get_menu_item_info = (GetMenuItemInfoA_Proc) GetProcAddress (user32, "GetMenuItemInfoA");
   set_menu_item_info = (SetMenuItemInfoA_Proc) GetProcAddress (user32, "SetMenuItemInfoA");
   unicode_append_menu = (AppendMenuW_Proc) GetProcAddress (user32, "AppendMenuW");
   unicode_message_box = (MessageBoxW_Proc) GetProcAddress (user32, "MessageBoxW");
+#endif /* !NTGUI_UNICODE */
 }

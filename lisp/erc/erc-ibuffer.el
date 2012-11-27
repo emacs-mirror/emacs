@@ -3,6 +3,7 @@
 ;; Copyright (C) 2002, 2004, 2006-2012  Free Software Foundation, Inc.
 
 ;; Author: Mario Lang <mlang@delysid.org>
+;; Maintainer: FSF
 ;; Keywords: comm
 ;; URL: http://www.emacswiki.org/cgi-bin/wiki.pl?ErcIbuffer
 

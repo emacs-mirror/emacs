@@ -5,10 +5,9 @@
 
 @c This node must have no pointers.
 
-@node Antinews, GNU Free Documentation License, Packaging, Top
+@node Antinews
 @appendix Emacs 23 Antinews
-@c Update the elisp.texi, vol1.texi, vol2.texi Antinews menu entries
-@c with the above version number.
+@c Update the elisp.texi Antinews menu entry with the above version number.
 
 For those users who live backwards in time, here is information about
 downgrading to Emacs version 23.4.  We hope you will enjoy the greater
@@ -72,9 +71,8 @@ been removed, including @code{display-buffer-overriding-action} and
 related variables, as well as the @var{action} argument to
 @code{display-buffer} and other functions.  The way to
 programmatically control how Emacs chooses a window to display a
-buffer is to bind the right combination of
-@code{special-display-regexps}, @code{pop-up-frames}, and other
-variables.
+buffer is to bind the right combination of @code{pop-up-frames} and
+other variables.
 
 @item
 The standard completion interface has been simplified, eliminating the

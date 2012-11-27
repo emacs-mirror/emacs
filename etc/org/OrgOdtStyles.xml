@@ -319,6 +319,11 @@
   <style:style style:name="Table" style:family="paragraph" style:parent-style-name="Caption" style:class="extra">
    <style:paragraph-properties fo:text-align="center" style:justify-single-word="false"/>
   </style:style>
+  <style:style style:name="Listing" style:family="paragraph" style:parent-style-name="Caption" style:class="extra">
+   <style:paragraph-properties fo:margin-left="0cm" fo:margin-right="0cm" fo:text-indent="0cm" style:auto-text-indent="false" fo:keep-with-next="always">
+    <style:tab-stops/>
+   </style:paragraph-properties>
+  </style:style>
   <style:style style:name="Horizontal_20_Line" style:display-name="Horizontal Line" style:family="paragraph" style:parent-style-name="Standard" style:next-style-name="Text_20_body" style:class="html">
    <style:paragraph-properties fo:margin-top="0cm" fo:margin-bottom="0.499cm" style:border-line-width-bottom="0.002cm 0.035cm 0.002cm" fo:padding="0cm" fo:border-left="none" fo:border-right="none" fo:border-top="none" fo:border-bottom="0.039cm double #808080" text:number-lines="false" text:line-number="0" style:join-border="false"/>
    <style:text-properties fo:font-size="6pt" style:font-size-asian="6pt" style:font-size-complex="6pt"/>

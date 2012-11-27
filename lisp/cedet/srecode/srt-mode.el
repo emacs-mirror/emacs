@@ -70,13 +70,17 @@
      (3 font-lock-builtin-face ))
     ("^\\(sectiondictionary\\)\\s-+\""
      (1 font-lock-keyword-face))
+    ("^\\s\s*\\(section\\)\\s-+\""
+     (1 font-lock-keyword-face))
+    ("^\\s\s*\\(end\\)"
+     (1 font-lock-keyword-face))
     ("^\\(bind\\)\\s-+\""
      (1 font-lock-keyword-face))
     ;; Variable type setting
-    ("^\\(set\\)\\s-+\\(\\w+\\)\\s-+"
+    ("^\\s\s*\\(set\\)\\s-+\\(\\w+\\)\\s-+"
      (1 font-lock-keyword-face)
      (2 font-lock-variable-name-face))
-    ("^\\(show\\)\\s-+\\(\\w+\\)\\s-*$"
+    ("^\\s\s*\\(show\\)\\s-+\\(\\w+\\)\\s-*$"
      (1 font-lock-keyword-face)
      (2 font-lock-variable-name-face))
     ("\\<\\(macro\\)\\s-+\""
@@ -185,8 +189,8 @@ we can tell font lock about them.")
 ;;;###autoload
 (define-derived-mode srecode-template-mode fundamental-mode "SRecorder"
   "Major-mode for writing SRecode macros."
-  (setq comment-start ";;"
-	comment-end "")
+  (set (make-local-variable 'comment-start) ";;")
+  (set (make-local-variable 'comment-end) "")
   (set (make-local-variable 'parse-sexp-ignore-comments) t)
   (set (make-local-variable 'comment-start-skip)
        "\\(\\(^\\|[^\\\\\n]\\)\\(\\\\\\\\\\)*\\);+ *")

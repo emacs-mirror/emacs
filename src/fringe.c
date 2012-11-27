@@ -18,12 +18,12 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 
 #include <config.h>
 #include <stdio.h>
-#include <setjmp.h>
 
 #include "lisp.h"
 #include "frame.h"
 #include "window.h"
 #include "dispextern.h"
+#include "character.h"
 #include "buffer.h"
 #include "blockinput.h"
 #include "termhooks.h"
@@ -105,6 +105,22 @@ struct fringe_bitmap
 */
 static unsigned short question_mark_bits[] = {
   0x3c, 0x7e, 0x7e, 0x0c, 0x18, 0x18, 0x00, 0x18, 0x18};
+
+/* An exclamation mark.  */
+/*
+  ...XX...
+  ...XX...
+  ...XX...
+  ...XX...
+  ...XX...
+  ...XX...
+  ...XX...
+  ........
+  ...XX...
+  ...XX...
+*/
+static unsigned short exclamation_mark_bits[] = {
+  0x18, 0x18, 0x18, 0x18, 0x18, 0x18, 0x18, 0x18, 0x00, 0x18};
 
 /* An arrow like this: `<-'.  */
 /*
@@ -431,6 +447,7 @@ static struct fringe_bitmap standard_bitmaps[] =
 {
   { NULL, 0, 0, 0, 0, 0 }, /* NO_FRINGE_BITMAP */
   { FRBITS (question_mark_bits),      8, 0, ALIGN_BITMAP_CENTER, 0 },
+  { FRBITS (exclamation_mark_bits),   8, 0, ALIGN_BITMAP_CENTER, 0 },
   { FRBITS (left_arrow_bits),         8, 0, ALIGN_BITMAP_CENTER, 0 },
   { FRBITS (right_arrow_bits),        8, 0, ALIGN_BITMAP_CENTER, 0 },
   { FRBITS (up_arrow_bits),           8, 0, ALIGN_BITMAP_TOP,    0 },
@@ -474,7 +491,7 @@ int max_used_fringe_bitmap = MAX_STANDARD_FRINGE_BITMAPS;
 int
 lookup_fringe_bitmap (Lisp_Object bitmap)
 {
-  int bn;
+  EMACS_INT bn;
 
   bitmap = Fget (bitmap, Qfringe);
   if (!INTEGERP (bitmap))
@@ -641,7 +658,14 @@ draw_fringe_bitmap_1 (struct window *w, struct glyph_row *row, int left_p, int o
 	{
 	  /* If W has a vertical border to its left, don't draw over it.  */
 	  wd -= ((!WINDOW_LEFTMOST_P (w)
-		  && !WINDOW_HAS_VERTICAL_SCROLL_BAR (w))
+		  && !WINDOW_HAS_VERTICAL_SCROLL_BAR (w)
+		  /* But don't reduce the fringe width if the window
+		     has a left margin, because that means we are not
+		     in danger of drawing over the vertical border,
+		     and OTOH leaving out that one pixel leaves behind
+		     traces of the cursor, if it was in column zero
+		     before drawing non-empty margin area.  */
+		  && NILP (w->left_margin_cols))
 		 ? 1 : 0);
 	  p.bx = x - wd;
 	  p.nx = wd;
@@ -696,7 +720,7 @@ static int
 get_logical_fringe_bitmap (struct window *w, Lisp_Object bitmap, int right_p, int partial_p)
 {
   Lisp_Object cmap, bm1 = Qnil, bm2 = Qnil, bm;
-  int ln1 = 0, ln2 = 0;
+  EMACS_INT ln1 = 0, ln2 = 0;
   int ix1 = right_p;
   int ix2 = ix1 + (partial_p ? 2 : 0);
 
@@ -848,7 +872,7 @@ draw_fringe_bitmap (struct window *w, struct glyph_row *row, int left_p)
 void
 draw_row_fringe_bitmaps (struct window *w, struct glyph_row *row)
 {
-  xassert (interrupt_input_blocked);
+  eassert (input_blocked_p ());
 
   /* If row is completely invisible, because of vscrolling, we
      don't have to draw anything.  */
@@ -1555,7 +1579,7 @@ If BITMAP already exists, the existing definition is replaced.  */)
   else
     {
       CHECK_NUMBER (height);
-      fb.height = min (XINT (height), 255);
+      fb.height = max (0, min (XINT (height), 255));
       if (fb.height > h)
 	{
 	  fill1 = (fb.height - h) / 2;
@@ -1568,7 +1592,7 @@ If BITMAP already exists, the existing definition is replaced.  */)
   else
     {
       CHECK_NUMBER (width);
-      fb.width = min (XINT (width), 255);
+      fb.width = max (0, min (XINT (width), 255));
     }
 
   fb.period = 0;
@@ -1615,12 +1639,10 @@ If BITMAP already exists, the existing definition is replaced.  */)
 		error ("No free fringe bitmap slots");
 
 	      i = max_fringe_bitmaps;
-	      fringe_bitmaps
-		= ((struct fringe_bitmap **)
-		   xrealloc (fringe_bitmaps, bitmaps * sizeof *fringe_bitmaps));
-	      fringe_faces
-		= (Lisp_Object *) xrealloc (fringe_faces,
-					    bitmaps * sizeof *fringe_faces);
+	      fringe_bitmaps = xrealloc (fringe_bitmaps,
+					 bitmaps * sizeof *fringe_bitmaps);
+	      fringe_faces = xrealloc (fringe_faces,
+				       bitmaps * sizeof *fringe_faces);
 
 	      for (i = max_fringe_bitmaps; i < bitmaps; i++)
 		{
@@ -1638,8 +1660,7 @@ If BITMAP already exists, the existing definition is replaced.  */)
 
   fb.dynamic = 1;
 
-  xfb = (struct fringe_bitmap *) xmalloc (sizeof fb
-					  + fb.height * BYTES_PER_BITMAP_ROW);
+  xfb = xmalloc (sizeof fb + fb.height * BYTES_PER_BITMAP_ROW);
   fb.bits = b = (unsigned short *) (xfb + 1);
   memset (b, 0, fb.height);
 
@@ -1671,23 +1692,27 @@ If FACE is nil, reset face to default fringe face.  */)
   (Lisp_Object bitmap, Lisp_Object face)
 {
   int n;
-  int face_id;
 
   CHECK_SYMBOL (bitmap);
   n = lookup_fringe_bitmap (bitmap);
   if (!n)
     error ("Undefined fringe bitmap");
 
+  /* The purpose of the following code is to signal an error if FACE
+     is not a face.  This is for the caller's convenience only; the
+     redisplay code should be able to fail gracefully.  Skip the check
+     if FRINGE_FACE_ID is unrealized (as in batch mode and during
+     daemon startup).  */
   if (!NILP (face))
     {
-      face_id = lookup_derived_face (SELECTED_FRAME (), face,
-				     FRINGE_FACE_ID, 1);
-      if (face_id < 0)
+      struct frame *f = SELECTED_FRAME ();
+
+      if (FACE_FROM_ID (f, FRINGE_FACE_ID)
+	  && lookup_derived_face (f, face, FRINGE_FACE_ID, 1) < 0)
 	error ("No such face");
     }
 
   fringe_faces[n] = face;
-
   return Qnil;
 }
 
@@ -1704,7 +1729,7 @@ Return nil if POS is not visible in WINDOW.  */)
 {
   struct window *w;
   struct glyph_row *row;
-  int textpos;
+  ptrdiff_t textpos;
 
   if (NILP (window))
     window = selected_window;
@@ -1714,6 +1739,8 @@ Return nil if POS is not visible in WINDOW.  */)
   if (!NILP (pos))
     {
       CHECK_NUMBER_COERCE_MARKER (pos);
+      if (! (BEGV <= XINT (pos) && XINT (pos) <= ZV))
+	args_out_of_range (window, pos);
       textpos = XINT (pos);
     }
   else if (w == XWINDOW (selected_window))
@@ -1754,7 +1781,7 @@ syms_of_fringe (void)
   defsubr (&Sset_fringe_bitmap_face);
 
   DEFVAR_LISP ("overflow-newline-into-fringe", Voverflow_newline_into_fringe,
-    doc: /* *Non-nil means that newline may flow into the right fringe.
+    doc: /* Non-nil means that newline may flow into the right fringe.
 This means that display lines which are exactly as wide as the window
 (not counting the final newline) will only occupy one screen line, by
 showing (or hiding) the final newline in the right fringe; when point
@@ -1797,16 +1824,11 @@ init_fringe (void)
 
   max_fringe_bitmaps = MAX_STANDARD_FRINGE_BITMAPS + 20;
 
-  fringe_bitmaps
-    = (struct fringe_bitmap **) xmalloc (max_fringe_bitmaps * sizeof (struct fringe_bitmap *));
-  fringe_faces
-    = (Lisp_Object *) xmalloc (max_fringe_bitmaps * sizeof (Lisp_Object));
+  fringe_bitmaps = xzalloc (max_fringe_bitmaps * sizeof *fringe_bitmaps);
+  fringe_faces = xmalloc (max_fringe_bitmaps * sizeof *fringe_faces);
 
   for (i = 0; i < max_fringe_bitmaps; i++)
-    {
-      fringe_bitmaps[i] = NULL;
-      fringe_faces[i] = Qnil;
-    }
+    fringe_faces[i] = Qnil;
 }
 
 #ifdef HAVE_NTGUI

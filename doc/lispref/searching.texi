@@ -3,8 +3,7 @@
 @c Copyright (C) 1990-1995, 1998-1999, 2001-2012
 @c   Free Software Foundation, Inc.
 @c See the file elisp.texi for copying conditions.
-@setfilename ../../info/searching
-@node Searching and Matching, Syntax Tables, Non-ASCII Characters, Top
+@node Searching and Matching
 @chapter Searching and Matching
 @cindex searching
 
@@ -832,7 +831,6 @@ an invalid regular expression is passed to any of the search functions,
 an @code{invalid-regexp} error is signaled.
 
 @node Regexp Example
-@comment  node-name,  next,  previous,  up
 @subsection Complex Regexp Example
 
   Here is a complicated regexp which was formerly used by Emacs to
@@ -1280,20 +1278,18 @@ search.  It works by means of the match data.
 
 @cindex case in replacements
 @defun replace-match replacement &optional fixedcase literal string subexp
-This function replaces the text in the buffer (or in @var{string}) that
-was matched by the last search.  It replaces that text with
-@var{replacement}.
+This function performs a replacement operation on a buffer or string.
 
-If you did the last search in a buffer, you should specify @code{nil}
-for @var{string} and make sure that the current buffer when you call
-@code{replace-match} is the one in which you did the searching or
-matching.  Then @code{replace-match} does the replacement by editing
-the buffer; it leaves point at the end of the replacement text, and
-returns @code{t}.
+If you did the last search in a buffer, you should omit the
+@var{string} argument or specify @code{nil} for it, and make sure that
+the current buffer is the one in which you performed the last search.
+Then this function edits the buffer, replacing the matched text with
+@var{replacement}.  It leaves point at the end of the replacement
+text, and returns @code{t}.
 
-If you did the search in a string, pass the same string as @var{string}.
-Then @code{replace-match} does the replacement by constructing and
-returning a new string.
+If you performed the last search on a string, pass the same string as
+@var{string}.  Then this function returns a new string, in which the
+matched text is replaced by @var{replacement}.
 
 If @var{fixedcase} is non-@code{nil}, then @code{replace-match} uses
 the replacement text without case conversion; otherwise, it converts
@@ -1314,22 +1310,31 @@ part of one of the following sequences:
 @table @asis
 @item @samp{\&}
 @cindex @samp{&} in replacement
-@samp{\&} stands for the entire text being replaced.
+This stands for the entire text being replaced.
 
-@item @samp{\@var{n}}
+@item @samp{\@var{n}}, where @var{n} is a digit
 @cindex @samp{\@var{n}} in replacement
-@samp{\@var{n}}, where @var{n} is a digit, stands for the text that
-matched the @var{n}th subexpression in the original regexp.
-Subexpressions are those expressions grouped inside @samp{\(@dots{}\)}.
-If the @var{n}th subexpression never matched, an empty string is substituted.
+This stands for the text that matched the @var{n}th subexpression in
+the original regexp.  Subexpressions are those expressions grouped
+inside @samp{\(@dots{}\)}.  If the @var{n}th subexpression never
+matched, an empty string is substituted.
 
 @item @samp{\\}
 @cindex @samp{\} in replacement
-@samp{\\} stands for a single @samp{\} in the replacement text.
+This stands for a single @samp{\} in the replacement text.
+
+@item @samp{\?}
+This stands for itself (for compatibility with @code{replace-regexp}
+and related commands; @pxref{Regexp Replacement,,, emacs, The GNU
+Emacs Manual}).
 @end table
 
-These substitutions occur after case conversion, if any,
-so the strings they substitute are never case-converted.
+@noindent
+Any other character following @samp{\} signals an error.
+
+The substitutions performed by @samp{\&} and @samp{\@var{n}} occur
+after case conversion, if any.  Therefore, the strings they substitute
+are never case-converted.
 
 If @var{subexp} is non-@code{nil}, that says to replace just
 subexpression number @var{subexp} of the regexp that was matched, not
@@ -1798,7 +1803,13 @@ Delete the text being considered, then enter a recursive edit to replace
 it.
 
 @item recenter
-Redisplay and center the window, then ask the same question again.
+@itemx scroll-up
+@itemx scroll-down
+@itemx scroll-other-window
+@itemx scroll-other-window-down
+Perform the specified window scroll operation, then ask the same
+question again.  Only @code{y-or-n-p} and related functions use this
+answer.
 
 @item quit
 Perform a quit right away.  Only @code{y-or-n-p} and related functions

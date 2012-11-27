@@ -45,7 +45,7 @@
 ;;  Installation
 ;;
 ;; type at your prompt "emacs -l handwrite.el" or put this file on your
-;; Emacs-Lisp load path,  add the following into your ~/.emacs startup file
+;; Emacs-Lisp load path, add the following into your init file:
 ;;
 ;;                (require 'handwrite)
 ;;

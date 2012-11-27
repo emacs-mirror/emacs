@@ -163,6 +163,22 @@ if nil, attach files as normal parts."
 		 (const all :tag "Any")
 		 (string :tag "Regexp")))
 
+(defcustom gnus-gcc-self-resent-messages 'no-gcc-self
+  "Like `gcc-self' group parameter, only for unmodified resent messages.
+Applied to messages sent by `gnus-summary-resend-message'.  Non-nil
+value of this variable takes precedence over any existing Gcc header.
+
+If this is `none', no Gcc copy will be made.  If this is t, messages
+resent will be Gcc'd to the current group.  If this is a string, it
+specifies a group to which resent messages will be Gcc'd.  If this is
+nil, Gcc will be done according to existing Gcc header(s), if any.
+If this is `no-gcc-self', resent messages will be Gcc'd to groups that
+existing Gcc header specifies, except for the current group."
+  :version "24.3"
+  :group 'gnus-message
+  :type '(choice (const none) (const t) string (const nil)
+		 (const no-gcc-self)))
+
 (gnus-define-group-parameter
  posting-charset-alist
  :type list
@@ -296,6 +312,24 @@ If nil, the address field will always be empty after invoking
   :group 'gnus-cite
   :group 'gnus-message
   :type 'boolean)
+
+(defcustom gnus-gcc-pre-body-encode-hook nil
+  "A hook called before encoding the body of the Gcc copy of a message.
+The current buffer (when the hook is run) contains the message
+including the message header.  Changes made to the message will
+only affect the Gcc copy, but not the original message."
+  :group 'gnus-message
+  :version "24.3"
+  :type 'hook)
+
+(defcustom gnus-gcc-post-body-encode-hook nil
+    "A hook called after encoding the body of the Gcc copy of a message.
+The current buffer (when the hook is run) contains the message
+including the message header.  Changes made to the message will
+only affect the Gcc copy, but not the original message."
+  :group 'gnus-message
+  :version "24.3"
+  :type 'hook)
 
 (autoload 'gnus-message-citation-mode "gnus-cite" nil t)
 
@@ -487,8 +521,10 @@ If Gnus isn't running, a plain `message-mail' setup is used
 instead."
   (interactive)
   (if (not (gnus-alive-p))
-      (message-mail to subject other-headers continue
-                    nil yank-action send-actions return-action)
+      (progn
+	(message "Gnus not running; using plain Message mode")
+	(message-mail to subject other-headers continue
+		      nil yank-action send-actions return-action))
     (let ((buf (current-buffer))
 	  (gnus-newsgroup-name (or gnus-newsgroup-name ""))
 	  mail-buf)
@@ -810,9 +846,21 @@ post using the current select method."
   (interactive (gnus-interactive "P\ny"))
   (let ((message-post-method
 	 `(lambda (arg)
-	    (gnus-post-method (eq ',symp 'a) ,gnus-newsgroup-name))))
+	    (gnus-post-method (eq ',symp 'a) ,gnus-newsgroup-name)))
+	(user-mail-address user-mail-address))
     (dolist (article (gnus-summary-work-articles n))
       (when (gnus-summary-select-article t nil nil article)
+	;; Pretend that we're doing a followup so that we can see what
+	;; the From header would have ended up being.
+	(save-window-excursion
+	  (save-excursion
+	    (gnus-summary-followup nil)
+	    (let ((from (message-fetch-field "from")))
+	      (when from
+		(setq user-mail-address
+		      (car (mail-header-parse-address from)))))
+	    (kill-buffer (current-buffer))))
+	;; Now cancel the article using the From header we got.
 	(when (gnus-eval-in-buffer-window gnus-original-article-buffer
 		(message-cancel-news))
 	  (gnus-summary-mark-as-read article gnus-canceled-mark)
@@ -1271,6 +1319,44 @@ For the \"inline\" alternatives, also see the variable
 	    (set-buffer gnus-original-article-buffer)
 	    (message-forward post)))))))
 
+(defun gnus-summary-resend-message-insert-gcc ()
+  "Insert Gcc header according to `gnus-gcc-self-resent-messages'."
+  (gnus-inews-insert-gcc)
+  (let ((gcc (mapcar
+	      (lambda (group)
+		(mm-encode-coding-string
+		 group
+		 (gnus-group-name-charset (gnus-inews-group-method group)
+					  group)))
+	      (message-unquote-tokens
+	       (message-tokenize-header (mail-fetch-field "gcc" nil t)
+					" ,"))))
+	(self (with-current-buffer gnus-summary-buffer
+		gnus-gcc-self-resent-messages)))
+    (message-remove-header "gcc")
+    (when gcc
+      (goto-char (point-max))
+      (cond ((eq self 'none))
+	    ((eq self t)
+	     (insert "Gcc: \"" gnus-newsgroup-name "\"\n"))
+	    ((stringp self)
+	     (insert "Gcc: "
+		     (mm-encode-coding-string
+		      (if (string-match " " self)
+			  (concat "\"" self "\"")
+			self)
+		      (gnus-group-name-charset (gnus-inews-group-method self)
+					       self))
+		     "\n"))
+	    ((null self)
+	     (insert "Gcc: " (mapconcat 'identity gcc ", ") "\n"))
+	    ((eq self 'no-gcc-self)
+	     (when (setq gcc (delete
+			      gnus-newsgroup-name
+			      (delete (concat "\"" gnus-newsgroup-name "\"")
+				      gcc)))
+	       (insert "Gcc: " (mapconcat 'identity gcc ", ") "\n")))))))
+
 (defun gnus-summary-resend-message (address n)
   "Resend the current article to ADDRESS."
   (interactive
@@ -1284,12 +1370,41 @@ For the \"inline\" alternatives, also see the variable
 	    (with-current-buffer gnus-original-article-buffer
 	      (nnmail-fetch-field "to"))))
 	 current-prefix-arg))
-  (dolist (article (gnus-summary-work-articles n))
-    (gnus-summary-select-article nil nil nil article)
-    (with-current-buffer gnus-original-article-buffer
-      (let ((gnus-gcc-externalize-attachments nil))
-	(message-resend address)))
-    (gnus-summary-mark-article-as-forwarded article)))
+  (let ((message-header-setup-hook (copy-sequence message-header-setup-hook))
+	(message-sent-hook (copy-sequence message-sent-hook))
+	;; Honor posting-style for `name' and `address' in Resent-From header.
+	(styles (gnus-group-find-parameter gnus-newsgroup-name
+					   'posting-style t))
+	(user-full-name user-full-name)
+	(user-mail-address user-mail-address)
+	tem)
+    (dolist (style styles)
+      (when (stringp (cadr style))
+	(setcdr style (list (mm-decode-coding-string (cadr style) 'utf-8)))))
+    (dolist (style (if styles
+		       (append gnus-posting-styles (list (cons ".*" styles)))
+		     gnus-posting-styles))
+      (when (string-match (pop style) gnus-newsgroup-name)
+	(when (setq tem (cadr (assq 'name style)))
+	  (setq user-full-name tem))
+	(when (setq tem (cadr (assq 'address style)))
+	  (setq user-mail-address tem))))
+    ;; `gnus-summary-resend-message-insert-gcc' must run last.
+    (add-hook 'message-header-setup-hook
+	      'gnus-summary-resend-message-insert-gcc t)
+    (add-hook 'message-sent-hook
+	      `(lambda ()
+		 (let ((rfc2047-encode-encoded-words nil))
+		   ,(if gnus-agent
+			'(gnus-agent-possibly-do-gcc)
+		      '(gnus-inews-do-gcc)))))
+    (dolist (article (gnus-summary-work-articles n))
+      (gnus-summary-select-article nil nil nil article)
+      (with-current-buffer gnus-original-article-buffer
+	(let ((gnus-gcc-externalize-attachments nil)
+	      (message-inhibit-body-encoding t))
+	  (message-resend address)))
+      (gnus-summary-mark-article-as-forwarded article))))
 
 ;; From: Matthieu Moy <Matthieu.Moy@imag.fr>
 (defun gnus-summary-resend-message-edit ()
@@ -1361,33 +1476,6 @@ See `gnus-summary-mail-forward' for ARG."
 	(when (gnus-y-or-n-p "Send this complaint? ")
 	  (message-send-and-exit))))))
 
-(defun gnus-mail-parse-comma-list ()
-  (let (accumulated
-	beg)
-    (skip-chars-forward " ")
-    (while (not (eobp))
-      (setq beg (point))
-      (skip-chars-forward "^,")
-      (while (zerop
-	      (save-excursion
-		(save-restriction
-		  (let ((i 0))
-		    (narrow-to-region beg (point))
-		    (goto-char beg)
-		    (logand (progn
-			      (while (search-forward "\"" nil t)
-				(incf i))
-			      (if (zerop i) 2 i))
-			    2)))))
-	(skip-chars-forward ",")
-	(skip-chars-forward "^,"))
-      (skip-chars-backward " ")
-      (push (buffer-substring beg (point))
-	    accumulated)
-      (skip-chars-forward "^,")
-      (skip-chars-forward ", "))
-    accumulated))
-
 (defun gnus-inews-add-to-address (group)
   (let ((to-address (mail-fetch-field "to")))
     (when (and to-address
@@ -1397,41 +1485,6 @@ See `gnus-summary-mail-forward' for ARG."
       (when (gnus-y-or-n-p
 	     (format "Do you want to add this as `to-list': %s? " to-address))
 	(gnus-group-add-parameter group (cons 'to-list to-address))))))
-
-(defun gnus-put-message ()
-  "Put the current message in some group and return to Gnus."
-  (interactive)
-  (let ((reply gnus-article-reply)
-	(winconf gnus-prev-winconf)
-	(group gnus-newsgroup-name))
-    (unless (and group
-		 (not (gnus-group-read-only-p group)))
-      (setq group (read-string "Put in group: " nil (gnus-writable-groups))))
-
-    (when (gnus-group-entry group)
-      (error "No such group: %s" group))
-    (save-excursion
-      (save-restriction
-	(widen)
-	(message-narrow-to-headers)
-	(let ((gnus-deletable-headers nil))
-	  (message-generate-headers
-	   (if (message-news-p)
-	       message-required-news-headers
-	     message-required-mail-headers)))
-	(goto-char (point-max))
-	(if (string-match " " group)
-	    (insert "Gcc: \"" group "\"\n")
-	  (insert "Gcc: " group "\n"))
-	(widen)))
-    (gnus-inews-do-gcc)
-    (when (and (get-buffer gnus-group-buffer)
-	       (gnus-buffer-exists-p (car-safe reply))
-	       (cdr reply))
-      (set-buffer (car reply))
-      (gnus-summary-mark-article-as-replied (cdr reply)))
-    (when winconf
-      (set-window-configuration winconf))))
 
 (defun gnus-article-mail (yank)
   "Send a reply to the address near point.
@@ -1581,7 +1634,9 @@ this is a reply."
 	      (nnheader-set-temp-buffer " *acc*")
 	      (setq message-options (with-current-buffer cur message-options))
 	      (insert-buffer-substring cur)
+	      (run-hooks 'gnus-gcc-pre-body-encode-hook)
 	      (message-encode-message-body)
+	      (run-hooks 'gnus-gcc-post-body-encode-hook)
 	      (save-restriction
 		(message-narrow-to-headers)
 		(let* ((mail-parse-charset message-default-charset)
@@ -1630,12 +1685,16 @@ this is a reply."
 	      (when (and group-art
 			 ;; FIXME: Should gcc-mark-as-read work when
 			 ;; Gnus is not running?
-			 (gnus-alive-p)
-			 (or gnus-gcc-mark-as-read
-			     (and
-			      (boundp 'gnus-inews-mark-gcc-as-read)
-			      (symbol-value 'gnus-inews-mark-gcc-as-read))))
-		(gnus-group-mark-article-read group (cdr group-art)))
+			 (gnus-alive-p))
+		(if (or gnus-gcc-mark-as-read
+			(and (boundp 'gnus-inews-mark-gcc-as-read)
+			     (symbol-value 'gnus-inews-mark-gcc-as-read)))
+		    (gnus-group-mark-article-read group (cdr group-art))
+		  (with-current-buffer gnus-group-buffer
+		    (let ((gnus-group-marked (list group))
+			  (gnus-get-new-news-hook nil)
+			  (inhibit-read-only t))
+		      (gnus-group-get-new-news-this-group nil t)))))
 	      (setq options message-options)
 	      (with-current-buffer cur (setq message-options options))
 	      (kill-buffer (current-buffer)))))))))
@@ -1753,6 +1812,10 @@ this is a reply."
       (when gnus-newsgroup-name
 	(let ((tmp-style (gnus-group-find-parameter group 'posting-style t)))
 	  (when tmp-style
+	    (dolist (style tmp-style)
+	      (when (stringp (cadr style))
+		(setcdr style (list (mm-decode-coding-string (cadr style)
+							     'utf-8)))))
 	    (setq styles (append styles (list (cons ".*" tmp-style)))))))
       ;; Go through all styles and look for matches.
       (dolist (style styles)

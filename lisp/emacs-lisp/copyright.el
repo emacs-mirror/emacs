@@ -110,7 +110,7 @@ When this is `function', only ask when called non-interactively."
 
 ;; This is a defvar rather than a defconst, because the year can
 ;; change during the Emacs session.
-(defvar copyright-current-year (substring (current-time-string) -4)
+(defvar copyright-current-year (format-time-string "%Y")
   "String representing the current year.")
 
 (defsubst copyright-limit ()            ; re-search-forward BOUND
@@ -181,8 +181,7 @@ skips to the end of all the years."
   ;; This uses the match-data from copyright-find-copyright/end.
   (goto-char (match-end 1))
   (copyright-find-end)
-  ;; Note that `current-time-string' isn't locale-sensitive.
-  (setq copyright-current-year (substring (current-time-string) -4))
+  (setq copyright-current-year (format-time-string "%Y"))
   (unless (string= (buffer-substring (- (match-end 3) 2) (match-end 3))
 		   (substring copyright-current-year -2))
     (if (or noquery
@@ -347,7 +346,7 @@ independently replaces consecutive years with a range."
   "Insert a copyright by $ORGANIZATION notice at cursor."
   "Company: "
   comment-start
-  "Copyright (C) " `(substring (current-time-string) -4) " by "
+  "Copyright (C) " `(format-time-string "%Y") " by "
   (or (getenv "ORGANIZATION")
       str)
   '(if (copyright-offset-too-large-p)

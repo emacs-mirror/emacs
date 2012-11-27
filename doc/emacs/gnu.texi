@@ -10,7 +10,7 @@
 @c Modified versions may not be made.
 
 @ifclear justgnu
-@node Manifesto,, Microsoft Windows, Top
+@node Manifesto
 @unnumbered The GNU Manifesto
 @end ifclear
 @ifset justgnu

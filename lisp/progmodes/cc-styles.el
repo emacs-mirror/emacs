@@ -352,8 +352,8 @@ might get set too.
 If DONT-OVERRIDE is neither nil nor t, style variables whose default values
 have been set (more precisely, whose default values are not the symbol
 `set-from-style') will not be changed.  This avoids overriding global settings
-done in ~/.emacs.  It is useful to call c-set-style from a mode hook in this
-way.
+done in your init file.  It is useful to call c-set-style from a mode hook
+in this way.
 
 If DONT-OVERRIDE is t, style variables that already have values (i.e., whose
 values are not the symbol `set-from-style') will not be overridden.  CC Mode

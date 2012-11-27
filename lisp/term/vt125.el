@@ -1,4 +1,3 @@
-;; -*- no-byte-compile: t -*-
 
 (defun terminal-init-vt125 ()
   "Terminal initialization function for vt125."

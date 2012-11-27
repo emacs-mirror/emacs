@@ -61,7 +61,7 @@ SYMBOL should be one of `grep-command', `grep-template',
 
 ;;;###autoload
 (defcustom grep-window-height nil
-  "*Number of lines in a grep window.  If nil, use `compilation-window-height'."
+  "Number of lines in a grep window.  If nil, use `compilation-window-height'."
   :type '(choice (const :tag "Default" nil)
 		 integer)
   :version "22.1"
@@ -104,7 +104,7 @@ To change the default value, use Customize or call the function
   :group 'grep)
 
 (defcustom grep-scroll-output nil
-  "*Non-nil to scroll the *grep* buffer window as output appears.
+  "Non-nil to scroll the *grep* buffer window as output appears.
 
 Setting it causes the grep commands to put point at the end of their
 output window so that the end of the output is always visible rather
@@ -203,13 +203,13 @@ Customize or call the function `grep-apply-setting'."
     ("tex" .   "*.tex")
     ("texi" .  "*.texi")
     ("asm" .   "*.[sS]"))
-  "*Alist of aliases for the FILES argument to `lgrep' and `rgrep'."
+  "Alist of aliases for the FILES argument to `lgrep' and `rgrep'."
   :type 'alist
   :group 'grep)
 
 (defcustom grep-find-ignored-directories
   vc-directory-exclusion-list
-  "*List of names of sub-directories which `rgrep' shall not recurse into.
+  "List of names of sub-directories which `rgrep' shall not recurse into.
 If an element is a cons cell, the car is called on the search directory
 to determine whether cdr should not be recursed into."
   :type '(choice (repeat :tag "Ignored directories" string)
@@ -221,7 +221,7 @@ to determine whether cdr should not be recursed into."
 				  (unless (string-match-p "/\\'" s)
 				    (concat "*" s)))
 				completion-ignored-extensions)))
-  "*List of file names which `rgrep' and `lgrep' shall exclude.
+  "List of file names which `rgrep' and `lgrep' shall exclude.
 If an element is a cons cell, the car is called on the search directory
 to determine whether cdr should not be excluded."
   :type '(choice (repeat :tag "Ignored file" string)
@@ -229,7 +229,7 @@ to determine whether cdr should not be excluded."
   :group 'grep)
 
 (defcustom grep-error-screen-columns nil
-  "*If non-nil, column numbers in grep hits are screen columns.
+  "If non-nil, column numbers in grep hits are screen columns.
 See `compilation-error-screen-columns'"
   :type '(choice (const :tag "Default" nil)
 		 integer)
@@ -817,11 +817,11 @@ substitution string.  Note dynamic scoping of variables.")
 (defun grep-read-regexp ()
   "Read regexp arg for interactive grep."
   (let ((default (grep-tag-default)))
-    (read-string
+    (read-regexp
      (concat "Search for"
 	     (if (and default (> (length default) 0))
 		 (format " (default \"%s\"): " default) ": "))
-     nil 'grep-regexp-history default)))
+     default 'grep-regexp-history)))
 
 (defun grep-read-files (regexp)
   "Read files arg for interactive grep."
@@ -1025,7 +1025,8 @@ to specify a command to run."
 				    (shell-quote-argument ")")
 				    " -prune -o "))
 		       (and grep-find-ignored-files
-			    (concat (shell-quote-argument "(")
+			    (concat (shell-quote-argument "!") " -type d "
+				    (shell-quote-argument "(")
 				    ;; we should use shell-quote-argument here
 				    " -name "
 				    (mapconcat

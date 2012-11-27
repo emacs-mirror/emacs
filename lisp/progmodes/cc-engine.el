@@ -1688,6 +1688,7 @@ comment at the start of cc-engine.el for more info."
 	;; high as possible.
 	(setq rung-pos (point)))
 
+      (with-silent-modifications
       (while
 	  (progn
 	    (while
@@ -1843,7 +1844,7 @@ comment at the start of cc-engine.el for more info."
 		(1- last-put-in-sws-pos))
 	       (c-remove-is-and-in-sws (1- last-put-in-sws-pos)
 				       last-put-in-sws-pos))))
-      )))
+      ))))
 
 (defun c-backward-sws ()
   ;; Used by `c-backward-syntactic-ws' to implement the unbounded search.
@@ -1881,6 +1882,7 @@ comment at the start of cc-engine.el for more info."
 	  (goto-char (setq rung-pos rung-is-marked))
 	(goto-char simple-ws-beg))
 
+      (with-silent-modifications
       (while
 	  (progn
 	    (while
@@ -2066,7 +2068,7 @@ comment at the start of cc-engine.el for more info."
 		last-put-in-sws-pos)
 	       (c-remove-is-and-in-sws last-put-in-sws-pos
 				       (1+ last-put-in-sws-pos)))))
-      )))
+      ))))
 
 
 ;; Other whitespace tools
@@ -2559,8 +2561,11 @@ comment at the start of cc-engine.el for more info."
 	      start-point cache-pos)))
 
     ;; Might we be better off starting from the top level, two defuns back,
-    ;; instead?
-    (when (> how-far c-state-cache-too-far)
+    ;; instead?  This heuristic no longer works well in C++, where
+    ;; declarations inside namespace brace blocks are frequently placed at
+    ;; column zero.
+    (when (and (not (c-major-mode-is 'c++-mode))
+	       (> how-far c-state-cache-too-far))
       (setq BOD-pos (c-get-fallback-scan-pos here)) ; somewhat EXPENSIVE!!!
       (if (< (- here BOD-pos) how-far)
 	  (setq strategy 'BOD
@@ -2612,13 +2617,24 @@ comment at the start of cc-engine.el for more info."
   (setq c-state-point-min (point-min)))
 
 (defun c-append-lower-brace-pair-to-state-cache (from &optional upper-lim)
-  ;; If there is a brace pair preceding FROM in the buffer (not necessarily
-  ;; immediately preceding), push a cons onto `c-state-cache' to represent it.
-  ;; FROM must not be inside a literal.  If UPPER-LIM is non-nil, we append
-  ;; the highest brace pair whose "}" is below UPPER-LIM.
+  ;; If there is a brace pair preceding FROM in the buffer, at the same level
+  ;; of nesting (not necessarily immediately preceding), push a cons onto
+  ;; `c-state-cache' to represent it.  FROM must not be inside a literal.  If
+  ;; UPPER-LIM is non-nil, we append the highest brace pair whose "}" is below
+  ;; UPPER-LIM.
   ;;
   ;; Return non-nil when this has been done.
   ;;
+  ;; The situation it copes with is this transformation:
+  ;;
+  ;; OLD:   {                       (.)    {...........}
+  ;;                                       ^             ^
+  ;;                                     FROM          HERE
+  ;;                                     
+  ;; NEW:   {             {....}    (.)    {.........
+  ;;                         ^           ^           ^
+  ;;                LOWER BRACE PAIR   HERE   or   HERE
+  ;;                                       
   ;; This routine should be fast.  Since it can get called a LOT, we maintain
   ;; `c-state-brace-pair-desert', a small cache of "failures", such that we
   ;; reduce the time wasted in repeated fruitless searches in brace deserts.
@@ -2636,11 +2652,29 @@ comment at the start of cc-engine.el for more info."
 	;; If we're essentially repeating a fruitless search, just give up.
 	(unless (and c-state-brace-pair-desert
 		     (eq cache-pos (car c-state-brace-pair-desert))
+		     (or (null (car c-state-brace-pair-desert))
+			 (> from (car c-state-brace-pair-desert)))
 		     (<= from (cdr c-state-brace-pair-desert)))
-	  ;; Only search what we absolutely need to:
-	  (if (and c-state-brace-pair-desert
-		   (eq cache-pos (car c-state-brace-pair-desert)))
-	      (narrow-to-region (cdr c-state-brace-pair-desert) (point-max)))
+	  ;; DESERT-LIM.  Avoid repeated searching through the cached desert.
+	  (let ((desert-lim
+		 (and c-state-brace-pair-desert
+		      (eq cache-pos (car c-state-brace-pair-desert))
+		      (>= from (cdr c-state-brace-pair-desert))
+		      (cdr c-state-brace-pair-desert)))
+		;; CACHE-LIM.  This limit will be necessary when an opening
+		;; paren at `cache-pos' has just had its matching close paren
+		;; inserted into the buffer.  `cache-pos' continues to be a
+		;; search bound, even though the algorithm below would skip
+		;; over the new paren pair.
+		(cache-lim (and cache-pos (< cache-pos from) cache-pos)))
+	    (narrow-to-region
+		(cond
+		 ((and desert-lim cache-lim)
+		  (max desert-lim cache-lim))
+		 (desert-lim)
+		 (cache-lim)
+		 ((point-min)))
+		(point-max)))
 
 	  ;; In the next pair of nested loops, the inner one moves back past a
 	  ;; pair of (mis-)matching parens or brackets; the outer one moves
@@ -2674,7 +2708,7 @@ comment at the start of cc-engine.el for more info."
 			  (cons new-cons (cdr c-state-cache))))
 		 (t (setq c-state-cache (cons new-cons c-state-cache)))))
 
-	    ;; We haven't found a brace pair.  Record this.
+	    ;; We haven't found a brace pair.  Record this in the cache.
 	    (setq c-state-brace-pair-desert (cons cache-pos from))))))))
 
 (defsubst c-state-push-any-brace-pair (bra+1 macro-start-or-here)
@@ -3063,6 +3097,8 @@ comment at the start of cc-engine.el for more info."
 	c-state-cache-good-pos 1
 	c-state-nonlit-pos-cache nil
 	c-state-nonlit-pos-cache-limit 1
+	c-state-semi-nonlit-pos-cache nil
+	c-state-semi-nonlit-pos-cache-limit 1
 	c-state-brace-pair-desert nil
 	c-state-point-min 1
 	c-state-point-min-lit-type nil
@@ -3312,23 +3348,32 @@ comment at the start of cc-engine.el for more info."
   (fset 'c-real-parse-state (symbol-function 'c-parse-state)))
 (cc-bytecomp-defun c-real-parse-state)
 
+(defvar c-parse-state-point nil)
 (defvar c-parse-state-state nil)
 (defun c-record-parse-state-state ()
+  (setq c-parse-state-point (point))
   (setq c-parse-state-state
 	(mapcar
 	 (lambda (arg)
-	   (cons arg (symbol-value arg)))
+	   (let ((val (symbol-value arg)))
+	     (cons arg
+		   (if (consp val)
+		       (copy-tree val)
+		     val))))
 	 '(c-state-cache
 	   c-state-cache-good-pos
 	   c-state-nonlit-pos-cache
 	   c-state-nonlit-pos-cache-limit
+	   c-state-semi-nonlit-pos-cache
+	   c-state-semi-nonlit-pos-cache-limit
 	   c-state-brace-pair-desert
 	   c-state-point-min
 	   c-state-point-min-lit-type
 	   c-state-point-min-lit-start
 	   c-state-min-scan-pos
 	   c-state-old-cpp-beg
-	   c-state-old-cpp-end))))
+	   c-state-old-cpp-end
+	   c-parse-state-point))))
 (defun c-replay-parse-state-state ()
   (message
    (concat "(setq "
@@ -3337,6 +3382,16 @@ comment at the start of cc-engine.el for more info."
        (format "%s %s%s" (car arg) (if (atom (cdr arg)) "" "'") (cdr arg)))
      c-parse-state-state "  ")
     ")")))
+
+(defun c-debug-parse-state-double-cons (state)
+  (let (state-car conses-not-ok)
+    (while state
+      (setq state-car (car state)
+	    state (cdr state))
+      (if (and (consp state-car)
+	       (consp (car state)))
+	  (setq conses-not-ok t)))
+    conses-not-ok))
 
 (defun c-debug-parse-state ()
   (let ((here (point)) (res1 (c-real-parse-state)) res2)
@@ -3370,8 +3425,16 @@ comment at the start of cc-engine.el for more info."
 	       here res1 res2)
       (message "Old state:")
       (c-replay-parse-state-state))
+
+    (when (c-debug-parse-state-double-cons res1)
+      (message "c-parse-state INVALIDITY at %s: %s"
+	       here res1)
+      (message "Old state:")
+      (c-replay-parse-state-state))
+
     (c-record-parse-state-state)
-    res1))
+    res2 ; res1 correct a cascading series of errors ASAP
+    ))
 
 (defun c-toggle-parse-state-debug (&optional arg)
   (interactive "P")
@@ -3379,7 +3442,9 @@ comment at the start of cc-engine.el for more info."
   (fset 'c-parse-state (symbol-function (if c-debug-parse-state
 					    'c-debug-parse-state
 					  'c-real-parse-state)))
-  (c-keep-region-active))
+  (c-keep-region-active)
+  (message "c-debug-parse-state %sabled"
+	   (if c-debug-parse-state "en" "dis")))
 (when c-debug-parse-state
   (c-toggle-parse-state-debug 1))
 

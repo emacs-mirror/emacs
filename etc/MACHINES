@@ -10,19 +10,12 @@ Information about older releases, and platforms that are no longer
 supported, has been removed.  Consult older versions of this file if
 you are interested in this information.
 
-The `configure' script uses the configuration name to decide which
-machine and operating system description files `src/config.h' should
-include.  The machine description files are all in `src/m', and have
-names similar to, but not identical to, the machine names used in
-configuration names.  The operating system files are all in `src/s',
-and are named similarly.  See the `configure' script if you need to
-know which configuration names use which machine and operating system
-description files.
+The `configure' script uses the configuration name, and the results of
+testing the system, to decide which options to use in src/config.h and
+elsewhere (eg Makefiles).
 
 If you add support for a new configuration, add a section to this
-file, and then edit the `configure' script to tell it which
-configuration name(s) should select your new machine description and
-system description files.
+file, and edit the `configure.ac' source as needed.
 
 Some obsolete platforms are unsupported beginning with Emacs 23.1.  See
 the list at the end of this file.

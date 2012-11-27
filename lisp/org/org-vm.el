@@ -6,6 +6,10 @@
 ;; Keywords: outlines, hypermedia, calendar, wp
 ;; Homepage: http://orgmode.org
 ;;
+;; Support for IMAP folders added
+;; by Konrad Hinsen <konrad dot hinsen at fastmail dot net>
+;; Requires VM 8.2.0a or later.
+;;
 ;; This file is part of GNU Emacs.
 ;;
 ;; GNU Emacs is free software: you can redistribute it and/or modify
@@ -42,11 +46,17 @@
 (declare-function vm-su-message-id "ext:vm-summary" (m))
 (declare-function vm-su-subject "ext:vm-summary" (m))
 (declare-function vm-summarize "ext:vm-summary" (&optional display raise))
+(declare-function vm-imap-folder-p "ext:vm-save" ())
+(declare-function vm-imap-find-spec-for-buffer "ext:vm-imap" (buffer))
+(declare-function vm-imap-folder-for-spec "ext:vm-imap" (spec))
+(declare-function vm-imap-parse-spec-to-list "ext:vm-imap" (spec))
+(declare-function vm-imap-spec-for-account "ext:vm-imap" (account))
 (defvar vm-message-pointer)
 (defvar vm-folder-directory)
 
 ;; Install the link type
 (org-add-link-type "vm" 'org-vm-open)
+(org-add-link-type "vm-imap" 'org-vm-imap-open)
 (add-hook 'org-store-link-functions 'org-vm-store-link)
 
 ;; Implementation
@@ -61,11 +71,11 @@
     (save-excursion
       (vm-select-folder-buffer)
       (let* ((message (car vm-message-pointer))
-	     (folder buffer-file-name)
-	     (subject (vm-su-subject message))
+  	     (subject (vm-su-subject message))
 	     (to (vm-get-header-contents message "To"))
 	     (from (vm-get-header-contents message "From"))
-	     (message-id (vm-su-message-id message))
+             (message-id (vm-su-message-id message))
+             (link-type (if (vm-imap-folder-p) "vm-imap" "vm"))
 	     (date (vm-get-header-contents message "Date"))
 	     (date-ts (and date (format-time-string
 				 (org-time-stamp-format t)
@@ -73,20 +83,24 @@
 	     (date-ts-ia (and date (format-time-string
 				    (org-time-stamp-format t t)
 				    (date-to-time date))))
-	     desc link)
-	(org-store-link-props :type "vm" :from from :to to :subject subject
+	     folder desc link)
+        (if (vm-imap-folder-p)
+	    (let ((spec (vm-imap-find-spec-for-buffer (current-buffer))))
+	      (setq folder (vm-imap-folder-for-spec spec)))
+          (progn
+            (setq folder (abbreviate-file-name buffer-file-name))
+            (if (and vm-folder-directory
+                     (string-match (concat "^" (regexp-quote vm-folder-directory))
+                                   folder))
+                (setq folder (replace-match "" t t folder)))))
+        (setq message-id (org-remove-angle-brackets message-id))
+	(org-store-link-props :type link-type :from from :to to :subject subject
 			      :message-id message-id)
 	(when date
 	  (org-add-link-props :date date :date-timestamp date-ts
 			      :date-timestamp-inactive date-ts-ia))
-	(setq message-id (org-remove-angle-brackets message-id))
-	(setq folder (abbreviate-file-name folder))
-	(if (and vm-folder-directory
-		 (string-match (concat "^" (regexp-quote vm-folder-directory))
-			       folder))
-	    (setq folder (replace-match "" t t folder)))
 	(setq desc (org-email-link-description))
-	(setq link (org-make-link "vm:" folder "#" message-id))
+	(setq link (concat (concat link-type ":") folder "#" message-id))
 	(org-add-link-props :link link :description desc)
 	link))))
 
@@ -121,21 +135,46 @@
 	  (setq folder (format "/%s@%s:%s" user host file))))))
   (when folder
     (funcall (cdr (assq 'vm org-link-frame-setup)) folder readonly)
-    (sit-for 0.1)
     (when article
-      (require 'vm-search)
-      (vm-select-folder-buffer)
-      (widen)
-      (let ((case-fold-search t))
-	(goto-char (point-min))
-	(if (not (re-search-forward
-		  (concat "^" "message-id: *" (regexp-quote article))))
-	    (error "Could not find the specified message in this folder"))
-	(vm-isearch-update)
-	(vm-isearch-narrow)
-	(vm-preview-current-message)
-	(vm-summarize)))))
+      (org-vm-select-message (org-add-angle-brackets article)))))
+
+(defun org-vm-imap-open (path)
+  "Follow a VM link to an IMAP folder."
+  (require 'vm-imap)
+  (when (string-match "\\([^:]+\\):\\([^#]+\\)#?\\(.+\\)?" path)
+    (let* ((account-name (match-string 1 path))
+           (mailbox-name (match-string 2 path))
+           (message-id  (match-string 3 path))
+           (account-spec (vm-imap-parse-spec-to-list
+                          (vm-imap-spec-for-account account-name)))
+           (mailbox-spec (mapconcat 'identity
+                                    (append (butlast account-spec 4)
+                                            (cons mailbox-name
+                                                  (last account-spec 3)))
+                                    ":")))
+      (funcall (cdr (assq 'vm-imap org-link-frame-setup))
+               mailbox-spec)
+      (when message-id
+        (org-vm-select-message (org-add-angle-brackets message-id))))))
+
+(defun org-vm-select-message (message-id)
+  "Go to the message with message-id in the current folder."
+  (require 'vm-search)
+  (sit-for 0.1)
+  (vm-select-folder-buffer)
+  (widen)
+  (let ((case-fold-search t))
+    (goto-char (point-min))
+    (if (not (re-search-forward
+              (concat "^" "message-id: *" (regexp-quote message-id))))
+        (error "Could not find the specified message in this folder"))
+    (vm-isearch-update)
+    (vm-isearch-narrow)
+    (vm-preview-current-message)
+    (vm-summarize)))
 
 (provide 'org-vm)
+
+
 
 ;;; org-vm.el ends here

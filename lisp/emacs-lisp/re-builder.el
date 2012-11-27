@@ -38,7 +38,7 @@
 ;; the target buffer are marked automatically with colored overlays
 ;; (for non-color displays see below) giving you feedback over the
 ;; extents of the matched (sub) expressions.  The (non-)validity is
-;; shown only in the modeline without throwing the errors at you.  If
+;; shown only in the mode line without throwing the errors at you.  If
 ;; you want to know the reason why RE Builder considers it as invalid
 ;; call `reb-force-update' ("\C-c\C-u") which should reveal the error.
 

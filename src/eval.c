@@ -19,7 +19,6 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 
 #include <config.h>
 #include <limits.h>
-#include <setjmp.h>
 #include <stdio.h>
 #include "lisp.h"
 #include "blockinput.h"
@@ -32,17 +31,7 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #include "xterm.h"
 #endif
 
-struct backtrace
-{
-  struct backtrace *next;
-  Lisp_Object *function;
-  Lisp_Object *args;	/* Points to vector of args.  */
-  ptrdiff_t nargs;	/* Length of vector.  */
-  /* Nonzero means call value of debugger when done with this operation.  */
-  unsigned int debug_on_exit : 1;
-};
-
-static struct backtrace *backtrace_list;
+struct backtrace *backtrace_list;
 
 #if !BYTE_MARK_STACK
 static
@@ -65,11 +54,11 @@ struct handler *handlerlist;
 int gcpro_level;
 #endif
 
-Lisp_Object Qautoload, Qmacro, Qexit, Qinteractive, Qcommandp, Qdefun;
+Lisp_Object Qautoload, Qmacro, Qexit, Qinteractive, Qcommandp;
 Lisp_Object Qinhibit_quit;
 Lisp_Object Qand_rest;
 static Lisp_Object Qand_optional;
-static Lisp_Object Qdebug_on_error;
+static Lisp_Object Qinhibit_debugger;
 static Lisp_Object Qdeclare;
 Lisp_Object Qinternal_interpreter_environment, Qclosure;
 
@@ -90,7 +79,7 @@ Lisp_Object Vautoload_queue;
 
 /* Current number of specbindings allocated in specpdl.  */
 
-EMACS_INT specpdl_size;
+ptrdiff_t specpdl_size;
 
 /* Pointer to beginning of specpdl.  */
 
@@ -111,18 +100,12 @@ static EMACS_INT lisp_eval_depth;
    signal the error instead of entering an infinite loop of debugger
    invocations.  */
 
-static int when_entered_debugger;
+static EMACS_INT when_entered_debugger;
 
 /* The function from which the last `signal' was called.  Set in
    Fsignal.  */
 
 Lisp_Object Vsignaling_function;
-
-/* Set to non-zero while processing X events.  Checked in Feval to
-   make sure the Lisp interpreter isn't called from a signal handler,
-   which is unsafe because the interpreter isn't reentrant.  */
-
-int handling_signal;
 
 /* If non-nil, Lisp code must not be run since some part of Emacs is
    in an inconsistent state.  Currently, x-create-frame uses this to
@@ -131,16 +114,28 @@ int handling_signal;
 Lisp_Object inhibit_lisp_code;
 
 static Lisp_Object funcall_lambda (Lisp_Object, ptrdiff_t, Lisp_Object *);
-static void unwind_to_catch (struct catchtag *, Lisp_Object) NO_RETURN;
-static int interactive_p (int);
+static bool interactive_p (void);
 static Lisp_Object apply_lambda (Lisp_Object fun, Lisp_Object args);
-static Lisp_Object Ffetch_bytecode (Lisp_Object);
-
+
+/* Functions to set Lisp_Object slots of struct specbinding.  */
+
+static void
+set_specpdl_symbol (Lisp_Object symbol)
+{
+  specpdl_ptr->symbol = symbol;
+}
+
+static void
+set_specpdl_old_value (Lisp_Object oldval)
+{
+  specpdl_ptr->old_value = oldval;
+}
+
 void
 init_eval_once (void)
 {
   enum { size = 50 };
-  specpdl = (struct specbinding *) xmalloc (size * sizeof (struct specbinding));
+  specpdl = xmalloc (size * sizeof *specpdl);
   specpdl_size = size;
   specpdl_ptr = specpdl;
   /* Don't forget to update docs (lispref node "Local Variables").  */
@@ -179,11 +174,11 @@ restore_stack_limits (Lisp_Object data)
 
 /* Call the Lisp debugger, giving it argument ARG.  */
 
-static Lisp_Object
+Lisp_Object
 call_debugger (Lisp_Object arg)
 {
-  int debug_while_redisplaying;
-  int count = SPECPDL_INDEX ();
+  bool debug_while_redisplaying;
+  ptrdiff_t count = SPECPDL_INDEX ();
   Lisp_Object val;
   EMACS_INT old_max = max_specpdl_size;
 
@@ -217,7 +212,7 @@ call_debugger (Lisp_Object arg)
   specbind (intern ("debugger-may-continue"),
 	    debug_while_redisplaying ? Qnil : Qt);
   specbind (Qinhibit_redisplay, Qnil);
-  specbind (Qdebug_on_error, Qnil);
+  specbind (Qinhibit_debugger, Qt);
 
 #if 0 /* Binding this prevents execution of Lisp code during
 	 redisplay, which necessarily leads to display problems.  */
@@ -379,23 +374,14 @@ usage: (prog1 FIRST BODY...)  */)
   Lisp_Object val;
   register Lisp_Object args_left;
   struct gcpro gcpro1, gcpro2;
-  register int argnum = 0;
-
-  if (NILP (args))
-    return Qnil;
 
   args_left = args;
   val = Qnil;
   GCPRO2 (args, val);
 
-  do
-    {
-      Lisp_Object tem = eval_sub (XCAR (args_left));
-      if (!(argnum++))
-	val = tem;
-      args_left = XCDR (args_left);
-    }
-  while (CONSP (args_left));
+  val = eval_sub (XCAR (args_left));
+  while (CONSP (args_left = XCDR (args_left)))
+    eval_sub (XCAR (args_left));
 
   UNGCPRO;
   return val;
@@ -408,31 +394,12 @@ remaining args, whose values are discarded.
 usage: (prog2 FORM1 FORM2 BODY...)  */)
   (Lisp_Object args)
 {
-  Lisp_Object val;
-  register Lisp_Object args_left;
-  struct gcpro gcpro1, gcpro2;
-  register int argnum = -1;
+  struct gcpro gcpro1;
 
-  val = Qnil;
-
-  if (NILP (args))
-    return Qnil;
-
-  args_left = args;
-  val = Qnil;
-  GCPRO2 (args, val);
-
-  do
-    {
-      Lisp_Object tem = eval_sub (XCAR (args_left));
-      if (!(argnum++))
-	val = tem;
-      args_left = XCDR (args_left);
-    }
-  while (CONSP (args_left));
-
+  GCPRO1 (args);
+  eval_sub (XCAR (args));
   UNGCPRO;
-  return val;
+  return Fprog1 (XCDR (args));
 }
 
 DEFUN ("setq", Fsetq, Ssetq, 0, UNEVALLED, 0,
@@ -541,7 +508,7 @@ spec that specifies non-nil unconditionally (such as \"p\"); or (ii)
 use `called-interactively-p'.  */)
   (void)
 {
-  return interactive_p (1) ? Qt : Qnil;
+  return (INTERACTIVE && interactive_p ()) ? Qt : Qnil;
 }
 
 
@@ -566,19 +533,17 @@ non-nil unconditionally (\"p\" is a good way to do this), or via
 \(not (or executing-kbd-macro noninteractive)).  */)
   (Lisp_Object kind)
 {
-  return ((INTERACTIVE || !EQ (kind, intern ("interactive")))
-	  && interactive_p (1)) ? Qt : Qnil;
+  return (((INTERACTIVE || !EQ (kind, intern ("interactive")))
+	   && interactive_p ())
+	  ? Qt : Qnil);
 }
 
 
-/*  Return 1 if function in which this appears was called using
-    call-interactively.
+/* Return true if function in which this appears was called using
+   call-interactively and is not a built-in.  */
 
-    EXCLUDE_SUBRS_P non-zero means always return 0 if the function
-    called is a built-in.  */
-
-static int
-interactive_p (int exclude_subrs_p)
+static bool
+interactive_p (void)
 {
   struct backtrace *btp;
   Lisp_Object fun;
@@ -587,7 +552,7 @@ interactive_p (int exclude_subrs_p)
 
   /* If this isn't a byte-compiled function, there may be a frame at
      the top for Finteractive_p.  If so, skip it.  */
-  fun = Findirect_function (*btp->function, Qnil);
+  fun = Findirect_function (btp->function, Qnil);
   if (SUBRP (fun) && (XSUBR (fun) == &Sinteractive_p
 		      || XSUBR (fun) == &Scalled_interactively_p))
     btp = btp->next;
@@ -600,126 +565,23 @@ interactive_p (int exclude_subrs_p)
      If this isn't a byte-compiled function, then we may now be
      looking at several frames for special forms.  Skip past them.  */
   while (btp
-	 && (EQ (*btp->function, Qbytecode)
+	 && (EQ (btp->function, Qbytecode)
 	     || btp->nargs == UNEVALLED))
     btp = btp->next;
 
   /* `btp' now points at the frame of the innermost function that isn't
      a special form, ignoring frames for Finteractive_p and/or
      Fbytecode at the top.  If this frame is for a built-in function
-     (such as load or eval-region) return nil.  */
-  fun = Findirect_function (*btp->function, Qnil);
-  if (exclude_subrs_p && SUBRP (fun))
+     (such as load or eval-region) return false.  */
+  fun = Findirect_function (btp->function, Qnil);
+  if (SUBRP (fun))
     return 0;
 
   /* `btp' points to the frame of a Lisp function that called interactive-p.
      Return t if that function was called interactively.  */
-  if (btp && btp->next && EQ (*btp->next->function, Qcall_interactively))
+  if (btp && btp->next && EQ (btp->next->function, Qcall_interactively))
     return 1;
   return 0;
-}
-
-
-DEFUN ("defun", Fdefun, Sdefun, 2, UNEVALLED, 0,
-       doc: /* Define NAME as a function.
-The definition is (lambda ARGLIST [DOCSTRING] BODY...).
-See also the function `interactive'.
-usage: (defun NAME ARGLIST [DOCSTRING] BODY...)  */)
-  (Lisp_Object args)
-{
-  register Lisp_Object fn_name;
-  register Lisp_Object defn;
-
-  fn_name = Fcar (args);
-  CHECK_SYMBOL (fn_name);
-  defn = Fcons (Qlambda, Fcdr (args));
-  if (!NILP (Vinternal_interpreter_environment)) /* Mere optimization!  */
-    defn = Ffunction (Fcons (defn, Qnil));
-  if (!NILP (Vpurify_flag))
-    defn = Fpurecopy (defn);
-  if (CONSP (XSYMBOL (fn_name)->function)
-      && EQ (XCAR (XSYMBOL (fn_name)->function), Qautoload))
-    LOADHIST_ATTACH (Fcons (Qt, fn_name));
-  Ffset (fn_name, defn);
-  LOADHIST_ATTACH (Fcons (Qdefun, fn_name));
-  return fn_name;
-}
-
-DEFUN ("defmacro", Fdefmacro, Sdefmacro, 2, UNEVALLED, 0,
-       doc: /* Define NAME as a macro.
-The actual definition looks like
- (macro lambda ARGLIST [DOCSTRING] [DECL] BODY...).
-When the macro is called, as in (NAME ARGS...),
-the function (lambda ARGLIST BODY...) is applied to
-the list ARGS... as it appears in the expression,
-and the result should be a form to be evaluated instead of the original.
-
-DECL is a declaration, optional, which can specify how to indent
-calls to this macro, how Edebug should handle it, and which argument
-should be treated as documentation.  It looks like this:
-  (declare SPECS...)
-The elements can look like this:
-  (indent INDENT)
-	Set NAME's `lisp-indent-function' property to INDENT.
-
-  (debug DEBUG)
-	Set NAME's `edebug-form-spec' property to DEBUG.  (This is
-	equivalent to writing a `def-edebug-spec' for the macro.)
-
-  (doc-string ELT)
-	Set NAME's `doc-string-elt' property to ELT.
-
-usage: (defmacro NAME ARGLIST [DOCSTRING] [DECL] BODY...)  */)
-  (Lisp_Object args)
-{
-  register Lisp_Object fn_name;
-  register Lisp_Object defn;
-  Lisp_Object lambda_list, doc, tail;
-
-  fn_name = Fcar (args);
-  CHECK_SYMBOL (fn_name);
-  lambda_list = Fcar (Fcdr (args));
-  tail = Fcdr (Fcdr (args));
-
-  doc = Qnil;
-  if (STRINGP (Fcar (tail)))
-    {
-      doc = XCAR (tail);
-      tail = XCDR (tail);
-    }
-
-  if (CONSP (Fcar (tail))
-      && EQ (Fcar (Fcar (tail)), Qdeclare))
-    {
-      if (!NILP (Vmacro_declaration_function))
-	{
-	  struct gcpro gcpro1;
-	  GCPRO1 (args);
-	  call2 (Vmacro_declaration_function, fn_name, Fcar (tail));
-	  UNGCPRO;
-	}
-
-      tail = Fcdr (tail);
-    }
-
-  if (NILP (doc))
-    tail = Fcons (lambda_list, tail);
-  else
-    tail = Fcons (lambda_list, Fcons (doc, tail));
-
-  defn = Fcons (Qlambda, tail);
-  if (!NILP (Vinternal_interpreter_environment)) /* Mere optimization!  */
-    defn = Ffunction (Fcons (defn, Qnil));
-  defn = Fcons (Qmacro, defn);
-
-  if (!NILP (Vpurify_flag))
-    defn = Fpurecopy (defn);
-  if (CONSP (XSYMBOL (fn_name)->function)
-      && EQ (XCAR (XSYMBOL (fn_name)->function), Qautoload))
-    LOADHIST_ATTACH (Fcons (Qt, fn_name));
-  Ffset (fn_name, defn);
-  LOADHIST_ATTACH (Fcons (Qdefun, fn_name));
-  return fn_name;
 }
 
 
@@ -763,8 +625,8 @@ The return value is BASE-VARIABLE.  */)
   {
     struct specbinding *p;
 
-    for (p = specpdl_ptr - 1; p >= specpdl; p--)
-      if (p->func == NULL
+    for (p = specpdl_ptr; p > specpdl; )
+      if ((--p)->func == NULL
 	  && (EQ (new_alias,
 		  CONSP (p->symbol) ? XCAR (p->symbol) : p->symbol)))
 	error ("Don't know how to make a let-bound variable an alias");
@@ -807,8 +669,6 @@ The optional argument DOCSTRING is a documentation string for the
 variable.
 
 To define a user option, use `defcustom' instead of `defvar'.
-The function `user-variable-p' also identifies a variable as a user
-option if its DOCSTRING starts with *, but this behavior is obsolete.
 usage: (defvar SYMBOL &optional INITVALUE DOCSTRING)  */)
   (Lisp_Object args)
 {
@@ -825,27 +685,15 @@ usage: (defvar SYMBOL &optional INITVALUE DOCSTRING)  */)
       /* Do it before evaluating the initial value, for self-references.  */
       XSYMBOL (sym)->declared_special = 1;
 
-      if (SYMBOL_CONSTANT_P (sym))
-	{
-	  /* For upward compatibility, allow (defvar :foo (quote :foo)).  */
-	  Lisp_Object tem1 = Fcar (tail);
-	  if (! (CONSP (tem1)
-		 && EQ (XCAR (tem1), Qquote)
-		 && CONSP (XCDR (tem1))
-		 && EQ (XCAR (XCDR (tem1)), sym)))
-	    error ("Constant symbol `%s' specified in defvar",
-		   SDATA (SYMBOL_NAME (sym)));
-	}
-
       if (NILP (tem))
 	Fset_default (sym, eval_sub (Fcar (tail)));
       else
 	{ /* Check if there is really a global binding rather than just a let
 	     binding that shadows the global unboundness of the var.  */
-	  volatile struct specbinding *pdl = specpdl_ptr;
-	  while (--pdl >= specpdl)
+	  struct specbinding *pdl = specpdl_ptr;
+	  while (pdl > specpdl)
 	    {
-	      if (EQ (pdl->symbol, sym) && !pdl->func
+	      if (EQ ((--pdl)->symbol, sym) && !pdl->func
 		  && EQ (pdl->old_value, Qunbound))
 		{
 		  message_with_string ("Warning: defvar ignored because %s is let-bound",
@@ -922,71 +770,17 @@ usage: (defconst SYMBOL INITVALUE [DOCSTRING])  */)
   return sym;
 }
 
-/* Error handler used in Fuser_variable_p.  */
-static Lisp_Object
-user_variable_p_eh (Lisp_Object ignore)
+/* Make SYMBOL lexically scoped.  */
+DEFUN ("internal-make-var-non-special", Fmake_var_non_special,
+       Smake_var_non_special, 1, 1, 0,
+       doc: /* Internal function.  */)
+     (Lisp_Object symbol)
 {
+  CHECK_SYMBOL (symbol);
+  XSYMBOL (symbol)->declared_special = 0;
   return Qnil;
 }
 
-static Lisp_Object
-lisp_indirect_variable (Lisp_Object sym)
-{
-  struct Lisp_Symbol *s = indirect_variable (XSYMBOL (sym));
-  XSETSYMBOL (sym, s);
-  return sym;
-}
-
-DEFUN ("user-variable-p", Fuser_variable_p, Suser_variable_p, 1, 1, 0,
-       doc: /* Return t if VARIABLE is intended to be set and modified by users.
-\(The alternative is a variable used internally in a Lisp program.)
-
-This function returns t if (i) the first character of its
-documentation is `*', or (ii) it is customizable (its property list
-contains a non-nil value of `standard-value' or `custom-autoload'), or
-\(iii) it is an alias for a user variable.
-
-But condition (i) is considered obsolete, so for most purposes this is
-equivalent to `custom-variable-p'.  */)
-  (Lisp_Object variable)
-{
-  Lisp_Object documentation;
-
-  if (!SYMBOLP (variable))
-      return Qnil;
-
-  /* If indirect and there's an alias loop, don't check anything else.  */
-  if (XSYMBOL (variable)->redirect == SYMBOL_VARALIAS
-      && NILP (internal_condition_case_1 (lisp_indirect_variable, variable,
-					  Qt, user_variable_p_eh)))
-    return Qnil;
-
-  while (1)
-    {
-      documentation = Fget (variable, Qvariable_documentation);
-      if (INTEGERP (documentation) && XINT (documentation) < 0)
-	return Qt;
-      if (STRINGP (documentation)
-	  && ((unsigned char) SREF (documentation, 0) == '*'))
-	return Qt;
-      /* If it is (STRING . INTEGER), a negative integer means a user variable.  */
-      if (CONSP (documentation)
-	  && STRINGP (XCAR (documentation))
-	  && INTEGERP (XCDR (documentation))
-	  && XINT (XCDR (documentation)) < 0)
-	return Qt;
-      /* Customizable?  See `custom-variable-p'.  */
-      if ((!NILP (Fget (variable, intern ("standard-value"))))
-	  || (!NILP (Fget (variable, intern ("custom-autoload")))))
-	return Qt;
-
-      if (!(XSYMBOL (variable)->redirect == SYMBOL_VARALIAS))
-	return Qnil;
-
-      /* An indirect variable?  Let's follow the chain.  */
-      XSETSYMBOL (variable, SYMBOL_ALIAS (XSYMBOL (variable)));
-    }
-}
 
 DEFUN ("let*", FletX, SletX, 1, UNEVALLED, 0,
        doc: /* Bind variables according to VARLIST then eval BODY.
@@ -998,7 +792,7 @@ usage: (let* VARLIST BODY...)  */)
   (Lisp_Object args)
 {
   Lisp_Object varlist, var, val, elt, lexenv;
-  int count = SPECPDL_INDEX ();
+  ptrdiff_t count = SPECPDL_INDEX ();
   struct gcpro gcpro1, gcpro2, gcpro3;
 
   GCPRO3 (args, elt, varlist);
@@ -1061,7 +855,7 @@ usage: (let VARLIST BODY...)  */)
 {
   Lisp_Object *temps, tem, lexenv;
   register Lisp_Object elt, varlist;
-  int count = SPECPDL_INDEX ();
+  ptrdiff_t count = SPECPDL_INDEX ();
   ptrdiff_t argnum;
   struct gcpro gcpro1, gcpro2;
   USE_SAFE_ALLOCA;
@@ -1188,26 +982,14 @@ definitions to shadow the loaded ones for use in file byte-compilation.  */)
 	{
 	  /* SYM is not mentioned in ENVIRONMENT.
 	     Look at its function definition.  */
+	  struct gcpro gcpro1;
+	  GCPRO1 (form);
+	  def = Fautoload_do_load (def, sym, Qmacro);
+	  UNGCPRO;
 	  if (EQ (def, Qunbound) || !CONSP (def))
 	    /* Not defined or definition not suitable.  */
 	    break;
-	  if (EQ (XCAR (def), Qautoload))
-	    {
-	      /* Autoloading function: will it be a macro when loaded?  */
-	      tem = Fnth (make_number (4), def);
-	      if (EQ (tem, Qt) || EQ (tem, Qmacro))
-		/* Yes, load it and try again.  */
-		{
-		  struct gcpro gcpro1;
-		  GCPRO1 (form);
-		  do_autoload (def, sym);
-		  UNGCPRO;
-		  continue;
-		}
-	      else
-		break;
-	    }
-	  else if (!EQ (XCAR (def), Qmacro))
+	  if (!EQ (XCAR (def), Qmacro))
 	    break;
 	  else expander = XCDR (def);
 	}
@@ -1217,7 +999,13 @@ definitions to shadow the loaded ones for use in file byte-compilation.  */)
 	  if (NILP (expander))
 	    break;
 	}
-      form = apply1 (expander, XCDR (form));
+      {
+	Lisp_Object newform = apply1 (expander, XCDR (form));
+	if (EQ (form, newform))
+	  break;
+	else
+	  form = newform;
+      }
     }
   return form;
 }
@@ -1267,7 +1055,7 @@ internal_catch (Lisp_Object tag, Lisp_Object (*func) (Lisp_Object), Lisp_Object 
   catchlist = &c;
 
   /* Call FUNC.  */
-  if (! _setjmp (c.jmp))
+  if (! sys_setjmp (c.jmp))
     c.val = (*func) (arg);
 
   /* Throw works by a longjmp that comes right here.  */
@@ -1278,7 +1066,7 @@ internal_catch (Lisp_Object tag, Lisp_Object (*func) (Lisp_Object), Lisp_Object 
 /* Unwind the specbind, catch, and handler stacks back to CATCH, and
    jump to that CATCH, returning VALUE as the value of that catch.
 
-   This is the guts Fthrow and Fsignal; they differ only in the way
+   This is the guts of Fthrow and Fsignal; they differ only in the way
    they choose the catch tag to throw to.  A catch tag for a
    condition-case form has a TAG of Qnil.
 
@@ -1287,22 +1075,21 @@ internal_catch (Lisp_Object tag, Lisp_Object (*func) (Lisp_Object), Lisp_Object 
    the handler stack as we go, so that the proper handlers are in
    effect for each unwind-protect clause we run.  At the end, restore
    some static info saved in CATCH, and longjmp to the location
-   specified in the
+   specified there.
 
    This is used for correct unwinding in Fthrow and Fsignal.  */
 
-static void
+static _Noreturn void
 unwind_to_catch (struct catchtag *catch, Lisp_Object value)
 {
-  register int last_time;
+  bool last_time;
 
   /* Save the value in the tag.  */
   catch->val = value;
 
   /* Restore certain special C variables.  */
   set_poll_suppress_count (catch->poll_suppress_count);
-  UNBLOCK_INPUT_TO (catch->interrupt_input_blocked);
-  handling_signal = 0;
+  unblock_input_to (catch->interrupt_input_blocked);
   immediate_quit = 0;
 
   do
@@ -1317,16 +1104,6 @@ unwind_to_catch (struct catchtag *catch, Lisp_Object value)
     }
   while (! last_time);
 
-#if HAVE_X_WINDOWS
-  /* If x_catch_errors was done, turn it off now.
-     (First we give unbind_to a chance to do that.)  */
-#if 0 /* This would disable x_catch_errors after x_connection_closed.
-	 The catch must remain in effect during that delicate
-	 state. --lorentey  */
-  x_fully_uncatch_errors ();
-#endif
-#endif
-
   byte_stack_list = catch->byte_stack;
   gcprolist = catch->gcpro;
 #ifdef DEBUG_GCPRO
@@ -1335,7 +1112,7 @@ unwind_to_catch (struct catchtag *catch, Lisp_Object value)
   backtrace_list = catch->backlist;
   lisp_eval_depth = catch->lisp_eval_depth;
 
-  _longjmp (catch->jmp, 1);
+  sys_longjmp (catch->jmp, 1);
 }
 
 DEFUN ("throw", Fthrow, Sthrow, 2, 2, 0,
@@ -1364,7 +1141,7 @@ usage: (unwind-protect BODYFORM UNWINDFORMS...)  */)
   (Lisp_Object args)
 {
   Lisp_Object val;
-  int count = SPECPDL_INDEX ();
+  ptrdiff_t count = SPECPDL_INDEX ();
 
   record_unwind_protect (Fprogn, Fcdr (args));
   val = eval_sub (Fcar (args));
@@ -1399,12 +1176,9 @@ See also the function `signal' for more info.
 usage: (condition-case VAR BODYFORM &rest HANDLERS)  */)
   (Lisp_Object args)
 {
-  register Lisp_Object bodyform, handlers;
-  volatile Lisp_Object var;
-
-  var      = Fcar (args);
-  bodyform = Fcar (Fcdr (args));
-  handlers = Fcdr (Fcdr (args));
+  Lisp_Object var = Fcar (args);
+  Lisp_Object bodyform = Fcar (Fcdr (args));
+  Lisp_Object handlers = Fcdr (Fcdr (args));
 
   return internal_lisp_condition_case (var, bodyform, handlers);
 }
@@ -1444,7 +1218,7 @@ internal_lisp_condition_case (volatile Lisp_Object var, Lisp_Object bodyform,
   c.interrupt_input_blocked = interrupt_input_blocked;
   c.gcpro = gcprolist;
   c.byte_stack = byte_stack_list;
-  if (_setjmp (c.jmp))
+  if (sys_setjmp (c.jmp))
     {
       if (!NILP (h.var))
 	specbind (h.var, c.val);
@@ -1499,7 +1273,7 @@ internal_condition_case (Lisp_Object (*bfun) (void), Lisp_Object handlers,
   c.interrupt_input_blocked = interrupt_input_blocked;
   c.gcpro = gcprolist;
   c.byte_stack = byte_stack_list;
-  if (_setjmp (c.jmp))
+  if (sys_setjmp (c.jmp))
     {
       return (*hfun) (c.val);
     }
@@ -1537,7 +1311,7 @@ internal_condition_case_1 (Lisp_Object (*bfun) (Lisp_Object), Lisp_Object arg,
   c.interrupt_input_blocked = interrupt_input_blocked;
   c.gcpro = gcprolist;
   c.byte_stack = byte_stack_list;
-  if (_setjmp (c.jmp))
+  if (sys_setjmp (c.jmp))
     {
       return (*hfun) (c.val);
     }
@@ -1579,7 +1353,7 @@ internal_condition_case_2 (Lisp_Object (*bfun) (Lisp_Object, Lisp_Object),
   c.interrupt_input_blocked = interrupt_input_blocked;
   c.gcpro = gcprolist;
   c.byte_stack = byte_stack_list;
-  if (_setjmp (c.jmp))
+  if (sys_setjmp (c.jmp))
     {
       return (*hfun) (c.val);
     }
@@ -1605,7 +1379,9 @@ internal_condition_case_n (Lisp_Object (*bfun) (ptrdiff_t, Lisp_Object *),
 			   ptrdiff_t nargs,
 			   Lisp_Object *args,
 			   Lisp_Object handlers,
-			   Lisp_Object (*hfun) (Lisp_Object))
+			   Lisp_Object (*hfun) (Lisp_Object err,
+						ptrdiff_t nargs,
+						Lisp_Object *args))
 {
   Lisp_Object val;
   struct catchtag c;
@@ -1621,9 +1397,9 @@ internal_condition_case_n (Lisp_Object (*bfun) (ptrdiff_t, Lisp_Object *),
   c.interrupt_input_blocked = interrupt_input_blocked;
   c.gcpro = gcprolist;
   c.byte_stack = byte_stack_list;
-  if (_setjmp (c.jmp))
+  if (sys_setjmp (c.jmp))
     {
-      return (*hfun) (c.val);
+      return (*hfun) (c.val, nargs, args);
     }
   c.next = catchlist;
   catchlist = &c;
@@ -1641,8 +1417,8 @@ internal_condition_case_n (Lisp_Object (*bfun) (ptrdiff_t, Lisp_Object *),
 
 
 static Lisp_Object find_handler_clause (Lisp_Object, Lisp_Object);
-static int maybe_call_debugger (Lisp_Object conditions, Lisp_Object sig,
-				Lisp_Object data);
+static bool maybe_call_debugger (Lisp_Object conditions, Lisp_Object sig,
+				 Lisp_Object data);
 
 void
 process_quit_flag (void)
@@ -1683,10 +1459,10 @@ See also the function `condition-case'.  */)
   struct handler *h;
   struct backtrace *bp;
 
-  immediate_quit = handling_signal = 0;
+  immediate_quit = 0;
   abort_on_gc = 0;
   if (gc_in_progress || waiting_for_input)
-    abort ();
+    emacs_abort ();
 
 #if 0 /* rms: I don't know why this was here,
 	 but it is surely wrong for an error that is handled.  */
@@ -1720,10 +1496,10 @@ See also the function `condition-case'.  */)
   if (backtrace_list && !NILP (error_symbol))
     {
       bp = backtrace_list->next;
-      if (bp && bp->function && EQ (*bp->function, Qerror))
+      if (bp && EQ (bp->function, Qerror))
 	bp = bp->next;
-      if (bp && bp->function)
-	Vsignaling_function = *bp->function;
+      if (bp)
+	Vsignaling_function = bp->function;
     }
 
   for (h = handlerlist; h; h = h->next)
@@ -1734,7 +1510,7 @@ See also the function `condition-case'.  */)
     }
 
   if (/* Don't run the debugger for a memory-full error.
-	 (There is no room in memory to do that!) */
+	 (There is no room in memory to do that!)  */
       !NILP (error_symbol)
       && (!NILP (Vdebug_on_signal)
 	  /* If no handler is present now, try to run the debugger.  */
@@ -1747,7 +1523,7 @@ See also the function `condition-case'.  */)
 	     if requested".  */
 	  || EQ (h->handler, Qerror)))
     {
-      int debugger_called
+      bool debugger_called
 	= maybe_call_debugger (conditions, error_symbol, data);
       /* We can't return values to code which signaled an error, but we
 	 can continue code which has signaled a quit.  */
@@ -1783,7 +1559,7 @@ void
 xsignal (Lisp_Object error_symbol, Lisp_Object data)
 {
   Fsignal (error_symbol, data);
-  abort ();
+  emacs_abort ();
 }
 
 /* Like xsignal, but takes 0, 1, 2, or 3 args instead of a list.  */
@@ -1841,10 +1617,10 @@ signal_error (const char *s, Lisp_Object arg)
 }
 
 
-/* Return nonzero if LIST is a non-nil atom or
+/* Return true if LIST is a non-nil atom or
    a list containing one of CONDITIONS.  */
 
-static int
+static bool
 wants_debugger (Lisp_Object list, Lisp_Object conditions)
 {
   if (NILP (list))
@@ -1864,15 +1640,15 @@ wants_debugger (Lisp_Object list, Lisp_Object conditions)
   return 0;
 }
 
-/* Return 1 if an error with condition-symbols CONDITIONS,
+/* Return true if an error with condition-symbols CONDITIONS,
    and described by SIGNAL-DATA, should skip the debugger
    according to debugger-ignored-errors.  */
 
-static int
+static bool
 skip_debugger (Lisp_Object conditions, Lisp_Object data)
 {
   Lisp_Object tail;
-  int first_string = 1;
+  bool first_string = 1;
   Lisp_Object error_message;
 
   error_message = Qnil;
@@ -1907,7 +1683,7 @@ skip_debugger (Lisp_Object conditions, Lisp_Object data)
     = SIG is the error symbol, and DATA is the rest of the data.
     = SIG is nil, and DATA is (SYMBOL . REST-OF-DATA).
       This is for memory-full errors only.  */
-static int
+static bool
 maybe_call_debugger (Lisp_Object conditions, Lisp_Object sig, Lisp_Object data)
 {
   Lisp_Object combined_data;
@@ -1917,7 +1693,8 @@ maybe_call_debugger (Lisp_Object conditions, Lisp_Object sig, Lisp_Object data)
   if (
       /* Don't try to run the debugger with interrupts blocked.
 	 The editing loop would return anyway.  */
-      ! INPUT_BLOCKED_P
+      ! input_blocked_p ()
+      && NILP (Vinhibit_debugger)
       /* Does user want to enter debugger for this kind of error?  */
       && (EQ (sig, Qquit)
 	  ? debug_on_quit
@@ -2099,22 +1876,23 @@ this does nothing and returns nil.  */)
   CHECK_STRING (file);
 
   /* If function is defined and not as an autoload, don't override.  */
-  if (!EQ (XSYMBOL (function)->function, Qunbound)
-      && !(CONSP (XSYMBOL (function)->function)
-	   && EQ (XCAR (XSYMBOL (function)->function), Qautoload)))
+  if ((CONSP (XSYMBOL (function)->function)
+       && EQ (XCAR (XSYMBOL (function)->function), Qautoload)))
+    /* Remember that the function was already an autoload.  */
+    LOADHIST_ATTACH (Fcons (Qt, function));
+  else if (!EQ (XSYMBOL (function)->function, Qunbound))
     return Qnil;
 
   if (NILP (Vpurify_flag))
     /* Only add entries after dumping, because the ones before are
        not useful and else we get loads of them from the loaddefs.el.  */
     LOADHIST_ATTACH (Fcons (Qautoload, function));
-  else
-    /* We don't want the docstring in purespace (instead,
-       Snarf-documentation should (hopefully) overwrite it).
-       We used to use 0 here, but that leads to accidental sharing in
-       purecopy's hash-consing, so we use a (hopefully) unique integer
-       instead.  */
-    docstring = make_number (XPNTR (function));
+  else if (EQ (docstring, make_number (0)))
+    /* `read1' in lread.c has found the docstring starting with "\
+       and assumed the docstring will be provided by Snarf-documentation, so it
+       passed us 0 instead.  But that leads to accidental sharing in purecopy's
+       hash-consing, so we use a (hopefully) unique integer instead.  */
+    docstring = make_number (XUNTAG (function, Lisp_Symbol));
   return Ffset (function,
 		Fpurecopy (list5 (Qautoload, file, docstring,
 				  interactive, type)));
@@ -2147,12 +1925,26 @@ un_autoload (Lisp_Object oldqueue)
    FUNNAME is the symbol which is the function's name.
    FUNDEF is the autoload definition (a list).  */
 
-void
-do_autoload (Lisp_Object fundef, Lisp_Object funname)
+DEFUN ("autoload-do-load", Fautoload_do_load, Sautoload_do_load, 1, 3, 0,
+       doc: /* Load FUNDEF which should be an autoload.
+If non-nil, FUNNAME should be the symbol whose function value is FUNDEF,
+in which case the function returns the new autoloaded function value.
+If equal to `macro', MACRO-ONLY specifies that FUNDEF should only be loaded if
+it is defines a macro.  */)
+  (Lisp_Object fundef, Lisp_Object funname, Lisp_Object macro_only)
 {
-  int count = SPECPDL_INDEX ();
-  Lisp_Object fun;
+  ptrdiff_t count = SPECPDL_INDEX ();
   struct gcpro gcpro1, gcpro2, gcpro3;
+
+  if (!CONSP (fundef) || !EQ (Qautoload, XCAR (fundef)))
+    return fundef;
+
+  if (EQ (macro_only, Qmacro))
+    {
+      Lisp_Object kind = Fnth (make_number (4), fundef);
+      if (! (EQ (kind, Qt) || EQ (kind, Qmacro)))
+	return fundef;
+    }
 
   /* This is to make sure that loadup.el gives a clear picture
      of what files are preloaded and when.  */
@@ -2160,9 +1952,8 @@ do_autoload (Lisp_Object fundef, Lisp_Object funname)
     error ("Attempt to autoload %s while preparing to dump",
 	   SDATA (SYMBOL_NAME (funname)));
 
-  fun = funname;
   CHECK_SYMBOL (funname);
-  GCPRO3 (fun, funname, fundef);
+  GCPRO3 (funname, fundef, macro_only);
 
   /* Preserve the match data.  */
   record_unwind_save_match_data ();
@@ -2177,18 +1968,28 @@ do_autoload (Lisp_Object fundef, Lisp_Object funname)
      The value saved here is to be restored into Vautoload_queue.  */
   record_unwind_protect (un_autoload, Vautoload_queue);
   Vautoload_queue = Qt;
-  Fload (Fcar (Fcdr (fundef)), Qnil, Qt, Qnil, Qt);
+  /* If `macro_only', assume this autoload to be a "best-effort",
+     so don't signal an error if autoloading fails.  */
+  Fload (Fcar (Fcdr (fundef)), macro_only, Qt, Qnil, Qt);
 
   /* Once loading finishes, don't undo it.  */
   Vautoload_queue = Qt;
   unbind_to (count, Qnil);
 
-  fun = Findirect_function (fun, Qnil);
-
-  if (!NILP (Fequal (fun, fundef)))
-    error ("Autoloading failed to define function %s",
-	   SDATA (SYMBOL_NAME (funname)));
   UNGCPRO;
+
+  if (NILP (funname))
+    return Qnil;
+  else
+    {
+      Lisp_Object fun = Findirect_function (funname, Qnil);
+
+      if (!NILP (Fequal (fun, fundef)))
+	error ("Autoloading failed to define function %s",
+	       SDATA (SYMBOL_NAME (funname)));
+      else
+	return fun;
+    }
 }
 
 
@@ -2197,7 +1998,7 @@ DEFUN ("eval", Feval, Seval, 1, 2, 0,
 If LEXICAL is t, evaluate using lexical scoping.  */)
   (Lisp_Object form, Lisp_Object lexical)
 {
-  int count = SPECPDL_INDEX ();
+  ptrdiff_t count = SPECPDL_INDEX ();
   specbind (Qinternal_interpreter_environment,
 	    NILP (lexical) ? Qnil : Fcons (Qt, Qnil));
   return unbind_to (count, eval_sub (form));
@@ -2212,9 +2013,6 @@ eval_sub (Lisp_Object form)
   Lisp_Object funcar;
   struct backtrace backtrace;
   struct gcpro gcpro1, gcpro2, gcpro3;
-
-  if (handling_signal)
-    abort ();
 
   if (SYMBOLP (form))
     {
@@ -2235,15 +2033,7 @@ eval_sub (Lisp_Object form)
     return form;
 
   QUIT;
-  if ((consing_since_gc > gc_cons_threshold
-       && consing_since_gc > gc_relative_threshold)
-      ||
-      (!NILP (Vmemory_full) && consing_since_gc > memory_full_cons_threshold))
-    {
-      GCPRO1 (form);
-      Fgarbage_collect ();
-      UNGCPRO;
-    }
+  maybe_gc ();
 
   if (++lisp_eval_depth > max_lisp_eval_depth)
     {
@@ -2253,15 +2043,15 @@ eval_sub (Lisp_Object form)
 	error ("Lisp nesting exceeds `max-lisp-eval-depth'");
     }
 
-  original_fun = Fcar (form);
-  original_args = Fcdr (form);
+  original_fun = XCAR (form);
+  original_args = XCDR (form);
 
   backtrace.next = backtrace_list;
-  backtrace_list = &backtrace;
-  backtrace.function = &original_fun; /* This also protects them from gc.  */
+  backtrace.function = original_fun; /* This also protects them from gc.  */
   backtrace.args = &original_args;
   backtrace.nargs = UNEVALLED;
   backtrace.debug_on_exit = 0;
+  backtrace_list = &backtrace;
 
   if (debug_on_next_call)
     do_debug_on_call (Qt);
@@ -2286,7 +2076,7 @@ eval_sub (Lisp_Object form)
       args_left = original_args;
       numargs = Flength (args_left);
 
-      CHECK_CONS_LIST ();
+      check_cons_list ();
 
       if (XINT (numargs) < XSUBR (fun)->min_args
 	  || (XSUBR (fun)->max_args >= 0
@@ -2386,7 +2176,7 @@ eval_sub (Lisp_Object form)
 		 is supported by this code.  We need to either rewrite the
 		 subr to use a different argument protocol, or add more
 		 cases to this switch.  */
-	      abort ();
+	      emacs_abort ();
 	    }
 	}
     }
@@ -2403,18 +2193,29 @@ eval_sub (Lisp_Object form)
 	xsignal1 (Qinvalid_function, original_fun);
       if (EQ (funcar, Qautoload))
 	{
-	  do_autoload (fun, original_fun);
+	  Fautoload_do_load (fun, original_fun, Qnil);
 	  goto retry;
 	}
       if (EQ (funcar, Qmacro))
-	val = eval_sub (apply1 (Fcdr (fun), original_args));
+	{
+	  ptrdiff_t count = SPECPDL_INDEX ();
+	  Lisp_Object exp;
+	  /* Bind lexical-binding during expansion of the macro, so the
+	     macro can know reliably if the code it outputs will be
+	     interpreted using lexical-binding or not.  */
+	  specbind (Qlexical_binding,
+		    NILP (Vinternal_interpreter_environment) ? Qnil : Qt);
+	  exp = apply1 (Fcdr (fun), original_args);
+	  unbind_to (count, Qnil);
+	  val = eval_sub (exp);
+	}
       else if (EQ (funcar, Qlambda)
 	       || EQ (funcar, Qclosure))
 	val = apply_lambda (fun, original_args);
       else
 	xsignal1 (Qinvalid_function, original_fun);
     }
-  CHECK_CONS_LIST ();
+  check_cons_list ();
 
   lisp_eval_depth--;
   if (backtrace.debug_on_exit)
@@ -2424,14 +2225,15 @@ eval_sub (Lisp_Object form)
   return val;
 }
 
-DEFUN ("apply", Fapply, Sapply, 2, MANY, 0,
+DEFUN ("apply", Fapply, Sapply, 1, MANY, 0,
        doc: /* Call FUNCTION with our remaining args, using our last arg as list of args.
 Then return the value FUNCTION returns.
 Thus, (apply '+ 1 2 '(3 4)) returns 10.
 usage: (apply FUNCTION &rest ARGUMENTS)  */)
   (ptrdiff_t nargs, Lisp_Object *args)
 {
-  ptrdiff_t i, numargs;
+  ptrdiff_t i;
+  EMACS_INT numargs;
   register Lisp_Object spread_arg;
   register Lisp_Object *funcall_args;
   Lisp_Object fun, retval;
@@ -2492,7 +2294,7 @@ usage: (apply FUNCTION &rest ARGUMENTS)  */)
       gcpro1.nvars = 1 + numargs;
     }
 
-  memcpy (funcall_args, args, nargs * sizeof (Lisp_Object));
+  memcpy (funcall_args, args, nargs * word_size);
   /* Spread the last arg we got.  Its first element goes in
      the slot that it used to occupy, hence this value of I.  */
   i = nargs - 1;
@@ -2551,14 +2353,10 @@ usage: (run-hooks &rest HOOKS)  */)
 DEFUN ("run-hook-with-args", Frun_hook_with_args,
        Srun_hook_with_args, 1, MANY, 0,
        doc: /* Run HOOK with the specified arguments ARGS.
-HOOK should be a symbol, a hook variable.  If HOOK has a non-nil
-value, that value may be a function or a list of functions to be
-called to run the hook.  If the value is a function, it is called with
-the given arguments and its return value is returned.  If it is a list
-of functions, those functions are called, in order,
-with the given arguments ARGS.
-It is best not to depend on the value returned by `run-hook-with-args',
-as that may change.
+HOOK should be a symbol, a hook variable.  The value of HOOK
+may be nil, a function, or a list of functions.  Call each
+function in order with arguments ARGS.  The final return value
+is unspecified.
 
 Do not use `make-local-variable' to make a hook variable buffer-local.
 Instead, use `add-hook' and specify t for the LOCAL argument.
@@ -2568,17 +2366,18 @@ usage: (run-hook-with-args HOOK &rest ARGS)  */)
   return run_hook_with_args (nargs, args, funcall_nil);
 }
 
+/* NB this one still documents a specific non-nil return value.
+   (As did run-hook-with-args and run-hook-with-args-until-failure
+   until they were changed in 24.1.)  */
 DEFUN ("run-hook-with-args-until-success", Frun_hook_with_args_until_success,
        Srun_hook_with_args_until_success, 1, MANY, 0,
        doc: /* Run HOOK with the specified arguments ARGS.
-HOOK should be a symbol, a hook variable.  If HOOK has a non-nil
-value, that value may be a function or a list of functions to be
-called to run the hook.  If the value is a function, it is called with
-the given arguments and its return value is returned.
-If it is a list of functions, those functions are called, in order,
-with the given arguments ARGS, until one of them
-returns a non-nil value.  Then we return that value.
-However, if they all return nil, we return nil.
+HOOK should be a symbol, a hook variable.  The value of HOOK
+may be nil, a function, or a list of functions.  Call each
+function in order with arguments ARGS, stopping at the first
+one that returns non-nil, and return that value.  Otherwise (if
+all functions return nil, or if there are no functions to call),
+return nil.
 
 Do not use `make-local-variable' to make a hook variable buffer-local.
 Instead, use `add-hook' and specify t for the LOCAL argument.
@@ -2597,13 +2396,12 @@ funcall_not (ptrdiff_t nargs, Lisp_Object *args)
 DEFUN ("run-hook-with-args-until-failure", Frun_hook_with_args_until_failure,
        Srun_hook_with_args_until_failure, 1, MANY, 0,
        doc: /* Run HOOK with the specified arguments ARGS.
-HOOK should be a symbol, a hook variable.  If HOOK has a non-nil
-value, that value may be a function or a list of functions to be
-called to run the hook.  If the value is a function, it is called with
-the given arguments and its return value is returned.
-If it is a list of functions, those functions are called, in order,
-with the given arguments ARGS, until one of them returns nil.
-Then we return nil.  However, if they all return non-nil, we return non-nil.
+HOOK should be a symbol, a hook variable.  The value of HOOK
+may be nil, a function, or a list of functions.  Call each
+function in order with arguments ARGS, stopping at the first
+one that returns nil, and return nil.  Otherwise (if all functions
+return non-nil, or if there are no functions to call), return non-nil
+\(do not rely on the precise return value in this case).
 
 Do not use `make-local-variable' to make a hook variable buffer-local.
 Instead, use `add-hook' and specify t for the LOCAL argument.
@@ -2885,33 +2683,9 @@ DEFUN ("functionp", Ffunctionp, Sfunctionp, 1, 1, 0,
        doc: /* Non-nil if OBJECT is a function.  */)
      (Lisp_Object object)
 {
-  if (SYMBOLP (object) && !NILP (Ffboundp (object)))
-    {
-      object = Findirect_function (object, Qt);
-
-      if (CONSP (object) && EQ (XCAR (object), Qautoload))
-	{
-	  /* Autoloaded symbols are functions, except if they load
-	     macros or keymaps.  */
-	  int i;
-	  for (i = 0; i < 4 && CONSP (object); i++)
-	    object = XCDR (object);
-
-	  return (CONSP (object) && !NILP (XCAR (object))) ? Qnil : Qt;
-	}
-    }
-
-  if (SUBRP (object))
-    return (XSUBR (object)->max_args != UNEVALLED) ? Qt : Qnil;
-  else if (COMPILEDP (object))
+  if (FUNCTIONP (object))
     return Qt;
-  else if (CONSP (object))
-    {
-      Lisp_Object car = XCAR (object);
-      return (EQ (car, Qlambda) || EQ (car, Qclosure)) ? Qt : Qnil;
-    }
-  else
-    return Qnil;
+  return Qnil;
 }
 
 DEFUN ("funcall", Ffuncall, Sfuncall, 1, MANY, 0,
@@ -2931,11 +2705,6 @@ usage: (funcall FUNCTION &rest ARGUMENTS)  */)
   ptrdiff_t i;
 
   QUIT;
-  if ((consing_since_gc > gc_cons_threshold
-       && consing_since_gc > gc_relative_threshold)
-      ||
-      (!NILP (Vmemory_full) && consing_since_gc > memory_full_cons_threshold))
-    Fgarbage_collect ();
 
   if (++lisp_eval_depth > max_lisp_eval_depth)
     {
@@ -2946,16 +2715,19 @@ usage: (funcall FUNCTION &rest ARGUMENTS)  */)
     }
 
   backtrace.next = backtrace_list;
-  backtrace_list = &backtrace;
-  backtrace.function = &args[0];
-  backtrace.args = &args[1];
+  backtrace.function = args[0];
+  backtrace.args = &args[1];	/* This also GCPROs them.  */
   backtrace.nargs = nargs - 1;
   backtrace.debug_on_exit = 0;
+  backtrace_list = &backtrace;
+
+  /* Call GC after setting up the backtrace, so the latter GCPROs the args.  */
+  maybe_gc ();
 
   if (debug_on_next_call)
     do_debug_on_call (Qlambda);
 
-  CHECK_CONS_LIST ();
+  check_cons_list ();
 
   original_fun = args[0];
 
@@ -2985,8 +2757,9 @@ usage: (funcall FUNCTION &rest ARGUMENTS)  */)
 	{
 	  if (XSUBR (fun)->max_args > numargs)
 	    {
-	      internal_args = (Lisp_Object *) alloca (XSUBR (fun)->max_args * sizeof (Lisp_Object));
-	      memcpy (internal_args, args + 1, numargs * sizeof (Lisp_Object));
+	      internal_args = alloca (XSUBR (fun)->max_args
+				      * sizeof *internal_args);
+	      memcpy (internal_args, args + 1, numargs * word_size);
 	      for (i = numargs; i < XSUBR (fun)->max_args; i++)
 		internal_args[i] = Qnil;
 	    }
@@ -3042,7 +2815,7 @@ usage: (funcall FUNCTION &rest ARGUMENTS)  */)
 	      /* If a subr takes more than 8 arguments without using MANY
 		 or UNEVALLED, we need to extend this function to support it.
 		 Until this is done, there is no way to call the function.  */
-	      abort ();
+	      emacs_abort ();
 	    }
 	}
     }
@@ -3062,14 +2835,14 @@ usage: (funcall FUNCTION &rest ARGUMENTS)  */)
 	val = funcall_lambda (fun, numargs, args + 1);
       else if (EQ (funcar, Qautoload))
 	{
-	  do_autoload (fun, original_fun);
-	  CHECK_CONS_LIST ();
+	  Fautoload_do_load (fun, original_fun, Qnil);
+	  check_cons_list ();
 	  goto retry;
 	}
       else
 	xsignal1 (Qinvalid_function, original_fun);
     }
-  CHECK_CONS_LIST ();
+  check_cons_list ();
   lisp_eval_depth--;
   if (backtrace.debug_on_exit)
     val = call_debugger (Fcons (Qexit, Fcons (val, Qnil)));
@@ -3081,7 +2854,8 @@ static Lisp_Object
 apply_lambda (Lisp_Object fun, Lisp_Object args)
 {
   Lisp_Object args_left;
-  ptrdiff_t i, numargs;
+  ptrdiff_t i;
+  EMACS_INT numargs;
   register Lisp_Object *arg_vector;
   struct gcpro gcpro1, gcpro2, gcpro3;
   register Lisp_Object tem;
@@ -3126,9 +2900,9 @@ funcall_lambda (Lisp_Object fun, ptrdiff_t nargs,
 		register Lisp_Object *arg_vector)
 {
   Lisp_Object val, syms_left, next, lexenv;
-  int count = SPECPDL_INDEX ();
+  ptrdiff_t count = SPECPDL_INDEX ();
   ptrdiff_t i;
-  int optional, rest;
+  bool optional, rest;
 
   if (CONSP (fun))
     {
@@ -3172,7 +2946,7 @@ funcall_lambda (Lisp_Object fun, ptrdiff_t nargs,
       lexenv = Qnil;
     }
   else
-    abort ();
+    emacs_abort ();
 
   i = optional = rest = 0;
   for (; CONSP (syms_left); syms_left = XCDR (syms_left))
@@ -3265,12 +3039,8 @@ DEFUN ("fetch-bytecode", Ffetch_bytecode, Sfetch_bytecode,
 static void
 grow_specpdl (void)
 {
-  register int count = SPECPDL_INDEX ();
-  int max_size =
-    min (max_specpdl_size,
-	 min (max (PTRDIFF_MAX, SIZE_MAX) / sizeof (struct specbinding),
-	      INT_MAX));
-  int size;
+  register ptrdiff_t count = SPECPDL_INDEX ();
+  ptrdiff_t max_size = min (max_specpdl_size, PTRDIFF_MAX);
   if (max_size <= specpdl_size)
     {
       if (max_specpdl_size < 400)
@@ -3278,9 +3048,7 @@ grow_specpdl (void)
       if (max_size <= specpdl_size)
 	signal_error ("Variable binding depth exceeds max-specpdl-size", Qnil);
     }
-  size = specpdl_size < max_size / 2 ? 2 * specpdl_size : max_size;
-  specpdl = xnrealloc (specpdl, size, sizeof *specpdl);
-  specpdl_size = size;
+  specpdl = xpalloc (specpdl, &specpdl_size, 1, max_size, sizeof *specpdl);
   specpdl_ptr = specpdl + count;
 }
 
@@ -3304,8 +3072,6 @@ specbind (Lisp_Object symbol, Lisp_Object value)
 {
   struct Lisp_Symbol *sym;
 
-  eassert (!handling_signal);
-
   CHECK_SYMBOL (symbol);
   sym = XSYMBOL (symbol);
   if (specpdl_ptr == specpdl + specpdl_size)
@@ -3319,8 +3085,8 @@ specbind (Lisp_Object symbol, Lisp_Object value)
     case SYMBOL_PLAINVAL:
       /* The most common case is that of a non-constant symbol with a
 	 trivial value.  Make that as fast as we can.  */
-      specpdl_ptr->symbol = symbol;
-      specpdl_ptr->old_value = SYMBOL_VAL (sym);
+      set_specpdl_symbol (symbol);
+      set_specpdl_old_value (SYMBOL_VAL (sym));
       specpdl_ptr->func = NULL;
       ++specpdl_ptr;
       if (!sym->constant)
@@ -3335,7 +3101,7 @@ specbind (Lisp_Object symbol, Lisp_Object value)
       {
 	Lisp_Object ovalue = find_symbol_value (symbol);
 	specpdl_ptr->func = 0;
-	specpdl_ptr->old_value = ovalue;
+	set_specpdl_old_value (ovalue);
 
 	eassert (sym->redirect != SYMBOL_LOCALIZED
 		 || (EQ (SYMBOL_BLV (sym)->where,
@@ -3352,12 +3118,12 @@ specbind (Lisp_Object symbol, Lisp_Object value)
 	    if (!NILP (Flocal_variable_p (symbol, Qnil)))
 	      {
 		eassert (sym->redirect != SYMBOL_LOCALIZED
-			 || (BLV_FOUND (SYMBOL_BLV (sym))
+			 || (blv_found (SYMBOL_BLV (sym))
 			     && EQ (cur_buf, SYMBOL_BLV (sym)->where)));
 		where = cur_buf;
 	      }
 	    else if (sym->redirect == SYMBOL_LOCALIZED
-		     && BLV_FOUND (SYMBOL_BLV (sym)))
+		     && blv_found (SYMBOL_BLV (sym)))
 	      where = SYMBOL_BLV (sym)->where;
 	    else
 	      where = Qnil;
@@ -3369,7 +3135,7 @@ specbind (Lisp_Object symbol, Lisp_Object value)
 	       let_shadows_buffer_binding_p which is itself only used
 	       in set_internal for local_if_set.  */
 	    eassert (NILP (where) || EQ (where, cur_buf));
-	    specpdl_ptr->symbol = Fcons (symbol, Fcons (where, cur_buf));
+	    set_specpdl_symbol (Fcons (symbol, Fcons (where, cur_buf)));
 
 	    /* If SYMBOL is a per-buffer variable which doesn't have a
 	       buffer-local value here, make the `let' change the global
@@ -3386,31 +3152,29 @@ specbind (Lisp_Object symbol, Lisp_Object value)
 	      }
 	  }
 	else
-	  specpdl_ptr->symbol = symbol;
+	  set_specpdl_symbol (symbol);
 
 	specpdl_ptr++;
 	set_internal (symbol, value, Qnil, 1);
 	break;
       }
-    default: abort ();
+    default: emacs_abort ();
     }
 }
 
 void
 record_unwind_protect (Lisp_Object (*function) (Lisp_Object), Lisp_Object arg)
 {
-  eassert (!handling_signal);
-
   if (specpdl_ptr == specpdl + specpdl_size)
     grow_specpdl ();
   specpdl_ptr->func = function;
-  specpdl_ptr->symbol = Qnil;
-  specpdl_ptr->old_value = arg;
+  set_specpdl_symbol (Qnil);
+  set_specpdl_old_value (arg);
   specpdl_ptr++;
 }
 
 Lisp_Object
-unbind_to (int count, Lisp_Object value)
+unbind_to (ptrdiff_t count, Lisp_Object value)
 {
   Lisp_Object quitf = Vquit_flag;
   struct gcpro gcpro1, gcpro2;
@@ -3490,7 +3254,7 @@ The debugger is entered when that frame exits, if the flag is non-nil.  */)
   (Lisp_Object level, Lisp_Object flag)
 {
   register struct backtrace *backlist = backtrace_list;
-  register int i;
+  register EMACS_INT i;
 
   CHECK_NUMBER (level);
 
@@ -3527,23 +3291,23 @@ Output stream used is value of `standard-output'.  */)
       write_string (backlist->debug_on_exit ? "* " : "  ", 2);
       if (backlist->nargs == UNEVALLED)
 	{
-	  Fprin1 (Fcons (*backlist->function, *backlist->args), Qnil);
+	  Fprin1 (Fcons (backlist->function, *backlist->args), Qnil);
 	  write_string ("\n", -1);
 	}
       else
 	{
-	  tem = *backlist->function;
+	  tem = backlist->function;
 	  Fprin1 (tem, Qnil);	/* This can QUIT.  */
 	  write_string ("(", -1);
 	  if (backlist->nargs == MANY)
 	    {			/* FIXME: Can this happen?  */
-	      int i;
-	      for (tail = *backlist->args, i = 0;
-		   !NILP (tail);
-		   tail = Fcdr (tail), i = 1)
+	      bool later_arg = 0;
+	      for (tail = *backlist->args; !NILP (tail); tail = Fcdr (tail))
 		{
-		  if (i) write_string (" ", -1);
+		  if (later_arg)
+		    write_string (" ", -1);
 		  Fprin1 (Fcar (tail), Qnil);
+		  later_arg = 1;
 		}
 	    }
 	  else
@@ -3590,7 +3354,7 @@ If NFRAMES is more than the number of frames, the value is nil.  */)
   if (!backlist)
     return Qnil;
   if (backlist->nargs == UNEVALLED)
-    return Fcons (Qnil, Fcons (*backlist->function, *backlist->args));
+    return Fcons (Qnil, Fcons (backlist->function, *backlist->args));
   else
     {
       if (backlist->nargs == MANY) /* FIXME: Can this happen?  */
@@ -3598,7 +3362,7 @@ If NFRAMES is more than the number of frames, the value is nil.  */)
       else
 	tem = Flist (backlist->nargs, backlist->args);
 
-      return Fcons (Qt, Fcons (*backlist->function, tem));
+      return Fcons (Qt, Fcons (backlist->function, tem));
     }
 }
 
@@ -3629,7 +3393,7 @@ void
 syms_of_eval (void)
 {
   DEFVAR_INT ("max-specpdl-size", max_specpdl_size,
-	      doc: /* *Limit on number of Lisp variable bindings and `unwind-protect's.
+	      doc: /* Limit on number of Lisp variable bindings and `unwind-protect's.
 If Lisp code tries to increase the total number past this amount,
 an error is signaled.
 You can safely use a value considerably larger than the default value,
@@ -3637,7 +3401,7 @@ if that proves inconveniently small.  However, if you increase it too far,
 Emacs could run out of memory trying to make the stack bigger.  */);
 
   DEFVAR_INT ("max-lisp-eval-depth", max_lisp_eval_depth,
-	      doc: /* *Limit on depth in `eval', `apply' and `funcall' before error.
+	      doc: /* Limit on depth in `eval', `apply' and `funcall' before error.
 
 This limit serves to catch infinite recursions for you before they cause
 actual stack overflow in C, which would be fatal for Emacs.
@@ -3664,7 +3428,7 @@ before making `inhibit-quit' nil.  */);
 
   DEFSYM (Qinhibit_quit, "inhibit-quit");
   DEFSYM (Qautoload, "autoload");
-  DEFSYM (Qdebug_on_error, "debug-on-error");
+  DEFSYM (Qinhibit_debugger, "inhibit-debugger");
   DEFSYM (Qmacro, "macro");
   DEFSYM (Qdeclare, "declare");
 
@@ -3674,14 +3438,19 @@ before making `inhibit-quit' nil.  */);
 
   DEFSYM (Qinteractive, "interactive");
   DEFSYM (Qcommandp, "commandp");
-  DEFSYM (Qdefun, "defun");
   DEFSYM (Qand_rest, "&rest");
   DEFSYM (Qand_optional, "&optional");
   DEFSYM (Qclosure, "closure");
   DEFSYM (Qdebug, "debug");
 
+  DEFVAR_LISP ("inhibit-debugger", Vinhibit_debugger,
+	       doc: /* Non-nil means never enter the debugger.
+Normally set while the debugger is already active, to avoid recursive
+invocations.  */);
+  Vinhibit_debugger = Qnil;
+
   DEFVAR_LISP ("debug-on-error", Vdebug_on_error,
-	       doc: /* *Non-nil means enter debugger if an error is signaled.
+	       doc: /* Non-nil means enter debugger if an error is signaled.
 Does not apply to errors handled by `condition-case' or those
 matched by `debug-ignored-errors'.
 If the value is a list, an error only means to enter the debugger
@@ -3689,11 +3458,11 @@ if one of its condition symbols appears in the list.
 When you evaluate an expression interactively, this variable
 is temporarily non-nil if `eval-expression-debug-on-error' is non-nil.
 The command `toggle-debug-on-error' toggles this.
-See also the variable `debug-on-quit'.  */);
+See also the variable `debug-on-quit' and `inhibit-debugger'.  */);
   Vdebug_on_error = Qnil;
 
   DEFVAR_LISP ("debug-ignored-errors", Vdebug_ignored_errors,
-    doc: /* *List of errors for which the debugger should not be called.
+    doc: /* List of errors for which the debugger should not be called.
 Each element may be a condition-name or a regexp that matches error messages.
 If any element applies to a given error, that error skips the debugger
 and just returns to top level.
@@ -3702,7 +3471,7 @@ It does not apply to errors handled by `condition-case'.  */);
   Vdebug_ignored_errors = Qnil;
 
   DEFVAR_BOOL ("debug-on-quit", debug_on_quit,
-    doc: /* *Non-nil means enter debugger if quit is signaled (C-g, for example).
+    doc: /* Non-nil means enter debugger if quit is signaled (C-g, for example).
 Does not apply if quit is handled by a `condition-case'.  */);
   debug_on_quit = 0;
 
@@ -3731,28 +3500,21 @@ The Edebug package uses this to regain control.  */);
   Vsignal_hook_function = Qnil;
 
   DEFVAR_LISP ("debug-on-signal", Vdebug_on_signal,
-	       doc: /* *Non-nil means call the debugger regardless of condition handlers.
+	       doc: /* Non-nil means call the debugger regardless of condition handlers.
 Note that `debug-on-error', `debug-on-quit' and friends
 still determine whether to handle the particular condition.  */);
   Vdebug_on_signal = Qnil;
 
-  DEFVAR_LISP ("macro-declaration-function", Vmacro_declaration_function,
-	       doc: /* Function to process declarations in a macro definition.
-The function will be called with two args MACRO and DECL.
-MACRO is the name of the macro being defined.
-DECL is a list `(declare ...)' containing the declarations.
-The value the function returns is not used.  */);
-  Vmacro_declaration_function = Qnil;
-
   /* When lexical binding is being used,
-   vinternal_interpreter_environment is non-nil, and contains an alist
+   Vinternal_interpreter_environment is non-nil, and contains an alist
    of lexically-bound variable, or (t), indicating an empty
    environment.  The lisp name of this variable would be
    `internal-interpreter-environment' if it weren't hidden.
    Every element of this list can be either a cons (VAR . VAL)
    specifying a lexical binding, or a single symbol VAR indicating
    that this variable should use dynamic scoping.  */
-  DEFSYM (Qinternal_interpreter_environment, "internal-interpreter-environment");
+  DEFSYM (Qinternal_interpreter_environment,
+	  "internal-interpreter-environment");
   DEFVAR_LISP ("internal-interpreter-environment",
 		Vinternal_interpreter_environment,
 	       doc: /* If non-nil, the current lexical environment of the lisp interpreter.
@@ -3783,12 +3545,10 @@ alist of active lexical bindings.  */);
   defsubr (&Ssetq);
   defsubr (&Squote);
   defsubr (&Sfunction);
-  defsubr (&Sdefun);
-  defsubr (&Sdefmacro);
   defsubr (&Sdefvar);
   defsubr (&Sdefvaralias);
   defsubr (&Sdefconst);
-  defsubr (&Suser_variable_p);
+  defsubr (&Smake_var_non_special);
   defsubr (&Slet);
   defsubr (&SletX);
   defsubr (&Swhile);
@@ -3802,6 +3562,7 @@ alist of active lexical bindings.  */);
   defsubr (&Scalled_interactively_p);
   defsubr (&Scommandp);
   defsubr (&Sautoload);
+  defsubr (&Sautoload_do_load);
   defsubr (&Seval);
   defsubr (&Sapply);
   defsubr (&Sfuncall);

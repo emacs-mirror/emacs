@@ -1,4 +1,4 @@
-;;; syntax.el --- helper functions to find syntactic context
+;;; syntax.el --- helper functions to find syntactic context  -*- lexical-binding: t -*-
 
 ;; Copyright (C) 2000-2012 Free Software Foundation, Inc.
 
@@ -41,7 +41,7 @@
 
 ;; Note: PPSS stands for `parse-partial-sexp state'
 
-(eval-when-compile (require 'cl))
+(eval-when-compile (require 'cl-lib))
 
 (defvar font-lock-beginning-of-syntax-function)
 
@@ -55,12 +55,18 @@
   ;; have to flush that cache between each function, and we couldn't use
   ;; syntax-ppss-flush-cache since that would not only flush the cache but also
   ;; reset syntax-propertize--done which should not be done in this case).
-  "Mode-specific function to apply the syntax-table properties.
-Called with two arguments: START and END.
-This function can call `syntax-ppss' on any position before END, but it
-should not call `syntax-ppss-flush-cache', which means that it should not
-call `syntax-ppss' on some position and later modify the buffer on some
-earlier position.")
+  "Mode-specific function to apply `syntax-table' text properties.
+The value of this variable is a function to be called by Font
+Lock mode, prior to performing syntactic fontification on a
+stretch of text.  It is given two arguments, START and END: the
+start and end of the text to be fontified.  Major modes can
+specify a custom function to apply `syntax-table' properties to
+override the default syntax table in special cases.
+
+The specified function may call `syntax-ppss' on any position
+before END, but it should not call `syntax-ppss-flush-cache',
+which means that it should not call `syntax-ppss' on some
+position and later modify the buffer on some earlier position.")
 
 (defvar syntax-propertize-chunk-size 500)
 
@@ -118,7 +124,7 @@ The arg RULES can be of the same form as in `syntax-propertize-rules'.
 The return value is an object that can be passed as a rule to
 `syntax-propertize-rules'.
 I.e. this is useful only when you want to share rules among several
-syntax-propertize-functions."
+`syntax-propertize-function's."
   (declare (debug syntax-propertize-rules))
   ;; Precompile?  Yeah, right!
   ;; Seriously, tho, this is a macro for 2 reasons:
@@ -181,7 +187,7 @@ Note: back-references in REGEXPs do not work."
                  ;; If there's more than 1 rule, and the rule want to apply
                  ;; highlight to match 0, create an extra group to be able to
                  ;; tell when *this* match 0 has succeeded.
-                 (incf offset)
+                 (cl-incf offset)
                  (setq re (concat "\\(" re "\\)")))
                (setq re (syntax-propertize--shift-groups re offset))
                (let ((code '())
@@ -215,7 +221,7 @@ Note: back-references in REGEXPs do not work."
                      (setq offset 0)))
                  ;; Now construct the code for each subgroup rules.
                  (dolist (case (cdr rule))
-                   (assert (null (cddr case)))
+                   (cl-assert (null (cddr case)))
                    (let* ((gn (+ offset (car case)))
                           (action (nth 1 case))
                           (thiscode
@@ -260,7 +266,7 @@ Note: back-references in REGEXPs do not work."
                              code))))
                  (push (cons condition (nreverse code))
                        branches))
-               (incf offset (regexp-opt-depth orig-re))
+               (cl-incf offset (regexp-opt-depth orig-re))
                re))
            rules
            "\\|")))
@@ -274,13 +280,12 @@ Note: back-references in REGEXPs do not work."
   "Propertize for syntax in START..END using font-lock syntax.
 KEYWORDS obeys the format used in `font-lock-syntactic-keywords'.
 The return value is a function suitable for `syntax-propertize-function'."
-  (lexical-let ((keywords keywords))
-    (lambda (start end)
-      (with-no-warnings
-        (let ((font-lock-syntactic-keywords keywords))
-          (font-lock-fontify-syntactic-keywords-region start end)
-          ;; In case it was eval'd/compiled.
-          (setq keywords font-lock-syntactic-keywords))))))
+  (lambda (start end)
+    (with-no-warnings
+      (let ((font-lock-syntactic-keywords keywords))
+        (font-lock-fontify-syntactic-keywords-region start end)
+        ;; In case it was eval'd/compiled.
+        (setq keywords font-lock-syntactic-keywords)))))
 
 (defun syntax-propertize (pos)
   "Ensure that syntax-table properties are set until POS."
@@ -419,8 +424,8 @@ Point is at POS when this function returns."
 			    (* 2 (/ (cdr (aref syntax-ppss-stats 5))
 				    (1+ (car (aref syntax-ppss-stats 5)))))))
 	    (progn
-	      (incf (car (aref syntax-ppss-stats 0)))
-	      (incf (cdr (aref syntax-ppss-stats 0)) (- pos old-pos))
+	      (cl-incf (car (aref syntax-ppss-stats 0)))
+	      (cl-incf (cdr (aref syntax-ppss-stats 0)) (- pos old-pos))
 	      (parse-partial-sexp old-pos pos nil nil old-ppss))
 
 	  (cond
@@ -436,8 +441,8 @@ Point is at POS when this function returns."
 		 (setq pt-min (or (syntax-ppss-toplevel-pos old-ppss)
 				  (nth 2 old-ppss)))
 		 (<= pt-min pos) (< (- pos pt-min) syntax-ppss-max-span))
-	    (incf (car (aref syntax-ppss-stats 1)))
-	    (incf (cdr (aref syntax-ppss-stats 1)) (- pos pt-min))
+	    (cl-incf (car (aref syntax-ppss-stats 1)))
+	    (cl-incf (cdr (aref syntax-ppss-stats 1)) (- pos pt-min))
 	    (setq ppss (parse-partial-sexp pt-min pos)))
 	   ;; The OLD-* data can't be used.  Consult the cache.
 	   (t
@@ -465,8 +470,8 @@ Point is at POS when this function returns."
 	      ;; Use the best of OLD-POS and CACHE.
 	      (if (or (not old-pos) (< old-pos pt-min))
 		  (setq pt-best pt-min ppss-best ppss)
-		(incf (car (aref syntax-ppss-stats 4)))
-		(incf (cdr (aref syntax-ppss-stats 4)) (- pos old-pos))
+		(cl-incf (car (aref syntax-ppss-stats 4)))
+		(cl-incf (cdr (aref syntax-ppss-stats 4)) (- pos old-pos))
 		(setq pt-best old-pos ppss-best old-ppss))
 
 	      ;; Use the `syntax-begin-function' if available.
@@ -491,31 +496,29 @@ Point is at POS when this function returns."
 			 (not (memq (get-text-property (point) 'face)
 				    '(font-lock-string-face font-lock-doc-face
 				      font-lock-comment-face))))
-		(incf (car (aref syntax-ppss-stats 5)))
-		(incf (cdr (aref syntax-ppss-stats 5)) (- pos (point)))
+		(cl-incf (car (aref syntax-ppss-stats 5)))
+		(cl-incf (cdr (aref syntax-ppss-stats 5)) (- pos (point)))
 		(setq pt-best (point) ppss-best nil))
 
 	      (cond
 	       ;; Quick case when we found a nearby pos.
 	       ((< (- pos pt-best) syntax-ppss-max-span)
-		(incf (car (aref syntax-ppss-stats 2)))
-		(incf (cdr (aref syntax-ppss-stats 2)) (- pos pt-best))
+		(cl-incf (car (aref syntax-ppss-stats 2)))
+		(cl-incf (cdr (aref syntax-ppss-stats 2)) (- pos pt-best))
 		(setq ppss (parse-partial-sexp pt-best pos nil nil ppss-best)))
 	       ;; Slow case: compute the state from some known position and
 	       ;; populate the cache so we won't need to do it again soon.
 	       (t
-		(incf (car (aref syntax-ppss-stats 3)))
-		(incf (cdr (aref syntax-ppss-stats 3)) (- pos pt-min))
+		(cl-incf (car (aref syntax-ppss-stats 3)))
+		(cl-incf (cdr (aref syntax-ppss-stats 3)) (- pos pt-min))
 
 		;; If `pt-min' is too far, add a few intermediate entries.
 		(while (> (- pos pt-min) (* 2 syntax-ppss-max-span))
 		  (setq ppss (parse-partial-sexp
 			      pt-min (setq pt-min (/ (+ pt-min pos) 2))
 			      nil nil ppss))
-		  (let ((pair (cons pt-min ppss)))
-		    (if cache-pred
-			(push pair (cdr cache-pred))
-		      (push pair syntax-ppss-cache))))
+                  (push (cons pt-min ppss)
+                        (if cache-pred (cdr cache-pred) syntax-ppss-cache)))
 
 		;; Compute the actual return value.
 		(setq ppss (parse-partial-sexp pt-min pos nil nil ppss))

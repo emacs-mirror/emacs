@@ -28,7 +28,7 @@
 ;;
 ;; INSTALLATION:
 ;;
-;; Add this line to your .emacs file:
+;; Add this line to your init file:
 ;;
 ;;   (require 'generic-x)
 ;;
@@ -646,83 +646,10 @@ like an INI file.  You can add this hook to `find-file-hook'."
   "Generic mode for Sys V pkginfo files."))
 
 ;; Javascript mode
-;; Includes extra keywords from Armando Singer [asinger@MAIL.COLGATE.EDU]
+;; Obsolete; defer to js-mode from js.el.
 (when (memq 'javascript-generic-mode generic-extras-enable-list)
-
-(define-generic-mode javascript-generic-mode
-  '("//" ("/*" . "*/"))
-  '("break"
-    "case"
-    "continue"
-    "default"
-    "delete"
-    "do"
-    "else"
-    "export"
-    "for"
-    "function"
-    "if"
-    "import"
-    "in"
-    "new"
-    "return"
-    "switch"
-    "this"
-    "typeof"
-    "var"
-    "void"
-    "while"
-    "with"
-    ;; words reserved for ECMA extensions below
-    "catch"
-    "class"
-    "const"
-    "debugger"
-    "enum"
-    "extends"
-    "finally"
-    "super"
-    "throw"
-    "try"
-    ;; Java Keywords reserved by JavaScript
-    "abstract"
-    "boolean"
-    "byte"
-    "char"
-    "double"
-    "false"
-    "final"
-    "float"
-    "goto"
-    "implements"
-    "instanceof"
-    "int"
-    "interface"
-    "long"
-    "native"
-    "null"
-    "package"
-    "private"
-    "protected"
-    "public"
-    "short"
-    "static"
-    "synchronized"
-    "throws"
-    "transient"
-    "true")
-  '(("^\\s-*function\\s-+\\([A-Za-z0-9_]+\\)"
-     (1 font-lock-function-name-face))
-    ("^\\s-*var\\s-+\\([A-Za-z0-9_]+\\)"
-     (1 font-lock-variable-name-face)))
-  '("\\.js\\'")
-  (list
-   (function
-    (lambda ()
-      (setq imenu-generic-expression
-	    '((nil "^function\\s-+\\([A-Za-z0-9_]+\\)" 1)
-	      ("*Variables*" "^var\\s-+\\([A-Za-z0-9_]+\\)" 1))))))
-  "Generic mode for JavaScript files."))
+  (define-obsolete-function-alias 'javascript-generic-mode 'js-mode "24.3")
+  (define-obsolete-variable-alias 'javascript-generic-mode-hook 'js-mode-hook "24.3"))
 
 ;; VRML files
 (when (memq 'vrml-generic-mode generic-extras-enable-list)
@@ -1531,15 +1458,15 @@ like an INI file.  You can add this hook to `find-file-hook'."
      '("#[ \t]*include[ \t]+\\(<[^>\"\n]+>\\)"
        1 font-lock-string-face)
      '("#[ \t]*\\(\\sw+\\)\\>[ \t]*\\(\\sw+\\)?"
-       (1 font-lock-reference-face)
+       (1 font-lock-constant-face)
        (2 font-lock-variable-name-face nil t))
      ;; indirect string constants
      '("\\(@[A-Za-z][A-Za-z0-9_]+\\)" 1 font-lock-builtin-face)
      ;; gotos
-     '("[ \t]*\\(\\sw+:\\)"           1 font-lock-reference-face)
+     '("[ \t]*\\(\\sw+:\\)"           1 font-lock-constant-face)
      '("\\<\\(goto\\)\\>[ \t]*\\(\\sw+\\)?"
        (1 font-lock-keyword-face)
-       (2 font-lock-reference-face nil t))
+       (2 font-lock-constant-face nil t))
      ;; system variables
      (generic-make-keywords-list
       installshield-system-variables-list

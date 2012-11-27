@@ -47,14 +47,15 @@
 (require 'esh-opt)
 
 ;;;###autoload
-(eshell-defgroup eshell-dirs nil
+(progn
+(defgroup eshell-dirs nil
   "Directory navigation involves changing directories, examining the
 current directory, maintaining a directory stack, and also keeping
 track of a history of the last directory locations the user was in.
 Emacs does provide standard Lisp definitions of `pwd' and `cd', but
 they lack somewhat in feel from the typical shell equivalents."
   :tag "Directory navigation"
-  :group 'eshell-module)
+  :group 'eshell-module))
 
 ;;; User Variables:
 

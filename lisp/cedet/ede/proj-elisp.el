@@ -45,9 +45,36 @@
 There should only be one toplevel package per auxiliary tool needed.
 These packages location is found, and added to the compile time
 load path."
-   ))
+   )
+   (pre-load-packages :initarg :pre-load-packages
+		      :initform nil
+		      :type list
+		      :custom (repeat string)
+		      :documentation "Additional packages to pre-load.
+Each package name will be loaded with `require'.
+Each package's directory should also appear in :aux-packages via a package name.")
+   )
   "This target consists of a group of lisp files.
 A lisp target may be one general program with many separate lisp files in it.")
+
+(defmethod ede-proj-makefile-insert-rules :after ((this ede-proj-target-elisp))
+    "Insert rules needed by THIS target.
+This inserts the PRELOADS target-local variable."
+    (let ((preloads (oref this pre-load-packages)))
+      (when preloads
+	(insert (format "%s: PRELOADS=%s\n"
+			(oref this name)
+			(mapconcat 'identity preloads " ")))))
+    (insert "\n"))
+
+(defmethod ede-proj-makefile-dependencies ((this ede-proj-target-elisp))
+  "Return a string representing the dependencies for THIS.
+Some compilers only use the first element in the dependencies, others
+have a list of intermediates (object files), and others don't care.
+This allows customization of how these elements appear.
+For Emacs Lisp, return addsuffix command on source files."
+  (format "$(addsuffix c, $(%s))"
+	  (ede-proj-makefile-sourcevar this)))
 
 (defvar ede-source-emacs
   (ede-sourcecode "ede-emacs-source"
@@ -61,18 +88,17 @@ A lisp target may be one general program with many separate lisp files in it.")
    "ede-emacs-compiler"
    :name "emacs"
    :variables '(("EMACS" . "emacs")
-		("EMACSFLAGS" . "-batch --no-site-file"))
-   :commands
-   '("@echo \"(add-to-list 'load-path nil)\" > $@-compile-script"
-     "for loadpath in . ${LOADPATH}; do \\"
-     "   echo \"(add-to-list 'load-path \\\"$$loadpath\\\")\" >> $@-compile-script; \\"
-     "done;"
-     "@echo \"(setq debug-on-error t)\" >> $@-compile-script"
-     "\"$(EMACS)\" $(EMACSFLAGS) -l $@-compile-script -f batch-byte-compile $^"
-     )
+		("EMACSFLAGS" . "-batch --no-site-file --eval '(setq debug-on-error t)'")
+		("require" . "$(foreach r,$(1),(require (quote $(r))))"))
+   :rules (list (ede-makefile-rule
+		 "elisp-inference-rule"
+		 :target "%.elc"
+		 :dependencies "%.el"
+		 :rules '("$(EMACS) $(EMACSFLAGS) $(addprefix -L ,$(LOADPATH)) \
+--eval '(progn $(call require, $(PRELOADS)))' -f batch-byte-compile $^")))
    :autoconf '("AM_PATH_LISPDIR")
    :sourcetype '(ede-source-emacs)
-;   :objectextention ".elc"
+   :objectextention ".elc"
    )
   "Compile Emacs Lisp programs.")
 
@@ -112,7 +138,7 @@ Lays claim to all .elc files that match .el files in this target."
 	     (full nil)
 	     )
 	;; Make sure the relative name isn't to far off
-	(when (string-match "^\\.\\./\\.\\./\\.\\./\\.\\." rel)
+	(when (string-match "^\\.\\./\\.\\./\\.\\./\\.\\./\\.\\." rel)
 	  (setq full fnd))
 	;; Do the setup.
 	(setq paths (cons (or full rel) paths)
@@ -129,9 +155,20 @@ Bonus: Return a cons cell: (COMPILED . UPTODATE)."
     (mapc (lambda (src)
 	    (let* ((fsrc (expand-file-name src dir))
 		   (elc (concat (file-name-sans-extension fsrc) ".elc")))
-	      (if (eq (byte-recompile-file fsrc nil 0) t)
-                  (setq comp (1+ comp))
-		(setq utd (1+ utd)))))
+	      (with-no-warnings
+		(if (< emacs-major-version 24)
+		    ;; Does not have `byte-recompile-file'
+		    (if (or (not (file-exists-p elc))
+			    (file-newer-than-file-p fsrc elc))
+			(progn
+			  (setq comp (1+ comp))
+			  (byte-compile-file fsrc))
+		      (setq utd (1+ utd)))
+
+		  (if (eq (byte-recompile-file fsrc nil 0) t)
+		      (setq comp (1+ comp))
+		    (setq utd (1+ utd)))))))
+
 	    (oref obj source))
     (message "All Emacs Lisp sources are up to date in %s" (object-name obj))
     (cons comp utd)))
@@ -185,8 +222,7 @@ is found, such as a `-version' variable, or the standard header."
   "Insert variables needed by target THIS."
   (let ((newitems (if (oref this aux-packages)
 		      (ede-proj-elisp-packages-to-loadpath
-		       (oref this aux-packages))))
-	)
+		       (oref this aux-packages)))))
     (ede-proj-makefile-insert-loadpath-items newitems)))
 
 (defun ede-proj-elisp-add-path (path)
@@ -211,7 +247,8 @@ is found, such as a `-version' variable, or the standard header."
   "Tweak the configure file (current buffer) to accommodate THIS."
   (call-next-method)
   ;; Ok, now we have to tweak the autoconf provided `elisp-comp' program.
-  (let ((ec (ede-expand-filename this "elisp-comp" 'newfile)))
+  (let ((ec (ede-expand-filename this "elisp-comp" 'newfile))
+	(enable-local-variables nil))
     (if (or (not ec) (not (file-exists-p ec)))
 	(message "No elisp-comp file.  There may be compile errors?  Rerun a second time.")
       (save-excursion
@@ -235,7 +272,7 @@ is found, such as a `-version' variable, or the standard header."
   "Flush the configure file (current buffer) to accommodate THIS."
   ;; Remove crufty old paths from elisp-compile
   (let ((ec (ede-expand-filename this "elisp-comp" 'newfile))
-	)
+	(enable-local-variables nil))
     (if (and ec (file-exists-p ec))
 	(with-current-buffer (find-file-noselect ec t)
 	  (goto-char (point-min))
@@ -251,8 +288,8 @@ is found, such as a `-version' variable, or the standard header."
 ;;
 (defclass ede-proj-target-elisp-autoloads (ede-proj-target-elisp)
   ((availablecompilers :initform '(ede-emacs-cedet-autogen-compiler))
-   (aux-packages :initform ("cedet-autogen"))
    (phony :initform t)
+   (rules :initform nil)
    (autoload-file :initarg :autoload-file
 		  :initform "loaddefs.el"
 		  :type string
@@ -287,15 +324,14 @@ Lays claim to all .elc files that match .el files in this target."
   (ede-compiler
    "ede-emacs-autogen-compiler"
    :name "emacs"
-   :variables '(("EMACS" . "emacs"))
+   :variables '(("EMACS" . "emacs")
+		("EMACSFLAGS" . "-batch --no-site-file --eval '(setq debug-on-error t)'")
+		("require" . "$(foreach r,$(1),(require (quote $(r))))"))
    :commands
-   '("@echo \"(add-to-list 'load-path nil)\" > $@-compile-script"
-     "for loadpath in . ${LOADPATH}; do \\"
-     "   echo \"(add-to-list 'load-path \\\"$$loadpath\\\")\" >> $@-compile-script; \\"
-     "done;"
-     "@echo \"(require 'cedet-autogen)\" >> $@-compile-script"
-     "\"$(EMACS)\" -batch --no-site-file -l $@-compile-script -f cedet-batch-update-autoloads $(LOADDEFS) $(LOADDIRS)"
-     )
+   '("$(EMACS) $(EMACSFLAGS) $(addprefix -L ,$(LOADPATH)) \
+--eval '(setq generated-autoload-file \"$(abspath $(LOADDEFS))\")' \
+-f batch-update-autoloads $(abspath $(LOADDIRS))")
+   :rules (list (ede-makefile-rule "clean-autoloads" :target "clean-autoloads" :phony t :rules '("rm -f $(LOADDEFS)")))
    :sourcetype '(ede-source-emacs)
    )
   "Build an autoloads file.")

@@ -70,8 +70,6 @@
 (require 'widget)
 (require 'cus-edit)
 
-(eval-when-compile
-  (require 'cl))
 
 ;;; Keymappings
 

@@ -30,6 +30,7 @@
 
 ;;; Code:
 
+;; FIXME?  Are these still relevant?  Nothing uses them AFAICS.
 (defconst mule-version "6.0 (HANACHIRUSATO)" "\
 Version number and name of this version of MULE (multilingual environment).")
 
@@ -408,13 +409,13 @@ PLIST (property list) may contain any type of information a user
 
 (defun charset-id (charset)
   "Always return 0.  This is provided for backward compatibility."
+  (declare (obsolete nil "23.1"))
   0)
-(make-obsolete 'charset-id "do not use it." "23.1")
 
 (defmacro charset-bytes (charset)
   "Always return 0.  This is provided for backward compatibility."
+  (declare (obsolete nil "23.1"))
   0)
-(make-obsolete 'charset-bytes "do not use it." "23.1")
 
 (defun get-charset-property (charset propname)
   "Return the value of CHARSET's PROPNAME property.
@@ -463,8 +464,8 @@ Return -1 if charset isn't an ISO 2022 one."
 
 (defun charset-list ()
   "Return list of all charsets ever defined."
+  (declare (obsolete charset-list "23.1"))
   charset-list)
-(make-obsolete 'charset-list "use variable `charset-list'." "23.1")
 
 
 ;;; CHARACTER
@@ -472,8 +473,8 @@ Return -1 if charset isn't an ISO 2022 one."
 
 (defun generic-char-p (char)
   "Always return nil.  This is provided for backward compatibility."
+  (declare (obsolete nil "23.1"))
   nil)
-(make-obsolete 'generic-char-p "generic characters no longer exist." "23.1")
 
 (defun make-char-internal (charset-id &optional code1 code2)
   (let ((charset (aref emacs-mule-charset-table charset-id)))
@@ -1011,6 +1012,7 @@ Value is a list of transformed arguments."
 					 eol-type)
   "Define a new coding system CODING-SYSTEM (symbol).
 This function is provided for backward compatibility."
+  (declare (obsolete define-coding-system "23.1"))
   ;; For compatibility with XEmacs, we check the type of TYPE.  If it
   ;; is a symbol, perhaps, this function is called with XEmacs-style
   ;; arguments.  Here, try to transform that kind of arguments to
@@ -1102,8 +1104,6 @@ This function is provided for backward compatibility."
     (plist-put properties :ccl-encoder (cdr flags))))
 
   (apply 'define-coding-system coding-system doc-string properties))
-
-(make-obsolete 'make-coding-system 'define-coding-system "23.1")
 
 (defun merge-coding-systems (first second)
   "Fill in any unspecified aspects of coding system FIRST from SECOND.
@@ -1355,19 +1355,25 @@ graphical terminals."
 		(t
 		 (error "Unsupported coding system for keyboard: %s"
 			coding-system)))
-	  (when accept-8-bit
-	    (or saved-meta-mode
-		(set-terminal-parameter terminal
-					'keyboard-coding-saved-meta-mode
-					(cons (nth 2 (current-input-mode))
-					      nil)))
-	    (set-input-meta-mode 8))
+	  (if accept-8-bit
+	      (progn
+		(or saved-meta-mode
+		    (set-terminal-parameter terminal
+					    'keyboard-coding-saved-meta-mode
+					    (cons (nth 2 (current-input-mode))
+						  nil)))
+		(set-input-meta-mode 8 terminal))
+	    (when saved-meta-mode
+	      (set-input-meta-mode (car saved-meta-mode) terminal)
+	      (set-terminal-parameter terminal
+				      'keyboard-coding-saved-meta-mode
+				      nil)))
 	  ;; Avoid end-of-line conversion.
 	  (setq coding-system
 		(coding-system-change-eol-conversion coding-system 'unix)))
 
       (when saved-meta-mode
-	(set-input-meta-mode (car saved-meta-mode))
+	(set-input-meta-mode (car saved-meta-mode) terminal)
 	(set-terminal-parameter terminal
 				'keyboard-coding-saved-meta-mode
 				nil))))
@@ -1448,9 +1454,9 @@ This setting is effective for the next communication only."
 ARG is a list of coding categories ordered by priority.
 
 This function is provided for backward compatibility."
+  (declare (obsolete set-coding-system-priority "23.1"))
   (apply 'set-coding-system-priority
 	 (mapcar #'(lambda (x) (symbol-value x)) arg)))
-(make-obsolete 'set-coding-priority 'set-coding-system-priority "23.1")
 
 ;;; X selections
 
@@ -1835,6 +1841,8 @@ If nothing is specified, the return value is nil."
 		       (re-search-forward
 			"\\(.*;\\)?[ \t]*unibyte:[ \t]*\\([^ ;]+\\)"
 			head-end t))
+              (display-warning 'mule "`unibyte: t' is obsolete; \
+use \"coding: 'raw-text\" instead." :warning)
 	      (setq coding-system 'raw-text))
 	    (when (and (not coding-system)
 		       (re-search-forward
@@ -1887,6 +1895,8 @@ If nothing is specified, the return value is nil."
 		(goto-char pos)
 		(when (and set-auto-coding-for-load
 			   (re-search-forward re-unibyte tail-end t))
+                  (display-warning 'mule "`unibyte: t' is obsolete; \
+use \"coding: 'raw-text\" instead." :warning)
 		  (setq coding-system 'raw-text))
 		(when (and (not coding-system)
 			   (re-search-forward re-coding tail-end t))
@@ -2350,9 +2360,6 @@ Analogous to `define-translation-table', but updates
 (put 'ignore-relative-composition 'char-table-extra-slots 0)
 (setq ignore-relative-composition
       (make-char-table 'ignore-relative-composition))
-
-(make-obsolete 'set-char-table-default
-	       "generic characters no longer exist." "23.1")
 
 ;;; Built-in auto-coding-functions:
 

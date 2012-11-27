@@ -678,7 +678,7 @@ The following commands are available:
 		  "x509" "-in" (expand-file-name certfile) "-text")
     (fundamental-mode)
     (set-buffer-modified-p nil)
-    (toggle-read-only t)
+    (setq buffer-read-only t)
     (goto-char (point-min))))
 
 (defun smime-draw-buffer ()

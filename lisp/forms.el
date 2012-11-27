@@ -21,7 +21,7 @@
 
 ;;; Commentary:
 
-;; Visit a file using a form.  See forms-d2.el for examples.
+;; Visit a file using a form.  See etc/forms for examples.
 ;;
 ;; === Naming conventions
 ;;
@@ -669,7 +669,7 @@ Commands:                        Equivalent keys in read-only mode:
 
   ;;(message "forms: proceeding setup...")
 
-  ;; Since we aren't really implementing a minor mode, we hack the modeline
+  ;; Since we aren't really implementing a minor mode, we hack the mode line
   ;; directly to get the text " View " into forms-read-only form buffers.  For
   ;; that reason, this variable must be buffer only.
   (make-local-variable 'minor-mode-alist)
@@ -2030,8 +2030,10 @@ Usage: (setq forms-number-of-fields
 
 ;;; Debugging
 
-(defvar forms--debug nil
-  "*Enables forms-mode debugging if not nil.")
+(defcustom forms--debug nil
+  "If non-nil, enable Forms mode debugging."
+  :type 'boolean
+  :group 'forms)
 
 (defun forms--debug (&rest args)
   "Internal debugging routine."

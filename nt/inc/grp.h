@@ -28,7 +28,10 @@ struct group {
   gid_t gr_gid;		/* group numerical ID */
 };
 
-struct group *getgrgid(gid_t);
+extern unsigned getgid (void);
+extern unsigned getegid (void);
+
+extern struct group *getgrgid(gid_t);
 
 #endif /* _GRP_H */
 

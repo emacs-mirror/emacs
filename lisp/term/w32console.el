@@ -52,6 +52,18 @@
   "Terminal initialization function for w32 console."
   ;; Share function key initialization with w32 gui frames
   (x-setup-function-keys (selected-frame))
+  ;; Set terminal and keyboard encodings to the current OEM codepage.
+  (let ((oem-code-page-coding
+	 (intern (format "cp%d" (w32-get-console-codepage))))
+	(oem-code-page-output-coding
+	 (intern (format "cp%d" (w32-get-console-output-codepage))))
+	oem-cs-p oem-o-cs-p)
+	(setq oem-cs-p (coding-system-p oem-code-page-coding))
+	(setq oem-o-cs-p (coding-system-p oem-code-page-output-coding))
+	(when oem-cs-p
+	  (set-keyboard-coding-system oem-code-page-coding)
+	  (set-terminal-coding-system
+	   (if oem-o-cs-p oem-code-page-output-coding oem-code-page-coding))))
   (let* ((colors w32-tty-standard-colors)
          (color (car colors)))
     (tty-color-clear)

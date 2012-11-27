@@ -101,9 +101,9 @@
 
 ;;; Code:
 
-(eval-when-compile (require 'cl))
 (require 'ring)
 (require 'ansi-color)
+(require 'regexp-opt)                   ;For regexp-opt-charset.
 
 ;; Buffer Local Variables:
 ;;============================================================================
@@ -181,7 +181,7 @@ override the read-only-ness of comint prompts is to call
 `comint-kill-whole-line' or `comint-kill-region' with no
 narrowing in effect.  This way you will be certain that none of
 the remaining prompts will be accidentally messed up.  You may
-wish to put something like the following in your `.emacs' file:
+wish to put something like the following in your init file:
 
 \(add-hook 'comint-mode-hook
 	  (lambda ()
@@ -1075,10 +1075,10 @@ See also `comint-read-input-ring'."
 (defun comint-search-arg (arg)
   ;; First make sure there is a ring and that we are after the process mark
   (cond ((not (comint-after-pmark-p))
-	 (error "Not at command line"))
+	 (user-error "Not at command line"))
 	((or (null comint-input-ring)
 	     (ring-empty-p comint-input-ring))
-	 (error "Empty input ring"))
+	 (user-error "Empty input ring"))
 	((zerop arg)
 	 ;; arg of zero resets search from beginning, and uses arg of 1
 	 (setq comint-input-ring-index nil)
@@ -1145,7 +1145,7 @@ Moves relative to `comint-input-ring-index'."
 Moves relative to START, or `comint-input-ring-index'."
   (if (or (not (ring-p comint-input-ring))
 	  (ring-empty-p comint-input-ring))
-      (error "No history"))
+      (user-error "No history"))
   (let* ((len (ring-length comint-input-ring))
 	 (motion (if (> arg 0) 1 -1))
 	 (n (mod (- (or start (comint-search-start arg)) motion) len))
@@ -1185,7 +1185,7 @@ If N is negative, find the next or Nth next match."
   (let ((pos (comint-previous-matching-input-string-position regexp n)))
     ;; Has a match been found?
     (if (null pos)
-	(error "Not found")
+	(user-error "Not found")
       ;; If leaving the edit line, save partial input
       (if (null comint-input-ring-index)	;not yet on ring
 	  (setq comint-stored-incomplete-input
@@ -1371,7 +1371,7 @@ actual side-effect."
 		 (goto-char (match-beginning 0))
 		 (if (not (search-forward old pos t))
 		     (or silent
-			 (error "Not found"))
+			 (user-error "Not found"))
 		   (replace-match new t t)
 		   (message "History item: substituted"))))
 	      (t
@@ -1440,7 +1440,7 @@ Intended to be added to `isearch-mode-hook' in `comint-mode'."
   (if comint-history-isearch-message-overlay
       (delete-overlay comint-history-isearch-message-overlay))
   (setq isearch-message-prefix-add nil)
-  (setq isearch-search-fun-function nil)
+  (setq isearch-search-fun-function 'isearch-search-fun-default)
   (setq isearch-message-function nil)
   (setq isearch-wrap-function nil)
   (setq isearch-push-state-function nil)
@@ -1462,67 +1462,59 @@ Intended to be added to `isearch-mode-hook' in `comint-mode'."
 
 (defun comint-history-isearch-search ()
   "Return the proper search function, for Isearch in input history."
-  (cond
-   (isearch-word
-    (if isearch-forward 'word-search-forward 'word-search-backward))
-   (t
-    (lambda (string bound noerror)
-      (let ((search-fun
-	     ;; Use standard functions to search within comint text
-             (cond
-              (isearch-regexp
-               (if isearch-forward 're-search-forward 're-search-backward))
-              (t
-               (if isearch-forward 'search-forward 'search-backward))))
-	    found)
-	;; Avoid lazy-highlighting matches in the comint prompt and in the
-	;; output when searching forward.  Lazy-highlight calls this lambda
-	;; with the bound arg, so skip the prompt and the output.
-	(if (and bound isearch-forward (not (comint-after-pmark-p)))
-	    (goto-char (process-mark (get-buffer-process (current-buffer)))))
-        (or
-	 ;; 1. First try searching in the initial comint text
-	 (funcall search-fun string
-		  (if isearch-forward bound (comint-line-beginning-position))
-		  noerror)
-	 ;; 2. If the above search fails, start putting next/prev history
-	 ;; elements in the comint successively, and search the string
-	 ;; in them.  Do this only when bound is nil (i.e. not while
-	 ;; lazy-highlighting search strings in the current comint text).
-	 (unless bound
-	   (condition-case nil
-	       (progn
-		 (while (not found)
-		   (cond (isearch-forward
-			  ;; Signal an error here explicitly, because
-			  ;; `comint-next-input' doesn't signal an error.
-			  (when (null comint-input-ring-index)
-			    (error "End of history; no next item"))
-			  (comint-next-input 1)
-			  (goto-char (comint-line-beginning-position)))
-			 (t
-			  ;; Signal an error here explicitly, because
-			  ;; `comint-previous-input' doesn't signal an error.
-			  (when (eq comint-input-ring-index
-				    (1- (ring-length comint-input-ring)))
-			    (error "Beginning of history; no preceding item"))
-			  (comint-previous-input 1)
-			  (goto-char (point-max))))
-		   (setq isearch-barrier (point) isearch-opoint (point))
-		   ;; After putting the next/prev history element, search
-		   ;; the string in them again, until comint-next-input
-		   ;; or comint-previous-input raises an error at the
-		   ;; beginning/end of history.
-		   (setq found (funcall search-fun string
-					(unless isearch-forward
-					  ;; For backward search, don't search
-					  ;; in the comint prompt
-					  (comint-line-beginning-position))
-					noerror)))
-		 ;; Return point of the new search result
-		 (point))
-	     ;; Return nil on the error "no next/preceding item"
-	     (error nil)))))))))
+  (lambda (string bound noerror)
+    (let ((search-fun
+	   ;; Use standard functions to search within comint text
+	   (isearch-search-fun-default))
+	  found)
+      ;; Avoid lazy-highlighting matches in the comint prompt and in the
+      ;; output when searching forward.  Lazy-highlight calls this lambda
+      ;; with the bound arg, so skip the prompt and the output.
+      (if (and bound isearch-forward (not (comint-after-pmark-p)))
+	  (goto-char (process-mark (get-buffer-process (current-buffer)))))
+      (or
+       ;; 1. First try searching in the initial comint text
+       (funcall search-fun string
+		(if isearch-forward bound (comint-line-beginning-position))
+		noerror)
+       ;; 2. If the above search fails, start putting next/prev history
+       ;; elements in the comint successively, and search the string
+       ;; in them.  Do this only when bound is nil (i.e. not while
+       ;; lazy-highlighting search strings in the current comint text).
+       (unless bound
+	 (condition-case nil
+	     (progn
+	       (while (not found)
+		 (cond (isearch-forward
+			;; Signal an error here explicitly, because
+			;; `comint-next-input' doesn't signal an error.
+			(when (null comint-input-ring-index)
+			  (error "End of history; no next item"))
+			(comint-next-input 1)
+			(goto-char (comint-line-beginning-position)))
+		       (t
+			;; Signal an error here explicitly, because
+			;; `comint-previous-input' doesn't signal an error.
+			(when (eq comint-input-ring-index
+				  (1- (ring-length comint-input-ring)))
+			  (error "Beginning of history; no preceding item"))
+			(comint-previous-input 1)
+			(goto-char (point-max))))
+		 (setq isearch-barrier (point) isearch-opoint (point))
+		 ;; After putting the next/prev history element, search
+		 ;; the string in them again, until comint-next-input
+		 ;; or comint-previous-input raises an error at the
+		 ;; beginning/end of history.
+		 (setq found (funcall search-fun string
+				      (unless isearch-forward
+					;; For backward search, don't search
+					;; in the comint prompt
+					(comint-line-beginning-position))
+				      noerror)))
+	       ;; Return point of the new search result
+	       (point))
+	   ;; Return nil on the error "no next/preceding item"
+	   (error nil)))))))
 
 (defun comint-history-isearch-message (&optional c-q-hack ellipsis)
   "Display the input history search prompt.
@@ -1555,14 +1547,13 @@ Otherwise, it displays the standard Isearch message returned from
   "Wrap the input history search when search fails.
 Move point to the first history element for a forward search,
 or to the last history element for a backward search."
-  (unless isearch-word
-    ;; When `comint-history-isearch-search' fails on reaching the
-    ;; beginning/end of the history, wrap the search to the first/last
-    ;; input history element.
-    (if isearch-forward
-	(comint-goto-input (1- (ring-length comint-input-ring)))
-      (comint-goto-input nil))
-    (setq isearch-success t))
+  ;; When `comint-history-isearch-search' fails on reaching the
+  ;; beginning/end of the history, wrap the search to the first/last
+  ;; input history element.
+  (if isearch-forward
+      (comint-goto-input (1- (ring-length comint-input-ring)))
+    (comint-goto-input nil))
+  (setq isearch-success t)
   (goto-char (if isearch-forward (comint-line-beginning-position) (point-max))))
 
 (defun comint-history-isearch-push-state ()
@@ -1776,7 +1767,7 @@ Similarly for Soar, Scheme, etc."
   (interactive)
   ;; Note that the input string does not include its terminal newline.
   (let ((proc (get-buffer-process (current-buffer))))
-    (if (not proc) (error "Current buffer has no process")
+    (if (not proc) (user-error "Current buffer has no process")
       (widen)
       (let* ((pmark (process-mark proc))
              (intxt (if (>= (point) (marker-position pmark))
@@ -2014,6 +2005,20 @@ Make backspaces delete the previous character."
 	    (goto-char (process-mark process))
 	    (set-marker comint-last-output-start (point))
 
+            ;; Try to skip repeated prompts, which can occur as a result of
+            ;; commands sent without inserting them in the buffer.
+            (let ((bol (save-excursion (forward-line 0) (point)))) ;No fields.
+              (when (and (not (bolp))
+                         (looking-back comint-prompt-regexp bol))
+                (let* ((prompt (buffer-substring bol (point)))
+                       (prompt-re (concat "\\`" (regexp-quote prompt))))
+                  (while (string-match prompt-re string)
+                    (setq string (substring string (match-end 0)))))))
+            (while (string-match (concat "\\(^" comint-prompt-regexp
+                                         "\\)\\1+")
+                                 string)
+              (setq string (replace-match "\\1" nil nil string)))
+
 	    ;; insert-before-markers is a bad thing. XXX
 	    ;; Luckily we don't have to use it any more, we use
 	    ;; window-point-insertion-type instead.
@@ -2083,8 +2088,7 @@ This function should be a pre-command hook."
   (if (and comint-scroll-to-bottom-on-input
 	   (memq this-command '(self-insert-command comint-magic-space yank
 				hilit-yank)))
-      (let* ((selected (selected-window))
-	     (current (current-buffer))
+      (let* ((current (current-buffer))
 	     (process (get-buffer-process current))
 	     (scroll comint-scroll-to-bottom-on-input))
 	(if (and process (< (point) (process-mark process)))
@@ -2094,48 +2098,54 @@ This function should be a pre-command hook."
                (lambda (window)
                  (if (and (eq (window-buffer window) current)
                           (or (eq scroll t) (eq scroll 'all)))
-                     (progn
-                       (select-window window)
-                       (goto-char (point-max))
-                       (select-window selected))))
+                     (with-selected-window window
+                       (goto-char (point-max)))))
 	       nil t))))))
+
+(defvar follow-mode)
+(declare-function follow-comint-scroll-to-bottom "follow" (&optional window))
 
 (defun comint-postoutput-scroll-to-bottom (_string)
   "Go to the end of buffer in some or all windows showing it.
-Does not scroll if the current line is the last line in the buffer.
+Do not scroll if the current line is the last line in the buffer.
 Depends on the value of `comint-move-point-for-output' and
 `comint-scroll-show-maximum-output'.
 
 This function should be in the list `comint-output-filter-functions'."
-  (let* ((selected (selected-window))
-	 (current (current-buffer))
-	 (process (get-buffer-process current))
-	 (scroll comint-move-point-for-output))
+  (let* ((current (current-buffer))
+	 (process (get-buffer-process current)))
     (unwind-protect
-	(if process
-	    (walk-windows
-             (lambda (window)
-               (when (eq (window-buffer window) current)
-                 (select-window window)
-                 (if (and (< (point) (process-mark process))
-                          (or (eq scroll t) (eq scroll 'all)
-                              ;; Maybe user wants point to jump to end.
-                              (and (eq scroll 'this) (eq selected window))
-                              (and (eq scroll 'others) (not (eq selected window)))
-                              ;; If point was at the end, keep it at end.
-                              (and (marker-position comint-last-output-start)
-                                   (>= (point) comint-last-output-start))))
-                     (goto-char (process-mark process)))
-                 ;; Optionally scroll so that the text
-                 ;; ends at the bottom of the window.
-                 (if (and comint-scroll-show-maximum-output
-                          (= (point) (point-max)))
-                     (save-excursion
-                       (goto-char (point-max))
-                       (recenter (- -1 scroll-margin))))
-                 (select-window selected)))
-	     nil t))
+	(cond
+	 ((null process))
+	 ((bound-and-true-p follow-mode)
+	  (follow-comint-scroll-to-bottom))
+	 (t
+	  (let ((selected (selected-window)))
+	    (dolist (w (get-buffer-window-list current nil t))
+	      (select-window w)
+	      (unwind-protect
+		  (progn
+		    (comint-adjust-point selected)
+		    ;; Optionally scroll to the bottom of the window.
+		    (and comint-scroll-show-maximum-output
+			 (eobp)
+			 (recenter (- -1 scroll-margin))))
+		(select-window selected))))))
       (set-buffer current))))
+
+(defun comint-adjust-point (selected)
+  "Move point in the selected window based on Comint settings.
+SELECTED is the window that was originally selected."
+  (let ((process (get-buffer-process (current-buffer))))
+    (and (< (point) (process-mark process))
+	 (or (memq comint-move-point-for-output '(t all))
+	     ;; Maybe user wants point to jump to end.
+	     (eq comint-move-point-for-output
+		 (if (eq (selected-window) selected) 'this 'others))
+	     ;; If point was at the end, keep it at end.
+	     (and (marker-position comint-last-output-start)
+		  (>= (point) comint-last-output-start)))
+	 (goto-char (process-mark process)))))
 
 (defun comint-truncate-buffer (&optional _string)
   "Truncate the buffer to `comint-buffer-maximum-size'.
@@ -2192,7 +2202,7 @@ Calls `comint-get-old-input' to get old input."
   (let ((input (funcall comint-get-old-input))
 	(process (get-buffer-process (current-buffer))))
     (if (not process)
-	(error "Current buffer has no process")
+	(user-error "Current buffer has no process")
       (goto-char (process-mark process))
       (insert input))))
 
@@ -2499,7 +2509,7 @@ If N is negative, find the next or Nth next match."
 	    (save-excursion
 	      (while (/= n 0)
 		(unless (re-search-backward regexp nil t dir)
-		  (error "Not found"))
+		  (user-error "Not found"))
 		(unless (get-char-property (point) 'field)
 		  (setq n (- n dir))))
 	      (field-beginning))))
@@ -2672,6 +2682,7 @@ prompts should stay at the beginning of a line.  If this is not
 the case, this command just calls `kill-region' with all
 read-only properties intact.  The read-only status of newlines is
 updated using `comint-update-fence', if necessary."
+  (declare (advertised-calling-convention (beg end) "23.3"))
   (interactive "r")
   (save-excursion
     (let* ((true-beg (min beg end))
@@ -2690,8 +2701,6 @@ updated using `comint-update-fence', if necessary."
 	(let ((inhibit-read-only t))
 	  (kill-region beg end yank-handler)
 	  (comint-update-fence))))))
-(set-advertised-calling-convention 'comint-kill-region '(beg end) "23.3")
-
 
 ;; Support for source-file processing commands.
 ;;============================================================================
@@ -2771,11 +2780,8 @@ the load or compile."
     (if (and buff
 	     (buffer-modified-p buff)
 	     (y-or-n-p (format "Save buffer %s first? " (buffer-name buff))))
-	;; save BUFF.
-	(let ((old-buffer (current-buffer)))
-	  (set-buffer buff)
-	  (save-buffer)
-	  (set-buffer old-buffer)))))
+        (with-current-buffer buff
+	  (save-buffer)))))
 
 (defun comint-extract-string ()
   "Return string around point, or nil."
@@ -2959,19 +2965,20 @@ This is a good thing to set in mode hooks.")
   "Return the word of WORD-CHARS at point, or nil if none is found.
 Word constituents are considered to be those in WORD-CHARS, which is like the
 inside of a \"[...]\" (see `skip-chars-forward'), plus all non-ASCII characters."
+  ;; FIXME: Need to handle "..." and '...' quoting in shell.el!
+  ;; This should be combined with completion parsing somehow.
   (save-excursion
     (let ((here (point))
 	  giveup)
       (while (not giveup)
 	(let ((startpoint (point)))
 	  (skip-chars-backward (concat "\\\\" word-chars))
-	  ;; Fixme: This isn't consistent with Bash, at least -- not
-	  ;; all non-ASCII chars should be word constituents.
-	  (if (and (> (- (point) 2) (point-min))
-		   (= (char-after (- (point) 2)) ?\\))
+	  (if (and comint-file-name-quote-list
+		   (eq (char-before (1- (point))) ?\\))
 	      (forward-char -2))
-	  (if (and (> (- (point) 1) (point-min))
-		   (>= (char-after (- (point) 1)) 128))
+	  ;; FIXME: This isn't consistent with Bash, at least -- not
+	  ;; all non-ASCII chars should be word constituents.
+	  (if (and (not (bobp)) (>= (char-before) 128))
 	      (forward-char -1))
 	  (if (= (point) startpoint)
 	      (setq giveup t))))
@@ -3000,26 +3007,53 @@ interpreter (e.g., the percent notation of cmd.exe on Windows)."
 See `comint-word'."
   (comint-word comint-file-name-chars))
 
-(defun comint--unquote&expand-filename (filename)
-  ;; FIXME: The code below does unquote-then-expand which means that "\\$HOME"
-  ;; gets expanded to the same as "$HOME"
-  (comint-substitute-in-file-name
-   (comint-unquote-filename filename)))
+(defun comint--unquote&requote-argument (qstr &optional upos)
+  (unless upos (setq upos 0))
+  (let* ((qpos 0)
+         (ustrs '())
+         (re (concat
+              "\\$\\(?:\\([[:alpha:]][[:alnum:]]*\\)"
+              "\\|{\\(?1:[^{}]+\\)}\\)"
+              (when (memq system-type '(ms-dos windows-nt))
+                "\\|%\\(?1:[^\\\\/]*\\)%")
+              (when comint-file-name-quote-list
+                "\\|\\\\\\(.\\)")))
+         (qupos nil)
+         (push (lambda (str end)
+                 (push str ustrs)
+                 (setq upos (- upos (length str)))
+                 (unless (or qupos (> upos 0))
+                   (setq qupos (if (< end 0) (- end) (+ upos end))))))
+         match)
+    (while (setq match (string-match re qstr qpos))
+      (funcall push (substring qstr qpos match) match)
+      (cond
+       ((match-beginning 2) (funcall push (match-string 2 qstr) (match-end 0)))
+       ((match-beginning 1) (funcall push (getenv (match-string 1 qstr))
+                                     (- (match-end 0))))
+       (t (error "Unexpected case in comint--unquote&requote-argument!")))
+      (setq qpos (match-end 0)))
+    (funcall push (substring qstr qpos) (length qstr))
+    (list (mapconcat #'identity (nreverse ustrs) "")
+          qupos #'comint-quote-filename)))
+
+(defun comint--unquote-argument (str)
+  (car (comint--unquote&requote-argument str)))
+(define-obsolete-function-alias 'comint--unquote&expand-filename
+  #'comint--unquote-argument "24.3")
 
 (defun comint-match-partial-filename ()
   "Return the unquoted&expanded filename at point, or nil if none is found.
 Environment variables are substituted.  See `comint-word'."
   (let ((filename (comint--match-partial-filename)))
-    (and filename (comint--unquote&expand-filename filename))))
+    (and filename (comint--unquote-argument filename))))
 
 (defun comint-quote-filename (filename)
   "Return FILENAME with magic characters quoted.
 Magic characters are those in `comint-file-name-quote-list'."
   (if (null comint-file-name-quote-list)
       filename
-    (let ((regexp
-	   (format "[%s]"
-                   (mapconcat 'char-to-string comint-file-name-quote-list ""))))
+    (let ((regexp (regexp-opt-charset comint-file-name-quote-list)))
       (save-match-data
 	(let ((i 0))
 	  (while (string-match regexp filename i)
@@ -3029,10 +3063,16 @@ Magic characters are those in `comint-file-name-quote-list'."
 
 (defun comint-unquote-filename (filename)
   "Return FILENAME with quoted characters unquoted."
+  (declare (obsolete nil "24.3"))
   (if (null comint-file-name-quote-list)
       filename
     (save-match-data
       (replace-regexp-in-string "\\\\\\(.\\)" "\\1" filename t))))
+
+(defun comint--requote-argument (upos qstr)
+  ;; See `completion-table-with-quoting'.
+  (let ((res (comint--unquote&requote-argument qstr upos)))
+    (cons (nth 1 res) (nth 2 res))))
 
 (defun comint-completion-at-point ()
   (run-hook-with-args-until-success 'comint-dynamic-complete-functions))
@@ -3066,87 +3106,6 @@ Returns t if successful."
   (when (comint--match-partial-filename)
     (comint--complete-file-name-data)))
 
-;; FIXME: comint--common-suffix, comint--common-quoted-suffix, and
-;; comint--table-subvert don't fully solve the problem, since
-;; selecting a file from *Completions* won't quote it, among several
-;; other problems.
-
-(defun comint--common-suffix (s1 s2)
-  (assert (not (or (string-match "\n" s1) (string-match "\n" s2))))
-  ;; Since S2 is expected to be the "unquoted/expanded" version of S1,
-  ;; there shouldn't be any case difference, even if the completion is
-  ;; case-insensitive.
-  (let ((case-fold-search nil))
-    (string-match ".*?\\(.*\\)\n.*\\1\\'" (concat s1 "\n" s2))
-    (- (match-end 1) (match-beginning 1))))
-
-(defun comint--common-quoted-suffix (s1 s2)
-  ;; FIXME: Copied in pcomplete.el.
-  "Find the common suffix between S1 and S2 where S1 is the expanded S2.
-S1 is expected to be the unquoted and expanded version of S2.
-Returns (PS1 . PS2), i.e. the shortest prefixes of S1 and S2, such that
-S1 = (concat PS1 SS1) and S2 = (concat PS2 SS2) and
-SS1 = (unquote SS2)."
-  (let* ((cs (comint--common-suffix s1 s2))
-         (ss1 (substring s1 (- (length s1) cs)))
-         (qss1 (comint-quote-filename ss1))
-         qc s2b)
-    (if (and (not (equal ss1 qss1))
-             (setq qc (comint-quote-filename (substring ss1 0 1)))
-	     (setq s2b (- (length s2) cs (length qc) -1))
-	     (>= s2b 0)			;bug#11158.
-             (eq t (compare-strings s2 s2b (- (length s2) cs -1)
-                                    qc nil nil)))
-        ;; The difference found is just that one char is quoted in S2
-        ;; but not in S1, keep looking before this difference.
-        (comint--common-quoted-suffix
-         (substring s1 0 (- (length s1) cs))
-         (substring s2 0 s2b))
-      (cons (substring s1 0 (- (length s1) cs))
-            (substring s2 0 (- (length s2) cs))))))
-
-(defun comint--table-subvert (table s1 s2 &optional quote-fun unquote-fun)
-  "Completion table that replaces the prefix S1 with S2 in STRING.
-The result is a completion table which completes strings of the
-form (concat S1 S) in the same way as TABLE completes strings of
-the form (concat S2 S)."
-  (lambda (string pred action)
-    (let* ((str (if (eq t (compare-strings string 0 (length s1) s1 nil nil
-                                           completion-ignore-case))
-                    (let ((rest (substring string (length s1))))
-                      (concat s2 (if unquote-fun
-                                     (funcall unquote-fun rest) rest)))))
-           (res (if str (complete-with-action action table str pred))))
-      (when res
-        (cond
-         ((and (eq (car-safe action) 'boundaries))
-          (let ((beg (or (and (eq (car-safe res) 'boundaries) (cadr res)) 0)))
-            (list* 'boundaries
-                   (max (length s1)
-                        ;; FIXME: Adjust because of quoting/unquoting.
-                        (+ beg (- (length s1) (length s2))))
-                   (and (eq (car-safe res) 'boundaries) (cddr res)))))
-         ((stringp res)
-          (if (eq t (compare-strings res 0 (length s2) s2 nil nil
-                                     completion-ignore-case))
-              (let ((rest (substring res (length s2))))
-                (concat s1 (if quote-fun (funcall quote-fun rest) rest)))))
-         ((eq action t)
-          (let ((bounds (completion-boundaries str table pred "")))
-            (if (>= (car bounds) (length s2))
-                (if quote-fun (mapcar quote-fun res) res)
-              (let ((re (concat "\\`"
-                                (regexp-quote (substring s2 (car bounds))))))
-                (delq nil
-                      (mapcar (lambda (c)
-                                (if (string-match re c)
-                                    (let ((str (substring c (match-end 0))))
-                                      (if quote-fun
-                                          (funcall quote-fun str) str))))
-                              res))))))
-         ;; E.g. action=nil and it's the only completion.
-         (res))))))
-
 (defun comint-completion-file-name-table (string pred action)
   (if (not (file-name-absolute-p string))
       (completion-file-name-table string pred action)
@@ -3165,6 +3124,13 @@ the form (concat S2 S)."
           res)))
      (t (completion-file-name-table string pred action)))))
 
+(defvar comint-unquote-function #'comint--unquote-argument
+  "Function to use for completion of quoted data.
+See `completion-table-with-quoting' and `comint-requote-function'.")
+(defvar comint-requote-function #'comint--requote-argument
+  "Function to use for completion of quoted data.
+See `completion-table-with-quoting' and `comint-unquote-function'.")
+
 (defun comint--complete-file-name-data ()
   "Return the completion data for file name at point."
   (let* ((filesuffix (cond ((not comint-completion-addsuffix) "")
@@ -3175,14 +3141,11 @@ the form (concat S2 S)."
 	 (filename (comint--match-partial-filename))
 	 (filename-beg (if filename (match-beginning 0) (point)))
 	 (filename-end (if filename (match-end 0) (point)))
-         (unquoted (if filename (comint--unquote&expand-filename filename) ""))
          (table
-          (let ((prefixes (comint--common-quoted-suffix
-                           unquoted filename)))
-            (comint--table-subvert
-             #'comint-completion-file-name-table
-             (cdr prefixes) (car prefixes)
-             #'comint-quote-filename #'comint-unquote-filename))))
+          (completion-table-with-quoting
+           #'comint-completion-file-name-table
+           comint-unquote-function
+           comint-requote-function)))
     (nconc
      (list
       filename-beg filename-end
@@ -3192,8 +3155,8 @@ the form (concat S2 S)."
           (complete-with-action action table string pred))))
      (unless (zerop (length filesuffix))
        (list :exit-function
-             (lambda (_s finished)
-               (when (memq finished '(sole finished))
+             (lambda (_s status)
+               (when (eq status 'finished)
                  (if (looking-at (regexp-quote filesuffix))
                      (goto-char (match-end 0))
                    (insert filesuffix)))))))))
@@ -3201,10 +3164,9 @@ the form (concat S2 S)."
 (defun comint-dynamic-complete-as-filename ()
   "Dynamically complete at point as a filename.
 See `comint-dynamic-complete-filename'.  Returns t if successful."
+  (declare (obsolete comint-filename-completion "24.1"))
   (let ((data (comint--complete-file-name-data)))
     (completion-in-region (nth 0 data) (nth 1 data) (nth 2 data))))
-(make-obsolete 'comint-dynamic-complete-as-filename
-               'comint-filename-completion "24.1")
 
 (defun comint-replace-by-expanded-filename ()
   "Dynamically expand and complete the filename at point.
@@ -3235,6 +3197,7 @@ Return `partial' if completed as far as possible.
 Return `listed' if a completion listing was shown.
 
 See also `comint-dynamic-complete-filename'."
+  (declare (obsolete completion-in-region "24.1"))
   (let* ((completion-ignore-case (memq system-type '(ms-dos windows-nt cygwin)))
 	 (minibuffer-p (window-minibuffer-p (selected-window)))
 	 (suffix (cond ((not comint-completion-addsuffix) "")
@@ -3277,8 +3240,6 @@ See also `comint-dynamic-complete-filename'."
 		    (unless minibuffer-p
 		      (message "Partially completed"))
 		    'partial)))))))
-(make-obsolete 'comint-dynamic-simple-complete 'completion-in-region "24.1")
-
 
 (defun comint-dynamic-list-filename-completions ()
   "Display a list of possible completions for the filename at point."
@@ -3390,7 +3351,7 @@ The process mark separates output, and input already sent,
 from input that has not yet been sent."
   (interactive)
   (let ((proc (or (get-buffer-process (current-buffer))
-		  (error "Current buffer has no process"))))
+		  (user-error "Current buffer has no process"))))
     (goto-char (process-mark proc))
     (when (called-interactively-p 'interactive)
       (message "Point is now at the process mark"))))
@@ -3415,7 +3376,7 @@ the process mark is at the beginning of the accumulated input."
   "Set the process mark at point."
   (interactive)
   (let ((proc (or (get-buffer-process (current-buffer))
-		  (error "Current buffer has no process"))))
+		  (user-error "Current buffer has no process"))))
     (set-marker (process-mark proc) (point))
     (message "Process mark set")))
 
@@ -3767,14 +3728,6 @@ REGEXP-GROUP is the regular expression group in REGEXP to use."
                (match-end regexp-group))
               results))
       results)))
-
-(dolist (x '("^Not at command line$"
-             "^Empty input ring$"
-             "^No history$"
-             "^Not found$"			; Too common?
-             "^Current buffer has no process$"))
-  (add-to-list 'debug-ignored-errors x))
-
 
 ;; Converting process modes to use comint mode
 ;; ===========================================================================

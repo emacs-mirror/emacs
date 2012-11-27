@@ -83,7 +83,7 @@
 
 ;;; Code:
 
-(eval-when-compile (require 'cl))
+(eval-when-compile (require 'cl-lib))
 
 ;;; User-visible variables
 
@@ -174,7 +174,7 @@ contains the name of the directory which the buffer is visiting.")
 ;;; Utilities
 
 ;; uniquify-fix-list data structure
-(defstruct (uniquify-item
+(cl-defstruct (uniquify-item
 	    (:constructor nil) (:copier nil)
 	    (:constructor uniquify-make-item
 	     (base dirname buffer &optional proposed)))
@@ -340,7 +340,7 @@ in `uniquify-list-buffers-directory-modes', otherwise returns nil."
 
 (defun uniquify-get-proposed-name (base dirname &optional depth)
   (unless depth (setq depth uniquify-min-dir-content))
-  (assert (equal (directory-file-name dirname) dirname))  ;No trailing slash.
+  (cl-assert (equal (directory-file-name dirname) dirname)) ;No trailing slash.
 
   ;; Distinguish directories by adding extra separator.
   (if (and uniquify-trailing-separator-p

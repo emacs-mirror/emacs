@@ -732,8 +732,7 @@ See Info node `(elisp) Programmed Completion' for details."
 
 ;; Shush compiler.
 (mh-do-in-xemacs
-  (defvar completion-root-regexp)
-  (defvar minibuffer-completing-file-name))
+  (defvar completion-root-regexp))
 
 (defun mh-folder-completing-read (prompt default allow-root-folder-flag)
   "Read folder name with PROMPT and default result DEFAULT.

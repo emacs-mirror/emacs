@@ -99,34 +99,34 @@
 ;;
 
 (defvar ethio-primary-language 'tigrigna
-  "*Symbol that defines the primary language in SERA --> FIDEL conversion.
+  "Symbol that defines the primary language in SERA --> FIDEL conversion.
 The value should be one of: `tigrigna', `amharic' or `english'.")
 
 (defvar ethio-secondary-language 'english
-  "*Symbol that defines the secondary language in SERA --> FIDEL conversion.
+  "Symbol that defines the secondary language in SERA --> FIDEL conversion.
 The value should be one of: `tigrigna', `amharic' or `english'.")
 
 (defvar ethio-use-colon-for-colon nil
-  "*Non-nil means associate ASCII colon with Ethiopic colon.
+  "Non-nil means associate ASCII colon with Ethiopic colon.
 If nil, associate ASCII colon with Ethiopic word separator, i.e., two
 vertically stacked dots.  All SERA <--> FIDEL converters refer this
 variable.")
 
 (defvar ethio-use-three-dot-question nil
-  "*Non-nil means associate ASCII question mark with Ethiopic old style question mark (three vertically stacked dots).
+  "Non-nil means associate ASCII question mark with Ethiopic old style question mark (three vertically stacked dots).
 If nil, associate ASCII question mark with Ethiopic stylized question
 mark.  All SERA <--> FIDEL converters refer this variable.")
 
 (defvar ethio-quote-vowel-always nil
-  "*Non-nil means always put an apostrophe before an isolated vowel (except at word initial) in FIDEL --> SERA conversion.
+  "Non-nil means always put an apostrophe before an isolated vowel (except at word initial) in FIDEL --> SERA conversion.
 If nil, put an apostrophe only between a 6th-form consonant and an
 isolated vowel.")
 
 (defvar ethio-W-sixth-always nil
-  "*Non-nil means convert the Wu-form of a 12-form consonant to \"W'\" instead of \"Wu\" in FIDEL --> SERA conversion.")
+  "Non-nil means convert the Wu-form of a 12-form consonant to \"W'\" instead of \"Wu\" in FIDEL --> SERA conversion.")
 
 (defvar ethio-numeric-reduction 0
-  "*Degree of reduction in converting Ethiopic digits into Arabic digits.
+  "Degree of reduction in converting Ethiopic digits into Arabic digits.
 Should be 0, 1 or 2.
 For example, ({10}{9}{100}{80}{7}) is converted into:
     `10`9`100`80`7  if `ethio-numeric-reduction' is 0,
@@ -134,7 +134,7 @@ For example, ({10}{9}{100}{80}{7}) is converted into:
     `10900807	    if `ethio-numeric-reduction' is 2.")
 
 (defvar ethio-java-save-lowercase nil
-  "*Non-nil means save Ethiopic characters in lowercase hex numbers to Java files.
+  "Non-nil means save Ethiopic characters in lowercase hex numbers to Java files.
 If nil, use uppercases.")
 
 (defun ethio-prefer-amharic-p ()

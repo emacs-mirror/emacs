@@ -102,8 +102,6 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 
 #include <config.h>
 #include <stdio.h>
-#include <ctype.h>
-#include <setjmp.h>
 #include <float.h>
 #include <unistd.h>
 #include <limits.h>
@@ -114,10 +112,6 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
    don't have to include others because CHAR_HEAD_P does not contains
    another macro.  */
 #include "character.h"
-
-#ifndef DBL_MAX_10_EXP
-#define DBL_MAX_10_EXP 308 /* IEEE double */
-#endif
 
 /* Generate output from a format-spec FORMAT,
    terminated at position FORMAT_END.
@@ -135,8 +129,8 @@ ptrdiff_t
 doprnt (char *buffer, ptrdiff_t bufsize, const char *format,
 	const char *format_end, va_list ap)
 {
-  const char *fmt = format;	/* Pointer into format string */
-  register char *bufptr = buffer; /* Pointer into output buffer.. */
+  const char *fmt = format;	/* Pointer into format string.  */
+  char *bufptr = buffer;	/* Pointer into output buffer.  */
 
   /* Use this for sprintf unless we need something really big.  */
   char tembuf[DBL_MAX_10_EXP + 100];
@@ -150,7 +144,7 @@ doprnt (char *buffer, ptrdiff_t bufsize, const char *format,
   /* Buffer we have got with malloc.  */
   char *big_buffer = NULL;
 
-  register size_t tem;
+  ptrdiff_t tem = -1;
   char *string;
   char fixed_buffer[20];	/* Default buffer for small formatting. */
   char *fmtcpy;
@@ -161,10 +155,9 @@ doprnt (char *buffer, ptrdiff_t bufsize, const char *format,
   if (format_end == 0)
     format_end = format + strlen (format);
 
-  if (format_end - format < sizeof (fixed_buffer) - 1)
-    fmtcpy = fixed_buffer;
-  else
-    SAFE_ALLOCA (fmtcpy, char *, format_end - format + 1);
+  fmtcpy = (format_end - format < sizeof (fixed_buffer) - 1
+	    ? fixed_buffer
+	    : SAFE_ALLOCA (format_end - format + 1));
 
   bufsize--;
 
@@ -174,7 +167,7 @@ doprnt (char *buffer, ptrdiff_t bufsize, const char *format,
       if (*fmt == '%')	/* Check for a '%' character */
 	{
 	  ptrdiff_t size_bound = 0;
-	  EMACS_INT width;  /* Columns occupied by STRING on display.  */
+	  ptrdiff_t width;  /* Columns occupied by STRING on display.  */
 	  enum {
 	    pDlen = sizeof pD - 1,
 	    pIlen = sizeof pI - 1,
@@ -257,7 +250,7 @@ doprnt (char *buffer, ptrdiff_t bufsize, const char *format,
 	    {
 	      if (big_buffer)
 		xfree (big_buffer);
-	      big_buffer = (char *) xmalloc (size_bound);
+	      big_buffer = xmalloc (size_bound);
 	      sprintf_buffer = big_buffer;
 	      size_allocated = size_bound;
 	    }
@@ -275,32 +268,32 @@ doprnt (char *buffer, ptrdiff_t bufsize, const char *format,
 		case no_modifier:
 		  {
 		    int v = va_arg (ap, int);
-		    sprintf (sprintf_buffer, fmtcpy, v);
+		    tem = sprintf (sprintf_buffer, fmtcpy, v);
 		  }
 		  break;
 		case long_modifier:
 		  {
 		    long v = va_arg (ap, long);
-		    sprintf (sprintf_buffer, fmtcpy, v);
+		    tem = sprintf (sprintf_buffer, fmtcpy, v);
 		  }
 		  break;
 		case pD_modifier:
 		signed_pD_modifier:
 		  {
 		    ptrdiff_t v = va_arg (ap, ptrdiff_t);
-		    sprintf (sprintf_buffer, fmtcpy, v);
+		    tem = sprintf (sprintf_buffer, fmtcpy, v);
 		  }
 		  break;
 		case pI_modifier:
 		  {
 		    EMACS_INT v = va_arg (ap, EMACS_INT);
-		    sprintf (sprintf_buffer, fmtcpy, v);
+		    tem = sprintf (sprintf_buffer, fmtcpy, v);
 		  }
 		  break;
 		case pM_modifier:
 		  {
 		    intmax_t v = va_arg (ap, intmax_t);
-		    sprintf (sprintf_buffer, fmtcpy, v);
+		    tem = sprintf (sprintf_buffer, fmtcpy, v);
 		  }
 		  break;
 		}
@@ -315,13 +308,13 @@ doprnt (char *buffer, ptrdiff_t bufsize, const char *format,
 		case no_modifier:
 		  {
 		    unsigned v = va_arg (ap, unsigned);
-		    sprintf (sprintf_buffer, fmtcpy, v);
+		    tem = sprintf (sprintf_buffer, fmtcpy, v);
 		  }
 		  break;
 		case long_modifier:
 		  {
 		    unsigned long v = va_arg (ap, unsigned long);
-		    sprintf (sprintf_buffer, fmtcpy, v);
+		    tem = sprintf (sprintf_buffer, fmtcpy, v);
 		  }
 		  break;
 		case pD_modifier:
@@ -329,13 +322,13 @@ doprnt (char *buffer, ptrdiff_t bufsize, const char *format,
 		case pI_modifier:
 		  {
 		    EMACS_UINT v = va_arg (ap, EMACS_UINT);
-		    sprintf (sprintf_buffer, fmtcpy, v);
+		    tem = sprintf (sprintf_buffer, fmtcpy, v);
 		  }
 		  break;
 		case pM_modifier:
 		  {
 		    uintmax_t v = va_arg (ap, uintmax_t);
-		    sprintf (sprintf_buffer, fmtcpy, v);
+		    tem = sprintf (sprintf_buffer, fmtcpy, v);
 		  }
 		  break;
 		}
@@ -348,7 +341,7 @@ doprnt (char *buffer, ptrdiff_t bufsize, const char *format,
 	    case 'g':
 	      {
 		double d = va_arg (ap, double);
-		sprintf (sprintf_buffer, fmtcpy, d);
+		tem = sprintf (sprintf_buffer, fmtcpy, d);
 		/* Now copy into final output, truncating as necessary.  */
 		string = sprintf_buffer;
 		goto doit;
@@ -368,8 +361,8 @@ doprnt (char *buffer, ptrdiff_t bufsize, const char *format,
 
 	      /* Copy string into final output, truncating if no room.  */
 	    doit:
+	      eassert (0 <= tem);
 	      /* Coming here means STRING contains ASCII only.  */
-	      tem = strlen (string);
 	      if (STRING_BYTES_BOUND < tem)
 		error ("Format width or precision too large");
 	      width = tem;
@@ -392,15 +385,19 @@ doprnt (char *buffer, ptrdiff_t bufsize, const char *format,
 		{
 		  /* Truncate the string at character boundary.  */
 		  tem = bufsize;
-		  while (!CHAR_HEAD_P (string[tem - 1])) tem--;
-		  /* If the multibyte sequence of this character is
-		     too long for the space we have left in the
-		     buffer, truncate before it.  */
-		  if (tem > 0
-		      && BYTES_BY_CHAR_HEAD (string[tem - 1]) > bufsize)
-		    tem--;
-		  if (tem > 0)
-		    memcpy (bufptr, string, tem);
+		  do
+		    {
+		      tem--;
+		      if (CHAR_HEAD_P (string[tem]))
+			{
+			  if (BYTES_BY_CHAR_HEAD (string[tem]) <= bufsize - tem)
+			    tem = bufsize;
+			  break;
+			}
+		    }
+		  while (tem != 0);
+
+		  memcpy (bufptr, string, tem);
 		  bufptr[tem] = 0;
 		  /* Trigger exit from the loop, but make sure we
 		     return to the caller a value which will indicate
@@ -409,8 +406,7 @@ doprnt (char *buffer, ptrdiff_t bufsize, const char *format,
 		  bufsize = 0;
 		  continue;
 		}
-	      else
-		memcpy (bufptr, string, tem);
+	      memcpy (bufptr, string, tem);
 	      bufptr += tem;
 	      bufsize -= tem;
 	      if (minlen < 0)

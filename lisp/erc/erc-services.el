@@ -2,6 +2,8 @@
 
 ;; Copyright (C) 2002-2004, 2006-2012 Free Software Foundation, Inc.
 
+;; Maintainer: FSF
+
 ;; This file is part of GNU Emacs.
 
 ;; GNU Emacs is free software: you can redistribute it and/or modify
@@ -195,7 +197,8 @@ Example of use:
 		(repeat :tag "Nickname and password"
 			(cons :tag "Identity"
 			      (string :tag "Nick")
-			      (string :tag "Password"))))))
+			      (string :tag "Password"
+                                      :secret ?*))))))
 
 ;; Variables:
 

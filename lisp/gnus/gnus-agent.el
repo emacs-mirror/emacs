@@ -242,7 +242,6 @@ NOTES:
 (defvar gnus-category-group-cache nil)
 (defvar gnus-agent-spam-hashtb nil)
 (defvar gnus-agent-file-name nil)
-(defvar gnus-agent-send-mail-function nil)
 (defvar gnus-agent-file-coding-system 'raw-text)
 (defvar gnus-agent-file-loading-cache nil)
 (defvar gnus-agent-total-fetched-hashtb nil)
@@ -355,23 +354,11 @@ manipulated as follows:
   (func LIST): Returns VALUE1
   (setf (func LIST) NEW_VALUE1): Replaces VALUE1 with NEW_VALUE1."
     `(progn (defmacro ,name (category)
-              (list (quote cdr) (list (quote assq)
-                                      (quote (quote ,prop-name)) category)))
+              (list 'cdr (list 'assq '',prop-name category)))
 
-            (define-setf-method ,name (category)
-              (let* ((--category--temp-- (make-symbol "--category--"))
-                     (--value--temp-- (make-symbol "--value--")))
-                (list (list --category--temp--) ; temporary-variables
-                      (list category)		; value-forms
-                      (list --value--temp--)	; store-variables
-                      (let* ((category --category--temp--) ; store-form
-                             (value --value--temp--))
-                        (list (quote gnus-agent-cat-set-property)
-                              category
-                              (quote (quote ,prop-name))
-                              value))
-                      (list (quote ,name) --category--temp--) ; access-form
-                      )))))
+            (defsetf ,name (category) (value)
+              (list 'gnus-agent-cat-set-property
+                    category '',prop-name value))))
   )
 
 (defmacro gnus-agent-cat-name (category)
@@ -399,22 +386,10 @@ manipulated as follows:
  gnus-agent-cat-enable-undownloaded-faces  agent-enable-undownloaded-faces)
 
 
-;; This form is equivalent to defsetf except that it calls make-symbol
-;; whereas defsetf calls gensym (Using gensym creates a run-time
-;; dependency on the CL library).
-
-(eval-and-compile
-  (define-setf-method gnus-agent-cat-groups (category)
-    (let* ((--category--temp-- (make-symbol "--category--"))
-	   (--groups--temp-- (make-symbol "--groups--")))
-      (list (list --category--temp--)
-	    (list category)
-	    (list --groups--temp--)
-	    (let* ((category --category--temp--)
-		   (groups --groups--temp--))
-	      (list (quote gnus-agent-set-cat-groups) category groups))
-	    (list (quote gnus-agent-cat-groups) --category--temp--))))
-  )
+;; This form may expand to code that uses CL functions at run-time,
+;; but that's OK since those functions will only ever be called from
+;; something like `setf', so only when CL is loaded anyway.
+(defsetf gnus-agent-cat-groups gnus-agent-set-cat-groups)
 
 (defun gnus-agent-set-cat-groups (category groups)
   (unless (eq groups 'ignore)
@@ -683,11 +658,7 @@ This will modify the `gnus-setup-news-hook', and
 minor mode in all Gnus buffers."
   (interactive)
   (gnus-open-agent)
-  (unless gnus-agent-send-mail-function
-    (setq gnus-agent-send-mail-function
-	  (or message-send-mail-real-function
-	      (function (lambda () (funcall message-send-mail-function))))
-	  message-send-mail-real-function 'gnus-agent-send-mail))
+  (setq message-send-mail-real-function 'gnus-agent-send-mail)
 
   ;; If the servers file doesn't exist, auto-agentize some servers and
   ;; save the servers file so this auto-agentizing isn't invoked
@@ -723,7 +694,7 @@ Optional arg GROUP-NAME allows to specify another group."
 (defun gnus-agent-send-mail ()
   (if (or (not gnus-agent-queue-mail)
 	  (and gnus-plugged (not (eq gnus-agent-queue-mail 'always))))
-      (funcall gnus-agent-send-mail-function)
+      (message-multi-smtp-send-mail)
     (goto-char (point-min))
     (re-search-forward
      (concat "^" (regexp-quote mail-header-separator) "\n"))
@@ -1304,12 +1275,18 @@ This can be added to `gnus-select-article-hook' or
             (gnus-group-update-group group t)))
     nil))
 
-(defun gnus-agent-save-active (method)
+(defun gnus-agent-save-active (method &optional groups-p)
+  "Sync the agent's active file with the current buffer.
+Pass non-nil for GROUPS-P if the buffer starts out in groups format.
+Regardless, both the file and the buffer end up in active format
+if METHOD is agentized; otherwise the function is a no-op."
   (when (gnus-agent-method-p method)
     (let* ((gnus-command-method method)
 	   (new (gnus-make-hashtable (count-lines (point-min) (point-max))))
 	   (file (gnus-agent-lib-file "active")))
-      (gnus-active-to-gnus-format nil new)
+      (if groups-p
+	  (gnus-groups-to-gnus-format nil new)
+	(gnus-active-to-gnus-format nil new))
       (gnus-agent-write-active file new)
       (erase-buffer)
       (let ((nnheader-file-coding-system gnus-agent-file-coding-system))
@@ -3742,6 +3719,13 @@ has been fetched."
       (gnus-make-directory (nnheader-translate-file-chars
 			    (file-name-directory file) t))
 
+      (when fetch-old
+	(setq articles (gnus-uncompress-range
+			(cons (if (numberp fetch-old)
+				  (max 1 (- (car articles) fetch-old))
+				1)
+			      (car (last articles))))))
+
       ;; Populate temp buffer with known headers
       (when (file-exists-p file)
 	(with-current-buffer gnus-agent-overview-buffer
@@ -3778,12 +3762,7 @@ has been fetched."
                    (set-buffer nntp-server-buffer)
                    (let* ((fetched-articles (list nil))
                           (tail-fetched-articles fetched-articles)
-                          (min (cond ((numberp fetch-old)
-                                      (max 1 (- (car articles) fetch-old)))
-                                     (fetch-old
-                                      1)
-                                     (t
-                                      (car articles))))
+                          (min (car articles))
                           (max (car (last articles))))
 
                      ;; Get the list of articles that were fetched
@@ -3858,8 +3837,7 @@ has been fetched."
 	     (not (numberp fetch-old)))
 	t				; Don't remove anything.
       (nnheader-nov-delete-outside-range
-       (if fetch-old (max 1 (- (car articles) fetch-old))
-	 (car articles))
+       (car articles)
        (car (last articles)))
       t)
 

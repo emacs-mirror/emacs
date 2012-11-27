@@ -3,7 +3,7 @@
 @c   Free Software Foundation, Inc.
 @c See file emacs.texi for copying conditions.
 
-@node Killing, Registers, Mark, Top
+@node Killing
 @chapter Killing and Moving Text
 
   In Emacs, @dfn{killing} means erasing text and copying it into the
@@ -289,7 +289,7 @@ e.g. @kbd{C-u 4 C-y} reinserts the fourth most recent kill.
 
   On graphical displays, @kbd{C-y} first checks if another application
 has placed any text in the system clipboard more recently than the
-last Emacs kill.  If so, it inserts the text in the clipboard instead.
+last Emacs kill.  If so, it inserts the clipboard's text instead.
 Thus, Emacs effectively treats ``cut'' or ``copy'' clipboard
 operations performed in other applications like Emacs kills, except
 that they are not recorded in the kill ring.  @xref{Cut and Paste},
@@ -709,6 +709,9 @@ rectangle, depending on the command that uses them.
 @item C-x r k
 Kill the text of the region-rectangle, saving its contents as the
 ``last killed rectangle'' (@code{kill-rectangle}).
+@item C-x r M-w
+Save the text of the region-rectangle as the ``last killed rectangle''
+(@code{copy-rectangle-as-kill}).
 @item C-x r d
 Delete the text of the region-rectangle (@code{delete-rectangle}).
 @item C-x r y
@@ -756,6 +759,12 @@ only records the most recent rectangle killed.  This is because
 yanking a rectangle is so different from yanking linear text that
 different yank commands have to be used.  Yank-popping is not defined
 for rectangles.
+
+@kindex C-x r M-w
+@findex copy-rectangle-as-kill
+  @kbd{C-x r M-w} (@code{copy-rectangle-as-kill}) is the equivalent of
+@kbd{M-w} for rectangles: it records the rectangle as the ``last
+killed rectangle'', without deleting the text from the buffer.
 
 @kindex C-x r y
 @findex yank-rectangle

@@ -22,15 +22,12 @@ Boston, MA 02110-1301, USA.  */
 
 /* Created by devin@lucid.com */
 
-#ifdef HAVE_CONFIG_H
 #include <config.h>
-#endif
 
 #include <setjmp.h>
 #include <lisp.h>
 
 #include <stdio.h>
-#include <ctype.h>
 
 #include <sys/types.h>
 #if (defined __sun) && !(defined SUNOS41)
@@ -49,22 +46,12 @@ Boston, MA 02110-1301, USA.  */
 
 #ifdef emacs
 
-/* Defined in xfns.c.  When config.h defines `static' as empty, we get
-   redefinition errors when gray_bitmap is included more than once, so
-   we're referring to the one include in xfns.c here.  */
-
-extern int gray_bitmap_width;
-extern int gray_bitmap_height;
-extern char *gray_bitmap_bits;
-
 #include <xterm.h>
+#include "bitmaps/gray.xbm"
 
 #else /* not emacs */
 
 #include <X11/bitmaps/gray>
-#define gray_bitmap_width	gray_width
-#define gray_bitmap_height	gray_height
-#define gray_bitmap_bits	gray_bits
 
 #endif /* not emacs */
 
@@ -200,7 +187,6 @@ static void Key(Widget w, XEvent *ev, String *params, Cardinal *num_params);
 static void Nothing(Widget w, XEvent *ev, String *params, Cardinal *num_params);
 static int separator_height (enum menu_separator);
 static void pop_up_menu (XlwMenuWidget, XButtonPressedEvent *);
-static void abort_gracefully (Widget w) NO_RETURN;
 
 static XtActionsRec
 xlwMenuActionsList [] =
@@ -283,7 +269,7 @@ ungrab_all (Widget w, Time ungrabtime)
 
 /* Like abort, but remove grabs from widget W before.  */
 
-static void
+static _Noreturn void
 abort_gracefully (Widget w)
 {
   if (XtIsShell (XtParent (w)))
@@ -1871,7 +1857,7 @@ openXftFont (XlwMenuWidget mw)
       int screen = XScreenNumberOfScreen (mw->core.screen);
       int len = strlen (fname), i = len-1;
       /* Try to convert Gtk-syntax (Sans 9) to Xft syntax Sans-9.  */
-      while (i > 0 && isdigit (fname[i]))
+      while (i > 0 && '0' <= fname[i] && fname[i] <= '9')
         --i;
       if (fname[i] == ' ')
         {
@@ -1918,8 +1904,8 @@ XlwMenuInitialize (Widget request, Widget w, ArgList args, Cardinal *num_args)
   mw->menu.cursor = mw->menu.cursor_shape;
 
   mw->menu.gray_pixmap
-    = XCreatePixmapFromBitmapData (display, window, gray_bitmap_bits,
-				   gray_bitmap_width, gray_bitmap_height,
+    = XCreatePixmapFromBitmapData (display, window, gray_bits,
+				   gray_width, gray_height,
 				   (unsigned long)1, (unsigned long)0, 1);
 
 #ifdef HAVE_XFT

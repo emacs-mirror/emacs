@@ -10889,7 +10889,7 @@
 2004-01-29  Jari Aalto  <jari.aalto@poboxes.com>
 
 	* progmodes/executable.el (executable-command-find-posix-p):
-	New.  Check if find handles arguments Posix-style.
+	New.  Check if find handles arguments POSIX-style.
 
 	* progmodes/grep.el (grep-compute-defaults):
 	Use executable-command-find-posix-p.

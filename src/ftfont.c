@@ -21,8 +21,6 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 
 #include <config.h>
 #include <stdio.h>
-#include <setjmp.h>
-
 #include <fontconfig/fontconfig.h>
 #include <fontconfig/fcfreetype.h>
 
@@ -45,7 +43,7 @@ static Lisp_Object Qfreetype;
 static Lisp_Object Qmonospace, Qsans_serif, Qserif, Qmono, Qsans, Qsans__serif;
 
 /* Flag to tell if FcInit is already called or not.  */
-static int fc_initialized;
+static bool fc_initialized;
 
 /* Handle to a FreeType library instance.  */
 static FT_Library ft_library;
@@ -65,7 +63,7 @@ struct ftfont_info
 #ifdef HAVE_LIBOTF
   /* The following four members must be here in this order to be
      compatible with struct xftfont_info (in xftfont.c).  */
-  int maybe_otf;	/* Flag to tell if this may be OTF or not.  */
+  bool maybe_otf;	/* Flag to tell if this may be OTF or not.  */
   OTF *otf;
 #endif	/* HAVE_LIBOTF */
   FT_Size ft_size;
@@ -211,7 +209,7 @@ ftfont_pattern_entity (FcPattern *p, Lisp_Object extra)
     return Qnil;
 
   file = (char *) str;
-  key = Fcons (make_unibyte_string (file, strlen (file)), make_number (idx));
+  key = Fcons (build_unibyte_string (file), make_number (idx));
   cache = ftfont_lookup_cache (key, FTFONT_CACHE_FOR_ENTITY);
   entity = XCAR (cache);
   if (! NILP (entity))
@@ -372,7 +370,7 @@ ftfont_lookup_cache (Lisp_Object key, enum ftfont_cache_for cache_for)
     {
       entity = key;
       val = assq_no_quit (QCfont_entity, AREF (entity, FONT_EXTRA_INDEX));
-      xassert (CONSP (val));
+      eassert (CONSP (val));
       key = XCDR (val);
     }
   else
@@ -392,7 +390,7 @@ ftfont_lookup_cache (Lisp_Object key, enum ftfont_cache_for cache_for)
 	  args[1] = Qequal;
 	  ft_face_cache = Fmake_hash_table (2, args);
 	}
-      cache_data = xmalloc (sizeof (struct ftfont_cache_data));
+      cache_data = xmalloc (sizeof *cache_data);
       cache_data->ft_face = NULL;
       cache_data->fc_charset = NULL;
       val = make_save_value (NULL, 0);
@@ -525,7 +523,7 @@ static int ftfont_variation_glyphs (struct font *, int c,
 
 struct font_driver ftfont_driver =
   {
-    0,				/* Qfreetype */
+    LISP_INITIALLY_ZERO,	/* Qfreetype */
     0,				/* case insensitive */
     ftfont_get_cache,
     ftfont_list,
@@ -543,9 +541,9 @@ struct font_driver ftfont_driver =
     /* We can't draw a text without device dependent functions.  */
     NULL,			/* draw */
     ftfont_get_bitmap,
-    NULL,			/* get_bitmap */
     NULL,			/* free_bitmap */
     NULL,			/* get_outline */
+    NULL,			/* free_outline */
     ftfont_anchor_point,
 #ifdef HAVE_LIBOTF
     ftfont_otf_capability,
@@ -598,7 +596,9 @@ ftfont_get_charset (Lisp_Object registry)
   re[j] = '\0';
   regexp = make_unibyte_string (re, j);
   for (i = 0; fc_charset_table[i].name; i++)
-    if (fast_c_string_match_ignore_case (regexp, fc_charset_table[i].name) >= 0)
+    if (fast_c_string_match_ignore_case
+	(regexp, fc_charset_table[i].name,
+	 strlen (fc_charset_table[i].name)) >= 0)
       break;
   if (! fc_charset_table[i].name)
     return -1;
@@ -657,9 +657,10 @@ struct OpenTypeSpec
 static struct OpenTypeSpec *
 ftfont_get_open_type_spec (Lisp_Object otf_spec)
 {
-  struct OpenTypeSpec *spec = malloc (sizeof (struct OpenTypeSpec));
+  struct OpenTypeSpec *spec = malloc (sizeof *spec);
   Lisp_Object val;
-  int i, j, negative;
+  int i, j;
+  bool negative;
 
   if (! spec)
     return NULL;
@@ -696,7 +697,7 @@ ftfont_get_open_type_spec (Lisp_Object otf_spec)
       spec->features[i] =
 	(min (PTRDIFF_MAX, SIZE_MAX) / sizeof (int) < XINT (len)
 	 ? 0
-	 : malloc (sizeof (int) * XINT (len)));
+	 : malloc (XINT (len) * sizeof *spec->features[i]));
       if (! spec->features[i])
 	{
 	  if (i > 0 && spec->features[0])
@@ -1033,13 +1034,13 @@ ftfont_list (Lisp_Object frame, Lisp_Object spec)
 #endif	/* HAVE_LIBOTF */
       if (VECTORP (chars))
 	{
-	  int j;
+	  ptrdiff_t j;
 
 	  if (FcPatternGetCharSet (fontset->fonts[i], FC_CHARSET, 0, &charset)
 	      != FcResultMatch)
 	    continue;
 	  for (j = 0; j < ASIZE (chars); j++)
-	    if (NATNUMP (AREF (chars, j))
+	    if (TYPE_RANGED_INTEGERP (FcChar32, AREF (chars, j))
 		&& FcCharSetHasChar (charset, XFASTINT (AREF (chars, j))))
 	      break;
 	  if (j == ASIZE (chars))
@@ -1183,7 +1184,7 @@ ftfont_open (FRAME_PTR f, Lisp_Object entity, int pixel_size)
   FT_Size ft_size;
   FT_UInt size;
   Lisp_Object val, filename, idx, cache, font_object;
-  int scalable;
+  bool scalable;
   int spacing;
   char name[256];
   int i, len;
@@ -1241,7 +1242,7 @@ ftfont_open (FRAME_PTR f, Lisp_Object entity, int pixel_size)
   ftfont_info->ft_size = ft_face->size;
   ftfont_info->index = XINT (idx);
 #ifdef HAVE_LIBOTF
-  ftfont_info->maybe_otf = ft_face->face_flags & FT_FACE_FLAG_SFNT;
+  ftfont_info->maybe_otf = (ft_face->face_flags & FT_FACE_FLAG_SFNT) != 0;
   ftfont_info->otf = NULL;
 #endif	/* HAVE_LIBOTF */
   /* This means that there's no need of transformation.  */
@@ -1325,7 +1326,7 @@ ftfont_close (FRAME_PTR f, struct font *font)
 
   val = Fcons (font->props[FONT_FILE_INDEX], make_number (ftfont_info->index));
   cache = ftfont_lookup_cache (val, FTFONT_CACHE_FOR_FACE);
-  xassert (CONSP (cache));
+  eassert (CONSP (cache));
   val = XCDR (cache);
   (XSAVE_VALUE (val)->integer)--;
   if (XSAVE_VALUE (val)->integer == 0)
@@ -1390,7 +1391,8 @@ ftfont_text_extents (struct font *font, unsigned int *code, int nglyphs, struct 
   struct ftfont_info *ftfont_info = (struct ftfont_info *) font;
   FT_Face ft_face = ftfont_info->ft_size->face;
   int width = 0;
-  int i, first;
+  int i;
+  bool first;
 
   if (ftfont_info->ft_size != ft_face->size)
     FT_Activate_Size (ftfont_info->ft_size);
@@ -1628,7 +1630,7 @@ ftfont_get_metrics (MFLTFont *font, MFLTGlyphString *gstring,
 	    FT_Glyph_Metrics *m;
 
 	    if (FT_Load_Glyph (ft_face, g->code, FT_LOAD_DEFAULT) != 0)
-	      abort ();
+	      emacs_abort ();
 	    m = &ft_face->glyph->metrics;
 	    if (flt_font_ft->matrix)
 	      {
@@ -1680,10 +1682,12 @@ ftfont_check_otf (MFLTFont *font, MFLTOtfSpec *spec)
   struct MFLTFontFT *flt_font_ft = (struct MFLTFontFT *) font;
   OTF *otf = flt_font_ft->otf;
   OTF_Tag *tags;
-  int i, n, negative;
+  int i, n;
+  bool negative;
 
   if (FEATURE_ANY (0) && FEATURE_ANY (1))
-    /* Return 1 iff any of GSUB or GPOS support the script (and language).  */
+    /* Return true iff any of GSUB or GPOS support the script (and
+       language).  */
     return (otf
 	    && (OTF_check_features (otf, 0, spec->script, spec->langsys,
 				    NULL, 0) > 0
@@ -2388,17 +2392,17 @@ ftfont_drive_otf (MFLTFont *font, MFLTOtfSpec *spec, MFLTGlyphString *in,
 
 static MFLTGlyphString gstring;
 
-static int m17n_flt_initialized;
+static bool m17n_flt_initialized;
 
 static Lisp_Object
 ftfont_shape_by_flt (Lisp_Object lgstring, struct font *font,
 		     FT_Face ft_face, OTF *otf, FT_Matrix *matrix)
 {
-  EMACS_INT len = LGSTRING_GLYPH_LEN (lgstring);
-  EMACS_INT i;
+  ptrdiff_t len = LGSTRING_GLYPH_LEN (lgstring);
+  ptrdiff_t i;
   struct MFLTFontFT flt_font_ft;
   MFLT *flt = NULL;
-  int with_variation_selector = 0;
+  bool with_variation_selector = 0;
 
   if (! m17n_flt_initialized)
     {
@@ -2419,11 +2423,11 @@ ftfont_shape_by_flt (Lisp_Object lgstring, struct font *font,
 	break;
       c = LGLYPH_CHAR (g);
       if (CHAR_VARIATION_SELECTOR_P (c))
-	with_variation_selector++;
+	with_variation_selector = 1;
     }
 
   len = i;
-  lint_assume (len <= TYPE_MAXIMUM (EMACS_INT) - 2);
+  lint_assume (len <= STRING_BYTES_BOUND);
 
   if (with_variation_selector)
     {
@@ -2460,15 +2464,16 @@ ftfont_shape_by_flt (Lisp_Object lgstring, struct font *font,
   if (gstring.allocated == 0)
     {
       gstring.glyph_size = sizeof (MFLTGlyph);
-      gstring.glyphs = xnmalloc (len * 2, sizeof (MFLTGlyph));
+      gstring.glyphs = xnmalloc (len * 2, sizeof *gstring.glyphs);
       gstring.allocated = len * 2;
     }
   else if (gstring.allocated < len * 2)
     {
-      gstring.glyphs = xnrealloc (gstring.glyphs, len * 2, sizeof (MFLTGlyph));
+      gstring.glyphs = xnrealloc (gstring.glyphs, len * 2,
+				  sizeof *gstring.glyphs);
       gstring.allocated = len * 2;
     }
-  memset (gstring.glyphs, 0, sizeof (MFLTGlyph) * len);
+  memset (gstring.glyphs, 0, len * sizeof *gstring.glyphs);
   for (i = 0; i < len; i++)
     {
       Lisp_Object g = LGSTRING_GLYPH (lgstring, i);

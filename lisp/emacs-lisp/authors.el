@@ -1,4 +1,4 @@
-;;; authors.el --- utility for maintaining Emacs's AUTHORS file -*-coding: utf-8;-*-
+;;; authors.el --- utility for maintaining Emacs's AUTHORS file -*-coding: utf-8 -*-
 
 ;; Copyright (C) 2000-2012 Free Software Foundation, Inc.
 
@@ -176,6 +176,7 @@ files.")
     ("Torbjörn Einarsson" "Torbj.*rn Einarsson")
     ("Toru Tomabechi" "Toru Tomabechi,")
     ("Tsugutomo Enami" "enami tsugutomo")
+    ("Ulrich Müller" "Ulrich Mueller")
     ("Vincent Del Vecchio" "Vince Del Vecchio")
     ("William M. Perry" "Bill Perry")
     ("Wlodzimierz Bzyl" "W.*dek Bzyl")
@@ -398,7 +399,7 @@ Changes to files in this list are not listed.")
     ("Lawrence R. Dodd" :cowrote "dired-x.el")
     ;; No longer distributed.
 ;;;    ("Viktor Dukhovni" :wrote "unexsunos4.c")
-    ("Paul Eggert" :wrote "rcs2log" "vcdiff")
+    ("Paul Eggert" :wrote "rcs2log") ; "vcdiff"
     ("Fred Fish" :changed "unexcoff.c")
     ;; No longer distributed.
 ;;;    ("Tim Fleehart" :wrote "makefile.nt")
@@ -426,7 +427,7 @@ Changes to files in this list are not listed.")
     ;; No longer distributed.
 ;;;    ("Ishikawa Chiaki" :changed "aviion.h" "dgux.h")
     ;; ymakefile no longer distributed.
-    ("Michael K. Johnson" :changed "configure.in" "emacs.c" "intel386.h"
+    ("Michael K. Johnson" :changed "configure.ac" "emacs.c" "intel386.h"
      "mem-limits.h" "process.c" "template.h" "sysdep.c" "syssignal.h"
      "systty.h" "unexcoff.c" "linux.h")
     ;; No longer distributed.
@@ -577,8 +578,10 @@ in the repository.")
     ("w32console.c" . "w32term.c")
     ("unexnt.c" . "unexw32.c")
     ("s/windowsnt.h" . "s/ms-w32.h")
+    ("s/ms-w32.h" . "inc/ms-w32.h")
     ("winnt.el" . "w32-fns.el")
     ("config.emacs" . "configure")
+    ("configure.in" . "configure.ac")
     ("config.h.dist" . "config.in")
     ("config.h-dist" . "config.in")
     ("config.h.in" . "config.in")
@@ -701,7 +704,7 @@ or is on the list of removed files.  Returns the non-directory part of
 the file name.  Only uses the LOG-FILE position POS and associated AUTHOR
 to print a message if FILE is not found."
   ;; FILE should be re-checked in every different directory associated
-  ;; with a LOG-FILE.  Eg configure.in from src/ChangeLog is not the
+  ;; with a LOG-FILE.  Eg configure.ac from src/ChangeLog is not the
   ;; same as that from top-level/ChangeLog.
   (let* ((fullname (expand-file-name file (file-name-directory log-file)))
 	 (entry (assoc fullname authors-checked-files-alist))
@@ -829,7 +832,7 @@ with the file and the number of each action:
 	 (enable-local-eval nil)
 	 (existing-buffer (get-file-buffer log-file))
 	 (buffer (find-file-noselect log-file))
-	 authors file pos)
+	 authors pos)
     (with-current-buffer buffer
       (save-restriction
 	(widen)
@@ -943,8 +946,7 @@ and changed by AUTHOR."
 	       (file (car change))
 	       (filestat (if (authors-public-domain-p file)
 			     (concat file " (public domain)")
-			   file))
-	       slot)
+			   file)))
 	  (cond ((assq :wrote actions)
 		 (setq wrote-list (cons filestat wrote-list)))
 		((assq :cowrote actions)

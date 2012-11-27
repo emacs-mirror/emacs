@@ -1,4 +1,4 @@
-;;; ns-win.el --- lisp side of interface with NeXT/Open/GNUstep/MacOS X window system
+;;; ns-win.el --- lisp side of interface with NeXT/Open/GNUstep/MacOS X window system  -*- lexical-binding: t -*-
 
 ;; Copyright (C) 1993-1994, 2005-2012  Free Software Foundation, Inc.
 
@@ -39,12 +39,10 @@
 ;; this file, which works in close coordination with src/nsfns.m.
 
 ;;; Code:
-
+(eval-when-compile (require 'cl-lib))
 (or (featurep 'ns)
     (error "%s: Loading ns-win.el but not compiled for GNUstep/MacOS"
            (invocation-name)))
-
-(eval-when-compile (require 'cl))       ; lexical-let
 
 ;; Documentation-purposes only: actually loaded in loadup.el.
 (require 'frame)
@@ -65,7 +63,7 @@
 ;; nsterm.m.
 (defvar ns-input-file)
 
-(defun ns-handle-nxopen (switch &optional temp)
+(defun ns-handle-nxopen (_switch &optional temp)
   (setq unread-command-events (append unread-command-events
                                       (if temp '(ns-open-temp-file)
                                         '(ns-open-file)))
@@ -74,7 +72,7 @@
 (defun ns-handle-nxopentemp (switch)
   (ns-handle-nxopen switch t))
 
-(defun ns-ignore-1-arg (switch)
+(defun ns-ignore-1-arg (_switch)
   (setq x-invocation-args (cdr x-invocation-args)))
 
 (defun ns-parse-geometry (geom)
@@ -201,21 +199,20 @@ The properties returned may include `top', `left', `height', and `width'."
                 (mapconcat 'identity (cons "ns-service" path) "-")))))
     ;; This defines the function.
     (defalias name
-      (lexical-let ((service service))
-        (lambda (arg)
-          (interactive "p")
-          (let* ((in-string
-                  (cond ((stringp arg) arg)
-                        (mark-active
-                         (buffer-substring (region-beginning) (region-end)))))
-                 (out-string (ns-perform-service service in-string)))
-            (cond
-             ((stringp arg) out-string)
-             ((and out-string (or (not in-string)
-                                  (not (string= in-string out-string))))
-              (if mark-active (delete-region (region-beginning) (region-end)))
-              (insert out-string)
-              (setq deactivate-mark nil)))))))
+      (lambda (arg)
+        (interactive "p")
+        (let* ((in-string
+                (cond ((stringp arg) arg)
+                      (mark-active
+                       (buffer-substring (region-beginning) (region-end)))))
+               (out-string (ns-perform-service service in-string)))
+          (cond
+           ((stringp arg) out-string)
+           ((and out-string (or (not in-string)
+                                (not (string= in-string out-string))))
+            (if mark-active (delete-region (region-beginning) (region-end)))
+            (insert out-string)
+            (setq deactivate-mark nil))))))
     (cond
      ((lookup-key global-map mapping)
       (while (cdr path)
@@ -451,9 +448,20 @@ Lines are highlighted according to `ns-input-line'."
 ;; nsterm.m
 
 (declare-function ns-read-file-name "nsfns.m"
-		  (prompt &optional dir isLoad init))
+		  (prompt &optional dir mustmatch init dir_only_p))
 
 ;;;; File handling.
+
+(defun x-file-dialog (prompt dir default_filename mustmatch only_dir_p)
+"Read file name, prompting with PROMPT in directory DIR.
+Use a file selection dialog.  Select DEFAULT-FILENAME in the dialog's file
+selection box, if specified.  If MUSTMATCH is non-nil, the returned file
+or directory must exist.
+
+This function is only defined on NS, MS Windows, and X Windows with the
+Motif or Gtk toolkits.  With the Motif toolkit, ONLY-DIR-P is ignored.
+Otherwise, if ONLY-DIR-P is non-nil, the user can only select directories."
+  (ns-read-file-name prompt dir mustmatch default_filename only_dir_p))
 
 (defun ns-open-file-using-panel ()
   "Pop up open-file panel, and load the result in a buffer."
@@ -566,7 +574,7 @@ unless the current buffer is a scratch buffer."
                                              parameters))))))))
 
 ;; frame will be focused anyway, so select it
-;; (if this is not done, modeline is dimmed until first interaction)
+;; (if this is not done, mode line is dimmed until first interaction)
 (add-hook 'after-make-frame-functions 'select-frame)
 
 (defvar tool-bar-mode)
@@ -625,8 +633,9 @@ This function has been overloaded in Nextstep.")
 `ns-input-fontsize' of new font."
   (interactive)
   (modify-frame-parameters (selected-frame)
-                           (list (cons 'font ns-input-font)
-                                 (cons 'fontsize ns-input-fontsize)))
+                           (list (cons 'fontsize ns-input-fontsize)))
+  (modify-frame-parameters (selected-frame)
+                           (list (cons 'font ns-input-font)))
   (set-frame-font ns-input-font))
 
 
@@ -826,7 +835,7 @@ See the documentation of `create-fontset-from-fontset-spec' for the format.")
      ((not window-pos)
       nil)
      ((eq window-pos 'mode-line)
-      'modeline)
+      'mode-line)
      ((eq window-pos 'vertical-line)
       'default)
      ((consp window-pos)
@@ -900,6 +909,7 @@ See the documentation of `create-fontset-from-fontset-spec' for the format.")
 ;; defines functions and variables that we use now.
 (defun ns-initialize-window-system ()
   "Initialize Emacs for Nextstep (Cocoa / GNUstep) windowing."
+  (cl-assert (not ns-initialized))
 
   ;; PENDING: not needed?
   (setq command-line-args (x-handle-args command-line-args))
@@ -924,8 +934,10 @@ See the documentation of `create-fontset-from-fontset-spec' for the format.")
   ;; http://lists.gnu.org/archive/html/emacs-devel/2011-06/msg00505.html
   (ns-set-resource nil "ApplePressAndHoldEnabled" "NO")
 
+  (x-apply-session-resources)
   (setq ns-initialized t))
 
+(add-to-list 'display-format-alist '("\\`ns\\'" . ns))
 (add-to-list 'handle-args-function-alist '(ns . x-handle-args))
 (add-to-list 'frame-creation-function-alist '(ns . x-create-frame-with-faces))
 (add-to-list 'window-system-initialization-alist '(ns . ns-initialize-window-system))

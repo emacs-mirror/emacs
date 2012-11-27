@@ -427,6 +427,7 @@ For use on `completion-at-point-functions'."
   "Perform completion on header field or word preceding point.
 Completable headers are according to `mail-complete-alist'.  If none matches
 current header, calls `mail-complete-function' and passes prefix ARG if any."
+  (declare (obsolete mail-completion-at-point-function "24.1"))
   (interactive "P")
   ;; Read the defaults first, if we have not done so.
   (sendmail-sync-aliases)
@@ -439,7 +440,6 @@ current header, calls `mail-complete-function' and passes prefix ARG if any."
     (if data
         (apply #'completion-in-region data)
       (funcall mail-complete-function arg))))
-(make-obsolete 'mail-complete 'mail-completion-at-point-function "24.1")
 
 (defun mail-completion-expand (table)
   "Build new completion table that expands aliases.

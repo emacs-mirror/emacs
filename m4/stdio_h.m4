@@ -1,5 +1,5 @@
-# stdio_h.m4 serial 41
-dnl Copyright (C) 2007-2011 Free Software Foundation, Inc.
+# stdio_h.m4 serial 42
+dnl Copyright (C) 2007-2012 Free Software Foundation, Inc.
 dnl This file is free software; the Free Software Foundation
 dnl gives unlimited permission to copy and/or distribute it,
 dnl with or without modifications, as long as this notice is preserved.
@@ -13,7 +13,9 @@ AC_DEFUN([gl_STDIO_H],
   dnl No need to create extra modules for these functions. Everyone who uses
   dnl <stdio.h> likely needs them.
   GNULIB_FSCANF=1
+  gl_MODULE_INDICATOR([fscanf])
   GNULIB_SCANF=1
+  gl_MODULE_INDICATOR([scanf])
   GNULIB_FGETC=1
   GNULIB_GETC=1
   GNULIB_GETCHAR=1
@@ -71,7 +73,7 @@ AC_DEFUN([gl_STDIO_H],
 
   dnl Check for declarations of anything we want to poison if the
   dnl corresponding gnulib module is not in use, and which is not
-  dnl guaranteed by C89 and C11.
+  dnl guaranteed by both C89 and C11.
   gl_WARN_ON_USE_PREPARE([[#include <stdio.h>
     ]], [dprintf fpurge fseeko ftello getdelim getline gets pclose popen
     renameat snprintf tmpfile vdprintf vsnprintf])

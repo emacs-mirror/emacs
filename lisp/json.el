@@ -174,6 +174,10 @@ this around your call to `json-read' instead of `setq'ing it.")
 (put 'json-string-format 'error-conditions
      '(json-string-format json-error error))
 
+(put 'json-key-format 'error-message "Bad JSON object key")
+(put 'json-key-format 'error-conditions
+     '(json-key-format json-error error))
+
 (put 'json-object-format 'error-message "Bad JSON object")
 (put 'json-object-format 'error-conditions
      '(json-object-format json-error error))
@@ -307,19 +311,28 @@ representation will be parsed correctly."
   (setq char (json-encode-char0 char 'ucs))
   (let ((control-char (car (rassoc char json-special-chars))))
     (cond
-     ;; Special JSON character (\n, \r, etc.)
+     ;; Special JSON character (\n, \r, etc.).
      (control-char
       (format "\\%c" control-char))
-     ;; ASCIIish printable character
-     ((and (> char 31) (< char 161))
+     ;; ASCIIish printable character.
+     ((and (> char 31) (< char 127))
       (format "%c" char))
-     ;; Fallback: UCS code point in \uNNNN form
+     ;; Fallback: UCS code point in \uNNNN form.
      (t
       (format "\\u%04x" char)))))
 
 (defun json-encode-string (string)
   "Return a JSON representation of STRING."
   (format "\"%s\"" (mapconcat 'json-encode-char string "")))
+
+(defun json-encode-key (object)
+  "Return a JSON representation of OBJECT.
+If the resulting JSON object isn't a valid JSON object key,
+this signals `json-key-format'."
+  (let ((encoded (json-encode object)))
+    (unless (stringp (json-read-from-string encoded))
+      (signal 'json-key-format (list object)))
+    encoded))
 
 ;;; JSON Objects
 
@@ -395,7 +408,7 @@ Please see the documentation of `json-object-type' and `json-key-type'."
              (maphash
               (lambda (k v)
                 (push (format "%s:%s"
-                              (json-encode k)
+                              (json-encode-key k)
                               (json-encode v))
                       r))
               hash-table)
@@ -409,7 +422,7 @@ Please see the documentation of `json-object-type' and `json-key-type'."
   (format "{%s}"
           (json-join (mapcar (lambda (cons)
                                (format "%s:%s"
-                                       (json-encode (car cons))
+                                       (json-encode-key (car cons))
                                        (json-encode (cdr cons))))
                              alist)
                      ", ")))
@@ -418,7 +431,7 @@ Please see the documentation of `json-object-type' and `json-key-type'."
   "Return a JSON representation of PLIST."
   (let (result)
     (while plist
-      (push (concat (json-encode (car plist))
+      (push (concat (json-encode-key (car plist))
                     ":"
                     (json-encode (cadr plist)))
             result)

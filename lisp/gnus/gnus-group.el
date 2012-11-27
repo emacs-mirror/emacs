@@ -56,7 +56,7 @@
 
 (autoload 'gnus-group-make-nnir-group "nnir")
 
-(defcustom gnus-no-groups-message "No Gnus is good news"
+(defcustom gnus-no-groups-message "No news is good news"
   "*Message displayed by Gnus when no groups are available."
   :group 'gnus-start
   :type 'string)
@@ -2290,9 +2290,12 @@ Return the name of the group if selection was successful."
     ;; (gnus-read-group "Group name: ")
     (gnus-group-completing-read)
     (gnus-read-method "From method")))
-  ;; Transform the select method into a unique server.
   (unless (gnus-alive-p)
-    (gnus-no-server))
+    (nnheader-init-server-buffer)
+    ;; Necessary because of funky inlining.
+    (require 'gnus-cache)
+    (setq gnus-newsrc-hashtb (gnus-make-hashtable)))
+  ;; Transform the select method into a unique server.
   (when (stringp method)
     (setq method (gnus-server-to-method method)))
   (let ((address-slot
@@ -2312,18 +2315,22 @@ Return the name of the group if selection was successful."
      `(-1 nil (,group
 	       ,gnus-level-default-subscribed nil nil ,method
 	       ,(cons
-		 (cond
-		  (quit-config
-		   (cons 'quit-config quit-config))
-		  ((assq gnus-current-window-configuration
-			 gnus-buffer-configuration)
-		   (cons 'quit-config
+		 (cons 'quit-config
+		       (cond
+			(quit-config
+			 quit-config)
+			((assq gnus-current-window-configuration
+			       gnus-buffer-configuration)
 			 (cons gnus-summary-buffer
-			       gnus-current-window-configuration))))
+			       gnus-current-window-configuration))
+			(t
+			 (cons (current-buffer)
+			       (current-window-configuration)))))
 		 parameters)))
      gnus-newsrc-hashtb)
     (push method gnus-ephemeral-servers)
-    (set-buffer gnus-group-buffer)
+    (when (gnus-buffer-live-p gnus-group-buffer)
+      (set-buffer gnus-group-buffer))
     (unless (gnus-check-server method)
       (error "Unable to contact server: %s" (gnus-status-message method)))
     (when activate
@@ -2381,7 +2388,7 @@ specified by `gnus-gmane-group-download-format'."
 	       group start (+ start range)))
       (write-region (point-min) (point-max) tmpfile)
       (gnus-group-read-ephemeral-group
-       (format "%s.start-%s.range-%s" group start range)
+       (format "nndoc+ephemeral:%s.start-%s.range-%s" group start range)
        `(nndoc ,tmpfile
 	       (nndoc-article-type mbox))))
     (delete-file tmpfile)))
@@ -2474,7 +2481,8 @@ the bug number, and browsing the URL must return mbox output."
 			 "/.*$" ""))))
       (write-region (point-min) (point-max) tmpfile)
       (gnus-group-read-ephemeral-group
-       "gnus-read-ephemeral-bug"
+       (format "nndoc+ephemeral:bug#%s"
+	       (mapconcat 'number-to-string ids ","))
        `(nndoc ,tmpfile
 	       (nndoc-article-type mbox))
        nil window-conf))
@@ -4014,11 +4022,13 @@ entail asking the server for the groups."
 	(gnus-activate-foreign-newsgroups level))
     (gnus-group-get-new-news)))
 
-(defun gnus-group-get-new-news (&optional arg)
+(defun gnus-group-get-new-news (&optional arg one-level)
   "Get newly arrived articles.
 If ARG is a number, it specifies which levels you are interested in
 re-scanning.  If ARG is non-nil and not a number, this will force
-\"hard\" re-reading of the active files from all servers."
+\"hard\" re-reading of the active files from all servers.
+If ONE-LEVEL is not nil, then re-scan only the specified level,
+otherwise all levels below ARG will be scanned too."
   (interactive "P")
   (require 'nnmail)
   (let ((gnus-inhibit-demon t)
@@ -4032,7 +4042,8 @@ re-scanning.  If ARG is non-nil and not a number, this will force
     (unless gnus-slave
       (gnus-master-read-slave-newsrc))
 
-    (gnus-get-unread-articles arg)
+    (gnus-get-unread-articles (gnus-group-default-level arg t)
+			      nil one-level)
 
     ;; If the user wants it, we scan for new groups.
     (when (eq gnus-check-new-newsgroups 'always)
@@ -4440,12 +4451,6 @@ and the second element is the address."
 			     (gnus-list-of-unread-articles (car info))))))
 	(error "No such group: %s" (gnus-info-group info))))))
 
-(defun gnus-group-set-method-info (group select-method)
-  (gnus-group-set-info select-method group 'method))
-
-(defun gnus-group-set-params-info (group params)
-  (gnus-group-set-info params group 'params))
-
 ;; Ad-hoc function for inserting data from a different newsrc.eld
 ;; file.  Use with caution, if at all.
 (defun gnus-import-other-newsrc-file (file)
@@ -4666,6 +4671,8 @@ you the groups that have both dormant articles and cached articles."
 	      (setq mark gnus-expirable-mark))
 	    (setq mark (gnus-request-update-mark
 			group article mark))
+	    (gnus-request-set-mark
+	     group (list (list (list article) 'add '(read))))
 	    (gnus-mark-article-as-read article mark)
 	    (setq gnus-newsgroup-active (gnus-active group))
 	    (when active

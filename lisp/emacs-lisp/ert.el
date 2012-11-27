@@ -7,18 +7,18 @@
 
 ;; This file is part of GNU Emacs.
 
-;; This program is free software: you can redistribute it and/or
-;; modify it under the terms of the GNU General Public License as
-;; published by the Free Software Foundation, either version 3 of the
-;; License, or (at your option) any later version.
-;;
-;; This program is distributed in the hope that it will be useful, but
-;; WITHOUT ANY WARRANTY; without even the implied warranty of
-;; MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
-;; General Public License for more details.
-;;
+;; GNU Emacs is free software: you can redistribute it and/or modify
+;; it under the terms of the GNU General Public License as published by
+;; the Free Software Foundation, either version 3 of the License, or
+;; (at your option) any later version.
+
+;; GNU Emacs is distributed in the hope that it will be useful,
+;; but WITHOUT ANY WARRANTY; without even the implied warranty of
+;; MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+;; GNU General Public License for more details.
+
 ;; You should have received a copy of the GNU General Public License
-;; along with this program.  If not, see `http://www.gnu.org/licenses/'.
+;; along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.
 
 ;;; Commentary:
 
@@ -388,16 +388,11 @@ DATA is displayed to the user and should state the reason of the failure."
 (defun ert--expand-should-1 (whole form inner-expander)
   "Helper function for the `should' macro and its variants."
   (let ((form
-         ;; If `cl-macroexpand' isn't bound, the code that we're
-         ;; compiling doesn't depend on cl and thus doesn't need an
-         ;; environment arg for `macroexpand'.
-         (if (fboundp 'cl-macroexpand)
-             ;; Suppress warning about run-time call to cl function: we
-             ;; only call it if it's fboundp.
-             (with-no-warnings
-               (cl-macroexpand form (and (boundp 'cl-macro-environment)
-                                         cl-macro-environment)))
-           (macroexpand form))))
+         (macroexpand form (cond
+                            ((boundp 'macroexpand-all-environment)
+                             macroexpand-all-environment)
+                            ((boundp 'cl-macro-environment)
+                             cl-macro-environment)))))
     (cond
      ((or (atom form) (ert--special-operator-p (car form)))
       (let ((value (ert--gensym "value-")))
@@ -1405,7 +1400,7 @@ RESULT must be an `ert-test-result-with-condition'."
 ;;; Running tests in batch mode.
 
 (defvar ert-batch-backtrace-right-margin 70
-  "*The maximum line length for printing backtraces in `ert-run-tests-batch'.")
+  "The maximum line length for printing backtraces in `ert-run-tests-batch'.")
 
 ;;;###autoload
 (defun ert-run-tests-batch (&optional selector)

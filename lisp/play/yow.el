@@ -1,6 +1,6 @@
 ;;; yow.el --- quote random zippyisms
 
-;; Copyright (C) 1993-1995, 2000-2012  Free Software Foundation, Inc.
+;; Copyright (C) 1993-1995, 2000-2012 Free Software Foundation, Inc.
 
 ;; Maintainer: FSF
 ;; Author: Richard Mlynarik
@@ -24,10 +24,6 @@
 ;;; Commentary:
 
 ;; Important pinheadery for GNU Emacs.
-;;
-;; See cookie1.el for implementation.  Note --- the `n' argument of yow
-;; from the 18.xx implementation is no longer; we only support *random*
-;; random access now.
 
 ;;; Code:
 
@@ -38,7 +34,7 @@
   :prefix "yow-"
   :group 'games)
 
-(defcustom yow-file (concat data-directory "yow.lines")
+(defcustom yow-file (expand-file-name "yow.lines" data-directory)
    "File containing pertinent pinhead phrases."
   :type 'file
   :group 'yow)

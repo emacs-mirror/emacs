@@ -69,14 +69,14 @@ developing GNU and promoting software freedom.''
 @node Overview
 @chapter Overview
 
-Newsticker provides a newsticker for Emacs. A newsticker is a thing
+Newsticker provides a newsticker for Emacs.  A newsticker is a thing
 that asynchronously retrieves headlines from a list of news sites,
 prepares these headlines for reading, and allows for loading the
 corresponding articles in a web browser.
 
 
 Headlines consist of a title and (possibly) a small description.  They
-are contained in "RSS" (RDF Site Summary) or "Atom" files.  Newsticker
+are contained in ``RSS'' (RDF Site Summary) or ``Atom'' files.  Newsticker
 works with the following RSS formats:
 
 @itemize
@@ -105,8 +105,9 @@ messages in a stock-quote ticker, or just changing.
 
 Newsticker allows for automatic processing of headlines by providing
 hooks and (sample) functions for automatically downloading images and
-enclosed files (as delivered by podcasts, e.g.).
+enclosed files (as delivered by, e.g., podcasts).
 
+@ignore
 @ifhtml
 Here are screen shots of the @uref{newsticker-1.7.png, version 1.7
 (current version)} and some older screen shots:
@@ -116,6 +117,7 @@ Here are screen shots of the @uref{newsticker-1.7.png, version 1.7
 @uref{newsticker-1.3.png, version 1.3},
 @uref{newsticker-1.0.png, version 1.0}.
 @end ifhtml
+@end ignore
 
 @node Requirements
 @chapter Requirements
@@ -123,7 +125,7 @@ Here are screen shots of the @uref{newsticker-1.7.png, version 1.7
 Newsticker can be used with
 @uref{http://www.gnu.org/software/emacs/emacs.html, GNU Emacs} version
 21.1 or later as well as @uref{http://www.xemacs.org, XEmacs}.  It
-requires an XML-parser (@file{xml.el}) which is part of GNU Emacs.  If
+requires an XML-parser (@file{xml.el}), which is part of GNU Emacs.  If
 you are using XEmacs you want to get the @file{net-utils} package
 which contains @file{xml.el} for XEmacs.
 
@@ -161,11 +163,11 @@ You can choose between two different frontends for reading headlines:
 @itemize
 @item Newsticker's @emph{treeview} uses separate windows for the
 feeds (in tree form), a list of headlines for the current feed, and
-the content of the current headline. Feeds can be placed into groups
-which itself can be placed in groups and so on.
+the content of the current headline.  Feeds can be placed into groups,
+which themselves can be placed in groups and so on.
 @item Newsticker's @emph{plainview} displays all headlines in a
-single buffer, called @samp{*newsticker*}. The modeline in the
-@samp{*newsticker*} buffer informs whenever new headlines have
+single buffer, called @samp{*newsticker*}.  The modeline in the
+@samp{*newsticker*} buffer informs you whenever new headlines have
 arrived.
 @end itemize
 In both views clicking mouse-button 2 or pressing RET on a headline
@@ -175,13 +177,13 @@ your favorite web browser.
 @findex newsticker-start-ticker
 @findex newsticker-stop-ticker
 The scrolling, or flashing of headlines in the echo area, can be
-started with the command @code{newsticker-start-ticker}. It can be
+started with the command @code{newsticker-start-ticker}.  It can be
 stopped with @code{newsticker-stop-ticker}.
 
 @findex newsticker-start
 @findex newsticker-stop
 If you just want to start the periodic download of headlines use the
-command @code{newsticker-start}. Calling @code{newsticker-stop} will
+command @code{newsticker-start}.  Calling @code{newsticker-stop} will
 stop the periodic download, but will call
 @code{newsticker-stop-ticker} as well.
 
@@ -189,7 +191,7 @@ stop the periodic download, but will call
 @chapter Configuration
 
 All Newsticker options are customizable, i.e. they can be changed with
-Emacs customization methods: Call the command
+Emacs customization methods.  Call the command
 @code{customize-group} and enter @samp{newsticker} for the customization
 group.
 
@@ -209,7 +211,7 @@ feeds are retrieved and how this is done.
 @itemize
 @item
 @vindex newsticker-url-list
-@code{newsticker-url-list} defines the list of headlines which are
+@code{newsticker-url-list} defines the list of headlines that are
 retrieved.
 @item
 @vindex newsticker-retrieval-method
@@ -245,11 +247,11 @@ commands to newsticker functions.
 @item
 @vindex newsticker-new-item-functions
 @code{newsticker-new-item-functions} allows for automatic
-processing of headlines. See `newsticker-download-images', and
-`newsticker-download-enclosures' for sample functions.
+processing of headlines.  See @code{newsticker-download-images}, and
+@code{newsticker-download-enclosures} for sample functions.
 @item
 @vindex newsticker-plainview-hooks
-The subgroup @code{newsticker-plainview-hooks} contains hook which
+The subgroup @code{newsticker-plainview-hooks} contains hooks that
 apply to the plainview reader only.
 @end itemize
 
@@ -276,7 +278,7 @@ the echo area.
 @itemize
 @item
 @vindex newsticker-frontend
-@code{newsticker-frontend} determines the actual headline reader. The
+@code{newsticker-frontend} determines the actual headline reader.  The
 ``plainview'' reader uses a single buffer, the ``treeview'' uses
 separate buffers and windows.
 @end itemize

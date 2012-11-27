@@ -1,4 +1,4 @@
-/* Terminal hooks for GNU Emacs on the Microsoft W32 API.
+/* Terminal hooks for GNU Emacs on the Microsoft Windows API.
    Copyright (C) 1992, 1999, 2001-2012  Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
@@ -26,16 +26,18 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 
 #include <stdio.h>
 #include <windows.h>
-#include <setjmp.h>
 
 #include "lisp.h"
 #include "character.h"
 #include "coding.h"
 #include "disptab.h"
 #include "frame.h"
+#include "window.h"
 #include "termhooks.h"
 #include "termchar.h"
 #include "dispextern.h"
+#include "w32term.h"
+#include "w32common.h" /* for os_subtype */
 #include "w32inevt.h"
 
 /* from window.c */
@@ -66,6 +68,7 @@ static CONSOLE_CURSOR_INFO prev_console_cursor;
 #endif
 
 HANDLE  keyboard_handle;
+int w32_console_unicode_input;
 
 
 /* Setting this as the ctrl handler prevents emacs from being killed when
@@ -339,6 +342,84 @@ w32con_write_glyphs (struct frame *f, register struct glyph *string,
     }
 }
 
+/* Used for mouse highlight.  */
+static void
+w32con_write_glyphs_with_face (struct frame *f, register int x, register int y,
+			       register struct glyph *string, register int len,
+			       register int face_id)
+{
+  unsigned char *conversion_buffer;
+  struct coding_system *coding;
+
+  if (len <= 0)
+    return;
+
+  /* If terminal_coding does any conversion, use it, otherwise use
+     safe_terminal_coding.  We can't use CODING_REQUIRE_ENCODING here
+     because it always return 1 if the member src_multibyte is 1.  */
+  coding = (FRAME_TERMINAL_CODING (f)->common_flags & CODING_REQUIRE_ENCODING_MASK
+	    ? FRAME_TERMINAL_CODING (f) : &safe_terminal_coding);
+  /* We are going to write the entire block of glyphs in one go, as
+     they all have the same face.  So this _is_ the last block.  */
+  coding->mode |= CODING_MODE_LAST_BLOCK;
+
+  conversion_buffer = encode_terminal_code (string, len, coding);
+  if (coding->produced > 0)
+    {
+      DWORD filled, written;
+      /* Compute the character attributes corresponding to the face.  */
+      DWORD char_attr = w32_face_attributes (f, face_id);
+      COORD start_coords;
+
+      start_coords.X = x;
+      start_coords.Y = y;
+      /* Set the attribute for these characters.  */
+      if (!FillConsoleOutputAttribute (cur_screen, char_attr,
+				       coding->produced, start_coords,
+				       &filled))
+	DebPrint (("Failed writing console attributes: %d\n", GetLastError ()));
+      else
+	{
+	  /* Write the characters.  */
+	  if (!WriteConsoleOutputCharacter (cur_screen, conversion_buffer,
+					    filled, start_coords, &written))
+	    DebPrint (("Failed writing console characters: %d\n",
+		       GetLastError ()));
+	}
+    }
+}
+
+/* Implementation of draw_row_with_mouse_face for W32 console.  */
+void
+tty_draw_row_with_mouse_face (struct window *w, struct glyph_row *row,
+			      int start_hpos, int end_hpos,
+			      enum draw_glyphs_face draw)
+{
+  int nglyphs = end_hpos - start_hpos;
+  struct frame *f = XFRAME (WINDOW_FRAME (w));
+  struct tty_display_info *tty = FRAME_TTY (f);
+  int face_id = tty->mouse_highlight.mouse_face_face_id;
+  int pos_x, pos_y;
+
+  if (end_hpos >= row->used[TEXT_AREA])
+    nglyphs = row->used[TEXT_AREA] - start_hpos;
+
+  pos_y = row->y + WINDOW_TOP_EDGE_Y (w);
+  pos_x = row->used[LEFT_MARGIN_AREA] + start_hpos + WINDOW_LEFT_EDGE_X (w);
+
+  if (draw == DRAW_MOUSE_FACE)
+    w32con_write_glyphs_with_face (f, pos_x, pos_y,
+				   row->glyphs[TEXT_AREA] + start_hpos,
+				   nglyphs, face_id);
+  else if (draw == DRAW_NORMAL_TEXT)
+    {
+      COORD save_coords = cursor_coords;
+
+      w32con_move_cursor (f, pos_y, pos_x);
+      write_glyphs (f, row->glyphs[TEXT_AREA] + start_hpos, nglyphs);
+      w32con_move_cursor (f, save_coords.Y, save_coords.X);
+    }
+}
 
 static void
 w32con_delete_glyphs (struct frame *f, int n)
@@ -350,53 +431,6 @@ w32con_delete_glyphs (struct frame *f, int n)
   scroll_line (f, n, LEFT);
 }
 
-static unsigned int sound_type = 0xFFFFFFFF;
-#define MB_EMACS_SILENT (0xFFFFFFFF - 1)
-
-void
-w32_sys_ring_bell (struct frame *f)
-{
-  if (sound_type == 0xFFFFFFFF)
-    {
-      Beep (666, 100);
-    }
-  else if (sound_type == MB_EMACS_SILENT)
-    {
-      /* Do nothing.  */
-    }
-  else
-    MessageBeep (sound_type);
-}
-
-DEFUN ("set-message-beep", Fset_message_beep, Sset_message_beep, 1, 1, 0,
-       doc: /* Set the sound generated when the bell is rung.
-SOUND is 'asterisk, 'exclamation, 'hand, 'question, 'ok, or 'silent
-to use the corresponding system sound for the bell.  The 'silent sound
-prevents Emacs from making any sound at all.
-SOUND is nil to use the normal beep.  */)
-  (Lisp_Object sound)
-{
-  CHECK_SYMBOL (sound);
-
-  if (NILP (sound))
-      sound_type = 0xFFFFFFFF;
-  else if (EQ (sound, intern ("asterisk")))
-      sound_type = MB_ICONASTERISK;
-  else if (EQ (sound, intern ("exclamation")))
-      sound_type = MB_ICONEXCLAMATION;
-  else if (EQ (sound, intern ("hand")))
-      sound_type = MB_ICONHAND;
-  else if (EQ (sound, intern ("question")))
-      sound_type = MB_ICONQUESTION;
-  else if (EQ (sound, intern ("ok")))
-      sound_type = MB_OK;
-  else if (EQ (sound, intern ("silent")))
-      sound_type = MB_EMACS_SILENT;
-  else
-      sound_type = 0xFFFFFFFF;
-
-  return sound;
-}
 
 static void
 w32con_reset_terminal_modes (struct terminal *t)
@@ -434,7 +468,7 @@ w32con_set_terminal_modes (struct terminal *t)
 {
   CONSOLE_CURSOR_INFO cci;
 
-  /* make cursor big and visible (100 on Win95 makes it disappear)  */
+  /* make cursor big and visible (100 on Windows 95 makes it disappear)  */
   cci.dwSize = 99;
   cci.bVisible = TRUE;
   (void) SetConsoleCursorInfo (cur_screen, &cci);
@@ -537,7 +571,7 @@ w32_face_attributes (struct frame *f, int face_id)
   WORD char_attr;
   struct face *face = FACE_FROM_ID (f, face_id);
 
-  xassert (face != NULL);
+  eassert (face != NULL);
 
   char_attr = char_attr_normal;
 
@@ -570,6 +604,7 @@ void
 initialize_w32_display (struct terminal *term)
 {
   CONSOLE_SCREEN_BUFFER_INFO	info;
+  Mouse_HLInfo *hlinfo;
 
   term->rif = 0; /* No window based redisplay on the console.  */
   term->cursor_to_hook		= w32con_move_cursor;
@@ -599,6 +634,15 @@ initialize_w32_display (struct terminal *term)
   term->redeem_scroll_bar_hook = 0;
   term->judge_scroll_bars_hook = 0;
   term->frame_up_to_date_hook = 0;
+
+  /* Initialize the mouse-highlight data.  */
+  hlinfo = &term->display_info.tty->mouse_highlight;
+  hlinfo->mouse_face_beg_row = hlinfo->mouse_face_beg_col = -1;
+  hlinfo->mouse_face_end_row = hlinfo->mouse_face_end_col = -1;
+  hlinfo->mouse_face_face_id = DEFAULT_FACE_ID;
+  hlinfo->mouse_face_mouse_frame = NULL;
+  hlinfo->mouse_face_window = Qnil;
+  hlinfo->mouse_face_hidden = 0;
 
   /* Initialize interrupt_handle.  */
   init_crit ();
@@ -697,6 +741,11 @@ initialize_w32_display (struct terminal *term)
 		       info.srWindow.Left);
     }
 
+  if (os_subtype == OS_NT)
+    w32_console_unicode_input = 1;
+  else
+    w32_console_unicode_input = 0;
+
   /* Setup w32_display_info structure for this frame. */
 
   w32_initialize_display_info (build_string ("Console"));
@@ -755,5 +804,4 @@ scroll-back buffer.  */);
   defsubr (&Sset_screen_color);
   defsubr (&Sget_screen_color);
   defsubr (&Sset_cursor_size);
-  defsubr (&Sset_message_beep);
 }

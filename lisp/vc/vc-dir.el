@@ -1,6 +1,6 @@
-;;; vc-dir.el --- Directory status display under VC
+;;; vc-dir.el --- Directory status display under VC  -*- lexical-binding: t -*-
 
-;; Copyright (C) 2007-2012  Free Software Foundation, Inc.
+;; Copyright (C) 2007-2012 Free Software Foundation, Inc.
 
 ;; Author:   Dan Nicolaescu <dann@ics.uci.edu>
 ;; Keywords: vc tools
@@ -43,8 +43,7 @@
 (require 'ewoc)
 
 ;;; Code:
-(eval-when-compile
-  (require 'cl))
+(eval-when-compile (require 'cl-lib))
 
 (defcustom vc-dir-mode-hook nil
   "Normal hook run by `vc-dir-mode'.
@@ -54,7 +53,7 @@ See `run-hooks'."
 
 ;; Used to store information for the files displayed in the directory buffer.
 ;; Each item displayed corresponds to one of these defstructs.
-(defstruct (vc-dir-fileinfo
+(cl-defstruct (vc-dir-fileinfo
             (:copier nil)
             (:type list)            ;So we can use `member' on lists of FIs.
             (:constructor
@@ -92,13 +91,13 @@ See `run-hooks'."
   (let* ;; Look for another buffer name BNAME visiting the same directory.
       ((buf (save-excursion
               (unless create-new
-                (dolist (buffer vc-dir-buffers)
+                (cl-dolist (buffer vc-dir-buffers)
                   (when (buffer-live-p buffer)
                     (set-buffer buffer)
                     (when (and (derived-mode-p 'vc-dir-mode)
                                (eq vc-dir-backend backend)
                                (string= default-directory dir))
-                      (return buffer))))))))
+                      (cl-return buffer))))))))
     (or buf
         ;; Create a new buffer named BNAME.
 	;; We pass a filename to create-file-buffer because it is what
@@ -529,7 +528,7 @@ If a prefix argument is given, move by that many lines."
 
 (defun vc-dir-mark-unmark (mark-unmark-function)
   (if (use-region-p)
-      (let ((firstl (line-number-at-pos (region-beginning)))
+      (let (;; (firstl (line-number-at-pos (region-beginning)))
 	    (lastl (line-number-at-pos (region-end))))
 	(save-excursion
 	  (goto-char (region-beginning))
@@ -546,7 +545,7 @@ If a prefix argument is given, move by that many lines."
   ;; Non-nil iff a parent directory of arg is marked.
   ;; Return value, if non-nil is the `ewoc-data' for the marked parent.
   (let* ((argdir (vc-dir-node-directory arg))
-	 (arglen (length argdir))
+	 ;; (arglen (length argdir))
 	 (crt arg)
 	 (found nil))
     ;; Go through the predecessors, checking if any directory that is
@@ -556,7 +555,7 @@ If a prefix argument is given, move by that many lines."
       (let ((data (ewoc-data crt))
 	    (dir (vc-dir-node-directory crt)))
 	(and (vc-dir-fileinfo->directory data)
-	     (vc-string-prefix-p dir argdir)
+	     (string-prefix-p dir argdir)
 	     (vc-dir-fileinfo->marked data)
 	     (setq found data))))
     found))
@@ -814,11 +813,11 @@ child files."
 	    ;; FIXME: use vc-dir-child-files-and-states here instead of duplicating it.
 	    (if (vc-dir-fileinfo->directory crt-data)
 		(let* ((dir (vc-dir-fileinfo->directory crt-data))
-		       (dirlen (length dir))
+		       ;; (dirlen (length dir))
 		       data)
 		  (while
 		      (and (setq crt (ewoc-next vc-ewoc crt))
-			   (vc-string-prefix-p dir
+			   (string-prefix-p dir
                                                (progn
                                                  (setq data (ewoc-data crt))
                                                  (vc-dir-node-directory crt))))
@@ -842,11 +841,11 @@ If it is a file, return the corresponding cons for the file itself."
          result)
     (if (vc-dir-fileinfo->directory crt-data)
 	(let* ((dir (vc-dir-fileinfo->directory crt-data))
-	       (dirlen (length dir))
+	       ;; (dirlen (length dir))
 	       data)
 	  (while
 	      (and (setq crt (ewoc-next vc-ewoc crt))
-                   (vc-string-prefix-p dir (progn
+                   (string-prefix-p dir (progn
                                              (setq data (ewoc-data crt))
                                              (vc-dir-node-directory crt))))
 	    (unless (vc-dir-fileinfo->directory data)
@@ -861,7 +860,7 @@ If it is a file, return the corresponding cons for the file itself."
 
 (defun vc-dir-recompute-file-state (fname def-dir)
   (let* ((file-short (file-relative-name fname def-dir))
-	 (remove-me-when-CVS-works
+	 (_remove-me-when-CVS-works
 	  (when (eq vc-dir-backend 'CVS)
 	    ;; FIXME: Warning: UGLY HACK.  The CVS backend caches the state
 	    ;; info, this forces the backend to update it.
@@ -875,15 +874,14 @@ If it is a file, return the corresponding cons for the file itself."
   ;; Give a DIRNAME string return the list of all child files shown in
   ;; the current *vc-dir* buffer.
   (let ((crt (ewoc-nth vc-ewoc 0))
-	children
-	dname)
+	children)
     ;; Find DIR
-    (while (and crt (not (vc-string-prefix-p
+    (while (and crt (not (string-prefix-p
 			  dirname (vc-dir-node-directory crt))))
       (setq crt (ewoc-next vc-ewoc crt)))
-    (while (and crt (vc-string-prefix-p
+    (while (and crt (string-prefix-p
 		     dirname
-		     (setq dname (vc-dir-node-directory crt))))
+                     (vc-dir-node-directory crt)))
       (let ((data (ewoc-data crt)))
 	(unless (vc-dir-fileinfo->directory data)
 	  (push (expand-file-name (vc-dir-fileinfo->name data)) children)))
@@ -915,7 +913,7 @@ If it is a file, return the corresponding cons for the file itself."
           (if (not (derived-mode-p 'vc-dir-mode))
               (push status-buf drop)
             (let ((ddir default-directory))
-              (when (vc-string-prefix-p ddir file)
+              (when (string-prefix-p ddir file)
                 (if (file-directory-p file)
 		    (progn
 		      (vc-dir-resync-directory-files file)
@@ -1014,7 +1012,7 @@ specific headers."
     (unless (buffer-live-p vc-dir-process-buffer)
       (setq vc-dir-process-buffer
             (generate-new-buffer (format " *VC-%s* tmp status" backend))))
-    (lexical-let ((buffer (current-buffer)))
+    (let ((buffer (current-buffer)))
       (with-current-buffer vc-dir-process-buffer
         (setq default-directory def-dir)
         (erase-buffer)
@@ -1045,7 +1043,7 @@ specific headers."
 
                               (not (vc-dir-fileinfo->needs-update info))))))))))))
 
-(defun vc-dir-revert-buffer-function (&optional ignore-auto noconfirm)
+(defun vc-dir-revert-buffer-function (&optional _ignore-auto _noconfirm)
   (vc-dir-refresh))
 
 (defun vc-dir-refresh ()
@@ -1079,7 +1077,7 @@ Throw an error if another update process is in progress."
       ;; Bzr has serious locking problems, so setup the headers first (this is
       ;; synchronous) rather than doing it while dir-status is running.
       (ewoc-set-hf vc-ewoc (vc-dir-headers backend def-dir) "")
-      (lexical-let ((buffer (current-buffer)))
+      (let ((buffer (current-buffer)))
         (with-current-buffer vc-dir-process-buffer
           (setq default-directory def-dir)
           (erase-buffer)
@@ -1108,9 +1106,22 @@ outside of VC) and one wants to do some operation on it."
   (interactive "fShow file: ")
   (vc-dir-update (list (list (file-relative-name file) (vc-state file))) (current-buffer)))
 
-(defun vc-dir-hide-up-to-date ()
-  "Hide up-to-date items from display."
-  (interactive)
+(defun vc-dir-hide-state (&optional state)
+  "Hide items that are in STATE from display.
+See `vc-state' for valid values of STATE.
+
+If STATE is nil, default it to up-to-date.
+
+Interactively, if `current-prefix-arg' is non-nil, set STATE to
+state of item at point.  Otherwise, set STATE to up-to-date."
+  (interactive (list
+		(and current-prefix-arg
+		     ;; Command is prefixed.  Infer STATE from point.
+		     (let ((node (ewoc-locate vc-ewoc)))
+		       (and node (vc-dir-fileinfo->state (ewoc-data node)))))))
+  ;; If STATE is un-specified, use up-to-date.
+  (setq state (or state 'up-to-date))
+  (message "Hiding items in state \"%s\"" state)
   (let ((crt (ewoc-nth vc-ewoc -1))
 	(first (ewoc-nth vc-ewoc 0)))
     ;; Go over from the last item to the first and remove the
@@ -1122,18 +1133,21 @@ outside of VC) and one wants to do some operation on it."
 	     (prev (ewoc-prev vc-ewoc crt))
 	     ;; ewoc-delete does not work without this...
 	     (inhibit-read-only t))
-	  (when (or
-		 ;; Remove directories with no child files.
-		 (and dir
-		      (or
-		       ;; Nothing follows this directory.
-		       (not next)
-		       ;; Next item is a directory.
-		       (vc-dir-fileinfo->directory (ewoc-data next))))
-		 ;; Remove files in the up-to-date state.
-		 (eq (vc-dir-fileinfo->state data) 'up-to-date))
-	    (ewoc-delete vc-ewoc crt))
-	  (setq crt prev)))))
+	(when (or
+	       ;; Remove directories with no child files.
+	       (and dir
+		    (or
+		     ;; Nothing follows this directory.
+		     (not next)
+		     ;; Next item is a directory.
+		     (vc-dir-fileinfo->directory (ewoc-data next))))
+	       ;; Remove files in specified STATE.  STATE can be a
+	       ;; symbol or a user-name.
+	       (equal (vc-dir-fileinfo->state data) state))
+	  (ewoc-delete vc-ewoc crt))
+	(setq crt prev)))))
+
+(defalias 'vc-dir-hide-up-to-date 'vc-dir-hide-state)
 
 (defun vc-dir-kill-line ()
   "Remove the current line from display."
@@ -1219,7 +1233,7 @@ These are the commands available for use in the file status buffer:
     (let ((use-vc-backend backend))
       (vc-dir-mode))))
 
-(defun vc-default-dir-extra-headers (backend dir)
+(defun vc-default-dir-extra-headers (_backend _dir)
   ;; Be loud by default to remind people to add code to display
   ;; backend specific headers.
   ;; XXX: change this to return nil before the release.
@@ -1234,7 +1248,7 @@ These are the commands available for use in the file status buffer:
     map)
   "Local keymap for visiting a file.")
 
-(defun vc-default-dir-printer (backend fileentry)
+(defun vc-default-dir-printer (_backend fileentry)
   "Pretty print FILEENTRY."
   ;; If you change the layout here, change vc-dir-move-to-goal-column.
   ;; VC backends can implement backend specific versions of this
@@ -1267,10 +1281,10 @@ These are the commands available for use in the file status buffer:
       'mouse-face 'highlight
       'keymap vc-dir-filename-mouse-map))))
 
-(defun vc-default-extra-status-menu (backend)
+(defun vc-default-extra-status-menu (_backend)
   nil)
 
-(defun vc-default-status-fileinfo-extra (backend file)
+(defun vc-default-status-fileinfo-extra (_backend _file)
   "Default absence of extra information returned for a file."
   nil)
 

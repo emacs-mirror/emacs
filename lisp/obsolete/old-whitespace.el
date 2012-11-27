@@ -35,9 +35,9 @@
 ;; 4. Spaces followed by a TAB.  (Almost always, we never want that).
 ;; 5. Spaces or TABS at the end of a line.
 ;;
-;; Whitespace errors are reported in a buffer, and on the modeline.
+;; Whitespace errors are reported in a buffer, and on the mode line.
 ;;
-;; Modeline will show a W:<x>!<y> to denote a particular type of whitespace,
+;; Mode line will show a W:<x>!<y> to denote a particular type of whitespace,
 ;; where `x' and `y' can be one (or more) of:
 ;;
 ;; e - End-of-Line whitespace.
@@ -46,7 +46,7 @@
 ;; s - Space followed by Tab.
 ;; t - Trailing whitespace.
 ;;
-;; If any of the whitespace checks is turned off, the modeline will display a
+;; If any of the whitespace checks is turned off, the mode line will display a
 ;; !<y>.
 ;;
 ;;     (since (3) is the most controversial one, here is the rationale: Most
@@ -230,7 +230,7 @@ this variable."
   :group 'whitespace)
 
 (defcustom whitespace-silent nil
-  "All whitespace errors will be shown only in the modeline when t.
+  "All whitespace errors will be shown only in the mode line when t.
 
 Note that setting this may cause all whitespaces introduced in a file to go
 unnoticed when the buffer is killed, unless the user visits the `*Whitespace
@@ -653,7 +653,7 @@ If highlighting is enabled, highlight these characters."
       nil)))
 
 (defun whitespace-update-modeline (&optional whitespace-err)
-  "Update modeline with whitespace errors.
+  "Update mode line with whitespace errors.
 Also with whitespaces whose testing has been turned off."
   (if whitespace-display-in-modeline
       (progn

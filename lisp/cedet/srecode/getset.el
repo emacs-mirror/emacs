@@ -298,10 +298,10 @@ Base selection on the field related to POINT."
   (let* ((kids (semantic-find-tags-by-class
 		'variable (semantic-tag-type-members class)))
 	 (sel (completing-read "Use Field: " kids))
-	 )
-
-    (or (semantic-find-tags-by-name sel kids)
-	sel)
+	 (fields (semantic-find-tags-by-name sel kids)))
+    (if fields
+        (car fields)
+      sel)
     ))
 
 (defun srecode-auto-choose-class (point)

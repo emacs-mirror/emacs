@@ -15,7 +15,7 @@ input.
 @raisesections
 @end ifnottex
 
-@node User Input, Keys, Screen, Top
+@node User Input
 @section Kinds of User Input
 @cindex input with the keyboard
 @cindex keyboard input
@@ -80,7 +80,7 @@ as @dfn{input events}.  For details about how Emacs internally handles
 input events, see @ref{Input Events,,, elisp, The Emacs Lisp Reference
 Manual}.
 
-@node Keys, Commands, User Input, Top
+@node Keys
 @section Keys
 
   Some Emacs commands are invoked by just one input event; for
@@ -133,7 +133,7 @@ exception to this rule is @key{ESC}: @kbd{@key{ESC} C-h} is equivalent
 to @kbd{C-M-h}, which does something else entirely.  You can, however,
 use @key{F1} to display a list of commands starting with @key{ESC}.
 
-@node Commands, Entering Emacs, Keys, Top
+@node Commands
 @section Keys and Commands
 
 @cindex binding

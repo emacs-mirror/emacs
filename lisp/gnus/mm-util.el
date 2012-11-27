@@ -1592,7 +1592,7 @@ gzip, bzip2, etc. are allowed."
   (unless filename
     (setq filename buffer-file-name))
   (save-excursion
-    (let ((decomp (unless ;; No worth to examine charset of tar files.
+    (let ((decomp (unless ;; Not worth it to examine charset of tar files.
 		      (and filename
 			   (string-match
 			    "\\.\\(?:tar\\.[^.]+\\|tbz\\|tgz\\)\\'"

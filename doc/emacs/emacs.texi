@@ -107,7 +107,7 @@ Cover art by Etienne Suvasa; cover design by Matt Lee.
 
 
 @ifnottex
-@node Top, Distrib, (dir), (dir)
+@node Top
 @top The Emacs Editor
 
 Emacs is the extensible, customizable, self-documenting real-time
@@ -131,17 +131,6 @@ Emacs Lisp Reference Manual}.
 @menu
 * Distrib::             How to get the latest Emacs distribution.
 * Intro::               An introduction to Emacs concepts.
-@c Note that in the printed manual, the glossary and indices come last.
-* Glossary::            Terms used in this manual.
-
-Indexes (each index contains a large menu)
-* Key Index::           An item for each standard Emacs key sequence.
-* Option Index::        An item for every command-line option.
-* Command Index::       An item for each command name.
-* Variable Index::      An item for each documented variable.
-* Concept Index::       An item for each concept.
-
-* Acknowledgments::     Major contributors to GNU Emacs.
 
 Important General Concepts
 * Screen::              How to interpret what you see on the screen.
@@ -224,6 +213,18 @@ Appendices
 * Microsoft Windows::   Using Emacs on Microsoft Windows and MS-DOS.
 * Manifesto::           What's GNU?  Gnu's Not Unix!
 
+* Glossary::            Terms used in this manual.
+@ifnottex
+* Acknowledgments::     Major contributors to GNU Emacs.
+@end ifnottex
+
+Indexes (each index contains a large menu)
+* Key Index::           An item for each standard Emacs key sequence.
+* Option Index::        An item for every command-line option.
+* Command Index::       An item for each command name.
+* Variable Index::      An item for each documented variable.
+* Concept Index::       An item for each concept.
+
 @c Do NOT modify the following 3 lines!  They must have this form to
 @c be correctly identified by `texinfo-multiple-files-update'.  In
 @c particular, the detailed menu header line MUST be identical to the
@@ -260,12 +261,14 @@ Basic Editing Commands
 
 The Minibuffer
 
+* Basic Minibuffer::      Basic usage of the minibuffer.
 * Minibuffer File::     Entering file names with the minibuffer.
 * Minibuffer Edit::     How to edit in the minibuffer.
 * Completion::          An abbreviation facility for minibuffer input.
 * Minibuffer History::  Reusing recent minibuffer arguments.
 * Repetition::          Re-executing commands that used the minibuffer.
 * Passwords::           Entering passwords in the echo area.
+* Yes or No Prompts::   Replying yes or no in the echo area.
 
 Completion
 
@@ -371,6 +374,7 @@ Searching and Replacement
 * Incremental Search::     Search happens as you type the string.
 * Nonincremental Search::  Specify entire string and then search.
 * Word Search::            Search for sequence of words.
+* Symbol Search::          Search for a source code symbol.
 * Regexp Search::          Search for match for a regexp.
 * Regexps::                Syntax of regular expressions.
 * Regexp Backslash::       Regular expression constructs starting with `\'.
@@ -952,7 +956,7 @@ The Diary
 * Special Diary Entries::  Anniversaries, blocks of dates, cyclic entries, etc.
 
 @ifnottex
-Customizing the Calendar and Diary
+More advanced features of the Calendar and Diary
 
 * Calendar Customizing::   Calendar layout and hooks.
 * Holiday Customizing::    Defining your own holidays.
@@ -1135,6 +1139,7 @@ Dealing with Emacs Trouble
 * Screen Garbled::      Garbage on the screen.
 * Text Garbled::        Garbage in the text.
 * Memory Full::         How to cope when you run out of memory.
+* Crashing::            What Emacs does when it crashes.
 * After a Crash::       Recovering editing in an Emacs session that crashed.
 * Emergency Escape::    What to do if Emacs stops responding.
 
@@ -1284,7 +1289,7 @@ Windows.  @xref{Mac OS / GNUstep}, for information about using Emacs
 on Macintosh (and GNUstep).
 @end iftex
 
-@node Distrib, Intro, Top, Top
+@node Distrib
 @unnumbered Distribution
 
 GNU Emacs is @dfn{free software}; this means that everyone is free to
@@ -1319,7 +1324,7 @@ when you get it, not just free for the manufacturer.
 If you find GNU Emacs useful, please @strong{send a donation} to the
 Free Software Foundation to support our work.  Donations to the Free
 Software Foundation are tax deductible in the US.  If you use GNU Emacs
-at your workplace, please suggest that the company make a donation. 
+at your workplace, please suggest that the company make a donation.
 For more information on how you can help, see
 @url{http://www.gnu.org/help/help.html}.
 
@@ -1341,12 +1346,12 @@ USA
 @end display
 
 @iftex
-@node Acknowledgments, Intro, Distrib, Top
+@node Acknowledgments
 @unnumberedsec Acknowledgments
 
 Contributors to GNU Emacs include Jari Aalto, Per Abrahamsen, Tomas
 Abrahamsson, Jay K.@: Adams, Alon Albert, Michael Albinus, Nagy
-Andras, Benjamin Andresen, Ralf Angeli, Joe Arceneaux, Emil Åström,
+Andras, Benjamin Andresen, Ralf Angeli, Dmitry Antipov, Joe Arceneaux, Emil Åström,
 Miles Bader, David Bakhash, Juanma Barranquero, Eli Barzilay, Thomas
 Baumann, Steven L.@: Baur, Jay Belanger, Alexander L.@: Belikoff,
 Thomas Bellman, Scott Bender, Boaz Ben-Zvi, Sergey Berezin, Karl
@@ -1398,7 +1403,7 @@ Martin Lorentzon, Dave Love, Eric Ludlam, Károly L@H{o}rentey, Sascha
 Lüdecke, Greg McGary, Roland McGrath, Michael McNamara, Alan Mackenzie,
 Christopher J.@: Madsen, Neil M.@: Mager, Ken Manheimer, Bill Mann,
 Brian Marick, Simon Marshall, Bengt Martensson, Charlie Martin,
-Yukihiro Matsumoto, David Maus, Thomas May, Will Mengarini, David
+Yukihiro Matsumoto, Tomohiro Matsuyama, David Maus, Thomas May, Will Mengarini, David
 Megginson, Stefan Merten, Ben A.@: Mesander, Wayne Mesard, Brad
 Miller, Lawrence Mitchell, Richard Mlynarik, Gerd Moellmann, Stefan
 Monnier, Keith Moore, Jan Moringen, Morioka Tomohiko, Glenn Morris,
@@ -1448,7 +1453,7 @@ Shenghuo Zhu, Piotr Zielinski, Ian T.@: Zimmermann, Reto Zimmermann,
 Neal Ziring, Teodor Zlatanov, and Detlev Zundel.
 @end iftex
 
-@node Intro, Glossary, Distrib, Top
+@node Intro
 @unnumbered Introduction
 
   You are reading about GNU Emacs, the GNU incarnation of the
@@ -1529,11 +1534,11 @@ Lisp programming.
 @include custom.texi
 @include trouble.texi
 
-@node Copying, GNU Free Documentation License, Service, Top
+@node Copying
 @appendix GNU GENERAL PUBLIC LICENSE
 @include gpl.texi
 
-@node GNU Free Documentation License, Emacs Invocation, Copying, Top
+@node GNU Free Documentation License
 @appendix GNU Free Documentation License
 @include doclicense.texi
 
@@ -1553,43 +1558,26 @@ Lisp programming.
 @c The Option Index is produced only in the on-line version,
 @c because the index entries related to command-line options
 @c tend to point to the same pages and all begin with a dash.
-@c This, and the need to keep the node links consistent, are
-@c the reasons for the funky @iftex/@ifnottex dance below.
-@c The Option Index is _not_ before Key Index, because that
-@c would require changes in the glossary.texi's @node line.
-@c It is not after Concept Index for similar reasons.
 
-@iftex
-@node Key Index, Command Index, Glossary, Top
+@node Key Index
 @unnumbered Key (Character) Index
 @printindex ky
-@end iftex
 
 @ifnottex
-@node Key Index, Option Index, Glossary, Top
-@unnumbered Key (Character) Index
-@printindex ky
-
-@node Option Index, Command Index, Key Index, Top
+@node Option Index
 @unnumbered Command-Line Options Index
 @printindex op
-
-@node Command Index, Variable Index, Option Index, Top
-@unnumbered Command and Function Index
-@printindex fn
 @end ifnottex
 
-@iftex
-@node Command Index, Variable Index, Key Index, Top
+@node Command Index
 @unnumbered Command and Function Index
 @printindex fn
-@end iftex
 
-@node Variable Index, Concept Index, Command Index, Top
+@node Variable Index
 @unnumbered Variable Index
 @printindex vr
 
-@node Concept Index, Acknowledgments, Variable Index, Top
+@node Concept Index
 @unnumbered Concept Index
 @printindex cp
 

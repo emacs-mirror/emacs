@@ -16,7 +16,7 @@ The characters ">>" at the left margin indicate directions for you to
 try using a command.  For instance:
 <<Blank lines inserted around following line by help-with-tutorial>>
 [Middle of page left blank for didactic purposes.   Text continues below]
->>  Now type C-v (View next screen) to move to the next screen.
+>> Now type C-v (View next screen) to move to the next screen.
 	(go ahead, do it by holding down the CONTROL key while typing v).
 	From now on, you should do this again whenever you finish
 	reading the screen.
@@ -30,7 +30,7 @@ to place in the text.  You already know how to move forward one screen,
 with C-v.  To move backwards one screen, type M-v (hold down the META key
 and type v, or type <ESC>v if you do not have a META, EDIT, or ALT key).
 
->>  Try typing M-v and then C-v, a few times.
+>> Try typing M-v and then C-v, a few times.
 
 
 * SUMMARY
@@ -209,12 +209,12 @@ prefix argument, regardless of its value, makes the command do
 something different.
 
 C-v and M-v are another kind of exception.  When given an argument,
-they scroll the screen up or down by that many lines, rather than by a
-screenful.  For example, C-u 8 C-v scrolls the screen by 8 lines.
+they scroll the text up or down by that many lines, rather than by a
+screenful.  For example, C-u 8 C-v scrolls by 8 lines.
 
 >> Try typing C-u 8 C-v now.
 
-This should have scrolled the screen up by 8 lines.  If you would like
+This should have scrolled the text up by 8 lines.  If you would like
 to scroll it down again, you can give an argument to M-v.
 
 If you are using a graphical display, such as X or MS-Windows, there
@@ -281,8 +281,6 @@ other windows.
 
 >> Type C-x 1 and see the documentation listing window disappear.
 
-This command is unlike the other commands you have learned in that it
-consists of two characters.  It starts with the character CONTROL-x.
 There is a whole series of commands that start with CONTROL-x; many of
 them have to do with windows, files, buffers, and related things.
 These commands are two, three or four characters long.
@@ -337,7 +335,7 @@ Remember that most Emacs commands can be given a repeat count;
 this includes text characters.  Repeating a text character inserts
 it several times.
 
->>  Try that now -- type C-u 8 * to insert ********.
+>> Try that now -- type C-u 8 * to insert ********.
 
 You've now learned the most basic way of typing something in
 Emacs and correcting errors.  You can delete by words or lines
@@ -522,11 +520,8 @@ command
 This copies the text within Emacs into the file.  The first time you
 do this, Emacs renames the original file to a new name so that it is
 not lost.  The new name is made by adding "~" to the end of the
-original file's name.
-
-When saving is finished, Emacs displays the name of the file written.
-You should save fairly often, so that you will not lose very much
-work if the system should crash (see the section "Auto Save" below).
+original file's name.  When saving is finished, Emacs displays the
+name of the file written.
 
 >> Type C-x C-s TUTORIAL <Return>.
    This should save this tutorial to a file named TUTORIAL, and show
@@ -534,11 +529,11 @@ work if the system should crash (see the section "Auto Save" below).
 
 You can find an existing file, to view it or edit it.  You can also
 find a file which does not already exist.  This is the way to create a
-file with Emacs: find the file, which will start out empty, and then
-begin inserting the text for the file.  When you ask to "save" the
-file, Emacs will really create the file with the text that you have
-inserted.  From then on, you can consider yourself to be editing an
-already existing file.
+file with Emacs: find the file, which starts out empty, and then begin
+inserting the text for the file.  When you ask to "save" the file,
+Emacs actually creates the file with the text that you have inserted.
+From then on, you can consider yourself to be editing an already
+existing file.
 
 
 * BUFFERS
@@ -595,8 +590,8 @@ this does not save the first file.  Its changes remain inside Emacs,
 in that file's buffer.  The creation or editing of the second file's
 buffer has no effect on the first file's buffer.  This is very useful,
 but it also means that you need a convenient way to save the first
-file's buffer.  It would be a nuisance to have to switch back to
-it with C-x C-f in order to save it with C-x C-s.  So we have
+file's buffer.  Having to switch back to that buffer, in order to save
+it with C-x C-s, would be a nuisance.  So we have
 
 	C-x s     Save some buffers
 
@@ -631,7 +626,7 @@ If you are using a graphical display, you don't need any special
 command to move from Emacs to another application.  You can do this
 with the mouse or with window manager commands.  However, if you're
 using a text terminal which can only show one application at a time,
-you need to "suspend" Emacs to move to any other program.
+you need to "suspend" Emacs to move to any other application.
 
 C-z is the command to exit Emacs *temporarily*--so that you can go
 back to the same Emacs session afterward.  When Emacs is running on a
@@ -640,8 +635,8 @@ but does not destroy the Emacs job.  In the most common shells, you
 can resume Emacs with the `fg' command or with `%emacs'.
 
 The time to use C-x C-c is when you are about to log out.  It's also
-the right thing to use to exit an Emacs invoked under mail handling
-programs and other miscellaneous utilities.
+the right thing to use to exit an Emacs invoked for a quick edit, such
+as by a mail handling utility.
 
 There are many C-x commands.  Here is a list of the ones you have learned:
 
@@ -656,8 +651,8 @@ There are many C-x commands.  Here is a list of the ones you have learned:
 
 Named eXtended commands are commands which are used even less
 frequently, or commands which are used only in certain modes.  An
-example is the command replace-string, which globally replaces one
-string with another.  When you type M-x, Emacs prompts you at the
+example is the command replace-string, which replaces one string with
+another in the buffer.  When you type M-x, Emacs prompts you at the
 bottom of the screen with M-x and you should type the name of the
 command; in this case, "replace-string".  Just type "repl s<TAB>" and
 Emacs will complete the name.  (<TAB> is the Tab key, usually found
@@ -671,9 +666,9 @@ argument with <Return>.
 >> Move the cursor to the blank line two lines below this one.
    Then type M-x repl s<Return>changed<Return>altered<Return>.
 
-   Notice how this line has changed: you've replaced
-   the word c-h-a-n-g-e-d with "altered" wherever it occurred,
-   after the initial position of the cursor.
+   Notice how this line has changed: you've replaced the word
+   "changed" with "altered" wherever it occurred, after the
+   initial position of the cursor.
 
 
 * AUTO SAVE
@@ -762,6 +757,7 @@ differently.
 
 To view documentation on your current major mode, type C-h m.
 
+>> Move the cursor to the line following this line.
 >> Type C-l C-l to bring this line to the top of screen.
 >> Type C-h m, to see how Text mode differs from Fundamental mode.
 >> Type C-x 1 to remove the documentation from the screen.
@@ -893,7 +889,8 @@ display, those cursors are drawn as unblinking hollow boxes.
 
 The command C-M-v is very useful when you are editing text in one
 window and using the other window just for reference.  Without leaving
-the selected window, you can scroll the other window with C-M-v.
+the selected window, you can scroll the text in the other window with
+C-M-v.
 
 C-M-v is an example of a CONTROL-META character.  If you have a META
 (or Alt) key, you can type C-M-v by holding down both CONTROL and META
@@ -1041,8 +1038,8 @@ You need to type in the name of the variable when Emacs prompts for it.
 >> Type C-h a file <Return>.
 
 This displays in another window a list of all M-x commands with "file"
-in their names.  You will see character-commands like C-x C-f listed
-beside the corresponding command names such as find-file.
+in their names.  You will see character-commands listed beside the
+corresponding command names (such as C-x C-f beside find-file).
 
 >> Type C-M-v to scroll the help window.  Do this a few times.
 

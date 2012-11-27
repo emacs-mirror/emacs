@@ -506,8 +506,6 @@ string."
 ;; ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 ;; end user configuration variables
 
-(define-obsolete-variable-alias 'sc-version 'emacs-version "23.1")
-
 (defvar sc-mail-info nil
   "Alist of mail header information gleaned from reply buffer.")
 (defvar sc-attributions nil
@@ -559,10 +557,8 @@ string."
     (define-key map "r"    'sc-recite-region)
     (define-key map "\C-p" 'sc-raw-mode-toggle)
     (define-key map "u"    'sc-uncite-region)
-    (define-key map "v"    'sc-version)
     (define-key map "w"    'sc-insert-reference)
     (define-key map "\C-t"  sc-T-keymap)
-    (define-key map "\C-b" 'sc-submit-bug-report)
     (define-key map "?"    'sc-describe)
     map)
   "Keymap for Supercite quasi-mode.")
@@ -1969,28 +1965,10 @@ cited."
 	(insert (sc-mail-field "sc-citation"))
       (error "Line is already cited"))))
 
-;; The argument logic here is crazy.
-(defun sc-version (message)
-  "Return the current Supercite version.
-If MESSAGE is non-nil (interactively, with no prefix argument),
-echoes the version in the minibuffer.  Otherwise, inserts the
-version at point."
-  (interactive (list (not current-prefix-arg)))
-  (let ((verstr (format "Using Supercite.el %s" emacs-version)))
-    (if message
-	(message verstr)
-      (insert "`sc-version' says: " verstr))))
-
-(make-obsolete 'sc-version 'emacs-version "23.1")
-
 (defun sc-describe ()
   "Read the Supercite info node."
   (interactive)
   (info "(SC)top"))
-
-(make-obsolete 'sc-describe "read the SC manual using `info'." "23.1")
-
-(define-obsolete-function-alias 'sc-submit-bug-report 'report-emacs-bug "23.1")
 
 
 ;; useful stuff

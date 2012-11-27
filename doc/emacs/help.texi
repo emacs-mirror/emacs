@@ -2,7 +2,7 @@
 @c Copyright (C) 1985-1987, 1993-1995, 1997, 2000-2012
 @c   Free Software Foundation, Inc.
 @c See file emacs.texi for copying conditions.
-@node Help, Mark, M-x, Top
+@node Help
 @chapter Help
 @kindex Help
 @cindex help
@@ -243,7 +243,7 @@ by the innermost Lisp expression in the buffer around point,
 (That name appears as the default while you enter the argument.)  For
 example, if point is located following the text @samp{(make-vector
 (car x)}, the innermost list containing point is the one that starts
-with @samp{(make-vector}, so @kbd{C-h f @key{RET}} will describe the
+with @samp{(make-vector}, so @kbd{C-h f @key{RET}} describes the
 function @code{make-vector}.
 
   @kbd{C-h f} is also useful just to verify that you spelled a

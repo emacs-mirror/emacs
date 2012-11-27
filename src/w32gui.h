@@ -1,4 +1,4 @@
-/* Definitions and headers for communication on the Microsoft W32 API.
+/* Definitions and headers for communication on the Microsoft Windows API.
    Copyright (C) 1995, 2001-2012  Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
@@ -117,9 +117,6 @@ extern int nCmdShow;
 #define PAspect		(1L << 7) /* program specified min and max aspect ratios */
 #define PBaseSize	(1L << 8) /* program specified base for incrementing */
 #define PWinGravity	(1L << 9) /* program specified window gravity */
-
-extern int XParseGeometry (char *, int *, int *, unsigned *, unsigned *);
-
 
 typedef struct {
     int x, y;

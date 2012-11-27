@@ -1792,89 +1792,63 @@ Redefine the corresponding command."
 (defun math-do-defmath (func args body)
   (require 'calc-macs)
   (let* ((fname (intern (concat "calcFunc-" (symbol-name func))))
-	 (doc (if (stringp (car body)) (list (car body))))
+	 (doc (if (stringp (car body))
+		  (prog1 (list (car body))
+		    (setq body (cdr body)))))
 	 (clargs (mapcar 'math-clean-arg args))
-	 (body (math-define-function-body
-		(if (stringp (car body)) (cdr body) body)
-		clargs)))
-    (list 'progn
-	  (if (and (consp (car body))
-		   (eq (car (car body)) 'interactive))
-	      (let ((inter (car body)))
-		(setq body (cdr body))
-		(if (or (> (length inter) 2)
-			(integerp (nth 1 inter)))
-		    (let ((hasprefix nil) (hasmulti nil))
-		      (if (stringp (nth 1 inter))
-			  (progn
-			    (cond ((equal (nth 1 inter) "p")
-				   (setq hasprefix t))
-				  ((equal (nth 1 inter) "m")
-				   (setq hasmulti t))
-				  (t (error
-				      "Can't handle interactive code string \"%s\""
-				      (nth 1 inter))))
-			    (setq inter (cdr inter))))
-		      (if (not (integerp (nth 1 inter)))
-			  (error
-			   "Expected an integer in interactive specification"))
-		      (append (list 'defun
-				    (intern (concat "calc-"
-						    (symbol-name func)))
-				    (if (or hasprefix hasmulti)
-					'(&optional n)
-				      ()))
-			      doc
-			      (if (or hasprefix hasmulti)
-				  '((interactive "P"))
-				'((interactive)))
-			      (list
-			       (append
-				'(calc-slow-wrapper)
-				(and hasmulti
-				     (list
-				      (list 'setq
-					    'n
-					    (list 'if
-						  'n
-						  (list 'prefix-numeric-value
-							'n)
-						  (nth 1 inter)))))
-				(list
-				 (list 'calc-enter-result
-				       (if hasmulti 'n (nth 1 inter))
-				       (nth 2 inter)
-				       (if hasprefix
-					   (list 'append
-						 (list 'quote (list fname))
-						 (list 'calc-top-list-n
-						       (nth 1 inter))
-						 (list 'and
-						       'n
-						       (list
-							'list
-							(list
-							 'math-normalize
-							 (list
-							  'prefix-numeric-value
-							  'n)))))
-					 (list 'cons
-					       (list 'quote fname)
-					       (list 'calc-top-list-n
-						     (if hasmulti
-							 'n
-						       (nth 1 inter)))))))))))
-		  (append (list 'defun
-				(intern (concat "calc-" (symbol-name func)))
-				args)
-			  doc
-			  (list
-			   inter
-			   (cons 'calc-wrapper body))))))
-	  (append (list 'defun fname clargs)
-		  doc
-		  (math-do-arg-list-check args nil nil)
-		  body))))
+	 (inter (if (and (consp (car body))
+			 (eq (car (car body)) 'interactive))
+		    (prog1 (car body)
+		      (setq body (cdr body))))))
+    (setq body (math-define-function-body body clargs))
+    `(progn
+       ,(if inter
+	    (if (or (> (length inter) 2)
+		    (integerp (nth 1 inter)))
+		(let ((hasprefix nil) (hasmulti nil))
+		  (when (stringp (nth 1 inter))
+		    (cond ((equal (nth 1 inter) "p")
+			   (setq hasprefix t))
+			  ((equal (nth 1 inter) "m")
+			   (setq hasmulti t))
+			  (t (error
+			      "Can't handle interactive code string \"%s\""
+			      (nth 1 inter))))
+		    (setq inter (cdr inter)))
+		  (unless (integerp (nth 1 inter))
+		    (error "Expected an integer in interactive specification"))
+		  `(defun ,(intern (concat "calc-" (symbol-name func)))
+		     ,(if (or hasprefix hasmulti) '(&optional n) ())
+		     ,@doc
+		     (interactive ,@(if (or hasprefix hasmulti) '("P")))
+		     (calc-slow-wrapper
+		      ,@(if hasmulti
+			    `((setq n (if n
+					  (prefix-numeric-value n)
+					,(nth 1 inter)))))
+		      (calc-enter-result
+		       ,(if hasmulti 'n (nth 1 inter))
+		       ,(nth 2 inter)
+		       ,(if hasprefix
+			    `(append '(,fname)
+				     (calc-top-list-n ,(nth 1 inter))
+				     (and n
+					  (list
+					   (math-normalize
+					    (prefix-numeric-value n)))))
+			  `(cons ',fname
+				 (calc-top-list-n
+				  ,(if hasmulti
+				       'n
+				     (nth 1 inter)))))))))
+	      `(defun ,(intern (concat "calc-" (symbol-name func))) ,clargs
+		 ,@doc
+		 ,inter
+		 (calc-wrapper ,@body))))
+       (defun ,fname ,clargs
+	 ,@doc
+	 ,@(math-do-arg-list-check args nil nil)
+	 ,@body))))
 
 (defun math-clean-arg (arg)
   (if (consp arg)
@@ -1887,56 +1861,42 @@ Redefine the corresponding command."
 	(list (cons 'and
 		    (cons var
 			  (if (cdr chk)
-			      (setq chk (list (cons 'progn chk)))
+			      `((progn ,@chk))
 			    chk)))))
-    (and (consp arg)
-	 (let* ((rest (math-do-arg-check (nth 1 arg) var is-opt is-rest))
-		(qual (car arg))
-		(qqual (list 'quote qual))
-		(qual-name (symbol-name qual))
-		(chk (intern (concat "math-check-" qual-name))))
-	   (if (fboundp chk)
-	       (append rest
-		       (list
+    (when (consp arg)
+      (let* ((rest (math-do-arg-check (nth 1 arg) var is-opt is-rest))
+	     (qual (car arg))
+	     (qual-name (symbol-name qual))
+	     (chk (intern (concat "math-check-" qual-name))))
+	(if (fboundp chk)
+	    (append rest
+		    (if is-rest
+			`((setq ,var (mapcar ',chk ,var)))
+		      `((setq ,var (,chk ,var)))))
+	  (if (fboundp (setq chk (intern (concat "math-" qual-name))))
+	      (append rest
+		      (if is-rest
+			  `((mapcar #'(lambda (x)
+					(or (,chk x)
+					    (math-reject-arg x ',qual)))
+				    ,var))
+			`((or (,chk ,var)
+			      (math-reject-arg ,var ',qual)))))
+	    (if (and (string-match "\\`not-\\(.*\\)\\'" qual-name)
+		     (fboundp (setq chk (intern
+					 (concat "math-"
+						 (math-match-substring
+						  qual-name 1))))))
+		(append rest
 			(if is-rest
-			    (list 'setq var
-				  (list 'mapcar (list 'quote chk) var))
-			  (list 'setq var (list chk var)))))
-	     (if (fboundp (setq chk (intern (concat "math-" qual-name))))
-		 (append rest
-			 (list
-			  (if is-rest
-			      (list 'mapcar
-				    (list 'function
-					  (list 'lambda '(x)
-						(list 'or
-						      (list chk 'x)
-						      (list 'math-reject-arg
-							    'x qqual))))
-				    var)
-			    (list 'or
-				  (list chk var)
-				  (list 'math-reject-arg var qqual)))))
-	       (if (and (string-match "\\`not-\\(.*\\)\\'" qual-name)
-			(fboundp (setq chk (intern
-					    (concat "math-"
-						    (math-match-substring
-						     qual-name 1))))))
-		   (append rest
-			   (list
-			    (if is-rest
-				(list 'mapcar
-				      (list 'function
-					    (list 'lambda '(x)
-						  (list 'and
-							(list chk 'x)
-							(list 'math-reject-arg
-							      'x qqual))))
-				      var)
-			      (list 'and
-				    (list chk var)
-				    (list 'math-reject-arg var qqual)))))
-		 (error "Unknown qualifier `%s'" qual-name))))))))
+			    `((mapcar #'(lambda (x)
+					  (and (,chk x)
+					       (math-reject-arg x ',qual)))
+				      ,var))
+			  `((and
+			     (,chk ,var)
+			     (math-reject-arg ,var ',qual)))))
+	      (error "Unknown qualifier `%s'" qual-name))))))))
 
 (defun math-do-arg-list-check (args is-opt is-rest)
   (cond ((null args) nil)
@@ -1980,7 +1940,7 @@ Redefine the corresponding command."
 (defun math-define-function-body (body env)
   (let ((body (math-define-body body env)))
     (if (math-body-refers-to body 'math-return)
-	(list (cons 'catch (cons '(quote math-return) body)))
+	`((catch 'math-return ,@body))
       body)))
 
 ;; The variable math-exp-env is local to math-define-body, but is

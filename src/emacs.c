@@ -20,23 +20,35 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 
 
 #include <config.h>
-#include <signal.h>
 #include <errno.h>
 #include <stdio.h>
 
 #include <sys/types.h>
 #include <sys/file.h>
-#include <setjmp.h>
 #include <unistd.h>
+
+#include <ignore-value.h>
 
 #include "lisp.h"
 
 #ifdef WINDOWSNT
 #include <fcntl.h>
-#include <windows.h> /* just for w32.h */
 #include "w32.h"
-#include "w32heap.h" /* for prototype of sbrk */
+#include "w32heap.h"
 #endif
+
+#if defined WINDOWSNT || defined HAVE_NTGUI
+#include "w32select.h"
+#include "w32font.h"
+#endif
+
+#if defined HAVE_NTGUI && defined CYGWIN
+#include "cygw32.h"
+#endif
+
+#ifdef HAVE_WINDOW_SYSTEM
+#include TERM_HEADER
+#endif /* HAVE_WINDOW_SYSTEM */
 
 #ifdef NS_IMPL_GNUSTEP
 /* At least under Debian, GSConfig is in a subdirectory.  --Stef  */
@@ -45,10 +57,12 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 
 #include "commands.h"
 #include "intervals.h"
+#include "character.h"
 #include "buffer.h"
 #include "window.h"
 
 #include "systty.h"
+#include "atimer.h"
 #include "blockinput.h"
 #include "syssignal.h"
 #include "process.h"
@@ -61,12 +75,10 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #include "gnutls.h"
 #endif
 
-#ifdef HAVE_NS
-#include "nsterm.h"
-#endif
-
-#ifdef HAVE_X_WINDOWS
-#include "xterm.h"
+#if (defined PROFILING \
+     && (defined __FreeBSD__ || defined GNU_LINUX || defined __MINGW32__))
+# include <sys/gmon.h>
+extern void moncontrol (int mode);
 #endif
 
 #ifdef HAVE_SETLOCALE
@@ -82,56 +94,25 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #include <sys/personality.h>
 #endif
 
-#ifdef HAVE_LIBXML2
-#include <libxml/parser.h>
-#endif
-
 #ifndef O_RDWR
 #define O_RDWR 2
 #endif
 
-#ifdef HAVE_SETPGID
-#if !defined (USG)
-#undef setpgrp
-#define setpgrp setpgid
-#endif
-#endif
-
 static const char emacs_version[] = VERSION;
-static const char emacs_copyright[] = "Copyright (C) 2012 Free Software Foundation, Inc.";
-
-/* Make these values available in GDB, which doesn't see macros.  */
-
-#ifdef USE_LSB_TAG
-int gdb_use_lsb EXTERNALLY_VISIBLE = 1;
-#else
-int gdb_use_lsb EXTERNALLY_VISIBLE = 0;
-#endif
-#ifndef USE_LISP_UNION_TYPE
-int gdb_use_union EXTERNALLY_VISIBLE  = 0;
-#else
-int gdb_use_union EXTERNALLY_VISIBLE = 1;
-#endif
-EMACS_INT gdb_valbits EXTERNALLY_VISIBLE = VALBITS;
-EMACS_INT gdb_gctypebits EXTERNALLY_VISIBLE = GCTYPEBITS;
-#if defined (DATA_SEG_BITS) && ! defined (USE_LSB_TAG)
-EMACS_INT gdb_data_seg_bits EXTERNALLY_VISIBLE = DATA_SEG_BITS;
-#else
-EMACS_INT gdb_data_seg_bits EXTERNALLY_VISIBLE = 0;
-#endif
-EMACS_INT PVEC_FLAG EXTERNALLY_VISIBLE = PSEUDOVECTOR_FLAG;
-EMACS_INT gdb_array_mark_flag EXTERNALLY_VISIBLE = ARRAY_MARK_FLAG;
-/* GDB might say "No enum type named pvec_type" if we don't have at
-   least one symbol with that type, and then xbacktrace could fail.  */
-enum pvec_type gdb_pvec_type EXTERNALLY_VISIBLE = PVEC_TYPE_MASK;
+static const char emacs_copyright[] = COPYRIGHT;
 
 /* Empty lisp strings.  To avoid having to build any others.  */
 Lisp_Object empty_unibyte_string, empty_multibyte_string;
 
-/* Set nonzero after Emacs has started up the first time.
-  Prevents reinitialization of the Lisp world and keymaps
-  on subsequent starts.  */
-int initialized;
+#ifdef WINDOWSNT
+/* Cache for externally loaded libraries.  */
+Lisp_Object Vlibrary_cache;
+#endif
+
+/* Set after Emacs has started up the first time.
+   Prevents reinitialization of the Lisp world and keymaps
+   on subsequent starts.  */
+bool initialized;
 
 #ifdef DARWIN_OS
 extern void unexec_init_emacs_zone (void);
@@ -145,9 +126,9 @@ static void *malloc_state_ptr;
 extern void *malloc_get_state (void);
 /* From glibc, a routine that overwrites the malloc internal state.  */
 extern int malloc_set_state (void*);
-/* Non-zero if the MALLOC_CHECK_ environment variable was set while
+/* True if the MALLOC_CHECK_ environment variable was set while
    dumping.  Used to work around a bug in glibc's malloc.  */
-static int malloc_using_checking;
+static bool malloc_using_checking;
 #endif
 
 Lisp_Object Qfile_name_handler_alist;
@@ -156,17 +137,17 @@ Lisp_Object Qrisky_local_variable;
 
 Lisp_Object Qkill_emacs;
 
-/* If non-zero, Emacs should not attempt to use a window-specific code,
+/* If true, Emacs should not attempt to use a window-specific code,
    but instead should use the virtual terminal under which it was started.  */
-int inhibit_window_system;
+bool inhibit_window_system;
 
-/* If non-zero, a filter or a sentinel is running.  Tested to save the match
+/* If true, a filter or a sentinel is running.  Tested to save the match
    data on the first attempt to change it inside asynchronous code.  */
-int running_asynch_code;
+bool running_asynch_code;
 
 #if defined (HAVE_X_WINDOWS) || defined (HAVE_NS)
-/* If non-zero, -d was specified, meaning we're using some window system.  */
-int display_arg;
+/* If true, -d was specified, meaning we're using some window system.  */
+bool display_arg;
 #endif
 
 /* An address near the bottom of the stack.
@@ -183,11 +164,27 @@ static void *my_heap_start;
 static uprintmax_t heap_bss_diff;
 #endif
 
-/* Nonzero means running Emacs without interactive terminal.  */
-int noninteractive;
+/* To run as a daemon under Cocoa or Windows, we must do a fork+exec,
+   not a simple fork.
 
-/* Nonzero means remove site-lisp directories from load-path.  */
-int no_site_lisp;
+   On Cocoa, CoreFoundation lib fails in forked process:
+   http://developer.apple.com/ReleaseNotes/
+   CoreFoundation/CoreFoundation.html)
+
+   On Windows, a Cygwin fork child cannot access the USER subsystem.
+
+   We mark being in the exec'd process by a daemon name argument of
+   form "--daemon=\nFD0,FD1\nNAME" where FD are the pipe file descriptors,
+   NAME is the original daemon name, if any. */
+#if defined NS_IMPL_COCOA || (defined HAVE_NTGUI && defined CYGWIN)
+# define DAEMON_MUST_EXEC
+#endif
+
+/* True means running Emacs without interactive terminal.  */
+bool noninteractive;
+
+/* True means remove site-lisp directories from load-path.  */
+bool no_site_lisp;
 
 /* Name for the server started by the daemon.*/
 static char *daemon_name;
@@ -302,44 +299,23 @@ Report bugs to bug-gnu-emacs@gnu.org.  First, please see the Bugs\n\
 section of the Emacs manual or the file BUGS.\n"
 
 
-/* Signal code for the fatal signal that was received.  */
-static int fatal_error_code;
-
-/* Nonzero if handling a fatal error already.  */
-int fatal_error_in_progress;
-
-/* If non-null, call this function from fatal_error_signal before
-   committing suicide.  */
-
-static void (*fatal_error_signal_hook) (void);
-
-#ifdef FORWARD_SIGNAL_TO_MAIN_THREAD
-/* When compiled with GTK and running under Gnome,
-   multiple threads may be created.  Keep track of our main
-   thread to make sure signals are delivered to it (see syssignal.h).  */
-
-pthread_t main_thread;
-#endif
+/* True if handling a fatal error already.  */
+bool fatal_error_in_progress;
 
 #ifdef HAVE_NS
 /* NS autrelease pool, for memory management.  */
 static void *ns_pool;
-#endif  
-
- 
-
-/* Handle bus errors, invalid instruction, etc.  */
-#ifndef FLOAT_CATCH_SIGILL
-static
 #endif
-void
-fatal_error_signal (int sig)
-{
-  SIGNAL_THREAD_CHECK (sig);
-  fatal_error_code = sig;
-  signal (sig, SIG_DFL);
 
-  TOTALLY_UNBLOCK_INPUT;
+
+
+/* Report a fatal error due to signal SIG, output a backtrace of at
+   most BACKTRACE_LIMIT lines, and exit.  */
+_Noreturn void
+terminate_due_to_signal (int sig, int backtrace_limit)
+{
+  signal (sig, SIG_DFL);
+  totally_unblock_input ();
 
   /* If fatal error occurs in code below, avoid infinite recursion.  */
   if (! fatal_error_in_progress)
@@ -349,54 +325,46 @@ fatal_error_signal (int sig)
       if (sig == SIGTERM || sig == SIGHUP || sig == SIGINT)
         Fkill_emacs (make_number (sig));
 
-      shut_down_emacs (sig, 0, Qnil);
+      shut_down_emacs (sig, Qnil);
+      emacs_backtrace (backtrace_limit);
     }
 
   /* Signal the same code; this time it will really be fatal.
-     Remember that since we're in a signal handler, the signal we're
-     going to send is probably blocked, so we have to unblock it if we
-     want to really receive it.  */
+     Since we're in a signal handler, the signal is blocked, so we
+     have to unblock it if we want to really receive it.  */
 #ifndef MSDOS
-  sigunblock (sigmask (fatal_error_code));
+  {
+    sigset_t unblocked;
+    sigemptyset (&unblocked);
+    sigaddset (&unblocked, sig);
+    pthread_sigmask (SIG_UNBLOCK, &unblocked, 0);
+  }
 #endif
 
-  if (fatal_error_signal_hook)
-    fatal_error_signal_hook ();
+  emacs_raise (sig);
 
-  kill (getpid (), fatal_error_code);
+  /* This shouldn't be executed, but it prevents a warning.  */
+  exit (1);
 }
 
 #ifdef SIGDANGER
 
 /* Handler for SIGDANGER.  */
-void
-memory_warning_signal (int sig)
+static void
+handle_danger_signal (int sig)
 {
-  signal (sig, memory_warning_signal);
-  SIGNAL_THREAD_CHECK (sig);
-
   malloc_warning ("Operating system warns that virtual memory is running low.\n");
 
   /* It might be unsafe to call do_auto_save now.  */
   force_auto_save_soon ();
 }
-#endif
 
-/* We define abort, rather than using it from the library,
-   so that GDB can return from a breakpoint here.
-   MSDOS has its own definition in msdos.c.  */
-
-#if ! defined (DOS_NT) && ! defined (NO_ABORT)
-
-void
-abort (void)
+static void
+deliver_danger_signal (int sig)
 {
-  kill (getpid (), SIGABRT);
-  /* This shouldn't be executed, but it prevents a warning.  */
-  exit (1);
+  deliver_process_signal (sig, handle_danger_signal);
 }
 #endif
-
 
 /* Code for dealing with Lisp access to the Unix command line.  */
 
@@ -405,7 +373,7 @@ init_cmdargs (int argc, char **argv, int skip_args)
 {
   register int i;
   Lisp_Object name, dir, handler;
-  int count = SPECPDL_INDEX ();
+  ptrdiff_t count = SPECPDL_INDEX ();
   Lisp_Object raw_name;
 
   initial_argv = argv;
@@ -451,6 +419,16 @@ init_cmdargs (int argc, char **argv, int skip_args)
   if (!NILP (Vinvocation_directory))
     {
       dir = Vinvocation_directory;
+#ifdef WINDOWSNT
+      /* If we are running from the build directory, set DIR to the
+	 src subdirectory of the Emacs tree, like on Posix
+	 platforms.  */
+      if (SBYTES (dir) > sizeof ("/i386/") - 1
+	  && 0 == strcmp (SSDATA (dir) + SBYTES (dir) - sizeof ("/i386/") + 1,
+			  "/i386/"))
+	dir = Fexpand_file_name (build_string ("../.."), dir);
+#else  /* !WINDOWSNT */
+#endif
       name = Fexpand_file_name (Vinvocation_name, dir);
       while (1)
 	{
@@ -573,7 +551,7 @@ static char dump_tz[] = "UtC0";
 /* Define a dummy function F.  Declare F too, to pacify gcc
    -Wmissing-prototypes.  */
 #define DEFINE_DUMMY_FUNCTION(f) \
-  void f (void) EXTERNALLY_VISIBLE; void f (void) {}
+  void f (void) ATTRIBUTE_CONST EXTERNALLY_VISIBLE; void f (void) {}
 
 #ifndef GCC_CTORS_IN_LIBC
 DEFINE_DUMMY_FUNCTION (__do_global_ctors)
@@ -599,7 +577,7 @@ DEFINE_DUMMY_FUNCTION (__main)
    Too bad we can't just use getopt for all of this, but we don't have
    enough information to do it right.  */
 
-static int
+static bool
 argmatch (char **argv, int argc, const char *sstr, const char *lstr,
           int minlen, char **valptr, int *skipptr)
 {
@@ -661,10 +639,6 @@ argmatch (char **argv, int argc, const char *sstr, const char *lstr,
 static void
 malloc_initialize_hook (void)
 {
-#ifndef USE_CRT_DLL
-  extern char **environ;
-#endif
-
   if (initialized)
     {
       if (!malloc_using_checking)
@@ -710,15 +684,16 @@ main (int argc, char **argv)
   Lisp_Object dummy;
 #endif
   char stack_bottom_variable;
-  int do_initial_setlocale;
+  bool do_initial_setlocale;
+  bool dumping;
   int skip_args = 0;
 #ifdef HAVE_SETRLIMIT
   struct rlimit rlim;
 #endif
-  int no_loadup = 0;
+  bool no_loadup = 0;
   char *junk = 0;
   char *dname_arg = 0;
-#ifdef NS_IMPL_COCOA
+#ifdef DAEMON_MUST_EXEC
   char dname_arg2[80];
 #endif
   char *ch_to_dir;
@@ -727,7 +702,7 @@ main (int argc, char **argv)
   stack_base = &dummy;
 #endif
 
-#if defined (USE_GTK) && defined (G_SLICE_ALWAYS_MALLOC)
+#ifdef G_SLICE_ALWAYS_MALLOC
   /* This is used by the Cygwin build.  */
   setenv ("G_SLICE", "always-malloc", 1);
 #endif
@@ -807,12 +782,11 @@ main (int argc, char **argv)
 	exit (1);
       }
 
+  dumping = !initialized && (strcmp (argv[argc - 1], "dump") == 0
+			     || strcmp (argv[argc - 1], "bootstrap") == 0);
 
 #ifdef HAVE_PERSONALITY_LINUX32
-  if (!initialized
-      && (strcmp (argv[argc-1], "dump") == 0
-          || strcmp (argv[argc-1], "bootstrap") == 0)
-      && ! getenv ("EMACS_HEAP_EXEC"))
+  if (dumping && ! getenv ("EMACS_HEAP_EXEC"))
     {
       static char heapexec[] = "EMACS_HEAP_EXEC=true";
       /* Set this so we only do this once.  */
@@ -880,19 +854,11 @@ main (int argc, char **argv)
   /* Arrange to get warning messages as memory fills up.  */
   memory_warnings (0, malloc_warning);
 
-  /* Call malloc at least once, to run the initial __malloc_hook.
+  /* Call malloc at least once, to run malloc_initialize_hook.
      Also call realloc and free for consistency.  */
   free (realloc (malloc (4), 4));
 
-# ifndef SYNC_INPUT
-  /* Arrange to disable interrupt input inside malloc etc.  */
-  uninterrupt_malloc ();
-# endif /* not SYNC_INPUT */
 #endif	/* not SYSTEM_MALLOC */
-
-#ifdef FORWARD_SIGNAL_TO_MAIN_THREAD
-  main_thread = pthread_self ();
-#endif /* FORWARD_SIGNAL_TO_MAIN_THREAD */
 
 #if defined (MSDOS) || defined (WINDOWSNT)
   /* We do all file input/output as binary files.  When we need to translate
@@ -1022,25 +988,19 @@ main (int argc, char **argv)
 	  exit (1);
 	}
 
-#ifndef NS_IMPL_COCOA
+#ifndef DAEMON_MUST_EXEC
 #ifdef USE_GTK
       fprintf (stderr, "\nWarning: due to a long standing Gtk+ bug\nhttp://bugzilla.gnome.org/show_bug.cgi?id=85715\n\
 Emacs might crash when run in daemon mode and the X11 connection is unexpectedly lost.\n\
 Using an Emacs configured with --with-x-toolkit=lucid does not have this problem.\n");
-#endif
+#endif /* USE_GTK */
       f = fork ();
-#else /* NS_IMPL_COCOA */
-      /* Under Cocoa we must do fork+exec as CoreFoundation lib fails in
-         forked process: http://developer.apple.com/ReleaseNotes/
-                                  CoreFoundation/CoreFoundation.html)
-         We mark being in the exec'd process by a daemon name argument of
-         form "--daemon=\nFD0,FD1\nNAME" where FD are the pipe file descriptors,
-         NAME is the original daemon name, if any. */
+#else /* DAEMON_MUST_EXEC */
       if (!dname_arg || !strchr (dname_arg, '\n'))
 	  f = fork ();  /* in orig */
       else
 	  f = 0;  /* in exec'd */
-#endif /* NS_IMPL_COCOA */
+#endif /* !DAEMON_MUST_EXEC */
       if (f > 0)
 	{
 	  int retval;
@@ -1076,7 +1036,7 @@ Using an Emacs configured with --with-x-toolkit=lucid does not have this problem
 	  exit (1);
 	}
 
-#ifdef NS_IMPL_COCOA
+#ifdef DAEMON_MUST_EXEC
       {
         /* In orig process, forked as child, OR in exec'd. */
         if (!dname_arg || !strchr (dname_arg, '\n'))
@@ -1112,7 +1072,7 @@ Using an Emacs configured with --with-x-toolkit=lucid does not have this problem
                 dname_arg2);
         dname_arg = *dname_arg2 ? dname_arg2 : NULL;
       }
-#endif /* NS_IMPL_COCOA */
+#endif /* DAEMON_MUST_EXEC */
 
       if (dname_arg)
        	daemon_name = xstrdup (dname_arg);
@@ -1131,123 +1091,16 @@ Using an Emacs configured with --with-x-toolkit=lucid does not have this problem
 #endif /* DOS_NT */
     }
 
+#if defined (HAVE_PTHREAD) && !defined (SYSTEM_MALLOC) && !defined (DOUG_LEA_MALLOC)
   if (! noninteractive)
     {
-#if defined (USG5) && defined (INTERRUPT_INPUT)
-      setpgrp ();
-#endif
-#if defined (HAVE_PTHREAD) && !defined (SYSTEM_MALLOC) && !defined (DOUG_LEA_MALLOC)
-      {
-        extern void malloc_enable_thread (void);
+      extern void malloc_enable_thread (void);
 
-	malloc_enable_thread ();
-      }
-#endif
+      malloc_enable_thread ();
     }
-
-  init_signals ();
-
-  /* Don't catch SIGHUP if dumping.  */
-  if (1
-#ifndef CANNOT_DUMP
-      && initialized
-#endif
-      )
-    {
-      sigblock (sigmask (SIGHUP));
-      /* In --batch mode, don't catch SIGHUP if already ignored.
-	 That makes nohup work.  */
-      if (! noninteractive
-	  || signal (SIGHUP, SIG_IGN) != SIG_IGN)
-	signal (SIGHUP, fatal_error_signal);
-      sigunblock (sigmask (SIGHUP));
-    }
-
-  if (
-#ifndef CANNOT_DUMP
-      ! noninteractive || initialized
-#else
-      1
-#endif
-      )
-    {
-      /* Don't catch these signals in batch mode if dumping.
-	 On some machines, this sets static data that would make
-	 signal fail to work right when the dumped Emacs is run.  */
-      signal (SIGQUIT, fatal_error_signal);
-      signal (SIGILL, fatal_error_signal);
-      signal (SIGTRAP, fatal_error_signal);
-#ifdef SIGUSR1
-      add_user_signal (SIGUSR1, "sigusr1");
-#endif
-#ifdef SIGUSR2
-      add_user_signal (SIGUSR2, "sigusr2");
-#endif
-#ifdef SIGABRT
-      signal (SIGABRT, fatal_error_signal);
-#endif
-#ifdef SIGHWE
-      signal (SIGHWE, fatal_error_signal);
-#endif
-#ifdef SIGPRE
-      signal (SIGPRE, fatal_error_signal);
-#endif
-#ifdef SIGORE
-      signal (SIGORE, fatal_error_signal);
-#endif
-#ifdef SIGUME
-      signal (SIGUME, fatal_error_signal);
-#endif
-#ifdef SIGDLK
-      signal (SIGDLK, fatal_error_signal);
-#endif
-#ifdef SIGCPULIM
-      signal (SIGCPULIM, fatal_error_signal);
-#endif
-#ifdef SIGIOT
-      /* This is missing on some systems - OS/2, for example.  */
-      signal (SIGIOT, fatal_error_signal);
-#endif
-#ifdef SIGEMT
-      signal (SIGEMT, fatal_error_signal);
-#endif
-      signal (SIGFPE, fatal_error_signal);
-#ifdef SIGBUS
-      signal (SIGBUS, fatal_error_signal);
-#endif
-      signal (SIGSEGV, fatal_error_signal);
-#ifdef SIGSYS
-      signal (SIGSYS, fatal_error_signal);
-#endif
-      /*  May need special treatment on MS-Windows. See
-          http://lists.gnu.org/archive/html/emacs-devel/2010-09/msg01062.html
-          Please update the doc of kill-emacs, kill-emacs-hook, and
-          NEWS if you change this.
-      */
-      if (noninteractive) signal (SIGINT, fatal_error_signal);
-      signal (SIGTERM, fatal_error_signal);
-#ifdef SIGXCPU
-      signal (SIGXCPU, fatal_error_signal);
-#endif
-#ifdef SIGXFSZ
-      signal (SIGXFSZ, fatal_error_signal);
-#endif /* SIGXFSZ */
-
-#ifdef SIGDANGER
-      /* This just means available memory is getting low.  */
-      signal (SIGDANGER, memory_warning_signal);
 #endif
 
-#ifdef AIX
-/* 20 is SIGCHLD, 21 is SIGTTIN, 22 is SIGTTOU.  */
-      signal (SIGXCPU, fatal_error_signal);
-      signal (SIGIOINT, fatal_error_signal);
-      signal (SIGGRANT, fatal_error_signal);
-      signal (SIGRETRACT, fatal_error_signal);
-      signal (SIGSOUND, fatal_error_signal);
-      signal (SIGMSG, fatal_error_signal);
-#endif /* AIX */
-    }
+  init_signals (dumping);
 
   noninteractive1 = noninteractive;
 
@@ -1258,7 +1111,6 @@ Using an Emacs configured with --with-x-toolkit=lucid does not have this problem
       init_alloc_once ();
       init_obarray ();
       init_eval_once ();
-      init_character_once ();
       init_charset_once ();
       init_coding_once ();
       init_syntax_once ();	/* Create standard syntax table.  */
@@ -1310,12 +1162,9 @@ Using an Emacs configured with --with-x-toolkit=lucid does not have this problem
     }
 
   init_eval ();
-  init_data ();
-#ifdef CLASH_DETECTION
-  init_filelock ();
-#endif
   init_atimer ();
   running_asynch_code = 0;
+  init_random ();
 
   no_loadup
     = argmatch (argv, argc, "-nl", "--no-loadup", 6, NULL, &skip_args);
@@ -1427,14 +1276,7 @@ Using an Emacs configured with --with-x-toolkit=lucid does not have this problem
   globals_of_w32 ();
   /* Initialize environment from registry settings.  */
   init_environment (argv);
-  init_ntproc ();	/* must precede init_editfns.  */
-#endif
-
-#ifdef HAVE_NS
-#ifndef CANNOT_DUMP
-  if (initialized)
-#endif
-    ns_init_paths ();
+  init_ntproc (dumping); /* must precede init_editfns.  */
 #endif
 
   /* Initialize and GC-protect Vinitial_environment and
@@ -1445,8 +1287,7 @@ Using an Emacs configured with --with-x-toolkit=lucid does not have this problem
   /* egetenv is a pretty low-level facility, which may get called in
      many circumstances; it seems flimsy to put off initializing it
      until calling init_callproc.  Do not do it when dumping.  */
-  if (initialized || ((strcmp (argv[argc-1], "dump") != 0
-		       && strcmp (argv[argc-1], "bootstrap") != 0)))
+  if (! dumping)
     set_initial_environment ();
 
   /* AIX crashes are reported in system versions 3.2.3 and 3.2.4
@@ -1474,6 +1315,10 @@ Using an Emacs configured with --with-x-toolkit=lucid does not have this problem
 
   init_callproc ();	/* Must follow init_cmdargs but not init_sys_modes.  */
   init_lread ();
+#ifdef WINDOWSNT
+  /* Check to see if Emacs has been installed correctly.  */
+  check_windows_init_file ();
+#endif
 
   /* Intern the names of all standard functions and variables;
      define standard keys.  */
@@ -1525,6 +1370,9 @@ Using an Emacs configured with --with-x-toolkit=lucid does not have this problem
 #ifdef WINDOWSNT
       syms_of_ntproc ();
 #endif /* WINDOWSNT */
+#if defined CYGWIN && defined HAVE_NTGUI
+      syms_of_cygw32 ();
+#endif
       syms_of_window ();
       syms_of_xdisp ();
       syms_of_font ();
@@ -1555,10 +1403,13 @@ Using an Emacs configured with --with-x-toolkit=lucid does not have this problem
 #ifdef HAVE_NTGUI
       syms_of_w32term ();
       syms_of_w32fns ();
-      syms_of_w32select ();
       syms_of_w32menu ();
       syms_of_fontset ();
 #endif /* HAVE_NTGUI */
+
+#if defined WINDOWSNT || defined HAVE_NTGUI
+      syms_of_w32select ();
+#endif
 
 #ifdef MSDOS
       syms_of_xmenu ();
@@ -1587,6 +1438,8 @@ Using an Emacs configured with --with-x-toolkit=lucid does not have this problem
       syms_of_ntterm ();
 #endif /* WINDOWSNT */
 
+      syms_of_profiler ();
+
       keys_of_casefiddle ();
       keys_of_cmds ();
       keys_of_buffer ();
@@ -1602,28 +1455,25 @@ Using an Emacs configured with --with-x-toolkit=lucid does not have this problem
       globals_of_w32font ();
       globals_of_w32fns ();
       globals_of_w32menu ();
-      globals_of_w32select ();
 #endif  /* HAVE_NTGUI */
+
+#if defined WINDOWSNT || defined HAVE_NTGUI
+      globals_of_w32select ();
+#endif
     }
 
   init_charset ();
 
-  init_editfns (); /* init_process uses Voperating_system_release. */
-  init_process (); /* init_display uses add_keyboard_wait_descriptor. */
+  init_editfns (); /* init_process_emacs uses Voperating_system_release. */
+  init_process_emacs (); /* init_display uses add_keyboard_wait_descriptor. */
   init_keyboard ();	/* This too must precede init_sys_modes.  */
   if (!noninteractive)
     init_display ();	/* Determine terminal type.  Calls init_sys_modes.  */
-  init_fns ();
   init_xdisp ();
 #ifdef HAVE_WINDOW_SYSTEM
   init_fringe ();
-  init_image ();
 #endif /* HAVE_WINDOW_SYSTEM */
   init_macros ();
-  init_floatfns ();
-#ifdef HAVE_SOUND
-  init_sound ();
-#endif
   init_window ();
   init_font ();
 
@@ -1668,32 +1518,14 @@ Using an Emacs configured with --with-x-toolkit=lucid does not have this problem
 #ifdef PROFILING
   if (initialized)
     {
-      extern void _mcleanup ();
 #ifdef __MINGW32__
       extern unsigned char etext asm ("etext");
 #else
       extern char etext;
 #endif
-#ifdef HAVE___EXECUTABLE_START
-      /* This symbol is defined by GNU ld to the start of the text
-	 segment.  */
-      extern char __executable_start[];
-#else
-      extern void safe_bcopy ();
-#endif
 
       atexit (_mcleanup);
-#ifdef HAVE___EXECUTABLE_START
-      monstartup (__executable_start, &etext);
-#else
-      /* This uses safe_bcopy because that function comes first in the
-	 Emacs executable.  It might be better to use something that
-	 gives the start of the text segment, but start_of_text is not
-	 defined on all systems now.  */
-      /* FIXME: Does not work on architectures with function
-	 descriptors.  */
-      monstartup (safe_bcopy, &etext);
-#endif
+      monstartup ((uintptr_t) __executable_start, (uintptr_t) &etext);
     }
   else
     moncontrol (0);
@@ -1842,7 +1674,7 @@ static const struct standard_args standard_args[] =
 static void
 sort_args (int argc, char **argv)
 {
-  char **new = (char **) xmalloc (sizeof (char *) * argc);
+  char **new = xmalloc (argc * sizeof *new);
   /* For each element of argv,
      the corresponding element of options is:
      0 for an option that takes no arguments,
@@ -1956,7 +1788,7 @@ sort_args (int argc, char **argv)
 	}
 
       if (best < 0)
-	abort ();
+	emacs_abort ();
 
       /* Copy the highest priority remaining option, with its args, to NEW.
          Unless it is a duplicate of the previous one.  */
@@ -2019,7 +1851,7 @@ all of which are called before Emacs is actually killed.  */)
   x_clipboard_manager_save_all ();
 #endif
 
-  shut_down_emacs (0, 0, STRINGP (arg) ? arg : Qnil);
+  shut_down_emacs (0, STRINGP (arg) ? arg : Qnil);
 
 #ifdef HAVE_NS
   ns_release_autorelease_pool (ns_pool);
@@ -2031,10 +1863,15 @@ all of which are called before Emacs is actually killed.  */)
   if (STRINGP (Vauto_save_list_file_name))
     unlink (SSDATA (Vauto_save_list_file_name));
 
-  exit_code = EXIT_SUCCESS;
-  if (noninteractive && (fflush (stdout) || ferror (stdout)))
+  if (INTEGERP (arg))
+    exit_code = (XINT (arg) < 0
+		 ? XINT (arg) | INT_MIN
+		 : XINT (arg) & INT_MAX);
+  else if (noninteractive && (fflush (stdout) || ferror (stdout)))
     exit_code = EXIT_FAILURE;
-  exit (INTEGERP (arg) ? XINT (arg) : exit_code);
+  else
+    exit_code = EXIT_SUCCESS;
+  exit (exit_code);
 }
 
 
@@ -2050,7 +1887,7 @@ all of which are called before Emacs is actually killed.  */)
    and Fkill_emacs.  */
 
 void
-shut_down_emacs (int sig, int no_x, Lisp_Object stuff)
+shut_down_emacs (int sig, Lisp_Object stuff)
 {
   /* Prevent running of hooks from now on.  */
   Vrun_hooks = Qnil;
@@ -2061,13 +1898,20 @@ shut_down_emacs (int sig, int no_x, Lisp_Object stuff)
   /* If we are controlling the terminal, reset terminal modes.  */
 #ifndef DOS_NT
   {
-    int pgrp = EMACS_GETPGRP (0);
-    int tpgrp = tcgetpgrp (0);
+    pid_t pgrp = EMACS_GETPGRP (0);
+    pid_t tpgrp = tcgetpgrp (0);
     if ((tpgrp != -1) && tpgrp == pgrp)
       {
 	reset_all_sys_modes ();
 	if (sig && sig != SIGTERM)
-	  fprintf (stderr, "Fatal error (%d)", sig);
+	  {
+	    static char const format[] = "Fatal error %d: ";
+	    char buf[sizeof format - 2 + INT_STRLEN_BOUND (int)];
+	    int buflen = sprintf (buf, format, sig);
+	    char const *sig_desc = safe_strsignal (sig);
+	    ignore_value (write (STDERR_FILENO, buf, buflen));
+	    ignore_value (write (STDERR_FILENO, sig_desc, strlen (sig_desc)));
+	  }
       }
   }
 #else
@@ -2085,27 +1929,10 @@ shut_down_emacs (int sig, int no_x, Lisp_Object stuff)
   unlock_all_files ();
 #endif
 
-#if 0 /* This triggers a bug in XCloseDisplay and is not needed.  */
-#ifdef HAVE_X_WINDOWS
-  /* It's not safe to call intern here.  Maybe we are crashing.  */
-  if (!noninteractive && SYMBOLP (Vinitial_window_system)
-      && SCHARS (SYMBOL_NAME (Vinitial_window_system)) == 1
-      && SREF (SYMBOL_NAME (Vinitial_window_system), 0) == 'x'
-      && ! no_x)
-    Fx_close_current_connection ();
-#endif /* HAVE_X_WINDOWS */
-#endif
-
-#ifdef SIGIO
   /* There is a tendency for a SIGIO signal to arrive within exit,
      and cause a SIGHUP because the input descriptor is already closed.  */
   unrequest_sigio ();
-  signal (SIGIO, SIG_IGN);
-#endif
-
-#ifdef WINDOWSNT
-  term_ntproc ();
-#endif
+  ignore_sigio ();
 
   /* Do this only if terminating normally, we want glyph matrices
      etc. in a core dump.  */
@@ -2124,7 +1951,11 @@ shut_down_emacs (int sig, int no_x, Lisp_Object stuff)
 #endif
 
 #ifdef HAVE_LIBXML2
-  xmlCleanupParser ();
+  xml_cleanup_parser ();
+#endif
+
+#ifdef WINDOWSNT
+  term_ntproc (0);
 #endif
 }
 
@@ -2144,7 +1975,7 @@ You must run Emacs in batch mode in order to dump it.  */)
 {
   Lisp_Object tem;
   Lisp_Object symbol;
-  int count = SPECPDL_INDEX ();
+  ptrdiff_t count = SPECPDL_INDEX ();
 
   check_pure_size ();
 
@@ -2207,12 +2038,6 @@ You must run Emacs in batch mode in order to dump it.  */)
     memory_warnings (my_edata, malloc_warning);
   }
 #endif /* not WINDOWSNT */
-#if defined (HAVE_PTHREAD) && !defined SYNC_INPUT
-  /* Pthread may call malloc before main, and then we will get an endless
-     loop, because pthread_self (see alloc.c) calls malloc the first time
-     it is called on some systems.  */
-  reset_malloc_hooks ();
-#endif
 #endif /* not SYSTEM_MALLOC */
 #ifdef DOUG_LEA_MALLOC
   malloc_state_ptr = malloc_get_state ();
@@ -2227,6 +2052,13 @@ You must run Emacs in batch mode in order to dump it.  */)
 #endif
 #ifdef DOUG_LEA_MALLOC
   free (malloc_state_ptr);
+#endif
+
+#ifdef WINDOWSNT
+  Vlibrary_cache = Qnil;
+#endif
+#ifdef HAVE_WINDOW_SYSTEM
+  reset_image_types ();
 #endif
 
   Vpurify_flag = tem;
@@ -2280,15 +2112,18 @@ synchronize_system_messages_locale (void)
 }
 #endif /* HAVE_SETLOCALE */
 
-#ifndef SEPCHAR
-#define SEPCHAR ':'
-#endif
 
 Lisp_Object
 decode_env_path (const char *evarname, const char *defalt)
 {
   const char *path, *p;
   Lisp_Object lpath, element, tem;
+#ifdef WINDOWSNT
+  bool defaulted = 0;
+  const char *emacs_dir = egetenv ("emacs_dir");
+  static const char *emacs_dir_env = "%emacs_dir%/";
+  const size_t emacs_dir_len = strlen (emacs_dir_env);
+#endif
 
   /* It's okay to use getenv here, because this function is only used
      to initialize variables when Emacs starts up, and isn't called
@@ -2298,7 +2133,12 @@ decode_env_path (const char *evarname, const char *defalt)
   else
     path = 0;
   if (!path)
-    path = defalt;
+    {
+      path = defalt;
+#ifdef WINDOWSNT
+      defaulted = 1;
+#endif
+    }
 #ifdef DOS_NT
   /* Ensure values from the environment use the proper directory separator.  */
   if (path)
@@ -2317,6 +2157,16 @@ decode_env_path (const char *evarname, const char *defalt)
 	p = path + strlen (path);
       element = (p - path ? make_string (path, p - path)
 		 : build_string ("."));
+#ifdef WINDOWSNT
+      /* Relative file names in the default path are interpreted as
+	 being relative to $emacs_dir.  */
+      if (emacs_dir && defaulted
+	  && strncmp (path, emacs_dir_env, emacs_dir_len) == 0)
+	element = Fexpand_file_name (Fsubstring (element,
+						 make_number (emacs_dir_len),
+						 Qnil),
+				     build_string (emacs_dir));
+#endif
 
       /* Add /: to the front of the name
 	 if it would otherwise be treated as magic.  */
@@ -2365,7 +2215,7 @@ from the parent process and its tty file descriptors.  */)
   (void)
 {
   int nfd;
-  int err = 0;
+  bool err = 0;
 
   if (!IS_DAEMON)
     error ("This function can only be called if emacs is run as a daemon");
@@ -2436,7 +2286,7 @@ Special values:
 Anything else (in Emacs 24.1, the possibilities are: aix, berkeley-unix,
 hpux, irix, usg-unix-v) indicates some sort of Unix system.  */);
   Vsystem_type = intern_c_string (SYSTEM_TYPE);
-  /* The above values are from SYSTEM_TYPE in include files under src/s.  */
+  /* See configure.ac (and config.nt) for the possible SYSTEM_TYPEs.  */
 
   DEFVAR_LISP ("system-configuration", Vsystem_configuration,
 	       doc: /* Value is string indicating configuration Emacs was built for.
@@ -2452,7 +2302,7 @@ Emacs is running.  */);
 	       doc: /* Non-nil means Emacs is running without interactive terminal.  */);
 
   DEFVAR_LISP ("kill-emacs-hook", Vkill_emacs_hook,
-	       doc: /* Hook to be run when `kill-emacs' is called.
+	       doc: /* Hook run when `kill-emacs' is called.
 Since `kill-emacs' may be invoked when the terminal is disconnected (or
 in other similar situations), functions placed on this hook should not
 expect to be able to interact with the user.  To ask for confirmation,
@@ -2542,6 +2392,11 @@ Also note that this is not a generic facility for accessing external
 libraries; only those already known by Emacs will be loaded.  */);
   Vdynamic_library_alist = Qnil;
   Fput (intern_c_string ("dynamic-library-alist"), Qrisky_local_variable, Qt);
+
+#ifdef WINDOWSNT
+  Vlibrary_cache = Qnil;
+  staticpro (&Vlibrary_cache);
+#endif
 
   /* Make sure IS_DAEMON starts up as false.  */
   daemon_pipe[1] = 0;

@@ -33,30 +33,32 @@
 ;;; Code:
 
 (defun semantic-gcc-query (gcc-cmd &rest gcc-options)
-  "Return program output to both standard output and standard error.
+  "Return program output or error code in case error happens.
 GCC-CMD is the program to execute and GCC-OPTIONS are the options
 to give to the program."
   ;; $ gcc -v
   ;;
-  (let ((buff (get-buffer-create " *gcc-query*"))
-        (old-lc-messages (getenv "LC_ALL")))
+  (let* ((buff (get-buffer-create " *gcc-query*"))
+         (old-lc-messages (getenv "LC_ALL"))
+         (options `(,nil ,(cons buff t) ,nil ,@gcc-options))
+         (err 0))
     (with-current-buffer buff
       (erase-buffer)
       (setenv "LC_ALL" "C")
       (condition-case nil
-          (apply 'call-process gcc-cmd nil (cons buff t) nil gcc-options)
+          (setq err (apply 'call-process gcc-cmd options))
         (error ;; Some bogus directory for the first time perhaps?
          (let ((default-directory (expand-file-name "~/")))
            (condition-case nil
-               (apply 'call-process gcc-cmd nil (cons buff t) nil gcc-options)
+               (setq err (apply 'call-process gcc-cmd options))
              (error ;; gcc doesn't exist???
               nil)))))
       (setenv "LC_ALL" old-lc-messages)
       (prog1
-          (buffer-string)
-        (kill-buffer buff)
-        )
-      )))
+          (if (zerop err)
+              (buffer-string)
+            err)
+        (kill-buffer buff)))))
 
 ;;(semantic-gcc-get-include-paths "c")
 ;;(semantic-gcc-get-include-paths "c++")
@@ -148,7 +150,14 @@ It should also include other symbols GCC was compiled with.")
   (interactive)
   (let* ((fields (or semantic-gcc-setup-data
                      (semantic-gcc-fields (semantic-gcc-query "gcc" "-v"))))
-         (defines (semantic-cpp-defs (semantic-gcc-query "cpp" "-E" "-dM" "-x" "c++" null-device)))
+         (cpp-options `("-E" "-dM" "-x" "c++" ,null-device))
+         (query (let ((q (apply 'semantic-gcc-query "cpp" cpp-options)))
+                  (if (stringp q)
+                      q
+                    ;; `cpp' command in `semantic-gcc-setup' doesn't work on
+                    ;; Mac, try `gcc'.
+                    (apply 'semantic-gcc-query "gcc" cpp-options))))
+         (defines (semantic-cpp-defs query))
          (ver (cdr (assoc 'version fields)))
          (host (or (cdr (assoc 'target fields))
                    (cdr (assoc '--target fields))
@@ -156,13 +165,14 @@ It should also include other symbols GCC was compiled with.")
          (prefix (cdr (assoc '--prefix fields)))
          ;; gcc output supplied paths
          (c-include-path (semantic-gcc-get-include-paths "c"))
-         (c++-include-path (semantic-gcc-get-include-paths "c++")))
+         (c++-include-path (semantic-gcc-get-include-paths "c++"))
+	 (gcc-exe (locate-file "gcc" exec-path exec-suffixes 'executable))
+	 )
     ;; Remember so we don't have to call GCC twice.
     (setq semantic-gcc-setup-data fields)
-    (unless c-include-path
+    (when (and (not c-include-path) gcc-exe)
       ;; Fallback to guesses
       (let* ( ;; gcc include dirs
-             (gcc-exe (locate-file "gcc" exec-path exec-suffixes 'executable))
              (gcc-root (expand-file-name ".." (file-name-directory gcc-exe)))
              (gcc-include (expand-file-name "include" gcc-root))
              (gcc-include-c++ (expand-file-name "c++" gcc-include))
@@ -196,20 +206,24 @@ It should also include other symbols GCC was compiled with.")
       (semantic-add-system-include D 'c-mode))
     (dolist (D (semantic-gcc-get-include-paths "c++"))
       (semantic-add-system-include D 'c++-mode)
-      (let ((cppconfig (concat D "/bits/c++config.h")))
-        ;; Presumably there will be only one of these files in the try-paths list...
-        (when (file-readable-p cppconfig)
+      (let ((cppconfig (list (concat D "/bits/c++config.h") (concat D "/sys/cdefs.h"))))
+	(dolist (cur cppconfig)
+	  ;; Presumably there will be only one of these files in the try-paths list...
+	  (when (file-readable-p cur)
           ;; Add it to the symbol file
           (if (boundp 'semantic-lex-c-preprocessor-symbol-file)
               ;; Add to the core macro header list
-              (add-to-list 'semantic-lex-c-preprocessor-symbol-file cppconfig)
+              (add-to-list 'semantic-lex-c-preprocessor-symbol-file cur)
             ;; Setup the core macro header
-            (setq semantic-lex-c-preprocessor-symbol-file (list cppconfig)))
-          )))
+            (setq semantic-lex-c-preprocessor-symbol-file (list cur)))
+          ))))
     (if (not (boundp 'semantic-lex-c-preprocessor-symbol-map))
         (setq semantic-lex-c-preprocessor-symbol-map nil))
     (dolist (D defines)
       (add-to-list 'semantic-lex-c-preprocessor-symbol-map D))
+    ;; Needed for parsing OS X libc
+    (when (eq system-type 'darwin)
+      (add-to-list 'semantic-lex-c-preprocessor-symbol-map '("__i386__" . "")))
     (when (featurep 'semantic/bovine/c)
       (semantic-c-reset-preprocessor-symbol-map))
     nil))

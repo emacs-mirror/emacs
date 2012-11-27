@@ -61,7 +61,7 @@ is currently being evaluated.")
   (org-babel-execute:C++ body params))
 
 (defun org-babel-execute:C++ (body params)
-    "Execute a block of C++ code with org-babel.  This function is
+  "Execute a block of C++ code with org-babel.  This function is
 called by `org-babel-execute-src-block'."
   (let ((org-babel-c-variant 'cpp)) (org-babel-C-execute body params)))
 
@@ -88,9 +88,7 @@ or `org-babel-execute:C++'."
 			(cond
 			 ((equal org-babel-c-variant 'c) ".c")
 			 ((equal org-babel-c-variant 'cpp) ".cpp"))))
-         (tmp-bin-file (org-babel-temp-file
-			"C-bin-"
-			(if (equal system-type 'windows-nt) ".exe" "")))
+         (tmp-bin-file (org-babel-temp-file "C-bin-" org-babel-exeext))
          (cmdline (cdr (assoc :cmdline params)))
          (flags (cdr (assoc :flags params)))
          (full-body (org-babel-C-expand body params))
@@ -118,8 +116,8 @@ or `org-babel-execute:C++'."
 	(org-babel-pick-name
 	 (cdr (assoc :rowname-names params)) (cdr (assoc :rownames params)))))
      (org-babel-trim
-       (org-babel-eval
-	(concat tmp-bin-file (if cmdline (concat " " cmdline) "")) "")))))
+      (org-babel-eval
+       (concat tmp-bin-file (if cmdline (concat " " cmdline) "")) "")))))
 
 (defun org-babel-C-expand (body params)
   "Expand a block of C or C++ code with org-babel according to
@@ -131,22 +129,22 @@ it's header arguments."
         (defines (org-babel-read
                   (or (cdr (assoc :defines params))
                       (org-babel-read (org-entry-get nil "defines" t))))))
-     (mapconcat 'identity
-		(list
-		 ;; includes
-		 (mapconcat
-		  (lambda (inc) (format "#include %s" inc))
-		  (if (listp includes) includes (list includes)) "\n")
-		 ;; defines
-		 (mapconcat
-		  (lambda (inc) (format "#define %s" inc))
-		  (if (listp defines) defines (list defines)) "\n")
-		 ;; variables
-		 (mapconcat 'org-babel-C-var-to-C vars "\n")
-		 ;; body
-		 (if main-p
-		     (org-babel-C-ensure-main-wrap body)
-		   body) "\n") "\n")))
+    (mapconcat 'identity
+	       (list
+		;; includes
+		(mapconcat
+		 (lambda (inc) (format "#include %s" inc))
+		 (if (listp includes) includes (list includes)) "\n")
+		;; defines
+		(mapconcat
+		 (lambda (inc) (format "#define %s" inc))
+		 (if (listp defines) defines (list defines)) "\n")
+		;; variables
+		(mapconcat 'org-babel-C-var-to-C vars "\n")
+		;; body
+		(if main-p
+		    (org-babel-C-ensure-main-wrap body)
+		  body) "\n") "\n")))
 
 (defun org-babel-C-ensure-main-wrap (body)
   "Wrap body in a \"main\" function call if none exists."

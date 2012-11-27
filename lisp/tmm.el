@@ -165,14 +165,15 @@ Its value should be an event that has a binding in MENU."
     ;; tmm-km-list is an alist of (STRING . MEANING).
     ;; It has no other elements.
     ;; The order of elements in tmm-km-list is the order of the menu bar.
-    (mapc (lambda (elt)
-            (cond
-             ((stringp elt) (setq gl-str elt))
-             ((listp elt) (tmm-get-keymap elt not-menu))
-             ((vectorp elt)
-              (dotimes (i (length elt))
-                (tmm-get-keymap (cons i (aref elt i)) not-menu)))))
-          menu)
+    (if (not not-menu)
+        (map-keymap (lambda (k v) (tmm-get-keymap (cons k v))) menu)
+      (dolist (elt menu)
+        (cond
+         ((stringp elt) (setq gl-str elt))
+         ((listp elt) (tmm-get-keymap elt not-menu))
+         ((vectorp elt)
+          (dotimes (i (length elt))
+            (tmm-get-keymap (cons i (aref elt i)) not-menu))))))
     ;; Choose an element of tmm-km-list; put it in choice.
     (if (and not-menu (= 1 (length tmm-km-list)))
 	;; If this is the top-level of an x-popup-menu menu,
@@ -230,8 +231,7 @@ Its value should be an event that has a binding in MENU."
                               (- (* 2 history-len) index-of-default))))))))
       (setq choice (cdr (assoc out tmm-km-list)))
       (and (null choice)
-	   (> (length out) (length tmm-c-prompt))
-	   (string= (substring out 0 (length tmm-c-prompt)) tmm-c-prompt)
+           (string-prefix-p tmm-c-prompt out)
 	   (setq out (substring out (length tmm-c-prompt))
 		 choice (cdr (assoc out tmm-km-list))))
       (and (null choice) out
@@ -313,15 +313,13 @@ Stores a list of all the shortcuts in the free variable `tmm-short-cuts'."
 (defun tmm-define-keys (minibuffer)
   (let ((map (make-sparse-keymap)))
     (suppress-keymap map t)
-    (mapc
-     (lambda (c)
-       (if (listp tmm-shortcut-style)
-	   (define-key map (char-to-string c) 'tmm-shortcut)
-	 ;; only one kind of letters are shortcuts, so map both upcase and
-	 ;; downcase input to the same
-	 (define-key map (char-to-string (downcase c)) 'tmm-shortcut)
-	 (define-key map (char-to-string (upcase c)) 'tmm-shortcut)))
-     tmm-short-cuts)
+    (dolist (c tmm-short-cuts)
+      (if (listp tmm-shortcut-style)
+          (define-key map (char-to-string c) 'tmm-shortcut)
+        ;; only one kind of letters are shortcuts, so map both upcase and
+        ;; downcase input to the same
+        (define-key map (char-to-string (downcase c)) 'tmm-shortcut)
+        (define-key map (char-to-string (upcase c)) 'tmm-shortcut)))
     (if minibuffer
 	(progn
           (define-key map [pageup] 'tmm-goto-completions)
@@ -333,9 +331,9 @@ Stores a list of all the shortcuts in the free variable `tmm-short-cuts'."
       (use-local-map (append map (current-local-map))))))
 
 (defun tmm-completion-delete-prompt ()
-  (set-buffer standard-output)
+  (with-current-buffer standard-output
   (goto-char (point-min))
-  (delete-region (point) (search-forward "Possible completions are:\n")))
+    (delete-region (point) (search-forward "Possible completions are:\n"))))
 
 (defun tmm-remove-inactive-mouse-face ()
   "Remove the mouse-face property from inactive menu items."
@@ -354,37 +352,23 @@ Stores a list of all the shortcuts in the free variable `tmm-short-cuts'."
     (set-buffer-modified-p nil)))
 
 (defun tmm-add-prompt ()
-  (add-hook 'minibuffer-exit-hook 'tmm-delete-map nil t)
   (unless tmm-c-prompt
     (error "No active menu entries"))
   (setq tmm-old-mb-map (tmm-define-keys t))
   ;; Get window and hide it for electric mode to get correct size
-  (save-window-excursion
-    (let ((completions
-           (mapcar 'car minibuffer-completion-table)))
-      (or tmm-completion-prompt
-          (add-hook 'completion-setup-hook
-                    'tmm-completion-delete-prompt 'append))
-      (unwind-protect
-          (with-output-to-temp-buffer "*Completions*"
-            (display-completion-list completions))
-        (remove-hook 'completion-setup-hook 'tmm-completion-delete-prompt)))
-    (set-buffer "*Completions*")
+  (or tmm-completion-prompt
+      (add-hook 'completion-setup-hook
+                'tmm-completion-delete-prompt 'append))
+  (unwind-protect
+      (minibuffer-completion-help)
+    (remove-hook 'completion-setup-hook 'tmm-completion-delete-prompt))
+  (with-current-buffer "*Completions*"
     (tmm-remove-inactive-mouse-face)
     (when tmm-completion-prompt
-      (let ((buffer-read-only nil))
-        (goto-char (point-min))
-        (insert tmm-completion-prompt))))
-  (save-selected-window
-    (other-window 1)			; Electric-pop-up-window does
-					; not work in minibuffer
-    (Electric-pop-up-window "*Completions*"))
+      (let ((inhibit-read-only t))
+	(goto-char (point-min))
+	(insert tmm-completion-prompt))))
   (insert tmm-c-prompt))
-
-(defun tmm-delete-map ()
-  (remove-hook 'minibuffer-exit-hook 'tmm-delete-map t)
-  (if tmm-old-mb-map
-      (use-local-map tmm-old-mb-map)))
 
 (defun tmm-shortcut ()
   "Choose the shortcut that the user typed."
@@ -401,14 +385,13 @@ Stores a list of all the shortcuts in the free variable `tmm-short-cuts'."
 	      (choose-completion))
 	  ;; In minibuffer
 	  (delete-region (minibuffer-prompt-end) (point-max))
-	  (mapc (lambda (elt)
-		  (if (string=
-		       (substring (car elt) 0
-				  (min (1+ (length tmm-mid-prompt))
-				       (length (car elt))))
-		       (concat (char-to-string c) tmm-mid-prompt))
-		      (setq s (car elt))))
-		  tmm-km-list)
+	  (dolist (elt tmm-km-list)
+            (if (string=
+                 (substring (car elt) 0
+                            (min (1+ (length tmm-mid-prompt))
+                                 (length (car elt))))
+                 (concat (char-to-string c) tmm-mid-prompt))
+                (setq s (car elt))))
 	  (insert s)
 	  (exit-minibuffer)))))
 
@@ -451,7 +434,7 @@ It uses the free variable `tmm-table-undef' to keep undefined keys."
 		   (or (keymapp (cdr-safe (cdr-safe elt)))
 		       (eq (car (cdr-safe (cdr-safe elt))) 'lambda))
 		 (and (symbolp (cdr-safe (cdr-safe elt)))
-			       (fboundp (cdr-safe (cdr-safe elt)))))
+                      (fboundp (cdr-safe (cdr-safe elt)))))
 	       (setq km (cddr elt))
 	       (and (stringp (car elt)) (setq str (car elt))))
 
@@ -477,14 +460,15 @@ It uses the free variable `tmm-table-undef' to keep undefined keys."
 		       (eq (car (cdr-safe (cdr-safe (cdr-safe elt)))) 'lambda))
 		 (and (symbolp (cdr-safe (cdr-safe (cdr-safe elt))))
 		      (fboundp (cdr-safe (cdr-safe (cdr-safe elt))))))
-					 ; New style of easy-menu
+                                        ; New style of easy-menu
 	       (setq km (cdr (cddr elt)))
 	       (and (stringp (car elt)) (setq str (car elt))))
 
 	      ((stringp event)		; x-popup or x-popup element
-	       (if (or in-x-menu (stringp (car-safe elt)))
-		   (setq str event event nil km elt)
-		 (setq str event event nil km (cons 'keymap elt)))))
+               (setq str event)
+               (setq event nil)
+	       (setq km (if (or in-x-menu (stringp (car-safe elt)))
+                            elt (cons 'keymap elt)))))
         (unless (or (eq km 'ignore) (null str))
           (let ((binding (where-is-internal km nil t)))
             (when binding
@@ -524,6 +508,10 @@ of `menu-bar-final-items'."
 	(progn
 	  ;; Otherwise, it is a prefix, so make a list of the subcommands.
 	  ;; Make a list of all the bindings in all the keymaps.
+          ;; FIXME: we'd really like to just use `key-binding' now that it
+          ;; returns a keymap that contains really all the bindings under that
+          ;; prefix, but `keyseq' is always [menu-bar], so the desired order of
+          ;; the bindings is difficult to recover.
 	  (setq minorbind (mapcar 'cdr (minor-mode-key-binding keyseq)))
 	  (setq localbind (local-key-binding keyseq))
 	  (setq globalbind (copy-sequence (cdr (global-key-binding keyseq))))
@@ -540,19 +528,15 @@ of `menu-bar-final-items'."
 	  (setq allbind (cons globalbind (cons localbind minorbind)))
 
 	  ;; Merge all the elements of ALLBIND into one keymap.
-	  (mapc (lambda (in)
-		  (if (and (symbolp in) (keymapp in))
-		      (setq in (symbol-function in)))
-		  (and in (keymapp in)
-		       (if (keymapp bind)
-			   (setq bind (nconc bind (copy-sequence (cdr in))))
-			 (setq bind (copy-sequence in)))))
-		  allbind)
+	  (dolist (in allbind)
+            (if (and (symbolp in) (keymapp in))
+                (setq in (symbol-function in)))
+            (and in (keymapp in)
+                 (setq bind (if (keymapp bind)
+                                (nconc bind (copy-sequence (cdr in)))
+                              (copy-sequence in)))))
 	  ;; Return that keymap.
 	  bind))))
-
-;; Huh?  What's that about?  --Stef
-(add-hook 'calendar-load-hook (lambda () (require 'cal-menu)))
 
 (provide 'tmm)
 

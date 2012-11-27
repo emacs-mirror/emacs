@@ -309,7 +309,7 @@ Full key sequences are listed below:")
 (defun quail-define-inscript-package (char-tables key-tables pkgname lang
                                                   title docstring)
   (funcall 'quail-define-package pkgname lang title nil docstring
-	   nil nil nil nil nil nil nil nil)
+	   nil nil nil t nil nil nil nil)
   (let (char-table key-table char key)
     (while (and char-tables key-tables)
       (setq char-table  (car char-tables)

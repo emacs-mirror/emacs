@@ -222,27 +222,6 @@ then use this hook to rsh to the remote machine and start a proxy NNTP
 server there that you can connect to.  See also
 `nntp-open-connection-function'")
 
-(defvoo nntp-coding-system-for-read 'binary
-  "*Coding system to read from NNTP.")
-
-(defvoo nntp-coding-system-for-write 'binary
-  "*Coding system to write to NNTP.")
-
-;; Marks
-(defvoo nntp-marks-is-evil nil
-  "*If non-nil, Gnus will never generate and use marks file for nntp groups.
-See `nnml-marks-is-evil' for more information.")
-
-(defvoo nntp-marks-file-name ".marks")
-(defvoo nntp-marks nil)
-(defvar nntp-marks-modtime (gnus-make-hashtable))
-
-(defcustom nntp-marks-directory
-  (nnheader-concat gnus-directory "marks/")
-  "*The directory where marks for nntp groups will be stored."
-  :group 'nntp
-  :type 'directory)
-
 (defcustom nntp-authinfo-file "~/.authinfo"
   ".netrc-like file that holds nntp authinfo passwords."
   :group 'nntp
@@ -344,26 +323,26 @@ backend doesn't catch this error.")
     (insert (format-time-string "%Y%m%dT%H%M%S.%3N")
 	    " " nntp-address " " string "\n")))
 
+(defvar nntp--report-1 nil)
+
 (defun nntp-report (&rest args)
   "Report an error from the nntp backend.  The first string in ARGS
 can be a format string.  For some commands, the failed command may be
 retried once before actually displaying the error report."
+  (if nntp--report-1
+      (progn
+        ;; Throw out to nntp-with-open-group-error so that the connection may
+        ;; be restored and the command retried."
+        (when nntp-record-commands
+          (nntp-record-command "*** CONNECTION LOST ***"))
+        (throw 'nntp-with-open-group-error t))
 
-  (when nntp-record-commands
-    (nntp-record-command "*** CALLED nntp-report ***"))
+    (when nntp-record-commands
+      (nntp-record-command "*** CALLED nntp-report ***"))
 
-  (nnheader-report 'nntp args)
+    (nnheader-report 'nntp args)
 
-  (apply 'error args))
-
-(defun nntp-report-1 (&rest args)
-  "Throws out to nntp-with-open-group-error so that the connection may
-be restored and the command retried."
-
-  (when nntp-record-commands
-    (nntp-record-command "*** CONNECTION LOST ***"))
-
-  (throw 'nntp-with-open-group-error t))
+    (apply 'error args)))
 
 (defmacro nntp-copy-to-buffer (buffer start end)
   "Copy string from unibyte current buffer to multibyte buffer."
@@ -633,10 +612,6 @@ be restored and the command retried."
    (t
     nil)))
 
-(eval-when-compile
-  (defvar nntp-with-open-group-internal nil)
-  (defvar nntp-report-n nil))
-
 (defun nntp-with-open-group-function (-group -server -connectionless -bodyfun)
   "Protect against servers that don't like clients that keep idle connections opens.
 The problem being that these servers may either close a connection or
@@ -647,9 +622,9 @@ connection timeouts (which may be several minutes) or
 `nntp-connection-timeout' has expired.  When these occur
 `nntp-with-open-group', opens a new connection then re-issues the NNTP
 command whose response triggered the error."
-  (letf ((nntp-report-n (symbol-function 'nntp-report))
-         ((symbol-function 'nntp-report) (symbol-function 'nntp-report-1))
-         (nntp-with-open-group-internal nil))
+  (let ((nntp-report-n nntp--report-1)
+        (nntp--report-1 t)
+        (nntp-with-open-group-internal nil))
     (while (catch 'nntp-with-open-group-error
              ;; Open the connection to the server
              ;; NOTE: Existing connections are NOT tested.
@@ -685,7 +660,7 @@ command whose response triggered the error."
                  (when -timer
                    (nnheader-cancel-timer -timer)))
                nil))
-      (setf (symbol-function 'nntp-report) nntp-report-n))
+      (setq nntp--report-1 nntp-report-n))
     nntp-with-open-group-internal))
 
 (defmacro nntp-with-open-group (group server &optional connectionless &rest forms)
@@ -830,7 +805,8 @@ command whose response triggered the error."
 	      (progn
 		(nntp-copy-to-buffer nntp-server-buffer
 				     (point-min) (point-max))
-		(gnus-groups-to-gnus-format method gnus-active-hashtb t))
+		(with-current-buffer nntp-server-buffer
+		  (gnus-groups-to-gnus-format method gnus-active-hashtb t)))
 	    ;; We have read active entries, so we just delete the
 	    ;; superfluous gunk.
 	    (goto-char (point-min))
@@ -1188,43 +1164,6 @@ command whose response triggered the error."
 (deffoo nntp-asynchronous-p ()
   t)
 
-(deffoo nntp-request-set-mark (group actions &optional server)
-  (when (and (not nntp-marks-is-evil)
-	     nntp-marks-file-name)
-    (nntp-possibly-create-directory group server)
-    (nntp-open-marks group server)
-    (setq nntp-marks (nnheader-update-marks-actions nntp-marks actions))
-    (nntp-save-marks group server))
-  nil)
-
-(deffoo nntp-request-marks (group info &optional server)
-  (when (and (not nntp-marks-is-evil)
-	     nntp-marks-file-name)
-    (nntp-possibly-create-directory group server)
-    (when (nntp-marks-changed-p group server)
-      (nnheader-message 8 "Updating marks for %s..." group)
-      (nntp-open-marks group server)
-      ;; Update info using `nntp-marks'.
-      (mapc (lambda (pred)
-	      (unless (memq (cdr pred) gnus-article-unpropagated-mark-lists)
-		(gnus-info-set-marks
-		 info
-		 (gnus-update-alist-soft
-		  (cdr pred)
-		  (cdr (assq (cdr pred) nntp-marks))
-		  (gnus-info-marks info))
-		 t)))
-	    gnus-article-mark-lists)
-      (let ((seen (cdr (assq 'read nntp-marks))))
-	(gnus-info-set-read info
-			    (if (and (integerp (car seen))
-				     (null (cdr seen)))
-				(list (cons (car seen) (car seen)))
-			      seen)))
-      (nnheader-message 8 "Updating marks for %s...done" group)))
-  nil)
-
-
 
 ;;; Hooky functions.
 
@@ -1291,30 +1230,6 @@ If SEND-IF-FORCE, only send authinfo to the server if the
 		     (read-passwd (format "NNTP (%s@%s) password: "
 					  user nntp-address))))))))))
 
-(defun nntp-send-nosy-authinfo ()
-  "Send the AUTHINFO to the nntp server."
-  (let ((user (read-string (format "NNTP (%s) user name: " nntp-address))))
-    (unless (member user '(nil ""))
-      (nntp-send-command "^3.*\r?\n" "AUTHINFO USER" user)
-      (when t				;???Should check if AUTHINFO succeeded
-	(nntp-send-command "^2.*\r?\n" "AUTHINFO PASS"
-			   (read-passwd (format "NNTP (%s@%s) password: "
-						user nntp-address)))))))
-
-(defun nntp-send-authinfo-from-file ()
-  "Send the AUTHINFO to the nntp server.
-
-The authinfo login name is taken from the user's login name and the
-password contained in '~/.nntp-authinfo'."
-  (when (file-exists-p "~/.nntp-authinfo")
-    (with-temp-buffer
-      (insert-file-contents "~/.nntp-authinfo")
-      (goto-char (point-min))
-      (nntp-send-command "^3.*\r?\n" "AUTHINFO USER" (user-login-name))
-      (nntp-send-command
-       "^2.*\r?\n" "AUTHINFO PASS"
-       (buffer-substring (point) (point-at-eol))))))
-
 ;;; Internal functions.
 
 (defun nntp-handle-authinfo (process)
@@ -1355,8 +1270,8 @@ password contained in '~/.nntp-authinfo'."
 		   (nntp-kill-buffer ,pbuffer)))))
 	 (process
 	  (condition-case err
-	      (let ((coding-system-for-read nntp-coding-system-for-read)
-		    (coding-system-for-write nntp-coding-system-for-write)
+	      (let ((coding-system-for-read 'binary)
+		    (coding-system-for-write 'binary)
 		    (map '((nntp-open-network-stream network)
 			   (network-only plain) ; compat
 			   (nntp-open-plain-stream plain)
@@ -1440,14 +1355,6 @@ password contained in '~/.nntp-authinfo'."
 	  nntp-process-callback callback
 	  nntp-process-start-point (point-max))
     (setq after-change-functions '(nntp-after-change-function))))
-
-(defun nntp-async-timer-handler ()
-  (mapcar
-   (lambda (proc)
-     (if (memq (process-status proc) '(open run))
-	 (nntp-async-trigger proc)
-       (nntp-async-stop proc)))
-   nntp-async-process-list))
 
 (defun nntp-async-stop (proc)
   (setq nntp-async-process-list (delq proc nntp-async-process-list))
@@ -2164,95 +2071,6 @@ Please refer to the following variables to customize the connection:
 	(forward-line 1)
 	(delete-region (point) (point-max)))
       proc)))
-
-;; Marks handling
-
-(defun nntp-marks-directory (server)
-  (expand-file-name server nntp-marks-directory))
-
-(defvar nntp-server-to-method-cache nil
-  "Alist of servers and select methods.")
-
-(defun nntp-group-pathname (server group &optional file)
-  "Return an absolute file name of FILE for GROUP on SERVER."
-  (let ((method (cdr (assoc server nntp-server-to-method-cache))))
-    (unless method
-      (push (cons server (setq method (or (gnus-server-to-method server)
-					  (gnus-find-method-for-group group))))
-	    nntp-server-to-method-cache))
-    (nnmail-group-pathname
-     (mm-decode-coding-string group
-			      (inline (gnus-group-name-charset method group)))
-     (nntp-marks-directory server)
-     file)))
-
-(defun nntp-possibly-create-directory (group server)
-  (let ((dir (nntp-group-pathname server group))
-	(file-name-coding-system nnmail-pathname-coding-system))
-    (unless (file-exists-p dir)
-      (make-directory (directory-file-name dir) t)
-      (nnheader-message 5 "Creating nntp marks directory %s" dir))))
-
-(autoload 'time-less-p "time-date")
-
-(defun nntp-marks-changed-p (group server)
-  (let ((file (nntp-group-pathname server group nntp-marks-file-name))
-	(file-name-coding-system nnmail-pathname-coding-system))
-    (if (null (gnus-gethash file nntp-marks-modtime))
-	t ;; never looked at marks file, assume it has changed
-      (time-less-p (gnus-gethash file nntp-marks-modtime)
-		   (nth 5 (file-attributes file))))))
-
-(defun nntp-save-marks (group server)
-  (let ((file-name-coding-system nnmail-pathname-coding-system)
-	(file (nntp-group-pathname server group nntp-marks-file-name)))
-    (condition-case err
-	(progn
-	  (nntp-possibly-create-directory group server)
-	  (with-temp-file file
-	    (erase-buffer)
-	    (gnus-prin1 nntp-marks)
-	    (insert "\n"))
-	  (gnus-sethash file
-			(nth 5 (file-attributes file))
-			nntp-marks-modtime))
-      (error (or (gnus-yes-or-no-p
-		  (format "Could not write to %s (%s).  Continue? " file err))
-		 (error "Cannot write to %s (%s)" file err))))))
-
-(defun nntp-open-marks (group server)
-  (let ((file (nntp-group-pathname server group nntp-marks-file-name))
-	(file-name-coding-system nnmail-pathname-coding-system))
-    (if (file-exists-p file)
-	(condition-case err
-	    (with-temp-buffer
-	      (gnus-sethash file (nth 5 (file-attributes file))
-			    nntp-marks-modtime)
-	      (nnheader-insert-file-contents file)
-	      (setq nntp-marks (read (current-buffer)))
-	      (dolist (el gnus-article-unpropagated-mark-lists)
-		(setq nntp-marks (gnus-remassoc el nntp-marks))))
-	  (error (or (gnus-yes-or-no-p
-		      (format "Error reading nntp marks file %s (%s).  Continuing will use marks from .newsrc.eld.  Continue? " file err))
-		     (error "Cannot read nntp marks file %s (%s)" file err))))
-      ;; User didn't have a .marks file.  Probably first time
-      ;; user of the .marks stuff.  Bootstrap it from .newsrc.eld.
-      (let ((info (gnus-get-info
-		   (gnus-group-prefixed-name
-		    group
-		    (gnus-server-to-method (format "nntp:%s" server)))))
-	    (decoded-name (mm-decode-coding-string
-			   group
-			   (gnus-group-name-charset
-			    (gnus-server-to-method server) group))))
-	(nnheader-message 7 "Bootstrapping marks for %s..." decoded-name)
-	(setq nntp-marks (gnus-info-marks info))
-	(push (cons 'read (gnus-info-read info)) nntp-marks)
-	(dolist (el gnus-article-unpropagated-mark-lists)
-	  (setq nntp-marks (gnus-remassoc el nntp-marks)))
-	(nntp-save-marks group server)
-	(nnheader-message 7 "Bootstrapping marks for %s...done"
-			  decoded-name)))))
 
 (provide 'nntp)
 

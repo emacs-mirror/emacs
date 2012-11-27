@@ -212,7 +212,7 @@ Prompts for bug subject.  Leaves you in a mail buffer."
 
 	(insert ".  Please check that
 the From: line contains a valid email address.  After a delay of up
-to one day, you should receive an acknowledgement at that address.
+to one day, you should receive an acknowledgment at that address.
 
 Please write in English if possible, as the Emacs maintainers
 usually do not have translators for other languages.\n\n")))
@@ -239,6 +239,8 @@ usually do not have translators for other languages.\n\n")))
     (add-text-properties (1+ user-point) (point) prompt-properties)
 
     (insert "\n\nIn " (emacs-version) "\n")
+    (if (stringp emacs-bzr-version)
+	(insert "Bzr revision: " emacs-bzr-version "\n"))
     (if (fboundp 'x-server-vendor)
 	(condition-case nil
             ;; This is used not only for X11 but also W32 and others.
@@ -246,6 +248,13 @@ usually do not have translators for other languages.\n\n")))
                     "', version "
 		    (mapconcat 'number-to-string (x-server-version) ".") "\n")
 	  (error t)))
+    (let ((lsb (with-temp-buffer
+		 (if (eq 0 (ignore-errors
+			     (call-process "lsb_release" nil '(t nil)
+					   nil "-d")))
+		     (buffer-string)))))
+      (if (stringp lsb)
+	  (insert "System " lsb "\n")))
     (when (and system-configuration-options
 	       (not (equal system-configuration-options "")))
       (insert "Configured using:\n `configure "
@@ -254,8 +263,10 @@ usually do not have translators for other languages.\n\n")))
     (insert "Important settings:\n")
     (mapc
      (lambda (var)
-       (insert (format "  value of $%s: %s\n" var (getenv var))))
-     '("LC_ALL" "LC_COLLATE" "LC_CTYPE" "LC_MESSAGES"
+       (let ((val (getenv var)))
+	 (if val (insert (format "  value of $%s: %s\n" var val)))))
+     '("EMACSDATA" "EMACSDOC" "EMACSLOADPATH" "EMACSPATH"
+       "LC_ALL" "LC_COLLATE" "LC_CTYPE" "LC_MESSAGES"
        "LC_MONETARY" "LC_NUMERIC" "LC_TIME" "LANG" "XMODIFIERS"))
     (insert (format "  locale-coding-system: %s\n" locale-coding-system))
     (insert (format "  default enable-multibyte-characters: %s\n"
@@ -319,7 +330,7 @@ usually do not have translators for other languages.\n\n")))
     (fill-region (line-beginning-position 0) (point))
     ;; This is so the user has to type something in order to send easily.
     (use-local-map (nconc (make-sparse-keymap) (current-local-map)))
-    (define-key (current-local-map) "\C-c\C-i" 'report-emacs-bug-info)
+    (define-key (current-local-map) "\C-c\C-i" 'info-emacs-bug)
     (if can-insert-mail
 	(define-key (current-local-map) "\C-cm"
 	  'report-emacs-bug-insert-to-mailer))
@@ -342,7 +353,7 @@ usually do not have translators for other languages.\n\n")))
 		    "  Type \\[report-emacs-bug-insert-to-mailer] to copy text to your preferred mail program.\n")))
 	(terpri)
 	(princ (substitute-command-keys
-		"  Type \\[report-emacs-bug-info] to visit in Info the Emacs Manual section
+		"  Type \\[info-emacs-bug] to visit in Info the Emacs Manual section
     about when and how to write a bug report, and what
     information you should include to help fix the bug.")))
       (shrink-window-if-larger-than-buffer (get-buffer-window "*Bug Help*")))
@@ -356,10 +367,7 @@ usually do not have translators for other languages.\n\n")))
           (buffer-substring-no-properties (point-min) (point)))
     (goto-char user-point)))
 
-(defun report-emacs-bug-info ()
-  "Go to the Info node on reporting Emacs bugs."
-  (interactive)
-  (info "(emacs)Bugs"))
+(define-obsolete-function-alias 'report-emacs-bug-info 'info-emacs-bug "24.3")
 
 ;; It's the default mail mode, so it seems OK to use its features.
 (autoload 'message-bogus-recipient-p "message")
@@ -509,7 +517,6 @@ and send the mail again%s."
 		buglist))))
     (report-emacs-bug-create-existing-bugs-buffer (nreverse buglist) keywords)))
 
-;;;###autoload
 (defun report-emacs-bug-query-existing-bugs (keywords)
   "Query for KEYWORDS at `report-emacs-bug-tracker-url', and return the result.
 The result is an alist with items of the form (URL SUBJECT NO)."
@@ -519,6 +526,8 @@ The result is an alist with items of the form (URL SUBJECT NO)."
 			(replace-regexp-in-string "[[:space:]]+" "+" keywords)
 			";package=emacs")
 		'report-emacs-bug-parse-query-results (list keywords)))
+(make-obsolete 'report-emacs-bug-query-existing-bugs
+	       "use the `debbugs' package from GNU ELPA instead." "24.3")
 
 (provide 'emacsbug)
 

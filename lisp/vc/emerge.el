@@ -76,18 +76,6 @@ Commands:
 Commands must be prefixed by \\<emerge-fast-keymap>\\[emerge-basic-keymap] in `edit' mode,
 but can be invoked directly in `fast' mode.")
 
-(define-obsolete-variable-alias 'emerge-version 'emacs-version "23.2")
-
-(defun emerge-version ()
-  "Return string describing the version of Emerge.
-When called interactively, displays the version."
-  (interactive)
-  (if (called-interactively-p 'interactive)
-      (message "Emerge version %s" emacs-version)
-    emacs-version))
-
-(make-obsolete 'emerge-version 'emacs-version "23.2")
-
 ;;; Emerge configuration variables
 
 (defgroup emerge nil
@@ -524,10 +512,10 @@ replaced by emerge-fast-keymap.")
 (emerge-defvar-local emerge-old-keymap nil
   "The original local keymap for the merge buffer.")
 (emerge-defvar-local emerge-auto-advance nil
-  "*If non-nil, emerge-select-A and emerge-select-B automatically advance to
+		     "If non-nil, emerge-select-A and emerge-select-B automatically advance to
 the next difference.")
 (emerge-defvar-local emerge-skip-prefers nil
-  "*If non-nil, differences for which there is a preference are automatically
+		     "If non-nil, differences for which there is a preference are automatically
 skipped.")
 (emerge-defvar-local emerge-quit-hook nil
   "Hooks to run in the merge buffer after the merge has been finished.

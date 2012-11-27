@@ -26,7 +26,8 @@
 (eval-when-compile (require 'eshell))
 
 ;;;###autoload
-(eshell-defgroup eshell-rebind nil
+(progn
+(defgroup eshell-rebind nil
   "This module allows for special keybindings that only take effect
 while the point is in a region of input text.  By default, it binds
 C-a to move to the beginning of the input text (rather than just the
@@ -37,7 +38,7 @@ commands to cause the point to leave the input area, such as
 `backward-word', `previous-line', etc.  This module intends to mimic
 the behavior of normal shells while the user editing new input text."
   :tag "Rebind keys at input"
-  :group 'eshell-module)
+  :group 'eshell-module))
 
 ;;; User Variables:
 

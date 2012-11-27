@@ -52,7 +52,7 @@
 ;;
 ;; First make sure hideshow.el is in a directory in your `load-path'.
 ;; You can optionally byte-compile it using `M-x byte-compile-file'.
-;; Then, add the following to your ~/.emacs:
+;; Then, add the following to your init file:
 ;;
 ;; (load-library "hideshow")
 ;; (add-hook 'X-mode-hook               ; other modes similarly
@@ -238,18 +238,18 @@
   :group 'languages)
 
 (defcustom hs-hide-comments-when-hiding-all t
-  "*Hide the comments too when you do an `hs-hide-all'."
+  "Hide the comments too when you do an `hs-hide-all'."
   :type 'boolean
   :group 'hideshow)
 
 (defcustom hs-minor-mode-hook nil
-  "*Hook called when hideshow minor mode is activated or deactivated."
+  "Hook called when hideshow minor mode is activated or deactivated."
   :type 'hook
   :group 'hideshow
   :version "21.1")
 
 (defcustom hs-isearch-open 'code
-  "*What kind of hidden blocks to open when doing `isearch'.
+  "What kind of hidden blocks to open when doing `isearch'.
 One of the following symbols:
 
   code    -- open only code blocks
@@ -272,7 +272,7 @@ This has effect only if `search-invisible' is set to `open'."
     (bibtex-mode ("@\\S(*\\(\\s(\\)" 1))
     (java-mode "{" "}" "/[*/]" nil nil)
     (js-mode "{" "}" "/[*/]" nil)))
-  "*Alist for initializing the hideshow variables for different modes.
+  "Alist for initializing the hideshow variables for different modes.
 Each element has the form
   (MODE START END COMMENT-START FORWARD-SEXP-FUNC ADJUST-BEG-FUNC).
 
@@ -300,25 +300,25 @@ appropriate values.  The regexps should not contain leading or trailing
 whitespace.  Case does not matter.")
 
 (defvar hs-hide-all-non-comment-function nil
-  "*Function called if non-nil when doing `hs-hide-all' for non-comments.")
+  "Function called if non-nil when doing `hs-hide-all' for non-comments.")
 
 (defvar hs-allow-nesting nil
-  "*If non-nil, hiding remembers internal blocks.
+  "If non-nil, hiding remembers internal blocks.
 This means that when the outer block is shown again,
 any previously hidden internal blocks remain hidden.")
 
 (defvar hs-hide-hook nil
-  "*Hook called (with `run-hooks') at the end of commands to hide text.
+  "Hook called (with `run-hooks') at the end of commands to hide text.
 These commands include the toggling commands (when the result is to hide
 a block), `hs-hide-all', `hs-hide-block' and `hs-hide-level'.")
 
 (defvar hs-show-hook nil
-  "*Hook called (with `run-hooks') at the end of commands to show text.
+  "Hook called (with `run-hooks') at the end of commands to show text.
 These commands include the toggling commands (when the result is to show
 a block), `hs-show-all' and `hs-show-block'.")
 
 (defvar hs-set-up-overlay nil
-  "*Function called with one arg, OV, a newly initialized overlay.
+  "Function called with one arg, OV, a newly initialized overlay.
 Hideshow puts a unique overlay on each range of text to be hidden
 in the buffer.  Here is a simple example of how to use this variable:
 
@@ -804,12 +804,15 @@ If `hs-hide-comments-when-hiding-all' is non-nil, also hide the comments."
                   (forward-comment (point-max)))
                 (re-search-forward re (point-max) t))
          (if (match-beginning 1)
-             ;; we have found a block beginning
+             ;; We have found a block beginning.
              (progn
                (goto-char (match-beginning 1))
-               (if hs-hide-all-non-comment-function
-                   (funcall hs-hide-all-non-comment-function)
-                 (hs-hide-block-at-point t)))
+	       (unless (if hs-hide-all-non-comment-function
+			   (funcall hs-hide-all-non-comment-function)
+			 (hs-hide-block-at-point t))
+		 ;; Go to end of matched data to prevent from getting stuck
+		 ;; with an endless loop.
+		 (goto-char (match-end 0))))
            ;; found a comment, probably
            (let ((c-reg (hs-inside-comment-p)))
              (when (and c-reg (car c-reg))

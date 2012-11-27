@@ -115,7 +115,10 @@ If NOSNARF is 'lex, then return the lex token."
 	  ;; In case it's a real string, STRIPIT.
 	  (while (string-match "\\s-*\\s\"+\\s-*" ct)
 	    (setq ct (concat (substring ct 0 (match-beginning 0))
-			     (substring ct (match-end 0))))))
+			     (substring ct (match-end 0)))))
+	  ;; Remove comment delimiter at the end of the string.
+	  (when (string-match (concat (regexp-quote comment-end) "$") ct)
+	    (setq ct (substring ct 0 (match-beginning 0)))))
 	;; Now return the text.
 	ct))))
 

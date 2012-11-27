@@ -170,24 +170,26 @@ Don't use this command in Lisp programs!"
 If no one is selected, symmetric encryption will be performed.  "
 		  recipients)
 	       (if recipients
-		   (mapcar
-		    (lambda (recipient)
-		      (setq recipient-key
-			    (epa-mail--find-usable-key
-			     (epg-list-keys
-			      (epg-make-context epa-protocol)
-			      (if (string-match "@" recipient)
-				  (concat "<" recipient ">")
-				recipient))
-			     'encrypt))
-		      (unless (or recipient-key
-				  (y-or-n-p
-				   (format
-				    "No public key for %s; skip it? "
-				    recipient)))
-			(error "No public key for %s" recipient))
-		      recipient-key)
-		    recipients)))
+		   (apply
+		    'nconc
+		    (mapcar
+		     (lambda (recipient)
+		       (setq recipient-key
+			     (epa-mail--find-usable-key
+			      (epg-list-keys
+			       (epg-make-context epa-protocol)
+			       (if (string-match "@" recipient)
+				   (concat "<" recipient ">")
+				 recipient))
+			      'encrypt))
+		       (unless (or recipient-key
+				   (y-or-n-p
+				    (format
+				     "No public key for %s; skip it? "
+				     recipient)))
+			 (error "No public key for %s" recipient))
+		       (if recipient-key (list recipient-key)))
+		     recipients))))
 	     (setq sign (if verbose (y-or-n-p "Sign? ")))
 	     (if sign
 		 (epa-select-keys context

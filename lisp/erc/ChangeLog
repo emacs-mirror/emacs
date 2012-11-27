@@ -1,10 +1,162 @@
-2012-08-24  Chong Yidong  <cyd@gnu.org>
+2012-11-13  Glenn Morris  <rgm@gnu.org>
 
-	* Version 24.2 released.
+	* erc.el (erc-modules): Add "notifications".  Tweak "hecomplete" doc.
 
-2012-06-01  Chong Yidong  <cyd@gnu.org>
+2012-10-28  Stefan Monnier  <monnier@iro.umontreal.ca>
 
-	* Version 24.1 released.
+	* erc-backend.el: Only require `erc' during compilation (bug#12740).
+
+2012-10-18  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* erc-backend.el: Require `erc' instead of autoloading its macros
+	(bug#12669).
+
+2012-10-15  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* erc.el (erc-log): Make it into a defsubst.
+	(erc-with-server-buffer, define-erc-module, erc-with-buffer)
+	(erc-with-all-buffers-of-server): Use `declare'.
+	* erc-backend.el (erc-log): Adjust autoload accordingly.
+
+2012-10-07  Deniz Dogan  <deniz@dogan.se>
+
+	* erc-log.el (erc-generate-log-file-name-function):
+	Clarify tags for various choices.  (Bug#11186)
+
+2012-10-07  Glenn Morris  <rgm@gnu.org>
+
+	* erc-button.el (erc-button-alist): Remove "finger".  (Bug#4443)
+
+2012-10-07  Antoine Levitt  <antoine.levitt@gmail.com>
+
+	* erc-stamp.el (erc-format-timestamp): Don't apply intangible
+	property to invisible stamps.  (Bug#11706)
+
+2012-10-07  Glenn Morris  <rgm@gnu.org>
+
+	* erc-backend.el (NICK): Handle pre-existing buffers.  (Bug#12002)
+
+2012-10-06  Glenn Morris  <rgm@gnu.org>
+
+	* erc.el (erc-lurker):
+	* erc-desktop-notifications.el (erc-notifications):
+	Add missing group :version tags.
+
+2012-10-04  Julien Danjou  <julien@danjou.info>
+
+	* erc-desktop-notifications.el: Rename from erc-notifications to
+	avoid clash with 8+3 filename format and erc-notify.el.
+
+2012-09-25  Chong Yidong  <cyd@gnu.org>
+
+	* erc.el (erc-send-command): Use define-obsolete-function-alias.
+
+2012-09-17  Chong Yidong  <cyd@gnu.org>
+
+	* erc-page.el (erc-page-function):
+	* erc-stamp.el (erc-stamp): Doc fix.
+
+2012-08-21  Josh Feinstein <jlf@foxtail.org>
+
+	* erc-join.el (erc-autojoin-timing): Fix defcustom type.
+
+2012-08-21  Julien Danjou  <julien@danjou.info>
+
+	* erc-match.el (erc-match-message):
+	Use `erc-match-exclude-server-buffer' not
+	`erc-track-exclude-server-buffer'.
+
+2012-08-20  Josh Feinstein <jlf@foxtail.org>
+
+	* erc.el (erc-display-message): Abstract message hiding decision
+	to new function erc-hide-current-message-p.
+	(erc-lurker): New customization group.
+	(erc-lurker-state, erc-lurker-trim-nicks, erc-lurker-ignore-chars)
+	(erc-lurker-hide-list, erc-lurker-cleanup-interval)
+	(erc-lurker-threshold-time): New variables.
+	(erc-lurker-maybe-trim, erc-lurker-initialize, erc-lurker-cleanup)
+	(erc-hide-current-message-p, erc-canonicalize-server-name)
+	(erc-lurker-update-status, erc-lurker-p): New functions.
+	Together they maintain state about which users have spoken in the last
+	erc-lurker-threshold-time, with all other users being considered
+	lurkers whose messages of types in erc-lurker-hide-list will not
+	be displayed by erc-display-message.
+
+2012-08-06  Julien Danjou  <julien@danjou.info>
+
+	* erc-match.el (erc-match-exclude-server-buffer)
+	(erc-match-message): Add new option to exclude server buffer from
+	matching.
+
+2012-07-21  Julien Danjou  <julien@danjou.info>
+
+	* erc-notifications.el: New file.
+
+2012-06-15  Julien Danjou  <julien@danjou.info>
+
+	* erc.el (erc-open): Use `auth-source' for password retrieval when
+	possible.
+
+2012-06-12  Chong Yidong  <cyd@gnu.org>
+
+	* erc-dcc.el (erc-dcc-chat-filter-functions): Rename from
+	erc-dcc-chat-filter-hook, since this is an abnormal hook.
+
+2012-06-08  Chong Yidong  <cyd@gnu.org>
+
+	* erc.el (erc-direct-msg-face, erc-header-line, erc-input-face)
+	(erc-command-indicator-face, erc-notice-face, erc-action-face)
+	(erc-error-face, erc-my-nick-face, erc-nick-default-face)
+	(erc-nick-msg-face): Use new-style face specs, and avoid :bold.
+
+	* erc-button.el (erc-button):
+	* erc-goodies.el (erc-bold-face, erc-inverse-face)
+	(erc-underline-face, fg:erc-color-*):
+	* erc-match.el (erc-current-nick-face, erc-dangerous-host-face)
+	(erc-pal-face, erc-fool-face, erc-keyword-face):
+	* erc-stamp.el (erc-timestamp-face): Likewise.
+
+2012-06-02  Chong Yidong  <cyd@gnu.org>
+
+	* erc-track.el (erc-track, erc-track-faces-priority-list)
+	(erc-track-faces-normal-list, erc-track-find-face)
+	(erc-track-modified-channels): Fix modeline -> mode line in docs.
+
+2012-05-14  Mike Kazantsev  <mk.fraggod@gmail.com>  (tiny change)
+
+	* erc-dcc.el (erc-dcc-handle-ctcp-send): Fix a regression
+	introduced on 2011-11-28 when fixing quoted filenames matching,
+	the regex group was not corrected.
+
+2012-05-13  Teemu Likonen  <tlikonen@iki.fi>
+
+	* erc-backend.el (erc-server-timestamp-format): New variable to
+	allow specifying the timestamp format (bug#10779).
+
+2012-04-11  Vivek Dasmohapatra  <vivek@etla.org>
+
+	* erc-services.el (erc-nickserv-passwords): Don't display the
+	password (bug#4459).
+
+2012-04-10  Lars Magne Ingebrigtsen  <larsi@gnus.org>
+
+	* erc-join.el (erc-server-join-channel): New function to look up
+	the channel password via auth-source.
+	(erc-autojoin-channels): Use it.
+	(erc-autojoin-after-ident): Ditto.
+	(erc-autojoin-channels-alist): Mention auth-source.
+
+2012-04-10  Deniz Dogan  <deniz@dogan.se>
+
+	* erc.el (erc-display-prompt): Adds the field text property to the
+	ERC prompt.  This allows users to use `kill-whole-line' to kill
+	all text back to the prompt given that it's on a single line
+	(bug#10841).
+
+2012-04-09  Chong Yidong  <cyd@gnu.org>
+
+	* erc.el (erc-cmd-SET): Call custom-variable-p instead of
+	user-variable-p.
 
 2012-02-08  Glenn Morris  <rgm@gnu.org>
 
@@ -60,7 +212,7 @@
 
 	* erc.el (erc-ssl): Made into a synonym for erc-tls, which
 	provides a superset of the same functionality.
-	(erc-open-ssl-stream): Removed.
+	(erc-open-ssl-stream): Remove.
 	(erc-open-tls-stream): Use `open-network-stream' instead of
 	`open-tls-stream' directly to be able to use the built-in TLS
 	support.

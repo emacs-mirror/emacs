@@ -29,14 +29,22 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
    table.  Read comments in the file category.h to understand them.  */
 
 #include <config.h>
-#include <ctype.h>
-#include <setjmp.h>
+
+#define CATEGORY_INLINE EXTERN_INLINE
+
 #include "lisp.h"
-#include "buffer.h"
 #include "character.h"
+#include "buffer.h"
 #include "charset.h"
 #include "category.h"
 #include "keymap.h"
+
+/* This setter is used only in this file, so it can be private.  */
+static void
+bset_category_table (struct buffer *b, Lisp_Object val)
+{
+  b->INTERNAL_FIELD (category_table) = val;
+}
 
 /* The version number of the latest category table.  Each category
    table has a unique version number.  It is assigned a new number
@@ -49,9 +57,6 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 static int category_table_version;
 
 static Lisp_Object Qcategory_table, Qcategoryp, Qcategorysetp, Qcategory_table_p;
-
-/* Temporary internal variable used in macro CHAR_HAS_CATEGORY.  */
-Lisp_Object _temp_category_set;
 
 /* Make CATEGORY_SET includes (if VAL is t) or excludes (if VAL is
    nil) CATEGORY.  */
@@ -71,11 +76,12 @@ hash_get_category_set (Lisp_Object table, Lisp_Object category_set)
   EMACS_UINT hash;
 
   if (NILP (XCHAR_TABLE (table)->extras[1]))
-    XCHAR_TABLE (table)->extras[1]
-      = make_hash_table (Qequal, make_number (DEFAULT_HASH_SIZE),
-			 make_float (DEFAULT_REHASH_SIZE),
-			 make_float (DEFAULT_REHASH_THRESHOLD),
-			 Qnil, Qnil, Qnil);
+    set_char_table_extras
+      (table, 1,
+       make_hash_table (Qequal, make_number (DEFAULT_HASH_SIZE),
+			make_float (DEFAULT_REHASH_SIZE),
+			make_float (DEFAULT_REHASH_THRESHOLD),
+			Qnil, Qnil, Qnil));
   h = XHASH_TABLE (XCHAR_TABLE (table)->extras[1]);
   i = hash_lookup (h, category_set, &hash);
   if (i >= 0)
@@ -136,7 +142,7 @@ the current buffer's category table.  */)
     error ("Category `%c' is already defined", (int) XFASTINT (category));
   if (!NILP (Vpurify_flag))
     docstring = Fpurecopy (docstring);
-  CATEGORY_DOCSTRING (table, XFASTINT (category)) = docstring;
+  SET_CATEGORY_DOCSTRING (table, XFASTINT (category), docstring);
 
   return Qnil;
 }
@@ -238,10 +244,10 @@ copy_category_table (Lisp_Object table)
   table = copy_char_table (table);
 
   if (! NILP (XCHAR_TABLE (table)->defalt))
-    XCHAR_TABLE (table)->defalt
-      = Fcopy_sequence (XCHAR_TABLE (table)->defalt);
-  XCHAR_TABLE (table)->extras[0]
-    = Fcopy_sequence (XCHAR_TABLE (table)->extras[0]);
+    set_char_table_defalt (table,
+			   Fcopy_sequence (XCHAR_TABLE (table)->defalt));
+  set_char_table_extras
+    (table, 0, Fcopy_sequence (XCHAR_TABLE (table)->extras[0]));
   map_char_table (copy_category_entry, Qnil, table, table);
 
   return table;
@@ -270,9 +276,9 @@ DEFUN ("make-category-table", Fmake_category_table, Smake_category_table,
   int i;
 
   val = Fmake_char_table (Qcategory_table, Qnil);
-  XCHAR_TABLE (val)->defalt = MAKE_CATEGORY_SET;
+  set_char_table_defalt (val, MAKE_CATEGORY_SET);
   for (i = 0; i < (1 << CHARTAB_SIZE_BITS_0); i++)
-    XCHAR_TABLE (val)->contents[i] = MAKE_CATEGORY_SET;
+    set_char_table_contents (val, i, MAKE_CATEGORY_SET);
   Fset_char_table_extra_slot (val, make_number (0),
 			      Fmake_vector (make_number (95), Qnil));
   return val;
@@ -285,7 +291,7 @@ Return TABLE.  */)
 {
   int idx;
   table = check_category_table (table);
-  BVAR (current_buffer, category_table) = table;
+  bset_category_table (current_buffer, table);
   /* Indicate that this buffer now has a specified category table.  */
   idx = PER_BUFFER_VAR_IDX (category_table);
   SET_PER_BUFFER_VALUE_P (current_buffer, idx, 1);
@@ -304,7 +310,7 @@ DEFUN ("char-category-set", Fchar_category_set, Schar_category_set, 1, 1, 0,
 usage: (char-category-set CHAR)  */)
   (Lisp_Object ch)
 {
-  CHECK_NUMBER (ch);
+  CHECK_CHARACTER (ch);
   return CATEGORY_SET (XFASTINT (ch));
 }
 
@@ -399,17 +405,17 @@ then delete CATEGORY from the category set instead of adding it.  */)
   return Qnil;
 }
 
-/* Return 1 if there is a word boundary between two word-constituent
-   characters C1 and C2 if they appear in this order, else return 0.
+/* Return true if there is a word boundary between two word-constituent
+   characters C1 and C2 if they appear in this order.
    Use the macro WORD_BOUNDARY_P instead of calling this function
    directly.  */
 
-int
+bool
 word_boundary_p (int c1, int c2)
 {
   Lisp_Object category_set1, category_set2;
   Lisp_Object tail;
-  int default_result;
+  bool default_result;
 
   if (EQ (CHAR_TABLE_REF (Vchar_script_table, c1),
 	  CHAR_TABLE_REF (Vchar_script_table, c2)))
@@ -466,7 +472,7 @@ init_category_once (void)
 
   Vstandard_category_table = Fmake_char_table (Qcategory_table, Qnil);
   /* Set a category set which contains nothing to the default.  */
-  XCHAR_TABLE (Vstandard_category_table)->defalt = MAKE_CATEGORY_SET;
+  set_char_table_defalt (Vstandard_category_table, MAKE_CATEGORY_SET);
   Fset_char_table_extra_slot (Vstandard_category_table, make_number (0),
 			      Fmake_vector (make_number (95), Qnil));
 }

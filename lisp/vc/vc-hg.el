@@ -1,8 +1,9 @@
-;;; vc-hg.el --- VC backend for the mercurial version control system
+;;; vc-hg.el --- VC backend for the mercurial version control system  -*- lexical-binding: t -*-
 
 ;; Copyright (C) 2006-2012 Free Software Foundation, Inc.
 
 ;; Author: Ivan Kanis
+;; Maintainer: FSF
 ;; Keywords: vc tools
 ;; Package: vc
 
@@ -110,7 +111,7 @@
 ;;; Code:
 
 (eval-when-compile
-  (require 'cl)
+  (require 'cl-lib)
   (require 'vc)
   (require 'vc-dir))
 
@@ -167,7 +168,7 @@ highlighting the Log View buffer."
 (defvar vc-hg-history nil)
 
 (defun vc-hg-revision-granularity () 'repository)
-(defun vc-hg-checkout-model (files) 'implicit)
+(defun vc-hg-checkout-model (_files) 'implicit)
 
 ;;; State querying functions
 
@@ -337,10 +338,8 @@ highlighting the Log View buffer."
 
 ;; Modeled after the similar function in vc-cvs.el
 (defun vc-hg-revision-completion-table (files)
-  (lexical-let ((files files)
-                table)
-    (setq table (lazy-completion-table
-                 table (lambda () (vc-hg-revision-table files))))
+  (letrec ((table (lazy-completion-table
+                   table (lambda () (vc-hg-revision-table files)))))
     table))
 
 (defun vc-hg-annotate-command (file buffer &optional revision)
@@ -376,12 +375,12 @@ Optional arg REVISION is a revision to annotate from."
 	      (expand-file-name (match-string-no-properties 4)
 				(vc-hg-root default-directory)))))))
 
-(defun vc-hg-previous-revision (file rev)
+(defun vc-hg-previous-revision (_file rev)
   (let ((newrev (1- (string-to-number rev))))
     (when (>= newrev 0)
       (number-to-string newrev))))
 
-(defun vc-hg-next-revision (file rev)
+(defun vc-hg-next-revision (_file rev)
   (let ((newrev (1+ (string-to-number rev)))
         (tip-revision
          (with-temp-buffer
@@ -407,7 +406,7 @@ Optional arg REVISION is a revision to annotate from."
   "Rename file from OLD to NEW using `hg mv'."
   (vc-hg-command nil 0 new "mv" old))
 
-(defun vc-hg-register (files &optional rev comment)
+(defun vc-hg-register (files &optional _rev _comment)
   "Register FILES under hg.
 REV is ignored.
 COMMENT is ignored."
@@ -437,7 +436,7 @@ COMMENT is ignored."
 
 (declare-function log-edit-extract-headers "log-edit" (headers string))
 
-(defun vc-hg-checkin (files rev comment)
+(defun vc-hg-checkin (files _rev comment)
   "Hg-specific version of `vc-backend-checkin'.
 REV is ignored."
   (apply 'vc-hg-command nil 0 files
@@ -454,7 +453,7 @@ REV is ignored."
       (vc-hg-command buffer 0 file "cat"))))
 
 ;; Modeled after the similar function in vc-bzr.el
-(defun vc-hg-checkout (file &optional editable rev)
+(defun vc-hg-checkout (file &optional _editable rev)
   "Retrieve a revision of FILE.
 EDITABLE is ignored.
 REV is the revision to check out into WORKFILE."
@@ -486,7 +485,7 @@ REV is the revision to check out into WORKFILE."
 
 (defvar log-view-vc-backend)
 
-(defstruct (vc-hg-extra-fileinfo
+(cl-defstruct (vc-hg-extra-fileinfo
             (:copier nil)
             (:constructor vc-hg-create-extra-fileinfo (rename-state extra-name))
             (:conc-name vc-hg-extra-fileinfo->))
@@ -502,16 +501,15 @@ REV is the revision to check out into WORKFILE."
     (when extra
       (insert (propertize
                (format "   (%s %s)"
-                       (case (vc-hg-extra-fileinfo->rename-state extra)
-                         (copied "copied from")
-                         (renamed-from "renamed from")
-                         (renamed-to "renamed to"))
+                       (pcase (vc-hg-extra-fileinfo->rename-state extra)
+                         (`copied "copied from")
+                         (`renamed-from "renamed from")
+                         (`renamed-to "renamed to"))
                        (vc-hg-extra-fileinfo->extra-name extra))
                'face 'font-lock-comment-face)))))
 
 (defun vc-hg-after-dir-status (update-function)
-  (let ((status-char nil)
-        (file nil)
+  (let ((file nil)
         (translation '((?= . up-to-date)
                        (?C . up-to-date)
                        (?A . added)
@@ -566,7 +564,7 @@ REV is the revision to check out into WORKFILE."
   (vc-exec-after
    `(vc-hg-after-dir-status (quote ,update-function))))
 
-(defun vc-hg-dir-status-files (dir files default-state update-function)
+(defun vc-hg-dir-status-files (dir files _default-state update-function)
   (apply 'vc-hg-command (current-buffer) 'async dir "status" "-C" files)
   (vc-exec-after
    `(vc-hg-after-dir-status (quote ,update-function))))
@@ -613,6 +611,14 @@ REV is the revision to check out into WORKFILE."
                       (mapcar (lambda (arg) (list "-r" arg)) marked-list)))
       (error "No log entries selected for push"))))
 
+(defvar vc-hg-error-regexp-alist nil
+  ;; 'hg pull' does not list modified files, so, for now, the only
+  ;; benefit of `vc-compilation-mode' is that one can get rid of
+  ;; *vc-hg* buffer with 'q' or 'z'.
+  ;; TODO: call 'hg incoming' before pull/merge to get the list of
+  ;;       modified files
+  "Value of `compilation-error-regexp-alist' in *vc-hg* buffers.")
+
 (defun vc-hg-pull (prompt)
   "Issue a Mercurial pull command.
 If called interactively with a set of marked Log View buffers,
@@ -653,6 +659,7 @@ then attempts to update the working directory."
 		args       (cddr args)))
 	(apply 'vc-do-async-command buffer root hg-program
 	       command args)
+        (with-current-buffer buffer (vc-exec-after '(vc-compilation-mode 'hg)))
 	(vc-set-async-update buffer)))))
 
 (defun vc-hg-merge-branch ()
@@ -661,6 +668,7 @@ This runs the command \"hg merge\"."
   (let* ((root (vc-hg-root default-directory))
 	 (buffer (format "*vc-hg : %s*" (expand-file-name root))))
     (apply 'vc-do-async-command buffer root vc-hg-program '("merge"))
+    (with-current-buffer buffer (vc-exec-after '(vc-compilation-mode 'hg)))
     (vc-set-async-update buffer)))
 
 ;;; Internal functions

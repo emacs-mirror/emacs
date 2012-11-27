@@ -87,7 +87,7 @@ BEAMER_HEADER_EXTRA, which will be inserted just before \\begin{document}."
 
 (defconst org-beamer-column-widths
   "0.1 0.2 0.3 0.4 0.5 0.6 0.7 0.8 0.9 0.0 :ETC"
-"The column widths that should be installed as allowed property values.")
+  "The column widths that should be installed as allowed property values.")
 
 (defconst org-beamer-transitions
   "\transblindsvertical \transblindshorizontal \transboxin \transboxout \transdissolve \transduration \transglitter \transsplithorizontalin \transsplithorizontalout \transsplitverticalin \transsplitverticalout \transwipe :ETC"
@@ -107,6 +107,7 @@ These are just a completion help.")
     ("theorem"        "t" "\\begin{theorem}%a%U%x"             "\\end{theorem}")
     ("definition"     "d" "\\begin{definition}%a%U%x"          "\\end{definition}")
     ("example"        "e" "\\begin{example}%a%U%x"             "\\end{example}")
+    ("exampleblock"   "E" "\\begin{exampleblock}%a{%h}%x"      "\\end{exampleblock}")
     ("proof"          "p" "\\begin{proof}%a%U%x"               "\\end{proof}")
     ("beamercolorbox" "o" "\\begin{beamercolorbox}%o{%h}%x"    "\\end{beamercolorbox}")
     ("normal"         "h" "%h" "") ; Emit the heading as normal text
@@ -117,7 +118,7 @@ These are just a completion help.")
 These are the defaults - for user definitions, see
 `org-beamer-environments-extra'.
 \"normal\" is a special fake environment, which emit the heading as
-normal text. It is needed when an environment should be surrounded
+normal text.  It is needed when an environment should be surrounded
 by normal text.  Since beamer export converts nodes into environments,
 you need to have a node to end the environment.
 For example
@@ -154,6 +155,12 @@ close   The closing string of the environment."
 	   (string :tag "Selection key")
 	   (string :tag "Begin")
 	   (string :tag "End"))))
+
+(defcustom org-beamer-inherited-properties nil
+  "Properties that should be inherited during beamer export."
+  :group 'org-beamer
+  :type '(repeat
+	  (string :tag "Property")))
 
 (defvar org-beamer-frame-level-now nil)
 (defvar org-beamer-header-extra nil)
@@ -221,7 +228,7 @@ the tag does not have any semantic meaning."
 	(org-entry-put nil "BEAMER_env" (match-string 1 tags)))
        (t (org-entry-delete nil "BEAMER_env"))))))
 
-
+;;;###autoload
 (defun org-beamer-sectioning (level text)
   "Return the sectioning entry for the current headline.
 LEVEL is the reduced level of the headline.
@@ -363,6 +370,7 @@ org-beamer-extra are all scoped into this function dynamically."
   "The keymap for `org-beamer-mode'.")
 (define-key org-beamer-mode-map "\C-c\C-b" 'org-beamer-select-environment)
 
+;;;###autoload
 (define-minor-mode org-beamer-mode
   "Special support for editing Org-mode files made to export to beamer."
   nil " Bm" nil)
@@ -488,6 +496,12 @@ The effect is that these values will be accessible during export."
 	   (if (and (not (assoc "BEAMER_env" props))
 		    (looking-at ".*?:B_\\(note\\(NH\\)?\\):"))
 	       (push (cons "BEAMER_env" (match-string 1)) props))
+	   (when (org-bound-and-true-p org-beamer-inherited-properties)
+	     (mapc (lambda (p)
+		     (unless (assoc p props)
+		       (let ((v (org-entry-get nil p 'inherit)))
+			 (and v (push (cons p v) props)))))
+		   org-beamer-inherited-properties))
 	   (put-text-property (point-at-bol) (point-at-eol) 'org-props props)))
        (setq org-export-latex-options-plist
 	     (plist-put org-export-latex-options-plist :tags nil))))))
@@ -502,7 +516,7 @@ This function will run in the final LaTeX document."
       (while (re-search-forward org-beamer-fragile-re nil t)
 	(save-excursion
 	  ;; Are we inside a frame here?
-	  (when (and (re-search-backward "^[ \t]*\\\\\\(begin\\|end\\){frame}"
+	  (when (and (re-search-backward "^[ \t]*\\\\\\(begin\\|end\\){frame}\\(<[^>]*>\\)?"
 					 nil t)
 		     (equal (match-string 1) "begin"))
 	    ;; yes, inside a frame, make sure "fragile" is one of the options
@@ -520,7 +534,7 @@ This function will run in the final LaTeX document."
   :group 'org-beamer
   :version "24.1"
   :type '(string :tag "Outline frame title")
-)
+  )
 
 (defcustom org-beamer-outline-frame-options nil
   "Outline frame options appended after \\begin{frame}.
@@ -529,7 +543,7 @@ include square brackets."
   :group 'org-beamer
   :version "24.1"
   :type '(string :tag "Outline frame options")
-)
+  )
 
 (defun org-beamer-fix-toc ()
   "Fix the table of contents by removing the vspace line."

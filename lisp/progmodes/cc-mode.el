@@ -1,6 +1,6 @@
 ;;; cc-mode.el --- major mode for editing C and similar languages
 
-;; Copyright (C) 1985, 1987, 1992-2012  Free Software Foundation, Inc.
+;; Copyright (C) 1985, 1987, 1992-2012 Free Software Foundation, Inc.
 
 ;; Authors:    2003- Alan Mackenzie
 ;;             1998- Martin Stjernholm
@@ -1034,7 +1034,10 @@ Note that the style variables are always made local to the buffer."
 	    (mapc (lambda (fn)
 		    (funcall fn beg end))
 		  c-get-state-before-change-functions))
-	))))
+	)))
+  ;; The following must be done here rather than in `c-after-change' because
+  ;; newly inserted parens would foul up the invalidation algorithm.
+  (c-invalidate-state-cache beg))
 
 (defvar c-in-after-change-fontification nil)
 (make-variable-buffer-local 'c-in-after-change-fontification)
@@ -1082,7 +1085,7 @@ Note that the style variables are always made local to the buffer."
 
 	(c-trim-found-types beg end old-len) ; maybe we don't need all of these.
 	(c-invalidate-sws-region-after beg end)
-	(c-invalidate-state-cache beg)
+	;; (c-invalidate-state-cache beg) ; moved to `c-before-change'.
 	(c-invalidate-find-decl-cache beg)
 
 	(when c-recognize-<>-arglists
@@ -1584,7 +1587,7 @@ Key bindings:
 (easy-menu-define c-pike-menu pike-mode-map "Pike Mode Commands"
 		  (cons "Pike" (c-lang-const c-mode-menu pike)))
 
-;;;###autoload (add-to-list 'auto-mode-alist '("\\.\\(u?lpc\\|pike\\|pmod\\(.in\\)?\\)\\'" . pike-mode))
+;;;###autoload (add-to-list 'auto-mode-alist '("\\.\\(u?lpc\\|pike\\|pmod\\(\\.in\\)?\\)\\'" . pike-mode))
 ;;;###autoload (add-to-list 'interpreter-mode-alist '("pike" . pike-mode))
 
 ;;;###autoload
@@ -1703,7 +1706,9 @@ Key bindings:
   (message "Using CC Mode version %s" c-version)
   (c-keep-region-active))
 
-(defvar c-prepare-bug-report-hooks nil)
+(define-obsolete-variable-alias 'c-prepare-bug-report-hooks
+  'c-prepare-bug-report-hook "24.3")
+(defvar c-prepare-bug-report-hook nil)
 
 ;; Dynamic variables used by reporter.
 (defvar reporter-prompt-for-summary-p)
@@ -1770,7 +1775,7 @@ Key bindings:
 		lookup-syntax-properties))
 	vars)
       (lambda ()
-	(run-hooks 'c-prepare-bug-report-hooks)
+	(run-hooks 'c-prepare-bug-report-hook)
 	(insert (format "Buffer Style: %s\nc-emacs-features: %s\n"
 			style c-features)))))))
 

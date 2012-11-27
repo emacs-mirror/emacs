@@ -27,7 +27,6 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #warning "Z is defined.  If you get a later parse error in a header, check that buffer.h or other files #define-ing Z are not included."
 #endif  /* Z */
 #define Cursor FooFoo
-#undef init_process
 #endif  /* NS_IMPL_COCOA */
 
 #undef verify
@@ -36,7 +35,6 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 
 #ifdef NS_IMPL_COCOA
 #undef Cursor
-#define init_process emacs_init_process
 #endif /* NS_IMPL_COCOA */
 #import <Foundation/NSDistantObject.h>
 

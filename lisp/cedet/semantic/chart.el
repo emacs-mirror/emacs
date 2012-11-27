@@ -26,12 +26,9 @@
 ;; the output of the semantic parser.
 ;;
 
-(require 'semantic)
 (require 'chart)
 (require 'semantic/db)
-(require 'semantic/tag)
-
-(eval-when-compile (require 'semantic/find))
+(require 'semantic/find)
 
 ;;; Code:
 

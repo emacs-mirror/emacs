@@ -201,12 +201,12 @@ Pick your favorite shortcuts:
     (setq buffer-read-only t)
     (setq solitaire-stones 32)
     (solitaire-insert-board)
-    (solitaire-build-modeline)
+    (solitaire-build-mode-line)
     (goto-char (point-max))
     (setq solitaire-center (search-backward "."))
     (setq buffer-undo-list (list (point)))))
 
-(defun solitaire-build-modeline ()
+(defun solitaire-build-mode-line ()
   (setq mode-line-format
 	(list "" "---" 'mode-line-buffer-identification
 	      (if (< 1 solitaire-stones)
@@ -353,7 +353,7 @@ which a stone will be taken away) and target."
 	(insert ?o)
 	(goto-char target)
 	(setq solitaire-stones (1- solitaire-stones))
-	(solitaire-build-modeline)
+	(solitaire-build-mode-line)
 	(if solitaire-auto-eval (solitaire-do-check))))))
 
 (defun solitaire-undo (arg)
@@ -372,7 +372,7 @@ which a stone will be taken away) and target."
 		   (<= (solitaire-current-line) solitaire-end-y)
 		   (setq count (1+ count))))
 	    count)))
-  (solitaire-build-modeline)
+  (solitaire-build-mode-line)
   (when solitaire-auto-eval (solitaire-do-check)))
 
 (defun solitaire-check ()

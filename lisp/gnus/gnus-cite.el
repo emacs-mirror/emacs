@@ -509,6 +509,7 @@ Lines matching `gnus-cite-attribution-suffix' and perhaps
 	  (if (and (equal (cdadr m) "")
 		   (equal (cdar m) (cdaddr m))
 		   (goto-char (caadr m))
+		   (looking-at "[ \t]*$")
 		   (forward-line 1)
 		   (= (point) (caaddr m)))
 	      (setcdr m (cdddr m))
@@ -1162,18 +1163,6 @@ See also the documentation for `gnus-article-highlight-citation'."
 		gnus-cite-loose-attribution-alist)))
     (while vars
       (make-local-variable (pop vars)))))
-
-(defun gnus-cited-line-p ()
-  "Say whether the current line is a cited line."
-  (save-excursion
-    (beginning-of-line)
-    (let ((found nil))
-      (dolist (prefix (mapcar 'car gnus-cite-prefix-alist))
-	(when (string= (buffer-substring (point) (+ (length prefix) (point)))
-		       prefix)
-	  (setq found t)))
-      found)))
-
 
 ;; Highlighting of different citation levels in message-mode.
 ;; - message-cite-prefix will be overridden if this is enabled.

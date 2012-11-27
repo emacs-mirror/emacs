@@ -1,4 +1,4 @@
-;;; vc-mtn.el --- VC backend for Monotone
+;;; vc-mtn.el --- VC backend for Monotone  -*- lexical-binding: t -*-
 
 ;; Copyright (C) 2007-2012  Free Software Foundation, Inc.
 
@@ -32,7 +32,7 @@
 
 ;;; Code:
 
-(eval-when-compile (require 'cl) (require 'vc))
+(eval-when-compile (require 'vc))
 
 (defgroup vc-mtn nil
   "VC Monotone (mtn) backend."
@@ -76,7 +76,7 @@ If nil, use the value of `vc-diff-switches'.  If t, use no switches."
 ;;;###autoload         (vc-mtn-registered file))))
 
 (defun vc-mtn-revision-granularity () 'repository)
-(defun vc-mtn-checkout-model (files) 'implicit)
+(defun vc-mtn-checkout-model (_files) 'implicit)
 
 (defun vc-mtn-root (file)
   (setq file (if (file-directory-p file)
@@ -161,19 +161,19 @@ If nil, use the value of `vc-diff-switches'.  If t, use no switches."
   :group 'vc-mtn)
 
 (defun vc-mtn-mode-line-string (file)
-  "Return string for placement in modeline by `vc-mode-line' for FILE."
+  "Return a string for `vc-mode-line' to put in the mode line for FILE."
   (let ((branch (vc-mtn-workfile-branch file)))
     (dolist (rule vc-mtn-mode-line-rewrite)
       (if (string-match (car rule) branch)
 	  (setq branch (replace-match (cdr rule) t nil branch))))
     (format "Mtn%c%s"
-	    (case (vc-state file)
-	      ((up-to-date needs-update) ?-)
-	      (added ?@)
-	      (t ?:))
+	    (pcase (vc-state file)
+	      ((or `up-to-date `needs-update) ?-)
+	      (`added ?@)
+	      (_ ?:))
 	    branch)))
 
-(defun vc-mtn-register (files &optional rev comment)
+(defun vc-mtn-register (files &optional _rev _comment)
   (vc-mtn-command nil 0 files "add"))
 
 (defun vc-mtn-responsible-p (file) (vc-mtn-root file))
@@ -181,7 +181,7 @@ If nil, use the value of `vc-diff-switches'.  If t, use no switches."
 
 (declare-function log-edit-extract-headers "log-edit" (headers string))
 
-(defun vc-mtn-checkin (files rev comment)
+(defun vc-mtn-checkin (files _rev comment)
   (apply 'vc-mtn-command nil 0 files
 	 (nconc (list "commit" "-m")
 		(log-edit-extract-headers '(("Author" . "--author")
@@ -201,7 +201,7 @@ If nil, use the value of `vc-diff-switches'.  If t, use no switches."
 ;; (defun vc-mtn-rollback (files)
 ;;   )
 
-(defun vc-mtn-print-log (files buffer &optional shortlog start-revision limit)
+(defun vc-mtn-print-log (files buffer &optional _shortlog start-revision limit)
   (apply 'vc-mtn-command buffer 0 files "log"
 	 (append
 	  (when start-revision (list "--from" (format "%s" start-revision)))
@@ -304,44 +304,48 @@ If nil, use the value of `vc-diff-switches'.  If t, use no switches."
         (push (match-string 0) ids))
       ids)))
 
-(defun vc-mtn-revision-completion-table (files)
-  ;; TODO: Implement completion for selectors
-  ;; TODO: Implement completion for composite selectors.
-  (lexical-let ((files files))
-    ;; What about using `files'?!?  --Stef
-    (lambda (string pred action)
-      (cond
-       ;; "Tag" selectors.
-       ((string-match "\\`t:" string)
+(defun vc-mtn-revision-completion-table (_files)
+  ;; What about using `files'?!?  --Stef
+  (lambda (string pred action)
+    (cond
+     ;; Special chars for composite selectors.
+     ((string-match ".*[^\\]\\(\\\\\\\\\\)*[/|;(]" string)
+      (completion-table-with-context (substring string 0 (match-end 0))
+                                     (vc-mtn-revision-completion-table nil)
+                                     (substring string (match-end 0))
+                                     pred action))
+     ;; "Tag" selectors.
+     ((string-match "\\`t:" string)
+      (complete-with-action action
+                            (mapcar (lambda (tag) (concat "t:" tag))
+                                    (vc-mtn-list-tags))
+                            string pred))
+     ;; "Branch" or "Head" selectors.
+     ((string-match "\\`[hb]:" string)
+      (let ((prefix (match-string 0 string)))
         (complete-with-action action
-                              (mapcar (lambda (tag) (concat "t:" tag))
-                                      (vc-mtn-list-tags))
-                              string pred))
-       ;; "Branch" selectors.
-       ((string-match "\\`b:" string)
-        (complete-with-action action
-                              (mapcar (lambda (tag) (concat "b:" tag))
+                              (mapcar (lambda (tag) (concat prefix tag))
                                       (vc-mtn-list-branches))
-                              string pred))
-       ;; "Head" selectors.  Not sure how they differ from "branch" selectors.
-       ((string-match "\\`h:" string)
-        (complete-with-action action
-                              (mapcar (lambda (tag) (concat "h:" tag))
-                                      (vc-mtn-list-branches))
-                              string pred))
-       ;; "ID" selectors.
-       ((string-match "\\`i:" string)
-        (complete-with-action action
-                              (mapcar (lambda (tag) (concat "i:" tag))
-                                      (vc-mtn-list-revision-ids
-                                       (substring string (match-end 0))))
-                              string pred))
-       (t
-        (complete-with-action action
-                              '("t:" "b:" "h:" "i:"
-                                ;; Completion not implemented for these.
-                                "a:" "c:" "d:" "e:" "l:")
-                              string pred))))))
+                              string pred)))
+     ;; "ID" selectors.
+     ((string-match "\\`i:" string)
+      (complete-with-action action
+                            (mapcar (lambda (tag) (concat "i:" tag))
+                                    (vc-mtn-list-revision-ids
+                                     (substring string (match-end 0))))
+                            string pred))
+     (t
+      (complete-with-action action
+                            '("t:" "b:" "h:" "i:"
+                              ;; Completion not implemented for these.
+                              "c:" "a:" "k:" "d:" "m:" "e:" "l:" "i:" "p:"
+                              ;; These have no arg to complete.
+                              "u:" "w:"
+                              ;; Selector functions.
+                              "difference(" "lca(" "max(" "ancestors("
+                              "descendants(" "parents(" "children("
+                              "pick(")
+                            string pred)))))
 
 
 

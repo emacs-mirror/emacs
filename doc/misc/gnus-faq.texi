@@ -407,7 +407,7 @@ you want, so let's do it the correct way.
 The first thing you've got to do is to
 create a suitable directory (no blanks in directory name
 please) e.g. c:\myhome. Then you must set the environment
-variable HOME to this directory.  To do this under Win9x
+variable HOME to this directory.  To do this under Windows 9x
 or Me include the line
 
 @example

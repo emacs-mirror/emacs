@@ -1,4 +1,4 @@
-;;; vc-cvs.el --- non-resident support for CVS version-control
+;;; vc-cvs.el --- non-resident support for CVS version-control  -*- lexical-binding: t -*-
 
 ;; Copyright (C) 1995, 1998-2012 Free Software Foundation, Inc.
 
@@ -25,7 +25,7 @@
 
 ;;; Code:
 
-(eval-when-compile (require 'cl) (require 'vc))
+(eval-when-compile (require 'vc))
 
 ;; Clear up the cache to force vc-call to check again and discover
 ;; new functions when we reload this file.
@@ -256,7 +256,7 @@ See also variable `vc-cvs-sticky-date-format-string'."
   (vc-file-getprop file 'vc-working-revision))
 
 (defun vc-cvs-mode-line-string (file)
-  "Return string for placement into the modeline for FILE.
+  "Return a string for `vc-mode-line' to put in the mode line for FILE.
 Compared to the default implementation, this function does two things:
 Handle the special case of a CVS file that is added but not yet
 committed and support display of sticky tags."
@@ -280,7 +280,7 @@ committed and support display of sticky tags."
 ;;; State-changing functions
 ;;;
 
-(defun vc-cvs-register (files &optional rev comment)
+(defun vc-cvs-register (files &optional _rev comment)
   "Register FILES into the CVS version-control system.
 COMMENT can be used to provide an initial description of FILES.
 Passes either `vc-cvs-register-switches' or `vc-register-switches'
@@ -394,7 +394,7 @@ REV is the revision to check out."
              (if vc-cvs-use-edit
                  (vc-cvs-command nil 0 file "edit")
                (set-file-modes file (logior (file-modes file) 128))
-               (if (equal file buffer-file-name) (toggle-read-only -1))))
+               (if (equal file buffer-file-name) (read-only-mode -1))))
       ;; Check out a particular revision (or recreate the file).
       (vc-file-setprop file 'vc-working-revision nil)
       (apply 'vc-cvs-command nil 0 file
@@ -502,7 +502,7 @@ Will fail unless you have administrative privileges on the repo."
 
 (declare-function vc-rcs-print-log-cleanup "vc-rcs" ())
 
-(defun vc-cvs-print-log (files buffer &optional shortlog start-revision-ignored limit)
+(defun vc-cvs-print-log (files buffer &optional _shortlog _start-revision limit)
   "Get change logs associated with FILES."
   (require 'vc-rcs)
   ;; It's just the catenation of the individual logs.
@@ -790,7 +790,7 @@ For an empty string, nil is returned (invalid CVS root)."
            ((= len 3)
             ;; :METHOD:PATH or :METHOD:USER@HOSTNAME/PATH
             (cons (cadr root-list)
-                  (vc-cvs-parse-uhp (caddr root-list))))
+                  (vc-cvs-parse-uhp (nth 2 root-list))))
            (t
             ;; :METHOD:[USER@]HOST:PATH
             (cdr root-list)))))
@@ -1006,7 +1006,7 @@ state."
       (vc-exec-after
        `(vc-cvs-after-dir-status (quote ,update-function))))))
 
-(defun vc-cvs-dir-status-files (dir files default-state update-function)
+(defun vc-cvs-dir-status-files (dir files _default-state update-function)
   "Create a list of conses (file . state) for DIR."
   (apply 'vc-cvs-command (current-buffer) 'async dir "-f" "status" files)
   (vc-exec-after
@@ -1021,7 +1021,7 @@ state."
 	(buffer-substring (point) (point-max)))
     (file-error nil)))
 
-(defun vc-cvs-dir-extra-headers (dir)
+(defun vc-cvs-dir-extra-headers (_dir)
   "Extract and represent per-directory properties of a CVS working copy."
   (let ((repo
 	 (condition-case nil
@@ -1178,7 +1178,11 @@ is non-nil."
                                (parse-time-string (concat time " +0000")))))
       (cond ((and (not (string-match "\\+" time))
                   (car parsed-time)
-                  (equal mtime (apply 'encode-time parsed-time)))
+                  ;; Compare just the seconds part of the file time,
+                  ;; since CVS file time stamp resolution is just 1 second.
+                  (let ((ptime (apply 'encode-time parsed-time)))
+                    (and (eq (car mtime) (car ptime))
+                         (eq (cadr mtime) (cadr ptime)))))
              (vc-file-setprop file 'vc-checkout-time mtime)
              (if set-state (vc-file-setprop file 'vc-state 'up-to-date)))
             (t
@@ -1206,10 +1210,8 @@ is non-nil."
       res)))
 
 (defun vc-cvs-revision-completion-table (files)
-  (lexical-let ((files files)
-                table)
-    (setq table (lazy-completion-table
-                 table (lambda () (vc-cvs-revision-table (car files)))))
+  (letrec ((table (lazy-completion-table
+                   table (lambda () (vc-cvs-revision-table (car files))))))
     table))
 
 

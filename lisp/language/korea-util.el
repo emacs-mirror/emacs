@@ -32,7 +32,7 @@
    (purecopy (if (string-match "3" (or (getenv "HANGUL_KEYBOARD_TYPE") ""))
       "3"
     ""))
-  "*The kind of Korean keyboard for Korean input method.
+   "The kind of Korean keyboard for Korean input method.
 \"\" for 2, \"3\" for 3.")
 
 ;; functions useful for Korean text input
@@ -41,7 +41,7 @@
   "Turn on or off a Korean text input method for the current buffer."
   (interactive)
   (if current-input-method
-      (inactivate-input-method)
+      (deactivate-input-method)
     (activate-input-method
      (concat "korean-hangul" default-korean-keyboard))))
 

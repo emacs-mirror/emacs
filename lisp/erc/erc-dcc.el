@@ -6,7 +6,7 @@
 ;; Author: Ben A. Mesander <ben@gnu.ai.mit.edu>
 ;;         Noah Friedman <friedman@prep.ai.mit.edu>
 ;;         Per Persson <pp@sno.pp.se>
-;; Maintainer: mlang@delysid.org
+;; Maintainer: FSF
 ;; Keywords: comm, processes
 ;; Created: 1994-01-23
 
@@ -75,7 +75,7 @@ IRC users."
   :group 'erc)
 
 (defcustom erc-dcc-verbose nil
-  "*If non-nil, be verbose about DCC activity reporting."
+  "If non-nil, be verbose about DCC activity reporting."
   :group 'erc-dcc
   :type 'boolean)
 
@@ -316,7 +316,7 @@ Should be set to a string or nil.  If nil, use the value of
                     :valid-regexp erc-dcc-ipv4-regexp)))
 
 (defcustom erc-dcc-send-request 'ask
-  "*How to treat incoming DCC Send requests.
+  "How to treat incoming DCC Send requests.
 'ask - Report the Send request, and wait for the user to manually accept it
        You might want to set `erc-dcc-auto-masks' for this.
 'auto - Automatically accept the request and begin downloading the file
@@ -405,7 +405,7 @@ the accepted connection."
 ;;; Interactive command handling
 
 (defcustom erc-dcc-get-default-directory nil
-  "*Default directory for incoming DCC file transfers.
+  "Default directory for incoming DCC file transfers.
 If this is nil, then the current value of `default-directory' is used."
   :group 'erc-dcc
   :type '(choice (const nil :tag "Default directory") directory))
@@ -627,7 +627,7 @@ separated by a space."
 
 ;;;###autoload
 (defvar erc-ctcp-query-DCC-hook '(erc-ctcp-query-DCC)
-  "Hook variable for CTCP DCC queries")
+  "Hook variable for CTCP DCC queries.")
 
 (defvar erc-dcc-query-handler-alist
   '(("SEND" . erc-dcc-handle-ctcp-send)
@@ -674,7 +674,7 @@ It extracts the information about the dcc request and adds it to
        ?r "SEND" ?n nick ?u login ?h host))
      ((string-match erc-dcc-ctcp-query-send-regexp query)
       (let ((filename
-             (or (match-string 3 query)
+             (or (match-string 5 query)
                  (erc-dcc-unquote-filename (match-string 2 query))))
             (ip       (erc-decimal-to-ip (match-string 6 query)))
             (port     (match-string 7 query))
@@ -719,7 +719,7 @@ match, returns that regexp and nil otherwise."
   "^DCC CHAT +chat +\\([0-9]+\\) +\\([0-9]+\\)")
 
 (defcustom erc-dcc-chat-request 'ask
-  "*How to treat incoming DCC Chat requests.
+  "How to treat incoming DCC Chat requests.
 'ask - Report the Chat request, and wait for the user to manually accept it
 'auto - Automatically accept the request and open a new chat window
 'ignore - Ignore incoming DCC chat requests completely."
@@ -777,12 +777,12 @@ match, returns that regexp and nil otherwise."
 ;;; SEND handling
 
 (defcustom erc-dcc-block-size 1024
-  "*Block size to use for DCC SEND sessions."
+  "Block size to use for DCC SEND sessions."
   :group 'erc-dcc
   :type 'integer)
 
 (defcustom erc-dcc-pump-bytes nil
-  "*If set to an integer, keep sending until that number of bytes are
+  "If set to an integer, keep sending until that number of bytes are
 unconfirmed."
   :group 'erc-dcc
   :type '(choice (const nil) integer))
@@ -856,7 +856,7 @@ bytes sent."
 
 (defcustom erc-dcc-send-connect-hook
   '(erc-dcc-display-send erc-dcc-send-block)
-  "*Hook run whenever the remote end of a DCC SEND offer connected to your
+  "Hook run whenever the remote end of a DCC SEND offer connected to your
 listening port."
   :group 'erc-dcc
   :type 'hook)
@@ -1046,12 +1046,12 @@ transfer is complete."
 ;;; CHAT handling
 
 (defcustom erc-dcc-chat-buffer-name-format "DCC-CHAT-%s"
-  "*Format to use for DCC Chat buffer names."
+  "Format to use for DCC Chat buffer names."
   :group 'erc-dcc
   :type 'string)
 
 (defcustom erc-dcc-chat-mode-hook nil
-  "*Hook calls when `erc-dcc-chat-mode' finished setting up the buffer."
+  "Hook calls when `erc-dcc-chat-mode' finished setting up the buffer."
   :group 'erc-dcc
   :type 'hook)
 
@@ -1099,8 +1099,13 @@ Possible values are: ask, auto, ignore."
   (pcomplete-here '("auto" "ask" "ignore")))
 (defalias 'pcomplete/erc-mode/SREQ 'pcomplete/erc-mode/CREQ)
 
-(defvar erc-dcc-chat-filter-hook '(erc-dcc-chat-parse-output)
-  "*Hook to run after doing parsing (and possible insertion) of DCC messages.")
+(defvar erc-dcc-chat-filter-functions '(erc-dcc-chat-parse-output)
+  "Abnormal hook run after parsing (and maybe inserting) a DCC message.
+Each function is called with two arguments: the ERC process and
+the unprocessed output.")
+
+(define-obsolete-variable-alias 'erc-dcc-chat-filter-hook
+  'erc-dcc-chat-filter-functions "24.3")
 
 (defvar erc-dcc-chat-mode-map
   (let ((map (make-sparse-keymap)))
@@ -1195,8 +1200,8 @@ other client."
           (set-buffer (process-buffer proc))
           (setq erc-dcc-unprocessed-output
                 (concat erc-dcc-unprocessed-output str))
-          (run-hook-with-args 'erc-dcc-chat-filter-hook proc
-                           erc-dcc-unprocessed-output))
+          (run-hook-with-args 'erc-dcc-chat-filter-functions
+                              proc erc-dcc-unprocessed-output))
       (set-buffer orig-buffer))))
 
 (defun erc-dcc-chat-parse-output (proc str)

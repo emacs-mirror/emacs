@@ -90,8 +90,6 @@
 
 ;;; Code:
 
-(eval-when-compile (require 'cl))
-
 ;;; PRIVATE: defsubst must be defined before they are first used
 
 (defsubst derived-mode-hook-name (mode)
@@ -183,11 +181,11 @@ See Info node `(elisp)Derived Modes' for more details."
 
     ;; Process the keyword args.
     (while (keywordp (car body))
-      (case (pop body)
-	(:group (setq group (pop body)))
-	(:abbrev-table (setq abbrev (pop body)) (setq declare-abbrev nil))
-	(:syntax-table (setq syntax (pop body)) (setq declare-syntax nil))
-	(t (pop body))))
+      (pcase (pop body)
+	(`:group (setq group (pop body)))
+	(`:abbrev-table (setq abbrev (pop body)) (setq declare-abbrev nil))
+	(`:syntax-table (setq syntax (pop body)) (setq declare-syntax nil))
+	(_ (pop body))))
 
     (setq docstring (derived-mode-make-docstring
 		     parent child docstring syntax abbrev))
@@ -278,10 +276,10 @@ A mode's class is the first ancestor which is NOT a derived mode.
 Use the `derived-mode-parent' property of the symbol to trace backwards.
 Since major-modes might all derive from `fundamental-mode', this function
 is not very useful."
+  (declare (obsolete derived-mode-p "22.1"))
   (while (get mode 'derived-mode-parent)
     (setq mode (get mode 'derived-mode-parent)))
   mode)
-(make-obsolete 'derived-mode-class 'derived-mode-p "22.1")
 
 
 ;;; PRIVATE

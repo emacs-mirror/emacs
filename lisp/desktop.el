@@ -34,7 +34,7 @@
 ;;		- some local variables
 
 ;; To use this, use customize to turn on desktop-save-mode or add the
-;; following line somewhere in your .emacs file:
+;; following line somewhere in your init file:
 ;;
 ;;	(desktop-save-mode 1)
 ;;
@@ -145,6 +145,8 @@ backward compatibility.")
   "Save status of Emacs when you exit."
   :group 'frames)
 
+;; Maintained for backward compatibility
+(define-obsolete-variable-alias 'desktop-enable 'desktop-save-mode "22.1")
 ;;;###autoload
 (define-minor-mode desktop-save-mode
   "Toggle desktop saving (Desktop Save mode).
@@ -157,10 +159,6 @@ one session to another.  See variable `desktop-save' and function
 `desktop-read' for details."
   :global t
   :group 'desktop)
-
-;; Maintained for backward compatibility
-(define-obsolete-variable-alias 'desktop-enable
-                                'desktop-save-mode "22.1")
 
 (defun desktop-save-mode-off ()
   "Disable `desktop-save-mode'.  Provided for use in hooks."
@@ -222,7 +220,7 @@ the normal hook `desktop-not-loaded-hook' is run."
   :group 'desktop
   :version "22.2")
 
-(defcustom desktop-path (list "." user-emacs-directory "~")
+(defcustom desktop-path (list user-emacs-directory "~")
   "List of directories to search for the desktop file.
 The base name of the file is specified in `desktop-base-file-name'."
   :type '(repeat directory)
@@ -412,8 +410,7 @@ is passed as the argument DESKTOP-BUFFER-MISC to functions in
                         'desktop-save-buffer "22.1")
 
 ;;;###autoload
-(defvar desktop-buffer-mode-handlers
-  nil
+(defvar desktop-buffer-mode-handlers nil
   "Alist of major mode specific functions to restore a desktop buffer.
 Functions listed are called by `desktop-create-buffer' when `desktop-read'
 evaluates the desktop file.  List elements must have the form
@@ -473,8 +470,7 @@ this table.  See also `desktop-minor-mode-handlers'."
   :group 'desktop)
 
 ;;;###autoload
-(defvar desktop-minor-mode-handlers
-  nil
+(defvar desktop-minor-mode-handlers nil
   "Alist of functions to restore non-standard minor modes.
 Functions are called by `desktop-create-buffer' to restore minor modes.
 List elements must have the form
@@ -970,8 +966,8 @@ It returns t if a desktop file was loaded, nil otherwise."
                (and dirs (car dirs)))
              ;; If not found and `desktop-path' is non-nil, use its first element.
              (and desktop-path (car desktop-path))
-             ;; Default: Home directory.
-             "~"))))
+             ;; Default: .emacs.d.
+             user-emacs-directory))))
     (if (file-exists-p (desktop-full-file-name))
 	;; Desktop file found, but is it already in use?
 	(let ((desktop-first-buffer nil)
@@ -983,6 +979,7 @@ It returns t if a desktop file was loaded, nil otherwise."
 	  (if (and owner
 		   (memq desktop-load-locked-desktop '(nil ask))
 		   (or (null desktop-load-locked-desktop)
+		       (daemonp)
 		       (not (y-or-n-p (format "Warning: desktop file appears to be in use by PID %s.\n\
 Using it may cause conflicts.  Use it anyway? " owner)))))
 	      (let ((default-directory desktop-dirname))
@@ -1048,11 +1045,10 @@ Using it may cause conflicts.  Use it anyway? " owner)))))
 (defun desktop-load-default ()
   "Load the `default' start-up library manually.
 Also inhibit further loading of it."
+  (declare (obsolete desktop-save-mode "22.1"))
   (unless inhibit-default-init	        ; safety check
     (load "default" t t)
     (setq inhibit-default-init t)))
-(make-obsolete 'desktop-load-default
-               'desktop-save-mode "22.1")
 
 ;; ----------------------------------------------------------------------------
 ;;;###autoload
@@ -1122,11 +1118,8 @@ directory DIRNAME."
 
 (defun desktop-load-file (function)
   "Load the file where auto loaded FUNCTION is defined."
-  (when function
-    (let ((fcell (and (fboundp function) (symbol-function function))))
-      (when (and (listp fcell)
-                 (eq 'autoload (car fcell)))
-        (load (cadr fcell))))))
+  (when (fboundp function)
+    (autoload-do-load (symbol-function function) function)))
 
 ;; ----------------------------------------------------------------------------
 ;; Create a buffer, load its file, set its mode, ...;

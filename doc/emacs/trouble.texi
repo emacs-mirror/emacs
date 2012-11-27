@@ -133,7 +133,7 @@ a command, but you can think of it as canceling a command that already
 finished executing.  @xref{Undo}, for more information about the undo
 facility.
 
-@node Lossage, Bugs, Quitting, Top
+@node Lossage
 @section Dealing with Emacs Trouble
 
   This section describes how to recognize and deal with situations in
@@ -149,6 +149,7 @@ Emacs.
 * Screen Garbled::        Garbage on the screen.
 * Text Garbled::          Garbage in the text.
 * Memory Full::           How to cope when you run out of memory.
+* Crashing::              What Emacs does when it crashes.
 * After a Crash::         Recovering editing in an Emacs session that crashed.
 * Emergency Escape::      What to do if Emacs stops responding.
 @end menu
@@ -274,8 +275,67 @@ will disappear from the mode line.  That means you can safely go on
 editing in the same Emacs session.
 
   Do not use @kbd{M-x buffer-menu} to save or kill buffers when you run
-out of memory, because the buffer menu needs a fair amount of memory
+out of memory, because the Buffer Menu needs a fair amount of memory
 itself, and the reserve supply may not be enough.
+
+@node Crashing
+@subsection When Emacs Crashes
+
+@cindex crash report
+  Emacs is not supposed to crash, but if it does, it produces a
+@dfn{crash report} prior to exiting.  The crash report is printed to
+the standard error stream.  If Emacs was started from a graphical
+desktop, the standard error stream is commonly redirected to a file
+such as @file{~/.xsession-errors}, so you can look for the crash
+report there.
+
+  The format of the crash report depends on the platform.  On some
+platforms, such as those using the GNU C Library, the crash report
+includes a @dfn{backtrace} describing the execution state prior to
+crashing, which can be used to help debug the crash.  Here is an
+example:
+
+@example
+Fatal error 11: Segmentation fault
+Backtrace:
+emacs[0x5094e4]
+emacs[0x4ed3e6]
+emacs[0x4ed504]
+/lib64/libpthread.so.0[0x375220efe0]
+/lib64/libpthread.so.0(read+0xe)[0x375220e08e]
+emacs[0x509af6]
+emacs[0x5acc26]
+@dots{}
+@end example
+
+@noindent
+The number @samp{11} is the system signal number corresponding to the
+crash---in this case a segmentation fault.  The hexadecimal numbers
+are program addresses, which can be associated with source code lines
+using a debugging tool.  For example, the GDB command
+@samp{list *0x509af6} prints the source-code lines corresponding to
+the @samp{emacs[0x509af6]} entry.  If your system has the
+@command{addr2line} utility, the following shell command outputs a
+backtrace with source-code line numbers:
+
+@example
+sed -n 's/.*\[\(.*\)]$/\1/p' @var{backtrace} |
+  addr2line -Cfip -e @var{bindir}/emacs
+@end example
+
+@noindent
+Here, @var{backtrace} is the name of a text file containing a copy of
+the backtrace, and @var{bindir} is the name of the directory that
+contains the Emacs executable.
+
+@cindex core dump
+  Optionally, Emacs can generate a @dfn{core dump} when it crashes.  A
+core dump is a file containing voluminous data about the state of the
+program prior to the crash, usually examined by loading it into a
+debugger such as GDB.  On many platforms, core dumps are disabled by
+default, and you must explicitly enable them by running the shell
+command @samp{ulimit -c unlimited} (e.g.@: in your shell startup
+script).
 
 @node After a Crash
 @subsection Recovery After a Crash
@@ -373,7 +433,7 @@ program.
 emergency escape---but there are cases where it won't work, when
 system call hangs or when Emacs is stuck in a tight loop in C code.
 
-@node Bugs, Contributing, Lossage, Top
+@node Bugs
 @section Reporting Bugs
 
 @cindex bugs
@@ -424,7 +484,8 @@ Instead of browsing the bug tracker as a webpage, you can browse it
 from Emacs using the @code{debbugs} package, which can be downloaded
 via the Package Menu (@pxref{Packages}).  This package provides the
 command @kbd{M-x debbugs-gnu} to list bugs, and @kbd{M-x
-debbugs-gnu-search} to search for a specific bug.
+debbugs-gnu-search} to search for a specific bug.  User tags, applied
+by the Emacs maintainers, are shown by @kbd{M-x debbugs-gnu-usertags}.
 
 @item
 The @samp{bug-gnu-emacs} mailing list (also available as the newsgroup
@@ -1064,7 +1125,7 @@ Please help us keep up with the workload by designing the patch in a
 form that is clearly safe to install.
 @end itemize
 
-@node Contributing, Service, Bugs, Top
+@node Contributing
 @section Contributing to Emacs Development
 @cindex contributing to Emacs
 
@@ -1089,7 +1150,7 @@ See the Emacs project page
 For more information on how to contribute, see the @file{etc/CONTRIBUTE}
 file in the Emacs distribution.
 
-@node Service, Copying, Contributing, Top
+@node Service
 @section How To Get Help with GNU Emacs
 
 If you need help installing, using or changing GNU Emacs, there are two

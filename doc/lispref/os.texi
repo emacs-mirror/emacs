@@ -3,8 +3,7 @@
 @c Copyright (C) 1990-1995, 1998-1999, 2001-2012
 @c   Free Software Foundation, Inc.
 @c See the file elisp.texi for copying conditions.
-@setfilename ../../info/os
-@node System Interface, Packaging, Display, Top
+@node System Interface
 @chapter Operating System Interface
 
   This chapter is about starting and getting out of Emacs, access to
@@ -71,13 +70,11 @@ in their turn.  The files @file{subdirs.el} are normally generated
 automatically when Emacs is installed.
 
 @item
-It registers input methods by loading any @file{leim-list.el} file
-found in the @code{load-path}.
-
-@c It removes PWD from the environment if it is not accurate.
-@c It abbreviates default-directory.
-
-@c Now normal-top-level calls command-line.
+If the library @file{leim-list.el} exists, Emacs loads it.  This
+optional library is intended for registering input methods; Emacs
+looks for it in @code{load-path} (@pxref{Library Search}), skipping
+those directories containing the standard Emacs libraries (since
+@file{leim-list.el} should not exist in those directories).
 
 @vindex before-init-time
 @item
@@ -612,7 +609,6 @@ special to Emacs, then switch back to Emacs when you want.)
 @end menu
 
 @node Killing Emacs
-@comment  node-name,  next,  previous,  up
 @subsection Killing Emacs
 @cindex killing Emacs
 
@@ -1161,6 +1157,20 @@ This function returns the effective @acronym{UID} of the user.
 The value may be a floating point number.
 @end defun
 
+@defun system-users
+This function returns a list of strings, listing the user names on the
+system.  If Emacs cannot retrieve this information, the return value
+is a list containing just the value of @code{user-real-login-name}.
+@end defun
+
+@cindex user groups
+@defun system-groups
+This function returns a list of strings, listing the names of user
+groups on the system.  If Emacs cannot retrieve this information, the
+return value is @code{nil}.
+@end defun
+
+
 @node Time of Day
 @section Time of Day
 
@@ -1168,7 +1178,9 @@ The value may be a floating point number.
 zone.
 
 @cindex epoch
-  Most of these functions represent time as a list of either three
+  Most of these functions represent time as a list of either four
+integers, @code{(@var{sec-high} @var{sec-low} @var{microsec}
+@var{picosec})}, or of three
 integers, @code{(@var{sec-high} @var{sec-low} @var{microsec})}, or of
 two integers, @code{(@var{sec-high} @var{sec-low})}.  The integers
 @var{sec-high} and @var{sec-low} give the high and low bits of an
@@ -1183,12 +1195,15 @@ is the number of seconds from the @dfn{epoch} (0:00 January 1, 1970
 UTC) to the specified time.  The third list element @var{microsec}, if
 present, gives the number of microseconds from the start of that
 second to the specified time.
+Similarly, the fourth list element @var{picosec}, if present, gives
+the number of picoseconds from the start of that microsecond to the
+specified time.
 
-  The return value of @code{current-time} represents time using three
-integers, while the timestamps in the return value of
-@code{file-attributes} use two integers (@pxref{Definition of
+  The return value of @code{current-time} represents time using four
+integers, as do the timestamps in the return value of
+@code{file-attributes} (@pxref{Definition of
 file-attributes}).  In function arguments, e.g.@: the @var{time-value}
-argument to @code{current-time-string}, both two- and three-integer
+argument to @code{current-time-string}, two-, three-, and four-integer
 lists are accepted.  You can convert times from the list
 representation into standard human-readable strings using
 @code{current-time}, or to other forms using the @code{decode-time}
@@ -1197,11 +1212,14 @@ sections.
 
 @defun current-time-string &optional time-value
 This function returns the current time and date as a human-readable
-string.  The format of the string is unvarying; the number of
-characters used for each part is always the same, so you can reliably
-use @code{substring} to extract pieces of it.  You should count
+string.  The format does not vary for the initial part of the string,
+which contains the day of week, month, day of month, and time of day
+in that order: the number of characters used for these fields is
+always the same, so you can reliably
+use @code{substring} to extract them.  You should count
 characters from the beginning of the string rather than from the end,
-as additional information may some day be added at the end.
+as the year might not have exactly four digits, and additional
+information may some day be added at the end.
 
 The argument @var{time-value}, if given, specifies a time to format
 (represented as a list of integers), instead of the current time.
@@ -1215,9 +1233,12 @@ The argument @var{time-value}, if given, specifies a time to format
 @end defun
 
 @defun current-time
-This function returns the current time, represented as a list of three
-integers @code{(@var{sec-high} @var{sec-low} @var{microsec})}.  On
-systems with only one-second time resolutions, @var{microsec} is 0.
+This function returns the current time, represented as a list of four
+integers @code{(@var{sec-high} @var{sec-low} @var{microsec} @var{picosec})}.
+These integers have trailing zeros on systems that return time with
+lower resolutions.  On all current machines @var{picosec} is a
+multiple of 1000, but this may change as higher-resolution clocks
+become available.
 @end defun
 
 @defun float-time &optional time-value
@@ -1258,7 +1279,7 @@ time zone.
 @node Time Conversion
 @section Time Conversion
 
-  These functions convert time values (lists of two or three integers,
+  These functions convert time values (lists of two to four integers,
 as explained in the previous section) into calendrical information and
 vice versa.
 
@@ -1352,8 +1373,8 @@ on others, years as early as 1901 do work.
 @node Time Parsing
 @section Parsing and Formatting Times
 
-  These functions convert time values (lists of two or three integers)
-to text in a string, and vice versa.
+  These functions convert time values to text in a string, and vice versa.
+Time values are lists of two to four integers (@pxref{Time of Day}).
 
 @defun date-to-time string
 This function parses the time-string @var{string} and returns the
@@ -1409,8 +1430,6 @@ This stands for a newline.
 This stands for the nanoseconds (000000000-999999999).  To ask for
 fewer digits, use @samp{%3N} for milliseconds, @samp{%6N} for
 microseconds, etc.  Any excess digits are discarded, without rounding.
-Currently Emacs time stamps are at best microsecond resolution so the
-last three digits generated by plain @samp{%N} are always zero.
 @item %p
 This stands for @samp{AM} or @samp{PM}, as appropriate.
 @item %r
@@ -1562,18 +1581,9 @@ When called interactively, it prints the uptime in the echo area.
 
 @defun get-internal-run-time
 This function returns the processor run time used by Emacs as a list
-of three integers: @code{(@var{high} @var{low} @var{microsec})}.  The
-integers @var{high} and @var{low} combine to give the number of
-seconds, which is
-@ifnottex
-@var{high} * 2**16 + @var{low}.
-@end ifnottex
-@tex
-$high*2^{16}+low$.
-@end tex
-
-The third element, @var{microsec}, gives the microseconds (or 0 for
-systems that return time with the resolution of only one second).
+of four integers: @code{(@var{high} @var{low} @var{microsec}
+@var{picosec})}, using the same format as @code{current-time}
+(@pxref{Time of Day}).
 
 Note that the time returned by this function excludes the time Emacs
 was not using the processor, and if the Emacs process has several
@@ -1733,11 +1743,11 @@ between them).  If you want a timer to run again no less than @var{n}
 seconds after the last invocation, don't use the @var{repeat} argument.
 Instead, the timer function should explicitly reschedule the timer.
 
-@defvar timer-max-repeats
+@defopt timer-max-repeats
 This variable's value specifies the maximum number of times to repeat
 calling a timer function in a row, when many previously scheduled
 calls were unavoidably delayed.
-@end defvar
+@end defopt
 
 @defmac with-timeout (seconds timeout-forms@dots{}) body@dots{}
 Execute @var{body}, but give up after @var{seconds} seconds.  If
@@ -1814,44 +1824,6 @@ minutes, and even if there have been garbage collections and autosaves.
 input.  Then it becomes idle again, and all the idle timers that are
 set up to repeat will subsequently run another time, one by one.
 
-@defun current-idle-time
-If Emacs is idle, this function returns the length of time Emacs has
-been idle, as a list of three integers: @code{(@var{sec-high}
-@var{sec-low} @var{microsec})}, where @var{high} and @var{low} are the
-high and low bits for the number of seconds and @var{microsec} is the
-additional number of microseconds (@pxref{Time of Day}).
-
-When Emacs is not idle, @code{current-idle-time} returns @code{nil}.
-This is a convenient way to test whether Emacs is idle.
-
-The main use of this function is when an idle timer function wants to
-``take a break'' for a while.  It can set up another idle timer to
-call the same function again, after a few seconds more idleness.
-Here's an example:
-
-@smallexample
-(defvar resume-timer nil
-  "Timer that `timer-function' used to reschedule itself, or nil.")
-
-(defun timer-function ()
-  ;; @r{If the user types a command while @code{resume-timer}}
-  ;; @r{is active, the next time this function is called from}
-  ;; @r{its main idle timer, deactivate @code{resume-timer}.}
-  (when resume-timer
-    (cancel-timer resume-timer))
-  ...@var{do the work for a while}...
-  (when @var{taking-a-break}
-    (setq resume-timer
-          (run-with-idle-timer
-            ;; Compute an idle time @var{break-length}
-            ;; more than the current value.
-            (time-add (current-idle-time)
-                      (seconds-to-time @var{break-length}))
-            nil
-            'timer-function))))
-@end smallexample
-@end defun
-
   Do not write an idle timer function containing a loop which does a
 certain amount of processing each time around, and exits when
 @code{(input-pending-p)} is non-@code{nil}.  This approach seems very
@@ -1867,9 +1839,50 @@ It blocks out any idle timers that ought to run during that time.
 @end itemize
 
 @noindent
-The correct approach is for the idle timer to reschedule itself after
-a brief pause, using the method in the @code{timer-function} example
-above.
+Similarly, do not write an idle timer function that sets up another
+idle timer (including the same idle timer) with @var{secs} argument
+less than or equal to the current idleness time.  Such a timer will
+run almost immediately, and continue running again and again, instead
+of waiting for the next time Emacs becomes idle.  The correct approach
+is to reschedule with an appropriate increment of the current value of
+the idleness time, as described below.
+
+@defun current-idle-time
+If Emacs is idle, this function returns the length of time Emacs has
+been idle, as a list of four integers: @code{(@var{sec-high}
+@var{sec-low} @var{microsec} @var{picosec})}, using the same format as
+@code{current-time} (@pxref{Time of Day}).
+
+When Emacs is not idle, @code{current-idle-time} returns @code{nil}.
+This is a convenient way to test whether Emacs is idle.
+@end defun
+
+  The main use of @code{current-idle-time} is when an idle timer
+function wants to ``take a break'' for a while.  It can set up another
+idle timer to call the same function again, after a few seconds more
+idleness.  Here's an example:
+
+@example
+(defvar my-resume-timer nil
+  "Timer for `my-timer-function' to reschedule itself, or nil.")
+
+(defun my-timer-function ()
+  ;; @r{If the user types a command while @code{my-resume-timer}}
+  ;; @r{is active, the next time this function is called from}
+  ;; @r{its main idle timer, deactivate @code{my-resume-timer}.}
+  (when my-resume-timer
+    (cancel-timer my-resume-timer))
+  ...@var{do the work for a while}...
+  (when @var{taking-a-break}
+    (setq my-resume-timer
+          (run-with-idle-timer
+            ;; Compute an idle time @var{break-length}
+            ;; more than the current value.
+            (time-add (current-idle-time)
+                      (seconds-to-time @var{break-length}))
+            nil
+            'my-timer-function))))
+@end example
 
 @node Terminal Input
 @section Terminal Input
@@ -1903,7 +1916,6 @@ If @var{flow} is non-@code{nil}, then Emacs uses @sc{xon/xoff}
 (@kbd{C-q}, @kbd{C-s}) flow control for output to the terminal.  This
 has no effect except in @sc{cbreak} mode.
 
-@c Emacs 19 feature
 The argument @var{meta} controls support for input character codes
 above 127.  If @var{meta} is @code{t}, Emacs converts characters with
 the 8th bit set into Meta characters.  If @var{meta} is @code{nil},
@@ -1912,7 +1924,6 @@ it as a parity bit.  If @var{meta} is neither @code{t} nor @code{nil},
 Emacs uses all 8 bits of input unchanged.  This is good for terminals
 that use 8-bit character sets.
 
-@c Emacs 19 feature
 If @var{quit-char} is non-@code{nil}, it specifies the character to
 use for quitting.  Normally this character is @kbd{C-g}.
 @xref{Quitting}.
@@ -1921,7 +1932,6 @@ use for quitting.  Normally this character is @kbd{C-g}.
 The @code{current-input-mode} function returns the input mode settings
 Emacs is currently using.
 
-@c Emacs 19 feature
 @defun current-input-mode
 This function returns the current mode for reading keyboard input.  It
 returns a list, corresponding to the arguments of @code{set-input-mode},
@@ -1953,7 +1963,7 @@ is the character Emacs currently uses for quitting, usually @kbd{C-g}.
 This function returns a vector containing the last 300 input events from
 the keyboard or mouse.  All input events are included, whether or not
 they were used as parts of key sequences.  Thus, you always get the last
-100 input events, not counting events generated by keyboard macros.
+300 input events, not counting events generated by keyboard macros.
 (These are excluded because they are less interesting for debugging; it
 should be enough to see the events that invoked the macros.)
 
@@ -2272,7 +2282,7 @@ The notification title.
 @item :body @var{text}
 The notification body text.  Depending on the implementation of the
 notification server, the text could contain HTML markups, like
-@samp{"<b>bold text</b>"}, or hyperlinks.
+@samp{"<b>bold text</b>"}, hyperlinks, or images.
 
 @item :app-name @var{name}
 The name of the application sending the notification.  The default is
@@ -2301,6 +2311,10 @@ the notification never expires.  Default value is -1.
 
 @item :urgency @var{urgency}
 The urgency level.  It can be @code{low}, @code{normal}, or @code{critical}.
+
+@item :action-items
+When this keyword is given, the @var{title} string of the actions is
+interpreted as icon name.
 
 @item :category @var{category}
 The type of notification this is, a string.
@@ -2332,6 +2346,17 @@ example would be @samp{"message-new-instant"}.
 Causes the server to suppress playing any sounds, if it has that
 ability.
 
+@item :resident
+When set the server will not automatically remove the notification
+when an action has been invoked. The notification will remain resident
+in the server until it is explicitly removed by the user or by the
+sender. This hint is likely only useful when the server has the
+@code{:persistence} capability.
+
+@item :transient
+When set the server will treat the notification as transient and
+by-pass the server's persistence capability, if it should exist.
+
 @item :x @var{position}
 @itemx :y @var{position}
 Specifies the X, Y location on the screen that the
@@ -2355,6 +2380,9 @@ by the user.  The function receive the notification @var{id} and the closing
 @item @code{undefined} if the notification server hasn't provided a reason
 @end itemize
 @end table
+
+Which parameters are accepted by the notification server can be
+checked via @code{notifications-get-capabilities}.
 
 This function returns a notification id, an integer, which can be used
 to manipulate the notification item with
@@ -2395,6 +2423,46 @@ A message window opens on the desktop.  Press "I agree"
 @defun notifications-close-notification id
 This function closes a notification with identifier @var{id}.
 @end defun
+
+@defun notifications-get-capabilities
+Returns the capabilities of the notification server, a list of strings.
+The following capabilities can be expected:
+
+@table @code
+@item :actions
+The server will provide the specified actions to the user.
+
+@item :body
+Supports body text.
+
+@item :body-hyperlinks
+The server supports hyperlinks in the notifications.
+
+@item :body-images
+The server supports images in the notifications.
+
+@item :body-markup
+Supports markup in the body text.
+
+@item :icon-multi
+The server will render an animation of all the frames in a given image
+array.
+
+@item :icon-static
+Supports display of exactly 1 frame of any given image array.  This
+value is mutually exclusive with @code{:icon-multi}.
+
+@item :persistence
+The server supports persistence of notifications.
+
+@item :sound
+The server supports sounds on notifications.
+@end table
+
+Further vendor-specific caps start with @code{:x-vendor}, like
+@code{:x-gnome-foo-cap}.
+@end defun
+
 
 @node Dynamic Libraries
 @section Dynamically Loaded Libraries

@@ -102,12 +102,11 @@ Warning: the password is cached without checking that it is
 correct.  It is better to check the password before caching.  If
 you must use this function, take care to check passwords and
 remove incorrect ones from the cache."
+  (declare (obsolete password-read "23.1"))
   (let ((password (password-read prompt key)))
     (when (and password key)
       (password-cache-add key password))
     password))
-
-(make-obsolete 'password-read-and-add 'password-read "23.1")
 
 (defun password-cache-remove (key)
   "Remove password indexed by KEY from password cache.

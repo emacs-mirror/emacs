@@ -90,6 +90,9 @@
 
 (defcustom org-inlinetask-min-level 15
   "Minimum level a headline must have before it is treated as an inline task.
+Don't set it to something higher than `29' or clocking will break since this
+is the hardcoded maximum number of stars `org-clock-sum' will work with.
+
 It is strongly recommended that you set `org-cycle-max-level' not at all,
 or to a number smaller than this one.  In fact, when `org-cycle-max-level' is
 not set, it will be assumed to be one less than the value of smaller than
@@ -98,6 +101,12 @@ the value of this variable."
   :type '(choice
 	  (const :tag "Off" nil)
 	  (integer)))
+
+(defcustom org-inlinetask-show-first-star nil
+  "Non-nil means display the first star of an inline task as additional marker.
+When nil, the first star is not shown."
+  :tag "Org Inline Tasks"
+  :group 'org-structure)
 
 (defcustom org-inlinetask-export t
   "Non-nil means export inline tasks.
@@ -329,75 +338,75 @@ Either remove headline and meta data, or do special formatting."
 	    (end (copy-marker (save-excursion
 				(org-inlinetask-goto-end) (point))))
 	    content)
-      ;; Delete SCHEDULED, DEADLINE...
-      (while (re-search-forward keywords-re end t)
-	(delete-region (point-at-bol) (1+ (point-at-eol))))
-      (goto-char beg)
-      ;; Delete drawers
-      (while (re-search-forward org-drawer-regexp end t)
-	(when (save-excursion (re-search-forward org-property-end-re nil t))
-	  (delete-region beg (1+ (match-end 0)))))
-      ;; Get CONTENT, if any.
-      (goto-char beg)
-      (forward-line 1)
-      (unless (= (point) end)
-	(setq content (buffer-substring (point)
-					(save-excursion (goto-char end)
-							(forward-line -1)
-							(point)))))
-      ;; Remove the task.
-      (goto-char beg)
-      (delete-region beg end)
-      (when (and org-inlinetask-export
-		 (assq org-export-current-backend
-		       org-inlinetask-export-templates))
-	;; Format CONTENT, if appropriate.
-	(setq content
-	      (if (not (and content (string-match "\\S-" content)))
-		  ""
-		;; Ensure CONTENT has minimal indentation, a single
-		;; newline character at its boundaries, and isn't
-		;; protected.
-		(when (string-match "\\`\\([ \t]*\n\\)+" content)
-		  (setq content (substring content (match-end 0))))
-		(when (string-match "[ \t\n]+\\'" content)
-		  (setq content (substring content 0 (match-beginning 0))))
-		(org-add-props
-		    (concat "\n\n" (org-remove-indentation content) "\n\n")
-		    '(org-protected nil org-native-text nil))))
+	;; Delete SCHEDULED, DEADLINE...
+	(while (re-search-forward keywords-re end t)
+	  (delete-region (point-at-bol) (1+ (point-at-eol))))
+	(goto-char beg)
+	;; Delete drawers
+	(while (re-search-forward org-drawer-regexp end t)
+	  (when (save-excursion (re-search-forward org-property-end-re nil t))
+	    (delete-region beg (1+ (match-end 0)))))
+	;; Get CONTENT, if any.
+	(goto-char beg)
+	(forward-line 1)
+	(unless (= (point) end)
+	  (setq content (buffer-substring (point)
+					  (save-excursion (goto-char end)
+							  (forward-line -1)
+							  (point)))))
+	;; Remove the task.
+	(goto-char beg)
+	(delete-region beg end)
+	(when (and org-inlinetask-export
+		   (assq org-export-current-backend
+			 org-inlinetask-export-templates))
+	  ;; Format CONTENT, if appropriate.
+	  (setq content
+		(if (not (and content (string-match "\\S-" content)))
+		    ""
+		  ;; Ensure CONTENT has minimal indentation, a single
+		  ;; newline character at its boundaries, and isn't
+		  ;; protected.
+		  (when (string-match "\\`\\([ \t]*\n\\)+" content)
+		    (setq content (substring content (match-end 0))))
+		  (when (string-match "[ \t\n]+\\'" content)
+		    (setq content (substring content 0 (match-beginning 0))))
+		  (org-add-props
+		      (concat "\n\n" (org-remove-indentation content) "\n\n")
+		      '(org-protected nil org-native-text nil))))
 
-	(when (string-match org-complex-heading-regexp headline)
-	  (let* ((nil-to-str
-		  (function
-		   ;; Change nil arguments into empty strings.
-		   (lambda (el) (or (eval el) ""))))
-		 ;;  Set up keywords provided to templates.
-		 (todo (or (match-string 2 headline) ""))
-		 (class (or (and (eq "" todo) "")
-			    (if (member todo org-done-keywords) "done" "todo")))
-		 (priority (or (match-string 3 headline) ""))
-		 (heading (or (match-string 4 headline) ""))
-		 (tags (or (match-string 5 headline) ""))
-		 ;; Read `org-inlinetask-export-templates'.
-		 (backend-spec (assq org-export-current-backend
-				     org-inlinetask-export-templates))
-		 (format-str (org-add-props (nth 1 backend-spec)
-				 '(org-protected t org-native-text t)))
-		 (tokens (cadr (nth 2 backend-spec)))
-		 ;; Build export string. Ensure it won't break
-		 ;; surrounding lists by giving it arbitrary high
-		 ;; indentation.
-		 (export-str (org-add-props
-				 (eval (append '(format format-str)
-					       (mapcar nil-to-str tokens)))
-				 '(original-indentation 1000))))
-	    ;; Ensure task starts a new paragraph.
-	    (unless (or (bobp)
-			(save-excursion (forward-line -1)
-					(looking-at "[ \t]*$")))
-	      (insert "\n"))
-	    (insert export-str)
-	    (unless (bolp) (insert "\n")))))))))
+	  (when (string-match org-complex-heading-regexp headline)
+	    (let* ((nil-to-str
+		    (function
+		     ;; Change nil arguments into empty strings.
+		     (lambda (el) (or (eval el) ""))))
+		   ;;  Set up keywords provided to templates.
+		   (todo (or (match-string 2 headline) ""))
+		   (class (or (and (eq "" todo) "")
+			      (if (member todo org-done-keywords) "done" "todo")))
+		   (priority (or (match-string 3 headline) ""))
+		   (heading (or (match-string 4 headline) ""))
+		   (tags (or (match-string 5 headline) ""))
+		   ;; Read `org-inlinetask-export-templates'.
+		   (backend-spec (assq org-export-current-backend
+				       org-inlinetask-export-templates))
+		   (format-str (org-add-props (nth 1 backend-spec)
+				   '(org-protected t org-native-text t)))
+		   (tokens (cadr (nth 2 backend-spec)))
+		   ;; Build export string.  Ensure it won't break
+		   ;; surrounding lists by giving it arbitrary high
+		   ;; indentation.
+		   (export-str (org-add-props
+				   (eval (append '(format format-str)
+						 (mapcar nil-to-str tokens)))
+				   '(original-indentation 1000))))
+	      ;; Ensure task starts a new paragraph.
+	      (unless (or (bobp)
+			  (save-excursion (forward-line -1)
+					  (looking-at "[ \t]*$")))
+		(insert "\n"))
+	      (insert export-str)
+	      (unless (bolp) (insert "\n")))))))))
 
 (defun org-inlinetask-get-current-indentation ()
   "Get the indentation of the last non-while line above this one."
@@ -423,18 +432,21 @@ Either remove headline and meta data, or do special formatting."
 		     (1- (* 2 (or org-inlinetask-min-level 200)))
 		   (or org-inlinetask-min-level 200)))
 	 (re (concat "^\\(\\*\\)\\(\\*\\{"
-		    (format "%d" (- nstars 3))
-		    ",\\}\\)\\(\\*\\* .*\\)"))
+		     (format "%d" (- nstars 3))
+		     ",\\}\\)\\(\\*\\* .*\\)"))
 	 ;; Virtual indentation will add the warning face on the first
-	 ;; star. Thus, in that case, only hide it.
+	 ;; star.  Thus, in that case, only hide it.
 	 (start-face (if (and (org-bound-and-true-p org-indent-mode)
 			      (> org-indent-indentation-per-level 1))
 			 'org-hide
 		       'org-warning)))
     (while (re-search-forward re limit t)
-      (add-text-properties (match-beginning 1) (match-end 1)
-			   `(face ,start-face font-lock-fontified t))
-      (add-text-properties (match-beginning 2) (match-end 2)
+      (if org-inlinetask-show-first-star
+	  (add-text-properties (match-beginning 1) (match-end 1)
+			       `(face ,start-face font-lock-fontified t)))
+      (add-text-properties (match-beginning
+			    (if org-inlinetask-show-first-star 2 1))
+			   (match-end 2)
 			   '(face org-hide font-lock-fontified t))
       (add-text-properties (match-beginning 3) (match-end 3)
 			   '(face org-inlinetask font-lock-fontified t)))))
@@ -452,7 +464,7 @@ Either remove headline and meta data, or do special formatting."
      ((= end start))
      ;; Inlinetask was folded: expand it.
      ((get-char-property (1+ start) 'invisible)
-      (outline-flag-region start end nil))
+      (org-show-entry))
      (t (outline-flag-region start end t)))))
 
 (defun org-inlinetask-remove-END-maybe ()

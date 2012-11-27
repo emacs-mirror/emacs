@@ -1,12 +1,425 @@
-2012-08-24  Chong Yidong  <cyd@gnu.org>
+2012-11-24  Paul Eggert  <eggert@cs.ucla.edu>
 
-	* Version 24.2 released.
+	Revert recent change for Bug#8855; see ../src/ChangeLog.
 
-2012-06-01  Chong Yidong  <cyd@gnu.org>
+2012-11-23  Eli Zaretskii  <eliz@gnu.org>
 
-	* Version 24.1 released.
+	Fix a race condition with glib (Bug#8855).
+	This is a backport from the trunk, consisting of:
 
-2012-05-29  Eli Zaretskii  <eliz@gnu.org>
+	* inc/sys/wait.h: New file, with prototype of waitpid and
+	definitions of macros it needs.
+	* inc/ms-w32.h (wait): Don't define, 'wait' is not used anymore.
+	(sys_wait): Remove prototype.
+	* config.nt (HAVE_SYS_WAIT_H): Define to 1.
+
+2012-11-20  Eli Zaretskii  <eliz@gnu.org>
+
+	* nmake.defs: Use !if, not !ifdef.  See
+	http://lists.gnu.org/archive/html/help-emacs-windows/2012-11/msg00027.html
+	for the details.
+
+	* inc/stdint.h (INTPTR_MIN): Define for MSVC.
+
+2012-11-19  Eli Zaretskii  <eliz@gnu.org>
+
+	* inc/stdint.h (PTRDIFF_MIN) [!__GNUC__]: Define for MSVC.
+
+2012-11-01  Eli Zaretskii  <eliz@gnu.org>
+
+	* inc/unistd.h (setpgid, getpgrp): Provide prototypes.  (Bug#12776)
+
+	* config.nt (GETPGRP_VOID): Define to 1.
+
+2012-10-24  Juanma Barranquero  <lekktu@gmail.com>
+
+	* config.nt: Sync with autogen/config.in.
+
+2012-10-17  Eli Zaretskii  <eliz@gnu.org>
+
+	* inc/pwd.h (getuid, geteuid): Add prototypes.
+
+	* inc/ms-w32.h (sys_wait, _getpid, gmtgime_r, localtime_r)
+	(signal_handler, sys_signal, sigemptyset, sigfillset, sigprocmask)
+	(pthread_sigmask, sigismember, setpgrp, sigaction, alarm)
+	(sys_kill, getpagesize): Add prototypes for emulated functions.
+
+	* inc/grp.h (getgid, getegid): Add prototypes.
+
+	* gmake.defs (DEBUG_CFLAGS) [NOOPT]: Add -std=gnu99.
+
+	* configure.bat (chkapiN): Avoid compiler warning in junk.c when
+	compiling with -std=gnu99.
+
+	* config.nt (CHECK_LISP_OBJECT_TYPE): Don't undef, so that it
+	could be used via --cflags switch to configure.bat.
+
+2012-10-08  Juanma Barranquero  <lekktu@gmail.com>
+
+	* config.nt: Sync with autogen/config.in.
+	(HAVE_NTGUI): New macro.
+
+2012-10-02  Eli Zaretskii  <eliz@gnu.org>
+
+	* preprep.c (RVA_TO_PTR): Cast the result to 'void *', to avoid
+	compiler warnings when using the value.
+
+2012-10-01  Eli Zaretskii  <eliz@gnu.org>
+
+	* preprep.c (RVA_TO_PTR): Use 'unsigned char *' instead of
+	'void *', for pointer arithmetics.
+	(OFFSET_TO_RVA, RVA_TO_OFFSET, RVA_TO_SECTION_OFFSET): Enclose all
+	macro arguments in parentheses.
+
+2012-09-30  Eli Zaretskii  <eliz@gnu.org>
+
+	* makefile.w32-in ($(TRES)): Use $(EMACS_MANIFEST).
+
+2012-09-30  Fabrice Popineau  <fabrice.popineau@supelec.fr>
+
+	* inc/sys/socket.h: Don't map Winsock error codes to standard ones
+	that are already defined.
+
+	* inc/ms-w32.h (EMACS_INT, EMACS_UINT, EMACS_INT_MAX, PRIuMAX)
+	(pI, _INTPTR) [_MSC_VER]: Fix definitions for MSVC.
+	[_MSC_VER]: Add pragmas to suppress some MSVC warnings.
+
+	* preprep.c (pfnCheckSumMappedFile, rva_to_section)
+	(offset_to_section, relocate_offset, OFFSET_TO_RVA)
+	(RVA_TO_OFFSET, RVA_TO_SECTION_OFFSET, PTR_TO_RVA)
+	(OFFSET_TO_PTR, ROUND_UP, ROUND_DOWN)
+	(copy_executable_and_move_sections, ADJUST_IMPORT_RVA, main):
+	Use DWORD_PTR instead of DWORD for compatibility with x64.
+
+	* nmake.defs: Support AMD64.
+	(EMACS_HEAPSIZE, EMACS_PURESIZE, EMACS_MANIFEST): New macros.
+
+	* gmake.defs (EMACS_HEAPSIZE, EMACS_PURESIZE, EMACS_MANIFEST):
+	New macros.
+
+	* addsection.c (pfnCheckSumMappedFile, rva_to_section)
+	(offset_to_section, relocate_offset, OFFSET_TO_RVA)
+	(RVA_TO_OFFSET, RVA_TO_SECTION_OFFSET, PTR_TO_RVA)
+	(OFFSET_TO_PTR, ROUND_UP, ROUND_DOWN)
+	(copy_executable_and_add_section, main): Use DWORD_PTR instead of
+	DWORD, for compatibility with x64.
+
+	* emacs-x64.manifest: New file.
+
+	* emacs-x86.manifest: Renamed from emacs.manifest.
+
+2012-09-30  Eli Zaretskii  <eliz@gnu.org>
+
+	* inc/sys/time.h (ITIMER_REAL, ITIMER_PROF): Define.
+	(struct itimerval): Define.
+	(getitimer, setitimer): Add prototypes.
+
+	* inc/ms-w32.h <sigset_t> [_MSVC_VER]: Make the typedef consistent
+	with MinGW.
+	(SA_RESTART, SIGPROF): Define.
+
+	* config.nt (HAVE_SETITIMER): Define to 1.
+
+2012-09-30  Juanma Barranquero  <lekktu@gmail.com>
+
+	* config.nt: Sync with autogen/config.in.
+
+2012-09-29  Juanma Barranquero  <lekktu@gmail.com>
+
+	* config.nt: Sync with autogen/config.in.
+	(HAVE_TIMER_SETTIME): New macro.
+
+2012-09-23  Eli Zaretskii  <eliz@gnu.org>
+
+	* inc/ms-w32.h (emacs_raise): Redefine to invoke emacs_abort.
+
+2012-09-23  Paul Eggert  <eggert@cs.ucla.edu>
+
+	Simplify and avoid signal-handling races (Bug#12471).
+	* inc/ms-w32.h (emacs_raise): New macro.
+
+2012-09-18  Eli Zaretskii  <eliz@gnu.org>
+
+	* configure.bat: Include stddef.h before gif_lib.h, to have size_t
+	defined, as needed by giflib-5.0.0.  (Bug#12464)
+
+2012-09-17  Juanma Barranquero  <lekktu@gmail.com>
+
+	* config.nt: Sync with autogen/config.in.
+	(BROKEN_SA_RESTART, SYNC_INPUT): Remove.
+
+2012-09-17  Glenn Morris  <rgm@gnu.org>
+
+	* config.nt (COPYRIGHT): New.
+
+2012-09-15  Paul Eggert  <eggert@cs.ucla.edu>
+
+	Port _setjmp fix to POSIXish hosts as well as Microsoft.
+	* config.nt: Attempt to sync with autogen/config.in.
+	(HAVE_SIGSETJMP, HAVE__SETJMP): New macros.
+	(_longjmp, _setjmp): Remove.
+
+2012-09-14  Juanma Barranquero  <lekktu@gmail.com>
+
+	* config.nt: Sync with autogen/config.in.
+	(BROKEN_FIONREAD, BROKEN_SIGAIO, BROKEN_SIGIO, BROKEN_SIGPOLL)
+	(BROKEN_SIGPTY, HAVE_CBRT, HAVE_LOGB, NO_TERMIO): Remove.
+	(USABLE_FIONREAD, USABLE_SIGIO): New macros.
+
+2012-09-10  Juanma Barranquero  <lekktu@gmail.com>
+
+	* config.nt: Sync with autogen/config.in.
+	(FLOAT_CHECK_DOMAIN, HAVE_FMOD, HAVE_FREXP)
+	(HAVE_INVERSE_HYPERBOLIC, NO_MATHERR): Remove.
+
+2012-09-08  Eli Zaretskii  <eliz@gnu.org>
+
+	* configure.bat <use_extensions>: Don't leave it set in the
+	environment when the script exits.
+
+2012-09-07  Juanma Barranquero  <lekktu@gmail.com>
+
+	* config.nt: Sync with autogen/config.in.
+	(NO_ABORT, SIGNAL_H_AHB): Remove.
+
+2012-09-07  Eli Zaretskii  <eliz@gnu.org>
+
+	* inc/ms-w32.h (struct sigaction): Declare sa_handler __cdecl.
+
+2012-09-05  Juanma Barranquero  <lekktu@gmail.com>
+
+	* config.nt: Sync with autogen/config.in.
+
+2012-09-04  Paul Eggert  <eggert@cs.ucla.edu>
+
+	Simplify redefinition of 'abort' (Bug#12316).
+	* inc/ms-w32.h (w32_abort) [HAVE_NTGUI]: Remove.
+
+2012-09-02  Juanma Barranquero  <lekktu@gmail.com>
+
+	* config.nt: Sync with autogen/config.in.
+	(HAVE_EXECINFO_H, TERM_HEADER): New macros.
+
+2012-09-01  Daniel Colascione  <dancol@dancol.org>
+
+	* inc/ms-w32.h (TERM_HEADER): Add for refactoring
+
+2012-08-22  Juanma Barranquero  <lekktu@gmail.com>
+
+	* config.nt: Sync with autogen/config.in.
+
+2012-08-17  Juanma Barranquero  <lekktu@gmail.com>
+
+	* config.nt: Sync with autogen/config.in.
+	(HAVE_POSIX_OPENPT): New macro.
+
+2012-08-14  Juanma Barranquero  <lekktu@gmail.com>
+
+	* config.nt: Sync with autogen/config.in.
+	(_GL_INLINE_HEADER_BEGIN): Update.
+
+2012-08-10  Glenn Morris  <rgm@gnu.org>
+
+	* config.nt (DIRECTORY_SEP): Move here from src/lisp.h.
+
+2012-08-07  Juanma Barranquero  <lekktu@gmail.com>
+
+	* config.nt: Sync with autogen/config.in.
+	(BROKEN_GETWD, DISPNEW_NEEDS_STDIO_EXT): New macros.
+	(PENDING_OUTPUT_COUNT): Move definition to inc/ms-w32.h.
+
+	* inc/ms-w32.h (PENDING_OUTPUT_COUNT): Define.
+
+2012-08-06  Glenn Morris  <rgm@gnu.org>
+
+	* config.nt (GNU_LIBRARY_PENDING_OUTPUT_COUNT): Remove.
+	(PENDING_OUTPUT_COUNT): Define it as dispnew.c used to.
+
+2012-08-04  Eli Zaretskii  <eliz@gnu.org>
+
+	* paths.h (PATH_LOADSEARCH, PATH_SITELOADSEARCH, PATH_EXEC)
+	(PATH_DATA, PATH_DOC): Replace dummy directory names with
+	directories relative to %emacs_dir%.
+	(PATH_EXEC): Add lib-src/oo-spd/i386 and lib-src/oo/i386, to cater
+	to the use case of running un-installed Emacs.
+
+2012-08-03  Juanma Barranquero  <lekktu@gmail.com>
+
+	* config.nt: Sync with autogen/config.in.
+	(DOS_NT, MSDOS): New macros.
+	(WRETCODE, wait3): Remove.
+
+	* inc/ms-w32.h (DOS_NT): Remove; defined in config.nt.
+
+2012-08-03  Eli Zaretskii  <eliz@gnu.org>
+
+	* inc/sys/stat.h (S_IFLNK): Define.
+	(S_ISLNK): A non-trivial definition.
+	(lstat): Prototype instead of a macro that redirects to 'stat'.
+
+2012-08-02  Paul Eggert  <eggert@cs.ucla.edu>
+
+	Use C99-style 'extern inline' if available.
+	* config.nt: Sync with autogen/config.in.
+	(_GL_INLINE, _GL_EXTERN_INLINE, _GL_INLINE_HEADER_BEGIN)
+	(_GL_INLINE_HEADER_END): New macros.
+
+2012-08-02  Glenn Morris  <rgm@gnu.org>
+
+	* inc/ms-w32.h: Move here from ../src/s.
+	* config.nt (config_opsysfile): Change to <ms-w32.h>.
+
+2012-08-01  Juanma Barranquero  <lekktu@gmail.com>
+
+	* config.nt: Sync with autogen/config.in.
+	(DEVICE_SEP, FLOAT_CHECK_DOMAIN, HAVE_INVERSE_HYPERBOLIC)
+	(INTERNAL_TERMINAL, IS_ANY_SEP, IS_DEVICE_SEP, IS_DIRECTORY_SEP):
+	New macros.
+
+2012-08-01  Juanma Barranquero  <lekktu@gmail.com>
+
+	* config.nt: Sync with autogen/config.in.
+	Remove code moved to conf_post.h and include <conf_post.h>
+	(NULL_DEVICE, SEPCHAR, SIGNAL_H_AHB, TIOCSIGSEND, USER_FULL_NAME)
+	(USG5_4, WRETCODE, _longjmp, _setjmp, wait3): New macros.
+
+2012-07-29  Juanma Barranquero  <lekktu@gmail.com>
+
+	* config.nt: Sync with autogen/config.in.
+	(HAVE_ENVIRON_DECL): New macro.
+
+2012-07-29  Eli Zaretskii  <eliz@gnu.org>
+
+	* inc/stdalign.h (_Alignas, alignas): Define.
+
+2012-07-28  Paul Eggert  <eggert@cs.ucla.edu>
+
+	Use Gnulib stdalign module (Bug#9772, Bug#9960).
+	* config.nt (HAVE_ATTRIBUTE_ALIGNED): Remove.
+
+2012-07-14  Juanma Barranquero  <lekktu@gmail.com>
+
+	* config.nt: Sync with autogen/config.in.
+	(GC_MARK_SECONDARY_STACK, GC_MARK_STACK, GC_SETJMP_WORKS)
+	(SETUP_SLAVE_PTY): New macros.
+
+2012-07-13  Juanma Barranquero  <lekktu@gmail.com>
+
+	* config.nt: Sync with autogen/config.in.
+	(BROKEN_FIONREAD, BROKEN_GET_CURRENT_DIR_NAME)
+	(BROKEN_PTY_READ_AFTER_EAGAIN, BROKEN_SIGAIO, BROKEN_SIGPOLL)
+	(BROKEN_SIGPTY, BSD4_2, BSD_SYSTEM, BSD_SYSTEM_AHB, CYGWIN, DARWIN_OS)
+	(FIRST_PTY_LETTER, GNU_LINUX, G_SLICE_ALWAYS_MALLOC, HAVE_PTYS)
+	(HAVE_SOCKETS, HPUX, INTERRUPT_INPUT, IRIX6_5, NARROWPROTO, NO_ABORT)
+	(NO_EDITRES, NSIG_MINIMUM, PREFER_VSUSP, PTY_ITERATION)
+	(PTY_NAME_SPRINTF, PTY_OPEN, PTY_TTY_NAME_SPRINTF, RUN_TIME_REMAP)
+	(SETPGRP_RELEASES_CTTY, SOLARIS2, TAB3, TABDLY, ULIMIT_BREAK_VALUE)
+	(UNIX98_PTYS, USG, USG5, XOS_NEEDS_TIME_H, _AIX): New macros.
+	(HAVE_ATTRIBUTE_ALIGNED, HAVE_C99_STRTOLD, HAVE___BUILTIN_UNWIND_INIT):
+	Set in src/s/ms-w32.h, not here.
+
+2012-07-11  Juanma Barranquero  <lekktu@gmail.com>
+
+	* config.nt: Sync with autogen/config.in.
+	(CLASH_DETECTION, DEFAULT_SOUND_DEVICE, DONT_REOPEN_PTY)
+	(GNU_LIBRARY_PENDING_OUTPUT_COUNT, SIGNALS_VIA_CHARACTERS): New macros.
+	(HAVE_MKDIR, HAVE_RENAME, HAVE_RMDIR, HAVE_STRERROR): Remove.
+
+2012-07-10  Juanma Barranquero  <lekktu@gmail.com>
+
+	* config.nt: Sync with autogen/config.in.
+
+2012-07-09  Paul Eggert  <eggert@cs.ucla.edu>
+
+	* config.nt (ATTRIBUTE_CONST): Add, to sync with configure.ac.
+
+2012-07-09  Juanma Barranquero  <lekktu@gmail.com>
+
+	* config.nt: Sync with autogen/config.in.
+
+2012-07-07  Juanma Barranquero  <lekktu@gmail.com>
+
+	* config.nt (HAVE_STRCASECMP, HAVE_STRNCASECMP): Remove.
+
+2012-07-06  Juanma Barranquero  <lekktu@gmail.com>
+	    Eli Zaretskii  <eliz@gnu.org>
+
+	* config.nt: Complete rework to bring it in sync with autogen/config.in.
+	All Windows-specific code moved to src/s/ms-w32.h.
+
+2012-07-04  Juanma Barranquero  <lekktu@gmail.com>
+	    Eli Zaretskii  <eliz@gnu.org>
+
+	* configure.bat (enablechecking): Enable checks through src/config.h,
+	not the compiler's command line.
+
+	* nmake.defs (CHECKING_CFLAGS): Remove.
+	(CFLAGS, ESC_CFLAGS): Do not include $(CHECKING_CFLAGS).
+
+	* gmake.defs (DEBUG_CFLAGS): Add -fno-crossjumping.
+	(CHECKING_CFLAGS): Remove.
+	(CFLAGS, ESC_CFLAGS): Do not include $(CHECKING_CFLAGS).
+
+2012-07-04  Juanma Barranquero  <lekktu@gmail.com>
+
+	* config.nt (LISP_FLOAT_TYPE, HAVE_XFREE386, USE_TEXT_PROPERTIES)
+	(GSSAPI, HAVE_LIBINTL, HAVE_LIBGSSAPI_KRB5, HAVE_LIBGSSAPI)
+	(HAVE_GSSAPI_H, HAVE_LIBXBD, HAVE_MEMCPY, HAVE_MEMMOVE, HAVE_MEMSET)
+	(HAVE_MEMCMP): Remove, obsolete.
+
+2012-06-30  Glenn Morris  <rgm@gnu.org>
+
+	* paths.h (PATH_SITELOADSEARCH): New.
+
+2012-06-28  Juanma Barranquero  <lekktu@gmail.com>
+
+	* nmake.defs (CHECKING_CFLAGS):
+	* gmake.defs (CHECKING_CFLAGS): Remove XASSERTS.
+
+2012-06-24  Eli Zaretskii  <eliz@gnu.org>
+
+	* config.nt (_Noreturn): Don't reference __SUNPRO_C.
+
+2012-06-24  Paul Eggert  <eggert@cs.ucla.edu>
+
+	Switch from NO_RETURN to C11's _Noreturn (Bug#11750).
+	* config.nt (_Noreturn): New macro.
+	(NO_RETURN): Remove.  All uses replaced with _Noreturn.
+	(w32_abort) [HAVE_NTGUI]: Use _Noreturn rather than NO_RETURN.
+
+2012-06-24  Eli Zaretskii  <eliz@gnu.org>
+
+	* inc/sys/time.h (struct timespec): Don't define it here, it is
+	now defined in src/s/ms-w32.h.
+
+2012-06-23  Eli Zaretskii  <eliz@gnu.org>
+
+	Fix the MS-Windows build broken by revno 108687.
+	* inc/sys/time.h (struct timespec): Define.
+
+2012-06-16  Eli Zaretskii  <eliz@gnu.org>
+
+	* makefile.w32-in (install-addpm): New target.
+	(dist): Depend on it.
+	(install-shortcuts): Depend on install-addpm instead of copying
+	addpm.exe as part of the recipe.  See
+	http://lists.gnu.org/archive/html/emacs-devel/2012-06/msg00171.html
+	for the related problem and discussions.
+
+2012-06-11  Glenn Morris  <rgm@gnu.org>
+
+	* config.nt (SYSTEM_TYPE): Define it.
+
+2012-05-31  Eli Zaretskii  <eliz@gnu.org>
+
+	* configure.bat (genmakefiles): Move the redirection away from the
+	end of the command, to avoid excess whitespace at the end of Make
+	variables created at configure time, and also avoid things like
+	"FOO1>>config.settings", where "1" gets interpreted as the file
+	descriptor and eaten up.  This fixes breakage introduced by the
+	last change, without reintroducing the bug fixed by that change.
+
+2012-05-31  Eli Zaretskii  <eliz@gnu.org>
 
 	* nmake.defs (MWINDOWS): Define as
 	"-subsystem:windows -entry:mainCRTStartup".  Suggested by Fabrice
@@ -16,22 +429,64 @@
 
 2012-05-28  Eli Zaretskii  <eliz@gnu.org>
 
-	* configure.bat (genmakefiles): Move the redirection away from the
-	end of the command, to avoid excess whitespace at the end of Make
-	variables created at configure time, and also avoid things like
-	"FOO1>>config.settings", where "1" gets interpreted as the file
-	descriptor and eaten up.  This fixes breakage introduced by the
-	last change, without reintroducing the bug fixed by that change.
+	* config.nt (HAVE_SYSINFO): Remove; unused.
 
-2012-05-18  Eli Zaretskii  <eliz@gnu.org>
+2012-05-27  Eli Zaretskii  <eliz@gnu.org>
+
+	* inc/stdalign.h: New file.
 
 	* configure.bat: Ensure a space between %var% expansion and
 	redirection symbol '>', which breaks when %var% ends in a digit,
 	such as 1.
 
-2012-04-11  Dani Moncayo  <dmoncayo@gmail.com>  (tiny change)
+2012-05-22  Paul Eggert  <eggert@cs.ucla.edu>
+
+	Remove src/m/*.
+	* config.nt: Do not include "m/intel386.h"; file was removed.
+	(BITS_PER_CHAR, BITS_PER_SHORT, BITS_PER_INT, BITS_PER_LONG):
+	Move to src/lisp.h.
+	(EMACS_INT_MAX): New macro.
+
+2012-05-19  Paul Eggert  <eggert@cs.ucla.edu>
+
+	* config.nt (HAVE_GETDOMAINNAME, HAVE_XSETWMPROTOCOLS)
+	(HAVE_GETSOCKOPT, HAVE_SETSOCKOPT): Remove; not needed.
+
+	* config.nt (HAVE_FTIME): Remove undef; not needed.
+
+2012-05-01  Glenn Morris  <rgm@gnu.org>
+
+	* config.nt (HAVE_LIBNCURSES): Remove undef; not needed.
+
+2012-04-14  Dani Moncayo  <dmoncayo@gmail.com>  (tiny change)
 
 	* makefile.w32-in: Fix typo (Bug#10261).
+
+2012-04-10  Eli Zaretskii  <eliz@gnu.org>
+
+	* makefile.w32-in (emacs, misc, lispref, lispintro): New targets,
+	each runs makeinfo in its own subdirectory of 'doc'.
+	(info-gmake): Depend on these new targets.
+
+2012-04-07  Glenn Morris  <rgm@gnu.org>
+
+	* config.nt, makefile.w32-in, emacs.rc, emacsclient.rc:
+	Bump version to 24.1.50.
+
+2012-04-07  Eli Zaretskii  <eliz@gnu.org>
+
+	* configure.bat: Support building with libxml2.
+
+	* INSTALL:
+	* README.W32: Add information about libxml2.
+
+2012-04-07  Eli Zaretskii  <eliz@gnu.org>
+
+	* makefile.w32-in: Convert to Unix EOL format.
+	(all): Don't depend on stamp_BLD and on maybe-bootstrap.
+	(all-other-dirs-$(MAKETYPE)): Depend on maybe-bootstrap.
+	(bootstrap-gmake): Invoke the "clean" and build targets in 2
+	separate commands, so they run in that order even under "make -j".
 
 2012-03-29  Eli Zaretskii  <eliz@gnu.org>
 
@@ -79,7 +534,7 @@
 
 2012-02-05  Christoph Scholtes  <cschol2112@googlemail.com>
 
-	* README.W32: Clarification for inclusion in source tarball. (Bug#9750)
+	* README.W32: Clarification for inclusion in source tarball (bug#9750).
 
 	* gmake.defs (PRAGMA_SYSTEM_HEADER): Add for GCC.
 
@@ -88,7 +543,7 @@
 	* makefile.w32-in (maybe-copy-distfiles)
 	(maybe-copy-distfiles-CMD, maybe-copy-distfiles-SH)
 	(create-tmp-dist-dir): Add to make --distfiles optional.
-	(dist): Use create-tmp-dist-dir and maybe-copy-distfiles. (Bug#10261)
+	(dist): Use create-tmp-dist-dir and maybe-copy-distfiles (bug#10261).
 
 2012-02-04  Eli Zaretskii  <eliz@gnu.org>
 
@@ -744,7 +1199,7 @@
 
 2008-04-04  Jason Rumney  <jasonr@gnu.org>
 
-	* INSTALL: Update W32 API requirements.
+	* INSTALL: Update Windows API requirements.
 
 2008-04-03  Jason Rumney  <jasonr@gnu.org>
 
@@ -1200,7 +1655,7 @@
 2005-06-05  Eli Zaretskii  <eliz@gnu.org>
 
 	* inc/sys/socket.h: Change arg 4 of sys_setsockopt to
-	`const void *', for consistency with Posix.
+	`const void *', for consistency with POSIX.
 
 2005-06-04  Eli Zaretskii  <eliz@gnu.org>
 
@@ -2161,7 +2616,7 @@
 	* makefile.def (CP_DIR): Use platform independent switches for xcopy.
 
 	* makefile.nt (install, fast_install, real_install, clean):
-	Don't use switches to del not supported by Win95.
+	Don't use switches to del not supported by Windows 95.
 
 1995-11-07  Kevin Gallo  <kgallo@microsoft.com>
 
@@ -2215,7 +2670,7 @@
 1995-05-27  Geoff Voelker  <voelker@cs.washington.edu>
 
 	* ebuild.bat, emacs.bat, fast-install.bat, install.bat:
-	Add carriage returns; necessary for batch files on Win95.
+	Add carriage returns; necessary for batch files on Windows 95.
 
 1995-05-25  Geoff Voelker  <voelker@cs.washington.edu>
 

@@ -33,9 +33,11 @@
   "Report bugs to this address.")
 
 (defgroup epg ()
-  "The EasyPG library."
+  "Interface to the GNU Privacy Guard (GnuPG)."
+  :tag "EasyPG"
   :version "23.1"
-  :group 'data)
+  :group 'data
+  :group 'external)
 
 (defcustom epg-gpg-program (or (executable-find "gpg")
 			       (executable-find "gpg2")

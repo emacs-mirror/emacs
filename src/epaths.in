@@ -19,16 +19,26 @@ You should have received a copy of the GNU General Public License
 along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 
 
-/* The default value of load-path, which is the search path for
-   the Lisp function "load".  Configure (using "make epaths-force")
-   sets this to $lisppath, which typically has a value like:
-   <datadir>/emacs/VERSION/site-lisp:<datadir>/emacs/site-lisp:
+/* Together with PATH_SITELOADSEARCH, this gives the default value of
+   load-path, which is the search path for the Lisp function "load".
+   Configure (using "make epaths-force") sets this to
+   ${standardlisppath}, which typically has a value like:
    <datadir>/emacs/VERSION/lisp:<datadir>/emacs/VERSION/leim
    where datadir is eg /usr/local/share.
-   Configure prepends any $locallisppath, as set by the
-   --enable-locallisppath argument.
 */
 #define PATH_LOADSEARCH "/usr/local/share/emacs/lisp"
+
+
+/* Like PATH_LOADSEARCH, but contains the non-standard pieces.
+   These are the site-lisp directories, typically something like
+   <datadir>/emacs/VERSION/site-lisp:<datadir>/emacs/site-lisp
+   Configure prepends any $locallisppath, as set by the
+   --enable-locallisppath argument.
+   This is combined with PATH_LOADSEARCH to make the default load-path.
+   If the --no-site-lisp option is used, this piece is excluded.
+*/
+#define PATH_SITELOADSEARCH "/usr/local/share/emacs/site-lisp"
+
 
 /* Like PATH_LOADSEARCH, but used only during the build process
    when Emacs is dumping.  Configure (using "make epaths-force") sets

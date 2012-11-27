@@ -37,7 +37,8 @@
 (require 'mm-util)
 (eval-when-compile (require 'cl))
 
-(declare-function nndraft-request-list "nnmh" (&rest args))
+;; The nnoo-import at the end, I think.
+(declare-function nndraft-request-list "nndraft" (&rest args) t)
 
 (nnoo-declare nndraft
   nnmh)

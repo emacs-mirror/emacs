@@ -102,10 +102,9 @@
 ;;       (abbrev-mode 1)             ; turn on abbreviation mode
 ;;       (f90-add-imenu-menu)        ; extra menu with functions etc.
 ;;       (if f90-auto-keyword-case   ; change case of all keywords on startup
-;;           (f90-change-keywords f90-auto-keyword-case))
-;;       ))
+;;           (f90-change-keywords f90-auto-keyword-case))))
 ;;
-;; in your .emacs file. You can also customize the lists
+;; in your init file. You can also customize the lists
 ;; f90-font-lock-keywords, etc.
 ;;
 ;; The auto-fill and abbreviation minor modes are accessible from the F90 menu,
@@ -659,7 +658,7 @@ logical\\|double[ \t]*precision\\|type[ \t]*(\\sw+)\\|none\\)[ \t]*"
 
 (defvar f90-font-lock-keywords
   f90-font-lock-keywords-2
-  "*Default expressions to highlight in F90 mode.
+  "Default expressions to highlight in F90 mode.
 Can be overridden by the value of `font-lock-maximum-decoration'.")
 
 
@@ -2212,18 +2211,13 @@ Leave point at the end of line."
   "Typing `\\[help-command] or `? lists all the F90 abbrevs.
 Any other key combination is executed normally."
   (interactive "*")
-  (insert last-command-event)
-  (let (char event)
-    (if (fboundp 'next-command-event) ; XEmacs
-        (setq event (next-command-event)
-              char (and (fboundp 'event-to-character)
-                        (event-to-character event)))
-      (setq event (read-event)
-            char event))
-    ;; Insert char if not equal to `?', or if abbrev-mode is off.
-    (if (and abbrev-mode (memq char (list ?? help-char)))
-        (f90-abbrev-help)
-      (setq unread-command-events (list event)))))
+  (self-insert-command 1)
+  (when abbrev-mode
+    (set-temporary-overlay-map
+     (let ((map (make-sparse-keymap)))
+       (define-key map [??] 'f90-abbrev-help)
+       (define-key map (vector help-char) 'f90-abbrev-help)
+       map))))
 
 (defun f90-abbrev-help ()
   "List the currently defined abbrevs in F90 mode."

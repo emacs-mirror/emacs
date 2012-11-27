@@ -3,6 +3,7 @@
 ;; Copyright (C) 2002-2004, 2006-2012  Free Software Foundation, Inc.
 
 ;; Author: Jorgen Schaefer <forcer@forcix.cx>
+;; Maintainer: FSF
 ;; URL: http://www.emacswiki.org/cgi-bin/wiki.pl?ErcAutoAway
 
 ;; This file is part of GNU Emacs.
@@ -138,7 +139,7 @@ Related variables: `erc-public-away-p' and `erc-away-nickname'."
      (remove-hook 'erc-server-305-functions 'erc-autoaway-reset-indicators))))
 
 (defcustom erc-autoaway-idle-method 'user
-  "*The method used to determine how long you have been idle.
+  "The method used to determine how long you have been idle.
 If 'user, the time of the last command sent to Emacs is used.
 If 'emacs, the idle time in Emacs is used.
 If 'irc, the time of the last IRC command is used.
@@ -160,7 +161,7 @@ definitions of being idle."
 	   (set sym val))))
 
 (defcustom erc-auto-set-away t
-  "*If non-nil, set away after `erc-autoaway-idle-seconds' seconds of idling.
+  "If non-nil, set away after `erc-autoaway-idle-seconds' seconds of idling.
 ERC autoaway mode can set you away when you idle, and set you no
 longer away when you type something.  This variable controls whether
 you will be set away when you idle.  See `erc-auto-discard-away' for
@@ -169,7 +170,7 @@ the other half."
   :type 'boolean)
 
 (defcustom erc-auto-discard-away t
-  "*If non-nil, sending anything when away automatically discards away state.
+  "If non-nil, sending anything when away automatically discards away state.
 ERC autoaway mode can set you away when you idle, and set you no
 longer away when you type something.  This variable controls whether
 you will be set no longer away when you type something.  See
@@ -179,13 +180,13 @@ See also `erc-autoaway-no-auto-discard-regexp'."
   :type 'boolean)
 
 (defcustom erc-autoaway-no-auto-discard-regexp "^/g?away.*$"
-  "*Input that matches this will not automatically discard away status.
+  "Input that matches this will not automatically discard away status.
 See `erc-auto-discard-away'."
   :group 'erc-autoaway
   :type 'regexp)
 
 (defcustom erc-autoaway-idle-seconds 1800
-  "*Number of seconds after which ERC will set you automatically away.
+  "Number of seconds after which ERC will set you automatically away.
 If you are changing this variable using lisp instead of customizing it,
 you have to run `erc-autoaway-reestablish-idletimer' afterwards."
   :group 'erc-autoaway
@@ -197,7 +198,7 @@ you have to run `erc-autoaway-reestablish-idletimer' afterwards."
 
 (defcustom erc-autoaway-message
   "I'm gone (autoaway after %i seconds of idletime)"
-  "*Message ERC will use when setting you automatically away.
+  "Message ERC will use when setting you automatically away.
 It is used as a `format' string with the argument of the idletime
 in seconds."
   :group 'erc-autoaway

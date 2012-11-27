@@ -74,7 +74,7 @@
   "True if in debug mode.")
 
 (defcustom delphi-search-path "."
-  "*Directories to search when finding external units.
+  "Directories to search when finding external units.
 It is a list of directory strings.  If only a single directory,
 it can be a single string instead of a list.  If a directory
 ends in \"...\" then that directory is recursively searched."
@@ -82,7 +82,7 @@ ends in \"...\" then that directory is recursively searched."
   :group 'delphi)
 
 (defcustom delphi-indent-level 3
-  "*Indentation of Delphi statements with respect to containing block.
+  "Indentation of Delphi statements with respect to containing block.
 E.g.
 
 begin
@@ -92,7 +92,7 @@ end;"
   :group 'delphi)
 
 (defcustom delphi-compound-block-indent 0
-  "*Extra indentation for blocks in compound statements. E.g.
+  "Extra indentation for blocks in compound statements. E.g.
 
 // block indent = 0     vs      // block indent = 2
 if b then                       if b then
@@ -105,7 +105,7 @@ end;                            else
   :group 'delphi)
 
 (defcustom delphi-case-label-indent delphi-indent-level
-  "*Extra indentation for case statement labels. E.g.
+  "Extra indentation for case statement labels. E.g.
 
 // case indent = 0      vs      // case indent = 3
 case value of                   case value of
@@ -118,18 +118,18 @@ end;                            end;"
   :group 'delphi)
 
 (defcustom delphi-verbose t ; nil
-  "*If true then Delphi token processing progress is reported to the user."
+  "If true then Delphi token processing progress is reported to the user."
   :type 'boolean
   :group 'delphi)
 
 (defcustom delphi-tab-always-indents t
-  "*Non-nil means TAB in Delphi mode should always reindent the current line,
+  "Non-nil means TAB in Delphi mode should always reindent the current line,
 regardless of where in the line point is when the TAB command is used."
   :type 'boolean
   :group 'delphi)
 
 (defcustom delphi-newline-always-indents t
-  "*Non-nil means NEWLINE in Delphi mode should always reindent the current
+  "Non-nil means NEWLINE in Delphi mode should always reindent the current
 line, insert a blank line and move to the default indent column of the blank
 line.  If nil, then no indentation occurs, and NEWLINE does the usual
 behavior.  This is useful when one needs to do customized indentation that
@@ -138,22 +138,22 @@ differs from the default."
   :group 'delphi)
 
 (defcustom delphi-comment-face 'font-lock-comment-face
-  "*Face used to color Delphi comments."
+  "Face used to color Delphi comments."
   :type 'face
   :group 'delphi)
 
 (defcustom delphi-string-face 'font-lock-string-face
-  "*Face used to color Delphi strings."
+  "Face used to color Delphi strings."
   :type 'face
   :group 'delphi)
 
 (defcustom delphi-keyword-face 'font-lock-keyword-face
-  "*Face used to color Delphi keywords."
+  "Face used to color Delphi keywords."
   :type 'face
   :group 'delphi)
 
 (defcustom delphi-other-face nil
-  "*Face used to color everything else."
+  "Face used to color everything else."
   :type '(choice (const :tag "None" nil) face)
   :group 'delphi)
 

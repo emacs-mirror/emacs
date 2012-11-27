@@ -732,7 +732,7 @@ Return nil if there is nothing appropriate in the buffer near point."
  :parse-rule "\\$[^({]\\|\\.[_A-Z]*\\|[_a-zA-Z0-9-]+\\|##\\|\\+="
  :doc-spec   '(
                ;; "(automake)Macro Index" is autoconf macros used in
-               ;; configure.in, not Makefile.am, so don't have that here.
+               ;; configure.ac, not Makefile.am, so don't have that here.
                ("(automake)Variable Index" nil "^[ \t]*`" "'")
                ;; In automake 1.4 macros and variables were a combined node.
                ("(automake)Macro and Variable Index" nil "^[ \t]*`" "'")

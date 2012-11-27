@@ -25,7 +25,7 @@
 ;;; Commentary:
 
 ;;; Code:
-(eval-when-compile (require 'cl))
+(eval-when-compile (require 'cl-lib))
 
 (defvar frame-creation-function-alist
   (list (cons nil
@@ -46,6 +46,12 @@ and ALIST is a frame parameter alist like `default-frame-alist'.
 Then, for frames on WINDOW-SYSTEM, any parameters specified in
 ALIST supersede the corresponding parameters specified in
 `default-frame-alist'.")
+
+(defvar display-format-alist nil
+  "Alist of patterns to decode display names.
+The car of each entry is a regular expression matching a display
+name string.  The cdr is a symbol giving the window-system that
+handles the corresponding kind of display.")
 
 ;; The initial value given here used to ask for a minibuffer.
 ;; But that's not necessary, because the default is to have one.
@@ -303,7 +309,7 @@ there (in decreasing order of priority)."
       ;; existing frame.  We need to explicitly include
       ;; default-frame-alist in the parameters of the screen we
       ;; create here, so that its new value, gleaned from the user's
-      ;; .emacs file, will be applied to the existing screen.
+      ;; init file, will be applied to the existing screen.
       (if (not (eq (cdr (or (assq 'minibuffer initial-frame-alist)
 			    (assq 'minibuffer window-system-frame-alist)
 			    (assq 'minibuffer default-frame-alist)
@@ -512,31 +518,19 @@ is not considered (see `next-frame')."
 				  0))
   (select-frame-set-input-focus (selected-frame)))
 
-(declare-function x-initialize-window-system "term/x-win" ())
-(declare-function ns-initialize-window-system "term/ns-win" ())
-(defvar x-display-name)                 ; term/x-win
+(defun window-system-for-display (display)
+  "Return the window system for DISPLAY.
+Return nil if we don't know how to interpret DISPLAY."
+  (cl-loop for descriptor in display-format-alist
+           for pattern = (car descriptor)
+           for system = (cdr descriptor)
+           when (string-match-p pattern display) return system))
 
 (defun make-frame-on-display (display &optional parameters)
   "Make a frame on display DISPLAY.
 The optional argument PARAMETERS specifies additional frame parameters."
   (interactive "sMake frame on display: ")
-  (cond ((featurep 'ns)
-	 (when (and (boundp 'ns-initialized) (not ns-initialized))
-	   (setq x-display-name display)
-	   (ns-initialize-window-system))
-	 (make-frame `((window-system . ns)
-		       (display . ,display) . ,parameters)))
-	((eq system-type 'windows-nt)
-	 ;; On Windows, ignore DISPLAY.
-	 (make-frame parameters))
-	(t
-	 (unless (string-match-p "\\`[^:]*:[0-9]+\\(\\.[0-9]+\\)?\\'" display)
-	   (error "Invalid display, not HOST:SERVER or HOST:SERVER.SCREEN"))
-	 (when (and (boundp 'x-initialized) (not x-initialized))
-	   (setq x-display-name display)
-	   (x-initialize-window-system))
-	 (make-frame `((window-system . x)
-		       (display . ,display) . ,parameters)))))
+  (make-frame (cons (cons 'display display) parameters)))
 
 (declare-function x-close-connection "xfns.c" (terminal))
 
@@ -618,6 +612,8 @@ neither or both.
  (window-system . nil)	The frame should be displayed on a terminal device.
  (window-system . x)	The frame should be displayed in an X window.
 
+ (display . \":0\")     The frame should appear on display :0.
+
  (terminal . TERMINAL)  The frame should use the terminal object TERMINAL.
 
 In addition, any parameter specified in `default-frame-alist',
@@ -628,11 +624,15 @@ this function runs the hook `before-make-frame-hook'.  After
 creating the frame, it runs the hook `after-make-frame-functions'
 with one arg, the newly created frame.
 
+If a display parameter is supplied and a window-system is not,
+guess the window-system from the display.
+
 On graphical displays, this function does not itself make the new
 frame the selected frame.  However, the window system may select
 the new frame according to its own rules."
   (interactive)
-  (let* ((w (cond
+  (let* ((display (cdr (assq 'display parameters)))
+         (w (cond
 	     ((assq 'terminal parameters)
 	      (let ((type (terminal-live-p (cdr (assq 'terminal parameters)))))
 		(cond
@@ -642,6 +642,10 @@ the new frame according to its own rules."
 		 (t type))))
 	     ((assq 'window-system parameters)
 	      (cdr (assq 'window-system parameters)))
+             (display
+              (or (window-system-for-display display)
+                  (error "Don't know how to interpret display \"%S\""
+                         display)))
 	     (t window-system)))
 	 (frame-creation-function (cdr (assq w frame-creation-function-alist)))
 	 (oldframe (selected-frame))
@@ -649,6 +653,13 @@ the new frame according to its own rules."
 	 frame)
     (unless frame-creation-function
       (error "Don't know how to create a frame on window system %s" w))
+
+    (unless (get w 'window-system-initialized)
+      (unless x-display-name
+        (setq x-display-name display))
+      (funcall (cdr (assq w window-system-initialization-alist)))
+      (put w 'window-system-initialized t))
+
     ;; Add parameters from `window-system-default-frame-alist'.
     (dolist (p (cdr (assq w window-system-default-frame-alist)))
       (unless (assq (car p) params)
@@ -1053,10 +1064,12 @@ If FRAME is omitted, describe the currently selected frame."
 
 (define-obsolete-function-alias 'set-default-font 'set-frame-font "23.1")
 
-(defun set-frame-font (font-name &optional keep-size frames)
-  "Set the default font to FONT-NAME.
+(defun set-frame-font (font &optional keep-size frames)
+  "Set the default font to FONT.
 When called interactively, prompt for the name of a font, and use
-that font on the selected frame.
+that font on the selected frame.  When called from Lisp, FONT
+should be a font name (a string), a font object, font entity, or
+font spec.
 
 If KEEP-SIZE is nil, keep the number of frame lines and columns
 fixed.  If KEEP-SIZE is non-nil (or with a prefix argument), try
@@ -1078,7 +1091,7 @@ this session\", so that the font is applied to future frames."
                                  nil nil nil nil
                                  (frame-parameter nil 'font))))
      (list font current-prefix-arg nil)))
-  (when (stringp font-name)
+  (when (or (stringp font) (fontp font))
     (let* ((this-frame (selected-frame))
 	   ;; FRAMES nil means affect the selected frame.
 	   (frame-list (cond ((null frames)
@@ -1099,7 +1112,7 @@ this session\", so that the font is applied to future frames."
 	  ;; (:width, :weight, etc.) so reset them too (Bug#2476).
 	  (set-face-attribute 'default f
 			      :width 'normal :weight 'normal
-			      :slant 'normal :font font-name)
+			      :slant 'normal :font font)
 	  (if keep-size
 	      (modify-frame-parameters
 	       f
@@ -1227,8 +1240,8 @@ often have their own features for raising or lowering frames."
 (defun set-frame-name (name)
   "Set the name of the selected frame to NAME.
 When called interactively, prompt for the name of the frame.
-The frame name is displayed on the modeline if the terminal displays only
-one frame, otherwise the name is displayed on the frame's caption bar."
+On text terminals, the frame name is displayed on the mode line.
+On graphical displays, it is displayed on the frame's title bar."
   (interactive "sFrame name: ")
   (modify-frame-parameters (selected-frame)
 			   (list (cons 'name name))))
@@ -1260,7 +1273,7 @@ frame's display)."
     (cond
      ((eq frame-type 'pc)
       (msdos-mouse-p))
-     ((eq system-type 'windows-nt)
+     ((eq frame-type 'w32)
       (with-no-warnings
        (> w32-num-mouse-buttons 0)))
      ((memq frame-type '(x ns))
@@ -1557,21 +1570,6 @@ left untouched.  FRAME nil or omitted means use the selected frame."
     'delete-frame-functions "22.1")
 
 
-;; Highlighting trailing whitespace.
-
-(make-variable-buffer-local 'show-trailing-whitespace)
-
-
-;; Scrolling
-
-(defgroup scrolling nil
-  "Scrolling windows."
-  :version "21.1"
-  :group 'frames)
-
-(defvaralias 'automatic-hscrolling 'auto-hscroll-mode)
-
-
 ;; Blinking cursor
 
 (defgroup cursor nil
@@ -1627,6 +1625,8 @@ itself as a pre-command hook."
     (cancel-timer blink-cursor-timer)
     (setq blink-cursor-timer nil)))
 
+(define-obsolete-variable-alias 'blink-cursor 'blink-cursor-mode "22.1")
+
 (define-minor-mode blink-cursor-mode
   "Toggle cursor blinking (Blink Cursor mode).
 With a prefix argument ARG, enable Blink Cursor mode if ARG is
@@ -1653,8 +1653,6 @@ terminals, cursor blinking is controlled by the terminal."
                                blink-cursor-delay
                                'blink-cursor-start))))
 
-(define-obsolete-variable-alias 'blink-cursor 'blink-cursor-mode "22.1")
-
 
 ;;;; Key bindings
 
@@ -1662,6 +1660,19 @@ terminals, cursor blinking is controlled by the terminal."
 (define-key ctl-x-5-map "1" 'delete-other-frames)
 (define-key ctl-x-5-map "0" 'delete-frame)
 (define-key ctl-x-5-map "o" 'other-frame)
+
+
+;; Misc.
+
+;; Only marked as obsolete in 24.3.
+(define-obsolete-variable-alias 'automatic-hscrolling
+  'auto-hscroll-mode "22.1")
+
+(make-variable-buffer-local 'show-trailing-whitespace)
+
+;; Defined in dispnew.c.
+(make-obsolete-variable
+ 'window-system-version "it does not give useful information." "24.3")
 
 (provide 'frame)
 

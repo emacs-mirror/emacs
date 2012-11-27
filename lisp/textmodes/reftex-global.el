@@ -4,8 +4,6 @@
 
 ;; Author: Carsten Dominik <dominik@science.uva.nl>
 ;; Maintainer: auctex-devel@gnu.org
-;; Version: 4.31
-;; Package: reftex
 
 ;; This file is part of GNU Emacs.
 
@@ -350,9 +348,8 @@ Also checks if buffers visiting the files are in read-only mode."
 ;; variable `multi-isearch-next-buffer-function'.
 
 (defun reftex-isearch-wrap-function ()
-  (if (not isearch-word)
-      (switch-to-buffer
-       (funcall isearch-next-buffer-function (current-buffer) t)))
+  (switch-to-buffer
+   (funcall isearch-next-buffer-function (current-buffer) t))
   (goto-char (if isearch-forward (point-min) (point-max))))
 
 (defun reftex-isearch-push-state-function ()
@@ -364,14 +361,7 @@ Also checks if buffers visiting the files are in read-only mode."
 
 (defun reftex-isearch-isearch-search (string bound noerror)
   (let ((nxt-buff nil)
-	(search-fun
-	 (cond
-	  (isearch-word
-	   (if isearch-forward 'word-search-forward 'word-search-backward))
-	  (isearch-regexp
-	   (if isearch-forward 're-search-forward 're-search-backward))
-	  (t
-	   (if isearch-forward 'search-forward 'search-backward)))))
+	(search-fun (isearch-search-fun-default)))
     (or
      (funcall search-fun string bound noerror)
      (unless bound
@@ -415,7 +405,7 @@ Also checks if buffers visiting the files are in read-only mode."
     (when flist
       (if wrapp
 	  (unless isearch-forward
-	      (setq flist (last flist)))
+	    (setq flist (last flist)))
 	(unless isearch-forward
 	  (setq flist (reverse flist)))
 	(while (not (string= (car flist) cb))
@@ -445,7 +435,8 @@ With no argument, this command toggles
 	      (with-current-buffer crt-buf
 		(when reftex-mode
 		  (if (boundp 'multi-isearch-next-buffer-function)
-		      (set (make-local-variable 'multi-isearch-next-buffer-function)
+		      (set (make-local-variable
+			    'multi-isearch-next-buffer-function)
 			   'reftex-isearch-switch-to-next-file)
 		    (set (make-local-variable 'isearch-wrap-function)
 			 'reftex-isearch-wrap-function)
@@ -468,7 +459,7 @@ With no argument, this command toggles
 		(kill-local-variable 'isearch-next-buffer-function))
 	      (setq reftex-isearch-minor-mode nil))))
 	(remove-hook 'reftex-mode-hook 'reftex-isearch-minor-mode)))
-    ;; Force modeline redisplay.
+    ;; Force mode line redisplay.
     (set-buffer-modified-p (buffer-modified-p))))
 
 (add-minor-mode 'reftex-isearch-minor-mode "/I" nil nil

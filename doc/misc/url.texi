@@ -18,7 +18,7 @@
 @end direntry
 
 @copying
-This file documents the Emacs Lisp URL loading package.
+This is the manual for the @code{url} Emacs Lisp library.
 
 Copyright @copyright{} 1993-1999, 2002, 2004-2012 Free Software Foundation, Inc.
 
@@ -57,10 +57,10 @@ developing GNU and promoting software freedom.''
 @end ifnottex
 
 @menu
-* Getting Started::             Preparing your program to use URLs.
+* Introduction::                About the @code{url} library.
+* URI Parsing::                 Parsing (and unparsing) URIs.
 * Retrieving URLs::             How to use this package to retrieve a URL.
 * Supported URL Types::         Descriptions of URL types currently supported.
-* Defining New URLs::           How to define a URL loader for a new protocol.
 * General Facilities::          URLs can be cached, accessed via a gateway
                                 and tracked in a history list.
 * Customization::               Variables you can alter.
@@ -70,93 +70,129 @@ developing GNU and promoting software freedom.''
 * Concept Index::
 @end menu
 
-@node Getting Started
-@chapter Getting Started
-@cindex URLs, definition
-@cindex URIs
+@node Introduction
+@chapter Introduction
+@cindex URL
+@cindex URI
+@cindex uniform resource identifier
+@cindex uniform resource locator
 
-@dfn{Uniform Resource Locators} (URLs) are a specific form of
-@dfn{Uniform Resource Identifiers} (URI) described in RFC 2396 which
-updates RFC 1738 and RFC 1808.  RFC 2016 defines uniform resource
-agents.
+A @dfn{Uniform Resource Identifier} (URI) is a specially-formatted
+name, such as an Internet address, that identifies some name or
+resource.  The format of URIs is described in RFC 3986, which updates
+and replaces the earlier RFCs 2732, 2396, 1808, and 1738.  A
+@dfn{Uniform Resource Locator} (URL) is an older but still-common
+term, which basically refers to a URI corresponding to a resource that
+can be accessed (usually over a network) in a specific way.
 
-URIs have the form @var{scheme}:@var{scheme-specific-part}, where the
-@var{scheme}s supported by this library are described below.
-@xref{Supported URL Types}.
-
-FTP, NFS, HTTP, HTTPS, @code{rlogin}, @code{telnet}, tn3270,
-IRC and gopher URLs all have the form
+  Here are some examples of URIs (taken from RFC 3986):
 
 @example
-@var{scheme}://@r{[}@var{userinfo}@@@r{]}@var{hostname}@r{[}:@var{port}@r{]}@r{[}/@var{path}@r{]}
+ftp://ftp.is.co.za/rfc/rfc1808.txt
+http://www.ietf.org/rfc/rfc2396.txt
+ldap://[2001:db8::7]/c=GB?objectClass?one
+mailto:John.Doe@@example.com
+news:comp.infosystems.www.servers.unix
+tel:+1-816-555-1212
+telnet://192.0.2.16:80/
+urn:oasis:names:specification:docbook:dtd:xml:4.1.2
 @end example
+
+  This manual describes the @code{url} library, an Emacs Lisp library
+for parsing URIs and retrieving the resources to which they refer.
+(The library is so-named for historical reasons; nowadays, the ``URI''
+terminology is regarded as the more general one, and ``URL'' is
+technically obsolete despite its widespread vernacular usage.)
+
+@node URI Parsing
+@chapter URI Parsing
+
+  A URI consists of several @dfn{components}, each having a different
+meaning.  For example, the URI
+
+@example
+http://www.gnu.org/software/emacs/
+@end example
+
 @noindent
-where @samp{@r{[}} and @samp{@r{]}} delimit optional parts.
-@var{userinfo} sometimes takes the form @var{username}:@var{password}
-but you should beware of the security risks of sending cleartext
-passwords.  @var{hostname} may be a domain name or a dotted decimal
-address.  If the @samp{:@var{port}} is omitted then the library will
-use the ``well known'' port for that service when accessing URLs.  With
-the possible exception of @code{telnet}, it is rare for ports to be
-specified, and it is possible using a non-standard port may have
-undesired consequences if a different service is listening on that
-port (e.g., an HTTP URL specifying the SMTP port can cause mail to be
-sent). @c , but @xref{Other Variables, url-bad-port-list}.
-The meaning of the @var{path} component depends on the service.
+specifies the scheme component @samp{http}, the hostname component
+@samp{www.gnu.org}, and the path component @samp{/software/emacs/}.
+
+@cindex parsed URIs
+  The format of URIs is specified by RFC 3986.  The @code{url} library
+provides the Lisp function @code{url-generic-parse-url}, a (mostly)
+standard-compliant URI parser, as well as function
+@code{url-recreate-url}, which converts a parsed URI back into a URI
+string.
+
+@defun url-generic-parse-url uri-string
+This function returns a parsed version of the string @var{uri-string}.
+@end defun
+
+@defun url-recreate-url uri-obj
+@cindex unparsing URLs
+Given a parsed URI, this function returns the corresponding URI string.
+@end defun
+
+@cindex parsed URI
+  The return value of @code{url-generic-parse-url}, and the argument
+expected by @code{url-recreate-url}, is a @dfn{parsed URI}: a CL
+structure whose slots hold the various components of the URI.
+@xref{top,the CL Manual,,cl,GNU Emacs Common Lisp Emulation}, for
+details about CL structures.  Most of the other functions in the
+@code{url} library act on parsed URIs.
 
 @menu
-* Configuration::
-* Parsed URLs::                 URLs are parsed into vector structures.
+* Parsed URIs::           Format of parsed URI structures.
+* URI Encoding::          Non-@acronym{ASCII} characters in URIs.
 @end menu
 
-@node Configuration
-@section Configuration
+@node Parsed URIs
+@section Parsed URI structures
 
-@defvar url-configuration-directory
-@cindex @file{~/.url}
-@cindex configuration files
-The directory in which URL configuration files, the cache etc.,
-reside.  The old default was @file{~/.url}, and this directory
-is still used if it exists.  The new default is a @file{url/}
-directory in @code{user-emacs-directory}, which is normally
-@file{~/.emacs.d}.
-@end defvar
+  Each parsed URI structure contains the following slots:
 
-@node Parsed URLs
-@section Parsed URLs
-@cindex parsed URLs
-The library functions typically operate on @dfn{parsed} versions of
-URLs.  These are actually CL structures (vectors) of the form:
-
-@example
-[cl-struct-url @var{type} @var{user} @var{password} @var{host} @var{port} @var{filename} @var{target} @var{attributes} @var{fullness} @var{use-cookies}]
-@end example
-
-@noindent where
-@table @var
+@table @code
 @item type
-is the type of the URL scheme, e.g., @code{http}
+The URI scheme (a string, e.g.@: @code{http}).  @xref{Supported URL
+Types}, for a list of schemes that the @code{url} library knows how to
+process.  This slot can also be @code{nil}, if the URI is not fully
+specified.
+
 @item user
-is the username associated with it, or @code{nil};
+The user name (a string), or @code{nil}.
+
 @item password
-is the user password associated with it, or @code{nil};
+The user password (a string), or @code{nil}.  The use of this URI
+component is strongly discouraged; nowadays, passwords are transmitted
+by other means, not as part of a URI.
+
 @item host
-is the host name associated with it, or @code{nil};
+The host name (a string), or @code{nil}.  If present, this is
+typically a domain name or IP address.
+
 @item port
-is the port number associated with it, or @code{nil};
+The port number (an integer), or @code{nil}.  Omitting this component
+usually means to use the ``standard'' port associated with the URI
+scheme.
+
 @item filename
-is the ``file'' part of it, or @code{nil}.  This doesn't necessarily
-actually refer to a file;
+The combination of the ``path'' and ``query'' components of the URI (a
+string), or @code{nil}.  If the query component is present, it is the
+substring following the first @samp{?} character, and the path
+component is the substring before the @samp{?}.  The meaning of these
+components is scheme-dependent; they do not necessarily refer to a
+file on a disk.
+
 @item target
-is the target part, or @code{nil};
-@item attributes
-is the attributes associated with it, or @code{nil};
+The fragment component (a string), or @code{nil}.  The fragment
+component specifies a ``secondary resource'', such as a section of a
+webpage.
+
 @item fullness
-is @code{t} for a fully-specified URL, with a host part indicated by
-@samp{//} after the scheme part.
-@item use-cookies
-is @code{nil} to neither send or store cookies to the server, @code{t}
-otherwise.
+This is @code{t} if the URI is fully specified, i.e.@: the
+hierarchical components of the URI (the hostname and/or username
+and/or password) are preceded by @samp{//}.
 @end table
 
 @findex url-type
@@ -168,63 +204,164 @@ otherwise.
 @findex url-target
 @findex url-attributes
 @findex url-fullness
-These attributes have accessors named @code{url-@var{part}}, where
-@var{part} is the name of one of the elements above, e.g.,
-@code{url-host}.  These attributes can be set with the same accessors
-using @code{setf}:
+These slots have accessors named @code{url-@var{part}}, where
+@var{part} is the slot name.  For example, the accessor for the
+@code{host} slot is the function @code{url-host}.  The @code{url-port}
+accessor returns the default port for the URI scheme if the parsed
+URI's @var{port} slot is @code{nil}.
+
+  The slots can be set using @code{setf}.  For example:
 
 @example
 (setf (url-port url) 80)
 @end example
 
-If @var{port} is @var{nil}, @code{url-port} returns the default port
-of the protocol.
+@node URI Encoding
+@section URI Encoding
 
-There are functions for parsing and unparsing between the string and
-vector forms.
+@cindex percent encoding
+  The @code{url-generic-parse-url} parser does not obey RFC 3986 in
+one respect: it allows non-@acronym{ASCII} characters in URI strings.
 
-@defun url-generic-parse-url url
-Return a parsed version of the string @var{url}.
+  Strictly speaking, RFC 3986 compatible URIs may only consist of
+@acronym{ASCII} characters; non-@acronym{ASCII} characters are
+represented by converting them to UTF-8 byte sequences, and performing
+@dfn{percent encoding} on the bytes.  For example, the o-umlaut
+character is converted to the UTF-8 byte sequence @samp{\xD3\xA7},
+then percent encoded to @samp{%D3%A7}.  (Certain ``reserved''
+@acronym{ASCII} characters must also be percent encoded when they
+appear in URI components.)
+
+  The function @code{url-encode-url} can be used to convert a URI
+string containing arbitrary characters to one that is properly
+percent-encoded in accordance with RFC 3986.
+
+@defun url-encode-url url-string
+This function return a properly URI-encoded version of
+@var{url-string}.  It also performs @dfn{URI normalization},
+e.g.@: converting the scheme component to lowercase if it was
+previously uppercase.
 @end defun
 
-@defun url-recreate-url url
-@cindex unparsing URLs
-Recreates a URL string from the parsed @var{url}.
+  To convert between a string containing arbitrary characters and a
+percent-encoded all-@acronym{ASCII} string, use the functions
+@code{url-hexify-string} and @code{url-unhex-string}:
+
+@defun url-hexify-string string &optional allowed-chars
+This function performs percent-encoding on @var{string}, and returns
+the result.
+
+If @var{string} is multibyte, it is first converted to a UTF-8 byte
+string.  Each byte corresponding to an allowed character is left
+as-is, while all other bytes are converted to a three-character
+sequence: @samp{%} followed by two upper-case hex digits.
+
+@vindex url-unreserved-chars
+@cindex unreserved characters
+The allowed characters are specified by @var{allowed-chars}.  If this
+argument is @code{nil}, the allowed characters are those specified as
+@dfn{unreserved characters} by RFC 3986 (see the variable
+@code{url-unreserved-chars}).  Otherwise, @var{allowed-chars} should
+be a vector whose @var{n}-th element is non-@code{nil} if character
+@var{n} is allowed.
+@end defun
+
+@defun url-unhex-string string &optional allow-newlines
+This function replaces percent-encoding sequences in @var{string} with
+their character equivalents, and returns the resulting string.
+
+If @var{allow-newlines} is non-@code{nil}, it allows the decoding of
+carriage returns and line feeds, which are normally forbidden in URIs.
 @end defun
 
 @node Retrieving URLs
 @chapter Retrieving URLs
 
+  The @code{url} library defines the following three functions for
+retrieving the data specified by a URL.  The actual retrieval protocol
+depends on the URL's URI scheme, and is performed by lower-level
+scheme-specific functions.  (Those lower-level functions are not
+documented here, and generally should not be called directly.)
+
+  In each of these functions, the @var{url} argument can be either a
+string or a parsed URL structure.  If it is a string, that string is
+passed through @code{url-encode-url} before using it, to ensure that
+it is properly URI-encoded (@pxref{URI Encoding}).
+
 @defun url-retrieve-synchronously url
-Retrieve @var{url} synchronously and return a buffer containing the
-data.  @var{url} is either a string or a parsed URL structure.  Return
-@code{nil} if there are no data associated with it (the case for dired,
-info, or mailto URLs that need no further processing).
+This function synchronously retrieves the data specified by @var{url},
+and returns a buffer containing the data.  The return value is
+@code{nil} if there is no data associated with the URL (as is the case
+for @code{dired}, @code{info}, and @code{mailto} URLs).
 @end defun
 
 @defun url-retrieve url callback &optional cbargs silent no-cookies
-Retrieve @var{url} asynchronously and call @var{callback} with args
-@var{cbargs} when finished.  The callback is called when the object
-has been completely retrieved, with the current buffer containing the
-object and any MIME headers associated with it.  @var{url} is either a
-string or a parsed URL structure.  Returns the buffer @var{url} will
-load into, or @code{nil} if the process has already completed.
-If the optional argument @var{silent} is non-@code{nil}, suppress
-progress messages.  If the optional argument @var{no-cookies} is
-non-@code{nil}, do not store or send cookies.
+This function retrieves @var{url} asynchronously, calling the function
+@var{callback} when the object has been completely retrieved.  The
+return value is the buffer into which the data will be inserted, or
+@code{nil} if the process has already completed.
+
+The callback function is called this way:
+
+@example
+(apply @var{callback} @var{status} @var{cbargs})
+@end example
+
+@noindent
+where @var{status} is a plist representing what happened during the
+retrieval, with most recent events first, or an empty list if no
+events have occurred.  Each pair in the plist is one of:
+
+@table @code
+@item (:redirect @var{redirected-to})
+This means that the request was redirected to the URL
+@var{redirected-to}.
+
+@item (:error (@var{error-symbol} . @var{data}))
+This means that an error occurred.  If so desired, the error can be
+signaled with @code{(signal @var{error-symbol} @var{data})}.
+@end table
+
+When the callback function is called, the current buffer is the one
+containing the retrieved data (if any).  The buffer also contains any
+MIME headers associated with the data retrieval.
+
+If the optional argument @var{silent} is non-@code{nil}, progress
+messages are suppressed.  If the optional argument @var{no-cookies} is
+non-@code{nil}, cookies are not stored or sent.
+@end defun
+
+@defun url-queue-retrieve url callback &optional cbargs silent no-cookies
+This function acts like @code{url-retrieve}, but with limits on the
+number of concurrently-running network processes.  The option
+@code{url-queue-parallel-processes} controls the number of concurrent
+processes, and the option @code{url-queue-timeout} sets a timeout in
+seconds.
+
+To use this function, you must @code{(require 'url-queue)}.
 @end defun
 
 @vindex url-queue-parallel-processes
+@defopt url-queue-parallel-processes
+The value of this option is an integer specifying the maximum number
+of concurrent @code{url-queue-retrieve} network processes.  If the
+number of @code{url-queue-retrieve} calls is larger than this number,
+later ones are queued until ealier ones are finished.
+@end defopt
+
 @vindex url-queue-timeout
-@defun url-queue-retrieve url callback &optional cbargs silent no-cookies
-This acts like the @code{url-retrieve} function, but with limits on
-the degree of parallelism.  The option @code{url-queue-parallel-processes}
-controls the number of concurrent processes, and the option
-@code{url-queue-timeout} sets a timeout in seconds.
-@end defun
+@defopt url-queue-timeout
+The value of this option is a number specifying the maximum lifetime
+of a @code{url-queue-retrieve} network process, once it is started.
+If a process is not finished by then, it is killed and removed from
+the queue.
+@end defopt
 
 @node Supported URL Types
 @chapter Supported URL Types
+
+This chapter describes functions and variables affecting URL retrieval
+for specific schemes.
 
 @menu
 * http/https::                  Hypertext Transfer Protocol.
@@ -236,47 +373,30 @@ controls the number of concurrent processes, and the option
 * irc::                         Internet Relay Chat.
 * data::                        Embedded data URLs.
 * nfs::                         Networked File System
-@c * finger::
-@c * gopher::
-@c * netrek::
-@c * prospero::
-* cid::                         Content-ID.
-* about::
 * ldap::                        Lightweight Directory Access Protocol
-* imap::                        IMAP mailboxes.
 * man::                         Unix man pages.
 @end menu
 
 @node http/https
 @section @code{http} and @code{https}
 
-The scheme @code{http} is Hypertext Transfer Protocol.  The library
-supports version 1.1, specified in RFC 2616.  (This supersedes 1.0,
-defined in RFC 1945) HTTP URLs have the following form, where most of
-the parts are optional:
-@example
-http://@var{user}:@var{password}@@@var{host}:@var{port}/@var{path}?@var{searchpart}#@var{fragment}
-@end example
-@c The @code{:@var{port}} part is optional, and @var{port} defaults to
-@c 80.  The @code{/@var{path}} part, if present, is a slash-separated
-@c series elements.  The @code{?@var{searchpart}}, if present, is the
-@c query for a search or the content of a form submission.  The
-@c @code{#fragment} part, if present, is a location in the document.
+The @code{http} scheme refers to the Hypertext Transfer Protocol.  The
+@code{url} library supports HTTP version 1.1, specified in RFC 2616.
+Its default port is 80.
 
-The scheme @code{https} is a secure version of @code{http}, with
-transmission via SSL.  It is defined in RFC 2069.  Its default port is
-443.  This scheme depends on SSL support in Emacs via the
-@file{ssl.el} library and is actually implemented by forcing the
-@code{ssl} gateway method to be used.  @xref{Gateways in general}.
+  The @code{https} scheme is a secure version of @code{http}, with
+transmission via SSL.  It is defined in RFC 2069, and its default port
+is 443.  When using @code{https}, the @code{url} library performs SSL
+encryption via the @code{ssl} library, by forcing the @code{ssl}
+gateway method to be used.  @xref{Gateways in general}.
 
 @defopt url-honor-refresh-requests
-This controls honoring of HTTP @samp{Refresh} headers by which
-servers can direct clients to reload documents from the same URL or a
-or different one.  @code{nil} means they will not be honored,
-@code{t} (the default) means they will always be honored, and
-otherwise the user will be asked on each request.
+If this option is non-@code{nil} (the default), the @code{url} library
+honors the HTTP @samp{Refresh} header, which is used by servers to
+direct clients to reload documents from the same URL or a or different
+one.  If the value is @code{nil}, the @samp{Refresh} header is
+ignored; any other value means to ask the user on each request.
 @end defopt
-
 
 @menu
 * Cookies::
@@ -409,26 +529,32 @@ emacs-mime, The Emacs MIME Manual}.
 @cindex compressed files
 @cindex dired
 
+The @code{ftp} and @code{file} schemes are defined in RFC 1808.  The
+@code{url} library treats @samp{ftp:} and @samp{file:} as synonymous.
+Such URLs have the form
+
 @example
 ftp://@var{user}:@var{password}@@@var{host}:@var{port}/@var{file}
 file://@var{user}:@var{password}@@@var{host}:@var{port}/@var{file}
 @end example
 
-These schemes are defined in RFC 1808.
-@samp{ftp:} and @samp{file:} are synonymous in this library.  They
-allow reading arbitrary files from hosts.  Either @samp{ange-ftp}
-(Emacs) or @samp{efs} (XEmacs) is used to retrieve them from remote
-hosts.  Local files are accessed directly.
+@noindent
+If the URL specifies a local file, it is retrieved by reading the file
+contents in the usual way.  If it specifies a remote file, it is
+retrieved using the Ange-FTP package.  @xref{Remote Files,,, emacs,
+The GNU Emacs Manual}.
 
-Compressed files are handled, but support is hard-coded so that
-@code{jka-compr-compression-info-list} and so on have no affect.
-Suffixes recognized are @samp{.z}, @samp{.gz}, @samp{.Z} and
-@samp{.bz2}.
+  When retrieving a compressed file, it is automatically uncompressed
+if it has the file suffix @file{.z}, @file{.gz}, @file{.Z},
+@file{.bz2}, or @file{.xz}.  (The list of supported suffixes is
+hard-coded, and cannot be altered by customizing
+@code{jka-compr-compression-info-list}.)
 
 @defopt url-directory-index-file
-The filename to look for when indexing a directory, default
-@samp{"index.html"}.  If this file exists, and is readable, then it
-will be viewed instead of using @code{dired} to view the directory.
+This option specifies the filename to look for when a @code{file} or
+@code{ftp} URL specifies a directory.  The default is
+@file{index.html}.  If this file exists and is readable, it is viewed.
+Otherwise, Emacs visits the directory using Dired.
 @end defopt
 
 @node info
@@ -437,47 +563,53 @@ will be viewed instead of using @code{dired} to view the directory.
 @cindex Texinfo
 @findex Info-goto-node
 
+The @code{info} scheme is non-standard.  Such URLs have the form
+
 @example
 info:@var{file}#@var{node}
 @end example
 
-Info URLs are not officially defined.  They invoke
-@code{Info-goto-node} with argument @samp{(@var{file})@var{node}}.
-@samp{#@var{node}} is optional, defaulting to @samp{Top}.
+@noindent
+and are retrieved by invoking @code{Info-goto-node} with argument
+@samp{(@var{file})@var{node}}.  If @samp{#@var{node}} is omitted, the
+@samp{Top} node is opened.
 
 @node mailto
 @section mailto
 
 @cindex mailto
 @cindex email
-A mailto URL will send an email message to the address in the
-URL, for example @samp{mailto:foo@@bar.com} would compose a
-message to @samp{foo@@bar.com}.
+A @code{mailto} URL specifies an email message to be sent to a given
+email address.  For example, @samp{mailto:foo@@bar.com} specifies
+sending a message to @samp{foo@@bar.com}.  The ``retrieval method''
+for such URLs is to open a mail composition buffer in which the
+appropriate content (e.g.@: the recipient address) has been filled in.
 
-@defopt url-mail-command
-@vindex mail-user-agent
-The function called whenever url needs to send mail.  This should
-normally be left to default from @var{mail-user-agent}.  @xref{Mail
-Methods, , Mail-Composition Methods, emacs, The GNU Emacs Manual}.
-@end defopt
+  As defined in RFC 2368, a @code{mailto} URL has the form
 
-An @samp{X-Url-From} header field containing the URL of the document
-that contained the mailto URL is added if that URL is known.
-
-RFC 2368 extends the definition of mailto URLs in RFC 1738.
-The form of a mailto URL is
 @example
 @samp{mailto:@var{mailbox}[?@var{header}=@var{contents}[&@var{header}=@var{contents}]]}
 @end example
-@noindent where an arbitrary number of @var{header}s can be added.  If the
-@var{header} is @samp{body}, then @var{contents} is put in the body
-otherwise a @var{header} header field is created with @var{contents}
-as its contents.  Note that the URL library does not consider any
-headers ``dangerous'' so you should check them before sending the
-message.
 
-@c Fixme: update
-Email messages are defined in @sc{rfc}822.
+@noindent
+where an arbitrary number of @var{header}s can be added.  If the
+@var{header} is @samp{body}, then @var{contents} is put in the message
+body; otherwise, a @var{header} header field is created with
+@var{contents} as its contents.  Note that the @code{url} library does
+not perform any checking of @var{header} or @var{contents}, so you
+should check them before sending the message.
+
+@defopt url-mail-command
+@vindex mail-user-agent
+The value of this variable is the function called whenever url needs
+to send mail.  This should normally be left its default, which is the
+standard mail-composition command @code{compose-mail}.  @xref{Sending
+Mail,,, emacs, The GNU Emacs Manual}.
+@end defopt
+
+  If the document containing the @code{mailto} URL itself possessed a
+known URL, Emacs automatically inserts an @samp{X-Url-From} header
+field into the mail buffer, specifying that URL.
 
 @node news/nntp/snews
 @section @code{news}, @code{nntp} and @code{snews}
@@ -487,11 +619,13 @@ Email messages are defined in @sc{rfc}822.
 @cindex NNTP
 @cindex snews
 
-@c draft-gilman-news-url-01
-The network news URL scheme take the following forms following RFC
-1738 except that for compatibility with other clients, host and port
-fields may be included in news URLs though they are properly only
-allowed for nntp an snews.
+The @code{news}, @code{nntp}, and @code{snews} schemes, defined in RFC
+1738, are used for reading Usenet newsgroups.  For compatibility with
+non-standard-compliant news clients, the @code{url} library allows
+host and port fields to be included in @code{news} URLs, even though
+they are properly only allowed for @code{nntp} and @code{snews}.
+
+  @code{news} and @code{nntp} URLs have the following form:
 
 @table @samp
 @item news:@var{newsgroup}
@@ -506,24 +640,22 @@ Retrieves a list of all available newsgroups;
 Similar to the @samp{news} versions.
 @end table
 
-@samp{:@var{port}} is optional and defaults to :119.
+  The default port for @code{nntp} (and @code{news}) is 119.  The
+difference between an @code{nntp} URL and a @code{news} URL is that an
+@code{nttp} URL may specify an article by its number.  The
+@samp{snews} scheme is the same as @samp{nntp}, except that it is
+tunneled through SSL and has default port 563.
 
-@samp{snews} is the same as @samp{nntp} except that the default port
-is :563.
-@cindex SSL
-(It is tunneled through SSL.)
+  These URLs are retrieved via the Gnus package.
 
-An @samp{nntp} URL is the same as a news URL, except that the URL may
-specify an article by its number.
-
-@defopt url-news-server
-This variable can be used to override the default news server.
-Usually this will be set by the Gnus package, which is used to fetch
-news.
 @cindex environment variable
 @vindex NNTPSERVER
-It may be set from the conventional environment variable
-@code{NNTPSERVER}.
+@defopt url-news-server
+This variable specifies the default news server from which to fetch
+news, if no server was specified in the URL.  The default value,
+@code{nil}, means to use the server specified by the standard
+environment variable @samp{NNTPSERVER}, or @samp{news} if that
+environment variable is unset.
 @end defopt
 
 @node rlogin/telnet/tn3270
@@ -534,12 +666,15 @@ It may be set from the conventional environment variable
 @cindex terminal emulation
 @findex terminal-emulator
 
-These URL schemes from RFC 1738 for logon via a terminal emulator have
-the form
+These URL schemes are defined in RFC 1738, and are used for logging in
+via a terminal emulator.  They have the form
+
 @example
 telnet://@var{user}:@var{password}@@@var{host}:@var{port}
 @end example
-but the @code{:@var{password}} component is ignored.
+
+@noindent
+but the @var{password} component is ignored.
 
 To handle rlogin, telnet and tn3270 URLs, a @code{rlogin},
 @code{telnet} or @code{tn3270} (the program names and arguments are
@@ -553,39 +688,43 @@ Well-known ports are used if the URL does not specify a port.
 @cindex ZEN IRC
 @cindex ERC
 @cindex rcirc
-@c Fixme: reference (was http://www.w3.org/Addressing/draft-mirashi-url-irc-01.txt)
-@dfn{Internet Relay Chat} (IRC) is handled by handing off the @sc{irc}
-session to a function named in @code{url-irc-function}.
+
+  The @code{irc} scheme is defined in the Internet Draft at
+@url{http://www.w3.org/Addressing/draft-mirashi-url-irc-01.txt} (which
+was never approved as an RFC).  Such URLs have the form
+
+@example
+irc://@var{host}:@var{port}/@var{target},@var{needpass}
+@end example
+
+@noindent
+and are retrieved by opening an @acronym{IRC} session using the
+function specified by @code{url-irc-function}.
 
 @defopt url-irc-function
-A function to actually open an IRC connection.
-This function
-must take five arguments, @var{host}, @var{port}, @var{channel},
-@var{user} and @var{password}.  The @var{channel} argument specifies the
-channel to join immediately, this can be @code{nil}.  By default this is
-@code{url-irc-rcirc}.
+The value of this option is a function, which is called to open an IRC
+connection for @code{irc} URLs.  This function must take five
+arguments, @var{host}, @var{port}, @var{channel}, @var{user} and
+@var{password}.  The @var{channel} argument specifies the channel to
+join immediately, and may be @code{nil}.
+
+The default is @code{url-irc-rcirc}, which uses the Rcirc package.
+Other options are @code{url-irc-erc} (which uses ERC) and
+@code{url-irc-zenirc} (which uses ZenIRC).
 @end defopt
-@defun url-irc-rcirc host port channel user password
-Processes the arguments and lets @code{rcirc} handle the session.
-@end defun
-@defun url-irc-erc host port channel user password
-Processes the arguments and lets @code{ERC} handle the session.
-@end defun
-@defun url-irc-zenirc host port channel user password
-Processes the arguments and lets @code{zenirc} handle the session.
-@end defun
 
 @node data
 @section data
 @cindex data URLs
 
+  The @code{data} scheme, defined in RFC 2397, contains MIME data in
+the URL itself.  Such URLs have the form
+
 @example
 data:@r{[}@var{media-type}@r{]}@r{[};@var{base64}@r{]},@var{data}
 @end example
 
-Data URLs contain MIME data in the URL itself.  They are defined in
-RFC 2397.
-
+@noindent
 @var{media-type} is a MIME @samp{Content-Type} string, possibly
 including parameters.  It defaults to
 @samp{text/plain;charset=US-ASCII}.  The @samp{text/plain} can be
@@ -598,13 +737,13 @@ present, the @var{data} are base64-encoded.
 @cindex Network File System
 @cindex automounter
 
+The @code{nfs} scheme, defined in RFC 2224, is similar to @code{ftp}
+except that it points to a file on a remote host that is handled by an
+NFS automounter on the local host.  Such URLs have the form
+
 @example
 nfs://@var{user}:@var{password}@@@var{host}:@var{port}/@var{file}
 @end example
-
-The @samp{nfs:} scheme is defined in RFC 2224.  It is similar to
-@samp{ftp:} except that it points to a file on a remote host that is
-handled by the automounter on the local host.
 
 @defvar url-nfs-automounter-directory-spec
 @end defvar
@@ -628,15 +767,6 @@ A literal @samp{%}.
 
 Each can be used any number of times.
 
-@node cid
-@section cid
-@cindex Content-ID
-
-RFC 2111
-
-@node about
-@section about
-
 @node ldap
 @section ldap
 @cindex LDAP
@@ -644,50 +774,21 @@ RFC 2111
 
 The LDAP scheme is defined in RFC 2255.
 
-@node imap
-@section imap
-@cindex IMAP
-
-RFC 2192
-
 @node man
 @section man
 @cindex @command{man}
 @cindex Unix man pages
 @findex man
 
+The @code{man} scheme is a non-standard one.  Such URLs have the form
+
 @example
 @samp{man:@var{page-spec}}
 @end example
 
-This is a non-standard scheme.  @var{page-spec} is passed directly to
-the Lisp @code{man} function.
-
-@node Defining New URLs
-@chapter Defining New URLs
-
-@menu
-* Naming conventions::
-* Required functions::
-* Optional functions::
-* Asynchronous fetching::
-* Supporting file-name-handlers::
-@end menu
-
-@node Naming conventions
-@section Naming conventions
-
-@node Required functions
-@section Required functions
-
-@node Optional functions
-@section Optional functions
-
-@node Asynchronous fetching
-@section Asynchronous fetching
-
-@node Supporting file-name-handlers
-@section Supporting file-name-handlers
+@noindent
+and are retrieved by passing @var{page-spec} to the Lisp function
+@code{man}.
 
 @node General Facilities
 @chapter General Facilities
@@ -1108,11 +1209,9 @@ You can use this function to do completion of URLs from the history.
 @node Customization
 @chapter Customization
 
-@section Environment Variables
-
 @cindex environment variables
-The following environment variables affect the library's operation at
-startup.
+  The following environment variables affect the @code{url} library's
+operation at startup.
 
 @table @code
 @item TMPDIR
@@ -1122,10 +1221,21 @@ If this is defined, @var{url-temporary-directory} is initialized from
 it.
 @end table
 
-@section General User Options
+  The following user options affect the general operation of
+@code{url} library.
 
-The following user options, settable with Customize, affect the
-general operation of the package.
+@defopt url-configuration-directory
+@cindex configuration files
+The value of this variable specifies the name of the directory where
+the @code{url} library stores its various configuration files, cache
+files, etc.
+
+The default value specifies a subdirectory named @file{url/} in the
+standard Emacs user data directory specified by the variable
+@code{user-emacs-directory} (normally @file{~/.emacs.d}).  However,
+the old default was @file{~/.url}, and this directory is used instead
+if it exists.
+@end defopt
 
 @defopt url-debug
 @cindex debugging

@@ -1,4 +1,4 @@
-;; newst-ticker.el --- modeline ticker for newsticker.
+;; newst-ticker.el --- mode line ticker for newsticker.
 
 ;; Copyright (C) 2003-2012  Free Software Foundation, Inc.
 

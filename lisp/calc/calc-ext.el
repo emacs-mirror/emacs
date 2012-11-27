@@ -61,7 +61,7 @@
 (declare-function math-vector-is-string "calccomp" (a))
 (declare-function math-vector-to-string "calccomp" (a &optional quoted))
 (declare-function math-format-radix-float "calc-bin" (a prec))
-(declare-function math-compose-expr "calccomp" (a prec))
+(declare-function math-compose-expr "calccomp" (a prec &optional div))
 (declare-function math-abs "calc-arith" (a))
 (declare-function math-format-bignum-binary "calc-bin" (a))
 (declare-function math-format-bignum-octal "calc-bin" (a))
@@ -460,6 +460,7 @@
   (define-key calc-mode-map "mD" 'calc-default-simplify-mode)
   (define-key calc-mode-map "mE" 'calc-ext-simplify-mode)
   (define-key calc-mode-map "mF" 'calc-settings-file-name)
+  (define-key calc-mode-map "mI" 'calc-basic-simplify-mode)
   (define-key calc-mode-map "mM" 'calc-more-recursion-depth)
   (define-key calc-mode-map "mN" 'calc-num-simplify-mode)
   (define-key calc-mode-map "mO" 'calc-no-simplify-mode)
@@ -1095,11 +1096,11 @@ calc-tan calc-tanh calc-to-degrees calc-to-radians)
 
  ("calc-mode" calc-alg-simplify-mode calc-algebraic-mode
 calc-always-load-extensions calc-auto-recompute calc-auto-why
-calc-bin-simplify-mode calc-break-vectors calc-center-justify
-calc-default-simplify-mode calc-display-raw calc-eng-notation
-calc-ext-simplify-mode calc-fix-notation calc-full-trail-vectors
-calc-full-vectors calc-get-modes calc-group-char calc-group-digits
-calc-infinite-mode calc-left-justify calc-left-label
+calc-basic-simplify-mode calc-bin-simplify-mode calc-break-vectors 
+calc-center-justify calc-default-simplify-mode calc-display-raw 
+calc-eng-notation calc-ext-simplify-mode calc-fix-notation 
+calc-full-trail-vectors calc-full-vectors calc-get-modes calc-group-char 
+calc-group-digits calc-infinite-mode calc-left-justify calc-left-label
 calc-line-breaking calc-line-numbering calc-matrix-brackets
 calc-matrix-center-justify calc-matrix-left-justify calc-matrix-mode
 calc-matrix-right-justify calc-mode-record-mode calc-no-simplify-mode
@@ -1996,51 +1997,36 @@ calc-kill calc-kill-region calc-yank))))
 	(cache-val (intern (concat (symbol-name name) "-cache")))
 	(last-prec (intern (concat (symbol-name name) "-last-prec")))
 	(last-val (intern (concat (symbol-name name) "-last"))))
-    (list 'progn
-;	  (list 'defvar cache-prec (if init (math-numdigs (nth 1 init)) -100))
-	  (list 'defvar cache-prec
-                `(cond
-                  ((consp ,init) (math-numdigs (nth 1 ,init)))
-                  (,init
-                   (nth 1 (math-numdigs (eval ,init))))
-                  (t
-                   -100)))
-	  (list 'defvar cache-val
-                `(cond
-                  ((consp ,init) ,init)
-                  (,init (eval ,init))
-                  (t ,init)))
-	  (list 'defvar last-prec -100)
-	  (list 'defvar last-val nil)
-	  (list 'setq 'math-cache-list
-		(list 'cons
-		      (list 'quote cache-prec)
-		      (list 'cons
-			    (list 'quote last-prec)
-			    'math-cache-list)))
-	  (list 'defun
-		name ()
-		(list 'or
-		      (list '= last-prec 'calc-internal-prec)
-		      (list 'setq
-			    last-val
-			    (list 'math-normalize
-				  (list 'progn
-					(list 'or
-					      (list '>= cache-prec
-						    'calc-internal-prec)
-					      (list 'setq
-						    cache-val
-						    (list 'let
-							  '((calc-internal-prec
-							     (+ calc-internal-prec
-								4)))
-							  form)
-						    cache-prec
-						    '(+ calc-internal-prec 2)))
-					cache-val))
-			    last-prec 'calc-internal-prec))
-		last-val))))
+    `(progn
+;      (defvar ,cache-prec ,(if init (math-numdigs (nth 1 init)) -100))
+       (defvar ,cache-prec (cond
+			    ((consp ,init) (math-numdigs (nth 1 ,init)))
+			    (,init
+			     (nth 1 (math-numdigs (eval ,init))))
+			    (t
+			     -100)))
+       (defvar ,cache-val (cond ((consp ,init) ,init)
+				(,init (eval ,init))
+				(t ,init)))
+       (defvar ,last-prec -100)
+       (defvar ,last-val nil)
+       (setq math-cache-list
+	     (cons ',cache-prec
+		   (cons ',last-prec
+			 math-cache-list)))
+       (defun ,name ()
+	 (or (= ,last-prec calc-internal-prec)
+	     (setq ,last-val
+		   (math-normalize
+		    (progn (or (>= ,cache-prec calc-internal-prec)
+			       (setq ,cache-val
+				     (let ((calc-internal-prec
+					    (+ calc-internal-prec 4)))
+				       ,form)
+				     ,cache-prec (+ calc-internal-prec 2)))
+			   ,cache-val))
+		   ,last-prec calc-internal-prec))
+	 ,last-val))))
 (put 'math-defcache 'lisp-indent-hook 2)
 
 ;;; Betcha didn't know that pi = 16 atan(1/5) - 4 atan(1/239).   [F] [Public]
@@ -3497,7 +3483,7 @@ If X is not an error form, return 1."
 			(substring str i))))
     str))
 
-;;; Users can redefine this in their .emacs files.
+;;; Users can redefine this in their init files.
 (defvar calc-keypad-user-menu nil
   "If non-nil, this describes an additional menu for calc-keypad.
 It should contain a list of three rows.

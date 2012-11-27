@@ -19,14 +19,14 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #include "systime.h"		/* for EMACS_TIME, Time */
 #include "coding.h"             /* for ENCODE_UTF_8 and ENCODE_SYSTEM */
 
-/* Lisp fields in struct keyboard are hidden from most code and accessed
-   via the KVAR macro, below.  Only select pieces of code, like the GC,
-   are allowed to use KBOARD_INTERNAL_FIELD.  */
-#define KBOARD_INTERNAL_FIELD(field) field ## _
+INLINE_HEADER_BEGIN
+#ifndef KEYBOARD_INLINE
+# define KEYBOARD_INLINE INLINE
+#endif
 
-/* Most code should use this macro to access Lisp fields in struct
-   kboard.  */
-#define KVAR(kboard, field) ((kboard)->KBOARD_INTERNAL_FIELD (field))
+/* Most code should use this macro to access Lisp fields in struct kboard.  */
+
+#define KVAR(kboard, field) ((kboard)->INTERNAL_FIELD (field))
 
 /* Each KBOARD represents one logical input stream from which Emacs
    gets input.  If we are using ordinary terminals, it has one KBOARD
@@ -79,32 +79,32 @@ struct kboard
        can effectively wait for input in the any-kboard state, and hence
        avoid blocking out the other KBOARDs.  See universal-argument in
        lisp/simple.el for an example.  */
-    Lisp_Object KBOARD_INTERNAL_FIELD (Voverriding_terminal_local_map);
+    Lisp_Object INTERNAL_FIELD (Voverriding_terminal_local_map);
 
     /* Last command executed by the editor command loop, not counting
        commands that set the prefix argument.  */
-    Lisp_Object KBOARD_INTERNAL_FIELD (Vlast_command);
+    Lisp_Object INTERNAL_FIELD (Vlast_command);
 
     /* Normally same as last-command, but never modified by other commands.  */
-    Lisp_Object KBOARD_INTERNAL_FIELD (Vreal_last_command);
+    Lisp_Object INTERNAL_FIELD (Vreal_last_command);
 
     /* User-supplied table to translate input characters through.  */
-    Lisp_Object KBOARD_INTERNAL_FIELD (Vkeyboard_translate_table);
+    Lisp_Object INTERNAL_FIELD (Vkeyboard_translate_table);
 
     /* Last command that may be repeated by `repeat'.  */
-    Lisp_Object KBOARD_INTERNAL_FIELD (Vlast_repeatable_command);
+    Lisp_Object INTERNAL_FIELD (Vlast_repeatable_command);
 
     /* The prefix argument for the next command, in raw form.  */
-    Lisp_Object KBOARD_INTERNAL_FIELD (Vprefix_arg);
+    Lisp_Object INTERNAL_FIELD (Vprefix_arg);
 
     /* Saved prefix argument for the last command, in raw form.  */
-    Lisp_Object KBOARD_INTERNAL_FIELD (Vlast_prefix_arg);
+    Lisp_Object INTERNAL_FIELD (Vlast_prefix_arg);
 
     /* Unread events specific to this kboard.  */
-    Lisp_Object KBOARD_INTERNAL_FIELD (kbd_queue);
+    Lisp_Object INTERNAL_FIELD (kbd_queue);
 
     /* Non-nil while a kbd macro is being defined.  */
-    Lisp_Object KBOARD_INTERNAL_FIELD (defining_kbd_macro);
+    Lisp_Object INTERNAL_FIELD (defining_kbd_macro);
 
     /* The start of storage for the current keyboard macro.  */
     Lisp_Object *kbd_macro_buffer;
@@ -126,28 +126,28 @@ struct kboard
     ptrdiff_t kbd_macro_bufsize;
 
     /* Last anonymous kbd macro defined.  */
-    Lisp_Object KBOARD_INTERNAL_FIELD (Vlast_kbd_macro);
+    Lisp_Object INTERNAL_FIELD (Vlast_kbd_macro);
 
     /* Alist of system-specific X windows key symbols.  */
-    Lisp_Object KBOARD_INTERNAL_FIELD (Vsystem_key_alist);
+    Lisp_Object INTERNAL_FIELD (Vsystem_key_alist);
 
     /* Cache for modify_event_symbol.  */
-    Lisp_Object KBOARD_INTERNAL_FIELD (system_key_syms);
+    Lisp_Object INTERNAL_FIELD (system_key_syms);
 
     /* The kind of display: x, w32, ...  */
-    Lisp_Object KBOARD_INTERNAL_FIELD (Vwindow_system);
+    Lisp_Object INTERNAL_FIELD (Vwindow_system);
 
     /* Keymap mapping keys to alternative preferred forms.
        See the DEFVAR for more documentation.  */
-    Lisp_Object KBOARD_INTERNAL_FIELD (Vlocal_function_key_map);
+    Lisp_Object INTERNAL_FIELD (Vlocal_function_key_map);
 
     /* Keymap mapping ASCII function key sequences onto their preferred
        forms.  Initialized by the terminal-specific lisp files.  See the
        DEFVAR for more documentation.  */
-    Lisp_Object KBOARD_INTERNAL_FIELD (Vinput_decode_map);
+    Lisp_Object INTERNAL_FIELD (Vinput_decode_map);
 
     /* Minibufferless frames on this display use this frame's minibuffer.  */
-    Lisp_Object KBOARD_INTERNAL_FIELD (Vdefault_minibuffer_frame);
+    Lisp_Object INTERNAL_FIELD (Vdefault_minibuffer_frame);
 
     /* Number of displays using this KBOARD.  Normally 1, but can be
        larger when you have multiple screens on a single X display.  */
@@ -155,7 +155,7 @@ struct kboard
 
     /* The text we're echoing in the modeline - partial key sequences,
        usually.  This is nil when not echoing.  */
-    Lisp_Object KBOARD_INTERNAL_FIELD (echo_string);
+    Lisp_Object INTERNAL_FIELD (echo_string);
 
     /* This flag indicates that events were put into kbd_queue
        while Emacs was running for some other KBOARD.
@@ -169,13 +169,54 @@ struct kboard
        reading from this KBOARD again until more input arrives.  */
     char kbd_queue_has_data;
 
-    /* Nonzero means echo each character as typed.  */
-    char immediate_echo;
+    /* True means echo each character as typed.  */
+    unsigned immediate_echo : 1;
 
     /* If we have echoed a prompt string specified by the user,
        this is its length in characters.  Otherwise this is -1.  */
-    char echo_after_prompt;
+    ptrdiff_t echo_after_prompt;
   };
+
+KEYBOARD_INLINE void
+kset_default_minibuffer_frame (struct kboard *kb, Lisp_Object val)
+{
+  kb->INTERNAL_FIELD (Vdefault_minibuffer_frame) = val;
+}
+KEYBOARD_INLINE void
+kset_defining_kbd_macro (struct kboard *kb, Lisp_Object val)
+{
+  kb->INTERNAL_FIELD (defining_kbd_macro) = val;
+}
+KEYBOARD_INLINE void
+kset_input_decode_map (struct kboard *kb, Lisp_Object val)
+{
+  kb->INTERNAL_FIELD (Vinput_decode_map) = val;
+}
+KEYBOARD_INLINE void
+kset_last_command (struct kboard *kb, Lisp_Object val)
+{
+  kb->INTERNAL_FIELD (Vlast_command) = val;
+}
+KEYBOARD_INLINE void
+kset_last_kbd_macro (struct kboard *kb, Lisp_Object val)
+{
+  kb->INTERNAL_FIELD (Vlast_kbd_macro) = val;
+}
+KEYBOARD_INLINE void
+kset_prefix_arg (struct kboard *kb, Lisp_Object val)
+{
+  kb->INTERNAL_FIELD (Vprefix_arg) = val;
+}
+KEYBOARD_INLINE void
+kset_system_key_alist (struct kboard *kb, Lisp_Object val)
+{
+  kb->INTERNAL_FIELD (Vsystem_key_alist) = val;
+}
+KEYBOARD_INLINE void
+kset_window_system (struct kboard *kb, Lisp_Object val)
+{
+  kb->INTERNAL_FIELD (Vwindow_system) = val;
+}
 
 /* Temporarily used before a frame has been opened. */
 extern KBOARD *initial_kboard;
@@ -202,7 +243,7 @@ extern int poll_suppress_count;
    sequence; this_command_key_count indicates how many elements
    actually mean something.  */
 extern Lisp_Object this_command_keys;
-extern int this_command_key_count;
+extern ptrdiff_t this_command_key_count;
 
 /* The frame in which the last input event occurred, or Qmacro if the
    last event came from a macro.  We use this to determine when to
@@ -422,14 +463,14 @@ extern Lisp_Object Qhelp_echo;
 extern Lisp_Object Qmode_line, Qvertical_line, Qheader_line;
 
 /* True while doing kbd input.  */
-extern int waiting_for_input;
+extern bool waiting_for_input;
 
 /* Address (if not 0) of EMACS_TIME to zero out if a SIGIO interrupt
    happens.  */
 extern EMACS_TIME *input_available_clear_time;
 
 #if defined HAVE_WINDOW_SYSTEM && !defined USE_GTK && !defined HAVE_NS
-extern int ignore_mouse_drag_p;
+extern bool ignore_mouse_drag_p;
 #endif
 
 /* The primary selection.  */
@@ -441,7 +482,7 @@ struct input_event;
 extern Lisp_Object parse_modifiers (Lisp_Object);
 extern Lisp_Object reorder_modifiers (Lisp_Object);
 extern Lisp_Object read_char (int, ptrdiff_t, Lisp_Object *, Lisp_Object,
-                              int *, EMACS_TIME *);
+                              bool *, EMACS_TIME *);
 extern int parse_solitary_modifier (Lisp_Object symbol);
 
 
@@ -465,10 +506,10 @@ extern Time last_event_timestamp;
 
 extern int quit_char;
 
-extern int timers_run;
+extern unsigned int timers_run;
 
-extern int menu_separator_name_p (const char *);
-extern int parse_menu_item (Lisp_Object, int);
+extern bool menu_separator_name_p (const char *);
+extern bool parse_menu_item (Lisp_Object, int);
 
 extern void init_kboard (KBOARD *);
 extern void delete_kboard (KBOARD *);
@@ -482,16 +523,16 @@ extern void input_poll_signal (int);
 extern void start_polling (void);
 extern void stop_polling (void);
 extern void set_poll_suppress_count (int);
-extern void gobble_input (int);
-extern int input_polling_used (void);
+extern int gobble_input (void);
+extern bool input_polling_used (void);
 extern void clear_input_pending (void);
-extern int requeued_events_pending_p (void);
+extern bool requeued_events_pending_p (void);
 extern void bind_polling_period (int);
-extern int make_ctrl_char (int);
+extern int make_ctrl_char (int) ATTRIBUTE_CONST;
 extern void stuff_buffered_input (Lisp_Object);
 extern void clear_waiting_for_input (void);
-extern void swallow_events (int);
-extern int lucid_event_type_list_p (Lisp_Object);
+extern void swallow_events (bool);
+extern bool lucid_event_type_list_p (Lisp_Object);
 extern void kbd_buffer_store_event (struct input_event *);
 extern void kbd_buffer_store_event_hold (struct input_event *,
                                          struct input_event *);
@@ -500,17 +541,18 @@ extern void poll_for_input_1 (void);
 extern void show_help_echo (Lisp_Object, Lisp_Object, Lisp_Object,
                             Lisp_Object);
 extern void gen_help_event (Lisp_Object, Lisp_Object, Lisp_Object,
-                            Lisp_Object, EMACS_INT);
+                            Lisp_Object, ptrdiff_t);
 extern void kbd_buffer_store_help_event (Lisp_Object, Lisp_Object);
 extern Lisp_Object menu_item_eval_property (Lisp_Object);
-extern int  kbd_buffer_events_waiting (int);
+extern bool kbd_buffer_events_waiting (void);
 extern void add_user_signal (int, const char *);
 
-extern int tty_read_avail_input (struct terminal *, int,
-                                 struct input_event *);
+extern int tty_read_avail_input (struct terminal *, struct input_event *);
 extern EMACS_TIME timer_check (void);
 extern void mark_kboards (void);
 
-#ifdef WINDOWSNT
+#ifdef HAVE_NTGUI
 extern const char *const lispy_function_keys[];
 #endif
+
+INLINE_HEADER_END

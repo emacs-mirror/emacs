@@ -1,5 +1,5 @@
-# include_next.m4 serial 22
-dnl Copyright (C) 2006-2011 Free Software Foundation, Inc.
+# include_next.m4 serial 23
+dnl Copyright (C) 2006-2012 Free Software Foundation, Inc.
 dnl This file is free software; the Free Software Foundation
 dnl gives unlimited permission to copy and/or distribute it,
 dnl with or without modifications, as long as this notice is preserved.
@@ -143,7 +143,7 @@ choke me
 # even if the compiler does not support include_next.
 # The three "///" are to pacify Sun C 5.8, which otherwise would say
 # "warning: #include of /usr/include/... may be non-portable".
-# Use `""', not `<>', so that the /// cannot be confused with a C99 comment.
+# Use '""', not '<>', so that the /// cannot be confused with a C99 comment.
 # Note: This macro assumes that the header file is not empty after
 # preprocessing, i.e. it does not only define preprocessor macros but also
 # provides some type/enum definitions or function/variable declarations.
@@ -219,12 +219,17 @@ changequote(,)
                    gl_dirsep_regex='[/\\]'
                    ;;
                  *)
-                   gl_dirsep_regex='/'
+                   gl_dirsep_regex='\/'
                    ;;
                esac
+               dnl A sed expression that turns a string into a basic regular
+               dnl expression, for use within "/.../".
+               gl_make_literal_regex_sed='s,[]$^\\.*/[],\\&,g'
 changequote([,])
-               gl_absolute_header_sed='\|'"${gl_dirsep_regex}"']m4_defn([gl_HEADER_NAME])[|{
-                   s|.*"\(.*'"${gl_dirsep_regex}"']m4_defn([gl_HEADER_NAME])[\)".*|\1|
+               gl_header_literal_regex=`echo ']m4_defn([gl_HEADER_NAME])[' \
+                                        | sed -e "$gl_make_literal_regex_sed"`
+               gl_absolute_header_sed="/${gl_dirsep_regex}${gl_header_literal_regex}/"'{
+                   s/.*"\(.*'"${gl_dirsep_regex}${gl_header_literal_regex}"'\)".*/\1/
 changequote(,)dnl
                    s|^/[^/]|//&|
 changequote([,])dnl

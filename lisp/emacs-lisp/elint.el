@@ -46,6 +46,8 @@
 
 ;;; Code:
 
+(require 'help-fns)
+
 (defgroup elint nil
   "Linting for Emacs Lisp."
   :prefix "elint-"
@@ -357,6 +359,8 @@ Returns the forms."
     (set (make-local-variable 'elint-buffer-env)
 	 (elint-init-env elint-buffer-forms))
     (if elint-preloaded-env
+        ;; FIXME: This doesn't do anything!  Should we setq the result to
+        ;; elint-buffer-env?
 	(elint-env-add-env elint-preloaded-env elint-buffer-env))
     (set (make-local-variable 'elint-last-env-time) (buffer-modified-tick))
     elint-buffer-forms))
@@ -464,6 +468,9 @@ Return nil if there are no more forms, t otherwise."
 	(add-to-list 'elint-features name)
 	;; cl loads cl-macs in an opaque manner.
 	;; Since cl-macs requires cl, we can just process cl-macs.
+        ;; FIXME: AFAIK, `cl' now behaves properly and does not need any
+        ;; special treatment any more.  Can someone who understands this
+        ;; code confirm?  --Stef
 	(and (eq name 'cl) (not elint-doing-cl)
 	     ;; We need cl if elint-form is to be able to expand cl macros.
 	     (require 'cl)
@@ -708,14 +715,8 @@ Returns `unknown' if we couldn't find arguments."
 (defun elint-find-args-in-code (code)
   "Extract the arguments from CODE.
 CODE can be a lambda expression, a macro, or byte-compiled code."
-  (cond
-   ((byte-code-function-p code)
-    (aref code 0))
-   ((and (listp code) (eq (car code) 'lambda))
-    (car (cdr code)))
-   ((and (listp code) (eq (car code) 'macro))
-    (elint-find-args-in-code (cdr code)))
-   (t 'unknown)))
+  (let ((args (help-function-arglist code)))
+    (if (listp args) args 'unknown)))
 
 ;;;
 ;;; Functions to check some special forms

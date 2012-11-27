@@ -24,9 +24,8 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #include <unistd.h>
 #include <errno.h>
 #include <epaths.h>
-
+#include <stdlib.h>
 #include <stdio.h>
-#include <setjmp.h>
 
 #include "lisp.h"
 
@@ -49,11 +48,6 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #include "keyboard.h"
 #endif
 
-extern char *getenv (const char *);
-
-extern struct passwd *getpwuid (uid_t);
-extern struct passwd *getpwnam (const char *);
-
 char *x_get_string_resource (XrmDatabase rdb, const char *name,
 			     const char *class);
 static int file_p (const char *filename);
@@ -74,10 +68,8 @@ static char *
 x_get_customization_string (XrmDatabase db, const char *name,
 			    const char *class)
 {
-  char *full_name
-    = (char *) alloca (strlen (name) + sizeof ("customization") + 3);
-  char *full_class
-    = (char *) alloca (strlen (class) + sizeof ("Customization") + 3);
+  char *full_name = alloca (strlen (name) + sizeof "customization" + 3);
+  char *full_class = alloca (strlen (class) + sizeof "Customization" + 3);
   char *result;
 
   sprintf (full_name,  "%s.%s", name,  "customization");
@@ -87,7 +79,7 @@ x_get_customization_string (XrmDatabase db, const char *name,
 
   if (result)
     {
-      char *copy = (char *) xmalloc (strlen (result) + 1);
+      char *copy = xmalloc (strlen (result) + 1);
       strcpy (copy, result);
       return copy;
     }
@@ -126,13 +118,13 @@ x_get_customization_string (XrmDatabase db, const char *name,
    Return NULL otherwise.  */
 
 static char *
-magic_file_p (const char *string, EMACS_INT string_len, const char *class,
+magic_file_p (const char *string, ptrdiff_t string_len, const char *class,
 	      const char *escaped_suffix)
 {
   char *lang = getenv ("LANG");
 
   ptrdiff_t path_size = 100;
-  char *path = (char *) xmalloc (path_size);
+  char *path = xmalloc (path_size);
   ptrdiff_t path_len = 0;
 
   const char *p = string;
@@ -206,7 +198,7 @@ magic_file_p (const char *string, EMACS_INT string_len, const char *class,
 	  if (min (PTRDIFF_MAX, SIZE_MAX) / 2 - 1 - path_len < next_len)
 	    memory_full (SIZE_MAX);
 	  path_size = (path_len + next_len + 1) * 2;
-	  path = (char *) xrealloc (path, path_size);
+	  path = xrealloc (path, path_size);
 	}
 
       memcpy (path + path_len, next, next_len);
@@ -258,7 +250,7 @@ gethomedir (void)
   if (ptr == NULL)
     return xstrdup ("/");
 
-  copy = (char *) xmalloc (strlen (ptr) + 2);
+  copy = xmalloc (strlen (ptr) + 2);
   strcpy (copy, ptr);
   strcat (copy, "/");
 
@@ -400,7 +392,7 @@ get_user_db (Display *display)
       char *xdefault;
 
       home = gethomedir ();
-      xdefault = (char *) xmalloc (strlen (home) + sizeof (".Xdefaults"));
+      xdefault = xmalloc (strlen (home) + sizeof ".Xdefaults");
       strcpy (xdefault, home);
       strcat (xdefault, ".Xdefaults");
       db = XrmGetFileDatabase (xdefault);
@@ -432,9 +424,10 @@ get_environ_db (void)
     {
       static char const xdefaults[] = ".Xdefaults-";
       char *home = gethomedir ();
-      char const *host = get_system_name ();
-      ptrdiff_t pathsize = strlen (home) + sizeof xdefaults + strlen (host);
-      path = (char *) xrealloc (home, pathsize);
+      char const *host = SSDATA (Vsystem_name);
+      ptrdiff_t pathsize = (strlen (home) + sizeof xdefaults
+			    + SBYTES (Vsystem_name));
+      path = xrealloc (home, pathsize);
       strcat (strcat (path, xdefaults), host);
       p = path;
     }

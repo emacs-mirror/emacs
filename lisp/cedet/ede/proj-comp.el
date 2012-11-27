@@ -319,7 +319,7 @@ Not all compilers do this."
 
 (defmethod ede-proj-makefile-insert-rules ((this ede-makefile-rule))
   "Insert rules needed for THIS rule object."
-  (if (oref this phony) (insert ".PHONY: (oref this target)\n"))
+  (if (oref this phony) (insert ".PHONY: " (oref this target) "\n"))
   (insert (oref this target) ": " (oref this dependencies) "\n\t"
 	  (mapconcat (lambda (c) c) (oref this rules) "\n\t")
 	  "\n\n"))
@@ -331,15 +331,16 @@ compiler it decides to use after inserting in the rule."
   (when (slot-boundp this 'commands)
     (with-slots (commands) this
       (mapc
-       (lambda (obj) (insert "\t"
-			     (cond ((stringp obj)
-				    obj)
-				   ((and (listp obj)
-					 (eq (car obj) 'lambda))
-				    (funcall obj))
-				   (t
-				    (format "%S" obj)))
-			     "\n"))
+       (lambda (obj) (insert
+		      (if (bolp) "\t" " ")
+		      (cond ((stringp obj)
+			     obj)
+			    ((and (listp obj)
+				  (eq (car obj) 'lambda))
+			     (funcall obj))
+			    (t
+			     (format "%S" obj)))
+		      "\n"))
        commands))
     (insert "\n")))
 

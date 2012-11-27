@@ -398,7 +398,7 @@ See also docstring of the function tibetan-compose-region."
 	))))
 
 (defvar tibetan-strict-unicode t
-  "*Flag to control Tibetan canonicalizing for Unicode.
+  "Flag to control Tibetan canonicalizing for Unicode.
 
 If non-nil, the vowel a is removed and composite vowels are decomposed
 before writing buffer in Unicode.  See also

@@ -1,4 +1,4 @@
-/* Definitions and headers for communication on the Microsoft W32 API.
+/* Definitions and headers for communication on the Microsoft Windows API.
    Copyright (C) 1995, 2001-2012 Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
@@ -19,6 +19,8 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 /* Added by Kevin Gallo */
 
 #include "w32gui.h"
+#include "frame.h"
+#include "atimer.h"
 
 
 #define BLACK_PIX_DEFAULT(f) PALETTERGB(0,0,0)
@@ -195,11 +197,47 @@ Lisp_Object display_x_get_resource (struct w32_display_info *,
                                     Lisp_Object, Lisp_Object,
                                     Lisp_Object, Lisp_Object);
 
+extern void x_focus_on_frame (struct frame *f);
+
+/* also defined in xterm.h XXX: factor out to common header */
+
 extern struct w32_display_info *w32_term_init (Lisp_Object,
 					       char *, char *);
-
+extern void check_w32 (void);
+extern int w32_defined_color (FRAME_PTR f, const char *color,
+                              XColor *color_def, int alloc);
+extern void x_set_window_size (struct frame *f, int change_grav,
+                              int cols, int rows);
 extern int x_display_pixel_height (struct w32_display_info *);
 extern int x_display_pixel_width (struct w32_display_info *);
+extern void x_sync (struct frame *);
+extern Lisp_Object x_get_focus_frame (struct frame *);
+extern void x_set_mouse_position (struct frame *f, int h, int v);
+extern void x_set_mouse_pixel_position (struct frame *f, int pix_x, int pix_y);
+extern void x_make_frame_visible (struct frame *f);
+extern void x_make_frame_invisible (struct frame *f);
+extern void x_iconify_frame (struct frame *f);
+extern int x_char_width (struct frame *f);
+extern int x_char_height (struct frame *f);
+extern int x_pixel_width (struct frame *f);
+extern int x_pixel_height (struct frame *f);
+extern void x_set_frame_alpha (struct frame *f);
+extern void x_set_menu_bar_lines (struct frame *, Lisp_Object, Lisp_Object);
+extern void x_set_tool_bar_lines (struct frame *f,
+                                  Lisp_Object value,
+                                  Lisp_Object oldval);
+extern void x_activate_menubar (struct frame *);
+extern int x_bitmap_icon (struct frame *, Lisp_Object);
+extern void initialize_frame_menubar (struct frame *);
+extern void x_free_frame_resources (struct frame *);
+extern void x_real_positions (struct frame *, int *, int *);
+
+/* w32inevt.c */
+extern int w32_kbd_patch_key (KEY_EVENT_RECORD *event, int cpId);
+extern int w32_kbd_mods_to_emacs (DWORD mods, WORD key);
+
+
+extern Lisp_Object x_get_focus_frame (struct frame *);
 
 
 #define PIX_TYPE COLORREF
@@ -302,9 +340,6 @@ struct w32_output
   /* Non-hourglass cursor that is currently active.  */
   Cursor current_cursor;
 
-  /* Flag to set when the window needs to be completely repainted.  */
-  int needs_exposure;
-
   DWORD dwStyle;
 
   /* This is the Emacs structure for the display this frame is on.  */
@@ -345,7 +380,7 @@ extern struct w32_output w32term_display;
 
 /* Return the window associated with the frame F.  */
 #define FRAME_W32_WINDOW(f) ((f)->output_data.w32->window_desc)
-#define FRAME_X_WINDOW(f) ((f)->output_data.w32->window_desc)
+#define FRAME_X_WINDOW(f) FRAME_W32_WINDOW (f)
 
 #define FRAME_FONT(f) ((f)->output_data.w32->font)
 #define FRAME_FONTSET(f) ((f)->output_data.w32->fontset)
@@ -429,12 +464,20 @@ struct scroll_bar {
 #define SCROLL_BAR_VEC_SIZE					\
   ((sizeof (struct scroll_bar)					\
     - sizeof (EMACS_INT) - sizeof (struct Lisp_Vector *))	\
-   / sizeof (Lisp_Object))
+   / word_size)
 
 /* Turning a lisp vector value into a pointer to a struct scroll_bar.  */
 #define XSCROLL_BAR(vec) ((struct scroll_bar *) XVECTOR (vec))
 
+#ifdef _WIN64
+/* Building a 64-bit C integer from two 32-bit lisp integers.  */
+#define SCROLL_BAR_PACK(low, high) (XINT (high) << 32 | XINT (low))
 
+/* Setting two lisp integers to the low and high words of a 64-bit C int.  */
+#define SCROLL_BAR_UNPACK(low, high, int64) \
+  (XSETINT ((low),   ((DWORDLONG)(int64))        & 0xffffffff), \
+   XSETINT ((high), ((DWORDLONG)(int64) >> 32) & 0xffffffff))
+#else  /* not _WIN64 */
 /* Building a 32-bit C integer from two 16-bit lisp integers.  */
 #define SCROLL_BAR_PACK(low, high) (XINT (high) << 16 | XINT (low))
 
@@ -442,7 +485,7 @@ struct scroll_bar {
 #define SCROLL_BAR_UNPACK(low, high, int32) \
   (XSETINT ((low),   (int32)        & 0xffff), \
    XSETINT ((high), ((int32) >> 16) & 0xffff))
-
+#endif	/* not _WIN64 */
 
 /* Extract the window id of the scroll bar from a struct scroll_bar.  */
 #define SCROLL_BAR_W32_WINDOW(ptr) \
@@ -450,7 +493,7 @@ struct scroll_bar {
 
 /* Store a window id in a struct scroll_bar.  */
 #define SET_SCROLL_BAR_W32_WINDOW(ptr, id) \
-  (SCROLL_BAR_UNPACK ((ptr)->w32_window_low, (ptr)->w32_window_high, (int) id))
+  (SCROLL_BAR_UNPACK ((ptr)->w32_window_low, (ptr)->w32_window_high, (intptr_t) id))
 
 /* Extract the X widget of the scroll bar from a struct scroll_bar.  */
 #define SCROLL_BAR_X_WIDGET(ptr) \
@@ -576,7 +619,9 @@ do { \
 #define WM_EMACS_HIDE_CARET            (WM_EMACS_START + 18)
 #define WM_EMACS_SETCURSOR             (WM_EMACS_START + 19)
 #define WM_EMACS_PAINT                 (WM_EMACS_START + 20)
-#define WM_EMACS_END                   (WM_EMACS_START + 21)
+#define WM_EMACS_BRINGTOTOP            (WM_EMACS_START + 21)
+#define WM_EMACS_INPUT_READY           (WM_EMACS_START + 22)
+#define WM_EMACS_END                   (WM_EMACS_START + 23)
 
 #define WND_FONTWIDTH_INDEX    (0)
 #define WND_LINEHEIGHT_INDEX   (4)
@@ -597,6 +642,8 @@ typedef struct W32Msg {
     DWORD dwModifiers;
     RECT rect;
 } W32Msg;
+
+extern BOOL prepend_msg (W32Msg *lpmsg);
 
 /* Structure for recording message when input thread must return a
    result that depends on lisp thread to compute.  Lisp thread can
@@ -634,6 +681,9 @@ extern BOOL parse_button (int, int, int *, int *);
 
 extern void w32_sys_ring_bell (struct frame *f);
 extern void x_delete_display (struct w32_display_info *dpyinfo);
+extern void w32_initialize_display_info (Lisp_Object);
+extern void initialize_w32_display (struct terminal *);
+
 
 /* Keypad command key support.  W32 doesn't have virtual keys defined
    for the function keys on the keypad (they are mapped to the standard
@@ -666,6 +716,9 @@ extern void x_delete_display (struct w32_display_info *dpyinfo);
 #define RIGHT_WIN_PRESSED      0x4000
 #define APPS_PRESSED           0x2000
 
+/* The current ANSI input codepage for GUI sessions.  */
+extern int w32_keyboard_codepage;
+
 /* When compiling on Windows 9x/ME and NT 3.x, the following are not defined
    (even though they are supported on 98 and ME.  */
 #ifndef WM_MOUSELEAVE
@@ -687,9 +740,6 @@ struct face;
 XGCValues *XCreateGC (void *, Window, unsigned long, XGCValues *);
 struct frame * check_x_frame (Lisp_Object);
 
-EXFUN (Fx_display_color_p, 1);
-EXFUN (Fx_display_grayscale_p, 1);
-
 typedef DWORD (WINAPI * ClipboardSequence_Proc) (void);
 typedef BOOL (WINAPI * AppendMenuW_Proc) (
     IN HMENU,
@@ -701,3 +751,34 @@ extern HWND w32_system_caret_hwnd;
 extern int w32_system_caret_height;
 extern int w32_system_caret_x;
 extern int w32_system_caret_y;
+
+#ifdef _MSC_VER
+#ifndef EnumSystemLocales
+/* MSVC headers define these only for _WIN32_WINNT >= 0x0500.  */
+typedef BOOL (CALLBACK *LOCALE_ENUMPROCA)(LPSTR);
+typedef BOOL (CALLBACK *LOCALE_ENUMPROCW)(LPWSTR);
+BOOL WINAPI EnumSystemLocalesA(LOCALE_ENUMPROCA,DWORD);
+BOOL WINAPI EnumSystemLocalesW(LOCALE_ENUMPROCW,DWORD);
+#ifdef UNICODE
+#define EnumSystemLocales EnumSystemLocalesW
+#else
+#define EnumSystemLocales EnumSystemLocalesA
+#endif
+#endif
+#endif
+
+#if EMACSDEBUG
+extern const char*
+w32_name_of_message (UINT msg);
+#endif /* EMACSDEBUG */
+
+extern void syms_of_w32term (void);
+extern void syms_of_w32menu (void);
+extern void syms_of_w32fns (void);
+
+extern void globals_of_w32menu (void);
+extern void globals_of_w32fns (void);
+
+#ifdef CYGWIN
+extern int w32_message_fd;
+#endif /* CYGWIN */

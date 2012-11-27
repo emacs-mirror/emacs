@@ -1,4 +1,4 @@
-;;; wyse50.el --- terminal support code for Wyse 50 -*- no-byte-compile: t -*-
+;;; wyse50.el --- terminal support code for Wyse 50
 
 ;; Copyright (C) 1989, 1993-1994, 2001-2012 Free Software Foundation, Inc.
 
@@ -109,7 +109,7 @@
   "Terminal initialization function for wyse50."
   ;; Use inheritance to let the main keymap override these defaults.
   ;; This way we don't override terminfo-derived settings or settings
-  ;; made in the .emacs file.
+  ;; made in the init file.
   (let ((m (copy-keymap wyse50-terminal-map)))
     (set-keymap-parent m (keymap-parent input-decode-map))
     (set-keymap-parent input-decode-map m))
@@ -141,7 +141,7 @@ C-l	Scrn CLR
 M-r	M-x move-to-window-line, Funct up-arrow or down-arrow are similar"
   (interactive)
   ;; Not needed any more now that we use input-decode-map.
-  ;; (dolist (key-definition 
+  ;; (dolist (key-definition
   ;;         ;; By unsetting C-a and then binding it to a prefix, we
   ;;         ;; allow the rest of the function keys which start with C-a
   ;;         ;; to be recognized.

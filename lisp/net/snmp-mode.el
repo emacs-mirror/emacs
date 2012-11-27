@@ -85,7 +85,6 @@
 ;;; Code:
 
 (eval-when-compile
-  (require 'cl)
   (require 'imenu)   ; Need this stuff when compiling for imenu macros, etc.
   (require 'tempo))
 
@@ -141,10 +140,10 @@ This is used during Tempo template completion."
   :group 'snmp)
 
 (defvar snmp-tempo-tags nil
-  "*Tempo tags for SNMP mode.")
+  "Tempo tags for SNMP mode.")
 
 (defvar snmpv2-tempo-tags nil
-  "*Tempo tags for SNMPv2 mode.")
+  "Tempo tags for SNMPv2 mode.")
 
 
 ;; Enable fontification for SNMP MIBs
@@ -176,9 +175,9 @@ This is used during Tempo template completion."
 (defvar snmp-font-lock-keywords-3
   (append
    '(("\\([^\n]+\\)[ \t]+::=[ \t]+\\(SEQUENCE\\)[ \t]+{"
-      (1 font-lock-reference-face) (2 font-lock-keyword-face))
+      (1 font-lock-constant-face) (2 font-lock-keyword-face))
      ("::=[ \t]*{[ \t]*\\([a-z0-9].*[ \t]+\\)?\\([0-9]+\\)[ \t]*}"
-      (1 font-lock-reference-face nil t) (2 font-lock-variable-name-face)))
+      (1 font-lock-constant-face nil t) (2 font-lock-variable-name-face)))
    snmp-font-lock-keywords-2)
   "Gaudy SNMP MIB mode expression highlighting.")
 

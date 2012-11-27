@@ -34,8 +34,7 @@
 
 (eval-when-compile
   (require 'skeleton)
-  (require 'outline)
-  (require 'cl))
+  (require 'cl-lib))
 
 (defgroup sgml nil
   "SGML editing mode."
@@ -292,7 +291,7 @@ Any terminating `>' or `/' is not matched.")
 ;; for font-lock, but must be defvar'ed after
 ;; sgml-font-lock-keywords-1 and sgml-font-lock-keywords-2 above
 (defvar sgml-font-lock-keywords sgml-font-lock-keywords-1
-  "*Rules for highlighting SGML code.  See also `sgml-tag-face-alist'.")
+  "Rules for highlighting SGML code.  See also `sgml-tag-face-alist'.")
 
 (defconst sgml-syntax-propertize-function
   (syntax-propertize-rules
@@ -451,7 +450,7 @@ the next N words.  In Transient Mark mode, when the mark is active,
 N defaults to -1, which means to wrap it around the current region.
 
 If you like upcased tags, put (setq sgml-transformation-function 'upcase)
-in your `.emacs' file.
+in your init file.
 
 Use \\[sgml-validate] to validate your document with an SGML parser.
 
@@ -1192,7 +1191,7 @@ You might want to turn on `auto-fill-mode' to get better results."
 
 ;; Parsing
 
-(defstruct (sgml-tag
+(cl-defstruct (sgml-tag
             (:constructor sgml-make-tag (type start end name)))
   type start end name)
 
@@ -1272,7 +1271,7 @@ Leave point at the beginning of the tag."
                      (throw 'found (sgml-parse-tag-backward limit))))
                   (point))))
 	(goto-char (1+ tag-start))
-	(case (char-after)
+	(pcase (char-after)
 	  (?! (setq tag-type 'decl))    ; declaration
 	  (?? (setq tag-type 'pi))      ; processing-instruction
 	  (?% (setq tag-type 'jsp))	; JSP tags
@@ -1280,7 +1279,7 @@ Leave point at the beginning of the tag."
 	   (forward-char 1)
 	   (setq tag-type 'close
 		 name (sgml-parse-tag-name)))
-	  (t				; open or empty tag
+	  (_				; open or empty tag
 	   (setq tag-type 'open
 		 name (sgml-parse-tag-name))
 	   (if (or (eq ?/ (char-before (- tag-end 1)))
@@ -1405,19 +1404,19 @@ If FULL is non-nil, parse back to the beginning of the buffer."
 Depending on context, inserts a matching close-tag, or closes
 the current start-tag or the current comment or the current cdata, ..."
   (interactive)
-  (case (car (sgml-lexical-context))
-    (comment 	(insert " -->"))
-    (cdata 	(insert "]]>"))
-    (pi 	(insert " ?>"))
-    (jsp 	(insert " %>"))
-    (tag 	(insert " />"))
-    (text
+  (pcase (car (sgml-lexical-context))
+    (`comment 	(insert " -->"))
+    (`cdata 	(insert "]]>"))
+    (`pi 	(insert " ?>"))
+    (`jsp 	(insert " %>"))
+    (`tag 	(insert " />"))
+    (`text
      (let ((context (save-excursion (sgml-get-context))))
        (if context
            (progn
              (insert "</" (sgml-tag-name (car (last context))) ">")
              (indent-according-to-mode)))))
-    (otherwise
+    (_
      (error "Nothing to close"))))
 
 (defun sgml-empty-tag-p (tag-name)
@@ -1442,9 +1441,9 @@ LCON is the lexical context, if any."
 	   (save-excursion (goto-char (cdr lcon)) (looking-at "<!--")))
       (setq lcon (cons 'comment (+ (cdr lcon) 2))))
 
-  (case (car lcon)
+  (pcase (car lcon)
 
-    (string
+    (`string
      ;; Go back to previous non-empty line.
      (while (and (> (point) (cdr lcon))
 		 (zerop (forward-line -1))
@@ -1455,7 +1454,7 @@ LCON is the lexical context, if any."
        (goto-char (cdr lcon))
        (1+ (current-column))))
 
-    (comment
+    (`comment
      (let ((mark (looking-at "--")))
        ;; Go back to previous non-empty line.
        (while (and (> (point) (cdr lcon))
@@ -1474,11 +1473,11 @@ LCON is the lexical context, if any."
        (current-column)))
 
     ;; We don't know how to indent it.  Let's be honest about it.
-    (cdata nil)
+    (`cdata nil)
     ;; We don't know how to indent it.  Let's be honest about it.
-    (pi nil)
+    (`pi nil)
 
-    (tag
+    (`tag
      (goto-char (1+ (cdr lcon)))
      (skip-chars-forward "^ \t\n")	;Skip tag name.
      (skip-chars-forward " \t")
@@ -1488,7 +1487,7 @@ LCON is the lexical context, if any."
        (goto-char (1+ (cdr lcon)))
        (+ (current-column) sgml-basic-offset)))
 
-    (text
+    (`text
      (while (looking-at "</")
        (forward-sexp 1)
        (skip-chars-forward " \t"))
@@ -1536,7 +1535,7 @@ LCON is the lexical context, if any."
 	 (+ (current-column)
 	    (* sgml-basic-offset (length context)))))))
 
-    (otherwise
+    (_
      (error "Unrecognized context %s" (car lcon)))
 
     ))
@@ -1664,7 +1663,7 @@ This takes effect when first loading the library.")
   '((bold . "b")
     (italic . "i")
     (underline . "u")
-    (modeline . "rev"))
+    (mode-line . "rev"))
   "Value of `sgml-face-tag-alist' for HTML mode.")
 
 (defvar html-tag-face-alist
@@ -1680,7 +1679,7 @@ This takes effect when first loading the library.")
     ("h5" . underline)
     ("h6" . underline)
     ("i" . italic)
-    ("rev"  . modeline)
+    ("rev"  . mode-line)
     ("s" . underline)
     ("small" . default)
     ("strong" . bold)
@@ -1843,7 +1842,7 @@ This takes effect when first loading the library.")
       ("u")
       ("var")
       ("wbr" t)))
-  "*Value of `sgml-tag-alist' for HTML mode.")
+  "Value of `sgml-tag-alist' for HTML mode.")
 
 (defvar html-tag-help
   `(,@sgml-tag-help
@@ -1936,7 +1935,11 @@ This takes effect when first loading the library.")
     ("ul" . "Unordered list")
     ("var" . "Math variable face")
     ("wbr" . "Enable <br> within <nobr>"))
-  "*Value of `sgml-tag-help' for HTML mode.")
+  "Value of `sgml-tag-help' for HTML mode.")
+
+(defvar outline-regexp)
+(defvar outline-heading-end-regexp)
+(defvar outline-level)
 
 
 ;;;###autoload
@@ -2010,7 +2013,7 @@ To work around that, do:
 
 (defvar html-imenu-regexp
   "\\s-*<h\\([1-9]\\)[^\n<>]*>\\(<[^\n<>]*>\\)*\\s-*\\([^\n<>]*\\)"
-  "*A regular expression matching a head line to be added to the menu.
+  "A regular expression matching a head line to be added to the menu.
 The first `match-string' should be a number from 1-9.
 The second `match-string' matches extra tags and is ignored.
 The third `match-string' will be the used in the menu.")

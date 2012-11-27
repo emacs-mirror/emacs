@@ -54,8 +54,7 @@
 
 ;;; Code:
 
-(eval-when-compile
-  (require 'cl))
+(eval-when-compile (require 'cl-lib))
 
 (require 'ring)
 (require 'esh-opt)
@@ -63,10 +62,11 @@
 (require 'eshell)
 
 ;;;###autoload
-(eshell-defgroup eshell-hist nil
+(progn
+(defgroup eshell-hist nil
   "This module provides command history management."
   :tag "History list management"
-  :group 'eshell-module)
+  :group 'eshell-module))
 
 ;;; User Variables:
 
@@ -559,8 +559,8 @@ See also `eshell-read-history'."
 	  (forward-char))
 	(setq posb (cdr posb)
 	      pose (cdr pose))
-	(assert (= (length posb) (length args)))
-	(assert (<= (length posb) (length pose))))
+	(cl-assert (= (length posb) (length args)))
+	(cl-assert (<= (length posb) (length pose))))
       (setq hist (buffer-substring-no-properties begin end))
       (let ((b posb) (e pose))
 	(while b
@@ -570,7 +570,7 @@ See also `eshell-read-history'."
 	  (setq b (cdr b)
 		e (cdr e))))
       (setq textargs (cdr textargs))
-      (assert (= (length textargs) (length args)))
+      (cl-assert (= (length textargs) (length args)))
       (list textargs posb pose))))
 
 (defun eshell-expand-history-references (beg end)

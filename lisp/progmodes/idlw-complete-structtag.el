@@ -53,8 +53,8 @@
 ;;
 ;; INSTALLATION
 ;; ============
-;; Put this file on the emacs load path and load it with the following 
-;; line in your .emacs file:
+;; Put this file on the emacs load path and load it with the following
+;; line in your init file:
 ;;
 ;;   (add-hook 'idlwave-load-hook 
 ;;             (lambda () (require 'idlw-complete-structtag)))

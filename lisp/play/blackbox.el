@@ -259,7 +259,6 @@ a reflection."
   (bb-goto (cons bb-x bb-y)))
 
 (defun bb-init-board (num-balls)
-  (random t)
   (let (board pos)
     (while (>= (setq num-balls (1- num-balls)) 0)
       (while

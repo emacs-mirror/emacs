@@ -26,7 +26,7 @@
 
 ;;; Code:
 
-(eval-when-compile (require 'cl))
+(eval-when-compile (require 'cl-lib))
 
 (require 'gamegrid)
 
@@ -214,18 +214,18 @@
 (defun pong-display-options ()
   "Computes display options (required by gamegrid for colors)."
   (let ((options (make-vector 256 nil)))
-    (loop for c from 0 to 255 do
+    (dotimes (c 256)
       (aset options c
-	    (cond ((= c pong-blank)
-		   pong-blank-options)
+            (cond ((= c pong-blank)
+                   pong-blank-options)
                   ((= c pong-bat)
-		   pong-bat-options)
+                   pong-bat-options)
                   ((= c pong-ball)
-		   pong-ball-options)
+                   pong-ball-options)
                   ((= c pong-border)
-		   pong-border-options)
+                   pong-border-options)
                   (t
-		   '(nil nil nil)))))
+                   '(nil nil nil)))))
     options))
 
 
@@ -246,18 +246,19 @@
 			?\s)
 
   (let ((buffer-read-only nil))
-    (loop for y from 0 to (1- pong-height) do
-	  (loop for x from 0 to (1- pong-width) do
-		(gamegrid-set-cell x y pong-border)))
-    (loop for y from 1 to (- pong-height 2) do
-	  (loop for x from 1 to (- pong-width 2) do
-		(gamegrid-set-cell x y pong-blank))))
+    (dotimes (y pong-height)
+      (dotimes (x pong-width)
+        (gamegrid-set-cell x y pong-border)))
+    (cl-loop for y from 1 to (- pong-height 2) do
+             (cl-loop for x from 1 to (- pong-width 2) do
+                      (gamegrid-set-cell x y pong-blank))))
 
-  (loop for y from pong-bat-player1 to (1- (+ pong-bat-player1 pong-bat-width)) do
-	(gamegrid-set-cell 2 y pong-bat))
-  (loop for y from pong-bat-player2 to (1- (+ pong-bat-player2 pong-bat-width)) do
-	(gamegrid-set-cell (- pong-width 3) y pong-bat)))
-
+  (cl-loop for y from pong-bat-player1
+           to (1- (+ pong-bat-player1 pong-bat-width))
+           do (gamegrid-set-cell 2 y pong-bat))
+  (cl-loop for y from pong-bat-player2
+           to (1- (+ pong-bat-player2 pong-bat-width))
+           do (gamegrid-set-cell (- pong-width 3) y pong-bat)))
 
 
 (defun pong-move-left ()
@@ -401,13 +402,12 @@ detection and checks if a player scores."
 
 (defun pong-update-score ()
   "Update score and print it on bottom of the game grid."
-  (let* ((string (format "Score:  %d / %d" pong-score-player1 pong-score-player2))
+  (let* ((string (format "Score:  %d / %d"
+                         pong-score-player1 pong-score-player2))
 	 (len (length string)))
-    (loop for x from 0 to (1- len) do
-	  (if (string-equal (buffer-name (current-buffer)) pong-buffer-name)
-	      (gamegrid-set-cell x
-				 pong-height
-				 (aref string x))))))
+    (dotimes (x len)
+      (if (string-equal (buffer-name (current-buffer)) pong-buffer-name)
+          (gamegrid-set-cell x pong-height (aref string x))))))
 
 
 

@@ -2,7 +2,7 @@
 @c Copyright (C) 1985-1987, 1993-1995, 1997, 2000-2012
 @c   Free Software Foundation, Inc.
 @c See file emacs.texi for copying conditions.
-@node Building, Maintaining, Programs, Top
+@node Building
 @chapter Compiling and Testing Programs
 @cindex building programs
 @cindex program building
@@ -108,11 +108,14 @@ directory, which is the directory in which the previous compilation
 was started.
 
 @findex kill-compilation
+@vindex compilation-always-kill
   Starting a new compilation also kills any compilation already
 running in @file{*compilation*}, as the buffer can only handle one
 compilation at any time.  However, @kbd{M-x compile} asks for
-confirmation before actually killing a compilation that is running.
-You can also kill the compilation process with @kbd{M-x
+confirmation before actually killing a compilation that is running; to
+always automatically kill the compilation without asking, change the
+variable @code{compilation-always-kill} to @code{t}.  You can also
+kill a compilation process with the command @kbd{M-x
 kill-compilation}.
 
   To run two compilations at once, start the first one, then rename
@@ -416,7 +419,7 @@ by various version control systems.
 
   Flymake mode is a minor mode that performs on-the-fly syntax
 checking for many programming and markup languages, including C, C++,
-Perl, HTML, and @TeX{}/La@TeX{}.  It is somewhat analogous to Flyspell
+Perl, HTML, and @TeX{}/@LaTeX{}.  It is somewhat analogous to Flyspell
 mode, which performs spell checking for ordinary human languages in a
 similar fashion (@pxref{Spelling}).  As you edit a file, Flymake mode
 runs an appropriate syntax checking tool in the background, using a
@@ -588,19 +591,25 @@ to recompile and restart the program.
   GUD Tooltip mode is a global minor mode that adds tooltip support to
 GUD.  To toggle this mode, type @kbd{M-x gud-tooltip-mode}.  It is
 disabled by default.  If enabled, you can move the mouse cursor over a
-variable to show its value in a tooltip (@pxref{Tooltips}); this takes
-effect in the GUD interaction buffer, and in all source buffers with
-major modes listed in the variable @code{gud-tooltip-modes}.  If the
-variable @code{gud-tooltip-echo-area} is non-@code{nil}, values are
-shown in the echo area instead of a tooltip.
+variable, a function, or a macro (collectively called
+@dfn{identifiers}) to show their values in tooltips
+(@pxref{Tooltips}).  Alternatively, mark an identifier or an
+expression by dragging the mouse over it, then leave the mouse in the
+marked area to have the value of the expression displayed in a
+tooltip.  The GUD Tooltip mode takes effect in the GUD interaction
+buffer, and in all source buffers with major modes listed in the
+variable @code{gud-tooltip-modes}.  If the variable
+@code{gud-tooltip-echo-area} is non-@code{nil}, or if you turned off
+the tooltip mode, values are shown in the echo area instead of a
+tooltip.
 
-  When using GUD Tooltip mode with @kbd{M-x gud-gdb}, you should note
-that displaying an expression's value in GDB can sometimes expand a
-macro, potentially causing side effects in the debugged program.  If
-you use the @kbd{M-x gdb} interface, this problem does not occur, as
-there is special code to avoid side-effects; furthermore, you can
-display macro definitions associated with an identifier when the
-program is not executing.
+  When using GUD Tooltip mode with @kbd{M-x gud-gdb}, displaying an
+expression's value in GDB can sometimes expand a macro, potentially
+causing side effects in the debugged program.  For that reason, using
+tooltips in @code{gud-gdb} is disabled.  If you use the @kbd{M-x gdb}
+interface, this problem does not occur, as there is special code to
+avoid side-effects; furthermore, you can display macro definitions
+associated with an identifier when the program is not executing.
 
 @node Commands of GUD
 @subsection Commands of GUD
@@ -881,10 +890,6 @@ displays the following frame layout:
 +--------------------------------+--------------------------------+
 @end group
 @end smallexample
-
-  However, if @code{gdb-use-separate-io-buffer} is @code{nil}, the I/O
-buffer does not appear and the primary source buffer occupies the full
-width of the frame.
 
 @findex gdb-restore-windows
 @findex gdb-many-windows
@@ -1239,8 +1244,8 @@ depending on the reason which caused the stop.  Customize the variable
 @code{gdb-switch-reasons} to select the stop reasons which will cause
 a thread switch.
 
-@vindex gdb-stopped-hooks
-  The variable @code{gdb-stopped-hooks} allows you to execute your
+@vindex gdb-stopped-functions
+  The variable @code{gdb-stopped-functions} allows you to execute your
 functions whenever some thread stops.
 
   In non-stop mode, you can switch between different modes for GUD
@@ -1391,12 +1396,20 @@ putting a line like this in your init file (@pxref{Init File}):
 @end example
 
 @cindex autoload
-  Some commands are @dfn{autoloaded}: when you run them, Emacs
+  Some commands are @dfn{autoloaded}; when you run them, Emacs
 automatically loads the associated library first.  For instance, the
 @kbd{M-x compile} command (@pxref{Compilation}) is autoloaded; if you
 call it, Emacs automatically loads the @code{compile} library first.
 In contrast, the command @kbd{M-x recompile} is not autoloaded, so it
 is unavailable until you load the @code{compile} library.
+
+@vindex help-enable-auto-load
+  Automatic loading can also occur when you look up the documentation
+of an autoloaded command (@pxref{Name Help}), if the documentation
+refers to other functions and variables in its library (loading the
+library lets Emacs properly set up the hyperlinks in the @file{*Help*}
+buffer).  To disable this feature, change the variable
+@code{help-enable-auto-load} to @code{nil}.
 
 @vindex load-dangerous-libraries
 @cindex Lisp files byte-compiled by XEmacs

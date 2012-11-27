@@ -98,7 +98,7 @@ Presently this includes some syntax, .OP.erators, and \"f$\" lexicals.")
   :group 'languages)
 
 (defcustom dcl-basic-offset 4
-  "*Number of columns to indent a block in DCL.
+  "Number of columns to indent a block in DCL.
 A block is the commands between THEN-ELSE-ENDIF and between the commands
 dcl-block-begin-regexp and dcl-block-end-regexp.
 
@@ -109,7 +109,7 @@ dcl-calc-command-indent-function is set to a function."
 
 
 (defcustom dcl-continuation-offset 6
-  "*Number of columns to indent a continuation line in DCL.
+  "Number of columns to indent a continuation line in DCL.
 A continuation line is a line that follows a line ending with `-'.
 
 The meaning of this variable may be changed if
@@ -119,7 +119,7 @@ dcl-calc-cont-indent-function is set to a function."
 
 
 (defcustom dcl-margin-offset 8
-  "*Indentation for the first command line in DCL.
+  "Indentation for the first command line in DCL.
 The first command line in a file or after a SUBROUTINE statement is indented
 this much.  Other command lines are indented the same number of columns as
 the preceding command line.
@@ -129,7 +129,7 @@ A command line is a line that starts with `$'."
 
 
 (defcustom dcl-margin-label-offset 2
-  "*Number of columns to indent a margin label in DCL.
+  "Number of columns to indent a margin label in DCL.
 A margin label is a label that doesn't begin or end a block, i.e. it
 doesn't match dcl-block-begin-regexp or dcl-block-end-regexp."
   :type 'integer
@@ -137,28 +137,28 @@ doesn't match dcl-block-begin-regexp or dcl-block-end-regexp."
 
 
 (defcustom dcl-comment-line-regexp "^\\$!"
-  "*Regexp describing the start of a comment line in DCL.
+  "Regexp describing the start of a comment line in DCL.
 Comment lines are not indented."
   :type 'regexp
   :group 'dcl)
 
 
 (defcustom dcl-block-begin-regexp "loop[0-9]*:"
-  "*Regexp describing a command that begins an indented block in DCL.
+  "Regexp describing a command that begins an indented block in DCL.
 Set to nil to only indent at THEN-ELSE-ENDIF."
   :type 'regexp
   :group 'dcl)
 
 
 (defcustom dcl-block-end-regexp "endloop[0-9]*:"
-  "*Regexp describing a command that ends an indented block in DCL.
+  "Regexp describing a command that ends an indented block in DCL.
 Set to nil to only indent at THEN-ELSE-ENDIF."
   :type 'regexp
   :group 'dcl)
 
 
 (defcustom dcl-calc-command-indent-function nil
-  "*Function to calculate indentation for a command line in DCL.
+  "Function to calculate indentation for a command line in DCL.
 If this variable is non-nil it is called as a function:
 
 \(func INDENT-TYPE CUR-INDENT EXTRA-INDENT LAST-POINT THIS-POINT)
@@ -190,7 +190,7 @@ This package includes two functions suitable for this:
 
 
 (defcustom dcl-calc-cont-indent-function 'dcl-calc-cont-indent-relative
-  "*Function to calculate indentation for a continuation line.
+  "Function to calculate indentation for a continuation line.
 If this variable is non-nil it is called as a function:
 
 \(func CUR-INDENT EXTRA-INDENT)
@@ -208,7 +208,7 @@ This package includes one function suitable for this:
 
 
 (defcustom dcl-tab-always-indent t
-  "*Controls the operation of the TAB key in DCL mode.
+  "Controls the operation of the TAB key in DCL mode.
 If t, pressing TAB always indents the current line.
 If nil, pressing TAB indents the current line if point is at the left margin.
 Data lines (i.e. lines not part of a command line or continuation line) are
@@ -218,43 +218,43 @@ never indented."
 
 
 (defcustom dcl-electric-characters t
-  "*Non-nil means reindent immediately when a label, ELSE or ENDIF is inserted."
+  "Non-nil means reindent immediately when a label, ELSE or ENDIF is inserted."
   :type 'boolean
   :group 'dcl)
 
 
 (defcustom dcl-tempo-comma ", "
-  "*Text to insert when a comma is needed in a template, in DCL mode."
+  "Text to insert when a comma is needed in a template, in DCL mode."
   :type 'string
   :group 'dcl)
 
 (defcustom dcl-tempo-left-paren "("
-  "*Text to insert when a left parenthesis is needed in a template in DCL."
+  "Text to insert when a left parenthesis is needed in a template in DCL."
   :type 'string
   :group 'dcl)
 
 
 (defcustom dcl-tempo-right-paren ")"
-  "*Text to insert when a right parenthesis is needed in a template in DCL."
+  "Text to insert when a right parenthesis is needed in a template in DCL."
   :type 'string
   :group 'dcl)
 
 ; I couldn't decide what looked best, so I'll let you decide...
 ; Remember, you can also customize this with imenu-submenu-name-format.
 (defcustom dcl-imenu-label-labels "Labels"
-  "*Imenu menu title for sub-listing with label names."
+  "Imenu menu title for sub-listing with label names."
   :type 'string
   :group 'dcl)
 (defcustom dcl-imenu-label-goto "GOTO"
-  "*Imenu menu title for sub-listing with GOTO statements."
+  "Imenu menu title for sub-listing with GOTO statements."
   :type 'string
   :group 'dcl)
 (defcustom dcl-imenu-label-gosub "GOSUB"
-  "*Imenu menu title for sub-listing with GOSUB statements."
+  "Imenu menu title for sub-listing with GOSUB statements."
   :type 'string
   :group 'dcl)
 (defcustom dcl-imenu-label-call "CALL"
-  "*Imenu menu title for sub-listing with CALL statements."
+  "Imenu menu title for sub-listing with CALL statements."
   :type 'string
   :group 'dcl)
 
@@ -265,7 +265,7 @@ never indented."
     (,dcl-imenu-label-goto "\\s-GOTO[ \t]+\\([A-Za-z0-9_\$]+\\)" 1)
     (,dcl-imenu-label-gosub "\\s-GOSUB[ \t]+\\([A-Za-z0-9_\$]+\\)" 1)
     (,dcl-imenu-label-call "\\s-CALL[ \t]+\\([A-Za-z0-9_\$]+\\)" 1))
-  "*Default imenu generic expression for DCL.
+  "Default imenu generic expression for DCL.
 
 The default includes SUBROUTINE labels in the main listing and
 sub-listings for other labels, CALL, GOTO and GOSUB statements.
@@ -275,7 +275,7 @@ See `imenu-generic-expression' for details."
 
 
 (defcustom dcl-mode-hook nil
-  "*Hook called by `dcl-mode'."
+  "Hook called by `dcl-mode'."
   :type 'hook
   :group 'dcl)
 
@@ -400,7 +400,7 @@ optionally followed by a comment, followed by a newline."
 
 (defcustom dcl-electric-reindent-regexps
   (list "endif" "else" dcl-label-r)
-  "*Regexps that can trigger an electric reindent.
+  "Regexps that can trigger an electric reindent.
 A list of regexps that will trigger a reindent if the last letter
 is defined as dcl-electric-character.
 

@@ -36,12 +36,12 @@
 ;; Fixed bug, current-local-map can return nil.
 ;; Change, doesn't calculate key-bindings unless needed.
 ;; Added super-apropos capability, changed print functions.
-;;; Made fast-apropos and super-apropos share code.
-;;; Sped up fast-apropos again.
+;; Made fast-apropos and super-apropos share code.
+;; Sped up fast-apropos again.
 ;; Added apropos-do-all option.
-;;; Added fast-command-apropos.
+;; Added fast-command-apropos.
 ;; Changed doc strings to comments for helping functions.
-;;; Made doc file buffer read-only, buried it.
+;; Made doc file buffer read-only, buried it.
 ;; Only call substitute-command-keys if do-all set.
 
 ;; Optionally use configurable faces to make the output more legible.
@@ -57,7 +57,6 @@
 ;;; Code:
 
 (require 'button)
-(eval-when-compile (require 'cl))
 
 (defgroup apropos nil
   "Apropos commands for users and programmers."
@@ -85,35 +84,48 @@ include key-binding information in its output."
   :group 'apropos
   :type 'boolean)
 
-
-(defcustom apropos-symbol-face 'bold
-  "Face for symbol name in Apropos output, or nil for none."
+(defface apropos-symbol
+  '((t (:inherit bold)))
+  "Face for the symbol name in Apropos output."
   :group 'apropos
-  :type 'face)
+  :version "24.3")
 
-(defcustom apropos-keybinding-face 'underline
-  "Face for lists of keybinding in Apropos output, or nil for none."
+(defface apropos-keybinding
+  '((t (:inherit underline)))
+  "Face for lists of keybinding in Apropos output."
   :group 'apropos
-  :type 'face)
+  :version "24.3")
 
-(defcustom apropos-label-face '(italic)
-  "Face for label (`Command', `Variable' ...) in Apropos output.
-A value of nil means don't use any special font for them, and also
-turns off mouse highlighting."
-  :group 'apropos
-  :type 'face)
-
-(defcustom apropos-property-face 'bold-italic
+(defface apropos-property
+  '((t (:inherit font-lock-builtin-face)))
   "Face for property name in apropos output, or nil for none."
   :group 'apropos
-  :type 'face)
+  :version "24.3")
+
+(defface apropos-function-button
+  '((t (:inherit (font-lock-function-name-face button))))
+  "Button face indicating a function, macro, or command in Apropos."
+  :group 'apropos
+  :version "24.3")
+
+(defface apropos-variable-button
+  '((t (:inherit (font-lock-variable-name-face button))))
+  "Button face indicating a variable in Apropos."
+  :group 'apropos
+  :version "24.3")
+
+(defface apropos-misc-button
+  '((t (:inherit (font-lock-constant-face button))))
+  "Button face indicating a miscellaneous object type in Apropos."
+  :group 'apropos
+  :version "24.3")
 
 (defcustom apropos-match-face 'match
   "Face for matching text in Apropos documentation/value, or nil for none.
 This applies when you look for matches in the documentation or variable value
 for the pattern; the part that matches gets displayed in this font."
   :group 'apropos
-  :type 'face)
+  :version "24.3")
 
 (defcustom apropos-sort-by-scores nil
   "Non-nil means sort matches by scores; best match is shown first.
@@ -196,7 +208,7 @@ term, and the rest of the words are alternative terms.")
 ;;; Button types used by apropos
 
 (define-button-type 'apropos-symbol
-  'face apropos-symbol-face
+  'face 'apropos-symbol
   'help-echo "mouse-2, RET: Display more help on this symbol"
   'follow-link t
   'action #'apropos-symbol-button-display-help)
@@ -210,7 +222,7 @@ term, and the rest of the words are alternative terms.")
 (define-button-type 'apropos-function
   'apropos-label "Function"
   'apropos-short-label "f"
-  'face '(font-lock-function-name-face button)
+  'face 'apropos-function-button
   'help-echo "mouse-2, RET: Display more help on this function"
   'follow-link t
   'action (lambda (button)
@@ -219,7 +231,7 @@ term, and the rest of the words are alternative terms.")
 (define-button-type 'apropos-macro
   'apropos-label "Macro"
   'apropos-short-label "m"
-  'face '(font-lock-function-name-face button)
+  'face 'apropos-function-button
   'help-echo "mouse-2, RET: Display more help on this macro"
   'follow-link t
   'action (lambda (button)
@@ -228,7 +240,7 @@ term, and the rest of the words are alternative terms.")
 (define-button-type 'apropos-command
   'apropos-label "Command"
   'apropos-short-label "c"
-  'face '(font-lock-function-name-face button)
+  'face 'apropos-function-button
   'help-echo "mouse-2, RET: Display more help on this command"
   'follow-link t
   'action (lambda (button)
@@ -242,7 +254,7 @@ term, and the rest of the words are alternative terms.")
 (define-button-type 'apropos-variable
   'apropos-label "Variable"
   'apropos-short-label "v"
-  'face '(font-lock-variable-name-face button)
+  'face 'apropos-variable-button
   'help-echo "mouse-2, RET: Display more help on this variable"
   'follow-link t
   'action (lambda (button)
@@ -260,7 +272,7 @@ term, and the rest of the words are alternative terms.")
 (define-button-type 'apropos-group
   'apropos-label "Group"
   'apropos-short-label "g"
-  'face '(font-lock-builtin-face button)
+  'face 'apropos-misc-button
   'help-echo "mouse-2, RET: Display more help on this group"
   'follow-link t
   'action (lambda (button)
@@ -270,7 +282,7 @@ term, and the rest of the words are alternative terms.")
 (define-button-type 'apropos-widget
   'apropos-label "Widget"
   'apropos-short-label "w"
-  'face '(font-lock-builtin-face button)
+  'face 'apropos-misc-button
   'help-echo "mouse-2, RET: Display more help on this widget"
   'follow-link t
   'action (lambda (button)
@@ -279,7 +291,7 @@ term, and the rest of the words are alternative terms.")
 (define-button-type 'apropos-plist
   'apropos-label "Properties"
   'apropos-short-label "p"
-  'face '(font-lock-keyword-face button)
+  'face 'apropos-misc-button
   'help-echo "mouse-2, RET: Display more help on this plist"
   'follow-link t
   'action (lambda (button)
@@ -333,10 +345,10 @@ literally, or a string which is used as a regexp to search for.
 SUBJECT is a string that is included in the prompt to identify what
 kind of objects to search."
   (let ((pattern
-	 (read-string (concat "Apropos " subject " (word list or regexp): "))))
+	 (read-string (concat "Search for " subject " (word list or regexp): "))))
     (if (string-equal (regexp-quote pattern) pattern)
 	;; Split into words
-	(split-string pattern "[ \t]+")
+	(split-string pattern "[ \t]+" t)
       pattern)))
 
 (defun apropos-parse-pattern (pattern)
@@ -466,7 +478,7 @@ normal variables."
 		       #'(lambda (symbol)
 			   (and (boundp symbol)
 				(get symbol 'variable-documentation)))
-		     'user-variable-p)))
+		     'custom-variable-p)))
 
 ;; For auld lang syne:
 ;;;###autoload
@@ -587,7 +599,7 @@ Returns list of symbols and documentation found."
     (let ((name (copy-sequence (symbol-name sym))))
       (make-text-button name nil
                         'type 'apropos-library
-                        'face apropos-symbol-face
+                        'face 'apropos-symbol
                         'apropos-symbol name)
       name)))
 
@@ -627,11 +639,11 @@ the output includes key-bindings of commands."
             (setq lh (cdr lh)))))
       (unless lh-entry (error "Unknown library `%s'" file)))
     (dolist (x (cdr lh-entry))
-      (case (car-safe x)
+      (pcase (car-safe x)
 	;; (autoload (push (cdr x) autoloads))
-	(require (push (cdr x) requires))
-	(provide (push (cdr x) provides))
-	(t (push (or (cdr-safe x) x) symbols))))
+	(`require (push (cdr x) requires))
+	(`provide (push (cdr x) provides))
+	(_ (push (or (cdr-safe x) x) symbols))))
     (let ((apropos-pattern "")) ;Dummy binding for apropos-symbols-internal.
       (apropos-symbols-internal
        symbols apropos-do-all
@@ -837,9 +849,8 @@ Returns list of symbols and documentation found."
     (while pl
       (setq p (format "%s %S" (car pl) (nth 1 pl)))
       (if (or (not compare) (string-match apropos-regexp p))
-	  (if apropos-property-face
-	      (put-text-property 0 (length (symbol-name (car pl)))
-				 'face apropos-property-face p))
+	  (put-text-property 0 (length (symbol-name (car pl)))
+			     'face 'apropos-property p)
 	(setq p nil))
       (if p
 	  (progn
@@ -969,7 +980,7 @@ Will return nil instead."
   (setq function (if (byte-code-function-p function)
 		     (if (> (length function) 4)
 			 (aref function 4))
-		   (if (eq (car-safe function) 'autoload)
+		   (if (autoloadp function)
 		       (nth 2 function)
 		     (if (eq (car-safe function) 'lambda)
 			 (if (stringp (nth 2 function))
@@ -1031,10 +1042,7 @@ If non-nil TEXT is a string that will be printed as a heading."
 	  (insert-text-button (symbol-name symbol)
 			      'type 'apropos-symbol
 			      'skip apropos-multi-type
-			      ;; Can't use default, since user may have
-			      ;; changed the variable!
-			      ;; Just say `no' to variables containing faces!
-			      'face apropos-symbol-face)
+			      'face 'apropos-symbol)
 	  (if (and (eq apropos-sort-by-scores 'verbose)
 		   (cadr apropos-item))
 	      (insert " (" (number-to-string (cadr apropos-item)) ") "))
@@ -1072,18 +1080,16 @@ If non-nil TEXT is a string that will be printed as a heading."
                          (setq key (condition-case ()
                                        (key-description key)
                                      (error)))
-                         (if apropos-keybinding-face
-                             (put-text-property 0 (length key)
-                                                'face apropos-keybinding-face
-                                                key))
+			 (put-text-property 0 (length key)
+					    'face 'apropos-keybinding
+					    key)
                          key)
                        item ", "))
                    (insert "M-x ... RET")
-                   (when apropos-keybinding-face
-                     (put-text-property (- (point) 11) (- (point) 8)
-                                        'face apropos-keybinding-face)
-                     (put-text-property (- (point) 3) (point)
-                                        'face apropos-keybinding-face))))
+		   (put-text-property (- (point) 11) (- (point) 8)
+				      'face 'apropos-keybinding)
+		   (put-text-property (- (point) 3) (point)
+				      'face 'apropos-keybinding)))
             (terpri))
 	  (apropos-print-doc 2
 			     (if (commandp symbol)
@@ -1108,7 +1114,7 @@ If non-nil TEXT is a string that will be printed as a heading."
        (consp (setq symbol
 		    (symbol-function symbol)))
        (or (eq (car symbol) 'macro)
-	   (if (eq (car symbol) 'autoload)
+	   (if (autoloadp symbol)
 	       (memq (nth 4 symbol)
 		     '(macro t))))))
 
@@ -1128,9 +1134,6 @@ If non-nil TEXT is a string that will be printed as a heading."
 		 (format "<%s>" (button-type-get type 'apropos-short-label))
 	       (button-type-get type 'apropos-label))
 	     'type type
-	     ;; Can't use the default button face, since user may have changed the
-	     ;; variable!  Just say `no' to variables containing faces!
-	     'face (append button-face apropos-label-face)
 	     'apropos-symbol (car apropos-item))
 	    (insert (if apropos-compact-layout " " ": ")))
 
@@ -1177,9 +1180,8 @@ If non-nil TEXT is a string that will be printed as a heading."
     (princ "Symbol ")
     (prin1 symbol)
     (princ "'s plist is\n (")
-    (if apropos-symbol-face
-	(put-text-property (+ (point-min) 7) (- (point) 14)
-			   'face apropos-symbol-face))
+    (put-text-property (+ (point-min) 7) (- (point) 14)
+		       'face 'apropos-symbol)
     (insert (apropos-format-plist symbol "\n  "))
     (princ ")")))
 

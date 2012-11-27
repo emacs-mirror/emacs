@@ -2,8 +2,7 @@
 @c This is part of the GNU Emacs Lisp Reference Manual.
 @c Copyright (C) 1990-1995, 1998-1999, 2001-2012 Free Software Foundation, Inc.
 @c See the file elisp.texi for copying conditions.
-@setfilename ../../info/control
-@node Control Structures, Variables, Evaluation, Top
+@node Control Structures
 @chapter Control Structures
 @cindex special forms for control structures
 @cindex control structures
@@ -557,16 +556,14 @@ the @code{catch} in @code{foo-outer} specifies the same symbol, so that
 @code{catch} in between).
 
   Executing @code{throw} exits all Lisp constructs up to the matching
-@code{catch}, including function calls.  When binding constructs such as
-@code{let} or function calls are exited in this way, the bindings are
-unbound, just as they are when these constructs exit normally
+@code{catch}, including function calls.  When binding constructs such
+as @code{let} or function calls are exited in this way, the bindings
+are unbound, just as they are when these constructs exit normally
 (@pxref{Local Variables}).  Likewise, @code{throw} restores the buffer
 and position saved by @code{save-excursion} (@pxref{Excursions}), and
-the narrowing status saved by @code{save-restriction} and the window
-selection saved by @code{save-window-excursion} (@pxref{Window
-Configurations}).  It also runs any cleanups established with the
-@code{unwind-protect} special form when it exits that form
-(@pxref{Cleanups}).
+the narrowing status saved by @code{save-restriction}.  It also runs
+any cleanups established with the @code{unwind-protect} special form
+when it exits that form (@pxref{Cleanups}).
 
   The @code{throw} need not appear lexically within the @code{catch}
 that it jumps to.  It can equally well be called from another function
@@ -581,7 +578,8 @@ that throw back to the editor command loop (@pxref{Recursive Editing}).
 @b{Common Lisp note:} Most other versions of Lisp, including Common Lisp,
 have several ways of transferring control nonsequentially: @code{return},
 @code{return-from}, and @code{go}, for example.  Emacs Lisp has only
-@code{throw}.
+@code{throw}.  The @file{cl-lib} library provides versions of some of
+these.  @xref{Blocks and Exits,,,cl,Common Lisp Extensions}.
 @end quotation
 
 @defspec catch tag body@dots{}
@@ -824,6 +822,19 @@ The function @code{signal} never returns.
      @error{} peculiar error: "My unknown error condition"
 @end group
 @end example
+@end defun
+
+@cindex user errors, signaling
+@defun user-error format-string &rest args
+This function behaves exactly like @code{error}, except that it uses
+the error symbol @code{user-error} rather than @code{error}.  As the
+name suggests, this is intended to report errors on the part of the
+user, rather than errors in the code itself.  For example,
+if you try to use the command @code{Info-history-back} (@kbd{l}) to
+move back beyond the start of your Info browsing history, Emacs
+signals a @code{user-error}.  Such errors do not cause entry to the
+debugger, even when @code{debug-on-error} is non-@code{nil}.
+@xref{Error Debugging}.
 @end defun
 
 @cindex CL note---no continuable errors

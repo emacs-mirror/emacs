@@ -1,5 +1,5 @@
 # Copyright (C) 1992, 1993 Lucid, Inc.
-# Copyright (C) 1994, 2001-2012  Free Software Foundation, Inc.
+# Copyright (C) 1994, 2001-2012 Free Software Foundation, Inc.
 #
 # This file is part of the Lucid Widget Library.
 #
@@ -26,18 +26,19 @@ srcdir=@srcdir@
 VPATH=@srcdir@
 @SET_MAKE@
 C_SWITCH_X_SITE=@C_SWITCH_X_SITE@
-C_SWITCH_X_SYSTEM=@C_SWITCH_X_SYSTEM@
 C_SWITCH_SYSTEM=@C_SWITCH_SYSTEM@
 C_SWITCH_MACHINE=@C_SWITCH_MACHINE@
-C_WARNINGS_SWITCH = @C_WARNINGS_SWITCH@
 PROFILING_CFLAGS = @PROFILING_CFLAGS@
+WARN_CFLAGS = `echo @WARN_CFLAGS@ | sed 's/ -Wwrite-strings//'`
+WERROR_CFLAGS = @WERROR_CFLAGS@
 
 CC=@CC@
 CFLAGS=@CFLAGS@
 CPPFLAGS=@CPPFLAGS@
 RANLIB=@RANLIB@
 
-AR = ar cq
+AR = @AR@
+ARFLAGS = @ARFLAGS@
 
 LUCID_OBJS = lwlib-Xlw.o xlwmenu.o lwlib-Xaw.o
 MOTIF_OBJS = lwlib-Xm.o
@@ -53,9 +54,9 @@ OBJS = lwlib.o $(TOOLKIT_OBJS) lwlib-utils.o
 ## $(srcdir) is where the lwlib sources are.
 ## There are no generated lwlib files, hence no need for -I.
 ALL_CFLAGS= $(C_SWITCH_SYSTEM) $(C_SWITCH_X_SITE) \
-  $(C_SWITCH_X_SYSTEM) $(C_SWITCH_MACHINE) \
-  $(C_WARNINGS_SWITCH) $(PROFILING_CFLAGS) $(CFLAGS) \
-  -DHAVE_CONFIG_H -Demacs -I../src \
+  $(C_SWITCH_MACHINE) \
+  $(WARN_CFLAGS) $(WERROR_CFLAGS) $(PROFILING_CFLAGS) $(CFLAGS) \
+  -Demacs -I../src \
   -I$(srcdir) -I$(srcdir)/../src -I../lib -I$(srcdir)/../lib
 
 .c.o:
@@ -65,11 +66,11 @@ all:: liblw.a
 
 liblw.a: $(OBJS)
 	rm -f $@
-	$(AR) $@ $(OBJS)
+	$(AR) $(ARFLAGS) $@ $(OBJS)
 	$(RANLIB) $@
 
 ## Generated files in ../src, non-generated in $(srcdir)/../src.
-config_h = ../src/config.h
+config_h = ../src/config.h $(srcdir)/../src/conf_post.h
 lisp_h = $(srcdir)/../src/lisp.h
 ## lisp.h includes this.
 globals_h = ../src/globals.h

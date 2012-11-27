@@ -233,7 +233,7 @@
 
 ;;; TODO
 
-;;; Acknowledgements
+;;; Acknowledgments
 
 ;; Thanks to Jari Aalto <jari.aalto@poboxes.com> for help with the
 ;; first version of this package, iswitch-buffer.  Thanks also to many
@@ -372,9 +372,14 @@ See also `iswitchb-newbuffer'."
   :type 'string
   :group 'iswitchb)
 
-(defvar iswitchb-all-frames 'visible
-  "*Argument to pass to `walk-windows' when finding visible buffers.
-See documentation of `walk-windows' for useful values.")
+(defcustom iswitchb-all-frames 'visible
+  "Argument to pass to `walk-windows' when iswitchb is finding buffers.
+See documentation of `walk-windows' for useful values."
+  :type '(choice (const :tag "Selected frame only" nil)
+		 (const :tag "All existing frames" t)
+		 (const :tag "All visible frames" visible)
+		 (const :tag "All frames on this terminal" 0))
+  :group 'iswitchb)
 
 (defcustom iswitchb-minibuffer-setup-hook nil
   "Iswitchb-specific customization of minibuffer setup.
@@ -522,33 +527,6 @@ selected.")
 
 ;;; FUNCTIONS
 
-;;; ISWITCHB KEYMAP
-(defun iswitchb-define-mode-map ()
-  "Set up the keymap for `iswitchb-buffer'."
-  (interactive)
-  (let (map)
-    ;; generated every time so that it can inherit new functions.
-    ;;(or iswitchb-mode-map
-
-    (setq map (copy-keymap minibuffer-local-map))
-    (define-key map "?" 'iswitchb-completion-help)
-    (define-key map "\C-s" 'iswitchb-next-match)
-    (define-key map "\C-r" 'iswitchb-prev-match)
-    (define-key map "\t" 'iswitchb-complete)
-    (define-key map "\C-j" 'iswitchb-select-buffer-text)
-    (define-key map "\C-t" 'iswitchb-toggle-regexp)
-    (define-key map "\C-x\C-f" 'iswitchb-find-file)
-    (define-key map "\C-n" 'iswitchb-toggle-ignore)
-    (define-key map "\C-c" 'iswitchb-toggle-case)
-    (define-key map "\C-k" 'iswitchb-kill-buffer)
-    (define-key map "\C-m" 'iswitchb-exit-minibuffer)
-    (setq iswitchb-mode-map map)
-    (run-hooks 'iswitchb-define-mode-map-hook)))
-
-(make-obsolete 'iswitchb-define-mode-map
-	       "use M-x iswitchb-mode or customize the variable `iswitchb-mode'."
-	       "21.1")
-
 ;;; MAIN FUNCTION
 (defun iswitchb ()
   "Switch to buffer matching a substring.
@@ -614,14 +592,25 @@ If START is a string, the selection process is started with that
 string.
 If MATCHES-SET is non-nil, the buflist is not updated before
 the selection process begins.  Used by isearchb.el."
-  (let
-      (
-       buf-sel
-       iswitchb-final-text
-       (icomplete-mode nil) ;; prevent icomplete starting up
-       )
+  ;; The map is generated every time so that it can inherit new
+  ;; functions.
+  (let ((map (copy-keymap minibuffer-local-map))
+	buf-sel iswitchb-final-text map
+	icomplete-mode)  ; prevent icomplete starting up
+    (define-key map "?" 'iswitchb-completion-help)
+    (define-key map "\C-s" 'iswitchb-next-match)
+    (define-key map "\C-r" 'iswitchb-prev-match)
+    (define-key map "\t" 'iswitchb-complete)
+    (define-key map "\C-j" 'iswitchb-select-buffer-text)
+    (define-key map "\C-t" 'iswitchb-toggle-regexp)
+    (define-key map "\C-x\C-f" 'iswitchb-find-file)
+    (define-key map "\C-n" 'iswitchb-toggle-ignore)
+    (define-key map "\C-c" 'iswitchb-toggle-case)
+    (define-key map "\C-k" 'iswitchb-kill-buffer)
+    (define-key map "\C-m" 'iswitchb-exit-minibuffer)
+    (setq iswitchb-mode-map map)
+    (run-hooks 'iswitchb-define-mode-map-hook)
 
-    (iswitchb-define-mode-map)
     (setq iswitchb-exit nil)
     (setq iswitchb-default
 	  (if (bufferp default)

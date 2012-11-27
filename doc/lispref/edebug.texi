@@ -9,7 +9,7 @@
 
 @c , Bugs and Todo List, Top, Top
 
-@node Edebug, Syntax Errors, Debugger, Debugging
+@node Edebug
 @section Edebug
 @cindex Edebug debugging facility
 
@@ -150,6 +150,7 @@ display a list of all Edebug commands.
 
 @node Instrumenting
 @subsection Instrumenting for Edebug
+@cindex instrumenting for Edebug
 
   In order to use Edebug to debug Lisp code, you must first
 @dfn{instrument} the code.  Instrumenting code inserts additional code
@@ -179,9 +180,11 @@ to loading or evaluations in the minibuffer.  The command @kbd{M-x
 edebug-all-forms} toggles this option.
 
 @findex edebug-eval-top-level-form
+@findex edebug-defun
   Another command, @kbd{M-x edebug-eval-top-level-form}, is available to
 instrument any top-level form regardless of the values of
 @code{edebug-all-defs} and @code{edebug-all-forms}.
+@code{edebug-defun} is an alias for @code{edebug-eval-top-level-form}.
 
   While Edebug is active, the command @kbd{I}
 (@code{edebug-instrument-callee}) instruments the definition of the
@@ -1208,9 +1211,7 @@ A single unevaluated Lisp object, which is not instrumented.
 A single evaluated expression, which is instrumented.
 
 @item place
-@c I can't see that this index entry is useful without any explanation.
-@c @findex edebug-unwrap
-A place to store a value, as in the Common Lisp @code{setf} construct.
+A generalized variable.  @xref{Generalized Variables}.
 
 @item body
 Short for @code{&rest form}.  See @code{&rest} below.

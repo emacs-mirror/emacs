@@ -1,7 +1,7 @@
 ;;; cus-start.el --- define customization properties of builtins
-;;
-;; Copyright (C) 1997, 1999-2012  Free Software Foundation, Inc.
-;;
+
+;; Copyright (C) 1997, 1999-2012 Free Software Foundation, Inc.
+
 ;; Author: Per Abrahamsen <abraham@dina.kvl.dk>
 ;; Keywords: internal
 ;; Package: emacs
@@ -22,7 +22,7 @@
 ;; along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.
 
 ;;; Commentary:
-;;
+
 ;; This file adds customize support for built-in variables.
 
 ;; While dumping Emacs, this file is loaded, but it only records
@@ -48,6 +48,7 @@
 ;; :tag - custom-tag property
 (let ((all '(;; alloc.c
 	     (gc-cons-threshold alloc integer)
+	     (gc-cons-percentage alloc float)
 	     (garbage-collection-messages alloc boolean)
 	     ;; buffer.c
 	     (mode-line-format mode-line sexp) ;Hard to do right.
@@ -132,15 +133,25 @@ Leaving \"Default\" unchecked is equivalent with specifying a default of
 	     (exec-path execute
 			(repeat (choice (const :tag "default directory" nil)
 					(directory :format "%v"))))
+	     (exec-suffixes execute (repeat string))
 	     ;; charset.c
 	     (charset-map-path installation
 			       (repeat (directory :format "%v")))
 	     ;; coding.c
 	     (inhibit-eol-conversion mule boolean)
 	     (eol-mnemonic-undecided mule string)
-	     (eol-mnemonic-unix mule string)
-	     (eol-mnemonic-dos mule string)
-	     (eol-mnemonic-mac mule string)
+	     ;; startup.el fiddles with the values.  IMO, would be
+	     ;; simpler to just use #ifdefs in coding.c.
+	     (eol-mnemonic-unix mule string nil
+				:standard
+				(if (memq system-type '(ms-dos windows-nt))
+				    "(Unix)" ":"))
+	     (eol-mnemonic-dos mule string nil
+			       :standard
+			       (if (memq system-type '(ms-dos windows-nt))
+				   "\\" "(DOS)"))
+	     (eol-mnemonic-mac mule string nil
+			       :standard "(Mac)")
 	     (file-coding-system-alist
 	      mule
 	      (alist
@@ -165,6 +176,13 @@ Leaving \"Default\" unchecked is equivalent with specifying a default of
 	     (inverse-video display boolean)
 	     (visible-bell display boolean)
 	     (no-redraw-on-reenter display boolean)
+
+	     ;; dosfns.c
+	     (dos-display-scancodes display boolean)
+	     (dos-hyper-key keyboard integer)
+	     (dos-super-key keyboard integer)
+	     (dos-keypad-mode keyboard integer)
+
 	     ;; editfns.c
 	     (user-full-name mail string)
 	     ;; eval.c
@@ -181,10 +199,12 @@ Leaving \"Default\" unchecked is equivalent with specifying a default of
 				     (const :tag "always" t)))
 	     (debug-ignored-errors debug (repeat (choice symbol regexp)))
 	     (debug-on-quit debug boolean)
-             ;; fileio.c
-             (delete-by-moving-to-trash auto-save boolean "23.1")
+	     (debug-on-signal debug boolean)
+	     ;; fileio.c
+	     (delete-by-moving-to-trash auto-save boolean "23.1")
 	     (auto-save-visited-file-name auto-save boolean)
 	     ;; filelock.c
+	     (create-lockfiles files boolean "24.3")
 	     (temporary-file-directory
 	      ;; Darwin section added 24.1, does not seem worth :version bump.
 	      files directory nil
@@ -218,6 +238,8 @@ Leaving \"Default\" unchecked is equivalent with specifying a default of
 	     (use-dialog-box menu boolean "21.1")
 	     (use-file-dialog menu boolean "22.1")
 	     (focus-follows-mouse frames boolean "20.3")
+	     ;; fontset.c
+	     (vertical-centering-font-regexp display regexp)
 	     ;; frame.c
 	     (default-frame-alist frames
 	       (repeat (cons :format "%v"
@@ -260,9 +282,6 @@ Leaving \"Default\" unchecked is equivalent with specifying a default of
 					    (const :tag "only shift-selection or mouse-drag" only)
 					    (const :tag "off" nil))
 				    "24.1")
-	     (suggest-key-bindings keyboard (choice (const :tag "off" nil)
-						    (integer :tag "time" 2)
-						    (other :tag "on")))
              (debug-on-event debug
                              (choice (const :tag "None" nil)
                                      (const :tag "When sent SIGUSR1" sigusr1)
@@ -403,7 +422,17 @@ since it could result in memory overflow and make Emacs crash."
 		       (const :tag "Only on ttys" :value tty)
 		       (other :tag "Always" t)) "23.1")
 	     (window-combination-resize windows boolean "24.1")
-	     (window-combination-limit windows boolean "24.1")
+	     (window-combination-limit
+	      windows (choice
+		       (const :tag "Never (nil)" :value nil)
+		       (const :tag "For Temp Buffer Resize mode (temp-buffer-resize)"
+			      :value temp-buffer-resize)
+		       (const :tag "For temporary buffers (temp-buffer)"
+			      :value temp-buffer)
+		       (const :tag "For buffer display (display-buffer)"
+			      :value display-buffer)
+		       (other :tag "Always (t)" :value t))
+	      "24.3")
 	     ;; xdisp.c
 	     (show-trailing-whitespace whitespace-faces boolean nil
 				       :safe booleanp)
@@ -413,7 +442,7 @@ since it could result in memory overflow and make Emacs crash."
 	     (hscroll-margin windows integer "22.1")
 	     (hscroll-step windows number "22.1")
 	     (truncate-partial-width-windows display boolean "23.1")
-	     (mode-line-inverse-video mode-line boolean)
+	     (make-cursor-line-fully-visible windows boolean)
 	     (mode-line-in-non-selected-windows mode-line boolean "22.1")
 	     (line-number-display-limit display
 					(choice integer
@@ -423,7 +452,8 @@ since it could result in memory overflow and make Emacs crash."
 	     (message-log-max debug (choice (const :tag "Disable" nil)
 					    (integer :menu-tag "lines"
 						     :format "%v")
-					    (other :tag "Unlimited" t)))
+					    (other :tag "Unlimited" t))
+			      "24.3")
 	     (unibyte-display-via-language-environment mule boolean)
 	     (blink-cursor-alist cursor alist "22.1")
 	     (overline-margin display integer "22.1")
@@ -440,9 +470,19 @@ since it could result in memory overflow and make Emacs crash."
 		      (const :tag "Both" :value both)
 		      (const :tag "Both-horiz" :value both-horiz)
 		      (const :tag "Text-image-horiz" :value text-image-horiz)
-		      (const :tag "System default" :value nil)) "23.3")
-             (tool-bar-max-label-size frames integer "23.3")
+		      (const :tag "System default" :value nil)) "24.1")
+             (tool-bar-max-label-size frames integer "24.1")
 	     (auto-hscroll-mode scrolling boolean "21.1")
+	     (void-text-area-pointer cursor
+				     (choice
+				      (const :tag "Standard (text pointer)" :value nil)
+				      (const :tag "Arrow" :value arrow)
+				      (const :tag "Text pointer" :value text)
+				      (const :tag "Hand" :value hand)
+				      (const :tag "Vertical dragger" :value vdrag)
+				      (const :tag "Horizontal dragger" :value hdrag)
+				      (const :tag "Same as mode line" :value modeline)
+				      (const :tag "Hourglass" :value hourglass)))
 	     (display-hourglass cursor boolean)
 	     (hourglass-delay cursor number)
 
@@ -518,6 +558,10 @@ since it could result in memory overflow and make Emacs crash."
 		      ;; the condition for loadup.el to preload tool-bar.el.
 		      ((string-match "tool-bar-" (symbol-name symbol))
 		       (fboundp 'x-create-frame))
+		      ((equal "vertical-centering-font-regexp"
+			      (symbol-name symbol))
+		       ;; Any function from fontset.c will do.
+		       (fboundp 'new-fontset))
 		      (t t))))
     (if (not (boundp symbol))
 	;; If variables are removed from C code, give an error here!

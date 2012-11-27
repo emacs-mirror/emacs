@@ -2119,7 +2119,7 @@ Undo previous insertion and inserts new."
 (defcustom viper-smart-suffix-list
   '("" "tex" "c" "cc" "C" "java" "el" "html" "htm" "xml"
     "pl" "flr" "P" "p" "h" "H")
-  "*List of suffixes that Viper tries to append to filenames ending with a `.'.
+  "List of suffixes that Viper tries to append to filenames ending with a `.'.
 This is useful when the current directory contains files with the same
 prefix and many different suffixes.  Usually, only one of the suffixes
 represents an editable file.  However, file completion will stop at the `.'
@@ -3462,7 +3462,7 @@ controlled by the sign of prefix numeric value."
 (defun viper-adjust-window ()
   (let ((win-height (if (featurep 'xemacs)
 			(window-displayed-height)
-		      (1- (window-height)))) ; adjust for modeline
+		      (1- (window-height)))) ; adjust for mode line
 	(pt (point))
 	at-top-p at-bottom-p
 	min-scroll direction)

@@ -25,11 +25,16 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 
 #include "dispextern.h"
 
+INLINE_HEADER_BEGIN
+#ifndef FRAME_INLINE
+# define FRAME_INLINE INLINE
+#endif
+
 
 /* Miscellanea.  */
 
 /* Nonzero means there is at least one garbaged frame. */
-extern int frame_garbaged;
+extern bool frame_garbaged;
 
 
 /* The structure representing a frame.  */
@@ -76,9 +81,6 @@ enum fullscreen_type
 #define FRAME_FOREGROUND_PIXEL(f) ((f)->foreground_pixel)
 #define FRAME_BACKGROUND_PIXEL(f) ((f)->background_pixel)
 
-struct terminal;
-
-struct font_driver_list;
 
 struct frame
 {
@@ -184,7 +186,8 @@ struct frame
   Lisp_Object tool_bar_position;
 
   /* Desired and current contents displayed in tool_bar_window.  */
-  Lisp_Object desired_tool_bar_string, current_tool_bar_string;
+  Lisp_Object desired_tool_bar_string;
+  Lisp_Object current_tool_bar_string;
 
   /* Beyond here, there should be no more Lisp_Object components.  */
 
@@ -322,7 +325,7 @@ struct frame
     struct x_output *x;         /* xterm.h */
     struct w32_output *w32;     /* w32term.h */
     struct ns_output *ns;       /* nsterm.h */
-    EMACS_INT nothing;
+    intptr_t nothing;
   }
   output_data;
 
@@ -355,7 +358,7 @@ struct frame
 #endif
 
   /* Nonzero if last attempt at redisplay on this frame was preempted.  */
-  unsigned char display_preempted : 1;
+  unsigned display_preempted : 1;
 
   /* visible is nonzero if the frame is currently displayed; we check
      it to see if we should bother updating the frame's contents.
@@ -385,8 +388,8 @@ struct frame
 
      These two are mutually exclusive.  They might both be zero, if the
      frame has been made invisible without an icon.  */
-  unsigned char visible : 2;
-  unsigned char iconified : 1;
+  unsigned visible : 2;
+  unsigned iconified : 1;
 
   /* Let's not use bitfields for volatile variables.  */
 
@@ -400,40 +403,40 @@ struct frame
 
   /* True if frame actually has a minibuffer window on it.
      0 if using a minibuffer window that isn't on this frame.  */
-  unsigned char has_minibuffer : 1;
+  unsigned has_minibuffer : 1;
 
   /* 0 means, if this frame has just one window,
      show no modeline for that window.  */
-  unsigned char wants_modeline : 1;
+  unsigned wants_modeline : 1;
 
   /* Non-zero if the hardware device this frame is displaying on can
      support scroll bars.  */
   char can_have_scroll_bars;
 
   /* Non-0 means raise this frame to the top of the heap when selected.  */
-  unsigned char auto_raise : 1;
+  unsigned auto_raise : 1;
 
   /* Non-0 means lower this frame to the bottom of the stack when left.  */
-  unsigned char auto_lower : 1;
+  unsigned auto_lower : 1;
 
   /* True if frame's root window can't be split.  */
-  unsigned char no_split : 1;
+  unsigned no_split : 1;
 
   /* If this is set, then Emacs won't change the frame name to indicate
      the current buffer, etcetera.  If the user explicitly sets the frame
      name, this gets set.  If the user sets the name to Qnil, this is
      cleared.  */
-  unsigned char explicit_name : 1;
+  unsigned explicit_name : 1;
 
   /* Nonzero if size of some window on this frame has changed.  */
-  unsigned char window_sizes_changed : 1;
+  unsigned window_sizes_changed : 1;
 
   /* Nonzero if the mouse has moved on this display device
      since the last time we checked.  */
-  unsigned char mouse_moved :1;
+  unsigned mouse_moved :1;
 
   /* Nonzero means that the pointer is invisible. */
-  unsigned char pointer_invisible :1;
+  unsigned pointer_invisible :1;
 
   /* If can_have_scroll_bars is non-zero, this is non-zero if we should
      actually display them on this frame.  */
@@ -494,6 +497,109 @@ struct frame
   unsigned long foreground_pixel;
 };
 
+/* Most code should use these functions to set Lisp fields in struct frame.  */
+
+FRAME_INLINE void
+fset_buffer_list (struct frame *f, Lisp_Object val)
+{
+  f->buffer_list = val;
+}
+FRAME_INLINE void
+fset_buried_buffer_list (struct frame *f, Lisp_Object val)
+{
+  f->buried_buffer_list = val;
+}
+FRAME_INLINE void
+fset_condemned_scroll_bars (struct frame *f, Lisp_Object val)
+{
+  f->condemned_scroll_bars = val;
+}
+FRAME_INLINE void
+fset_current_tool_bar_string (struct frame *f, Lisp_Object val)
+{
+  f->current_tool_bar_string = val;
+}
+FRAME_INLINE void
+fset_desired_tool_bar_string (struct frame *f, Lisp_Object val)
+{
+  f->desired_tool_bar_string = val;
+}
+FRAME_INLINE void
+fset_face_alist (struct frame *f, Lisp_Object val)
+{
+  f->face_alist = val;
+}
+FRAME_INLINE void
+fset_focus_frame (struct frame *f, Lisp_Object val)
+{
+  f->focus_frame = val;
+}
+FRAME_INLINE void
+fset_icon_name (struct frame *f, Lisp_Object val)
+{
+  f->icon_name = val;
+}
+FRAME_INLINE void
+fset_menu_bar_items (struct frame *f, Lisp_Object val)
+{
+  f->menu_bar_items = val;
+}
+FRAME_INLINE void
+fset_menu_bar_vector (struct frame *f, Lisp_Object val)
+{
+  f->menu_bar_vector = val;
+}
+FRAME_INLINE void
+fset_menu_bar_window (struct frame *f, Lisp_Object val)
+{
+  f->menu_bar_window = val;
+}
+FRAME_INLINE void
+fset_name (struct frame *f, Lisp_Object val)
+{
+  f->name = val;
+}
+FRAME_INLINE void
+fset_param_alist (struct frame *f, Lisp_Object val)
+{
+  f->param_alist = val;
+}
+FRAME_INLINE void
+fset_root_window (struct frame *f, Lisp_Object val)
+{
+  f->root_window = val;
+}
+FRAME_INLINE void
+fset_scroll_bars (struct frame *f, Lisp_Object val)
+{
+  f->scroll_bars = val;
+}
+FRAME_INLINE void
+fset_selected_window (struct frame *f, Lisp_Object val)
+{
+  f->selected_window = val;
+}
+FRAME_INLINE void
+fset_title (struct frame *f, Lisp_Object val)
+{
+  f->title = val;
+}
+FRAME_INLINE void
+fset_tool_bar_items (struct frame *f, Lisp_Object val)
+{
+  f->tool_bar_items = val;
+}
+FRAME_INLINE void
+fset_tool_bar_position (struct frame *f, Lisp_Object val)
+{
+  f->tool_bar_position = val;
+}
+FRAME_INLINE void
+fset_tool_bar_window (struct frame *f, Lisp_Object val)
+{
+  f->tool_bar_window = val;
+}
+
 #define FRAME_KBOARD(f) ((f)->terminal->kboard)
 
 /* Return a pointer to the image cache of frame F.  */
@@ -501,21 +607,32 @@ struct frame
 
 typedef struct frame *FRAME_PTR;
 
-#define XFRAME(p) (eassert (FRAMEP(p)),(struct frame *) XPNTR (p))
+#define XFRAME(p) \
+  (eassert (FRAMEP (p)), (struct frame *) XUNTAG (p, Lisp_Vectorlike))
 #define XSETFRAME(a, b) (XSETPSEUDOVECTOR (a, b, PVEC_FRAME))
 
 /* Given a window, return its frame as a Lisp_Object.  */
-#define WINDOW_FRAME(w) (w)->frame
+#define WINDOW_FRAME(w) w->frame
 
 /* Test a frame for particular kinds of display methods.  */
 #define FRAME_INITIAL_P(f) ((f)->output_method == output_initial)
 #define FRAME_TERMCAP_P(f) ((f)->output_method == output_termcap)
 #define FRAME_X_P(f) ((f)->output_method == output_x_window)
+#ifndef HAVE_NTGUI
+#define FRAME_W32_P(f) (0)
+#else
 #define FRAME_W32_P(f) ((f)->output_method == output_w32)
+#endif
+#ifndef MSDOS
+#define FRAME_MSDOS_P(f) (0)
+#else
 #define FRAME_MSDOS_P(f) ((f)->output_method == output_msdos_raw)
-#define FRAME_MAC_P(f) ((f)->output_method == output_mac)
+#endif
+#ifndef HAVE_NS
+#define FRAME_NS_P(f) (0)
+#else
 #define FRAME_NS_P(f) ((f)->output_method == output_ns)
-
+#endif
 /* FRAME_WINDOW_P tests whether the frame is a window, and is
    defined to be the predicate for the window system being used.  */
 
@@ -529,7 +646,7 @@ typedef struct frame *FRAME_PTR;
 #define FRAME_WINDOW_P(f) FRAME_NS_P(f)
 #endif
 #ifndef FRAME_WINDOW_P
-#define FRAME_WINDOW_P(f) (0)
+#define FRAME_WINDOW_P(f) ((void) (f), 0)
 #endif
 
 /* Return a pointer to the structure holding information about the
@@ -634,13 +751,13 @@ typedef struct frame *FRAME_PTR;
 #define FRAME_WINDOW_SIZES_CHANGED(f) (f)->window_sizes_changed
 
 /* The minibuffer window of frame F, if it has one; otherwise nil.  */
-#define FRAME_MINIBUF_WINDOW(f) (f)->minibuffer_window
+#define FRAME_MINIBUF_WINDOW(f) f->minibuffer_window
 
 /* The root window of the window tree of frame F.  */
-#define FRAME_ROOT_WINDOW(f) (f)->root_window
+#define FRAME_ROOT_WINDOW(f) f->root_window
 
 /* The currently selected window of the window tree of frame F.  */
-#define FRAME_SELECTED_WINDOW(f) (f)->selected_window
+#define FRAME_SELECTED_WINDOW(f) f->selected_window
 
 #define FRAME_INSERT_COST(f) (f)->insert_line_cost
 #define FRAME_DELETE_COST(f) (f)->delete_line_cost
@@ -648,7 +765,7 @@ typedef struct frame *FRAME_PTR;
 #define FRAME_DELETEN_COST(f) (f)->delete_n_lines_cost
 #define FRAME_MESSAGE_BUF(f) (f)->message_buf
 #define FRAME_SCROLL_BOTTOM_VPOS(f) (f)->scroll_bottom_vpos
-#define FRAME_FOCUS_FRAME(f) (f)->focus_frame
+#define FRAME_FOCUS_FRAME(f) f->focus_frame
 
 /* Nonzero if frame F supports scroll bars.
    If this is zero, then it is impossible to enable scroll bars
@@ -749,10 +866,10 @@ typedef struct frame *FRAME_PTR;
 
 /* Nonzero if frame F has scroll bars.  */
 
-#define FRAME_SCROLL_BARS(f) ((f)->scroll_bars)
+#define FRAME_SCROLL_BARS(f) (f->scroll_bars)
 
-#define FRAME_CONDEMNED_SCROLL_BARS(f) ((f)->condemned_scroll_bars)
-#define FRAME_MENU_BAR_ITEMS(f) ((f)->menu_bar_items)
+#define FRAME_CONDEMNED_SCROLL_BARS(f) (f->condemned_scroll_bars)
+#define FRAME_MENU_BAR_ITEMS(f) (f->menu_bar_items)
 #define FRAME_COST_BAUD_RATE(f) ((f)->cost_calculation_baud_rate)
 
 #define FRAME_DESIRED_CURSOR(f) ((f)->desired_cursor)
@@ -820,10 +937,10 @@ typedef struct frame *FRAME_PTR;
    supported.  An alternate definition of the macro would expand to
    something which executes the statement once.  */
 
-#define FOR_EACH_FRAME(list_var, frame_var)			\
-  for ((list_var) = Vframe_list;				\
-       (CONSP (list_var)					\
-	&& (frame_var = XCAR (list_var), 1));		\
+#define FOR_EACH_FRAME(list_var, frame_var)	\
+  for ((list_var) = Vframe_list;		\
+       (CONSP (list_var)			\
+	&& (frame_var = XCAR (list_var), 1));	\
        list_var = XCDR (list_var))
 
 
@@ -861,7 +978,7 @@ extern Lisp_Object selected_frame;
      ((FRAMEP (selected_frame)				\
        && FRAME_LIVE_P (XFRAME (selected_frame)))	\
       ? XFRAME (selected_frame)				\
-      : (abort (), (struct frame *) 0))
+      : (emacs_abort (), (struct frame *) 0))
 
 
 /***********************************************************************
@@ -1086,13 +1203,14 @@ extern Lisp_Object Qrun_hook_with_args;
 extern void x_set_scroll_bar_default_width (struct frame *);
 extern void x_set_offset (struct frame *, int, int, int);
 extern void x_wm_set_icon_position (struct frame *, int, int);
+extern void x_wm_set_size_hint (FRAME_PTR f, long flags, bool user_position);
 
 extern Lisp_Object x_new_font (struct frame *, Lisp_Object, int);
 
 
 extern Lisp_Object Qface_set_after_frame_default;
 
-#ifdef WINDOWSNT
+#ifdef HAVE_NTGUI
 extern void x_fullscreen_adjust (struct frame *f, int *, int *,
                                  int *, int *);
 #endif
@@ -1131,13 +1249,43 @@ extern Lisp_Object display_x_get_resource (Display_Info *,
 					   Lisp_Object component,
 					   Lisp_Object subclass);
 
+extern void set_frame_menubar (struct frame *f, bool first_time, bool deep_p);
+extern void x_set_window_size (struct frame *f, int change_grav,
+                              int cols, int rows);
+extern void x_sync (struct frame *);
+extern Lisp_Object x_get_focus_frame (struct frame *);
+extern void x_set_mouse_position (struct frame *f, int h, int v);
+extern void x_set_mouse_pixel_position (struct frame *f, int pix_x, int pix_y);
+extern void x_make_frame_visible (struct frame *f);
+extern void x_make_frame_invisible (struct frame *f);
+extern void x_iconify_frame (struct frame *f);
+extern int x_char_width (struct frame *f);
+extern int x_char_height (struct frame *f);
+extern int x_pixel_width (struct frame *f);
+extern int x_pixel_height (struct frame *f);
+extern void x_set_frame_alpha (struct frame *f);
+extern void x_set_menu_bar_lines (struct frame *, Lisp_Object, Lisp_Object);
+extern void x_set_tool_bar_lines (struct frame *f,
+                                  Lisp_Object value,
+                                  Lisp_Object oldval);
+extern void x_activate_menubar (struct frame *);
+extern void x_real_positions (struct frame *, int *, int *);
+extern int x_bitmap_icon (struct frame *, Lisp_Object);
+extern void x_set_menu_bar_lines (struct frame *,
+                                  Lisp_Object,
+                                  Lisp_Object);
+extern void free_frame_menubar (struct frame *);
+extern void x_free_frame_resources (struct frame *);
+
 #if defined HAVE_X_WINDOWS && !defined USE_X_TOOLKIT
 extern char *x_get_resource_string (const char *, const char *);
 #endif
 
-/* In xmenu.c */
-extern void set_frame_menubar (FRAME_PTR, int, int);
+extern void x_query_colors (struct frame *f, XColor *, int);
+extern void x_query_color (struct frame *f, XColor *);
 
 #endif /* HAVE_WINDOW_SYSTEM */
+
+INLINE_HEADER_END
 
 #endif /* not EMACS_FRAME_H */

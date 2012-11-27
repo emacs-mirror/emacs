@@ -17,19 +17,14 @@ You should have received a copy of the GNU General Public License
 along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 
 #include <config.h>
-#include <signal.h>
 #include <stdio.h>
-#include <setjmp.h>
+
 #include "lisp.h"
 #include "syssignal.h"
 #include "systime.h"
 #include "blockinput.h"
 #include "atimer.h"
 #include <unistd.h>
-
-#ifdef HAVE_SYS_TIME_H
-#include <sys/time.h>
-#endif
 
 /* Free-list of atimer structures.  */
 
@@ -45,18 +40,33 @@ static struct atimer *stopped_atimers;
 
 static struct atimer *atimers;
 
-/* Non-zero means alarm_signal_handler has found ripe timers but
-   interrupt_input_blocked was non-zero.  In this case, timer
-   functions are not called until the next UNBLOCK_INPUT because timer
-   functions are expected to call X, and X cannot be assumed to be
-   reentrant.  */
-
-int pending_atimers;
+/* The alarm timer and whether it was properly initialized, if
+   POSIX timers are available.  */
+#ifdef HAVE_ITIMERSPEC
+static timer_t alarm_timer;
+static bool alarm_timer_ok;
+#endif
 
 /* Block/unblock SIGALRM.  */
 
-#define BLOCK_ATIMERS   sigblock (sigmask (SIGALRM))
-#define UNBLOCK_ATIMERS sigunblock (sigmask (SIGALRM))
+static void
+sigmask_atimers (int how)
+{
+  sigset_t blocked;
+  sigemptyset (&blocked);
+  sigaddset (&blocked, SIGALRM);
+  pthread_sigmask (how, &blocked, 0);
+}
+static void
+block_atimers (void)
+{
+  sigmask_atimers (SIG_BLOCK);
+}
+static void
+unblock_atimers (void)
+{
+  sigmask_atimers (SIG_UNBLOCK);
+}
 
 /* Function prototypes.  */
 
@@ -64,8 +74,6 @@ static void set_alarm (void);
 static void schedule_atimer (struct atimer *);
 static struct atimer *append_atimer_lists (struct atimer *,
                                            struct atimer *);
-static void alarm_signal_handler (int signo);
-
 
 /* Start a new atimer of type TYPE.  TIME specifies when the timer is
    ripe.  FN is the function to call when the timer fires.
@@ -94,11 +102,9 @@ start_atimer (enum atimer_type type, EMACS_TIME timestamp, atimer_callback fn,
   /* Round TIME up to the next full second if we don't have
      itimers.  */
 #ifndef HAVE_SETITIMER
-  if (EMACS_USECS (timestamp) != 0)
-    {
-      EMACS_SET_USECS (timestamp, 0);
-      EMACS_SET_SECS (timestamp, EMACS_SECS (timestamp) + 1);
-    }
+  if (EMACS_NSECS (timestamp) != 0
+      && EMACS_SECS (timestamp) < TYPE_MAXIMUM (time_t))
+    timestamp = make_emacs_time (EMACS_SECS (timestamp) + 1, 0);
 #endif /* not HAVE_SETITIMER */
 
   /* Get an atimer structure from the free-list, or allocate
@@ -109,7 +115,7 @@ start_atimer (enum atimer_type type, EMACS_TIME timestamp, atimer_callback fn,
       free_atimers = t->next;
     }
   else
-    t = (struct atimer *) xmalloc (sizeof *t);
+    t = xmalloc (sizeof *t);
 
   /* Fill the atimer structure.  */
   memset (t, 0, sizeof *t);
@@ -117,7 +123,7 @@ start_atimer (enum atimer_type type, EMACS_TIME timestamp, atimer_callback fn,
   t->fn = fn;
   t->client_data = client_data;
 
-  BLOCK_ATIMERS;
+  block_atimers ();
 
   /* Compute the timer's expiration time.  */
   switch (type)
@@ -127,20 +133,18 @@ start_atimer (enum atimer_type type, EMACS_TIME timestamp, atimer_callback fn,
       break;
 
     case ATIMER_RELATIVE:
-      EMACS_GET_TIME (t->expiration);
-      EMACS_ADD_TIME (t->expiration, t->expiration, timestamp);
+      t->expiration = add_emacs_time (current_emacs_time (), timestamp);
       break;
 
     case ATIMER_CONTINUOUS:
-      EMACS_GET_TIME (t->expiration);
-      EMACS_ADD_TIME (t->expiration, t->expiration, timestamp);
+      t->expiration = add_emacs_time (current_emacs_time (), timestamp);
       t->interval = timestamp;
       break;
     }
 
   /* Insert the timer in the list of active atimers.  */
   schedule_atimer (t);
-  UNBLOCK_ATIMERS;
+  unblock_atimers ();
 
   /* Arrange for a SIGALRM at the time the next atimer is ripe.  */
   set_alarm ();
@@ -156,7 +160,7 @@ cancel_atimer (struct atimer *timer)
 {
   int i;
 
-  BLOCK_ATIMERS;
+  block_atimers ();
 
   for (i = 0; i < 2; ++i)
     {
@@ -183,7 +187,7 @@ cancel_atimer (struct atimer *timer)
 	}
     }
 
-  UNBLOCK_ATIMERS;
+  unblock_atimers ();
 }
 
 
@@ -214,7 +218,7 @@ append_atimer_lists (struct atimer *list_1, struct atimer *list_2)
 void
 stop_other_atimers (struct atimer *t)
 {
-  BLOCK_ATIMERS;
+  block_atimers ();
 
   if (t)
     {
@@ -239,7 +243,7 @@ stop_other_atimers (struct atimer *t)
 
   stopped_atimers = append_atimer_lists (atimers, stopped_atimers);
   atimers = t;
-  UNBLOCK_ATIMERS;
+  unblock_atimers ();
 }
 
 
@@ -254,7 +258,7 @@ run_all_atimers (void)
       struct atimer *t = atimers;
       struct atimer *next;
 
-      BLOCK_ATIMERS;
+      block_atimers ();
       atimers = stopped_atimers;
       stopped_atimers = NULL;
 
@@ -265,7 +269,7 @@ run_all_atimers (void)
 	  t = next;
 	}
 
-      UNBLOCK_ATIMERS;
+      unblock_atimers ();
     }
 }
 
@@ -287,28 +291,36 @@ set_alarm (void)
 {
   if (atimers)
     {
-      EMACS_TIME now, timestamp;
 #ifdef HAVE_SETITIMER
       struct itimerval it;
 #endif
+      EMACS_TIME now, interval;
 
-      /* Determine s/us till the next timer is ripe.  */
-      EMACS_GET_TIME (now);
-      EMACS_SUB_TIME (timestamp, atimers->expiration, now);
+#ifdef HAVE_ITIMERSPEC
+      if (alarm_timer_ok)
+	{
+	  struct itimerspec ispec;
+	  ispec.it_value = atimers->expiration;
+	  ispec.it_interval.tv_sec = ispec.it_interval.tv_nsec = 0;
+	  if (timer_settime (alarm_timer, 0, &ispec, 0) == 0)
+	    return;
+	}
+#endif
+
+      /* Determine interval till the next timer is ripe.
+	 Don't set the interval to 0; this disables the timer.  */
+      now = current_emacs_time ();
+      interval = (EMACS_TIME_LE (atimers->expiration, now)
+		  ? make_emacs_time (0, 1000 * 1000)
+		  : sub_emacs_time (atimers->expiration, now));
 
 #ifdef HAVE_SETITIMER
-      /* Don't set the interval to 0; this disables the timer.  */
-      if (EMACS_TIME_LE (atimers->expiration, now))
-	{
-	  EMACS_SET_SECS (timestamp, 0);
-	  EMACS_SET_USECS (timestamp, 1000);
-	}
 
       memset (&it, 0, sizeof it);
-      it.it_value = timestamp;
+      it.it_value = make_timeval (interval);
       setitimer (ITIMER_REAL, &it, 0);
 #else /* not HAVE_SETITIMER */
-      alarm (max (EMACS_SECS (timestamp), 1));
+      alarm (max (EMACS_SECS (interval), 1));
 #endif /* not HAVE_SETITIMER */
     }
 }
@@ -339,23 +351,17 @@ schedule_atimer (struct atimer *t)
 static void
 run_timers (void)
 {
-  EMACS_TIME now;
+  EMACS_TIME now = current_emacs_time ();
 
-  EMACS_GET_TIME (now);
-
-  while (atimers
-	 && (pending_atimers = interrupt_input_blocked) == 0
-	 && EMACS_TIME_LE (atimers->expiration, now))
+  while (atimers && EMACS_TIME_LE (atimers->expiration, now))
     {
-      struct atimer *t;
-
-      t = atimers;
+      struct atimer *t = atimers;
       atimers = atimers->next;
       t->fn (t);
 
       if (t->type == ATIMER_CONTINUOUS)
 	{
-	  EMACS_ADD_TIME (t->expiration, now, t->interval);
+	  t->expiration = add_emacs_time (now, t->interval);
 	  schedule_atimer (t);
 	}
       else
@@ -363,57 +369,32 @@ run_timers (void)
 	  t->next = free_atimers;
 	  free_atimers = t;
 	}
-
-      EMACS_GET_TIME (now);
     }
 
-  if (! atimers)
-    pending_atimers = 0;
-
-#ifdef SYNC_INPUT
-  if (pending_atimers)
-    pending_signals = 1;
-  else
-    {
-      pending_signals = interrupt_input_pending;
-      set_alarm ();
-    }
-#else
-  if (! pending_atimers)
-    set_alarm ();
-#endif
+  set_alarm ();
 }
 
 
 /* Signal handler for SIGALRM.  SIGNO is the signal number, i.e.
    SIGALRM.  */
 
-void
-alarm_signal_handler (int signo)
+static void
+handle_alarm_signal (int sig)
 {
-#ifndef SYNC_INPUT
-  SIGNAL_THREAD_CHECK (signo);
-#endif
-
-  pending_atimers = 1;
-#ifdef SYNC_INPUT
   pending_signals = 1;
-#else
-  run_timers ();
-#endif
 }
 
 
-/* Call alarm_signal_handler for pending timers.  */
+/* Do pending timers.  */
 
 void
 do_pending_atimers (void)
 {
-  if (pending_atimers)
+  if (atimers)
     {
-      BLOCK_ATIMERS;
+      block_atimers ();
       run_timers ();
-      UNBLOCK_ATIMERS;
+      unblock_atimers ();
     }
 }
 
@@ -422,13 +403,10 @@ do_pending_atimers (void)
    some systems like HPUX (see process.c).  */
 
 void
-turn_on_atimers (int on)
+turn_on_atimers (bool on)
 {
   if (on)
-    {
-      signal (SIGALRM, alarm_signal_handler);
-      set_alarm ();
-    }
+    set_alarm ();
   else
     alarm (0);
 }
@@ -437,8 +415,16 @@ turn_on_atimers (int on)
 void
 init_atimer (void)
 {
+  struct sigaction action;
+#ifdef HAVE_ITIMERSPEC
+  struct sigevent sigev;
+  sigev.sigev_notify = SIGEV_SIGNAL;
+  sigev.sigev_signo = SIGALRM;
+  sigev.sigev_value.sival_ptr = &alarm_timer;
+  alarm_timer_ok = timer_create (CLOCK_REALTIME, &sigev, &alarm_timer) == 0;
+#endif
   free_atimers = stopped_atimers = atimers = NULL;
-  pending_atimers = 0;
   /* pending_signals is initialized in init_keyboard.*/
-  signal (SIGALRM, alarm_signal_handler);
+  emacs_sigaction_init (&action, handle_alarm_signal);
+  sigaction (SIGALRM, &action, 0);
 }

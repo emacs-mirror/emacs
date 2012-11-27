@@ -2,6 +2,10 @@
 
 ;; Copyright (C) 2006-2012 Free Software Foundation, Inc.
 
+;; Maintainer: FSF
+
+; This file is part of GNU Emacs.
+
 ;; GNU Emacs is free software: you can redistribute it and/or modify
 ;; it under the terms of the GNU General Public License as published by
 ;; the Free Software Foundation, either version 3 of the License, or
@@ -48,7 +52,7 @@
 
 ;;; Usage:
 
-;; Put the following in your ~/.emacs file.
+;; Put the following in your init file.
 
 ;; (require 'erc-capab)
 ;; (erc-capab-identify-mode 1)

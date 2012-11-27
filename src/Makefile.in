@@ -40,6 +40,7 @@ version = @version@
 # Substitute an assignment for the MAKE variable, because
 # BSD doesn't have it as a default.
 @SET_MAKE@
+MKDIR_P = @MKDIR_P@
 # Don't use LIBS.  configure puts stuff in it that either shouldn't be
 # linked with Emacs or is duplicated by the other stuff below.
 # LIBS = @LIBS@
@@ -49,14 +50,13 @@ lispsource = $(srcdir)/../lisp
 lib = ../lib
 libsrc = ../lib-src
 etc = ../etc
+leimdir = ../leim
 oldXMenudir = ../oldXMenu
 lwlibdir = ../lwlib
 lispdir = ../lisp
 
 # Configuration files for .o files to depend on.
-M_FILE = @M_FILE@
-S_FILE = @S_FILE@
-config_h = config.h $(M_FILE) $(S_FILE)
+config_h = config.h $(srcdir)/conf_post.h
 
 bootstrap_exe = $(abs_builddir)/bootstrap-emacs$(EXEEXT)
 
@@ -67,23 +67,21 @@ OTHER_FILES = @OTHER_FILES@
 PROFILING_CFLAGS = @PROFILING_CFLAGS@
 
 ## Flags to pass to the compiler to enable build warnings
-C_WARNINGS_SWITCH = @C_WARNINGS_SWITCH@
+WARN_CFLAGS = @WARN_CFLAGS@
+WERROR_CFLAGS = @WERROR_CFLAGS@
 
 ## Machine-specific CFLAGS.
 C_SWITCH_MACHINE=@C_SWITCH_MACHINE@
 ## System-specific CFLAGS.
 C_SWITCH_SYSTEM=@C_SWITCH_SYSTEM@
 
-## Currently only set if NS_IMPL_GNUSTEP.
-## C_SWITCH_X_SITE may override this.
-C_SWITCH_X_SYSTEM=@C_SWITCH_X_SYSTEM@
+GNUSTEP_CFLAGS=@GNUSTEP_CFLAGS@
 
 ## Define C_SWITCH_X_SITE to contain any special flags your compiler
 ## may need to deal with X Windows.  For instance, if you've defined
 ## HAVE_X_WINDOWS and your X include files aren't in a place that your
 ## compiler can find on its own, you might want to add "-I/..." or
 ## something similar.  This is normally set by configure.
-## This is used before C_SWITCH_X_SYSTEM and may override it.
 C_SWITCH_X_SITE=@C_SWITCH_X_SITE@
 
 ## Define LD_SWITCH_X_SITE to contain any special flags your loader
@@ -95,11 +93,9 @@ C_SWITCH_X_SITE=@C_SWITCH_X_SITE@
 ## substituted in this or any other Makefile. Cf C_SWITCH_X_SITE.
 LD_SWITCH_X_SITE=
 
-## Next two must come before LD_SWITCH_SYSTEM.
-## If needed, a -R option that says where to find X windows at run time.
-LD_SWITCH_X_SITE_AUX=@LD_SWITCH_X_SITE_AUX@
-## As above, but using -rpath instead.
-LD_SWITCH_X_SITE_AUX_RPATH=@LD_SWITCH_X_SITE_AUX_RPATH@
+## This must come before LD_SWITCH_SYSTEM.
+## If needed, a -rpath option that says where to find X windows at run time.
+LD_SWITCH_X_SITE_RPATH=@LD_SWITCH_X_SITE_RPATH@
 
 ## System-specific LDFLAGS.
 LD_SWITCH_SYSTEM=@LD_SWITCH_SYSTEM@
@@ -115,6 +111,12 @@ TEMACS_LDFLAGS = $(LD_SWITCH_SYSTEM) $(LD_SWITCH_SYSTEM_TEMACS)
 
 ## $LDFLAGS or empty if NS_IMPL_GNUSTEP (for some reason).
 TEMACS_LDFLAGS2 = @TEMACS_LDFLAGS2@
+
+## If available, the full path to the paxctl program.
+## On grsecurity/PaX systems, unexec will fail due to a gap between
+## the bss section and the heap.  This can be prevented by disabling
+## memory randomization in temacs with "paxctl -r".  See bug#11398.
+PAXCTL = @PAXCTL@
 
 ## Some systems define this to request special libraries.
 LIBS_SYSTEM=@LIBS_SYSTEM@
@@ -133,13 +135,10 @@ LIB_MATH=@LIB_MATH@
 ## -lpthreads, or empty.
 LIB_PTHREAD=@LIB_PTHREAD@
 
-LIBTIFF=@LIBTIFF@
-LIBJPEG=@LIBJPEG@
-LIBPNG=@LIBPNG@
-LIBGIF=@LIBGIF@
-LIBXPM=@LIBXPM@
+LIBIMAGE=@LIBTIFF@ @LIBJPEG@ @LIBPNG@ @LIBGIF@ @LIBXPM@
+
 XFT_LIBS=@XFT_LIBS@
-LIBX_EXTRA=$(LIBTIFF) $(LIBJPEG) $(LIBPNG) $(LIBGIF) $(LIBXPM) -lX11 $(XFT_LIBS)
+LIBX_EXTRA=-lX11 $(XFT_LIBS)
 
 FONTCONFIG_CFLAGS = @FONTCONFIG_CFLAGS@
 FONTCONFIG_LIBS = @FONTCONFIG_LIBS@
@@ -150,10 +149,15 @@ LIBOTF_LIBS = @LIBOTF_LIBS@
 M17N_FLT_CFLAGS = @M17N_FLT_CFLAGS@
 M17N_FLT_LIBS = @M17N_FLT_LIBS@
 
+LIB_CLOCK_GETTIME=@LIB_CLOCK_GETTIME@
+LIB_TIMER_TIME=@LIB_TIMER_TIME@
+
 DBUS_CFLAGS = @DBUS_CFLAGS@
 DBUS_LIBS = @DBUS_LIBS@
 ## dbusbind.o if HAVE_DBUS, else empty.
 DBUS_OBJ = @DBUS_OBJ@
+
+LIB_EXECINFO=@LIB_EXECINFO@
 
 SETTINGS_CFLAGS = @SETTINGS_CFLAGS@
 SETTINGS_LIBS = @SETTINGS_LIBS@
@@ -205,8 +209,8 @@ LIBXMENU=@LIBXMENU@
 
 ## xmenu.o if HAVE_X_WINDOWS, else empty.
 XMENU_OBJ=@XMENU_OBJ@
-## xterm.o xfns.o xselect.o xrdb.o fontset.o xsmfns.o fringe.o image.o
-## xsettings.o xgselect.o if HAVE_X_WINDOWS, else empty.
+## xterm.o xfns.o xselect.o xrdb.o xsmfns.o xsettings.o xgselect.o if
+## HAVE_X_WINDOWS, else empty.
 XOBJ=@XOBJ@
 
 TOOLKIT_LIBW=@TOOLKIT_LIBW@
@@ -241,20 +245,26 @@ WIDGET_OBJ=@WIDGET_OBJ@
 ## sheap.o if CYGWIN, otherwise empty.
 CYGWIN_OBJ=@CYGWIN_OBJ@
 
+## fontset.o fringe.o image.o if we have any window system
+WINDOW_SYSTEM_OBJ=@WINDOW_SYSTEM_OBJ@
+
 ## dosfns.o msdos.o w16select.o if MSDOS.
 MSDOS_OBJ =
 ## w16select.o termcap.o if MSDOS && HAVE_X_WINDOWS.
 MSDOS_X_OBJ =
 
-ns_appdir=@ns_appdir@
-ns_appbindir=@ns_appbindir@
-ns_appsrc=@ns_appsrc@
-## fontset.o fringe.o image.o if HAVE_NS, else empty.
 NS_OBJ=@NS_OBJ@
 ## nsterm.o nsfns.o nsmenu.o nsselect.o nsimage.o nsfont.o if HAVE_NS.
 NS_OBJC_OBJ=@NS_OBJC_OBJ@
 ## Only set if NS_IMPL_GNUSTEP.
 GNU_OBJC_CFLAGS=@GNU_OBJC_CFLAGS@
+## w32fns.o w32menu.c w32reg.o fringe.o fontset.o w32font.o w32term.o
+## w32xfns.o w32select.o image.o w32uniscribe.o if HAVE_W32, else
+## empty.
+W32_OBJ=@W32_OBJ@
+## -lkernel32 -luser32 -lgdi32 -lole32 -lcomdlg32 lusp10 -lcomctl32
+## --lwinspool if HAVE_W32, else empty.
+W32_LIBS=@W32_LIBS@
 
 ## Empty if !HAVE_X_WINDOWS
 ## xfont.o ftfont.o xftfont.o ftxfont.o if HAVE_XFT
@@ -287,7 +297,7 @@ CANNOT_DUMP=@CANNOT_DUMP@
 DEPDIR=deps
 ## -MMD -MF $(DEPDIR)/$*.d if AUTO_DEPEND; else empty.
 DEPFLAGS=@DEPFLAGS@
-## test -d $(DEPDIR) || mkdir $(DEPDIR) (if AUTO_DEPEND); else ':'.
+## ${MKDIR_P} ${DEPDIR} (if AUTO_DEPEND); else ':'.
 MKDEPDIR=@MKDEPDIR@
 
 ## DO NOT use -R.  There is a special hack described in lastfile.c
@@ -298,22 +308,16 @@ MKDEPDIR=@MKDEPDIR@
 ## -Demacs is needed to make some files produce the correct version
 ## for use in Emacs.
 ##
-## -DHAVE_CONFIG_H is needed for some other files to take advantage of
-## the information in `config.h'.
-##
-## C_SWITCH_X_SITE must come before C_SWITCH_X_SYSTEM
-## since it may have -I options that should override those.
-##
 ## FIXME? MYCPPFLAGS only referenced in etc/DEBUG.
-ALL_CFLAGS=-Demacs -DHAVE_CONFIG_H $(MYCPPFLAGS) -I. -I$(srcdir) \
+ALL_CFLAGS=-Demacs $(MYCPPFLAGS) -I. -I$(srcdir) \
   -I$(lib) -I$(srcdir)/../lib \
   $(C_SWITCH_MACHINE) $(C_SWITCH_SYSTEM) $(C_SWITCH_X_SITE) \
-  $(C_SWITCH_X_SYSTEM) $(CFLAGS_SOUND) $(RSVG_CFLAGS) $(IMAGEMAGICK_CFLAGS) \
+  $(GNUSTEP_CFLAGS) $(CFLAGS_SOUND) $(RSVG_CFLAGS) $(IMAGEMAGICK_CFLAGS) \
   $(LIBXML2_CFLAGS) $(DBUS_CFLAGS) \
   $(SETTINGS_CFLAGS) $(FREETYPE_CFLAGS) $(FONTCONFIG_CFLAGS) \
   $(LIBOTF_CFLAGS) $(M17N_FLT_CFLAGS) $(DEPFLAGS) $(PROFILING_CFLAGS) \
   $(LIBGNUTLS_CFLAGS) \
-  $(C_WARNINGS_SWITCH) $(CFLAGS)
+  $(WARN_CFLAGS) $(WERROR_CFLAGS) $(CFLAGS)
 ALL_OBJC_CFLAGS=$(ALL_CFLAGS) $(GNU_OBJC_CFLAGS)
 
 .SUFFIXES: .m
@@ -340,7 +344,9 @@ base_obj = dispnew.o frame.o scroll.o xdisp.o menu.o $(XMENU_OBJ) window.o \
 	process.o gnutls.o callproc.o \
 	region-cache.o sound.o atimer.o \
 	doprnt.o intervals.o textprop.o composite.o xml.o \
-	$(MSDOS_OBJ) $(MSDOS_X_OBJ) $(NS_OBJ) $(CYGWIN_OBJ) $(FONT_OBJ)
+	profiler.o \
+	$(MSDOS_OBJ) $(MSDOS_X_OBJ) $(NS_OBJ) $(CYGWIN_OBJ) $(FONT_OBJ) \
+	$(W32_OBJ) $(WINDOW_SYSTEM_OBJ)
 obj = $(base_obj) $(NS_OBJC_OBJ)
 
 ## Object files used on some machine or other.
@@ -349,7 +355,7 @@ obj = $(base_obj) $(NS_OBJC_OBJ)
 ## in the list, in case they ever add any such entries.
 SOME_MACHINE_OBJECTS = dosfns.o msdos.o \
   xterm.o xfns.o xmenu.o xselect.o xrdb.o xsmfns.o fringe.o image.o \
-  fontset.o dbusbind.o \
+  fontset.o dbusbind.o cygw32.o \
   nsterm.o nsfns.o nsmenu.o nsselect.o nsimage.o nsfont.o \
   w32.o w32console.o w32fns.o w32heap.o w32inevt.o \
   w32menu.o w32proc.o w32reg.o w32select.o w32term.o w32xfns.o \
@@ -383,8 +389,11 @@ otherobj= $(TERMCAP_OBJ) $(PRE_ALLOC_OBJ) $(GMALLOC_OBJ) $(RALLOC_OBJ) \
 ## Note that SunOS needs -lm to come before -lc; otherwise, you get
 ## duplicated symbols.  If the standard libraries were compiled
 ## with GCC, we might need LIB_GCC again after them.
-LIBES = $(LIBS) $(LIBX_BASE) $(LIBX_OTHER) $(LIBSOUND) \
-   $(RSVG_LIBS) $(IMAGEMAGICK_LIBS) $(DBUS_LIBS) \
+LIBES = $(LIBS) $(W32_LIBS) $(LIBX_BASE) $(LIBIMAGE) \
+   $(LIBX_OTHER) $(LIBSOUND) \
+   $(RSVG_LIBS) $(IMAGEMAGICK_LIBS) $(LIB_CLOCK_GETTIME) \
+   $(LIB_TIMER_TIME) $(DBUS_LIBS) \
+   $(LIB_EXECINFO) \
    $(LIBXML2_LIBS) $(LIBGPM) $(LIBRESOLV) $(LIBS_SYSTEM) \
    $(LIBS_TERMCAP) $(GETLOADAVG_LIBS) $(SETTINGS_LIBS) $(LIBSELINUX_LIBS) \
    $(FREETYPE_LIBS) $(FONTCONFIG_LIBS) $(LIBOTF_LIBS) $(M17N_FLT_LIBS) \
@@ -392,22 +401,25 @@ LIBES = $(LIBS) $(LIBX_BASE) $(LIBX_OTHER) $(LIBSOUND) \
    $(LIB_GCC) $(LIB_MATH) $(LIB_STANDARD) $(LIB_GCC)
 
 all: emacs$(EXEEXT) $(OTHER_FILES)
+.PHONY: all
 
-## Does anyone ever pay attention to the load-path-shadows output here?
+$(leimdir)/leim-list.el: bootstrap-emacs$(EXEEXT)
+	cd $(leimdir) && $(MAKE) $(MFLAGS) leim-list.el EMACS=$(bootstrap_exe)
+
 ## The dumped Emacs is as functional and more efficient than
 ## bootstrap-emacs, so we replace the latter with the former.
 ## Strictly speaking, emacs does not depend directly on all of $lisp,
 ## since not all pieces are used on all platforms.  But DOC depends
 ## on all of $lisp, and emacs depends on DOC, so it is ok to use $lisp here.
-emacs$(EXEEXT): temacs$(EXEEXT) $(etc)/DOC $(lisp)
+emacs$(EXEEXT): temacs$(EXEEXT) $(etc)/DOC $(lisp) $(leimdir)/leim-list.el
 	if test "$(CANNOT_DUMP)" = "yes"; then \
-	  ln -f temacs$(EXEEXT) emacs$(EXEEXT); \
-	  EMACSLOADPATH=$(lispsource) ./emacs -batch \
-	    -f list-load-path-shadows || true; \
+	  rm -f emacs$(EXEEXT); \
+	  ln temacs$(EXEEXT) emacs$(EXEEXT); \
 	else \
 	  LC_ALL=C $(RUN_TEMACS) -batch -l loadup dump || exit 1; \
-	  ln -f emacs$(EXEEXT) bootstrap-emacs$(EXEEXT); \
-	  ./emacs -batch -f list-load-path-shadows || true; \
+	  test "X$(PAXCTL)" = X || $(PAXCTL) -zex emacs$(EXEEXT); \
+	  rm -f bootstrap-emacs$(EXEEXT); \
+	  ln emacs$(EXEEXT) bootstrap-emacs$(EXEEXT); \
 	fi
 
 ## We run make-docfile twice because the command line may get too long
@@ -441,7 +453,7 @@ GLOBAL_SOURCES = $(base_obj:.o=.c) $(NS_OBJC_OBJ:.o=.m)
 
 gl-stamp: $(libsrc)/make-docfile$(EXEEXT) $(GLOBAL_SOURCES)
 	@rm -f gl-tmp
-	$(libsrc)/make-docfile -d $(srcdir) -g $(SOME_MACHINE_OBJECTS) $(obj) > gl-tmp
+	$(libsrc)/make-docfile -d $(srcdir) -g $(obj) > gl-tmp
 	$(srcdir)/../build-aux/move-if-change gl-tmp globals.h
 	echo timestamp > $@
 
@@ -453,6 +465,8 @@ $(lib)/libgnu.a: $(config_h)
 temacs$(EXEEXT): $(START_FILES) stamp-oldxmenu $(obj) $(otherobj) $(lib)/libgnu.a
 	$(CC) $(LD_FIRSTFLAG) $(ALL_CFLAGS) $(TEMACS_LDFLAGS) $(TEMACS_LDFLAGS2) \
 	  -o temacs $(START_FILES) $(obj) $(otherobj) $(lib)/libgnu.a $(LIBES)
+	test "$(CANNOT_DUMP)" = "yes" || \
+	  test "X$(PAXCTL)" = X || $(PAXCTL) -r temacs$(EXEEXT)
 
 ## The following oldxmenu-related rules are only (possibly) used if
 ## HAVE_X11 && !USE_GTK, but there is no harm in always defining them
@@ -492,9 +506,12 @@ $(OLDXMENU): $(OLDXMENU_TARGET)
 doc.o: buildobj.h
 
 
-## If HAVE_NS, some ns-specific rules (for OTHER_FILES) are inserted here.
-@ns_frag@
+ns-app: emacs$(EXEEXT)
+	cd ../nextstep && $(MAKE) $(MFLAGS) all
 
+
+.PHONY: mostlyclean clean bootstrap-clean distclean maintainer-clean
+.PHONY: versionclean extraclean frc
 
 mostlyclean:
 	rm -f temacs$(EXEEXT) core *.core \#* *.o libXMenu11.a liblw.a
@@ -505,7 +522,6 @@ mostlyclean:
 clean: mostlyclean
 	rm -f emacs-*.*.*$(EXEEXT) emacs$(EXEEXT)
 	-rm -rf $(DEPDIR)
-	test "X$(ns_appdir)" = "X" || rm -rf $(ns_appdir)
 
 ## bootstrap-clean is used to clean up just before a bootstrap.
 ## It should remove all files generated during a compilation/bootstrap,
@@ -536,10 +552,10 @@ extraclean: distclean
 ctagsfiles1 = [xyzXYZ]*.[hcm]
 ctagsfiles2 = [a-wA-W]*.[hcm]
 
-TAGS: $(srcdir)/$(ctagsfiles1) $(srcdir)/$(ctagsfiles2) $(M_FILE) $(S_FILE)
+TAGS: $(srcdir)/$(ctagsfiles1) $(srcdir)/$(ctagsfiles2) $(S_FILE)
 	../lib-src/etags --include=TAGS-LISP --include=$(lwlibdir)/TAGS \
 	  --regex='/[ 	]*DEFVAR_[A-Z_ 	(]+"\([^"]+\)"/' \
-	  $(srcdir)/$(ctagsfiles1) $(srcdir)/$(ctagsfiles2) $(M_FILE) $(S_FILE)
+	  $(srcdir)/$(ctagsfiles1) $(srcdir)/$(ctagsfiles2) $(S_FILE)
 frc:
 TAGS-LISP: frc
 	$(MAKE) -f $(lispdir)/Makefile TAGS-LISP ETAGS=../lib-src/etags
@@ -597,9 +613,11 @@ $(lispsource)/loaddefs.el: $(BOOTSTRAPEMACS) $(VCSWITNESS)
 bootstrap-emacs$(EXEEXT): temacs$(EXEEXT)
 	cd ../lisp; $(MAKE) $(MFLAGS) update-subdirs
 	if test "$(CANNOT_DUMP)" = "yes"; then \
-	  ln -f temacs$(EXEEXT) bootstrap-emacs$(EXEEXT); \
+	  rm -f bootstrap-emacs$(EXEEXT); \
+	  ln temacs$(EXEEXT) bootstrap-emacs$(EXEEXT); \
 	else \
 	  $(RUN_TEMACS) --batch --load loadup bootstrap || exit 1; \
+	  test "X$(PAXCTL)" = X || $(PAXCTL) -zex emacs$(EXEEXT); \
 	  mv -f emacs$(EXEEXT) bootstrap-emacs$(EXEEXT); \
 	fi
 	@: Compile some files earlier to speed up further compilation.

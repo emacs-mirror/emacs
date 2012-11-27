@@ -99,7 +99,8 @@ STOP-BEFORE is a regular expression matching a file name."
   "Return a list of all files in MACRO."
   (save-excursion
     (goto-char (point-min))
-    (let ((lst nil))
+    (let ((lst nil)
+	  (case-fold-search nil))
       (while (makefile-move-to-macro macro t)
 	(let ((e (save-excursion
 		   (makefile-end-of-command)

@@ -48,19 +48,19 @@
 ;;; Emacs keys in other states.
 
 (defcustom viper-want-emacs-keys-in-insert t
-  "*Set to nil if you want complete Vi compatibility in insert mode.
+  "Set to nil if you want complete Vi compatibility in insert mode.
 Complete compatibility with Vi is not recommended for power use of Viper."
   :type 'boolean
   :group 'viper)
 
 (defcustom viper-want-emacs-keys-in-vi t
-  "*Set to nil if you want complete Vi compatibility in Vi mode.
+  "Set to nil if you want complete Vi compatibility in Vi mode.
 Full Vi compatibility is not recommended for power use of Viper."
   :type 'boolean
   :group 'viper)
 
 (defcustom viper-no-multiple-ESC  t
-  "*If true, multiple ESC in Vi mode will cause bell to ring.
+  "If true, multiple ESC in Vi mode will cause bell to ring.
 This is set to t on a windowing terminal and to 'twice on a dumb
 terminal (unless the user level is 1, 2, or 5).  On a dumb terminal, this
 enables cursor keys and is generally more convenient, as terminals usually
@@ -71,7 +71,7 @@ as is allowed by the major mode in effect."
   :group 'viper)
 
 (defcustom viper-want-ctl-h-help nil
-  "*If non-nil, C-h gets bound to help-command; otherwise, C-h gets the usual Vi bindings."
+  "If non-nil, C-h gets bound to help-command; otherwise, C-h gets the usual Vi bindings."
   :type 'boolean
   :group 'viper)
 

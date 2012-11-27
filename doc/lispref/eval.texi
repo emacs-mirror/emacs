@@ -2,8 +2,7 @@
 @c This is part of the GNU Emacs Lisp Reference Manual.
 @c Copyright (C) 1990-1994, 1998, 2001-2012 Free Software Foundation, Inc.
 @c See the file elisp.texi for copying conditions.
-@setfilename ../../info/eval
-@node Evaluation, Control Structures, Symbols, Top
+@node Evaluation
 @chapter Evaluation
 @cindex evaluation
 @cindex  interpreter
@@ -41,6 +40,7 @@ interpreter.
 @cindex form
 @cindex expression
 @cindex S-expression
+@cindex sexp
   A Lisp object that is intended for evaluation is called a @dfn{form}
 or @dfn{expression}@footnote{It is sometimes also referred to as an
 @dfn{S-expression} or @dfn{sexp}, but we generally do not use this
@@ -450,12 +450,6 @@ Emacs Lisp with a reference to where each is described.
 @item defconst
 @pxref{Defining Variables}
 
-@item defmacro
-@pxref{Defining Macros}
-
-@item defun
-@pxref{Defining Functions}
-
 @item defvar
 @pxref{Defining Variables}
 
@@ -492,9 +486,6 @@ Emacs Lisp with a reference to where each is described.
 @item save-restriction
 @pxref{Narrowing}
 
-@item save-window-excursion
-@pxref{Window Configurations}
-
 @item setq
 @pxref{Setting Variables}
 
@@ -509,9 +500,6 @@ Emacs Lisp with a reference to where each is described.
 
 @item while
 @pxref{Iteration}
-
-@item with-output-to-temp-buffer
-@pxref{Temporary Displays}
 @end table
 
 @cindex CL note---special forms compared
@@ -519,8 +507,7 @@ Emacs Lisp with a reference to where each is described.
 @b{Common Lisp note:} Here are some comparisons of special forms in
 GNU Emacs Lisp and Common Lisp.  @code{setq}, @code{if}, and
 @code{catch} are special forms in both Emacs Lisp and Common Lisp.
-@code{defun} is a special form in Emacs Lisp, but a macro in Common
-Lisp.  @code{save-excursion} is a special form in Emacs Lisp, but
+@code{save-excursion} is a special form in Emacs Lisp, but
 doesn't exist in Common Lisp.  @code{throw} is a special form in
 Common Lisp (because it must be able to throw multiple values), but it
 is a function in Emacs Lisp (which doesn't have multiple

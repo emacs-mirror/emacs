@@ -19,6 +19,8 @@
 /^srcdir *=/s/@[^@\n]*@/./
 /^VPATH *=/s/@[^@\n]*@/./
 /^MAKEINFO *=/s/@[^@\n]*@/makeinfo/
+/^INFO_EXT *=/s/@[^@\n]*@/.info/
+/^INFO_OPTS *=/s/@[^@\n]*@/--no-split/
 /^ENVADD/,/^$/c\
 ENVADD =\
 export TEXINPUTS := $(srcdir)";"$(TEXINPUTS)\

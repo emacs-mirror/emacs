@@ -108,11 +108,6 @@
 ;;
 ;;  Blink, is not supported.  Currently it's mapped as bold.
 ;;
-;; Important caveat:
-;; -----------------
-;;   if you want custom colors in term.el redefine term-default-fg-color
-;;  and term-default-bg-color BEFORE loading it.
-;;
 ;;             ----------------------------------------
 ;;
 ;;  If you'd like to check out my complete configuration, you can download
@@ -398,9 +393,7 @@
 ;; so it is important to increase it if there are protocol-relevant changes.
 (defconst term-protocol-version "0.96")
 
-(eval-when-compile
-  (require 'ange-ftp)
-  (require 'cl))
+(eval-when-compile (require 'ange-ftp))
 (require 'ring)
 (require 'ehelp)
 
@@ -459,7 +452,7 @@ state 4: term-terminal-parameter contains pending output.")
   "A queue of strings whose echo we want suppressed.")
 (defvar term-terminal-parameter)
 (defvar term-terminal-previous-parameter)
-(defvar term-current-face 'default)
+(defvar term-current-face 'term)
 (defvar term-scroll-start 0 "Top-most line (inclusive) of scrolling region.")
 (defvar term-scroll-end) ; Number of line (zero-based) after scrolling region.
 (defvar term-pager-count nil
@@ -652,31 +645,61 @@ executed once when the buffer is created."
     (define-key map "\C-c\C-k" 'term-char-mode)
     (define-key map "\C-c\C-j" 'term-line-mode)
     (define-key map "\C-c\C-q" 'term-pager-toggle)
+    ;; completion: (line mode only)
+    (easy-menu-define nil map "Complete menu for Term mode."
+      '("Complete"
+        ["Complete Before Point" term-dynamic-complete t]
+        ["Complete File Name" term-dynamic-complete-filename t]
+        ["File Completion Listing" term-dynamic-list-filename-completions t]
+        ["Expand File Name" term-replace-by-expanded-filename t]))
+    ;; Input history: (line mode only)
+    (easy-menu-define nil map "In/Out menu for Term mode."
+      '("In/Out"
+        ["Expand History Before Point" term-replace-by-expanded-history
+         term-input-autoexpand]
+        ["List Input History" term-dynamic-list-input-ring t]
+        ["Previous Input" term-previous-input t]
+        ["Next Input" term-next-input t]
+        ["Previous Matching Current Input"
+          term-previous-matching-input-from-input t]
+        ["Next Matching Current Input" term-next-matching-input-from-input t]
+        ["Previous Matching Input..." term-previous-matching-input t]
+        ["Next Matching Input..." term-next-matching-input t]
+        ["Backward Matching Input..." term-backward-matching-input t]
+        ["Forward Matching Input..." term-forward-matching-input t]
+        ["Copy Old Input" term-copy-old-input t]
+        ["Kill Current Input" term-kill-input t]
+        ["Show Current Output Group" term-show-output t]
+        ["Show Maximum Output" term-show-maximum-output t]
+        ["Backward Output Group" term-previous-prompt t]
+        ["Forward Output Group" term-next-prompt t]
+        ["Kill Current Output Group" term-kill-output t]))
+    map)
+  "Keymap for Term mode.")
 
-    ;;  ;; completion:
-    ;;  (define-key map [menu-bar completion]
-    ;;    (cons "Complete" (make-sparse-keymap "Complete")))
-    ;;  (define-key map [menu-bar completion complete-expand]
-    ;;    '("Expand File Name" . term-replace-by-expanded-filename))
-    ;;  (define-key map [menu-bar completion complete-listing]
-    ;;    '("File Completion Listing" . term-dynamic-list-filename-completions))
-    ;;  (define-key map [menu-bar completion complete-file]
-    ;;    '("Complete File Name" . term-dynamic-complete-filename))
-    ;;  (define-key map [menu-bar completion complete]
-    ;;    '("Complete Before Point" . term-dynamic-complete))
-    ;;  ;; Put them in the menu bar:
-    ;;  (setq menu-bar-final-items (append '(terminal completion inout signals)
-    ;;				     menu-bar-final-items))
-    map))
-
-(defvar term-raw-map nil
-  "Keyboard map for sending characters directly to the inferior process.")
 (defvar term-escape-char nil
   "Escape character for char sub-mode of term mode.
 Do not change it directly; use `term-set-escape-char' instead.")
-(defvar term-raw-escape-map nil)
 
-(defvar term-pager-break-map nil)
+(defvar term-pager-break-map
+  (let ((map (make-keymap)))
+    ;; (dotimes (i 128)
+    ;;   (define-key map (make-string 1 i) 'term-send-raw))
+    (define-key map "\e" (lookup-key (current-global-map) "\e"))
+    (define-key map "\C-x" (lookup-key (current-global-map) "\C-x"))
+    (define-key map "\C-u" (lookup-key (current-global-map) "\C-u"))
+    (define-key map " " 'term-pager-page)
+    (define-key map "\r" 'term-pager-line)
+    (define-key map "?" 'term-pager-help)
+    (define-key map "h" 'term-pager-help)
+    (define-key map "b" 'term-pager-back-page)
+    (define-key map "\177" 'term-pager-back-line)
+    (define-key map "q" 'term-pager-discard)
+    (define-key map "D" 'term-pager-disable)
+    (define-key map "<" 'term-pager-bob)
+    (define-key map ">" 'term-pager-eob)
+    map)
+  "Keymap used in Term pager mode.")
 
 (defvar term-ptyp t
   "True if communications via pty; false if by pipe.  Buffer local.
@@ -697,7 +720,6 @@ Buffer local variable.")
 ; assuming this is Emacs 19.20 or newer.
 (defvar term-pager-filter t)
 
-(put 'term-replace-by-expanded-history 'menu-enable 'term-input-autoexpand)
 (put 'term-input-ring 'permanent-local t)
 (put 'term-input-ring-index 'permanent-local t)
 (put 'term-input-autoexpand 'permanent-local t)
@@ -712,9 +734,6 @@ Buffer local variable.")
 (defmacro term-pager-enabled () 'term-pager-count)
 (defmacro term-handling-pager () 'term-pager-old-local-map)
 (defmacro term-using-alternate-sub-buffer () 'term-saved-home-marker)
-
-(defvar term-signals-menu)
-(defvar term-terminal-menu)
 
 ;; Let's silence the byte-compiler -mm
 (defvar term-ansi-at-host nil)
@@ -738,28 +757,89 @@ Buffer local variable.")
 (defvar term-terminal-previous-parameter-3 -1)
 (defvar term-terminal-previous-parameter-4 -1)
 
-;;; faces -mm
-
-(defcustom term-default-fg-color
-  ;; FIXME: This depends on the current frame, so depending on when
-  ;; it's loaded, the result may be different.
-  (face-foreground term-current-face)
-  "Default color for foreground in `term'."
-  :group 'term
-  :type 'string)
-
-(defcustom term-default-bg-color
-  ;; FIXME: This depends on the current frame, so depending on when
-  ;; it's loaded, the result may be different.
-  (face-background term-current-face)
-  "Default color for background in `term'."
-  :group 'term
-  :type 'string)
-
-;; Use the same colors that xterm uses, see `xterm-standard-colors'.
+;;; Faces
 (defvar ansi-term-color-vector
-  [unspecified "black" "red3" "green3" "yellow3" "blue2"
-   "magenta3" "cyan3" "white"])
+  [term
+   term-color-black
+   term-color-red
+   term-color-green
+   term-color-yellow
+   term-color-blue
+   term-color-magenta
+   term-color-cyan
+   term-color-white])
+
+(defcustom term-default-fg-color nil
+  "If non-nil, default color for foreground in Term mode."
+  :group 'term
+  :type 'string)
+(make-obsolete-variable 'term-default-fg-color "use the face `term' instead."
+                        "24.3")
+
+(defcustom term-default-bg-color nil
+  "If non-nil, default color for foreground in Term mode."
+  :group 'term
+  :type 'string)
+(make-obsolete-variable 'term-default-bg-color "use the face `term' instead."
+                        "24.3")
+
+(defface term
+  `((t
+     :foreground ,term-default-fg-color
+     :background ,term-default-bg-color
+     :inherit default))
+  "Default face to use in Term mode."
+  :group 'term)
+
+(defface term-bold
+  '((t :bold t))
+  "Default face to use for bold text."
+  :group 'term)
+
+(defface term-underline
+  '((t :underline t))
+  "Default face to use for underlined text."
+  :group 'term)
+
+(defface term-color-black
+  '((t :foreground "black" :background "black"))
+  "Face used to render black color code."
+  :group 'term)
+
+(defface term-color-red
+  '((t :foreground "red3" :background "red3"))
+  "Face used to render red color code."
+  :group 'term)
+
+(defface term-color-green
+  '((t :foreground "green3" :background "green3"))
+  "Face used to render green color code."
+  :group 'term)
+
+(defface term-color-yellow
+  '((t :foreground "yellow3" :background "yellow3"))
+  "Face used to render yellow color code."
+  :group 'term)
+
+(defface term-color-blue
+  '((t :foreground "blue2" :background "blue2"))
+  "Face used to render blue color code."
+  :group 'term)
+
+(defface term-color-magenta
+  '((t :foreground "magenta3" :background "magenta3"))
+  "Face used to render magenta color code."
+  :group 'term)
+
+(defface term-color-cyan
+  '((t :foreground "cyan3" :background "cyan3"))
+  "Face used to render cyan color code."
+  :group 'term)
+
+(defface term-color-white
+  '((t :foreground "white" :background "white"))
+  "Face used to render white color code."
+  :group 'term)
 
 ;; Inspiration came from comint.el -mm
 (defcustom term-buffer-maximum-size 2048
@@ -770,178 +850,120 @@ is buffer-local."
   :group 'term
   :type 'integer)
 
-(when (featurep 'xemacs)
-  (defvar term-terminal-menu
-    '("Terminal"
-      [ "Character mode" term-char-mode (term-in-line-mode)]
-      [ "Line mode" term-line-mode (term-in-char-mode)]
-      [ "Enable paging" term-pager-toggle (not term-pager-count)]
-      [ "Disable paging" term-pager-toggle term-pager-count])))
-
-;; Menu bars:
-(unless (featurep 'xemacs)
-  ;; terminal:
-  (let (newmap)
-    (setq newmap (make-sparse-keymap "Terminal"))
-    (define-key newmap [terminal-pager-enable]
-      '(menu-item "Enable paging" term-fake-pager-enable
-		  :help "Enable paging feature"))
-    (define-key newmap [terminal-pager-disable]
-      '(menu-item "Disable paging" term-fake-pager-disable
-		  :help "Disable paging feature"))
-    (define-key newmap [terminal-char-mode]
-      '(menu-item "Character mode" term-char-mode
-		  :help "Switch to char (raw) sub-mode of term mode"))
-    (define-key newmap [terminal-line-mode]
-      '(menu-item "Line mode" term-line-mode
-		  :help "Switch to line (cooked) sub-mode of term mode"))
-    (setq term-terminal-menu (cons "Terminal" newmap))
-
-    ;; completion:  (line mode only)
-    (defvar term-completion-menu (make-sparse-keymap "Complete"))
-    (define-key term-mode-map [menu-bar completion]
-      (cons "Complete" term-completion-menu))
-    (define-key term-completion-menu [complete-expand]
-      '("Expand File Name" . term-replace-by-expanded-filename))
-    (define-key term-completion-menu [complete-listing]
-      '("File Completion Listing" . term-dynamic-list-filename-completions))
-    (define-key term-completion-menu [menu-bar completion complete-file]
-      '("Complete File Name" . term-dynamic-complete-filename))
-    (define-key term-completion-menu [menu-bar completion complete]
-      '("Complete Before Point" . term-dynamic-complete))
-
-    ;; Input history: (line mode only)
-    (defvar term-inout-menu (make-sparse-keymap "In/Out"))
-    (define-key term-mode-map [menu-bar inout]
-      (cons "In/Out" term-inout-menu))
-    (define-key term-inout-menu [kill-output]
-      '("Kill Current Output Group" . term-kill-output))
-    (define-key term-inout-menu [next-prompt]
-      '("Forward Output Group" . term-next-prompt))
-    (define-key term-inout-menu [previous-prompt]
-      '("Backward Output Group" . term-previous-prompt))
-    (define-key term-inout-menu [show-maximum-output]
-      '("Show Maximum Output" . term-show-maximum-output))
-    (define-key term-inout-menu [show-output]
-      '("Show Current Output Group" . term-show-output))
-    (define-key term-inout-menu [kill-input]
-      '("Kill Current Input" . term-kill-input))
-    (define-key term-inout-menu [copy-input]
-      '("Copy Old Input" . term-copy-old-input))
-    (define-key term-inout-menu [forward-matching-history]
-      '("Forward Matching Input..." . term-forward-matching-input))
-    (define-key term-inout-menu [backward-matching-history]
-      '("Backward Matching Input..." . term-backward-matching-input))
-    (define-key term-inout-menu [next-matching-history]
-      '("Next Matching Input..." . term-next-matching-input))
-    (define-key term-inout-menu [previous-matching-history]
-      '("Previous Matching Input..." . term-previous-matching-input))
-    (define-key term-inout-menu [next-matching-history-from-input]
-      '("Next Matching Current Input" . term-next-matching-input-from-input))
-    (define-key term-inout-menu [previous-matching-history-from-input]
-      '("Previous Matching Current Input" .
-		term-previous-matching-input-from-input))
-    (define-key term-inout-menu [next-history]
-      '("Next Input" . term-next-input))
-    (define-key term-inout-menu [previous-history]
-      '("Previous Input" . term-previous-input))
-    (define-key term-inout-menu [list-history]
-      '("List Input History" . term-dynamic-list-input-ring))
-    (define-key term-inout-menu [expand-history]
-      '("Expand History Before Point" . term-replace-by-expanded-history))
-
-    ;; Signals
-    (setq newmap (make-sparse-keymap "Signals"))
-    (define-key term-mode-map [menu-bar signals]
-      (setq term-signals-menu (cons "Signals" newmap)))
-    (define-key newmap [eof]
-      '(menu-item "EOF" term-send-eof
-		  :help "Send an EOF to the current buffer's process"))
-    (define-key newmap [kill]
-      '(menu-item "KILL" term-kill-subjob
-		  :help "Send kill signal to the current subjob"))
-    (define-key newmap [quit]
-      '(menu-item "QUIT" term-quit-subjob
-		  :help "Send quit signal to the current subjob."))
-    (define-key newmap [cont]
-      '(menu-item "CONT" term-continue-subjob
-		  :help "Send CONT signal to process buffer's process group"))
-    (define-key newmap [stop]
-      '(menu-item "STOP" term-stop-subjob
-		  :help "Stop the current subjob"))
-    (define-key newmap [brk]
-      '(menu-item "BREAK" term-interrupt-subjob
-		  :help "Interrupt the current subjob"))
-    ))
-
 ;; Set up term-raw-map, etc.
 
-(defun term-set-escape-char (c)
+(defvar term-raw-map
+  (let* ((map (make-keymap))
+         (esc-map (make-keymap))
+         (i 0))
+    (while (< i 128)
+      (define-key map (make-string 1 i) 'term-send-raw)
+      ;; Avoid O and [. They are used in escape sequences for various keys.
+      (unless (or (eq i ?O) (eq i 91))
+        (define-key esc-map (make-string 1 i) 'term-send-raw-meta))
+      (setq i (1+ i)))
+    (define-key map [remap self-insert-command] 'term-send-raw)
+    (define-key map "\e" esc-map)
+
+    ;; Added nearly all the 'gray keys' -mm
+
+    (if (featurep 'xemacs)
+        (define-key map [button2] 'term-mouse-paste)
+      (define-key map [mouse-2] 'term-mouse-paste))
+    (define-key map [up] 'term-send-up)
+    (define-key map [down] 'term-send-down)
+    (define-key map [right] 'term-send-right)
+    (define-key map [left] 'term-send-left)
+    (define-key map [delete] 'term-send-del)
+    (define-key map [deletechar] 'term-send-del)
+    (define-key map [backspace] 'term-send-backspace)
+    (define-key map [home] 'term-send-home)
+    (define-key map [end] 'term-send-end)
+    (define-key map [insert] 'term-send-insert)
+    (define-key map [S-prior] 'scroll-down)
+    (define-key map [S-next] 'scroll-up)
+    (define-key map [S-insert] 'term-paste)
+    (define-key map [prior] 'term-send-prior)
+    (define-key map [next] 'term-send-next)
+    map)
+  "Keyboard map for sending characters directly to the inferior process.")
+
+(easy-menu-define term-terminal-menu
+  (list term-mode-map term-raw-map term-pager-break-map)
+  "Terminal menu for Term mode."
+  '("Terminal"
+    ["Line mode" term-line-mode :active (term-in-char-mode)
+     :help "Switch to line (cooked) sub-mode of term mode"]
+    ["Character mode" term-char-mode :active (term-in-line-mode)
+     :help "Switch to char (raw) sub-mode of term mode"]
+    ["Paging" term-pager-toggle :style toggle :selected term-pager-count
+     :help "Toggle paging feature"]))
+
+(easy-menu-define term-signals-menu
+  (list term-mode-map term-raw-map term-pager-break-map)
+  "Signals menu for Term mode."
+  '("Signals"
+    ["BREAK" term-interrupt-subjob :active t
+     :help "Interrupt the current subjob"]
+    ["STOP" term-stop-subjob :active t :help "Stop the current subjob"]
+    ["CONT" term-continue-subjob :active t
+     :help "Send CONT signal to process buffer's process group"]
+    ["QUIT" term-quit-subjob :active t
+     :help "Send quit signal to the current subjob"]
+    ["KILL" term-kill-subjob :active t
+     :help "Send kill signal to the current subjob"]
+    ["EOF" term-send-eof :active t
+     :help "Send an EOF to the current buffer's process"]))
+
+(easy-menu-define term-pager-menu term-pager-break-map
+  "Menu for Term pager mode."
+  '("More pages?"
+    ["1 page forwards" term-pager-page t]
+    ["1 page backwards" term-pager-back-page t]
+    ["1 line backwards" term-pager-back-line t]
+    ["1 line forwards" term-pager-line t]
+    ["Goto to beginning" term-pager-bob t]
+    ["Goto to end" term-pager-eob t]
+    ["Discard remaining output" term-pager-discard t]
+    ["Disable paging" term-pager-toggle t]
+    ["Help" term-pager-help t]))
+
+(defvar term-raw-escape-map
+  (let ((map (make-sparse-keymap)))
+    (set-keymap-parent map 'Control-X-prefix)
+    ;; Define standard bindings in term-raw-escape-map.
+    (define-key map "\C-v" (lookup-key (current-global-map) "\C-v"))
+    (define-key map "\C-u" (lookup-key (current-global-map) "\C-u"))
+    (define-key map "\C-q" 'term-pager-toggle)
+    ;; The keybinding for term-char-mode is needed by the menubar code.
+    (define-key map "\C-k" 'term-char-mode)
+    (define-key map "\C-j" 'term-line-mode)
+    ;; It's convenient to have execute-extended-command here.
+    (define-key map [?\M-x] 'execute-extended-command)
+    map))
+
+(defun term-set-escape-char (key)
   "Change `term-escape-char' and keymaps that depend on it."
   (when term-escape-char
+    ;; Undo previous term-set-escape-char.
     (define-key term-raw-map term-escape-char 'term-send-raw))
-  (setq c (make-string 1 c))
-  (define-key term-raw-map c term-raw-escape-map)
-  ;; Define standard bindings in term-raw-escape-map
-  (define-key term-raw-escape-map "\C-v"
-    (lookup-key (current-global-map) "\C-v"))
-  (define-key term-raw-escape-map "\C-u"
-    (lookup-key (current-global-map) "\C-u"))
-  (define-key term-raw-escape-map c 'term-send-raw)
-  (define-key term-raw-escape-map "\C-q" 'term-pager-toggle)
-  ;; The keybinding for term-char-mode is needed by the menubar code.
-  (define-key term-raw-escape-map "\C-k" 'term-char-mode)
-  (define-key term-raw-escape-map "\C-j" 'term-line-mode)
-  ;; It's convenient to have execute-extended-command here.
-  (define-key term-raw-escape-map [?\M-x] 'execute-extended-command))
+  (setq term-escape-char (vector key))
+  (define-key term-raw-map term-escape-char term-raw-escape-map)
+  ;; FIXME: If we later call term-set-escape-char again with another key,
+  ;; we should undo this binding.
+  (define-key term-raw-escape-map term-escape-char 'term-send-raw))
 
-(let* ((map (make-keymap))
-       (esc-map (make-keymap))
-       (i 0))
-  (while (< i 128)
-    (define-key map (make-string 1 i) 'term-send-raw)
-    ;; Avoid O and [. They are used in escape sequences for various keys.
-    (unless (or (eq i ?O) (eq i 91))
-		(define-key esc-map (make-string 1 i) 'term-send-raw-meta))
-    (setq i (1+ i)))
-  (define-key map [remap self-insert-command] 'term-send-raw)
-  (define-key map "\e" esc-map)
-  (setq term-raw-map map)
-  (setq term-raw-escape-map (copy-keymap 'Control-X-prefix))
-
-  ;; Added nearly all the 'gray keys' -mm
-
-  (if (featurep 'xemacs)
-      (define-key term-raw-map [button2] 'term-mouse-paste)
-    (define-key term-raw-map [mouse-2] 'term-mouse-paste)
-    (define-key term-raw-map [menu-bar terminal] term-terminal-menu)
-    (define-key term-raw-map [menu-bar signals] term-signals-menu))
-  (define-key term-raw-map [up] 'term-send-up)
-  (define-key term-raw-map [down] 'term-send-down)
-  (define-key term-raw-map [right] 'term-send-right)
-  (define-key term-raw-map [left] 'term-send-left)
-  (define-key term-raw-map [delete] 'term-send-del)
-  (define-key term-raw-map [deletechar] 'term-send-del)
-  (define-key term-raw-map [backspace] 'term-send-backspace)
-  (define-key term-raw-map [home] 'term-send-home)
-  (define-key term-raw-map [end] 'term-send-end)
-  (define-key term-raw-map [insert] 'term-send-insert)
-  (define-key term-raw-map [S-prior] 'scroll-down)
-  (define-key term-raw-map [S-next] 'scroll-up)
-  (define-key term-raw-map [S-insert] 'term-paste)
-  (define-key term-raw-map [prior] 'term-send-prior)
-  (define-key term-raw-map [next] 'term-send-next))
-
-(term-set-escape-char ?\C-c)
+(term-set-escape-char (or term-escape-char ?\C-c))
 
 (defvar overflow-newline-into-fringe)
 
 (defun term-window-width ()
-  (if (featurep 'xemacs)
-      (1- (window-width))
-    (if (and window-system overflow-newline-into-fringe)
-	(window-width)
-      (1- (window-width)))))
+  (if (and (not (featurep 'xemacs))
+	   (display-graphic-p)
+	   overflow-newline-into-fringe
+	   (/= (frame-parameter nil 'right-fringe) 0))
+      (window-width)
+    (1- (window-width))))
 
 
 (put 'term-mode 'mode-class 'special)
@@ -968,20 +990,19 @@ is buffer-local."
     dt))
 
 (defun term-ansi-reset ()
-  (setq term-current-face (nconc
-                           (if term-default-bg-color
-                               (list :background term-default-bg-color))
-                           (if term-default-fg-color
-                               (list :foreground term-default-fg-color))))
+  (setq term-current-face 'term)
   (setq term-ansi-current-underline nil)
   (setq term-ansi-current-bold nil)
   (setq term-ansi-current-reverse nil)
   (setq term-ansi-current-color 0)
   (setq term-ansi-current-invisible nil)
-  (setq term-ansi-face-already-done t)
+  ;; Stefan thought this should be t, but could not remember why.
+  ;; Setting it to t seems to cause bug#11785.  Setting it to nil
+  ;; again to see if there are other consequences...
+  (setq term-ansi-face-already-done nil)
   (setq term-ansi-current-bg-color 0))
 
-(defun term-mode ()
+(define-derived-mode term-mode fundamental-mode "Term"
   "Major mode for interacting with an inferior interpreter.
 The interpreter name is same as buffer name, sans the asterisks.
 
@@ -1025,56 +1046,38 @@ Commands in line mode:
 \\{term-mode-map}
 
 Entry to this mode runs the hooks on `term-mode-hook'."
-  (interactive)
-  ;; Do not remove this.  All major modes must do this.
-  (kill-all-local-variables)
-  (setq major-mode 'term-mode)
-  (setq mode-name "Term")
-  (use-local-map term-mode-map)
   ;; we do not want indent to sneak in any tabs
   (setq indent-tabs-mode nil)
   (setq buffer-display-table term-display-table)
-  (make-local-variable 'term-home-marker)
-  (setq term-home-marker (copy-marker 0))
+  (set (make-local-variable 'term-home-marker) (copy-marker 0))
+  (set (make-local-variable 'term-height) (1- (window-height)))
+  (set (make-local-variable 'term-width) (term-window-width))
+  (set (make-local-variable 'term-last-input-start) (make-marker))
+  (set (make-local-variable 'term-last-input-end) (make-marker))
+  (set (make-local-variable 'term-last-input-match) "")
+  (set (make-local-variable 'term-command-hook)
+       (symbol-function 'term-command-hook))
+
+  ;; These local variables are set to their local values:
   (make-local-variable 'term-saved-home-marker)
-  (make-local-variable 'term-height)
-  (make-local-variable 'term-width)
-  (setq term-width (term-window-width))
-  (setq term-height (1- (window-height)))
   (make-local-variable 'term-terminal-parameter)
   (make-local-variable 'term-saved-cursor)
-  (make-local-variable 'term-last-input-start)
-  (setq term-last-input-start (make-marker))
-  (make-local-variable 'term-last-input-end)
-  (setq term-last-input-end (make-marker))
-  (make-local-variable 'term-last-input-match)
-  (setq term-last-input-match "")
-  (make-local-variable 'term-prompt-regexp) ; Don't set; default
-  (make-local-variable 'term-input-ring-size) ; ...to global val.
+  (make-local-variable 'term-prompt-regexp)
+  (make-local-variable 'term-input-ring-size)
   (make-local-variable 'term-input-ring)
   (make-local-variable 'term-input-ring-file-name)
-  (or (and (boundp 'term-input-ring) term-input-ring)
-      (setq term-input-ring (make-ring term-input-ring-size)))
   (make-local-variable 'term-input-ring-index)
-  (or (and (boundp 'term-input-ring-index) term-input-ring-index)
-      (setq term-input-ring-index nil))
-
-  (make-local-variable 'term-command-hook)
-  (setq term-command-hook (symbol-function 'term-command-hook))
+  (unless term-input-ring
+    (setq term-input-ring (make-ring term-input-ring-size)))
 
   ;; I'm not sure these saves are necessary but, since I
   ;; haven't tested the whole thing on a net connected machine with
   ;; a properly configured ange-ftp, I've decided to be conservative
   ;; and put them in. -mm
 
-  (make-local-variable 'term-ansi-at-host)
-  (setq term-ansi-at-host (system-name))
-
-  (make-local-variable 'term-ansi-at-dir)
-  (setq term-ansi-at-dir default-directory)
-
-  (make-local-variable 'term-ansi-at-message)
-  (setq term-ansi-at-message nil)
+  (set (make-local-variable 'term-ansi-at-host) (system-name))
+  (set (make-local-variable 'term-ansi-at-dir) default-directory)
+  (set (make-local-variable 'term-ansi-at-message) nil)
 
   ;; For user tracking purposes -mm
   (make-local-variable 'ange-ftp-default-user)
@@ -1107,8 +1110,7 @@ Entry to this mode runs the hooks on `term-mode-hook'."
   (make-local-variable 'term-current-row)
   (make-local-variable 'term-log-buffer)
   (make-local-variable 'term-scroll-start)
-  (make-local-variable 'term-scroll-end)
-  (setq term-scroll-end term-height)
+  (set (make-local-variable 'term-scroll-end) term-height)
   (make-local-variable 'term-scroll-with-delete)
   (make-local-variable 'term-pager-count)
   (make-local-variable 'term-pager-old-local-map)
@@ -1130,18 +1132,17 @@ Entry to this mode runs the hooks on `term-mode-hook'."
   (make-local-variable 'term-ptyp)
   (make-local-variable 'term-exec-hook)
   (make-local-variable 'term-vertical-motion)
-  (make-local-variable 'term-pending-delete-marker)
-  (setq term-pending-delete-marker (make-marker))
+  (set (make-local-variable 'term-pending-delete-marker) (make-marker))
   (make-local-variable 'term-current-face)
   (term-ansi-reset)
-  (make-local-variable 'term-pending-frame)
-  (setq term-pending-frame nil)
+  (set (make-local-variable 'term-pending-frame) nil)
   ;; Cua-mode's keybindings interfere with the term keybindings, disable it.
   (set (make-local-variable 'cua-mode) nil)
-  (run-mode-hooks 'term-mode-hook)
-  (when (featurep 'xemacs)
-    (set-buffer-menubar
-     (append current-menubar (list term-terminal-menu))))
+
+  (set (make-local-variable 'font-lock-defaults) '(nil t))
+
+  (easy-menu-add term-terminal-menu)
+  (easy-menu-add term-signals-menu)
   (or term-input-ring
       (setq term-input-ring (make-ring term-input-ring-size)))
   (term-update-mode-line))
@@ -1183,9 +1184,9 @@ Entry to this mode runs the hooks on `term-mode-hook'."
     found))
 
 (defun term-check-size (process)
-  (when (or (/= term-height (1- (window-height)))
+  (when (or (/= term-height (window-text-height))
 	    (/= term-width (term-window-width)))
-    (term-reset-size (1- (window-height)) (term-window-width))
+    (term-reset-size (window-text-height) (term-window-width))
     (set-process-window-size process term-height term-width)))
 
 (defun term-send-raw-string (chars)
@@ -1210,21 +1211,21 @@ without any interpretation."
 (defun term-send-raw-meta ()
   (interactive)
   (let ((char last-input-event))
-    (when (symbolp last-input-event)
+    (when (symbolp char)
       ;; Convert `return' to C-m, etc.
       (let ((tmp (get char 'event-symbol-elements)))
-	(when tmp
-	  (setq char (car tmp)))
-	(when (symbolp char)
-	  (setq tmp (get char 'ascii-character))
-	  (when tmp
-	    (setq char tmp)))))
-    (setq char (event-basic-type char))
-    (term-send-raw-string (if (and (numberp char)
-				   (> char 127)
-				   (< char 256))
-			      (make-string 1 char)
-			    (format "\e%c" char)))))
+	(if tmp (setq char (car tmp)))
+	(and (symbolp char)
+	     (setq tmp (get char 'ascii-character))
+	     (setq char tmp))))
+    (when (numberp char)
+      (let ((base (event-basic-type char))
+	    (mods (delq 'meta (event-modifiers char))))
+	(if (memq 'control mods)
+	    (setq mods (delq 'shift mods)))
+	(term-send-raw-string
+	 (format "\e%c"
+		 (event-convert-list (append mods (list base)))))))))
 
 (defun term-mouse-paste (click)
   "Insert the primary selection at the position clicked on."
@@ -1279,6 +1280,8 @@ intervention from Emacs, except for the escape character (usually C-c)."
   (when (term-in-line-mode)
     (setq term-old-mode-map (current-local-map))
     (use-local-map term-raw-map)
+    (easy-menu-add term-terminal-menu)
+    (easy-menu-add term-signals-menu)
 
     ;; Send existing partial line to inferior (without newline).
     (let ((pmark (process-mark (get-buffer-process (current-buffer))))
@@ -1303,8 +1306,31 @@ you type \\[term-send-input] which sends the current line to the inferior."
     (term-update-mode-line)))
 
 (defun term-update-mode-line ()
-  (let ((term-mode (if (term-in-char-mode) "char" "line"))
-        (term-page (when (term-pager-enabled) " page"))
+  (let ((term-mode
+         (if (term-in-char-mode)
+             (propertize "char"
+                         'help-echo "mouse-1: Switch to line mode"
+                         'mouse-face 'mode-line-highlight
+                         'local-map
+                         '(keymap
+                           (mode-line keymap (down-mouse-1 . term-line-mode))))
+           (propertize "line"
+                       'help-echo "mouse-1: Switch to char mode"
+                       'mouse-face 'mode-line-highlight
+                       'local-map
+                       '(keymap
+                         (mode-line keymap (down-mouse-1 . term-char-mode))))))
+        (term-page
+         (when (term-pager-enabled)
+           (concat " "
+                   (propertize
+                    "page"
+                    'help-echo "mouse-1: Disable paging"
+                    'mouse-face 'mode-line-highlight
+                    'local-map
+                    '(keymap
+                      (mode-line keymap (down-mouse-1 .
+                                                      term-pager-toggle)))))))
         (serial-item-speed)
         (serial-item-config)
         (proc (get-buffer-process (current-buffer))))
@@ -2621,13 +2647,13 @@ See `term-prompt-regexp'."
     ;; from the last character on the line, set the face for the chars
     ;; to default.
     (when (> (point) point-at-eol)
-      (put-text-property point-at-eol (point) 'face 'default))))
+      (put-text-property point-at-eol (point) 'font-lock-face 'default))))
 
 ;; Insert COUNT copies of CHAR in the default face.
 (defun term-insert-char (char count)
   (let ((old-point (point)))
     (insert-char char count)
-    (put-text-property old-point (point) 'face 'default)))
+    (put-text-property old-point (point) 'font-lock-face 'default)))
 
 (defun term-current-row ()
   (cond (term-current-row)
@@ -2728,10 +2754,8 @@ See `term-prompt-regexp'."
 	   (str-length (length str)))
       (save-selected-window
 
-	;; Let's handle the messages. -mm
-
-        (let* ((newstr (term-handle-ansi-terminal-messages str)))
-          (when (not (eq str newstr))
+        (let ((newstr (term-handle-ansi-terminal-messages str)))
+          (unless (eq str newstr)
 	    (setq handled-ansi-message t
 		  str newstr)))
         (setq str-length (length str))
@@ -2741,18 +2765,19 @@ See `term-prompt-regexp'."
 	  (delete-region term-pending-delete-marker (process-mark proc))
 	  (set-marker term-pending-delete-marker nil))
 
+	(when (/= (point) (process-mark proc))
+	  (setq save-point (point-marker)))
+
+	;; Note if the window size has changed.  We used to reset
+	;; point too, but that gives incorrect results (Bug#4635).
 	(if (eq (window-buffer) (current-buffer))
 	    (progn
 	      (setq term-vertical-motion (symbol-function 'vertical-motion))
 	      (term-check-size proc))
 	  (setq term-vertical-motion
 		(symbol-function 'term-buffer-vertical-motion)))
-
 	(setq save-marker (copy-marker (process-mark proc)))
-
-	(when (/= (point) (process-mark proc))
-	  (setq save-point (point-marker))
-	  (goto-char (process-mark proc)))
+	(goto-char (process-mark proc))
 
 	(save-restriction
 	  ;; If the buffer is in line mode, and there is a partial
@@ -2852,7 +2877,7 @@ See `term-prompt-regexp'."
 			  (setq term-current-column nil)
 
 			  (put-text-property old-point (point)
-					     'face term-current-face)
+					     'font-lock-face term-current-face)
 			  ;; If the last char was written in last column,
 			  ;; back up one column, but remember we did so.
 			  ;; Thus we emulate xterm/vt100-style line-wrapping.
@@ -3125,10 +3150,6 @@ See `term-prompt-regexp'."
 ;; New function to deal with ansi colorized output, as you can see you can
 ;; have any bold/underline/fg/bg/reverse combination. -mm
 
-(defvar term-bold-attribute '(:weight bold)
-  "Attribute to use for the bold terminal attribute.
-Set it to nil to disable bold.")
-
 (defun term-handle-colors-array (parameter)
   (cond
 
@@ -3190,46 +3211,32 @@ Set it to nil to disable bold.")
   ;;          term-ansi-current-color
   ;;          term-ansi-current-bg-color)
 
-
   (unless term-ansi-face-already-done
     (if term-ansi-current-invisible
         (let ((color
                (if term-ansi-current-reverse
-                   (if (= term-ansi-current-color 0)
-                       term-default-fg-color
-                     (elt ansi-term-color-vector term-ansi-current-color))
-                 (if (= term-ansi-current-bg-color 0)
-                     term-default-bg-color
-                   (elt ansi-term-color-vector term-ansi-current-bg-color)))))
+                   (face-foreground
+                    (elt ansi-term-color-vector term-ansi-current-color))
+                 (face-background
+                  (elt ansi-term-color-vector term-ansi-current-bg-color)))))
           (setq term-current-face
                 (list :background color
                       :foreground color))
           ) ;; No need to bother with anything else if it's invisible.
-
       (setq term-current-face
-            (if term-ansi-current-reverse
-                (if (= term-ansi-current-color 0)
-                    (list :background term-default-fg-color
-                          :foreground term-default-bg-color)
-                  (list :background
-                        (elt ansi-term-color-vector term-ansi-current-color)
-                        :foreground
-                        (elt ansi-term-color-vector term-ansi-current-bg-color)))
-
-              (if (= term-ansi-current-color 0)
-                  (list :foreground term-default-fg-color
-                        :background term-default-bg-color)
-                (list :foreground
-                      (elt ansi-term-color-vector term-ansi-current-color)
-                      :background
-                      (elt ansi-term-color-vector term-ansi-current-bg-color)))))
+            (list :foreground
+                  (face-foreground (elt ansi-term-color-vector term-ansi-current-color))
+                  :background
+                  (face-background (elt ansi-term-color-vector term-ansi-current-bg-color))
+                  :inverse-video term-ansi-current-reverse))
 
       (when term-ansi-current-bold
         (setq term-current-face
-              (append term-bold-attribute term-current-face)))
+              `(,term-current-face :inherit term-bold)))
+
       (when term-ansi-current-underline
         (setq term-current-face
-              (list* :underline t term-current-face)))))
+              `(,term-current-face :inherit term-underline)))))
 
   ;;	(message "Debug %S" term-current-face)
   ;; FIXME: shouldn't we set term-ansi-face-already-done to t here?  --Stef
@@ -3470,54 +3477,13 @@ The top-most line is line 0."
 ;; The page is full, so enter "pager" mode, and wait for input.
 
 (defun term-process-pager ()
-  (when (not term-pager-break-map)
-    (let* ((map (make-keymap))
-           ;; (i 0)
-           tmp)
-      ;; (while (< i 128)
-      ;;   (define-key map (make-string 1 i) 'term-send-raw)
-      ;;   (setq i (1+ i)))
-      (define-key map "\e"
-	(lookup-key (current-global-map) "\e"))
-      (define-key map "\C-x"
-	(lookup-key (current-global-map) "\C-x"))
-      (define-key map "\C-u"
-	(lookup-key (current-global-map) "\C-u"))
-      (define-key map " " 'term-pager-page)
-      (define-key map "\r" 'term-pager-line)
-      (define-key map "?" 'term-pager-help)
-      (define-key map "h" 'term-pager-help)
-      (define-key map "b" 'term-pager-back-page)
-      (define-key map "\177" 'term-pager-back-line)
-      (define-key map "q" 'term-pager-discard)
-      (define-key map "D" 'term-pager-disable)
-      (define-key map "<" 'term-pager-bob)
-      (define-key map ">" 'term-pager-eob)
-
-      ;; Add menu bar.
-      (unless (featurep 'xemacs)
-	(define-key map [menu-bar terminal] term-terminal-menu)
-	(define-key map [menu-bar signals] term-signals-menu)
-	(setq tmp (make-sparse-keymap "More pages?"))
-	(define-key tmp [help] '("Help" . term-pager-help))
-	(define-key tmp [disable]
-	  '("Disable paging" . term-fake-pager-disable))
-	(define-key tmp [discard]
-	  '("Discard remaining output" . term-pager-discard))
-	(define-key tmp [eob] '("Goto to end" . term-pager-eob))
-	(define-key tmp [bob] '("Goto to beginning" . term-pager-bob))
-	(define-key tmp [line] '("1 line forwards" . term-pager-line))
-	(define-key tmp [bline] '("1 line backwards" . term-pager-back-line))
-	(define-key tmp [back] '("1 page backwards" . term-pager-back-page))
-	(define-key tmp [page] '("1 page forwards" . term-pager-page))
-	(define-key map [menu-bar page] (cons "More pages?" tmp))
-	)
-
-      (setq term-pager-break-map map)))
   ;; (let ((process (get-buffer-process (current-buffer))))
   ;;   (stop-process process))
   (setq term-pager-old-local-map (current-local-map))
   (use-local-map term-pager-break-map)
+  (easy-menu-add term-terminal-menu)
+  (easy-menu-add term-signals-menu)
+  (easy-menu-add term-pager-menu)
   (make-local-variable 'term-old-mode-line-format)
   (setq term-old-mode-line-format mode-line-format)
   (setq mode-line-format
@@ -3597,14 +3563,6 @@ The top-most line is line 0."
 (defun term-pager-toggle ()
   (interactive)
   (if (term-pager-enabled) (term-pager-disable) (term-pager-enable)))
-
-(unless (featurep 'xemacs)
- (defalias 'term-fake-pager-enable 'term-pager-toggle)
- (defalias 'term-fake-pager-disable 'term-pager-toggle)
- (put 'term-char-mode 'menu-enable '(term-in-line-mode))
- (put 'term-line-mode 'menu-enable '(term-in-char-mode))
- (put 'term-fake-pager-enable 'menu-enable '(not term-pager-count))
- (put 'term-fake-pager-disable 'menu-enable 'term-pager-count))
 
 (defun term-pager-help ()
   "Provide help on commands available in a terminal-emulator **MORE** break."
@@ -3752,7 +3710,7 @@ all pending output has been dealt with."))
       (when wrapped
 	(insert ? ))
       (insert ?\n)
-      (put-text-property saved-point (point) 'face 'default)
+      (put-text-property saved-point (point) 'font-lock-face 'default)
       (goto-char saved-point))))
 
 (defun term-erase-in-display (kind)
@@ -3800,7 +3758,7 @@ if KIND is 1, erase from home to point; else erase from home to point-max."
     ;; from the last character on the line, set the face for the chars
     ;; to default.
     (when (>= (point) pnt-at-eol)
-      (put-text-property pnt-at-eol (point) 'face 'default))
+      (put-text-property pnt-at-eol (point) 'font-lock-face 'default))
     (when (> save-eol (point))
       (delete-region (point) save-eol))
     (goto-char save-point)
@@ -4095,6 +4053,7 @@ Returns `partial' if completed as far as possible with the completion matches.
 Returns `listed' if a completion listing was shown.
 
 See also `term-dynamic-complete-filename'."
+  (declare (obsolete completion-in-region "23.2"))
   (let* ((completion-ignore-case nil)
 	 (candidates (mapcar (function (lambda (x) (list x))) candidates))
 	 (completions (all-completions stub candidates)))
@@ -4128,8 +4087,6 @@ See also `term-dynamic-complete-filename'."
  		   (t
 		    (message "Partially completed")
 		    'partial)))))))
-(make-obsolete 'term-dynamic-simple-complete 'completion-in-region "23.2")
-
 
 (defun term-dynamic-list-filename-completions ()
   "List in help buffer possible completions of the filename at point."
@@ -4221,11 +4178,16 @@ the process.  Any more args are arguments to PROGRAM."
   (term-mode)
   (term-char-mode)
 
-  ;; I wanna have find-file on C-x C-f -mm
-  ;; your mileage may definitely vary, maybe it's better to put this in your
-  ;; .emacs ...
-
-  (term-set-escape-char ?\C-x)
+  ;; Historical baggage.  A call to term-set-escape-char used to not
+  ;; undo any previous call to t-s-e-c.  Because of this, ansi-term
+  ;; ended up with both C-x and C-c as escape chars.  Who knows what
+  ;; the original intention was, but people could have become used to
+  ;; either.   (Bug#12842)
+  (let (term-escape-char)
+    ;; I wanna have find-file on C-x C-f -mm
+    ;; your mileage may definitely vary, maybe it's better to put this in your
+    ;; .emacs ...
+    (term-set-escape-char ?\C-x))
 
   (switch-to-buffer term-ansi-buffer-name))
 

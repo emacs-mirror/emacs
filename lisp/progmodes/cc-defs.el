@@ -93,7 +93,7 @@
 
 ;;; Variables also used at compile time.
 
-(defconst c-version "5.32.3"
+(defconst c-version "5.32.4"
   "CC Mode version number.")
 
 (defconst c-version-sym (intern c-version))
@@ -1818,9 +1818,7 @@ system."
 	       (t
 		;; Being evaluated interactively.
 		(buffer-file-name)))))
-    (and file
-	 (file-name-sans-extension
-	  (file-name-nondirectory file)))))
+    (and file (file-name-base file))))
 
 (defmacro c-lang-defconst-eval-immediately (form)
   "Can be used inside a VAL in `c-lang-defconst' to evaluate FORM
@@ -1831,7 +1829,7 @@ itself is evaluated."
   (eval form))
 
 ;; Only used at compile time - suppress "might not be defined at runtime".
-(declare-function cl-macroexpand-all "cl-extra" (form &optional env))
+(declare-function cl-macroexpand-all "cl" (form &optional env))
 
 (defmacro c-lang-defconst (name &rest args)
   "Set the language specific values of the language constant NAME.

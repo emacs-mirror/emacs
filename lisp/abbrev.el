@@ -31,7 +31,7 @@
 
 ;;; Code:
 
-(eval-when-compile (require 'cl))
+(eval-when-compile (require 'cl-lib))
 
 (defgroup abbrev-mode nil
   "Word abbreviations mode."
@@ -134,10 +134,13 @@ Otherwise display all abbrevs."
 		(push table empty-tables)
 	      (insert-abbrev-table-description table t)))
 	  (dolist (table (nreverse empty-tables))
-	    (insert-abbrev-table-description table t))))
+	    (insert-abbrev-table-description table t)))
+        ;; Note: `list-abbrevs' can display only local abbrevs, in
+        ;; which case editing could lose abbrevs of other tables. Thus
+        ;; enter `edit-abbrevs-mode' only if LOCAL is nil.
+        (edit-abbrevs-mode))
       (goto-char (point-min))
       (set-buffer-modified-p nil)
-      (edit-abbrevs-mode)
       (current-buffer))))
 
 (defun edit-abbrevs-mode ()
@@ -152,7 +155,8 @@ Otherwise display all abbrevs."
 
 (defun edit-abbrevs ()
   "Alter abbrev definitions by editing a list of them.
-Selects a buffer containing a list of abbrev definitions.
+Selects a buffer containing a list of abbrev definitions with
+point located in the abbrev table of current buffer.
 You can edit them and type \\<edit-abbrevs-map>\\[edit-abbrevs-redefine] to redefine abbrevs
 according to your editing.
 Buffer contains a header line for each abbrev table,
@@ -163,7 +167,12 @@ where NAME and EXPANSION are strings with quotes,
 USECOUNT is an integer, and HOOK is any valid function
 or may be omitted (it is usually omitted)."
   (interactive)
-  (switch-to-buffer (prepare-abbrev-list-buffer)))
+  (let ((table-name (abbrev-table-name local-abbrev-table)))
+    (switch-to-buffer (prepare-abbrev-list-buffer))
+    (when (and table-name
+               (search-forward
+                (concat "(" (symbol-name table-name) ")\n\n") nil t))
+      (goto-char (match-end 0)))))
 
 (defun edit-abbrevs-redefine ()
   "Redefine abbrevs according to current buffer contents."
@@ -531,7 +540,7 @@ the current abbrev table before abbrev lookup happens."
     (dotimes (i (length table))
       (aset table i 0))
     ;; Preserve the table's properties.
-    (assert sym)
+    (cl-assert sym)
     (let ((newsym (intern "" table)))
       (set newsym nil)	     ; Make sure it won't be confused for an abbrev.
       (setplist newsym (symbol-plist sym)))
@@ -574,8 +583,8 @@ An obsolete but still supported calling form is:
 \(define-abbrev TABLE NAME EXPANSION &optional HOOK COUNT SYSTEM)."
   (when (and (consp props) (or (null (car props)) (numberp (car props))))
     ;; Old-style calling convention.
-    (setq props (list* :count (car props)
-                       (if (cadr props) (list :system (cadr props))))))
+    (setq props `(:count ,(car props)
+                  ,@(if (cadr props) (list :system (cadr props))))))
   (unless (plist-get props :count)
     (setq props (plist-put props :count 0)))
   (let ((system-flag (plist-get props :system))
@@ -612,7 +621,7 @@ current (if global is nil) or standard syntax table."
       (let ((badchars ())
             (pos 0))
         (while (string-match "\\W" abbrev pos)
-          (pushnew (aref abbrev (match-beginning 0)) badchars)
+          (cl-pushnew (aref abbrev (match-beginning 0)) badchars)
           (setq pos (1+ pos)))
         (error "Some abbrev characters (%s) are not word constituents %s"
                (apply 'string (nreverse badchars))
@@ -827,8 +836,7 @@ return value is that of `abbrev-insert'.)"
   (interactive)
   (run-hooks 'pre-abbrev-expand-hook)
   (with-wrapper-hook abbrev-expand-functions ()
-    (destructuring-bind (&optional sym name wordstart wordend)
-        (abbrev--before-point)
+    (pcase-let ((`(,sym ,name ,wordstart ,wordend) (abbrev--before-point)))
       (when sym
         (let ((startpos (copy-marker (point) t))
               (endmark (copy-marker wordend t)))

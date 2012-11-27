@@ -20,9 +20,7 @@ You should have received a copy of the GNU General Public License
 along with this program.  If not, see <http://www.gnu.org/licenses/>.  */
 
 
-#ifdef HAVE_CONFIG_H
 #include <config.h>
-#endif
 
 #include <stdio.h>
 #include <ctype.h>
@@ -48,7 +46,7 @@ int base = DEFAULT_BASE, un_flag = FALSE, iso_flag = FALSE, endian = 1;
 int group_by = DEFAULT_GROUPING;
 char *progname;
 
-void usage (void) NO_RETURN;
+_Noreturn void usage (void);
 
 int
 main (int argc, char **argv)

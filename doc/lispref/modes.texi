@@ -2,8 +2,7 @@
 @c This is part of the GNU Emacs Lisp Reference Manual.
 @c Copyright (C) 1990-1995, 1998-1999, 2001-2012 Free Software Foundation, Inc.
 @c See the file elisp.texi for copying conditions.
-@setfilename ../../info/modes
-@node Modes, Documentation, Keymaps, Top
+@node Modes
 @chapter Major and Minor Modes
 @cindex mode
 
@@ -71,9 +70,9 @@ called.  You can use @code{add-hook} to add a function to an abnormal
 hook, but you must write the function to follow the hook's calling
 convention.
 
-  By convention, abnormal hook names end in @samp{-functions} or
-@samp{-hooks}.  If the variable's name ends in @samp{-function}, then
-its value is just a single function, not a list of functions.
+  By convention, abnormal hook names end in @samp{-functions}.  If the
+variable's name ends in @samp{-function}, then its value is just a single
+function, not a list of functions.
 
 @menu
 * Running Hooks::    How to run a hook.
@@ -1596,7 +1595,7 @@ of the mode.  If you specify this, the @var{mode} variable is not
 defined, and any @var{init-value} argument is unused.  @var{place}
 can be a different named variable (which you must define yourself), or
 anything that can be used with the @code{setf} function
-(@pxref{Generalized Variables,,, cl, Common Lisp Extensions}).
+(@pxref{Generalized Variables}).
 @var{place} can also be a cons @code{(@var{get} . @var{set})},
 where @var{get} is an expression that returns the current state,
 and @var{set} is a function of one argument (a state) that sets it.
@@ -1844,9 +1843,9 @@ properties specified by @var{props} to the result.  The argument
 A list whose first element is a symbol that is not a keyword specifies
 a conditional.  Its meaning depends on the value of @var{symbol}.  If
 @var{symbol} has a non-@code{nil} value, the second element,
-@var{then}, is processed recursively as a mode line element.
+@var{then}, is processed recursively as a mode line construct.
 Otherwise, the third element, @var{else}, is processed recursively.
-You may omit @var{else}; then the mode line element displays nothing
+You may omit @var{else}; then the mode line construct displays nothing
 if the value of @var{symbol} is @code{nil} or void.
 
 @item (@var{width} @var{rest}@dots{})
@@ -2087,11 +2086,16 @@ specifies addition of text properties.
 @subsection @code{%}-Constructs in the Mode Line
 
   Strings used as mode line constructs can use certain
-@code{%}-constructs to substitute various kinds of data.  Here is a
-list of the defined @code{%}-constructs, and what they mean.  In any
-construct except @samp{%%}, you can add a decimal integer after the
-@samp{%} to specify a minimum field width.  If the width is less, the
-field is padded with spaces to the right.
+@code{%}-constructs to substitute various kinds of data.  The
+following is a list of the defined @code{%}-constructs, and what they
+mean.
+
+  In any construct except @samp{%%}, you can add a decimal integer
+after the @samp{%} to specify a minimum field width.  If the width is
+less, the field is padded to that width.  Purely numeric constructs
+(@samp{c}, @samp{i}, @samp{I}, and @samp{l}) are padded by inserting
+spaces to the left, and others are padded by inserting spaces to the
+right.
 
 @table @code
 @item %b

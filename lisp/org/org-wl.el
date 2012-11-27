@@ -34,9 +34,9 @@
 (require 'org)
 
 (defgroup org-wl nil
- "Options concerning the Wanderlust link."
- :tag "Org Startup"
- :group 'org-link)
+  "Options concerning the Wanderlust link."
+  :tag "Org Startup"
+  :group 'org-link)
 
 (defcustom org-wl-link-to-refile-destination t
   "Create a link to the refile destination if the message is marked as refile."
@@ -161,7 +161,7 @@ ENTITY is a message entity."
   "Store a link to a WL folder."
   (let* ((folder (wl-folder-get-entity-from-buffer))
 	 (petname (wl-folder-get-petname folder))
-	 (link (org-make-link "wl:" folder)))
+	 (link (concat "wl:" folder)))
     (save-excursion
       (beginning-of-line)
       (unless (and (wl-folder-buffer-group-p)
@@ -246,7 +246,7 @@ ENTITY is a message entity."
 				    :subject subject :message-id message-id
 				    :message-id-no-brackets message-id-no-brackets)
 	      (setq desc (org-email-link-description))
-	      (setq link (org-make-link "wl:" folder-name "#" message-id-no-brackets))
+	      (setq link (concat "wl:" folder-name "#" message-id-no-brackets))
 	      (org-add-link-props :link link :description desc)))
 	    (when date
 	      (org-add-link-props :date date :date-timestamp date-ts
@@ -309,7 +309,7 @@ for namazu index."
 						     article))
 	    (or (wl-summary-jump-to-msg (string-to-number article))
 		(error "No such message: %s" article)))
-	     (wl-summary-redisplay))))))
+	  (wl-summary-redisplay))))))
 
 (provide 'org-wl)
 

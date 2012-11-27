@@ -77,6 +77,56 @@
 
 (defconst nnmaildir-version "Gnus")
 
+(defconst nnmaildir-flag-mark-mapping
+  '((?F . tick)
+    (?R . reply)
+    (?S . read))
+  "Alist mapping Maildir filename flags to Gnus marks.
+Maildir filenames are of the form \"unique-id:2,FLAGS\",
+where FLAGS are a string of characters in ASCII order.
+Some of the FLAGS correspond to Gnus marks.")
+
+(defsubst nnmaildir--mark-to-flag (mark)
+  "Find the Maildir flag that corresponds to MARK (an atom).
+Return a character, or `nil' if not found.
+See `nnmaildir-flag-mark-mapping'."
+  (car (rassq mark nnmaildir-flag-mark-mapping)))
+
+(defsubst nnmaildir--flag-to-mark (flag)
+  "Find the Gnus mark that corresponds to FLAG (a character).
+Return an atom, or `nil' if not found.
+See `nnmaildir-flag-mark-mapping'."
+  (cdr (assq flag nnmaildir-flag-mark-mapping)))
+
+(defun nnmaildir--ensure-suffix (filename)
+  "Ensure that FILENAME contains the suffix \":2,\"."
+  (if (gnus-string-match-p ":2," filename)
+      filename
+    (concat filename ":2,")))
+
+(defun nnmaildir--add-flag (flag suffix)
+  "Return a copy of SUFFIX where FLAG is set.
+SUFFIX should start with \":2,\"."
+  (unless (gnus-string-match-p "^:2," suffix)
+    (error "Invalid suffix `%s'" suffix))
+  (let* ((flags (substring suffix 3))
+	 (flags-as-list (append flags nil))
+	 (new-flags
+	  (concat (gnus-delete-duplicates
+		   ;; maildir flags must be sorted
+		   (sort (cons flag flags-as-list) '<)))))
+    (concat ":2," new-flags)))
+
+(defun nnmaildir--remove-flag (flag suffix)
+  "Return a copy of SUFFIX where FLAG is cleared.
+SUFFIX should start with \":2,\"."
+  (unless (gnus-string-match-p "^:2," suffix)
+    (error "Invalid suffix `%s'" suffix))
+  (let* ((flags (substring suffix 3))
+	 (flags-as-list (append flags nil))
+	 (new-flags (concat (delq flag flags-as-list))))
+    (concat ":2," new-flags)))
+
 (defvar nnmaildir-article-file-name nil
   "*The filename of the most recently requested article.  This variable is set
 by nnmaildir-request-article.")
@@ -152,6 +202,16 @@ by nnmaildir-request-article.")
   (gnm        	 nil)                      ;; flag: split from mail-sources?
   (target-prefix nil :type string))        ;; symlink target prefix
 
+(defun nnmaildir--article-set-flags (article new-suffix curdir)
+  (let* ((prefix (nnmaildir--art-prefix article))
+	 (suffix (nnmaildir--art-suffix article))
+	 (article-file (concat curdir prefix suffix))
+	 (new-name (concat curdir prefix new-suffix)))
+    (unless (file-exists-p article-file)
+      (error "Couldn't find article file %s" article-file))
+    (rename-file article-file new-name 'replace)
+    (setf (nnmaildir--art-suffix article) new-suffix)))
+
 (defun nnmaildir--expired-article (group article)
   (setf (nnmaildir--art-nov article) nil)
   (let ((flist  (nnmaildir--grp-flist group))
@@ -208,29 +268,33 @@ by nnmaildir-request-article.")
   (eval param))
 
 (defmacro nnmaildir--with-nntp-buffer (&rest body)
+  (declare (debug (body)))
   `(with-current-buffer nntp-server-buffer
      ,@body))
 (defmacro nnmaildir--with-work-buffer (&rest body)
+  (declare (debug (body)))
   `(with-current-buffer (get-buffer-create " *nnmaildir work*")
      ,@body))
 (defmacro nnmaildir--with-nov-buffer (&rest body)
+  (declare (debug (body)))
   `(with-current-buffer (get-buffer-create " *nnmaildir nov*")
      ,@body))
 (defmacro nnmaildir--with-move-buffer (&rest body)
+  (declare (debug (body)))
   `(with-current-buffer (get-buffer-create " *nnmaildir move*")
      ,@body))
 
-(defmacro nnmaildir--subdir (dir subdir)
-  `(file-name-as-directory (concat ,dir ,subdir)))
-(defmacro nnmaildir--srvgrp-dir (srv-dir gname)
-  `(nnmaildir--subdir ,srv-dir ,gname))
-(defmacro nnmaildir--tmp       (dir) `(nnmaildir--subdir ,dir "tmp"))
-(defmacro nnmaildir--new       (dir) `(nnmaildir--subdir ,dir "new"))
-(defmacro nnmaildir--cur       (dir) `(nnmaildir--subdir ,dir "cur"))
-(defmacro nnmaildir--nndir     (dir) `(nnmaildir--subdir ,dir ".nnmaildir"))
-(defmacro nnmaildir--nov-dir   (dir) `(nnmaildir--subdir ,dir "nov"))
-(defmacro nnmaildir--marks-dir (dir) `(nnmaildir--subdir ,dir "marks"))
-(defmacro nnmaildir--num-dir   (dir) `(nnmaildir--subdir ,dir "num"))
+(defsubst nnmaildir--subdir (dir subdir)
+  (file-name-as-directory (concat dir subdir)))
+(defsubst nnmaildir--srvgrp-dir (srv-dir gname)
+  (nnmaildir--subdir srv-dir gname))
+(defsubst nnmaildir--tmp       (dir) (nnmaildir--subdir dir "tmp"))
+(defsubst nnmaildir--new       (dir) (nnmaildir--subdir dir "new"))
+(defsubst nnmaildir--cur       (dir) (nnmaildir--subdir dir "cur"))
+(defsubst nnmaildir--nndir     (dir) (nnmaildir--subdir dir ".nnmaildir"))
+(defsubst nnmaildir--nov-dir   (dir) (nnmaildir--subdir dir "nov"))
+(defsubst nnmaildir--marks-dir (dir) (nnmaildir--subdir dir "marks"))
+(defsubst nnmaildir--num-dir   (dir) (nnmaildir--subdir dir "num"))
 
 (defmacro nnmaildir--unlink (file-arg)
   `(let ((file ,file-arg))
@@ -305,6 +369,7 @@ by nnmaildir-request-article.")
   string)
 
 (defmacro nnmaildir--condcase (errsym body &rest handler)
+  (declare (debug (sexp form body)))
   `(condition-case ,errsym
        (let ((system-messages-locale "C")) ,body)
      (error . ,handler)))
@@ -759,7 +824,7 @@ by nnmaildir-request-article.")
 	  (dolist (file  (funcall ls ndir nil "\\`[^.]" 'nosort))
 	    (setq x (concat ndir file))
 	    (and (time-less-p (nth 5 (file-attributes x)) (current-time))
-		 (rename-file x (concat cdir file ":2,"))))
+		 (rename-file x (concat cdir (nnmaildir--ensure-suffix file)))))
 	  (setf (nnmaildir--grp-new group) nattr))
 	(setq cattr (nth 5 (file-attributes cdir)))
 	(if (equal cattr (nnmaildir--grp-cur group))
@@ -784,11 +849,23 @@ by nnmaildir-request-article.")
 		cdir (nnmaildir--marks-dir nndir)
 		ndir (nnmaildir--subdir cdir "tick")
 		cdir (nnmaildir--subdir cdir "read"))
-	  (dolist (file files)
-	    (setq file (car file))
-	    (if (or (not (file-exists-p (concat cdir file)))
-		    (file-exists-p (concat ndir file)))
-		(setq num (1+ num)))))
+	  (dolist (prefix-suffix files)
+	    (let ((prefix (car prefix-suffix))
+		  (suffix (cdr prefix-suffix)))
+	      ;; increase num for each unread or ticked article
+	      (when (or
+		     ;; first look for marks in suffix, if it's valid...
+		     (when (and (stringp suffix)
+				(gnus-string-prefix-p ":2," suffix))
+		       (or
+			(not (gnus-string-match-p
+			      (string (nnmaildir--mark-to-flag 'read)) suffix))
+			(gnus-string-match-p
+			 (string (nnmaildir--mark-to-flag 'tick)) suffix)))
+		     ;; then look in marks directories
+		     (not (file-exists-p (concat cdir prefix)))
+		     (file-exists-p (concat ndir prefix)))
+		(incf num)))))
 	(setf (nnmaildir--grp-cache group) (make-vector num nil))
         (let ((inhibit-quit t))
           (set (intern gname groups) group))
@@ -916,12 +993,15 @@ by nnmaildir-request-article.")
 		  "\n")))))
   'group)
 
-(defun nnmaildir-request-marks (gname info &optional server)
-  (let ((group (nnmaildir--prepare server gname))
-	pgname flist always-marks never-marks old-marks dotfile num dir
-	markdirs marks mark ranges markdir article read end new-marks ls
-	old-mmth new-mmth mtime mark-sym existing missing deactivate-mark
-	article-list)
+(defun nnmaildir-request-update-info (gname info &optional server)
+  (let* ((group (nnmaildir--prepare server gname))
+	 (curdir (nnmaildir--cur
+		  (nnmaildir--srvgrp-dir
+		   (nnmaildir--srv-dir nnmaildir--cur-server) gname)))
+	 (curdir-mtime (nth 5 (file-attributes curdir)))
+	 pgname flist always-marks never-marks old-marks dotfile num dir
+	 all-marks marks mark ranges markdir read end new-marks ls
+	 old-mmth new-mmth mtime mark-sym existing missing deactivate-mark)
     (catch 'return
       (unless group
 	(setf (nnmaildir--srv-error nnmaildir--cur-server)
@@ -950,34 +1030,71 @@ by nnmaildir-request-article.")
 	    dir (nnmaildir--nndir dir)
 	    dir (nnmaildir--marks-dir dir)
             ls (nnmaildir--group-ls nnmaildir--cur-server pgname)
-	    markdirs (funcall ls dir nil "\\`[^.]" 'nosort)
-	    new-mmth (nnmaildir--up2-1 (length markdirs))
+	    all-marks (gnus-delete-duplicates
+		       ;; get mark names from mark dirs and from flag
+		       ;; mappings
+		       (append
+			(mapcar 'cdr nnmaildir-flag-mark-mapping)
+			(mapcar 'intern (funcall ls dir nil "\\`[^.]" 'nosort))))
+	    new-mmth (nnmaildir--up2-1 (length all-marks))
 	    new-mmth (make-vector new-mmth 0)
 	    old-mmth (nnmaildir--grp-mmth group))
-      (dolist (mark markdirs)
-	(setq markdir (nnmaildir--subdir dir mark)
-	      mark-sym (intern mark)
+      (dolist (mark all-marks)
+	(setq markdir (nnmaildir--subdir dir (symbol-name mark))
 	      ranges nil)
 	(catch 'got-ranges
-	  (if (memq mark-sym never-marks) (throw 'got-ranges nil))
-	  (when (memq mark-sym always-marks)
+	  (if (memq mark never-marks) (throw 'got-ranges nil))
+	  (when (memq mark always-marks)
 	    (setq ranges existing)
 	    (throw 'got-ranges nil))
-	  (setq mtime (nth 5 (file-attributes markdir)))
-	  (set (intern mark new-mmth) mtime)
-	  (when (equal mtime (symbol-value (intern-soft mark old-mmth)))
-	    (setq ranges (assq mark-sym old-marks))
+	  ;; Find the mtime for this mark.  If this mark can be expressed as
+	  ;; a filename flag, get the later of the mtimes for markdir and
+	  ;; curdir, otherwise only the markdir counts.
+	  (setq mtime
+		(let ((markdir-mtime (nth 5 (file-attributes markdir))))
+		  (cond
+		   ((null (nnmaildir--mark-to-flag mark))
+		    markdir-mtime)
+		   ((null markdir-mtime)
+		    curdir-mtime)
+		   ((null curdir-mtime)
+		    ;; this should never happen...
+		    markdir-mtime)
+		   ((time-less-p markdir-mtime curdir-mtime)
+		    curdir-mtime)
+		   (t
+		    markdir-mtime))))
+	  (set (intern (symbol-name mark) new-mmth) mtime)
+	  (when (equal mtime (symbol-value (intern-soft (symbol-name mark) old-mmth)))
+	    (setq ranges (assq mark old-marks))
 	    (if ranges (setq ranges (cdr ranges)))
 	    (throw 'got-ranges nil))
-	  (setq article-list nil)
-	  (dolist (prefix (funcall ls markdir nil "\\`[^.]" 'nosort))
-	    (setq article (nnmaildir--flist-art flist prefix))
-	    (if article
-		(setq article-list
-		      (cons (nnmaildir--art-num article) article-list))))
-	  (setq ranges (gnus-add-to-range ranges (sort article-list '<))))
-	(if (eq mark-sym 'read) (setq read ranges)
-	  (if ranges (setq marks (cons (cons mark-sym ranges) marks)))))
+	  (let ((article-list nil))
+	    ;; Consider the article marked if it either has the flag in the
+	    ;; filename, or is in the markdir.  As you'd rarely remove a
+	    ;; flag/mark, this should avoid losing information in the most
+	    ;; common usage pattern.
+	    (or
+	     (let ((flag (nnmaildir--mark-to-flag mark)))
+	       ;; If this mark has a corresponding maildir flag...
+	       (when flag
+		 (let ((regexp
+			(concat "\\`[^.].*:2,[A-Z]*" (string flag))))
+		   ;; ...then find all files with that flag.
+		   (dolist (filename (funcall ls curdir nil regexp 'nosort))
+		     (let* ((prefix (car (split-string filename ":2,")))
+			    (article (nnmaildir--flist-art flist prefix)))
+		       (when article
+			 (push (nnmaildir--art-num article) article-list)))))))
+	     ;; Also check Gnus-specific mark directory, if it exists.
+	     (when (file-directory-p markdir)
+	       (dolist (prefix (funcall ls markdir nil "\\`[^.]" 'nosort))
+		 (let ((article (nnmaildir--flist-art flist prefix)))
+		   (when article
+		     (push (nnmaildir--art-num article) article-list))))))
+	    (setq ranges (gnus-add-to-range ranges (sort article-list '<)))))
+	(if (eq mark 'read) (setq read ranges)
+	  (if ranges (setq marks (cons (cons mark ranges) marks)))))
       (gnus-info-set-read info (gnus-range-add read missing))
       (gnus-info-set-marks info marks 'extend)
       (setf (nnmaildir--grp-mmth group) new-mmth)
@@ -1525,39 +1642,63 @@ by nnmaildir-request-article.")
       didnt)))
 
 (defun nnmaildir-request-set-mark (gname actions &optional server)
-  (let ((group (nnmaildir--prepare server gname))
-	(coding-system-for-write nnheader-file-coding-system)
-	(buffer-file-coding-system nil)
-	(file-coding-system-alist nil)
-	del-mark del-action add-action set-action marksdir nlist
-	ranges begin end article all-marks todo-marks mdir mfile
-	pgname ls permarkfile deactivate-mark)
+  (let* ((group (nnmaildir--prepare server gname))
+	 (curdir (nnmaildir--cur
+		  (nnmaildir--srvgrp-dir
+		   (nnmaildir--srv-dir nnmaildir--cur-server)
+		   gname)))
+	 (coding-system-for-write nnheader-file-coding-system)
+	 (buffer-file-coding-system nil)
+	 (file-coding-system-alist nil)
+	 del-mark del-action add-action set-action marksdir nlist
+	 ranges begin end article all-marks todo-marks mdir mfile
+	 pgname ls permarkfile deactivate-mark)
     (setq del-mark
 	  (lambda (mark)
-	    (setq mfile (nnmaildir--subdir marksdir (symbol-name mark))
-		  mfile (concat mfile (nnmaildir--art-prefix article)))
-	    (nnmaildir--unlink mfile))
+	    (let ((prefix (nnmaildir--art-prefix article))
+		  (suffix (nnmaildir--art-suffix article))
+		  (flag (nnmaildir--mark-to-flag mark)))
+	      (when flag
+		;; If this mark corresponds to a flag, remove the flag from
+		;; the file name.
+		(nnmaildir--article-set-flags
+		 article (nnmaildir--remove-flag flag suffix) curdir))
+	      ;; We still want to delete the hardlink in the marks dir if
+	      ;; present, regardless of whether this mark has a maildir flag or
+	      ;; not, to avoid getting out of sync.
+	      (setq mfile (nnmaildir--subdir marksdir (symbol-name mark))
+		    mfile (concat mfile prefix))
+	      (nnmaildir--unlink mfile)))
 	  del-action (lambda (article) (mapcar del-mark todo-marks))
 	  add-action
 	  (lambda (article)
 	    (mapcar
 	     (lambda (mark)
-	       (setq mdir (nnmaildir--subdir marksdir (symbol-name mark))
-		     permarkfile (concat mdir ":")
-		     mfile (concat mdir (nnmaildir--art-prefix article)))
-	       (nnmaildir--condcase err (add-name-to-file permarkfile mfile)
-		 (cond
-		  ((nnmaildir--eexist-p err))
-		  ((nnmaildir--enoent-p err)
-		   (nnmaildir--mkdir mdir)
-		   (nnmaildir--mkfile permarkfile)
-		   (add-name-to-file permarkfile mfile))
-		  ((nnmaildir--emlink-p err)
-		   (let ((permarkfilenew (concat permarkfile "{new}")))
-		     (nnmaildir--mkfile permarkfilenew)
-		     (rename-file permarkfilenew permarkfile 'replace)
-		     (add-name-to-file permarkfile mfile)))
-		  (t (signal (car err) (cdr err))))))
+	       (let ((prefix (nnmaildir--art-prefix article))
+		     (suffix (nnmaildir--art-suffix article))
+		     (flag (nnmaildir--mark-to-flag mark)))
+		 (if flag
+		     ;; If there is a corresponding maildir flag, just rename
+		     ;; the file.
+		     (nnmaildir--article-set-flags
+		      article (nnmaildir--add-flag flag suffix) curdir)
+		   ;; Otherwise, use nnmaildir-specific marks dir.
+		   (setq mdir (nnmaildir--subdir marksdir (symbol-name mark))
+			 permarkfile (concat mdir ":")
+			 mfile (concat mdir prefix))
+		   (nnmaildir--condcase err (add-name-to-file permarkfile mfile)
+		     (cond
+		      ((nnmaildir--eexist-p err))
+		      ((nnmaildir--enoent-p err)
+		       (nnmaildir--mkdir mdir)
+		       (nnmaildir--mkfile permarkfile)
+		       (add-name-to-file permarkfile mfile))
+		      ((nnmaildir--emlink-p err)
+		       (let ((permarkfilenew (concat permarkfile "{new}")))
+			 (nnmaildir--mkfile permarkfilenew)
+			 (rename-file permarkfilenew permarkfile 'replace)
+			 (add-name-to-file permarkfile mfile)))
+		      (t (signal (car err) (cdr err))))))))
 	     todo-marks))
 	  set-action (lambda (article)
 		       (funcall add-action article)
@@ -1581,7 +1722,12 @@ by nnmaildir-request-article.")
             pgname (nnmaildir--pgname nnmaildir--cur-server gname)
             ls (nnmaildir--group-ls nnmaildir--cur-server pgname)
 	    all-marks (funcall ls marksdir nil "\\`[^.]" 'nosort)
-	    all-marks (mapcar 'intern all-marks))
+	    all-marks (gnus-delete-duplicates
+		       ;; get mark names from mark dirs and from flag
+		       ;; mappings
+		       (append
+			(mapcar 'cdr nnmaildir-flag-mark-mapping)
+			(mapcar 'intern all-marks))))
       (dolist (action actions)
 	(setq ranges (car action)
 	      todo-marks (caddr action))

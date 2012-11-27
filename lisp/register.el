@@ -28,31 +28,15 @@
 ;; pieces of buffer state to named variables.  The entry points are
 ;; documented in the Emacs user's manual.
 
-(eval-when-compile (require 'cl))
+(eval-when-compile (require 'cl-lib))
 
 (declare-function semantic-insert-foreign-tag "semantic/tag" (foreign-tag))
 (declare-function semantic-tag-buffer "semantic/tag" (tag))
 (declare-function semantic-tag-start "semantic/tag" (tag))
 
-;;; Global key bindings
-
-(define-key ctl-x-r-map "\C-@" 'point-to-register)
-(define-key ctl-x-r-map [?\C-\ ] 'point-to-register)
-(define-key ctl-x-r-map " " 'point-to-register)
-(define-key ctl-x-r-map "j" 'jump-to-register)
-(define-key ctl-x-r-map "s" 'copy-to-register)
-(define-key ctl-x-r-map "x" 'copy-to-register)
-(define-key ctl-x-r-map "i" 'insert-register)
-(define-key ctl-x-r-map "g" 'insert-register)
-(define-key ctl-x-r-map "r" 'copy-rectangle-to-register)
-(define-key ctl-x-r-map "n" 'number-to-register)
-(define-key ctl-x-r-map "+" 'increment-register)
-(define-key ctl-x-r-map "w" 'window-configuration-to-register)
-(define-key ctl-x-r-map "f" 'frame-configuration-to-register)
-
 ;;; Code:
 
-(defstruct
+(cl-defstruct
   (registerv (:constructor nil)
 	     (:constructor registerv--make (&optional data print-func
 						      jump-func insert-func))
@@ -64,7 +48,7 @@
   (jump-func   nil :read-only t)
   (insert-func nil :read-only t))
 
-(defun* registerv-make (data &key print-func jump-func insert-func)
+(cl-defun registerv-make (data &key print-func jump-func insert-func)
   "Create a register value object.
 
 DATA can be any value.
@@ -91,6 +75,22 @@ A list of the form (WINDOW-CONFIGURATION POSITION)
  represents a saved window configuration plus a saved value of point.
 A list of the form (FRAME-CONFIGURATION POSITION)
  represents a saved frame configuration plus a saved value of point.")
+
+(defgroup register nil
+  "Register commands."
+  :group 'convenience
+  :version "24.3")
+
+(defcustom register-separator nil
+  "Register containing the text to put between collected texts, or nil if none.
+
+When collecting text with
+`append-to-register' (resp. `prepend-to-register') contents of
+this register is added to the beginning (resp. end) of the marked
+text."
+  :group 'register
+  :type '(choice (const :tag "None" nil)
+		 (character :tag "Use register" :value ?+)))
 
 (defun get-register (register)
   "Return contents of Emacs register named REGISTER, or nil if none."
@@ -150,7 +150,7 @@ delete any existing frames that the frame configuration doesn't mention.
   (let ((val (get-register register)))
     (cond
      ((registerv-p val)
-      (assert (registerv-jump-func val) nil
+      (cl-assert (registerv-jump-func val) nil
               "Don't know how to jump to register %s"
               (single-key-description register))
       (funcall (registerv-jump-func val) (registerv-data val)))
@@ -208,13 +208,24 @@ Interactively, NUMBER is the prefix arg (none means nil)."
 			(string-to-number (match-string 0)))
 		    0))))
 
-(defun increment-register (number register)
-  "Add NUMBER to the contents of register REGISTER.
-Interactively, NUMBER is the prefix arg."
-  (interactive "p\ncIncrement register: ")
-  (or (numberp (get-register register))
-      (error "Register does not contain a number"))
-  (set-register register (+ number (get-register register))))
+(defun increment-register (prefix register)
+  "Augment contents of REGISTER.
+Interactively, PREFIX is in raw form.
+
+If REGISTER contains a number, add `prefix-numeric-value' of
+PREFIX to it.
+
+If REGISTER is empty or if it contains text, call
+`append-to-register' with `delete-flag' set to PREFIX."
+  (interactive "P\ncIncrement register: ")
+  (let ((register-val (get-register register)))
+    (cond
+     ((numberp register-val)
+      (let ((number (prefix-numeric-value prefix)))
+	(set-register register (+ number register-val))))
+     ((or (not register-val) (stringp register-val))
+      (append-to-register register (region-beginning) (region-end) prefix))
+     (t (error "Register does not contain a number or text")))))
 
 (defun view-register (register)
   "Display what is contained in register named REGISTER.
@@ -325,7 +336,7 @@ Interactively, second arg is non-nil if prefix arg is supplied."
   (let ((val (get-register register)))
     (cond
      ((registerv-p val)
-      (assert (registerv-insert-func val) nil
+      (cl-assert (registerv-insert-func val) nil
               "Don't know how to insert register %s"
               (single-key-description register))
       (funcall (registerv-insert-func val) (registerv-data val)))
@@ -352,7 +363,11 @@ Called from program, takes four args: REGISTER, START, END and DELETE-FLAG.
 START and END are buffer positions indicating what to copy."
   (interactive "cCopy to register: \nr\nP")
   (set-register register (filter-buffer-substring start end))
-  (if delete-flag (delete-region start end)))
+  (setq deactivate-mark t)
+  (cond (delete-flag
+	 (delete-region start end))
+	((called-interactively-p 'interactive)
+	 (indicate-copied-region))))
 
 (defun append-to-register (register start end &optional delete-flag)
   "Append region to text in register REGISTER.
@@ -361,12 +376,17 @@ Called from program, takes four args: REGISTER, START, END and DELETE-FLAG.
 START and END are buffer positions indicating what to append."
   (interactive "cAppend to register: \nr\nP")
   (let ((reg (get-register register))
-        (text (filter-buffer-substring start end)))
+        (text (filter-buffer-substring start end))
+	(separator (and register-separator (get-register register-separator))))
     (set-register
      register (cond ((not reg) text)
-                    ((stringp reg) (concat reg text))
+                    ((stringp reg) (concat reg separator text))
                     (t (error "Register does not contain text")))))
-  (if delete-flag (delete-region start end)))
+  (setq deactivate-mark t)
+  (cond (delete-flag
+	 (delete-region start end))
+	((called-interactively-p 'interactive)
+	 (indicate-copied-region))))
 
 (defun prepend-to-register (register start end &optional delete-flag)
   "Prepend region to text in register REGISTER.
@@ -375,12 +395,17 @@ Called from program, takes four args: REGISTER, START, END and DELETE-FLAG.
 START and END are buffer positions indicating what to prepend."
   (interactive "cPrepend to register: \nr\nP")
   (let ((reg (get-register register))
-        (text (filter-buffer-substring start end)))
+        (text (filter-buffer-substring start end))
+	(separator (and register-separator (get-register register-separator))))
     (set-register
      register (cond ((not reg) text)
-                    ((stringp reg) (concat text reg))
+                    ((stringp reg) (concat text separator reg))
                     (t (error "Register does not contain text")))))
-  (if delete-flag (delete-region start end)))
+  (setq deactivate-mark t)
+  (cond (delete-flag
+	 (delete-region start end))
+	((called-interactively-p 'interactive)
+	 (indicate-copied-region))))
 
 (defun copy-rectangle-to-register (register start end &optional delete-flag)
   "Copy rectangular region into register REGISTER.
@@ -390,10 +415,15 @@ To insert this register in the buffer, use \\[insert-register].
 Called from a program, takes four args: REGISTER, START, END and DELETE-FLAG.
 START and END are buffer positions giving two corners of rectangle."
   (interactive "cCopy rectangle to register: \nr\nP")
-  (set-register register
-		(if delete-flag
-		    (delete-extract-rectangle start end)
-		  (extract-rectangle start end))))
+  (let ((rectangle (if delete-flag
+		       (delete-extract-rectangle start end)
+		     (extract-rectangle start end))))
+    (set-register register rectangle)
+    (when (and (null delete-flag)
+	       (called-interactively-p 'interactive))
+      (setq deactivate-mark t)
+      (indicate-copied-region (length (car rectangle))))))
+
 
 (provide 'register)
 ;;; register.el ends here

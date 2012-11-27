@@ -1,9 +1,8 @@
-;;; cl.el --- Common Lisp extensions for Emacs
+;;; cl.el --- Compatibility aliases for the old CL library.  -*- lexical-binding: t -*-
 
-;; Copyright (C) 1993, 2001-2012  Free Software Foundation, Inc.
+;; Copyright (C) 2012  Free Software Foundation, Inc.
 
-;; Author: Dave Gillespie <daveg@synaptics.com>
-;; Version: 2.02
+;; Author: Stefan Monnier <monnier@iro.umontreal.ca>
 ;; Keywords: extensions
 
 ;; This file is part of GNU Emacs.
@@ -23,699 +22,719 @@
 
 ;;; Commentary:
 
-;; These are extensions to Emacs Lisp that provide a degree of
-;; Common Lisp compatibility, beyond what is already built-in
-;; in Emacs Lisp.
-;;
-;; This package was written by Dave Gillespie; it is a complete
-;; rewrite of Cesar Quiroz's original cl.el package of December 1986.
-;;
-;; Bug reports, comments, and suggestions are welcome!
-
-;; This file contains the portions of the Common Lisp extensions
-;; package which should always be present.
-
-
-;;; Future notes:
-
-;; Once Emacs 19 becomes standard, many things in this package which are
-;; messy for reasons of compatibility can be greatly simplified.  For now,
-;; I prefer to maintain one unified version.
-
-
-;;; Change Log:
-
-;; Version 2.02 (30 Jul 93):
-;;  * Added "cl-compat.el" file, extra compatibility with old package.
-;;  * Added `lexical-let' and `lexical-let*'.
-;;  * Added `define-modify-macro', `callf', and `callf2'.
-;;  * Added `ignore-errors'.
-;;  * Changed `(setf (nthcdr N PLACE) X)' to work when N is zero.
-;;  * Merged `*gentemp-counter*' into `*gensym-counter*'.
-;;  * Extended `subseq' to allow negative START and END like `substring'.
-;;  * Added `in-ref', `across-ref', `elements of-ref' loop clauses.
-;;  * Added `concat', `vconcat' loop clauses.
-;;  * Cleaned up a number of compiler warnings.
-
-;; Version 2.01 (7 Jul 93):
-;;  * Added support for FSF version of Emacs 19.
-;;  * Added `add-hook' for Emacs 18 users.
-;;  * Added `defsubst*' and `symbol-macrolet'.
-;;  * Added `maplist', `mapc', `mapl', `mapcan', `mapcon'.
-;;  * Added `map', `concatenate', `reduce', `merge'.
-;;  * Added `revappend', `nreconc', `tailp', `tree-equal'.
-;;  * Added `assert', `check-type', `typecase', `typep', and `deftype'.
-;;  * Added destructuring and `&environment' support to `defmacro*'.
-;;  * Added destructuring to `loop', and added the following clauses:
-;;      `elements', `frames', `overlays', `intervals', `buffers', `key-seqs'.
-;;  * Renamed `delete' to `delete*' and `remove' to `remove*'.
-;;  * Completed support for all keywords in `remove*', `substitute', etc.
-;;  * Added `most-positive-float' and company.
-;;  * Fixed hash tables to work with latest Lucid Emacs.
-;;  * `proclaim' forms are no longer compile-time-evaluating; use `declaim'.
-;;  * Syntax for `warn' declarations has changed.
-;;  * Improved implementation of `random*'.
-;;  * Moved most sequence functions to a new file, cl-seq.el.
-;;  * Moved `eval-when' into cl-macs.el.
-;;  * Moved `pushnew' and `adjoin' to cl.el for most common cases.
-;;  * Moved `provide' forms down to ends of files.
-;;  * Changed expansion of `pop' to something that compiles to better code.
-;;  * Changed so that no patch is required for Emacs 19 byte compiler.
-;;  * Made more things dependent on `optimize' declarations.
-;;  * Added a partial implementation of struct print functions.
-;;  * Miscellaneous minor changes.
-
-;; Version 2.00:
-;;  * First public release of this package.
-
+;; This is a compatibility file which provides the old names provided by CL
+;; before we cleaned up its namespace usage.
 
 ;;; Code:
 
-(defvar cl-optimize-speed 1)
-(defvar cl-optimize-safety 1)
-
-
-;;;###autoload
-(defvar custom-print-functions nil
-  "This is a list of functions that format user objects for printing.
-Each function is called in turn with three arguments: the object, the
-stream, and the print level (currently ignored).  If it is able to
-print the object it returns true; otherwise it returns nil and the
-printer proceeds to the next function on the list.
-
-This variable is not used at present, but it is defined in hopes that
-a future Emacs interpreter will be able to use it.")
-
-(defun cl-unload-function ()
-  "Stop unloading of the Common Lisp extensions."
-  (message "Cannot unload the feature `cl'")
-  ;; stop standard unloading!
-  t)
-
-;;; Generalized variables.
-;; These macros are defined here so that they
-;; can safely be used in .emacs files.
-
-(defmacro incf (place &optional x)
-  "Increment PLACE by X (1 by default).
-PLACE may be a symbol, or any generalized variable allowed by `setf'.
-The return value is the incremented value of PLACE."
-  (if (symbolp place)
-      (list 'setq place (if x (list '+ place x) (list '1+ place)))
-    (list 'callf '+ place (or x 1))))
-
-(defmacro decf (place &optional x)
-  "Decrement PLACE by X (1 by default).
-PLACE may be a symbol, or any generalized variable allowed by `setf'.
-The return value is the decremented value of PLACE."
-  (if (symbolp place)
-      (list 'setq place (if x (list '- place x) (list '1- place)))
-    (list 'callf '- place (or x 1))))
-
-;; Autoloaded, but we haven't loaded cl-loaddefs yet.
-(declare-function cl-do-pop "cl-macs" (place))
-
-(defmacro pop (place)
-  "Remove and return the head of the list stored in PLACE.
-Analogous to (prog1 (car PLACE) (setf PLACE (cdr PLACE))), though more
-careful about evaluating each argument only once and in the right order.
-PLACE may be a symbol, or any generalized variable allowed by `setf'."
-  (if (symbolp place)
-      (list 'car (list 'prog1 place (list 'setq place (list 'cdr place))))
-    (cl-do-pop place)))
-
-(defmacro push (x place)
-  "Insert X at the head of the list stored in PLACE.
-Analogous to (setf PLACE (cons X PLACE)), though more careful about
-evaluating each argument only once and in the right order.  PLACE may
-be a symbol, or any generalized variable allowed by `setf'."
-  (if (symbolp place) (list 'setq place (list 'cons x place))
-    (list 'callf2 'cons x place)))
-
-(defmacro pushnew (x place &rest keys)
-  "(pushnew X PLACE): insert X at the head of the list if not already there.
-Like (push X PLACE), except that the list is unmodified if X is `eql' to
-an element already on the list.
-\nKeywords supported:  :test :test-not :key
-\n(fn X PLACE [KEYWORD VALUE]...)"
-  (if (symbolp place)
-      (if (null keys)
- 	  `(let ((x ,x))
-	     (if (memql x ,place)
-                 ;; This symbol may later on expand to actual code which then
-                 ;; trigger warnings like "value unused" since pushnew's return
-                 ;; value is rarely used.  It should not matter that other
-                 ;; warnings may be silenced, since `place' is used earlier and
-                 ;; should have triggered them already.
-                 (with-no-warnings ,place)
-               (setq ,place (cons x ,place))))
-	(list 'setq place (list* 'adjoin x place keys)))
-    (list* 'callf2 'adjoin x place keys)))
-
-(defun cl-set-elt (seq n val)
-  (if (listp seq) (setcar (nthcdr n seq) val) (aset seq n val)))
-
-(defsubst cl-set-nthcdr (n list x)
-  (if (<= n 0) x (setcdr (nthcdr (1- n) list) x) list))
-
-(defun cl-set-buffer-substring (start end val)
-  (save-excursion (delete-region start end)
-		  (goto-char start)
-		  (insert val)
-		  val))
-
-(defun cl-set-substring (str start end val)
-  (if end (if (< end 0) (incf end (length str)))
-    (setq end (length str)))
-  (if (< start 0) (incf start (length str)))
-  (concat (and (> start 0) (substring str 0 start))
-	  val
-	  (and (< end (length str)) (substring str end))))
-
-
-;;; Control structures.
-
-;; These macros are so simple and so often-used that it's better to have
-;; them all the time than to load them from cl-macs.el.
-
-(defun cl-map-extents (&rest cl-args)
-  (apply 'cl-map-overlays cl-args))
-
-
-;;; Blocks and exits.
-
-(defalias 'cl-block-wrapper 'identity)
-(defalias 'cl-block-throw 'throw)
-
-
-;;; Multiple values.
-;; True multiple values are not supported, or even
-;; simulated.  Instead, multiple-value-bind and friends simply expect
-;; the target form to return the values as a list.
-
-(defsubst values (&rest values)
-  "Return multiple values, Common Lisp style.
-The arguments of `values' are the values
-that the containing function should return."
-  values)
-
-(defsubst values-list (list)
-  "Return multiple values, Common Lisp style, taken from a list.
-LIST specifies the list of values
-that the containing function should return."
-  list)
-
-(defsubst multiple-value-list (expression)
-  "Return a list of the multiple values produced by EXPRESSION.
-This handles multiple values in Common Lisp style, but it does not
-work right when EXPRESSION calls an ordinary Emacs Lisp function
-that returns just one value."
-  expression)
-
-(defsubst multiple-value-apply (function expression)
-  "Evaluate EXPRESSION to get multiple values and apply FUNCTION to them.
-This handles multiple values in Common Lisp style, but it does not work
-right when EXPRESSION calls an ordinary Emacs Lisp function that returns just
-one value."
-  (apply function expression))
-
-(defalias 'multiple-value-call 'apply
-  "Apply FUNCTION to ARGUMENTS, taking multiple values into account.
-This implementation only handles the case where there is only one argument.")
-
-(defsubst nth-value (n expression)
-  "Evaluate EXPRESSION to get multiple values and return the Nth one.
-This handles multiple values in Common Lisp style, but it does not work
-right when EXPRESSION calls an ordinary Emacs Lisp function that returns just
-one value."
-  (nth n expression))
-
-;;; Macros.
-
-(defvar cl-macro-environment)
-(defvar cl-old-macroexpand (prog1 (symbol-function 'macroexpand)
-			     (defalias 'macroexpand 'cl-macroexpand)))
-
-(defun cl-macroexpand (cl-macro &optional cl-env)
-  "Return result of expanding macros at top level of FORM.
-If FORM is not a macro call, it is returned unchanged.
-Otherwise, the macro is expanded and the expansion is considered
-in place of FORM.  When a non-macro-call results, it is returned.
-
-The second optional arg ENVIRONMENT specifies an environment of macro
-definitions to shadow the loaded ones for use in file byte-compilation.
-\n(fn FORM &optional ENVIRONMENT)"
-  (let ((cl-macro-environment cl-env))
-    (while (progn (setq cl-macro (funcall cl-old-macroexpand cl-macro cl-env))
-		  (and (symbolp cl-macro)
-		       (cdr (assq (symbol-name cl-macro) cl-env))))
-      (setq cl-macro (cadr (assq (symbol-name cl-macro) cl-env))))
-    cl-macro))
-
-
-;;; Declarations.
-
-(defvar cl-compiling-file nil)
-(defun cl-compiling-file ()
-  (or cl-compiling-file
-      (and (boundp 'byte-compile--outbuffer)
-           (bufferp (symbol-value 'byte-compile--outbuffer))
-	   (equal (buffer-name (symbol-value 'byte-compile--outbuffer))
-		  " *Compiler Output*"))))
-
-(defvar cl-proclaims-deferred nil)
-
-(defun proclaim (spec)
-  (if (fboundp 'cl-do-proclaim) (cl-do-proclaim spec t)
-    (push spec cl-proclaims-deferred))
-  nil)
-
-(defmacro declaim (&rest specs)
-  (let ((body (mapcar (function (lambda (x) (list 'proclaim (list 'quote x))))
-		      specs)))
-    (if (cl-compiling-file) (list* 'eval-when '(compile load eval) body)
-      (cons 'progn body))))   ; avoid loading cl-macs.el for eval-when
-
-
-;;; Symbols.
-
-(defun cl-random-time ()
-  (let* ((time (copy-sequence (current-time-string))) (i (length time)) (v 0))
-    (while (>= (decf i) 0) (setq v (+ (* v 3) (aref time i))))
-    v))
-
-(defvar *gensym-counter* (* (logand (cl-random-time) 1023) 100))
-
-
-;;; Numbers.
-
-(defun floatp-safe (object)
-  "Return t if OBJECT is a floating point number.
-On Emacs versions that lack floating-point support, this function
-always returns nil."
-  (and (numberp object) (not (integerp object))))
-
-(defun plusp (number)
-  "Return t if NUMBER is positive."
-  (> number 0))
-
-(defun minusp (number)
-  "Return t if NUMBER is negative."
-  (< number 0))
-
-(defun oddp (integer)
-  "Return t if INTEGER is odd."
-  (eq (logand integer 1) 1))
-
-(defun evenp (integer)
-  "Return t if INTEGER is even."
-  (eq (logand integer 1) 0))
-
-(defvar *random-state* (vector 'cl-random-state-tag -1 30 (cl-random-time)))
-
-(defconst most-positive-float nil
-  "The largest value that a Lisp float can hold.
-If your system supports infinities, this is the largest finite value.
-For IEEE machines, this is approximately 1.79e+308.
-Call `cl-float-limits' to set this.")
-
-(defconst most-negative-float nil
-  "The largest negative value that a Lisp float can hold.
-This is simply -`most-positive-float'.
-Call `cl-float-limits' to set this.")
-
-(defconst least-positive-float nil
-  "The smallest value greater than zero that a Lisp float can hold.
-For IEEE machines, it is about 4.94e-324 if denormals are supported,
-or 2.22e-308 if they are not.
-Call `cl-float-limits' to set this.")
-
-(defconst least-negative-float nil
-  "The smallest value less than zero that a Lisp float can hold.
-This is simply -`least-positive-float'.
-Call `cl-float-limits' to set this.")
-
-(defconst least-positive-normalized-float nil
-  "The smallest normalized Lisp float greater than zero.
-This is the smallest value for which IEEE denormalization does not lose
-precision.  For IEEE machines, this value is about 2.22e-308.
-For machines that do not support the concept of denormalization
-and gradual underflow, this constant equals `least-positive-float'.
-Call `cl-float-limits' to set this.")
-
-(defconst least-negative-normalized-float nil
-  "The smallest normalized Lisp float less than zero.
-This is simply -`least-positive-normalized-float'.
-Call `cl-float-limits' to set this.")
-
-(defconst float-epsilon nil
-  "The smallest positive float that adds to 1.0 to give a distinct value.
-Adding a number less than this to 1.0 returns 1.0 due to roundoff.
-For IEEE machines, epsilon is about 2.22e-16.
-Call `cl-float-limits' to set this.")
-
-(defconst float-negative-epsilon nil
-  "The smallest positive float that subtracts from 1.0 to give a distinct value.
-For IEEE machines, it is about 1.11e-16.
-Call `cl-float-limits' to set this.")
-
-
-;;; Sequence functions.
-
-(defalias 'copy-seq 'copy-sequence)
-
-(declare-function cl-mapcar-many "cl-extra" (cl-func cl-seqs))
-
-(defun mapcar* (cl-func cl-x &rest cl-rest)
-  "Apply FUNCTION to each element of SEQ, and make a list of the results.
-If there are several SEQs, FUNCTION is called with that many arguments,
-and mapping stops as soon as the shortest list runs out.  With just one
-SEQ, this is like `mapcar'.  With several, it is like the Common Lisp
-`mapcar' function extended to arbitrary sequence types.
-\n(fn FUNCTION SEQ...)"
-  (if cl-rest
-      (if (or (cdr cl-rest) (nlistp cl-x) (nlistp (car cl-rest)))
-	  (cl-mapcar-many cl-func (cons cl-x cl-rest))
-	(let ((cl-res nil) (cl-y (car cl-rest)))
-	  (while (and cl-x cl-y)
-	    (push (funcall cl-func (pop cl-x) (pop cl-y)) cl-res))
-	  (nreverse cl-res)))
-    (mapcar cl-func cl-x)))
-
-(defalias 'svref 'aref)
-
-;;; List functions.
-
-(defalias 'first 'car)
-(defalias 'second 'cadr)
-(defalias 'rest 'cdr)
-(defalias 'endp 'null)
-
-(defun third (x)
-  "Return the third element of the list X."
-  (car (cdr (cdr x))))
-
-(defun fourth (x)
-  "Return the fourth element of the list X."
-  (nth 3 x))
-
-(defun fifth (x)
-  "Return the fifth element of the list X."
-  (nth 4 x))
-
-(defun sixth (x)
-  "Return the sixth element of the list X."
-  (nth 5 x))
-
-(defun seventh (x)
-  "Return the seventh element of the list X."
-  (nth 6 x))
-
-(defun eighth (x)
-  "Return the eighth element of the list X."
-  (nth 7 x))
-
-(defun ninth (x)
-  "Return the ninth element of the list X."
-  (nth 8 x))
-
-(defun tenth (x)
-  "Return the tenth element of the list X."
-  (nth 9 x))
-
-(defun caaar (x)
-  "Return the `car' of the `car' of the `car' of X."
-  (car (car (car x))))
-
-(defun caadr (x)
-  "Return the `car' of the `car' of the `cdr' of X."
-  (car (car (cdr x))))
-
-(defun cadar (x)
-  "Return the `car' of the `cdr' of the `car' of X."
-  (car (cdr (car x))))
-
-(defun caddr (x)
-  "Return the `car' of the `cdr' of the `cdr' of X."
-  (car (cdr (cdr x))))
-
-(defun cdaar (x)
-  "Return the `cdr' of the `car' of the `car' of X."
-  (cdr (car (car x))))
-
-(defun cdadr (x)
-  "Return the `cdr' of the `car' of the `cdr' of X."
-  (cdr (car (cdr x))))
-
-(defun cddar (x)
-  "Return the `cdr' of the `cdr' of the `car' of X."
-  (cdr (cdr (car x))))
-
-(defun cdddr (x)
-  "Return the `cdr' of the `cdr' of the `cdr' of X."
-  (cdr (cdr (cdr x))))
-
-(defun caaaar (x)
-  "Return the `car' of the `car' of the `car' of the `car' of X."
-  (car (car (car (car x)))))
-
-(defun caaadr (x)
-  "Return the `car' of the `car' of the `car' of the `cdr' of X."
-  (car (car (car (cdr x)))))
-
-(defun caadar (x)
-  "Return the `car' of the `car' of the `cdr' of the `car' of X."
-  (car (car (cdr (car x)))))
-
-(defun caaddr (x)
-  "Return the `car' of the `car' of the `cdr' of the `cdr' of X."
-  (car (car (cdr (cdr x)))))
-
-(defun cadaar (x)
-  "Return the `car' of the `cdr' of the `car' of the `car' of X."
-  (car (cdr (car (car x)))))
-
-(defun cadadr (x)
-  "Return the `car' of the `cdr' of the `car' of the `cdr' of X."
-  (car (cdr (car (cdr x)))))
-
-(defun caddar (x)
-  "Return the `car' of the `cdr' of the `cdr' of the `car' of X."
-  (car (cdr (cdr (car x)))))
-
-(defun cadddr (x)
-  "Return the `car' of the `cdr' of the `cdr' of the `cdr' of X."
-  (car (cdr (cdr (cdr x)))))
-
-(defun cdaaar (x)
-  "Return the `cdr' of the `car' of the `car' of the `car' of X."
-  (cdr (car (car (car x)))))
-
-(defun cdaadr (x)
-  "Return the `cdr' of the `car' of the `car' of the `cdr' of X."
-  (cdr (car (car (cdr x)))))
-
-(defun cdadar (x)
-  "Return the `cdr' of the `car' of the `cdr' of the `car' of X."
-  (cdr (car (cdr (car x)))))
-
-(defun cdaddr (x)
-  "Return the `cdr' of the `car' of the `cdr' of the `cdr' of X."
-  (cdr (car (cdr (cdr x)))))
-
-(defun cddaar (x)
-  "Return the `cdr' of the `cdr' of the `car' of the `car' of X."
-  (cdr (cdr (car (car x)))))
-
-(defun cddadr (x)
-  "Return the `cdr' of the `cdr' of the `car' of the `cdr' of X."
-  (cdr (cdr (car (cdr x)))))
-
-(defun cdddar (x)
-  "Return the `cdr' of the `cdr' of the `cdr' of the `car' of X."
-  (cdr (cdr (cdr (car x)))))
-
-(defun cddddr (x)
-  "Return the `cdr' of the `cdr' of the `cdr' of the `cdr' of X."
-  (cdr (cdr (cdr (cdr x)))))
-
-;;(defun last* (x &optional n)
-;;  "Returns the last link in the list LIST.
-;;With optional argument N, returns Nth-to-last link (default 1)."
-;;  (if n
-;;      (let ((m 0) (p x))
-;;	(while (consp p) (incf m) (pop p))
-;;	(if (<= n 0) p
-;;	  (if (< n m) (nthcdr (- m n) x) x)))
-;;    (while (consp (cdr x)) (pop x))
-;;    x))
-
-(defun list* (arg &rest rest)   ; See compiler macro in cl-macs.el
-  "Return a new list with specified ARGs as elements, consed to last ARG.
-Thus, `(list* A B C D)' is equivalent to `(nconc (list A B C) D)', or to
-`(cons A (cons B (cons C D)))'.
-\n(fn ARG...)"
-  (cond ((not rest) arg)
-	((not (cdr rest)) (cons arg (car rest)))
-	(t (let* ((n (length rest))
-		  (copy (copy-sequence rest))
-		  (last (nthcdr (- n 2) copy)))
-	     (setcdr last (car (cdr last)))
-	     (cons arg copy)))))
-
-(defun ldiff (list sublist)
-  "Return a copy of LIST with the tail SUBLIST removed."
-  (let ((res nil))
-    (while (and (consp list) (not (eq list sublist)))
-      (push (pop list) res))
-    (nreverse res)))
-
-(defun copy-list (list)
-  "Return a copy of LIST, which may be a dotted list.
-The elements of LIST are not copied, just the list structure itself."
-  (if (consp list)
-      (let ((res nil))
-	(while (consp list) (push (pop list) res))
-	(prog1 (nreverse res) (setcdr res list)))
-    (car list)))
+(require 'cl-lib)
+(require 'macroexp)
+
+;; (defun cl--rename ()
+;;   (let ((vdefs ())
+;;         (fdefs ())
+;;         (case-fold-search nil)
+;;         (files '("cl.el" "cl-macs.el" "cl-seq.el" "cl-extra.el")))
+;;     (dolist (file files)
+;;       (with-current-buffer (find-file-noselect file)
+;;         (goto-char (point-min))
+;;         (while (re-search-forward
+;;                 "^(\\(def[^ \t\n]*\\) +'?\\(\\(\\sw\\|\\s_\\)+\\)" nil t)
+;;           (let ((name (match-string-no-properties 2))
+;;                 (type (match-string-no-properties 1)))
+;;             (unless (string-match-p "\\`cl-" name)
+;;               (cond
+;;                ((member type '("defvar" "defconst"))
+;;                 (unless (member name vdefs) (push name vdefs)))
+;;                ((member type '("defun" "defsubst" "defalias" "defmacro"))
+;;                 (unless (member name fdefs) (push name fdefs)))
+;;                ((member type '("def-edebug-spec" "defsetf" "define-setf-method"
+;;                                "define-compiler-macro"))
+;;                 nil)
+;;                (t (error "Unknown type %S" type))))))))
+;;     (let ((re (concat "\\_<" (regexp-opt (append vdefs fdefs)) "\\_>"))
+;;           (conflicts ()))
+;;       (dolist (file files)
+;;         (with-current-buffer (find-file-noselect file)
+;;           (goto-char (point-min))
+;;           (while (re-search-forward re nil t)
+;;             (replace-match "cl-\\&"))
+;;           (save-buffer))))
+;;     (with-current-buffer (find-file-noselect "cl-rename.el")
+;;       (dolist (def vdefs)
+;;         (insert (format "(defvaralias '%s 'cl-%s)\n" def def)))
+;;       (dolist (def fdefs)
+;;         (insert (format "(defalias '%s 'cl-%s)\n" def def)))
+;;       (save-buffer))))
+
+;; (defun cl--unrename ()
+;;   ;; Taken from "Naming Conventions" node of the doc.
+;;   (let* ((names '(defun* defsubst* defmacro* function* member*
+;;                          assoc* rassoc* get* remove* delete*
+;;                          mapcar* sort* floor* ceiling* truncate*
+;;                          round* mod* rem* random*))
+;;          (files '("cl.el" "cl-lib.el" "cl-macs.el" "cl-seq.el" "cl-extra.el"))
+;;          (re (concat "\\_<cl-" (regexp-opt (mapcar #'symbol-name names))
+;;                      "\\_>")))
+;;     (dolist (file files)
+;;       (with-current-buffer (find-file-noselect file)
+;;         (goto-char (point-min))
+;;         (while (re-search-forward re nil t)
+;;           (delete-region (1- (point)) (point)))
+;;         (save-buffer)))))
+
+;;; Aliases to cl-lib's features.
+
+(dolist (var '(
+               ;; loop-result-var
+               ;; loop-result
+               ;; loop-initially
+               ;; loop-finally
+               ;; loop-bindings
+               ;; loop-args
+               ;; bind-inits
+               ;; bind-block
+               ;; lambda-list-keywords
+               float-negative-epsilon
+               float-epsilon
+               least-negative-normalized-float
+               least-positive-normalized-float
+               least-negative-float
+               least-positive-float
+               most-negative-float
+               most-positive-float
+               ;; custom-print-functions
+               ))
+  (defvaralias var (intern (format "cl-%s" var))))
+
+;; Before overwriting subr.el's `dotimes' and `dolist', let's remember
+;; them under a different name, so we can use them in our implementation
+;; of `dotimes' and `dolist'.
+(unless (fboundp 'cl--dotimes)
+  (defalias 'cl--dotimes (symbol-function 'dotimes) "The non-CL `dotimes'."))
+(unless (fboundp 'cl--dolist)
+  (defalias 'cl--dolist (symbol-function 'dolist) "The non-CL `dolist'."))
+
+(dolist (fun '(
+               (get* . cl-get)
+               (random* . cl-random)
+               (rem* . cl-rem)
+               (mod* . cl-mod)
+               (round* . cl-round)
+               (truncate* . cl-truncate)
+               (ceiling* . cl-ceiling)
+               (floor* . cl-floor)
+               (rassoc* . cl-rassoc)
+               (assoc* . cl-assoc)
+               (member* . cl-member)
+               (delete* . cl-delete)
+               (remove* . cl-remove)
+               (defsubst* . cl-defsubst)
+               (sort* . cl-sort)
+               (function* . cl-function)
+               (defmacro* . cl-defmacro)
+               (defun* . cl-defun)
+               (mapcar* . cl-mapcar)
+
+               remprop
+               getf
+               tailp
+               list-length
+               nreconc
+               revappend
+               concatenate
+               subseq
+               random-state-p
+               make-random-state
+               signum
+               isqrt
+               lcm
+               gcd
+               notevery
+               notany
+               every
+               some
+               mapcon
+               mapcan
+               mapl
+               maplist
+               map
+               equalp
+               coerce
+               tree-equal
+               nsublis
+               sublis
+               nsubst-if-not
+               nsubst-if
+               nsubst
+               subst-if-not
+               subst-if
+               subsetp
+               nset-exclusive-or
+               set-exclusive-or
+               nset-difference
+               set-difference
+               nintersection
+               intersection
+               nunion
+               union
+               rassoc-if-not
+               rassoc-if
+               assoc-if-not
+               assoc-if
+               member-if-not
+               member-if
+               merge
+               stable-sort
+               search
+               mismatch
+               count-if-not
+               count-if
+               count
+               position-if-not
+               position-if
+               position
+               find-if-not
+               find-if
+               find
+               nsubstitute-if-not
+               nsubstitute-if
+               nsubstitute
+               substitute-if-not
+               substitute-if
+               substitute
+               delete-duplicates
+               remove-duplicates
+               delete-if-not
+               delete-if
+               remove-if-not
+               remove-if
+               replace
+               fill
+               reduce
+               compiler-macroexpand
+               define-compiler-macro
+               assert
+               check-type
+               typep
+               deftype
+               defstruct
+               callf2
+               callf
+               letf*
+               ;; letf
+               rotatef
+               shiftf
+               remf
+               psetf
+               (define-setf-method . define-setf-expander)
+               declare
+               the
+               locally
+               multiple-value-setq
+               multiple-value-bind
+               symbol-macrolet
+               macrolet
+               progv
+               psetq
+               do-all-symbols
+               do-symbols
+               dotimes
+               dolist
+               do*
+               do
+               loop
+               return-from
+               return
+               block
+               etypecase
+               typecase
+               ecase
+               case
+               load-time-value
+               eval-when
+               destructuring-bind
+               gentemp
+               gensym
+               pairlis
+               acons
+               subst
+               adjoin
+               copy-list
+               ldiff
+               list*
+               cddddr
+               cdddar
+               cddadr
+               cddaar
+               cdaddr
+               cdadar
+               cdaadr
+               cdaaar
+               cadddr
+               caddar
+               cadadr
+               cadaar
+               caaddr
+               caadar
+               caaadr
+               caaaar
+               cdddr
+               cddar
+               cdadr
+               cdaar
+               caddr
+               cadar
+               caadr
+               caaar
+               tenth
+               ninth
+               eighth
+               seventh
+               sixth
+               fifth
+               fourth
+               third
+               endp
+               rest
+               second
+               first
+               svref
+               copy-seq
+               evenp
+               oddp
+               minusp
+               plusp
+               floatp-safe
+               declaim
+               proclaim
+               nth-value
+               multiple-value-call
+               multiple-value-apply
+               multiple-value-list
+               values-list
+               values
+               pushnew
+               decf
+               incf
+               ))
+  (let ((new (if (consp fun) (prog1 (cdr fun) (setq fun (car fun)))
+               (intern (format "cl-%s" fun)))))
+    (defalias fun new)))
+
+;;; Features provided a bit differently in Elisp.
+
+;; First, the old lexical-let is now better served by `lexical-binding', tho
+;; it's not 100% compatible.
+
+(defvar cl-closure-vars nil)
+(defvar cl--function-convert-cache nil)
+
+(defun cl--function-convert (f)
+  "Special macro-expander for special cases of (function F).
+The two cases that are handled are:
+- closure-conversion of lambda expressions for `lexical-let'.
+- renaming of F when it's a function defined via `cl-labels' or `labels'."
+  (require 'cl-macs)
+  (declare-function cl--expr-contains-any "cl-macs" (x y))
+  (cond
+   ;; ¡¡Big Ugly Hack!! We can't use a compiler-macro because those are checked
+   ;; *after* handling `function', but we want to stop macroexpansion from
+   ;; being applied infinitely, so we use a cache to return the exact `form'
+   ;; being expanded even though we don't receive it.
+   ((eq f (car cl--function-convert-cache)) (cdr cl--function-convert-cache))
+   ((eq (car-safe f) 'lambda)
+    (let ((body (mapcar (lambda (f)
+                          (macroexpand-all f macroexpand-all-environment))
+                        (cddr f))))
+      (if (and cl-closure-vars
+               (cl--expr-contains-any body cl-closure-vars))
+          (let* ((new (mapcar 'cl-gensym cl-closure-vars))
+                 (sub (cl-pairlis cl-closure-vars new)) (decls nil))
+            (while (or (stringp (car body))
+                       (eq (car-safe (car body)) 'interactive))
+              (push (list 'quote (pop body)) decls))
+            (put (car (last cl-closure-vars)) 'used t)
+            `(list 'lambda '(&rest --cl-rest--)
+                   ,@(cl-sublis sub (nreverse decls))
+                   (list 'apply
+                         (list 'quote
+                               #'(lambda ,(append new (cadr f))
+                                   ,@(cl-sublis sub body)))
+                         ,@(nconc (mapcar (lambda (x) `(list 'quote ,x))
+                                          cl-closure-vars)
+                                  '((quote --cl-rest--))))))
+        (let* ((newf `(lambda ,(cadr f) ,@body))
+               (res `(function ,newf)))
+          (setq cl--function-convert-cache (cons newf res))
+          res))))
+   (t
+    (let ((found (assq f macroexpand-all-environment)))
+      (if (and found (ignore-errors
+                       (eq (cadr (cl-caddr found)) 'cl-labels-args)))
+          (cadr (cl-caddr (cl-cadddr found)))
+        (let ((res `(function ,f)))
+          (setq cl--function-convert-cache (cons f res))
+          res))))))
+
+(defmacro lexical-let (bindings &rest body)
+  "Like `let', but lexically scoped.
+The main visible difference is that lambdas inside BODY will create
+lexical closures as in Common Lisp.
+\n(fn BINDINGS BODY)"
+  (declare (indent 1) (debug let))
+  (let* ((cl-closure-vars cl-closure-vars)
+	 (vars (mapcar (function
+			(lambda (x)
+			  (or (consp x) (setq x (list x)))
+			  (push (make-symbol (format "--cl-%s--" (car x)))
+				cl-closure-vars)
+			  (set (car cl-closure-vars) [bad-lexical-ref])
+			  (list (car x) (cadr x) (car cl-closure-vars))))
+		       bindings))
+	 (ebody
+	  (macroexpand-all
+           `(cl-symbol-macrolet
+                ,(mapcar (lambda (x)
+                           `(,(car x) (symbol-value ,(cl-caddr x))))
+                         vars)
+              ,@body)
+	   (cons (cons 'function #'cl--function-convert)
+                 macroexpand-all-environment))))
+    (if (not (get (car (last cl-closure-vars)) 'used))
+        ;; Turn (let ((foo (cl-gensym)))
+        ;;        (set foo <val>) ...(symbol-value foo)...)
+        ;; into (let ((foo <val>)) ...(symbol-value 'foo)...).
+        ;; This is good because it's more efficient but it only works with
+        ;; dynamic scoping, since with lexical scoping we'd need
+        ;; (let ((foo <val>)) ...foo...).
+	`(progn
+           ,@(mapcar (lambda (x) `(defvar ,(cl-caddr x))) vars)
+           (let ,(mapcar (lambda (x) (list (cl-caddr x) (cadr x))) vars)
+           ,(cl-sublis (mapcar (lambda (x)
+                              (cons (cl-caddr x)
+                                    `',(cl-caddr x)))
+                            vars)
+                    ebody)))
+      `(let ,(mapcar (lambda (x)
+                       (list (cl-caddr x)
+                             `(make-symbol ,(format "--%s--" (car x)))))
+                     vars)
+         (setf ,@(apply #'append
+                        (mapcar (lambda (x)
+                                  (list `(symbol-value ,(cl-caddr x)) (cadr x)))
+                                vars)))
+         ,ebody))))
+
+(defmacro lexical-let* (bindings &rest body)
+  "Like `let*', but lexically scoped.
+The main visible difference is that lambdas inside BODY, and in
+successive bindings within BINDINGS, will create lexical closures
+as in Common Lisp.  This is similar to the behavior of `let*' in
+Common Lisp.
+\n(fn BINDINGS BODY)"
+  (declare (indent 1) (debug let))
+  (if (null bindings) (cons 'progn body)
+    (setq bindings (reverse bindings))
+    (while bindings
+      (setq body (list `(lexical-let (,(pop bindings)) ,@body))))
+    (car body)))
+
+;; This should really have some way to shadow 'byte-compile properties, etc.
+(defmacro flet (bindings &rest body)
+  "Make temporary overriding function definitions.
+This is an analogue of a dynamically scoped `let' that operates on the function
+cell of FUNCs rather than their value cell.
+If you want the Common-Lisp style of `flet', you should use `cl-flet'.
+The FORMs are evaluated with the specified function definitions in place,
+then the definitions are undone (the FUNCs go back to their previous
+definitions, or lack thereof).
+
+\(fn ((FUNC ARGLIST BODY...) ...) FORM...)"
+  (declare (indent 1) (debug cl-flet)
+           (obsolete "use either `cl-flet' or `cl-letf'."  "24.3"))
+  `(letf ,(mapcar
+           (lambda (x)
+             (if (or (and (fboundp (car x))
+                          (eq (car-safe (symbol-function (car x))) 'macro))
+                     (cdr (assq (car x) macroexpand-all-environment)))
+                 (error "Use `labels', not `flet', to rebind macro names"))
+             (let ((func `(cl-function
+                           (lambda ,(cadr x)
+                             (cl-block ,(car x) ,@(cddr x))))))
+               (when (cl--compiling-file)
+                 ;; Bug#411.  It would be nice to fix this.
+                 (and (get (car x) 'byte-compile)
+                      (error "Byte-compiling a redefinition of `%s' \
+will not work - use `labels' instead" (symbol-name (car x))))
+                 ;; FIXME This affects the rest of the file, when it
+                 ;; should be restricted to the flet body.
+                 (and (boundp 'byte-compile-function-environment)
+                      (push (cons (car x) (eval func))
+                            byte-compile-function-environment)))
+               (list `(symbol-function ',(car x)) func)))
+           bindings)
+     ,@body))
+
+(defmacro labels (bindings &rest body)
+  "Make temporary function bindings.
+Like `cl-labels' except that the lexical scoping is handled via `lexical-let'
+rather than relying on `lexical-binding'."
+  (declare (indent 1) (debug cl-flet) (obsolete cl-labels "24.3"))
+  (let ((vars nil) (sets nil) (newenv macroexpand-all-environment))
+    (dolist (binding bindings)
+      ;; It's important that (not (eq (symbol-name var1) (symbol-name var2)))
+      ;; because these var's *names* get added to the macro-environment.
+      (let ((var (make-symbol (format "--cl-%s--" (car binding)))))
+	(push var vars)
+	(push `(cl-function (lambda . ,(cdr binding))) sets)
+	(push var sets)
+	(push (cons (car binding)
+                    `(lambda (&rest cl-labels-args)
+                       (cl-list* 'funcall ',var
+                                 cl-labels-args)))
+              newenv)))
+    (macroexpand-all `(lexical-let ,vars (setq ,@sets) ,@body) newenv)))
+
+;; Generalized variables are provided by gv.el, but some details are
+;; not 100% compatible: not worth the trouble to add them to cl-lib.el, but we
+;; still need to support old users of cl.el.
+
+(defmacro cl--symbol-function (symbol)
+  "Like `symbol-function' but return `cl--unbound' if not bound."
+  ;; (declare (gv-setter (lambda (store)
+  ;;                       `(if (eq ,store 'cl--unbound)
+  ;;                            (fmakunbound ,symbol) (fset ,symbol ,store)))))
+  `(if (fboundp ,symbol) (symbol-function ,symbol) 'cl--unbound))
+(gv-define-setter cl--symbol-function (store symbol)
+  `(if (eq ,store 'cl--unbound) (fmakunbound ,symbol) (fset ,symbol ,store)))
+
+(defmacro letf (bindings &rest body)
+  "Dynamically scoped let-style bindings for places.
+For more details, see `cl-letf'.  This macro behaves like that one
+in almost every respect (apart from details that relate to some
+deprecated usage of `symbol-function' in place forms)."  ; bug#12760
+  (declare (indent 1) (debug cl-letf))
+  ;; Like cl-letf, but with special handling of symbol-function.
+  `(cl-letf ,(mapcar (lambda (x) (if (eq (car-safe (car x)) 'symbol-function)
+                                `((cl--symbol-function ,@(cdar x)) ,@(cdr x))
+                              x))
+                     bindings)
+            ,@body))
+
+(defun cl--gv-adapt (cl-gv do)
+  ;; This function is used by all .elc files that use define-setf-expander and
+  ;; were compiled with Emacs>=24.3.
+  (let ((vars (nth 0 cl-gv))
+        (vals (nth 1 cl-gv))
+        (binds ())
+        (substs ()))
+    ;; Use cl-sublis as was done in cl-setf-do-modify.
+    (while vars
+      (if (macroexp-copyable-p (car vals))
+          (push (cons (pop vars) (pop vals)) substs)
+        (push (list (pop vars) (pop vals)) binds)))
+    (macroexp-let*
+     binds
+     (funcall do (cl-sublis substs (nth 4 cl-gv))
+              ;; We'd like to do something like
+              ;; (lambda ,(nth 2 cl-gv) ,(nth 3 cl-gv)).
+              (lambda (exp)
+                (macroexp-let2 macroexp-copyable-p v exp
+                  (cl-sublis (cons (cons (car (nth 2 cl-gv)) v)
+                                   substs)
+                             (nth 3 cl-gv))))))))
+
+(defmacro define-setf-expander (name arglist &rest body)
+  "Define a `setf' method.
+This method shows how to handle `setf's to places of the form
+\(NAME ARGS...).  The argument forms ARGS are bound according to
+ARGLIST, as if NAME were going to be expanded as a macro, then
+the BODY forms are executed and must return a list of five elements:
+a temporary-variables list, a value-forms list, a store-variables list
+\(of length one), a store-form, and an access- form.
+
+See `gv-define-expander', and `gv-define-setter' for better and
+simpler ways to define setf-methods."
+  (declare (debug
+            (&define name cl-lambda-list cl-declarations-or-string def-body)))
+  `(progn
+     ,@(if (stringp (car body))
+           (list `(put ',name 'setf-documentation ,(pop body))))
+     (gv-define-expander ,name
+       (cl-function
+        (lambda (do ,@arglist)
+          (cl--gv-adapt (progn ,@body) do))))))
+
+(defmacro defsetf (name arg1 &rest args)
+  "Define a `setf' method.
+This macro is an easy-to-use substitute for `define-setf-expander'
+that works well for simple place forms.
+
+In the simple `defsetf' form, `setf's of the form (setf (NAME
+ARGS...) VAL) are transformed to function or macro calls of the
+form (FUNC ARGS... VAL).  For example:
+
+  (defsetf aref aset)
+
+You can replace this form with `gv-define-simple-setter'.
+
+Alternate form: (defsetf NAME ARGLIST (STORE) BODY...).
+
+Here, the above `setf' call is expanded by binding the argument
+forms ARGS according to ARGLIST, binding the value form VAL to
+STORE, then executing BODY, which must return a Lisp form that
+does the necessary `setf' operation.  Actually, ARGLIST and STORE
+may be bound to temporary variables which are introduced
+automatically to preserve proper execution order of the arguments.
+For example:
+
+  (defsetf nth (n x) (v) `(setcar (nthcdr ,n ,x) ,v))
+
+You can replace this form with `gv-define-setter'.
+
+\(fn NAME [FUNC | ARGLIST (STORE) BODY...])"
+  (declare (debug
+            (&define name
+                     [&or [symbolp &optional stringp]
+                          [cl-lambda-list (symbolp)]]
+                     cl-declarations-or-string def-body)))
+  (if (and (listp arg1) (consp args))
+      ;; Like `gv-define-setter' but with `cl-function'.
+      `(gv-define-expander ,name
+         (lambda (do &rest args)
+           (gv--defsetter ',name
+                          (cl-function
+                           (lambda (,@(car args) ,@arg1) ,@(cdr args)))
+			  do args)))
+    `(gv-define-simple-setter ,name ,arg1 ,(car args))))
+
+;; FIXME: CL used to provide a setf method for `apply', but I haven't been able
+;; to find a case where it worked.  The code below tries to handle it as well.
+;; (defun cl--setf-apply (form last-witness last)
+;;   (cond
+;;    ((not (consp form)) form)
+;;    ((eq (ignore-errors (car (last form))) last-witness)
+;;     `(apply #',(car form) ,@(butlast (cdr form)) ,last))
+;;    ((and (memq (car form) '(let let*))
+;;          (rassoc (list last-witness) (cadr form)))
+;;     (let ((rebind (rassoc (list last-witness) (cadr form))))
+;;     `(,(car form) ,(remq rebind (cadr form))
+;;       ,@(mapcar (lambda (form) (cl--setf-apply form (car rebind) last))
+;;                 (cddr form)))))
+;;    (t (mapcar (lambda (form) (cl--setf-apply form last-witness last)) form))))
+;; (gv-define-setter apply (val fun &rest args)
+;;   (pcase fun (`#',(and (pred symbolp) f) (setq fun f))
+;;          (_ (error "First arg to apply in setf is not #'SYM: %S" fun)))
+;;   (let* ((butlast (butlast args))
+;;          (last (car (last args)))
+;;          (last-witness (make-symbol "--cl-tailarg--"))
+;;          (setter (macroexpand `(setf (,fun ,@butlast ,last-witness) ,val)
+;;                               macroexpand-all-environment)))
+;;     (cl--setf-apply setter last-witness last)))
+
+
+;; FIXME: CL used to provide get-setf-method, which was used by some
+;; setf-expanders, but now that we use gv.el, it is a lot more difficult
+;; and in general impossible to provide get-setf-method.  Hopefully, it
+;; won't be needed.  If needed, we'll have to do something nasty along the
+;; lines of
+;; (defun get-setf-method (place &optional env)
+;;   (let* ((witness (list 'cl-gsm))
+;;          (expansion (gv-letplace (getter setter) place
+;;                      `(,witness ,getter ,(funcall setter witness)))))
+;;     ...find "let prefix" of expansion, extract getter and setter from
+;;     ...the rest, and build the 5-tuple))
+(make-obsolete 'get-setf-method 'gv-letplace "24.3")
+
+(defmacro define-modify-macro (name arglist func &optional doc)
+  "Define a `setf'-like modify macro.
+If NAME is called, it combines its PLACE argument with the other
+arguments from ARGLIST using FUNC.  For example:
+
+  (define-modify-macro incf (&optional (n 1)) +)
+
+You can replace this macro with `gv-letplace'."
+  (declare (debug
+            (&define name cl-lambda-list ;; should exclude &key
+                     symbolp &optional stringp)))
+  (if (memq '&key arglist)
+      (error "&key not allowed in define-modify-macro"))
+  (let ((place (make-symbol "--cl-place--")))
+    `(cl-defmacro ,name (,place ,@arglist)
+       ,doc
+       (,(if (memq '&rest arglist) #'cl-list* #'list)
+        #'cl-callf ',func ,place
+        ,@(cl--arglist-args arglist)))))
+
+;;; Additional compatibility code.
+;; For names that were clean but really aren't needed any more.
+
+(define-obsolete-function-alias 'cl-macroexpand 'macroexpand "24.3")
+(define-obsolete-variable-alias 'cl-macro-environment
+  'macroexpand-all-environment "24.3")
+(define-obsolete-function-alias 'cl-macroexpand-all 'macroexpand-all "24.3")
+
+;;; Hash tables.
+;; This is just kept for compatibility with code byte-compiled by Emacs-20.
+
+;; No idea if this might still be needed.
+(defun cl-not-hash-table (x &optional y &rest _z)
+  (declare (obsolete nil "24.3"))
+  (signal 'wrong-type-argument (list 'cl-hash-table-p (or y x))))
+
+(defvar cl-builtin-gethash (symbol-function 'gethash))
+(make-obsolete-variable 'cl-builtin-gethash nil "24.3")
+(defvar cl-builtin-remhash (symbol-function 'remhash))
+(make-obsolete-variable 'cl-builtin-remhash nil "24.3")
+(defvar cl-builtin-clrhash (symbol-function 'clrhash))
+(make-obsolete-variable 'cl-builtin-clrhash nil "24.3")
+(defvar cl-builtin-maphash (symbol-function 'maphash))
+
+(make-obsolete-variable 'cl-builtin-maphash nil "24.3")
+(define-obsolete-function-alias 'cl-map-keymap 'map-keymap "24.3")
+(define-obsolete-function-alias 'cl-copy-tree 'copy-tree "24.3")
+(define-obsolete-function-alias 'cl-gethash 'gethash "24.3")
+(define-obsolete-function-alias 'cl-puthash 'puthash "24.3")
+(define-obsolete-function-alias 'cl-remhash 'remhash "24.3")
+(define-obsolete-function-alias 'cl-clrhash 'clrhash "24.3")
+(define-obsolete-function-alias 'cl-maphash 'maphash "24.3")
+(define-obsolete-function-alias 'cl-make-hash-table 'make-hash-table "24.3")
+(define-obsolete-function-alias 'cl-hash-table-p 'hash-table-p "24.3")
+(define-obsolete-function-alias 'cl-hash-table-count 'hash-table-count "24.3")
+
+(define-obsolete-function-alias 'cl-map-keymap-recursively
+  'cl--map-keymap-recursively "24.3")
+(define-obsolete-function-alias 'cl-map-intervals 'cl--map-intervals "24.3")
+(define-obsolete-function-alias 'cl-map-extents 'cl--map-overlays "24.3")
 
 (defun cl-maclisp-member (item list)
+  (declare (obsolete member "24.3"))
   (while (and list (not (equal item (car list)))) (setq list (cdr list)))
   list)
 
-(defalias 'cl-member 'memq)   ; for compatibility with old CL package
-
-;; Autoloaded, but we have not loaded cl-loaddefs yet.
-(declare-function floor* "cl-extra" (x &optional y))
-(declare-function ceiling* "cl-extra" (x &optional y))
-(declare-function truncate* "cl-extra" (x &optional y))
-(declare-function round* "cl-extra" (x &optional y))
-(declare-function mod* "cl-extra" (x y))
-
-(defalias 'cl-floor 'floor*)
-(defalias 'cl-ceiling 'ceiling*)
-(defalias 'cl-truncate 'truncate*)
-(defalias 'cl-round 'round*)
-(defalias 'cl-mod 'mod*)
-
-(defun adjoin (cl-item cl-list &rest cl-keys)  ; See compiler macro in cl-macs
-  "Return ITEM consed onto the front of LIST only if it's not already there.
-Otherwise, return LIST unmodified.
-\nKeywords supported:  :test :test-not :key
-\n(fn ITEM LIST [KEYWORD VALUE]...)"
-  (cond ((or (equal cl-keys '(:test eq))
-	     (and (null cl-keys) (not (numberp cl-item))))
-	 (if (memq cl-item cl-list) cl-list (cons cl-item cl-list)))
-	((or (equal cl-keys '(:test equal)) (null cl-keys))
-	 (if (member cl-item cl-list) cl-list (cons cl-item cl-list)))
-	(t (apply 'cl-adjoin cl-item cl-list cl-keys))))
-
-(defun subst (cl-new cl-old cl-tree &rest cl-keys)
-  "Substitute NEW for OLD everywhere in TREE (non-destructively).
-Return a copy of TREE with all elements `eql' to OLD replaced by NEW.
-\nKeywords supported:  :test :test-not :key
-\n(fn NEW OLD TREE [KEYWORD VALUE]...)"
-  (if (or cl-keys (and (numberp cl-old) (not (integerp cl-old))))
-      (apply 'sublis (list (cons cl-old cl-new)) cl-tree cl-keys)
-    (cl-do-subst cl-new cl-old cl-tree)))
-
-(defun cl-do-subst (cl-new cl-old cl-tree)
-  (cond ((eq cl-tree cl-old) cl-new)
-	((consp cl-tree)
-	 (let ((a (cl-do-subst cl-new cl-old (car cl-tree)))
-	       (d (cl-do-subst cl-new cl-old (cdr cl-tree))))
-	   (if (and (eq a (car cl-tree)) (eq d (cdr cl-tree)))
-	       cl-tree (cons a d))))
-	(t cl-tree)))
-
-(defun acons (key value alist)
-  "Add KEY and VALUE to ALIST.
-Return a new list with (cons KEY VALUE) as car and ALIST as cdr."
-  (cons (cons key value) alist))
-
-(defun pairlis (keys values &optional alist)
-  "Make an alist from KEYS and VALUES.
-Return a new alist composed by associating KEYS to corresponding VALUES;
-the process stops as soon as KEYS or VALUES run out.
-If ALIST is non-nil, the new pairs are prepended to it."
-  (nconc (mapcar* 'cons keys values) alist))
-
-
-;;; Miscellaneous.
-
-;; Define data for indentation and edebug.
-(dolist (entry
-         '(((defun* defmacro*) 2)
-           ((function*) nil
-            (&or symbolp ([&optional 'macro] 'lambda (&rest sexp) &rest form)))
-           ((eval-when) 1 (sexp &rest form))
-           ((declare) nil (&rest sexp))
-           ((the) 1 (sexp &rest form))
-           ((case ecase typecase etypecase) 1 (form &rest (sexp &rest form)))
-           ((block return-from) 1 (sexp &rest form))
-           ((return) nil (&optional form))
-           ((do do*) 2 ((&rest &or symbolp (symbolp &optional form form))
-                        (form &rest form)
-                        &rest form))
-           ((do-symbols) 1 ((symbolp form &optional form form) &rest form))
-           ((do-all-symbols) 1 ((symbolp form &optional form) &rest form))
-           ((psetq setf psetf) nil edebug-setq-form)
-           ((progv) 2 (&rest form))
-           ((flet labels macrolet) 1
-            ((&rest (sexp sexp &rest form)) &rest form))
-           ((symbol-macrolet lexical-let lexical-let*) 1
-            ((&rest &or symbolp (symbolp form)) &rest form))
-           ((multiple-value-bind) 2 ((&rest symbolp) &rest form))
-           ((multiple-value-setq) 1 ((&rest symbolp) &rest form))
-           ((incf decf remf pushnew shiftf rotatef) nil (&rest form))
-           ((letf letf*) 1 ((&rest (&rest form)) &rest form))
-           ((callf destructuring-bind) 2 (sexp form &rest form))
-           ((callf2) 3 (sexp form form &rest form))
-           ((loop) nil (&rest &or symbolp form))
-           ((ignore-errors) 0 (&rest form))))
-  (dolist (func (car entry))
-    (put func 'lisp-indent-function (nth 1 entry))
-    (put func 'lisp-indent-hook (nth 1 entry))
-    (or (get func 'edebug-form-spec)
-        (put func 'edebug-form-spec (nth 2 entry)))))
-
-;; Autoload the other portions of the package.
-;; We want to replace the basic versions of dolist, dotimes, declare below.
-(fmakunbound 'dolist)
-(fmakunbound 'dotimes)
-(fmakunbound 'declare)
-(load "cl-loaddefs" nil 'quiet)
-
-;; This goes here so that cl-macs can find it if it loads right now.
-(provide 'cl)
-
-;; Things to do after byte-compiler is loaded.
-
-(defvar cl-hacked-flag nil)
-(defun cl-hack-byte-compiler ()
-  (and (not cl-hacked-flag) (fboundp 'byte-compile-file-form)
-       (progn
-         (setq cl-hacked-flag t)  ; Do it first, to prevent recursion.
-         (load "cl-macs" nil t)
-         (run-hooks 'cl-hack-bytecomp-hook))))
-
-;; Try it now in case the compiler has already been loaded.
-(cl-hack-byte-compiler)
-
-;; Also make a hook in case compiler is loaded after this file.
-(add-hook 'bytecomp-load-hook 'cl-hack-byte-compiler)
-
-
-;; The following ensures that packages which expect the old-style cl.el
-;; will be happy with this one.
+;; Used in the expansion of the old `defstruct'.
+(defun cl-struct-setf-expander (x name accessor pred-form pos)
+  (declare (obsolete nil "24.3"))
+  (let* ((temp (make-symbol "--cl-x--")) (store (make-symbol "--cl-store--")))
+    (list (list temp) (list x) (list store)
+	  `(progn
+             ,@(and pred-form
+                    (list `(or ,(cl-subst temp 'cl-x pred-form)
+                               (error ,(format
+                                        "%s storing a non-%s"
+                                        accessor name)))))
+             ,(if (eq (car (get name 'cl-struct-type)) 'vector)
+                  `(aset ,temp ,pos ,store)
+                `(setcar
+                  ,(if (<= pos 5)
+                       (let ((xx temp))
+                         (while (>= (setq pos (1- pos)) 0)
+                           (setq xx `(cdr ,xx)))
+                         xx)
+                     `(nthcdr ,pos ,temp))
+                  ,store)))
+	  (list accessor temp))))
 
 (provide 'cl)
-
-(run-hooks 'cl-load-hook)
-
-;; Local variables:
-;; byte-compile-dynamic: t
-;; byte-compile-warnings: (not cl-functions)
-;; End:
-
 ;;; cl.el ends here

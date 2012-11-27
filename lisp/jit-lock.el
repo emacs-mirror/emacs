@@ -29,8 +29,6 @@
 
 
 (eval-when-compile
-  (require 'cl)
-
   (defmacro with-buffer-prepared-for-jit-lock (&rest body)
     "Execute BODY in current buffer, overriding several variables.
 Preserves the `buffer-modified-p' state of the current buffer."

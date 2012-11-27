@@ -50,97 +50,51 @@ the separate window."
   :group 'epa)
 
 (defface epa-validity-high
-  `((((class color) (background dark))
-     (:foreground "PaleTurquoise"
-		  ,@(if (assq ':weight custom-face-attributes)
-			'(:weight bold)
-		      '(:bold t))))
-    (t
-     (,@(if (assq ':weight custom-face-attributes)
-	    '(:weight bold)
-	  '(:bold t)))))
-  "Face used for displaying the high validity."
+  '((default :weight bold)
+    (((class color) (background dark)) :foreground "PaleTurquoise"))
+  "Face for high validity EPA information."
   :group 'epa-faces)
 
 (defface epa-validity-medium
-  `((((class color) (background dark))
-     (:foreground "PaleTurquoise"
-		  ,@(if (assq ':slant custom-face-attributes)
-			'(:slant italic)
-		      '(:italic t))))
-    (t
-     (,@(if (assq ':slant custom-face-attributes)
-	    '(:slant italic)
-	  '(:italic t)))))
-  "Face used for displaying the medium validity."
+  '((default :slant italic)
+    (((class color) (background dark)) :foreground "PaleTurquoise"))
+  "Face for medium validity EPA information."
   :group 'epa-faces)
 
 (defface epa-validity-low
-  `((t
-     (,@(if (assq ':slant custom-face-attributes)
-	    '(:slant italic)
-	  '(:italic t)))))
+  '((t :slant italic))
   "Face used for displaying the low validity."
   :group 'epa-faces)
 
 (defface epa-validity-disabled
-  `((t
-     (,@(if (assq ':slant custom-face-attributes)
-	    '(:slant italic)
-	  '(:italic t))
-	:inverse-video t)))
+  '((t :slant italic :inverse-video t))
   "Face used for displaying the disabled validity."
   :group 'epa-faces)
 
 (defface epa-string
   '((((class color) (background dark))
-     (:foreground "lightyellow"))
+     :foreground "lightyellow")
     (((class color) (background light))
-     (:foreground "blue4")))
+     :foreground "blue4"))
   "Face used for displaying the string."
   :group 'epa-faces)
 
 (defface epa-mark
-  `((((class color) (background dark))
-     (:foreground "orange"
-		  ,@(if (assq ':weight custom-face-attributes)
-			'(:weight bold)
-		      '(:bold t))))
-    (((class color) (background light))
-     (:foreground "red"
-		  ,@(if (assq ':weight custom-face-attributes)
-			'(:weight bold)
-		      '(:bold t))))
-    (t
-     (,@(if (assq ':weight custom-face-attributes)
-	    '(:weight bold)
-	  '(:bold t)))))
+  '((default :weight bold)
+    (((class color) (background dark))  :foreground "orange")
+    (((class color) (background light)) :foreground "red"))
   "Face used for displaying the high validity."
   :group 'epa-faces)
 
 (defface epa-field-name
-  `((((class color) (background dark))
-     (:foreground "PaleTurquoise"
-		  ,@(if (assq ':weight custom-face-attributes)
-			'(:weight bold)
-		      '(:bold t))))
-    (t
-     (,@(if (assq ':weight custom-face-attributes)
-	    '(:weight bold)
-	  '(:bold t)))))
+  '((default :weight bold)
+    (((class color) (background dark)) :foreground "PaleTurquoise"))
   "Face for the name of the attribute field."
   :group 'epa)
 
 (defface epa-field-body
-  `((((class color) (background dark))
-     (:foreground "turquoise"
-		  ,@(if (assq ':slant custom-face-attributes)
-			'(:slant italic)
-		      '(:italic t))))
-    (t
-     (,@(if (assq ':slant custom-face-attributes)
-	    '(:slant italic)
-	  '(:italic t)))))
+  '((default :slant italic)
+    (((class color) (background dark)) :foreground "turquoise"))
   "Face for the body of the attribute field."
   :group 'epa)
 
@@ -177,18 +131,18 @@ the separate window."
     (20 . ?G)))
 
 (defvar epa-protocol 'OpenPGP
-  "*The default protocol.
+  "The default protocol.
 The value can be either OpenPGP or CMS.
 
 You should bind this variable with `let', but do not set it globally.")
 
 (defvar epa-armor nil
-  "*If non-nil, epa commands create ASCII armored output.
+  "If non-nil, epa commands create ASCII armored output.
 
 You should bind this variable with `let', but do not set it globally.")
 
 (defvar epa-textmode nil
-  "*If non-nil, epa commands treat input files as text.
+  "If non-nil, epa commands treat input files as text.
 
 You should bind this variable with `let', but do not set it globally.")
 
@@ -631,8 +585,8 @@ If SECRET is non-nil, list secret keys instead of public keys."
     (message "%s" info)))
 
 (defun epa-display-verify-result (verify-result)
+  (declare (obsolete epa-display-info "23.1"))
   (epa-display-info (epg-verify-result-to-string verify-result)))
-(make-obsolete 'epa-display-verify-result 'epa-display-info "23.1")
 
 (defun epa-passphrase-callback-function (context key-id handback)
   (if (eq key-id 'SYM)

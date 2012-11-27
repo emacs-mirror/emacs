@@ -49,7 +49,7 @@
 
 ;; INSTALLATION ======================================================
 
-;; Put the following in your ~/.emacs file.
+;; Put the following in your init file.
 
 ;; If you want the *Macroexpansion* window to be not higher than
 ;; necessary:
@@ -80,7 +80,7 @@
 ;;   making comments visible in the expansion.
 ;; - All work is done in core memory, no need for temporary files.
 
-;; ACKNOWLEDGEMENTS ==================================================
+;; ACKNOWLEDGMENTS ===================================================
 
 ;; A lot of thanks to Don Maszle who did a great work of testing, bug
 ;; reporting and suggestion of new features.  This work has been
@@ -106,12 +106,12 @@
 
 
 (defcustom c-macro-shrink-window-flag nil
-  "*Non-nil means shrink the *Macroexpansion* window to fit its contents."
+  "Non-nil means shrink the *Macroexpansion* window to fit its contents."
   :type 'boolean
   :group 'c-macro)
 
 (defcustom c-macro-prompt-flag nil
-  "*Non-nil makes `c-macro-expand' prompt for preprocessor arguments."
+  "Non-nil makes `c-macro-expand' prompt for preprocessor arguments."
   :type 'boolean
   :group 'c-macro)
 
@@ -141,7 +141,7 @@ option, or to set an equivalent one."
   :group 'c-macro)
 
 (defcustom c-macro-cppflags ""
-  "*Preprocessor flags used by `c-macro-expand'."
+  "Preprocessor flags used by `c-macro-expand'."
   :type 'string
   :group 'c-macro)
 

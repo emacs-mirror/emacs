@@ -28,7 +28,6 @@ GNUstep port and post-20 update by Adrian Robert (arobert@cogsci.ucsd.edu)
 /* This should be the first include, as it may set up #defines affecting
    interpretation of even the system includes. */
 #include <config.h>
-#include <setjmp.h>
 
 #include "lisp.h"
 #include "nsterm.h"
@@ -62,7 +61,7 @@ symbol_to_nsstring (Lisp_Object sym)
   if (EQ (sym, QPRIMARY))     return NXPrimaryPboard;
   if (EQ (sym, QSECONDARY))   return NXSecondaryPboard;
   if (EQ (sym, QTEXT))        return NSStringPboardType;
-  return [NSString stringWithUTF8String: SDATA (XSYMBOL (sym)->xname)];
+  return [NSString stringWithUTF8String: SSDATA (SYMBOL_NAME (sym))];
 }
 
 static NSPasteboard *
@@ -112,8 +111,8 @@ clean_local_selection_data (Lisp_Object obj)
 
   if (VECTORP (obj))
     {
-      int i;
-      int size = ASIZE (obj);
+      ptrdiff_t i;
+      ptrdiff_t size = ASIZE (obj);
       Lisp_Object copy;
 
       if (size == 1)
@@ -157,7 +156,7 @@ ns_string_to_pasteboard_internal (id pb, Lisp_Object str, NSString *gtype)
 
       CHECK_STRING (str);
 
-      utfStr = SDATA (str);
+      utfStr = SSDATA (str);
       nsStr = [[NSString alloc] initWithBytesNoCopy: utfStr
                                              length: SBYTES (str)
                                            encoding: NSUTF8StringEncoding
@@ -184,7 +183,7 @@ ns_get_local_selection (Lisp_Object selection_name,
 {
   Lisp_Object local_value;
   Lisp_Object handler_fn, value, type, check;
-  int count;
+  ptrdiff_t count;
 
   local_value = assq_no_quit (selection_name, Vselection_alist);
 
@@ -296,8 +295,8 @@ ns_string_from_pasteboard (id pb)
       utfStr = [mstr UTF8String];
       length = [mstr lengthOfBytesUsingEncoding: NSUTF8StringEncoding];
 
-#if ! defined (NS_IMPL_COCOA) || MAC_OS_X_VERSION_MAX_ALLOWED < MAC_OS_X_VERSION_10_4
-      if (!utfStr) 
+#if ! defined (NS_IMPL_COCOA)
+      if (!utfStr)
         {
           utfStr = [mstr cString];
           length = strlen (utfStr);
@@ -307,7 +306,7 @@ ns_string_from_pasteboard (id pb)
   NS_HANDLER
     {
       message1 ("ns_string_from_pasteboard: UTF8String failed\n");
-#if defined (NS_IMPL_COCOA) && MAC_OS_X_VERSION_MAX_ALLOWED >= MAC_OS_X_VERSION_10_4
+#if defined (NS_IMPL_COCOA)
       utfStr = "Conversion failed";
 #else
       utfStr = [str lossyCString];
@@ -388,7 +387,7 @@ On Nextstep, FRAME is unused.  */)
       for (rest = Vns_sent_selection_hooks; CONSP (rest); rest = Fcdr (rest))
         call3 (Fcar (rest), selection, target_symbol, successful_p);
     }
-  
+
   return value;
 }
 
@@ -443,7 +442,7 @@ On Nextstep, TERMINAL is unused.  */)
   if (EQ (selection, Qt)) selection = QSECONDARY;
   pb = ns_symbol_to_pb (selection);
   if (pb == nil) return Qnil;
-  
+
   types = [pb types];
   return ([types count] == 0) ? Qnil : Qt;
 }
@@ -603,4 +602,3 @@ The functions are called with one argument, the selection type\n\
   Qforeign_selection = intern_c_string ("foreign-selection");
   staticpro (&Qforeign_selection);
 }
-

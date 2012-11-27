@@ -33,15 +33,13 @@
 ;; The command is found in this-command
 ;; and the keys are returned by (this-command-keys).
 
-(eval-when-compile (require 'cl))
-
+;;;###autoload
+(define-obsolete-variable-alias 'disabled-command-hook
+  'disabled-command-function "22.1")
 ;;;###autoload
 (defvar disabled-command-function 'disabled-command-function
   "Function to call to handle disabled commands.
 If nil, the feature is disabled, i.e., all commands work normally.")
-
-;;;###autoload
-(define-obsolete-variable-alias 'disabled-command-hook 'disabled-command-function "22.1")
 
 ;; It is ok here to assume that this-command is a symbol
 ;; because we won't get called otherwise.
@@ -101,7 +99,7 @@ SPC to try the command just this once, but leave it disabled.
 	 (ding)
 	 (message "Please type y, n, ! or SPC (the space bar): "))))
     (setq char (downcase char))
-    (case char
+    (pcase char
      (?\C-g (setq quit-flag t))
      (?! (setq disabled-command-function nil))
      (?y
@@ -161,8 +159,8 @@ to future sessions."
 (defun disable-command (command)
   "Require special confirmation to execute COMMAND from now on.
 COMMAND must be a symbol.
-This command alters the user's .emacs file so that this will apply
-to future sessions."
+This command alters your init file so that this choice applies to
+future sessions."
   (interactive "CDisable command: ")
   (en/disable-command command t))
 

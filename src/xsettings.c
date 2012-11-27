@@ -21,7 +21,6 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 
 #include <float.h>
 #include <limits.h>
-#include <setjmp.h>
 #include <fcntl.h>
 #include "lisp.h"
 #include "xterm.h"
@@ -30,7 +29,6 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #include "keyboard.h"
 #include "blockinput.h"
 #include "termhooks.h"
-#include "termopts.h"
 
 #include <X11/Xproto.h>
 
@@ -159,8 +157,9 @@ store_tool_bar_style_changed (const char *newstyle,
                                 XCAR (dpyinfo->name_list_element));
 }
 
-
+#ifdef HAVE_XFT
 #define XSETTINGS_FONT_NAME       "Gtk/FontName"
+#endif
 #define XSETTINGS_TOOL_BAR_STYLE  "Gtk/ToolbarStyle"
 
 enum {
@@ -710,10 +709,12 @@ apply_xft_settings (struct x_display_info *dpyinfo,
       if (send_event_p)
         store_config_changed_event (Qfont_render,
                                     XCAR (dpyinfo->name_list_element));
-      sprintf (buf, format, oldsettings.aa, oldsettings.hinting,
-	       oldsettings.rgba, oldsettings.lcdfilter,
-	       oldsettings.hintstyle, oldsettings.dpi);
-      Vxft_settings = build_string (buf);
+      Vxft_settings
+	= make_formatted_string (buf, format,
+				 oldsettings.aa, oldsettings.hinting,
+				 oldsettings.rgba, oldsettings.lcdfilter,
+				 oldsettings.hintstyle, oldsettings.dpi);
+
     }
   else
     FcPatternDestroy (pat);
@@ -927,7 +928,7 @@ init_xsettings (struct x_display_info *dpyinfo)
 {
   Display *dpy = dpyinfo->display;
 
-  BLOCK_INPUT;
+  block_input ();
 
   /* Select events so we can detect client messages sent when selection
      owner changes.  */
@@ -937,7 +938,7 @@ init_xsettings (struct x_display_info *dpyinfo)
   if (dpyinfo->xsettings_window != None)
     read_and_apply_settings (dpyinfo, False);
 
-  UNBLOCK_INPUT;
+  unblock_input ();
 }
 
 void
@@ -1024,7 +1025,7 @@ syms_of_xsettings (void)
   defsubr (&Sfont_get_system_normal_font);
 
   DEFVAR_BOOL ("font-use-system-font", use_system_font,
-    doc: /* *Non-nil means to apply the system defined font dynamically.
+    doc: /* Non-nil means to apply the system defined font dynamically.
 When this is non-nil and the system defined fixed width font changes, we
 update frames dynamically.
 If this variable is nil, Emacs ignores system font changes.  */);
@@ -1032,7 +1033,7 @@ If this variable is nil, Emacs ignores system font changes.  */);
 
   DEFVAR_LISP ("xft-settings", Vxft_settings,
                doc: /* Font settings applied to Xft.  */);
-  Vxft_settings = make_string ("", 0);
+  Vxft_settings = empty_unibyte_string;
 
 #ifdef HAVE_XFT
   Fprovide (intern_c_string ("font-render-setting"), Qnil);

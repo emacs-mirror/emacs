@@ -2,8 +2,7 @@
 @c This is part of the GNU Emacs Lisp Reference Manual.
 @c Copyright (C) 1990-1995, 1998-1999, 2001-2012 Free Software Foundation, Inc.
 @c See the file elisp.texi for copying conditions.
-@setfilename ../../info/markers
-@node Markers, Text, Positions, Top
+@node Markers
 @chapter Markers
 @cindex markers
 
@@ -308,11 +307,6 @@ This function returns the buffer that @var{marker} points into, or
 @end example
 @end defun
 
-@defun buffer-has-markers-at position
-This function returns @code{t} if one or more markers
-point at position @var{position} in the current buffer.
-@end defun
-
 @node Marker Insertion Types
 @section Marker Insertion Types
 
@@ -356,9 +350,9 @@ the current buffer.
 
 If @var{position} is less than 1, @code{set-marker} moves @var{marker}
 to the beginning of the buffer.  If @var{position} is greater than the
-size of the buffer, @code{set-marker} moves marker to the end of the
-buffer.  If @var{position} is @code{nil} or a marker that points
-nowhere, then @var{marker} is set to point nowhere.
+size of the buffer (@pxref{Point}), @code{set-marker} moves marker to
+the end of the buffer.  If @var{position} is @code{nil} or a marker
+that points nowhere, then @var{marker} is set to point nowhere.
 
 The value returned is @var{marker}.
 

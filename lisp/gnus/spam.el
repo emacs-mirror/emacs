@@ -2088,11 +2088,6 @@ See the Info node `(gnus)Fancy Mail Splitting' for more details."
 
 ;; all this is done inside a condition-case to trap errors
 
-(eval-when-compile
-  (autoload 'bbdb-buffer "bbdb")
-  (autoload 'bbdb-create-internal "bbdb")
-  (autoload 'bbdb-search-simple "bbdb"))
-
 ;; Autoloaded in message, which we require.
 (declare-function gnus-extract-address-components "gnus-util" (from))
 
@@ -2104,9 +2099,13 @@ See the Info node `(gnus)Fancy Mail Splitting' for more details."
           (file-error
            ;; `bbdb-records' should not be bound as an autoload function
            ;; before loading bbdb because of `bbdb-hashtable-size'.
+           (defalias 'bbdb-buffer 'ignore)
+           (defalias 'bbdb-create-internal 'ignore)
            (defalias 'bbdb-records 'ignore)
            (defalias 'spam-BBDB-register-routine 'ignore)
            (defalias 'spam-enter-ham-BBDB 'ignore)
+           (defalias 'spam-exists-in-BBDB-p 'ignore)
+           (defalias 'bbdb-gethash 'ignore)
            nil))
 
     ;; when the BBDB changes, we want to clear out our cache
@@ -2126,7 +2125,7 @@ See the Info node `(gnus)Fancy Mail Splitting' for more details."
                                     'ignore))
                  (net-address (nth 1 parsed-address))
                  (record (and net-address
-                              (bbdb-search-simple nil net-address))))
+                              (spam-exists-in-BBDB-p net-address))))
             (when net-address
               (gnus-message 6 "%s address %s %s BBDB"
                             (if remove "Deleting" "Adding")
@@ -2148,15 +2147,17 @@ See the Info node `(gnus)Fancy Mail Splitting' for more details."
     (defun spam-BBDB-unregister-routine (articles)
       (spam-BBDB-register-routine articles t))
 
+    (defsubst spam-exists-in-BBDB-p (net)
+      (when (and (stringp net) (not (zerop (length net))))
+        (bbdb-records)
+        (bbdb-gethash (downcase net))))
+
     (defun spam-check-BBDB ()
       "Mail from people in the BBDB is classified as ham or non-spam"
-      (let ((who (message-fetch-field "from")))
-        (when who
-          (setq who (nth 1 (gnus-extract-address-components who)))
-          (if
-              (if (fboundp 'bbdb-search)
-                  (bbdb-search (bbdb-records) who) ;; v3
-                (bbdb-search-simple nil who)) ;; v2
+      (let ((net (message-fetch-field "from")))
+        (when net
+          (setq net (nth 1 (gnus-extract-address-components net)))
+          (if (spam-exists-in-BBDB-p net)
               t
             (if spam-use-BBDB-exclusive
                 spam-split-group

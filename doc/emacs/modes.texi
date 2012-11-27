@@ -2,7 +2,7 @@
 @c Copyright (C) 1985-1987, 1993-1995, 1997, 2000-2012
 @c   Free Software Foundation, Inc.
 @c See file emacs.texi for copying conditions.
-@node Modes, Indentation, International, Top
+@node Modes
 @chapter Major and Minor Modes
 
   Emacs contains many @dfn{editing modes} that alter its basic

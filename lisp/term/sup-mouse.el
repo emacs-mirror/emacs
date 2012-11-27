@@ -63,7 +63,7 @@ executes the mouse commands.
 2R delete region	  |
 3R copy region		  |
 
-on modeline		    on \"scroll bar\"	in minibuffer
+on mode line		    on \"scroll bar\"	in minibuffer
  L scroll-up		    line to top		execute-extended-command
  C proportional goto-char   line to middle	mouse-help
  R scroll-down		    line to bottom	eval-expression"
@@ -79,14 +79,14 @@ on modeline		    on \"scroll bar\"	in minibuffer
        (old-window (selected-window))
        (in-minibuf-p (eq y (1- (frame-height))))
        (same-window-p (and (not in-minibuf-p) (eq window old-window)))
-       (in-modeline-p (eq y (1- (nth 3 edges))))
+       (in-mode-line-p (eq y (1- (nth 3 edges))))
        (in-scrollbar-p (>= x (1- (nth 2 edges)))))
     (setq x (- x (nth 0 edges)))
     (setq y (- y (nth 1 edges)))
 
 ;    (error "mouse-hit %d %d %d" buttons x y) ;;;; debug
 
-    (cond (in-modeline-p
+    (cond (in-mode-line-p
 	   (select-window window)
 	   (cond ((= buttons mouse-left)
 		  (scroll-up))

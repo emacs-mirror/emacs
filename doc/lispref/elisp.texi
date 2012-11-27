@@ -1,11 +1,58 @@
 \input texinfo  @c -*-texinfo-*-
 @c %**start of header
 @setfilename elisp
+
+@ifset VOL1
+@set volflag
+@set voltitle Volume 1
+@end ifset
+
+@ifset VOL2
+@set volflag
+@set voltitle Volume 2
+@end ifset
+
+@ifset volflag
+@settitle GNU Emacs Lisp Reference Manual: @value{voltitle}
+@end ifset
+@ifclear volflag
 @settitle GNU Emacs Lisp Reference Manual
+@end ifclear
+
 @c %**end of header
 
+@c See two-volume-cross-refs.txt.
+@tex
+@ifset VOL1
+\message{Formatting for two volume edition...Volume 1...}
+%
+% Read special toc file, set up in two-volume.make.
+\gdef\tocreadfilename{elisp1-toc-ready.toc}
+%
+% Don't make outlines, they're not needed and \readdatafile can't pay
+% attention to the special definition above.
+\global\let\pdfmakeoutlines=\relax
+%
+% Start volume 1 chapter numbering at 1; this must be listed as chapno0.
+\global\chapno=0
+@end ifset
+@ifset VOL2
+\message{Formatting for two volume edition...Volume 2...}
+%
+% Read special toc file, set up in two-volume.make.
+\gdef\tocreadfilename{elisp2-toc-ready.toc}
+%
+% Don't make outlines, they're not needed and \readdatafile can't pay
+% attention to the special definition above.
+\global\let\pdfmakeoutlines=\relax
+%
+% Start volume 2 chapter numbering at 27; this must be listed as chapno26
+\global\chapno=26
+@end ifset
+@end tex
+
+
 @c Version of the manual and of Emacs.
-@c Please remember to update these in vol1.texi and vol2.texi as well.
 @c (See comments for EDITION in emacs.texi)
 @set VERSION  3.1
 @include emacsver.texi
@@ -15,6 +62,10 @@
 @c copy of this manual that will be published.  The manual should go
 @c onto the distribution in the full, 8.5 x 11" size.
 @c @set smallbook
+
+@ifset volflag
+@smallbook
+@end ifset
 
 @ifset smallbook
 @smallbook
@@ -73,6 +124,9 @@ developing GNU and promoting software freedom.''
 
 @titlepage
 @title GNU Emacs Lisp Reference Manual
+@ifset volflag
+@subtitle @value{voltitle}
+@end ifset
 @subtitle For Emacs Version @value{EMACSVER}
 @subtitle Revision @value{VERSION}, @value{DATE}
 
@@ -100,13 +154,12 @@ Cover art by Etienne Suvasa.
 
 
 @ifnottex
-@node Top, Introduction, (dir), (dir)
+@node Top
 @top Emacs Lisp
 
 @insertcopying
 @end ifnottex
 
-@c Copy any updates to vol1.texi and vol2.texi.
 @menu
 * Introduction::            Introduction and conventions used.
 
@@ -187,7 +240,6 @@ Appendices
 @c be correctly identified by `texinfo-multiple-files-update'.  In
 @c particular, the detailed menu header line MUST be identical to the
 @c value of `texinfo-master-menu-header'.  See texnfo-upd.el.
-@c Copy any updates to vol1.texi and vol2.texi.
 
 @detailmenu
  --- The Detailed Node Listing ---
@@ -202,7 +254,7 @@ Introduction
 * Lisp History::            Emacs Lisp is descended from Maclisp.
 * Conventions::             How the manual is formatted.
 * Version Info::            Which Emacs version is running?
-* Acknowledgements::        The authors, editors, and sponsors of this manual.
+* Acknowledgments::         The authors, editors, and sponsors of this manual.
 
 Conventions
 
@@ -434,6 +486,7 @@ Variables
 * Variable Aliases::        Variables that are aliases for other variables.
 * Variables with Restricted Values::  Non-constant variables whose value can
                                         @emph{not} be an arbitrary Lisp object.
+* Generalized Variables::   Extending the concept of variables.
 
 Scoping Rules for Variable Bindings
 
@@ -448,6 +501,11 @@ Buffer-Local Variables
 * Creating Buffer-Local::   Creating and destroying buffer-local bindings.
 * Default Value::           The default value is seen in buffers
                               that don't have their own buffer-local values.
+
+Generalized Variables
+
+* Setting Generalized Variables::   The @code{setf} macro.
+* Adding Generalized Variables::    Defining new @code{setf} forms.
 
 Functions
 
@@ -464,6 +522,7 @@ Functions
 * Obsolete Functions::      Declaring functions obsolete.
 * Inline Functions::        Defining functions that the compiler
                               will expand inline.
+* Declare Form::          Adding additional information about a function.
 * Declaring Functions::     Telling the compiler that a function is defined.
 * Function Safety::         Determining whether a function is safe to call.
 * Related Topics::          Cross-references to specific Lisp primitives
@@ -558,6 +617,7 @@ Debugging Lisp Programs
 * Edebug::                  A source-level Emacs Lisp debugger.
 * Syntax Errors::           How to find syntax errors.
 * Test Coverage::           Ensuring you have tested all branches in your code.
+* Profiling::               Measuring the resources that your code uses.
 
 The Lisp Debugger
 
@@ -747,17 +807,14 @@ Menu Keymaps
 * Menu Bar::                How to customize the menu bar.
 * Tool Bar::                A tool bar is a row of images.
 * Modifying Menus::         How to add new items to a menu.
+* Easy Menu::               A convenience macro for defining menus.
 
 Defining Menus
 
-* Simple Menu Items::       A simple kind of menu key binding,
-                              limited in capabilities.
-* Extended Menu Items::     More powerful menu item definitions
-                              let you specify keywords to enable
-                              various features.
+* Simple Menu Items::       A simple kind of menu key binding.
+* Extended Menu Items::     More complex menu item definitions.
 * Menu Separators::         Drawing a horizontal line through a menu.
 * Alias Menu Items::        Using command aliases in menu items.
-* Toolkit Differences::     Not all toolkits provide the same features.
 
 Major and Minor Modes
 
@@ -945,6 +1002,8 @@ Windows
 * Resizing Windows::        Changing the sizes of windows.
 * Splitting Windows::       Splitting one window into two windows.
 * Deleting Windows::        Deleting a window gives its space to other windows.
+* Recombining Windows::     Preserving the frame layout when splitting and
+                              deleting windows.
 * Selecting Windows::       The selected window is the one that you edit in.
 * Cyclic Window Ordering::  Moving around the existing windows.
 * Buffers and Windows::     Each window displays the contents of a buffer.
@@ -1071,9 +1130,9 @@ Text
 * Case Changes::            Case conversion of parts of the buffer.
 * Text Properties::         Assigning Lisp property lists to text characters.
 * Substitution::            Replacing a given character wherever it appears.
-* Transposition::           Swapping two portions of a buffer.
 * Registers::               How registers are implemented.  Accessing
                               the text or position stored in a register.
+* Transposition::           Swapping two portions of a buffer.
 * Base 64::                 Conversion to or from base 64 encoding.
 * Checksum/Hash::           Computing cryptographic hashes.
 * Parsing HTML/XML::        Parsing HTML and XML.
@@ -1189,7 +1248,6 @@ Syntax Tables
 * Motion and Syntax::       Moving over characters with certain syntaxes.
 * Parsing Expressions::     Parsing balanced expressions
                               using the syntax table.
-* Standard Syntax Tables::  Syntax tables used by various major modes.
 * Syntax Table Internals::  How syntax table information is stored.
 * Categories::              Another way of classifying character syntax.
 
@@ -1315,8 +1373,8 @@ Overlays
 
 Faces
 
-* Defining Faces::          How to define a face.
 * Face Attributes::         What is in a face?
+* Defining Faces::          How to define a face.
 * Attribute Functions::     Functions to examine and set face attributes.
 * Displaying Faces::        How Emacs combines the faces specified for
                               a character.
@@ -1468,6 +1526,7 @@ Object Internals
 @end detailmenu
 @end menu
 
+@ifclear VOL2
 @include intro.texi
 @include objects.texi
 @include numbers.texi
@@ -1501,6 +1560,12 @@ Object Internals
 @include files.texi
 
 @include backups.texi
+
+@end ifclear
+
+@c ================ Beginning of Volume 2 ================
+@ifclear VOL1
+
 @include buffers.texi
 @include windows.texi
 @include frames.texi
@@ -1533,8 +1598,10 @@ Object Internals
 
 @include index.texi
 
+@end ifclear
+
 @ignore
-@node New Symbols, , Index, Top
+@node New Symbols
 @unnumbered New Symbols Since the Previous Edition
 
 @printindex tp

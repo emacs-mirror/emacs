@@ -97,7 +97,7 @@
 
 ;;; Code:
 
-(eval-when-compile (require 'cl))
+(eval-when-compile (require 'cl-lib))
 
 (defgroup tar nil
   "Simple editing of tar files."
@@ -168,7 +168,7 @@ This information is useful, but it takes screen space away from file names."
        ;; state correctly: the raw data is expected to be always larger than
        ;; the summary.
        (progn
-	 (assert (or (= (buffer-size tar-data-buffer) (buffer-size))
+	 (cl-assert (or (= (buffer-size tar-data-buffer) (buffer-size))
                      (eq tar-data-swapped
                          (> (buffer-size tar-data-buffer) (buffer-size)))))
 	 tar-data-swapped)))
@@ -186,7 +186,7 @@ Preserve the modified states of the buffers and set `buffer-swapped-with'."
 
 ;;; down to business.
 
-(defstruct (tar-header
+(cl-defstruct (tar-header
             (:constructor nil)
             (:type vector)
             :named
@@ -226,8 +226,8 @@ Preserve the modified states of the buffers and set `buffer-swapped-with'."
 This is a list of name, mode, uid, gid, size,
 write-date, checksum, link-type, and link-name."
   (if (> (+ pos 512) (point-max)) (error "Malformed Tar header"))
-  (assert (zerop (mod (- pos (point-min)) 512)))
-  (assert (not enable-multibyte-characters))
+  (cl-assert (zerop (mod (- pos (point-min)) 512)))
+  (cl-assert (not enable-multibyte-characters))
   (let ((string (buffer-substring pos (setq pos (+ pos 512)))))
     (when      ;(some 'plusp string)		 ; <-- oops, massive cycle hog!
         (or (not (= 0 (aref string 0))) ; This will do.
@@ -325,13 +325,10 @@ write-date, checksum, link-type, and link-name."
 (defun tar-header-data-end (descriptor)
   (let* ((data-start (tar-header-data-start descriptor))
          (link-type (tar-header-link-type descriptor))
-         (size (tar-header-size descriptor))
-         (fudge (cond
-                 ;; Foo.  There's an extra empty block after these.
-                 ((memq link-type '(20 55)) 512)
-                 (t 0))))
-    (+ data-start fudge
-       (if (and (null link-type) (> size 0))
+         (size (tar-header-size descriptor)))
+    (+ data-start
+       ;; Ignore size for files of type 1-6
+       (if (and (not (memq link-type '(1 2 3 4 5 6))) (> size 0))
            (tar-roundup-512 size)
          0))))
 
@@ -373,7 +370,7 @@ write-date, checksum, link-type, and link-name."
 
 (defun tar-header-block-checksum (string)
   "Compute and return a tar-acceptable checksum for this block."
-  (assert (not (multibyte-string-p string)))
+  (cl-assert (not (multibyte-string-p string)))
   (let* ((chk-field-start tar-chk-offset)
 	 (chk-field-end (+ chk-field-start 8))
 	 (sum 0)
@@ -396,7 +393,7 @@ write-date, checksum, link-type, and link-name."
 
 (defun tar-clip-time-string (time)
   (let ((str (current-time-string time)))
-    (concat " " (substring str 4 16) (substring str 19 24))))
+    (concat " " (substring str 4 16) (format-time-string " %Y" time))))
 
 (defun tar-grind-file-mode (mode)
   "Construct a `-rw--r--r--' string indicating MODE.
@@ -445,7 +442,8 @@ MODE should be an integer which is a file mode value."
 		  ((eq type 29) ?M)	; multivolume continuation
 		  ((eq type 35) ?S)	; sparse
 		  ((eq type 38) ?V)	; volume header
-		  ((eq type 55) ?H)	; extended pax header
+		  ((eq type 55) ?H)	; pax global extended header
+		  ((eq type 72) ?X)	; pax extended header
 		  (t ?\s)
 		  )
 	    (tar-grind-file-mode mode)
@@ -486,7 +484,7 @@ MODE should be an integer which is a file mode value."
 
 (defun tar-summarize-buffer ()
   "Parse the contents of the tar file in the current buffer."
-  (assert (tar-data-swapped-p))
+  (cl-assert (tar-data-swapped-p))
   (let* ((modified (buffer-modified-p))
          (result '())
          (pos (point-min))
@@ -520,12 +518,13 @@ MODE should be an integer which is a file mode value."
         (progress-reporter-done progress-reporter)
       (message "Warning: premature EOF parsing tar file"))
     (goto-char (point-min))
-    (let ((inhibit-read-only t)
+    (let ((buffer-file-truename nil) ; avoid changing dir mtime by lock_file
+	  (inhibit-read-only t)
           (total-summaries
            (mapconcat 'tar-header-block-summarize tar-parse-info "\n")))
-      (insert total-summaries "\n"))
-    (goto-char (point-min))
-    (restore-buffer-modified-p modified)))
+      (insert total-summaries "\n")
+      (goto-char (point-min))
+      (restore-buffer-modified-p modified))))
 
 (defvar tar-mode-map
   (let ((map (make-keymap)))
@@ -549,6 +548,7 @@ MODE should be an integer which is a file mode value."
     (define-key map "R" 'tar-rename-entry)
     (define-key map "u" 'tar-unflag)
     (define-key map "v" 'tar-view)
+    (define-key map "w" 'woman-tar-extract-file)
     (define-key map "x" 'tar-expunge)
     (define-key map "\177" 'tar-unflag-backwards)
     (define-key map "E" 'tar-extract-other-window)
@@ -566,6 +566,8 @@ MODE should be an integer which is a file mode value."
     (define-key map [menu-bar immediate]
       (cons "Immediate" (make-sparse-keymap "Immediate")))
 
+    (define-key map [menu-bar immediate woman]
+      '("Read Man Page (WoMan)" . woman-tar-extract-file))
     (define-key map [menu-bar immediate view]
       '("View This File" . tar-view))
     (define-key map [menu-bar immediate display]
@@ -651,7 +653,7 @@ See also: variables `tar-update-datestamp' and `tar-anal-blocksize'.
   (widen)
   ;; Now move the Tar data into an auxiliary buffer, so we can use the main
   ;; buffer for the summary.
-  (assert (not (tar-data-swapped-p)))
+  (cl-assert (not (tar-data-swapped-p)))
   (set (make-local-variable 'revert-buffer-function) 'tar-mode-revert)
   ;; We started using write-contents-functions, but this hook is not
   ;; used during auto-save, so we now use
@@ -677,6 +679,8 @@ See also: variables `tar-update-datestamp' and `tar-anal-blocksize'.
      (fundamental-mode)
      (signal (car err) (cdr err)))))
 
+(autoload 'woman-tar-extract-file "woman"
+  "In tar mode, run the WoMan man-page browser on this file." t)
 
 (define-minor-mode tar-subfile-mode
   "Minor mode for editing an element of a tar-file.
@@ -746,7 +750,8 @@ tar-file's buffer."
 		     ((eq link-p 29) "a multivolume-continuation")
 		     ((eq link-p 35) "a sparse entry")
 		     ((eq link-p 38) "a volume header")
-		     ((eq link-p 55) "an extended pax header")
+		     ((eq link-p 55) "a pax global extended header")
+		     ((eq link-p 72) "a pax extended header")
 		     (t "a link"))))
     (if (zerop size) (message "This is a zero-length file"))
     descriptor))
@@ -1114,15 +1119,15 @@ for this to be permanent."
                      (insert (tar-header-block-summarize descriptor) "\n")))
     (forward-line -1) (move-to-column col))
 
-  (assert (tar-data-swapped-p))
+  (cl-assert (tar-data-swapped-p))
   (with-current-buffer tar-data-buffer
     (let* ((start (- (tar-header-data-start descriptor) 512)))
         ;;
         ;; delete the old field and insert a new one.
         (goto-char (+ start data-position))
         (delete-region (point) (+ (point) (length new-data-string))) ; <--
-        (assert (not (or enable-multibyte-characters
-                         (multibyte-string-p new-data-string))))
+        (cl-assert (not (or enable-multibyte-characters
+                            (multibyte-string-p new-data-string))))
         (insert new-data-string)
         ;;
         ;; compute a new checksum and insert it.

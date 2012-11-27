@@ -166,18 +166,18 @@ The record is filtered according to `eudc-bbdb-current-return-attributes'"
 				  (symbol-name attr)))
 			 'record))))
        (t
-	(setq val "Unknown BBDB attribute")))
-      (if val
-	(cond
-	 ((memq attr '(phones addresses))
-	  (setq eudc-rec (append val eudc-rec)))
-	 ((and (listp val)
-	  (= 1 (length val)))
-	  (setq eudc-rec (cons (cons attr (car val)) eudc-rec)))
-	 ((> (length val) 0)
-	  (setq eudc-rec (cons (cons attr val) eudc-rec)))
-	 (t
-	  (error "Unexpected attribute value")))))
+	(error "Unknown BBDB attribute")))
+      (cond
+       ((or (not val) (equal val ""))) ; do nothing
+       ((memq attr '(phones addresses))
+	(setq eudc-rec (append val eudc-rec)))
+       ((and (listp val)
+	     (= 1 (length val)))
+	(setq eudc-rec (cons (cons attr (car val)) eudc-rec)))
+       ((> (length val) 0)
+	(setq eudc-rec (cons (cons attr val) eudc-rec)))
+       (t
+	(error "Unexpected attribute value"))))
     (nreverse eudc-rec)))
 
 

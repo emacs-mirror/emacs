@@ -1,4 +1,4 @@
-;;; url.el --- Uniform Resource Locator retrieval tool
+;;; url.el --- Uniform Resource Locator retrieval tool  -*- lexical-binding: t -*-
 
 ;; Copyright (C) 1996-1999, 2001, 2004-2012  Free Software Foundation, Inc.
 
@@ -26,7 +26,6 @@
 
 ;;; Code:
 
-(eval-when-compile (require 'cl))
 
 (require 'mailcap)
 
@@ -125,14 +124,16 @@ variable in the original buffer as a forwarding pointer.")
 ;;;###autoload
 (defun url-retrieve (url callback &optional cbargs silent inhibit-cookies)
   "Retrieve URL asynchronously and call CALLBACK with CBARGS when finished.
-URL is either a string or a parsed URL.
+URL is either a string or a parsed URL.  If it is a string
+containing characters that are not valid in a URI, those
+characters are percent-encoded; see `url-encode-url'.
 
 CALLBACK is called when the object has been completely retrieved, with
 the current buffer containing the object, and any MIME headers associated
 with it.  It is called as (apply CALLBACK STATUS CBARGS).
-STATUS is a list with an even number of elements representing
-what happened during the request, with most recent events first,
-or an empty list if no events have occurred.  Each pair is one of:
+STATUS is a plist representing what happened during the request,
+with most recent events first, or an empty list if no events have
+occurred.  Each pair is one of:
 
 \(:redirect REDIRECTED-TO) - the request was redirected to this URL
 \(:error (ERROR-SYMBOL . DATA)) - an error occurred.  The error can be
@@ -149,7 +150,9 @@ take effect.
 
 If SILENT, then don't message progress reports and the like.
 If INHIBIT-COOKIES, cookies will neither be stored nor sent to
-the server."
+the server.
+If URL is a multibyte string, it will be encoded as utf-8 and
+URL-encoded before it's used."
 ;;; XXX: There is code in Emacs that does dynamic binding
 ;;; of the following variables around url-retrieve:
 ;;; url-standalone-mode, url-gateway-unplugged, w3-honor-stylesheets,
@@ -166,16 +169,21 @@ the server."
 (defun url-retrieve-internal (url callback cbargs &optional silent
 				  inhibit-cookies)
   "Internal function; external interface is `url-retrieve'.
-CBARGS is what the callback will actually receive - the first item is
-the list of events, as described in the docstring of `url-retrieve'.
+CBARGS is the list of arguments that the callback function will
+receive; its first element should be a plist specifying what has
+happened so far during the request, as described in the docstring
+of `url-retrieve' (if in doubt, specify nil).
 
 If SILENT, don't message progress reports and the like.
 If INHIBIT-COOKIES, cookies will neither be stored nor sent to
-the server."
+the server.
+If URL is a multibyte string, it will be encoded as utf-8 and
+URL-encoded before it's used."
   (url-do-setup)
   (url-gc-dead-buffers)
-  (if (stringp url)
-       (set-text-properties 0 (length url) nil url))
+  (when (stringp url)
+    (set-text-properties 0 (length url) nil url)
+    (setq url (url-encode-url url)))
   (if (not (vectorp url))
       (setq url (url-generic-parse-url url)))
   (if (not (functionp callback))
@@ -218,8 +226,8 @@ associated with it (the case for dired, info, or mailto URLs that need
 no further processing).  URL is either a string or a parsed URL."
   (url-do-setup)
 
-  (lexical-let ((retrieval-done nil)
-		(asynch-buffer nil))
+  (let ((retrieval-done nil)
+        (asynch-buffer nil))
     (setq asynch-buffer
 	  (url-retrieve url (lambda (&rest ignored)
 			      (url-debug 'retrieval "Synchronous fetching done (%S)" (current-buffer))

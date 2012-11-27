@@ -41,6 +41,7 @@
 (require 'semantic/format)
 (require 'semantic/tag)
 (require 'timer)
+;;(require 'working)
 
 ;; For the semantic-find-tags-by-name macro.
 (eval-when-compile (require 'semantic/find))
@@ -150,12 +151,18 @@ all buffers regardless of their size."
   "Return non-nil if idle-scheduler is enabled for this buffer.
 idle-scheduler is disabled when debugging or if the buffer size
 exceeds the `semantic-idle-scheduler-max-buffer-size' threshold."
-  (and semantic-idle-scheduler-mode
-       (not (and (boundp 'semantic-debug-enabled)
-		 semantic-debug-enabled))
-       (not semantic-lex-debug)
-       (or (<= semantic-idle-scheduler-max-buffer-size 0)
-	   (< (buffer-size) semantic-idle-scheduler-max-buffer-size))))
+  (let* ((remote-file? (when (stringp buffer-file-name) (file-remote-p buffer-file-name))))
+    (and semantic-idle-scheduler-mode
+	 (not (and (boundp 'semantic-debug-enabled)
+		   semantic-debug-enabled))
+	 (not semantic-lex-debug)
+	 ;; local file should exist on disk
+	 ;; remote file should have active connection
+	 (or (and (null remote-file?) (stringp buffer-file-name)
+		  (file-exists-p buffer-file-name))
+	     (and remote-file? (file-remote-p buffer-file-name nil t)))
+	 (or (<= semantic-idle-scheduler-max-buffer-size 0)
+	     (< (buffer-size) semantic-idle-scheduler-max-buffer-size)))))
 
 ;;;###autoload
 (define-minor-mode semantic-idle-scheduler-mode
@@ -554,10 +561,11 @@ FORMS will be called during idle time after the current buffer's
 semantic tag information has been updated.
 This routine creates the following functions and variables:"
   (let ((global (intern (concat "global-" (symbol-name name) "-mode")))
-	(mode 	(intern (concat (symbol-name name) "-mode")))
-	(hook 	(intern (concat (symbol-name name) "-mode-hook")))
-	(map  	(intern (concat (symbol-name name) "-mode-map")))
-	(func 	(intern (concat (symbol-name name) "-idle-function"))))
+	(mode	(intern (concat (symbol-name name) "-mode")))
+	(hook	(intern (concat (symbol-name name) "-mode-hook")))
+	(map	(intern (concat (symbol-name name) "-mode-map")))
+	(setup	(intern (concat (symbol-name name) "-mode-setup")))
+	(func	(intern (concat (symbol-name name) "-idle-function"))))
 
     `(eval-and-compile
        (define-minor-mode ,global
@@ -607,7 +615,10 @@ turned on in every Semantic-supported buffer.")
 		  (symbol-name mode) "'.")
 	 ,@forms))))
 (put 'define-semantic-idle-service 'lisp-indent-function 1)
-
+(add-hook 'edebug-setup-hook
+          (lambda ()
+	    (def-edebug-spec define-semantic-idle-service
+	      (&define name stringp def-body))))
 
 ;;; SUMMARY MODE
 ;;
@@ -878,7 +889,7 @@ Call `semantic-symref-hits-in-region' to identify local references."
 	   ;; We use pulse, but we don't want the flashy version,
 	   ;; just the stable version.
 	   (pulse-flag nil))
-      (when ctxt
+      (when (and ctxt tag)
 	;; Highlight the original tag?  Protect against problems.
 	(condition-case nil
 	    (semantic-idle-symbol-maybe-highlight target)
@@ -932,15 +943,18 @@ doing fancy completions."
   "Calculate and display a list of completions."
   (when (and (semantic-idle-summary-useful-context-p)
 	     (semantic-idle-completions-end-of-symbol-p))
-    ;; This mode can be fragile.  Ignore problems.
-    ;; If something doesn't do what you expect, run
-    ;; the below command by hand instead.
-    (condition-case nil
+    ;; This mode can be fragile, hence don't raise errors, and only
+    ;; report problems if semantic-idle-scheduler-verbose-flag is
+    ;; non-nil.  If something doesn't do what you expect, run the
+    ;; below command by hand instead.
+    (condition-case err
 	(semanticdb-without-unloaded-file-searches
 	    ;; Use idle version.
 	    (semantic-complete-analyze-inline-idle)
 	  )
-      (error nil))
+      (error
+       (when semantic-idle-scheduler-verbose-flag
+	 (message "  %s" (error-message-string err)))))
     ))
 
 (define-semantic-idle-service semantic-idle-completions
@@ -1133,7 +1147,7 @@ be called."
   ;;     :active   t
   ;;     :style    'toggle
   ;;     :selected '(let ((tag (semantic-current-tag)))
-  ;; 		   (and tag (semantic-tag-folded-p tag)))
+  ;;		   (and tag (semantic-tag-folded-p tag)))
   ;;     :help     "Fold the current tag to one line"))
     "---"
     (semantic-menu-item
@@ -1168,17 +1182,19 @@ be called."
     ;; Format TAG-LIST and put the formatted string into the header
     ;; line.
     (setq header-line-format
-	  (concat
-	   semantic-idle-breadcrumbs-header-line-prefix
-	   (if tag-list
-	       (semantic-idle-breadcrumbs--format-tag-list
-		tag-list
-		(- width
-		   (length semantic-idle-breadcrumbs-header-line-prefix)))
-	     (propertize
-	      "<not on tags>"
-	      'face
-	      'font-lock-comment-face)))))
+	  (replace-regexp-in-string ;; Since % is interpreted in the
+	   "\\(%\\)" "%\\1"         ;; mode/header line format, we
+	   (concat                  ;; have to escape all occurrences.
+	    semantic-idle-breadcrumbs-header-line-prefix
+	    (if tag-list
+		(semantic-idle-breadcrumbs--format-tag-list
+		 tag-list
+		 (- width
+		    (length semantic-idle-breadcrumbs-header-line-prefix)))
+	      (propertize
+	       "<not on tags>"
+	       'face
+	       'font-lock-comment-face))))))
 
   ;; Update the header line.
   (force-mode-line-update))
@@ -1192,7 +1208,9 @@ TODO THIS FUNCTION DOES NOT WORK YET."
   (let ((width (- (nth 2 (window-edges))
 		  (nth 0 (window-edges)))))
     (setq mode-line-format
-	  (semantic-idle-breadcrumbs--format-tag-list tag-list width)))
+	  (replace-regexp-in-string ;; see comment in
+	   "\\(%\\)" "%\\1"         ;; `semantic-idle-breadcrumbs--display-in-header-line'
+	   (semantic-idle-breadcrumbs--format-tag-list tag-list width))))
 
   (force-mode-line-update))
 

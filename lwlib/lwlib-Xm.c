@@ -20,9 +20,7 @@ along with GNU Emacs; see the file COPYING.  If not, write to
 the Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
 Boston, MA 02110-1301, USA.  */
 
-#ifdef HAVE_CONFIG_H
 #include <config.h>
-#endif
 
 #include <unistd.h>
 #include <stdio.h>
@@ -492,7 +490,6 @@ make_menu_in_widget (widget_instance* instance,
   int child_index;
   widget_value* cur;
   Widget button = 0;
-  Widget title = 0;
   Widget menu;
   Arg al [256];
   int ac;
@@ -556,7 +553,7 @@ make_menu_in_widget (widget_instance* instance,
 	{
 	  ac = 0;
 	  XtSetArg (al[ac], XmNalignment, XmALIGNMENT_CENTER); ac++;
-	  title = button = XmCreateLabel (widget, cur->name, al, ac);
+	  button = XmCreateLabel (widget, cur->name, al, ac);
 	}
       else if (lw_separator_p (cur->name, &separator, 1))
 	{

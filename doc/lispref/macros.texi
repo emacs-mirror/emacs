@@ -2,8 +2,7 @@
 @c This is part of the GNU Emacs Lisp Reference Manual.
 @c Copyright (C) 1990-1995, 1998, 2001-2012 Free Software Foundation, Inc.
 @c See the file elisp.texi for copying conditions.
-@setfilename ../../info/macros
-@node Macros, Customization, Functions, Top
+@node Macros
 @chapter Macros
 @cindex macros
 
@@ -87,6 +86,10 @@ macro.
 calls to other macros.  It may even be a call to the same macro, though
 this is unusual.
 
+  Note that Emacs tries to expand macros when loading an uncompiled
+Lisp file.  This is not always possible, but if it is, it speeds up
+subsequent execution.  @xref{How Programs Do Loading}.
+
   You can see the expansion of a given macro call by calling
 @code{macroexpand}.
 
@@ -114,7 +117,6 @@ uses this feature.
 @group
 (defmacro inc (var)
     (list 'setq var (list '1+ var)))
-     @result{} inc
 @end group
 
 @group
@@ -125,7 +127,6 @@ uses this feature.
 @group
 (defmacro inc2 (var1 var2)
     (list 'progn (list 'inc var1) (list 'inc var2)))
-     @result{} inc2
 @end group
 
 @group
@@ -188,36 +189,38 @@ During Compile}).
 @node Defining Macros
 @section Defining Macros
 
-  A Lisp macro is a list whose @sc{car} is @code{macro}.  Its @sc{cdr} should
-be a function; expansion of the macro works by applying the function
-(with @code{apply}) to the list of unevaluated argument-expressions
-from the macro call.
+  A Lisp macro object is a list whose @sc{car} is @code{macro}, and
+whose @sc{cdr} is a lambda expression.  Expansion of the macro works
+by applying the lambda expression (with @code{apply}) to the list of
+@emph{unevaluated} arguments from the macro call.
 
   It is possible to use an anonymous Lisp macro just like an anonymous
-function, but this is never done, because it does not make sense to pass
-an anonymous macro to functionals such as @code{mapcar}.  In practice,
-all Lisp macros have names, and they are usually defined with the
-special form @code{defmacro}.
+function, but this is never done, because it does not make sense to
+pass an anonymous macro to functionals such as @code{mapcar}.  In
+practice, all Lisp macros have names, and they are almost always
+defined with the @code{defmacro} macro.
 
-@defspec defmacro name argument-list body-forms@dots{}
-@code{defmacro} defines the symbol @var{name} as a macro that looks
-like this:
+@defmac defmacro name args [doc] [declare] body@dots{}
+@code{defmacro} defines the symbol @var{name} (which should not be
+quoted) as a macro that looks like this:
 
 @example
-(macro lambda @var{argument-list} . @var{body-forms})
+(macro lambda @var{args} . @var{body})
 @end example
 
-(Note that the @sc{cdr} of this list is a function---a lambda expression.)
-This macro object is stored in the function cell of @var{name}.  The
-value returned by evaluating the @code{defmacro} form is @var{name}, but
-usually we ignore this value.
+(Note that the @sc{cdr} of this list is a lambda expression.)  This
+macro object is stored in the function cell of @var{name}.  The
+meaning of @var{args} is the same as in a function, and the keywords
+@code{&rest} and @code{&optional} may be used (@pxref{Argument List}).
+Neither @var{name} nor @var{args} should be quoted.  The return value
+of @code{defmacro} is undefined.
 
-The shape and meaning of @var{argument-list} is the same as in a
-function, and the keywords @code{&rest} and @code{&optional} may be used
-(@pxref{Argument List}).  Macros may have a documentation string, but
-any @code{interactive} declaration is ignored since macros cannot be
-called interactively.
-@end defspec
+@var{doc}, if present, should be a string specifying the macro's
+documentation string.  @var{declare}, if present, should be a
+@code{declare} form specifying metadata for the macro (@pxref{Declare
+Form}).  Note that macros cannot have interactive declarations, since
+they cannot be called interactively.
+@end defmac
 
   Macros often need to construct large list structures from a mixture
 of constants and nonconstant parts.  To make this easier, use the
@@ -239,43 +242,8 @@ of constants and nonconstant parts.  To make this easier, use the
 @end example
 
   The body of a macro definition can include a @code{declare} form,
-which can specify how @key{TAB} should indent macro calls, and how to
-step through them for Edebug.
-
-@defmac declare @var{specs}@dots{}
-@anchor{Definition of declare}
-A @code{declare} form is used in a macro definition to specify various
-additional information about it.  The following specifications are
-currently supported:
-
-@table @code
-@item (debug @var{edebug-form-spec})
-Specify how to step through macro calls for Edebug.
-@xref{Instrumenting Macro Calls}.
-
-@item (indent @var{indent-spec})
-Specify how to indent calls to this macro.  @xref{Indenting Macros},
-for more details.
-
-@item (doc-string @var{number})
-Specify which element of the macro is the documentation string, if
-any.
-@end table
-
-A @code{declare} form only has its special effect in the body of a
-@code{defmacro} form if it immediately follows the documentation
-string, if present, or the argument list otherwise.  (Strictly
-speaking, @emph{several} @code{declare} forms can follow the
-documentation string or argument list, but since a @code{declare} form
-can have several @var{specs}, they can always be combined into a
-single form.)  When used at other places in a @code{defmacro} form, or
-outside a @code{defmacro} form, @code{declare} just returns @code{nil}
-without evaluating any @var{specs}.
-@end defmac
-
-  No macro absolutely needs a @code{declare} form, because that form
-has no effect on how the macro expands, on what the macro means in the
-program.  It only affects the secondary features listed above.
+which specifies additional properties about the macro.  @xref{Declare
+Form}.
 
 @node Problems with Macros
 @section Common Problems Using Macros
@@ -343,7 +311,6 @@ For example, (for i from 1 to 10 do (print i))."
               (cons (list '<= var final)
                     (append body (list (list 'inc var)))))))
 @end group
-@result{} for
 
 @group
 (for i from 1 to 3 do
@@ -513,7 +480,6 @@ it.  Here is an example:
 @group
 (defmacro foo (a)
   (list 'setq (eval a) t))
-     @result{} foo
 @end group
 @group
 (setq x 'b)

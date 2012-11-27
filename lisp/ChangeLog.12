@@ -12449,7 +12449,7 @@
 
 	* calendar/appt.el (diary-selective-display): Add defvar.
 
-	* sort.el (sort-columns): Use Posix arg syntax for `sort'.
+	* sort.el (sort-columns): Use POSIX arg syntax for `sort'.
 
 	* isearch.el (search-whitespace-regexp): Fix custom type.
 

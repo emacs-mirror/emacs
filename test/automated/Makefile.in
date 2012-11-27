@@ -48,7 +48,7 @@ BYTE_COMPILE_EXTRA_FLAGS =
 emacs = EMACSLOADPATH=$(lispsrc):$(test) LC_ALL=C $(EMACS) $(EMACSOPT)
 
 # Common command to find subdirectories
-setwins=subdirs=`(find . -type d -print)`; \
+setwins=subdirs=`find . -type d -print`; \
 	for file in $$subdirs; do \
 	   case $$file in */.* | */.*/* | */=* ) ;; \
 		*) wins="$$wins $$file" ;; \

@@ -23,7 +23,7 @@ rem   YOU'LL NEED THE FOLLOWING UTILITIES TO MAKE EMACS:
 rem
 rem   + MS Windows 95, NT or later
 rem   + either MSVC 2.x or later, or gcc-2.95 or later (with GNU make 3.75
-rem     or later) and the Mingw32 and W32 API headers and libraries.
+rem     or later) and the Mingw32 and Windows API headers and libraries.
 rem   + Visual Studio 2005 is not supported at this time.
 rem
 rem For reference, here is a list of which builds of GNU make are known to
@@ -131,6 +131,7 @@ if "%1" == "--without-jpeg" goto withoutjpeg
 if "%1" == "--without-gif" goto withoutgif
 if "%1" == "--without-tiff" goto withouttiff
 if "%1" == "--without-gnutls" goto withoutgnutls
+if "%1" == "--without-libxml2" goto withoutlibxml2
 if "%1" == "--without-xpm" goto withoutxpm
 if "%1" == "--with-svg" goto withsvg
 if "%1" == "--distfiles" goto distfiles
@@ -144,7 +145,7 @@ echo.   --with-gcc              use GCC to compile Emacs
 echo.   --with-msvc             use MSVC to compile Emacs
 echo.   --no-debug              exclude debug info from executables
 echo.   --no-opt                disable optimization
-echo.   --enable-checking       enable checks and assertions
+echo.   --enable-checking       enable additional run-time checks
 echo.   --profile               enable profiling
 echo.   --no-cygwin             use -mno-cygwin option with GCC
 echo.   --cflags FLAG           pass FLAG to compiler
@@ -156,6 +157,7 @@ echo.   --without-gif           do not use GIF library even if it is installed
 echo.   --without-tiff          do not use TIFF library even if it is installed
 echo.   --without-xpm           do not use XPM library even if it is installed
 echo.   --without-gnutls        do not use GnuTLS library even if it is installed
+echo.   --without-libxml2       do not use libxml2 library even if it is installed
 echo.   --with-svg              use the RSVG library (experimental)
 echo.   --distfiles             path to files for make dist, e.g. libXpm.dll
 if "%use_extensions%" == "0" goto end
@@ -317,6 +319,14 @@ goto again
 
 rem ----------------------------------------------------------------------
 
+:withoutlibxml2
+set libxml2support=N
+set HAVE_LIBXML2=
+shift
+goto again
+
+rem ----------------------------------------------------------------------
+
 :withouttiff
 set tiffsupport=N
 set HAVE_TIFF=
@@ -416,10 +426,10 @@ rem   problem).  The gcc/mingw32 2.95.2 headers are okay, as are distros
 rem   of w32api-xxx.zip from Anders Norlander since 1999-11-18 at least.
 rem   Beginning with Emacs 23, we need usp10.h.
 rem
-echo Checking whether W32 API headers are too old...
+echo Checking whether Windows API headers are too old...
 echo #include "windows.h" >junk.c
 echo #include "usp10.h" >>junk.c
-echo test(PIMAGE_NT_HEADERS pHeader) >>junk.c
+echo void test(PIMAGE_NT_HEADERS pHeader) >>junk.c
 echo {PIMAGE_SECTION_HEADER pSection = IMAGE_FIRST_SECTION(pHeader);} >>junk.c
 if (%nocygwin%) == (Y) goto chkapi1
 set cf=%usercflags%
@@ -459,7 +469,7 @@ goto end
 echo.
 echo Configure failed.
 echo To configure Emacs for Windows, you need to have either
-echo gcc-2.95 or later with Mingw32 and the W32 API headers,
+echo gcc-2.95 or later with Mingw32 and the Windows API headers,
 echo or MSVC 2.x or later.
 del junk.c
 goto end
@@ -569,6 +579,28 @@ set HAVE_GNUTLS=1
 :tlsDone
 rm -f junk.c junk.obj
 
+if (%libxml2support%) == (N) goto xml2Done
+
+echo Checking for libxml2....
+echo #include "libxml/HTMLparser.h" >junk.c
+echo main(){} >>junk.c
+echo %COMPILER% %usercflags% %mingwflag% -c junk.c -o junk.obj >>config.log
+%COMPILER% %usercflags% %mingwflag% -c junk.c -o junk.obj >junk.out 2>>config.log
+if exist junk.obj goto havelibxml2
+
+echo ...libxml/HTMLparser.h not found, building without libxml2 support
+echo The failed program was: >>config.log
+type junk.c >>config.log
+set HAVE_LIBXML2=
+goto xml2Done
+
+:havelibxml2
+echo ...libxml2 header available, building with libxml2 support
+set HAVE_LIBXML2=1
+
+:xml2Done
+rm -f junk.c junk.obj
+
 if (%jpegsupport%) == (N) goto jpegDone
 
 echo Checking for jpeg-6b...
@@ -595,7 +627,10 @@ rm -f junk.c junk.obj
 if (%gifsupport%) == (N) goto gifDone
 
 echo Checking for libgif...
-echo #include "gif_lib.h" >junk.c
+rem giflib-5.0.0 needs size_t defined before gif_lib.h is included
+rem redirection characters need to be protected from the shell
+echo #include ^<stddef.h^> >junk.c
+echo #include "gif_lib.h" >>junk.c
 echo main (){} >>junk.c
 rem   -o option is ignored with cl, but allows result to be consistent.
 echo %COMPILER% %usercflags% %mingwflag% -c junk.c -o junk.obj >>config.log
@@ -737,7 +772,6 @@ if not "(%mf%)" == "()" >>config.settings echo MCPU_FLAG=%mf%
 if not "(%dbginfo%)" == "()" >>config.settings echo DEBUG_INFO=%dbginfo%
 if (%nodebug%) == (Y) >>config.settings echo NODEBUG=1
 if (%noopt%) == (Y) >>config.settings echo NOOPT=1
-if (%enablechecking%) == (Y) >>config.settings echo ENABLECHECKS=1
 if (%profile%) == (Y) >>config.settings echo PROFILE=1
 if (%nocygwin%) == (Y) >>config.settings echo NOCYGWIN=1
 if not "(%prefix%)" == "()" >>config.settings echo INSTALL_DIR=%prefix%
@@ -762,8 +796,10 @@ rem   processing of compiler options in w32.c:get_emacs_configuration_options
 if (%docflags%) == (Y) echo #define USER_CFLAGS " %escusercflags%" >>config.tmp
 if (%doldflags%) == (Y) echo #define USER_LDFLAGS " %escuserldflags%" >>config.tmp
 if (%profile%) == (Y) echo #define PROFILING 1 >>config.tmp
+if (%enablechecking%) == (Y) echo #define ENABLE_CHECKING 1 >>config.tmp
 if not "(%HAVE_PNG%)" == "()" echo #define HAVE_PNG 1 >>config.tmp
 if not "(%HAVE_GNUTLS%)" == "()" echo #define HAVE_GNUTLS 1 >>config.tmp
+if not "(%HAVE_LIBXML2%)" == "()" echo #define HAVE_LIBXML2 1 >>config.tmp
 if not "(%HAVE_JPEG%)" == "()" echo #define HAVE_JPEG 1 >>config.tmp
 if not "(%HAVE_GIF%)" == "()" echo #define HAVE_GIF 1 >>config.tmp
 if not "(%HAVE_TIFF%)" == "()" echo #define HAVE_TIFF 1 >>config.tmp
@@ -903,6 +939,7 @@ set HAVE_DISTFILES=
 set distFilesOk=
 set pngsupport=
 set tlssupport=
+set libxml2support=
 set jpegsupport=
 set gifsupport=
 set tiffsupport=
@@ -915,4 +952,6 @@ set HAVE_PNG=
 set HAVE_TIFF=
 set HAVE_XPM=
 set dbginfo=
+endlocal
+set use_extensions=
 

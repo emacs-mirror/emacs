@@ -18,6 +18,7 @@
 ;; along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.
 
 %package semantic-scm-by
+%provide semantic/bovine/scm-by
 
 %languagemode  scheme-mode
 %start         scheme

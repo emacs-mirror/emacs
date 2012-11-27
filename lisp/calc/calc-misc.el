@@ -305,7 +305,8 @@ Calc user interface as before (either C-x * C or C-x * K; initially C-x * C).
 	       (string-match "\\`\\*" (car stuff)))
 	  (setq stuff (cons '* (cons (substring (car stuff) 1)
 				     (cdr stuff)))))))
-  (setq calc-next-why (cons stuff calc-next-why))
+  (unless (member stuff calc-next-why)
+    (setq calc-next-why (cons stuff calc-next-why)))
   nil)
 
 ;; True if A is a constant or vector of constants.  [P x] [Public]

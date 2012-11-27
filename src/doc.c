@@ -1,6 +1,6 @@
 /* Record indices of function doc strings stored in a file.
-   Copyright (C) 1985-1986, 1993-1995, 1997-2012
-                 Free Software Foundation, Inc.
+
+Copyright (C) 1985-1986, 1993-1995, 1997-2012 Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -22,35 +22,31 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 
 #include <sys/types.h>
 #include <sys/file.h>	/* Must be after sys/types.h for USG*/
-#include <ctype.h>
-#include <setjmp.h>
 #include <fcntl.h>
 #include <unistd.h>
 
+#include <c-ctype.h>
+
 #include "lisp.h"
+#include "character.h"
 #include "buffer.h"
 #include "keyboard.h"
-#include "character.h"
 #include "keymap.h"
 #include "buildobj.h"
 
 Lisp_Object Qfunction_documentation;
 
-extern Lisp_Object Qclosure;
 /* Buffer used for reading from documentation file.  */
 static char *get_doc_string_buffer;
 static ptrdiff_t get_doc_string_buffer_size;
 
 static unsigned char *read_bytecode_pointer;
-static Lisp_Object Fdocumentation_property (Lisp_Object, Lisp_Object,
-					    Lisp_Object);
-static Lisp_Object Fsnarf_documentation (Lisp_Object);
 
 /* readchar in lread.c calls back here to fetch the next byte.
    If UNREADFLAG is 1, we unread a byte.  */
 
 int
-read_bytecode_char (int unreadflag)
+read_bytecode_char (bool unreadflag)
 {
   if (unreadflag)
     {
@@ -72,23 +68,23 @@ read_bytecode_char (int unreadflag)
    (e.g. because the file has been modified and the location is stale),
    return nil.
 
-   If UNIBYTE is nonzero, always make a unibyte string.
+   If UNIBYTE, always make a unibyte string.
 
-   If DEFINITION is nonzero, assume this is for reading
+   If DEFINITION, assume this is for reading
    a dynamic function definition; convert the bytestring
    and the constants vector with appropriate byte handling,
    and return a cons cell.  */
 
 Lisp_Object
-get_doc_string (Lisp_Object filepos, int unibyte, int definition)
+get_doc_string (Lisp_Object filepos, bool unibyte, bool definition)
 {
-  char *from, *to;
-  register int fd;
-  register char *name;
-  register char *p, *p1;
-  EMACS_INT minsize;
-  EMACS_INT offset, position;
+  char *from, *to, *name, *p, *p1;
+  int fd;
+  ptrdiff_t minsize;
+  int offset;
+  EMACS_INT position;
   Lisp_Object file, tem;
+  USE_SAFE_ALLOCA;
 
   if (INTEGERP (filepos))
     {
@@ -124,7 +120,7 @@ get_doc_string (Lisp_Object filepos, int unibyte, int definition)
       /* sizeof ("../etc/") == 8 */
       if (minsize < 8)
 	minsize = 8;
-      name = (char *) alloca (minsize + SCHARS (file) + 8);
+      name = SAFE_ALLOCA (minsize + SCHARS (file) + 8);
       strcpy (name, SSDATA (docdir));
       strcat (name, SSDATA (file));
     }
@@ -148,19 +144,23 @@ get_doc_string (Lisp_Object filepos, int unibyte, int definition)
 	}
 #endif
       if (fd < 0)
-	error ("Cannot open doc string file \"%s\"", name);
+	return concat3 (build_string ("Cannot open doc string file \""),
+			file, build_string ("\"\n"));
     }
 
   /* Seek only to beginning of disk block.  */
   /* Make sure we read at least 1024 bytes before `position'
      so we can check the leading text for consistency.  */
   offset = min (position, max (1024, position % (8 * 1024)));
-  if (0 > lseek (fd, position - offset, 0))
+  if (TYPE_MAXIMUM (off_t) < position
+      || lseek (fd, position - offset, 0) < 0)
     {
       emacs_close (fd);
       error ("Position %"pI"d out of range in doc string file \"%s\"",
 	     position, name);
     }
+
+  SAFE_FREE ();
 
   /* Read the doc string into get_doc_string_buffer.
      P points beyond the data just read.  */
@@ -279,7 +279,7 @@ Invalid data in documentation file -- %c followed by code %03o",
   else
     {
       /* The data determines whether the string is multibyte.  */
-      EMACS_INT nchars =
+      ptrdiff_t nchars =
 	multibyte_chars_in_text (((unsigned char *) get_doc_string_buffer
 				  + offset),
 				 to - (get_doc_string_buffer + offset));
@@ -299,7 +299,7 @@ read_doc_string (Lisp_Object filepos)
   return get_doc_string (filepos, 0, 1);
 }
 
-static int
+static bool
 reread_doc_file (Lisp_Object file)
 {
 #if 0
@@ -332,7 +332,7 @@ string is passed through `substitute-command-keys'.  */)
   Lisp_Object fun;
   Lisp_Object funcar;
   Lisp_Object doc;
-  int try_reload = 1;
+  bool try_reload = 1;
 
  documentation:
 
@@ -379,7 +379,7 @@ string is passed through `substitute-command-keys'.  */)
     }
   else if (CONSP (fun))
     {
-      funcar = Fcar (fun);
+      funcar = XCAR (fun);
       if (!SYMBOLP (funcar))
 	xsignal1 (Qinvalid_function, fun);
       else if (EQ (funcar, Qkeymap))
@@ -464,7 +464,7 @@ This differs from `get' in that it can refer to strings stored in the
 aren't strings.  */)
   (Lisp_Object symbol, Lisp_Object prop, Lisp_Object raw)
 {
-  int try_reload = 1;
+  bool try_reload = 1;
   Lisp_Object tem;
 
  documentation_property:
@@ -502,8 +502,7 @@ aren't strings.  */)
 /* Scanning the DOC files and placing docstring offsets into functions.  */
 
 static void
-store_function_docstring (Lisp_Object obj, EMACS_INT offset)
-/* Use EMACS_INT because we get offset from pointer subtraction.  */
+store_function_docstring (Lisp_Object obj, ptrdiff_t offset)
 {
   /* Don't use indirect_function here, or defaliases will apply their
      docstrings to the base functions (Bug#2603).  */
@@ -560,12 +559,11 @@ the same file name is found in the `doc-directory'.  */)
 {
   int fd;
   char buf[1024 + 1];
-  register EMACS_INT filled;
-  register EMACS_INT pos;
-  register char *p;
+  int filled;
+  EMACS_INT pos;
   Lisp_Object sym;
-  char *name;
-  int skip_file = 0;
+  char *p, *name;
+  bool skip_file = 0;
 
   CHECK_STRING (filename);
 
@@ -576,14 +574,13 @@ the same file name is found in the `doc-directory'.  */)
       (0)
 #endif /* CANNOT_DUMP */
     {
-      name = (char *) alloca (SCHARS (filename) + 14);
+      name = alloca (SCHARS (filename) + 14);
       strcpy (name, "../etc/");
     }
   else
     {
       CHECK_STRING (Vdoc_directory);
-      name = (char *) alloca (SCHARS (filename)
-			  + SCHARS (Vdoc_directory) + 1);
+      name = alloca (SCHARS (filename) + SCHARS (Vdoc_directory) + 1);
       strcpy (name, SSDATA (Vdoc_directory));
     }
   strcat (name, SSDATA (filename)); 	/*** Add this line ***/
@@ -595,11 +592,11 @@ the same file name is found in the `doc-directory'.  */)
 
     for (beg = buildobj; *beg; beg = end)
       {
-        EMACS_INT len;
+        ptrdiff_t len;
 
-        while (*beg && isspace (*beg)) ++beg;
+        while (*beg && c_isspace (*beg)) ++beg;
 
-        for (end = beg; *end && ! isspace (*end); ++end)
+        for (end = beg; *end && ! c_isspace (*end); ++end)
           if (*end == '/') beg = end+1;  /* skip directory part  */
 
         len = end - beg;
@@ -643,9 +640,9 @@ the same file name is found in the `doc-directory'.  */)
               if (end - p > 4 && end[-2] == '.'
                   && (end[-1] == 'o' || end[-1] == 'c'))
                 {
-                  EMACS_INT len = end - p - 2;
+                  ptrdiff_t len = end - p - 2;
                   char *fromfile = alloca (len + 1);
-                  strncpy (fromfile, &p[2], len);
+                  memcpy (fromfile, &p[2], len);
                   fromfile[len] = 0;
                   if (fromfile[len-1] == 'c')
                     fromfile[len-1] = 'o';
@@ -671,15 +668,18 @@ the same file name is found in the `doc-directory'.  */)
 		  /* Install file-position as variable-documentation property
 		     and make it negative for a user-variable
 		     (doc starts with a `*').  */
-		  Fput (sym, Qvariable_documentation,
-			make_number ((pos + end + 1 - buf)
-				     * (end[1] == '*' ? -1 : 1)));
+                  if (!NILP (Fboundp (sym)))
+                    Fput (sym, Qvariable_documentation,
+                          make_number ((pos + end + 1 - buf)
+                                       * (end[1] == '*' ? -1 : 1)));
 		}
 
 	      /* Attach a docstring to a function?  */
 	      else if (p[1] == 'F')
-		store_function_docstring (sym, pos + end + 1 - buf);
-
+                {
+                  if (!NILP (Ffboundp (sym)))
+                    store_function_docstring (sym, pos + end + 1 - buf);
+                }
 	      else if (p[1] == 'S')
 		; /* Just a source file name boundary marker.  Ignore it.  */
 
@@ -718,9 +718,9 @@ Otherwise, return a new string, without any text properties.  */)
   (Lisp_Object string)
 {
   char *buf;
-  int changed = 0;
-  register unsigned char *strp;
-  register char *bufp;
+  bool changed = 0;
+  unsigned char *strp;
+  char *bufp;
   ptrdiff_t idx;
   ptrdiff_t bsize;
   Lisp_Object tem;
@@ -729,7 +729,7 @@ Otherwise, return a new string, without any text properties.  */)
   ptrdiff_t length, length_byte;
   Lisp_Object name;
   struct gcpro gcpro1, gcpro2, gcpro3, gcpro4;
-  int multibyte;
+  bool multibyte;
   ptrdiff_t nchars;
 
   if (NILP (string))
@@ -753,7 +753,7 @@ Otherwise, return a new string, without any text properties.  */)
     keymap = Voverriding_local_map;
 
   bsize = SBYTES (string);
-  bufp = buf = (char *) xmalloc (bsize);
+  bufp = buf = xmalloc (bsize);
 
   strp = SDATA (string);
   while (strp < SDATA (string) + SBYTES (string))
@@ -783,7 +783,7 @@ Otherwise, return a new string, without any text properties.  */)
       else if (strp[0] == '\\' && strp[1] == '[')
 	{
 	  ptrdiff_t start_idx;
-	  int follow_remap = 1;
+	  bool follow_remap = 1;
 
 	  changed = 1;
 	  strp += 2;		/* skip \[ */
@@ -824,7 +824,7 @@ Otherwise, return a new string, without any text properties.  */)
 	      ptrdiff_t offset = bufp - buf;
 	      if (STRING_BYTES_BOUND - 4 < bsize)
 		string_overflow ();
-	      buf = (char *) xrealloc (buf, bsize += 4);
+	      buf = xrealloc (buf, bsize += 4);
 	      bufp = buf + offset;
 	      memcpy (bufp, "M-x ", 4);
 	      bufp += 4;
@@ -890,11 +890,11 @@ Otherwise, return a new string, without any text properties.  */)
 	  if (NILP (tem))
 	    {
 	      name = Fsymbol_name (name);
-	      insert_string ("\nUses keymap \"");
+	      insert_string ("\nUses keymap `");
 	      insert_from_string (name, 0, 0,
 				  SCHARS (name),
 				  SBYTES (name), 1);
-	      insert_string ("\", which is not currently defined.\n");
+	      insert_string ("', which is not currently defined.\n");
 	      if (start[-1] == '<') keymap = Qnil;
 	    }
 	  else if (start[-1] == '<')
@@ -920,7 +920,7 @@ Otherwise, return a new string, without any text properties.  */)
 	    ptrdiff_t offset = bufp - buf;
 	    if (STRING_BYTES_BOUND - length_byte < bsize)
 	      string_overflow ();
-	    buf = (char *) xrealloc (buf, bsize += length_byte);
+	    buf = xrealloc (buf, bsize += length_byte);
 	    bufp = buf + offset;
 	    memcpy (bufp, start, length_byte);
 	    bufp += length_byte;

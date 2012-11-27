@@ -37,6 +37,8 @@ TAGS-LISP
 cxxdefs.h
 # Intermediate files when making pdf versions of the manuals.
 doc/**/*.aux
+doc/**/*.cm
+doc/**/*.cms
 doc/**/*.cp
 doc/**/*.cps
 doc/**/*.fn
@@ -47,15 +49,27 @@ doc/**/*.log
 doc/**/*.op
 doc/**/*.ops
 doc/**/*.pg
+doc/**/*.pgs
+doc/**/*.pj
+doc/**/*.pjs
+doc/**/*.sc
+doc/**/*.scs
+doc/**/*.ss
+doc/**/*.tg
+doc/**/*.tgs
 doc/**/*.toc
 doc/**/*.tp
+doc/**/*.tps
 doc/**/*.vr
 doc/**/*.vrs
 doc/**/*.pdf
 !doc/lispintro/cons-*.pdf
 !doc/lispintro/drawers.pdf
 !doc/lispintro/lambda-*.pdf
-info/*
+etc/emacs.tmpdesktop
+etc/refcards/*.aux
+etc/refcards/*.log
+info/*.info
 admin/unidata/unidata.txt
 build-aux/compile
 build-aux/config.guess
@@ -73,8 +87,10 @@ lib/deps/
 lib/alloca.h
 lib/arg-nonnull.h
 lib/c++defs.h
+lib/execinfo.h
 lib/getopt.h
 lib/inttypes.h
+lib/stdalign.h
 lib/stdbool.h
 lib/stdio.h
 lib/stdint.h
@@ -97,7 +113,6 @@ lib/sys_stat.in-h
 lib/time.in-h
 lib/unistd.in-h
 lib/cxxdefs.h
-lib-src/stamp-*
 lib-src/ctags
 lib-src/ctags.c
 lib-src/ebrowse
@@ -118,6 +133,10 @@ lisp/eshell/esh-groups.el
 lisp/finder-inf.el
 lisp/gnus/_dir-locals.el
 nextstep/Emacs.app
+nextstep/Cocoa/Emacs.base/Contents/Info.plist
+nextstep/Cocoa/Emacs.base/Contents/Resources/English.lproj
+nextstep/GNUstep/Emacs.base/Resources/Emacs.desktop
+nextstep/GNUstep/Emacs.base/Resources/Info-gnustep.plist
 nt/config.log
 src/_dbxinit
 src/_gdbinit
@@ -132,6 +151,7 @@ src/epaths.h
 src/gdb.ini
 src/prefix-args*
 src/stamp-oldxmenu
+src/stamp-h.in
 src/temacs
 test/indent/*.new
 +*
@@ -139,3 +159,8 @@ src/globals.h
 src/gl-stamp
 lisp/mh-e/mh-autoloads.el
 lisp/mh-e/mh-cus-load.el
+lib/stdalign.h
+admin/charsets/*.map
+admin/charsets/cp51932.el
+admin/charsets/eucjp-ms.el
+admin/charsets/jisx2131-filter

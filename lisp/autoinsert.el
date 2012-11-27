@@ -36,7 +36,7 @@
 ;;     setq auto-insert-directory to an appropriate slash-terminated value
 ;;
 ;;  You can also customize the variable `auto-insert-mode' to load the
-;;  package.  Alternatively, add the following to your .emacs file:
+;;  package.  Alternatively, add the following to your init file:
 ;;  (auto-insert-mode 1)
 ;;
 ;;  Author:  Charlie Martin
@@ -135,19 +135,19 @@ If this contains a %s, that will be replaced by the matching rule."
 
     (("\\.[1-9]\\'" . "Man page skeleton")
      "Short description: "
-     ".\\\" Copyright (C), " (substring (current-time-string) -4) "  "
+     ".\\\" Copyright (C), " (format-time-string "%Y") "  "
      (getenv "ORGANIZATION") | (progn user-full-name)
      "
 .\\\" You may distribute this file under the terms of the GNU Free
 .\\\" Documentation License.
-.TH " (file-name-sans-extension (file-name-nondirectory (buffer-file-name)))
+.TH " (file-name-base)
      " " (file-name-extension (buffer-file-name))
      " " (format-time-string "%Y-%m-%d ")
      "\n.SH NAME\n"
-     (file-name-sans-extension (file-name-nondirectory (buffer-file-name)))
+     (file-name-base)
      " \\- " str
      "\n.SH SYNOPSIS
-.B " (file-name-sans-extension (file-name-nondirectory (buffer-file-name)))
+.B " (file-name-base)
      "\n"
      _
      "
@@ -166,7 +166,7 @@ If this contains a %s, that will be replaced by the matching rule."
      "Short description: "
      ";;; " (file-name-nondirectory (buffer-file-name)) " --- " str "
 
-;; Copyright (C) " (substring (current-time-string) -4) "  "
+;; Copyright (C) " (format-time-string "%Y") "  "
  (getenv "ORGANIZATION") | (progn user-full-name) "
 
 ;; Author: " (user-full-name)
@@ -207,7 +207,7 @@ If this contains a %s, that will be replaced by the matching rule."
 
 
 \(provide '"
-       (file-name-sans-extension (file-name-nondirectory (buffer-file-name)))
+       (file-name-base)
        ")
 \;;; " (file-name-nondirectory (buffer-file-name)) " ends here\n")
     (("\\.texi\\(nfo\\)?\\'" . "Texinfo file skeleton")
@@ -215,14 +215,13 @@ If this contains a %s, that will be replaced by the matching rule."
      "\\input texinfo   @c -*-texinfo-*-
 @c %**start of header
 @setfilename "
-     (file-name-sans-extension
-      (file-name-nondirectory (buffer-file-name))) ".info\n"
+     (file-name-base) ".info\n"
       "@settitle " str "
 @c %**end of header
 @copying\n"
       (setq short-description (read-string "Short description: "))
       ".\n\n"
-      "Copyright @copyright{} " (substring (current-time-string) -4) "  "
+      "Copyright @copyright{} " (format-time-string "%Y") "  "
       (getenv "ORGANIZATION") | (progn user-full-name) "
 
 @quotation

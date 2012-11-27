@@ -63,7 +63,7 @@
 (defvar viper-current-frame-saved (selected-frame))
 
 (defcustom viper-surrounding-word-function 'viper-surrounding-word
-  "*Function that determines what constitutes a word for clicking events.
+  "Function that determines what constitutes a word for clicking events.
 Takes two parameters: a COUNT, indicating how many words to return,
 and CLICK-COUNT, telling whether this is the first click, a double-click,
 or a triple-click."
@@ -77,7 +77,7 @@ or a triple-click."
 					  mouse-track-multi-click-time
 					double-click-time)
 				    500)
-  "*Time interval in millisecond within which successive mouse clicks are
+  "Time interval in millisecond within which successive mouse clicks are
 considered related."
   :type 'integer
   :group 'viper-mouse)
@@ -624,7 +624,7 @@ bindings in the Viper manual."
 
 
 (defcustom viper-mouse-search-key '(meta shift 1)
-  "*Key used to click-search in Viper.
+  "Key used to click-search in Viper.
 This must be a list that specifies the mouse button and modifiers.
 The supported modifiers are `meta', `shift', and `control'.
 For instance, `(meta shift 1)' means that holding the meta and shift
@@ -640,7 +640,7 @@ This buffer may be different from the one where the click occurred."
   :group 'viper-mouse)
 
 (defcustom viper-mouse-insert-key '(meta shift 2)
-  "*Key used to click-insert in Viper.
+  "Key used to click-insert in Viper.
 Must be a list that specifies the mouse button and modifiers.
 The supported modifiers are `meta', `shift', and `control'.
 For instance, `(meta shift 2)' means that holding the meta and shift keys

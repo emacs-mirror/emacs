@@ -2,8 +2,7 @@
 @c This is part of the GNU Emacs Lisp Reference Manual.
 @c Copyright (C) 1990-1995, 1998-1999, 2001-2012 Free Software Foundation, Inc.
 @c See the file elisp.texi for copying conditions.
-@setfilename ../../info/commands
-@node Command Loop, Keymaps, Minibuffers, Top
+@node Command Loop
 @chapter Command Loop
 @cindex editor command loop
 @cindex command loop
@@ -187,7 +186,6 @@ buffer: } prompts the user with @samp{Frobnicate buffer: } to enter
 the name of an existing buffer, which becomes the second and final
 argument.
 
-@c Emacs 19 feature
 The prompt string can use @samp{%} to include previous argument values
 (starting with the first argument) in the prompt.  This is done using
 @code{format} (@pxref{Formatting Strings}).  For example, here is how
@@ -206,7 +204,6 @@ If @samp{*} appears at the beginning of the string, then an error is
 signaled if the buffer is read-only.
 
 @cindex @samp{@@} in @code{interactive}
-@c Emacs 19 feature
 If @samp{@@} appears at the beginning of the string, and if the key
 sequence used to invoke the command includes any mouse events, then
 the window associated with the first of those events is selected
@@ -287,7 +284,6 @@ used.
 @end defun
 
 @node Interactive Codes
-@comment  node-name,  next,  previous,  up
 @subsection Code Characters for @code{interactive}
 @cindex interactive code description
 @cindex description for interactive codes
@@ -381,9 +377,14 @@ current buffer, @code{default-directory} (@pxref{File Name Expansion}).
 Existing, Completion, Default, Prompt.
 
 @item e
-The first or next mouse event in the key sequence that invoked the command.
-More precisely, @samp{e} gets events that are lists, so you can look at
-the data in the lists.  @xref{Input Events}.  No I/O.
+The first or next non-keyboard event in the key sequence that invoked
+the command.  More precisely, @samp{e} gets events that are lists, so
+you can look at the data in the lists.  @xref{Input Events}.  No I/O.
+
+You use @samp{e} for mouse events and for special system events
+(@pxref{Misc Events}).  The event list that the command receives
+depends on the event.  @xref{Input Events}, which describes the forms
+of the list for each event in the corresponding subsections.
 
 You can use @samp{e} more than once in a single command's interactive
 specification.  If the key sequence that invoked the command has
@@ -482,7 +483,7 @@ discarded, @samp{U} provides @code{nil} as the argument.  No I/O.
 
 @item v
 A variable declared to be a user option (i.e., satisfying the
-predicate @code{user-variable-p}).  This reads the variable using
+predicate @code{custom-variable-p}).  This reads the variable using
 @code{read-variable}.  @xref{Definition of read-variable}.  Existing,
 Completion, Prompt.
 
@@ -509,7 +510,6 @@ argument value.  Completion, Existing, Prompt.
 @end table
 
 @node Interactive Examples
-@comment  node-name,  next,  previous,  up
 @subsection Examples of Using @code{interactive}
 @cindex examples of using @code{interactive}
 @cindex @code{interactive}, examples of using
@@ -784,7 +784,6 @@ Here is another example that contrasts direct and indirect calls to
 @end example
 
 @node Command Loop Info
-@comment  node-name,  next,  previous,  up
 @section Information from the Command Loop
 
 The editor command loop sets several Lisp variables to keep status
@@ -909,7 +908,6 @@ up a menu.  It is also used internally by @code{y-or-n-p}
 @end defvar
 
 @defvar last-command-event
-@defvarx last-command-char
 This variable is set to the last input event that was read by the
 command loop as part of a command.  The principal use of this variable
 is in @code{self-insert-command}, which uses it to decide which
@@ -925,11 +923,8 @@ last-command-event
 
 @noindent
 The value is 5 because that is the @acronym{ASCII} code for @kbd{C-e}.
-
-The alias @code{last-command-char} is obsolete.
 @end defvar
 
-@c Emacs 19 feature
 @defvar last-event-frame
 This variable records which frame the last input event was directed to.
 Usually this is the frame that was selected when the event was
@@ -976,9 +971,10 @@ moving point out of these sequences is completely turned off.
 @cindex input events
 
 The Emacs command loop reads a sequence of @dfn{input events} that
-represent keyboard or mouse activity.  The events for keyboard activity
-are characters or symbols; mouse events are always lists.  This section
-describes the representation and meaning of input events in detail.
+represent keyboard or mouse activity, or system events sent to Emacs.
+The events for keyboard activity are characters or symbols; other
+events are always lists.  This section describes the representation
+and meaning of input events in detail.
 
 @defun eventp object
 This function returns non-@code{nil} if @var{object} is an input event
@@ -1273,12 +1269,21 @@ describe events by their types; thus, if there is a key binding for
 @var{event-type} is @code{mouse-1}.
 
 @item @var{position}
-This is the position where the mouse click occurred.  The actual
-format of @var{position} depends on what part of a window was clicked
-on.
+@cindex mouse position list
+This is a @dfn{mouse position list} specifying where the mouse click
+occurred; see below for details.
 
-For mouse click events in the text area, mode line, header line, or in
-the marginal areas, @var{position} has this form:
+@item @var{click-count}
+This is the number of rapid repeated presses so far of the same mouse
+button.  @xref{Repeat Events}.
+@end table
+
+  To access the contents of a mouse position list in the
+@var{position} slot of a click event, you should typically use the
+functions documented in @ref{Accessing Mouse}.  The explicit format of
+the list depends on where the click occurred.  For clicks in the text
+area, mode line, header line, or in the fringe or marginal areas, the
+mouse position list has the form
 
 @example
 (@var{window} @var{pos-or-area} (@var{x} . @var{y}) @var{timestamp}
@@ -1287,18 +1292,16 @@ the marginal areas, @var{position} has this form:
 @end example
 
 @noindent
-The meanings of these list elements are documented below.
-@xref{Accessing Mouse}, for functions that let you easily access these
-elements.
+The meanings of these list elements are as follows:
 
 @table @asis
 @item @var{window}
-This is the window in which the click occurred.
+The window in which the click occurred.
 
 @item @var{pos-or-area}
-This is the buffer position of the character clicked on in the text
-area, or if clicked outside the text area, it is the window area in
-which the click occurred.  It is one of the symbols @code{mode-line},
+The buffer position of the character clicked on in the text area; or,
+if the click was outside the text area, the window area where it
+occurred.  It is one of the symbols @code{mode-line},
 @code{header-line}, @code{vertical-line}, @code{left-margin},
 @code{right-margin}, @code{left-fringe}, or @code{right-fringe}.
 
@@ -1308,22 +1311,23 @@ happens after the imaginary prefix keys for the event are registered
 by Emacs.  @xref{Key Sequence Input}.
 
 @item @var{x}, @var{y}
-These are the relative pixel coordinates of the click.  For clicks in
-the text area of a window, the coordinate origin @code{(0 . 0)} is
-taken to be the top left corner of the text area.  @xref{Window
-Sizes}.  For clicks in a mode line or header line, the coordinate
-origin is the top left corner of the window itself.  For fringes,
-margins, and the vertical border, @var{x} does not have meaningful
-data.  For fringes and margins, @var{y} is relative to the bottom edge
-of the header line.  In all cases, the @var{x} and @var{y} coordinates
-increase rightward and downward respectively.
+The relative pixel coordinates of the click.  For clicks in the text
+area of a window, the coordinate origin @code{(0 . 0)} is taken to be
+the top left corner of the text area.  @xref{Window Sizes}.  For
+clicks in a mode line or header line, the coordinate origin is the top
+left corner of the window itself.  For fringes, margins, and the
+vertical border, @var{x} does not have meaningful data.  For fringes
+and margins, @var{y} is relative to the bottom edge of the header
+line.  In all cases, the @var{x} and @var{y} coordinates increase
+rightward and downward respectively.
 
 @item @var{timestamp}
-This is the time at which the event occurred, in milliseconds.
+The time at which the event occurred, as an integer number of
+milliseconds since a system-dependent initial time.
 
 @item @var{object}
-This is either @code{nil} if there is no string-type text property at
-the click position, or a cons cell of the form (@var{string}
+Either @code{nil} if there is no string-type text property at the
+click position, or a cons cell of the form (@var{string}
 . @var{string-pos}) if there is one:
 
 @table @asis
@@ -1369,8 +1373,7 @@ These are the pixel width and height of @var{object} or, if this is
 @code{nil}, those of the character glyph clicked on.
 @end table
 
-@sp 1
-For mouse clicks on a scroll-bar, @var{position} has this form:
+For clicks on a scroll bar, @var{position} has this form:
 
 @example
 (@var{window} @var{area} (@var{portion} . @var{whole}) @var{timestamp} @var{part})
@@ -1378,32 +1381,35 @@ For mouse clicks on a scroll-bar, @var{position} has this form:
 
 @table @asis
 @item @var{window}
-This is the window whose scroll-bar was clicked on.
+The window whose scroll bar was clicked on.
 
 @item @var{area}
-This is the scroll bar where the click occurred.  It is one of the
-symbols @code{vertical-scroll-bar} or @code{horizontal-scroll-bar}.
+This is the symbol @code{vertical-scroll-bar}.
 
 @item @var{portion}
-This is the distance of the click from the top or left end of
-the scroll bar.
+The number of pixels from the top of the scroll bar to the click
+position.  On some toolkits, including GTK+, Emacs cannot extract this
+data, so the value is always @code{0}.
 
 @item @var{whole}
-This is the length of the entire scroll bar.
+The total length, in pixels, of the scroll bar.  On some toolkits,
+including GTK+, Emacs cannot extract this data, so the value is always
+@code{0}.
 
 @item @var{timestamp}
-This is the time at which the event occurred, in milliseconds.
+The time at which the event occurred, in milliseconds.  On some
+toolkits, including GTK+, Emacs cannot extract this data, so the value
+is always @code{0}.
 
 @item @var{part}
-This is the part of the scroll-bar which was clicked on.  It is one
-of the symbols @code{above-handle}, @code{handle}, @code{below-handle},
-@code{up}, @code{down}, @code{top}, @code{bottom}, and @code{end-scroll}.
+The part of the scroll bar on which the click occurred.  It is one of
+the symbols @code{handle} (the scroll bar handle), @code{above-handle}
+(the area above the handle), @code{below-handle} (the area below the
+handle), @code{up} (the up arrow at one end of the scroll bar), or
+@code{down} (the down arrow at one end of the scroll bar).
+@c The `top', `bottom', and `end-scroll' codes don't seem to be used.
 @end table
 
-@item @var{click-count}
-This is the number of rapid repeated presses so far of the same mouse
-button.  @xref{Repeat Events}.
-@end table
 
 @node Drag Events
 @subsection Drag Events
@@ -1427,10 +1433,9 @@ For a drag event, the name of the symbol @var{event-type} contains the
 prefix @samp{drag-}.  For example, dragging the mouse with button 2
 held down generates a @code{drag-mouse-2} event.  The second and third
 elements of the event give the starting and ending position of the
-drag.  They have the same form as @var{position} in a click event
-(@pxref{Click Events}) that is not on the scroll bar part of the
-window.  You can access the second element of any mouse event in the
-same way, with no need to distinguish drag events from others.
+drag, as mouse position lists (@pxref{Click Events}).  You can access
+the second element of any mouse event in the same way, with no need to
+distinguish drag events from others.
 
 The @samp{drag-} prefix follows the modifier key prefixes such as
 @samp{C-} and @samp{M-}.
@@ -1573,13 +1578,14 @@ represented by lists that look like this:
 (mouse-movement POSITION)
 @end example
 
-The second element of the list describes the current position of the
-mouse, just as in a click event (@pxref{Click Events}).
+@noindent
+@var{position} is a mouse position list (@pxref{Click Events}),
+specifying the current position of the mouse cursor.
 
-The special form @code{track-mouse} enables generation of motion events
-within its body.  Outside of @code{track-mouse} forms, Emacs does not
-generate events for mere motion of the mouse, and these events do not
-appear.  @xref{Mouse Tracking}.
+The special form @code{track-mouse} enables generation of motion
+events within its body.  Outside of @code{track-mouse} forms, Emacs
+does not generate events for mere motion of the mouse, and these
+events do not appear.  @xref{Mouse Tracking}.
 
 @node Focus Events
 @subsection Focus Events
@@ -1646,13 +1652,11 @@ frame has already been made visible, Emacs has no work to do.
 @cindex @code{wheel-up} event
 @cindex @code{wheel-down} event
 @item (wheel-up @var{position})
-@item (wheel-down @var{position})
-These kinds of event are generated by moving a mouse wheel.  Their
-usual meaning is a kind of scroll or zoom.
-
-The element @var{position} is a list describing the position of the
-event, in the same format as used in a mouse-click event (@pxref{Click
-Events}).
+@itemx (wheel-down @var{position})
+These kinds of event are generated by moving a mouse wheel.  The
+@var{position} element is a mouse position list (@pxref{Click
+Events}), specifying the position of the mouse cursor when the event
+occurred.
 
 @vindex mouse-wheel-up-event
 @vindex mouse-wheel-down-event
@@ -1719,6 +1723,38 @@ To test the signal handler, you can make Emacs send a signal to itself:
 
 @smallexample
 (signal-process (emacs-pid) 'sigusr1)
+@end smallexample
+
+@cindex @code{language-change} event
+@item language-change
+This kind of event is generated on MS-Windows when the input language
+has changed.  This typically means that the keyboard keys will send to
+Emacs characters from a different language.  The generated event has
+this form:
+
+@smallexample
+(language-change @var{frame} @var{codepage} @var{language-id})
+@end smallexample
+
+@noindent
+Here @var{frame} is the frame which was current when the input
+language changed; @var{codepage} is the new codepage number; and
+@var{language-id} is the numerical ID of the new input language.  The
+coding-system (@pxref{Coding Systems}) that corresponds to
+@var{codepage} is @code{cp@var{codepage}} or
+@code{windows-@var{codepage}}.  To convert @var{language-id} to a
+string (e.g., to use it for various language-dependent features, such
+as @code{set-language-environment}), use the
+@code{w32-get-locale-info} function, like this:
+
+@smallexample
+;; Get the abbreviated language name, such as "ENU" for English
+(w32-get-locale-info language-id)
+;; Get the full English name of the language,
+;; such as "English (United States)"
+(w32-get-locale-info language-id 4097)
+;; Get the full localized name of the language
+(w32-get-locale-info language-id t)
 @end smallexample
 @end table
 
@@ -1888,14 +1924,8 @@ must be the last element of the list.  For example,
   This section describes convenient functions for accessing the data in
 a mouse button or motion event.
 
-  These two functions return the starting or ending position of a
-mouse-button event, as a list of this form (@pxref{Click Events}):
-
-@example
-(@var{window} @var{pos-or-area} (@var{x} . @var{y}) @var{timestamp}
- @var{object} @var{text-pos} (@var{col} . @var{row})
- @var{image} (@var{dx} . @var{dy}) (@var{width} . @var{height}))
-@end example
+  The following two functions return a mouse position list
+(@pxref{Click Events}), specifying the position of a mouse event.
 
 @defun event-start event
 This returns the starting position of @var{event}.
@@ -1914,9 +1944,15 @@ event, the value is actually the starting position, which is the only
 position such events have.
 @end defun
 
+@defun posnp object
+This function returns non-@code{nil} if @var{object} is a mouse
+position list, in either of the formats documented in @ref{Click
+Events}); and @code{nil} otherwise.
+@end defun
+
 @cindex mouse position list, accessing
-  These functions take a position list as described above, and
-return various parts of it.
+  These functions take a mouse position list as argument, and return
+various parts of it:
 
 @defun posn-window position
 Return the window that @var{position} is in.
@@ -2344,7 +2380,6 @@ mouse on the window's mode line, you get two events, like this:
 @end example
 
 @defvar num-input-keys
-@c Emacs 19 feature
 This variable's value is the number of key sequences processed so far in
 this Emacs session.  This includes key sequences read from the terminal
 and key sequences read from keyboard macros being executed.
@@ -2497,7 +2532,6 @@ then continues to wait for a valid input character, or keyboard-quit.
 @code{keyboard-translate-table} (if applicable), before returning it
 from @code{read-event}.
 
-@c Emacs 19 feature
 @defvar extra-keyboard-modifiers
 This variable lets Lisp programs ``press'' the modifier keys on the
 keyboard.  The value is a character.  Only the modifiers of the
@@ -2704,17 +2738,6 @@ This function converts the string or vector @var{key} to a list of
 individual events, which you can put in @code{unread-command-events}.
 @end defun
 
-@ignore
-@defvar unread-command-char
-This variable holds a character to be read as command input.
-A value of -1 means ``empty''.
-
-This variable is mostly obsolete now that you can use
-@code{unread-command-events} instead; it exists only to support programs
-written for Emacs versions 18 and earlier.
-@end defvar
-@end ignore
-
 @defun input-pending-p
 @cindex waiting for command key input
 This function determines whether any command input is currently
@@ -2724,7 +2747,6 @@ may return @code{t} when no input is available.
 @end defun
 
 @defvar last-input-event
-@defvarx last-input-char
 This variable records the last terminal input event read, whether
 as part of a command or explicitly by a Lisp program.
 
@@ -2743,8 +2765,6 @@ this expression) remains the value of @code{last-command-event}.
      @result{} 49
 @end group
 @end example
-
-The alias @code{last-input-char} is obsolete.
 @end defvar
 
 @defmac while-no-input body@dots{}
@@ -2812,11 +2832,11 @@ immediately after they are read, and this is the way for the event's
 definition to find the actual event.
 
   The events types @code{iconify-frame}, @code{make-frame-visible},
-@code{delete-frame}, @code{drag-n-drop}, and user signals like
-@code{sigusr1} are normally handled in this way.  The keymap which
-defines how to handle special events---and which events are
-special---is in the variable @code{special-event-map} (@pxref{Active
-Keymaps}).
+@code{delete-frame}, @code{drag-n-drop}, @code{language-change}, and
+user signals like @code{sigusr1} are normally handled in this way.
+The keymap which defines how to handle special events---and which
+events are special---is in the variable @code{special-event-map}
+(@pxref{Active Keymaps}).
 
 @node Waiting
 @section Waiting for Elapsed Time or Input

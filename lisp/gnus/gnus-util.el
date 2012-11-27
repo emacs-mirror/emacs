@@ -169,15 +169,6 @@ This is a compatibility function for different Emacsen."
   `(delete-region (point-at-bol)
 		  (progn (forward-line ,(or n 1)) (point))))
 
-(defun gnus-byte-code (func)
-  "Return a form that can be `eval'ed based on FUNC."
-  (let ((fval (indirect-function func)))
-    (if (byte-code-function-p fval)
-	(let ((flist (append fval nil)))
-	  (setcar flist 'byte-code)
-	  flist)
-      (cons 'progn (cddr fval)))))
-
 (defun gnus-extract-address-components (from)
   "Extract address components from a From header.
 Given an RFC-822 address FROM, extract full name and canonical address.
@@ -215,16 +206,6 @@ is slower."
 	     (setq name (substring from (1+ (match-beginning 0))
 				   (match-end 0)))))
     (list (if (string= name "") nil name) (or address from))))
-
-(defun gnus-extract-address-component-name (from)
-  "Extract name from a From header.
-Uses `gnus-extract-address-components'."
-  (nth 0 (gnus-extract-address-components from)))
-
-(defun gnus-extract-address-component-email (from)
-  "Extract e-mail address from a From header.
-Uses `gnus-extract-address-components'."
-  (nth 1 (gnus-extract-address-components from)))
 
 (declare-function message-fetch-field "message" (header &optional not-all))
 
@@ -664,10 +645,6 @@ If N, return the Nth ancestor instead."
     ;; should be gnus-characterp, but this can't be called in XEmacs anyway
     (cons (and (numberp event) event) event)))
 
-(defun gnus-sortable-date (date)
-  "Make string suitable for sorting from DATE."
-  (gnus-time-iso8601 (date-to-time date)))
-
 (defun gnus-copy-file (file &optional to)
   "Copy FILE to TO."
   (interactive
@@ -851,28 +828,6 @@ If there's no subdirectory, delete DIRECTORY as well."
 	  (delete-file file)))
       (unless dir
 	(delete-directory directory)))))
-
-;; The following two functions are used in gnus-registry.
-;; They were contributed by Andreas Fuchs <asf@void.at>.
-(defun gnus-alist-to-hashtable (alist)
-  "Build a hashtable from the values in ALIST."
-  (let ((ht (make-hash-table
-	     :size 4096
-	     :test 'equal)))
-    (mapc
-     (lambda (kv-pair)
-       (puthash (car kv-pair) (cdr kv-pair) ht))
-     alist)
-     ht))
-
-(defun gnus-hashtable-to-alist (hash)
-  "Build an alist from the values in HASH."
-  (let ((list nil))
-    (maphash
-     (lambda (key value)
-       (setq list (cons (cons key value) list)))
-     hash)
-    list))
 
 (defun gnus-strip-whitespace (string)
   "Return STRING stripped of all whitespace."
@@ -1249,13 +1204,6 @@ This function saves the current buffer."
        (get-buffer gnus-group-buffer)
        (with-current-buffer gnus-group-buffer
 	 (eq major-mode 'gnus-group-mode))))
-
-(defun gnus-process-live-p (process)
-  "Returns non-nil if PROCESS is alive.
-A process is considered alive if its status is `run', `open',
-`listen', `connect' or `stop'."
-  (memq (process-status process)
-        '(run open listen connect stop)))
 
 (defun gnus-remove-if (predicate sequence &optional hash-table-p)
   "Return a copy of SEQUENCE with all items satisfying PREDICATE removed.
@@ -1927,6 +1875,19 @@ Sizes are in pixels."
                    image)))
       image)))
 
+(defun gnus-recursive-directory-files (dir)
+  "Return all regular files below DIR."
+  (let (files)
+    (dolist (file (directory-files dir t))
+      (when (and (not (member (file-name-nondirectory file) '("." "..")))
+		 (file-readable-p file))
+	(cond
+	 ((file-regular-p file)
+	  (push file files))
+	 ((file-directory-p file)
+	  (setq files (append (gnus-recursive-directory-files file) files))))))
+    files))
+
 (defun gnus-list-memq-of-list (elements list)
   "Return non-nil if any of the members of ELEMENTS are in LIST."
   (let ((found nil))
@@ -1965,6 +1926,18 @@ Same as `string-match' except this function does not change the match data."
     (save-match-data
       (string-match regexp string start))))
 
+(if (fboundp 'string-prefix-p)
+    (defalias 'gnus-string-prefix-p 'string-prefix-p)
+  (defun gnus-string-prefix-p (str1 str2 &optional ignore-case)
+    "Return non-nil if STR1 is a prefix of STR2.
+If IGNORE-CASE is non-nil, the comparison is done without paying attention
+to case differences."
+    (and (<= (length str1) (length str2))
+	 (let ((prefix (substring str2 0 (length str1))))
+	   (if ignore-case
+	       (string-equal (downcase str1) (downcase prefix))
+	     (string-equal str1 prefix))))))
+
 (eval-and-compile
   (if (fboundp 'macroexpand-all)
       (defalias 'gnus-macroexpand-all 'macroexpand-all)
@@ -1990,6 +1963,11 @@ definitions to shadow the loaded ones for use in file byte-compilation."
 ;; We don't use `bound-and-true-p' because it's not in XEmacs.
 (defun gnus-bound-and-true-p (sym)
   (and (boundp sym) (symbol-value sym)))
+
+(if (fboundp 'timer--function)
+    (defalias 'gnus-timer--function 'timer--function)
+  (defun gnus-timer--function (timer)
+    (elt timer 5)))
 
 (provide 'gnus-util)
 

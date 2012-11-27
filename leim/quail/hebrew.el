@@ -773,9 +773,9 @@ Better for yiddish than Hebrew methods.
  ("@" ?,Y%(B)  ; Double Low-9 Quotation Mark
  ("(" ?\))  ; mirroring
  (")" ?\()  ; mirroring
- ("Q" ?,A=(B)  ; Right Double Quotation Mark
- ("W" ?,A<(B)
- ("E" ?,A>(B)  ; Yiddish Double Yod (x2)
+ ("Q" ?,Y4(B)  ; Left Double Quotation Mark
+ ("W" ?,Y!(B)  ; Right Double Quotation Mark
+ ("E" ?$,1-2(B)  ; Yiddish Double Yod (x2)
  ("R" [ ",H`$,1,W(B" ])  ; Patah Alef (Pasekh Alef)
 ; ("T" "")
  ("Y" ?$,1-1(B)  ; Ligature Yiddish Vav Yod (vov yud)

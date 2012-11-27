@@ -19,13 +19,9 @@ Boston, MA 02110-1301, USA.  */
 
 /* Emacs config.h may rename various library functions such as malloc.  */
 #include <config.h>
-#include <setjmp.h>
+
 #include "lisp.h"		/* for xmalloc */
 #include "tparam.h"
-
-#ifndef NULL
-#define NULL (char *) 0
-#endif
 
 /* Assuming STRING is the value of a termcap string entry
    containing `%' constructs to expand parameters,
@@ -102,7 +98,7 @@ tparam1 (const char *string, char *outstring, int len,
 	  if (outlen == 0)
 	    {
 	      outlen = len + 40;
-	      new = (char *) xmalloc (outlen);
+	      new = xmalloc (outlen);
 	      memcpy (new, outstring, offset);
 	    }
 	  else
@@ -251,7 +247,7 @@ tparam1 (const char *string, char *outstring, int len,
 	      break;
 
 	    default:
-	      abort ();
+	      emacs_abort ();
 	    }
 	}
       else

@@ -52,7 +52,7 @@
   to a non-nil value.")
 
 (defvar org-babel-matlab-emacs-link-wrapper-method
-   "%s
+  "%s
 if ischar(ans), fid = fopen('%s', 'w'); fprintf(fid, '%%s\\n', ans); fclose(fid);
 else, save -ascii %s ans
 end
@@ -110,7 +110,7 @@ end")
   (org-babel-prep-session:octave session params 'matlab))
 
 (defun org-babel-variable-assignments:octave (params)
-  "Return list of octave statements assigning the block's variables"
+  "Return list of octave statements assigning the block's variables."
   (mapcar
    (lambda (pair)
      (format "%s=%s;"
@@ -147,13 +147,13 @@ specifying a variable of the same value."
 (defun org-babel-matlab-initiate-session (&optional session params)
   "Create a matlab inferior process buffer.
 If there is not a current inferior-process-buffer in SESSION then
-create. Return the initialized session."
+create.  Return the initialized session."
   (org-babel-octave-initiate-session session params 'matlab))
 
 (defun org-babel-octave-initiate-session (&optional session params matlabp)
   "Create an octave inferior process buffer.
 If there is not a current inferior-process-buffer in SESSION then
-create. Return the initialized session."
+create.  Return the initialized session."
   (if matlabp (require 'matlab) (require 'octave-inf))
   (unless (string= session "none")
     (let ((session (or session
@@ -225,9 +225,9 @@ value of the last statement in BODY, as elisp."
 		      (message "Waiting for Matlab Emacs Link")
 		      (while (file-exists-p wait-file) (sit-for 0.01))
 		      "")) ;; matlab-shell-run-region doesn't seem to
-			   ;; make *matlab* buffer contents easily
-			   ;; available, so :results output currently
-			   ;; won't work
+		;; make *matlab* buffer contents easily
+		;; available, so :results output currently
+		;; won't work
 		(org-babel-comint-with-output
 		    (session
 		     (if matlabp
@@ -265,7 +265,7 @@ This removes initial blank and comment lines and then calls
     (org-babel-import-elisp-from-file temp-file '(16))))
 
 (defun org-babel-octave-read-string (string)
-  "Strip \\\"s from around octave string"
+  "Strip \\\"s from around octave string."
   (if (string-match "^\"\\([^\000]+\\)\"$" string)
       (match-string 1 string)
     string))

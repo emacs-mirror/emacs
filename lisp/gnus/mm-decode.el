@@ -41,6 +41,10 @@
 (autoload 'mm-extern-cache-contents "mm-extern")
 (autoload 'mm-insert-inline "mm-view")
 
+(autoload 'mm-archive-decoders "mm-archive")
+(autoload 'mm-archive-dissect-and-inline "mm-archive")
+(autoload 'mm-dissect-archive "mm-archive")
+
 (defvar gnus-current-window-configuration)
 
 (add-hook 'gnus-exit-gnus-hook 'mm-destroy-postponed-undisplay-list)
@@ -248,6 +252,8 @@ before the external MIME handler is invoked."
     ("message/partial" mm-inline-partial identity)
     ("message/external-body" mm-inline-external-body identity)
     ("text/.*" mm-inline-text identity)
+    ("application/x-.?tar\\(-.*\\)?" mm-archive-dissect-and-inline identity)
+    ("application/zip" mm-archive-dissect-and-inline identity)
     ("audio/wav" mm-inline-audio
      (lambda (handle)
        (and (or (featurep 'nas-sound) (featurep 'native-sound))
@@ -275,7 +281,8 @@ before the external MIME handler is invoked."
 		     (ignore-errors
 		       (if (fboundp 'create-image)
 			   (create-image (buffer-string) 'imagemagick 'data-p)
-			 (mm-create-image-xemacs (mm-handle-media-subtype handle))))))
+			 (mm-create-image-xemacs
+			  (mm-handle-media-subtype handle))))))
 		(when image
 		  (setcar (cdr handle) (list "image/imagemagick"))
 		  (mm-image-fit-p handle)))))))
@@ -297,6 +304,9 @@ before the external MIME handler is invoked."
     "application/pgp-signature" "application/x-pkcs7-signature"
     "application/pkcs7-signature" "application/x-pkcs7-mime"
     "application/pkcs7-mime"
+    "application/x-gtar-compressed"
+    "application/x-tar"
+    "application/zip"
     ;; Mutt still uses this even though it has already been withdrawn.
     "application/pgp")
   "List of media types that are to be displayed inline.
@@ -448,6 +458,7 @@ If not set, `default-directory' will be used."
 (defvar mm-last-shell-command "")
 (defvar mm-content-id-alist nil)
 (defvar mm-postponed-undisplay-list nil)
+(defvar mm-inhibit-auto-detect-attachment nil)
 
 ;; According to RFC2046, in particular, in a digest, the default
 ;; Content-Type value for a body part is changed from "text/plain" to
@@ -567,7 +578,9 @@ Postpone undisplaying of viewers for types in
 (autoload 'message-fetch-field "message")
 
 (defun mm-dissect-buffer (&optional no-strict-mime loose-mime from)
-  "Dissect the current buffer and return a list of MIME handles."
+  "Dissect the current buffer and return a list of MIME handles.
+If NO-STRICT-MIME, don't require the message to have a
+MIME-Version header before proceeding."
   (save-excursion
     (let (ct ctl type subtype cte cd description id result)
       (save-restriction
@@ -653,8 +666,26 @@ Postpone undisplaying of viewers for types in
 	    (if (equal "text/plain" (car ctl))
 		(assoc 'format ctl)
 	      t))
-    (mm-make-handle
-     (mm-copy-to-buffer) ctl cte nil cdl description nil id)))
+    ;; Guess what the type of application/octet-stream parts should
+    ;; really be.
+    (let ((filename (cdr (assq 'filename (cdr cdl)))))
+      (when (and (not mm-inhibit-auto-detect-attachment)
+		 (equal (car ctl) "application/octet-stream")
+		 filename
+		 (string-match "\\.\\([^.]+\\)$" filename))
+	(let ((new-type (mailcap-extension-to-mime (match-string 1 filename))))
+	  (when new-type
+	    (setcar ctl new-type)))))
+    (let ((handle
+	   (mm-make-handle
+	    (mm-copy-to-buffer) ctl cte nil cdl description nil id))
+	  (decoder (assoc (car ctl) (mm-archive-decoders))))
+      (if (and decoder
+	       ;; Do automatic decoding
+	       (cadr decoder)
+	       (executable-find (caddr decoder)))
+	  (mm-dissect-archive handle)
+	handle))))
 
 (defun mm-dissect-multipart (ctl from)
   (goto-char (point-min))
@@ -665,7 +696,9 @@ Postpone undisplaying of viewers for types in
 		(goto-char (point-max))
 		(if (re-search-backward close-delimiter nil t)
 		    (match-beginning 0)
-		  (point-max)))))
+		  (point-max))))
+	 (mm-inhibit-auto-detect-attachment
+	  (equal (car ctl) "multipart/encrypted")))
     (setq boundary (concat (regexp-quote boundary) "[ \t]*$"))
     (while (and (< (point) end) (re-search-forward boundary end t))
       (goto-char (match-beginning 0))
@@ -736,23 +769,29 @@ external if displayed external."
 			   (mail-content-type-get
 			    (mm-handle-type handle) 'name)
 			   "<file>"))
-	     (external mm-enable-external))
-	(if (and (mm-inlinable-p ehandle)
-		 (mm-inlined-p ehandle))
-	    (progn
-	      (forward-line 1)
-	      (mm-display-inline handle)
-	      'inline)
-	  (when (or method
-		    (not no-default))
-	    (if (and (not method)
-		     (equal "text" (car (split-string type "/"))))
-		(progn
-		  (forward-line 1)
-		  (mm-insert-inline handle (mm-get-part handle))
-		  'inline)
-	      (setq external
-                    (and method ;; If nil, we always use "save".
+	     (external mm-enable-external)
+	     (decoder (assoc (car (mm-handle-type handle))
+			     (mm-archive-decoders))))
+	(cond
+	 ((and decoder
+	       (executable-find (caddr decoder)))
+	  (mm-archive-dissect-and-inline handle)
+	  'inline)
+	 ((and (mm-inlinable-p ehandle)
+	       (mm-inlined-p ehandle))
+	  (forward-line 1)
+	  (mm-display-inline handle)
+	  'inline)
+	 ((or method
+	      (not no-default))
+	  (if (and (not method)
+		   (equal "text" (car (split-string type "/"))))
+	      (progn
+		(forward-line 1)
+		(mm-insert-inline handle (mm-get-part handle))
+		'inline)
+	    (setq external
+		  (and method	      ;; If nil, we always use "save".
 		       (stringp method) ;; 'mailcap-save-binary-file
 		       (or (eq mm-enable-external t)
 			   (and (eq mm-enable-external 'ask)
@@ -765,12 +804,12 @@ external if displayed external."
 				      (concat
 				       " \"" (format method filename) "\"")
 				    "")
-                                    "? "))))))
-	      (if external
-		  (mm-display-external
-		   handle (or method 'mailcap-save-binary-file))
+				  "? "))))))
+	    (if external
 		(mm-display-external
-		 handle 'mailcap-save-binary-file)))))))))
+		 handle (or method 'mailcap-save-binary-file))
+	      (mm-display-external
+	       handle 'mailcap-save-binary-file)))))))))
 
 (declare-function gnus-configure-windows "gnus-win" (setting &optional force))
 (defvar mailcap-mime-extensions)	; mailcap-mime-info autoloads
@@ -918,46 +957,38 @@ external if displayed external."
 				   shell-command-switch command)
 		    (set-process-sentinel
 		     (get-buffer-process buffer)
-		     (lexical-let ;; Don't use `let'.
-			 ;; Function used to remove temp file and directory.
-			 ((fn `(lambda nil
-				 ;; Don't use `ignore-errors'.
-				 (condition-case nil
-				     (delete-file ,file)
-				   (error))
-				 (condition-case nil
-				     (delete-directory
-				      ,(file-name-directory file))
-				   (error))))
-			  ;; Form uses to kill the process buffer and
-			  ;; remove the undisplayer.
-			  (fm `(progn
-				 (kill-buffer ,buffer)
-				 ,(macroexpand
-				   (list 'mm-handle-set-undisplayer
-					 (list 'quote handle)
-					 nil))))
-			  ;; Message to be issued when the process exits.
-			  (done (format "Displaying %s...done" command))
-			  ;; In particular, the timer object (which is
-			  ;; a vector in Emacs but is a list in XEmacs)
-			  ;; requires that it is lexically scoped.
-			  (timer (run-at-time 30.0 nil 'ignore)))
-		       (if (featurep 'xemacs)
-			   (lambda (process state)
-			     (when (eq 'exit (process-status process))
-			       (if (memq timer itimer-list)
-				   (set-itimer-function timer fn)
-				 (funcall fn))
-			       (ignore-errors (eval fm))
-			       (message "%s" done)))
-			 (lambda (process state)
-			   (when (eq 'exit (process-status process))
-			     (if (memq timer timer-list)
-				 (timer-set-function timer fn)
-			       (funcall fn))
-			     (ignore-errors (eval fm))
-			     (message "%s" done)))))))
+		     (lexical-let ((outbuf outbuf)
+				   (file file)
+				   (buffer buffer)
+				   (command command)
+				   (handle handle))
+		       (run-at-time
+			30.0 nil
+			(lambda ()
+			  (ignore-errors
+			    (delete-file file))
+			  (ignore-errors
+			    (delete-directory (file-name-directory file)))))
+		       (lambda (process state)
+			 (when (eq (process-status process) 'exit)
+			   (condition-case nil
+			       (delete-file file)
+			     (error))
+			   (condition-case nil
+			       (delete-directory (file-name-directory file))
+			     (error))
+			   (when (buffer-live-p outbuf)
+			     (with-current-buffer outbuf
+			       (let ((buffer-read-only nil)
+				     (point (point)))
+				 (forward-line 2)
+				 (mm-insert-inline
+				  handle (with-current-buffer buffer
+					   (buffer-string)))
+				 (goto-char point))))
+			   (when (buffer-live-p buffer)
+			     (kill-buffer buffer)))
+			 (message "Displaying %s...done" command)))))
 		(mm-handle-set-external-undisplayer
 		 handle (cons file buffer)))
 	      (message "Displaying %s..." command))
@@ -1741,7 +1772,8 @@ If RECURSIVE, search recursively."
 	 (insert (prog1
 		     (if (and charset
 			      (setq charset
-				    (mm-charset-to-coding-system charset))
+				    (mm-charset-to-coding-system charset
+								 nil t))
 			      (not (eq charset 'ascii)))
 			 (mm-decode-coding-string (buffer-string) charset)
 		       (mm-string-as-multibyte (buffer-string)))
@@ -1762,6 +1794,8 @@ If RECURSIVE, search recursively."
 	 (while (search-forward "­" nil t)
 	   (replace-match "" t t))
 	 (libxml-parse-html-region (point-min) (point-max))))
+      (unless (bobp)
+	(insert "\n"))
       (mm-handle-set-undisplayer
        handle
        `(lambda ()
@@ -1777,5 +1811,9 @@ If RECURSIVE, search recursively."
                              'filename)))
 
 (provide 'mm-decode)
+
+;; Local Variables:
+;; coding: iso-8859-1
+;; End:
 
 ;;; mm-decode.el ends here

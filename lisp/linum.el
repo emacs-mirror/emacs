@@ -44,7 +44,6 @@
   "Show line numbers in the left margin."
   :group 'convenience)
 
-;;;###autoload
 (defcustom linum-format 'dynamic
   "Format used to display line numbers.
 Either a format string like \"%7d\", `dynamic' to adapt the width
@@ -52,7 +51,9 @@ as needed, or a function that is called with a line number as its
 argument and should evaluate to a string to be shown on that line.
 See also `linum-before-numbering-hook'."
   :group 'linum
-  :type 'sexp)
+  :type '(choice (string :tag "Format string")
+                 (const :tag "Dynamic width" dynamic)
+                 (function :tag "Function")))
 
 (defface linum
   '((t :inherit (shadow default)))

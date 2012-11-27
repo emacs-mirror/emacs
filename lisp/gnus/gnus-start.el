@@ -291,7 +291,9 @@ claim them."
 		function
 		(repeat function)))
 
-(defcustom gnus-subscribe-newsgroup-hooks nil
+(define-obsolete-variable-alias 'gnus-subscribe-newsgroup-hooks
+  'gnus-subscribe-newsgroup-functions "24.3")
+(defcustom gnus-subscribe-newsgroup-functions nil
   "*Hooks run after you subscribe to a new group.
 The hooks will be called with new group's name as argument."
   :version "22.1"
@@ -639,7 +641,7 @@ the first newsgroup."
      gnus-level-killed (gnus-group-entry (or next "dummy.group")))
     (gnus-request-update-group-status newsgroup 'subscribe)
     (gnus-message 5 "Subscribe newsgroup: %s" newsgroup)
-    (run-hook-with-args 'gnus-subscribe-newsgroup-hooks newsgroup)
+    (run-hook-with-args 'gnus-subscribe-newsgroup-functions newsgroup)
     t))
 
 (defun gnus-read-active-file-p ()
@@ -1369,11 +1371,6 @@ for new groups, and subscribe the new groups as zombies."
 	(funcall gnus-group-change-level-function
 		 group level oldlevel previous)))))
 
-(defun gnus-kill-newsgroup (newsgroup)
-  "Obsolete function.  Kills a newsgroup."
-  (gnus-group-change-level
-   (gnus-group-entry newsgroup) gnus-level-killed))
-
 (defun gnus-check-bogus-newsgroups (&optional confirm)
   "Remove bogus newsgroups.
 If CONFIRM is non-nil, the user has to confirm the deletion of every
@@ -1504,8 +1501,6 @@ backend check whether the group actually exists."
 	     ;; Return the new active info.
 	     active)))))
 
-(defvar gnus-propagate-marks)		; gnus-sum
-
 (defun gnus-get-unread-articles-in-group (info active &optional update)
   (when (and info active)
     ;; Allow the backend to update the info in the group.
@@ -1514,13 +1509,6 @@ backend check whether the group actually exists."
 		info (inline (gnus-find-method-for-group
 			      (gnus-info-group info)))))
       (gnus-activate-group (gnus-info-group info) nil t))
-
-    ;; Allow backends to update marks,
-    (when gnus-propagate-marks
-      (let ((method (inline (gnus-find-method-for-group
-			     (gnus-info-group info)))))
-	(when (gnus-check-backend-function 'request-marks (car method))
-	  (gnus-request-marks info method))))
 
     (let* ((range (gnus-info-read info))
 	   (num 0))
@@ -1610,7 +1598,7 @@ backend check whether the group actually exists."
 
 ;; Go though `gnus-newsrc-alist' and compare with `gnus-active-hashtb'
 ;; and compute how many unread articles there are in each group.
-(defun gnus-get-unread-articles (&optional level dont-connect)
+(defun gnus-get-unread-articles (&optional level dont-connect one-level)
   (setq gnus-server-method-cache nil)
   (require 'gnus-agent)
   (let* ((newsrc (cdr gnus-newsrc-alist))
@@ -1667,7 +1655,7 @@ backend check whether the group actually exists."
 	(push (setq method-group-list (list method method-type nil nil))
 	      type-cache))
       ;; Only add groups that need updating.
-      (if (<= (gnus-info-level info)
+      (if (funcall (if one-level #'= #'<=) (gnus-info-level info)
 	      (if (eq (cadr method-group-list) 'foreign)
 		  foreign-level
 		alevel))
@@ -2230,7 +2218,7 @@ backend check whether the group actually exists."
 	     (gnus-online method)
 	     (gnus-agent-method-p method))
 	(progn
-	  (gnus-agent-save-active method)
+	  (gnus-agent-save-active method t)
 	  (gnus-active-to-gnus-format method hashtb nil real-active))
 
       (goto-char (point-min))

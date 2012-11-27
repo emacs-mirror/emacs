@@ -27,8 +27,7 @@
 
 ;;; Code:
 
-(eval-when-compile
-  (require 'cl))
+(eval-when-compile (require 'cl-lib))
 
 ;; From Paul Graham's "ANSI Common Lisp", adapted for Emacs Lisp here.
 (defmacro ibuffer-aif (test true-body &rest false-body)
@@ -73,7 +72,7 @@ During evaluation of body, bind `it' to the value returned by TEST."
 	   (ibuffer-redisplay t))))))
 
 ;;;###autoload
-(defmacro* define-ibuffer-column (symbol (&key name inline props summarizer
+(cl-defmacro define-ibuffer-column (symbol (&key name inline props summarizer
 					       header-mouse-map) &rest body)
   "Define a column SYMBOL for use with `ibuffer-formats'.
 
@@ -129,7 +128,7 @@ change its definition, you should explicitly call
        :autoload-end)))
 
 ;;;###autoload
-(defmacro* define-ibuffer-sorter (name documentation
+(cl-defmacro define-ibuffer-sorter (name documentation
 				       (&key
 					description)
 				       &rest body)
@@ -143,7 +142,7 @@ buffer object, and `b' bound to another.  BODY should return a non-nil
 value if and only if `a' is \"less than\" `b'.
 
 \(fn NAME DOCUMENTATION (&key DESCRIPTION) &rest BODY)"
-  (declare (indent 1))
+  (declare (indent 1) (doc-string 2))
   `(progn
      (defun ,(intern (concat "ibuffer-do-sort-by-" (symbol-name name))) ()
        ,(or documentation "No :documentation specified for this sorting method.")
@@ -160,7 +159,7 @@ value if and only if `a' is \"less than\" `b'.
      :autoload-end))
 
 ;;;###autoload
-(defmacro* define-ibuffer-op (op args
+(cl-defmacro define-ibuffer-op (op args
 				 documentation
 				 (&key
 				  interactive
@@ -202,7 +201,7 @@ COMPLEX means this function is special; see the source code of this
 macro for exactly what it does.
 
 \(fn OP ARGS DOCUMENTATION (&key INTERACTIVE MARK MODIFIER-P DANGEROUS OPSTRING ACTIVE-OPSTRING COMPLEX) &rest BODY)"
-  (declare (indent 2))
+  (declare (indent 2) (doc-string 3))
   `(progn
      (defun ,(intern (concat (if (string-match "^ibuffer-do" (symbol-name op))
 				 "" "ibuffer-do-") (symbol-name op)))
@@ -213,19 +212,19 @@ macro for exactly what it does.
        ,(if (not (null interactive))
 	    `(interactive ,interactive)
 	  '(interactive))
-       (assert (derived-mode-p 'ibuffer-mode))
+       (cl-assert (derived-mode-p 'ibuffer-mode))
        (setq ibuffer-did-modification nil)
-       (let ((marked-names  (,(case mark
+       (let ((marked-names  (,(pcase mark
 				(:deletion
 				 'ibuffer-deletion-marked-buffer-names)
-				(t
+				(_
 				 'ibuffer-marked-buffer-names)))))
 	 (when (null marked-names)
 	   (setq marked-names (list (buffer-name (ibuffer-current-buffer))))
-	   (ibuffer-set-mark ,(case mark
+	   (ibuffer-set-mark ,(pcase mark
 				(:deletion
 				 'ibuffer-deletion-char)
-				(t
+				(_
 				 'ibuffer-marked-char))))
 	 ,(let* ((finish (append
 			  '(progn)
@@ -242,10 +241,10 @@ macro for exactly what it does.
 				      ,@body))
 				  t)))
 		 (body `(let ((count
-			       (,(case mark
+			       (,(pcase mark
 				   (:deletion
 				    'ibuffer-map-deletion-lines)
-				   (t
+				   (_
 				    'ibuffer-map-marked-lines))
 				#'(lambda (buf mark)
 				    ,(if (eq modifier-p :maybe)
@@ -264,7 +263,7 @@ macro for exactly what it does.
      :autoload-end))
 
 ;;;###autoload
-(defmacro* define-ibuffer-filter (name documentation
+(cl-defmacro define-ibuffer-filter (name documentation
 				       (&key
 					reader
 					description)
@@ -280,7 +279,7 @@ will be evaluated with BUF bound to the buffer object, and QUALIFIER
 bound to the current value of the filter.
 
 \(fn NAME DOCUMENTATION (&key READER DESCRIPTION) &rest BODY)"
-  (declare (indent 2))
+  (declare (indent 2) (doc-string 2))
   (let ((fn-name (intern (concat "ibuffer-filter-by-" (symbol-name name)))))
     `(progn
        (defun ,fn-name (qualifier)

@@ -31,7 +31,7 @@
 ;; Pacify the byte-compiler
 (eval-when-compile
   (require 'compare-w)
-  (require 'cl)
+  (require 'cl-lib)
   (require 'skeleton))
 
 (defvar font-lock-comment-face)
@@ -265,7 +265,7 @@ Deleted when the \\[tex-region] or \\[tex-buffer] is next run, or when the
 tex shell terminates.")
 
 (defvar tex-command "tex"
-  "*Command to run TeX.
+  "Command to run TeX.
 If this string contains an asterisk \(`*'\), that is replaced by the file name;
 otherwise the value of `tex-start-options', the \(shell-quoted\)
 value of `tex-start-commands', and the file name are added at the end
@@ -476,46 +476,51 @@ An alternative value is \" . \", if you use a font with a narrow period."
 		      '("input" "include" "includeonly" "bibliography"
 			"epsfig" "psfig" "epsf" "nofiles" "usepackage"
 			"documentstyle" "documentclass" "verbatiminput"
-			"includegraphics" "includegraphics*"
-			"url" "nolinkurl")
+			"includegraphics" "includegraphics*")
 		      t))
+           (verbish (regexp-opt '("url" "nolinkurl" "path") t))
 	   ;; Miscellany.
 	   (slash "\\\\")
 	   (opt " *\\(\\[[^]]*\\] *\\)*")
 	   ;; This would allow highlighting \newcommand\CMD but requires
 	   ;; adapting subgroup numbers below.
 	   ;; (arg "\\(?:{\\(\\(?:[^{}\\]+\\|\\\\.\\|{[^}]*}\\)+\\)\\|\\\\[a-z*]+\\)"))
-	   (arg "{\\(\\(?:[^{}\\]+\\|\\\\.\\|{[^}]*}\\)+\\)"))
-      (list
-       ;; display $$ math $$
-       ;; We only mark the match between $$ and $$ because the $$ delimiters
-       ;; themselves have already been marked (along with $..$) by syntactic
-       ;; fontification.  Also this is done at the very beginning so as to
-       ;; interact with the other keywords in the same way as $...$ does.
-       (list "\\$\\$\\([^$]+\\)\\$\\$" 1 'tex-math-face)
-       ;; Heading args.
-       (list (concat slash headings "\\*?" opt arg)
-	     ;; If ARG ends up matching too much (if the {} don't match, e.g.)
-	     ;; jit-lock will do funny things: when updating the buffer
-	     ;; the re-highlighting is only done locally so it will just
-	     ;; match the local line, but defer-contextually will
-	     ;; match more lines at a time, so ARG will end up matching
-	     ;; a lot more, which might suddenly include a comment
-	     ;; so you get things highlighted bold when you type them
-	     ;; but they get turned back to normal a little while later
-	     ;; because "there's already a face there".
-	     ;; Using `keep' works around this un-intuitive behavior as well
-	     ;; as improves the behavior in the very rare case where you do
-	     ;; have a comment in ARG.
-	     3 'font-lock-function-name-face 'keep)
-       (list (concat slash "\\(?:provide\\|\\(?:re\\)?new\\)command\\** *\\(\\\\[A-Za-z@]+\\)")
-	     1 'font-lock-function-name-face 'keep)
-       ;; Variable args.
-       (list (concat slash variables " *" arg) 2 'font-lock-variable-name-face)
-       ;; Include args.
-       (list (concat slash includes opt arg) 3 'font-lock-builtin-face)
-       ;; Definitions.  I think.
-       '("^[ \t]*\\\\def *\\\\\\(\\(\\w\\|@\\)+\\)"
+           (inbraces-re (lambda (re)
+                          (concat "\\(?:[^{}\\]\\|\\\\.\\|" re "\\)")))
+	   (arg (concat "{\\(" (funcall inbraces-re "{[^}]*}") "+\\)")))
+      `( ;; Highlight $$math$$ and $math$.
+        ;; This is done at the very beginning so as to interact with the other
+        ;; keywords in the same way as comments and strings.
+        (,(concat "\\$\\$?\\(?:[^$\\{}]\\|\\\\.\\|{"
+                  (funcall inbraces-re
+                           (concat "{" (funcall inbraces-re "{[^}]*}") "*}"))
+                  "*}\\)+\\$?\\$")
+         (0 tex-math-face))
+        ;; Heading args.
+        (,(concat slash headings "\\*?" opt arg)
+         ;; If ARG ends up matching too much (if the {} don't match, e.g.)
+         ;; jit-lock will do funny things: when updating the buffer
+         ;; the re-highlighting is only done locally so it will just
+         ;; match the local line, but defer-contextually will
+         ;; match more lines at a time, so ARG will end up matching
+         ;; a lot more, which might suddenly include a comment
+         ;; so you get things highlighted bold when you type them
+         ;; but they get turned back to normal a little while later
+         ;; because "there's already a face there".
+         ;; Using `keep' works around this un-intuitive behavior as well
+         ;; as improves the behavior in the very rare case where you do
+         ;; have a comment in ARG.
+         3 font-lock-function-name-face keep)
+        (,(concat slash "\\(?:provide\\|\\(?:re\\)?new\\)command\\** *\\(\\\\[A-Za-z@]+\\)")
+         1 font-lock-function-name-face keep)
+        ;; Variable args.
+        (,(concat slash variables " *" arg) 2 font-lock-variable-name-face)
+        ;; Include args.
+        (,(concat slash includes opt arg) 3 font-lock-builtin-face)
+        ;; Verbatim-like args.
+        (,(concat slash verbish opt arg) 3 'tex-verbatim)
+        ;; Definitions.  I think.
+        ("^[ \t]*\\\\def *\\\\\\(\\(\\w\\|@\\)+\\)"
 	 1 font-lock-function-name-face))))
   "Subdued expressions to highlight in TeX modes.")
 
@@ -629,7 +634,7 @@ An alternative value is \" . \", if you use a font with a narrow period."
 	     (1 (tex-font-lock-suscript (match-beginning 0)) append))))
   "Experimental expressions to highlight in TeX modes.")
 
-(defvar tex-font-lock-keywords tex-font-lock-keywords-1
+(defconst tex-font-lock-keywords tex-font-lock-keywords-1
   "Default expressions to highlight in TeX modes.")
 
 (defvar tex-verbatim-environments
@@ -855,10 +860,6 @@ START is the position of the \\ and DELIM is the delimiter char."
     (set-keymap-parent map text-mode-map)
     (tex-define-common-keys map)
     (define-key map "\"" 'tex-insert-quote)
-    (define-key map "(" 'skeleton-pair-insert-maybe)
-    (define-key map "{" 'skeleton-pair-insert-maybe)
-    (define-key map "[" 'skeleton-pair-insert-maybe)
-    (define-key map "$" 'skeleton-pair-insert-maybe)
     (define-key map "\n" 'tex-terminate-paragraph)
     (define-key map "\M-\r" 'latex-insert-item)
     (define-key map "\C-c}" 'up-list)
@@ -1219,7 +1220,7 @@ Entering SliTeX mode runs the hook `text-mode-hook', then the hook
   (set (make-local-variable 'font-lock-defaults)
        '((tex-font-lock-keywords tex-font-lock-keywords-1
 	  tex-font-lock-keywords-2 tex-font-lock-keywords-3)
-	 nil nil ((?$ . "\"")) nil
+	 nil nil nil nil
 	 ;; Who ever uses that anyway ???
 	 (font-lock-mark-block-function . mark-paragraph)
 	 (font-lock-syntactic-face-function
@@ -1281,7 +1282,8 @@ inserts \" characters."
 	      (delete-char (length tex-open-quote))
 	      t)))
       (self-insert-command (prefix-numeric-value arg))
-    (insert (if (memq (char-syntax (preceding-char)) '(?\( ?> ?\s))
+    (insert (if (or (memq (char-syntax (preceding-char)) '(?\( ?> ?\s))
+                    (memq (preceding-char) '(?~)))
 		tex-open-quote tex-close-quote))))
 
 (defun tex-validate-buffer ()
@@ -1492,8 +1494,8 @@ Puts point on a blank line between them."
 
 (defvar latex-complete-bibtex-cache nil)
 
-(defun latex-string-prefix-p (str1 str2)
-  (eq t (compare-strings str1 nil nil str2 0 (length str1))))
+(define-obsolete-function-alias 'latex-string-prefix-p
+  'string-prefix-p "24.3")
 
 (defvar bibtex-reference-key)
 (declare-function reftex-get-bibfile-list "reftex-cite.el" ())
@@ -1507,7 +1509,7 @@ Puts point on a blank line between them."
             keys)
         (if (and (eq (car latex-complete-bibtex-cache)
                      (reftex-get-bibfile-list))
-                 (latex-string-prefix-p (nth 1 latex-complete-bibtex-cache)
+                 (string-prefix-p (nth 1 latex-complete-bibtex-cache)
                                         key))
             ;; Use the cache.
             (setq keys (nth 2 latex-complete-bibtex-cache))
@@ -1543,8 +1545,8 @@ Puts point on a blank line between them."
   (save-excursion
     (let ((pt (point)))
       (skip-chars-backward "^ {}\n\t\\\\")
-      (case (char-before)
-        ((nil ?\s ?\n ?\t ?\}) nil)
+      (pcase (char-before)
+        ((or `nil ?\s ?\n ?\t ?\}) nil)
         (?\\
          ;; TODO: Complete commands.
          nil)
@@ -1717,9 +1719,12 @@ Mark is left at original location."
   "Like `forward-sexp' but aware of multi-char elements and escaped parens."
   (interactive "P")
   (unless arg (setq arg 1))
-  (let ((pos (point)))
+  (let ((pos (point))
+	(opoint 0))
     (condition-case err
-	(while (/= arg 0)
+	(while (and (/= (point) opoint)
+		    (/= arg 0))
+	  (setq opoint (point))
 	  (setq arg
 		(if (> arg 0)
 		    (progn (latex-forward-sexp-1) (1- arg))
@@ -1793,7 +1798,7 @@ Mark is left at original location."
 	(if (not (eq (char-syntax (preceding-char)) ?/))
 	    (progn
 	      ;; Don't count single-char words.
-	      (unless (looking-at ".\\>") (incf count))
+	      (unless (looking-at ".\\>") (cl-incf count))
 	      (forward-char 1))
 	  (let ((cmd
 		 (buffer-substring-no-properties
@@ -1984,8 +1989,7 @@ If NOT-ALL is non-nil, save the `.dvi' file."
       (let* ((dir (file-name-directory tex-last-temp-file))
 	     (list (and (file-directory-p dir)
 			(file-name-all-completions
-			 (file-name-sans-extension
-			  (file-name-nondirectory tex-last-temp-file))
+			 (file-name-base tex-last-temp-file)
 			 dir))))
 	(while list
 	  (if not-all
@@ -2051,10 +2055,7 @@ IN can be either a string (with the same % escapes in it) indicating
 OUT describes the output file and is either a %-escaped string
   or nil to indicate that there is no output file.")
 
-;; defsubst* gives better byte-code than defsubst.
-(defsubst* tex-string-prefix-p (str1 str2)
-  "Return non-nil if STR1 is a prefix of STR2"
-  (eq t (compare-strings str2 nil (length str1) str1 nil nil)))
+(define-obsolete-function-alias 'tex-string-prefix-p 'string-prefix-p "24.3")
 
 (defun tex-guess-main-file (&optional all)
   "Find a likely `tex-main-file'.
@@ -2069,7 +2070,7 @@ of the current buffer."
 	(with-current-buffer buf
 	  (when (and (cond
 		      ((null all) (equal dir default-directory))
-		      ((eq all 'sub) (tex-string-prefix-p default-directory dir))
+		      ((eq all 'sub) (string-prefix-p default-directory dir))
 		      (t))
 		     (stringp tex-main-file))
 	    (throw 'found (expand-file-name tex-main-file)))))
@@ -2078,7 +2079,7 @@ of the current buffer."
 	(with-current-buffer buf
 	  (when (and (cond
 		      ((null all) (equal dir default-directory))
-		      ((eq all 'sub) (tex-string-prefix-p default-directory dir))
+		      ((eq all 'sub) (string-prefix-p default-directory dir))
 		      (t))
 		     buffer-file-name
 		     ;; (or (easy-mmode-derived-mode-p 'latex-mode)
@@ -2564,8 +2565,7 @@ line LINE of the window, or centered if LINE is nil."
     (if (null tex-shell)
 	(message "No TeX output buffer")
       (setq window (display-buffer tex-shell))
-      (save-selected-window
-	(select-window window)
+      (with-selected-window window
 	(bury-buffer tex-shell)
 	(goto-char (point-max))
 	(recenter (if linenum
@@ -2689,7 +2689,9 @@ Runs the shell command defined by `tex-show-queue-command'."
   "Syntax table used while computing indentation.")
 
 (defun latex-indent (&optional arg)
-  (if (and (eq (get-text-property (line-beginning-position) 'face)
+  (if (and (eq (get-text-property (if (and (eobp) (bolp))
+                                      (max (point-min) (1- (point)))
+                                    (line-beginning-position)) 'face)
 	       'tex-verbatim))
       'noindent
     (with-syntax-table tex-latex-indent-syntax-table
@@ -2863,10 +2865,10 @@ There might be text before point."
 	(cons (append (car font-lock-defaults) '(doctex-font-lock-keywords))
 	      (mapcar
 	       (lambda (x)
-		 (case (car-safe x)
-		   (font-lock-syntactic-face-function
+		 (pcase (car-safe x)
+		   (`font-lock-syntactic-face-function
 		    (cons (car x) 'doctex-font-lock-syntactic-face-function))
-		   (t x)))
+		   (_ x)))
 	       (cdr font-lock-defaults))))
   (set (make-local-variable 'syntax-propertize-function)
        (syntax-propertize-rules doctex-syntax-propertize-rules)))

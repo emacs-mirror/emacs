@@ -228,7 +228,7 @@
 ;; superior to that of the LISPM version.
 ;;
 ;;-----------------------------------------------
-;; Acknowledgements
+;; Acknowledgments
 ;;-----------------------------------------------
 ;;  Cliff Lasser (cal@think.com), Kevin Herbert (kph@cisco.com),
 ;;  eero@media-lab, kgk@cs.brown.edu, jla@ai.mit.edu,
@@ -344,18 +344,18 @@ are automatically added to the completion database."
   :group 'completion)
 
 ;;(defvar *record-cmpl-statistics-p* nil
-;;  "*If non-nil, record completion statistics.")
+;;  "If non-nil, record completion statistics.")
 
 ;;(defvar *completion-auto-save-period* 1800
-;;  "*The period in seconds to wait for emacs to be idle before autosaving
+;;  "The period in seconds to wait for emacs to be idle before autosaving
 ;;the completions.  Default is a 1/2 hour.")
 
 (defvar completion-min-length 6
-  "*The minimum length of a stored completion.
+  "The minimum length of a stored completion.
 DON'T CHANGE WITHOUT RECOMPILING !  This is used by macros.")
 
 (defvar completion-max-length 200
-  "*The maximum length of a stored completion.
+  "The maximum length of a stored completion.
 DON'T CHANGE WITHOUT RECOMPILING !  This is used by macros.")
 
 (defvar completion-prefix-min-length 3
@@ -1301,8 +1301,8 @@ String must be longer than `completion-prefix-min-length'."
 
 (defun check-completion-length (string)
   (if (< (length string) completion-min-length)
-      (error "The string `%s' is too short to be saved as a completion"
-	     string)
+      (user-error "The string `%s' is too short to be saved as a completion"
+                  string)
       (list string)))
 
 (defun add-completion (string &optional num-uses last-use-time)
@@ -2466,10 +2466,6 @@ if ARG is omitted or nil."
 ;; Old names, non-namespace-clean.
 (defvaralias 'cmpl-syntax-table 'completion-syntax-table)
 (defalias 'initialize-completions 'completion-initialize)
-
-(dolist (x '("^To complete, the point must be after a symbol at least [0-9]* character long\\.$"
-	"^The string \".*\" is too short to be saved as a completion\\.$"))
-  (add-to-list 'debug-ignored-errors x))
 
 (provide 'completion)
 

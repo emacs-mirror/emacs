@@ -2,7 +2,7 @@
 # Configuration script for lib/Makefile under DJGPP v2.x
 # ----------------------------------------------------------------------
 #
-# Copyright (C) 2011-2012  Free Software Foundation, Inc.
+# Copyright (C) 2011-2012 Free Software Foundation, Inc.
 #
 # This file is part of GNU Emacs.
 #
@@ -27,7 +27,7 @@
 #    otherwise edit them to zero:
 #
 #     /^REPLACE_CALLOC *=/s/@REPLACE_CALLOC@/0/
-# 
+#
 #  . If the module is a header or adds headers, edit the corresponding
 #    variable to either an empty value or to the name of the header.
 #    Examples:
@@ -93,6 +93,13 @@
 #       s/'\; \\ *$/' >> $@-t/
 #     }
 #
+#  . If the recipe for generating a header file uses 'cat', replace it with
+#
+#      sed -e ''
+#
+#    (if needed; there's already an edit command that should take care of
+#     this).
+#
 # The following Awk script is useful for editing portions of
 # autogen/Makefile.in into Sed commands that define the corresponding
 # variables to zero (which is what is required in the absolute
@@ -124,14 +131,17 @@ am__cd = cd
 /^CYGWIN_OBJ *=/s/@[^@\n]*@//
 /^C_SWITCH_MACHINE *=/s/@C_SWITCH_MACHINE@//
 /^C_SWITCH_SYSTEM *=/s/@C_SWITCH_SYSTEM@//
-/^C_SWITCH_X_SYSTEM *=/s/@C_SWITCH_X_SYSTEM@//
+/^GNUSTEP_CFLAGS *=/s/@GNUSTEP_CFLAGS@//
 /^C_SWITCH_X_SITE *=/s/@C_SWITCH_X_SITE@//
-/^C_WARNINGS_SWITCH *=/s/@C_WARNINGS_SWITCH@//
-/^DEFS *=/s/@[^@\n]*@/-DHAVE_CONFIG_H/
+/^GNULIB_WARN_CFLAGS *=/s/@GNULIB_WARN_CFLAGS@//
+/^WARN_CFLAGS *=/s/@WARN_CFLAGS@//
+/^WERROR_CFLAGS *=/s/@WERROR_CFLAGS@//
+/^DEFS *=/s/@[^@\n]*@//
 /^DEPDIR *=/s/@[^@\n]*@/deps/
 /^DEPFLAGS *=/s/@[^@\n]*@/-MMD -MF ${DEPDIR}\/$*.d/
 /^ECHO_N *=/s/@[^@\n]*@/-n/
 /^EXEEXT *=/s/@[^@\n]*@/.exe/
+/^EXECINFO_H *=/s/@[^@\n]*@/execinfo.h/
 /^GETOPT_H *=/s/@[^@\n]*@/getopt.h/
 #
 # Gnulib stuff
@@ -156,7 +166,7 @@ am__cd = cd
 /^GNULIB_DUP *=/s/@GNULIB_DUP@/0/
 /^GNULIB_DUP2 *=/s/@GNULIB_DUP2@/0/
 /^GNULIB_DUP3 *=/s/@GNULIB_DUP3@/1/
-/^GNULIB_ENVIRON *=/s/@GNULIB_ENVIRON@/0/
+/^GNULIB_ENVIRON *=/s/@GNULIB_ENVIRON@/1/
 /^GNULIB_EUIDACCESS *=/s/@GNULIB_EUIDACCESS@/0/
 /^GNULIB_FACCESSAT *=/s/@GNULIB_FACCESSAT@/0/
 /^GNULIB_FCHDIR *=/s/@GNULIB_FCHDIR@/0/
@@ -200,11 +210,13 @@ am__cd = cd
 /^GNULIB_GETLOGIN *=/s/@GNULIB_GETLOGIN@/0/
 /^GNULIB_GETLOGIN_R *=/s/@GNULIB_GETLOGIN_R@/0/
 /^GNULIB_GETPAGESIZE *=/s/@GNULIB_GETPAGESIZE@/0/
-/^GNULIB_GETS *=/s/@GNULIB_GETS@/0/
+/^GNULIB_GL_UNISTD_H_GETOPT *=/s/@GNULIB_GL_UNISTD_H_GETOPT@/1/
 /^GNULIB_GETSUBOPT *=/s/@GNULIB_GETSUBOPT@/0/
+/^GNULIB_GETTIMEOFDAY *=/s/@GNULIB_GETTIMEOFDAY@/0/
 /^GNULIB_GETUSERSHELL *=/s/@GNULIB_GETUSERSHELL@/0/
 /^GNULIB_GRANTPT *=/s/@GNULIB_GRANTPT@/0/
 /^GNULIB_GROUP_MEMBER *=/s/@GNULIB_GROUP_MEMBER@/0/
+/^GNULIB_ISATTY *=/s/@GNULIB_ISATTY@/0/
 /^GNULIB_LCHMOD *=/s/@GNULIB_LCHMOD@/0/
 /^GNULIB_LCHOWN *=/s/@GNULIB_LCHOWN@/0/
 /^GNULIB_LINK *=/s/@GNULIB_LINK@/0/
@@ -232,17 +244,21 @@ am__cd = cd
 /^GNULIB_PIPE *=/s/@GNULIB_PIPE@/0/
 /^GNULIB_PIPE2 *=/s/@GNULIB_PIPE2@/0/
 /^GNULIB_POPEN *=/s/@GNULIB_POPEN@/0/
+/^GNULIB_POSIX_OPENPT *=/s/@GNULIB_POSIX_OPENPT@/0/
 /^GNULIB_PREAD *=/s/@GNULIB_PREAD@/0/
 /^GNULIB_PRINTF *=/s/@GNULIB_PRINTF@/0/
 /^GNULIB_PRINTF_POSIX *=/s/@GNULIB_PRINTF_POSIX@/0/
+/^GNULIB_PSELECT *=/s/@GNULIB_PSELECT@/0/
 /^GNULIB_PTHREAD_SIGMASK *=/s/@GNULIB_PTHREAD_SIGMASK@/0/
 /^GNULIB_PTSNAME *=/s/@GNULIB_PTSNAME@/0/
+/^GNULIB_PTSNAME_R *=/s/@GNULIB_PTSNAME_R@/0/
 /^GNULIB_PUTC *=/s/@GNULIB_PUTC@/0/
 /^GNULIB_PUTCHAR *=/s/@GNULIB_PUTCHAR@/0/
 /^GNULIB_PUTENV *=/s/@GNULIB_PUTENV@/0/
 /^GNULIB_PUTS *=/s/@GNULIB_PUTS@/0/
 /^GNULIB_PWRITE *=/s/@GNULIB_PWRITE@/0/
 /^GNULIB_RAISE *=/s/@GNULIB_RAISE@/0/
+/^GNULIB_RANDOM *=/s/@GNULIB_RANDOM@/0/
 /^GNULIB_RANDOM_R *=/s/@GNULIB_RANDOM_R@/0/
 /^GNULIB_READ *=/s/@GNULIB_READ@/0/
 /^GNULIB_READLINK *=/s/@GNULIB_READLINK@/0/
@@ -255,7 +271,9 @@ am__cd = cd
 /^GNULIB_RMDIR *=/s/@GNULIB_RMDIR@/0/
 /^GNULIB_RPMATCH *=/s/@GNULIB_RPMATCH@/0/
 /^GNULIB_SCANF *=/s/@GNULIB_SCANF@/0/
+/^GNULIB_SELECT *=/s/@GNULIB_SELECT@/0/
 /^GNULIB_SETENV *=/s/@GNULIB_SETENV@/0/
+/^GNULIB_SETHOSTNAME *=/s/@GNULIB_SETHOSTNAME@/0/
 /^GNULIB_SIGACTION *=/s/@GNULIB_SIGACTION@/0/
 /^GNULIB_SIGNAL_H_SIGPIPE *=/s/@GNULIB_SIGNAL_H_SIGPIPE@/0/
 /^GNULIB_SIGPROCMASK *=/s/@GNULIB_SIGPROCMASK@/0/
@@ -276,7 +294,6 @@ am__cd = cd
 /^GNULIB_TIME_R *=/s/@GNULIB_TIME_R@/1/
 /^GNULIB_TMPFILE *=/s/@GNULIB_TMPFILE@/0/
 /^GNULIB_TTYNAME_R *=/s/@GNULIB_TTYNAME_R@/0/
-/^GNULIB_UNISTD_H_GETOPT *=/s/@GNULIB_UNISTD_H_GETOPT@/1/
 /^GNULIB_UNISTD_H_NONBLOCKING *=/s/@GNULIB_UNISTD_H_NONBLOCKING@/0/
 /^GNULIB_UNISTD_H_SIGPIPE *=/s/@GNULIB_UNISTD_H_SIGPIPE@/0/
 /^GNULIB_UNLINK *=/s/@GNULIB_UNLINK@/0/
@@ -303,7 +320,7 @@ am__cd = cd
 /^HAVE_ATOLL *=/s/@HAVE_ATOLL@/0/
 /^HAVE_CANONICALIZE_FILE_NAME *=/s/@HAVE_CANONICALIZE_FILE_NAME@/0/
 /^HAVE_CHOWN *=/s/@HAVE_CHOWN@/1/
-/^HAVE_DECL_ENVIRON *=/s/@HAVE_DECL_ENVIRON@/1/
+/^HAVE_DECL_ENVIRON *=/s/@HAVE_DECL_ENVIRON@/0/
 /^HAVE_DECL_FCHDIR *=/s/@HAVE_DECL_FCHDIR@/0/
 /^HAVE_DECL_FDATASYNC *=/s/@HAVE_DECL_FDATASYNC@/0/
 /^HAVE_DECL_FPURGE *=/s/@HAVE_DECL_FPURGE@//
@@ -318,6 +335,7 @@ am__cd = cd
 /^HAVE_DECL_GETUSERSHELL *=/s/@HAVE_DECL_GETUSERSHELL@/0/
 /^HAVE_DECL_LOCALTIME_R *=/s/@HAVE_DECL_LOCALTIME_R@/0/
 /^HAVE_DECL_OBSTACK_PRINTF *=/s/@HAVE_DECL_OBSTACK_PRINTF@/0/
+/^HAVE_DECL_SETHOSTNAME *=/s/@HAVE_DECL_SETHOSTNAME@/0/
 /^HAVE_DECL_SETENV *=/s/@HAVE_DECL_SETENV@/1/
 /^HAVE_DECL_SNPRINTF *=/s/@HAVE_DECL_SNPRINTF@/0/
 /^HAVE_DECL_TTYNAME_R *=/s/@HAVE_DECL_TTYNAME_R@/0/
@@ -372,12 +390,15 @@ am__cd = cd
 /^HAVE_PIPE2 *=/s/@HAVE_PIPE2@/0/
 /^HAVE_POPEN *=/s/@HAVE_POPEN@/1/
 /^HAVE_POSIX_SIGNALBLOCKING *=/s/@HAVE_POSIX_SIGNALBLOCKING@/1/
+/^HAVE_POSIX_OPENPT *=/s/@HAVE_POSIX_OPENPT@/0/
 /^HAVE_PREAD *=/s/@HAVE_PREAD@/0/
 /^HAVE_PTSNAME *=/s/@HAVE_PTSNAME@/0/
+/^HAVE_PTSNAME_R *=/s/@HAVE_PTSNAME_R@/0/
 /^HAVE_PTHREAD_SIGMASK *=/s/@HAVE_PTHREAD_SIGMASK@/0/
 /^HAVE_PWRITE *=/s/@HAVE_PWRITE@/0/
 /^HAVE_RANDOM_H *=/s/@HAVE_RANDOM_H@/1/
 /^HAVE_RAISE *=/s/@HAVE_RAISE@/1/
+/^HAVE_RANDOM *=/s/@HAVE_RANDOM@/1/
 /^HAVE_RANDOM_R *=/s/@HAVE_RANDOM_R@/0/
 /^HAVE_READLINK *=/s/@HAVE_READLINK@/0/
 /^HAVE_READLINKAT *=/s/@HAVE_READLINKAT@/0/
@@ -385,6 +406,7 @@ am__cd = cd
 /^HAVE_RENAMEAT *=/s/@HAVE_RENAMEAT@/0/
 /^HAVE_RPMATCH *=/s/@HAVE_RPMATCH@/0/
 /^HAVE_SETENV *=/s/@HAVE_SETENV@/1/
+/^HAVE_SETHOSTNAME *=/s/@HAVE_SETHOSTNAME@/0/
 /^HAVE_SIGACTION *=/s/@HAVE_SIGACTION@/1/
 /^HAVE_SIGHANDLER_T *=/s/@HAVE_SIGHANDLER_T@/0/
 /^HAVE_SIGINFO_T *=/s/@HAVE_SIGINFO_T@/0/
@@ -400,12 +422,15 @@ am__cd = cd
 /^HAVE_STRTOULL *=/s/@HAVE_STRTOULL@/1/
 /^HAVE_STRUCT_SIGACTION_SA_SIGACTION *=/s/@HAVE_STRUCT_SIGACTION_SA_SIGACTION@/0/
 /^HAVE_STRUCT_RANDOM_DATA *=/s/@HAVE_STRUCT_RANDOM_DATA@/0/
+/^HAVE_STRUCT_TIMEVAL *=/s/@HAVE_STRUCT_TIMEVAL@/1/
 /^HAVE_SYMLINK *=/s/@HAVE_SYMLINK@/1/
 /^HAVE_SYMLINKAT *=/s/@HAVE_SYMLINKAT@/0/
 /^HAVE_SYS_BITYPES_H *=/s/@HAVE_SYS_BITYPES_H@/0/
 /^HAVE_SYS_INTTYPES_H *=/s/@HAVE_SYS_INTTYPES_H@/0/
 /^HAVE_SYS_LOADAVG_H *=/s/@HAVE_SYS_LOADAVG_H@/0/
 /^HAVE_SYS_PARAM_H *=/s/@HAVE_SYS_PARAM_H@/1/
+/^HAVE_SYS_SELECT_H *=/s/@HAVE_SYS_SELECT_H@/0/
+/^HAVE_SYS_TIME_H *=/s/@HAVE_SYS_TIME_H@/1/
 /^HAVE_SYS_TYPES_H *=/s/@HAVE_SYS_TYPES_H@/1/
 /^HAVE_TIMEGM *=/s/@HAVE_TIMEGM@/0/
 /^HAVE_TYPE_VOLATILE_SIG_ATOMIC_T *=/s/@HAVE_TYPE_VOLATILE_SIG_ATOMIC_T@/1/
@@ -439,7 +464,10 @@ am__cd = cd
 /^NEXT_AS_FIRST_DIRECTIVE_STDINT_H *=/s/@[^@\n]*@/<stdint.h>/
 /^NEXT_AS_FIRST_DIRECTIVE_STDIO_H *=/s/@[^@\n]*@/<stdio.h>/
 /^NEXT_AS_FIRST_DIRECTIVE_STDLIB_H *=/s/@[^@\n]*@/<stdlib.h>/
+/^NEXT_AS_FIRST_DIRECTIVE_SYS_SELECT_H *=/s/@[^@\n]*@//
 /^NEXT_AS_FIRST_DIRECTIVE_SYS_STAT_H *=/s!@[^@\n]*@!<sys/stat.h>!
+/^NEXT_AS_FIRST_DIRECTIVE_SYS_TIME_H *=/s/@[^@\n]*@//
+/^NEXT_AS_FIRST_DIRECTIVE_SYS_TYPES_H *=/s!@[^@\n]*@!<sys/types.h>!
 /^NEXT_AS_FIRST_DIRECTIVE_TIME_H *=/s/@[^@\n]*@/<time.h>/
 /^NEXT_AS_FIRST_DIRECTIVE_UNISTD_H *=/s/@[^@\n]*@/<unistd.h>/
 /^NEXT_GETOPT_H *=/s/@[^@\n]*@/<getopt.h>/
@@ -449,7 +477,10 @@ am__cd = cd
 /^NEXT_STDIO_H *=/s/@[^@\n]*@/<stdio.h>/
 /^NEXT_STDINT_H *=/s/@[^@\n]*@/<stdint.h>/
 /^NEXT_STDLIB_H *=/s/@[^@\n]*@/<stdlib.h>/
+/^NEXT_SYS_SELECT_H *=/s/@[^@\n]*@//
 /^NEXT_SYS_STAT_H *=/s!@[^@\n]*@!<sys/stat.h>!
+/^NEXT_SYS_TIME_H *=/s/@[^@\n]*@//
+/^NEXT_SYS_TYPES_H *=/s!@[^@\n]*@!<sys/types.h>!
 /^NEXT_TIME_H *=/s/@[^@\n]*@/<time.h>/
 /^NEXT_UNISTD_H *=/s/@[^@\n]*@/<unistd.h>/
 /^OBJEXT *=/s/@[^@\n]*@/o/
@@ -479,6 +510,7 @@ am__cd = cd
 /^REPLACE_FSTATAT *=/s/@REPLACE_FSTATAT@/0/
 /^REPLACE_FTELL *=/s/@REPLACE_FTELL@/0/
 /^REPLACE_FTELLO *=/s/@REPLACE_FTELLO@/0/
+/^REPLACE_FTRUNCATE *=/s/@REPLACE_FTRUNCATE@/0/
 /^REPLACE_GETCWD *=/s/@REPLACE_GETCWD@/0/
 /^REPLACE_GETDELIM *=/s/@REPLACE_GETDELIM@/0/
 /^REPLACE_GETDOMAINNAME *=/s/@REPLACE_GETDOMAINNAME@/0/
@@ -486,6 +518,8 @@ am__cd = cd
 /^REPLACE_GETLINE *=/s/@REPLACE_GETLINE@/0/
 /^REPLACE_GETLOGIN_R *=/s/@REPLACE_GETLOGIN_R@/0/
 /^REPLACE_GETPAGESIZE *=/s/@REPLACE_GETPAGESIZE@/0/
+/^REPLACE_GETTIMEOFDAY *=/s/@REPLACE_GETTIMEOFDAY@/0/
+/^REPLACE_ISATTY *=/s/@REPLACE_ISATTY@/0/
 /^REPLACE_LCHOWN *=/s/@REPLACE_LCHOWN@/0/
 /^REPLACE_LINK *=/s/@REPLACE_LINK@/0/
 /^REPLACE_LINKAT *=/s/@REPLACE_LINKAT@/0/
@@ -507,8 +541,13 @@ am__cd = cd
 /^REPLACE_PREAD *=/s/@REPLACE_PREAD@/0/
 /^REPLACE_PRINTF *=/s/@REPLACE_PRINTF@/0/
 /^REPLACE_PTHREAD_SIGMASK *=/s/@REPLACE_PTHREAD_SIGMASK@/0/
+/^REPLACE_PTSNAME *=/s/@REPLACE_PTSNAME@/0/
+/^REPLACE_PSELECT *=/s/@REPLACE_PSELECT@/0/
+/^REPLACE_PTSNAME *=/s/@REPLACE_PTSNAME@/0/
+/^REPLACE_PTSNAME_R *=/s/@REPLACE_PTSNAME_R@/0/
 /^REPLACE_PUTENV *=/s/@REPLACE_PUTENV@/0/
 /^REPLACE_PWRITE *=/s/@REPLACE_PWRITE@/0/
+/^REPLACE_RANDOM_R *=/s/@REPLACE_RANDOM_R@/0/
 /^REPLACE_READ *=/s/@REPLACE_READ@/0/
 /^REPLACE_RAISE *=/s/@REPLACE_RAISE@/0/
 /^REPLACE_READLINK *=/s/@REPLACE_READLINK@/0/
@@ -526,6 +565,8 @@ am__cd = cd
 /^REPLACE_STDIO_READ_FUNCS *=/s/@REPLACE_STDIO_READ_FUNCS@/0/
 /^REPLACE_STDIO_WRITE_FUNCS *=/s/@REPLACE_STDIO_WRITE_FUNCS@/0/
 /^REPLACE_STRTOD *=/s/@REPLACE_STRTOD@/0/
+/^REPLACE_STRTOIMAX *=/s/@REPLACE_STRTOIMAX@/0/
+/^REPLACE_STRUCT_TIMEVAL *=/s/@REPLACE_STRUCT_TIMEVAL@/0/
 /^REPLACE_SYMLINK *=/s/@REPLACE_SYMLINK@/0/
 /^REPLACE_TIMEGM *=/s/@REPLACE_TIMEGM@/0/
 /^REPLACE_TMPFILE *=/s/@REPLACE_TMPFILE@/0/
@@ -547,6 +588,7 @@ am__cd = cd
 /^SIZE_T_SUFFIX *=/s/@SIZE_T_SUFFIX@/u/
 /^ALLOCA_H *=/s/@[^@\n]*@/alloca.h/
 /^STDBOOL_H *=/s/@[^@\n]*@//
+/^STDALIGN_H *=/s/@[^@\n]*@/stdalign.h/
 /^STDARG_H *=/s/@[^@\n]*@//
 /^STDDEF_H *=/s/@[^@\n]*@//
 /^STDINT_H *=/s/@[^@\n]*@/stdint.h/
@@ -556,12 +598,20 @@ am__cd = cd
 /^UNISTD_H_HAVE_WINSOCK2_H_AND_USE_SOCKETS *=/s/@[^@\n]*@/0/
 /^WCHAR_T_SUFFIX *=/s/@WCHAR_T_SUFFIX@/h/
 /^WINT_T_SUFFIX *=/s/@WINT_T_SUFFIX@//
+/^WINDOWS_64_BIT_OFF_T *=/s/@WINDOWS_64_BIT_OFF_T@/0/
+/^WINDOWS_64_BIT_ST_SIZE *=/s/@WINDOWS_64_BIT_ST_SIZE@/0/
 /am__append_1 *=.*gettext\.h/s/@[^@\n]*@/\#/
 /am__append_2 *=.*verify\.h/s/@[^@\n]*@//
 /^gl_LIBOBJS *=/s/@[^@\n]*@/getopt.o getopt1.o strftime.o time_r.o getloadavg.o pthread_sigmask.o/
 /^BUILT_SOURCES *=/s/ *inttypes\.h//
-/^am_libgnu_a_OBJECTS *=/s/careadlinkat\.\$(OBJEXT)//
-/^am_libgnu_a_OBJECTS *=/s/allocator\.\$(OBJEXT)//
+/^BUILT_SOURCES *=/,/^[^ 	]/{
+  s| *sys/select\.h||
+  s| *sys/time\.h||
+}
+/^am_libgnu_a_OBJECTS *=/,/^[^ 	]/{
+  s/allocator\.\$(OBJEXT) //
+  s/careadlinkat\.\$(OBJEXT) //
+}
 /^srcdir *=/s/@[^@\n]*@/./
 /^top_srcdir *=/s/@[^@\n]*@/../
 /^top_builddir *=/s/@[^@\n]*@/../
@@ -598,14 +648,20 @@ s/@echo /@djecho/
 # Fix the recipes for header files
 s/^@GL_GENERATE_ALLOCA_H_TRUE@//
 s/^@GL_GENERATE_ALLOCA_H_FALSE@/\#/
+s/^@GL_GENERATE_EXECINFO_H_TRUE@//
+s/^@GL_GENERATE_EXECINFO_H_FALSE@/\#/
 s/^@GL_GENERATE_STDBOOL_H_TRUE@/\#/
 s/^@GL_GENERATE_STDBOOL_H_FALSE@//
+s/^@GL_GENERATE_STDALIGN_H_TRUE@//
+s/^@GL_GENERATE_STDALIGN_H_FALSE@/\#/
 s/^@GL_GENERATE_STDARG_H_TRUE@/\#/
 s/^@GL_GENERATE_STDARG_H_FALSE@/\#/
 s/^@GL_GENERATE_STDDEF_H_TRUE@/\#/
 s/^@GL_GENERATE_STDDEF_H_FALSE@/\#/
 s/^@GL_GENERATE_STDINT_H_TRUE@//
 s/^@GL_GENERATE_STDINT_H_FALSE@/\#/
+s/^@GL_GENERATE_STDALIGN_H_TRUE@//
+s/^@GL_GENERATE_STDALIGN_H_FALSE@/\#/
 /^arg-nonnull\.h:/,/^[ 	][ 	]*mv /c\
 arg-nonnull.h: $(top_srcdir)/build-aux/snippet/arg-nonnull.h\
 	sed -n -e '/GL_ARG_NONNULL/,$$p' < $(top_srcdir)/build-aux/snippet/arg-nonnull.h > $@
@@ -617,6 +673,7 @@ warn-on-use.h: $(top_srcdir)/build-aux/snippet/warn-on-use.h\
 	sed -n -e '/^.ifndef/,$$p' < $(top_srcdir)/build-aux/snippet/warn-on-use.h > $@
 s/^	[ 	]*{ echo \(.*\); \\/	 djecho \1 > $@-t/
 s/^	[ 	]*{ echo \(.*\) && \\/	 djecho \1 > $@-t/
+s/^	[ 	]*cat \(.*\); \\/	 sed -e '' \1 >> $@-t/
 s/ \&\& \\ *$//
 s/\.in-h\;  *\\$/.in-h >> $@-t/
 /^	[ 	]*} /d
@@ -630,3 +687,6 @@ s/\.in-h\;  *\\$/.in-h >> $@-t/
   s/'\; \\ *$/' >> $@-t/
 }
 s!\$(MKDIR_P)[ 	][ 	]*sys!command.com /c "if not exist sys\\stat.h md sys"!
+/^	@for dir in/,/^[^	 ]/c\
+	-rm -rf $(MOSTLYCLEANDIRS)
+/^	 *-test . /d

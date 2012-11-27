@@ -24,27 +24,32 @@
 
 ;;; Commentary:
 
-;; This file is loaded uncompiled when dumping Emacs.
-;; Doc-strings should adhere to the conventions of make-docfile.
-
 ;;; Code:
 
-(defconst emacs-major-version (progn (string-match "^[0-9]+" emacs-version) (string-to-number (match-string 0 emacs-version))) "\
-Major version number of this version of Emacs.
+(defconst emacs-major-version
+  (progn (string-match "^[0-9]+" emacs-version)
+         (string-to-number (match-string 0 emacs-version)))
+  "Major version number of this version of Emacs.
 This variable first existed in version 19.23.")
 
-(defconst emacs-minor-version (progn (string-match "^[0-9]+\\.\\([0-9]+\\)" emacs-version) (string-to-number (match-string 1 emacs-version))) "\
-Minor version number of this version of Emacs.
+(defconst emacs-minor-version
+  (progn (string-match "^[0-9]+\\.\\([0-9]+\\)" emacs-version)
+         (string-to-number (match-string 1 emacs-version)))
+  "Minor version number of this version of Emacs.
 This variable first existed in version 19.23.")
 
-(defconst emacs-build-time (current-time) "\
-Time at which Emacs was dumped out.")
+(defconst emacs-build-time (current-time)
+  "Time at which Emacs was dumped out.")
 
-(defconst emacs-build-system (system-name) "\
-Name of the system on which Emacs was built.")
+(defconst emacs-build-system (system-name)
+  "Name of the system on which Emacs was built.")
 
-(defun emacs-version (&optional here) "\
-Return string describing the version of Emacs that is running.
+(defvar motif-version-string)
+(defvar gtk-version-string)
+(defvar ns-version-string)
+
+(defun emacs-version (&optional here)
+  "Return string describing the version of Emacs that is running.
 If optional argument HERE is non-nil, insert string at point.
 Don't use this function in programs to choose actions according
 to the system configuration; look at `system-configuration' instead."
@@ -79,14 +84,97 @@ to the system configuration; look at `system-configuration' instead."
 ;; We hope that this alias is easier for people to find.
 (defalias 'version 'emacs-version)
 
-;; We put version info into the executable in the form that `ident' uses.
-(or (eq system-type 'windows-nt)
-    (purecopy (concat "\n$Id: " (subst-char-in-string ?\n ?\s (emacs-version))
-		      " $\n")))
+;; Set during dumping, this is a defvar so that it can be setq'd.
+(defvar emacs-bzr-version nil
+  "String giving the bzr revision from which this Emacs was built.
+The format is: [revno] revision_id, where revno may be absent.
+Value is nil if Emacs was not built from a bzr checkout, or if we could
+not determine the revision.")
 
-;; Local Variables:
-;; version-control: never
-;; no-byte-compile: t
-;; End:
+(defun emacs-bzr-version-dirstate (dir)
+  "Try to return as a string the bzr revision ID of directory DIR.
+This uses the dirstate file's parent revision entry.
+Returns nil if unable to find this information."
+  (let ((file (expand-file-name ".bzr/checkout/dirstate" dir)))
+    (when (file-readable-p file)
+      (with-temp-buffer
+        (insert-file-contents file)
+        (and (looking-at "#bazaar dirstate flat format 3")
+             (forward-line 3)
+             (looking-at "[0-9]+\0\\([^\0\n]+\\)\0")
+             (match-string 1))))))
+
+(defun emacs-bzr-version-bzr (dir)
+  "Ask bzr itself for the version information for directory DIR."
+  ;; Comments on `bzr version-info':
+  ;; i) Unknown files also cause clean != 1.
+  ;; ii) It can be slow, contacting the upstream repo to get the
+  ;; branch nick if one is not set locally, even with a custom
+  ;; template that is not asking for the nick (as used here).  You'd
+  ;; think the latter part would be trivial to fix:
+  ;; https://bugs.launchpad.net/bzr/+bug/882541/comments/3
+  ;; https://bugs.launchpad.net/bzr/+bug/629150
+  ;; You can set the nick locally with `bzr nick ...', which speeds
+  ;; things up enormously.  `bzr revno' does not have this issue, but
+  ;; has no way to print the revision_id AFAICS.
+  (message "Waiting for bzr...")
+  (with-temp-buffer
+    (if (zerop
+         (call-process "bzr" nil '(t nil) nil "version-info"
+                       "--custom"
+                       "--template={revno} {revision_id} (clean = {clean})"
+                       "dir"))
+        (buffer-string))))
+
+(defun emacs-bzr-get-version (&optional dir external)
+  "Try to return as a string the bzr revision of the Emacs sources.
+The format is: [revno] revision_id, where revno may be absent.
+Value is nil if the sources do not seem to be under bzr, or if we could
+not determine the revision.  Note that this reports on the current state
+of the sources, which may not correspond to the running Emacs.
+
+Optional argument DIR is a directory to use instead of `source-directory'.
+Optional argument EXTERNAL non-nil means to maybe ask `bzr' itself,
+if the sources appear to be under bzr.  If `force', always ask bzr.
+Otherwise only ask bzr if we cannot find any information ourselves."
+  (or dir (setq dir source-directory))
+  (when (file-directory-p (expand-file-name ".bzr/branch" dir))
+    (if (eq external 'force)
+        (emacs-bzr-version-bzr dir)
+      (let (file loc rev)
+        (cond ((file-readable-p
+                (setq file (expand-file-name ".bzr/branch/last-revision" dir)))
+               (with-temp-buffer
+                 (insert-file-contents file)
+                 (goto-char (point-max))
+                 (if (looking-back "\n")
+                     (delete-char -1))
+                 (buffer-string)))
+              ;; OK, no last-revision.  Is it a lightweight checkout?
+              ((file-readable-p
+                (setq file (expand-file-name ".bzr/branch/location" dir)))
+               (setq rev (emacs-bzr-version-dirstate dir))
+               ;; If the parent branch is local, try looking there for the rev.
+               ;; Note: there is no guarantee that the parent branch's rev
+               ;; corresponds to this branch.  This branch could have
+               ;; been made with a specific -r revno argument, or the
+               ;; parent could have been updated since this branch was created.
+               ;; To try and detect this, we check the dirstate revids
+               ;; to see if they match.
+               (if (and (setq loc (with-temp-buffer
+                                    (insert-file-contents file)
+                                    (if (looking-at "file://\\(.*\\)")
+                                        (match-string 1))))
+                        (equal rev (emacs-bzr-version-dirstate loc)))
+                   (emacs-bzr-get-version loc)
+                 ;; If parent does not match, the best we can do without
+                 ;; calling external commands is to use the dirstate rev.
+                 rev))
+              (external
+               (emacs-bzr-version-bzr dir)))))))
+
+;; We put version info into the executable in the form that `ident' uses.
+(purecopy (concat "\n$Id: " (subst-char-in-string ?\n ?\s (emacs-version))
+		  " $\n"))
 
 ;;; version.el ends here

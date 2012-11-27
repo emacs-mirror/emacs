@@ -24,7 +24,7 @@
 ;;; Commentary:
 ;;
 ;; This software provides EMACS org-babel export support for message
-;; sequence charts. The mscgen utility is used for processing the
+;; sequence charts.  The mscgen utility is used for processing the
 ;; sequence definition, and must therefore be installed in the system.
 ;;
 ;; Mscgen is available and documented at
@@ -64,13 +64,13 @@
 (defun org-babel-execute:mscgen (body params)
   "Execute a block of Mscgen code with Babel.
 This function is called by `org-babel-execute-src-block'.
-Default filetype is png. Modify by setting :filetype parameter to
+Default filetype is png.  Modify by setting :filetype parameter to
 mscgen supported formats."
   (let* ((out-file (or (cdr (assoc :file params)) "output.png" ))
          (filetype (or (cdr (assoc :filetype params)) "png" )))
     (unless (cdr (assoc :file params))
       (error "
-ERROR: no output file specified. Add \":file name.png\" to the src header"))
+ERROR: no output file specified.  Add \":file name.png\" to the src header"))
     (org-babel-eval (concat "mscgen -T " filetype " -o " out-file) body)
     nil)) ;; signal that output has already been written to file
 

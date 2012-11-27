@@ -110,7 +110,8 @@
 				    (use-cjk-char-width-table 'zh_CN)))
 		(exit-function . use-default-char-width-table)
 		(coding-system chinese-iso-8bit iso-2022-cn chinese-hz)
-		(coding-priority chinese-iso-8bit chinese-big5 iso-2022-cn)
+		(coding-priority chinese-iso-8bit chinese-gbk chinese-big5
+				 iso-2022-cn)
 		(input-method . "chinese-py-punct")
 		(features china-util)
 		(sample-text . "Chinese (中文,普通话,汉语)	你好")
@@ -140,7 +141,8 @@
 				      (use-cjk-char-width-table 'zh_HK)))
 		  (exit-function . use-default-char-width-table)
 		  (coding-system chinese-big5 chinese-iso-7bit)
-		  (coding-priority chinese-big5 iso-2022-cn chinese-iso-8bit)
+		  (coding-priority chinese-big5 iso-2022-cn chinese-iso-8bit
+				   chinese-gbk)
 		  (input-method . "chinese-py-punct-b5")
 		  (ctext-non-standard-encodings "big5-0")
 		  (features china-util)
@@ -196,7 +198,7 @@
 		 (exit-function . use-default-char-width-table)
 		 (coding-system iso-2022-cn euc-tw)
 		 (coding-priority iso-2022-cn euc-tw chinese-big5
-				  chinese-iso-8bit)
+				  chinese-iso-8bit chinese-gbk)
 		 (features china-util)
 		 (input-method . "chinese-cns-quick")
 		 ;; Fixme: presumably it won't accept big5 now.
@@ -216,7 +218,7 @@ accepts Big5 for input also (which is then converted to CNS)."))
 		    (exit-function . use-default-char-width-table)
 		    (coding-system euc-tw iso-2022-cn)
 		    (coding-priority euc-tw chinese-big5 iso-2022-cn
-				     chinese-iso-8bit)
+				     chinese-iso-8bit chinese-gbk)
 		    (features china-util)
 		    (input-method . "chinese-cns-quick")
 		    (documentation . "\

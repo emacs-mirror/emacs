@@ -1,6 +1,6 @@
 /* Compile-time assert-like macros.
 
-   Copyright (C) 2005-2006, 2009-2011 Free Software Foundation, Inc.
+   Copyright (C) 2005-2006, 2009-2012 Free Software Foundation, Inc.
 
    This program is free software: you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -21,13 +21,11 @@
 # define _GL_VERIFY_H
 
 
-/* Define _GL_HAVE__STATIC_ASSERT to 1 if _Static_assert works as per the
-   C1X draft N1548 section 6.7.10.  This is supported by GCC 4.6.0 and
-   later, in C mode, and its use here generates easier-to-read diagnostics
-   when verify (R) fails.
+/* Define _GL_HAVE__STATIC_ASSERT to 1 if _Static_assert works as per C11.
+   This is supported by GCC 4.6.0 and later, in C mode, and its use
+   here generates easier-to-read diagnostics when verify (R) fails.
 
-   Define _GL_HAVE_STATIC_ASSERT to 1 if static_assert works as per the
-   C++0X draft N3242 section 7.(4).
+   Define _GL_HAVE_STATIC_ASSERT to 1 if static_assert works as per C++11.
    This will likely be supported by future GCC versions, in C++ mode.
 
    Use this only with GCC.  If we were willing to slow 'configure'
@@ -127,13 +125,17 @@
        extern int (*dummy (void)) [sizeof (struct {...})];
 
    * GCC warns about duplicate declarations of the dummy function if
-     -Wredundant_decls is used.  GCC 4.3 and later have a builtin
+     -Wredundant-decls is used.  GCC 4.3 and later have a builtin
      __COUNTER__ macro that can let us generate unique identifiers for
      each dummy function, to suppress this warning.
 
    * This implementation exploits the fact that older versions of GCC,
      which do not support _Static_assert, also do not warn about the
      last declaration mentioned above.
+
+   * GCC warns if -Wnested-externs is enabled and verify() is used
+     within a function body; but inside a function, you can always
+     arrange to use verify_expr() instead.
 
    * In C++, any struct definition inside sizeof is invalid.
      Use a template type to work around the problem.  */
@@ -188,7 +190,7 @@ template <int w>
    trailing ';'.  If R is false, fail at compile-time, preferably
    with a diagnostic that includes the string-literal DIAGNOSTIC.
 
-   Unfortunately, unlike C1X, this implementation must appear as an
+   Unfortunately, unlike C11, this implementation must appear as an
    ordinary declaration, and cannot appear inside struct { ... }.  */
 
 # ifdef _GL_HAVE__STATIC_ASSERT
@@ -205,7 +207,7 @@ template <int w>
 #   define _Static_assert(R, DIAGNOSTIC) _GL_VERIFY (R, DIAGNOSTIC)
 #  endif
 #  if !defined _GL_HAVE_STATIC_ASSERT && !defined static_assert
-#   define static_assert _Static_assert /* Draft C1X requires this #define.  */
+#   define static_assert _Static_assert /* C11 requires this #define.  */
 #  endif
 # endif
 

@@ -17,8 +17,10 @@ You should have received a copy of the GNU General Public License
 along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 
 #include <config.h>
+
+#define TERMHOOKS_INLINE EXTERN_INLINE
+
 #include <stdio.h>
-#include <setjmp.h>
 
 #include "lisp.h"
 #include "frame.h"
@@ -38,6 +40,13 @@ static int next_terminal_id;
 struct terminal *initial_terminal;
 
 static void delete_initial_terminal (struct terminal *);
+
+/* This setter is used only in this file, so it can be private.  */
+static void
+tset_param_alist (struct terminal *t, Lisp_Object val)
+{
+  t->param_alist = val;
+}
 
 
 
@@ -225,16 +234,13 @@ create_terminal (void)
   struct terminal *terminal = allocate_terminal ();
   Lisp_Object terminal_coding, keyboard_coding;
 
-  terminal->name = NULL;
   terminal->next_terminal = terminal_list;
   terminal_list = terminal;
 
   terminal->id = next_terminal_id++;
 
-  terminal->keyboard_coding =
-    (struct coding_system *) xmalloc (sizeof (struct coding_system));
-  terminal->terminal_coding =
-    (struct coding_system *) xmalloc (sizeof (struct coding_system));
+  terminal->keyboard_coding = xmalloc (sizeof (struct coding_system));
+  terminal->terminal_coding = xmalloc (sizeof (struct coding_system));
 
   /* If default coding systems for the terminal and the keyboard are
      already defined, use them in preference to the defaults.  This is
@@ -255,9 +261,6 @@ create_terminal (void)
   setup_coding_system (keyboard_coding, terminal->keyboard_coding);
   setup_coding_system (terminal_coding, terminal->terminal_coding);
 
-  terminal->param_alist = Qnil;
-  terminal->charset_list = Qnil;
-  terminal->Vselection_alist = Qnil;
   return terminal;
 }
 
@@ -290,7 +293,7 @@ delete_terminal (struct terminal *terminal)
 
   for (tp = &terminal_list; *tp != terminal; tp = &(*tp)->next_terminal)
     if (! *tp)
-      abort ();
+      emacs_abort ();
   *tp = terminal->next_terminal;
 
   xfree (terminal->keyboard_coding);
@@ -407,7 +410,7 @@ possible return values.  */)
     case output_ns:
       return Qns;
     default:
-      abort ();
+      emacs_abort ();
     }
 }
 
@@ -452,7 +455,7 @@ store_terminal_param (struct terminal *t, Lisp_Object parameter, Lisp_Object val
   Lisp_Object old_alist_elt = Fassq (parameter, t->param_alist);
   if (EQ (old_alist_elt, Qnil))
     {
-      t->param_alist = Fcons (Fcons (parameter, value), t->param_alist);
+      tset_param_alist (t, Fcons (Fcons (parameter, value), t->param_alist));
       return Qnil;
     }
   else
@@ -515,7 +518,7 @@ struct terminal *
 init_initial_terminal (void)
 {
   if (initialized || terminal_list || tty_list)
-    abort ();
+    emacs_abort ();
 
   initial_terminal = create_terminal ();
   initial_terminal->type = output_initial;
@@ -534,7 +537,7 @@ static void
 delete_initial_terminal (struct terminal *terminal)
 {
   if (terminal != initial_terminal)
-    abort ();
+    emacs_abort ();
 
   delete_terminal (terminal);
   initial_terminal = NULL;

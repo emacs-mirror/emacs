@@ -7,10 +7,12 @@
 
 @c Moved here from the Emacs Lisp Reference Manual, 2005-03-26.
 @node Advanced Calendar/Diary Usage
-@section Customizing the Calendar and Diary
+@section More advanced features of the Calendar and Diary
 
-  There are many ways in which you can customize the calendar and
-diary to suit your personal tastes.
+  This section describes some of the more advanced/specialized
+features of the calendar and diary.  It starts with some of the
+many ways in which you can customize the calendar and diary to suit
+your personal tastes.
 
 @menu
 * Calendar Customizing::   Calendar layout and hooks.
@@ -38,6 +40,11 @@ variables: @code{calendar-left-margin},
 To display text @emph{between} the months, for example week numbers,
 customize the variables @code{calendar-intermonth-header} and
 @code{calendar-intermonth-text} as described in their documentation.
+
+@vindex calendar-month-header
+  The variable @code{calendar-month-header} controls the text that
+appears above each month in the calendar.  By default, it shows the
+month and year.
 
 @vindex calendar-holiday-marker
 @vindex diary-entry-marker

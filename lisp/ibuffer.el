@@ -31,7 +31,7 @@
 ;;; Code:
 
 (eval-when-compile
-  (require 'cl)
+  (require 'cl-lib)
   (require 'ibuf-macs)
   (require 'dired))
 
@@ -60,11 +60,10 @@
 (declare-function ibuffer-format-filter-group-data "ibuf-ext" (filter))
 
 (defgroup ibuffer nil
-  "An advanced replacement for `buffer-menu'.
-
-Ibuffer allows you to operate on buffers in a manner much like Dired.
-Operations include sorting, marking by regular expression, and
-the ability to filter the displayed buffers by various criteria."
+  "Advanced replacement for `buffer-menu'.
+Ibuffer lets you operate on buffers in a Dired-like way,
+with the ability to sort, mark by regular expression,
+and filter displayed buffers by various criteria."
   :version "22.1"
   :group 'convenience)
 
@@ -124,13 +123,13 @@ own!):
   no upper limit on its size.  The size will also be aligned to the
   right.
 
-Thus, if you wanted to use these two formats, add
+Thus, if you wanted to use these two formats, the appropriate
+value for this variable would be
 
- (setq ibuffer-formats '((mark \" \" name)
-		         (mark modified read-only
-			  (name 16 16 :left) (size 6 -1 :right))))
-
-to your ~/.emacs file.
+  '((mark \" \" name)
+    (mark modified read-only
+          (name 16 16 :left)
+          (size 6 -1 :right)))
 
 Using \\[ibuffer-switch-format], you can rotate the display between
 the specified formats in the list."
@@ -502,8 +501,8 @@ directory, like `default-directory'."
     (define-key map (kbd "s f") 'ibuffer-do-sort-by-filename/process)
     (define-key map (kbd "s m") 'ibuffer-do-sort-by-major-mode)
 
-    (define-key map (kbd "/ m") 'ibuffer-filter-by-mode)
-    (define-key map (kbd "/ M") 'ibuffer-filter-by-used-mode)
+    (define-key map (kbd "/ m") 'ibuffer-filter-by-used-mode)
+    (define-key map (kbd "/ M") 'ibuffer-filter-by-derived-mode)
     (define-key map (kbd "/ n") 'ibuffer-filter-by-name)
     (define-key map (kbd "/ c") 'ibuffer-filter-by-content)
     (define-key map (kbd "/ e") 'ibuffer-filter-by-predicate)
@@ -633,10 +632,13 @@ directory, like `default-directory'."
       '(menu-item "Disable all filtering" ibuffer-filter-disable
         :enable (and (featurep 'ibuf-ext) ibuffer-filtering-qualifiers)))
     (define-key-after map [menu-bar view filter filter-by-mode]
-      '(menu-item "Add filter by major mode..." ibuffer-filter-by-mode))
-    (define-key-after map [menu-bar view filter filter-by-mode]
-      '(menu-item "Add filter by major mode in use..."
+      '(menu-item "Add filter by any major mode..." ibuffer-filter-by-mode))
+    (define-key-after map [menu-bar view filter filter-by-used-mode]
+      '(menu-item "Add filter by a major mode in use..."
         ibuffer-filter-by-used-mode))
+    (define-key-after map [menu-bar view filter filter-by-derived-mode]
+      '(menu-item "Add filter by derived mode..."
+                  ibuffer-filter-by-derived-mode))
     (define-key-after map [menu-bar view filter filter-by-name]
       '(menu-item "Add filter by buffer name..." ibuffer-filter-by-name))
     (define-key-after map [menu-bar view filter filter-by-filename]
@@ -1018,7 +1020,7 @@ width and the longest string in LIST."
     (when (get-text-property (point) 'ibuffer-title)
       (forward-line 1)
       (setq arg 1))
-    (decf arg)))
+    (cl-decf arg)))
 
 (defun ibuffer-forward-line (&optional arg skip-group-names)
   "Move forward ARG lines, wrapping around the list if necessary."
@@ -1033,7 +1035,7 @@ width and the longest string in LIST."
 	    (and skip-group-names
 		 (get-text-property (point) 'ibuffer-filter-group-name)))
     (when (> arg 0)
-      (decf arg))
+      (cl-decf arg))
     (ibuffer-skip-properties (append '(ibuffer-title)
 				     (when skip-group-names
 				       '(ibuffer-filter-group-name)))
@@ -1046,7 +1048,7 @@ width and the longest string in LIST."
 		 (or (eobp)
 		     (get-text-property (point) 'ibuffer-summary)))
 	(goto-char (point-min)))
-      (decf arg)
+      (cl-decf arg)
       (ibuffer-skip-properties (append '(ibuffer-title)
 				       (when skip-group-names
 					 '(ibuffer-filter-group-name)))
@@ -1191,7 +1193,7 @@ a new window in the current frame, splitting vertically."
 			(setq trying nil))
 		    (error
 		     ;; Handle a failure
-		     (if (or (> (incf attempts) 4)
+		     (if (or (> (cl-incf attempts) 4)
 			     (and (stringp (cadr err))
 				  ;; This definitely falls in the
 				  ;; ghetto hack category...
@@ -1244,7 +1246,7 @@ a new window in the current frame, splitting vertically."
   (ibuffer-map-on-mark ibuffer-deletion-char func))
 
 (defsubst ibuffer-assert-ibuffer-mode ()
-  (assert (derived-mode-p 'ibuffer-mode)))
+  (cl-assert (derived-mode-p 'ibuffer-mode)))
 
 (defun ibuffer-buffer-file-name ()
   (or buffer-file-name
@@ -1280,11 +1282,11 @@ a new window in the current frame, splitting vertically."
 
 (define-ibuffer-op ibuffer-do-toggle-read-only (&optional arg)
   "Toggle read only status in marked buffers.
-With optional ARG, make read-only only if ARG is positive."
+With optional ARG, make read-only only if ARG is not negative."
   (:opstring "toggled read only status in"
    :interactive "P"
    :modifier-p t)
-  (toggle-read-only arg))
+  (read-only-mode 'toggle))
 
 (define-ibuffer-op ibuffer-do-delete ()
   "Kill marked buffers as with `kill-this-buffer'."
@@ -1505,11 +1507,11 @@ If point is on a group name, this function operates on that group."
     `(progn
        (setq tmp1 ,widthform
 	     tmp2 (/ tmp1 2))
-       ,(case alignment
+       ,(pcase alignment
 	  (:right `(concat ,left ,right ,strvar))
 	  (:center `(concat ,left ,strvar ,right))
 	  (:left `(concat ,strvar ,left ,right))
-	  (t (error "Invalid alignment %s" alignment))))))
+	  (_ (error "Invalid alignment %s" alignment))))))
 
 (defun ibuffer-compile-format (format)
   (let ((result nil)
@@ -1530,7 +1532,7 @@ If point is on a group name, this function operates on that group."
 		(max (nth 2 form))
 		(align (nth 3 form))
 		(elide (nth 4 form)))
-	   (let* ((from-end-p (when (minusp min)
+	   (let* ((from-end-p (when (cl-minusp min)
 				(setq min (- min))
 				t))
 		  (letbindings nil)
@@ -1813,10 +1815,10 @@ If point is on a group name, this function operates on that group."
 (defun ibuffer-format-column (str width alignment)
   (let ((left (make-string (/ width 2) ?\s))
 	(right (make-string (- width (/ width 2)) ?\s)))
-    (case alignment
+    (pcase alignment
       (:right (concat left right str))
       (:center (concat left str right))
-      (t (concat str left right)))))
+      (_ (concat str left right)))))
 
 (defun ibuffer-buffer-name-face (buf mark)
   (cond ((char-equal mark ibuffer-marked-char)
@@ -1914,18 +1916,18 @@ the buffer object itself and the current mark symbol."
 	      ;; `nil' if it chose not to affect the buffer
 	      ;; `kill' means the remove line from the buffer list
 	      ;; `t' otherwise
-	      (incf ibuffer-map-lines-total)
+	      (cl-incf ibuffer-map-lines-total)
 	      (cond ((null result)
 		     (forward-line 1))
 		    ((eq result 'kill)
 		     (delete-region (line-beginning-position)
 				    (1+ (line-end-position)))
-		     (incf ibuffer-map-lines-count)
+		     (cl-incf ibuffer-map-lines-count)
 		     (when (< ibuffer-map-lines-total
 			      orig-target-line)
-		       (decf target-line-offset)))
+		       (cl-decf target-line-offset)))
 		    (t
-		     (incf ibuffer-map-lines-count)
+		     (cl-incf ibuffer-map-lines-count)
 		     (forward-line 1)))))
 	  ibuffer-map-lines-count)
       (progn
@@ -2055,12 +2057,9 @@ the value of point at the beginning of the line for that buffer."
 	   (insert
 	    (if (stringp element)
 		element
-	      (let ((sym (car element))
-		    (min (cadr element))
-		    ;; (max (caddr element))
-		    (align (cadddr element)))
+	      (pcase-let ((`(,sym ,min ,_max ,align) element))
 		;; Ignore a negative min when we're inserting the title
-		(when (minusp min)
+		(when (cl-minusp min)
 		  (setq min (- min)))
 		(let* ((name (or (get sym 'ibuffer-column-name)
 				 (error "Unknown column %s in ibuffer-formats" sym)))
@@ -2108,24 +2107,23 @@ the value of point at the beginning of the line for that buffer."
 	     (insert
 	      (if (stringp element)
 		  (make-string (length element) ?\s)
-		(let ((sym (car element)))
-		  (let ((min (cadr element))
-			;; (max (caddr element))
-			(align (cadddr element)))
-		    ;; Ignore a negative min when we're inserting the title
-		    (when (minusp min)
-		      (setq min (- min)))
-		    (let* ((summary (if (get sym 'ibuffer-column-summarizer)
-					(funcall (get sym 'ibuffer-column-summarizer)
-						 (get sym 'ibuffer-column-summary))
-				      (make-string (length (get sym 'ibuffer-column-name))
-						   ?\s)))
-			   (len (length summary)))
-		      (if (< len min)
-			  (ibuffer-format-column summary
-						 (- min len)
-						 align)
-			summary)))))))
+		(pcase-let ((`(,sym ,min ,_max ,align) element))
+                  ;; Ignore a negative min when we're inserting the title.
+                  (when (cl-minusp min)
+                    (setq min (- min)))
+                  (let* ((summary
+                          (if (get sym 'ibuffer-column-summarizer)
+                              (funcall (get sym 'ibuffer-column-summarizer)
+                                       (get sym 'ibuffer-column-summary))
+                            (make-string
+                             (length (get sym 'ibuffer-column-name))
+                             ?\s)))
+                         (len (length summary)))
+                    (if (< len min)
+                        (ibuffer-format-column summary
+                                               (- min len)
+                                               align)
+                      summary))))))
 	   (point))
 	 `(ibuffer-summary t)))))
 
@@ -2169,7 +2167,7 @@ If optional arg SILENT is non-nil, do not display progress messages."
 		      (eq ibuffer-always-show-last-buffer
 			  :nomini)
 		      (minibufferp (cadr bufs)))
-		     (caddr bufs)
+		     (cl-caddr bufs)
 		   (cadr bufs))
 		 (ibuffer-current-buffers-with-marks bufs)
 		 ibuffer-display-maybe-show-predicates)))
@@ -2201,7 +2199,7 @@ If optional arg SILENT is non-nil, do not display progress messages."
     (require 'ibuf-ext))
   (let* ((sortdat (assq ibuffer-sorting-mode
 			ibuffer-sorting-functions-alist))
-	 (func (caddr sortdat)))
+	 (func (cl-caddr sortdat)))
     (let ((result
 	   ;; actually sort the buffers
 	   (if (and sortdat func)
@@ -2406,7 +2404,7 @@ Operations on marked buffers:
           buffer's file as an argument.
   '\\[ibuffer-do-eval]' - Evaluate a form in each of the marked buffers.  This
           is a very flexible command.  For example, if you want to make all
-          of the marked buffers read only, try using (toggle-read-only 1) as
+          of the marked buffers read only, try using (read-only-mode 1) as
           the input form.
   '\\[ibuffer-do-view-and-eval]' - As above, but view each buffer while the form
           is evaluated.
@@ -2443,8 +2441,9 @@ Marking commands:
 
 Filtering commands:
 
-  '\\[ibuffer-filter-by-mode]' - Add a filter by major mode.
-  '\\[ibuffer-filter-by-used-mode]' - Add a filter by major mode now in use.
+  '\\[ibuffer-filter-by-mode]' - Add a filter by any major mode.
+  '\\[ibuffer-filter-by-used-mode]' - Add a filter by a major mode now in use.
+  '\\[ibuffer-filter-by-derived-mode]' - Add a filter by derived mode.
   '\\[ibuffer-filter-by-name]' - Add a filter by buffer name.
   '\\[ibuffer-filter-by-content]' - Add a filter by buffer content.
   '\\[ibuffer-filter-by-filename]' - Add a filter by filename.
@@ -2575,11 +2574,11 @@ will be inserted before the group at point."
   ;; `ibuffer-update' puts this on header-line-format when needed.
   (setq ibuffer-header-line-format
         ;; Display the part that won't be in the mode-line.
-        (list* "" mode-name
-               (mapcar (lambda (elem)
-                         (if (eq (car-safe elem) 'header-line-format)
-                             (nth 2 elem) elem))
-                       mode-line-process)))
+        `("" ,mode-name
+          ,@(mapcar (lambda (elem)
+                      (if (eq (car-safe elem) 'header-line-format)
+                          (nth 2 elem) elem))
+                    mode-line-process)))
 
   (setq buffer-read-only t)
   (buffer-disable-undo)
@@ -2646,7 +2645,7 @@ will be inserted before the group at point."
 ;;;;;;  ibuffer-backward-filter-group ibuffer-forward-filter-group
 ;;;;;;  ibuffer-toggle-filter-group ibuffer-mouse-toggle-filter-group
 ;;;;;;  ibuffer-interactive-filter-by-mode ibuffer-mouse-filter-by-mode
-;;;;;;  ibuffer-auto-mode) "ibuf-ext" "ibuf-ext.el" "d075c17b63e67b28652ececf548385fc")
+;;;;;;  ibuffer-auto-mode) "ibuf-ext" "ibuf-ext.el" "f03bae226325c7320d41ddb78896665a")
 ;;; Generated autoloads from ibuf-ext.el
 
 (autoload 'ibuffer-auto-mode "ibuf-ext" "\
@@ -2836,6 +2835,7 @@ Set this buffer's filters to filters with NAME from `ibuffer-saved-filters'.
 \(fn NAME)" t nil)
  (autoload 'ibuffer-filter-by-mode "ibuf-ext")
  (autoload 'ibuffer-filter-by-used-mode "ibuf-ext")
+ (autoload 'ibuffer-filter-by-derived-mode "ibuf-ext")
  (autoload 'ibuffer-filter-by-name "ibuf-ext")
  (autoload 'ibuffer-filter-by-filename "ibuf-ext")
  (autoload 'ibuffer-filter-by-size-gt  "ibuf-ext")

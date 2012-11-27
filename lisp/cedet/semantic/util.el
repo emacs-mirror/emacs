@@ -280,7 +280,7 @@ If TAG is not specified, use the tag at point."
 		      semantic-parser-name
 		      semantic-parse-tree-state
 		      semantic-lex-analyzer
-		      semantic-lex-reset-hooks
+		      semantic-lex-reset-functions
 		      semantic-lex-syntax-modifications
 		      )))
 	  (dolist (V vars)
@@ -298,6 +298,7 @@ If TAG is not specified, use the tag at point."
 		      semantic-dump-parse
 		      semantic-type-relation-separator-character
 		      semantic-command-separation-character
+		      semantic-new-buffer-fcn-was-run
 		      )))
 	  (dolist (V vars)
 	    (semantic-describe-buffer-var-helper V buff)))

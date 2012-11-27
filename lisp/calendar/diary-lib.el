@@ -200,19 +200,21 @@ holidays), or hard copy output."
   'diary-list-entries-hook "23.1")
 
 (defcustom diary-list-entries-hook nil
-  "List of functions called after diary file is culled for relevant entries.
-You might wish to add `diary-include-other-diary-files', in which case
-you will probably also want to add `diary-mark-included-diary-files' to
-`diary-mark-entries-hook'.  For example, you could use
+  "Hook run after diary file is culled for relevant entries.
+
+If you add `diary-include-other-diary-files' to this hook, you
+will probably also want to add `diary-mark-included-diary-files'
+to `diary-mark-entries-hook'.  For example, to cause the fancy
+diary buffer to be displayed with diary entries from various
+included files, each day's entries sorted into lexicographic
+order, add the following to your init file:
 
      (setq diary-display-function 'diary-fancy-display)
      (add-hook 'diary-list-entries-hook 'diary-include-other-diary-files)
      (add-hook 'diary-list-entries-hook 'diary-sort-entries t)
 
-in your `.emacs' file to cause the fancy diary buffer to be displayed with
-diary entries from various included files, each day's entries sorted into
-lexicographic order.  Note how the sort function is placed last,
-so that it can sort the entries included from other files.
+Note how the sort function is placed last, so that it can sort
+the entries included from other files.
 
 This hook runs after `diary-nongregorian-listing-hook'.  These two hooks
 differ only if you are using included diary files.  In that case,
@@ -532,7 +534,7 @@ If so, return the expanded file name, otherwise signal an error."
   "Generate the diary window for ARG days starting with the current date.
 If no argument is provided, the number of days of diary entries is governed
 by the variable `diary-number-of-entries'.  A value of ARG less than 1
-does nothing.  This function is suitable for execution in a `.emacs' file."
+does nothing.  This function is suitable for execution in an init file."
   (interactive "P")
   (diary-check-diary-file)
   (diary-list-entries (calendar-current-date)
@@ -951,12 +953,12 @@ This is recursive; that is, included files may include other files."
                   (setq diary-entries-list
                         (append diary-entries-list
                                 (diary-list-entries original-date number t)))))
-            (beep)
-            (message "Can't read included diary file %s" diary-file)
-            (sleep-for 2))
-        (beep)
-        (message "Can't find included diary file %s" diary-file)
-        (sleep-for 2))))
+            (display-warning
+             :error
+             (format "Can't read included diary file %s\n" diary-file)))
+        (display-warning
+         :error
+         (format "Can't find included diary file %s\n" diary-file)))))
   (goto-char (point-min)))
 
 (defun diary-include-other-diary-files ()
@@ -1230,8 +1232,8 @@ Mail is sent to the address specified by `diary-mail-addr'.
 
 Here is an example of a script to call `diary-mail-entries',
 suitable for regular scheduling using cron (or at).  Note that
-since `emacs -script' does not load your `.emacs' file, you
-should ensure that all relevant variables are set.
+since `emacs -script' does not load your init file, you should
+ensure that all relevant variables are set.
 
 #!/usr/bin/emacs -script
 ;; diary-rem.el - run the Emacs diary-reminder
@@ -1456,14 +1458,17 @@ marks.  This is intended to deal with deleted diary entries."
   (let ((result (if calendar-debug-sexp
                     (let ((debug-on-error t))
                       (eval (car (read-from-string sexp))))
-                  (condition-case nil
-                      (eval (car (read-from-string sexp)))
-                    (error
-                     (beep)
-                     (message "Bad sexp at line %d in %s: %s"
-                              (count-lines (point-min) (point))
-                              diary-file sexp)
-                     (sleep-for 2))))))
+                  (let (err)
+                    (condition-case err
+                        (eval (car (read-from-string sexp)))
+                      (error
+                       (display-warning
+                        :error
+                        (format "Bad diary sexp at line %d in %s:\n%s\n\
+Error: %s\n"
+                                (count-lines (point-min) (point))
+                                diary-file sexp err))
+                       nil))))))
     (cond ((stringp result) result)
           ((and (consp result)
                 (stringp (cdr result))) result)
@@ -2395,10 +2400,10 @@ return a font-lock pattern matching array of MONTHS and marking SYMBOL."
     (cons
      (format "^%s?\\(%s\\)" (regexp-quote diary-nonmarking-symbol)
              (regexp-quote diary-sexp-entry-symbol))
-     '(1 font-lock-reference-face))
+     '(1 font-lock-constant-face))
     (cons
      (format "^%s" (regexp-quote diary-nonmarking-symbol))
-     'font-lock-reference-face)
+     'font-lock-constant-face)
     (cons
      (format "^%s?%s" (regexp-quote diary-nonmarking-symbol)
              (regexp-opt (mapcar 'regexp-quote
@@ -2406,7 +2411,7 @@ return a font-lock pattern matching array of MONTHS and marking SYMBOL."
                                        diary-islamic-entry-symbol
                                        diary-bahai-entry-symbol))
                          t))
-     '(1 font-lock-reference-face))
+     '(1 font-lock-constant-face))
     '(diary-font-lock-sexps . font-lock-keyword-face)
     ;; Don't need to worry about space around "-" because the first
     ;; match takes care of that.  It does mean the "-" itself may or
@@ -2477,7 +2482,7 @@ This depends on the calendar date style."
 (defvar diary-fancy-font-lock-keywords
   `((diary-fancy-date-matcher . diary-face)
     ("^.*\\([aA]nniversary\\|[bB]irthday\\).*$" . 'diary-anniversary)
-    ("^.*Yahrzeit.*$" . font-lock-reference-face)
+    ("^.*Yahrzeit.*$" . font-lock-constant-face)
     ("^\\(Erev \\)?Rosh Hodesh.*" . font-lock-function-name-face)
     ("^Day.*omer.*$" . font-lock-builtin-face)
     ("^Parashat.*$" . font-lock-comment-face)

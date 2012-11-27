@@ -691,20 +691,6 @@ Return the overlay."
     (semantic-overlay-put o 'face 'highlight)
     o))
 
-(defsubst semantic-lex-debug-break (token)
-  "Break during lexical analysis at TOKEN."
-  (when semantic-lex-debug
-    (let ((o nil))
-      (unwind-protect
-	  (progn
-	    (when token
-	      (setq o (semantic-lex-highlight-token token)))
-	    (semantic-read-event
-	     (format "%S :: SPC - continue" token))
-	    )
-	(when o
-	  (semantic-overlay-delete o))))))
-
 ;;; Lexical analyzer creation
 ;;
 ;; Code for creating a lex function from lists of analyzers.
@@ -743,7 +729,9 @@ This is an alist of (ANCHOR . STREAM) elements where ANCHOR is the
 start position of the block, and STREAM is the list of tokens in that
 block.")
 
-(defvar semantic-lex-reset-hooks nil
+(define-obsolete-variable-alias 'semantic-lex-reset-hooks
+  'semantic-lex-reset-functions "24.3")
+(defvar semantic-lex-reset-functions nil
   "Abnormal hook used by major-modes to reset lexical analyzers.
 Hook functions are called with START and END values for the
 current lexical pass.  Should be set with `add-hook', specifying
@@ -753,6 +741,20 @@ a LOCAL option.")
 (defvar semantic-lex-block-stack nil)
 ;;(defvar semantic-lex-timeout 5
 ;;  "*Number of sections of lexing before giving up.")
+
+(defsubst semantic-lex-debug-break (token)
+  "Break during lexical analysis at TOKEN."
+  (when semantic-lex-debug
+    (let ((o nil))
+      (unwind-protect
+	  (progn
+	    (when token
+	      (setq o (semantic-lex-highlight-token token)))
+	    (semantic-read-event
+	     (format "%S :: Depth: %d :: SPC - continue" token semantic-lex-current-depth))
+	    )
+	(when o
+	  (semantic-overlay-delete o))))))
 
 (defmacro define-lex (name doc &rest analyzers)
   "Create a new lexical analyzer with NAME.
@@ -771,7 +773,7 @@ analyzer which might mistake a number for as a symbol."
      ;; Make sure the state of block parsing starts over.
      (setq semantic-lex-block-streams nil)
      ;; Allow specialty reset items.
-     (run-hook-with-args 'semantic-lex-reset-hooks start end)
+     (run-hook-with-args 'semantic-lex-reset-functions start end)
      ;; Lexing state.
      (let* (;(starttime (current-time))
 	    (starting-position (point))
@@ -1205,11 +1207,13 @@ symbols returned in open and close tokens."
 		))
 	      ))
            ((setq match (assoc text ',clist))
-            (setq semantic-lex-current-depth (1- semantic-lex-current-depth))
-	    (semantic-lex-push-token
-	     (semantic-lex-token
-	      (nth 1 match)
-	      (match-beginning 0) (match-end 0)))))))
+	    (if (> semantic-lex-current-depth 0)
+		(progn
+		  (setq semantic-lex-current-depth (1- semantic-lex-current-depth))
+		  (semantic-lex-push-token
+		   (semantic-lex-token
+		    (nth 1 match)
+		    (match-beginning 0) (match-end 0)))))))))
        )))
 
 ;;; Analyzers

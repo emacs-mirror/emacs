@@ -30,7 +30,7 @@ comments when you write it (sometime in 2198 as I recall).
 
 
 P.S. You'll be pleased to know that since (time-forward N) still works
-     for N >= 0, we've used it to pre-emptively update configure.in.
+     for N >= 0, we've used it to pre-emptively update configure.ac.
      Emacs now configures and builds on every platform that will ever
      be made.  It wasn't easy, but at least that's one problem out of
      the way for good.  If you'd like the patch, just ask.

@@ -1,6 +1,6 @@
 ;;; perl-mode.el --- Perl code editing commands for GNU Emacs
 
-;; Copyright (C) 1990, 1994, 2001-2012  Free Software Foundation, Inc.
+;; Copyright (C) 1990, 1994, 2001-2012 Free Software Foundation, Inc.
 
 ;; Author: William F. Mann
 ;; Maintainer: FSF
@@ -28,14 +28,14 @@
 ;;; Commentary:
 
 ;; To enter perl-mode automatically, add (autoload 'perl-mode "perl-mode")
-;; to your .emacs file and change the first line of your perl script to:
+;; to your init file and change the first line of your perl script to:
 ;; #!/usr/bin/perl --	 # -*-Perl-*-
 ;; With arguments to perl:
 ;; #!/usr/bin/perl -P-	 # -*-Perl-*-
 ;; To handle files included with do 'filename.pl';, add something like
 ;; (setq auto-mode-alist (append (list (cons "\\.pl\\'" 'perl-mode))
 ;;                               auto-mode-alist))
-;; to your .emacs file; otherwise the .pl suffix defaults to prolog-mode.
+;; to your init file; otherwise the .pl suffix defaults to prolog-mode.
 
 ;; This code is based on the 18.53 version c-mode.el, with extensive
 ;; rewriting.  Most of the features of c-mode survived intact.
@@ -102,7 +102,6 @@
 
 ;;; Code:
 
-(eval-when-compile (require 'cl))
 
 (defvar font-lock-comment-face)
 (defvar font-lock-doc-face)
@@ -132,11 +131,6 @@
     (define-key map "\t" 'perl-indent-command)
     map)
   "Keymap used in Perl mode.")
-
-(autoload 'c-macro-expand "cmacexp"
-  "Display the result of expanding all C macros occurring in the region.
-The expansion is entirely correct because it uses the C preprocessor."
-  t)
 
 (defvar perl-mode-syntax-table
   (let ((st (make-syntax-table (standard-syntax-table))))
@@ -468,7 +462,7 @@ The expansion is entirely correct because it uses the C preprocessor."
    (t (funcall (default-value 'font-lock-syntactic-face-function) state))))
 
 (defcustom perl-indent-level 4
-  "*Indentation of Perl statements with respect to containing block."
+  "Indentation of Perl statements with respect to containing block."
   :type 'integer
   :group 'perl)
 
@@ -485,30 +479,38 @@ The expansion is entirely correct because it uses the C preprocessor."
 ;;;###autoload(put 'perl-label-offset 'safe-local-variable 'integerp)
 
 (defcustom perl-continued-statement-offset 4
-  "*Extra indent for lines not starting new statements."
+  "Extra indent for lines not starting new statements."
   :type 'integer
   :group 'perl)
 (defcustom perl-continued-brace-offset -4
-  "*Extra indent for substatements that start with open-braces.
+  "Extra indent for substatements that start with open-braces.
 This is in addition to `perl-continued-statement-offset'."
   :type 'integer
   :group 'perl)
 (defcustom perl-brace-offset 0
-  "*Extra indentation for braces, compared with other text in same context."
+  "Extra indentation for braces, compared with other text in same context."
   :type 'integer
   :group 'perl)
 (defcustom perl-brace-imaginary-offset 0
-  "*Imagined indentation of an open brace that actually follows a statement."
+  "Imagined indentation of an open brace that actually follows a statement."
   :type 'integer
   :group 'perl)
 (defcustom perl-label-offset -2
-  "*Offset of Perl label lines relative to usual indentation."
+  "Offset of Perl label lines relative to usual indentation."
   :type 'integer
   :group 'perl)
 (defcustom perl-indent-continued-arguments nil
-  "*If non-nil offset of argument lines relative to usual indentation.
+  "If non-nil offset of argument lines relative to usual indentation.
 If nil, continued arguments are aligned with the first argument."
   :type '(choice integer (const nil))
+  :group 'perl)
+
+(defcustom perl-indent-parens-as-block nil
+  "Non-nil means that non-block ()-, {}- and []-groups are indented as blocks.
+The closing bracket is aligned with the line of the opening bracket,
+not the contents of the brackets."
+  :version "24.3"
+  :type 'boolean
   :group 'perl)
 
 (defcustom perl-tab-always-indent tab-always-indent
@@ -521,7 +523,7 @@ nonwhite character on the line."
 ;; I changed the default to nil for consistency with general Emacs
 ;; conventions -- rms.
 (defcustom perl-tab-to-comment nil
-  "*Non-nil means TAB moves to eol or makes a comment in some cases.
+  "Non-nil means TAB moves to eol or makes a comment in some cases.
 For lines which don't need indenting, TAB either indents an
 existing comment, moves to end-of-line, or if at end-of-line already,
 create a new comment."
@@ -529,7 +531,7 @@ create a new comment."
   :group 'perl)
 
 (defcustom perl-nochange ";?#\\|\f\\|\\s(\\|\\(\\w\\|\\s_\\)+:[^:]"
-  "*Lines starting with this regular expression are not auto-indented."
+  "Lines starting with this regular expression are not auto-indented."
   :type 'regexp
   :group 'perl)
 
@@ -853,7 +855,8 @@ Optional argument PARSE-START should be the position of `beginning-of-defun'."
       (cond ((nth 3 state) 'noindent)	; In a quoted string?
 	    ((null containing-sexp)	; Line is at top level.
 	     (skip-chars-forward " \t\f")
-	     (if (= (following-char) ?{)
+	     (if (memq (following-char)
+		       (if perl-indent-parens-as-block '(?\{ ?\( ?\[) '(?\{)))
 		 0  ; move to beginning of line if it starts a function body
 	       ;; indent a little if this is a continuation line
 	       (perl-backward-to-noncomment)
@@ -897,7 +900,9 @@ Optional argument PARSE-START should be the position of `beginning-of-defun'."
 			  0 perl-continued-statement-offset)
 		      (current-column)
 		      (if (save-excursion (goto-char indent-point)
-					  (looking-at "[ \t]*{"))
+					  (looking-at
+					   (if perl-indent-parens-as-block
+					       "[ \t]*[{(\[]" "[ \t]*{")))
 			  perl-continued-brace-offset 0)))
 	       ;; This line starts a new statement.
 	       ;; Position at last unclosed open.

@@ -132,6 +132,8 @@ If nil, there is no maximum size."
   :type '(choice (const :tag "no maximum" nil) integer)
   :group 'dired-x)
 
+;; For backward compatibility
+(define-obsolete-variable-alias 'dired-omit-files-p 'dired-omit-mode "22.1")
 (define-minor-mode dired-omit-mode
   "Toggle omission of uninteresting files in Dired (Dired-Omit mode).
 With a prefix argument ARG, enable Dired-Omit mode if ARG is
@@ -156,9 +158,6 @@ See Info node `(dired-x) Omitting Variables' for more information."
     (revert-buffer)))
 
 (put 'dired-omit-mode 'safe-local-variable 'booleanp)
-
-;; For backward compatibility
-(define-obsolete-variable-alias 'dired-omit-files-p 'dired-omit-mode "22.1")
 
 (defcustom dired-omit-files "^\\.?#\\|^\\.$\\|^\\.\\.$"
   "Filenames matching this regexp will not be displayed.
@@ -724,14 +723,12 @@ determine a default directory.")
 (defun dired-default-directory ()
   "Return the `dired-default-directory-alist' entry for the current major-mode.
 If none, return `default-directory'."
+  ;; It looks like this was intended to be something of a "general"
+  ;; feature, but it only ever seems to have been used in
+  ;; dired-smart-shell-command, and doesn't seem worth keeping around.
+  (declare (obsolete nil "24.1"))
   (or (eval (cdr (assq major-mode dired-default-directory-alist)))
       default-directory))
-
-;; It looks like this was intended to be something of a "general" feature,
-;; but it only ever seems to have been used in dired-smart-shell-command,
-;; and does not seem worth keeping around (?).
-(make-obsolete 'dired-default-directory
-               "this feature is due to be removed." "24.1")
 
 (defun dired-smart-shell-command (command &optional output-buffer error-buffer)
   "Like function `shell-command', but in the current Virtual Dired directory."
@@ -783,6 +780,7 @@ See also `dired-enable-local-variables'."
 
 (defun dired-hack-local-variables ()
   "Evaluate local variables in `dired-local-variables-file' for dired buffer."
+  (declare (obsolete hack-dir-local-variables-non-file-buffer "24.1"))
   (and (stringp dired-local-variables-file)
        (file-exists-p dired-local-variables-file)
        (let ((opoint (point-max))
@@ -801,17 +799,15 @@ See also `dired-enable-local-variables'."
                (hack-local-variables))
            ;; Delete this stuff: `eobp' is used to find last subdir by dired.el.
            (delete-region opoint (point-max)))
-         ;; Make sure that the modeline shows the proper information.
-         (dired-sort-set-modeline))))
-
-(make-obsolete 'dired-hack-local-variables
-               'hack-dir-local-variables-non-file-buffer "24.1")
+         ;; Make sure that the mode line shows the proper information.
+         (dired-sort-set-mode-line))))
 
 ;; Does not seem worth a dedicated command.
 ;; See the more general features in files-x.el.
 (defun dired-omit-here-always ()
   "Create `dir-locals-file' setting `dired-omit-mode' to t in `dired-mode'.
 If in a Dired buffer, reverts it."
+  (declare (obsolete add-dir-local-variable "24.1"))
   (interactive)
   (if (file-exists-p dired-local-variables-file)
       (error "Old-style dired-local-variables-file `./%s' found;
@@ -830,8 +826,6 @@ replace it with a dir-locals-file `./%s'"
       (hack-dir-local-variables-non-file-buffer)
       (dired-extra-startup)
       (dired-revert))))
-
-(make-obsolete 'dired-omit-here-always 'add-dir-local-variable "24.1")
 
 
 ;;; GUESS SHELL COMMAND.

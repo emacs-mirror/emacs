@@ -265,12 +265,13 @@ Execute BODY in a location where a value can be placed."
   "Add VARNAME into the current Makefile if it doesn't exist.
 Execute BODY in a location where a value can be placed."
   `(let ((addcr t) (v ,varname))
-     (unless (re-search-backward (concat "^" v "\\s-*=") nil t)
-       (insert v "=")
-       ,@body
-       (if addcr (insert "\n"))
-       (goto-char (point-max)))
-     ))
+       (unless
+	   (save-excursion
+	     (re-search-backward (concat "^" v "\\s-*=") nil t))
+	 (insert v "=")
+	 ,@body
+	 (when addcr (insert "\n"))
+	 (goto-char (point-max)))))
 (put 'ede-pmake-insert-variable-once 'lisp-indent-function 1)
 
 ;;; SOURCE VARIABLE NAME CONSTRUCTION

@@ -23,6 +23,9 @@
 ;; You should have received a copy of the GNU General Public License
 ;; along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.
 
+%package semantic-grammar-wy
+%provide semantic/grammar-wy
+
 %{
 (defvar semantic-grammar-lex-c-char-re)
 
@@ -31,8 +34,6 @@
 ;; Index of rule in a nonterminal clause.
 (defvar semantic-grammar-wy--rindx nil)
 }
-
-%package semantic-grammar-wy
 
 %languagemode wy-mode
 
@@ -52,6 +53,7 @@
 %keyword LEFT            "%left"
 %keyword NONASSOC        "%nonassoc"
 %keyword PACKAGE         "%package"
+%keyword PROVIDE         "%provide"
 %keyword PREC            "%prec"
 %keyword PUT             "%put"
 %keyword QUOTEMODE       "%quotemode"
@@ -134,6 +136,7 @@ decl:
   | no_default_prec_decl
   | languagemode_decl
   | package_decl
+  | provide_decl
   | precedence_decl
   | put_decl
   | quotemode_decl
@@ -163,6 +166,11 @@ languagemode_decl:
 package_decl:
     PACKAGE SYMBOL
     `(PACKAGE-TAG ',$2 nil)
+  ;
+
+provide_decl:
+    PROVIDE SYMBOL
+    `(TAG ',$2 'provide)
   ;
 
 precedence_decl:

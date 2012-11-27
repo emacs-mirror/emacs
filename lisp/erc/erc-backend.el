@@ -4,6 +4,7 @@
 
 ;; Filename: erc-backend.el
 ;; Author: Lawrence Mitchell <wence@gmx.li>
+;; Maintainer: FSF
 ;; Created: 2004-05-7
 ;; Keywords: IRC chat client internet
 
@@ -98,8 +99,10 @@
 
 (require 'erc-compat)
 (eval-when-compile (require 'cl))
-(autoload 'erc-with-buffer "erc" nil nil 'macro)
-(autoload 'erc-log "erc" nil nil 'macro)
+;; There's a fairly strong mutual dependency between erc.el and erc-backend.el.
+;; Luckily, erc.el does not need erc-backend.el for macroexpansion whereas the
+;; reverse is true:
+(eval-when-compile (provide 'erc-backend) (require 'erc))
 
 ;;;; Variables and options
 
@@ -311,7 +314,7 @@ If a key is pressed while ERC is waiting, it will stop waiting."
   :type 'number)
 
 (defcustom erc-split-line-length 440
-  "*The maximum length of a single message.
+  "The maximum length of a single message.
 If a message exceeds this size, it is broken into multiple ones.
 
 IRC allows for lines up to 512 bytes. Two of them are CR LF.
@@ -379,18 +382,25 @@ It should take same arguments as `open-network-stream' does."
   :type 'function)
 
 (defcustom erc-server-prevent-duplicates '("301")
-  "*Either nil or a list of strings.
+  "Either nil or a list of strings.
 Each string is a IRC message type, like PRIVMSG or NOTICE.
 All Message types in that list of subjected to duplicate prevention."
   :type '(choice (const nil) (list string))
   :group 'erc-server)
 
 (defcustom erc-server-duplicate-timeout 60
-  "*The time allowed in seconds between duplicate messages.
+  "The time allowed in seconds between duplicate messages.
 
 If two identical messages arrive within this value of one another, the second
 isn't displayed."
   :type 'integer
+  :group 'erc-server)
+
+(defcustom erc-server-timestamp-format "%Y-%m-%d %T"
+  "Timestamp format used with server response messages.
+This string is processed using `format-time-string'."
+  :version "24.3"
+  :type 'string
   :group 'erc-server)
 
 ;;; Flood-related
@@ -399,7 +409,7 @@ isn't displayed."
 ;; (http://www.nongnu.org/circe)
 
 (defcustom erc-server-flood-margin 10
-  "*A margin on how much excess data we send.
+  "A margin on how much excess data we send.
 The flood protection algorithm of ERC works like the one
 detailed in RFC 2813, section 5.8 \"Flood control of clients\".
 
@@ -423,14 +433,14 @@ protection algorithm."
 ;; Ping handling
 
 (defcustom erc-server-send-ping-interval 30
-  "*Interval of sending pings to the server, in seconds.
+  "Interval of sending pings to the server, in seconds.
 If this is set to nil, pinging the server is disabled."
   :group 'erc-server
   :type '(choice (const :tag "Disabled" nil)
                  (integer :tag "Seconds")))
 
 (defcustom erc-server-send-ping-timeout 120
-  "*If the time between ping and response is greater than this, reconnect.
+  "If the time between ping and response is greater than this, reconnect.
 The time is in seconds.
 
 This must be greater than or equal to the value for
@@ -1308,7 +1318,7 @@ add things to `%s' instead."
          (when (equal (erc-default-target) nick)
            (setq erc-default-recipients
                  (cons nn (cdr erc-default-recipients)))
-           (rename-buffer nn)
+           (rename-buffer nn t)         ; bug#12002
            (erc-update-mode-line)
            (add-to-list 'bufs (current-buffer)))))
       (erc-update-user-nick nick nn host nil nil login)
@@ -1454,7 +1464,8 @@ add things to `%s' instead."
   "The channel topic has changed." nil
   (let* ((ch (first (erc-response.command-args parsed)))
          (topic (erc-trim-string (erc-response.contents parsed)))
-         (time (format-time-string "%T %m/%d/%y" (current-time))))
+         (time (format-time-string erc-server-timestamp-format
+                                   (current-time))))
     (multiple-value-bind (nick login host)
         (values-list (erc-parse-user (erc-response.sender parsed)))
       (erc-update-channel-member ch nick nick nil nil nil host login)
@@ -1647,7 +1658,7 @@ See `erc-display-server-message'." nil
   (multiple-value-bind (nick seconds-idle on-since time)
       (values-list (cdr (erc-response.command-args parsed)))
     (setq time (when on-since
-                 (format-time-string "%T %Y/%m/%d"
+                 (format-time-string erc-server-timestamp-format
                                      (erc-string-to-emacs-time on-since))))
     (erc-update-user-nick nick nick nil nil nil
                           (and time (format "on since %s" time)))
@@ -1724,7 +1735,8 @@ See `erc-display-server-message'." nil
                (third (erc-response.command-args parsed)))))
     (erc-display-message
      parsed 'notice (erc-get-buffer channel proc)
-     's329 ?c channel ?t (format-time-string "%A %Y/%m/%d %X" time))))
+     's329 ?c channel ?t (format-time-string erc-server-timestamp-format
+                                             time))))
 
 (define-erc-response-handler (330)
   "Nick is authed as (on Quakenet network)." nil
@@ -1761,7 +1773,7 @@ See `erc-display-server-message'." nil
   "Who set the topic, and when." nil
   (multiple-value-bind (channel nick time)
       (values-list (cdr (erc-response.command-args parsed)))
-    (setq time (format-time-string "%T %Y/%m/%d"
+    (setq time (format-time-string erc-server-timestamp-format
                                    (erc-string-to-emacs-time time)))
     (erc-update-channel-topic channel
                               (format "\C-o (%s, %s)" nick time)

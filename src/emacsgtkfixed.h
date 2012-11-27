@@ -27,33 +27,7 @@ G_BEGIN_DECLS
 
 struct frame;
 
-#define EMACS_TYPE_FIXED                  (emacs_fixed_get_type ())
-#define EMACS_FIXED(obj)                  (G_TYPE_CHECK_INSTANCE_CAST ((obj), EMACS_TYPE_FIXED, EmacsFixed))
-#define EMACS_FIXED_CLASS(klass)          (G_TYPE_CHECK_CLASS_CAST ((klass), EMACS_TYPE_FIXED, EmacsFixedClass))
-#define EMACS_IS_FIXED(obj)               (G_TYPE_CHECK_INSTANCE_TYPE ((obj), EMACS_TYPE_FIXED))
-#define EMACS_IS_FIXED_CLASS(klass)       (G_TYPE_CHECK_CLASS_TYPE ((klass), EMACS_TYPE_FIXED))
-#define EMACS_FIXED_GET_CLASS(obj)        (G_TYPE_INSTANCE_GET_CLASS ((obj), EMACS_TYPE_FIXED, EmacsFixedClass))
-
-typedef struct _EmacsFixed              EmacsFixed;
-typedef struct _EmacsFixedPrivate       EmacsFixedPrivate;
-typedef struct _EmacsFixedClass         EmacsFixedClass;
-
-struct _EmacsFixed
-{
-  GtkFixed container;
-
-  /*< private >*/
-  EmacsFixedPrivate *priv;
-};
-
-
-struct _EmacsFixedClass
-{
-  GtkFixedClass parent_class;
-};
-
 extern GtkWidget *emacs_fixed_new (struct frame *f);
-extern GType emacs_fixed_get_type (void);
 
 G_END_DECLS
 

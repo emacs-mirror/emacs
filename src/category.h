@@ -1,6 +1,6 @@
 /* Declarations having to do with Emacs category tables.
    Copyright (C) 1995, 1996, 1997, 1998, 1999, 2000, 2001, 2002, 2003, 2004,
-     2005, 2006, 2007, 2008, 2009, 2010, 2011
+     2005, 2006, 2007, 2008, 2009, 2010, 2011, 2012
      National Institute of Advanced Industrial Science and Technology (AIST)
      Registration Number H14PRO021
    Copyright (C) 2003
@@ -53,8 +53,12 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
    The second extra slot is a version number of the category table.
    But, for the moment, we are not using this slot.  */
 
-#define CATEGORYP(x) \
-  (INTEGERP ((x)) && XFASTINT ((x)) >= 0x20 && XFASTINT ((x)) <= 0x7E)
+INLINE_HEADER_BEGIN
+#ifndef CATEGORY_INLINE
+# define CATEGORY_INLINE INLINE
+#endif
+
+#define CATEGORYP(x) RANGED_INTEGERP (0x20, x, 0x7E)
 
 #define CHECK_CATEGORY(x) \
   CHECK_TYPE (CATEGORYP (x), Qcategoryp, x)
@@ -70,42 +74,48 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #define CHECK_CATEGORY_SET(x) \
   CHECK_TYPE (CATEGORY_SET_P (x), Qcategorysetp, x)
 
-/* Return 1 if CATEGORY_SET contains CATEGORY, else return 0.
+/* Return the category set of character C in the current category table.  */
+#define CATEGORY_SET(c) char_category_set (c)
+
+/* Return true if CATEGORY_SET contains CATEGORY.
    The faster version of `!NILP (Faref (category_set, category))'.  */
 #define CATEGORY_MEMBER(category, category_set)		 		\
-  (XCATEGORY_SET (category_set)->data[(category) / 8]			\
-   & (1 << ((category) % 8)))
+  ((XCATEGORY_SET (category_set)->data[(category) / 8]			\
+    >> ((category) % 8)) & 1)
 
-/* Temporary internal variable used in macro CHAR_HAS_CATEGORY.  */
-extern Lisp_Object _temp_category_set;
-
-/* Return 1 if category set of CH contains CATEGORY, elt return 0.  */
-#define CHAR_HAS_CATEGORY(ch, category)	\
-  (_temp_category_set = CATEGORY_SET (ch),	\
-   CATEGORY_MEMBER (category, _temp_category_set))
+/* Return true if category set of CH contains CATEGORY.  */
+CATEGORY_INLINE bool
+CHAR_HAS_CATEGORY (int ch, int category)
+{
+  Lisp_Object category_set = CATEGORY_SET (ch);
+  return CATEGORY_MEMBER (category, category_set);
+}
 
 /* The standard category table is stored where it will automatically
    be used in all new buffers.  */
 #define Vstandard_category_table BVAR (&buffer_defaults, category_table)
 
-/* Return the category set of character C in the current category table.  */
-#define CATEGORY_SET(c) char_category_set (c)
-
 /* Return the doc string of CATEGORY in category table TABLE.  */
-#define CATEGORY_DOCSTRING(table, category) \
-  XVECTOR (Fchar_table_extra_slot (table, make_number (0)))->contents[(category) - ' ']
+#define CATEGORY_DOCSTRING(table, category)				\
+  AREF (Fchar_table_extra_slot (table, make_number (0)), ((category) - ' '))
+
+/* Set the doc string of CATEGORY to VALUE in category table TABLE.  */
+#define SET_CATEGORY_DOCSTRING(table, category, value)			\
+  ASET (Fchar_table_extra_slot (table, make_number (0)), ((category) - ' '), value)
 
 /* Return the version number of category table TABLE.  Not used for
    the moment.  */
 #define CATEGORY_TABLE_VERSION (table) \
   Fchar_table_extra_slot (table, make_number (1))
 
-/* Return 1 if there is a word boundary between two word-constituent
-   characters C1 and C2 if they appear in this order, else return 0.
+/* Return true if there is a word boundary between two
+   word-constituent characters C1 and C2 if they appear in this order.
    There is no word boundary between two word-constituent ASCII and
    Latin-1 characters.  */
 #define WORD_BOUNDARY_P(c1, c2)					\
   (!(SINGLE_BYTE_CHAR_P (c1) && SINGLE_BYTE_CHAR_P (c2))	\
    && word_boundary_p (c1, c2))
 
-extern int word_boundary_p (int, int);
+extern bool word_boundary_p (int, int);
+
+INLINE_HEADER_END

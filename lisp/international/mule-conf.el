@@ -1458,7 +1458,8 @@ for decoding and encoding files, process I/O, etc."
   :flags '(ascii-at-eol ascii-at-cntl long-form
 			designation locking-shift single-shift)
   :post-read-conversion 'ctext-post-read-conversion
-  :pre-write-conversion 'ctext-pre-write-conversion)
+  :pre-write-conversion 'ctext-pre-write-conversion
+  :mime-charset 'x-ctext)
 
 (define-coding-system-alias
   'x-ctext-with-extensions 'compound-text-with-extensions)

@@ -77,7 +77,7 @@ this flag is ignored."
      (:background "#AAAA33"))
     (((class color) (background light))
      (:background "#FFFFAA")))
-  "*Face used at beginning of a highlight."
+  "Face used at beginning of a highlight."
   :group 'pulse)
 
 (defface pulse-highlight-face
@@ -85,7 +85,7 @@ this flag is ignored."
      (:background "#AAAA33"))
     (((class color) (background light))
      (:background "#FFFFAA")))
-  "*Face used during a pulse for display.  *DO NOT CUSTOMIZE*
+  "Face used during a pulse for display.  *DO NOT CUSTOMIZE*
 Face used for temporary highlighting of tags for effect."
   :group 'pulse)
 

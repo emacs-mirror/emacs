@@ -3,7 +3,7 @@
 @c Copyright (C) 1994-1997, 1999-2012 Free Software Foundation, Inc.
 @c See file emacs.texi for copying conditions.
 @c
-@node Acknowledgments, Screen, Concept Index, Top
+@node Acknowledgments
 @unnumbered Acknowledgments
 
 Many people have contributed code included in the Free Software
@@ -244,16 +244,13 @@ files as ``thumbnails''.
 
 @item
 Julien Danjou wrote an implementation of ``Desktop Notifications''
-(@file{notifications.el}); and @file{color.el}, a library for general
-color manipulation.  He also made various contributions to Gnus.
+(@file{notifications.el}, and related packages for ERC and Gnus);
+and @file{color.el}, a library for general color manipulation.
+He also made various contributions to Gnus.
 
 @item
 Vivek Dasmohapatra wrote @file{htmlfontify.el}, to convert a buffer or
 source tree to HTML.
-
-@item
-Gary Delp wrote @file{mailpost.el}, an interface between RMAIL and the
-@file{/usr/uci/post} mailer.
 
 @item
 Matthieu Devin wrote @file{delsel.el}, a package to make newly-typed
@@ -268,7 +265,7 @@ He also wrote @file{dynamic-setting.el}.
 
 @item
 Carsten Dominik wrote Ref@TeX{}, a package for setting up labels and
-cross-references in La@TeX{} documents; and co-wrote IDLWAVE mode
+cross-references in @LaTeX{} documents; and co-wrote IDLWAVE mode
 (q.v.@:).  He was the original author of Org mode, for maintaining notes,
 todo lists, and project planning.  Bastien Guerry subsequently took
 over maintainership.  Benjamin Andresen, Thomas Baumann, Joel Boehland, Jan Böcker, Lennart
@@ -366,6 +363,10 @@ Keith Gabryelski wrote @file{hexl.el}, a mode for editing binary files.
 Kevin Gallagher rewrote and enhanced the EDT emulation, and wrote
 @file{flow-ctrl.el}, a package for coping with unsuppressible XON/XOFF
 flow control.
+
+@item
+Fabián E. Gallina rewrote @file{python.el}, the major mode for the
+Python programming language used in Emacs 24.3 onwards.
 
 @item
 Kevin Gallo added multiple-frame support for Windows NT and wrote
@@ -553,7 +554,7 @@ for the Transport Layer Security protocol.
 
 @item
 Arne Jørgensen wrote @file{latexenc.el}, a package to
-automatically guess the correct coding system in La@TeX{} files.
+automatically guess the correct coding system in @LaTeX{} files.
 
 @item
 Alexandre Julliard wrote @file{vc-git.el}, support for the Git version
@@ -571,7 +572,7 @@ control system.
 Henry Kautz wrote @file{bib-mode.el}, a mode for maintaining
 bibliography databases compatible with @code{refer} (the @code{troff}
 version) and @code{lookbib}, and @file{refbib.el}, a package to convert
-those databases to the format used by the La@TeX{} text formatting package.
+those databases to the format used by the @LaTeX{} text formatting package.
 
 @item
 Taichi Kawabata added support for Devanagari script and the Indian
@@ -644,10 +645,9 @@ statically scoped Emacs lisp.
 @item
 Daniel LaLiberte wrote @file{edebug.el}, a source-level debugger for
 Emacs Lisp; @file{cl-specs.el}, specifications to help @code{edebug}
-debug code written using David Gillespie's Common Lisp support;
-@file{cust-print.el}, a customizable package for printing lisp
-objects; and @file{isearch.el}, Emacs's incremental search minor mode.
-He also co-wrote @file{hideif.el} (q.v.@:).
+debug code written using David Gillespie's Common Lisp support; and
+@file{isearch.el}, Emacs's incremental search minor mode.  He also
+co-wrote @file{hideif.el} (q.v.@:).
 
 @item
 Karl Landstrom and Daniel Colascione wrote @file{js.el}, a mode for
@@ -714,13 +714,13 @@ headers; @file{hl-line.el}, a minor mode for highlighting the line in
 the current window on which point is; @file{cap-words.el}, a minor mode
 for motion in ``CapitalizedWordIdentifiers''; @file{latin1-disp.el}, a
 package that lets you display ISO 8859 characters on Latin-1 terminals
-by setting up appropriate display tables; @file{python.el}, a major mode
-for the Python programming language; @file{smiley.el}, a facility for
-displaying smiley faces; @file{sym-comp.el}, a library for performing
-mode-dependent symbol completion; @file{benchmark.el} for timing code
-execution; and @file{tool-bar.el}, a mode to control the display of
-the Emacs tool bar.  With Riccardo Murri he wrote @file{vc-bzr.el},
-support for the Bazaar version control system.
+by setting up appropriate display tables; the version of
+@file{python.el} used prior to Emacs 24.3; @file{smiley.el}, a
+facility for displaying smiley faces; @file{sym-comp.el}, a library
+for performing mode-dependent symbol completion; @file{benchmark.el}
+for timing code execution; and @file{tool-bar.el}, a mode to control
+the display of the Emacs tool bar.  With Riccardo Murri he wrote
+@file{vc-bzr.el}, support for the Bazaar version control system.
 
 @item
 Eric Ludlam wrote the Speedbar package; @file{checkdoc.el}, for checking
@@ -791,6 +791,9 @@ mode-sensitive insertion of text into new files.
 Yukihiro Matsumoto and Nobuyoshi Nakada wrote Ruby-mode.
 
 @item
+Tomohiro Matsuyama wrote the native Elisp profiler.
+
+@item
 Thomas May wrote @file{blackbox.el}, a version of the traditional
 blackbox game.
 
@@ -835,7 +838,10 @@ diffs; @file{css-mode.el} for Cascading Style Sheets;
 @file{bibtex-style.el} for Bib@TeX{} Style files; @file{mpc.el}, a
 client for the ``Music Player Daemon''; @file{smie.el}, a generic
 indentation engine; and @file{pcase.el}, implementing ML-style pattern
-matching.  He integrated the lexical binding code in Emacs 24.
+matching.  In Emacs 24, he integrated the lexical binding code,
+cleaned up the CL namespace (making it acceptable to use CL
+functions at runtime), and added generalized variables to core Emacs
+Lisp.
 
 @item
 Morioka Tomohiko wrote several packages for MIME support in Gnus and
@@ -1299,15 +1305,14 @@ providing electric accent keys.
 Colin Walters wrote Ibuffer, an enhanced buffer menu.
 
 @item
-Barry Warsaw wrote @file{assoc.el}, a set of utility functions for
-working with association lists; @file{cc-mode.el}, a mode for editing
-C, C@t{++}, and Java code, based on earlier work by Dave Detlefs,
-Stewart Clamen, and Richard Stallman; @file{elp.el}, a profiler for
-Emacs Lisp programs; @file{man.el}, a mode for reading Unix manual
-pages; @file{regi.el}, providing an AWK-like functionality for use in
-lisp programs; @file{reporter.el}, providing customizable bug
-reporting for lisp packages; and @file{supercite.el}, a minor mode for
-quoting sections of mail messages and news articles.
+Barry Warsaw wrote @file{cc-mode.el}, a mode for editing C, C@t{++},
+and Java code, based on earlier work by Dave Detlefs, Stewart Clamen,
+and Richard Stallman; @file{elp.el}, a profiler for Emacs Lisp
+programs; @file{man.el}, a mode for reading Unix manual pages;
+@file{regi.el}, providing an AWK-like functionality for use in lisp
+programs; @file{reporter.el}, providing customizable bug reporting for
+lisp packages; and @file{supercite.el}, a minor mode for quoting
+sections of mail messages and news articles.
 
 @item
 Christoph Wedler wrote @file{antlr-mode.el}, a major mode for ANTLR
@@ -1349,9 +1354,8 @@ Directory Client; and @code{eshell}, a command shell implemented
 entirely in Emacs Lisp.  He also contributed to Org mode (q.v.@:).
 
 @item
-Mike Williams wrote @file{mouse-sel.el}, providing enhanced mouse
-selection; and @file{thingatpt.el}, a library of functions for finding
-the ``thing'' (word, line, s-expression) containing point.
+Mike Williams wrote @file{thingatpt.el}, a library of functions for
+finding the ``thing'' (word, line, s-expression) at point.
 
 @item
 Roland Winkler wrote @file{proced.el}, a system process editor.

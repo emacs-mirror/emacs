@@ -17,15 +17,8 @@ You should have received a copy of the GNU General Public License
 along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 
 
-/* Nonzero means use ^S/^Q as cretinous flow control.  */
-extern int flow_control;
-
 /* Nonzero means use interrupt-driven input.  */
-extern int interrupt_input;
+extern bool interrupt_input;
 
 /* Nonzero while interrupts are temporarily deferred during redisplay.  */
-extern int interrupts_deferred;
-
-/* Terminal has meta key */
-extern int meta_key;
-
+extern bool interrupts_deferred;

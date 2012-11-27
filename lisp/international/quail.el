@@ -53,7 +53,7 @@
 ;;; Code:
 
 (require 'help-mode)
-(eval-when-compile (require 'cl))
+(eval-when-compile (require 'cl-lib))
 
 (defgroup quail nil
   "Quail: multilingual input method."
@@ -486,19 +486,15 @@ non-Quail commands."
 	  (setq translation-keymap (copy-keymap
 				    (if simple quail-simple-translation-keymap
 				      quail-translation-keymap)))
-	  (while translation-keys
-	    (define-key translation-keymap
-	      (car (car translation-keys)) (cdr (car translation-keys)))
-	    (setq translation-keys (cdr translation-keys))))
+	  (dolist (trans translation-keys)
+	    (define-key translation-keymap (car trans) (cdr trans))))
       (setq translation-keymap
 	    (if simple quail-simple-translation-keymap
 	      quail-translation-keymap)))
     (when conversion-keys
       (setq conversion-keymap (copy-keymap quail-conversion-keymap))
-      (while conversion-keys
-	(define-key conversion-keymap
-	  (car (car conversion-keys)) (cdr (car conversion-keys)))
-	(setq conversion-keys (cdr conversion-keys))))
+      (dolist (conv conversion-keys)
+	(define-key conversion-keymap (car conv) (cdr conv))))
     (quail-add-package
      (list name title (list nil) guidance (or docstring "")
 	   translation-keymap
@@ -544,32 +540,36 @@ non-Quail commands."
   (if (and (overlayp quail-conv-overlay) (overlay-start quail-conv-overlay))
       (delete-overlay quail-conv-overlay)))
 
-(defun quail-inactivate ()
-  "Inactivate Quail input method.
+(defun quail-deactivate ()
+  "Deactivate Quail input method.
 
-This function runs the normal hook `quail-inactivate-hook'."
+This function runs the normal hook `quail-deactivate-hook'."
   (interactive)
   (quail-activate -1))
+
+(define-obsolete-function-alias 'quail-inactivate 'quail-deactivate "24.3")
 
 (defun quail-activate (&optional arg)
   "Activate Quail input method.
 With ARG, activate Quail input method if and only if arg is positive.
 
 This function runs `quail-activate-hook' if it activates the input
-method, `quail-inactivate-hook' if it deactivates it.
+method, `quail-deactivate-hook' if it deactivates it.
 
 While this input method is active, the variable
 `input-method-function' is bound to the function `quail-input-method'."
   (if (and arg
 	  (< (prefix-numeric-value arg) 0))
-      ;; Let's inactivate Quail input method.
+      ;; Let's deactivate Quail input method.
       (unwind-protect
 	  (progn
 	    (quail-delete-overlays)
 	    (setq describe-current-input-method-function nil)
 	    (quail-hide-guidance)
 	    (remove-hook 'post-command-hook 'quail-show-guidance t)
-	    (run-hooks 'quail-inactivate-hook))
+	    (run-hooks
+	     'quail-inactivate-hook ; for backward compatibility
+	     'quail-deactivate-hook))
 	(kill-local-variable 'input-method-function))
     ;; Let's activate Quail input method.
     (if (null quail-current-package)
@@ -579,7 +579,7 @@ While this input method is active, the variable
 	      (setq name (car (car quail-package-alist)))
 	    (error "No Quail package loaded"))
 	  (quail-select-package name)))
-    (setq inactivate-current-input-method-function 'quail-inactivate)
+    (setq deactivate-current-input-method-function 'quail-deactivate)
     (setq describe-current-input-method-function 'quail-help)
     (quail-delete-overlays)
     (setq quail-guidance-str "")
@@ -593,8 +593,12 @@ While this input method is active, the variable
     (make-local-variable 'input-method-function)
     (setq input-method-function 'quail-input-method)))
 
+(define-obsolete-variable-alias
+  'quail-inactivate-hook
+  'quail-deactivate-hook "24.3")
+
 (defun quail-exit-from-minibuffer ()
-  (inactivate-input-method)
+  (deactivate-input-method)
   (if (<= (minibuffer-depth) 1)
       (remove-hook 'minibuffer-exit-hook 'quail-exit-from-minibuffer)))
 
@@ -720,12 +724,11 @@ The command `quail-set-keyboard-layout' usually sets this variable."
       (setq quail-keyboard-layout-substitution subst-list)
       ;; If there are additional key locations, map them to missing
       ;; key locations.
-      (while missing-list
+      (dolist (missing missing-list)
 	(while (and subst-list (cdr (car subst-list)))
 	  (setq subst-list (cdr subst-list)))
 	(if subst-list
-	    (setcdr (car subst-list) (car missing-list)))
-	(setq missing-list (cdr missing-list))))))
+	    (setcdr (car subst-list) missing))))))
 
 (defcustom quail-keyboard-layout-type "standard"
   "Type of keyboard layout used in Quail base input method.
@@ -806,9 +809,10 @@ The format of KBD-LAYOUT is the same as `quail-keyboard-layout'."
 	(if translation
 	    (progn
 	      (if (consp translation)
-		  (if (> (length (cdr translation)) 0)
-		      (setq translation (aref (cdr translation) 0))
-		    (setq translation " ")))
+		  (setq translation
+                        (if (> (length (cdr translation)) 0)
+                            (aref (cdr translation) 0)
+                          " ")))
 	      (setq done-list (cons translation done-list)))
 	  (setq translation (aref kbd-layout i)))
 	(aset layout i translation))
@@ -834,17 +838,19 @@ The format of KBD-LAYOUT is the same as `quail-keyboard-layout'."
 	(if (< (if (stringp lower) (string-width lower) (char-width lower)) 2)
 	    (insert " "))
 	(if (characterp lower)
-	    (if (eq (get-char-code-property lower 'general-category) 'Mn)
-		;; Pad the left and right of non-spacing characters.
-		(setq lower (compose-string (string lower) 0 1
-					    (format "\t%c\t" lower)))
-	      (setq lower (string lower))))
+            (setq lower
+                  (if (eq (get-char-code-property lower 'general-category) 'Mn)
+                      ;; Pad the left and right of non-spacing characters.
+                      (compose-string (string lower) 0 1
+                                      (format "\t%c\t" lower))
+                    (string lower))))
 	(if (characterp upper)
-	    (if (eq (get-char-code-property upper 'general-category) 'Mn)
-		;; Pad the left and right of non-spacing characters.
-		(setq upper (compose-string (string upper) 0 1
-					    (format "\t%c\t" upper)))
-	      (setq upper (string upper))))
+	    (setq upper
+                  (if (eq (get-char-code-property upper 'general-category) 'Mn)
+                      ;; Pad the left and right of non-spacing characters.
+                      (compose-string (string upper) 0 1
+                                      (format "\t%c\t" upper))
+                    (string upper))))
 	(insert (bidi-string-mark-left-to-right lower)
 		(propertize " " 'invisible t)
 		(bidi-string-mark-left-to-right upper))
@@ -1032,8 +1038,8 @@ the following annotation types are supported.
       (let ((map (list nil))
 	    (decode-map (if (not no-decode-map) (list 'decode-map)))
 	    key trans)
-	(while l
-	  (setq key (car (car l)) trans (car (cdr (car l))) l (cdr l))
+	(dolist (el l)
+	  (setq key (car el) trans (car (cdr el)))
 	  (quail-defrule-internal key trans map t decode-map props))
 	`(if (prog1 (quail-decode-map)
 	       (quail-install-map ',map))
@@ -1201,7 +1207,7 @@ function `quail-define-rules' for the detail."
 		(if (stringp trans)
 		    (setq trans (string-to-vector trans))))
               (let ((new (quail-vunion prevchars trans)))
-	      (setq trans
+                (setq trans
                       (if (equal new prevchars)
                           ;; Nothing to change, get back to orig value.
                           prev
@@ -1215,10 +1221,8 @@ where VECTOR is a vector of candidates (character or string) for
 the translation, and INDEX points into VECTOR to specify the currently
 selected translation."
   (if (and def (symbolp def))
-      (if (functionp def)
-	  ;; DEF is a symbol of a function which returns valid translation.
-	  (setq def (funcall def key len))
-	(setq def nil)))
+      ;; DEF is a symbol of a function which returns valid translation.
+      (setq def (if (functionp def) (funcall def key len))))
   (if (and (consp def) (not (vectorp (cdr def))))
       (setq def (car def)))
 
@@ -2399,10 +2403,10 @@ should be made by `quail-build-decode-map' (which see)."
                    (let ((last-col-elt (or (nth (1- (* (1+ col) newrows))
                                                 single-list)
                                            (car (last single-list)))))
-                     (incf width (+ (max 3 (length (car last-col-elt)))
-                                    1 single-trans-width 1))))
+                     (cl-incf width (+ (max 3 (length (car last-col-elt)))
+                                       1 single-trans-width 1))))
                  (< width window-width))
-          (incf cols))
+          (cl-incf cols))
         (setq rows (/ (+ len cols -1) cols)) ;Round up.
         (let ((key-width (max 3 (length (car (nth (1- rows) single-list))))))
           (insert "key")

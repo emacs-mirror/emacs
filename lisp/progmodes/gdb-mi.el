@@ -91,7 +91,7 @@
 (require 'gud)
 (require 'json)
 (require 'bindat)
-(eval-when-compile (require 'cl))
+(eval-when-compile (require 'cl-lib))
 
 (declare-function speedbar-change-initial-expansion-list
                   "speedbar" (new-default))
@@ -459,9 +459,14 @@ Most recent commands are listed first.  This list stores only the last
 `gdb-debug-log-max' values.  This variable is used to debug GDB-MI.")
 
 ;;;###autoload
-(defcustom gdb-enable-debug nil
-  "Non-nil means record the process input and output in `gdb-debug-log'."
-  :type 'boolean
+(define-minor-mode gdb-enable-debug
+  "Toggle logging of transaction between Emacs and Gdb.
+The log is stored in `gdb-debug-log' as an alist with elements
+whose cons is send, send-item or recv and whose cdr is the string
+being transferred.  This list may grow up to a size of
+`gdb-debug-log-max' after which the oldest element (at the end of
+the list) is deleted every time a new one is added (at the front)."
+  :global t
   :group 'gdb
   :version "22.1")
 
@@ -511,21 +516,6 @@ Also display the main routine in the disassembly buffer if present."
 			(process-status (get-buffer-process buffer)) status))
 	  ;; Force mode line redisplay soon.
 	  (force-mode-line-update)))))
-
-(defun gdb-enable-debug (arg)
-  "Toggle logging of transaction between Emacs and Gdb.
-The log is stored in `gdb-debug-log' as an alist with elements
-whose cons is send, send-item or recv and whose cdr is the string
-being transferred.  This list may grow up to a size of
-`gdb-debug-log-max' after which the oldest element (at the end of
-the list) is deleted every time a new one is added (at the front)."
-  (interactive "P")
-  (setq gdb-enable-debug
-	(if (null arg)
-	    (not gdb-enable-debug)
-	  (> (prefix-numeric-value arg) 0)))
-  (message (format "Logging of transaction %sabled"
-		   (if gdb-enable-debug "en" "dis"))))
 
 ;; These two are used for menu and toolbar
 (defun gdb-control-all-threads ()
@@ -830,7 +820,7 @@ detailed description of this mode.
   (run-hooks 'gdb-mode-hook))
 
 (defun gdb-init-1 ()
-  ;; (re-)initialize
+  ;; (Re-)initialize.
   (setq gdb-selected-frame nil
 	gdb-frame-number nil
         gdb-thread-number nil
@@ -865,8 +855,13 @@ detailed description of this mode.
   (gdb-clear-inferior-io)
   (gdb-inferior-io--init-proc (get-process "gdb-inferior"))
 
-  (if (eq window-system 'w32)
-      (gdb-input "-gdb-set new-console off" 'ignore))
+  (when (eq system-type 'windows-nt)
+    ;; Don't create a separate console window for the debuggee.
+    (gdb-input "-gdb-set new-console off" 'ignore)
+    ;; Force GDB to behave as if its input and output stream were
+    ;; connected to a TTY device (since on Windows we use pipes for
+    ;; communicating with GDB).
+    (gdb-input "-gdb-set interactive-mode on" 'ignore))
   (gdb-input "-gdb-set height 0" 'ignore)
 
   (when gdb-non-stop
@@ -874,7 +869,7 @@ detailed description of this mode.
 
   (gdb-input "-enable-pretty-printing" 'ignore)
 
-  ;; find source file and compilation directory here
+  ;; Find source file and compilation directory here.
   (if gdb-create-source-file-list
       ;; Needs GDB 6.2 onwards.
       (gdb-input "-file-list-exec-source-files" 'gdb-get-source-file-list))
@@ -949,11 +944,16 @@ no input, and GDB is waiting for input."
 (defun gdb-tooltip-print (expr)
   (with-current-buffer (gdb-get-buffer 'gdb-partial-output-buffer)
     (goto-char (point-min))
-    (if (re-search-forward ".*value=\\(\".*\"\\)" nil t)
-        (tooltip-show
-         (concat expr " = " (read (match-string 1)))
-         (or gud-tooltip-echo-area
-             (not (display-graphic-p)))))))
+    (cond
+     ((re-search-forward ".*value=\\(\".*\"\\)" nil t)
+      (tooltip-show
+       (concat expr " = " (read (match-string 1)))
+       (or gud-tooltip-echo-area
+	   (not (display-graphic-p)))))
+     ((re-search-forward  "msg=\\(\".+\"\\)$" nil t)
+      (tooltip-show (read (match-string 1))
+       (or gud-tooltip-echo-area
+	   (not (display-graphic-p))))))))
 
 ;; If expr is a macro for a function don't print because of possible dangerous
 ;; side-effects. Also printing a function within a tooltip generates an
@@ -963,7 +963,7 @@ no input, and GDB is waiting for input."
     (goto-char (point-min))
     (if (search-forward "expands to: " nil t)
 	(unless (looking-at "\\S-+.*(.*).*")
-	  (gdb-input (concat "-data-evaluate-expression " expr)
+	  (gdb-input (concat "-data-evaluate-expression \"" expr "\"")
 		     `(lambda () (gdb-tooltip-print ,expr)))))))
 
 (defun gdb-init-buffer ()
@@ -974,15 +974,17 @@ no input, and GDB is waiting for input."
     (gdb-create-define-alist)
     (add-hook 'after-save-hook 'gdb-create-define-alist nil t)))
 
-(defmacro gdb-if-arrow (arrow-position &rest body)
-  `(if ,arrow-position
-       (let ((buffer (marker-buffer ,arrow-position)) (line))
-         (if (equal buffer (window-buffer (posn-window end)))
-             (with-current-buffer buffer
-               (when (or (equal start end)
-                         (equal (posn-point start)
-                                (marker-position ,arrow-position)))
-                 ,@body))))))
+(defmacro gdb--if-arrow (arrow-position start-posn end-posn &rest body)
+  (declare (indent 3))
+  (let ((buffer (make-symbol "buffer")))
+    `(if ,arrow-position
+         (let ((,buffer (marker-buffer ,arrow-position)))
+           (if (equal ,buffer (window-buffer (posn-window ,end-posn)))
+               (with-current-buffer ,buffer
+                 (when (or (equal ,start-posn ,end-posn)
+                           (equal (posn-point ,start-posn)
+                                  (marker-position ,arrow-position)))
+                   ,@body)))))))
 
 (defun gdb-mouse-until (event)
   "Continue running until a source line past the current line.
@@ -992,15 +994,15 @@ with mouse-1 (default bindings)."
   (interactive "e")
   (let ((start (event-start event))
 	(end (event-end event)))
-    (gdb-if-arrow gud-overlay-arrow-position
-		  (setq line (line-number-at-pos (posn-point end)))
-		  (gud-call (concat "until " (number-to-string line))))
-    (gdb-if-arrow gdb-disassembly-position
-		  (save-excursion
-		    (goto-char (point-min))
-		    (forward-line (1- (line-number-at-pos (posn-point end))))
-		    (forward-char 2)
-		    (gud-call (concat "until *%a"))))))
+    (gdb--if-arrow gud-overlay-arrow-position start end
+      (let ((line (line-number-at-pos (posn-point end))))
+        (gud-call (concat "until " (number-to-string line)))))
+    (gdb--if-arrow gdb-disassembly-position start end
+      (save-excursion
+        (goto-char (point-min))
+        (forward-line (1- (line-number-at-pos (posn-point end))))
+        (forward-char 2)
+        (gud-call (concat "until *%a"))))))
 
 (defun gdb-mouse-jump (event)
   "Set execution address/line.
@@ -1011,19 +1013,17 @@ line, and no execution takes place."
   (interactive "e")
   (let ((start (event-start event))
 	(end (event-end event)))
-    (gdb-if-arrow gud-overlay-arrow-position
-		  (setq line (line-number-at-pos (posn-point end)))
-		  (progn
-		    (gud-call (concat "tbreak " (number-to-string line)))
-		    (gud-call (concat "jump " (number-to-string line)))))
-    (gdb-if-arrow gdb-disassembly-position
-		  (save-excursion
-		    (goto-char (point-min))
-		    (forward-line (1- (line-number-at-pos (posn-point end))))
-		    (forward-char 2)
-		    (progn
-		      (gud-call (concat "tbreak *%a"))
-		      (gud-call (concat "jump *%a")))))))
+    (gdb--if-arrow gud-overlay-arrow-position start end
+      (let ((line (line-number-at-pos (posn-point end))))
+        (gud-call (concat "tbreak " (number-to-string line)))
+        (gud-call (concat "jump " (number-to-string line)))))
+    (gdb--if-arrow gdb-disassembly-position start end
+      (save-excursion
+        (goto-char (point-min))
+        (forward-line (1- (line-number-at-pos (posn-point end))))
+        (forward-char 2)
+        (gud-call (concat "tbreak *%a"))
+        (gud-call (concat "jump *%a"))))))
 
 (defcustom gdb-show-changed-values t
   "If non-nil change the face of out of scope variables and changed values.
@@ -1045,10 +1045,11 @@ Changed values are highlighted with the face `font-lock-warning-face'."
   :group 'gdb
   :version "22.2")
 
-(defcustom gdb-speedbar-auto-raise nil
-  "If non-nil raise speedbar every time display of watch expressions is\
- updated."
-  :type 'boolean
+(define-minor-mode gdb-speedbar-auto-raise
+  "Minor mode to automatically raise the speedbar for watch expressions.
+With prefix argument ARG, automatically raise speedbar if ARG is
+positive, otherwise don't automatically raise it."
+  :global t
   :group 'gdb
   :version "22.1")
 
@@ -1058,20 +1059,8 @@ Changed values are highlighted with the face `font-lock-warning-face'."
   :group 'gdb
   :version "22.1")
 
-(defun gdb-speedbar-auto-raise (arg)
-  "Toggle automatic raising of the speedbar for watch expressions.
-With prefix argument ARG, automatically raise speedbar if ARG is
-positive, otherwise don't automatically raise it."
-  (interactive "P")
-  (setq gdb-speedbar-auto-raise
-	(if (null arg)
-	    (not gdb-speedbar-auto-raise)
-	  (> (prefix-numeric-value arg) 0)))
-  (message (format "Auto raising %sabled"
-		   (if gdb-speedbar-auto-raise "en" "dis"))))
-
 (define-key gud-minor-mode-map "\C-c\C-w" 'gud-watch)
-(define-key global-map (concat gud-key-prefix "\C-w") 'gud-watch)
+(define-key global-map (vconcat gud-key-prefix "\C-w") 'gud-watch)
 
 (declare-function tooltip-identifier-from-point "tooltip" (point))
 
@@ -1207,8 +1196,8 @@ With arg, enter name of variable to be watched in the minibuffer."
 (defun gdb-edit-value (_text _token _indent)
   "Assign a value to a variable displayed in the speedbar."
   (let* ((var (nth (- (count-lines (point-min) (point)) 2) gdb-var-list))
-	 (varnum (car var)) (value))
-    (setq value (read-string "New value: "))
+	 (varnum (car var))
+         (value (read-string "New value: ")))
     (gdb-input (concat "-var-assign " varnum " " value)
 	       `(lambda () (gdb-edit-value-handler ,value)))))
 
@@ -1424,29 +1413,6 @@ this trigger is subscribed to `gdb-buf-publisher' and called with
      (with-current-buffer ,buffer
        (apply ',expr args))))
 
-;; Used to define all gdb-frame-*-buffer functions except
-;; `gdb-frame-io-buffer'
-(defmacro def-gdb-frame-for-buffer (name buffer &optional doc)
-  "Define a function NAME which shows gdb BUFFER in a separate frame.
-
-DOC is an optional documentation string."
-  `(defun ,name (&optional thread)
-     ,(when doc doc)
-     (interactive)
-     (let ((special-display-regexps (append special-display-regexps '(".*")))
-           (special-display-frame-alist gdb-frame-parameters))
-       (display-buffer (gdb-get-buffer-create ,buffer thread)))))
-
-(defmacro def-gdb-display-buffer (name buffer &optional doc)
-  "Define a function NAME which shows gdb BUFFER.
-
-DOC is an optional documentation string."
-  `(defun ,name (&optional thread)
-     ,(when doc doc)
-     (interactive)
-     (gdb-display-buffer
-      (gdb-get-buffer-create ,buffer thread) t)))
-
 ;; Used to display windows with thread-bound buffers
 (defmacro def-gdb-preempt-display-buffer (name buffer &optional doc
 					       split-horizontal)
@@ -1522,19 +1488,19 @@ DOC is an optional documentation string."
 (defun gdb-display-io-buffer ()
   "Display IO of debugged program in a separate window."
   (interactive)
-  (gdb-display-buffer
-   (gdb-get-buffer-create 'gdb-inferior-io) t))
+  (gdb-display-buffer (gdb-get-buffer-create 'gdb-inferior-io)))
 
 (defun gdb-inferior-io--init-proc (proc)
   ;; Set up inferior I/O.  Needs GDB 6.4 onwards.
   (set-process-filter proc 'gdb-inferior-filter)
   (set-process-sentinel proc 'gdb-inferior-io-sentinel)
-  (gdb-input
-   (concat "-inferior-tty-set "
-	   ;; The process can run on a remote host.
-	   (or (process-get proc 'remote-tty)
-	       (process-tty-name proc)))
-   'ignore))
+  ;; The process can run on a remote host.
+  (let ((tty (or (process-get proc 'remote-tty)
+		 (process-tty-name proc))))
+    (unless (or (null tty)
+		(string= tty ""))
+      (gdb-input
+       (concat "-inferior-tty-set " tty) 'ignore))))
 
 (defun gdb-inferior-io-sentinel (proc str)
   (when (eq (process-status proc) 'failed)
@@ -1550,19 +1516,27 @@ DOC is an optional documentation string."
 	(comint-exec io-buffer "gdb-inferior" nil nil nil)
 	(gdb-inferior-io--init-proc (get-buffer-process io-buffer))))))
 
-(defconst gdb-frame-parameters
-  '((height . 14) (width . 80)
-    (unsplittable . t)
-    (tool-bar-lines . nil)
-    (menu-bar-lines . nil)
-    (minibuffer . nil)))
+(defcustom gdb-display-buffer-other-frame-action
+  '((display-buffer-reuse-window display-buffer-pop-up-frame)
+    (reusable-frames . visible)
+    (inhibit-same-window . t)
+    (pop-up-frame-parameters (height . 14)
+			     (width . 80)
+			     (unsplittable . t)
+			     (tool-bar-lines . nil)
+			     (menu-bar-lines . nil)
+			     (minibuffer . nil)))
+  "`display-buffer' action for displaying GDB utility frames."
+  :group 'gdb
+  :type display-buffer--action-custom-type
+  :risky t
+  :version "24.3")
 
 (defun gdb-frame-io-buffer ()
-  "Display IO of debugged program in a new frame."
+  "Display IO of debugged program in another frame."
   (interactive)
-  (let ((special-display-regexps (append special-display-regexps '(".*")))
-	(special-display-frame-alist gdb-frame-parameters))
-    (display-buffer (gdb-get-buffer-create 'gdb-inferior-io))))
+  (display-buffer (gdb-get-buffer-create 'gdb-inferior-io)
+		  gdb-display-buffer-other-frame-action))
 
 (defvar gdb-inferior-io-mode-map
   (let ((map (make-sparse-keymap)))
@@ -1581,7 +1555,7 @@ DOC is an optional documentation string."
 
 (defun gdb-inferior-filter (proc string)
   (unless (string-equal string "")
-    (gdb-display-buffer (gdb-get-buffer-create 'gdb-inferior-io) t))
+    (gdb-display-buffer (gdb-get-buffer-create 'gdb-inferior-io)))
   (with-current-buffer (gdb-get-buffer-create 'gdb-inferior-io)
     (comint-output-filter proc string)))
 
@@ -1860,7 +1834,7 @@ is running."
     (setq gud-running
           (string= (bindat-get-field (gdb-current-buffer-thread) 'state)
                    "running"))
-    ;; Set frame number to "0" when _current_ threads stops
+    ;; Set frame number to "0" when _current_ threads stops.
     (when (and (gdb-current-buffer-thread)
                (not (eq gud-running old-value)))
       (setq gdb-frame-number "0"))))
@@ -1928,10 +1902,10 @@ is running."
 	     (> (length gdb-debug-log) gdb-debug-log-max))
 	(setcdr (nthcdr (1- gdb-debug-log-max) gdb-debug-log) nil)))
 
-  ;; Recall the left over gud-marker-acc from last time
+  ;; Recall the left over gud-marker-acc from last time.
   (setq gud-marker-acc (concat gud-marker-acc string))
 
-  ;; Start accumulating output for the GUD buffer
+  ;; Start accumulating output for the GUD buffer.
   (setq gdb-filter-output "")
   (let (output-record-list)
 
@@ -1977,9 +1951,8 @@ is running."
 (defun gdb-gdb (_output-field))
 
 (defun gdb-shell (output-field)
-  (let ((gdb-output-sink gdb-output-sink))
-    (setq gdb-filter-output
-          (concat output-field gdb-filter-output))))
+  (setq gdb-filter-output
+        (concat output-field gdb-filter-output)))
 
 (defun gdb-ignored-notification (_output-field))
 
@@ -2063,14 +2036,15 @@ current thread and update GDB buffers."
 			     (concat " --thread " thread-id)))
 		 'gdb-register-names-handler))
 
-;;; Don't set gud-last-frame here as it's currently done in gdb-frame-handler
-;;; because synchronous GDB doesn't give these fields with CLI.
-;;;     (when file
-;;;       (setq
-;;;        ;; Extract the frame position from the marker.
-;;;        gud-last-frame (cons file
-;;; 			    (string-to-number
-;;; 			     (match-string 6 gud-marker-acc)))))
+    ;; Don't set gud-last-frame here as it's currently done in
+    ;; gdb-frame-handler because synchronous GDB doesn't give these fields
+    ;; with CLI.
+    ;;(when file
+    ;;  (setq
+    ;;   ;; Extract the frame position from the marker.
+    ;;   gud-last-frame (cons file
+    ;;    		    (string-to-number
+    ;;    		     (match-string 6 gud-marker-acc)))))
 
     (setq gdb-inferior-status (or reason "unknown"))
     (gdb-force-mode-line-update
@@ -2116,13 +2090,15 @@ current thread and update GDB buffers."
   (setq gdb-filter-output
 	(gdb-concat-output
 	 gdb-filter-output
-	 (let ((error-message
-		(read output-field)))
-	   (put-text-property
-	    0 (length error-message)
-	    'face font-lock-warning-face
-	    error-message)
-	   error-message))))
+	 (if (string= output-field "\"\\n\"")
+	     ""
+	   (let ((error-message
+		  (read output-field)))
+	     (put-text-property
+	      0 (length error-message)
+	      'face font-lock-warning-face
+	      error-message)
+	     error-message)))))
 
 ;; Remove the trimmings from the console stream and send to GUD buffer
 ;; (frontend MI commands should not print to this stream)
@@ -2285,8 +2261,7 @@ Return position where LINE begins."
 ;; gdb-table struct is a way to programmatically construct simple
 ;; tables. It help to reliably align columns of data in GDB buffers
 ;; and provides
-(defstruct
-  gdb-table
+(cl-defstruct gdb-table
   (column-sizes nil)
   (rows nil)
   (row-properties nil)
@@ -2354,8 +2329,9 @@ calling `gdb-table-string'."
 (defun gdb-get-many-fields (struct &rest fields)
   "Return a list of FIELDS values from STRUCT."
   (let ((values))
-    (dolist (field fields values)
-      (setq values (append values (list (bindat-get-field struct field)))))))
+    (dolist (field fields)
+      (push (bindat-get-field struct field) values))
+    (nreverse values)))
 
 (defmacro def-gdb-auto-update-trigger (trigger-name gdb-command
                                                     handler-name
@@ -2623,15 +2599,16 @@ If not in a source or disassembly buffer just set point."
 (defun gdb-breakpoints-buffer-name ()
   (concat "*breakpoints of " (gdb-get-target-string) "*"))
 
-(def-gdb-display-buffer
-  gdb-display-breakpoints-buffer
-  'gdb-breakpoints-buffer
-  "Display status of user-settable breakpoints.")
+(defun gdb-display-breakpoints-buffer (&optional thread)
+  "Display GDB breakpoints."
+  (interactive)
+  (gdb-display-buffer (gdb-get-buffer-create 'gdb-breakpoints-buffer thread)))
 
-(def-gdb-frame-for-buffer
-  gdb-frame-breakpoints-buffer
-  'gdb-breakpoints-buffer
-  "Display status of user-settable breakpoints in a new frame.")
+(defun gdb-frame-breakpoints-buffer (&optional thread)
+  "Display GDB breakpoints in another frame."
+  (interactive)
+  (display-buffer (gdb-get-buffer-create 'gdb-breakpoints-buffer thread)
+		  gdb-display-buffer-other-frame-action))
 
 (defvar gdb-breakpoints-mode-map
   (let ((map (make-sparse-keymap))
@@ -2692,15 +2669,16 @@ corresponding to the mode line clicked."
 (defun gdb-threads-buffer-name ()
   (concat "*threads of " (gdb-get-target-string) "*"))
 
-(def-gdb-display-buffer
-  gdb-display-threads-buffer
-  'gdb-threads-buffer
-  "Display GDB threads.")
+(defun gdb-display-threads-buffer (&optional thread)
+  "Display GDB threads."
+  (interactive)
+  (gdb-display-buffer (gdb-get-buffer-create 'gdb-threads-buffer thread)))
 
-(def-gdb-frame-for-buffer
-  gdb-frame-threads-buffer
-  'gdb-threads-buffer
-  "Display GDB threads in a new frame.")
+(defun gdb-frame-threads-buffer (&optional thread)
+  "Display GDB threads in another frame."
+  (interactive)
+  (display-buffer (gdb-get-buffer-create 'gdb-threads-buffer thread)
+		  gdb-display-buffer-other-frame-action))
 
 (def-gdb-trigger-and-handler
   gdb-invalidate-threads (gdb-current-context-command "-thread-info")
@@ -2775,9 +2753,9 @@ corresponding to the mode line clicked."
         (add-to-list 'gdb-threads-list
                      (cons (bindat-get-field thread 'id)
                            thread))
-        (if running
-            (incf gdb-running-threads-count)
-          (incf gdb-stopped-threads-count))
+        (cl-incf (if running
+                     gdb-running-threads-count
+                   gdb-stopped-threads-count))
 
         (gdb-table-add-row table
                            (list
@@ -2876,26 +2854,22 @@ on the current line."
 (def-gdb-thread-buffer-simple-command
   gdb-frame-stack-for-thread
   gdb-frame-stack-buffer
-  "Display a new frame with stack buffer for the thread at
-current line.")
+  "Display another frame with stack buffer for thread at current line.")
 
 (def-gdb-thread-buffer-simple-command
   gdb-frame-locals-for-thread
   gdb-frame-locals-buffer
-  "Display a new frame with locals buffer for the thread at
-current line.")
+  "Display another frame with locals buffer for thread at current line.")
 
 (def-gdb-thread-buffer-simple-command
   gdb-frame-registers-for-thread
   gdb-frame-registers-buffer
-  "Display a new frame with registers buffer for the thread at
-current line.")
+  "Display another frame with registers buffer for the thread at current line.")
 
 (def-gdb-thread-buffer-simple-command
   gdb-frame-disassembly-for-thread
   gdb-frame-disassembly-buffer
-  "Display a new frame with disassembly buffer for the thread at
-current line.")
+  "Display another frame with disassembly buffer for the thread at current line.")
 
 (defmacro def-gdb-thread-buffer-gud-command (name gud-command &optional doc)
   "Define a NAME which will execute GUD-COMMAND with
@@ -3298,21 +3272,16 @@ DOC is an optional documentation string."
 (defun gdb-memory-buffer-name ()
   (concat "*memory of " (gdb-get-target-string) "*"))
 
-(def-gdb-display-buffer
-  gdb-display-memory-buffer
-  'gdb-memory-buffer
-  "Display memory contents.")
+(defun gdb-display-memory-buffer (&optional thread)
+  "Display GDB memory contents."
+  (interactive)
+  (gdb-display-buffer (gdb-get-buffer-create 'gdb-memory-buffer thread)))
 
 (defun gdb-frame-memory-buffer ()
-  "Display memory contents in a new frame."
+  "Display memory contents in another frame."
   (interactive)
-  (let* ((special-display-regexps (append special-display-regexps '(".*")))
-	 (special-display-frame-alist
-	  `((left-fringe . 0)
-            (right-fringe . 0)
-            (width . 83)
-            ,@gdb-frame-parameters)))
-    (display-buffer (gdb-get-buffer-create 'gdb-memory-buffer))))
+  (display-buffer (gdb-get-buffer-create 'gdb-memory-buffer)
+		  gdb-display-buffer-other-frame-action))
 
 
 ;;; Disassembly view
@@ -3321,19 +3290,20 @@ DOC is an optional documentation string."
   (gdb-current-context-buffer-name
    (concat "disassembly of " (gdb-get-target-string))))
 
-(def-gdb-display-buffer
-  gdb-display-disassembly-buffer
-  'gdb-disassembly-buffer
-  "Display disassembly for current stack frame.")
+(defun gdb-display-disassembly-buffer (&optional thread)
+  "Display GDB disassembly information."
+  (interactive)
+  (gdb-display-buffer (gdb-get-buffer-create 'gdb-disassembly-buffer thread)))
 
 (def-gdb-preempt-display-buffer
   gdb-preemptively-display-disassembly-buffer
   'gdb-disassembly-buffer)
 
-(def-gdb-frame-for-buffer
-  gdb-frame-disassembly-buffer
-  'gdb-disassembly-buffer
-  "Display disassembly in a new frame.")
+(defun gdb-frame-disassembly-buffer (&optional thread)
+  "Display GDB disassembly information in another frame."
+  (interactive)
+  (display-buffer (gdb-get-buffer-create 'gdb-disassembly-buffer thread)
+		  gdb-display-buffer-other-frame-action))
 
 (def-gdb-auto-update-trigger gdb-invalidate-disassembly
   (let* ((frame (gdb-current-buffer-frame))
@@ -3568,19 +3538,20 @@ member."
   (gdb-current-context-buffer-name
    (concat "stack frames of " (gdb-get-target-string))))
 
-(def-gdb-display-buffer
-  gdb-display-stack-buffer
-  'gdb-stack-buffer
-  "Display backtrace of current stack.")
+(defun gdb-display-stack-buffer (&optional thread)
+  "Display GDB backtrace for current stack."
+  (interactive)
+  (gdb-display-buffer (gdb-get-buffer-create 'gdb-stack-buffer thread)))
 
 (def-gdb-preempt-display-buffer
   gdb-preemptively-display-stack-buffer
   'gdb-stack-buffer nil t)
 
-(def-gdb-frame-for-buffer
-  gdb-frame-stack-buffer
-  'gdb-stack-buffer
-  "Display backtrace of current stack in a new frame.")
+(defun gdb-frame-stack-buffer (&optional thread)
+  "Display GDB backtrace for current stack in another frame."
+  (interactive)
+  (display-buffer (gdb-get-buffer-create 'gdb-stack-buffer thread)
+		  gdb-display-buffer-other-frame-action))
 
 (defvar gdb-frames-mode-map
   (let ((map (make-sparse-keymap)))
@@ -3727,19 +3698,20 @@ member."
   (gdb-current-context-buffer-name
    (concat "locals of " (gdb-get-target-string))))
 
-(def-gdb-display-buffer
-  gdb-display-locals-buffer
-  'gdb-locals-buffer
-  "Display local variables of current stack and their values.")
+(defun gdb-display-locals-buffer (&optional thread)
+  "Display the local variables of current GDB stack."
+  (interactive)
+  (gdb-display-buffer (gdb-get-buffer-create 'gdb-locals-buffer thread)))
 
 (def-gdb-preempt-display-buffer
   gdb-preemptively-display-locals-buffer
   'gdb-locals-buffer nil t)
 
-(def-gdb-frame-for-buffer
-  gdb-frame-locals-buffer
-  'gdb-locals-buffer
-  "Display local variables of current stack and their values in a new frame.")
+(defun gdb-frame-locals-buffer (&optional thread)
+  "Display the local variables of the current GDB stack in another frame."
+  (interactive)
+  (display-buffer (gdb-get-buffer-create 'gdb-locals-buffer thread)
+		  gdb-display-buffer-other-frame-action))
 
 
 ;; Registers buffer.
@@ -3826,19 +3798,20 @@ member."
   (gdb-current-context-buffer-name
    (concat "registers of " (gdb-get-target-string))))
 
-(def-gdb-display-buffer
-  gdb-display-registers-buffer
-  'gdb-registers-buffer
-  "Display integer register contents.")
+(defun gdb-display-registers-buffer (&optional thread)
+  "Display GDB register contents."
+  (interactive)
+  (gdb-display-buffer (gdb-get-buffer-create 'gdb-registers-buffer thread)))
 
 (def-gdb-preempt-display-buffer
   gdb-preemptively-display-registers-buffer
   'gdb-registers-buffer nil t)
 
-(def-gdb-frame-for-buffer
-  gdb-frame-registers-buffer
-  'gdb-registers-buffer
-  "Display integer register contents in a new frame.")
+(defun gdb-frame-registers-buffer (&optional thread)
+  "Display GDB register contents in another frame."
+  (interactive)
+  (display-buffer (gdb-get-buffer-create 'gdb-registers-buffer thread)
+		  gdb-display-buffer-other-frame-action))
 
 ;; Needs GDB 6.4 onwards (used to fail with no stack).
 (defun gdb-get-changed-registers ()
@@ -3925,26 +3898,26 @@ overlay arrow in source buffer."
   (setq gdb-filter-output (concat gdb-filter-output gdb-prompt-name)))
 
 ;;;; Window management
-(defun gdb-display-buffer (buf dedicated &optional frame)
-  "Show buffer BUF.
+(defun gdb-display-buffer (buf)
+  "Show buffer BUF, and make that window dedicated."
+  (let ((window (display-buffer buf)))
+    (set-window-dedicated-p window t)
+    window))
 
-If BUF is already displayed in some window, show it, deiconifying
-the frame if necessary. Otherwise, find least recently used
-window and show BUF there, if the window is not used for GDB
-already, in which case that window is split first."
-  (let ((answer (get-buffer-window buf (or frame 0))))
-    (if answer
-	(display-buffer buf nil (or frame 0)) ;Deiconify frame if necessary.
-      (let ((window (get-lru-window)))
-	(if (eq (buffer-local-value 'gud-minor-mode (window-buffer window))
-                'gdbmi)
-	    (let ((largest (get-largest-window)))
-	      (setq answer (split-window largest))
-	      (set-window-buffer answer buf)
-	      (set-window-dedicated-p answer dedicated)
-	      answer)
-	  (set-window-buffer window buf)
-	  window)))))
+  ;; (let ((answer (get-buffer-window buf 0)))
+  ;;   (if answer
+  ;; 	(display-buffer buf nil 0) ;Deiconify frame if necessary.
+  ;;     (let ((window (get-lru-window)))
+  ;; 	(if (eq (buffer-local-value 'gud-minor-mode (window-buffer window))
+  ;;               'gdbmi)
+  ;; 	    (let ((largest (get-largest-window)))
+  ;; 	      (setq answer (split-window largest))
+  ;; 	      (set-window-buffer answer buf)
+  ;; 	      (set-window-dedicated-p answer t)
+  ;; 	      answer)
+  ;; 	  (set-window-buffer window buf)
+  ;; 	  window)))))
+
 
 (defun gdb-preempt-existing-or-display-buffer (buf &optional split-horizontal)
   "Find window displaying a buffer with the same
@@ -3971,7 +3944,7 @@ SPLIT-HORIZONTAL and show BUF in the new window."
               (if dedicated-window
                   (set-window-buffer
                    (split-window dedicated-window nil split-horizontal) buf)
-                (gdb-display-buffer buf t))))))
+                (gdb-display-buffer buf))))))
     (error "Null buffer")))
 
 ;;; Shared keymap initialization:
@@ -4075,7 +4048,7 @@ SPLIT-HORIZONTAL and show BUF in the new window."
   'all-threads)
 
 (defun gdb-frame-gdb-buffer ()
-  "Display GUD buffer in a new frame."
+  "Display GUD buffer in another frame."
   (interactive)
   (display-buffer-other-frame gud-comint-buffer))
 
@@ -4097,13 +4070,12 @@ window is dedicated."
 
 (defun gdb-setup-windows ()
   "Layout the window pattern for `gdb-many-windows'."
-  (gdb-display-locals-buffer)
-  (gdb-display-stack-buffer)
-  (delete-other-windows)
-  (gdb-display-breakpoints-buffer)
-  (delete-other-windows)
-  ;; Don't dedicate.
+  (gdb-get-buffer-create 'gdb-locals-buffer)
+  (gdb-get-buffer-create 'gdb-stack-buffer)
+  (gdb-get-buffer-create 'gdb-breakpoints-buffer)
+  (set-window-dedicated-p (selected-window) nil)
   (switch-to-buffer gud-comint-buffer)
+  (delete-other-windows)
   (let ((win0 (selected-window))
         (win1 (split-window nil ( / ( * (window-height) 3) 4)))
         (win2 (split-window nil ( / (window-height) 3)))
@@ -4132,31 +4104,19 @@ window is dedicated."
                              nil win5))
     (select-window win0)))
 
-(defcustom gdb-many-windows nil
+(define-minor-mode gdb-many-windows
   "If nil just pop up the GUD buffer unless `gdb-show-main' is t.
 In this case it starts with two windows: one displaying the GUD
 buffer and the other with the source file with the main routine
 of the debugged program.  Non-nil means display the layout shown for
 `gdb'."
-  :type 'boolean
+  :global t
   :group 'gdb
-  :version "22.1")
-
-(defun gdb-many-windows (arg)
-  "Toggle the number of windows in the basic arrangement.
-With arg, display additional buffers iff arg is positive."
-  (interactive "P")
-  (setq gdb-many-windows
-        (if (null arg)
-            (not gdb-many-windows)
-          (> (prefix-numeric-value arg) 0)))
-  (message (format "Display of other windows %sabled"
-                   (if gdb-many-windows "en" "dis")))
+  :version "22.1"
   (if (and gud-comint-buffer
            (buffer-name gud-comint-buffer))
-      (condition-case nil
-          (gdb-restore-windows)
-        (error nil))))
+      (ignore-errors
+        (gdb-restore-windows))))
 
 (defun gdb-restore-windows ()
   "Restore the basic arrangement of windows used by gdb.
@@ -4218,9 +4178,9 @@ buffers, if required."
   (if gdb-many-windows
       (gdb-setup-windows)
     (gdb-get-buffer-create 'gdb-breakpoints-buffer)
-    (if (and gdb-show-main gdb-main-file)
-        (let ((pop-up-windows t))
-          (display-buffer (gud-find-file gdb-main-file)))))
+    (and gdb-show-main
+	 gdb-main-file
+	 (display-buffer (gud-find-file gdb-main-file))))
   (gdb-force-mode-line-update
    (propertize "ready" 'face font-lock-variable-name-face)))
 

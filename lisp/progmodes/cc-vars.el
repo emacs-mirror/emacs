@@ -49,16 +49,6 @@
   (require 'custom)
   (require 'widget))
 
-(cc-eval-when-compile
-  ;; Need the function form of `backquote', which isn't standardized
-  ;; between Emacsen.  It's called `bq-process' in XEmacs, and
-  ;; `backquote-process' in Emacs.  `backquote-process' returns a
-  ;; slightly more convoluted form, so let `bq-process' be the norm.
-  (if (fboundp 'backquote-process)
-      (cc-bytecomp-defmacro bq-process (form)
-	`(cdr (backquote-process ,form)))))
-
-
 ;;; Helpers
 
 ;; This widget exists in newer versions of the Custom library

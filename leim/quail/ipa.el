@@ -29,7 +29,7 @@
 ;;; Code:
 
 (require 'quail)
-(eval-when-compile (require 'cl))
+(eval-when-compile (require 'cl-lib))
 
 (quail-define-package
  "ipa" "IPA" "IPA" t
@@ -277,13 +277,13 @@ string."
       (setq quail-keymap (list (string quail-keymap)))
     (if (stringp quail-keymap)
 	(setq quail-keymap (list quail-keymap))
-      (assert (vectorp quail-keymap) t)
+      (cl-assert (vectorp quail-keymap) t)
       (setq quail-keymap (append quail-keymap nil))))
   (list
    (apply 'vector
 	  (mapcar
 	   #'(lambda (entry)
-               (assert (char-or-string-p entry) t)
+               (cl-assert (char-or-string-p entry) t)
                (format "%s%s" to-prepend
                        (if (integerp entry) (string entry) entry)))
 	   quail-keymap))))
@@ -318,18 +318,18 @@ particular sequence of keys, and the result will be cached by Quail."
     (dolist (underscoring underscore-map)
       (cond ((null underscoring))
 	    ((eq (length underscoring) 2)
-	     (setq underscore-map-entry (second underscoring))
+	     (setq underscore-map-entry (cl-second underscoring))
 	     (setcdr underscoring (ipa-x-sampa-prepend-to-keymap-entry
 				   pre-underscore-map underscore-map-entry)))
 	    ((eq (length underscoring) 3)
-	     (setq underscore-map-entry (second (third underscoring)))
-	     (setcdr (third underscoring)
+	     (setq underscore-map-entry (cl-second (cl-third underscoring)))
+	     (setcdr (cl-third underscoring)
 		     (ipa-x-sampa-prepend-to-keymap-entry
 		      pre-underscore-map underscore-map-entry)))
 	    (t
-	     (assert (null t) t
-		     "Can't handle subtrees of this level right now."))))
-    (append underscore-map (list (list ?< (second x-sampa-submap-entry))))))
+	     (cl-assert (null t) t
+                        "Can't handle subtrees of this level right now."))))
+    (append underscore-map (list (list ?< (cl-second x-sampa-submap-entry))))))
 
 (quail-define-package
  "ipa-x-sampa" "IPA" "IPA-X" t

@@ -28,7 +28,7 @@
 
 (declare-function inversion-check-version "inversion")
 
-(defvar cedet-cscope-min-version "16.0"
+(defvar cedet-cscope-min-version "15.7"
   "Minimum version of CScope required.")
 
 (defcustom cedet-cscope-command "cscope"
