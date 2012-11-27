@@ -1,3 +1,8 @@
+2012-11-27  Roland Winkler  <winkler@gnu.org>
+
+	* calendar/diary-lib.el (diary-header-line-format): Use keybinding
+	of diary-show-all-entries in the diary buffer (Bug#12994).
+
 2012-11-27  Michael Albinus  <michael.albinus@gmx.de>
 
 	* net/tramp-sh.el (tramp-perl-encode): Use "read STDIN" instead of
