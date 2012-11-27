@@ -1,8 +1,13 @@
 2012-11-27  Paul Eggert  <eggert@cs.ucla.edu>
 
+	Assume POSIX 1003.1-1988 or later for grp.h, pwd.h.
+	* dired.c (stat_uname, stat_gname):
+	* fileio.c (Fexpand_file_name): Remove no-longer-needed casts.
+
 	Assume POSIX 1003.1-1988 or later for errno.h (Bug#12968).
 	* dired.c (directory_files_internal, file_name_completion):
 	Assume EAGAIN and EINTR are defined.
+
 	* fileio.c (Fcopy_file): Assume EISDIR is defined.
 	* gmalloc.c (ENOMEM, EINVAL): Assume they're defined.
 	* gnutls.c (emacs_gnutls_write): Assume EAGAIN is defined.

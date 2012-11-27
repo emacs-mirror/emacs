@@ -1042,7 +1042,7 @@ filesystem tree, not (expand-file-name ".."  dirname).  */)
 	  o [p - nm] = 0;
 
 	  block_input ();
-	  pw = (struct passwd *) getpwnam (o + 1);
+	  pw = getpwnam (o + 1);
 	  unblock_input ();
 	  if (pw)
 	    {

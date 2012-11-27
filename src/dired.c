@@ -820,7 +820,7 @@ stat_uname (struct stat *st)
 #ifdef WINDOWSNT
   return st->st_uname;
 #else
-  struct passwd *pw = (struct passwd *) getpwuid (st->st_uid);
+  struct passwd *pw = getpwuid (st->st_uid);
 
   if (pw)
     return pw->pw_name;
@@ -835,7 +835,7 @@ stat_gname (struct stat *st)
 #ifdef WINDOWSNT
   return st->st_gname;
 #else
-  struct group *gr = (struct group *) getgrgid (st->st_gid);
+  struct group *gr = getgrgid (st->st_gid);
 
   if (gr)
     return gr->gr_name;
