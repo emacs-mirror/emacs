@@ -301,7 +301,9 @@ on the menu bar.
         (modify-syntax-entry ?\' "." reftex-syntax-table-for-bib)
         (modify-syntax-entry ?\" "." reftex-syntax-table-for-bib)
         (modify-syntax-entry ?\[ "." reftex-syntax-table-for-bib)
-        (modify-syntax-entry ?\] "." reftex-syntax-table-for-bib))
+        (modify-syntax-entry ?\] "." reftex-syntax-table-for-bib)
+
+        (run-hooks 'reftex-mode-hook))
     ;; Mode was turned off
     (easy-menu-remove reftex-mode-menu)))
 
@@ -663,6 +665,16 @@ will deactivate it."
 (defvar reftex-index-macro-alist nil)
 (defvar reftex-find-label-regexp-format nil)
 (defvar reftex-find-label-regexp-format2 nil)
+
+;; Constants for making RefTeX open to Texinfo hooking
+(defvar reftex-section-pre-regexp "\\\\")
+;; Including `\' as a character to be matched at the end of the regexp
+;; will allow stuff like \begin{foo}\label{bar} to be matched.  This
+;; will make the parser to advance one char too much.  Therefore
+;; `reftex-parse-from-file' will step one char back if a section is
+;; found.
+(defvar reftex-section-post-regexp "\\*?\\(\\[[^]]*\\]\\)?[[{ \t\r\n\\]")
+(defvar reftex-section-info-function 'reftex-section-info)
 
 (defvar reftex-memory nil
   "Memorizes old variable values to indicate changes in these variables.")
@@ -1083,16 +1095,10 @@ This enforces rescanning the buffer on next use."
                                           reftex-include-file-commands "\\|")
                                "\\)[{ \t]+\\([^} \t\n\r]+\\)"))
            (section-re
-	    ;; Including `\' as a character to be matched at the end
-	    ;; of the regexp will allow stuff like
-	    ;; \begin{foo}\label{bar} to be matched.  This will make
-	    ;; the parser to advance one char too much.  Therefore
-	    ;; `reftex-parse-from-file' will step one char back if a
-	    ;; section is found.
-            (concat wbol "\\\\\\("
+            (concat wbol reftex-section-pre-regexp "\\("
                     (mapconcat (lambda (x) (regexp-quote (car x)))
                                reftex-section-levels-all "\\|")
-                    "\\)\\*?\\(\\[[^]]*\\]\\)?[[{ \t\r\n\\]"))
+                    "\\)" reftex-section-post-regexp))
            (appendix-re (concat wbol "\\(\\\\appendix\\)"))
            (macro-re
             (if macros-with-labels

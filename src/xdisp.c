@@ -14233,7 +14233,7 @@ set_cursor_from_row (struct window *w, struct glyph_row *row,
      GLYPH_BEFORE and GLYPH_AFTER.  */
   if (!((row->reversed_p ? glyph > glyphs_end : glyph < glyphs_end)
 	&& BUFFERP (glyph->object) && glyph->charpos == pt_old)
-      && bpos_covered < pt_old)
+      && !(bpos_max < pt_old && pt_old <= bpos_covered))
     {
       /* An empty line has a single glyph whose OBJECT is zero and
 	 whose CHARPOS is the position of a newline on that line.
@@ -23506,7 +23506,9 @@ draw_glyphs (struct window *w, int x, struct glyph_row *row,
 
       /* If mouse highlighting is on, we may need to draw adjacent
 	 glyphs using mouse-face highlighting.  */
-      if (area == TEXT_AREA && row->mouse_face_p)
+      if (area == TEXT_AREA && row->mouse_face_p
+	  && hlinfo->mouse_face_beg_row >= 0
+	  && hlinfo->mouse_face_end_row >= 0)
 	{
 	  struct glyph_row *mouse_beg_row, *mouse_end_row;
 

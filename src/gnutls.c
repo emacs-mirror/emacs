@@ -359,12 +359,7 @@ emacs_gnutls_write (struct Lisp_Process *proc, const char *buf, ptrdiff_t nbyte)
 
   if (proc->gnutls_initstage != GNUTLS_STAGE_READY)
     {
-#ifdef EWOULDBLOCK
-      errno = EWOULDBLOCK;
-#endif
-#ifdef EAGAIN
       errno = EAGAIN;
-#endif
       return 0;
     }
 
@@ -384,14 +379,7 @@ emacs_gnutls_write (struct Lisp_Process *proc, const char *buf, ptrdiff_t nbyte)
 		 appropriately so that send_process retries the
 		 correct way instead of erroring out. */
 	      if (rtnval == GNUTLS_E_AGAIN)
-		{
-#ifdef EWOULDBLOCK
-		  errno = EWOULDBLOCK;
-#endif
-#ifdef EAGAIN
-		  errno = EAGAIN;
-#endif
-		}
+		errno = EAGAIN;
 	      break;
 	    }
 	}

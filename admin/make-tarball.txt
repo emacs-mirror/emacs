@@ -57,8 +57,7 @@ For each step, check for possible errors.
     M-x ediff.  Especially check that Info files aren't built.
 
 10.  cd EMACS_ROOT_DIR; bzr tag TAG
-    TAG is EMACS_PRETEST_XX_YY_ZZZ for a pretest, EMACS_XX_YY for a
-    release.
+    TAG is emacs-XX.Y.ZZ for a pretest, emacs-XX.Y for a release.
 
     Shortly before the release, cut the version branch also, and open
     a Savannah support request asking for commits to the new branch to

@@ -2622,13 +2622,14 @@ When the hook runs, the temporary buffer is current.
 This hook is normally set up with a function to put the buffer in Help
 mode.")
 
-;; Avoid compiler warnings about this variable,
-;; which has a special meaning on certain system types.
-(defvar buffer-file-type nil
+(defvar-local buffer-file-type nil
   "Non-nil if the visited file is a binary file.
-This variable is meaningful on MS-DOG and Windows NT.
+This variable is meaningful on MS-DOG and MS-Windows.
 On those systems, it is automatically local in every buffer.
-On other systems, this variable is normally always nil.")
+On other systems, this variable is normally always nil.
+
+WARNING: This variable is obsolete and will disapper Real Soon Now.
+Don't use it!")
 
 ;; The `assert' macro from the cl package signals
 ;; `cl-assertion-failed' at runtime so always define it.

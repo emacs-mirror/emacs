@@ -8,12 +8,12 @@
 @c %**end of header
 
 @c Version of the software and manual.
-@set VERSION 8.3
+@set VERSION 8.4
 @c Edition of the manual. It is either empty for the first edition or
 @c has the form ", nth Edition" (without the quotes).
 @set EDITION
-@set UPDATED 2011-09-20
-@set UPDATE-MONTH September, 2011
+@set UPDATED 2012-11-25
+@set UPDATE-MONTH November, 2012
 
 @c Other variables.
 @set MH-BOOK-HOME http://rand-mh.sourceforge.net/book/mh
@@ -212,7 +212,7 @@ more niceties about GNU Emacs and MH@. Now I'm fully hooked on both of
 them.
 
 The MH-E package is distributed with Emacs@footnote{Version
-@value{VERSION} of MH-E appeared in Emacs 24.1. It is supported in GNU
+@value{VERSION} of MH-E appeared in Emacs 24.4. It is supported in GNU
 Emacs 23 and higher, as well as XEmacs 21.4.22 and 21.5.31. MH-E is
 known not to work with GNU Emacs versions 20 and below, and XEmacs
 version 21.5.9 - 21.5.16. It is compatible with MH versions 6.8.4 and
@@ -6966,23 +6966,22 @@ swish-e -c /home/user/Mail/.swish/config
 @cindex @command{mairix}
 @cindex Unix commands, @command{mairix}
 
-In the examples below, replace @file{/home/user/Mail} with the path to
-your MH directory.
+In the examples below, replace @file{~/Mail} with the path to your MH
+directory.
 
-First create the directory @file{/home/user/Mail/.mairix}. Then create
-the file @file{/home/user/Mail/.mairix/config} with the following
-contents:
+First create the directory @file{~/Mail/.mairix}. Then create the file
+@file{~/Mail/.mairix/config} with the following contents:
 
 @smallexample
 @group
-base=/home/user/Mail
+base=~/Mail
 
 # List of folders that should be indexed. 3 dots at the end means there
 # are subfolders within the folder
 mh=archive...:inbox:drafts:news:sent:trash
 
-vfolder_format=mh
-database=/home/user/Mail/.mairix/database
+mformat=mh
+database=~/Mail/.mairix/database
 @end group
 @end smallexample
 
@@ -6990,7 +6989,7 @@ Use the following command line to generate the mairix index. Run this daily
 from cron:
 
 @smallexample
-mairix -f /home/user/Mail/.mairix/config
+mairix -f ~/Mail/.mairix/config
 @end smallexample
 
 @subsection namazu
@@ -7395,6 +7394,9 @@ The name of the MH sequence for ticked messages (default: @samp{'tick}).
 @item mh-update-sequences-after-mh-show-flag
 On means flush MH sequences to disk after message is shown (default:
 @samp{on}).
+@item mh-whitelist-preserves-sequences-flag
+On means that sequences are preserved when messages are whitelisted
+(default: @samp{on}).
 @end vtable
 
 The following hook is available.
@@ -7600,6 +7602,40 @@ Disposition of junk mail (default: @samp{Delete Spam}).
 Spam program that MH-E should use (default: @samp{Auto-detect}).
 @end vtable
 
+@cindex @samp{mh-sequences} customization group
+@cindex customization group, @samp{mh-sequences}
+
+The following option in the @samp{mh-sequences} customization group is
+also available.
+
+@vtable @code
+@item mh-whitelist-preserves-sequences-flag
+On means that sequences are preserved when messages are whitelisted
+(default: @samp{on}).
+@end vtable
+
+The following hooks are available.
+
+@vtable @code
+@item mh-blacklist-msg-hook
+Hook run by @kbd{J b} (@code{mh-junk-blacklist}) after marking each
+message for blacklisting (default: @code{nil}).
+@c -------------------------
+@item mh-whitelist-msg-hook
+Hook run by @kbd{J w} (@code{mh-junk-whitelist}) after marking each
+message for whitelisting (default @samp{nil}).
+@end vtable
+
+The following faces are available.
+
+@vtable @code
+@item mh-folder-blacklisted
+Blacklisted message face.
+@c -------------------------
+@item mh-folder-whitelisted
+Whitelisted message face
+@end vtable
+
 @cindex SpamProbe
 @cindex Spamassassin
 @cindex bogofilter
@@ -7641,6 +7677,18 @@ In contrast, the command @kbd{J w} (@code{mh-junk-whitelist})
 reclassifies a range of messages (@pxref{Ranges}) as ham if it were
 incorrectly classified as spam. It then refiles the message into the
 @file{+inbox} folder.
+
+@cindex MH profile component, @samp{Previous-Sequence:}
+@cindex @samp{cur} sequence
+@cindex @samp{Previous-Sequence:} MH profile component
+@cindex sequence, @samp{cur}
+@cindex sequence, @samp{Previous-Sequence}
+@vindex mh-whitelist-preserves-sequences-flag
+
+If a message is in any sequence (except @samp{Previous-Sequence:} and
+@samp{cur}) when it is whitelisted, then it will still be in those
+sequences in the destination folder. If this behavior is not desired,
+then turn off the option @code{mh-whitelist-preserves-sequences-flag}.
 
 @cindex @samp{*MH-E Log*}
 @cindex buffers, @samp{*MH-E Log*}
@@ -8526,7 +8574,7 @@ necessary, they are extremely useful.
 [12]
 [13] # Place mail sent to any MH-E mailing list in +mh-e.
 [14] :0 w: mh-e$LOCKEXT
-[15] * ^TO.*mh-e-.*@.*sourceforge.net
+[15] * ^TO.*mh-e-.*@@.*sourceforge.net
 [16] | myrcvstore -create +mh-e
 @end smallexample
 
@@ -8632,7 +8680,7 @@ MAILDIR=$HOME/`mhparam Path`
 # Place mail sent to the GnuCash mailing list in gnucash.spool, where
 # Gnus will pick it up.
 :0:
-* ^TO.*gnucash.*@.*gnucash.org
+* ^TO.*gnucash.*@@.*gnucash.org
 gnucash.spool
 @end smallexample
 

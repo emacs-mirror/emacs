@@ -43,6 +43,9 @@ Nil, the default value, means to always use the Gregorian calendar.
 The value (YEAR MONTH DAY) means to start using the Gregorian calendar
 on the given date.
 
+** MH-E has been updated to MH-E version 8.4.
+See MH-E-NEWS for details.
+
 +++
 ** New function `ses-rename-cell' to give SES cells arbitrary names.
 
@@ -54,6 +57,11 @@ New features include:
   time the function is entered/exited will be printed along with the function
   name and arguments.  Useful to trace the value of (current-buffer) or
   (point) when the function is invoked.
+
+** Woman
+
+*** The commands `woman-default-faces' and `woman-monochrome-faces'
+are obsolete.  Customize the `woman-* faces instead.
 
 
 * New Modes and Packages in Emacs 24.4
@@ -78,6 +86,16 @@ VAR was bound to nil which was not tremendously useful and just lead to
 spurious warnings about an unused var.
 
 * Lisp changes in Emacs 24.4
+
+** Face changes
+
+*** The `face-spec-set' is now analogous to `setq' for face specs.
+Its third arg now accepts values specifying exactly which face spec to
+set (defface, custom, or user spec), and it directly sets the relevant
+property using the supplied face spec.
+
+*** Face specs set via Custom themes now replace the `defface' spec
+rather than inheriting from it (as do face specs set via Customize).
 
 ** time-to-seconds is not obsolete any more.
 ** New function special-form-p.

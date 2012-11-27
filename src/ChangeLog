@@ -8,6 +8,74 @@
 	* font.c (font_unparse_xlfd): Exclude special characters from the
 	generating XLFD name.
 
+2012-11-27  Paul Eggert  <eggert@cs.ucla.edu>
+
+	Assume POSIX 1003.1-1988 or later for grp.h, pwd.h.
+	* dired.c (stat_uname, stat_gname):
+	* fileio.c (Fexpand_file_name): Remove no-longer-needed casts.
+
+	Assume POSIX 1003.1-1988 or later for errno.h (Bug#12968).
+	* dired.c (directory_files_internal, file_name_completion):
+	Assume EAGAIN and EINTR are defined.
+
+	* fileio.c (Fcopy_file): Assume EISDIR is defined.
+	* gmalloc.c (ENOMEM, EINVAL): Assume they're defined.
+	* gnutls.c (emacs_gnutls_write): Assume EAGAIN is defined.
+	* lread.c (readbyte_from_file): Assume EINTR is defined.
+	* process.c (wait_reading_process_output, send_process) [subprocesses]:
+	Assume EIO and EAGAIN are defined.
+	* unexcoff.c (write_segment): Assume EFAULT is defined.
+
+2012-11-27  Eli Zaretskii  <eliz@gnu.org>
+
+	* fontset.c (Finternal_char_font): Return nil on non-GUI frames.
+	(Bug#11964)
+
+	* xdisp.c (draw_glyphs): Don't draw in mouse face if mouse
+	highlighting on the frame was cleared.  Prevents assertion
+	violations when repeatedly clicking on the "Top" link of the
+	"bread-crumbs" in Info buffers.
+
+2012-11-25  Paul Eggert  <eggert@cs.ucla.edu>
+
+	* sysdep.c (sys_subshell): Don't assume pid_t fits in int.
+
+2012-11-24  Ken Brown  <kbrown@cornell.edu>
+
+	* keyboard.c (HAVE_MOUSE):
+	* frame.c (HAVE_MOUSE): Remove, and rewrite code as if HAVE_MOUSE
+	were always defined.
+
+2012-11-24  Eli Zaretskii  <eliz@gnu.org>
+
+	* xdisp.c (set_cursor_from_row): Skip step 2 only if point is not
+	between bpos_covered and bpos_max.  This fixes cursor display when
+	several display strings follow each other.
+
+	* .gdbinit (pgx): If the glyph's object is a string, display the
+	pointer to string data, rather than the value of the string object
+	itself (which barfs under CHECK_LISP_OBJECT_TYPE).
+
+	* indent.c (Fvertical_motion): If the starting position is covered
+	by a display string, return to one position before that, to avoid
+	overshooting it inside move_it_to.  (Bug#12930)
+
+2012-11-23  Dmitry Antipov  <dmantipov@yandex.ru>
+
+	* frame.h (struct frame): Remove display_preempted member
+	since all users are dead long ago.
+	* nsterm.h (struct x_output): Use the only dummy member.
+	* w32menu.c (pending_menu_activation): Remove since not
+	really used.
+	(set_frame_menubar): Adjust user.
+	* w32term.h (struct x_output): Drop outdated #if 0 code.
+	(struct w32_output): Use bitfields for explicit_parent,
+	asked_for_visible and menubar_active members.  Drop
+	unused pending_menu_activation member.
+	* xterm.h (struct x_output): Drop outdated #if 0 code.
+	Use bitfields for explicit_parent, asked_for_visible,
+	has_been_visible and net_wm_state_hidden_seen members.
+
 2012-11-23  Eli Zaretskii  <eliz@gnu.org>
 
 	* makefile.w32-in (globals.h, gl-stamp): Use $(SWITCHCHAR) instead

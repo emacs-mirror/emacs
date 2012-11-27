@@ -1588,7 +1588,11 @@ Object Internals
 @c appendices
 
 @include anti.texi
+@node GNU Free Documentation License
+@appendix GNU Free Documentation License
 @include doclicense.texi
+@node GPL
+@appendix GNU General Public License
 @include gpl.texi
 @include tips.texi
 @include internals.texi

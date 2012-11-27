@@ -1,3 +1,8 @@
+2012-11-24  Paul Eggert  <eggert@cs.ucla.edu>
+
+	* doclicense.texi: Update to latest version from FSF.
+	These are just minor editorial changes.
+
 2012-10-24  Paul Eggert  <eggert@penguin.cs.ucla.edu>
 
 	* emacs-lisp-intro.texi (Files List):

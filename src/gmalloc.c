@@ -1645,14 +1645,6 @@ memalign (size_t alignment, size_t size)
   return result;
 }
 
-#ifndef ENOMEM
-#define ENOMEM 12
-#endif
-
-#ifndef EINVAL
-#define EINVAL 22
-#endif
-
 int
 posix_memalign (void **memptr, size_t alignment, size_t size)
 {

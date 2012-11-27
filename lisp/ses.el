@@ -3313,7 +3313,7 @@ highlighted range in the spreadsheet."
       (put-text-property pos end 'intangible new-name))
     ;; update mode line
     (setq mode-line-process (list " cell "
-				  (symbol-name sym)))
+				  (symbol-name new-name)))
     (force-mode-line-update)))
 
 ;;----------------------------------------------------------------------------

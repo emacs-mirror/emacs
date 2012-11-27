@@ -1034,7 +1034,10 @@ Note that the style variables are always made local to the buffer."
 	    (mapc (lambda (fn)
 		    (funcall fn beg end))
 		  c-get-state-before-change-functions))
-	))))
+	)))
+  ;; The following must be done here rather than in `c-after-change' because
+  ;; newly inserted parens would foul up the invalidation algorithm.
+  (c-invalidate-state-cache beg))
 
 (defvar c-in-after-change-fontification nil)
 (make-variable-buffer-local 'c-in-after-change-fontification)
@@ -1082,7 +1085,7 @@ Note that the style variables are always made local to the buffer."
 
 	(c-trim-found-types beg end old-len) ; maybe we don't need all of these.
 	(c-invalidate-sws-region-after beg end)
-	(c-invalidate-state-cache beg)
+	;; (c-invalidate-state-cache beg) ; moved to `c-before-change'.
 	(c-invalidate-find-decl-cache beg)
 
 	(when c-recognize-<>-arglists

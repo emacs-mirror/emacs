@@ -1,3 +1,8 @@
+2012-11-24  Paul Eggert  <eggert@cs.ucla.edu>
+
+	* doclicense.texi, gpl.texi: Update to latest version from FSF.
+	These are just minor editorial changes.
+
 2012-11-21  Dani Moncayo  <dmoncayo@gmail.com>
 
 	* display.texi (Auto Scrolling): Fix some inaccuracies, plus

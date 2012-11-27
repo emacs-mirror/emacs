@@ -268,10 +268,12 @@ usually reads the file \"/etc/mailcap\"."
               (buffer-read-only nil))
          (when (string-match "^[^% \t]+$" method)
            (setq method (concat method " %s")))
-         (flet ((mm-handle-set-external-undisplayer (handle function)
-                  (mh-handle-set-external-undisplayer folder handle function)))
-           (unwind-protect (mm-display-external part method)
-             (set-buffer-modified-p nil)))))
+         (mh-cl-flet
+          ((mm-handle-set-external-undisplayer
+            (handle function)
+            (mh-handle-set-external-undisplayer folder handle function)))
+          (unwind-protect (mm-display-external part method)
+            (set-buffer-modified-p nil)))))
    nil))
 
 ;;;###mh-autoload
@@ -523,47 +525,48 @@ parsed and then displayed."
   (let ((handles ())
         (folder mh-show-folder-buffer)
         (raw-message-data (buffer-string)))
-    (flet ((mm-handle-set-external-undisplayer
-            (handle function)
-            (mh-handle-set-external-undisplayer folder handle function)))
-      (goto-char (point-min))
-      (unless (search-forward "\n\n" nil t)
-        (goto-char (point-max))
-        (insert "\n\n"))
+    (mh-cl-flet
+     ((mm-handle-set-external-undisplayer
+       (handle function)
+       (mh-handle-set-external-undisplayer folder handle function)))
+     (goto-char (point-min))
+     (unless (search-forward "\n\n" nil t)
+       (goto-char (point-max))
+       (insert "\n\n"))
 
-      (condition-case err
-          (progn
-            ;; If needed dissect the current buffer
-            (if pre-dissected-handles
-                (setq handles pre-dissected-handles)
-              (if (setq handles (mm-dissect-buffer nil))
-                  (mh-mm-uu-dissect-text-parts handles)
-                (setq handles (mm-uu-dissect)))
-              (setf (mh-mime-handles (mh-buffer-data))
-                    (mh-mm-merge-handles handles
-                                         (mh-mime-handles (mh-buffer-data))))
-              (unless handles
-                (mh-decode-message-body)))
+     (condition-case err
+         (progn
+           ;; If needed dissect the current buffer
+           (if pre-dissected-handles
+               (setq handles pre-dissected-handles)
+             (if (setq handles (mm-dissect-buffer nil))
+                 (mh-mm-uu-dissect-text-parts handles)
+               (setq handles (mm-uu-dissect)))
+             (setf (mh-mime-handles (mh-buffer-data))
+                   (mh-mm-merge-handles handles
+                                        (mh-mime-handles (mh-buffer-data))))
+             (unless handles
+               (mh-decode-message-body)))
 
-            (cond ((and handles
-                        (or (not (stringp (car handles)))
-                            (cdr handles)))
-                   ;; Go to start of message body
-                   (goto-char (point-min))
-                   (or (search-forward "\n\n" nil t)
-                       (goto-char (point-max)))
+           (cond ((and handles
+                       (or (not (stringp (car handles)))
+                           (cdr handles)))
+                  ;; Go to start of message body
+                  (goto-char (point-min))
+                  (or (search-forward "\n\n" nil t)
+                      (goto-char (point-max)))
 
-                   ;; Delete the body
-                   (delete-region (point) (point-max))
+                  ;; Delete the body
+                  (delete-region (point) (point-max))
 
-                   ;; Display the MIME handles
-                   (mh-mime-display-part handles))
-                  (t
-                   (mh-signature-highlight))))
-        (error
-         (message "Could not display body: %s" (error-message-string err))
-         (delete-region (point-min) (point-max))
-         (insert raw-message-data))))))
+                  ;; Display the MIME handles
+                  (mh-mime-display-part handles))
+                 (t
+                  (mh-signature-highlight))))
+       (error
+        (message "Could not display body: %s" (error-message-string err))
+        (delete-region (point-min) (point-max))
+        (insert raw-message-data))))))
 
 (defun mh-decode-message-body ()
   "Decode message based on charset.
@@ -1046,13 +1049,14 @@ attachment, the attachment is hidden."
         (function (get-text-property (point) 'mh-callback))
         (buffer-read-only nil)
         (folder mh-show-folder-buffer))
-    (flet ((mm-handle-set-external-undisplayer
-            (handle function)
-            (mh-handle-set-external-undisplayer folder handle function)))
-      (when (and function (eolp))
-        (backward-char))
-      (unwind-protect (and function (funcall function data))
-        (set-buffer-modified-p nil)))))
+    (mh-cl-flet
+     ((mm-handle-set-external-undisplayer
+       (handle function)
+       (mh-handle-set-external-undisplayer folder handle function)))
+     (when (and function (eolp))
+       (backward-char))
+     (unwind-protect (and function (funcall function data))
+       (set-buffer-modified-p nil)))))
 
 (defun mh-push-button (event)
   "Click MIME button for EVENT.
@@ -1066,9 +1070,11 @@ to click the MIME button."
           (mm-inline-media-tests mh-mm-inline-media-tests)
           (data (get-text-property (point) 'mh-data))
           (function (get-text-property (point) 'mh-callback)))
-      (flet ((mm-handle-set-external-undisplayer (handle func)
-               (mh-handle-set-external-undisplayer folder handle func)))
-        (and function (funcall function data))))))
+      (mh-cl-flet
+       ((mm-handle-set-external-undisplayer
+         (handle func)
+         (mh-handle-set-external-undisplayer folder handle func)))
+       (and function (funcall function data))))))
 
 (defun mh-handle-set-external-undisplayer (folder handle function)
   "Replacement for `mm-handle-set-external-undisplayer'.
@@ -1160,10 +1166,11 @@ this ;-)"
 (defun mh-display-emphasis ()
   "Display graphical emphasis."
   (when (and mh-graphical-emphasis-flag (mh-small-show-buffer-p))
-    (flet ((article-goto-body ()))      ; shadow this function to do nothing
-      (save-excursion
-        (goto-char (point-min))
-        (article-emphasize)))))
+    (mh-cl-flet
+     ((article-goto-body ()))      ; shadow this function to do nothing
+     (save-excursion
+       (goto-char (point-min))
+       (article-emphasize)))))
 
 (defun mh-small-show-buffer-p ()
   "Check if show buffer is small.

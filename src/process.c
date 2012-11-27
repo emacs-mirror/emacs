@@ -4432,14 +4432,8 @@ wait_reading_process_output (intmax_t time_limit, int nsecs, int read_kbd,
 		  total_nread += nread;
 		  got_some_input = 1;
 		}
-#ifdef EIO
-	      else if (nread == -1 && EIO == errno)
+	      else if (nread == -1 && (errno == EIO || errno == EAGAIN))
 		break;
-#endif
-#ifdef EAGAIN
-	      else if (nread == -1 && EAGAIN == errno)
-		break;
-#endif
 #ifdef EWOULDBLOCK
 	      else if (nread == -1 && EWOULDBLOCK == errno)
 		break;
@@ -5517,12 +5511,9 @@ send_process (Lisp_Object proc, const char *buf, ptrdiff_t len,
 
 	  if (rv < 0)
 	    {
-	      if (0
+	      if (errno == EAGAIN
 #ifdef EWOULDBLOCK
 		  || errno == EWOULDBLOCK
-#endif
-#ifdef EAGAIN
-		  || errno == EAGAIN
 #endif
 		  )
 		/* Buffer is full.  Wait, accepting input;

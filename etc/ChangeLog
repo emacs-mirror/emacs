@@ -1,3 +1,9 @@
+2012-11-25  Bill Wohler  <wohler@newt.com>
+
+	Release MH-E version 8.4.
+
+	* NEWS, MH-E-NEWS: Update for MH-E release 8.4.
+
 2012-11-22  Paul Eggert  <eggert@cs.ucla.edu>
 
 	* NEWS: Document Calc changes for Gregorian calendar (Bug#12633).

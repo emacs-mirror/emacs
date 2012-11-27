@@ -210,7 +210,7 @@ set to the appropriate coding system, and the value of
 		     (untranslated-file-p (buffer-file-name))))
 	(setq coding (coding-system-change-eol-conversion coding 0))
 	(setq buffer-file-coding-system coding))
-      (setq buffer-file-type (eq buffer-file-coding-system 'no-conversion)))))
+      nil)))
 
 ;;; To set the default coding system on new files.
 (add-hook 'find-file-not-found-functions

@@ -1,3 +1,29 @@
+2012-11-25  Bill Wohler  <wohler@newt.com>
+
+	Release MH-E manual version 8.4.
+
+	* mh-e.texi: (VERSION, EDITION, UPDATED, UPDATE-MONTH, Preface):
+	Update for release 8.4.
+
+	* mh-e.texi (Sequences): Add mh-whitelist-preserves-sequences-flag.
+	(Junk): Add mh-whitelist-preserves-sequences-flag,
+	mh-blacklist-msg-hook, mh-whitelist-msg-hook,
+	mh-folder-blacklisted, mh-folder-whitelisted (closes SF #2945712).
+
+2012-11-25  Paul Eggert  <eggert@cs.ucla.edu>
+
+	* mh-e.texi (Procmail): Fix two @ typos.
+
+2012-11-24  Paul Eggert  <eggert@cs.ucla.edu>
+
+	* doclicense.texi, gpl.texi: Update to latest version from FSF.
+	These are just minor editorial changes.
+
+2012-11-23  Jay Belanger  <jay.p.belanger@gmail.com>
+
+	* calc.texi (Date Formatting Codes): Mention the new beginning of
+	the date numbering system.
+
 2012-11-22  Paul Eggert  <eggert@cs.ucla.edu>
 
 	* calc.texi: Fix TeX issues with capitals followed by ".", "?", "!".

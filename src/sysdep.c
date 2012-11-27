@@ -453,7 +453,7 @@ sys_subshell (void)
   int st;
   char oldwd[MAXPATHLEN+1]; /* Fixed length is safe on MSDOS.  */
 #endif
-  int pid;
+  pid_t pid;
   struct save_signal saved_handlers[5];
   Lisp_Object dir;
   unsigned char *volatile str_volatile = 0;

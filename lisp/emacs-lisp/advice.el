@@ -2900,19 +2900,18 @@ If COMPILE is non-nil and not a negative number then it returns t.
 If COMPILE is a negative number then it returns nil.
 If COMPILE is nil then the result depends on the value of
 `ad-default-compilation-action' (which see)."
-  (if (integerp compile)
-      (>= compile 0)
-    (if compile
-	compile
-      (cond ((eq ad-default-compilation-action 'never)
-	     nil)
-	    ((eq ad-default-compilation-action 'always)
-	     t)
-	    ((eq ad-default-compilation-action 'like-original)
-	     (or (ad-subr-p (ad-get-orig-definition function))
-		 (ad-compiled-p (ad-get-orig-definition function))))
-	    ;; everything else means `maybe':
-	    (t (featurep 'byte-compile))))))
+  (cond
+   ;; Don't compile until the real function definition is known (bug#12965).
+   ((not (ad-real-orig-definition function)) nil)
+   ((integerp compile) (>= compile 0))
+   (compile)
+   ((eq ad-default-compilation-action 'never) nil)
+   ((eq ad-default-compilation-action 'always) t)
+   ((eq ad-default-compilation-action 'like-original)
+    (or (ad-subr-p (ad-get-orig-definition function))
+        (ad-compiled-p (ad-get-orig-definition function))))
+   ;; everything else means `maybe':
+   (t (featurep 'byte-compile))))
 
 (defun ad-activate-advised-definition (function compile)
   "Redefine FUNCTION with its advised definition from cache or scratch.
@@ -2927,7 +2926,7 @@ The current definition and its cache-id will be put into the cache."
               (ad-make-advised-definition function)))
     (advice-add function :around advicefunname)
     (if (ad-should-compile function compile)
-	(byte-compile advicefunname))
+	(ad-compile-function function))
     (if verified-cached-definition
 	(if (not (eq verified-cached-definition
                      (symbol-function advicefunname)))
@@ -3003,20 +3002,20 @@ definition will always be cached for later usage."
   (interactive
    (list (ad-read-advised-function "Activate advice of")
 	 current-prefix-arg))
-  (if (not (ad-is-advised function))
-      (error "ad-activate: `%s' is not advised" function)
-    ;; Just return for forward advised and not yet defined functions:
-    (if (ad-get-orig-definition function)
-        (if (not (ad-has-any-advice function))
-            (ad-unadvise function)
-          ;; Otherwise activate the advice:
-          (cond ((ad-has-redefining-advice function)
-                 (ad-activate-advised-definition function compile)
-                 (ad-set-advice-info-field function 'active t)
-                 (eval (ad-make-hook-form function 'activation))
-                 function)
-                ;; Here we are if we have all disabled advices:
-                (t (ad-deactivate function)))))))
+  (cond
+   ((not (ad-is-advised function))
+    (error "ad-activate: `%s' is not advised" function))
+   ;; Just return for forward advised and not yet defined functions:
+   ((not (ad-get-orig-definition function)) nil)
+   ((not (ad-has-any-advice function)) (ad-unadvise function))
+   ;; Otherwise activate the advice:
+   ((ad-has-redefining-advice function)
+    (ad-activate-advised-definition function compile)
+    (ad-set-advice-info-field function 'active t)
+    (eval (ad-make-hook-form function 'activation))
+    function)
+   ;; Here we are if we have all disabled advices:
+   (t (ad-deactivate function))))
 
 (defalias 'ad-activate-on 'ad-activate)
 

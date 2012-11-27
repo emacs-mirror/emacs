@@ -381,9 +381,9 @@ echo "Making links to \`m4'"
 
 echo "Making links to \`nt'"
 (cd nt
- ln emacs.manifest emacs.rc emacsclient.rc config.nt ../${tempdir}/nt
- ln emacs-src.tags nmake.defs gmake.defs subdirs.el ../${tempdir}/nt
- ln [a-z]*.bat [a-z]*.[ch] ../${tempdir}/nt
+ ln emacs-x86.manifest emacs-x64.manifest emacs.rc ../${tempdir}/nt
+ ln config.nt emacsclient.rc emacs-src.tags ../${tempdir}/nt
+ ln nmake.defs gmake.defs subdirs.el [a-z]*.bat [a-z]*.[ch] ../${tempdir}/nt
  ln ChangeLog INSTALL README README.W32 makefile.w32-in ../${tempdir}/nt)
 
 echo "Making links to \`nt/inc' and its subdirectories"

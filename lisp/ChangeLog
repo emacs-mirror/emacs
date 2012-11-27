@@ -1,3 +1,178 @@
+2012-11-27  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* textmodes/table.el (table-insert): Don't use `symbol-name' on
+	lexically scoped variables (bug#13005).
+
+2012-11-27  Glenn Morris  <rgm@gnu.org>
+
+	* vc/vc-hooks.el (vc-mistrust-permissions):
+	Default to t, to avoid data-loss.  (Bug#11490)
+
+2012-11-27  Fabián Ezequiel Gallina  <fgallina@cuca>
+
+	* progmodes/python.el (python-indent-guess-indent-offset):
+	If indentation is guessed make python-indent-offset buffer-local.
+
+	Fix Imenu regression.
+	* progmodes/python.el (python-nav-beginning-of-defun):
+	Fix forward movement when statement(s) separates point from defun.
+	(python-imenu-prev-index-position): New function.
+
+2012-11-27  Eli Zaretskii  <eliz@gnu.org>
+
+	* subr.el (buffer-file-type): Declare with defvar-local.  Doc fix.
+
+	* dos-w32.el (find-file-not-found-set-buffer-file-coding-system):
+	Don't set buffer-file-type.  Return nil.  (Bug#12989)
+
+2012-11-27  Glenn Morris  <rgm@gnu.org>
+
+	* hippie-exp.el (hippie-expand-try-functions-list):
+	Re-autoload it.  (Bug#12982)
+
+2012-11-27  Eli Zaretskii  <eliz@gnu.org>
+
+	* descr-text.el (describe-char-padded-string):
+	Call internal-char-font only on GUI frames.  (Bug#11964)
+
+2012-11-27  Andreas Schwab  <schwab@linux-m68k.org>
+
+	* buff-menu.el (Buffer-menu-buffer+size-width): Fix customize type
+	and obsoletion message.
+
+2012-11-27  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* emacs-lisp/cl-macs.el (cl--transform-lambda): Add back `declare' in
+	the constructs to keep outside of the `cl-block' (bug#12977).
+
+2012-11-27  Chong Yidong  <cyd@gnu.org>
+
+	* mouse.el (mouse-drag-line): Even if the line is not draggable,
+	keep reading until we get the up-event anyway, in order to process
+	the up-event for mouse-1-click-follows-link (Bug#12971).
+
+2012-11-26  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* emacs-lisp/advice.el (ad-should-compile): Don't compile advice if the
+	base function is not yet defined (bug#12965).
+	(ad-activate-advised-definition): Use ad-compile-function.
+	(ad-activate): Use cond.
+
+2012-11-25  Leo Liu  <sdl.web@gmail.com>
+
+	* textmodes/sgml-mode.el (sgml-tag): Fix indentation for closing tag.
+	(Bug#12979)
+
+2012-11-24  Vincent Belaïche  <vincentb1@users.sourceforge.net>
+
+	* textmodes/reftex-parse.el (reftex-parse-from-file): Use variable
+	reftex-section-info-function in order to be compatible with
+	Texinfo integration.
+
+	* textmodes/reftex.el (reftex-section-pre-regexp)
+	(reftex-section-post-regexp, reftex-section-info-function):
+	New variable.
+	(reftex-compile-variables): Use variables reftex-section-pre-regexp,
+	reftex-section-post-regexp, and reftex-section-info-function in order
+	to be compatible with Texinfo integration.
+
+	* textmodes/reftex-toc.el (reftex-toc-promote-action):
+	use reftex-section-pre-regexp variable in order to be compatible with
+	Texinfo integration.
+
+2012-11-25  Chong Yidong  <cyd@gnu.org>
+
+	* faces.el: Make face-spec-set more analogous to setq.
+	(face-spec-set): Change the third arg to specify whether this
+	function is being called via defface, customize, or a third party.
+	Set the appropriate symbol properties.  Clear the override spec if
+	setting via Custom.  Initialize face if necessary.  (Bug#4988)
+	(face-spec-recalc): Allow theme faces to completely replace the
+	defface spec, in the same way as custom faces (Bug#8454).
+
+	* cus-face.el (custom-declare-face): Move face initialization to
+	face-spec-set.
+	(custom-theme-set-faces): Don't initialize the face name here, as
+	that is now done in face-spec-set.
+
+	* cus-edit.el (custom-face-set, custom-face-mark-to-save)
+	(custom-face-reset-saved, custom-face-mark-to-reset-standard):
+	Simplify by using the new arg to face-spec-set.
+
+	* emacs-lisp/lisp-mode.el (eval-defun-1): When evaluating defface,
+	reset face-override-spec too, and use custom-declare-face.
+
+2012-11-24  Jan Djärv  <jan.h.d@swipnet.se>
+
+	* term/ns-win.el (ns-initialize-window-system): Move creation of
+	fontsets here (Bug#11964).
+
+2012-11-24  Vincent Belaïche  <vincentb1@users.sourceforge.net>
+
+	* ses.el (ses-rename-cell): Correct bug on mode-line update after
+	cell renaming.
+
+2012-11-24  Chong Yidong  <cyd@gnu.org>
+
+	* woman.el (woman-default-faces, woman-monochrome-faces): Mark as
+	obsolete.
+
+	* custom.el (custom-theme-set-variables): Use a topological sort
+	for ordering by custom dependencies (Bug#12952).
+	(custom--sort-vars, custom--sort-vars-1): New functions.
+
+2012-11-24  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* emacs-lisp/bytecomp.el (byte-compile-file): Setup default value for
+	lexical-binding (bug#12938).
+
+2012-11-24  Wolfgang Jenkner  <wjenkner@inode.at>
+
+	* image-mode.el (image-transform-check-size): Use assertions only
+	for images of type imagemagick.
+
+	Otherwise no error, image-transform-fit-to-{width,height} is
+	silently ignored, as before.  Doc fix.
+
+2012-11-24  Chong Yidong  <cyd@gnu.org>
+
+	* faces.el (color-defined-p): Doc fix (Bug#12853).
+
+2012-11-24  Juri Linkov  <juri@jurta.org>
+
+	* dired.el (dired-mark): Add optional arg `interactive'.
+	Check for `use-region-p' if `interactive' is non-nil.
+	(dired-unmark, dired-flag-file-deletion): Add optional arg
+	`interactive'.  Call `dired-mark' with the arg `interactive'.
+	(Bug#10624)
+
+	* wdired.el: Revert 2012-10-17 change partly and replace it with
+	Patch by Christopher Schmidt <christopher@ch.ristopher.com>.
+	(wdired-finish-edit): Add marks for new file names to
+	`wdired-old-marks'.  Restore marks using `dired-mark-remembered'
+	after `revert-buffer'.
+	(wdired-do-renames): Remove calls to `dired-remove-file',
+	`dired-add-file', `dired-add-entry'.  (Bug#11795)
+
+2012-11-24  Alan Mackenzie  <acm@muc.de>
+
+	* progmodes/cc-defs.el (c-version): Bump to 5.32.4.
+
+	Fix bugs in the state cache.  Enhance a debugging mechanism.
+	* progmodes/cc-engine.el (c-parse-state-get-strategy): Don't use
+	"brace at column zero" strategy for C++.
+	(c-append-lower-brace-pair-to-state-cache): Repair algorithm.
+	(c-parse-state-point): New variable.
+	(c-record-parse-state-state): Record old parse state with
+	`copy-tree'.  Record previous value of point.
+	(c-debug-parse-state-double-cons): New debugging function.
+	(c-debug-parse-state): Call the above new function.
+	(c-toggle-parse-state-debug): Output a confirmatory message.
+
+	* progmodes/cc-mode.el (c-before-change, c-after-change):
+	Call c-invalidate-state-cache from `c-before-change' instead of
+	`c-after-change'.
+
 2012-11-23  Chong Yidong  <cyd@gnu.org>
 
 	* find-cmd.el (find-constituents): Add executable, ipath,

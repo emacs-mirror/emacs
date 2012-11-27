@@ -1,3 +1,8 @@
+2012-11-27  Paul Eggert  <eggert@cs.ucla.edu>
+
+	Assume POSIX 1003.1-1988 or later for errno.h (Bug#12968).
+	* movemail.c (main): Assume EAGAIN and EBUSY.
+
 2012-11-23  Paul Eggert  <eggert@cs.ucla.edu>
 
 	movemail: treat EACCES etc. failures as permanent

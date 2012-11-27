@@ -216,12 +216,17 @@ The name is made by appending a number to PREFIX, default \"G\"."
 (defvar cl--bind-inits) (defvar cl--bind-lets) (defvar cl--bind-forms)
 
 (defun cl--transform-lambda (form bind-block)
+  "Transform a function form FORM of name BIND-BLOCK.
+BIND-BLOCK is the name of the symbol to which the function will be bound,
+and which will be used for the name of the `cl-block' surrounding the
+function's body.
+FORM is of the form (ARGS . BODY)."
   (let* ((args (car form)) (body (cdr form)) (orig-args args)
 	 (cl--bind-block bind-block) (cl--bind-defs nil) (cl--bind-enquote nil)
 	 (cl--bind-inits nil) (cl--bind-lets nil) (cl--bind-forms nil)
 	 (header nil) (simple-args nil))
     (while (or (stringp (car body))
-	       (memq (car-safe (car body)) '(interactive cl-declare)))
+	       (memq (car-safe (car body)) '(interactive declare cl-declare)))
       (push (pop body) header))
     (setq args (if (listp args) (cl-copy-list args) (list '&rest args)))
     (let ((p (last args))) (if (cdr p) (setcdr p (list '&rest (cdr p)))))

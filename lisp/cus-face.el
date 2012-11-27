@@ -32,35 +32,14 @@
 ;;; Declaring a face.
 
 (defun custom-declare-face (face spec doc &rest args)
-  "Like `defface', but FACE is evaluated as a normal argument."
+  "Like `defface', but with FACE evaluated as a normal argument."
   (unless (get face 'face-defface-spec)
-    (let ((facep (facep face)))
-      (unless facep
-	;; If the user has already created the face, respect that.
-	(let ((value (or (get face 'saved-face) spec))
-	      (have-window-system (memq initial-window-system '(x w32))))
-	  ;; Create global face.
-	  (make-empty-face face)
-	  ;; Create frame-local faces
-	  (dolist (frame (frame-list))
-	    (face-spec-set-2 face frame value)
-	    (when (memq (window-system frame) '(x w32 ns))
-	      (setq have-window-system t)))
-	  ;; When making a face after frames already exist
-	  (if have-window-system
-	      (make-face-x-resource-internal face))))
-      ;; Don't record SPEC until we see it causes no errors.
-      (put face 'face-defface-spec (purecopy spec))
-      (push (cons 'defface face) current-load-list)
-      (when (and doc (null (face-documentation face)))
-	(set-face-documentation face (purecopy doc)))
-      (custom-handle-all-keywords face args 'custom-face)
-      (run-hooks 'custom-define-hook)
-      ;; If the face had existing settings, recalculate it.  For
-      ;; example, the user might load a theme with a face setting, and
-      ;; later load a library defining that face.
-      (if facep
-	  (custom-theme-recalc-face face))))
+    (face-spec-set face (purecopy spec) 'face-defface-spec)
+    (push (cons 'defface face) current-load-list)
+    (when doc
+      (set-face-documentation face (purecopy doc)))
+    (custom-handle-all-keywords face args 'custom-face)
+    (run-hooks 'custom-define-hook))
   face)
 
 ;;; Face attributes.
@@ -343,10 +322,7 @@ Several properties of THEME and FACE are used in the process:
 
 If THEME property `theme-immediate' is non-nil, this is equivalent of
 providing the NOW argument to all faces in the argument list: FACE is
-created now.  The only difference is FACE property `force-face': if NOW
-is non-nil, FACE property `force-face' is set to the symbol `rogue', else
-if THEME property `theme-immediate' is non-nil, FACE property `force-face'
-is set to the symbol `immediate'.
+created now.
 
 SPEC itself is saved in FACE property `saved-face' and it is stored in
 FACE's list property `theme-face' \(using `custom-push-theme')."
@@ -371,15 +347,11 @@ FACE's list property `theme-face' \(using `custom-push-theme')."
 	    (when (not (and oldspec (eq 'user (caar oldspec))))
 	      (put face 'saved-face spec)
 	      (put face 'saved-face-comment comment))
-	    ;; Do this AFTER checking the `theme-face' property.
 	    (custom-push-theme 'theme-face face theme 'set spec)
 	    (when (or now immediate)
 	      (put face 'force-face (if now 'rogue 'immediate)))
 	    (when (or now immediate (facep face))
-	      (unless (facep face)
-		(make-empty-face face))
 	      (put face 'face-comment comment)
-	      (put face 'face-override-spec nil)
 	      (face-spec-set face spec t))))))))
 
 ;; XEmacs compatibility function.  In XEmacs, when you reset a Custom
