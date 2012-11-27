@@ -813,14 +813,11 @@ my %%trans = do {
     map {(substr(unpack(q(B8), chr $i++), 2, 6), $_)}
       split //, q(ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/);
 };
-
-binmode(\\*STDIN);
+my $data;
 
 # We read in chunks of 54 bytes, to generate output lines
 # of 72 chars (plus end of line)
-$/ = \\54;
-
-while (my $data = <STDIN>) {
+while (read STDIN, $data, 54) {
     my $pad = q();
 
     # Only for the last chunk, and only if did not fill the last three-byte packet
