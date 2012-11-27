@@ -1876,6 +1876,8 @@ DEFUN ("internal-char-font", Finternal_char_font, Sinternal_char_font, 1, 2, 0,
     }
   if (! CHAR_VALID_P (c))
     return Qnil;
+  if (!FRAME_WINDOW_P (f))
+    return Qnil;
   face_id = FACE_FOR_CHAR (f, FACE_FROM_ID (f, face_id), c, pos, Qnil);
   face = FACE_FROM_ID (f, face_id);
   if (face->font)

@@ -1,3 +1,56 @@
+2012-11-27  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* textmodes/table.el (table-insert): Don't use `symbol-name' on
+	lexically scoped variables (bug#13005).
+
+2012-11-27  Glenn Morris  <rgm@gnu.org>
+
+	* vc/vc-hooks.el (vc-mistrust-permissions):
+	Default to t, to avoid data-loss.  (Bug#11490)
+
+2012-11-27  Fabián Ezequiel Gallina  <fgallina@cuca>
+
+	* progmodes/python.el (python-indent-guess-indent-offset):
+	If indentation is guessed make python-indent-offset buffer-local.
+
+	Fix Imenu regression.
+	* progmodes/python.el (python-nav-beginning-of-defun):
+	Fix forward movement when statement(s) separates point from defun.
+	(python-imenu-prev-index-position): New function.
+
+2012-11-27  Eli Zaretskii  <eliz@gnu.org>
+
+	* subr.el (buffer-file-type): Declare with defvar-local.  Doc fix.
+
+	* dos-w32.el (find-file-not-found-set-buffer-file-coding-system):
+	Don't set buffer-file-type.  Return nil.  (Bug#12989)
+
+2012-11-27  Glenn Morris  <rgm@gnu.org>
+
+	* hippie-exp.el (hippie-expand-try-functions-list):
+	Re-autoload it.  (Bug#12982)
+
+2012-11-27  Eli Zaretskii  <eliz@gnu.org>
+
+	* descr-text.el (describe-char-padded-string):
+	Call internal-char-font only on GUI frames.  (Bug#11964)
+
+2012-11-27  Andreas Schwab  <schwab@linux-m68k.org>
+
+	* buff-menu.el (Buffer-menu-buffer+size-width): Fix customize type
+	and obsoletion message.
+
+2012-11-27  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* emacs-lisp/cl-macs.el (cl--transform-lambda): Add back `declare' in
+	the constructs to keep outside of the `cl-block' (bug#12977).
+
+2012-11-27  Chong Yidong  <cyd@gnu.org>
+
+	* mouse.el (mouse-drag-line): Even if the line is not draggable,
+	keep reading until we get the up-event anyway, in order to process
+	the up-event for mouse-1-click-follows-link (Bug#12971).
+
 2012-11-26  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* emacs-lisp/advice.el (ad-should-compile): Don't compile advice if the

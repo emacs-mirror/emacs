@@ -1,3 +1,7 @@
+2012-11-27  Eli Zaretskii  <eliz@gnu.org>
+
+	* make-dist (nt): Adjust to changes in names of the *.manifest files.
+
 2012-11-24  Ken Brown  <kbrown@cornell.edu>
 
 	* configure.ac (HAVE_MOUSE): Remove.

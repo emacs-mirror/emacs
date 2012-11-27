@@ -55,12 +55,12 @@ If nil, use `Buffer-menu-name-width' and `Buffer-menu-size-width'.
 If non-nil, the value of `Buffer-menu-name-width' is overridden;
 the name column is assigned width `Buffer-menu-buffer+size-width'
 minus `Buffer-menu-size-width'.  This use is deprecated."
-  :type 'number
+  :type '(choice (const nil) number)
   :group 'Buffer-menu
   :version "24.3")
 
 (make-obsolete-variable 'Buffer-menu-buffer+size-width
-			"`Buffer-menu-name-width' and `Buffer-menu-size-width'"
+			"use `Buffer-menu-name-width' and `Buffer-menu-size-width' instead."
 			"24.3")
 
 (defcustom Buffer-menu-name-width 19

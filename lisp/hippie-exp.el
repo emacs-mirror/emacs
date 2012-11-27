@@ -199,6 +199,8 @@
 
 (defvar he-search-window ())
 
+;;; Autoloaded for historical reasons (bug#12982)
+;;;###autoload
 (defcustom hippie-expand-try-functions-list
   '(try-complete-file-name-partially
     try-complete-file-name

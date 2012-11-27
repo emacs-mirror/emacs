@@ -1,3 +1,13 @@
+2012-11-27  Eli Zaretskii  <eliz@gnu.org>
+
+	* fontset.c (Finternal_char_font): Return nil on non-GUI frames.
+	(Bug#11964)
+
+	* xdisp.c (draw_glyphs): Don't draw in mouse face if mouse
+	highlighting on the frame was cleared.  Prevents assertion
+	violations when repeatedly clicking on the "Top" link of the
+	"bread-crumbs" in Info buffers.
+
 2012-11-25  Paul Eggert  <eggert@cs.ucla.edu>
 
 	* sysdep.c (sys_subshell): Don't assume pid_t fits in int.

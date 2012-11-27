@@ -354,7 +354,8 @@ This function is semi-obsolete.  Use `get-char-code-property'."
 ;; Return a string of CH with composition for padding on both sides.
 ;; It is displayed without overlapping with the left/right columns.
 (defsubst describe-char-padded-string (ch)
-  (if (internal-char-font nil ch)
+  (if (and (display-multi-font-p)
+	   (internal-char-font nil ch))
       (compose-string (string ch) 0 1 (format "\t%c\t" ch))
     (string ch)))
 

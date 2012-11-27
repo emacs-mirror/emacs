@@ -1570,8 +1570,7 @@ results.
 
 Inside a table cell has a special keymap.
 
-\\{table-cell-map}
-"
+\\{table-cell-map}"
   (interactive
    (progn
      (barf-if-buffer-read-only)
@@ -1583,41 +1582,47 @@ Inside a table cell has a special keymap.
 	       ("Cell width(s)" . table-cell-width-history)
 	       ("Cell height(s)" . table-cell-height-history)))))
   (table--make-cell-map)
-  ;; reform the arguments.
+  ;; Reform the arguments.
   (if (null cell-width) (setq cell-width (car table-cell-width-history)))
   (if (null cell-height) (setq cell-height (car table-cell-height-history)))
   (if (stringp columns) (setq columns (string-to-number columns)))
   (if (stringp rows) (setq rows (string-to-number rows)))
-  (if (stringp cell-width) (setq cell-width (table--string-to-number-list cell-width)))
-  (if (stringp cell-height) (setq cell-height (table--string-to-number-list cell-height)))
+  (if (stringp cell-width)
+      (setq cell-width (table--string-to-number-list cell-width)))
+  (if (stringp cell-height)
+      (setq cell-height (table--string-to-number-list cell-height)))
   (if (numberp cell-width) (setq cell-width (cons cell-width nil)))
   (if (numberp cell-height) (setq cell-height (cons cell-height nil)))
-  ;; test validity of the arguments.
-  (mapc (lambda (arg)
-	  (let* ((value (symbol-value arg))
-		 (error-handler
-		  (function (lambda ()
-		    (error "%s must be a positive integer%s" arg
-			   (if (listp value) " or a list of positive integers" ""))))))
-	    (if (null value) (funcall error-handler))
-	    (mapcar (function (lambda (arg1)
-		      (if (or (not (integerp arg1))
-			      (< arg1 1))
-			  (funcall error-handler))))
-		    (if (listp value) value
-		      (cons value nil)))))
-	'(columns rows cell-width cell-height))
+  ;; Test validity of the arguments.
+  (dolist (arg `((columns . ,columns)
+                 (rows . ,rows)
+                 (cell-width . ,cell-width)
+                 (cell-height . ,cell-height)))
+    (let* ((value (cdr arg))
+           (error-handler
+            (lambda ()
+              (error "%s must be a positive integer%s" (car arg)
+                     (if (listp value)
+                         " or a list of positive integers" "")))))
+      (if (null value) (funcall error-handler))
+      (dolist (arg1 (if (listp value) value
+                      (cons value nil)))
+        (if (or (not (integerp arg1))
+                (< arg1 1))
+            (funcall error-handler)))))
   (let ((orig-coord (table--get-coordinate))
 	(coord (table--get-coordinate))
 	r i cw ch cell-str border-str)
-    ;; prefabricate the building blocks border-str and cell-str.
+    ;; Prefabricate the building blocks border-str and cell-str.
     (with-temp-buffer
-      ;; construct border-str
+      ;; Construct border-str.
       (insert table-cell-intersection-char)
       (setq cw cell-width)
       (setq i 0)
       (while (< i columns)
-	(insert (make-string (car cw) (string-to-char table-cell-horizontal-chars)) table-cell-intersection-char)
+	(insert (make-string (car cw)
+                             (string-to-char table-cell-horizontal-chars))
+                table-cell-intersection-char)
 	(if (cdr cw) (setq cw (cdr cw)))
 	(setq i (1+ i)))
       (setq border-str (buffer-substring (point-min) (point-max)))

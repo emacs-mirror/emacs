@@ -107,10 +107,12 @@ control systems."
   :type 'boolean
   :group 'vc)
 
-(defcustom vc-mistrust-permissions nil
+;; If you fix bug#11490, probably you can set this back to nil.
+(defcustom vc-mistrust-permissions t
   "If non-nil, don't assume permissions/ownership track version-control status.
 If nil, do rely on the permissions.
 See also variable `vc-consult-headers'."
+  :version "24.3"                       ; nil->t, bug#11490
   :type 'boolean
   :group 'vc)
 
