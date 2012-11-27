@@ -505,7 +505,9 @@ DEFUN ("setcdr", Fsetcdr, Ssetcdr, 2, 2, 0,
 /* Extract and set components of symbols.  */
 
 DEFUN ("boundp", Fboundp, Sboundp, 1, 1, 0,
-       doc: /* Return t if SYMBOL's value is not void.  */)
+       doc: /* Return t if SYMBOL's value is not void.
+Note that if `lexical-binding' is in effect, this refers to the
+global value outside of any lexical scope.  */)
   (register Lisp_Object symbol)
 {
   Lisp_Object valcontents;

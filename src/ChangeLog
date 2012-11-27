@@ -1,6 +1,6 @@
 2012-11-27  Glenn Morris  <rgm@gnu.org>
 
-	* data.c (Fsymbol_value): Doc fix re lexical-binding.
+	* data.c (Fboundp, Fsymbol_value): Doc fix re lexical-binding.
 
 2012-11-26  Eli Zaretskii  <eliz@gnu.org>
 
