@@ -1047,7 +1047,9 @@ find_symbol_value (Lisp_Object symbol)
 }
 
 DEFUN ("symbol-value", Fsymbol_value, Ssymbol_value, 1, 1, 0,
-       doc: /* Return SYMBOL's value.  Error if that is void.  */)
+       doc: /* Return SYMBOL's value.  Error if that is void.
+Note that if `lexical-binding' is in effect, this returns the
+global value outside of any lexical scope.  */)
   (Lisp_Object symbol)
 {
   Lisp_Object val;
