@@ -1,3 +1,8 @@
+2012-11-27  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* textmodes/table.el (table-insert): Don't use `symbol-name' on
+	lexically scoped variables (bug#13005).
+
 2012-11-26  Glenn Morris  <rgm@gnu.org>
 
 	* vc/vc-hooks.el (vc-mistrust-permissions):
@@ -27,8 +32,8 @@
 
 2012-11-25  Eli Zaretskii  <eliz@gnu.org>
 
-	* descr-text.el (describe-char-padded-string): Call
-	internal-char-font only on GUI frames.  (Bug#11964)
+	* descr-text.el (describe-char-padded-string):
+	Call internal-char-font only on GUI frames.  (Bug#11964)
 
 2012-11-24  Andreas Schwab  <schwab@linux-m68k.org>
 
