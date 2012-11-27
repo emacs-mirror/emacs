@@ -6960,10 +6960,7 @@ tty_read_avail_input (struct terminal *terminal,
             an EAGAIN error.  Does anybody know of a situation
             where a retry is actually needed?  */
 #if 0
-         nread < 0 && (errno == EAGAIN
-#ifdef EFAULT
-                       || errno == EFAULT
-#endif
+         nread < 0 && (errno == EAGAIN || errno == EFAULT
 #ifdef EBADSLT
                        || errno == EBADSLT
 #endif

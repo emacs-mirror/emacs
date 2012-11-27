@@ -440,7 +440,6 @@ readbyte_from_file (int c, Lisp_Object readcharfun)
   block_input ();
   c = getc (instream);
 
-#ifdef EINTR
   /* Interrupted reads have been observed while reading over the network.  */
   while (c == EOF && ferror (instream) && errno == EINTR)
     {
@@ -450,7 +449,6 @@ readbyte_from_file (int c, Lisp_Object readcharfun)
       clearerr (instream);
       c = getc (instream);
     }
-#endif
 
   unblock_input ();
 

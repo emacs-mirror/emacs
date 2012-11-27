@@ -430,22 +430,10 @@ main (int argc, char **argv)
 	 for certain failure codes.  */
       if (status < 0)
 	{
-	  if (++lockcount <= 5)
+	  if (++lockcount <= 5 && (errno == EAGAIN || errno == EBUSY))
 	    {
-#ifdef EAGAIN
-	      if (errno == EAGAIN)
-		{
-		  sleep (1);
-		  goto retry_lock;
-		}
-#endif
-#ifdef EBUSY
-	      if (errno == EBUSY)
-		{
-		  sleep (1);
-		  goto retry_lock;
-		}
-#endif
+	      sleep (1);
+	      goto retry_lock;
 	    }
 
 	  pfatal_with_name (inname);

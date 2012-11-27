@@ -1995,10 +1995,8 @@ on the system, we copy the SELinux context of FILE to NEWNAME.  */)
     {
       if (!(S_ISREG (st.st_mode)) && !(S_ISLNK (st.st_mode)))
 	{
-#if defined (EISDIR)
 	  /* Get a better looking error message. */
 	  errno = EISDIR;
-#endif /* EISDIR */
 	  report_file_error ("Non-regular file", Fcons (file, Qnil));
 	}
     }
