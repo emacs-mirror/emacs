@@ -183,16 +183,11 @@ usage: (call-process PROGRAM &optional INFILE BUFFER DISPLAY &rest ARGS)  */)
 {
   Lisp_Object infile, buffer, current_dir, path, cleanup_info_tail;
   bool display_p;
-  int fd[2];
-  int filefd;
-#define CALLPROC_BUFFER_SIZE_MIN (16 * 1024)
-#define CALLPROC_BUFFER_SIZE_MAX (4 * CALLPROC_BUFFER_SIZE_MIN)
-  char buf[CALLPROC_BUFFER_SIZE_MAX];
-  int bufsize = CALLPROC_BUFFER_SIZE_MIN;
+  int fd0, fd1, filefd;
   ptrdiff_t count = SPECPDL_INDEX ();
   USE_SAFE_ALLOCA;
 
-  register const unsigned char **new_argv;
+  char **new_argv;
   /* File to use for stderr in the child.
      t means use same as standard output.  */
   Lisp_Object error_file;
@@ -432,12 +427,12 @@ usage: (call-process PROGRAM &optional INFILE BUFFER DISPLAY &rest ARGS)  */)
 	}
       UNGCPRO;
       for (i = 4; i < nargs; i++)
-	new_argv[i - 3] = SDATA (args[i]);
+	new_argv[i - 3] = SSDATA (args[i]);
       new_argv[i - 3] = 0;
     }
   else
     new_argv[1] = 0;
-  new_argv[0] = SDATA (path);
+  new_argv[0] = SSDATA (path);
 
 #ifdef MSDOS /* MW, July 1993 */
 
@@ -466,29 +461,35 @@ usage: (call-process PROGRAM &optional INFILE BUFFER DISPLAY &rest ARGS)  */)
     }
   else
     outfilefd = fd_output;
-  fd[0] = filefd;
-  fd[1] = outfilefd;
+  fd0 = filefd;
+  fd1 = outfilefd;
 #endif /* MSDOS */
 
   if (INTEGERP (buffer))
-    fd[1] = emacs_open (NULL_DEVICE, O_WRONLY, 0), fd[0] = -1;
+    {
+      fd0 = -1;
+      fd1 = emacs_open (NULL_DEVICE, O_WRONLY, 0);
+    }
   else
     {
 #ifndef MSDOS
-      errno = 0;
+      int fd[2];
       if (pipe (fd) == -1)
 	{
+	  int pipe_errno = errno;
 	  emacs_close (filefd);
+	  errno = pipe_errno;
 	  report_file_error ("Creating process pipe", Qnil);
 	}
+      fd0 = fd[0];
+      fd1 = fd[1];
 #endif
     }
 
   {
     /* child_setup must clobber environ in systems with true vfork.
        Protect it from permanent change.  */
-    register char **save_environ = environ;
-    register int fd1 = fd[1];
+    char **save_environ = environ;
     int fd_error = fd1;
 
     if (fd_output >= 0)
@@ -520,8 +521,8 @@ usage: (call-process PROGRAM &optional INFILE BUFFER DISPLAY &rest ARGS)  */)
     if (fd_error < 0)
       {
 	emacs_close (filefd);
-	if (fd[0] != filefd)
-	  emacs_close (fd[0]);
+	if (fd0 != filefd)
+	  emacs_close (fd0);
 	if (fd1 >= 0)
 	  emacs_close (fd1);
 #ifdef MSDOS
@@ -538,8 +539,7 @@ usage: (call-process PROGRAM &optional INFILE BUFFER DISPLAY &rest ARGS)  */)
     /* Note that on MSDOS `child_setup' actually returns the child process
        exit status, not its PID, so we assign it to `synch_process_retcode'
        below.  */
-    pid = child_setup (filefd, outfilefd, fd_error, (char **) new_argv,
-		       0, current_dir);
+    pid = child_setup (filefd, outfilefd, fd_error, new_argv, 0, current_dir);
 
     /* Record that the synchronous process exited and note its
        termination status.  */
@@ -559,8 +559,8 @@ usage: (call-process PROGRAM &optional INFILE BUFFER DISPLAY &rest ARGS)  */)
       {
 	/* Since CRLF is converted to LF within `decode_coding', we
 	   can always open a file with binary mode.  */
-	fd[0] = emacs_open (tempfile, O_RDONLY | O_BINARY, 0);
-	if (fd[0] < 0)
+	fd0 = emacs_open (tempfile, O_RDONLY | O_BINARY, 0);
+	if (fd0 < 0)
 	  {
 	    unlink (tempfile);
 	    emacs_close (filefd);
@@ -569,11 +569,10 @@ usage: (call-process PROGRAM &optional INFILE BUFFER DISPLAY &rest ARGS)  */)
 	  }
       }
     else
-      fd[0] = -1; /* We are not going to read from tempfile.   */
+      fd0 = -1; /* We are not going to read from tempfile.   */
 #else /* not MSDOS */
 #ifdef WINDOWSNT
-    pid = child_setup (filefd, fd1, fd_error, (char **) new_argv,
-		       0, current_dir);
+    pid = child_setup (filefd, fd1, fd_error, new_argv, 0, current_dir);
 #else  /* not WINDOWSNT */
 
     block_input ();
@@ -586,11 +585,15 @@ usage: (call-process PROGRAM &optional INFILE BUFFER DISPLAY &rest ARGS)  */)
       bool volatile display_p_volatile = display_p;
       bool volatile output_to_buffer_volatile = output_to_buffer;
       bool volatile sa_must_free_volatile = sa_must_free;
+      int volatile fd0_volatile = fd0;
       int volatile fd1_volatile = fd1;
       int volatile fd_error_volatile = fd_error;
       int volatile fd_output_volatile = fd_output;
+      int volatile filefd_volatile = filefd;
+      ptrdiff_t volatile count_volatile = count;
       ptrdiff_t volatile sa_count_volatile = sa_count;
-      unsigned char const **volatile new_argv_volatile = new_argv;
+      char **volatile new_argv_volatile = new_argv;
+      char **volatile new_save_environ = save_environ;
 
       pid = vfork ();
 
@@ -598,27 +601,30 @@ usage: (call-process PROGRAM &optional INFILE BUFFER DISPLAY &rest ARGS)  */)
       coding_systems = coding_systems_volatile;
       current_dir = current_dir_volatile;
       display_p = display_p_volatile;
+      output_to_buffer = output_to_buffer_volatile;
+      sa_must_free = sa_must_free_volatile;
+      fd0 = fd0_volatile;
       fd1 = fd1_volatile;
       fd_error = fd_error_volatile;
       fd_output = fd_output_volatile;
-      output_to_buffer = output_to_buffer_volatile;
-      sa_must_free = sa_must_free_volatile;
+      filefd = filefd_volatile;
+      count = count_volatile;
       sa_count = sa_count_volatile;
       new_argv = new_argv_volatile;
+      save_environ = new_save_environ;
     }
 
     if (pid == 0)
       {
-	if (fd[0] >= 0)
-	  emacs_close (fd[0]);
+	if (fd0 >= 0)
+	  emacs_close (fd0);
 
 	setsid ();
 
 	/* Emacs ignores SIGPIPE, but the child should not.  */
 	signal (SIGPIPE, SIG_DFL);
 
-	child_setup (filefd, fd1, fd_error, (char **) new_argv,
-		     0, current_dir);
+	child_setup (filefd, fd1, fd_error, new_argv, 0, current_dir);
       }
 
     unblock_input ();
@@ -632,7 +638,7 @@ usage: (call-process PROGRAM &optional INFILE BUFFER DISPLAY &rest ARGS)  */)
 
     environ = save_environ;
 
-    /* Close most of our fd's, but not fd[0]
+    /* Close most of our file descriptors, but not fd0
        since we will use that to read input from.  */
     emacs_close (filefd);
     if (fd_output >= 0)
@@ -643,15 +649,15 @@ usage: (call-process PROGRAM &optional INFILE BUFFER DISPLAY &rest ARGS)  */)
 
   if (pid < 0)
     {
-      if (fd[0] >= 0)
-	emacs_close (fd[0]);
+      if (fd0 >= 0)
+	emacs_close (fd0);
       report_file_error ("Doing vfork", Qnil);
     }
 
   if (INTEGERP (buffer))
     {
-      if (fd[0] >= 0)
-	emacs_close (fd[0]);
+      if (fd0 >= 0)
+	emacs_close (fd0);
       return Qnil;
     }
 
@@ -666,7 +672,7 @@ usage: (call-process PROGRAM &optional INFILE BUFFER DISPLAY &rest ARGS)  */)
 #endif /* not MSDOS */
   record_unwind_protect (call_process_cleanup,
 			 Fcons (Fcurrent_buffer (),
-				Fcons (INTEGER_TO_CONS (fd[0]),
+				Fcons (INTEGER_TO_CONS (fd0),
 				       cleanup_info_tail)));
 
   if (BUFFERP (buffer))
@@ -723,6 +729,10 @@ usage: (call-process PROGRAM &optional INFILE BUFFER DISPLAY &rest ARGS)  */)
 
   if (output_to_buffer)
     {
+      enum { CALLPROC_BUFFER_SIZE_MIN = 16 * 1024 };
+      enum { CALLPROC_BUFFER_SIZE_MAX = 4 * CALLPROC_BUFFER_SIZE_MIN };
+      char buf[CALLPROC_BUFFER_SIZE_MAX];
+      int bufsize = CALLPROC_BUFFER_SIZE_MIN;
       int nread;
       bool first = 1;
       EMACS_INT total_read = 0;
@@ -739,7 +749,7 @@ usage: (call-process PROGRAM &optional INFILE BUFFER DISPLAY &rest ARGS)  */)
 	  nread = carryover;
 	  while (nread < bufsize - 1024)
 	    {
-	      int this_read = emacs_read (fd[0], buf + nread,
+	      int this_read = emacs_read (fd0, buf + nread,
 					  bufsize - nread);
 
 	      if (this_read < 0)

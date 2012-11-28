@@ -1,3 +1,14 @@
+2012-11-28  Paul Eggert  <eggert@cs.ucla.edu>
+
+	* callproc.c (Fcall_process): Fix vfork portability problems.
+	Do not assume that fd[0], count, filefd, and save_environ survive
+	vfork.  Fix bug whereby wrong errno value could be reported for
+	pipe failure.  Some minor cleanups, too, as follows.  Move buf and
+	bufsize to the context where they're needed.  Change new_argv to
+	be of type char **, as this is more convenient and avoids casts.
+	(CALLPROC_BUFFER_SIZE_MIN, CALLPROC_BUFFER_SIZE_MAX):
+	Now local constants, not macros.
+
 2012-11-18  Kenichi Handa  <handa@gnu.org>
 
 	* font.c (font_unparse_xlfd): Fix previous change.  Keep "const"
