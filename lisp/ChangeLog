@@ -1,3 +1,9 @@
+2012-11-28  Glenn Morris  <rgm@gnu.org>
+
+	* jka-cmpr-hook.el (jka-compr-get-compression-info):
+	Remove any version extension before checking filename.  (Bug#13006)
+	(jka-compr-compression-info-list): Belated :version bump.
+
 2012-11-28  Chong Yidong  <cyd@gnu.org>
 
 	* simple.el (transient-mark-mode): Doc fix (Bug#11523).
