@@ -94,7 +94,8 @@
 	(setcar (nthcdr arg calc-standard-date-formats) fmt))
    (let ((case-fold-search nil))
      (and (not (string-match "<.*>" fmt))
-	  (string-match "\\`[^hHspP]*\\([^ac-gi-lnoqrt-zAC-GI-OQRT-Z]*[bBhHmpPsS]+[^ac-gi-lnoqrt-zAC-GI-OQRT-Z]*\\)[^hHspP]*\\'" fmt)
+          ;; Find time part to put in <...>
+	  (string-match "\\`[^hHspP]*\\([^ac-gi-lnoqrt-zAC-GI-OQRT-Z]*\\(bs\\|bm\\|bh\\|BS\\|BH\\|[hHmpPsS]\\)+[^ac-gi-lnoqrt-zAC-GI-OQRT-Z]*\\)[^hHspP]*\\'" fmt)
 	  (string-match (concat "[^ac-gi-lnoqrt-zAC-GI-OQRT-Z]*"
 				(regexp-quote (math-match-substring fmt 1))
 				"[^ac-gi-lnoqrt-zAC-GI-OQRT-Z]*") fmt)
@@ -140,7 +141,7 @@
 				W www Www Wwww WWW WWWW
 				h hh bh H HH BH
 				p P pp PP pppp PPPP
-				m mm bm s ss bss SS BS C
+				m mm bm s ss bs SS BS C
 				N n J j U b))
 		  (and (eq sym 'X) (not lfmt) (not fullfmt))
 		  (error "Bad format code: %s" sym))
