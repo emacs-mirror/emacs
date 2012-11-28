@@ -1,3 +1,26 @@
+2012-11-28  Glenn Morris  <rgm@gnu.org>
+
+	* jka-cmpr-hook.el (jka-compr-get-compression-info):
+	Remove any version extension before checking filename.  (Bug#13006)
+	(jka-compr-compression-info-list): Belated :version bump.
+
+2012-11-28  Chong Yidong  <cyd@gnu.org>
+
+	* simple.el (transient-mark-mode): Doc fix (Bug#11523).
+
+	* buff-menu.el (Buffer-menu-delete-backwards, Buffer-menu-mode)
+	(buffer-menu): Doc fix (Bug#12294).
+
+2012-11-27  Roland Winkler  <winkler@gnu.org>
+
+	* calendar/diary-lib.el (diary-header-line-format): Use keybinding
+	of diary-show-all-entries in the diary buffer (Bug#12994).
+
+2012-11-27  Michael Albinus  <michael.albinus@gmx.de>
+
+	* net/tramp-sh.el (tramp-perl-encode): Use "read STDIN" instead of
+	"<STDIN>".  This is binary safe.
+
 2012-11-27  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* textmodes/table.el (table-insert): Don't use `symbol-name' on
