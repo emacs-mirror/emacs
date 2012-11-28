@@ -1,5 +1,7 @@
 2012-11-28  Chong Yidong  <cyd@gnu.org>
 
+	* simple.el (transient-mark-mode): Doc fix (Bug#11523).
+
 	* buff-menu.el (Buffer-menu-delete-backwards, Buffer-menu-mode)
 	(buffer-menu): Doc fix (Bug#12294).
 
