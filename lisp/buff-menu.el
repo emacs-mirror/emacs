@@ -204,31 +204,11 @@ commands.")
 
 (define-derived-mode Buffer-menu-mode tabulated-list-mode "Buffer Menu"
   "Major mode for Buffer Menu buffers.
-The Buffer Menu is invoked by the commands \\[list-buffers], \\[buffer-menu], and
-\\[buffer-menu-other-window].  See `buffer-menu' for details."
-  (set (make-local-variable 'buffer-stale-function)
-       (lambda (&optional _noconfirm) 'fast))
-  (add-hook 'tabulated-list-revert-hook 'list-buffers--refresh nil t))
+The Buffer Menu is invoked by the commands \\[list-buffers],
+\\[buffer-menu], and \\[buffer-menu-other-window].
+See `buffer-menu' for a description of its contents.
 
-(defun buffer-menu (&optional arg)
-  "Switch to the Buffer Menu.
-By default, all buffers are listed except those whose names start
-with a space (which are for internal use).  With prefix argument
-ARG, show only buffers that are visiting files.
-
-The first column (denoted \"C\") shows \".\" for the buffer from
-which you came.  It shows \">\" for buffers you mark to be
-displayed, and \"D\" for those you mark for deletion.
-
-The \"R\" column has a \"%\" if the buffer is read-only.
-The \"M\" column has a \"*\" if it is modified, or \"S\" if you
-have marked it for saving.
-
-After this come the buffer name, its size in characters, its
-major mode, and the visited file name (if any).
-
-
-In the Buffer Menu, the following commands are defined:
+In Buffer Menu mode, the following commands are defined:
 \\<Buffer-menu-mode-map>
 \\[quit-window]    Remove the Buffer Menu from the display.
 \\[Buffer-menu-this-window]  Select current line's buffer in place of the buffer menu.
@@ -244,7 +224,7 @@ In the Buffer Menu, the following commands are defined:
 \\[Buffer-menu-1-window]    Select that buffer in full-frame window.
 \\[Buffer-menu-2-window]    Select that buffer in one window, together with the
      buffer selected before this one in another window.
-\\[Buffer-menu-isearch-buffers]  Incremental search in the marked buffers.
+\\[Buffer-menu-isearch-buffers]    Incremental search in the marked buffers.
 \\[Buffer-menu-isearch-buffers-regexp]  Isearch for regexp in the marked buffers.
 \\[Buffer-menu-visit-tags-table]    visit-tags-table this buffer.
 \\[Buffer-menu-not-modified]    Clear modified-flag on that buffer.
@@ -259,6 +239,29 @@ In the Buffer Menu, the following commands are defined:
 \\[revert-buffer]    Update the list of buffers.
 \\[Buffer-menu-toggle-files-only]    Toggle whether the menu displays only file buffers.
 \\[Buffer-menu-bury]    Bury the buffer listed on this line."
+  (set (make-local-variable 'buffer-stale-function)
+       (lambda (&optional _noconfirm) 'fast))
+  (add-hook 'tabulated-list-revert-hook 'list-buffers--refresh nil t))
+
+(defun buffer-menu (&optional arg)
+  "Switch to the Buffer Menu.
+By default, the Buffer Menu lists all buffers except those whose
+names start with a space (which are for internal use).  With
+prefix argument ARG, show only buffers that are visiting files.
+
+In the Buffer Menu, the first column (denoted \"C\") shows \".\"
+for the buffer from which you came, \">\" for buffers you mark to
+be displayed, and \"D\" for those you mark for deletion.
+
+The \"R\" column has a \"%\" if the buffer is read-only.
+The \"M\" column has a \"*\" if it is modified, or \"S\" if you
+have marked it for saving.
+
+The remaining columns show the buffer name, the buffer size in
+characters, its major mode, and the visited file name (if any).
+
+See `Buffer-menu-mode' for the keybindings available the Buffer
+Menu."
   (interactive "P")
   (switch-to-buffer (list-buffers-noselect arg))
   (message
@@ -280,7 +283,7 @@ ARG, show only buffers that are visiting files."
 (defun list-buffers (&optional arg)
   "Display a list of existing buffers.
 The list is displayed in a buffer named \"*Buffer List*\".
-See `buffer-menu' for details about the Buffer Menu buffer.
+See `buffer-menu' for a description of the Buffer Menu.
 
 By default, all buffers are listed except those whose names start
 with a space (which are for internal use).  With prefix argument
@@ -377,7 +380,9 @@ buffers to delete; a negative ARG means to delete backwards."
 
 (defun Buffer-menu-delete-backwards (&optional arg)
   "Mark the buffer on this Buffer Menu line for deletion, and move up.
-Prefix ARG means move that many lines."
+A subsequent \\<Buffer-menu-mode-map>`\\[Buffer-menu-execute]'
+command will delete the marked buffer.  Prefix ARG means move
+that many lines."
   (interactive "p")
   (Buffer-menu-delete (- (or arg 1))))
 

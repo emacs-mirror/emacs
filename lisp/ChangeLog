@@ -1,3 +1,8 @@
+2012-11-28  Chong Yidong  <cyd@gnu.org>
+
+	* buff-menu.el (Buffer-menu-delete-backwards, Buffer-menu-mode)
+	(buffer-menu): Doc fix (Bug#12294).
+
 2012-11-27  Roland Winkler  <winkler@gnu.org>
 
 	* calendar/diary-lib.el (diary-header-line-format): Use keybinding
