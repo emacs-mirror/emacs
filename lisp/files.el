@@ -2502,25 +2502,31 @@ They may happen to contain sequences that look like local variable
 specifications, but are not really, or they may be containers for
 member files with their own local variable sections, which are
 not appropriate for the containing file.
-See also `inhibit-local-variables-suffixes'.")
+The function `inhibit-local-variables-p' uses this.")
 
 (define-obsolete-variable-alias 'inhibit-first-line-modes-suffixes
   'inhibit-local-variables-suffixes "24.1")
 
 (defvar inhibit-local-variables-suffixes nil
   "List of regexps matching suffixes to remove from file names.
-When checking `inhibit-local-variables-regexps', we first discard
-from the end of the file name anything that matches one of these regexps.")
+The function `inhibit-local-variables-p' uses this: when checking
+a file name, it first discards from the end of the name anything that
+matches one of these regexps.")
 
-;; TODO explicitly add case-fold-search t?
+;; Can't think of any situation in which you'd want this to be nil...
+(defvar inhibit-local-variables-ignore-case t
+  "Non-nil means `inhibit-local-variables-p' ignores case.")
+
 (defun inhibit-local-variables-p ()
   "Return non-nil if file local variables should be ignored.
 This checks the file (or buffer) name against `inhibit-local-variables-regexps'
-and `inhibit-local-variables-suffixes'."
+and `inhibit-local-variables-suffixes'.  If
+`inhibit-local-variables-ignore-case' is non-nil, this ignores case."
   (let ((temp inhibit-local-variables-regexps)
 	(name (if buffer-file-name
 		  (file-name-sans-versions buffer-file-name)
-		(buffer-name))))
+		(buffer-name)))
+	(case-fold-search inhibit-local-variables-ignore-case))
     (while (let ((sufs inhibit-local-variables-suffixes))
 	     (while (and sufs (not (string-match (car sufs) name)))
 	       (setq sufs (cdr sufs)))

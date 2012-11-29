@@ -1,3 +1,11 @@
+2012-11-29  Glenn Morris  <rgm@gnu.org>
+
+	* files.el (inhibit-local-variables-ignore-case): New.  (Bug#10610)
+	(inhibit-local-variables-p): Use inhibit-local-variables-ignore-case.
+	Doc fix.
+	(inhibit-local-variables-regexps, inhibit-local-variables-suffixes):
+	Doc fixes.
+
 2012-11-28  Jay Belanger  <jay.p.belanger@gmail.com>
 
 	* calc/calc-forms.el (calc-date-notation): Fix regexp
