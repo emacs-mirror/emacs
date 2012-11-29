@@ -199,6 +199,7 @@ usage: (call-process PROGRAM &optional INFILE BUFFER DISPLAY &rest ARGS)  */)
 #else
   pid_t pid;
 #endif
+  int vfork_errno;
   int fd_output = -1;
   struct coding_system process_coding; /* coding-system of process output */
   struct coding_system argument_coding;	/* coding-system of arguments */
@@ -627,6 +628,7 @@ usage: (call-process PROGRAM &optional INFILE BUFFER DISPLAY &rest ARGS)  */)
 	child_setup (filefd, fd1, fd_error, new_argv, 0, current_dir);
       }
 
+    vfork_errno = errno;
     unblock_input ();
 
 #endif /* not WINDOWSNT */
@@ -651,6 +653,7 @@ usage: (call-process PROGRAM &optional INFILE BUFFER DISPLAY &rest ARGS)  */)
     {
       if (fd0 >= 0)
 	emacs_close (fd0);
+      errno = vfork_errno;
       report_file_error ("Doing vfork", Qnil);
     }
 
