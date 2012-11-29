@@ -71,6 +71,11 @@
 (make-obsolete-variable
  'icomplete-prospects-length 'icomplete-prospects-height "23.1")
 
+(defcustom icomplete-separator " | "
+  "String used by icomplete to separate alternatives in the minibuffer."
+  :type 'string
+  :version "24.3")
+
 ;;;_* User Customization variables
 (defcustom icomplete-prospects-height
   ;; 20 is an estimated common size for the prompt + minibuffer content, to
@@ -95,11 +100,6 @@ See `icomplete-delay-completions-threshold'."
 (defcustom icomplete-max-delay-chars 3
   "Maximum number of initial chars to apply icomplete compute delay."
   :type 'integer
-  :group 'icomplete)
-
-(defcustom icomplete-show-key-bindings t
-  "If non-nil, show key bindings as well as completion for sole matches."
-  :type 'boolean
   :group 'icomplete)
 
 (defcustom icomplete-minibuffer-setup-hook nil
@@ -145,29 +145,43 @@ Use `icomplete-mode' function to set it up properly for incremental
 minibuffer completion.")
 (add-hook 'icomplete-post-command-hook 'icomplete-exhibit)
 
-(defun icomplete-get-keys (func-name)
-  "Return strings naming keys bound to FUNC-NAME, or nil if none.
-Examines the prior, not current, buffer, presuming that current buffer
-is minibuffer."
-  (when (commandp func-name)
-    (save-excursion
-      (let* ((sym (intern func-name))
-	     (buf (other-buffer nil t))
-	     (keys (with-current-buffer buf (where-is-internal sym))))
-	(when keys
-	  (concat "<"
-		  (mapconcat 'key-description
-			     (sort keys
-				   #'(lambda (x y)
-				       (< (length x) (length y))))
-			     ", ")
-		  ">"))))))
 ;;;_  = icomplete-with-completion-tables
 (defvar icomplete-with-completion-tables '(internal-complete-buffer)
   "Specialized completion tables with which icomplete should operate.
 
 Icomplete does not operate with any specialized completion tables
 except those on this list.")
+
+(defvar icomplete-minibuffer-map
+  (let ((map (make-sparse-keymap)))
+    (define-key map [?\M-\t] 'minibuffer-force-complete)
+    (define-key map [?\C-j]  'minibuffer-force-complete-and-exit)
+    (define-key map [?\C-s]  'icomplete-forward-completions)
+    (define-key map [?\C-r]  'icomplete-backward-completions)
+    map))
+
+(defun icomplete-forward-completions ()
+  "Step forward completions by one entry.
+Second entry becomes the first and can be selected with
+`minibuffer-force-complete-and-exit'."
+  (interactive)
+  (let* ((comps (completion-all-sorted-completions))
+	 (last (last comps)))
+    (setcdr last (cons (car comps) (cdr last)))
+    (completion--cache-all-sorted-completions (cdr comps))))
+
+(defun icomplete-backward-completions ()
+  "Step backward completions by one entry.
+Last entry becomes the first and can be selected with
+`minibuffer-force-complete-and-exit'."
+  (interactive)
+  (let* ((comps (completion-all-sorted-completions))
+	 (last-but-one (last comps 2))
+	 (last (cdr last-but-one)))
+    (when last
+      (setcdr last-but-one (cdr last))
+      (push (car last) comps)
+      (completion--cache-all-sorted-completions comps))))
 
 ;;;_ > icomplete-mode (&optional prefix)
 ;;;###autoload
@@ -208,6 +222,8 @@ Conditions are:
 Usually run by inclusion in `minibuffer-setup-hook'."
   (when (and icomplete-mode (icomplete-simple-completing-p))
     (set (make-local-variable 'completion-show-inline-help) nil)
+    (use-local-map (make-composed-keymap icomplete-minibuffer-map
+    					 (current-local-map)))
     (add-hook 'pre-command-hook
 	      (lambda () (let ((non-essential t))
                       (run-hooks 'icomplete-pre-command-hook)))
@@ -239,27 +255,29 @@ and `minibuffer-setup-hook'."
       (goto-char (point-max))
                                         ; Insert the match-status information:
       (if (and (> (point-max) (minibuffer-prompt-end))
-	       buffer-undo-list		; Wait for some user input.
-	       (or
-		;; Don't bother with delay after certain number of chars:
-		(> (- (point) (field-beginning)) icomplete-max-delay-chars)
-		;; Don't delay if alternatives number is small enough:
-		(and (sequencep minibuffer-completion-table)
-		     (< (length minibuffer-completion-table)
-			icomplete-delay-completions-threshold))
-		;; Delay - give some grace time for next keystroke, before
+               buffer-undo-list         ; Wait for some user input.
+               (or
+                ;; Don't bother with delay after certain number of chars:
+                (> (- (point) (field-beginning)) icomplete-max-delay-chars)
+                ;; Don't delay if the completions are known.
+                completion-all-sorted-completions
+                ;; Don't delay if alternatives number is small enough:
+                (and (sequencep minibuffer-completion-table)
+                     (< (length minibuffer-completion-table)
+                        icomplete-delay-completions-threshold))
+                ;; Delay - give some grace time for next keystroke, before
 		;; embarking on computing completions:
 		(sit-for icomplete-compute-delay)))
 	  (let ((text (while-no-input
-			 (icomplete-completions
-			  (field-string)
-			  minibuffer-completion-table
-			  minibuffer-completion-predicate
+                        (icomplete-completions
+                         (field-string)
+                         minibuffer-completion-table
+                         minibuffer-completion-predicate
                          (not minibuffer-completion-confirm))))
 		(buffer-undo-list t)
 		deactivate-mark)
 	    ;; Do nothing if while-no-input was aborted.
-	    (when (stringp text)
+            (when (stringp text)
               (move-overlay icomplete-overlay (point) (point) (current-buffer))
               ;; The current C cursor code doesn't know to use the overlay's
               ;; marker's stickiness to figure out whether to place the cursor
@@ -365,17 +383,14 @@ are exhibited within the square braces.)"
 	(if prospects
 	    (concat determ
 		    "{"
-		    (and most-is-exact ",")
-		    (mapconcat 'identity (nreverse prospects) ",")
-		    (and limit ",...")
+		    (and most-is-exact
+                         (substring icomplete-separator
+                                    (string-match "[^ ]" icomplete-separator)))
+		    (mapconcat 'identity (nreverse prospects)
+                               icomplete-separator)
+		    (and limit (concat icomplete-separator "…"))
 		    "}")
-	  (concat determ
-		  " [Matched"
-		  (let ((keys (and icomplete-show-key-bindings
-				   (commandp (intern-soft most))
-				   (icomplete-get-keys most))))
-		    (if keys (concat "; " keys) ""))
-		  "]"))))))
+	  (concat determ " [Matched]"))))))
 
 ;;_* Local emacs vars.
 ;;Local variables:

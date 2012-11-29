@@ -1,4 +1,21 @@
-2012-11-29  Stefan Monnier  <monnier@iro.umontreal.ca>
+2012-11-29  Jambunathan K  <kjambunathan@gmail.com>
+            Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* icomplete.el: Change separator; add ido-style commands.
+	(icomplete-show-key-bindings): Remove custom var.
+	(icomplete-get-keys): Remove function.
+	(icomplete-forward-completions, icomplete-backward-completions):
+	New commands.
+	(icomplete-minibuffer-map): New var.
+	(icomplete-minibuffer-setup): Use it.
+	(icomplete-exhibit): Don't delay if the list of completions is known.
+	(icomplete-separator): New custom.
+	(icomplete-completions): Use it.
+	* minibuffer.el (completion-all-sorted-completions): Delete duplicates.
+	(minibuffer-force-complete-and-exit): New command.
+	(minibuffer--complete-and-exit): New function extracted from
+	minibuffer-complete-and-exit.
+	(minibuffer-complete-and-exit): Use it.
 
 	* progmodes/etags.el (visit-tags-table-buffer): Give a more precise
 	error message when the file doesn't exist (bug#12974).

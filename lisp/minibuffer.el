@@ -1106,6 +1106,13 @@ scroll the window of possible completions."
              (sort-fun (completion-metadata-get all-md 'cycle-sort-function)))
         (when last
           (setcdr last nil)
+
+          ;; Delete duplicates: do it after setting last's cdr to nil (so
+          ;; it's a proper list), and be careful to reset `last' since it
+          ;; may be a different cons-cell.
+          (setq all (delete-dups all))
+          (setq last (last all))
+
           (setq all (if sort-fun (funcall sort-fun all)
                       ;; Prefer shorter completions, by default.
                       (sort all (lambda (c1 c2) (< (length c1) (length c2))))))
@@ -1119,6 +1126,15 @@ scroll the window of possible completions."
           ;; repeated calls to minibuffer-force-complete can cycle through
           ;; all possibilities.
           (completion--cache-all-sorted-completions (nconc all base-size))))))
+
+(defun minibuffer-force-complete-and-exit ()
+  "Complete the minibuffer with first of the matches and exit."
+  (interactive)
+  (minibuffer-force-complete)
+  (minibuffer--complete-and-exit
+   ;; If the previous completion completed to an element which fails
+   ;; test-completion, then we shouldn't exit, but that should be rare.
+   (lambda () (minibuffer-message "Incomplete"))))
 
 (defun minibuffer-force-complete ()
   "Complete the minibuffer to an exact match.
@@ -1192,6 +1208,22 @@ If `minibuffer-completion-confirm' is `confirm-after-completion',
  `minibuffer-confirm-exit-commands', and accept the input
  otherwise."
   (interactive)
+  (minibuffer--complete-and-exit
+   (lambda ()
+     (pcase (condition-case nil
+                (completion--do-completion nil 'expect-exact)
+              (error 1))
+       ((or #b001 #b011) (exit-minibuffer))
+       (#b111 (if (not minibuffer-completion-confirm)
+                  (exit-minibuffer)
+                (minibuffer-message "Confirm")
+                nil))
+       (_ nil)))))
+
+(defun minibuffer--complete-and-exit (completion-function)
+  "Exit from `require-match' minibuffer.
+COMPLETION-FUNCTION is called if the current buffer's content does not
+appear to be a match."
   (let ((beg (field-beginning))
         (end (field-end)))
     (cond
@@ -1239,15 +1271,7 @@ If `minibuffer-completion-confirm' is `confirm-after-completion',
 
      (t
       ;; Call do-completion, but ignore errors.
-      (pcase (condition-case nil
-                (completion--do-completion nil 'expect-exact)
-              (error 1))
-        ((or #b001 #b011) (exit-minibuffer))
-        (#b111 (if (not minibuffer-completion-confirm)
-                   (exit-minibuffer)
-                 (minibuffer-message "Confirm")
-                 nil))
-        (_ nil))))))
+      (funcall completion-function)))))
 
 (defun completion--try-word-completion (string table predicate point md)
   (let ((comp (completion-try-completion string table predicate point md)))
