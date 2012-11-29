@@ -1,3 +1,14 @@
+2012-11-29  Dmitry Antipov  <dmantipov@yandex.ru>
+
+	* xdisp.c (window_outdated): Remove eassert since it hits
+	some suspicious corner cases (see Bug#13007 and Bug#13012).
+	(mode_line_update_needed): New function.
+	(redisplay_internal, redisplay_window): Use it.
+	(ensure_selected_frame): New function.
+	(redisplay_internal, unwind_redisplay): Use it.
+	(redisplay_internal): Move comment about buffer_shared...
+	(buffer_shared_and_changed): ...near to its real use.
+
 2012-11-29  Paul Eggert  <eggert@cs.ucla.edu>
 
 	* callproc.c (Fcall_process): Don't misreport vfork failure.
