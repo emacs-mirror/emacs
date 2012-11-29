@@ -4012,7 +4012,8 @@ run `deactivate-mark-hook'."
   (when (mark t)
     (setq mark-active t)
     (unless transient-mark-mode
-      (setq transient-mark-mode 'lambda))))
+      (setq transient-mark-mode 'lambda))
+    (run-hooks 'activate-mark-hook)))
 
 (defun set-mark (pos)
   "Set this buffer's mark to POS.  Don't use this function!
