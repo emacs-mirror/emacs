@@ -1,5 +1,8 @@
 2012-11-29  Glenn Morris  <rgm@gnu.org>
 
+	* files.el (hack-dir-local-variables): Warn if try to set
+	coding via dir-locals, since it doesn't work.  (Bug#7169)
+
 	Add desktop support for restoring vc-dir buffers.  (Bug#10606)
 	* vc/vc-dir.el (vc-dir-mode): Autoload it (for desktop restore).
 	Set buffer-local value of desktop-save-buffer.

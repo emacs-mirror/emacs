@@ -3682,10 +3682,13 @@ and `file-local-variables-alist', without applying them."
 		(dir-locals-get-class-variables class) dir-name nil)))
 	  (when variables
 	    (dolist (elt variables)
-	      (unless (memq (car elt) '(eval mode))
-		(setq dir-local-variables-alist
-		      (assq-delete-all (car elt) dir-local-variables-alist)))
-	      (push elt dir-local-variables-alist))
+	      (if (eq (car elt) 'coding)
+		  (display-warning :warning
+				   "Coding cannot be specified by dir-locals")
+		(unless (memq (car elt) '(eval mode))
+		  (setq dir-local-variables-alist
+			(assq-delete-all (car elt) dir-local-variables-alist)))
+		(push elt dir-local-variables-alist)))
 	    (hack-local-variables-filter variables dir-name)))))))
 
 (defun hack-dir-local-variables-non-file-buffer ()
