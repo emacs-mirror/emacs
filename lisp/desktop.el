@@ -825,7 +825,7 @@ MODE is the major mode.
          (or (and filename
 		  (stringp desktop-files-not-to-save)
                   (not (string-match desktop-files-not-to-save filename)))
-             (and (eq mode 'dired-mode)
+             (and (memq mode '(dired-mode vc-dir-mode))
                   (with-current-buffer bufname
                     (not (setq dired-skip
                                (string-match desktop-files-not-to-save

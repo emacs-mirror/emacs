@@ -1,5 +1,13 @@
 2012-11-29  Glenn Morris  <rgm@gnu.org>
 
+	Add desktop support for restoring vc-dir buffers.  (Bug#10606)
+	* vc/vc-dir.el (vc-dir-mode): Autoload it (for desktop restore).
+	Set buffer-local value of desktop-save-buffer.
+	(vc-dir-desktop-buffer-misc-data, vc-dir-restore-desktop-buffer):
+	New functions.
+	(desktop-buffer-mode-handlers): Add vc-dir-mode entry.
+	* desktop.el (desktop-save-buffer-p): Treat vc-dir like dired.
+
 	* files.el (inhibit-local-variables-ignore-case): New.  (Bug#10610)
 	(inhibit-local-variables-p): Use inhibit-local-variables-ignore-case.
 	Doc fix.
