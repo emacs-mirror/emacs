@@ -29,10 +29,6 @@ so we will look at it and add it to the manual.
 
 * Changes in Specialized Modes and Packages in Emacs 24.4
 
-** Icomplete is a bit more like IDO.
-*** key bindings to navigate through and select the completions.
-*** The icomplete-separator is customizable, and its default has changed.
-*** Removed icomplete-show-key-bindings.
 ** Calc
 
 *** Calc by default now uses the Gregorian calendar for all dates, and
@@ -46,6 +42,17 @@ date when Calc switches from the Julian to the Gregorian calendar.
 Nil, the default value, means to always use the Gregorian calendar.
 The value (YEAR MONTH DAY) means to start using the Gregorian calendar
 on the given date.
+
+** ERC
+
+*** New option `erc-accidental-paste-threshold-seconds'.
+If set to a number, this can be used to avoid accidentally paste large
+amounts of data into the ERC input.
+
+** Icomplete is a bit more like IDO.
+*** key bindings to navigate through and select the completions.
+*** The icomplete-separator is customizable, and its default has changed.
+*** Removed icomplete-show-key-bindings.
 
 ** MH-E has been updated to MH-E version 8.4.
 See MH-E-NEWS for details.

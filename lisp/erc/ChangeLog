@@ -1,3 +1,14 @@
+2012-11-30  Eric Hanchrow  <eric.hanchrow@gmail.com>
+
+	* erc.el (erc-last-input-time): New variable.
+	(erc-accidental-paste-threshold-seconds): New option to avoid
+	sending accidentally-pasted text to the server (Bug#11592).
+	(erc-send-current-line): Use it.
+
+2012-11-30  Chong Yidong  <cyd@gnu.org>
+
+	* erc.el (erc-lurker-cleanup, erc-lurker-p): Use float-time.
+
 2012-11-23  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* erc-backend.el: Fix last change that missed calls to `second'

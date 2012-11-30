@@ -2534,9 +2534,9 @@ consumption for long-lived IRC or Emacs sessions."
      (maphash
       (lambda (nick last-PRIVMSG-time)
 	(when
-	    (> (time-to-seconds (time-subtract
-				 (current-time)
-				 last-PRIVMSG-time))
+	    (> (float-time (time-subtract
+			    (current-time)
+			    last-PRIVMSG-time))
 	       erc-lurker-threshold-time)
 	  (remhash nick hash)))
       hash)
@@ -2602,7 +2602,7 @@ server within `erc-lurker-threshold-time'.  See also
 	    (gethash (erc-lurker-maybe-trim nick)
 		     (gethash server erc-lurker-state (make-hash-table)))))
       (or (null last-PRIVMSG-time)
-	  (> (time-to-seconds
+	  (> (float-time
 	      (time-subtract (current-time) last-PRIVMSG-time))
            erc-lurker-threshold-time))))
 
@@ -5215,42 +5215,65 @@ Specifically, return the position of `erc-insert-marker'."
   "Return the value of `point' at the end of the input line."
   (point-max))
 
+(defvar erc-last-input-time 0
+  "Time of last call to `erc-send-current-line'.
+If that function has never been called, the value is 0.")
+
+(defcustom erc-accidental-paste-threshold-seconds nil
+  "Minimum time, in seconds, before sending new lines via IRC.
+If the value is a number, `erc-send-current-line' signals an
+error if its previous invocation was less than this much time
+ago.  This is useful so that if you accidentally enter large
+amounts of text into the ERC buffer, that text is not sent to the
+IRC server.
+
+If the value is nil, `erc-send-current-line' always considers any
+submitted line to be intentional."
+  :group 'erc
+  :type '(choice number (other :tag "disabled" nil)))
+
 (defun erc-send-current-line ()
   "Parse current line and send it to IRC."
   (interactive)
-  (save-restriction
-    (widen)
-    (if (< (point) (erc-beg-of-input-line))
-	(erc-error "Point is not in the input area")
-      (let ((inhibit-read-only t)
-	    (str (erc-user-input))
-	    (old-buf (current-buffer)))
-	(if (and (not (erc-server-buffer-live-p))
-		 (not (erc-command-no-process-p str)))
-	    (erc-error "ERC: No process running")
-	  (erc-set-active-buffer (current-buffer))
+  (let ((now (float-time)))
+    (if (or (not erc-accidental-paste-threshold-seconds)
+	    (< erc-accidental-paste-threshold-seconds
+	       (- now erc-last-input-time)))
+	(save-restriction
+	  (widen)
+	  (if (< (point) (erc-beg-of-input-line))
+	      (erc-error "Point is not in the input area")
+	    (let ((inhibit-read-only t)
+		  (str (erc-user-input))
+		  (old-buf (current-buffer)))
+	      (if (and (not (erc-server-buffer-live-p))
+		       (not (erc-command-no-process-p str)))
+		  (erc-error "ERC: No process running")
+		(erc-set-active-buffer (current-buffer))
+		;; Kill the input and the prompt
+		(delete-region (erc-beg-of-input-line)
+			       (erc-end-of-input-line))
+		(unwind-protect
+		    (erc-send-input str)
+		  ;; Fix the buffer if the command didn't kill it
+		  (when (buffer-live-p old-buf)
+		    (with-current-buffer old-buf
+		      (save-restriction
+			(widen)
+			(goto-char (point-max))
+			(when (processp erc-server-process)
+			  (set-marker (process-mark erc-server-process) (point)))
+			(set-marker erc-insert-marker (point))
+			(let ((buffer-modified (buffer-modified-p)))
+			  (erc-display-prompt)
+			  (set-buffer-modified-p buffer-modified))))))
 
-	  ;; Kill the input and the prompt
-	  (delete-region (erc-beg-of-input-line)
-			 (erc-end-of-input-line))
-
-	  (unwind-protect
-	      (erc-send-input str)
-	    ;; Fix the buffer if the command didn't kill it
-	    (when (buffer-live-p old-buf)
-	      (with-current-buffer old-buf
-		(save-restriction
-		  (widen)
-		  (goto-char (point-max))
-		  (when (processp erc-server-process)
-		    (set-marker (process-mark erc-server-process) (point)))
-		  (set-marker erc-insert-marker (point))
-		  (let ((buffer-modified (buffer-modified-p)))
-		    (erc-display-prompt)
-		    (set-buffer-modified-p buffer-modified))))))
-
-	  ;; Only when last hook has been run...
-	  (run-hook-with-args 'erc-send-completed-hook str))))))
+		;; Only when last hook has been run...
+		(run-hook-with-args 'erc-send-completed-hook str))))
+	  (setq erc-last-input-time now))
+      (switch-to-buffer "*ERC Accidental Paste Overflow*")
+      (lwarn 'erc :warning
+	     "You seem to have accidentally pasted some text!"))))
 
 (defun erc-user-input ()
   "Return the input of the user in the current buffer."
