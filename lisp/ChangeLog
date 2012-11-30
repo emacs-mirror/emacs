@@ -1,3 +1,8 @@
+2012-11-30  Toru TSUNEYOSHI  <t_tuneyosi@hotmail.com>
+
+	* textmodes/fill.el (fill-region-as-paragraph): Handle overshoot
+	by move-to-column (Bug#3234).
+
 2012-11-30  Chong Yidong  <cyd@gnu.org>
 
 	* longlines.el (longlines-wrap-line, longlines-encode-region):
