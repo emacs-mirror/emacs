@@ -5230,6 +5230,7 @@ IRC server.
 If the value is nil, `erc-send-current-line' always considers any
 submitted line to be intentional."
   :group 'erc
+  :version "24.4"
   :type '(choice number (other :tag "disabled" nil)))
 
 (defun erc-send-current-line ()

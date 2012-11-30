@@ -74,7 +74,7 @@
 (defcustom icomplete-separator " | "
   "String used by icomplete to separate alternatives in the minibuffer."
   :type 'string
-  :version "24.3")
+  :version "24.4")
 
 ;;;_* User Customization variables
 (defcustom icomplete-prospects-height

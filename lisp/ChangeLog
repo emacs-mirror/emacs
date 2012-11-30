@@ -1,3 +1,7 @@
+2012-11-30  Glenn Morris  <rgm@gnu.org>
+
+	* icomplete.el (icomplete-separator): Fix :version.
+
 2012-11-30  Chong Yidong  <cyd@gnu.org>
 
 	* shell.el (shell): For C-u M-x shell, use an inactive shell
