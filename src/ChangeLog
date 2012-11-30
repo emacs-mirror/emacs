@@ -1,3 +1,8 @@
+2012-11-30  Juanma Barranquero  <lekktu@gmail.com>
+
+	* doc.c (Fdocumentation): Re-add handling of function-documentation,
+	accidentally removed in revno:110851 (bug#13034).
+
 2012-11-29  Dmitry Antipov  <dmantipov@yandex.ru>
 
 	* xdisp.c (window_outdated): Remove eassert since it hits
