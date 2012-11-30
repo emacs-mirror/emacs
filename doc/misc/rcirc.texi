@@ -764,7 +764,7 @@ You can control which notices get omitted via the
 omit away messages:
 
 @example
-(setq rcirc-omit-responses '("JOIN" "PART" "QUIT" "NICK" "AWAY))
+(setq rcirc-omit-responses '("JOIN" "PART" "QUIT" "NICK" "AWAY"))
 @end example
 
 @vindex rcirc-omit-threshold

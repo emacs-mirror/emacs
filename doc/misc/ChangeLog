@@ -1,3 +1,7 @@
+2012-11-30  Glenn Morris  <rgm@gnu.org>
+
+	* rcirc.texi (Notices): Fix typo.
+
 2012-11-20  Michael Albinus  <michael.albinus@gmx.de>
 
 	* trampver.texi: Downgrade version to 2.2.6-24.3, in order to
