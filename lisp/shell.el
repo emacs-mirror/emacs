@@ -671,7 +671,12 @@ Otherwise, one argument `-i' is passed to the shell.
     (and current-prefix-arg
 	 (prog1
 	     (read-buffer "Shell buffer: "
-			  (generate-new-buffer-name "*shell*"))
+			  ;; If the current buffer is an inactive
+			  ;; shell buffer, use it as the default.
+			  (if (and (eq major-mode 'shell-mode)
+				   (null (get-buffer-process (current-buffer))))
+			      (buffer-name)
+			    (generate-new-buffer-name "*shell*")))
 	   (if (file-remote-p default-directory)
 	       ;; It must be possible to declare a local default-directory.
                ;; FIXME: This can't be right: it changes the default-directory

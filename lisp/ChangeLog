@@ -1,3 +1,8 @@
+2012-11-30  Chong Yidong  <cyd@gnu.org>
+
+	* shell.el (shell): For C-u M-x shell, use an inactive shell
+	buffer as the default (Bug#1975).
+
 2012-11-30  Yuriy Vostrikov  <delamonpansie@gmail.com>  (tiny change)
 
 	* vc/vc-git.el (vc-git-command): Disable the pager (Bug#6137).
