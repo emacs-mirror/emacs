@@ -2,6 +2,9 @@
 
 	* shell.el (shell): For C-u M-x shell, use an inactive shell
 	buffer as the default (Bug#1975).
+	(shell-apply-ansi-color, shell-reapply-ansi-color): New functions.
+	(shell-mode): Use them to reapply ansi colorization if Shell mode
+	is re-enabled.
 
 2012-11-30  Yuriy Vostrikov  <delamonpansie@gmail.com>  (tiny change)
 

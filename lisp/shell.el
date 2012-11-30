@@ -561,10 +561,8 @@ buffer."
   ;; very inefficient in Shell buffers (e.g. Bug#10835).  We use a
   ;; custom `ansi-color-apply-face-function' to convert color escape
   ;; sequences into `font-lock-face' properties.
-  (set (make-local-variable 'ansi-color-apply-face-function)
-       (lambda (beg end face)
-	 (when face
-	   (put-text-property beg end 'font-lock-face face))))
+  (setq-local ansi-color-apply-face-function #'shell-apply-ansi-color)
+  (shell-reapply-ansi-color)
 
   ;; This is not really correct, since the shell buffer does not really
   ;; edit this directory.  But it is useful in the buffer list and menus.
@@ -602,6 +600,27 @@ buffer."
         (add-hook 'comint-preoutput-filter-functions
                   'shell-filter-ctrl-a-ctrl-b nil t)))
     (comint-read-input-ring t)))
+
+(defun shell-apply-ansi-color (beg end face)
+  "Apply FACE as the ansi-color face for the text between BEG and END."
+  (when face
+    (put-text-property beg end 'ansi-color-face face)
+    (put-text-property beg end 'font-lock-face face)))
+
+(defun shell-reapply-ansi-color ()
+  "Reapply ansi-color faces to the existing contents of the buffer."
+  (save-restriction
+    (widen)
+    (let* ((pos (point-min))
+	   (end (or (next-single-property-change pos 'ansi-color-face)
+		    (point-max)))
+	   face)
+      (while end
+	(if (setq face (get-text-property pos 'ansi-color-face))
+	    (put-text-property pos (or end (point-max))
+			       'font-lock-face face))
+	(setq pos end
+	      end (next-single-property-change pos 'ansi-color-face))))))
 
 (defun shell-filter-ctrl-a-ctrl-b (string)
   "Remove `^A' and `^B' characters from comint output.
