@@ -10888,8 +10888,8 @@ echo_area_display (int update_frame_p)
   return window_height_changed_p;
 }
 
-/* Nonzero if the current buffer is shown in more than
-   one window and was modified since last display.  */
+/* Nonzero if the current window's buffer is shown in more than one
+   window and was modified since last redisplay.  */
 
 static int
 buffer_shared_and_changed (void)
