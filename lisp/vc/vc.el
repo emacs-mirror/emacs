@@ -1271,12 +1271,10 @@ first backend that could register the file is used."
     ;; many VCS allow that as well.
     (dolist (fname files)
       (let ((bname (get-file-buffer fname)))
-	(unless fname (setq fname buffer-file-name))
-	(when (vc-backend fname)
-	  (if (vc-registered fname)
-	      (error "This file is already registered")
-	    (unless (y-or-n-p "Previous master file has vanished.  Make a new one? ")
-	      (error "Aborted"))))
+	(unless fname
+	  (setq fname buffer-file-name))
+	(when (vc-call-backend backend 'registered fname)
+	  (error "This file is already registered"))
 	;; Watch out for new buffers of size 0: the corresponding file
 	;; does not exist yet, even though buffer-modified-p is nil.
 	(when bname
