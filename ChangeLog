@@ -1,3 +1,25 @@
+2012-11-30  Paul Eggert  <eggert@cs.ucla.edu>
+
+	Merge from gnulib for 'inline' (Bug#13040), incorporating:
+	2012-11-29 snippet/warn-on-use: no 'static inline'
+	2012-11-29 ftruncate, fts, lstat, openat, raise: no 'static inline'
+	2012-11-29 arctwo, md4, md5, sha1, sha256, sha512: no 'static inline'
+	2012-11-29 fflush, stat: no 'static inline'
+	2012-11-29 stdio: better 'inline'
+	2012-11-29 sys_stat: no 'static inline'
+	2012-11-29 unistd: better 'inline'
+	2012-11-29 c-strtod, memcoll, readutmp: no 'static inline'
+	2012-11-29 extern-inline: no 'static inline'
+	2012-11-29 sys_socket: better 'inline'
+	* lib/stdio.c, lib/unistd.c: New files, from gnulib.
+	* build-aux/snippet/warn-on-use.h, lib/gnulib.mk, lib/lstat.c:
+	* lib/md5.c, lib/sha1.c, lib/sha256.c, lib/sha512.c, lib/stat.c:
+	* lib/stdio.in.h, lib/sys_stat.in.h, lib/unistd.in.h, m4/c-strtod.m4:
+	* m4/extern-inline.m4, m4/gnulib-comp.m4, m4/lstat.m4, m4/md5.m4:
+	* m4/sha1.m4, m4/sha256.m4, m4/sha512.m4, m4/stat.m4, m4/stdio_h.m4:
+	* m4/sys_socket_h.m4, m4/sys_stat_h.m4, m4/unistd_h.m4:
+	Update from gnulib.
+
 2012-11-27  Eli Zaretskii  <eliz@gnu.org>
 
 	* make-dist (nt): Adjust to changes in names of the *.manifest files.

@@ -690,6 +690,7 @@ AC_DEFUN([gl_FILE_LIST], [
   lib/stdbool.in.h
   lib/stddef.in.h
   lib/stdint.in.h
+  lib/stdio.c
   lib/stdio.in.h
   lib/stdlib.in.h
   lib/strftime.c
@@ -712,6 +713,7 @@ AC_DEFUN([gl_FILE_LIST], [
   lib/timespec.h
   lib/u64.c
   lib/u64.h
+  lib/unistd.c
   lib/unistd.in.h
   lib/utimens.c
   lib/utimens.h

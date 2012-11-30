@@ -46,6 +46,11 @@
 #ifndef _@GUARD_PREFIX@_STDIO_H
 #define _@GUARD_PREFIX@_STDIO_H
 
+_GL_INLINE_HEADER_BEGIN
+#ifndef _GL_STDIO_INLINE
+# define _GL_STDIO_INLINE _GL_INLINE
+#endif
+
 /* Get va_list.  Needed on many systems, including glibc 2.8.  */
 #include <stdarg.h>
 
@@ -581,7 +586,7 @@ _GL_CXXALIAS_SYS (fwrite, size_t,
    This affects only function declaration attributes, so it's not
    needed for C++.  */
 #  if !defined __cplusplus && 0 < __USE_FORTIFY_LEVEL
-static inline size_t _GL_ARG_NONNULL ((1, 4))
+_GL_STDIO_INLINE size_t _GL_ARG_NONNULL ((1, 4))
 rpl_fwrite (const void *ptr, size_t s, size_t n, FILE *stream)
 {
   size_t r = fwrite (ptr, s, n, stream);
@@ -1333,6 +1338,7 @@ _GL_WARN_ON_USE (vsprintf, "vsprintf is not always POSIX compliant - "
                       "POSIX compliance");
 #endif
 
+_GL_INLINE_HEADER_END
 
 #endif /* _@GUARD_PREFIX@_STDIO_H */
 #endif /* _@GUARD_PREFIX@_STDIO_H */

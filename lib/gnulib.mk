@@ -756,6 +756,7 @@ EXTRA_DIST += stdint.in.h
 ## begin gnulib module stdio
 
 BUILT_SOURCES += stdio.h
+libgnu_a_SOURCES += stdio.c
 
 # We need the following in order to create <stdio.h> when the system
 # doesn't have one that works with the given compiler.
@@ -1251,6 +1252,7 @@ EXTRA_DIST += u64.h
 ## begin gnulib module unistd
 
 BUILT_SOURCES += unistd.h
+libgnu_a_SOURCES += unistd.c
 
 # We need the following in order to create an empty placeholder for
 # <unistd.h> when the system doesn't have one.

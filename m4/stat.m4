@@ -1,4 +1,4 @@
-# serial 10
+# serial 11
 
 # Copyright (C) 2009-2012 Free Software Foundation, Inc.
 #
@@ -68,8 +68,4 @@ AC_DEFUN([gl_FUNC_STAT],
 ])
 
 # Prerequisites of lib/stat.c.
-AC_DEFUN([gl_PREREQ_STAT],
-[
-  AC_REQUIRE([AC_C_INLINE])
-  :
-])
+AC_DEFUN([gl_PREREQ_STAT], [:])

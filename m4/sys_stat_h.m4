@@ -1,4 +1,4 @@
-# sys_stat_h.m4 serial 27   -*- Autoconf -*-
+# sys_stat_h.m4 serial 28   -*- Autoconf -*-
 dnl Copyright (C) 2006-2012 Free Software Foundation, Inc.
 dnl This file is free software; the Free Software Foundation
 dnl gives unlimited permission to copy and/or distribute it,
@@ -10,9 +10,6 @@ dnl Provide a GNU-like <sys/stat.h>.
 AC_DEFUN([gl_HEADER_SYS_STAT_H],
 [
   AC_REQUIRE([gl_SYS_STAT_H_DEFAULTS])
-
-  dnl For the mkdir substitute.
-  AC_REQUIRE([AC_C_INLINE])
 
   dnl Check for broken stat macros.
   AC_REQUIRE([AC_HEADER_STAT])
