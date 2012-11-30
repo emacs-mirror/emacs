@@ -1,3 +1,7 @@
+2012-11-30  Yuriy Vostrikov  <delamonpansie@gmail.com>  (tiny change)
+
+	* vc/vc-git.el (vc-git-command): Disable the pager (Bug#6137).
+
 2012-11-30  Samuel Bronson  <naesten@gmail.com>
 
 	* progmodes/grep.el (grep-compute-defaults): Do not pass the -e
