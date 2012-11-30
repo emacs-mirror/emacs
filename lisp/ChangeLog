@@ -1,3 +1,8 @@
+2012-11-30  Chong Yidong  <cyd@gnu.org>
+
+	* longlines.el (longlines-wrap-line, longlines-encode-region):
+	Preserve text properties (Bug#1425).
+
 2012-11-30  OKAZAKI Tetsurou  <okazaki.tetsurou@gmail.com>  (tiny change)
 
 	* vc/vc.el (vc-register): Allow registering a file which is
