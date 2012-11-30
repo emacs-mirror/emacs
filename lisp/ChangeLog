@@ -1,3 +1,8 @@
+2012-11-30  Samuel Bronson  <naesten@gmail.com>
+
+	* progmodes/grep.el (grep-compute-defaults): Do not pass the -e
+	flag to xargs, for compatibility with BSD xargs (Bug#11703).
+
 2012-11-30  Toru TSUNEYOSHI  <t_tuneyosi@hotmail.com>
 
 	* textmodes/fill.el (fill-region-as-paragraph): Handle overshoot
@@ -11610,7 +11615,7 @@
 	* dynamic-setting.el (font-setting-change-default-font): Don't
 	change the default face if SET-FONT argument is non-nil (Bug#9982).
 
-2012-01-29  Samuel Bronson  <naesten@gmail.com>  (tiny change)
+2012-01-29  Samuel Bronson  <naesten@gmail.com>
 
 	* custom.el (defcustom): Add doc link to Lisp manual (Bug#10635).
 
