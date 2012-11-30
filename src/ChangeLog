@@ -1,3 +1,17 @@
+2012-11-30  Fabrice Popineau  <fabrice.popineau@gmail.com>
+
+	* w32fns.c: Remove prototype of atof.
+	(syspage_mask): Declared DWORD_PTR, for compatibility with 64-bit
+	builds.
+	(file_dialog_callback): Declared UINT_PTR.
+
+	* w32common.h (syspage_mask): Declare DWORD_PTR, for compatibility
+	with 64-bit builds.
+
+	* w32.c (FILE_DEVICE_FILE_SYSTEM, METHOD_BUFFERED)
+	(FILE_ANY_ACCESS, CTL_CODE) [_MSC_VER]: Define only if not already
+	defined.
+
 2012-11-27  Glenn Morris  <rgm@gnu.org>
 
 	* data.c (Fboundp, Fsymbol_value): Doc fix re lexical-binding.
