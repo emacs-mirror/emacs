@@ -1738,8 +1738,8 @@ w32_draw_relief_rect (struct frame *f,
   if (left_p)
     for (i = 0; i < width; ++i)
       w32_fill_area (f, hdc, gc.foreground,
-		     left_x + i, top_y + i, 1,
-		     bottom_y - top_y - 2 * i + 1);
+		     left_x + i, top_y + (i + 1) * top_p, 1,
+		     bottom_y - top_y - (i + 1) * (bot_p + top_p) + 1);
 
   if (raised_p)
     gc.foreground = f->output_data.w32->black_relief.gc->foreground;
@@ -1757,8 +1757,8 @@ w32_draw_relief_rect (struct frame *f,
   if (right_p)
     for (i = 0; i < width; ++i)
       w32_fill_area (f, hdc, gc.foreground,
-		     right_x - i, top_y + i + 1, 1,
-		     bottom_y - top_y - 2 * i - 1);
+		     right_x - i, top_y + (i + 1) * top_p, 1,
+		     bottom_y - top_y - (i + 1) * (bot_p + top_p) + 1);
 
   w32_set_clip_rectangle (hdc, NULL);
 
@@ -1952,7 +1952,7 @@ x_draw_image_foreground (struct glyph_string *s)
 static void
 x_draw_image_relief (struct glyph_string *s)
 {
-  int x0, y0, x1, y1, thick, raised_p;
+  int x1, y1, thick, raised_p, top_p, bot_p, left_p, right_p;
   RECT r;
   int x = s->x;
   int y = s->ybase - image_ascent (s->img, s->face, &s->slice);
@@ -1984,19 +1984,23 @@ x_draw_image_relief (struct glyph_string *s)
       raised_p = s->img->relief > 0;
     }
 
-  x0 = x - thick;
-  y0 = y - thick;
-  x1 = x + s->slice.width + thick - 1;
-  y1 = y + s->slice.height + thick - 1;
+  x1 = x + s->slice.width - 1;
+  y1 = y + s->slice.height - 1;
+  top_p = bot_p = left_p = right_p = 0;
+
+  if (s->slice.x == 0)
+    x -= thick, left_p = 1;
+  if (s->slice.y == 0)
+    y -= thick, top_p = 1;
+  if (s->slice.x + s->slice.width == s->img->width)
+    x1 += thick, right_p = 1;
+  if (s->slice.y + s->slice.height == s->img->height)
+    y1 += thick, bot_p = 1;
 
   x_setup_relief_colors (s);
   get_glyph_string_clip_rect (s, &r);
-  w32_draw_relief_rect (s->f, x0, y0, x1, y1, thick, raised_p,
-			s->slice.y == 0,
-			s->slice.y + s->slice.height == s->img->height,
-			s->slice.x == 0,
-			s->slice.x + s->slice.width == s->img->width,
-			&r);
+  w32_draw_relief_rect (s->f, x, y, x1, y1, thick, raised_p,
+			top_p, bot_p, left_p, right_p, &r);
 }
 
 

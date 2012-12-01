@@ -1,3 +1,10 @@
+2012-12-01  YAMAMOTO Mitsuharu  <mituharu@math.s.chiba-u.ac.jp>
+
+	* xterm.c (x_draw_relief_rect, x_draw_image_relief): Fix relief
+	display for sliced images (Bug#10500).
+
+	* w32term.c (w32_draw_relief_rect, x_draw_image_relief): Likewise.
+
 2012-11-30  Juanma Barranquero  <lekktu@gmail.com>
 
 	* doc.c (Fdocumentation): Re-add handling of function-documentation,
