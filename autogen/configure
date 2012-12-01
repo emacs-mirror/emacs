@@ -16549,48 +16549,6 @@ $as_echo "#define AC_APPLE_UNIVERSAL_BUILD 1" >>confdefs.h
  esac
 
 
-{ $as_echo "$as_me:${as_lineno-$LINENO}: checking for inline" >&5
-$as_echo_n "checking for inline... " >&6; }
-if test "${ac_cv_c_inline+set}" = set; then :
-  $as_echo_n "(cached) " >&6
-else
-  ac_cv_c_inline=no
-for ac_kw in inline __inline__ __inline; do
-  cat confdefs.h - <<_ACEOF >conftest.$ac_ext
-/* end confdefs.h.  */
-#ifndef __cplusplus
-typedef int foo_t;
-static $ac_kw foo_t static_foo () {return 0; }
-$ac_kw foo_t foo () {return 0; }
-#endif
-
-_ACEOF
-if ac_fn_c_try_compile "$LINENO"; then :
-  ac_cv_c_inline=$ac_kw
-fi
-rm -f core conftest.err conftest.$ac_objext conftest.$ac_ext
-  test "$ac_cv_c_inline" != no && break
-done
-
-fi
-{ $as_echo "$as_me:${as_lineno-$LINENO}: result: $ac_cv_c_inline" >&5
-$as_echo "$ac_cv_c_inline" >&6; }
-
-case $ac_cv_c_inline in
-  inline | yes) ;;
-  *)
-    case $ac_cv_c_inline in
-      no) ac_val=;;
-      *) ac_val=$ac_cv_c_inline;;
-    esac
-    cat >>confdefs.h <<_ACEOF
-#ifndef __cplusplus
-#define inline $ac_val
-#endif
-_ACEOF
-    ;;
-esac
-
 
   { $as_echo "$as_me:${as_lineno-$LINENO}: checking whether strtold conforms to C99" >&5
 $as_echo_n "checking whether strtold conforms to C99... " >&6; }
@@ -16808,7 +16766,6 @@ $as_echo "#define HAVE_ENVIRON_DECL 1" >>confdefs.h
   if test $gt_cv_var_environ_declaration != yes; then
     HAVE_DECL_ENVIRON=0
   fi
-
 
 
 
@@ -20408,15 +20365,11 @@ _ACEOF
 
 
 
-
   :
 
 
 
-
   :
-
-
 
 
 
@@ -21736,10 +21689,7 @@ done
 
   gl_LIBOBJS="$gl_LIBOBJS lstat.$ac_objext"
 
-
-
-  :
-
+    :
   fi
 
 
@@ -23282,7 +23232,6 @@ $as_echo "$gl_cv_next_stddef_h" >&6; }
 
 
 
-
      if test $gl_cv_have_include_next = yes; then
        gl_cv_next_stdio_h='<'stdio.h'>'
      else
@@ -23926,8 +23875,6 @@ done
 
 
 
-
-
      if test $gl_cv_have_include_next = yes; then
        gl_cv_next_sys_stat_h='<'sys/stat.h'>'
      else
@@ -24219,7 +24166,6 @@ done
   LIBS=$gl_saved_libs
 
   :
-
 
 
 
@@ -25043,10 +24989,7 @@ $as_echo "#define REPLACE_FUNC_STAT_FILE 1" >>confdefs.h
 
   gl_LIBOBJS="$gl_LIBOBJS stat.$ac_objext"
 
-
-
-  :
-
+        :
       fi
 
 

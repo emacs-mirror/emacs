@@ -1535,8 +1535,8 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 # endif
 # define _GL_EXTERN_INLINE extern
 #else
-# define _GL_INLINE static inline
-# define _GL_EXTERN_INLINE static inline
+# define _GL_INLINE static
+# define _GL_EXTERN_INLINE static
 #endif
 
 #if 4 < __GNUC__ + (6 <= __GNUC_MINOR__)
@@ -1563,12 +1563,6 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 
 /* Define to rpl_gmtime if the replacement function should be used. */
 #undef gmtime
-
-/* Define to `__inline__' or `__inline' if that's what the C compiler
-   calls it, or to nothing if 'inline' is not supported under any name.  */
-#ifndef __cplusplus
-#undef inline
-#endif
 
 /* Work around a bug in Apple GCC 4.0.1 build 5465: In C99 mode, it supports
    the ISO C 99 semantics of 'extern inline' (unlike the GNU C semantics of

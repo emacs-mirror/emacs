@@ -118,8 +118,8 @@ am__libgnu_a_SOURCES_DIST = allocator.c c-ctype.h c-ctype.c \
 	c-strcase.h c-strcasecmp.c c-strncasecmp.c careadlinkat.c \
 	close-stream.c md5.c sha1.c sha256.c sha512.c dtoastr.c \
 	dtotimespec.c filemode.c gettext.h gettime.c stat-time.c \
-	strftime.c timespec.c timespec-add.c timespec-sub.c u64.c \
-	utimens.c
+	stdio.c strftime.c timespec.c timespec-add.c timespec-sub.c \
+	u64.c unistd.c utimens.c
 am__objects_1 =
 am_libgnu_a_OBJECTS = allocator.$(OBJEXT) c-ctype.$(OBJEXT) \
 	c-strcasecmp.$(OBJEXT) c-strncasecmp.$(OBJEXT) \
@@ -127,8 +127,9 @@ am_libgnu_a_OBJECTS = allocator.$(OBJEXT) c-ctype.$(OBJEXT) \
 	sha1.$(OBJEXT) sha256.$(OBJEXT) sha512.$(OBJEXT) \
 	dtoastr.$(OBJEXT) dtotimespec.$(OBJEXT) filemode.$(OBJEXT) \
 	$(am__objects_1) gettime.$(OBJEXT) stat-time.$(OBJEXT) \
-	strftime.$(OBJEXT) timespec.$(OBJEXT) timespec-add.$(OBJEXT) \
-	timespec-sub.$(OBJEXT) u64.$(OBJEXT) utimens.$(OBJEXT)
+	stdio.$(OBJEXT) strftime.$(OBJEXT) timespec.$(OBJEXT) \
+	timespec-add.$(OBJEXT) timespec-sub.$(OBJEXT) u64.$(OBJEXT) \
+	unistd.$(OBJEXT) utimens.$(OBJEXT)
 libgnu_a_OBJECTS = $(am_libgnu_a_OBJECTS)
 depcomp = $(SHELL) $(top_srcdir)/build-aux/depcomp
 am__depfiles_maybe = depfiles
@@ -913,8 +914,9 @@ DEFAULT_INCLUDES = -I. -I$(top_srcdir)/lib -I../src -I$(top_srcdir)/src
 libgnu_a_SOURCES = allocator.c c-ctype.h c-ctype.c c-strcase.h \
 	c-strcasecmp.c c-strncasecmp.c careadlinkat.c close-stream.c \
 	md5.c sha1.c sha256.c sha512.c dtoastr.c dtotimespec.c \
-	filemode.c $(am__append_1) gettime.c stat-time.c strftime.c \
-	timespec.c timespec-add.c timespec-sub.c u64.c utimens.c
+	filemode.c $(am__append_1) gettime.c stat-time.c stdio.c \
+	strftime.c timespec.c timespec-add.c timespec-sub.c u64.c \
+	unistd.c utimens.c
 libgnu_a_LIBADD = $(gl_LIBOBJS)
 libgnu_a_DEPENDENCIES = $(gl_LIBOBJS)
 EXTRA_libgnu_a_SOURCES = ftoastr.c dup2.c euidaccess.c execinfo.c \
@@ -1014,6 +1016,7 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/sha512.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/stat-time.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/stat.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/stdio.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/strftime.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/strtoimax.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/strtol.Po@am__quote@
@@ -1027,6 +1030,7 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/timespec-sub.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/timespec.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/u64.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/unistd.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/utimens.Po@am__quote@
 
 .c.o:
