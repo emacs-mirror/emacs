@@ -421,6 +421,16 @@ An alternative value is \" . \", if you use a font with a narrow period."
   (if (looking-at latex-outline-regexp)
       (1+ (or (cdr (assoc (match-string 1) latex-section-alist)) -1))
     1000))
+
+(defun tex-current-defun-name ()
+  "Return the name of the TeX section/paragraph/chapter at point, or nil."
+  (when (re-search-backward
+	 "\\\\\\(sub\\)*\\(section\\|paragraph\\|chapter\\)"
+	 nil t)
+    (goto-char (match-beginning 0))
+    (buffer-substring-no-properties
+     (1+ (point))	; without initial backslash
+     (line-end-position))))
 
 ;;;;
 ;;;; Font-Lock support
@@ -1202,6 +1212,7 @@ Entering SliTeX mode runs the hook `text-mode-hook', then the hook
   ;; A line starting with $$ starts a paragraph,
   ;; but does not separate paragraphs if it has more stuff on it.
   (setq-local paragraph-separate "[ \t]*$\\|[\f\\\\%]\\|[ \t]*\\$\\$[ \t]*$")
+  (setq-local add-log-current-defun-function #'tex-current-defun-name)
   (setq-local comment-start "%")
   (setq-local comment-add 1)
   (setq-local comment-start-skip

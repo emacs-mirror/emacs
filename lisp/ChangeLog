@@ -1,5 +1,37 @@
 2012-12-01  Chong Yidong  <cyd@gnu.org>
 
+	Modularize add-log-current-defun (Bug#2224).
+	Suggested by Jari Aalto.
+
+	* vc/add-log.el (add-log-current-defun-function): Doc fix.
+	(add-log-current-defun): Move mode-specific code to other files.
+	(add-log-lisp-like-modes, add-log-c-like-modes)
+	(add-log-tex-like-modes): Variables deleted.
+
+	* emacs-lisp/lisp-mode.el (lisp-current-defun-name): New.
+	(lisp-mode-variables): Use it.
+
+	* progmodes/cc-mode.el (c-common-init):
+	* progmodes/cperl-mode.el (cperl-mode): Set a value for
+	add-log-current-defun-function.
+
+	* progmodes/m4-mode.el (m4-current-defun-name): New function.
+	(m4-mode): Use it.
+
+	* progmodes/perl-mode.el (perl-current-defun-name): New.
+	(perl-mode): Use it.
+
+	* progmodes/scheme.el (scheme-mode-variables, dsssl-mode): Use
+	lisp-current-defun-name.
+
+	* textmodes/tex-mode.el (tex-current-defun-name): New.
+	(tex-common-initialization): Use it.
+
+	* textmodes/texinfo.el (texinfo-current-defun-name): New.
+	(texinfo-mode): Use it.
+
+2012-12-01  Chong Yidong  <cyd@gnu.org>
+
 	* emacs-lisp/lisp-mode.el (lisp-mode-variables, lisp-mode):
 	* progmodes/autoconf.el (autoconf-mode):
 	* progmodes/js.el (js-mode):

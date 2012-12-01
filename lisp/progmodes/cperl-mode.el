@@ -1742,6 +1742,12 @@ or as help on variables `cperl-tips', `cperl-problems',
   (setq outline-regexp cperl-outline-regexp)
   (make-local-variable 'outline-level)
   (setq outline-level 'cperl-outline-level)
+  (make-local-variable 'add-log-current-defun-function)
+  (setq add-log-current-defun-function
+	(lambda ()
+	  (if (re-search-backward "^sub[ \t]+\\([^({ \t\n]+\\)" nil t)
+	      (match-string-no-properties 1))))
+
   (make-local-variable 'paragraph-start)
   (setq paragraph-start (concat "^$\\|" page-delimiter))
   (make-local-variable 'paragraph-separate)

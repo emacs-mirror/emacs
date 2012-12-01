@@ -511,6 +511,11 @@ Subexpression 1 is what goes into the corresponding `@end' statement.")
   (regexp-opt (texinfo-filter 2 texinfo-section-list))
   "Regular expression matching just the Texinfo chapter level headings.")
 
+(defun texinfo-current-defun-name ()
+  "Return the name of the Texinfo node at point, or nil."
+  (if (re-search-backward "^@node[ \t]+\\([^,\n]+\\)" nil t)
+      (match-string-no-properties 1)))
+
 ;;; Texinfo mode
 
 ;;;###autoload
@@ -587,8 +592,10 @@ value of `texinfo-mode-hook'."
   (setq-local require-final-newline mode-require-final-newline)
   (setq-local indent-tabs-mode nil)
   (setq-local paragraph-separate
-	      (concat "\b\\|@[a-zA-Z]*[ \n]\\|" paragraph-separate))
-  (setq-local paragraph-start (concat "\b\\|@[a-zA-Z]*[ \n]\\|" paragraph-start))
+	      (concat "\b\\|@[a-zA-Z]*[ \n]\\|"
+		      paragraph-separate))
+  (setq-local paragraph-start (concat "\b\\|@[a-zA-Z]*[ \n]\\|"
+				      paragraph-start))
   (setq-local sentence-end-base "\\(@\\(end\\)?dots{}\\|[.?!]\\)[]\"'”)}]*")
   (setq-local fill-column 70)
   (setq-local comment-start "@c ")
@@ -600,6 +607,7 @@ value of `texinfo-mode-hook'."
 	'(texinfo-font-lock-keywords nil nil nil backward-paragraph))
   (setq-local syntax-propertize-function texinfo-syntax-propertize-function)
   (setq-local parse-sexp-lookup-properties t)
+  (setq-local add-log-current-defun-function #'texinfo-current-defun-name)
 
   ;; Outline settings.
   (setq-local outline-heading-alist

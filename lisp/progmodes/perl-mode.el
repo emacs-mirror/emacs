@@ -578,6 +578,11 @@ create a new comment."
    ((looking-at "=head[0-9]") (- (char-before (match-end 0)) ?0))
    ((looking-at "=cut") 1)
    (t 3)))
+
+(defun perl-current-defun-name ()
+  "The `add-log-current-defun' function in Perl mode."
+  (if (re-search-backward "^sub[ \t]+\\([^({ \t\n]+\\)" nil t)
+      (match-string-no-properties 1)))
 
 (defvar perl-mode-hook nil
   "Normal hook to run when entering Perl mode.")
@@ -660,7 +665,8 @@ Turning on Perl mode runs the normal hook `perl-mode-hook'."
   (setq imenu-case-fold-search nil)
   ;; Setup outline-minor-mode.
   (setq-local outline-regexp perl-outline-regexp)
-  (setq-local outline-level 'perl-outline-level))
+  (setq-local outline-level 'perl-outline-level)
+  (setq-local add-log-current-defun-function #'perl-current-defun-name))
 
 ;; This is used by indent-for-comment
 ;; to decide how much to indent a comment in Perl code

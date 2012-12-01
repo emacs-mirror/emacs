@@ -209,6 +209,7 @@ font-lock keywords will not be case sensitive."
   (setq-local indent-line-function 'lisp-indent-line)
   (setq-local outline-regexp ";;;\\(;* [^ \t\n]\\|###autoload\\)\\|(")
   (setq-local outline-level 'lisp-outline-level)
+  (setq-local add-log-current-defun-function #'lisp-current-defun-name)
   (setq-local comment-start ";")
   ;; Look within the line for a ; following an even number of backslashes
   ;; after either a non-backslash or the line beginning.
@@ -236,6 +237,31 @@ font-lock keywords will not be case sensitive."
     (if (looking-at "(\\|;;;###autoload")
 	1000
       len)))
+
+(defun lisp-current-defun-name ()
+  "Return the name of the defun at point, or nil."
+  (let ((location (point)))
+    ;; If we are now precisely at the beginning of a defun, make sure
+    ;; beginning-of-defun finds that one rather than the previous one.
+    (or (eobp) (forward-char 1))
+    (beginning-of-defun)
+    ;; Make sure we are really inside the defun found, not after it.
+    (when (and (looking-at "\\s(")
+	       (progn (end-of-defun)
+		      (< location (point)))
+	       (progn (forward-sexp -1)
+		      (>= location (point))))
+      (if (looking-at "\\s(")
+	  (forward-char 1))
+      ;; Skip the defining construct name, typically "defun" or
+      ;; "defvar".
+      (forward-sexp 1)
+      ;; The second element is usually a symbol being defined.  If it
+      ;; is not, use the first symbol in it.
+      (skip-chars-forward " \t\n'(")
+      (buffer-substring-no-properties (point)
+				      (progn (forward-sexp 1)
+					     (point))))))
 
 (defvar lisp-mode-shared-map
   (let ((map (make-sparse-keymap)))

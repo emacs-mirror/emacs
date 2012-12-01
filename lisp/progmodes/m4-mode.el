@@ -141,13 +141,20 @@
    "*m4-output*" nil)
   (switch-to-buffer-other-window "*m4-output*"))
 
+(defun m4-current-defun-name ()
+  "Return the name of the M4 function at point, or nil."
+  (if (re-search-backward
+       "^\\(\\(m4_\\)?define\\|A._DEFUN\\)(\\[?\\([A-Za-z0-9_]+\\)" nil t)
+      (match-string-no-properties 3)))
+
 ;;;###autoload
 (define-derived-mode m4-mode prog-mode "m4"
   "A major mode to edit m4 macro files."
   :abbrev-table m4-mode-abbrev-table
-  (set (make-local-variable 'comment-start) "#")
-  (set (make-local-variable 'parse-sexp-ignore-comments) t)
-  (set (make-local-variable 'font-lock-defaults) '(m4-font-lock-keywords nil)))
+  (setq-local comment-start "#")
+  (setq-local parse-sexp-ignore-comments t)
+  (setq-local add-log-current-defun-function #'m4-current-defun-name)
+  (setq font-lock-defaults '(m4-font-lock-keywords nil)))
 
 (provide 'm4-mode)
 ;;stuff to play with for debugging

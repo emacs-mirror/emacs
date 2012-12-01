@@ -647,7 +647,9 @@ compatible with old code; callers should always specify it."
 
   (set (make-local-variable 'outline-regexp) "[^#\n\^M]")
   (set (make-local-variable 'outline-level) 'c-outline-level)
-
+  (set (make-local-variable 'add-log-current-defun-function)
+       (lambda ()
+	 (or (c-cpp-define-name) (c-defun-name))))
   (let ((rfn (assq mode c-require-final-newline)))
     (when rfn
       (and (cdr rfn)
