@@ -1932,6 +1932,19 @@ This takes effect when first loading the library.")
 (defvar outline-heading-end-regexp)
 (defvar outline-level)
 
+(defun html-current-defun-name ()
+  "Return the name of the last HTML title or heading, or nil."
+  (save-excursion
+    (if (re-search-backward
+	 (concat
+	  "<[ \t\r\n]*"
+	  "\\(?:[hH][0-6]\\|title\\|TITLE\\|Title\\)"
+	  "[^>]*>"
+	  "[ \t\r\n]*"
+	  "\\([^<\r\n]*[^ <\t\r\n]+\\)")
+	 nil t)
+	(match-string-no-properties 1))))
+
 
 ;;;###autoload
 (define-derived-mode html-mode sgml-mode '(sgml-xml-mode "XHTML" "HTML")
@@ -1979,6 +1992,7 @@ To work around that, do:
   (setq-local outline-heading-end-regexp "</[Hh][1-6]>")
   (setq-local outline-level
 	      (lambda () (char-before (match-end 0))))
+  (setq-local add-log-current-defun-function #'html-current-defun-name)
   (setq-local sentence-end-base "[.?!][]\"'”)}]*\\(<[^>]*>\\)*")
 
   (setq imenu-create-index-function 'html-imenu-index)

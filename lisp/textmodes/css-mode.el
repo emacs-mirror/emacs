@@ -275,6 +275,7 @@
   (setq-local parse-sexp-ignore-comments t)
   (setq-local indent-line-function 'css-indent-line)
   (setq-local fill-paragraph-function 'css-fill-paragraph)
+  (setq-local add-log-current-defun-function #'css-current-defun-name)
   (when css-electric-keys
     (let ((fc (make-char-table 'auto-fill-chars)))
       (set-char-table-parent fc auto-fill-chars)
@@ -479,6 +480,16 @@
       (if savep
           (save-excursion (indent-line-to indent))
         (indent-line-to indent)))))
+
+(defun css-current-defun-name ()
+  "Return the name of the CSS section at point, or nil."
+  (save-excursion
+    (let ((max (max (point-min) (- (point) 1600))))  ; approx 20 lines back
+      (when (search-backward "{" max t)
+	(skip-chars-backward " \t\r\n")
+	(beginning-of-line)
+	(if (looking-at "^[ \t]*\\([^{\r\n]*[^ {\t\r\n]\\)")
+	    (match-string-no-properties 1))))))
 
 (provide 'css-mode)
 ;;; css-mode.el ends here
