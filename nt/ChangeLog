@@ -1,3 +1,7 @@
+2012-12-01  Juanma Barranquero  <lekktu@gmail.com>
+
+	* config.nt: Sync with autogen/config.in.
+
 2012-11-24  Ken Brown  <kbrown@cornell.edu>
 
 	* config.nt (HAVE_MOUSE): Remove.
