@@ -266,22 +266,21 @@
 ;;;###autoload
 (define-derived-mode css-mode fundamental-mode "CSS"
   "Major mode to edit Cascading Style Sheets."
-  (set (make-local-variable 'font-lock-defaults) css-font-lock-defaults)
-  (set (make-local-variable 'comment-start) "/*")
-  (set (make-local-variable 'comment-start-skip) "/\\*+[ \t]*")
-  (set (make-local-variable 'comment-end) "*/")
-  (set (make-local-variable 'comment-end-skip) "[ \t]*\\*+/")
-  (set (make-local-variable 'forward-sexp-function) 'css-forward-sexp)
-  (set (make-local-variable 'parse-sexp-ignore-comments) t)
-  (set (make-local-variable 'indent-line-function) 'css-indent-line)
-  (set (make-local-variable 'fill-paragraph-function)
-       'css-fill-paragraph)
+  (setq-local font-lock-defaults css-font-lock-defaults)
+  (setq-local comment-start "/*")
+  (setq-local comment-start-skip "/\\*+[ \t]*")
+  (setq-local comment-end "*/")
+  (setq-local comment-end-skip "[ \t]*\\*+/")
+  (setq-local forward-sexp-function 'css-forward-sexp)
+  (setq-local parse-sexp-ignore-comments t)
+  (setq-local indent-line-function 'css-indent-line)
+  (setq-local fill-paragraph-function 'css-fill-paragraph)
   (when css-electric-keys
     (let ((fc (make-char-table 'auto-fill-chars)))
       (set-char-table-parent fc auto-fill-chars)
       (dolist (c css-electric-keys)
         (aset fc c 'indent-according-to-mode))
-      (set (make-local-variable 'auto-fill-chars) fc))))
+      (setq-local auto-fill-chars fc))))
 
 (defvar comment-continue)
 

@@ -1062,10 +1062,10 @@ tex-show-queue-command
 Entering Plain-tex mode runs the hook `text-mode-hook', then the hook
 `tex-mode-hook', and finally the hook `plain-tex-mode-hook'.  When the
 special subshell is initiated, the hook `tex-shell-hook' is run."
-  (set (make-local-variable 'tex-command) tex-run-command)
-  (set (make-local-variable 'tex-start-of-header) "%\\*\\*start of header")
-  (set (make-local-variable 'tex-end-of-header) "%\\*\\*end of header")
-  (set (make-local-variable 'tex-trailer) "\\bye\n"))
+  (setq-local tex-command tex-run-command)
+  (setq-local tex-start-of-header "%\\*\\*start of header")
+  (setq-local tex-end-of-header "%\\*\\*end of header")
+  (setq-local tex-trailer "\\bye\n"))
 
 ;;;###autoload
 (define-derived-mode latex-mode tex-mode "LaTeX"
@@ -1108,11 +1108,10 @@ tex-show-queue-command
 Entering Latex mode runs the hook `text-mode-hook', then
 `tex-mode-hook', and finally `latex-mode-hook'.  When the special
 subshell is initiated, `tex-shell-hook' is run."
-  (set (make-local-variable 'tex-command) latex-run-command)
-  (set (make-local-variable 'tex-start-of-header)
-       "\\\\document\\(style\\|class\\)")
-  (set (make-local-variable 'tex-end-of-header) "\\\\begin\\s-*{document}")
-  (set (make-local-variable 'tex-trailer) "\\end{document}\n")
+  (setq-local tex-command latex-run-command)
+  (setq-local tex-start-of-header "\\\\document\\(style\\|class\\)")
+  (setq-local tex-end-of-header "\\\\begin\\s-*{document}")
+  (setq-local tex-trailer "\\end{document}\n")
   ;; A line containing just $$ is treated as a paragraph separator.
   ;; A line starting with $$ starts a paragraph,
   ;; but does not separate paragraphs if it has more stuff on it.
@@ -1138,18 +1137,17 @@ subshell is initiated, `tex-shell-hook' is run."
 					      "marginpar" "parbox" "caption"))
 		"\\|\\$\\$\\|[a-z]*\\(space\\|skip\\|page[a-z]*\\)"
 		"\\>\\)[ \t]*\\($\\|%\\)\\)"))
-  (set (make-local-variable 'imenu-create-index-function)
-       'latex-imenu-create-index)
-  (set (make-local-variable 'tex-face-alist) tex-latex-face-alist)
+  (setq-local imenu-create-index-function 'latex-imenu-create-index)
+  (setq-local tex-face-alist tex-latex-face-alist)
   (add-hook 'fill-nobreak-predicate 'latex-fill-nobreak-predicate nil t)
-  (set (make-local-variable 'indent-line-function) 'latex-indent)
-  (set (make-local-variable 'fill-indent-according-to-mode) t)
+  (setq-local indent-line-function 'latex-indent)
+  (setq-local fill-indent-according-to-mode t)
   (add-hook 'completion-at-point-functions
             'latex-complete-data nil 'local)
-  (set (make-local-variable 'outline-regexp) latex-outline-regexp)
-  (set (make-local-variable 'outline-level) 'latex-outline-level)
-  (set (make-local-variable 'forward-sexp-function) 'latex-forward-sexp)
-  (set (make-local-variable 'skeleton-end-hook) nil))
+  (setq-local outline-regexp latex-outline-regexp)
+  (setq-local outline-level 'latex-outline-level)
+  (setq-local forward-sexp-function 'latex-forward-sexp)
+  (setq-local skeleton-end-hook nil))
 
 ;;;###autoload
 (define-derived-mode slitex-mode latex-mode "SliTeX"
@@ -1198,39 +1196,35 @@ Entering SliTeX mode runs the hook `text-mode-hook', then the hook
 
 (defun tex-common-initialization ()
   ;; Regexp isearch should accept newline and formfeed as whitespace.
-  (set (make-local-variable 'search-whitespace-regexp) "[ \t\r\n\f]+")
+  (setq-local search-whitespace-regexp "[ \t\r\n\f]+")
   ;; A line containing just $$ is treated as a paragraph separator.
-  (set (make-local-variable 'paragraph-start)
-       "[ \t]*$\\|[\f\\\\%]\\|[ \t]*\\$\\$")
+  (setq-local paragraph-start "[ \t]*$\\|[\f\\\\%]\\|[ \t]*\\$\\$")
   ;; A line starting with $$ starts a paragraph,
   ;; but does not separate paragraphs if it has more stuff on it.
-  (set (make-local-variable 'paragraph-separate)
-	"[ \t]*$\\|[\f\\\\%]\\|[ \t]*\\$\\$[ \t]*$")
-  (set (make-local-variable 'comment-start) "%")
-  (set (make-local-variable 'comment-add) 1)
-  (set (make-local-variable 'comment-start-skip)
-       "\\(\\(^\\|[^\\\n]\\)\\(\\\\\\\\\\)*\\)\\(%+ *\\)")
-  (set (make-local-variable 'parse-sexp-ignore-comments) t)
-  (set (make-local-variable 'compare-windows-whitespace)
-       'tex-categorize-whitespace)
-  (set (make-local-variable 'facemenu-add-face-function)
-       'tex-facemenu-add-face-function)
-  (set (make-local-variable 'facemenu-end-add-face) "}")
-  (set (make-local-variable 'facemenu-remove-face-function) t)
-  (set (make-local-variable 'font-lock-defaults)
-       '((tex-font-lock-keywords tex-font-lock-keywords-1
-	  tex-font-lock-keywords-2 tex-font-lock-keywords-3)
-	 nil nil nil nil
-	 ;; Who ever uses that anyway ???
-	 (font-lock-mark-block-function . mark-paragraph)
-	 (font-lock-syntactic-face-function
-	  . tex-font-lock-syntactic-face-function)
-	 (font-lock-unfontify-region-function
-	  . tex-font-lock-unfontify-region)))
-  (set (make-local-variable 'syntax-propertize-function)
-       (syntax-propertize-rules latex-syntax-propertize-rules))
+  (setq-local paragraph-separate "[ \t]*$\\|[\f\\\\%]\\|[ \t]*\\$\\$[ \t]*$")
+  (setq-local comment-start "%")
+  (setq-local comment-add 1)
+  (setq-local comment-start-skip
+	      "\\(\\(^\\|[^\\\n]\\)\\(\\\\\\\\\\)*\\)\\(%+ *\\)")
+  (setq-local parse-sexp-ignore-comments t)
+  (setq-local compare-windows-whitespace 'tex-categorize-whitespace)
+  (setq-local facemenu-add-face-function 'tex-facemenu-add-face-function)
+  (setq-local facemenu-end-add-face "}")
+  (setq-local facemenu-remove-face-function t)
+  (setq-local font-lock-defaults
+	      '((tex-font-lock-keywords tex-font-lock-keywords-1
+	         tex-font-lock-keywords-2 tex-font-lock-keywords-3)
+		nil nil nil nil
+		;; Who ever uses that anyway ???
+		(font-lock-mark-block-function . mark-paragraph)
+		(font-lock-syntactic-face-function
+		 . tex-font-lock-syntactic-face-function)
+		(font-lock-unfontify-region-function
+		 . tex-font-lock-unfontify-region)))
+  (setq-local syntax-propertize-function
+	      (syntax-propertize-rules latex-syntax-propertize-rules))
   ;; TABs in verbatim environments don't do what you think.
-  (set (make-local-variable 'indent-tabs-mode) nil)
+  (setq-local indent-tabs-mode nil)
   ;; Other vars that should be buffer-local.
   (make-local-variable 'tex-command)
   (make-local-variable 'tex-start-of-header)
@@ -1523,8 +1517,7 @@ Puts point on a blank line between them."
                            (looking-at bibtex-reference-key))
                   (push (match-string-no-properties 0) keys)))))
           ;; Fill the cache.
-          (set (make-local-variable 'latex-complete-bibtex-cache)
-               (list files key keys)))
+          (setq-local latex-complete-bibtex-cache (list files key keys)))
         (complete-with-action action keys key pred)))))
 
 (defun latex-complete-envnames ()
@@ -1885,8 +1878,7 @@ Mark is left at original location."
 ;; The utility functions:
 
 (define-derived-mode tex-shell shell-mode "TeX-Shell"
-  (set (make-local-variable 'compilation-error-regexp-alist)
-       tex-error-regexp-alist)
+  (setq-local compilation-error-regexp-alist tex-error-regexp-alist)
   (compilation-shell-minor-mode t))
 
 ;;;###autoload
@@ -2099,8 +2091,7 @@ of the current buffer."
 		   (with-no-warnings
 		    (when (boundp 'TeX-master)
 		      (cond ((stringp TeX-master)
-			     (make-local-variable 'tex-main-file)
-			     (setq tex-main-file TeX-master))
+			     (setq-local tex-main-file TeX-master))
 			    ((and (eq TeX-master t) buffer-file-name)
 			     (file-relative-name buffer-file-name)))))
 		   ;; Try to guess the main file.
@@ -2870,8 +2861,8 @@ There might be text before point."
 		    (cons (car x) 'doctex-font-lock-syntactic-face-function))
 		   (_ x)))
 	       (cdr font-lock-defaults))))
-  (set (make-local-variable 'syntax-propertize-function)
-       (syntax-propertize-rules doctex-syntax-propertize-rules)))
+  (setq-local syntax-propertize-function
+	      (syntax-propertize-rules doctex-syntax-propertize-rules)))
 
 (run-hooks 'tex-mode-load-hook)
 

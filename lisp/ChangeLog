@@ -1,3 +1,20 @@
+2012-12-01  Chong Yidong  <cyd@gnu.org>
+
+	* emacs-lisp/lisp-mode.el (lisp-mode-variables, lisp-mode):
+	* progmodes/autoconf.el (autoconf-mode):
+	* progmodes/js.el (js-mode):
+	* progmodes/make-mode.el (makefile-mode, makefile-makepp-mode)
+	(makefile-bsdmake-mode, makefile-imake-mode, makefile-browse):
+	* progmodes/perl-mode.el (perl-mode):
+	* progmodes/sh-script.el (sh-mode, sh-set-shell):
+	* textmodes/css-mode.el (css-mode):
+	* textmodes/sgml-mode.el (html-mode, sgml-mode)
+	(sgml-tags-invisible, sgml-guess-indent):
+	* textmodes/tex-mode.el (tex-common-initialization)
+	(latex-complete-bibtex-keys, tex-shell, tex-main-file)
+	(doctex-mode, plain-tex-mode, latex-mode):
+	* textmodes/texinfo.el (texinfo-mode): Use setq-local.
+
 2012-12-01  Kirk Kelsey  <kirk.kelsey@0x4b.net>
 
 	* vc/vc-hg.el (vc-hg-next-revision):

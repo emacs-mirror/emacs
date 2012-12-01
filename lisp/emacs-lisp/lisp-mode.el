@@ -195,45 +195,33 @@ score-mode.el.  KEYWORDS-CASE-INSENSITIVE non-nil means that for
 font-lock keywords will not be case sensitive."
   (when lisp-syntax
     (set-syntax-table lisp-mode-syntax-table))
-  (make-local-variable 'paragraph-ignore-fill-prefix)
-  (setq paragraph-ignore-fill-prefix t)
-  (make-local-variable 'fill-paragraph-function)
-  (setq fill-paragraph-function 'lisp-fill-paragraph)
+  (setq-local paragraph-ignore-fill-prefix t)
+  (setq-local fill-paragraph-function 'lisp-fill-paragraph)
   ;; Adaptive fill mode gets the fill wrong for a one-line paragraph made of
   ;; a single docstring.  Let's fix it here.
-  (set (make-local-variable 'adaptive-fill-function)
-       (lambda () (if (looking-at "\\s-+\"[^\n\"]+\"\\s-*$") "")))
+  (setq-local adaptive-fill-function
+	      (lambda () (if (looking-at "\\s-+\"[^\n\"]+\"\\s-*$") "")))
   ;; Adaptive fill mode gets in the way of auto-fill,
   ;; and should make no difference for explicit fill
   ;; because lisp-fill-paragraph should do the job.
   ;;  I believe that newcomment's auto-fill code properly deals with it  -stef
   ;;(set (make-local-variable 'adaptive-fill-mode) nil)
-  (make-local-variable 'indent-line-function)
-  (setq indent-line-function 'lisp-indent-line)
-  (make-local-variable 'outline-regexp)
-  (setq outline-regexp ";;;\\(;* [^ \t\n]\\|###autoload\\)\\|(")
-  (make-local-variable 'outline-level)
-  (setq outline-level 'lisp-outline-level)
-  (make-local-variable 'comment-start)
-  (setq comment-start ";")
-  (make-local-variable 'comment-start-skip)
+  (setq-local indent-line-function 'lisp-indent-line)
+  (setq-local outline-regexp ";;;\\(;* [^ \t\n]\\|###autoload\\)\\|(")
+  (setq-local outline-level 'lisp-outline-level)
+  (setq-local comment-start ";")
   ;; Look within the line for a ; following an even number of backslashes
   ;; after either a non-backslash or the line beginning.
-  (setq comment-start-skip "\\(\\(^\\|[^\\\\\n]\\)\\(\\\\\\\\\\)*\\);+ *")
-  (make-local-variable 'font-lock-comment-start-skip)
+  (setq-local comment-start-skip "\\(\\(^\\|[^\\\\\n]\\)\\(\\\\\\\\\\)*\\);+ *")
   ;; Font lock mode uses this only when it KNOWS a comment is starting.
-  (setq font-lock-comment-start-skip ";+ *")
-  (make-local-variable 'comment-add)
-  (setq comment-add 1)			;default to `;;' in comment-region
-  (make-local-variable 'comment-column)
-  (setq comment-column 40)
+  (setq-local font-lock-comment-start-skip ";+ *")
+  (setq-local comment-add 1)		;default to `;;' in comment-region
+  (setq-local comment-column 40)
   ;; Don't get confused by `;' in doc strings when paragraph-filling.
-  (set (make-local-variable 'comment-use-global-state) t)
-  (make-local-variable 'imenu-generic-expression)
-  (setq imenu-generic-expression lisp-imenu-generic-expression)
-  (make-local-variable 'multibyte-syntax-as-symbol)
-  (setq multibyte-syntax-as-symbol t)
-  (set (make-local-variable 'syntax-begin-function) 'beginning-of-defun)
+  (setq-local comment-use-global-state t)
+  (setq-local imenu-generic-expression lisp-imenu-generic-expression)
+  (setq-local multibyte-syntax-as-symbol t)
+  (setq-local syntax-begin-function 'beginning-of-defun)
   (setq font-lock-defaults
 	`((lisp-font-lock-keywords
 	   lisp-font-lock-keywords-1 lisp-font-lock-keywords-2)
@@ -519,10 +507,9 @@ or to switch back to an existing one.
 Entry to this mode calls the value of `lisp-mode-hook'
 if that value is non-nil."
   (lisp-mode-variables nil t)
-  (set (make-local-variable 'find-tag-default-function) 'lisp-find-tag-default)
-  (make-local-variable 'comment-start-skip)
-  (setq comment-start-skip
-       "\\(\\(^\\|[^\\\\\n]\\)\\(\\\\\\\\\\)*\\)\\(;+\\|#|\\) *")
+  (setq-local find-tag-default-function 'lisp-find-tag-default)
+  (setq-local comment-start-skip
+	      "\\(\\(^\\|[^\\\\\n]\\)\\(\\\\\\\\\\)*\\)\\(;+\\|#|\\) *")
   (setq imenu-case-fold-search t))
 
 (defun lisp-find-tag-default ()

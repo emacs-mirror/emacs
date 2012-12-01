@@ -33,6 +33,15 @@
 ;;; Code:
 
 (eval-when-compile (require 'tex-mode))
+(declare-function tex-buffer "tex-mode" ())
+(declare-function tex-region "tex-mode" (beg end))
+(declare-function tex-send-command "tex-mode")
+(declare-function tex-recenter-output-buffer "tex-mode" (linenum))
+(declare-function tex-print "tex-mode" (&optional alt))
+(declare-function tex-view "tex-mode" ())
+(declare-function tex-shell-running "tex-mode" ())
+(declare-function tex-kill-job "tex-mode" ())
+
 (defvar outline-heading-alist)
 
 (defgroup texinfo nil
@@ -571,66 +580,50 @@ be the first node in the file.
 
 Entering Texinfo mode calls the value of `text-mode-hook', and then the
 value of `texinfo-mode-hook'."
-  (set (make-local-variable 'page-delimiter)
-       (concat
-	"^@node [ \t]*[Tt]op\\|^@\\("
-	texinfo-chapter-level-regexp
-	"\\)\\>"))
-  (make-local-variable 'require-final-newline)
-  (setq require-final-newline mode-require-final-newline)
-  (make-local-variable 'indent-tabs-mode)
-  (setq indent-tabs-mode nil)
-  (make-local-variable 'paragraph-separate)
-  (setq paragraph-separate
-	(concat "\b\\|@[a-zA-Z]*[ \n]\\|" paragraph-separate))
-  (make-local-variable 'paragraph-start)
-  (setq paragraph-start (concat "\b\\|@[a-zA-Z]*[ \n]\\|" paragraph-start))
-  (set (make-local-variable 'sentence-end-base)
-	"\\(@\\(end\\)?dots{}\\|[.?!]\\)[]\"'”)}]*")
-  (make-local-variable 'fill-column)
-  (setq fill-column 70)
-  (make-local-variable 'comment-start)
-  (setq comment-start "@c ")
-  (make-local-variable 'comment-start-skip)
-  (setq comment-start-skip "@c +\\|@comment +")
-  (make-local-variable 'words-include-escapes)
-  (setq words-include-escapes t)
-  (make-local-variable 'imenu-generic-expression)
-  (setq imenu-generic-expression texinfo-imenu-generic-expression)
+  (setq-local page-delimiter
+	      (concat "^@node [ \t]*[Tt]op\\|^@\\("
+		      texinfo-chapter-level-regexp
+		      "\\)\\>"))
+  (setq-local require-final-newline mode-require-final-newline)
+  (setq-local indent-tabs-mode nil)
+  (setq-local paragraph-separate
+	      (concat "\b\\|@[a-zA-Z]*[ \n]\\|" paragraph-separate))
+  (setq-local paragraph-start (concat "\b\\|@[a-zA-Z]*[ \n]\\|" paragraph-start))
+  (setq-local sentence-end-base "\\(@\\(end\\)?dots{}\\|[.?!]\\)[]\"'”)}]*")
+  (setq-local fill-column 70)
+  (setq-local comment-start "@c ")
+  (setq-local comment-start-skip "@c +\\|@comment +")
+  (setq-local words-include-escapes t)
+  (setq-local imenu-generic-expression texinfo-imenu-generic-expression)
   (setq imenu-case-fold-search nil)
-  (make-local-variable 'font-lock-defaults)
   (setq font-lock-defaults
 	'(texinfo-font-lock-keywords nil nil nil backward-paragraph))
-  (set (make-local-variable 'syntax-propertize-function)
-       texinfo-syntax-propertize-function)
-  (set (make-local-variable 'parse-sexp-lookup-properties) t)
+  (setq-local syntax-propertize-function texinfo-syntax-propertize-function)
+  (setq-local parse-sexp-lookup-properties t)
 
   ;; Outline settings.
-  (set (make-local-variable 'outline-heading-alist)
-       ;; We should merge outline-heading-alist and texinfo-section-list
-       ;; but in the mean time, let's just generate one from the other.
-       (mapcar (lambda (x) (cons (concat "@" (car x)) (cadr x)))
-	       texinfo-section-list))
-  (set (make-local-variable 'outline-regexp)
-       (concat (regexp-opt (mapcar 'car outline-heading-alist) t)
-	       "\\>"))
+  (setq-local outline-heading-alist
+	      ;; We should merge `outline-heading-alist' and
+	      ;; `texinfo-section-list'.  But in the mean time, let's
+	      ;; just generate one from the other.
+	      (mapcar (lambda (x) (cons (concat "@" (car x)) (cadr x)))
+		      texinfo-section-list))
+  (setq-local outline-regexp
+	      (concat (regexp-opt (mapcar 'car outline-heading-alist) t)
+		      "\\>"))
 
-  (make-local-variable 'tex-start-of-header)
-  (setq tex-start-of-header "%\\*\\*start")
-  (make-local-variable 'tex-end-of-header)
-  (setq tex-end-of-header "%\\*\\*end")
-  (make-local-variable 'tex-first-line-header-regexp)
-  (setq tex-first-line-header-regexp "^\\\\input")
-  (make-local-variable 'tex-trailer)
-  (setq tex-trailer "@bye\n")
+  (setq-local tex-start-of-header "%\\*\\*start")
+  (setq-local tex-end-of-header "%\\*\\*end")
+  (setq-local tex-first-line-header-regexp "^\\\\input")
+  (setq-local tex-trailer "@bye\n")
 
-  ;; Prevent filling certain lines, in addition to ones specified
-  ;; by the user.
-  (let ((prevent-filling "^@\\(def\\|multitable\\)"))
-    (set (make-local-variable 'auto-fill-inhibit-regexp)
-	 (if (null auto-fill-inhibit-regexp)
-	     prevent-filling
-	   (concat auto-fill-inhibit-regexp "\\|" prevent-filling)))))
+  ;; Prevent filling certain lines, in addition to ones specified by
+  ;; the user.
+  (setq-local auto-fill-inhibit-regexp
+	      (let ((prevent-filling "^@\\(def\\|multitable\\)"))
+		(if (null auto-fill-inhibit-regexp)
+		    prevent-filling
+		  (concat auto-fill-inhibit-regexp "\\|" prevent-filling)))))
 
 
 
