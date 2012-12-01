@@ -1766,11 +1766,11 @@ the file.
 
 @item
 In Perl code, the tags are the packages, subroutines and variables
-defined by the @code{package}, @code{sub}, @code{my} and @code{local}
-keywords.  Use @samp{--globals} if you want to tag global variables.
-Tags for subroutines are named @samp{@var{package}::@var{sub}}.  The
-name for subroutines defined in the default package is
-@samp{main::@var{sub}}.
+defined by the @code{package}, @code{sub}, @code{use constant},
+@code{my}, and @code{local} keywords.  Use @samp{--globals} if you
+want to tag global variables.  Tags for subroutines are named
+@samp{@var{package}::@var{sub}}.  The name for subroutines defined in
+the default package is @samp{main::@var{sub}}.
 
 @item
 In PHP code, tags are functions, classes and defines.  Vars are tags

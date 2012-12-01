@@ -4269,6 +4269,7 @@ Asm_labels (FILE *inf)
 /*
  * Perl support
  * Perl sub names: /^sub[ \t\n]+[^ \t\n{]+/
+ *                 /^use constant[ \t\n]+[^ \t\n{=,;]+/
  * Perl variable names: /^(my|local).../
  * Original code by Bart Robinson <lomew@cs.utah.edu> (1995)
  * Additions by Michael Ernst <mernst@alum.mit.edu> (1997)
@@ -4291,9 +4292,10 @@ Perl_functions (FILE *inf)
 	}
       else if (LOOKING_AT (cp, "sub"))
 	{
-	  char *pos;
-	  char *sp = cp;
+	  char *pos, *sp;
 
+	subr:
+	  sp = cp;
 	  while (!notinname (*cp))
 	    cp++;
 	  if (cp == sp)
@@ -4316,8 +4318,21 @@ Perl_functions (FILE *inf)
 			lb.buffer, cp - lb.buffer + 1, lineno, linecharno);
 	      free (name);
 	    }
+	}
+      else if (LOOKING_AT (cp, "use constant")
+	       || LOOKING_AT (cp, "use constant::defer"))
+	{
+	  /* For hash style multi-constant like
+	        use constant { FOO => 123,
+	                       BAR => 456 };
+	     only the first FOO is picked up.  Parsing across the value
+	     expressions would be difficult in general, due to possible nested
+	     hashes, here-documents, etc.  */
+	  if (*cp == '{')
+	    cp = skip_spaces (cp+1);
+	  goto subr;
  	}
-       else if (globals)	/* only if we are tagging global vars */
+      else if (globals)	/* only if we are tagging global vars */
  	{
 	  /* Skip a qualifier, if any. */
 	  bool qual = LOOKING_AT (cp, "my") || LOOKING_AT (cp, "local");
