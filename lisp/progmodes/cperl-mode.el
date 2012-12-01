@@ -1745,8 +1745,9 @@ or as help on variables `cperl-tips', `cperl-problems',
   (make-local-variable 'add-log-current-defun-function)
   (setq add-log-current-defun-function
 	(lambda ()
-	  (if (re-search-backward "^sub[ \t]+\\([^({ \t\n]+\\)" nil t)
-	      (match-string-no-properties 1))))
+	  (save-excursion
+	    (if (re-search-backward "^sub[ \t]+\\([^({ \t\n]+\\)" nil t)
+		(match-string-no-properties 1)))))
 
   (make-local-variable 'paragraph-start)
   (setq paragraph-start (concat "^$\\|" page-delimiter))

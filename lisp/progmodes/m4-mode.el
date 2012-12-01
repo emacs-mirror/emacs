@@ -143,9 +143,10 @@
 
 (defun m4-current-defun-name ()
   "Return the name of the M4 function at point, or nil."
-  (if (re-search-backward
-       "^\\(\\(m4_\\)?define\\|A._DEFUN\\)(\\[?\\([A-Za-z0-9_]+\\)" nil t)
-      (match-string-no-properties 3)))
+  (save-excursion
+    (if (re-search-backward
+	 "^\\(\\(m4_\\)?define\\|A._DEFUN\\)(\\[?\\([A-Za-z0-9_]+\\)" nil t)
+	(match-string-no-properties 3))))
 
 ;;;###autoload
 (define-derived-mode m4-mode prog-mode "m4"

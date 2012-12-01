@@ -513,8 +513,9 @@ Subexpression 1 is what goes into the corresponding `@end' statement.")
 
 (defun texinfo-current-defun-name ()
   "Return the name of the Texinfo node at point, or nil."
-  (if (re-search-backward "^@node[ \t]+\\([^,\n]+\\)" nil t)
-      (match-string-no-properties 1)))
+  (save-excursion
+    (if (re-search-backward "^@node[ \t]+\\([^,\n]+\\)" nil t)
+	(match-string-no-properties 1))))
 
 ;;; Texinfo mode
 

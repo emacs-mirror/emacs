@@ -424,13 +424,14 @@ An alternative value is \" . \", if you use a font with a narrow period."
 
 (defun tex-current-defun-name ()
   "Return the name of the TeX section/paragraph/chapter at point, or nil."
-  (when (re-search-backward
-	 "\\\\\\(sub\\)*\\(section\\|paragraph\\|chapter\\)"
-	 nil t)
-    (goto-char (match-beginning 0))
-    (buffer-substring-no-properties
-     (1+ (point))	; without initial backslash
-     (line-end-position))))
+  (save-excursion
+    (when (re-search-backward
+	   "\\\\\\(sub\\)*\\(section\\|paragraph\\|chapter\\)"
+	   nil t)
+      (goto-char (match-beginning 0))
+      (buffer-substring-no-properties
+       (1+ (point))	; without initial backslash
+       (line-end-position)))))
 
 ;;;;
 ;;;; Font-Lock support

@@ -581,8 +581,10 @@ create a new comment."
 
 (defun perl-current-defun-name ()
   "The `add-log-current-defun' function in Perl mode."
-  (if (re-search-backward "^sub[ \t]+\\([^({ \t\n]+\\)" nil t)
-      (match-string-no-properties 1)))
+  (save-excursion
+    (if (re-search-backward "^sub[ \t]+\\([^({ \t\n]+\\)" nil t)
+	(match-string-no-properties 1))))
+
 
 (defvar perl-mode-hook nil
   "Normal hook to run when entering Perl mode.")

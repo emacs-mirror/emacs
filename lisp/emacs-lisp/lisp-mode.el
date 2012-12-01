@@ -240,28 +240,29 @@ font-lock keywords will not be case sensitive."
 
 (defun lisp-current-defun-name ()
   "Return the name of the defun at point, or nil."
-  (let ((location (point)))
-    ;; If we are now precisely at the beginning of a defun, make sure
-    ;; beginning-of-defun finds that one rather than the previous one.
-    (or (eobp) (forward-char 1))
-    (beginning-of-defun)
-    ;; Make sure we are really inside the defun found, not after it.
-    (when (and (looking-at "\\s(")
-	       (progn (end-of-defun)
-		      (< location (point)))
-	       (progn (forward-sexp -1)
-		      (>= location (point))))
-      (if (looking-at "\\s(")
-	  (forward-char 1))
-      ;; Skip the defining construct name, typically "defun" or
-      ;; "defvar".
-      (forward-sexp 1)
-      ;; The second element is usually a symbol being defined.  If it
-      ;; is not, use the first symbol in it.
-      (skip-chars-forward " \t\n'(")
-      (buffer-substring-no-properties (point)
-				      (progn (forward-sexp 1)
-					     (point))))))
+  (save-excursion
+    (let ((location (point)))
+      ;; If we are now precisely at the beginning of a defun, make sure
+      ;; beginning-of-defun finds that one rather than the previous one.
+      (or (eobp) (forward-char 1))
+      (beginning-of-defun)
+      ;; Make sure we are really inside the defun found, not after it.
+      (when (and (looking-at "\\s(")
+		 (progn (end-of-defun)
+			(< location (point)))
+		 (progn (forward-sexp -1)
+			(>= location (point))))
+	(if (looking-at "\\s(")
+	    (forward-char 1))
+	;; Skip the defining construct name, typically "defun" or
+	;; "defvar".
+	(forward-sexp 1)
+	;; The second element is usually a symbol being defined.  If it
+	;; is not, use the first symbol in it.
+	(skip-chars-forward " \t\n'(")
+	(buffer-substring-no-properties (point)
+					(progn (forward-sexp 1)
+					       (point)))))))
 
 (defvar lisp-mode-shared-map
   (let ((map (make-sparse-keymap)))
