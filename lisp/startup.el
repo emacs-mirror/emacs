@@ -1569,27 +1569,23 @@ a face or button specification."
 		       :face '(variable-pitch (:height 0.8))
 		       emacs-copyright
 		       "\n")
-  (and auto-save-list-file-prefix
-       ;; Don't signal an error if the
-       ;; directory for auto-save-list files
-       ;; does not yet exist.
-       (file-directory-p (file-name-directory
-			  auto-save-list-file-prefix))
-       (directory-files
-	(file-name-directory auto-save-list-file-prefix)
-	nil
-	(concat "\\`"
-		(regexp-quote (file-name-nondirectory
-			       auto-save-list-file-prefix)))
-	t)
-       (fancy-splash-insert :face '(variable-pitch font-lock-comment-face)
-			    "\nIf an Emacs session crashed recently, "
-			    "type "
-			    :face '(fixed-pitch font-lock-comment-face)
-			    "Meta-x recover-session RET"
-			    :face '(variable-pitch font-lock-comment-face)
-			    "\nto recover"
-			    " the files you were editing."))
+  (when auto-save-list-file-prefix
+    (let ((dir  (file-name-directory auto-save-list-file-prefix))
+	  (name (file-name-nondirectory auto-save-list-file-prefix))
+	  files)
+      ;; Don't warn if the directory for auto-save-list files does not
+      ;; yet exist.
+      (and (file-directory-p dir)
+	   (setq files (directory-files dir nil (concat "\\`" name) t))
+	   (fancy-splash-insert :face '(variable-pitch font-lock-comment-face)
+				(if (= (length files) 1)
+				    "\nAn auto-save file list was found.  "
+				  "\nAuto-save file lists were found.  ")
+				"If an Emacs session crashed recently,\ntype "
+				:face '(fixed-pitch font-lock-comment-face)
+				"M-x recover-session RET"
+				:face '(variable-pitch font-lock-comment-face)
+				" to recover the files you were editing."))))
 
   (when concise
     (fancy-splash-insert
