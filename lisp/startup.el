@@ -1582,9 +1582,10 @@ a face or button specification."
 				    "\nAn auto-save file list was found.  "
 				  "\nAuto-save file lists were found.  ")
 				"If an Emacs session crashed recently,\ntype "
-				:face '(fixed-pitch font-lock-comment-face)
-				"M-x recover-session RET"
-				:face '(variable-pitch font-lock-comment-face)
+				:link `("M-x recover-session RET"
+					,(lambda (_button)
+					   (call-interactively
+					    'recover-session)))
 				" to recover the files you were editing."))))
 
   (when concise

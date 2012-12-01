@@ -1,7 +1,15 @@
+2012-12-01  Kim F. Storm  <storm@cua.dk>
+
+	* startup.el (fancy-startup-tail): Add a clickable link
+	(Bug#2176).
+
 2012-12-01  Chong Yidong  <cyd@gnu.org>
 
 	* startup.el (fancy-startup-tail): Improve the message about
 	auto-save files (Bug#2176).
+
+	* files.el (recover-session): Improve the descriptive message, and
+	use substitute-command-keys.
 
 2012-12-01  Glenn Morris  <rgm@gnu.org>
 
