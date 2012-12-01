@@ -384,7 +384,7 @@ Optional arg REVISION is a revision to annotate from."
   (let ((newrev (1+ (string-to-number rev)))
         (tip-revision
          (with-temp-buffer
-           (vc-hg-command t 0 nil "tip")
+           (vc-hg-command t 0 nil "tip" "--style=default")
            (goto-char (point-min))
            (re-search-forward "^changeset:[ \t]*\\([0-9]+\\):")
            (string-to-number (match-string-no-properties 1)))))

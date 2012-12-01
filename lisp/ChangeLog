@@ -1,3 +1,8 @@
+2012-12-01  Kirk Kelsey  <kirk.kelsey@0x4b.net>
+
+	* vc/vc-hg.el (vc-hg-next-revision):
+	Ensure use of default "tip" output format.  (Bug#6968)
+
 2012-12-01  Kim F. Storm  <storm@cua.dk>
 
 	* startup.el (fancy-startup-tail): Add a clickable link
