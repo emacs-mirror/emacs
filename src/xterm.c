@@ -2258,7 +2258,6 @@ static void
 x_draw_image_relief (struct glyph_string *s)
 {
   int x1, y1, thick, raised_p, top_p, bot_p, left_p, right_p;
-  int extra_x, extra_y;
   XRectangle r;
   int x = s->x;
   int y = s->ybase - image_ascent (s->img, s->face, &s->slice);
@@ -2287,20 +2286,6 @@ x_draw_image_relief (struct glyph_string *s)
     {
       thick = eabs (s->img->relief);
       raised_p = s->img->relief > 0;
-    }
-
-  extra_x = extra_y = 0;
-  if (s->face->id == TOOL_BAR_FACE_ID)
-    {
-      if (CONSP (Vtool_bar_button_margin)
-	  && INTEGERP (XCAR (Vtool_bar_button_margin))
-	  && INTEGERP (XCDR (Vtool_bar_button_margin)))
-	{
-	  extra_x = XINT (XCAR (Vtool_bar_button_margin));
-	  extra_y = XINT (XCDR (Vtool_bar_button_margin));
-	}
-      else if (INTEGERP (Vtool_bar_button_margin))
-	extra_x = extra_y = XINT (Vtool_bar_button_margin);
     }
 
   x1 = x + s->slice.width - 1;
