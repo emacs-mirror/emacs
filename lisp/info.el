@@ -5097,7 +5097,9 @@ type returned by `Info-bookmark-make-record', which see."
 
 ;;;###autoload
 (defun info-display-manual (manual)
-  "Go to Info buffer that displays MANUAL, creating it if none already exists."
+  "Display an Info buffer displaying MANUAL.
+If there is an existing Info buffer for MANUAL, display it.
+Otherwise, visit the manual in a new Info buffer."
   (interactive "sManual name: ")
   (let ((blist (buffer-list))
 	(manual-re (concat "\\(/\\|\\`\\)" manual "\\(\\.\\|\\'\\)"))
@@ -5113,7 +5115,8 @@ type returned by `Info-bookmark-make-record', which see."
     (if found
 	(switch-to-buffer found)
       (info-initialize)
-      (info (Info-find-file manual)))))
+      (info (Info-find-file manual)
+	    (generate-new-buffer-name "*info*")))))
 
 (provide 'info)
 
