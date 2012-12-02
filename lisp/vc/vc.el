@@ -2554,8 +2554,12 @@ backend to NEW-BACKEND, and unregister FILE from the current backend.
 
 ;;;###autoload
 (defun vc-delete-file (file)
-  "Delete file and mark it as such in the version control system."
-  (interactive "fVC delete file: ")
+  "Delete file and mark it as such in the version control system.
+If called interactively, read FILE, defaulting to the current
+buffer's file name if it's under version control."
+  (interactive (list (read-file-name "VC delete file: " nil
+                                     (when (vc-backend buffer-file-name)
+                                       buffer-file-name) t)))
   (setq file (expand-file-name file))
   (let ((buf (get-file-buffer file))
         (backend (vc-backend file)))
@@ -2593,8 +2597,13 @@ backend to NEW-BACKEND, and unregister FILE from the current backend.
 
 ;;;###autoload
 (defun vc-rename-file (old new)
-  "Rename file OLD to NEW in both work area and repository."
-  (interactive "fVC rename file: \nFRename to: ")
+  "Rename file OLD to NEW in both work area and repository.
+If called interactively, read OLD and NEW, defaulting OLD to the
+current buffer's file name if it's under version control."
+  (interactive (list (read-file-name "VC rename file: " nil
+                                     (when (vc-backend buffer-file-name)
+                                       buffer-file-name) t)
+                     (read-file-name "Rename to: ")))
   ;; in CL I would have said (setq new (merge-pathnames new old))
   (let ((old-base (file-name-nondirectory old)))
     (when (and (not (string= "" old-base))
