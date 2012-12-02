@@ -5100,7 +5100,15 @@ type returned by `Info-bookmark-make-record', which see."
   "Display an Info buffer displaying MANUAL.
 If there is an existing Info buffer for MANUAL, display it.
 Otherwise, visit the manual in a new Info buffer."
-  (interactive "sManual name: ")
+  (interactive
+   (list
+    (progn
+      (info-initialize)
+      (completing-read "Manual name: "
+		       (apply-partially 'Info-read-node-name-2
+					Info-directory-list
+					(mapcar 'car Info-suffix-list))
+		       nil t))))
   (let ((blist (buffer-list))
 	(manual-re (concat "\\(/\\|\\`\\)" manual "\\(\\.\\|\\'\\)"))
 	(case-fold-search t)

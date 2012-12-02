@@ -1,7 +1,7 @@
 2012-12-02  Juri Linkov  <juri@jurta.org>
 
 	* info.el (info-display-manual): Don't clobber an existing Info
-	buffer (Bug#10770).
+	buffer (Bug#10770).  Add completion (Bug#10771).
 
 2012-12-01  Yuya Nishihara  <yuya@tcha.org>  (tiny change)
 
