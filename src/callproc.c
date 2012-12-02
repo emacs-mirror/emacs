@@ -488,9 +488,6 @@ usage: (call-process PROGRAM &optional INFILE BUFFER DISPLAY &rest ARGS)  */)
     }
 
   {
-    /* child_setup must clobber environ in systems with true vfork.
-       Protect it from permanent change.  */
-    char **save_environ = environ;
     int fd_error = fd1;
 
     if (fd_output >= 0)
@@ -594,7 +591,6 @@ usage: (call-process PROGRAM &optional INFILE BUFFER DISPLAY &rest ARGS)  */)
       ptrdiff_t volatile count_volatile = count;
       ptrdiff_t volatile sa_count_volatile = sa_count;
       char **volatile new_argv_volatile = new_argv;
-      char **volatile new_save_environ = save_environ;
 
       pid = vfork ();
 
@@ -612,7 +608,6 @@ usage: (call-process PROGRAM &optional INFILE BUFFER DISPLAY &rest ARGS)  */)
       count = count_volatile;
       sa_count = sa_count_volatile;
       new_argv = new_argv_volatile;
-      save_environ = new_save_environ;
     }
 
     if (pid == 0)
@@ -637,8 +632,6 @@ usage: (call-process PROGRAM &optional INFILE BUFFER DISPLAY &rest ARGS)  */)
     if (fd_error >= 0)
       emacs_close (fd_error);
 #endif /* not MSDOS */
-
-    environ = save_environ;
 
     /* Close most of our file descriptors, but not fd0
        since we will use that to read input from.  */
@@ -1092,10 +1085,6 @@ add_env (char **env, char **new_env, char *string)
    Initialize inferior's priority, pgrp, connected dir and environment.
    then exec another program based on new_argv.
 
-   This function may change environ for the superior process.
-   Therefore, the superior process must save and restore the value
-   of environ around the vfork and the call to this function.
-
    If SET_PGRP, put the subprocess into a separate process group.
 
    CURRENT_DIR is an elisp string giving the path of the current
@@ -1298,11 +1287,7 @@ child_setup (int in, int out, int err, char **new_argv, bool set_pgrp,
   setpgid (0, 0);
   tcsetpgrp (0, pid);
 
-  /* execvp does not accept an environment arg so the only way
-     to pass this environment is to set environ.  Our caller
-     is responsible for restoring the ambient value of environ.  */
-  environ = env;
-  execvp (new_argv[0], new_argv);
+  execve (new_argv[0], new_argv, env);
 
   emacs_write (1, "Can't exec program: ", 20);
   emacs_write (1, new_argv[0], strlen (new_argv[0]));

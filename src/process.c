@@ -1586,9 +1586,6 @@ create_process (Lisp_Object process, char **new_argv, Lisp_Object current_dir)
   volatile int pty_flag = 0;
   volatile Lisp_Object lisp_pty_name = Qnil;
   volatile Lisp_Object encoded_current_dir;
-#if HAVE_WORKING_VFORK
-  char **volatile save_environ;
-#endif
 
   inchannel = outchannel = -1;
 
@@ -1686,12 +1683,6 @@ create_process (Lisp_Object process, char **new_argv, Lisp_Object current_dir)
   sigemptyset (&blocked);
   sigaddset (&blocked, SIGCHLD);
   pthread_sigmask (SIG_BLOCK, &blocked, 0);
-#endif
-
-#if HAVE_WORKING_VFORK
-  /* child_setup must clobber environ on systems with true vfork.
-     Protect it from permanent change.  */
-  save_environ = environ;
 #endif
 
 #ifndef WINDOWSNT
@@ -1819,10 +1810,6 @@ create_process (Lisp_Object process, char **new_argv, Lisp_Object current_dir)
 
   /* Back in the parent process.  */
 
-#if HAVE_WORKING_VFORK
-  environ = save_environ;
-#endif
-
   XPROCESS (process)->pid = pid;
   if (0 <= pid)
     XPROCESS (process)->alive = 1;
@@ -1874,7 +1861,7 @@ create_process (Lisp_Object process, char **new_argv, Lisp_Object current_dir)
       /* Wait for child_setup to complete in case that vfork is
 	 actually defined as fork.  The descriptor wait_child_setup[1]
 	 of a pipe is closed at the child side either by close-on-exec
-	 on successful execvp or the _exit call in child_setup.  */
+	 on successful execve or the _exit call in child_setup.  */
       {
 	char dummy;
 

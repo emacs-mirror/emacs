@@ -1,3 +1,12 @@
+2012-12-02  Paul Eggert  <eggert@cs.ucla.edu>
+
+	Use execve to avoid need to munge environ (Bug#13054).
+	* callproc.c (Fcall_process):
+	* process.c (create_process):
+	Don't save and restore environ;	no longer needed.
+	* callproc.c (child_setup):
+	Use execve, not execvp, to preserve environ.
+
 2012-12-01  Paul Eggert  <eggert@cs.ucla.edu>
 
 	* xterm.c (x_draw_image_relief): Remove unused locals (Bug#10500).
