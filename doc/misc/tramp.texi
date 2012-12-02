@@ -7,7 +7,7 @@
 @c This is *so* much nicer :)
 @footnotestyle end
 
-@c In the Tramp CVS, the version number is auto-frobbed from
+@c In the Tramp repository, the version number is auto-frobbed from
 @c configure.ac, so you should edit that file and run
 @c "autoconf && ./configure" to change the version number.
 
@@ -106,7 +106,7 @@ If you're using the other Emacs flavor, you should read the
 @ifhtml
 The latest release of @value{tramp} is available for
 @uref{ftp://ftp.gnu.org/gnu/tramp/, download}, or you may see
-@ref{Obtaining Tramp} for more details, including the CVS server
+@ref{Obtaining Tramp} for more details, including the Git server
 details.
 
 @value{tramp} also has a @uref{http://savannah.gnu.org/projects/tramp/,
@@ -377,13 +377,13 @@ includes @value{tramp} already, and there is a @value{tramp} package
 for XEmacs, as well.  So maybe it is easier to just use those.  But if
 you want the bleeding edge, read on@dots{...}
 
-For the especially brave, @value{tramp} is available from CVS.  The CVS
+For the especially brave, @value{tramp} is available from Git.  The Git
 version is the latest version of the code and may contain incomplete
 features or new issues.  Use these versions at your own risk.
 
 Instructions for obtaining the latest development version of @value{tramp}
-from CVS can be found by going to the Savannah project page at the
-following URL and then clicking on the CVS link in the navigation bar
+from Git can be found by going to the Savannah project page at the
+following URL and then clicking on the Git link in the navigation bar
 at the top.
 
 @noindent
@@ -394,8 +394,14 @@ Or follow the example session below:
 
 @example
 ] @strong{cd ~/@value{emacsdir}}
-] @strong{export CVS_RSH="ssh"}
-] @strong{cvs -z3 -d:pserver:anonymous@@cvs.savannah.gnu.org:/sources/tramp co tramp}
+] @strong{git clone git://git.savannah.gnu.org/tramp.git}
+@end example
+
+@noindent
+Tramp developers use instead
+
+@example
+] @strong{git clone login@@git.sv.gnu.org:/srv/git/tramp.git}
 @end example
 
 @noindent
@@ -405,12 +411,11 @@ updates from the repository by issuing the command:
 
 @example
 ] @strong{cd ~/@value{emacsdir}/tramp}
-] @strong{export CVS_RSH="ssh"}
-] @strong{cvs update -d}
+] @strong{git pull}
 @end example
 
 @noindent
-Once you've got updated files from the CVS repository, you need to run
+Once you've got updated files from the Git repository, you need to run
 @command{autoconf} in order to get an up-to-date @file{configure}
 script:
 
@@ -980,7 +985,7 @@ This works only for unified filenames, see @ref{Issues}.
 @cindex method smb
 @cindex smb method
 
-This is another not natural @value{tramp} method.  It uses the
+This is another not native @value{tramp} method.  It uses the
 @command{smbclient} command on different Unices in order to connect to
 an SMB server.  An SMB server might be a Samba (or CIFS) server on
 another UNIX host or, more interesting, a host running MS Windows.  So
