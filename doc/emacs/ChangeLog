@@ -1,3 +1,7 @@
+2012-12-02  Kevin Ryde  <user42@zip.com.au>
+
+	* maintaining.texi (Tag Syntax): Mention (defvar foo) handling.
+
 2012-12-01  Kevin Ryde  <user42@zip.com.au>
 
 	* maintaining.texi (Tag Syntax): Mention Perl's "use constant".

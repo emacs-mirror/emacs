@@ -1676,9 +1676,11 @@ specifies (using Bourne shell syntax) that the commands
 
 @item
 In Lisp code, any function defined with @code{defun}, any variable
-defined with @code{defvar} or @code{defconst}, and in general the first
-argument of any expression that starts with @samp{(def} in column zero is
-a tag.
+defined with @code{defvar} or @code{defconst}, and in general the
+first argument of any expression that starts with @samp{(def} in
+column zero is a tag.  As an exception, expressions of the form
+@code{(defvar @var{foo})} are treated as declarations, and are only
+tagged if the @samp{--declarations} option is given.
 
 @item
 In Scheme code, tags include anything defined with @code{def} or with a
