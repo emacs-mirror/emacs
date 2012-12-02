@@ -296,21 +296,23 @@ VALUES-PLIST is a list with alternating index and value elements."
   (let ((pairs '(("foo" . "#foo")
                  ("C.foo" . ".foo")
                  ("self.foo" . ".foo"))))
-    (loop for (name . value) in pairs
-          do (with-temp-buffer
-               (insert (ruby-test-string
-                        "module M
+    (dolist (pair pairs)
+      (let ((name  (car pair))
+	    (value (cdr pair)))
+	(with-temp-buffer
+	  (insert (ruby-test-string
+		   "module M
                         |  class C
                         |    def %s
                         |    end
                         |  end
                         |end"
-                        name))
-               (ruby-mode)
-               (search-backward "def")
-               (forward-line)
-               (should (string= (ruby-add-log-current-method)
-                                (format "M::C%s" value)))))))
+		   name))
+	  (ruby-mode)
+	  (search-backward "def")
+	  (forward-line)
+	  (should (string= (ruby-add-log-current-method)
+			   (format "M::C%s" value))))))))
 
 (defvar ruby-block-test-example
   (ruby-test-string
