@@ -141,10 +141,10 @@ A command may be called from Lisp programs like any other function, but
 then the caller supplies the arguments and @var{arg-descriptor} has no
 effect.
 
-@cindex @code{interactive-form}, function property
+@cindex @code{interactive-form}, symbol property
 The @code{interactive} form must be located at top-level in the
 function body, or in the function symbol's @code{interactive-form}
-property (@pxref{Symbol Plists}).  It has its effect because the
+property (@pxref{Symbol Properties}).  It has its effect because the
 command loop looks for it before calling the function
 (@pxref{Interactive Call}).  Once the function is called, all its body
 forms are executed; at this time, if the @code{interactive} form

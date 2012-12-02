@@ -472,8 +472,8 @@ Internally, @code{defcustom} uses the symbol property
 @code{saved-value} to record the value saved by the user with the
 customization buffer, and @code{customized-value} to record the value
 set by the user with the customization buffer, but not saved.
-@xref{Property Lists}.  These properties are lists, the car of which
-is an expression that evaluates to the value.
+@xref{Symbol Properties}.  These properties are lists, the car of
+which is an expression that evaluates to the value.
 
 @defun custom-reevaluate-setting symbol
 This function re-evaluates the standard value of @var{symbol}, which

@@ -1423,7 +1423,6 @@ disappear after doing its job and will not interfere with the
 subsequent major mode.  @xref{Hooks}.
 @end defvar
 
-@c Emacs 19 feature
 @cindex permanent local variable
 A buffer-local variable is @dfn{permanent} if the variable name (a
 symbol) has a @code{permanent-local} property that is non-@code{nil}.

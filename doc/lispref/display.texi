@@ -2287,7 +2287,7 @@ terminal must match one of the @var{value}s specified for it in
 @end example
 
   Internally, Emacs stores the face's default specification in its
-@code{face-defface-spec} symbol property (@pxref{Property Lists}).
+@code{face-defface-spec} symbol property (@pxref{Symbol Properties}).
 The @code{saved-face} property stores the face specification saved by
 the user, using the customization buffer; the @code{customized-face}
 property stores the face specification customized for the current
