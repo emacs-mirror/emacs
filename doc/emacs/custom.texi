@@ -1648,7 +1648,7 @@ you can specify them in your initialization file by writing Lisp code.
 
 @findex kbd
   There are several ways to write a key binding using Lisp.  The
-simplest is to use the @code{kbd} macro, which converts a textual
+simplest is to use the @code{kbd} function, which converts a textual
 representation of a key sequence---similar to how we have written key
 sequences in this manual---into a form that can be passed as an
 argument to @code{global-set-key}.  For example, here's how to bind
@@ -1676,11 +1676,11 @@ and mouse events:
 (global-set-key (kbd "<mouse-2>") 'mouse-save-then-kill)
 @end example
 
-  Instead of using the @code{kbd} macro, you can use a Lisp string or
-vector to specify the key sequence.  Using a string is simpler, but
-only works for @acronym{ASCII} characters and Meta-modified
-@acronym{ASCII} characters.  For example, here's how to bind @kbd{C-x
-M-l} to @code{make-symbolic-link} (@pxref{Misc File Ops}):
+  Instead of using @code{kbd}, you can use a Lisp string or vector to
+specify the key sequence.  Using a string is simpler, but only works
+for @acronym{ASCII} characters and Meta-modified @acronym{ASCII}
+characters.  For example, here's how to bind @kbd{C-x M-l} to
+@code{make-symbolic-link} (@pxref{Misc File Ops}):
 
 @example
 (global-set-key "\C-x\M-l" 'make-symbolic-link)
