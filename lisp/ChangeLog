@@ -1,3 +1,9 @@
+2012-12-02  Stephen Berman  <stephen.berman@gmx.net>
+
+	* calendar/todos.el (todos-show): Fix a comment.
+	(todos-add-category): Prompt for a new category if passed category
+	is the empty string, not nil.
+
 2012-11-26  Stephen Berman  <stephen.berman@gmx.net>
 
 	* calendar/todos.el (todos-make-categories-list)
@@ -42,11 +48,13 @@
 
 2012-09-24  Stephen Berman  <stephen.berman@gmx.net>
 
+	Changes from 2012-07-14 (revision 110020).
 	* calendar/todos.el (todos-copy-item): New command.
 	(todos-insertion-map): Add key binding for it.
 
 2012-09-24  Stephen Berman  <stephen.berman@gmx.net>
 
+	Changes from 2012-07-13 (revision 110019).
 	* calendar/todos.el (todos-undo-item-omit-comment): New defcustom.
 	(todos-item-undo): Use it.
 	(todos-allcats-file, todos-all-categories-alist): New variables.
@@ -57,6 +65,7 @@
 
 2012-09-24  Stephen Berman  <stephen.berman@gmx.net>
 
+	Changes from 2012-06-27 (revision 110018).
 	* calendar/todos.el: Further code rearrangement; further new and
 	revised comments.
 	(todos-reevaluate-filelist-defcustoms): Rename from
@@ -73,6 +82,7 @@
 
 2012-09-23  Stephen Berman  <stephen.berman@gmx.net>
 
+	Changes from 2012-06-25 (revision 110017).
 	* calendar/todos.el (todos-item-undo): Fix restoration on
 	cancelling; use buffer-substring-no-properties; comment out code
 	removing mark overlay; fix insertion of undone items; display any
@@ -80,6 +90,7 @@
 
 2012-09-23  Stephen Berman  <stephen.berman@gmx.net>
 
+	Changes from 2012-06-24 (revision 110016).
 	* calendar/todos.el: Further significant code rearrangement;
 	further comment revision.
 	(todos-mode-display): New defgroup.
@@ -108,6 +119,7 @@
 
 2012-09-23  Stephen Berman  <stephen.berman@gmx.net>
 
+	Changes from 2012-06-21 (revision 110015).
 	* calendar/todos.el: Further comment revision.
 	(todos-sorted-column): Change default value, also taking tty into
 	account.
@@ -137,6 +149,7 @@
 
 2012-09-23  Stephen Berman  <stephen.berman@gmx.net>
 
+	Changes from 2012-06-15 (revision 110014).
 	* calendar/todos.el (todos-reset-done-separator)
 	(todos-reset-and-enable-done-separator): New functions.
 	(todos-reset-done-separator-string): Rewrite using
@@ -148,6 +161,7 @@
 
 2012-09-23  Stephen Berman  <stephen.berman@gmx.net>
 
+	Changes from 2012-06-14 (revision 110013).
 	* calendar/todos.el (todos-done-separator-string): New defcustom.
 	(todos-done-separator): New variable replacing defcustom of the
 	same name.
@@ -161,6 +175,7 @@
 
 2012-09-23  Stephen Berman  <stephen.berman@gmx.net>
 
+	Changes from 2012-06-03 (revision 110012).
 	* calendar/todos.el: Further comment revision.
 	(todos-sorted-column): Change default value.
 	(todos-item-start): Handle empty category (needed in
@@ -187,6 +202,7 @@
 
 2012-09-23  Stephen Berman  <stephen.berman@gmx.net>
 
+	Changes from 2012-06-02 (revision 110011).
 	* calendar/todos.el: Significant code rearrangement; further
 	comment revision.
 	(todos-filtered-items-buffer): Rename from todos-filter-buffer and
@@ -210,6 +226,7 @@
 
 2012-09-22  Stephen Berman  <stephen.berman@gmx.net>
 
+	Changes from 2012-06-02 (revision 110010).
 	* calendar/todos.el: Further code rearrangement and comment
 	revision.
 	(todos-item-start): Handle empty line between todo and done items
@@ -226,6 +243,7 @@
 
 2012-09-22  Stephen Berman  <stephen.berman@gmx.net>
 
+	Changes from 2012-06-01 (revision 110009).
 	* calendar/todos.el: Further code rearrangement and comment
 	revision.
 	(todos-add-to-buffer-list, todos-update-buffer-list): New functions.
@@ -261,6 +279,7 @@
 
 2012-09-21  Stephen Berman  <stephen.berman@gmx.net>
 
+	Changes from 2012-05-29 (revision 110008).
 	* calendar/todos.el: Further comment revision.
 	(todos-item-end): Replace use of command todos-forward-item by
 	regexp searches using internal variables.
@@ -269,6 +288,7 @@
 
 2012-09-21  Stephen Berman  <stephen.berman@gmx.net>
 
+	Changes from 2012-05-29 (revision 110007).
 	* calendar/todos.el (todos-ignore-archived-categories):
 	Revert last change; remove :initialize and :set functions; change
 	use and change users accordingly.
@@ -295,11 +315,13 @@
 
 2012-09-21  Stephen Berman  <stephen.berman@gmx.net>
 
+	Changes from 2012-05-28 (revision 110006).
 	* calendar/todos.el: Doubts about todos-ignore-archived-categories.
 	(todos-ignore-archived-categories): Change default value.
 
 2012-09-21  Stephen Berman  <stephen.berman@gmx.net>
 
+	Changes from 2012-05-27 (revision 110005).
 	* calendar/todos.el: Further comment revision.
 	(todos-reset-global-current-todos-file):
 	Try to make this not slow down kill-buffer.
@@ -315,6 +337,7 @@
 
 2012-09-21  Stephen Berman  <stephen.berman@gmx.net>
 
+	Changes from 2012-05-25 (revision 110004).
 	* calendar/todos.el: Further comment revision.
 	(todos-set-item-top-priority): New command.
 	(todos-reset-global-current-todos-file):
@@ -352,6 +375,7 @@
 
 2012-09-21  Stephen Berman  <stephen.berman@gmx.net>
 
+	Changes from 2012-05-23 (revision 110003).
 	* calendar/todos.el (todos-key-bindings): Remove binding of
 	deleted command.
 	(todos-menu): Remove entry of deleted command.
@@ -362,6 +386,7 @@
 
 2012-09-21  Stephen Berman  <stephen.berman@gmx.net>
 
+	Changes from 2012-05-22 (revision 110002).
 	* calendar/todos.el (todos-set-show-current-file): Rename from
 	todos-toggle-show-current-file and adjust callers.
 	(todos-number-priorities): Rename from todos-number-prefix and
@@ -380,6 +405,7 @@
 
 2012-09-21  Stephen Berman  <stephen.berman@gmx.net>
 
+	Changes from 2012-05-21 (revision 110001).
 	* calendar/todos.el: Further comment revision and code
 	rearrangement.
 	(todos-item-end): Revert last change.
@@ -396,6 +422,7 @@
 
 2012-09-21  Stephen Berman  <stephen.berman@gmx.net>
 
+	Changes from 2012-05-19 (revision 110000).
 	* calendar/todos.el: Add and revise further doc strings and
 	comments.
 	(todos-filter-function, todos-custom-items)
@@ -418,6 +445,7 @@
 
 2012-09-20  Stephen Berman  <stephen.berman@gmx.net>
 
+	Changes from 2012-05-17 (revision 109999).
 	* calendar/todos.el: Add and revise further doc strings and
 	comments; major code rearrangement.
 	(todos-merged-files, todos-prompt-merged-files)
@@ -554,11 +582,13 @@
 
 2012-09-19  Stephen Berman  <stephen.berman@gmx.net>
 
+	Changes from 2011-12-03 (revision 109998).
 	* calendar/todos.el (todos-item-start): Restore commented out code
 	to prevent wrongly moving point in widened buffer.
 
 2012-09-19  Stephen Berman  <stephen.berman@gmx.net>
 
+	Changes from 2011-12-02 (revision 109997).
 	* calendar/todos.el: Remove old commentary from todo-mode.el; add
 	and revise further doc strings and comments; require cl.el at
 	compile time for remove-duplicates; use function powerset from
@@ -764,6 +794,7 @@
 
 2012-09-18  Stephen Berman  <stephen.berman@gmx.net>
 
+	Changes from 2011-05-16 (revision 109996).
 	* calendar/todos.el Add and revise various doc strings, remove
 	further commented out code; add further comments; further code
 	rearrangement.
@@ -988,6 +1019,7 @@
 
 2012-09-14  Stephen Berman  <stephen.berman@gmx.net>
 
+	Changes from 2010-07-09 (revision 109995).
 	* calendar/todos.el Remove lots of commented out code; add various
 	comments; further code rearrangement.
 	(todos-insert-item-here-ask-date-time)
@@ -1053,6 +1085,7 @@
 
 2012-09-13  Stephen Berman  <stephen.berman@gmx.net>
 
+	Changes from 2010-06-18 (revision 109994).
 	* calendar/todos.el: Numerous spelling and comment fixes, doc
 	string fixes to conform with checkdoc, further rearrangement of
 	definitions, etc.
@@ -1148,6 +1181,7 @@
 
 2012-09-13  Stephen Berman  <stephen.berman@gmx.net>
 
+	Changes from 2010-05-25 (revision 109993).
 	* calendar/todos.el: Comment out calendar require, since diary-lib
 	requires calendar.  Rearrange file to group definitions according
 	to their use (types of commands, internal functions, etc.)
@@ -1242,6 +1276,7 @@
 
 2012-09-12  Stephen Berman  <stephen.berman@gmx.net>
 
+	Changes from 2009-11-07 (revision 109992).
 	* calendar/todos.el: Comment out time-stamp require; require
 	calendar and diary-lib.
 	(todos-prefix): Change default value and doc string to reflect new
@@ -1300,6 +1335,7 @@
 
 2012-09-12  Stephen Berman  <stephen.berman@gmx.net>
 
+	Changes from 2009-07-04 (revision 109991).
 	* calendar/todos.el (todos-window-configuration): Comment out.
 	(todos-display-categories): Comment out use of
 	todos-window-configuration; use switch-to-buffer instead of
@@ -1313,6 +1349,7 @@
 
 2012-09-12  Stephen Berman  <stephen.berman@gmx.net>
 
+	Changes from 2009-06-26 (revision 109989).
 	* calendar/todos.el (todos-file-do, todos-file-done):
 	Change default location to directory "~/.emacs.d/".
 	(todos-completion-ignore-case, todos-categories-buffer):
@@ -1336,11 +1373,13 @@
 
 2012-09-12  Stephen Berman  <stephen.berman@gmx.net>
 
+	Changes from 2009-02-16 (revision 109988).
 	* calendar/todos.el (todos-list-categories): Fix typos.
 	(todos-show): Ensure file is in todos-mode.
 
 2012-09-12  Stephen Berman  <stephen.berman@gmx.net>
 
+	Changes from 2009-02-12 (revision 109987).
 	* calendar/todos.el (todos-header): Remove defvar.
 	(todos-add-category): Comment out code that inserts and updates
 	the file local variables first line of the file todos-file-do.
@@ -1349,6 +1388,7 @@
 
 2012-09-11  Stephen Berman  <stephen.berman@gmx.net>
 
+	Changes from 2009-02-12 (revision 109986).
 	* calendar/todos.el: New file.  This is a copy of todo-mode.el
 	from revision 94343 except for the following changes: replace all
 	occurrences of the namespace prefix "todo-" with "todos-", delete

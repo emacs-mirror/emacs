@@ -2792,9 +2792,8 @@ corresponding Todos file, displaying the corresponding category."
       ;; file, if it exists.
       (when (assoc cat todos-categories)
 	(setq todos-category-number (todos-category-number cat)))
-      ;; If no Todos file exists, initialize one.
+      ;; If this is a new Todos file, add its first category.
       (when (zerop (buffer-size))
-	;; Call with empty category name to get initial prompt.
 	(setq todos-category-number (todos-add-category "")))
       (save-excursion (todos-category-select)))
     (setq todos-first-visit nil)))
@@ -3641,6 +3640,7 @@ The items are those in the files listed in `todos-filter-files'."
     (todos-filter-items 'regexp t)
     (todos-filtered-buffer-name buf files)))
 
+;; ---------------------------------------------------------------------------
 ;;; Editing Commands
 
 (defun todos-add-file ()
@@ -3665,7 +3665,6 @@ Noninteractively, return the name of the new file."
 	  (todos-show))
       file)))
 
-;; ---------------------------------------------------------------------------
 ;;; Category editing commands
 
 (defun todos-add-category (&optional cat)
@@ -3677,7 +3676,9 @@ the category name and the return value is the category number."
   (let* ((buffer-read-only)
 	 (num (1+ (length todos-categories)))
 	 (counts (make-vector 4 0)))	; [todo diary done archived]
-    (unless cat
+    ;; If cat is passed from caller, don't prompt, unless it is "",
+    ;; which means the file was just added and has no category yet.
+    (unless (and cat (> (length cat) 0))
       (setq cat (todos-read-category "Enter new category name: " nil t)))
     (setq todos-categories (append todos-categories (list (cons cat counts))))
     (widen)
