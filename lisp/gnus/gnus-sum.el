@@ -1911,7 +1911,7 @@ increase the score of each group you read."
   "a" gnus-summary-post-news
   "x" gnus-summary-limit-to-unread
   "s" gnus-summary-isearch-article
-  [tab] gnus-summary-widget-forward
+  "\t" gnus-summary-widget-forward
   [backtab] gnus-summary-widget-backward
   "t" gnus-summary-toggle-header
   "g" gnus-summary-show-article
@@ -2076,7 +2076,7 @@ increase the score of each group you read."
   "W" gnus-warp-to-article
   "g" gnus-summary-show-article
   "s" gnus-summary-isearch-article
-  [tab] gnus-summary-widget-forward
+  "\t" gnus-summary-widget-forward
   [backtab] gnus-summary-widget-backward
   "P" gnus-summary-print-article
   "S" gnus-sticky-article
