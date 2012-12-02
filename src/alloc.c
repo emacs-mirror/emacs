@@ -761,13 +761,17 @@ xnrealloc (void *pa, ptrdiff_t nitems, ptrdiff_t item_size)
    infinity.
 
    If PA is null, then allocate a new array instead of reallocating
-   the old one.  Thus, to grow an array A without saving its old
-   contents, invoke xfree (A) immediately followed by xgrowalloc (0,
-   &NITEMS, ...).
+   the old one.
 
    Block interrupt input as needed.  If memory exhaustion occurs, set
    *NITEMS to zero if PA is null, and signal an error (i.e., do not
-   return).  */
+   return).
+
+   Thus, to grow an array A without saving its old contents, do
+   { xfree (A); A = NULL; A = xpalloc (NULL, &AITEMS, ...); }.
+   The A = NULL avoids a dangling pointer if xpalloc exhausts memory
+   and signals an error, and later this code is reexecuted and
+   attempts to free A.  */
 
 void *
 xpalloc (void *pa, ptrdiff_t *nitems, ptrdiff_t nitems_incr_min,

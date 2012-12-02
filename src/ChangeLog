@@ -1,5 +1,12 @@
 2012-12-02  Paul Eggert  <eggert@cs.ucla.edu>
 
+	Fix xpalloc confusion after memory is exhausted.
+	* alloc.c (xpalloc): Comment fix.
+	* charset.c (Fdefine_charset_internal): If xpalloc exhausts memory
+	and signals an error, do not clear charset_table_size, as
+	charset_table is still valid.
+	* doprnt.c (evxprintf): Clear *BUF after freeing it.
+
 	Use execve to avoid need to munge environ (Bug#13054).
 	* callproc.c (Fcall_process):
 	* process.c (create_process):
