@@ -1,3 +1,8 @@
+2012-12-03  Jan Djärv  <jan.h.d@swipnet.se>
+
+	* gtkutil.c (my_log_handler): New function.
+	(xg_set_geometry): Set log handler to my_log_handler (Bug#11177).
+
 2012-12-03  Dmitry Antipov  <dmantipov@yandex.ru>
 
 	* lisp.h (modify_region): Rename to...
