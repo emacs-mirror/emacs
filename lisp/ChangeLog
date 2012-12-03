@@ -1,3 +1,13 @@
+2012-12-03  Jay Belanger  <jay.p.belanger@gmail.com>
+
+	* calc/calc-forms.el (math-absolute-from-iso-dt)
+	(math-date-to-iso-dt, math-parse-iso-date-validate)
+	(math-iso-dt-to-date): New functions.
+	(math-fd-iso-dt, math-fd-isoyear, math-fd-isoweek)
+	(math-fd-isoweekday): New variables.
+	(calc-date-notation, math-parse-standard-date, math-format-date)
+	(math-format-date-part): Add support for more formatting codes.
+
 2012-12-02  Dmitry Gutov  <dgutov@yandex.ru>
 
 	* vc/vc.el (vc-delete-file, vc-rename-file): Default to the
