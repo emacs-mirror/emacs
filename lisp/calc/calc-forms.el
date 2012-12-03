@@ -471,7 +471,7 @@ in the Gregorian calendar and the remaining part determines the time."
     (list 
      year
      (math-add (car (math-idivmod 
-                     (math-sub date (math-iso-dt-to-absolute year 1 1))
+                     (math-sub date (math-absolute-from-iso-dt year 1 1))
                      7))
                1)
      (cdr (math-idivmod date 7)))))
