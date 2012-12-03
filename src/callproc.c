@@ -67,88 +67,110 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 /* Pattern used by call-process-region to make temp files.  */
 static Lisp_Object Vtemp_file_name_pattern;
 
-/* True if we are about to fork off a synchronous process or if we
-   are waiting for it.  */
-bool synch_process_alive;
+/* The next two variables are valid only while record-unwind-protect
+   is in place during call-process for a synchronous subprocess.  At
+   other times, their contents are irrelevant.  Doing this via static
+   C variables is more convenient than putting them into the arguments
+   of record-unwind-protect, as they need to be updated at randomish
+   times in the code, and Lisp cannot always store these values as
+   Emacs integers.  It's safe to use static variables here, as the
+   code is never invoked reentrantly.  */
 
-/* Nonzero => this is a string explaining death of synchronous subprocess.  */
-const char *synch_process_death;
+/* If nonzero, a process-ID that has not been reaped.  */
+static pid_t synch_process_pid;
 
-/* Nonzero => this is the signal number that terminated the subprocess.  */
-int synch_process_termsig;
-
-/* If synch_process_death is zero,
-   this is exit code of synchronous subprocess.  */
-int synch_process_retcode;
-
+/* If nonnegative, a file descriptor that has not been closed.  */
+static int synch_process_fd;
 
+/* Block SIGCHLD.  */
+
+static void
+block_child_signal (void)
+{
+#ifdef SIGCHLD
+  sigset_t blocked;
+  sigemptyset (&blocked);
+  sigaddset (&blocked, SIGCHLD);
+  pthread_sigmask (SIG_BLOCK, &blocked, 0);
+#endif
+}
+
+/* Unblock SIGCHLD.  */
+
+static void
+unblock_child_signal (void)
+{
+#ifdef SIGCHLD
+  pthread_sigmask (SIG_SETMASK, &empty_mask, 0);
+#endif
+}
+
+/* Clean up when exiting call_process_cleanup.  */
+
+static Lisp_Object
+call_process_kill (Lisp_Object ignored)
+{
+  if (0 <= synch_process_fd)
+    emacs_close (synch_process_fd);
+
+  /* If PID is reapable, kill it and record it as a deleted process.
+     Do this in a critical section.  Unless PID is wedged it will be
+     reaped on receipt of the first SIGCHLD after the critical section.  */
+  if (synch_process_pid)
+    {
+      block_child_signal ();
+      record_deleted_pid (synch_process_pid);
+      EMACS_KILLPG (synch_process_pid, SIGKILL);
+      unblock_child_signal ();
+    }
+
+  return Qnil;
+}
+
 /* Clean up when exiting Fcall_process.
    On MSDOS, delete the temporary file on any kind of termination.
    On Unix, kill the process and any children on termination by signal.  */
 
-/* True if this is termination due to exit.  */
-static bool call_process_exited;
-
-static Lisp_Object
-call_process_kill (Lisp_Object fdpid)
-{
-  int fd;
-  pid_t pid;
-  CONS_TO_INTEGER (Fcar (fdpid), int, fd);
-  CONS_TO_INTEGER (Fcdr (fdpid), pid_t, pid);
-  emacs_close (fd);
-  EMACS_KILLPG (pid, SIGKILL);
-  synch_process_alive = 0;
-  return Qnil;
-}
-
 static Lisp_Object
 call_process_cleanup (Lisp_Object arg)
 {
-  Lisp_Object fdpid = Fcdr (arg);
-  int fd;
-#if defined (MSDOS)
-  Lisp_Object file;
+#ifdef MSDOS
+  Lisp_Object buffer = Fcar (arg);
+  Lisp_Object file = Fcdr (arg);
 #else
-  pid_t pid;
+  Lisp_Object buffer = arg;
 #endif
 
-  Fset_buffer (Fcar (arg));
-  CONS_TO_INTEGER (Fcar (fdpid), int, fd);
+  Fset_buffer (buffer);
 
-#if defined (MSDOS)
-  /* for MSDOS fdpid is really (fd . tempfile)  */
-  file = Fcdr (fdpid);
-  /* FD is -1 and FILE is "" when we didn't actually create a
-     temporary file in call-process.  */
-  if (fd >= 0)
-    emacs_close (fd);
-  if (!(strcmp (SDATA (file), NULL_DEVICE) == 0 || SREF (file, 0) == '\0'))
-    unlink (SDATA (file));
-#else /* not MSDOS */
-  CONS_TO_INTEGER (Fcdr (fdpid), pid_t, pid);
-
-  if (call_process_exited)
-    {
-      emacs_close (fd);
-      return Qnil;
-    }
-
-  if (EMACS_KILLPG (pid, SIGINT) == 0)
+#ifndef MSDOS
+  /* If the process still exists, kill its process group.  */
+  if (synch_process_pid)
     {
       ptrdiff_t count = SPECPDL_INDEX ();
-      record_unwind_protect (call_process_kill, fdpid);
+      EMACS_KILLPG (synch_process_pid, SIGINT);
+      record_unwind_protect (call_process_kill, make_number (0));
       message1 ("Waiting for process to die...(type C-g again to kill it instantly)");
       immediate_quit = 1;
       QUIT;
-      wait_for_termination (pid);
+      wait_for_termination (synch_process_pid, 0, 1);
+      synch_process_pid = 0;
       immediate_quit = 0;
       specpdl_ptr = specpdl + count; /* Discard the unwind protect.  */
       message1 ("Waiting for process to die...done");
     }
-  synch_process_alive = 0;
-  emacs_close (fd);
-#endif /* not MSDOS */
+#endif
+
+  if (0 <= synch_process_fd)
+    emacs_close (synch_process_fd);
+
+#ifdef MSDOS
+  /* FILE is "" when we didn't actually create a temporary file in
+     call-process.  */
+  if (!(strcmp (SDATA (file), NULL_DEVICE) == 0 || SREF (file, 0) == '\0'))
+    unlink (SDATA (file));
+#endif
+
   return Qnil;
 }
 
@@ -181,9 +203,10 @@ If you quit, the process is killed with SIGINT, or SIGKILL if you quit again.
 usage: (call-process PROGRAM &optional INFILE BUFFER DISPLAY &rest ARGS)  */)
   (ptrdiff_t nargs, Lisp_Object *args)
 {
-  Lisp_Object infile, buffer, current_dir, path, cleanup_info_tail;
+  Lisp_Object infile, buffer, current_dir, path;
   bool display_p;
   int fd0, fd1, filefd;
+  int status;
   ptrdiff_t count = SPECPDL_INDEX ();
   USE_SAFE_ALLOCA;
 
@@ -199,7 +222,7 @@ usage: (call-process PROGRAM &optional INFILE BUFFER DISPLAY &rest ARGS)  */)
 #else
   pid_t pid;
 #endif
-  int vfork_errno;
+  int child_errno;
   int fd_output = -1;
   struct coding_system process_coding; /* coding-system of process output */
   struct coding_system argument_coding;	/* coding-system of arguments */
@@ -493,16 +516,6 @@ usage: (call-process PROGRAM &optional INFILE BUFFER DISPLAY &rest ARGS)  */)
     if (fd_output >= 0)
       fd1 = fd_output;
 
-    /* Record that we're about to create a synchronous process.  */
-    synch_process_alive = 1;
-
-    /* These vars record information from process termination.
-       Clear them now before process can possibly terminate,
-       to avoid timing error if process terminates soon.  */
-    synch_process_death = 0;
-    synch_process_retcode = 0;
-    synch_process_termsig = 0;
-
     if (NILP (error_file))
       fd_error = emacs_open (NULL_DEVICE, O_WRONLY, 0);
     else if (STRINGP (error_file))
@@ -535,23 +548,21 @@ usage: (call-process PROGRAM &optional INFILE BUFFER DISPLAY &rest ARGS)  */)
 
 #ifdef MSDOS /* MW, July 1993 */
     /* Note that on MSDOS `child_setup' actually returns the child process
-       exit status, not its PID, so we assign it to `synch_process_retcode'
-       below.  */
+       exit status, not its PID, so assign it to status below.  */
     pid = child_setup (filefd, outfilefd, fd_error, new_argv, 0, current_dir);
-
-    /* Record that the synchronous process exited and note its
-       termination status.  */
-    synch_process_alive = 0;
-    synch_process_retcode = pid;
-    if (synch_process_retcode < 0)  /* means it couldn't be exec'ed */
-      {
-	synchronize_system_messages_locale ();
-	synch_process_death = strerror (errno);
-      }
+    child_errno = errno;
 
     emacs_close (outfilefd);
     if (fd_error != outfilefd)
       emacs_close (fd_error);
+    if (pid < 0)
+      {
+	synchronize_system_messages_locale ();
+	return
+	  code_convert_string_norecord (build_string (strerror (child_errno)),
+					Vlocale_coding_system, 0);
+      }
+    status = pid;
     fd1 = -1; /* No harm in closing that one!  */
     if (tempfile)
       {
@@ -569,11 +580,20 @@ usage: (call-process PROGRAM &optional INFILE BUFFER DISPLAY &rest ARGS)  */)
     else
       fd0 = -1; /* We are not going to read from tempfile.   */
 #else /* not MSDOS */
+
+    /* Do the unwind-protect now, even though the pid is not known, so
+       that no storage allocation is done in the critical section.
+       The actual PID will be filled in during the critical section.  */
+    synch_process_pid = 0;
+    synch_process_fd = fd0;
+    record_unwind_protect (call_process_cleanup, Fcurrent_buffer ());
+
+    block_input ();
+    block_child_signal ();
+
 #ifdef WINDOWSNT
     pid = child_setup (filefd, fd1, fd_error, new_argv, 0, current_dir);
 #else  /* not WINDOWSNT */
-
-    block_input ();
 
     /* vfork, and prevent local vars from being clobbered by the vfork.  */
     {
@@ -593,6 +613,7 @@ usage: (call-process PROGRAM &optional INFILE BUFFER DISPLAY &rest ARGS)  */)
       char **volatile new_argv_volatile = new_argv;
 
       pid = vfork ();
+      child_errno = errno;
 
       buffer = buffer_volatile;
       coding_systems = coding_systems_volatile;
@@ -612,6 +633,8 @@ usage: (call-process PROGRAM &optional INFILE BUFFER DISPLAY &rest ARGS)  */)
 
     if (pid == 0)
       {
+	unblock_child_signal ();
+
 	if (fd0 >= 0)
 	  emacs_close (fd0);
 
@@ -623,10 +646,20 @@ usage: (call-process PROGRAM &optional INFILE BUFFER DISPLAY &rest ARGS)  */)
 	child_setup (filefd, fd1, fd_error, new_argv, 0, current_dir);
       }
 
-    vfork_errno = errno;
-    unblock_input ();
-
 #endif /* not WINDOWSNT */
+
+    child_errno = errno;
+
+    if (0 < pid)
+      {
+	if (INTEGERP (buffer))
+	  record_deleted_pid (pid);
+	else
+	  synch_process_pid = pid;
+      }
+
+    unblock_child_signal ();
+    unblock_input ();
 
     /* The MSDOS case did this already.  */
     if (fd_error >= 0)
@@ -644,9 +677,7 @@ usage: (call-process PROGRAM &optional INFILE BUFFER DISPLAY &rest ARGS)  */)
 
   if (pid < 0)
     {
-      if (fd0 >= 0)
-	emacs_close (fd0);
-      errno = vfork_errno;
+      errno = child_errno;
       report_file_error ("Doing vfork", Qnil);
     }
 
@@ -657,19 +688,12 @@ usage: (call-process PROGRAM &optional INFILE BUFFER DISPLAY &rest ARGS)  */)
       return Qnil;
     }
 
-  /* Enable sending signal if user quits below.  */
-  call_process_exited = 0;
-
 #if defined (MSDOS)
   /* MSDOS needs different cleanup information.  */
-  cleanup_info_tail = build_string (tempfile ? tempfile : "");
-#else
-  cleanup_info_tail = INTEGER_TO_CONS (pid);
-#endif /* not MSDOS */
   record_unwind_protect (call_process_cleanup,
 			 Fcons (Fcurrent_buffer (),
-				Fcons (INTEGER_TO_CONS (fd0),
-				       cleanup_info_tail)));
+				build_string (tempfile ? tempfile : "")));
+#endif
 
   if (BUFFERP (buffer))
     Fset_buffer (buffer);
@@ -856,38 +880,34 @@ usage: (call-process PROGRAM &optional INFILE BUFFER DISPLAY &rest ARGS)  */)
 
 #ifndef MSDOS
   /* Wait for it to terminate, unless it already has.  */
-  if (output_to_buffer)
-    wait_for_termination (pid);
-  else
-    interruptible_wait_for_termination (pid);
+  wait_for_termination (pid, &status, !output_to_buffer);
 #endif
 
   immediate_quit = 0;
 
   /* Don't kill any children that the subprocess may have left behind
      when exiting.  */
-  call_process_exited = 1;
+  synch_process_pid = 0;
 
   SAFE_FREE ();
   unbind_to (count, Qnil);
 
-  if (synch_process_termsig)
+  if (WIFSIGNALED (status))
     {
       const char *signame;
 
       synchronize_system_messages_locale ();
-      signame = strsignal (synch_process_termsig);
+      signame = strsignal (WTERMSIG (status));
 
       if (signame == 0)
 	signame = "unknown";
 
-      synch_process_death = signame;
+      return code_convert_string_norecord (build_string (signame),
+					   Vlocale_coding_system, 0);
     }
 
-  if (synch_process_death)
-    return code_convert_string_norecord (build_string (synch_process_death),
-					 Vlocale_coding_system, 0);
-  return make_number (synch_process_retcode);
+  eassert (WIFEXITED (status));
+  return make_number (WEXITSTATUS (status));
 }
 
 static Lisp_Object

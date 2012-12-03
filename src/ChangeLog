@@ -1,5 +1,62 @@
 2012-12-03  Paul Eggert  <eggert@cs.ucla.edu>
 
+	Don't let call-process be a zombie factory (Bug#12980).
+	Fixing this bug required some cleanup of the signal-handling code.
+	As a side effect, this change also fixes a longstanding rare race
+	condition whereby Emacs could mistakenly kill unrelated processes,
+	and it fixes a bug where a second C-g does not kill a recalcitrant
+	synchronous process in GNU/Linux and similar platforms.
+	The patch should also fix the last vestiges of Bug#9488,
+	a bug which has mostly been fixed on the trunk by other changes.
+	* callproc.c, process.h (synch_process_alive, synch_process_death)
+	(synch_process_termsig, sync_process_retcode):
+	Remove.  All uses removed, to simplify analysis and so that
+	less consing is done inside critical sections.
+	* callproc.c (call_process_exited): Remove.  All uses replaced
+	with !synch_process_pid.
+	* callproc.c (synch_process_pid, synch_process_fd): New static vars.
+	These take the role of what used to be in unwind-protect arg.
+	All uses changed.
+	(block_child_signal, unblock_child_signal):
+	New functions, to avoid races that could kill innocent-victim processes.
+	(call_process_kill, call_process_cleanup, Fcall_process): Use them.
+	(call_process_kill): Record killed processes as deleted, so that
+	zombies do not clutter up the system.  Do this inside a critical
+	section, to avoid a race that would allow the clutter.
+	(call_process_cleanup): Fix code so that the second C-g works again
+	on common platforms such as GNU/Linux.
+	(Fcall_process): Create the child process in a critical section,
+	to fix a race condition.  If creating an asynchronous process,
+	record it as deleted so that zombies do not clutter up the system.
+	Do unwind-protect for WINDOWSNT too, as that's simpler in the
+	light of these changes.  Omit unnecessary call to emacs_close
+	before failure, as the unwind-protect code does that.
+	* callproc.c (call_process_cleanup):
+	* w32proc.c (waitpid): Simplify now that synch_process_alive is gone.
+	* process.c (record_deleted_pid): New function, containing
+	code refactored out of Fdelete_process.
+	(Fdelete_process): Use it.
+	(process_status_retrieved): Remove.  All callers changed to use
+	child_status_change.
+	(record_child_status_change): Remove, folding its contents into ...
+	(handle_child_signal): ... this signal handler.  Now, this
+	function is purely a handler for SIGCHLD, and is not called after
+	a synchronous waitpid returns; the synchronous code is moved to
+	wait_for_termination.  There is no need to worry about reaping
+	more than one child now.
+	* sysdep.c (get_child_status, child_status_changed): New functions.
+	(wait_for_termination): Now takes int * status and bool
+	interruptible arguments, too.  Do not record child status change;
+	that's now the caller's responsibility.  All callers changed.
+	Reimplement in terms of get_child_status.
+	(wait_for_termination_1, interruptible_wait_for_termination):
+	Remove.  All callers changed to use wait_for_termination.
+	* syswait.h: Include <stdbool.h>, for bool.
+	(record_child_status_change, interruptible_wait_for_termination):
+	Remove decls.
+	(record_deleted_pid, child_status_changed): New decls.
+	(wait_for_termination): Adjust to API changes noted above.
+
 	* bytecode.c, lisp.h (Qbytecode): Remove.
 	No longer needed after 2012-11-20 interactive-p changes.
 

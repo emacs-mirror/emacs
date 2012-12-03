@@ -777,9 +777,22 @@ get_process (register Lisp_Object name)
 /* Fdelete_process promises to immediately forget about the process, but in
    reality, Emacs needs to remember those processes until they have been
    treated by the SIGCHLD handler and waitpid has been invoked on them;
-   otherwise they might fill up the kernel's process table.  */
+   otherwise they might fill up the kernel's process table.
+
+   Some processes created by call-process are also put onto this list.  */
 static Lisp_Object deleted_pid_list;
 #endif
+
+void
+record_deleted_pid (pid_t pid)
+{
+#ifdef SIGCHLD
+  deleted_pid_list = Fcons (make_fixnum_or_float (pid),
+			    /* GC treated elements set to nil.  */
+			    Fdelq (Qnil, deleted_pid_list));
+
+#endif
+}
 
 DEFUN ("delete-process", Fdelete_process, Sdelete_process, 1, 1, 0,
        doc: /* Delete PROCESS: kill it and forget about it immediately.
@@ -807,9 +820,7 @@ nil, indicating the current buffer's process.  */)
       pid_t pid = p->pid;
 
       /* No problem storing the pid here, as it is still in Vprocess_alist.  */
-      deleted_pid_list = Fcons (make_fixnum_or_float (pid),
-				/* GC treated elements set to nil.  */
-				Fdelq (Qnil, deleted_pid_list));
+      record_deleted_pid (pid);
       /* If the process has already signaled, remove it from the list.  */
       if (p->raw_status_new)
 	update_status (p);
@@ -6147,35 +6158,37 @@ process has been transmitted to the serial port.  */)
   return process;
 }
 
-/* If the status of the process DESIRED has changed, return true and
-   set *STATUS to its exit status; otherwise, return false.
-   If HAVE is nonnegative, assume that HAVE = waitpid (HAVE, STATUS, ...)
-   has already been invoked, and do not invoke waitpid again.  */
+#ifdef SIGCHLD
 
-static bool
-process_status_retrieved (pid_t desired, pid_t have, int *status)
-{
-  if (have < 0)
-    {
-      /* Invoke waitpid only with a known process ID; do not invoke
-	 waitpid with a nonpositive argument.  Otherwise, Emacs might
-	 reap an unwanted process by mistake.  For example, invoking
-	 waitpid (-1, ...) can mess up glib by reaping glib's subprocesses,
-	 so that another thread running glib won't find them.  */
-      do
-	have = waitpid (desired, status, WNOHANG | WUNTRACED);
-      while (have < 0 && errno == EINTR);
-    }
+/* The main Emacs thread records child processes in three places:
 
-  return have == desired;
-}
+   - Vprocess_alist, for asynchronous subprocesses, which are child
+     processes visible to Lisp.
 
-/* If PID is nonnegative, the child process PID with wait status W has
-   changed its status; record this and return true.
+   - deleted_pid_list, for child processes invisible to Lisp,
+     typically because of delete-process.  These are recorded so that
+     the processes can be reaped when they exit, so that the operating
+     system's process table is not cluttered by zombies.
 
-   If PID is negative, ignore W, and look for known child processes
-   of Emacs whose status have changed.  For each one found, record its new
-   status.
+   - the local variable PID in Fcall_process, call_process_cleanup and
+     call_process_kill, for synchronous subprocesses.
+     record_unwind_protect is used to make sure this process is not
+     forgotten: if the user interrupts call-process and the child
+     process refuses to exit immediately even with two C-g's,
+     call_process_kill adds PID's contents to deleted_pid_list before
+     returning.
+
+   The main Emacs thread invokes waitpid only on child processes that
+   it creates and that have not been reaped.  This avoid races on
+   platforms such as GTK, where other threads create their own
+   subprocesses which the main thread should not reap.  For example,
+   if the main thread attempted to reap an already-reaped child, it
+   might inadvertently reap a GTK-created process that happened to
+   have the same process ID.  */
+
+/* Handle a SIGCHLD signal by looking for known child processes of
+   Emacs whose status have changed.  For each one found, record its
+   new status.
 
    All we do is change the status; we do not run sentinels or print
    notifications.  That is saved for the next time keyboard input is
@@ -6198,20 +6211,15 @@ process_status_retrieved (pid_t desired, pid_t have, int *status)
    ** Malloc WARNING: This should never call malloc either directly or
    indirectly; if it does, that is a bug  */
 
-void
-record_child_status_change (pid_t pid, int w)
+static void
+handle_child_signal (int sig)
 {
-#ifdef SIGCHLD
-
-  /* Record at most one child only if we already know one child that
-     has exited.  */
-  bool record_at_most_one_child = 0 <= pid;
-
   Lisp_Object tail;
 
   /* Find the process that signaled us, and record its status.  */
 
-  /* The process can have been deleted by Fdelete_process.  */
+  /* The process can have been deleted by Fdelete_process, or have
+     been started asynchronously by Fcall_process.  */
   for (tail = deleted_pid_list; CONSP (tail); tail = XCDR (tail))
     {
       bool all_pids_are_fixnums
@@ -6225,12 +6233,8 @@ record_child_status_change (pid_t pid, int w)
 	    deleted_pid = XINT (xpid);
 	  else
 	    deleted_pid = XFLOAT_DATA (xpid);
-	  if (process_status_retrieved (deleted_pid, pid, &w))
-	    {
-	      XSETCAR (tail, Qnil);
-	      if (record_at_most_one_child)
-		return;
-	    }
+	  if (child_status_changed (deleted_pid, 0, 0))
+	    XSETCAR (tail, Qnil);
 	}
     }
 
@@ -6239,15 +6243,17 @@ record_child_status_change (pid_t pid, int w)
     {
       Lisp_Object proc = XCDR (XCAR (tail));
       struct Lisp_Process *p = XPROCESS (proc);
-      if (p->alive && process_status_retrieved (p->pid, pid, &w))
+      int status;
+
+      if (p->alive && child_status_changed (p->pid, &status, WUNTRACED))
 	{
 	  /* Change the status of the process that was found.  */
 	  p->tick = ++process_tick;
-	  p->raw_status = w;
+	  p->raw_status = status;
 	  p->raw_status_new = 1;
 
 	  /* If process has terminated, stop waiting for its output.  */
-	  if (WIFSIGNALED (w) || WIFEXITED (w))
+	  if (WIFSIGNALED (status) || WIFEXITED (status))
 	    {
 	      int clear_desc_flag = 0;
 	      p->alive = 0;
@@ -6261,44 +6267,8 @@ record_child_status_change (pid_t pid, int w)
 		  FD_CLR (p->infd, &non_keyboard_wait_mask);
 		}
 	    }
-
-	  /* Tell wait_reading_process_output that it needs to wake up and
-	     look around.  */
-	  if (input_available_clear_time)
-	    *input_available_clear_time = make_emacs_time (0, 0);
-
-	  if (record_at_most_one_child)
-	    return;
 	}
     }
-
-  if (0 <= pid)
-    {
-      /* The caller successfully waited for a pid but no asynchronous
-	 process was found for it, so this is a synchronous process.  */
-
-      synch_process_alive = 0;
-
-      /* Report the status of the synchronous process.  */
-      if (WIFEXITED (w))
-	synch_process_retcode = WEXITSTATUS (w);
-      else if (WIFSIGNALED (w))
-	synch_process_termsig = WTERMSIG (w);
-
-      /* Tell wait_reading_process_output that it needs to wake up and
-	 look around.  */
-      if (input_available_clear_time)
-	*input_available_clear_time = make_emacs_time (0, 0);
-    }
-#endif
-}
-
-#ifdef SIGCHLD
-
-static void
-handle_child_signal (int sig)
-{
-  record_child_status_change (-1, 0);
 }
 
 static void

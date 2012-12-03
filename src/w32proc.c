@@ -1274,33 +1274,7 @@ waitpid (pid_t pid, int *status, int options)
 #endif
 
   if (status)
-    {
-      *status = retval;
-    }
-  else if (synch_process_alive)
-    {
-      synch_process_alive = 0;
-
-      /* Report the status of the synchronous process.  */
-      if (WIFEXITED (retval))
-	synch_process_retcode = WEXITSTATUS (retval);
-      else if (WIFSIGNALED (retval))
-	{
-	  int code = WTERMSIG (retval);
-	  const char *signame;
-
-	  synchronize_system_messages_locale ();
-	  signame = strsignal (code);
-
-	  if (signame == 0)
-	    signame = "unknown";
-
-	  synch_process_death = signame;
-	}
-
-      reap_subprocess (cp);
-    }
-
+    *status = retval;
   reap_subprocess (cp);
 
   return pid;
