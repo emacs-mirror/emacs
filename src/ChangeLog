@@ -1,3 +1,8 @@
+2012-12-03  Paul Eggert  <eggert@cs.ucla.edu>
+
+	* bytecode.c, lisp.h (Qbytecode): Remove.
+	No longer needed after 2012-11-20 interactive-p changes.
+
 2012-12-03  Eli Zaretskii  <eliz@gnu.org>
 
 	* xdisp.c (redisplay_window): If the cursor is visible, but inside

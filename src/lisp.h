@@ -3394,7 +3394,6 @@ extern void syms_of_doc (void);
 extern int read_bytecode_char (bool);
 
 /* Defined in bytecode.c.  */
-extern Lisp_Object Qbytecode;
 extern void syms_of_bytecode (void);
 extern struct byte_stack *byte_stack_list;
 #if BYTE_MARK_STACK
