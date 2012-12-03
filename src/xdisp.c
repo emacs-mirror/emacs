@@ -15717,6 +15717,35 @@ redisplay_window (Lisp_Object window, int just_this_one_p)
 	     Move it back to a fully-visible line.  */
 	  new_vpos = window_box_height (w);
 	}
+      else if (w->cursor.vpos >=0)
+	{
+	  /* Some people insist on not letting point enter the scroll
+	     margin, even though this part handles windows that didn't
+	     scroll at all.  */
+	  struct frame *f = XFRAME (w->frame);
+	  int margin = min (scroll_margin, WINDOW_TOTAL_LINES (w) / 4);
+	  int pixel_margin = margin * FRAME_LINE_HEIGHT (f);
+	  bool header_line = WINDOW_WANTS_HEADER_LINE_P (w);
+
+	  /* Note: We add an extra FRAME_LINE_HEIGHT, because the loop
+	     below, which finds the row to move point to, advances by
+	     the Y coordinate of the _next_ row, see the definition of
+	     MATRIX_ROW_BOTTOM_Y.  */
+	  if (w->cursor.vpos < margin + header_line)
+	    new_vpos
+	      = pixel_margin + (header_line
+				? CURRENT_HEADER_LINE_HEIGHT (w)
+				: 0) + FRAME_LINE_HEIGHT (f);
+	  else
+	    {
+	      int window_height = window_box_height (w);
+
+	      if (header_line)
+		window_height += CURRENT_HEADER_LINE_HEIGHT (w);
+	      if (w->cursor.y >= window_height - pixel_margin)
+		new_vpos = window_height - pixel_margin;
+	    }
+	}
 
       /* If we need to move point for either of the above reasons,
 	 now actually do it.  */

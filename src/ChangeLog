@@ -1,3 +1,8 @@
+2012-12-03  Eli Zaretskii  <eliz@gnu.org>
+
+	* xdisp.c (redisplay_window): If the cursor is visible, but inside
+	the scroll margin, move point outside the margin.  (Bug#13055)
+
 2012-12-03  Jan Djärv  <jan.h.d@swipnet.se>
 
 	* gtkutil.c (my_log_handler): New function.
