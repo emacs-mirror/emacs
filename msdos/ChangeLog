@@ -1,3 +1,8 @@
+2012-12-03  Eli Zaretskii  <eliz@gnu.org>
+
+	* sed1v2.inp: Dump emacs.exe and copy to b-emacs.exe before
+	generating leim-list.el.
+
 2012-11-24  Ken Brown  <kbrown@cornell.edu>
 
 	* sed2v2.inp (HAVE_MOUSE): Remove.

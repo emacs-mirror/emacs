@@ -5771,7 +5771,7 @@ This applies only to the operation `inhibit-file-name-operation'.  */);
   DEFVAR_LISP ("auto-save-list-file-name", Vauto_save_list_file_name,
 	       doc: /* File name in which we write a list of all auto save file names.
 This variable is initialized automatically from `auto-save-list-file-prefix'
-shortly after Emacs reads your `.emacs' file, if you have not yet given it
+shortly after Emacs reads your init file, if you have not yet given it
 a non-nil value.  */);
   Vauto_save_list_file_name = Qnil;
 

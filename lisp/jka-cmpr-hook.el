@@ -109,6 +109,7 @@ Otherwise, it is nil.")
   "Return information about the compression scheme of FILENAME.
 The determination as to which compression scheme, if any, to use is
 based on the filename itself and `jka-compr-compression-info-list'."
+  (setq filename (file-name-sans-versions filename))
   (catch 'compression-info
     (let ((case-fold-search nil))
       (dolist (x jka-compr-compression-info-list)
@@ -191,19 +192,6 @@ options through Custom does this automatically."
 
 ;; I have this defined so that .Z files are assumed to be in unix
 ;; compress format; and .gz files, in gzip format, and .bz2 files in bzip fmt.
-
-;; FIXME? It seems ugly that one has to add "\\(~\\|\\.~[0-9]+~\\)?" to
-;; all the regexps here, in order to match backup files etc.
-;; It's trivial to modify jka-compr-get-compression-info to match
-;; regexps against file-name-sans-versions, but this regexp is also
-;; used to build a file-name-handler-alist entry.
-;; find-file-name-handler does not use file-name-sans-versions.
-;; Perhaps it should,
-;; http://lists.gnu.org/archive/html/emacs-devel/2008-02/msg00812.html,
-;; but it's used all over the place and there are probably other ramifications.
-;; One could modify jka-compr-build-file-regexp to add the backup regexp,
-;; but jka-compr-compression-info-list is a defcustom to which
-;; anything could be added, so it's easiest to leave things as they are.
 (defcustom jka-compr-compression-info-list
   ;;[regexp
   ;; compr-message  compr-prog  compr-args
@@ -310,6 +298,7 @@ variables.  Setting this through Custom does that automatically."
 			 (boolean :tag "Strip Extension")
 			 (string :tag "Magic Bytes")))
   :set 'jka-compr-set
+  :version "24.1"			; removed version extension piece
   :group 'jka-compr)
 
 (defcustom jka-compr-mode-alist-additions

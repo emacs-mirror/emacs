@@ -3640,14 +3640,15 @@ is found.  Returns the new class name."
       (condition-case err
 	  (progn
 	    (insert-file-contents file)
-	    (let* ((dir-name (file-name-directory file))
-		   (class-name (intern dir-name))
-		   (variables (let ((read-circle nil))
-				(read (current-buffer)))))
-	      (dir-locals-set-class-variables class-name variables)
-	      (dir-locals-set-directory-class dir-name class-name
-					      (nth 5 (file-attributes file)))
-	      class-name))
+	    (unless (zerop (buffer-size))
+	      (let* ((dir-name (file-name-directory file))
+		     (class-name (intern dir-name))
+		     (variables (let ((read-circle nil))
+				  (read (current-buffer)))))
+		(dir-locals-set-class-variables class-name variables)
+		(dir-locals-set-directory-class dir-name class-name
+						(nth 5 (file-attributes file)))
+		class-name)))
 	(error (message "Error reading dir-locals: %S" err) nil)))))
 
 (defcustom enable-remote-dir-locals nil

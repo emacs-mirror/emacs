@@ -22,6 +22,7 @@ the whole list.
 * Modifying Lists::     Storing new pieces into an existing list.
 * Sets And Lists::      A list can represent a finite mathematical set.
 * Association Lists::   A list can represent a finite relation or mapping.
+* Property Lists::      A list of paired elements.
 @end menu
 
 @node Cons Cells
@@ -1820,4 +1821,143 @@ often modifies the original list structure of @var{alist}.
 @code{rassq-delete-all} is like @code{assq-delete-all} except that it
 compares the @sc{cdr} of each @var{alist} association instead of the
 @sc{car}.
+@end defun
+
+@node Property Lists
+@section Property Lists
+@cindex property list
+@cindex plist
+
+  A @dfn{property list} (@dfn{plist} for short) is a list of paired
+elements.  Each of the pairs associates a property name (usually a
+symbol) with a property or value.  Here is an example of a property
+list:
+
+@example
+(pine cones numbers (1 2 3) color "blue")
+@end example
+
+@noindent
+This property list associates @code{pine} with @code{cones},
+@code{numbers} with @code{(1 2 3)}, and @code{color} with
+@code{"blue"}.  The property names and values can be any Lisp objects,
+but the names are usually symbols (as they are in this example).
+
+  Property lists are used in several contexts.  For instance, the
+function @code{put-text-property} takes an argument which is a
+property list, specifying text properties and associated values which
+are to be applied to text in a string or buffer.  @xref{Text
+Properties}.
+
+  Another prominent use of property lists is for storing symbol
+properties.  Every symbol possesses a list of properties, used to
+record miscellaneous information about the symbol; these properties
+are stored in the form of a property list.  @xref{Symbol Properties}.
+
+@menu
+* Plists and Alists::           Comparison of the advantages of property
+                                  lists and association lists.
+* Plist Access::                Accessing property lists stored elsewhere.
+@end menu
+
+@node Plists and Alists
+@subsection Property Lists and Association Lists
+@cindex plist vs. alist
+@cindex alist vs. plist
+
+@cindex property lists vs association lists
+  Association lists (@pxref{Association Lists}) are very similar to
+property lists.  In contrast to association lists, the order of the
+pairs in the property list is not significant, since the property
+names must be distinct.
+
+  Property lists are better than association lists for attaching
+information to various Lisp function names or variables.  If your
+program keeps all such information in one association list, it will
+typically need to search that entire list each time it checks for an
+association for a particular Lisp function name or variable, which
+could be slow.  By contrast, if you keep the same information in the
+property lists of the function names or variables themselves, each
+search will scan only the length of one property list, which is
+usually short.  This is why the documentation for a variable is
+recorded in a property named @code{variable-documentation}.  The byte
+compiler likewise uses properties to record those functions needing
+special treatment.
+
+  However, association lists have their own advantages.  Depending on
+your application, it may be faster to add an association to the front of
+an association list than to update a property.  All properties for a
+symbol are stored in the same property list, so there is a possibility
+of a conflict between different uses of a property name.  (For this
+reason, it is a good idea to choose property names that are probably
+unique, such as by beginning the property name with the program's usual
+name-prefix for variables and functions.)  An association list may be
+used like a stack where associations are pushed on the front of the list
+and later discarded; this is not possible with a property list.
+
+@node Plist Access
+@subsection Property Lists Outside Symbols
+
+  The following functions can be used to manipulate property lists.
+They all compare property names using @code{eq}.
+
+@defun plist-get plist property
+This returns the value of the @var{property} property stored in the
+property list @var{plist}.  It accepts a malformed @var{plist}
+argument.  If @var{property} is not found in the @var{plist}, it
+returns @code{nil}.  For example,
+
+@example
+(plist-get '(foo 4) 'foo)
+     @result{} 4
+(plist-get '(foo 4 bad) 'foo)
+     @result{} 4
+(plist-get '(foo 4 bad) 'bad)
+     @result{} nil
+(plist-get '(foo 4 bad) 'bar)
+     @result{} nil
+@end example
+@end defun
+
+@defun plist-put plist property value
+This stores @var{value} as the value of the @var{property} property in
+the property list @var{plist}.  It may modify @var{plist} destructively,
+or it may construct a new list structure without altering the old.  The
+function returns the modified property list, so you can store that back
+in the place where you got @var{plist}.  For example,
+
+@example
+(setq my-plist '(bar t foo 4))
+     @result{} (bar t foo 4)
+(setq my-plist (plist-put my-plist 'foo 69))
+     @result{} (bar t foo 69)
+(setq my-plist (plist-put my-plist 'quux '(a)))
+     @result{} (bar t foo 69 quux (a))
+@end example
+@end defun
+
+  You could define @code{put} in terms of @code{plist-put} as follows:
+
+@example
+(defun put (symbol prop value)
+  (setplist symbol
+            (plist-put (symbol-plist symbol) prop value)))
+@end example
+
+@defun lax-plist-get plist property
+Like @code{plist-get} except that it compares properties
+using @code{equal} instead of @code{eq}.
+@end defun
+
+@defun lax-plist-put plist property value
+Like @code{plist-put} except that it compares properties
+using @code{equal} instead of @code{eq}.
+@end defun
+
+@defun plist-member plist property
+This returns non-@code{nil} if @var{plist} contains the given
+@var{property}.  Unlike @code{plist-get}, this allows you to distinguish
+between a missing property and a property with the value @code{nil}.
+The value is actually the tail of @var{plist} whose @code{car} is
+@var{property}.
 @end defun

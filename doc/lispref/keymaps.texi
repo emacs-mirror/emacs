@@ -75,8 +75,8 @@ the vector @code{[?\C-x ?l]} represents the key sequence @kbd{C-x l}.
   For examples of key sequences written in string and vector
 representations, @ref{Init Rebinding,,, emacs, The GNU Emacs Manual}.
 
-@defmac kbd keyseq-text
-This macro converts the text @var{keyseq-text} (a string constant)
+@defun kbd keyseq-text
+This function converts the text @var{keyseq-text} (a string constant)
 into a key sequence (a string or vector constant).  The contents of
 @var{keyseq-text} should use the same syntax as in the buffer invoked
 by the @kbd{C-x C-k @key{RET}} (@code{kmacro-edit-macro}) command; in
@@ -97,7 +97,7 @@ Manual}.
 
 This macro is not meant for use with arguments that vary---only
 with string constants.
-@end defmac
+@end defun
 
 @node Keymap Basics
 @section Keymap Basics
@@ -1294,8 +1294,8 @@ numeric codes for the modifier bits don't appear in compiled files.
   The functions below signal an error if @var{keymap} is not a keymap,
 or if @var{key} is not a string or vector representing a key sequence.
 You can use event types (symbols) as shorthand for events that are
-lists.  The @code{kbd} macro (@pxref{Key Sequences}) is a convenient
-way to specify the key sequence.
+lists.  The @code{kbd} function (@pxref{Key Sequences}) is a
+convenient way to specify the key sequence.
 
 @defun define-key keymap key binding
 This function sets the binding for @var{key} in @var{keymap}.  (If

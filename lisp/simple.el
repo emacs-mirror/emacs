@@ -4333,14 +4333,14 @@ else--for example, incremental search, \\[beginning-of-buffer], and \\[end-of-bu
 You can also deactivate the mark by typing \\[keyboard-quit] or
 \\[keyboard-escape-quit].
 
-Many commands change their behavior when Transient Mark mode is in effect
-and the mark is active, by acting on the region instead of their usual
-default part of the buffer's text.  Examples of such commands include
-\\[comment-dwim], \\[flush-lines], \\[keep-lines], \
+Many commands change their behavior when Transient Mark mode is
+in effect and the mark is active, by acting on the region instead
+of their usual default part of the buffer's text.  Examples of
+such commands include \\[comment-dwim], \\[flush-lines], \\[keep-lines],
 \\[query-replace], \\[query-replace-regexp], \\[ispell], and \\[undo].
-Invoke \\[apropos-documentation] and type \"transient\" or
-\"mark.*active\" at the prompt, to see the documentation of
-commands which are sensitive to the Transient Mark mode."
+To see the documentation of commands which are sensitive to the
+Transient Mark mode, invoke \\[apropos-documentation] and type \"transient\"
+or \"mark.*active\" at the prompt."
   :global t
   ;; It's defined in C/cus-start, this stops the d-m-m macro defining it again.
   :variable transient-mark-mode)

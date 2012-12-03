@@ -1,3 +1,25 @@
+2012-12-03  Chong Yidong  <cyd@gnu.org>
+
+	* fileio.c (Vauto_save_list_file_name): Doc fix.
+
+2012-12-03  Fabrice Popineau  <fabrice.popineau@gmail.com>
+
+	* w32fns.c: Remove prototype of atof.
+	(syspage_mask): Declared DWORD_PTR, for compatibility with 64-bit
+	builds.
+	(file_dialog_callback): Declared UINT_PTR.
+
+	* w32common.h (syspage_mask): Declare DWORD_PTR, for compatibility
+	with 64-bit builds.
+
+	* w32.c (FILE_DEVICE_FILE_SYSTEM, METHOD_BUFFERED)
+	(FILE_ANY_ACCESS, CTL_CODE) [_MSC_VER]: Define only if not already
+	defined.
+
+2012-12-03  Glenn Morris  <rgm@gnu.org>
+
+	* data.c (Fboundp, Fsymbol_value): Doc fix re lexical-binding.
+
 2012-12-02  Paul Eggert  <eggert@cs.ucla.edu>
 
 	Fix xpalloc confusion after memory is exhausted.

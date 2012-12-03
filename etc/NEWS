@@ -812,9 +812,9 @@ The function `user-variable-p' is now an obsolete alias for
 
 +++
 ** The return values of `defalias', `defun' and `defmacro' have changed,
-and are now undefined.  For backwards compatibility, defun and
-defmacro currently return the name of the newly defined function/macro
-but this should not be relied upon.
+and are now undefined.  For backwards compatibility, `defun' and
+`defmacro' currently return the name of the newly defined
+function/macro, but this should not be relied upon.
 
 ---
 ** `face-spec-set' no longer sets frame-specific attributes when the
@@ -1060,6 +1060,12 @@ takes precedence over most other maps for a short while (normally one key).
 
 +++
 ** New macros `setq-local' and `defvar-local'.
+
+** Changes to special forms and macros
++++
+*** `defun' and `defmacro' are now macros rather than special forms
++++
+*** `kbd' is now a function rather than a macro.
 
 +++
 ** New fringe bitmap `exclamation-mark'.

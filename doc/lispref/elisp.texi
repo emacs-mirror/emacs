@@ -378,6 +378,7 @@ Lists
 * Modifying Lists::         Storing new pieces into an existing list.
 * Sets And Lists::          A list can represent a finite mathematical set.
 * Association Lists::       A list can represent a finite relation or mapping.
+* Property Lists::          A list of paired elements.
 
 Modifying Existing List Structure
 
@@ -385,6 +386,12 @@ Modifying Existing List Structure
 * Setcdr::                  Replacing part of the list backbone.
                               This can be used to remove or add elements.
 * Rearrangement::           Reordering the elements in a list; combining lists.
+
+Property Lists
+
+* Plists and Alists::       Comparison of the advantages of property
+                              lists and association lists.
+* Plist Access::            Accessing property lists stored elsewhere.
 
 Sequences, Arrays, and Vectors
 
@@ -410,15 +417,13 @@ Symbols
                               and property lists.
 * Definitions::             A definition says how a symbol will be used.
 * Creating Symbols::        How symbols are kept unique.
-* Property Lists::          Each symbol has a property list
+* Symbol Properties::       Each symbol has a property list
                               for recording miscellaneous information.
 
-Property Lists
+Symbol Properties
 
-* Plists and Alists::       Comparison of the advantages of property
-                              lists and association lists.
-* Symbol Plists::           Functions to access symbols' property lists.
-* Other Plists::            Accessing property lists stored elsewhere.
+* Symbol Plists::           Accessing symbol properties.
+* Standard Properties::     Standard meanings of symbol properties.
 
 Evaluation
 

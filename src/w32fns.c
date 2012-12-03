@@ -82,7 +82,6 @@ void syms_of_w32fns (void);
 void globals_of_w32fns (void);
 
 extern void free_frame_menubar (struct frame *);
-extern double atof (const char *);
 extern int w32_console_toggle_lock_key (int, Lisp_Object);
 extern void w32_menu_display_help (HWND, HMENU, UINT, UINT);
 extern void w32_free_menu_strings (HWND);
@@ -223,7 +222,7 @@ SYSTEM_INFO sysinfo_cache;
 /* This gives us version, build, and platform identification.  */
 OSVERSIONINFO osinfo_cache;
 
-unsigned long syspage_mask = 0;
+DWORD_PTR syspage_mask = 0;
 
 /* The major and minor versions of NT.  */
 int w32_major_version;
@@ -6035,7 +6034,7 @@ typedef char guichar_t;
    read-only when "Directories" is selected in the filter.  This
    allows us to work around the fact that the standard Open File
    dialog does not support directories.  */
-static UINT CALLBACK
+static UINT_PTR CALLBACK
 file_dialog_callback (HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
 {
   if (msg == WM_NOTIFY)

@@ -13,8 +13,8 @@ as variables and as function names; see @ref{Variables}, and
 @ref{Functions}.  For the precise read syntax for symbols, see
 @ref{Symbol Type}.
 
-  You can test whether an arbitrary Lisp object is a symbol
-with @code{symbolp}:
+  You can test whether an arbitrary Lisp object is a symbol with
+@code{symbolp}:
 
 @defun symbolp object
 This function returns @code{t} if @var{object} is a symbol, @code{nil}
@@ -26,7 +26,7 @@ otherwise.
                                and property lists.
 * Definitions::              A definition says how a symbol will be used.
 * Creating Symbols::         How symbols are kept unique.
-* Property Lists::           Each symbol has a property list
+* Symbol Properties::        Each symbol has a property list
                                for recording miscellaneous information.
 @end menu
 
@@ -91,7 +91,7 @@ the contents of a symbol's function cell, use the function
 
   The property list cell normally should hold a correctly formatted
 property list.  To get a symbol's property list, use the function
-@code{symbol-plist}.  @xref{Property Lists}.
+@code{symbol-plist}.  @xref{Symbol Properties}.
 
   The function cell or the value cell may be @dfn{void}, which means
 that the cell does not reference any object.  (This is not the same
@@ -376,82 +376,58 @@ If @code{unintern} does delete a symbol, it returns @code{t}.  Otherwise
 it returns @code{nil}.
 @end defun
 
-@node Property Lists
-@section Property Lists
-@cindex property list
-@cindex plist
+@node Symbol Properties
+@section Symbol Properties
+@cindex symbol property
 
-  A @dfn{property list} (@dfn{plist} for short) is a list of paired
-elements.  Each of the pairs associates a property name (usually a
-symbol) with a property or value.
+  A symbol may possess any number of @dfn{symbol properties}, which
+can be used to record miscellaneous information about the symbol.  For
+example, when a symbol has a @code{risky-local-variable} property with
+a non-@code{nil} value, that means the variable which the symbol names
+is a risky file-local variable (@pxref{File Local Variables}).
 
-  Every symbol has a cell that stores a property list (@pxref{Symbol
-Components}).  This property list is used to record information about
-the symbol, such as its variable documentation and the name of the
-file where it was defined.
-
-  Property lists can also be used in other contexts.  For instance,
-you can assign property lists to character positions in a string or
-buffer.  @xref{Text Properties}.
-
-  The property names and values in a property list can be any Lisp
-objects, but the names are usually symbols.  Property list functions
-compare the property names using @code{eq}.  Here is an example of a
-property list, found on the symbol @code{progn} when the compiler is
-loaded:
-
-@example
-(lisp-indent-function 0 byte-compile byte-compile-progn)
-@end example
-
-@noindent
-Here @code{lisp-indent-function} and @code{byte-compile} are property
-names, and the other two elements are the corresponding values.
+  Each symbol's properties and property values are stored in the
+symbol's property list cell (@pxref{Symbol Components}), in the form
+of a property list (@pxref{Property Lists}).
 
 @menu
-* Plists and Alists::           Comparison of the advantages of property
-                                  lists and association lists.
-* Symbol Plists::               Functions to access symbols' property lists.
-* Other Plists::                Accessing property lists stored elsewhere.
+* Symbol Plists::        Accessing symbol properties.
+* Standard Properties::  Standard meanings of symbol properties.
 @end menu
 
-@node Plists and Alists
-@subsection Property Lists and Association Lists
-@cindex plist vs. alist
-@cindex alist vs. plist
-
-@cindex property lists vs association lists
-  Association lists (@pxref{Association Lists}) are very similar to
-property lists.  In contrast to association lists, the order of the
-pairs in the property list is not significant since the property names
-must be distinct.
-
-  Property lists are better than association lists for attaching
-information to various Lisp function names or variables.  If your
-program keeps all such information in one association list, it will
-typically need to search that entire list each time it checks for an
-association for a particular Lisp function name or variable, which
-could be slow.  By contrast, if you keep the same information in the
-property lists of the function names or variables themselves, each
-search will scan only the length of one property list, which is
-usually short.  This is why the documentation for a variable is
-recorded in a property named @code{variable-documentation}.  The byte
-compiler likewise uses properties to record those functions needing
-special treatment.
-
-  However, association lists have their own advantages.  Depending on
-your application, it may be faster to add an association to the front of
-an association list than to update a property.  All properties for a
-symbol are stored in the same property list, so there is a possibility
-of a conflict between different uses of a property name.  (For this
-reason, it is a good idea to choose property names that are probably
-unique, such as by beginning the property name with the program's usual
-name-prefix for variables and functions.)  An association list may be
-used like a stack where associations are pushed on the front of the list
-and later discarded; this is not possible with a property list.
-
 @node Symbol Plists
-@subsection Property List Functions for Symbols
+@subsection Accessing Symbol Properties
+
+  The following functions can be used to access symbol properties.
+
+@defun get symbol property
+This function returns the value of the property named @var{property}
+in @var{symbol}'s property list.  If there is no such property, it
+returns @code{nil}.  Thus, there is no distinction between a value of
+@code{nil} and the absence of the property.
+
+The name @var{property} is compared with the existing property names
+using @code{eq}, so any object is a legitimate property.
+
+See @code{put} for an example.
+@end defun
+
+@defun put symbol property value
+This function puts @var{value} onto @var{symbol}'s property list under
+the property name @var{property}, replacing any previous property value.
+The @code{put} function returns @var{value}.
+
+@example
+(put 'fly 'verb 'transitive)
+     @result{}'transitive
+(put 'fly 'noun '(a buzzing little bug))
+     @result{} (a buzzing little bug)
+(get 'fly 'verb)
+     @result{} transitive
+(symbol-plist 'fly)
+     @result{} (verb transitive noun (a buzzing little bug))
+@end example
+@end defun
 
 @defun symbol-plist symbol
 This function returns the property list of @var{symbol}.
@@ -475,104 +451,110 @@ nonstandard fashion; in fact, the abbrev mechanism does so
 (@pxref{Abbrevs}).
 @end defun
 
-@defun get symbol property
-This function finds the value of the property named @var{property} in
-@var{symbol}'s property list.  If there is no such property, @code{nil}
-is returned.  Thus, there is no distinction between a value of
-@code{nil} and the absence of the property.
-
-The name @var{property} is compared with the existing property names
-using @code{eq}, so any object is a legitimate property.
-
-See @code{put} for an example.
-@end defun
-
 @defun function-get symbol property
 This function is identical to @code{get}, except that if @var{symbol}
 is the name of a function alias, it looks in the property list of the
 symbol naming the actual function.  @xref{Defining Functions}.
 @end defun
 
-@defun put symbol property value
-This function puts @var{value} onto @var{symbol}'s property list under
-the property name @var{property}, replacing any previous property value.
-The @code{put} function returns @var{value}.
+@node Standard Properties
+@subsection Standard Symbol Properties
 
-@example
-(put 'fly 'verb 'transitive)
-     @result{}'transitive
-(put 'fly 'noun '(a buzzing little bug))
-     @result{} (a buzzing little bug)
-(get 'fly 'verb)
-     @result{} transitive
-(symbol-plist 'fly)
-     @result{} (verb transitive noun (a buzzing little bug))
-@end example
-@end defun
+  Here, we list the symbol properties which are used for special
+purposes in Emacs.  In the following table, whenever we say ``the
+named function'', that means the function whose name is the relevant
+symbol; similarly for ``the named variable'' etc.
 
-@node Other Plists
-@subsection Property Lists Outside Symbols
+@table @code
+@item :advertised-binding
+This property value specifies the preferred key binding, when showing
+documentation, for the named function.  @xref{Keys in Documentation}.
 
-  These functions are useful for manipulating property lists
-not stored in symbols:
+@item char-table-extra-slots
+The value, if non-@code{nil}, specifies the number of extra slots in
+the named char-table type.  @xref{Char-Tables}.
 
-@defun plist-get plist property
-This returns the value of the @var{property} property stored in the
-property list @var{plist}.  It accepts a malformed @var{plist}
-argument.  If @var{property} is not found in the @var{plist}, it
-returns @code{nil}.  For example,
+@itemx customized-face
+@item face-defface-spec
+@itemx saved-face
+@itemx theme-face
+These properties are used to record a face's standard, saved,
+customized, and themed face specs.  Do not set them directly; they are
+managed by @code{defface} and related functions.  @xref{Defining
+Faces}.
 
-@example
-(plist-get '(foo 4) 'foo)
-     @result{} 4
-(plist-get '(foo 4 bad) 'foo)
-     @result{} 4
-(plist-get '(foo 4 bad) 'bad)
-     @result{} nil
-(plist-get '(foo 4 bad) 'bar)
-     @result{} nil
-@end example
-@end defun
+@itemx customized-value
+@itemx saved-value
+@item standard-value
+@itemx theme-value
+These properties are used to record a customizable variable's standard
+value, saved value, customized-but-unsaved value, and themed values.
+Do not set them directly; they are managed by @code{defcustom} and
+related functions.  @xref{Variable Definitions}.
 
-@defun plist-put plist property value
-This stores @var{value} as the value of the @var{property} property in
-the property list @var{plist}.  It may modify @var{plist} destructively,
-or it may construct a new list structure without altering the old.  The
-function returns the modified property list, so you can store that back
-in the place where you got @var{plist}.  For example,
+@item disabled
+If the value is non-@code{nil}, the named function is disabled as a
+command.  @xref{Disabling Commands}.
 
-@example
-(setq my-plist '(bar t foo 4))
-     @result{} (bar t foo 4)
-(setq my-plist (plist-put my-plist 'foo 69))
-     @result{} (bar t foo 69)
-(setq my-plist (plist-put my-plist 'quux '(a)))
-     @result{} (bar t foo 69 quux (a))
-@end example
-@end defun
+@item face-documentation
+The value stores the documentation string of the named face.  This is
+normally set automatically by @code{defface}.  @xref{Defining Faces}.
 
-  You could define @code{put} in terms of @code{plist-put} as follows:
+@item history-length
+The value, if non-@code{nil}, specifies the maximum minibuffer history
+length for the named history list variable.  @xref{Minibuffer
+History}.
 
-@example
-(defun put (symbol prop value)
-  (setplist symbol
-            (plist-put (symbol-plist symbol) prop value)))
-@end example
+@item interactive-form
+The value is an interactive form for the named function.  Normally,
+you should not set this directly; use the @code{interactive} special
+form instead.  @xref{Interactive Call}.
 
-@defun lax-plist-get plist property
-Like @code{plist-get} except that it compares properties
-using @code{equal} instead of @code{eq}.
-@end defun
+@item menu-enable
+The value is an expression for determining whether the named menu item
+should be enabled in menus.  @xref{Simple Menu Items}.
 
-@defun lax-plist-put plist property value
-Like @code{plist-put} except that it compares properties
-using @code{equal} instead of @code{eq}.
-@end defun
+@item mode-class
+If the value is @code{special}, the named major mode is ``special''.
+@xref{Major Mode Conventions}.
 
-@defun plist-member plist property
-This returns non-@code{nil} if @var{plist} contains the given
-@var{property}.  Unlike @code{plist-get}, this allows you to distinguish
-between a missing property and a property with the value @code{nil}.
-The value is actually the tail of @var{plist} whose @code{car} is
-@var{property}.
-@end defun
+@item permanent-local
+If the value is non-@code{nil}, the named variable is a buffer-local
+variable whose value should not be reset when changing major modes.
+@xref{Creating Buffer-Local}.
+
+@item permanent-local-hook
+If the value is non-@code{nil}, the named function should not be
+deleted from the local value of a hook variable when changing major
+modes.  @xref{Setting Hooks}.
+
+@item pure
+This property is used internally to mark certain named functions for
+byte compiler optimization.  Do not set it.
+
+@item risky-local-variable
+If the value is non-@code{nil}, the named variable is considered risky
+as a file-local variable.  @xref{File Local Variables}.
+
+@item safe-function
+If the value is non-@code{nil}, the named function is considered
+generally safe for evaluation.  @xref{Function Safety}.
+
+@item safe-local-eval-function
+If the value is non-@code{nil}, the named function is safe to call in
+file-local evaluation forms.  @xref{File Local Variables}.
+
+@item safe-local-variable
+The value specifies a function for determining safe file-local values
+for the named variable.  @xref{File Local Variables}.
+
+@item side-effect-free
+A non-@code{nil} value indicates that the named function is free of
+side-effects, for determining function safety (@pxref{Function
+Safety}) as well as for byte compiler optimizations.  Do not set it.
+
+@item variable-documentation
+If non-@code{nil}, this specifies the named vaariable's documentation
+string.  This is normally set automatically by @code{defvar} and
+related functions.  @xref{Defining Faces}.
+@end table
