@@ -313,13 +313,6 @@ appropriate version control system.  If @code{vc-command-messages} is
 non-@code{nil}, VC displays messages to indicate which shell commands
 it runs, and additional messages when the commands finish.
 
-@vindex vc-path
-  You can specify additional directories to search for version control
-programs by setting the variable @code{vc-path}.  These directories
-are searched before the usual search path.  It is rarely necessary to
-set this variable, because VC normally finds the proper files
-automatically.
-
 @node RCS and SCCS
 @subsubsection Options for RCS and SCCS
 
