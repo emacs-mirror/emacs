@@ -2922,7 +2922,7 @@ Both characters must have the same length of multi-byte form.  */)
 	  else if (!changed)
 	    {
 	      changed = -1;
-	      modify_region (current_buffer, pos, XINT (end), 0);
+	      modify_region_1 (pos, XINT (end), false);
 
 	      if (! NILP (noundo))
 		{
@@ -3098,7 +3098,7 @@ It returns the number of characters changed.  */)
   pos = XINT (start);
   pos_byte = CHAR_TO_BYTE (pos);
   end_pos = XINT (end);
-  modify_region (current_buffer, pos, end_pos, 0);
+  modify_region_1 (pos, end_pos, false);
 
   cnt = 0;
   for (; pos < end_pos; )
@@ -4622,7 +4622,7 @@ Transposing beyond buffer boundaries is an error.  */)
 
   if (end1 == start2)		/* adjacent regions */
     {
-      modify_region (current_buffer, start1, end2, 0);
+      modify_region_1 (start1, end2, false);
       record_change (start1, len1 + len2);
 
       tmp_interval1 = copy_intervals (cur_intv, start1, len1);
@@ -4681,8 +4681,8 @@ Transposing beyond buffer boundaries is an error.  */)
         {
 	  USE_SAFE_ALLOCA;
 
-          modify_region (current_buffer, start1, end1, 0);
-          modify_region (current_buffer, start2, end2, 0);
+          modify_region_1 (start1, end1, false);
+          modify_region_1 (start2, end2, false);
           record_change (start1, len1);
           record_change (start2, len2);
           tmp_interval1 = copy_intervals (cur_intv, start1, len1);
@@ -4715,7 +4715,7 @@ Transposing beyond buffer boundaries is an error.  */)
         {
 	  USE_SAFE_ALLOCA;
 
-          modify_region (current_buffer, start1, end2, 0);
+          modify_region_1 (start1, end2, false);
           record_change (start1, (end2 - start1));
           tmp_interval1 = copy_intervals (cur_intv, start1, len1);
           tmp_interval_mid = copy_intervals (cur_intv, end1, len_mid);
@@ -4748,7 +4748,7 @@ Transposing beyond buffer boundaries is an error.  */)
 	  USE_SAFE_ALLOCA;
 
           record_change (start1, (end2 - start1));
-          modify_region (current_buffer, start1, end2, 0);
+          modify_region_1 (start1, end2, false);
 
           tmp_interval1 = copy_intervals (cur_intv, start1, len1);
           tmp_interval_mid = copy_intervals (cur_intv, end1, len_mid);

@@ -1,5 +1,14 @@
 2012-12-03  Dmitry Antipov  <dmantipov@yandex.ru>
 
+	* lisp.h (modify_region): Rename to...
+	(modify_region_1): ...new prototype.
+	* textprop.c (modify_region): Now static.  Adjust users.
+	* insdel.c (modify_region): Rename to...
+	(modify_region_1): ...new function to work with current buffer.
+	Adjust comment and users.  Use true and false for booleans.
+
+2012-12-03  Dmitry Antipov  <dmantipov@yandex.ru>
+
 	* alloc.c (free_save_value): New function.
 	(safe_alloca_unwind): Use it.
 	* lisp.h (free_save_value): New prototype.
