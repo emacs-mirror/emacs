@@ -2,7 +2,8 @@
 
 	* textmodes/ispell.el (ispell-init-process)
 	(ispell-start-process): Make sure personal dictionary name is
-	expanded after initial `default-directory' value (Bug#13019).
+	expanded after initial `default-directory' value. Use expanded
+	values for keep/restart checks (Bug#13019).
 
 2012-12-03  Jay Belanger  <jay.p.belanger@gmail.com>
 
