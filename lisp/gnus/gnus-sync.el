@@ -112,8 +112,9 @@ this setting is harmless until the user chooses a sync backend."
 (defcustom gnus-sync-newsrc-offsets '(2 3)
   "List of per-group data to be synchronized."
   :group 'gnus-sync
+  :version "24.4"
   :type '(set (const :tag "Read ranges" 2)
-              (const :tag "Marks" 3)))
+	      (const :tag "Marks" 3)))
 
 (defcustom gnus-sync-global-vars nil
   "List of global variables to be synchronized.
