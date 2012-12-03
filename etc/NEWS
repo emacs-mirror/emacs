@@ -69,6 +69,11 @@ New features include:
   name and arguments.  Useful to trace the value of (current-buffer) or
   (point) when the function is invoked.
 
+** New command `delete-duplicate-lines' has two types of operation:
+when its arg ADJACENT is non-nil (when called interactively with C-u C-u)
+it works like the utility `uniq'.  Otherwise by default it deletes
+duplicate lines everywhere in the region without regard to adjacency.
+
 ** Woman
 
 *** The commands `woman-default-faces' and `woman-monochrome-faces'
