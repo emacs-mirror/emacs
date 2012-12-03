@@ -2669,7 +2669,8 @@ Keeps argument list for future Ispell invocations for no async support."
            orig-args
            (if ispell-current-personal-dictionary ; Use specified pers dict.
                (list "-p"
-                     (expand-file-name ispell-current-personal-dictionary)))
+                     (expand-file-name ispell-current-personal-dictionary
+				       current-ispell-directory)))
            ;; If we are using recent aspell or hunspell, make sure we use the
            ;; right encoding for communication. ispell or older aspell/hunspell
            ;; does not support this.
@@ -2706,6 +2707,9 @@ Keeps argument list for future Ispell invocations for no async support."
   (let* (;; Basename of dictionary used by the spell-checker
 	 (dict-bname (or (car (cdr (member "-d" (ispell-get-ispell-args))))
 			 ispell-current-dictionary))
+	 ;; The directory where process was started.
+	 (current-ispell-directory default-directory)
+	 ;; The default directory for the process.
 	 ;; Use "~/" as default-directory unless using Ispell with per-dir
 	 ;; personal dictionaries and not in a minibuffer under XEmacs
 	 (default-directory

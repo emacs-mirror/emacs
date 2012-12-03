@@ -1,3 +1,9 @@
+2012-12-03  Agustín Martín Domingo  <agustin.martin@hispalinux.es>
+
+	* textmodes/ispell.el (ispell-init-process)
+	(ispell-start-process): Make sure personal dictionary name is
+	expanded after initial `default-directory' value (Bug#13019).
+
 2012-12-03  Jay Belanger  <jay.p.belanger@gmail.com>
 
 	* calc/calc-forms.el (math-date-to-iso-dt): Fix weekday number.
