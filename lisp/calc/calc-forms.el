@@ -474,7 +474,8 @@ in the Gregorian calendar and the remaining part determines the time."
                      (math-sub date (math-absolute-from-iso-dt year 1 1))
                      7))
                1)
-     (cdr (math-idivmod date 7)))))
+     (let ((day (calcFunc-mod date 7)))
+       (if (= day 0) 7 day)))))
 
 (defun math-dt-to-date (dt)
   (or (integerp (nth 1 dt))

@@ -1,3 +1,7 @@
+2012-12-03  Jay Belanger  <jay.p.belanger@gmail.com>
+
+	* calc/calc-forms.el (math-date-to-iso-dt): Fix weekday number.
+
 2012-12-03  Leo Liu  <sdl.web@gmail.com>
 
 	* files.el (dir-locals-read-from-file): Check file non-empty
