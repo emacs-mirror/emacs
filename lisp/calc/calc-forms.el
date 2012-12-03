@@ -465,7 +465,7 @@ in the Gregorian calendar and the remaining part determines the time."
                          (let ((y approx)
                                (sum 0))
                            (while (>= (math-compare date 
-                                                    (math-iso-dt-to-absolute (setq y (math-add y 1)) 1 1)) 0)
+                                                    (math-absolute-from-iso-dt (setq y (math-add y 1)) 1 1)) 0)
                              (setq sum (+ sum 1)))
                            sum))))
     (list 
@@ -739,8 +739,6 @@ as measured in the integer number of days before December 31, 1 BC (Gregorian)."
          (progn
            (or math-fd-iso-dt
                (setq math-fd-iso-dt (math-date-to-iso-dt math-fd-date)
-                     jpb math-fd-date
-                     jpbb math-fd-iso-dt
                      math-fd-isoyear (car math-fd-iso-dt)
                      math-fd-isoweek (nth 1 math-fd-iso-dt)
                      math-fd-isoweekday (nth 2 math-fd-iso-dt)))
