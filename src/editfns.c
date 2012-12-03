@@ -813,38 +813,43 @@ This function does not move point.  */)
 			      Qnil, Qt, Qnil);
 }
 
-
+/* Save current buffer state for `save-excursion' special form.
+   We (ab)use Lisp_Misc_Save_Value to allow explicit free and so
+   offload some work from GC.  */
+
 Lisp_Object
 save_excursion_save (void)
 {
-  bool visible = (XBUFFER (XWINDOW (selected_window)->buffer)
-		  == current_buffer);
-  /* Do not copy the mark if it points to nowhere.  */
-  Lisp_Object mark = (XMARKER (BVAR (current_buffer, mark))->buffer
-		      ? Fcopy_marker (BVAR (current_buffer, mark), Qnil)
-		      : Qnil);
+  Lisp_Object save, *data = xmalloc (word_size * 4);
 
-  return Fcons (Fpoint_marker (),
-		Fcons (mark,
-		       Fcons (visible ? Qt : Qnil,
-			      Fcons (BVAR (current_buffer, mark_active),
-				     selected_window))));
+  data[0] = Fpoint_marker ();
+  /* Do not copy the mark if it points to nowhere.  */
+  data[1] = (XMARKER (BVAR (current_buffer, mark))->buffer
+	     ? Fcopy_marker (BVAR (current_buffer, mark), Qnil)
+	     : Qnil);
+  /* Selected window if current buffer is shown in it, nil otherwise.  */
+  data[2] = ((XBUFFER (XWINDOW (selected_window)->buffer) == current_buffer)
+	     ? selected_window : Qnil);
+  data[3] = BVAR (current_buffer, mark_active);
+
+  save = make_save_value (data, 4);
+  XSAVE_VALUE (save)->dogc = 1;
+  return save;
 }
+
+/* Restore saved buffer before leaving `save-excursion' special form.  */
 
 Lisp_Object
 save_excursion_restore (Lisp_Object info)
 {
-  Lisp_Object tem, tem1, omark, nmark;
+  Lisp_Object tem, tem1, omark, nmark, *data = XSAVE_VALUE (info)->pointer;
   struct gcpro gcpro1, gcpro2, gcpro3;
-  bool visible_p;
 
-  tem = Fmarker_buffer (XCAR (info));
-  /* If buffer being returned to is now deleted, avoid error */
-  /* Otherwise could get error here while unwinding to top level
-     and crash */
-  /* In that case, Fmarker_buffer returns nil now.  */
+  tem = Fmarker_buffer (data[0]);
+  /* If we're unwinding to top level, saved buffer may be deleted.  This
+     means that all of its markers are unchained and so tem is nil.  */
   if (NILP (tem))
-    return Qnil;
+    goto out;
 
   omark = nmark = Qnil;
   GCPRO3 (info, omark, nmark);
@@ -852,13 +857,12 @@ save_excursion_restore (Lisp_Object info)
   Fset_buffer (tem);
 
   /* Point marker.  */
-  tem = XCAR (info);
+  tem = data[0];
   Fgoto_char (tem);
   unchain_marker (XMARKER (tem));
 
   /* Mark marker.  */
-  info = XCDR (info);
-  tem = XCAR (info);
+  tem = data[1];
   omark = Fmarker_position (BVAR (current_buffer, mark));
   if (NILP (tem))
     unchain_marker (XMARKER (BVAR (current_buffer, mark)));
@@ -869,23 +873,8 @@ save_excursion_restore (Lisp_Object info)
       unchain_marker (XMARKER (tem));
     }
 
-  /* visible */
-  info = XCDR (info);
-  visible_p = !NILP (XCAR (info));
-
-#if 0 /* We used to make the current buffer visible in the selected window
-	 if that was true previously.  That avoids some anomalies.
-	 But it creates others, and it wasn't documented, and it is simpler
-	 and cleaner never to alter the window/buffer connections.  */
-  tem1 = Fcar (tem);
-  if (!NILP (tem1)
-      && current_buffer != XBUFFER (XWINDOW (selected_window)->buffer))
-    Fswitch_to_buffer (Fcurrent_buffer (), Qnil);
-#endif /* 0 */
-
-  /* Mark active */
-  info = XCDR (info);
-  tem = XCAR (info);
+  /* Mark active.  */
+  tem = data[3];
   tem1 = BVAR (current_buffer, mark_active);
   bset_mark_active (current_buffer, tem);
 
@@ -909,8 +898,8 @@ save_excursion_restore (Lisp_Object info)
   /* If buffer was visible in a window, and a different window was
      selected, and the old selected window is still showing this
      buffer, restore point in that window.  */
-  tem = XCDR (info);
-  if (visible_p
+  tem = data[2];
+  if (WINDOWP (tem)
       && !EQ (tem, selected_window)
       && (tem1 = XWINDOW (tem)->buffer,
 	  (/* Window is live...  */
@@ -920,6 +909,10 @@ save_excursion_restore (Lisp_Object info)
     Fset_window_point (tem, make_number (PT));
 
   UNGCPRO;
+
+ out:
+
+  free_save_value (info);
   return Qnil;
 }
 

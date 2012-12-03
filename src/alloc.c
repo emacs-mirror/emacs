@@ -826,12 +826,7 @@ xstrdup (const char *s)
 Lisp_Object
 safe_alloca_unwind (Lisp_Object arg)
 {
-  register struct Lisp_Save_Value *p = XSAVE_VALUE (arg);
-
-  p->dogc = 0;
-  xfree (p->pointer);
-  p->pointer = 0;
-  free_misc (arg);
+  free_save_value (arg);
   return Qnil;
 }
 
@@ -3363,6 +3358,19 @@ make_save_value (void *pointer, ptrdiff_t integer)
   p->integer = integer;
   p->dogc = 0;
   return val;
+}
+
+/* Free a Lisp_Misc_Save_Value object.  */
+
+void
+free_save_value (Lisp_Object save)
+{
+  register struct Lisp_Save_Value *p = XSAVE_VALUE (save);
+
+  p->dogc = 0;
+  xfree (p->pointer);
+  p->pointer = NULL;
+  free_misc (save);
 }
 
 /* Return a Lisp_Misc_Overlay object with specified START, END and PLIST.  */

@@ -1,3 +1,14 @@
+2012-12-03  Dmitry Antipov  <dmantipov@yandex.ru>
+
+	* alloc.c (free_save_value): New function.
+	(safe_alloca_unwind): Use it.
+	* lisp.h (free_save_value): New prototype.
+	* editfns.c (save_excursion_save): Use Lisp_Misc_Save_Value.
+	Add comment.
+	(save_excursion_restore): Adjust to match saved data structure.
+	Use free_save_value to offload some work from GC.  Drop obsolete
+	#if 0 code.
+
 2012-12-03  Chong Yidong  <cyd@gnu.org>
 
 	* fileio.c (Vauto_save_list_file_name): Doc fix.
