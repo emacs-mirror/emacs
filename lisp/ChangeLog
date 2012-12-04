@@ -1,3 +1,7 @@
+2012-12-04  Juergen Hoetzel  <juergen@archlinux.org>
+
+	* net/tramp-adb.el: New package.
+
 2012-12-04  Chong Yidong  <cyd@gnu.org>
 
 	* terminal.el: Move to obsolete/.
