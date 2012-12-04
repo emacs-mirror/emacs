@@ -685,7 +685,7 @@ usage: (call-process PROGRAM &optional INFILE BUFFER DISPLAY &rest ARGS)  */)
     {
       if (fd0 >= 0)
 	emacs_close (fd0);
-      return Qnil;
+      return unbind_to (count, Qnil);
     }
 
 #if defined (MSDOS)
