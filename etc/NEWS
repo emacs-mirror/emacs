@@ -79,6 +79,10 @@ duplicate lines everywhere in the region without regard to adjacency.
 *** The commands `woman-default-faces' and `woman-monochrome-faces'
 are obsolete.  Customize the `woman-* faces instead.
 
+** Obsolete packages:
+
+*** longlines.el is obsolete; use visual-line-mode instead.
+
 
 * New Modes and Packages in Emacs 24.4
 ** New nadvice.el package offering lighter-weight advice facilities.

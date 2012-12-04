@@ -453,52 +453,30 @@ one optional arguments, diff-number to refine.")
 		   c-prev c-end)
 	   ;; else convert lines to points
 	   (ediff-with-current-buffer A-buffer
-	     (let ((longlines-mode-val
-		    (if (and (boundp 'longlines-mode) longlines-mode) 1 0)))
-	       ;; we must disable and then restore longlines-mode
-	       (if (eq longlines-mode-val 1)
-		   (longlines-mode 0))
-	       (goto-char (or a-prev-pt shift-A (point-min)))
-	       (forward-line (- a-begin a-prev))
-	       (setq a-begin-pt (point))
-	       (forward-line (- a-end a-begin))
-	       (setq a-end-pt (point)
-		     a-prev a-end
-		     a-prev-pt a-end-pt)
-	       (if (eq longlines-mode-val 1)
-		   (longlines-mode longlines-mode-val))
-	       ))
+	     (goto-char (or a-prev-pt shift-A (point-min)))
+	     (forward-line (- a-begin a-prev))
+	     (setq a-begin-pt (point))
+	     (forward-line (- a-end a-begin))
+	     (setq a-end-pt (point)
+		   a-prev a-end
+		   a-prev-pt a-end-pt))
 	   (ediff-with-current-buffer B-buffer
-	     (let ((longlines-mode-val
-		    (if (and (boundp 'longlines-mode) longlines-mode) 1 0)))
-	       (if (eq longlines-mode-val 1)
-		   (longlines-mode 0))
-	       (goto-char (or b-prev-pt shift-B (point-min)))
-	       (forward-line (- b-begin b-prev))
-	       (setq b-begin-pt (point))
-	       (forward-line (- b-end b-begin))
-	       (setq b-end-pt (point)
-		     b-prev b-end
-		     b-prev-pt b-end-pt)
-	       (if (eq longlines-mode-val 1)
-		   (longlines-mode longlines-mode-val))
-	       ))
+	     (goto-char (or b-prev-pt shift-B (point-min)))
+	     (forward-line (- b-begin b-prev))
+	     (setq b-begin-pt (point))
+	     (forward-line (- b-end b-begin))
+	     (setq b-end-pt (point)
+		   b-prev b-end
+		   b-prev-pt b-end-pt))
 	   (if (ediff-buffer-live-p C-buffer)
 	       (ediff-with-current-buffer C-buffer
-		 (let ((longlines-mode-val
-			(if (and (boundp 'longlines-mode) longlines-mode) 1 0)))
-		   (if (eq longlines-mode-val 1)
-		       (longlines-mode 0))
-		   (goto-char (or c-prev-pt (point-min)))
-		   (forward-line (- c-begin c-prev))
-		   (setq c-begin-pt (point))
-		   (forward-line (- c-end c-begin))
-		   (setq c-end-pt (point)
-			 c-prev c-end
-			 c-prev-pt c-end-pt)
-		   (if (eq longlines-mode-val 1)
-		       (longlines-mode longlines-mode-val))
-		 )))
+		 (goto-char (or c-prev-pt (point-min)))
+		 (forward-line (- c-begin c-prev))
+		 (setq c-begin-pt (point))
+		 (forward-line (- c-end c-begin))
+		 (setq c-end-pt (point)
+		       c-prev c-end
+		       c-prev-pt c-end-pt)))
 	   (setq diff-list
 		 (nconc
 		  diff-list
@@ -1085,65 +1063,36 @@ delimiter regions"))
 			 c-prev c-end)
 		 ;; else convert lines to points
 		 (ediff-with-current-buffer A-buffer
-		   (let ((longlines-mode-val
-			  (if (and (boundp 'longlines-mode) longlines-mode) 1 0)))
-		     ;; we must disable and then restore longlines-mode
-		     (if (eq longlines-mode-val 1)
-			 (longlines-mode 0))
-		     (goto-char (or a-prev-pt shift-A (point-min)))
-		     (forward-line (- a-begin a-prev))
-		     (setq a-begin-pt (point))
-		     (forward-line (- a-end a-begin))
-		     (setq a-end-pt (point)
-			   a-prev a-end
-			   a-prev-pt a-end-pt)
-		     (if (eq longlines-mode-val 1)
-			 (longlines-mode longlines-mode-val))
-		     ))
+		   (goto-char (or a-prev-pt shift-A (point-min)))
+		   (forward-line (- a-begin a-prev))
+		   (setq a-begin-pt (point))
+		   (forward-line (- a-end a-begin))
+		   (setq a-end-pt (point)
+			 a-prev a-end
+			 a-prev-pt a-end-pt))
 		 (ediff-with-current-buffer B-buffer
-		   (let ((longlines-mode-val
-			  (if (and (boundp 'longlines-mode) longlines-mode) 1 0)))
-		     (if (eq longlines-mode-val 1)
-			 (longlines-mode 0))
-		     (goto-char (or b-prev-pt shift-B (point-min)))
-		     (forward-line (- b-begin b-prev))
-		     (setq b-begin-pt (point))
-		     (forward-line (- b-end b-begin))
-		     (setq b-end-pt (point)
-			   b-prev b-end
-			   b-prev-pt b-end-pt)
-		     (if (eq longlines-mode-val 1)
-			 (longlines-mode longlines-mode-val))
-		     ))
+		   (goto-char (or b-prev-pt shift-B (point-min)))
+		   (forward-line (- b-begin b-prev))
+		   (setq b-begin-pt (point))
+		   (forward-line (- b-end b-begin))
+		   (setq b-end-pt (point)
+			 b-prev b-end
+			 b-prev-pt b-end-pt))
 		 (ediff-with-current-buffer C-buffer
-		   (let ((longlines-mode-val
-			  (if (and (boundp 'longlines-mode) longlines-mode) 1 0)))
-		     (if (eq longlines-mode-val 1)
-			 (longlines-mode 0))
-		     (goto-char (or c-prev-pt shift-C (point-min)))
-		     (forward-line (- c-begin c-prev))
-		     (setq c-begin-pt (point))
-		     (forward-line (- c-end c-begin))
-		     (setq c-end-pt (point)
-			   c-prev c-end
-			   c-prev-pt c-end-pt)
-		     (if (eq longlines-mode-val 1)
-			 (longlines-mode longlines-mode-val))
-		     ))
+		   (goto-char (or c-prev-pt shift-C (point-min)))
+		   (forward-line (- c-begin c-prev))
+		   (setq c-begin-pt (point))
+		   (forward-line (- c-end c-begin))
+		   (setq c-end-pt (point)
+			 c-prev c-end
+			 c-prev-pt c-end-pt))
 		 (if (ediff-buffer-live-p anc-buffer)
 		     (ediff-with-current-buffer anc-buffer
-		       (let ((longlines-mode-val
-			      (if (and (boundp 'longlines-mode) longlines-mode) 1 0)))
-			 (if (eq longlines-mode-val 1)
-			     (longlines-mode 0))
-			 (forward-line (- c-or-anc-begin anc-prev))
-			 (setq anc-begin-pt (point))
-			 (forward-line (- c-or-anc-end c-or-anc-begin))
-			 (setq anc-end-pt (point)
-			       anc-prev c-or-anc-end)
-			 (if (eq longlines-mode-val 1)
-			     (longlines-mode longlines-mode-val))
-			 )))
+		       (forward-line (- c-or-anc-begin anc-prev))
+		       (setq anc-begin-pt (point))
+		       (forward-line (- c-or-anc-end c-or-anc-begin))
+		       (setq anc-end-pt (point)
+			     anc-prev c-or-anc-end)))
 		 (setq diff-list
 		       (nconc
 			diff-list

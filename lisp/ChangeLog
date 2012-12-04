@@ -1,3 +1,10 @@
+2012-12-04  Chong Yidong  <cyd@gnu.org>
+
+	* longlines.el: Move to obsolete/.
+
+	* vc/ediff-diff.el (ediff-extract-diffs, ediff-extract-diffs3):
+	Remove code referring to longlines mode.
+
 2012-12-03  Juri Linkov  <juri@jurta.org>
 
 	* sort.el (delete-duplicate-lines): New command.  (Bug#13032)
