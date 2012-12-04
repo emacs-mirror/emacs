@@ -5,6 +5,7 @@
 
 ;; Author: Richard Mlynarik <mly@eddie.mit.edu>
 ;; Maintainer: FSF
+;; Obsolete-since: 24.4
 ;; Keywords: comm, terminals
 
 ;; This file is part of GNU Emacs.
@@ -24,14 +25,14 @@
 
 ;;; Commentary:
 
-;;; This file has been censored by the Communications Decency Act.
-;;; That law was passed under the guise of a ban on pornography, but
-;;; it bans far more than that.  This file did not contain pornography,
-;;; but it was censored nonetheless.
+;; This file has been censored by the Communications Decency Act.
+;; That law was passed under the guise of a ban on pornography, but
+;; it bans far more than that.  This file did not contain pornography,
+;; but it was censored nonetheless.
 
-;;; For information on US government censorship of the Internet, and
-;;; what you can do to bring back freedom of the press, see the web
-;;; site http://www.vtw.org/
+;; For information on US government censorship of the Internet, and
+;; what you can do to bring back freedom of the press, see the web
+;; site http://www.vtw.org/
 
 ;;; Code:
 

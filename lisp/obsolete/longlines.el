@@ -6,6 +6,7 @@
 ;;             Alex Schroeder <alex@gnu.org>
 ;;             Chong Yidong <cyd@stupidchicken.com>
 ;; Maintainer: Chong Yidong <cyd@stupidchicken.com>
+;; Obsolete-since: 24.4
 ;; Keywords: convenience, wp
 
 ;; This file is part of GNU Emacs.
