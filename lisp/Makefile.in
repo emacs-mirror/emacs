@@ -377,12 +377,12 @@ $(MH_E_DIR)/mh-loaddefs.el: $(MH_E_SRC)
 # an own subdirectory. OTOH, it does not hurt to keep them in
 # lisp/net.
 TRAMP_DIR = $(lisp)/net
-TRAMP_SRC = $(TRAMP_DIR)/tramp.el  $(TRAMP_DIR)/tramp-cache.el  \
-	$(TRAMP_DIR)/tramp-cmds.el $(TRAMP_DIR)/tramp-compat.el \
-	$(TRAMP_DIR)/tramp-ftp.el  $(TRAMP_DIR)/tramp-gvfs.el   \
-	$(TRAMP_DIR)/tramp-gw.el   $(TRAMP_DIR)/tramp-sh.el	\
-	$(TRAMP_DIR)/tramp-smb.el  $(TRAMP_DIR)/tramp-uu.el     \
-	$(TRAMP_DIR)/trampver.el
+TRAMP_SRC = $(TRAMP_DIR)/tramp.el    $(TRAMP_DIR)/tramp-adb.el	\
+	$(TRAMP_DIR)/tramp-cache.el  $(TRAMP_DIR)/tramp-cmds.el	\
+	$(TRAMP_DIR)/tramp-compat.el $(TRAMP_DIR)/tramp-ftp.el	\
+	$(TRAMP_DIR)/tramp-gvfs.el   $(TRAMP_DIR)/tramp-gw.el	\
+	$(TRAMP_DIR)/tramp-sh.el     $(TRAMP_DIR)/tramp-smb.el	\
+	$(TRAMP_DIR)/tramp-uu.el     $(TRAMP_DIR)/trampver.el
 
 $(TRAMP_DIR)/tramp-loaddefs.el: $(TRAMP_SRC)
 	$(emacs) -l autoload \

@@ -1,3 +1,8 @@
+2012-12-04  Michael Albinus  <michael.albinus@gmx.de>
+
+	* Makefile.in (TRAMP_SRC):
+	* makefile.w32-in (TRAMP_SRC): Add tramp-adb.el.
+
 2012-12-04  Juergen Hoetzel  <juergen@archlinux.org>
 
 	* net/tramp-adb.el: New package.
