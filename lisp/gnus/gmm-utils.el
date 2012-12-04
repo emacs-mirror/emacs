@@ -437,8 +437,10 @@ coding-system."
 
 (defmacro gmm-labels (bindings &rest body)
   "Make temporary function bindings.
-The lexical scoping is handled via `lexical-let' rather than relying
-on `lexical-binding'.
+The bindings can be recursive and the scoping is lexical, but capturing
+them in closures will only work if `lexical-binding' is in use.  But in
+Emacs 24.2 and older, the lexical scoping is handled via `lexical-let'
+rather than relying on `lexical-binding'.
 
 \(fn ((FUNC ARGLIST BODY...) ...) FORM...)"
   `(,(progn (require 'cl) (if (fboundp 'cl-labels) 'cl-labels 'labels))
