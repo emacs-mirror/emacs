@@ -1,3 +1,8 @@
+2012-12-04  Michael Albinus  <michael.albinus@gmx.de>
+
+	* tramp.texi (History): Mention ADB.
+	(Inline methods): Add `adb' method.
+
 2012-12-03  Michael Albinus  <michael.albinus@gmx.de>
 
 	* tramp.texi (Top, Obtaining Tramp): Replace CVS by Git.

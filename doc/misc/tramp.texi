@@ -452,7 +452,8 @@ GVFS integration started in February 2009.
 Remote commands on Windows hosts are available since September 2011.
 @end ifset
 Ad-hoc multi-hop methods (with a changed syntax) have been reenabled
-in November 2011.
+in November 2011.  In November 2012, Juergen Hoetzel's
+@file{tramp-adb.el} has been added.
 
 In December 2001, @value{tramp} has been added to the XEmacs package
 repository.  Being part of the Emacs repository happened in June 2002,
@@ -740,6 +741,16 @@ expects PuTTY session names, calling @samp{plink -load @var{session}
 -t"}.  User names are relevant only in case the corresponding session
 hasn't defined a user name.  Different port numbers must be defined in
 the session.
+
+
+@item @option{adb}
+@cindex method adb
+@cindex adb method
+
+This special method uses the Android Debug Bridge for connecting
+Android devices.  The Android Debug Bridge, part of the Android SDK,
+must be installed locally.  The variable @var{tramp-adb-sdk-dir} must
+be set to its installation directory.
 
 @end table
 
