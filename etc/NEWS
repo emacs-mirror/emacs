@@ -83,6 +83,8 @@ are obsolete.  Customize the `woman-* faces instead.
 
 *** longlines.el is obsolete; use visual-line-mode instead.
 
+*** terminal.el is obsolete; use term.el instead.
+
 
 * New Modes and Packages in Emacs 24.4
 ** New nadvice.el package offering lighter-weight advice facilities.
