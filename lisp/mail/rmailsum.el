@@ -428,7 +428,7 @@ nil for FUNCTION means all messages."
       ;; This is how rmail makes the summary buffer reappear.
       ;; We do this here to make the window the proper size.
       (rmail-select-summary nil)
-      (set-buffer rmail-summary-buffer))
+      (set-buffer sumbuf))
     (rmail-summary-goto-msg mesg t t)
     (rmail-summary-construct-io-menu)
     (message "Computing summary lines...done")))
