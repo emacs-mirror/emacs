@@ -1644,7 +1644,6 @@ typedef struct {
   int mouse_face_beg_x, mouse_face_beg_y;
   int mouse_face_end_row, mouse_face_end_col;
   int mouse_face_end_x, mouse_face_end_y;
-  int mouse_face_past_end;
   Lisp_Object mouse_face_window;
   int mouse_face_face_id;
   Lisp_Object mouse_face_overlay;
@@ -1654,13 +1653,15 @@ typedef struct {
   struct frame *mouse_face_mouse_frame;
   int mouse_face_mouse_x, mouse_face_mouse_y;
 
+  /* Nonzero if part of the text currently shown in
+     its mouse-face is beyond the window end.  */
+  unsigned mouse_face_past_end : 1;
+
   /* Nonzero means defer mouse-motion highlighting.  */
-  int mouse_face_defer;
+  unsigned mouse_face_defer : 1;
 
   /* Nonzero means that the mouse highlight should not be shown.  */
-  int mouse_face_hidden;
-
-  int mouse_face_image_state;
+  unsigned mouse_face_hidden : 1;
 } Mouse_HLInfo;
 
 /* Data type checking.  */

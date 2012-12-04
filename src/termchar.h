@@ -50,8 +50,7 @@ struct tty_display_info
 
   struct emacs_tty *old_tty;    /* The initial tty mode bits */
 
-  int term_initted;             /* 1 if we have been through init_sys_modes. */
-
+  unsigned term_initted : 1;    /* 1 if we have been through init_sys_modes. */
 
   int reference_count;          /* Number of frames that are on this display. */
 
@@ -164,17 +163,12 @@ struct tty_display_info
 
   int RPov;                     /* # chars to start a TS_repeat */
 
-  int delete_in_insert_mode;    /* delete mode == insert mode */
+  unsigned delete_in_insert_mode : 1;    /* delete mode == insert mode */
 
-  int se_is_so;                 /* 1 if same string both enters and leaves
-                                   standout mode */
+  unsigned costs_set : 1;       /* Nonzero if costs have been calculated. */
 
-  int costs_set;                /* Nonzero if costs have been calculated. */
-
-  int insert_mode;              /* Nonzero when in insert mode.  */
-  int standout_mode;            /* Nonzero when in standout mode.  */
-
-
+  unsigned insert_mode : 1;     /* Nonzero when in insert mode.  */
+  unsigned standout_mode : 1;   /* Nonzero when in standout mode.  */
 
   /* 1 if should obey 0200 bit in input chars as "Meta", 2 if should
      keep 0200 bit in input chars.  0 to ignore the 0200 bit.  */
@@ -192,11 +186,11 @@ struct tty_display_info
 
   /* Flag used in tty_show/hide_cursor.  */
 
-  int cursor_hidden;
+  unsigned cursor_hidden : 1;
 
   /* Nonzero means use ^S/^Q for flow control.  */
-  int flow_control;
 
+  unsigned flow_control : 1;
 };
 
 /* A chain of structures for all tty devices currently in use. */

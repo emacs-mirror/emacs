@@ -3362,10 +3362,6 @@ use the Bourne shell command `TERM=... export TERM' (C-shell:\n\
     = tty->TS_delete_mode && tty->TS_insert_mode
     && !strcmp (tty->TS_delete_mode, tty->TS_insert_mode);
 
-  tty->se_is_so = (tty->TS_standout_mode
-              && tty->TS_end_standout_mode
-              && !strcmp (tty->TS_standout_mode, tty->TS_end_standout_mode));
-
   UseTabs (tty) = tabs_safe_p (fileno (tty->input)) && TabWidth (tty) == 8;
 
   terminal->scroll_region_ok

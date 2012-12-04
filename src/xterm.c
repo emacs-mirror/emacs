@@ -7902,7 +7902,6 @@ x_new_font (struct frame *f, Lisp_Object font_object, int fontset)
   FRAME_FONT (f) = font;
   FRAME_BASELINE_OFFSET (f) = font->baseline_offset;
   FRAME_COLUMN_WIDTH (f) = font->average_width;
-  FRAME_SPACE_WIDTH (f) = font->space_width;
   FRAME_LINE_HEIGHT (f) = FONT_HEIGHT (font);
 
   compute_fringe_widths (f, 1);

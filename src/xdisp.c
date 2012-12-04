@@ -12265,7 +12265,6 @@ handle_tool_bar_click (struct frame *f, int x, int y, int down_p,
     {
       /* Show item in pressed state.  */
       show_mouse_face (hlinfo, DRAW_IMAGE_SUNKEN);
-      hlinfo->mouse_face_image_state = DRAW_IMAGE_SUNKEN;
       last_tool_bar_item = prop_idx;
     }
   else
@@ -12276,7 +12275,6 @@ handle_tool_bar_click (struct frame *f, int x, int y, int down_p,
 
       /* Show item in released state.  */
       show_mouse_face (hlinfo, DRAW_IMAGE_RAISED);
-      hlinfo->mouse_face_image_state = DRAW_IMAGE_RAISED;
 
       key = AREF (f->tool_bar_items, prop_idx + TOOL_BAR_ITEM_KEY);
 
@@ -12345,7 +12343,6 @@ note_tool_bar_highlight (struct frame *f, int x, int y)
       && last_tool_bar_item != prop_idx)
     return;
 
-  hlinfo->mouse_face_image_state = DRAW_NORMAL_TEXT;
   draw = mouse_down_p ? DRAW_IMAGE_SUNKEN : DRAW_IMAGE_RAISED;
 
   /* If tool-bar item is not enabled, don't highlight it.  */
@@ -12374,7 +12371,6 @@ note_tool_bar_highlight (struct frame *f, int x, int y)
 
       /* Display it as active.  */
       show_mouse_face (hlinfo, draw);
-      hlinfo->mouse_face_image_state = draw;
     }
 
  set_help_echo:

@@ -1,3 +1,16 @@
+2012-12-04  Dmitry Antipov  <dmantipov@yandex.ru>
+
+	* lisp.h (Mouse_HLInfo): Remove set-but-unused mouse_face_image_state
+	member.  Adjust users.  Convert mouse_face_past_end, mouse_face_defer
+	and mouse_face_hidden members to a bitfields.
+	* frame.h (struct frame): Remove set-but-not-used space_width member.
+	(FRAME_SPACE_WIDTH): Remove.
+	* nsterm.m, w32term.c, xterm.c: Adjust users.
+	* termchar.h (struct tty_display_info): Remove set-but-unused se_is_so
+	member.  Adjust users.  Convert term_initted, delete_in_insert_mode,
+	costs_set, insert_mode, standout_mode, cursor_hidden and flow_control
+	members to a bitfields.
+
 2012-12-03  Paul Eggert  <eggert@cs.ucla.edu>
 
 	Don't let call-process be a zombie factory (Bug#12980).
