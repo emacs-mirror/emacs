@@ -74,6 +74,12 @@ when its arg ADJACENT is non-nil (when called interactively with C-u C-u)
 it works like the utility `uniq'.  Otherwise by default it deletes
 duplicate lines everywhere in the region without regard to adjacency.
 
+** Tramp
++++
+*** New connection method "adb", which allows to access Android
+devices by the Android Debug Bridge.  The variable `tramp-adb-sdk-dir'
+must be set to the Android SDK installation directory.
+
 ** Woman
 
 *** The commands `woman-default-faces' and `woman-monochrome-faces'
