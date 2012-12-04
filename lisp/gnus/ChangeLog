@@ -1,5 +1,9 @@
 2012-12-04  Katsumi Yamaoka  <yamaoka@jpl.org>
 
+	* gmm-utils.el (gmm-labels): Use cl-labels if available.
+
+2012-12-04  Katsumi Yamaoka  <yamaoka@jpl.org>
+
 	* gmm-utils.el (gmm-flet, gmm-labels): New macros.
 
 	* gnus-sync.el (gnus-sync-lesync-call)
