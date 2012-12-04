@@ -417,6 +417,66 @@ coding-system."
 	(write-region start end filename append visit lockname))
     (write-region start end filename append visit lockname mustbenew)))
 
+;; `flet' and `labels' got obsolete since Emacs 24.3.
+(defmacro gmm-flet (bindings &rest body)
+  "Make temporary overriding function definitions.
+
+\(fn ((FUNC ARGLIST BODY...) ...) FORM...)"
+  `(let (fn origs)
+     (dolist (bind ',bindings)
+       (setq fn (car bind))
+       (push (cons fn (and (fboundp fn) (symbol-function fn))) origs)
+       (fset fn (cons 'lambda (cdr bind))))
+     (unwind-protect
+	 (progn ,@body)
+       (dolist (orig origs)
+	 (if (cdr orig)
+	     (fset (car orig) (cdr orig))
+	   (fmakunbound (car orig)))))))
+(put 'gmm-flet 'lisp-indent-function 1)
+
+;; An alist of original function names and those unique names.
+(defvar gmm-labels-environment)
+
+(defun gmm-labels-expand (form)
+  "Expand funcalls in FORM according to `gmm-labels-environment'.
+This function is a subroutine that `gmm-labels' uses to convert any
+`(FN ...)' and #'FN elements in FORM into `(funcall UN ...)' and `UN'
+respectively if `(FN . UN)' is listed in `gmm-labels-environment'."
+  (cond ((or (not (consp form)) (memq (car form) '(\` backquote quote)))
+	 form)
+	((assq (car form) gmm-labels-environment)
+	 `(funcall ,(cdr (assq (car form) gmm-labels-environment))
+		   ,@(mapcar #'gmm-labels-expand (cdr form))))
+	((eq (car form) 'function)
+	 (if (and (assq (cadr form) gmm-labels-environment)
+		  (not (cddr form)))
+	     (cdr (assq (cadr form) gmm-labels-environment))
+	   (cons 'function (mapcar #'gmm-labels-expand (cdr form)))))
+	(t
+	 (mapcar #'gmm-labels-expand form))))
+
+(defmacro gmm-labels (bindings &rest body)
+  "Make temporary function bindings.
+The lexical scoping is handled via `lexical-let' rather than relying
+on `lexical-binding'.
+
+\(fn ((FUNC ARGLIST BODY...) ...) FORM...)"
+  (let (gmm-labels-environment def defs)
+    (dolist (binding bindings)
+      (push (cons (car binding)
+		  (make-symbol (format "--gmm-%s--" (car binding))))
+	    gmm-labels-environment))
+    `(lexical-let ,(mapcar #'cdr gmm-labels-environment)
+       (setq ,@(dolist (env gmm-labels-environment (nreverse defs))
+		 (setq def (cdr (assq (car env) bindings)))
+		 (push (cdr env) defs)
+		 (push `(lambda ,(car def)
+			  ,@(mapcar #'gmm-labels-expand (cdr def)))
+		       defs)))
+       ,@(mapcar #'gmm-labels-expand body))))
+(put 'gmm-labels 'lisp-indent-function 1)
+
 (provide 'gmm-utils)
 
 ;;; gmm-utils.el ends here

@@ -8141,7 +8141,7 @@ regexp VARSTR."
   (if (fboundp 'mail-abbrevs-setup)
       (let ((minibuffer-setup-hook 'mail-abbrevs-setup)
 	    (minibuffer-local-map message-minibuffer-local-map))
-	(flet ((mail-abbrev-in-expansion-header-p nil t))
+	(gmm-flet ((mail-abbrev-in-expansion-header-p nil t))
 	  (read-from-minibuffer prompt initial-contents)))
     (let ((minibuffer-setup-hook 'mail-abbrev-minibuffer-setup-hook)
 	  (minibuffer-local-map message-minibuffer-local-map))

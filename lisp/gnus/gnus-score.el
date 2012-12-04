@@ -33,6 +33,7 @@
 (require 'gnus-win)
 (require 'message)
 (require 'score-mode)
+(require 'gmm-utils)
 
 (defcustom gnus-global-score-files nil
   "List of global score files and directories.
@@ -1718,33 +1719,36 @@ score in `gnus-newsgroup-scored' by SCORE."
   nil)
 
 (defun gnus-score-decode-text-parts ()
-  (labels ((mm-text-parts (handle)
-                        (cond ((stringp (car handle))
-                               (let ((parts (mapcan #'mm-text-parts (cdr handle))))
-                                 (if (equal "multipart/alternative" (car handle))
-                                     ;; pick the first supported alternative
-                                     (list (car parts))
-                                   parts)))
+  (gmm-labels
+      ((mm-text-parts
+	(handle)
+	(cond ((stringp (car handle))
+	       (let ((parts (mapcan #'mm-text-parts (cdr handle))))
+		 (if (equal "multipart/alternative" (car handle))
+		     ;; pick the first supported alternative
+		     (list (car parts))
+		   parts)))
 
-                              ((bufferp (car handle))
-                               (when (string-match "^text/" (mm-handle-media-type handle))
-                                 (list handle)))
+	      ((bufferp (car handle))
+	       (when (string-match "^text/" (mm-handle-media-type handle))
+		 (list handle)))
 
-                              (t (mapcan #'mm-text-parts handle))))
-           (my-mm-display-part (handle)
-                               (when handle
-                                 (save-restriction
-                                   (narrow-to-region (point) (point))
-                                   (mm-display-inline handle)
-                                   (goto-char (point-max))))))
+	      (t (mapcan #'mm-text-parts handle))))
+       (my-mm-display-part
+	(handle)
+	(when handle
+	  (save-restriction
+	    (narrow-to-region (point) (point))
+	    (mm-display-inline handle)
+	    (goto-char (point-max))))))
 
     (let (;(mm-text-html-renderer 'w3m-standalone)
-          (handles (mm-dissect-buffer t)))
+	  (handles (mm-dissect-buffer t)))
       (save-excursion
-        (article-goto-body)
-        (delete-region (point) (point-max))
-        (mapc #'my-mm-display-part (mm-text-parts handles))
-        handles))))
+	(article-goto-body)
+	(delete-region (point) (point-max))
+	(mapc #'my-mm-display-part (mm-text-parts handles))
+	handles))))
 
 (defun gnus-score-body (scores header now expire &optional trace)
     (if gnus-agent-fetching

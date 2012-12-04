@@ -88,6 +88,7 @@
 (require 'gnus)
 (require 'gnus-start)
 (require 'gnus-util)
+(require 'gmm-utils)
 
 (defvar gnus-topic-alist) ;; gnus-group.el
 (eval-when-compile
@@ -176,7 +177,7 @@ and `gnus-topic-alist'.  Also see `gnus-variable-list'."
 (defun gnus-sync-lesync-call (url method headers &optional kvdata)
   "Make an access request to URL using KVDATA and METHOD.
 KVDATA must be an alist."
-  (flet ((json-alist-p (list) (gnus-sync-json-alist-p list))) ; temp patch
+  (gmm-flet ((json-alist-p (list) (gnus-sync-json-alist-p list))) ; temp patch
     (let ((url-request-method method)
           (url-request-extra-headers headers)
           (url-request-data (if kvdata (json-encode kvdata) nil)))
