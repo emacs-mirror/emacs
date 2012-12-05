@@ -100,7 +100,7 @@ the window tree are @dfn{internal windows}, which are not live.
 
 @cindex valid windows
    A @dfn{valid window} is one that is either live or internal.  A valid
-window can be @dfn{deleted}, i.e. removed from its frame
+window can be @dfn{deleted}, i.e., removed from its frame
 (@pxref{Deleting Windows}); then it is no longer valid, but the Lisp
 object representing it might be still referenced from other Lisp
 objects.  A deleted window may be made valid again by restoring a saved
@@ -203,7 +203,7 @@ windows that share the same parent are called @dfn{siblings}.
 This function returns the parent window of @var{window}.  If
 @var{window} is omitted or @code{nil}, it defaults to the selected
 window.  The return value is @code{nil} if @var{window} has no parent
-(i.e. it is a minibuffer window or the root window of its frame).
+(i.e., it is a minibuffer window or the root window of its frame).
 @end defun
 
   Each internal window always has at least two child windows.  If this
@@ -456,14 +456,14 @@ window has any adjacent windows.
 
 @defun window-full-height-p &optional window
 This function returns non-@code{nil} if @var{window} has no other
-window above or below it in its frame, i.e. its total height equals
+window above or below it in its frame, i.e., its total height equals
 the total height of the root window on that frame.  If @var{window} is
 omitted or @code{nil}, it defaults to the selected window.
 @end defun
 
 @defun window-full-width-p &optional window
 This function returns non-@code{nil} if @var{window} has no other
-window to the left or right in its frame, i.e. its total width equals
+window to the left or right in its frame, i.e., its total width equals
 that of the root window on that frame.  If @var{window} is omitted or
 @code{nil}, it defaults to the selected window.
 @end defun
@@ -635,7 +635,7 @@ cannot be moved as far as specified by @var{delta}, this function
 moves it as far as possible but does not signal a error.
 
 This function tries to resize windows adjacent to the edge that is
-moved.  If this is not possible for some reason (e.g. if that adjacent
+moved.  If this is not possible for some reason (e.g., if that adjacent
 window is fixed-size), it may resize other windows.
 @end defun
 
@@ -872,7 +872,7 @@ Configurations}).
 This function removes @var{window} from display and returns
 @code{nil}.  If @var{window} is omitted or @code{nil}, it defaults to
 the selected window.  If deleting the window would leave no more
-windows in the window tree (e.g. if it is the only live window in the
+windows in the window tree (e.g., if it is the only live window in the
 frame), an error is signaled.
 
 By default, the space taken up by @var{window} is given to one of its
@@ -1859,7 +1859,7 @@ Action Functions}.
 @defvar display-buffer-overriding-action
 The value of this variable should be a display action, which is
 treated with the highest priority by @code{display-buffer}.  The
-default value is empty, i.e. @code{(nil . nil)}.
+default value is empty, i.e., @code{(nil . nil)}.
 @end defvar
 
 @defopt display-buffer-alist
@@ -1992,7 +1992,7 @@ of the window; its return value is ignored.
 @end itemize
 
 This function can fail if no window splitting can be performed for some
-reason (e.g. if the selected frame has an @code{unsplittable} frame
+reason (e.g., if the selected frame has an @code{unsplittable} frame
 parameter; @pxref{Buffer Parameters}).
 @end defun
 
@@ -3101,7 +3101,7 @@ left edge.
 the horizontal scrolling of a window as necessary to ensure that point
 is always visible.  However, you can still set the horizontal
 scrolling value explicitly.  The value you specify serves as a lower
-bound for automatic scrolling, i.e. automatic scrolling will not
+bound for automatic scrolling, i.e., automatic scrolling will not
 scroll a window to a column less than the specified one.
 
 @deffn Command scroll-left &optional count set-minimum
@@ -3218,7 +3218,7 @@ this case Emacs itself draws the tool bar).  In both cases, the X and
 Y coordinates increase rightward and downward respectively.
 
   Except where noted, X and Y coordinates are reported in integer
-character units, i.e. numbers of lines and columns respectively.  On a
+character units, i.e., numbers of lines and columns respectively.  On a
 graphical display, each ``line'' and ``column'' corresponds to the
 height and width of a default character specified by the frame's
 default font.

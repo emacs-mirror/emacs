@@ -382,7 +382,7 @@ When displaying inline images that are larger than the window, Emacs
 does not enable scrolling, which means that you cannot see the whole
 image. To prevent this, the library tries to determine the image size
 before displaying it inline, and if it doesn't fit the window, the
-library will display it externally (e.g. with @samp{ImageMagick} or
+library will display it externally (e.g., with @samp{ImageMagick} or
 @samp{xv}). Setting this variable to @code{t} disables this check and
 makes the library display all inline images as inline, regardless of
 their size. If you set this variable to @code{resize}, the image will
@@ -427,7 +427,7 @@ or @kbd{I} instead.}
 
 @item mm-w3m-safe-url-regexp
 @vindex mm-w3m-safe-url-regexp
-A regular expression that matches safe URL names, i.e. URLs that are
+A regular expression that matches safe URL names, i.e., URLs that are
 unlikely to leak personal information when rendering @acronym{HTML}
 email (the default value is @samp{\\`cid:}).  If @code{nil} consider
 all URLs safe.  In Gnus, this will be overridden according to the value
@@ -489,7 +489,7 @@ Delete all control characters.
 @item mm-file-name-delete-gotchas
 @findex mm-file-name-delete-gotchas
 Delete characters that could have unintended consequences when used
-with flawed shell scripts, i.e. @samp{|}, @samp{>} and @samp{<}; and
+with flawed shell scripts, i.e., @samp{|}, @samp{>} and @samp{<}; and
 @samp{-}, @samp{.} as the first character.
 
 @item mm-file-name-delete-whitespace
@@ -922,7 +922,7 @@ each case the most efficient of quoted-printable and base64 should be
 used.
 
 @code{qp-or-base64} has another effect.  It will fold long lines so that
-MIME parts may not be broken by MTA.  So do @code{quoted-printable} and
+MIME parts may not be broken by MTA@.  So do @code{quoted-printable} and
 @code{base64}.
 
 Note that it affects body encoding only when a part is a raw forwarded
@@ -1443,13 +1443,13 @@ This is a version from which the regexp for the Q encoding pattern of
 @item rfc2047-encode-encoded-words
 @vindex rfc2047-encode-encoded-words
 The boolean variable specifies whether encoded words
-(e.g. @samp{=?us-ascii?q?hello?=}) should be encoded again.
+(e.g., @samp{=?us-ascii?q?hello?=}) should be encoded again.
 @code{rfc2047-encoded-word-regexp} is used to look for such words.
 
 @item rfc2047-allow-irregular-q-encoded-words
 @vindex rfc2047-allow-irregular-q-encoded-words
 The boolean variable specifies whether irregular Q encoded words
-(e.g. @samp{=?us-ascii?q?hello??=}) should be decoded.  If it is
+(e.g., @samp{=?us-ascii?q?hello??=}) should be decoded.  If it is
 non-@code{nil}, @code{rfc2047-encoded-word-regexp-loose} is used instead
 of @code{rfc2047-encoded-word-regexp} to look for encoded words.
 
@@ -1608,14 +1608,14 @@ Take a date and return a time.  If the date is not syntactically valid,
 return a ``zero'' time.
 
 @item time-less-p
-Take two times and say whether the first time is less (i. e., earlier)
+Take two times and say whether the first time is less (i.e., earlier)
 than the second time.
 
 @item time-since
 Take a time and return a time saying how long it was since that time.
 
 @item subtract-time
-Take two times and subtract the second from the first.  I. e., return
+Take two times and subtract the second from the first.  I.e., return
 the time between the two times.
 
 @item days-between

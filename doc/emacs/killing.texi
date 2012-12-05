@@ -34,7 +34,7 @@ killing many different types of syntactic units.
 @cindex deletion
   Most commands which erase text from the buffer save it in the kill
 ring.  These are known as @dfn{kill} commands, and their names
-normally contain the word @samp{kill} (e.g. @code{kill-line}).  The
+normally contain the word @samp{kill} (e.g., @code{kill-line}).  The
 kill ring stores several recent kills, not just the last one, so
 killing is a very safe operation: you don't have to worry much about
 losing text that you previously killed.  The kill ring is shared by
@@ -284,7 +284,7 @@ position, if you wish, with @kbd{C-u C-@key{SPC}} (@pxref{Mark Ring}).
   With a plain prefix argument (@kbd{C-u C-y}), the command instead
 leaves the cursor in front of the inserted text, and sets the mark at
 the end.  Using any other prefix argument specifies an earlier kill;
-e.g. @kbd{C-u 4 C-y} reinserts the fourth most recent kill.
+e.g., @kbd{C-u 4 C-y} reinserts the fourth most recent kill.
 @xref{Earlier Kills}.
 
   On graphical displays, @kbd{C-y} first checks if another application
@@ -535,13 +535,13 @@ or ``copy'' commands.
   Under X, whenever the region is active (@pxref{Mark}), the text in
 the region is saved in the primary selection.  This applies regardless
 of whether the region was made by dragging or clicking the mouse
-(@pxref{Mouse Commands}), or by keyboard commands (e.g. by typing
+(@pxref{Mouse Commands}), or by keyboard commands (e.g., by typing
 @kbd{C-@key{SPC}} and moving point; @pxref{Setting Mark}).
 
 @vindex select-active-regions
   If you change the variable @code{select-active-regions} to
 @code{only}, Emacs saves only temporarily active regions to the
-primary selection, i.e. those made with the mouse or with shift
+primary selection, i.e., those made with the mouse or with shift
 selection (@pxref{Shift Selection}).  If you change
 @code{select-active-regions} to @code{nil}, Emacs avoids saving active
 regions to the primary selection entirely.
@@ -841,8 +841,8 @@ has no effect for @kbd{C-x} and @kbd{C-c} (@pxref{Using Region}).
 
   To enter an Emacs command like @kbd{C-x C-f} while the mark is
 active, use one of the following methods: either hold @kbd{Shift}
-together with the prefix key, e.g. @kbd{S-C-x C-f}, or quickly type
-the prefix key twice, e.g. @kbd{C-x C-x C-f}.
+together with the prefix key, e.g., @kbd{S-C-x C-f}, or quickly type
+the prefix key twice, e.g., @kbd{C-x C-x C-f}.
 
   To disable the overriding of standard Emacs binding by CUA mode,
 while retaining the other features of CUA mode described below, set
@@ -862,7 +862,7 @@ of each line in the rectangle (on the same side as the cursor).
 
   With CUA you can easily copy text and rectangles into and out of
 registers by providing a one-digit numeric prefix to the kill, copy,
-and yank commands, e.g. @kbd{C-1 C-c} copies the region into register
+and yank commands, e.g., @kbd{C-1 C-c} copies the region into register
 @code{1}, and @kbd{C-2 C-v} yanks the contents of register @code{2}.
 
 @cindex global mark
@@ -875,7 +875,7 @@ position.
 
   For example, to copy words from various buffers into a word list in
 a given buffer, set the global mark in the target buffer, then
-navigate to each of the words you want in the list, mark it (e.g. with
+navigate to each of the words you want in the list, mark it (e.g., with
 @kbd{S-M-f}), copy it to the list with @kbd{C-c} or @kbd{M-w}, and
 insert a newline after the word in the target list by pressing
 @key{RET}.

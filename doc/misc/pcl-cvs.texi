@@ -63,7 +63,7 @@ developing GNU and promoting software freedom.''
 @ifnottex
 @top PCL-CVS
 
-This manual describes PCL-CVS, the GNU Emacs front-end to CVS.  It
+This manual describes PCL-CVS, the GNU Emacs front-end to CVS@.  It
 is nowhere near complete, so you are advised to use @kbd{M-x
 customize-group RET pcl-cvs @key{RET}} and to look at the documentation strings
 of the various commands and major modes for further information.
@@ -202,7 +202,7 @@ and cleanups.
 the build and installation procedure.
 
 @item
-@email{woods@@weird.com, Greg A.@: Woods} contributed code to implement
+@email{woods@@weird.com, Greg A. Woods} contributed code to implement
 the use of per-file diff buffers, and vendor join diffs with emerge and
 ediff, as well as various and sundry bug fixes and cleanups.
 
@@ -236,7 +236,7 @@ there would be no new releases of PCL-CVS.
 @cindex Sample session
 
 This document assumes that you know what CVS is, and that you at least
-know the fundamental concepts of CVS.  If that is not the case, you
+know the fundamental concepts of CVS@.  If that is not the case, you
 should read the CVS documentation.  Type @kbd{info -f cvs} or @kbd{man
 cvs}.
 
@@ -476,7 +476,7 @@ This chapter describes all the commands that you can use in PCL-CVS.
 @end iftex
 @ifnottex
 The nodes in this menu contains explanations about all the commands that
-you can use in PCL-CVS.  They are grouped together by type.
+you can use in PCL-CVS@.  They are grouped together by type.
 @end ifnottex
 
 @menu
@@ -568,7 +568,7 @@ argument to the command (e.g., by typing
 @cindex Command-line options to CVS
 
 This section describes the convention used by nearly all PCL-CVS
-commands for setting optional flags sent to CVS.  A single @kbd{C-u}
+commands for setting optional flags sent to CVS@.  A single @kbd{C-u}
 prefix argument is used to cause the command to prompt for flags to be
 used for the current invocation of the command only.  Two @kbd{C-u} prefix
 arguments are used to prompt for flags which will be set permanently, for the
@@ -582,7 +582,7 @@ and the file will be added.  Subsequent @samp{cvs add}
 commands will use the previously prevailing flags.
 
 As a second example, say you are about to perform a diff and want to see
-the result in unified diff format, i.e. you'd like to pass the flag
+the result in unified diff format, i.e., you'd like to pass the flag
 @samp{-u} to both @samp{cvs diff} and @samp{diff}.  You'd also like all
 subsequent diffs to use this flag.  You can type @kbd{C-u C-u = -u @key{RET}}
 and the diff will be performed, and the default flags will be set to
@@ -789,8 +789,8 @@ risk of error, @kbd{C-c C-c} will ask for confirmation if the set of
 selected files has changed between the first step and the last.  You can
 change this last detail with @code{log-edit-confirm}.
 
-As for the difference between @kbd{c} (i.e. @code{cvs-mode-commit}) and
-@kbd{C} (i.e. @code{cvs-mode-commit-setup}) is that the first gets you
+As for the difference between @kbd{c} (i.e., @code{cvs-mode-commit}) and
+@kbd{C} (i.e., @code{cvs-mode-commit-setup}) is that the first gets you
 straight to @samp{*cvs-commit*} without erasing it or changing anything
 to its content, while the second first erases @samp{*cvs-commit*}
 and tries to initialize it with a sane default (it does that by either
@@ -1391,7 +1391,7 @@ Below is a partial list of currently known problems with PCL-CVS.
 
 @table @asis
 @item Unexpected output from CVS
-Unexpected output from CVS may confuse PCL-CVS.  It will create
+Unexpected output from CVS may confuse PCL-CVS@.  It will create
 warning messages in the @samp{*cvs*} buffer alerting you to any parse errors.
 If you get these messages, please send a bug report to the email
 addresses listed above.  Include the contents of the @samp{*cvs*} buffer, the

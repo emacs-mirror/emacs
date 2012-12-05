@@ -694,7 +694,7 @@ The default is @code{t}, meaning display in the echo area.
 
 @defvar print-quoted
 If this is non-@code{nil}, that means to print quoted forms using
-abbreviated reader syntax, e.g.@: @code{(quote foo)} prints as
+abbreviated reader syntax, e.g., @code{(quote foo)} prints as
 @code{'foo}, and @code{(function foo)} as @code{#'foo}.
 @end defvar
 

@@ -52,10 +52,10 @@ on each line, with the following information:
 
 @itemize @bullet
 @item
-The package name (e.g. @samp{auctex}).
+The package name (e.g., @samp{auctex}).
 
 @item
-The package's version number (e.g. @samp{11.86}).
+The package's version number (e.g., @samp{11.86}).
 
 @item
 The package's status---normally one of @samp{available} (can be

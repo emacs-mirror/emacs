@@ -191,11 +191,11 @@ but use different function names (in fact, @file{cl.el} mainly just
 defines aliases to the @file{cl-lib.el} definitions).  Where
 @file{cl-lib.el} defines a function called, for example,
 @code{cl-incf}, @file{cl.el} uses the same name but without the
-@samp{cl-} prefix, e.g.@: @code{incf} in this example.  There are a few
+@samp{cl-} prefix, e.g., @code{incf} in this example.  There are a few
 exceptions to this.  First, functions such as @code{cl-defun} where
 the unprefixed version was already used for a standard Emacs Lisp
 function.  In such cases, the @file{cl.el} version adds a @samp{*}
-suffix, e.g.@: @code{defun*}.  Second, there are some obsolete features
+suffix, e.g., @code{defun*}.  Second, there are some obsolete features
 that are only implemented in @file{cl.el}, not in @file{cl-lib.el},
 because they are replaced by other standard Emacs Lisp features.
 Finally, in a very few cases the old @file{cl.el} versions do not
@@ -898,8 +898,8 @@ generalized variables.
 @node Setf Extensions
 @subsection Setf Extensions
 
-Several standard (e.g.@: @code{car}) and Emacs-specific
-(e.g.@: @code{window-point}) Lisp functions are @code{setf}-able by default.
+Several standard (e.g., @code{car}) and Emacs-specific
+(e.g., @code{window-point}) Lisp functions are @code{setf}-able by default.
 This package defines @code{setf} handlers for several additional functions:
 
 @itemize
@@ -4870,7 +4870,7 @@ direct C-language calls to the message routines rather than going
 through the Lisp @code{message} function.
 
 @c Bug#411.
-Note that many primitives (e.g.@: @code{+}) have special byte-compile
+Note that many primitives (e.g., @code{+}) have special byte-compile
 handling.  Attempts to redefine such functions using @code{flet} will
 fail if byte-compiled.
 @c Or cl-flet.

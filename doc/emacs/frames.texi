@@ -6,7 +6,7 @@
 @chapter Frames and Graphical Displays
 @cindex frames
 
-  When Emacs is started on a graphical display, e.g.@: on the X Window
+  When Emacs is started on a graphical display, e.g., on the X Window
 System, it occupies a graphical system-level ``window''.  In this
 manual, we call this a @dfn{frame}, reserving the word ``window'' for
 the part of the frame used for displaying a buffer.  A frame initially
@@ -246,8 +246,8 @@ Select the text you drag across, in the form of whole lines.
 
 @vindex mouse-highlight
   Some Emacs buffers include @dfn{buttons}, or @dfn{hyperlinks}:
-pieces of text that perform some action (e.g.@: following a reference)
-when activated (e.g.@: by clicking on them).  Usually, a button's text
+pieces of text that perform some action (e.g., following a reference)
+when activated (e.g., by clicking on them).  Usually, a button's text
 is visually highlighted: it is underlined, or a box is drawn around
 it.  If you move the mouse over a button, the shape of the mouse
 cursor changes and the button lights up.  If you change the variable
@@ -631,7 +631,7 @@ Monospace Bold Italic 12
 @cindex X Logical Font Description
   The third way to specify a font is to use an @dfn{XLFD} (@dfn{X
 Logical Font Description}).  This is the traditional method for
-specifying fonts under X.  Each XLFD consists of fourteen words or
+specifying fonts under X@.  Each XLFD consists of fourteen words or
 numbers, separated by dashes, like this:
 
 @example
@@ -644,7 +644,7 @@ characters (including none), and @samp{?} matches any single
 character.  However, matching is implementation-dependent, and can be
 inaccurate when wildcards match dashes in a long name.  For reliable
 results, supply all 14 dashes and use wildcards only within a field.
-Case is insignificant in an XLFD.  The syntax for an XLFD is as
+Case is insignificant in an XLFD@.  The syntax for an XLFD is as
 follows:
 
 @example
@@ -659,7 +659,7 @@ The entries have the following meanings:
 @item maker
 The name of the font manufacturer.
 @item family
-The name of the font family (e.g.@: @samp{courier}).
+The name of the font family (e.g., @samp{courier}).
 @item weight
 The font weight---normally either @samp{bold}, @samp{medium} or
 @samp{light}.  Some font names support other values.
@@ -1067,7 +1067,7 @@ attributes of the tooltip text are specified by the @code{tooltip}
 face, and by X resources (@pxref{X Resources}).
 
   @dfn{GUD tooltips} are special tooltips that show the values of
-variables when debugging a program with GUD.  @xref{Debugger
+variables when debugging a program with GUD@.  @xref{Debugger
 Operation}.
 
 @node Mouse Avoidance

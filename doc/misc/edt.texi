@@ -65,7 +65,7 @@ of DEC's EDT editor.
 This manual describes version 4.0 of the EDT Emulation for Emacs.
 It comes with special functions which replicate nearly all of
 EDT's keypad mode behavior.  It sets up default keypad and function key
-bindings which closely match those found in EDT.  Support is provided so
+bindings which closely match those found in EDT@.  Support is provided so
 that users may reconfigure most keypad and function key bindings to
 their own liking.
 
@@ -321,7 +321,7 @@ restores the original key bindings in effect just prior to invoking the
 emulation.
 
 Emacs binds keys to @acronym{ASCII} control characters and so does the
-real EDT.  Where EDT key bindings and Emacs key bindings conflict,
+real EDT@.  Where EDT key bindings and Emacs key bindings conflict,
 the default Emacs key bindings are retained by the EDT emulation by
 default.  If you are a diehard EDT user you may not like this.  The
 @ref{Control keys} section explains how to change this so that the EDT
@@ -527,7 +527,7 @@ add mod2 = Num_Lock
 @end example
 
 So, after executing @samp{xmodmap .xmodmaprc}, a press of the physical
-@key{F12} key looks like a Num_Lock keypress to X.  Also, a press of the
+@key{F12} key looks like a Num_Lock keypress to X@.  Also, a press of the
 physical @key{NumLock} key looks like a press of the @key{F12} key to X.
 
 Now, @file{edt-mapper.el} will see @samp{f12} when the physical
@@ -674,7 +674,7 @@ two-thirds of the current window.  (There is also an
 
 @item
 Cursor movement and deletion involving word entities is identical to
-EDT.  This, above all else, gives the die-hard EDT user a sense of being
+EDT@.  This, above all else, gives the die-hard EDT user a sense of being
 at home.  Also, an emulation of EDT's @samp{SET ENTITY WORD} command is
 provided, for those users who like to customize movement by a word at a
 time to their own liking.

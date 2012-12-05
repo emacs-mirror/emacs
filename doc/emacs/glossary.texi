@@ -14,7 +14,7 @@ as an abbrev for a long phrase that you want to insert frequently.
 @xref{Abbrevs}.
 
 @item Aborting
-Aborting means getting out of a recursive edit (q.v.@:).  The
+Aborting means getting out of a recursive edit (q.v.).  The
 commands @kbd{C-]} and @kbd{M-x top-level} are used for this.
 @xref{Quitting}.
 
@@ -62,7 +62,7 @@ function from those libraries.  This is called `autoloading'.
 @item Backtrace
 A backtrace is a trace of a series of function calls showing how a
 program arrived at a certain point.  It is used mainly for finding and
-correcting bugs (q.v.@:).  Emacs can display a backtrace when it signals
+correcting bugs (q.v.).  Emacs can display a backtrace when it signals
 an error or when you type @kbd{C-g} (@pxref{Glossary - Quitting}).
 @xref{Checklist}.
 
@@ -83,14 +83,14 @@ delimiter for you (@pxref{Matching,,Matching Parens}).
 @item Balanced Expressions
 A balanced expression is a syntactically recognizable expression, such
 as a symbol, number, string constant, block, or parenthesized expression
-in C.  @xref{Expressions,Balanced Expressions}.
+in C@.  @xref{Expressions,Balanced Expressions}.
 
 @item Balloon Help
 @xref{Glossary - Tooltips}.
 
 @item Base Buffer
 A base buffer is a buffer whose text is shared by an indirect buffer
-(q.v.@:).
+(q.v.).
 
 @item Bidirectional Text
 Some human languages, such as English, are written from left to right.
@@ -99,16 +99,16 @@ supports both of these forms, as well as any mixture of them---this
 is `bidirectional text'.  @xref{Bidirectional Editing}.
 
 @item Bind
-To bind a key sequence means to give it a binding (q.v.@:).
+To bind a key sequence means to give it a binding (q.v.).
 @xref{Rebinding}.
 
 @anchor{Glossary - Binding}
 @item Binding
 A key sequence gets its meaning in Emacs by having a binding, which is a
-command (q.v.@:), a Lisp function that is run when you type that
+command (q.v.), a Lisp function that is run when you type that
 sequence.  @xref{Commands,Binding}.  Customization often involves
 rebinding a character to a different command function.  The bindings of
-all key sequences are recorded in the keymaps (q.v.@:).  @xref{Keymaps}.
+all key sequences are recorded in the keymaps (q.v.).  @xref{Keymaps}.
 
 @item Blank Lines
 Blank lines are lines that contain only whitespace.  Emacs has several
@@ -126,13 +126,13 @@ external border, outside of everything including the menu bar, plus an
 internal border that surrounds the text windows, their scroll bars
 and fringes, and separates them from the menu bar and tool bar.  You
 can customize both borders with options and resources (@pxref{Borders
-X}).  Borders are not the same as fringes (q.v.@:).
+X}).  Borders are not the same as fringes (q.v.).
 
 @item Buffer
 The buffer is the basic editing unit; one buffer corresponds to one text
 being edited.  You normally have several buffers, but at any time you are
 editing only one, the `current buffer', though several can be visible
-when you are using multiple windows or frames (q.v.@:).  Most buffers
+when you are using multiple windows or frames (q.v.).  Most buffers
 are visiting (q.v.@:) some file.  @xref{Buffers}.
 
 @item Buffer Selection History
@@ -194,7 +194,7 @@ press a mouse button and release it without moving the mouse.
 @item Clipboard
 A clipboard is a buffer provided by the window system for transferring
 text between applications.  On the X Window System, the clipboard is
-provided in addition to the primary selection (q.v.@:); on MS-Windows and Mac,
+provided in addition to the primary selection (q.v.); on MS-Windows and Mac,
 the clipboard is used @emph{instead} of the primary selection.
 @xref{Clipboard}.
 
@@ -206,7 +206,7 @@ text to or from a variety of coding systems when reading or writing it.
 
 @item Command
 A command is a Lisp function specially defined to be able to serve as a
-key binding in Emacs.  When you type a key sequence (q.v.@:), its
+key binding in Emacs.  When you type a key sequence (q.v.), its
 binding (q.v.@:) is looked up in the relevant keymaps (q.v.@:) to find
 the command to run.  @xref{Commands}.
 
@@ -241,7 +241,7 @@ Reference Manual}) and programs in C and other languages
 A complete key is a key sequence that fully specifies one action to be
 performed by Emacs.  For example, @kbd{X} and @kbd{C-f} and @kbd{C-x m}
 are complete keys.  Complete keys derive their meanings from being bound
-(q.v.@:) to commands (q.v.@:).  Thus, @kbd{X} is conventionally bound to
+(q.v.@:) to commands (q.v.).  Thus, @kbd{X} is conventionally bound to
 a command to insert @samp{X} in the buffer; @kbd{C-x m} is
 conventionally bound to a command to begin composing a mail message.
 @xref{Keys}.
@@ -261,7 +261,7 @@ normally (but see @ref{Glossary - Truncation}) takes up more than one
 screen line when displayed.  We say that the text line is continued, and all
 screen lines used for it after the first are called continuation
 lines.  @xref{Continuation Lines}.  A related Emacs feature is
-`filling' (q.v.@:).
+`filling' (q.v.).
 
 @item Control Character
 A control character is a character that you type by holding down the
@@ -358,7 +358,7 @@ key or the @key{BACKSPACE} key, whichever one is easy to type.
 
 @item Deletion
 Deletion means erasing text without copying it into the kill ring
-(q.v.@:).  The alternative is killing (q.v.@:).  @xref{Killing,Deletion}.
+(q.v.).  The alternative is killing (q.v.).  @xref{Killing,Deletion}.
 
 @anchor{Glossary - Deletion of Files}
 @item Deletion of Files
@@ -401,7 +401,7 @@ confirmation.  The usual reason for disabling a command is that it is
 confusing for beginning users.  @xref{Disabling}.
 
 @item Down Event
-Short for `button down event' (q.v.@:).
+Short for `button down event' (q.v.).
 
 @item Drag Event
 A drag event is the kind of input event (q.v.@:) generated when you
@@ -431,7 +431,7 @@ them.
 
 @item Electric
 We say that a character is electric if it is normally self-inserting
-(q.v.@:), but the current major mode (q.v.@:) redefines it to do something
+(q.v.), but the current major mode (q.v.@:) redefines it to do something
 else as well.  For example, some programming language major modes define
 particular delimiter characters to reindent the line, or insert one or
 more newlines in addition to self-insertion.
@@ -440,7 +440,7 @@ more newlines in addition to self-insertion.
 @item End Of Line
 End of line is a character or a sequence of characters that indicate
 the end of a text line.  On GNU and Unix systems, this is a newline
-(q.v.@:), but other systems have other conventions.  @xref{Coding
+(q.v.), but other systems have other conventions.  @xref{Coding
 Systems,end-of-line}.  Emacs can recognize several end-of-line
 conventions in files and convert between them.
 
@@ -458,7 +458,7 @@ variables in the environment it passes to programs it invokes.
 An error occurs when an Emacs command cannot execute in the current
 circumstances.  When an error occurs, execution of the command stops
 (unless the command has been programmed to do otherwise) and Emacs
-reports the error by displaying an error message (q.v.@:).
+reports the error by displaying an error message (q.v.).
 @c Not helpful?
 @c Type-ahead is discarded.  Then Emacs is ready to read another
 @c editing command.
@@ -510,11 +510,11 @@ directory, but an absolute file name refers to the same file regardless
 of which directory is current.  On GNU and Unix systems, an absolute
 file name starts with a slash (the root directory) or with @samp{~/} or
 @samp{~@var{user}/} (a home directory).  On MS-Windows/MS-DOS, an
-absolute file name can also start with a drive letter and a colon, e.g.
+absolute file name can also start with a drive letter and a colon, e.g.,
 @samp{@var{d}:}.
 
 Some people use the term ``pathname'' for file names, but we do not;
-we use the word ``path'' only in the term ``search path'' (q.v.@:).
+we use the word ``path'' only in the term ``search path'' (q.v.).
 
 @item File-Name Component
 A file-name component names a file directly within a particular
@@ -556,25 +556,25 @@ fontset, rather than changing each font separately.  @xref{Fontsets}.
 @item Frame
 A frame is a rectangular cluster of Emacs windows.  Emacs starts out
 with one frame, but you can create more.  You can subdivide each frame
-into Emacs windows (q.v.@:).  When you are using a window system
-(q.v.@:), more than one frame can be visible at the same time.
+into Emacs windows (q.v.).  When you are using a window system
+(q.v.), more than one frame can be visible at the same time.
 @xref{Frames}.  Some other editors use the term ``window'' for this,
 but in Emacs a window means something else.
 
 @item Free Software
 Free software is software that gives you the freedom to share, study
 and modify it.  Emacs is free software, part of the GNU project
-(q.v.@:), and distributed under a copyleft (q.v.@:) license called the
+(q.v.), and distributed under a copyleft (q.v.@:) license called the
 GNU General Public License.  @xref{Copying}.
 
 @anchor{Glossary - Free Software Foundation}
 @item Free Software Foundation
 The Free Software Foundation (FSF) is a charitable foundation
-dedicated to promoting the development of free software (q.v.@:).
+dedicated to promoting the development of free software (q.v.).
 For more information, see @uref{http://fsf.org/, the FSF website}.
 
 @item Fringe
-On a graphical display (q.v.@:), there's a narrow portion of the frame
+On a graphical display (q.v.), there's a narrow portion of the frame
 (q.v.@:) between the text area and the window's border.  These
 ``fringes'' are used to display symbols that provide information about
 the buffer text (@pxref{Fringes}).  Emacs displays the fringe using a
@@ -585,7 +585,7 @@ special face (q.v.@:) called @code{fringe}.  @xref{Faces,fringe}.
 
 @item FTP
 FTP is an acronym for File Transfer Protocol.  This is one standard
-method for retrieving remote files (q.v.@:).
+method for retrieving remote files (q.v.).
 
 @item Function Key
 A function key is a key on the keyboard that sends input but does not
@@ -593,7 +593,7 @@ correspond to any character.  @xref{Function Keys}.
 
 @item Global
 Global means ``independent of the current environment; in effect
-throughout Emacs''.  It is the opposite of local (q.v.@:).  Particular
+throughout Emacs''.  It is the opposite of local (q.v.).  Particular
 examples of the use of `global' appear below.
 
 @item Global Abbrev
@@ -604,7 +604,7 @@ modes that do not have local (q.v.@:) definitions for the same abbrev.
 @item Global Keymap
 The global keymap (q.v.@:) contains key bindings that are in effect
 everywhere, except when overridden by local key bindings in a major
-mode's local keymap (q.v.@:).  @xref{Keymaps}.
+mode's local keymap (q.v.).  @xref{Keymaps}.
 
 @item Global Mark Ring
 The global mark ring records the series of buffers you have recently
@@ -624,7 +624,7 @@ that do not have their own local (q.v.@:) values for the variable.
 
 @item GNU
 GNU is a recursive acronym for GNU's Not Unix, and it refers to a
-Unix-compatible operating system which is free software (q.v.@:).
+Unix-compatible operating system which is free software (q.v.).
 @xref{Manifesto}.  GNU is normally used with Linux as the kernel since
 Linux works better than the GNU kernel.  For more information, see
 @uref{http://www.gnu.org/, the GNU website}.
@@ -639,7 +639,7 @@ that character (in ordinary editing modes).  @xref{Inserting Text}.
 
 @item Graphical Display
 A graphical display is one that can display images and multiple fonts.
-Usually it also has a window system (q.v.@:).
+Usually it also has a window system (q.v.).
 
 @item Highlighting
 Highlighting text means displaying it with a different foreground and/or
@@ -664,7 +664,7 @@ Help echo is a short message displayed in the echo area (q.v.@:) when
 the mouse pointer is located on portions of display that require some
 explanations.  Emacs displays help echo for menu items, parts of the
 mode line, tool-bar buttons, etc.  On graphical displays, the messages
-can be displayed as tooltips (q.v.@:).  @xref{Tooltips}.
+can be displayed as tooltips (q.v.).  @xref{Tooltips}.
 
 @item Home Directory
 Your home directory contains your personal files.  On a multi-user GNU
@@ -712,7 +712,7 @@ commands to adjust indentation.
 
 @item Indirect Buffer
 An indirect buffer is a buffer that shares the text of another buffer,
-called its base buffer (q.v.@:).  @xref{Indirect Buffers}.
+called its base buffer (q.v.).  @xref{Indirect Buffers}.
 
 @item Info
 Info is the hypertext format used by the GNU project for writing
@@ -726,7 +726,7 @@ frames.  @xref{User Input}.
 
 @item Input Method
 An input method is a system for entering non-@acronym{ASCII} text characters by
-typing sequences of @acronym{ASCII} characters (q.v.@:).  @xref{Input Methods}.
+typing sequences of @acronym{ASCII} characters (q.v.).  @xref{Input Methods}.
 
 @item Insertion
 Insertion means adding text into the buffer, either from the keyboard
@@ -761,8 +761,8 @@ Emacs calls ``binding a key sequence''.  @xref{Glossary - Binding}.
 @item Key Sequence
 A key sequence (key, for short) is a sequence of input events (q.v.@:)
 that are meaningful as a single unit.  If the key sequence is enough to
-specify one action, it is a complete key (q.v.@:); if it is not enough,
-it is a prefix key (q.v.@:).  @xref{Keys}.
+specify one action, it is a complete key (q.v.); if it is not enough,
+it is a prefix key (q.v.).  @xref{Keys}.
 
 @item Keymap
 The keymap is the data structure that records the bindings (q.v.@:) of
@@ -778,14 +778,14 @@ key sequences.
 @item Kill Ring
 The kill ring is where all text you have killed (@pxref{Glossary - Killing})
 recently is saved.  You can reinsert any of the killed text still in
-the ring; this is called yanking (q.v.@:).  @xref{Yanking}.
+the ring; this is called yanking (q.v.).  @xref{Yanking}.
 
 @anchor{Glossary - Killing}
 @item Killing
 Killing means erasing text and saving it on the kill ring so it can be
 yanked (q.v.@:) later.  Some other systems call this ``cutting''.
 Most Emacs commands that erase text perform killing, as opposed to
-deletion (q.v.@:).  @xref{Killing}.
+deletion (q.v.).  @xref{Killing}.
 
 @item Killing a Job
 Killing a job (such as, an invocation of Emacs) means making it cease
@@ -794,7 +794,7 @@ to exist.  Any data within it, if not saved in a file, is lost.
 
 @item Language Environment
 Your choice of language environment specifies defaults for the input
-method (q.v.@:) and coding system (q.v.@:).  @xref{Language
+method (q.v.@:) and coding system (q.v.).  @xref{Language
 Environments}.  These defaults are relevant if you edit
 non-@acronym{ASCII} text (@pxref{International}).
 
@@ -821,7 +821,7 @@ lists.  @xref{Moving by Parens}.
 Local means ``in effect only in a particular context''; the relevant
 kind of context is a particular function execution, a particular
 buffer, or a particular major mode.  It is the opposite of `global'
-(q.v.@:).  Specific uses of `local' in Emacs terminology appear below.
+(q.v.).  Specific uses of `local' in Emacs terminology appear below.
 
 @item Local Abbrev
 A local abbrev definition is effective only if a particular major mode
@@ -844,7 +844,7 @@ one of the modifier keys that can accompany any character.
 
 @item @kbd{M-C-}
 @kbd{M-C-} in the name of a character is an abbreviation for
-Control-Meta; it means the same thing as `@kbd{C-M-}' (q.v.@:).
+Control-Meta; it means the same thing as `@kbd{C-M-}' (q.v.).
 
 @item @kbd{M-x}
 @kbd{M-x} is the key sequence that is used to call an Emacs command by
@@ -875,14 +875,14 @@ fringe) and the window edge.
 
 @item Mark
 The mark points to a position in the text.  It specifies one end of the
-region (q.v.@:), point being the other end.  Many commands operate on
+region (q.v.), point being the other end.  Many commands operate on
 all the text from point to the mark.  Each buffer has its own mark.
 @xref{Mark}.
 
 @item Mark Ring
 The mark ring is used to hold several recent previous locations of the
 mark, in case you want to move back to them.  Each buffer has its
-own mark ring; in addition, there is a single global mark ring (q.v.@:).
+own mark ring; in addition, there is a single global mark ring (q.v.).
 @xref{Mark Ring}.
 
 @item Menu Bar
@@ -911,7 +911,7 @@ A Meta character is one whose character code includes the Meta bit.
 
 @item Minibuffer
 The minibuffer is the window that appears when necessary inside the
-echo area (q.v.@:), used for reading arguments to commands.
+echo area (q.v.), used for reading arguments to commands.
 @xref{Minibuffer}.
 
 @anchor{Glossary - Minibuffer History}
@@ -923,8 +923,8 @@ again.  @xref{Minibuffer History}.
 @item Minor Mode
 A minor mode is an optional feature of Emacs, which can be switched on
 or off independently of all other features.  Each minor mode has a
-command to turn it on or off.  Some minor modes are global (q.v.@:),
-and some are local (q.v.@:).  @xref{Minor Modes}.
+command to turn it on or off.  Some minor modes are global (q.v.),
+and some are local (q.v.).  @xref{Minor Modes}.
 
 @item Minor Mode Keymap
 A minor mode keymap is a keymap that belongs to a minor mode and is
@@ -933,7 +933,7 @@ over the buffer's local keymap, just as the local keymap takes
 precedence over the global keymap.  @xref{Keymaps}.
 
 @item Mode Line
-The mode line is the line at the bottom of each window (q.v.@:), giving
+The mode line is the line at the bottom of each window (q.v.), giving
 status information on the buffer displayed in that window.  @xref{Mode
 Line}.
 
@@ -949,7 +949,7 @@ yanking (q.v.@:) it.  @xref{Killing}.
 
 @item MULE
 MULE refers to the Emacs features for editing multilingual
-non-@acronym{ASCII} text using multibyte characters (q.v.@:).
+non-@acronym{ASCII} text using multibyte characters (q.v.).
 @xref{International}.
 
 @item Multibyte Character
@@ -959,7 +959,7 @@ since the number of non-@acronym{ASCII} characters is much more than 256.
 @xref{International Chars, International Characters}.
 
 @item Named Mark
-A named mark is a register (q.v.@:), in its role of recording a
+A named mark is a register (q.v.), in its role of recording a
 location in text so that you can move point to that location.
 @xref{Registers}.
 
@@ -1037,7 +1037,7 @@ specify a different file name.  @xref{Rmail}.
 @end ignore
 
 @item Primary Selection
-The primary selection is one particular X selection (q.v.@:); it is the
+The primary selection is one particular X selection (q.v.); it is the
 selection that most X applications use for transferring text to and from
 other applications.
 
@@ -1047,7 +1047,7 @@ uses the primary selection when appropriate.  @xref{Killing}.
 @item Prompt
 A prompt is text used to ask you for input.  Displaying a prompt
 is called prompting.  Emacs prompts always appear in the echo area
-(q.v.@:).  One kind of prompting happens when the minibuffer is used to
+(q.v.).  One kind of prompting happens when the minibuffer is used to
 read an argument (@pxref{Minibuffer}); the echoing that happens when
 you pause in the middle of typing a multi-character key sequence is also
 a kind of prompting (@pxref{Echo Area}).
@@ -1104,13 +1104,13 @@ correspond to changes that have been made in the text being edited.
 @xref{Glossary - Regular Expression}.
 
 @item Region
-The region is the text between point (q.v.@:) and the mark (q.v.@:).
+The region is the text between point (q.v.@:) and the mark (q.v.).
 Many commands operate on the text of the region.  @xref{Mark,Region}.
 
 @item Register
 Registers are named slots in which text, buffer positions, or
 rectangles can be saved for later use.  @xref{Registers}.  A related
-Emacs feature is `bookmarks' (q.v.@:).
+Emacs feature is `bookmarks' (q.v.).
 
 @anchor{Glossary - Regular Expression}
 @item Regular Expression
@@ -1134,13 +1134,13 @@ you have a supported method to gain access to those files.
 @item Restriction
 A buffer's restriction is the amount of text, at the beginning or the
 end of the buffer, that is temporarily inaccessible.  Giving a buffer a
-nonzero amount of restriction is called narrowing (q.v.@:); removing
-a restriction is called widening (q.v.@:).  @xref{Narrowing}.
+nonzero amount of restriction is called narrowing (q.v.); removing
+a restriction is called widening (q.v.).  @xref{Narrowing}.
 
 @item @key{RET}
 @key{RET} is a character that in Emacs runs the command to insert a
 newline into the text.  It is also used to terminate most arguments
-read in the minibuffer (q.v.@:).  @xref{User Input,Return}.
+read in the minibuffer (q.v.).  @xref{User Input,Return}.
 
 @item Reverting
 Reverting means returning to the original state.  Emacs lets you
@@ -1180,7 +1180,7 @@ files for certain purposes.  For example, the variable @code{load-path}
 holds a search path for finding Lisp library files.  @xref{Lisp Libraries}.
 
 @item Secondary Selection
-The secondary selection is one particular X selection (q.v.@:); some X
+The secondary selection is one particular X selection (q.v.); some X
 applications can use it for transferring text to and from other
 applications.  Emacs has special mouse commands for transferring text
 using the secondary selection.  @xref{Secondary Selection}.
@@ -1203,7 +1203,7 @@ selections whose values are text.  A program can also read the
 selections that other programs have set up.  This is the principal way
 of transferring text between window applications.  Emacs has commands to
 work with the primary (q.v.@:) selection and the secondary (q.v.@:)
-selection, and also with the clipboard (q.v.@:).
+selection, and also with the clipboard (q.v.).
 
 @item Self-Documentation
 Self-documentation is the feature of Emacs that can tell you what any
@@ -1297,7 +1297,7 @@ have.  To make a character Super, type it while holding down the
 @item Suspending
 Suspending Emacs means stopping it temporarily and returning control
 to its parent process, which is usually a shell.  Unlike killing a job
-(q.v.@:), you can later resume the suspended Emacs job without losing
+(q.v.), you can later resume the suspended Emacs job without losing
 your buffers, unsaved edits, undo history, etc.  @xref{Exiting}.
 
 @item @key{TAB}
@@ -1344,12 +1344,12 @@ they also specify formatting information.  @xref{Editing Format Info}.
 @item Theme
 A theme is a set of customizations (q.v.@:) that give Emacs a
 particular appearance or behavior.  For example, you might use a theme
-for your favorite set of faces (q.v.@:).
+for your favorite set of faces (q.v.).
 
 @item Tool Bar
 The tool bar is a line (sometimes multiple lines) of icons at the top
 of an Emacs frame.  Clicking on one of these icons executes a command.
-You can think of this as a graphical relative of the menu bar (q.v.@:).
+You can think of this as a graphical relative of the menu bar (q.v.).
 @xref{Tool Bars}.
 
 @anchor{Glossary - Tooltips}
@@ -1362,8 +1362,8 @@ clicks, etc.  @xref{Tooltips}.
 Top level is the normal state of Emacs, in which you are editing the
 text of the file you have visited.  You are at top level whenever you
 are not in a recursive editing level (q.v.@:) or the minibuffer
-(q.v.@:), and not in the middle of a command.  You can get back to top
-level by aborting (q.v.@:) and quitting (q.v.@:).  @xref{Quitting}.
+(q.v.), and not in the middle of a command.  You can get back to top
+level by aborting (q.v.@:) and quitting (q.v.).  @xref{Quitting}.
 
 @c FIXME?  Transient Mark Mode
 
@@ -1395,7 +1395,7 @@ back the text that existed earlier in the editing session.
 Unix is a class of multi-user computer operating systems with a long
 history.  There are several implementations today.  The GNU project
 (q.v.@:) aims to develop a complete Unix-like operating system that
-is free software (q.v.@:).
+is free software (q.v.).
 
 @item User Option
 A user option is a face (q.v.@:) or a variable (q.v.@:) that exists so
@@ -1413,7 +1413,7 @@ information on variables.
 
 @item Version Control
 Version control systems keep track of multiple versions of a source file.
-They provide a more powerful alternative to keeping backup files (q.v.@:).
+They provide a more powerful alternative to keeping backup files (q.v.).
 @xref{Version Control}.
 
 @item Visiting
@@ -1426,7 +1426,7 @@ tab, newline, and backspace).
 
 @item Widening
 Widening is removing any restriction (q.v.@:) on the current buffer;
-it is the opposite of narrowing (q.v.@:).  @xref{Narrowing}.
+it is the opposite of narrowing (q.v.).  @xref{Narrowing}.
 
 @item Window
 Emacs divides a frame (q.v.@:) into one or more windows, each of which
@@ -1438,7 +1438,7 @@ other editors use the term ``window'' for what we call a `frame'
 
 @item Window System
 A window system is software that operates on a graphical display
-(q.v.@:), to subdivide the screen so that multiple applications can
+(q.v.), to subdivide the screen so that multiple applications can
 have their] own windows at the same time.  All modern operating systems
 include a window system.
 
@@ -1451,7 +1451,7 @@ punctuation between them as insignificant.  @xref{Word Search}.
 
 @anchor{Glossary - Yanking}
 @item Yanking
-Yanking means reinserting text previously killed (q.v.@:).  It can be
+Yanking means reinserting text previously killed (q.v.).  It can be
 used to undo a mistaken kill, or for copying or moving text.  Some
 other systems call this ``pasting''.  @xref{Yanking}.
 @end table

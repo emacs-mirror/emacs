@@ -758,7 +758,7 @@ describe the most important commands in your major mode, and then use
 @item
 For consistency, phrase the verb in the first sentence of a function's
 documentation string as an imperative---for instance, use ``Return the
-cons of A and B.'' in preference to ``Returns the cons of A and B@.''
+cons of A and B.@:'' in preference to ``Returns the cons of A and B@.''
 Usually it looks good to do likewise for the rest of the first
 paragraph.  Subsequent paragraphs usually look better if each sentence
 is indicative and has a proper subject.
@@ -785,7 +785,7 @@ defun (@pxref{Defuns,, Defuns, emacs, The GNU Emacs Manual}).
 @item
 Write documentation strings in the active voice, not the passive, and in
 the present tense, not the future.  For instance, use ``Return a list
-containing A and B.'' instead of ``A list containing A and B will be
+containing A and B.@:'' instead of ``A list containing A and B will be
 returned.''
 
 @item

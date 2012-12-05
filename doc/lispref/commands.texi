@@ -65,7 +65,7 @@ use the minibuffer, so if you call @code{find-file} as a function from
 Lisp code, you must supply the file name string as an ordinary Lisp
 function argument.
 
-  If the command is a keyboard macro (i.e.@: a string or vector),
+  If the command is a keyboard macro (i.e., a string or vector),
 Emacs executes it using @code{execute-kbd-macro} (@pxref{Keyboard
 Macros}).
 
@@ -2451,7 +2451,7 @@ right-arrow function key:
 
 @defun read-char &optional prompt inherit-input-method seconds
 This function reads and returns a character of command input.  If the
-user generates an event which is not a character (i.e. a mouse click or
+user generates an event which is not a character (i.e., a mouse click or
 function key event), @code{read-char} signals an error.  The arguments
 work as in @code{read-event}.
 
@@ -2727,7 +2727,7 @@ Normally you add events to the front of this list, so that the events
 most recently unread will be reread first.
 
 Events read from this list are not normally added to the current
-command's key sequence (as returned by e.g. @code{this-command-keys}),
+command's key sequence (as returned by, e.g., @code{this-command-keys}),
 as the events will already have been added once as they were read for
 the first time.  An element of the form @code{(@code{t} . @var{event})}
 forces @var{event} to be added to the current command's key sequence.
@@ -2863,7 +2863,7 @@ Some systems support only a whole number of seconds; on these systems,
 @var{seconds} is rounded down.
 
 The expression @code{(sit-for 0)} is equivalent to @code{(redisplay)},
-i.e. it requests a redisplay, without any delay, if there is no pending input.
+i.e., it requests a redisplay, without any delay, if there is no pending input.
 @xref{Forcing Redisplay}.
 
 If @var{nodisp} is non-@code{nil}, then @code{sit-for} does not

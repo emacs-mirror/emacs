@@ -137,7 +137,7 @@ Given a parsed URI, this function returns the corresponding URI string.
 @cindex parsed URI
   The return value of @code{url-generic-parse-url}, and the argument
 expected by @code{url-recreate-url}, is a @dfn{parsed URI}: a CL
-structure whose slots hold the various components of the URI.
+structure whose slots hold the various components of the URI@.
 @xref{top,the CL Manual,,cl,GNU Emacs Common Lisp Emulation}, for
 details about CL structures.  Most of the other functions in the
 @code{url} library act on parsed URIs.
@@ -154,7 +154,7 @@ details about CL structures.  Most of the other functions in the
 
 @table @code
 @item type
-The URI scheme (a string, e.g.@: @code{http}).  @xref{Supported URL
+The URI scheme (a string, e.g., @code{http}).  @xref{Supported URL
 Types}, for a list of schemes that the @code{url} library knows how to
 process.  This slot can also be @code{nil}, if the URI is not fully
 specified.
@@ -190,7 +190,7 @@ component specifies a ``secondary resource'', such as a section of a
 webpage.
 
 @item fullness
-This is @code{t} if the URI is fully specified, i.e.@: the
+This is @code{t} if the URI is fully specified, i.e., the
 hierarchical components of the URI (the hostname and/or username
 and/or password) are preceded by @samp{//}.
 @end table
@@ -239,7 +239,7 @@ percent-encoded in accordance with RFC 3986.
 @defun url-encode-url url-string
 This function return a properly URI-encoded version of
 @var{url-string}.  It also performs @dfn{URI normalization},
-e.g.@: converting the scheme component to lowercase if it was
+e.g., converting the scheme component to lowercase if it was
 previously uppercase.
 @end defun
 
@@ -278,7 +278,7 @@ carriage returns and line feeds, which are normally forbidden in URIs.
 @chapter Retrieving URLs
 
   The @code{url} library defines the following three functions for
-retrieving the data specified by a URL.  The actual retrieval protocol
+retrieving the data specified by a URL@.  The actual retrieval protocol
 depends on the URL's URI scheme, and is performed by lower-level
 scheme-specific functions.  (Those lower-level functions are not
 documented here, and generally should not be called directly.)
@@ -385,7 +385,7 @@ The @code{http} scheme refers to the Hypertext Transfer Protocol.  The
 Its default port is 80.
 
   The @code{https} scheme is a secure version of @code{http}, with
-transmission via SSL.  It is defined in RFC 2069, and its default port
+transmission via SSL@.  It is defined in RFC 2069, and its default port
 is 443.  When using @code{https}, the @code{url} library performs SSL
 encryption via the @code{ssl} library, by forcing the @code{ssl}
 gateway method to be used.  @xref{Gateways in general}.
@@ -485,7 +485,7 @@ HTTP supports an @samp{OPTIONS} method describing things supported by
 the URL@.
 
 @defun url-http-options url
-Returns a property list describing options available for URL.  The
+Returns a property list describing options available for URL@.  The
 property list members are:
 
 @table @code
@@ -583,7 +583,7 @@ A @code{mailto} URL specifies an email message to be sent to a given
 email address.  For example, @samp{mailto:foo@@bar.com} specifies
 sending a message to @samp{foo@@bar.com}.  The ``retrieval method''
 for such URLs is to open a mail composition buffer in which the
-appropriate content (e.g.@: the recipient address) has been filled in.
+appropriate content (e.g., the recipient address) has been filled in.
 
   As defined in RFC 2368, a @code{mailto} URL has the form
 
@@ -652,7 +652,7 @@ tunneled through SSL and has default port 563.
 @vindex NNTPSERVER
 @defopt url-news-server
 This variable specifies the default news server from which to fetch
-news, if no server was specified in the URL.  The default value,
+news, if no server was specified in the URL@.  The default value,
 @code{nil}, means to use the server specified by the standard
 environment variable @samp{NNTPSERVER}, or @samp{news} if that
 environment variable is unset.

@@ -610,10 +610,10 @@ always considered safe.
 @vindex custom-enabled-themes
   Setting or saving Custom themes actually works by customizing the
 variable @code{custom-enabled-themes}.  The value of this variable is
-a list of Custom theme names (as Lisp symbols, e.g.@: @code{tango}).
+a list of Custom theme names (as Lisp symbols, e.g., @code{tango}).
 Instead of using the @file{*Custom Themes*} buffer to set
 @code{custom-enabled-themes}, you can customize the variable using the
-usual customization interface, e.g.@: with @kbd{M-x customize-option}.
+usual customization interface, e.g., with @kbd{M-x customize-option}.
 Note that Custom themes are not allowed to set
 @code{custom-enabled-themes} themselves.
 
@@ -2329,7 +2329,7 @@ Here a full file name is used, so no searching is done.
 @cindex loading Lisp libraries automatically
 @cindex autoload Lisp libraries
 Tell Emacs to find the definition for the function @code{myfunction}
-by loading a Lisp library named @file{mypackage} (i.e.@: a file
+by loading a Lisp library named @file{mypackage} (i.e., a file
 @file{mypackage.elc} or @file{mypackage.el}):
 
 @example
@@ -2496,7 +2496,7 @@ editor customizations even if you are running as the super user.
 
   More precisely, Emacs first determines which user's init file to use.
 It gets your user name from the environment variables @env{LOGNAME} and
-@env{USER}; if neither of those exists, it uses effective user-ID.
+@env{USER}; if neither of those exists, it uses effective user-ID@.
 If that user name matches the real user-ID, then Emacs uses @env{HOME};
 otherwise, it looks up the home directory corresponding to that user
 name in the system's data base of users.

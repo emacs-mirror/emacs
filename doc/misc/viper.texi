@@ -208,7 +208,7 @@ A buffer has a distinguished position called the @dfn{point}.
 A @dfn{point} is always between 2 characters, and is @dfn{looking at}
 the right hand character.  The cursor is positioned on the right hand
 character.  Thus, when the @dfn{point} is looking at the end-of-line,
-the cursor is on the end-of-line character, i.e.@: beyond the last
+the cursor is on the end-of-line character, i.e., beyond the last
 character on the line.  This is the default Emacs behavior.@refill
 
 The default settings of Viper try to mimic the behavior of Vi, preventing
@@ -301,7 +301,7 @@ You can also turn Viper on and off at any time while in Vi command mode.
 more information.@refill
 
 Emacs uses Control and Meta modifiers.  These are denoted as C and M,
-e.g.@: @kbd{^Z} as @kbd{C-z} and @kbd{Meta-x} as @kbd{M-x}.  The Meta key is
+e.g., @kbd{^Z} as @kbd{C-z} and @kbd{Meta-x} as @kbd{M-x}.  The Meta key is
 usually located on each side of the Space bar; it is used in a manner
 similar to the Control key, e.g., @kbd{M-x} means typing @kbd{x} while
 holding the Meta key down.  For keyboards that do not have a Meta key,
@@ -2681,7 +2681,7 @@ just left.  This lets one use these functions in a multi-frame
 configuration.  However, this may require some getting used to.  For
 instance, if you are typing in a frame, A, and then move the mouse to frame
 B and click to invoke mouse search, search (or insertion) will be performed
-in frame A.  To perform search/insertion in frame B, you will first have to
+in frame A@.  To perform search/insertion in frame B, you will first have to
 shift focus there, which doesn't happen until you type a character or
 perform some other action in frame B---mouse search doesn't shift focus.
 
@@ -3670,7 +3670,7 @@ Join <count> lines (default 2).
 @item  :[x,y]s/<pat>/<repl>/<f>
 Substitute (on lines x through y) the pattern
 <pat> (default the last pattern) with <repl>.  Useful
-flags <f> are @samp{g} for @samp{global} (i.e.@: change every
+flags <f> are @samp{g} for @samp{global} (i.e., change every
 non-overlapping occurrence of <pat>) and @samp{c} for
 @samp{confirm} (type @samp{y} to confirm a particular
 substitution, else @samp{n} ).  Instead of @kbd{/} any
@@ -3694,7 +3694,7 @@ Same as @kbd{:copy}.
 @item  :[x,y]move [z]
 Move text between @kbd{x} and @kbd{y} to the position after @kbd{z}.
 @item  &
-Repeat latest Ex substitute command, e.g.
+Repeat latest Ex substitute command, e.g.,
 @kbd{:s/wrong/right}.
 @item :x,yp
 @itemx :g/Pat/p
@@ -3794,7 +3794,7 @@ Search in the tags file where <name> is defined (file, line), and go to it.
 @item  :[x,y]s/<pat>/<repl>/<f>
 Substitute (on lines x through y) the pattern <pat> (default the last
 pattern) with <repl>.  Useful
-flags <f> are @samp{g} for @samp{global} (i.e.@: change every
+flags <f> are @samp{g} for @samp{global} (i.e., change every
 non-overlapping occurrence of <pat>) and @samp{c} for
 @samp{confirm} (type @samp{y} to confirm a particular
 substitution, else @samp{n}).  Instead of @kbd{/} any
@@ -3804,7 +3804,7 @@ delimiter.
 Note: @emph{The newline character (inserted as @kbd{C-qC-j})
 can be used in <repl>}.
 @item  &
-Repeat latest Ex substitute command, e.g.@: @kbd{:s/wrong/right}.
+Repeat latest Ex substitute command, e.g., @kbd{:s/wrong/right}.
 @item :global /<pattern>/<ex-command>
 @itemx :g /<pattern>/<ex-command>
 Execute <ex-command> on all lines that match <pattern>.
@@ -4476,12 +4476,12 @@ dxc@@xprt.net (David X Callaway),
 edmonds@@edmonds.home.cs.ubc.ca (Brian Edmonds),
 gin@@mo.msk.ru (Golubev I.N.),
 gviswana@@cs.wisc.edu (Guhan Viswanathan),
-gvr@@halcyon.com (George V.@: Reilly),
+gvr@@halcyon.com (George V. Reilly),
 hatazaki@@bach.convex.com (Takao Hatazaki),
 hpz@@ibmhpz.aug.ipp-garching.mpg.de (Hans-Peter Zehrfeld),
 irie@@t.email.ne.jp (Irie Tetsuya),
 jackr@@dblues.engr.sgi.com (Jack Repenning),
-jamesm@@bga.com (D.J.@: Miller II),
+jamesm@@bga.com (D.J. Miller II),
 jjm@@hplb.hpl.hp.com (Jean-Jacques Moreau),
 jl@@cse.ogi.edu (John Launchbury),
 jobrien@@hchp.org (John O'Brien),

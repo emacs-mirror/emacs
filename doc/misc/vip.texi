@@ -53,13 +53,13 @@ concentrate mainly on differences from Vi, especially features unique to
 VIP.
 
 It is recommended that you read nodes on survey and on customization before
-you start using VIP.  Other nodes may be visited as needed.
+you start using VIP@.  Other nodes may be visited as needed.
 
 Comments and bug reports are welcome.  Please send messages to
 @code{ms@@Sail.Stanford.Edu} if you are outside of Japan and to
 @code{masahiko@@sato.riec.tohoku.junet} if you are in Japan.@refill
 
-@insertcopying 
+@insertcopying
 
 @end ifnottex
 
@@ -83,7 +83,7 @@ concentrate mainly on differences from Vi, especially features unique to
 VIP.
 
 It is recommended that you read chapters on survey and on customization
-before you start using VIP.  Other chapters may be used as future
+before you start using VIP@.  Other chapters may be used as future
 references.
 
 Comments and bug reports are welcome.  Please send messages to
@@ -263,7 +263,7 @@ emacs mode             vi mode                 insert mode
 
 @kindex 032 @kbd{C-z} (@code{vip-change-mode-to-vi})
 
-You will be in this mode just after you loaded VIP.  You can do all
+You will be in this mode just after you loaded VIP@.  You can do all
 normal Emacs editing in this mode.  Note that the key @kbd{C-z} is globally
 bound to @code{vip-change-mode-to-vi}.  So, if you type @kbd{C-z} in this mode
 then you will be in vi mode.@refill
@@ -688,7 +688,7 @@ Replace.
 @chapter Vi Commands
 
 This chapter describes Vi commands other than Ex commands implemented in
-VIP.  Except for the last section which discusses insert mode, all the
+VIP@.  Except for the last section which discusses insert mode, all the
 commands described in this chapter are to be used in vi mode.
 
 @menu
@@ -1716,7 +1716,7 @@ character @samp{|}.
 @end menu
 @node Ex Command Reference, Customization, Ex Commands, Ex Commands
 @section Ex Command Reference
-In this section we briefly explain all the Ex commands supported by VIP.
+In this section we briefly explain all the Ex commands supported by VIP@.
 Most Ex commands expect @var{address} as their argument, and they use
 default addresses if they are not explicitly given.  In the following, such
 default addresses will be shown in parentheses.
@@ -1875,7 +1875,7 @@ customizing VIP.
 @node Customizing Constants, Customizing Key Bindings, Customization, Customization
 @section Customizing Constants
 An easy way to customize VIP is to change the values of constants used
-in VIP.  Here is the list of the constants used in VIP and their default
+in VIP@.  Here is the list of the constants used in VIP and their default
 values.
 
 @table @code

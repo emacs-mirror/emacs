@@ -1116,7 +1116,7 @@ definition, but specifications are much more general than macro
 arguments.  @xref{Defining Macros}, for more explanation of
 the @code{declare} form.
 
-@c See eg http://debbugs.gnu.org/10577
+@c See, e.g., http://debbugs.gnu.org/10577
 @c FIXME  Maybe there should be an Edebug option to get it to
 @c automatically load the entire source file containing the function
 @c being instrumented.  That would avoid this.
