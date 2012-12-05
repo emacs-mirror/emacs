@@ -1,5 +1,8 @@
 2012-12-05  Glenn Morris  <rgm@gnu.org>
 
+	* configure.ac (MAKEINFO, EGREP, CC): Quote references, in case of
+	spaces in file names.
+
 	* configure.ac: Handle info/ files with or without ".info" extension.
 
 2012-11-24  Eli Zaretskii  <eliz@gnu.org>
