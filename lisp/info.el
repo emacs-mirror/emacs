@@ -5105,9 +5105,7 @@ Otherwise, visit the manual in a new Info buffer."
     (progn
       (info-initialize)
       (completing-read "Manual name: "
-		       (apply-partially 'Info-read-node-name-2
-					Info-directory-list
-					(mapcar 'car Info-suffix-list))
+		       (info--manual-names)
 		       nil t))))
   (let ((blist (buffer-list))
 	(manual-re (concat "\\(/\\|\\`\\)" manual "\\(\\.\\|\\'\\)"))
@@ -5125,6 +5123,20 @@ Otherwise, visit the manual in a new Info buffer."
       (info-initialize)
       (info (Info-find-file manual)
 	    (generate-new-buffer-name "*info*")))))
+
+(defun info--manual-names ()
+  (let (names)
+    (dolist (buffer (buffer-list))
+      (with-current-buffer buffer
+	(and (eq major-mode 'Info-mode)
+	     (stringp Info-current-file)
+	     (push (file-name-sans-extension
+		    (file-name-nondirectory Info-current-file))
+		   names))))
+    (delete-dups (append (nreverse names)
+			 (apply-partially 'Info-read-node-name-2
+					  Info-directory-list
+					  (mapcar 'car Info-suffix-list))))))
 
 (provide 'info)
 
