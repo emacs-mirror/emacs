@@ -53,7 +53,6 @@
 ;;; Code:
 
 (require 'gnus-sum)
-(require 'gmm-utils)
 
 ;; FIXME: should avoid using C-c (no?)
 ;; (define-key gnus-summary-mode-map "\C-crm" 'gnus-bookmark-set)
@@ -368,7 +367,7 @@ The leftmost column displays a D if the bookmark is flagged for
 deletion, or > if it is flagged for displaying."
   (interactive)
   (gnus-bookmark-maybe-load-default-file)
-  (if (gmm-called-interactively-p 'any)
+  (if (interactive-p)
       (switch-to-buffer (get-buffer-create "*Gnus Bookmark List*"))
     (set-buffer (get-buffer-create "*Gnus Bookmark List*")))
   (let ((inhibit-read-only t)

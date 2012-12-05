@@ -86,7 +86,6 @@
 (require 'nnmail)
 (require 'easymenu)
 (require 'registry)
-(require 'gmm-utils)
 
 (defvar gnus-adaptive-word-syntax-table)
 
@@ -983,7 +982,7 @@ only the last one's marks are returned."
   (let* ((article (last articles))
          (id (gnus-registry-fetch-message-id-fast article))
          (marks (when id (gnus-registry-get-id-key id 'mark))))
-    (when (gmm-called-interactively-p 'interactive)
+    (when (interactive-p)
       (gnus-message 1 "Marks are %S" marks))
     marks))
 

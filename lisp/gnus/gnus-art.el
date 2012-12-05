@@ -45,7 +45,6 @@
 (require 'mm-uu)
 (require 'message)
 (require 'mouse)
-(require 'gmm-utils)
 
 (autoload 'gnus-msg-mail "gnus-msg" nil t)
 (autoload 'gnus-button-mailto "gnus-msg")
@@ -2719,7 +2718,7 @@ If READ-CHARSET, ask for a coding system."
       (while (re-search-forward
 	      "\\(\\(https?\\|ftp\\)://\\S-+\\) *\n\\(\\S-+\\)" nil t)
 	(replace-match "\\1\\3" t)))
-    (when (gmm-called-interactively-p 'any)
+    (when (interactive-p)
       (gnus-treat-article nil))))
 
 (defun article-wash-html ()
