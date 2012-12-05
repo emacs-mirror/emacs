@@ -39,16 +39,18 @@
 (defcustom tramp-adb-sdk-dir "~/Android/sdk"
   "Set to the directory containing the Android SDK."
   :type 'string
-  :group 'tramp-adb)
+  :version "24.4"
+  :group 'tramp)
 
 ;;;###tramp-autoload
 (defconst tramp-adb-method "adb"
   "*When this method name is used, forward all calls to Android Debug Bridge.")
 
 (defcustom tramp-adb-prompt "^\\(?:[[:alnum:]]*@[[:alnum:]]*[^#\\$]*\\)?[#\\$][[:space:]]"
-  "Regexp used as prompt in ADB shell."
+  "Regexp used as prompt in almquist shell."
   :type 'string
-  :group 'tramp-adb)
+  :version "24.4"
+  :group 'tramp)
 
 (defconst tramp-adb-ls-date-regexp "[[:space:]][0-9]\\{4\\}-[0-9][0-9]-[0-9][0-9][[:space:]][0-9][0-9]:[0-9][0-9][[:space:]]")
 
