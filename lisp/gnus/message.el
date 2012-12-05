@@ -8140,13 +8140,9 @@ regexp VARSTR."
   "Read from the minibuffer while providing abbrev expansion."
   (if (fboundp 'mail-abbrevs-setup)
       (let ((minibuffer-setup-hook 'mail-abbrevs-setup)
-	    (minibuffer-local-map message-minibuffer-local-map)
-	    (orig-m-a-i-e-h-p (symbol-function
-			       'mail-abbrev-in-expansion-header-p)))
-	(fset 'mail-abbrev-in-expansion-header-p (lambda (&rest args) t))
-	(unwind-protect
-	    (read-from-minibuffer prompt initial-contents)
-	  (fset 'mail-abbrev-in-expansion-header-p orig-m-a-i-e-h-p)))
+	    (minibuffer-local-map message-minibuffer-local-map))
+	(gmm-flet ((mail-abbrev-in-expansion-header-p nil t))
+	  (read-from-minibuffer prompt initial-contents)))
     (let ((minibuffer-setup-hook 'mail-abbrev-minibuffer-setup-hook)
 	  (minibuffer-local-map message-minibuffer-local-map))
       (read-string prompt initial-contents))))
