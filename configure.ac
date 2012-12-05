@@ -795,7 +795,7 @@ AC_PATH_PROG(MAKEINFO, makeinfo, no)
 dnl By this stage, configure has already checked for egrep and set EGREP,
 dnl or exited with an error if no egrep was found.
 if test "$MAKEINFO" != "no" && \
-  test x"`"$MAKEINFO" --version 2> /dev/null | "$EGREP" 'texinfo[[^0-9]]*([[1-4]][[0-9]]+|[[5-9]]|4\.[[7-9]]|4\.[[1-6]][[0-9]]+)'`" = x; then
+  test x"`$MAKEINFO --version 2> /dev/null | $EGREP 'texinfo[[^0-9]]*([[1-4]][[0-9]]+|[[5-9]]|4\.[[7-9]]|4\.[[1-6]][[0-9]]+)'`" = x; then
    MAKEINFO=no
 fi
 
@@ -1119,7 +1119,7 @@ if test "x$crt_files" != x; then
     ## system-dependent default from above.]
     if test $crt_gcc = yes && test ! -e $CRT_DIR/$file; then
 
-       crt_file=`"$CC" --print-file-name=$file 2>/dev/null`
+       crt_file=`$CC --print-file-name=$file 2>/dev/null`
        case "$crt_file" in
          */*)
            CRT_DIR=`AS_DIRNAME(["$crt_file"])`
@@ -4079,7 +4079,7 @@ CPPFLAGS="$REAL_CPPFLAGS"
 
 ## Hack to detect a buggy GCC version.
 if test "x$GCC" = xyes \
-   && test x`"$CC" --version 2> /dev/null | grep 'gcc.* 4.5.0'` != x \
+   && test x"`$CC --version 2> /dev/null | grep 'gcc.* 4.5.0'`" != x \
    && test x"`echo $CFLAGS | grep '\-O@<:@23@:>@'`" != x \
    && test x"`echo $CFLAGS | grep '\-fno-optimize-sibling-calls'`" = x; then
    AC_MSG_ERROR([GCC 4.5.0 has problems compiling Emacs; see etc/PROBLEMS'.])
@@ -4432,14 +4432,14 @@ if test "x$GCC" = "xyes" && test "x$ORDINARY_LINK" != "xyes"; then
         ## FIXME? s/gnu-linux.h used to define LIB_GCC as below, then
         ## immediately undefine it again and redefine it to empty.
         ## Was the C_SWITCH_X_SITE part really necessary?
-##      LIB_GCC=`"$CC" $C_SWITCH_X_SITE -print-libgcc-file-name`
+##      LIB_GCC=`$CC $C_SWITCH_X_SITE -print-libgcc-file-name`
         LIB_GCC=
 	;;
       esac
       ;;
 
     ## Ask GCC where to find libgcc.a.
-    *) LIB_GCC=`"$CC" -print-libgcc-file-name 2> /dev/null` ;;
+    *) LIB_GCC=`$CC -print-libgcc-file-name 2> /dev/null` ;;
   esac
 fi                              dnl if $GCC
 AC_SUBST(LIB_GCC)
