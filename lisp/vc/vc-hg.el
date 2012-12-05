@@ -93,7 +93,7 @@
 ;; - clear-headers ()                          ??
 ;; - delete-file (file)                        TEST IT
 ;; - rename-file (old new)                     OK
-;; - find-file-hook ()                         PROBABLY NOT NEEDED
+;; - find-file-hook ()                         added for bug#10709
 
 ;; 2) Implement Stefan Monnier's advice:
 ;; vc-hg-registered and vc-hg-state
@@ -463,6 +463,35 @@ REV is the revision to check out into WORKFILE."
     (if rev
         (vc-hg-command t 0 file "cat" "-r" rev)
       (vc-hg-command t 0 file "cat")))))
+
+(defun vc-hg-resolve-when-done ()
+  "Call \"hg resolve -m\" if the conflict markers have been removed."
+  (save-excursion
+    (goto-char (point-min))
+    (unless (re-search-forward "^<<<<<<< " nil t)
+      (vc-hg-command nil 0 buffer-file-name "resolve" "-m")
+      ;; Remove the hook so that it is not called multiple times.
+      (remove-hook 'after-save-hook 'vc-hg-resolve-when-done t))))
+
+(defun vc-hg-find-file-hook ()
+  (when (and buffer-file-name
+             (file-exists-p (concat buffer-file-name ".orig"))
+             ;; Hg does not seem to have a "conflict" status, eg
+             ;; hg http://bz.selenic.com/show_bug.cgi?id=2724
+             (memq (vc-file-getprop buffer-file-name 'vc-state)
+                   '(edited conflict))
+             ;; Maybe go on to check that "hg resolve -l" says "U"?
+             ;; If "hg resolve -l" says there's a conflict but there are no
+             ;; conflict markers, it's not clear what we should do.
+             (save-excursion
+               (goto-char (point-min))
+               (re-search-forward "^<<<<<<< " nil t)))
+    ;; Hg may not recognize "conflict" as a state, but we can do better.
+    (vc-file-setprop buffer-file-name 'vc-state 'conflict)
+    (smerge-start-session)
+    (add-hook 'after-save-hook 'vc-hg-resolve-when-done nil t)
+    (message "There are unresolved conflicts in this file")))
+
 
 ;; Modeled after the similar function in vc-bzr.el
 (defun vc-hg-workfile-unchanged-p (file)
