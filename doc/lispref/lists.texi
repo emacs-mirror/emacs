@@ -1936,14 +1936,6 @@ in the place where you got @var{plist}.  For example,
 @end example
 @end defun
 
-  You could define @code{put} in terms of @code{plist-put} as follows:
-
-@example
-(defun put (symbol prop value)
-  (setplist symbol
-            (plist-put (symbol-plist symbol) prop value)))
-@end example
-
 @defun lax-plist-get plist property
 Like @code{plist-get} except that it compares properties
 using @code{equal} instead of @code{eq}.
