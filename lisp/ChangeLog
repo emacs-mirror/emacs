@@ -1,5 +1,14 @@
 2012-12-05  Chong Yidong  <cyd@gnu.org>
 
+	* ffap.el (ffap-url-regexp): Don't require matching at front of
+	string (Bug#4952).
+	(ffap-url-p): If only a substring matches, return that.
+	(ffap-url-at-point): Use the return value of ffap-url-p.
+	(ffap-read-file-or-url, ffap-read-file-or-url-internal)
+	(find-file-at-point, dired-at-point, dired-at-point-prompter)
+	(ffap-guess-file-name-at-point): Likewise.
+	(ffap-replace-file-component): Fix typo.
+
 	* info.el (info-display-manual): Add existing Info buffers, whose
 	files may not be in Info-directory-list, to the completion.
 	(info--manual-names): New helper function.
