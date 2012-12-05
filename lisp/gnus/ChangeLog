@@ -1,5 +1,12 @@
 2012-12-05  Katsumi Yamaoka  <yamaoka@jpl.org>
 
+	* gmm-utils.el (gmm-called-interactively-p): New function.
+	* gnus-art.el (article-unsplit-urls)
+	* gnus-bookmark.el (gnus-bookmark-bmenu-list)
+	* gnus-registry.el (gnus-registry-get-article-marks)
+	* message.el (message-goto-body): Use it.
+	(message-called-interactively-p): Remove.
+
 	* gmm-utils.el (gmm-flet): Restore it using cl-letf.
 	* gnus-sync.el (gnus-sync-lesync-call)
 	* message.el (message-read-from-minibuffer): Use it.

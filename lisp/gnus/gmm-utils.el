@@ -417,7 +417,19 @@ coding-system."
 	(write-region start end filename append visit lockname))
     (write-region start end filename append visit lockname mustbenew)))
 
-;; `flet' and `labels' got obsolete since Emacs 24.3.
+;; `interactive-p' is obsolete since Emacs 23.2.
+(defalias 'gmm-called-interactively-p
+  (condition-case nil
+      (progn
+	(eval '(called-interactively-p 'any))
+	;; Emacs >=23.2
+	'called-interactively-p)
+    ;; Emacs <23.2
+    (wrong-number-of-arguments '(lambda (kind) (called-interactively-p)))
+    ;; XEmacs
+    (void-function '(lambda (kind) (interactive-p)))))
+
+;; `flet' and `labels' are obsolete since Emacs 24.3.
 (defmacro gmm-flet (bindings &rest body)
   "Make temporary overriding function definitions.
 This is an analogue of a dynamically scoped `let' that operates on
