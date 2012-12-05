@@ -579,13 +579,20 @@ usage: (call-process PROGRAM &optional INFILE BUFFER DISPLAY &rest ARGS)  */)
       }
     else
       fd0 = -1; /* We are not going to read from tempfile.   */
-#else /* not MSDOS */
+#endif /* MSDOS */
 
     /* Do the unwind-protect now, even though the pid is not known, so
        that no storage allocation is done in the critical section.
        The actual PID will be filled in during the critical section.  */
     synch_process_pid = 0;
     synch_process_fd = fd0;
+
+#ifdef MSDOS
+    /* MSDOS needs different cleanup information.  */
+    record_unwind_protect (call_process_cleanup,
+			   Fcons (Fcurrent_buffer (),
+				  build_string (tempfile ? tempfile : "")));
+#else
     record_unwind_protect (call_process_cleanup, Fcurrent_buffer ());
 
     block_input ();
@@ -603,7 +610,6 @@ usage: (call-process PROGRAM &optional INFILE BUFFER DISPLAY &rest ARGS)  */)
       bool volatile display_p_volatile = display_p;
       bool volatile output_to_buffer_volatile = output_to_buffer;
       bool volatile sa_must_free_volatile = sa_must_free;
-      int volatile fd0_volatile = fd0;
       int volatile fd1_volatile = fd1;
       int volatile fd_error_volatile = fd_error;
       int volatile fd_output_volatile = fd_output;
@@ -621,7 +627,6 @@ usage: (call-process PROGRAM &optional INFILE BUFFER DISPLAY &rest ARGS)  */)
       display_p = display_p_volatile;
       output_to_buffer = output_to_buffer_volatile;
       sa_must_free = sa_must_free_volatile;
-      fd0 = fd0_volatile;
       fd1 = fd1_volatile;
       fd_error = fd_error_volatile;
       fd_output = fd_output_volatile;
@@ -629,6 +634,8 @@ usage: (call-process PROGRAM &optional INFILE BUFFER DISPLAY &rest ARGS)  */)
       count = count_volatile;
       sa_count = sa_count_volatile;
       new_argv = new_argv_volatile;
+
+      fd0 = synch_process_fd;
     }
 
     if (pid == 0)
@@ -682,18 +689,7 @@ usage: (call-process PROGRAM &optional INFILE BUFFER DISPLAY &rest ARGS)  */)
     }
 
   if (INTEGERP (buffer))
-    {
-      if (fd0 >= 0)
-	emacs_close (fd0);
-      return unbind_to (count, Qnil);
-    }
-
-#if defined (MSDOS)
-  /* MSDOS needs different cleanup information.  */
-  record_unwind_protect (call_process_cleanup,
-			 Fcons (Fcurrent_buffer (),
-				build_string (tempfile ? tempfile : "")));
-#endif
+    return unbind_to (count, Qnil);
 
   if (BUFFERP (buffer))
     Fset_buffer (buffer);
