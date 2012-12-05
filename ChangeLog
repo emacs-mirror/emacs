@@ -1,7 +1,10 @@
+2012-12-05  Glenn Morris  <rgm@gnu.org>
+
+	* configure.ac: Handle info/ files with or without ".info" extension.
+
 2012-11-24  Eli Zaretskii  <eliz@gnu.org>
 
-	* make-dist (nt): Adjust to changes in names of the *.manifest
-	files.
+	* make-dist (nt): Adjust to changes in names of the *.manifest files.
 
 2012-11-21  Glenn Morris  <rgm@gnu.org>
 
