@@ -2387,10 +2387,9 @@ The method used must be an out-of-band method."
 				   copy-args
 				   (list
 				    (shell-quote-argument source)
-				    (shell-quote-argument target))
-				   (unless (memq system-type '(windows-nt))
-				     '(";" "echo"
-				       "tramp_exit_status" "$?")))))))
+				    (shell-quote-argument target)
+				    "&&" "echo" "tramp_exit_status" "0"
+				    "||" "echo" "tramp_exit_status" "1"))))))
 		  (tramp-message
 		   orig-vec 6 "%s"
 		   (mapconcat 'identity (process-command p) " "))
@@ -2398,22 +2397,20 @@ The method used must be an out-of-band method."
 		  (tramp-process-actions
 		   p v nil tramp-actions-copy-out-of-band)
 
-		  ;; Check the return code.  This does not work under
-		  ;; MS Windows.
-		  (unless (memq system-type '(windows-nt))
-		    (goto-char (point-max))
-		    (unless
-			(re-search-backward "tramp_exit_status [0-9]+" nil t)
-		      (tramp-error
-		       orig-vec 'file-error
-		       "Couldn't find exit status of `%s'" (process-command p)))
-		    (skip-chars-forward "^ ")
-		    (unless (zerop (read (current-buffer)))
-		      (forward-line -1)
-		      (tramp-error
-		       orig-vec 'file-error
-		       "Error copying: `%s'"
-		       (buffer-substring (point-min) (point-at-eol)))))))
+		  ;; Check the return code.
+		  (goto-char (point-max))
+		  (unless
+		      (re-search-backward "tramp_exit_status [0-9]+" nil t)
+		    (tramp-error
+		     orig-vec 'file-error
+		     "Couldn't find exit status of `%s'" (process-command p)))
+		  (skip-chars-forward "^ ")
+		  (unless (zerop (read (current-buffer)))
+		    (forward-line -1)
+		    (tramp-error
+		     orig-vec 'file-error
+		     "Error copying: `%s'"
+		     (buffer-substring (point-min) (point-at-eol))))))
 
 	    ;; Reset the transfer process properties.
 	    (tramp-message orig-vec 6 "\n%s" (buffer-string))
