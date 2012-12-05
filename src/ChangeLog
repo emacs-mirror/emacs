@@ -3,6 +3,8 @@
 	* callproc.c (Fcall_process_region) [!HAVE_MKSTEMP]: If mktemp
 	fails, signal an error instead of continuing with an empty
 	string.  (Bug#13079)
+	Encode expanded temp file pattern before passing it to mkstemp or
+	mktemp.
 
 2012-12-04  Eli Zaretskii  <eliz@gnu.org>
 

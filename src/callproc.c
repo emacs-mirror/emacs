@@ -959,8 +959,9 @@ usage: (call-process-region START END PROGRAM &optional DELETE BUFFER DISPLAY &r
   {
     USE_SAFE_ALLOCA;
     Lisp_Object pattern = Fexpand_file_name (Vtemp_file_name_pattern, tmpdir);
-    char *tempfile = SAFE_ALLOCA (SBYTES (pattern) + 1);
-    memcpy (tempfile, SDATA (pattern), SBYTES (pattern) + 1);
+    Lisp_Object encoded_tem = ENCODE_FILE (pattern);
+    char *tempfile = SAFE_ALLOCA (SBYTES (encoded_tem) + 1);
+    memcpy (tempfile, SDATA (encoded_tem), SBYTES (encoded_tem) + 1);
     coding_systems = Qt;
 
 #ifdef HAVE_MKSTEMP
