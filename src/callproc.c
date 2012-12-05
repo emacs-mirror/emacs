@@ -977,7 +977,15 @@ usage: (call-process-region START END PROGRAM &optional DELETE BUFFER DISPLAY &r
 	close (fd);
     }
 #else
+    errno = 0;
     mktemp (tempfile);
+    if (!*tempfile)
+      {
+	if (!errno)
+	  errno = EEXIST;
+	report_file_error ("Failed to open temporary file using pattern",
+			   Fcons (pattern, Qnil));
+      }
 #endif
 
     filename_string = build_string (tempfile);
