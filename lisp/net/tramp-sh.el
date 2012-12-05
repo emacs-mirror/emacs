@@ -2379,17 +2379,41 @@ The method used must be an out-of-band method."
 		;; last longer than 60 secs.
 		(let ((p (let ((default-directory
 				 (tramp-compat-temporary-file-directory)))
-			   (apply 'start-process
+			   (apply 'start-process-shell-command
 				  (tramp-get-connection-name v)
 				  (tramp-get-connection-buffer v)
 				  copy-program
-				  (append copy-args (list source target))))))
+				  (append
+				   copy-args
+				   (list
+				    (shell-quote-argument source)
+				    (shell-quote-argument target))
+				   (unless (memq system-type '(windows-nt))
+				     '(";" "echo"
+				       "tramp_exit_status" "$?")))))))
 		  (tramp-message
 		   orig-vec 6 "%s"
 		   (mapconcat 'identity (process-command p) " "))
 		  (tramp-compat-set-process-query-on-exit-flag p nil)
 		  (tramp-process-actions
-		   p v nil tramp-actions-copy-out-of-band)))
+		   p v nil tramp-actions-copy-out-of-band)
+
+		  ;; Check the return code.  This does not work under
+		  ;; MS Windows.
+		  (unless (memq system-type '(windows-nt))
+		    (goto-char (point-max))
+		    (unless
+			(re-search-backward "tramp_exit_status [0-9]+" nil t)
+		      (tramp-error
+		       orig-vec 'file-error
+		       "Couldn't find exit status of `%s'" (process-command p)))
+		    (skip-chars-forward "^ ")
+		    (unless (zerop (read (current-buffer)))
+		      (forward-line -1)
+		      (tramp-error
+		       orig-vec 'file-error
+		       "Error copying: `%s'"
+		       (buffer-substring (point-min) (point-at-eol)))))))
 
 	    ;; Reset the transfer process properties.
 	    (tramp-message orig-vec 6 "\n%s" (buffer-string))
