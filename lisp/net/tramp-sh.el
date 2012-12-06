@@ -2932,16 +2932,6 @@ the result will be a local, non-Tramp, filename."
 	  (keyboard-quit)
 	ret))))
 
-(defun tramp-sh-handle-call-process-region
-  (start end program &optional delete buffer display &rest args)
-  "Like `call-process-region' for Tramp files."
-  (let ((tmpfile (tramp-compat-make-temp-file "")))
-    (write-region start end tmpfile)
-    (when delete (delete-region start end))
-    (unwind-protect
-	(apply 'call-process program tmpfile buffer display args)
-      (delete-file tmpfile))))
-
 (defun tramp-sh-handle-file-local-copy (filename)
   "Like `file-local-copy' for Tramp files."
   (with-parsed-tramp-file-name filename nil
