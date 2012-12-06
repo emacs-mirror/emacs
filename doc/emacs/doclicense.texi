@@ -97,7 +97,7 @@ format, SGML or XML using a publicly available
 DTD, and standard-conforming simple HTML,
 PostScript or PDF designed for human modification.  Examples
 of transparent image formats include PNG, XCF and
-JPG.  Opaque formats include proprietary formats that can be
+JPG@.  Opaque formats include proprietary formats that can be
 read and edited only by proprietary word processors, SGML or
 XML for which the DTD and/or processing tools are
 not generally available, and the machine-generated HTML,
