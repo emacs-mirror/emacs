@@ -2276,7 +2276,7 @@ For a terminal frame, the value is always 1.  */)
   struct frame *f = decode_any_frame (frame);
 
   if (FRAME_WINDOW_P (f))
-    return make_number (x_char_height (f));
+    return make_number (FRAME_LINE_HEIGHT (f));
   else
 #endif
     return make_number (1);
@@ -2295,7 +2295,7 @@ For a terminal screen, the value is always 1.  */)
   struct frame *f = decode_any_frame (frame);
 
   if (FRAME_WINDOW_P (f))
-    return make_number (x_char_width (f));
+    return make_number (FRAME_COLUMN_WIDTH (f));
   else
 #endif
     return make_number (1);

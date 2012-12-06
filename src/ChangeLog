@@ -1,3 +1,16 @@
+2012-12-06  Dmitry Antipov  <dmantipov@yandex.ru>
+
+	* frame.h (x_char_width, x_char_height): Remove prototypes.
+	* w32term.h (x_char_width, x_char_height): Likewise.
+	* xfns.c (x_char_width, x_char_height): Remove.
+	* w32fns.c (x_char_width, x_char_height): Likewise.
+	* nsfns.c (x_char_width, x_char_height): Likewise.
+	* frame.c (Fframe_char_width): Use FRAME_COLUMN_WIDTH for
+	all window frames.
+	(Fframe_char_height): Likewise with FRAME_LINE_HEIGHT.
+	* keyboard.c (command_loop_1): Remove prototype.
+	(command_loop_2, top_level_1): Add static to match prototype.
+
 2012-12-06  Paul Eggert  <eggert@cs.ucla.edu>
 
 	Fix a recently-introduced delete-process race condition.

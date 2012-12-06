@@ -1116,8 +1116,7 @@ cmd_error_internal (Lisp_Object data, const char *context)
 
   Vsignaling_function = Qnil;
 }
-
-Lisp_Object command_loop_1 (void);
+
 static Lisp_Object command_loop_2 (Lisp_Object);
 static Lisp_Object top_level_1 (Lisp_Object);
 
@@ -1154,7 +1153,7 @@ command_loop (void)
    value to us.  A value of nil means that command_loop_1 itself
    returned due to end of file (or end of kbd macro).  */
 
-Lisp_Object
+static Lisp_Object
 command_loop_2 (Lisp_Object ignore)
 {
   register Lisp_Object val;
@@ -1172,7 +1171,7 @@ top_level_2 (void)
   return Feval (Vtop_level, Qnil);
 }
 
-Lisp_Object
+static Lisp_Object
 top_level_1 (Lisp_Object ignore)
 {
   /* On entry to the outer level, run the startup file */

@@ -4866,18 +4866,6 @@ x_pixel_height (register struct frame *f)
 }
 
 int
-x_char_width (register struct frame *f)
-{
-  return FRAME_COLUMN_WIDTH (f);
-}
-
-int
-x_char_height (register struct frame *f)
-{
-  return FRAME_LINE_HEIGHT (f);
-}
-
-int
 x_screen_planes (register struct frame *f)
 {
   return FRAME_W32_DISPLAY_INFO (f)->n_planes;

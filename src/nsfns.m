@@ -2243,20 +2243,6 @@ x_pixel_height (struct frame *f)
 
 
 int
-x_char_width (struct frame *f)
-{
-  return FRAME_COLUMN_WIDTH (f);
-}
-
-
-int
-x_char_height (struct frame *f)
-{
-  return FRAME_LINE_HEIGHT (f);
-}
-
-
-int
 x_screen_planes (struct frame *f)
 {
   return FRAME_NS_DISPLAY_INFO (f)->n_planes;
