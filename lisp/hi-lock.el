@@ -1,4 +1,4 @@
-;;; hi-lock.el --- minor mode for interactive automatic highlighting
+;;; hi-lock.el --- minor mode for interactive automatic highlighting  -*- lexical-binding: t -*-
 
 ;; Copyright (C) 2000-2012 Free Software Foundation, Inc.
 
@@ -138,7 +138,7 @@ patterns."
 (defcustom hi-lock-auto-select-face nil
   "Non-nil if highlighting commands should not prompt for face names.
 When non-nil, each hi-lock command will cycle through faces in
-`hi-lock-face-defaults'."
+`hi-lock-face-defaults' without prompting."
   :type 'boolean
   :version "24.4")
 
@@ -217,14 +217,6 @@ When non-nil, each hi-lock command will cycle through faces in
   '("hi-yellow" "hi-pink" "hi-green" "hi-blue" "hi-black-b"
     "hi-blue-b" "hi-red-b" "hi-green-b" "hi-black-hb")
   "Default faces for hi-lock interactive functions.")
-
-(defvar-local hi-lock--auto-select-face-defaults
-  (let ((l (copy-sequence hi-lock-face-defaults)))
-    (setcdr (last l) l))
-  "Circular list of faces used for interactive highlighting.
-When `hi-lock-auto-select-face' is non-nil, use the face at the
-head of this list for next interactive highlighting.  See also
-`hi-lock-read-face-name'.")
 
 (define-obsolete-variable-alias 'hi-lock-regexp-history
                                 'regexp-history
@@ -479,15 +471,8 @@ updated as you type."
   (let ((regexps '()))
     ;; When using overlays, there is no ambiguity on the best
     ;; choice of regexp.
-    (let ((desired-serial (get-char-property
-                           (point) 'hi-lock-overlay-regexp)))
-      (when desired-serial
-        (catch 'regexp
-          (maphash
-           (lambda (regexp serial)
-             (when (= serial desired-serial)
-               (push regexp regexps)))
-           hi-lock-string-serialize-hash))))
+    (let ((regexp (get-char-property (point) 'hi-lock-overlay-regexp)))
+      (when regexp (push regexp regexps)))
     ;; With font-locking on, check if the cursor is on an highlighted text.
     ;; Checking for hi-lock face is a good heuristic.
     (and (string-match "\\`hi-lock-" (face-name (face-at-point)))
@@ -502,6 +487,8 @@ updated as you type."
              (let ((regexp (car hi-lock-pattern)))
                (if (string-match regexp hi-text)
                    (push regexp regexps))))))))
+
+(defvar-local hi-lock--last-face nil)
 
 ;;;###autoload
 (defalias 'unhighlight-regexp 'hi-lock-unface-buffer)
@@ -529,9 +516,7 @@ then remove all hi-lock highlighting."
                           (list (car pattern)
                                 (format
                                  "%s (%s)" (car pattern)
-                                 (symbol-name
-                                  (car
-                                   (cdr (car (cdr (car (cdr pattern))))))))
+                                 (cadr (cadr (cadr pattern))))
                                 (cons nil nil)
                                 (car pattern)))
                         hi-lock-interactive-patterns))))
@@ -557,11 +542,16 @@ then remove all hi-lock highlighting."
   (dolist (keyword (if (eq regexp t) hi-lock-interactive-patterns
                      (list (assoc regexp hi-lock-interactive-patterns))))
     (when keyword
+      (let ((face (cadr (cadr (cadr keyword)))))
+        ;; Make `face' the next one to use by default.
+        (setq hi-lock--last-face
+              (cadr (member (symbol-name face)
+                            (reverse hi-lock-face-defaults)))))
       (font-lock-remove-keywords nil (list keyword))
       (setq hi-lock-interactive-patterns
             (delq keyword hi-lock-interactive-patterns))
       (remove-overlays
-       nil nil 'hi-lock-overlay-regexp (hi-lock-string-serialize regexp))
+       nil nil 'hi-lock-overlay-regexp (hi-lock--hashcons regexp))
       (when font-lock-fontified (font-lock-fontify-buffer)))))
 
 ;;;###autoload
@@ -616,28 +606,28 @@ not suitable."
     regexp))
 
 (defun hi-lock-read-face-name ()
-  "Return face name for interactive highlighting.
+  "Return face for interactive highlighting.
 When `hi-lock-auto-select-face' is non-nil, just return the next face.
 Otherwise, read face name from minibuffer with completion and history."
-  (if hi-lock-auto-select-face
-      ;; Return current head and rotate the face list.
-      (pop hi-lock--auto-select-face-defaults)
-    (intern (completing-read
-             "Highlight using face: "
-             obarray 'facep t
-             (cons (car hi-lock-face-defaults)
-                   (let ((prefix
-                          (try-completion
-                           (substring (car hi-lock-face-defaults) 0 1)
-                           hi-lock-face-defaults)))
-                     (if (and (stringp prefix)
-                              (not (equal prefix (car hi-lock-face-defaults))))
-                         (length prefix) 0)))
-             'face-name-history
-	     (cdr hi-lock-face-defaults)))))
+  (let ((default (or (cadr (member hi-lock--last-face hi-lock-face-defaults))
+                      (car hi-lock-face-defaults))))
+    (setq hi-lock--last-face
+          (if (and hi-lock-auto-select-face (not current-prefix-arg))
+              default
+            (completing-read
+             (format "Highlight using face (default %s): " default)
+             obarray 'facep t nil 'face-name-history
+             (append (member default hi-lock-face-defaults)
+                     hi-lock-face-defaults))))
+    (unless (member hi-lock--last-face hi-lock-face-defaults)
+      (setq hi-lock-face-defaults
+            (append hi-lock-face-defaults (list hi-lock--last-face))))
+    (intern hi-lock--last-face)))
 
 (defun hi-lock-set-pattern (regexp face)
   "Highlight REGEXP with face FACE."
+  ;; Hashcons the regexp, so it can be passed to remove-overlays later.
+  (setq regexp (hi-lock--hashcons regexp))
   (let ((pattern (list regexp (list 0 (list 'quote face) t))))
     (unless (member pattern hi-lock-interactive-patterns)
       (push pattern hi-lock-interactive-patterns)
@@ -645,8 +635,7 @@ Otherwise, read face name from minibuffer with completion and history."
 	  (progn
 	    (font-lock-add-keywords nil (list pattern) t)
 	    (font-lock-fontify-buffer))
-        (let* ((serial (hi-lock-string-serialize regexp))
-               (range-min (- (point) (/ hi-lock-highlight-range 2)))
+        (let* ((range-min (- (point) (/ hi-lock-highlight-range 2)))
                (range-max (+ (point) (/ hi-lock-highlight-range 2)))
                (search-start
                 (max (point-min)
@@ -659,7 +648,7 @@ Otherwise, read face name from minibuffer with completion and history."
             (while (re-search-forward regexp search-end t)
               (let ((overlay (make-overlay (match-beginning 0) (match-end 0))))
                 (overlay-put overlay 'hi-lock-overlay t)
-                (overlay-put overlay 'hi-lock-overlay-regexp serial)
+                (overlay-put overlay 'hi-lock-overlay-regexp regexp)
                 (overlay-put overlay 'face face))
               (goto-char (match-end 0)))))))))
 
@@ -709,27 +698,14 @@ Otherwise, read face name from minibuffer with completion and history."
     (font-lock-add-keywords nil hi-lock-file-patterns t)
     (font-lock-add-keywords nil hi-lock-interactive-patterns t)))
 
-(defvar hi-lock-string-serialize-hash
-  ;; FIXME: don't map strings to numbers but to unique strings via
-  ;; hash-consing, with a weak hash-table.
-  (make-hash-table :test 'equal)
-  "Hash table used to assign unique numbers to strings.")
+(defvar hi-lock--hashcons-hash
+  (make-hash-table :test 'equal :weakness t)
+  "Hash table used to hash cons regexps.")
 
-(defvar hi-lock-string-serialize-serial 1
-  "Number assigned to last new string in call to `hi-lock-string-serialize'.
-A string is considered new if it had not previously been used in a call to
-`hi-lock-string-serialize'.")
-
-(defun hi-lock-string-serialize (string)
-  "Return unique serial number for STRING."
-  (interactive)
-  (let ((val (gethash string hi-lock-string-serialize-hash)))
-    (if val val
-      (puthash string
-               (setq hi-lock-string-serialize-serial
-                     (1+ hi-lock-string-serialize-serial))
-               hi-lock-string-serialize-hash)
-      hi-lock-string-serialize-serial)))
+(defun hi-lock--hashcons (string)
+  "Return unique object equal to STRING."
+  (or (gethash string hi-lock--hashcons-hash)
+      (puthash string string hi-lock--hashcons-hash)))
 
 (defun hi-lock-unload-function ()
   "Unload the Hi-Lock library."

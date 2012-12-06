@@ -1,11 +1,27 @@
+2012-12-06  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* hi-lock.el: Rework the default face and the serialize regexp code.
+	(hi-lock--auto-select-face-defaults): Remove.
+	(hi-lock-string-serialize-serial): Remove.
+	(hi-lock--hashcons-hash): Rename from hi-lock-string-serialize-hash;
+	make weak.
+	(hi-lock--hashcons): Rename from hi-lock-string-serialize, return an
+	equal string.
+	(hi-lock-set-pattern): Adjust accordingly.
+	(hi-lock--regexps-at-point): Simplify accordingly.
+	(hi-lock--auto-select-face-defaults): Remove.
+	(hi-lock--last-face): New var to replace it.
+	(hi-lock-read-face-name): Rewrite (bug#11095).
+	(hi-lock-unface-buffer): Arrange for the face to be the next default.
+
 2012-12-06  Michael Albinus  <michael.albinus@gmx.de>
 
-	* net/tramp.el (tramp-replace-environment-variables): Hide
-	compiler warning.
+	* net/tramp.el (tramp-replace-environment-variables):
+	Hide compiler warning.
 	(tramp-file-name-for-operation): Remove `executable-find',
 	`start-process', `call-process' and `call-process-region'.
 
-        * net/tramp-compat.el (top): Don't require 'tramp-util and 'tramp-vc.
+	* net/tramp-compat.el (top): Don't require 'tramp-util and 'tramp-vc.
 
 	* net/tramp-gvfs.el (tramp-gvfs-dbus-event-error): Ensure backward
 	compatibility.
@@ -54,8 +70,8 @@
 	* net/tramp-sh.el (tramp-do-copy-or-rename-file-out-of-band):
 	Check return code of copy command.
 
-	* net/tramp-adb.el (tramp-adb-sdk-dir, tramp-adb-prompt): Use
-	group `tramp'.  Add version.
+	* net/tramp-adb.el (tramp-adb-sdk-dir, tramp-adb-prompt):
+	Use group `tramp'.  Add version.
 
 2012-12-05  Chong Yidong  <cyd@gnu.org>
 
@@ -207,8 +223,8 @@
 	* progmodes/perl-mode.el (perl-current-defun-name): New.
 	(perl-mode): Use it.
 
-	* progmodes/scheme.el (scheme-mode-variables, dsssl-mode): Use
-	lisp-current-defun-name.
+	* progmodes/scheme.el (scheme-mode-variables, dsssl-mode):
+	Use lisp-current-defun-name.
 
 	* textmodes/tex-mode.el (tex-current-defun-name): New.
 	(tex-common-initialization): Use it.
