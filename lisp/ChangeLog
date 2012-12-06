@@ -1,3 +1,8 @@
+2012-12-06  Glenn Morris  <rgm@gnu.org>
+
+	* mail/rmail.el (rmail-maybe-display-summary):
+	Preserve buffer, in case select-window changes it.  (Bug#13066)
+
 2012-12-06  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* emacs-lisp/cl.el, emacs-lisp/cl-lib.el: Move cl-unload-function and
