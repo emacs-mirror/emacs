@@ -1220,12 +1220,21 @@ waitpid (pid_t pid, int *status, int options)
     {
       QUIT;
       active = WaitForMultipleObjects (nh, wait_hnd, FALSE, timeout_ms);
-    } while (active == WAIT_TIMEOUT);
+    } while (active == WAIT_TIMEOUT && !dont_wait);
 
   if (active == WAIT_FAILED)
     {
       errno = EBADF;
       return -1;
+    }
+  else if (active == WAIT_TIMEOUT && dont_wait)
+    {
+      /* PID specifies our subprocess, but it didn't exit yet, so its
+	 status is not yet available.  */
+#ifdef FULL_DEBUG
+      DebPrint (("Wait: PID %d not reap yet\n", cp->pid));
+#endif
+      return 0;
     }
   else if (active >= WAIT_OBJECT_0
 	   && active < WAIT_OBJECT_0+MAXIMUM_WAIT_OBJECTS)
