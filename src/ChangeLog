@@ -1,3 +1,9 @@
+2012-12-06  Dmitry Antipov  <dmantipov@yandex.ru>
+
+	Avoid code duplication between prev_frame and next_frame.
+	* frame.c (candidate_frame): New function.  Add comment.
+	(prev_frame, next_frame): Use it.  Adjust comment.
+
 2012-12-06  Eli Zaretskii  <eliz@gnu.org>
 
 	* callproc.c (Fcall_process_region) [!HAVE_MKSTEMP]: If mktemp
