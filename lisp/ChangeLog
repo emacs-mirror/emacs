@@ -1,3 +1,7 @@
+2012-12-06  Chong Yidong  <cyd@gnu.org>
+
+	* ffap.el (ffap-replace-file-component): Fix typo.
+
 2012-12-05  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* progmodes/octave-mod.el (octave-mark-block): Move out of tokens and
