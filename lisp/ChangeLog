@@ -1,5 +1,20 @@
 2012-12-06  Stefan Monnier  <monnier@iro.umontreal.ca>
 
+	* progmodes/sql.el: Use cl-lib and lexical-binding; various cleanup.
+	(sql-signum): Remove.  Use `cl-signum' instead.
+	(sql-read-passwd): Remove; use read-passwd instread.
+	(sql-get-login-ext): Use read-string.
+	(sql-get-login): Use dolist and pcase.
+	(sql--completion-table): Rename from sql-try-completion.
+	Use complete-with-action.
+	(sql-mode): Don't change abbrev-all-caps globally.
+	(sql-connect): Don't rely on dynamic scoping for `new-name'.
+	(sql-postgres-completion-object): Initialize vars in their `let'.
+	(sql-comint-sybase, sql-comint-sqlite, sql-comint-mysql)
+	(sql-comint-solid, sql-comint-ms, sql-comint-postgres)
+	(sql-comint-interbase): Use a single append, without setq.
+	(sql-comint-linter): Same, and unwind-protect the LINTER_MBX var.
+
 	* hi-lock.el: Rework the default face and the serialize regexp code.
 	(hi-lock--auto-select-face-defaults): Remove.
 	(hi-lock-string-serialize-serial): Remove.
