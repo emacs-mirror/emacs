@@ -484,7 +484,7 @@ Returned values:
   "In remote FULLNAME, replace path with NAME.  May return nil."
   ;; Use efs if loaded, but do not load it otherwise.
   (if (fboundp 'efs-replace-path-component)
-      (funcall efs-replace-path-component fullname name)
+      (funcall 'efs-replace-path-component fullname name)
     (and (stringp fullname)
 	 (stringp name)
 	 (concat (file-remote-p fullname) name))))

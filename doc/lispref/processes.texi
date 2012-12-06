@@ -450,7 +450,7 @@ as it comes in.  For details, see the description of
 @code{call-process}, above.  If @var{destination} is the integer 0,
 @code{call-process-region} discards the output and returns @code{nil}
 immediately, without waiting for the subprocess to finish (this only
-works if asynchronous subprocesses are supported; i.e. not on MS-DOS).
+works if asynchronous subprocesses are supported; i.e., not on MS-DOS).
 
 The remaining arguments, @var{args}, are strings that specify command
 line arguments for the program.
@@ -635,7 +635,7 @@ Depending on the implementation of the file handler, it might not be
 possible to apply @code{process-filter} or @code{process-sentinel} to
 the resulting process object.  @xref{Filter Functions}, and @ref{Sentinels}.
 
-@c FIXME  Can we find a better example (i.e. a more modern function
+@c FIXME  Can we find a better example (i.e., a more modern function
 @c that is actually documented).
 Some file handlers may not support @code{start-file-process} (for
 example the function @code{ange-ftp-hook-function}).  In such cases,
@@ -1091,7 +1091,7 @@ and cannot be handled by the subprocess.
 @defun quit-process &optional process current-group
 This function sends the signal @code{SIGQUIT} to the process
 @var{process}.  This signal is the one sent by the ``quit
-@c FIXME?  Never heard of C-b being used for this.  In readline, eg
+@c FIXME?  Never heard of C-b being used for this.  In readline, e.g.,
 @c bash, that is backward-word.
 character'' (usually @kbd{C-b} or @kbd{C-\}) when you are not inside
 Emacs.

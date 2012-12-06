@@ -272,7 +272,7 @@ of the Makefile.  Basically, you need to change the path specifications
 for Emacs Lisp files and info files.  Also, enter the name of your Emacs
 executable (usually either @samp{emacs} or @samp{xemacs}).
 
-Then, type 
+Then, type
 
 @example
 make
@@ -353,7 +353,7 @@ PostScript or HTML files.
 @RefTeX{} needs to access all files which are part of a multifile
 document, and the BibTeX database files requested by the
 @code{\bibliography} command.  To find these files, @RefTeX{} will
-require a search path, i.e. a list of directories to check.  Normally
+require a search path, i.e., a list of directories to check.  Normally
 this list is stored in the environment variables @code{TEXINPUTS} and
 @code{BIBINPUTS} which are also used by @RefTeX{}.  However, on some
 systems these variables do not contain the full search path.  If
@@ -736,14 +736,14 @@ keymap @code{reftex-toc-map} may be used.
 @cindex Table of contents buffer, recentering
 @kindex C-c -
 If you call @code{reftex-toc} while the @file{*toc*} buffer already
-exists, the cursor will immediately jump to the right place, i.e. the
+exists, the cursor will immediately jump to the right place, i.e., the
 section from which @code{reftex-toc} was called will be highlighted.
 The command @kbd{C-c -} (@code{reftex-toc-recenter}) will only redisplay
 the @file{*toc*} buffer and highlight the correct line without actually
 selecting the @file{*toc*} window.  This can be useful to quickly find
 out where in the document you currently are.  You can also automate this
 by asking RefTeX to keep track of your current editing position in the
-TOC.  The TOC window will then be updated whenever you stop typing for
+TOC@.  The TOC window will then be updated whenever you stop typing for
 more than @code{reftex-idle-time} seconds.  By default this works only
 with the dedicated @file{*TOC*} frame.  But you can also force automatic
 recentering of the TOC window on the current frame with
@@ -894,7 +894,7 @@ start a selection process and finally insert the complete
 
 @vindex reftex-ref-macro-prompt
 First, you can select which reference macro you want to use,
-e.g. @samp{\ref} or @samp{\pageref}.  Later in the process you have
+e.g., @samp{\ref} or @samp{\pageref}.  Later in the process you have
 another chance to make this selection and you can therefore disable this
 step by customizing @code{reftex-ref-macro-prompt} if you find it too
 intrusive.  @xref{Reference Styles}.
@@ -1021,7 +1021,7 @@ Cycle forward through active reference macros.  The selected macro is
 displayed by the @samp{S<...>} indicator in the mode line of the
 selection buffer.  This mechanism comes in handy if you are using
 @LaTeX{} packages like @code{varioref} or @code{fancyref} and want to
-use the special referencing macros they provide (e.g. @code{\vref} or
+use the special referencing macros they provide (e.g., @code{\vref} or
 @code{\fref}) instead of @code{\ref}.
 
 @item V
@@ -1102,7 +1102,7 @@ keymap @code{reftex-select-label-map} may be used.
 @vindex reftex-label-alist-builtin
 
 @RefTeX{} needs to be aware of the environments which can be referenced
-with a label (i.e. which carry their own counters).  By default, @RefTeX{}
+with a label (i.e., which carry their own counters).  By default, @RefTeX{}
 recognizes all labeled environments and macros discussed in @cite{The
 @LaTeX{} Companion by Goossens, Mittelbach & Samarin, Addison-Wesley
 1994.}.  These are:
@@ -1257,7 +1257,7 @@ to be used like this:
 
 So we need to tell @RefTeX{} that @code{theorem} and @code{axiom} are new
 labeled environments which define their own label categories.  We can
-either use Lisp to do this (e.g. in @file{.emacs}) or use the custom
+either use Lisp to do this (e.g., in @file{.emacs}) or use the custom
 library.  With Lisp it would look like this
 
 @lisp
@@ -1712,7 +1712,7 @@ extra step for reference macro selection, you can disable it by
 customizing @code{reftex-ref-macro-prompt} and relying only on the
 selection facilities provided in the last step.
 
-In the last step, i.e. the label selection, two key bindings are
+In the last step, i.e., the label selection, two key bindings are
 provided to set the reference macro.  Type @key{v} in order to cycle
 forward through the list of available macros or @key{V} to cycle
 backward.  The mode line of the selection buffer shows the macro
@@ -1723,11 +1723,11 @@ through them you should adapt the order of entries in the variable
 @code{reftex-ref-style-alist} to fit your liking.
 
 For each entry in @code{reftex-ref-style-alist} a function with the name
-@code{reftex-<package>-<macro>} (e.g. @code{reftex-varioref-vref}) will
+@code{reftex-<package>-<macro>} (e.g., @code{reftex-varioref-vref}) will
 be created automatically by @RefTeX{}.  These functions can be used
 instead of @kbd{C-c )} and provide an alternative way of having your
 favorite referencing macro preselected and if cycling through the macros
-seems inconvenient to you.@footnote{You could e.g. bind
+seems inconvenient to you.@footnote{You could, e.g., bind
 @code{reftex-varioref-vref} to @kbd{C-c v} and
 @code{reftex-fancyref-fref} to @kbd{C-c f}.}
 
@@ -3059,7 +3059,7 @@ Specify the full search path directly in @RefTeX{}'s variables.
 
 @item
 Some @TeX{} systems provide stand-alone programs to do the file search just
-like @TeX{} and @BibTeX{}.  E.g. Thomas Esser's @code{teTeX} uses the
+like @TeX{} and @BibTeX{}.  E.g., Thomas Esser's @code{teTeX} uses the
 @code{kpathsearch} library which provides the command @code{kpsewhich}
 to search for files.  @RefTeX{} can be configured to use this
 program.  Note that the exact syntax of the @code{kpsewhich}
@@ -3353,7 +3353,7 @@ association with the @code{\documentclass} and @code{\usepackage}
 commands of a document (@pxref{Style Files,,,auctex}). Support for
 @RefTeX{} in such a style file is useful when the @LaTeX{} style
 defines macros or environments connected with labels, citations, or the
-index.  Many style files (e.g. @file{amsmath.el} or @file{natbib.el})
+index.  Many style files (e.g., @file{amsmath.el} or @file{natbib.el})
 distributed with @AUCTeX{} already support @RefTeX{} in this
 way.
 
@@ -3541,7 +3541,7 @@ document. @xref{AUCTeX}.
 @cindex @code{iso-cvt}, Emacs package
 @cindex Emacs packages, @code{iso-cvt}
 When using packages which make the buffer representation of a file
-different from its disk representation (e.g. x-symbol, isotex,
+different from its disk representation (e.g., x-symbol, isotex,
 iso-cvt) you may find that @RefTeX{}'s parsing information sometimes
 reflects the disk state of a file.  This happens only in @emph{unvisited}
 parts of a multifile document, because @RefTeX{} visits these files
@@ -3555,7 +3555,7 @@ this:
 @vindex reftex-keep-temporary-buffers
 @code{(setq reftex-keep-temporary-buffers t)}@*
 This implies that @RefTeX{} will load all parts of a multifile
-document into Emacs (i.e. there won't be any temporary buffers).
+document into Emacs (i.e., there won't be any temporary buffers).
 @item
 @vindex reftex-initialize-temporary-buffers
 @code{(setq reftex-initialize-temporary-buffers t)}@*
@@ -3573,7 +3573,7 @@ See also the variable @code{reftex-refontify-context}.
 @cindex @code{pf}, LaTeX package
 @cindex LaTeX packages, @code{pf}
 Some packages use an additional argument to a @code{\begin} macro
-to specify a label.  E.g. Lamport's @file{pf.sty} uses both
+to specify a label.  E.g., Lamport's @file{pf.sty} uses both
 @example
 \step@{@var{label}@}@{@var{claim}@}   and      \begin@{step+@}@{@var{label}@}
                                   @var{claim}
@@ -3932,7 +3932,7 @@ commands always select the nearest entry with the correct new level.
 @end defopt
 
 @defopt reftex-toc-max-level
-The maximum level of toc entries which will be included in the TOC.
+The maximum level of toc entries which will be included in the TOC@.
 Section headings with a bigger level will be ignored.  In RefTeX,
 chapters are level 1, sections level 2 etc.  This variable can be
 changed from within the @file{*toc*} buffer with the @kbd{t} key.
@@ -4138,7 +4138,7 @@ If an integer, use the nth argument of the macro.  As a special case,
 1000 means to get text after the last macro argument.
 @item
 If a string, use as regexp to search @emph{backward} from the label.
-Context is then the text following the end of the match.  E.g. setting
+Context is then the text following the end of the match.  E.g., setting
 this to @samp{\\caption[[@{]} will use the caption in a figure or table
 environment.  @samp{\\begin@{eqnarray@}\|\\\\} works for
 eqnarrays.
@@ -4166,7 +4166,7 @@ context:
 Label context is used in two ways by @RefTeX{}: For display in the label
 menu, and to derive a label string.  If you want to use a different
 method for each of these, specify them as a dotted pair.
-E.g. @code{(nil . t)} uses the text after the label (@code{nil}) for
+E.g., @code{(nil . t)} uses the text after the label (@code{nil}) for
 display, and text from the default position (@code{t}) to derive a label
 string.  This is actually used for section labels.
 
@@ -4237,13 +4237,13 @@ Possible values for this option are:
 t       @r{This means to trust any label prefixes found.}
 regexp  @r{If a regexp, only prefixes matched by the regexp are trusted.}
 list    @r{List of accepted prefixes, as strings.  The colon is part of}
-        @r{the prefix, e.g. ("fn:" "eqn:" "item:").}
+        @r{the prefix, e.g., ("fn:" "eqn:" "item:").}
 nil     @r{Never trust a label prefix.}
 @end example
 The only disadvantage of using this feature is that the label context
 displayed in the label selection buffer along with each label is
 simply some text after the label definition.  This is no problem if you
-place labels keeping this in mind (e.g. @i{before} the equation, @i{at
+place labels keeping this in mind (e.g., @i{before} the equation, @i{at
 the beginning} of a fig/tab caption ...).  Anyway, it is probably best
 to use the regexp or the list value types to fine-tune this feature.
 For example, if your document contains thousands of footnotes with
@@ -4446,7 +4446,7 @@ Controls if @code{reftex-reference} prompts for the reference macro.
 If non-@code{nil}, should be a function which produces the string to
 insert as a reference.  Note that the insertion format can also be
 changed with @code{reftex-label-alist}.  This hook also is used by the
-special commands to insert e.g. @code{\vref} and @code{\fref}
+special commands to insert, e.g., @code{\vref} and @code{\fref}
 references, so even if you set this, your setting will be ignored by the
 special commands.  The function will be called with three arguments, the
 @var{label}, the @var{default format} which normally is
@@ -4760,7 +4760,7 @@ The default can be selected with @key{RET} during selection or
 completion.  Valid values of this variable are:
 @example
 nil        @r{Do not provide a default index}
-"tag"      @r{The default index tag given as a string, e.g. "idx"}
+"tag"      @r{The default index tag given as a string, e.g., "idx"}
 last       @r{The last used index tag will be offered as default}
 @end example
 @end defopt
@@ -4770,7 +4770,7 @@ Format of index entries when copied from inside math mode.  When
 @code{reftex-index-selection-or-word} is executed inside @TeX{} math mode,
 the index key copied from the buffer is processed with this format
 string through the @code{format} function.  This can be used to add the
-math delimiters (e.g. @samp{$}) to the string.  Requires the
+math delimiters (e.g., @samp{$}) to the string.  Requires the
 @file{texmathp.el} library which is part of @AUCTeX{}.
 @end defopt
 
@@ -5170,7 +5170,7 @@ Never refontify.
 @item t
 Always refontify.
 @item 1
-Refontify when necessary, e.g. with old versions of the x-symbol
+Refontify when necessary, e.g., with old versions of the x-symbol
 package.
 @end table
 The option is ignored when @code{reftex-use-fonts} is @code{nil}.
@@ -5418,7 +5418,7 @@ the TOC buffer promote/demote the section at point or all sections in
 the current region.
 @item
 New option @code{reftex-toc-split-windows-fraction} to set the size of
-the window used by the TOC.  This makes the old variable
+the window used by the TOC@.  This makes the old variable
 @code{reftex-toc-split-windows-horizontally-fraction} obsolete.
 @item
 A dedicated frame can show the TOC with the current section
@@ -5812,7 +5812,7 @@ Fixed bug with AUCTeX @code{TeX-master}.
 @itemize @bullet
 @item
 The selection now uses a recursive edit, much like minibuffer input.
-This removes all restrictions during selection.  E.g. you can now
+This removes all restrictions during selection.  E.g., you can now
 switch buffers at will, use the mouse etc.
 @item
 New option @code{reftex-highlight-selection}.
@@ -5888,7 +5888,7 @@ When no BibTeX database files are specified, citations can also use
 @noindent @b{Version 3.11}
 @itemize @bullet
 @item
-Fixed bug which led to naked label in (e.g.) footnotes.
+Fixed bug which led to naked label in (e.g.@:) footnotes.
 @item
 Added scroll-other-window functions to RefTeX-Select.
 @end itemize

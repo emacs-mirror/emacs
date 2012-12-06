@@ -968,7 +968,7 @@ is the second argument.  The output of the @command{diff} program is
 shown in a buffer using Diff mode (@pxref{Comparing Files}).
 
   If the region is active, the default for the file read using the
-minibuffer is the file at the mark (i.e.@: the ordinary Emacs mark,
+minibuffer is the file at the mark (i.e., the ordinary Emacs mark,
 not a Dired mark; @pxref{Setting Mark}).  Otherwise, if the file at
 point has a backup file (@pxref{Backup}), that is the default.
 

@@ -34,7 +34,7 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.
 
 extern SYSTEM_INFO    sysinfo_cache;
 extern OSVERSIONINFO  osinfo_cache;
-extern unsigned long  syspage_mask;
+extern DWORD_PTR      syspage_mask;
 
 extern int    	      w32_major_version;
 extern int    	      w32_minor_version;

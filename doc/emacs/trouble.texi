@@ -332,9 +332,9 @@ contains the Emacs executable.
   Optionally, Emacs can generate a @dfn{core dump} when it crashes.  A
 core dump is a file containing voluminous data about the state of the
 program prior to the crash, usually examined by loading it into a
-debugger such as GDB.  On many platforms, core dumps are disabled by
+debugger such as GDB@.  On many platforms, core dumps are disabled by
 default, and you must explicitly enable them by running the shell
-command @samp{ulimit -c unlimited} (e.g.@: in your shell startup
+command @samp{ulimit -c unlimited} (e.g., in your shell startup
 script).
 
 @node After a Crash
@@ -373,7 +373,7 @@ symbols.
 @file{core.emacs}, so that another crash won't overwrite it.
 
   To use this script, run @code{gdb} with the file name of your Emacs
-executable and the file name of the core dump, e.g. @samp{gdb
+executable and the file name of the core dump, e.g., @samp{gdb
 /usr/bin/emacs core.emacs}.  At the @code{(gdb)} prompt, load the
 recovery script: @samp{source /usr/src/emacs/etc/emacs-buffer.gdb}.
 Then type the command @code{ybuffer-list} to see which buffers are

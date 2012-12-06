@@ -109,6 +109,12 @@ this setting is harmless until the user chooses a sync backend."
   :group 'gnus-sync
   :type '(repeat regexp))
 
+(defcustom gnus-sync-newsrc-offsets '(2 3)
+  "List of per-group data to be synchronized."
+  :group 'gnus-sync
+  :type '(set (const :tag "Read ranges" 2)
+              (const :tag "Marks" 3)))
+
 (defcustom gnus-sync-global-vars nil
   "List of global variables to be synchronized.
 You may want to sync `gnus-newsrc-last-checked-date' but pretty
@@ -743,7 +749,15 @@ With a prefix, FORCE is set and all groups will be saved."
     ;; entry in gnus-newsrc-alist whose group matches any of the
     ;; gnus-sync-newsrc-groups
     ;; TODO: keep the old contents for groups we don't have!
-    (let ((gnus-sync-newsrc-loader (gnus-sync-newsrc-loader-builder)))
+    (let ((gnus-sync-newsrc-loader
+	   (loop for entry in (cdr gnus-newsrc-alist)
+		 when (gnus-grep-in-list
+		       (car entry)     ;the group name
+		       gnus-sync-newsrc-groups)
+		 collect (cons (car entry)
+			       (mapcar (lambda (offset)
+					 (cons offset (nth offset entry)))
+				       gnus-sync-newsrc-offsets)))))
       (with-temp-file gnus-sync-backend
         (progn
           (let ((coding-system-for-write gnus-ding-file-coding-system)

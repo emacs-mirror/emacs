@@ -1551,7 +1551,7 @@ diary file and iCalendar files, which are defined in ``RFC
 2445---Internet Calendaring and Scheduling Core Object Specification
 (iCalendar)'' (as well as the earlier vCalendar format).
 
-@c  Importing works for ``ordinary'' (i.e. non-recurring) events, but
+@c  Importing works for ``ordinary'' (i.e., non-recurring) events, but
 @c (at present) may not work correctly (if at all) for recurring events.
 @c Exporting of diary files into iCalendar files should work correctly
 @c for most diary entries.  This feature is a work in progress, so the

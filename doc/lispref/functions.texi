@@ -44,10 +44,10 @@ changes in the values of variables or the contents of data structures.
 
   In most computer languages, every function has a name.  But in Lisp,
 a function in the strictest sense has no name: it is an object which
-can @emph{optionally} be associated with a symbol (e.g.@: @code{car})
+can @emph{optionally} be associated with a symbol (e.g., @code{car})
 that serves as the function name.  @xref{Function Names}.  When a
 function has been given a name, we usually also refer to that symbol
-as a ``function'' (e.g.@: we refer to ``the function @code{car}'').
+as a ``function'' (e.g., we refer to ``the function @code{car}'').
 In this manual, the distinction between a function name and the
 function object itself is usually unimportant, but we will take note
 wherever it is relevant.
@@ -61,7 +61,7 @@ Emacs Lisp.
 
 @table @dfn
 @item lambda expression
-A function (in the strict sense, i.e.@: a function object) which is
+A function (in the strict sense, i.e., a function object) which is
 written in Lisp.  These are described in the following section.
 @ifnottex
 @xref{Lambda Expressions}.
@@ -71,14 +71,14 @@ written in Lisp.  These are described in the following section.
 @cindex primitive
 @cindex subr
 @cindex built-in function
-A function which is callable from Lisp but is actually written in C.
+A function which is callable from Lisp but is actually written in C@.
 Primitives are also called @dfn{built-in functions}, or @dfn{subrs}.
 Examples include functions like @code{car} and @code{append}.  In
 addition, all special forms (see below) are also considered
 primitives.
 
 Usually, a function is implemented as a primitive because it is a
-fundamental part of Lisp (e.g.@: @code{car}), or because it provides a
+fundamental part of Lisp (e.g., @code{car}), or because it provides a
 low-level interface to operating system services, or because it needs
 to run fast.  Unlike functions defined in Lisp, primitives can be
 modified or added only by changing the C sources and recompiling
@@ -136,7 +136,7 @@ function:
 
 @defun functionp object
 This function returns @code{t} if @var{object} is any kind of
-function, i.e.@: can be passed to @code{funcall}.  Note that
+function, i.e., can be passed to @code{funcall}.  Note that
 @code{functionp} returns @code{t} for symbols that are function names,
 and returns @code{nil} for special forms.
 @end defun
@@ -476,7 +476,7 @@ way users think of the parts of the macro call.
 
   A symbol can serve as the name of a function.  This happens when the
 symbol's @dfn{function cell} (@pxref{Symbol Components}) contains a
-function object (e.g.@: a lambda expression).  Then the symbol itself
+function object (e.g., a lambda expression).  Then the symbol itself
 becomes a valid, callable function, equivalent to the function object
 in its function cell.
 
@@ -1080,7 +1080,7 @@ The primary use of this function is as a subroutine by constructs that
 define or alter functions, like @code{defadvice} (@pxref{Advising
 Functions}).  (If @code{defun} were not a primitive, it could be
 written as a Lisp macro using @code{fset}.)  You can also use it to
-give a symbol a function definition that is not a list, e.g.@: a
+give a symbol a function definition that is not a list, e.g., a
 keyboard macro (@pxref{Keyboard Macros}):
 
 @example
@@ -1099,7 +1099,7 @@ defalias}.
 
   As explained in @ref{Variable Scoping}, Emacs can optionally enable
 lexical binding of variables.  When lexical binding is enabled, any
-named function that you create (e.g.@: with @code{defun}), as well as
+named function that you create (e.g., with @code{defun}), as well as
 any anonymous function that you create using the @code{lambda} macro
 or the @code{function} special form or the @code{#'} syntax
 (@pxref{Anonymous Functions}), is automatically converted into a
@@ -1383,7 +1383,7 @@ If you prefix the filename in the @code{declare-function} statement with
 without error.
 
   There are some function definitions that @samp{check-declare} does not
-understand (e.g. @code{defstruct} and some other macros).  In such cases,
+understand (e.g., @code{defstruct} and some other macros).  In such cases,
 you can pass a non-@code{nil} @var{fileonly} argument to
 @code{declare-function}, meaning to only check that the file exists, not
 that it actually defines the function.  Note that to do this without
@@ -1397,7 +1397,7 @@ opposed to an unspecified one).
 @cindex safety of functions
 
 Some major modes, such as SES, call functions that are stored in user
-files.  (@inforef{Top, ,ses}, for more information on SES.)  User
+files.  (@inforef{Top, ,ses}, for more information on SES@.)  User
 files sometimes have poor pedigrees---you can get a spreadsheet from
 someone you've just met, or you can get one through email from someone
 you've never met.  So it is risky to call a function whose source code

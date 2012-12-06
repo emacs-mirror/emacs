@@ -115,7 +115,7 @@ its arguments (@pxref{Syntax Table Functions}).
 
   The first character in a syntax descriptor must be a syntax class
 designator character.  The second character, if present, specifies a
-matching character (e.g.@: in Lisp, the matching character for
+matching character (e.g., in Lisp, the matching character for
 @samp{(} is @samp{)}); a space specifies that there is no matching
 character.  Then come characters specifying additional syntax
 properties (@pxref{Syntax Flags}).
@@ -397,7 +397,7 @@ non-@code{nil}, the parent of the new syntax table is @var{table};
 otherwise, the parent is the standard syntax table.
 
 In the new syntax table, all characters are initially given the
-``inherit'' (@samp{@@}) syntax class, i.e.@: their syntax is inherited
+``inherit'' (@samp{@@}) syntax class, i.e., their syntax is inherited
 from the parent table (@pxref{Syntax Class Table}).
 @end defun
 
@@ -418,7 +418,7 @@ between @var{min} and @var{max}, inclusive.
 The syntax is changed only for @var{table}, which defaults to the
 current buffer's syntax table, and not in any other syntax table.
 
-The argument @var{syntax-descriptor} is a syntax descriptor, i.e.@: a
+The argument @var{syntax-descriptor} is a syntax descriptor, i.e., a
 string whose first character is a syntax class designator and whose
 second and subsequent characters optionally specify a matching
 character and syntax flags.  @xref{Syntax Descriptors}.  An error is
@@ -628,7 +628,7 @@ expression prefix syntax class, and characters with the @samp{p} flag.
 expressions.  We will refer to such expressions as @dfn{sexps},
 following the terminology of Lisp, even though these functions can act
 on languages other than Lisp.  Basically, a sexp is either a balanced
-parenthetical grouping, a string, or a ``symbol'' (i.e.@: a sequence
+parenthetical grouping, a string, or a ``symbol'' (i.e., a sequence
 of characters whose syntax is either word constituent or symbol
 constituent).  However, characters in the expression prefix syntax
 class (@pxref{Syntax Class Table}) are treated as part of the sexp if

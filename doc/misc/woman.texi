@@ -385,7 +385,7 @@ configuration file named (by default) @file{man.conf} (or something very
 similar), which seems to be the standard mechanism under GNU/Linux, then
 it parses that.  To be precise, ``something very similar'' means
 starting with @samp{man} and ending with @samp{.conf} and possibly more
-lowercase letters, e.g.@: @file{manual.configuration}.
+lowercase letters, e.g., @file{manual.configuration}.
 The search path and/or precise full path name for this file are set by
 the value of the customizable user option @code{woman-man.conf-path}.
 If all else fails, WoMan uses a plausible default man search path.
@@ -414,7 +414,7 @@ files that it can access, which can be very slow, especially if a
 network is involved.  For this reason, it caches various amounts of
 information, after which retrieving it from the cache is very fast.  If
 the cache ever gets out of synchronism with reality, running the
-@code{woman} command with a prefix argument (e.g.@: @kbd{C-u M-x woman})
+@code{woman} command with a prefix argument (e.g., @kbd{C-u M-x woman})
 will force it to rebuild its cache.  This is necessary only if the names
 or locations of any man files change; it is not necessary if only their
 contents change.  It would always be necessary if such a change occurred
@@ -485,7 +485,7 @@ You can also bind the variable @code{woman-use-topic-at-point} locally
 to a non-@code{nil} value (using @code{let}), in which case
 @code{woman} will can use the suggested topic without confirmation if
 possible.  This may be useful to provide special private key bindings,
-e.g.@: this key binding for @kbd{C-c w} runs WoMan on the topic at
+e.g., this key binding for @kbd{C-c w} runs WoMan on the topic at
 point without seeking confirmation:
 
 @lisp
@@ -511,7 +511,7 @@ The filename interface is accessed principally via the extended command
 all (provided WoMan is installed and loaded or set up to autoload).
 This command can be used to browse any accessible man file, regardless
 of its filename or location.  If the file is compressed then automatic
-file decompression must already be turned on (e.g.@: see the
+file decompression must already be turned on (e.g., see the
 @samp{Help->Options} submenu)---it is turned on automatically only by
 the @code{woman} topic interface.
 
@@ -554,7 +554,7 @@ primarily used internally by WoMan.
 
 Emacs provides an interface to detect automatically the format of a file
 and decode it when it is visited.  It is used primarily by the
-facilities for editing rich (i.e.@: formatted) text, as a way to store
+facilities for editing rich (i.e., formatted) text, as a way to store
 formatting information transparently as @acronym{ASCII} markup.  WoMan can in
 principle use this interface, but it must be configured explicitly.
 
@@ -686,7 +686,7 @@ described by @code{Man-see-also-regexp}.
 
 Man pages usually contain a ``SEE ALSO'' section containing references
 to other man pages.  If these man pages are installed then WoMan can
-easily be directed to follow the reference, i.e.@: to find and format the
+easily be directed to follow the reference, i.e., to find and format the
 man page.  When the mouse is passed over a correctly formatted reference
 it is highlighted, in which case clicking the middle button
 @kbd{Mouse-2} will cause WoMan to follow the reference.  Alternatively,
@@ -763,13 +763,13 @@ item had been used.
 @kindex q
 @findex Man-quit
 Bury the buffer containing the current man page (@code{Man-quit}),
-i.e.@: move it to the bottom of the buffer stack.
+i.e., move it to the bottom of the buffer stack.
 
 @item k
 @kindex k
 @findex Man-kill
 Kill the buffer containing the current man page (@code{Man-kill}),
-i.e.@: delete it completely so that it can be retrieved only by formatting
+i.e., delete it completely so that it can be retrieved only by formatting
 the page again.
 
 @item M-p
@@ -786,7 +786,7 @@ Find the next WoMan buffer (@code{WoMan-next-manpage}).
 @kindex R
 @findex woman-reformat-last-file
 Call WoMan to reformat the last man page formatted by WoMan
-(@code{woman-reformat-last-file}), e.g.@: after changing the fill column.
+(@code{woman-reformat-last-file}), e.g., after changing the fill column.
 @end table
 
 
@@ -862,7 +862,7 @@ All WoMan user options are customizable, and it is recommended to
 change them only via the standard Emacs customization facilities.
 WoMan defines a top-level customization group called @code{WoMan}
 under the parent group @code{Help}.  It can be accessed either via the
-standard Emacs facilities, e.g.@: via the @samp{Help->Customize}
+standard Emacs facilities, e.g., via the @samp{Help->Customize}
 submenu, or via the WoMan major mode menu.
 
 The top-level WoMan group contains only a few general options and three
@@ -874,7 +874,7 @@ customization should be possible via existing user options.
 @vtable @code
 @item woman-show-log
 A boolean value that defaults to @code{nil}.  If non-@code{nil} then show the
-@code{*WoMan-Log*} buffer if appropriate, i.e.@: if any warning messages
+@code{*WoMan-Log*} buffer if appropriate, i.e., if any warning messages
 are written to it.  @xref{Log, , The *WoMan-Log* Buffer}.
 
 @item woman-pre-format-hook
@@ -960,13 +960,13 @@ is
 @end lisp
 
 Any environment variables (names of which must have the Unix-style form
-@code{$NAME}, e.g.@: @code{$HOME}, @code{$EMACSDATA}, @code{$EMACS_DIR},
+@code{$NAME}, e.g., @code{$HOME}, @code{$EMACSDATA}, @code{$EMACS_DIR},
 regardless of platform) are evaluated first but each element must
 evaluate to a @emph{single} directory name.  Trailing @file{/}s are
 ignored.  (Specific directories in @code{woman-path} are also searched.)
 
 On Microsoft platforms I recommend including drive letters explicitly,
-e.g.
+e.g.:
 
 @lisp
 ("C:/Cygwin/usr/man" "C:/usr/man" "C:/usr/local/man")
@@ -1010,7 +1010,7 @@ and unreadable files are ignored.  The default value on MS-DOS is
 and on other platforms is @code{nil}.
 
 Any environment variables (names of which must have the Unix-style form
-@code{$NAME}, e.g.@: @code{$HOME}, @code{$EMACSDATA}, @code{$EMACS_DIR},
+@code{$NAME}, e.g., @code{$HOME}, @code{$EMACSDATA}, @code{$EMACS_DIR},
 regardless of platform) are evaluated first but each element must
 evaluate to a @emph{single} directory name (regexp, see above).  For
 example
@@ -1064,7 +1064,7 @@ suppresses this action.  The ``standard'' non-@code{nil} filename is
 
 @item woman-dired-keys
 A list of @code{dired} mode keys to be defined to run WoMan on the
-current file, e.g.@: @code{("w" "W")} or any non-@code{nil} atom to
+current file, e.g., @code{("w" "W")} or any non-@code{nil} atom to
 automatically define @kbd{w} and @kbd{W} if they are unbound, or
 @code{nil} to do nothing.  Default is @code{t}.
 
@@ -1229,7 +1229,7 @@ WoMan provides partial experimental support for special symbols,
 initially only for MS-Windows and only for MS-Windows fonts.  This
 includes both non-@acronym{ASCII} characters from the main text font and use
 of a separate symbol font.  Later, support will be added for other font
-types (e.g.@: @code{bdf} fonts) and for the X Window System.  In Emacs
+types (e.g., @code{bdf} fonts) and for the X Window System.  In Emacs
 20.7, the current support works partially under Windows 9x but may not
 work on any other platform.
 
@@ -1312,7 +1312,7 @@ is output.
 @cindex reporting bugs
 @cindex bugs, reporting
 
-If WoMan fails completely, or formats a file incorrectly (i.e.@:
+If WoMan fails completely, or formats a file incorrectly (i.e.,
 obviously wrongly or significantly differently from @code{man}) or
 inelegantly, then please
 

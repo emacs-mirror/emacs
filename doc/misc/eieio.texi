@@ -1921,7 +1921,7 @@ In @eieio{} tags are in lower case, not mixed case.
 @node Wish List
 @chapter Wish List
 
-@eieio{} is an incomplete implementation of CLOS.  Finding ways to
+@eieio{} is an incomplete implementation of CLOS@.  Finding ways to
 improve the compatibility would help make CLOS style programs run
 better in Emacs.
 

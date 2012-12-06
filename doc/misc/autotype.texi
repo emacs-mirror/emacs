@@ -130,7 +130,7 @@ recognize this situation by a prompt ending in @key{RET}, @kbd{C-g}
 or @kbd{C-h}.  This
 means that entering an empty string will simply assume that you are finished.
 Typing quit on the other hand terminates the loop but also the rest of the
-skeleton, e.g. an ``else'' clause is skipped.  Only a syntactically necessary
+skeleton, e.g., an ``else'' clause is skipped.  Only a syntactically necessary
 termination still gets inserted.
 
 
@@ -147,8 +147,8 @@ reindent the wrapped code for you.
 
   Skeleton commands take an optional numeric prefix argument
 (@pxref{(emacs)Arguments}).  This is interpreted in two different ways depending
-on whether the prefix is positive, i.e. forwards oriented or negative,
-i.e. backwards oriented.
+on whether the prefix is positive, i.e., forwards oriented, or negative,
+i.e., backwards oriented.
 
   A positive prefix means to wrap the skeleton around that many
 following words.  This is accomplished by putting the words there where
@@ -178,7 +178,7 @@ ignored.
 
   If, on the other hand, you marked in alphabetical order the points [] A C B,
 and call a skeleton command with @kbd{M-- 3}, you will wrap the text from
-point to A, then the text from A to C and finally the text from C to B.  This
+point to A, then the text from A to C and finally the text from C to B@.  This
 is done because the regions overlap and Emacs would be helplessly lost if it
 tried to follow the order in which you marked these points.
 
@@ -241,10 +241,10 @@ put at these places.  Point is left at first @code{_} where nothing is wrapped.
 Indent line according to major mode.  When following element is @code{_}, and
 there is a interregion that will be wrapped here, indent that interregion.
 @item @code{&}
-Logical and.  Iff preceding element moved point, i.e. usually inserted
+Logical and.  Iff preceding element moved point, i.e., usually inserted
 something, do following element.
 @item @code{|}
-Logical xor.  Iff preceding element didn't move point, i.e. usually inserted
+Logical xor.  Iff preceding element didn't move point, i.e., usually inserted
 nothing, do following element.
 @item @code{-@var{number}}
 Delete preceding number characters.  Depends on value of
@@ -376,7 +376,7 @@ be inserted.
 can simply insert some text, indeed, it can be skeleton command (@pxref{Using
 Skeletons}).  It can be a lambda function which will for example conditionally
 call another function.  Or it can even reset the mode for the buffer. If you
-want to perform several such actions in order, you use a vector, i.e. several
+want to perform several such actions in order, you use a vector, i.e., several
 of the above elements between square brackets (@samp{[@r{@dots{}}]}).
 
   By default C and C++ headers insert a definition of a symbol derived from
@@ -402,12 +402,12 @@ define-auto-insert}.
 
 @vindex auto-insert
   The variable @code{auto-insert} says what to do when @code{auto-insert} is
-called non-interactively, e.g. when a newly found file is empty (see above):
+called non-interactively, e.g., when a newly found file is empty (see above):
 @table @asis
 @item @code{nil}
 Do nothing.
 @item @code{t}
-Insert something if possible, i.e. there is a matching entry in
+Insert something if possible, i.e., there is a matching entry in
 @code{auto-insert-alist}.
 @item other
 Insert something if possible, but mark as unmodified.
@@ -446,7 +446,7 @@ buffer has a comment syntax (@pxref{(emacs)Comments}), this is inserted as a com
   @kbd{M-x copyright-update} looks for a copyright notice in the first
 @code{copyright-limit} characters of the buffer and updates it when necessary.
 The current year (variable @code{copyright-current-year}) is added to the
-existing ones, in the same format as the preceding year, i.e. 1994, '94 or 94.
+existing ones, in the same format as the preceding year, i.e., 1994, '94 or 94.
 If a dash-separated year list up to last year is found, that is extended to
 current year, else the year is added separated by a comma.  Or it replaces
 them when this is called with a prefix argument.  If a header referring to a
@@ -492,7 +492,7 @@ intended for resource files, which are only meant to be read in.
 
 @vindex executable-insert
   The variable @code{executable-insert} says what to do when
-@code{executable-set-magic} is called non-interactively, e.g. when file has no
+@code{executable-set-magic} is called non-interactively, e.g., when file has no
 or the wrong magic number:
 @table @asis
 @item @code{nil}

@@ -542,10 +542,10 @@ the function @code{char-table-subtype}, described below.
 @item
 The subtype controls the number of @dfn{extra slots} in the
 char-table.  This number is specified by the subtype's
-@code{char-table-extra-slots} symbol property, which should be an
-integer between 0 and 10.  If the subtype has no such symbol property,
-the char-table has no extra slots.  @xref{Property Lists}, for
-information about symbol properties.
+@code{char-table-extra-slots} symbol property (@pxref{Symbol
+Properties}), whose value should be an integer between 0 and 10.  If
+the subtype has no such symbol property, the char-table has no extra
+slots.
 @end itemize
 
 @cindex parent of char-table

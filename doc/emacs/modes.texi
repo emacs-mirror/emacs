@@ -69,7 +69,7 @@ command to select that mode (e.g., @kbd{M-x lisp-mode} enters Lisp mode).
 
 @vindex major-mode
   The value of the buffer-local variable @code{major-mode} is a symbol
-with the same name as the major mode command (e.g. @code{lisp-mode}).
+with the same name as the major mode command (e.g., @code{lisp-mode}).
 This variable is set automatically; you should not change it yourself.
 
   The default value of @code{major-mode} determines the major mode to
@@ -110,7 +110,7 @@ list of its key bindings, type @code{C-h m} (@code{describe-mode}).
   Every major mode, apart from Fundamental mode, defines a @dfn{mode
 hook}, a customizable list of Lisp functions to run each time the mode
 is enabled in a buffer.  @xref{Hooks}, for more information about
-hooks.  Each mode hook is named after its major mode, e.g. Fortran
+hooks.  Each mode hook is named after its major mode, e.g., Fortran
 mode has @code{fortran-mode-hook}.  Furthermore, all text-based major
 modes run @code{text-mode-hook}, and all programming language modes
 run @code{prog-mode-hook}, prior to running their own mode hooks.

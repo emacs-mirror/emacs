@@ -4826,8 +4826,8 @@ first line or header line, and for breadcrumb links.")
       ;; Hide empty lines at the end of the node.
       (goto-char (point-max))
       (skip-chars-backward "\n")
-      (when (< (1+ (point)) (point-max))
-	(put-text-property (1+ (point)) (point-max) 'invisible t))
+      (when (< (point) (1- (point-max)))
+	(put-text-property (point) (1- (point-max)) 'invisible t))
 
       (set-buffer-modified-p nil))))
 

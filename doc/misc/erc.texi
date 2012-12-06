@@ -60,7 +60,7 @@ and modified without restriction.
 * Keystroke Summary::           Keystrokes used in ERC buffers.
 * Modules::                     Available modules for ERC.
 * Advanced Usage::              Cool ways of using ERC.
-* Getting Help and Reporting Bugs::  
+* Getting Help and Reporting Bugs::
 * History::                     The history of ERC.
 * Copying::                     The GNU General Public License gives you
                                   permission to redistribute ERC on
@@ -246,7 +246,7 @@ translation effort.
 
 @item user scripting
 
-Users can load scripts (e.g. auto greeting scripts) when ERC starts up.
+Users can load scripts (e.g., auto greeting scripts) when ERC starts up.
 
 It is also possible to make custom IRC commands, if you know a little
 Emacs Lisp.  Just make an Emacs Lisp function and call it
@@ -503,7 +503,7 @@ If you want to assign this function to a keystroke, the following will
 help you figure out its parameters.
 
 @defun erc
-Select connection parameters and run ERC.
+Select connection parameters and run ERC@.
 Non-interactively, it takes the following keyword arguments.
 
 @itemize @bullet
@@ -655,7 +655,7 @@ This can be either a string or a function to call.
 @section Sample Configuration
 @cindex configuration, sample
 
-Here is an example of configuration settings for ERC.  This can go into
+Here is an example of configuration settings for ERC@.  This can go into
 your Emacs configuration file.  Everything after the @code{(require
 'erc)} command can optionally go into @file{~/.emacs.d/.ercrc.el}.
 
@@ -706,7 +706,7 @@ stuff, to the current ERC buffer."
                            (erc :server "localhost" :port "6667"
                                 :nick "MYNICK")))
 
-;; Make C-c RET (or C-c C-RET) send messages instead of RET. This has
+;; Make C-c RET (or C-c C-RET) send messages instead of RET.  This has
 ;; been commented out to avoid confusing new users.
 ;; (define-key erc-mode-map (kbd "RET") nil)
 ;; (define-key erc-mode-map (kbd "C-c RET") 'erc-send-current-line)
@@ -742,7 +742,7 @@ check out all the available options for ERC is to do
 @kbd{M-x customize-group erc RET}.
 
 @defopt erc-hide-list
-If non, @code{nil}, this is a list of IRC message types to hide, e.g.
+If non, @code{nil}, this is a list of IRC message types to hide, e.g.:
 
 @example
 (setq erc-hide-list '("JOIN" "PART" "QUIT"))
@@ -768,7 +768,7 @@ or if you have bugs to report, there are several places you can go.
 
 @item
 @uref{http://www.emacswiki.org/cgi-bin/wiki/ERC} is the
-emacswiki.org page for ERC.  Anyone may add tips, hints, etc. to it.
+emacswiki.org page for ERC@.  Anyone may add tips, hints, etc. to it.
 
 @item
 You can ask questions about using ERC on the Emacs mailing list,

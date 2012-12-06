@@ -24,7 +24,7 @@ conditions, that means it has none.
 condition @code{error}, because quitting is not considered an error.
 
 @c You can grep for "(put 'foo 'error-conditions ...) to find
-@c examples defined in Lisp.  Eg soap-client.el, sasl.el.
+@c examples defined in Lisp.  E.g., soap-client.el, sasl.el.
   Most of these error symbols are defined in C (mainly @file{data.c}),
 but some are defined in Lisp.  For example, the file @file{userlock.el}
 defines the @code{file-locked} and @code{file-supersession} errors.
@@ -91,7 +91,7 @@ The message is @samp{End of buffer}.  @xref{Character Motion}.
 @item end-of-file
 The message is @samp{End of file during parsing}.  Note that this is
 not a subcategory of @code{file-error}, because it pertains to the
-Lisp reader, not to file I/O.  @xref{Input Functions}.
+Lisp reader, not to file I/O@.  @xref{Input Functions}.
 
 @item file-already-exists
 This is a subcategory of @code{file-error}.  @xref{Writing to Files}.

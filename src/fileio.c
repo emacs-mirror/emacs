@@ -455,7 +455,7 @@ get a current directory to run processes in.  */)
 
 /* Convert from file name SRC of length SRCLEN to directory name
    in DST.  On UNIX, just make sure there is a terminating /.
-   Return the length of DST.  */
+   Return the length of DST in bytes.  */
 
 static ptrdiff_t
 file_name_as_directory (char *dst, const char *src, ptrdiff_t srclen)
@@ -477,7 +477,14 @@ file_name_as_directory (char *dst, const char *src, ptrdiff_t srclen)
       srclen++;
     }
 #ifdef DOS_NT
-  dostounix_filename (dst);
+  {
+    Lisp_Object tem_fn = make_specified_string (dst, -1, srclen, 1);
+
+    tem_fn = ENCODE_FILE (tem_fn);
+    dostounix_filename (SSDATA (tem_fn));
+    tem_fn = DECODE_FILE (tem_fn);
+    memcpy (dst, SSDATA (tem_fn), (srclen = SBYTES (tem_fn)) + 1);
+  }
 #endif
   return srclen;
 }
@@ -519,7 +526,7 @@ For a Unix-syntax file name, just appends a slash.  */)
 
 /* Convert from directory name SRC of length SRCLEN to
    file name in DST.  On UNIX, just make sure there isn't
-   a terminating /.  Return the length of DST.  */
+   a terminating /.  Return the length of DST in bytes.  */
 
 static ptrdiff_t
 directory_file_name (char *dst, char *src, ptrdiff_t srclen)
@@ -538,7 +545,14 @@ directory_file_name (char *dst, char *src, ptrdiff_t srclen)
       srclen--;
     }
 #ifdef DOS_NT
-  dostounix_filename (dst);
+  {
+    Lisp_Object tem_fn = make_specified_string (dst, -1, srclen, 1);
+
+    tem_fn = ENCODE_FILE (tem_fn);
+    dostounix_filename (SSDATA (tem_fn));
+    tem_fn = DECODE_FILE (tem_fn);
+    memcpy (dst, SSDATA (tem_fn), (srclen = SBYTES (tem_fn)) + 1);
+  }
 #endif
   return srclen;
 }
@@ -5779,7 +5793,7 @@ This applies only to the operation `inhibit-file-name-operation'.  */);
   DEFVAR_LISP ("auto-save-list-file-name", Vauto_save_list_file_name,
 	       doc: /* File name in which we write a list of all auto save file names.
 This variable is initialized automatically from `auto-save-list-file-prefix'
-shortly after Emacs reads your `.emacs' file, if you have not yet given it
+shortly after Emacs reads your init file, if you have not yet given it
 a non-nil value.  */);
   Vauto_save_list_file_name = Qnil;
 

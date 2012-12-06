@@ -120,7 +120,7 @@ sent.  Supercite is re-initialized in each new reply buffer.
 @cindex attribute, attributing
 
 Typical usage is as follows. You want to reply or followup to a message
-in your MUA. You will probably hit @kbd{r} (i.e., ``reply'') or @kbd{f}
+in your MUA@. You will probably hit @kbd{r} (i.e., ``reply'') or @kbd{f}
 (i.e., ``forward'') to begin composing the reply.  In response, the MUA
 will create a reply buffer and initialize the outgoing mail headers
 appropriately.  The body of the reply will usually be empty at this
@@ -165,7 +165,7 @@ reply or forward command.  This command will actually perform citations
 by calling a hook variable to which Supercite's top-level function
 @code{sc-cite-original} has been added.  When @code{sc-cite-original} is
 executed, the original message must be set up in a very specific way,
-but this is handled automatically by the MUA.  @xref{Hints to MUA
+but this is handled automatically by the MUA@.  @xref{Hints to MUA
 Authors}.@refill
 
 @cindex info alist
@@ -202,7 +202,7 @@ When the original message is cited by @code{sc-cite-original}, it will
 cited text and want to re-fill it, you must use an add-on package such
 as @cite{filladapt} or @cite{gin-mode}.  These packages can recognize
 Supercited text and will fill them appropriately.  Emacs's built-in
-filling routines, e.g@. @code{fill-paragraph}, do not recognize cited
+filling routines, e.g., @code{fill-paragraph}, do not recognize cited
 text and will not re-fill them properly because it cannot guess the
 @code{fill-prefix} being used.
 @xref{Post-yank Formatting Commands}, for details.@refill
@@ -213,7 +213,7 @@ beautifications on the cited original text, maintaining consistent and
 informative citations throughout.  Supercite tries to be as configurable
 as possible to allow for a wide range of personalized citation styles,
 but it is also immediately useful with the default configuration, once
-it has been properly connected to your MUA.  @xref{Getting Connected},
+it has been properly connected to your MUA@.  @xref{Getting Connected},
 for more details.@refill
 
 @node  Citations
@@ -388,7 +388,7 @@ change @code{sc-citation-root-regexp} you should always also change
 
 @dfn{Mail header information keys} are nuggets of information that
 Supercite extracts from the various mail headers of the original
-message, placed in the reply buffer by the MUA.  Information is kept in
+message, placed in the reply buffer by the MUA@.  Information is kept in
 the @dfn{Info Alist} as key-value pairs, and can be retrieved for use in
 various places within Supercite, such as in header rewrite functions and
 attribution selection.  Other bits of data, composed and created by
@@ -532,7 +532,7 @@ beginning at zero.
 @cindex header rewrite functions, built-in
 
 Below are examples of the various built-in header rewrite functions.
-Please note the following:@: first, the text which appears in the
+Please note the following: first, the text which appears in the
 examples below as @var{infokey} indicates that the corresponding value
 of the info key from the info alist will be inserted there.
 (@pxref{Information Keys and the Info Alist}).  For example, in @code{sc-header-on-said}
@@ -1132,8 +1132,8 @@ Each element in this list contains lists of the following form:
 
 @example
 @group
-(@var{infokey} ((@var{regexp} @. @var{attribution})
-         (@var{regexp} @. @var{attribution})
+(@var{infokey} ((@var{regexp} . @var{attribution})
+         (@var{regexp} . @var{attribution})
          (@dots{})))
 @end group
 @end example
@@ -1240,7 +1240,7 @@ post-selection hook, the local variables @code{attribution} and
 variables in your hook functions, you change the attribution and
 citation strings used by Supercite.  One possible use of this would be
 to override any automatically derived attribution string when it is only
-one character long; e.g. you prefer to use @code{"initials"} but the
+one character long; e.g., you prefer to use @code{"initials"} but the
 author only has one name.@refill
 
 @node  Author Names
@@ -1284,7 +1284,7 @@ is used for this purpose. As implied by its name, this variable is an
 association list, where each element is a cons cell of the form:
 
 @example
-(@var{regexp} @. @var{position})
+(@var{regexp} . @var{position})
 @end example
 
 @noindent
@@ -1295,7 +1295,7 @@ Thus to strip out all titles of ``Dr.'', ``Mr.'', etc. from the name,
 @code{sc-name-filter-alist} would have an entry such as:
 
 @example
-("^\\(Mr\\|Mrs\\|Ms\\|Dr\\)[.]?$" @. 0)
+("^\\(Mr\\|Mrs\\|Ms\\|Dr\\)[.]?$" . 0)
 @end example
 
 @noindent
@@ -1486,8 +1486,8 @@ consulted to find the frame to use (@code{sc-cite-frame-alist},
 respectively).  These frames can contain alists of the form:
 
 @example
-((@var{infokey} (@var{regexp} @. @var{frame}) (@var{regexp} @. @var{frame}) @dots{})
- (@var{infokey} (@var{regexp} @. @var{frame}) (@var{regexp} @. @var{frame}) @dots{})
+((@var{infokey} (@var{regexp} . @var{frame}) (@var{regexp} . @var{frame}) @dots{})
+ (@var{infokey} (@var{regexp} . @var{frame}) (@var{regexp} . @var{frame}) @dots{})
  (@dots{}))
 @end example
 
@@ -1819,7 +1819,7 @@ steps:
 @item
 Insert the original message, including the mail headers into the reply
 buffer. At this point you should not modify the raw text in any way
-(except for any necessary decoding, e.g. of quoted-printable text), and
+(except for any necessary decoding, e.g., of quoted-printable text), and
 you should place all the original headers into the body of the reply.
 This means that many of the mail headers will be duplicated, one copy
 above the @code{mail-header-separator} line and one copy below, however

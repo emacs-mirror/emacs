@@ -34,7 +34,7 @@ our web site, @uref{http://www.gnu.org}.  For software tasks and other
 ways to contribute, see @uref{http://www.gnu.org/help}.
 @end quotation
 
-@unnumberedsec What's GNU?  Gnu's Not Unix!
+@unnumberedsec What's GNU@?  Gnu's Not Unix!
 
 GNU, which stands for Gnu's Not Unix, is the name for the complete
 Unix-compatible software system which I am writing so that I can give it
@@ -151,7 +151,7 @@ systems, approved for use in a residential area, and not in need of
 sophisticated cooling or power.
 
 I have found very many programmers eager to contribute part-time work for
-GNU.  For most projects, such part-time distributed work would be very hard
+GNU@.  For most projects, such part-time distributed work would be very hard
 to coordinate; the independently-written parts would not work together.
 But for the particular task of replacing Unix, this problem is absent.  A
 complete Unix system contains hundreds of utility programs, each of which
@@ -262,7 +262,7 @@ and you must charge for the program to support that.''
 @end quotation
 
 There are various forms of free or very cheap publicity that can be used to
-inform numbers of computer users about something like GNU.  But it may be
+inform numbers of computer users about something like GNU@.  But it may be
 true that one can reach more microcomputer users with advertising.  If this
 is really so, a business which advertises the service of copying and
 mailing GNU for a fee ought to be successful enough to pay for its
@@ -271,7 +271,7 @@ advertising pay for it.
 
 On the other hand, if many people get GNU from their friends, and such
 companies don't succeed, this will show that advertising was not really
-necessary to spread GNU.  Why is it that free market advocates don't
+necessary to spread GNU@.  Why is it that free market advocates don't
 want to let the free market decide this?@footnote{The Free Software
 Foundation raises most of its funds from a distribution service,
 although it is a charity rather than a company.  If @emph{no one}

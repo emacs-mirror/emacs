@@ -53,7 +53,7 @@ commands.  The three most commonly-used Gnus buffers are the
 @dfn{group buffer}, the @dfn{summary buffer} and the @dfn{article
 buffer}.
 
-  The @dfn{group buffer} contains a list of article sources (e.g.@:
+  The @dfn{group buffer} contains a list of article sources (e.g.,
 newsgroups and email inboxes), which are collectively referred to as
 @dfn{groups}.  This is the first buffer Gnus displays when it starts
 up.  It normally displays only the groups to which you subscribe and
@@ -166,7 +166,7 @@ List zombie groups.
 @cindex unsubscribe groups
 @item u
 Toggle the subscription status of the group on the current line
-(i.e.@: turn a subscribed group into an unsubscribed group, or vice
+(i.e., turn a subscribed group into an unsubscribed group, or vice
 versa).  Invoking this on a killed or zombie group turns it into an
 unsubscribed group.
 
@@ -518,7 +518,7 @@ output is long).
 type @kbd{M-! gunzip foo.gz @key{RET}}.  That shell command normally
 creates the file @file{foo} and produces no terminal output.
 
-  A numeric argument to @code{shell-command}, e.g.@: @kbd{M-1 M-!},
+  A numeric argument to @code{shell-command}, e.g., @kbd{M-1 M-!},
 causes it to insert terminal output into the current buffer instead of
 a separate buffer.  It puts point before the output, and sets the mark
 after the output.  For instance, @kbd{M-1 M-! gunzip < foo.gz
@@ -599,7 +599,7 @@ the buffer and type the input, terminated by @key{RET}.
   While the subshell is waiting or running a command, you can switch
 windows or buffers and perform other editing in Emacs.  Emacs inserts
 the output from the subshell into the Shell buffer whenever it has
-time to process it (e.g.@: while waiting for keyboard input).
+time to process it (e.g., while waiting for keyboard input).
 
 @cindex @code{comint-highlight-input} face
 @cindex @code{comint-highlight-prompt} face
@@ -610,7 +610,7 @@ easier to distinguish input lines from the shell output.
 @xref{Faces}.
 
   To make multiple subshells, invoke @kbd{M-x shell} with a prefix
-argument (e.g. @kbd{C-u M-x shell}).  Then the command will read a
+argument (e.g., @kbd{C-u M-x shell}).  Then the command will read a
 buffer name, and create (or reuse) a subshell in that buffer.  You can
 also rename the @file{*shell*} buffer using @kbd{M-x rename-uniquely},
 then create a new @file{*shell*} buffer using plain @kbd{M-x shell}.
@@ -645,7 +645,7 @@ Coding}.
 @cindex @env{EMACS} environment variable
   Emacs sets the environment variable @env{INSIDE_EMACS} in the
 subshell to @samp{@var{version},comint}, where @var{version} is the
-Emacs version (e.g.@: @samp{24.1}).  Programs can check this variable
+Emacs version (e.g., @samp{24.1}).  Programs can check this variable
 to determine whether they are running inside an Emacs subshell.  (It
 also sets the @env{EMACS} environment variable to @code{t}, if that
 environment variable is not already defined.  However, this
@@ -1307,7 +1307,7 @@ mode-line.  Type @key{SPC} to display the next screenful of output, or
 @cindex Rlogin
 
   You can login to a remote computer, using whatever commands you
-would from a regular terminal (e.g.@: using the @code{telnet} or
+would from a regular terminal (e.g., using the @code{telnet} or
 @code{rlogin} commands), from a Term window.
 
   A program that asks you for a password will normally suppress
@@ -1531,7 +1531,7 @@ precedence.
 Create a new graphical @dfn{client frame}, instead of using an
 existing Emacs frame.  See below for the special behavior of @kbd{C-x
 C-c} in a client frame.  If Emacs cannot create a new graphical frame
-(e.g.@: if it cannot connect to the X server), it tries to create a
+(e.g., if it cannot connect to the X server), it tries to create a
 text terminal client frame, as though you had supplied the @samp{-t}
 option instead.
 
@@ -1630,7 +1630,7 @@ frame.  If you type @kbd{C-x C-c} (@code{save-buffers-kill-terminal})
 in a client frame, that command does not kill the Emacs session as it
 normally does (@pxref{Exiting}).  Instead, Emacs deletes the client
 frame; furthermore, if the client frame has an @command{emacsclient}
-waiting to regain control (i.e.@: if you did not supply the @samp{-n}
+waiting to regain control (i.e., if you did not supply the @samp{-n}
 option), Emacs deletes all other frames of the same client, and marks
 the client's server buffers as finished, as though you had typed
 @kbd{C-x #} in all of them.  If it so happens that there are no
@@ -1689,7 +1689,7 @@ for printing by calling the @command{lpr} program.  To change the
 printer program, customize the variable @code{lpr-command}.  To
 specify extra switches to give the printer program, customize the list
 variable @code{lpr-switches}.  Its value should be a list of option
-strings, each of which should start with @samp{-} (e.g.@: the option
+strings, each of which should start with @samp{-} (e.g., the option
 string @code{"-w80"} specifies a line width of 80 columns).  The
 default is the empty list, @code{nil}.
 
@@ -2404,7 +2404,7 @@ done by calling @code{browse-url} as a subroutine
 
   It can be useful to add @code{goto-address-mode} to mode hooks and
 hooks for displaying an incoming message
-(e.g.@: @code{rmail-show-message-hook} for Rmail, and
+(e.g., @code{rmail-show-message-hook} for Rmail, and
 @code{mh-show-mode-hook} for MH-E).  This is not needed for Gnus,
 which has a similar feature of its own.
 
@@ -2487,7 +2487,7 @@ find the one you select (@code{ffap-menu}).
 
 @findex animate-birthday-present
 @cindex animate
-  The @code{animate} package makes text dance (e.g.  @kbd{M-x
+  The @code{animate} package makes text dance (e.g., @kbd{M-x
 animate-birthday-present}).
 
 @findex blackbox

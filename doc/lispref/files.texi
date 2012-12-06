@@ -241,9 +241,9 @@ used, and in many cases only some of the functions are called.
 @defvar find-file-literally
 This buffer-local variable, if set to a non-@code{nil} value, makes
 @code{save-buffer} behave as if the buffer were visiting its file
-literally, i.e. without conversions of any kind.  The command
+literally, i.e., without conversions of any kind.  The command
 @code{find-file-literally} sets this variable's local value, but other
-equivalent functions and commands can do that as well, e.g.@: to avoid
+equivalent functions and commands can do that as well, e.g., to avoid
 automatic addition of a newline at the end of the file.  This variable
 is permanent local, so it is unaffected by changes of major modes.
 @end defvar
@@ -1390,7 +1390,7 @@ predicate function for testing whether a candidate file is suitable.
 The predicate is passed the candidate file name as its single
 argument.  If @var{predicate} is @code{nil} or omitted,
 @code{locate-file} uses @code{file-readable-p} as the predicate.
-@xref{Kinds of Files}, for other useful predicates, e.g.@:
+@xref{Kinds of Files}, for other useful predicates, e.g.,
 @code{file-executable-p} and @code{file-directory-p}.
 
 For compatibility, @var{predicate} can also be one of the symbols
@@ -1660,7 +1660,7 @@ This function converts a symbolic file mode specification in
 @var{modes} into the equivalent integer value.  If the symbolic
 specification is based on an existing file, that file's mode bits are
 taken from the optional argument @var{base-modes}; if that argument is
-omitted or @code{nil}, it defaults to 0, i.e.@: no access rights at
+omitted or @code{nil}, it defaults to 0, i.e., no access rights at
 all.
 @end defun
 

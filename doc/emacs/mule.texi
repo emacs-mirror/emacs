@@ -994,7 +994,7 @@ decoding.  (You can still use an unsuitable coding system if you enter
 its name at the prompt.)
 
 @c It seems that select-message-coding-system does this.
-@c Both sendmail.el and smptmail.el call it; i.e. smtpmail.el still
+@c Both sendmail.el and smptmail.el call it; i.e., smtpmail.el still
 @c obeys sendmail-coding-system.
 @vindex sendmail-coding-system
   When you send a mail message (@pxref{Sending Mail}),
@@ -1039,7 +1039,7 @@ decoding it using coding system @var{right} instead.
 @findex set-buffer-file-coding-system
   The command @kbd{C-x @key{RET} f}
 (@code{set-buffer-file-coding-system}) sets the file coding system for
-the current buffer (i.e.@: the coding system to use when saving or
+the current buffer (i.e., the coding system to use when saving or
 reverting the file).  You specify which coding system using the
 minibuffer.  You can also invoke this command by clicking with
 @kbd{Mouse-3} on the coding system indicator in the mode line
@@ -1323,7 +1323,7 @@ scripts.@footnote{If you run Emacs on X, you may need to inform the X
 server about the location of the newly installed fonts with commands
 such as:
 @c FIXME?  I feel like this may be out of date.
-@c Eg the intlfonts tarfile is ~ 10 years old.
+@c E.g., the intlfonts tarfile is ~ 10 years old.
 
 @example
  xset fp+ /usr/local/share/emacs/fonts
@@ -1569,7 +1569,7 @@ no font appear as a hollow box.
 
   If you use Latin-1 characters but your terminal can't display
 Latin-1, you can arrange to display mnemonic @acronym{ASCII} sequences
-instead, e.g.@: @samp{"o} for o-umlaut.  Load the library
+instead, e.g., @samp{"o} for o-umlaut.  Load the library
 @file{iso-ascii} to do this.
 
 @vindex latin1-display
@@ -1591,7 +1591,7 @@ the range 0240 to 0377 octal (160 to 255 decimal) to handle the
 accented letters and punctuation needed by various European languages
 (and some non-European ones).  Note that Emacs considers bytes with
 codes in this range as raw bytes, not as characters, even in a unibyte
-buffer, i.e.@: if you disable multibyte characters.  However, Emacs
+buffer, i.e., if you disable multibyte characters.  However, Emacs
 can still handle these character codes as if they belonged to
 @emph{one} of the single-byte character sets at a time.  To specify
 @emph{which} of these codes to use, invoke @kbd{M-x
@@ -1767,7 +1767,7 @@ directionality when they are displayed.  The default value is
   Each paragraph of bidirectional text can have its own @dfn{base
 direction}, either right-to-left or left-to-right.  (Paragraph
 @c paragraph-separate etc have no influence on this?
-boundaries are empty lines, i.e.@: lines consisting entirely of
+boundaries are empty lines, i.e., lines consisting entirely of
 whitespace characters.)  Text in left-to-right paragraphs begins on
 the screen at the left margin of the window and is truncated or
 continued when it reaches the right margin.  By contrast, text in
