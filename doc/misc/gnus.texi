@@ -1580,6 +1580,10 @@ times you start Gnus.
 @vindex gnus-before-startup-hook
 A hook called as the first thing when Gnus is started.
 
+@item gnus-before-resume-hook
+@vindex gnus-before-resume-hook
+A hook called as the first thing when Gnus is resumed after a suspend.
+
 @item gnus-startup-hook
 @vindex gnus-startup-hook
 A hook run as the very last thing after starting up Gnus
