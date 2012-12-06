@@ -1,3 +1,7 @@
+2012-12-06  Fabrice Niessen  <fniessen@pirilampo.org>
+
+	* themes/leuven-theme.el: New theme.
+
 2012-12-04  Michael Albinus  <michael.albinus@gmx.de>
 
 	* NEWS: Mention new Tramp method "adb".
