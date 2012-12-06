@@ -4707,7 +4707,7 @@ If prefix argument REVERSE is non-nil, sorts in reverse order.
 
 ;;;### (autoloads (rmail-summary-by-senders rmail-summary-by-topic
 ;;;;;;  rmail-summary-by-regexp rmail-summary-by-recipients rmail-summary-by-labels
-;;;;;;  rmail-summary) "rmailsum" "rmailsum.el" "6cafe6b03e187b5836e3c359322b5cbf")
+;;;;;;  rmail-summary) "rmailsum" "rmailsum.el" "856fc6e337d5398b302c448ee7a2315e")
 ;;; Generated autoloads from rmailsum.el
 
 (autoload 'rmail-summary "rmailsum" "\
