@@ -198,6 +198,12 @@ extern Lisp_Object QCspeed;
 extern Lisp_Object QCbytesize, QCstopbits, QCparity, Qodd, Qeven;
 extern Lisp_Object QCflowcontrol, Qhw, Qsw, QCsummary;
 
+/* Defined in callproc.c.  */
+
+extern void record_kill_process (struct Lisp_Process *);
+
+/* Defined in process.c.  */
+
 extern Lisp_Object list_system_processes (void);
 extern Lisp_Object system_process_attributes (Lisp_Object);
 

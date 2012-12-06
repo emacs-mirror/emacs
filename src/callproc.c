@@ -105,6 +105,25 @@ unblock_child_signal (void)
 #endif
 }
 
+/* If P is reapable, record it as a deleted process and kill it.
+   Do this in a critical section.  Unless PID is wedged it will be
+   reaped on receipt of the first SIGCHLD after the critical section.  */
+
+void
+record_kill_process (struct Lisp_Process *p)
+{
+  block_child_signal ();
+
+  if (p->alive)
+    {
+      p->alive = 0;
+      record_deleted_pid (p->pid);
+      EMACS_KILLPG (p->pid, SIGKILL);
+    }
+
+  unblock_child_signal ();
+}
+
 /* Clean up when exiting call_process_cleanup.  */
 
 static Lisp_Object
@@ -113,15 +132,12 @@ call_process_kill (Lisp_Object ignored)
   if (0 <= synch_process_fd)
     emacs_close (synch_process_fd);
 
-  /* If PID is reapable, kill it and record it as a deleted process.
-     Do this in a critical section.  Unless PID is wedged it will be
-     reaped on receipt of the first SIGCHLD after the critical section.  */
   if (synch_process_pid)
     {
-      block_child_signal ();
-      record_deleted_pid (synch_process_pid);
-      EMACS_KILLPG (synch_process_pid, SIGKILL);
-      unblock_child_signal ();
+      struct Lisp_Process proc;
+      proc.alive = 1;
+      proc.pid = synch_process_pid;
+      record_kill_process (&proc);
     }
 
   return Qnil;

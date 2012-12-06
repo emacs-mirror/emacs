@@ -1,3 +1,13 @@
+2012-12-06  Paul Eggert  <eggert@cs.ucla.edu>
+
+	Fix a recently-introduced delete-process race condition.
+	* callproc.c, process.h (record_kill_process):
+	New function, containing part of the old call_process_kill.
+	(call_process_kill): Use it.
+	This does not change call_process_kill's behavior.
+	* process.c (Fdelete_process): Use record_kill_process to fix a
+	race condition that could cause Emacs to lose track of a child.
+
 2012-12-06  Dmitry Antipov  <dmantipov@yandex.ru>
 
 	Avoid code duplication between prev_frame and next_frame.

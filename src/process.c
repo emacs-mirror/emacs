@@ -813,30 +813,22 @@ nil, indicating the current buffer's process.  */)
       status_notify (p);
       redisplay_preserve_echo_area (13);
     }
-  else if (p->infd >= 0)
+  else
     {
-#ifdef SIGCHLD
-      Lisp_Object symbol;
-      pid_t pid = p->pid;
+      if (p->alive)
+	record_kill_process (p);
 
-      /* No problem storing the pid here, as it is still in Vprocess_alist.  */
-      record_deleted_pid (pid);
-      /* If the process has already signaled, remove it from the list.  */
-      if (p->raw_status_new)
-	update_status (p);
-      symbol = p->status;
-      if (CONSP (p->status))
-	symbol = XCAR (p->status);
-      if (EQ (symbol, Qsignal) || EQ (symbol, Qexit))
-	deleted_pid_list
-	  = Fdelete (make_fixnum_or_float (pid), deleted_pid_list);
-      else
-#endif
+      if (p->infd >= 0)
 	{
-	  Fkill_process (process, Qnil);
-	  /* Do this now, since remove_process will make the
-	     SIGCHLD handler do nothing.  */
-	  pset_status (p, Fcons (Qsignal, Fcons (make_number (SIGKILL), Qnil)));
+	  /* Update P's status, since record_kill_process will make the
+	     SIGCHLD handler update deleted_pid_list, not *P.  */
+	  Lisp_Object symbol;
+	  if (p->raw_status_new)
+	    update_status (p);
+	  symbol = CONSP (p->status) ? XCAR (p->status) : p->status;
+	  if (! (EQ (symbol, Qsignal) || EQ (symbol, Qexit)))
+	    pset_status (p, list2 (Qsignal, make_number (SIGKILL)));
+
 	  p->tick = ++process_tick;
 	  status_notify (p);
 	  redisplay_preserve_echo_area (13);
