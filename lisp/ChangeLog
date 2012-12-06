@@ -1,5 +1,17 @@
 2012-12-06  Stefan Monnier  <monnier@iro.umontreal.ca>
 
+	Further cleanup of the "cl-" namespace.  Fit CL in 80 columns.
+	* emacs-lisp/cl-macs.el (cl--pop2, cl--optimize-safety)
+	(cl--optimize-speed, cl--not-toplevel, cl--parse-loop-clause)
+	(cl--expand-do-loop, cl--proclaim-history, cl--declare-stack)
+	(cl--do-proclaim, cl--proclaims-deferred): Rename from the "cl-" prefix.
+	(cl-progv): Don't rely on dynamic scoping to find the body.
+	* emacs-lisp/cl-lib.el (cl--optimize-speed, cl--optimize-safety)
+	(cl--proclaims-deferred): Rename from the "cl-" prefix.
+	(cl-declaim): Use backquotes.
+	* emacs-lisp/cl-extra.el (cl-make-random-state, cl-random-state-p):
+	Use "cl--" prefix for the object's tag.
+
 	* ses.el: Use advice-add/remove.
 	(ses--advice-copy-region-as-kill, ses--advice-yank): New functions.
 	(copy-region-as-kill, yank): Use advice-add.

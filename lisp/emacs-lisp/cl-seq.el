@@ -105,6 +105,9 @@
        (eq (not (funcall cl-test ,x ,y)) cl-test-not)
      (eql ,x ,y)))
 
+;; Yuck!  These vars are set/bound by cl--parsing-keywords to match :if :test
+;; and :key keyword args, and they are also accessed (sometimes) via dynamic
+;; scoping (and some of those accesses are from macro-expanded code).
 (defvar cl-test) (defvar cl-test-not)
 (defvar cl-if) (defvar cl-if-not)
 (defvar cl-key)
@@ -333,7 +336,8 @@ This is a destructive function; it reuses the storage of SEQ whenever possible.
 
 (defun cl--delete-duplicates (cl-seq cl-keys cl-copy)
   (if (listp cl-seq)
-      (cl--parsing-keywords (:test :test-not :key (:start 0) :end :from-end :if)
+      (cl--parsing-keywords
+          (:test :test-not :key (:start 0) :end :from-end :if)
 	  ()
 	(if cl-from-end
 	    (let ((cl-p (nthcdr cl-start cl-seq)) cl-i)
@@ -776,7 +780,8 @@ to avoid corrupting the original LIST1 and LIST2.
 	     (setq cl-list1 (prog1 cl-list2 (setq cl-list2 cl-list1))))
 	 (while cl-list2
 	   (if (or cl-keys (numberp (car cl-list2)))
-	       (setq cl-list1 (apply 'cl-adjoin (car cl-list2) cl-list1 cl-keys))
+	       (setq cl-list1
+                     (apply 'cl-adjoin (car cl-list2) cl-list1 cl-keys))
 	     (or (memq (car cl-list2) cl-list1)
 		 (push (car cl-list2) cl-list1)))
 	   (pop cl-list2))

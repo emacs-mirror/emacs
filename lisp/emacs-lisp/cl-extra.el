@@ -51,7 +51,8 @@ TYPE is a Common Lisp type specifier.
 	((eq type 'string) (if (stringp x) x (concat x)))
 	((eq type 'array) (if (arrayp x) x (vconcat x)))
 	((and (eq type 'character) (stringp x) (= (length x) 1)) (aref x 0))
-	((and (eq type 'character) (symbolp x)) (cl-coerce (symbol-name x) type))
+	((and (eq type 'character) (symbolp x))
+         (cl-coerce (symbol-name x) type))
 	((eq type 'float) (float x))
 	((cl-typep x type) x)
 	(t (error "Can't coerce %s to type %s" x type))))
@@ -69,7 +70,7 @@ strings case-insensitively."
 	((stringp x)
 	 (and (stringp y) (= (length x) (length y))
 	      (or (string-equal x y)
-		  (string-equal (downcase x) (downcase y)))))   ; lazy but simple!
+		  (string-equal (downcase x) (downcase y))))) ;Lazy but simple!
 	((numberp x)
 	 (and (numberp y) (= x y)))
 	((consp x)
@@ -439,14 +440,14 @@ Optional second arg STATE is a random-state object."
 If STATE is t, return a new state object seeded from the time of day."
   (cond ((null state) (cl-make-random-state cl--random-state))
 	((vectorp state) (copy-tree state t))
-	((integerp state) (vector 'cl-random-state-tag -1 30 state))
+	((integerp state) (vector 'cl--random-state-tag -1 30 state))
 	(t (cl-make-random-state (cl--random-time)))))
 
 ;;;###autoload
 (defun cl-random-state-p (object)
   "Return t if OBJECT is a random-state object."
   (and (vectorp object) (= (length object) 4)
-       (eq (aref object 0) 'cl-random-state-tag)))
+       (eq (aref object 0) 'cl--random-state-tag)))
 
 
 ;; Implementation limits.
