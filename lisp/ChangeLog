@@ -1,3 +1,13 @@
+2012-12-06  Jonas Bernoulli  <jonas@bernoul.li>
+
+	* button.el: Make them work in header-lines (bug#12817).
+	(button-map): Add bindings for header-line and mode-line use.
+	(button-get, button-put, button-label): `button' may now be a string.
+	(button-activate): Don't make it a defsubst.
+	(button--area-button-p, button--area-button-string): New functions.
+	(make-text-button): Fix the return value when `beg' was a string.
+	(push-button): Handle the mode-line case.
+
 2012-12-06  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* progmodes/sql.el: Use cl-lib and lexical-binding; various cleanup.
