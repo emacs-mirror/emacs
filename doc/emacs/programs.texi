@@ -85,7 +85,7 @@ Scheme-based DSSSL expression language, Ada, ASM, AWK, C, C++, Delphi,
 Fortran, Icon, IDL (CORBA), IDLWAVE, Java, Javascript, Metafont
 (@TeX{}'s companion for font creation), Modula2, Objective-C, Octave,
 Pascal, Perl, Pike, PostScript, Prolog, Python, Ruby, Simula, Tcl, and
-VHDL.  An alternative mode for Perl is called CPerl mode.  Modes are
+VHDL@.  An alternative mode for Perl is called CPerl mode.  Modes are
 also available for the scripting languages of the common GNU and Unix
 shells, VMS DCL, and MS-DOS/MS-Windows @samp{BAT} files, and for
 makefiles, DNS master files, and various sorts of configuration files.
@@ -127,7 +127,7 @@ IDL/Pike/AWK (@pxref{Top, , CC Mode, ccmode, CC Mode}), and IDLWAVE
 @end ifinfo
 @ifnotinfo
   The Emacs distribution contains Info manuals for the major modes for
-Ada, C/C++/Objective C/Java/Corba IDL/Pike/AWK, and IDLWAVE.  For
+Ada, C/C++/Objective C/Java/Corba IDL/Pike/AWK, and IDLWAVE@.  For
 Fortran mode, @pxref{Fortran,,, emacs-xtra, Specialized Emacs Features}.
 @end ifnotinfo
 
@@ -328,7 +328,7 @@ as you move around in a buffer.
   To either enable or disable Which Function mode, use the command
 @kbd{M-x which-function-mode}.  Which Function mode is a global minor
 mode.  By default, it takes effect in all major modes major modes that
-know how to support it (i.e.@: all the major modes that support
+know how to support it (i.e., all the major modes that support
 Imenu).  You can restrict it to a specific list of major modes by
 changing the value of the variable @code{which-func-modes} from
 @code{t} (which means to support all available major modes) to a list
@@ -391,7 +391,7 @@ indentation.
   When indenting a line that starts within a parenthetical grouping,
 Emacs usually places the start of the line under the preceding line
 within the group, or under the text after the parenthesis.  If you
-manually give one of these lines a nonstandard indentation (e.g.@: for
+manually give one of these lines a nonstandard indentation (e.g., for
 aesthetic purposes), the lines below will follow it.
 
   The indentation commands for most programming language modes assume
@@ -431,7 +431,7 @@ lines that start inside comments and strings.
   To reindent the contents of a single parenthetical grouping,
 position point before the beginning of the grouping and type
 @kbd{C-M-q}.  This changes the relative indentation within the
-grouping, without affecting its overall indentation (i.e.@: the
+grouping, without affecting its overall indentation (i.e., the
 indentation of the line where the grouping starts).  The function that
 @kbd{C-M-q} runs depends on the major mode; it is
 @code{indent-pp-sexp} in Lisp mode, @code{c-indent-exp} in C mode,
@@ -672,7 +672,7 @@ Put mark after following expression (@code{mark-sexp}).
 @findex backward-sexp
   To move forward over a balanced expression, use @kbd{C-M-f}
 (@code{forward-sexp}).  If the first significant character after point
-is an opening delimiter (e.g.@: @samp{(}, @samp{[} or @samp{@{} in C),
+is an opening delimiter (e.g., @samp{(}, @samp{[} or @samp{@{} in C),
 this command moves past the matching closing delimiter.  If the
 character begins a symbol, string, or number, the command moves over
 that.
@@ -924,7 +924,7 @@ negative argument @var{-n} removes @var{n} delimiters.
 
   If the region is not active, and there is no existing comment on the
 current line, @kbd{M-;} adds a new comment to the current line.  If
-the line is blank (i.e.@: empty or containing only whitespace
+the line is blank (i.e., empty or containing only whitespace
 characters), the comment is indented to the same position where
 @key{TAB} would indent to (@pxref{Basic Indent}).  If the line is
 non-blank, the comment is placed after the last non-whitespace
@@ -987,7 +987,7 @@ type @kbd{M-j} or @kbd{C-M-j} (@code{comment-indent-new-line}).  This
 breaks the current line, and inserts the necessary comment delimiters
 and indentation to continue the comment.
 
-  For languages with closing comment delimiters (e.g.@: @samp{*/} in
+  For languages with closing comment delimiters (e.g., @samp{*/} in
 C), the exact behavior of @kbd{M-j} depends on the value of the
 variable @code{comment-multi-line}.  If the value is @code{nil}, the
 command closes the comment on the old line and starts a new comment on
@@ -1631,7 +1631,7 @@ Enable (or disable) @dfn{subword mode}.  In subword mode, Emacs's word
 commands recognize upper case letters in
 @samp{StudlyCapsIdentifiers} as word boundaries.  This is indicated by
 the flag @samp{/w} on the mode line after the mode name
-(e.g. @samp{C/law}).  You can even use @kbd{M-x subword-mode} in
+(e.g., @samp{C/law}).  You can even use @kbd{M-x subword-mode} in
 non-CC Mode buffers.
 
 In the GNU project, we recommend using underscores to separate words

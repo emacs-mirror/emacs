@@ -132,7 +132,7 @@ abbrev in an abbrev table.
   When a major mode defines a system abbrev, it should call
 @code{define-abbrev} and specify @code{t} for the @code{:system}
 property.  Be aware that any saved non-``system'' abbrevs are restored
-at startup, i.e. before some major modes are loaded.  Therefore, major
+at startup, i.e., before some major modes are loaded.  Therefore, major
 modes should not assume that their abbrev tables are empty when they
 are first loaded.
 

@@ -87,7 +87,7 @@ This function tries immediately to redisplay.  The optional argument
 instead of being preempted, even if input is pending and the variable
 @code{redisplay-dont-pause} is @code{nil} (see below).  If
 @code{redisplay-dont-pause} is non-@code{nil} (the default), this
-function redisplays in any case, i.e.@: @var{force} does nothing.
+function redisplays in any case, i.e., @var{force} does nothing.
 
 The function returns @code{t} if it actually tried to redisplay, and
 @code{nil} otherwise.  A value of @code{t} does not mean that
@@ -163,7 +163,7 @@ If this buffer-local variable is non-@code{nil}, lines that extend
 beyond the right edge of the window are truncated; otherwise, they are
 continued.  As a special exception, the variable
 @code{truncate-partial-width-windows} takes precedence in
-@dfn{partial-width} windows (i.e.@: windows that do not occupy the
+@dfn{partial-width} windows (i.e., windows that do not occupy the
 entire frame width).
 @end defopt
 
@@ -1541,7 +1541,7 @@ specify just the foreground color or just the background color.
 @kindex mouse-face @r{(overlay property)}
 This property is used instead of @code{face} when the mouse is within
 the range of the overlay.  However, Emacs ignores all face attributes
-from this property that alter the text size (e.g.  @code{:height},
+from this property that alter the text size (e.g., @code{:height},
 @code{:weight}, and @code{:slant}).  Those attributes are always the
 same as in the unhighlighted text.
 
@@ -1744,7 +1744,7 @@ check the width of a character.  @xref{Primitive Indent}, and
 
 @defun char-width char
 This function returns the width in columns of the character
-@var{char}, if it were displayed in the current buffer (i.e.@: taking
+@var{char}, if it were displayed in the current buffer (i.e., taking
 into account the buffer's display table, if any; @pxref{Display
 Tables}).  The width of a tab character is usually @code{tab-width}
 (@pxref{Usual Display}).
@@ -2569,7 +2569,7 @@ any text having the face @var{face} with @var{remapping}, rather than
 the ordinary definition of @var{face}.
 
 @var{remapping} may be any face specification suitable for a
-@code{face} text property: either a face (i.e.@: a face name or a
+@code{face} text property: either a face (i.e., a face name or a
 property list of attribute/value pairs), or a list of faces.  For
 details, see the description of the @code{face} text property in
 @ref{Special Properties}.  @var{remapping} serves as the complete
@@ -2775,7 +2775,7 @@ attribute on this face (@pxref{Face Attributes}).
 @itemx underline
 @itemx fixed-pitch
 @itemx variable-pitch
-These have the attributes indicated by their names (e.g. @code{bold}
+These have the attributes indicated by their names (e.g., @code{bold}
 has a bold @code{:weight} attribute), with all other attributes
 unspecified (and so given by @code{default}).
 
@@ -3458,7 +3458,7 @@ both left and right fringes.
 
   @xref{Fringe Bitmaps}, for a list of standard bitmap symbols and how
 to define your own.  In addition, @code{nil} represents the empty
-bitmap (i.e.@: an indicator that is not shown).
+bitmap (i.e., an indicator that is not shown).
 
   When @code{fringe-indicator-alist} has a buffer-local value, and
 there is no bitmap defined for a logical indicator, or the bitmap is
@@ -3836,7 +3836,7 @@ irrelevant, since those don't apply to the replacement.
 property'' means all the consecutive characters that have the same
 Lisp object as their @code{display} property; these characters are
 replaced as a single unit.  If two characters have different Lisp
-objects as their @code{display} properties (i.e.@: objects which are
+objects as their @code{display} properties (i.e., objects which are
 not @code{eq}), they are handled separately.
 
   Here is an example which illustrates this point.  A string serves as
@@ -4646,8 +4646,8 @@ Specifies a rotation angle in degrees.
 @item :index
 @c Doesn't work: http://debbugs.gnu.org/7978
 This has the same meaning as it does for GIF images (@pxref{GIF Images}),
-i.e. it specifies which image to view inside an image bundle file format
-such as DJVM.  You can use the @code{image-metadata} function to
+i.e., it specifies which image to view inside an image bundle file format
+such as DJVM@.  You can use the @code{image-metadata} function to
 retrieve the total number of images in an image bundle.
 @end table
 
@@ -4745,7 +4745,7 @@ Each specification in @var{specs} is a property list with contents
 depending on image type.  All specifications must at least contain the
 properties @code{:type @var{type}} and either @w{@code{:file @var{file}}}
 or @w{@code{:data @var{DATA}}}, where @var{type} is a symbol specifying
-the image type, e.g.@: @code{xbm}, @var{file} is the file to load the
+the image type, e.g., @code{xbm}, @var{file} is the file to load the
 image from, and @var{data} is a string containing the actual image data.
 The first specification in the list whose @var{type} is supported, and
 @var{file} exists, is used to construct the image specification to be
@@ -4926,7 +4926,7 @@ The following functions related to animated images are available.
 
 @defun image-animated-p image
 This function returns non-@code{nil} if @var{image} can be animated.
-The actual return value is a cons @code{(@var{nimages} . @var{delay})}, 
+The actual return value is a cons @code{(@var{nimages} . @var{delay})},
 where @var{nimages} is the number of frames and @var{delay} is the
 delay in seconds between them.
 @end defun
@@ -5182,7 +5182,7 @@ and returns it.
 (@pxref{Text Properties}) to hold the button properties.  Such buttons
 do not add markers to the buffer, so editing in the buffer does not
 slow down if there is an extremely large numbers of buttons.  However,
-if there is an existing face text property on the text (e.g.@: a face
+if there is an existing face text property on the text (e.g., a face
 assigned by Font Lock mode), the button face may not be visible.  Both
 of these functions return the starting position of the new button.
 
@@ -5780,7 +5780,7 @@ codes 0 through 31, as well as the @key{DEL} character (character code
 @code{ctl-arrow}.  If this variable is non-@code{nil} (the default),
 these characters are displayed as sequences of two glyphs, where the
 first glyph is @samp{^} (a display table can specify a glyph to use
-instead of @samp{^}); e.g.@: the @key{DEL} character is displayed as
+instead of @samp{^}); e.g., the @key{DEL} character is displayed as
 @samp{^?}.
 
 If @code{ctl-arrow} is @code{nil}, these characters are displayed as
@@ -6045,7 +6045,7 @@ glyph table is displayed literally.
 @cindex glyphless characters
 
   @dfn{Glyphless characters} are characters which are displayed in a
-special way, e.g.@: as a box containing a hexadecimal code, instead of
+special way, e.g., as a box containing a hexadecimal code, instead of
 being displayed literally.  These include characters which are
 explicitly defined to be glyphless, as well as characters for which
 there is no available font (on a graphical display), and characters
@@ -6252,7 +6252,7 @@ and Hebrew, whose natural ordering for horizontal text display runs
 from right to left.  Furthermore, segments of Latin script and digits
 embedded in right-to-left text are displayed left-to-right, while
 segments of right-to-left script embedded in left-to-right text
-(e.g.@: Arabic or Hebrew text in comments or strings in a program
+(e.g., Arabic or Hebrew text in comments or strings in a program
 source file) are appropriately displayed right-to-left.  We call such
 mixtures of left-to-right and right-to-left text @dfn{bidirectional
 text}.  This section describes the facilities and options for editing
@@ -6264,7 +6264,7 @@ and displaying bidirectional text.
 @cindex unicode bidirectional algorithm
 @cindex bidirectional reordering
   Text is stored in Emacs buffers and strings in @dfn{logical} (or
-@dfn{reading}) order, i.e.@: the order in which a human would read
+@dfn{reading}) order, i.e., the order in which a human would read
 each character.  In right-to-left and bidirectional text, the order in
 which characters are displayed on the screen (called @dfn{visual
 order}) is not the same as logical order; the characters' screen

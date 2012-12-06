@@ -48,7 +48,7 @@ license to the document, as described in section 6 of the license.
 @top Gnus Coding Style and Maintenance Guide
 This manual describes @dots{}
 
-@insertcopying 
+@insertcopying
 @end ifnottex
 
 @menu
@@ -64,7 +64,7 @@ This manual describes @dots{}
 
 The Gnus distribution contains a lot of libraries that have been written
 for Gnus and used intensively for Gnus.  But many of those libraries are
-useful on their own.  E.g. other Emacs Lisp packages might use the
+useful on their own.  E.g., other Emacs Lisp packages might use the
 @acronym{MIME} library @xref{Top, ,Top, emacs-mime, The Emacs MIME
 Manual}.
 
@@ -196,7 +196,7 @@ There are no Gnus dependencies in this file.
 Functions for Cancel-Lock feature
 @c Cf. draft-ietf-usefor-cancel-lock-01.txt
 @c Although this draft has expired, Canlock-Lock revived in 2007 when
-@c major news providers (e.g. news.individual.org) started to use it.
+@c major news providers (e.g., news.individual.org) started to use it.
 @c As of 2007-08-25...
 There are no Gnus dependencies in these files.
 
@@ -257,18 +257,18 @@ XEmacs 21.1 and up.
 
 The development of Gnus normally is done on the Git repository trunk
 as of April 19, 2010 (formerly it was done in CVS; the repository is
-at http://git.gnus.org), i.e. there are no separate branches to
+at http://git.gnus.org), i.e., there are no separate branches to
 develop and test new features.  Most of the time, the trunk is
 developed quite actively with more or less daily changes.  Only after
-a new major release, e.g. 5.10.1, there's usually a feature period of
+a new major release, e.g., 5.10.1, there's usually a feature period of
 several months.  After the release of Gnus 5.10.6 the development of
 new features started again on the trunk while the 5.10 series is
 continued on the stable branch (v5-10) from which more stable releases
 will be done when needed (5.10.8, @dots{}).  @ref{Gnus Development,
 ,Gnus Development, gnus, The Gnus Newsreader}
 
-Stable releases of Gnus finally become part of Emacs.  E.g. Gnus 5.8
-became a part of Emacs 21 (relabeled to Gnus 5.9).  The 5.10 series 
+Stable releases of Gnus finally become part of Emacs.  E.g., Gnus 5.8
+became a part of Emacs 21 (relabeled to Gnus 5.9).  The 5.10 series
 became part of Emacs 22 as Gnus 5.11.
 
 @section Syncing
@@ -379,7 +379,7 @@ Starting from No Gnus, the @file{GNUS-NEWS} is created from
 
 For new customizable variables introduced in Oort Gnus (including the
 v5-10 branch) use @code{:version "22.1" ;; Oort Gnus} (including the
-comment) or e.g. @code{:version "22.2" ;; Gnus 5.10.10} if the feature
+comment) or, e.g., @code{:version "22.2" ;; Gnus 5.10.10} if the feature
 was added for Emacs 22.2 and Gnus 5.10.10.
 @c
 If the variable is new in No Gnus use @code{:version "23.1" ;; No Gnus}.

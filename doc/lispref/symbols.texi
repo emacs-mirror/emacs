@@ -153,8 +153,8 @@ that cell can hold only one Lisp object at any given time.
 @xref{Macros}.
 
   As previously noted, Emacs Lisp allows the same symbol to be defined
-both as a variable (e.g.@: with @code{defvar}) and as a function or
-macro (e.g.@: with @code{defun}).  Such definitions do not conflict.
+both as a variable (e.g., with @code{defvar}) and as a function or
+macro (e.g., with @code{defun}).  Such definitions do not conflict.
 
   These definition also act as guides for programming tools.  For
 example, the @kbd{C-h f} and @kbd{C-h v} commands create help buffers
@@ -449,6 +449,15 @@ For symbols in special obarrays, which are not used for ordinary
 purposes, it may make sense to use the property list cell in a
 nonstandard fashion; in fact, the abbrev mechanism does so
 (@pxref{Abbrevs}).
+
+You could define @code{put} in terms of @code{setplist} and
+@code{plist-put}, as follows:
+
+@example
+(defun put (symbol prop value)
+  (setplist symbol
+            (plist-put (symbol-plist symbol) prop value)))
+@end example
 @end defun
 
 @defun function-get symbol property
@@ -474,8 +483,8 @@ documentation, for the named function.  @xref{Keys in Documentation}.
 The value, if non-@code{nil}, specifies the number of extra slots in
 the named char-table type.  @xref{Char-Tables}.
 
-@itemx customized-face
-@item face-defface-spec
+@item customized-face
+@itemx face-defface-spec
 @itemx saved-face
 @itemx theme-face
 These properties are used to record a face's standard, saved,
@@ -483,9 +492,9 @@ customized, and themed face specs.  Do not set them directly; they are
 managed by @code{defface} and related functions.  @xref{Defining
 Faces}.
 
-@itemx customized-value
+@item customized-value
 @itemx saved-value
-@item standard-value
+@itemx standard-value
 @itemx theme-value
 These properties are used to record a customizable variable's standard
 value, saved value, customized-but-unsaved value, and themed values.
@@ -498,7 +507,7 @@ command.  @xref{Disabling Commands}.
 
 @item face-documentation
 The value stores the documentation string of the named face.  This is
-normally set automatically by @code{defface}.  @xref{Defining Faces}.
+set automatically by @code{defface}.  @xref{Defining Faces}.
 
 @item history-length
 The value, if non-@code{nil}, specifies the maximum minibuffer history
@@ -555,6 +564,6 @@ Safety}) as well as for byte compiler optimizations.  Do not set it.
 
 @item variable-documentation
 If non-@code{nil}, this specifies the named vaariable's documentation
-string.  This is normally set automatically by @code{defvar} and
-related functions.  @xref{Defining Faces}.
+string.  This is set automatically by @code{defvar} and related
+functions.  @xref{Defining Faces}.
 @end table

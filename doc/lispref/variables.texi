@@ -171,7 +171,7 @@ binding is no longer in effect, the previously shadowed value (or lack
 of one) comes back.
 
 @cindex current binding
-  A variable can have more than one local binding at a time (e.g.@: if
+  A variable can have more than one local binding at a time (e.g., if
 there are nested @code{let} forms that bind the variable).  The
 @dfn{current binding} is the local binding that is actually in effect.
 It determines the value returned by evaluating the variable symbol,
@@ -302,7 +302,7 @@ If a variable is void, trying to evaluate the variable signals a
 @code{void-variable} error rather than a value.
 
   Under lexical binding rules, the value cell only holds the
-variable's global value, i.e.@: the value outside of any lexical
+variable's global value, i.e., the value outside of any lexical
 binding construct.  When a variable is lexically bound, the local value
 is determined by the lexical environment; the variable may have a
 local value if its symbol's value cell is unassigned.
@@ -416,7 +416,7 @@ explicitly in the @code{defvar} form.  The variable is marked as
 
 If @var{symbol} is void and @var{value} is specified, @code{defvar}
 evaluates @var{value} and sets @var{symbol} to the result.  But if
-@var{symbol} already has a value (i.e.@: it is not void), @var{value}
+@var{symbol} already has a value (i.e., it is not void), @var{value}
 is not even evaluated, and @var{symbol}'s value remains unchanged.  If
 @var{value} is omitted, the value of @var{symbol} is not changed in
 any case.
@@ -841,9 +841,9 @@ The function @code{getx} refers to @code{x}.  This is a ``free''
 reference, in the sense that there is no binding for @code{x} within
 that @code{defun} construct itself.  When we call @code{getx} from
 within a @code{let} form in which @code{x} is (dynamically) bound, it
-retrieves the local value of @code{x} (i.e.@: 1).  But when we call
+retrieves the local value of @code{x} (i.e., 1).  But when we call
 @code{getx} outside the @code{let} form, it retrieves the global value
-of @code{x} (i.e.@: -99).
+of @code{x} (i.e., -99).
 
   Here is another example, which illustrates setting a dynamically
 bound variable using @code{setq}:
@@ -888,7 +888,7 @@ technique:
 @itemize @bullet
 @item
 If a variable has no global definition, use it as a local variable
-only within a binding construct, e.g.@: the body of the @code{let}
+only within a binding construct, e.g., the body of the @code{let}
 form where the variable was bound, or the body of the function for an
 argument variable.  If this convention is followed consistently
 throughout a program, the value of the variable will not affect, nor
@@ -905,7 +905,7 @@ to avoid name conflicts (@pxref{Coding Conventions}).
 
 Then you can bind the variable anywhere in a program, knowing reliably
 what the effect will be.  Wherever you encounter the variable, it will
-be easy to refer back to the definition, e.g.@: via the @kbd{C-h v}
+be easy to refer back to the definition, e.g., via the @kbd{C-h v}
 command (provided the variable definition has been loaded into Emacs).
 @xref{Name Help,,, emacs, The GNU Emacs Manual}.
 
@@ -1015,7 +1015,7 @@ binding of @code{x} in that lexical environment.
 
   Note that functions like @code{symbol-value}, @code{boundp}, and
 @code{set} only retrieve or modify a variable's dynamic binding
-(i.e.@: the contents of its symbol's value cell).  Also, the code in
+(i.e., the contents of its symbol's value cell).  Also, the code in
 the body of a @code{defun} or @code{defmacro} cannot refer to
 surrounding lexical variables.
 
@@ -1059,7 +1059,7 @@ lexical binding.
 
 @defun special-variable-p SYMBOL
 This function returns non-@code{nil} if @var{symbol} is a special
-variable (i.e.@: it has a @code{defvar}, @code{defcustom}, or
+variable (i.e., it has a @code{defvar}, @code{defcustom}, or
 @code{defconst} variable definition).  Otherwise, the return value is
 @code{nil}.
 @end defun
@@ -1932,7 +1932,7 @@ foo
 
   Ordinary Lisp variables can be assigned any value that is a valid
 Lisp object.  However, certain Lisp variables are not defined in Lisp,
-but in C.  Most of these variables are defined in the C code using
+but in C@.  Most of these variables are defined in the C code using
 @code{DEFVAR_LISP}.  Like variables defined in Lisp, these can take on
 any value.  However, some variables are defined using
 @code{DEFVAR_INT} or @code{DEFVAR_BOOL}.  @xref{Defining Lisp
@@ -2023,7 +2023,7 @@ car       elt       symbol-plist
 caar      get       symbol-value
 cadr      gethash
 cdr       nth
-cdar      nthcdr  
+cdar      nthcdr
 @end smallexample
 
 @item

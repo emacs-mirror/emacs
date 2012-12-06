@@ -1027,7 +1027,7 @@ but the newline is ignored if escaped."
 characters in Emacs strings: multibyte and unibyte (@pxref{Text
 Representations}).  Roughly speaking, unibyte strings store raw bytes,
 while multibyte strings store human-readable text.  Each character in
-a unibyte string is a byte, i.e.@: its value is between 0 and 255.  By
+a unibyte string is a byte, i.e., its value is between 0 and 255.  By
 contrast, each character in a multibyte string may have a value
 between 0 to 4194303 (@pxref{Character Type}).  In both cases,
 characters above 127 are non-@acronym{ASCII}.
@@ -1054,7 +1054,7 @@ character), Emacs automatically assumes that it is multibyte.
 octal escape sequences (@samp{\@var{n}}) in string constants.
 @strong{But beware:} If a string constant contains hexadecimal or
 octal escape sequences, and these escape sequences all specify unibyte
-characters (i.e.@: less than 256), and there are no other literal
+characters (i.e., less than 256), and there are no other literal
 non-@acronym{ASCII} characters or Unicode-style escape sequences in
 the string, then Emacs automatically assumes that it is a unibyte
 string.  That is to say, it assumes that all non-@acronym{ASCII}
@@ -1310,7 +1310,7 @@ may still use the built-in definition.  Therefore, @strong{we discourage
 redefinition of primitive functions}.
 
   The term @dfn{function} refers to all Emacs functions, whether written
-in Lisp or C.  @xref{Function Type}, for information about the
+in Lisp or C@.  @xref{Function Type}, for information about the
 functions written in Lisp.
 
   Primitive functions have no read syntax and print in hash notation
@@ -1934,7 +1934,7 @@ This function returns a symbol naming the primitive type of
 
   Here we describe functions that test for equality between two
 objects.  Other functions test equality of contents between objects of
-specific types, e.g.@: strings.  For these predicates, see the
+specific types, e.g., strings.  For these predicates, see the
 appropriate chapter describing the data type.
 
 @defun eq object1 object2
@@ -1942,10 +1942,10 @@ This function returns @code{t} if @var{object1} and @var{object2} are
 the same object, and @code{nil} otherwise.
 
 If @var{object1} and @var{object2} are integers with the same value,
-they are considered to be the same object (i.e.@: @code{eq} returns
+they are considered to be the same object (i.e., @code{eq} returns
 @code{t}).  If @var{object1} and @var{object2} are symbols with the
 same name, they are normally the same object---but see @ref{Creating
-Symbols} for exceptions.  For other types (e.g.@: lists, vectors,
+Symbols} for exceptions.  For other types (e.g., lists, vectors,
 strings), two arguments with the same contents or elements are not
 necessarily @code{eq} to each other: they are @code{eq} only if they
 are the same object, meaning that a change in the contents of one will

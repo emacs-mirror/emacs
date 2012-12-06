@@ -1,3 +1,8 @@
+2012-12-06  Juanma Barranquero  <lekktu@gmail.com>
+
+	* vc1-xtra.texi (General VC Options): Remove obsolete reference
+	to `vc-path'.
+
 2012-12-03  Chong Yidong  <cyd@gnu.org>
 
 	* custom.texi (Init Rebinding): kbd is now a function (Bug#13052).

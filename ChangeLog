@@ -1,3 +1,7 @@
+2012-12-06  Glenn Morris  <rgm@gnu.org>
+
+	* configure.ac: Handle info/ files with or without ".info" extension.
+
 2012-11-30  Paul Eggert  <eggert@cs.ucla.edu>
 
 	Merge from gnulib for 'inline' (Bug#13040), incorporating:

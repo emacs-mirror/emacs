@@ -102,7 +102,7 @@ for other purposes as well, such as writing editing commands.
 @cindex Common Lisp
   Dozens of Lisp implementations have been built over the years, each
 with its own idiosyncrasies.  Many of them were inspired by Maclisp,
-which was written in the 1960s at MIT's Project MAC.  Eventually the
+which was written in the 1960s at MIT's Project MAC@.  Eventually the
 implementers of the descendants of Maclisp came together and developed a
 standard for Lisp systems, called Common Lisp.  In the meantime, Gerry
 Sussman and Guy Steele at MIT developed a simplified but very powerful
@@ -380,12 +380,12 @@ More generally,
 @end defun
 
   By convention, any argument whose name contains the name of a type
-(e.g.@: @var{integer}, @var{integer1} or @var{buffer}) is expected to
+(e.g., @var{integer}, @var{integer1} or @var{buffer}) is expected to
 be of that type.  A plural of a type (such as @var{buffers}) often
 means a list of objects of that type.  An argument named @var{object}
 may be of any type.  (For a list of Emacs object types, @pxref{Lisp
 Data Types}.)  An argument with any other sort of name
-(e.g.@: @var{new-file}) is specific to the function; if the function
+(e.g., @var{new-file}) is specific to the function; if the function
 has a documentation string, the type of the argument should be
 described there (@pxref{Documentation}).
 

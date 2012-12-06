@@ -31,7 +31,7 @@ versions of a source file, storing information such as the creation
 time of each version, who made it, and a description of what was
 changed.
 
-  The Emacs version control interface is called @dfn{VC}.  VC commands
+  The Emacs version control interface is called @dfn{VC}@.  VC commands
 work with several different version control systems; currently, it
 supports GNU Arch, Bazaar, CVS, Git, Mercurial, Monotone, RCS,
 SCCS/CSSC, and Subversion.  Of these, the GNU project distributes CVS,
@@ -73,8 +73,8 @@ provides a uniform interface for common operations in many version
 control operations.
 
   Some uncommon or intricate version control operations, such as
-altering repository settings, are not supported in VC.  You should
-perform such tasks outside Emacs, e.g.@: via the command line.
+altering repository settings, are not supported in VC@.  You should
+perform such tasks outside Emacs, e.g., via the command line.
 
   This section provides a general overview of version control, and
 describes the version control systems that VC supports.  You can skip
@@ -128,13 +128,13 @@ which it refers to as @dfn{back ends}:
 @item
 SCCS was the first version control system ever built, and was long ago
 superseded by more advanced ones.  VC compensates for certain features
-missing in SCCS (e.g.@: tag names for releases) by implementing them
+missing in SCCS (e.g., tag names for releases) by implementing them
 itself.  Other VC features, such as multiple branches, are simply
 unavailable.  Since SCCS is non-free, we recommend avoiding it.
 
 @cindex CSSC
 @item
-CSSC is a free replacement for SCCS.  You should use CSSC only if, for
+CSSC is a free replacement for SCCS@.  You should use CSSC only if, for
 some reason, you cannot use a more recent and better-designed version
 control system.
 
@@ -455,7 +455,7 @@ and don't persist across sessions.
 @node VC With A Merging VCS
 @subsubsection Basic Version Control with Merging
 
-  On a merging-based version control system (i.e.@: most modern ones;
+  On a merging-based version control system (i.e., most modern ones;
 @pxref{VCS Merging}), @kbd{C-x v v} does the following:
 
 @itemize @bullet
@@ -467,7 +467,7 @@ files and ``modified'' files; @pxref{Registering}.)
 
 @item
 If none of the files in the VC fileset are registered with a version
-control system, register the VC fileset, i.e.@: place it under version
+control system, register the VC fileset, i.e., place it under version
 control.  @xref{Registering}.  If Emacs cannot find a system to
 register under, it prompts for a repository type, creates a new
 repository, and registers the VC fileset with it.
@@ -568,13 +568,13 @@ and Emacs fails to detect the correct one.
 Otherwise, if using CVS or RCS, you can specify a revision ID.
 
 If the fileset is modified (or locked), this makes Emacs commit with
-that revision ID.  You can create a new branch by supplying an
+that revision ID@.  You can create a new branch by supplying an
 appropriate revision ID (@pxref{Branches}).
 
 If the fileset is unmodified (and unlocked), this checks the specified
 revision into the working tree.  You can also specify a revision on
 another branch by giving its revision or branch ID (@pxref{Switching
-Branches}).  An empty argument (i.e.@: @kbd{C-u C-x v v @key{RET}})
+Branches}).  An empty argument (i.e., @kbd{C-u C-x v v @key{RET}})
 checks out the latest (``head'') revision on the current branch.
 
 This signals an error on a decentralized version control system.
@@ -759,7 +759,7 @@ comparison again, generating a new diff.
 prompts for two revision IDs (@pxref{VCS Concepts}), and displays a
 diff between those versions of the fileset.  This will not work
 reliably for multi-file VC filesets, if the version control system is
-file-based rather than changeset-based (e.g.@: CVS), since then
+file-based rather than changeset-based (e.g., CVS), since then
 revision IDs for different files would not be related in any
 meaningful way.
 
@@ -783,7 +783,7 @@ Ediff session.  @xref{Top,, Ediff, ediff, The Ediff Manual}.
 @findex vc-root-diff
 @kindex C-x v D
   @kbd{C-x v D} (@code{vc-root-diff}) is similar to @kbd{C-x v =}, but
-it displays the changes in the entire current working tree (i.e.@: the
+it displays the changes in the entire current working tree (i.e., the
 working tree containing the current VC fileset).  If you invoke this
 command from a Dired buffer, it applies to the working tree containing
 the directory.
@@ -795,7 +795,7 @@ from the first non-@code{nil} value amongst the variables
 @code{vc-@var{backend}-diff-switches}, @code{vc-diff-switches}, and
 @code{diff-switches} (@pxref{Comparing Files}), in that order.  Here,
 @var{backend} stands for the relevant version control system,
-e.g.@: @code{bzr} for Bazaar.  Since @code{nil} means to check the
+e.g., @code{bzr} for Bazaar.  Since @code{nil} means to check the
 next variable in the sequence, either of the first two may use the
 value @code{t} to mean no switches at all.  Most of the
 @code{vc-@var{backend}-diff-switches} variables default to @code{nil},
@@ -835,12 +835,12 @@ view diffs, or view log entries:
 
 @table @kbd
 @item p
-Annotate the previous revision, i.e.@: the revision before the one
+Annotate the previous revision, i.e., the revision before the one
 currently annotated.  A numeric prefix argument is a repeat count, so
 @kbd{C-u 10 p} would take you back 10 revisions.
 
 @item n
-Annotate the next revision, i.e.@: the revision after the one
+Annotate the next revision, i.e., the revision after the one
 currently annotated.  A numeric prefix argument is a repeat count.
 
 @item j
@@ -986,7 +986,7 @@ earlier revision.  This shows the changes to all files made in that
 revision.
 
 @item @key{RET}
-In a compact-style log buffer (e.g.@: the one created by @kbd{C-x v
+In a compact-style log buffer (e.g., the one created by @kbd{C-x v
 L}), toggle between showing and hiding the full log entry for the
 revision at point.
 @end table
@@ -1064,7 +1064,7 @@ the version control system which the VC Directory buffer should use.
 @pindex cvs
 @cindex CVS directory mode
   In addition to the VC Directory buffer, Emacs has a similar facility
-called PCL-CVS which is specialized for CVS.  @xref{Top, , About
+called PCL-CVS which is specialized for CVS@.  @xref{Top, , About
 PCL-CVS, pcl-cvs, PCL-CVS --- The Emacs Front-End to CVS}.
 @end ifnottex
 
@@ -1080,7 +1080,7 @@ PCL-CVS, pcl-cvs, PCL-CVS --- The Emacs Front-End to CVS}.
 and their version control statuses.  It lists files in the current
 directory (the one specified when you called @kbd{C-x v d}) and its
 subdirectories, but only those with a ``noteworthy'' status.  Files
-that are up-to-date (i.e.@: the same as in the repository) are
+that are up-to-date (i.e., the same as in the repository) are
 omitted.  If all the files in a subdirectory are up-to-date, the
 subdirectory is not listed either.  As an exception, if a file has
 become up-to-date as a direct result of a VC command, it is listed.
@@ -1131,7 +1131,7 @@ updates.  If you change the variable @code{vc-stay-local} or
 @code{vc-cvs-stay-local} (for CVS) to @code{nil} (@pxref{CVS
 Options}), then Emacs avoids contacting a remote repository when
 generating the VC Directory buffer (it will still contact it when
-necessary, e.g.@: when doing a commit).  This may be desirable if you
+necessary, e.g., when doing a commit).  This may be desirable if you
 are working offline or the network is slow.
 @end ifnottex
 
@@ -1307,7 +1307,7 @@ revision 1.2 has revision IDs 1.2.1.1, 1.2.1.2, @dots{}, the second
 branch created from revision 1.2 has revision IDs 1.2.2.1, 1.2.2.2,
 @dots{}, and so forth.  You can also specify the @dfn{branch ID},
 which is a branch revision ID omitting its final component
-(e.g.@: 1.2.1), to switch to the latest revision on that branch.
+(e.g., 1.2.1), to switch to the latest revision on that branch.
 
   On a locking-based system, switching to a different branch also
 unlocks (write-protects) the working tree.
@@ -1589,7 +1589,7 @@ source files.
   To produce a tags table, you run the @command{etags} shell command
 on a document or the source code file.  The @samp{etags} program
 writes the tags to a @dfn{tags table file}, or @dfn{tags file} in
-short.  The conventional name for a tags file is @file{TAGS}.
+short.  The conventional name for a tags file is @file{TAGS}@.
 @xref{Create Tags Table}.
 
   Emacs provides many commands for searching and replacing using the
@@ -1698,9 +1698,9 @@ tags.  Use the @samp{--packages-only} option to create tags for
 packages only.
 
 In Ada, the same name can be used for different kinds of entity
-(e.g.@:, for a procedure and for a function).  Also, for things like
-packages, procedures and functions, there is the spec (i.e.@: the
-interface) and the body (i.e.@: the implementation).  To make it
+(e.g., for a procedure and for a function).  Also, for things like
+packages, procedures and functions, there is the spec (i.e., the
+interface) and the body (i.e., the implementation).  To make it
 easier to pick the definition you want, Ada tag name have suffixes
 indicating the type of entity:
 

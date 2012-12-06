@@ -489,7 +489,7 @@ The color for the border shadow, on the top and the left.
 @cindex @file{~/.emacs.d/gtkrc} file
 
   If Emacs is compiled with GTK+ toolkit support, the simplest way to
-customize its GTK+ widgets (e.g.@: menus, dialogs, tool bars and
+customize its GTK+ widgets (e.g., menus, dialogs, tool bars and
 scroll bars) is to choose an appropriate GTK+ theme, for example with
 the GNOME theme selector.
 
@@ -499,7 +499,7 @@ resources are specified in either the file @file{~/.emacs.d/gtkrc}
 (for Emacs-specific GTK+ resources), or @file{~/.gtkrc-2.0} (for
 general GTK+ resources).  We recommend using @file{~/.emacs.d/gtkrc},
 since GTK+ seems to ignore @file{~/.gtkrc-2.0} when running GConf with
-GNOME.  Note, however, that some GTK themes may override
+GNOME@.  Note, however, that some GTK themes may override
 customizations in @file{~/.emacs.d/gtkrc}; there is nothing we can do
 about this.  GTK+ resources do not affect aspects of Emacs unrelated
 to GTK+ widgets, such as fonts and colors in the main Emacs window;
@@ -541,7 +541,7 @@ gtk-font-name = "courier 12"
 @noindent
 Note that in this case the font name must be supplied as a GTK font
 pattern (also called a @dfn{Pango font name}), not as a
-Fontconfig-style font name or XLFD.  @xref{Fonts}.
+Fontconfig-style font name or XLFD@.  @xref{Fonts}.
 
   To customize widgets you first define a @dfn{style}, and then apply
 the style to the widgets.  Here is an example that sets the font for
@@ -590,8 +590,8 @@ widget "*verticalScrollBar*" style "scroll"
 
   A GTK+ widget is specified by a @dfn{widget name} and a @dfn{widget
 class}.  The widget name refers to a specific widget
-(e.g.@: @samp{emacs-menuitem}), while the widget class refers to a
-collection of similar widgets (e.g.@: @samp{GtkMenuItem}).  A widget
+(e.g., @samp{emacs-menuitem}), while the widget class refers to a
+collection of similar widgets (e.g., @samp{GtkMenuItem}).  A widget
 always has a class, but need not have a name.
 
   @dfn{Absolute names} are sequences of widget names or widget
@@ -746,7 +746,7 @@ possible states are:
 This is the default state for widgets.
 @item ACTIVE
 This is the state for a widget that is ready to do something.  It is
-also for the trough of a scroll bar, i.e.@: @code{bg[ACTIVE] = "red"}
+also for the trough of a scroll bar, i.e., @code{bg[ACTIVE] = "red"}
 sets the scroll bar trough to red.  Buttons that have been pressed but
 not released yet (``armed'') are in this state.
 @item PRELIGHT
@@ -780,7 +780,7 @@ dialog.
 @item bg_pixmap[@var{state}] = "@var{pixmap}"
 This specifies an image background (instead of a background color).
 @var{pixmap} should be the image file name.  GTK can use a number of
-image file formats, including XPM, XBM, GIF, JPEG and PNG.  If you
+image file formats, including XPM, XBM, GIF, JPEG and PNG@.  If you
 want a widget to use the same image as its parent, use
 @samp{<parent>}.  If you don't want any image, use @samp{<none>}.
 @samp{<none>} is the way to cancel a background image inherited from a
@@ -790,7 +790,7 @@ You can't specify the file by its absolute file name.  GTK looks for
 the pixmap file in directories specified in @code{pixmap_path}.
 @code{pixmap_path} is a colon-separated list of directories within
 double quotes, specified at the top level in a @file{gtkrc} file
-(i.e.@: not inside a style definition; see example above):
+(i.e., not inside a style definition; see example above):
 
 @smallexample
 pixmap_path "/usr/share/pixmaps:/usr/include/X11/pixmaps"
@@ -814,8 +814,8 @@ GTK-style (or Pango) font name, like @samp{Sans Italic 10}.
   There are three ways to specify a color: a color name, an RGB
 triplet, or a GTK-style RGB triplet.  @xref{Colors}, for a description
 of color names and RGB triplets.  Color names should be enclosed with
-double quotes, e.g.@: @samp{"red"}.  RGB triplets should be written
-without double quotes, e.g.@: @samp{#ff0000}.  GTK-style RGB triplets
+double quotes, e.g., @samp{"red"}.  RGB triplets should be written
+without double quotes, e.g., @samp{#ff0000}.  GTK-style RGB triplets
 have the form @w{@code{@{ @var{r}, @var{g}, @var{b} @}}}, where
 @var{r}, @var{g} and @var{b} are either integers in the range 0-65535
 or floats in the range 0.0-1.0.

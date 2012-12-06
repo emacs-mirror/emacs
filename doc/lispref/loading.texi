@@ -533,7 +533,7 @@ autoloads for all files in the current directory.
   The same magic comment can copy any kind of form into
 @file{loaddefs.el}.  The form following the magic comment is copied
 verbatim, @emph{except} if it is one of the forms which the autoload
-facility handles specially (e.g.@: by conversion into an
+facility handles specially (e.g., by conversion into an
 @code{autoload} call).  The forms which are not copied verbatim are
 the following:
 
@@ -849,10 +849,10 @@ was not provided}.
 
 @defun featurep feature &optional subfeature
 This function returns @code{t} if @var{feature} has been provided in
-the current Emacs session (i.e.@:, if @var{feature} is a member of
+the current Emacs session (i.e., if @var{feature} is a member of
 @code{features}.)  If @var{subfeature} is non-@code{nil}, then the
 function returns @code{t} only if that subfeature is provided as well
-(i.e.@: if @var{subfeature} is a member of the @code{subfeature}
+(i.e., if @var{subfeature} is a member of the @code{subfeature}
 property of the @var{feature} symbol.)
 @end defun
 
@@ -1017,7 +1017,7 @@ example, @file{my_inst.elc} or @file{my_inst.elc.gz} in some directory
 (eval-after-load "foo/bar/my_inst.elc" @dots{})
 @end example
 
-@var{library} can also be a feature (i.e.@: a symbol), in which case
+@var{library} can also be a feature (i.e., a symbol), in which case
 @var{form} is evaluated at the end of any file where
 @code{(provide @var{library})} is called.
 

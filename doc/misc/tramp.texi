@@ -716,7 +716,7 @@ This is another method from the Kerberos suite.  It behaves like @option{su}.
 @cindex plink method
 
 This method is mostly interesting for Windows users using the PuTTY
-implementation of SSH.  It uses @samp{plink -ssh} to log in to the
+implementation of SSH@.  It uses @samp{plink -ssh} to log in to the
 remote host.
 
 This supports the @samp{-P} argument.
@@ -1006,7 +1006,7 @@ XP, MS Windows Vista, and MS Windows 7.
 The first directory in the localname must be a share name on the remote
 host.  Remember that the @code{$} character, in which default shares
 usually end, must be written @code{$$} due to environment variable
-substitution in file names.  If no share name is given (i.e. remote
+substitution in file names.  If no share name is given (i.e., remote
 directory @code{/}), all available shares are listed.
 
 Since authorization is done on share level, you will always be
@@ -1053,7 +1053,7 @@ name.
 
 The connection methods described in this section are based on GVFS
 @uref{http://en.wikipedia.org/wiki/GVFS}.  Via GVFS, the remote
-filesystem is mounted locally through FUSE.  @value{tramp} uses
+filesystem is mounted locally through FUSE@.  @value{tramp} uses
 this local mounted directory internally.
 
 The communication with GVFS is implemented via D-Bus messages.
@@ -1093,7 +1093,7 @@ FUSE, it also needs the SYNCE-GVFS plugin.
 
 @defopt tramp-gvfs-methods
 This customer option, a list, defines the external methods which
-shall be used with GVFS.  Per default, these are @option{dav},
+shall be used with GVFS@.  Per default, these are @option{dav},
 @option{davs}, @option{obex} and @option{synce}.  Other possible
 values are @option{ftp}, @option{sftp} and @option{smb}.
 @end defopt
@@ -2939,7 +2939,7 @@ to @code{nil}, @ref{Filename completion}.
 
 Disable version control.  If you access remote files which are not
 under version control, a lot of check operations can be avoided by
-disabling VC.  This can be achieved by
+disabling VC@.  This can be achieved by
 
 @lisp
 (setq vc-ignore-dir-regexp
@@ -3268,7 +3268,7 @@ local host as @samp{root} user, is possible just by @kbd{C-x C-f
 
 @item Use configuration possibilities of your method:
 
-Several connection methods (i.e. the programs used) offer powerful
+Several connection methods (i.e., the programs used) offer powerful
 configuration possibilities (@pxref{Customizing Completion}).  In the
 given case, this could be @file{~/.ssh/config}:
 

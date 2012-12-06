@@ -839,7 +839,7 @@ keymap.
 @end defun
 
 @code{current-local-map} returns a reference to the local keymap, not
-a copy of it; if you use @code{define-key} or other functions on it 
+a copy of it; if you use @code{define-key} or other functions on it
 you will alter local bindings.
 
 @defun current-minor-mode-maps
@@ -1530,7 +1530,7 @@ Instead, if an ordinary key binding specifies @code{kill-line}, it is
 remapped to @code{my-kill-line}; if an ordinary binding specifies
 @code{my-kill-line}, it is remapped to @code{my-other-kill-line}.
 
-To undo the remapping of a command, remap it to @code{nil}; e.g.
+To undo the remapping of a command, remap it to @code{nil}; e.g.,
 
 @smallexample
 (define-key my-mode-map [remap kill-line] nil)
@@ -1597,7 +1597,7 @@ alternative interpretations that are usually preferred.  It applies
 after @code{input-decode-map} and before @code{key-translation-map}.
 
 Entries in @code{local-function-key-map} are ignored if they conflict
-with bindings made in the minor mode, local, or global keymaps.  I.e.
+with bindings made in the minor mode, local, or global keymaps.  I.e.,
 the remapping only applies if the original key sequence would
 otherwise not have any binding.
 
@@ -2029,7 +2029,7 @@ which is a string that appears as an element of the keymap.
 the menu's commands.  Emacs displays the overall prompt string as the
 menu title in some cases, depending on the toolkit (if any) used for
 displaying menus.@footnote{It is required for menus which do not use a
-toolkit, e.g.@: under MS-DOS.}  Keyboard menus also display the
+toolkit, e.g., under MS-DOS.}  Keyboard menus also display the
 overall prompt string.
 
 The easiest way to construct a keymap with a prompt string is to
@@ -2308,9 +2308,9 @@ the following word.  Thus, @code{"--:singleLine"}, is equivalent to
 and @code{:visible} for a menu separator:
 
 @code{(menu-item @var{separator-type} nil . @var{item-property-list})}
-  
+
 For example:
-  
+
 @example
 (menu-item "--" nil :visible (boundp 'foo))
 @end example

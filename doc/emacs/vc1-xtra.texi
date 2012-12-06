@@ -30,7 +30,7 @@
 you can generate change log entries from the version control log
 entries of previous commits.
 
-  Note that this only works with RCS or CVS.  This procedure would be
+  Note that this only works with RCS or CVS@.  This procedure would be
 particularly incorrect on a modern changeset-based version control
 system, where changes to the @file{ChangeLog} file would normally be
 committed as part of a changeset.  In that case, you should write the
@@ -195,7 +195,7 @@ Thus, you can use it to compare a tagged version against the current files,
 or two tagged versions against each other.
 
   On SCCS, VC implements tags itself; these tags are visible only
-through VC.  Most later systems (including CVS, Subversion, bzr, git,
+through VC@.  Most later systems (including CVS, Subversion, bzr, git,
 and hg) have a native tag facility, and VC uses it where available;
 those tags will be visible even when you bypass VC.
 
@@ -236,7 +236,7 @@ way, change the variable @code{vc-consult-headers} to @code{nil}.
 @vindex vc-@var{backend}-header
   To insert a suitable header string into the current buffer, type
 @kbd{C-x v h} (@code{vc-insert-headers}).  This command works only on
-Subversion, CVS, RCS, and SCCS.  The variable
+Subversion, CVS, RCS, and SCCS@.  The variable
 @code{vc-@var{backend}-header} contains the list of keywords to insert
 into the version header; for instance, CVS uses @code{vc-cvs-header},
 whose default value is @code{'("\$Id\$")}.  (The extra backslashes
@@ -313,13 +313,6 @@ appropriate version control system.  If @code{vc-command-messages} is
 non-@code{nil}, VC displays messages to indicate which shell commands
 it runs, and additional messages when the commands finish.
 
-@vindex vc-path
-  You can specify additional directories to search for version control
-programs by setting the variable @code{vc-path}.  These directories
-are searched before the usual search path.  It is rarely necessary to
-set this variable, because VC normally finds the proper files
-automatically.
-
 @node RCS and SCCS
 @subsubsection Options for RCS and SCCS
 
@@ -360,7 +353,7 @@ changed erroneously, set @code{vc-mistrust-permissions} to @code{t}.
 Then VC always checks the master file to determine the file's status.
 
   VC determines the version control state of files under SCCS much as
-with RCS.  It does not consider SCCS version headers, though.  Thus,
+with RCS@.  It does not consider SCCS version headers, though.  Thus,
 the variable @code{vc-mistrust-permissions} affects SCCS use, but
 @code{vc-consult-headers} does not.
 
@@ -380,7 +373,7 @@ the name of the operation to invoke.
 network interactions to a minimum.  This is controlled by the variable
 @code{vc-cvs-stay-local}.  There is another variable,
 @code{vc-stay-local}, which enables the feature also for other back
-ends that support it, including CVS.  In the following, we will talk
+ends that support it, including CVS@.  In the following, we will talk
 only about @code{vc-cvs-stay-local}, but everything applies to
 @code{vc-stay-local} as well.
 

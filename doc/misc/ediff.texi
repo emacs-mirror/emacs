@@ -409,7 +409,7 @@ Many Ediff commands take numeric prefix arguments.  For instance, if you
 type a number, say 3, and then @kbd{j} (@code{ediff-jump-to-difference}),
 Ediff moves to the third difference region.  Typing 3 and then @kbd{a}
 (@code{ediff-diff-to-diff}) copies the 3rd difference region from variant A
-to variant B.  Likewise, 4 followed by @kbd{ra} restores the 4th difference
+to variant B@.  Likewise, 4 followed by @kbd{ra} restores the 4th difference
 region in buffer A (if it was previously written over via the command
 @kbd{a}).
 
@@ -490,7 +490,7 @@ compares three files simultaneously).
 @kindex a
 @emph{In comparison sessions:}
 Copies the current difference region (or the region specified as the prefix
-to this command) from buffer A to buffer B.
+to this command) from buffer A to buffer B@.
 Ediff saves the old contents of buffer B's region; it can
 be restored via the command @kbd{rb}, which see.
 
@@ -512,31 +512,31 @@ be reinstated via the command @kbd{ra} in comparison sessions and
 @item ab
 @kindex ab
 Copies the current difference region (or the region specified as the prefix
-to this command) from buffer A to buffer B.  This (and the next five)
+to this command) from buffer A to buffer B@.  This (and the next five)
 command is enabled only in sessions that compare three files
 simultaneously.  The old region in buffer B is saved and can be restored
 via the command @kbd{rb}.
 @item ac
 @kindex ac
-Copies the difference region from buffer A to buffer C.
+Copies the difference region from buffer A to buffer C@.
 The old region in buffer C is saved and can be restored via the command
 @kbd{rc}.
 @item ba
 @kindex ba
-Copies the difference region from buffer B to buffer A.
+Copies the difference region from buffer B to buffer A@.
 The old region in buffer A is saved and can be restored via the command
 @kbd{ra}.
 @item bc
 @kindex bc
-Copies the difference region from buffer B to buffer C.
+Copies the difference region from buffer B to buffer C@.
 The command @kbd{rc} undoes this.
 @item ca
 @kindex ca
-Copies the difference region from buffer C to buffer A.
+Copies the difference region from buffer C to buffer A@.
 The command @kbd{ra} undoes this.
 @item cb
 @kindex cb
-Copies the difference region from buffer C to buffer B.
+Copies the difference region from buffer C to buffer B@.
 The command @kbd{rb} undoes this.
 
 @item p
@@ -713,12 +713,12 @@ over.  @xref{Selective Browsing}, for more.
 
 @item A
 @kindex A
-Toggles the read-only property in buffer A.
+Toggles the read-only property in buffer A@.
 If file A is under version control and is checked in, it is checked out
 (with your permission).
 @item B
 @kindex B
-Toggles the read-only property in buffer B.
+Toggles the read-only property in buffer B@.
 If file B is under version control and is checked in, it is checked out.
 @item C
 @kindex C
@@ -795,7 +795,7 @@ While merging with an ancestor file, Ediff is determined to reduce user's
 wear and tear by saving him and her much of unproductive, repetitive
 typing.  If it notices that, say, file A's difference region is identical to
 the same difference region in the ancestor file, then the merge buffer will
-automatically get the difference region taken from buffer B.  The rationale
+automatically get the difference region taken from buffer B@.  The rationale
 is that this difference region in buffer A is as old as that in the
 ancestor buffer, so the contents of that region in buffer B represents real
 change.
@@ -820,7 +820,7 @@ To be more precise, this toggles the check for whether the current merge is
 identical to its default setting, as originally decided by Ediff.  For
 instance, if Ediff is merging according to the `combined' policy, then the
 merge region is skipped over if it is different from the combination of the
-regions in buffers A and B.  (Warning: swapping buffers A and B will confuse
+regions in buffers A and B@.  (Warning: swapping buffers A and B will confuse
 things in this respect.)  If the merge region is marked as `prefer-A' then
 this region will be skipped if it differs from the current difference
 region in buffer A, etc.
@@ -1238,7 +1238,7 @@ Keep in mind that hooks executing before @code{ediff-cleanup-mess} start
 in @code{ediff-control-buffer;} they should also leave
 @code{ediff-control-buffer} as the current buffer when they finish.
 Hooks that are executed after @code{ediff-cleanup-mess} should expect
-the current buffer be either buffer A or buffer B.
+the current buffer be either buffer A or buffer B@.
 @code{ediff-cleanup-mess} doesn't kill the buffers being compared or
 merged (see @code{ediff-cleanup-hook}, below).
 
@@ -1361,7 +1361,7 @@ the variable @code{ediff-help-message}, which is local to
 @section Window and Frame Configuration
 
 On a non-windowing display, Ediff sets things up in one frame, splitting
-it between a small control window and the windows for buffers A, B, and C.
+it between a small control window and the windows for buffers A, B, and C@.
 The split between these windows can be horizontal or
 vertical, which can be changed interactively by typing @kbd{|} while the
 cursor is in the control window.
@@ -1999,7 +1999,7 @@ represented as a list of the form @code{(STRING1 Symbol1 STRING2 Symbol2
 STRING3 Symbol3 STRING4)}. The symbols here must be atoms of the form
 @code{A}, @code{B}, or @code{Ancestor}. They determine the order in which
 the corresponding difference regions (from buffers A, B, and the ancestor
-buffer) are displayed in the merged region of buffer C.  The strings in the
+buffer) are displayed in the merged region of buffer C@.  The strings in the
 template determine the text that separates the aforesaid regions. The
 default template is
 
@@ -2062,7 +2062,7 @@ you copy a difference region from buffer A to buffer C then
 @samp{=diff(B)} will change to @samp{diff-A} and the mode line will
 display @samp{=diff(A) prefer-B}.  This indicates that the difference
 region in buffer C is identical to that in buffer A, but originally
-buffer C's region came from buffer B.  This is useful to know because
+buffer C's region came from buffer B@.  This is useful to know because
 you can recover the original difference region in buffer C by typing
 @kbd{r}.
 
@@ -2090,7 +2090,7 @@ buffer A consists of the white space only (or if it is empty), Ediff will
 not take it into account for the purpose of computing fine differences.  The
 result is that Ediff can provide a better visual information regarding the
 actual fine differences in the non-white regions in buffers B and
-C.  Moreover, if the regions in buffers B and C differ in the white space
+C@.  Moreover, if the regions in buffers B and C differ in the white space
 only, then a message to this effect will be displayed.
 
 @vindex ediff-merge-window-share
@@ -2388,7 +2388,7 @@ In merging, this is the merge buffer.
 In two-way comparison, this variable is @code{nil}.
 
 @item ediff-window-A
-The window displaying buffer A.  If buffer A is not visible, this variable
+The window displaying buffer A@.  If buffer A is not visible, this variable
 is @code{nil} or it may be a dead window.
 
 @item ediff-window-B
@@ -2407,7 +2407,7 @@ the control buffer is in its own frame.
 @chapter Credits
 
 Ediff was written by Michael Kifer <kifer@@cs.stonybrook.edu>.  It was inspired
-by emerge.el written by Dale R.@: Worley <drw@@math.mit.edu>.  An idea due to
+by emerge.el written by Dale R. Worley <drw@@math.mit.edu>.  An idea due to
 Boris Goldowsky <boris@@cs.rochester.edu> made it possible to highlight
 fine differences in Ediff buffers.  Alastair Burt <burt@@dfki.uni-kl.de>
 ported Ediff to XEmacs, Eric Freudenthal <freudent@@jan.ultra.nyu.edu>
@@ -2424,15 +2424,15 @@ Adrian Aichner (aichner at ecf.teradyne.com),
 Drew Adams (drew.adams at oracle.com),
 Steve Baur (steve at xemacs.org),
 Neal Becker (neal at ctd.comsat.com),
-E.@: Jay Berkenbilt (ejb at ql.org),
+E. Jay Berkenbilt (ejb at ql.org),
 Lennart Borgman (ennart.borgman at gmail.com)
 Alastair Burt (burt at dfki.uni-kl.de),
 Paul Bibilo (peb at delcam.co.uk),
 Kevin Broadey (KevinB at bartley.demon.co.uk),
 Harald Boegeholz (hwb at machnix.mathematik.uni-stuttgart.de),
-Bradley A.@: Bosch (brad at lachman.com),
-Michael D.@: Carney (carney at ltx-tr.com),
-Jin S.@: Choi (jin at atype.com),
+Bradley A. Bosch (brad at lachman.com),
+Michael D. Carney (carney at ltx-tr.com),
+Jin S. Choi (jin at atype.com),
 Scott Cummings (cummings at adc.com),
 Albert Dvornik (bert at mit.edu),
 Eric Eide (eeide at asylum.cs.utah.edu),
@@ -2491,7 +2491,7 @@ Paul Raines (raines at slac.stanford.edu),
 Stefan Reicher (xsteve at riic.at),
 Charles Rich (rich at merl.com),
 Bill Richter (richter at math.nwu.edu),
-C.S.@: Roberson (roberson at aur.alcatel.com),
+C.S. Roberson (roberson at aur.alcatel.com),
 Kevin Rodgers (kevin.rodgers at ihs.com),
 Sandy Rutherford (sandy at ibm550.sissa.it),
 Heribert Schuetz (schuetz at ecrc.de),

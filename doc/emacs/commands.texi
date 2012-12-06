@@ -53,7 +53,7 @@ holding down the @key{Ctrl} key while pressing @kbd{a}; we will refer
 to this as @kbd{C-a} for short.  Similarly @kbd{Meta-a}, or @kbd{M-a}
 for short, is entered by holding down the @key{Alt} key and pressing
 @kbd{a}.  Modifier keys can also be applied to non-alphanumerical
-characters, e.g. @kbd{C-@key{F1}} or @kbd{M-@key{left}}.
+characters, e.g., @kbd{C-@key{F1}} or @kbd{M-@key{left}}.
 
 @cindex @key{ESC} replacing @key{Meta} key
   You can also type Meta characters using two-character sequences

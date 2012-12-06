@@ -167,7 +167,7 @@ Since this is so common, you can use @key{TAB} to do nick completion.
 Use the command @kbd{M-x irc} to connect using the defaults.
 @xref{Configuration}, if you want to change the defaults.
 
-Use @kbd{C-u M-x irc} if you don't want to use the defaults, eg. if you
+Use @kbd{C-u M-x irc} if you don't want to use the defaults, e.g., if you
 want to connect to a different network, or connect to the same network
 using a different nick.  This will prompt you for four things:
 
@@ -514,7 +514,7 @@ like @code{rcirc-default-nick}.
 @cindex full name
 @cindex real name
 @cindex surname
-This variable is used to set your ``real name'' on IRC.  It defaults
+This variable is used to set your ``real name'' on IRC@.  It defaults
 to the name returned by @code{user-full-name}.  If you want to hide
 your full name, you might want to set it to some pseudonym.
 

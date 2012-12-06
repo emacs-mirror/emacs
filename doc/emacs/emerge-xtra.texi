@@ -186,12 +186,12 @@ haven't made a choice.  All differences start in the default-A state
 which one alternative is ``preferred'' (see below).
 
 When you select a difference, its state changes from default-A or
-default-B to plain A or B.  Thus, the selected difference never has
+default-B to plain A or B@.  Thus, the selected difference never has
 state default-A or default-B, and these states are never displayed in
 the mode line.
 
 The command @kbd{d a} chooses default-A as the default state, and @kbd{d
-b} chooses default-B.  This chosen default applies to all differences
+b} chooses default-B@.  This chosen default applies to all differences
 that you have never selected and for which no alternative is preferred.
 If you are moving through the merge sequentially, the differences you
 haven't selected are those following the selected one.  Thus, while
@@ -375,7 +375,7 @@ While this example shows C preprocessor conditionals delimiting the two
 alternative versions, you can specify the strings to use by setting
 the variable @code{emerge-combine-versions-template} to a string of your
 choice.  In the string, @samp{%a} says where to put version A, and
-@samp{%b} says where to put version B.  The default setting, which
+@samp{%b} says where to put version B@.  The default setting, which
 produces the results shown above, looks like this:
 
 @example

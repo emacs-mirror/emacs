@@ -113,7 +113,7 @@ people use only standard field names with accepted meanings.
 @vindex user-full-name
 @vindex user-mail-address
   The @samp{From} header field identifies the person sending the email
-(i.e.@: you).  This should be a valid mailing address, as replies are
+(i.e., you).  This should be a valid mailing address, as replies are
 normally sent there.  The default contents of this header field are
 computed from the variables @code{user-full-name} (which specifies
 your full name) and @code{user-mail-address} (your email address).  On

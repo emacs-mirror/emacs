@@ -249,14 +249,14 @@ variables @code{scroll-up-aggressively} and
 position of point after scrolling.  The value of
 @code{scroll-up-aggressively} should be either @code{nil} (the
 default), or a floating point number @var{f} between 0 and 1.  The
-latter means that when point goes below the bottom window edge (i.e.@:
+latter means that when point goes below the bottom window edge (i.e.,
 scrolling forward), Emacs scrolls the window so that point is @var{f}
 parts of the window height from the bottom window edge.  Thus, larger
 @var{f} means more aggressive scrolling: more new text is brought into
 view.  The default value, @code{nil}, is equivalent to 0.5.
 
   Likewise, @code{scroll-down-aggressively} is used when point goes
-above the bottom window edge (i.e.@: scrolling backward).  The value
+above the bottom window edge (i.e., scrolling backward).  The value
 specifies how far point should be from the top margin of the window
 after scrolling.  Thus, as with @code{scroll-up-aggressively}, a
 larger value is more aggressive.
@@ -1089,7 +1089,7 @@ buffer text, so blank lines at the end of the buffer stand out because
 they lack this image.  To enable this feature, set the buffer-local
 variable @code{indicate-empty-lines} to a non-@code{nil} value.  You
 can enable or disable this feature for all new buffers by setting the
-default value of this variable, e.g.@: @code{(setq-default
+default value of this variable, e.g., @code{(setq-default
 indicate-empty-lines t)}.
 
 @cindex Whitespace mode
@@ -1258,7 +1258,7 @@ line looks like this:
 Here @var{hh} and @var{mm} are the hour and minute, followed always by
 @samp{am} or @samp{pm}.  @var{l.ll} is the average number, collected
 for the last few minutes, of processes in the whole system that were
-either running or ready to run (i.e.@: were waiting for an available
+either running or ready to run (i.e., were waiting for an available
 processor).  (Some fields may be missing if your operating system
 cannot support them.)  If you prefer time display in 24-hour format,
 set the variable @code{display-time-24hr-format} to @code{t}.
@@ -1369,7 +1369,7 @@ as octal escape sequences instead of caret escape sequences.
   Some non-@acronym{ASCII} characters have the same appearance as an
 @acronym{ASCII} space or hyphen (minus) character.  Such characters
 can cause problems if they are entered into a buffer without your
-realization, e.g.@: by yanking; for instance, source code compilers
+realization, e.g., by yanking; for instance, source code compilers
 typically do not treat non-@acronym{ASCII} spaces as whitespace
 characters.  To deal with this problem, Emacs displays such characters
 specially: it displays @code{U+00A0} (no-break space) with the

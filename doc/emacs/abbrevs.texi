@@ -141,7 +141,7 @@ abbrev definitions, both global and local.
 
   When Abbrev mode is enabled, an abbrev expands whenever it is
 present in the buffer just before point and you type a self-inserting
-whitespace or punctuation character (@key{SPC}, comma, etc.@:).  More
+whitespace or punctuation character (@key{SPC}, comma, etc.).  More
 precisely, any character that is not a word constituent expands an
 abbrev, and any word-constituent character can be part of an abbrev.
 The most common way to use an abbrev is to insert it and then insert a

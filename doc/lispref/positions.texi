@@ -748,7 +748,7 @@ terminate it, and @samp{\} quotes @samp{^}, @samp{-} or @samp{\}.
 Thus, @code{"a-zA-Z"} skips over all letters, stopping before the
 first nonletter, and @code{"^a-zA-Z"} skips nonletters stopping before
 the first letter.  See @xref{Regular Expressions}.  Character classes
-can also be used, e.g. @code{"[:alnum:]"}.  See @pxref{Char Classes}.
+can also be used, e.g., @code{"[:alnum:]"}.  See @pxref{Char Classes}.
 
 If @var{limit} is supplied (it must be a number or a marker), it
 specifies the maximum position in the buffer that point can be skipped

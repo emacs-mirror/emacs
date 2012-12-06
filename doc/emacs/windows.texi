@@ -282,7 +282,7 @@ window one line taller, taking space from a vertically adjacent window
 without changing the height of the frame.  With a positive numeric
 argument, this command increases the window height by that many lines;
 with a negative argument, it reduces the height by that many lines.
-If there are no vertically adjacent windows (i.e. the window is at the
+If there are no vertically adjacent windows (i.e., the window is at the
 full frame height), that signals an error.  The command also signals
 an error if you attempt to reduce the height of any window below a
 certain minimum number of lines, specified by the variable
@@ -328,7 +328,7 @@ usually work by calling @code{switch-to-buffer} internally
 
 @findex display-buffer
   Some commands try to display ``intelligently'', trying not to take
-over the selected window, e.g. by splitting off a new window and
+over the selected window, e.g., by splitting off a new window and
 displaying the desired buffer there.  Such commands, which include the
 various help commands (@pxref{Help}), work by calling
 @code{display-buffer} internally.  @xref{Window Choice}, for details.
@@ -425,7 +425,7 @@ and display the buffer there.
 @cindex undoing window configuration changes
 @cindex window configuration changes, undoing
   Winner mode is a global minor mode that records the changes in the
-window configuration (i.e. how the frames are partitioned into
+window configuration (i.e., how the frames are partitioned into
 windows), so that you can ``undo'' them.  You can toggle Winner mode
 with @kbd{M-x winner-mode}, or by customizing the variable
 @code{winner-mode}.  When the mode is enabled, @kbd{C-c left}

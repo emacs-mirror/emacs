@@ -47,7 +47,7 @@ developing GNU and promoting software freedom.''
 @ifnottex
 @node Top
 @top GNU Flymake
-@insertcopying 
+@insertcopying
 @end ifnottex
 
 @menu
@@ -69,7 +69,7 @@ Emacs minor mode. Flymake runs the pre-configured syntax check tool
 (compiler for C++ files, @code{perl} for perl files, etc.) in the
 background, passing it a temporary copy of the current buffer, and
 parses the output for known error/warning message patterns. Flymake
-then highlights erroneous lines (i.e. lines for which at least one
+then highlights erroneous lines (i.e., lines for which at least one
 error or warning has been reported by the syntax check tool), and
 displays an overall buffer status in the mode line. Status information
 displayed by Flymake contains total number of errors and warnings

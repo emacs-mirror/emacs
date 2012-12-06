@@ -865,7 +865,7 @@ derived from any of the major modes given by the symbols @var{modes}.
 
   Apart from Fundamental mode, there are three major modes that other
 major modes commonly derive from: Text mode, Prog mode, and Special
-mode.  While Text mode is useful in its own right (e.g. for editing
+mode.  While Text mode is useful in its own right (e.g., for editing
 files ending in @file{.txt}), Prog mode and Special mode exist mainly to
 let other modes derive from them.
 
@@ -873,8 +873,8 @@ let other modes derive from them.
   As far as possible, new major modes should be derived, either directly
 or indirectly, from one of these three modes.  One reason is that this
 allows users to customize a single mode hook
-(e.g. @code{prog-mode-hook}) for an entire family of relevant modes
-(e.g. all programming language modes).
+(e.g., @code{prog-mode-hook}) for an entire family of relevant modes
+(e.g., all programming language modes).
 
 @deffn Command text-mode
 Text mode is a major mode for editing human languages.  It defines the
@@ -981,7 +981,7 @@ very end of every properly-written major mode command.
 @cindex Tabulated List mode
 
   Tabulated List mode is a major mode for displaying tabulated data,
-i.e.@: data consisting of @dfn{entries}, each entry occupying one row of
+i.e., data consisting of @dfn{entries}, each entry occupying one row of
 text with its contents divided into columns.  Tabulated List mode
 provides facilities for pretty-printing rows and columns, and sorting
 the rows according to the values in each column.  It is derived from
@@ -1002,7 +1002,7 @@ function @code{tabulated-list-init-header} to initialize the header
 line.
 
   The derived mode should also define a @dfn{listing command}.  This,
-not the mode command, is what the user calls (e.g.@: @kbd{M-x
+not the mode command, is what the user calls (e.g., @kbd{M-x
 list-processes}).  The listing command should create or switch to a
 buffer, turn on the derived mode, specify the tabulated data, and
 finally call @code{tabulated-list-print} to populate the buffer.
@@ -1378,11 +1378,11 @@ the mode's features.
 
 The mode command should accept one optional argument.  If called
 interactively with no prefix argument, it should toggle the mode
-(i.e.@: enable if it is disabled, and disable if it is enabled).  If
+(i.e., enable if it is disabled, and disable if it is enabled).  If
 called interactively with a prefix argument, it should enable the mode
 if the argument is positive and disable it otherwise.
 
-If the mode command is called from Lisp (i.e.@: non-interactively), it
+If the mode command is called from Lisp (i.e., non-interactively), it
 should enable the mode if the argument is omitted or @code{nil}; it
 should toggle the mode if the argument is the symbol @code{toggle};
 otherwise it should treat the argument in the same way as for an
@@ -3085,7 +3085,7 @@ for comments.
 
 @item font-lock-comment-delimiter-face
 @vindex font-lock-comment-delimiter-face
-for comments delimiters, like @samp{/*} and @samp{*/} in C.  On most
+for comments delimiters, like @samp{/*} and @samp{*/} in C@.  On most
 terminals, this inherits from @code{font-lock-comment-face}.
 
 @item font-lock-type-face
@@ -3163,7 +3163,7 @@ outside of any comment, string, or sexp (@pxref{Position Parse}).
 
 This variable is semi-obsolete; we usually recommend setting
 @code{syntax-begin-function} instead.  One of its uses is to tune the
-behavior of syntactic fontification, e.g.@: to ensure that different
+behavior of syntactic fontification, e.g., to ensure that different
 kinds of strings or comments are highlighted differently.
 
 The specified function is called with no arguments.  It should leave
@@ -3539,7 +3539,7 @@ T1 = T2, or T1 > T2.
 @item
 A token can be an @code{opener} (something similar to an open-paren),
 a @code{closer} (like a close-paren), or @code{neither} of the two
-(e.g. an infix operator, or an inner token like @code{"else"}).
+(e.g., an infix operator, or an inner token like @code{"else"}).
 @end itemize
 
 Precedence conflicts can be resolved via @var{resolvers}, which
@@ -3752,7 +3752,7 @@ Finally, in many cases some conflicts will remain despite all efforts to
 restructure the grammar.  Do not despair: while the parser cannot be
 made more clever, you can make the lexer as smart as you want.  So, the
 solution is then to look at the tokens involved in the conflict and to
-split one of those tokens into 2 (or more) different tokens.  E.g. if
+split one of those tokens into 2 (or more) different tokens.  E.g., if
 the grammar needs to distinguish between two incompatible uses of the
 token @code{"begin"}, make the lexer return different tokens (say
 @code{"begin-fun"} and @code{"begin-plain"}) depending on which kind of
@@ -3883,7 +3883,7 @@ Indent current token as a @emph{separator}.
 
 By @emph{separator}, we mean here a token whose sole purpose is to
 separate various elements within some enclosing syntactic construct, and
-which does not have any semantic significance in itself (i.e. it would
+which does not have any semantic significance in itself (i.e., it would
 typically not exist as a node in an abstract syntax tree).
 
 Such a token is expected to have an associative syntax and be closely
@@ -4039,4 +4039,3 @@ and it should return the restored buffer.
 Here @var{desktop-buffer-misc} is the value returned by the function
 optionally bound to @code{desktop-save-buffer}.
 @end defvar
-

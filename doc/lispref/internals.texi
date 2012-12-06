@@ -571,7 +571,7 @@ Emacs session.
 @cindex primitive function internals
 @cindex writing Emacs primitives
 
-  Lisp primitives are Lisp functions implemented in C.  The details of
+  Lisp primitives are Lisp functions implemented in C@.  The details of
 interfacing the C function so that Lisp can call it are handled by a few
 C macros.  The only way to really understand how to write new C code is
 to read the source, but we can explain some things here.
@@ -858,7 +858,7 @@ DEFUN ("coordinates-in-window-p", Fcoordinates_in_window_p,
 @end smallexample
 
   Note that C code cannot call functions by name unless they are defined
-in C.  The way to call a function written in Lisp is to use
+in C@.  The way to call a function written in Lisp is to use
 @code{Ffuncall}, which embodies the Lisp function @code{funcall}.  Since
 the Lisp function @code{funcall} accepts an unlimited number of
 arguments, in C it takes two: the number of Lisp-level arguments, and a
@@ -962,7 +962,7 @@ process object is used to manage the subprocesses.
 @cindex buffer internals
 
   Two structures (see @file{buffer.h}) are used to represent buffers
-in C.  The @code{buffer_text} structure contains fields describing the
+in C@.  The @code{buffer_text} structure contains fields describing the
 text of a buffer; the @code{buffer} structure holds other fields.  In
 the case of indirect buffers, two or more @code{buffer} structures
 reference the same @code{buffer_text} structure.
@@ -1255,7 +1255,7 @@ These fields contain the window's leftmost child and its topmost child
 respectively.  @code{hchild} is used if the window is subdivided
 horizontally by child windows, and @code{vchild} if it is subdivided
 vertically.  In a live window, only one of @code{hchild}, @code{vchild},
-and @code{buffer} (q.v.) is non-@code{nil}.
+and @code{buffer} (q.v.@:) is non-@code{nil}.
 
 @item next
 @itemx prev

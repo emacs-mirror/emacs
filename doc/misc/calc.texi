@@ -293,7 +293,7 @@ experience with GNU Emacs in order to get the most out of Calc,
 this manual ought to be readable even if you don't know or use Emacs
 regularly.
 
-This manual is divided into three major parts:@: the ``Getting
+This manual is divided into three major parts: the ``Getting
 Started'' chapter you are reading now, the Calc tutorial, and the Calc
 reference manual.
 @c [when-split]
@@ -10518,7 +10518,7 @@ Integers, fractions, and floats are various ways of describing real
 numbers.  HMS forms also for many purposes act as real numbers.  These
 types can be combined to form complex numbers, modulo forms, error forms,
 or interval forms.  (But these last four types cannot be combined
-arbitrarily:@: error forms may not contain modulo forms, for example.)
+arbitrarily: error forms may not contain modulo forms, for example.)
 Finally, all these types of numbers may be combined into vectors,
 matrices, or algebraic formulas.
 
@@ -13472,7 +13472,7 @@ Year:  ``ad '' or blank.  (Note trailing space.)
 @item AAA
 Year:  ``AD '' or blank.
 @item aaaa
-Year:  ``a.d.'' or blank.
+Year:  ``a.d.@:'' or blank.
 @item AAAA
 Year:  ``A.D.'' or blank.
 @item bb
@@ -13484,7 +13484,7 @@ Year:  `` bc'' or blank.  (Note leading space.)
 @item BBB
 Year:  `` BC'' or blank.
 @item bbbb
-Year:  ``b.c.'' or blank.
+Year:  ``b.c.@:'' or blank.
 @item BBBB
 Year:  ``B.C.'' or blank.
 @item M
@@ -13548,7 +13548,7 @@ AM/PM:  ``am'' or ``pm''.
 @item PP
 AM/PM:  ``AM'' or ``PM''.
 @item pppp
-AM/PM:  ``a.m.'' or ``p.m.''.
+AM/PM:  ``a.m.@:'' or ``p.m.''.
 @item PPPP
 AM/PM:  ``A.M.'' or ``P.M.''.
 @item m
@@ -16997,7 +16997,7 @@ this formula will return the Wednesday one week in the future.  An
 exercise for the reader is to modify this formula to yield the same day
 if the input is already a Wednesday.  Another interesting exercise is
 to preserve the time-of-day portion of the input (@code{newweek} resets
-the time to midnight; hint:@: how can @code{newweek} be defined in terms
+the time to midnight; hint: how can @code{newweek} be defined in terms
 of the @code{weekday} function?).
 
 @ignore
@@ -34455,7 +34455,7 @@ traversed in this way, it is compared with the original formula (from
 before the call to @code{normalize}) and, if it has changed,
 the entire procedure is repeated (starting with @code{normalize})
 until no further changes occur.  Usually only two iterations are
-needed:@: one to simplify the formula, and another to verify that no
+needed: one to simplify the formula, and another to verify that no
 further simplifications were possible.
 @end defun
 

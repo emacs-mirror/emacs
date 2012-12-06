@@ -772,7 +772,7 @@ too short).  Both of those begin with the string @samp{foobar}.
 This function returns a list of all possible completions of
 @var{string}.  The arguments to this function
 @c (aside from @var{nospace})
-are the same as those of @code{try-completion}, and it 
+are the same as those of @code{try-completion}, and it
 uses @code{completion-regexp-list} in the same way that
 @code{try-completion} does.
 
@@ -1599,7 +1599,7 @@ and @var{predicate} arguments have the same meanings as in
 @code{try-completion} (@pxref{Basic Completion}), and the @var{point}
 argument is the position of point within @var{string}.  Each function
 should return a non-@code{nil} value if it performed its job, and
-@code{nil} if it did not (e.g.@: if there is no way to complete
+@code{nil} if it did not (e.g., if there is no way to complete
 @var{string} according to the completion style).
 
 When the user calls a completion command like

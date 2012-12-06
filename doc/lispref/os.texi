@@ -445,7 +445,7 @@ is found whose name is identical to the terminal's name, Emacs strips
 from the terminal's name the last hyphen or underscore and everything that follows
 it, and tries again.  This process is repeated until Emacs finds a
 matching library, or until there are no more hyphens or underscores in the name
-(i.e.@: there is no terminal-specific library).  For example, if the
+(i.e., there is no terminal-specific library).  For example, if the
 terminal name is @samp{xterm-256color} and there is no
 @file{term/xterm-256color.el} library, Emacs tries to load
 @file{term/xterm.el}.  If necessary, the terminal library can evaluate
@@ -638,7 +638,7 @@ input) can read them.
 higher-level command @kbd{C-x C-c}
 (@code{save-buffers-kill-terminal}).  @xref{Exiting,,, emacs, The GNU
 Emacs Manual}.  It is also called automatically if Emacs receives a
-@code{SIGTERM} or @code{SIGHUP} operating system signal (e.g. when the
+@code{SIGTERM} or @code{SIGHUP} operating system signal (e.g., when the
 controlling terminal is disconnected), or if it receives a
 @code{SIGINT} signal while running in batch mode (@pxref{Batch Mode}).
 
@@ -646,7 +646,7 @@ controlling terminal is disconnected), or if it receives a
 This normal hook is run by @code{kill-emacs}, before it kills Emacs.
 
 Because @code{kill-emacs} can be called in situations where user
-interaction is impossible (e.g. when the terminal is disconnected),
+interaction is impossible (e.g., when the terminal is disconnected),
 functions on this hook should not attempt to interact with the user.
 If you want to interact with the user when Emacs is shutting down, use
 @code{kill-emacs-query-functions}, described below.
@@ -871,7 +871,7 @@ Hewlett-Packard HPUX operating system.
 Silicon Graphics Irix system.
 
 @item ms-dos
-Microsoft's DOS.  Emacs compiled with DJGPP for MS-DOS binds
+Microsoft's DOS@.  Emacs compiled with DJGPP for MS-DOS binds
 @code{system-type} to @code{ms-dos} even when you run it on MS-Windows.
 
 @item usg-unix-v
@@ -879,7 +879,7 @@ AT&T Unix System V.
 
 @item windows-nt
 Microsoft Windows NT, 9X and later.  The value of @code{system-type}
-is always @code{windows-nt}, e.g. even on Windows 7.
+is always @code{windows-nt}, e.g., even on Windows 7.
 
 @end table
 
@@ -887,7 +887,7 @@ We do not wish to add new symbols to make finer distinctions unless it
 is absolutely necessary!  In fact, we hope to eliminate some of these
 alternatives in the future.  If you need to make a finer distinction
 than @code{system-type} allows for, you can test
-@code{system-configuration}, e.g. against a regexp.
+@code{system-configuration}, e.g., against a regexp.
 @end defvar
 
 @defun system-name
@@ -1202,7 +1202,7 @@ specified time.
   The return value of @code{current-time} represents time using four
 integers, as do the timestamps in the return value of
 @code{file-attributes} (@pxref{Definition of
-file-attributes}).  In function arguments, e.g.@: the @var{time-value}
+file-attributes}).  In function arguments, e.g., the @var{time-value}
 argument to @code{current-time-string}, two-, three-, and four-integer
 lists are accepted.  You can convert times from the list
 representation into standard human-readable strings using
@@ -1285,7 +1285,7 @@ vice versa.
 
   Many 32-bit operating systems are limited to time values containing
 32 bits of information; these systems typically handle only the times
-from 1901-12-13 20:45:52 UTC through 2038-01-19 03:14:07 UTC.
+from 1901-12-13 20:45:52 UTC through 2038-01-19 03:14:07 UTC@.
 However, 64-bit and some 32-bit operating systems have larger time
 values, and can represent times far in the past or future.
 
@@ -1534,7 +1534,7 @@ The integer number of minutes.
 The integer number of seconds.
 @item %z
 Non-printing control flag.  When it is used, other specifiers must be
-given in the order of decreasing size, i.e.@: years before days, hours
+given in the order of decreasing size, i.e., years before days, hours
 before minutes, etc.  Nothing will be produced in the result string to
 the left of @samp{%z} until the first non-zero conversion is
 encountered.  For example, the default format used by

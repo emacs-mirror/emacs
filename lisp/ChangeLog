@@ -1,3 +1,22 @@
+2012-12-06  Chong Yidong  <cyd@gnu.org>
+
+	* ffap.el (ffap-replace-file-component): Fix typo.
+
+2012-12-06  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* progmodes/octave-mod.el (octave-mark-block): Move out of tokens and
+	fix open-paren-like token test (bug#12785).
+
+2012-12-06  Glenn Morris  <rgm@gnu.org>
+
+	* mail/rmailsum.el (rmail-new-summary): Tweak for
+	rmail-maybe-display-summary changing buffer.  (Bug#13066)
+
+2012-12-06  Juri Linkov  <juri@jurta.org>
+
+	* info.el (Info-fontify-node): Don't hide the last newline.
+	(Bug#12272)
+
 2012-12-06  Katsumi Yamaoka  <yamaoka@jpl.org>
 
 	* mail/mailabbrev.el (mail-abbrev-expand-wrapper): Work in minibuffer

@@ -78,7 +78,7 @@ Started' chapter.
 @end ifinfo
 @end ifnottex
 
-@insertcopying 
+@insertcopying
 
 @menu
 * Getting Started::             Getting started using an Info reader.
@@ -264,7 +264,7 @@ links.
 
 @format
 >> If you are in Emacs and have a mouse, and if you already practiced
-   typing @kbd{n} to get to the next node, click now with the left 
+   typing @kbd{n} to get to the next node, click now with the left
    mouse button on the @samp{Next} link to do the same ``the mouse way''.
 @end format
 
@@ -324,7 +324,7 @@ the screen.
 we call ``Backspace or DEL'' in this manual is labeled differently on
 different keyboards.  Look for a key which is a little ways above the
 @key{ENTER} or @key{RET} key and which you normally use outside Emacs
-to erase the character before the cursor, i.e.@: the character you
+to erase the character before the cursor, i.e., the character you
 typed last.  It might be labeled @samp{Backspace} or @samp{<-} or
 @samp{DEL}, or sometimes @samp{Delete}.} and @kbd{b} commands exist to
 allow you to ``move around'' in a node that does not all fit on the

@@ -103,7 +103,7 @@ knows about.  These are: @code{holiday-general-holidays},
 @code{holiday-bahai-holidays}, @code{holiday-christian-holidays},
 @code{holiday-hebrew-holidays}, @code{holiday-islamic-holidays},
 @code{holiday-oriental-holidays}, and @code{holiday-other-holidays}.
-The names should be self-explanatory; e.g.@: @code{holiday-solar-holidays}
+The names should be self-explanatory; e.g., @code{holiday-solar-holidays}
 lists sun- and moon-related holidays.
 
 You can customize these lists of holidays to your own needs, deleting or
@@ -628,7 +628,7 @@ of the diary entries, or add items.
 variables @code{diary-comment-start} and @code{diary-comment-end} to
 strings that delimit comments.  The fancy display does not print
 comments.  You might want to put meta-data for the use of other packages
-(e.g.@: the appointment package,
+(e.g., the appointment package,
 @iftex
 @pxref{Appointments,,,emacs, the Emacs Manual})
 @end iftex

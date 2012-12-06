@@ -193,7 +193,7 @@ distinguishable in the @acronym{IEEE} floating point standard.
 infinity and negative infinity as floating point values.  It also
 provides for a class of values called NaN or ``not-a-number'';
 numerical functions return such values in cases where there is no
-correct answer.  For example, @code{(/ 0.0 0.0)} returns a NaN.  (NaN
+correct answer.  For example, @code{(/ 0.0 0.0)} returns a NaN@.  (NaN
 values can also carry a sign, but for practical purposes there's no
 significant difference between different NaN values in Emacs Lisp.)
 
@@ -1216,7 +1216,7 @@ series of pseudo-random integers.
 
 If @var{limit} is a positive integer, the value is chosen to be
 nonnegative and less than @var{limit}.  Otherwise, the value might be
-any integer representable in Lisp, i.e.@: an integer between
+any integer representable in Lisp, i.e., an integer between
 @code{most-negative-fixnum} and @code{most-positive-fixnum}
 (@pxref{Integer Basics}).
 

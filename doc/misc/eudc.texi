@@ -233,7 +233,7 @@ LDAP support is added by means of @file{ldap.el}, which is part of Emacs.
 @comment  node-name,  next,  previous,  up
 @chapter Usage
 
-This chapter describes the usage of EUDC.  Most functions and
+This chapter describes the usage of EUDC@.  Most functions and
 customization options are available through the @samp{Directory Search}
 submenu of the @samp{Tools} submenu.
 

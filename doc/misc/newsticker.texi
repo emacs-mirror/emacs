@@ -190,7 +190,7 @@ stop the periodic download, but will call
 @node Configuration
 @chapter Configuration
 
-All Newsticker options are customizable, i.e. they can be changed with
+All Newsticker options are customizable, i.e., they can be changed with
 Emacs customization methods.  Call the command
 @code{customize-group} and enter @samp{newsticker} for the customization
 group.
@@ -260,7 +260,7 @@ apply to the plainview reader only.
 
 @item
 @code{newsticker-ticker} contains options that define how headlines
-are shown in the echo area, i.e. the ``ticker''.
+are shown in the echo area, i.e., the ``ticker''.
 
 @itemize
 @item

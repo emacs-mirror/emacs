@@ -162,7 +162,7 @@ value was changed in that version.  This keyword takes priority over
 @code{:version}.
 
 @var{package} should be the official name of the package, as a symbol
-(e.g.@: @code{MH-E}).  @var{version} should be a string.  If the
+(e.g., @code{MH-E}).  @var{version} should be a string.  If the
 package @var{package} is released as part of Emacs, @var{package} and
 @var{version} should appear in the value of
 @code{customize-package-emacs-version-alist}.
@@ -261,7 +261,7 @@ If this variable is non-@code{nil}, the prefixes specified by a
 group's @code{:prefix} keyword are omitted from tag names, whenever
 the user customizes the group.
 
-The default value is @code{nil}, i.e.@: the prefix-discarding feature
+The default value is @code{nil}, i.e., the prefix-discarding feature
 is disabled.  This is because discarding prefixes often leads to
 confusing names for options and faces.
 @end defopt
@@ -282,7 +282,7 @@ variable should be displayed in the Customize interface, the values it
 is allowed to take, etc.
 
 @defmac defcustom option standard doc [keyword value]@dots{}
-This macro declares @var{option} as a user option (i.e.@: a
+This macro declares @var{option} as a user option (i.e., a
 customizable variable).  You should not quote @var{option}.
 
 The argument @var{standard} is an expression that specifies the
@@ -313,7 +313,7 @@ its value is void.  (The same feature applies to @code{defvar}.)
 
 If you put a @code{defcustom} in a pre-loaded Emacs Lisp file
 (@pxref{Building Emacs}), the standard value installed at dump time
-might be incorrect, e.g.@: because another variable that it depends on
+might be incorrect, e.g., because another variable that it depends on
 has not been assigned the right value yet.  In that case, use
 @code{custom-reevaluate-setting}, described below, to re-evaluate the
 standard value after Emacs starts up.
@@ -1415,7 +1415,7 @@ disabling themes:
 
 @defun custom-theme-p theme
 This function return a non-@code{nil} value if @var{theme} (a symbol)
-is the name of a Custom theme (i.e.@: a Custom theme which has been
+is the name of a Custom theme (i.e., a Custom theme which has been
 loaded into Emacs, whether or not the theme is enabled).  Otherwise,
 it returns @code{nil}.
 @end defun
