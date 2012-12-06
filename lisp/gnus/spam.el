@@ -2108,7 +2108,7 @@ See the Info node `(gnus)Fancy Mail Splitting' for more details."
      (defalias 'bbdb-gethash 'ignore)
      nil)))
 
-(eval-when-compile
+(eval-and-compile
   (when (featurep 'bbdb-com)
     ;; when the BBDB changes, we want to clear out our cache
     (defun spam-clear-cache-BBDB (&rest immaterial)
