@@ -417,23 +417,7 @@ coding-system."
 	(write-region start end filename append visit lockname))
     (write-region start end filename append visit lockname mustbenew)))
 
-;; `flet' and `labels' are obsolete since Emacs 24.3.
-(defmacro gmm-flet (bindings &rest body)
-  "Make temporary overriding function definitions.
-This is an analogue of a dynamically scoped `let' that operates on
-the function cell of FUNCs rather than their value cell.
-
-\(fn ((FUNC ARGLIST BODY...) ...) FORM...)"
-  (require 'cl)
-  (if (fboundp 'cl-letf)
-      `(cl-letf ,(mapcar (lambda (binding)
-			   `((symbol-function ',(car binding))
-			     (lambda ,@(cdr binding))))
-			 bindings)
-	 ,@body)
-    `(flet ,bindings ,@body)))
-(put 'gmm-flet 'lisp-indent-function 1)
-
+;; `labels' is obsolete since Emacs 24.3.
 (defmacro gmm-labels (bindings &rest body)
   "Make temporary function bindings.
 The bindings can be recursive and the scoping is lexical, but capturing

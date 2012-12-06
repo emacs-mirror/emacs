@@ -88,7 +88,6 @@
 (require 'gnus)
 (require 'gnus-start)
 (require 'gnus-util)
-(require 'gmm-utils)
 
 (defvar gnus-topic-alist) ;; gnus-group.el
 (eval-when-compile
@@ -177,16 +176,15 @@ and `gnus-topic-alist'.  Also see `gnus-variable-list'."
 (defun gnus-sync-lesync-call (url method headers &optional kvdata)
   "Make an access request to URL using KVDATA and METHOD.
 KVDATA must be an alist."
-  (gmm-flet ((json-alist-p (list) (gnus-sync-json-alist-p list))) ; temp patch
-    (let ((url-request-method method)
-          (url-request-extra-headers headers)
-          (url-request-data (if kvdata (json-encode kvdata) nil)))
-      (with-current-buffer (url-retrieve-synchronously url)
-        (let ((data (gnus-sync-lesync-parse)))
-          (gnus-message 12 "gnus-sync-lesync-call: %s URL %s sent %S got %S"
-                        method url `((headers . ,headers) (data ,kvdata)) data)
-          (kill-buffer (current-buffer))
-          data)))))
+  (let ((url-request-method method)
+	(url-request-extra-headers headers)
+	(url-request-data (if kvdata (json-encode kvdata) nil)))
+    (with-current-buffer (url-retrieve-synchronously url)
+      (let ((data (gnus-sync-lesync-parse)))
+	(gnus-message 12 "gnus-sync-lesync-call: %s URL %s sent %S got %S"
+		      method url `((headers . ,headers) (data ,kvdata)) data)
+	(kill-buffer (current-buffer))
+	data))))
 
 (defun gnus-sync-lesync-PUT (url headers &optional data)
   (gnus-sync-lesync-call url "PUT" headers data))

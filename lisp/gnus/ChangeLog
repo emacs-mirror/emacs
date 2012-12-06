@@ -1,3 +1,13 @@
+2012-12-06  Katsumi Yamaoka  <yamaoka@jpl.org>
+
+	* gmm-utils.el (gmm-flet): Remove.
+
+	* gnus-sync.el (gnus-sync-lesync-call):
+	Avoid overriding json-alist-p.
+
+	* message.el (message-read-from-minibuffer):
+	Avoid overriding mail-abbrev-in-expansion-header-p.
+
 2012-12-05  Sam Steingold  <sds@gnu.org>
 
 	* gnus.el (gnus-delete-gnus-frame): Extract from `gnus-other-frame'.
