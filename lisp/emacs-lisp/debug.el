@@ -220,10 +220,10 @@ first will be printed into the backtrace buffer."
 	      (when (eq (car debugger-args) 'debug)
 		;; Skip the frames for backtrace-debug, byte-code,
 		;; and implement-debug-on-entry.
-		(backtrace-debug 4 t)
+		(backtrace-debug 3 t)
 		;; Place an extra debug-on-exit for macro's.
-		(when (eq 'lambda (car-safe (cadr (backtrace-frame 4))))
-		  (backtrace-debug 5 t)))
+		(when (eq 'lambda (car-safe (cadr (backtrace-frame 3))))
+		  (backtrace-debug 4 t)))
 	      (pop-to-buffer
 	       debugger-buffer
 	       `((display-buffer-reuse-window
