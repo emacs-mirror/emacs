@@ -1,5 +1,8 @@
 2012-12-07  Chong Yidong  <cyd@gnu.org>
 
+	* subr.el (text-clone-maintain): Fix clone overlay deletion when a
+	syntax is specified (Bug#13025).
+
 	* info.el (Info-set-mode-line): Remove the file extension from
 	Info-current-file if there is one (Bug#13016).
 

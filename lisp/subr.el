@@ -3847,7 +3847,7 @@ This is used on the `modification-hooks' property of text clones."
 		(if (not (re-search-forward
 			  (overlay-get ol1 'text-clone-syntax) cend t))
 		    ;; Mark the overlay for deletion.
-		    (overlay-put ol1 'text-clones nil)
+		    (setq end cbeg)
 		  (when (< (match-end 0) cend)
 		    ;; Shrink the clone at its end.
 		    (setq end (min end (match-end 0)))
