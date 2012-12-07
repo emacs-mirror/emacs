@@ -1,3 +1,8 @@
+2012-12-07  Le Wang  <l26wang@gmail.com>
+
+	* hilit-chg.el (hilit-chg-set-face-on-change): Don't burp in
+	narrowed buffer (bug#12361).
+
 2012-12-07  Michael Heerdegen  <michael_heerdegen@web.de>
 
 	* emacs-lisp/debug.el (debug): Fix hard-coded frame counts (bug#10025).
@@ -3341,7 +3346,7 @@
 	* calendar/cal-tex.el (cal-tex-weekly-common):
 	Restore leading blank page.
 
-2012-08-22  Le Wang  <l26wang@gmail.com>  (tiny change)
+2012-08-22  Le Wang  <l26wang@gmail.com>
 
 	* misc.el (forward-to-word, backward-to-word): Activate or extend
 	the region under `shift-select-mode'.  (Bug#12231)
