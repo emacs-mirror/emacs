@@ -293,7 +293,7 @@ the number of those objects that are not live but that Emacs keeps around for
 future allocations.  So an overall result is:
 
 @example
-((@code{conses} @var{cons-size} @var{used-conse} @var{free-conses})
+((@code{conses} @var{cons-size} @var{used-conses} @var{free-conses})
  (@code{symbols} @var{symbol-size} @var{used-symbols} @var{free-symbols})
  (@code{miscs} @var{misc-size} @var{used-miscs} @var{free-miscs})
  (@code{strings} @var{string-size} @var{used-strings} @var{free-strings})
@@ -886,7 +886,7 @@ knows about it.
 @cindex object internals
 
   Emacs Lisp provides a rich set of the data types.  Some of them, like cons
-cells, integers and stirngs, are common to nearly all Lisp dialects.  Some
+cells, integers and strings, are common to nearly all Lisp dialects.  Some
 others, like markers and buffers, are quite special and needed to provide
 the basic support to write editor commands in Lisp.  To implement such
 a variety of object types and provide an efficient way to pass objects between

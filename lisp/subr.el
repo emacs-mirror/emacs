@@ -2628,7 +2628,7 @@ This variable is meaningful on MS-DOG and MS-Windows.
 On those systems, it is automatically local in every buffer.
 On other systems, this variable is normally always nil.
 
-WARNING: This variable is obsolete and will disapper Real Soon Now.
+WARNING: This variable is obsolete and will disappear Real Soon Now.
 Don't use it!")
 
 ;; The `assert' macro from the cl package signals

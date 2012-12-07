@@ -563,7 +563,7 @@ side-effects, for determining function safety (@pxref{Function
 Safety}) as well as for byte compiler optimizations.  Do not set it.
 
 @item variable-documentation
-If non-@code{nil}, this specifies the named vaariable's documentation
+If non-@code{nil}, this specifies the named variable's documentation
 string.  This is set automatically by @code{defvar} and related
 functions.  @xref{Defining Faces}.
 @end table
