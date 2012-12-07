@@ -1,3 +1,11 @@
+2012-12-07  Dmitry Antipov  <dmantipov@yandex.ru>
+
+	Convenient macro to check whether the buffer is hidden.
+	* buffer.h (BUFFER_HIDDEN_P): New macro.
+	* frame.c (make_frame): Use it.  Adjust comment.
+	* buffer.c (candidate_buffer): New function.
+	(Fother_buffer, other_buffer_safely): Use it.
+
 2012-12-06  Eli Zaretskii  <eliz@gnu.org>
 
 	* w32proc.c (waitpid): Avoid busy-waiting when called with WNOHANG

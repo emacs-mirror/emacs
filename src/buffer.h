@@ -982,6 +982,11 @@ bset_width_table (struct buffer *b, Lisp_Object val)
 
 #define BUFFER_LIVE_P(b) (!NILP (BVAR (b, name)))
 
+/* Convenient check whether buffer B is hidden (i.e. its name
+   starts with a space).  Caller must ensure that B is live.  */
+
+#define BUFFER_HIDDEN_P(b) (SREF (BVAR (b, name), 0) == ' ')
+
 /* Verify indirection counters.  */
 
 #define BUFFER_CHECK_INDIRECTION(b)			\

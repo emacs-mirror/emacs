@@ -346,13 +346,11 @@ make_frame (int mini_p)
 
   /* Choose a buffer for the frame's root window.  */
   {
-    Lisp_Object buf;
+    Lisp_Object buf = Fcurrent_buffer ();
 
     wset_buffer (XWINDOW (root_window), Qt);
-    buf = Fcurrent_buffer ();
-    /* If buf is a 'hidden' buffer (i.e. one whose name starts with
-       a space), try to find another one.  */
-    if (SREF (Fbuffer_name (buf), 0) == ' ')
+    /* If current buffer is hidden, try to find another one.  */
+    if (BUFFER_HIDDEN_P (XBUFFER (buf)))
       buf = other_buffer_safely (buf);
 
     /* Use set_window_buffer, not Fset_window_buffer, and don't let
