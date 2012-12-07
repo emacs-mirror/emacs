@@ -2699,6 +2699,27 @@ N defaults to the current message."
   :group 'rmail
   :version "23.1")
 
+;; FIXME?
+;; rmail-show-mime-function does not unquote >From lines.  Should it?
+(defcustom rmail-mbox-format 'mboxrd
+  "The mbox format that your system uses.
+There is no way to determine this, so you should set the appropriate value.
+The formats quote lines containing \"From \" differently.
+The choices are:
+  `mboxo' : lines that start with \"From \" quoted as \">From \"
+  `mboxrd': lines that start with \">*From \" quoted with another \">\"
+The `mboxo' format is ambiguous, in that one cannot know whether
+a line starting with \">From \" originally had a \">\" or not.
+
+It is not critical to set this to the correct value; it only affects
+how Rmail displays lines starting with \">*From \" in non-MIME messages.
+
+See also `unrmail-mbox-format'."
+  :type '(choice (const 'mboxrd)
+		 (const 'mboxro))
+  :version "24.4"
+  :group 'rmail)
+
 (defun rmail-show-message-1 (&optional msg)
   "Show message MSG (default: current message) using `rmail-view-buffer'.
 Return text to display in the minibuffer if MSG is out of
@@ -2791,11 +2812,15 @@ The current mail message becomes the message displayed."
 	    ;; Prepare the separator (blank line) before the body.
 	    (goto-char (point-min))
 	    (insert "\n")
-	    ;; Unquote quoted From lines
-	    (while (re-search-forward "^>+From " nil t)
-	      (beginning-of-line)
-	      (delete-char 1)
-	      (forward-line))
+	    ;; Unquote quoted From lines.
+	    (let ((fromline (if (eq 'mboxrd rmail-mbox-format)
+				"^>+From "
+			      "^>From "))
+		  case-fold-search)
+	      (while (re-search-forward fromline nil t)
+		(beginning-of-line)
+		(delete-char 1)
+		(forward-line)))
 	    (goto-char (point-min)))
 	  ;; Copy the headers to the front of the message view buffer.
 	  (rmail-copy-headers beg end)
@@ -3869,6 +3894,7 @@ see the documentation of `rmail-resend'."
 	  (msgnum rmail-current-message)
 	  (subject (concat "["
 			   (let ((from (or (mail-fetch-field "From")
+					   ;; FIXME - huh?
 					   (mail-fetch-field ">From"))))
 			     (if from
 				 (concat (mail-strip-quoted-names from) ": ")

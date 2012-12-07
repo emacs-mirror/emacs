@@ -58,6 +58,14 @@ amounts of data into the ERC input.
 ** MH-E has been updated to MH-E version 8.4.
 See MH-E-NEWS for details.
 
+---
+** The unrmail command converts from BABYL to mboxrd rather than mboxo.
+Customize `unrmail-mbox-format' to change this.
+
+---
+** Similarly, customize `rmail-mbox-format' to influence some minor aspects
+of how Rmail displays non-MIME messages.
+
 +++
 ** New function `ses-rename-cell' to give SES cells arbitrary names.
 
