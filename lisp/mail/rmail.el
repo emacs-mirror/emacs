@@ -2715,10 +2715,10 @@ It is not critical to set this to the correct value; it only affects
 how Rmail displays lines starting with \">*From \" in non-MIME messages.
 
 See also `unrmail-mbox-format'."
-  :type '(choice (const 'mboxrd)
-		 (const 'mboxro))
+  :type '(choice (const mboxrd)
+		 (const mboxro))
   :version "24.4"
-  :group 'rmail)
+  :group 'rmail-files)
 
 (defun rmail-show-message-1 (&optional msg)
   "Show message MSG (default: current message) using `rmail-view-buffer'.

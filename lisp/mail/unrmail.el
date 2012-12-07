@@ -56,10 +56,10 @@ or not.  The `mxbord' format avoids this by also quoting \">From \" as
 \">>From \", and so on.  For this reason, mboxrd is recommended.
 
 See also `rmail-mbox-format'."
-  :type '(choice (const 'mboxrd)
-		 (const 'mboxro))
+  :type '(choice (const mboxrd)
+		 (const mboxro))
   :version "24.4"
-  :group 'rmail)
+  :group 'rmail-files)
 
 ;;;###autoload
 (defun unrmail (file to-file)
