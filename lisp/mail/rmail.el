@@ -100,6 +100,10 @@ its character representation and its display representation.")
   "The current header display style choice, one of
 'normal (selected headers) or 'full (all headers).")
 
+(defvar rmail-mime-decoded nil
+  "Non-nil if message has been processed by `rmail-show-mime-function'.")
+(put 'rmail-mime-decoded 'permanent-local t) ; for rmail-edit
+
 (defgroup rmail nil
   "Mail reader for Emacs."
   :group 'mail)
@@ -2768,6 +2772,7 @@ The current mail message becomes the message displayed."
 		 (re-search-forward "mime-version: 1.0" nil t))
 	    (let ((rmail-buffer mbox-buf)
 		  (rmail-view-buffer view-buf))
+	      (set (make-local-variable 'rmail-mime-decoded) t)
 	      (funcall rmail-show-mime-function))
 	  (setq body-start (search-forward "\n\n" nil t))
 	  (narrow-to-region beg (point))
