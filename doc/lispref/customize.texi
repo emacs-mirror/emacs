@@ -303,7 +303,9 @@ evaluate at any time.
 The argument @var{doc} specifies the documentation string for the
 variable.
 
-Every @code{defcustom} should specify @code{:group} at least once.
+If a @code{defcustom} does not specify any @code{:group}, the last group
+defined with @code{defgroup} in the same file will be used.  This way, most
+@code{defcustom} do not need an explicit @code{:group}.
 
 When you evaluate a @code{defcustom} form with @kbd{C-M-x} in Emacs Lisp
 mode (@code{eval-defun}), a special feature of @code{eval-defun}
