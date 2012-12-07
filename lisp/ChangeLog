@@ -1,5 +1,8 @@
 2012-12-07  Chong Yidong  <cyd@gnu.org>
 
+	* novice.el (disabled-command-function): Remove a spurious help
+	xref (Bug#13043).  Suggested by Kelly Dean.
+
 	* subr.el (text-clone-maintain): Fix clone overlay deletion when a
 	syntax is specified (Bug#13025).
 
