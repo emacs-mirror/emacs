@@ -289,9 +289,12 @@ get_child_status (pid_t child, int *status, int options, bool interruptible)
 
   while ((pid = waitpid (child, status, options)) < 0)
     {
-      /* CHILD must be a child process that has not been reaped, and
-	 STATUS and OPTIONS must be valid.  */
-      eassert (errno == EINTR);
+      /* Check that CHILD is a child process that has not been reaped,
+	 and that STATUS and OPTIONS are valid.  Otherwise abort,
+	 as continuing after this internal error could cause Emacs to
+	 become confused and kill innocent-victim processes.  */
+      if (errno != EINTR)
+	emacs_abort ();
 
       /* Note: the MS-Windows emulation of waitpid calls QUIT
 	 internally.  */
