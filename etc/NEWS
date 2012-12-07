@@ -29,6 +29,7 @@ so we will look at it and add it to the manual.
 
 * Changes in Specialized Modes and Packages in Emacs 24.4
 
+** New macro cl-tagbody in cl-lib.
 ** Calc
 
 *** Calc by default now uses the Gregorian calendar for all dates, and

@@ -1611,6 +1611,52 @@ nil.
     (if (advice-member-p #'cl--wrap-in-nil-block 'dotimes)
         loop `(cl-block nil ,loop))))
 
+(defvar cl--tagbody-alist nil)
+
+;;;###autoload
+(defmacro cl-tagbody (&rest labels-or-stmts)
+  "Execute statements while providing for control transfers to labels.
+Each element of LABELS-OR-STMTS can be either a label (integer or symbol)
+or a `cons' cell, in which case it's taken to be a statement.
+This distinction is made before performing macroexpansion.
+Statements are executed in sequence left to right, discarding any return value,
+stopping only when reaching the end of LABELS-OR-STMTS.
+Any statement can transfer control at any time to the statements that follow
+one of the labels with the special form (go LABEL).
+Labels have lexical scope and dynamic extent."
+  (let ((blocks '())
+        (first-label (if (consp (car labels-or-stmts))
+                       'cl--preamble (pop labels-or-stmts))))
+    (let ((block (list first-label)))
+      (dolist (label-or-stmt labels-or-stmts)
+        (if (consp label-or-stmt) (push label-or-stmt block)
+          ;; Add a "go to next block" to implement the fallthrough.
+          (unless (eq 'go (car-safe (car-safe block)))
+            (push `(go ,label-or-stmt) block))
+          (push (nreverse block) blocks)
+          (setq block (list label-or-stmt))))
+      (unless (eq 'go (car-safe (car-safe block)))
+        (push `(go cl--exit) block))
+      (push (nreverse block) blocks))
+    (let ((catch-tag (make-symbol "cl--tagbody-tag")))
+      (push (cons 'cl--exit catch-tag) cl--tagbody-alist)
+      (dolist (block blocks)
+        (push (cons (car block) catch-tag) cl--tagbody-alist))
+      (macroexpand-all
+       `(let ((next-label ',first-label))
+          (while
+              (not (eq (setq next-label
+                             (catch ',catch-tag
+                               (cl-case next-label
+                                 ,@blocks)))
+                       'cl--exit))))
+       `((go . ,(lambda (label)
+                  (let ((catch-tag (cdr (assq label cl--tagbody-alist))))
+                    (unless catch-tag
+                      (error "Unknown cl-tagbody go label `%S'" label))
+                    `(throw ',catch-tag ',label))))
+         ,@macroexpand-all-environment)))))
+
 ;;;###autoload
 (defmacro cl-do-symbols (spec &rest body)
   "Loop over all symbols.

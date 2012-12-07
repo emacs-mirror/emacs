@@ -262,12 +262,12 @@ including `cl-block' and `cl-eval-when'.
 ;;;;;;  cl-rotatef cl-shiftf cl-remf cl-psetf cl-declare cl-the cl-locally
 ;;;;;;  cl-multiple-value-setq cl-multiple-value-bind cl-symbol-macrolet
 ;;;;;;  cl-macrolet cl-labels cl-flet* cl-flet cl-progv cl-psetq
-;;;;;;  cl-do-all-symbols cl-do-symbols cl-dotimes cl-dolist cl-do*
-;;;;;;  cl-do cl-loop cl-return-from cl-return cl-block cl-etypecase
+;;;;;;  cl-do-all-symbols cl-do-symbols cl-tagbody cl-dotimes cl-dolist
+;;;;;;  cl-do* cl-do cl-loop cl-return-from cl-return cl-block cl-etypecase
 ;;;;;;  cl-typecase cl-ecase cl-case cl-load-time-value cl-eval-when
 ;;;;;;  cl-destructuring-bind cl-function cl-defmacro cl-defun cl-gentemp
 ;;;;;;  cl-gensym cl--compiler-macro-cXXr cl--compiler-macro-list*)
-;;;;;;  "cl-macs" "cl-macs.el" "5df0692d7c4bffb2cc353f802d94f796")
+;;;;;;  "cl-macs" "cl-macs.el" "d3af72b1cff3398fa1480065fc2887a2")
 ;;; Generated autoloads from cl-macs.el
 
 (autoload 'cl--compiler-macro-list* "cl-macs" "\
@@ -464,6 +464,19 @@ nil.
 \(fn (VAR COUNT [RESULT]) BODY...)" nil t)
 
 (put 'cl-dotimes 'lisp-indent-function '1)
+
+(autoload 'cl-tagbody "cl-macs" "\
+Execute statements while providing for control transfers to labels.
+Each element of LABELS-OR-STMTS can be either a label (integer or symbol)
+or a `cons' cell, in which case it's taken to be a statement.
+This distinction is made before performing macroexpansion.
+Statements are executed in sequence left to right, discarding any return value,
+stopping only when reaching the end of LABELS-OR-STMTS.
+Any statement can transfer control at any time to the statements that follow
+one of the labels with the special form (go LABEL).
+Labels have lexical scope and dynamic extent.
+
+\(fn &rest LABELS-OR-STMTS)" nil t)
 
 (autoload 'cl-do-symbols "cl-macs" "\
 Loop over all symbols.
@@ -759,7 +772,7 @@ surrounded by (cl-block NAME ...).
 ;;;;;;  cl-nsubstitute-if cl-nsubstitute cl-substitute-if-not cl-substitute-if
 ;;;;;;  cl-substitute cl-delete-duplicates cl-remove-duplicates cl-delete-if-not
 ;;;;;;  cl-delete-if cl-delete cl-remove-if-not cl-remove-if cl-remove
-;;;;;;  cl-replace cl-fill cl-reduce) "cl-seq" "cl-seq.el" "697d04e7ae0a9b9c15eea705b359b1bb")
+;;;;;;  cl-replace cl-fill cl-reduce) "cl-seq" "cl-seq.el" "4b8ddc5bea2fcc626526ce3644071568")
 ;;; Generated autoloads from cl-seq.el
 
 (autoload 'cl-reduce "cl-seq" "\
