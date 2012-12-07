@@ -1668,7 +1668,9 @@ escaped (\\\",\\\\)."
 		 " ("
 		 (if (stringp Info-current-file)
 		     (replace-regexp-in-string
-		      "%" "%%" (file-name-nondirectory Info-current-file))
+		      "%" "%%"
+		      (file-name-sans-extension
+		       (file-name-nondirectory Info-current-file)))
 		   (format "*%S*" Info-current-file))
 		 ") "
 		 (if Info-current-node
