@@ -205,11 +205,13 @@ When non-nil, each hi-lock command will cycle through faces in
   "Face for hi-lock mode."
   :group 'hi-lock-faces)
 
-(defvar hi-lock-file-patterns nil
+(defvar-local hi-lock-file-patterns nil
   "Patterns found in file for hi-lock.  Should not be changed.")
+(put 'hi-lock-file-patterns 'permanent-local t)
 
-(defvar hi-lock-interactive-patterns nil
+(defvar-local hi-lock-interactive-patterns nil
   "Patterns provided to hi-lock by user.  Should not be changed.")
+(put 'hi-lock-interactive-patterns 'permanent-local t)
 
 (define-obsolete-variable-alias 'hi-lock-face-history
                                 'hi-lock-face-defaults "23.1")
@@ -235,11 +237,6 @@ that older functionality.  This variable avoids multiple reminders.")
   "If non-nil, sometimes assume that `hi-lock-mode' means `global-hi-lock-mode'.
 Assumption is made if `hi-lock-mode' used in the *scratch* buffer while
 a library is being loaded.")
-
-(make-variable-buffer-local 'hi-lock-interactive-patterns)
-(put 'hi-lock-interactive-patterns 'permanent-local t)
-(make-variable-buffer-local 'hi-lock-file-patterns)
-(put 'hi-lock-file-patterns 'permanent-local t)
 
 (defvar hi-lock-menu
   (let ((map (make-sparse-keymap "Hi Lock")))
@@ -474,8 +471,8 @@ updated as you type."
     (let ((regexp (get-char-property (point) 'hi-lock-overlay-regexp)))
       (when regexp (push regexp regexps)))
     ;; With font-locking on, check if the cursor is on an highlighted text.
-    ;; Checking for hi-lock face is a good heuristic.
-    (and (string-match "\\`hi-lock-" (face-name (face-at-point)))
+    ;; Checking for hi-lock face is a good heuristic.  FIXME: use "hi-lock-".
+    (and (string-match "\\`hi-" (face-name (face-at-point)))
          (let* ((hi-text
                  (buffer-substring-no-properties
                   (previous-single-property-change (point) 'face)
@@ -486,7 +483,8 @@ updated as you type."
            (dolist (hi-lock-pattern hi-lock-interactive-patterns)
              (let ((regexp (car hi-lock-pattern)))
                (if (string-match regexp hi-text)
-                   (push regexp regexps))))))))
+                   (push regexp regexps))))))
+    regexps))
 
 (defvar-local hi-lock--last-face nil)
 
@@ -531,7 +529,8 @@ then remove all hi-lock highlighting."
      (unless hi-lock-interactive-patterns
        (error "No highlighting to remove"))
      ;; Infer the regexp to un-highlight based on cursor position.
-     (let* ((defaults (hi-lock--regexps-at-point)))
+     (let* ((defaults (or (hi-lock--regexps-at-point)
+                          (mapcar #'car hi-lock-interactive-patterns))))
        (list
         (completing-read (if (null defaults)
                              "Regexp to unhighlight: "
