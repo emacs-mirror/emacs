@@ -348,7 +348,6 @@ make_frame (int mini_p)
   {
     Lisp_Object buf = Fcurrent_buffer ();
 
-    wset_buffer (XWINDOW (root_window), Qt);
     /* If current buffer is hidden, try to find another one.  */
     if (BUFFER_HIDDEN_P (XBUFFER (buf)))
       buf = other_buffer_safely (buf);
@@ -364,14 +363,11 @@ make_frame (int mini_p)
   }
 
   if (mini_p)
-    {
-      wset_buffer (XWINDOW (mini_window), Qt);
-      set_window_buffer (mini_window,
-			 (NILP (Vminibuffer_list)
-			  ? get_minibuffer (0)
-			  : Fcar (Vminibuffer_list)),
-			 0, 0);
-    }
+    set_window_buffer (mini_window,
+		       (NILP (Vminibuffer_list)
+			? get_minibuffer (0)
+			: Fcar (Vminibuffer_list)),
+		       0, 0);
 
   fset_root_window (f, root_window);
   fset_selected_window (f, root_window);
