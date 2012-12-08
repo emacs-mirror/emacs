@@ -123,7 +123,7 @@ point, regardless of the number of spaces that existed previously
 (even if there were none before).  With a numeric argument @var{n}, it
 leaves @var{n} spaces before point if @var{n} is positive; if @var{n}
 is negative, it deletes newlines in addition to spaces and tabs,
-leaving a single space before point.
+leaving @var{-n} spaces before point.
 
   @kbd{C-x C-o} (@code{delete-blank-lines}) deletes all blank lines
 after the current line.  If the current line is blank, it deletes all
