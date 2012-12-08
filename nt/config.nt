@@ -993,6 +993,9 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 /* Define to 1 if the system has the type 'unsigned long long int'. */
 #undef HAVE_UNSIGNED_LONG_LONG_INT
 
+/* Define to 1 if you have the `unsetenv' function. */
+#define HAVE_UNSETENV 1
+
 /* Define to 1 if you have the <util.h> header file. */
 #undef HAVE_UTIL_H
 

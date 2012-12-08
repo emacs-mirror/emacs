@@ -1,3 +1,9 @@
+2012-12-08  Eli Zaretskii  <eliz@gnu.org>
+
+	* inc/ms-w32.h (putenv): Redirect to sys_putenv.
+
+	* config.nt (HAVE_UNSETENV): Define to 1.
+
 2012-12-01  Juanma Barranquero  <lekktu@gmail.com>
 
 	* config.nt: Sync with autogen/config.in.

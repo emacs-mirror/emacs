@@ -1544,6 +1544,50 @@ is_unc_volume (const char *filename)
   return 1;
 }
 
+/* Emulate the Posix unsetenv.  */
+int
+unsetenv (const char *name)
+{
+  char *var;
+  size_t name_len;
+  int retval;
+
+  if (name == NULL || *name == '\0' || strchr (name, '=') != NULL)
+    {
+      errno = EINVAL;
+      return -1;
+    }
+  name_len = strlen (name);
+  /* MS docs says an environment variable cannot be longer than 32K.  */
+  if (name_len > 32767)
+    {
+      errno = ENOMEM;
+      return -1;
+    }
+  /* It is safe to use 'alloca' with 32K size, since the stack is at
+     least 2MB, and we set it to 8MB in the link command line.  */
+  var = alloca (name_len + 2);
+  var[name_len++] = '=';
+  var[name_len] = '\0';
+  return _putenv (var);
+}
+
+/* MS _putenv doesn't support removing a variable when the argument
+   does not include the '=' character, so we fix that here.  */
+int
+sys_putenv (char *str)
+{
+  const char *const name_end = strchr (str, '=');
+
+  if (name_end == NULL)
+    {
+      /* Remove the variable from the environment.  */
+      return unsetenv (str);
+    }
+
+  return _putenv (str);
+}
+
 #define REG_ROOT "SOFTWARE\\GNU\\Emacs"
 
 LPBYTE
