@@ -1,4 +1,4 @@
-2# -*- Makefile -*- for GNU Emacs on the Microsoft Windows API.
+# -*- Makefile -*- for GNU Emacs on the Microsoft Windows API.
 # Copyright (C) 2011-2012 Free Software Foundation, Inc.
 
 # This file is part of GNU Emacs.
@@ -239,6 +239,13 @@ $(BLD)/filemode.$(O) : \
 	$(GNU_LIB)/filemode.c \
 	$(CONFIG_H) \
 	$(FILEMODE_H)
+
+$(BLD)/sig2str.$(O) : \
+	$(GNU_LIB)/sig2str.c \
+	$(CONFIG_H) \
+	$(GNU_LIB)/sig2str.h \
+	$(GNU_LIB)/intprops.h
+
 
 # The following dependencies are for supporting parallel builds, where
 # we must make sure $(BLD) exists before any compilation starts.

@@ -1,3 +1,9 @@
+2012-12-08  Eli Zaretskii  <eliz@gnu.org>
+
+	* lib/makefile.w32-in ($(BLD)/sig2str.$(O)): New dependency.
+	Remove a stray character at the beginning of the file.
+	(Bug#13026)
+
 2012-12-08  Paul Eggert  <eggert@cs.ucla.edu>
 
 	Simplify get_lim_data.
