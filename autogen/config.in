@@ -784,6 +784,9 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 /* Define to 1 if you have the `shutdown' function. */
 #undef HAVE_SHUTDOWN
 
+/* Define to 1 if you have the `sig2str' function. */
+#undef HAVE_SIG2STR
+
 /* Define to 1 if 'sig_atomic_t' is a signed integer type. */
 #undef HAVE_SIGNED_SIG_ATOMIC_T
 
@@ -1327,9 +1330,6 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 /* Define to 1 if the type of the st_atim member of a struct stat is struct
    timespec. */
 #undef TYPEOF_STRUCT_STAT_ST_ATIM_IS_STRUCT_TIMESPEC
-
-/* Undocumented. */
-#undef ULIMIT_BREAK_VALUE
 
 /* Define to 1 for Encore UMAX. */
 #undef UMAX

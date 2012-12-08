@@ -7026,6 +7026,7 @@ esac
   # Code from module pthread_sigmask:
   # Code from module readlink:
   # Code from module root-uid:
+  # Code from module sig2str:
   # Code from module signal-h:
   # Code from module snippet/_Noreturn:
   # Code from module snippet/arg-nonnull:
@@ -15300,7 +15301,7 @@ $as_echo "#define UNIX98_PTYS 1" >>confdefs.h
 
         $as_echo "#define FIRST_PTY_LETTER 'q'" >>confdefs.h
 
-    $as_echo "#define PTY_OPEN  { struct sigaction ocstat, cstat; struct stat stb; char * name; sigemptyset(&cstat.sa_mask); cstat.sa_handler = SIG_DFL; cstat.sa_flags = 0; sigaction(SIGCLD, &cstat, &ocstat); name = _getpty (&fd, O_RDWR | O_NDELAY, 0600, 0); sigaction(SIGCLD, &ocstat, (struct sigaction *)0); if (name == 0) return -1; if (fd < 0) return -1; if (fstat (fd, &stb) < 0) return -1; strcpy (pty_name, name); }" >>confdefs.h
+    $as_echo "#define PTY_OPEN  { struct sigaction ocstat, cstat; struct stat stb; char * name; sigemptyset(&cstat.sa_mask); cstat.sa_handler = SIG_DFL; cstat.sa_flags = 0; sigaction(SIGCHLD, &cstat, &ocstat); name = _getpty (&fd, O_RDWR | O_NDELAY, 0600, 0); sigaction(SIGCHLD, &ocstat, (struct sigaction *)0); if (name == 0) return -1; if (fd < 0) return -1; if (fstat (fd, &stb) < 0) return -1; strcpy (pty_name, name); }" >>confdefs.h
 
         $as_echo "#define PTY_NAME_SPRINTF /**/" >>confdefs.h
 
@@ -15309,12 +15310,12 @@ $as_echo "#define UNIX98_PTYS 1" >>confdefs.h
     ;;
 
   sol2* )
-                $as_echo "#define PTY_TTY_NAME_SPRINTF { char *ptsname (int), *ptyname; int grantpt_result; sigset_t blocked; sigemptyset (&blocked); sigaddset (&blocked, SIGCLD); pthread_sigmask (SIG_BLOCK, &blocked, 0); grantpt_result = grantpt (fd); pthread_sigmask (SIG_UNBLOCK, &blocked, 0); if (grantpt_result == -1 || unlockpt (fd) == -1 || !(ptyname = ptsname (fd))) { emacs_close (fd); return -1; } snprintf (pty_name, sizeof pty_name, \"%s\", ptyname); }" >>confdefs.h
+                $as_echo "#define PTY_TTY_NAME_SPRINTF { char *ptsname (int), *ptyname; int grantpt_result; sigset_t blocked; sigemptyset (&blocked); sigaddset (&blocked, SIGCHLD); pthread_sigmask (SIG_BLOCK, &blocked, 0); grantpt_result = grantpt (fd); pthread_sigmask (SIG_UNBLOCK, &blocked, 0); if (grantpt_result == -1 || unlockpt (fd) == -1 || !(ptyname = ptsname (fd))) { emacs_close (fd); return -1; } snprintf (pty_name, sizeof pty_name, \"%s\", ptyname); }" >>confdefs.h
 
     ;;
 
   unixware )
-        $as_echo "#define PTY_TTY_NAME_SPRINTF { char *ptsname (int), *ptyname; int grantpt_result; sigset_t blocked; sigemptyset (&blocked); sigaddset (&blocked, SIGCLD); pthread_sigmask (SIG_BLOCK, &blocked, 0); grantpt_result = grantpt (fd); pthread_sigmask (SIG_UNBLOCK, &blocked, 0); if (grantpt_result == -1) fatal(\"could not grant slave pty\"); if (unlockpt(fd) == -1) fatal(\"could not unlock slave pty\"); if (!(ptyname = ptsname(fd))) fatal (\"could not enable slave pty\"); snprintf (pty_name, sizeof pty_name, \"%s\", ptyname); }" >>confdefs.h
+        $as_echo "#define PTY_TTY_NAME_SPRINTF { char *ptsname (int), *ptyname; int grantpt_result; sigset_t blocked; sigemptyset (&blocked); sigaddset (&blocked, SIGCHLD); pthread_sigmask (SIG_BLOCK, &blocked, 0); grantpt_result = grantpt (fd); pthread_sigmask (SIG_UNBLOCK, &blocked, 0); if (grantpt_result == -1) fatal(\"could not grant slave pty\"); if (unlockpt(fd) == -1) fatal(\"could not unlock slave pty\"); if (!(ptyname = ptsname(fd))) fatal (\"could not enable slave pty\"); snprintf (pty_name, sizeof pty_name, \"%s\", ptyname); }" >>confdefs.h
 
     ;;
 esac
@@ -15402,7 +15403,6 @@ esac
 
 
 
-
 case $opsys in
   darwin) $as_echo "#define TAB3 OXTABS" >>confdefs.h
  ;;
@@ -15416,27 +15416,6 @@ $as_echo "#define TABDLY OXTABS" >>confdefs.h
     ;;
 
   gnu-linux | gnu-kfreebsd )
-            cat confdefs.h - <<_ACEOF >conftest.$ac_ext
-/* end confdefs.h.  */
-
-#ifndef __i386__
-# error "not i386"
-#endif
-
-int
-main ()
-{
-
-  ;
-  return 0;
-}
-_ACEOF
-if ac_fn_c_try_cpp "$LINENO"; then :
-  $as_echo "#define ULIMIT_BREAK_VALUE (32*1024*1024)" >>confdefs.h
-
-fi
-rm -f conftest.err conftest.$ac_ext
-
     cat confdefs.h - <<_ACEOF >conftest.$ac_ext
 /* end confdefs.h.  */
 
@@ -15463,11 +15442,6 @@ rm -f conftest.err conftest.$ac_ext
   hpux*)
 
 $as_echo "#define RUN_TIME_REMAP 1" >>confdefs.h
-
-    ;;
-
-  irix6-5)
-        $as_echo "#define ULIMIT_BREAK_VALUE 0x14000000" >>confdefs.h
 
     ;;
 esac
@@ -22495,6 +22469,34 @@ $as_echo "#define READLINK_TRAILING_SLASH_BUG 1" >>confdefs.h
 
 
 
+
+  for ac_func in sig2str
+do :
+  ac_fn_c_check_func "$LINENO" "sig2str" "ac_cv_func_sig2str"
+if test "x$ac_cv_func_sig2str" = x""yes; then :
+  cat >>confdefs.h <<_ACEOF
+#define HAVE_SIG2STR 1
+_ACEOF
+
+fi
+done
+
+
+  if test $ac_cv_func_sig2str = no; then
+
+
+
+
+
+
+
+
+  gl_LIBOBJS="$gl_LIBOBJS sig2str.$ac_objext"
+
+
+  :
+
+  fi
 
 
 
