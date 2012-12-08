@@ -1,5 +1,10 @@
 2012-12-08  Paul Eggert  <eggert@cs.ucla.edu>
 
+	Simplify get_lim_data.
+	* vm-limit.c (get_lim_data): Combine RLIMIT_AS and RLIMIT_DATA methods.
+	Remove USG and vlimit methods; no longer used these days.
+	Add #error catchall just in case.
+
 	Assume POSIX 1003.1-1988 or later for signal.h (Bug#13026).
 	Exceptions: do not assume SIGCONT, SIGSTOP, SIGTSTP, SIGTTIN,
 	SIGTTOU, SIGUSR1, SIGUSR2, as Microsoft platforms lack these.

@@ -44,46 +44,26 @@ static POINTER data_space_start;
 static size_t lim_data;
 
 
-#if defined (HAVE_GETRLIMIT) && defined (RLIMIT_AS)
+#ifdef HAVE_GETRLIMIT
+
+# ifndef RLIMIT_AS
+#  define RLIMIT_AS RLIMIT_DATA
+# endif
+
 static void
 get_lim_data (void)
 {
+  /* Set LIM_DATA to the minimum of the maximum object size and the
+     maximum address space.  Don't bother to check for values like
+     RLIM_INFINITY since in practice they are not much less than SIZE_MAX.  */
   struct rlimit rlimit;
-
-  getrlimit (RLIMIT_AS, &rlimit);
-  if (rlimit.rlim_cur == RLIM_INFINITY)
-    lim_data = -1;
-  else
-    lim_data = rlimit.rlim_cur;
+  lim_data
+    = (getrlimit (RLIMIT_AS, &rlimit) == 0 && rlimit.rlim_cur <= SIZE_MAX
+       ? rlimit.rlim_cur
+       : SIZE_MAX);
 }
 
-#else /* not HAVE_GETRLIMIT */
-
-#ifdef USG
-
-static void
-get_lim_data (void)
-{
-  extern long ulimit ();
-
-  lim_data = -1;
-
-  /* Use the ulimit call, if we seem to have it.  */
-#if !defined (ULIMIT_BREAK_VALUE) || defined (GNU_LINUX)
-  lim_data = ulimit (3, 0);
-#endif
-
-  /* If that didn't work, just use the macro's value.  */
-#ifdef ULIMIT_BREAK_VALUE
-  if (lim_data == -1)
-    lim_data = ULIMIT_BREAK_VALUE;
-#endif
-
-  lim_data -= (long) data_space_start;
-}
-
-#else /* not USG */
-#ifdef WINDOWSNT
+#elif defined WINDOWSNT
 
 #include "w32heap.h"
 
@@ -94,10 +74,8 @@ get_lim_data (void)
   lim_data = reserved_heap_size;
 }
 
-#else
-#if !defined (BSD4_2) && !defined (CYGWIN)
+#elif defined MSDOS
 
-#ifdef MSDOS
 void
 get_lim_data (void)
 {
@@ -135,32 +113,9 @@ ret_lim_data (void)
   get_lim_data ();
   return lim_data;
 }
-#else /* not MSDOS */
-static void
-get_lim_data (void)
-{
-  lim_data = vlimit (LIM_DATA, -1);
-}
-#endif /* not MSDOS */
-
-#else /* BSD4_2 || CYGWIN */
-
-static void
-get_lim_data (void)
-{
-  struct rlimit XXrlimit;
-
-  getrlimit (RLIMIT_DATA, &XXrlimit);
-#ifdef RLIM_INFINITY
-  lim_data = XXrlimit.rlim_cur & RLIM_INFINITY; /* soft limit */
 #else
-  lim_data = XXrlimit.rlim_cur;	/* soft limit */
+# error "get_lim_data not implemented on this machine"
 #endif
-}
-#endif /* BSD4_2 */
-#endif /* not WINDOWSNT */
-#endif /* not USG */
-#endif /* not HAVE_GETRLIMIT */
 
 /* Verify amount of memory available, complaining if we're near the end. */
 
