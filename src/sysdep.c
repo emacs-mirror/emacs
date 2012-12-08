@@ -457,20 +457,15 @@ static void restore_signal_handlers (struct save_signal *);
 void
 sys_suspend (void)
 {
-#if defined (SIGTSTP) && !defined (MSDOS)
-
-  {
-    pid_t pgrp = getpgrp ();
-    EMACS_KILLPG (pgrp, SIGTSTP);
-  }
-
-#else /* No SIGTSTP */
+#ifndef DOS_NT
+  kill (0, SIGTSTP);
+#else
 /* On a system where suspending is not implemented,
    instead fork a subshell and let it talk directly to the terminal
    while we wait.  */
   sys_subshell ();
 
-#endif /* no SIGTSTP */
+#endif
 }
 
 /* Fork a subshell.  */
@@ -1518,9 +1513,7 @@ emacs_sigaction_init (struct sigaction *action, signal_handler_t handler)
   /* When handling a signal, block nonfatal system signals that are caught
      by Emacs.  This makes race conditions less likely.  */
   sigaddset (&action->sa_mask, SIGALRM);
-#ifdef SIGCHLD
   sigaddset (&action->sa_mask, SIGCHLD);
-#endif
 #ifdef SIGDANGER
   sigaddset (&action->sa_mask, SIGDANGER);
 #endif
@@ -1700,18 +1693,11 @@ init_signals (bool dumping)
 # ifdef SIGAIO
       sys_siglist[SIGAIO] = "LAN I/O interrupt";
 # endif
-# ifdef SIGALRM
       sys_siglist[SIGALRM] = "Alarm clock";
-# endif
 # ifdef SIGBUS
       sys_siglist[SIGBUS] = "Bus error";
 # endif
-# ifdef SIGCLD
-      sys_siglist[SIGCLD] = "Child status changed";
-# endif
-# ifdef SIGCHLD
       sys_siglist[SIGCHLD] = "Child status changed";
-# endif
 # ifdef SIGCONT
       sys_siglist[SIGCONT] = "Continued";
 # endif
@@ -1731,9 +1717,7 @@ init_signals (bool dumping)
 # ifdef SIGGRANT
       sys_siglist[SIGGRANT] = "Monitor mode granted";
 # endif
-# ifdef SIGHUP
       sys_siglist[SIGHUP] = "Hangup";
-# endif
       sys_siglist[SIGILL] = "Illegal instruction";
       sys_siglist[SIGINT] = "Interrupt";
 # ifdef SIGIO
@@ -1745,9 +1729,7 @@ init_signals (bool dumping)
 # ifdef SIGIOT
       sys_siglist[SIGIOT] = "IOT trap";
 # endif
-# ifdef SIGKILL
       sys_siglist[SIGKILL] = "Killed";
-# endif
 # ifdef SIGLOST
       sys_siglist[SIGLOST] = "Resource lost";
 # endif
@@ -1760,9 +1742,7 @@ init_signals (bool dumping)
 # ifdef SIGPHONE
       sys_siglist[SIGWIND] = "SIGPHONE";
 # endif
-# ifdef SIGPIPE
       sys_siglist[SIGPIPE] = "Broken pipe";
-# endif
 # ifdef SIGPOLL
       sys_siglist[SIGPOLL] = "Pollable event occurred";
 # endif
@@ -1775,9 +1755,7 @@ init_signals (bool dumping)
 # ifdef SIGPWR
       sys_siglist[SIGPWR] = "Power-fail restart";
 # endif
-# ifdef SIGQUIT
       sys_siglist[SIGQUIT] = "Quit";
-# endif
 # ifdef SIGRETRACT
       sys_siglist[SIGRETRACT] = "Need to relinquish monitor mode";
 # endif

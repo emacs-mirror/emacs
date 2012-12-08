@@ -91,6 +91,9 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #include <pty.h>
 #endif
 
+#include <c-ctype.h>
+#include <sig2str.h>
+
 #endif	/* subprocesses */
 
 #include "systime.h"
@@ -773,7 +776,6 @@ get_process (register Lisp_Object name)
 }
 
 
-#ifdef SIGCHLD
 /* Fdelete_process promises to immediately forget about the process, but in
    reality, Emacs needs to remember those processes until they have been
    treated by the SIGCHLD handler and waitpid has been invoked on them;
@@ -781,17 +783,14 @@ get_process (register Lisp_Object name)
 
    Some processes created by call-process are also put onto this list.  */
 static Lisp_Object deleted_pid_list;
-#endif
 
 void
 record_deleted_pid (pid_t pid)
 {
-#ifdef SIGCHLD
   deleted_pid_list = Fcons (make_fixnum_or_float (pid),
 			    /* GC treated elements set to nil.  */
 			    Fdelq (Qnil, deleted_pid_list));
 
-#endif
 }
 
 DEFUN ("delete-process", Fdelete_process, Sdelete_process, 1, 1, 0,
@@ -1581,9 +1580,7 @@ create_process (Lisp_Object process, char **new_argv, Lisp_Object current_dir)
 #ifndef WINDOWSNT
   int wait_child_setup[2];
 #endif
-#ifdef SIGCHLD
   sigset_t blocked;
-#endif
   /* Use volatile to protect variables from being clobbered by vfork.  */
   volatile int forkin, forkout;
   volatile int pty_flag = 0;
@@ -1680,13 +1677,11 @@ create_process (Lisp_Object process, char **new_argv, Lisp_Object current_dir)
 
   block_input ();
 
-#ifdef SIGCHLD
   /* Block SIGCHLD until we have a chance to store the new fork's
      pid in its process structure.  */
   sigemptyset (&blocked);
   sigaddset (&blocked, SIGCHLD);
   pthread_sigmask (SIG_BLOCK, &blocked, 0);
-#endif
 
 #ifndef WINDOWSNT
   pid = vfork ();
@@ -1794,10 +1789,8 @@ create_process (Lisp_Object process, char **new_argv, Lisp_Object current_dir)
       /* Emacs ignores SIGPIPE, but the child should not.  */
       signal (SIGPIPE, SIG_DFL);
 
-#ifdef SIGCHLD
 	/* Stop blocking signals in the child.  */
       pthread_sigmask (SIG_SETMASK, &empty_mask, 0);
-#endif
 
       if (pty_flag)
 	child_setup_tty (xforkout);
@@ -1818,9 +1811,7 @@ create_process (Lisp_Object process, char **new_argv, Lisp_Object current_dir)
     XPROCESS (process)->alive = 1;
 
   /* Stop blocking signals in the parent.  */
-#ifdef SIGCHLD
   pthread_sigmask (SIG_SETMASK, &empty_mask, 0);
-#endif
   unblock_input ();
 
   if (pid < 0)
@@ -4612,7 +4603,7 @@ wait_reading_process_output (intmax_t time_limit, int nsecs, int read_kbd,
 		 yielding EBADF here or at select() call above.
 		 So, SIGHUP is ignored (see def of PTY_TTY_NAME_SPRINTF
 		 in m/ibmrt-aix.h), and here we just ignore the select error.
-		 Cleanup occurs c/o status_notify after SIGCLD. */
+		 Cleanup occurs c/o status_notify after SIGCHLD. */
 	      no_avail = 1; /* Cannot depend on values returned */
 #else
 	      emacs_abort ();
@@ -4810,10 +4801,8 @@ wait_reading_process_output (intmax_t time_limit, int nsecs, int read_kbd,
 #endif /* HAVE_PTYS */
 	      /* If we can detect process termination, don't consider the
 		 process gone just because its pipe is closed.  */
-#ifdef SIGCHLD
 	      else if (nread == 0 && !NETCONN_P (proc) && !SERIALCONN_P (proc))
 		;
-#endif
 	      else
 		{
 		  /* Preserve status of processes already terminated.  */
@@ -5676,7 +5665,7 @@ return t unconditionally.  */)
 
    If we can, we try to signal PROCESS by sending control characters
    down the pty.  This allows us to signal inferiors who have changed
-   their uid, for which killpg would return an EPERM error.  */
+   their uid, for which kill would return an EPERM error.  */
 
 static void
 process_send_signal (Lisp_Object process, int signo, Lisp_Object current_group,
@@ -5814,7 +5803,7 @@ process_send_signal (Lisp_Object process, int signo, Lisp_Object current_group,
   if (!NILP (current_group))
     {
       if (ioctl (p->infd, TIOCSIGSEND, signo) == -1)
-	EMACS_KILLPG (gid, signo);
+	kill (-gid, signo);
     }
   else
     {
@@ -5822,7 +5811,7 @@ process_send_signal (Lisp_Object process, int signo, Lisp_Object current_group,
       kill (gid, signo);
     }
 #else /* ! defined (TIOCSIGSEND) */
-  EMACS_KILLPG (gid, signo);
+  kill (-gid, signo);
 #endif /* ! defined (TIOCSIGSEND) */
 }
 
@@ -5927,6 +5916,27 @@ traffic.  */)
   return process;
 }
 
+/* Return the integer value of the signal whose abbreviation is ABBR,
+   or a negative number if there is no such signal.  */
+static int
+abbr_to_signal (char const *name)
+{
+  int i, signo;
+  char sigbuf[20]; /* Large enough for all valid signal abbreviations.  */
+
+  if (!strncmp (name, "SIG", 3) || !strncmp (name, "sig", 3))
+    name += 3;
+
+  for (i = 0; i < sizeof sigbuf; i++)
+    {
+      sigbuf[i] = c_toupper (name[i]);
+      if (! sigbuf[i])
+	return str2sig (sigbuf, &signo) == 0 ? signo : -1;
+    }
+
+  return -1;
+}
+
 DEFUN ("signal-process", Fsignal_process, Ssignal_process,
        2, 2, "sProcess (name or number): \nnSignal code: ",
        doc: /* Send PROCESS the signal with code SIGCODE.
@@ -5937,6 +5947,7 @@ SIGCODE may be an integer, or a symbol whose name is a signal name.  */)
   (Lisp_Object process, Lisp_Object sigcode)
 {
   pid_t pid;
+  int signo;
 
   if (STRINGP (process))
     {
@@ -5966,12 +5977,11 @@ SIGCODE may be an integer, or a symbol whose name is a signal name.  */)
 	error ("Cannot signal process %s", SDATA (XPROCESS (process)->name));
     }
 
-#define parse_signal(NAME, VALUE)		\
-  else if (!xstrcasecmp (name, NAME))		\
-    XSETINT (sigcode, VALUE)
-
   if (INTEGERP (sigcode))
-    CHECK_TYPE_RANGED_INTEGER (int, sigcode);
+    {
+      CHECK_TYPE_RANGED_INTEGER (int, sigcode);
+      signo = XINT (sigcode);
+    }
   else
     {
       char *name;
@@ -5979,96 +5989,12 @@ SIGCODE may be an integer, or a symbol whose name is a signal name.  */)
       CHECK_SYMBOL (sigcode);
       name = SSDATA (SYMBOL_NAME (sigcode));
 
-      if (!strncmp (name, "SIG", 3) || !strncmp (name, "sig", 3))
-	name += 3;
-
-      if (0)
-	;
-#ifdef SIGUSR1
-      parse_signal ("usr1", SIGUSR1);
-#endif
-#ifdef SIGUSR2
-      parse_signal ("usr2", SIGUSR2);
-#endif
-      parse_signal ("term", SIGTERM);
-#ifdef SIGHUP
-      parse_signal ("hup", SIGHUP);
-#endif
-      parse_signal ("int", SIGINT);
-#ifdef SIGQUIT
-      parse_signal ("quit", SIGQUIT);
-#endif
-      parse_signal ("ill", SIGILL);
-      parse_signal ("abrt", SIGABRT);
-#ifdef SIGEMT
-      parse_signal ("emt", SIGEMT);
-#endif
-#ifdef SIGKILL
-      parse_signal ("kill", SIGKILL);
-#endif
-      parse_signal ("fpe", SIGFPE);
-#ifdef SIGBUS
-      parse_signal ("bus", SIGBUS);
-#endif
-      parse_signal ("segv", SIGSEGV);
-#ifdef SIGSYS
-      parse_signal ("sys", SIGSYS);
-#endif
-#ifdef SIGPIPE
-      parse_signal ("pipe", SIGPIPE);
-#endif
-#ifdef SIGALRM
-      parse_signal ("alrm", SIGALRM);
-#endif
-#ifdef SIGURG
-      parse_signal ("urg", SIGURG);
-#endif
-#ifdef SIGSTOP
-      parse_signal ("stop", SIGSTOP);
-#endif
-#ifdef SIGTSTP
-      parse_signal ("tstp", SIGTSTP);
-#endif
-#ifdef SIGCONT
-      parse_signal ("cont", SIGCONT);
-#endif
-#ifdef SIGCHLD
-      parse_signal ("chld", SIGCHLD);
-#endif
-#ifdef SIGTTIN
-      parse_signal ("ttin", SIGTTIN);
-#endif
-#ifdef SIGTTOU
-      parse_signal ("ttou", SIGTTOU);
-#endif
-#ifdef SIGIO
-      parse_signal ("io", SIGIO);
-#endif
-#ifdef SIGXCPU
-      parse_signal ("xcpu", SIGXCPU);
-#endif
-#ifdef SIGXFSZ
-      parse_signal ("xfsz", SIGXFSZ);
-#endif
-#ifdef SIGVTALRM
-      parse_signal ("vtalrm", SIGVTALRM);
-#endif
-#ifdef SIGPROF
-      parse_signal ("prof", SIGPROF);
-#endif
-#ifdef SIGWINCH
-      parse_signal ("winch", SIGWINCH);
-#endif
-#ifdef SIGINFO
-      parse_signal ("info", SIGINFO);
-#endif
-      else
+      signo = abbr_to_signal (name);
+      if (signo < 0)
 	error ("Undefined signal name %s", name);
     }
 
-#undef parse_signal
-
-  return make_number (kill (pid, XINT (sigcode)));
+  return make_number (kill (pid, signo));
 }
 
 DEFUN ("process-send-eof", Fprocess_send_eof, Sprocess_send_eof, 0, 1, 0,
@@ -6150,8 +6076,6 @@ process has been transmitted to the serial port.  */)
   return process;
 }
 
-#ifdef SIGCHLD
-
 /* The main Emacs thread records child processes in three places:
 
    - Vprocess_alist, for asynchronous subprocesses, which are child
@@ -6268,8 +6192,6 @@ deliver_child_signal (int sig)
 {
   deliver_process_signal (sig, handle_child_signal);
 }
-
-#endif /* SIGCHLD */
 
 
 static Lisp_Object
@@ -7118,7 +7040,6 @@ init_process_emacs (void)
 
   inhibit_sentinels = 0;
 
-#ifdef SIGCHLD
 #ifndef CANNOT_DUMP
   if (! noninteractive || initialized)
 #endif
@@ -7127,7 +7048,6 @@ init_process_emacs (void)
       emacs_sigaction_init (&action, deliver_child_signal);
       sigaction (SIGCHLD, &action, 0);
     }
-#endif
 
   FD_ZERO (&input_wait_mask);
   FD_ZERO (&non_keyboard_wait_mask);
@@ -7154,9 +7074,7 @@ init_process_emacs (void)
 #endif
 
   Vprocess_alist = Qnil;
-#ifdef SIGCHLD
   deleted_pid_list = Qnil;
-#endif
   for (i = 0; i < MAXDESC; i++)
     {
       chan_process[i] = Qnil;
@@ -7283,9 +7201,7 @@ syms_of_process (void)
   DEFSYM (Qlast_nonmenu_event, "last-nonmenu-event");
 
   staticpro (&Vprocess_alist);
-#ifdef SIGCHLD
   staticpro (&deleted_pid_list);
-#endif
 
 #endif	/* subprocesses */
 

@@ -32,7 +32,7 @@ GNULIB_MODULES='
   fcntl-h filemode getloadavg getopt-gnu gettime gettimeofday
   ignore-value intprops largefile lstat
   manywarnings mktime pselect pthread_sigmask readlink
-  socklen stat-time stdalign stdarg stdbool stdio
+  sig2str socklen stat-time stdalign stdarg stdbool stdio
   strftime strtoimax strtoumax symlink sys_stat
   sys_time time timer-time timespec-add timespec-sub utimens
   warnings

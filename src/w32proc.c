@@ -2122,6 +2122,10 @@ sys_kill (int pid, int sig)
   int need_to_free = 0;
   int rc = 0;
 
+  /* Each process is in its own process group.  */
+  if (pid < 0)
+    pid = -pid;
+
   /* Only handle signals that will result in the process dying */
   if (sig != SIGINT && sig != SIGKILL && sig != SIGQUIT && sig != SIGHUP)
     {

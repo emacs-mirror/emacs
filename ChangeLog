@@ -1,3 +1,12 @@
+2012-12-08  Paul Eggert  <eggert@cs.ucla.edu>
+
+	Assume POSIX 1003.1-1988 or later for signal.h (Bug#13026).
+	* configure.ac (PTY_OPEN, PTY_TTY_NAME_SPRINTF):
+	Use SIGCHLD rather than SIGCLD.
+	* lib/sig2str.c, lib/sig2str.h, m4/sig2str.m4: New files, from gnulib.
+	* lib/gnulib.mk, m4/gnulib-comp.m4: Regenerate.
+	* lib/makefile.w32-in (GNULIBOBJS): Add $(BUILD)/sig2str.$(O).
+
 2012-12-06  Glenn Morris  <rgm@gnu.org>
 
 	* configure.ac: Handle info/ files with or without ".info" extension.

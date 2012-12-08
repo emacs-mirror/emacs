@@ -1,4 +1,4 @@
-# -*- Makefile -*- for GNU Emacs on the Microsoft Windows API.
+2# -*- Makefile -*- for GNU Emacs on the Microsoft Windows API.
 # Copyright (C) 2011-2012 Free Software Foundation, Inc.
 
 # This file is part of GNU Emacs.
@@ -42,6 +42,7 @@ GNULIBOBJS = $(BLD)/c-ctype.$(O) \
 	     $(BLD)/sha1.$(O) \
 	     $(BLD)/sha256.$(O) \
 	     $(BLD)/sha512.$(O) \
+	     $(BLD)/sig2str.$(O) \
 	     $(BLD)/stat-time.$(O) \
 	     $(BLD)/timespec.$(O) \
 	     $(BLD)/u64.$(O) \
@@ -322,4 +323,3 @@ getopt_h:
 
 execinfo.h: execinfo.in.h
 	$(CP) execinfo.in.h $@
-

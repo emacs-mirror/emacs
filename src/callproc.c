@@ -87,12 +87,10 @@ static int synch_process_fd;
 static void
 block_child_signal (void)
 {
-#ifdef SIGCHLD
   sigset_t blocked;
   sigemptyset (&blocked);
   sigaddset (&blocked, SIGCHLD);
   pthread_sigmask (SIG_BLOCK, &blocked, 0);
-#endif
 }
 
 /* Unblock SIGCHLD.  */
@@ -100,9 +98,7 @@ block_child_signal (void)
 static void
 unblock_child_signal (void)
 {
-#ifdef SIGCHLD
   pthread_sigmask (SIG_SETMASK, &empty_mask, 0);
-#endif
 }
 
 /* If P is reapable, record it as a deleted process and kill it.
@@ -118,7 +114,7 @@ record_kill_process (struct Lisp_Process *p)
     {
       p->alive = 0;
       record_deleted_pid (p->pid);
-      EMACS_KILLPG (p->pid, SIGKILL);
+      kill (- p->pid, SIGKILL);
     }
 
   unblock_child_signal ();
@@ -164,7 +160,7 @@ call_process_cleanup (Lisp_Object arg)
   if (synch_process_pid)
     {
       ptrdiff_t count = SPECPDL_INDEX ();
-      EMACS_KILLPG (synch_process_pid, SIGINT);
+      kill (-synch_process_pid, SIGINT);
       record_unwind_protect (call_process_kill, make_number (0));
       message1 ("Waiting for process to die...(type C-g again to kill it instantly)");
       immediate_quit = 1;

@@ -10688,7 +10688,7 @@ handle_interrupt (bool in_signal_handler)
       fflush (stdout);
       reset_all_sys_modes ();
 
-#ifdef SIGTSTP			/* Support possible in later USG versions */
+#ifdef SIGTSTP
 /*
  * On systems which can suspend the current process and return to the original
  * shell, this command causes the user to end up back at the shell.
