@@ -7784,7 +7784,7 @@ emacs_abort (void)
 		/* stack[] gives the return addresses, whereas we want
 		   the address of the call, so decrease each address
 		   by approximate size of 1 CALL instruction.  */
-		sprintf (buf, "0x%p\r\n", stack[j] - sizeof(void *));
+		sprintf (buf, "0x%p\r\n", (char *)stack[j] - sizeof(void *));
 		if (stderr_fd >= 0)
 		  write (stderr_fd, buf, strlen (buf));
 		if (errfile_fd >= 0)
