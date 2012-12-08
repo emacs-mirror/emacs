@@ -381,6 +381,7 @@ extern char *get_emacs_configuration_options (void);
 # undef putenv
 #endif
 #define putenv    sys_putenv
+extern int sys_putenv (char *);
 
 extern int getloadavg (double *, int);
 extern int getpagesize (void);

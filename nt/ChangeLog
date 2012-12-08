@@ -1,6 +1,7 @@
 2012-12-08  Eli Zaretskii  <eliz@gnu.org>
 
 	* inc/ms-w32.h (putenv): Redirect to sys_putenv.
+	(sys_putenv): Add prototype.
 
 	* config.nt (HAVE_UNSETENV): Define to 1.
 

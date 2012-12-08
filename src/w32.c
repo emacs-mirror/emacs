@@ -1562,7 +1562,7 @@ unsetenv (const char *name)
   if (name_len > 32767)
     {
       errno = ENOMEM;
-      return -1;
+      return 0;
     }
   /* It is safe to use 'alloca' with 32K size, since the stack is at
      least 2MB, and we set it to 8MB in the link command line.  */

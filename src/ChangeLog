@@ -1,3 +1,7 @@
+2012-12-08  Eli Zaretskii  <eliz@gnu.org>
+
+	* w32.c (unsetenv): Return 0 if the input string is too long.
+
 2012-12-08  Paul Eggert  <eggert@cs.ucla.edu>
 
 	Use putenv+unsetenv instead of modifying environ directly (Bug#13070).
