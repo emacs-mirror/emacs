@@ -4034,7 +4034,9 @@ With a zero prefix arg, put the name inside a function call to `info'."
   (unless Info-current-node
     (user-error "No current Info node"))
   (let ((node (if (stringp Info-current-file)
-		  (concat "(" (file-name-nondirectory Info-current-file) ") "
+		  (concat "(" (file-name-sans-extension
+			       (file-name-nondirectory Info-current-file))
+			  ") "
 			  Info-current-node))))
     (if (zerop (prefix-numeric-value arg))
         (setq node (concat "(info \"" node "\")")))
@@ -4421,7 +4423,8 @@ first line or header line, and for breadcrumb links.")
 	       (if (not (equal node "Top")) node
 		 (format "(%s)Top"
 			 (if (stringp Info-current-file)
-			     (file-name-nondirectory Info-current-file)
+			     (file-name-sans-extension
+			      (file-name-nondirectory Info-current-file))
 			   ;; Some legacy code can still use a symbol.
 			   Info-current-file)))))
 	  (setq line (concat
@@ -4533,7 +4536,8 @@ first line or header line, and for breadcrumb links.")
 	      (if (re-search-forward
 		   (format "File: %s\\([^,\n\t]+\\),"
 			   (if (stringp Info-current-file)
-			       (file-name-nondirectory Info-current-file)
+			       (file-name-sans-extension
+				(file-name-nondirectory Info-current-file))
 			     Info-current-file))
 		   header-end t)
 		  (put-text-property (match-beginning 1) (match-end 1)
@@ -5071,7 +5075,8 @@ BUFFER is the buffer speedbar is requesting buttons for."
   "This implements the `bookmark-make-record-function' type (which see)
 for Info nodes."
   (let* ((file (and (stringp Info-current-file)
-		    (file-name-nondirectory Info-current-file)))
+		    (file-name-sans-extension
+		     (file-name-nondirectory Info-current-file))))
 	 (bookmark-name (if file
 			    (concat "(" file ") " Info-current-node)
 			  Info-current-node))
