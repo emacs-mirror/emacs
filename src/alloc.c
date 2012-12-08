@@ -820,6 +820,15 @@ xstrdup (const char *s)
   return p;
 }
 
+/* Like putenv, but (1) use the equivalent of xmalloc and (2) the
+   argument is a const pointer.  */
+
+void
+xputenv (char const *string)
+{
+  if (putenv ((char *) string) != 0)
+    memory_full (0);
+}
 
 /* Unwind for SAFE_ALLOCA */
 

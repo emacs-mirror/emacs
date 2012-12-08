@@ -1,5 +1,8 @@
 2012-12-08  Paul Eggert  <eggert@cs.ucla.edu>
 
+	Use putenv+unsetenv instead of modifying environ directly (Bug#13070).
+	* merge-gnulib (GNULIB_MODULES): Add putenv, unsetenv.
+
 	Simplify get_lim_data.
 	* CPP-DEFINES (ULIMIT_BREAK_VALUE): Remove.
 

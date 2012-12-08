@@ -1,3 +1,29 @@
+2012-12-08  Paul Eggert  <eggert@cs.ucla.edu>
+
+	Use putenv+unsetenv instead of modifying environ directly (Bug#13070).
+	* alloc.c (xputenv): New function.
+	* dbusbind.c (Fdbus_init_bus):
+	* emacs.c (main):
+	* xterm.c (x_term_init):
+	Use xputenv instead of setenv or putenv, to detect memory exhaustion.
+	* editfns.c (initial_tz): Move static var decl up.
+	(tzvalbuf_in_environ): New static var.
+	(init_editfns):	Initialize these two static vars.
+	(Fencode_time): Don't assume arbitrary limit on EMACS_INT width.
+	Save old TZ value on stack, if it's small.
+	(Fencode_time, set_time_zone_rule): Don't modify 'environ' directly;
+	instead, use xputenv+unsetenv to set and restore TZ.
+	(environbuf): Remove static var.  All uses removed.
+	(Fset_time_zone_rule): Do not save TZ and environ;
+	no longer needed here.
+	(set_time_zone_rule_tz1, set_time_zone_rule_tz2) [LOCALTIME_CACHE]:
+	Move to inside set_time_zone_rule; they don't need file scope any more.
+	(set_time_zone_rule): Maintain the TZ=value string separately.
+	(syms_of_editfns): Don't initialize initial_tz;
+	init_editfns now does it.
+	* emacs.c (dump_tz) [HAVE_TZSET]: Now const.
+	* lisp.h (xputenv): New decl.
+
 2012-12-08  Fabrice Popineau  <fabrice.popineau@gmail.com>
 
 	* w32fns.c (emacs_abort): Don't do arithmetics on void pointers.

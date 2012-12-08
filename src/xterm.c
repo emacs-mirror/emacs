@@ -9908,10 +9908,7 @@ x_term_init (Lisp_Object display_name, char *xrm_option, char *resource_name)
 
         /* Emacs can only handle core input events, so make sure
            Gtk doesn't use Xinput or Xinput2 extensions.  */
-        {
-          static char fix_events[] = "GDK_CORE_DEVICE_EVENTS=1";
-          putenv (fix_events);
-        }
+	xputenv ("GDK_CORE_DEVICE_EVENTS=1");
 
         /* Work around GLib bug that outputs a faulty warning. See
            https://bugzilla.gnome.org/show_bug.cgi?id=563627.  */

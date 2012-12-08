@@ -1,3 +1,10 @@
+2012-12-08  Paul Eggert  <eggert@cs.ucla.edu>
+
+	Use putenv+unsetenv instead of modifying environ directly (Bug#13070).
+	* lib/putenv.c, lib/unsetenv.c, m4/putenv.m4, m4/setenv.m4:
+	New files, copied automatically from gnulib.
+	* lib/gnulib.mk, m4/gnulib-comp.m4: Regenerate.
+
 2012-12-08  Eli Zaretskii  <eliz@gnu.org>
 
 	* lib/makefile.w32-in ($(BLD)/sig2str.$(O)): New dependency.

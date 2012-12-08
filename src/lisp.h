@@ -3594,6 +3594,7 @@ extern void *xnrealloc (void *, ptrdiff_t, ptrdiff_t);
 extern void *xpalloc (void *, ptrdiff_t *, ptrdiff_t, ptrdiff_t, ptrdiff_t);
 
 extern char *xstrdup (const char *);
+extern void xputenv (const char *);
 
 extern char *egetenv (const char *);
 
