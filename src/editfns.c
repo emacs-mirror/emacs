@@ -2351,9 +2351,10 @@ usage: (insert-before-markers-and-inherit &rest ARGS)  */)
 }
 
 DEFUN ("insert-char", Finsert_char, Sinsert_char, 1, 3,
-       "(list (read-char-by-name \"Insert character (Unicode name or hex): \")\
-	 (prefix-numeric-value current-prefix-arg)\
-	 t))",
+       "(list (or (read-char-by-name \"Insert character (Unicode name or hex): \")\
+	  (error \"You did not specify a valid character\"))\
+      (prefix-numeric-value current-prefix-arg)\
+      t))",
        doc: /* Insert COUNT copies of CHARACTER.
 Interactively, prompt for CHARACTER.  You can specify CHARACTER in one
 of these ways:
