@@ -104,26 +104,38 @@ WINS_CEDET=\
 	cedet/semantic/symref \
 	cedet/semantic/wisent
 
-WINS_BASIC=\
+# The list of subdirectories is subdivided into 4 more or less equal
+# parts so that we could have 4-way parallelism while compiling Lisp
+# files, which helps to slash bootstrap times.  See the 'compile'
+# target below.
+WINS_BASIC1=\
 	calc \
 	calendar \
 	emacs-lisp \
-	emulation \
 	erc \
-	eshell \
+	net \
+	url
+
+WINS_BASIC2=\
 	gnus \
 	international \
 	language \
-	mail \
+	mail
+
+WINS_BASIC3=\
+	emulation \
 	mh-e \
-	net \
 	nxml \
 	org \
 	play \
-	progmodes \
 	textmodes \
-	url \
 	vc
+
+WINS_BASIC4=\
+	eshell \
+	progmodes
+
+WINS_BASIC= $(WINS_BASIC1) $(WINS_BASIC2) $(WINS_BASIC3) $(WINS_BASIC4)
 
 # Directories with lisp files to compile, and to extract data from
 # (customs, autoloads, etc.)
@@ -311,22 +323,71 @@ TAGS-LISP-CMD: $(lisptagsfiles1) $(lisptagsfiles2) $(lisptagsfiles3) $(lisptagsf
 # compiled find the right files.
 
 # Need separate version for sh and native cmd.exe
-compile: $(lisp)/subdirs.el compile-$(SHELLTYPE) doit
+compile: $(lisp)/subdirs.el compile0-$(SHELLTYPE) compile1-$(SHELLTYPE) compile2-$(SHELLTYPE) compile3-$(SHELLTYPE) compile4-$(SHELLTYPE) doit
 
-compile-CMD: autoloads
+compile0-CMD: autoloads
 #	-for %%f in ($(lisp) $(WINS)) do for %%g in (%%f\*.elc) do @attrib -r %%g
 	for %%f in ($(COMPILE_FIRST)) do \
 	  $(emacs) -l loaddefs $(BYTE_COMPILE_FLAGS) -f batch-byte-compile-if-not-done %%f
-	for %%f in (. $(WINS)) do for %%g in (%%f/*.el) do \
+
+compile1-CMD: autoloads compile0-CMD
+	for %%f in (. $(WINS_BASIC1)) do for %%g in (%%f/*.el) do \
 	  $(emacs) -l loaddefs $(BYTE_COMPILE_FLAGS) -f batch-byte-compile-if-not-done %%f/%%g
 
-compile-SH: autoloads
+compile2-CMD: autoloads compile0-CMD
+	for %%f in ($(WINS_BASIC2)) do for %%g in (%%f/*.el) do \
+	  $(emacs) -l loaddefs $(BYTE_COMPILE_FLAGS) -f batch-byte-compile-if-not-done %%f/%%g
+
+compile3-CMD: autoloads compile0-CMD
+	for %%f in ($(WINS_BASIC3)) do for %%g in (%%f/*.el) do \
+	  $(emacs) -l loaddefs $(BYTE_COMPILE_FLAGS) -f batch-byte-compile-if-not-done %%f/%%g
+
+compile4-CMD: autoloads compile0-CMD
+	for %%f in ($(WINS_BASIC4) $(WINS_CEDET) term obsolete) do for %%g in (%%f/*.el) do \
+	  $(emacs) -l loaddefs $(BYTE_COMPILE_FLAGS) -f batch-byte-compile-if-not-done %%f/%%g
+
+compile0-SH: autoloads
 #	for elc in $(lisp)/*.elc $(lisp)/*/*.elc; do attrib -r $$elc; done
 	for el in $(COMPILE_FIRST); do \
 	  echo Compiling $$el; \
 	  $(emacs) -l loaddefs $(BYTE_COMPILE_FLAGS) -f batch-byte-compile-if-not-done $$el; \
 	done
-	for dir in $(lisp) $(WINS); do \
+
+compile1-SH: autoloads compile0-SH
+	for dir in $(lisp) $(WINS_BASIC1); do \
+	  for el in $$dir/*.el; do \
+	    if test -f $$el; \
+	    then \
+	      echo Compiling $$el; \
+	      $(emacs) -l loaddefs $(BYTE_COMPILE_FLAGS) -f batch-byte-compile-if-not-done $$el; \
+	    fi \
+	  done; \
+	done
+
+compile2-SH: autoloads compile0-SH
+	for dir in $(WINS_BASIC2); do \
+	  for el in $$dir/*.el; do \
+	    if test -f $$el; \
+	    then \
+	      echo Compiling $$el; \
+	      $(emacs) -l loaddefs $(BYTE_COMPILE_FLAGS) -f batch-byte-compile-if-not-done $$el; \
+	    fi \
+	  done; \
+	done
+
+compile3-SH: autoloads compile0-SH
+	for dir in $(WINS_BASIC3); do \
+	  for el in $$dir/*.el; do \
+	    if test -f $$el; \
+	    then \
+	      echo Compiling $$el; \
+	      $(emacs) -l loaddefs $(BYTE_COMPILE_FLAGS) -f batch-byte-compile-if-not-done $$el; \
+	    fi \
+	  done; \
+	done
+
+compile4-SH: autoloads compile0-SH
+	for dir in $(WINS_BASIC4) $(WINS_CEDET) terms obsolete; do \
 	  for el in $$dir/*.el; do \
 	    if test -f $$el; \
 	    then \
