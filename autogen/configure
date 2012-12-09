@@ -2117,13 +2117,13 @@ Optional Packages:
   --without-gnutls        don't use -lgnutls for SSL/TLS support
   --without-makeinfo      don't require makeinfo for building manuals
   --without-compress-info don't compress the installed Info pages
-  --with-pkg-config-prog=PATH
-                          path to pkg-config for finding GTK and librsvg
+  --with-pkg-config-prog=FILENAME
+                          file name of pkg-config for finding GTK and librsvg
   --with-crt-dir=DIR      directory containing crtn.o etc. The default is
                           /usr/lib, or /usr/lib64 on some platforms.
   --with-gameuser=USER    user for shared game score files
-  --with-gnustep-conf=PATH
-                          path to GNUstep.conf; default $GNUSTEP_CONFIG_FILE,
+  --with-gnustep-conf=FILENAME
+                          name of GNUstep.conf; default $GNUSTEP_CONFIG_FILE,
                           or /etc/GNUstep/GNUstep.conf
   --with-x                use the X Window System
 
@@ -4373,7 +4373,7 @@ fi
 
 
 #### Make srcdir absolute, if it isn't already.  It's important to
-#### avoid running the path through pwd unnecessarily, since pwd can
+#### avoid running the file name through pwd unnecessarily, since pwd can
 #### give you automounter prefixes, which can go away.  We do all this
 #### so Emacs can find its files when run uninstalled.
 ## Make sure CDPATH doesn't affect cd (in case PWD is relative).
@@ -4383,17 +4383,17 @@ case "${srcdir}" in
   . )
     ## We may be able to use the $PWD environment variable to make this
     ## absolute.  But sometimes PWD is inaccurate.
-    ## Note: we used to use ${PWD} at the end instead of `pwd`,
+    ## Note: we used to use $PWD at the end instead of `pwd`,
     ## but that tested only for a well-formed and valid PWD,
     ## it did not object when PWD was well-formed and valid but just wrong.
-    if test ".${PWD}" != "." && test ".`(cd ${PWD} ; sh -c pwd)`" = ".`pwd`"  ;
+    if test ".$PWD" != "." && test ".`(cd "$PWD" ; sh -c pwd)`" = ".`pwd`"  ;
     then
       srcdir="$PWD"
     else
-      srcdir="`(cd ${srcdir}; pwd)`"
+      srcdir=`(cd "$srcdir"; pwd)`
     fi
   ;;
-  *  ) srcdir="`(cd ${srcdir}; pwd)`" ;;
+  *  ) srcdir=`(cd "$srcdir"; pwd)` ;;
 esac
 
 ### Canonicalize the configuration name.
@@ -7024,6 +7024,7 @@ esac
   # Code from module pathmax:
   # Code from module pselect:
   # Code from module pthread_sigmask:
+  # Code from module putenv:
   # Code from module readlink:
   # Code from module root-uid:
   # Code from module sig2str:
@@ -7063,6 +7064,7 @@ esac
   # Code from module timespec-sub:
   # Code from module u64:
   # Code from module unistd:
+  # Code from module unsetenv:
   # Code from module utimens:
   # Code from module verify:
   # Code from module warnings:
@@ -8146,9 +8148,13 @@ $as_echo "no" >&6; }
 fi
 
 
-if test "$MAKEINFO" != "no" && \
-  test x"`$MAKEINFO --version 2> /dev/null | $EGREP 'texinfo[^0-9]*([1-4][0-9]+|[5-9]|4\.[7-9]|4\.[1-6][0-9]+)'`" = x; then
-   MAKEINFO=no
+if test "$MAKEINFO" != "no"; then
+  case `
+    $MAKEINFO --version 2> /dev/null |
+    $EGREP 'texinfo[^0-9]*([1-4][0-9]+|[5-9]|4\.[7-9]|4\.[1-6][0-9]+)'
+  ` in
+    '') MAKEINFO=no;;
+  esac
 fi
 
 ## Makeinfo is unusual.  For a released Emacs, the manuals are
@@ -8166,7 +8172,7 @@ if test "$MAKEINFO" = "no"; then
   MAKEINFO=makeinfo
   if test "x${with_makeinfo}" = "xno"; then
     HAVE_MAKEINFO=no
-  elif test ! -e $srcdir/info/emacs && test ! -e $srcdir/info/emacs.info; then
+  elif test ! -e "$srcdir/info/emacs" && test ! -e "$srcdir/info/emacs.info"; then
     as_fn_error "You do not seem to have makeinfo >= 4.7, and your
 source tree does not seem to have pre-built manuals in the \`info' directory.
 Either install a suitable version of makeinfo, or re-run configure
@@ -8657,13 +8663,13 @@ fi
      HAVE_ALSA=no
   else
      PKG_CONFIG_MIN_VERSION=0.9.0
-     if $PKG_CONFIG --atleast-pkgconfig-version $PKG_CONFIG_MIN_VERSION; then
+     if "$PKG_CONFIG" --atleast-pkgconfig-version $PKG_CONFIG_MIN_VERSION; then
         { $as_echo "$as_me:${as_lineno-$LINENO}: checking for $ALSA_MODULES" >&5
 $as_echo_n "checking for $ALSA_MODULES... " >&6; }
 
-        if $PKG_CONFIG --exists "$ALSA_MODULES" 2>&5 &&
-	   ALSA_CFLAGS=`$PKG_CONFIG --cflags "$ALSA_MODULES" 2>&5` &&
-	   ALSA_LIBS=`$PKG_CONFIG --libs "$ALSA_MODULES" 2>&5`; then
+        if "$PKG_CONFIG" --exists "$ALSA_MODULES" 2>&5 &&
+	   ALSA_CFLAGS=`"$PKG_CONFIG" --cflags "$ALSA_MODULES" 2>&5` &&
+	   ALSA_LIBS=`"$PKG_CONFIG" --libs "$ALSA_MODULES" 2>&5`; then
 	    edit_cflags="
 	      s,///*,/,g
 	      s/^/ /
@@ -8683,7 +8689,7 @@ $as_echo "no" >&6; }
             ## If we have a custom action on failure, don't print errors, but
 	    ## do set a variable so people can do so.  Do it in a subshell
 	    ## to capture any diagnostics in invoking pkg-config.
-	    ALSA_PKG_ERRORS=`($PKG_CONFIG --print-errors "$ALSA_MODULES") 2>&1`
+	    ALSA_PKG_ERRORS=`("$PKG_CONFIG" --print-errors "$ALSA_MODULES") 2>&1`
 
         fi
 
@@ -10538,13 +10544,13 @@ if test "${HAVE_X11}" = "yes" || test "${HAVE_NS}" = "yes"; then
      :
   else
      PKG_CONFIG_MIN_VERSION=0.9.0
-     if $PKG_CONFIG --atleast-pkgconfig-version $PKG_CONFIG_MIN_VERSION; then
+     if "$PKG_CONFIG" --atleast-pkgconfig-version $PKG_CONFIG_MIN_VERSION; then
         { $as_echo "$as_me:${as_lineno-$LINENO}: checking for $RSVG_MODULE" >&5
 $as_echo_n "checking for $RSVG_MODULE... " >&6; }
 
-        if $PKG_CONFIG --exists "$RSVG_MODULE" 2>&5 &&
-	   RSVG_CFLAGS=`$PKG_CONFIG --cflags "$RSVG_MODULE" 2>&5` &&
-	   RSVG_LIBS=`$PKG_CONFIG --libs "$RSVG_MODULE" 2>&5`; then
+        if "$PKG_CONFIG" --exists "$RSVG_MODULE" 2>&5 &&
+	   RSVG_CFLAGS=`"$PKG_CONFIG" --cflags "$RSVG_MODULE" 2>&5` &&
+	   RSVG_LIBS=`"$PKG_CONFIG" --libs "$RSVG_MODULE" 2>&5`; then
 	    edit_cflags="
 	      s,///*,/,g
 	      s/^/ /
@@ -10564,7 +10570,7 @@ $as_echo "no" >&6; }
             ## If we have a custom action on failure, don't print errors, but
 	    ## do set a variable so people can do so.  Do it in a subshell
 	    ## to capture any diagnostics in invoking pkg-config.
-	    RSVG_PKG_ERRORS=`($PKG_CONFIG --print-errors "$RSVG_MODULE") 2>&1`
+	    RSVG_PKG_ERRORS=`("$PKG_CONFIG" --print-errors "$RSVG_MODULE") 2>&1`
 
         fi
 
@@ -10609,13 +10615,13 @@ if test "${HAVE_X11}" = "yes"; then
      :
   else
      PKG_CONFIG_MIN_VERSION=0.9.0
-     if $PKG_CONFIG --atleast-pkgconfig-version $PKG_CONFIG_MIN_VERSION; then
+     if "$PKG_CONFIG" --atleast-pkgconfig-version $PKG_CONFIG_MIN_VERSION; then
         { $as_echo "$as_me:${as_lineno-$LINENO}: checking for $IMAGEMAGICK_MODULE" >&5
 $as_echo_n "checking for $IMAGEMAGICK_MODULE... " >&6; }
 
-        if $PKG_CONFIG --exists "$IMAGEMAGICK_MODULE" 2>&5 &&
-	   IMAGEMAGICK_CFLAGS=`$PKG_CONFIG --cflags "$IMAGEMAGICK_MODULE" 2>&5` &&
-	   IMAGEMAGICK_LIBS=`$PKG_CONFIG --libs "$IMAGEMAGICK_MODULE" 2>&5`; then
+        if "$PKG_CONFIG" --exists "$IMAGEMAGICK_MODULE" 2>&5 &&
+	   IMAGEMAGICK_CFLAGS=`"$PKG_CONFIG" --cflags "$IMAGEMAGICK_MODULE" 2>&5` &&
+	   IMAGEMAGICK_LIBS=`"$PKG_CONFIG" --libs "$IMAGEMAGICK_MODULE" 2>&5`; then
 	    edit_cflags="
 	      s,///*,/,g
 	      s/^/ /
@@ -10635,7 +10641,7 @@ $as_echo "no" >&6; }
             ## If we have a custom action on failure, don't print errors, but
 	    ## do set a variable so people can do so.  Do it in a subshell
 	    ## to capture any diagnostics in invoking pkg-config.
-	    IMAGEMAGICK_PKG_ERRORS=`($PKG_CONFIG --print-errors "$IMAGEMAGICK_MODULE") 2>&1`
+	    IMAGEMAGICK_PKG_ERRORS=`("$PKG_CONFIG" --print-errors "$IMAGEMAGICK_MODULE") 2>&1`
 
         fi
 
@@ -10696,13 +10702,13 @@ if test "${with_gtk3}" = "yes" || test "${with_gtk}" = "yes" || test "$USE_X_TOO
      pkg_check_gtk=no
   else
      PKG_CONFIG_MIN_VERSION=0.9.0
-     if $PKG_CONFIG --atleast-pkgconfig-version $PKG_CONFIG_MIN_VERSION; then
+     if "$PKG_CONFIG" --atleast-pkgconfig-version $PKG_CONFIG_MIN_VERSION; then
         { $as_echo "$as_me:${as_lineno-$LINENO}: checking for $GTK_MODULES" >&5
 $as_echo_n "checking for $GTK_MODULES... " >&6; }
 
-        if $PKG_CONFIG --exists "$GTK_MODULES" 2>&5 &&
-	   GTK_CFLAGS=`$PKG_CONFIG --cflags "$GTK_MODULES" 2>&5` &&
-	   GTK_LIBS=`$PKG_CONFIG --libs "$GTK_MODULES" 2>&5`; then
+        if "$PKG_CONFIG" --exists "$GTK_MODULES" 2>&5 &&
+	   GTK_CFLAGS=`"$PKG_CONFIG" --cflags "$GTK_MODULES" 2>&5` &&
+	   GTK_LIBS=`"$PKG_CONFIG" --libs "$GTK_MODULES" 2>&5`; then
 	    edit_cflags="
 	      s,///*,/,g
 	      s/^/ /
@@ -10722,7 +10728,7 @@ $as_echo "no" >&6; }
             ## If we have a custom action on failure, don't print errors, but
 	    ## do set a variable so people can do so.  Do it in a subshell
 	    ## to capture any diagnostics in invoking pkg-config.
-	    GTK_PKG_ERRORS=`($PKG_CONFIG --print-errors "$GTK_MODULES") 2>&1`
+	    GTK_PKG_ERRORS=`("$PKG_CONFIG" --print-errors "$GTK_MODULES") 2>&1`
 
         fi
 
@@ -10768,13 +10774,13 @@ if test "${with_gtk2}" = "yes" || test "$check_gtk2" = "yes"; then
      pkg_check_gtk=no
   else
      PKG_CONFIG_MIN_VERSION=0.9.0
-     if $PKG_CONFIG --atleast-pkgconfig-version $PKG_CONFIG_MIN_VERSION; then
+     if "$PKG_CONFIG" --atleast-pkgconfig-version $PKG_CONFIG_MIN_VERSION; then
         { $as_echo "$as_me:${as_lineno-$LINENO}: checking for $GTK_MODULES" >&5
 $as_echo_n "checking for $GTK_MODULES... " >&6; }
 
-        if $PKG_CONFIG --exists "$GTK_MODULES" 2>&5 &&
-	   GTK_CFLAGS=`$PKG_CONFIG --cflags "$GTK_MODULES" 2>&5` &&
-	   GTK_LIBS=`$PKG_CONFIG --libs "$GTK_MODULES" 2>&5`; then
+        if "$PKG_CONFIG" --exists "$GTK_MODULES" 2>&5 &&
+	   GTK_CFLAGS=`"$PKG_CONFIG" --cflags "$GTK_MODULES" 2>&5` &&
+	   GTK_LIBS=`"$PKG_CONFIG" --libs "$GTK_MODULES" 2>&5`; then
 	    edit_cflags="
 	      s,///*,/,g
 	      s/^/ /
@@ -10794,7 +10800,7 @@ $as_echo "no" >&6; }
             ## If we have a custom action on failure, don't print errors, but
 	    ## do set a variable so people can do so.  Do it in a subshell
 	    ## to capture any diagnostics in invoking pkg-config.
-	    GTK_PKG_ERRORS=`($PKG_CONFIG --print-errors "$GTK_MODULES") 2>&1`
+	    GTK_PKG_ERRORS=`("$PKG_CONFIG" --print-errors "$GTK_MODULES") 2>&1`
 
         fi
 
@@ -10850,7 +10856,7 @@ $as_echo "#define USE_GTK 1" >>confdefs.h
 
     GTK_OBJ="gtkutil.o $GTK_OBJ"
     USE_X_TOOLKIT=none
-    if $PKG_CONFIG --atleast-version=2.10 gtk+-2.0; then
+    if "$PKG_CONFIG" --atleast-version=2.10 gtk+-2.0; then
       :
     else
       { $as_echo "$as_me:${as_lineno-$LINENO}: WARNING: Your version of Gtk+ will have problems with
@@ -10931,13 +10937,13 @@ if test "${with_dbus}" = "yes"; then
      HAVE_DBUS=no
   else
      PKG_CONFIG_MIN_VERSION=0.9.0
-     if $PKG_CONFIG --atleast-pkgconfig-version $PKG_CONFIG_MIN_VERSION; then
+     if "$PKG_CONFIG" --atleast-pkgconfig-version $PKG_CONFIG_MIN_VERSION; then
         { $as_echo "$as_me:${as_lineno-$LINENO}: checking for dbus-1 >= 1.0" >&5
 $as_echo_n "checking for dbus-1 >= 1.0... " >&6; }
 
-        if $PKG_CONFIG --exists "dbus-1 >= 1.0" 2>&5 &&
-	   DBUS_CFLAGS=`$PKG_CONFIG --cflags "dbus-1 >= 1.0" 2>&5` &&
-	   DBUS_LIBS=`$PKG_CONFIG --libs "dbus-1 >= 1.0" 2>&5`; then
+        if "$PKG_CONFIG" --exists "dbus-1 >= 1.0" 2>&5 &&
+	   DBUS_CFLAGS=`"$PKG_CONFIG" --cflags "dbus-1 >= 1.0" 2>&5` &&
+	   DBUS_LIBS=`"$PKG_CONFIG" --libs "dbus-1 >= 1.0" 2>&5`; then
 	    edit_cflags="
 	      s,///*,/,g
 	      s/^/ /
@@ -10957,7 +10963,7 @@ $as_echo "no" >&6; }
             ## If we have a custom action on failure, don't print errors, but
 	    ## do set a variable so people can do so.  Do it in a subshell
 	    ## to capture any diagnostics in invoking pkg-config.
-	    DBUS_PKG_ERRORS=`($PKG_CONFIG --print-errors "dbus-1 >= 1.0") 2>&1`
+	    DBUS_PKG_ERRORS=`("$PKG_CONFIG" --print-errors "dbus-1 >= 1.0") 2>&1`
 
         fi
 
@@ -11012,13 +11018,13 @@ if test "${HAVE_X11}" = "yes" && test "${with_gsettings}" = "yes"; then
      HAVE_GSETTINGS=no
   else
      PKG_CONFIG_MIN_VERSION=0.9.0
-     if $PKG_CONFIG --atleast-pkgconfig-version $PKG_CONFIG_MIN_VERSION; then
+     if "$PKG_CONFIG" --atleast-pkgconfig-version $PKG_CONFIG_MIN_VERSION; then
         { $as_echo "$as_me:${as_lineno-$LINENO}: checking for gio-2.0 >= 2.26" >&5
 $as_echo_n "checking for gio-2.0 >= 2.26... " >&6; }
 
-        if $PKG_CONFIG --exists "gio-2.0 >= 2.26" 2>&5 &&
-	   GSETTINGS_CFLAGS=`$PKG_CONFIG --cflags "gio-2.0 >= 2.26" 2>&5` &&
-	   GSETTINGS_LIBS=`$PKG_CONFIG --libs "gio-2.0 >= 2.26" 2>&5`; then
+        if "$PKG_CONFIG" --exists "gio-2.0 >= 2.26" 2>&5 &&
+	   GSETTINGS_CFLAGS=`"$PKG_CONFIG" --cflags "gio-2.0 >= 2.26" 2>&5` &&
+	   GSETTINGS_LIBS=`"$PKG_CONFIG" --libs "gio-2.0 >= 2.26" 2>&5`; then
 	    edit_cflags="
 	      s,///*,/,g
 	      s/^/ /
@@ -11038,7 +11044,7 @@ $as_echo "no" >&6; }
             ## If we have a custom action on failure, don't print errors, but
 	    ## do set a variable so people can do so.  Do it in a subshell
 	    ## to capture any diagnostics in invoking pkg-config.
-	    GSETTINGS_PKG_ERRORS=`($PKG_CONFIG --print-errors "gio-2.0 >= 2.26") 2>&1`
+	    GSETTINGS_PKG_ERRORS=`("$PKG_CONFIG" --print-errors "gio-2.0 >= 2.26") 2>&1`
 
         fi
 
@@ -11074,13 +11080,13 @@ if test "${HAVE_X11}" = "yes" && test "${with_gconf}" = "yes"; then
      HAVE_GCONF=no
   else
      PKG_CONFIG_MIN_VERSION=0.9.0
-     if $PKG_CONFIG --atleast-pkgconfig-version $PKG_CONFIG_MIN_VERSION; then
+     if "$PKG_CONFIG" --atleast-pkgconfig-version $PKG_CONFIG_MIN_VERSION; then
         { $as_echo "$as_me:${as_lineno-$LINENO}: checking for gconf-2.0 >= 2.13" >&5
 $as_echo_n "checking for gconf-2.0 >= 2.13... " >&6; }
 
-        if $PKG_CONFIG --exists "gconf-2.0 >= 2.13" 2>&5 &&
-	   GCONF_CFLAGS=`$PKG_CONFIG --cflags "gconf-2.0 >= 2.13" 2>&5` &&
-	   GCONF_LIBS=`$PKG_CONFIG --libs "gconf-2.0 >= 2.13" 2>&5`; then
+        if "$PKG_CONFIG" --exists "gconf-2.0 >= 2.13" 2>&5 &&
+	   GCONF_CFLAGS=`"$PKG_CONFIG" --cflags "gconf-2.0 >= 2.13" 2>&5` &&
+	   GCONF_LIBS=`"$PKG_CONFIG" --libs "gconf-2.0 >= 2.13" 2>&5`; then
 	    edit_cflags="
 	      s,///*,/,g
 	      s/^/ /
@@ -11100,7 +11106,7 @@ $as_echo "no" >&6; }
             ## If we have a custom action on failure, don't print errors, but
 	    ## do set a variable so people can do so.  Do it in a subshell
 	    ## to capture any diagnostics in invoking pkg-config.
-	    GCONF_PKG_ERRORS=`($PKG_CONFIG --print-errors "gconf-2.0 >= 2.13") 2>&1`
+	    GCONF_PKG_ERRORS=`("$PKG_CONFIG" --print-errors "gconf-2.0 >= 2.13") 2>&1`
 
         fi
 
@@ -11135,13 +11141,13 @@ if test "$HAVE_GSETTINGS" = "yes" || test "$HAVE_GCONF" = "yes"; then
      HAVE_GOBJECT=no
   else
      PKG_CONFIG_MIN_VERSION=0.9.0
-     if $PKG_CONFIG --atleast-pkgconfig-version $PKG_CONFIG_MIN_VERSION; then
+     if "$PKG_CONFIG" --atleast-pkgconfig-version $PKG_CONFIG_MIN_VERSION; then
         { $as_echo "$as_me:${as_lineno-$LINENO}: checking for gobject-2.0 >= 2.0" >&5
 $as_echo_n "checking for gobject-2.0 >= 2.0... " >&6; }
 
-        if $PKG_CONFIG --exists "gobject-2.0 >= 2.0" 2>&5 &&
-	   GOBJECT_CFLAGS=`$PKG_CONFIG --cflags "gobject-2.0 >= 2.0" 2>&5` &&
-	   GOBJECT_LIBS=`$PKG_CONFIG --libs "gobject-2.0 >= 2.0" 2>&5`; then
+        if "$PKG_CONFIG" --exists "gobject-2.0 >= 2.0" 2>&5 &&
+	   GOBJECT_CFLAGS=`"$PKG_CONFIG" --cflags "gobject-2.0 >= 2.0" 2>&5` &&
+	   GOBJECT_LIBS=`"$PKG_CONFIG" --libs "gobject-2.0 >= 2.0" 2>&5`; then
 	    edit_cflags="
 	      s,///*,/,g
 	      s/^/ /
@@ -11161,7 +11167,7 @@ $as_echo "no" >&6; }
             ## If we have a custom action on failure, don't print errors, but
 	    ## do set a variable so people can do so.  Do it in a subshell
 	    ## to capture any diagnostics in invoking pkg-config.
-	    GOBJECT_PKG_ERRORS=`($PKG_CONFIG --print-errors "gobject-2.0 >= 2.0") 2>&1`
+	    GOBJECT_PKG_ERRORS=`("$PKG_CONFIG" --print-errors "gobject-2.0 >= 2.0") 2>&1`
 
         fi
 
@@ -11269,13 +11275,13 @@ if test "${with_gnutls}" = "yes" ; then
      HAVE_GNUTLS=no
   else
      PKG_CONFIG_MIN_VERSION=0.9.0
-     if $PKG_CONFIG --atleast-pkgconfig-version $PKG_CONFIG_MIN_VERSION; then
+     if "$PKG_CONFIG" --atleast-pkgconfig-version $PKG_CONFIG_MIN_VERSION; then
         { $as_echo "$as_me:${as_lineno-$LINENO}: checking for gnutls >= 2.6.6" >&5
 $as_echo_n "checking for gnutls >= 2.6.6... " >&6; }
 
-        if $PKG_CONFIG --exists "gnutls >= 2.6.6" 2>&5 &&
-	   LIBGNUTLS_CFLAGS=`$PKG_CONFIG --cflags "gnutls >= 2.6.6" 2>&5` &&
-	   LIBGNUTLS_LIBS=`$PKG_CONFIG --libs "gnutls >= 2.6.6" 2>&5`; then
+        if "$PKG_CONFIG" --exists "gnutls >= 2.6.6" 2>&5 &&
+	   LIBGNUTLS_CFLAGS=`"$PKG_CONFIG" --cflags "gnutls >= 2.6.6" 2>&5` &&
+	   LIBGNUTLS_LIBS=`"$PKG_CONFIG" --libs "gnutls >= 2.6.6" 2>&5`; then
 	    edit_cflags="
 	      s,///*,/,g
 	      s/^/ /
@@ -11295,7 +11301,7 @@ $as_echo "no" >&6; }
             ## If we have a custom action on failure, don't print errors, but
 	    ## do set a variable so people can do so.  Do it in a subshell
 	    ## to capture any diagnostics in invoking pkg-config.
-	    LIBGNUTLS_PKG_ERRORS=`($PKG_CONFIG --print-errors "gnutls >= 2.6.6") 2>&1`
+	    LIBGNUTLS_PKG_ERRORS=`("$PKG_CONFIG" --print-errors "gnutls >= 2.6.6") 2>&1`
 
         fi
 
@@ -11903,13 +11909,13 @@ if test "${HAVE_X11}" = "yes"; then
      HAVE_FC=no
   else
      PKG_CONFIG_MIN_VERSION=0.9.0
-     if $PKG_CONFIG --atleast-pkgconfig-version $PKG_CONFIG_MIN_VERSION; then
+     if "$PKG_CONFIG" --atleast-pkgconfig-version $PKG_CONFIG_MIN_VERSION; then
         { $as_echo "$as_me:${as_lineno-$LINENO}: checking for fontconfig >= 2.2.0" >&5
 $as_echo_n "checking for fontconfig >= 2.2.0... " >&6; }
 
-        if $PKG_CONFIG --exists "fontconfig >= 2.2.0" 2>&5 &&
-	   FONTCONFIG_CFLAGS=`$PKG_CONFIG --cflags "fontconfig >= 2.2.0" 2>&5` &&
-	   FONTCONFIG_LIBS=`$PKG_CONFIG --libs "fontconfig >= 2.2.0" 2>&5`; then
+        if "$PKG_CONFIG" --exists "fontconfig >= 2.2.0" 2>&5 &&
+	   FONTCONFIG_CFLAGS=`"$PKG_CONFIG" --cflags "fontconfig >= 2.2.0" 2>&5` &&
+	   FONTCONFIG_LIBS=`"$PKG_CONFIG" --libs "fontconfig >= 2.2.0" 2>&5`; then
 	    edit_cflags="
 	      s,///*,/,g
 	      s/^/ /
@@ -11929,7 +11935,7 @@ $as_echo "no" >&6; }
             ## If we have a custom action on failure, don't print errors, but
 	    ## do set a variable so people can do so.  Do it in a subshell
 	    ## to capture any diagnostics in invoking pkg-config.
-	    FONTCONFIG_PKG_ERRORS=`($PKG_CONFIG --print-errors "fontconfig >= 2.2.0") 2>&1`
+	    FONTCONFIG_PKG_ERRORS=`("$PKG_CONFIG" --print-errors "fontconfig >= 2.2.0") 2>&1`
 
         fi
 
@@ -11962,13 +11968,13 @@ $as_echo "no" >&6; }
      HAVE_XFT=no
   else
      PKG_CONFIG_MIN_VERSION=0.9.0
-     if $PKG_CONFIG --atleast-pkgconfig-version $PKG_CONFIG_MIN_VERSION; then
+     if "$PKG_CONFIG" --atleast-pkgconfig-version $PKG_CONFIG_MIN_VERSION; then
         { $as_echo "$as_me:${as_lineno-$LINENO}: checking for xft >= 0.13.0" >&5
 $as_echo_n "checking for xft >= 0.13.0... " >&6; }
 
-        if $PKG_CONFIG --exists "xft >= 0.13.0" 2>&5 &&
-	   XFT_CFLAGS=`$PKG_CONFIG --cflags "xft >= 0.13.0" 2>&5` &&
-	   XFT_LIBS=`$PKG_CONFIG --libs "xft >= 0.13.0" 2>&5`; then
+        if "$PKG_CONFIG" --exists "xft >= 0.13.0" 2>&5 &&
+	   XFT_CFLAGS=`"$PKG_CONFIG" --cflags "xft >= 0.13.0" 2>&5` &&
+	   XFT_LIBS=`"$PKG_CONFIG" --libs "xft >= 0.13.0" 2>&5`; then
 	    edit_cflags="
 	      s,///*,/,g
 	      s/^/ /
@@ -11988,7 +11994,7 @@ $as_echo "no" >&6; }
             ## If we have a custom action on failure, don't print errors, but
 	    ## do set a variable so people can do so.  Do it in a subshell
 	    ## to capture any diagnostics in invoking pkg-config.
-	    XFT_PKG_ERRORS=`($PKG_CONFIG --print-errors "xft >= 0.13.0") 2>&1`
+	    XFT_PKG_ERRORS=`("$PKG_CONFIG" --print-errors "xft >= 0.13.0") 2>&1`
 
         fi
 
@@ -12130,13 +12136,13 @@ $as_echo "#define HAVE_XFT 1" >>confdefs.h
      HAVE_FREETYPE=no
   else
      PKG_CONFIG_MIN_VERSION=0.9.0
-     if $PKG_CONFIG --atleast-pkgconfig-version $PKG_CONFIG_MIN_VERSION; then
+     if "$PKG_CONFIG" --atleast-pkgconfig-version $PKG_CONFIG_MIN_VERSION; then
         { $as_echo "$as_me:${as_lineno-$LINENO}: checking for freetype2" >&5
 $as_echo_n "checking for freetype2... " >&6; }
 
-        if $PKG_CONFIG --exists "freetype2" 2>&5 &&
-	   FREETYPE_CFLAGS=`$PKG_CONFIG --cflags "freetype2" 2>&5` &&
-	   FREETYPE_LIBS=`$PKG_CONFIG --libs "freetype2" 2>&5`; then
+        if "$PKG_CONFIG" --exists "freetype2" 2>&5 &&
+	   FREETYPE_CFLAGS=`"$PKG_CONFIG" --cflags "freetype2" 2>&5` &&
+	   FREETYPE_LIBS=`"$PKG_CONFIG" --libs "freetype2" 2>&5`; then
 	    edit_cflags="
 	      s,///*,/,g
 	      s/^/ /
@@ -12156,7 +12162,7 @@ $as_echo "no" >&6; }
             ## If we have a custom action on failure, don't print errors, but
 	    ## do set a variable so people can do so.  Do it in a subshell
 	    ## to capture any diagnostics in invoking pkg-config.
-	    FREETYPE_PKG_ERRORS=`($PKG_CONFIG --print-errors "freetype2") 2>&1`
+	    FREETYPE_PKG_ERRORS=`("$PKG_CONFIG" --print-errors "freetype2") 2>&1`
 
         fi
 
@@ -12191,13 +12197,13 @@ $as_echo "#define HAVE_FREETYPE 1" >>confdefs.h
      HAVE_LIBOTF=no
   else
      PKG_CONFIG_MIN_VERSION=0.9.0
-     if $PKG_CONFIG --atleast-pkgconfig-version $PKG_CONFIG_MIN_VERSION; then
+     if "$PKG_CONFIG" --atleast-pkgconfig-version $PKG_CONFIG_MIN_VERSION; then
         { $as_echo "$as_me:${as_lineno-$LINENO}: checking for libotf" >&5
 $as_echo_n "checking for libotf... " >&6; }
 
-        if $PKG_CONFIG --exists "libotf" 2>&5 &&
-	   LIBOTF_CFLAGS=`$PKG_CONFIG --cflags "libotf" 2>&5` &&
-	   LIBOTF_LIBS=`$PKG_CONFIG --libs "libotf" 2>&5`; then
+        if "$PKG_CONFIG" --exists "libotf" 2>&5 &&
+	   LIBOTF_CFLAGS=`"$PKG_CONFIG" --cflags "libotf" 2>&5` &&
+	   LIBOTF_LIBS=`"$PKG_CONFIG" --libs "libotf" 2>&5`; then
 	    edit_cflags="
 	      s,///*,/,g
 	      s/^/ /
@@ -12217,7 +12223,7 @@ $as_echo "no" >&6; }
             ## If we have a custom action on failure, don't print errors, but
 	    ## do set a variable so people can do so.  Do it in a subshell
 	    ## to capture any diagnostics in invoking pkg-config.
-	    LIBOTF_PKG_ERRORS=`($PKG_CONFIG --print-errors "libotf") 2>&1`
+	    LIBOTF_PKG_ERRORS=`("$PKG_CONFIG" --print-errors "libotf") 2>&1`
 
         fi
 
@@ -12300,13 +12306,13 @@ $as_echo "#define HAVE_OTF_GET_VARIATION_GLYPHS 1" >>confdefs.h
      HAVE_M17N_FLT=no
   else
      PKG_CONFIG_MIN_VERSION=0.9.0
-     if $PKG_CONFIG --atleast-pkgconfig-version $PKG_CONFIG_MIN_VERSION; then
+     if "$PKG_CONFIG" --atleast-pkgconfig-version $PKG_CONFIG_MIN_VERSION; then
         { $as_echo "$as_me:${as_lineno-$LINENO}: checking for m17n-flt" >&5
 $as_echo_n "checking for m17n-flt... " >&6; }
 
-        if $PKG_CONFIG --exists "m17n-flt" 2>&5 &&
-	   M17N_FLT_CFLAGS=`$PKG_CONFIG --cflags "m17n-flt" 2>&5` &&
-	   M17N_FLT_LIBS=`$PKG_CONFIG --libs "m17n-flt" 2>&5`; then
+        if "$PKG_CONFIG" --exists "m17n-flt" 2>&5 &&
+	   M17N_FLT_CFLAGS=`"$PKG_CONFIG" --cflags "m17n-flt" 2>&5` &&
+	   M17N_FLT_LIBS=`"$PKG_CONFIG" --libs "m17n-flt" 2>&5`; then
 	    edit_cflags="
 	      s,///*,/,g
 	      s/^/ /
@@ -12326,7 +12332,7 @@ $as_echo "no" >&6; }
             ## If we have a custom action on failure, don't print errors, but
 	    ## do set a variable so people can do so.  Do it in a subshell
 	    ## to capture any diagnostics in invoking pkg-config.
-	    M17N_FLT_PKG_ERRORS=`($PKG_CONFIG --print-errors "m17n-flt") 2>&1`
+	    M17N_FLT_PKG_ERRORS=`("$PKG_CONFIG" --print-errors "m17n-flt") 2>&1`
 
         fi
 
@@ -13088,13 +13094,13 @@ if test "${with_xml2}" != "no"; then
      HAVE_LIBXML2=no
   else
      PKG_CONFIG_MIN_VERSION=0.9.0
-     if $PKG_CONFIG --atleast-pkgconfig-version $PKG_CONFIG_MIN_VERSION; then
+     if "$PKG_CONFIG" --atleast-pkgconfig-version $PKG_CONFIG_MIN_VERSION; then
         { $as_echo "$as_me:${as_lineno-$LINENO}: checking for libxml-2.0 > 2.6.17" >&5
 $as_echo_n "checking for libxml-2.0 > 2.6.17... " >&6; }
 
-        if $PKG_CONFIG --exists "libxml-2.0 > 2.6.17" 2>&5 &&
-	   LIBXML2_CFLAGS=`$PKG_CONFIG --cflags "libxml-2.0 > 2.6.17" 2>&5` &&
-	   LIBXML2_LIBS=`$PKG_CONFIG --libs "libxml-2.0 > 2.6.17" 2>&5`; then
+        if "$PKG_CONFIG" --exists "libxml-2.0 > 2.6.17" 2>&5 &&
+	   LIBXML2_CFLAGS=`"$PKG_CONFIG" --cflags "libxml-2.0 > 2.6.17" 2>&5` &&
+	   LIBXML2_LIBS=`"$PKG_CONFIG" --libs "libxml-2.0 > 2.6.17" 2>&5`; then
 	    edit_cflags="
 	      s,///*,/,g
 	      s/^/ /
@@ -13114,7 +13120,7 @@ $as_echo "no" >&6; }
             ## If we have a custom action on failure, don't print errors, but
 	    ## do set a variable so people can do so.  Do it in a subshell
 	    ## to capture any diagnostics in invoking pkg-config.
-	    LIBXML2_PKG_ERRORS=`($PKG_CONFIG --print-errors "libxml-2.0 > 2.6.17") 2>&1`
+	    LIBXML2_PKG_ERRORS=`("$PKG_CONFIG" --print-errors "libxml-2.0 > 2.6.17") 2>&1`
 
         fi
 
@@ -19908,6 +19914,17 @@ $as_echo "$gl_cv_next_time_h" >&6; }
 
 
 
+ac_fn_c_check_decl "$LINENO" "unsetenv" "ac_cv_have_decl_unsetenv" "$ac_includes_default"
+if test "x$ac_cv_have_decl_unsetenv" = x""yes; then :
+  ac_have_decl=1
+else
+  ac_have_decl=0
+fi
+
+cat >>confdefs.h <<_ACEOF
+#define HAVE_DECL_UNSETENV $ac_have_decl
+_ACEOF
+
 
   { $as_echo "$as_me:${as_lineno-$LINENO}: checking whether the utimes function works" >&5
 $as_echo_n "checking whether the utimes function works... " >&6; }
@@ -22354,6 +22371,90 @@ $as_echo "#define HAVE_PTHREAD_SIGMASK 1" >>confdefs.h
 
 
 
+     { $as_echo "$as_me:${as_lineno-$LINENO}: checking for putenv compatible with GNU and SVID" >&5
+$as_echo_n "checking for putenv compatible with GNU and SVID... " >&6; }
+if test "${gl_cv_func_svid_putenv+set}" = set; then :
+  $as_echo_n "(cached) " >&6
+else
+  if test "$cross_compiling" = yes; then :
+               case "$host_os" in
+                        # Guess yes on glibc systems.
+                *-gnu*) gl_cv_func_svid_putenv="guessing yes" ;;
+                        # If we don't know, assume the worst.
+                *)      gl_cv_func_svid_putenv="guessing no" ;;
+              esac
+
+else
+  cat confdefs.h - <<_ACEOF >conftest.$ac_ext
+/* end confdefs.h.  */
+$ac_includes_default
+int
+main ()
+{
+
+    /* Put it in env.  */
+    if (putenv ("CONFTEST_putenv=val"))
+      return 1;
+
+    /* Try to remove it.  */
+    if (putenv ("CONFTEST_putenv"))
+      return 2;
+
+    /* Make sure it was deleted.  */
+    if (getenv ("CONFTEST_putenv") != 0)
+      return 3;
+
+    return 0;
+
+  ;
+  return 0;
+}
+_ACEOF
+if ac_fn_c_try_run "$LINENO"; then :
+  gl_cv_func_svid_putenv=yes
+else
+  gl_cv_func_svid_putenv=no
+fi
+rm -f core *.core core.conftest.* gmon.out bb.out conftest$ac_exeext \
+  conftest.$ac_objext conftest.beam conftest.$ac_ext
+fi
+
+
+fi
+{ $as_echo "$as_me:${as_lineno-$LINENO}: result: $gl_cv_func_svid_putenv" >&5
+$as_echo "$gl_cv_func_svid_putenv" >&6; }
+  case "$gl_cv_func_svid_putenv" in
+    *yes) ;;
+    *)
+      REPLACE_PUTENV=1
+      ;;
+  esac
+
+  if test $REPLACE_PUTENV = 1; then
+
+
+
+
+
+
+
+
+  gl_LIBOBJS="$gl_LIBOBJS putenv.$ac_objext"
+
+  fi
+
+
+
+
+
+          GNULIB_PUTENV=1
+
+
+
+
+
+
+
 
   if test $ac_cv_func_readlink = no; then
     HAVE_READLINK=0
@@ -24261,6 +24362,160 @@ $as_echo "$gl_cv_next_unistd_h" >&6; }
 
 
 
+  if test $ac_cv_have_decl_unsetenv = no; then
+    HAVE_DECL_UNSETENV=0
+  fi
+  for ac_func in unsetenv
+do :
+  ac_fn_c_check_func "$LINENO" "unsetenv" "ac_cv_func_unsetenv"
+if test "x$ac_cv_func_unsetenv" = x""yes; then :
+  cat >>confdefs.h <<_ACEOF
+#define HAVE_UNSETENV 1
+_ACEOF
+
+fi
+done
+
+  if test $ac_cv_func_unsetenv = no; then
+    HAVE_UNSETENV=0
+  else
+    HAVE_UNSETENV=1
+        { $as_echo "$as_me:${as_lineno-$LINENO}: checking for unsetenv() return type" >&5
+$as_echo_n "checking for unsetenv() return type... " >&6; }
+if test "${gt_cv_func_unsetenv_ret+set}" = set; then :
+  $as_echo_n "(cached) " >&6
+else
+  cat confdefs.h - <<_ACEOF >conftest.$ac_ext
+/* end confdefs.h.  */
+
+#undef _BSD
+#define _BSD 1 /* unhide unsetenv declaration in OSF/1 5.1 <stdlib.h> */
+#include <stdlib.h>
+extern
+#ifdef __cplusplus
+"C"
+#endif
+int unsetenv (const char *name);
+
+int
+main ()
+{
+
+  ;
+  return 0;
+}
+_ACEOF
+if ac_fn_c_try_compile "$LINENO"; then :
+  gt_cv_func_unsetenv_ret='int'
+else
+  gt_cv_func_unsetenv_ret='void'
+fi
+rm -f core conftest.err conftest.$ac_objext conftest.$ac_ext
+fi
+{ $as_echo "$as_me:${as_lineno-$LINENO}: result: $gt_cv_func_unsetenv_ret" >&5
+$as_echo "$gt_cv_func_unsetenv_ret" >&6; }
+    if test $gt_cv_func_unsetenv_ret = 'void'; then
+
+$as_echo "#define VOID_UNSETENV 1" >>confdefs.h
+
+      REPLACE_UNSETENV=1
+    fi
+
+                { $as_echo "$as_me:${as_lineno-$LINENO}: checking whether unsetenv obeys POSIX" >&5
+$as_echo_n "checking whether unsetenv obeys POSIX... " >&6; }
+if test "${gl_cv_func_unsetenv_works+set}" = set; then :
+  $as_echo_n "(cached) " >&6
+else
+  if test "$cross_compiling" = yes; then :
+  case "$host_os" in
+                 # Guess yes on glibc systems.
+         *-gnu*) gl_cv_func_unsetenv_works="guessing yes" ;;
+                 # If we don't know, assume the worst.
+         *)      gl_cv_func_unsetenv_works="guessing no" ;;
+       esac
+
+else
+  cat confdefs.h - <<_ACEOF >conftest.$ac_ext
+/* end confdefs.h.  */
+
+       #include <stdlib.h>
+       #include <errno.h>
+       extern char **environ;
+
+int
+main ()
+{
+
+       char entry1[] = "a=1";
+       char entry2[] = "b=2";
+       char *env[] = { entry1, entry2, NULL };
+       if (putenv ((char *) "a=1")) return 1;
+       if (putenv (entry2)) return 2;
+       entry2[0] = 'a';
+       unsetenv ("a");
+       if (getenv ("a")) return 3;
+       if (!unsetenv ("") || errno != EINVAL) return 4;
+       entry2[0] = 'b';
+       environ = env;
+       if (!getenv ("a")) return 5;
+       entry2[0] = 'a';
+       unsetenv ("a");
+       if (getenv ("a")) return 6;
+
+  ;
+  return 0;
+}
+_ACEOF
+if ac_fn_c_try_run "$LINENO"; then :
+  gl_cv_func_unsetenv_works=yes
+else
+  gl_cv_func_unsetenv_works=no
+fi
+rm -f core *.core core.conftest.* gmon.out bb.out conftest$ac_exeext \
+  conftest.$ac_objext conftest.beam conftest.$ac_ext
+fi
+
+fi
+{ $as_echo "$as_me:${as_lineno-$LINENO}: result: $gl_cv_func_unsetenv_works" >&5
+$as_echo "$gl_cv_func_unsetenv_works" >&6; }
+    case "$gl_cv_func_unsetenv_works" in
+      *yes) ;;
+      *)
+        REPLACE_UNSETENV=1
+        ;;
+    esac
+  fi
+
+  if test $HAVE_UNSETENV = 0 || test $REPLACE_UNSETENV = 1; then
+
+
+
+
+
+
+
+
+  gl_LIBOBJS="$gl_LIBOBJS unsetenv.$ac_objext"
+
+
+
+
+
+  fi
+
+
+
+
+
+          GNULIB_UNSETENV=1
+
+
+
+
+
+
+
+
 
 
 
@@ -25557,7 +25812,7 @@ ac_config_files="$ac_config_files Makefile lib/Makefile lib-src/Makefile oldXMen
 
 opt_makefile=test/automated/Makefile
 
-if test -f $srcdir/${opt_makefile}.in; then
+if test -f "$srcdir/$opt_makefile.in"; then
   SUBDIR_MAKEFILES="$SUBDIR_MAKEFILES $opt_makefile"
       ac_config_files="$ac_config_files test/automated/Makefile"
 
@@ -25566,7 +25821,7 @@ fi
 
 opt_makefile=admin/unidata/Makefile
 
-if test -f $srcdir/${opt_makefile}.in; then
+if test -f "$srcdir/$opt_makefile.in"; then
   SUBDIR_MAKEFILES="$SUBDIR_MAKEFILES $opt_makefile"
   ac_config_files="$ac_config_files admin/unidata/Makefile"
 
@@ -27162,9 +27417,9 @@ echo creating src/epaths.h
 ${MAKE-make} MAKEFILE_NAME=do-not-make-Makefile epaths-force
  ;;
     "gdbinit":C)
-if test ! -f src/.gdbinit && test -f $srcdir/src/.gdbinit; then
+if test ! -f src/.gdbinit && test -f "$srcdir/src/.gdbinit"; then
   echo creating src/.gdbinit
-  echo source $srcdir/src/.gdbinit > src/.gdbinit
+  echo "source $srcdir/src/.gdbinit" > src/.gdbinit
 fi
  ;;
 
