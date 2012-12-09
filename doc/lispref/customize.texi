@@ -308,8 +308,10 @@ Every @code{defcustom} should specify @code{:group} at least once.
 When you evaluate a @code{defcustom} form with @kbd{C-M-x} in Emacs Lisp
 mode (@code{eval-defun}), a special feature of @code{eval-defun}
 arranges to set the variable unconditionally, without testing whether
-its value is void.  (The same feature applies to @code{defvar}.)
-@xref{Defining Variables}.
+its value is void.  (The same feature applies to @code{defvar},
+@pxref{Defining Variables}.)  Using @code{eval-defun} on a defcustom
+that is already defined calls the @code{:set} function (see below),
+if there is one.
 
 If you put a @code{defcustom} in a pre-loaded Emacs Lisp file
 (@pxref{Building Emacs}), the standard value installed at dump time

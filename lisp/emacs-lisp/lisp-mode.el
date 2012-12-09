@@ -830,6 +830,7 @@ this command arranges for all errors to enter the debugger."
 (defun eval-defun-1 (form)
   "Treat some expressions specially.
 Reset the `defvar' and `defcustom' variables to the initial value.
+\(For `defcustom', use the :set function if there is one.)
 Reinitialize the face according to the `defface' specification."
   ;; The code in edebug-defun should be consistent with this, but not
   ;; the same, since this gets a macroexpanded form.
@@ -845,14 +846,19 @@ Reinitialize the face according to the `defface' specification."
 	;; `custom-declare-variable' with a quoted value arg.
 	((and (eq (car form) 'custom-declare-variable)
 	      (default-boundp (eval (nth 1 form) lexical-binding)))
-	 ;; Force variable to be bound.
-	 (set-default (eval (nth 1 form) lexical-binding)
-		      ;; The second arg is an expression that evaluates to
-		      ;; an expression.  The second evaluation is the one
-		      ;; normally performed not be normal execution but by
-		      ;; custom-initialize-set (for example), which does not
-		      ;; use lexical-binding.
-		      (eval (eval (nth 2 form) lexical-binding)))
+	 ;; Force variable to be bound, using :set function if specified.
+	 (let ((setfunc (memq :set form)))
+	   (when setfunc
+	     (setq setfunc (car-safe (cdr-safe setfunc)))
+	     (or (functionp setfunc) (setq setfunc nil)))
+	   (funcall (or setfunc 'set-default)
+		    (eval (nth 1 form) lexical-binding)
+		    ;; The second arg is an expression that evaluates to
+		    ;; an expression.  The second evaluation is the one
+		    ;; normally performed not by normal execution but by
+		    ;; custom-initialize-set (for example), which does not
+		    ;; use lexical-binding.
+		    (eval (eval (nth 2 form) lexical-binding))))
 	 form)
 	;; `defface' is macroexpanded to `custom-declare-face'.
 	((eq (car form) 'custom-declare-face)
@@ -915,11 +921,12 @@ Return the result of evaluation."
 
 If the current defun is actually a call to `defvar' or `defcustom',
 evaluating it this way resets the variable using its initial value
-expression even if the variable already has some other value.
-\(Normally `defvar' and `defcustom' do not alter the value if there
-already is one.)  In an analogous way, evaluating a `defface'
-overrides any customizations of the face, so that it becomes
-defined exactly as the `defface' expression says.
+expression (using the defcustom's :set function if there is one), even
+if the variable already has some other value.  \(Normally `defvar' and
+`defcustom' do not alter the value if there already is one.)  In an
+analogous way, evaluating a `defface' overrides any customizations of
+the face, so that it becomes defined exactly as the `defface' expression
+says.
 
 If `eval-expression-debug-on-error' is non-nil, which is the default,
 this command arranges for all errors to enter the debugger.

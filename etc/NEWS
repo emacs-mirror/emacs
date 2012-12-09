@@ -24,6 +24,11 @@ so we will look at it and add it to the manual.
 * Installation Changes in Emacs 24.4
 * Startup Changes in Emacs 24.4
 * Changes in Emacs 24.4
+
++++
+** `eval-defun' on an already defined defcustom calls the :set function,
+if there is one.
+
 * Editing Changes in Emacs 24.4
 
 

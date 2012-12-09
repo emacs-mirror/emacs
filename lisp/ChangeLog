@@ -1,3 +1,9 @@
+2012-12-09  Glenn Morris  <rgm@gnu.org>
+
+	* emacs-lisp/lisp-mode.el (eval-defun-1): Doc fix.
+	Respect a defcustom's :set function, if appropriate.  (Bug#109)
+	(eval-defun): Doc fix.
+
 2012-12-08  Juri Linkov  <juri@jurta.org>
 
 	* info.el (Info-copy-current-node-name, Info-breadcrumbs)

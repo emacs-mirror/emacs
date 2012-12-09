@@ -1,3 +1,8 @@
+2012-12-09  Glenn Morris  <rgm@gnu.org>
+
+	* customize.texi (Variable Definitions): Mention eval-defun
+	on a defcustom calls the :set function when appropriate.
+
 2012-12-06  Paul Eggert  <eggert@cs.ucla.edu>
 
 	* doclicense.texi, gpl.texi: Update to latest version from FSF.
