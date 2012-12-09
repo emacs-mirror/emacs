@@ -23,6 +23,7 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #ifndef EMACS_SYSWAIT_H
 #define EMACS_SYSWAIT_H
 
+#include <stdbool.h>
 #include <sys/types.h>
 
 #ifdef HAVE_SYS_WAIT_H	/* We have sys/wait.h with POSIXoid definitions. */
@@ -52,10 +53,10 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #endif
 
 /* Defined in process.c.  */
-extern void record_child_status_change (pid_t, int);
+extern void record_deleted_pid (pid_t);
 
 /* Defined in sysdep.c.  */
-extern void wait_for_termination (pid_t);
-extern void interruptible_wait_for_termination (pid_t);
+extern void wait_for_termination (pid_t, int *, bool);
+extern pid_t child_status_changed (pid_t, int *, int);
 
 #endif /* EMACS_SYSWAIT_H */

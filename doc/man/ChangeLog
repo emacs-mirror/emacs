@@ -1,3 +1,7 @@
+2012-12-02  Kevin Ryde  <user42@zip.com.au>
+
+	* etags.1: Mention effect of --declarations in Lisp.
+
 2012-06-03  Glenn Morris  <rgm@gnu.org>
 
 	* rcs-checkin.1: Remove.

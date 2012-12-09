@@ -391,7 +391,7 @@ If @code{case-fold-search} is non-@code{nil}, @samp{[a-z]} also
 matches upper-case letters.  Note that a range like @samp{[a-z]} is
 not affected by the locale's collation sequence, it always represents
 a sequence in @acronym{ASCII} order.
-@c This wasn't obvious to me, since eg the grep manual "Character
+@c This wasn't obvious to me, since, e.g., the grep manual "Character
 @c Classes and Bracket Expressions" specifically notes the opposite
 @c behavior.  But by experiment Emacs seems unaffected by LC_COLLATE
 @c in this regard.
@@ -684,8 +684,8 @@ is the @dfn{explicitly numbered group} construct.  Normal groups get
 their number implicitly, based on their position, which can be
 inconvenient.  This construct allows you to force a particular group
 number.  There is no particular restriction on the numbering,
-e.g.@: you can have several groups with the same number in which case
-the last one to match (i.e.@: the rightmost match) will win.
+e.g., you can have several groups with the same number in which case
+the last one to match (i.e., the rightmost match) will win.
 Implicitly numbered groups always get the smallest integer larger than
 the one of any previous group.
 
@@ -933,7 +933,7 @@ for Font Lock mode@footnote{Note that @code{regexp-opt} does not
 guarantee that its result is absolutely the most efficient form
 possible.  A hand-tuned regular expression can sometimes be slightly
 more efficient, but is almost never worth the effort.}.
-@c See eg http://debbugs.gnu.org/2816
+@c E.g., see http://debbugs.gnu.org/2816
 
 If the optional argument @var{paren} is non-@code{nil}, then the
 returned regular expression is always enclosed by at least one
@@ -1207,7 +1207,7 @@ report the first match found.
 full backtracking specified by the POSIX standard for regular expression
 matching.  They continue backtracking until they have tried all
 possibilities and found all matches, so they can report the longest
-match, as required by POSIX.  This is much slower, so use these
+match, as required by POSIX@.  This is much slower, so use these
 functions only when you really need the longest match.
 
   The POSIX search and match functions do not properly support the
@@ -1379,7 +1379,7 @@ other function that might perform another search.  Alternatively, you
 may save and restore the match data (@pxref{Saving Match Data}) around
 the call to functions that could perform another search.  Or use the
 functions that explicitly do not modify the match data;
-e.g. @code{string-match-p}.
+e.g., @code{string-match-p}.
 
 @c This is an old comment and presumably there is no prospect of this
 @c changing now.  But still the advice stands.

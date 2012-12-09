@@ -3306,29 +3306,21 @@ If one hasn't been set, or if it's stale, prompt for a new one."
 (define-derived-mode js-mode prog-mode "Javascript"
   "Major mode for editing JavaScript."
   :group 'js
+  (setq-local indent-line-function 'js-indent-line)
+  (setq-local beginning-of-defun-function 'js-beginning-of-defun)
+  (setq-local end-of-defun-function 'js-end-of-defun)
+  (setq-local open-paren-in-column-0-is-defun-start nil)
+  (setq-local font-lock-defaults (list js--font-lock-keywords))
+  (setq-local syntax-propertize-function #'js-syntax-propertize)
 
-  (set (make-local-variable 'indent-line-function) 'js-indent-line)
-  (set (make-local-variable 'beginning-of-defun-function)
-       'js-beginning-of-defun)
-  (set (make-local-variable 'end-of-defun-function)
-       'js-end-of-defun)
-
-  (set (make-local-variable 'open-paren-in-column-0-is-defun-start) nil)
-  (set (make-local-variable 'font-lock-defaults)
-       (list js--font-lock-keywords))
-  (set (make-local-variable 'syntax-propertize-function)
-       #'js-syntax-propertize)
-
-  (set (make-local-variable 'parse-sexp-ignore-comments) t)
-  (set (make-local-variable 'parse-sexp-lookup-properties) t)
-  (set (make-local-variable 'which-func-imenu-joiner-function)
-       #'js--which-func-joiner)
+  (setq-local parse-sexp-ignore-comments t)
+  (setq-local parse-sexp-lookup-properties t)
+  (setq-local which-func-imenu-joiner-function #'js--which-func-joiner)
 
   ;; Comments
-  (set (make-local-variable 'comment-start) "// ")
-  (set (make-local-variable 'comment-end) "")
-  (set (make-local-variable 'fill-paragraph-function)
-       'js-c-fill-paragraph)
+  (setq-local comment-start "// ")
+  (setq-local comment-end "")
+  (setq-local fill-paragraph-function 'js-c-fill-paragraph)
 
   ;; Parse cache
   (add-hook 'before-change-functions #'js--flush-caches t t)
@@ -3338,8 +3330,7 @@ If one hasn't been set, or if it's stale, prompt for a new one."
 
   ;; Imenu
   (setq imenu-case-fold-search nil)
-  (set (make-local-variable 'imenu-create-index-function)
-       #'js--imenu-create-index)
+  (setq imenu-create-index-function #'js--imenu-create-index)
 
   ;; for filling, pretend we're cc-mode
   (setq c-comment-prefix-regexp "//+\\|\\**"
@@ -3350,10 +3341,10 @@ If one hasn't been set, or if it's stale, prompt for a new one."
         c-comment-start-regexp "/[*/]\\|\\s!"
         comment-start-skip "\\(//+\\|/\\*+\\)\\s *")
 
-  (set (make-local-variable 'electric-indent-chars)
-       (append "{}():;," electric-indent-chars)) ;FIXME: js2-mode adds "[]*".
-  (set (make-local-variable 'electric-layout-rules)
-       '((?\; . after) (?\{ . after) (?\} . before)))
+  (setq-local electric-indent-chars
+	      (append "{}():;," electric-indent-chars)) ;FIXME: js2-mode adds "[]*".
+  (setq-local electric-layout-rules
+	      '((?\; . after) (?\{ . after) (?\} . before)))
 
   (let ((c-buffer-is-cc-mode t))
     ;; FIXME: These are normally set by `c-basic-common-init'.  Should
@@ -3365,8 +3356,7 @@ If one hasn't been set, or if it's stale, prompt for a new one."
     (make-local-variable 'adaptive-fill-regexp)
     (c-setup-paragraph-variables))
 
-  (set (make-local-variable 'syntax-begin-function)
-       #'js--syntax-begin-function)
+  (setq-local syntax-begin-function #'js--syntax-begin-function)
 
   ;; Important to fontify the whole buffer syntactically! If we don't,
   ;; then we might have regular expression literals that aren't marked

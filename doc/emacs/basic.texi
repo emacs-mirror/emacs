@@ -107,7 +107,7 @@ just like digits.  Case is ignored.
 of a character, using the minibuffer.  If you enter a name, the
 command provides completion (@pxref{Completion}).  If you enter a
 code-point, it should be as a hexadecimal number (the convention for
-Unicode), or a number with a specified radix, e.g.@: @code{#o23072}
+Unicode), or a number with a specified radix, e.g., @code{#o23072}
 (octal); @xref{Integer Basics,,, elisp, The Emacs Lisp Reference
 Manual}.  The command then inserts the corresponding character into
 the buffer.  For example, both of the following insert the infinity
@@ -385,7 +385,7 @@ On some text terminals, Emacs may not recognize the @key{DEL} key
 properly.  @xref{DEL Does Not Delete}, if you encounter this problem.
 
   The @key{delete} (@code{delete-forward-char}) command deletes in the
-``opposite direction'': it deletes the character after point, i.e. the
+``opposite direction'': it deletes the character after point, i.e., the
 character under the cursor.  If point was at the end of a line, this
 joins the following line onto this one.  Like @kbd{@key{DEL}}, it
 deletes the text in the region if the region is active (@pxref{Mark}).

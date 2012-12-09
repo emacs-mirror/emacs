@@ -417,6 +417,31 @@ coding-system."
 	(write-region start end filename append visit lockname))
     (write-region start end filename append visit lockname mustbenew)))
 
+;; `interactive-p' is obsolete since Emacs 23.2.
+(defmacro gmm-called-interactively-p (kind)
+  (condition-case nil
+      (progn
+	(eval '(called-interactively-p 'any))
+	;; Emacs >=23.2
+	`(called-interactively-p ,kind))
+    ;; Emacs <23.2
+    (wrong-number-of-arguments '(called-interactively-p))
+    ;; XEmacs
+    (void-function '(interactive-p))))
+
+;; `labels' is obsolete since Emacs 24.3.
+(defmacro gmm-labels (bindings &rest body)
+  "Make temporary function bindings.
+The bindings can be recursive and the scoping is lexical, but capturing
+them in closures will only work if `lexical-binding' is in use.  But in
+Emacs 24.2 and older, the lexical scoping is handled via `lexical-let'
+rather than relying on `lexical-binding'.
+
+\(fn ((FUNC ARGLIST BODY...) ...) FORM...)"
+  `(,(progn (require 'cl) (if (fboundp 'cl-labels) 'cl-labels 'labels))
+    ,bindings ,@body))
+(put 'gmm-labels 'lisp-indent-function 1)
+
 (provide 'gmm-utils)
 
 ;;; gmm-utils.el ends here

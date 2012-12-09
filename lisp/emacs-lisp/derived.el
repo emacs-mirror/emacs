@@ -295,16 +295,32 @@ is not very useful."
       ;; Use a default docstring.
       (setq docstring
 	    (if (null parent)
-		(format "Major-mode.
-Uses keymap `%s', abbrev table `%s' and syntax-table `%s'." map abbrev syntax)
+		;; FIXME filling.
+		(format "Major-mode.\nUses keymap `%s'%s%s." map
+			(if abbrev (format "%s abbrev table `%s'"
+					   (if syntax "," " and") abbrev) "")
+			(if syntax (format " and syntax-table `%s'" syntax) ""))
 	      (format "Major mode derived from `%s' by `define-derived-mode'.
-It inherits all of the parent's attributes, but has its own keymap,
-abbrev table and syntax table:
+It inherits all of the parent's attributes, but has its own keymap%s:
 
-  `%s', `%s' and `%s'
+  `%s'%s
 
-which more-or-less shadow %s's corresponding tables."
-		      parent map abbrev syntax parent))))
+which more-or-less shadow%s %s's corresponding table%s."
+		      parent
+		      (cond ((and abbrev syntax)
+			     ",\nabbrev table and syntax table")
+			    (abbrev "\nand abbrev table")
+			    (syntax "\nand syntax table")
+			    (t ""))
+		      map
+		      (cond ((and abbrev syntax)
+			     (format ", `%s' and `%s'" abbrev syntax))
+			    ((or abbrev syntax)
+			     (format " and `%s'" (or abbrev syntax)))
+			    (t ""))
+		      (if (or abbrev syntax) "" "s")
+		      parent
+		      (if (or abbrev syntax) "s" "")))))
 
     (unless (string-match (regexp-quote (symbol-name hook)) docstring)
       ;; Make sure the docstring mentions the mode's hook.

@@ -2718,8 +2718,9 @@ inserts a new row if at bottom of print area.  Repeat COUNT times."
 ;; Cut and paste, import and export
 ;;----------------------------------------------------------------------------
 
-(defadvice copy-region-as-kill (around ses-copy-region-as-kill
-				activate preactivate)
+(defun ses--advice-copy-region-as-kill (crak-fun beg end &rest args)
+  ;; FIXME: Why doesn't it make sense to copy read-only or
+  ;; intangible attributes?  They're removed upon yank!
   "It doesn't make sense to copy read-only or intangible attributes into the
 kill ring.  It probably doesn't make sense to copy keymap properties.
 We'll assume copying front-sticky properties doesn't make sense, either.
@@ -2730,14 +2731,15 @@ hard to override how mouse-1 works."
     (let ((temp beg))
       (setq beg end
 	    end temp)))
-  (if (not (and (eq major-mode 'ses-mode)
+  (if (not (and (derived-mode-p 'ses-mode)
 		(eq (get-text-property beg 'read-only) 'ses)
 		(eq (get-text-property (1- end) 'read-only) 'ses)))
-      ad-do-it ; Normal copy-region-as-kill.
+      (apply crak-fun beg end args) ; Normal copy-region-as-kill.
     (kill-new (ses-copy-region beg end))
     (if transient-mark-mode
 	(setq deactivate-mark t))
     nil))
+(advice-add 'copy-region-as-kill :around #'ses--advice-copy-region-as-kill)
 
 (defun ses-copy-region (beg end)
   "Treat the region as rectangular.  Convert the intangible attributes to
@@ -2801,7 +2803,7 @@ We clear the killed cells instead of deleting them."
     (ses-clear-cell row col))
   (ses-jump (car ses--curcell)))
 
-(defadvice yank (around ses-yank activate preactivate)
+(defun ses--advice-yank (yank-fun &optional arg &rest args)
   "In SES mode, the yanked text is inserted as cells.
 
 If the text contains 'ses attributes (meaning it went to the kill-ring from a
@@ -2819,9 +2821,9 @@ When inserting formulas, the text is treated as a string constant if it doesn't
 make sense as a sexp or would otherwise be considered a symbol.  Use 'sym to
 explicitly insert a symbol, or use the C-u prefix to treat all unmarked words
 as symbols."
-  (if (not (and (eq major-mode 'ses-mode)
+  (if (not (and (derived-mode-p 'ses-mode)
 		(eq (get-text-property (point) 'keymap) 'ses-mode-print-map)))
-      ad-do-it ; Normal non-SES yank.
+      (apply yank-fun arg args) ; Normal non-SES yank.
     (ses-check-curcell 'end)
     (push-mark (point))
     (let ((text (current-kill (cond
@@ -2839,6 +2841,7 @@ as symbols."
 			arg)))
     (if (consp arg)
 	(exchange-point-and-mark))))
+(advice-add 'yank :around #'ses--advice-yank)
 
 (defun ses-yank-pop (arg)
   "Replace just-yanked stretch of killed text with a different stretch.
@@ -3586,10 +3589,9 @@ current column and continues until the next nonblank column."
 
 (defun ses-unload-function ()
   "Unload the Simple Emacs Spreadsheet."
-  (dolist (fun '(copy-region-as-kill yank))
-    (ad-remove-advice fun 'around (intern (concat "ses-" (symbol-name fun))))
-    (ad-update fun))
-  ;; continue standard unloading
+  (advice-remove 'yank #'ses--advice-yank)
+  (advice-remove 'copy-region-as-kill #'ses--advice-copy-region-as-kill)
+  ;; Continue standard unloading.
   nil)
 
 (provide 'ses)

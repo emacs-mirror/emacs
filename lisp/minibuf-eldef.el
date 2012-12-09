@@ -152,15 +152,11 @@ been set up by `minibuf-eldef-setup-minibuffer'."
 	      (and (= (point-max) minibuf-eldef-initial-buffer-length)
 		   (string-equal (minibuffer-contents-no-properties)
 				 minibuf-eldef-initial-input)))
-    ;; swap state
+    ;; Swap state.
     (setq minibuf-eldef-showing-default-in-prompt
 	  (not minibuf-eldef-showing-default-in-prompt))
-    (cond (minibuf-eldef-showing-default-in-prompt
-	   (overlay-put minibuf-eldef-overlay 'invisible nil)
-	   (overlay-put minibuf-eldef-overlay 'intangible nil))
-	  (t
-	   (overlay-put minibuf-eldef-overlay 'invisible t)
-	   (overlay-put minibuf-eldef-overlay 'intangible t)))))
+    (overlay-put minibuf-eldef-overlay 'invisible
+                 (not minibuf-eldef-showing-default-in-prompt))))
 
 
 ;;;###autoload

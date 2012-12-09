@@ -181,7 +181,7 @@ Note this name may be omitted if it equals the default
   ;; Could just use `url-nonrelative-link' of w3, if loaded.
   ;; This regexp is not exhaustive, it just matches common cases.
   (concat
-   "\\`\\("
+   "\\("
    "news\\(post\\)?:\\|mailto:\\|file:" ; no host ok
    "\\|"
    "\\(ftp\\|https?\\|telnet\\|gopher\\|www\\|wais\\)://" ; needs host
@@ -484,7 +484,7 @@ Returned values:
   "In remote FULLNAME, replace path with NAME.  May return nil."
   ;; Use efs if loaded, but do not load it otherwise.
   (if (fboundp 'efs-replace-path-component)
-      (funcall efs-replace-path-component fullname name)
+      (funcall 'efs-replace-path-component fullname name)
     (and (stringp fullname)
 	 (stringp name)
 	 (concat (file-remote-p fullname) name))))
@@ -606,10 +606,11 @@ Looks at `ffap-ftp-default-user', returns \"\" for \"localhost\"."
 
 (defsubst ffap-url-p (string)
   "If STRING looks like an URL, return it (maybe improved), else nil."
-  (let ((case-fold-search t))
-    (and ffap-url-regexp (string-match ffap-url-regexp string)
-	 ;; I lied, no improvement:
-	 string)))
+  (when (and (stringp string) ffap-url-regexp)
+    (let* ((case-fold-search t)
+	   (match (string-match ffap-url-regexp string)))
+      (cond ((eq match 0) string)
+	    (match (substring string match))))))
 
 ;; Broke these out of ffap-fixup-url, for use of ffap-url package.
 (defun ffap-url-unwrap-local (url)
@@ -1122,10 +1123,8 @@ Assumes the buffer has not changed."
 		 (equal (ffap-string-around) "<>")
 		 ;;	(ffap-user-p name):
 		 (not (string-match "~" (expand-file-name (concat "~" name)))))
-	    (setq name (concat "mailto:" name))))
-
-	  (if (ffap-url-p name)
-	      name)))))
+	    (setq name (concat "mailto:" name)))
+	   ((ffap-url-p name)))))))
 
 (defvar ffap-gopher-regexp
   "^.*\\<\\(Type\\|Name\\|Path\\|Host\\|Port\\) *= *\\(.*\\) *$"
@@ -1297,13 +1296,11 @@ which may actually result in an URL rather than a filename."
   (let (dir)
     ;; Tricky: guess may have or be a local directory, like "w3/w3.elc"
     ;; or "w3/" or "../el/ffap.el" or "../../../"
-    (or (ffap-url-p guess)
-	(progn
-	  (or (ffap-file-remote-p guess)
-	      (setq guess
-		    (abbreviate-file-name (expand-file-name guess))
-		    ))
-	  (setq dir (file-name-directory guess))))
+    (unless (ffap-url-p guess)
+      (unless (ffap-file-remote-p guess)
+	(setq guess
+	      (abbreviate-file-name (expand-file-name guess))))
+      (setq dir (file-name-directory guess)))
     (let ((minibuffer-completing-file-name t)
 	  (completion-ignore-case read-file-name-completion-ignore-case)
           (fnh-elem (cons ffap-url-regexp 'url-file-handler)))
@@ -1327,11 +1324,8 @@ which may actually result in an URL rather than a filename."
         ;; other modifications to be lost (e.g. when Tramp gets loaded
         ;; during the completing-read call).
         (setq file-name-handler-alist (delq fnh-elem file-name-handler-alist))))
-    ;; Do file substitution like (interactive "F"), suggested by MCOOK.
-    (or (ffap-url-p guess) (setq guess (substitute-in-file-name guess)))
-    ;; Should not do it on url's, where $ is a common (VMS?) character.
-    ;; Note: upcoming url.el package ought to handle this automatically.
-    guess))
+    (or (ffap-url-p guess)
+	(substitute-in-file-name guess))))
 
 (defun ffap-read-url-internal (string pred action)
   "Complete URLs from history, treating given string as valid."
@@ -1346,11 +1340,10 @@ which may actually result in an URL rather than a filename."
      (t t))))
 
 (defun ffap-read-file-or-url-internal (string pred action)
-  (unless string                        ;Why would this ever happen?
-    (setq string default-directory))
-  (if (ffap-url-p string)
-      (ffap-read-url-internal string pred action)
-    (read-file-name-internal string pred action)))
+  (let ((url (ffap-url-p string)))
+    (if url
+	(ffap-read-url-internal url pred action)
+      (read-file-name-internal (or string default-directory) pred action))))
 
 ;; The rest of this page is just to work with package complete.el.
 ;; This code assumes that you load ffap.el after complete.el.
@@ -1441,30 +1434,31 @@ and the functions `ffap-file-at-point' and `ffap-url-at-point'."
       (let (current-prefix-arg)		; we already interpreted it
 	(call-interactively ffap-file-finder))
     (or filename (setq filename (ffap-prompter)))
-    (cond
-     ((ffap-url-p filename)
-      (let (current-prefix-arg)		; w3 2.3.25 bug, reported by KPC
-	(funcall ffap-url-fetcher filename)))
-     ((and ffap-pass-wildcards-to-dired
-	   ffap-dired-wildcards
-	   (string-match ffap-dired-wildcards filename))
-      (funcall ffap-directory-finder filename))
-     ((and ffap-dired-wildcards
-	   (string-match ffap-dired-wildcards filename)
-	   find-file-wildcards
-	   ;; Check if it's find-file that supports wildcards arg
-	   (memq ffap-file-finder '(find-file find-alternate-file)))
-      (funcall ffap-file-finder (expand-file-name filename) t))
-     ((or (not ffap-newfile-prompt)
-	  (file-exists-p filename)
-	  (y-or-n-p "File does not exist, create buffer? "))
-      (funcall ffap-file-finder
-	       ;; expand-file-name fixes "~/~/.emacs" bug sent by CHUCKR.
-	       (expand-file-name filename)))
-     ;; User does not want to find a non-existent file:
-     ((signal 'file-error (list "Opening file buffer"
-				"no such file or directory"
-				filename))))))
+    (let ((url (ffap-url-p filename)))
+      (cond
+       (url
+	(let (current-prefix-arg)
+	  (funcall ffap-url-fetcher url)))
+       ((and ffap-pass-wildcards-to-dired
+	     ffap-dired-wildcards
+	     (string-match ffap-dired-wildcards filename))
+	(funcall ffap-directory-finder filename))
+       ((and ffap-dired-wildcards
+	     (string-match ffap-dired-wildcards filename)
+	     find-file-wildcards
+	     ;; Check if it's find-file that supports wildcards arg
+	     (memq ffap-file-finder '(find-file find-alternate-file)))
+	(funcall ffap-file-finder (expand-file-name filename) t))
+       ((or (not ffap-newfile-prompt)
+	    (file-exists-p filename)
+	    (y-or-n-p "File does not exist, create buffer? "))
+	(funcall ffap-file-finder
+		 ;; expand-file-name fixes "~/~/.emacs" bug sent by CHUCKR.
+		 (expand-file-name filename)))
+       ;; User does not want to find a non-existent file:
+       ((signal 'file-error (list "Opening file buffer"
+				  "no such file or directory"
+				  filename)))))))
 
 ;; Shortcut: allow {M-x ffap} rather than {M-x find-file-at-point}.
 ;;;###autoload
@@ -1820,25 +1814,26 @@ If `dired-at-point-require-prefix' is set, the prefix meaning is reversed."
       (let (current-prefix-arg)		; already interpreted
 	(call-interactively ffap-directory-finder))
     (or filename (setq filename (dired-at-point-prompter)))
-    (cond
-     ((ffap-url-p filename)
-      (funcall ffap-url-fetcher filename))
-     ((and ffap-dired-wildcards
-	   (string-match ffap-dired-wildcards filename))
-      (funcall ffap-directory-finder filename))
-     ((file-exists-p filename)
-      (if (file-directory-p filename)
+    (let ((url (ffap-url-p filename)))
+      (cond
+       (url
+	(funcall ffap-url-fetcher url))
+       ((and ffap-dired-wildcards
+	     (string-match ffap-dired-wildcards filename))
+	(funcall ffap-directory-finder filename))
+       ((file-exists-p filename)
+	(if (file-directory-p filename)
+	    (funcall ffap-directory-finder
+		     (expand-file-name filename))
 	  (funcall ffap-directory-finder
-		   (expand-file-name filename))
-	(funcall ffap-directory-finder
-		 (concat (expand-file-name filename) "*"))))
-     ((and (file-writable-p
-            (or (file-name-directory (directory-file-name filename))
-                filename))
-           (y-or-n-p "Directory does not exist, create it? "))
-      (make-directory filename)
-      (funcall ffap-directory-finder filename))
-     ((error "No such file or directory `%s'" filename)))))
+		   (concat (expand-file-name filename) "*"))))
+       ((and (file-writable-p
+	      (or (file-name-directory (directory-file-name filename))
+		  filename))
+	     (y-or-n-p "Directory does not exist, create it? "))
+	(make-directory filename)
+	(funcall ffap-directory-finder filename))
+       ((error "No such file or directory `%s'" filename))))))
 
 (defun dired-at-point-prompter (&optional guess)
   ;; Does guess and prompt step for find-file-at-point.
@@ -1851,23 +1846,23 @@ If `dired-at-point-require-prefix' is set, the prefix meaning is reversed."
 	(ffap-url-regexp "Dired file or URL: ")
 	(t "Dired file: "))
        (prog1
-	   (setq guess (or guess
-                           (let ((guess (ffap-guesser)))
-                             (if (or (not guess)
-                                     (ffap-url-p guess)
-                                     (ffap-file-remote-p guess))
-                                 guess
-                               (setq guess (abbreviate-file-name
-                                            (expand-file-name guess)))
-                               (cond
-                                ;; Interpret local directory as a directory.
-                                ((file-directory-p guess)
-                                 (file-name-as-directory guess))
-                                ;; Get directory component from local files.
-                                ((file-regular-p guess)
-                                 (file-name-directory guess))
-                                (guess))))
-                           ))
+	   (setq guess
+		 (let ((guess (or guess (ffap-guesser))))
+		   (cond
+		    ((null guess) nil)
+		    ((ffap-url-p guess))
+		    ((ffap-file-remote-p guess)
+		     guess)
+		    ((progn
+		       (setq guess (abbreviate-file-name
+				    (expand-file-name guess)))
+		       ;; Interpret local directory as a directory.
+		       (file-directory-p guess))
+		     (file-name-as-directory guess))
+		    ;; Get directory component from local files.
+		    ((file-regular-p guess)
+		     (file-name-directory guess))
+		    (guess))))
 	 (and guess (ffap-highlight))))
     (ffap-highlight t)))
 
@@ -1916,22 +1911,17 @@ Only intended for interactive use."
 (defun ffap-guess-file-name-at-point ()
   "Try to get a file name at point.
 This hook is intended to be put in `file-name-at-point-functions'."
-  (when (fboundp 'ffap-guesser)
-    ;; Logic from `ffap-read-file-or-url' and `dired-at-point-prompter'.
-    (let ((guess (ffap-guesser)))
-      (setq guess
-	    (if (or (not guess)
-		    (and (fboundp 'ffap-url-p)
-			 (ffap-url-p guess))
-		    (and (fboundp 'ffap-file-remote-p)
-			 (ffap-file-remote-p guess)))
-		guess
-	      (abbreviate-file-name (expand-file-name guess))))
-      (when guess
-	(if (file-directory-p guess)
-	    (file-name-as-directory guess)
-	  guess)))))
-
+  (let ((guess (ffap-guesser)))
+    (when (stringp guess)
+      (let ((url (ffap-url-p guess)))
+	(or url
+	    (progn
+	      (unless (ffap-file-remote-p guess)
+		(setq guess
+		      (abbreviate-file-name (expand-file-name guess))))
+	      (if (file-directory-p guess)
+		  (file-name-as-directory guess)
+		guess)))))))
 
 ;;; Offer default global bindings (`ffap-bindings'):
 

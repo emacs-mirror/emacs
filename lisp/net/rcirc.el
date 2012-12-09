@@ -406,7 +406,8 @@ will be killed."
   "The channel or user associated with this buffer.")
 
 (defvar rcirc-urls nil
-  "List of urls seen in the current buffer.")
+  "List of URLs seen in the current buffer and the position in
+the buffer where the URL starts.")
 (put 'rcirc-urls 'permanent-local t)
 
 (defvar rcirc-timeout-seconds 600
@@ -2392,12 +2393,23 @@ keywords when no KEYWORD is given."
    "\\)")
   "Regexp matching URLs.  Set to nil to disable URL features in rcirc.")
 
+(defun rcirc-condition-filter (condp lst)
+  "Given a condition and a list, returns the list with elements
+that do not satisfy the condition removed."
+  (delq nil (mapcar (lambda (x) (and (funcall condp x) x)) lst)))
+
 (defun rcirc-browse-url (&optional arg)
-  "Prompt for URL to browse based on URLs in buffer."
+  "Prompt for URL to browse based on URLs in buffer before point.
+
+If ARG is given, opens the URL in a new browser window."
   (interactive "P")
-  (let ((completions (mapcar (lambda (x) (cons x nil)) rcirc-urls))
-        (initial-input (car rcirc-urls))
-        (history (cdr rcirc-urls)))
+  (let* ((point (point))
+         (filtered (rcirc-condition-filter
+                    (lambda (x) (>= point (cdr x)))
+                    rcirc-urls))
+         (completions (mapcar (lambda (x) (car x)) filtered))
+         (initial-input (caar filtered))
+         (history (mapcar (lambda (x) (car x)) (cdr filtered))))
     (browse-url (completing-read "rcirc browse-url: "
                                  completions nil nil initial-input 'history)
                 arg)))
@@ -2441,17 +2453,19 @@ keywords when no KEYWORD is given."
 (defun rcirc-markup-urls (sender response)
   (while (and rcirc-url-regexp ;; nil means disable URL catching
               (re-search-forward rcirc-url-regexp nil t))
-    (let ((start (match-beginning 0))
-	  (end (match-end 0))
-	  (url (match-string-no-properties 0)))
+    (let* ((start (match-beginning 0))
+           (end (match-end 0))
+           (url (match-string-no-properties 0))
+           (link-text (buffer-substring-no-properties start end)))
       (make-button start end
 		   'face 'rcirc-url
 		   'follow-link t
 		   'rcirc-url url
 		   'action (lambda (button)
 			     (browse-url (button-get button 'rcirc-url))))
-      ;; record the url
-      (push url rcirc-urls))))
+      ;; record the url if it is not already the latest stored url
+      (when (not (string= link-text (caar rcirc-urls)))
+        (push (cons link-text start) rcirc-urls)))))
 
 (defun rcirc-markup-keywords (sender response)
   (when (and (string= response "PRIVMSG")

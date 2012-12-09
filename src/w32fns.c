@@ -82,7 +82,6 @@ void syms_of_w32fns (void);
 void globals_of_w32fns (void);
 
 extern void free_frame_menubar (struct frame *);
-extern double atof (const char *);
 extern int w32_console_toggle_lock_key (int, Lisp_Object);
 extern void w32_menu_display_help (HWND, HMENU, UINT, UINT);
 extern void w32_free_menu_strings (HWND);
@@ -223,7 +222,7 @@ SYSTEM_INFO sysinfo_cache;
 /* This gives us version, build, and platform identification.  */
 OSVERSIONINFO osinfo_cache;
 
-unsigned long syspage_mask = 0;
+DWORD_PTR syspage_mask = 0;
 
 /* The major and minor versions of NT.  */
 int w32_major_version;
@@ -4867,18 +4866,6 @@ x_pixel_height (register struct frame *f)
 }
 
 int
-x_char_width (register struct frame *f)
-{
-  return FRAME_COLUMN_WIDTH (f);
-}
-
-int
-x_char_height (register struct frame *f)
-{
-  return FRAME_LINE_HEIGHT (f);
-}
-
-int
 x_screen_planes (register struct frame *f)
 {
   return FRAME_W32_DISPLAY_INFO (f)->n_planes;
@@ -6035,7 +6022,7 @@ typedef char guichar_t;
    read-only when "Directories" is selected in the filter.  This
    allows us to work around the fact that the standard Open File
    dialog does not support directories.  */
-static UINT CALLBACK
+static UINT_PTR CALLBACK
 file_dialog_callback (HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
 {
   if (msg == WM_NOTIFY)
@@ -7797,7 +7784,7 @@ emacs_abort (void)
 		/* stack[] gives the return addresses, whereas we want
 		   the address of the call, so decrease each address
 		   by approximate size of 1 CALL instruction.  */
-		sprintf (buf, "0x%p\r\n", stack[j] - sizeof(void *));
+		sprintf (buf, "0x%p\r\n", (char *)stack[j] - sizeof(void *));
 		if (stderr_fd >= 0)
 		  write (stderr_fd, buf, strlen (buf));
 		if (errfile_fd >= 0)

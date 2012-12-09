@@ -2718,7 +2718,7 @@ If READ-CHARSET, ask for a coding system."
       (while (re-search-forward
 	      "\\(\\(https?\\|ftp\\)://\\S-+\\) *\n\\(\\S-+\\)" nil t)
 	(replace-match "\\1\\3" t)))
-    (when (interactive-p)
+    (when (gmm-called-interactively-p 'any)
       (gnus-treat-article nil))))
 
 (defun article-wash-html ()

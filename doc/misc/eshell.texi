@@ -783,7 +783,7 @@ A special associate array, which can take references of the form
 
 @item Eshell scripts can't execute in the background
 
-@item Support zsh's ``Parameter Expansion'' syntax, i.e. @samp{$@{@var{name}:-@var{val}@}}
+@item Support zsh's ``Parameter Expansion'' syntax, i.e., @samp{$@{@var{name}:-@var{val}@}}
 
 @item Write an @command{info} alias that can take arguments
 
@@ -869,7 +869,7 @@ It would call subcommands with @option{--help}, or @option{-h} or
 
 @item Implement @command{stty} in Lisp
 
-@item Support @command{rc}'s matching operator, e.g. @samp{~ (@var{list}) @var{regexp}}
+@item Support @command{rc}'s matching operator, e.g., @samp{~ (@var{list}) @var{regexp}}
 
 @item Implement @command{bg} and @command{fg} as editors of @code{eshell-process-list}
 

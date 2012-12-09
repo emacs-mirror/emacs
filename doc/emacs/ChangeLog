@@ -1,3 +1,25 @@
+2012-12-06  Paul Eggert  <eggert@cs.ucla.edu>
+
+	* doclicense.texi, gpl.texi: Update to latest version from FSF.
+	These are just minor editorial changes.
+
+2012-12-06  Juanma Barranquero  <lekktu@gmail.com>
+
+	* vc1-xtra.texi (General VC Options): Remove obsolete reference
+	to `vc-path'.
+
+2012-12-03  Chong Yidong  <cyd@gnu.org>
+
+	* custom.texi (Init Rebinding): kbd is now a function (Bug#13052).
+
+2012-12-02  Kevin Ryde  <user42@zip.com.au>
+
+	* maintaining.texi (Tag Syntax): Mention (defvar foo) handling.
+
+2012-12-01  Kevin Ryde  <user42@zip.com.au>
+
+	* maintaining.texi (Tag Syntax): Mention Perl's "use constant".
+
 2012-11-24  Paul Eggert  <eggert@cs.ucla.edu>
 
 	* doclicense.texi, gpl.texi: Update to latest version from FSF.

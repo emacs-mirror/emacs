@@ -100,7 +100,7 @@ There are many different databases out there---and good ones---which
 this mode is not trying to replace.  Rather, it's how that data gets
 there that's the question.  Most of the time, we just want to say
 "Remember so-and-so's phone number, or that I have to buy dinner for the
-cats tonight."  That's the FACT.  How it's stored is really the
+cats tonight."  That's the FACT@.  How it's stored is really the
 computer's problem.  But at this point in time, it's most definitely
 also the user's problem, and sometimes so laboriously so that people
 just let data slip, rather than expend the effort to record it.

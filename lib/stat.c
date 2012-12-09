@@ -42,7 +42,7 @@
 # endif
 #endif
 
-static inline int
+static int
 orig_stat (const char *filename, struct stat *buf)
 {
   return stat (filename, buf);

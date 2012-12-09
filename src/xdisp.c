@@ -10888,22 +10888,24 @@ echo_area_display (int update_frame_p)
   return window_height_changed_p;
 }
 
-/* Nonzero if the current buffer is shown in more than
-   one window and was modified since last display.  */
+/* Nonzero if the current window's buffer is shown in more than one
+   window and was modified since last redisplay.  */
 
 static int
 buffer_shared_and_changed (void)
 {
+  /* The variable buffer_shared is set in redisplay_window and
+     indicates that we redisplay a buffer in different windows. */
   return (buffer_shared > 1 && UNCHANGED_MODIFIED < MODIFF);
 }
 
-/* Nonzero if W doesn't reflect the actual state of
-   current buffer due to its text or overlays change.  */
+/* Nonzero if W doesn't reflect the actual state of current buffer due
+   to its text or overlays change.  FIXME: this may be called when
+   XBUFFER (w->buffer) != current_buffer, which looks suspicious.  */
 
 static int
 window_outdated (struct window *w)
 {
-  eassert (XBUFFER (w->buffer) == current_buffer);
   return (w->last_modified < MODIFF 
 	  || w->last_overlay_modified < OVERLAY_MODIFF);
 }
@@ -10921,6 +10923,16 @@ window_buffer_changed (struct window *w)
   return (((BUF_SAVE_MODIFF (b) < BUF_MODIFF (b)) != w->last_had_star)
 	  || ((!NILP (Vtransient_mark_mode) && !NILP (BVAR (b, mark_active)))
 	      != !NILP (w->region_showing)));
+}
+
+/* Nonzero if W has %c in its mode line and mode line should be updated.  */
+
+static int
+mode_line_update_needed (struct window *w)
+{
+  return (!NILP (w->column_number_displayed)
+	  && !(PT == w->last_point && !window_outdated (w))
+	  && (XFASTINT (w->column_number_displayed) != current_column ()));
 }
 
 /***********************************************************************
@@ -12253,7 +12265,6 @@ handle_tool_bar_click (struct frame *f, int x, int y, int down_p,
     {
       /* Show item in pressed state.  */
       show_mouse_face (hlinfo, DRAW_IMAGE_SUNKEN);
-      hlinfo->mouse_face_image_state = DRAW_IMAGE_SUNKEN;
       last_tool_bar_item = prop_idx;
     }
   else
@@ -12264,7 +12275,6 @@ handle_tool_bar_click (struct frame *f, int x, int y, int down_p,
 
       /* Show item in released state.  */
       show_mouse_face (hlinfo, DRAW_IMAGE_RAISED);
-      hlinfo->mouse_face_image_state = DRAW_IMAGE_RAISED;
 
       key = AREF (f->tool_bar_items, prop_idx + TOOL_BAR_ITEM_KEY);
 
@@ -12333,7 +12343,6 @@ note_tool_bar_highlight (struct frame *f, int x, int y)
       && last_tool_bar_item != prop_idx)
     return;
 
-  hlinfo->mouse_face_image_state = DRAW_NORMAL_TEXT;
   draw = mouse_down_p ? DRAW_IMAGE_SUNKEN : DRAW_IMAGE_RAISED;
 
   /* If tool-bar item is not enabled, don't highlight it.  */
@@ -12362,7 +12371,6 @@ note_tool_bar_highlight (struct frame *f, int x, int y)
 
       /* Display it as active.  */
       show_mouse_face (hlinfo, draw);
-      hlinfo->mouse_face_image_state = draw;
     }
 
  set_help_echo:
@@ -12967,6 +12975,15 @@ select_frame_for_redisplay (Lisp_Object frame)
   } while (!EQ (frame, old) && (frame = old, 1));
 }
 
+/* Make sure that previously selected OLD_FRAME is selected unless it has been
+   deleted (by an X connection failure during redisplay, for example).  */
+
+static void
+ensure_selected_frame (Lisp_Object old_frame)
+{
+  if (!EQ (old_frame, selected_frame) && FRAME_LIVE_P (XFRAME (old_frame)))
+    select_frame_for_redisplay (old_frame);
+}
 
 #define STOP_POLLING					\
 do { if (! polling_stopped_here) stop_polling ();	\
@@ -13052,13 +13069,11 @@ redisplay_internal (void)
   /* Remember the currently selected window.  */
   sw = w;
 
-  if (!EQ (old_frame, selected_frame)
-      && FRAME_LIVE_P (XFRAME (old_frame)))
-    /* When running redisplay, we play a bit fast-and-loose and allow e.g.
-       selected_frame and selected_window to be temporarily out-of-sync so
-       when we come back here via `goto retry', we need to resync because we
-       may need to run Elisp code (via prepare_menu_bars).  */
-    select_frame_for_redisplay (old_frame);
+  /* When running redisplay, we play a bit fast-and-loose and allow e.g.
+     selected_frame and selected_window to be temporarily out-of-sync so
+     when we come back here via `goto retry', we need to resync because we
+     may need to run Elisp code (via prepare_menu_bars).  */
+  ensure_selected_frame (old_frame);
 
   pending = 0;
   reconsider_clip_changes (w, current_buffer);
@@ -13144,21 +13159,13 @@ redisplay_internal (void)
   count1 = SPECPDL_INDEX ();
   specbind (Qinhibit_point_motion_hooks, Qt);
 
-  /* If %c is in the mode line, update it if needed.  */
-  if (!NILP (w->column_number_displayed)
-      /* This alternative quickly identifies a common case
-	 where no change is needed.  */
-      && !(PT == w->last_point && !window_outdated (w))
-      && (XFASTINT (w->column_number_displayed) != current_column ()))
+  if (mode_line_update_needed (w))
     w->update_mode_line = 1;
 
   unbind_to (count1, Qnil);
 
   FRAME_SCROLL_BOTTOM_VPOS (XFRAME (w->frame)) = -1;
 
-  /* The variable buffer_shared is set in redisplay_window and
-     indicates that we redisplay a buffer in different windows.  See
-     there.  */
   consider_all_windows_p = (update_mode_lines
 			    || buffer_shared_and_changed ()
 			    || cursor_type_changed);
@@ -13533,14 +13540,11 @@ redisplay_internal (void)
 	    }
 	}
 
-      if (!EQ (old_frame, selected_frame)
-	  && FRAME_LIVE_P (XFRAME (old_frame)))
-	/* We played a bit fast-and-loose above and allowed selected_frame
-	   and selected_window to be temporarily out-of-sync but let's make
-	   sure this stays contained.  */
-	select_frame_for_redisplay (old_frame);
-      eassert (EQ (XFRAME (selected_frame)->selected_window,
-		   selected_window));
+      /* We played a bit fast-and-loose above and allowed selected_frame
+	 and selected_window to be temporarily out-of-sync but let's make
+	 sure this stays contained.  */
+      ensure_selected_frame (old_frame);
+      eassert (EQ (XFRAME (selected_frame)->selected_window, selected_window));
 
       if (!pending)
 	{
@@ -13759,17 +13763,13 @@ redisplay_preserve_echo_area (int from_where)
 
 
 /* Function registered with record_unwind_protect in redisplay_internal.
-   Clear redisplaying_p.  Also, select the previously
-   selected frame, unless it has been deleted (by an X connection
-   failure during redisplay, for example).  */
+   Clear redisplaying_p.  Also select the previously selected frame.  */
 
 static Lisp_Object
 unwind_redisplay (Lisp_Object old_frame)
 {
   redisplaying_p = 0;
-  if (! EQ (old_frame, selected_frame)
-      && FRAME_LIVE_P (XFRAME (old_frame)))
-    select_frame_for_redisplay (old_frame);
+  ensure_selected_frame (old_frame);
   return Qnil;
 }
 
@@ -15565,12 +15565,7 @@ redisplay_window (Lisp_Object window, int just_this_one_p)
   if (BYTEPOS (opoint) < CHARPOS (opoint))
     emacs_abort ();
 
-  /* If %c is in mode line, update it if needed.  */
-  if (!NILP (w->column_number_displayed)
-      /* This alternative quickly identifies a common case
-	 where no change is needed.  */
-      && !(PT == w->last_point && !window_outdated (w))
-      && (XFASTINT (w->column_number_displayed) != current_column ()))
+  if (mode_line_update_needed (w))
     update_mode_line = 1;
 
   /* Count number of windows showing the selected buffer.  An indirect
@@ -15717,6 +15712,35 @@ redisplay_window (Lisp_Object window, int just_this_one_p)
 	  /* Point does appear, but on a line partly visible at end of window.
 	     Move it back to a fully-visible line.  */
 	  new_vpos = window_box_height (w);
+	}
+      else if (w->cursor.vpos >=0)
+	{
+	  /* Some people insist on not letting point enter the scroll
+	     margin, even though this part handles windows that didn't
+	     scroll at all.  */
+	  struct frame *f = XFRAME (w->frame);
+	  int margin = min (scroll_margin, WINDOW_TOTAL_LINES (w) / 4);
+	  int pixel_margin = margin * FRAME_LINE_HEIGHT (f);
+	  bool header_line = WINDOW_WANTS_HEADER_LINE_P (w);
+
+	  /* Note: We add an extra FRAME_LINE_HEIGHT, because the loop
+	     below, which finds the row to move point to, advances by
+	     the Y coordinate of the _next_ row, see the definition of
+	     MATRIX_ROW_BOTTOM_Y.  */
+	  if (w->cursor.vpos < margin + header_line)
+	    new_vpos
+	      = pixel_margin + (header_line
+				? CURRENT_HEADER_LINE_HEIGHT (w)
+				: 0) + FRAME_LINE_HEIGHT (f);
+	  else
+	    {
+	      int window_height = window_box_height (w);
+
+	      if (header_line)
+		window_height += CURRENT_HEADER_LINE_HEIGHT (w);
+	      if (w->cursor.y >= window_height - pixel_margin)
+		new_vpos = window_height - pixel_margin;
+	    }
 	}
 
       /* If we need to move point for either of the above reasons,
@@ -23506,7 +23530,9 @@ draw_glyphs (struct window *w, int x, struct glyph_row *row,
 
       /* If mouse highlighting is on, we may need to draw adjacent
 	 glyphs using mouse-face highlighting.  */
-      if (area == TEXT_AREA && row->mouse_face_p)
+      if (area == TEXT_AREA && row->mouse_face_p
+	  && hlinfo->mouse_face_beg_row >= 0
+	  && hlinfo->mouse_face_end_row >= 0)
 	{
 	  struct glyph_row *mouse_beg_row, *mouse_end_row;
 

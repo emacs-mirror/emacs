@@ -44,27 +44,21 @@
     nil))
 
 (defun url-do-terminal-emulator (type server port user)
-  (terminal-emulator
-   (generate-new-buffer (format "%s%s" (if user (concat user "@") "") server))
-   (pcase type
-     (`rlogin "rlogin")
-     (`telnet "telnet")
-     (`tn3270 "tn3270")
-     (_
-      (error "Unknown terminal emulator required: %s" type)))
-   (pcase type
-     (`rlogin
-      (if user
-	  (list server "-l" user)
-	(list server)))
-     (`telnet
-      (if user (message "Please log in as user: %s" user))
-      (if port
-	  (list server port)
-	(list server)))
-     (`tn3270
-      (if user (message "Please log in as user: %s" user))
-      (list server)))))
+  (switch-to-buffer
+   (apply
+    'make-term
+    (format "%s%s" (if user (concat user "@") "") server)
+    (cond ((eq type 'rlogin) "rlogin")
+	  ((eq type 'telnet) "telnet")
+	  ((eq type 'tn3270) "tn3270")
+	  (t (error "Unknown terminal emulator required: %s" type)))
+    nil
+    (cond ((eq type 'rlogin)
+	   (if user (list server "-l" user) (list server)))
+	  ((eq type 'telnet)
+	   (if port (list server port) (list server)))
+	  ((eq type 'tn3270)
+	   (list server))))))
 
 ;;;###autoload
 (defun url-generic-emulator-loader (url)

@@ -97,7 +97,7 @@ sha384_init_ctx (struct sha512_ctx *ctx)
 /* Copy the value from V into the memory location pointed to by *CP,
    If your architecture allows unaligned access, this is equivalent to
    * (__typeof__ (v) *) cp = v  */
-static inline void
+static void
 set_uint64 (char *cp, u64 v)
 {
   memcpy (cp, &v, sizeof v);

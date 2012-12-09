@@ -195,45 +195,34 @@ score-mode.el.  KEYWORDS-CASE-INSENSITIVE non-nil means that for
 font-lock keywords will not be case sensitive."
   (when lisp-syntax
     (set-syntax-table lisp-mode-syntax-table))
-  (make-local-variable 'paragraph-ignore-fill-prefix)
-  (setq paragraph-ignore-fill-prefix t)
-  (make-local-variable 'fill-paragraph-function)
-  (setq fill-paragraph-function 'lisp-fill-paragraph)
+  (setq-local paragraph-ignore-fill-prefix t)
+  (setq-local fill-paragraph-function 'lisp-fill-paragraph)
   ;; Adaptive fill mode gets the fill wrong for a one-line paragraph made of
   ;; a single docstring.  Let's fix it here.
-  (set (make-local-variable 'adaptive-fill-function)
-       (lambda () (if (looking-at "\\s-+\"[^\n\"]+\"\\s-*$") "")))
+  (setq-local adaptive-fill-function
+	      (lambda () (if (looking-at "\\s-+\"[^\n\"]+\"\\s-*$") "")))
   ;; Adaptive fill mode gets in the way of auto-fill,
   ;; and should make no difference for explicit fill
   ;; because lisp-fill-paragraph should do the job.
   ;;  I believe that newcomment's auto-fill code properly deals with it  -stef
   ;;(set (make-local-variable 'adaptive-fill-mode) nil)
-  (make-local-variable 'indent-line-function)
-  (setq indent-line-function 'lisp-indent-line)
-  (make-local-variable 'outline-regexp)
-  (setq outline-regexp ";;;\\(;* [^ \t\n]\\|###autoload\\)\\|(")
-  (make-local-variable 'outline-level)
-  (setq outline-level 'lisp-outline-level)
-  (make-local-variable 'comment-start)
-  (setq comment-start ";")
-  (make-local-variable 'comment-start-skip)
+  (setq-local indent-line-function 'lisp-indent-line)
+  (setq-local outline-regexp ";;;\\(;* [^ \t\n]\\|###autoload\\)\\|(")
+  (setq-local outline-level 'lisp-outline-level)
+  (setq-local add-log-current-defun-function #'lisp-current-defun-name)
+  (setq-local comment-start ";")
   ;; Look within the line for a ; following an even number of backslashes
   ;; after either a non-backslash or the line beginning.
-  (setq comment-start-skip "\\(\\(^\\|[^\\\\\n]\\)\\(\\\\\\\\\\)*\\);+ *")
-  (make-local-variable 'font-lock-comment-start-skip)
+  (setq-local comment-start-skip "\\(\\(^\\|[^\\\\\n]\\)\\(\\\\\\\\\\)*\\);+ *")
   ;; Font lock mode uses this only when it KNOWS a comment is starting.
-  (setq font-lock-comment-start-skip ";+ *")
-  (make-local-variable 'comment-add)
-  (setq comment-add 1)			;default to `;;' in comment-region
-  (make-local-variable 'comment-column)
-  (setq comment-column 40)
+  (setq-local font-lock-comment-start-skip ";+ *")
+  (setq-local comment-add 1)		;default to `;;' in comment-region
+  (setq-local comment-column 40)
   ;; Don't get confused by `;' in doc strings when paragraph-filling.
-  (set (make-local-variable 'comment-use-global-state) t)
-  (make-local-variable 'imenu-generic-expression)
-  (setq imenu-generic-expression lisp-imenu-generic-expression)
-  (make-local-variable 'multibyte-syntax-as-symbol)
-  (setq multibyte-syntax-as-symbol t)
-  (set (make-local-variable 'syntax-begin-function) 'beginning-of-defun)
+  (setq-local comment-use-global-state t)
+  (setq-local imenu-generic-expression lisp-imenu-generic-expression)
+  (setq-local multibyte-syntax-as-symbol t)
+  (setq-local syntax-begin-function 'beginning-of-defun)
   (setq font-lock-defaults
 	`((lisp-font-lock-keywords
 	   lisp-font-lock-keywords-1 lisp-font-lock-keywords-2)
@@ -248,6 +237,32 @@ font-lock keywords will not be case sensitive."
     (if (looking-at "(\\|;;;###autoload")
 	1000
       len)))
+
+(defun lisp-current-defun-name ()
+  "Return the name of the defun at point, or nil."
+  (save-excursion
+    (let ((location (point)))
+      ;; If we are now precisely at the beginning of a defun, make sure
+      ;; beginning-of-defun finds that one rather than the previous one.
+      (or (eobp) (forward-char 1))
+      (beginning-of-defun)
+      ;; Make sure we are really inside the defun found, not after it.
+      (when (and (looking-at "\\s(")
+		 (progn (end-of-defun)
+			(< location (point)))
+		 (progn (forward-sexp -1)
+			(>= location (point))))
+	(if (looking-at "\\s(")
+	    (forward-char 1))
+	;; Skip the defining construct name, typically "defun" or
+	;; "defvar".
+	(forward-sexp 1)
+	;; The second element is usually a symbol being defined.  If it
+	;; is not, use the first symbol in it.
+	(skip-chars-forward " \t\n'(")
+	(buffer-substring-no-properties (point)
+					(progn (forward-sexp 1)
+					       (point)))))))
 
 (defvar lisp-mode-shared-map
   (let ((map (make-sparse-keymap)))
@@ -519,10 +534,9 @@ or to switch back to an existing one.
 Entry to this mode calls the value of `lisp-mode-hook'
 if that value is non-nil."
   (lisp-mode-variables nil t)
-  (set (make-local-variable 'find-tag-default-function) 'lisp-find-tag-default)
-  (make-local-variable 'comment-start-skip)
-  (setq comment-start-skip
-       "\\(\\(^\\|[^\\\\\n]\\)\\(\\\\\\\\\\)*\\)\\(;+\\|#|\\) *")
+  (setq-local find-tag-default-function 'lisp-find-tag-default)
+  (setq-local comment-start-skip
+	      "\\(\\(^\\|[^\\\\\n]\\)\\(\\\\\\\\\\)*\\)\\(;+\\|#|\\) *")
   (setq imenu-case-fold-search t))
 
 (defun lisp-find-tag-default ()
@@ -816,6 +830,7 @@ this command arranges for all errors to enter the debugger."
 (defun eval-defun-1 (form)
   "Treat some expressions specially.
 Reset the `defvar' and `defcustom' variables to the initial value.
+\(For `defcustom', use the :set function if there is one.)
 Reinitialize the face according to the `defface' specification."
   ;; The code in edebug-defun should be consistent with this, but not
   ;; the same, since this gets a macroexpanded form.
@@ -831,14 +846,19 @@ Reinitialize the face according to the `defface' specification."
 	;; `custom-declare-variable' with a quoted value arg.
 	((and (eq (car form) 'custom-declare-variable)
 	      (default-boundp (eval (nth 1 form) lexical-binding)))
-	 ;; Force variable to be bound.
-	 (set-default (eval (nth 1 form) lexical-binding)
-		      ;; The second arg is an expression that evaluates to
-		      ;; an expression.  The second evaluation is the one
-		      ;; normally performed not be normal execution but by
-		      ;; custom-initialize-set (for example), which does not
-		      ;; use lexical-binding.
-		      (eval (eval (nth 2 form) lexical-binding)))
+	 ;; Force variable to be bound, using :set function if specified.
+	 (let ((setfunc (memq :set form)))
+	   (when setfunc
+	     (setq setfunc (car-safe (cdr-safe setfunc)))
+	     (or (functionp setfunc) (setq setfunc nil)))
+	   (funcall (or setfunc 'set-default)
+		    (eval (nth 1 form) lexical-binding)
+		    ;; The second arg is an expression that evaluates to
+		    ;; an expression.  The second evaluation is the one
+		    ;; normally performed not by normal execution but by
+		    ;; custom-initialize-set (for example), which does not
+		    ;; use lexical-binding.
+		    (eval (eval (nth 2 form) lexical-binding))))
 	 form)
 	;; `defface' is macroexpanded to `custom-declare-face'.
 	((eq (car form) 'custom-declare-face)
@@ -901,11 +921,12 @@ Return the result of evaluation."
 
 If the current defun is actually a call to `defvar' or `defcustom',
 evaluating it this way resets the variable using its initial value
-expression even if the variable already has some other value.
-\(Normally `defvar' and `defcustom' do not alter the value if there
-already is one.)  In an analogous way, evaluating a `defface'
-overrides any customizations of the face, so that it becomes
-defined exactly as the `defface' expression says.
+expression (using the defcustom's :set function if there is one), even
+if the variable already has some other value.  \(Normally `defvar' and
+`defcustom' do not alter the value if there already is one.)  In an
+analogous way, evaluating a `defface' overrides any customizations of
+the face, so that it becomes defined exactly as the `defface' expression
+says.
 
 If `eval-expression-debug-on-error' is non-nil, which is the default,
 this command arranges for all errors to enter the debugger.

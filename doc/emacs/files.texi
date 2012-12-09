@@ -72,7 +72,7 @@ directory into the minibuffer as the initial contents.  You can
 inhibit this insertion by changing the variable
 @code{insert-default-directory} to @code{nil} (@pxref{Minibuffer
 File}).  Regardless, Emacs always assumes that any relative file name
-is relative to the default directory, e.g. entering a file name
+is relative to the default directory, e.g., entering a file name
 without a directory specifies a file in the default directory.
 
 @findex cd
@@ -773,7 +773,7 @@ spurious, just use @kbd{p} to tell Emacs to go ahead anyway.
 multiple names, Emacs does not prevent two users from editing it
 simultaneously under different names.
 
-  A lock file cannot be written in some circumstances, e.g. if Emacs
+  A lock file cannot be written in some circumstances, e.g., if Emacs
 lacks the system permissions or the system does not support symbolic
 links.  In these cases, Emacs can still detect the collision when you
 try to save a file, by checking the file's last-modification date.  If
@@ -1948,7 +1948,7 @@ can use ImageMagick to render a wide variety of images.  The variable
 @code{imagemagick-enabled-types} lists the image types that Emacs may
 render using ImageMagick; each element in the list should be an
 internal ImageMagick name for an image type, as a symbol or an
-equivalent string (e.g.@: @code{BMP} for @file{.bmp} images).  To
+equivalent string (e.g., @code{BMP} for @file{.bmp} images).  To
 enable ImageMagick for all possible image types, change
 @code{imagemagick-enabled-types} to @code{t}.  The variable
 @code{imagemagick-types-inhibit} lists the image types which should

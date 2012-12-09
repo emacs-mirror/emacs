@@ -353,6 +353,7 @@ static void put_entries (node *);
 static char *concat (const char *, const char *, const char *);
 static char *skip_spaces (char *);
 static char *skip_non_spaces (char *);
+static char *skip_name (char *);
 static char *savenstr (const char *, int);
 static char *savestr (const char *);
 static char *etags_strchr (const char *, int);
@@ -619,7 +620,8 @@ static const char Lisp_help [] =
 "In Lisp code, any function defined with `defun', any variable\n\
 defined with `defvar' or `defconst', and in general the first\n\
 argument of any expression that starts with `(def' in column zero\n\
-is a tag.";
+is a tag.\n\
+The `--declarations' option tags \"(defvar foo)\" constructs too.";
 
 static const char *Lua_suffixes [] =
   { "lua", "LUA", NULL };
@@ -4269,6 +4271,7 @@ Asm_labels (FILE *inf)
 /*
  * Perl support
  * Perl sub names: /^sub[ \t\n]+[^ \t\n{]+/
+ *                 /^use constant[ \t\n]+[^ \t\n{=,;]+/
  * Perl variable names: /^(my|local).../
  * Original code by Bart Robinson <lomew@cs.utah.edu> (1995)
  * Additions by Michael Ernst <mernst@alum.mit.edu> (1997)
@@ -4291,9 +4294,10 @@ Perl_functions (FILE *inf)
 	}
       else if (LOOKING_AT (cp, "sub"))
 	{
-	  char *pos;
-	  char *sp = cp;
+	  char *pos, *sp;
 
+	subr:
+	  sp = cp;
 	  while (!notinname (*cp))
 	    cp++;
 	  if (cp == sp)
@@ -4316,8 +4320,21 @@ Perl_functions (FILE *inf)
 			lb.buffer, cp - lb.buffer + 1, lineno, linecharno);
 	      free (name);
 	    }
+	}
+      else if (LOOKING_AT (cp, "use constant")
+	       || LOOKING_AT (cp, "use constant::defer"))
+	{
+	  /* For hash style multi-constant like
+	        use constant { FOO => 123,
+	                       BAR => 456 };
+	     only the first FOO is picked up.  Parsing across the value
+	     expressions would be difficult in general, due to possible nested
+	     hashes, here-documents, etc.  */
+	  if (*cp == '{')
+	    cp = skip_spaces (cp+1);
+	  goto subr;
  	}
-       else if (globals)	/* only if we are tagging global vars */
+      else if (globals)	/* only if we are tagging global vars */
  	{
 	  /* Skip a qualifier, if any. */
 	  bool qual = LOOKING_AT (cp, "my") || LOOKING_AT (cp, "local");
@@ -4731,6 +4748,19 @@ Lisp_functions (FILE *inf)
     {
       if (dbp[0] != '(')
 	continue;
+
+      /* "(defvar foo)" is a declaration rather than a definition.  */
+      if (! declarations)
+	{
+	  char *p = dbp + 1;
+	  if (LOOKING_AT (p, "defvar"))
+	    {
+	      p = skip_name (p); /* past var name */
+	      p = skip_spaces (p);
+	      if (*p == ')')
+		continue;
+	    }
+	}
 
       if (strneq (dbp+1, "def", 3) || strneq (dbp+1, "DEF", 3))
 	{
@@ -6288,6 +6318,16 @@ static char *
 skip_non_spaces (char *cp)
 {
   while (*cp != '\0' && !iswhite (*cp))
+    cp++;
+  return cp;
+}
+
+/* Skip any chars in the "name" class.*/
+static char *
+skip_name (char *cp)
+{
+  /* '\0' is a notinname() so loop stops there too */
+  while (! notinname (*cp))
     cp++;
   return cp;
 }

@@ -562,6 +562,62 @@ From a program takes two point or marker arguments, BEG and END."
 	(setq ll (cdr ll)))
       (insert (car ll)))))
 
+;;;###autoload
+(defun delete-duplicate-lines (beg end &optional reverse adjacent interactive)
+  "Delete duplicate lines in the region between BEG and END.
+
+If REVERSE is nil, search and delete duplicates forward keeping the first
+occurrence of duplicate lines.  If REVERSE is non-nil (when called
+interactively with C-u prefix), search and delete duplicates backward
+keeping the last occurrence of duplicate lines.
+
+If ADJACENT is non-nil (when called interactively with two C-u prefixes),
+delete repeated lines only if they are adjacent.  It works like the utility
+`uniq' and is useful when lines are already sorted in a large file since
+this is more efficient in performance and memory usage than when ADJACENT
+is nil that uses additional memory to remember previous lines.
+
+When called from Lisp and INTERACTIVE is omitted or nil, return the number
+of deleted duplicate lines, do not print it; if INTERACTIVE is t, the
+function behaves in all respects as if it had been called interactively."
+  (interactive
+   (progn
+     (barf-if-buffer-read-only)
+     (list (region-beginning) (region-end)
+	   (equal current-prefix-arg '(4))
+	   (equal current-prefix-arg '(16))
+	   t)))
+  (let ((lines (unless adjacent (make-hash-table :weakness 'key :test 'equal)))
+	line prev-line
+	(count 0)
+	(beg (copy-marker beg))
+	(end (copy-marker end)))
+    (save-excursion
+      (goto-char (if reverse end beg))
+      (if (and reverse (bolp)) (forward-char -1))
+      (while (if reverse
+		 (and (> (point) beg) (not (bobp)))
+	       (and (< (point) end) (not (eobp))))
+	(setq line (buffer-substring-no-properties
+		    (line-beginning-position) (line-end-position)))
+	(if (if adjacent (equal line prev-line) (gethash line lines))
+	    (progn
+	      (delete-region (progn (forward-line 0) (point))
+			     (progn (forward-line 1) (point)))
+	      (if reverse (forward-line -1))
+	      (setq count (1+ count)))
+	  (if adjacent (setq prev-line line) (puthash line t lines))
+	  (forward-line (if reverse -1 1)))))
+    (set-marker beg nil)
+    (set-marker end nil)
+    (when interactive
+      (message "Deleted %d %sduplicate line%s%s"
+	       count
+	       (if adjacent "adjacent " "")
+	       (if (= count 1) "" "s")
+	       (if reverse " backward" "")))
+    count))
+
 (provide 'sort)
 
 ;;; sort.el ends here

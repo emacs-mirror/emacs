@@ -213,7 +213,7 @@ casify_region (enum case_action flag, Lisp_Object b, Lisp_Object e)
   validate_region (&b, &e);
   start = XFASTINT (b);
   end = XFASTINT (e);
-  modify_region (current_buffer, start, end, 0);
+  modify_region_1 (start, end, false);
   record_change (start, end - start);
   start_byte = CHAR_TO_BYTE (start);
 

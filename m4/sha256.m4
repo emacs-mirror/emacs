@@ -1,4 +1,4 @@
-# sha256.m4 serial 5
+# sha256.m4 serial 6
 dnl Copyright (C) 2005, 2008-2012 Free Software Foundation, Inc.
 dnl This file is free software; the Free Software Foundation
 dnl gives unlimited permission to copy and/or distribute it,
@@ -8,5 +8,4 @@ AC_DEFUN([gl_SHA256],
 [
   dnl Prerequisites of lib/sha256.c.
   AC_REQUIRE([gl_BIGENDIAN])
-  AC_REQUIRE([AC_C_INLINE])
 ])

@@ -44,8 +44,8 @@ variables}---variables that can have a different value in each buffer.
 by the largest buffer position representable by @dfn{Emacs integers}.
 This is because Emacs tracks buffer positions using that data type.
 For typical 64-bit machines, this maximum buffer size is @math{2^61 -
-2} bytes, or about 2 EiB.  For typical 32-bit machines, the maximum is
-usually @math{2^29 - 2} bytes, or about 512 MiB.  Buffer sizes are
+2} bytes, or about 2 EiB@.  For typical 32-bit machines, the maximum is
+usually @math{2^29 - 2} bytes, or about 512 MiB@.  Buffer sizes are
 also limited by the amount of memory in the system.
 
 @menu
@@ -614,7 +614,7 @@ names (all but one of them).
 
 @vindex uniquify-buffer-name-style
   Other methods work by adding parts of each file's directory to the
-buffer name.  To select one, load the library @file{uniquify} (e.g.
+buffer name.  To select one, load the library @file{uniquify} (e.g.,
 using @code{(require 'uniquify)}), and customize the variable
 @code{uniquify-buffer-name-style} (@pxref{Easy Customization}).
 

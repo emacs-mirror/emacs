@@ -784,6 +784,9 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 /* Define to 1 if you have the `shutdown' function. */
 #undef HAVE_SHUTDOWN
 
+/* Define to 1 if you have the `sig2str' function. */
+#undef HAVE_SIG2STR
+
 /* Define to 1 if 'sig_atomic_t' is a signed integer type. */
 #undef HAVE_SIGNED_SIG_ATOMIC_T
 
@@ -1328,9 +1331,6 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
    timespec. */
 #undef TYPEOF_STRUCT_STAT_ST_ATIM_IS_STRUCT_TIMESPEC
 
-/* Undocumented. */
-#undef ULIMIT_BREAK_VALUE
-
 /* Define to 1 for Encore UMAX. */
 #undef UMAX
 
@@ -1535,8 +1535,8 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 # endif
 # define _GL_EXTERN_INLINE extern
 #else
-# define _GL_INLINE static inline
-# define _GL_EXTERN_INLINE static inline
+# define _GL_INLINE static
+# define _GL_EXTERN_INLINE static
 #endif
 
 #if 4 < __GNUC__ + (6 <= __GNUC_MINOR__)
@@ -1563,12 +1563,6 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 
 /* Define to rpl_gmtime if the replacement function should be used. */
 #undef gmtime
-
-/* Define to `__inline__' or `__inline' if that's what the C compiler
-   calls it, or to nothing if 'inline' is not supported under any name.  */
-#ifndef __cplusplus
-#undef inline
-#endif
 
 /* Work around a bug in Apple GCC 4.0.1 build 5465: In C99 mode, it supports
    the ISO C 99 semantics of 'extern inline' (unlike the GNU C semantics of

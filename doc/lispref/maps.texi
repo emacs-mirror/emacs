@@ -56,7 +56,7 @@ A full keymap for @kbd{ESC} (or @kbd{Meta}) commands.
 A sparse keymap used for the @kbd{M-o} prefix key.
 
 @item function-key-map
-The parent keymap of all @code{local-function-key-map} (q.v.) instances.
+The parent keymap of all @code{local-function-key-map} (q.v.@:) instances.
 
 @ignore
 @c Doesn't exist.
@@ -118,12 +118,12 @@ Some of them contain sub-menus.  For example, the Edit menu contains
 @code{menu-bar-search-menu}, etc.  @xref{Menu Bar}.
 @ignore
 TODO list all submenus?
-There are probably too many, and it would not be useful to do so, eg:
+There are probably too many, and it would not be useful to do so, e.g.:
 The Edit menu includes @code{yank-menu}, @code{menu-bar-search-menu},
 @code{menu-bar-replace-menu}, @code{menu-bar-goto-menu},
 @code{menu-bar-bookmark-map}, and @code{facemenu-menu}.
 There is also mule-menu-keymap, set-coding-system-map,
-setup-language-environment-map, describe-language-environment-map, 
+setup-language-environment-map, describe-language-environment-map,
 menu-bar-epatch-menu, menu-bar-ediff-merge-menu, menu-bar-ediff-menu, etc.
 @end ignore
 

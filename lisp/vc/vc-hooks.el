@@ -107,10 +107,12 @@ control systems."
   :type 'boolean
   :group 'vc)
 
-(defcustom vc-mistrust-permissions nil
+;; If you fix bug#11490, probably you can set this back to nil.
+(defcustom vc-mistrust-permissions t
   "If non-nil, don't assume permissions/ownership track version-control status.
 If nil, do rely on the permissions.
 See also variable `vc-consult-headers'."
+  :version "24.3"                       ; nil->t, bug#11490
   :type 'boolean
   :group 'vc)
 
@@ -856,8 +858,9 @@ current, and kill the buffer that visits the link."
 	  (set (make-local-variable 'backup-inhibited) t))
 	;; Let the backend setup any buffer-local things he needs.
 	(vc-call-backend backend 'find-file-hook))
-       ((let ((link-type (and (not (equal buffer-file-name buffer-file-truename))
-			      (vc-backend buffer-file-truename))))
+       ((let* ((truename (expand-file-name buffer-file-truename))
+	       (link-type (and (not (equal buffer-file-name truename))
+			       (vc-backend truename))))
 	  (cond ((not link-type) nil)	;Nothing to do.
 		((eq vc-follow-symlinks nil)
 		 (message

@@ -444,8 +444,7 @@ The format of the header is specified by `diary-header-line-format'."
 (defcustom diary-header-line-format
   '(:eval (calendar-string-spread
            (list (if diary-selective-display
-                     "Some text is hidden - press \"s\" in calendar \
-before edit/copy"
+                     "Some text is hidden - press \"C-c C-s\" before edit/copy"
                    "Diary"))
            ?\s (window-width)))
   "Format of the header line displayed by `diary-simple-display'.

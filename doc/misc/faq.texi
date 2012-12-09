@@ -20,7 +20,7 @@ Copyright @copyright{} 1990, 1991, 1992 Joseph Brian Wells@*
 @quotation
 This list of frequently asked questions about GNU Emacs with answers
 (``FAQ'') may be translated into other languages, transformed into other
-formats (e.g. Texinfo, Info, WWW, WAIS), and updated with new information.
+formats (e.g., Texinfo, Info, WWW, WAIS), and updated with new information.
 
 The same conditions apply to any derivative of the FAQ as apply to the FAQ
 itself.  Every copy of the FAQ must include this notice or an approved
@@ -191,7 +191,7 @@ DOS and Windows terminals don't set bit 7 when the @key{Meta} key is
 pressed.}.
 
 @kbd{C-?} (aka @key{DEL}) is @acronym{ASCII} code 127.  It is a misnomer to call
-@kbd{C-?}  a ``control'' key, since 127 has both bits 5 and 6 turned ON.
+@kbd{C-?}  a ``control'' key, since 127 has both bits 5 and 6 turned ON@.
 Also, on very few keyboards does @kbd{C-?} generate @acronym{ASCII} code 127.
 @c FIXME I cannot understand the previous sentence.
 
@@ -257,9 +257,9 @@ Emacs manual.
 @cindex Directories and files that come with Emacs
 
 These are files that come with Emacs.  The Emacs distribution is divided
-into subdirectories; e.g. @file{etc}, @file{lisp}, and @file{src}.
-Some of these (e.g. @file{etc} and @file{lisp}) are present both in
-an installed Emacs and in the sources, but some (e.g. @file{src}) are
+into subdirectories; e.g., @file{etc}, @file{lisp}, and @file{src}.
+Some of these (e.g., @file{etc} and @file{lisp}) are present both in
+an installed Emacs and in the sources, but some (e.g., @file{src}) are
 only found in the sources.
 
 If you use Emacs, but don't know where it is kept on your system, start
@@ -314,7 +314,7 @@ GNU General Public License
 
 @end table
 
-Avoid confusing the FSF and the LPF.  The LPF opposes
+Avoid confusing the FSF and the LPF@.  The LPF opposes
 look-and-feel copyrights and software patents.  The FSF aims to make
 high quality free software available for everyone.
 
@@ -552,7 +552,7 @@ help-for-help} instead to invoke help.  To discover what key (if any)
 invokes help on your system, type @kbd{M-x where-is @key{RET}
 help-for-help @key{RET}}.  This will print a comma-separated list of key
 sequences in the echo area.  Ignore the last character in each key
-sequence listed.  Each of the resulting key sequences (e.g. @key{F1} is
+sequence listed.  Each of the resulting key sequences (e.g., @key{F1} is
 common) invokes help.
 
 Emacs help works best if it is invoked by a single key whose value
@@ -611,7 +611,7 @@ matches a regular expression or a string, using @kbd{M-x
 apropos-documentation}.
 
 @item
-You can order a hardcopy of the manual from the FSF.  @xref{Getting a
+You can order a hardcopy of the manual from the FSF@.  @xref{Getting a
 printed manual}.
 
 @cindex Reference cards, in other languages
@@ -640,7 +640,7 @@ information.  To get a list of these commands, type @samp{?} after
 @cindex Manual, obtaining a printed or HTML copy of
 @cindex Emacs manual, obtaining a printed or HTML copy of
 
-You can order a printed copy of the Emacs manual from the FSF.  For
+You can order a printed copy of the Emacs manual from the FSF@.  For
 details see the @uref{http://shop.fsf.org/, FSF on-line store}.
 
 The full Texinfo source for the manual also comes in the @file{doc/emacs}
@@ -954,7 +954,7 @@ status of its latest version.
 @cindex TECO
 @cindex Original version of Emacs
 
-Emacs originally was an acronym for Editor MACroS.  RMS says he ``picked
+Emacs originally was an acronym for Editor MACroS@.  RMS says he ``picked
 the name Emacs because @key{E} was not in use as an abbreviation on ITS at
 the time.''  The first Emacs was a set of macros written in 1976 at MIT
 by RMS for the editor TECO (Text Editor and COrrector, originally Tape
@@ -985,9 +985,9 @@ conventions}).
 @cindex Bazaar repository, Emacs
 
 Emacs @value{EMACSVER} is the current version as of this writing.  A version
-number with two components (e.g. @samp{22.1}) indicates a released
+number with two components (e.g., @samp{22.1}) indicates a released
 version; three components indicate a development
-version (e.g. @samp{23.0.50} is what will eventually become @samp{23.1}).
+version (e.g., @samp{23.0.50} is what will eventually become @samp{23.1}).
 
 Emacs is under active development, hosted at
 @uref{http://savannah.gnu.org/projects/emacs/, Savannah}.  The source
@@ -1371,7 +1371,7 @@ groups.  From there, you can access all customizable options and faces,
 change their values, and save your changes to your init file.
 @xref{Easy Customization,,, emacs, The GNU Emacs Manual}.
 
-If you know the name of the group in advance (e.g. ``shell''), use
+If you know the name of the group in advance (e.g., ``shell''), use
 @kbd{M-x customize-group @key{RET}}.
 
 If you wish to customize a single option, use @kbd{M-x customize-option
@@ -1385,7 +1385,7 @@ customize, with completion.
 @cindex Console, colors
 
 In Emacs 21.1 and later, colors and faces are supported in non-windowed mode,
-i.e.@: on Unix and GNU/Linux text-only terminals and consoles, and when
+i.e., on Unix and GNU/Linux text-only terminals and consoles, and when
 invoked as @samp{emacs -nw} on X, and MS-Windows.  (Colors and faces were
 supported in the MS-DOS port since Emacs 19.29.)  Emacs automatically
 detects color support at startup and uses it if available.  If you think
@@ -1540,7 +1540,7 @@ with @samp{#!}):
 
 @cindex Major mode for shell scripts
 The variable @code{interpreter-mode-alist} specifies which mode to use
-when loading an interpreted script (e.g. shell, python, etc.).  Emacs
+when loading an interpreted script (e.g., shell, python, etc.).  Emacs
 determines which interpreter you're using by examining the first line of
 the script.  Use @kbd{C-h v} (or @kbd{M-x describe-variable}) on
 @code{interpreter-mode-alist} to learn more.
@@ -3172,7 +3172,7 @@ the main GNU distribution site, sources are available as
 @c Don't include VER in the file name, because pretests are not there.
 @uref{ftp://ftp.gnu.org/pub/gnu/emacs/emacs-VERSION.tar.gz}
 
-(Replace @samp{VERSION} with the relevant version number, e.g. @samp{23.1}.)
+(Replace @samp{VERSION} with the relevant version number, e.g., @samp{23.1}.)
 
 @item
 Next uncompress and extract the source files.  This requires
@@ -3561,7 +3561,7 @@ can be bound to a key and thus treated as a macro.  For example:
 @cindex Misspecified key sequences
 
 Usually, one of two things has happened.  In one case, the control
-character in the key sequence has been misspecified (e.g. @samp{C-f}
+character in the key sequence has been misspecified (e.g., @samp{C-f}
 used instead of @samp{\C-f} within a Lisp expression).  In the other
 case, a @dfn{prefix key} in the keystroke sequence you were trying to bind
 was already bound as a @dfn{complete key}.  Historically, the @samp{ESC [}
@@ -3882,7 +3882,7 @@ is how to make @kbd{H-M-RIGHT} move forward a word:
 @item
 Not all modifiers are permitted in all situations.  @key{Hyper},
 @key{Super}, and @key{Alt} are not available on Unix character
-terminals.  Non-@acronym{ASCII} keys and mouse events (e.g. @kbd{C-=} and
+terminals.  Non-@acronym{ASCII} keys and mouse events (e.g., @kbd{C-=} and
 @kbd{Mouse-1}) also fall under this category.
 
 @end itemize
@@ -4275,7 +4275,7 @@ type them in.  To enable this feature, execute the following:
 @end lisp
 
 Note that the aliases are expanded automatically only after you type
-a word-separator character (e.g. @key{RET} or @kbd{,}).  You can force their
+a word-separator character (e.g., @key{RET} or @kbd{,}).  You can force their
 expansion by moving point to the end of the alias and typing @kbd{C-x a e}
 (@kbd{M-x expand-abbrev}).
 @end itemize

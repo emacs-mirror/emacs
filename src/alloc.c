@@ -761,13 +761,17 @@ xnrealloc (void *pa, ptrdiff_t nitems, ptrdiff_t item_size)
    infinity.
 
    If PA is null, then allocate a new array instead of reallocating
-   the old one.  Thus, to grow an array A without saving its old
-   contents, invoke xfree (A) immediately followed by xgrowalloc (0,
-   &NITEMS, ...).
+   the old one.
 
    Block interrupt input as needed.  If memory exhaustion occurs, set
    *NITEMS to zero if PA is null, and signal an error (i.e., do not
-   return).  */
+   return).
+
+   Thus, to grow an array A without saving its old contents, do
+   { xfree (A); A = NULL; A = xpalloc (NULL, &AITEMS, ...); }.
+   The A = NULL avoids a dangling pointer if xpalloc exhausts memory
+   and signals an error, and later this code is reexecuted and
+   attempts to free A.  */
 
 void *
 xpalloc (void *pa, ptrdiff_t *nitems, ptrdiff_t nitems_incr_min,
@@ -816,18 +820,22 @@ xstrdup (const char *s)
   return p;
 }
 
+/* Like putenv, but (1) use the equivalent of xmalloc and (2) the
+   argument is a const pointer.  */
+
+void
+xputenv (char const *string)
+{
+  if (putenv ((char *) string) != 0)
+    memory_full (0);
+}
 
 /* Unwind for SAFE_ALLOCA */
 
 Lisp_Object
 safe_alloca_unwind (Lisp_Object arg)
 {
-  register struct Lisp_Save_Value *p = XSAVE_VALUE (arg);
-
-  p->dogc = 0;
-  xfree (p->pointer);
-  p->pointer = 0;
-  free_misc (arg);
+  free_save_value (arg);
   return Qnil;
 }
 
@@ -3359,6 +3367,19 @@ make_save_value (void *pointer, ptrdiff_t integer)
   p->integer = integer;
   p->dogc = 0;
   return val;
+}
+
+/* Free a Lisp_Misc_Save_Value object.  */
+
+void
+free_save_value (Lisp_Object save)
+{
+  register struct Lisp_Save_Value *p = XSAVE_VALUE (save);
+
+  p->dogc = 0;
+  xfree (p->pointer);
+  p->pointer = NULL;
+  free_misc (save);
 }
 
 /* Return a Lisp_Misc_Overlay object with specified START, END and PLIST.  */

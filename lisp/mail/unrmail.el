@@ -1,6 +1,6 @@
-;;; unrmail.el --- convert Rmail Babyl files to mailbox files
+;;; unrmail.el --- convert Rmail Babyl files to mbox files
 
-;; Copyright (C) 1992, 2001-2012  Free Software Foundation, Inc.
+;; Copyright (C) 1992, 2001-2012 Free Software Foundation, Inc.
 
 ;; Maintainer: FSF
 ;; Keywords: mail
@@ -26,7 +26,7 @@
 
 ;;;###autoload
 (defun batch-unrmail ()
-  "Convert old-style Rmail Babyl files to system inbox format.
+  "Convert old-style Rmail Babyl files to mbox format.
 Specify the input Rmail Babyl file names as command line arguments.
 For each Rmail file, the corresponding output file name
 is made by adding `.mail' at the end.
@@ -45,9 +45,26 @@ For example, invoke `emacs -batch -f batch-unrmail RMAIL'."
 (declare-function mail-mbox-from "mail-utils" ())
 (defvar rmime-magic-string)		; in rmime.el, if you have it
 
+(defcustom unrmail-mbox-format 'mboxrd
+  "The mbox format that `unrmail' should produce.
+These formats separate messages using lines that start with \"From \".
+Therefore any lines in the message bodies that start with \"From \"
+must be quoted.  The `mboxo' format just prepends a \">\" to such lines.
+This is not reversible, because given a line starting with \">From \" in
+an mboxo file, it is not possible to know whether the original had a \">\"
+or not.  The `mxbord' format avoids this by also quoting \">From \" as
+\">>From \", and so on.  For this reason, mboxrd is recommended.
+
+See also `rmail-mbox-format'."
+  :type '(choice (const mboxrd)
+		 (const mboxro))
+  :version "24.4"
+  :group 'rmail-files)
+
 ;;;###autoload
 (defun unrmail (file to-file)
-  "Convert old-style Rmail Babyl file FILE to system inbox format file TO-FILE."
+  "Convert old-style Rmail Babyl file FILE to mbox format file TO-FILE.
+The variable `unrmail-mbox-format' controls which mbox format to use."
   (interactive "fUnrmail (babyl file): \nFUnrmail into (new mailbox file): ")
   (with-temp-buffer
     ;; Read in the old Rmail file with no decoding.
@@ -224,13 +241,15 @@ For example, invoke `emacs -batch -f batch-unrmail RMAIL'."
 	    (when keywords
 	      (insert "X-RMAIL-KEYWORDS: " keywords "\n"))
 	    (goto-char (point-min))
-	    ;; ``Quote'' "\nFrom " as "\n>From "
-	    ;;  (note that this isn't really quoting, as there is no requirement
-	    ;;   that "\n[>]+From " be quoted in the same transparent way.)
-	    (let ((case-fold-search nil))
-	      (while (search-forward "\nFrom " nil t)
-		(forward-char -5)
-		(insert ?>)))
+	    ;; Convert From to >From, etc.
+	    (let ((case-fold-search nil)
+		  (fromline (if (eq 'mboxrd unrmail-mbox-format)
+			    "^>*From "
+			  "^From ")))
+	      (while (re-search-forward fromline nil t)
+		(beginning-of-line)
+		(insert ?>)
+		(forward-line 1)))
 	    (goto-char (point-max))
 	    ;; Add terminator blank line to message.
 	    (insert "\n")

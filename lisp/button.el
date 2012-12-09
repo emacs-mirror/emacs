@@ -64,6 +64,11 @@
     ;; might get converted to ^M when building loaddefs.el
     (define-key map [(control ?m)] 'push-button)
     (define-key map [mouse-2] 'push-button)
+    ;; FIXME: You'd think that for keymaps coming from text-properties on the
+    ;; mode-line or header-line, the `mode-line' or `header-line' prefix
+    ;; shouldn't be necessary!
+    (define-key map [mode-line mouse-2] 'push-button)
+    (define-key map [header-line mouse-2] 'push-button)
     map)
   "Keymap used by buttons.")
 
@@ -184,10 +189,12 @@ changes to a supertype are not reflected in its subtypes)."
 
 (defun button-get (button prop)
   "Get the property of button BUTTON named PROP."
-  (if (overlayp button)
-      (overlay-get button prop)
-    ;; Must be a text-property button.
-    (get-text-property button prop)))
+  (cond ((overlayp button)
+	 (overlay-get button prop))
+	((button--area-button-p button)
+	 (get-text-property 0 prop (button--area-button-string button)))
+	(t ; Must be a text-property button.
+	 (get-text-property button prop))))
 
 (defun button-put (button prop val)
   "Set BUTTON's PROP property to VAL."
@@ -202,21 +209,30 @@ changes to a supertype are not reflected in its subtypes)."
 	 ;; Disallow updating the `category' property directly.
 	 (error "Button `category' property may not be set directly")))
   ;; Add the property.
-  (if (overlayp button)
-      (overlay-put button prop val)
-    ;; Must be a text-property button.
-    (put-text-property
-     (or (previous-single-property-change (1+ button) 'button)
-	 (point-min))
-     (or (next-single-property-change button 'button)
-	 (point-max))
-     prop val)))
+  (cond ((overlayp button)
+	 (overlay-put button prop val))
+	((button--area-button-p button)
+	 (setq button (button--area-button-string button))
+	 (put-text-property 0 (length button) prop val button))
+	(t ; Must be a text-property button.
+	 (put-text-property
+	  (or (previous-single-property-change (1+ button) 'button)
+	      (point-min))
+	  (or (next-single-property-change button 'button)
+	      (point-max))
+	  prop val))))
 
-(defsubst button-activate (button &optional use-mouse-action)
+(defun button-activate (button &optional use-mouse-action)
   "Call BUTTON's action property.
 If USE-MOUSE-ACTION is non-nil, invoke the button's mouse-action
 instead of its normal action; if the button has no mouse-action,
-the normal action is used instead."
+the normal action is used instead.
+
+The action can either be a marker or a function.  If it's a
+marker then goto it.  Otherwise it it is a function then it is
+called with BUTTON as only argument.  BUTTON is either an
+overlay, a buffer position, or (for buttons in the mode-line or
+header-line) a string."
   (let ((action (or (and use-mouse-action (button-get button 'mouse-action))
 		    (button-get button 'action))))
     (if (markerp action)
@@ -228,7 +244,10 @@ the normal action is used instead."
 
 (defun button-label (button)
   "Return BUTTON's text label."
-  (buffer-substring-no-properties (button-start button) (button-end button)))
+  (if (button--area-button-p button)
+      (substring-no-properties (button--area-button-string button))
+    (buffer-substring-no-properties (button-start button)
+				    (button-end button))))
 
 (defsubst button-type (button)
   "Return BUTTON's button-type."
@@ -238,6 +257,12 @@ the normal action is used instead."
   "Return t if BUTTON has button-type TYPE, or one of TYPE's subtypes."
   (button-type-subtype-p (button-get button 'type) type))
 
+(defalias 'button--area-button-p 'stringp
+  "Return non-nil if BUTTON is an area button.
+Such area buttons are used for buttons in the mode-line and header-line.")
+
+(defalias 'button--area-button-string 'identity
+  "Return area button BUTTON's button-string.")
 
 ;; Creating overlay buttons
 
@@ -324,7 +349,7 @@ Also see `insert-text-button'."
                          (cons 'button (cons (list t) properties))
                          object)
     ;; Return something that can be used to get at the button.
-    beg))
+    (or object beg)))
 
 (defun insert-text-button (label &rest properties)
   "Insert a button with the label LABEL.
@@ -405,7 +430,9 @@ POS may be either a buffer position or a mouse-event.  If
 USE-MOUSE-ACTION is non-nil, invoke the button's mouse-action
 instead of its normal action; if the button has no mouse-action,
 the normal action is used instead.  The action may be either a
-function to call or a marker to display.
+function to call or a marker to display and is invoked using
+`button-activate' (which see).
+
 POS defaults to point, except when `push-button' is invoked
 interactively as the result of a mouse-event, in which case, the
 mouse event is used.
@@ -417,11 +444,13 @@ return t."
       ;; POS is a mouse event; switch to the proper window/buffer
       (let ((posn (event-start pos)))
 	(with-current-buffer (window-buffer (posn-window posn))
-	  (push-button (posn-point posn) t)))
+	  (if (posn-area posn)
+	      ;; mode-line or header-line event
+	      (button-activate (car (posn-string posn)) t)
+	    (push-button (posn-point posn)) t)))
     ;; POS is just normal position
     (let ((button (button-at (or pos (point)))))
-      (if (not button)
-	  nil
+      (when button
 	(button-activate button use-mouse-action)
 	t))))
 

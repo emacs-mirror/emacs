@@ -1053,7 +1053,7 @@ of Emacs Lisp, I am referring to GNU Emacs Lisp in particular.
 
 My thanks to all who helped me with this book.  My especial thanks to
 @r{Jim Blandy}, @r{Noah Friedman}, @w{Jim Kingdon}, @r{Roland
-McGrath}, @w{Frank Ritter}, @w{Randy Smith}, @w{Richard M.@:
+McGrath}, @w{Frank Ritter}, @w{Randy Smith}, @w{Richard M.
 Stallman}, and @w{Melissa Weisshaus}.  My thanks also go to both
 @w{Philip Johnson} and @w{David Stampe} for their patient
 encouragement.  My mistakes are my own.
@@ -1085,7 +1085,7 @@ Robert J. Chassell
 @c   has been already used, duplicate ignored
 @c I guess that is harmless (what happens if a later part of the text
 @c makes a link to something in the first 4 pages though?).
-@c Note that eg the Emacs manual has a preface, but does not bother
+@c E.g., note that the Emacs manual has a preface, but does not bother
 @c resetting the page numbers back to 1 after that.
 @iftex
 @headings off
@@ -3072,7 +3072,7 @@ All functions are defined in terms of other functions, except for a few
 language.  When you write functions' definitions, you will write them in
 Emacs Lisp and use other functions as your building blocks.  Some of the
 functions you will use will themselves be written in Emacs Lisp (perhaps
-by you) and some will be primitives written in C.  The primitive
+by you) and some will be primitives written in C@.  The primitive
 functions are used exactly like those written in Emacs Lisp and behave
 like them.  They are written in C so we can easily run GNU Emacs on any
 computer that has sufficient power and can run C.
@@ -9029,7 +9029,7 @@ The last expression in the @code{kill-new} function adds the newly
 copied string to whatever facility exists for copying and pasting
 among different programs running in a windowing system.  In the X
 Windowing system, for example, the @code{x-select-text} function takes
-the string and stores it in memory operated by X.  You can paste the
+the string and stores it in memory operated by X@.  You can paste the
 string in another program, such as an Xterm.
 
 @need 1200
@@ -9657,7 +9657,7 @@ This sounds more complicated than it is and is easier seen in a diagram:
 @noindent
 In the diagram, each box represents a word of computer memory that
 holds a Lisp object, usually in the form of a memory address.  The boxes,
-i.e.@: the addresses, are in pairs.  Each arrow points to what the address
+i.e., the addresses, are in pairs.  Each arrow points to what the address
 is the address of, either an atom or another pair of addresses.  The
 first box is the electronic address of @samp{rose} and the arrow points
 to @samp{rose}; the second box is the address of the next pair of boxes,
@@ -17612,7 +17612,7 @@ For example:
 (load "~/emacs/slowsplit")
 @end smallexample
 
-This evaluates, i.e.@: loads, the @file{slowsplit.el} file or if it
+This evaluates, i.e., loads, the @file{slowsplit.el} file or if it
 exists, the faster, byte compiled @file{slowsplit.elc} file from the
 @file{emacs} sub-directory of your home directory.  The file contains
 the function @code{split-window-quietly}, which John Robinson wrote in
@@ -18781,7 +18781,7 @@ completes without problems.
 
 @item
 While running Edebug, type @kbd{?} to see a list of all the Edebug commands.
-(The @code{global-edebug-prefix} is usually @kbd{C-x X}, i.e.@:
+(The @code{global-edebug-prefix} is usually @kbd{C-x X}, i.e.,
 @kbd{@key{CTRL}-x} followed by an upper case @kbd{X}; use this prefix
 for commands made outside of the Edebug debugging buffer.)
 

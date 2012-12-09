@@ -1622,7 +1622,7 @@ the face's attributes on existing frames."
   (if (memq spec-type '(reset saved-face))
       (put face 'customized-face nil))
   ;; Setting the face spec via Custom empties out any override spec,
-  ;; similar to how setting a variable via Custom changes its valus.
+  ;; similar to how setting a variable via Custom changes its values.
   (if (memq spec-type '(customized-face saved-face reset))
       (put face 'face-override-spec nil))
   ;; If we reset the face based on its custom spec, it is unmodified

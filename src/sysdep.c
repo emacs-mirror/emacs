@@ -266,45 +266,74 @@ init_baud_rate (int fd)
 
 #ifndef MSDOS
 
-static void
-wait_for_termination_1 (pid_t pid, int interruptible)
+/* Wait for the subprocess with process id CHILD to terminate or change status.
+   CHILD must be a child process that has not been reaped.
+   If STATUS is non-null, store the waitpid-style exit status into *STATUS
+   and tell wait_reading_process_output that it needs to look around.
+   Use waitpid-style OPTIONS when waiting.
+   If INTERRUPTIBLE, this function is interruptible by a signal.
+
+   Return CHILD if successful, 0 if no status is available;
+   the latter is possible only when options & NOHANG.  */
+static pid_t
+get_child_status (pid_t child, int *status, int options, bool interruptible)
 {
-  while (1)
+  pid_t pid;
+
+  /* Invoke waitpid only with a known process ID; do not invoke
+     waitpid with a nonpositive argument.  Otherwise, Emacs might
+     reap an unwanted process by mistake.  For example, invoking
+     waitpid (-1, ...) can mess up glib by reaping glib's subprocesses,
+     so that another thread running glib won't find them.  */
+  eassert (0 < child);
+
+  while ((pid = waitpid (child, status, options)) < 0)
     {
-      int status;
-      int wait_result = waitpid (pid, &status, 0);
-      if (wait_result < 0)
-	{
-	  if (errno != EINTR)
-	    break;
-	}
-      else
-	{
-	  record_child_status_change (wait_result, status);
-	  break;
-	}
+      /* Check that CHILD is a child process that has not been reaped,
+	 and that STATUS and OPTIONS are valid.  Otherwise abort,
+	 as continuing after this internal error could cause Emacs to
+	 become confused and kill innocent-victim processes.  */
+      if (errno != EINTR)
+	emacs_abort ();
 
       /* Note: the MS-Windows emulation of waitpid calls QUIT
 	 internally.  */
       if (interruptible)
 	QUIT;
     }
+
+  /* If successful and status is requested, tell wait_reading_process_output
+     that it needs to wake up and look around.  */
+  if (pid && status && input_available_clear_time)
+    *input_available_clear_time = make_emacs_time (0, 0);
+
+  return pid;
 }
 
-/* Wait for subprocess with process id `pid' to terminate and
-   make sure it will get eliminated (not remain forever as a zombie) */
-
+/* Wait for the subprocess with process id CHILD to terminate.
+   CHILD must be a child process that has not been reaped.
+   If STATUS is non-null, store the waitpid-style exit status into *STATUS
+   and tell wait_reading_process_output that it needs to look around.
+   If INTERRUPTIBLE, this function is interruptible by a signal.  */
 void
-wait_for_termination (pid_t pid)
+wait_for_termination (pid_t child, int *status, bool interruptible)
 {
-  wait_for_termination_1 (pid, 0);
+  get_child_status (child, status, 0, interruptible);
 }
 
-/* Like the above, but allow keyboard interruption. */
-void
-interruptible_wait_for_termination (pid_t pid)
+/* Report whether the subprocess with process id CHILD has changed status.
+   Termination counts as a change of status.
+   CHILD must be a child process that has not been reaped.
+   If STATUS is non-null, store the waitpid-style exit status into *STATUS
+   and tell wait_reading_process_output that it needs to look around.
+   Use waitpid-style OPTIONS to check status, but do not wait.
+
+   Return CHILD if successful, 0 if no status is available because
+   the process's state has not changed.  */
+pid_t
+child_status_changed (pid_t child, int *status, int options)
 {
-  wait_for_termination_1 (pid, 1);
+  return get_child_status (child, status, WNOHANG | options, 0);
 }
 
 /*
@@ -428,20 +457,15 @@ static void restore_signal_handlers (struct save_signal *);
 void
 sys_suspend (void)
 {
-#if defined (SIGTSTP) && !defined (MSDOS)
-
-  {
-    pid_t pgrp = getpgrp ();
-    EMACS_KILLPG (pgrp, SIGTSTP);
-  }
-
-#else /* No SIGTSTP */
+#ifndef DOS_NT
+  kill (0, SIGTSTP);
+#else
 /* On a system where suspending is not implemented,
    instead fork a subshell and let it talk directly to the terminal
    while we wait.  */
   sys_subshell ();
 
-#endif /* no SIGTSTP */
+#endif
 }
 
 /* Fork a subshell.  */
@@ -454,6 +478,7 @@ sys_subshell (void)
   char oldwd[MAXPATHLEN+1]; /* Fixed length is safe on MSDOS.  */
 #endif
   pid_t pid;
+  int status;
   struct save_signal saved_handlers[5];
   Lisp_Object dir;
   unsigned char *volatile str_volatile = 0;
@@ -491,7 +516,6 @@ sys_subshell (void)
 #ifdef DOS_NT
   pid = 0;
   save_signal_handlers (saved_handlers);
-  synch_process_alive = 1;
 #else
   pid = vfork ();
   if (pid == -1)
@@ -560,14 +584,12 @@ sys_subshell (void)
   /* Do this now if we did not do it before.  */
 #ifndef MSDOS
   save_signal_handlers (saved_handlers);
-  synch_process_alive = 1;
 #endif
 
 #ifndef DOS_NT
-  wait_for_termination (pid);
+  wait_for_termination (pid, &status, 0);
 #endif
   restore_signal_handlers (saved_handlers);
-  synch_process_alive = 0;
 }
 
 static void
@@ -1491,9 +1513,7 @@ emacs_sigaction_init (struct sigaction *action, signal_handler_t handler)
   /* When handling a signal, block nonfatal system signals that are caught
      by Emacs.  This makes race conditions less likely.  */
   sigaddset (&action->sa_mask, SIGALRM);
-#ifdef SIGCHLD
   sigaddset (&action->sa_mask, SIGCHLD);
-#endif
 #ifdef SIGDANGER
   sigaddset (&action->sa_mask, SIGDANGER);
 #endif
@@ -1673,18 +1693,11 @@ init_signals (bool dumping)
 # ifdef SIGAIO
       sys_siglist[SIGAIO] = "LAN I/O interrupt";
 # endif
-# ifdef SIGALRM
       sys_siglist[SIGALRM] = "Alarm clock";
-# endif
 # ifdef SIGBUS
       sys_siglist[SIGBUS] = "Bus error";
 # endif
-# ifdef SIGCLD
-      sys_siglist[SIGCLD] = "Child status changed";
-# endif
-# ifdef SIGCHLD
       sys_siglist[SIGCHLD] = "Child status changed";
-# endif
 # ifdef SIGCONT
       sys_siglist[SIGCONT] = "Continued";
 # endif
@@ -1704,9 +1717,7 @@ init_signals (bool dumping)
 # ifdef SIGGRANT
       sys_siglist[SIGGRANT] = "Monitor mode granted";
 # endif
-# ifdef SIGHUP
       sys_siglist[SIGHUP] = "Hangup";
-# endif
       sys_siglist[SIGILL] = "Illegal instruction";
       sys_siglist[SIGINT] = "Interrupt";
 # ifdef SIGIO
@@ -1718,9 +1729,7 @@ init_signals (bool dumping)
 # ifdef SIGIOT
       sys_siglist[SIGIOT] = "IOT trap";
 # endif
-# ifdef SIGKILL
       sys_siglist[SIGKILL] = "Killed";
-# endif
 # ifdef SIGLOST
       sys_siglist[SIGLOST] = "Resource lost";
 # endif
@@ -1733,9 +1742,7 @@ init_signals (bool dumping)
 # ifdef SIGPHONE
       sys_siglist[SIGWIND] = "SIGPHONE";
 # endif
-# ifdef SIGPIPE
       sys_siglist[SIGPIPE] = "Broken pipe";
-# endif
 # ifdef SIGPOLL
       sys_siglist[SIGPOLL] = "Pollable event occurred";
 # endif
@@ -1748,9 +1755,7 @@ init_signals (bool dumping)
 # ifdef SIGPWR
       sys_siglist[SIGPWR] = "Power-fail restart";
 # endif
-# ifdef SIGQUIT
       sys_siglist[SIGQUIT] = "Quit";
-# endif
 # ifdef SIGRETRACT
       sys_siglist[SIGRETRACT] = "Need to relinquish monitor mode";
 # endif

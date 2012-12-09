@@ -447,23 +447,24 @@ $(lisp)/mh-e/mh-loaddefs.el: $(MH_E_SRC) $(lisp)/subdirs.el
 	   $(ARGQUOTE)$(lisp)/mh-e/mh-loaddefs.el$(ARGQUOTE) $(MAKE) ./mh-e
 
 # Update TRAMP internal autoloads. Maybe we could move tramp*.el into
-# its own subdirectory. OTOH, it does not hurt to keep them in
+# an own subdirectory. OTOH, it does not hurt to keep them in
 # lisp/net.
-TRAMP_SRC = $(lisp)/net/tramp.el  $(lisp)/net/tramp-cache.el  \
-	$(lisp)/net/tramp-cmds.el $(lisp)/net/tramp-compat.el \
-	$(lisp)/net/tramp-ftp.el  $(lisp)/net/tramp-gvfs.el   \
-	$(lisp)/net/tramp-gw.el   $(lisp)/net/tramp-sh.el     \
-	$(lisp)/net/tramp-smb.el  $(lisp)/net/tramp-uu.el     \
-	$(lisp)/net/trampver.el
+TRAMP_DIR = $(lisp)/net
+TRAMP_SRC = $(TRAMP_DIR)/tramp.el    $(TRAMP_DIR)/tramp-adb.el	\
+	$(TRAMP_DIR)/tramp-cache.el  $(TRAMP_DIR)/tramp-cmds.el	\
+	$(TRAMP_DIR)/tramp-compat.el $(TRAMP_DIR)/tramp-ftp.el	\
+	$(TRAMP_DIR)/tramp-gvfs.el   $(TRAMP_DIR)/tramp-gw.el	\
+	$(TRAMP_DIR)/tramp-sh.el     $(TRAMP_DIR)/tramp-smb.el	\
+	$(TRAMP_DIR)/tramp-uu.el     $(TRAMP_DIR)/trampver.el
 
-$(lisp)/net/tramp-loaddefs.el: $(TRAMP_SRC) $(lisp)/subdirs.el
+$(TRAMP_DIR)/tramp-loaddefs.el: $(TRAMP_SRC) $(lisp)/subdirs.el
 	"$(EMACS)" $(EMACSOPT) \
 	   -l autoload \
 	   --eval $(ARGQUOTE)(setq generate-autoload-cookie $(DQUOTE);;;###tramp-autoload$(DQUOTE))$(ARGQUOTE) \
 	   --eval $(ARGQUOTE)(setq find-file-suppress-same-file-warnings t)$(ARGQUOTE) \
 	   --eval $(ARGQUOTE)(setq make-backup-files nil)$(ARGQUOTE) \
 	   -f w32-batch-update-autoloads \
-	   $(ARGQUOTE)$(lisp)/net/tramp-loaddefs.el$(ARGQUOTE) $(MAKE) ./net
+	   $(ARGQUOTE)$(TRAMP_DIR)/tramp-loaddefs.el$(ARGQUOTE) $(MAKE) ./net
 
 # Prepare a bootstrap in the lisp subdirectory.
 #

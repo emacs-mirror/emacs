@@ -35,7 +35,7 @@ instead.  @xref{Inline Functions}.
 @section A Simple Example of a Macro
 
   Suppose we would like to define a Lisp construct to increment a
-variable value, much like the @code{++} operator in C.  We would like to
+variable value, much like the @code{++} operator in C@.  We would like to
 write @code{(inc x)} and have the effect of @code{(setq x (1+ x))}.
 Here's a macro definition that does the job:
 

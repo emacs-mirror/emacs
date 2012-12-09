@@ -1572,12 +1572,12 @@ struct face
   /* Pixmap width and height.  */
   unsigned int pixmap_w, pixmap_h;
 
-  /* Non-zero means characters in this face have a box that thickness
-     around them.  If it is negative, the absolute value indicates the
-     thickness, and the horizontal lines of box (top and bottom) are
-     drawn inside of characters glyph area.  The vertical lines of box
-     (left and right) are drawn as the same way as the case that this
-     value is positive.  */
+  /* Non-zero means characters in this face have a box of that
+     thickness around them.  If this value is negative, its absolute
+     value indicates the thickness, and the horizontal (top and
+     bottom) borders of box are drawn inside of the character glyphs'
+     area.  The vertical (left and right) borders of the box are drawn
+     in the same way as when this value is positive.  */
   int box_line_width;
 
   /* Type of box drawn.  A value of FACE_NO_BOX means no box is drawn

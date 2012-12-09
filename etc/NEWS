@@ -24,11 +24,17 @@ so we will look at it and add it to the manual.
 * Installation Changes in Emacs 24.4
 * Startup Changes in Emacs 24.4
 * Changes in Emacs 24.4
+
++++
+** `eval-defun' on an already defined defcustom calls the :set function,
+if there is one.
+
 * Editing Changes in Emacs 24.4
 
 
 * Changes in Specialized Modes and Packages in Emacs 24.4
 
+** New macro cl-tagbody in cl-lib.
 ** Calc
 
 *** Calc by default now uses the Gregorian calendar for all dates, and
@@ -43,8 +49,27 @@ Nil, the default value, means to always use the Gregorian calendar.
 The value (YEAR MONTH DAY) means to start using the Gregorian calendar
 on the given date.
 
+** ERC
+
+*** New option `erc-accidental-paste-threshold-seconds'.
+If set to a number, this can be used to avoid accidentally paste large
+amounts of data into the ERC input.
+
+** Icomplete is a bit more like IDO.
+*** key bindings to navigate through and select the completions.
+*** The icomplete-separator is customizable, and its default has changed.
+*** Removed icomplete-show-key-bindings.
+
 ** MH-E has been updated to MH-E version 8.4.
 See MH-E-NEWS for details.
+
+---
+** The unrmail command converts from BABYL to mboxrd rather than mboxo.
+Customize `unrmail-mbox-format' to change this.
+
+---
+** Similarly, customize `rmail-mbox-format' to influence some minor aspects
+of how Rmail displays non-MIME messages.
 
 +++
 ** New function `ses-rename-cell' to give SES cells arbitrary names.
@@ -58,10 +83,27 @@ New features include:
   name and arguments.  Useful to trace the value of (current-buffer) or
   (point) when the function is invoked.
 
+** New command `delete-duplicate-lines' has two types of operation:
+when its arg ADJACENT is non-nil (when called interactively with C-u C-u)
+it works like the utility `uniq'.  Otherwise by default it deletes
+duplicate lines everywhere in the region without regard to adjacency.
+
+** Tramp
++++
+*** New connection method "adb", which allows to access Android
+devices by the Android Debug Bridge.  The variable `tramp-adb-sdk-dir'
+must be set to the Android SDK installation directory.
+
 ** Woman
 
 *** The commands `woman-default-faces' and `woman-monochrome-faces'
 are obsolete.  Customize the `woman-* faces instead.
+
+** Obsolete packages:
+
+*** longlines.el is obsolete; use visual-line-mode instead.
+
+*** terminal.el is obsolete; use term.el instead.
 
 
 * New Modes and Packages in Emacs 24.4
@@ -801,9 +843,9 @@ The function `user-variable-p' is now an obsolete alias for
 
 +++
 ** The return values of `defalias', `defun' and `defmacro' have changed,
-and are now undefined.  For backwards compatibility, defun and
-defmacro currently return the name of the newly defined function/macro
-but this should not be relied upon.
+and are now undefined.  For backwards compatibility, `defun' and
+`defmacro' currently return the name of the newly defined
+function/macro, but this should not be relied upon.
 
 ---
 ** `face-spec-set' no longer sets frame-specific attributes when the
@@ -1049,6 +1091,12 @@ takes precedence over most other maps for a short while (normally one key).
 
 +++
 ** New macros `setq-local' and `defvar-local'.
+
+** Changes to special forms and macros
++++
+*** `defun' and `defmacro' are now macros rather than special forms
++++
+*** `kbd' is now a function rather than a macro.
 
 +++
 ** New fringe bitmap `exclamation-mark'.

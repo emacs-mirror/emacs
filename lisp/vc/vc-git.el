@@ -1148,7 +1148,7 @@ This command shares argument histories with \\[rgrep] and \\[grep]."
 The difference to vc-do-command is that this function always invokes
 `vc-git-program'."
   (apply 'vc-do-command (or buffer "*vc*") okstatus vc-git-program
-         file-or-list flags))
+         file-or-list (cons "--no-pager" flags)))
 
 (defun vc-git--empty-db-p ()
   "Check if the git db is empty (no commit done yet)."

@@ -193,19 +193,15 @@ directory_files_internal (Lisp_Object directory, Lisp_Object full,
 
       errno = 0;
       dp = readdir (d);
-
-      if (dp == NULL && (0
-#ifdef EAGAIN
-			 || errno == EAGAIN
-#endif
-#ifdef EINTR
-			 || errno == EINTR
-#endif
-			 ))
-	{ QUIT; continue; }
-
-      if (dp == NULL)
-	break;
+      if (!dp)
+	{
+	  if (errno == EAGAIN || errno == EINTR)
+	    {
+	      QUIT;
+	      continue;
+	    }
+	  break;
+	}
 
       len = dirent_namelen (dp);
       name = finalname = make_unibyte_string (dp->d_name, len);
@@ -480,17 +476,15 @@ file_name_completion (Lisp_Object file, Lisp_Object dirname, bool all_flag,
 
       errno = 0;
       dp = readdir (d);
-      if (dp == NULL && (0
-# ifdef EAGAIN
-			 || errno == EAGAIN
-# endif
-# ifdef EINTR
-			 || errno == EINTR
-# endif
-			 ))
-	{ QUIT; continue; }
-
-      if (!dp) break;
+      if (!dp)
+	{
+	  if (errno == EAGAIN || errno == EINTR)
+	    {
+	      QUIT;
+	      continue;
+	    }
+	  break;
+	}
 
       len = dirent_namelen (dp);
 
@@ -826,7 +820,7 @@ stat_uname (struct stat *st)
 #ifdef WINDOWSNT
   return st->st_uname;
 #else
-  struct passwd *pw = (struct passwd *) getpwuid (st->st_uid);
+  struct passwd *pw = getpwuid (st->st_uid);
 
   if (pw)
     return pw->pw_name;
@@ -841,7 +835,7 @@ stat_gname (struct stat *st)
 #ifdef WINDOWSNT
   return st->st_gname;
 #else
-  struct group *gr = (struct group *) getgrgid (st->st_gid);
+  struct group *gr = getgrgid (st->st_gid);
 
   if (gr)
     return gr->gr_name;

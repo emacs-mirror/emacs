@@ -2019,7 +2019,8 @@ x_draw_relief_rect (struct frame *f,
 
       for (i = (width > 1 ? 1 : 0); i < width; ++i)
 	XDrawLine (dpy, window, gc,
-		   left_x + i, top_y + i, left_x + i, bottom_y - i + 1);
+		   left_x + i, top_y + (i + 1) * top_p,
+		   left_x + i, bottom_y + 1 - (i + 1) * bot_p);
     }
 
   XSetClipMask (dpy, gc, None);
@@ -2061,7 +2062,8 @@ x_draw_relief_rect (struct frame *f,
       XClearArea (dpy, window, right_x, bottom_y, 1, 1, False);
       for (i = 0; i < width; ++i)
 	XDrawLine (dpy, window, gc,
-		   right_x - i, top_y + i + 1, right_x - i, bottom_y - i);
+		   right_x - i, top_y + (i + 1) * top_p,
+		   right_x - i, bottom_y + 1 - (i + 1) * bot_p);
     }
 
   XSetClipMask (dpy, gc, None);
@@ -2255,8 +2257,7 @@ x_draw_image_foreground (struct glyph_string *s)
 static void
 x_draw_image_relief (struct glyph_string *s)
 {
-  int x0, y0, x1, y1, thick, raised_p;
-  int extra_x, extra_y;
+  int x1, y1, thick, raised_p, top_p, bot_p, left_p, right_p;
   XRectangle r;
   int x = s->x;
   int y = s->ybase - image_ascent (s->img, s->face, &s->slice);
@@ -2287,33 +2288,23 @@ x_draw_image_relief (struct glyph_string *s)
       raised_p = s->img->relief > 0;
     }
 
-  extra_x = extra_y = 0;
-  if (s->face->id == TOOL_BAR_FACE_ID)
-    {
-      if (CONSP (Vtool_bar_button_margin)
-	  && INTEGERP (XCAR (Vtool_bar_button_margin))
-	  && INTEGERP (XCDR (Vtool_bar_button_margin)))
-	{
-	  extra_x = XINT (XCAR (Vtool_bar_button_margin));
-	  extra_y = XINT (XCDR (Vtool_bar_button_margin));
-	}
-      else if (INTEGERP (Vtool_bar_button_margin))
-	extra_x = extra_y = XINT (Vtool_bar_button_margin);
-    }
+  x1 = x + s->slice.width - 1;
+  y1 = y + s->slice.height - 1;
+  top_p = bot_p = left_p = right_p = 0;
 
-  x0 = x - thick - extra_x;
-  y0 = y - thick - extra_y;
-  x1 = x + s->slice.width + thick - 1 + extra_x;
-  y1 = y + s->slice.height + thick - 1 + extra_y;
+  if (s->slice.x == 0)
+    x -= thick, left_p = 1;
+  if (s->slice.y == 0)
+    y -= thick, top_p = 1;
+  if (s->slice.x + s->slice.width == s->img->width)
+    x1 += thick, right_p = 1;
+  if (s->slice.y + s->slice.height == s->img->height)
+    y1 += thick, bot_p = 1;
 
   x_setup_relief_colors (s);
   get_glyph_string_clip_rect (s, &r);
-  x_draw_relief_rect (s->f, x0, y0, x1, y1, thick, raised_p,
-		      s->slice.y == 0,
-		      s->slice.y + s->slice.height == s->img->height,
-		      s->slice.x == 0,
-		      s->slice.x + s->slice.width == s->img->width,
-		      &r);
+  x_draw_relief_rect (s->f, x, y, x1, y1, thick, raised_p,
+		      top_p, bot_p, left_p, right_p, &r);
 }
 
 
@@ -7911,7 +7902,6 @@ x_new_font (struct frame *f, Lisp_Object font_object, int fontset)
   FRAME_FONT (f) = font;
   FRAME_BASELINE_OFFSET (f) = font->baseline_offset;
   FRAME_COLUMN_WIDTH (f) = font->average_width;
-  FRAME_SPACE_WIDTH (f) = font->space_width;
   FRAME_LINE_HEIGHT (f) = FONT_HEIGHT (font);
 
   compute_fringe_widths (f, 1);
@@ -9918,10 +9908,7 @@ x_term_init (Lisp_Object display_name, char *xrm_option, char *resource_name)
 
         /* Emacs can only handle core input events, so make sure
            Gtk doesn't use Xinput or Xinput2 extensions.  */
-        {
-          static char fix_events[] = "GDK_CORE_DEVICE_EVENTS=1";
-          putenv (fix_events);
-        }
+	xputenv ("GDK_CORE_DEVICE_EVENTS=1");
 
         /* Work around GLib bug that outputs a faulty warning. See
            https://bugzilla.gnome.org/show_bug.cgi?id=563627.  */

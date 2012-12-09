@@ -1755,9 +1755,9 @@ del_range_2 (ptrdiff_t from, ptrdiff_t from_byte,
 
   return deletion;
 }
-
-/* Call this if you're about to change the region of BUFFER from
-   character positions START to END.  This checks the read-only
+
+/* Call this if you're about to change the region of current buffer
+   from character positions START to END.  This checks the read-only
    properties of the region, calls the necessary modification hooks,
    and warns the next redisplay that it should pay attention to that
    area.
@@ -1766,16 +1766,11 @@ del_range_2 (ptrdiff_t from, ptrdiff_t from_byte,
    Otherwise set CHARS_MODIFF to the new value of MODIFF.  */
 
 void
-modify_region (struct buffer *buffer, ptrdiff_t start, ptrdiff_t end,
-	       bool preserve_chars_modiff)
+modify_region_1 (ptrdiff_t start, ptrdiff_t end, bool preserve_chars_modiff)
 {
-  struct buffer *old_buffer = current_buffer;
-
-  set_buffer_internal (buffer);
-
   prepare_to_modify_buffer (start, end, NULL);
 
-  BUF_COMPUTE_UNCHANGED (buffer, start - 1, end);
+  BUF_COMPUTE_UNCHANGED (current_buffer, start - 1, end);
 
   if (MODIFF <= SAVE_MODIFF)
     record_first_change ();
@@ -1783,11 +1778,9 @@ modify_region (struct buffer *buffer, ptrdiff_t start, ptrdiff_t end,
   if (! preserve_chars_modiff)
     CHARS_MODIFF = MODIFF;
 
-  bset_point_before_scroll (buffer, Qnil);
-
-  set_buffer_internal (old_buffer);
+  bset_point_before_scroll (current_buffer, Qnil);
 }
-
+
 /* Check that it is okay to modify the buffer between START and END,
    which are char positions.
 

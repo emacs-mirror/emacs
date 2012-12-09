@@ -3848,20 +3848,6 @@ x_pixel_height (register struct frame *f)
   return FRAME_PIXEL_HEIGHT (f);
 }
 
-int
-x_char_width (register struct frame *f)
-{
-  return FRAME_COLUMN_WIDTH (f);
-}
-
-int
-x_char_height (register struct frame *f)
-{
-  return FRAME_LINE_HEIGHT (f);
-}
-
-
-
 /************************************************************************
 			      X Displays
  ************************************************************************/

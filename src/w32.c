@@ -150,10 +150,18 @@ typedef struct _REPARSE_DATA_BUFFER {
     } DUMMYUNIONNAME;
 } REPARSE_DATA_BUFFER, *PREPARSE_DATA_BUFFER;
 
+#ifndef FILE_DEVICE_FILE_SYSTEM
 #define FILE_DEVICE_FILE_SYSTEM	9
+#endif
+#ifndef METHOD_BUFFERED
 #define METHOD_BUFFERED	        0
+#endif
+#ifndef FILE_ANY_ACCESS
 #define FILE_ANY_ACCESS	        0x00000000
+#endif
+#ifndef CTL_CODE
 #define CTL_CODE(t,f,m,a)       (((t)<<16)|((a)<<14)|((f)<<2)|(m))
+#endif
 #define FSCTL_GET_REPARSE_POINT \
   CTL_CODE(FILE_DEVICE_FILE_SYSTEM, 42, METHOD_BUFFERED, FILE_ANY_ACCESS)
 #endif
@@ -1534,6 +1542,50 @@ is_unc_volume (const char *filename)
     return 0;
 
   return 1;
+}
+
+/* Emulate the Posix unsetenv.  */
+int
+unsetenv (const char *name)
+{
+  char *var;
+  size_t name_len;
+  int retval;
+
+  if (name == NULL || *name == '\0' || strchr (name, '=') != NULL)
+    {
+      errno = EINVAL;
+      return -1;
+    }
+  name_len = strlen (name);
+  /* MS docs says an environment variable cannot be longer than 32K.  */
+  if (name_len > 32767)
+    {
+      errno = ENOMEM;
+      return 0;
+    }
+  /* It is safe to use 'alloca' with 32K size, since the stack is at
+     least 2MB, and we set it to 8MB in the link command line.  */
+  var = alloca (name_len + 2);
+  var[name_len++] = '=';
+  var[name_len] = '\0';
+  return _putenv (var);
+}
+
+/* MS _putenv doesn't support removing a variable when the argument
+   does not include the '=' character, so we fix that here.  */
+int
+sys_putenv (char *str)
+{
+  const char *const name_end = strchr (str, '=');
+
+  if (name_end == NULL)
+    {
+      /* Remove the variable from the environment.  */
+      return unsetenv (str);
+    }
+
+  return _putenv (str);
 }
 
 #define REG_ROOT "SOFTWARE\\GNU\\Emacs"

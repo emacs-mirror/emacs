@@ -76,7 +76,7 @@ documents.
 To get validation and schema-sensitive editing, you need a RELAX NG Compact
 Syntax (RNC) schema for your document (@pxref{Locating a schema}).  The
 @file{etc/schema} directory includes some schemas for popular document
-types.  See @url{http://relaxng.org/} for more information on RELAX NG.
+types.  See @url{http://relaxng.org/} for more information on RELAX NG@.
 You can use the @samp{Trang} program from
 @url{http://www.thaiopensource.com/relaxng/trang.html} to
 automatically create RNC schemas.  This program can:
@@ -138,7 +138,7 @@ indicates point):
 @end example
 
 @noindent
-and the schema is XHTML.  In this context, the symbol to be completed
+and the schema is XHTML@.  In this context, the symbol to be completed
 is @samp{h}.  The possible completions consist of just
 @samp{head}.  Another example, is
 
@@ -288,7 +288,7 @@ and then following the instructions in the displayed buffer.
 
 Emacs has several commands that operate on paragraphs, most
 notably @kbd{M-q}. nXML mode redefines these to work in a way
-that is useful for XML.  The exact rules that are used to find the
+that is useful for XML@.  The exact rules that are used to find the
 beginning and end of a paragraph are complicated; they are designed
 mainly to ensure that @kbd{M-q} does the right thing.
 
@@ -355,7 +355,7 @@ child element.  A section also contains its subordinate sections (its
 subsections).  The text content of a section consists of anything in a
 section that is neither a subsection nor a heading.
 
-Note that this is a different model from that used by XHTML.
+Note that this is a different model from that used by XHTML@.
 nXML mode's outline support will not be useful for XHTML unless you
 adopt a convention of adding a @code{div} to enclose each
 section, rather than having sections implicitly delimited by different
@@ -363,7 +363,7 @@ section, rather than having sections implicitly delimited by different
 in a future version.
 
 The variable @code{nxml-section-element-name-regexp} gives
-a regexp for the local names (i.e. the part of the name following any
+a regexp for the local names (i.e., the part of the name following any
 prefix) of section elements. The variable
 @code{nxml-heading-element-name-regexp} gives a regexp for the
 local names of heading elements. For an element to be recognized
@@ -653,7 +653,7 @@ of any type is used.
 
 As usual with XML-related technologies, resources are identified
 by URIs.  The @samp{uri} attribute identifies the schema by
-specifying the URI.  The URI may be relative.  If so, it is resolved
+specifying the URI@.  The URI may be relative.  If so, it is resolved
 relative to the URI of the schema locating file that contains
 attribute. This means that if the value of @samp{uri} attribute
 does not contain a @samp{/}, then it will refer to a filename in
@@ -680,13 +680,13 @@ The @samp{pattern} attribute can be used instead of the
 whose URI matches a pattern.  The pattern has the same syntax as an
 absolute or relative URI except that the path component of the URI can
 use a @samp{*} character to stand for zero or more characters
-within a path segment (i.e. any character other @samp{/}).
+within a path segment (i.e., any character other @samp{/}).
 Typically, the URI pattern looks like a relative URI, but, whereas a
 relative URI in the @samp{resource} attribute is resolved into a
 particular absolute URI using the base URI of the schema locating
 file, a relative URI pattern matches if it matches some number of
 complete path segments of the document's URI ending with the last path
-segment of the document's URI. For example,
+segment of the document's URI@. For example,
 
 @example
 <uri pattern="*.xsl" uri="xslt.rnc"/>
@@ -757,7 +757,7 @@ specifies that when the namespace URI of the document is
 Type identifiers allow a level of indirection in locating the
 schema for a document.  Instead of associating the document directly
 with a schema URI, the document is associated with a type identifier,
-which is in turn associated with a schema URI. nXML mode does not
+which is in turn associated with a schema URI@. nXML mode does not
 constrain the format of type identifiers.  They can be simply strings
 without any formal structure or they can be public identifiers or
 URIs.  Note that these type identifiers have nothing to do with the
@@ -862,12 +862,12 @@ an @samp{applyFollowingRules} to the private file.
 @chapter DTDs
 
 nXML mode is designed to support the creation of standalone XML
-documents that do not depend on a DTD.  Although it is common practice
+documents that do not depend on a DTD@.  Although it is common practice
 to insert a DOCTYPE declaration referencing an external DTD, this has
 undesirable side-effects.  It means that the document is no longer
 self-contained. It also means that different XML parsers may interpret
 the document in different ways, since the XML Recommendation does not
-require XML parsers to read the DTD.  With DTDs, it was impractical to
+require XML parsers to read the DTD@.  With DTDs, it was impractical to
 get validation without using an external DTD or reference to an
 parameter entity.  With RELAX NG and other schema languages, you can
 simultaneously get the benefits of validation and standalone XML

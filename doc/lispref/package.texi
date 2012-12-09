@@ -48,12 +48,12 @@ for creating them differs, as explained in the following sections.
 
 @table @asis
 @item Name
-A short word (e.g. @samp{auctex}).  This is usually also the symbol
+A short word (e.g., @samp{auctex}).  This is usually also the symbol
 prefix used in the program (@pxref{Coding Conventions}).
 
 @item Version
 A version number, in a form that the function @code{version-to-list}
-understands (e.g. @samp{11.86}).  Each release of a package should be
+understands (e.g., @samp{11.86}).  Each release of a package should be
 accompanied by an increase in the version number.
 
 @item Brief description
@@ -80,7 +80,7 @@ if any dependency cannot be found, the package cannot be installed.
 or via the Package Menu, creates a subdirectory of
 @code{package-user-dir} named @file{@var{name}-@var{version}}, where
 @var{name} is the package's name and @var{version} its version
-(e.g. @file{~/.emacs.d/elpa/auctex-11.86/}).  We call this the
+(e.g., @file{~/.emacs.d/elpa/auctex-11.86/}).  We call this the
 package's @dfn{content directory}.  It is where Emacs puts the
 package's contents (the single Lisp file for a simple package, or the
 files extracted from a multi-file package).

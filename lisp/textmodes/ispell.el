@@ -2649,11 +2649,8 @@ When asynchronous processes are not supported, `run' is always returned."
 (defun ispell-start-process ()
   "Start the Ispell process, with support for no asynchronous processes.
 Keeps argument list for future Ispell invocations for no async support."
-  ;; Local dictionary becomes the global dictionary in use.
-  (setq ispell-current-dictionary
-        (or ispell-local-dictionary ispell-dictionary))
-  (setq ispell-current-personal-dictionary
-        (or ispell-local-pdict ispell-personal-dictionary))
+  ;; `ispell-current-dictionary' and `ispell-current-personal-dictionary'
+  ;; are properly set in `ispell-internal-change-dictionary'.
   (let* ((default-directory
            (if (and (file-directory-p default-directory)
                     (file-readable-p default-directory))
@@ -2668,8 +2665,7 @@ Keeps argument list for future Ispell invocations for no async support."
                (list "-d" ispell-current-dictionary))
            orig-args
            (if ispell-current-personal-dictionary ; Use specified pers dict.
-               (list "-p"
-                     (expand-file-name ispell-current-personal-dictionary)))
+               (list "-p" ispell-current-personal-dictionary))
            ;; If we are using recent aspell or hunspell, make sure we use the
            ;; right encoding for communication. ispell or older aspell/hunspell
            ;; does not support this.
@@ -2706,6 +2702,9 @@ Keeps argument list for future Ispell invocations for no async support."
   (let* (;; Basename of dictionary used by the spell-checker
 	 (dict-bname (or (car (cdr (member "-d" (ispell-get-ispell-args))))
 			 ispell-current-dictionary))
+	 ;; The directory where process was started.
+	 (current-ispell-directory default-directory)
+	 ;; The default directory for the process.
 	 ;; Use "~/" as default-directory unless using Ispell with per-dir
 	 ;; personal dictionaries and not in a minibuffer under XEmacs
 	 (default-directory
@@ -2896,13 +2895,15 @@ By just answering RET you can find out what the current dictionary is."
   "Update the dictionary and the personal dictionary used by Ispell.
 This may kill the Ispell process; if so, a new one will be started
 when needed."
-  (let ((dict (or ispell-local-dictionary ispell-dictionary))
-	(pdict (or ispell-local-pdict ispell-personal-dictionary)))
+  (let* ((dict (or ispell-local-dictionary ispell-dictionary))
+	 (pdict (or ispell-local-pdict ispell-personal-dictionary))
+	 (expanded-pdict (if pdict (expand-file-name pdict))))
     (unless (and (equal ispell-current-dictionary dict)
-		 (equal ispell-current-personal-dictionary pdict))
+		 (equal ispell-current-personal-dictionary
+			expanded-pdict))
       (ispell-kill-ispell t)
       (setq ispell-current-dictionary dict
-	    ispell-current-personal-dictionary pdict))))
+	    ispell-current-personal-dictionary expanded-pdict))))
 
 ;; Avoid error messages when compiling for these dynamic variables.
 (defvar ispell-start)

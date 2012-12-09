@@ -134,7 +134,7 @@ leftward).
 
 This command can be used to remove all indentation from the lines in
 the region, by invoking it with a large negative argument,
-e.g. @kbd{C-u -1000 C-x @key{TAB}}.
+e.g., @kbd{C-u -1000 C-x @key{TAB}}.
 @end table
 
 @node Tab Stops

@@ -33,7 +33,7 @@
 ;; Implements Syntax highlighting, Indentation, Movement, Shell
 ;; interaction, Shell completion, Shell virtualenv support, Pdb
 ;; tracking, Symbol completion, Skeletons, FFAP, Code Check, Eldoc,
-;; imenu.
+;; Imenu.
 
 ;; Syntax highlighting: Fontification of code is provided and supports
 ;; python's triple quoted strings properly.
@@ -169,10 +169,12 @@
 ;; might guessed you should run `python-shell-send-buffer' from time
 ;; to time to get better results too.
 
-;; imenu: This mode supports imenu in its most basic form, letting it
+;; Imenu: This mode supports Imenu in its most basic form, letting it
 ;; build the necessary alist via `imenu-default-create-index-function'
 ;; by having set `imenu-extract-index-name-function' to
-;; `python-info-current-defun'.
+;; `python-info-current-defun' and
+;; `imenu-prev-index-position-function' to
+;; `python-imenu-prev-index-position'.
 
 ;; If you used python-mode.el you probably will miss auto-indentation
 ;; when inserting newlines.  To achieve the same behavior you have
@@ -656,7 +658,7 @@ These make `python-indent-calculate-indentation' subtract the value of
                  (python-util-forward-comment)
                  (current-indentation))))
           (if indentation
-              (setq python-indent-offset indentation)
+              (set (make-local-variable 'python-indent-offset) indentation)
             (message "Can't guess python-indent-offset, using defaults: %s"
                      python-indent-offset)))))))
 
@@ -1098,12 +1100,12 @@ With positive ARG search backwards, else search forwards."
          (beg-indentation
           (and (> arg 0)
                (save-excursion
-                 (and (python-info-current-line-empty-p)
-                      (python-util-forward-comment -1))
-                 (python-nav-beginning-of-statement)
-                 (if (python-info-looking-at-beginning-of-defun)
-                     (+ (current-indentation) python-indent-offset)
-                   (current-indentation)))))
+                 (while (and
+                         (not (python-info-looking-at-beginning-of-defun))
+                         (python-nav-backward-block)))
+                 (or (and (python-info-looking-at-beginning-of-defun)
+                          (+ (current-indentation) python-indent-offset))
+                     0))))
          (found
           (progn
             (when (and (< arg 0)
@@ -2881,6 +2883,19 @@ Interactively, prompt for symbol."
              "^Eldoc needs an inferior Python process running.")
 
 
+;;; Imenu
+
+(defun python-imenu-prev-index-position ()
+  "Python mode's `imenu-prev-index-position-function'."
+  (let ((found))
+    (while (and (setq found
+                      (re-search-backward python-nav-beginning-of-defun-regexp nil t))
+                (not (python-info-looking-at-beginning-of-defun))))
+    (and found
+         (python-info-looking-at-beginning-of-defun)
+         (python-info-current-defun))))
+
+
 ;;; Misc helpers
 
 (defun python-info-current-defun (&optional include-type)
@@ -3224,6 +3239,9 @@ if that value is non-nil."
 
   (set (make-local-variable 'imenu-extract-index-name-function)
        #'python-info-current-defun)
+
+  (set (make-local-variable 'imenu-prev-index-position-function)
+       #'python-imenu-prev-index-position)
 
   (set (make-local-variable 'add-log-current-defun-function)
        #'python-info-current-defun)

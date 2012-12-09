@@ -813,6 +813,14 @@ xg_hide_tooltip (FRAME_PTR f)
     General functions for creating widgets, resizing, events, e.t.c.
  ***********************************************************************/
 
+static void
+my_log_handler (const gchar *log_domain, GLogLevelFlags log_level,
+		const gchar *msg, gpointer user_data)
+{
+  if (!strstr (msg, "visible children"))
+    fprintf (stderr, "XX %s-WARNING **: %s\n", log_domain, msg);
+}
+
 /* Make a geometry string and pass that to GTK.  It seems this is the
    only way to get geometry position right if the user explicitly
    asked for a position when starting Emacs.
@@ -828,6 +836,7 @@ xg_set_geometry (FRAME_PTR f)
       int top = f->top_pos;
       int yneg = f->size_hint_flags & YNegative;
       char geom_str[sizeof "=x--" + 4 * INT_STRLEN_BOUND (int)];
+      guint id;
 
       if (xneg)
         left = -left;
@@ -840,9 +849,15 @@ xg_set_geometry (FRAME_PTR f)
                (xneg ? '-' : '+'), left,
                (yneg ? '-' : '+'), top);
 
+      /* Silence warning about visible children.  */
+      id = g_log_set_handler ("Gtk", G_LOG_LEVEL_WARNING | G_LOG_FLAG_FATAL
+                              | G_LOG_FLAG_RECURSION, my_log_handler, NULL);
+
       if (!gtk_window_parse_geometry (GTK_WINDOW (FRAME_GTK_OUTER_WIDGET (f)),
                                       geom_str))
         fprintf (stderr, "Failed to parse: '%s'\n", geom_str);
+
+      g_log_remove_handler ("Gtk", id);
     }
 }
 

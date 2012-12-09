@@ -1,3 +1,58 @@
+2012-12-08  Paul Eggert  <eggert@cs.ucla.edu>
+
+	Use putenv+unsetenv instead of modifying environ directly (Bug#13070).
+	* lib/putenv.c, lib/unsetenv.c, m4/putenv.m4, m4/setenv.m4:
+	New files, copied automatically from gnulib.
+	* lib/gnulib.mk, m4/gnulib-comp.m4: Regenerate.
+
+2012-12-08  Eli Zaretskii  <eliz@gnu.org>
+
+	* lib/makefile.w32-in ($(BLD)/sig2str.$(O)): New dependency.
+	Remove a stray character at the beginning of the file.
+	(Bug#13026)
+
+2012-12-08  Paul Eggert  <eggert@cs.ucla.edu>
+
+	Simplify get_lim_data.
+	* configure.ac (ULIMIT_BREAK_VALUE): Remove.
+
+	Assume POSIX 1003.1-1988 or later for signal.h (Bug#13026).
+	* configure.ac (PTY_OPEN, PTY_TTY_NAME_SPRINTF):
+	Use SIGCHLD rather than SIGCLD.
+	* lib/sig2str.c, lib/sig2str.h, m4/sig2str.m4: New files, from gnulib.
+	* lib/gnulib.mk, m4/gnulib-comp.m4: Regenerate.
+	* lib/makefile.w32-in (GNULIBOBJS): Add $(BUILD)/sig2str.$(O).
+
+2012-12-06  Glenn Morris  <rgm@gnu.org>
+
+	* configure.ac: Handle info/ files with or without ".info" extension.
+
+2012-11-30  Paul Eggert  <eggert@cs.ucla.edu>
+
+	Merge from gnulib for 'inline' (Bug#13040), incorporating:
+	2012-11-29 snippet/warn-on-use: no 'static inline'
+	2012-11-29 ftruncate, fts, lstat, openat, raise: no 'static inline'
+	2012-11-29 arctwo, md4, md5, sha1, sha256, sha512: no 'static inline'
+	2012-11-29 fflush, stat: no 'static inline'
+	2012-11-29 stdio: better 'inline'
+	2012-11-29 sys_stat: no 'static inline'
+	2012-11-29 unistd: better 'inline'
+	2012-11-29 c-strtod, memcoll, readutmp: no 'static inline'
+	2012-11-29 extern-inline: no 'static inline'
+	2012-11-29 sys_socket: better 'inline'
+	* lib/stdio.c, lib/unistd.c: New files, from gnulib.
+	* build-aux/snippet/warn-on-use.h, lib/gnulib.mk, lib/lstat.c:
+	* lib/md5.c, lib/sha1.c, lib/sha256.c, lib/sha512.c, lib/stat.c:
+	* lib/stdio.in.h, lib/sys_stat.in.h, lib/unistd.in.h, m4/c-strtod.m4:
+	* m4/extern-inline.m4, m4/gnulib-comp.m4, m4/lstat.m4, m4/md5.m4:
+	* m4/sha1.m4, m4/sha256.m4, m4/sha512.m4, m4/stat.m4, m4/stdio_h.m4:
+	* m4/sys_socket_h.m4, m4/sys_stat_h.m4, m4/unistd_h.m4:
+	Update from gnulib.
+
+2012-11-27  Eli Zaretskii  <eliz@gnu.org>
+
+	* make-dist (nt): Adjust to changes in names of the *.manifest files.
+
 2012-11-24  Ken Brown  <kbrown@cornell.edu>
 
 	* configure.ac (HAVE_MOUSE): Remove.

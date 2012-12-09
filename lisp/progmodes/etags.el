@@ -702,7 +702,9 @@ Returns t if it visits a tags table, or nil if there are no more in the list."
 	(kill-local-variable 'tags-file-name)
 	(if (eq local-tags-file-name tags-file-name)
 	    (setq tags-file-name nil))
-	(user-error "File %s is not a valid tags table"
+	(user-error (if (file-exists-p local-tags-file-name)
+                        "File %s is not a valid tags table"
+                      "File %s does not exist")
                     local-tags-file-name)))))
 
 (defun tags-reset-tags-tables ()

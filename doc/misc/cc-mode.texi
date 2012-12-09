@@ -88,7 +88,7 @@ the second with them pointing to the XEmacs manuals.
 @c The following four macros generate the filenames and titles of the
 @c main (X)Emacs manual and the Elisp/Lispref manual.  Leave the
 @c Texinfo variable `XEMACS' unset to generate a GNU Emacs version, set it
-@c to generate an XEmacs version, e.g. with
+@c to generate an XEmacs version, e.g., with
 @c "makeinfo -DXEMACS cc-mode.texi".
 @ifset XEMACS
 @macro emacsman
@@ -646,13 +646,13 @@ you're better off getting an external program like GNU @code{indent},
 which will rearrange brace location, amongst other things.
 
 Preprocessor directives are handled as syntactic whitespace from other
-code, i.e. they can be interspersed anywhere without affecting the
+code, i.e., they can be interspersed anywhere without affecting the
 indentation of the surrounding code, just like comments.
 
 The code inside macro definitions is, by default, still analyzed
 syntactically so that you get relative indentation there just as you'd
 get if the same code was outside a macro.  However, since there is no
-hint about the syntactic context, i.e. whether the macro expands to an
+hint about the syntactic context, i.e., whether the macro expands to an
 expression, to some statements, or perhaps to whole functions, the
 syntactic recognition can be wrong.  @ccmode{} manages to figure it
 out correctly most of the time, though.
@@ -773,7 +773,7 @@ Indents the entire top-level function, class or macro definition
 encompassing point.  It leaves point unchanged.  This function can't be
 used to reindent a nested brace construct, such as a nested class or
 function, or a Java method.  The top-level construct being reindented
-must be complete, i.e. it must have both a beginning brace and an ending
+must be complete, i.e., it must have both a beginning brace and an ending
 brace.
 
 @item @kbd{C-M-\} (@code{indent-region})
@@ -1021,7 +1021,7 @@ preprocessor statements.
 A popular programming style, especially for object-oriented languages
 such as C++ is to write symbols in a mixed case format, where the
 first letter of each word is capitalized, and not separated by
-underscores.  E.g. @samp{SymbolsWithMixedCaseAndNoUnderlines}.
+underscores.  E.g., @samp{SymbolsWithMixedCaseAndNoUnderlines}.
 
 These commands move backward or forward to the beginning of the next
 capitalized word.  With prefix argument @var{n}, move @var{n} times.
@@ -1043,7 +1043,7 @@ Movement}.  They might be removed from a future release of @ccmode{}.
 
 Since there's a lot of normal text in comments and string literals,
 @ccmode{} provides features to edit these like in text mode.  The goal
-is to do it seamlessly, i.e. you can use auto fill mode, sentence and
+is to do it seamlessly, i.e., you can use auto fill mode, sentence and
 paragraph movement, paragraph filling, adaptive filling etc. wherever
 there's a piece of normal text without having to think much about it.
 @ccmode{} keeps the indentation, fixes suitable comment line prefixes,
@@ -1059,7 +1059,7 @@ set this up for you, so you probably won't have to bother.
 @cindex paragraph filling
 Line breaks are by default handled (almost) the same regardless of
 whether they are made by auto fill mode (@pxref{Auto
-Fill,,,@emacsman{}, @emacsmantitle{}}), by paragraph filling (e.g. with
+Fill,,,@emacsman{}, @emacsmantitle{}}), by paragraph filling (e.g., with
 @kbd{M-q}), or explicitly with @kbd{M-j} or similar methods.  In
 string literals, the new line gets the same indentation as the
 previous nonempty line.@footnote{You can change this default by
@@ -1120,7 +1120,7 @@ this function.  @xref{Sample .emacs File}.
 @findex c-context-open-line
 @findex context-open-line (c-)
 This is to @kbd{C-o} (@kbd{M-x open-line}) as
-@code{c-context-line-break} is to @kbd{RET}.  I.e. it works just like
+@code{c-context-line-break} is to @kbd{RET}.  I.e., it works just like
 @code{c-context-line-break} but leaves the point before the inserted
 line break.
 @end table
@@ -1144,7 +1144,7 @@ editing chaotically formatted code.  It can also be disconcerting,
 especially for users who are new to @ccmode{}.
 @item auto-newline mode
 This automatically inserts newlines where you'd probably want to type
-them yourself, e.g. after typing @samp{@}}s.  Its action is suppressed
+them yourself, e.g., after typing @samp{@}}s.  Its action is suppressed
 when electric mode is disabled.
 @item hungry-delete mode
 This lets you delete a contiguous block of whitespace with a single
@@ -1155,7 +1155,7 @@ last statement.
 This mode makes basic word movement commands like @kbd{M-f}
 (@code{forward-word}) and @kbd{M-b} (@code{backward-word}) treat the
 parts of sillycapsed symbols as different words.
-E.g. @samp{NSGraphicsContext} is treated as three words @samp{NS},
+E.g., @samp{NSGraphicsContext} is treated as three words @samp{NS},
 @samp{Graphics}, and @samp{Context}.
 @item syntactic-indentation mode
 When this is enabled (which it normally is), indentation commands such
@@ -1288,7 +1288,7 @@ A star (bound to @code{c-electric-star}) or a slash
 (@code{c-electric-slash}) causes reindentation when you type it as the
 second component of a C style block comment opener (@samp{/*}) or a
 C++ line comment opener (@samp{//}) respectively, but only if the
-comment opener is the first thing on the line (i.e. there's only
+comment opener is the first thing on the line (i.e., there's only
 whitespace before it).
 
 Additionally, you can configure @ccmode{} so that typing a slash at
@@ -1426,7 +1426,7 @@ Auto-newline only triggers when the following conditions hold:
 @itemize @bullet
 @item
 Auto-newline minor mode is enabled, as evidenced by the indicator
-@samp{a} after the mode name on the modeline (e.g. @samp{C/a} or
+@samp{a} after the mode name on the modeline (e.g., @samp{C/a} or
 @samp{C/la}).
 
 @item
@@ -1446,7 +1446,7 @@ definition.  These constructs are also known as @dfn{syntactic
 whitespace} since they are usually ignored when scanning C code.}.
 
 @item
-No numeric argument was supplied to the command (i.e. it was typed as
+No numeric argument was supplied to the command (i.e., it was typed as
 normal, with no @kbd{C-u} prefix).
 @end itemize
 
@@ -1631,7 +1631,7 @@ trouble with this in GNU Emacs.
 @cindex nomenclature
 @cindex subword
 In spite of the GNU Coding Standards, it is popular to name a symbol
-by mixing uppercase and lowercase letters, e.g. @samp{GtkWidget},
+by mixing uppercase and lowercase letters, e.g., @samp{GtkWidget},
 @samp{EmacsFrameClass}, or @samp{NSGraphicsContext}.  Here we call
 these mixed case symbols @dfn{nomenclatures}.  Also, each capitalized
 (or completely uppercase) part of a nomenclature is called a
@@ -1819,7 +1819,7 @@ Lock,,, emacs, GNU Emacs Manual}, for ways to enable font locking in
 
 @strong{Please note:} The font locking in AWK mode is currently not
 integrated with the rest of @ccmode{}.  Only the last section of this
-chapter, @ref{AWK Mode Font Locking}, applies to AWK.  The other
+chapter, @ref{AWK Mode Font Locking}, applies to AWK@.  The other
 sections apply to the other languages.
 
 @menu
@@ -1912,7 +1912,7 @@ additional regexps to match those you use:
 For each language there's a variable @code{*-font-lock-extra-types},
 where @samp{*} stands for the language in question.  It contains a list
 of regexps that matches identifiers that should be recognized as types,
-e.g. @samp{\\sw+_t} to recognize all identifiers ending with @samp{_t}
+e.g., @samp{\\sw+_t} to recognize all identifiers ending with @samp{_t}
 as is customary in C code.  Each regexp should not match more than a
 single identifier.
 
@@ -2009,7 +2009,7 @@ labels.
 @vindex font-lock-builtin-face
 @vindex font-lock-reference-face
 Preprocessor directives get @code{font-lock-preprocessor-face} if it
-exists (i.e. XEmacs).  In Emacs they get @code{font-lock-builtin-face}
+exists (i.e., XEmacs).  In Emacs they get @code{font-lock-builtin-face}
 or @code{font-lock-reference-face}, for lack of a closer equivalent.
 
 @item
@@ -2035,14 +2035,14 @@ since those aren't syntactic errors in themselves.
 @comment !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
 There are various tools to supply documentation in the source as
-specially structured comments, e.g. the standard Javadoc tool in Java.
+specially structured comments, e.g., the standard Javadoc tool in Java.
 @ccmode{} provides an extensible mechanism to fontify such comments and
 the special markup inside them.
 
 @defopt c-doc-comment-style
 @vindex doc-comment-style (c-)
 This is a style variable that specifies which documentation comment
-style to recognize, e.g. @code{javadoc} for Javadoc comments.
+style to recognize, e.g., @code{javadoc} for Javadoc comments.
 
 The value may also be a list of styles, in which case all of them are
 recognized simultaneously (presumably with markup cues that don't
@@ -2060,7 +2060,7 @@ The default value for @code{c-doc-comment-style} is
 Note that @ccmode{} uses this variable to set other variables that
 handle fontification etc.  That's done at mode initialization or when
 you switch to a style which sets this variable.  Thus, if you change it
-in some other way, e.g. interactively in a CC Mode buffer, you will need
+in some other way, e.g., interactively in a CC Mode buffer, you will need
 to do @kbd{M-x java-mode} (or whatever mode you're currently using) to
 reinitialize.
 
@@ -2351,7 +2351,7 @@ have it enabled by default by placing the following in your
 @cindex mode hooks
 @comment !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 @c The node name is "CC Hooks" rather than "Hooks" because of a bug in
-@c some older versions of Info, e.g. the info.el in GNU Emacs 21.3.
+@c some older versions of Info, e.g., the info.el in GNU Emacs 21.3.
 @c If you go to "Config Basics" and hit <CR> on the xref to "CC
 @c Hooks" the function Info-follow-reference searches for "*Note: CC
 @c Hooks" from the beginning of the page.  If this node were instead
@@ -2429,7 +2429,7 @@ file.
 The variables that @ccmode{}'s style system control are called
 @dfn{style variables}.  Note that style variables are ordinary Lisp
 variables, which the style system initializes; you can change their
-values at any time (e.g. in a hook function).  The style system can
+values at any time (e.g., in a hook function).  The style system can
 also set other variables, to some extent.  @xref{Styles}.
 
 @dfn{Style variables} are handled specially in several ways:
@@ -2921,9 +2921,9 @@ visit the file, @ccmode{} will automatically institute these offsets
 using @code{c-set-offset}.
 @end defvar
 
-Note that file style settings (i.e. @code{c-file-style}) are applied
+Note that file style settings (i.e., @code{c-file-style}) are applied
 before file offset settings
-(i.e. @code{c-file-offsets})@footnote{Also, if either of these are set
+(i.e., @code{c-file-offsets})@footnote{Also, if either of these are set
 in a file's local variable section, all the style variable values are
 made local to that buffer, even if
 @code{c-style-variables-are-local-p} is @code{nil}.  Since this
@@ -3001,7 +3001,7 @@ subsequent lines of C style block comments like
 @noindent
 with zero or more stars at the beginning of every line.  If you change
 this variable, please make sure it still matches the comment starter
-(i.e. @code{//}) of line comments @emph{and} the line prefix inside
+(i.e., @code{//}) of line comments @emph{and} the line prefix inside
 block comments.
 
 @findex c-setup-paragraph-variables
@@ -3024,7 +3024,7 @@ the line prefix from the other lines in the comment.
 @ccmode{} uses adaptive fill mode (@pxref{Adaptive Fill,,, emacs, GNU
 Emacs Manual}) to make Emacs correctly keep the line prefix when
 filling paragraphs.  That also makes Emacs preserve the text
-indentation @emph{inside} the comment line prefix.  E.g. in the
+indentation @emph{inside} the comment line prefix.  E.g., in the
 following comment, both paragraphs will be filled with the left
 margins of the texts kept intact:
 
@@ -3055,7 +3055,7 @@ by default).  A patch for that is available from
 @c 2005/11/22:  The above is still believed to be the case.
 which handles things like bulleted lists nicely.  There's a convenience
 function @code{c-setup-filladapt} that tunes the relevant variables in
-Filladapt for use in @ccmode{}.  Call it from a mode hook, e.g. with
+Filladapt for use in @ccmode{}.  Call it from a mode hook, e.g., with
 something like this in your @file{.emacs}:
 
 @example
@@ -3081,7 +3081,7 @@ then as the comment prefix.  It defaults to @samp{*
 @code{c-block-comment-prefix} typically gets overridden by the default
 style @code{gnu}, which sets it to blank.  You can see the line
 splitting effect described here by setting a different style,
-e.g. @code{k&r} @xref{Choosing a Style}.}, which makes a comment
+e.g., @code{k&r} @xref{Choosing a Style}.}, which makes a comment
 
 @example
 /* Got O(n^2) here, which is a Bad Thing. */
@@ -3108,7 +3108,7 @@ most common comment styles, see @ref{Line-Up Functions}.
 @defopt c-ignore-auto-fill
 @vindex ignore-auto-fill (c-)
 When auto fill mode is enabled, @ccmode{} can selectively ignore it
-depending on the context the line break would occur in, e.g. to never
+depending on the context the line break would occur in, e.g., to never
 break a line automatically inside a string literal.  This variable
 takes a list of symbols for the different contexts where auto-filling
 never should occur:
@@ -3123,7 +3123,7 @@ Inside a C++ style line comment.
 @item cpp
 Inside a preprocessor directive.
 @item code
-Anywhere else, i.e. in normal code.
+Anywhere else, i.e., in normal code.
 @end table
 
 By default, @code{c-ignore-auto-fill} is set to @code{(string cpp
@@ -3151,7 +3151,7 @@ Note that @ccmode{} sets @code{comment-multi-line} to @code{t} at
 startup.  The reason is that @kbd{M-j} could otherwise produce sequences
 of single line block comments for texts that should logically be treated
 as one comment, and the rest of the paragraph handling code
-(e.g. @kbd{M-q} and @kbd{M-a}) can't cope with that, which would lead to
+(e.g., @kbd{M-q} and @kbd{M-a}) can't cope with that, which would lead to
 inconsistent behavior.
 
 @comment !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
@@ -3380,12 +3380,12 @@ giving a syntactic symbol an @dfn{action function} in
 
 @cindex customization, brace hanging
 An action function is called with two arguments: the syntactic symbol
-for the brace (e.g. @code{substatement-open}), and the buffer position
+for the brace (e.g., @code{substatement-open}), and the buffer position
 where the brace has been inserted.  Point is undefined on entry to an
-action function, but the function must preserve it (e.g. by using
+action function, but the function must preserve it (e.g., by using
 @code{save-excursion}).  The return value should be a list containing
 some combination of @code{before} and @code{after}, including neither
-of them (i.e. @code{nil}).
+of them (i.e., @code{nil}).
 
 @defvar c-syntactic-context
 @vindex syntactic-context (c-)
@@ -3566,7 +3566,7 @@ statements.  In addition to
 @ccmode{} also comes with the criteria function
 @code{c-semi&comma-no-newlines-for-oneline-inliners}, which suppresses
 newlines after semicolons inside one-line inline method definitions
-(e.g. in C++ or Java).
+(e.g., in C++ or Java).
 @end defun
 
 
@@ -3580,7 +3580,7 @@ newlines after semicolons inside one-line inline method definitions
 @dfn{Clean-ups} are mechanisms which remove (or exceptionally, add)
 whitespace in specific circumstances and are complementary to colon
 and brace hanging.  You enable a clean-up by adding its symbol into
-@code{c-cleanup-list}, e.g. like this:
+@code{c-cleanup-list}, e.g., like this:
 
 @example
 (add-to-list 'c-cleanup-list 'space-before-funcall)
@@ -3588,7 +3588,7 @@ and brace hanging.  You enable a clean-up by adding its symbol into
 
 On the surface, it would seem that clean-ups overlap the functionality
 provided by the @code{c-hanging-*-alist} variables.  Clean-ups,
-however, are used to adjust code ``after-the-fact'', i.e. to adjust
+however, are used to adjust code ``after-the-fact'', i.e., to adjust
 the whitespace in constructs later than when they were typed.
 
 Most of the clean-ups remove automatically inserted newlines, and are
@@ -3799,7 +3799,7 @@ Auto-newline minor mode are enabled:
 @item space-before-funcall
 Insert a space between the function name and the opening parenthesis
 of a function call.  This produces function calls in the style
-mandated by the GNU coding standards, e.g. @samp{signal@w{ }(SIGINT,
+mandated by the GNU coding standards, e.g., @samp{signal@w{ }(SIGINT,
 SIG_IGN)} and @samp{abort@w{ }()}.  Clean up occurs when the opening
 parenthesis is typed.  This clean-up should never be active in AWK
 Mode, since such a space is syntactically invalid for user defined
@@ -3810,13 +3810,13 @@ Clean up any space between the function name and the opening parenthesis
 of a function call that has no arguments.  This is typically used
 together with @code{space-before-funcall} if you prefer the GNU function
 call style for functions with arguments but think it looks ugly when
-it's only an empty parenthesis pair.  I.e. you will get @samp{signal
+it's only an empty parenthesis pair.  I.e., you will get @samp{signal
 (SIGINT, SIG_IGN)}, but @samp{abort()}.  Clean up occurs when the
 closing parenthesis is typed.
 
 @item comment-close-slash
 When inside a block comment, terminate the comment when you type a slash
-at the beginning of a line (i.e. immediately after the comment prefix).
+at the beginning of a line (i.e., immediately after the comment prefix).
 This clean-up removes whitespace preceding the slash and if needed,
 inserts a star to complete the token @samp{*/}.  Type @kbd{C-q /} in this
 situation if you just want a literal @samp{/} inserted.
@@ -3910,7 +3910,7 @@ brief and typical example:
 @noindent
 The first thing inside each syntactic element is always a
 @dfn{syntactic symbol}.  It describes the kind of construct that was
-recognized, e.g. @code{statement}, @code{substatement},
+recognized, e.g., @code{statement}, @code{substatement},
 @code{class-open}, @code{class-close}, etc.  @xref{Syntactic Symbols},
 for a complete list of currently recognized syntactic symbols and
 their semantics.  The remaining entries are various data associated
@@ -3951,7 +3951,7 @@ position(s).
 @end table
 
   Running this command on line 4 of this example, we'd see in the echo
-area@footnote{With a universal argument (i.e. @kbd{C-u C-c C-s}) the
+area@footnote{With a universal argument (i.e., @kbd{C-u C-c C-s}) the
 analysis is inserted into the buffer as a comment on the current
 line.}:
 
@@ -4219,7 +4219,7 @@ Method Symbols}.
 Lines continuing an Objective-C method call.  @ref{Objective-C Method
 Symbols}.
 @item extern-lang-open
-Brace that opens an @code{extern} block (e.g. @code{extern "C"
+Brace that opens an @code{extern} block (e.g., @code{extern "C"
 @{...@}}).  @ref{External Scope Symbols}.
 @item extern-lang-close
 Brace that closes an @code{extern} block.  @ref{External Scope
@@ -4246,10 +4246,10 @@ Analogous to the above, but for CORBA CIDL @code{composition} blocks.
 C++ template argument list continuations.  @ref{Class Symbols}.
 @item inlambda
 Analogous to @code{inclass} syntactic symbol, but used inside lambda
-(i.e. anonymous) functions.  Only used in Pike mode.  @ref{Statement
+(i.e., anonymous) functions.  Only used in Pike mode.  @ref{Statement
 Block Symbols}.
 @item lambda-intro-cont
-Lines continuing the header of a lambda function, i.e. between the
+Lines continuing the header of a lambda function, i.e., between the
 @code{lambda} keyword and the function body.  Only used in Pike mode.
 @ref{Statement Block Symbols}.
 @item inexpr-statement
@@ -4311,7 +4311,7 @@ top-level construct introduction so it has the syntax
 the brace that opens a top-level function definition.  Line 9 is the
 corresponding
 @code{defun-close} since it contains the brace that closes the top-level
-function definition.  Line 4 is a @code{defun-block-intro}, i.e. it is
+function definition.  Line 4 is a @code{defun-block-intro}, i.e., it is
 the first line of a brace-block, enclosed in a
 top-level function definition.
 
@@ -4360,7 +4360,7 @@ structs, and unions are essentially equivalent syntactically (and are
 very similar semantically), so replacing the @code{class} keyword in the
 example above with @code{struct} or @code{union} would still result in a
 syntax of @code{class-open} for line 4 @footnote{This is the case even
-for C and Objective-C.  For consistency, structs in all supported
+for C and Objective-C@.  For consistency, structs in all supported
 languages are syntactically equivalent to classes.  Note however that
 the keyword @code{class} is meaningless in C and Objective-C.}.
 Similarly, line 18 is assigned @code{class-close} syntax.
@@ -4668,7 +4668,7 @@ where @code{inextern-lang} is a modifier similar in purpose to
 
 There are various other top level blocks like @code{extern}, and they
 are all treated in the same way except that the symbols are named after
-the keyword that introduces the block.  E.g. C++ namespace blocks get
+the keyword that introduces the block.  E.g., C++ namespace blocks get
 the three symbols @code{namespace-open}, @code{namespace-close} and
 @code{innamespace}.  The currently recognized top level blocks are:
 
@@ -4857,9 +4857,9 @@ Line 17 is assigned @code{stream-op} syntax.
 @ssindex cpp-define-intro
 @ssindex cpp-macro-cont
 Multiline preprocessor macro definitions are normally handled just like
-other code, i.e. the lines inside them are indented according to the
+other code, i.e., the lines inside them are indented according to the
 syntactic analysis of the preceding lines inside the macro.  The first
-line inside a macro definition (i.e. the line after the starting line of
+line inside a macro definition (i.e., the line after the starting line of
 the cpp directive itself) gets @code{cpp-define-intro}.  In this example:
 
 @example
@@ -4875,7 +4875,7 @@ line 1 is given the syntactic symbol @code{cpp-macro}.  The first line
 of a cpp directive is always given that symbol.  Line 2 is given
 @code{cpp-define-intro}, so that you can give the macro body as a whole
 some extra indentation.  Lines 3 through 5 are then analyzed as normal
-code, i.e. @code{substatement} on lines 3 and 4, and @code{else-clause}
+code, i.e., @code{substatement} on lines 3 and 4, and @code{else-clause}
 on line 5.
 
 The syntactic analysis inside macros can be turned off with
@@ -5025,7 +5025,7 @@ handled like this too.
 @ssindex knr-argdecl-intro
 @ssindex knr-argdecl
 Two other syntactic symbols can appear in old style, non-prototyped C
-code @footnote{a.k.a. K&R C, or Kernighan & Ritchie C}:
+code @footnote{a.k.a.@: K&R C, or Kernighan & Ritchie C}:
 
 @example
  1: int add_three_integers(a, b, c)
@@ -5039,7 +5039,7 @@ code @footnote{a.k.a. K&R C, or Kernighan & Ritchie C}:
 
 Here, line 2 is the first line in an argument declaration list and so is
 given the @code{knr-argdecl-intro} syntactic symbol.  Subsequent lines
-(i.e. lines 3 and 4 in this example), are given @code{knr-argdecl}
+(i.e., lines 3 and 4 in this example), are given @code{knr-argdecl}
 syntax.
 
 
@@ -5703,7 +5703,7 @@ expressions.
 @defun c-lineup-inexpr-block
 @findex lineup-inexpr-block (c-)
 This can be used with the in-expression block symbols to indent the
-whole block to the column where the construct is started.  E.g. for Java
+whole block to the column where the construct is started.  E.g., for Java
 anonymous classes, this lines up the class under the @samp{new} keyword,
 and in Pike it lines up the lambda function body under the @samp{lambda}
 keyword.  Returns @code{nil} if the block isn't part of such a
@@ -5793,7 +5793,7 @@ In the first case the indentation is kept unchanged, in the second
 @code{inline-close}, @code{block-close}, @code{brace-list-close},
 @code{brace-list-intro}, @code{statement-block-intro},
 @code{arglist-intro}, @code{arglist-cont-nonempty},
-@code{arglist-close}, and all @code{in*} symbols, e.g. @code{inclass}
+@code{arglist-close}, and all @code{in*} symbols, e.g., @code{inclass}
 and @code{inextern-lang}.
 @end defun
 
@@ -6053,7 +6053,7 @@ if (  x < 10
 
 Since this function doesn't do anything for lines without an infix
 operator you typically want to use it together with some other lineup
-settings, e.g. as follows (the @code{arglist-close} setting is just a
+settings, e.g., as follows (the @code{arglist-close} setting is just a
 suggestion to get a consistent style):
 
 @example
@@ -6087,7 +6087,7 @@ operator too, try to align it with the first one.
 @defun c-lineup-math
 @findex lineup-math (c-)
 Like @code{c-lineup-assignments} but indent with @code{c-basic-offset}
-if no assignment operator was found on the first line.  I.e. this
+if no assignment operator was found on the first line.  I.e., this
 function is the same as specifying a list @code{(c-lineup-assignments
 +)}.  It's provided for compatibility with old configurations.
 
@@ -6123,7 +6123,7 @@ expressions.
 
 @defun c-lineup-streamop
 @findex lineup-streamop (c-)
-Line up C++ stream operators (i.e. @samp{<<} and @samp{>>}).
+Line up C++ stream operators (i.e., @samp{<<} and @samp{>>}).
 
 @workswith @code{stream-op}.
 @end defun
@@ -6204,7 +6204,7 @@ to handle most of the common comment styles.  Some examples:
 @end example
 
 The style variable @code{c-comment-prefix-regexp} is used to recognize
-the comment line prefix, e.g. the @samp{*} that usually starts every
+the comment line prefix, e.g., the @samp{*} that usually starts every
 line inside a comment.
 
 @workswith The @code{c} syntactic symbol.
@@ -6315,7 +6315,7 @@ int dribble() @{
 
 If @code{c-syntactic-indentation-in-macros} is non-@code{nil}, the
 function returns the relative indentation to the macro start line to
-allow accumulation with other offsets.  E.g. in the following cases,
+allow accumulation with other offsets.  E.g., in the following cases,
 @code{cpp-define-intro} is combined with the
 @code{statement-block-intro} that comes from the @samp{do @{} that hangs
 on the @samp{#define} line:
@@ -6390,7 +6390,7 @@ The @samp{x} line is aligned to the text after the @samp{:} on the
 This is done only in an @samp{asm} or @samp{__asm__} block, and only to
 those lines mentioned.  Anywhere else @code{nil} is returned.  The usual
 arrangement is to have this routine as an extra feature at the start of
-arglist lineups, e.g.
+arglist lineups, e.g.:
 
 @example
 (c-lineup-gcc-asm-reg c-lineup-arglist)
@@ -6486,7 +6486,7 @@ another line-up function.  Full details of these are in
 
 Line-up functions must not move point or change the content of the
 buffer (except temporarily).  They are however allowed to do
-@dfn{hidden buffer changes}, i.e. setting text properties for caching
+@dfn{hidden buffer changes}, i.e., setting text properties for caching
 purposes etc.  Buffer undo recording is disabled while they run.
 
 The syntactic element passed as the parameter to a line-up function is
@@ -6514,7 +6514,7 @@ your setup for this by using the access functions
 @vindex syntactic-element (c-)
 @vindex c-syntactic-context
 @vindex syntactic-context (c-)
-Some syntactic symbols, e.g. @code{arglist-cont-nonempty}, have more
+Some syntactic symbols, e.g., @code{arglist-cont-nonempty}, have more
 info in the syntactic element - typically other positions that can be
 interesting besides the anchor position.  That info can't be accessed
 through the passed argument, which is a cons cell.  Instead, you can
@@ -6600,9 +6600,9 @@ Line-Up}).
 
 When the indentation engine calls this hook, the variable
 @code{c-syntactic-context} is bound to the current syntactic context
-(i.e. what you would get by typing @kbd{C-c C-s} on the source line.
+(i.e., what you would get by typing @kbd{C-c C-s} on the source line.
 @xref{Custom Braces}.).  Note that you should not change point or mark
-inside a @code{c-special-indent-hook} function, i.e. you'll probably
+inside a @code{c-special-indent-hook} function, i.e., you'll probably
 want to wrap your function in a @code{save-excursion}@footnote{The
 numerical value returned by @code{point} will change if you change the
 indentation of the line within a @code{save-excursion} form, but point
@@ -6673,11 +6673,11 @@ customized with these variables:
 These variables control the alignment columns for line continuation
 backslashes in multiline macros.  They are used by the functions that
 automatically insert or align such backslashes,
-e.g. @code{c-backslash-region} and @code{c-context-line-break}.
+e.g., @code{c-backslash-region} and @code{c-context-line-break}.
 
 @code{c-backslash-column} specifies the minimum column for the
 backslashes.  If any line in the macro goes past this column, then the
-next tab stop (i.e. next multiple of @code{tab-width}) in that line is
+next tab stop (i.e., next multiple of @code{tab-width}) in that line is
 used as the alignment column for all the backslashes, so that they
 remain in a single column.  However, if any lines go past
 @code{c-backslash-max-column} then the backslashes in the rest of the
@@ -6693,7 +6693,7 @@ the automatic alignment of backslashes, use
 @vindex auto-align-backslashes (c-)
 Align automatically inserted line continuation backslashes if
 non-@code{nil}.  When line continuation backslashes are inserted
-automatically for line breaks in multiline macros, e.g. by
+automatically for line breaks in multiline macros, e.g., by
 @code{c-context-line-break}, they are aligned with the other
 backslashes in the same macro if this flag is set.
 
@@ -6878,9 +6878,9 @@ pathological code can cause @ccmode{} to perform fairly badly.  This
 section gives some insight in how @ccmode{} operates, how that interacts
 with some coding styles, and what you can use to improve performance.
 
-The overall goal is that @ccmode{} shouldn't be overly slow (i.e. take
+The overall goal is that @ccmode{} shouldn't be overly slow (i.e., take
 more than a fraction of a second) in any interactive operation.
-I.e. it's tuned to limit the maximum response time in single operations,
+I.e., it's tuned to limit the maximum response time in single operations,
 which is sometimes at the expense of batch-like operations like
 reindenting whole blocks.  If you find that @ccmode{} gradually gets
 slower and slower in certain situations, perhaps as the file grows in
@@ -6898,7 +6898,7 @@ gets.
 
 @findex beginning-of-defun
 In earlier versions of @ccmode{}, we used to recommend putting the
-opening brace of a top-level construct@footnote{E.g. a function in C,
+opening brace of a top-level construct@footnote{E.g., a function in C,
 or outermost class definition in C++ or Java.} into the leftmost
 column.  Earlier still, this used to be a rigid Emacs constraint, as
 embodied in the @code{beginning-of-defun} function.  @ccmode now
@@ -6940,7 +6940,7 @@ XEmacs users can set the variable
 tells @ccmode{} to use XEmacs-specific built-in functions which, in some
 circumstances, can locate the top-most opening brace much more quickly than
 @code{beginning-of-defun}.  Preliminary testing has shown that for
-styles where these braces are hung (e.g. most JDK-derived Java styles),
+styles where these braces are hung (e.g., most JDK-derived Java styles),
 this hack can improve performance of the core syntax parsing routines
 from 3 to 60 times.  However, for styles which @emph{do} conform to
 Emacs's recommended style of putting top-level braces in column zero,
@@ -6951,7 +6951,7 @@ in Emacs since the necessary built-in functions don't exist (in Emacs
 22.1 as of this writing in February 2007).
 
 Text properties are used to speed up skipping over syntactic whitespace,
-i.e. comments and preprocessor directives.  Indenting a line after a
+i.e., comments and preprocessor directives.  Indenting a line after a
 huge macro definition can be slow the first time, but after that the
 text properties are in place and it should be fast (even after you've
 edited other parts of the file and then moved back).
@@ -6959,7 +6959,7 @@ edited other parts of the file and then moved back).
 Font locking can be a CPU hog, especially the font locking done on
 decoration level 3 which tries to be very accurate.  Note that that
 level is designed to be used with a font lock support mode that only
-fontifies the text that's actually shown, i.e. Lazy Lock or Just-in-time
+fontifies the text that's actually shown, i.e., Lazy Lock or Just-in-time
 Lock mode, so make sure you use one of them.  Fontification of a whole
 buffer with some thousand lines can often take over a minute.  That is
 a known weakness; the idea is that it never should happen.
@@ -6998,14 +6998,14 @@ geared to be used interactively to edit new code.  There's currently no
 intention to change this goal.
 
 If you want to reformat old code, you're probably better off using some
-other tool instead, e.g. @ref{Top, , GNU indent, indent, The `indent'
+other tool instead, e.g., @ref{Top, , GNU indent, indent, The `indent'
 Manual}, which has more powerful reformatting capabilities than
 @ccmode{}.
 
 @item
 The support for C++ templates (in angle brackets) is not yet complete.
 When a non-nested template is used in a declaration, @ccmode{} indents
-it and font-locks it OK.  Templates used in expressions, and nested
+it and font-locks it OK@.  Templates used in expressions, and nested
 templates do not fare so well.  Sometimes a workaround is to refontify
 the expression after typing the closing @samp{>}.
 
@@ -7063,7 +7063,7 @@ too by adding this to your @code{c-initialization-hook}:
 @end example
 
 @xref{Getting Started}.  This is a very common question.  If you want
-this to be the default behavior, don't lobby us, lobby RMS!  @t{:-)}
+this to be the default behavior, don't lobby us, lobby RMS@!  @t{:-)}
 
 @item
 @emph{How do I stop my code jumping all over the place when I type?}
@@ -7169,7 +7169,7 @@ to include any code that appears @emph{before} your bug example, if
 you think it might affect our ability to reproduce it.
 
 Please try to produce the problem in an Emacs instance without any
-customizations loaded (i.e. start it with the @samp{-q --no-site-file}
+customizations loaded (i.e., start it with the @samp{-q --no-site-file}
 arguments).  If it works correctly there, the problem might be caused
 by faulty customizations in either your own or your site
 configuration.  In that case, we'd appreciate it if you isolate the

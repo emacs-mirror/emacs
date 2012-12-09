@@ -478,7 +478,7 @@ Capture - Refile - Archive
 * Capture::                     Capturing new stuff
 * Attachments::                 Add files to tasks
 * RSS Feeds::                   Getting input from RSS feeds
-* Protocols::                   External (e.g.@: Browser) access to Emacs and Org
+* Protocols::                   External (e.g., Browser) access to Emacs and Org
 * Refiling notes::              Moving a tree from one place to another
 * Archiving::                   What to do with finished projects
 
@@ -838,7 +838,7 @@ ends, for example:
 @cindex FAQ
 There is a website for Org which provides links to the newest
 version of Org, as well as additional information, frequently asked
-questions (FAQ), links to tutorials, etc@.  This page is located at
+questions (FAQ), links to tutorials, etc.  This page is located at
 @uref{http://orgmode.org}.
 
 @cindex print edition
@@ -996,7 +996,7 @@ packages, please take the time to check the list (@pxref{Conflicts}).
 
 The four Org commands @command{org-store-link}, @command{org-capture},
 @command{org-agenda}, and @command{org-iswitchb} should be accessible through
-global keys (i.e.@: anywhere in Emacs, not just in Org buffers).  Here are
+global keys (i.e., anywhere in Emacs, not just in Org buffers).  Here are
 suggested bindings for these keys, please modify the keys to your own
 liking.
 @lisp
@@ -1324,7 +1324,7 @@ Expose all the headings of the subtree, CONTENT view for just one subtree.
 @cindex show children, command
 @orgcmd{C-c @key{TAB},show-children}
 Expose all direct children of the subtree.  With a numeric prefix argument N,
-expose all children down to level N.
+expose all children down to level N@.
 @orgcmd{C-c C-x b,org-tree-to-indirect-buffer}
 Show the current subtree in an indirect buffer@footnote{The indirect
 buffer
@@ -1351,7 +1351,7 @@ Copy the @i{visible} text in the region into the kill ring.
 @cindex @code{showeverything}, STARTUP keyword
 
 When Emacs first visits an Org file, the global state is set to
-OVERVIEW, i.e.@: only the top level headlines are visible.  This can be
+OVERVIEW, i.e., only the top level headlines are visible.  This can be
 configured through the variable @code{org-startup-folded}, or on a
 per-file basis by adding one of the following lines anywhere in the
 buffer:
@@ -1371,7 +1371,7 @@ for this property are @code{folded}, @code{children}, @code{content}, and
 @code{all}.
 @table @asis
 @orgcmd{C-u C-u @key{TAB},org-set-startup-visibility}
-Switch back to the startup visibility of the buffer, i.e.@: whatever is
+Switch back to the startup visibility of the buffer, i.e., whatever is
 requested by startup options and @samp{VISIBILITY} properties in individual
 entries.
 @end table
@@ -1440,7 +1440,7 @@ headline@footnote{If you do not want the line to be split, customize the
 variable @code{org-M-RET-may-split-line}.}.  If the command is used at the
 beginning of a headline, the new headline is created before the current line.
 If at the beginning of any other line, the content of that line is made the
-new heading.  If the command is used at the end of a folded subtree (i.e.@:
+new heading.  If the command is used at the end of a folded subtree (i.e.,
 behind the ellipses at the end of a headline), then a headline like the
 current one will be inserted after the end of the subtree.
 @orgcmd{C-@key{RET},org-insert-heading-respect-content}
@@ -1474,7 +1474,7 @@ level).
 @orgcmd{M-S-@key{down},org-move-subtree-down}
 Move subtree down (swap with next subtree of same level).
 @orgcmd{C-c C-x C-w,org-cut-subtree}
-Kill subtree, i.e.@: remove it from buffer but save in kill ring.
+Kill subtree, i.e., remove it from buffer but save in kill ring.
 With a numeric prefix argument N, kill N sequential subtrees.
 @orgcmd{C-c C-x M-w,org-copy-subtree}
 Copy subtree to kill ring.  With a numeric prefix argument N, copy the N
@@ -1649,7 +1649,7 @@ a right parenthesis@footnote{You can filter out any of them by configuring
 @samp{A)} by configuring @code{org-alphabetical-lists}.  To minimize
 confusion with normal text, those are limited to one character only.  Beyond
 that limit, bullets will automatically fallback to numbers.}.  If you want a
-list to start with a different value (e.g.@: 20), start the text of the item
+list to start with a different value (e.g., 20), start the text of the item
 with @code{[@@20]}@footnote{If there's a checkbox in the item, the cookie
 must be put @emph{before} the checkbox.  If you have activated alphabetical
 lists, you can also use counters like @code{[@@b]}.}.  Those constructs can
@@ -1896,7 +1896,7 @@ or on a per-file basis by using
 Org mode supports the creation of footnotes.  In contrast to the
 @file{footnote.el} package, Org mode's footnotes are designed for work on a
 larger document, not only for one-off documents like emails.  The basic
-syntax is similar to the one used by @file{footnote.el}, i.e.@: a footnote is
+syntax is similar to the one used by @file{footnote.el}, i.e., a footnote is
 defined in a paragraph that is started by a footnote marker in square
 brackets in column 0, no indentation allowed.  If you need a paragraph break
 inside a footnote, use the @LaTeX{} idiom @samp{\par}.  The footnote reference
@@ -1973,7 +1973,7 @@ S   @r{Short for first @code{r}, then @code{s} action.}
 n   @r{Normalize the footnotes by collecting all definitions (including}
     @r{inline definitions) into a special section, and then numbering them}
     @r{in sequence.  The references will then also be numbers.  This is}
-    @r{meant to be the final step before finishing a document (e.g.@: sending}
+    @r{meant to be the final step before finishing a document (e.g., sending}
     @r{off an email).  The exporters do this automatically, and so could}
     @r{something like @code{message-send-hook}.}
 d   @r{Delete the footnote at point, and all definitions of and references}
@@ -2044,7 +2044,7 @@ calculations are supported using the Emacs @file{calc} package
 @section The built-in table editor
 @cindex table editor, built-in
 
-Org makes it easy to format tables in plain ASCII.  Any line with @samp{|} as
+Org makes it easy to format tables in plain ASCII@.  Any line with @samp{|} as
 the first non-whitespace character is considered part of a table.  @samp{|}
 is also the column separator@footnote{To insert a vertical bar into a table
 field, use @code{\vert} or, inside a word @code{abc\vert@{@}def}.}.  A table
@@ -2429,7 +2429,7 @@ representation that looks like this:
 @end example
 
 Column specifications can be absolute like @code{$1},
-@code{$2},...@code{$@var{N}}, or relative to the current column (i.e.@: the
+@code{$2},...@code{$@var{N}}, or relative to the current column (i.e., the
 column of the field which is being computed) like @code{$+1} or @code{$-2}.
 @code{$<} and @code{$>} are immutable references to the first and last
 column, respectively, and you can use @code{$>>>} to indicate the third
@@ -2445,13 +2445,13 @@ a stable way to the 5th and 12th field in the last row of the table.
 However, this syntax is deprecated, it should not be used for new documents.
 Use @code{@@>$} instead.} row in the table, respectively.  You may also
 specify the row relative to one of the hlines: @code{@@I} refers to the first
-hline, @code{@@II} to the second, etc@.  @code{@@-I} refers to the first such
+hline, @code{@@II} to the second, etc.  @code{@@-I} refers to the first such
 line above the current line, @code{@@+I} to the first such line below the
 current line.  You can also write @code{@@III+2} which is the second data line
 after the third hline in the table.
 
 @code{@@0} and @code{$0} refer to the current row and column, respectively,
-i.e. to the row/column for the field being computed.  Also, if you omit
+i.e., to the row/column for the field being computed.  Also, if you omit
 either the column or the row part of the reference, the current row/column is
 implied.
 
@@ -2810,7 +2810,7 @@ following command:
 Install a new formula for the current column and replace current field with
 the result of the formula.  The command prompts for a formula, with default
 taken from the @samp{#+TBLFM} line, applies it to the current field and
-stores it.  With a numeric prefix argument(e.g.@: @kbd{C-5 C-c =}) the command
+stores it.  With a numeric prefix argument(e.g., @kbd{C-5 C-c =}) the command
 will apply it to that many consecutive fields in the current column.
 @end table
 
@@ -3115,7 +3115,7 @@ Specify whether the plot will be @code{2d}, @code{3d}, or @code{grid}.
 
 @item with
 Specify a @code{with} option to be inserted for every col being plotted
-(e.g.@: @code{lines}, @code{points}, @code{boxes}, @code{impulses}, etc...).
+(e.g., @code{lines}, @code{points}, @code{boxes}, @code{impulses}, etc...).
 Defaults to @code{lines}.
 
 @item file
@@ -3519,7 +3519,7 @@ variable @code{org-display-internal-link-with-indirect-buffer}}.
 @cindex @code{inlineimages}, STARTUP keyword
 @cindex @code{noinlineimages}, STARTUP keyword
 Toggle the inline display of linked images.  Normally this will only inline
-images that have no description part in the link, i.e.@: images that will also
+images that have no description part in the link, i.e., images that will also
 be inlined during export.  When called with a prefix argument, also display
 images that do have a link description.  You can ask for inline images to be
 displayed at startup by configuring the variable
@@ -3629,7 +3629,7 @@ can define them in the file with
 @noindent
 In-buffer completion (@pxref{Completion}) can be used after @samp{[} to
 complete link abbreviations.  You may also define a function
-@code{org-PREFIX-complete-link} that implements special (e.g.@: completion)
+@code{org-PREFIX-complete-link} that implements special (e.g., completion)
 support for inserting such a link with @kbd{C-c C-l}.  Such a function should
 not accept any arguments, and return the full link with prefix.
 
@@ -3781,7 +3781,7 @@ with @code{shift-selection-mode}.  See also the variable
 View TODO items in a @emph{sparse tree} (@pxref{Sparse trees}).  Folds the
 entire buffer, but shows all TODO items (with not-DONE state) and the
 headings hierarchy above them.  With a prefix argument (or by using @kbd{C-c
-/ T}), search for a specific TODO.  You will be prompted for the keyword, and
+/ T}), search for a specific TODO@.  You will be prompted for the keyword, and
 you can also give a list of keywords like @code{KWD1|KWD2|...} to list
 entries that match any one of these keywords.  With a numeric prefix argument
 N, show the tree for the Nth keyword in the variable
@@ -3808,7 +3808,7 @@ option @code{org-todo-state-tags-triggers} for details.
 
 @vindex org-todo-keywords
 By default, marked TODO entries have one of only two states: TODO and
-DONE.  Org mode allows you to classify TODO items in more complex ways
+DONE@.  Org mode allows you to classify TODO items in more complex ways
 with @emph{TODO keywords} (stored in @code{org-todo-keywords}).  With
 special setup, the TODO keyword system can work differently in different
 files.
@@ -3847,9 +3847,9 @@ you don't provide the separator bar, the last state is used as the DONE
 state.
 @cindex completion, of TODO keywords
 With this setup, the command @kbd{C-c C-t} will cycle an entry from TODO
-to FEEDBACK, then to VERIFY, and finally to DONE and DELEGATED.  You may
+to FEEDBACK, then to VERIFY, and finally to DONE and DELEGATED@.  You may
 also use a numeric prefix argument to quickly select a specific state.  For
-example @kbd{C-3 C-c C-t} will change the state immediately to VERIFY.
+example @kbd{C-3 C-c C-t} will change the state immediately to VERIFY@.
 Or you can use @kbd{S-@key{left}} to go backward through the sequence.  If you
 define many keywords, you can use in-buffer completion
 (@pxref{Completion}) or even a special one-key selection scheme
@@ -3876,13 +3876,13 @@ be set up like this:
 
 In this case, different keywords do not indicate a sequence, but rather
 different types.  So the normal work flow would be to assign a task to a
-person, and later to mark it DONE.  Org mode supports this style by adapting
+person, and later to mark it DONE@.  Org mode supports this style by adapting
 the workings of the command @kbd{C-c C-t}@footnote{This is also true for the
 @kbd{t} command in the timeline and agenda buffers.}.  When used several
 times in succession, it will still cycle through all names, in order to first
 select the right type for a task.  But when you return to the item after some
 time and execute @kbd{C-c C-t} again, it will switch from any name directly
-to DONE.  Use prefix arguments or completion to quickly select a specific
+to DONE@.  Use prefix arguments or completion to quickly select a specific
 name.  You can also review the items of a specific TODO type in a sparse tree
 by using a numeric prefix to @kbd{C-c / t}.  For example, to see all things
 Lucy has to do, you would use @kbd{C-3 C-c / t}.  To collect Lucy's items
@@ -4047,13 +4047,13 @@ foreground or a background color.
 @cindex property, ORDERED
 The structure of Org files (hierarchy and lists) makes it easy to define TODO
 dependencies.  Usually, a parent TODO task should not be marked DONE until
-all subtasks (defined as children tasks) are marked as DONE.  And sometimes
+all subtasks (defined as children tasks) are marked as DONE@.  And sometimes
 there is a logical sequence to a number of (sub)tasks, so that one task
 cannot be acted upon before all siblings above it are done.  If you customize
 the variable @code{org-enforce-todo-dependencies}, Org will block entries
-from changing state to DONE while they have children that are not DONE.
+from changing state to DONE while they have children that are not DONE@.
 Furthermore, if an entry has a property @code{ORDERED}, each of its children
-will be blocked until all earlier siblings are marked DONE.  Here is an
+will be blocked until all earlier siblings are marked DONE@.  Here is an
 example:
 
 @example
@@ -4194,7 +4194,7 @@ when you are using both @code{org-log-done} and state change logging.
 However, it will never prompt for two notes---if you have configured
 both, the state change recording note will take precedence and cancel
 the @samp{Closing Note}.}, and that a note is recorded when switching to
-WAIT or CANCELED.  The setting for WAIT is even more special: the
+WAIT or CANCELED@.  The setting for WAIT is even more special: the
 @samp{!} after the slash means that in addition to the note taken when
 entering the state, a timestamp should be recorded when @i{leaving} the
 WAIT state, if and only if the @i{target} state does not configure
@@ -5265,7 +5265,7 @@ values.
 
 @noindent
 The first column, @samp{%25ITEM}, means the first 25 characters of the
-item itself, i.e.@: of the headline.  You probably always should start the
+item itself, i.e., of the headline.  You probably always should start the
 column definition with the @samp{ITEM} specifier.  The other specifiers
 create columns @samp{Owner} with a list of names as allowed values, for
 @samp{Status} with four different possible values, and for a checkbox
@@ -5666,7 +5666,7 @@ letter ([dwmy]) to indicate change in days, weeks, months, or years.  With a
 single plus or minus, the date is always relative to today.  With a
 double plus or minus, it is relative to the default date.  If instead of
 a single letter, you use the abbreviation of day name, the date will be
-the Nth such day, e.g.@:
+the Nth such day, e.g.:
 
 @example
 +0            @result{} today
@@ -5694,7 +5694,7 @@ read the docstring of the variable
 You can specify a time range by giving start and end times or by giving a
 start time and a duration (in HH:MM format).  Use one or two dash(es) as the
 separator in the former case and use '+' as the separator in the latter
-case, e.g.@:
+case, e.g.:
 
 @example
 11am-1:15pm    @result{} 11:00-13:15
@@ -5807,7 +5807,7 @@ On the deadline date, the task will be listed in the agenda.  In
 addition, the agenda for @emph{today} will carry a warning about the
 approaching or missed deadline, starting
 @code{org-deadline-warning-days} before the due date, and continuing
-until the entry is marked DONE.  An example:
+until the entry is marked DONE@.  An example:
 
 @example
 *** TODO write article about the Earth for the Guide
@@ -5827,10 +5827,10 @@ date.
 
 @vindex org-agenda-skip-scheduled-if-done
 The headline will be listed under the given date@footnote{It will still
-be listed on that date after it has been marked DONE.  If you don't like
+be listed on that date after it has been marked DONE@.  If you don't like
 this, set the variable @code{org-agenda-skip-scheduled-if-done}.}.  In
 addition, a reminder that the scheduled date has passed will be present
-in the compilation for @emph{today}, until the entry is marked DONE, i.e.@:
+in the compilation for @emph{today}, until the entry is marked DONE, i.e.,
 the task will automatically be forwarded until completed.
 
 @example
@@ -5919,7 +5919,7 @@ Sparse tree for deadlines and scheduled items after a given date.
 @end table
 
 Note that @code{org-schedule} and @code{org-deadline} supports
-setting the date by indicating a relative time: e.g. +1d will set
+setting the date by indicating a relative time: e.g., +1d will set
 the date to the next day after today, and --1w will set the date
 to the previous week before any current timestamp.
 
@@ -6488,7 +6488,7 @@ trees to an archive file keeps the system compact and fast.
 * Capture::                     Capturing new stuff
 * Attachments::                 Add files to tasks
 * RSS Feeds::                   Getting input from RSS feeds
-* Protocols::                   External (e.g.@: Browser) access to Emacs and Org
+* Protocols::                   External (e.g., Browser) access to Emacs and Org
 * Refiling notes::              Moving a tree from one place to another
 * Archiving::                   What to do with finished projects
 @end menu
@@ -7676,7 +7676,7 @@ commands}.
 
 @cindex Boolean logic, for tag/property searches
 A search string can use Boolean operators @samp{&} for AND and @samp{|} for
-OR.  @samp{&} binds more strongly than @samp{|}.  Parentheses are currently
+OR@.  @samp{&} binds more strongly than @samp{|}.  Parentheses are currently
 not implemented.  Each element in the search is either a tag, a regular
 expression matching tags, or an expression like @code{PROPERTY OPERATOR
 VALUE} with a comparison operator, accessing a property value.  Each element
@@ -7712,7 +7712,7 @@ example, the ``property'' @code{TODO} represents the TODO keyword of the
 entry.  Or, the ``property'' @code{LEVEL} represents the level of an entry.
 So a search @samp{+LEVEL=3+boss-TODO="DONE"} lists all level three headlines
 that have the tag @samp{boss} and are @emph{not} marked with the TODO keyword
-DONE.  In buffers with @code{org-odd-levels-only} set, @samp{LEVEL} does not
+DONE@.  In buffers with @code{org-odd-levels-only} set, @samp{LEVEL} does not
 count the number of stars, but @samp{LEVEL=2} will correspond to 3 stars etc.
 The ITEM special property cannot currently be used in tags/property
 searches@footnote{But @pxref{x-agenda-skip-entry-regexp,
@@ -7751,7 +7751,7 @@ brackets (like @samp{DEADLINE<="<2008-12-24 18:30>"}), both values are
 assumed to be date/time specifications in the standard Org way, and the
 comparison will be done accordingly.  Special values that will be recognized
 are @code{"<now>"} for now (including time), and @code{"<today>"}, and
-@code{"<tomorrow>"} for these days at 0:00 hours, i.e.@: without a time
+@code{"<tomorrow>"} for these days at 0:00 hours, i.e., without a time
 specification.  Also strings like @code{"<+5d>"} or @code{"<-2m>"} with units
 @code{d}, @code{w}, @code{m}, and @code{y} for day, week, month, and year,
 respectively, can be used.
@@ -7784,7 +7784,7 @@ tags/property part of the search string (which may include several terms
 connected with @samp{|}) with a @samp{/} and then specify a Boolean
 expression just for TODO keywords.  The syntax is then similar to that for
 tags, but should be applied with care: for example, a positive selection on
-several TODO keywords cannot meaningfully be combined with boolean AND.
+several TODO keywords cannot meaningfully be combined with boolean AND@.
 However, @emph{negative selection} combined with AND can be meaningful.  To
 make sure that only lines are checked that actually have any TODO keyword
 (resulting in a speed-up), use @kbd{C-c a M}, or equivalently start the TODO
@@ -8175,7 +8175,7 @@ always show a table with the clocked times for the timespan and file scope
 covered by the current agenda view.  The initial setting for this mode in new
 agenda buffers can be set with the variable
 @code{org-agenda-start-with-clockreport-mode}.  By using a prefix argument
-when toggling this mode (i.e.@: @kbd{C-u R}), the clock table will not show
+when toggling this mode (i.e., @kbd{C-u R}), the clock table will not show
 contributions from entries that are hidden by agenda filtering@footnote{Only
 tags filtering will be respected here, effort filtering is ignored.}.  See
 also the variable @code{org-clock-report-include-clocking-task}.
@@ -9337,7 +9337,7 @@ switch to the end of the @code{BEGIN} line, to get the lines of the example
 numbered.  If you use a @code{+n} switch, the numbering from the previous
 numbered snippet will be continued in the current one.  In literal examples,
 Org will interpret strings like @samp{(ref:name)} as labels, and use them as
-targets for special hyperlinks like @code{[[(name)]]} (i.e.@: the reference name
+targets for special hyperlinks like @code{[[(name)]]} (i.e., the reference name
 enclosed in single parenthesis).  In HTML, hovering the mouse over such a
 link will remote-highlight the corresponding code line, which is kind of
 cool.
@@ -9408,7 +9408,7 @@ include your @file{.emacs} file, you could use:
 #+INCLUDE: "~/.emacs" src emacs-lisp
 @end example
 @noindent
-The optional second and third parameter are the markup (e.g.@: @samp{quote},
+The optional second and third parameter are the markup (e.g., @samp{quote},
 @samp{example}, or @samp{src}), and, if the markup is @samp{src}, the
 language for formatting the contents.  The markup is optional; if it is not
 given, the text will be assumed to be in Org mode format and will be
@@ -9866,13 +9866,13 @@ Insert template with export options, see example below.
 #+AUTHOR:      the author (default taken from @code{user-full-name})
 #+DATE:        a date, an Org timestamp@footnote{@code{org-export-date-timestamp-format} defines how this timestamp will be exported.}, or a format string for @code{format-time-string}
 #+EMAIL:       his/her email address (default from @code{user-mail-address})
-#+DESCRIPTION: the page description, e.g.@: for the XHTML meta tag
-#+KEYWORDS:    the page keywords, e.g.@: for the XHTML meta tag
-#+LANGUAGE:    language for HTML, e.g.@: @samp{en} (@code{org-export-default-language})
+#+DESCRIPTION: the page description, e.g., for the XHTML meta tag
+#+KEYWORDS:    the page keywords, e.g., for the XHTML meta tag
+#+LANGUAGE:    language for HTML, e.g., @samp{en} (@code{org-export-default-language})
 #+TEXT:        Some descriptive text to be inserted at the beginning.
 #+TEXT:        Several lines may be given.
 #+OPTIONS:     H:2 num:t toc:t \n:nil @@:t ::t |:t ^:t f:t TeX:t ...
-#+BIND:        lisp-var lisp-val, e.g.@:: @code{org-export-latex-low-levels itemize}
+#+BIND:        lisp-var lisp-val, e.g., @code{org-export-latex-low-levels itemize}
                @r{You need to confirm using these, or configure @code{org-export-allow-BIND}}
 #+LINK_UP:     the ``up'' link of an exported page
 #+LINK_HOME:   the ``home'' link of an exported page
@@ -9972,11 +9972,11 @@ separate Emacs process@footnote{To make this behavior the default, customize
 the variable @code{org-export-run-in-background}.}.
 @orgcmd{C-c C-e v,org-export-visible}
 Like @kbd{C-c C-e}, but only export the text that is currently visible
-(i.e.@: not hidden by outline visibility).
+(i.e., not hidden by outline visibility).
 @orgcmd{C-u C-u C-c C-e,org-export}
 @vindex org-export-run-in-background
 Call the exporter, but reverse the setting of
-@code{org-export-run-in-background}, i.e.@: request background processing if
+@code{org-export-run-in-background}, i.e., request background processing if
 not set, or force processing in the current Emacs process if set.
 @end table
 
@@ -9987,7 +9987,7 @@ not set, or force processing in the current Emacs process if set.
 @cindex UTF-8 export
 
 ASCII export produces a simple and very readable version of an Org mode
-file, containing only plain ASCII.  Latin-1 and UTF-8 export augment the file
+file, containing only plain ASCII@.  Latin-1 and UTF-8 export augment the file
 with special characters and symbols available in these encodings.
 
 @cindex region, active
@@ -10179,7 +10179,7 @@ All lines between these markers are exported literally
 @cindex links, in HTML export
 @cindex internal links, in HTML export
 @cindex external links, in HTML export
-Internal links (@pxref{Internal links}) will continue to work in HTML.  This
+Internal links (@pxref{Internal links}) will continue to work in HTML@.  This
 includes automatic links created by radio targets (@pxref{Radio
 targets}).  Links to external files will still work if the target file is on
 the same @i{relative} path as the published Org file.  Links to other
@@ -10919,7 +10919,7 @@ exported DocBook XML files invalid by not quoting DocBook code correctly.
 @cindex DocBook recursive sections
 
 DocBook exporter exports Org files as articles using the @code{article}
-element in DocBook.  Recursive sections, i.e.@: @code{section} elements, are
+element in DocBook.  Recursive sections, i.e., @code{section} elements, are
 used in exported articles.  Top level headlines in Org files are exported as
 top level sections, and lower level headlines are exported as nested
 sections.  The entire structure of Org files will be exported completely, no
@@ -11996,7 +11996,7 @@ time.
 
 @subsection Export of properties
 
-The exporter also takes TODO state information into consideration, i.e.@: if a
+The exporter also takes TODO state information into consideration, i.e., if a
 task is marked as done it will have the corresponding attribute in
 TaskJuggler (@samp{complete 100}).  Also it will export any property on a task
 resource or resource node which is known to TaskJuggler, such as
@@ -12048,7 +12048,7 @@ examples should illustrate this:
 @subsection Reports
 
 @vindex org-export-taskjuggler-default-reports
-TaskJuggler can produce many kinds of reports (e.g.@: gantt chart, resource
+TaskJuggler can produce many kinds of reports (e.g., gantt chart, resource
 allocation, etc).  The user defines what kind of reports should be generated
 for a project in the TaskJuggler file.  The exporter will automatically insert
 some default reports in the file.  These defaults are defined in
@@ -12104,7 +12104,7 @@ files in the calendar application.  Org mode can export calendar information
 in the standard iCalendar format.  If you also want to have TODO entries
 included in the export, configure the variable
 @code{org-icalendar-include-todo}.  Plain timestamps are exported as VEVENT,
-and TODO items as VTODO.  It will also create events from deadlines that are
+and TODO items as VTODO@.  It will also create events from deadlines that are
 in non-TODO items.  Deadlines and scheduling dates in TODO items will be used
 to set the start and due dates for the TODO entry@footnote{See the variables
 @code{org-icalendar-use-deadline} and @code{org-icalendar-use-scheduled}.}.
@@ -12208,7 +12208,7 @@ configures one project, and may be in one of the two following forms:
 
 @lisp
    ("project-name" :property value :property value ...)
-     @r{i.e.@: a well-formed property list with alternating keys and values}
+     @r{i.e., a well-formed property list with alternating keys and values}
 @r{or}
    ("project-name" :components ("project-name" "project-name" ...))
 
@@ -12452,7 +12452,7 @@ something like @samp{[[file:foo.org][The foo]]} or simply
 @samp{file:foo.org.} (@pxref{Hyperlinks}).  When published, this link
 becomes a link to @file{foo.html}.  In this way, you can interlink the
 pages of your "org web" project and the links will work as expected when
-you publish them to HTML.  If you also publish the Org source file and want
+you publish them to HTML@.  If you also publish the Org source file and want
 to link to that, use an @code{http:} link instead of a @code{file:} link,
 because @code{file:} links are converted to link to the corresponding
 @file{html} file.
@@ -12704,7 +12704,7 @@ This may be necessary in particular if files include other files via
 @cindex source code, working with
 
 Source code can be included in Org mode documents using a @samp{src} block,
-e.g.@:
+e.g.:
 
 @example
 #+BEGIN_SRC emacs-lisp
@@ -12852,7 +12852,7 @@ variable @code{org-src-fontify-natively}.
 It is possible to export the @emph{code} of code blocks, the @emph{results}
 of code block evaluation, @emph{both} the code and the results of code block
 evaluation, or @emph{none}.  For most languages, the default exports code.
-However, for some languages (e.g.@: @code{ditaa}) the default exports the
+However, for some languages (e.g., @code{ditaa}) the default exports the
 results of code block evaluation.  For information on exporting code block
 bodies, see @ref{Literal examples}.
 
@@ -13737,7 +13737,7 @@ then not supplying @code{:dir}.  Under the surface, @code{:dir} simply sets
 the value of the Emacs variable @code{default-directory}.
 
 When using @code{:dir}, you should supply a relative path for file output
-(e.g.@: @code{:file myfile.jpg} or @code{:file results/myfile.jpg}) in which
+(e.g., @code{:file myfile.jpg} or @code{:file results/myfile.jpg}) in which
 case that path will be interpreted relative to the default directory.
 
 In other words, if you want your plot to go into a folder called @file{Work}
@@ -14177,7 +14177,7 @@ No column name pre-processing takes place
 
 @item @code{yes}
 Column names are removed and reapplied as with @code{nil} even if the table
-does not ``look like'' it has column names (i.e.@: the second row is not an
+does not ``look like'' it has column names (i.e., the second row is not an
 hline)
 @end itemize
 
@@ -14219,7 +14219,7 @@ variable indexing @xref{var, Indexable variable values}.
 @subsubsection @code{:shebang}
 
 Setting the @code{:shebang} header argument to a string value
-(e.g.@: @code{:shebang "#!/bin/bash"}) causes the string to be inserted as the
+(e.g., @code{:shebang "#!/bin/bash"}) causes the string to be inserted as the
 first line of any tangled file holding the code block, and the file
 permissions of the tangled file are set to make it executable.
 
@@ -14604,7 +14604,7 @@ option keyword is already complete, pressing @kbd{M-@key{TAB}} again
 will insert example settings for this keyword.
 @item
 In the line after @samp{#+STARTUP: }, complete startup keywords,
-i.e.@: valid keys for this line.
+i.e., valid keys for this line.
 @item
 Elsewhere, complete dictionary words using Ispell.
 @end itemize
@@ -14657,7 +14657,7 @@ additional details.
 @vindex org-speed-commands-user
 
 Single keys can be made to execute commands when the cursor is at the
-beginning of a headline, i.e.@: before the first star.  Configure the variable
+beginning of a headline, i.e., before the first star.  Configure the variable
 @code{org-use-speed-commands} to activate this feature.  There is a
 pre-defined list of commands, and you can add more such commands using the
 variable @code{org-speed-commands-user}.  Speed keys do not only speed up
@@ -14806,7 +14806,7 @@ buffer, most useful for specifying the allowed values of a property.
 @item #+SETUPFILE: file
 This line defines a file that holds more in-buffer setup.  Normally this is
 entirely ignored.  Only when the buffer is parsed for option-setting lines
-(i.e.@: when starting Org mode for a file, when pressing @kbd{C-c C-c} in a
+(i.e., when starting Org mode for a file, when pressing @kbd{C-c C-c} in a
 settings line, or when exporting), then the contents of this file are parsed
 as if they had been included in the buffer.  In particular, the file can be
 any other Org mode file with internal setup.  You can visit the file the
@@ -15168,7 +15168,7 @@ example using the color @code{grey90} on a white background.
 Things become cleaner still if you skip all the even levels and use only odd
 levels 1, 3, 5..., effectively adding two stars to go from one outline level
 to the next@footnote{When you need to specify a level for a property search
-or refile targets, @samp{LEVEL=2} will correspond to 3 stars, etc@.}.  In this
+or refile targets, @samp{LEVEL=2} will correspond to 3 stars, etc.}.  In this
 way we get the outline view shown at the beginning of this section.  In order
 to make the structure editing and export commands handle this convention
 correctly, configure the variable @code{org-odd-levels-only}, or set this on
@@ -15259,7 +15259,7 @@ names for natural constants or units.  Instead of defining your own
 constants in the variable @code{org-table-formula-constants}, install
 the @file{constants} package which defines a large number of constants
 and units, and lets you use unit prefixes like @samp{M} for
-@samp{Mega}, etc@.  You will need version 2.0 of this package, available
+@samp{Mega}, etc.  You will need version 2.0 of this package, available
 at @url{http://www.astro.uva.nl/~dominik/Tools}.  Org checks for
 the function @code{constants-get}, which has to be autoloaded in your
 setup.  See the installation instructions in the file
@@ -15626,7 +15626,7 @@ the link description when the link is later inserted into an Org
 buffer with @kbd{C-c C-l}.
 
 When it makes sense for your new link type, you may also define a function
-@code{org-PREFIX-complete-link} that implements special (e.g.@: completion)
+@code{org-PREFIX-complete-link} that implements special (e.g., completion)
 support for inserting such a link with @kbd{C-c C-l}.  Such a function should
 not accept any arguments, and return the full link with prefix.
 
@@ -15832,9 +15832,9 @@ When you are done, press @kbd{C-c C-c} in the table to get the converted
 table inserted between the two marker lines.
 
 Now let's assume you want to make the table header by hand, because you
-want to control how columns are aligned, etc@.  In this case we make sure
+want to control how columns are aligned, etc.  In this case we make sure
 that the table translator skips the first 2 lines of the source
-table, and tell the command to work as a @i{splice}, i.e.@: to not produce
+table, and tell the command to work as a @i{splice}, i.e., to not produce
 header and footer commands of the target table:
 
 @example
@@ -15917,7 +15917,7 @@ hands processing over to the generic translator.  Here is the entire code:
 
 As you can see, the properties passed into the function (variable
 @var{PARAMS}) are combined with the ones newly defined in the function
-(variable @var{PARAMS2}).  The ones passed into the function (i.e.@: the
+(variable @var{PARAMS2}).  The ones passed into the function (i.e., the
 ones set by the @samp{ORGTBL SEND} line) take precedence.  So if you
 would like to use the @LaTeX{} translator, but wanted the line endings to
 be @samp{\\[2mm]} instead of the default @samp{\\}, you could just
@@ -16086,7 +16086,7 @@ using @code{org-agenda-skip-function}.
 Let's say you want to produce a list of projects that contain a WAITING
 tag anywhere in the project tree.  Let's further assume that you have
 marked all tree headings that define a project with the TODO keyword
-PROJECT.  In this case you would run a TODO search for the keyword
+PROJECT@.  In this case you would run a TODO search for the keyword
 PROJECT, but skip the match unless there is a WAITING tag anywhere in
 the subtree belonging to the project line.
 
@@ -16179,7 +16179,7 @@ line in Emacs batch mode.  This extracted information can be sent
 directly to a printer, or it can be read by a program that does further
 processing of the data.  The first of these commands is the function
 @code{org-batch-agenda}, that produces an agenda view and sends it as
-ASCII text to STDOUT.  The command takes a single string as parameter.
+ASCII text to STDOUT@.  The command takes a single string as parameter.
 If the string has length 1, it is used as a key to one of the commands
 you have configured in @code{org-agenda-custom-commands}, basically any
 key you can use after @kbd{C-c a}.  For example, to directly print the
@@ -16292,7 +16292,7 @@ If WHICH is nil or `all', get all properties.  If WHICH is
 @vindex org-use-property-inheritance
 @findex org-insert-property-drawer
 @defun org-entry-get pom property &optional inherit
-Get value of PROPERTY for entry at point-or-marker POM.  By default,
+Get value of PROPERTY for entry at point-or-marker POM@.  By default,
 this only looks at properties defined locally in the entry.  If INHERIT
 is non-nil and the entry does not have the property, then also check
 higher levels of the hierarchy.  If INHERIT is the symbol
@@ -16317,7 +16317,7 @@ Insert a property drawer for the current entry.  Also
 @end defun
 
 @defun org-entry-put-multivalued-property pom property &rest values
-Set PROPERTY at point-or-marker POM to VALUES.  VALUES should be a list of
+Set PROPERTY at point-or-marker POM to VALUES@.  VALUES should be a list of
 strings.  They will be concatenated, with spaces as separators.
 @end defun
 
@@ -16374,7 +16374,7 @@ does not need to preserve point.  After evaluation, the cursor will be
 moved to the end of the line (presumably of the headline of the
 processed entry) and search continues from there.  Under some
 circumstances, this may not produce the wanted results.  For example,
-if you have removed (e.g.@: archived) the current (sub)tree it could
+if you have removed (e.g., archived) the current (sub)tree it could
 mean that the next entry will be skipped entirely.  In such cases, you
 can specify the position from where search should continue by making
 FUNC set the variable `org-map-continue-from' to the desired buffer

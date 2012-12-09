@@ -1,4 +1,4 @@
-# serial 25
+# serial 26
 
 # Copyright (C) 1997-2001, 2003-2012 Free Software Foundation, Inc.
 #
@@ -27,11 +27,7 @@ AC_DEFUN([gl_FUNC_LSTAT],
 ])
 
 # Prerequisites of lib/lstat.c.
-AC_DEFUN([gl_PREREQ_LSTAT],
-[
-  AC_REQUIRE([AC_C_INLINE])
-  :
-])
+AC_DEFUN([gl_PREREQ_LSTAT], [:])
 
 AC_DEFUN([gl_FUNC_LSTAT_FOLLOWS_SLASHED_SYMLINK],
 [

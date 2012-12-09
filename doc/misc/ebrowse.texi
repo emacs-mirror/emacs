@@ -445,7 +445,7 @@ where no highlight is displayed.
 
 Class trees are displayed in @dfn{tree buffers} which install their own
 major mode.  Most Emacs keys work in tree buffers in the usual way,
-e.g.@: you can move around in the buffer with the usual @kbd{C-f},
+e.g., you can move around in the buffer with the usual @kbd{C-f},
 @kbd{C-v} etc., or you can search with @kbd{C-s}.
 
 Tree-specific commands are bound to simple keystrokes, similar to
@@ -953,7 +953,7 @@ the completion list.  If necessary, the current member list is switched
 to the one containing the member.
 
 With a prefix argument (@kbd{C-u}), all members in the class tree,
-i.e.@: all members the browser knows about appear in the completion
+i.e., all members the browser knows about appear in the completion
 list.  The member display will be switched to the class and member list
 containing the member.
 
@@ -1333,7 +1333,7 @@ This command sets point to the previous position in the position stack.
 Directly after you performed a jump, this will put you back to the
 position where you came from.
 
-The stack is not popped, i.e.@: you can always switch back and forth
+The stack is not popped, i.e., you can always switch back and forth
 between positions in the stack.  To avoid letting the stack grow to
 infinite size there is a maximum number of positions defined.  When this
 number is reached, older positions are discarded when new positions are
@@ -1415,7 +1415,7 @@ given regular expression.  This command can be very useful if you
 remember only part of a member name, and not its beginning.
 
 A special buffer is popped up containing all identifiers matching the
-regular expression, and what kind of symbol it is (e.g.@: a member
+regular expression, and what kind of symbol it is (e.g., a member
 function, or a type).  You can then switch to this buffer, and use the
 command @kbd{C-c C-m f}, for example, to jump to a specific member.
 

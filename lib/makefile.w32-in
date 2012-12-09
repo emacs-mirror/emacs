@@ -42,6 +42,7 @@ GNULIBOBJS = $(BLD)/c-ctype.$(O) \
 	     $(BLD)/sha1.$(O) \
 	     $(BLD)/sha256.$(O) \
 	     $(BLD)/sha512.$(O) \
+	     $(BLD)/sig2str.$(O) \
 	     $(BLD)/stat-time.$(O) \
 	     $(BLD)/timespec.$(O) \
 	     $(BLD)/u64.$(O) \
@@ -239,6 +240,13 @@ $(BLD)/filemode.$(O) : \
 	$(CONFIG_H) \
 	$(FILEMODE_H)
 
+$(BLD)/sig2str.$(O) : \
+	$(GNU_LIB)/sig2str.c \
+	$(CONFIG_H) \
+	$(GNU_LIB)/sig2str.h \
+	$(GNU_LIB)/intprops.h
+
+
 # The following dependencies are for supporting parallel builds, where
 # we must make sure $(BLD) exists before any compilation starts.
 #
@@ -322,4 +330,3 @@ getopt_h:
 
 execinfo.h: execinfo.in.h
 	$(CP) execinfo.in.h $@
-

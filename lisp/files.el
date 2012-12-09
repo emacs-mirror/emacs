@@ -2502,25 +2502,31 @@ They may happen to contain sequences that look like local variable
 specifications, but are not really, or they may be containers for
 member files with their own local variable sections, which are
 not appropriate for the containing file.
-See also `inhibit-local-variables-suffixes'.")
+The function `inhibit-local-variables-p' uses this.")
 
 (define-obsolete-variable-alias 'inhibit-first-line-modes-suffixes
   'inhibit-local-variables-suffixes "24.1")
 
 (defvar inhibit-local-variables-suffixes nil
   "List of regexps matching suffixes to remove from file names.
-When checking `inhibit-local-variables-regexps', we first discard
-from the end of the file name anything that matches one of these regexps.")
+The function `inhibit-local-variables-p' uses this: when checking
+a file name, it first discards from the end of the name anything that
+matches one of these regexps.")
 
-;; TODO explicitly add case-fold-search t?
+;; Can't think of any situation in which you'd want this to be nil...
+(defvar inhibit-local-variables-ignore-case t
+  "Non-nil means `inhibit-local-variables-p' ignores case.")
+
 (defun inhibit-local-variables-p ()
   "Return non-nil if file local variables should be ignored.
 This checks the file (or buffer) name against `inhibit-local-variables-regexps'
-and `inhibit-local-variables-suffixes'."
+and `inhibit-local-variables-suffixes'.  If
+`inhibit-local-variables-ignore-case' is non-nil, this ignores case."
   (let ((temp inhibit-local-variables-regexps)
 	(name (if buffer-file-name
 		  (file-name-sans-versions buffer-file-name)
-		(buffer-name))))
+		(buffer-name)))
+	(case-fold-search inhibit-local-variables-ignore-case))
     (while (let ((sufs inhibit-local-variables-suffixes))
 	     (while (and sufs (not (string-match (car sufs) name)))
 	       (setq sufs (cdr sufs)))
@@ -3634,14 +3640,15 @@ is found.  Returns the new class name."
       (condition-case err
 	  (progn
 	    (insert-file-contents file)
-	    (let* ((dir-name (file-name-directory file))
-		   (class-name (intern dir-name))
-		   (variables (let ((read-circle nil))
-				(read (current-buffer)))))
-	      (dir-locals-set-class-variables class-name variables)
-	      (dir-locals-set-directory-class dir-name class-name
-					      (nth 5 (file-attributes file)))
-	      class-name))
+	    (unless (zerop (buffer-size))
+	      (let* ((dir-name (file-name-directory file))
+		     (class-name (intern dir-name))
+		     (variables (let ((read-circle nil))
+				  (read (current-buffer)))))
+		(dir-locals-set-class-variables class-name variables)
+		(dir-locals-set-directory-class dir-name class-name
+						(nth 5 (file-attributes file)))
+		class-name)))
 	(error (message "Error reading dir-locals: %S" err) nil)))))
 
 (defcustom enable-remote-dir-locals nil
@@ -3676,10 +3683,13 @@ and `file-local-variables-alist', without applying them."
 		(dir-locals-get-class-variables class) dir-name nil)))
 	  (when variables
 	    (dolist (elt variables)
-	      (unless (memq (car elt) '(eval mode))
-		(setq dir-local-variables-alist
-		      (assq-delete-all (car elt) dir-local-variables-alist)))
-	      (push elt dir-local-variables-alist))
+	      (if (eq (car elt) 'coding)
+		  (display-warning :warning
+				   "Coding cannot be specified by dir-locals")
+		(unless (memq (car elt) '(eval mode))
+		  (setq dir-local-variables-alist
+			(assq-delete-all (car elt) dir-local-variables-alist)))
+		(push elt dir-local-variables-alist)))
 	    (hack-local-variables-filter variables dir-name)))))))
 
 (defun hack-dir-local-variables-non-file-buffer ()
@@ -5408,18 +5418,20 @@ Then you'll be asked about a number of files to recover."
   (let ((ls-lisp-support-shell-wildcards t))
     (dired (concat auto-save-list-file-prefix "*")
 	   (concat dired-listing-switches " -t")))
+  (use-local-map (nconc (make-sparse-keymap) (current-local-map)))
+  (define-key (current-local-map) "\C-c\C-c" 'recover-session-finish)
   (save-excursion
     (goto-char (point-min))
     (or (looking-at " Move to the session you want to recover,")
 	(let ((inhibit-read-only t))
 	  ;; Each line starts with a space
 	  ;; so that Font Lock mode won't highlight the first character.
-	  (insert " Move to the session you want to recover,\n"
-		  " then type C-c C-c to select it.\n\n"
-		  " You can also delete some of these files;\n"
-		  " type d on a line to mark that file for deletion.\n\n"))))
-  (use-local-map (nconc (make-sparse-keymap) (current-local-map)))
-  (define-key (current-local-map) "\C-c\C-c" 'recover-session-finish))
+	  (insert " To recover a session, move to it and type C-c C-c.\n"
+		  (substitute-command-keys
+		   " To delete a session file, type \
+\\[dired-flag-file-deletion] on its line to flag
+ the file for deletion, then \\[dired-do-flagged-delete] to \
+delete flagged files.\n\n"))))))
 
 (defun recover-session-finish ()
   "Choose one saved session to recover auto-save files from.

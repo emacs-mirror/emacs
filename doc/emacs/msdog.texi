@@ -334,7 +334,7 @@ names that are associated with (a.k.a.@: @dfn{links to}) the file's
 data; this is only useful on NTFS volumes.  @code{uid} means display
 the numerical identifier of the user who owns the file.  @code{gid}
 means display the numerical identifier of the file owner's group.  The
-default value is @code{(links uid gid)} i.e.@: all the 3 optional
+default value is @code{(links uid gid)} i.e., all the 3 optional
 attributes are displayed.
 
 @vindex ls-lisp-emulation
@@ -354,12 +354,12 @@ Emulate @sc{gnu} systems; this is the default.  This sets
 Emulate Unix systems.  Like @code{GNU}, but sets
 @code{ls-lisp-verbosity} to @code{(links uid)}.
 @item MacOS
-Emulate MacOS.  Sets @code{ls-lisp-ignore-case} to @code{t}, and
+Emulate MacOS@.  Sets @code{ls-lisp-ignore-case} to @code{t}, and
 @code{ls-lisp-dirs-first} and @code{ls-lisp-verbosity} to @code{nil}.
 @item MS-Windows
 Emulate MS-Windows.  Sets @code{ls-lisp-ignore-case} and
 @code{ls-lisp-dirs-first} to @code{t}, and @code{ls-lisp-verbosity} to
-@code{(links)} on Windows NT/2K/XP/2K3 and to @code{nil} on Windows 9X.
+@code{(links)} on Windows NT/2K/XP/2K3 and to @code{nil} on Windows 9X@.
 Note that the default emulation is @emph{not} @code{MS-Windows}, even
 on Windows, since many users of Emacs on those platforms prefer the
 @sc{gnu} defaults.
@@ -422,7 +422,7 @@ Settings\@var{username}\Application Data} on Windows 2000/XP/2K3,
 @file{C:\Users\@var{username}\AppData\Roaming} on Windows
 Vista/7/2008, and either @file{C:\WINDOWS\Application Data} or
 @file{C:\WINDOWS\Profiles\@var{username}\Application Data} on Windows
-9X/ME.  If this directory does not exist or cannot be accessed, Emacs
+9X/ME@.  If this directory does not exist or cannot be accessed, Emacs
 falls back to @file{C:\} as the default value of @code{HOME}.
 
   You can override this default value of @code{HOME} by explicitly
@@ -690,7 +690,7 @@ If you can go to the first subprocess, and tell it to exit, the second
 subprocess should continue normally.  However, if the second subprocess
 is synchronous, Emacs itself will be hung until the first subprocess
 finishes.  If it will not finish without user input, then you have no
-choice but to reboot if you are running on Windows 9X.  If you are
+choice but to reboot if you are running on Windows 9X@.  If you are
 running on Windows NT/2K/XP, you can use a process viewer application to kill
 the appropriate instance of NTVDM instead (this will terminate both DOS
 subprocesses).
@@ -714,7 +714,7 @@ character based on the type of the program.
 customized commands that run MS-Windows applications registered to
 handle a certain standard Windows operation for a specific type of
 document or file.  This function is a wrapper around the Windows
-@code{ShellExecute} API.  See the MS-Windows API documentation for
+@code{ShellExecute} API@.  See the MS-Windows API documentation for
 more details.
 @end ifnottex
 

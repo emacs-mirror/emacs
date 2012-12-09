@@ -1,3 +1,9 @@
+2012-12-02  Chong Yidong  <cyd@gnu.org>
+
+	* automated/ruby-mode-tests.el
+	(ruby-add-log-current-method-examples): Don't use loop macro, to
+	allow automated testing to work.
+
 2012-11-20  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* automated/advice-tests.el (advice-tests--data): Remove.

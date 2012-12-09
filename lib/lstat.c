@@ -35,7 +35,7 @@ typedef int dummy;
 # include <sys/stat.h>
 # undef __need_system_sys_stat_h
 
-static inline int
+static int
 orig_lstat (const char *filename, struct stat *buf)
 {
   return lstat (filename, buf);

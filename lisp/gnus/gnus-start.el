@@ -395,7 +395,15 @@ This hook is called after Gnus is connected to the NNTP server."
 
 (defcustom gnus-before-startup-hook nil
   "A hook called before startup.
-This hook is called as the first thing when Gnus is started."
+This hook is called as the first thing when Gnus is started.
+See also `gnus-before-resume-hook'."
+  :group 'gnus-start
+  :type 'hook)
+
+(defcustom gnus-before-resume-hook nil
+  "A hook called before resuming Gnus after suspend.
+This hook is called as the first thing when Gnus is resumed after a suspend.
+See also `gnus-before-startup-hook'."
   :group 'gnus-start
   :type 'hook)
 
@@ -749,6 +757,7 @@ prompt the user for the name of an NNTP server to use."
 
   (if (gnus-alive-p)
       (progn
+	(gnus-run-hooks 'gnus-before-resume-hook)
 	(switch-to-buffer gnus-group-buffer)
 	(gnus-group-get-new-news
 	 (and (numberp arg)

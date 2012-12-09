@@ -521,7 +521,10 @@ evxprintf (char **buf, ptrdiff_t *bufsize,
       if (nbytes < *bufsize - 1)
 	return nbytes;
       if (*buf != nonheapbuf)
-	xfree (*buf);
+	{
+	  xfree (*buf);
+	  *buf = NULL;
+	}
       *buf = xpalloc (NULL, bufsize, 1, bufsize_max, 1);
     }
 }

@@ -387,7 +387,7 @@ wrap around, going from the last page to the first page or vice versa.
 
 When the current match is on a history element, that history element
 is pulled into the minibuffer.  If you exit the incremental search
-normally (e.g. by typing @key{RET}), it remains in the minibuffer
+normally (e.g., by typing @key{RET}), it remains in the minibuffer
 afterwards.  Canceling the search, with @kbd{C-g}, restores the
 contents of the minibuffer when you began the search.
 

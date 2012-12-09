@@ -206,7 +206,7 @@ History of MH-E
 This manual introduces another interface to the MH mail system that is
 accessible through the GNU Emacs editor, namely, @emph{MH-E}. MH-E is
 easy to use. I don't assume that you know GNU Emacs or even MH at this
-point, since I didn't know either of them when I discovered MH-E.
+point, since I didn't know either of them when I discovered MH-E@.
 However, MH-E was the tip of the iceberg, and I discovered more and
 more niceties about GNU Emacs and MH@. Now I'm fully hooked on both of
 them.
@@ -540,7 +540,7 @@ installing MH-E.
 If the @code{mh-version} command displays @samp{No MH variant
 detected}@footnote{In very old versions of MH-E, you may get the error
 message, @samp{Cannot find the commands `inc' and `mhl' and the file
-`components'} if MH-E can't find MH. In this case, you need to update
+`components'} if MH-E can't find MH@. In this case, you need to update
 MH-E, and you may need to install MH too. However, newer versions of
 MH-E are better at finding MH if it is on your system.}, then you need
 to install MH or tell MH-E where to find MH.
@@ -550,11 +550,11 @@ to install MH or tell MH-E where to find MH.
 @cindex GNU mailutils MH
 
 If you don't have MH on your system already, you must install a
-variant of MH. The Debian mh-e package does this for you automatically
+variant of MH@. The Debian mh-e package does this for you automatically
 (@pxref{Getting MH-E}). Most people use
 @uref{http://www.nongnu.org/nmh/, nmh}, but you may be interested in
 trying out @uref{http://www.gnu.org/software/mailutils/, GNU mailutils
-MH}, which supports IMAP. Your GNU/Linux distribution probably has
+MH}, which supports IMAP@. Your GNU/Linux distribution probably has
 packages for both of these.
 
 @cindex @command{install-mh}
@@ -671,7 +671,7 @@ chapter for a mapping between default key bindings and function
 names.}. When you're done, you'll be able to send, read, and file
 mail, which is all that a lot of people ever do. But if you're the
 curious or adventurous type, read the rest of the manual to be able to
-use all the features of MH-E. I suggest you read this chapter first to
+use all the features of MH-E@. I suggest you read this chapter first to
 get the big picture, and then you can read the manual as you wish.
 
 @menu
@@ -1572,7 +1572,7 @@ command incorporates your mail and creates a buffer called
 @samp{+inbox} in MH-Folder mode. The command @kbd{M-x mh-rmail} shows
 you only new mail, not mail you have already read@footnote{If you want
 to see your old mail as well, use @kbd{F r} to pull all your messages
-into MH-E. Or, give a prefix argument to @code{mh-rmail} so it will
+into MH-E@. Or, give a prefix argument to @code{mh-rmail} so it will
 prompt you for folder to visit like @kbd{F v} (for example, @kbd{C-u
 M-x mh-rmail @key{RET} bob @key{RET}}). @xref{Folders}.}.
 
@@ -2456,7 +2456,7 @@ that they do not really appear like an attachment at all to the
 reader. Most of the time, this is desirable, so by default MH-E
 suppresses the buttons for inline attachments. On the other hand, you
 may receive code or HTML which the sender has added to his message as
-inline attachments so that you can read them in MH-E. In this case, it
+inline attachments so that you can read them in MH-E@. In this case, it
 is useful to see the buttons so that you know you don't have to cut
 and paste the code into a file; you can simply save the attachment. If
 you want to make the buttons visible for inline attachments, you can
@@ -3222,7 +3222,7 @@ original configuration is displayed.
 @cindex menu, @samp{Message}
 @cindex using folders
 
-This chapter discusses the things you can do with folders within MH-E.
+This chapter discusses the things you can do with folders within MH-E@.
 The commands in this chapter are also found in the @samp{Folder} and
 @samp{Message} menus.
 
@@ -5705,7 +5705,7 @@ buffer and delete the draft message. Use the command @kbd{C-x k}
 
 @cindex aliases
 
-MH aliases are used in the same way in MH-E as they are in MH. Any
+MH aliases are used in the same way in MH-E as they are in MH@. Any
 alias listed as a recipient will be expanded when the message is sent.
 This chapter discusses other things you can do with aliases in MH-E.
 
@@ -5816,7 +5816,7 @@ Otherwise, you can complete aliases in the header of the draft with
 
 @vindex mh-alias-completion-ignore-case-flag
 
-As MH ignores case in the aliases, so too does MH-E. However, you may
+As MH ignores case in the aliases, so too does MH-E@. However, you may
 turn off the option @code{mh-alias-completion-ignore-case-flag} to
 make case significant which can be used to segregate completion of
 your aliases. You might use uppercase for mailing lists and lowercase
@@ -8647,7 +8647,7 @@ modify. Note that for them to become accessible, you'll have to load
 @vtable @code
 @item gnus-secondary-select-methods
 Select the @samp{nnml} value. This select method uses directories for
-folders and individual files for messages, just like MH. You do not
+folders and individual files for messages, just like MH@. You do not
 have to set an address.
 @c -------------------------
 @item mail-sources
@@ -8725,7 +8725,7 @@ positive we won't ask for it.
 @cindex SourceForge
 @cindex mailing lists
 
-There are several mailing lists for MH-E. They are @i{mh-e-users at
+There are several mailing lists for MH-E@. They are @i{mh-e-users at
 lists.sourceforge.net}, @i{mh-e-announce at lists.sourceforge.net},
 and @i{mh-e-devel at lists.sourceforge.net}. You can subscribe or view
 the archives at @uref{https://sourceforge.net/mail/?group_id=13357,
@@ -8792,9 +8792,9 @@ instead.
 After you download and extract the MH-E tarball, read the
 @file{README} file and @file{MH-E-NEWS}. These correspond to the
 release notes and change log mentioned above. The file @file{README}
-contains instructions on installing MH-E. If you're already running
+contains instructions on installing MH-E@. If you're already running
 Emacs, please quit that session and start again to load in the new
-MH-E. Check that you're running the new version with the command
+MH-E@. Check that you're running the new version with the command
 @kbd{M-x mh-version}.
 
 @cindex contributed software
@@ -8904,13 +8904,13 @@ limited the use and appeal of the package.
 @cindex @command{xmh}, in MH-E history
 
 In '89, I came to Wisconsin as a professor and decided not to work on
-MH-E. It was stable, except for minor bugs, and had enough
+MH-E@. It was stable, except for minor bugs, and had enough
 functionality, so I let it be for a few years. Stephen Gildea of BBN
 began to pester me about the bugs, but I ignored them. In 1990, he
 went off to the X Consortium, said good bye, and said that he would
 now be using @command{xmh}. A few months later, he came back and said
 that he couldn't stand @command{xmh} and could I put a few more bug fixes
-into MH-E. At that point, I had no interest in fixing MH-E, so I gave
+into MH-E@. At that point, I had no interest in fixing MH-E, so I gave
 the responsibility of maintenance to him and he has done a fine job
 since then.
 
@@ -8931,7 +8931,7 @@ modifications of my own) and dislike having to use applications with
 embedded editors; they never live up to Emacs.
 
 MH is the mail reader of choice at BBN, so I converted to it. Since I
-didn't want to give up using an Emacs interface, I started using MH-E.
+didn't want to give up using an Emacs interface, I started using MH-E@.
 As is my wont, I started hacking on it almost immediately. I first
 used version 3.4m. One of the first features I added was to treat the
 folder buffer as a file-visiting buffer: you could lock it, save it,
@@ -8943,7 +8943,7 @@ MH-E was too slow and optimized it a lot. Version, 3.7, distributed
 with Emacs 18.56 in 1990, was noticeably faster.
 
 When I moved to the X Consortium I became the first person there to
-not use xmh. (There is now one other engineer there using MH-E.) About
+not use xmh. (There is now one other engineer there using MH-E@.) About
 this point I took over maintenance of MH-E from Jim and was finally
 able to add some features Jim hadn't accepted, such as the backward
 searching undo. My first release was 3.8 (Emacs 18.58) in 1992.

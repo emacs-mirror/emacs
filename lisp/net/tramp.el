@@ -1750,10 +1750,12 @@ value of `default-file-modes', without execute permissions."
 
 (defalias 'tramp-replace-environment-variables
   (if (ignore-errors
-        (equal "${ tramp?}" (substitute-env-vars "${ tramp?}" 'only-defined)))
+        (equal "${ tramp?}"
+	       (tramp-compat-funcall
+		'substitute-env-vars "${ tramp?}" 'only-defined)))
       (lambda (filename)
         "Like `substitute-env-vars' with `only-defined' non-nil."
-        (substitute-env-vars filename 'only-defined))
+        (tramp-compat-funcall 'substitute-env-vars filename 'only-defined))
     (lambda (filename)
       "Replace environment variables in FILENAME.
 Return the string with the replaced variables."
@@ -1928,10 +1930,7 @@ ARGS are the arguments OPERATION has been called with."
                   ;; Emacs 23+ only.
                   'start-file-process
 	          ;; XEmacs only.
-		  'dired-print-file 'dired-shell-call-process
-		  ;; nowhere yet.
-		  'executable-find 'start-process
-		  'call-process 'call-process-region))
+		  'dired-print-file 'dired-shell-call-process))
     default-directory)
    ;; Unknown file primitive.
    (t (error "unknown file I/O primitive: %s" operation))))

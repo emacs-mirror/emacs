@@ -74,7 +74,7 @@ job: a control file and a data file.  The data file holds the
 actual data to be presented.  The control file describes
 how to present it.
 
-@insertcopying 
+@insertcopying
 
 @menu
 * Forms Example::               An example: editing the password data base.
@@ -117,7 +117,7 @@ are all there, but instead of being colon-separated on one single line,
 they make up a forms.
 
 The contents of the forms consist of the contents of the fields of the
-record (e.g. @samp{root}, @samp{0}, @samp{1}, @samp{Super User})
+record (e.g., @samp{root}, @samp{0}, @samp{1}, @samp{Super User})
 interspersed with normal text (e.g @samp{User : }, @samp{Uid: }).
 
 If you modify the contents of the fields, Forms mode will analyze your
@@ -467,7 +467,7 @@ appears that way when displayed in Forms mode.  If the value is
 @code{nil}, multi-line text fields are prohibited.  The pseudo newline
 must not be a character contained in @code{forms-field-sep}.
 
-The default value is @code{"\^k"}, the character Control-K.  Example:
+The default value is @code{"\^k"}, the character Control-K@.  Example:
 
 @example
 (setq forms-multi-line "\^k")
@@ -739,7 +739,7 @@ so you'd better think twice before using this.
 
 The default format for the data file, using @code{"\t"} to separate
 fields and @code{"\^k"} to separate lines within a field, matches the
-file format of some popular database programs, e.g. FileMaker.  So
+file format of some popular database programs, e.g., FileMaker.  So
 @code{forms-mode} can decrease the need to use proprietary software.
 
 @node Error Messages

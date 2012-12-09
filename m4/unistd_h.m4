@@ -1,4 +1,4 @@
-# unistd_h.m4 serial 65
+# unistd_h.m4 serial 66
 dnl Copyright (C) 2006-2012 Free Software Foundation, Inc.
 dnl This file is free software; the Free Software Foundation
 dnl gives unlimited permission to copy and/or distribute it,
@@ -11,7 +11,6 @@ AC_DEFUN([gl_UNISTD_H],
   dnl Use AC_REQUIRE here, so that the default behavior below is expanded
   dnl once only, before all statements that occur in other macros.
   AC_REQUIRE([gl_UNISTD_H_DEFAULTS])
-  AC_REQUIRE([AC_C_INLINE])
 
   gl_CHECK_NEXT_HEADERS([unistd.h])
   if test $ac_cv_header_unistd_h = yes; then

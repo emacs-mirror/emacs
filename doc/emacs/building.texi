@@ -261,7 +261,7 @@ or previous error message for a different source file.
 @findex next-error-follow-minor-mode
   You can type @kbd{C-c C-f} to toggle Next Error Follow mode.  In
 this minor mode, ordinary cursor motion in the compilation buffer
-automatically updates the source buffer, i.e.@: moving the cursor over
+automatically updates the source buffer, i.e., moving the cursor over
 an error message causes the locus of that error to be displayed.
 
   The features of Compilation mode are also available in a minor mode
@@ -324,7 +324,7 @@ nohup @var{command}; sleep 1
 @ifnottex
   On the MS-DOS ``operating system'', asynchronous subprocesses are
 not supported, so @kbd{M-x compile} runs the compilation command
-synchronously (i.e.@: you must wait until the command finishes before
+synchronously (i.e., you must wait until the command finishes before
 you can do anything else in Emacs).  @xref{MS-DOS}.
 @end ifnottex
 
@@ -589,7 +589,7 @@ to recompile and restart the program.
 @findex gud-tooltip-mode
 @vindex gud-tooltip-echo-area
   GUD Tooltip mode is a global minor mode that adds tooltip support to
-GUD.  To toggle this mode, type @kbd{M-x gud-tooltip-mode}.  It is
+GUD@.  To toggle this mode, type @kbd{M-x gud-tooltip-mode}.  It is
 disabled by default.  If enabled, you can move the mouse cursor over a
 variable, a function, or a macro (collectively called
 @dfn{identifiers}) to show their values in tooltips
@@ -625,7 +625,7 @@ Set a breakpoint on the source line that point is on.
 
   @kbd{C-x @key{SPC}} (@code{gud-break}), when called in a source
 buffer, sets a debugger breakpoint on the current source line.  This
-command is available only after starting GUD.  If you call it in a
+command is available only after starting GUD@.  If you call it in a
 buffer that is not associated with any debugger subprocess, it signals
 a error.
 
@@ -756,7 +756,7 @@ This key is available only in the GUD interaction buffer.
 that makes sense.
 
   Because @key{TAB} serves as a completion command, you can't use it to
-enter a tab as input to the program you are debugging with GDB.
+enter a tab as input to the program you are debugging with GDB@.
 Instead, type @kbd{C-q @key{TAB}} to enter a tab.
 
 @node GUD Customization
@@ -774,7 +774,7 @@ Instead, type @kbd{C-q @key{TAB}} to enter a tab.
 you are using DBX; @code{sdb-mode-hook}, if you are using SDB;
 @code{xdb-mode-hook}, if you are using XDB; @code{perldb-mode-hook},
 for Perl debugging mode; @code{pdb-mode-hook}, for PDB;
-@code{jdb-mode-hook}, for JDB.  @xref{Hooks}.
+@code{jdb-mode-hook}, for JDB@.  @xref{Hooks}.
 
   The @code{gud-def} Lisp macro (@pxref{Defining Macros,,, elisp, the
 Emacs Lisp Reference Manual}) provides a convenient way to define an

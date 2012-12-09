@@ -2663,7 +2663,7 @@ of citations entirely, choose \"None\"."
     "X-Mail-from:"                      ; fastmail.fm
     "X-MAIL-INFO:"                      ; NetZero
     "X-Mailer_"
-    "X-MailFlowPolicy:"			; Cicso ironport (http://www.ironport.com)
+    "X-MailFlowPolicy:"			; Cisco Email Security (formerly IronPort; http://www.ironport.com)
     "X-Mailing-List:"                   ; Unknown mailing list managers
     "X-MailingID:"
     "X-Mailman-Approved-At:"            ; Mailman mailing list manager
@@ -2743,7 +2743,7 @@ of citations entirely, choose \"None\"."
     "X-Scanned-By:"
     "X-Sender-ID:"                      ; Google+
     "X-Sender:"                         ; http://people.dsv.su.se/~jpalme/ietf/mail-headers/
-    "X-Sendergroup:"			; Cicso ironport (http://www.ironport.com)
+    "X-Sendergroup:"			; Cisco Email Security (formerly IronPort; http://www.ironport.com)
     "X-Server-Date:"
     "X-Server-Uuid:"
     "X-Service-Code:"

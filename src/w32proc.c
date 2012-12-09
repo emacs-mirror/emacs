@@ -1220,12 +1220,21 @@ waitpid (pid_t pid, int *status, int options)
     {
       QUIT;
       active = WaitForMultipleObjects (nh, wait_hnd, FALSE, timeout_ms);
-    } while (active == WAIT_TIMEOUT);
+    } while (active == WAIT_TIMEOUT && !dont_wait);
 
   if (active == WAIT_FAILED)
     {
       errno = EBADF;
       return -1;
+    }
+  else if (active == WAIT_TIMEOUT && dont_wait)
+    {
+      /* PID specifies our subprocess, but it didn't exit yet, so its
+	 status is not yet available.  */
+#ifdef FULL_DEBUG
+      DebPrint (("Wait: PID %d not reap yet\n", cp->pid));
+#endif
+      return 0;
     }
   else if (active >= WAIT_OBJECT_0
 	   && active < WAIT_OBJECT_0+MAXIMUM_WAIT_OBJECTS)
@@ -1274,33 +1283,7 @@ waitpid (pid_t pid, int *status, int options)
 #endif
 
   if (status)
-    {
-      *status = retval;
-    }
-  else if (synch_process_alive)
-    {
-      synch_process_alive = 0;
-
-      /* Report the status of the synchronous process.  */
-      if (WIFEXITED (retval))
-	synch_process_retcode = WEXITSTATUS (retval);
-      else if (WIFSIGNALED (retval))
-	{
-	  int code = WTERMSIG (retval);
-	  const char *signame;
-
-	  synchronize_system_messages_locale ();
-	  signame = strsignal (code);
-
-	  if (signame == 0)
-	    signame = "unknown";
-
-	  synch_process_death = signame;
-	}
-
-      reap_subprocess (cp);
-    }
-
+    *status = retval;
   reap_subprocess (cp);
 
   return pid;
@@ -2138,6 +2121,10 @@ sys_kill (int pid, int sig)
   HANDLE proc_hand;
   int need_to_free = 0;
   int rc = 0;
+
+  /* Each process is in its own process group.  */
+  if (pid < 0)
+    pid = -pid;
 
   /* Only handle signals that will result in the process dying */
   if (sig != SIGINT && sig != SIGKILL && sig != SIGQUIT && sig != SIGHUP)

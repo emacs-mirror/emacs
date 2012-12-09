@@ -70,7 +70,7 @@ selected frame.
 
 @defun terminal-live-p object
 This predicate returns a non-@code{nil} value if @var{object} is a
-terminal that is live (i.e.@: not deleted), and @code{nil} otherwise.
+terminal that is live (i.e., not deleted), and @code{nil} otherwise.
 For live terminals, the return value indicates what kind of frames are
 displayed on that terminal; the list of possible values is the same as
 for @code{framep} above.
@@ -170,7 +170,7 @@ following attributes:
 
 @itemize @bullet
 @item
-The name of the device used by the terminal (e.g.@: @samp{:0.0} or
+The name of the device used by the terminal (e.g., @samp{:0.0} or
 @file{/dev/tty}).
 
 @item
@@ -179,7 +179,7 @@ The terminal and keyboard coding systems used on the terminal.
 
 @item
 The kind of display associated with the terminal.  This is the symbol
-returned by the function @code{terminal-live-p} (i.e.@: @code{x},
+returned by the function @code{terminal-live-p} (i.e., @code{x},
 @code{t}, @code{w32}, @code{ns}, or @code{pc}).  @xref{Frames}.
 
 @item
@@ -276,7 +276,7 @@ the other frame parameters from the alist @var{parameters}.
 
 Before creating the frame, this function ensures that Emacs is ``set
 up'' to display graphics.  For instance, if Emacs has not processed X
-resources (e.g.@: if it was started on a text terminal), it does so at
+resources (e.g., if it was started on a text terminal), it does so at
 this time.  In all other respects, this function behaves like
 @code{make-frame} (@pxref{Creating Frames}).
 @end deffn
@@ -426,7 +426,7 @@ creates a separate @dfn{minibuffer-only frame} as well.
 
 @defopt minibuffer-frame-alist
 This variable's value is an alist of parameter values used when
-creating an initial minibuffer-only frame (i.e.@: the minibuffer-only
+creating an initial minibuffer-only frame (i.e., the minibuffer-only
 frame that Emacs creates if @code{initial-frame-alist} specifies a
 frame with no minibuffer).
 @end defopt
@@ -1114,7 +1114,7 @@ The argument @var{pretend} has the same meaning as in
 @end defun
 
 @c FIXME?  Belongs more in Emacs manual than here?
-@c But eg fit-window-to-buffer is in this manual.
+@c But, e.g., fit-window-to-buffer is in this manual.
 @deffn Command fit-frame-to-buffer &optional frame max-height min-height
 This command adjusts the height of @var{frame} (the default is the
 selected frame) to fit its contents.  The optional arguments
@@ -1286,7 +1286,7 @@ calls the function @code{delete-frame}.  @xref{Misc Events}.
 @cindex frames, scanning all
 
 @defun frame-list
-This function returns a list of all the live frames, i.e.@: those that
+This function returns a list of all the live frames, i.e., those that
 have not been deleted.  It is analogous to @code{buffer-list} for
 buffers, and includes frames on all terminals.  The list that you get
 is newly created, so modifying the list doesn't have any effect on the
@@ -1546,7 +1546,7 @@ track of such changes.  @xref{Misc Events}.
 @cindex raising a frame
 @cindex lowering a frame
   Most window systems use a desktop metaphor.  Part of this metaphor
-is the idea that system-level windows (e.g.@: Emacs frames) are
+is the idea that system-level windows (e.g., Emacs frames) are
 stacked in a notional third dimension perpendicular to the screen
 surface.  Where two overlap, the one higher up covers the one
 underneath.  You can @dfn{raise} or @dfn{lower} a frame using the
@@ -2018,7 +2018,7 @@ drop.
 @vindex dnd-protocol-alist
   When an URL is dropped on Emacs it may be a file, but it may also be
 another URL type (ftp, http, etc.).  Emacs first checks
-@code{dnd-protocol-alist} to determine what to do with the URL.  If
+@code{dnd-protocol-alist} to determine what to do with the URL@.  If
 there is no match there and if @code{browse-url-browser-function} is
 an alist, Emacs looks for a match there.  If no match is found the
 text for the URL is inserted.  If you want to alter Emacs behavior,

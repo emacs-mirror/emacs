@@ -301,9 +301,6 @@ struct frame
   /* Canonical X unit.  Width of default font, in pixels.  */
   int column_width;
 
-  /* Width of space glyph of default font, in pixels.  */
-  int space_width;
-
   /* Canonical Y unit.  Height of a line, in pixels.  */
   int line_height;
 
@@ -1000,11 +997,6 @@ extern Lisp_Object selected_frame;
 
 #define FRAME_COLUMN_WIDTH(F) ((F)->column_width)
 
-/* Space glyph width of the default font of frame F.  */
-
-#define FRAME_SPACE_WIDTH(F) ((F)->space_width)
-
-
 /* Pixel width of areas used to display truncation marks, continuation
    marks, overlay arrows.  This is 0 for terminal frames.  */
 
@@ -1263,8 +1255,6 @@ extern void x_set_mouse_pixel_position (struct frame *f, int pix_x, int pix_y);
 extern void x_make_frame_visible (struct frame *f);
 extern void x_make_frame_invisible (struct frame *f);
 extern void x_iconify_frame (struct frame *f);
-extern int x_char_width (struct frame *f);
-extern int x_char_height (struct frame *f);
 extern int x_pixel_width (struct frame *f);
 extern int x_pixel_height (struct frame *f);
 extern void x_set_frame_alpha (struct frame *f);
