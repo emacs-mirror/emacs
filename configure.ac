@@ -813,7 +813,7 @@ dnl By this stage, configure has already checked for egrep and set EGREP,
 dnl or exited with an error if no egrep was found.
 if test "$MAKEINFO" != "no"; then
   case `
-    "$MAKEINFO" --version 2> /dev/null |
+    $MAKEINFO --version 2> /dev/null |
     $EGREP 'texinfo[[^0-9]]*([[1-4]][[0-9]]+|[[5-9]]|4\.[[7-9]]|4\.[[1-6]][[0-9]]+)'
   ` in
     '') MAKEINFO=no;;
@@ -1194,7 +1194,7 @@ AC_DEFUN([PKG_CHECK_MODULES], [
       *** The pkg-config script could not be found. Make sure it is in your path, or give the full name of pkg-config with the PKG_CONFIG environment variable or --with-pkg-config-prog.  Or see http://www.freedesktop.org/software/pkgconfig to get pkg-config.])], [$4])
   else
      PKG_CONFIG_MIN_VERSION=0.9.0
-     if "$PKG_CONFIG" --atleast-pkgconfig-version "$PKG_CONFIG_MIN_VERSION"; then
+     if "$PKG_CONFIG" --atleast-pkgconfig-version $PKG_CONFIG_MIN_VERSION; then
         AC_MSG_CHECKING(for $2)
 
         if "$PKG_CONFIG" --exists "$2" 2>&AS_MESSAGE_LOG_FD &&
@@ -4557,7 +4557,7 @@ ${MAKE-make} MAKEFILE_NAME=do-not-make-Makefile epaths-force
 AC_CONFIG_COMMANDS([gdbinit], [
 if test ! -f src/.gdbinit && test -f "$srcdir/src/.gdbinit"; then
   echo creating src/.gdbinit
-  echo "source '$srcdir/src/.gdbinit'" > src/.gdbinit
+  echo "source $srcdir/src/.gdbinit" > src/.gdbinit
 fi
 ])
 
