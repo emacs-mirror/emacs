@@ -130,7 +130,7 @@ OPTION_DEFAULT_ON([sound],[don't compile with sound support])
 
 dnl FIXME currently it is not the last.
 dnl This should be the last --with option, because --with-x is
-dnl added later on when we find the path of X, and it's best to
+dnl added later on when we find the file name of X, and it's best to
 dnl keep them together visually.
 AC_ARG_WITH([x-toolkit],[AS_HELP_STRING([--with-x-toolkit=KIT],
  [use an X toolkit (KIT one of: yes or gtk, gtk2, gtk3, lucid or athena, motif, no)])],
@@ -205,8 +205,8 @@ fi
 AC_SUBST(GZIP_INFO)
 
 AC_ARG_WITH([pkg-config-prog],dnl
-[AS_HELP_STRING([--with-pkg-config-prog=PATH],
-                  [path to pkg-config for finding GTK and librsvg])])
+[AS_HELP_STRING([--with-pkg-config-prog=FILENAME],
+                  [file name of pkg-config for finding GTK and librsvg])])
 if test "X${with_pkg_config_prog}" != X; then
    if test "${with_pkg_config_prog}" != yes; then
       PKG_CONFIG="${with_pkg_config_prog}"
@@ -226,7 +226,8 @@ test "X${with_gameuser}" != X && test "${with_gameuser}" != yes \
 test "X$gameuser" = X && gameuser=games
 
 AC_ARG_WITH([gnustep-conf],dnl
-[AS_HELP_STRING([--with-gnustep-conf=PATH],[path to GNUstep.conf; default $GNUSTEP_CONFIG_FILE, or /etc/GNUstep/GNUstep.conf])])
+[AS_HELP_STRING([--with-gnustep-conf=FILENAME],
+   [name of GNUstep.conf; default $GNUSTEP_CONFIG_FILE, or /etc/GNUstep/GNUstep.conf])])
 test "X${with_gnustep_conf}" != X && test "${with_gnustep_conf}" != yes && \
   GNUSTEP_CONFIG_FILE="${with_gnustep_conf}"
 test "X$GNUSTEP_CONFIG_FILE" = "X" && \
@@ -354,7 +355,7 @@ AC_ARG_ENABLE(autodepend,
 [ac_enable_autodepend="${enableval}"],[ac_enable_autodepend=yes])
 
 #### Make srcdir absolute, if it isn't already.  It's important to
-#### avoid running the path through pwd unnecessarily, since pwd can
+#### avoid running the file name through pwd unnecessarily, since pwd can
 #### give you automounter prefixes, which can go away.  We do all this
 #### so Emacs can find its files when run uninstalled.
 ## Make sure CDPATH doesn't affect cd (in case PWD is relative).
@@ -364,17 +365,17 @@ case "${srcdir}" in
   . )
     ## We may be able to use the $PWD environment variable to make this
     ## absolute.  But sometimes PWD is inaccurate.
-    ## Note: we used to use ${PWD} at the end instead of `pwd`,
+    ## Note: we used to use $PWD at the end instead of `pwd`,
     ## but that tested only for a well-formed and valid PWD,
     ## it did not object when PWD was well-formed and valid but just wrong.
-    if test ".${PWD}" != "." && test ".`(cd ${PWD} ; sh -c pwd)`" = ".`pwd`"  ;
+    if test ".$PWD" != "." && test ".`(cd "$PWD" ; sh -c pwd)`" = ".`pwd`"  ;
     then
       srcdir="$PWD"
     else
-      srcdir="`(cd ${srcdir}; pwd)`"
+      srcdir=`(cd "$srcdir"; pwd)`
     fi
   ;;
-  *  ) srcdir="`(cd ${srcdir}; pwd)`" ;;
+  *  ) srcdir=`(cd "$srcdir"; pwd)` ;;
 esac
 
 ### Canonicalize the configuration name.
@@ -810,9 +811,13 @@ fi
 AC_PATH_PROG(MAKEINFO, makeinfo, no)
 dnl By this stage, configure has already checked for egrep and set EGREP,
 dnl or exited with an error if no egrep was found.
-if test "$MAKEINFO" != "no" && \
-  test x"`$MAKEINFO --version 2> /dev/null | $EGREP 'texinfo[[^0-9]]*([[1-4]][[0-9]]+|[[5-9]]|4\.[[7-9]]|4\.[[1-6]][[0-9]]+)'`" = x; then
-   MAKEINFO=no
+if test "$MAKEINFO" != "no"; then
+  case `
+    "$MAKEINFO" --version 2> /dev/null |
+    $EGREP 'texinfo[[^0-9]]*([[1-4]][[0-9]]+|[[5-9]]|4\.[[7-9]]|4\.[[1-6]][[0-9]]+)'
+  ` in
+    '') MAKEINFO=no;;
+  esac
 fi
 
 ## Makeinfo is unusual.  For a released Emacs, the manuals are
@@ -830,7 +835,7 @@ if test "$MAKEINFO" = "no"; then
   MAKEINFO=makeinfo
   if test "x${with_makeinfo}" = "xno"; then
     HAVE_MAKEINFO=no
-  elif test ! -e $srcdir/info/emacs && test ! -e $srcdir/info/emacs.info; then
+  elif test ! -e "$srcdir/info/emacs" && test ! -e "$srcdir/info/emacs.info"; then
     AC_MSG_ERROR( [You do not seem to have makeinfo >= 4.7, and your
 source tree does not seem to have pre-built manuals in the `info' directory.
 Either install a suitable version of makeinfo, or re-run configure
@@ -1186,15 +1191,15 @@ AC_DEFUN([PKG_CHECK_MODULES], [
 
   if test "$PKG_CONFIG" = "no" ; then
      ifelse([$4], , [AC_MSG_ERROR([
-      *** The pkg-config script could not be found. Make sure it is in your path, or give the full path to pkg-config with the PKG_CONFIG environment variable or --with-pkg-config-prog.  Or see http://www.freedesktop.org/software/pkgconfig to get pkg-config.])], [$4])
+      *** The pkg-config script could not be found. Make sure it is in your path, or give the full name of pkg-config with the PKG_CONFIG environment variable or --with-pkg-config-prog.  Or see http://www.freedesktop.org/software/pkgconfig to get pkg-config.])], [$4])
   else
      PKG_CONFIG_MIN_VERSION=0.9.0
-     if $PKG_CONFIG --atleast-pkgconfig-version $PKG_CONFIG_MIN_VERSION; then
+     if "$PKG_CONFIG" --atleast-pkgconfig-version "$PKG_CONFIG_MIN_VERSION"; then
         AC_MSG_CHECKING(for $2)
 
-        if $PKG_CONFIG --exists "$2" 2>&AS_MESSAGE_LOG_FD &&
-	   $1_CFLAGS=`$PKG_CONFIG --cflags "$2" 2>&AS_MESSAGE_LOG_FD` &&
-	   $1_LIBS=`$PKG_CONFIG --libs "$2" 2>&AS_MESSAGE_LOG_FD`; then
+        if "$PKG_CONFIG" --exists "$2" 2>&AS_MESSAGE_LOG_FD &&
+	   $1_CFLAGS=`"$PKG_CONFIG" --cflags "$2" 2>&AS_MESSAGE_LOG_FD` &&
+	   $1_LIBS=`"$PKG_CONFIG" --libs "$2" 2>&AS_MESSAGE_LOG_FD`; then
 	    edit_cflags="
 	      s,///*,/,g
 	      s/^/ /
@@ -1212,7 +1217,7 @@ AC_DEFUN([PKG_CHECK_MODULES], [
             ## If we have a custom action on failure, don't print errors, but
 	    ## do set a variable so people can do so.  Do it in a subshell
 	    ## to capture any diagnostics in invoking pkg-config.
-	    $1_PKG_ERRORS=`($PKG_CONFIG --print-errors "$2") 2>&1`
+	    $1_PKG_ERRORS=`("$PKG_CONFIG" --print-errors "$2") 2>&1`
 	    ifelse([$4], ,echo "$$1_PKG_ERRORS",)
         fi
 
@@ -2027,7 +2032,7 @@ if test x"$pkg_check_gtk" = xyes; then
     AC_DEFINE(USE_GTK, 1, [Define to 1 if using GTK.])
     GTK_OBJ="gtkutil.o $GTK_OBJ"
     USE_X_TOOLKIT=none
-    if $PKG_CONFIG --atleast-version=2.10 gtk+-2.0; then
+    if "$PKG_CONFIG" --atleast-version=2.10 gtk+-2.0; then
       :
     else
       AC_MSG_WARN([[Your version of Gtk+ will have problems with
@@ -4508,7 +4513,7 @@ AC_CONFIG_FILES([Makefile lib/Makefile lib-src/Makefile oldXMenu/Makefile \
 dnl test/ is not present in release tarfiles.
 opt_makefile=test/automated/Makefile
 
-if test -f $srcdir/${opt_makefile}.in; then
+if test -f "$srcdir/$opt_makefile.in"; then
   SUBDIR_MAKEFILES="$SUBDIR_MAKEFILES $opt_makefile"
   dnl Again, it's best not to use a variable.  Though you can add
   dnl ", [], [opt_makefile='$opt_makefile']" and it should work.
@@ -4519,7 +4524,7 @@ fi
 dnl admin/ may or may not be present.
 opt_makefile=admin/unidata/Makefile
 
-if test -f $srcdir/${opt_makefile}.in; then
+if test -f "$srcdir/$opt_makefile.in"; then
   SUBDIR_MAKEFILES="$SUBDIR_MAKEFILES $opt_makefile"
   AC_CONFIG_FILES([admin/unidata/Makefile])
 fi
@@ -4550,9 +4555,9 @@ ${MAKE-make} MAKEFILE_NAME=do-not-make-Makefile epaths-force
 ], [GCC="$GCC" CPPFLAGS="$CPPFLAGS"])
 
 AC_CONFIG_COMMANDS([gdbinit], [
-if test ! -f src/.gdbinit && test -f $srcdir/src/.gdbinit; then
+if test ! -f src/.gdbinit && test -f "$srcdir/src/.gdbinit"; then
   echo creating src/.gdbinit
-  echo source $srcdir/src/.gdbinit > src/.gdbinit
+  echo "source '$srcdir/src/.gdbinit'" > src/.gdbinit
 fi
 ])
 
