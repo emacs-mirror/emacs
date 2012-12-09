@@ -1,3 +1,8 @@
+2012-12-09  Chong Yidong  <cyd@gnu.org>
+
+	* simple.el (set-mark-default-inactive): Mark as obsolete, for
+	removal after 24.3.
+
 2012-12-08  Dani Moncayo <dmoncayo@gmail.com>
 
 	* simple.el (just-one-space): Doc fix.
