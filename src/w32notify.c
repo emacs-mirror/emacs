@@ -16,15 +16,18 @@ GNU General Public License for more details.
 You should have received a copy of the GNU General Public License
 along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 
-/* Design overview:
+/* Written by Eli Zaretskii <eliz@gnu.org>.
+
+   Design overview:
 
    For each watch request, we launch a separate worker thread.  The
    worker thread runs the watch_worker function, which issues an
-   asynchronous call to ReadDirectoryChangesW, and then waits for that
-   call to complete in SleepEx.  Waiting in SleepEx puts the thread in
-   an alertable state, so it wakes up when either (a) the call to
-   ReadDirectoryChangesW completes, or (b) the main thread instructs
-   the worker thread to terminate by sending it an APC, see below.
+   asynchronous call to ReadDirectoryChangesW, and then waits in
+   SleepEx for that call to complete.  Waiting in SleepEx puts the
+   thread in an "alertable" state, so it wakes up when either (a) the
+   call to ReadDirectoryChangesW completes, or (b) the main thread
+   instructs the worker thread to terminate by sending it an APC, see
+   below.
 
    When the ReadDirectoryChangesW call completes, its completion
    routine watch_completion is automatically called.  watch_completion
@@ -59,9 +62,10 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
    bound to a command.  The default binding is w32notify-handle-event,
    defined on subr.el.
 
-   After w32_read_socket or w32_console_read_socket is done processing
-   the notifications, it resets a flag signaling to all watch worker
-   threads that the notifications buffer is available for more input.
+   After w32_read_socket or w32_console_read_socket are done
+   processing the notifications, they reset a flag signaling to all
+   watch worker threads that the notifications buffer is available for
+   more input.
 
    When the watch is removed by a call to w32notify-rm-watch, the main
    thread requests that the worker thread terminates by queuing an APC
@@ -72,9 +76,10 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
    watch_completion function is called one last time with the
    ERROR_OPERATION_ABORTED status, which causes it to clean up and set
    a flag telling watch_worker to exit without issuing another
-   ReadDirectoryChangesW call.  The main thread waits for some time
-   for the worker thread to exit, and if it doesn't, terminates it
-   forcibly.  */
+   ReadDirectoryChangesW call.  Since watch_worker is the thread
+   procedure of the worker thread, exiting it causes the thread to
+   exit.  The main thread waits for some time for the worker thread to
+   exit, and if it doesn't, terminates it forcibly.  */
 
 #include <stddef.h>
 #include <errno.h>
@@ -185,9 +190,9 @@ watch_end (ULONG_PTR arg)
     }
 }
 
-/* A completion routine (a.k.a. APC function) for handling events read
-   by ReadDirectoryChangesW.  Called by the OS when the thread which
-   issued the asynchronous ReadDirectoryChangesW call is in the
+/* A completion routine (a.k.a. "APC function") for handling events
+   read by ReadDirectoryChangesW.  Called by the OS when the thread
+   which issued the asynchronous ReadDirectoryChangesW call is in the
    "alertable state", i.e. waiting inside SleepEx call.  */
 VOID CALLBACK
 watch_completion (DWORD status, DWORD bytes_ret, OVERLAPPED *io_info)
