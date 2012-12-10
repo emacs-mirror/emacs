@@ -123,9 +123,12 @@ $(BLD)/profile.exe:	$(PROFILEOBJS)
 #
 obj =   dosfns.o msdos.o \
 	xterm.o xfns.o xmenu.o xselect.o xrdb.o xsmfns.o fringe.o image.o \
-	fontset.o menu.o \
-	w32.o w32console.o w32fns.o w32heap.o w32inevt.o cygw32.o \
+	fontset.o menu.o dbusbind.o cygw32.o \
+	nsterm.o nsfns.o nsmenu.o nsselect.o nsimage.o nsfont.o \
+	w32.o w32console.o w32fns.o w32heap.o w32inevt.o w32notify.o \
 	w32menu.o w32proc.o w32reg.o w32select.o w32term.o w32xfns.o \
+	w16select.o widget.o xfont.o ftfont.o xftfont.o ftxfont.o gtkutil.o \
+	xsettings.o xgselect.o termcap.o \
 	font.o w32font.o w32uniscribe.o w32notify.o \
 	dispnew.o frame.o scroll.o xdisp.o window.o bidi.o \
 	charset.o coding.o category.o ccl.o character.o chartab.o \
