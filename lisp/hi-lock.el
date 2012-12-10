@@ -474,19 +474,33 @@ updated as you type."
     (let ((regexp (get-char-property (point) 'hi-lock-overlay-regexp)))
       (when regexp (push regexp regexps)))
     ;; With font-locking on, check if the cursor is on a highlighted text.
-    (and (memq (face-at-point)
-               (mapcar #'hi-lock-keyword->face hi-lock-interactive-patterns))
-	 (let* ((hi-text
-		 (buffer-substring-no-properties
-		  (previous-single-property-change (point) 'face)
-		  (next-single-property-change (point) 'face))))
-	   ;; Compute hi-lock patterns that match the
-	   ;; highlighted text at point.  Use this later in
-	   ;; during completing-read.
-	   (dolist (hi-lock-pattern hi-lock-interactive-patterns)
-	     (let ((regexp (car hi-lock-pattern)))
-	       (if (string-match regexp hi-text)
-		   (push regexp regexps))))))
+    (let ((face-after (get-text-property (point) 'face))
+          (face-before
+           (unless (bobp) (get-text-property (1- (point)) 'face)))
+          (faces (mapcar #'hi-lock-keyword->face
+                         hi-lock-interactive-patterns)))
+      (unless (memq face-before faces) (setq face-before nil))
+      (unless (memq face-after faces) (setq face-after nil))
+      (when (and face-before face-after (not (eq face-before face-after)))
+        (setq face-before nil))
+      (when (or face-after face-before)
+        (let* ((hi-text
+                (buffer-substring-no-properties
+                 (if face-before
+                     (or (previous-single-property-change (point) 'face)
+                         (point-min))
+                   (point))
+                 (if face-after
+                     (or (next-single-property-change (point) 'face)
+                         (point-max))
+                   (point)))))
+          ;; Compute hi-lock patterns that match the
+          ;; highlighted text at point.  Use this later in
+          ;; during completing-read.
+          (dolist (hi-lock-pattern hi-lock-interactive-patterns)
+            (let ((regexp (car hi-lock-pattern)))
+              (if (string-match regexp hi-text)
+                  (push regexp regexps)))))))
     regexps))
 
 (defvar-local hi-lock--unused-faces nil
