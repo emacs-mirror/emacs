@@ -1,3 +1,16 @@
+2012-12-10  Jambunathan K  <kjambunathan@gmail.com>
+
+	* hi-lock.el: Refine the choice of default face.
+	(hi-lock-keyword->face): New function.  Use it wherever we used
+	cadadadr instead.
+	(hi-lock--regexps-at-point): Ignore faces that can't come from hi-lock.
+	(hi-lock--last-face): Remove var.
+	(hi-lock--unused-faces): New var to replace it.
+	(hi-lock-read-face-name): Use/maintain it.
+	(hi-lock-unface-buffer): Maintain it.  Fix error for the C-u case.
+	(hi-lock-set-pattern): Ignore new rule if it has the same regexp even
+	if it has another face.
+
 2012-12-10  Eli Zaretskii  <eliz@gnu.org>
 
 	* subr.el (w32notify-handle-event): New function.
@@ -13,8 +26,7 @@
 
 2012-12-10  Eli Zaretskii  <eliz@gnu.org>
 
-	* textmodes/texinfo.el (texinfo-enable-quote-envs): Add
-	"smallexample".
+	* textmodes/texinfo.el (texinfo-enable-quote-envs): Add "smallexample".
 
 2012-12-10  Le Wang  <l26wang@gmail.com>
 

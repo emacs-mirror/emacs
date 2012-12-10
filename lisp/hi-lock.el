@@ -462,6 +462,9 @@ updated as you type."
   (unless hi-lock-mode (hi-lock-mode 1))
   (hi-lock-set-pattern regexp face))
 
+(defun hi-lock-keyword->face (keyword)
+  (cadr (cadr (cadr keyword))))    ; Keyword looks like (REGEXP (0 'FACE) ...).
+
 (declare-function x-popup-menu "menu.c" (position menu))
 
 (defun hi-lock--regexps-at-point ()
@@ -470,23 +473,25 @@ updated as you type."
     ;; choice of regexp.
     (let ((regexp (get-char-property (point) 'hi-lock-overlay-regexp)))
       (when regexp (push regexp regexps)))
-    ;; With font-locking on, check if the cursor is on an highlighted text.
-    ;; Checking for hi-lock face is a good heuristic.  FIXME: use "hi-lock-".
-    (and (string-match "\\`hi-" (face-name (face-at-point)))
-         (let* ((hi-text
-                 (buffer-substring-no-properties
-                  (previous-single-property-change (point) 'face)
-                  (next-single-property-change (point) 'face))))
-           ;; Compute hi-lock patterns that match the
-           ;; highlighted text at point.  Use this later in
-           ;; during completing-read.
-           (dolist (hi-lock-pattern hi-lock-interactive-patterns)
-             (let ((regexp (car hi-lock-pattern)))
-               (if (string-match regexp hi-text)
-                   (push regexp regexps))))))
+    ;; With font-locking on, check if the cursor is on a highlighted text.
+    (and (memq (face-at-point)
+               (mapcar #'hi-lock-keyword->face hi-lock-interactive-patterns))
+	 (let* ((hi-text
+		 (buffer-substring-no-properties
+		  (previous-single-property-change (point) 'face)
+		  (next-single-property-change (point) 'face))))
+	   ;; Compute hi-lock patterns that match the
+	   ;; highlighted text at point.  Use this later in
+	   ;; during completing-read.
+	   (dolist (hi-lock-pattern hi-lock-interactive-patterns)
+	     (let ((regexp (car hi-lock-pattern)))
+	       (if (string-match regexp hi-text)
+		   (push regexp regexps))))))
     regexps))
 
-(defvar-local hi-lock--last-face nil)
+(defvar-local hi-lock--unused-faces nil
+  "List of faces that is not used and is available for highlighting new text.
+Face names from this list come from `hi-lock-face-defaults'.")
 
 ;;;###autoload
 (defalias 'unhighlight-regexp 'hi-lock-unface-buffer)
@@ -514,7 +519,7 @@ then remove all hi-lock highlighting."
                           (list (car pattern)
                                 (format
                                  "%s (%s)" (car pattern)
-                                 (cadr (cadr (cadr pattern))))
+                                 (hi-lock-keyword->face pattern))
                                 (cons nil nil)
                                 (car pattern)))
                         hi-lock-interactive-patterns))))
@@ -541,16 +546,14 @@ then remove all hi-lock highlighting."
   (dolist (keyword (if (eq regexp t) hi-lock-interactive-patterns
                      (list (assoc regexp hi-lock-interactive-patterns))))
     (when keyword
-      (let ((face (cadr (cadr (cadr keyword)))))
+      (let ((face (hi-lock-keyword->face keyword)))
         ;; Make `face' the next one to use by default.
-        (setq hi-lock--last-face
-              (cadr (member (symbol-name face)
-                            (reverse hi-lock-face-defaults)))))
+	(add-to-list 'hi-lock--unused-faces (face-name face)))
       (font-lock-remove-keywords nil (list keyword))
       (setq hi-lock-interactive-patterns
             (delq keyword hi-lock-interactive-patterns))
       (remove-overlays
-       nil nil 'hi-lock-overlay-regexp (hi-lock--hashcons regexp))
+       nil nil 'hi-lock-overlay-regexp (hi-lock--hashcons (car keyword)))
       (when font-lock-fontified (font-lock-fontify-buffer)))))
 
 ;;;###autoload
@@ -608,27 +611,35 @@ not suitable."
   "Return face for interactive highlighting.
 When `hi-lock-auto-select-face' is non-nil, just return the next face.
 Otherwise, read face name from minibuffer with completion and history."
-  (let ((default (or (cadr (member hi-lock--last-face hi-lock-face-defaults))
-                      (car hi-lock-face-defaults))))
-    (setq hi-lock--last-face
+  (unless hi-lock-interactive-patterns
+    (setq hi-lock--unused-faces hi-lock-face-defaults))
+  (let* ((last-used-face
+	  (when hi-lock-interactive-patterns
+	    (face-name (hi-lock-keyword->face
+                        (car hi-lock-interactive-patterns)))))
+	 (defaults (append hi-lock--unused-faces
+			   (cdr (member last-used-face hi-lock-face-defaults))
+			   hi-lock-face-defaults))
+	 face)
           (if (and hi-lock-auto-select-face (not current-prefix-arg))
-              default
-            (completing-read
-             (format "Highlight using face (default %s): " default)
-             obarray 'facep t nil 'face-name-history
-             (append (member default hi-lock-face-defaults)
-                     hi-lock-face-defaults))))
-    (unless (member hi-lock--last-face hi-lock-face-defaults)
-      (setq hi-lock-face-defaults
-            (append hi-lock-face-defaults (list hi-lock--last-face))))
-    (intern hi-lock--last-face)))
+	(setq face (or (pop hi-lock--unused-faces) (car defaults)))
+      (setq face (completing-read
+		  (format "Highlight using face (default %s): "
+			  (car defaults))
+		  obarray 'facep t nil 'face-name-history defaults))
+      ;; Update list of un-used faces.
+      (setq hi-lock--unused-faces (remove face hi-lock--unused-faces))
+      ;; Grow the list of defaults.
+      (add-to-list 'hi-lock-face-defaults face t))
+    (intern face)))
 
 (defun hi-lock-set-pattern (regexp face)
   "Highlight REGEXP with face FACE."
   ;; Hashcons the regexp, so it can be passed to remove-overlays later.
   (setq regexp (hi-lock--hashcons regexp))
   (let ((pattern (list regexp (list 0 (list 'quote face) t))))
-    (unless (member pattern hi-lock-interactive-patterns)
+    ;; Refuse to highlight a text that is already highlighted.
+    (unless (assoc regexp hi-lock-interactive-patterns)
       (push pattern hi-lock-interactive-patterns)
       (if font-lock-mode
 	  (progn
