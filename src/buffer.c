@@ -547,6 +547,8 @@ even if it is dead.  The return value is never nil.  */)
   b->base_buffer = NULL;
   /* No one shares the text with us now.  */
   b->indirections = 0;
+  /* No one shows us now.  */
+  b->window_count = 0;
 
   BUF_GAP_SIZE (b) = 20;
   block_input ();
@@ -794,6 +796,8 @@ CLONE nil means the indirect buffer's state is reset to default values.  */)
   b->indirections = -1;
   /* Notify base buffer that we share the text now.  */
   b->base_buffer->indirections++;
+  /* Always -1 for an indirect buffer.  */
+  b->window_count = -1;
 
   b->pt = b->base_buffer->pt;
   b->begv = b->base_buffer->begv;
@@ -1929,10 +1933,16 @@ cleaning up all windows currently displaying the buffer to be killed. */)
       eassert (b->indirections == -1);
       b->base_buffer->indirections--;
       eassert (b->base_buffer->indirections >= 0);
+      /* Make sure that we wasn't confused.  */
+      eassert (b->window_count == -1);
     }
   else
-    /* No one shares our buffer text, can free it.  */
-    free_buffer_text (b);
+    {
+      /* Make sure that no one shows us.  */
+      eassert (b->window_count == 0);
+      /* No one shares our buffer text, can free it.  */
+      free_buffer_text (b);
+    }
 
   if (b->newline_cache)
     {
@@ -3880,17 +3890,17 @@ modify_overlay (struct buffer *buf, ptrdiff_t start, ptrdiff_t end)
 
   BUF_COMPUTE_UNCHANGED (buf, start, end);
 
-  /* If this is a buffer not in the selected window,
-     we must do other windows.  */
-  if (buf != XBUFFER (XWINDOW (selected_window)->buffer))
-    windows_or_buffers_changed = 1;
-  /* If multiple windows show this buffer, we must do other windows.  */
-  else if (buffer_shared > 1)
-    windows_or_buffers_changed = 1;
-  /* If we modify an overlay at the end of the buffer, we cannot
-     be sure that window end is still valid.  */
-  else if (end >= ZV && start <= ZV)
-    windows_or_buffers_changed = 1;
+  /* If BUF is visible, consider updating the display if ...  */
+  if (buffer_window_count (buf) > 0)
+    {
+      /* ... it's visible in other window than selected,  */
+      if (buf != XBUFFER (XWINDOW (selected_window)->buffer))
+	windows_or_buffers_changed = 1;
+      /* ... or if we modify an overlay at the end of the buffer
+	 and so we cannot be sure that window end is still valid.  */
+      else if (end >= ZV && start <= ZV)
+	windows_or_buffers_changed = 1;
+    }
 
   ++BUF_OVERLAY_MODIFF (buf);
 }
@@ -5125,6 +5135,9 @@ init_buffer_once (void)
   /* No one will share the text with these buffers, but let's play it safe.  */
   buffer_defaults.indirections = 0;
   buffer_local_symbols.indirections = 0;
+  /* Likewise no one will display them.  */
+  buffer_defaults.window_count = 0;
+  buffer_local_symbols.window_count = 0;
   set_buffer_intervals (&buffer_defaults, NULL);
   set_buffer_intervals (&buffer_local_symbols, NULL);
   /* This is not strictly necessary, but let's make them initialized.  */

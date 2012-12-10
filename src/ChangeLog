@@ -1,3 +1,24 @@
+2012-12-10  Dmitry Antipov  <dmantipov@yandex.ru>
+
+	Per-buffer window counters.
+	* buffer.h (struct buffer): New member window_count.
+	(buffer_window_count): New function.
+	* buffer.c (Fget_buffer_create, Fmake_indirect_buffer):
+	Initialize window_count.
+	(Fkill_buffer): Verify window_count for the buffer being killed.
+	(modify_overlay): Do not force redisplay if buffer is not shown
+	in any window.
+	(init_buffer_once): Initialize window_count for buffer_defaults
+	and buffer_local_symbols.
+	* window.h (buffer_shared): Remove declaration.
+	(wset_buffer): Convert from inline ...
+	* window.c (wset_buffer): ... to an ordinary function.
+	(adjust_window_count): New function.
+	(make_parent_window): Use it.
+	* xdisp.c (buffer_shared): Remove.
+	(redisplay_internal, redisplay_window): Adjust users.
+	(buffer_shared_and_changed): Use per-buffer window counter.
+
 2012-12-10  Eli Zaretskii  <eliz@gnu.org>
 
 	Support for filesystem notifications on MS-Windows.

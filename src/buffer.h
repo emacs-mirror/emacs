@@ -770,10 +770,14 @@ struct buffer
      In an ordinary buffer, it is 0.  */
   struct buffer *base_buffer;
 
-  /* In an indirect buffer, this is -1. In an ordinary buffer,
+  /* In an indirect buffer, this is -1.  In an ordinary buffer,
      it's the number of indirect buffers that share our text;
      zero means that we're the only owner of this text.  */
   int indirections;
+
+  /* Number of windows showing this buffer.  Always -1 for
+     an indirect buffer since it counts as its base buffer.  */
+  int window_count;
 
   /* A non-zero value in slot IDX means that per-buffer variable
      with index IDX has a local value in this buffer.  The index IDX
@@ -1173,7 +1177,18 @@ BUF_FETCH_MULTIBYTE_CHAR (struct buffer *buf, ptrdiff_t pos)
        + pos + BUF_BEG_ADDR (buf) - BEG_BYTE);
   return STRING_CHAR (p);
 }
-
+
+/* Return number of windows showing B.  */
+
+BUFFER_INLINE int
+buffer_window_count (struct buffer *b)
+{
+  if (b->base_buffer)
+    b = b->base_buffer;
+  eassert (b->window_count >= 0);
+  return b->window_count;
+}
+
 /* Overlays */
 
 /* Return the marker that stands for where OV starts in the buffer.  */

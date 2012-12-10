@@ -351,11 +351,6 @@ struct window
 /* Most code should use these functions to set Lisp fields in struct
    window.  */
 WINDOW_INLINE void
-wset_buffer (struct window *w, Lisp_Object val)
-{
-  w->buffer = val;
-}
-WINDOW_INLINE void
 wset_frame (struct window *w, Lisp_Object val)
 {
   w->frame = val;
@@ -947,11 +942,6 @@ extern int windows_or_buffers_changed;
 
 extern int cursor_type_changed;
 
-/* Number of windows displaying the selected buffer.  Normally this is
-   1, but it can be more.  */
-
-extern int buffer_shared;
-
 /* If *ROWS or *COLS are too small a size for FRAME, set them to the
    minimum allowable size.  */
 
@@ -997,6 +987,8 @@ extern int window_body_cols (struct window *w);
 extern void temp_output_buffer_show (Lisp_Object);
 extern void replace_buffer_in_windows (Lisp_Object);
 extern void replace_buffer_in_windows_safely (Lisp_Object);
+/* This looks like a setter, but it is a bit special.  */
+extern void wset_buffer (struct window *, Lisp_Object);
 extern void init_window_once (void);
 extern void init_window (void);
 extern void syms_of_window (void);

@@ -515,11 +515,6 @@ Lisp_Object Qmenu_bar_update_hook;
 
 static int overlay_arrow_seen;
 
-/* Number of windows showing the buffer of the selected
-   window (or another buffer with the same base buffer).  */
-
-int buffer_shared;
-
 /* Vector containing glyphs for an ellipsis `...'.  */
 
 static Lisp_Object default_invis_vector[3];
@@ -10894,9 +10889,8 @@ echo_area_display (int update_frame_p)
 static int
 buffer_shared_and_changed (void)
 {
-  /* The variable buffer_shared is set in redisplay_window and
-     indicates that we redisplay a buffer in different windows. */
-  return (buffer_shared > 1 && UNCHANGED_MODIFIED < MODIFF);
+  return (buffer_window_count (current_buffer) > 1
+	  && UNCHANGED_MODIFIED < MODIFF);
 }
 
 /* Nonzero if W doesn't reflect the actual state of current buffer due
@@ -13470,10 +13464,6 @@ redisplay_internal (void)
       FOR_EACH_FRAME (tail, frame)
 	XFRAME (frame)->updated_p = 0;
 
-      /* Recompute # windows showing selected buffer.  This will be
-	 incremented each time such a window is displayed.  */
-      buffer_shared = 0;
-
       FOR_EACH_FRAME (tail, frame)
 	{
 	  struct frame *f = XFRAME (frame);
@@ -15567,21 +15557,6 @@ redisplay_window (Lisp_Object window, int just_this_one_p)
 
   if (mode_line_update_needed (w))
     update_mode_line = 1;
-
-  /* Count number of windows showing the selected buffer.  An indirect
-     buffer counts as its base buffer.  */
-  if (!just_this_one_p)
-    {
-      struct buffer *current_base, *window_base;
-      current_base = current_buffer;
-      window_base = XBUFFER (XWINDOW (selected_window)->buffer);
-      if (current_base->base_buffer)
-	current_base = current_base->base_buffer;
-      if (window_base->base_buffer)
-	window_base = window_base->base_buffer;
-      if (current_base == window_base)
-	buffer_shared++;
-    }
 
   /* Point refers normally to the selected window.  For any other
      window, set up appropriate value.  */

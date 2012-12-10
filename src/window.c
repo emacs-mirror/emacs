@@ -270,6 +270,35 @@ decode_valid_window (register Lisp_Object window)
   return w;
 }
 
+/* Called when W's buffer slot is changed.  ARG -1 means that W is about to
+   cease its buffer, and 1 means that W is about to set up the new one.  */
+
+static void
+adjust_window_count (struct window *w, int arg)
+{
+  eassert (eabs (arg) == 1);
+  if (BUFFERP (w->buffer))
+    {
+      struct buffer *b = XBUFFER (w->buffer);
+      
+      if (b->base_buffer)
+	b = b->base_buffer;
+      b->window_count += arg;
+      eassert (b->window_count >= 0);
+    }
+}
+
+/* Set W's buffer slot to VAL and recompute number
+   of windows showing VAL if it is a buffer.  */
+
+void
+wset_buffer (struct window *w, Lisp_Object val)
+{
+  adjust_window_count (w, -1);
+  w->buffer = val;
+  adjust_window_count (w, 1);
+}
+
 /* Build a frequently used 4-integer (X Y W H) list.  */
 
 static Lisp_Object
@@ -3391,6 +3420,8 @@ make_parent_window (Lisp_Object window, int horflag)
   memcpy ((char *) p + sizeof (struct vectorlike_header),
 	  (char *) o + sizeof (struct vectorlike_header),
 	  word_size * VECSIZE (struct window));
+  /* P's buffer slot may change from nil to a buffer.  */
+  adjust_window_count (p, 1);
   XSETWINDOW (parent, p);
 
   p->sequence_number = ++sequence_number;
