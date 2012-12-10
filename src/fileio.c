@@ -5150,8 +5150,8 @@ See Info node `(elisp)Modification Time' for more details.  */)
 			? sub_emacs_time (b->modtime, mtime)
 			: sub_emacs_time (mtime, b->modtime))),
 	       EMACS_TIME_LE (diff, make_emacs_time (1, 0)))))
-      && (st.st_size == b->modtime_size
-          || b->modtime_size < 0))
+      && (b->modtime_size < 0
+	  || st.st_size == b->modtime_size))
     return Qt;
   return Qnil;
 }
