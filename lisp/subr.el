@@ -4323,6 +4323,26 @@ convenience wrapper around `make-progress-reporter' and friends.
        nil ,@(cdr (cdr spec)))))
 
 
+;;;; Support for watching filesystem events.
+
+(defun inotify-event-p (event)
+  "Check if EVENT is an inotify event."
+  (and (listp event)
+       (>= (length event) 3)
+       (eq (car event) 'file-inotify)))
+
+;;;###autoload
+(defun inotify-handle-event (event)
+  "Handle file system monitoring event.
+If EVENT is a filewatch event then the callback is called.  If EVENT is
+not a filewatch event then a `filewatch-error' is signaled."
+  (interactive "e")
+  (unless (inotify-event-p event)
+    (signal 'filewatch-error (cons "Not a valid inotify event" event)))
+
+  (funcall (nth 2 event) (nth 1 event)))
+
+
 ;;;; Comparing version strings.
 
 (defconst version-separator "."

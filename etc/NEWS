@@ -133,6 +133,11 @@ spurious warnings about an unused var.
 
 * Lisp changes in Emacs 24.4
 
+** Support for filesystem notifications.
+Emacs now supports notifications of filesystem changes, such as
+creation, modification, and deletion of files.  This requires the
+'inotify' API on GNU/Linux systems.
+
 ** Face changes
 
 *** The `face-spec-set' is now analogous to `setq' for face specs.

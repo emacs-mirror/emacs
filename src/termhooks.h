@@ -211,6 +211,11 @@ enum event_kind
   , NS_NONKEY_EVENT
 #endif
 
+#ifdef HAVE_INOTIFY
+  /* File or directory was changed.  */
+  , FILE_NOTIFY_EVENT
+#endif
+
 };
 
 /* If a struct input_event has a kind which is SELECTION_REQUEST_EVENT

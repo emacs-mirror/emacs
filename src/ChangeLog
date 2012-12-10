@@ -1,3 +1,24 @@
+2012-12-10  Rüdiger Sonderfeld  <ruediger@c-plusplus.de>
+
+	* termhooks.h (enum event_kind) [HAVE_INOTIFY]: Add
+	FILE_NOTIFY_EVENT.
+
+	* lisp.h (syms_of_inotify) [HAVE_INOTIFY]: Add prototype.
+
+	* keyboard.c (Qfile_inotify) [HAVE_INOTIFY]: New variable.
+	(syms_of_keyboard): DEFSYM it.
+	(kbd_buffer_get_event) [HAVE_INOTIFY]: Generate FILE_NOTIFY_EVENT.
+	(make_lispy_event): Support FILE_NOTIFY_EVENT by generating
+	Qfile_inotify events.
+	(keys_of_keyboard) [HAVE_INOTIFY]: Bind file-inotify events in
+	special-event-map to inotify-handle-event.
+
+	* emacs.c (main) [HAVE_INOTIFY]: Call syms_of_inotify.
+
+	* Makefile.in (base_obj): Add inotify.o.
+
+	* inotify.c: New file.
+
 2012-12-10  Jan Djärv  <jan.h.d@swipnet.se>
 
 	* nsterm.m (fd_handler:): FD_ZERO fds (Bug#13103).

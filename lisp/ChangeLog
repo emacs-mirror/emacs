@@ -1,3 +1,7 @@
+2012-12-10  Rüdiger Sonderfeld  <ruediger@c-plusplus.de>
+
+	* subr.el (inotify-event-p, inotify-handle-event): New functions.
+
 2012-12-10  Dani Moncayo <dmoncayo@gmail.com>
 
 	* simple.el (just-one-space): Doc fix.
