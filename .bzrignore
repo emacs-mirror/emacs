@@ -153,6 +153,7 @@ src/gdb.ini
 src/prefix-args*
 src/stamp-oldxmenu
 src/stamp-h.in
+src/emacs.res
 src/temacs
 test/indent/*.new
 +*

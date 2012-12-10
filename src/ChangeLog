@@ -1,5 +1,8 @@
 2012-12-10  Daniel Colascione  <dancol@dancol.org>
 
+	* w32term.c, keyboard.c: Fix build break in cygw32 by omitting
+	Windows file notification functionality unless WINDOWSNT.
+
 	* w32gui.h (hprevinst, lpCmdLine, nCmdShow): Remove unused
 	declarations.
 

@@ -3909,6 +3909,8 @@ kbd_buffer_get_event (KBOARD **kbp,
 			      make_number (event->modifiers)));
 	  kbd_fetch_ptr = event + 1;
 	}
+#endif
+#ifdef WINDOWSNT
       else if (event->kind == FILE_NOTIFY_EVENT)
 	{
 	  /* Make an event (file-notify (DESCRIPTOR ACTION FILE) CALLBACK).  */
@@ -11361,6 +11363,9 @@ syms_of_keyboard (void)
 
 #ifdef HAVE_NTGUI
   DEFSYM (Qlanguage_change, "language-change");
+#endif
+
+#ifdef WINDOWSNT
   DEFSYM (Qfile_w32notify, "file-w32notify");
 #endif
 

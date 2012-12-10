@@ -3244,6 +3244,7 @@ lispy_file_action (DWORD action)
   return retval;
 }
 
+#ifdef WINDOWSNT
 /* Put file notifications into the Emacs input event queue.  This
    function runs when the WM_EMACS_FILENOTIFY message arrives from a
    watcher thread.  */
@@ -3320,6 +3321,7 @@ queue_notifications (struct input_event *event, W32Msg *msg, struct frame *f,
   /* We've stuffed all the events ourselves, so w32_read_socket shouldn't.  */
   event->kind = NO_EVENT;
 }
+#endif
 
 
 /* Function to report a mouse movement to the mainstream Emacs code.
@@ -4954,11 +4956,13 @@ w32_read_socket (struct terminal *terminal,
 	  check_visibility = 1;
 	  break;
 
+#ifdef WINDOWSNT
 	case WM_EMACS_FILENOTIFY:
 	  f = x_window_to_frame (dpyinfo, msg.msg.hwnd);
 	  if (f)
 	    queue_notifications (&inev, &msg, f, &count);
 	  break;
+#endif
 
 	default:
 	  /* Check for messages registered at runtime.  */
