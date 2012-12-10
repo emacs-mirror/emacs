@@ -1590,7 +1590,7 @@ those `/' is discarded.  */)
 {
   char *nm, *s, *p, *o, *x, *endp;
   char *target = NULL;
-  int total = 0;
+  ptrdiff_t total = 0;
   bool substituted = 0;
   bool multibyte;
   char *xnm;
