@@ -1,3 +1,24 @@
+2012-12-10  Daniel Colascione  <dancol@dancol.org>
+
+	* w32gui.h (hprevinst, lpCmdLine, nCmdShow): Remove unused
+	declarations.
+
+	* w32fns.c (cache_system_info): Initialize the global hinst
+	variable here so various initialization calls DTRT.
+
+	* unexw32.c (hprevinst, lpCmdLine, nCmdShow): Remove unused
+	variables.
+	(hinst): Remove unneeded extern declaration.
+	(_start): Remove initialization of above variables; remove
+	initialization of hinst, as cache_system_info now does that.
+
+	* emacs.c (main): Call cache_system_info early in startup; we
+	previously weren't calling it in Cygwin builds.
+
+	* Makefile.in (ntsource, WINDRES, W32_RES, W#@_RES_LINK): Teach
+	the autoconf build system how to compile a Windows resource file
+	and link it to Emacs.
+
 2012-12-10  Dmitry Antipov  <dmantipov@yandex.ru>
 
 	Per-buffer window counters.

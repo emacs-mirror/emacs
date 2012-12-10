@@ -28,9 +28,11 @@ SHELL = /bin/sh
 # Here are the things that we expect ../configure to edit.
 # We use $(srcdir) explicitly in dependencies so as not to depend on VPATH.
 srcdir = @srcdir@
+ntsource = $(srcdir)/../nt
 abs_builddir = @abs_builddir@
 VPATH = $(srcdir)
 CC = @CC@
+WINDRES = @WINDRES@
 CFLAGS = @CFLAGS@
 CPPFLAGS = @CPPFLAGS@
 LDFLAGS = @LDFLAGS@
@@ -267,6 +269,13 @@ W32_OBJ=@W32_OBJ@
 ## --lwinspool if HAVE_W32, else empty.
 W32_LIBS=@W32_LIBS@
 
+## emacs.res if HAVE_W32
+W32_RES=@W32_RES@
+## If HAVE_W32, compiler arguments for including
+## the resource file in the binary.
+## XXX -Wl,-b -Wl,pe-i386 -Wl,emacs.res
+W32_RES_LINK=@W32_RES_LINK@
+
 ## Empty if !HAVE_X_WINDOWS
 ## xfont.o ftfont.o xftfont.o ftxfont.o if HAVE_XFT
 ## xfont.o ftfont.o ftxfont.o if HAVE_FREETYPE
@@ -328,7 +337,6 @@ ALL_OBJC_CFLAGS=$(ALL_CFLAGS) $(GNU_OBJC_CFLAGS)
 .m.o:
 	@$(MKDEPDIR)
 	$(CC) -c $(CPPFLAGS) $(ALL_OBJC_CFLAGS) $<
-
 
 ## lastfile must follow all files whose initialized data areas should
 ## be dumped as pure by dump-emacs.
@@ -463,9 +471,11 @@ $(obj) $(otherobj): globals.h
 $(lib)/libgnu.a: $(config_h)
 	cd $(lib) && $(MAKE) libgnu.a
 
-temacs$(EXEEXT): $(START_FILES) stamp-oldxmenu $(obj) $(otherobj) $(lib)/libgnu.a
+temacs$(EXEEXT): $(START_FILES) stamp-oldxmenu $(obj) $(otherobj) \
+	         $(lib)/libgnu.a $(W32_RES)
 	$(CC) $(LD_FIRSTFLAG) $(ALL_CFLAGS) $(TEMACS_LDFLAGS) $(TEMACS_LDFLAGS2) \
-	  -o temacs $(START_FILES) $(obj) $(otherobj) $(lib)/libgnu.a $(LIBES)
+	  -o temacs $(START_FILES) $(obj) $(otherobj) $(lib)/libgnu.a $(LIBES) \
+	  $(W32_RES_LINK)
 	test "$(CANNOT_DUMP)" = "yes" || \
 	  test "X$(PAXCTL)" = X || $(PAXCTL) -r temacs$(EXEEXT)
 
@@ -506,10 +516,13 @@ $(OLDXMENU): $(OLDXMENU_TARGET)
 
 doc.o: buildobj.h
 
+emacs.res: $(ntsource)/emacs.rc \
+	   $(ntsource)/icons/emacs.ico \
+	   $(ntsource)/emacs-x86.manifest
+	$(WINDRES) -O COFF -o $@ $(ntsource)/emacs.rc
 
 ns-app: emacs$(EXEEXT)
 	cd ../nextstep && $(MAKE) $(MFLAGS) all
-
 
 .PHONY: mostlyclean clean bootstrap-clean distclean maintainer-clean
 .PHONY: versionclean extraclean frc

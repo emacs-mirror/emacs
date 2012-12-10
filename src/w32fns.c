@@ -1821,7 +1821,6 @@ static LRESULT CALLBACK w32_wnd_proc (HWND, UINT, WPARAM, LPARAM);
 static BOOL
 w32_init_class (HINSTANCE hinst)
 {
-
   if (w32_unicode_gui)
     {
       WNDCLASSW  uwc;
@@ -7026,6 +7025,9 @@ cache_system_info (void)
 	} info;
       DWORD data;
     } version;
+
+  /* Cache the module handle of Emacs itself.  */
+  hinst = GetModuleHandle (NULL);
 
   /* Cache the version of the operating system.  */
   version.data = GetVersion ();
