@@ -85,13 +85,6 @@ DWORD_PTR  extra_bss_size_static = 0;
 
 PIMAGE_SECTION_HEADER heap_section;
 
-#ifdef HAVE_NTGUI
-extern HINSTANCE hinst;
-HINSTANCE hprevinst = NULL;
-LPSTR lpCmdLine = "";
-int nCmdShow = 0;
-#endif /* HAVE_NTGUI */
-
 /* Startup code for running on NT.  When we are running as the dumped
    version, we need to bootstrap our heap and .bss section into our
    address space before we can actually hand off control to the startup
@@ -121,15 +114,6 @@ _start (void)
   /* Prevent Emacs from being locked up (eg. in batch mode) when
      accessing devices that aren't mounted (eg. removable media drives).  */
   SetErrorMode (SEM_FAILCRITICALERRORS);
-
-  /* Invoke the NT CRT startup routine now that our housecleaning
-     is finished.  */
-#ifdef HAVE_NTGUI
-  /* determine WinMain args like crt0.c does */
-  hinst = GetModuleHandle (NULL);
-  lpCmdLine = GetCommandLine ();
-  nCmdShow = SW_SHOWDEFAULT;
-#endif
   mainCRTStartup ();
 }
 

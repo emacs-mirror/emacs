@@ -1,5 +1,5 @@
-Emacs ICON   icons\emacs.ico
-32649 CURSOR icons\hand.cur
+Emacs ICON   icons/emacs.ico
+32649 CURSOR icons/hand.cur
 #ifdef WIN64
 1 24 "emacs-x64.manifest"
 #else

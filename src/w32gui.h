@@ -79,9 +79,6 @@ typedef struct _XImage
 #define FACE_DEFAULT (~0)
 
 extern HINSTANCE hinst;
-extern HINSTANCE hprevinst;
-extern LPSTR lpCmdLine;
-extern int nCmdShow;
 
 /* Bit Gravity */
 
