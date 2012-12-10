@@ -1,3 +1,136 @@
+2012-11-25  Bill Wohler  <wohler@newt.com>
+
+	Release MH-E version 8.4.
+
+	* mh-e.el (Version, mh-version): Update for release 8.4.
+
+	* mh-comp.el (mh-regexp-in-field-syntax-table): Fix docstring.
+	(mh-edit-again): Format.
+	(mh-components-to-list): Fix docstring.
+	(mh-regexp-in-field-p): Remove unused variable `field'.
+
+	* mh-compat.el (mh-define-obsolete-variable-alias)
+	(mh-make-obsolete-variable): New macros to fix XEmacs compiler
+	warnings.
+
+	* mh-letter.el (mh-yank-hooks): Use new mh-make-obsolete-variable
+	macro.
+
+	* mh-e.el (mh-kill-folder-suppress-prompt-hooks): Use
+	new mh-define-obsolete-variable-alias macro.
+
+	* mh-compat.el (mh-cl-flet): New alias for cl-flet on Emacs 24 and
+	flet elsewhere.
+
+	* mh-thread.el (mh-thread-set-tables): Replace flet with new alias
+	mh-cl-flet.
+
+	* mh-show.el (mh-gnus-article-highlight-citation):
+	Replace flet with new alias mh-cl-flet.
+
+	* mh-mime.el (mh-display-with-external-viewer, mh-mime-display)
+	(mh-press-button, mh-push-button, mh-display-emphasis): Replace
+	flet with new alias mh-cl-flet.
+
+	* mh-e.el (mh-invisible-header-fields-internal):
+	Remove trailing whitespace.
+
+2012-11-25  Jeffrey C Honig  <jch@honig.net>
+
+	* mh-comp.el: (mh-edit-again): Use the components file to specify
+	default values for missing headers in the draft.
+	(mh-regexp-in-field-syntax-table, mh-fcc-syntax-table)
+	(mh-addr-syntax-table, mh-regexp-in-field-p): Use a syntax table
+	so we'll properly parse non-address fields.
+	(mh-components-to-list, mh-extract-header-field): New functions to
+	read components file.
+	(mh-find-components, mh-send-sub): Move code to locate components
+	file into a new function.
+	(mh-insert-auto-fields, mh-modify-header-field): New syntax for
+	calling mh-regexp-in-field-p (closes SF #1708292).
+
+	* mh-e.el (mh-invisible-header-fields-internal): Added: X-xsi.
+	(addresses SF #1916032).
+
+	* mh-folder.el (mh-inc-folder): Call mh-process-or-undo-commands
+	before running to insure we do not lose any pending changes.
+	(closes SF #2321115).
+
+2012-11-25  Ted Phelps  <phelps@gnusto.com>
+
+	Postpone junk processing (closes SF #2945712). Patch submitted by
+	Ted Phelps and refined by Bill Wohler.
+
+	* mh-e.el (mh-blacklist, mh-whitelist): New variables.
+	(mh-whitelist-preserves-sequences-flag): New option.
+	(mh-before-commands-processed-hook): Update documentation.
+	(mh-blacklist-msg-hook, mh-whitelist-msg-hook): New hooks.
+	(mh-folder-blacklisted, mh-folder-whitelisted): New faces.
+	* mh-folder.el (mh-folder-message-menu):  Add "Junk" to "Undo."
+	(mh-folder-font-lock-keywords): Add regexps for blacklisted and
+	whitelisted messages.
+	(mh-folder-mode): Add mh-blacklist and mh-whitelist variables.
+	(mh-execute-commands): Update documentation.
+	(mh-undo, mh-outstanding-commands-p, mh-process-commands)
+	(mh-delete-a-msg, mh-refile-a-msg, mh-undo-msg): Handle
+	blacklisted and whitelisted messages.
+	* mh-junk.el (mh-junk-blacklist, mh-junk-whitelist): Update to put
+	messages in blacklist and whitelist respectively for latter
+	processing.
+	(mh-blacklist-a-msg, mh-junk-whitelist-a-msg): New function to
+	support previous functions.
+	(mh-junk-blacklist-disposition): New function.
+	(mh-junk-process-blacklist, mh-junk-process-whitelist): New
+	functions that perform the blacklisting and whitelisting
+	respectively that used to be performed by mh-junk-blacklist and
+	mh-junk-whitelist.
+	* mh-scan.el (mh-scan-blacklisted-msg-regexp)
+	(mh-scan-whitelisted-msg-regexp): New scan line regexps.
+	(mh-scan-good-msg-regexp): Add B and W characters to regexp.
+	(mh-scan-cmd-note-width): Update documentation.
+	(mh-note-blacklisted, mh-note-whitelisted): New scan line
+	characters.
+	* mh-search.el (mh-index-execute-commands): Handle blacklisted and
+	whitelisted messages.
+
+2012-11-25  Jeffrey C Honig  <jch@honig.net>
+
+	* mh-e.el (mh-invisible-header-fields-internal): Added:
+	Bounces-To:, Bounces_to:, X-ACL-Warn:, X-BFI:, X-BPS1:, X-BPS2:,
+	X-Campaign-Id:, X-Campaign:, X-Cloudmark-SP-, X-Destination-ID:,
+	X-detected-operating-system:, X-DocGen-Version:, X-EM-,
+	X-Email-Type-Id:, X-FB-SS:, X-FuHaFi:, X-MailFlowPolicy:,
+	X-mail_abuse-inquires, X-MailingID:, X-Match:,
+	X-MaxCode-Template:, X-ME-Bayesian:, X-Sendergroup:, X-SFDC-,
+	X-SMFBL:, X-SMHeaderMap:, X-VGI-OESCD:, X-VirtualServer:,
+	X-VirtualServerGroup:, X-XPT-XSL-Name:, X-Y-GMX-Trusted:,
+	X-XWALL-, X-ZixNet:. Changed X-Habeas-SWE- to X-Habeas-. Updated
+	the comment. (addresses SF #1916032).
+
+2012-11-25  Bill Wohler  <wohler@newt.com>
+
+	* mh-e.el (mh-invisible-header-fields-internal): Add
+	X-AnalysisOut, X-Authentication-Info, X-Auto-Response-Suppress,
+	X-Bayes-Prob, X-Cam-, X-CanIt-Geo, X-Completed, X-Facebook,
+	X-Forwarded-, X-Generated-By, X-Headers-End, X-IEEE-UCE,
+	X-Jira-Fingerprint, X-Junkmail-, X-Launchpad-, X-MXL-Hash,
+	X-Notification-, X-Notifications, X-Oracle-Calendar. Replace
+	X-DCC-Usenix-Metrics with X-DCC- (addresses SF #1916032).
+
+2012-11-25  Jeffrey C Honig  <jch@honig.net>
+
+	* mh-letter.el (mh-yank-cur-msg): Replace usage of set-buffer with
+	with-current-buffer in mh-yang-cur-msg, semantics changed in emacs
+	23 and we do not want to use set-buffer unless we actually want to
+	change the buffer the user is looking at (closes SF #2830504).
+
+	* mh-show.el (mh-show-folder-map): Add missing key binding for
+	mh-show-pack-folder (closes SF #3466086).
+
+2012-11-25  Bill Wohler  <wohler@newt.com>
+
+	* mh-e.el (Version, mh-version): Add +bzr to version.
+
 2012-10-23  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* mh-letter.el (mh-yank-hooks): Use make-obsolete-variable.

@@ -30,6 +30,7 @@ GNUstep port and post-20 update by Adrian Robert (arobert@cogsci.ucsd.edu)
    interpretation of even the system includes. */
 #include <config.h>
 
+#include <fcntl.h>
 #include <math.h>
 #include <pthread.h>
 #include <sys/types.h>
@@ -40,10 +41,6 @@ GNUstep port and post-20 update by Adrian Robert (arobert@cogsci.ucsd.edu)
 #include <c-ctype.h>
 #include <c-strcase.h>
 #include <ftoastr.h>
-
-#ifdef HAVE_FCNTL_H
-#include <fcntl.h>
-#endif
 
 #include "lisp.h"
 #include "blockinput.h"
@@ -333,6 +330,7 @@ hold_event (struct input_event *event)
   hold_event_q.q[hold_event_q.nr++] = *event;
   /* Make sure ns_read_socket is called, i.e. we have input.  */
   raise (SIGIO);
+  send_appdefined = YES;
 }
 
 static Lisp_Object
@@ -1188,7 +1186,6 @@ x_free_frame_resources (struct frame *f)
       hlinfo->mouse_face_beg_row = hlinfo->mouse_face_beg_col = -1;
       hlinfo->mouse_face_end_row = hlinfo->mouse_face_end_col = -1;
       hlinfo->mouse_face_window = Qnil;
-      hlinfo->mouse_face_deferred_gc = 0;
       hlinfo->mouse_face_mouse_frame = 0;
     }
 
@@ -1889,8 +1886,7 @@ static void
 ns_frame_up_to_date (struct frame *f)
 /* --------------------------------------------------------------------------
     External (hook): Fix up mouse highlighting right after a full update.
-    Some highlighting was deferred if GC was happening during
-    note_mouse_highlight (), while other highlighting was deferred for update.
+    Can't use FRAME_MOUSE_UPDATE due to ns_frame_begin and ns_frame_end calls.
    -------------------------------------------------------------------------- */
 {
   NSTRACE (ns_frame_up_to_date);
@@ -1898,19 +1894,17 @@ ns_frame_up_to_date (struct frame *f)
   if (FRAME_NS_P (f))
     {
       Mouse_HLInfo *hlinfo = MOUSE_HL_INFO (f);
-      if ((hlinfo->mouse_face_deferred_gc || f ==hlinfo->mouse_face_mouse_frame)
-      /*&& hlinfo->mouse_face_mouse_frame*/)
-        {
-          block_input ();
+      if (f == hlinfo->mouse_face_mouse_frame)
+	{
+	  block_input ();
 	  ns_update_begin(f);
-          if (hlinfo->mouse_face_mouse_frame)
-            note_mouse_highlight (hlinfo->mouse_face_mouse_frame,
-                                  hlinfo->mouse_face_mouse_x,
-                                  hlinfo->mouse_face_mouse_y);
-          hlinfo->mouse_face_deferred_gc = 0;
+	  if (hlinfo->mouse_face_mouse_frame)
+	    note_mouse_highlight (hlinfo->mouse_face_mouse_frame,
+				  hlinfo->mouse_face_mouse_x,
+				  hlinfo->mouse_face_mouse_y);
 	  ns_update_end(f);
-          unblock_input ();
-        }
+	  unblock_input ();
+	}
     }
 }
 
@@ -3464,6 +3458,14 @@ ns_select (int nfds, fd_set *readfds, fd_set *writefds,
 
 /*  NSTRACE (ns_select); */
 
+  if (hold_event_q.nr > 0)
+    {
+      /* We already have events pending. */
+      raise (SIGIO);
+      errno = EINTR;
+      return -1;
+    }
+
   for (k = 0; k < nfds+1; k++)
     {
       if (readfds && FD_ISSET(k, readfds)) ++nr;
@@ -3863,7 +3865,6 @@ ns_initialize_display_info (struct ns_display_info *dpyinfo)
     dpyinfo->root_window = 42; /* a placeholder.. */
 
     hlinfo->mouse_face_mouse_frame = NULL;
-    hlinfo->mouse_face_deferred_gc = 0;
     hlinfo->mouse_face_beg_row = hlinfo->mouse_face_beg_col = -1;
     hlinfo->mouse_face_end_row = hlinfo->mouse_face_end_col = -1;
     hlinfo->mouse_face_face_id = DEFAULT_FACE_ID;
@@ -4574,7 +4575,7 @@ not_in_argv (NSString *arg)
       if (waiting)
         {
           SELECT_TYPE fds;
-
+          FD_ZERO (&fds);
           FD_SET (selfds[0], &fds);
           result = select (selfds[0]+1, &fds, NULL, NULL, NULL);
           if (result > 0 && read (selfds[0], &c, 1) == 1 && c == 'g')
@@ -6953,7 +6954,6 @@ x_new_font (struct frame *f, Lisp_Object font_object, int fontset)
 
   FRAME_BASELINE_OFFSET (f) = font->baseline_offset;
   FRAME_COLUMN_WIDTH (f) = font->average_width;
-  FRAME_SPACE_WIDTH (f) = font->space_width;
   FRAME_LINE_HEIGHT (f) = font->height;
 
   compute_fringe_widths (f, 1);

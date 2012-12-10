@@ -63,11 +63,11 @@ called EasyPG Library.
 @end ifnottex
 
 @menu
-* Overview::                    
-* Quick start::                 
-* Commands::                    
-* Caching Passphrases::         
-* Bug Reports::                 
+* Overview::
+* Quick start::
+* Commands::
+* Caching Passphrases::
+* Bug Reports::
 @end menu
 
 @node  Overview
@@ -107,12 +107,12 @@ encryption/decryption of @samp{*.gpg} files.
 This chapter introduces various commands for typical use cases.
 
 @menu
-* Key management::              
-* Cryptographic operations on regions::  
-* Cryptographic operations on files::  
-* Dired integration::           
-* Mail-mode integration::       
-* Encrypting/decrypting *.gpg files::  
+* Key management::
+* Cryptographic operations on regions::
+* Cryptographic operations on files::
+* Dired integration::
+* Mail-mode integration::
+* Encrypting/decrypting *.gpg files::
 @end menu
 
 @node Key management
@@ -311,7 +311,7 @@ style of sending signed/encrypted emails by embedding raw OpenPGP
 blobs inside a message body, not using modern MIME format.
 
 NOTE: Inline OpenPGP is not recommended and you should consider to use
-PGP/MIME.  See
+PGP/MIME@.  See
 @uref{http://josefsson.org/inline-openpgp-considered-harmful.html,
 Inline OpenPGP in E-mail is bad@comma{} Mm'kay?}.
 

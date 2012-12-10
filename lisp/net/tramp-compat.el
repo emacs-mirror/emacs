@@ -71,22 +71,6 @@
       (require 'timer-funcs)
     (require 'timer))
 
-  ;; We check whether `start-file-process' is bound.
-  ;; Note: we deactivate this.  There are problems, at least in SXEmacs.
-  (unless t;(fboundp 'start-file-process)
-
-    ;; tramp-util offers integration into other (X)Emacs packages like
-    ;; compile.el, gud.el etc.  Not necessary in Emacs 23.
-    (eval-after-load "tramp"
-      '(require 'tramp-util))
-
-    ;; Make sure that we get integration with the VC package.  When it
-    ;; is loaded, we need to pull in the integration module.  Not
-    ;; necessary in Emacs 23.
-    (eval-after-load "vc"
-      (eval-after-load "tramp"
-	'(require 'tramp-vc))))
-
   ;; Avoid byte-compiler warnings if the byte-compiler supports this.
   ;; Currently, XEmacs supports this.
   (when (featurep 'xemacs)
@@ -132,9 +116,7 @@
   ;; mechanism.
 
   ;; `file-remote-p' has been introduced with Emacs 22.  The version
-  ;; of XEmacs is not a magic file name function (yet); this is
-  ;; corrected in tramp-util.el.  Here it is sufficient if the
-  ;; function exists.
+  ;; of XEmacs is not a magic file name function (yet).
   (unless (fboundp 'file-remote-p)
     (defalias 'file-remote-p
       (lambda (file &optional identification connected)

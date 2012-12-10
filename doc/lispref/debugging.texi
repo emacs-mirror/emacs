@@ -32,6 +32,9 @@ program.
 @item
 You can use the ERT package to write regression tests for the program.
 @xref{Top,the ERT manual,, ERT, ERT: Emacs Lisp Regression Testing}.
+
+@item
+You can profile the program to get hints about how to make it more efficient.
 @end itemize
 
   Other useful tools for debugging input and output problems are the
@@ -43,6 +46,7 @@ function (@pxref{Terminal Output}).
 * Edebug::              A source-level Emacs Lisp debugger.
 * Syntax Errors::       How to find syntax errors.
 * Test Coverage::       Ensuring you have tested all branches in your code.
+* Profiling::           Measuring the resources that your code uses.
 @end menu
 
 @node Debugger
@@ -809,3 +813,63 @@ never return.  If it ever does return, you get a run-time error.
   Edebug also has a coverage testing feature (@pxref{Coverage
 Testing}).  These features partly duplicate each other, and it would
 be cleaner to combine them.
+
+
+@node Profiling
+@section Profiling
+@cindex profiling
+@cindex measuring resource usage
+@cindex memory usage
+
+If your program is working correctly, but you want to make it run more
+quickly or efficiently, the first thing to do is @dfn{profile} your
+code so that you know how it is using resources.  If you find that one
+particular function is responsible for a significant portion of the
+runtime, you can start looking for ways to optimize that piece.
+
+Emacs has built-in support for this.  To begin profiling, type
+@kbd{M-x profiler-start}.  You can choose to profile by processor
+usage, memory usage, or both.  After doing some work, type
+@kbd{M-x profiler-report} to display a summary buffer for each
+resource that you chose to profile.  The names of the report buffers
+include the times at which the reports were generated, so you can
+generate another report later on without erasing previous results.
+When you have finished profiling, type @kbd{M-x profiler-stop} (there
+is a small overhead associated with profiling).
+
+The profiler report buffer shows, on each line, a function that was
+called, followed by how much resource (processor or memory) it used in
+absolute and percentage times since profiling started.  If a given
+line has a @samp{+} symbol at the left-hand side, you can expand that
+line by typing @key{RET}, in order to see the function(s) called by
+the higher-level function.  Pressing @key{RET} again will collapse
+back to the original state.
+
+Press @kbd{j} or @kbd{mouse-2} to jump to the definition of a function.
+Press @kbd{d} to view a function's documentation.
+You can save a profile to a file using @kbd{C-x C-w}.
+You can compare two profiles using @kbd{=}.
+
+@c FIXME reversed calltree?
+
+@cindex @file{elp.el}
+@cindex timing programs
+The @file{elp} library offers an alternative approach.  See the file
+@file{elp.el} for instructions.
+
+@cindex @file{benchmark.el}
+@cindex benchmarking
+You can check the speed of individual Emacs Lisp forms using the
+@file{benchmark} library.  See the functions @code{benchmark-run} and
+@code{benchmark-run-compiled} in @file{benchmark.el}.
+
+@c Not worth putting in the printed manual.
+@ifnottex
+@cindex --enable-profiling option of configure
+To profile Emacs at the level of its C code, you can build it using the
+@option{--enable-profiling} option of @command{configure}.  When Emacs
+exits, it generates a file @file{gmon.out} that you can examine using
+the @command{gprof} utility.  This feature is mainly useful for
+debugging Emacs.  It actually stops the Lisp-level @kbd{M-x
+profiler-@dots{}} commands described above from working.
+@end ifnottex

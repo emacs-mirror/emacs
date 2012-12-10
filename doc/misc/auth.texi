@@ -89,7 +89,7 @@ password (known as the secret).
 
 Similarly, the auth-source library supports multiple storage backend,
 currently either the classic ``netrc'' backend, examples of which you
-can see later in this document, or the Secret Service API.  This is
+can see later in this document, or the Secret Service API@.  This is
 done with EIEIO-based backends and you can write your own if you want.
 
 @node Help for users
@@ -213,7 +213,7 @@ machine yourmachine.com:80 port http login testuser password testpass
 @end example
 
 This will match any realm and authentication method (basic or digest)
-over HTTP.  HTTPS is set up similarly.  If you want finer controls,
+over HTTP@.  HTTPS is set up similarly.  If you want finer controls,
 explore the url-auth source code and variables.
 
 For Tramp authentication, use:
@@ -238,7 +238,7 @@ KDE Wallet (these are GNOME and KDE packages respectively and should
 be available on most modern GNU/Linux systems).
 
 The auth-source library uses the @file{secrets.el} library to connect
-through the Secret Service API.  You can also use that library in
+through the Secret Service API@.  You can also use that library in
 other packages, it's not exclusive to auth-source.
 
 @defvar secrets-enabled

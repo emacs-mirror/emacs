@@ -930,6 +930,8 @@ If it is a file, return the corresponding cons for the file itself."
 
 (defvar use-vc-backend)  ;; dynamically bound
 
+;; Autoload cookie needed by desktop.el.
+;;;###autoload
 (define-derived-mode vc-dir-mode special-mode "VC dir"
   "Major mode for VC directory buffers.
 Marking/Unmarking key bindings and actions:
@@ -967,6 +969,8 @@ the *vc-dir* buffer.
 
 \\{vc-dir-mode-map}"
   (set (make-local-variable 'vc-dir-backend) use-vc-backend)
+  (set (make-local-variable 'desktop-save-buffer)
+       'vc-dir-desktop-buffer-misc-data)
   (setq buffer-read-only t)
   (when (boundp 'tool-bar-map)
     (set (make-local-variable 'tool-bar-map) vc-dir-tool-bar-map))
@@ -1288,6 +1292,31 @@ These are the commands available for use in the file status buffer:
   "Default absence of extra information returned for a file."
   nil)
 
+
+;;; Support for desktop.el (adapted from what dired.el does).
+
+(declare-function desktop-file-name "desktop" (filename dirname))
+
+(defun vc-dir-desktop-buffer-misc-data (dirname)
+  "Auxiliary information to be saved in desktop file."
+  (cons (desktop-file-name default-directory dirname) vc-dir-backend))
+
+(defun vc-dir-restore-desktop-buffer (_filename _buffername misc-data)
+  "Restore a `vc-dir' buffer specified in a desktop file."
+  (let ((dir (car misc-data))
+	(backend (cdr misc-data)))
+    (if (file-directory-p dir)
+	(progn
+	  (vc-dir dir backend)
+	  (current-buffer))
+      (message "Desktop: Directory %s no longer exists." dir)
+      (when desktop-missing-file-warning (sit-for 1))
+      nil)))
+
+(add-to-list 'desktop-buffer-mode-handlers
+	     '(vc-dir-mode . vc-dir-restore-desktop-buffer))
+
+
 (provide 'vc-dir)
 
 ;;; vc-dir.el ends here

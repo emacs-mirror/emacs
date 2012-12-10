@@ -1057,7 +1057,7 @@ and has an optimized include file identification function.
 @subsection Custom Locate
 
 The various simple project styles all have one major drawback, which
-is that the files in the project are not completely known to EDE.
+is that the files in the project are not completely known to EDE@.
 When the EDE API is used to try and file files by some reference name
 in the project, then that could fail.
 
@@ -1074,7 +1074,7 @@ To enable one of these tools, set the variable
 @code{ede-locate-setup-options} with the names of different locate
 objects.  @ref{Miscellaneous commands}.
 
-Configure this in your @file{.emacs} before loading in CEDET or EDE.
+Configure this in your @file{.emacs} before loading in CEDET or EDE@.
 If you want to add support for GNU Global, your configuration would
 look like this:
 
@@ -1083,7 +1083,7 @@ look like this:
 @end example
 
 That way, when a search needs to be done, it will first try using
-GLOBAL.  If global is not available for that directory, then it will
+GLOBAL@.  If global is not available for that directory, then it will
 revert to the base locate object.  The base object always fails to
 find a file.
 
@@ -1100,7 +1100,7 @@ bugs in @ede{}.  A knowledge of Emacs Lisp, and some @eieio{}(CLOS) is
 required.
 
 @ede{} uses @eieio{}, the CLOS package for Emacs, to define two object
-superclasses, specifically the PROJECT and TARGET.  All commands in
+superclasses, specifically the PROJECT and TARGET@.  All commands in
 @ede{} are usually meant to address the current project, or current
 target.
 
@@ -1273,7 +1273,7 @@ The function @code{ede-directory-project-p} will call
 @code{ede-dir-to-projectfile} on every @code{ede-project-autoload}
 until one of them returns true.  The method
 @code{ede-dir-to-projectfile} in turn gets the @code{:proj-file} slot
-from the autoload.  If it is a string (ie, a project file name), it
+from the autoload.  If it is a string (i.e., a project file name), it
 checks to see if that exists in BUFFER's directory.  If it is a
 function, then it calls that function and expects it to return a file
 name or nil.  If the file exists, then this directory is assumed to be
@@ -1379,7 +1379,7 @@ List all documentation a project or target is responsible for.
 @ede{} projects track source file / target associates via source code
 objects.  The definitions for this is in @file{ede-source.el}.  A source
 code object contains methods that know how to identify a file as being
-of that class, (ie, a C file ends with @file{.c}).  Some targets can
+of that class, (i.e., a C file ends with @file{.c}).  Some targets can
 handle many different types of sources which must all be compiled
 together.  For example, a mixed C and C++ program would have
 instantiations of both sourcecode types.
@@ -1635,7 +1635,7 @@ This is a URL to be sent to a web site for documentation.
 @item :web-site-directory @*
 
 A directory where web pages can be found by Emacs.
-For remote locations use a path compatible with ange-ftp or EFS.
+For remote locations use a path compatible with ange-ftp or EFS@.
 You can also use TRAMP for use with rcp & scp.
 @refill
 
@@ -1978,7 +1978,7 @@ The function symbol must take two arguments:
   NAME - The name of the file to find.
   DIR - The directory root for this cpp-root project.
 
-It should return the fully qualified file name passed in from NAME.  If that file does not
+It should return the fully qualified file name passed in from NAME@.  If that file does not
 exist, it should return nil.
 @refill
 
@@ -2565,7 +2565,7 @@ Optional @var{DEPTH} is the depth we start at.
 @end deffn
 
 @deffn Method ede-buffer-header-file :AFTER this buffer
-There are no default header files in EDE.
+There are no default header files in EDE@.
 Do a quick check to see if there is a Header tag in this buffer.
 @end deffn
 

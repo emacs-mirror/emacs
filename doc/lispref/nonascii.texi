@@ -417,7 +417,7 @@ Corresponds to the Unicode properties @code{Decomposition_Type} and
 may be a symbol representing a compatibility formatting tag, such as
 @code{small}@footnote{The Unicode specification writes these tag names
 inside @samp{<..>} brackets, but the tag names in Emacs do not include
-the brackets; e.g.@: Unicode specifies @samp{<small>} where Emacs uses
+the brackets; e.g., Unicode specifies @samp{<small>} where Emacs uses
 @samp{small}.  }; the other elements are characters that give the
 compatibility decomposition sequence of this character.  For
 unassigned codepoints, the value is the character itself.
@@ -825,7 +825,7 @@ a complex translation table rather than a simple one-to-one mapping.
 Each element of @var{alist} is of the form @code{(@var{from}
 . @var{to})}, where @var{from} and @var{to} are either characters or
 vectors specifying a sequence of characters.  If @var{from} is a
-character, that character is translated to @var{to} (i.e.@: to a
+character, that character is translated to @var{to} (i.e., to a
 character or a character sequence).  If @var{from} is a vector of
 characters, that sequence is translated to @var{to}.  The returned
 table has a translation table for reverse mapping in the first extra
@@ -1171,7 +1171,7 @@ positions.
 @defun detect-coding-region start end &optional highest
 This function chooses a plausible coding system for decoding the text
 from @var{start} to @var{end}.  This text should be a byte sequence,
-i.e.@: unibyte text or multibyte text with only @acronym{ASCII} and
+i.e., unibyte text or multibyte text with only @acronym{ASCII} and
 eight-bit characters (@pxref{Explicit Encoding}).
 
 Normally this function returns a list of coding systems that could

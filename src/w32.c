@@ -101,17 +101,17 @@ typedef struct _MEMORY_STATUS_EX {
    _WIN32_WINNT than what we use.  w32api supplied with MinGW 3.15
    defines it in psapi.h  */
 typedef struct _PROCESS_MEMORY_COUNTERS_EX {
-  DWORD cb;
-  DWORD PageFaultCount;
-  DWORD PeakWorkingSetSize;
-  DWORD WorkingSetSize;
-  DWORD QuotaPeakPagedPoolUsage;
-  DWORD QuotaPagedPoolUsage;
-  DWORD QuotaPeakNonPagedPoolUsage;
-  DWORD QuotaNonPagedPoolUsage;
-  DWORD PagefileUsage;
-  DWORD PeakPagefileUsage;
-  DWORD PrivateUsage;
+  DWORD  cb;
+  DWORD  PageFaultCount;
+  SIZE_T PeakWorkingSetSize;
+  SIZE_T WorkingSetSize;
+  SIZE_T QuotaPeakPagedPoolUsage;
+  SIZE_T QuotaPagedPoolUsage;
+  SIZE_T QuotaPeakNonPagedPoolUsage;
+  SIZE_T QuotaNonPagedPoolUsage;
+  SIZE_T PagefileUsage;
+  SIZE_T PeakPagefileUsage;
+  SIZE_T PrivateUsage;
 } PROCESS_MEMORY_COUNTERS_EX,*PPROCESS_MEMORY_COUNTERS_EX;
 #endif
 
@@ -119,9 +119,10 @@ typedef struct _PROCESS_MEMORY_COUNTERS_EX {
 #include <aclapi.h>
 
 #ifdef _MSC_VER
-/* MSVC doesn't provide the definition of REPARSE_DATA_BUFFER, except
-   on ntifs.h, which cannot be included because it triggers conflicts
-   with other Windows API headers.  So we define it here by hand.  */
+/* MSVC doesn't provide the definition of REPARSE_DATA_BUFFER and the
+   associated macros, except on ntifs.h, which cannot be included
+   because it triggers conflicts with other Windows API headers.  So
+   we define it here by hand.  */
 
 typedef struct _REPARSE_DATA_BUFFER {
     ULONG  ReparseTag;
@@ -149,6 +150,20 @@ typedef struct _REPARSE_DATA_BUFFER {
     } DUMMYUNIONNAME;
 } REPARSE_DATA_BUFFER, *PREPARSE_DATA_BUFFER;
 
+#ifndef FILE_DEVICE_FILE_SYSTEM
+#define FILE_DEVICE_FILE_SYSTEM	9
+#endif
+#ifndef METHOD_BUFFERED
+#define METHOD_BUFFERED	        0
+#endif
+#ifndef FILE_ANY_ACCESS
+#define FILE_ANY_ACCESS	        0x00000000
+#endif
+#ifndef CTL_CODE
+#define CTL_CODE(t,f,m,a)       (((t)<<16)|((a)<<14)|((f)<<2)|(m))
+#endif
+#define FSCTL_GET_REPARSE_POINT \
+  CTL_CODE(FILE_DEVICE_FILE_SYSTEM, 42, METHOD_BUFFERED, FILE_ANY_ACCESS)
 #endif
 
 /* TCP connection support.  */
@@ -172,7 +187,7 @@ typedef struct _REPARSE_DATA_BUFFER {
 #undef sendto
 
 #include "w32.h"
-#include "ndir.h"
+#include <dirent.h>
 #include "w32common.h"
 #include "w32heap.h"
 #include "w32select.h"
@@ -336,8 +351,8 @@ typedef BOOL (WINAPI * GetProcessMemoryInfo_Proc) (
     DWORD cb);
 typedef BOOL (WINAPI * GetProcessWorkingSetSize_Proc) (
     HANDLE hProcess,
-    DWORD * lpMinimumWorkingSetSize,
-    DWORD * lpMaximumWorkingSetSize);
+    PSIZE_T lpMinimumWorkingSetSize,
+    PSIZE_T lpMaximumWorkingSetSize);
 typedef BOOL (WINAPI * GlobalMemoryStatus_Proc) (
     LPMEMORYSTATUS lpBuffer);
 typedef BOOL (WINAPI * GlobalMemoryStatusEx_Proc) (
@@ -901,8 +916,18 @@ static char startup_dir[MAXPATHLEN];
 
 /* Get the current working directory.  */
 char *
-getwd (char *dir)
+getcwd (char *dir, int dirsize)
 {
+  if (!dirsize)
+    {
+      errno = EINVAL;
+      return NULL;
+    }
+  if (dirsize <= strlen (startup_dir))
+    {
+      errno = ERANGE;
+      return NULL;
+    }
 #if 0
   if (GetCurrentDirectory (MAXPATHLEN, dir) > 0)
     return dir;
@@ -1519,6 +1544,50 @@ is_unc_volume (const char *filename)
   return 1;
 }
 
+/* Emulate the Posix unsetenv.  */
+int
+unsetenv (const char *name)
+{
+  char *var;
+  size_t name_len;
+  int retval;
+
+  if (name == NULL || *name == '\0' || strchr (name, '=') != NULL)
+    {
+      errno = EINVAL;
+      return -1;
+    }
+  name_len = strlen (name);
+  /* MS docs says an environment variable cannot be longer than 32K.  */
+  if (name_len > 32767)
+    {
+      errno = ENOMEM;
+      return 0;
+    }
+  /* It is safe to use 'alloca' with 32K size, since the stack is at
+     least 2MB, and we set it to 8MB in the link command line.  */
+  var = alloca (name_len + 2);
+  var[name_len++] = '=';
+  var[name_len] = '\0';
+  return _putenv (var);
+}
+
+/* MS _putenv doesn't support removing a variable when the argument
+   does not include the '=' character, so we fix that here.  */
+int
+sys_putenv (char *str)
+{
+  const char *const name_end = strchr (str, '=');
+
+  if (name_end == NULL)
+    {
+      /* Remove the variable from the environment.  */
+      return unsetenv (str);
+    }
+
+  return _putenv (str);
+}
+
 #define REG_ROOT "SOFTWARE\\GNU\\Emacs"
 
 LPBYTE
@@ -1818,7 +1887,7 @@ init_environment (char ** argv)
 	memcpy (*envp, "COMSPEC=", 8);
   }
 
-  /* Remember the initial working directory for getwd.  */
+  /* Remember the initial working directory for getcwd.  */
   /* FIXME: Do we need to resolve possible symlinks in startup_dir?
      Does it matter anywhere in Emacs?  */
   if (!GetCurrentDirectory (MAXPATHLEN, startup_dir))
@@ -2431,7 +2500,7 @@ is_exec (const char * name)
    and readdir.  We can't use the procedures supplied in sysdep.c,
    so we provide them here.  */
 
-struct direct dir_static;       /* simulated directory contents */
+struct dirent dir_static;       /* simulated directory contents */
 static HANDLE dir_find_handle = INVALID_HANDLE_VALUE;
 static int    dir_is_fat;
 static char   dir_pathname[MAXPATHLEN+1];
@@ -2501,7 +2570,7 @@ closedir (DIR *dirp)
   xfree ((char *) dirp);
 }
 
-struct direct *
+struct dirent *
 readdir (DIR *dirp)
 {
   int downcase = !NILP (Vw32_downcase_file_names);
@@ -2555,7 +2624,7 @@ readdir (DIR *dirp)
       downcase = 1;	/* 8+3 aliases are returned in all caps */
     }
   dir_static.d_namlen = strlen (dir_static.d_name);
-  dir_static.d_reclen = sizeof (struct direct) - MAXNAMLEN + 3 +
+  dir_static.d_reclen = sizeof (struct dirent) - MAXNAMLEN + 3 +
     dir_static.d_namlen - dir_static.d_namlen % 4;
 
   /* If the file name in cFileName[] includes `?' characters, it means
@@ -4616,8 +4685,8 @@ get_process_memory_info (HANDLE h_proc,
 
 static BOOL WINAPI
 get_process_working_set_size (HANDLE h_proc,
-			      DWORD *minrss,
-			      DWORD *maxrss)
+			      PSIZE_T minrss,
+			      PSIZE_T maxrss)
 {
   static GetProcessWorkingSetSize_Proc
     s_pfn_Get_Process_Working_Set_Size = NULL;
@@ -4862,7 +4931,7 @@ system_process_attributes (Lisp_Object pid)
   unsigned egid;
   PROCESS_MEMORY_COUNTERS mem;
   PROCESS_MEMORY_COUNTERS_EX mem_ex;
-  DWORD minrss, maxrss;
+  SIZE_T minrss, maxrss;
   MEMORYSTATUS memst;
   MEMORY_STATUS_EX memstex;
   double totphys = 0.0;
@@ -5090,7 +5159,7 @@ system_process_attributes (Lisp_Object pid)
       && get_process_memory_info (h_proc, (PROCESS_MEMORY_COUNTERS *)&mem_ex,
 				  sizeof (mem_ex)))
     {
-      DWORD rss = mem_ex.WorkingSetSize / 1024;
+      SIZE_T rss = mem_ex.WorkingSetSize / 1024;
 
       attrs = Fcons (Fcons (Qmajflt,
 			    make_fixnum_or_float (mem_ex.PageFaultCount)),
@@ -5105,7 +5174,7 @@ system_process_attributes (Lisp_Object pid)
   else if (h_proc
 	   && get_process_memory_info (h_proc, &mem, sizeof (mem)))
     {
-      DWORD rss = mem_ex.WorkingSetSize / 1024;
+      SIZE_T rss = mem_ex.WorkingSetSize / 1024;
 
       attrs = Fcons (Fcons (Qmajflt,
 			    make_fixnum_or_float (mem.PageFaultCount)),
@@ -5854,7 +5923,7 @@ fcntl (int s, int cmd, int options)
   check_errno ();
   if (fd_info[s].flags & FILE_SOCKET)
     {
-      if (cmd == F_SETFL && options == O_NDELAY)
+      if (cmd == F_SETFL && options == O_NONBLOCK)
 	{
 	  unsigned long nblock = 1;
 	  int rc = pfn_ioctlsocket (SOCK_HANDLE (s), FIONBIO, &nblock);

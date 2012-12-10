@@ -107,10 +107,12 @@ control systems."
   :type 'boolean
   :group 'vc)
 
-(defcustom vc-mistrust-permissions nil
+;; If you fix bug#11490, probably you can set this back to nil.
+(defcustom vc-mistrust-permissions t
   "If non-nil, don't assume permissions/ownership track version-control status.
 If nil, do rely on the permissions.
 See also variable `vc-consult-headers'."
+  :version "24.3"                       ; nil->t, bug#11490
   :type 'boolean
   :group 'vc)
 
@@ -436,8 +438,8 @@ For registered files, the possible values are:
 (defun vc-state (file &optional backend)
   "Return the version control state of FILE.
 
-If FILE is not registered, this function always returns nil.
-For registered files, the value returned is one of:
+A return of nil from this function means we have no information on the
+status of this file.  Otherwise, the value returned is one of:
 
   'up-to-date        The working file is unmodified with respect to the
                      latest version on the current branch, and not locked.
@@ -489,10 +491,8 @@ For registered files, the value returned is one of:
                      that any file with vc-state nil might be ignorable
                      without VC knowing it.
 
-  'unregistered      The file is not under version control.
+  'unregistered      The file is not under version control."
 
-A return of nil from this function means we have no information on the
-status of this file."
   ;; Note: in Emacs 22 and older, return of nil meant the file was
   ;; unregistered.  This is potentially a source of
   ;; backward-compatibility bugs.
@@ -856,8 +856,9 @@ current, and kill the buffer that visits the link."
 	  (set (make-local-variable 'backup-inhibited) t))
 	;; Let the backend setup any buffer-local things he needs.
 	(vc-call-backend backend 'find-file-hook))
-       ((let ((link-type (and (not (equal buffer-file-name buffer-file-truename))
-			      (vc-backend buffer-file-truename))))
+       ((let* ((truename (expand-file-name buffer-file-truename))
+	       (link-type (and (not (equal buffer-file-name truename))
+			       (vc-backend truename))))
 	  (cond ((not link-type) nil)	;Nothing to do.
 		((eq vc-follow-symlinks nil)
 		 (message

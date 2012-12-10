@@ -220,6 +220,9 @@ the mode if ARG is omitted or nil."
       (goto-char (point-max))
       (insert msg1 msg2 "\n"))))
 
+(declare-function shell-prefixed-directory-name "shell" (dir))
+(declare-function shell-process-cd "shell" (arg))
+
 ;;;###autoload
 (defun dirtrack (input)
   "Determine the current directory from the process output for a prompt.

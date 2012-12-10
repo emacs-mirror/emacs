@@ -1938,27 +1938,6 @@ to case differences."
 	       (string-equal (downcase str1) (downcase prefix))
 	     (string-equal str1 prefix))))))
 
-(eval-and-compile
-  (if (fboundp 'macroexpand-all)
-      (defalias 'gnus-macroexpand-all 'macroexpand-all)
-    (defun gnus-macroexpand-all (form &optional environment)
-      "Return result of expanding macros at all levels in FORM.
-If no macros are expanded, FORM is returned unchanged.
-The second optional arg ENVIRONMENT specifies an environment of macro
-definitions to shadow the loaded ones for use in file byte-compilation."
-      (if (consp form)
-	  (let ((idx 1)
-		(len (length (setq form (copy-sequence form))))
-		expanded)
-	    (while (< idx len)
-	      (setcar (nthcdr idx form) (gnus-macroexpand-all (nth idx form)
-							      environment))
-	      (setq idx (1+ idx)))
-	    (if (eq (setq expanded (macroexpand form environment)) form)
-		form
-	      (gnus-macroexpand-all expanded environment)))
-	form))))
-
 ;; Simple check: can be a macro but this way, although slow, it's really clear.
 ;; We don't use `bound-and-true-p' because it's not in XEmacs.
 (defun gnus-bound-and-true-p (sym)

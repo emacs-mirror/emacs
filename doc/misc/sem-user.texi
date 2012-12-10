@@ -59,7 +59,7 @@ minor modes.  The variable @code{semantic-default-submodes} determines
 which auxiliary modes are enabled; the defaults are SemanticDB mode
 (@pxref{SemanticDB}) and Global Semantic Idle Scheduler mode
 (@pxref{Idle Scheduler}).  You can also toggle the auxiliary minor
-modes separately, using their mode functions (e.g. @kbd{M-x
+modes separately, using their mode functions (e.g., @kbd{M-x
 semanticdb-minor-mode}), or via the @samp{Development} menu.  The
 various auxiliary minor modes are described in the following sections.
 
@@ -105,7 +105,7 @@ valid mode symbols are:
 Semantic mode provides a number of commands for navigating, querying,
 and editing source code in a language-aware manner.  These commands
 generally act on @dfn{tags}, which are the source-code units deemed
-``important'' by the present programming language (e.g. functions in
+``important'' by the present programming language (e.g., functions in
 the C programming language).
 
 These commands may be used in any buffer that has been parsed by

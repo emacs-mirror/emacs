@@ -69,10 +69,18 @@ sh_output := $(shell echo)
 ifeq "$(findstring ECHO, $(sh_output))" "ECHO"
 THE_SHELL = $(COMSPEC)$(ComSpec)
 SHELLTYPE=CMD
+SWITCHCHAR=/
 else
 USING_SH = 1
 THE_SHELL = $(SHELL)
 SHELLTYPE=SH
+# MSYS needs to double the slash in cmd-style switches to avoid
+# interpreting /x as a Posix style file name reference
+ifneq ($(MSYSTEM),)
+SWITCHCHAR=//
+else
+SWITCHCHAR=/
+endif
 endif
 
 MAKETYPE=gmake

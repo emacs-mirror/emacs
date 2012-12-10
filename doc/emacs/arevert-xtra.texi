@@ -40,7 +40,7 @@ explained in the corresponding sections.
 @menu
 * Auto Reverting the Buffer Menu:: Auto Revert of the Buffer Menu.
 * Auto Reverting Dired::           Auto Revert of Dired buffers.
-* Supporting additional buffers::  How to add more Auto Revert support. 
+* Supporting additional buffers::  How to add more Auto Revert support.
 @end menu
 
 @node Auto Reverting the Buffer Menu
@@ -66,9 +66,9 @@ operating systems.  It may not work satisfactorily on some other
 systems.
 
 Dired buffers only auto-revert when the file list of the buffer's main
-directory changes (e.g. when a new file is added).  They do not
+directory changes (e.g., when a new file is added).  They do not
 auto-revert when information about a particular file changes
-(e.g. when the size changes) or when inserted subdirectories change.
+(e.g., when the size changes) or when inserted subdirectories change.
 To be sure that @emph{all} listed information is up to date, you have
 to manually revert using @kbd{g}, @emph{even} if auto-reverting is
 enabled in the Dired buffer.  Sometimes, you might get the impression

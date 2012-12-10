@@ -70,11 +70,18 @@ opinions.
 Summary of changes to "Calc"
 ------- -- ------- --  ----
 
+Emacs 24.4
+
+* The date forms use the Gregorian calendar for all dates.
+  (Previously they were a combination of Julian and Gregorian
+  dates.)  This can be configured with the customizable variable
+  `calc-gregorian-switch'.
+
 Emacs 24.3
 
-Algebraic simplification mode is now the default.
-To restrict to the limited simplifications given by the former
-default simplification mode, use `m I'.
+* Algebraic simplification mode is now the default.
+  To restrict to the limited simplifications given by the former
+  default simplification mode, use `m I'.
 
 Emacs 24.1
 

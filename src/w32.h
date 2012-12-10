@@ -163,7 +163,6 @@ extern int sys_spawnve (int, char *, char **, char **);
 extern void register_child (int, int);
 
 extern void sys_sleep (int);
-extern char *getwd (char *);
 extern int sys_link (const char *, const char *);
 
 
@@ -181,4 +180,3 @@ extern ssize_t emacs_gnutls_push (gnutls_transport_ptr_t p,
 #endif /* HAVE_GNUTLS */
 
 #endif /* EMACS_W32_H */
-

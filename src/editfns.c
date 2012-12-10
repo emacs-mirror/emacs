@@ -78,6 +78,15 @@ Lisp_Object Qfield;
 
 static Lisp_Object Qboundary;
 
+/* The startup value of the TZ environment variable so it can be
+   restored if the user calls set-time-zone-rule with a nil
+   argument.  If null, the TZ environment variable was unset.  */
+static char const *initial_tz;
+
+/* True if the static variable tzvalbuf (defined in
+   set_time_zone_rule) is part of 'environ'.  */
+static bool tzvalbuf_in_environ;
+
 
 void
 init_editfns (void)
@@ -95,6 +104,9 @@ init_editfns (void)
   if (!initialized)
     return;
 #endif /* not CANNOT_DUMP */
+
+  initial_tz = getenv ("TZ");
+  tzvalbuf_in_environ = 0;
 
   pw = getpwuid (getuid ());
 #ifdef MSDOS
@@ -813,38 +825,43 @@ This function does not move point.  */)
 			      Qnil, Qt, Qnil);
 }
 
-
+/* Save current buffer state for `save-excursion' special form.
+   We (ab)use Lisp_Misc_Save_Value to allow explicit free and so
+   offload some work from GC.  */
+
 Lisp_Object
 save_excursion_save (void)
 {
-  bool visible = (XBUFFER (XWINDOW (selected_window)->buffer)
-		  == current_buffer);
-  /* Do not copy the mark if it points to nowhere.  */
-  Lisp_Object mark = (XMARKER (BVAR (current_buffer, mark))->buffer
-		      ? Fcopy_marker (BVAR (current_buffer, mark), Qnil)
-		      : Qnil);
+  Lisp_Object save, *data = xmalloc (word_size * 4);
 
-  return Fcons (Fpoint_marker (),
-		Fcons (mark,
-		       Fcons (visible ? Qt : Qnil,
-			      Fcons (BVAR (current_buffer, mark_active),
-				     selected_window))));
+  data[0] = Fpoint_marker ();
+  /* Do not copy the mark if it points to nowhere.  */
+  data[1] = (XMARKER (BVAR (current_buffer, mark))->buffer
+	     ? Fcopy_marker (BVAR (current_buffer, mark), Qnil)
+	     : Qnil);
+  /* Selected window if current buffer is shown in it, nil otherwise.  */
+  data[2] = ((XBUFFER (XWINDOW (selected_window)->buffer) == current_buffer)
+	     ? selected_window : Qnil);
+  data[3] = BVAR (current_buffer, mark_active);
+
+  save = make_save_value (data, 4);
+  XSAVE_VALUE (save)->dogc = 1;
+  return save;
 }
+
+/* Restore saved buffer before leaving `save-excursion' special form.  */
 
 Lisp_Object
 save_excursion_restore (Lisp_Object info)
 {
-  Lisp_Object tem, tem1, omark, nmark;
+  Lisp_Object tem, tem1, omark, nmark, *data = XSAVE_VALUE (info)->pointer;
   struct gcpro gcpro1, gcpro2, gcpro3;
-  bool visible_p;
 
-  tem = Fmarker_buffer (XCAR (info));
-  /* If buffer being returned to is now deleted, avoid error */
-  /* Otherwise could get error here while unwinding to top level
-     and crash */
-  /* In that case, Fmarker_buffer returns nil now.  */
+  tem = Fmarker_buffer (data[0]);
+  /* If we're unwinding to top level, saved buffer may be deleted.  This
+     means that all of its markers are unchained and so tem is nil.  */
   if (NILP (tem))
-    return Qnil;
+    goto out;
 
   omark = nmark = Qnil;
   GCPRO3 (info, omark, nmark);
@@ -852,13 +869,12 @@ save_excursion_restore (Lisp_Object info)
   Fset_buffer (tem);
 
   /* Point marker.  */
-  tem = XCAR (info);
+  tem = data[0];
   Fgoto_char (tem);
   unchain_marker (XMARKER (tem));
 
   /* Mark marker.  */
-  info = XCDR (info);
-  tem = XCAR (info);
+  tem = data[1];
   omark = Fmarker_position (BVAR (current_buffer, mark));
   if (NILP (tem))
     unchain_marker (XMARKER (BVAR (current_buffer, mark)));
@@ -869,23 +885,8 @@ save_excursion_restore (Lisp_Object info)
       unchain_marker (XMARKER (tem));
     }
 
-  /* visible */
-  info = XCDR (info);
-  visible_p = !NILP (XCAR (info));
-
-#if 0 /* We used to make the current buffer visible in the selected window
-	 if that was true previously.  That avoids some anomalies.
-	 But it creates others, and it wasn't documented, and it is simpler
-	 and cleaner never to alter the window/buffer connections.  */
-  tem1 = Fcar (tem);
-  if (!NILP (tem1)
-      && current_buffer != XBUFFER (XWINDOW (selected_window)->buffer))
-    Fswitch_to_buffer (Fcurrent_buffer (), Qnil);
-#endif /* 0 */
-
-  /* Mark active */
-  info = XCDR (info);
-  tem = XCAR (info);
+  /* Mark active.  */
+  tem = data[3];
   tem1 = BVAR (current_buffer, mark_active);
   bset_mark_active (current_buffer, tem);
 
@@ -909,8 +910,8 @@ save_excursion_restore (Lisp_Object info)
   /* If buffer was visible in a window, and a different window was
      selected, and the old selected window is still showing this
      buffer, restore point in that window.  */
-  tem = XCDR (info);
-  if (visible_p
+  tem = data[2];
+  if (WINDOWP (tem)
       && !EQ (tem, selected_window)
       && (tem1 = XWINDOW (tem)->buffer,
 	  (/* Window is live...  */
@@ -920,6 +921,10 @@ save_excursion_restore (Lisp_Object info)
     Fset_window_point (tem, make_number (PT));
 
   UNGCPRO;
+
+ out:
+
+  free_save_value (info);
   return Qnil;
 }
 
@@ -1907,9 +1912,11 @@ usage: (encode-time SECOND MINUTE HOUR DAY MONTH YEAR &optional ZONE)  */)
     }
   else
     {
-      char tzbuf[100];
+      static char const tzbuf_format[] = "XXX%s%"pI"d:%02d:%02d";
+      char tzbuf[sizeof tzbuf_format + INT_STRLEN_BOUND (EMACS_INT)];
+      char *old_tzstring;
       const char *tzstring;
-      char **oldenv = environ, **newenv;
+      USE_SAFE_ALLOCA;
 
       if (EQ (zone, Qt))
 	tzstring = "UTC0";
@@ -1921,12 +1928,19 @@ usage: (encode-time SECOND MINUTE HOUR DAY MONTH YEAR &optional ZONE)  */)
 	  EMACS_INT zone_hr = abszone / (60*60);
 	  int zone_min = (abszone/60) % 60;
 	  int zone_sec = abszone % 60;
-	  sprintf (tzbuf, "XXX%s%"pI"d:%02d:%02d", "-" + (XINT (zone) < 0),
+	  sprintf (tzbuf, tzbuf_format, "-" + (XINT (zone) < 0),
 		   zone_hr, zone_min, zone_sec);
 	  tzstring = tzbuf;
 	}
       else
 	error ("Invalid time zone specification");
+
+      old_tzstring = getenv ("TZ");
+      if (old_tzstring)
+	{
+	  char *buf = SAFE_ALLOCA (strlen (old_tzstring) + 1);
+	  old_tzstring = strcpy (buf, old_tzstring);
+	}
 
       block_input ();
 
@@ -1936,15 +1950,12 @@ usage: (encode-time SECOND MINUTE HOUR DAY MONTH YEAR &optional ZONE)  */)
 
       value = mktime (&tm);
 
-      /* Restore TZ to previous value.  */
-      newenv = environ;
-      environ = oldenv;
+      set_time_zone_rule (old_tzstring);
 #ifdef LOCALTIME_CACHE
       tzset ();
 #endif
       unblock_input ();
-
-      xfree (newenv);
+      SAFE_FREE ();
     }
 
   if (value == (time_t) -1)
@@ -2074,16 +2085,6 @@ the data it can't find.  */)
   return list2 (zone_offset, zone_name);
 }
 
-/* This holds the value of `environ' produced by the previous
-   call to Fset_time_zone_rule, or 0 if Fset_time_zone_rule
-   has never been called.  */
-static char **environbuf;
-
-/* This holds the startup value of the TZ environment variable so it
-   can be restored if the user calls set-time-zone-rule with a nil
-   argument.  */
-static char *initial_tz;
-
 DEFUN ("set-time-zone-rule", Fset_time_zone_rule, Sset_time_zone_rule, 1, 1, 0,
        doc: /* Set the local time zone using TZ, a string specifying a time zone rule.
 If TZ is nil, use implementation-defined default time zone information.
@@ -2096,17 +2097,9 @@ only the former.  */)
   (Lisp_Object tz)
 {
   const char *tzstring;
-  char **old_environbuf;
 
   if (! (NILP (tz) || EQ (tz, Qt)))
     CHECK_STRING (tz);
-
-  block_input ();
-
-  /* When called for the first time, save the original TZ.  */
-  old_environbuf = environbuf;
-  if (!old_environbuf)
-    initial_tz = (char *) getenv ("TZ");
 
   if (NILP (tz))
     tzstring = initial_tz;
@@ -2115,106 +2108,97 @@ only the former.  */)
   else
     tzstring = SSDATA (tz);
 
+  block_input ();
   set_time_zone_rule (tzstring);
-  environbuf = environ;
-
   unblock_input ();
 
-  xfree (old_environbuf);
   return Qnil;
 }
 
-#ifdef LOCALTIME_CACHE
-
-/* These two values are known to load tz files in buggy implementations,
-   i.e. Solaris 1 executables running under either Solaris 1 or Solaris 2.
-   Their values shouldn't matter in non-buggy implementations.
-   We don't use string literals for these strings,
-   since if a string in the environment is in readonly
-   storage, it runs afoul of bugs in SVR4 and Solaris 2.3.
-   See Sun bugs 1113095 and 1114114, ``Timezone routines
-   improperly modify environment''.  */
-
-static char set_time_zone_rule_tz1[] = "TZ=GMT+0";
-static char set_time_zone_rule_tz2[] = "TZ=GMT+1";
-
-#endif
-
 /* Set the local time zone rule to TZSTRING.
-   This allocates memory into `environ', which it is the caller's
-   responsibility to free.  */
+
+   This function is not thread-safe, partly because putenv, unsetenv
+   and tzset are not, and partly because of the static storage it
+   updates.  Other threads that invoke localtime etc. may be adversely
+   affected while this function is executing.  */
 
 void
 set_time_zone_rule (const char *tzstring)
 {
-  ptrdiff_t envptrs;
-  char **from, **to, **newenv;
+  /* A buffer holding a string of the form "TZ=value", intended
+     to be part of the environment.  */
+  static char *tzvalbuf;
+  static ptrdiff_t tzvalbufsize;
 
-  /* Make the ENVIRON vector longer with room for TZSTRING.  */
-  for (from = environ; *from; from++)
-    continue;
-  envptrs = from - environ + 2;
-  newenv = to = xmalloc (envptrs * sizeof *newenv
-			 + (tzstring ? strlen (tzstring) + 4 : 0));
-
-  /* Add TZSTRING to the end of environ, as a value for TZ.  */
-  if (tzstring)
-    {
-      char *t = (char *) (to + envptrs);
-      strcpy (t, "TZ=");
-      strcat (t, tzstring);
-      *to++ = t;
-    }
-
-  /* Copy the old environ vector elements into NEWENV,
-     but don't copy the TZ variable.
-     So we have only one definition of TZ, which came from TZSTRING.  */
-  for (from = environ; *from; from++)
-    if (strncmp (*from, "TZ=", 3) != 0)
-      *to++ = *from;
-  *to = 0;
-
-  environ = newenv;
-
-  /* If we do have a TZSTRING, NEWENV points to the vector slot where
-     the TZ variable is stored.  If we do not have a TZSTRING,
-     TO points to the vector slot which has the terminating null.  */
+  int tzeqlen = sizeof "TZ=" - 1;
 
 #ifdef LOCALTIME_CACHE
-  {
-    /* In SunOS 4.1.3_U1 and 4.1.4, if TZ has a value like
-       "US/Pacific" that loads a tz file, then changes to a value like
-       "XXX0" that does not load a tz file, and then changes back to
-       its original value, the last change is (incorrectly) ignored.
-       Also, if TZ changes twice in succession to values that do
-       not load a tz file, tzset can dump core (see Sun bug#1225179).
-       The following code works around these bugs.  */
+  /* These two values are known to load tz files in buggy implementations,
+     i.e., Solaris 1 executables running under either Solaris 1 or Solaris 2.
+     Their values shouldn't matter in non-buggy implementations.
+     We don't use string literals for these strings,
+     since if a string in the environment is in readonly
+     storage, it runs afoul of bugs in SVR4 and Solaris 2.3.
+     See Sun bugs 1113095 and 1114114, ``Timezone routines
+     improperly modify environment''.  */
 
-    if (tzstring)
-      {
-	/* Temporarily set TZ to a value that loads a tz file
-	   and that differs from tzstring.  */
-	char *tz = *newenv;
-	*newenv = (strcmp (tzstring, set_time_zone_rule_tz1 + 3) == 0
-		   ? set_time_zone_rule_tz2 : set_time_zone_rule_tz1);
-	tzset ();
-	*newenv = tz;
-      }
-    else
-      {
-	/* The implied tzstring is unknown, so temporarily set TZ to
-	   two different values that each load a tz file.  */
-	*to = set_time_zone_rule_tz1;
-	to[1] = 0;
-	tzset ();
-	*to = set_time_zone_rule_tz2;
-	tzset ();
-	*to = 0;
-      }
+  static char set_time_zone_rule_tz[][sizeof "TZ=GMT+0"]
+    = { "TZ=GMT+0", "TZ=GMT+1" };
 
-    /* Now TZ has the desired value, and tzset can be invoked safely.  */
-  }
+  /* In SunOS 4.1.3_U1 and 4.1.4, if TZ has a value like
+     "US/Pacific" that loads a tz file, then changes to a value like
+     "XXX0" that does not load a tz file, and then changes back to
+     its original value, the last change is (incorrectly) ignored.
+     Also, if TZ changes twice in succession to values that do
+     not load a tz file, tzset can dump core (see Sun bug#1225179).
+     The following code works around these bugs.  */
 
+  if (tzstring)
+    {
+      /* Temporarily set TZ to a value that loads a tz file
+	 and that differs from tzstring.  */
+      bool eq0 = strcmp (tzstring, set_time_zone_rule_tz[0] + tzeqlen) == 0;
+      xputenv (set_time_zone_rule_tz[eq0]);
+    }
+  else
+    {
+      /* The implied tzstring is unknown, so temporarily set TZ to
+	 two different values that each load a tz file.  */
+      xputenv (set_time_zone_rule_tz[0]);
+      tzset ();
+      xputenv (set_time_zone_rule_tz[1]);
+    }
+  tzset ();
+#endif
+
+  if (!tzstring)
+    {
+      unsetenv ("TZ");
+      tzvalbuf_in_environ = 0;
+    }
+  else
+    {
+      ptrdiff_t tzstringlen = strlen (tzstring);
+
+      if (tzvalbufsize <= tzeqlen + tzstringlen)
+	{
+	  unsetenv ("TZ");
+	  tzvalbuf_in_environ = 0;
+	  tzvalbuf = xpalloc (tzvalbuf, &tzvalbufsize,
+			      tzeqlen + tzstringlen - tzvalbufsize + 1, -1, 1);
+	  memcpy (tzvalbuf, "TZ=", tzeqlen);
+	}
+
+      strcpy (tzvalbuf + tzeqlen, tzstring);
+
+      if (!tzvalbuf_in_environ)
+	{
+	  xputenv (tzvalbuf);
+	  tzvalbuf_in_environ = 1;
+	}
+    }
+
+#ifdef LOCALTIME_CACHE
   tzset ();
 #endif
 }
@@ -2358,9 +2342,10 @@ usage: (insert-before-markers-and-inherit &rest ARGS)  */)
 }
 
 DEFUN ("insert-char", Finsert_char, Sinsert_char, 1, 3,
-       "(list (read-char-by-name \"Insert character (Unicode name or hex): \")\
-	 (prefix-numeric-value current-prefix-arg)\
-	 t))",
+       "(list (or (read-char-by-name \"Insert character (Unicode name or hex): \")\
+	  (error \"You did not specify a valid character\"))\
+      (prefix-numeric-value current-prefix-arg)\
+      t))",
        doc: /* Insert COUNT copies of CHARACTER.
 Interactively, prompt for CHARACTER.  You can specify CHARACTER in one
 of these ways:
@@ -2650,10 +2635,10 @@ They default to the values of (point-min) and (point-max) in BUFFER.  */)
 DEFUN ("compare-buffer-substrings", Fcompare_buffer_substrings, Scompare_buffer_substrings,
        6, 6, 0,
        doc: /* Compare two substrings of two buffers; return result as number.
-the value is -N if first string is less after N-1 chars,
-+N if first string is greater after N-1 chars, or 0 if strings match.
-Each substring is represented as three arguments: BUFFER, START and END.
-That makes six args in all, three for each substring.
+Return -N if first string is less after N-1 chars, +N if first string is
+greater after N-1 chars, or 0 if strings match.  Each substring is
+represented as three arguments: BUFFER, START and END.  That makes six
+args in all, three for each substring.
 
 The value of `case-fold-search' in the current buffer
 determines whether case is significant or ignored.  */)
@@ -2929,7 +2914,7 @@ Both characters must have the same length of multi-byte form.  */)
 	  else if (!changed)
 	    {
 	      changed = -1;
-	      modify_region (current_buffer, pos, XINT (end), 0);
+	      modify_region_1 (pos, XINT (end), false);
 
 	      if (! NILP (noundo))
 		{
@@ -3105,7 +3090,7 @@ It returns the number of characters changed.  */)
   pos = XINT (start);
   pos_byte = CHAR_TO_BYTE (pos);
   end_pos = XINT (end);
-  modify_region (current_buffer, pos, end_pos, 0);
+  modify_region_1 (pos, end_pos, false);
 
   cnt = 0;
   for (; pos < end_pos; )
@@ -4629,7 +4614,7 @@ Transposing beyond buffer boundaries is an error.  */)
 
   if (end1 == start2)		/* adjacent regions */
     {
-      modify_region (current_buffer, start1, end2, 0);
+      modify_region_1 (start1, end2, false);
       record_change (start1, len1 + len2);
 
       tmp_interval1 = copy_intervals (cur_intv, start1, len1);
@@ -4688,8 +4673,8 @@ Transposing beyond buffer boundaries is an error.  */)
         {
 	  USE_SAFE_ALLOCA;
 
-          modify_region (current_buffer, start1, end1, 0);
-          modify_region (current_buffer, start2, end2, 0);
+          modify_region_1 (start1, end1, false);
+          modify_region_1 (start2, end2, false);
           record_change (start1, len1);
           record_change (start2, len2);
           tmp_interval1 = copy_intervals (cur_intv, start1, len1);
@@ -4722,7 +4707,7 @@ Transposing beyond buffer boundaries is an error.  */)
         {
 	  USE_SAFE_ALLOCA;
 
-          modify_region (current_buffer, start1, end2, 0);
+          modify_region_1 (start1, end2, false);
           record_change (start1, (end2 - start1));
           tmp_interval1 = copy_intervals (cur_intv, start1, len1);
           tmp_interval_mid = copy_intervals (cur_intv, end1, len_mid);
@@ -4755,7 +4740,7 @@ Transposing beyond buffer boundaries is an error.  */)
 	  USE_SAFE_ALLOCA;
 
           record_change (start1, (end2 - start1));
-          modify_region (current_buffer, start1, end2, 0);
+          modify_region_1 (start1, end2, false);
 
           tmp_interval1 = copy_intervals (cur_intv, start1, len1);
           tmp_interval_mid = copy_intervals (cur_intv, end1, len_mid);
@@ -4806,9 +4791,6 @@ Transposing beyond buffer boundaries is an error.  */)
 void
 syms_of_editfns (void)
 {
-  environbuf = 0;
-  initial_tz = 0;
-
   DEFSYM (Qbuffer_access_fontify_functions, "buffer-access-fontify-functions");
 
   DEFVAR_LISP ("inhibit-field-text-motion", Vinhibit_field_text_motion,

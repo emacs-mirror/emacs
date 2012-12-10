@@ -37,6 +37,7 @@ typedef unsigned __int64 uint64_t;
 #define INT64_MAX 9223372036854775807i64
 #define INT64_MIN (~INT64_MAX)
 #define INTPTR_MAX INT64_MAX
+#define INTPTR_MIN INT64_MIN
 #define UINTMAX_MAX UINT64_MAX
 #define UINTMAX_MIN UINT64_MIN
 #define INTMAX_MAX INT64_MAX
@@ -51,6 +52,7 @@ typedef unsigned int uint32_t;
 #define INT32_MAX 2147483647
 #define INT32_MIN (~INT32_MAX)
 #define INTPTR_MAX INT32_MAX
+#define INTPTR_MIN INT32_MIN
 #define UINTMAX_MAX UINT32_MAX
 #define UINTMAX_MIN UINT32_MIN
 #define INTMAX_MAX INT32_MAX
@@ -60,6 +62,7 @@ typedef unsigned int uint32_t;
 #endif
 
 #define PTRDIFF_MAX INTPTR_MAX
+#define PTRDIFF_MIN INTPTR_MIN
 
 #endif	/* !__GNUC__ */
 

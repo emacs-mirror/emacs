@@ -611,6 +611,7 @@ still visible.\n")
   "l"    mh-show-list-folders
   "n"    mh-index-new-messages
   "o"    mh-show-visit-folder
+  "p"    mh-show-pack-folder
   "q"    mh-show-index-sequenced-messages
   "r"    mh-show-rescan-folder
   "s"    mh-search
@@ -898,13 +899,14 @@ See also `mh-folder-mode'.
   (interactive)
   ;; Don't allow Gnus to create buttons while highlighting, maybe this is bad
   ;; style?
-  (flet ((gnus-article-add-button (&rest args) nil))
-    (let* ((modified (buffer-modified-p))
-           (gnus-article-buffer (buffer-name))
-           (gnus-cite-face-list `(,@(cdr gnus-cite-face-list)
-                                    ,(car gnus-cite-face-list))))
-      (gnus-article-highlight-citation t)
-      (set-buffer-modified-p modified))))
+  (mh-cl-flet
+   ((gnus-article-add-button (&rest args) nil))
+   (let* ((modified (buffer-modified-p))
+          (gnus-article-buffer (buffer-name))
+          (gnus-cite-face-list `(,@(cdr gnus-cite-face-list)
+                                 ,(car gnus-cite-face-list))))
+     (gnus-article-highlight-citation t)
+     (set-buffer-modified-p modified))))
 
 (provide 'mh-show)
 

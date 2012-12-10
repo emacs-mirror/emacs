@@ -912,7 +912,7 @@ You can edit the data area, but don't insert or delete any newlines
 except in the local-variables part, since @acronym{SES} locates things by
 counting newlines.  Use @kbd{C-x C-e} at the end of a line to install
 your edits into the spreadsheet data structures (this does not update
-the print area, use e.g. @kbd{C-c C-l} for that).
+the print area, use, e.g., @kbd{C-c C-l} for that).
 
 The data area is maintained as an image of spreadsheet data
 structures that area stored in buffer-local variables.  If the data

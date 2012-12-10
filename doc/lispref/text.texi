@@ -224,7 +224,7 @@ through the filter functions specified by the wrapper hook
 @code{filter-buffer-substring-functions}, and returns the result.  The
 obsolete variable @code{buffer-substring-filters} is also consulted.
 If both of these variables are @code{nil}, the value is the unaltered
-text from the buffer, i.e.@: what @code{buffer-substring} would
+text from the buffer, i.e., what @code{buffer-substring} would
 return.
 
 If @var{delete} is non-@code{nil}, this function deletes the text
@@ -250,7 +250,7 @@ and returns a string.  In both cases, the @var{start}, @var{end}, and
 @code{filter-buffer-substring}.
 
 The first hook function is passed a @var{fun} that is equivalent to
-the default operation of @code{filter-buffer-substring}, i.e. it
+the default operation of @code{filter-buffer-substring}, i.e., it
 returns the buffer-substring between @var{start} and @var{end}
 (processed by any @code{buffer-substring-filters}) and optionally
 deletes the original text from the buffer.  In most cases, the hook
@@ -3027,7 +3027,7 @@ specify a particular attribute for certain text.
 A list of faces.  This specifies a face which is an aggregate of the
 attributes of each of the listed faces.  Faces occurring earlier in
 the list have higher priority.  Each list element must have one of the
-two above forms (i.e.@: either a face name or a property list of face
+two above forms (i.e., either a face name or a property list of face
 attributes).
 @end itemize
 
@@ -3052,7 +3052,7 @@ between the character and where the mouse is have the same
 @code{mouse-face} property value.
 
 Emacs ignores all face attributes from the @code{mouse-face} property
-that alter the text size (e.g. @code{:height}, @code{:weight}, and
+that alter the text size (e.g., @code{:height}, @code{:weight}, and
 @code{:slant}).  Those attributes are always the same as for the
 unhighlighted text.
 
@@ -4071,7 +4071,7 @@ converting to and from this code.
 @deffn Command base64-encode-region beg end &optional no-line-break
 This function converts the region from @var{beg} to @var{end} into base
 64 code.  It returns the length of the encoded text.  An error is
-signaled if a character in the region is multibyte, i.e.@: in a
+signaled if a character in the region is multibyte, i.e., in a
 multibyte buffer the region must contain only characters from the
 charsets @code{ascii}, @code{eight-bit-control} and
 @code{eight-bit-graphic}.
@@ -4119,7 +4119,7 @@ The decoding functions ignore newline characters in the encoded text.
 
   Emacs has built-in support for computing @dfn{cryptographic hashes}.
 A cryptographic hash, or @dfn{checksum}, is a digital ``fingerprint''
-of a piece of data (e.g.@: a block of text) which can be used to check
+of a piece of data (e.g., a block of text) which can be used to check
 that you have an unaltered copy of that data.
 
 @cindex message digest
@@ -4127,7 +4127,7 @@ that you have an unaltered copy of that data.
 SHA-1, SHA-2, SHA-224, SHA-256, SHA-384 and SHA-512.  MD5 is the
 oldest of these algorithms, and is commonly used in @dfn{message
 digests} to check the integrity of messages transmitted over a
-network.  MD5 is not ``collision resistant'' (i.e.@: it is possible to
+network.  MD5 is not ``collision resistant'' (i.e., it is possible to
 deliberately design different pieces of data which have the same MD5
 hash), so you should not used it for anything security-related.  A
 similar theoretical weakness also exists in SHA-1.  Therefore, for

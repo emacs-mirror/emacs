@@ -63,10 +63,6 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #endif
 
 #include <unistd.h>
-#ifndef HAVE_UNISTD_H
-extern void *sbrk ();
-#endif
-
 #include <fcntl.h>
 
 #ifdef USE_GTK
@@ -765,13 +761,17 @@ xnrealloc (void *pa, ptrdiff_t nitems, ptrdiff_t item_size)
    infinity.
 
    If PA is null, then allocate a new array instead of reallocating
-   the old one.  Thus, to grow an array A without saving its old
-   contents, invoke xfree (A) immediately followed by xgrowalloc (0,
-   &NITEMS, ...).
+   the old one.
 
    Block interrupt input as needed.  If memory exhaustion occurs, set
    *NITEMS to zero if PA is null, and signal an error (i.e., do not
-   return).  */
+   return).
+
+   Thus, to grow an array A without saving its old contents, do
+   { xfree (A); A = NULL; A = xpalloc (NULL, &AITEMS, ...); }.
+   The A = NULL avoids a dangling pointer if xpalloc exhausts memory
+   and signals an error, and later this code is reexecuted and
+   attempts to free A.  */
 
 void *
 xpalloc (void *pa, ptrdiff_t *nitems, ptrdiff_t nitems_incr_min,
@@ -820,18 +820,22 @@ xstrdup (const char *s)
   return p;
 }
 
+/* Like putenv, but (1) use the equivalent of xmalloc and (2) the
+   argument is a const pointer.  */
+
+void
+xputenv (char const *string)
+{
+  if (putenv ((char *) string) != 0)
+    memory_full (0);
+}
 
 /* Unwind for SAFE_ALLOCA */
 
 Lisp_Object
 safe_alloca_unwind (Lisp_Object arg)
 {
-  register struct Lisp_Save_Value *p = XSAVE_VALUE (arg);
-
-  p->dogc = 0;
-  xfree (p->pointer);
-  p->pointer = 0;
-  free_misc (arg);
+  free_save_value (arg);
   return Qnil;
 }
 
@@ -3212,7 +3216,7 @@ static struct Lisp_Symbol *symbol_free_list;
 
 DEFUN ("make-symbol", Fmake_symbol, Smake_symbol, 1, 1, 0,
        doc: /* Return a newly allocated uninterned symbol whose name is NAME.
-Its value and function definition are void, and its property list is nil.  */)
+Its value is void, and its function definition and property list are nil.  */)
   (Lisp_Object name)
 {
   register Lisp_Object val;
@@ -3249,7 +3253,7 @@ Its value and function definition are void, and its property list is nil.  */)
   set_symbol_plist (val, Qnil);
   p->redirect = SYMBOL_PLAINVAL;
   SET_SYMBOL_VAL (p, Qunbound);
-  set_symbol_function (val, Qunbound);
+  set_symbol_function (val, Qnil);
   set_symbol_next (val, NULL);
   p->gcmarkbit = 0;
   p->interned = SYMBOL_UNINTERNED;
@@ -3363,6 +3367,19 @@ make_save_value (void *pointer, ptrdiff_t integer)
   p->integer = integer;
   p->dogc = 0;
   return val;
+}
+
+/* Free a Lisp_Misc_Save_Value object.  */
+
+void
+free_save_value (Lisp_Object save)
+{
+  register struct Lisp_Save_Value *p = XSAVE_VALUE (save);
+
+  p->dogc = 0;
+  xfree (p->pointer);
+  p->pointer = NULL;
+  free_misc (save);
 }
 
 /* Return a Lisp_Misc_Overlay object with specified START, END and PLIST.  */
@@ -5335,11 +5352,11 @@ See Info node `(elisp)Garbage Collection'.  */)
   dump_zombies ();
 #endif
 
-  unblock_input ();
-
   check_cons_list ();
 
   gc_in_progress = 0;
+
+  unblock_input ();
 
   consing_since_gc = 0;
   if (gc_cons_threshold < GC_DEFAULT_THRESHOLD / 10)

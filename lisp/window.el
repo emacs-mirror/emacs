@@ -142,41 +142,46 @@ to `display-buffer'."
 	;; Return the window.
 	window))))
 
+;; Doc is very similar to with-output-to-temp-buffer.
 (defmacro with-temp-buffer-window (buffer-or-name action quit-function &rest body)
-  "Evaluate BODY and display the buffer specified by BUFFER-OR-NAME.
+  "Bind `standard-output' to BUFFER-OR-NAME, eval BODY, show the buffer.
 BUFFER-OR-NAME must specify either a live buffer, or the name of a
 buffer (if it does not exist, this macro creates it).
 
-Make sure the specified buffer is empty before evaluating BODY.
-Do not make that buffer current for BODY.  Instead, bind
-`standard-output' to that buffer, so that output generated with
-`prin1' and similar functions in BODY goes into that buffer.
+This construct makes buffer BUFFER-OR-NAME empty before running BODY.
+It does not make the buffer current for BODY.
+Instead it binds `standard-output' to that buffer, so that output
+generated with `prin1' and similar functions in BODY goes into
+the buffer.
 
-After evaluating BODY, this marks the specified buffer unmodified and
-read-only, and displays it in a window via `display-buffer', passing
-ACTION as the action argument to `display-buffer'.  It automatically
-shrinks the relevant window if `temp-buffer-resize-mode' is enabled.
+At the end of BODY, this marks the specified buffer unmodified and
+read-only, and displays it in a window (but does not select it, or make
+the buffer current).  The display happens by calling `display-buffer'
+with the ACTION argument.  If `temp-buffer-resize-mode' is enabled,
+the relevant window shrinks automatically.
 
-Returns the value returned by BODY, unless QUIT-FUNCTION specifies
-a function.  In that case, runs the function with two arguments -
+This returns the value returned by BODY, unless QUIT-FUNCTION specifies
+a function.  In that case, it runs the function with two arguments -
 the window showing the specified buffer and the value returned by
 BODY - and returns the value returned by that function.
 
 If the buffer is displayed on a new frame, the window manager may
 decide to select that frame.  In that case, it's usually a good
-strategy if the function specified by QUIT-FUNCTION selects the
-window showing the buffer before reading a value from the
-minibuffer; for example, when asking a `yes-or-no-p' question.
+strategy if QUIT-FUNCTION selects the window showing the buffer
+before reading any value from the minibuffer; for example, when
+asking a `yes-or-no-p' question.
 
-This construct is similar to `with-output-to-temp-buffer', but does
-not put the buffer in help mode, or call `temp-buffer-show-function'.
-It also runs different hooks, namely `temp-buffer-window-setup-hook'
-\(with the specified buffer current) and `temp-buffer-window-show-hook'
-\(with the specified buffer current and the window showing it selected).
+This runs the hook `temp-buffer-window-setup-hook' before BODY,
+with the specified buffer temporarily current.  It runs the
+hook `temp-buffer-window-show-hook' after displaying the buffer,
+with that buffer temporarily current, and the window that was used to
+display it temporarily selected.
 
-Since this macro calls `display-buffer', the window displaying
-the buffer is usually not selected and the specified buffer
-usually not made current.  QUIT-FUNCTION can override that."
+This construct is similar to `with-output-to-temp-buffer', but
+runs different hooks.  In particular, it does not run
+`temp-buffer-setup-hook', which usually puts the buffer in Help mode.
+Also, it does not call `temp-buffer-show-function' (the ACTION
+argument replaces this)."
   (declare (debug t))
   (let ((buffer (make-symbol "buffer"))
 	(window (make-symbol "window"))
@@ -5865,7 +5870,12 @@ the selected window or never appeared in it before, or if
   :version "24.3")
 
 (defun switch-to-buffer (buffer-or-name &optional norecord force-same-window)
-  "Switch to buffer BUFFER-OR-NAME in the selected window.
+  "Display buffer BUFFER-OR-NAME in the selected window.
+
+WARNING: This is NOT the way to work on another buffer temporarily
+within a Lisp program!  Use `set-buffer' instead.  That avoids
+messing with the window-buffer correspondences.
+
 If the selected window cannot display the specified
 buffer (e.g. if it is a minibuffer window or strongly dedicated
 to another buffer), call `pop-to-buffer' to select the buffer in

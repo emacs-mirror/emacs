@@ -721,7 +721,11 @@ space does not end a sentence, so don't break a line there."
 	    (move-to-column (current-fill-column))
 	    (if (when (< (point) to)
 		  ;; Find the position where we'll break the line.
-		  (forward-char 1) ;Use an immediately following space, if any.
+		  ;; Use an immediately following space, if any.
+		  ;; However, note that `move-to-column' may overshoot
+		  ;; if there are wide characters (Bug#3234).
+		  (unless (> (current-column) (current-fill-column))
+		    (forward-char 1))
 		  (fill-move-to-break-point linebeg)
 		  ;; Check again to see if we got to the end of
 		  ;; the paragraph.

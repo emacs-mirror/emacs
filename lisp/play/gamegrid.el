@@ -175,7 +175,7 @@ static unsigned char gamegrid_bits[] = {
 
 (defun gamegrid-make-mono-tty-face ()
   (let ((face (make-face 'gamegrid-mono-tty-face)))
-    (set-face-inverse-video-p face t)
+    (set-face-inverse-video face t)
     face))
 
 (defun gamegrid-make-color-tty-face (color)

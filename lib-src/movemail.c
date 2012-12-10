@@ -65,9 +65,7 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 
 #include <getopt.h>
 #include <unistd.h>
-#ifdef HAVE_FCNTL_H
 #include <fcntl.h>
-#endif
 #include <string.h>
 #include "syswait.h"
 #ifdef MAIL_USE_POP
@@ -97,13 +95,6 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 
 #include <fcntl.h>
 #endif /* WINDOWSNT */
-
-#ifndef F_OK
-#define F_OK 0
-#define X_OK 1
-#define W_OK 2
-#define R_OK 4
-#endif
 
 #ifdef WINDOWSNT
 #include <sys/locking.h>
@@ -337,11 +328,8 @@ main (int argc, char **argv)
 
 	  tem = link (tempname, lockname);
 
-#ifdef EPERM
-	  if (tem < 0 && errno == EPERM)
-	    fatal ("Unable to create hard link between %s and %s",
-		   tempname, lockname);
-#endif
+	  if (tem < 0 && errno != EEXIST)
+	    pfatal_with_name (lockname);
 
 	  unlink (tempname);
 	  if (tem >= 0)
@@ -442,22 +430,10 @@ main (int argc, char **argv)
 	 for certain failure codes.  */
       if (status < 0)
 	{
-	  if (++lockcount <= 5)
+	  if (++lockcount <= 5 && (errno == EAGAIN || errno == EBUSY))
 	    {
-#ifdef EAGAIN
-	      if (errno == EAGAIN)
-		{
-		  sleep (1);
-		  goto retry_lock;
-		}
-#endif
-#ifdef EBUSY
-	      if (errno == EBUSY)
-		{
-		  sleep (1);
-		  goto retry_lock;
-		}
-#endif
+	      sleep (1);
+	      goto retry_lock;
 	    }
 
 	  pfatal_with_name (inname);

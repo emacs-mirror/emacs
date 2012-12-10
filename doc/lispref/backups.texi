@@ -661,7 +661,7 @@ host name.
 After Emacs reads your init file, it initializes
 @code{auto-save-list-file-name} (if you have not already set it
 non-@code{nil}) based on this prefix, adding the host name and process
-ID.  If you set this to @code{nil} in your init file, then Emacs does
+ID@.  If you set this to @code{nil} in your init file, then Emacs does
 not initialize @code{auto-save-list-file-name}.
 @end defopt
 
@@ -772,4 +772,3 @@ to call to check whether a non-file buffer needs reverting
 (@pxref{Supporting additional buffers,,, emacs}).
 @end ifnottex
 @end defvar
-

@@ -55,7 +55,7 @@
    rather than issue the nice warning, but the end result of informing
    the developer about their portability problem is still achieved):
    #if HAVE_RAW_DECL_ENVIRON
-   static inline char ***rpl_environ (void) { return &environ; }
+   static char ***rpl_environ (void) { return &environ; }
    _GL_WARN_ON_USE (rpl_environ, "environ is not always properly declared");
    # undef environ
    # define environ (*rpl_environ ())

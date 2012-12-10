@@ -4268,6 +4268,21 @@ With prefix argument, make it a temporary breakpoint."
 
 ;;; Finalize Loading
 
+;; When edebugging a function, some of the sub-expressions are
+;; wrapped in (edebug-enter (lambda () ..)), so we need to teach
+;; called-interactively-p that calls within the inner lambda should refer to
+;; the outside function.
+(add-hook 'called-interactively-p-functions
+          #'edebug--called-interactively-skip)
+(defun edebug--called-interactively-skip (i frame1 frame2)
+  (when (and (eq (car-safe (nth 1 frame1)) 'lambda)
+             (eq (nth 1 (nth 1 frame1)) '())
+             (eq (nth 1 frame2) 'edebug-enter))
+    ;; `edebug-enter' calls itself on its first invocation.
+    (if (eq (nth 1 (internal--called-interactively-p--get-frame i))
+            'edebug-enter)
+        2 1)))
+
 ;; Finally, hook edebug into the rest of Emacs.
 ;; There are probably some other things that could go here.
 

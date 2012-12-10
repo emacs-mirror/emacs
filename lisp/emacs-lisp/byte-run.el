@@ -81,8 +81,14 @@ The return value of this function is not used."
          #'(lambda (f _args new-name when)
              `(make-obsolete ',f ',new-name ,when)))
    (list 'compiler-macro
-         #'(lambda (f _args compiler-function)
-             `(put ',f 'compiler-macro #',compiler-function)))
+         #'(lambda (f args compiler-function)
+             ;; FIXME: Make it possible to just reuse `args'.
+             `(eval-and-compile
+                (put ',f 'compiler-macro
+                     ,(if (eq (car-safe compiler-function) 'lambda)
+                          `(lambda ,(append (cadr compiler-function) args)
+                             ,@(cddr compiler-function))
+                        `#',compiler-function)))))
    (list 'doc-string
          #'(lambda (f _args pos)
              (list 'put (list 'quote f) ''doc-string-elt (list 'quote pos))))

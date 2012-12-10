@@ -89,12 +89,12 @@ PGG requires at least one implementation of privacy guard system.
 This document assumes that you have already obtained and installed them
 and that you are familiar with its basic functions.
 
-By default, PGG uses GnuPG.  If you are new to such a system, I
+By default, PGG uses GnuPG@.  If you are new to such a system, I
 recommend that you should look over the GNU Privacy Handbook (GPH)
 which is available at @uref{http://www.gnupg.org/documentation/}.
 
 When using GnuPG, we recommend the use of the @code{gpg-agent}
-program, which is distributed with versions 2.0 and later of GnuPG.
+program, which is distributed with versions 2.0 and later of GnuPG@.
 This is a daemon to manage private keys independently from any
 protocol, and provides the most secure way to input and cache your
 passphrases (@pxref{Caching passphrase}).  By default, PGG will

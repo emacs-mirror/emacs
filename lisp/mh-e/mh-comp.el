@@ -121,6 +121,42 @@ Used by the \\[mh-edit-again] and \\[mh-extract-rejected-mail] commands.")
     syntax-table)
   "Syntax table used by MH-E while in MH-Letter mode.")
 
+(defvar mh-regexp-in-field-syntax-table nil
+  "Specify a syntax table for `mh-regexp-in-field-p' to use.")
+
+(defvar mh-fcc-syntax-table
+  (let ((syntax-table (make-syntax-table text-mode-syntax-table)))
+    (modify-syntax-entry ?+ "w" syntax-table)
+    (modify-syntax-entry ?/ "w" syntax-table)
+    syntax-table)
+  "Syntax table used by MH-E while searching an Fcc field.")
+
+(defvar mh-addr-syntax-table
+  (let ((syntax-table (make-syntax-table text-mode-syntax-table)))
+    (modify-syntax-entry ?! "w" syntax-table)
+    (modify-syntax-entry ?# "w" syntax-table)
+    (modify-syntax-entry ?$ "w" syntax-table)
+    (modify-syntax-entry ?% "w" syntax-table)
+    (modify-syntax-entry ?& "w" syntax-table)
+    (modify-syntax-entry ?' "w" syntax-table)
+    (modify-syntax-entry ?* "w" syntax-table)
+    (modify-syntax-entry ?+ "w" syntax-table)
+    (modify-syntax-entry ?- "w" syntax-table)
+    (modify-syntax-entry ?/ "w" syntax-table)
+    (modify-syntax-entry ?= "w" syntax-table)
+    (modify-syntax-entry ?? "w" syntax-table)
+    (modify-syntax-entry ?^ "w" syntax-table)
+    (modify-syntax-entry ?_ "w" syntax-table)
+    (modify-syntax-entry ?` "w" syntax-table)
+    (modify-syntax-entry ?{ "w" syntax-table)
+    (modify-syntax-entry ?| "w" syntax-table)
+    (modify-syntax-entry ?} "w" syntax-table)
+    (modify-syntax-entry ?~ "w" syntax-table)
+    (modify-syntax-entry ?. "w" syntax-table)
+    (modify-syntax-entry ?@ "w" syntax-table)
+    syntax-table)
+  "Syntax table used by MH-E while searching an address field.")
+
 (defvar mh-send-args ""
   "Extra args to pass to \"send\" command.")
 
@@ -391,12 +427,80 @@ See also `mh-send'."
                  (mh-read-draft "clean-up" (mh-msg-filename message) nil)))))
     (mh-clean-msg-header (point-min) mh-new-draft-cleaned-headers nil)
     (mh-insert-header-separator)
+    ;; Merge in components
+    (mh-mapc
+     (function
+      (lambda (header-field)
+        (let ((field (car header-field))
+              (value (cdr header-field))
+              (case-fold-search t))
+          (cond
+           ;; Address field
+           ((string-match field "^To$\\|^Cc$\\|^From$")
+            (cond
+             ((not (mh-goto-header-field (concat field ":")))
+              ;; Header field does not exist, add it
+              (mh-goto-header-end 0)
+              (insert field ": " value "\n"))
+             ((string-equal value "")
+              ;; Header field already exists and no value
+              )
+             (t
+              ;; Header field exists and we have a value
+              (let (address mailbox (alias (mh-alias-expand value)))
+                (and alias
+                     (setq address (ietf-drums-parse-address alias))
+                     (setq mailbox (car address)))
+                ;; XXX - Need to parse all addresses out of field
+                (if (and
+                     (not (mh-regexp-in-field-p
+                           (concat "\\b" (regexp-quote value) "\\b") field))
+                     mailbox
+                     (not (mh-regexp-in-field-p
+                           (concat "\\b" (regexp-quote mailbox) "\\b") field)))
+                    (insert " " value ","))
+                ))))
+           ((string-match field "^Fcc$")
+            ;; Folder reference
+            (mh-modify-header-field field value))
+           ;; Text field, that's an easy case
+           (t
+            (mh-modify-header-field field value))))))
+     (mh-components-to-list (mh-find-components)))
     (goto-char (point-min))
     (save-buffer)
-    (mh-compose-and-send-mail draft "" from-folder nil nil nil nil nil nil
-                              config)
+    (mh-compose-and-send-mail
+     draft "" from-folder nil nil nil nil nil nil config)
     (mh-letter-mode-message)
     (mh-letter-adjust-point)))
+
+(defun mh-extract-header-field ()
+  "Extract field name and field value from the field at point.
+Returns a list of field name and value (which may be null)."
+  (let ((end (save-excursion (mh-header-field-end)
+                             (point))))
+    (if (looking-at mh-letter-header-field-regexp)
+        (save-excursion
+          (goto-char (match-end 1))
+          (forward-char 1)
+          (skip-chars-forward " \t")
+          (cons (match-string-no-properties 1) (buffer-substring-no-properties (point) end))))))
+
+
+(defun mh-components-to-list (components)
+  "Convert the COMPONENTS file to a list of field names and values."
+  (with-current-buffer (get-buffer-create mh-temp-buffer)
+    (erase-buffer)
+    (insert-file-contents components)
+    (goto-char (point-min))
+    (let
+        ((header-fields nil))
+      (while (mh-in-header-p)
+        (setq header-fields (append header-fields (list (mh-extract-header-field))))
+        (mh-header-field-end)
+        (forward-char 1)
+        )
+      header-fields)))
 
 ;;;###mh-autoload
 (defun mh-extract-rejected-mail (message)
@@ -773,6 +877,22 @@ Optional argument BUFFER can be used to specify the buffer."
           (t
            nil))))
 
+(defun mh-find-components ()
+  "Return the path to the components file."
+  (let (components)
+    (cond
+     ((file-exists-p
+       (setq components
+             (expand-file-name mh-comp-formfile mh-user-path)))
+      components)
+     ((file-exists-p
+       (setq components
+             (expand-file-name mh-comp-formfile mh-lib)))
+      components)
+     (t
+      (error "Can't find %s in %s or %s"
+             mh-comp-formfile mh-user-path mh-lib)))))
+
 (defun mh-send-sub (to cc subject config)
   "Do the real work of composing and sending a letter.
 Expects the TO, CC, and SUBJECT fields as arguments.
@@ -782,19 +902,7 @@ CONFIG is the window configuration before sending mail."
     (message "Composing a message...")
     (let ((draft (mh-read-draft
                   "message"
-                  (let (components)
-                    (cond
-                     ((file-exists-p
-                       (setq components
-                             (expand-file-name mh-comp-formfile mh-user-path)))
-                      components)
-                     ((file-exists-p
-                       (setq components
-                             (expand-file-name mh-comp-formfile mh-lib)))
-                      components)
-                     (t
-                      (error "Can't find %s in %s or %s"
-                             mh-comp-formfile mh-user-path mh-lib))))
+                  (mh-find-components)
                   nil)))
       (mh-insert-fields "To:" to "Subject:" subject "Cc:" cc)
       (goto-char (point-max))
@@ -1071,7 +1179,7 @@ discarded."
          (insert " " value)
          (delete-region (point) (mh-line-end-position)))
         ((and (not overwrite-flag)
-              (mh-regexp-in-field-p (concat "\\b" value "\\b") field))
+              (mh-regexp-in-field-p (concat "\\b" (regexp-quote value) "\\b") field))
          ;; Already there, do nothing.
          )
         ((and (not overwrite-flag)
@@ -1083,18 +1191,33 @@ discarded."
 
 (defun mh-regexp-in-field-p (regexp &rest fields)
   "Non-nil means REGEXP was found in FIELDS."
-  (save-excursion
-    (let ((search-result nil)
-          (field))
-      (while fields
-        (setq field (car fields))
-        (if (and (mh-goto-header-field field)
-                 (re-search-forward
-                  regexp (save-excursion (mh-header-field-end)(point)) t))
-            (setq fields nil
-                  search-result t)
-          (setq fields (cdr fields))))
-      search-result)))
+  (let ((old-syntax-table (syntax-table)))
+    (unwind-protect
+        (save-excursion
+          (let ((search-result nil))
+            (while fields
+              (let ((field (car fields))
+                    (syntax-table mh-regexp-in-field-syntax-table))
+                (if (null syntax-table)
+                    (let ((case-fold-search t))
+                      (cond
+                       ((string-match field "^To$\\|^[BD]?cc$\\|^From$")
+                        (setq syntax-table mh-addr-syntax-table))
+                       ((string-match field "^Fcc$")
+                        (setq syntax-table mh-fcc-syntax-table))
+                       (t
+                        (setq syntax-table (syntax-table)))
+                       )))
+                (if (and (mh-goto-header-field field)
+                         (set-syntax-table syntax-table)
+                         (re-search-forward
+                          regexp (save-excursion (mh-header-field-end)(point)) t))
+                    (setq fields nil
+                          search-result t)
+                  (setq fields (cdr fields)))
+                (set-syntax-table old-syntax-table)))
+            search-result))
+      (set-syntax-table old-syntax-table))))
 
 (defun mh-ascii-buffer-p ()
   "Check if current buffer is entirely composed of ASCII.

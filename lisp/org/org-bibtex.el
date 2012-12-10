@@ -120,7 +120,6 @@
 (declare-function bibtex-generate-autokey "bibtex" ())
 (declare-function bibtex-parse-entry "bibtex" (&optional content))
 (declare-function bibtex-url "bibtex" (&optional pos no-browse))
-(declare-function longlines-mode "longlines" (&optional arg))
 (declare-function org-babel-trim "ob" (string &optional regexp))
 
 
@@ -381,7 +380,7 @@ This variable is relevant only if `org-bibtex-export-tags-as-keywords' is t."
 	   (buf-name (format "*Bibtex Help %s*" name)))
       (with-output-to-temp-buffer buf-name
 	(princ (cdr (assoc field org-bibtex-fields))))
-      (with-current-buffer buf-name (longlines-mode t))
+      (with-current-buffer buf-name (visual-line-mode 1))
       (org-fit-window-to-buffer (get-buffer-window buf-name))
       ((lambda (result) (when (> (length result) 0) result))
        (read-from-minibuffer (format "%s: " name))))))

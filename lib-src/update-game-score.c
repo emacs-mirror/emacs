@@ -42,9 +42,7 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #include <time.h>
 #include <pwd.h>
 #include <ctype.h>
-#ifdef HAVE_FCNTL_H
 #include <fcntl.h>
-#endif
 #include <sys/stat.h>
 #include <getopt.h>
 

@@ -61,8 +61,9 @@
 ;;;###autoload
 (defcustom add-log-current-defun-function nil
   "If non-nil, function to guess name of surrounding function.
-It is used by `add-log-current-defun' in preference to built-in rules.
-Returns function's name as a string, or nil if outside a function."
+It is called by `add-log-current-defun' with no argument, and
+should return the function's name as a string, or nil if point is
+outside a function."
   :type '(choice (const nil) function)
   :group 'change-log)
 
@@ -1118,21 +1119,6 @@ parentheses."
   :type 'regexp
   :group 'change-log)
 
-;;;###autoload
-(defvar add-log-lisp-like-modes
-  '(emacs-lisp-mode lisp-mode scheme-mode dsssl-mode lisp-interaction-mode)
-  "Modes that look like Lisp to `add-log-current-defun'.")
-
-;;;###autoload
-(defvar add-log-c-like-modes
-  '(c-mode c++-mode c++-c-mode objc-mode)
-  "Modes that look like C to `add-log-current-defun'.")
-
-;;;###autoload
-(defvar add-log-tex-like-modes
-  '(TeX-mode plain-TeX-mode LaTeX-mode tex-mode)
-  "Modes that look like TeX to `add-log-current-defun'.")
-
 (declare-function c-cpp-define-name "cc-cmds" ())
 (declare-function c-defun-name      "cc-cmds" ())
 
@@ -1152,75 +1138,21 @@ identifiers followed by `:' or `='.  See variables
 Has a preference of looking backwards."
   (condition-case nil
       (save-excursion
-	(let ((location (point)))
-	  (cond (add-log-current-defun-function
-		 (funcall add-log-current-defun-function))
-		((apply 'derived-mode-p add-log-lisp-like-modes)
-		 ;; If we are now precisely at the beginning of a defun,
-		 ;; make sure beginning-of-defun finds that one
-		 ;; rather than the previous one.
-		 (or (eobp) (forward-char 1))
-		 (beginning-of-defun)
-		 ;; Make sure we are really inside the defun found,
-		 ;; not after it.
-		 (when (and (looking-at "\\s(")
-			    (progn (end-of-defun)
-				   (< location (point)))
-			    (progn (forward-sexp -1)
-				   (>= location (point))))
-		   (if (looking-at "\\s(")
-		       (forward-char 1))
-		   ;; Skip the defining construct name, typically "defun"
-		   ;; or "defvar".
-		   (forward-sexp 1)
-		   ;; The second element is usually a symbol being defined.
-		   ;; If it is not, use the first symbol in it.
-		   (skip-chars-forward " \t\n'(")
-		   (buffer-substring-no-properties (point)
-						   (progn (forward-sexp 1)
-							  (point)))))
-		((apply 'derived-mode-p add-log-c-like-modes)
-		 (or (c-cpp-define-name)
-		     (c-defun-name)))
-		((apply #'derived-mode-p add-log-tex-like-modes)
-		 (if (re-search-backward
-		      "\\\\\\(sub\\)*\\(section\\|paragraph\\|chapter\\)"
-		      nil t)
-		     (progn
-		       (goto-char (match-beginning 0))
-		       (buffer-substring-no-properties
-			(1+ (point))	; without initial backslash
-			(line-end-position)))))
-		((derived-mode-p 'texinfo-mode)
-		 (if (re-search-backward "^@node[ \t]+\\([^,\n]+\\)" nil t)
-		     (match-string-no-properties 1)))
-		((derived-mode-p 'perl-mode 'cperl-mode)
-		 (if (re-search-backward "^sub[ \t]+\\([^({ \t\n]+\\)" nil t)
-		     (match-string-no-properties 1)))
-		;; Emacs's autoconf-mode installs its own
-		;; `add-log-current-defun-function'.  This applies to
-		;; a different mode apparently for editing .m4
-		;; autoconf source.
-                ((derived-mode-p 'autoconf-mode)
-                 (if (re-search-backward
-		      "^\\(\\(m4_\\)?define\\|A._DEFUN\\)(\\[?\\([A-Za-z0-9_]+\\)" nil t)
-                     (match-string-no-properties 3)))
-		(t
-		 ;; If all else fails, try heuristics
-		 (let (case-fold-search
-		       result)
-		   (end-of-line)
-		   (when (re-search-backward
-			  add-log-current-defun-header-regexp
-			  (- (point) 10000)
-			  t)
-		     (setq result (or (match-string-no-properties 1)
-				      (match-string-no-properties 0)))
-		     ;; Strip whitespace away
-		     (when (string-match "\\([^ \t\n\r\f].*[^ \t\n\r\f]\\)"
-					 result)
-		       (setq result (match-string-no-properties 1 result)))
-		     result))))))
+	(if add-log-current-defun-function
+	    (funcall add-log-current-defun-function)
+	  ;; If all else fails, try heuristics
+	  (let (case-fold-search
+		result)
+	    (end-of-line)
+	    (when (re-search-backward add-log-current-defun-header-regexp
+				      (- (point) 10000) t)
+	      (setq result (or (match-string-no-properties 1)
+			       (match-string-no-properties 0)))
+	      ;; Strip whitespace away
+	      (when (string-match "\\([^ \t\n\r\f].*[^ \t\n\r\f]\\)"
+				  result)
+		(setq result (match-string-no-properties 1 result)))
+	      result))))
     (error nil)))
 
 (defvar change-log-get-method-definition-md)

@@ -52,7 +52,7 @@ about Emacs's special handling of text files under MS-DOS (and Windows).
 @kindex BS @r{(MS-DOS)}
   The key that is called @key{DEL} in Emacs (because that's how it is
 designated on most workstations) is known as @key{BS} (backspace) on a
-PC.  That is why the PC-specific terminal initialization remaps the
+PC@.  That is why the PC-specific terminal initialization remaps the
 @key{BS} key to act as @key{DEL}; the @key{DELETE} key is remapped to act
 as @kbd{C-d} for the same reasons.
 
@@ -233,7 +233,7 @@ The MS-DOS terminal doesn't support a vertical-bar cursor,
 so the bar cursor is horizontal, and the @code{@var{width}} parameter,
 if specified by the frame parameters, actually determines its height.
 For this reason, the @code{bar} and @code{hbar} cursor types produce
-the same effect on MS-DOS.  As an extension, the bar cursor
+the same effect on MS-DOS@.  As an extension, the bar cursor
 specification can include the starting scan line of the cursor as well
 as its width, like this:
 
@@ -320,7 +320,7 @@ converts them to underscores @samp{_}; thus your default init file
 @ifnottex
 (@pxref{Init File})
 @end ifnottex
-is called @file{_emacs} on MS-DOS.  Excess characters before or after
+is called @file{_emacs} on MS-DOS@.  Excess characters before or after
 the period are generally ignored by MS-DOS itself; thus, if you visit
 the file @file{LongFileName.EvenLongerExtension}, you will silently
 get @file{longfile.eve}, but Emacs will still display the long file
@@ -552,7 +552,7 @@ when invoked with the @samp{-nw} option.
 asynchronous subprocesses are not available.  In particular, Shell
 mode and its variants do not work.  Most Emacs features that use
 asynchronous subprocesses also don't work on MS-DOS, including
-Shell mode and GUD.  When in doubt, try and see; commands that
+Shell mode and GUD@.  When in doubt, try and see; commands that
 don't work output an error message saying that asynchronous processes
 aren't supported.
 
@@ -600,7 +600,7 @@ it, because MS-DOS provides no general way to terminate a process.
 Pressing @kbd{C-c} or @kbd{C-@key{BREAK}} might sometimes help in these
 cases.
 
-  Accessing files on other machines is not supported on MS-DOS.  Other
+  Accessing files on other machines is not supported on MS-DOS@.  Other
 network-oriented commands such as sending mail, Web browsing, remote
 login, etc., don't work either, unless network access is built into
 MS-DOS with some network redirector.

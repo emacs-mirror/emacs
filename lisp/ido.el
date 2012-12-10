@@ -2389,7 +2389,10 @@ If cursor is not at the end of the user input, move to end of input."
 	(ido-buffer-internal 'insert 'insert-buffer "Insert buffer: " nil ido-text 'ido-enter-insert-file))
 
        ((eq ido-exit 'dired)
-	(dired (concat ido-current-directory (or ido-text ""))))
+        (funcall (cond ((eq method 'other-window) 'dired-other-window)
+                       ((eq method 'other-frame) 'dired-other-frame)
+                       (t 'dired))
+                 (concat ido-current-directory (or ido-text ""))))
 
        ((eq ido-exit 'ffap)
 	(find-file-at-point))

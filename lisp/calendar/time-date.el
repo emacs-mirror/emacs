@@ -30,11 +30,10 @@
 ;; value equal to HIGH * 2^16 + LOW + USEC * 10^-6 + PSEC * 10^-12
 ;; seconds, where missing components are treated as zero.  HIGH can be
 ;; negative, either because the value is a time difference, or because
-;; the machine supports negative time stamps that fall before the
-;; epoch.  The macro `with-decoded-time-value' and the
-;; function `encode-time-value' make it easier to deal with these
-;; three formats.  See `time-subtract' for an example of how to use
-;; them.
+;; the machine supports negative time stamps that fall before the epoch.
+;; The macro `with-decoded-time-value' and the function
+;; `encode-time-value' make it easier to deal with these formats.
+;; See `time-subtract' for an example of how to use them.
 
 ;;; Code:
 
@@ -134,9 +133,7 @@ If DATE lacks timezone information, GMT is assumed."
 ;;;###autoload(if (or (featurep 'emacs)
 ;;;###autoload        (and (fboundp 'float-time)
 ;;;###autoload             (subrp (symbol-function 'float-time))))
-;;;###autoload    (progn
-;;;###autoload      (defalias 'time-to-seconds 'float-time)
-;;;###autoload      (make-obsolete 'time-to-seconds 'float-time "21.1"))
+;;;###autoload    (defalias 'time-to-seconds 'float-time)
 ;;;###autoload  (autoload 'time-to-seconds "time-date"))
 
 (eval-when-compile

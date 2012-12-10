@@ -374,6 +374,8 @@ NTLIB_H        = $(LIB_SRC)/ntlib.h \
 SYSTIME_H      = $(SRC)/systime.h \
 		 $(NT_INC)/sys/time.h \
 		 $(GNU_LIB)/timespec.h
+SYSWAIT_H      = $(SRC)/syswait.h \
+		 $(NT_INC)/sys/wait.h
 
 $(BLD)/ctags.$(O) : \
 	$(LIB_SRC)/ctags.c \
@@ -419,14 +421,14 @@ $(BLD)/make-docfile.$(O) : \
 $(BLD)/movemail.$(O) : \
 	$(LIB_SRC)/movemail.c \
 	$(LIB_SRC)/pop.h \
-	$(SRC)/syswait.h \
 	$(NT_INC)/pwd.h \
 	$(NT_INC)/sys/file.h \
 	$(NT_INC)/sys/stat.h \
 	$(NT_INC)/unistd.h \
 	$(GNU_LIB)/getopt.h \
 	$(CONFIG_H) \
-	$(NTLIB_H)
+	$(NTLIB_H) \
+	$(SYSWAIT_H)
 
 $(BLD)/ntlib.$(O) : \
 	$(LIB_SRC)/ntlib.c \

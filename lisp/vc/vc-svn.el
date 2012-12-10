@@ -414,7 +414,7 @@ The changes are between FIRST-VERSION and SECOND-VERSION."
                ;; We also used to match the filename in column 0 without any
                ;; meta-info before it, but I believe this can never happen.
                (concat "^\\(\\([ACGDU]\\)\\(.[B ]\\)?  \\)"
-                       (regexp-quote (file-name-nondirectory file)))
+		       (regexp-quote (file-relative-name file)))
                nil t)
               (cond
                ;; Merge successful, we are in sync with repository now

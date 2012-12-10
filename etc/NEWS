@@ -24,13 +24,90 @@ so we will look at it and add it to the manual.
 * Installation Changes in Emacs 24.4
 * Startup Changes in Emacs 24.4
 * Changes in Emacs 24.4
+
++++
+** `eval-defun' on an already defined defcustom calls the :set function,
+if there is one.
+
+** The option `set-mark-default-inactive' has been deleted.
+This unfinished feature was introduced by accident in Emacs 23.1;
+simply disabling Transient Mark mode does the same thing.
+
 * Editing Changes in Emacs 24.4
 
 
 * Changes in Specialized Modes and Packages in Emacs 24.4
 
+** New macro cl-tagbody in cl-lib.
+** Calc
+
+*** Calc by default now uses the Gregorian calendar for all dates, and
+uses January 1, 1 AD as its day number 1.  Previously Calc used the
+Julian calendar for dates before September 14, 1752, and it used
+December 31, 1 BC as its day number 1; the new scheme is more
+consistent with Calendar's calendrical system and day numbering.
+
+*** The new variable `calc-gregorian-switch' lets you configure the
+date when Calc switches from the Julian to the Gregorian calendar.
+Nil, the default value, means to always use the Gregorian calendar.
+The value (YEAR MONTH DAY) means to start using the Gregorian calendar
+on the given date.
+
+** ERC
+
+*** New option `erc-accidental-paste-threshold-seconds'.
+If set to a number, this can be used to avoid accidentally paste large
+amounts of data into the ERC input.
+
+** Icomplete is a bit more like IDO.
+*** key bindings to navigate through and select the completions.
+*** The icomplete-separator is customizable, and its default has changed.
+*** Removed icomplete-show-key-bindings.
+
+** MH-E has been updated to MH-E version 8.4.
+See MH-E-NEWS for details.
+
+---
+** The unrmail command converts from BABYL to mboxrd rather than mboxo.
+Customize `unrmail-mbox-format' to change this.
+
+---
+** Similarly, customize `rmail-mbox-format' to influence some minor aspects
+of how Rmail displays non-MIME messages.
+
 +++
 ** New function `ses-rename-cell' to give SES cells arbitrary names.
+
+** trace-function was largely rewritten.
+New features include:
+- no prompting for the destination buffer, unless a prefix-arg was used.
+- additionally to prompting for a destination buffer, when a prefix-arg is
+  used, the user can enter a "context", i.e. Lisp expression whose value at the
+  time the function is entered/exited will be printed along with the function
+  name and arguments.  Useful to trace the value of (current-buffer) or
+  (point) when the function is invoked.
+
+** New command `delete-duplicate-lines' has two types of operation:
+when its arg ADJACENT is non-nil (when called interactively with C-u C-u)
+it works like the utility `uniq'.  Otherwise by default it deletes
+duplicate lines everywhere in the region without regard to adjacency.
+
+** Tramp
++++
+*** New connection method "adb", which allows to access Android
+devices by the Android Debug Bridge.  The variable `tramp-adb-sdk-dir'
+must be set to the Android SDK installation directory.
+
+** Woman
+
+*** The commands `woman-default-faces' and `woman-monochrome-faces'
+are obsolete.  Customize the `woman-* faces instead.
+
+** Obsolete packages:
+
+*** longlines.el is obsolete; use visual-line-mode instead.
+
+*** terminal.el is obsolete; use term.el instead.
 
 
 * New Modes and Packages in Emacs 24.4
@@ -43,6 +120,10 @@ It is layered as:
 
 * Incompatible Lisp Changes in Emacs 24.4
 
+** nil and "unbound" are indistinguishable in symbol-function.
+`symbol-function' never signals `void-function' any more.
+`fboundp' returns non-nil if the symbol was `fset' to nil.
+
 ** `defadvice' does not honor the `freeze' flag and cannot advise
 special-forms any more.
 
@@ -52,6 +133,22 @@ spurious warnings about an unused var.
 
 * Lisp changes in Emacs 24.4
 
+** Support for filesystem notifications.
+Emacs now supports notifications of filesystem changes, such as
+creation, modification, and deletion of files.  This requires the
+'inotify' API on GNU/Linux systems.
+
+** Face changes
+
+*** The `face-spec-set' is now analogous to `setq' for face specs.
+Its third arg now accepts values specifying exactly which face spec to
+set (defface, custom, or user spec), and it directly sets the relevant
+property using the supplied face spec.
+
+*** Face specs set via Custom themes now replace the `defface' spec
+rather than inheriting from it (as do face specs set via Customize).
+
+** time-to-seconds is not obsolete any more.
 ** New function special-form-p.
 ** Docstrings can be made dynamic by adding a `dynamic-docstring-function'
 text-property on the first char.
@@ -60,6 +157,11 @@ text-property on the first char.
 and redirect them to your own function instead of `fset'.
 
 * Changes in Emacs 24.4 on non-free operating systems
+
++++
+** The "generate a backtrace on fatal error" feature now works on MS Windows.
+The backtrace is written to the 'emacs_backtrace.txt' file in the
+directory where Emacs was running.
 
 
 * Installation Changes in Emacs 24.3
@@ -210,9 +312,7 @@ This minor mode replaces `toggle-read-only', which is now obsolete.
 ** Emacs now generates backtraces on fatal errors.
 On encountering a fatal error, Emacs now outputs a textual description
 of the fatal signal, and a short backtrace on platforms like glibc
-that support backtraces, and also on MS-Windows.  On Windows, the
-backtrace is also written to the 'emacs_backtrace.txt' file in the
-directory where Emacs was running.
+that support backtraces.
 
 ---
 ** If your Emacs was built from a bzr checkout, the new variable
@@ -745,6 +845,10 @@ that substring is inserted literally even if the LITERAL arg is
 non-nil, instead of causing an error to be signaled.
 
 +++
+** `select-window' now always makes the window's buffer current.
+It does so even if the window was selected before.
+
++++
 ** Docstrings starting with `*' no longer indicate user options.
 Only variables defined using `defcustom' are considered user options.
 The function `user-variable-p' is now an obsolete alias for
@@ -752,9 +856,9 @@ The function `user-variable-p' is now an obsolete alias for
 
 +++
 ** The return values of `defalias', `defun' and `defmacro' have changed,
-and are now undefined.  For backwards compatibility, defun and
-defmacro currently return the name of the newly defined function/macro
-but this should not be relied upon.
+and are now undefined.  For backwards compatibility, `defun' and
+`defmacro' currently return the name of the newly defined
+function/macro, but this should not be relied upon.
 
 ---
 ** `face-spec-set' no longer sets frame-specific attributes when the
@@ -830,7 +934,7 @@ are deprecated and will be removed eventually.
 ** New sampling-based Elisp profiler.
 Try M-x profiler-start, do some work, and then call M-x profiler-report.
 When finished, use M-x profiler-stop.  The sampling rate can be based on
-CPU time (only supported on some systems) or memory allocations.
+CPU time or memory allocations.
 
 +++
 ** CL-style generalized variables are now in core Elisp.
@@ -855,14 +959,9 @@ More commands use `read-regexp' now to read their regexp arguments.
 *** New function `completion-table-with-quoting' to handle completion
 in the presence of quoting, such as file completion in shell buffers.
 
++++
 *** New function `completion-table-subvert' to use an existing completion
 table, but with a different prefix.
-
-FIXME?
-*** There are several other completion-table- functions that never got
-added to NEWS or documented: completion-table-case-fold (24.1),
-completion-table-with-context (23,1), completion-table-with-terminator (23.1),
-completion-table-with-predicate (23.1), completion-table-in-turn (23.1)
 
 ** Debugger changes
 
@@ -889,14 +988,19 @@ now accept a third argument to avoid choosing the selected window.
 +++
 *** Additional values recognized for option `window-combination-limit'.
 
-*** New macro `with-temp-buffer-window'.
++++
+*** New macro `with-temp-buffer-window', similar to
+`with-output-to-temp-buffer'.
 
+---
 *** `temp-buffer-resize-mode' no longer resizes windows that have been
 reused.
 
++++
 *** New command `fit-frame-to-buffer' adjusts the frame height to
 fit the contents.
 
++++
 *** The command `fit-window-to-buffer' can adjust the frame height
 if the new option `fit-frame-to-buffer' is non-nil.
 
@@ -906,11 +1010,11 @@ window's point when switching buffers.
 +++
 *** New display action functions `display-buffer-below-selected',
 and `display-buffer-in-previous-window'.
-
++++
 *** New display action alist entry `inhibit-switch-frame', if non-nil,
 tells display action functions to avoid changing which frame is
 selected.
-
++++
 *** New display action alist entry `pop-up-frame-parameters', if
 non-nil, specifies frame parameters to give any newly-created frame.
 +++
@@ -966,13 +1070,14 @@ Previously, they returned NaNs on some platforms but signaled errors
 on others.  The affected functions are acos, asin, tan, exp, expt,
 log, log10, sqrt, and mod.
 
-** Interpreted files are eagerly macro-expanded during load.
++++
+** Emacs tries to macroexpand interpreted (non-compiled) files during load.
 This can significantly speed up execution of non-byte-compiled code,
-but can also bump into harmless and previously unnoticed cyclic
-dependencies.  These should not be fatal: they will simply cause the
-macro-calls to be left for later expansion (as before), but will also
-result in a warning ("Eager macro-expansion skipped due to cycle")
-describing the cycle.
+but can also bump into previously unnoticed cyclic dependencies.
+These are generally harmless: they will simply cause the macro calls
+to be left for later expansion (as before), but will result in a
+warning ("Eager macro-expansion skipped due to cycle") describing the cycle.
+You may wish to restructure your code so this does not happen.
 
 ** Miscellaneous new functions:
 +++
@@ -999,6 +1104,12 @@ takes precedence over most other maps for a short while (normally one key).
 
 +++
 ** New macros `setq-local' and `defvar-local'.
+
+** Changes to special forms and macros
++++
+*** `defun' and `defmacro' are now macros rather than special forms
++++
+*** `kbd' is now a function rather than a macro.
 
 +++
 ** New fringe bitmap `exclamation-mark'.
@@ -1030,9 +1141,10 @@ takes precedence over most other maps for a short while (normally one key).
 Pass --with-w32 to configure.  The default remains the X11 interface.
 
 ** Two new functions are available in Cygwin builds:
-`cygwin-convert-path-from-windows' and `cygwin-convert-path-to-windows'.
-These functions allow Lisp code to access the Cygwin file-name mapping
-machinery to convert between Cygwin and Windows-native file names.
+`cygwin-convert-file-name-from-windows' and
+`cygwin-convert-file-name-to-windows'.  These functions allow Lisp
+code to access the Cygwin file-name mapping machinery to convert
+between Cygwin and Windows-native file and directory names.
 
 ** When invoked with the -nw switch to run on the Windows text-mode terminal,
 Emacs now supports mouse highlight, help-echo (in the echo area), and

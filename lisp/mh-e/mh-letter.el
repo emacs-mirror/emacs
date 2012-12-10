@@ -68,7 +68,7 @@ citation text as modified.
 
 This is a normal hook, misnamed for historical reasons.
 It is obsolete and is only used if `mail-citation-hook' is nil.")
-(make-obsolete-variable 'mh-yank-hooks 'mail-citation-hook "19.34")
+(mh-make-obsolete-variable 'mh-yank-hooks 'mail-citation-hook "19.34")
 
 
 
@@ -724,69 +724,71 @@ not inserted. If the option `mh-yank-behavior' is set to one of
 the supercite flavors, the hook `mail-citation-hook' is ignored
 and `mh-ins-buf-prefix' is not inserted."
   (interactive)
-  (if (and mh-sent-from-folder
-           (with-current-buffer mh-sent-from-folder mh-show-buffer)
-           (with-current-buffer mh-sent-from-folder
-             (get-buffer mh-show-buffer))
-           mh-sent-from-msg)
-      (let ((to-point (point))
-            (to-buffer (current-buffer)))
-        (set-buffer mh-sent-from-folder)
-        (if mh-delete-yanked-msg-window-flag
-            (delete-windows-on mh-show-buffer))
-        (set-buffer mh-show-buffer)     ; Find displayed message
-        (let* ((from-attr (mh-extract-from-attribution))
-               (yank-region (mh-mark-active-p nil))
-               (mh-ins-str
-                (cond ((and yank-region
-                            (or (eq 'supercite mh-yank-behavior)
-                                (eq 'autosupercite mh-yank-behavior)
-                                (eq t mh-yank-behavior)))
-                       ;; supercite needs the full header
-                       (concat
-                        (buffer-substring (point-min) (mh-mail-header-end))
-                        "\n"
-                        (buffer-substring (region-beginning) (region-end))))
-                      (yank-region
-                       (buffer-substring (region-beginning) (region-end)))
-                      ((or (eq 'body mh-yank-behavior)
-                           (eq 'attribution mh-yank-behavior)
-                           (eq 'autoattrib mh-yank-behavior))
-                       (buffer-substring
-                        (save-excursion
-                          (goto-char (point-min))
-                          (mh-goto-header-end 1)
-                          (point))
-                        (point-max)))
-                      ((or (eq 'supercite mh-yank-behavior)
-                           (eq 'autosupercite mh-yank-behavior)
-                           (eq t mh-yank-behavior))
-                       (buffer-substring (point-min) (point-max)))
-                      (t
-                       (buffer-substring (point) (point-max))))))
-          (set-buffer to-buffer)
-          (save-restriction
-            (narrow-to-region to-point to-point)
-            (insert (mh-filter-out-non-text mh-ins-str))
-            (goto-char (point-max))     ;Needed for sc-cite-original
-            (push-mark)                 ;Needed for sc-cite-original
-            (goto-char (point-min))     ;Needed for sc-cite-original
-            (mh-insert-prefix-string mh-ins-buf-prefix)
-            (when (or (eq 'attribution mh-yank-behavior)
-                      (eq 'autoattrib mh-yank-behavior))
-              (insert from-attr)
-              (mh-identity-insert-attribution-verb nil)
-              (insert "\n\n"))
-            ;; If the user has selected a region, he has already "edited" the
-            ;; text, so leave the cursor at the end of the yanked text. In
-            ;; either case, leave a mark at the opposite end of the included
-            ;; text to make it easy to jump or delete to the other end of the
-            ;; text.
-            (push-mark)
-            (goto-char (point-max))
-            (if (null yank-region)
-                (mh-exchange-point-and-mark-preserving-active-mark)))))
-    (error "There is no current message")))
+  (let ((show-buffer))
+    (if (and mh-sent-from-folder
+             (with-current-buffer mh-sent-from-folder mh-show-buffer)
+             (setq show-buffer (with-current-buffer mh-sent-from-folder
+                                 (get-buffer mh-show-buffer)))
+             mh-sent-from-msg)
+        (let ((to-point (point))
+              (to-buffer (current-buffer)))
+          (if mh-delete-yanked-msg-window-flag
+              (with-current-buffer mh-sent-from-folder
+                (delete-windows-on show-buffer)))
+          ;; Find displayed message
+          (with-current-buffer show-buffer
+            (let* ((from-attr (mh-extract-from-attribution))
+                   (yank-region (mh-mark-active-p nil))
+                   (mh-ins-str
+                    (cond ((and yank-region
+                                (or (eq 'supercite mh-yank-behavior)
+                                    (eq 'autosupercite mh-yank-behavior)
+                                    (eq t mh-yank-behavior)))
+                           ;; supercite needs the full header
+                           (concat
+                            (buffer-substring (point-min) (mh-mail-header-end))
+                            "\n"
+                            (buffer-substring (region-beginning) (region-end))))
+                          (yank-region
+                           (buffer-substring (region-beginning) (region-end)))
+                          ((or (eq 'body mh-yank-behavior)
+                               (eq 'attribution mh-yank-behavior)
+                               (eq 'autoattrib mh-yank-behavior))
+                           (buffer-substring
+                            (save-excursion
+                              (goto-char (point-min))
+                              (mh-goto-header-end 1)
+                              (point))
+                            (point-max)))
+                          ((or (eq 'supercite mh-yank-behavior)
+                               (eq 'autosupercite mh-yank-behavior)
+                               (eq t mh-yank-behavior))
+                           (buffer-substring (point-min) (point-max)))
+                          (t
+                           (buffer-substring (point) (point-max))))))
+              (with-current-buffer to-buffer
+                (save-restriction
+                  (narrow-to-region to-point to-point)
+                  (insert (mh-filter-out-non-text mh-ins-str))
+                  (goto-char (point-max))     ;Needed for sc-cite-original
+                  (push-mark)                 ;Needed for sc-cite-original
+                  (goto-char (point-min))     ;Needed for sc-cite-original
+                  (mh-insert-prefix-string mh-ins-buf-prefix)
+                  (when (or (eq 'attribution mh-yank-behavior)
+                            (eq 'autoattrib mh-yank-behavior))
+                    (insert from-attr)
+                    (mh-identity-insert-attribution-verb nil)
+                    (insert "\n\n"))
+                  ;; If the user has selected a region, he has already "edited" the
+                  ;; text, so leave the cursor at the end of the yanked text. In
+                  ;; either case, leave a mark at the opposite end of the included
+                  ;; text to make it easy to jump or delete to the other end of the
+                  ;; text.
+                  (push-mark)
+                  (goto-char (point-max))
+                  (if (null yank-region)
+                      (mh-exchange-point-and-mark-preserving-active-mark)))))))
+      (error "There is no current message"))))
 
 
 

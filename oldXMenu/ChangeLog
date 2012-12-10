@@ -1,3 +1,14 @@
+2012-12-04  Paul Eggert  <eggert@cs.ucla.edu>
+
+	Include <config.h> uniformly in oldXMenu sources.
+	* Activate.c, AddPane.c, AddSel.c, ChgPane.c, ChgSel.c, Create.c:
+	* InsPane.c, InsSel.c, Internal.c, XMakeAssoc.c:
+	Do not include <config.h>, since XMenuInt.h does that now.
+	* XLookAssoc.c, XMenuInt.h: Include <config.h>.
+	This avoids a build failure when configuring on Fedora 17
+	--with-x-toolkit=no, reported by Dmitry Andropov in
+	<http://lists.gnu.org/archive/html/emacs-devel/2012-12/msg00078.html>.
+
 2012-10-06  Ulrich Müller  <ulm@gentoo.org>
 
 	* Makefile.in (AR, ARFLAGS): Get values from configure.

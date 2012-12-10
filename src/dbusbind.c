@@ -1203,7 +1203,7 @@ this connection to those buses.  */)
       xd_registered_buses = Fcons (Fcons (bus, val), xd_registered_buses);
 
       /* We do not want to abort.  */
-      putenv ((char *) "DBUS_FATAL_WARNINGS=0");
+      xputenv ("DBUS_FATAL_WARNINGS=0");
 
       /* Cleanup.  */
       dbus_error_free (&derror);

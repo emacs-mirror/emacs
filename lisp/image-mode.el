@@ -746,8 +746,14 @@ close to a multiple of 90, see `image-transform-right-angle-fudge'."
 	    h)))))
 
 (defun image-transform-check-size ()
-  "Check that the image exactly fits the width/height of the window."
-  (unless (numberp image-transform-resize)
+  "Check that the image exactly fits the width/height of the window.
+
+Do this for an image of type `imagemagick' to make sure that the
+elisp code matches the way ImageMagick computes the bounding box
+of a rotated image."
+  (when (and (not (numberp image-transform-resize))
+	     (boundp 'image-type)
+	     (eq image-type 'imagemagick))
     (let ((size (image-display-size (image-get-display-property) t)))
       (cond ((eq image-transform-resize 'fit-width)
 	     (cl-assert (= (car size)

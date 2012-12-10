@@ -1,4 +1,4 @@
-# sys_socket_h.m4 serial 22
+# sys_socket_h.m4 serial 23
 dnl Copyright (C) 2005-2012 Free Software Foundation, Inc.
 dnl This file is free software; the Free Software Foundation
 dnl gives unlimited permission to copy and/or distribute it,
@@ -10,7 +10,6 @@ AC_DEFUN([gl_HEADER_SYS_SOCKET],
 [
   AC_REQUIRE([gl_SYS_SOCKET_H_DEFAULTS])
   AC_REQUIRE([AC_CANONICAL_HOST])
-  AC_REQUIRE([AC_C_INLINE])
 
   dnl On OSF/1, the functions recv(), send(), recvfrom(), sendto() have
   dnl old-style declarations (with return type 'int' instead of 'ssize_t')

@@ -338,6 +338,14 @@ string is passed through `substitute-command-keys'.  */)
 
   doc = Qnil;
 
+  if (SYMBOLP (function))
+    {
+      Lisp_Object tem = Fget (function, Qfunction_documentation);
+      if (!NILP (tem))
+	return Fdocumentation_property (function, Qfunction_documentation,
+					raw);
+    }
+
   fun = Findirect_function (function, Qnil);
   if (CONSP (fun) && EQ (XCAR (fun), Qmacro))
     fun = XCDR (fun);

@@ -838,7 +838,7 @@ solve this by allowing regexp matching on test names; e.g., the
 selector "^ert-" selects ERT's self-tests.
 
 Other uses include grouping tests by their expected execution time,
-e.g. to run quick tests during interactive development and slow tests less
+e.g., to run quick tests during interactive development and slow tests less
 often.  This can be achieved with the @code{:tag} argument to
 @code{ert-deftest} and @code{tag} test selectors.
 

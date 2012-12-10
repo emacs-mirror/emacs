@@ -3608,6 +3608,7 @@ functions to do caching and flushing if appropriate."
     nil
 
 (eval-when-compile (condition-case nil (require 'imenu) (error nil)))
+(declare-function imenu--make-index-alist "imenu" (&optional no-error))
 
 (defun speedbar-fetch-dynamic-imenu (file)
   "Load FILE into a buffer, and generate tags using Imenu.

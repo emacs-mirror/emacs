@@ -3250,8 +3250,7 @@ This function runs `window-scroll-functions' before running
   tem = w->buffer;
   if (NILP (tem))
     error ("Window is deleted");
-  else if (!EQ (tem, Qt))
-    /* w->buffer is t when the window is first being set up.  */
+  else
     {
       if (!EQ (tem, buffer))
 	{
@@ -3914,7 +3913,6 @@ set correctly.  See the code of `split-window' for how this is done.  */)
       wset_next (o, new);
     }
 
-  wset_buffer (n, Qt);
   wset_window_end_valid (n, Qnil);
   memset (&n->last_cursor, 0, sizeof n->last_cursor);
 

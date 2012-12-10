@@ -4348,6 +4348,14 @@ server."
   (interactive "P")
   (gnus arg nil 'slave))
 
+(defun gnus-delete-gnus-frame ()
+  "Delete gnus frame unless it is the only one.
+Used for `gnus-exit-gnus-hook' in `gnus-other-frame'."
+  (when (and (frame-live-p gnus-other-frame-object)
+             (cdr (frame-list)))
+    (delete-frame gnus-other-frame-object))
+  (setq gnus-other-frame-object nil))
+
 ;;;###autoload
 (defun gnus-other-frame (&optional arg display)
   "Pop up a frame to read news.
@@ -4388,12 +4396,13 @@ current display is used."
       (if alive
 	  (switch-to-buffer gnus-group-buffer)
 	(funcall gnus-other-frame-function arg)
-	(add-hook 'gnus-exit-gnus-hook
-		  (lambda nil
-                    (when (and (frame-live-p gnus-other-frame-object)
-                               (cdr (frame-list)))
-                      (delete-frame gnus-other-frame-object))
-                    (setq gnus-other-frame-object nil)))))))
+	(add-hook 'gnus-exit-gnus-hook 'gnus-delete-gnus-frame)
+  ;; One might argue that `gnus-delete-gnus-frame' should not be called
+  ;; from `gnus-suspend-gnus-hook', but, on the other hand, one might
+  ;; argue that it should.  No matter what you think, for the sake of
+  ;; those who want it to be called from it, please keep (defun
+  ;; gnus-delete-gnus-frame) even if you remove the next `add-hook'.
+  (add-hook 'gnus-suspend-gnus-hook 'gnus-delete-gnus-frame)))))
 
 ;;;###autoload
 (defun gnus (&optional arg dont-connect slave)

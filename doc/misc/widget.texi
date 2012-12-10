@@ -663,7 +663,7 @@ in the buffer with a positive tabbing order, or @code{nil}
 
 @vindex parent@r{ keyword}
 @item :parent
-The parent of a nested widget (e.g.@: a @code{menu-choice} item or an
+The parent of a nested widget (e.g., a @code{menu-choice} item or an
 element of a @code{editable-list} widget).
 
 @vindex sibling-args@r{ keyword}
@@ -813,7 +813,7 @@ Face used for highlighting the editable field.  Default is
 
 @vindex secret@r{ keyword}
 @item :secret
-Character used to display the value.  You can set this to e.g.@: @code{?*}
+Character used to display the value.  You can set this to, e.g., @code{?*}
 if the field contains a password or other secret information.  By
 default, this is @code{nil}, and the value is not secret.
 
@@ -918,8 +918,8 @@ Insert a literal @samp{%}.
 
 @vindex button-args@r{ keyword}
 @item :button-args
-A list of keywords to pass to the radio buttons.  Useful for setting
-e.g.@: the @samp{:help-echo} for each button.
+A list of keywords to pass to the radio buttons.  Useful for setting,
+e.g., the @samp{:help-echo} for each button.
 
 @vindex buttons@r{ keyword}
 @item :buttons
@@ -1068,12 +1068,12 @@ Usually a checklist will only match if the items are in the exact
 sequence given in the specification.  By setting @code{:greedy} to
 non-@code{nil}, it will allow the items to come in any sequence.
 However, if you extract the value they will be in the sequence given
-in the checklist, i.e.@: the original sequence is forgotten.
+in the checklist, i.e., the original sequence is forgotten.
 
 @vindex button-args@r{ keyword}
 @item :button-args
-A list of keywords to pass to the checkboxes.  Useful for setting
-e.g.@: the @samp{:help-echo} for each checkbox.
+A list of keywords to pass to the checkboxes.  Useful for setting,
+e.g., the @samp{:help-echo} for each checkbox.
 
 @vindex buttons@r{ keyword}
 @item :buttons
@@ -1464,7 +1464,7 @@ property @var{property}.
 @end defun
 
 Occasionally it can be useful to know which kind of widget you have,
-i.e.@: the name of the widget type you gave when the widget was created.
+i.e., the name of the widget type you gave when the widget was created.
 
 @defun widget-type widget
 Return the name of @var{widget}, a symbol.

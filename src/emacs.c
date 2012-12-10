@@ -95,10 +95,6 @@ extern void moncontrol (int mode);
 #include <sys/personality.h>
 #endif
 
-#ifndef O_RDWR
-#define O_RDWR 2
-#endif
-
 static const char emacs_version[] = VERSION;
 static const char emacs_copyright[] = COPYRIGHT;
 
@@ -539,7 +535,7 @@ DEFUN ("invocation-directory", Finvocation_directory, Sinvocation_directory,
 #ifdef HAVE_TZSET
 /* A valid but unlikely value for the TZ environment value.
    It is OK (though a bit slower) if the user actually chooses this value.  */
-static char dump_tz[] = "UtC0";
+static char const dump_tz[] = "UtC0";
 #endif
 
 #ifndef ORDINARY_LINK
@@ -719,9 +715,9 @@ main (int argc, char **argv)
   stack_base = &dummy;
 #endif
 
-#if defined (USE_GTK) && defined (G_SLICE_ALWAYS_MALLOC)
+#ifdef G_SLICE_ALWAYS_MALLOC
   /* This is used by the Cygwin build.  */
-  setenv ("G_SLICE", "always-malloc", 1);
+  xputenv ("G_SLICE=always-malloc");
 #endif
 
 #ifdef GNU_LINUX
@@ -807,9 +803,8 @@ main (int argc, char **argv)
 #ifdef HAVE_PERSONALITY_LINUX32
   if (dumping && ! getenv ("EMACS_HEAP_EXEC"))
     {
-      static char heapexec[] = "EMACS_HEAP_EXEC=true";
       /* Set this so we only do this once.  */
-      putenv (heapexec);
+      xputenv ("EMACS_HEAP_EXEC=true");
 
       /* A flag to turn off address randomization which is introduced
          in linux kernel shipped with fedora core 4 */
@@ -1314,7 +1309,7 @@ Using an Emacs configured with --with-x-toolkit=lucid does not have this problem
      don't pollute Vglobal_environment.  */
   /* Setting LANG here will defeat the startup locale processing...  */
 #ifdef AIX
-  putenv ("LANG=C");
+  xputenv ("LANG=C");
 #endif
 
   init_buffer ();	/* Init default directory of main buffer.  */
@@ -1447,6 +1442,10 @@ Using an Emacs configured with --with-x-toolkit=lucid does not have this problem
 #ifdef HAVE_GNUTLS
       syms_of_gnutls ();
 #endif
+
+#ifdef HAVE_INOTIFY
+      syms_of_inotify ();
+#endif /* HAVE_INOTIFY */
 
 #ifdef HAVE_DBUS
       syms_of_dbusbind ();

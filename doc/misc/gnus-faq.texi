@@ -65,7 +65,7 @@ Gnus is a Usenet Newsreader and Electronic Mail User Agent implemented
 as a part of Emacs. It's been around in some form for almost a decade
 now, and has been distributed as a standard part of Emacs for much of
 that time. Gnus 5 is the latest (and greatest) incarnation. The
-original version was called GNUS, and was written by Masanobu UMEDA.
+original version was called GNUS, and was written by Masanobu UMEDA@.
 When autumn crept up in '94, Lars Magne Ingebrigtsen grew bored and
 decided to rewrite Gnus.
 
@@ -149,7 +149,7 @@ Anti Spam features.
 Message-utils now included in Gnus.
 
 @item
-New format specifiers for summary lines, e.g. %B for
+New format specifiers for summary lines, e.g., %B for
 a complex trn-style thread tree.
 @end itemize
 
@@ -162,7 +162,7 @@ Where and how to get Gnus?
 
 Gnus is released independent from releases of Emacs and XEmacs.
 Therefore, the version bundled with Emacs or the version in XEmacs's
-package system might not be up to date (e.g. Gnus 5.9 bundled with Emacs
+package system might not be up to date (e.g., Gnus 5.9 bundled with Emacs
 21 is outdated).
 You can get the latest released version of Gnus from
 @uref{http://www.gnus.org/dist/gnus.tar.gz}
@@ -181,7 +181,7 @@ Untar it via @samp{tar xvzf gnus.tar.gz} and do the common
 (under MS-Windows either get the Cygwin environment from
 @uref{http://www.cygwin.com}
 which allows you to do what's described above or unpack the
-tarball with some packer (e.g. Winace from
+tarball with some packer (e.g., Winace from
 @uref{http://www.winace.com})
 and use the batch-file make.bat included in the tarball to install
 Gnus.) If you don't want to (or aren't allowed to) install Gnus
@@ -267,7 +267,7 @@ and how to prevent it?
 
 This message means that the last time you used Gnus, it
 wasn't properly exited and therefore couldn't write its
-information to disk (e.g. which messages you read), you
+information to disk (e.g., which messages you read), you
 are now asked if you want to restore that information
 from the auto-save file.
 
@@ -314,7 +314,7 @@ through them?
 @subsubheading Answer
 
 Gnus offers the topic mode, it allows you to sort your
-groups in, well, topics, e.g. all groups dealing with
+groups in, well, topics, e.g., all groups dealing with
 Linux under the topic linux, all dealing with music under
 the topic music and all dealing with scottish music under
 the topic scottish which is a subtopic of music.
@@ -406,7 +406,7 @@ directory Emacs chooses will most certainly not be what
 you want, so let's do it the correct way.
 The first thing you've got to do is to
 create a suitable directory (no blanks in directory name
-please) e.g. c:\myhome. Then you must set the environment
+please), e.g., c:\myhome. Then you must set the environment
 variable HOME to this directory.  To do this under Windows 9x
 or Me include the line
 
@@ -556,7 +556,7 @@ these: 1: You want to read your mail from a pop3 server and
 send them directly to a SMTP Server 2: Some program like
 fetchmail retrieves your mail and stores it on disk from
 where Gnus shall read it. Outgoing mail is sent by
-Sendmail, Postfix or some other MTA. Sometimes, you even
+Sendmail, Postfix or some other MTA@. Sometimes, you even
 need a combination of the above cases.
 
 However, the first thing to do is to tell Gnus in which way
@@ -716,7 +716,7 @@ However this is Gnus county so there are possibilities to
 achieve what you want. The easiest way is to get an external
 program which retrieves copies of the mail and stores them
 on disk, so Gnus can read it from there. On Unix systems you
-could use e.g. fetchmail for this, on MS Windows you can use
+could use, e.g., fetchmail for this, on MS Windows you can use
 Hamster, an excellent local news and mail server.
 
 The other solution would be, to replace the method Gnus
@@ -728,7 +728,7 @@ Gnus to use it and not to delete the retrieved mail. For
 GNU Emacs look for the file epop3.el which can do the same
 (If you know the home of this file, please send me an
 e-mail). You can also tell Gnus to use an external program
-(e.g. fetchmail) to fetch your mail, see the info node
+(e.g., fetchmail) to fetch your mail, see the info node
 "Mail Source Specifiers" in the Gnus manual on how to do
 it.
 
@@ -753,7 +753,7 @@ it.
 * FAQ 4-9::     Is there a way to automatically ignore posts by specific
                 authors or with specific words in the subject? And can I
                 highlight more interesting ones in some way?
-* FAQ 4-10::    How can I disable threading in some (e.g. mail-) groups,
+* FAQ 4-10::    How can I disable threading in some (e.g., mail-) groups,
                 or set other variables specific for some groups?
 * FAQ 4-11::    Can I highlight messages written by me and follow-ups to
                 those?
@@ -778,7 +778,7 @@ If you enter the group by saying
 @samp{RET}
 in group buffer with point over the group, only unread and ticked messages are loaded. Say
 @samp{C-u RET}
-instead to load all available messages. If you want only the e.g. 300 newest say
+instead to load all available messages. If you want only the 300 newest say
 @samp{C-u 300 RET}
 
 Loading only unread messages can be annoying if you have threaded view enabled, say
@@ -954,7 +954,7 @@ Hit either @samp{e} for an exact match or
 @samp{s} for substring-match and delete afterwards
 everything but the name to score down all authors with the given
 name no matter which email address is used. Now you need to tell
-Gnus when to apply the rule and how long it should last, hit e.g.
+Gnus when to apply the rule and how long it should last, hit
 @samp{p} to apply the rule now and let it last
 forever. If you want to raise the score instead of lowering it say
 @samp{I} instead of @samp{L}.
@@ -967,7 +967,7 @@ Gnus manual for the exact syntax, basically it's one big list
 whose elements are lists again. the first element of those lists
 is the header to score on, then one more list with what to match,
 which score to assign, when to expire the rule and how to do the
-matching. If you find me very interesting, you could e.g. add the
+matching. If you find me very interesting, you could add the
 following to your all.Score:
 
 @example
@@ -998,7 +998,7 @@ in ~/.gnus.el.
 @node FAQ 4-10
 @subsubheading Question 4.10
 
-How can I disable threading in some (e.g. mail-) groups, or
+How can I disable threading in some (e.g., mail-) groups, or
 set other variables specific for some groups?
 
 @subsubheading Answer
@@ -1114,7 +1114,7 @@ tabulators which allow you a summary in table form, but
 sadly hard tabulators are broken in 5.8.8.
 
 Since 5.10, Gnus offers you some very nice new specifiers,
-e.g. %B which draws a thread-tree and %&user-date which
+e.g., %B which draws a thread-tree and %&user-date which
 gives you a date where the details are dependent of the
 articles age. Here's an example which uses both:
 
@@ -1771,7 +1771,7 @@ snippet by Frank Haun <pille3003@@fhaun.de> in
 
 @example
 (defun my-archive-article (&optional n)
-  "Copies one or more article(s) to a corresponding `nnml:' group, e.g.
+  "Copies one or more article(s) to a corresponding `nnml:' group, e.g.,
 `gnus.ding' goes to `nnml:1.gnus.ding'. And `nnml:List-gnus.ding' goes
 to `nnml:1.List-gnus-ding'.
 
@@ -1879,7 +1879,7 @@ some groups). How to do it?
 
 @subsubheading Answer
 
-If you want all read messages to be expired (e.g. in
+If you want all read messages to be expired (e.g., in
 mailing lists where there's an online archive), you've
 got two choices: auto-expire and
 total-expire. Auto-expire means, that every article
@@ -1924,7 +1924,7 @@ Say something like this in ~/.gnus.el:
 
 (If you want to change the value of nnmail-expiry-target
 on a per group basis see the question "How can I disable
-threading in some (e.g. mail-) groups, or set other
+threading in some (e.g., mail-) groups, or set other
 variables specific for some groups?")
 
 @node FAQ 7 - Gnus in a dial-up environment
@@ -1983,7 +1983,7 @@ On windows boxes I'd vote for
 it's a small freeware, open-source program which fetches
 your mail and news from remote servers and offers them
 to Gnus (or any other mail and/or news reader) via nntp
-respectively POP3 or IMAP. It also includes a smtp
+respectively POP3 or IMAP@. It also includes a smtp
 server for receiving mails from Gnus.
 
 @node FAQ 7-2
@@ -1996,7 +1996,7 @@ So what was this thing about the Agent?
 The Gnus agent is part of Gnus, it allows you to fetch
 mail and news and store them on disk for reading them
 later when you're offline. It kind of mimics offline
-newsreaders like e.g. Forte Agent. If you want to use
+newsreaders like Forte Agent. If you want to use
 the Agent place the following in ~/.gnus.el if you are
 still using 5.8.8 or 5.9 (it's the default since 5.10):
 
@@ -2075,7 +2075,7 @@ work, the agent must be active.
 
 @menu
 * FAQ 8-1::    How to find information and help inside Emacs?
-* FAQ 8-2::    I can't find anything in the Gnus manual about X (e.g.
+* FAQ 8-2::    I can't find anything in the Gnus manual about X (e.g.,
                attachments, PGP, MIME...), is it not documented?
 * FAQ 8-3::    Which websites should I know?
 * FAQ 8-4::    Which mailing lists and newsgroups are there?
@@ -2105,7 +2105,7 @@ apropos} searches the bound variables.
 @subsubheading Question 8.2
 
 I can't find anything in the Gnus manual about X
-(e.g. attachments, PGP, MIME...), is it not documented?
+(e.g., attachments, PGP, MIME...), is it not documented?
 
 @subsubheading Answer
 

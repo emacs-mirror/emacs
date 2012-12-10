@@ -1750,10 +1750,12 @@ value of `default-file-modes', without execute permissions."
 
 (defalias 'tramp-replace-environment-variables
   (if (ignore-errors
-        (equal "${ tramp?}" (substitute-env-vars "${ tramp?}" 'only-defined)))
+        (equal "${ tramp?}"
+	       (tramp-compat-funcall
+		'substitute-env-vars "${ tramp?}" 'only-defined)))
       (lambda (filename)
         "Like `substitute-env-vars' with `only-defined' non-nil."
-        (substitute-env-vars filename 'only-defined))
+        (tramp-compat-funcall 'substitute-env-vars filename 'only-defined))
     (lambda (filename)
       "Replace environment variables in FILENAME.
 Return the string with the replaced variables."
@@ -1928,10 +1930,7 @@ ARGS are the arguments OPERATION has been called with."
                   ;; Emacs 23+ only.
                   'start-file-process
 	          ;; XEmacs only.
-		  'dired-print-file 'dired-shell-call-process
-		  ;; nowhere yet.
-		  'executable-find 'start-process
-		  'call-process 'call-process-region))
+		  'dired-print-file 'dired-shell-call-process))
     default-directory)
    ;; Unknown file primitive.
    (t (error "unknown file I/O primitive: %s" operation))))
@@ -3767,6 +3766,7 @@ Invokes `password-read' if available, `read-passwd' else."
     ("oct" . 10) ("nov" . 11) ("dec" . 12))
   "Alist mapping month names to integers.")
 
+;; FIXME: Shouldn't this also look at any subseconds parts of T1 and T2?
 ;;;###tramp-autoload
 (defun tramp-time-less-p (t1 t2)
   "Say whether time value T1 is less than time value T2."
@@ -3776,6 +3776,7 @@ Invokes `password-read' if available, `read-passwd' else."
       (and (= (car t1) (car t2))
 	   (< (nth 1 t1) (nth 1 t2)))))
 
+;; FIXME: Shouldn't this also look at any subseconds parts of T1 and T2?
 (defun tramp-time-subtract (t1 t2)
   "Subtract two time values.
 Return the difference in the format of a time value."

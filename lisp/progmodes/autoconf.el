@@ -78,22 +78,19 @@ searching backwards at another AC_... command."
 ;;;###autoload
 (define-derived-mode autoconf-mode prog-mode "Autoconf"
   "Major mode for editing Autoconf configure.ac files."
-  (set (make-local-variable 'parens-require-spaces) nil) ; for M4 arg lists
-  (set (make-local-variable 'defun-prompt-regexp)
-       "^[ \t]*A[CM]_\\(\\sw\\|\\s_\\)+")
-  (set (make-local-variable 'comment-start) "dnl ")
-  (set (make-local-variable 'comment-start-skip)
-       "\\(?:\\(\\W\\|\\`\\)dnl\\|#\\) +")
-  (set (make-local-variable 'syntax-propertize-function)
-       (syntax-propertize-rules ("\\<dnl\\>" (0 "<"))))
-  (set (make-local-variable 'font-lock-defaults)
-       `(autoconf-font-lock-keywords nil nil (("_" . "w"))))
-  (set (make-local-variable 'imenu-generic-expression)
-       autoconf-imenu-generic-expression)
-  (set (make-local-variable 'imenu-syntax-alist) '(("_" . "w")))
-  (set (make-local-variable 'indent-line-function) #'indent-relative)
-  (set (make-local-variable 'add-log-current-defun-function)
-	#'autoconf-current-defun-function))
+  (setq-local parens-require-spaces nil) ; for M4 arg lists
+  (setq-local defun-prompt-regexp "^[ \t]*A[CM]_\\(\\sw\\|\\s_\\)+")
+  (setq-local comment-start "dnl ")
+  (setq-local comment-start-skip "\\(?:\\(\\W\\|\\`\\)dnl\\|#\\) +")
+  (setq-local syntax-propertize-function
+	      (syntax-propertize-rules ("\\<dnl\\>" (0 "<"))))
+  (setq-local font-lock-defaults
+	      `(autoconf-font-lock-keywords nil nil (("_" . "w"))))
+  (setq-local imenu-generic-expression autoconf-imenu-generic-expression)
+  (setq-local imenu-syntax-alist '(("_" . "w")))
+  (setq-local indent-line-function #'indent-relative)
+  (setq-local add-log-current-defun-function
+	      #'autoconf-current-defun-function))
 
 (provide 'autoconf-mode)
 (provide 'autoconf)

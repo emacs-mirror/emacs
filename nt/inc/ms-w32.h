@@ -376,6 +376,13 @@ extern char *get_emacs_configuration_options (void);
 #define sys_nerr _sys_nerr
 #endif
 
+/* This must be after including stdlib.h, which defines putenv on MinGW.  */
+#ifdef putenv
+# undef putenv
+#endif
+#define putenv    sys_putenv
+extern int sys_putenv (char *);
+
 extern int getloadavg (double *, int);
 extern int getpagesize (void);
 

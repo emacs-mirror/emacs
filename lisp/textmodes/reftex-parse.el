@@ -251,7 +251,7 @@ of master file."
 		 ;; the next parsing iteration.
 		 (when (eq (char-before) ?\\) (backward-char))
                  ;; Insert in List
-                 (setq toc-entry (reftex-section-info file))
+                 (setq toc-entry (funcall reftex-section-info-function file))
                  (when toc-entry
                    ;; It can happen that section info returns nil
                    (setq level (nth 5 toc-entry))

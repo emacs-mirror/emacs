@@ -93,8 +93,8 @@
 
 (require 'macroexp)
 
-(defvar cl-optimize-speed 1)
-(defvar cl-optimize-safety 1)
+(defvar cl--optimize-speed 1)
+(defvar cl--optimize-safety 1)
 
 ;;;###autoload
 (define-obsolete-variable-alias
@@ -112,12 +112,6 @@ printer proceeds to the next function on the list.
 
 This variable is not used at present, but it is defined in hopes that
 a future Emacs interpreter will be able to use it.")
-
-(defun cl-unload-function ()
-  "Stop unloading of the Common Lisp extensions."
-  (message "Cannot unload the feature `cl'")
-  ;; Stop standard unloading!
-  t)
 
 ;;; Generalized variables.
 ;; These macros are defined here so that they
@@ -248,23 +242,21 @@ one value.
 	   (equal (buffer-name (symbol-value 'byte-compile--outbuffer))
 		  " *Compiler Output*"))))
 
-(defvar cl-proclaims-deferred nil)
+(defvar cl--proclaims-deferred nil)
 
 (defun cl-proclaim (spec)
   "Record a global declaration specified by SPEC."
-  (if (fboundp 'cl-do-proclaim) (cl-do-proclaim spec t)
-    (push spec cl-proclaims-deferred))
+  (if (fboundp 'cl--do-proclaim) (cl--do-proclaim spec t)
+    (push spec cl--proclaims-deferred))
   nil)
 
 (defmacro cl-declaim (&rest specs)
   "Like `cl-proclaim', but takes any number of unevaluated, unquoted arguments.
 Puts `(cl-eval-when (compile load eval) ...)' around the declarations
 so that they are registered at compile-time as well as run-time."
-  (let ((body (mapcar (function (lambda (x)
-                                  (list 'cl-proclaim (list 'quote x))))
-		      specs)))
-    (if (cl--compiling-file) (cl-list* 'cl-eval-when '(compile load eval) body)
-      (cons 'progn body))))   ; avoid loading cl-macs.el for cl-eval-when
+  (let ((body (mapcar (lambda (x) `(cl-proclaim ',x)) specs)))
+    (if (cl--compiling-file) `(cl-eval-when (compile load eval) ,@body)
+      `(progn ,@body))))           ; Avoid loading cl-macs.el for cl-eval-when.
 
 
 ;;; Symbols.
@@ -301,7 +293,8 @@ always returns nil."
   "Return t if INTEGER is even."
   (eq (logand integer 1) 0))
 
-(defvar cl--random-state (vector 'cl-random-state-tag -1 30 (cl--random-time)))
+(defvar cl--random-state
+  (vector 'cl--random-state-tag -1 30 (cl--random-time)))
 
 (defconst cl-most-positive-float nil
   "The largest value that a Lisp float can hold.
@@ -661,7 +654,7 @@ If ALIST is non-nil, the new pairs are prepended to it."
 (gv-define-setter face-foreground (x f &optional s)
   `(set-face-foreground ,f ,x ,s))
 (gv-define-setter face-underline-p (x f &optional s)
-  `(set-face-underline-p ,f ,x ,s))
+  `(set-face-underline ,f ,x ,s))
 (gv-define-simple-setter file-modes set-file-modes t)
 (gv-define-simple-setter frame-height set-screen-height t)
 (gv-define-simple-setter frame-parameters modify-frame-parameters t)
@@ -746,8 +739,6 @@ If ALIST is non-nil, the new pairs are prepended to it."
 (load "cl-loaddefs" nil 'quiet)
 
 (provide 'cl-lib)
-
-(run-hooks 'cl-load-hook)
 
 ;; Local variables:
 ;; byte-compile-dynamic: t

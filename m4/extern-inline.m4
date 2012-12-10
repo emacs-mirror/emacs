@@ -7,7 +7,6 @@ dnl with or without modifications, as long as this notice is preserved.
 
 AC_DEFUN([gl_EXTERN_INLINE],
 [
-  AC_REQUIRE([AC_C_INLINE])
   AH_VERBATIM([extern_inline],
 [/* _GL_INLINE is a portable alternative to ISO C99 plain 'inline'.
    _GL_EXTERN_INLINE is a portable alternative to 'extern inline'.
@@ -32,8 +31,8 @@ AC_DEFUN([gl_EXTERN_INLINE],
 # endif
 # define _GL_EXTERN_INLINE extern
 #else
-# define _GL_INLINE static inline
-# define _GL_EXTERN_INLINE static inline
+# define _GL_INLINE static
+# define _GL_EXTERN_INLINE static
 #endif
 
 #if 4 < __GNUC__ + (6 <= __GNUC_MINOR__)

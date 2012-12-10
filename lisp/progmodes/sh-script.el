@@ -1497,42 +1497,41 @@ with your script for an edit-interpret-debug cycle."
   (make-local-variable 'sh-shell-file)
   (make-local-variable 'sh-shell)
 
-  (set (make-local-variable 'skeleton-pair-default-alist)
-       sh-skeleton-pair-default-alist)
-  (set (make-local-variable 'skeleton-end-hook)
-       (lambda () (or (eolp) (newline) (indent-relative))))
+  (setq-local skeleton-pair-default-alist
+	      sh-skeleton-pair-default-alist)
+  (setq-local skeleton-end-hook
+	      (lambda () (or (eolp) (newline) (indent-relative))))
 
-  (set (make-local-variable 'paragraph-start) (concat page-delimiter "\\|$"))
-  (set (make-local-variable 'paragraph-separate) paragraph-start)
-  (set (make-local-variable 'comment-start) "# ")
-  (set (make-local-variable 'comment-start-skip) "#+[\t ]*")
-  (set (make-local-variable 'local-abbrev-table) sh-mode-abbrev-table)
-  (set (make-local-variable 'comint-dynamic-complete-functions)
-       sh-dynamic-complete-functions)
+  (setq-local paragraph-start (concat page-delimiter "\\|$"))
+  (setq-local paragraph-separate paragraph-start)
+  (setq-local comment-start "# ")
+  (setq-local comment-start-skip "#+[\t ]*")
+  (setq-local local-abbrev-table sh-mode-abbrev-table)
+  (setq-local comint-dynamic-complete-functions
+	      sh-dynamic-complete-functions)
   (add-hook 'completion-at-point-functions 'comint-completion-at-point nil t)
   ;; we can't look if previous line ended with `\'
-  (set (make-local-variable 'comint-prompt-regexp) "^[ \t]*")
-  (set (make-local-variable 'imenu-case-fold-search) nil)
-  (set (make-local-variable 'font-lock-defaults)
-       `((sh-font-lock-keywords
-          sh-font-lock-keywords-1 sh-font-lock-keywords-2)
-         nil nil
-         ((?/ . "w") (?~ . "w") (?. . "w") (?- . "w") (?_ . "w")) nil
-         (font-lock-syntactic-face-function
-          . sh-font-lock-syntactic-face-function)))
-  (set (make-local-variable 'syntax-propertize-function)
-       #'sh-syntax-propertize-function)
+  (setq-local comint-prompt-regexp "^[ \t]*")
+  (setq-local imenu-case-fold-search nil)
+  (setq font-lock-defaults
+	`((sh-font-lock-keywords
+	   sh-font-lock-keywords-1 sh-font-lock-keywords-2)
+	  nil nil
+	  ((?/ . "w") (?~ . "w") (?. . "w") (?- . "w") (?_ . "w")) nil
+	  (font-lock-syntactic-face-function
+	   . sh-font-lock-syntactic-face-function)))
+  (setq-local syntax-propertize-function #'sh-syntax-propertize-function)
   (add-hook 'syntax-propertize-extend-region-functions
             #'syntax-propertize-multiline 'append 'local)
   (sh-electric-here-document-mode 1)
-  (set (make-local-variable 'skeleton-pair-alist) '((?` _ ?`)))
-  (set (make-local-variable 'skeleton-pair-filter-function) 'sh-quoted-p)
-  (set (make-local-variable 'skeleton-further-elements)
-       '((< '(- (min sh-indentation (current-column))))))
-  (set (make-local-variable 'skeleton-filter-function) 'sh-feature)
-  (set (make-local-variable 'skeleton-newline-indent-rigidly) t)
-  (set (make-local-variable 'defun-prompt-regexp)
-       (concat "^\\(function[ \t]\\|[[:alnum:]]+[ \t]+()[ \t]+\\)"))
+  (setq-local skeleton-pair-alist '((?` _ ?`)))
+  (setq-local skeleton-pair-filter-function 'sh-quoted-p)
+  (setq-local skeleton-further-elements
+	      '((< '(- (min sh-indentation (current-column))))))
+  (setq-local skeleton-filter-function 'sh-feature)
+  (setq-local skeleton-newline-indent-rigidly t)
+  (setq-local defun-prompt-regexp
+	      (concat "^\\(function[ \t]\\|[[:alnum:]]+[ \t]+()[ \t]+\\)"))
   ;; Parse or insert magic number for exec, and set all variables depending
   ;; on the shell thus determined.
   (sh-set-shell
@@ -2104,19 +2103,19 @@ Calls the value of `sh-set-shell-hook' if set."
 	    (executable-set-magic shell (sh-feature sh-shell-arg)
 				  no-query-flag insert-flag)))
   (setq mode-line-process (format "[%s]" sh-shell))
-  (set (make-local-variable 'sh-shell-variables) nil)
-  (set (make-local-variable 'sh-shell-variables-initialized) nil)
-  (set (make-local-variable 'imenu-generic-expression)
-       (sh-feature sh-imenu-generic-expression))
+  (setq-local sh-shell-variables nil)
+  (setq-local sh-shell-variables-initialized nil)
+  (setq-local imenu-generic-expression
+	      (sh-feature sh-imenu-generic-expression))
   (let ((tem (sh-feature sh-mode-syntax-table-input)))
     (when tem
-      (set (make-local-variable 'sh-mode-syntax-table)
-           (apply 'sh-mode-syntax-table tem))
+      (setq-local sh-mode-syntax-table
+		  (apply 'sh-mode-syntax-table tem))
       (set-syntax-table sh-mode-syntax-table)))
   (dolist (var (sh-feature sh-variables))
     (sh-remember-variable var))
-  (if (set (make-local-variable 'sh-indent-supported-here)
-           (sh-feature sh-indent-supported))
+  (if (setq-local sh-indent-supported-here
+		  (sh-feature sh-indent-supported))
       (progn
 	(message "Setting up indent for shell type %s" sh-shell)
         (if sh-use-smie
@@ -2127,16 +2126,16 @@ Calls the value of `sh-set-shell-hook' if set."
                           (funcall mksym "rules")
                           :forward-token  (funcall mksym "forward-token")
                           :backward-token (funcall mksym "backward-token")))
-          (set (make-local-variable 'parse-sexp-lookup-properties) t)
-          (set (make-local-variable 'sh-kw-alist) (sh-feature sh-kw))
+          (setq-local parse-sexp-lookup-properties t)
+          (setq-local sh-kw-alist (sh-feature sh-kw))
           (let ((regexp (sh-feature sh-kws-for-done)))
             (if regexp
-                (set (make-local-variable 'sh-regexp-for-done)
-                     (sh-mkword-regexpr (regexp-opt regexp t)))))
+                (setq-local sh-regexp-for-done
+			    (sh-mkword-regexpr (regexp-opt regexp t)))))
           (message "setting up indent stuff")
           ;; sh-mode has already made indent-line-function local
           ;; but do it in case this is called before that.
-          (set (make-local-variable 'indent-line-function) 'sh-indent-line))
+          (setq-local indent-line-function 'sh-indent-line))
 	(if sh-make-vars-local
 	    (sh-make-vars-local))
 	(message "Indentation setup for shell type %s" sh-shell))

@@ -293,7 +293,7 @@ the number of those objects that are not live but that Emacs keeps around for
 future allocations.  So an overall result is:
 
 @example
-((@code{conses} @var{cons-size} @var{used-conse} @var{free-conses})
+((@code{conses} @var{cons-size} @var{used-conses} @var{free-conses})
  (@code{symbols} @var{symbol-size} @var{used-symbols} @var{free-symbols})
  (@code{miscs} @var{misc-size} @var{used-miscs} @var{free-miscs})
  (@code{strings} @var{string-size} @var{used-strings} @var{free-strings})
@@ -324,7 +324,7 @@ provides @code{mallinfo} function.
 
 @table @var
 @item cons-size
-Internal size of a cons cell, i.e.@: @code{sizeof (struct Lisp_Cons)}.
+Internal size of a cons cell, i.e., @code{sizeof (struct Lisp_Cons)}.
 
 @item used-conses
 The number of cons cells in use.
@@ -334,7 +334,7 @@ The number of cons cells for which space has been obtained from
 the operating system, but that are not currently being used.
 
 @item symbol-size
-Internal size of a symbol, i.e.@: @code{sizeof (struct Lisp_Symbol)}.
+Internal size of a symbol, i.e., @code{sizeof (struct Lisp_Symbol)}.
 
 @item used-symbols
 The number of symbols in use.
@@ -344,7 +344,7 @@ The number of symbols for which space has been obtained from
 the operating system, but that are not currently being used.
 
 @item misc-size
-Internal size of a miscellaneous entity, i.e.@:
+Internal size of a miscellaneous entity, i.e.,
 @code{sizeof (union Lisp_Misc)}, which is a size of the
 largest type enumerated in @code{enum Lisp_Misc_Type}.
 
@@ -357,7 +357,7 @@ The number of miscellaneous objects for which space has been obtained
 from the operating system, but that are not currently being used.
 
 @item string-size
-Internal size of a string header, i.e.@: @code{sizeof (struct Lisp_String)}.
+Internal size of a string header, i.e., @code{sizeof (struct Lisp_String)}.
 
 @item used-strings
 The number of string headers in use.
@@ -373,7 +373,7 @@ This is used for convenience and equals to @code{sizeof (char)}.
 The total size of all string data in bytes.
 
 @item vector-size
-Internal size of a vector header, i.e.@: @code{sizeof (struct Lisp_Vector)}.
+Internal size of a vector header, i.e., @code{sizeof (struct Lisp_Vector)}.
 
 @item used-vectors
 The number of vector headers allocated from the vector blocks.
@@ -388,7 +388,7 @@ The number of slots in all used vectors.
 The number of free slots in all vector blocks.
 
 @item float-size
-Internal size of a float object, i.e.@: @code{sizeof (struct Lisp_Float)}.
+Internal size of a float object, i.e., @code{sizeof (struct Lisp_Float)}.
 (Do not confuse it with the native platform @code{float} or @code{double}.)
 
 @item used-floats
@@ -399,7 +399,7 @@ The number of floats for which space has been obtained from
 the operating system, but that are not currently being used.
 
 @item interval-size
-Internal size of an interval object, i.e.@: @code{sizeof (struct interval)}.
+Internal size of an interval object, i.e., @code{sizeof (struct interval)}.
 
 @item used-intervals
 The number of intervals in use.
@@ -409,12 +409,12 @@ The number of intervals for which space has been obtained from
 the operating system, but that are not currently being used.
 
 @item buffer-size
-Internal size of a buffer, i.e.@: @code{sizeof (struct buffer)}.
+Internal size of a buffer, i.e., @code{sizeof (struct buffer)}.
 (Do not confuse with the value returned by @code{buffer-size} function.)
 
 @item used-buffers
 The number of buffer objects in use.  This includes killed buffers
-invisible to users, i.e.@: all buffers in @code{all_buffers} list.
+invisible to users, i.e., all buffers in @code{all_buffers} list.
 
 @item unit-size
 The unit of heap space measurement, always equal to 1024 bytes.
@@ -571,7 +571,7 @@ Emacs session.
 @cindex primitive function internals
 @cindex writing Emacs primitives
 
-  Lisp primitives are Lisp functions implemented in C.  The details of
+  Lisp primitives are Lisp functions implemented in C@.  The details of
 interfacing the C function so that Lisp can call it are handled by a few
 C macros.  The only way to really understand how to write new C code is
 to read the source, but we can explain some things here.
@@ -699,7 +699,7 @@ in the file @file{lisp.h}.)  If the primitive has no upper limit on
 the number of Lisp arguments, it must have exactly two C arguments:
 the first is the number of Lisp arguments, and the second is the
 address of a block containing their values.  These have types
-@code{int} and @w{@code{Lisp_Object *}} respectively.  Since 
+@code{int} and @w{@code{Lisp_Object *}} respectively.  Since
 @code{Lisp_Object} can hold any Lisp object of any data type, you
 can determine the actual data type only at run time; so if you want
 a primitive to accept only a certain type of argument, you must check
@@ -858,7 +858,7 @@ DEFUN ("coordinates-in-window-p", Fcoordinates_in_window_p,
 @end smallexample
 
   Note that C code cannot call functions by name unless they are defined
-in C.  The way to call a function written in Lisp is to use
+in C@.  The way to call a function written in Lisp is to use
 @code{Ffuncall}, which embodies the Lisp function @code{funcall}.  Since
 the Lisp function @code{funcall} accepts an unlimited number of
 arguments, in C it takes two: the number of Lisp-level arguments, and a
@@ -886,7 +886,7 @@ knows about it.
 @cindex object internals
 
   Emacs Lisp provides a rich set of the data types.  Some of them, like cons
-cells, integers and stirngs, are common to nearly all Lisp dialects.  Some
+cells, integers and strings, are common to nearly all Lisp dialects.  Some
 others, like markers and buffers, are quite special and needed to provide
 the basic support to write editor commands in Lisp.  To implement such
 a variety of object types and provide an efficient way to pass objects between
@@ -900,11 +900,11 @@ following basic data types: integer, symbol, string, cons cell, float,
 vectorlike or miscellaneous object.  Each of these data types has the
 corresponding tag value.  All tags are enumerated by @code{enum Lisp_Type}
 and placed into a 3-bit bitfield of the @code{Lisp_Object}.  The rest of the
-bits is the value itself.  Integer values are immediate, i.e.@: directly
+bits is the value itself.  Integer values are immediate, i.e., directly
 represented by those @dfn{value bits}, and all other objects are represented
 by the C pointers to a corresponding object allocated from the heap.  Width
 of the @code{Lisp_Object} is platform- and configuration-dependent: usually
-it's equal to the width of an underlying platform pointer (i.e.@: 32-bit on
+it's equal to the width of an underlying platform pointer (i.e., 32-bit on
 a 32-bit machine and 64-bit on a 64-bit one), but also there is a special
 configuration where @code{Lisp_Object} is 64-bit but all pointers are 32-bit.
 The latter trick was designed to overcome the limited range of values for
@@ -962,7 +962,7 @@ process object is used to manage the subprocesses.
 @cindex buffer internals
 
   Two structures (see @file{buffer.h}) are used to represent buffers
-in C.  The @code{buffer_text} structure contains fields describing the
+in C@.  The @code{buffer_text} structure contains fields describing the
 text of a buffer; the @code{buffer} structure holds other fields.  In
 the case of indirect buffers, two or more @code{buffer} structures
 reference the same @code{buffer_text} structure.
@@ -1255,7 +1255,7 @@ These fields contain the window's leftmost child and its topmost child
 respectively.  @code{hchild} is used if the window is subdivided
 horizontally by child windows, and @code{vchild} if it is subdivided
 vertically.  In a live window, only one of @code{hchild}, @code{vchild},
-and @code{buffer} (q.v.) is non-@code{nil}.
+and @code{buffer} (q.v.@:) is non-@code{nil}.
 
 @item next
 @itemx prev

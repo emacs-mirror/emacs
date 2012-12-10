@@ -1748,6 +1748,9 @@ The value is non-nil if there were no errors, nil if errors."
         ;; There may be a file local variable setting (bug#10419).
         (setq buffer-read-only nil
               filename buffer-file-name))
+      ;; Don't inherit lexical-binding from caller (bug#12938).
+      (unless (local-variable-p 'lexical-binding)
+        (setq-local lexical-binding nil))
       ;; Set the default directory, in case an eval-when-compile uses it.
       (setq default-directory (file-name-directory filename)))
     ;; Check if the file's local variables explicitly specify not to
@@ -2509,8 +2512,8 @@ If FORM is a lambda or a macro, byte-compile it as a function."
         (when (symbolp form)
           (unless (memq (car-safe fun) '(closure lambda))
             (error "Don't know how to compile %S" fun))
-          (setq fun (byte-compile--reify-function fun))
-          (setq lexical-binding (eq (car fun) 'closure)))
+          (setq lexical-binding (eq (car fun) 'closure))
+          (setq fun (byte-compile--reify-function fun)))
         (unless (eq (car-safe fun) 'lambda)
           (error "Don't know how to compile %S" fun))
         ;; Expand macros.

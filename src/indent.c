@@ -2025,7 +2025,11 @@ whether or not it is currently displayed in some window.  */)
 	  const char *s = SSDATA (it.string);
 	  const char *e = s + SBYTES (it.string);
 
-	  disp_string_at_start_p = it.string_from_display_prop_p;
+	  /* If it.area is anything but TEXT_AREA, we need not bother
+	     about the display string, as it doesn't affect cursor
+	     positioning.  */
+	  disp_string_at_start_p =
+	    it.string_from_display_prop_p && it.area == TEXT_AREA;
 	  while (s < e)
 	    {
 	      if (*s++ == '\n')
@@ -2048,7 +2052,13 @@ whether or not it is currently displayed in some window.  */)
 	   comment said this is "so we don't move too far" (2005-01-19
 	   checkin by kfs).  But this does nothing useful that I can
 	   tell, and it causes Bug#2694 .  -- cyd */
-	move_it_to (&it, PT, -1, -1, -1, MOVE_TO_POS);
+	/* When the position we started from is covered by a display
+	   string, move_it_to will overshoot it, while vertical-motion
+	   wants to put the cursor _before_ the display string.  So in
+	   that case, we move to buffer position before the display
+	   string, and avoid overshooting.  */
+	move_it_to (&it, disp_string_at_start_p ? PT - 1 : PT,
+		    -1, -1, -1, MOVE_TO_POS);
 
       /* IT may move too far if truncate-lines is on and PT lies
 	 beyond the right margin.  IT may also move too far if the

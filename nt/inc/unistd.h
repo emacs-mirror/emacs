@@ -26,4 +26,9 @@ extern int faccessat (int, char const *, int, int);
 #define AT_EACCESS 4
 #define AT_SYMLINK_NOFOLLOW 4096
 
+#define O_NOCTTY 0
+
+/* This is normally on stdlib.h, but we don't override that header.  */
+extern int unsetenv (const char *);
+
 #endif	/* _UNISTD_H */

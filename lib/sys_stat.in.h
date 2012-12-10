@@ -497,7 +497,7 @@ _GL_CXXALIAS_RPL (mkdir, int, (char const *name, mode_t mode));
 # if (defined _WIN32 || defined __WIN32__) && ! defined __CYGWIN__
 
 #  if !GNULIB_defined_rpl_mkdir
-static inline int
+static int
 rpl_mkdir (char const *name, mode_t mode)
 {
   return _mkdir (name);

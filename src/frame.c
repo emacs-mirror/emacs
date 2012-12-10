@@ -346,13 +346,10 @@ make_frame (int mini_p)
 
   /* Choose a buffer for the frame's root window.  */
   {
-    Lisp_Object buf;
+    Lisp_Object buf = Fcurrent_buffer ();
 
-    wset_buffer (XWINDOW (root_window), Qt);
-    buf = Fcurrent_buffer ();
-    /* If buf is a 'hidden' buffer (i.e. one whose name starts with
-       a space), try to find another one.  */
-    if (SREF (Fbuffer_name (buf), 0) == ' ')
+    /* If current buffer is hidden, try to find another one.  */
+    if (BUFFER_HIDDEN_P (XBUFFER (buf)))
       buf = other_buffer_safely (buf);
 
     /* Use set_window_buffer, not Fset_window_buffer, and don't let
@@ -366,14 +363,11 @@ make_frame (int mini_p)
   }
 
   if (mini_p)
-    {
-      wset_buffer (XWINDOW (mini_window), Qt);
-      set_window_buffer (mini_window,
-			 (NILP (Vminibuffer_list)
-			  ? get_minibuffer (0)
-			  : Fcar (Vminibuffer_list)),
-			 0, 0);
-    }
+    set_window_buffer (mini_window,
+		       (NILP (Vminibuffer_list)
+			? get_minibuffer (0)
+			: Fcar (Vminibuffer_list)),
+		       0, 0);
 
   fset_root_window (f, root_window);
   fset_selected_window (f, root_window);
@@ -895,13 +889,58 @@ DEFUN ("frame-list", Fframe_list, Sframe_list,
   return frames;
 }
 
-/* Return the next frame in the frame list after FRAME.
-   If MINIBUF is nil, exclude minibuffer-only frames.
-   If MINIBUF is a window, include only its own frame
-   and any frame now using that window as the minibuffer.
-   If MINIBUF is `visible', include all visible frames.
-   If MINIBUF is 0, include all visible and iconified frames.
-   Otherwise, include all frames.  */
+/* Return CANDIDATE if it can be used as 'other-than-FRAME' frame on the
+   same tty (for tty frames) or among frames which uses FRAME's keyboard.
+   If MINIBUF is nil, do not consider minibuffer-only candidate.
+   If MINIBUF is `visible', do not consider an invisible candidate. 
+   If MINIBUF is a window, consider only its own frame and candidate now
+   using that window as the minibuffer.
+   If MINIBUF is 0, consider candidate if it is visible or iconified.
+   Otherwise consider any candidate and return nil if CANDIDATE is not
+   acceptable.  */
+
+static Lisp_Object
+candidate_frame (Lisp_Object candidate, Lisp_Object frame, Lisp_Object minibuf)
+{
+  struct frame *c = XFRAME (candidate), *f = XFRAME (frame);
+
+  if ((!FRAME_TERMCAP_P (c) && !FRAME_TERMCAP_P (f)
+       && FRAME_KBOARD (c) == FRAME_KBOARD (f))
+      || (FRAME_TERMCAP_P (c) && FRAME_TERMCAP_P (f)
+	  && FRAME_TTY (c) == FRAME_TTY (f)))
+    {
+      if (NILP (minibuf))
+	{
+	  if (!FRAME_MINIBUF_ONLY_P (c))
+	    return candidate;
+	}
+      else if (EQ (minibuf, Qvisible))
+	{
+	  FRAME_SAMPLE_VISIBILITY (c);
+	  if (FRAME_VISIBLE_P (c))
+	    return candidate;
+	}
+      else if (WINDOWP (minibuf))
+	{
+	  if (EQ (FRAME_MINIBUF_WINDOW (c), minibuf)
+	      || EQ (WINDOW_FRAME (XWINDOW (minibuf)), candidate)
+	      || EQ (WINDOW_FRAME (XWINDOW (minibuf)),
+		     FRAME_FOCUS_FRAME (c)))
+	    return candidate;
+	}
+      else if (XFASTINT (minibuf) == 0)
+	{
+	  FRAME_SAMPLE_VISIBILITY (c);
+	  if (FRAME_VISIBLE_P (c) || FRAME_ICONIFIED_P (c))
+	    return candidate;
+	}
+      else
+	return candidate;
+    }
+  return Qnil;
+}
+
+/* Return the next frame in the frame list after FRAME.  */
 
 static Lisp_Object
 next_frame (Lisp_Object frame, Lisp_Object minibuf)
@@ -910,72 +949,24 @@ next_frame (Lisp_Object frame, Lisp_Object minibuf)
   int passed = 0;
 
   /* There must always be at least one frame in Vframe_list.  */
-  if (! CONSP (Vframe_list))
-    emacs_abort ();
+  eassert (CONSP (Vframe_list));
 
-  /* If this frame is dead, it won't be in Vframe_list, and we'll loop
-     forever.  Forestall that.  */
-  CHECK_LIVE_FRAME (frame);
-
-  while (1)
+  while (passed < 2)
     FOR_EACH_FRAME (tail, f)
       {
-	if (passed
-	    && ((!FRAME_TERMCAP_P (XFRAME (f)) && !FRAME_TERMCAP_P (XFRAME (frame))
-                 && FRAME_KBOARD (XFRAME (f)) == FRAME_KBOARD (XFRAME (frame)))
-                || (FRAME_TERMCAP_P (XFRAME (f)) && FRAME_TERMCAP_P (XFRAME (frame))
-                    && FRAME_TTY (XFRAME (f)) == FRAME_TTY (XFRAME (frame)))))
+	if (passed)
 	  {
-	    /* Decide whether this frame is eligible to be returned.  */
-
-	    /* If we've looped all the way around without finding any
-	       eligible frames, return the original frame.  */
-	    if (EQ (f, frame))
-	      return f;
-
-	    /* Let minibuf decide if this frame is acceptable.  */
-	    if (NILP (minibuf))
-	      {
-		if (! FRAME_MINIBUF_ONLY_P (XFRAME (f)))
-		  return f;
-	      }
-	    else if (EQ (minibuf, Qvisible))
-	      {
-		FRAME_SAMPLE_VISIBILITY (XFRAME (f));
-		if (FRAME_VISIBLE_P (XFRAME (f)))
-		  return f;
-	      }
-	    else if (INTEGERP (minibuf) && XINT (minibuf) == 0)
-	      {
-		FRAME_SAMPLE_VISIBILITY (XFRAME (f));
-		if (FRAME_VISIBLE_P (XFRAME (f))
-		    || FRAME_ICONIFIED_P (XFRAME (f)))
-		  return f;
-	      }
-	    else if (WINDOWP (minibuf))
-	      {
-		if (EQ (FRAME_MINIBUF_WINDOW (XFRAME (f)), minibuf)
-		    || EQ (WINDOW_FRAME (XWINDOW (minibuf)), f)
-		    || EQ (WINDOW_FRAME (XWINDOW (minibuf)),
-			   FRAME_FOCUS_FRAME (XFRAME (f))))
-		  return f;
-	      }
-	    else
+	    f = candidate_frame (f, frame, minibuf);
+	    if (!NILP (f))
 	      return f;
 	  }
-
 	if (EQ (frame, f))
 	  passed++;
       }
+  return frame;
 }
 
-/* Return the previous frame in the frame list before FRAME.
-   If MINIBUF is nil, exclude minibuffer-only frames.
-   If MINIBUF is a window, include only its own frame
-   and any frame now using that window as the minibuffer.
-   If MINIBUF is `visible', include all visible frames.
-   If MINIBUF is 0, include all visible and iconified frames.
-   Otherwise, include all frames.  */
+/* Return the previous frame in the frame list before FRAME.  */
 
 static Lisp_Object
 prev_frame (Lisp_Object frame, Lisp_Object minibuf)
@@ -989,43 +980,9 @@ prev_frame (Lisp_Object frame, Lisp_Object minibuf)
     {
       if (EQ (frame, f) && !NILP (prev))
 	return prev;
-
-      if ((!FRAME_TERMCAP_P (XFRAME (f)) && !FRAME_TERMCAP_P (XFRAME (frame))
-           && FRAME_KBOARD (XFRAME (f)) == FRAME_KBOARD (XFRAME (frame)))
-          || (FRAME_TERMCAP_P (XFRAME (f)) && FRAME_TERMCAP_P (XFRAME (frame))
-              && FRAME_TTY (XFRAME (f)) == FRAME_TTY (XFRAME (frame))))
-	{
-	  /* Decide whether this frame is eligible to be returned,
-	     according to minibuf.  */
-	  if (NILP (minibuf))
-	    {
-	      if (! FRAME_MINIBUF_ONLY_P (XFRAME (f)))
-		prev = f;
-	    }
-	  else if (WINDOWP (minibuf))
-	    {
-	      if (EQ (FRAME_MINIBUF_WINDOW (XFRAME (f)), minibuf)
-		  || EQ (WINDOW_FRAME (XWINDOW (minibuf)), f)
-		  || EQ (WINDOW_FRAME (XWINDOW (minibuf)),
-			 FRAME_FOCUS_FRAME (XFRAME (f))))
-		prev = f;
-	    }
-	  else if (EQ (minibuf, Qvisible))
-	    {
-	      FRAME_SAMPLE_VISIBILITY (XFRAME (f));
-	      if (FRAME_VISIBLE_P (XFRAME (f)))
-		prev = f;
-	    }
-	  else if (XFASTINT (minibuf) == 0)
-	    {
-	      FRAME_SAMPLE_VISIBILITY (XFRAME (f));
-	      if (FRAME_VISIBLE_P (XFRAME (f))
-		  || FRAME_ICONIFIED_P (XFRAME (f)))
-		prev = f;
-	    }
-	  else
-	    prev = f;
-	}
+      f = candidate_frame (f, frame, minibuf);
+      if (!NILP (f))
+	prev = f;
     }
 
   /* We've scanned the entire list.  */
@@ -1056,7 +1013,6 @@ Otherwise, include all frames.  */)
 {
   if (NILP (frame))
     frame = selected_frame;
-
   CHECK_LIVE_FRAME (frame);
   return next_frame (frame, miniframe);
 }
@@ -1467,7 +1423,6 @@ and returns whatever that function returns.  */)
   f = SELECTED_FRAME ();
   x = y = Qnil;
 
-#if defined (HAVE_MOUSE) || defined (HAVE_GPM)
   /* It's okay for the hook to refrain from storing anything.  */
   if (FRAME_TERMINAL (f)->mouse_position_hook)
     {
@@ -1487,7 +1442,6 @@ and returns whatever that function returns.  */)
       XSETINT (x, col);
       XSETINT (y, row);
     }
-#endif
   XSETFRAME (lispy_dummy, f);
   retval = Fcons (lispy_dummy, Fcons (x, y));
   GCPRO1 (retval);
@@ -1514,7 +1468,6 @@ and nil for X and Y.  */)
   f = SELECTED_FRAME ();
   x = y = Qnil;
 
-#if defined (HAVE_MOUSE) || defined (HAVE_GPM)
   /* It's okay for the hook to refrain from storing anything.  */
   if (FRAME_TERMINAL (f)->mouse_position_hook)
     {
@@ -1526,7 +1479,6 @@ and nil for X and Y.  */)
 						  &time_dummy);
     }
 
-#endif
   XSETFRAME (lispy_dummy, f);
   return Fcons (lispy_dummy, Fcons (x, y));
 }
@@ -1557,7 +1509,7 @@ before calling this function on it, like this.
     /* Warping the mouse will cause enternotify and focus events.  */
     x_set_mouse_position (XFRAME (frame), XINT (x), XINT (y));
 #else
-#if defined (MSDOS) && defined (HAVE_MOUSE)
+#if defined (MSDOS)
   if (FRAME_MSDOS_P (XFRAME (frame)))
     {
       Fselect_frame (frame, Qnil);
@@ -1598,7 +1550,7 @@ before calling this function on it, like this.
     /* Warping the mouse will cause enternotify and focus events.  */
     x_set_mouse_pixel_position (XFRAME (frame), XINT (x), XINT (y));
 #else
-#if defined (MSDOS) && defined (HAVE_MOUSE)
+#if defined (MSDOS)
   if (FRAME_MSDOS_P (XFRAME (frame)))
     {
       Fselect_frame (frame, Qnil);
@@ -2318,7 +2270,7 @@ For a terminal frame, the value is always 1.  */)
   struct frame *f = decode_any_frame (frame);
 
   if (FRAME_WINDOW_P (f))
-    return make_number (x_char_height (f));
+    return make_number (FRAME_LINE_HEIGHT (f));
   else
 #endif
     return make_number (1);
@@ -2337,7 +2289,7 @@ For a terminal screen, the value is always 1.  */)
   struct frame *f = decode_any_frame (frame);
 
   if (FRAME_WINDOW_P (f))
-    return make_number (x_char_width (f));
+    return make_number (FRAME_COLUMN_WIDTH (f));
   else
 #endif
     return make_number (1);

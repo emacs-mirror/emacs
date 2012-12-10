@@ -20,8 +20,9 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 /* New redisplay, TTY faces by Gerd Moellmann <gerd@gnu.org>.  */
 
 #include <config.h>
-#include <stdio.h>
 #include <errno.h>
+#include <fcntl.h>
+#include <stdio.h>
 #include <sys/file.h>
 #include <sys/time.h>
 #include <unistd.h>
@@ -53,14 +54,6 @@ static int been_here = -1;
 #include "cm.h"
 #ifdef HAVE_X_WINDOWS
 #include "xterm.h"
-#endif
-
-#ifndef O_RDWR
-#define O_RDWR 2
-#endif
-
-#ifndef O_NOCTTY
-#define O_NOCTTY 0
 #endif
 
 /* The name of the default console device.  */
@@ -2989,22 +2982,18 @@ init_tty (const char *name, const char *terminal_type, int must_succeed)
   set_tty_hooks (terminal);
 
   {
-    int fd;
+    /* Open the terminal device.  */
     FILE *file;
 
-#if O_IGNORE_CTTY
-    if (!ctty)
-      /* Open the terminal device.  Don't recognize it as our
-         controlling terminal, and don't make it the controlling tty
-         if we don't have one at the moment.  */
-      fd = emacs_open (name, O_RDWR | O_IGNORE_CTTY | O_NOCTTY, 0);
-    else
-#endif /* O_IGNORE_CTTY */
-      /* Alas, O_IGNORE_CTTY is a GNU extension that seems to be only
-         defined on Hurd.  On other systems, we need to explicitly
-         dissociate ourselves from the controlling tty when we want to
-         open a frame on the same terminal.  */
-      fd = emacs_open (name, O_RDWR | O_NOCTTY, 0);
+    /* If !ctty, don't recognize it as our controlling terminal, and
+       don't make it the controlling tty if we don't have one now.
+
+       Alas, O_IGNORE_CTTY is a GNU extension that seems to be only
+       defined on Hurd.  On other systems, we need to explicitly
+       dissociate ourselves from the controlling tty when we want to
+       open a frame on the same terminal.  */
+    int flags = O_RDWR | O_NOCTTY | (ctty ? 0 : O_IGNORE_CTTY);
+    int fd = emacs_open (name, flags, 0);
 
     tty->name = xstrdup (name);
     terminal->name = xstrdup (name);
@@ -3023,10 +3012,8 @@ init_tty (const char *name, const char *terminal_type, int must_succeed)
                      name);
       }
 
-#if !O_IGNORE_CTTY
-    if (!ctty)
+    if (!O_IGNORE_CTTY && !ctty)
       dissociate_if_controlling_tty (fd);
-#endif
 
     file = fdopen (fd, "w+");
     tty->input = file;
@@ -3374,10 +3361,6 @@ use the Bourne shell command `TERM=... export TERM' (C-shell:\n\
   tty->delete_in_insert_mode
     = tty->TS_delete_mode && tty->TS_insert_mode
     && !strcmp (tty->TS_delete_mode, tty->TS_insert_mode);
-
-  tty->se_is_so = (tty->TS_standout_mode
-              && tty->TS_end_standout_mode
-              && !strcmp (tty->TS_standout_mode, tty->TS_end_standout_mode));
 
   UseTabs (tty) = tabs_safe_p (fileno (tty->input)) && TabWidth (tty) == 8;
 

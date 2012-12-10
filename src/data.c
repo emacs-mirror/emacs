@@ -506,7 +506,9 @@ DEFUN ("setcdr", Fsetcdr, Ssetcdr, 2, 2, 0,
 /* Extract and set components of symbols.  */
 
 DEFUN ("boundp", Fboundp, Sboundp, 1, 1, 0,
-       doc: /* Return t if SYMBOL's value is not void.  */)
+       doc: /* Return t if SYMBOL's value is not void.
+Note that if `lexical-binding' is in effect, this refers to the
+global value outside of any lexical scope.  */)
   (register Lisp_Object symbol)
 {
   Lisp_Object valcontents;
@@ -543,12 +545,13 @@ DEFUN ("boundp", Fboundp, Sboundp, 1, 1, 0,
   return (EQ (valcontents, Qunbound) ? Qnil : Qt);
 }
 
+/* FIXME: Make it an alias for function-symbol!  */
 DEFUN ("fboundp", Ffboundp, Sfboundp, 1, 1, 0,
        doc: /* Return t if SYMBOL's function definition is not void.  */)
   (register Lisp_Object symbol)
 {
   CHECK_SYMBOL (symbol);
-  return EQ (XSYMBOL (symbol)->function, Qunbound) ? Qnil : Qt;
+  return NILP (XSYMBOL (symbol)->function) ? Qnil : Qt;
 }
 
 DEFUN ("makunbound", Fmakunbound, Smakunbound, 1, 1, 0,
@@ -564,14 +567,14 @@ Return SYMBOL.  */)
 }
 
 DEFUN ("fmakunbound", Ffmakunbound, Sfmakunbound, 1, 1, 0,
-       doc: /* Make SYMBOL's function definition be void.
+       doc: /* Make SYMBOL's function definition be nil.
 Return SYMBOL.  */)
   (register Lisp_Object symbol)
 {
   CHECK_SYMBOL (symbol);
   if (NILP (symbol) || EQ (symbol, Qt))
     xsignal1 (Qsetting_constant, symbol);
-  set_symbol_function (symbol, Qunbound);
+  set_symbol_function (symbol, Qnil);
   return symbol;
 }
 
@@ -580,9 +583,7 @@ DEFUN ("symbol-function", Fsymbol_function, Ssymbol_function, 1, 1, 0,
   (register Lisp_Object symbol)
 {
   CHECK_SYMBOL (symbol);
-  if (!EQ (XSYMBOL (symbol)->function, Qunbound))
     return XSYMBOL (symbol)->function;
-  xsignal1 (Qvoid_function, symbol);
 }
 
 DEFUN ("symbol-plist", Fsymbol_plist, Ssymbol_plist, 1, 1, 0,
@@ -613,7 +614,7 @@ DEFUN ("fset", Ffset, Sfset, 2, 2, 0,
 
   function = XSYMBOL (symbol)->function;
 
-  if (!NILP (Vautoload_queue) && !EQ (function, Qunbound))
+  if (!NILP (Vautoload_queue) && !NILP (function))
     Vautoload_queue = Fcons (Fcons (symbol, function), Vautoload_queue);
 
   if (AUTOLOADP (function))
@@ -714,7 +715,7 @@ Value, if non-nil, is a list \(interactive SPEC).  */)
 {
   Lisp_Object fun = indirect_function (cmd); /* Check cycles.  */
 
-  if (NILP (fun) || EQ (fun, Qunbound))
+  if (NILP (fun))
     return Qnil;
 
   /* Use an `interactive-form' property if present, analogous to the
@@ -1048,7 +1049,9 @@ find_symbol_value (Lisp_Object symbol)
 }
 
 DEFUN ("symbol-value", Fsymbol_value, Ssymbol_value, 1, 1, 0,
-       doc: /* Return SYMBOL's value.  Error if that is void.  */)
+       doc: /* Return SYMBOL's value.  Error if that is void.
+Note that if `lexical-binding' is in effect, this returns the
+global value outside of any lexical scope.  */)
   (Lisp_Object symbol)
 {
   Lisp_Object val;
@@ -2008,10 +2011,10 @@ indirect_function (register Lisp_Object object)
 
   for (;;)
     {
-      if (!SYMBOLP (hare) || EQ (hare, Qunbound))
+      if (!SYMBOLP (hare) || NILP (hare))
 	break;
       hare = XSYMBOL (hare)->function;
-      if (!SYMBOLP (hare) || EQ (hare, Qunbound))
+      if (!SYMBOLP (hare) || NILP (hare))
 	break;
       hare = XSYMBOL (hare)->function;
 
@@ -2038,10 +2041,10 @@ function chain of symbols.  */)
 
   /* Optimize for no indirection.  */
   result = object;
-  if (SYMBOLP (result) && !EQ (result, Qunbound)
+  if (SYMBOLP (result) && !NILP (result)
       && (result = XSYMBOL (result)->function, SYMBOLP (result)))
     result = indirect_function (result);
-  if (!EQ (result, Qunbound))
+  if (!NILP (result))
     return result;
 
   if (NILP (noerror))

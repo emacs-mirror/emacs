@@ -85,8 +85,10 @@ AC_DEFUN([gl_EARLY],
   # Code from module pathmax:
   # Code from module pselect:
   # Code from module pthread_sigmask:
+  # Code from module putenv:
   # Code from module readlink:
   # Code from module root-uid:
+  # Code from module sig2str:
   # Code from module signal-h:
   # Code from module snippet/_Noreturn:
   # Code from module snippet/arg-nonnull:
@@ -125,6 +127,7 @@ AC_DEFUN([gl_EARLY],
   # Code from module timespec-sub:
   # Code from module u64:
   # Code from module unistd:
+  # Code from module unsetenv:
   # Code from module utimens:
   # Code from module verify:
   # Code from module warnings:
@@ -239,12 +242,22 @@ AC_DEFUN([gl_INIT],
     gl_PREREQ_PTHREAD_SIGMASK
   fi
   gl_SIGNAL_MODULE_INDICATOR([pthread_sigmask])
+  gl_FUNC_PUTENV
+  if test $REPLACE_PUTENV = 1; then
+    AC_LIBOBJ([putenv])
+  fi
+  gl_STDLIB_MODULE_INDICATOR([putenv])
   gl_FUNC_READLINK
   if test $HAVE_READLINK = 0 || test $REPLACE_READLINK = 1; then
     AC_LIBOBJ([readlink])
     gl_PREREQ_READLINK
   fi
   gl_UNISTD_MODULE_INDICATOR([readlink])
+  gl_FUNC_SIG2STR
+  if test $ac_cv_func_sig2str = no; then
+    AC_LIBOBJ([sig2str])
+    gl_PREREQ_SIG2STR
+  fi
   gl_SIGNAL_H
   gl_TYPE_SOCKLEN_T
   gt_TYPE_SSIZE_T
@@ -291,6 +304,12 @@ AC_DEFUN([gl_INIT],
   gl_TIMER_TIME
   gl_TIMESPEC
   gl_UNISTD_H
+  gl_FUNC_UNSETENV
+  if test $HAVE_UNSETENV = 0 || test $REPLACE_UNSETENV = 1; then
+    AC_LIBOBJ([unsetenv])
+    gl_PREREQ_UNSETENV
+  fi
+  gl_STDLIB_MODULE_INDICATOR([unsetenv])
   gl_UTIMENS
   gl_gnulib_enabled_dosname=false
   gl_gnulib_enabled_euidaccess=false
@@ -673,6 +692,7 @@ AC_DEFUN([gl_FILE_LIST], [
   lib/pathmax.h
   lib/pselect.c
   lib/pthread_sigmask.c
+  lib/putenv.c
   lib/readlink.c
   lib/root-uid.h
   lib/sha1.c
@@ -681,6 +701,8 @@ AC_DEFUN([gl_FILE_LIST], [
   lib/sha256.h
   lib/sha512.c
   lib/sha512.h
+  lib/sig2str.c
+  lib/sig2str.h
   lib/signal.in.h
   lib/stat-time.c
   lib/stat-time.h
@@ -690,6 +712,7 @@ AC_DEFUN([gl_FILE_LIST], [
   lib/stdbool.in.h
   lib/stddef.in.h
   lib/stdint.in.h
+  lib/stdio.c
   lib/stdio.in.h
   lib/stdlib.in.h
   lib/strftime.c
@@ -712,7 +735,9 @@ AC_DEFUN([gl_FILE_LIST], [
   lib/timespec.h
   lib/u64.c
   lib/u64.h
+  lib/unistd.c
   lib/unistd.in.h
+  lib/unsetenv.c
   lib/utimens.c
   lib/utimens.h
   lib/verify.h
@@ -754,10 +779,13 @@ AC_DEFUN([gl_FILE_LIST], [
   m4/pathmax.m4
   m4/pselect.m4
   m4/pthread_sigmask.m4
+  m4/putenv.m4
   m4/readlink.m4
+  m4/setenv.m4
   m4/sha1.m4
   m4/sha256.m4
   m4/sha512.m4
+  m4/sig2str.m4
   m4/signal_h.m4
   m4/socklen.m4
   m4/ssize_t.m4

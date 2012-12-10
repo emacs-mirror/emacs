@@ -463,7 +463,7 @@ system, including many technical ones.  Examples:
  ("\\infty" ?∞)
  ("\\int" ?∫)
  ("\\intercal" ?⊺)
- ("\\langle" ?〈)
+ ("\\langle" ?⟨) ;; Was ?〈, see bug#12948.
  ("\\lbrace" ?{)
  ("\\lbrack" ?\[)
  ("\\lceil" ?⌈)
@@ -475,7 +475,7 @@ system, including many technical ones.  Examples:
  ("\\leftharpoondown" ?↽)
  ("\\leftharpoonup" ?↼)
  ("\\leftleftarrows" ?⇇)
- ("\\leftparengtr" ?〈)
+ ;; ("\\leftparengtr" ?〈), see bug#12948.
  ("\\leftrightarrow" ?↔)
  ("\\leftrightarrows" ?⇆)
  ("\\leftrightharpoons" ?⇋)
@@ -593,7 +593,7 @@ system, including many technical ones.  Examples:
  ("\\propto" ?∝)
  ("\\qed" ?∎)
  ("\\quad" ? )
- ("\\rangle" ?〉)
+ ("\\rangle" ?⟩) ;; Was ?〉, see bug#12948.
  ("\\rbrace" ?})
  ("\\rbrack" ?\])
  ("\\rceil" ?⌉)
@@ -604,7 +604,7 @@ system, including many technical ones.  Examples:
  ("\\rightharpoonup" ?⇀)
  ("\\rightleftarrows" ?⇄)
  ("\\rightleftharpoons" ?⇌)
- ("\\rightparengtr" ?〉)
+ ;; ("\\rightparengtr" ?⦔) ;; Was ?〉, see bug#12948.
  ("\\rightrightarrows" ?⇉)
  ("\\rightthreetimes" ?⋌)
  ("\\risingdotseq" ?≓)

@@ -744,7 +744,7 @@ If BACKWARD-ONLY is non-nil, only delete them before point."
 
 (defun just-one-space (&optional n)
   "Delete all spaces and tabs around point, leaving one space (or N spaces).
-If N is negative, delete newlines as well."
+If N is negative, delete newlines as well, leaving -N spaces."
   (interactive "*p")
   (unless n (setq n 1))
   (let ((orig-pos (point))
@@ -4012,7 +4012,8 @@ run `deactivate-mark-hook'."
   (when (mark t)
     (setq mark-active t)
     (unless transient-mark-mode
-      (setq transient-mark-mode 'lambda))))
+      (setq transient-mark-mode 'lambda))
+    (run-hooks 'activate-mark-hook)))
 
 (defun set-mark (pos)
   "Set this buffer's mark to POS.  Don't use this function!
@@ -4133,14 +4134,6 @@ after C-u \\[set-mark-command]."
   :type 'boolean
   :group 'editing-basics)
 
-(defcustom set-mark-default-inactive nil
-  "If non-nil, setting the mark does not activate it.
-This causes \\[set-mark-command] and \\[exchange-point-and-mark] to
-behave the same whether or not `transient-mark-mode' is enabled."
-  :type 'boolean
-  :group 'editing-basics
-  :version "23.1")
-
 (defun set-mark-command (arg)
   "Set the mark where point is, or jump to the mark.
 Setting the mark also alters the region, which is the text
@@ -4202,8 +4195,7 @@ purposes.  See the documentation of `set-mark' for more information."
       (activate-mark)
       (message "Mark activated")))
    (t
-    (push-mark-command nil)
-    (if set-mark-default-inactive (deactivate-mark)))))
+    (push-mark-command nil))))
 
 (defun push-mark (&optional location nomsg activate)
   "Set mark at LOCATION (point, by default) and push old mark on mark ring.
@@ -4267,7 +4259,6 @@ mode temporarily."
     (deactivate-mark)
     (set-mark (point))
     (goto-char omark)
-    (if set-mark-default-inactive (deactivate-mark))
     (cond (temp-highlight
 	   (setq transient-mark-mode (cons 'only transient-mark-mode)))
 	  ((or (and arg (region-active-p)) ; (xor arg (not (region-active-p)))
@@ -4332,14 +4323,14 @@ else--for example, incremental search, \\[beginning-of-buffer], and \\[end-of-bu
 You can also deactivate the mark by typing \\[keyboard-quit] or
 \\[keyboard-escape-quit].
 
-Many commands change their behavior when Transient Mark mode is in effect
-and the mark is active, by acting on the region instead of their usual
-default part of the buffer's text.  Examples of such commands include
-\\[comment-dwim], \\[flush-lines], \\[keep-lines], \
+Many commands change their behavior when Transient Mark mode is
+in effect and the mark is active, by acting on the region instead
+of their usual default part of the buffer's text.  Examples of
+such commands include \\[comment-dwim], \\[flush-lines], \\[keep-lines],
 \\[query-replace], \\[query-replace-regexp], \\[ispell], and \\[undo].
-Invoke \\[apropos-documentation] and type \"transient\" or
-\"mark.*active\" at the prompt, to see the documentation of
-commands which are sensitive to the Transient Mark mode."
+To see the documentation of commands which are sensitive to the
+Transient Mark mode, invoke \\[apropos-documentation] and type \"transient\"
+or \"mark.*active\" at the prompt."
   :global t
   ;; It's defined in C/cus-start, this stops the d-m-m macro defining it again.
   :variable transient-mark-mode)
@@ -4583,6 +4574,9 @@ lines."
     (unless (and auto-window-vscroll try-vscroll
 		 ;; Only vscroll for single line moves
 		 (= (abs arg) 1)
+		 ;; Under scroll-conservatively, the display engine
+		 ;; does this better.
+		 (zerop scroll-conservatively)
 		 ;; But don't vscroll in a keyboard macro.
 		 (not defining-kbd-macro)
 		 (not executing-kbd-macro)

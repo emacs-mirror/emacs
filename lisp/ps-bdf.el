@@ -70,20 +70,15 @@ for BDFNAME."
 
 (defsubst bdf-file-mod-time (filename)
   "Return modification time of FILENAME.
-The value is a list of two integers, the first integer has high-order
-16 bits, the second has low 16 bits."
+The value is a list of integers in the same format as `current-time'."
   (nth 5 (file-attributes filename)))
 
 (defun bdf-file-newer-than-time (filename mod-time)
   "Return non-nil if and only if FILENAME is newer than MOD-TIME.
-MOD-TIME is a modification time as a list of two integers, the first
-integer has high-order 16 bits, the second has low 16 bits."
-  (let* ((new-mod-time (bdf-file-mod-time filename))
-	 (new-time (car new-mod-time))
-	 (time (car mod-time)))
-    (or (> new-time time)
-	(and (= new-time time)
-	     (> (nth 1 new-mod-time) (nth 1 mod-time))))))
+MOD-TIME is a modification time as a list of integers in the same
+format as `current-time'."
+  (let ((new-mod-time (bdf-file-mod-time filename)))
+    (time-less-p mod-time new-mod-time)))
 
 (defun bdf-find-file (bdfname)
   "Return a buffer visiting a bdf file BDFNAME.
@@ -178,8 +173,8 @@ FONT-INFO is a list of the following format:
     (BDFFILE MOD-TIME FONT-BOUNDING-BOX
      RELATIVE-COMPOSE BASELINE-OFFSET CODE-RANGE MAXLEN OFFSET-VECTOR)
 
-MOD-TIME is last modification time as a list of two integers, the
-first integer has high-order 16 bits, the second has low 16 bits.
+MOD-TIME is last modification time as a list of integers in the
+same format as `current-time'.
 
 SIZE is a size of the font on 72 dpi device.  This value is got
 from SIZE record of the font.

@@ -1529,6 +1529,16 @@ This does not change the name of the visited file (if any).  */)
   return BVAR (current_buffer, name);
 }
 
+/* True if B can be used as 'other-than-BUFFER' buffer.  */
+
+static bool
+candidate_buffer (Lisp_Object b, Lisp_Object buffer)
+{
+  return (BUFFERP (b) && !EQ (b, buffer)
+	  && BUFFER_LIVE_P (XBUFFER (b))
+	  && !BUFFER_HIDDEN_P (XBUFFER (b)));
+}
+	  
 DEFUN ("other-buffer", Fother_buffer, Sother_buffer, 0, 3, 0,
        doc: /* Return most recently selected buffer other than BUFFER.
 Buffers not visible in windows are preferred to visible buffers, unless
@@ -1550,9 +1560,7 @@ exists, return the buffer `*scratch*' (creating it if necessary).  */)
   for (; CONSP (tail); tail = XCDR (tail))
     {
       buf = XCAR (tail);
-      if (BUFFERP (buf) && !EQ (buf, buffer)
-	  && BUFFER_LIVE_P (XBUFFER (buf))
-	  && (SREF (BVAR (XBUFFER (buf), name), 0) != ' ')
+      if (candidate_buffer (buf, buffer)
 	  /* If the frame has a buffer_predicate, disregard buffers that
 	     don't fit the predicate.  */
 	  && (NILP (pred) || !NILP (call1 (pred, buf))))
@@ -1570,9 +1578,7 @@ exists, return the buffer `*scratch*' (creating it if necessary).  */)
   for (; CONSP (tail); tail = XCDR (tail))
     {
       buf = Fcdr (XCAR (tail));
-      if (BUFFERP (buf) && !EQ (buf, buffer)
-	  && BUFFER_LIVE_P (XBUFFER (buf))
-	  && (SREF (BVAR (XBUFFER (buf), name), 0) != ' ')
+      if (candidate_buffer (buf, buffer)
 	  /* If the frame has a buffer_predicate, disregard buffers that
 	     don't fit the predicate.  */
 	  && (NILP (pred) || !NILP (call1 (pred, buf))))
@@ -1608,13 +1614,10 @@ other_buffer_safely (Lisp_Object buffer)
 {
   Lisp_Object tail, buf;
 
-  tail = Vbuffer_alist;
-  for (; CONSP (tail); tail = XCDR (tail))
+  for (tail = Vbuffer_alist; CONSP (tail); tail = XCDR (tail))
     {
       buf = Fcdr (XCAR (tail));
-      if (BUFFERP (buf) && !EQ (buf, buffer)
-	  && BUFFER_LIVE_P (XBUFFER (buf))
-	  && (SREF (BVAR (XBUFFER (buf), name), 0) != ' '))
+      if (candidate_buffer (buf, buffer))
 	return buf;
     }
 

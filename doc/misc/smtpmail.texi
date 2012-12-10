@@ -101,7 +101,7 @@ spool, then.
 @cindex IMAP
    When your computer is not always connected to the internet, you
 must get the mail from the remote mail host using a protocol such as
-POP3 or IMAP.  POP3 essentially downloads all your mail from the mail
+POP3 or IMAP@.  POP3 essentially downloads all your mail from the mail
 host to your computer.  The mail is stored in some file on your
 computer, and again, all your MUA has to do is read mail from the
 spool.
@@ -219,7 +219,7 @@ The following example illustrates what you could put in
 @cindex user name
 Most SMTP servers require clients to authenticate themselves before
 they are allowed to send mail.  Authentication usually involves
-supplying a user name and password. 
+supplying a user name and password.
 
 If you have not configured anything, then the first time you try to
 send mail via a server, Emacs (version 24.1 and later) prompts you
@@ -260,7 +260,7 @@ file, @pxref{Top,,auth-source, auth, Emacs auth-source Library}.
 The process by which the SMTP library authenticates you to the server
 is known as ``Simple Authentication and Security Layer'' (SASL).
 There are various SASL mechanisms, and this library supports three of
-them: CRAM-MD5, PLAIN, and LOGIN.  It tries each of them, in that order,
+them: CRAM-MD5, PLAIN, and LOGIN@.  It tries each of them, in that order,
 until one succeeds.  The first uses a form of encryption to obscure
 your password, while the other two do not.
 

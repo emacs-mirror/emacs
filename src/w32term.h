@@ -217,8 +217,6 @@ extern void x_set_mouse_pixel_position (struct frame *f, int pix_x, int pix_y);
 extern void x_make_frame_visible (struct frame *f);
 extern void x_make_frame_invisible (struct frame *f);
 extern void x_iconify_frame (struct frame *f);
-extern int x_char_width (struct frame *f);
-extern int x_char_height (struct frame *f);
 extern int x_pixel_width (struct frame *f);
 extern int x_pixel_height (struct frame *f);
 extern void x_set_frame_alpha (struct frame *f);
@@ -251,16 +249,10 @@ extern Lisp_Object x_get_focus_frame (struct frame *);
    diffs between X and w32 code.  */
 struct x_output
 {
-#if 0 /* These are also defined in struct frame.  Use that instead.  */
-  PIX_TYPE background_pixel;
-  PIX_TYPE foreground_pixel;
-#endif
-
   /* Keep track of focus.  May be EXPLICIT if we received a FocusIn for this
      frame, or IMPLICIT if we received an EnterNotify.
      FocusOut and LeaveNotify clears EXPLICIT/IMPLICIT. */
   int focus_state;
-
 };
 
 enum
@@ -347,17 +339,13 @@ struct w32_output
 
   /* Nonzero means our parent is another application's window
      and was explicitly specified.  */
-  char explicit_parent;
+  unsigned explicit_parent : 1;
 
   /* Nonzero means tried already to make this frame visible.  */
-  char asked_for_visible;
+  unsigned asked_for_visible : 1;
 
   /* Nonzero means menubar is currently active.  */
-  char menubar_active;
-
-  /* Nonzero means menubar is about to become active, but should be
-     brought up to date first.  */
-  volatile char pending_menu_activation;
+  unsigned menubar_active : 1;
 
   /* Relief GCs, colors etc.  */
   struct relief
@@ -752,6 +740,21 @@ extern HWND w32_system_caret_hwnd;
 extern int w32_system_caret_height;
 extern int w32_system_caret_x;
 extern int w32_system_caret_y;
+
+#ifdef _MSC_VER
+#ifndef EnumSystemLocales
+/* MSVC headers define these only for _WIN32_WINNT >= 0x0500.  */
+typedef BOOL (CALLBACK *LOCALE_ENUMPROCA)(LPSTR);
+typedef BOOL (CALLBACK *LOCALE_ENUMPROCW)(LPWSTR);
+BOOL WINAPI EnumSystemLocalesA(LOCALE_ENUMPROCA,DWORD);
+BOOL WINAPI EnumSystemLocalesW(LOCALE_ENUMPROCW,DWORD);
+#ifdef UNICODE
+#define EnumSystemLocales EnumSystemLocalesW
+#else
+#define EnumSystemLocales EnumSystemLocalesA
+#endif
+#endif
+#endif
 
 #if EMACSDEBUG
 extern const char*

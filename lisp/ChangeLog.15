@@ -7979,7 +7979,7 @@
 	Remember the buffers at head, rather than their name.
 	* iswitchb.el (iswitchb-kill-buffer): Re-make the list.
 
-2010-08-22  Kirk Kelsey  <kirk.kelsey@0x4b.net>  (tiny change)
+2010-08-22  Kirk Kelsey  <kirk.kelsey@0x4b.net>
             Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* progmodes/make-mode.el (makefile-fill-paragraph): Account for the

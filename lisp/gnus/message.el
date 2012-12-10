@@ -3137,22 +3137,10 @@ M-RET    `message-newline-and-reformat' (break the line and reformat)."
   (push-mark)
   (message-position-on-field "Summary" "Subject"))
 
-(eval-when-compile
-  (defmacro message-called-interactively-p (kind)
-    (condition-case nil
-	(progn
-	  (eval '(called-interactively-p 'any))
-	  ;; Emacs >=23.2
-	  `(called-interactively-p ,kind))
-      ;; Emacs <23.2
-      (wrong-number-of-arguments '(called-interactively-p))
-      ;; XEmacs
-      (void-function '(interactive-p)))))
-
 (defun message-goto-body ()
   "Move point to the beginning of the message body."
   (interactive)
-  (when (and (message-called-interactively-p 'any)
+  (when (and (gmm-called-interactively-p 'any)
 	     (looking-at "[ \t]*\n"))
     (expand-abbrev))
   (push-mark)
@@ -6730,11 +6718,16 @@ The function is called with one parameter, a cons cell ..."
 			       ", "))
 	    mct (message-fetch-field "mail-copies-to")
 	    author (or (message-fetch-field "mail-reply-to")
-		       (message-fetch-field "reply-to")
-		       (message-fetch-field "from")
-		       "")
+		       (message-fetch-field "reply-to"))
 	    mft (and message-use-mail-followup-to
-		     (message-fetch-field "mail-followup-to"))))
+		     (message-fetch-field "mail-followup-to")))
+      ;; Make sure this message goes to the author if this is a wide
+      ;; reply, since Reply-To address may be a list address a mailing
+      ;; list server added.
+      (when (and wide author)
+	(setq cc (concat author ", " cc)))
+      (when (or wide (not author))
+	(setq author (or (message-fetch-field "from") ""))))
 
     ;; Handle special values of Mail-Copies-To.
     (when mct
@@ -8136,8 +8129,7 @@ regexp VARSTR."
   (if (fboundp 'mail-abbrevs-setup)
       (let ((minibuffer-setup-hook 'mail-abbrevs-setup)
 	    (minibuffer-local-map message-minibuffer-local-map))
-	(flet ((mail-abbrev-in-expansion-header-p nil t))
-	  (read-from-minibuffer prompt initial-contents)))
+	(read-from-minibuffer prompt initial-contents))
     (let ((minibuffer-setup-hook 'mail-abbrev-minibuffer-setup-hook)
 	  (minibuffer-local-map message-minibuffer-local-map))
       (read-string prompt initial-contents))))

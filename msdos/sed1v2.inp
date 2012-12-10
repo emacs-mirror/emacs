@@ -157,6 +157,12 @@ s/^	[^ 	]*move-if-change /	update /
 /^	echo[ 	][ 	]*timestamp/s/echo /djecho /
 /^	.*djecho timestamp/a\
 	@rm -f gl-tmp
+/^	cd \$(leimdir) && \$(MAKE)/i\
+	$(RUN_TEMACS) -batch -l loadup dump\
+	stubify emacs\
+	stubedit emacs.exe minstack=2048k\
+	rm -f b-emacs$(EXEEXT)\
+	cp emacs$(EXEEXT) b-emacs$(EXEEXT)
 /^	cd \$(leimdir) && \$(MAKE)/c\
 	$(MAKE) $(MFLAGS) -C $(leimdir) leim-list.el EMACS=$(bootstrap_exe)
 /^	cd \$(lib) && \$(MAKE)/c\

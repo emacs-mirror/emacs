@@ -576,7 +576,7 @@ Emacs tries @env{TEMP}, then @env{TMPDIR}, then @env{TMP}, and finally
 This specifies the current time zone and possibly also daylight
 saving time information.  On MS-DOS, if @env{TZ} is not set in the
 environment when Emacs starts, Emacs defines a default value as
-appropriate for the country code returned by DOS.  On MS-Windows, Emacs
+appropriate for the country code returned by DOS@.  On MS-Windows, Emacs
 does not use @env{TZ} at all.
 @item USER
 The user's login name.  See also @env{LOGNAME}.  On MS-DOS, this
@@ -747,7 +747,7 @@ Use @var{font} as the default font.
 
 When passing a font name to Emacs on the command line, you may need to
 ``quote'' it, by enclosing it in quotation marks, if it contains
-characters that the shell treats specially (e.g.@: spaces).  For
+characters that the shell treats specially (e.g., spaces).  For
 example:
 
 @smallexample
@@ -839,7 +839,7 @@ otherwise use an appropriate standard mode for @var{num} colors.
 Depending on your terminal's capabilities, Emacs might be able to turn
 on a color mode for 8, 16, 88, or 256 as the value of @var{num}.  If
 there is no mode that supports @var{num} colors, Emacs acts as if
-@var{num} were 0, i.e.@: it uses the terminal's default color support
+@var{num} were 0, i.e., it uses the terminal's default color support
 mode.
 @end table
 If @var{mode} is omitted, it defaults to @var{ansi8}.
@@ -1070,7 +1070,7 @@ it.
 
   By default, Emacs uses an icon containing the Emacs logo.  On
 desktop environments such as Gnome, this icon is also displayed in
-other contexts, e.g.@: when switching into an Emacs frame.  The
+other contexts, e.g., when switching into an Emacs frame.  The
 @samp{-nbi} or @samp{--no-bitmap-icon} option tells Emacs to let the
 window manager choose what sort of icon to use---usually just a small
 rectangle containing the frame's title.

@@ -306,9 +306,7 @@ static Lisp_Object Qmake_frame_visible;
 static Lisp_Object Qselect_window;
 Lisp_Object Qhelp_echo;
 
-#if defined (HAVE_MOUSE) || defined (HAVE_GPM)
 static Lisp_Object Qmouse_fixup_help_message;
-#endif
 
 /* Symbols to denote kinds of events.  */
 static Lisp_Object Qfunction_key;
@@ -316,7 +314,7 @@ Lisp_Object Qmouse_click;
 #ifdef HAVE_NTGUI
 Lisp_Object Qlanguage_change;
 #ifdef WINDOWSNT
-Lisp_Object Qfile_notify;
+Lisp_Object Qfile_w32notify;
 #endif
 #endif
 static Lisp_Object Qdrag_n_drop;
@@ -324,6 +322,9 @@ static Lisp_Object Qsave_session;
 #ifdef HAVE_DBUS
 static Lisp_Object Qdbus_event;
 #endif
+#ifdef HAVE_INOTIFY
+static Lisp_Object Qfile_inotify;
+#endif /* HAVE_INOTIFY */
 static Lisp_Object Qconfig_changed_event;
 
 /* Lisp_Object Qmouse_movement; - also an event header */
@@ -420,12 +421,10 @@ static Lisp_Object read_char_x_menu_prompt (ptrdiff_t, Lisp_Object *,
 static Lisp_Object read_char_minibuf_menu_prompt (int, ptrdiff_t,
                                                   Lisp_Object *);
 static Lisp_Object make_lispy_event (struct input_event *);
-#if defined (HAVE_MOUSE) || defined (HAVE_GPM)
 static Lisp_Object make_lispy_movement (struct frame *, Lisp_Object,
                                         enum scroll_bar_part,
                                         Lisp_Object, Lisp_Object,
 					Time);
-#endif
 static Lisp_Object modify_event_symbol (ptrdiff_t, int, Lisp_Object,
                                         Lisp_Object, const char *const *,
                                         Lisp_Object *, ptrdiff_t);
@@ -1123,8 +1122,7 @@ cmd_error_internal (Lisp_Object data, const char *context)
 
   Vsignaling_function = Qnil;
 }
-
-Lisp_Object command_loop_1 (void);
+
 static Lisp_Object command_loop_2 (Lisp_Object);
 static Lisp_Object top_level_1 (Lisp_Object);
 
@@ -1161,7 +1159,7 @@ command_loop (void)
    value to us.  A value of nil means that command_loop_1 itself
    returned due to end of file (or end of kbd macro).  */
 
-Lisp_Object
+static Lisp_Object
 command_loop_2 (Lisp_Object ignore)
 {
   register Lisp_Object val;
@@ -1179,7 +1177,7 @@ top_level_2 (void)
   return Feval (Vtop_level, Qnil);
 }
 
-Lisp_Object
+static Lisp_Object
 top_level_1 (Lisp_Object ignore)
 {
   /* On entry to the outer level, run the startup file */
@@ -1237,8 +1235,6 @@ DEFUN ("abort-recursive-edit", Fabort_recursive_edit, Sabort_recursive_edit, 0, 
   user_error ("No recursive edit is in progress");
 }
 
-#if defined (HAVE_MOUSE) || defined (HAVE_GPM)
-
 /* Restore mouse tracking enablement.  See Ftrack_mouse for the only use
    of this function.  */
 
@@ -1313,7 +1309,6 @@ some_mouse_moved (void)
   return 0;
 }
 
-#endif	/* HAVE_MOUSE || HAVE_GPM */
 
 /* This is the actual command reading loop,
    sans error-handling encapsulation.  */
@@ -1405,14 +1400,11 @@ command_loop_1 (void)
 
       Vdeactivate_mark = Qnil;
 
-#if defined (HAVE_MOUSE) || defined (HAVE_GPM)
-
       /* Don't ignore mouse movements for more than a single command
 	 loop.  (This flag is set in xdisp.c whenever the tool bar is
 	 resized, because the resize moves text up or down, and would
 	 generate false mouse drag events if we don't ignore them.)  */
       ignore_mouse_drag_p = 0;
-#endif
 
       /* If minibuffer on and echo area in use,
 	 wait a short time and redraw minibuffer.  */
@@ -2185,7 +2177,6 @@ show_help_echo (Lisp_Object help, Lisp_Object window, Lisp_Object object,
 	return;
     }
 
-#if defined (HAVE_MOUSE) || defined (HAVE_GPM)
   if (!noninteractive && STRINGP (help))
     {
       /* The mouse-fixup-help-message Lisp function can call
@@ -2198,7 +2189,6 @@ show_help_echo (Lisp_Object help, Lisp_Object window, Lisp_Object object,
       if (f)
       	f->mouse_moved = 1;
     }
-#endif
 
   if (STRINGP (help) || NILP (help))
     {
@@ -3393,11 +3383,9 @@ readable_events (int flags)
 	return 1;
     }
 
-#if defined (HAVE_MOUSE) || defined (HAVE_GPM)
   if (!(flags & READABLE_EVENTS_IGNORE_SQUEEZABLES)
       && !NILP (do_mouse_tracking) && some_mouse_moved ())
     return 1;
-#endif
   if (single_kboard)
     {
       if (current_kboard->kbd_queue_has_data)
@@ -3765,10 +3753,8 @@ kbd_buffer_get_event (KBOARD **kbp,
 
       if (kbd_fetch_ptr != kbd_store_ptr)
 	break;
-#if defined (HAVE_MOUSE) || defined (HAVE_GPM)
       if (!NILP (do_mouse_tracking) && some_mouse_moved ())
 	break;
-#endif
 
       /* If the quit flag is set, then read_char will return
 	 quit_char, so that counts as "available input."  */
@@ -3783,10 +3769,8 @@ kbd_buffer_get_event (KBOARD **kbp,
 #endif
       if (kbd_fetch_ptr != kbd_store_ptr)
 	break;
-#if defined (HAVE_MOUSE) || defined (HAVE_GPM)
       if (!NILP (do_mouse_tracking) && some_mouse_moved ())
 	break;
-#endif
       if (end_time)
 	{
 	  EMACS_TIME now = current_emacs_time ();
@@ -3928,7 +3912,7 @@ kbd_buffer_get_event (KBOARD **kbp,
       else if (event->kind == FILE_NOTIFY_EVENT)
 	{
 	  /* Make an event (file-notify (DESCRIPTOR ACTION FILE) CALLBACK).  */
-	  obj = Fcons (Qfile_notify,
+	  obj = Fcons (Qfile_w32notify,
 		       list2 (list3 (make_number (event->code),
 				     XCAR (event->arg),
 				     XCDR (event->arg)),
@@ -3993,6 +3977,13 @@ kbd_buffer_get_event (KBOARD **kbp,
 	  kbd_fetch_ptr = event + 1;
 	}
 #endif
+#ifdef HAVE_INOTIFY
+      else if (event->kind == FILE_NOTIFY_EVENT)
+        {
+          obj = make_lispy_event (event);
+          kbd_fetch_ptr = event + 1;
+        }
+#endif
       else if (event->kind == CONFIG_CHANGED_EVENT)
 	{
 	  obj = make_lispy_event (event);
@@ -4053,7 +4044,6 @@ kbd_buffer_get_event (KBOARD **kbp,
 	    }
 	}
     }
-#if defined (HAVE_MOUSE) || defined (HAVE_GPM)
   /* Try generating a mouse motion event.  */
   else if (!NILP (do_mouse_tracking) && some_mouse_moved ())
     {
@@ -4098,7 +4088,6 @@ kbd_buffer_get_event (KBOARD **kbp,
       if (!NILP (x) && NILP (obj))
 	obj = make_lispy_movement (f, bar_window, part, x, y, t);
     }
-#endif	/* HAVE_MOUSE || HAVE GPM */
   else
     /* We were promised by the above while loop that there was
        something for us to read!  */
@@ -5410,7 +5399,6 @@ make_lispy_event (struct input_event *event)
       return Qnil;
 #endif
 
-#ifdef HAVE_MOUSE
       /* A mouse click.  Figure out where it is, decide whether it's
          a press, click or drag, and build the appropriate structure.  */
     case MOUSE_CLICK_EVENT:
@@ -5862,7 +5850,6 @@ make_lispy_event (struct input_event *event)
 			     Fcons (files,
 				    Qnil)));
       }
-#endif /* HAVE_MOUSE */
 
 #if defined (USE_X_TOOLKIT) || defined (HAVE_NTGUI) \
     || defined (HAVE_NS) || defined (USE_GTK)
@@ -5909,6 +5896,13 @@ make_lispy_event (struct input_event *event)
 	return Fcons (Qdbus_event, event->arg);
       }
 #endif /* HAVE_DBUS */
+
+#ifdef HAVE_INOTIFY
+    case FILE_NOTIFY_EVENT:
+      {
+        return Fcons (Qfile_inotify, event->arg);
+      }
+#endif /* HAVE_INOTIFY */
 
     case CONFIG_CHANGED_EVENT:
 	return Fcons (Qconfig_changed_event,
@@ -5981,8 +5975,6 @@ make_lispy_event (struct input_event *event)
     }
 }
 
-#if defined (HAVE_MOUSE) || defined (HAVE_GPM)
-
 static Lisp_Object
 make_lispy_movement (FRAME_PTR frame, Lisp_Object bar_window, enum scroll_bar_part part,
 		     Lisp_Object x, Lisp_Object y, Time t)
@@ -6009,8 +6001,6 @@ make_lispy_movement (FRAME_PTR frame, Lisp_Object bar_window, enum scroll_bar_pa
       return list2 (Qmouse_movement, position);
     }
 }
-
-#endif /* HAVE_MOUSE || HAVE GPM */
 
 /* Construct a switch frame event.  */
 static Lisp_Object
@@ -6961,7 +6951,7 @@ tty_read_avail_input (struct terminal *terminal,
 #elif defined USG || defined CYGWIN
   /* Read some input if available, but don't wait.  */
   n_to_read = sizeof cbuf;
-  fcntl (fileno (tty->input), F_SETFL, O_NDELAY);
+  fcntl (fileno (tty->input), F_SETFL, O_NONBLOCK);
 #else
 # error "Cannot read without possibly delaying"
 #endif
@@ -6995,14 +6985,11 @@ tty_read_avail_input (struct terminal *terminal,
     }
   while (
          /* We used to retry the read if it was interrupted.
-            But this does the wrong thing when O_NDELAY causes
+            But this does the wrong thing when O_NONBLOCK causes
             an EAGAIN error.  Does anybody know of a situation
             where a retry is actually needed?  */
 #if 0
-         nread < 0 && (errno == EAGAIN
-#ifdef EFAULT
-                       || errno == EFAULT
-#endif
+         nread < 0 && (errno == EAGAIN || errno == EFAULT
 #ifdef EBADSLT
                        || errno == EBADSLT
 #endif
@@ -10731,7 +10718,7 @@ handle_interrupt (bool in_signal_handler)
       fflush (stdout);
       reset_all_sys_modes ();
 
-#ifdef SIGTSTP			/* Support possible in later USG versions */
+#ifdef SIGTSTP
 /*
  * On systems which can suspend the current process and return to the original
  * shell, this command causes the user to end up back at the shell.
@@ -11246,9 +11233,7 @@ init_keyboard (void)
   recent_keys_index = 0;
   kbd_fetch_ptr = kbd_buffer;
   kbd_store_ptr = kbd_buffer;
-#if defined (HAVE_MOUSE) || defined (HAVE_GPM)
   do_mouse_tracking = Qnil;
-#endif
   input_pending = 0;
   interrupt_input_blocked = 0;
   pending_signals = 0;
@@ -11376,12 +11361,16 @@ syms_of_keyboard (void)
 
 #ifdef HAVE_NTGUI
   DEFSYM (Qlanguage_change, "language-change");
-  DEFSYM (Qfile_notify, "file-notify");
+  DEFSYM (Qfile_w32notify, "file-w32notify");
 #endif
 
 #ifdef HAVE_DBUS
   DEFSYM (Qdbus_event, "dbus-event");
 #endif
+
+#ifdef HAVE_INOTIFY
+  DEFSYM (Qfile_inotify, "file-inotify");
+#endif /* HAVE_INOTIFY */
 
   DEFSYM (QCenable, ":enable");
   DEFSYM (QCvisible, ":visible");
@@ -11400,9 +11389,7 @@ syms_of_keyboard (void)
   DEFSYM (Qvertical_scroll_bar, "vertical-scroll-bar");
   DEFSYM (Qmenu_bar, "menu-bar");
 
-#if defined (HAVE_MOUSE) || defined (HAVE_GPM)
   DEFSYM (Qmouse_fixup_help_message, "mouse-fixup-help-message");
-#endif
 
   DEFSYM (Qabove_handle, "above-handle");
   DEFSYM (Qhandle, "handle");
@@ -11522,9 +11509,7 @@ syms_of_keyboard (void)
   defsubr (&Sread_key_sequence);
   defsubr (&Sread_key_sequence_vector);
   defsubr (&Srecursive_edit);
-#if defined (HAVE_MOUSE) || defined (HAVE_GPM)
   defsubr (&Strack_mouse);
-#endif
   defsubr (&Sinput_pending_p);
   defsubr (&Scommand_execute);
   defsubr (&Srecent_keys);
@@ -12143,12 +12128,19 @@ keys_of_keyboard (void)
 			    "dbus-handle-event");
 #endif
 
+#ifdef HAVE_INOTIFY
+  /* Define a special event which is raised for inotify callback
+     functions.  */
+  initial_define_lispy_key (Vspecial_event_map, "file-inotify",
+                            "inotify-handle-event");
+#endif /* HAVE_INOTIFY */
+
   initial_define_lispy_key (Vspecial_event_map, "config-changed-event",
 			    "ignore");
 #if defined (WINDOWSNT)
   initial_define_lispy_key (Vspecial_event_map, "language-change",
 			    "ignore");
-  initial_define_lispy_key (Vspecial_event_map, "file-notify",
+  initial_define_lispy_key (Vspecial_event_map, "file-w32notify",
 			    "w32notify-handle-event");
 #endif
 }

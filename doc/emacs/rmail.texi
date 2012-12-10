@@ -284,7 +284,7 @@ deleted remains current.  @kbd{d} with a prefix argument is equivalent
 to @kbd{C-d}.  Note that the Rmail summary versions of these commands
 behave slightly differently (@pxref{Rmail Summary Edit}).
 
-@c mention other hooks, eg show message hook?
+@c mention other hooks, e.g., show message hook?
 @vindex rmail-delete-message-hook
   Whenever Rmail deletes a message, it runs the hook
 @code{rmail-delete-message-hook}.  When the hook functions are invoked,
@@ -1490,7 +1490,7 @@ the machine on which to look for the POP server.
 @c FIXME mention --with-hesiod "support Hesiod to get the POP server host"?
 
 @cindex IMAP mailboxes
-  Another method for accessing remote mailboxes is IMAP.  This method is
+  Another method for accessing remote mailboxes is IMAP@.  This method is
 supported only by the Mailutils @code{movemail}.  To specify an IMAP
 mailbox in the inbox list, use the following mailbox @acronym{URL}:
 @samp{imap://@var{username}[:@var{password}]@@@var{hostname}}.  The

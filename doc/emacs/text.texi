@@ -818,10 +818,10 @@ indenting the current line.  @xref{Indentation}, for details.
 
   Text mode turns off the features concerned with comments except when
 you explicitly invoke them.  It changes the syntax table so that
-single-quotes are considered part of words (e.g.@: @samp{don't} is
+single-quotes are considered part of words (e.g., @samp{don't} is
 considered one word).  However, if a word starts with a single-quote,
 it is treated as a prefix for the purposes of capitalization
-(e.g.@: @kbd{M-c} converts @samp{'hello'} into @samp{'Hello'}, as
+(e.g., @kbd{M-c} converts @samp{'hello'} into @samp{'Hello'}, as
 expected).
 
 @cindex Paragraph-Indent Text mode
@@ -1096,9 +1096,9 @@ direct and indirect, and all of their bodies.
 current heading line as well as all the bodies in its subtree; the
 subheadings themselves are left visible.  The command @kbd{C-c C-k}
 (@code{show-branches}) reveals the subheadings, if they had previously
-been hidden (e.g.@: by @kbd{C-c C-d}).  The command @kbd{C-c C-i}
+been hidden (e.g., by @kbd{C-c C-d}).  The command @kbd{C-c C-i}
 (@code{show-children}) is a weaker version of this; it reveals just
-the direct subheadings, i.e.@: those one level down.
+the direct subheadings, i.e., those one level down.
 
 @findex hide-other
 @kindex C-c C-o @r{(Outline mode)}
@@ -1177,7 +1177,7 @@ in the mode line shows how deep you've gone.
 
   When zooming in on a heading, to see only the child subheadings specify
 a numeric argument: @kbd{C-u C-c C-z}.  The number of levels of children
-can be specified too (compare @kbd{M-x show-children}), e.g.@: @kbd{M-2
+can be specified too (compare @kbd{M-x show-children}), e.g., @kbd{M-2
 C-c C-z} exposes two levels of child subheadings.  Alternatively, the
 body can be specified with a negative argument: @kbd{M-- C-c C-z}.  The
 whole subtree can be expanded, similarly to @kbd{C-c C-s} (@kbd{M-x
@@ -1349,7 +1349,7 @@ date, beneath the heading line.  The command @kbd{C-c C-d}
   Once you have some TODO items planned in an Org file, you can add
 that file to the list of @dfn{agenda files} by typing @kbd{C-c [}
 (@code{org-agenda-file-to-front}).  Org mode is designed to let you
-easily maintain multiple agenda files, e.g.@: for organizing different
+easily maintain multiple agenda files, e.g., for organizing different
 aspects of your life.  The list of agenda files is stored in the
 variable @code{org-agenda-files}.
 
@@ -1372,7 +1372,7 @@ etc.
 export and publication.  To export the current buffer, type @kbd{C-c
 C-e} (@code{org-export}) anywhere in an Org buffer.  This command
 prompts for an export format; currently supported formats include
-HTML, @LaTeX{}, OpenDocument (@file{.odt}), and PDF.  Some formats,
+HTML, @LaTeX{}, OpenDocument (@file{.odt}), and PDF@.  Some formats,
 such as PDF, require certain system tools to be installed.
 
 @vindex org-publish-project-alist
@@ -1606,7 +1606,7 @@ when you type the corresponding one.
 @subsection @TeX{} Printing Commands
 
   You can invoke @TeX{} as an subprocess of Emacs, supplying either
-the entire contents of the buffer or just part of it (e.g.@: one
+the entire contents of the buffer or just part of it (e.g., one
 chapter of a larger document).
 
 @table @kbd
@@ -1681,7 +1681,7 @@ determined by the variable @code{tex-dvi-print-command}.
 shell command strings described in the preceding paragraph.  For
 example, if @code{tex-dvi-view-command} is @code{"xdvi"}, @kbd{C-c
 C-v} runs @command{xdvi @var{output-file-name}}.  In some cases,
-however, the file name needs to be embedded in the command, e.g.@: if
+however, the file name needs to be embedded in the command, e.g., if
 you need to provide the file name as an argument to one command whose
 output is piped to another.  You can specify where to put the file
 name with @samp{*} in the command string.  For example,
@@ -1936,7 +1936,7 @@ Emacs.
 
 @vindex sgml-xml-mode
   You may choose to use the less powerful SGML mode for editing XML,
-since XML is a strict subset of SGML.  To enable SGML mode in an
+since XML is a strict subset of SGML@.  To enable SGML mode in an
 existing buffer, type @kbd{M-x sgml-mode}.  On enabling SGML mode,
 Emacs examines the buffer to determine whether it is XML; if so, it
 sets the variable @code{sgml-xml-mode} to a non-@code{nil} value.
@@ -1950,7 +1950,7 @@ always insert explicit closing tags as well.
 @findex nroff-mode
 @vindex nroff-mode-hook
   Nroff mode, a major mode derived from Text mode, is
-specialized for editing nroff files (e.g.@: Unix man pages).  Type
+specialized for editing nroff files (e.g., Unix man pages).  Type
 @kbd{M-x nroff-mode} to enter this mode.  Entering Nroff mode runs the
 hook @code{text-mode-hook}, then @code{nroff-mode-hook}
 (@pxref{Hooks}).
@@ -2706,7 +2706,7 @@ and 3 rows, and a total of 5 cells.
 
 @findex table-insert-sequence
   @kbd{M-x table-insert-sequence} inserts a string into each cell.
-Each string is a part of a sequence i.e.@: a series of increasing
+Each string is a part of a sequence i.e., a series of increasing
 integer numbers.
 
 @cindex table for HTML and LaTeX
