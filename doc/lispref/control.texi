@@ -285,6 +285,110 @@ For example:
 @end group
 @end example
 
+@menu
+* Pattern maching case statement::
+@end menu
+
+@node Pattern maching case statement
+@subsection Pattern maching case statement
+@cindex pcase
+@cindex pattern matching
+
+To compare a particular value against various possible cases, the macro
+@code{pcase} can come handy.  It takes the following form:
+
+@example
+(pcase @var{exp} @var{branch}1 @var{branch}2 @var{branch}3 @dots{})
+@end example
+
+where each @var{branch} takes the form @code{(@var{upattern}
+@var{body-forms}@dots{})}.
+
+It will first evaluate @var{exp} and then compare the value against each
+@var{upattern} to see which @var{branch} to use, after which it will run the
+corresponding @var{body-forms}.  A common use case is to distinguish
+between a few different constant values:
+
+@example
+(pcase (get-return-code x)
+  (`success       (message "Done!"))
+  (`would-block   (message "Sorry, can't do it now"))
+  (`read-only     (message "The shmliblick is read-only"))
+  (`access-denied (message "You do not have the needed rights"))
+  (code           (message "Unknown return code %S" code)))
+@end example
+
+In the last clause, @code{code} is a variable that gets bound to the value that
+was returned by @code{(get-return-code x)}.
+
+To give a more complex example, a simple interpreter for a little
+expression language could look like:
+
+@example
+(defun evaluate (exp env)
+  (pcase exp
+    (`(add ,x ,y)         (+ (evaluate x env) (evaluate y env)))
+    (`(call ,fun ,arg)    (funcall (evaluate fun) (evaluate arg env)))
+    (`(fn ,arg ,body)     (lambda (val)
+                            (evaluate body (cons (cons arg val) env))))
+    ((pred numberp)       exp)
+    ((pred symbolp)       (cdr (assq exp env)))
+    (_                    (error "Unknown expression %S" exp))))
+@end example
+
+Where @code{`(add ,x ,y)} is a pattern that checks that @code{exp} is a three
+element list starting with the symbol @code{add}, then extracts the second and
+third elements and binds them to the variables @code{x} and @code{y}.
+@code{(pred numberp)} is a pattern that simply checks that @code{exp}
+is a number, and @code{_} is the catch-all pattern that matches anything.
+
+There are two kinds of patterns involved in @code{pcase}, called
+@emph{U-patterns} and @emph{Q-patterns}.  The @var{upattern} mentioned above
+are U-patterns and can take the following forms:
+
+@table @code
+@item `@var{qpattern}
+This is one of the most common form of patterns.  The intention is to mimic the
+backquote macro: this pattern matches those values that could have been built
+by such a backquote expression.  Since we're pattern matching rather than
+building a value, the unquote does not indicate where to plug an expression,
+but instead it lets one specify a U-pattern that should match the value at
+that location.
+
+More specifically, a Q-pattern can take the following forms:
+@table @code
+@item (@var{qpattern1} . @var{qpattern2})
+This pattern matches any cons cell whose @code{car} matches @var{QPATTERN1} and
+whose @code{cdr} matches @var{PATTERN2}.
+@item @var{atom}
+This pattern matches any atom @code{equal} to @var{atom}.
+@item ,@var{upattern}
+This pattern matches any object that matches the @var{upattern}.
+@end table
+
+@item @var{symbol}
+A mere symbol in a U-pattern matches anything, and additionally let-binds this
+symbol to the value that it matched, so that you can later refer to it, either
+in the @var{body-forms} or also later in the pattern.
+@item _
+This so-called @emph{don't care} pattern matches anything, like the previous
+one, but unless symbol patterns it does not bind any variable.
+@item (pred @var{pred})
+This pattern matches if the function @var{pred} returns non-@code{nil} when
+called with the object being matched.
+@item (or @var{upattern1} @var{upattern2}@dots{})
+This pattern matches as soon as one of the argument patterns succeeds.
+All argument patterns should let-bind the same variables.
+@item (and @var{upattern1} @var{upattern2}@dots{})
+This pattern matches only if all the argument patterns succeed.
+@item (guard @var{exp})
+This pattern ignores the object being examined and simply succeeds if @var{exp}
+evaluates to non-@code{nil} and fails otherwise.  It is typically used inside
+an @code{and} pattern.  For example, @code{(and x (guard (< x 10)))}
+is a pattern which matches any number smaller than 10 and let-binds it to
+the variable @code{x}.
+@end table
+
 @node Combining Conditions
 @section Constructs for Combining Conditions
 

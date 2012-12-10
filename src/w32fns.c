@@ -7036,7 +7036,7 @@ cache_system_info (void)
 
   /* Cache page size, allocation unit, processor type, etc.  */
   GetSystemInfo (&sysinfo_cache);
-  syspage_mask = sysinfo_cache.dwPageSize - 1;
+  syspage_mask = (DWORD_PTR)sysinfo_cache.dwPageSize - 1;
 
   /* Cache os info.  */
   osinfo_cache.dwOSVersionInfoSize = sizeof (OSVERSIONINFO);

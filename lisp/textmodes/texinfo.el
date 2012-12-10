@@ -678,7 +678,8 @@ Puts point on a blank line between them."
 	 (not (match-end 1)))))
 
 (defvar texinfo-enable-quote-macros "@\\(code\\|samp\\|kbd\\)\\>")
-(defvar texinfo-enable-quote-envs '("example\\>" "lisp\\>"))
+(defvar texinfo-enable-quote-envs
+  '("example\\>" "smallexample\\>" "lisp\\>"))
 (defun texinfo-insert-quote (&optional arg)
   "Insert the appropriate quote mark for Texinfo.
 Usually inserts the value of `texinfo-open-quote' (normally ``) or

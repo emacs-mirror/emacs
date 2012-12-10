@@ -4225,6 +4225,7 @@ This has an effect only if a summary buffer exists."
 ;; Put the summary buffer back on the screen, if user wants that.
 (defun rmail-maybe-display-summary ()
   (let ((selected (selected-window))
+	(buffer (current-buffer))
 	window)
     ;; If requested, make sure the summary is displayed.
     (and rmail-summary-buffer (buffer-name rmail-summary-buffer)
@@ -4246,7 +4247,8 @@ This has an effect only if a summary buffer exists."
 	     (progn
 	       (select-window window)
 	       (enlarge-window (- rmail-summary-window-size (window-height))))
-	   (select-window selected)))))
+	   (select-window selected)
+	   (set-buffer buffer)))))
 
 ;;;; *** Rmail Local Fontification ***
 

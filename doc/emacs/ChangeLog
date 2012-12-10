@@ -1,3 +1,7 @@
+2012-12-10  Dani Moncayo  <dmoncayo@gmail.com>
+
+	* killing.texi (Deletion): Doc fix (Bug#12748).
+
 2012-12-06  Paul Eggert  <eggert@cs.ucla.edu>
 
 	* doclicense.texi, gpl.texi: Update to latest version from FSF.

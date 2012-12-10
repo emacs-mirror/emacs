@@ -113,12 +113,6 @@ printer proceeds to the next function on the list.
 This variable is not used at present, but it is defined in hopes that
 a future Emacs interpreter will be able to use it.")
 
-(defun cl-unload-function ()
-  "Stop unloading of the Common Lisp extensions."
-  (message "Cannot unload the feature `cl'")
-  ;; Stop standard unloading!
-  t)
-
 ;;; Generalized variables.
 ;; These macros are defined here so that they
 ;; can safely be used in init files.
@@ -745,8 +739,6 @@ If ALIST is non-nil, the new pairs are prepended to it."
 (load "cl-loaddefs" nil 'quiet)
 
 (provide 'cl-lib)
-
-(run-hooks 'cl-load-hook)
 
 ;; Local variables:
 ;; byte-compile-dynamic: t

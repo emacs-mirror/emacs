@@ -438,8 +438,8 @@ For registered files, the possible values are:
 (defun vc-state (file &optional backend)
   "Return the version control state of FILE.
 
-If FILE is not registered, this function always returns nil.
-For registered files, the value returned is one of:
+A return of nil from this function means we have no information on the
+status of this file.  Otherwise, the value returned is one of:
 
   'up-to-date        The working file is unmodified with respect to the
                      latest version on the current branch, and not locked.
@@ -491,10 +491,8 @@ For registered files, the value returned is one of:
                      that any file with vc-state nil might be ignorable
                      without VC knowing it.
 
-  'unregistered      The file is not under version control.
+  'unregistered      The file is not under version control."
 
-A return of nil from this function means we have no information on the
-status of this file."
   ;; Note: in Emacs 22 and older, return of nil meant the file was
   ;; unregistered.  This is potentially a source of
   ;; backward-compatibility bugs.

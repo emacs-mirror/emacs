@@ -840,6 +840,10 @@ that substring is inserted literally even if the LITERAL arg is
 non-nil, instead of causing an error to be signaled.
 
 +++
+** `select-window' now always makes the window's buffer current.
+It does so even if the window was selected before.
+
++++
 ** Docstrings starting with `*' no longer indicate user options.
 Only variables defined using `defcustom' are considered user options.
 The function `user-variable-p' is now an obsolete alias for

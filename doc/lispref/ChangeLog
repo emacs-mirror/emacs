@@ -1,3 +1,10 @@
+2012-12-10  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* control.texi (Pattern maching case statement): New node.
+
+	* customize.texi (Variable Definitions): Mention the default :group
+	for defcustoms (bug#13093).
+
 2012-12-09  Glenn Morris  <rgm@gnu.org>
 
 	* customize.texi (Variable Definitions): Mention eval-defun
@@ -27,7 +34,7 @@
 	* display.texi (Defining Faces):
 	* sequences.texi (Char-Tables): Fix xref.
 
-	* keymaps.texi (Key Sequences): kbd is now a function.
+	* keymaps.texi (Key Sequences): `kbd' is now a function.
 
 	* commands.texi (Using Interactive): Fix index entry.
 
@@ -47,16 +54,14 @@
 	(Windows and Frames): Fix example.  Move description of
 	window-in-direction here.
 	(Recombining Windows): Fix example.
-	(Buffers and Windows): Fix description of
-	replace-buffer-in-windows.
+	(Buffers and Windows): Fix description of replace-buffer-in-windows.
 	(Switching Buffers): Reword.
 	(Display Action Functions): Minor adjustments.
 	(Choosing Window Options): Minor fixes.
 	(Window History): Minor rewording.
 	(Dedicated Windows): Correct and reword part describing how
 	dedicatedness affects functions removing buffers or windows.
-	* buffers.texi (The Buffer List): Fix description of
-	bury-buffer.
+	* buffers.texi (The Buffer List): Fix description of bury-buffer.
 
 2012-11-24  Chong Yidong  <cyd@gnu.org>
 
@@ -115,8 +120,8 @@
 
 	* windows.texi (Choosing Window): Rewrite description of
 	display-buffer-alist (Bug#12167).
-	(Display Action Functions): Mention inhibit-switch-frame.  Fix
-	description of display-buffer-below-selected.  Reorder actions.
+	(Display Action Functions): Mention inhibit-switch-frame.
+	Fix description of display-buffer-below-selected.  Reorder actions.
 	Add example (Bug#12848).
 
 2012-11-16  Glenn Morris  <rgm@gnu.org>
@@ -215,11 +220,11 @@
 	switch-to-buffer-preserve-window-point.
 	(Display Action Functions): Document window-height and
 	window-width alist entries.
-	(Display Action Functions): Document
-	display-buffer-below-selected and
+	(Display Action Functions):
+	Document display-buffer-below-selected and
 	display-buffer-in-previous-window.
-	(Quitting Windows): Document quit-restore-window.  Rewrite
-	section.
+	(Quitting Windows): Document quit-restore-window.
+	Rewrite section.
 	(Window Configurations): In window-state-get mention that
 	argument window must be valid.
 	(Window Parameters): Document quit-restore window parameter
@@ -319,8 +324,8 @@
 	* minibuf.texi (Text from Minibuffer): Document read-regexp
 	changes.
 
-	* nonascii.texi (Selecting a Representation): Document
-	set-buffer-multibyte changes.
+	* nonascii.texi (Selecting a Representation):
+	Document set-buffer-multibyte changes.
 
 	* keymaps.texi (Toolkit Differences): Node deleted.
 	(Easy Menu): New node.
@@ -1092,8 +1097,8 @@
 
 2012-04-12  Jari Aalto  <jari.aalto@cante.net>
 
-	* processes.texi (Synchronous Processes): Mention
-	`default-directory' (bug#7515).
+	* processes.texi (Synchronous Processes):
+	Mention `default-directory' (bug#7515).
 
 2012-04-09  Chong Yidong  <cyd@gnu.org>
 
@@ -1116,8 +1121,8 @@
 
 	* minibuf.texi (Programmed Completion): Remove obsolete variable
 	completion-annotate-function.
-	(Completion Variables): Rename from Completion Styles.  Document
-	completion-extra-properties.  Document completion-styles-alist
+	(Completion Variables): Rename from Completion Styles.
+	Document completion-extra-properties.  Document completion-styles-alist
 	change.
 	(Reading File Names): minibuffer-local-filename-must-match-map is
 	not used anymore.
@@ -1252,8 +1257,8 @@
 	Minor clarifications.
 	(Defining Faces): Copyedits.  Update face example.
 	(Attribute Functions): Mark set-face-foreground etc as commands.
-	(Face Remapping): Mention text-scale-adjust.  Clarify
-	face-remapping-alist and related docs.
+	(Face Remapping): Mention text-scale-adjust.
+	Clarify face-remapping-alist and related docs.
 	(Face Functions): Don't document make-face or copy-face.
 
 2012-03-20  Chong Yidong  <cyd@gnu.org>
@@ -1594,8 +1599,8 @@
 	(Syntax Properties): Document syntax-propertize-function and
 	syntax-propertize-extend-region-functions.
 	(Motion via Parsing): Clarify scan-lists. Fix indentation.
-	(Parser State): Update for the new "c" comment style.  Fix
-	description of item 7 (comment style).
+	(Parser State): Update for the new "c" comment style.
+	Fix description of item 7 (comment style).
 
 	* modes.texi (Minor Modes): Update how mode commands should treat
 	arguments now.
@@ -1673,9 +1678,9 @@
 
 	* debugging.texi (Debugging): Copyedits.  Describe testcover, ERT.
 	(Error Debugging): Note that debug-ignored-errors overrides list
-	values of debug-on-error too.  Add xref to Signaling Errors.  Note
-	that debug-on-signal is not customizable.  Mention
-	condition-case-unless-debug.
+	values of debug-on-error too.  Add xref to Signaling Errors.
+	Note that debug-on-signal is not customizable.
+	Mention condition-case-unless-debug.
 	(Compilation Errors): Node deleted.
 
 	* compile.texi (Compiler Errors): Move a paragraph here from
@@ -1791,15 +1796,15 @@
 2012-02-04  Chong Yidong  <cyd@gnu.org>
 
 	* functions.texi (What Is a Function): Add closures.  Mention
-	"return value" terminology.  Add xref for command-execute.  Remove
-	unused "keystroke command" terminology.
+	"return value" terminology.  Add xref for command-execute.
+	Remove unused "keystroke command" terminology.
 	(Lambda Expressions): Give a different example than in the
 	following subsection.  Add xref to Anonymous Functions.
 	(Function Documentation): Remove gratuitous markup.
 	(Function Names): Move introductory text to `What Is a Function'.
 	(Defining Functions): Fix defun argument spec.
-	(Anonymous Functions): Document lambda macro explicitly.  Mention
-	effects on lexical binding.
+	(Anonymous Functions): Document lambda macro explicitly.
+	Mention effects on lexical binding.
 	(Function Cells): Downplay direct usage of fset.
 	(Closures): New node.
 	(Inline Functions): Remove "open-code" terminology.
@@ -1930,8 +1935,8 @@
 	* variables.texi (Variables, Local Variables, Void Variables):
 	Edit to make the descriptions less specific to dynamic binding.
 	(Local Variables): Default max-specpdl-size is now 1300.
-	(Defining Variables): Edits for lexical scoping.  Delete
-	information about starting docstrings with *.  De-document
+	(Defining Variables): Edits for lexical scoping.
+	Delete information about starting docstrings with *.  De-document
 	user-variable-p.
 	(Tips for Defining): Remove an unimportant discussion of quitting
 	in the middle of a load.
@@ -2019,8 +2024,8 @@
 
 2012-01-06  Chong Yidong  <cyd@gnu.org>
 
-	* variables.texi (Directory Local Variables): Document
-	hack-dir-local-variables-non-file-buffer.
+	* variables.texi (Directory Local Variables):
+	Document hack-dir-local-variables-non-file-buffer.
 
 2012-01-06  Glenn Morris  <rgm@gnu.org>
 

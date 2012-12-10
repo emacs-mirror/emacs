@@ -569,37 +569,39 @@ This allows you to manually remove highlighting from uninteresting changes."
 		   highlight-changes-visible-mode)
 	      (hilit-chg-fixup beg end))
         (highlight-save-buffer-state
-          (if (and (= beg end) (> leng-before 0))
-              ;; deletion
-              (progn
-                ;; The eolp and bolp tests are a kludge!  But they prevent
-                ;; rather nasty looking displays when deleting text at the end
-                ;; of line, such as normal corrections as one is typing and
-                ;; immediately makes a correction, and when deleting first
-                ;; character of a line.
-                ;; (if (= leng-before 1)
-                ;;     (if (eolp)
-                ;;         (setq beg-decr 0 end-incr 0)
-                ;;       (if (bolp)
-                ;;   	(setq beg-decr 0))))
-                ;; (setq beg (max (- beg beg-decr) (point-min)))
-                (setq end (min (+ end end-incr) (point-max)))
-                (setq type 'hilit-chg-delete))
-            ;; Not a deletion.
-            ;; Most of the time the following is not necessary, but
-            ;; if the current text was marked as a deletion then
-            ;; the old overlay is still in effect, so if we add some
-            ;; text then remove the deletion marking, but set it to
-	  ;; changed otherwise its highlighting disappears.
-	  (if (eq (get-text-property end 'hilit-chg) 'hilit-chg-delete)
-	      (progn
-		(put-text-property end (+ end 1) 'hilit-chg 'hilit-chg)
-		(if highlight-changes-visible-mode
-		    (hilit-chg-fixup beg (+ end 1))))))
-          (unless no-property-change
-            (put-text-property beg end 'hilit-chg type))
-          (if (or highlight-changes-visible-mode no-property-change)
-              (hilit-chg-make-ov type beg end)))))))
+         (if (and (= beg end) (> leng-before 0))
+             ;; deletion
+             (progn
+               ;; The eolp and bolp tests are a kludge!  But they prevent
+               ;; rather nasty looking displays when deleting text at the end
+               ;; of line, such as normal corrections as one is typing and
+               ;; immediately makes a correction, and when deleting first
+               ;; character of a line.
+               ;; (if (= leng-before 1)
+               ;;     (if (eolp)
+               ;;         (setq beg-decr 0 end-incr 0)
+               ;;       (if (bolp)
+               ;;   	(setq beg-decr 0))))
+               ;; (setq beg (max (- beg beg-decr) (point-min)))
+               (setq end (min (+ end end-incr) (point-max)))
+               (setq type 'hilit-chg-delete))
+           ;; Not a deletion.
+           ;; Most of the time the following is not necessary, but
+           ;; if the current text was marked as a deletion then
+           ;; the old overlay is still in effect.  So if the user adds some
+           ;; text where she earlier deleted text, we have to remove the
+           ;; deletion marking, and replace it explicitly with a `changed'
+           ;; marking, otherwise its highlighting would disappear.
+           (if (eq (get-text-property end 'hilit-chg) 'hilit-chg-delete)
+               (save-restriction
+                 (widen)
+                 (put-text-property end (+ end 1) 'hilit-chg 'hilit-chg)
+                 (if highlight-changes-visible-mode
+                     (hilit-chg-fixup beg (+ end 1))))))
+         (unless no-property-change
+           (put-text-property beg end 'hilit-chg type))
+         (if (or highlight-changes-visible-mode no-property-change)
+             (hilit-chg-make-ov type beg end)))))))
 
 (defun hilit-chg-update ()
   "Update a buffer's highlight changes when visibility changed."

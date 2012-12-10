@@ -2025,7 +2025,11 @@ whether or not it is currently displayed in some window.  */)
 	  const char *s = SSDATA (it.string);
 	  const char *e = s + SBYTES (it.string);
 
-	  disp_string_at_start_p = it.string_from_display_prop_p;
+	  /* If it.area is anything but TEXT_AREA, we need not bother
+	     about the display string, as it doesn't affect cursor
+	     positioning.  */
+	  disp_string_at_start_p =
+	    it.string_from_display_prop_p && it.area == TEXT_AREA;
 	  while (s < e)
 	    {
 	      if (*s++ == '\n')

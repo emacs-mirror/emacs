@@ -4525,12 +4525,16 @@ The default is nil, which means use the function `read'.  */);
   Vload_read_function = Qnil;
 
   DEFVAR_LISP ("load-source-file-function", Vload_source_file_function,
-	       doc: /* Function called in `load' for loading an Emacs Lisp source file.
-This function is for doing code conversion before reading the source file.
-If nil, loading is done without any code conversion.
-Arguments are FULLNAME, FILE, NOERROR, NOMESSAGE, where
- FULLNAME is the full name of FILE.
-See `load' for the meaning of the remaining arguments.  */);
+	       doc: /* Function called in `load' to load an Emacs Lisp source file.
+The value should be a function for doing code conversion before
+reading a source file.  It can also be nil, in which case loading is
+done without any code conversion.
+
+If the value is a function, it is called with four arguments,
+FULLNAME, FILE, NOERROR, NOMESSAGE.  FULLNAME is the absolute name of
+the file to load, FILE is the non-absolute name (for messages etc.),
+and NOERROR and NOMESSAGE are the corresponding arguments passed to
+`load'.  The function should return t if the file was loaded.  */);
   Vload_source_file_function = Qnil;
 
   DEFVAR_BOOL ("load-force-doc-strings", load_force_doc_strings,

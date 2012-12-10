@@ -1,3 +1,31 @@
+2012-12-10  Dani Moncayo <dmoncayo@gmail.com>
+
+	* simple.el (just-one-space): Doc fix.
+
+2012-12-10  Eli Zaretskii  <eliz@gnu.org>
+
+	* textmodes/texinfo.el (texinfo-enable-quote-envs): Add
+	"smallexample".
+
+2012-12-10  Le Wang  <l26wang@gmail.com>
+
+	* hilit-chg.el (hilit-chg-set-face-on-change): Don't burp in
+	narrowed buffer (bug#12361).
+
+2012-12-10  Juanma Barranquero  <lekktu@gmail.com>
+
+	* vc/vc-hooks.el (vc-state): Doc fix.
+
+2012-12-10  Glenn Morris  <rgm@gnu.org>
+
+	* mail/rmail.el (rmail-maybe-display-summary):
+	Preserve buffer, in case select-window changes it.  (Bug#13066)
+
+2012-12-10  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* emacs-lisp/cl.el, emacs-lisp/cl-lib.el: Move cl-unload-function and
+	cl-load-hook where they belong.
+
 2012-12-10  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* emacs-lisp/cl-lib.el (cl-declaim): Paren typo.
@@ -4379,7 +4407,7 @@
 	* calendar/cal-tex.el (cal-tex-weekly-common):
 	Restore leading blank page.
 
-2012-08-22  Le Wang  <l26wang@gmail.com>  (tiny change)
+2012-08-22  Le Wang  <l26wang@gmail.com>
 
 	* misc.el (forward-to-word, backward-to-word): Activate or extend
 	the region under `shift-select-mode'.  (Bug#12231)

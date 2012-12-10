@@ -1,3 +1,31 @@
+2012-12-10  Jan Djärv  <jan.h.d@swipnet.se>
+
+	* nsterm.m (fd_handler:): FD_ZERO fds (Bug#13103).
+
+2012-12-10  Fabrice Popineau  <fabrice.popineau@gmail.com>
+
+	* w32fns.c (cache_system_info): Cast sysinfo_cache.dwPageSize to
+	DWORD_PTR, for compatibility with 64-bit builds.
+
+	* w32.c (_PROCESS_MEMORY_COUNTERS_EX):
+	(GetProcessWorkingSetSize_Proc, get_process_working_set_size)
+	(system_process_attributes): Use SIZE_T rather than DWORD, for
+	compatibility with 64-bit builds.
+
+2012-12-10  Christopher Schmidt  <christopher@ch.ristopher.com>
+
+	* lread.c (Vload_source_file_function): Doc fix (Bug#11647).
+
+2012-12-10  Eli Zaretskii  <eliz@gnu.org>
+
+	* indent.c (Fvertical_motion): If a display string will be
+	displayed on the left or the right margin, don't consider it as a
+	factor in cursor positioning.  (Bug#13108)
+
+2012-12-10  Martin Rudalics  <rudalics@gmx.at>
+
+	* editfns.c (Fcompare_buffer_substrings): Reword doc-string.
+
 2012-12-10  Paul Eggert  <eggert@cs.ucla.edu>
 
 	* fileio.c (Fsubstitute_in_file_name): Use ptrdiff_t, not int,

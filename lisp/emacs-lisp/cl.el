@@ -83,6 +83,12 @@
 ;;           (delete-region (1- (point)) (point)))
 ;;         (save-buffer)))))
 
+(defun cl-unload-function ()
+  "Stop unloading of the Common Lisp extensions."
+  (message "Cannot unload the feature `cl'")
+  ;; Stop standard unloading!
+  t)
+
 ;;; Aliases to cl-lib's features.
 
 (dolist (var '(
@@ -735,4 +741,7 @@ You can replace this macro with `gv-letplace'."
 	  (list accessor temp))))
 
 (provide 'cl)
+
+(run-hooks 'cl-load-hook)
+
 ;;; cl.el ends here
