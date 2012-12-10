@@ -211,7 +211,7 @@ enum event_kind
   , NS_NONKEY_EVENT
 #endif
 
-#ifdef HAVE_INOTIFY
+#if defined (HAVE_INOTIFY) || defined (HAVE_NTGUI)
   /* File or directory was changed.  */
   , FILE_NOTIFY_EVENT
 #endif

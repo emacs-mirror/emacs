@@ -2018,7 +2018,24 @@ count_children:
 	     (*) Note that MsgWaitForMultipleObjects above is an
 	     internal dispatch point for messages that are sent to
 	     windows created by this thread.  */
-	  drain_message_queue ();
+	  if (drain_message_queue ()
+	      /* If drain_message_queue returns non-zero, that means
+		 we received a WM_EMACS_FILENOTIFY message.  If this
+		 is a TTY frame, we must signal the caller that keyboard
+		 input is available, so that w32_console_read_socket
+		 will be called to pick up the notifications.  If we
+		 don't do that, file notifications will only work when
+		 the Emacs TTY frame has focus.  */
+	      && FRAME_TERMCAP_P (SELECTED_FRAME ())
+	      /* they asked for stdin reads */
+	      && FD_ISSET (0, &orfds)
+	      /* the stdin handle is valid */
+	      && keyboard_handle)
+	    {
+	      FD_SET (0, rfds);
+	      if (nr == 0)
+		nr = 1;
+	    }
 	}
       else if (active >= nh)
 	{

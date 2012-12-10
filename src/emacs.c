@@ -1287,6 +1287,7 @@ Using an Emacs configured with --with-x-toolkit=lucid does not have this problem
 
 #ifdef WINDOWSNT
   globals_of_w32 ();
+  globals_of_w32notify ();
   /* Initialize environment from registry settings.  */
   init_environment (argv);
   init_ntproc (dumping); /* must precede init_editfns.  */
@@ -1452,6 +1453,7 @@ Using an Emacs configured with --with-x-toolkit=lucid does not have this problem
 
 #ifdef WINDOWSNT
       syms_of_ntterm ();
+      syms_of_w32notify ();
 #endif /* WINDOWSNT */
 
       syms_of_profiler ();

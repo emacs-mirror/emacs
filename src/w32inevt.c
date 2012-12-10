@@ -576,6 +576,74 @@ maybe_generate_resize_event (void)
 		     0, 0, 0);
 }
 
+static int
+handle_file_notifications (struct input_event *hold_quit)
+{
+  BYTE *p = file_notifications;
+  FILE_NOTIFY_INFORMATION *fni = (PFILE_NOTIFY_INFORMATION)p;
+  const DWORD min_size
+    = offsetof (FILE_NOTIFY_INFORMATION, FileName) + sizeof(wchar_t);
+  struct input_event inev;
+  int nevents = 0;
+
+  /* We cannot process notification before Emacs is fully initialized,
+     since we need the UTF-16LE coding-system to be set up.  */
+  if (!initialized)
+    {
+      notification_buffer_in_use = 0;
+      return nevents;
+    }
+
+  enter_crit ();
+  if (notification_buffer_in_use)
+    {
+      DWORD info_size = notifications_size;
+      Lisp_Object cs = intern ("utf-16le");
+      Lisp_Object obj = w32_get_watch_object (notifications_desc);
+
+      /* notifications_size could be zero when the buffer of
+	 notifications overflowed on the OS level, or when the
+	 directory being watched was itself deleted.  Do nothing in
+	 that case.  */
+      if (info_size
+	  && !NILP (obj) && CONSP (obj))
+	{
+	  Lisp_Object callback = XCDR (obj);
+
+	  EVENT_INIT (inev);
+
+	  while (info_size >= min_size)
+	    {
+	      Lisp_Object utf_16_fn
+		= make_unibyte_string ((char *)fni->FileName,
+				       fni->FileNameLength);
+	      /* Note: mule-conf is preloaded, so utf-16le must
+		 already be defined at this point.  */
+	      Lisp_Object fname
+		= code_convert_string_norecord (utf_16_fn, cs, 0);
+	      Lisp_Object action = lispy_file_action (fni->Action);
+
+	      inev.kind = FILE_NOTIFY_EVENT;
+	      inev.code = (ptrdiff_t)XINT (XIL ((EMACS_INT)notifications_desc));
+	      inev.timestamp = GetTickCount ();
+	      inev.modifiers = 0;
+	      inev.frame_or_window = callback;
+	      inev.arg = Fcons (action, fname);
+	      kbd_buffer_store_event_hold (&inev, hold_quit);
+
+	      if (!fni->NextEntryOffset)
+		break;
+	      p += fni->NextEntryOffset;
+	      fni = (PFILE_NOTIFY_INFORMATION)p;
+	      info_size -= fni->NextEntryOffset;
+	    }
+	}
+      notification_buffer_in_use = 0;
+    }
+  leave_crit ();
+  return nevents;
+}
+
 /* Here's an overview of how Emacs input works in non-GUI sessions on
    MS-Windows.  (For description of the GUI input, see the commentary
    before w32_msg_pump in w32fns.c.)
@@ -619,12 +687,16 @@ w32_console_read_socket (struct terminal *terminal,
 
   for (;;)
     {
+      int nfnotify = handle_file_notifications (hold_quit);
+
       nev = fill_queue (0);
       if (nev <= 0)
         {
 	  /* If nev == -1, there was some kind of error
-	     If nev == 0 then waitp must be zero and no events were available
+	     If nev == 0 then no events were available
 	     so return.  */
+	  if (nfnotify)
+	    nev = 0;
 	  break;
         }
 

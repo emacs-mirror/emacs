@@ -3957,6 +3957,9 @@ w32_wnd_proc (HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
 
 	return retval;
       }
+    case WM_EMACS_FILENOTIFY:
+      my_post_msg (&wmsg, hwnd, msg, wParam, lParam);
+      return 1;
 
     default:
       /* Check for messages registered at runtime. */

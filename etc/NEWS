@@ -136,7 +136,8 @@ spurious warnings about an unused var.
 ** Support for filesystem notifications.
 Emacs now supports notifications of filesystem changes, such as
 creation, modification, and deletion of files.  This requires the
-'inotify' API on GNU/Linux systems.
+'inotify' API on GNU/Linux systems.  On MS-Windows systems, this is
+supported for Windows XP and newer versions.
 
 ** Face changes
 

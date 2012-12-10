@@ -602,7 +602,8 @@ do { \
 #define WM_EMACS_PAINT                 (WM_EMACS_START + 20)
 #define WM_EMACS_BRINGTOTOP            (WM_EMACS_START + 21)
 #define WM_EMACS_INPUT_READY           (WM_EMACS_START + 22)
-#define WM_EMACS_END                   (WM_EMACS_START + 23)
+#define WM_EMACS_FILENOTIFY            (WM_EMACS_START + 23)
+#define WM_EMACS_END                   (WM_EMACS_START + 24)
 
 #define WND_FONTWIDTH_INDEX    (0)
 #define WND_LINEHEIGHT_INDEX   (4)
@@ -652,7 +653,7 @@ extern void deselect_palette (struct frame * f, HDC hdc);
 extern HDC get_frame_dc (struct frame * f);
 extern int release_frame_dc (struct frame * f, HDC hDC);
 
-extern void drain_message_queue (void);
+extern int drain_message_queue (void);
 
 extern BOOL get_next_msg (W32Msg *, BOOL);
 extern BOOL post_msg (W32Msg *);
@@ -662,9 +663,16 @@ extern BOOL parse_button (int, int, int *, int *);
 
 extern void w32_sys_ring_bell (struct frame *f);
 extern void x_delete_display (struct w32_display_info *dpyinfo);
+
+extern volatile int notification_buffer_in_use;
+extern BYTE file_notifications[16384];
+extern DWORD notifications_size;
+extern void *notifications_desc;
+extern Lisp_Object w32_get_watch_object (void *);
+extern Lisp_Object lispy_file_action (DWORD);
+
 extern void w32_initialize_display_info (Lisp_Object);
 extern void initialize_w32_display (struct terminal *);
-
 
 /* Keypad command key support.  W32 doesn't have virtual keys defined
    for the function keys on the keypad (they are mapped to the standard
@@ -759,6 +767,7 @@ extern void syms_of_w32fns (void);
 
 extern void globals_of_w32menu (void);
 extern void globals_of_w32fns (void);
+extern void globals_of_w32notify (void);
 
 #ifdef CYGWIN
 extern int w32_message_fd;

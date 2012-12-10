@@ -1,5 +1,63 @@
+2012-12-10  Eli Zaretskii  <eliz@gnu.org>
+
+	Support for filesystem notifications on MS-Windows.
+	* w32proc.c (sys_select): If drain_message_queue returns non-zero,
+	and this is a TTY frame, signal the caller that keyboard input is
+	available.
+
+	* w32xfns.c (drain_message_queue): Now returns an int: an
+	indication whether any WM_EMACS_FILENOTIFY messages were found in
+	the queue.
+
+	* w32inevt.c (handle_file_notifications): New function.
+	(w32_console_read_socket): Call it to process file notifications.
+
+	* w32console.c (initialize_w32_display): Record the main thread ID
+	in dwMainThreadId.
+
+	* deps.mk (inotify.o): New dependency list.
+
+	* Makefile.in (SOME_MACHINE_OBJECTS): Add w32notify.o.
+
+	* w32term.h (WM_EMACS_FILENOTIFY): New custom message.
+	(WM_EMACS_END): Bump value by 1.
+	(notification_buffer_in_use, file_notifications)
+	(notifications_size, notifications_desc): Declare.
+	(w32_get_watch_object, lispy_file_action, globals_of_w32notify):
+	Add prototypes.
+
+	* w32term.c (lispy_file_action, queue_notifications): New functions.
+	(syms_of_w32term) <Qadded, Qremoved, Qmodified, Qrenamed_from>
+	<Qrenamed_to>: New symbols.
+	(w32_read_socket): Handle the WM_EMACS_FILENOTIFY message.
+
+	* w32notify.c: New file, implements file event notifications for
+	MS-Windows.
+
+	* w32fns.c (w32_wnd_proc): Handle the WM_EMACS_FILENOTIFY message
+	by posting it to the w32_read_socket queue.
+
+	* termhooks.h (enum event_kind) [HAVE_NTGUI]: Support
+	FILE_NOTIFY_EVENT.
+
+	* makefile.w32-in (OBJ2): Add $(BLD)/w32notify.$(O).
+	(GLOBAL_SOURCES): Add w32notify.c
+	($(BLD)/w32notify.$(O)): New set of dependencies.
+
+	* lisp.h (syms_of_w32notify) [WINDOWSNT]: Add prototype.
+
+	* keyboard.c (kbd_buffer_get_event) [WINDOWSNT]: Handle
+	FILE_NOTIFY_EVENT.
+	(syms_of_keyboard) [HAVE_NTGUI] <Qfile_notify>: New symbol.
+	(keys_of_keyboard) [WINDOWSNT]: Bind file-notify to
+	w32notify-handle-event by default.
+
+	* emacs.c (main) [WINDOWSNT]: Call globals_of_w32notify and
+	syms_of_w32notify.
+
 2012-12-10  Rüdiger Sonderfeld  <ruediger@c-plusplus.de>
 
+	Support for filesystem notifications on GNU/Linux via inotify.
 	* termhooks.h (enum event_kind) [HAVE_INOTIFY]: Add
 	FILE_NOTIFY_EVENT.
 
