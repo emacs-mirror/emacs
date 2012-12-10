@@ -1584,8 +1584,6 @@ AC_SUBST(LIB_STANDARD)
 HAVE_W32=no
 W32_OBJ=
 W32_LIBS=
-W32_RES=
-W32_RES_LINK=
 if test "${with_w32}" != no; then
   if test "${opsys}" != "cygwin"; then
     AC_MSG_ERROR([Using w32 with an autotools build is only supported for Cygwin.])
@@ -1594,21 +1592,13 @@ if test "${with_w32}" != no; then
                   [AC_MSG_ERROR([`--with-w32' was specified, but windows.h
                   cannot be found.])])
   AC_DEFINE(HAVE_NTGUI, 1, [Define to use native MS Windows GUI.])
-  AC_CHECK_TOOL(WINDRES, [windres],
-                [AC_MSG_ERROR([No resource compiler found.])])
   W32_OBJ="w32fns.o w32menu.o w32reg.o w32font.o w32term.o"
   W32_OBJ="$W32_OBJ w32xfns.o w32select.o w32uniscribe.o"
   W32_LIBS="$W32_LIBS -lkernel32 -luser32 -lgdi32 -lole32 -lcomdlg32"
   W32_LIBS="$W32_LIBS -lusp10 -lcomctl32 -lwinspool"
-  W32_RES="emacs.res"
-  # Tell the linker that emacs.res is an object (which we compile from
-  # the rc file), not a linker script.
-  W32_RES_LINK="-Wl,-bpe-i386 -Wl,emacs.res"
 fi
 AC_SUBST(W32_OBJ)
 AC_SUBST(W32_LIBS)
-AC_SUBST(W32_RES)
-AC_SUBST(W32_RES_LINK)
 
 if test "${HAVE_W32}" = "yes"; then
   window_system=w32
