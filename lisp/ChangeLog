@@ -1,3 +1,9 @@
+2012-12-11  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* button.el: Handle buttons in display text-properties.
+	(button--area-button-p, button--area-button-string):
+	Use (STRING . STRING-POS) representation instead of just STRING.
+
 2012-12-11  Eli Zaretskii  <eliz@gnu.org>
 
 	* makefile.w32-in (compile4-SH): Fix a typo that caused term

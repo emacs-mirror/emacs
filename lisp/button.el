@@ -192,7 +192,8 @@ changes to a supertype are not reflected in its subtypes)."
   (cond ((overlayp button)
 	 (overlay-get button prop))
 	((button--area-button-p button)
-	 (get-text-property 0 prop (button--area-button-string button)))
+	 (get-text-property (cdr button)
+			    prop (button--area-button-string button)))
 	(t ; Must be a text-property button.
 	 (get-text-property button prop))))
 
@@ -257,11 +258,11 @@ header-line) a string."
   "Return t if BUTTON has button-type TYPE, or one of TYPE's subtypes."
   (button-type-subtype-p (button-get button 'type) type))
 
-(defalias 'button--area-button-p 'stringp
+(defun button--area-button-p (b) (stringp (car-safe b))
   "Return non-nil if BUTTON is an area button.
 Such area buttons are used for buttons in the mode-line and header-line.")
 
-(defalias 'button--area-button-string 'identity
+(defalias 'button--area-button-string #'car
   "Return area button BUTTON's button-string.")
 
 ;; Creating overlay buttons
@@ -444,9 +445,9 @@ return t."
       ;; POS is a mouse event; switch to the proper window/buffer
       (let ((posn (event-start pos)))
 	(with-current-buffer (window-buffer (posn-window posn))
-	  (if (posn-area posn)
-	      ;; mode-line or header-line event
-	      (button-activate (car (posn-string posn)) t)
+	  (if (posn-string posn)
+	      ;; mode-line, header-line, or display string event.
+	      (button-activate (posn-string posn) t)
 	    (push-button (posn-point posn)) t)))
     ;; POS is just normal position
     (let ((button (button-at (or pos (point)))))
