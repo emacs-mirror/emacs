@@ -387,7 +387,7 @@ compile3-SH: autoloads compile0-SH
 	done
 
 compile4-SH: autoloads compile0-SH
-	for dir in $(WINS_BASIC4) $(WINS_CEDET) terms obsolete; do \
+	for dir in $(WINS_BASIC4) $(WINS_CEDET) term obsolete; do \
 	  for el in $$dir/*.el; do \
 	    if test -f $$el; \
 	    then \

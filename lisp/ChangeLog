@@ -1,3 +1,8 @@
+2012-12-11  Eli Zaretskii  <eliz@gnu.org>
+
+	* makefile.w32-in (compile4-SH): Fix a typo that caused term
+	subdirectory be skipped.
+
 2012-12-11  Glenn Morris  <rgm@gnu.org>
 
 	* net/rcirc.el (rcirc-urls, rcirc-condition-filter): Doc fixes.
