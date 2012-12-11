@@ -325,7 +325,7 @@ is managed internally and there is no corresponding inotify_init.  Use
 {
   uint32_t mask;
   Lisp_Object watch_object;
-  Lisp_Object decoded_file_name;
+  Lisp_Object encoded_file_name;
   Lisp_Object watch_descriptor;
   int watchdesc = -1;
 
@@ -345,8 +345,8 @@ is managed internally and there is no corresponding inotify_init.  Use
     }
 
   mask = aspect_to_inotifymask (aspect);
-  decoded_file_name = ENCODE_FILE (file_name);
-  watchdesc = inotify_add_watch (inotifyfd, SSDATA (decoded_file_name), mask);
+  encoded_file_name = ENCODE_FILE (file_name);
+  watchdesc = inotify_add_watch (inotifyfd, SSDATA (encoded_file_name), mask);
   if (watchdesc == -1)
     report_file_error ("Could not add watch for file", Fcons (file_name, Qnil));
 
