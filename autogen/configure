@@ -1226,8 +1226,11 @@ LIB_PTHREAD
 VMLIMIT_OBJ
 GMALLOC_OBJ
 HAVE_XSERVER
+W32_RES_LINK
+W32_RES
 W32_LIBS
 W32_OBJ
+WINDRES
 LIB_STANDARD
 NS_OBJC_OBJ
 NS_OBJ
@@ -1393,6 +1396,7 @@ with_gconf
 with_gsettings
 with_selinux
 with_gnutls
+with_inotify
 with_makeinfo
 with_compress_info
 with_pkg_config_prog
@@ -2115,6 +2119,7 @@ Optional Packages:
   --without-gsettings     don't compile with GSettings support
   --without-selinux       don't compile with SELinux support
   --without-gnutls        don't use -lgnutls for SSL/TLS support
+  --without-inotify       don't compile with inotify (file-watch) support
   --without-makeinfo      don't require makeinfo for building manuals
   --without-compress-info don't compress the installed Info pages
   --with-pkg-config-prog=FILENAME
@@ -4174,6 +4179,14 @@ if test "${with_gnutls+set}" = set; then :
   withval=$with_gnutls;
 else
      with_gnutls=$with_features
+fi
+
+
+# Check whether --with-inotify was given.
+if test "${with_inotify+set}" = set; then :
+  withval=$with_inotify;
+else
+     with_inotify=$with_features
 fi
 
 
@@ -9683,6 +9696,8 @@ CPPFLAGS="$tmp_CPPFLAGS"
 HAVE_W32=no
 W32_OBJ=
 W32_LIBS=
+W32_RES=
+W32_RES_LINK=
 if test "${with_w32}" != no; then
   if test "${opsys}" != "cygwin"; then
     as_fn_error "Using w32 with an autotools build is only supported for Cygwin." "$LINENO" 5
@@ -9699,11 +9714,109 @@ fi
 
 $as_echo "#define HAVE_NTGUI 1" >>confdefs.h
 
+  if test -n "$ac_tool_prefix"; then
+  # Extract the first word of "${ac_tool_prefix}windres", so it can be a program name with args.
+set dummy ${ac_tool_prefix}windres; ac_word=$2
+{ $as_echo "$as_me:${as_lineno-$LINENO}: checking for $ac_word" >&5
+$as_echo_n "checking for $ac_word... " >&6; }
+if test "${ac_cv_prog_WINDRES+set}" = set; then :
+  $as_echo_n "(cached) " >&6
+else
+  if test -n "$WINDRES"; then
+  ac_cv_prog_WINDRES="$WINDRES" # Let the user override the test.
+else
+as_save_IFS=$IFS; IFS=$PATH_SEPARATOR
+for as_dir in $PATH
+do
+  IFS=$as_save_IFS
+  test -z "$as_dir" && as_dir=.
+    for ac_exec_ext in '' $ac_executable_extensions; do
+  if { test -f "$as_dir/$ac_word$ac_exec_ext" && $as_test_x "$as_dir/$ac_word$ac_exec_ext"; }; then
+    ac_cv_prog_WINDRES="${ac_tool_prefix}windres"
+    $as_echo "$as_me:${as_lineno-$LINENO}: found $as_dir/$ac_word$ac_exec_ext" >&5
+    break 2
+  fi
+done
+  done
+IFS=$as_save_IFS
+
+fi
+fi
+WINDRES=$ac_cv_prog_WINDRES
+if test -n "$WINDRES"; then
+  { $as_echo "$as_me:${as_lineno-$LINENO}: result: $WINDRES" >&5
+$as_echo "$WINDRES" >&6; }
+else
+  { $as_echo "$as_me:${as_lineno-$LINENO}: result: no" >&5
+$as_echo "no" >&6; }
+fi
+
+
+fi
+if test -z "$ac_cv_prog_WINDRES"; then
+  ac_ct_WINDRES=$WINDRES
+  # Extract the first word of "windres", so it can be a program name with args.
+set dummy windres; ac_word=$2
+{ $as_echo "$as_me:${as_lineno-$LINENO}: checking for $ac_word" >&5
+$as_echo_n "checking for $ac_word... " >&6; }
+if test "${ac_cv_prog_ac_ct_WINDRES+set}" = set; then :
+  $as_echo_n "(cached) " >&6
+else
+  if test -n "$ac_ct_WINDRES"; then
+  ac_cv_prog_ac_ct_WINDRES="$ac_ct_WINDRES" # Let the user override the test.
+else
+as_save_IFS=$IFS; IFS=$PATH_SEPARATOR
+for as_dir in $PATH
+do
+  IFS=$as_save_IFS
+  test -z "$as_dir" && as_dir=.
+    for ac_exec_ext in '' $ac_executable_extensions; do
+  if { test -f "$as_dir/$ac_word$ac_exec_ext" && $as_test_x "$as_dir/$ac_word$ac_exec_ext"; }; then
+    ac_cv_prog_ac_ct_WINDRES="windres"
+    $as_echo "$as_me:${as_lineno-$LINENO}: found $as_dir/$ac_word$ac_exec_ext" >&5
+    break 2
+  fi
+done
+  done
+IFS=$as_save_IFS
+
+fi
+fi
+ac_ct_WINDRES=$ac_cv_prog_ac_ct_WINDRES
+if test -n "$ac_ct_WINDRES"; then
+  { $as_echo "$as_me:${as_lineno-$LINENO}: result: $ac_ct_WINDRES" >&5
+$as_echo "$ac_ct_WINDRES" >&6; }
+else
+  { $as_echo "$as_me:${as_lineno-$LINENO}: result: no" >&5
+$as_echo "no" >&6; }
+fi
+
+  if test "x$ac_ct_WINDRES" = x; then
+    WINDRES="as_fn_error "No resource compiler found." "$LINENO" 5"
+  else
+    case $cross_compiling:$ac_tool_warned in
+yes:)
+{ $as_echo "$as_me:${as_lineno-$LINENO}: WARNING: using cross tools not prefixed with host triplet" >&5
+$as_echo "$as_me: WARNING: using cross tools not prefixed with host triplet" >&2;}
+ac_tool_warned=yes ;;
+esac
+    WINDRES=$ac_ct_WINDRES
+  fi
+else
+  WINDRES="$ac_cv_prog_WINDRES"
+fi
+
   W32_OBJ="w32fns.o w32menu.o w32reg.o w32font.o w32term.o"
   W32_OBJ="$W32_OBJ w32xfns.o w32select.o w32uniscribe.o"
   W32_LIBS="$W32_LIBS -lkernel32 -luser32 -lgdi32 -lole32 -lcomdlg32"
   W32_LIBS="$W32_LIBS -lusp10 -lcomctl32 -lwinspool"
+  W32_RES="emacs.res"
+  # Tell the linker that emacs.res is an object (which we compile from
+  # the rc file), not a linker script.
+  W32_RES_LINK="-Wl,-bpe-i386 -Wl,emacs.res"
 fi
+
+
 
 
 
@@ -11348,6 +11461,33 @@ fi
 
 
 
+
+if test "${with_inotify}" = "yes"; then
+   for ac_header in sys/inotify.h
+do :
+  ac_fn_c_check_header_mongrel "$LINENO" "sys/inotify.h" "ac_cv_header_sys_inotify_h" "$ac_includes_default"
+if test "x$ac_cv_header_sys_inotify_h" = x""yes; then :
+  cat >>confdefs.h <<_ACEOF
+#define HAVE_SYS_INOTIFY_H 1
+_ACEOF
+
+fi
+
+done
+
+   if test "$ac_cv_header_sys_inotify_h" = yes ; then
+     ac_fn_c_check_func "$LINENO" "inotify_init1" "ac_cv_func_inotify_init1"
+if test "x$ac_cv_func_inotify_init1" = x""yes; then :
+
+fi
+
+   fi
+fi
+if test "$ac_cv_func_inotify_init1" = yes; then
+
+$as_echo "#define HAVE_INOTIFY 1" >>confdefs.h
+
+fi
 
 HAVE_XAW3D=no
 LUCID_LIBW=
