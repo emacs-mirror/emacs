@@ -1406,7 +1406,7 @@ search_buffer (Lisp_Object string, ptrdiff_t pos, ptrdiff_t pos_byte,
 	  char_base = 0;
 	  while (--len >= 0)
 	    {
-	      int c, translated;
+	      int c, translated, inverse;
 
 	      /* If we got here and the RE flag is set, it's because we're
 		 dealing with a regexp known to be trivial, so the backslash
@@ -1420,6 +1420,20 @@ search_buffer (Lisp_Object string, ptrdiff_t pos, ptrdiff_t pos_byte,
 	      c = *base_pat++;
 	      TRANSLATE (translated, trt, c);
 	      *pat++ = translated;
+	      /* Check that none of C's equivalents violates the
+		 assumptions of boyer_moore.  */
+	      TRANSLATE (inverse, inverse_trt, c);
+	      while (1)
+		{
+		  if (inverse >= 0200)
+		    {
+		      boyer_moore_ok = 0;
+		      break;
+		    }
+		  if (c == inverse)
+		    break;
+		  TRANSLATE (inverse, inverse_trt, inverse);
+		}
 	    }
 	}
 
