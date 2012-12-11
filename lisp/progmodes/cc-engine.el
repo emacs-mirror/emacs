@@ -1452,8 +1452,21 @@ comment at the start of cc-engine.el for more info."
 	    ;; return t when moving backwards at bob.
 	    (not (bobp))
 
-	    (if (let (open-paren-in-column-0-is-defun-start)
-		  (forward-comment -1))
+	    (if (let (open-paren-in-column-0-is-defun-start moved-comment)
+		  (while
+		      (and (not (setq moved-comment (forward-comment -1)))
+		      ;; Cope specifically with ^M^J here -
+		      ;; forward-comment sometimes gets stuck after ^Ms,
+		      ;; sometimes after ^M^J.
+			   (or
+			    (when (eq (char-before) ?\r)
+			      (backward-char)
+			      t)
+			    (when (and (eq (char-before) ?\n)
+				       (eq (char-before (1- (point))) ?\r))
+			      (backward-char 2)
+			      t))))
+		  moved-comment)
 		(if (looking-at "\\*/")
 		    ;; Emacs <= 20 and XEmacs move back over the
 		    ;; closer of a block comment that lacks an opener.
