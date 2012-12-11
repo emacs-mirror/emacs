@@ -82,7 +82,7 @@
   (calc-wrapper
    (if (string-match-p "\\`\\s-*\\'" fmt)
        (setq fmt "1"))
-   (if (string-match "\\` \\(*[0-9]\\|10\\|11\\) *\\'" fmt)
+   (if (string-match "\\` *\\([0-9]\\|10\\|11\\) *\\'" fmt)
        (setq fmt (nth (string-to-number fmt) calc-standard-date-formats)))
    (or (string-match "[a-zA-Z]" fmt)
        (error "Bad date format specifier"))
