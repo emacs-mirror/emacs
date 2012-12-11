@@ -1,5 +1,7 @@
 2012-12-11  Glenn Morris  <rgm@gnu.org>
 
+	* net/rcirc.el (rcirc-urls, rcirc-condition-filter): Doc fixes.
+
 	* progmodes/f90.el (f90-line-continued, f90-indent-region):
 	Treat preprocessor lines embedded in continuations like comments.
 	(f90-indent-line): Special-case preprocessor lines.  (Bug#13138)
