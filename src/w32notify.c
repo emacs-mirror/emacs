@@ -217,7 +217,7 @@ watch_completion (DWORD status, DWORD bytes_ret, OVERLAPPED *io_info)
       /* We've been called because the main thread told us to issue
 	 CancelIo on the directory we watch, and watch_end did so.
 	 The directory handle is already closed.  We should clean up
-	 and exit, signalling to the thread worker routine not to
+	 and exit, signaling to the thread worker routine not to
 	 issue another call to ReadDirectoryChangesW.  Note that we
 	 don't free the dirwatch object itself nor the memory consumed
 	 by its buffers; this is done by the main thread in

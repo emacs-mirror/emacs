@@ -286,11 +286,11 @@ For example:
 @end example
 
 @menu
-* Pattern maching case statement::
+* Pattern matching case statement::
 @end menu
 
-@node Pattern maching case statement
-@subsection Pattern maching case statement
+@node Pattern matching case statement
+@subsection Pattern matching case statement
 @cindex pcase
 @cindex pattern matching
 

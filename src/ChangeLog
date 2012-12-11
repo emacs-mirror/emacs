@@ -1710,7 +1710,7 @@
 
 2012-10-19  Stefan Monnier  <monnier@iro.umontreal.ca>
 
-	* fns.c (Fnreverse): Include the problem element when signalling an
+	* fns.c (Fnreverse): Include the problem element when signaling an
 	error (bug#12677).
 
 2012-10-18  Jan Djärv  <jan.h.d@swipnet.se>
