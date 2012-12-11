@@ -1,5 +1,9 @@
 2012-12-11  Stefan Monnier  <monnier@iro.umontreal.ca>
 
+	* mail/emacsbug.el (report-emacs-bug): Move the intangible text to
+	a display text-property.
+	(report-emacs-bug-hook): Don't bother deleting it any more.
+
 	* hilit-chg.el (highlight-save-buffer-state): Delete.
 	Use with-silent-modifications instead.
 	(hilit-chg-set-face-on-change): Only fixup the text that's modified.

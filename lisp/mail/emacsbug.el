@@ -156,11 +156,6 @@ Prompts for bug subject.  Leaves you in a mail buffer."
     (when (string-match "^\\(\\([.0-9]+\\)*\\)\\.[0-9]+$" emacs-version)
       (setq topic (concat (match-string 1 emacs-version) "; " topic))))
   (let ((from-buffer (current-buffer))
-        ;; Put these properties on semantically-void text.
-        ;; report-emacs-bug-hook deletes these regions before sending.
-        (prompt-properties '(field emacsbug-prompt
-                             intangible but-helpful
-                             rear-nonsticky t))
 	(can-insert-mail (or (report-emacs-bug-can-use-xdg-email)
 			     (report-emacs-bug-can-use-osx-open)))
         user-point message-end-point)
@@ -190,7 +185,7 @@ Prompts for bug subject.  Leaves you in a mail buffer."
 	  (insert (format "The report will be sent to %s.\n\n"
 			  report-emacs-bug-address))
 	(insert "This bug report will be sent to the ")
-	(insert-button
+	(insert-text-button
 	 "Bug-GNU-Emacs"
 	 'face 'link
 	 'help-echo (concat "mouse-2, RET: Follow this link")
@@ -198,7 +193,7 @@ Prompts for bug subject.  Leaves you in a mail buffer."
 		   (browse-url "http://lists.gnu.org/archive/html/bug-gnu-emacs/"))
 	 'follow-link t)
 	(insert " mailing list\nand the GNU bug tracker at ")
-	(insert-button
+	(insert-text-button
 	 "debbugs.gnu.org"
 	 'face 'link
 	 'help-echo (concat "mouse-2, RET: Follow this link")
@@ -216,11 +211,10 @@ usually do not have translators for other languages.\n\n")))
     (insert "Please describe exactly what actions triggered the bug, and\n"
 	    "the precise symptoms of the bug.  If you can, give a recipe\n"
 	    "starting from `emacs -Q':\n\n")
-    (add-text-properties (save-excursion
-                           (rfc822-goto-eoh)
-                           (line-beginning-position 2))
-                         (point)
-                         prompt-properties)
+    (let ((txt (delete-and-extract-region
+                (save-excursion (rfc822-goto-eoh) (line-beginning-position 2))
+                (point))))
+      (insert (propertize "\n" 'display txt)))
     (setq user-point (point))
     (insert "\n\n")
 
@@ -232,7 +226,8 @@ usually do not have translators for other languages.\n\n")))
       (if (file-readable-p debug-file)
 	  (insert "For information about debugging Emacs, please read the file\n"
 		  debug-file ".\n")))
-    (add-text-properties (1+ user-point) (point) prompt-properties)
+    (let ((txt (delete-and-extract-region (1+ user-point) (point))))
+      (insert (propertize "\n" 'display txt)))
 
     (insert "\n\nIn " (emacs-version) "\n")
     (if (stringp emacs-bzr-version)
@@ -430,14 +425,7 @@ and send the mail again%s."
 				 from))
 	       (not (yes-or-no-p
 		     (format "Is `%s' really your email address? " from)))
-	       (error "Please edit the From address and try again"))))
-    ;; Delete the uninteresting text that was just to help fill out the report.
-    (rfc822-goto-eoh)
-    (forward-line 1)
-    (let ((pos (1- (point))))
-      (while (setq pos (text-property-any pos (point-max)
-                                          'field 'emacsbug-prompt))
-        (delete-region pos (field-end (1+ pos)))))))
+	       (error "Please edit the From address and try again"))))))
 
 
 (provide 'emacsbug)
