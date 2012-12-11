@@ -1,3 +1,9 @@
+2012-12-11  Paul Eggert  <eggert@cs.ucla.edu>
+
+	Merge from gnulib for 'inline' (Bug#13040), incorporating:
+	2012-12-11 extern-inline: avoid incompatibility with Darwin Libc
+	* m4/extern-inline.m4: Update from gnulib.
+
 2012-12-11  Juanma Barranquero  <lekktu@gmail.com>
 
 	* lib/makefile.w32-in (SIG2STR_H): New macro.
