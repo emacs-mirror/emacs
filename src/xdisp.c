@@ -3755,18 +3755,26 @@ handle_face_prop (struct it *it)
       if (new_face_id != it->face_id)
 	{
 	  struct face *new_face = FACE_FROM_ID (it->f, new_face_id);
+	  /* If it->face_id is -1, old_face below will be NULL, see
+	     the definition of FACE_FROM_ID.  This will happen if this
+	     is the initial call that gets the face.  */
+	  struct face *old_face = FACE_FROM_ID (it->f, it->face_id);
 
-	  /* If new face has a box but old face has not, this is
-	     the start of a run of characters with box, i.e. it has
-	     a shadow on the left side.  The value of face_id of the
-	     iterator will be -1 if this is the initial call that gets
-	     the face.  In this case, we have to look in front of IT's
-	     position and see whether there is a face != new_face_id.  */
-	  it->start_of_box_run_p
-	    = (new_face->box != FACE_NO_BOX
-	       && (it->face_id >= 0
-		   || IT_CHARPOS (*it) == BEG
-		   || new_face_id != face_before_it_pos (it)));
+	  /* If the value of face_id of the iterator is -1, we have to
+	     look in front of IT's position and see whether there is a
+	     face there that's different from new_face_id.  */
+	  if (!old_face && IT_CHARPOS (*it) > BEG)
+	    {
+	      int prev_face_id = face_before_it_pos (it);
+
+	      old_face = FACE_FROM_ID (it->f, prev_face_id);
+	    }
+
+	  /* If the new face has a box, but the old face does not,
+	     this is the start of a run of characters with box face,
+	     i.e. this character has a shadow on the left side.  */
+	  it->start_of_box_run_p = (new_face->box != FACE_NO_BOX
+				    && (old_face == NULL || !old_face->box));
 	  it->face_box_p = new_face->box != FACE_NO_BOX;
 	}
     }
@@ -18613,6 +18621,7 @@ append_space_for_newline (struct it *it, int default_face_p)
 	  int saved_char_to_display = it->char_to_display;
 	  int saved_x = it->current_x;
 	  int saved_face_id = it->face_id;
+	  int saved_box_end = it->end_of_box_run_p;
 	  struct text_pos saved_pos;
 	  Lisp_Object saved_object;
 	  struct face *face;
@@ -18634,6 +18643,16 @@ append_space_for_newline (struct it *it, int default_face_p)
 	    it->face_id = it->saved_face_id;
 	  face = FACE_FROM_ID (it->f, it->face_id);
 	  it->face_id = FACE_FOR_CHAR (it->f, face, 0, -1, Qnil);
+	  /* In R2L rows, we will prepend a stretch glyph that will
+	     have the end_of_box_run_p flag set for it, so there's no
+	     need for the appended newline glyph to have that flag
+	     set.  */
+	  if (it->glyph_row->reversed_p
+	      /* But if the appended newline glyph goes all the way to
+		 the end of the row, there will be no stretch glyph,
+		 so leave the box flag set.  */
+	      && saved_x + FRAME_COLUMN_WIDTH (it->f) < it->last_visible_x)
+	    it->end_of_box_run_p = 0;
 
 	  PRODUCE_GLYPHS (it);
 
@@ -18647,6 +18666,7 @@ append_space_for_newline (struct it *it, int default_face_p)
 	  it->len = saved_len;
 	  it->c = saved_c;
 	  it->char_to_display = saved_char_to_display;
+	  it->end_of_box_run_p = saved_box_end;
 	  return 1;
 	}
     }
@@ -18736,7 +18756,7 @@ extend_face_to_end_of_line (struct it *it)
 	  struct glyph *g;
 	  int row_width, stretch_ascent, stretch_width;
 	  struct text_pos saved_pos;
-	  int saved_face_id, saved_avoid_cursor;
+	  int saved_face_id, saved_avoid_cursor, saved_box_start;
 
 	  for (row_width = 0, g = row_start; g < row_end; g++)
 	    row_width += g->pixel_width;
@@ -18751,6 +18771,7 @@ extend_face_to_end_of_line (struct it *it)
 	      saved_avoid_cursor = it->avoid_cursor_p;
 	      it->avoid_cursor_p = 1;
 	      saved_face_id = it->face_id;
+	      saved_box_start = it->start_of_box_run_p;
 	      /* The last row's stretch glyph should get the default
 		 face, to avoid painting the rest of the window with
 		 the region face, if the region ends at ZV.  */
@@ -18758,11 +18779,13 @@ extend_face_to_end_of_line (struct it *it)
 		it->face_id = default_face->id;
 	      else
 		it->face_id = face->id;
+	      it->start_of_box_run_p = 0;
 	      append_stretch_glyph (it, make_number (0), stretch_width,
 				    it->ascent + it->descent, stretch_ascent);
 	      it->position = saved_pos;
 	      it->avoid_cursor_p = saved_avoid_cursor;
 	      it->face_id = saved_face_id;
+	      it->start_of_box_run_p = saved_box_start;
 	    }
 	}
 #endif	/* HAVE_WINDOW_SYSTEM */
@@ -23742,8 +23765,18 @@ append_glyph (struct it *it)
       glyph->type = CHAR_GLYPH;
       glyph->avoid_cursor_p = it->avoid_cursor_p;
       glyph->multibyte_p = it->multibyte_p;
-      glyph->left_box_line_p = it->start_of_box_run_p;
-      glyph->right_box_line_p = it->end_of_box_run_p;
+      if (it->glyph_row->reversed_p && area == TEXT_AREA)
+	{
+	  /* In R2L rows, the left and the right box edges need to be
+	     drawn in reverse direction.  */
+	  glyph->right_box_line_p = it->start_of_box_run_p;
+	  glyph->left_box_line_p = it->end_of_box_run_p;
+	}
+      else
+	{
+	  glyph->left_box_line_p = it->start_of_box_run_p;
+	  glyph->right_box_line_p = it->end_of_box_run_p;
+	}
       glyph->overlaps_vertically_p = (it->phys_ascent > it->ascent
 				      || it->phys_descent > it->descent);
       glyph->glyph_not_available_p = it->glyph_not_available_p;
@@ -23817,8 +23850,18 @@ append_composite_glyph (struct it *it)
 	}
       glyph->avoid_cursor_p = it->avoid_cursor_p;
       glyph->multibyte_p = it->multibyte_p;
-      glyph->left_box_line_p = it->start_of_box_run_p;
-      glyph->right_box_line_p = it->end_of_box_run_p;
+      if (it->glyph_row->reversed_p && area == TEXT_AREA)
+	{
+	  /* In R2L rows, the left and the right box edges need to be
+	     drawn in reverse direction.  */
+	  glyph->right_box_line_p = it->start_of_box_run_p;
+	  glyph->left_box_line_p = it->end_of_box_run_p;
+	}
+      else
+	{
+	  glyph->left_box_line_p = it->start_of_box_run_p;
+	  glyph->right_box_line_p = it->end_of_box_run_p;
+	}
       glyph->overlaps_vertically_p = (it->phys_ascent > it->ascent
 				      || it->phys_descent > it->descent);
       glyph->padding_p = 0;
@@ -23995,8 +24038,18 @@ produce_image_glyph (struct it *it)
 	  glyph->type = IMAGE_GLYPH;
 	  glyph->avoid_cursor_p = it->avoid_cursor_p;
 	  glyph->multibyte_p = it->multibyte_p;
-	  glyph->left_box_line_p = it->start_of_box_run_p;
-	  glyph->right_box_line_p = it->end_of_box_run_p;
+	  if (it->glyph_row->reversed_p && area == TEXT_AREA)
+	    {
+	      /* In R2L rows, the left and the right box edges need to be
+		 drawn in reverse direction.  */
+	      glyph->right_box_line_p = it->start_of_box_run_p;
+	      glyph->left_box_line_p = it->end_of_box_run_p;
+	    }
+	  else
+	    {
+	      glyph->left_box_line_p = it->start_of_box_run_p;
+	      glyph->right_box_line_p = it->end_of_box_run_p;
+	    }
 	  glyph->overlaps_vertically_p = 0;
           glyph->padding_p = 0;
 	  glyph->glyph_not_available_p = 0;
@@ -24055,8 +24108,18 @@ append_stretch_glyph (struct it *it, Lisp_Object object,
       glyph->type = STRETCH_GLYPH;
       glyph->avoid_cursor_p = it->avoid_cursor_p;
       glyph->multibyte_p = it->multibyte_p;
-      glyph->left_box_line_p = it->start_of_box_run_p;
-      glyph->right_box_line_p = it->end_of_box_run_p;
+      if (it->glyph_row->reversed_p && area == TEXT_AREA)
+	{
+	  /* In R2L rows, the left and the right box edges need to be
+	     drawn in reverse direction.  */
+	  glyph->right_box_line_p = it->start_of_box_run_p;
+	  glyph->left_box_line_p = it->end_of_box_run_p;
+	}
+      else
+	{
+	  glyph->left_box_line_p = it->start_of_box_run_p;
+	  glyph->right_box_line_p = it->end_of_box_run_p;
+	}
       glyph->overlaps_vertically_p = 0;
       glyph->padding_p = 0;
       glyph->glyph_not_available_p = 0;
@@ -24508,8 +24571,18 @@ append_glyphless_glyph (struct it *it, int face_id, int for_no_font, int len,
       glyph->slice.glyphless.lower_yoff = lower_yoff;
       glyph->avoid_cursor_p = it->avoid_cursor_p;
       glyph->multibyte_p = it->multibyte_p;
-      glyph->left_box_line_p = it->start_of_box_run_p;
-      glyph->right_box_line_p = it->end_of_box_run_p;
+      if (it->glyph_row->reversed_p && area == TEXT_AREA)
+	{
+	  /* In R2L rows, the left and the right box edges need to be
+	     drawn in reverse direction.  */
+	  glyph->right_box_line_p = it->start_of_box_run_p;
+	  glyph->left_box_line_p = it->end_of_box_run_p;
+	}
+      else
+	{
+	  glyph->left_box_line_p = it->start_of_box_run_p;
+	  glyph->right_box_line_p = it->end_of_box_run_p;
+	}
       glyph->overlaps_vertically_p = (it->phys_ascent > it->ascent
 				      || it->phys_descent > it->descent);
       glyph->padding_p = 0;

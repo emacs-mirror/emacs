@@ -1,3 +1,16 @@
+2012-12-11  Eli Zaretskii  <eliz@gnu.org>
+
+	* xdisp.c (handle_face_prop): Fix logic of computing
+	it->start_of_box_run_p.
+	(append_space_for_newline): If the glyph row is R2L, reset the
+	iterator's end_of_box_run_p flag before prepending the space glyph.
+	(extend_face_to_end_of_line): If the glyph row is R2L, reset the
+	iterator's start_of_box_run_p flag before prepending the stretch.
+	(append_glyph, produce_image_glyph, append_composite_glyph)
+	(append_stretch_glyph, append_glyphless_glyph): Reverse the
+	left_box_line_p and right_box_line_p flags of the glyph for R2L
+	glyph rows.  (Bug#13011)
+
 2012-12-11  Dmitry Antipov  <dmantipov@yandex.ru>
 
 	* buffer.c (Fset_buffer_multibyte): Do not force redisplay
