@@ -378,6 +378,7 @@ SYSTIME_H      = $(SRC)/systime.h \
 		 $(NT_INC)/sys/time.h \
 		 $(GNU_LIB)/timespec.h
 SYSWAIT_H      = $(SRC)/syswait.h \
+		 $(NT_INC)/stdbool.h \
 		 $(NT_INC)/sys/wait.h
 
 $(BLD)/ctags.$(O) : \

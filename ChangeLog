@@ -1,3 +1,8 @@
+2012-12-11  Juanma Barranquero  <lekktu@gmail.com>
+
+	* lib/makefile.w32-in (SIG2STR_H): New macro.
+	($(BLD)/sig2str.$(O)): Update dependencies.
+
 2012-12-10  Paul Eggert  <eggert@cs.ucla.edu>
 
 	* configure.ac (HAVE_INOTIFY): Speed up configure-time test.

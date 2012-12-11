@@ -103,6 +103,8 @@ U64_H          = $(GNU_LIB)/u64.h \
 		 $(NT_INC)/stdint.h
 SHA512_H       = $(GNU_LIB)/sha512.h \
 		 $(U64_H)
+SIG2STR_H      = $(GNU_LIB)/sig2str.h \
+		 $(GNU_LIB)/intprops.h
 STAT_TIME_H    = $(GNU_LIB)/stat-time.h \
 		 $(NT_INC)/sys/stat.h
 
@@ -243,8 +245,7 @@ $(BLD)/filemode.$(O) : \
 $(BLD)/sig2str.$(O) : \
 	$(GNU_LIB)/sig2str.c \
 	$(CONFIG_H) \
-	$(GNU_LIB)/sig2str.h \
-	$(GNU_LIB)/intprops.h
+	$(SIG2STR_H)
 
 
 # The following dependencies are for supporting parallel builds, where

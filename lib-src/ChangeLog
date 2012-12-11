@@ -1,3 +1,7 @@
+2012-12-11  Juanma Barranquero  <lekktu@gmail.com>
+
+	* makefile.w32-in (SYSWAIT_H): Update dependencies.
+
 2012-12-10  Eli Zaretskii  <eliz@gnu.org>
 
 	* makefile.w32-in (obj): Add w32notify.o.  Add missing X and Unix

@@ -1,3 +1,9 @@
+2012-12-11  Juanma Barranquero  <lekktu@gmail.com>
+
+	* makefile.w32-in (SIG2STR_H): New macro.
+	(SYSWAIT_H, $(BLD)/emacs.$(O), $(BLD)/process.$(O))
+	($(BLD)/w32notify.$(O)): Update dependencies.
+
 2012-12-10  Daniel Colascione  <dancol@dancol.org>
 
 	* w32term.c, keyboard.c: Fix build break in cygw32 by omitting

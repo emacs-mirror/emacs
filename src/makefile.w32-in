@@ -462,6 +462,8 @@ U64_H          = $(GNU_LIB)/u64.h \
 		 $(NT_INC)/stdint.h
 SHA512_H       = $(GNU_LIB)/sha512.h \
 		 $(U64_H)
+SIG2STR_H      = $(GNU_LIB)/sig2str.h \
+		 $(GNU_LIB)/intprops.h
 SOCKET_H       = $(NT_INC)/sys/socket.h \
 		 $(SRC)/w32.h
 STAT_TIME_H    = $(GNU_LIB)/stat-time.h \
@@ -472,6 +474,7 @@ SYSTTY_H       = $(SRC)/systty.h \
 		 $(NT_INC)/sys/ioctl.h \
 		 $(NT_INC)/unistd.h
 SYSWAIT_H      = $(SRC)/syswait.h \
+		 $(NT_INC)/stdbool.h \
 		 $(NT_INC)/sys/wait.h
 TERMHOOKS_H    = $(SRC)/termhooks.h \
 		 $(SYSTIME_H)
@@ -800,6 +803,7 @@ $(BLD)/emacs.$(O) : \
 	$(SRC)/keymap.h \
 	$(SRC)/unexec.h \
 	$(SRC)/w32.h \
+	$(SRC)/w32common.h \
 	$(SRC)/w32heap.h \
 	$(SRC)/w32select.h \
 	$(NT_INC)/sys/file.h \
@@ -1288,11 +1292,13 @@ $(BLD)/process.$(O) : \
 	$(CHARACTER_H) \
 	$(CODING_H) \
 	$(CONFIG_H) \
+	$(C_CTYPE_H) \
 	$(DISPEXTERN_H) \
 	$(FRAME_H) \
 	$(KEYBOARD_H) \
 	$(LISP_H) \
 	$(PROCESS_H) \
+	$(SIG2STR_H) \
 	$(SOCKET_H) \
 	$(SYSSIGNAL_H) \
 	$(SYSTIME_H) \
@@ -1696,6 +1702,7 @@ $(BLD)/w32uniscribe.$(O) : \
 
 $(BLD)/w32notify.$(O) : \
 	$(SRC)/w32notify.c \
+	$(SRC)/w32.h \
 	$(SRC)/w32common.h \
 	$(CODING_H) \
 	$(CONFIG_H) \
