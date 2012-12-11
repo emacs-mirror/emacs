@@ -1854,7 +1854,7 @@ prepare_to_modify_buffer (ptrdiff_t start, ptrdiff_t end,
 	  : (!NILP (Vselect_active_regions)
 	     && !NILP (Vtransient_mark_mode))))
     {
-      ptrdiff_t b = XMARKER (BVAR (current_buffer, mark))->charpos;
+      ptrdiff_t b = marker_position (BVAR (current_buffer, mark));
       ptrdiff_t e = PT;
       if (b < e)
 	Vsaved_region_selection = make_buffer_string (b, e, 0);

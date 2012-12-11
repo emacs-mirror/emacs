@@ -1744,7 +1744,7 @@ Return nil if POS is not visible in WINDOW.  */)
   else if (w == XWINDOW (selected_window))
     textpos = PT;
   else
-    textpos = XMARKER (w->pointm)->charpos;
+    textpos = marker_position (w->pointm);
 
   row = MATRIX_FIRST_TEXT_ROW (w->current_matrix);
   row = row_containing_pos (w, textpos, row, NULL, 0);

@@ -1991,8 +1991,8 @@ whether or not it is currently displayed in some window.  */)
     {
       /* Set the window's buffer temporarily to the current buffer.  */
       old_buffer = w->buffer;
-      old_charpos = XMARKER (w->pointm)->charpos;
-      old_bytepos = XMARKER (w->pointm)->bytepos;
+      old_charpos = marker_position (w->pointm);
+      old_bytepos = marker_byte_position (w->pointm);
       wset_buffer (w, Fcurrent_buffer ());
       set_marker_both (w->pointm, w->buffer,
 		       BUF_PT (current_buffer), BUF_PT_BYTE (current_buffer));

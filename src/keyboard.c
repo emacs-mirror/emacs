@@ -5138,7 +5138,7 @@ make_lispy_position (struct frame *f, Lisp_Object x, Lisp_Object y,
 	    string_info = Fcons (string, make_number (charpos));
 	  textpos = (w == XWINDOW (selected_window)
 		     && current_buffer == XBUFFER (w->buffer))
-	    ? PT : XMARKER (w->pointm)->charpos;
+	    ? PT : marker_position (w->pointm);
 
 	  xret = wx;
 	  yret = wy;

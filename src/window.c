@@ -1492,6 +1492,7 @@ if it isn't already recorded.  */)
       && !noninteractive)
     {
       struct text_pos startp;
+      ptrdiff_t charpos = marker_position (w->start);
       struct it it;
       struct buffer *old_buffer = NULL;
       void *itdata = NULL;
@@ -1509,9 +1510,9 @@ if it isn't already recorded.  */)
          `-l' containing a call to `rmail' with subsequent other
          commands.  At the end, W->start happened to be BEG, while
          rmail had already narrowed the buffer.  */
-      if (XMARKER (w->start)->charpos < BEGV)
+      if (charpos < BEGV)
 	SET_TEXT_POS (startp, BEGV, BEGV_BYTE);
-      else if (XMARKER (w->start)->charpos > ZV)
+      else if (charpos > ZV)
 	SET_TEXT_POS (startp, ZV, ZV_BYTE);
       else
 	SET_TEXT_POS_FROM_MARKER (startp, w->start);
@@ -1634,7 +1635,7 @@ display row, and VPOS is the row number (0-based) containing POS.  */)
   else if (w == XWINDOW (selected_window))
     posint = PT;
   else
-    posint = XMARKER (w->pointm)->charpos;
+    posint = marker_position (w->pointm);
 
   /* If position is above window start or outside buffer boundaries,
      or if window start is out of range, position is not visible.  */
@@ -1980,7 +1981,7 @@ unshow_buffer (register struct window *w)
 	   && EQ (buf, XWINDOW (BVAR (b, last_selected_window))->buffer)))
     temp_set_point_both (b,
 			 clip_to_bounds (BUF_BEGV (b),
-					 XMARKER (w->pointm)->charpos,
+					 marker_position (w->pointm),
 					 BUF_ZV (b)),
 			 clip_to_bounds (BUF_BEGV_BYTE (b),
 					 marker_byte_position (w->pointm),
@@ -4616,7 +4617,7 @@ window_scroll_pixel_based (Lisp_Object window, int n, int whole, int noerror)
       /* Set the window start, and set up the window for redisplay.  */
       set_marker_restricted (w->start, make_number (pos),
 			     w->buffer);
-      bytepos = XMARKER (w->start)->bytepos;
+      bytepos = marker_byte_position (w->start);
       w->start_at_line_beg = (pos == BEGV || FETCH_BYTE (bytepos - 1) == '\n');
       w->update_mode_line = 1;
       w->last_modified = 0;
@@ -5116,6 +5117,7 @@ displayed_window_lines (struct window *w)
 {
   struct it it;
   struct text_pos start;
+  ptrdiff_t charpos = marker_position (w->start);
   int height = window_box_height (w);
   struct buffer *old_buffer;
   int bottom_y;
@@ -5132,9 +5134,9 @@ displayed_window_lines (struct window *w)
   /* In case W->start is out of the accessible range, do something
      reasonable.  This happens in Info mode when Info-scroll-down
      calls (recenter -1) while W->start is 1.  */
-  if (XMARKER (w->start)->charpos < BEGV)
+  if (charpos < BEGV)
     SET_TEXT_POS (start, BEGV, BEGV_BYTE);
-  else if (XMARKER (w->start)->charpos > ZV)
+  else if (charpos > ZV)
     SET_TEXT_POS (start, ZV, ZV_BYTE);
   else
     SET_TEXT_POS_FROM_MARKER (start, w->start);
@@ -5562,7 +5564,7 @@ the return value is nil.  Otherwise the value is t.  */)
 	    && WINDOWP (selected_window)
 	    && EQ (XWINDOW (selected_window)->buffer, new_current_buffer)
 	    && !EQ (selected_window, data->current_window))
-	  old_point = XMARKER (XWINDOW (data->current_window)->pointm)->charpos;
+	  old_point = marker_position (XWINDOW (data->current_window)->pointm);
 	else
 	  old_point = PT;
       else
@@ -5577,7 +5579,7 @@ the return value is nil.  Otherwise the value is t.  */)
 	if (EQ (XWINDOW (data->current_window)->buffer, new_current_buffer)
 	    /* If current_window = selected_window, its point is in BUF_PT.  */
 	    && !EQ (selected_window, data->current_window))
-	  old_point = XMARKER (XWINDOW (data->current_window)->pointm)->charpos;
+	  old_point = marker_position (XWINDOW (data->current_window)->pointm);
 	else
 	  old_point = BUF_PT (XBUFFER (new_current_buffer));
     }

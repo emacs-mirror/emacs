@@ -1,3 +1,18 @@
+2012-12-11  Dmitry Antipov  <dmantipov@yandex.ru>
+
+	Consistently use marker_position and marker_byte_position.
+	* fringe.c (Ffringe_bitmaps_at_pos):
+	* indent.c (Fvertical_motion):
+	* insdel.c (prepare_to_modify_buffer):
+	* keyboard.c (make_lispy_position):
+	* window.c (Fwindow_end, Fpos_visible_in_window_p, unshow_buffer)
+	(window_scroll_pixel_based, displayed_window_lines)
+	(Fset_window_configuration):
+	* xdisp.c (message_dolog, with_echo_area_buffer_unwind_data)
+	(mark_window_display_accurate_1, redisplay_window, decode_mode_spec):
+	Replace direct access to marker fields with calls
+	to marker_position and/or marker_byte_position.
+
 2012-12-11  Juanma Barranquero  <lekktu@gmail.com>
 
 	* makefile.w32-in (SIG2STR_H): New macro.
