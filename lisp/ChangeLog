@@ -1,5 +1,9 @@
 2012-12-11  Stefan Monnier  <monnier@iro.umontreal.ca>
 
+	* hilit-chg.el (highlight-save-buffer-state): Delete.
+	Use with-silent-modifications instead.
+	(hilit-chg-set-face-on-change): Only fixup the text that's modified.
+
 	* button.el: Handle buttons in display text-properties.
 	(button--area-button-p, button--area-button-string):
 	Use (STRING . STRING-POS) representation instead of just STRING.
