@@ -154,5 +154,23 @@ end module modname")
     (f90-indent-line)
     (should (= 0 (current-indentation)))))
 
+(ert-deftest f90-test-bug13138 ()
+  "Test for http://debbugs.gnu.org/13138 ."
+  (with-temp-buffer
+    (f90-mode)
+    (insert "program prog
+  integer :: i = &
+#ifdef foo
+       & 1
+#else
+       & 2
+#endif
+
+  write(*,*) i
+end program prog")
+    (goto-char (point-min))
+    (forward-line 2)
+    (f90-indent-subprogram)
+    (should (= 0 (current-indentation)))))
 
 ;;; f90.el ends here
