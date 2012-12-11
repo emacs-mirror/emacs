@@ -16,6 +16,7 @@ internal aspects of GNU Emacs that may be of interest to C programmers.
 * Memory Usage::        Info about total size of Lisp objects made so far.
 * Writing Emacs Primitives::   Writing C code for Emacs.
 * Object Internals::    Data formats of buffers, windows, processes.
+* C Integer Types::     How C integer types are used inside Emacs.
 @end menu
 
 @node Building Emacs
@@ -1530,5 +1531,92 @@ Symbol indicating the type of process: @code{real}, @code{network},
 @code{serial}.
 
 @end table
+
+@node C Integer Types
+@section C Integer Types
+@cindex integer types (C programming language)
+
+Here are some guidelines for use of integer types in the Emacs C
+source code.  These guidelines sometimes give competing advice; common
+sense is advised.
+
+@itemize @bullet
+@item
+Avoid arbitrary limits.  For example, avoid @code{int len = strlen
+(s);} unless the length of @code{s} is required for other reasons to
+fit in @code{int} range.
+
+@item
+Do not assume that signed integer arithmetic wraps around on overflow.
+This is no longer true of Emacs porting targets: signed integer
+overflow has undefined behavior in practice, and can dump core or
+even cause earlier or later code to behave ``illogically''.  Unsigned
+overflow does wrap around reliably, modulo a power of two.
+
+@item
+Prefer signed types to unsigned, as code gets confusing when signed
+and unsigned types are combined.  Many other guidelines assume that
+types are signed; in the rarer cases where unsigned types are needed,
+similar advice may apply to the unsigned counterparts (e.g.,
+@code{size_t} instead of @code{ptrdiff_t}, or @code{uintptr_t} instead
+of @code{intptr_t}).
+
+@item
+Prefer @code{int} for Emacs character codes, in the range 0 ..@: 0x3FFFFF.
+
+@item
+Prefer @code{ptrdiff_t} for sizes, i.e., for integers bounded by the
+maximum size of any individual C object or by the maximum number of
+elements in any C array.  This is part of Emacs's general preference
+for signed types.  Using @code{ptrdiff_t} limits objects to
+@code{PTRDIFF_MAX} bytes, but larger objects would cause trouble
+anyway since they would break pointer subtraction, so this does not
+impose an arbitrary limit.
+
+@item
+Prefer @code{intptr_t} for internal representations of pointers, or
+for integers bounded only by the number of objects that can exist at
+any given time or by the total number of bytes that can be allocated.
+Currently Emacs sometimes uses other types when @code{intptr_t} would
+be better; fixing this is lower priority, as the code works as-is on
+Emacs's current porting targets.
+
+@item
+Prefer the Emacs-defined type @code{EMACS_INT} for representing values
+converted to or from Emacs Lisp fixnums, as fixnum arithmetic is based
+on @code{EMACS_INT}.
+
+@item
+When representing a system value (such as a file size or a count of
+seconds since the Epoch), prefer the corresponding system type (e.g.,
+@code{off_t}, @code{time_t}).  Do not assume that a system type is
+signed, unless this assumption is known to be safe.  For example,
+although @code{off_t} is always signed, @code{time_t} need not be.
+
+@item
+Prefer the Emacs-defined type @code{printmax_t} for representing
+values that might be any signed integer value that can be printed,
+using a @code{printf}-family function.
+
+@item
+Prefer @code{intmax_t} for representing values that might be any
+signed integer value.
+
+@item
+In bitfields, prefer @code{unsigned int} or @code{signed int} to
+@code{int}, as @code{int} is less portable: it might be signed, and
+might not be.  Single-bit bit fields are invariably @code{unsigned
+int} so that their values are 0 and 1.
+
+@item
+In C, Emacs commonly uses @code{bool}, 1, and 0 for boolean values.
+Using @code{bool} for booleans can make programs easier to read and a
+bit faster than using @code{int}.  Although it is also OK to use
+@code{int}, this older style is gradually being phased out.  When
+using @code{bool}, respect the limitations of the replacement
+implementation of @code{bool}, as documented in the source file
+@file{lib/stdbool.in.h}, so that Emacs remains portable to pre-C99
+platforms.
+@end itemize
 
 @c FIXME Mention src/globals.h somewhere in this file?
