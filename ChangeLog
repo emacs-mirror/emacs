@@ -1,3 +1,8 @@
+2012-12-11  Nicolas Richard  <theonewiththeevillook@yahoo.fr>  (tiny change)
+
+	* Makefile.in (install-info, uninstall): Ensure make's messages
+	about changing directories are in English.  (Bug#13143)
+
 2012-12-05  Glenn Morris  <rgm@gnu.org>
 
 	* configure.ac: Handle info/ files with or without ".info" extension.
