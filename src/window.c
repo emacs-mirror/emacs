@@ -2988,22 +2988,24 @@ replace_buffer_in_windows (Lisp_Object buffer)
   call1 (Qreplace_buffer_in_windows, buffer);
 }
 
-
-/* Safely replace BUFFER with some other buffer in all windows of all
-   frames, even those on other keyboards.  */
+/* If BUFFER is shown in a window, safely replace it with some other
+   buffer in all windows of all frames, even those on other keyboards.  */
 
 void
 replace_buffer_in_windows_safely (Lisp_Object buffer)
 {
-  Lisp_Object tail, frame;
+  if (buffer_window_count (XBUFFER (buffer)))
+    {
+      Lisp_Object tail, frame;
 
-  /* A single call to window_loop won't do the job because it only
-     considers frames on the current keyboard.  So loop manually over
-     frames, and handle each one.  */
-  FOR_EACH_FRAME (tail, frame)
-    window_loop (REPLACE_BUFFER_IN_WINDOWS_SAFELY, buffer, 1, frame);
+      /* A single call to window_loop won't do the job because it only
+	 considers frames on the current keyboard.  So loop manually over
+	 frames, and handle each one.  */
+      FOR_EACH_FRAME (tail, frame)
+	window_loop (REPLACE_BUFFER_IN_WINDOWS_SAFELY, buffer, 1, frame);
+    }
 }
-
+
 /* If *ROWS or *COLS are too small a size for FRAME, set them to the
    minimum allowable size.  */
 
@@ -3338,11 +3340,11 @@ displaying that buffer.  */)
 
   if (STRINGP (object))
     object = Fget_buffer (object);
-  if (BUFFERP (object) && BUFFER_LIVE_P (XBUFFER (object)))
+  if (BUFFERP (object) && BUFFER_LIVE_P (XBUFFER (object))
+      && buffer_window_count (XBUFFER (object)))
     {
-      /* Walk all windows looking for buffer, and force update
-	 of each of those windows.  */
-
+      /* If buffer is live and shown in at least one window, find
+	 all windows showing this buffer and force update of them.  */
       object = window_loop (REDISPLAY_BUFFER_WINDOWS, object, 0, Qvisible);
       return NILP (object) ? Qnil : Qt;
     }

@@ -1,3 +1,13 @@
+2012-12-11  Dmitry Antipov  <dmantipov@yandex.ru>
+
+	* buffer.c (Fset_buffer_multibyte): Do not force redisplay
+	if changed buffer is not shown in a window.
+	* insdel.c (prepare_to_modify_buffer): Likewise.
+	* window.c (replace_buffer_in_windows_safely): Do nothing
+	if buffer is not shown in a window.
+	(Fforce_window_update): Likewise if string or buffer argument
+	is passed.
+
 2012-12-11  Eli Zaretskii  <eliz@gnu.org>
 
 	* inotify.c (Finotify_add_watch): Rename decoded_file_name to

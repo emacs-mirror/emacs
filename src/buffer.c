@@ -2691,10 +2691,11 @@ current buffer is cleared.  */)
 
   UNGCPRO;
 
-  /* Changing the multibyteness of a buffer means that all windows
-     showing that buffer must be updated thoroughly.  */
   current_buffer->prevent_redisplay_optimizations_p = 1;
-  ++windows_or_buffers_changed;
+
+  /* If buffer is shown in a window, let redisplay consider other windows.  */
+  if (buffer_window_count (current_buffer))
+    ++windows_or_buffers_changed;
 
   /* Copy this buffer's new multibyte status
      into all of its indirect buffers.  */

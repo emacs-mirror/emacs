@@ -1800,9 +1800,10 @@ prepare_to_modify_buffer (ptrdiff_t start, ptrdiff_t end,
   if (!NILP (BVAR (current_buffer, read_only)))
     Fbarf_if_buffer_read_only ();
 
-  /* Let redisplay consider other windows than selected_window
-     if modifying another buffer.  */
-  if (XBUFFER (XWINDOW (selected_window)->buffer) != current_buffer)
+  /* If we're modifying the buffer other than shown in a selected window,
+     let redisplay consider other windows if this buffer is visible.  */
+  if (XBUFFER (XWINDOW (selected_window)->buffer) != current_buffer
+      && buffer_window_count (current_buffer))
     ++windows_or_buffers_changed;
 
   if (buffer_intervals (current_buffer))
