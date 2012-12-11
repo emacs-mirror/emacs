@@ -172,7 +172,6 @@ inotify_callback (int fd, void *_)
 
   EVENT_INIT (event);
   event.kind = FILE_NOTIFY_EVENT;
-  event.arg = Qnil;
 
   i = 0;
   while (i < (size_t)n)
@@ -187,13 +186,13 @@ inotify_callback (int fd, void *_)
           /* If event was removed automatically: Drop it from watch list.  */
           if (ev->mask & IN_IGNORED)
             watch_list = Fdelete (watch_object, watch_list);
+
+	  if (!NILP (event.arg))
+	    kbd_buffer_store_event (&event);
         }
 
       i += sizeof (*ev) + ev->len;
     }
-
-  if (!NILP (event.arg))
-    kbd_buffer_store_event (&event);
 
   xfree (buffer);
 }
