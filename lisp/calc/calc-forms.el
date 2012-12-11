@@ -82,13 +82,13 @@
   (calc-wrapper
    (if (string-match-p "\\`\\s-*\\'" fmt)
        (setq fmt "1"))
-   (if (string-match "\\` *[0-9] *\\'" fmt)
+   (if (string-match "\\` \\(*[0-9]\\|10\\|11\\) *\\'" fmt)
        (setq fmt (nth (string-to-number fmt) calc-standard-date-formats)))
    (or (string-match "[a-zA-Z]" fmt)
        (error "Bad date format specifier"))
    (and arg
 	(>= (setq arg (prefix-numeric-value arg)) 0)
-	(<= arg 9)
+	(<= arg 11)
 	(setq calc-standard-date-formats
 	      (copy-sequence calc-standard-date-formats))
 	(setcar (nthcdr arg calc-standard-date-formats) fmt))
@@ -918,6 +918,8 @@ as measured in the integer number of days before December 31, 1 BC (Gregorian)."
   (catch 'syntax
     (or (math-parse-standard-date math-pd-str t)
 	(math-parse-standard-date math-pd-str nil)
+        (and (or (memq 'IYYY calc-date-format) (memq 'Iww calc-date-format))
+             (math-parse-iso-date math-pd-str))
 	(and (string-match "\\`[^-+/0-9a-zA-Z]*\\([-+]?[0-9]+\\.?[0-9]*\\([eE][-+]?[0-9]+\\)?\\)[^-+/0-9a-zA-Z]*\\'" math-pd-str)
 	     (list 'date (math-read-number (math-match-substring math-pd-str 1))))
 	(let ((case-fold-search t)
@@ -1085,6 +1087,8 @@ as measured in the integer number of days before December 31, 1 BC (Gregorian)."
 (defun math-parse-iso-date-validate (isoyear isoweek isoweekday hour minute second)
   (if (or (< isoweek 1) (> isoweek 53))
       (throw 'syntax "Week value is out of range"))
+  (if (or (< isoweekday 1) (> isoweekday 7))
+      (throw 'syntax "Weekday value is out of range"))
   (and hour
        (progn
 	 (if (or (< hour 0) (> hour 23))
@@ -1290,6 +1294,31 @@ as measured in the integer number of days before December 31, 1 BC (Gregorian)."
                      (setq day (math-add day (1- yearday))))
                  day))))))
 
+(defun math-parse-iso-date (math-pd-str)
+  "Parse MATH-PD-STR as an ISO week date, or return nil."
+  (let ((case-fold-search t)
+        (isoyear nil) (isoweek nil) (isoweekday nil)
+        (hour nil) (minute nil) (second nil))
+    ;; Extract the time, if any.
+    (if (string-match "T[^0-9]*\\([0-9][0-9]\\)[^0-9]*\\([0-9][0-9]\\)?[^0-9]*\\([0-9][0-9]\\(\\.[0-9]+\\)?\\)?" math-pd-str)
+        (progn
+          (setq hour (string-to-number (math-match-substring math-pd-str 1))
+                minute (math-match-substring math-pd-str 2)
+                second (math-match-substring math-pd-str 3)
+                math-pd-str (substring math-pd-str 0 (match-beginning 0)))
+          (if (equal minute "")
+              (setq minute 0)
+            (setq minute (string-to-number minute)))
+          (if (equal second "")
+              (setq second 0)
+            (setq second (math-read-number second)))))
+    ;; Next, the year, week and weekday
+    (if (string-match "\\(-?[0-9]*\\)[^0-9]*W\\([0-9][0-9]\\)[^0-9]*\\([0-9]\\)[^0-9]*\\'" math-pd-str)
+        (progn
+          (setq isoyear (string-to-number (math-match-substring math-pd-str 1))
+                isoweek (string-to-number (math-match-substring math-pd-str 2))
+                isoweekday (string-to-number (math-match-substring math-pd-str 3)))
+          (math-parse-iso-date-validate isoyear isoweek isoweekday hour minute second)))))
 
 (defun calcFunc-now (&optional zone)
   (let ((date (let ((calc-date-format nil))

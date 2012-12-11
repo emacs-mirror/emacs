@@ -1,3 +1,12 @@
+2012-12-11  Jay Belanger  <jay.p.belanger@gmail.com>
+
+	* calc/calc.el (calc-standard-date-formats):  Add more date
+	formats.
+	* calc/calc-forms.el (math-parse-iso-date): New function.
+	(math-parse-date): Use `math-parse-iso-date' when appropriate.
+	(math-parse-iso-date-validate): Add extra error checking.
+	(calc-date-notation): Add ability to access new date formats.
+
 2012-12-10  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* hi-lock.el (hi-lock--regexps-at-point): Fix boundary case for
