@@ -35,6 +35,9 @@ simply disabling Transient Mark mode does the same thing.
 
 * Editing Changes in Emacs 24.4
 
+** New commands `toggle-frame-maximized' and `cycle-frame-maximized',
+bound to <f11> and S-<f11>, respectively.
+
 
 * Changes in Specialized Modes and Packages in Emacs 24.4
 

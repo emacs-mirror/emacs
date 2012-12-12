@@ -1654,12 +1654,42 @@ terminals, cursor blinking is controlled by the terminal."
                                'blink-cursor-start))))
 
 
+;; Frame maximization
+(defcustom frame-maximization-style 'maximized
+  "The maximization style of \\[toggle-frame-maximized]."
+  :version "24.4"
+  :type '(choice
+          (const :tab "Respect window manager screen decorations." maximized)
+          (const :tab "Ignore window manager screen decorations." fullscreen))
+  :group 'frames)
+
+(defun toggle-frame-maximized ()
+  "Maximize/un-maximize Emacs frame according to `frame-maximization-style'.
+See also `cycle-frame-maximized'."
+  (interactive)
+  (modify-frame-parameters
+   nil `((fullscreen . ,(if (frame-parameter nil 'fullscreen)
+                            nil frame-maximization-style)))))
+
+(defun cycle-frame-maximized ()
+  "Cycle Emacs frame between normal, maximized, and fullscreen.
+See also `toggle-frame-maximized'."
+  (interactive)
+  (modify-frame-parameters
+   nil `((fullscreen . ,(cl-case (frame-parameter nil 'fullscreen)
+                                 ((nil) 'maximized)
+                                 ((maximized) 'fullscreen)
+                                 ((fullscreen) nil))))))
+
+
 ;;;; Key bindings
 
 (define-key ctl-x-5-map "2" 'make-frame-command)
 (define-key ctl-x-5-map "1" 'delete-other-frames)
 (define-key ctl-x-5-map "0" 'delete-frame)
 (define-key ctl-x-5-map "o" 'other-frame)
+(define-key global-map [f11] 'toggle-frame-maximized)
+(define-key global-map [(shift f11)] 'cycle-frame-maximized)
 
 
 ;; Misc.
