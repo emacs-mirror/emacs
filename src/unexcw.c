@@ -183,6 +183,19 @@ fixup_executable (int fd)
 		exe_header->file_optional_header.FileAlignment *
 		exe_header->file_optional_header.FileAlignment;
 
+              /* Make sure the generated bootstrap binary isn't
+               * sparse.  NT doesn't use a file cache for sparse
+               * executables, so if we bootstrap Emacs using a sparse
+               * bootstrap-emacs.exe, bootstrap takes about twenty
+               * times longer than it would otherwise.  */
+
+              ret = posix_fallocate (fd,
+                                     ( exe_header->section_header[i].s_scnptr +
+                                       exe_header->section_header[i].s_size ),
+                                     1);
+
+              assert (ret != -1);
+
 	      ret =
 		lseek (fd,
 		       (long) (exe_header->section_header[i].s_scnptr +
