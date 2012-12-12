@@ -2504,6 +2504,7 @@ Disabling the agent may result in noticeable loss of performance."
 
 (defcustom gnus-other-frame-resume-function 'gnus-group-get-new-news
   "Function called by the command `gnus-other-frame' when resuming Gnus."
+  :version "24.4"
   :group 'gnus-start
   :type '(choice (function-item gnus)
 		 (function-item gnus-no-server)
@@ -4404,7 +4405,7 @@ current display is used."
 	       (make-frame gnus-other-frame-parameters))))
       (if alive
 	  (progn (switch-to-buffer gnus-group-buffer)
-           (funcall gnus-other-frame-resume-function arg))
+		 (funcall gnus-other-frame-resume-function arg))
 	(funcall gnus-other-frame-function arg)
 	(add-hook 'gnus-exit-gnus-hook 'gnus-delete-gnus-frame)
   ;; One might argue that `gnus-delete-gnus-frame' should not be called
