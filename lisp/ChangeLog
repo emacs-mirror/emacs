@@ -1,3 +1,13 @@
+2012-12-12  Jonas Bernoulli  <jonas@bernoul.li>
+
+	* lisp/emacs-lisp/eieio.el: Prettier object pretty-printing (bug#13115).
+	(eieio-override-prin1): Don't quote kewords and booleans.
+	(object-write) <eieio-default-superclass>: Don't put closing parens
+	on new line, avoid needless empty lines, align values that are objects
+	with the slot keyword (instead of beginning on the same line).
+	(eieio-list-prin1): Align value with slot keyword; increase
+	eieio-print-depth before printing members of the list.
+
 2012-12-11  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* mail/emacsbug.el (report-emacs-bug): Move the intangible text to
