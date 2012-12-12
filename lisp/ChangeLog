@@ -1,3 +1,7 @@
+2012-12-12  Glenn Morris  <rgm@gnu.org>
+
+	* button.el (button--area-button-p): Fix typo.
+
 2012-12-12  Sam Steingold  <sds@gnu.org>
 
 	* frame.el (frame-maximization-style): New user option.

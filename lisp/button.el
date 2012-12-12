@@ -258,9 +258,10 @@ header-line) a string."
   "Return t if BUTTON has button-type TYPE, or one of TYPE's subtypes."
   (button-type-subtype-p (button-get button 'type) type))
 
-(defun button--area-button-p (b) (stringp (car-safe b))
+(defun button--area-button-p (b)
   "Return non-nil if BUTTON is an area button.
-Such area buttons are used for buttons in the mode-line and header-line.")
+Such area buttons are used for buttons in the mode-line and header-line."
+  (stringp (car-safe b)))
 
 (defalias 'button--area-button-string #'car
   "Return area button BUTTON's button-string.")
