@@ -1336,19 +1336,32 @@ it.")
 
 ;;; Global variables and helper functions for items
 
+(defconst todos-month-name-array
+  (vconcat calendar-month-name-array (vector "*"))
+  "Array of month names, in order.
+The final element is \"*\", indicating an unspecified month.")
+
+(defconst todos-month-abbrev-array
+  (vconcat calendar-month-abbrev-array (vector "*"))
+  "Array of abbreviated month names, in order.
+The final element is \"*\", indicating an unspecified month.")
+
 (defconst todos-date-pattern
   (let ((dayname (diary-name-pattern calendar-day-name-array nil t)))
-    (concat "\\(?:" dayname "\\|"
+    (concat "\\(?5:" dayname "\\|"
 	    (let ((dayname)
 		  ;; FIXME: how to choose between abbreviated and unabbreviated
 		  ;; month name?
-		  (monthname (format "\\(?:%s\\|\\*\\)"
-				     (diary-name-pattern
-				      calendar-month-name-array
-				      calendar-month-abbrev-array t)))
-		  (month "\\(?:[0-9]+\\|\\*\\)")
-		  (day "\\(?:[0-9]+\\|\\*\\)")
-		  (year "-?\\(?:[0-9]+\\|\\*\\)"))
+		  ;; (monthname (format "\\(?6:%s\\|\\*\\)"
+		  ;; 		     (diary-name-pattern
+		  ;; 		      calendar-month-name-array
+		  ;; 		      calendar-month-abbrev-array)))
+		  (monthname (format "\\(?6:%s\\)" (diary-name-pattern
+						    todos-month-name-array
+						    todos-month-abbrev-array)))
+		  (month "\\(?7:[0-9]+\\|\\*\\)")
+		  (day "\\(?8:[0-9]+\\|\\*\\)")
+		  (year "-?\\(?9:[0-9]+\\|\\*\\)"))
 	      (mapconcat 'eval calendar-date-display-form ""))
 	    "\\)"))
   "Regular expression matching a Todos date header.")
@@ -1637,57 +1650,87 @@ TYPE can be either a file or a category"
     name))
 
 ;; Adapted from calendar-read-date and calendar-date-string.
-(defun todos-read-date ()
+(defun todos-read-date (&optional arg mo yr)
   "Prompt for Gregorian date and return it in the current format.
-Also accepts `*' as an unspecified month, day, or year."
-  (let* ((year (let (x)
-		 (while (if (numberp x) (< x 0) (not (eq x '*)))
-		   (setq x (read-from-minibuffer
-			    "Year (>0 or RET for this year or * for any year): "
-			    nil nil t nil (number-to-string
-					   (calendar-extract-year
-					    (calendar-current-date))))))
-		 x))
-         (month-array (vconcat calendar-month-name-array (vector "*")))
-	 (abbrevs (vconcat calendar-month-abbrev-array (vector "*")))
-         (completion-ignore-case todos-completion-ignore-case)
-	 (monthname (completing-read
-		     "Month name (RET for current month, * for any month): "
-		     (mapcar 'list (append month-array nil))
-		     nil t nil nil
-		     (calendar-month-name (calendar-extract-month
-					   (calendar-current-date)) t)))
-         (month (cdr (assoc-string
-		      monthname (calendar-make-alist month-array nil nil
-						     abbrevs))))
-         (last (if (= month 13)
-		   ;; Use longest possible month for checking day number
-		   ;; input.  Does Calendar do anything special when * is
-		   ;; currently a shorter month?
-		   31
-		 (let ((yr (if (eq year '*)
-			       ;; Use a leap year to allow Feb. 29.
-			       2012
-			     year)))
-		   (calendar-last-day-of-month month yr))))
-	 (day (let (x)
-		(while (if (numberp x) (or (< x 0) (< last x)) (not (eq x '*)))
-		  (setq x (read-from-minibuffer
-			   (format
-			    "Day (1-%d or RET for today or * for any day): "
-			    last) nil nil t nil (number-to-string
-						 (calendar-extract-day
-						  (calendar-current-date))))))
-		 x))
-	 dayname)			; Needed by calendar-date-display-form.
-    (setq year (if (eq year '*) (symbol-name '*) (number-to-string year)))
-    (setq day (if (eq day '*) (symbol-name '*) (number-to-string day)))
-    ;; FIXME: make abbreviation customizable
-    (setq monthname
-	  (or (and (= month 13) "*")
-	      (calendar-month-name (calendar-extract-month (list month day year))
-				   t)))
-    (mapconcat 'eval calendar-date-display-form "")))
+
+With non-nil ARG, prompt for and return only the date component
+specified by ARG, which can be one of these symbols:
+`month' (prompt for name, return name or number according to
+value of `calendar-date-display-form'), `day' of month, or
+`year'.  The value of each of these components can be `*',
+indicating an unspecified month, day, or year.
+
+When ARG is `day', non-nil arguments MO and YR determine the
+number of the last the day of the month."
+  (let (year monthname month day
+	     dayname)			; Needed by calendar-date-display-form.
+    ;; FIXME: year can be omitted from Diary
+    (when (or (not arg) (eq arg 'year))
+      (while (if (natnump year) (< year 1) (not (eq year '*)))
+	(setq year (read-from-minibuffer
+		    "Year (>0 or RET for this year or * for any year): "
+		    nil nil t nil (number-to-string
+				   (calendar-extract-year
+				    (calendar-current-date)))))))
+    (when (or (not arg) (eq arg 'month))
+      (let* ((marray todos-month-name-array)
+	     (mlist (append marray nil))
+	     (mabarray todos-month-abbrev-array)
+	     (mablist (append mabarray nil))
+	     (completion-ignore-case todos-completion-ignore-case))
+	(setq monthname (completing-read
+			 "Month name (RET for current month, * for any month): "
+	      		 ;; (mapcar 'list (append marray nil))
+			 mlist nil t nil nil
+	      		 (calendar-month-name (calendar-extract-month
+	      				       (calendar-current-date)) t))
+	      ;; month (cdr (assoc-string
+	      ;; 		  monthname (calendar-make-alist marray nil nil
+	      ;; 						 abbrevs))))))
+	      month (1+ (- (length mlist)
+			   (length (or (member monthname mlist)
+				       (member monthname mablist))))))
+	;; FIXME: We follow diary-insert-entry in using abbreviated
+	;; month name (and no day name) in date string.  Should this
+	;; be customizable?
+	(setq monthname (aref mabarray (1- month)))))
+    (when (or (not arg) (eq arg 'day))
+      (let ((last (let ((mm (or month mo))
+			(yy (or year yr)))
+		    ;; If month is unspecified, use a month with 31
+		    ;; days for checking day of month input.  Does
+		    ;; Calendar do anything special when * is
+		    ;; currently a shorter month?
+		    (if (= mm 13) (setq mm 1))
+		    ;; If year is unspecified, use a leap year to
+		    ;; allow Feb. 29.
+		    (if (eq year '*) (setq yy 2012))
+		    (calendar-last-day-of-month mm yy))))
+	(while (if (natnump day) (or (< day 1) (> day last)) (not (eq day '*)))
+	  (setq day (read-from-minibuffer
+		     (format "Day (1-%d or RET for today or * for any day): "
+			     last)
+		     nil nil t nil (number-to-string
+				    (calendar-extract-day
+				     (calendar-current-date))))))))
+    ;; Stringify read values (monthname is already a string).
+    (and year (setq year (if (eq year '*)
+			     (symbol-name '*)
+			   (number-to-string year))))
+    (and day (setq day (if (eq day '*)
+			   (symbol-name '*)
+			 (number-to-string day))))
+    (and month (setq month (if (eq month '*)
+			       (symbol-name '*)
+			     (number-to-string month))))
+    (if arg
+	(cond ((eq arg 'year) year)
+	      ((eq arg 'day) day)
+	      ((eq arg 'month)
+	       (if (memq 'month calendar-date-display-form)
+		   month
+		 monthname)))
+      (mapconcat 'eval calendar-date-display-form ""))))
 
 (defun todos-read-dayname ()
   "Choose name of a day of the week with completion and return it."
@@ -1742,6 +1785,7 @@ the empty string (i.e., no time string)."
 		   :notify (lambda (widget &rest ignore)
 			     (setq todos-multiple-filter-files 'quit)
 			     (quit-window t)
+			     ;; FIXME: use (throw 'exit nil) ?
 			     (exit-recursive-edit))
 		   "Cancel")
     (widget-insert "   ")
@@ -1754,6 +1798,7 @@ the empty string (i.e., no time string)."
 					   (widget-value
 					    todos-multiple-filter-files-widget)))
 			     (quit-window t)
+			     ;; FIXME: use (throw 'exit nil) ?
 			     (exit-recursive-edit))
 		   "Apply")
     (use-local-map widget-keymap)
@@ -2407,7 +2452,7 @@ which is the value of the user option
 (defvar todos-key-bindings
   `(
     ;;               display
-    ("Cd"	     . todos-display-categories) ;FIXME: Cs todos-show-categories?
+    ("Cd"	     . todos-display-categories) ;FIXME: Fc todos-file-categories?
     ("H"	     . todos-highlight-item)
     ("N"	     . todos-hide-show-item-numbering)
     ("D"	     . todos-hide-show-date-time)
@@ -2420,7 +2465,7 @@ which is the value of the user option
     ("V"	     . todos-show-done-only)
     ("As"	     . todos-show-archive)
     ("Ac"	     . todos-choose-archive)
-    ("Y"	     . todos-diary-items)
+    ;; ("Y"	     . todos-diary-items)
     ("Fe"	     . todos-edit-multiline)
     ("Fh"	     . todos-highlight-item)
     ("Fn"	     . todos-hide-show-item-numbering)
@@ -2453,9 +2498,12 @@ which is the value of the user option
     ("ee"	     . todos-edit-item)
     ("em"	     . todos-edit-multiline-item)
     ("eh"	     . todos-edit-item-header)
-    ("edd"	     . todos-edit-item-date)
     ("edc"	     . todos-edit-item-date-from-calendar)
-    ("edt"	     . todos-edit-item-date-is-today)
+    ("edt"	     . todos-edit-item-date-to-today)
+    ("edn"	     . todos-edit-item-date-day-name)
+    ("edy"	     . todos-edit-item-date-year)
+    ("edm"	     . todos-edit-item-date-month)
+    ("edd"	     . todos-edit-item-date-day)
     ("et"	     . todos-edit-item-time)
     ("eyy"	     . todos-edit-item-diary-inclusion)
     ;; (""	     . todos-edit-category-diary-inclusion)
@@ -4209,7 +4257,12 @@ the priority is not given by HERE but by prompting."
 			       (string-match todos-date-pattern date-type))
 			  (setq todos-date-from-calendar date-type)
 			  (todos-set-date-from-calendar))
-			 (t (calendar-date-string (calendar-current-date) t t))))
+			 (t
+			  ;; FIXME: We follow diary-insert-entry in
+			  ;; hardcoding abbreviated month name and no
+			  ;; day name in date string.  Should this be
+			  ;; customizable?
+			  (calendar-date-string (calendar-current-date) t t))))
 	   (time-string (or (and time (todos-read-time))
 			    (and todos-always-add-time-string
 				 (substring (current-time-string) 11 16)))))
@@ -4285,7 +4338,7 @@ the priority is not given by HERE but by prompting."
 	 (let (calendar-view-diary-initially-flag)
 	   (calendar))
 	 ;; *Calendar* is now current buffer.
-	 (local-set-key (kbd "RET") 'exit-recursive-edit)
+	 (local-set-key (kbd "RET") 'exit-recursive-edit) ; FIXME: (throw 'exit nil)?
 	 (message "Put cursor on a date and type <return> to set it.")
 	 ;; FIXME: is there a better way than recursive-edit?
 	 (recursive-edit)
@@ -4344,13 +4397,18 @@ the item at point."
 	    (todos-prefix-overlays)))
       (if ov (delete-overlay ov)))))
 
-(defun todos-edit-item ()
+(defun todos-edit-item (&optional arg)
   "Edit the Todo item at point.
+
+With non-nil prefix argument ARG, include the item's date/time
+header, making it also editable; otherwise, include only the item
+content.
+
 If the item consists of only one logical line, edit it in the
 minibuffer; otherwise, edit it in Todos Edit mode."
-  (interactive)
+  (interactive "P")
   (when (todos-item-string)
-    (let* ((buffer-read-only)
+    (let* ((opoint (point))
 	   (start (todos-item-start))
 	   (item-beg (progn
 		       (re-search-forward
@@ -4359,16 +4417,22 @@ minibuffer; otherwise, edit it in Todos Edit mode."
 				(regexp-quote todos-nondiary-end) "?")
 			(line-end-position) t)
 		       (1+ (- (point) start))))
-	   (item (todos-item-string))
+	   (header (substring (todos-item-string) 0 item-beg))
+	   (item (if arg (todos-item-string)
+		   (substring (todos-item-string) item-beg)))
 	   (multiline (> (length (split-string item "\n")) 1))
-	   (opoint (point)))
+	   (buffer-read-only nil))
       (if multiline
-	  (todos-edit-multiline t)
-	(let ((new (read-string "Edit: " (cons item item-beg))))
-	  (while (not (string-match
-		       (concat todos-date-string-start todos-date-pattern) new))
-	    (setq new (read-from-minibuffer
-		       "Item must start with a date: " new)))
+	  (todos-edit-multiline-item)
+	(let ((new (concat (if arg "" header)
+			   (read-string "Edit: " (if arg
+						     (cons item item-beg)
+						   (cons item 0))))))
+	  (when arg
+	    (while (not (string-match (concat todos-date-string-start
+					      todos-date-pattern) new))
+	      (setq new (read-from-minibuffer
+			 "Item must start with a date: " new))))
 	  ;; Indent newlines inserted by C-q C-j if nonspace char follows.
 	  (setq new (replace-regexp-in-string
 		     "\\(\n\\)[^[:blank:]]"
@@ -4422,91 +4486,245 @@ in the number or names of categories."
   ;; In case next buffer is not the one holding todos-current-todos-file.
   (todos-show))
 
-(defun todos-edit-item-header (&optional what)
-  "Edit date/time header of at least one item.
+(defun todos-edit-item-header-1 (what &optional inc)
+  "Underlying function to edit items' date/time headers.
 
-Interactively, ask whether to edit year, month and day or day of
-the week, as well as time.  If there are marked items, apply the
-changes to all of these; otherwise, edit just the item at point.  
+The argument WHAT (passed by invoking commands) specifies what
+part of the header to edit; possible values are these symbols:
+`date', to edit the year, month, and day of the date string;
+`time', to edit just the time string; `calendar', to select the
+date from the Calendar; `today', to set the date to today's date;
+`dayname', to set the date string to the name of a day or to
+change the day name; and `year', `month' or `day', to edit only
+these respective parts of the date string (`day' is the number of
+the given day of the month, and `month' is either the name of the
+given month or its number, depending on the value of
+`calendar-date-display-form').
 
-Non-interactively, argument WHAT specifies whether to set the
-date from the Calendar or to today, or whether to edit only the
-date or day, or only the time."
-  (interactive)
+The optional argument INC is a positive or negative integer
+\(passed by invoking commands as a numerical prefix argument)
+that in conjunction with the WHAT values `year', `month' or
+`day', increments or decrements the specified date string
+component by the specified number of suitable units, i.e., years,
+months, or days, with automatic adjustment of the other date
+string components as necessary.
+
+If there are marked items, apply the same edit to all of these;
+otherwise, edit just the item at point."
   (let* ((cat (todos-current-category))
 	 (marked (assoc cat todos-categories-with-marks))
-	 (first t)			; Match only first of marked items.
+	 (first t)
 	 (todos-date-from-calendar t)
-	 ndate ntime nheader)
+	 (buffer-read-only nil)
+	 ndate ntime year monthname month day
+	 dayname)	; Needed by calendar-date-display-form.
     (save-excursion
       (or (and marked (goto-char (point-min))) (todos-item-start))
-      (catch 'stop
+      (catch 'end
 	(while (not (eobp))
 	  (and marked
 	       (while (not (todos-marked-item-p))
 		 (todos-forward-item)
-		 (and (eobp) (throw 'stop nil))))
+		 (and (eobp) (throw 'end nil))))
 	  (re-search-forward (concat todos-date-string-start "\\(?1:"
 				     todos-date-pattern
-				     "\\)\\(?2: " diary-time-regexp "\\)?")
+				     "\\)\\(?2: " diary-time-regexp "\\)?"
+				     (regexp-quote todos-nondiary-end) "?")
 			     (line-end-position) t)
 	  (let* ((odate (match-string-no-properties 1))
 		 (otime (match-string-no-properties 2))
-		 (buffer-read-only))
-	    (cond ((eq what 'today)
-		   (progn
-		     (setq ndate (calendar-date-string
-				  (calendar-current-date) t t))
-		     (replace-match ndate nil nil nil 1)))
-		  ((eq what 'calendar)
-		   (setq ndate (save-match-data (todos-set-date-from-calendar)))
-		   (replace-match ndate nil nil nil 1))
-		  (t
-		   (unless (eq what 'timeonly)
-		     (when first
-		       (setq ndate (if (save-match-data
-					 (string-match "[0-9]+" odate))
-				       (if (y-or-n-p "Change date? ")
-					   (todos-read-date)
-					 (todos-read-dayname))
-				     (if (y-or-n-p "Change day? ")
-					 (todos-read-dayname)
-				       (todos-read-date)))))
-		     (replace-match ndate nil nil nil 1))
-		   (unless (eq what 'dateonly)
-		     (when first
-		       (setq ntime (save-match-data (todos-read-time)))
-		       (when (< 0 (length ntime))
-			 (setq ntime (concat " " ntime))))
-		     (if otime
-			 (replace-match ntime nil nil nil 2)
-		       (goto-char (match-end 1))
-		       (insert ntime)))))
+		 (omonthname (match-string-no-properties 6))
+		 (omonth (match-string-no-properties 7))
+		 (oday (match-string-no-properties 8))
+		 (oyear (match-string-no-properties 9))
+		 (tmn-array todos-month-name-array)
+		 (mlist (append tmn-array nil))
+		 (tma-array todos-month-abbrev-array)
+		 (mablist (append tma-array nil))
+		 (yy (and oyear (unless (string= oyear "*")
+				  (string-to-number oyear))))
+		 (mm (or (and omonth (unless (string= omonth "*")
+				       (string-to-number omonth)))
+			 (1+ (- (length mlist)
+				(length (or (member omonthname mlist)
+					    (member omonthname mablist)))))))
+		 (dd (and oday (unless (string= oday "*")
+				 (string-to-number oday)))))
+	    ;; If there are marked items, use only the first to set
+	    ;; header changes, and apply these to all marked items.
+	    (when first
+	      (cond
+	       ((eq what 'date)
+		(setq ndate (todos-read-date)))
+	       ((eq what 'calendar)
+		(setq ndate (save-match-data (todos-set-date-from-calendar))))
+	       ((eq what 'today)
+		(setq ndate (calendar-date-string (calendar-current-date) t t)))
+	       ((eq what 'dayname)
+		(setq ndate (todos-read-dayname)))
+	       ((eq what 'time)
+		(setq ntime (save-match-data (todos-read-time)))
+		(when (> (length ntime) 0)
+		  (setq ntime (concat " " ntime))))
+	       ;; When date string consists only of a day name,
+	       ;; passing other date components is a NOP.
+	       ((and (memq what '(year month day))
+		     (not (or oyear omonth oday))))
+	       ((eq what 'year)
+		(setq day oday
+		      monthname omonthname
+		      month omonth
+		      year (cond ((not current-prefix-arg)
+				  (todos-read-date 'year))
+				 ((string= oyear "*")
+				  (error "Cannot increment *"))
+				 (t	; FIXME: handle negative years
+				  (number-to-string (+ yy inc))))))
+	       ((eq what 'month)
+		(setf day oday
+		      year oyear
+		      (if (memq 'month calendar-date-display-form)
+			  month
+			monthname)
+		      (cond ((not current-prefix-arg)
+			     (todos-read-date 'month))
+			    ((or (string= omonth "*") (= mm 13))
+			     (error "Cannot increment *"))
+			    (t
+			     (let ((mminc (+ mm inc))) 
+			       ;; Increment or decrement month by INC
+			       ;; modulo 12.
+			       (setq mm (% mminc 12))
+			       ;; If result is 0, make month December.
+			       (setq mm (if (= mm 0) 12 (abs mm)))
+			       ;; Adjust year if necessary.
+			       (setq year (or (and (cond ((> mminc 12)
+							  (+ yy (/ mminc 12)))
+							 ((< mminc 1)
+							  (- yy (/ mminc 12) 1))
+							 (t yy))
+						   (number-to-string yy))
+					      oyear)))
+			     ;; Return the changed numerical month as
+			     ;; a string or the corresponding month name.
+			     (if omonth
+				 (number-to-string mm)
+			       (aref tma-array (1- mm))))))
+		(let ((yy (string-to-number year)) ; 0 if year is "*".
+		      ;; When mm is 13 (corresponding to "*" as value
+		      ;; of month), this raises an args-out-of-range
+		      ;; error in calendar-last-day-of-month, so use 1
+		      ;; (corresponding to January) to get 31 days.
+		      (mm (if (= mm 13) 1 mm)))
+		  (if (> (string-to-number day)
+			 (calendar-last-day-of-month mm yy))
+		      (error "%s %s does not have %s days"
+			     (aref tmn-array (1- mm))
+			     (if (= mm 2) yy "") day))))
+	       ((eq what 'day)
+		(setq year oyear
+		      month omonth
+		      monthname omonthname
+		      day (cond
+			   ((not current-prefix-arg)
+			    (todos-read-date 'day mm oyear))
+			   ((string= oday "*")
+			    (error "Cannot increment *"))
+			   ((or (string= omonth "*") (string= omonthname "*"))
+			    (setq dd (+ dd inc))
+			    (if (> dd 31)
+				(error "A month cannot have more than 31 days")
+			      (number-to-string dd)))
+			   ;; Increment or decrement day by INC,
+			   ;; adjusting month and year if necessary
+			   ;; (if year is "*" assume current year to
+			   ;; calculate adjustment).
+			   (t
+			    (let* ((yy (or yy (calendar-extract-year
+					       (calendar-current-date))))
+				   (date (calendar-gregorian-from-absolute
+					  (+ (calendar-absolute-from-gregorian
+					      (list mm dd yy)) inc)))
+				   (adjmm (nth 0 date)))
+			      ;; Set year and month(name) to adjusted values.
+			      (unless (string= year "*")
+				(setq year (number-to-string (nth 2 date))))
+			      (if month
+				  (setq month (number-to-string adjmm))
+				(setq monthname (aref tma-array (1- adjmm))))
+			      ;; Return changed numerical day as a string.
+			      (number-to-string (nth 1 date)))))))))
+	    ;; If new year, month or day date string components were
+	    ;; calculated, rebuild the whole date string from them.
+	    (when (memq what '(year month day))
+	      (if (or oyear omonth omonthname oday)
+		  (setq ndate (mapconcat 'eval calendar-date-display-form ""))
+		(message "Cannot edit date component of empty date string")))
+	    (when ndate (replace-match ndate nil nil nil 1))
+	    ;; Add new time string to the header, if it was supplied.
+	    (when ntime
+	      (if otime
+		  (replace-match ntime nil nil nil 2)
+		(goto-char (match-end 1))
+		(insert ntime)))
 	    (setq todos-date-from-calendar nil)
 	    (setq first nil))
+	  ;; Apply the changes to the first marked item header to the
+	  ;; remaining marked items.  If there are no marked items,
+	  ;; we're finished.
 	  (if marked
 	      (todos-forward-item)
 	    (goto-char (point-max))))))))
 
-(defun todos-edit-item-date ()
-  "Prompt for and apply changes to current item's date."
+(defun todos-edit-item-header ()
+  "Interactively edit at least the date of item's date/time header.
+If user option `todos-always-add-time-string' is non-nil, also
+edit item's time string."
   (interactive)
-  (todos-edit-item-header 'dateonly))
+  (todos-edit-item-header-1 'date)
+  (when todos-always-add-time-string
+    (todos-edit-item-time)))
+
+(defun todos-edit-item-time ()
+  "Interactively edit the time string of item's date/time header."
+  (interactive)
+  (todos-edit-item-header-1 'time))
 
 (defun todos-edit-item-date-from-calendar ()
-  "Prompt for changes to current item's date and apply from Calendar."
+  "Interactively edit item's date using the Calendar."
   (interactive)
-  (todos-edit-item-header 'calendar))
+  (todos-edit-item-header-1 'calendar))
 
-(defun todos-edit-item-date-is-today ()
-  "Set item date to today's date."
+(defun todos-edit-item-date-to-today ()
+  "Set item's date to today's date."
   (interactive)
-  (todos-edit-item-header 'today))
- 
-(defun todos-edit-item-time ()
-  "Prompt For and apply changes to current item's time."
+  (todos-edit-item-header-1 'today))
+
+(defun todos-edit-item-date-day-name ()
+  "Replace item's date with the name of a day of the week."
   (interactive)
-  (todos-edit-item-header 'timeonly))
+  (todos-edit-item-header-1 'dayname))
+
+(defun todos-edit-item-date-year (&optional inc)
+  "Interactively edit the year of item's date string.
+With prefix argument INC a positive or negative integer,
+increment or decrement the year by INC."
+  (interactive "p")
+  (todos-edit-item-header-1 'year inc))
+
+(defun todos-edit-item-date-month (&optional inc)
+  "Interactively edit the month of item's date string.
+With prefix argument INC a positive or negative integer,
+increment or decrement the month by INC."
+  (interactive "p")
+  (todos-edit-item-header-1 'month inc))
+
+(defun todos-edit-item-date-day (&optional inc)
+  "Interactively edit the day of the month of item's date string.
+With prefix argument INC a positive or negative integer,
+increment or decrement the day by INC."
+  (interactive "p")
+  (todos-edit-item-header-1 'day inc))
 
 (defun todos-edit-item-diary-inclusion ()
   "Change diary status of one or more todo items in this category.

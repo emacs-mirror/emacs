@@ -1,3 +1,26 @@
+2012-12-12  Stephen Berman  <stephen.berman@gmx.net>
+
+	* calendar/todos.el: Extend and improve handling of item editing,
+	especially of date/time header.
+	(todos-month-name-array, todos-month-abbrev-array): New defconsts.
+	(todos-date-pattern): Use explicitly numbered groups.
+	(todos-read-date): Optionally read and return just one of the date
+	string components year, month or monthname, day.
+	(todos-key-bindings): Add bindings for new item header editing
+	commands.
+	(todos-edit-item): Exclude date/time header from minibuffer by
+	default; include it by passing a prefix argument.
+	(todos-edit-item-header-1): New function containing the guts of
+	the commands for editing item date/time headers.
+	(todos-edit-item-header): Use it.  Condition editing of time
+	string on value of `todos-always-add-time-string'.
+	(todos-edit-item-date-from-calendar): Use todos-edit-item-header-1.
+	(todos-edit-item-date-to-today): Rename from
+	todos-edit-item-date-is-today and use todos-edit-item-header-1.
+	(todos-edit-item-date): Remove.
+	(todos-edit-item-date-day-name, todos-edit-item-date-year)
+	(todos-edit-item-date-month, todos-edit-item-date-day): New commands.
+
 2012-12-02  Stephen Berman  <stephen.berman@gmx.net>
 
 	* calendar/todos.el (todos-show): Fix a comment.
