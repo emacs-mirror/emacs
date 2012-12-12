@@ -5347,8 +5347,8 @@ and redisplay normally--don't erase and redraw the frame.  */)
 	iarg += ht;
 
       /* Don't let it get into the margin at either top or bottom.  */
-      iarg = max (iarg, this_scroll_margin);
-      iarg = min (iarg, ht - this_scroll_margin - 1);
+      iarg = clip_to_bounds (this_scroll_margin, iarg,
+			     ht - this_scroll_margin - 1);
 
       pos = *vmotion (PT, - iarg, w);
       charpos = pos.bufpos;

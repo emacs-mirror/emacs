@@ -4016,11 +4016,10 @@ set_window_cursor_after_update (struct window *w)
       vpos = w->cursor.vpos;
     }
 
-  /* Window cursor can be out of sync for horizontally split windows.  */
-  hpos = max (-1, hpos); /* -1 is for when cursor is on the left fringe */
-  hpos = min (w->current_matrix->matrix_w - 1, hpos);
-  vpos = max (0, vpos);
-  vpos = min (w->current_matrix->nrows - 1, vpos);
+  /* Window cursor can be out of sync for horizontally split windows.
+     Horisontal position is -1 when cursor is on the left fringe.   */
+  hpos = clip_to_bounds (-1, hpos, w->current_matrix->matrix_w - 1);
+  vpos = clip_to_bounds (0, vpos, w->current_matrix->nrows - 1);
   rif->cursor_to (vpos, hpos, cy, cx);
 }
 

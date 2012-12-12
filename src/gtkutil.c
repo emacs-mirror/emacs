@@ -3796,13 +3796,8 @@ xg_set_toolkit_scroll_bar_thumb (struct scroll_bar *bar,
           shown = (gdouble) portion / whole;
         }
 
-      size = shown * XG_SB_RANGE;
-      size = min (size, XG_SB_RANGE);
-      size = max (size, 1);
-
-      value = top * XG_SB_RANGE;
-      value = min (value, XG_SB_MAX - size);
-      value = max (value, XG_SB_MIN);
+      size = clip_to_bounds (1, shown * XG_SB_RANGE, XG_SB_RANGE);
+      value = clip_to_bounds (XG_SB_MIN, top * XG_SB_RANGE, XG_SB_MAX - size);
 
       /* Assume all lines are of equal size.  */
       new_step = size / max (1, FRAME_LINES (f));

@@ -10393,8 +10393,7 @@ resize_mini_window (struct window *w, int exact_p)
 	max_height = total_height / 4;
 
       /* Correct that max. height if it's bogus.  */
-      max_height = max (1, max_height);
-      max_height = min (total_height, max_height);
+      max_height = clip_to_bounds (1, max_height, total_height);
 
       /* Find out the height of the text in the window.  */
       if (it.line_wrap == TRUNCATE)
@@ -12496,11 +12495,7 @@ hscroll_window_tree (Lisp_Object window)
 	      if (w == XWINDOW (selected_window))
 		pt = PT;
 	      else
-		{
-		  pt = marker_position (w->pointm);
-		  pt = max (BEGV, pt);
-		  pt = min (ZV, pt);
-		}
+		pt = clip_to_bounds (BEGV, marker_position (w->pointm), ZV);
 
 	      /* Move iterator to pt starting at cursor_row->start in
 		 a line with infinite width.  */
@@ -23485,8 +23480,7 @@ draw_glyphs (struct window *w, int x, struct glyph_row *row,
 
   /* Let's rather be paranoid than getting a SEGV.  */
   end = min (end, row->used[area]);
-  start = max (0, start);
-  start = min (end, start);
+  start = clip_to_bounds (0, start, end);
 
   /* Translate X to frame coordinates.  Set last_x to the right
      end of the drawing area.  */
