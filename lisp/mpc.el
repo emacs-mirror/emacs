@@ -1034,11 +1034,8 @@ If PLAYLIST is t or nil or missing, use the main playlist."
             (let ((display
                    (if (and size
                             (> (+ postwidth textwidth) size))
-                       ;; This doesn't even obey double-width chars :-(
                        (propertize
-                        (if (zerop (- size postwidth 1))
-                            (substring text 0 1)
-                          (concat (substring text 0 (- size postwidth textwidth 1)) "…"))
+			(truncate-string-to-width text size nil nil "…")
                         'help-echo text)
                      text)))
               (when (memq tag '(Artist Album Composer)) ;FIXME: wrong list.
