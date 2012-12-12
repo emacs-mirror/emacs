@@ -1,5 +1,8 @@
 2012-12-12  Glenn Morris  <rgm@gnu.org>
 
+	* flymake.texi (Customizable variables, Locating the buildfile):
+	Remove refs to flymake-buildfile-dirs, removed 2007-07-20.  (Bug#13148)
+
 	* srecode.texi: Small edits.  Set copyright to FSF, add explicit
 	GFDL 1.3+ license, fix up index.
 	* Makefile.in (INFO_TARGETS, DVI_TARGETS, PDF_TARGETS): Add srecode.
