@@ -2495,7 +2495,15 @@ Disabling the agent may result in noticeable loss of performance."
   :type 'boolean)
 
 (defcustom gnus-other-frame-function 'gnus
-  "Function called by the command `gnus-other-frame'."
+  "Function called by the command `gnus-other-frame' when starting Gnus."
+  :group 'gnus-start
+  :type '(choice (function-item gnus)
+		 (function-item gnus-no-server)
+		 (function-item gnus-slave)
+		 (function-item gnus-slave-no-server)))
+
+(defcustom gnus-other-frame-resume-function 'gnus-group-get-new-news
+  "Function called by the command `gnus-other-frame' when resuming Gnus."
   :group 'gnus-start
   :type '(choice (function-item gnus)
 		 (function-item gnus-no-server)
@@ -4361,8 +4369,9 @@ Used for `gnus-exit-gnus-hook' in `gnus-other-frame'."
   "Pop up a frame to read news.
 This will call one of the Gnus commands which is specified by the user
 option `gnus-other-frame-function' (default `gnus') with the argument
-ARG if Gnus is not running, otherwise just pop up a Gnus frame.  The
-optional second argument DISPLAY should be a standard display string
+ARG if Gnus is not running, otherwise pop up a Gnus frame and run the
+command specified by `gnus-other-frame-resume-function'.
+The optional second argument DISPLAY should be a standard display string
 such as \"unix:0\" to specify where to pop up a frame.  If DISPLAY is
 omitted or the function `make-frame-on-display' is not available, the
 current display is used."
@@ -4394,7 +4403,8 @@ current display is used."
 		 (make-frame-on-display display gnus-other-frame-parameters)
 	       (make-frame gnus-other-frame-parameters))))
       (if alive
-	  (switch-to-buffer gnus-group-buffer)
+	  (progn (switch-to-buffer gnus-group-buffer)
+           (funcall gnus-other-frame-resume-function arg))
 	(funcall gnus-other-frame-function arg)
 	(add-hook 'gnus-exit-gnus-hook 'gnus-delete-gnus-frame)
   ;; One might argue that `gnus-delete-gnus-frame' should not be called
