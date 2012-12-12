@@ -1,32 +1,50 @@
-\input texinfo   @c -*-texinfo-*-
-@c
-@c $Id: srecode.texi,v 1.24 2010-05-30 20:22:40 scymtym Exp $
-@c
+\input texinfo
 @c %**start of header
-@setfilename srecode.info
+@setfilename ../../info/srecode
 @set TITLE SRecoder Manual
 @set AUTHOR Eric M. Ludlam
 @settitle @value{TITLE}
+
+@c Merge all indexes into a single index for now.
+@c We can always separate them later into two or more as needed.
+@syncodeindex vr cp
+@syncodeindex fn cp
+@syncodeindex ky cp
+@syncodeindex pg cp
+@syncodeindex tp cp
 @c %**end of header
 
-@ifinfo
-@dircategory Emacs
-@format
-START-INFO-DIR-ENTRY
-* srecode: (srecode).       Template code generator
-END-INFO-DIR-ENTRY
-@end format
-@end ifinfo
+@copying
+Copyright @copyright{} 2007-2012 Free Software Foundation, Inc.
+
+@quotation
+Permission is granted to copy, distribute and/or modify this document
+under the terms of the GNU Free Documentation License, Version 1.3 or
+any later version published by the Free Software Foundation; with no
+Invariant Sections, with the Front-Cover texts being ``A GNU Manual,''
+and with the Back-Cover Texts as in (a) below.  A copy of the license
+is included in the section entitled ``GNU Free Documentation License''.
+
+(a) The FSF's Back-Cover Text is: ``You have the freedom to copy and
+modify this GNU manual.  Buying copies from the FSF supports it in
+developing GNU and promoting software freedom.''
+@end quotation
+@end copying
+
+@dircategory Emacs misc features
+@direntry
+* SRecode: (srecode).           Template code generator.
+@end direntry
 
 @titlepage
 @sp 10
-@center @titlefont{srecode}
+@center @titlefont{SRecode}
 @vskip 0pt plus 1 fill
-Copyright @copyright{} 2007, 2008, 2009, 2010, 2011 Eric M. Ludlam
+@center by @value{AUTHOR}
 @end titlepage
 
 @macro semantic{}
-@i{semantic}
+@i{Semantic}
 @end macro
 
 @macro EIEIO{}
@@ -55,6 +73,10 @@ someone can write a complex code generator, and the underlying
 template commonality allows it to work in multiple languages with
 ease.
 
+@ifnottex
+@insertcopying
+@end ifnottex
+
 @menu
 * Quick Start::                 Basic Setup for template insertion.
 * User Templates::              Custom User Templates
@@ -66,6 +88,7 @@ ease.
 * Template Naming Conventions:: Creating a set of core templates
 * Inserting Tag Lists::         Inserting Semantic tags via templates
 * Application Writing::         Writing an @srecode{}r application
+* GNU Free Documentation License:: The license for this documentation.
 * Index::
 @end menu
 
@@ -1759,10 +1782,18 @@ all template files for that application will be loaded.
  todo - Add examples.  Most core stuff is already described above.
 
 
+@node GNU Free Documentation License
+@appendix GNU Free Documentation License
+@include doclicense.texi
+
 
 @node Index
-@chapter Index
+@unnumbered Index
+@printindex cp
 
+@iftex
 @contents
+@summarycontents
+@end iftex
 
 @bye

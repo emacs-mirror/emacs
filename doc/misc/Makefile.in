@@ -47,7 +47,7 @@ INFO_TARGETS = ada-mode auth autotype calc ccmode cl \
 	flymake forms gnus emacs-gnutls idlwave info.info \
 	mairix-el message mh-e newsticker nxml-mode \
 	org pcl-cvs pgg rcirc remember reftex sasl \
-	sc semantic ses sieve smtpmail speedbar tramp \
+	sc semantic ses sieve smtpmail speedbar srecode tramp \
 	url vip viper widget woman
 
 DVI_TARGETS = \
@@ -95,6 +95,7 @@ DVI_TARGETS = \
 	sieve.dvi \
 	smtpmail.dvi \
 	speedbar.dvi \
+	srecode.dvi \
 	tramp.dvi \
 	url.dvi \
 	vip.dvi \
@@ -147,6 +148,7 @@ PDF_TARGETS = \
 	sieve.pdf \
 	smtpmail.pdf \
 	speedbar.pdf \
+	srecode.pdf \
 	tramp.pdf \
 	url.pdf \
 	vip.pdf \
@@ -605,6 +607,15 @@ speedbar.dvi: ${srcdir}/speedbar.texi
 	$(ENVADD) $(TEXI2DVI) ${srcdir}/speedbar.texi
 speedbar.pdf: ${srcdir}/speedbar.texi
 	$(ENVADD) $(TEXI2PDF) ${srcdir}/speedbar.texi
+
+srecode : $(buildinfodir)/srecode$(INFO_EXT)
+$(buildinfodir)/srecode$(INFO_EXT): ${srcdir}/srecode.texi
+	$(mkinfodir)
+	$(MAKEINFO) $(MAKEINFO_OPTS) $(INFO_OPTS) -o $@ ${srcdir}/srecode.texi
+srecode.dvi: ${srcdir}/srecode.texi
+	$(ENVADD) $(TEXI2DVI) ${srcdir}/srecode.texi
+srecode.pdf: ${srcdir}/srecode.texi
+	$(ENVADD) $(TEXI2PDF) ${srcdir}/srecode.texi
 
 tramp : $(buildinfodir)/tramp$(INFO_EXT)
 $(buildinfodir)/tramp$(INFO_EXT): ${srcdir}/tramp.texi ${srcdir}/trampver.texi

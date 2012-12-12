@@ -81,6 +81,7 @@ Emacs misc features
 * Semantic: (semantic).         Source code parser library and utilities.
 * SES: (ses).                   Simple Emacs Spreadsheet.
 * Speedbar: (speedbar).         File/Tag summarizing utility.
+* SRecode: (srecode).           Template code generator.
 * VIP: (vip).                   An older VI-emulation for Emacs.
 * VIPER: (viper).               A VI-emulation mode for Emacs.
 * WoMan: (woman).               Browse UN*X Manual Pages "W.O. (without) Man".
