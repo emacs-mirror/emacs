@@ -1230,7 +1230,9 @@ some heuristics to guess the result."
 	     ;; Are there blank lines inside the list so far?
 	     ((save-excursion
 		(goto-char (org-list-get-top-point struct))
-		(org-list-search-forward
+		;; Do not use `org-list-search-forward' so blank lines
+		;; in blocks can be counted in.
+		(re-search-forward
 		 "^[ \t]*$" (org-list-get-item-end-before-blank item struct) t))
 	      1)
 	     ;; Default choice: no blank line.

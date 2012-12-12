@@ -88,7 +88,7 @@
 ;;
 ;; - All Bibtex information is taken from the document compiled by
 ;;   Andrew Roberts from the Bibtex manual, available at
-;;   http://www.andy-roberts.net/misc/latex/sessions/bibtex/bibentries.pdf
+;;   http://www.andy-roberts.net/res/writing/latex/bibentries.pdf
 ;;
 ;;; History:
 ;;

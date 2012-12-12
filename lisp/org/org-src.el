@@ -215,11 +215,22 @@ buffer."
     (setq org-edit-src-saved-temp-window-config (current-window-configuration)))
   (let* ((mark (and (org-region-active-p) (mark)))
 	 (case-fold-search t)
-	 (info (org-edit-src-find-region-and-lang))
+	 (info
+	  ;; If the src region consists in no lines, we insert a blank
+	  ;; line.
+	  (let* ((temp (org-edit-src-find-region-and-lang))
+		 (beg (nth 0 temp))
+		 (end (nth 1 temp)))
+	    (if (>= end beg) temp
+	      (goto-char beg)
+	      (insert "\n")
+	      (org-edit-src-find-region-and-lang))))
 	 (full-info (org-babel-get-src-block-info 'light))
 	 (org-mode-p (derived-mode-p 'org-mode)) ;; derived-mode-p is reflexive
 	 (beg (make-marker))
-	 (end (make-marker))
+	 ;; Move marker with inserted text for case when src block is
+	 ;; just one empty line, i.e. beg == end.
+	 (end (copy-marker nil t))
 	 (allow-write-back-p (null code))
 	 block-nindent total-nindent ovl lang lang-f single lfmt buffer msg
 	 begline markline markcol line col transmitted-variables)
@@ -689,10 +700,9 @@ with \",*\", \",#+\", \",,*\" and \",,#+\"."
       (kill-buffer buffer))
     (goto-char beg)
     (when allow-write-back-p
-      (delete-region beg (max beg (1- end)))
-      (unless (string-match "^[ \t]*$" code)
-	(insert code)
-	(delete-char 1))
+      (delete-region beg (max beg end))
+      (unless (string-match "\\`[ \t]*\\'" code)
+	(insert code))
       (goto-char beg)
       (if single (just-one-space)))
     (if (memq t (mapcar (lambda (overlay)
@@ -820,6 +830,7 @@ issued in the language major mode buffer."
 Alter code block according to effect of TAB in the language major
 mode."
   (and org-src-tab-acts-natively
+       (not (equal this-command 'org-shifttab))
        (let ((org-src-strip-leading-and-trailing-blank-lines nil))
 	 (org-babel-do-key-sequence-in-edit-buffer (kbd "TAB")))))
 

@@ -4316,18 +4316,22 @@ and :post-blank properties."
 				(funcall (intern (format "org-element-%s-parser"
 							 (car closest-cand))))))
 			(cbeg (org-element-property :contents-begin object))
-			(cend (org-element-property :contents-end object)))
+			(cend (org-element-property :contents-end object))
+			(obj-end (org-element-property :end object)))
 		   (cond
 		    ;; ORIGIN is after OBJECT, so skip it.
-		    ((< (org-element-property :end object) origin)
-		     (goto-char (org-element-property :end object)))
-		    ;; ORIGIN is within a non-recursive object or at an
-		    ;; object boundaries: Return that object.
+		    ((<= obj-end origin)
+		     (if (/= obj-end end) (goto-char obj-end)
+		       (throw 'exit
+			      (org-element-put-property
+			       object :parent parent))))
+		    ;; ORIGIN is within a non-recursive object or at
+		    ;; an object boundaries: Return that object.
 		    ((or (not cbeg) (> cbeg origin) (< cend origin))
 		     (throw 'exit
 			    (org-element-put-property object :parent parent)))
-		    ;; Otherwise, move within current object and restrict
-		    ;; search to the end of its contents.
+		    ;; Otherwise, move within current object and
+		    ;; restrict search to the end of its contents.
 		    (t (goto-char cbeg)
 		       (org-element-put-property object :parent parent)
 		       (setq parent object
