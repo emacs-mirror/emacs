@@ -2884,14 +2884,16 @@ message header will be added to the bodies of the \"text/html\" parts."
 		   (insert header "\n")
 		   (setq title (message-fetch-field "subject"))
 		   (goto-char (point-min))
-		   (while (re-search-forward "\\(<\\)\\|\\(>\\)\\|&" nil t)
+		   (while (re-search-forward "\\(<\\)\\|\\(>\\)\\|\\(&\\)\\|\n"
+					     nil t)
 		     (replace-match (cond ((match-beginning 1) "&lt;")
 					  ((match-beginning 2) "&gt;")
-					  (t "&amp;"))))
+					  ((match-beginning 3) "&amp;")
+					  (t "<br>\n"))))
 		   (goto-char (point-min))
-		   (insert "<pre>\n")
+		   (insert "<div align=\"left\">\n")
 		   (goto-char (point-max))
-		   (insert "</pre>\n<hr>\n")
+		   (insert "</div>\n<hr>\n")
 		   ;; We have to examine charset one by one since
 		   ;; charset specified in parts might be different.
 		   (if (eq charset 'gnus-decoded)

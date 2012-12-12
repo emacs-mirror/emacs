@@ -1,3 +1,8 @@
+2012-12-12  Katsumi Yamaoka  <yamaoka@jpl.org>
+
+	* gnus-art.el (gnus-article-browse-html-parts): Use <div align="left">
+	instead of <pre> to align message header.
+
 2012-12-12  Sam Steingold  <sds@gnu.org>
 
 	* gnus.el (gnus-other-frame-resume-function): Add user option.
