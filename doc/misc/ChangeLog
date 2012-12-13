@@ -12,7 +12,7 @@
 	    David Ponce  <david@dponce.com>
 	    Richard Kim  <emacs18@gmail.com>
 
-	* bovine.texi: New file, imported from CEDET trunk.
+	* bovine.texi, wisent.texi: New files, imported from CEDET trunk.
 
 2012-12-12  Glenn Morris  <rgm@gnu.org>
 
