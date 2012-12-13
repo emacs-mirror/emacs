@@ -48,7 +48,7 @@ INFO_TARGETS = ada-mode auth autotype bovine calc ccmode cl \
 	mairix-el message mh-e newsticker nxml-mode \
 	org pcl-cvs pgg rcirc remember reftex sasl \
 	sc semantic ses sieve smtpmail speedbar srecode tramp \
-	url vip viper widget woman
+	url vip viper widget wisent woman
 
 DVI_TARGETS = \
 	ada-mode.dvi \
@@ -102,6 +102,7 @@ DVI_TARGETS = \
 	vip.dvi \
 	viper.dvi \
 	widget.dvi \
+	wisent.dvi \
 	woman.dvi
 
 PDF_TARGETS = \
@@ -156,6 +157,7 @@ PDF_TARGETS = \
 	vip.pdf \
 	viper.pdf \
 	widget.pdf \
+	wisent.pdf \
 	woman.pdf
 
 HTML_TARGETS = emacs-faq.html
@@ -672,6 +674,15 @@ widget.dvi: ${srcdir}/widget.texi
 	$(ENVADD) $(TEXI2DVI) ${srcdir}/widget.texi
 widget.pdf: ${srcdir}/widget.texi
 	$(ENVADD) $(TEXI2PDF) ${srcdir}/widget.texi
+
+wisent : $(buildinfodir)/wisent$(INFO_EXT)
+$(buildinfodir)/wisent$(INFO_EXT): ${srcdir}/wisent.texi
+	$(mkinfodir)
+	$(MAKEINFO) $(MAKEINFO_OPTS) $(INFO_OPTS) -o $@ ${srcdir}/wisent.texi
+wisent.dvi: ${srcdir}/wisent.texi
+	$(ENVADD) $(TEXI2DVI) ${srcdir}/wisent.texi
+wisent.pdf: ${srcdir}/wisent.texi
+	$(ENVADD) $(TEXI2PDF) ${srcdir}/wisent.texi
 
 woman : $(buildinfodir)/woman$(INFO_EXT)
 $(buildinfodir)/woman$(INFO_EXT): ${srcdir}/woman.texi

@@ -1,5 +1,13 @@
 2012-12-13  Glenn Morris  <rgm@gnu.org>
 
+	* wisent.texi: Small edits.  Set copyright to FSF, update license to
+	GFDL 1.3+.
+	* Makefile.in (INFO_TARGETS, DVI_TARGETS, PDF_TARGETS): Add wisent.
+	(wisent, $(buildinfodir)/wisent$(INFO_EXT), wisent.dvi, wisent.pdf):
+	New targets.
+	* makefile.w32-in (INFO_TARGETS, DVI_TARGETS, clean): Add wisent.
+	($(infodir)/wisent$(INFO_EXT), wisent.dvi): New targets.
+
 	* bovine.texi: Small edits.  Set copyright to FSF, update license to
 	GFDL 1.3+, remove empty index.
 	* Makefile.in (INFO_TARGETS, DVI_TARGETS, PDF_TARGETS): Add bovine.

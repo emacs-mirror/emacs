@@ -1,6 +1,6 @@
 \input texinfo  @c -*-texinfo-*-
 @c %**start of header
-@setfilename wisent.info
+@setfilename ../../info/wisent
 @set TITLE  Wisent Parser Development
 @set AUTHOR Eric M. Ludlam, David Ponce, and Richard Y. Kim
 @settitle @value{TITLE}
@@ -23,35 +23,35 @@
 @c %**end of header
 
 @copying
-This manual documents the Wisent parser generator.
+Copyright @copyright{} 1988-1993, 1995, 1998-2004, 2007, 2012
+Free Software Foundation, Inc.
 
-Copyright @copyright{} 2001, 2002, 2003, 2004, 2007 David Ponce
-
+@c Since we are both GNU manuals, we do not need to ack each other here.
+@ignore
 Some texts are borrowed or adapted from the manual of Bison version
 1.35.  The text in section entitled ``Understanding the automaton'' is
 adapted from the section ``Understanding Your Parser'' in the manual
 of Bison version 1.49.
-
-Copyright @copyright{} 1988, 1989, 1990, 1991, 1992, 1993, 1995, 1998,
-1999, 2000, 2001, 2002, 2003, 2004 Free Software Foundation, Inc.
+@end ignore
 
 @quotation
 Permission is granted to copy, distribute and/or modify this document
-under the terms of the GNU Free Documentation License, Version 1.1 or
-any later version published by the Free Software Foundation; with the
-Invariant Sections being list their titles, with the Front-Cover Texts
-being list, and with the Back-Cover Texts being list.  A copy of the
-license is included in the section entitled ``GNU Free Documentation
-License''.
+under the terms of the GNU Free Documentation License, Version 1.3 or
+any later version published by the Free Software Foundation; with no
+Invariant Sections, with the Front-Cover texts being ``A GNU Manual,''
+and with the Back-Cover Texts as in (a) below.  A copy of the license
+is included in the section entitled ``GNU Free Documentation License''.
+
+(a) The FSF's Back-Cover Text is: ``You have the freedom to copy and
+modify this GNU manual.  Buying copies from the FSF supports it in
+developing GNU and promoting software freedom.''
 @end quotation
 @end copying
 
-@ifinfo
-@dircategory Emacs
+@dircategory Emacs misc features
 @direntry
-* Semantic Wisent parser development: (wisent).
+* Wisent: (wisent).             Semantic Wisent parser development.
 @end direntry
-@end ifinfo
 
 @iftex
 @finalout
@@ -60,29 +60,19 @@ License''.
 @c @setchapternewpage odd
 @c @setchapternewpage off
 
-@ifinfo
-This file documents Application Development with Semantic.
-@emph{Infrastructure for parser based text analysis in Emacs}
-
-Copyright @copyright{} 2001, 2002, 2003, 2004 @value{AUTHOR}
-@end ifinfo
-
 @titlepage
 @sp 10
 @title @value{TITLE}
 @author by @value{AUTHOR}
-@vskip 0pt plus 1 fill
-Copyright @copyright{} 2001, 2002, 2003, 2004 @value{AUTHOR}
 @page
 @vskip 0pt plus 1 fill
 @insertcopying
 @end titlepage
 @page
 
-@c MACRO inclusion
-@include semanticheader.texi
-@paragraphindent none
-
+@macro semantic{}
+@i{Semantic}
+@end macro
 
 @c *************************************************************************
 @c @ Document
@@ -102,13 +92,17 @@ source in Emacs buffers.
 It also describes how Wisent is used with the @semantic{} tool set
 described in the @ref{Top, Semantic Manual, Semantic Manual, semantic}.
 
+@ifnottex
+@insertcopying
+@end ifnottex
+
 @menu
-* Wisent Overview::             
-* Wisent Grammar::              
-* Wisent Parsing::              
-* Wisent Semantic::             
-* GNU Free Documentation License::  
-* Index::                       
+* Wisent Overview::
+* Wisent Grammar::
+* Wisent Parsing::
+* Wisent Semantic::
+* GNU Free Documentation License::
+* Index::
 @end menu
 
 @node Wisent Overview
@@ -130,7 +124,7 @@ See the @ref{Top, Semantic Manual, , semantic}.
 It benefits from these Bison features:
 
 @itemize @bullet
-@item 
+@item
 It uses a fast but not so space-efficient encoding for the parse
 tables, described in Corbett's PhD thesis from Berkeley:
 @quotation
@@ -138,7 +132,7 @@ tables, described in Corbett's PhD thesis from Berkeley:
 June 1985, Report No. UCB/CSD 85/251.
 @end quotation
 
-@item 
+@item
 For generating the lookahead sets, Wisent uses the well-known
 technique of F. DeRemer and A. Pennello they described in:
 @quotation
@@ -146,11 +140,11 @@ technique of F. DeRemer and A. Pennello they described in:
 October 1982, ACM TOPLS Vol 4 No 4.
 @end quotation
 
-@item 
+@item
 Wisent resolves shift/reduce conflicts using operator precedence and
 associativity.
 
-@item 
+@item
 Parser error recovery is accomplished using rules which match the
 special token @code{error}.
 @end itemize
@@ -223,12 +217,12 @@ exp @equiv{} exp PLUS exp
 
 Says that two groupings of type @samp{exp}, with a @samp{PLUS} token
 in between, can be combined into a larger grouping of type @samp{exp}.
- 
+
 @menu
-* Grammar format::              
-* Example::                     
-* Compiling a grammar::         
-* Conflicts::                   
+* Grammar format::
+* Example::
+* Compiling a grammar::
+* Conflicts::
 @end menu
 
 @node Grammar format, Example, Wisent Grammar, Wisent Grammar
@@ -463,14 +457,14 @@ Here is an example to parse simple infix arithmetic expressions.  See
 '(
   ;; Terminals
   (NUM)
-  
+
   ;; Terminal associativity & precedence
   ((nonassoc ?=)
    (left ?- ?+)
    (left ?* ?/)
    (left NEG)
    (right ?^))
-  
+
   ;; Rules
   (input
    ((line))
@@ -671,8 +665,8 @@ information.
 @end table
 
 @menu
-* Grammar Debugging::           
-* Understanding the automaton::  
+* Grammar Debugging::
+* Understanding the automaton::
 @end menu
 
 @node Grammar Debugging
@@ -742,7 +736,7 @@ We will use the following example:
   (wisent-compile-grammar
    '((NUM STR)                          ; %token NUM STR
 
-     ((left ?+ ?-)                      ; %left '+' '-'; 
+     ((left ?+ ?-)                      ; %left '+' '-';
       (left ?*))                        ; %left '*'
 
      (exp                               ; exp:
@@ -1183,11 +1177,11 @@ Normal hook run just after the @var{LR} parser engine terminated.
 @end defvar
 
 @menu
-* Writing a lexer::             
-* Actions goodies::             
-* Report errors::               
-* Error recovery::              
-* Debugging actions::           
+* Writing a lexer::
+* Actions goodies::
+* Report errors::
+* Error recovery::
+* Debugging actions::
 @end menu
 
 @node Writing a lexer
@@ -1593,8 +1587,8 @@ Please @inforef{top, Semantic Grammar Framework Manual, grammar-fw}
 for more information on @semantic{} grammars.
 
 @menu
-* Grammar styles::              
-* Wisent Lex::                  
+* Grammar styles::
+* Wisent Lex::
 @end menu
 
 @node Grammar styles
@@ -1608,11 +1602,11 @@ used with the @semantic{} tool set: the @dfn{Iterative style} and the
 it can be worth a mix of the two styles!
 
 @menu
-* Iterative style::             
-* Bison style::                 
-* Mixed style::                 
-* Start nonterminals::          
-* Useful functions::            
+* Iterative style::
+* Bison style::
+* Mixed style::
+* Start nonterminals::
+* Useful functions::
 @end menu
 
 @node Iterative style, Bison style, Grammar styles, Grammar styles
@@ -1929,7 +1923,7 @@ schedules an incremental re-parse of that data, using the tag's
 reviewed to ensure that the incremental parser will work!}
 
 Things are a little bit different when the grammar is written in Bison
-style.  
+style.
 
 @strong{The @code{reparse-symbol} property is set to the nonterminal
 symbol the rule that explicitly uses @code{EXPANDTAG} belongs to.}
@@ -1996,7 +1990,7 @@ Is a symbol that identifies a lexical token class, like @code{symbol},
 @itemx end
 Are the start and end positions of mapped data in the input buffer.
 @end table
- 
+
 The Wisent's parser doesn't depend on the nature of analyzed input
 stream (buffer, string, etc.), and requires that lexical tokens have a
 different form (@pxref{Writing a lexer}):
@@ -2036,7 +2030,7 @@ equivalent Wisent lexical tokens is straightforward:
 @node GNU Free Documentation License
 @appendix GNU Free Documentation License
 
-@include fdl.texi
+@include doclicense.texi
 
 @node Index
 @unnumbered Index
