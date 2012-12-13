@@ -41,7 +41,13 @@ bound to <f11> and S-<f11>, respectively.
 
 * Changes in Specialized Modes and Packages in Emacs 24.4
 
-** New macro cl-tagbody in cl-lib.
+** cl-lib
+
+*** New macro cl-tagbody.
+
++++
+*** letf is now just an alias for cl-letf.
+
 ** Calc
 
 *** Calc by default now uses the Gregorian calendar for all dates, and

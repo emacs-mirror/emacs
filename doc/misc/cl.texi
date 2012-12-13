@@ -1200,9 +1200,6 @@ The only exceptions are plain variables and calls to
 bound on entry, it is simply made unbound by @code{makunbound} or
 @code{fmakunbound} on exit.
 @end ignore
-
-Note that the @file{cl.el} version of this macro behaves slightly
-differently.  @xref{Obsolete Macros}.
 @end defmac
 
 @defmac cl-letf* (bindings@dots{}) forms@dots{}
@@ -4886,13 +4883,6 @@ does not behave in precisely the same way.
 This version of @code{labels} uses the obsolete @code{lexical-let}
 form (@pxref{Obsolete Lexical Binding}), rather than the true
 lexical binding that @code{cl-labels} uses.
-@end defmac
-
-@defmac letf (bindings@dots{}) forms@dots{}
-This macro is almost exactly the same as @code{cl-letf}, which
-replaces it (@pxref{Modify Macros}).  The only difference is in
-details that relate to some deprecated usage of @code{symbol-function}
-in place forms.
 @end defmac
 
 @node Obsolete Setf Customization

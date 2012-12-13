@@ -1,5 +1,7 @@
 2012-12-13  Glenn Morris  <rgm@gnu.org>
 
+	* cl.texi (Modify Macros, Obsolete Macros): Now letf == cl-letf.
+
 	* wisent.texi: Small edits.  Set copyright to FSF, update license to
 	GFDL 1.3+.
 	* Makefile.in (INFO_TARGETS, DVI_TARGETS, PDF_TARGETS): Add wisent.
