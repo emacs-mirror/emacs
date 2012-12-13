@@ -4293,14 +4293,11 @@ With prefix argument, make it a temporary breakpoint."
 (defun edebug-unload-function ()
   "Unload the Edebug source level debugger."
   (when edebug-active
+    (setq edebug-active nil)
     (unwind-protect
         (abort-recursive-edit)
-      (setq edebug-active nil)
-      (edebug-unload-function)))
-  (save-current-buffer
-    (dolist (buffer (buffer-list))
-      (set-buffer buffer)
-      (when (eq major-mode 'edebug-mode) (emacs-lisp-mode))))
+      ;; We still want to run unload-feature to completion
+      (run-with-idle-timer 0 nil #'(lambda () (unload-feature 'edebug)))))
   (remove-hook 'called-interactively-p-functions
                'edebug--called-interactively-skip)
   (remove-hook 'cl-read-load-hooks 'edebug--require-cl-read)

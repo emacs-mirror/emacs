@@ -1,3 +1,9 @@
+2012-12-13  Juanma Barranquero  <lekktu@gmail.com>
+
+	* emacs-lisp/edebug.el (edebug-unload-function): Make sure that
+	unload-feature finishes even when aborting an ongoing edebug session.
+	Also, do not worry about edebug-mode, unload-feature takes care of it.
+
 2012-12-13  Andreas Schwab  <schwab@suse.de>
 
 	* net/tls.el (tls-program): Update customize type.
