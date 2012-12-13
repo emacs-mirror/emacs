@@ -1,3 +1,13 @@
+2012-12-13  Glenn Morris  <rgm@gnu.org>
+
+	* bovine.texi: Small edits.  Set copyright to FSF, update license to
+	GFDL 1.3+, remove empty index.
+	* Makefile.in (INFO_TARGETS, DVI_TARGETS, PDF_TARGETS): Add bovine.
+	(bovine, $(buildinfodir)/bovine$(INFO_EXT), bovine.dvi, bovine.pdf):
+	New targets.
+	* makefile.w32-in (INFO_TARGETS, DVI_TARGETS, clean): Add bovine.
+	($(infodir)/bovine$(INFO_EXT), bovine.dvi): New targets.
+
 2012-12-13  Eric Ludlam  <zappo@gnu.org>
 	    David Ponce  <david@dponce.com>
 	    Richard Kim  <emacs18@gmail.com>

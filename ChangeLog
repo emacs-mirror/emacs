@@ -1,3 +1,7 @@
+2012-12-13  Glenn Morris  <rgm@gnu.org>
+
+	* info/dir: Add bovine.
+
 2012-12-12  Andreas Schwab  <schwab@suse.de>
 
 	* Makefile.in (install-info): Use `${MAKE} -s' for echo-info.

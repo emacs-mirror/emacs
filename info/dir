@@ -79,9 +79,10 @@ Emacs misc features
                                   and citations.
 * Remember: (remember).         Simple information manager for Emacs.
 * Semantic: (semantic).         Source code parser library and utilities.
+* SRecode: (srecode).           Template code generator.
+* Bovine: (bovine).             Semantic bovine parser development.
 * SES: (ses).                   Simple Emacs Spreadsheet.
 * Speedbar: (speedbar).         File/Tag summarizing utility.
-* SRecode: (srecode).           Template code generator.
 * VIP: (vip).                   An older VI-emulation for Emacs.
 * VIPER: (viper).               A VI-emulation mode for Emacs.
 * WoMan: (woman).               Browse UN*X Manual Pages "W.O. (without) Man".

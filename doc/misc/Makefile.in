@@ -41,7 +41,7 @@ INFO_OPTS=@INFO_OPTS@
 MAKEINFO = @MAKEINFO@
 MAKEINFO_OPTS = --force -I$(emacsdir)
 
-INFO_TARGETS = ada-mode auth autotype calc ccmode cl \
+INFO_TARGETS = ada-mode auth autotype bovine calc ccmode cl \
 	dbus dired-x ebrowse ede ediff edt eieio \
 	emacs-mime epa erc ert eshell eudc efaq \
 	flymake forms gnus emacs-gnutls idlwave info.info \
@@ -54,6 +54,7 @@ DVI_TARGETS = \
 	ada-mode.dvi \
 	auth.dvi \
 	autotype.dvi \
+	bovine.dvi \
 	calc.dvi \
 	cc-mode.dvi \
 	cl.dvi \
@@ -107,6 +108,7 @@ PDF_TARGETS = \
 	ada-mode.pdf \
 	auth.pdf \
 	autotype.pdf \
+	bovine.pdf \
 	calc.pdf \
 	cc-mode.pdf \
 	cl.pdf \
@@ -219,6 +221,15 @@ autotype.dvi: ${srcdir}/autotype.texi
 	$(ENVADD) $(TEXI2DVI) ${srcdir}/autotype.texi
 autotype.pdf: ${srcdir}/autotype.texi
 	$(ENVADD) $(TEXI2PDF) ${srcdir}/autotype.texi
+
+bovine : $(buildinfodir)/bovine$(INFO_EXT)
+$(buildinfodir)/bovine$(INFO_EXT): ${srcdir}/bovine.texi
+	$(mkinfodir)
+	$(MAKEINFO) $(MAKEINFO_OPTS) $(INFO_OPTS) -o $@ ${srcdir}/bovine.texi
+bovine.dvi: ${srcdir}/bovine.texi
+	$(ENVADD) $(TEXI2DVI) ${srcdir}/bovine.texi
+bovine.pdf: ${srcdir}/bovine.texi
+	$(ENVADD) $(TEXI2PDF) ${srcdir}/bovine.texi
 
 calc : $(buildinfodir)/calc$(INFO_EXT)
 $(buildinfodir)/calc$(INFO_EXT): ${srcdir}/calc.texi $(emacsdir)/emacsver.texi
