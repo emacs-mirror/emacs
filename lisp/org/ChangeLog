@@ -1,3 +1,89 @@
+2012-12-13  Bastien Guerry  <bzg@gnu.org>
+
+	* org-latex.el (org-export-latex-links): Escape raw path when
+	exporting links to files.
+
+	* org-src.el (org-src-native-tab-command-maybe): Fix bug: the
+	S-TAB key should not trigger a native TAB command.
+
+	* org.el (org-open-at-point): Allow to open any link within
+	footnotes definition, not only bracket links.
+
+	* org.el (org-sort-entries): Bugfix: keep track of the clock
+	marker when sorting entries.  Enhance the docstring.
+
+	* org-clock.el (org-clock-out): Use `user-error' when the user
+	tries to clock out while there is no running clock.
+
+	* org-table.el (org-table-sort-lines): Ensure coordinates are
+	correctly displayed when sorting.
+
+	* org.el (org-do-sort): Enhance prompt.
+
+	* org-agenda.el (org-agenda-finalize): Also activate plain links.
+
+	* org-timer.el (org-timer-stop): Add message.
+
+	* org-agenda.el (org-agenda-schedule, org-agenda-deadline):
+	Fix redundant messages.
+
+	* org-agenda.el (org-agenda-finalize): Fix clock highlighting.
+
+	* org.el (org-additional-option-like-keywords): Add "INDEX:".
+
+	* org-install.el: Enhance warning.
+
+2012-12-13  Erik Hetzner  <egh@e6h.org>  (tiny change)
+
+	* org.el (org-log-into-drawer): Honor the nil value for the
+	:LOG_INTO_DRAWER: property.
+
+2012-12-13  Le Wang  <l26wang@gmail.com>  (tiny change)
+
+	* org-src.el (org-edit-src-exit): Fix editing source section with
+	blank lines.
+
+2012-12-13  Le Wang  <le.wang@agworld.com.au>
+
+	* org-src.el (org-edit-src-code): Use marker with insertion type
+	t to track end and remove hack requiring delete from beg to (1- end).
+
+2012-12-13  Nicolas Goaziou  <n.goaziou@gmail.com>
+
+	* org-element.el (org-element-context): When point is between two
+	objects, be sure to return the second one.
+
+	* org-list.el (org-list-separating-blank-lines-number): When
+	computing number of blank lines separating items, also count those
+	in unparsed blocks, like example blocks.
+
+	* org.el (org-end-of-line): When visual line mode is on, really
+	move by visual lines.  Small refactoring.
+
+	* org.el (org-end-of-line): On a hidden block make sure to
+	delegate motion to `end-of-line' instead of `move-end-of-line' in
+	order to stay on the current line.
+
+2012-12-13  Rafael Laboissiere  <rafael@laboissiere.net>  (tiny change)
+
+	* org-bibtex.el: In the documentation section of the file, fix the
+	broken URL to Andrew Roberts' document on BibTeX entries.
+
+	* org-remember.el (org-remember-handler): Correctly strip the
+	comment lines in the temporary buffer *Remember* when handling a
+	remember note.
+
+	* org-remember.el (org-remember-apply-template): Start the
+	commented lines in the Remember temporary buffer with the
+	appropriate characters.
+
+2012-12-13  Toby S. Cubitt  <tsc25@cantab.net>
+
+	* org.el (org-beginning-of-line): Check `visual-line-mode' instead
+	of `line-visual-mode' to determine whether to move by visual lines.
+
+	* org.el (org-kill-line): Use the `org-bound-and-true-p' macro.
+
 2012-12-04  Chong Yidong  <cyd@gnu.org>
 
 	* org-bibtex.el (org-bibtex-ask): Use visual-line-mode instead of

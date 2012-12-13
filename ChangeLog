@@ -1,3 +1,12 @@
+2012-12-13  Glenn Morris  <rgm@gnu.org>
+
+	* info/dir: Add bovine, srecode, wisent.
+
+2012-12-13  Andreas Schwab  <schwab@suse.de>
+
+	* Makefile.in (install-info): Use `${MAKE} -s' for echo-info.
+	(uninstall): Likewise.  (Bug#13143)
+
 2012-12-11  Paul Eggert  <eggert@cs.ucla.edu>
 
 	Merge from gnulib for 'inline' (Bug#13040), incorporating:

@@ -41,19 +41,20 @@ INFO_OPTS=@INFO_OPTS@
 MAKEINFO = @MAKEINFO@
 MAKEINFO_OPTS = --force -I$(emacsdir)
 
-INFO_TARGETS = ada-mode auth autotype calc ccmode cl \
+INFO_TARGETS = ada-mode auth autotype bovine calc ccmode cl \
 	dbus dired-x ebrowse ede ediff edt eieio \
 	emacs-mime epa erc ert eshell eudc efaq \
 	flymake forms gnus emacs-gnutls idlwave info.info \
 	mairix-el message mh-e newsticker nxml-mode \
 	org pcl-cvs pgg rcirc remember reftex sasl \
-	sc semantic ses sieve smtpmail speedbar tramp \
-	url vip viper widget woman
+	sc semantic ses sieve smtpmail speedbar srecode tramp \
+	url vip viper widget wisent woman
 
 DVI_TARGETS = \
 	ada-mode.dvi \
 	auth.dvi \
 	autotype.dvi \
+	bovine.dvi \
 	calc.dvi \
 	cc-mode.dvi \
 	cl.dvi \
@@ -95,17 +96,20 @@ DVI_TARGETS = \
 	sieve.dvi \
 	smtpmail.dvi \
 	speedbar.dvi \
+	srecode.dvi \
 	tramp.dvi \
 	url.dvi \
 	vip.dvi \
 	viper.dvi \
 	widget.dvi \
+	wisent.dvi \
 	woman.dvi
 
 PDF_TARGETS = \
 	ada-mode.pdf \
 	auth.pdf \
 	autotype.pdf \
+	bovine.pdf \
 	calc.pdf \
 	cc-mode.pdf \
 	cl.pdf \
@@ -147,11 +151,13 @@ PDF_TARGETS = \
 	sieve.pdf \
 	smtpmail.pdf \
 	speedbar.pdf \
+	srecode.pdf \
 	tramp.pdf \
 	url.pdf \
 	vip.pdf \
 	viper.pdf \
 	widget.pdf \
+	wisent.pdf \
 	woman.pdf
 
 HTML_TARGETS = emacs-faq.html
@@ -217,6 +223,15 @@ autotype.dvi: ${srcdir}/autotype.texi
 	$(ENVADD) $(TEXI2DVI) ${srcdir}/autotype.texi
 autotype.pdf: ${srcdir}/autotype.texi
 	$(ENVADD) $(TEXI2PDF) ${srcdir}/autotype.texi
+
+bovine : $(buildinfodir)/bovine$(INFO_EXT)
+$(buildinfodir)/bovine$(INFO_EXT): ${srcdir}/bovine.texi
+	$(mkinfodir)
+	$(MAKEINFO) $(MAKEINFO_OPTS) $(INFO_OPTS) -o $@ ${srcdir}/bovine.texi
+bovine.dvi: ${srcdir}/bovine.texi
+	$(ENVADD) $(TEXI2DVI) ${srcdir}/bovine.texi
+bovine.pdf: ${srcdir}/bovine.texi
+	$(ENVADD) $(TEXI2PDF) ${srcdir}/bovine.texi
 
 calc : $(buildinfodir)/calc$(INFO_EXT)
 $(buildinfodir)/calc$(INFO_EXT): ${srcdir}/calc.texi $(emacsdir)/emacsver.texi
@@ -606,6 +621,15 @@ speedbar.dvi: ${srcdir}/speedbar.texi
 speedbar.pdf: ${srcdir}/speedbar.texi
 	$(ENVADD) $(TEXI2PDF) ${srcdir}/speedbar.texi
 
+srecode : $(buildinfodir)/srecode$(INFO_EXT)
+$(buildinfodir)/srecode$(INFO_EXT): ${srcdir}/srecode.texi
+	$(mkinfodir)
+	$(MAKEINFO) $(MAKEINFO_OPTS) $(INFO_OPTS) -o $@ ${srcdir}/srecode.texi
+srecode.dvi: ${srcdir}/srecode.texi
+	$(ENVADD) $(TEXI2DVI) ${srcdir}/srecode.texi
+srecode.pdf: ${srcdir}/srecode.texi
+	$(ENVADD) $(TEXI2PDF) ${srcdir}/srecode.texi
+
 tramp : $(buildinfodir)/tramp$(INFO_EXT)
 $(buildinfodir)/tramp$(INFO_EXT): ${srcdir}/tramp.texi ${srcdir}/trampver.texi
 	$(mkinfodir)
@@ -650,6 +674,15 @@ widget.dvi: ${srcdir}/widget.texi
 	$(ENVADD) $(TEXI2DVI) ${srcdir}/widget.texi
 widget.pdf: ${srcdir}/widget.texi
 	$(ENVADD) $(TEXI2PDF) ${srcdir}/widget.texi
+
+wisent : $(buildinfodir)/wisent$(INFO_EXT)
+$(buildinfodir)/wisent$(INFO_EXT): ${srcdir}/wisent.texi
+	$(mkinfodir)
+	$(MAKEINFO) $(MAKEINFO_OPTS) $(INFO_OPTS) -o $@ ${srcdir}/wisent.texi
+wisent.dvi: ${srcdir}/wisent.texi
+	$(ENVADD) $(TEXI2DVI) ${srcdir}/wisent.texi
+wisent.pdf: ${srcdir}/wisent.texi
+	$(ENVADD) $(TEXI2PDF) ${srcdir}/wisent.texi
 
 woman : $(buildinfodir)/woman$(INFO_EXT)
 $(buildinfodir)/woman$(INFO_EXT): ${srcdir}/woman.texi

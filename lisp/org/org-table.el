@@ -1594,6 +1594,7 @@ should be done in reverse order."
   (interactive "P")
   (let* ((thisline (org-current-line))
 	 (thiscol (org-table-current-column))
+	 (otc org-table-overlay-coordinates)
 	 beg end bcol ecol tend tbeg column lns pos)
     (when (equal thiscol 0)
       (if (org-called-interactively-p 'any)
@@ -1642,12 +1643,15 @@ should be done in reverse order."
 				  x))
 		      (org-split-string (buffer-substring beg end) "\n")))
     (setq lns (org-do-sort lns "Table" with-case sorting-type))
+    (when org-table-overlay-coordinates
+      (org-table-toggle-coordinate-overlays))
     (delete-region beg end)
     (move-marker beg nil)
     (move-marker end nil)
     (insert (mapconcat 'cdr lns "\n") "\n")
     (org-goto-line thisline)
     (org-table-goto-column thiscol)
+    (when otc (org-table-toggle-coordinate-overlays))
     (message "%d lines sorted, based on column %d" (length lns) column)))
 
 ;;;###autoload

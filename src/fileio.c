@@ -5126,8 +5126,8 @@ See Info node `(elisp)Modification Time' for more details.  */)
 	   ? get_stat_mtime (&st)
 	   : time_error_value (errno));
   if (EMACS_TIME_EQ (mtime, b->modtime)
-      && (st.st_size == b->modtime_size
-          || b->modtime_size < 0))
+      && (b->modtime_size < 0
+	  || st.st_size == b->modtime_size))
     return Qt;
   return Qnil;
 }
@@ -5154,7 +5154,15 @@ See Info node `(elisp)Modification Time' for more details.  */)
   (void)
 {
   if (EMACS_NSECS (current_buffer->modtime) < 0)
-    return make_number (0);
+    {
+      if (EMACS_NSECS (current_buffer->modtime) == NONEXISTENT_MODTIME_NSECS)
+	{
+	  /* make_lisp_time won't work here if time_t is unsigned.  */
+	  return list4 (make_number (-1), make_number (65535),
+			make_number (0), make_number (0));
+	}
+      return make_number (0);
+    }
   return make_lisp_time (current_buffer->modtime);
 }
 

@@ -54,7 +54,9 @@ INFO_TARGETS = $(infodir)/ccmode$(INFO_EXT) \
 		$(infodir)/remember$(INFO_EXT) $(infodir)/nxml-mode$(INFO_EXT) \
 		$(infodir)/epa$(INFO_EXT) $(infodir)/mairix-el$(INFO_EXT) $(infodir)/sasl$(INFO_EXT) \
 		$(infodir)/auth$(INFO_EXT) $(infodir)/eieio$(INFO_EXT) $(infodir)/ede$(INFO_EXT) \
-		$(infodir)/semantic$(INFO_EXT) $(infodir)/edt$(INFO_EXT) $(infodir)/emacs-gnutls$(INFO_EXT)
+		$(infodir)/semantic$(INFO_EXT) $(infodir)/edt$(INFO_EXT) $(infodir)/emacs-gnutls$(INFO_EXT) \
+		$(infodir)/srecode$(INFO_EXT) $(infodir)/bovine$(INFO_EXT) \
+		$(infodir)/wisent$(INFO_EXT)
 DVI_TARGETS = calc.dvi cc-mode.dvi cl.dvi dbus.dvi dired-x.dvi \
 		ediff.dvi forms.dvi gnus.dvi message.dvi emacs-mime.dvi \
 		sieve.dvi pgg.dvi mh-e.dvi \
@@ -65,7 +67,8 @@ DVI_TARGETS = calc.dvi cc-mode.dvi cl.dvi dbus.dvi dired-x.dvi \
 		newsticker.dvi rcirc.dvi erc.dvi ert.dvi \
 		remember.dvi nxml-mode.dvi \
 		epa.dvi mairix-el.dvi sasl.dvi auth.dvi eieio.dvi ede.dvi \
-		semantic.dvi edt.dvi emacs-gnutls.dvi
+		semantic.dvi edt.dvi emacs-gnutls.dvi srecode.dvi bovine.dvi \
+		wisent.dvi
 INFOSOURCES = info.texi
 
 # The following rule does not work with all versions of `make'.
@@ -358,6 +361,21 @@ $(infodir)/emacs-gnutls$(INFO_EXT): emacs-gnutls.texi doclicense.texi
 emacs-gnutls.dvi: emacs-gnutls.texi doclicense.texi
 	$(ENVADD) $(TEXI2DVI) $(srcdir)/emacs-gnutls.texi
 
+$(infodir)/srecode$(INFO_EXT): srecode.texi doclicense.texi
+	$(MAKEINFO) $(MAKEINFO_OPTS) $(INFO_OPTS) -o $@ srecode.texi
+srecode.dvi: srecode.texi doclicense.texi
+	$(ENVADD) $(TEXI2DVI) $(srcdir)/srecode.texi
+
+$(infodir)/bovine$(INFO_EXT): bovine.texi doclicense.texi
+	$(MAKEINFO) $(MAKEINFO_OPTS) $(INFO_OPTS) -o $@ bovine.texi
+bovine.dvi: bovine.texi doclicense.texi
+	$(ENVADD) $(TEXI2DVI) $(srcdir)/bovine.texi
+
+$(infodir)/wisent$(INFO_EXT): wisent.texi doclicense.texi
+	$(MAKEINFO) $(MAKEINFO_OPTS) $(INFO_OPTS) -o $@ wisent.texi
+wisent.dvi: wisent.texi doclicense.texi
+	$(ENVADD) $(TEXI2DVI) $(srcdir)/wisent.texi
+
 mostlyclean:
 	- $(DEL) *.log *.cp *.fn *.ky *.pg *.vr core *.tp *.core gnustmp.*
 
@@ -385,7 +403,9 @@ clean: mostlyclean
 		 $(infodir)/epa* $(infodir)/sasl* \
 		 $(infodir)/mairix-el* $(infodir)/auth* \
 		 $(infodir)/eieio* $(infodir)/ede* \
-		 $(infodir)/semantic* $(infodir)edt* $(infodir)/emacs-gnutls*
+		 $(infodir)/semantic* $(infodir)edt* \
+		 $(infodir)/emacs-gnutls* $(infodir)/srecode* \
+		 $(infodir)/bovine* $(infodir)/wisent*
 
 distclean: clean
 	- $(DEL) makefile

@@ -472,12 +472,12 @@ to be run from that hook to function properly."
 	(erase-buffer)
 	(insert (substitute-command-keys
 		 (format
-		  "## %s  \"%s\" -> \"* %s\"
-## C-u C-c C-c  like C-c C-c, and immediately visit note at target location
-## C-0 C-c C-c  \"%s\" -> \"* %s\"
-## %s  to select file and header location interactively.
-## C-2 C-c C-c  as child (C-3: as sibling) of the currently clocked item
-## To switch templates, use `\\[org-remember]'.  To abort use `C-c C-k'.\n\n"
+		  "# %s  \"%s\" -> \"* %s\"
+# C-u C-c C-c  like C-c C-c, and immediately visit note at target location
+# C-0 C-c C-c  \"%s\" -> \"* %s\"
+# %s  to select file and header location interactively.
+# C-2 C-c C-c  as child (C-3: as sibling) of the currently clocked item
+# To switch templates, use `\\[org-remember]'.  To abort use `C-c C-k'.\n\n"
 		  (if org-remember-store-without-prompt "    C-c C-c" "    C-1 C-c C-c")
 		  (abbreviate-file-name (or file org-default-notes-file))
 		  (or headline "")
@@ -840,12 +840,12 @@ See also the variable `org-reverse-note-order'."
       (if (= end beg) (setq beg (1- beg)))
       (put-text-property beg end 'org-position-cursor t)))
   (goto-char (point-min))
-  (while (looking-at "^[ \t]*\n\\|^##.*\n")
+  (while (looking-at "^[ \t]*\n\\|^# .*\n")
     (replace-match ""))
   (when org-remember-delete-empty-lines-at-end
     (goto-char (point-max))
     (beginning-of-line 1)
-    (while (and (looking-at "[ \t]*$\\|##.*") (> (point) 1))
+    (while (and (looking-at "[ \t]*$\\|[ \t]*# .*") (> (point) 1))
       (delete-region (1- (point)) (point-max))
       (beginning-of-line 1)))
   (catch 'quit

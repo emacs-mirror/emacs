@@ -1,3 +1,14 @@
+2012-12-13  Alan Mackenzie  <acm@muc.de>
+
+	Make CC Mode not hang when _some_ lines end in CRLF.  Bug #11841.
+	* progmodes/cc-engine.el (c-backward-comments): Add code to work
+	around `forward-comment' not recognizing ^M as whitespace.
+
+2012-12-13  Fabián Ezequiel Gallina  <fgallina@cuca>
+
+	* progmodes/python.el (python-skeleton-class)
+	(python-skeleton-def): Do not add space after defun name.
+
 2012-12-13  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* emacs-lisp/cl.el (letf): Make it an alias of cl-letf.

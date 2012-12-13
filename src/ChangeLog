@@ -1,3 +1,15 @@
+2012-12-13  Eli Zaretskii  <eliz@gnu.org>
+
+	* search.c (search_buffer): Check the inverse translations of each
+	character in pattern when the buffer being searched is unibyte.
+	(Bug#13084)
+
+2012-12-13  Paul Eggert  <eggert@cs.ucla.edu>
+
+	* fileio.c (Fvisited_file_modtime): Return (-1 ...) for nonexistent
+	files, fixing a regression from 24.2.
+	(Fverify_visited_file_modtime): Don't read uninitialized st.st_size.
+
 2012-12-13  Paul Eggert  <eggert@cs.ucla.edu>
 
 	* fileio.c (Fcopy_file): Make fstat failure as serious as open failure.

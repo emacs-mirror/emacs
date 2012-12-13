@@ -603,7 +603,7 @@ install-info: info
 	   [ -f dir ] || \
 	     (cd $${thisdir}; \
 	      ${INSTALL_DATA} ${srcdir}/info/dir $(DESTDIR)${infodir}/dir) ; \
-	   info_misc=`cd $${thisdir}/doc/misc; ${MAKE} echo-info | sed '/ing directory/d'`; \
+	   info_misc=`cd $${thisdir}/doc/misc; ${MAKE} -s echo-info`; \
 	   cd ${srcdir}/info ; \
 	   for elt in ${INFO_NONMISC} $${info_misc}; do \
 	      test "$(HAVE_MAKEINFO)" = "no" && test ! -f $$elt && continue; \
@@ -690,7 +690,7 @@ uninstall:
 	done
 	-rm -rf $(DESTDIR)${libexecdir}/emacs/${version}
 	thisdir=`/bin/pwd`; \
-	(info_misc=`cd doc/misc; ${MAKE} echo-info | sed '/ing directory/d'`; \
+	(info_misc=`cd doc/misc; ${MAKE} -s echo-info`; \
 	 if cd $(DESTDIR)${infodir}; then \
 	   for elt in ${INFO_NONMISC} $${info_misc}; do \
 	     (cd $${thisdir}; \

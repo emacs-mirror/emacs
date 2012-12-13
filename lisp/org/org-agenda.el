@@ -3517,6 +3517,9 @@ generating a new one."
 	(while (org-activate-bracket-links (point-max))
 	  (add-text-properties (match-beginning 0) (match-end 0)
 			       '(face org-link)))
+	(while (org-activate-plain-links (point-max))
+	  (add-text-properties (match-beginning 0) (match-end 0)
+			       '(face org-link)))
 	(org-agenda-align-tags)
 	(unless org-agenda-with-colors
 	  (remove-text-properties (point-min) (point-max) '(face nil))))
@@ -3531,7 +3534,11 @@ generating a new one."
 	(org-agenda-fontify-priorities))
       (when (and org-agenda-dim-blocked-tasks org-blocker-hook)
 	(org-agenda-dim-blocked-tasks))
-      (org-agenda-mark-clocking-task)
+      ;; We need to widen when `org-agenda-finalize' is called from
+      ;; `org-agenda-change-all-lines' (e.g. in `org-agenda-clock-in')
+      (save-restriction
+      	(widen)
+	(org-agenda-mark-clocking-task))
       (when org-agenda-entry-text-mode
 	(org-agenda-entry-text-hide)
 	(org-agenda-entry-text-show))
@@ -8602,7 +8609,7 @@ ARG is passed through to `org-schedule'."
 	(goto-char pos)
 	(setq ts (org-schedule arg time)))
       (org-agenda-show-new-time marker ts "S"))
-    (message "Item scheduled for %s" ts)))
+    (message "%s" ts)))
 
 (defun org-agenda-deadline (arg &optional time)
   "Schedule the item at point.
@@ -8622,7 +8629,7 @@ ARG is passed through to `org-deadline'."
 	(goto-char pos)
 	(setq ts (org-deadline arg time)))
       (org-agenda-show-new-time marker ts "D"))
-    (message "Deadline for this item set to %s" ts)))
+    (message "%s" ts)))
 
 (defun org-agenda-clock-in (&optional arg)
   "Start the clock on the currently selected item."

@@ -1447,7 +1447,7 @@ to, overriding the existing value of `org-clock-out-switch-to-state'."
 	    (delq 'org-mode-line-string global-mode-string))
       (setq frame-title-format org-frame-title-format-backup)
       (force-mode-line-update)
-      (if fail-quietly (throw 'exit t) (error "No active clock")))
+      (if fail-quietly (throw 'exit t) (user-error "No active clock")))
     (let ((org-clock-out-switch-to-state
 	   (if switch-to-state
 	       (completing-read "Switch to state: "

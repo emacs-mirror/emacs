@@ -2692,17 +2692,17 @@ The skeleton will be bound to python-skeleton-NAME."
 
 (python-skeleton-define def nil
   "Function name: "
-  "def " str " ("  ("Parameter, %s: "
-                    (unless (equal ?\( (char-before)) ", ")
-                    str) "):" \n
-                    "\"\"\"" - "\"\"\"" \n
-                    > _ \n)
+  "def " str "(" ("Parameter, %s: "
+                  (unless (equal ?\( (char-before)) ", ")
+                  str) "):" \n
+                  "\"\"\"" - "\"\"\"" \n
+                  > _ \n)
 
 (python-skeleton-define class nil
   "Class name: "
-  "class " str " (" ("Inheritance, %s: "
-                     (unless (equal ?\( (char-before)) ", ")
-                     str)
+  "class " str "(" ("Inheritance, %s: "
+                    (unless (equal ?\( (char-before)) ", ")
+                    str)
   & ")" | -2
   ":" \n
   "\"\"\"" - "\"\"\"" \n
