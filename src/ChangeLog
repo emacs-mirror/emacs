@@ -1,3 +1,12 @@
+2012-12-13  Paul Eggert  <eggert@cs.ucla.edu>
+
+	* fileio.c (Fcopy_file): Make fstat failure as serious as open failure.
+	fstat shouldn't fail, and if it does fail copy-file should not proceed.
+	Remove unnecessary S_ISLNK test, as (contra the comments) this
+	function can't copy symlinks.  Improve quality of error message
+	when attempting to copy files that are neither regular files nor
+	directories.
+
 2012-12-12  Dmitry Antipov  <dmantipov@yandex.ru>
 
 	* dispnew.c (set_window_cursor_after_update): Use clip_to_bounds.

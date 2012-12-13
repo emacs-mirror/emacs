@@ -1906,7 +1906,6 @@ on the system, we copy the SELinux context of FILE to NEWNAME.  */)
   Lisp_Object handler;
   struct gcpro gcpro1, gcpro2, gcpro3, gcpro4;
   ptrdiff_t count = SPECPDL_INDEX ();
-  bool input_file_statable_p;
   Lisp_Object encoded_file, encoded_newname;
 #if HAVE_LIBSELINUX
   security_context_t con;
@@ -1984,9 +1983,8 @@ on the system, we copy the SELinux context of FILE to NEWNAME.  */)
 
   record_unwind_protect (close_file_unwind, make_number (ifd));
 
-  /* We can only copy regular files and symbolic links.  Other files are not
-     copyable by us. */
-  input_file_statable_p = (fstat (ifd, &st) >= 0);
+  if (fstat (ifd, &st) != 0)
+    report_file_error ("Input file status", Fcons (file, Qnil));
 
 #if HAVE_LIBSELINUX
   if (!NILP (preserve_selinux_context) && is_selinux_enabled ())
@@ -2005,14 +2003,12 @@ on the system, we copy the SELinux context of FILE to NEWNAME.  */)
 			 Fcons (file, Fcons (newname, Qnil)));
     }
 
-  if (input_file_statable_p)
+  /* We can copy only regular files.  */
+  if (!S_ISREG (st.st_mode))
     {
-      if (!(S_ISREG (st.st_mode)) && !(S_ISLNK (st.st_mode)))
-	{
-	  /* Get a better looking error message. */
-	  errno = EISDIR;
-	  report_file_error ("Non-regular file", Fcons (file, Qnil));
-	}
+      /* Get a better looking error message. */
+      errno = S_ISDIR (st.st_mode) ? EISDIR : EINVAL;
+      report_file_error ("Non-regular file", Fcons (file, Qnil));
     }
 
 #ifdef MSDOS
@@ -2023,13 +2019,8 @@ on the system, we copy the SELinux context of FILE to NEWNAME.  */)
 		    S_IREAD | S_IWRITE);
 #else  /* not MSDOS */
   {
-    mode_t new_mask = 0666;
-    if (input_file_statable_p)
-      {
-	if (!NILP (preserve_uid_gid))
-	  new_mask = 0600;
-	new_mask &= st.st_mode;
-      }
+    mode_t new_mask = !NILP (preserve_uid_gid) ? 0600 : 0666;
+    new_mask &= st.st_mode;
     ofd = emacs_open (SSDATA (encoded_newname),
 		      (O_WRONLY | O_TRUNC | O_CREAT
 		       | (NILP (ok_if_already_exists) ? O_EXCL : 0)),
@@ -2051,25 +2042,24 @@ on the system, we copy the SELinux context of FILE to NEWNAME.  */)
 #ifndef MSDOS
   /* Preserve the original file modes, and if requested, also its
      owner and group.  */
-  if (input_file_statable_p)
-    {
-      mode_t mode_mask = 07777;
-      if (!NILP (preserve_uid_gid))
-	{
-	  /* Attempt to change owner and group.  If that doesn't work
-	     attempt to change just the group, as that is sometimes allowed.
-	     Adjust the mode mask to eliminate setuid or setgid bits
-	     that are inappropriate if the owner and group are wrong.  */
-	  if (fchown (ofd, st.st_uid, st.st_gid) != 0)
-	    {
-	      mode_mask &= ~06000;
-	      if (fchown (ofd, -1, st.st_gid) == 0)
-		mode_mask |= 02000;
-	    }
-	}
-      if (fchmod (ofd, st.st_mode & mode_mask) != 0)
-	report_file_error ("Doing chmod", Fcons (newname, Qnil));
-    }
+  {
+    mode_t mode_mask = 07777;
+    if (!NILP (preserve_uid_gid))
+      {
+	/* Attempt to change owner and group.  If that doesn't work
+	   attempt to change just the group, as that is sometimes allowed.
+	   Adjust the mode mask to eliminate setuid or setgid bits
+	   that are inappropriate if the owner and group are wrong.  */
+	if (fchown (ofd, st.st_uid, st.st_gid) != 0)
+	  {
+	    mode_mask &= ~06000;
+	    if (fchown (ofd, -1, st.st_gid) == 0)
+	      mode_mask |= 02000;
+	  }
+      }
+    if (fchmod (ofd, st.st_mode & mode_mask) != 0)
+      report_file_error ("Doing chmod", Fcons (newname, Qnil));
+  }
 #endif	/* not MSDOS */
 
 #if HAVE_LIBSELINUX
@@ -2085,16 +2075,13 @@ on the system, we copy the SELinux context of FILE to NEWNAME.  */)
     }
 #endif
 
-  if (input_file_statable_p)
+  if (!NILP (keep_time))
     {
-      if (!NILP (keep_time))
-	{
-	  EMACS_TIME atime = get_stat_atime (&st);
-	  EMACS_TIME mtime = get_stat_mtime (&st);
-	  if (set_file_times (ofd, SSDATA (encoded_newname), atime, mtime))
-	    xsignal2 (Qfile_date_error,
-		      build_string ("Cannot set file date"), newname);
-	}
+      EMACS_TIME atime = get_stat_atime (&st);
+      EMACS_TIME mtime = get_stat_mtime (&st);
+      if (set_file_times (ofd, SSDATA (encoded_newname), atime, mtime))
+	xsignal2 (Qfile_date_error,
+		  build_string ("Cannot set file date"), newname);
     }
 
   if (emacs_close (ofd) < 0)
@@ -2103,15 +2090,12 @@ on the system, we copy the SELinux context of FILE to NEWNAME.  */)
   emacs_close (ifd);
 
 #ifdef MSDOS
-  if (input_file_statable_p)
-    {
-      /* In DJGPP v2.0 and later, fstat usually returns true file mode bits,
-         and if it can't, it tells so.  Otherwise, under MSDOS we usually
-         get only the READ bit, which will make the copied file read-only,
-         so it's better not to chmod at all.  */
-      if ((_djstat_flags & _STFAIL_WRITEBIT) == 0)
-	chmod (SDATA (encoded_newname), st.st_mode & 07777);
-    }
+  /* In DJGPP v2.0 and later, fstat usually returns true file mode bits,
+     and if it can't, it tells so.  Otherwise, under MSDOS we usually
+     get only the READ bit, which will make the copied file read-only,
+     so it's better not to chmod at all.  */
+  if ((_djstat_flags & _STFAIL_WRITEBIT) == 0)
+    chmod (SDATA (encoded_newname), st.st_mode & 07777);
 #endif /* MSDOS */
 #endif /* not WINDOWSNT */
 
