@@ -834,7 +834,6 @@ ends, for example:
 @r{@bullet{} an environment for literate programming}
 @end example
 
-
 @cindex FAQ
 There is a website for Org which provides links to the newest
 version of Org, as well as additional information, frequently asked
@@ -879,8 +878,6 @@ Lisp and Info files will be installed.  If the Emacs binary is not in your
 path, give the full path to the executable.  Avoid spaces in any path names.
 @item Run @code{make config}
 again to check the configuration.
-@item Optionally run @code{make test}
-to build Org mode and then run the full testsuite.
 @item Run @code{make install} or @code{sudo make install}
 to build and install Org mode on your system.
 @end itemize
@@ -903,6 +900,8 @@ Emacs binary is not in your path, you must give the full path to the
 executable.  Avoid spaces in any path names.
 @item Run @code{make config}
 to check the configuration.
+@item Optionally run @code{make test}
+to build Org mode and then run the full testsuite.
 @item Run @code{make update2} or @code{make up2}
 to update the Git repository and build and install Org mode.  The latter
 invocation runs the complete test suite before installation and installs only
@@ -9222,11 +9221,11 @@ a horizontal line (@samp{<hr/>} in HTML and @code{\hrule} in @LaTeX{}).
 @cindex exporting, not
 @cindex #+BEGIN_COMMENT
 
-Lines starting with zero or more whitespace characters followed by @samp{#}
-are treated as comments and will never be exported.  Also entire subtrees
-starting with the word @samp{COMMENT} will never be exported.  Finally,
-regions surrounded by @samp{#+BEGIN_COMMENT} ... @samp{#+END_COMMENT} will
-not be exported.
+Lines starting with zero or more whitespace characters followed by one
+@samp{#} and a whitespace are treated as comments and will never be exported.
+Also entire subtrees starting with the word @samp{COMMENT} will never be
+exported.  Finally, regions surrounded by @samp{#+BEGIN_COMMENT}
+... @samp{#+END_COMMENT} will not be exported.
 
 @table @kbd
 @kindex C-c ;
@@ -13155,8 +13154,8 @@ blocks.
 
 @lisp
 (setq org-babel-default-header-args
-(cons '(:noweb . "yes")
-(assq-delete-all :noweb org-babel-default-header-args)))
+      (cons '(:noweb . "yes")
+	    (assq-delete-all :noweb org-babel-default-header-args)))
 @end lisp
 
 @node Language-specific header arguments, Buffer-wide header arguments, System-wide header arguments, Using header arguments
@@ -13201,9 +13200,9 @@ blocks in the subtree rooted at the following heading:
 
 @example
 * outline header
-:PROPERTIES:
-:cache:    yes
-:END:
+  :PROPERTIES:
+  :cache:    yes
+  :END:
 @end example
 
 @kindex C-c C-x p
@@ -13247,6 +13246,7 @@ Code block header arguments can span multiple lines using @code{#+HEADER:} or
 @cindex #+HEADERS:
 
 Multi-line header arguments on an un-named code block:
+
 @example
  #+HEADERS: :var data1=1
  #+BEGIN_SRC emacs-lisp :var data2=2
@@ -13258,6 +13258,7 @@ Multi-line header arguments on an un-named code block:
 @end example
 
 Multi-line header arguments on a named code block:
+
 @example
    #+NAME: named-block
    #+HEADER: :var data=2
@@ -13280,12 +13281,14 @@ blocks}.
 
 The following will apply the @code{:exports results} header argument to the
 evaluation of the @code{#+CALL:} line.
+
 @example
 #+CALL: factorial(n=5) :exports results
 @end example
 
 The following will apply the @code{:session special} header argument to the
 evaluation of the @code{factorial} code block.
+
 @example
 #+CALL: factorial[:session special](n=5)
 @end example
@@ -13366,6 +13369,7 @@ Here are examples of passing values by reference:
 
 @item table
 an Org mode table named with either a @code{#+NAME:} or @code{#+TBLNAME:} line
+
 @example
 #+TBLNAME: example-table
 | 1 |
@@ -13948,7 +13952,6 @@ This code block:
 -- <<example>>
 @end example
 
-
 expands to:
 
 @example
@@ -14331,6 +14334,7 @@ process.  For example, compare the following two blocks:
 @end example
 
 In non-session mode, the `2' is not printed and does not appear.
+
 @example
 #+BEGIN_SRC python :results output :session
  print "hello"
@@ -14705,6 +14709,7 @@ ask and nil not to ask.
 
 For example, here is how to execute "ditaa" code (which is considered safe)
 without asking:
+
 @example
 (defun my-org-confirm-babel-evaluate (lang body)
   (not (string= lang "ditaa")))  ; don't ask for ditaa
@@ -15401,7 +15406,7 @@ function:
 
 @lisp
 (defun yas/org-very-safe-expand ()
-       (let ((yas/fallback-behavior 'return-nil)) (yas/expand)))
+  (let ((yas/fallback-behavior 'return-nil)) (yas/expand)))
 @end lisp
 
 Then, tell Org mode what to do with the new function:
@@ -15409,10 +15414,10 @@ Then, tell Org mode what to do with the new function:
 @lisp
 (add-hook 'org-mode-hook
           (lambda ()
-              (make-variable-buffer-local 'yas/trigger-key)
-              (setq yas/trigger-key [tab])
-              (add-to-list 'org-tab-first-hook 'yas/org-very-safe-expand)
-              (define-key yas/keymap [tab] 'yas/next-field)))
+	    (make-variable-buffer-local 'yas/trigger-key)
+	    (setq yas/trigger-key [tab])
+	    (add-to-list 'org-tab-first-hook 'yas/org-very-safe-expand)
+	    (define-key yas/keymap [tab] 'yas/next-field)))
 @end lisp
 
 @item @file{windmove.el} by Hovav Shacham
@@ -16053,9 +16058,9 @@ The corresponding block writer function could look like this:
 
 @lisp
 (defun org-dblock-write:block-update-time (params)
-   (let ((fmt (or (plist-get params :format) "%d. %m. %Y")))
-     (insert "Last block update at: "
-             (format-time-string fmt (current-time)))))
+  (let ((fmt (or (plist-get params :format) "%d. %m. %Y")))
+    (insert "Last block update at: "
+	    (format-time-string fmt (current-time)))))
 @end lisp
 
 If you want to make sure that all dynamic blocks are always up-to-date,
@@ -16450,8 +16455,8 @@ Entries in comment trees and in archive trees will be ignored.
 
 @lisp
 (org-map-entries
-   '(org-todo "UPCOMING")
-   "+TOMORROW" 'file 'archive 'comment)
+ '(org-todo "UPCOMING")
+ "+TOMORROW" 'file 'archive 'comment)
 @end lisp
 
 The following example counts the number of entries with TODO keyword

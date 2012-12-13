@@ -291,9 +291,11 @@ A list of @code{(filename-regexp, init-function, cleanup-function
 getfname-function)} for configuring syntax check tools. @xref{Adding
 support for a new syntax check tool}.
 
+@ignore
 @item flymake-buildfile-dirs
 A list of directories (relative paths) for searching a
 buildfile. @xref{Locating the buildfile}.
+@end ignore
 
 @item flymake-master-file-dirs
 A list of directories for searching a master file. @xref{Locating a
@@ -675,10 +677,13 @@ buildfile to reference the 'project configuration' file.
 
 Special function, @code{flymake-find-buildfile} is provided for locating buildfiles.
 Searching for a buildfile is done in a manner similar to that of searching
-for possible master files. A customizable variable
+for possible master files.
+@ignore
+A customizable variable
 @code{flymake-buildfile-dirs} holds a list of relative paths to the
-buildfile. They are checked sequentially until a buildfile is found. In case
-there's no build file, syntax check is aborted.
+buildfile. They are checked sequentially until a buildfile is found.
+@end ignore
+In case there's no build file, syntax check is aborted.
 
 Buildfile values are also cached.
 

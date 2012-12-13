@@ -1,3 +1,7 @@
+2012-12-09  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* control.texi (Pattern matching case statement): New node.
+
 2012-12-06  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* customize.texi (Variable Definitions): Mention the default :group

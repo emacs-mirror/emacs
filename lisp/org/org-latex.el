@@ -2291,14 +2291,13 @@ The conversion is made depending of STRING-BEFORE and STRING-AFTER."
 		    (concat type ":" raw-path))
 		   ((equal type "file")
 		    (if (and (org-file-image-p
-			      (expand-file-name
-			       raw-path)
+			      (expand-file-name (org-link-unescape raw-path))
 			      org-export-latex-inline-image-extensions)
-			     (or (get-text-property 0 'org-no-description
-						    raw-path)
+			     (or (get-text-property 0 'org-no-description raw-path)
 				 (equal desc full-raw-path)))
 			(setq imgp t)
-		      (progn (when (string-match "\\(.+\\)::.+" raw-path)
+		      (progn (setq raw-path (org-link-unescape raw-path))
+			     (when (string-match "\\(.+\\)::.+" raw-path)
 			       (setq raw-path (match-string 1 raw-path)))
 			     (if (file-exists-p raw-path)
 				 (concat type "://" (expand-file-name raw-path))

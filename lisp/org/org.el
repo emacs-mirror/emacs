@@ -2498,9 +2498,10 @@ a subtree."
   "Return the value of `org-log-into-drawer', but let properties overrule.
 If the current entry has or inherits a LOG_INTO_DRAWER property, it will be
 used instead of the default value."
-  (let ((p (org-entry-get nil "LOG_INTO_DRAWER" 'inherit)))
+  (let ((p (org-entry-get nil "LOG_INTO_DRAWER" 'inherit t)))
     (cond
-     ((or (not p) (equal p "nil")) org-log-into-drawer)
+     ((not p) org-log-into-drawer)
+     ((equal p "nil") nil)
      ((equal p "t") "LOGBOOK")
      (t p))))
 
@@ -8016,11 +8017,12 @@ a time stamp, by a property or by priority.
 
 The command prompts for the sorting type unless it has been given to the
 function through the SORTING-TYPE argument, which needs to be a character,
-\(?n ?N ?a ?A ?t ?T ?s ?S ?d ?D ?p ?P ?r ?R ?f ?F).  Here is the
+\(?n ?N ?a ?A ?t ?T ?s ?S ?d ?D ?p ?P ?o ?O ?r ?R ?f ?F).  Here is the
 precise meaning of each character:
 
 n   Numerically, by converting the beginning of the entry/item to a number.
 a   Alphabetically, ignoring the TODO keyword and the priority, if any.
+o   By order of TODO keywords.
 t   By date/time, either the first active time stamp in the entry, or, if
     none exist, by the first inactive one.
 s   By the scheduled date/time.
@@ -8040,6 +8042,13 @@ Comparing entries ignores case by default.  However, with an optional argument
 WITH-CASE, the sorting considers case as well."
   (interactive "P")
   (let ((case-func (if with-case 'identity 'downcase))
+	(cmstr
+	 ;; The clock marker is lost when using `sort-subr', let's
+	 ;; store the clocking string.
+	 (when (equal (marker-buffer org-clock-marker) (current-buffer))
+	   (save-excursion
+	     (goto-char org-clock-marker)
+	     (looking-back "^.*") (match-string-no-properties 0))))
         start beg end stars re re2
         txt what tmp)
     ;; Find beginning and end of region to sort
@@ -8096,7 +8105,7 @@ WITH-CASE, the sorting considers case as well."
       (message
        "Sort %s: [a]lpha  [n]umeric  [p]riority  p[r]operty  todo[o]rder  [f]unc
                [t]ime [s]cheduled  [d]eadline  [c]reated
-               A/N/T/S/D/C/P/O/F means reversed:"
+               A/N/P/R/O/F/T/S/D/C means reversed:"
        what)
       (setq sorting-type (read-char-exclusive))
 
@@ -8193,6 +8202,12 @@ WITH-CASE, the sorting considers case as well."
           ((= dcst ?f) compare-func)
           ((member dcst '(?p ?t ?s ?d ?c)) '<)))))
     (run-hooks 'org-after-sorting-entries-or-items-hook)
+    ;; Reset the clock marker if needed
+    (when cmstr
+      (save-excursion
+	(goto-char start)
+	(search-forward cmstr nil t)
+	(move-marker org-clock-marker (point))))
     (message "Sorting entries...done")))
 
 (defun org-do-sort (table what &optional with-case sorting-type)
@@ -8204,7 +8219,7 @@ the car of the elements of the table.
 If WITH-CASE is non-nil, the sorting will be case-sensitive."
   (unless sorting-type
     (message
-     "Sort %s: [a]lphabetic. [n]umeric. [t]ime.  A/N/T means reversed:"
+     "Sort %s: [a]lphabetic, [n]umeric, [t]ime.  A/N/T means reversed:"
      what)
     (setq sorting-type (read-char-exclusive)))
   (let ((dcst (downcase sorting-type))
@@ -9644,7 +9659,7 @@ application the system uses for this file type."
 	   (not (org-in-regexp org-bracket-link-regexp)))
       (org-follow-timestamp-link))
      ((and (or (org-footnote-at-reference-p) (org-footnote-at-definition-p))
-	   (not (org-in-regexp org-bracket-link-regexp)))
+	   (not (org-in-regexp org-any-link-re)))
       (org-footnote-action))
      (t
       (let (type path link line search (pos (point)))
@@ -11219,7 +11234,7 @@ This function can be used in a hook."
     "COLUMNS:" "PROPERTY:"
     "CAPTION:" "LABEL:"
     "SETUPFILE:"
-    "INCLUDE:"
+    "INCLUDE:" "INDEX:"
     "BIND:"
     "MACRO:"))
 
@@ -21270,7 +21285,7 @@ beyond the end of the headline."
 		     (car org-special-ctrl-a/e)
 		   org-special-ctrl-a/e))
 	refpos)
-    (if (org-bound-and-true-p line-move-visual)
+    (if (org-bound-and-true-p visual-line-mode)
 	(beginning-of-visual-line 1)
       (beginning-of-line 1))
     (if (and arg (fboundp 'move-beginning-of-line))
@@ -21331,36 +21346,33 @@ the cursor is already beyond the end of the headline."
   (interactive "P")
   (let ((special (if (consp org-special-ctrl-a/e) (cdr org-special-ctrl-a/e)
 		   org-special-ctrl-a/e))
-        (type (org-element-type
-               (save-excursion (beginning-of-line) (org-element-at-point)))))
-    (cond
-     ((or (not special) arg)
-      (call-interactively
-       (if (fboundp 'move-end-of-line) 'move-end-of-line 'end-of-line)))
-     ((memq type '(headline inlinetask))
-      (let ((pos (point)))
-        (beginning-of-line 1)
-        (if (looking-at (org-re ".*?\\(?:\\([ \t]*\\)\\(:[[:alnum:]_@#%:]+:\\)?[ \t]*\\)?$"))
-            (if (eq special t)
-                (if (or (< pos (match-beginning 1)) (= pos (match-end 0)))
-                    (goto-char (match-beginning 1))
-                  (goto-char (match-end 0)))
-              (if (or (< pos (match-end 0))
-                      (not (eq this-command last-command)))
-                  (goto-char (match-end 0))
-                (goto-char (match-beginning 1))))
-          (call-interactively
-           (if (fboundp 'move-end-of-line) 'move-end-of-line 'end-of-line)))))
-     ((memq type
-            '(center-block comment-block drawer dynamic-block example-block
-                           export-block item plain-list property-drawer
-                           quote-block special-block src-block verse-block))
-      ;; Never move past the ellipsis.
-      (or (eolp) (move-end-of-line 1))
-      (when (org-invisible-p2) (backward-char)))
-     (t
-      (call-interactively
-       (if (fboundp 'move-end-of-line) 'move-end-of-line 'end-of-line))))
+	(move-fun (cond ((org-bound-and-true-p visual-line-mode)
+			 'end-of-visual-line)
+			((fboundp 'move-end-of-line) 'move-end-of-line)
+			(t 'end-of-line))))
+    (if (or (not special) arg) (call-interactively move-fun)
+      (let* ((element (save-excursion (beginning-of-line)
+				      (org-element-at-point)))
+	     (type (org-element-type element)))
+	(cond
+	 ((memq type '(headline inlinetask))
+	  (let ((pos (point)))
+	    (beginning-of-line 1)
+	    (if (looking-at (org-re ".*?\\(?:\\([ \t]*\\)\\(:[[:alnum:]_@#%:]+:\\)?[ \t]*\\)?$"))
+		(if (eq special t)
+		    (if (or (< pos (match-beginning 1)) (= pos (match-end 0)))
+			(goto-char (match-beginning 1))
+		      (goto-char (match-end 0)))
+		  (if (or (< pos (match-end 0))
+			  (not (eq this-command last-command)))
+		      (goto-char (match-end 0))
+		    (goto-char (match-beginning 1))))
+	      (call-interactively move-fun))))
+	 ((org-element-property :hiddenp element)
+	  ;; If element is hidden, `move-end-of-line' would put point
+	  ;; after it.  Use `end-of-line' to stay on current line.
+	  (call-interactively 'end-of-line))
+	 (t (call-interactively move-fun)))))
     (org-no-warnings (and (featurep 'xemacs) (setq zmacs-region-stays t)))))
 
 (define-key org-mode-map "\C-a" 'org-beginning-of-line)
@@ -21400,7 +21412,7 @@ depending on context."
 		(not (y-or-n-p "Kill hidden subtree along with headline? ")))
 	    (error "C-k aborted - would kill hidden subtree")))
     (call-interactively
-     (if (and (boundp 'visual-line-mode) visual-line-mode) 'kill-visual-line 'kill-line)))
+     (if (org-bound-and-true-p visual-line-mode) 'kill-visual-line 'kill-line)))
    ((looking-at (org-re ".*?\\S-\\([ \t]+\\(:[[:alnum:]_@#%:]+:\\)\\)[ \t]*$"))
     (kill-region (point) (match-beginning 1))
     (org-set-tags nil t))
