@@ -1,3 +1,9 @@
+2012-12-13  Paul Eggert  <eggert@cs.ucla.edu>
+
+	* xdisp.c: Minor style fixes.
+	(init_iterator): Hoist assignment out of if-expression.
+	(markpos_of_region): Callers now test for sign, not for -1.
+
 2012-12-13  Dmitry Antipov  <dmantipov@yandex.ru>
 
 	Minor redisplay optimization when the region length is zero.

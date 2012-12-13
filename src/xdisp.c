@@ -2711,7 +2711,8 @@ init_iterator (struct it *it, struct window *w,
   /* If visible region is of non-zero length, set IT->region_beg_charpos
      and IT->region_end_charpos to the start and end of a visible region
      in window IT->w.  Set both to -1 to indicate no region.  */
-  if ((markpos = markpos_of_region ()) != -1
+  markpos = markpos_of_region ();
+  if (0 <= markpos
       /* Maybe highlight only in selected window.  */
       && (/* Either show region everywhere.  */
 	  highlight_nonselected_windows
@@ -10916,7 +10917,7 @@ buffer_shared_and_changed (void)
 static int
 window_outdated (struct window *w)
 {
-  return (w->last_modified < MODIFF 
+  return (w->last_modified < MODIFF
 	  || w->last_overlay_modified < OVERLAY_MODIFF);
 }
 
@@ -15082,7 +15083,7 @@ try_cursor_movement (Lisp_Object window, struct text_pos startp, int *scroll_ste
       /* Can't use this case if highlighting a region.  When a
          region exists, cursor movement has to do more than just
          set the cursor.  */
-      && (markpos_of_region () == -1)
+      && markpos_of_region () < 0
       && NILP (w->region_showing)
       && NILP (Vshow_trailing_whitespace)
       /* This code is not used for mini-buffer for the sake of the case
@@ -15751,7 +15752,7 @@ redisplay_window (Lisp_Object window, int just_this_one_p)
 
 	  /* If we are highlighting the region, then we just changed
 	     the region, so redisplay to show it.  */
-	  if (markpos_of_region () != -1)
+	  if (0 <= markpos_of_region ())
 	    {
 	      clear_glyph_matrix (w->desired_matrix);
 	      if (!try_window (window, startp, 0))
@@ -16456,7 +16457,7 @@ try_window_reusing_current_matrix (struct window *w)
     return 0;
 
   /* Can't do this if region may have changed.  */
-  if ((markpos_of_region () != -1)
+  if (0 <= markpos_of_region ()
       || !NILP (w->region_showing)
       || !NILP (Vshow_trailing_whitespace))
     return 0;
@@ -17288,7 +17289,7 @@ try_window_id (struct window *w)
 
   /* Can't use this if highlighting a region because a cursor movement
      will do more than just set the cursor.  */
-  if (markpos_of_region () != -1)
+  if (0 <= markpos_of_region ())
     GIVE_UP (9);
 
   /* Likewise if highlighting trailing whitespace.  */
@@ -21466,8 +21467,8 @@ decode_mode_spec (struct window *w, register int c, int field_width,
 	register int i;
 
 	/* Let lots_of_dashes be a string of infinite length.  */
-	if (mode_line_target == MODE_LINE_NOPROP ||
-	    mode_line_target == MODE_LINE_STRING)
+	if (mode_line_target == MODE_LINE_NOPROP
+	    || mode_line_target == MODE_LINE_STRING)
 	  return "--";
 	if (field_width <= 0
 	    || field_width > sizeof (lots_of_dashes))
