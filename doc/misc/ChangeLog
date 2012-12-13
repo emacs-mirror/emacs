@@ -1,3 +1,7 @@
+2012-12-13  Bastien Guerry  <bzg@gnu.org>
+
+	* org.texi: Fix typos.
+
 2012-12-13  Glenn Morris  <rgm@gnu.org>
 
 	* wisent.texi: Small edits.  Set copyright to FSF, update license to
@@ -365,7 +369,7 @@
 	* org.texi (Moving subtrees): Document the ability to archive to a
 	datetree.
 
-2012-09-30  Bastien Guerry  <bzg@altern.org>
+2012-09-30  Bastien Guerry  <bzg@gnu.org>
 
 	* org.texi (Installation, Feedback, Batch execution): Use
 	(add-to-list 'load-path ... t) for the contrib dir.
@@ -971,7 +975,7 @@
 
 	* org.texi: Edit :noweb no header argument for correctness.
 
-2012-04-01  Bastien Guerry  <bzg@altern.org>
+2012-04-01  Bastien Guerry  <bzg@gnu.org>
 
 	* org.texi (Customization): Update the approximate number of Org
 	variables.
