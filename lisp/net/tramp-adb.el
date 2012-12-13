@@ -112,7 +112,7 @@
   "Alist of handler functions for Tramp ADB method.")
 
 ;;;###tramp-autoload
-(defun tramp-adb-file-name-p (filename)
+(defsubst tramp-adb-file-name-p (filename)
   "Check if it's a filename for ADB."
   (let ((v (tramp-dissect-file-name filename)))
     (string= (tramp-file-name-method v) tramp-adb-method)))
