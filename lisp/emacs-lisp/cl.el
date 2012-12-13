@@ -220,7 +220,7 @@
                callf2
                callf
                letf*
-               ;; letf
+               letf
                rotatef
                shiftf
                remf
@@ -503,28 +503,6 @@ rather than relying on `lexical-binding'."
 ;; Generalized variables are provided by gv.el, but some details are
 ;; not 100% compatible: not worth the trouble to add them to cl-lib.el, but we
 ;; still need to support old users of cl.el.
-
-(defmacro cl--symbol-function (symbol)
-  "Like `symbol-function' but return `cl--unbound' if not bound."
-  ;; (declare (gv-setter (lambda (store)
-  ;;                       `(if (eq ,store 'cl--unbound)
-  ;;                            (fmakunbound ,symbol) (fset ,symbol ,store)))))
-  `(if (fboundp ,symbol) (symbol-function ,symbol) 'cl--unbound))
-(gv-define-setter cl--symbol-function (store symbol)
-  `(if (eq ,store 'cl--unbound) (fmakunbound ,symbol) (fset ,symbol ,store)))
-
-(defmacro letf (bindings &rest body)
-  "Dynamically scoped let-style bindings for places.
-For more details, see `cl-letf'.  This macro behaves like that one
-in almost every respect (apart from details that relate to some
-deprecated usage of `symbol-function' in place forms)."  ; bug#12760
-  (declare (indent 1) (debug cl-letf))
-  ;; Like cl-letf, but with special handling of symbol-function.
-  `(cl-letf ,(mapcar (lambda (x) (if (eq (car-safe (car x)) 'symbol-function)
-                                `((cl--symbol-function ,@(cdar x)) ,@(cdr x))
-                              x))
-                     bindings)
-            ,@body))
 
 (defun cl--gv-adapt (cl-gv do)
   ;; This function is used by all .elc files that use define-setf-expander and
