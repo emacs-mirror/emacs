@@ -2559,8 +2559,24 @@ check_window_end (struct window *w)
 
 #endif /* GLYPH_DEBUG and ENABLE_CHECKING */
 
+/* Return mark position if current buffer has the region of non-zero length,
+   or -1 otherwise.  */
 
-
+static ptrdiff_t
+markpos_of_region (void)
+{
+  if (!NILP (Vtransient_mark_mode)
+      && !NILP (BVAR (current_buffer, mark_active))
+      && XMARKER (BVAR (current_buffer, mark))->buffer != NULL)
+    {
+      ptrdiff_t markpos = XMARKER (BVAR (current_buffer, mark))->charpos;
+
+      if (markpos != PT)
+	return markpos;
+    }
+  return -1;
+}
+
 /***********************************************************************
 		       Iterator initialization
  ***********************************************************************/
@@ -2589,7 +2605,7 @@ init_iterator (struct it *it, struct window *w,
 	       ptrdiff_t charpos, ptrdiff_t bytepos,
 	       struct glyph_row *row, enum face_id base_face_id)
 {
-  int highlight_region_p;
+  ptrdiff_t markpos;
   enum face_id remapped_base_face_id = base_face_id;
 
   /* Some precondition checks.  */
@@ -2692,16 +2708,10 @@ init_iterator (struct it *it, struct window *w,
   /* Are multibyte characters enabled in current_buffer?  */
   it->multibyte_p = !NILP (BVAR (current_buffer, enable_multibyte_characters));
 
-  /* Non-zero if we should highlight the region.  */
-  highlight_region_p
-    = (!NILP (Vtransient_mark_mode)
-       && !NILP (BVAR (current_buffer, mark_active))
-       && XMARKER (BVAR (current_buffer, mark))->buffer != 0);
-
-  /* Set IT->region_beg_charpos and IT->region_end_charpos to the
-     start and end of a visible region in window IT->w.  Set both to
-     -1 to indicate no region.  */
-  if (highlight_region_p
+  /* If visible region is of non-zero length, set IT->region_beg_charpos
+     and IT->region_end_charpos to the start and end of a visible region
+     in window IT->w.  Set both to -1 to indicate no region.  */
+  if ((markpos = markpos_of_region ()) != -1
       /* Maybe highlight only in selected window.  */
       && (/* Either show region everywhere.  */
 	  highlight_nonselected_windows
@@ -2713,7 +2723,6 @@ init_iterator (struct it *it, struct window *w,
 	      && WINDOWP (minibuf_selected_window)
 	      && w == XWINDOW (minibuf_selected_window))))
     {
-      ptrdiff_t markpos = marker_position (BVAR (current_buffer, mark));
       it->region_beg_charpos = min (PT, markpos);
       it->region_end_charpos = max (PT, markpos);
     }
@@ -15073,8 +15082,7 @@ try_cursor_movement (Lisp_Object window, struct text_pos startp, int *scroll_ste
       /* Can't use this case if highlighting a region.  When a
          region exists, cursor movement has to do more than just
          set the cursor.  */
-      && !(!NILP (Vtransient_mark_mode)
-	   && !NILP (BVAR (current_buffer, mark_active)))
+      && (markpos_of_region () == -1)
       && NILP (w->region_showing)
       && NILP (Vshow_trailing_whitespace)
       /* This code is not used for mini-buffer for the sake of the case
@@ -15743,8 +15751,7 @@ redisplay_window (Lisp_Object window, int just_this_one_p)
 
 	  /* If we are highlighting the region, then we just changed
 	     the region, so redisplay to show it.  */
-	  if (!NILP (Vtransient_mark_mode)
-	      && !NILP (BVAR (current_buffer, mark_active)))
+	  if (markpos_of_region () != -1)
 	    {
 	      clear_glyph_matrix (w->desired_matrix);
 	      if (!try_window (window, startp, 0))
@@ -16449,8 +16456,7 @@ try_window_reusing_current_matrix (struct window *w)
     return 0;
 
   /* Can't do this if region may have changed.  */
-  if ((!NILP (Vtransient_mark_mode)
-       && !NILP (BVAR (current_buffer, mark_active)))
+  if ((markpos_of_region () != -1)
       || !NILP (w->region_showing)
       || !NILP (Vshow_trailing_whitespace))
     return 0;
@@ -17282,8 +17288,7 @@ try_window_id (struct window *w)
 
   /* Can't use this if highlighting a region because a cursor movement
      will do more than just set the cursor.  */
-  if (!NILP (Vtransient_mark_mode)
-      && !NILP (BVAR (current_buffer, mark_active)))
+  if (markpos_of_region () != -1)
     GIVE_UP (9);
 
   /* Likewise if highlighting trailing whitespace.  */

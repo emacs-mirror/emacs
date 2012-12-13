@@ -1,3 +1,12 @@
+2012-12-13  Dmitry Antipov  <dmantipov@yandex.ru>
+
+	Minor redisplay optimization when the region length is zero.
+	* xdisp.c (markpos_of_region): New function.
+	(init_iterator): Do not highlight the region of zero length.
+	(redisplay_window): Check whether the region is of non-zero length.
+	(try_cursor_movement): Allow if the region length is zero.
+	(try_window_reusing_current_matrix, try_window_id): Likewise.
+
 2012-12-13  Eli Zaretskii  <eliz@gnu.org>
 
 	* search.c (search_buffer): Check the inverse translations of each
