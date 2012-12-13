@@ -1,5 +1,10 @@
 2012-12-13  Paul Eggert  <eggert@cs.ucla.edu>
 
+	* fileio.c (Finsert_file_contents): Don't put tail into head area,
+	as that confuses set-auto-coding, so insist on the head-read
+	returning the full 1024 bytes.  Let lseek compute the tail offset;
+	less work for us.  Do not ignore I/O errors when reading the tail.
+
 	* xdisp.c: Minor style fixes.
 	(init_iterator): Hoist assignment out of if-expression.
 	(markpos_of_region): Callers now test for sign, not for -1.

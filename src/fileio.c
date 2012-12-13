@@ -3487,12 +3487,14 @@ variable `last-coding-system-used' to the coding system actually used.  */)
 	      else
 		{
 		  nread = emacs_read (fd, read_buf, 1024);
-		  if (nread >= 0)
+		  if (nread == 1024)
 		    {
-		      if (lseek (fd, st.st_size - (1024 * 3), SEEK_SET) < 0)
+		      int ntail;
+		      if (lseek (fd, - (1024 * 3), SEEK_END) < 0)
 			report_file_error ("Setting file position",
 					   Fcons (orig_filename, Qnil));
-		      nread += emacs_read (fd, read_buf + nread, 1024 * 3);
+		      ntail = emacs_read (fd, read_buf + nread, 1024 * 3);
+		      nread = ntail < 0 ? ntail : nread + ntail;
 		    }
 		}
 
