@@ -404,6 +404,7 @@ See also `gnus-before-resume-hook'."
   "A hook called before resuming Gnus after suspend.
 This hook is called as the first thing when Gnus is resumed after a suspend.
 See also `gnus-before-startup-hook'."
+  :version "24.4"
   :group 'gnus-start
   :type 'hook)
 
