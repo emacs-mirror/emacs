@@ -1,3 +1,10 @@
+2012-12-14  Stephen Berman  <stephen.berman@gmx.net>
+
+	* calendar/todos.el (todos-insert-item): If user exits Calendar
+	before choosing a date, cancel item insertion.
+	(todos-set-date-from-calendar): If user exits Calendar before
+	choosing a date, clean up properly.
+
 2012-12-12  Stephen Berman  <stephen.berman@gmx.net>
 
 	* calendar/todos.el: Extend and improve handling of item editing,

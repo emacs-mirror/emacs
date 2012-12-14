@@ -1785,7 +1785,6 @@ the empty string (i.e., no time string)."
 		   :notify (lambda (widget &rest ignore)
 			     (setq todos-multiple-filter-files 'quit)
 			     (quit-window t)
-			     ;; FIXME: use (throw 'exit nil) ?
 			     (exit-recursive-edit))
 		   "Cancel")
     (widget-insert "   ")
@@ -1798,7 +1797,6 @@ the empty string (i.e., no time string)."
 					   (widget-value
 					    todos-multiple-filter-files-widget)))
 			     (quit-window t)
-			     ;; FIXME: use (throw 'exit nil) ?
 			     (exit-recursive-edit))
 		   "Apply")
     (use-local-map widget-keymap)
@@ -4252,7 +4250,10 @@ the priority is not given by HERE but by prompting."
 			  (todos-read-dayname))
 			 ((eq date-type 'calendar)
 			  (setq todos-date-from-calendar t)
-			  (todos-set-date-from-calendar))
+			  (or (todos-set-date-from-calendar)
+			      ;; If user exits Calendar before choosing
+			      ;; a date, cancel item insertion.
+			      (keyboard-quit)))
 			 ((and (stringp date-type)
 			       (string-match todos-date-pattern date-type))
 			  (setq todos-date-from-calendar date-type)
@@ -4336,16 +4337,29 @@ the priority is not given by HERE but by prompting."
 	 todos-date-from-calendar)
 	(todos-date-from-calendar
 	 (let (calendar-view-diary-initially-flag)
-	   (calendar))
-	 ;; *Calendar* is now current buffer.
-	 (local-set-key (kbd "RET") 'exit-recursive-edit) ; FIXME: (throw 'exit nil)?
+	   (calendar)) 			; *Calendar* is now current buffer.
+	 (define-key calendar-mode-map [remap newline] 'exit-recursive-edit)
+	 ;; If user exits Calendar before choosing a date, clean up properly.
+	 (define-key calendar-mode-map
+	   [remap calendar-exit] (lambda ()
+				    (interactive)
+				    (progn
+				      (calendar-exit)
+				      (exit-recursive-edit))))
 	 (message "Put cursor on a date and type <return> to set it.")
 	 ;; FIXME: is there a better way than recursive-edit?
 	 (recursive-edit)
-	 (setq todos-date-from-calendar
-	       (calendar-date-string (calendar-cursor-to-date t) t t))
-	 (calendar-exit)
-	 todos-date-from-calendar)))
+	 (unwind-protect
+	     (when (equal (buffer-name) calendar-buffer)
+	       (setq todos-date-from-calendar
+		     (calendar-date-string (calendar-cursor-to-date t) t t))
+	       (calendar-exit)
+	       todos-date-from-calendar)
+	   (define-key calendar-mode-map [remap newline] nil)
+	   (define-key calendar-mode-map [remap calendar-exit] nil)
+	   (unless (zerop (recursion-depth)) (exit-recursive-edit))
+	   (when (stringp todos-date-from-calendar)
+	     todos-date-from-calendar)))))
 
 (defun todos-delete-item ()
   "Delete at least one item in this category.
