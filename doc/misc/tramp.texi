@@ -742,16 +742,6 @@ expects PuTTY session names, calling @samp{plink -load @var{session}
 hasn't defined a user name.  Different port numbers must be defined in
 the session.
 
-
-@item @option{adb}
-@cindex method adb
-@cindex adb method
-
-This special method uses the Android Debug Bridge for connecting
-Android devices.  The Android Debug Bridge, part of the Android SDK,
-must be installed locally.  The variable @var{tramp-adb-sdk-dir} must
-be set to its installation directory.
-
 @end table
 
 
@@ -1041,6 +1031,17 @@ Windows, this method isn't available.  Instead, you can use UNC
 file names like @file{//melancholia/daniel$$/.emacs}.  The only
 disadvantage is that there's no possibility to specify another user
 name.
+
+
+@item @option{adb}
+@cindex method adb
+@cindex adb method
+
+This special method uses the Android Debug Bridge for connecting
+Android devices.  The Android Debug Bridge, part of the Android SDK,
+must be installed locally.  The variable @var{tramp-adb-sdk-dir} must
+be set to its installation directory.
+
 @end table
 
 
@@ -1089,6 +1090,7 @@ phones.  For the time being, @value{tramp} only supports OBEX over Bluetooth.
 The @option{synce} method allows communication with Windows Mobile
 devices.  Beside GVFS for mounting remote files and directories via
 FUSE, it also needs the SYNCE-GVFS plugin.
+
 @end table
 
 @defopt tramp-gvfs-methods
@@ -1596,6 +1598,7 @@ can return user names only.
 
 Finally, a function which parses @file{~/.netrc} like files.  This
 includes also @file{~/.authinfo}-style files.
+
 @end table
 
 If you want to keep your own data in a file, with your own structure,
