@@ -3537,6 +3537,10 @@ is_slow_fs (const char *name)
   return !(devtype == DRIVE_FIXED || devtype == DRIVE_RAMDISK);
 }
 
+/* If this is non-zero, the caller wants accurate information about
+   file's owner and group, which could be expensive to get.  */
+int w32_stat_get_owner_group;
+
 /* MSVC stat function can't cope with UNC names and has other bugs, so
    replace it with our own.  This also allows us to calculate consistent
    inode values and owner/group without hacks in the main Emacs code. */
@@ -3708,6 +3712,7 @@ stat_worker (const char * path, struct stat * buf, int follow_symlinks)
       /* We produce the fallback owner and group data, based on the
 	 current user that runs Emacs, in the following cases:
 
+	  . caller didn't request owner and group info
 	  . this is Windows 9X
 	  . getting security by handle failed, and we need to produce
 	    information for the target of a symlink (this is better
@@ -3716,23 +3721,25 @@ stat_worker (const char * path, struct stat * buf, int follow_symlinks)
 
 	 If getting security by handle fails, and we don't need to
 	 resolve symlinks, we try getting security by name.  */
-      if (is_windows_9x () != TRUE)
-	psd = get_file_security_desc_by_handle (fh);
-      if (psd)
-	{
-	  get_file_owner_and_group (psd, name, buf);
-	  LocalFree (psd);
-	}
-      else if (is_windows_9x () == TRUE)
+      if (!w32_stat_get_owner_group || is_windows_9x () == TRUE)
 	get_file_owner_and_group (NULL, name, buf);
-      else if (!(is_a_symlink && follow_symlinks))
-	{
-	  psd = get_file_security_desc_by_name (name);
-	  get_file_owner_and_group (psd, name, buf);
-	  xfree (psd);
-	}
       else
-	get_file_owner_and_group (NULL, name, buf);
+	{
+	  psd = get_file_security_desc_by_handle (fh);
+	  if (psd)
+	    {
+	      get_file_owner_and_group (psd, name, buf);
+	      LocalFree (psd);
+	    }
+	  else if (!(is_a_symlink && follow_symlinks))
+	    {
+	      psd = get_file_security_desc_by_name (name);
+	      get_file_owner_and_group (psd, name, buf);
+	      xfree (psd);
+	    }
+	  else
+	    get_file_owner_and_group (NULL, name, buf);
+	}
       CloseHandle (fh);
     }
   else
@@ -6849,6 +6856,9 @@ globals_of_w32 (void)
 
   /* "None" is the default group name on standalone workstations.  */
   strcpy (dflt_group_name, "None");
+
+  /* Reset, in case it has some value inherited from dump time.  */
+  w32_stat_get_owner_group = 0;
 }
 
 /* For make-serial-process  */

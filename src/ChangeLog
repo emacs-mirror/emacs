@@ -1,3 +1,14 @@
+2012-12-14  Eli Zaretskii  <eliz@gnu.org>
+
+	* w32.c (stat_worker): If w32_stat_get_owner_group is zero, do not
+	try to get accurate owner and group information from NT file
+	security APIs.  This is to make most callers of 'stat' and
+	'lstat', which don't need that information, much faster.
+
+	* dired.c (Ffile_attributes) [WINDOWSNT]: Set
+	w32_stat_get_owner_group to a non-zero value, to request accurate
+	owner and group information from 'lstat'.
+
 2012-12-13  Paul Eggert  <eggert@cs.ucla.edu>
 
 	* fileio.c (Finsert_file_contents): Don't put tail into head area,

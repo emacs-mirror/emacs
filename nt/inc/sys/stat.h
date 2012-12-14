@@ -98,6 +98,10 @@ struct stat {
   char		   st_gname[260];
 };
 
+/* Internal variable for asking 'stat'/'lstat' to produce accurate
+   info about owner and group of files. */
+extern int w32_stat_get_owner_group;
+
 /* Prevent redefinition by other headers, e.g. wchar.h.  */
 #define _STAT_DEFINED
 

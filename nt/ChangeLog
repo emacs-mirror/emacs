@@ -1,3 +1,7 @@
+2012-12-14  Eli Zaretskii  <eliz@gnu.org>
+
+	* inc/sys/stat.h: Declare w32_stat_get_owner_group.
+
 2012-12-13  Juanma Barranquero  <lekktu@gmail.com>
 
 	* config.nt: Sync with autogen/config.in.
