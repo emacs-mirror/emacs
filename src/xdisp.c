@@ -12966,6 +12966,7 @@ select_frame_for_redisplay (Lisp_Object frame)
   eassert (FRAMEP (frame) && FRAME_LIVE_P (XFRAME (frame)));
 
   selected_frame = frame;
+  selected_window = XFRAME (frame)->selected_window;
 
   do {
     for (tail = XFRAME (frame)->param_alist;
@@ -12986,10 +12987,10 @@ select_frame_for_redisplay (Lisp_Object frame)
    deleted (by an X connection failure during redisplay, for example).  */
 
 static void
-ensure_selected_frame (Lisp_Object old_frame)
+ensure_selected_frame (Lisp_Object frame)
 {
-  if (!EQ (old_frame, selected_frame) && FRAME_LIVE_P (XFRAME (old_frame)))
-    select_frame_for_redisplay (old_frame);
+  if (!EQ (frame, selected_frame) && FRAME_LIVE_P (XFRAME (frame)))
+    select_frame_for_redisplay (frame);
 }
 
 #define STOP_POLLING					\
