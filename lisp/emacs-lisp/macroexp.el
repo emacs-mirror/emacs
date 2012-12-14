@@ -124,7 +124,10 @@ and also to avoid outputting the warning during normal execution."
          (macroexp--funcall-if-compiled ',when-compiled)
          ,form))
      (t
-      (message "%s" msg)
+      (message "%s%s" (if (stringp load-file-name)
+                          (concat (file-relative-name load-file-name) ": ")
+                        "")
+               msg)
       form))))
 
 (defun macroexp--obsolete-warning (fun obsolescence-data type)
