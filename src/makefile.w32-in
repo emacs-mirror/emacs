@@ -781,6 +781,7 @@ $(BLD)/editfns.$(O) : \
 	$(SRC)/editfns.c \
 	$(SRC)/blockinput.h \
 	$(NT_INC)/pwd.h \
+	$(NT_INC)/grp.h \
 	$(NT_INC)/unistd.h \
 	$(GNU_LIB)/intprops.h \
 	$(GNU_LIB)/strftime.h \

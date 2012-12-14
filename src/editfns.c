@@ -24,6 +24,7 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 
 #ifdef HAVE_PWD_H
 #include <pwd.h>
+#include <grp.h>
 #endif
 
 #include <unistd.h>
