@@ -6,6 +6,8 @@
 	certain string delimiters, to punctuation.  This way the common
 	functions like forward-word and thing-at-point still work.
 	(ruby-match-expression-expansion): Improve readability.
+	(ruby-block-contains-point): New function.
+	(ruby-add-log-current-method): Handle several edge cases.
 
 2012-12-13  Juanma Barranquero  <lekktu@gmail.com>
 

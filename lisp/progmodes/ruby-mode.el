@@ -102,6 +102,10 @@
   '"\\(def\\|class\\|module\\)"
   "Regexp to match the beginning of a defun, in the general sense.")
 
+(defconst ruby-singleton-class-re
+  "class\\s *<<"
+  "Regexp to match the beginning of a singleton class context.")
+
 (eval-and-compile
   (defconst ruby-here-doc-beg-re
   "\\(<\\)<\\(-\\)?\\(\\([a-zA-Z0-9_]+\\)\\|[\"]\\([^\"]+\\)[\"]\\|[']\\([^']+\\)[']\\)"
@@ -384,7 +388,7 @@ and `\\' when preceded by `?'."
     (when pos (goto-char pos))
     (forward-word -1)
     (and (or (bolp) (not (eq (char-before (point)) ?_)))
-         (looking-at "class\\s *<<"))))
+         (looking-at ruby-singleton-class-re))))
 
 (defun ruby-expr-beg (&optional option)
   "Check if point is possibly at the beginning of an expression.
@@ -1057,35 +1061,32 @@ For example:
 See `add-log-current-defun-function'."
   (condition-case nil
       (save-excursion
-        (let (mname mlist (indent 0))
+        (let ((indent 0) mname mlist
+              (start (point))
+              (definition-re
+                (concat "^[ \t]*" ruby-defun-beg-re "[ \t]+"
+                        "\\("
+                        ;; \\. and :: for class methods
+                        "\\([A-Za-z_]" ruby-symbol-re "*\\|\\.\\|::" "\\)"
+                        "+\\)")))
           ;; Get the current method definition (or class/module).
-          (if (re-search-backward
-               (concat "^[ \t]*" ruby-defun-beg-re "[ \t]+"
-                       "\\("
-                       ;; \\. and :: for class methods
-                       "\\([A-Za-z_]" ruby-symbol-re "*\\|\\.\\|::" "\\)"
-                       "+\\)")
-               nil t)
-              (progn
-                (setq mname (match-string 2))
-                (unless (string-equal "def" (match-string 1))
-                  (setq mlist (list mname) mname nil))
-                (goto-char (match-beginning 1))
-                (setq indent (current-column))
-                (beginning-of-line)))
+          (when (re-search-backward definition-re nil t)
+            (goto-char (match-beginning 1))
+            (when (ruby-block-contains-point start)
+              ;; We're inside the method, class or module.
+              (setq mname (match-string 2))
+              (unless (string-equal "def" (match-string 1))
+                (setq mlist (list mname) mname nil)))
+            (setq indent (current-column))
+            (beginning-of-line))
           ;; Walk up the class/module nesting.
           (while (and (> indent 0)
-                      (re-search-backward
-                       (concat
-                        "^[ \t]*\\(class\\|module\\)[ \t]+"
-                        "\\([A-Z]" ruby-symbol-re "*\\)")
-                       nil t))
+                      (re-search-backward definition-re nil t))
             (goto-char (match-beginning 1))
-            (if (< (current-column) indent)
-                (progn
-                  (setq mlist (cons (match-string 2) mlist))
-                  (setq indent (current-column))
-                  (beginning-of-line))))
+            (when (ruby-block-contains-point start)
+              (setq mlist (cons (match-string 2) mlist))
+              (setq indent (current-column))
+              (beginning-of-line)))
           ;; Process the method name.
           (when mname
             (let ((mn (split-string mname "\\.\\|::")))
@@ -1104,13 +1105,26 @@ See `add-log-current-defun-function'."
                           (setcdr (last mlist) (butlast mn))
                         (setq mlist (butlast mn))))
                     (setq mname (concat "." (car (last mn)))))
-                (setq mname (concat "#" mname)))))
+                ;; See if the method is in singleton class context.
+                (let ((in-singleton-class
+                       (when (re-search-forward ruby-singleton-class-re start t)
+                         (goto-char (match-beginning 0))
+                         (ruby-block-contains-point start))))
+                  (setq mname (concat
+                               (if in-singleton-class "." "#")
+                               mname))))))
           ;; Generate the string.
           (if (consp mlist)
               (setq mlist (mapconcat (function identity) mlist "::")))
           (if mname
               (if mlist (concat mlist mname) mname)
             mlist)))))
+
+(defun ruby-block-contains-point (pt)
+  (save-excursion
+    (save-match-data
+      (ruby-forward-sexp)
+      (> (point) pt))))
 
 (defun ruby-brace-to-do-end (orig end)
   (let (beg-marker end-marker)

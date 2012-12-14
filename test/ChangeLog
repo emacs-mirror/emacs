@@ -2,6 +2,9 @@
 
 	* automated/ruby-mode-tests.el
 	Rename one interpolation test; add three more.
+	(ruby-with-temp-buffer): New macro, use it where appropriate.
+	(ruby-add-log-current-method-examples): Use "_" for target point.
+	Add four new tests for ruby-add-log-current-method.
 
 2012-12-11  Glenn Morris  <rgm@gnu.org>
 

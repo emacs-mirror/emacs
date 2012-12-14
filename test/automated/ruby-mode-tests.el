@@ -25,9 +25,7 @@
 
 (defun ruby-should-indent (content column)
   "Assert indentation COLUMN on the last line of CONTENT."
-  (with-temp-buffer
-    (insert content)
-    (ruby-mode)
+  (ruby-with-temp-buffer content
     (ruby-indent-line)
     (should (= (current-indentation) column))))
 
@@ -35,11 +33,16 @@
   "Assert that CONTENT turns into EXPECTED after the buffer is re-indented.
 
 The whitespace before and including \"|\" on each line is removed."
-  (with-temp-buffer
-    (insert (ruby-test-string content))
-    (ruby-mode)
+  (ruby-with-temp-buffer (ruby-test-string content)
     (indent-region (point-min) (point-max))
     (should (string= (ruby-test-string expected) (buffer-string)))))
+
+(defmacro ruby-with-temp-buffer (contents &rest body)
+  (declare (indent 1) (debug t))
+  `(with-temp-buffer
+     (insert ,contents)
+     (ruby-mode)
+     ,@body))
 
 (defun ruby-test-string (s &rest args)
   (apply 'format (replace-regexp-in-string "^[ \t]*|" "" s) args))
@@ -48,9 +51,7 @@ The whitespace before and including \"|\" on each line is removed."
   "Assert syntax state values at the end of CONTENT.
 
 VALUES-PLIST is a list with alternating index and value elements."
-  (with-temp-buffer
-    (insert content)
-    (ruby-mode)
+  (ruby-with-temp-buffer content
     (syntax-propertize (point))
     (while values-plist
       (should (eq (nth (car values-plist)
@@ -59,9 +60,7 @@ VALUES-PLIST is a list with alternating index and value elements."
       (setq values-plist (cddr values-plist)))))
 
 (defun ruby-assert-face (content pos face)
-  (with-temp-buffer
-    (insert content)
-    (ruby-mode)
+  (ruby-with-temp-buffer content
     (font-lock-fontify-buffer)
     (should (eq face (get-text-property pos 'face)))))
 
@@ -226,17 +225,13 @@ VALUES-PLIST is a list with alternating index and value elements."
    |"))
 
 (ert-deftest ruby-move-to-block-stops-at-indentation ()
-  (with-temp-buffer
-    (insert "def f\nend")
+  (ruby-with-temp-buffer "def f\nend"
     (beginning-of-line)
-    (ruby-mode)
     (ruby-move-to-block -1)
     (should (looking-at "^def"))))
 
 (ert-deftest ruby-toggle-block-to-do-end ()
-  (with-temp-buffer
-    (insert "foo {|b|\n}")
-    (ruby-mode)
+  (ruby-with-temp-buffer "foo {|b|\n}"
     (beginning-of-line)
     (ruby-toggle-block)
     (should (string= "foo do |b|\nend" (buffer-string)))))
@@ -254,9 +249,7 @@ VALUES-PLIST is a list with alternating index and value elements."
           (should (string= (cdr pair) (buffer-string))))))))
 
 (ert-deftest ruby-toggle-block-to-multiline ()
-  (with-temp-buffer
-    (insert "foo {|b| b + 1}")
-    (ruby-mode)
+  (ruby-with-temp-buffer "foo {|b| b + 1}"
     (beginning-of-line)
     (ruby-toggle-block)
     (should (string= "foo do |b|\n  b + 1\nend" (buffer-string)))))
@@ -295,9 +288,8 @@ VALUES-PLIST is a list with alternating index and value elements."
 
 (ert-deftest ruby-interpolation-keeps-non-quote-syntax ()
   (let ((s "\"foo#{baz.tee}bar\""))
-    (with-temp-buffer
-      (save-excursion
-        (insert s))
+    (ruby-with-temp-buffer s
+      (goto-char (point-min))
       (ruby-mode)
       (font-lock-fontify-buffer)
       (search-forward "tee")
@@ -318,21 +310,66 @@ VALUES-PLIST is a list with alternating index and value elements."
                  ("self.foo" . ".foo"))))
     (dolist (pair pairs)
       (let ((name  (car pair))
-	    (value (cdr pair)))
-	(with-temp-buffer
-	  (insert (ruby-test-string
-		   "module M
-                        |  class C
-                        |    def %s
-                        |    end
-                        |  end
-                        |end"
-		   name))
-	  (ruby-mode)
-	  (search-backward "def")
-	  (forward-line)
-	  (should (string= (ruby-add-log-current-method)
-			   (format "M::C%s" value))))))))
+            (value (cdr pair)))
+        (ruby-with-temp-buffer (ruby-test-string
+                                "module M
+                                |  class C
+                                |    def %s
+                                |      _
+                                |    end
+                                |  end
+                                |end"
+                                name)
+          (search-backward "_")
+          (forward-line)
+          (should (string= (ruby-add-log-current-method)
+                           (format "M::C%s" value))))))))
+
+(ert-deftest ruby-add-log-current-method-outside-of-method ()
+  (ruby-with-temp-buffer (ruby-test-string
+                          "module M
+                          |  class C
+                          |    def foo
+                          |    end
+                          |    _
+                          |  end
+                          |end")
+    (search-backward "_")
+    (should (string= (ruby-add-log-current-method)"M::C"))))
+
+(ert-deftest ruby-add-log-current-method-in-singleton-class ()
+  (ruby-with-temp-buffer (ruby-test-string
+                          "class C
+                          |  class << self
+                          |    def foo
+                          |      _
+                          |    end
+                          |  end
+                          |end")
+    (search-backward "_")
+    (should (string= (ruby-add-log-current-method) "C.foo"))))
+
+(ert-deftest ruby-add-log-current-method-namespace-shorthand ()
+  (ruby-with-temp-buffer (ruby-test-string
+                          "class C::D
+                          |  def foo
+                          |    _
+                          |  end
+                          |end")
+    (search-backward "_")
+    (should (string= (ruby-add-log-current-method) "C::D#foo"))))
+
+(ert-deftest ruby-add-log-current-method-after-inner-class ()
+  (ruby-with-temp-buffer (ruby-test-string
+                          "module M
+                          |  class C
+                          |    class D
+                          |    end
+                          |    _
+                          |  end
+                          |end")
+    (search-backward "_")
+    (should (string= (ruby-add-log-current-method) "M::C"))))
 
 (defvar ruby-block-test-example
   (ruby-test-string
