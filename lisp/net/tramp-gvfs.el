@@ -432,6 +432,8 @@ Every entry is a list (NAME ADDRESS).")
   "Alist of handler functions for Tramp GVFS method.
 Operations not mentioned here will be handled by the default Emacs primitives.")
 
+;; It must be a `defsubst' in order to push the whole code into
+;; tramp-loaddefs.el.  Otherwise, there would be recursive autoloading.
 ;;;###tramp-autoload
 (defsubst tramp-gvfs-file-name-p (filename)
   "Check if it's a filename handled by the GVFS daemon."

@@ -111,6 +111,8 @@
     (start-file-process . tramp-adb-handle-start-file-process))
   "Alist of handler functions for Tramp ADB method.")
 
+;; It must be a `defsubst' in order to push the whole code into
+;; tramp-loaddefs.el.  Otherwise, there would be recursive autoloading.
 ;;;###tramp-autoload
 (defsubst tramp-adb-file-name-p (filename)
   "Check if it's a filename for ADB."

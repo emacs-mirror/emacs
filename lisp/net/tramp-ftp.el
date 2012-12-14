@@ -200,6 +200,8 @@ pass to the OPERATION."
 		 (inhibit-file-name-operation operation))
 	    (apply 'ange-ftp-hook-function operation args)))))))
 
+;; It must be a `defsubst' in order to push the whole code into
+;; tramp-loaddefs.el.  Otherwise, there would be recursive autoloading.
 ;;;###tramp-autoload
 (defsubst tramp-ftp-file-name-p (filename)
   "Check if it's a filename that should be forwarded to Ange-FTP."
