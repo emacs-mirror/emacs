@@ -166,6 +166,17 @@ text-property on the first char.
 ** The `defalias-fset-function' property lets you catch calls to defalias
 and redirect them to your own function instead of `fset'.
 
+** The 9th element returned by `file-attributes' is now unspecified.
+Formerly, it was t if the file's gid would change if file were deleted
+and recreated.  This value has been inaccurate for years on many
+platforms, and nobody seems to have noticed or cared.
+
+** The function `file-ownership-preserved-p' now has an optional
+argument GROUP which causes it check for file group too.  This can be
+used in place of the 9th element of `file-attributes'.
+
+** New functions `group-gid' and `group-real-gid'.
+
 * Changes in Emacs 24.4 on non-free operating systems
 
 +++

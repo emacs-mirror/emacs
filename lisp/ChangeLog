@@ -1,3 +1,19 @@
+2012-12-14  Paul Eggert  <eggert@cs.ucla.edu>
+
+	Fix permissions bugs with setgid directories etc. (Bug#13125)
+	* files.el (backup-buffer): Don't rely on 9th output of
+	file-attributes, as it's now a placeholder.  Instead, use the new
+	optional arg of file-ownership-preserved-p.
+	(file-ownership-preserved-p): New optional arg GROUP.
+	Fix mishandling of setuid directories that would cause this
+	function to return t when it should have returned nil.
+	Document what happens if the file does not exist, and when
+	it's not known whether the ownership will be preserved.
+	* net/tramp-sh.el (tramp-sh-handle-file-ownership-preserved-p):
+	Likewise.
+	(tramp-get-local-gid): Use group-gid for integer, as that's
+	faster and more reliable.
+
 2012-12-14  Julien Danjou  <julien@danjou.info>
 
 	* progmodes/sql.el (sql-mode-postgres-font-lock-keywords): Update

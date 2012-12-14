@@ -1,3 +1,13 @@
+2012-12-14  Paul Eggert  <eggert@cs.ucla.edu>
+
+	Fix permissions bugs with setgid directories etc. (Bug#13125)
+	* files.texi (Testing Accessibility): Document GROUP arg
+	of file-ownership-preserved-p.
+	(File Attributes): Document that 9th element is now
+	just a placeholder.
+	* os.texi (User Identification): Document new functions group-gid,
+	group-real-gid.
+
 2012-12-11  Paul Eggert  <eggert@cs.ucla.edu>
 
 	* internals.texi (C Integer Types): New section.

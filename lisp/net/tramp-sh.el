@@ -1616,7 +1616,7 @@ and gid of the corresponding user is taken.  Both parameters must be integers."
 	(and (tramp-run-test "-d" (file-name-directory filename))
 	     (tramp-run-test "-w" (file-name-directory filename)))))))
 
-(defun tramp-sh-handle-file-ownership-preserved-p (filename)
+(defun tramp-sh-handle-file-ownership-preserved-p (filename &optional group)
   "Like `file-ownership-preserved-p' for Tramp files."
   (with-parsed-tramp-file-name filename nil
     (with-tramp-file-property v localname "file-ownership-preserved-p"
@@ -1624,7 +1624,10 @@ and gid of the corresponding user is taken.  Both parameters must be integers."
 	;; Return t if the file doesn't exist, since it's true that no
 	;; information would be lost by an (attempted) delete and create.
 	(or (null attributes)
-	    (= (nth 2 attributes) (tramp-get-remote-uid v 'integer)))))))
+	    (and
+	     (= (nth 2 attributes) (tramp-get-remote-uid v 'integer))
+	     (or (not group)
+		 (= (nth 3 attributes) (tramp-get-remote-gid v 'integer)))))))))
 
 ;; Directory listings.
 
@@ -5021,7 +5024,9 @@ This is used internally by `tramp-file-mode-from-int'."
   (if (equal id-format 'integer) (user-uid) (user-login-name)))
 
 (defun tramp-get-local-gid (id-format)
-  (nth 3 (tramp-compat-file-attributes "~/" id-format)))
+  (if (and (fboundp 'group-gid) (equal id-format 'integer))
+      (tramp-compat-funcall 'group-gid)
+    (nth 3 (tramp-compat-file-attributes "~/" id-format))))
 
 ;; Some predefined connection properties.
 (defun tramp-get-inline-compress (vec prop size)

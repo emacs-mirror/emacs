@@ -1272,6 +1272,24 @@ Value is an integer or a float, depending on the value.  */)
   return make_fixnum_or_float (uid);
 }
 
+DEFUN ("group-gid", Fgroup_gid, Sgroup_gid, 0, 0, 0,
+       doc: /* Return the effective gid of Emacs.
+Value is an integer or a float, depending on the value.  */)
+  (void)
+{
+  gid_t egid = getegid ();
+  return make_fixnum_or_float (egid);
+}
+
+DEFUN ("group-real-gid", Fgroup_real_gid, Sgroup_real_gid, 0, 0, 0,
+       doc: /* Return the real gid of Emacs.
+Value is an integer or a float, depending on the value.  */)
+  (void)
+{
+  gid_t gid = getgid ();
+  return make_fixnum_or_float (gid);
+}
+
 DEFUN ("user-full-name", Fuser_full_name, Suser_full_name, 0, 1, 0,
        doc: /* Return the full name of the user logged in, as a string.
 If the full name corresponding to Emacs's userid is not known,
@@ -4899,6 +4917,8 @@ functions if all the text being accessed has this property.  */);
   defsubr (&Suser_real_login_name);
   defsubr (&Suser_uid);
   defsubr (&Suser_real_uid);
+  defsubr (&Sgroup_gid);
+  defsubr (&Sgroup_real_gid);
   defsubr (&Suser_full_name);
   defsubr (&Semacs_pid);
   defsubr (&Scurrent_time);

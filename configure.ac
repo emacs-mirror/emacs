@@ -3841,7 +3841,6 @@ esac
 
 dnl Define symbols to identify the version of Unix this is.
 dnl Define all the symbols that apply correctly.
-AH_TEMPLATE(BSD4_2, [Define if the system is compatible with BSD 4.2.])
 AH_TEMPLATE(BSD_SYSTEM, [Define if the system is compatible with BSD 4.2.])
 AH_TEMPLATE(DOS_NT, [Define if the system is MS DOS or MS Windows.])
 AH_TEMPLATE(MSDOS, [Define if the system is MS DOS.])
@@ -3867,7 +3866,6 @@ case $opsys in
 
   darwin)
     dnl BSD4_3 and BSD4_4 are already defined in sys/param.h.
-    AC_DEFINE(BSD4_2, [])
     AC_DEFINE(BSD_SYSTEM, [])
     dnl More specific than the above two.  We cannot use __APPLE__ as this
     dnl may not be defined on non-OSX Darwin, and we cannot define DARWIN
@@ -3877,7 +3875,6 @@ case $opsys in
     ;;
 
   freebsd)
-    AC_DEFINE(BSD4_2, [])
     dnl Hack to avoid calling AC_PREPROC_IFELSE multiple times.
     dnl Would not be needed with autoconf >= 2.67, where the
     dnl preprocessed output is accessible in "conftest.i".
@@ -3885,7 +3882,6 @@ case $opsys in
     ;;
 
   gnu | netbsd | openbsd )
-    AC_DEFINE(BSD4_2, [])
     AC_PREPROC_IFELSE([AC_LANG_PROGRAM([[
 #ifndef BSD_SYSTEM
 # error "BSD_SYSTEM not defined"

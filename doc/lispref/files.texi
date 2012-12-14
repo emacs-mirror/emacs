@@ -895,10 +895,13 @@ returns @code{nil}.  However, if the open fails, it signals an error
 using @var{string} as the error message text.
 @end defun
 
-@defun file-ownership-preserved-p filename
+@defun file-ownership-preserved-p filename &optional group
 This function returns @code{t} if deleting the file @var{filename} and
 then creating it anew would keep the file's owner unchanged.  It also
 returns @code{t} for nonexistent files.
+
+If the optional argument @var{group} is non-@code{nil}, this function
+also checks that the file's group would be unchanged.
 
 If @var{filename} is a symbolic link, then, unlike the other functions
 discussed here, @code{file-ownership-preserved-p} does @emph{not}
@@ -1246,8 +1249,7 @@ The file's modes, as a string of ten letters or dashes,
 as in @samp{ls -l}.
 
 @item
-@code{t} if the file's @acronym{GID} would change if file were
-deleted and recreated; @code{nil} otherwise.
+An unspecified value, present for backward compatibility.
 
 @item
 The file's inode number.  If possible, this is an integer.  If the
@@ -1279,7 +1281,7 @@ For example, here are the file attributes for @file{files.texi}:
           (20000 23 0 0)
           (20614 64555 902289 872000)
           122295 "-rw-rw-rw-"
-          nil  (5888 2 . 43978)
+          t (5888 2 . 43978)
           (15479 . 46724))
 @end group
 @end example
@@ -1318,8 +1320,8 @@ end-of-line format is CR-LF.)
 @item "-rw-rw-rw-"
 has a mode of read and write access for the owner, group, and world.
 
-@item nil
-would retain the same @acronym{GID} if it were recreated.
+@item t
+is merely a placeholder; it carries no information.
 
 @item (5888 2 . 43978)
 has an inode number of 6473924464520138.

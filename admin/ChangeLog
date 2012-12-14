@@ -1,3 +1,8 @@
+2012-12-14  Paul Eggert  <eggert@cs.ucla.edu>
+
+	Fix permissions bugs with setgid directories etc. (Bug#13125)
+	* CPP-DEFINES (BSD4_2): Remove.
+
 2012-12-08  Paul Eggert  <eggert@cs.ucla.edu>
 
 	Use putenv+unsetenv instead of modifying environ directly (Bug#13070).

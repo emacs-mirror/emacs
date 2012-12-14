@@ -1,3 +1,10 @@
+2012-12-14  Paul Eggert  <eggert@cs.ucla.edu>
+
+	Fix permissions bugs with setgid directories etc. (Bug#13125)
+	* emacs-lisp-intro.texi (Files List):
+	directory-files-and-attributes now outputs t for attribute that's
+	now a placeholder.
+
 2012-12-06  Paul Eggert  <eggert@cs.ucla.edu>
 
 	* doclicense.texi: Update to latest version from FSF.

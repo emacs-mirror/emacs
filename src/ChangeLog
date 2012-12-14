@@ -1,3 +1,12 @@
+2012-12-14  Paul Eggert  <eggert@cs.ucla.edu>
+
+	Fix permissions bugs with setgid directories etc. (Bug#13125)
+	* dired.c (Ffile_attributes): Return t as the 9th attribute,
+	to mark it as a placeholder.  The old value was often wrong.
+	The only user of this attribute has been changed to use
+	file-ownership-preserved-p instead, with its new group arg.
+	* editfns.c (Fgroup_gid, Fgroup_real_gid): New functions.
+
 2012-12-14  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* xdisp.c (select_frame_for_redisplay, display_mode_lines):

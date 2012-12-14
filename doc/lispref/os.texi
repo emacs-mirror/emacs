@@ -1157,6 +1157,16 @@ This function returns the effective @acronym{UID} of the user.
 The value may be a floating point number.
 @end defun
 
+@defun group-gid
+This function returns the effective @acronym{GID} of the Emacs process.
+The value may be a floating point number.
+@end defun
+
+@defun group-real-gid
+This function returns the real @acronym{GID} of the Emacs process.
+The value may be a floating point number.
+@end defun
+
 @defun system-users
 This function returns a list of strings, listing the user names on the
 system.  If Emacs cannot retrieve this information, the return value
