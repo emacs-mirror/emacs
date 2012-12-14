@@ -1,3 +1,12 @@
+2012-12-14  Dmitry Gutov  <dgutov@yandex.ru>
+
+	* progmodes/ruby-mode.el (ruby-syntax-propertize-function):
+	Extract `ruby-syntax-propertize-expansions'.
+	(ruby-syntax-propertize-expansions): Only change syntax on
+	certain string delimiters, to punctuation.  This way the common
+	functions like forward-word and thing-at-point still work.
+	(ruby-match-expression-expansion): Improve readability.
+
 2012-12-13  Juanma Barranquero  <lekktu@gmail.com>
 
 	* emacs-lisp/edebug.el (edebug-unload-function): Make sure that

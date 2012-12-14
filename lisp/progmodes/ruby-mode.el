@@ -1253,18 +1253,7 @@ It will be properly highlighted even when the call omits parens."))
           ((concat "\\(?:^\\|[[ \t\n<+(,=]\\)" ruby-percent-literal-beg-re)
            (1 (prog1 "|" (ruby-syntax-propertize-percent-literal end)))))
          (point) end)
-        (remove-text-properties start end '(ruby-expansion-match-data))
-        (goto-char start)
-        ;; Find all expression expansions and
-        ;; - set the syntax of all text inside to whitespace,
-        ;; - save the match data to a text property, for font-locking later.
-        (while (re-search-forward ruby-expression-expansion-re end 'move)
-          (when (ruby-in-ppss-context-p 'string)
-            (put-text-property (match-beginning 2) (match-end 2)
-                               'syntax-table (string-to-syntax "-"))
-            (put-text-property (match-beginning 2) (1+ (match-beginning 2))
-                               'ruby-expansion-match-data
-                               (match-data)))))
+        (ruby-syntax-propertize-expansions start end))
 
       (defun ruby-syntax-propertize-heredoc (limit)
         (let ((ppss (syntax-ppss))
@@ -1331,6 +1320,23 @@ It will be properly highlighted even when the call omits parens."))
                                      (string-to-syntax "|")))
               ;; Unclosed literal, leave the following text unpropertized.
               ((scan-error search-failed) (goto-char limit))))))
+
+      (defun ruby-syntax-propertize-expansions (start end)
+        (remove-text-properties start end '(ruby-expansion-match-data))
+        (goto-char start)
+        ;; Find all expression expansions and
+        ;; - save the match data to a text property, for font-locking later,
+        ;; - set the syntax of all double quotes and backticks to puctuation.
+        (while (re-search-forward ruby-expression-expansion-re end 'move)
+          (let ((beg (match-beginning 2))
+                (end (match-end 2)))
+            (when (and beg (save-excursion (nth 3 (syntax-ppss beg))))
+              (put-text-property beg (1+ beg) 'ruby-expansion-match-data
+                                 (match-data))
+              (goto-char beg)
+              (while (re-search-forward "[\"`]" end 'move)
+                (put-text-property (match-beginning 0) (match-end 0)
+                                   'syntax-table (string-to-syntax ".")))))))
       )
 
   ;; For Emacsen where syntax-propertize-rules is not (yet) available,
@@ -1605,10 +1611,10 @@ See `font-lock-syntax-table'.")
   "Additional expressions to highlight in Ruby mode.")
 
 (defun ruby-match-expression-expansion (limit)
-  (let ((prop 'ruby-expansion-match-data) pos value)
-    (when (and (setq pos (next-single-char-property-change (point) prop
-                                                           nil limit))
-               (> pos (point)))
+  (let* ((prop 'ruby-expansion-match-data)
+         (pos (next-single-char-property-change (point) prop nil limit))
+         value)
+    (when (and pos (> pos (point)))
       (goto-char pos)
       (or (and (setq value (get-text-property pos prop))
                (progn (set-match-data value) t))

@@ -276,12 +276,32 @@ VALUES-PLIST is a list with alternating index and value elements."
   (ruby-assert-face "# #{comment}\n \"#{interpolation}\"" 16
                     font-lock-variable-name-face))
 
-(ert-deftest ruby-interpolation-suppresses-syntax-inside ()
+(ert-deftest ruby-interpolation-suppresses-quotes-inside ()
   (let ((s "\"<ul><li>#{@files.join(\"</li><li>\")}</li></ul>\""))
     (ruby-assert-state s 8 nil)
     (ruby-assert-face s 9 font-lock-string-face)
     (ruby-assert-face s 10 font-lock-variable-name-face)
     (ruby-assert-face s 41 font-lock-string-face)))
+
+(ert-deftest ruby-interpolation-suppresses-one-double-quote ()
+  (let ((s "\"foo#{'\"'}\""))
+    (ruby-assert-state s 8 nil)
+    (ruby-assert-face s 8 font-lock-variable-name-face)
+    (ruby-assert-face s 11 font-lock-string-face)))
+
+(ert-deftest ruby-interpolation-suppresses-one-backtick ()
+  (let ((s "`as#{'`'}das`"))
+    (ruby-assert-state s 8 nil)))
+
+(ert-deftest ruby-interpolation-keeps-non-quote-syntax ()
+  (let ((s "\"foo#{baz.tee}bar\""))
+    (with-temp-buffer
+      (save-excursion
+        (insert s))
+      (ruby-mode)
+      (font-lock-fontify-buffer)
+      (search-forward "tee")
+      (should (string= (thing-at-point 'symbol) "tee")))))
 
 (ert-deftest ruby-interpolation-inside-percent-literal-with-paren ()
   :expected-result :failed
