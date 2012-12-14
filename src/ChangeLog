@@ -1,3 +1,12 @@
+2012-12-14  Eli Zaretskii  <eliz@gnu.org>
+
+	* w32.c (get_name_and_id): Always pass NULL as the first argument
+	of lookup_account_sid.  Avoids crashes with UNC file names that
+	refer to DFS domains, not to specific machine names.  (Bug#12621)
+	Remove now unused argument FNAME; all callers changed.
+	(get_file_owner_and_group): Remove now unused argument FNAME; all
+	callers changed.
+
 2012-12-11  Eli Zaretskii  <eliz@gnu.org>
 
 	* search.c (search_buffer): Check the inverse translations of each
