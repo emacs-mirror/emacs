@@ -1930,7 +1930,7 @@ to add functions and PL/SQL keywords.")
      ;; Postgres non-reserved words
      (sql-font-lock-keywords-builder 'font-lock-builtin-face nil
 "abort" "absolute" "access" "action" "add" "admin" "after" "aggregate"
-"also" "alter" "always" "assertion" "assignment" "at" "backward"
+"also" "alter" "always" "assertion" "assignment" "at" "attribute" "backward"
 "before" "begin" "between" "by" "cache" "called" "cascade" "cascaded"
 "catalog" "chain" "characteristics" "checkpoint" "class" "close"
 "cluster" "coalesce" "comment" "comments" "commit" "committed"
@@ -1941,40 +1941,40 @@ to add functions and PL/SQL keywords.")
 "delimiters" "dictionary" "disable" "discard" "document" "domain"
 "drop" "each" "enable" "encoding" "encrypted" "enum" "escape"
 "exclude" "excluding" "exclusive" "execute" "exists" "explain"
-"external" "extract" "family" "first" "float" "following" "force"
+"extension" "external" "extract" "family" "first" "float" "following" "force"
 "forward" "function" "functions" "global" "granted" "greatest"
 "handler" "header" "hold" "hour" "identity" "if" "immediate"
 "immutable" "implicit" "including" "increment" "index" "indexes"
 "inherit" "inherits" "inline" "inout" "input" "insensitive" "insert"
-"instead" "invoker" "isolation" "key" "language" "large" "last"
-"lc_collate" "lc_ctype" "least" "level" "listen" "load" "local"
+"instead" "invoker" "isolation" "key" "label" "language" "large" "last"
+"lc_collate" "lc_ctype" "leakproof" "least" "level" "listen" "load" "local"
 "location" "lock" "login" "mapping" "match" "maxvalue" "minute"
-"minvalue" "mode" "month" "move" "name" "names" "national" "nchar"
+"minvalue" "mode" "month" "move" "names" "national" "nchar"
 "next" "no" "nocreatedb" "nocreaterole" "nocreateuser" "noinherit"
-"nologin" "none" "nosuperuser" "nothing" "notify" "nowait" "nullif"
-"nulls" "object" "of" "oids" "operator" "option" "options" "out"
-"overlay" "owned" "owner" "parser" "partial" "partition" "password"
-"plans" "position" "preceding" "prepare" "prepared" "preserve" "prior"
+"nologin" "none"  "noreplication" "nosuperuser" "nothing" "notify" "nowait" "nullif"
+"nulls" "object" "of" "off" "oids" "operator" "option" "options" "out"
+"overlay" "owned" "owner" "parser" "partial" "partition" "passing" "password"
+"plans" "position" "preceding" "precision" "prepare" "prepared" "preserve" "prior"
 "privileges" "procedural" "procedure" "quote" "range" "read"
-"reassign" "recheck" "recursive" "reindex" "relative" "release"
-"rename" "repeatable" "replace" "replica" "reset" "restart" "restrict"
+"reassign" "recheck" "recursive" "ref" "reindex" "relative" "release"
+"rename" "repeatable" "replace" "replica" "replication" "reset" "restart" "restrict"
 "returns" "revoke" "role" "rollback" "row" "rows" "rule" "savepoint"
-"schema" "scroll" "search" "second" "security" "sequence" "sequences"
+"schema" "scroll" "search" "second" "security" "sequence"
 "serializable" "server" "session" "set" "setof" "share" "show"
-"simple" "stable" "standalone" "start" "statement" "statistics"
+"simple" "snapshot" "stable" "standalone" "start" "statement" "statistics"
 "stdin" "stdout" "storage" "strict" "strip" "substring" "superuser"
 "sysid" "system" "tables" "tablespace" "temp" "template" "temporary"
-"transaction" "treat" "trigger" "trim" "truncate" "trusted" "type"
-"unbounded" "uncommitted" "unencrypted" "unknown" "unlisten" "until"
-"update" "vacuum" "valid" "validator" "value" "values" "version"
-"view" "volatile" "whitespace" "work" "wrapper" "write"
-"xmlattributes" "xmlconcat" "xmlelement" "xmlforest" "xmlparse"
-"xmlpi" "xmlroot" "xmlserialize" "year" "yes"
+"transaction" "treat" "trim" "truncate" "trusted" "type" "types"
+"unbounded" "uncommitted" "unencrypted" "unlisten" "unlogged" "until"
+"update" "vacuum" "valid" "validate" "validator" "value" "values" "varying" "version"
+"view" "volatile" "whitespace" "without" "work" "wrapper" "write"
+"xmlattributes" "xmlconcat" "xmlelement" "xmlexists" "xmlforest" "xmlparse"
+"xmlpi" "xmlroot" "xmlserialize" "year" "yes" "zone"
 )
 
      ;; Postgres Reserved
      (sql-font-lock-keywords-builder 'font-lock-keyword-face nil
-"all" "analyse" "analyze" "and" "any" "array" "asc" "as" "asymmetric"
+"all" "analyse" "analyze" "and" "array" "asc" "as" "asymmetric"
 "authorization" "binary" "both" "case" "cast" "check" "collate"
 "column" "concurrently" "constraint" "create" "cross"
 "current_catalog" "current_date" "current_role" "current_schema"
@@ -1983,7 +1983,7 @@ to add functions and PL/SQL keywords.")
 "fetch" "foreign" "for" "freeze" "from" "full" "grant" "group"
 "having" "ilike" "initially" "inner" "in" "intersect" "into" "isnull"
 "is" "join" "leading" "left" "like" "limit" "localtime"
-"localtimestamp" "natural" "notnull" "not" "null" "off" "offset"
+"localtimestamp" "natural" "notnull" "not" "null" "offset"
 "only" "on" "order" "or" "outer" "overlaps" "over" "placing" "primary"
 "references" "returning" "right" "select" "session_user" "similar"
 "some" "symmetric" "table" "then" "to" "trailing" "true" "union"
@@ -1991,15 +1991,21 @@ to add functions and PL/SQL keywords.")
 "with"
 )
 
+     ;; Postgres PL/pgSQL
+     (sql-font-lock-keywords-builder 'font-lock-keyword-face nil
+"assign" "if" "case" "loop" "while" "for" "foreach" "exit" "elsif" "return"
+"raise" "execsql" "dynexecute" "perform" "getdiag" "open" "fetch" "move" "close"
+)
+
      ;; Postgres Data Types
      (sql-font-lock-keywords-builder 'font-lock-type-face nil
 "bigint" "bigserial" "bit" "bool" "boolean" "box" "bytea" "char"
 "character" "cidr" "circle" "date" "decimal" "double" "float4"
 "float8" "inet" "int" "int2" "int4" "int8" "integer" "interval" "line"
-"lseg" "macaddr" "money" "numeric" "path" "point" "polygon"
-"precision" "real" "serial" "serial4" "serial8" "smallint" "text"
+"lseg" "macaddr" "money" "name" "numeric" "path" "point" "polygon"
+"precision" "real" "serial" "serial4" "serial8" "sequences" "smallint" "text"
 "time" "timestamp" "timestamptz" "timetz" "tsquery" "tsvector"
-"txid_snapshot" "uuid" "varbit" "varchar" "varying" "without"
+"txid_snapshot" "unknown" "uuid" "varbit" "varchar" "varying" "without"
 "xml" "zone"
 )))
 

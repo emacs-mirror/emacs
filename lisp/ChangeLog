@@ -1,3 +1,8 @@
+2012-12-14  Julien Danjou  <julien@danjou.info>
+
+	* progmodes/sql.el (sql-mode-postgres-font-lock-keywords): Update
+	keywords list, data type and PL/pgSQL.
+
 2012-12-14  Dave Abrahams  <dave@boostpro.com>
 
 	* vc/ediff-util.el (ediff-buffer-type): New function.
