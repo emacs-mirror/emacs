@@ -324,7 +324,7 @@
 	(ert-run-tests-batch, ert--print-test-for-ewoc):
 	Handle `ert-test-quit'.
 
-2011-03-03  David Abrahams  <dave@boostpro.com>  (tiny change)
+2011-03-03  David Abrahams  <dave@boostpro.com>
 
 	* vc/ediff-init.el (ediff-use-faces, ediff-highlight-all-diffs):
 	Move ediff-defvar-local calls after defcustoms.  (Bug#1821)
@@ -13597,7 +13597,7 @@
 	* textmodes/artist.el (artist-compute-popup-menu-table):
 	Remove duplicated words in doc-strings.
 
-2010-01-15  David Abrahams  <dave@boostpro.com>  (tiny change)
+2010-01-15  David Abrahams  <dave@boostpro.com>
 
 	* net/mairix.el (mairix-widget-send-query): Send -1 instead of nil
 	to mairix-search to suppress threading (Bug#5342).

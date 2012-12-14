@@ -3378,10 +3378,18 @@ Without an argument, it saves customized diff argument, if available
     (set-window-buffer wind cloned-buff)
     cloned-buff))
 
-(defun ediff-clone-buffer-for-current-diff-comparison (buff buf-type reg-name)
-  (let ((cloned-buff (ediff-make-cloned-buffer buff reg-name))
-	(reg-start (ediff-get-diff-posn buf-type 'beg))
-	(reg-end (ediff-get-diff-posn buf-type 'end)))
+(defun ediff-buffer-type (buffer)
+  (cond ((eq buffer ediff-buffer-A) 'A)
+        ((eq buffer ediff-buffer-B) 'B)
+        ((eq buffer ediff-buffer-C) 'C)
+        ((eq buffer ediff-ancestor-buffer) 'Ancestor)
+        (t nil)))
+
+(defun ediff-clone-buffer-for-current-diff-comparison (buff reg-name)
+  (let* ((cloned-buff (ediff-make-cloned-buffer buff reg-name))
+         (buf-type (ediff-buffer-type buff))
+         (reg-start (ediff-get-diff-posn buf-type 'beg))
+         (reg-end (ediff-get-diff-posn buf-type 'end)))
     (ediff-with-current-buffer cloned-buff
       ;; set region to be the current diff region
       (goto-char reg-start)
@@ -3466,7 +3474,7 @@ Without an argument, it saves customized diff argument, if available
 
 (defun ediff-inferior-compare-regions ()
   "Compare regions in an active Ediff session.
-Like ediff-regions-linewise but is called from under an active Ediff session on
+Like `ediff-regions-linewise' but is called from under an active Ediff session on
 the files that belong to that session.
 
 After quitting the session invoked via this function, type C-l to the parent
@@ -3555,7 +3563,7 @@ Ediff Control Panel to restore highlighting."
 
     (setq bufA (if use-current-diff-p
 		   (ediff-clone-buffer-for-current-diff-comparison
-		    bufA 'A "-Region.A-")
+		    bufA "-Region.A-")
 		 (ediff-clone-buffer-for-region-comparison bufA "-Region.A-")))
     (ediff-with-current-buffer bufA
       (setq begA (region-beginning)
@@ -3570,7 +3578,7 @@ Ediff Control Panel to restore highlighting."
 
     (setq bufB (if use-current-diff-p
 		   (ediff-clone-buffer-for-current-diff-comparison
-		    bufB 'B "-Region.B-")
+		    bufB "-Region.B-")
 		 (ediff-clone-buffer-for-region-comparison bufB "-Region.B-")))
     (ediff-with-current-buffer bufB
       (setq begB (region-beginning)
