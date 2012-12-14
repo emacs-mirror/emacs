@@ -1,5 +1,12 @@
 2012-12-14  Stephen Berman  <stephen.berman@gmx.net>
 
+	* calendar/todos.el (todos-priorities-rules): Fix customization
+	type to prevent mismatch error.
+	(todos-set-top-priorities): Fix rule construction; fix input check;
+	improve prompt.
+
+2012-12-14  Stephen Berman  <stephen.berman@gmx.net>
+
 	* calendar/todos.el (todos-insert-item): If user exits Calendar
 	before choosing a date, cancel item insertion.
 	(todos-set-date-from-calendar): If user exits Calendar before

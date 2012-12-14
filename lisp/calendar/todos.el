@@ -493,7 +493,7 @@ number of top priority items for each category in that file, and
 ALIST, when non-nil, consists of conses of a category name in
 FILE and a number specifying the default number of top priority
 items in that category, which overrides NUM."
-  :type 'list
+  :type 'sexp
   :group 'todos-filtered)
 
 (defcustom todos-show-priorities 1
@@ -1992,21 +1992,23 @@ set the user customizable option `todos-priorities-rules'."
 	 (rules todos-priorities-rules)
 	 (frule (assoc-string file rules))
 	 (crule (assoc-string cat (nth 2 frule)))
+	 (crules (nth 2 frule))
 	 (cur (or (if arg (cdr crule) (nth 1 frule))
 		  todos-show-priorities))
-	 (prompt (concat "Current number of top priorities in this "
-			 (if arg "category" "file") ": %d; "
-			 "enter new number: "))
-	 (new "-1")
+	 (prompt (if arg (concat "Number of top priorities in this category"
+				 " (currently %d): ")
+		   (concat "Default number of top priorities per category"
+				 " in this file (currently %d): ")))
+	 (new -1)
 	 nrule)
-    (while (< (string-to-number new) 0)
+    (while (< new 0)
       (let ((cur0 cur))
-	(setq new (read-number (format prompt cur0) cur0)
+	(setq new (read-number (format prompt cur0))
 	      prompt "Enter a non-negative number: "
 	      cur0 nil)))
     (setq nrule (if arg
-		    (append (nth 2 (delete crule frule)) (list (cons cat new)))
-		  (append (list file new) (list (nth 2 frule)))))
+		    (append (delete crule crules) (list (cons cat new)))
+		  (append (list file new) (list crules))))
     (setq rules (cons (if arg
 			  (list file cur nrule)
 			nrule)
