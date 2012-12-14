@@ -131,14 +131,17 @@
   (eval-when-compile
     (list
      ;; control commands
-     (cons (regexp-opt '("require" "if" "else" "elsif" "stop"))
+     (cons (regexp-opt '("require" "if" "else" "elsif" "stop")
+                       'words)
 	   'sieve-control-commands-face)
      ;; action commands
-     (cons (regexp-opt '("fileinto" "redirect" "reject" "keep" "discard"))
+     (cons (regexp-opt '("fileinto" "redirect" "reject" "keep" "discard")
+                       'words)
 	   'sieve-action-commands-face)
      ;; test commands
      (cons (regexp-opt '("address" "allof" "anyof" "exists" "false"
-			 "true" "header" "not" "size" "envelope"))
+			 "true" "header" "not" "size" "envelope")
+                       'words)
 	   'sieve-test-commands-face)
      (cons "\\Sw+:\\sw+"
 	   'sieve-tagged-arguments-face))))
