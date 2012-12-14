@@ -20354,12 +20354,13 @@ redisplay_mode_lines (Lisp_Object window, int force)
 static int
 display_mode_lines (struct window *w)
 {
-  Lisp_Object old_selected_window, old_selected_frame;
+  Lisp_Object old_selected_window = selected_window;
+  Lisp_Object old_selected_frame = selected_frame;
+  Lisp_Object new_frame = w->frame;
+  Lisp_Object old_frame_selected_window = XFRAME (new_frame)->selected_window;
   int n = 0;
 
-  old_selected_frame = selected_frame;
   selected_frame = w->frame;
-  old_selected_window = selected_window;
   XSETWINDOW (selected_window, w);
 
   /* These will be set while the mode line specs are processed.  */
@@ -20383,6 +20384,7 @@ display_mode_lines (struct window *w)
       ++n;
     }
 
+  XFRAME (new_frame)->selected_window = old_frame_selected_window;
   selected_frame = old_selected_frame;
   selected_window = old_selected_window;
   return n;

@@ -1,7 +1,7 @@
 2012-12-14  Stefan Monnier  <monnier@iro.umontreal.ca>
 
-	* xdisp.c (select_frame_for_redisplay): Keep selected_window and
-	selected_frame in sync.
+	* xdisp.c (select_frame_for_redisplay, display_mode_lines):
+	Keep selected_window and selected_frame in sync.
 
 2012-12-14  Eli Zaretskii  <eliz@gnu.org>
 
