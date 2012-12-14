@@ -1,3 +1,14 @@
+2012-12-14  Ryan Crum  <ryan.crum@eleostech.com>
+
+	* json.el: Add pretty-print option (bug#12634).
+	(json-encoding-separator, json-encoding-default-indentation)
+	(json--encoding-current-indentation, json-encoding-pretty-print)
+	(json-encoding-lisp-style-closings): New vars.
+	(json--with-indentation): New macro.
+	(json-encode-hash-table, json-encode-alist, json-encode-plist)
+	(json-encode-array): Use it to obey json-encoding-pretty-print.
+	(json-pretty-print-buffer, json-pretty-print): New commands.
+
 2012-12-14  Dmitry Gutov  <dgutov@yandex.ru>
 
 	* progmodes/ruby-mode.el (ruby-syntax-propertize-function):
