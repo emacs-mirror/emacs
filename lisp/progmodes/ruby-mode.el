@@ -1340,7 +1340,7 @@ It will be properly highlighted even when the call omits parens."))
         (goto-char start)
         ;; Find all expression expansions and
         ;; - save the match data to a text property, for font-locking later,
-        ;; - set the syntax of all double quotes and backticks to puctuation.
+        ;; - set the syntax of all double quotes and backticks to punctuation.
         (while (re-search-forward ruby-expression-expansion-re end 'move)
           (let ((beg (match-beginning 2))
                 (end (match-end 2)))

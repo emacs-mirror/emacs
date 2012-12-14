@@ -946,7 +946,7 @@ description on Worg}.
 Installing Info files is system dependent, because of differences in the
 @file{install-info} program.  The Info documentation is installed together
 with the rest of Org mode.  If you don't install Org mode, it is possible to
-install the Info documentation seperately (you need to have
+install the Info documentation separately (you need to have
 install-info@footnote{The output from install-info (if any) is system
 dependent.  In particular Debian and its derivatives use two different
 versions of install-info and you may see the message:
@@ -16698,7 +16698,7 @@ on @file{org-element.el} and @file{org-export.el} has been outstanding, and
 opened the doors for many new ideas and features.
 
 @item Jambunathan K
-Jambunathan contributed the ODT exporter, definitly a killer feature of
+Jambunathan contributed the ODT exporter, definitely a killer feature of
 Org mode.  He also contributed the new HTML exporter, which is another core
 feature of Org.  Here too, I knew I could rely on him to fix bugs in these
 areas and to patiently explain the users what was the problems and solutions.
@@ -16706,7 +16706,7 @@ areas and to patiently explain the users what was the problems and solutions.
 @item Achim Gratz
 Achim rewrote the building process of Org, turning some @emph{ad hoc} tools
 into a flexible and conceptually clean process.  He patiently coped with the
-many hicups that such a change can create for users.
+many hiccups that such a change can create for users.
 
 @item Nick Dokos
 The Org mode mailing list would not be such a nice place without Nick, who

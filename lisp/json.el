@@ -100,7 +100,7 @@ tell the difference between `false' and `null'.  Consider let-binding
 this around your call to `json-read' instead of `setq'ing it.")
 
 (defvar json-encoding-separator ","
-  "Value to use as an element seperator when encoding.")
+  "Value to use as an element separator when encoding.")
 
 (defvar json-encoding-default-indentation "  "
   "The default indentation level for encoding.

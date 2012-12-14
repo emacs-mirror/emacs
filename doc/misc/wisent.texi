@@ -134,10 +134,11 @@ June 1985, Report No. UCB/CSD 85/251.
 
 @item
 For generating the lookahead sets, Wisent uses the well-known
-technique of F. DeRemer and A. Pennello they described in:
+technique of F. DeRemer and A. Pennello described in:
 @quotation
-@cite{Efficient Construction of LALR(1) Lookahead Sets}@*
-October 1982, ACM TOPLS Vol 4 No 4.
+@cite{Efficient Computation of LALR(1) Look-Ahead Sets}@*
+October 1982, ACM TOPLAS Vol 4 No 4, 615--49,
+@uref{http://dx.doi.org/10.1145/69622.357187}.
 @end quotation
 
 @item
@@ -284,7 +285,7 @@ For example,
 
 Says that two groupings of type @samp{exp}, with a @samp{+} token in
 between, can be combined into a larger grouping of type @samp{exp}.
- 
+
 @cindex grammar coding conventions
 By convention, a nonterminal symbol should be in lower case, such as
 @samp{exp}, @samp{stmt} or @samp{declaration}.  Terminal symbols
@@ -1217,7 +1218,7 @@ data type.
 
 @item start
 @itemx end
-Are the optionals beginning and end positions of @var{value} in the
+Are the optional beginning and ending positions of @var{value} in the
 input stream.
 @end table
 
@@ -1340,8 +1341,8 @@ of the current statement if an error is detected:
 
 @example
 @group
-(stmnt (( error ?; )) ;; on error, skip until ';' is read
-       )
+(statement (( error ?; )) ;; on error, skip until ';' is read
+           )
 @end group
 @end example
 

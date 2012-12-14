@@ -226,7 +226,7 @@ template files, and determining which templates are relevant to the
 current buffer.  Template files are sorted by priority, with user
 templates being found first, and system level default templates last.
 Templates are also sorted by application.  Each application has its
-own templates, and are kept seperate from the generic templates.
+own templates, and are kept separate from the generic templates.
 
 @section Dictionary
 Dictionaries contain values associated with variable.  Variables are
@@ -312,7 +312,7 @@ template to be inserted again.
 
 By default, when inserting a template, if the user needs to enter text
 to fill in a part of the template, then the minibuffer is used to
-query for that information.  SRecode also supports a field-edting mode
+query for that information.  SRecode also supports a field-editing mode
 that can be used instead.  To enable it set:
 
 @defun srecode-insert-ask-variable-method
@@ -344,7 +344,7 @@ Once the cursor moves out of the are inserted by the template, all the
 fields are cancelled.
 
 @b{NOTE}: Some conveniences in templates, such as completion, or
-character restrictins are lost when using field editing mode.
+character restrictions are lost when using field editing mode.
 
 @node Template Writing
 @chapter Template Writing
@@ -401,7 +401,7 @@ set VARNAME "some value"
 @end example
 
 Note that a VARIABLE is a name in a dictionary that can be used in a
-MACRO in a template.  The macro referernces some variable by name.
+MACRO in a template.  The macro references some variable by name.
 
 @menu
 * String Values::       Basic Variable values
@@ -420,7 +420,7 @@ other characters.  Strings are interpreted by the Emacs Lisp reader so
 @code{\n}, @code{\t}, and @code{\"} work.
 
 When a string is inserted as part of a template, nothing within the
-string is interperted, such as template escape characters.
+string is interpreted, such as template escape characters.
 
 @node Multi-string Values
 @subsection Multi-string Values
@@ -545,7 +545,7 @@ Any template file that has a project specified will get have a
 priority that is set between SRecode base templates, and user defined
 templates.
 
-Templates can be compiled via a project system, such as EDE.  EDE
+Templates can be compiled via a project system, such as EDE@.  EDE
 loaded templates will get a @var{project} set automatically.
 
 Example:
@@ -599,7 +599,7 @@ variables from Lisp.
 A template represents a text pattern that can be inserted into
 a buffer.
 
-A basic template is declaired like this:
+A basic template is declared like this:
 
 @example
 template TEMPLATENAME :arg1 :arg2
@@ -621,7 +621,7 @@ contain the text "-----".
 
 @menu
 * Template Section Dictionaries::  Template Scoped Macro values
-* Template Macros::     Macros occuring in template patterns
+* Template Macros::     Macros occurring in template patterns
 @end menu
 
 @node Template Section Dictionaries
@@ -644,7 +644,7 @@ An end line
 @end example
 
 In this example, the @var{NAME} variable gets the value ``foo'', but
-only while it is inside section macro A.  The outer scoped NAME will
+only while it is inside section macro A@.  The outer scoped NAME will
 be empty.
 
 This is particularly useful while using an include macro to pull in a
@@ -847,7 +847,7 @@ template foo
 
 context C2
 
-temlate foo
+template foo
 "Foo template in C2"
 ----
 ----
@@ -858,13 +858,13 @@ C1.  The second is available in context C2.
 
 This is useful if there are multiple ways to declare something like a
 function or variable that differ only by where it is in the syntax of
-the lanugage.  The name @code{foo} is not ambiguous because each is in
+the language.  The name @code{foo} is not ambiguous because each is in
 a different context.
 
 @node Prompts
 @section Prompt
 
-Some templates use promtping macro insertion.  A macro that needs a
+Some templates use prompting macro insertion.  A macro that needs a
 prompt looks like this:
 
 @example
@@ -881,7 +881,7 @@ Specify NAME:
 
 For such macros, you can pre-define prompts for any dictionary entry.
 When that dictionary entry is first encountered, the user is prompted,
-and subsequent occurances of that dictionary entry use the same value.
+and subsequent occurrences of that dictionary entry use the same value.
 
 To get a different prompt, use a prompt command like this:
 
@@ -926,7 +926,7 @@ need to use the @code{defaultmacro} keyword instead.
 prompt VARNAME "Varname: " defaultmacro "PREFIX"
 @end example
 
-now, when it attempts to read in VARNAME, it will pre-populte the text
+now, when it attempts to read in VARNAME, it will pre-populate the text
 editing section with whatever the value of PREFIX is.
 
 Some language arguments may supply possible prefixes for prompts.
@@ -972,7 +972,7 @@ When building an @srecode{} based application, you will need to setup
 your dictionary values yourself.  There are several utility functions
 for this.
 
-In the simplest form, you can assocate a string with a variable.
+In the simplest form, you can associate a string with a variable.
 
 @defun srecode-dictionary-set-value dict name value
 @anchor{srecode-dictionary-set-value}
@@ -997,8 +997,9 @@ You can add several dictionaries to the same section entry.
 For each dictionary added to a variable, the block of codes in
 the template will be repeated.
 
-If optional argument @var{SHOW-ONLY} is non-@code{nil}, then don't add a new dictionarly
-if there is already one in place.  Also, don't add @var{FIRST}/@var{LAST} entries.
+If optional argument @var{SHOW-ONLY} is non-@code{nil}, then don't add
+a new dictionary if there is already one in place.  Also, don't add
+@var{FIRST}/@var{LAST} entries.
 These entries are not needed when we are just showing a section.
 
 Each dictionary added will automatically get values for positional macros
@@ -1126,7 +1127,7 @@ want, but adding dictionary values is the right thing.
 @node Querying a Dictionary
 @section Querying a Dictionary
 
-When creating a new argument, it may be useful to ask the dicitonary
+When creating a new argument, it may be useful to ask the dictionary
 what entries are already set there, and conditionally create new
 entries based on those.
 
@@ -1234,7 +1235,7 @@ The current hour in 24 hour format.
 @item HOUR12
 The current hour in 12 hour format.
 @item AMPM
-Locale equivalent of AM or PM.  Usefule with HOUR12.
+Locale equivalent of AM or PM@.  Useful with HOUR12.
 @item MINUTE
 The current minute.
 @item SECOND
@@ -1331,7 +1332,7 @@ entries.
 
 @table @code
 @item ARGS
-A Loop macro value.  Each argument is inserted in ARGS.  To create a
+A Loop macro value.  Each argument is inserted in ARGS@.  To create a
 comma separated list of arguments, you might do this:
 
 @example
@@ -1412,7 +1413,7 @@ name.
 Converts the filename into text that would be suitable as a class-name
 for the main class in the file.
 @item CURRENT_PACKAGE
-Finds the occurance of ``package'' and gets its value.
+Finds the occurrence of ``package'' and gets its value.
 @end table
 
 @subsubsection Argument :el
@@ -1430,7 +1431,7 @@ to namespaces in other languages.
 The name of the Emacs Custom group that instances of @code{defcustom}
 ought to use.
 @item FACEGROUP
-The name of the Emacs Custom group that faces delcared with
+The name of the Emacs Custom group that faces declared with
 @code{defface} ought to use.
 @end table
 
@@ -1551,7 +1552,7 @@ tables that do not belong to an application will be searched.
 @end defun
 
 For purposes of an @srecode{} application, it is important to decide
-what to call yoru application, and use that with this method call.
+what to call your application, and use that with this method call.
 
 @section Creating dictionaries
 
@@ -1582,7 +1583,7 @@ If @var{stream} is nil, then use the current buffer.
 @node Template Naming Conventions
 @chapter Template Naming Conventions
 
-For @srecode{} to work across langauges reliably, templates need to
+For @srecode{} to work across languages reliably, templates need to
 follow a predictable pattern.  For every language of similar nature
 (OO, functional, doc based) if they all provide the same base
 templates, then an application can be written against the base
@@ -1613,7 +1614,7 @@ Functional languages should attempt to support the following:
 @item function
 A standalone function.  Not a method, external method, or other.
 @item method
-A method belonging to some class declaired outside the textual bounds
+A method belonging to some class declared outside the textual bounds
 of that class' declaration.
 @item variable
 A global variable.
@@ -1685,7 +1686,7 @@ also the following useful dictionary values.
 
 @table @var
 @item TAG
-A special insertion value TAG.  You can use semantic functions to turn
+A special insertion value TAG@.  You can use semantic functions to turn
 the tag into a string.
 @item HAVEDEFAULT
 @itemx DEFAULT
