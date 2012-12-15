@@ -1087,10 +1087,7 @@ register_child (int pid, int fd)
   fd_info[fd].cp = cp;
 }
 
-/* When a process dies its pipe will break so the reader thread will
-   signal failure to the select emulator.
-   The select emulator then calls this routine to clean up.
-   Since the thread signaled failure we can assume it is exiting.  */
+/* Called from waitpid when a process exits.  */
 static void
 reap_subprocess (child_process *cp)
 {
